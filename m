@@ -2,32 +2,32 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1067AC43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 460B4C4321E
 	for <linux-omap@archiver.kernel.org>; Thu, 21 Oct 2021 13:19:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F217060ED5
-	for <linux-omap@archiver.kernel.org>; Thu, 21 Oct 2021 13:19:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30225611C7
+	for <linux-omap@archiver.kernel.org>; Thu, 21 Oct 2021 13:19:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230374AbhJUNVV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S230361AbhJUNVV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Thu, 21 Oct 2021 09:21:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50994 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230372AbhJUNVS (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2021 09:21:18 -0400
-Received: from xavier.telenet-ops.be (xavier.telenet-ops.be [IPv6:2a02:1800:120:4::f00:14])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 129A0C061224
-        for <linux-omap@vger.kernel.org>; Thu, 21 Oct 2021 06:19:01 -0700 (PDT)
+        with ESMTP id S230460AbhJUNVT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2021 09:21:19 -0400
+Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be [IPv6:2a02:1800:120:4::f00:13])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86612C061227
+        for <linux-omap@vger.kernel.org>; Thu, 21 Oct 2021 06:19:03 -0700 (PDT)
 Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed20:2c41:c2bf:5c8f:53c5])
-        by xavier.telenet-ops.be with bizsmtp
-        id 8dJy2600B1Z5S4H01dJynV; Thu, 21 Oct 2021 15:19:01 +0200
+        by baptiste.telenet-ops.be with bizsmtp
+        id 8dJy2600G1Z5S4H01dJyWe; Thu, 21 Oct 2021 15:19:01 +0200
 Received: from rox.of.borg ([192.168.97.57])
         by ramsan.of.borg with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.93)
         (envelope-from <geert@linux-m68k.org>)
-        id 1mdXyE-006ZAE-7g; Thu, 21 Oct 2021 15:18:58 +0200
+        id 1mdXyE-006ZAG-4k; Thu, 21 Oct 2021 15:18:58 +0200
 Received: from geert by rox.of.borg with local (Exim 4.93)
         (envelope-from <geert@linux-m68k.org>)
-        id 1mdXyD-00GQ88-Jy; Thu, 21 Oct 2021 15:18:57 +0200
+        id 1mdXyD-00GQ8L-Lv; Thu, 21 Oct 2021 15:18:57 +0200
 From:   Geert Uytterhoeven <geert+renesas@glider.be>
 To:     Russell King <linux@armlinux.org.uk>,
         Rob Herring <robh+dt@kernel.org>,
@@ -39,9 +39,9 @@ Cc:     David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>,
         devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 1/3] ARM: dts: am335x: Fix TDA998x ports addressing
-Date:   Thu, 21 Oct 2021 15:18:51 +0200
-Message-Id: <9b31ebb7bfcb57a5a712a380b67b6ce8fd67492a.1634822085.git.geert+renesas@glider.be>
+Subject: [PATCH 3/3] [RFC] dt-bindings: display: bridge: nxp,tda998x: Convert to json-schema
+Date:   Thu, 21 Oct 2021 15:18:53 +0200
+Message-Id: <1f6bf58d76efc2e869b800534b818d1451ef98a2.1634822085.git.geert+renesas@glider.be>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <cover.1634822085.git.geert+renesas@glider.be>
 References: <cover.1634822085.git.geert+renesas@glider.be>
@@ -51,55 +51,200 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Fix addressing in the NXP TDA998x HDMI transmitters' subnodes:
-  - Add missing #{address,size}-cells properties to ports capsule,
-  - Add missing reg properties to port child nodes,
-  - Drop bogus unit addresses from endpoint grandchildren nodes.
+Convert the NXP TDA998x HDMI transmitter Device Tree binding
+documentation to json-schema.
+
+Add missing "#sound-dai-cells" property.
+Add ports hierarchy, as an alternative to port.
+Drop pinctrl properties, as they do not belong here.
 
 Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
- arch/arm/boot/dts/am335x-boneblack-hdmi.dtsi | 7 ++++++-
- arch/arm/boot/dts/am335x-myirtech-myd.dts    | 7 ++++++-
- 2 files changed, 12 insertions(+), 2 deletions(-)
+RFC as I do not know:
+  1. The correct value(s) for '#sound-dai-cells' (the example used 2,
+     which was IMHO wrong, while all actual users use 0),
+  2. The meaning of the various ports subnodes.
+---
+ .../bindings/display/bridge/nxp,tda998x.yaml  | 108 ++++++++++++++++++
+ .../bindings/display/bridge/tda998x.txt       |  54 ---------
+ 2 files changed, 108 insertions(+), 54 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/display/bridge/nxp,tda998x.yaml
+ delete mode 100644 Documentation/devicetree/bindings/display/bridge/tda998x.txt
 
-diff --git a/arch/arm/boot/dts/am335x-boneblack-hdmi.dtsi b/arch/arm/boot/dts/am335x-boneblack-hdmi.dtsi
-index 7cfddada934861bc..486f24deb875c688 100644
---- a/arch/arm/boot/dts/am335x-boneblack-hdmi.dtsi
-+++ b/arch/arm/boot/dts/am335x-boneblack-hdmi.dtsi
-@@ -85,8 +85,13 @@ tda19988: tda19988@70 {
- 		audio-ports = <	TDA998x_I2S	0x03>;
- 
- 		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
+diff --git a/Documentation/devicetree/bindings/display/bridge/nxp,tda998x.yaml b/Documentation/devicetree/bindings/display/bridge/nxp,tda998x.yaml
+new file mode 100644
+index 0000000000000000..87c64edcf5d5617d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/display/bridge/nxp,tda998x.yaml
+@@ -0,0 +1,108 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/display/bridge/nxp,tda998x.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
 +
- 			port@0 {
--				hdmi_0: endpoint@0 {
-+				reg = <0>;
++title: NXP TDA998x HDMI transmitter
 +
-+				hdmi_0: endpoint {
- 					remote-endpoint = <&lcdc_0>;
- 				};
- 			};
-diff --git a/arch/arm/boot/dts/am335x-myirtech-myd.dts b/arch/arm/boot/dts/am335x-myirtech-myd.dts
-index 1479fd95dec2441c..4120bfb351bd9e69 100644
---- a/arch/arm/boot/dts/am335x-myirtech-myd.dts
-+++ b/arch/arm/boot/dts/am335x-myirtech-myd.dts
-@@ -161,8 +161,13 @@ tda9988: tda9988@70 {
- 		#sound-dai-cells = <0>;
- 
- 		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
++maintainers:
++  - Russell King <linux@armlinux.org.uk>
 +
- 			port@0 {
--				hdmi_0: endpoint@0 {
-+				reg = <0>;
++properties:
++  compatible:
++    const: nxp,tda998x
 +
-+				hdmi_0: endpoint {
- 					remote-endpoint = <&lcdc_0>;
- 				};
- 			};
++  reg:
++    maxItems: 1
++
++  interrupts:
++    maxItems: 1
++
++  video-ports:
++    default: 0x230145
++    description:
++      24 bits value which defines how the video controller output is wired to
++      the TDA998x input.
++
++  audio-ports:
++    description:
++      Array of 8-bit values, 2 values per DAI (Documentation/sound/soc/dai.rst).
++      The implementation allows one or two DAIs.
++      If two DAIs are defined, they must be of different type.
++    $ref: /schemas/types.yaml#/definitions/uint32-matrix
++    items:
++      minItems: 1
++      maxItems: 2
++      items:
++        - description: |
++            The first value defines the DAI type: TDA998x_SPDIF or TDA998x_I2S
++            (see include/dt-bindings/display/tda998x.h).
++        - description:
++            The second value defines the tda998x AP_ENA reg content when the
++            DAI in question is used.
++
++  '#sound-dai-cells':
++    enum: [ 0, 1 ]
++
++  nxp,calib-gpios:
++    maxItems: 1
++    description:
++      Calibration GPIO, which must correspond with the gpio used for the
++      TDA998x interrupt pin.
++
++  port:
++    $ref: /schemas/graph.yaml#/properties/port
++
++  ports:
++    $ref: /schemas/graph.yaml#/properties/ports
++
++    properties:
++      port@0:
++        type: object
++        description: FIXME
++
++      port@1:
++        type: object
++        description: FIXME
++
++required:
++  - compatible
++  - reg
++
++oneOf:
++  - required:
++      - port
++  - required:
++      - ports
++
++additionalProperties: false
++
++examples:
++  - |
++    #include <dt-bindings/display/tda998x.h>
++    #include <dt-bindings/interrupt-controller/irq.h>
++
++    i2c {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        tda998x: hdmi-encoder@70 {
++            compatible = "nxp,tda998x";
++            reg = <0x70>;
++            interrupt-parent = <&gpio0>;
++            interrupts = <27 IRQ_TYPE_EDGE_FALLING>;
++            video-ports = <0x230145>;
++
++            #sound-dai-cells = <1>;
++                         /* DAI-format / AP_ENA reg value */
++            audio-ports = <TDA998x_SPDIF 0x04>,
++                          <TDA998x_I2S 0x03>;
++
++            port {
++                tda998x_in: endpoint {
++                    remote-endpoint = <&lcdc_0>;
++                };
++            };
++        };
++    };
+diff --git a/Documentation/devicetree/bindings/display/bridge/tda998x.txt b/Documentation/devicetree/bindings/display/bridge/tda998x.txt
+deleted file mode 100644
+index f5a02f61dd36f1c6..0000000000000000
+--- a/Documentation/devicetree/bindings/display/bridge/tda998x.txt
++++ /dev/null
+@@ -1,54 +0,0 @@
+-Device-Tree bindings for the NXP TDA998x HDMI transmitter
+-
+-Required properties;
+-  - compatible: must be "nxp,tda998x"
+-
+-  - reg: I2C address
+-
+-Required node:
+-  - port: Input port node with endpoint definition, as described
+-        in Documentation/devicetree/bindings/graph.txt
+-
+-Optional properties:
+-  - interrupts: interrupt number and trigger type
+-	default: polling
+-
+-  - pinctrl-0: pin control group to be used for
+-	screen plug/unplug interrupt.
+-
+-  - pinctrl-names: must contain a "default" entry.
+-
+-  - video-ports: 24 bits value which defines how the video controller
+-	output is wired to the TDA998x input - default: <0x230145>
+-
+-  - audio-ports: array of 8-bit values, 2 values per one DAI[1].
+-	The first value defines the DAI type: TDA998x_SPDIF or TDA998x_I2S[2].
+-	The second value defines the tda998x AP_ENA reg content when the DAI
+-	in question is used. The implementation allows one or two DAIs. If two
+-	DAIs are defined, they must be of different type.
+-
+-  - nxp,calib-gpios: calibration GPIO, which must correspond with the
+-	gpio used for the TDA998x interrupt pin.
+-
+-[1] Documentation/sound/soc/dai.rst
+-[2] include/dt-bindings/display/tda998x.h
+-
+-Example:
+-
+-#include <dt-bindings/display/tda998x.h>
+-
+-	tda998x: hdmi-encoder {
+-		compatible = "nxp,tda998x";
+-		reg = <0x70>;
+-		interrupt-parent = <&gpio0>;
+-		interrupts = <27 2>;		/* falling edge */
+-		pinctrl-0 = <&pmx_camera>;
+-		pinctrl-names = "default";
+-		video-ports = <0x230145>;
+-
+-		#sound-dai-cells = <2>;
+-			     /*	DAI-format	AP_ENA reg value */
+-		audio-ports = <	TDA998x_SPDIF	0x04
+-				TDA998x_I2S	0x03>;
+-
+-	};
 -- 
 2.25.1
 
