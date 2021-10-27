@@ -2,54 +2,54 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 815CFC4167B
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:25:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7E77C4332F
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:25:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 683EF60231
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:25:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7CD261100
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:25:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241394AbhJ0V12 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Oct 2021 17:27:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53910 "EHLO
+        id S231777AbhJ0V1l (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Oct 2021 17:27:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241083AbhJ0VZZ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2021 17:25:25 -0400
-Received: from mail-lf1-x12b.google.com (mail-lf1-x12b.google.com [IPv6:2a00:1450:4864:20::12b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A4EAC0432F1;
-        Wed, 27 Oct 2021 14:19:03 -0700 (PDT)
-Received: by mail-lf1-x12b.google.com with SMTP id f3so807958lfu.12;
-        Wed, 27 Oct 2021 14:19:03 -0700 (PDT)
+        with ESMTP id S241255AbhJ0VZ2 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2021 17:25:28 -0400
+Received: from mail-lj1-x22a.google.com (mail-lj1-x22a.google.com [IPv6:2a00:1450:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB063C0432F7;
+        Wed, 27 Oct 2021 14:19:06 -0700 (PDT)
+Received: by mail-lj1-x22a.google.com with SMTP id h11so7032494ljk.1;
+        Wed, 27 Oct 2021 14:19:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=IkN5RxNvfWU6udxIv0HqPwHPsreqVVHZYAiW4uOSdQE=;
-        b=EBSN3i6pBzJ/QX6b7hWJ61FbfkEkrcOrflTwto+4KX4or46ACVz9Tr/1pugxTtiHmi
-         G7CMVOoidyYK0g+Vg4pJnm/bKfolm8lIe6sk0vITgUl/0On7GAe1avC+nPdsUhal8n/2
-         2LfBGzyZF4kisF1H8Fy3oqJJlA7mP+5FCx9jGZBePen+YJxCg52jU7glSS7bDwelermJ
-         QOk39GQqnkcumTBHd2mHERoDOJXwlx4KsuyCu/MObr6DT96WNWvs0v/iyAkBnjjhRCxD
-         gw7GTseQp5qiH+atTqu6Rg9n+NmY0IzLKdyAE4sSGNY6W234A5z05GeGyvCsr57AR1H6
-         zVgw==
+        bh=3OlHSqJ+90NzTUoF0ScIJd6Gu2h2samNuNJcsiL1Jk8=;
+        b=TlGsLZtcrVzUb7sAOhif3p7pVw8LafC2xLy1EDPy1NIwJl5MQQvmHy2JQZYszcOE8Z
+         bpdCDmyEM5D03Couzbs3VVZUIdamWSCPF0yzl5vvizBqtDssLI1790jRM+TPIcawNrlD
+         8STEeq0OEOHvy2rX7OXiOWUq9V+Wbq3xZg3vhjF/dealnvdRkEuGDx5b0mmtoBXsa4Tg
+         7gFUHQvvLRw3QjAUV5dCuqij4emeiEy4r7tFICkEZrQaaXXABdfN2M8h/mxrxQbImqYG
+         GaGzMOCXHjG+QuAc4Dq0gK0PotuHucIYhVqvi35iVuJc+hGZhg1h00rdw0kra8k/EpLO
+         luJw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=IkN5RxNvfWU6udxIv0HqPwHPsreqVVHZYAiW4uOSdQE=;
-        b=dk0Ua7+8vaAoPepoSXkiaUeoUIMShuW8Ciklf1yf+kTYGqe4w3RNARZDJ1p/VdRWvy
-         /D14aFGSt29SRagZZc6Tkq7Xgs4G0u446KNGKk2jsuqin4vME569Mn6rkNlRaf3UntNb
-         4n5m6DSfJa/CXMvQJeV6WWX1Ee02rykPts63fj5ydSxTzyUiP93ulHQrI1XJ4vPkEOGm
-         xpw1nLTVKkCaB/vgtySUzPnGA0jFSusBXEDmDe3vEFhSJA+Bmhm918Afr2R7kIPplgq8
-         olHwljieylALp93mftJpq+4iVhqfbmZ1z+qVDYkAywKv4PZ7D6HrVjAOND0kMh1OYz3J
-         Au3A==
-X-Gm-Message-State: AOAM5318yMVDZxqH8fqZBYL6jdnCQEN28gtJe4IWp7cnCuK7Q300Dd0Q
-        I6uI1IaPTvUhOapxSVi0MwY=
-X-Google-Smtp-Source: ABdhPJxsr/pRUcPc/yvXJw9vQsQsBRCfPMRUucvUkltufw5utcaA8e0PD5R7U1W5XHhl0HmaGsY5xg==
-X-Received: by 2002:a05:6512:aca:: with SMTP id n10mr150724lfu.66.1635369541621;
-        Wed, 27 Oct 2021 14:19:01 -0700 (PDT)
+        bh=3OlHSqJ+90NzTUoF0ScIJd6Gu2h2samNuNJcsiL1Jk8=;
+        b=6eRm/yH4uKwzVBusC+BubrYhiUqmHSMgN+xIU10SkaLqZQ6UhwTixA9F5p7HCf8hJX
+         BtKiglbu+s9lKyiLsXwPYJ0YFa+/sb/JKbUqG4iosT+DYghpkfPFTN8oTx4kXPpfPqUX
+         BZzcK5lQmcOIlSjnAozEdBL/4waX82mrhMVQoHabZlzGHhME3ey570ll/4Vk94W1ibwd
+         W6iP7eXhRmjKxnZpK+tu0X4vCO1Dibj3oD4ijyIKQOBDxAKdRc1+dIw4bDwby+fDXp4P
+         IGN5OlYbg5NYg5CyXrMoEKwApCIgNjbyNGm20p8wjEpuqdO9tlJFopXRX0eb+1yqhQB/
+         aKGw==
+X-Gm-Message-State: AOAM532PJfWISP/N1/cuottR4XrInzLbhIHHrtyD4WiShr6hjTHTm7Z+
+        2814HwxygRkqPakxwrOV2Iw=
+X-Google-Smtp-Source: ABdhPJzDbMhKltt/cJ4cLHVC7lvSJKFFWBp4i2pL/KBXA4D8sI4Ihh3wNKVdm9xKvnEcHeY8d+ELCw==
+X-Received: by 2002:a2e:b0e2:: with SMTP id h2mr336408ljl.522.1635369545290;
+        Wed, 27 Oct 2021 14:19:05 -0700 (PDT)
 Received: from localhost.localdomain (46-138-41-28.dynamic.spd-mgts.ru. [46.138.41.28])
-        by smtp.gmail.com with ESMTPSA id d7sm104336ljl.18.2021.10.27.14.18.59
+        by smtp.gmail.com with ESMTPSA id d7sm104336ljl.18.2021.10.27.14.19.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Oct 2021 14:19:01 -0700 (PDT)
+        Wed, 27 Oct 2021 14:19:05 -0700 (PDT)
 From:   Dmitry Osipenko <digetx@gmail.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         Jonathan Hunter <jonathanh@nvidia.com>,
@@ -113,9 +113,9 @@ Cc:     Catalin Marinas <catalin.marinas@arm.com>,
         xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
         linux-omap@vger.kernel.org, openbmc@lists.ozlabs.org,
         linux-tegra@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [PATCH v2 37/45] mfd: tps65910: Use devm_register_simple_power_off_handler()
-Date:   Thu, 28 Oct 2021 00:17:07 +0300
-Message-Id: <20211027211715.12671-38-digetx@gmail.com>
+Subject: [PATCH v2 39/45] mfd: dm355evm_msp: Use devm_register_trivial_power_off_handler()
+Date:   Thu, 28 Oct 2021 00:17:09 +0300
+Message-Id: <20211027211715.12671-40-digetx@gmail.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211027211715.12671-1-digetx@gmail.com>
 References: <20211027211715.12671-1-digetx@gmail.com>
@@ -125,57 +125,79 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Use devm_register_simple_power_off_handler() that replaces global
+Use devm_register_trivial_power_off_handler() that replaces global
 pm_power_off variable and allows to register multiple power-off handlers.
 
 Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
- drivers/mfd/tps65910.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ drivers/mfd/dm355evm_msp.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
-index 6e105cca27d4..8fab30dc84e5 100644
---- a/drivers/mfd/tps65910.c
-+++ b/drivers/mfd/tps65910.c
-@@ -16,6 +16,7 @@
- #include <linux/irq.h>
- #include <linux/irqdomain.h>
- #include <linux/mfd/core.h>
+diff --git a/drivers/mfd/dm355evm_msp.c b/drivers/mfd/dm355evm_msp.c
+index 54fb6cbd2aa0..5ee830f65589 100644
+--- a/drivers/mfd/dm355evm_msp.c
++++ b/drivers/mfd/dm355evm_msp.c
+@@ -8,6 +8,7 @@
+ #include <linux/init.h>
+ #include <linux/mutex.h>
+ #include <linux/platform_device.h>
 +#include <linux/reboot.h>
- #include <linux/regmap.h>
- #include <linux/mfd/tps65910.h>
- #include <linux/of.h>
-@@ -429,9 +430,9 @@ struct tps65910_board *tps65910_parse_dt(struct i2c_client *client,
+ #include <linux/clk.h>
+ #include <linux/module.h>
+ #include <linux/err.h>
+@@ -375,11 +376,10 @@ static void dm355evm_power_off(void)
+ 	dm355evm_command(MSP_COMMAND_POWEROFF);
  }
- #endif
  
--static struct i2c_client *tps65910_i2c_client;
--static void tps65910_power_off(void)
-+static void tps65910_power_off(void *data)
+-static int dm355evm_msp_remove(struct i2c_client *client)
++static void dm355evm_msp_remove(void *data)
  {
-+	struct i2c_client *tps65910_i2c_client = data;
- 	struct tps65910 *tps65910;
+-	pm_power_off = NULL;
++	/* FIXME remove children ... */
+ 	msp430 = NULL;
+-	return 0;
+ }
  
- 	tps65910 = dev_get_drvdata(&tps65910_i2c_client->dev);
-@@ -503,9 +504,15 @@ static int tps65910_i2c_probe(struct i2c_client *i2c,
- 	tps65910_ck32k_init(tps65910, pmic_plat_data);
- 	tps65910_sleepinit(tps65910, pmic_plat_data);
+ static int
+@@ -392,6 +392,11 @@ dm355evm_msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		return -EBUSY;
+ 	msp430 = client;
  
--	if (pmic_plat_data->pm_off && !pm_power_off) {
--		tps65910_i2c_client = i2c;
--		pm_power_off = tps65910_power_off;
-+	if (pmic_plat_data->pm_off) {
-+		ret = devm_register_simple_power_off_handler(&i2c->dev,
-+							     tps65910_power_off,
-+							     i2c);
-+		if (ret) {
-+			dev_err(&i2c->dev,
-+				"failed to register power-off handler: %d\n", ret);
-+			return ret;
-+		}
- 	}
++	status = devm_add_action_or_reset(&client->dev, dm355evm_msp_remove,
++					  NULL);
++	if (status < 0)
++		goto fail;
++
+ 	/* display revision status; doubles as sanity check */
+ 	status = dm355evm_msp_read(DM355EVM_MSP_FIRMREV);
+ 	if (status < 0)
+@@ -416,13 +421,15 @@ dm355evm_msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		goto fail;
  
- 	ret = devm_mfd_add_devices(tps65910->dev, -1,
+ 	/* PM hookup */
+-	pm_power_off = dm355evm_power_off;
++	status = devm_register_trivial_power_off_handler(&client->dev,
++							 dm355evm_power_off);
++	if (status)
++		dev_err(&client->dev, "failed to register power-off handler: %d",
++			status);
+ 
+ 	return 0;
+ 
+ fail:
+-	/* FIXME remove children ... */
+-	dm355evm_msp_remove(client);
+ 	return status;
+ }
+ 
+@@ -436,7 +443,6 @@ static struct i2c_driver dm355evm_msp_driver = {
+ 	.driver.name	= "dm355evm_msp",
+ 	.id_table	= dm355evm_msp_ids,
+ 	.probe		= dm355evm_msp_probe,
+-	.remove		= dm355evm_msp_remove,
+ };
+ 
+ static int __init dm355evm_msp_init(void)
 -- 
 2.33.1
 
