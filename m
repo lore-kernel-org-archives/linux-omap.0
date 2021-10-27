@@ -2,54 +2,54 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25759C43217
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:18:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8494C4332F
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:18:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0EC44610FD
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:18:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C281061166
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:18:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244374AbhJ0VUi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Oct 2021 17:20:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53768 "EHLO
+        id S244567AbhJ0VVL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Oct 2021 17:21:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244339AbhJ0VUd (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2021 17:20:33 -0400
-Received: from mail-lj1-x22d.google.com (mail-lj1-x22d.google.com [IPv6:2a00:1450:4864:20::22d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AFD0C0613B9;
-        Wed, 27 Oct 2021 14:18:07 -0700 (PDT)
-Received: by mail-lj1-x22d.google.com with SMTP id 17so3838054ljq.0;
-        Wed, 27 Oct 2021 14:18:07 -0700 (PDT)
+        with ESMTP id S244303AbhJ0VU3 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2021 17:20:29 -0400
+Received: from mail-lf1-x132.google.com (mail-lf1-x132.google.com [IPv6:2a00:1450:4864:20::132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A620EC061745;
+        Wed, 27 Oct 2021 14:18:03 -0700 (PDT)
+Received: by mail-lf1-x132.google.com with SMTP id f3so803531lfu.12;
+        Wed, 27 Oct 2021 14:18:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=YMqE3plwxFsGF2jAAFpub/HIgtQoag7R/7s0kLQElmo=;
-        b=FUIf1ArHmNaCMJZ4bSQxWbL5JCSm2CJKzXGlBqJrWaAR8tSPTufWS8xOyLSwSu1PM5
-         2liVJ/5r60CrtJJr5DfBlw1KykabxABPWMHDsuYjgXtr14EcQg2JUBTjbQBqUDOiqreb
-         QGWgVclCqks9knb00wTu5MnkQu4fzkoUJI9+ACesDxpbb8YGJKMHlYbydkINuBcjzEjx
-         IFIHDVdQgtIeC1A4mREDvIovPg1tG0nOTZB7ncUf8fLjV8foPKyZUn+53/McMAaFU2Ip
-         XymrGCj037mcVReap7wcm8US/GqkUtNAHHKTZ6VwLbtZ8u26dh3C526wfrT0Bgbs2S/w
-         m+/Q==
+        bh=O+IvQoJf2OjzCPAk90L+IlIvsTQGqRsS8A3mVG9thss=;
+        b=BbS8+/zxVJ00rr3ixtYTd3bTdxqjkUjnBr55DaOxzJArvyNX4521PAqPigYX/BjB1N
+         aGylVDFiYrs5wRaWuZx6L52it/PPywema7yDnahBHenwiuFnc4S3m//ivsOGtXuUlPNB
+         ubXOhenNVEu1KXB2mXMptIWVwaeJRf3hxW3c8R68HPPg3pjoH3MM7xhUxuphpty83aFx
+         DGHamMHIXY7/zgP3wsKkRhZ7yEHgmahY/byikn8BiZjEw2DWUQkjcB5nYo+Xgh+eH8p4
+         oVpJycq4ZWi1GYj36y1/HBYlXfcjUxN5WpbpwFTT0cF/PRko7dGul5P66XpFeKCAINSY
+         8XVA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=YMqE3plwxFsGF2jAAFpub/HIgtQoag7R/7s0kLQElmo=;
-        b=Xgk+1Cye6rD8mhh4pthoT6SBCTq0Pj2t2mKKx/9luDkV8Zs9bd4H7oitxaNRQch/Lg
-         raSJFs7QON570Z4wfURLmdSJPhBWG+8rnjr4tO7i3Gf4rs7jBXir1vVmZnWnF4ch5p0U
-         662MXVTTJo6XGeDamV2rW/oK7GuaGfoMC0aI8zsN/URQtfrMR1z5T9gvsOR4hD0B3Psf
-         YpW8HKVCBxnCJoWtDbmj1Kcq+Bk4O4OkioUkSMiXZCchjjxljVty1ouaslzf+obCW7i+
-         8asF+ZRqj+6en9F0Kw29iMmSnlYqszuM+vahggWivgSFojIxV8PZqpj9iheFkEPO22f+
-         K3gQ==
-X-Gm-Message-State: AOAM530fNa3G76mI70+glbmiPg1f0dB0JurvOTUoLt0qYuDAHZClFL+T
-        lx1yt0O42j+VvQTqYkBG/WQ=
-X-Google-Smtp-Source: ABdhPJwf9klS71294z2BVTXZCugJ9JFGgS+3s6bIBq/C8DIXy9Ezc+U1oWDuHg++RtezU/Ib7TxqLQ==
-X-Received: by 2002:a2e:2f19:: with SMTP id v25mr310304ljv.281.1635369485711;
-        Wed, 27 Oct 2021 14:18:05 -0700 (PDT)
+        bh=O+IvQoJf2OjzCPAk90L+IlIvsTQGqRsS8A3mVG9thss=;
+        b=U20ivDQwPCbYsfj9u1nt9yIAxHAUWd6+0MZj+RkD5Boi8OC550GbYlsfggopQApCSp
+         80adqRwpYlNOasBV1fAZz1aoHxwhedMwfPeAz+AtlFstVXuhbkux/WUwZjdx8e0cSI/p
+         z1YrRq92yc2QPScqgx47eI6VndxMrHiC9buop91TsmFTki7LsAoTBGx7g0vV76kqg++E
+         6/JkYZufSbAnH1xIWOogGUB5N6Nylfnc6pEn2qtlf8NQ/3NDvix6DMnSK3rkN7AqSduV
+         qWVCc/+1qaMEB/5GnspLAnNQxFF0kGlRbo+bAj1R7nExDZ88ejRE/5wlmYxUNZTt3GvG
+         yotg==
+X-Gm-Message-State: AOAM533O7w1dYBuMoH7+TOfmWWCMiLEUs+qr9hoSGpN9oaS54OywWVS1
+        IQbrX/GPUFpjLI+Jb6aT1i0=
+X-Google-Smtp-Source: ABdhPJxyJaCNELbykyJ8mI+u0lU4wtjMFWua0Lm4EEmjlSiKb32hiTjDEQ+OHhGC/feOlGuy6qCfSA==
+X-Received: by 2002:ac2:4285:: with SMTP id m5mr140041lfh.86.1635369481970;
+        Wed, 27 Oct 2021 14:18:01 -0700 (PDT)
 Received: from localhost.localdomain (46-138-41-28.dynamic.spd-mgts.ru. [46.138.41.28])
-        by smtp.gmail.com with ESMTPSA id d7sm104336ljl.18.2021.10.27.14.18.03
+        by smtp.gmail.com with ESMTPSA id d7sm104336ljl.18.2021.10.27.14.18.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Oct 2021 14:18:05 -0700 (PDT)
+        Wed, 27 Oct 2021 14:18:01 -0700 (PDT)
 From:   Dmitry Osipenko <digetx@gmail.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         Jonathan Hunter <jonathanh@nvidia.com>,
@@ -113,9 +113,9 @@ Cc:     Catalin Marinas <catalin.marinas@arm.com>,
         xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
         linux-omap@vger.kernel.org, openbmc@lists.ozlabs.org,
         linux-tegra@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [PATCH v2 07/45] reboot: Remove extern annotation from function prototypes
-Date:   Thu, 28 Oct 2021 00:16:37 +0300
-Message-Id: <20211027211715.12671-8-digetx@gmail.com>
+Subject: [PATCH v2 05/45] reboot: Warn if restart handler has duplicated priority
+Date:   Thu, 28 Oct 2021 00:16:35 +0300
+Message-Id: <20211027211715.12671-6-digetx@gmail.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211027211715.12671-1-digetx@gmail.com>
 References: <20211027211715.12671-1-digetx@gmail.com>
@@ -125,90 +125,41 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-There is no need to annotate function prototypes with 'extern', it makes
-code less readable. Remove unnecessary annotations from <reboot.h>.
+Add sanity check which ensures that there are no two restart handlers
+registered with the same priority. Normally it's a direct sign of a
+problem if two handlers use the same priority.
 
 Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
- include/linux/reboot.h | 38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ kernel/reboot.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/reboot.h b/include/linux/reboot.h
-index 7c288013a3ca..b7fa25726323 100644
---- a/include/linux/reboot.h
-+++ b/include/linux/reboot.h
-@@ -40,36 +40,36 @@ extern int reboot_cpu;
- extern int reboot_force;
- 
- 
--extern int register_reboot_notifier(struct notifier_block *);
--extern int unregister_reboot_notifier(struct notifier_block *);
-+int register_reboot_notifier(struct notifier_block *);
-+int unregister_reboot_notifier(struct notifier_block *);
- 
--extern int devm_register_reboot_notifier(struct device *, struct notifier_block *);
-+int devm_register_reboot_notifier(struct device *, struct notifier_block *);
- 
--extern int register_restart_handler(struct notifier_block *);
--extern int unregister_restart_handler(struct notifier_block *);
--extern void do_kernel_restart(char *cmd);
-+int register_restart_handler(struct notifier_block *);
-+int unregister_restart_handler(struct notifier_block *);
-+void do_kernel_restart(char *cmd);
- 
- /*
-  * Architecture-specific implementations of sys_reboot commands.
+diff --git a/kernel/reboot.c b/kernel/reboot.c
+index efb40d095d1e..d39e599c3c99 100644
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -182,7 +182,20 @@ static ATOMIC_NOTIFIER_HEAD(restart_handler_list);
   */
+ int register_restart_handler(struct notifier_block *nb)
+ {
+-	return atomic_notifier_chain_register(&restart_handler_list, nb);
++	int ret;
++
++	ret = atomic_notifier_chain_register(&restart_handler_list, nb);
++	if (ret)
++		return ret;
++
++	/*
++	 * Handler must have unique priority. Otherwise invocation order is
++	 * determined by the registration order, which is presumed to be
++	 * unreliable.
++	 */
++	WARN_ON(!atomic_notifier_has_unique_priority(&restart_handler_list, nb));
++
++	return 0;
+ }
+ EXPORT_SYMBOL(register_restart_handler);
  
--extern void migrate_to_reboot_cpu(void);
--extern void machine_restart(char *cmd);
--extern void machine_halt(void);
--extern void machine_power_off(void);
-+void migrate_to_reboot_cpu(void);
-+void machine_restart(char *cmd);
-+void machine_halt(void);
-+void machine_power_off(void);
- 
--extern void machine_shutdown(void);
-+void machine_shutdown(void);
- struct pt_regs;
--extern void machine_crash_shutdown(struct pt_regs *);
-+void machine_crash_shutdown(struct pt_regs *);
- 
- /*
-  * Architecture independent implementations of sys_reboot commands.
-  */
- 
--extern void kernel_restart_prepare(char *cmd);
--extern void kernel_restart(char *cmd);
--extern void kernel_halt(void);
--extern void kernel_power_off(void);
-+void kernel_restart_prepare(char *cmd);
-+void kernel_restart(char *cmd);
-+void kernel_halt(void);
-+void kernel_power_off(void);
- 
- extern int C_A_D; /* for sysctl */
- void ctrl_alt_del(void);
-@@ -77,15 +77,15 @@ void ctrl_alt_del(void);
- #define POWEROFF_CMD_PATH_LEN	256
- extern char poweroff_cmd[POWEROFF_CMD_PATH_LEN];
- 
--extern void orderly_poweroff(bool force);
--extern void orderly_reboot(void);
-+void orderly_poweroff(bool force);
-+void orderly_reboot(void);
- void hw_protection_shutdown(const char *reason, int ms_until_forced);
- 
- /*
-  * Emergency restart, callable from an interrupt handler.
-  */
- 
--extern void emergency_restart(void);
-+void emergency_restart(void);
- #include <asm/emergency-restart.h>
- 
- #endif /* _LINUX_REBOOT_H */
 -- 
 2.33.1
 
