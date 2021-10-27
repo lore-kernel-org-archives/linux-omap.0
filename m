@@ -2,54 +2,54 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D778AC433FE
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:19:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F37A4C4332F
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:20:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C4576610CA
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:19:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D055E610C7
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:20:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244506AbhJ0VWD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Oct 2021 17:22:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53828 "EHLO
+        id S241210AbhJ0VWm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Oct 2021 17:22:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244487AbhJ0VU6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2021 17:20:58 -0400
-Received: from mail-lj1-x234.google.com (mail-lj1-x234.google.com [IPv6:2a00:1450:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42C47C061230;
-        Wed, 27 Oct 2021 14:18:24 -0700 (PDT)
-Received: by mail-lj1-x234.google.com with SMTP id s19so6943083ljj.11;
-        Wed, 27 Oct 2021 14:18:24 -0700 (PDT)
+        with ESMTP id S244575AbhJ0VVM (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2021 17:21:12 -0400
+Received: from mail-lj1-x229.google.com (mail-lj1-x229.google.com [IPv6:2a00:1450:4864:20::229])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC3E3C06118B;
+        Wed, 27 Oct 2021 14:18:27 -0700 (PDT)
+Received: by mail-lj1-x229.google.com with SMTP id d23so5637879ljj.10;
+        Wed, 27 Oct 2021 14:18:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ZQw7CI0X8q8oTyepUGNJOSZqk2PM67xqdSRvFtKKmiw=;
-        b=h1ou+u32rU4cYIn0OrunTZVHH8PVsk/s4rO9s8rIgCD+KKjcifq4iXhOSD/tIm7Qin
-         P6ARY8cS2LdXxM+CoAbgm367SWuzYvU7Z79bJYgTCDi7YlT7Y5yuy0qGD8YIp/7ys02d
-         pQwjIRkz9TYZYOpAy67AqOhS7slV4KAtJVEBcoUUJ83/AZzv5dclkL7bTj62SJ6cw7H4
-         UW+yIUAnRXLn6nWbS4xhDtCDZfNdRtv+xAYYROwA+IIcIffcm5Q9yfNkOiBLfH2Y/wmk
-         oOdsC/qn1zU/au/+LxlGh/gFJDeofp5A7xGvQ93uStcIj752OCcUSwSsN/9T0qMY5YTe
-         dvtw==
+        bh=+aSuiMovnmRlKPN5Rl3JuNmFHUt6skQo3O4wD7dX5JQ=;
+        b=ehfhpJuO10tH0JJc+NToykiYU0vR9QNQWRGBFoJEmaOxGSK6IxZtCBEULR0W0LLrnh
+         rWgUh4Kku73ZADq2I2DXfxnNngsudNBU15HzSYHJ5ZGaDy4yKkQqtcH85+TmIu3x8kh9
+         Xstkp84P8gb9NHhImh/kkEu/eLRzihVMriWTiS1lyvVYlI0S9doH7srHH4uUDtgtagHH
+         NnlFwVxtytB+YFKInQI4zlx/qw9ggp+d792cFqZ86NXSDRvmn2HsZCjK5JnAlXZtcFzO
+         y6wwCc1x7j8EpGXUAyH+X2YWcF6tl/6iZWVr+mUSLKEmJFL/9H+FbFwe9fJf0ZNH5qP/
+         q9Cw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ZQw7CI0X8q8oTyepUGNJOSZqk2PM67xqdSRvFtKKmiw=;
-        b=aG+uBMZFg8N0YZ0oEpwDlPm46DrKyRiAX6OQTp4BKGxemuPd3+4L0iHmxljsCYgYhM
-         JkWO34VVoZCgo4jNM3pwX8tK6Ynq+OiMiKHtSD2qIp6U4Ly6wwPRW7mQOqa9VW9RSxcv
-         2IaJmXsmqgs+h40z89VFOJI5lmHjQ/3Ps3W6oUFfr7Hviq5HlyjiNEx16UDN1mQQFlcA
-         utSWnsfAlkZ1OXpDGnbLcDHVHPHRfoy+qeVrV16GnANBYbAhia0he0drI7GyZUTe2tRO
-         U8NtB6IJmMxA/S+f/xfo1HvXvywb3iA13pdWjUuixgFEvvvMFKJIPiJmP0Xy6oYiQXRw
-         pzjg==
-X-Gm-Message-State: AOAM531yhpQulrM3r4Ufc1GYz+NNrQmiQj7A+0pAYsUzi/hV3UH4RlxO
-        lQ+ChGM9dzfNUsYOZF/xMcg=
-X-Google-Smtp-Source: ABdhPJztZrtJsxWmkjJ9e0hDv7W0ZJONlmNUbIC8cbkqFySfq5YC9V4Azd52J8+C4kw5eLOToEAzlw==
-X-Received: by 2002:a2e:bf1c:: with SMTP id c28mr359960ljr.150.1635369502589;
-        Wed, 27 Oct 2021 14:18:22 -0700 (PDT)
+        bh=+aSuiMovnmRlKPN5Rl3JuNmFHUt6skQo3O4wD7dX5JQ=;
+        b=SS7ePQk+dxXycLCsxOA2TRnFD4LEFP3J8QzupCIhs3T6pem699ztDiJArigp3y45h7
+         doiLTijN+faN9AREIhxcHfUCvVe0ZSemBt1W9IjeCgTNu9CHr3+TIEsfsu2jn+epRmhk
+         ++rmearHuco4deYs0SjAfOEhfgDksg+Q6jhJ0xbh/ugam+G6Ws+nkLm3ADDwqvNlnT6n
+         QGNz5z1LBk2JwLyUk7ZhAP9B21ET6pmSsrt6e/7QfPuGqMfKxGnEnrRbyNcFWkcot1Zg
+         FouHOx3okzQQUX/lEDAPZhyPGBc5ZchnahImPNV50ABzO4cHCC/N+ouffrt9RNJ/x3jB
+         /PyQ==
+X-Gm-Message-State: AOAM5305huWMHnU9/wdtYOLZqEV2AzTceIXs9O3kudrODT9Z5VXZ3Wdy
+        QgKHcYhOJvcLUfrS4u5HiZE=
+X-Google-Smtp-Source: ABdhPJySCnLdJnyefyOJzA6HMZEBF+hyXH0EM8QKUFyfoUHamOZK7R7lRqwGKBcRpuomVJFL6q66/Q==
+X-Received: by 2002:a2e:891a:: with SMTP id d26mr331100lji.368.1635369506344;
+        Wed, 27 Oct 2021 14:18:26 -0700 (PDT)
 Received: from localhost.localdomain (46-138-41-28.dynamic.spd-mgts.ru. [46.138.41.28])
-        by smtp.gmail.com with ESMTPSA id d7sm104336ljl.18.2021.10.27.14.18.20
+        by smtp.gmail.com with ESMTPSA id d7sm104336ljl.18.2021.10.27.14.18.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Oct 2021 14:18:22 -0700 (PDT)
+        Wed, 27 Oct 2021 14:18:26 -0700 (PDT)
 From:   Dmitry Osipenko <digetx@gmail.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         Jonathan Hunter <jonathanh@nvidia.com>,
@@ -113,9 +113,9 @@ Cc:     Catalin Marinas <catalin.marinas@arm.com>,
         xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
         linux-omap@vger.kernel.org, openbmc@lists.ozlabs.org,
         linux-tegra@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [PATCH v2 16/45] parisc: Use do_kernel_power_off()
-Date:   Thu, 28 Oct 2021 00:16:46 +0300
-Message-Id: <20211027211715.12671-17-digetx@gmail.com>
+Subject: [PATCH v2 18/45] riscv: Use do_kernel_power_off()
+Date:   Thu, 28 Oct 2021 00:16:48 +0300
+Message-Id: <20211027211715.12671-19-digetx@gmail.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211027211715.12671-1-digetx@gmail.com>
 References: <20211027211715.12671-1-digetx@gmail.com>
@@ -132,31 +132,34 @@ be converted to the new power-off API.
 
 Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
- arch/parisc/kernel/process.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/riscv/kernel/reset.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/arch/parisc/kernel/process.c b/arch/parisc/kernel/process.c
-index ea3d83b6fb62..928201b1f58f 100644
---- a/arch/parisc/kernel/process.c
-+++ b/arch/parisc/kernel/process.c
-@@ -26,6 +26,7 @@
- #include <linux/module.h>
- #include <linux/personality.h>
- #include <linux/ptrace.h>
-+#include <linux/reboot.h>
- #include <linux/sched.h>
- #include <linux/sched/debug.h>
- #include <linux/sched/task.h>
-@@ -114,8 +115,7 @@ void machine_power_off(void)
- 	pdc_chassis_send_status(PDC_CHASSIS_DIRECT_SHUTDOWN);
+diff --git a/arch/riscv/kernel/reset.c b/arch/riscv/kernel/reset.c
+index 9c842c41684a..912288572226 100644
+--- a/arch/riscv/kernel/reset.c
++++ b/arch/riscv/kernel/reset.c
+@@ -23,16 +23,12 @@ void machine_restart(char *cmd)
  
- 	/* ipmi_poweroff may have been installed. */
--	if (pm_power_off)
+ void machine_halt(void)
+ {
+-	if (pm_power_off != NULL)
 -		pm_power_off();
+-	else
+-		default_power_off();
 +	do_kernel_power_off();
- 		
- 	/* It seems we have no way to power the system off via
- 	 * software. The user has to press the button himself. */
++	default_power_off();
+ }
+ 
+ void machine_power_off(void)
+ {
+-	if (pm_power_off != NULL)
+-		pm_power_off();
+-	else
+-		default_power_off();
++	do_kernel_power_off();
++	default_power_off();
+ }
 -- 
 2.33.1
 
