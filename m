@@ -2,54 +2,54 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45967C433FE
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:21:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CC3DC4332F
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:22:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32A05610F8
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:21:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 864C9610F8
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:22:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241036AbhJ0VYM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Oct 2021 17:24:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53866 "EHLO
+        id S241398AbhJ0VYZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Oct 2021 17:24:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244544AbhJ0VWp (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2021 17:22:45 -0400
-Received: from mail-lf1-x135.google.com (mail-lf1-x135.google.com [IPv6:2a00:1450:4864:20::135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49EF5C0432C6;
-        Wed, 27 Oct 2021 14:18:37 -0700 (PDT)
-Received: by mail-lf1-x135.google.com with SMTP id bp15so9014103lfb.4;
-        Wed, 27 Oct 2021 14:18:37 -0700 (PDT)
+        with ESMTP id S238904AbhJ0VXf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2021 17:23:35 -0400
+Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A922C0432CC;
+        Wed, 27 Oct 2021 14:18:41 -0700 (PDT)
+Received: by mail-lf1-x12f.google.com with SMTP id b32so5810585lfv.0;
+        Wed, 27 Oct 2021 14:18:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=rTg0c6UJkUtA3xox9iyqZdpwaCfteR79knUJVekTw18=;
-        b=IOOovw4HthrHOXjOs46Y3yITm9+R54zah3HqdDtgfe0CoTVx3Ny/qQfSWJECq3va5v
-         POFxHfUV4nFfAVF/2xQmQF0GAuAxqBjz1BtRvOKx4MR0EfN6IoGEZZUqz+WUpBWyPywt
-         GrOnqTwA95eu+J8qffyJd/WsYZnQLcqOy0MiUotidUtoWBtzitEMBsbvSCmIUhOFOmfU
-         TN0N1IIFJs2PwhqjyrirBl5OZM0AJ4ETZ7OvQijCQBnaCq4fjrrAiLoAARG8gCOMWpFL
-         isJ90k/kflRmNXJGxu4rOU7Ttcg3V2boCXpvP5Lo62Urd2fuc4VonqYdYqPHg73Ap8Wn
-         SfNw==
+        bh=ss23/14gvwwJvYM34ibI/ZgbUmpHxVjzq3uUOBHaqko=;
+        b=arwhy2EzVRFeFixUch4iOYgWEx15do0VgxAfdqV0D/m7TKP9iKYpnGzKHPc/i8aFQC
+         696TXg56UlUupf+0+RULAffCTRlP8iUn1mFqCgape3sBElIYYn3vwgHjtN2bztkR/yaz
+         5XVeuFkp92H0x78xi/Heckb4RKbtEPv+wOARiARvxCIQqcVNpwpOqlLJtRckQaDgVOF7
+         skIGftczMYqZ1vyVBJ3tsSBqPsOUSX9T5P10sVT2ED2dp7t8+MxfkB66wM+xzBA5lfYi
+         IRYhj0tnB8GrulFr808wNLi8EcEAMFxyf0xL4I35lWHzPaQq0/pqp97SuSICmC8JFF01
+         uymg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=rTg0c6UJkUtA3xox9iyqZdpwaCfteR79knUJVekTw18=;
-        b=ADMc0chHW5n+H5eKujckA+Bo50ein/UoSz7YRe3KTWR/bFqnjMH0wfiSP1RSuMjYq8
-         Xipi68k3HcDAkmzauObv7Z+0UnD5pOfgUcGe6yGJIkfq5K4RMKuSyKXiHnSp5UDSk+eN
-         B09VRseQbrmnNbIGTM8q+ZwENDDUo4/oo2tG5tXZZ/OZIF381adQL5GE1AQ6Hu5Yy8RT
-         ruwSHDPqpZyra1LoK241puSwxWme4Su02f3x73RJtSHEjhuolwSCrYbvddTtTuRB+GrR
-         WCL2FQR36Tszl7r9iJDT8hS0xqkPWdmEntV2MH9JyTL5kzODsyCLXCgxZobtM8PrfrOY
-         /QFw==
-X-Gm-Message-State: AOAM532bbAe1WHB13IRLECiGXenCBpr/Xlvmg7ktfYcziEV+NQoUMqOk
-        6UCvNyXg8/sHPZXzgzjAZRs=
-X-Google-Smtp-Source: ABdhPJxFzFVD2w1ioavz6oJ1REfrGLdo1ULxWozIc4isKil/5p3npr9c6ZJggbEvwegyiOXfsqbr2g==
-X-Received: by 2002:a05:6512:3699:: with SMTP id d25mr132127lfs.380.1635369515664;
-        Wed, 27 Oct 2021 14:18:35 -0700 (PDT)
+        bh=ss23/14gvwwJvYM34ibI/ZgbUmpHxVjzq3uUOBHaqko=;
+        b=P+hZHiEWfv6uRXeSLPCgb3dBPd2ZZLQ6KTcbdw+K7GjdfhCzLKwNtDkqs5sQKXJ7SI
+         BxRXulihJ5l+UQAfVLg/zR3yr4M8FrFSTqz1FU3aphuUIWAeupIDdkvA6/R9R1pWBLXy
+         9KTvh1J7OyPVPXmzVX2EALGWiQmMVGOpDYxEjuRRFP7UdDpE3fgtt9vEIxOEGK7zYlZE
+         feyM7gl5QwIkoeec4TZJ8hYAcXqNTzCp55o0ucjqbbGChdI4y3oQkKbyhPaVVLKJIt6p
+         M0g4Zz9E0E+1JaFbxbAP6p1tx7EZKoxRymyivLhqmnVHsk2RTjhBgH4QHvoNGwB1QLPO
+         i03Q==
+X-Gm-Message-State: AOAM5331H8T58qOtHlJI9uxY97jztkVrvtfSvImeaDVOy3hn7INiu4L2
+        HqX3s0YMMhcrUe8loZ31nd8=
+X-Google-Smtp-Source: ABdhPJwimcGthRahpfEG00zaldcVjrnfSz4ndztOCehFVrD6lb951uJJXEFJ6kDGLgjZU1iMb9PE8Q==
+X-Received: by 2002:a05:6512:1047:: with SMTP id c7mr83192lfb.589.1635369519432;
+        Wed, 27 Oct 2021 14:18:39 -0700 (PDT)
 Received: from localhost.localdomain (46-138-41-28.dynamic.spd-mgts.ru. [46.138.41.28])
-        by smtp.gmail.com with ESMTPSA id d7sm104336ljl.18.2021.10.27.14.18.33
+        by smtp.gmail.com with ESMTPSA id d7sm104336ljl.18.2021.10.27.14.18.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Oct 2021 14:18:35 -0700 (PDT)
+        Wed, 27 Oct 2021 14:18:39 -0700 (PDT)
 From:   Dmitry Osipenko <digetx@gmail.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         Jonathan Hunter <jonathanh@nvidia.com>,
@@ -113,9 +113,9 @@ Cc:     Catalin Marinas <catalin.marinas@arm.com>,
         xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
         linux-omap@vger.kernel.org, openbmc@lists.ozlabs.org,
         linux-tegra@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [PATCH v2 23/45] ACPI: power: Switch to power-handler API
-Date:   Thu, 28 Oct 2021 00:16:53 +0300
-Message-Id: <20211027211715.12671-24-digetx@gmail.com>
+Subject: [PATCH v2 25/45] reboot: Remove pm_power_off_prepare()
+Date:   Thu, 28 Oct 2021 00:16:55 +0300
+Message-Id: <20211027211715.12671-26-digetx@gmail.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211027211715.12671-1-digetx@gmail.com>
 References: <20211027211715.12671-1-digetx@gmail.com>
@@ -125,86 +125,55 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Switch to power-handler API that replaces legacy pm_power_off callbacks.
+All pm_power_off_prepare() users were converted to power-handler API.
+Remove the obsolete callback.
 
 Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
- drivers/acpi/sleep.c | 25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+ include/linux/pm.h |  1 -
+ kernel/reboot.c    | 11 -----------
+ 2 files changed, 12 deletions(-)
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 3023224515ab..41b3ea867f8f 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -47,19 +47,11 @@ static void acpi_sleep_tts_switch(u32 acpi_state)
- 	}
- }
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index 1d8209c09686..d9bf1426f81e 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -20,7 +20,6 @@
+  * Callbacks for platform drivers to implement.
+  */
+ extern void (*pm_power_off)(void);
+-extern void (*pm_power_off_prepare)(void);
  
--static int tts_notify_reboot(struct notifier_block *this,
--			unsigned long code, void *x)
-+static void tts_reboot_prepare(struct reboot_prep_data *data)
- {
- 	acpi_sleep_tts_switch(ACPI_STATE_S5);
--	return NOTIFY_DONE;
- }
+ struct device; /* we have a circular dep with device.h */
+ #ifdef CONFIG_VT_CONSOLE_SLEEP
+diff --git a/kernel/reboot.c b/kernel/reboot.c
+index 779429726616..9895bb56cee4 100644
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -48,13 +48,6 @@ int reboot_cpu;
+ enum reboot_type reboot_type = BOOT_ACPI;
+ int reboot_force;
  
--static struct notifier_block tts_notifier = {
--	.notifier_call	= tts_notify_reboot,
--	.next		= NULL,
--	.priority	= 0,
--};
+-/*
+- * If set, this is used for preparing the system to power off.
+- */
 -
- static int acpi_sleep_prepare(u32 acpi_state)
- {
- #ifdef CONFIG_ACPI_SLEEP
-@@ -1016,7 +1008,7 @@ static void acpi_sleep_hibernate_setup(void)
- static inline void acpi_sleep_hibernate_setup(void) {}
- #endif /* !CONFIG_HIBERNATION */
+-void (*pm_power_off_prepare)(void);
+-EXPORT_SYMBOL_GPL(pm_power_off_prepare);
+-
+ /**
+  *	emergency_restart - reboot the system
+  *
+@@ -866,10 +859,6 @@ void do_kernel_power_off(void)
  
--static void acpi_power_off_prepare(void)
-+static void acpi_power_off_prepare(struct power_off_prep_data *data)
+ static void do_kernel_power_off_prepare(void)
  {
- 	/* Prepare to power off the system */
- 	acpi_sleep_prepare(ACPI_STATE_S5);
-@@ -1024,7 +1016,7 @@ static void acpi_power_off_prepare(void)
- 	acpi_os_wait_events_complete();
- }
- 
--static void acpi_power_off(void)
-+static void acpi_power_off(struct power_off_data *data)
- {
- 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
- 	pr_debug("%s called\n", __func__);
-@@ -1032,6 +1024,11 @@ static void acpi_power_off(void)
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
- }
- 
-+static struct power_handler acpi_power_handler = {
-+	.power_off_priority = POWEROFF_PRIO_FIRMWARE,
-+	.reboot_prepare_cb = tts_reboot_prepare,
-+};
-+
- int __init acpi_sleep_init(void)
- {
- 	char supported[ACPI_S_STATE_COUNT * 3 + 1];
-@@ -1048,8 +1045,8 @@ int __init acpi_sleep_init(void)
- 
- 	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
- 		sleep_states[ACPI_STATE_S5] = 1;
--		pm_power_off_prepare = acpi_power_off_prepare;
--		pm_power_off = acpi_power_off;
-+		acpi_power_handler.power_off_cb = acpi_power_off;
-+		acpi_power_handler.power_off_prepare_cb = acpi_power_off_prepare;
- 	} else {
- 		acpi_no_s5 = true;
- 	}
-@@ -1065,6 +1062,6 @@ int __init acpi_sleep_init(void)
- 	 * Register the tts_notifier to reboot notifier list so that the _TTS
- 	 * object can also be evaluated when the system enters S5.
- 	 */
--	register_reboot_notifier(&tts_notifier);
-+	register_power_handler(&acpi_power_handler);
- 	return 0;
+-	/* legacy pm_power_off_prepare() is unchained and it has highest priority */
+-	if (pm_power_off_prepare)
+-		return pm_power_off_prepare();
+-
+ 	blocking_notifier_call_chain(&power_off_handler_list, POWEROFF_PREPARE,
+ 				     NULL);
  }
 -- 
 2.33.1
