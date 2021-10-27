@@ -2,54 +2,54 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FC69C433FE
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:23:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE2C4C4332F
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:23:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D5E7610C7
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:23:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC184610CA
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Oct 2021 21:23:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241373AbhJ0VZb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Oct 2021 17:25:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53830 "EHLO
+        id S241479AbhJ0VZd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Oct 2021 17:25:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241173AbhJ0VYU (ORCPT
+        with ESMTP id S234550AbhJ0VYU (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2021 17:24:20 -0400
-Received: from mail-lj1-x22d.google.com (mail-lj1-x22d.google.com [IPv6:2a00:1450:4864:20::22d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F6DEC0432D9;
-        Wed, 27 Oct 2021 14:18:46 -0700 (PDT)
-Received: by mail-lj1-x22d.google.com with SMTP id k13so6922074ljj.12;
-        Wed, 27 Oct 2021 14:18:46 -0700 (PDT)
+Received: from mail-lf1-x12b.google.com (mail-lf1-x12b.google.com [IPv6:2a00:1450:4864:20::12b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E22FC0432DB;
+        Wed, 27 Oct 2021 14:18:50 -0700 (PDT)
+Received: by mail-lf1-x12b.google.com with SMTP id j2so9016302lfg.3;
+        Wed, 27 Oct 2021 14:18:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=XVkgO3q8+3iXvnI8C7YHW1hpsebxqvqNvVwPho8vSws=;
-        b=JvBjth71MhsyIm0JdpPylPRsS4KUFW6BneSIAqxDXDzbFjW9Bt93MWfm5UnDUVT+LY
-         PN2DoVOg4LkGHqR46okUaH0xtknlZuN7sz1m2rXWFP+8ycrv0mDE2+lXOLhNQyopT3Vb
-         C9HJqmEvn5NNTeFE+Yqt8PhYhqF5nNL7X6uD9nn3NzyyFpNh4ofur6IOki9Q5zCOptdK
-         PNXfyjJD/8x2BE3QO9lZ5RaDpWCetJjHnzeJvzuWrsMKLwqp5dFqdwNw5X1p5tIb9H77
-         X9gwILOKempj602Hj9wd8g1ui3+PA2eteBB91Roi8uzQIKwV7mQ4s5O8fFD8fUrtUyG6
-         Kjfw==
+        bh=umNH2+YT7M6ZKcjQGvjjohnKVEe/3rK29YQH+BDj6i4=;
+        b=nj5zb43OqtwdizDOJ4YZ+fYZadM1gdDKmRqYZUCoy6YYJ9FK+h8NFV8Fm4J2Ku+dUO
+         VD1iu0fINLYL61cuY7tNDYLtDDcpQWTMBS3LiXmrEVigOlROqEfbjJpsrnK8lw9w6k0A
+         Q5RVvk+HURAmLxg4yngnt6lHHBxEc4oSlIcG3ZpIBx+R3YAOuuSSdjMf/vRVMuvqCw1Z
+         E8uGSsJkZ6VWq/NOLfLD+OAnXKEDLZsNGIWjcaZrIrkicK6f30puV4871fbRXrX4aoDM
+         yS04DJACEKWBr3KF/AjOj2De3JGJ2p+GHt74NSrUBKQDPvr858UletsNh5sICSkmVEWD
+         3KsQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=XVkgO3q8+3iXvnI8C7YHW1hpsebxqvqNvVwPho8vSws=;
-        b=VrDLGVFXQu0zoAGOKShZDVAbKBIEf6RxC0crUfZo6Sg4X6UD5TJcVgitzAlWcb10p9
-         9HBmP2wq4sc0/wooO6rX7XexeHPzfpRil9FgJZuB2V2+jy5Ks16+NgkJz8GlmUDLNKtZ
-         GmvWYeNyD3X5Kg2jNLwIxqdF6Duq0lXMDiWY5HnPjjdfjZALF+ArqiIHNVprDaIb0kPJ
-         tEdM4lC157LfoJk2e4I40knOdObqBuR0V2t21KgesOvKWnDRkh8WztbRnoVwL6ZJW6ak
-         OGN4Z5c7nriqXOaRIDohV23WPg8XFgU0+Iqpv5L8c5QQqLHJv5hT9gNLpzQTyQRPdzjI
-         9Q2w==
-X-Gm-Message-State: AOAM532mvKuBAsT9vXm18MDirplYVzv7Kxw0+C+megXRXwkKWx6G98Cs
-        TjFzxExpTAmyfqXOoPjfu9w=
-X-Google-Smtp-Source: ABdhPJyyXdjb3N9Ed9Jr705ZzPzIsFRHZUJ+KOYE2dHtjD39JQsr/OWSSeXdN0P7Zob21uOYhbWDdA==
-X-Received: by 2002:a2e:9b55:: with SMTP id o21mr306486ljj.141.1635369524980;
-        Wed, 27 Oct 2021 14:18:44 -0700 (PDT)
+        bh=umNH2+YT7M6ZKcjQGvjjohnKVEe/3rK29YQH+BDj6i4=;
+        b=GLTVabvHRgoUlmbC2qHtqkDVDvW3jksnlunk5UGnamviIvFF5gox0gG+4iFOCJ1HVG
+         dUNllC9JDFm6T26jLtFYRBwBlaHlbM6ic2I2Qj9rl3eQcJZ7uHRNQTkPtoBsq/Qbenu5
+         NgtSTX5YYOmNqrmpWcfla16fsabfndGLx9h3vcpS9vrLOPaHdMPYaG0loXoyyGdB7sV/
+         ZrLbD5J0sejGeGO805T+Kfk0I4QE1RoWceKhobwag0QaaTkrvmNopBjohQuXRReL1fDA
+         0rQ5dM/voRfpQ/5DYtsg+DuLOULyoKdLkR2pDB4C7CyRFDX0ethL0i72GWy0qejhBwcs
+         vbpg==
+X-Gm-Message-State: AOAM530RoTjxFvaNZkOQ3M23r5UW5b9tWnXqAdINl5SYzuf6WWpfy6Bg
+        96lc59PMMqp+MqaIXEgJC9s=
+X-Google-Smtp-Source: ABdhPJyzuSZuOYHEQbprBgwtJMyx5L9tc7ERtjIIXrEKG72XHaUi8WMWlLHXLzXgCVfDIwEbrdMbVw==
+X-Received: by 2002:a05:6512:38d0:: with SMTP id p16mr83922lft.483.1635369528748;
+        Wed, 27 Oct 2021 14:18:48 -0700 (PDT)
 Received: from localhost.localdomain (46-138-41-28.dynamic.spd-mgts.ru. [46.138.41.28])
-        by smtp.gmail.com with ESMTPSA id d7sm104336ljl.18.2021.10.27.14.18.43
+        by smtp.gmail.com with ESMTPSA id d7sm104336ljl.18.2021.10.27.14.18.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Oct 2021 14:18:44 -0700 (PDT)
+        Wed, 27 Oct 2021 14:18:48 -0700 (PDT)
 From:   Dmitry Osipenko <digetx@gmail.com>
 To:     Thierry Reding <thierry.reding@gmail.com>,
         Jonathan Hunter <jonathanh@nvidia.com>,
@@ -113,9 +113,9 @@ Cc:     Catalin Marinas <catalin.marinas@arm.com>,
         xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
         linux-omap@vger.kernel.org, openbmc@lists.ozlabs.org,
         linux-tegra@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [PATCH v2 28/45] mfd: rn5t618: Use devm_register_power_handler()
-Date:   Thu, 28 Oct 2021 00:16:58 +0300
-Message-Id: <20211027211715.12671-29-digetx@gmail.com>
+Subject: [PATCH v2 30/45] mfd: ene-kb3930: Use devm_register_power_handler()
+Date:   Thu, 28 Oct 2021 00:17:00 +0300
+Message-Id: <20211027211715.12671-31-digetx@gmail.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211027211715.12671-1-digetx@gmail.com>
 References: <20211027211715.12671-1-digetx@gmail.com>
@@ -131,125 +131,102 @@ provides restart-handler support, i.e. all in one API.
 
 Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
- drivers/mfd/rn5t618.c | 56 ++++++++++++++++---------------------------
- 1 file changed, 21 insertions(+), 35 deletions(-)
+ drivers/mfd/ene-kb3930.c | 45 ++++++++++++++--------------------------
+ 1 file changed, 15 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/mfd/rn5t618.c b/drivers/mfd/rn5t618.c
-index 384acb459427..12d7b2339bbe 100644
---- a/drivers/mfd/rn5t618.c
-+++ b/drivers/mfd/rn5t618.c
-@@ -84,9 +84,6 @@ static const struct regmap_irq_chip rc5t619_irq_chip = {
- 	.mask_invert = true,
+diff --git a/drivers/mfd/ene-kb3930.c b/drivers/mfd/ene-kb3930.c
+index 1b73318d1f1f..6a3c5f48e5e1 100644
+--- a/drivers/mfd/ene-kb3930.c
++++ b/drivers/mfd/ene-kb3930.c
+@@ -31,10 +31,9 @@ struct kb3930 {
+ 	struct i2c_client *client;
+ 	struct regmap *ram_regmap;
+ 	struct gpio_descs *off_gpios;
++	struct power_handler power_handler;
  };
  
--static struct i2c_client *rn5t618_pm_power_off;
--static struct notifier_block rn5t618_restart_handler;
+-static struct kb3930 *kb3930_power_off;
 -
- static int rn5t618_irq_init(struct rn5t618 *rn5t618)
- {
- 	const struct regmap_irq_chip *irq_chip = NULL;
-@@ -115,7 +112,9 @@ static int rn5t618_irq_init(struct rn5t618 *rn5t618)
- 	return ret;
+ #define EC_GPIO_WAVE		0
+ #define EC_GPIO_OFF_MODE	1
+ 
+@@ -60,21 +59,19 @@ static void kb3930_off(struct kb3930 *ddata, int off_mode)
+ 	}
  }
  
--static void rn5t618_trigger_poweroff_sequence(bool repower)
-+static void
-+rn5t618_trigger_poweroff_sequence(struct i2c_client *rn5t618_pm_power_off,
-+				  bool repower)
+-static int kb3930_restart(struct notifier_block *this,
+-			  unsigned long mode, void *cmd)
++static void kb3930_restart(struct restart_data *data)
  {
- 	int ret;
- 
-@@ -151,25 +150,31 @@ static void rn5t618_trigger_poweroff_sequence(bool repower)
- 	dev_alert(&rn5t618_pm_power_off->dev, "Failed to shutdown (err = %d)\n", ret);
- }
- 
--static void rn5t618_power_off(void)
-+static void rn5t618_power_off(struct power_off_data *data)
- {
--	rn5t618_trigger_poweroff_sequence(false);
-+	struct i2c_client *client = data->cb_data;
-+
-+	rn5t618_trigger_poweroff_sequence(client, false);
- }
- 
--static int rn5t618_restart(struct notifier_block *this,
--			    unsigned long mode, void *cmd)
-+static void rn5t618_restart(struct restart_data *data)
- {
--	rn5t618_trigger_poweroff_sequence(true);
-+	struct i2c_client *client = data->cb_data;
-+
-+	rn5t618_trigger_poweroff_sequence(client, true);
- 
- 	/*
- 	 * Re-power factor detection on PMIC side is not instant. 1ms
- 	 * proved to be enough time until reset takes effect.
- 	 */
- 	mdelay(1);
--
+-	kb3930_off(kb3930_power_off, EC_OFF_MODE_REBOOT);
 -	return NOTIFY_DONE;
- }
- 
-+static struct power_handler rn5t618_power_handler = {
-+	.restart_cb = rn5t618_restart,
-+	.restart_priority = RESTART_PRIO_HIGH,
-+};
++	struct kb3930 *ddata = data->cb_data;
 +
- static const struct of_device_id rn5t618_of_match[] = {
- 	{ .compatible = "ricoh,rn5t567", .data = (void *)RN5T567 },
- 	{ .compatible = "ricoh,rn5t618", .data = (void *)RN5T618 },
-@@ -221,38 +226,20 @@ static int rn5t618_i2c_probe(struct i2c_client *i2c)
- 		return ret;
- 	}
- 
--	rn5t618_pm_power_off = i2c;
--	if (of_device_is_system_power_controller(i2c->dev.of_node)) {
--		if (!pm_power_off)
--			pm_power_off = rn5t618_power_off;
--		else
--			dev_warn(&i2c->dev, "Poweroff callback already assigned\n");
--	}
-+	if (of_device_is_system_power_controller(i2c->dev.of_node))
-+		rn5t618_power_handler.power_off_cb = rn5t618_power_off;
- 
--	rn5t618_restart_handler.notifier_call = rn5t618_restart;
--	rn5t618_restart_handler.priority = 192;
-+	rn5t618_power_handler.cb_data = i2c;
- 
--	ret = register_restart_handler(&rn5t618_restart_handler);
-+	ret = devm_register_power_handler(&i2c->dev, &rn5t618_power_handler);
- 	if (ret) {
--		dev_err(&i2c->dev, "cannot register restart handler, %d\n", ret);
-+		dev_err(&i2c->dev, "failed to register power handler: %d\n", ret);
- 		return ret;
- 	}
- 
- 	return rn5t618_irq_init(priv);
++	kb3930_off(ddata, EC_OFF_MODE_REBOOT);
  }
  
--static int rn5t618_i2c_remove(struct i2c_client *i2c)
--{
--	if (i2c == rn5t618_pm_power_off) {
--		rn5t618_pm_power_off = NULL;
--		pm_power_off = NULL;
+-static void kb3930_pm_power_off(void)
++static void kb3930_power_off(struct power_off_data *data)
+ {
+-	kb3930_off(kb3930_power_off, EC_OFF_MODE_POWER);
+-}
++	struct kb3930 *ddata = data->cb_data;
+ 
+-static struct notifier_block kb3930_restart_nb = {
+-	.notifier_call = kb3930_restart,
+-};
++	kb3930_off(ddata, EC_OFF_MODE_POWER);
++}
+ 
+ static const struct mfd_cell ariel_ec_cells[] = {
+ 	{ .name = "dell-wyse-ariel-led", },
+@@ -131,7 +128,6 @@ static int kb3930_probe(struct i2c_client *client)
+ 	if (!ddata)
+ 		return -ENOMEM;
+ 
+-	kb3930_power_off = ddata;
+ 	ddata->client = client;
+ 	i2c_set_clientdata(client, ddata);
+ 
+@@ -169,24 +165,14 @@ static int kb3930_probe(struct i2c_client *client)
+ 	}
+ 
+ 	if (ddata->off_gpios) {
+-		register_restart_handler(&kb3930_restart_nb);
+-		if (!pm_power_off)
+-			pm_power_off = kb3930_pm_power_off;
 -	}
--
--	unregister_restart_handler(&rn5t618_restart_handler);
--
++		ddata->power_handler.cb_data = ddata;
++		ddata->power_handler.restart_cb = kb3930_restart;
++		ddata->power_handler.power_off_cb = kb3930_power_off;
+ 
 -	return 0;
 -}
 -
- static int __maybe_unused rn5t618_i2c_suspend(struct device *dev)
- {
- 	struct rn5t618 *priv = dev_get_drvdata(dev);
-@@ -284,7 +271,6 @@ static struct i2c_driver rn5t618_i2c_driver = {
- 		.pm = &rn5t618_i2c_dev_pm_ops,
- 	},
- 	.probe_new = rn5t618_i2c_probe,
--	.remove = rn5t618_i2c_remove,
- };
+-static int kb3930_remove(struct i2c_client *client)
+-{
+-	struct kb3930 *ddata = i2c_get_clientdata(client);
+-
+-	if (ddata->off_gpios) {
+-		if (pm_power_off == kb3930_pm_power_off)
+-			pm_power_off = NULL;
+-		unregister_restart_handler(&kb3930_restart_nb);
++		ret = devm_register_power_handler(dev, &ddata->power_handler);
++		if (ret)
++			return ret;
+ 	}
+-	kb3930_power_off = NULL;
  
- module_i2c_driver(rn5t618_i2c_driver);
+ 	return 0;
+ }
+@@ -199,7 +185,6 @@ MODULE_DEVICE_TABLE(of, kb3930_dt_ids);
+ 
+ static struct i2c_driver kb3930_driver = {
+ 	.probe_new = kb3930_probe,
+-	.remove = kb3930_remove,
+ 	.driver = {
+ 		.name = "ene-kb3930",
+ 		.of_match_table = kb3930_dt_ids,
 -- 
 2.33.1
 
