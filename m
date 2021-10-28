@@ -2,160 +2,155 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C9AEC4332F
-	for <linux-omap@archiver.kernel.org>; Thu, 28 Oct 2021 12:22:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A555C433EF
+	for <linux-omap@archiver.kernel.org>; Thu, 28 Oct 2021 15:17:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D3496112E
-	for <linux-omap@archiver.kernel.org>; Thu, 28 Oct 2021 12:22:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A8A161221
+	for <linux-omap@archiver.kernel.org>; Thu, 28 Oct 2021 15:17:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230387AbhJ1MY1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 28 Oct 2021 08:24:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58220 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229578AbhJ1MY0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2021 08:24:26 -0400
-Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C27A2C061570;
-        Thu, 28 Oct 2021 05:21:59 -0700 (PDT)
-Received: by mail-pj1-x1034.google.com with SMTP id ls14-20020a17090b350e00b001a00e2251c8so4527788pjb.4;
-        Thu, 28 Oct 2021 05:21:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=sEQTGe1SdVzMEvdAS+JHzGs+s//rKDLb3zrHBeoZhQ4=;
-        b=iTF+KxXEUPxEL0X/A/h2gzR6rfhKbueZtpV43T9ecbwhzi0t+l3q/o5Ua3AWvU+Enc
-         ByGkTqENMRntgh3iznFMDxu2CMYcinTkd+zVseDqmIBVqNiOOl7jtDTN28tXnXeh/eHS
-         f+SIvvi2YC7tI22dM3EDibcHeQLa3iIqsv5H8CiejoyVxtmYKOA3VOetskmtU4Lx+Pqb
-         LjWvbMeTK5pVAec3h6exgixTZBuA0b6b4pLrHZnH5EOvWXMCcJgTfSDot7PpiFpwOrmA
-         UDe0Zf8yyrgR8VQIYltC0W9ualVYljq6alX4ZkNWzu2NeGmBPW3wY5ZPA2p2XVSWoIe3
-         jylQ==
+        id S231361AbhJ1PT1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 28 Oct 2021 11:19:27 -0400
+Received: from mail-vk1-f175.google.com ([209.85.221.175]:41692 "EHLO
+        mail-vk1-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231370AbhJ1PT0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2021 11:19:26 -0400
+Received: by mail-vk1-f175.google.com with SMTP id 20so3150236vkc.8;
+        Thu, 28 Oct 2021 08:16:59 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=sEQTGe1SdVzMEvdAS+JHzGs+s//rKDLb3zrHBeoZhQ4=;
-        b=7UqHXmGC7VkoA7cxNiyG2I8GDN5WsK6Och2jEsorg2xs71y3Lkvwssk0SnKFNsdplI
-         dh9gh/HtHNCaNWgyruD7azzfURKvRfLsCaTyz9yZltjXJSlQyCToBnvvsxfVbOODZFr1
-         0wIvD84ktyB1DQHE8VDXMyPpiurY55RzfEWrwCyYVtM0NfgY59IdfXSur/j+Aq1nOT9G
-         lKDHoMFXwSJ5xSZiLuhkYkgZ3T6qAj4biP00/S633Lw5Lo0dcLdjjP3YvCiSk0Jc1F0E
-         CCaB4QjYRIQgb/RS24uT+cGediLLJq+3iuGafwAUTWqWyHj6Yo/1zTlZHINhmPpdTB5k
-         e1mA==
-X-Gm-Message-State: AOAM5325AblF+P/V0liVZGz7oMHsAm7WzDnbJwgCDC6XrUpk4VtHIxIc
-        /oggQY6Bo6nw0nQ1Ep511ihPaMOHnJ4PPNxL890=
-X-Google-Smtp-Source: ABdhPJwgRG6Z5IlQAMmxkEb7xwk/3DRskWOoc9lq5s+Jze0PB67uqVa13ZU9GrnI44E+cb/61DiEpYjC8sFDBN8RSYA=
-X-Received: by 2002:a17:902:b716:b0:13f:b2d1:f316 with SMTP id
- d22-20020a170902b71600b0013fb2d1f316mr3644234pls.24.1635423719258; Thu, 28
- Oct 2021 05:21:59 -0700 (PDT)
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=BXLaUTYOVxvvQd4nIOAq6bZKoQRM5UPz+DwNeiNfKbc=;
+        b=Ze/XptZRnJJAPkee6AXcUEj4WX41gYudZVP54gmb7mGmyMKpPpv7AwIDZmGO7euhJw
+         DNU0+fLSTtJDUNMj1fwMy/VQLGZb2tRL7WL+0RdT5BOZKN0L19SHe/y9uGzNffDH5FWk
+         RvK2XNuCzTObAqgDN+9FYlADmIir+07yjjiXNH1CRMIJF4NN1MFKvM2xXL7dmS0DP0v6
+         q75pmlq9d45i3eE0RrwagPTTdCVe2NTBjBGAEyJYXSkfNHvDF349dyVhozc7tLJT6Vmp
+         iR49ZbyjuKyXjIgzkxPRIYhmg7ijj4DkdK4nSubbVkAuLFPOHxB1xptzdGIYBqcuM24s
+         fgHA==
+X-Gm-Message-State: AOAM5313iFSqmcm0tLfBeIR7K1aiEJ/exeDphzu/PTedARFDSIUctErq
+        ydcH6zpqe19q2sHj43FRfX+06ya+h9tElQ==
+X-Google-Smtp-Source: ABdhPJySpBVGBi7yaFuBIJsW9dKP31y1fizl22Y6Rx5evxnhahd+8nnTdeVASY07+efzDQ9V5U9Xmw==
+X-Received: by 2002:a1f:7246:: with SMTP id n67mr4664811vkc.15.1635434218690;
+        Thu, 28 Oct 2021 08:16:58 -0700 (PDT)
+Received: from mail-ua1-f51.google.com (mail-ua1-f51.google.com. [209.85.222.51])
+        by smtp.gmail.com with ESMTPSA id q129sm481714vsb.6.2021.10.28.08.16.58
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 28 Oct 2021 08:16:58 -0700 (PDT)
+Received: by mail-ua1-f51.google.com with SMTP id u9so12168476uac.8;
+        Thu, 28 Oct 2021 08:16:58 -0700 (PDT)
+X-Received: by 2002:a67:cb0a:: with SMTP id b10mr5119238vsl.9.1635434218092;
+ Thu, 28 Oct 2021 08:16:58 -0700 (PDT)
 MIME-Version: 1.0
-References: <20211027211715.12671-1-digetx@gmail.com> <20211027211715.12671-16-digetx@gmail.com>
-In-Reply-To: <20211027211715.12671-16-digetx@gmail.com>
-From:   Greentime Hu <green.hu@gmail.com>
-Date:   Thu, 28 Oct 2021 20:20:00 +0800
-Message-ID: <CAEbi=3eTruN6rYvEHCtyhTEZ=Ep8n6g75UMpHffc=0UrVTGbdQ@mail.gmail.com>
-Subject: Re: [PATCH v2 15/45] nds32: Use do_kernel_power_off()
-To:     Dmitry Osipenko <digetx@gmail.com>
-Cc:     Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Mark Brown <broonie@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Russell King <linux@armlinux.org.uk>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Joshua Thompson <funaho@jurai.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Nick Hu <nickhu@andestech.com>,
-        Vincent Chen <deanbo422@gmail.com>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Len Brown <lenb@kernel.org>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Chen-Yu Tsai <wens@csie.org>,
-        =?UTF-8?Q?Jonathan_Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>,
-        Tony Lindgren <tony@atomide.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Avi Fishman <avifishman70@gmail.com>,
-        Tomer Maimon <tmaimon77@gmail.com>,
-        Tali Perry <tali.perry1@gmail.com>,
-        Patrick Venture <venture@google.com>,
-        Nancy Yuen <yuenn@google.com>,
-        Benjamin Fair <benjaminfair@google.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
-        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
-        linux-omap@vger.kernel.org, openbmc@lists.ozlabs.org,
-        linux-tegra@vger.kernel.org, linux-pm@vger.kernel.org,
-        Alan Kao <alankao@andestech.com>,
-        =?UTF-8?B?Sy5DLiBLdWVuLUNoZXJuIExpbijmnpflnaTmiJAp?= 
-        <kclin@andestech.com>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Thu, 28 Oct 2021 17:16:47 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdUjdQrwV-dP=8n1NQ_AZU7-oAjhmVv2hZBEJHQF5zynCQ@mail.gmail.com>
+Message-ID: <CAMuHMdUjdQrwV-dP=8n1NQ_AZU7-oAjhmVv2hZBEJHQF5zynCQ@mail.gmail.com>
+Subject: DRA7 clock question
+To:     Tero Kristo <kristo@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc:     linux-clk <linux-clk@vger.kernel.org>,
+        "open list:TI ETHERNET SWITCH DRIVER (CPSW)" 
+        <linux-omap@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dmitry Osipenko <digetx@gmail.com> =E6=96=BC 2021=E5=B9=B410=E6=9C=8828=E6=
-=97=A5 =E9=80=B1=E5=9B=9B =E4=B8=8A=E5=8D=885:18=E5=AF=AB=E9=81=93=EF=BC=9A
->
-> Kernel now supports chained power-off handlers. Use do_kernel_power_off()
-> that invokes chained power-off handlers. It also invokes legacy
-> pm_power_off() for now, which will be removed once all drivers will
-> be converted to the new power-off API.
->
-> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
-> ---
->  arch/nds32/kernel/process.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->
-> diff --git a/arch/nds32/kernel/process.c b/arch/nds32/kernel/process.c
-> index 49fab9e39cbf..0936dcd7db1b 100644
-> --- a/arch/nds32/kernel/process.c
-> +++ b/arch/nds32/kernel/process.c
-> @@ -54,8 +54,7 @@ EXPORT_SYMBOL(machine_halt);
->
->  void machine_power_off(void)
->  {
-> -       if (pm_power_off)
-> -               pm_power_off();
-> +       do_kernel_power_off();
->  }
->
->  EXPORT_SYMBOL(machine_power_off);
-> --
-> 2.33.1
->
+Hi Tero, Tony,
 
-Loop in Alan and KC
+I accidentally stumbled across the following code in drivers/clk/ti/apll.c:
+
+    static int dra7_apll_enable(struct clk_hw *hw)
+    {
+            struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+            int r = 0, i = 0;
+            struct dpll_data *ad;
+            const char *clk_name;
+            u8 state = 1;
+            u32 v;
+
+            ad = clk->dpll_data;
+            if (!ad)
+                    return -EINVAL;
+
+            clk_name = clk_hw_get_name(&clk->hw);
+
+            state <<= __ffs(ad->idlest_mask);
+
+state is shifted to its bit position...
+
+            /* Check is already locked */
+            v = ti_clk_ll_ops->clk_readl(&ad->idlest_reg);
+
+            if ((v & ad->idlest_mask) == state)
+
+... and checked.
+
+                    return r;
+
+            v = ti_clk_ll_ops->clk_readl(&ad->control_reg);
+            v &= ~ad->enable_mask;
+            v |= APLL_FORCE_LOCK << __ffs(ad->enable_mask);
+            ti_clk_ll_ops->clk_writel(v, &ad->control_reg);
+
+            state <<= __ffs(ad->idlest_mask);
+
+state is shifted again? ...
+
+            while (1) {
+                    v = ti_clk_ll_ops->clk_readl(&ad->idlest_reg);
+                    if ((v & ad->idlest_mask) == state)
+
+... and checked again?
+
+                            break;
+                    if (i > MAX_APLL_WAIT_TRIES)
+                            break;
+                    i++;
+                    udelay(1);
+            }
+
+            if (i == MAX_APLL_WAIT_TRIES) {
+                    pr_warn("clock: %s failed transition to '%s'\n",
+                            clk_name, (state) ? "locked" : "bypassed");
+                    r = -EBUSY;
+            } else
+                    pr_debug("clock: %s transition to '%s' in %d loops\n",
+                             clk_name, (state) ? "locked" : "bypassed", i);
+
+            return r;
+    }
+
+    static void dra7_apll_disable(struct clk_hw *hw)
+    {
+            struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+            struct dpll_data *ad;
+            u8 state = 1;
+            u32 v;
+
+            ad = clk->dpll_data;
+
+            state <<= __ffs(ad->idlest_mask);
+
+state is shifted to its bit position, but it is never used below?
+Perhaps one of the check blocks above should be moved here?
+
+I checked git history and the original patch submissions, and even
+the oldest submission I could find had the same logic.
+
+            v = ti_clk_ll_ops->clk_readl(&ad->control_reg);
+            v &= ~ad->enable_mask;
+            v |= APLL_AUTO_IDLE << __ffs(ad->enable_mask);
+            ti_clk_ll_ops->clk_writel(v, &ad->control_reg);
+    }
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
