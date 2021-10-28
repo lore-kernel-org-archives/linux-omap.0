@@ -2,107 +2,179 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39EDFC433F5
-	for <linux-omap@archiver.kernel.org>; Thu, 28 Oct 2021 10:07:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E310C4332F
+	for <linux-omap@archiver.kernel.org>; Thu, 28 Oct 2021 11:01:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1698C6103C
-	for <linux-omap@archiver.kernel.org>; Thu, 28 Oct 2021 10:07:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 571F261106
+	for <linux-omap@archiver.kernel.org>; Thu, 28 Oct 2021 11:01:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229775AbhJ1KKR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 28 Oct 2021 06:10:17 -0400
-Received: from mo4-p02-ob.smtp.rzone.de ([81.169.146.168]:25062 "EHLO
-        mo4-p02-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229835AbhJ1KKR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2021 06:10:17 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1635415649;
-    s=strato-dkim-0002; d=goldelico.com;
-    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
-    From:Subject:Sender;
-    bh=hXR8Z/Nu1gLX0h4WuKajrdI1yS2oKpMgJtR5xG9UxGM=;
-    b=KrW0hEHwbBnKn27A1B4OPBxV1nQgN7v3JNpkZ2R4FQnwHfKUziYbzv8Hr6prIm5J8q
-    Nu74y5bmI6E04xlbCVTNFEp056Y0ktmmL8iwMBCR1Aw5UUXktsVjO8Qmgu4y2I3J3lgR
-    nbMysHedReIGsVDS/7Q1AjTDRF70YW9nE9egEFaw022ZBHiP+vJS1/kwu1495Tr+3SKh
-    Z841xHxiMPdBmSjRvWA6flsGjoGNPmHtw++otWMqHk+o2P2RZJZeXNG89OEVQvta+9SQ
-    XdkySfvdHeEfixPMLhYugnxhWac6y6Yc4hqWYWhSbyUl9S1tFyyFndlHjoIjv86uEnuO
-    zi1w==
-Authentication-Results: strato.com;
-    dkim=none
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj4Qpw9iZeHWElw4vtTA=="
-X-RZG-CLASS-ID: mo00
-Received: from imac.fritz.box
-    by smtp.strato.de (RZmta 47.34.1 DYNA|AUTH)
-    with ESMTPSA id d01d1fx9SA7S5sY
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-        (Client did not present a certificate);
-    Thu, 28 Oct 2021 12:07:28 +0200 (CEST)
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 12.4 \(3445.104.21\))
-Subject: Re: [RFC] mmc: core: transplant ti,wl1251 quirks from to be retired
- omap_hsmmc
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <34072875.m9Xp8G9xV5@pc-42>
-Date:   Thu, 28 Oct 2021 12:07:27 +0200
-Cc:     Ulf Hansson <ulf.hansson@linaro.org>,
-        Avri Altman <avri.altman@wdc.com>,
-        Shawn Lin <shawn.lin@rock-chips.com>,
+        id S230179AbhJ1LDj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 28 Oct 2021 07:03:39 -0400
+Received: from mga06.intel.com ([134.134.136.31]:7883 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230126AbhJ1LDi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 28 Oct 2021 07:03:38 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10150"; a="291216588"
+X-IronPort-AV: E=Sophos;i="5.87,189,1631602800"; 
+   d="scan'208";a="291216588"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Oct 2021 04:01:11 -0700
+X-IronPort-AV: E=Sophos;i="5.87,189,1631602800"; 
+   d="scan'208";a="447649034"
+Received: from smile.fi.intel.com ([10.237.72.184])
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Oct 2021 04:00:54 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.95)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1mg395-001jY2-If;
+        Thu, 28 Oct 2021 14:00:31 +0300
+Date:   Thu, 28 Oct 2021 14:00:31 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Dmitry Osipenko <digetx@gmail.com>
+Cc:     Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Mark Brown <broonie@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Russell King <linux@armlinux.org.uk>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Joshua Thompson <funaho@jurai.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Nick Hu <nickhu@andestech.com>,
+        Greentime Hu <green.hu@gmail.com>,
+        Vincent Chen <deanbo422@gmail.com>,
+        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
         Linus Walleij <linus.walleij@linaro.org>,
-        Bean Huo <beanhuo@micron.com>, linux-mmc@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Discussions about the Letux Kernel 
-        <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com,
+        Chen-Yu Tsai <wens@csie.org>,
+        Jonathan =?iso-8859-1?Q?Neusch=E4fer?= <j.neuschaefer@gmx.net>,
         Tony Lindgren <tony@atomide.com>,
-        Linux-OMAP <linux-omap@vger.kernel.org>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <4153E8E6-2D39-4AEA-9CC6-411D4FF8CE67@goldelico.com>
-References: <8ecc5c79c1dd0627d570ede31e18c860786cacca.1633519499.git.hns@goldelico.com>
- <2013308.OSlt1BDEiP@pc-42>
- <1EF25CD6-7801-4C15-AB4C-5F499948A653@goldelico.com>
- <34072875.m9Xp8G9xV5@pc-42>
-To:     =?utf-8?B?SsOpcsO0bWUgUG91aWxsZXI=?= <jerome.pouiller@silabs.com>
-X-Mailer: Apple Mail (2.3445.104.21)
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Avi Fishman <avifishman70@gmail.com>,
+        Tomer Maimon <tmaimon77@gmail.com>,
+        Tali Perry <tali.perry1@gmail.com>,
+        Patrick Venture <venture@google.com>,
+        Nancy Yuen <yuenn@google.com>,
+        Benjamin Fair <benjaminfair@google.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
+        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
+        linux-omap@vger.kernel.org, openbmc@lists.ozlabs.org,
+        linux-tegra@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: Re: [PATCH v2 03/45] notifier: Add
+ atomic/blocking_notifier_has_unique_priority()
+Message-ID: <YXqCz/utp2DFJJ45@smile.fi.intel.com>
+References: <20211027211715.12671-1-digetx@gmail.com>
+ <20211027211715.12671-4-digetx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211027211715.12671-4-digetx@gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+On Thu, Oct 28, 2021 at 12:16:33AM +0300, Dmitry Osipenko wrote:
+> Add atomic/blocking_notifier_has_unique_priority() helpers which return
+> true if given handler has unique priority.
 
+...
 
-> Am 28.10.2021 um 11:55 schrieb J=C3=A9r=C3=B4me Pouiller =
-<jerome.pouiller@silabs.com>:
->=20
-> On Thursday 28 October 2021 11:40:59 CEST H. Nikolaus Schaller wrote:
->>> Am 28.10.2021 um 10:59 schrieb J=C3=A9r=C3=B4me Pouiller =
-<jerome.pouiller@silabs.com>:
->>> On Thursday 28 October 2021 09:08:50 CEST H. Nikolaus Schaller =
-wrote:
->>>=20
->>>>> Let me have a closer look - and for sure, I am willing to help if =
-needed.
->>>=20
->>> I confirm it does not have the expected behavior. =
-!mmc_fixup_of_compatible_match()
->>> should be mmc_fixup_of_compatible_match(), sorry.
->>=20
->> Ok, I see.
->>=20
->> One more question: how can I specify "ti,wl1251" in some struct =
-mmc_fixup table?
->> Does it need another macro like MMC_FIXUP() or SDIO_FIXUP() to set =
-the .name
->> field?
->=20
-> yes, I didn't provide it with my RFC.=20
+> +/**
+> + *	atomic_notifier_has_unique_priority - Checks whether notifier's priority is unique
+> + *	@nh: Pointer to head of the atomic notifier chain
+> + *	@n: Entry in notifier chain to check
+> + *
+> + *	Checks whether there is another notifier in the chain with the same priority.
+> + *	Must be called in process context.
+> + *
+> + *	Returns true if priority is unique, false otherwise.
 
-I see.
+Why this indentation?
 
-Starts to look like a good plan and we just have to execute it.
+> + */
+> +bool atomic_notifier_has_unique_priority(struct atomic_notifier_head *nh,
+> +		struct notifier_block *n)
+> +{
+> +	struct notifier_block **nl = &nh->head;
+> +	unsigned long flags;
+> +	bool ret = true;
+> +
+> +	spin_lock_irqsave(&nh->lock, flags);
+> +
+> +	while ((*nl) != NULL && (*nl)->priority >= n->priority) {
 
-Please notify if you have a new version to work with (it isn't urgent =
-since the
-transplantation is only needed if omap_hsmmc is retired which depends on =
-merge
-of the new driver).
+' != NULL' is redundant.
 
-BR and thanks,
-Nikolaus
+> +		if ((*nl)->priority == n->priority && (*nl) != n) {
+> +			ret = false;
+> +			break;
+> +		}
+> +
+> +		nl = &((*nl)->next);
+> +	}
+> +
+> +	spin_unlock_irqrestore(&nh->lock, flags);
+> +
+> +	return ret;
+> +}
+
+...
+
+> +	/*
+> +	 * This code gets used during boot-up, when task switching is
+> +	 * not yet working and interrupts must remain disabled.  At
+
+One space is enough.
+
+> +	 * such times we must not call down_write().
+> +	 */
+
+> +	while ((*nl) != NULL && (*nl)->priority >= n->priority) {
+
+' != NULL' is not needed.
+
+> +		if ((*nl)->priority == n->priority && (*nl) != n) {
+> +			ret = false;
+> +			break;
+> +		}
+> +
+> +		nl = &((*nl)->next);
+> +	}
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
 
