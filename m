@@ -2,122 +2,125 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB626C433EF
-	for <linux-omap@archiver.kernel.org>; Wed,  3 Nov 2021 23:19:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7430BC433F5
+	for <linux-omap@archiver.kernel.org>; Fri,  5 Nov 2021 08:13:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D3B61611C3
-	for <linux-omap@archiver.kernel.org>; Wed,  3 Nov 2021 23:19:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F9B760F5A
+	for <linux-omap@archiver.kernel.org>; Fri,  5 Nov 2021 08:13:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230329AbhKCXW3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 3 Nov 2021 19:22:29 -0400
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:41984 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229964AbhKCXW2 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 3 Nov 2021 19:22:28 -0400
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 1A3NJdUX033371;
-        Wed, 3 Nov 2021 18:19:39 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1635981579;
-        bh=3NI8re5mbbuzi7E/gBD8Pd6lBaiNoGJv6ABjsmw/z9Q=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To;
-        b=YdkPPvTvjoJCTTj9PxnRv6D6gzKKF2ee36r2BCCiScLwtm4Z5EtojjnMGh/t+Nsn9
-         SGBAlSPR1RRqzOee7SsfDfzObO+axPKNmnHUqqKJGWTYchAa8AzQPQV1ADvrpuPU5d
-         TPElMrbMukanTJxKT4MWv/87gzyDIF+ugZzDcUvs=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 1A3NJdFs111402
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 3 Nov 2021 18:19:39 -0500
-Received: from DLEE101.ent.ti.com (157.170.170.31) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14; Wed, 3
- Nov 2021 18:19:39 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE101.ent.ti.com
- (157.170.170.31) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14 via
- Frontend Transport; Wed, 3 Nov 2021 18:19:39 -0500
-Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 1A3NJaCN119288;
-        Wed, 3 Nov 2021 18:19:36 -0500
-Subject: Re: [PATCH net-next v2 2/3] net: ethernet: ti: am65-cpsw: enable
- bc/mc storm prevention support
-To:     Jakub Kicinski <kuba@kernel.org>
-CC:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Vladimir Oltean <vladimir.oltean@nxp.com>
-References: <20211101170122.19160-1-grygorii.strashko@ti.com>
- <20211101170122.19160-3-grygorii.strashko@ti.com>
- <20211102173840.01f464ec@kicinski-fedora-PC1C0HJN>
- <81a427a1-b969-4039-0c3f-567b3073abc1@ti.com>
- <20211103160742.51218d7d@kicinski-fedora-PC1C0HJN>
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-Message-ID: <de899dec-e9da-5fbc-77f5-672f0fed1222@ti.com>
-Date:   Thu, 4 Nov 2021 01:19:24 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
+        id S232321AbhKEIQW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 5 Nov 2021 04:16:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55126 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231837AbhKEIQV (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 5 Nov 2021 04:16:21 -0400
+Received: from mail-qt1-x832.google.com (mail-qt1-x832.google.com [IPv6:2607:f8b0:4864:20::832])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 646B2C061714;
+        Fri,  5 Nov 2021 01:13:42 -0700 (PDT)
+Received: by mail-qt1-x832.google.com with SMTP id o12so6501512qtv.4;
+        Fri, 05 Nov 2021 01:13:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=fVlZRJCKXUiqoF7G7hyUyfyk+5I40Id7HCqnbB08HMQ=;
+        b=kTtDhSSUVBAaLquaHLkNCUmCFlhIfFNbkpBVUYWy/kf4GCXD82Rp+uFqFFnjosL91f
+         GJet10XZfMoRgklh86ym1VJPDkjGjsl8HX25SW41/0tMoF7tQ/u+7mZIAiDz2JBPomRE
+         SH5JPoqYH3/rpRIRstCz9budfZujQhFpdJ3Dij51Y0avydA/BEkM7KqUs5i2QSbIRQ6o
+         qcyx0MW1AgCk+xqEvuHIcmQyVxr/sxeSVL6BV47RG+r4fB3skeUvIMu/A+Q3kjvbvwIT
+         QXDGbl0dMbun5EYa1X+6PILPjL0ZZIiN6tJ5/mycAbBaQjBZYoqkcAeYin6eYSJP0Agk
+         Ci2A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=fVlZRJCKXUiqoF7G7hyUyfyk+5I40Id7HCqnbB08HMQ=;
+        b=z0ukC34zePgcGF/rV3+vgppLIyuhTtMyDxChXWD2eUuzlRD3F04TEmgQ8Wa/KPqdGz
+         lftJ/T5slYXMGp64MIkwVa8yHTg9iJLj3pYmfGe9VxgpCgWfNwLsCOwwdsDR8W//c0TG
+         YTAeZx1VKZkaK2i2Vp6xr39Yo9G4xbRt1ZY8BDeAtoB9M769T/IXMoxGIpFuzeBYVjyr
+         gtZe5sTGENndPeyYMU0t5TrZRb+wbMgE1VzYnZqTEoqq+EMa+dOYQSNivfRIpEDc+QRO
+         gkf43r4VpU0WO1O/TUBhhnt0o+ZJTF30eGFd53rHXn3/VczYh6xW+66cRFQeOUVBYw4A
+         RQDw==
+X-Gm-Message-State: AOAM533Vu971o0v/G2TUPaVTM29onfNMvAhF5urvQ3JKbHCgdkgy7MNZ
+        bPuMzSwF5rXjpZJ+OMVQcou5QnracyU=
+X-Google-Smtp-Source: ABdhPJxUNp4kKqoDFXNGw/s5Alxe9f3i4Axux6ohHFVYJVgy0gVbIefnUP4h24e3WH9Tvqnk9m80Yg==
+X-Received: by 2002:a05:622a:1705:: with SMTP id h5mr36744355qtk.228.1636100021385;
+        Fri, 05 Nov 2021 01:13:41 -0700 (PDT)
+Received: from localhost.localdomain ([193.203.214.57])
+        by smtp.gmail.com with ESMTPSA id e10sm5428630qte.57.2021.11.05.01.13.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 05 Nov 2021 01:13:40 -0700 (PDT)
+From:   cgel.zte@gmail.com
+X-Google-Original-From: yao.jing2@zte.com.cn
+To:     linux-omap@vger.kernel.org
+Cc:     yao.jing2@zte.com.cn, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        Zeal Robot <zealci@zte.com.cn>
+Subject: [PATCH] omapfb: panel-dsi-cm: Replace snprintf in show functions with sysfs_emit
+Date:   Fri,  5 Nov 2021 08:13:33 +0000
+Message-Id: <20211105081333.76861-1-yao.jing2@zte.com.cn>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-In-Reply-To: <20211103160742.51218d7d@kicinski-fedora-PC1C0HJN>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+From: Jing Yao <yao.jing2@zte.com.cn>
 
+coccicheck complains about the use of snprintf() in sysfs show
+functions:
+WARNING use scnprintf or sprintf
 
-On 04/11/2021 01:07, Jakub Kicinski wrote:
-> On Thu, 4 Nov 2021 00:20:30 +0200 Grygorii Strashko wrote:
->> On 03/11/2021 02:38, Jakub Kicinski wrote:
->>> On Mon, 1 Nov 2021 19:01:21 +0200 Grygorii Strashko wrote:
->>>>    - 01:00:00:00:00:00 fixed value has to be used for MC packets rate
->>>>      limiting (exact match)
->>>
->>> This looks like a stretch, why not use a mask? You can require users to
->>> always install both BC and MC rules if you want to make sure the masked
->>> rule does not match BC.
->>>    
->>
->> Those matching rules are hard coded in HW for packet rate limiting and SW only
->> enables them and sets requested pps limit.
->> - 1:BC: HW does exact match on BC MAC address
->> - 2:MC: HW does match on MC bit (the least-significant bit of the first octet)
->>
->> Therefore the exact match done in this patch for above dst_mac's with
->> is_broadcast_ether_addr() and ether_addr_equal().
-> 
-> Right but flower supports masked matches for dest address, as far as I
-> can tell. So you should check the mask is what you expect as well, not
-> just look at the key. Mask should be equal to key in your case IIUC, so:
-> 
-> 	if (is_broadcast_ether_addr(match.key->dst) &&
-> 	    is_broadcast_ether_addr(match.mask->dst))
-> 
-> and
-> 
-> 	if (!memcmp(match.key->dst, mc_mac, ETH_ALEN) &&
-> 	    !memcmp(match.mask->dst, mc_mac, ETH_ALEN))
-> 
-> I think you should also test that the mask, not the key of source addr
-> is zero.
-> 
-> Note that ether_addr_equal() assumes the mac address is alinged to 2,
-> which I'm not sure is the case here.
-> 
-> Also you can make mc_mac a static const.
+Use sysfs_emit instead of scnprintf, snprintf or sprintf makes more
+sense.
 
-Ah, got it. Thank you.
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Signed-off-by: Jing Yao <yao.jing2@zte.com.cn>
+---
+ drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-> 
->> The K3 cpsw also supports number configurable policiers (bit rate limit) in
->> ALE for which supports is to be added, and for them MC mask (sort of, it uses
->> number of ignored bits, like FF-FF-FF-00-00-00) can be used.
-
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
+index 4b0793abdd84..a2c7c5cb1523 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
+@@ -409,7 +409,7 @@ static ssize_t dsicm_num_errors_show(struct device *dev,
+ 	if (r)
+ 		return r;
+ 
+-	return snprintf(buf, PAGE_SIZE, "%d\n", errors);
++	return sysfs_emit(buf, "%d\n", errors);
+ }
+ 
+ static ssize_t dsicm_hw_revision_show(struct device *dev,
+@@ -439,7 +439,7 @@ static ssize_t dsicm_hw_revision_show(struct device *dev,
+ 	if (r)
+ 		return r;
+ 
+-	return snprintf(buf, PAGE_SIZE, "%02x.%02x.%02x\n", id1, id2, id3);
++	return sysfs_emit(buf, "%02x.%02x.%02x\n", id1, id2, id3);
+ }
+ 
+ static ssize_t dsicm_store_ulps(struct device *dev,
+@@ -487,7 +487,7 @@ static ssize_t dsicm_show_ulps(struct device *dev,
+ 	t = ddata->ulps_enabled;
+ 	mutex_unlock(&ddata->lock);
+ 
+-	return snprintf(buf, PAGE_SIZE, "%u\n", t);
++	return sysfs_emit(buf, "%u\n", t);
+ }
+ 
+ static ssize_t dsicm_store_ulps_timeout(struct device *dev,
+@@ -532,7 +532,7 @@ static ssize_t dsicm_show_ulps_timeout(struct device *dev,
+ 	t = ddata->ulps_timeout;
+ 	mutex_unlock(&ddata->lock);
+ 
+-	return snprintf(buf, PAGE_SIZE, "%u\n", t);
++	return sysfs_emit(buf, "%u\n", t);
+ }
+ 
+ static DEVICE_ATTR(num_dsi_errors, S_IRUGO, dsicm_num_errors_show, NULL);
 -- 
-Best regards,
-grygorii
+2.25.1
+
