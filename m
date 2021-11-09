@@ -2,131 +2,97 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FCEFC433F5
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Nov 2021 13:33:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B54CEC43219
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Nov 2021 22:21:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0564E611C5
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Nov 2021 13:33:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A47AF61A88
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Nov 2021 22:21:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229906AbhKINgV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 9 Nov 2021 08:36:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44372 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230147AbhKINgU (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2021 08:36:20 -0500
-Received: from mail-wm1-x332.google.com (mail-wm1-x332.google.com [IPv6:2a00:1450:4864:20::332])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AE1AC061764
-        for <linux-omap@vger.kernel.org>; Tue,  9 Nov 2021 05:33:34 -0800 (PST)
-Received: by mail-wm1-x332.google.com with SMTP id y84-20020a1c7d57000000b00330cb84834fso1923669wmc.2
-        for <linux-omap@vger.kernel.org>; Tue, 09 Nov 2021 05:33:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20210112.gappssmtp.com; s=20210112;
-        h=subject:to:cc:references:from:organization:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=oXCMr+/KNYtEmd3upAl6pgL78E6/B9BzleWtsQw0fvY=;
-        b=PIPWFklLYdgHZz4sKScFOtQx6cc5AfdbB5bOrVhuqRUiAzI1PaY+eRkD0cIJqZ3H9/
-         h1rdNDh8mqEeHVaXg0cb3WRG7klHAZoc5xVzCCdIF3xYgUFgqcIQHumCSTp4Lrr07mgY
-         7NnCI5jXzZnHp8IEpdYA5rHUaG+Jrs2syXW5xZDrJyZVRUkpMXme1hcBNDySAj0t+N4B
-         OC5/zdexojm+lxiOnHB6Ud/hgYHBY6RagfFKblEm8ngUWrtP+7++Y2+VIVh4L5FzT+y4
-         y8BtRyQgrstwlAZlokt2xX6a8m2P/F6hkDCz2/NRh5lEEAbT3wbdGPVebjUcb4CmW3Qw
-         Ux1g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:subject:to:cc:references:from:organization
-         :message-id:date:user-agent:mime-version:in-reply-to
-         :content-language:content-transfer-encoding;
-        bh=oXCMr+/KNYtEmd3upAl6pgL78E6/B9BzleWtsQw0fvY=;
-        b=yeJPpgiauihGDD+E7TqR24/bpMkqFBeaeql0glUiRxv/8RjFXq+2l6hgMwab+K3KKF
-         fj6+2vxFMCYuG6ixkRWKbIRxRvauyhz6sNT7DpCl5mKcAS2UTHV+kBN9ZzFM9qozwr1N
-         nTDzY5Z37Jk12X/yAtmqvWZ3/vOfnEqlLzKOFgJonB03oL0TNB0HA40wingQA0RcC5PQ
-         WtkKyV8sckfKC6/GQ47ytUTogZxtceV7LR26ey4DPUzTuV5CAsSMGT/hMCL5jqAuz9iP
-         CTSfZOx0s/NLqL8pkqGrUB58M54sidx4jmtux+0ml1wmYeB5lPBWxQhcXL74WmxF9CCs
-         OtQA==
-X-Gm-Message-State: AOAM533B/SFyYLirMfBTpwNKCAOWzNB+/YyGcdCieI8wjdtnjizBtG+e
-        b8ouCBP77CLwQpgobLGpesiq3b16/q38H/Vg
-X-Google-Smtp-Source: ABdhPJzffaQ/PmeccpPGpLG2Fa3ejyKOv/JPCrxy7S3CJFfFhWSYI5qMjQ09cL5DK1P5TdmiNEFvlA==
-X-Received: by 2002:a1c:7c19:: with SMTP id x25mr7466982wmc.42.1636464812656;
-        Tue, 09 Nov 2021 05:33:32 -0800 (PST)
-Received: from ?IPv6:2001:861:44c0:66c0:d284:de3f:b3d6:f714? ([2001:861:44c0:66c0:d284:de3f:b3d6:f714])
-        by smtp.gmail.com with ESMTPSA id o1sm20351064wru.91.2021.11.09.05.33.31
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 09 Nov 2021 05:33:32 -0800 (PST)
-Subject: Re: [PATCH] drm/omap: increase DSS5 max tv pclk to 192MHz
-To:     tomba@kernel.org
-Cc:     linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, khilman@baylibre.com,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>
-References: <20211012133939.2145462-1-narmstrong@baylibre.com>
-From:   Neil Armstrong <narmstrong@baylibre.com>
-Organization: Baylibre
-Message-ID: <b0683f52-abde-cb11-c88c-dd05645945a0@baylibre.com>
-Date:   Tue, 9 Nov 2021 14:33:31 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
+        id S245674AbhKIWXv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 9 Nov 2021 17:23:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40916 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1343940AbhKIWWB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 9 Nov 2021 17:22:01 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 27FC6613B3;
+        Tue,  9 Nov 2021 22:18:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1636496298;
+        bh=yRU2nC94K7wNrUtgKiFvZusWJJCgd3iynH7iUVZAMW8=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=IfuzkhP4jwBc9fM4hSApgywrCY0Yctz8lxuhOqOpqSIaTaqGXaRdPcyhlT4QwD0FD
+         a6KXns0druWYYQ3WjixvGMb+Y9L5j4S44HJdC8K7Z1fCBa04hfyYyTmphBBYnPMN+w
+         XYnVPkaq9IfmzId37eW6TiQCLah89y5bOe+k/b8bABpHdwX9M8Vi/O9WQR7h2OIRXs
+         s/2UvTjHFDIneeMGKK1F6z89wO/eiQN+7vZiRS5tbnekWWKmo278Cha7rKTozn6Ptj
+         43yk0biOxpe51tGZNM6QvFuZnvvg2epiajOuibwLWLxFYihF4JbcyKIvkFcyWEPH8V
+         Fa0xaSzyBE8Jw==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Roger Quadros <rogerq@kernel.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Sasha Levin <sashal@kernel.org>, bcousson@baylibre.com,
+        robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        linux@arm.linux.org.uk, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH AUTOSEL 5.15 53/82] ARM: dts: omap: fix gpmc,mux-add-data type
+Date:   Tue,  9 Nov 2021 17:16:11 -0500
+Message-Id: <20211109221641.1233217-53-sashal@kernel.org>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20211109221641.1233217-1-sashal@kernel.org>
+References: <20211109221641.1233217-1-sashal@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20211012133939.2145462-1-narmstrong@baylibre.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Tomi,
+From: Roger Quadros <rogerq@kernel.org>
 
-On 12/10/2021 15:39, Neil Armstrong wrote:
-> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> 
-> DSS5's maximum tv pclk rate (i.e. HDMI) is set to 186MHz, which comes
-> from the TRM (DPLL_HDMI_CLK1 frequency must be lower than 186 MHz). To
-> support DRA76's wide screen HDMI feature, we need to increase this
-> maximum rate.
-> 
-> Testing shows that the PLL seems to work fine even with ~240MHz clocks,
-> and even the HDMI output at that clock is stable enough for monitors to
-> show a picture. This holds true for all DRA7 and AM5 SoCs (and probably
-> also for OMAP5).
-> 
-> However, the highest we can go without big refactoring to the clocking
-> code is 192MHz, as that is the DSS func clock we get from the PRCM. So,
-> increase the max HDMI pixel clock to 192MHz for now, to allow some more
-> 2k+ modes to work.
-> 
-> This patch never had a clear confirmation from HW people, but this
-> change stayed on production trees for multiple years without any report
-> on an eventual breakage.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> ---
->  drivers/gpu/drm/omapdrm/dss/dispc.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> Tomi,
-> 
-> I slighly changed the commit message to point the fact this patch has been
-> used in production fort years without any sign of breakage.
-> 
-> Neil
-> 
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dispc.c b/drivers/gpu/drm/omapdrm/dss/dispc.c
-> index 5619420cc2cc..3c4a4991e45a 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/dispc.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dispc.c
-> @@ -4458,7 +4458,7 @@ static const struct dispc_features omap54xx_dispc_feats = {
->  	.mgr_width_max		=	4096,
->  	.mgr_height_max		=	4096,
->  	.max_lcd_pclk		=	170000000,
-> -	.max_tv_pclk		=	186000000,
-> +	.max_tv_pclk		=	192000000,
->  	.max_downscale		=	4,
->  	.max_line_width		=	2048,
->  	.min_pcd		=	1,
-> 
-> base-commit: e4e737bb5c170df6135a127739a9e6148ee3da82
-> 
+[ Upstream commit 51b9e22ffd3c4c56cbb7caae9750f70e55ffa603 ]
 
-Gentle ping,
+gpmc,mux-add-data is not boolean.
 
-Neil
+Fixes the below errors flagged by dtbs_check.
+
+"ethernet@4,0:gpmc,mux-add-data: True is not of type 'array'"
+
+Signed-off-by: Roger Quadros <rogerq@kernel.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi         | 2 +-
+ arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi b/arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
+index 7f6aefd134514..e7534fe9c53cf 100644
+--- a/arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
++++ b/arch/arm/boot/dts/omap-gpmc-smsc9221.dtsi
+@@ -29,7 +29,7 @@
+ 		compatible = "smsc,lan9221","smsc,lan9115";
+ 		bank-width = <2>;
+ 
+-		gpmc,mux-add-data;
++		gpmc,mux-add-data = <0>;
+ 		gpmc,cs-on-ns = <0>;
+ 		gpmc,cs-rd-off-ns = <42>;
+ 		gpmc,cs-wr-off-ns = <36>;
+diff --git a/arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi b/arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi
+index e5da3bc6f1050..218a10c0d8159 100644
+--- a/arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi
++++ b/arch/arm/boot/dts/omap3-overo-tobiduo-common.dtsi
+@@ -22,7 +22,7 @@
+ 		compatible = "smsc,lan9221","smsc,lan9115";
+ 		bank-width = <2>;
+ 
+-		gpmc,mux-add-data;
++		gpmc,mux-add-data = <0>;
+ 		gpmc,cs-on-ns = <0>;
+ 		gpmc,cs-rd-off-ns = <42>;
+ 		gpmc,cs-wr-off-ns = <36>;
+-- 
+2.33.0
+
