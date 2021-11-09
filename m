@@ -2,78 +2,130 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C87FAC433F5
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Nov 2021 09:23:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A966C433EF
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Nov 2021 10:59:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC48C61104
-	for <linux-omap@archiver.kernel.org>; Tue,  9 Nov 2021 09:23:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40F6261178
+	for <linux-omap@archiver.kernel.org>; Tue,  9 Nov 2021 10:59:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244817AbhKIJZt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 9 Nov 2021 04:25:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43422 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244806AbhKIJZs (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2021 04:25:48 -0500
-Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [IPv6:2001:4b98:dc2:55:216:3eff:fef7:d647])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2471BC061764
-        for <linux-omap@vger.kernel.org>; Tue,  9 Nov 2021 01:23:03 -0800 (PST)
-Received: from [192.168.1.111] (91-158-153-130.elisa-laajakaista.fi [91.158.153.130])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id B60F6FD1;
-        Tue,  9 Nov 2021 10:22:59 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1636449780;
-        bh=rECzhCin5c7MwPmmUtM6y9/8k7qGZLDHKYWc3rLq5lQ=;
-        h=To:Cc:References:From:Subject:Date:In-Reply-To:From;
-        b=AWSDroOu9zavj/n18tLDi7HgH8ZeO+cf6YcK+t6RP30hLqs2EHieM/KWk3KhjBw4B
-         IAkWrh9rG5axpJYK59ikPyGYDjoJ0dhoA5g7Q5VHFRXmq9jTGKreFM6FcAD0IYwpxu
-         RWrxpsgmtycuFfRKX8a8NhQ+WB0mhgLWxNMnOthM=
-To:     Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        id S241381AbhKILCB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 9 Nov 2021 06:02:01 -0500
+Received: from mo4-p02-ob.smtp.rzone.de ([81.169.146.170]:9568 "EHLO
+        mo4-p02-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240102AbhKILCA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 9 Nov 2021 06:02:00 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1636455550;
+    s=strato-dkim-0002; d=goldelico.com;
+    h=References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Cc:Date:
+    From:Subject:Sender;
+    bh=rfHhgGu+rg+elNFlFNuaURtWhhkpzMlWnoVXeLgI82s=;
+    b=liuxOwMlaSe3Vc6Y3vLpAKQDjFrw9t9k4KDYcGpM1pbt77TztT4VCwtG1d+CVwi/6Y
+    VAiIKPinyhFwCueYHkGzqxaiePzvZ/e/NZzZjWeAIBcjCCKVS7Y+vXNGvwQpsyxFmFRk
+    Vd21lrSff2F7zB5rvhRaW1S3YzR2uONTdSgI0Jtf/JBby/8tqgasn944Tye42gkwS5uV
+    4wPLx/tBcJhjndoWSIK3Ct0qoZjAgbSxet6leLC0PwCx6nsXP+45inRv3FZvGGQGotTM
+    J76jGK+nNyPY25H4qVdz2Ynj5nJ8gLNjejlbdoH+Ikn1+zyzhbiASIcfLr6IUWqgoqhS
+    lPaQ==
+Authentication-Results: strato.com;
+    dkim=none
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o1KHeBQyh+ITDDFoCL4="
+X-RZG-CLASS-ID: mo00
+Received: from iMac.fritz.box
+    by smtp.strato.de (RZmta 47.34.1 DYNA|AUTH)
+    with ESMTPSA id 902c63xA9AxAOW3
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
+        (Client did not present a certificate);
+    Tue, 9 Nov 2021 11:59:10 +0100 (CET)
+From:   "H. Nikolaus Schaller" <hns@goldelico.com>
+To:     Ulf Hansson <ulf.hansson@linaro.org>,
+        =?UTF-8?q?J=C3=A9r=C3=B4me=20Pouiller?= 
+        <jerome.pouiller@silabs.com>, Avri Altman <avri.altman@wdc.com>,
+        Shawn Lin <shawn.lin@rock-chips.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
         Tony Lindgren <tony@atomide.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-References: <92fd80eb-6591-fb45-8885-309c79c2d4c0@gmail.com>
- <689ba705-c7fc-428c-3288-0c4adb3cc63f@gmail.com>
-From:   Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-Subject: Re: omapdrm VRFB rotation
-Message-ID: <40c102c3-207b-e8ae-f292-aeff6b1515ce@ideasonboard.com>
-Date:   Tue, 9 Nov 2021 11:22:57 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
+        Bean Huo <beanhuo@micron.com>,
+        "H. Nikolaus Schaller" <hns@goldelico.com>,
+        Kiwoong Kim <kwmad.kim@samsung.com>,
+        Tian Tao <tiantao6@hisilicon.com>,
+        Andreas Kemnade <andreas@kemnade.info>,
+        Yang Li <abaci-bugfix@linux.alibaba.com>
+Cc:     notasas@gmail.com, linux-mmc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org,
+        kernel@pyra-handheld.com, linux-omap@vger.kernel.org
+Subject: [PATCH 1/5] mmc: core: rewrite mmc_fixup_device()
+Date:   Tue,  9 Nov 2021 11:59:04 +0100
+Message-Id: <6515c1e8b3aa69ad273726f6e877d85c20f286ad.1636455548.git.hns@goldelico.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <cover.1636455548.git.hns@goldelico.com>
+References: <cover.1636455548.git.hns@goldelico.com>
 MIME-Version: 1.0
-In-Reply-To: <689ba705-c7fc-428c-3288-0c4adb3cc63f@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+From: Jérôme Pouiller <jerome.pouiller@silabs.com>
 
-On 08/11/2021 19:43, Ivaylo Dimitrov wrote:
-> Sorry, mail was sent to the old Tomi's address.
-> 
-> On 8.11.21 г. 19:05 ч., Ivaylo Dimitrov wrote:
->> Hi,
->>
->> Currently omapdrm supports TILER rotation only, which excludes omap3 
->> and earlier SoCs. I have the hardware (N900/N950), time and will to 
->> implement VRFB rotation support in omapdrm driver, however, I'll 
->> appreciate some hints. Or, if there is already something ready, please 
->> point me to it so I can take it from where it is.
->>
->> Besides partially reverting 517a8a9564c0dea98e6d4e2c7f0fe4cbb9b8c9ba 
->> and copying VRFB code from omapfb, is there anything else I shall take 
->> in consideration? Or, VRFB driver should not be a part of omapdrm, but 
->> a standalone one?
+Currently, mmc_fixup_device() is a bit difficult to read because of
+particularly long condition.
 
-We already have DMM driver in the omapdrm module, and I think VRFB fits 
-along just fine. I don't think there ever has been any other users for 
-VRFB than DSS, and as it's such an old IP, I don't think there ever will.
+Signed-off-by: Jérôme Pouiller <jerome.pouiller@silabs.com>
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ drivers/mmc/core/quirks.h | 41 +++++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 17 deletions(-)
 
-I don't have any particular hints in mind.
+diff --git a/drivers/mmc/core/quirks.h b/drivers/mmc/core/quirks.h
+index d68e6e513a4f4..c7ef2d14b359f 100644
+--- a/drivers/mmc/core/quirks.h
++++ b/drivers/mmc/core/quirks.h
+@@ -152,22 +152,29 @@ static inline void mmc_fixup_device(struct mmc_card *card,
+ 	u64 rev = cid_rev_card(card);
+ 
+ 	for (f = table; f->vendor_fixup; f++) {
+-		if ((f->manfid == CID_MANFID_ANY ||
+-		     f->manfid == card->cid.manfid) &&
+-		    (f->oemid == CID_OEMID_ANY ||
+-		     f->oemid == card->cid.oemid) &&
+-		    (f->name == CID_NAME_ANY ||
+-		     !strncmp(f->name, card->cid.prod_name,
+-			      sizeof(card->cid.prod_name))) &&
+-		    (f->cis_vendor == card->cis.vendor ||
+-		     f->cis_vendor == (u16) SDIO_ANY_ID) &&
+-		    (f->cis_device == card->cis.device ||
+-		     f->cis_device == (u16) SDIO_ANY_ID) &&
+-		    (f->ext_csd_rev == EXT_CSD_REV_ANY ||
+-		     f->ext_csd_rev == card->ext_csd.rev) &&
+-		    rev >= f->rev_start && rev <= f->rev_end) {
+-			dev_dbg(&card->dev, "calling %ps\n", f->vendor_fixup);
+-			f->vendor_fixup(card, f->data);
+-		}
++		if (f->manfid != CID_MANFID_ANY &&
++		    f->manfid != card->cid.manfid)
++			continue;
++		if (f->oemid != CID_OEMID_ANY &&
++		    f->oemid != card->cid.oemid)
++			continue;
++		if (f->name != CID_NAME_ANY &&
++		    strncmp(f->name, card->cid.prod_name,
++			    sizeof(card->cid.prod_name)))
++			continue;
++		if (f->cis_vendor != (u16)SDIO_ANY_ID &&
++		    f->cis_vendor != card->cis.vendor)
++			continue;
++		if (f->cis_device != (u16)SDIO_ANY_ID &&
++		    f->cis_device != card->cis.device)
++			continue;
++		if (f->ext_csd_rev != EXT_CSD_REV_ANY &&
++		    f->ext_csd_rev != card->ext_csd.rev)
++			continue;
++		if (rev < f->rev_start || rev > f->rev_end)
++			continue;
++
++		dev_dbg(&card->dev, "calling %ps\n", f->vendor_fixup);
++		f->vendor_fixup(card, f->data);
+ 	}
+ }
+-- 
+2.33.0
 
-Do you have omap4/5 so you can test that DMM still works after your changes?
-
-  Tomi
