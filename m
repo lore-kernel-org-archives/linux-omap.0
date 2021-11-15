@@ -2,27 +2,27 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A599DC433EF
-	for <linux-omap@archiver.kernel.org>; Mon, 15 Nov 2021 18:06:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA04EC4332F
+	for <linux-omap@archiver.kernel.org>; Mon, 15 Nov 2021 18:58:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9330663378
-	for <linux-omap@archiver.kernel.org>; Mon, 15 Nov 2021 18:06:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A03A263497
+	for <linux-omap@archiver.kernel.org>; Mon, 15 Nov 2021 18:58:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239671AbhKOSJE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 15 Nov 2021 13:09:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46092 "EHLO mail.kernel.org"
+        id S237732AbhKOTBZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 15 Nov 2021 14:01:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59664 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239850AbhKOSEy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 15 Nov 2021 13:04:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8ED3763274;
-        Mon, 15 Nov 2021 17:39:37 +0000 (UTC)
+        id S243374AbhKOS5p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Mon, 15 Nov 2021 13:57:45 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 23AC7633CE;
+        Mon, 15 Nov 2021 18:12:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1636997978;
-        bh=QNkBOXerpcpHEfQOVpQVhKG2iNCf4nEvew5Iw5lWYuM=;
+        s=korg; t=1636999960;
+        bh=NLBfwYB4JCK7iamPDweZRwFUiCv0ihcylupThbxbA0g=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DqW3SrvaObnHhKtBGMgod3klXj2joQhOA1V2AjJZZ2qur/Y37zBmD/s8WJG8W2YUm
-         5QSW3jjDAqEH/B8IGCwp+Qx0eWVQ3OV4KsDN75q9QORfxSx/QJ/Tq4MMkN4zAWUk1e
-         +ykxzbWf1L9t8bAgdikJeFcPcEVHkQS8Q4JUpoJU=
+        b=NhodZ/BsQe7TmB6o8kYgk25en50rWeGB8WuGYW7B3tZjhOSEDo7/Jlkr33IPREcRN
+         5xkO0Z9qqG/U8Uj84pzhtA4bN0la7aG2CqYub7v66o+MMhQRgGE8DzRg8hZWX+9mUM
+         zjQsQPj0ArbOCV3mYAUFok/9WHy1gDv3Kxv1vNvo=
 From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -35,12 +35,12 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Grygorii Strashko <grygorii.strashko@ti.com>,
         linux-omap@vger.kernel.org, Kees Cook <keescook@chromium.org>,
         Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 5.10 343/575] clocksource/drivers/timer-ti-dm: Select TIMER_OF
-Date:   Mon, 15 Nov 2021 18:01:08 +0100
-Message-Id: <20211115165355.663142735@linuxfoundation.org>
+Subject: [PATCH 5.14 486/849] clocksource/drivers/timer-ti-dm: Select TIMER_OF
+Date:   Mon, 15 Nov 2021 17:59:29 +0100
+Message-Id: <20211115165436.721338308@linuxfoundation.org>
 X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20211115165343.579890274@linuxfoundation.org>
-References: <20211115165343.579890274@linuxfoundation.org>
+In-Reply-To: <20211115165419.961798833@linuxfoundation.org>
+References: <20211115165419.961798833@linuxfoundation.org>
 User-Agent: quilt/0.66
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -79,7 +79,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-index 39f4d88662002..a0c6e88bebe08 100644
+index eb661b539a3ed..da4b9ecec6448 100644
 --- a/drivers/clocksource/Kconfig
 +++ b/drivers/clocksource/Kconfig
 @@ -24,6 +24,7 @@ config I8253_LOCK
