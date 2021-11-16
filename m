@@ -2,274 +2,313 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70524C433F5
-	for <linux-omap@archiver.kernel.org>; Tue, 16 Nov 2021 11:12:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 813D9C433EF
+	for <linux-omap@archiver.kernel.org>; Tue, 16 Nov 2021 13:59:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5767163223
-	for <linux-omap@archiver.kernel.org>; Tue, 16 Nov 2021 11:12:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FAB661BE6
+	for <linux-omap@archiver.kernel.org>; Tue, 16 Nov 2021 13:59:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234714AbhKPLP2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 16 Nov 2021 06:15:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51040 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234581AbhKPLPV (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 16 Nov 2021 06:15:21 -0500
-Received: from mail-ed1-x52b.google.com (mail-ed1-x52b.google.com [IPv6:2a00:1450:4864:20::52b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9533C061570;
-        Tue, 16 Nov 2021 03:12:23 -0800 (PST)
-Received: by mail-ed1-x52b.google.com with SMTP id g14so22399981edb.8;
-        Tue, 16 Nov 2021 03:12:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=LGb5XPggEV7i96qF9z7UNu04QznKVMzfwV/I1PbwDMA=;
-        b=qTYWFD3Reg4TSM/GlNNgiMLKONhCdRZxVqKBP5sfZfslISxI5s5stx8ugp8L9uFwxd
-         s5DtRBVP1/25VuNT1d4/9WjVcqQcz3LRqkiVqslbr9zJP2q3PvOWxxqyte5JGlPo/X6W
-         vI6LbELttkibOSwvPJ3eTN69BF4fdjprTho+o/RcODZ3mFJfxFy3AN/R6HZ3aWRDmt/T
-         zkm6rw1pFE7bimElN26M1eK0VTKnioDhL1iqT8eS20mzpyOjIAt+uDAOtDXrrWSmyeh0
-         RaL8Br54rFrRsLuHXCUT4c9b+3BjdvQVGE2tFmP4JYC+fPY73ERCFWD0Ek8e0tSljSyB
-         ELPA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=LGb5XPggEV7i96qF9z7UNu04QznKVMzfwV/I1PbwDMA=;
-        b=M+qw8KITs3Ph7GpMAGskH/IMBnljUx9jTUl8T+3j5Bm6HSZ8qlfgJBmxgMvKhLI5HC
-         A9N74FmUYq3p6Av12cKmXe8SEL3h/2FYgupzg6CvymIKXTCuQFEUkEXgSSz0LfXp/Af9
-         Bu8rH82L7EShyb6nCbvT//kLxTzdxvcudM5sUzjWPHMZWfLl3kQZpMiqW+WUCHOqYSIO
-         Pq2M08F4sh29E1c3H8d5363V2aT4NWMxBLm1ktfzcOl8Hji/8HuewO8fyNFjOr4QugZ9
-         8+2QY1cG9cXSvxV8snhvM0N1eAg2Li5zrVRYsrx/ho/EPmjjhp2iR9JIcgB8c+q6Y6gD
-         PbZQ==
-X-Gm-Message-State: AOAM5304MFENpsXAqoI2CndBWbjnP34QlWhByrsNZW5rtp2gd+93nx5Y
-        RiCO4Dg0EOfdVWXFNq9jw+8=
-X-Google-Smtp-Source: ABdhPJyzMnfJHMCYjB2yNIc6OOdp4Ob73P5Eq4SPIkxE1qvwHhT/o0jY5LMLb8pxpAcjd5DZm5ezYQ==
-X-Received: by 2002:a17:907:94ca:: with SMTP id dn10mr8864756ejc.263.1637061142403;
-        Tue, 16 Nov 2021 03:12:22 -0800 (PST)
-Received: from [192.168.1.10] ([46.249.74.23])
-        by smtp.googlemail.com with ESMTPSA id hb36sm7978243ejc.73.2021.11.16.03.12.21
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 16 Nov 2021 03:12:21 -0800 (PST)
-Subject: Re: [PATCH v2] drm: omapdrm: Export correct scatterlist for TILER
- backed BOs
-To:     Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-Cc:     matthijsvanduin@gmail.com, airlied@linux.ie, daniel@ffwll.ch,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Merlijn Wajer <merlijn@wizzup.org>,
-        Carl Philipp Klemm <philipp@uvos.xyz>
-References: <1636796417-5997-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1636797239-6384-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <36598203-eced-131d-85ef-f4940872e751@ideasonboard.com>
- <16a38e8e-071c-7275-8a33-487f7c3c8f2a@gmail.com>
- <ee42102b-c584-6e20-e710-711f79467fa3@ideasonboard.com>
- <e24ba773-298c-c703-9719-abba3527f8dd@gmail.com>
- <16724dbf-ff40-4d18-cde4-b3716583289f@ideasonboard.com>
- <52829986-ee80-6965-beb3-411f3728e2aa@gmail.com>
- <3b484902-2741-0333-389f-e5c31f278c87@ideasonboard.com>
-From:   Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <16416f38-2d00-be53-23b1-894064beeaaf@gmail.com>
-Date:   Tue, 16 Nov 2021 13:12:20 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Firefox/60.0 Thunderbird/60.6.1
+        id S236991AbhKPOCP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 16 Nov 2021 09:02:15 -0500
+Received: from mail-eopbgr20076.outbound.protection.outlook.com ([40.107.2.76]:38015
+        "EHLO EUR02-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S236905AbhKPOCO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 16 Nov 2021 09:02:14 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=ifDMrSr77wTewA8ixhWBPnOML3oLcpkiKBweQe60gGhj5IfD0EKsiojvd/6B9Rp82fJJVVfacrrhUNY1Cciv9wcPjj19fiP0JQB/RX7WUurbFM82eRvaf1tIXOyL6cPPBRRVJpohyGbfv4yGR2OuzOGlFBNp20221ySWUc+hYUtIbxyhtIkzHbBjwWM3zyhA5r3c/U1N+c4hnwuRe0lfK7XdidFfx/7mfemniRfWfjeoshFRX7opt6N9LDcrfZSz4NlesiegF70P/n9mckZlb8HrUd9vWcMKbLk4+VoOmgtK4pqoWenH6ZsTrKpr/wweBm5uKnN66FfQF+iblQJN1g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ORgKeB9jxxYcXgBPa1ig2zC/n30QpGYQLiCov66cFzY=;
+ b=gVkSLyxGa49fjZHPJwDhceSjw1Lp3CM6HTWzL8gQzIQYsb6zDWhQcjtit3XooVXHBtpSVOVjC63fE7/zPuqXD1HtK5GRWWHUL4m/DRUdr3puBJbM0ZDtbQqs52Ah0jLakaVM8N0LPHMnCNIYf4jlb8YiXXA3BdWCZFmBPsIDmKofaQnittjkE5WacpoQwAGljFP5tVuLmi9MS5e+jTTuBIpnPCwT1/I+KuxEXgmfjyhQ2lc40apBNI37+Cr7og3p0g/zcT4TPb4PeRpAuVqzKc0oTLcMxcnOjlEJ0wdbgYaHxSLXgKt2opBqu8bMfiv9VV7HB/ixe2wgO+RIJkX8BA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nxp.com; dmarc=pass action=none header.from=nxp.com; dkim=pass
+ header.d=nxp.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nxp.com; s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ORgKeB9jxxYcXgBPa1ig2zC/n30QpGYQLiCov66cFzY=;
+ b=H28iE6fqRMFJOXuZwbdsJ2Vm/+4NbYOTDHRrK9iElzYXm+PeQkAduXrOmpDayAfwds3FmzTMGQNsapNB/JTJkMTjE/rGL8AiO8X1T4wGH0dJET+sOYR3JTRPU9PMjVOznGCGysYOT16sp8J2SGbtdXnyQfYP+vR+boQUcAq5Rlw=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nxp.com;
+Received: from VI1PR04MB4688.eurprd04.prod.outlook.com (2603:10a6:803:6a::30)
+ by VI1PR0402MB3406.eurprd04.prod.outlook.com (2603:10a6:803:c::27) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4690.26; Tue, 16 Nov
+ 2021 13:59:13 +0000
+Received: from VI1PR04MB4688.eurprd04.prod.outlook.com
+ ([fe80::d0eb:49aa:2a9:9fc4]) by VI1PR04MB4688.eurprd04.prod.outlook.com
+ ([fe80::d0eb:49aa:2a9:9fc4%4]) with mapi id 15.20.4690.027; Tue, 16 Nov 2021
+ 13:59:13 +0000
+Date:   Tue, 16 Nov 2021 15:59:11 +0200
+From:   Abel Vesa <abel.vesa@nxp.com>
+To:     Saravana Kannan <saravanak@google.com>
+Cc:     Abel Vesa <abelvesa@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Damien Le Moal <damien.lemoal@wdc.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>, kernel-team@android.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-oxnas@groups.io, linux-renesas-soc@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-riscv@lists.infradead.org
+Subject: Re: [PATCH v4 1/2] drivers: bus: simple-pm-bus: Add support for
+ probing simple bus only devices
+Message-ID: <YZO5L7BJuLi5YjWr@ryzen>
+References: <20210929000735.585237-1-saravanak@google.com>
+ <20210929000735.585237-2-saravanak@google.com>
+ <YYu4EglV7SBZU2Iy@ryzen>
+ <CAGETcx_m3f5JgrKQXZ5DUxDkpGhAau9G8uYm8a0iQ8JbcD0Rtg@mail.gmail.com>
+ <CAGETcx_a-d7qQNi3sUce3AzbPcvGJK5JSuiiHm4h4e_q-MT7Dg@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAGETcx_a-d7qQNi3sUce3AzbPcvGJK5JSuiiHm4h4e_q-MT7Dg@mail.gmail.com>
+X-ClientProxiedBy: VI1PR06CA0109.eurprd06.prod.outlook.com
+ (2603:10a6:803:8c::38) To VI1PR04MB4688.eurprd04.prod.outlook.com
+ (2603:10a6:803:6a::30)
 MIME-Version: 1.0
-In-Reply-To: <3b484902-2741-0333-389f-e5c31f278c87@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from ryzen (5.12.226.136) by VI1PR06CA0109.eurprd06.prod.outlook.com (2603:10a6:803:8c::38) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4690.25 via Frontend Transport; Tue, 16 Nov 2021 13:59:12 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 155106ab-f2fb-42cb-239c-08d9a9094571
+X-MS-TrafficTypeDiagnostic: VI1PR0402MB3406:
+X-Microsoft-Antispam-PRVS: <VI1PR0402MB3406EAD9DE33AFE00D4B0A38F6999@VI1PR0402MB3406.eurprd04.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: hsZ2O603XjfHjtKIF/7mGDcRmuEd3Br6fxx2WYK1z9KYlQkZv/029lcYBnkodcQP/a541utTVvmzWomwsUbEM/PJPd8Yi/bqJoJdLq9NDnypuwq1ArERQlfHJmMlxTGACWvu8V9zpUUtPFHDMd366sZMdd/J5LR62t0n6OUX6rTgxnfBR2XdwNfTbcWTBOBNgnOWmOC995Hnfwp9EH+BDl4DnRFCqqy1pkx5vyJHsL9/P9sAGYLVQv5iPDJepUkTrKTOxcdNRcAVdpoxjZzp9FQ3uWV3ZPrddZ+BbkFTmJA3p75B9K0Nt/l24kMaGXI968CH98DnfinH9yrrDzLx5GoVQTdoeUYaKeGgP0mtM5fWaWg0nUJYIMG/RkSoy6RiZIL/flzSBa2i+EgPd8EEInfJ7Ji1p8iXr4bOUHip8Nahp7Z/at2HB1mThkg37kJzHtRJkQqX8xwIgU2MtC5dHeGsvdLrF505aVITrV0Y5BFdb5z1bDDi1KT0oL7qYkakvgOzy/NiliNMk2StZ2wSO5+N/YeBNBJVPOuNJ4ROnDny/vq+BRug8GkZqC7iOPs/irm4c1F4Fsf1EvJ3J0zyKDAAYCta6R29fxk+Y7eOyAN8fbtcFU9/0OJ7MPu3dYzqQimFjujug7pQuoLnXueFLjfGkItYLY+6msTO+zDEm7+XHg3abGc6id9hDKWGEsgA6cUMrKubCF0ou0qwax0r1qZsqY3dR25V00qydUYt+VFGRoU3zU+i+FRKyeM1033P3e1UT2UJ12G770yH7psHyLGgqDOTYfSwXEjk6cCKIx8GU3GsJsH5F4bzLqg1oZEnjU+WRccHdoYVgtM3axNrmA==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VI1PR04MB4688.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(66476007)(2906002)(54906003)(316002)(38100700002)(6916009)(5660300002)(966005)(55016002)(38350700002)(9686003)(956004)(44832011)(45080400002)(508600001)(33716001)(83380400001)(66946007)(26005)(7416002)(4326008)(53546011)(186003)(6496006)(52116002)(9576002)(8676002)(86362001)(8936002)(66556008);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?mNsLc/e01cQCg9rPtxflb+22N1fUT05YP4t/LaW2v14QzJ7LPeSvLDiTGs2W?=
+ =?us-ascii?Q?DMeyTP2TrWWlRDxCh+/ku141GpWtSjEpKjkqE6pm84v9ZqRe0Uq+4pItm89R?=
+ =?us-ascii?Q?huzfA0eryOI70K8gHDZFkwVlbFKVMmxwdKwjaf9NIjVXfLiDCgfDs8Lz2BFz?=
+ =?us-ascii?Q?avVjfbux70jpLYWeYnD+DaZcV1+2PdiYqVBBBKvkP8hGPNpvcSZAWNnUncq9?=
+ =?us-ascii?Q?nNBeTGQm5sO+xRIJo27su/QgppY2TNsp0IZKm9PAS9uyiNCoWW2uNQU9xDkE?=
+ =?us-ascii?Q?TAPr6PS5a3F8MoP3ASJ7aCvJI8okN4ChYJnZ4OV1R9i77eq/JdcuCXK3+KfX?=
+ =?us-ascii?Q?0V616/WMuA1zo3Mj4MdXwnSsO83BpsnGjDi+8P5wsUj/EFG8lQEeR0o9N0+s?=
+ =?us-ascii?Q?5lBnlc4AhiY2yBhaboDq40nflOTG4fU86plxlIC4dU/UdvCFL4GITSmBS2fm?=
+ =?us-ascii?Q?4csUNLAu0GLLRNCp8E0L4pLAG6VKPfsdBaYnycd83W1Ve2gHYPPS5UJ66K/P?=
+ =?us-ascii?Q?Paq/RNZ81bW2jLDDEPZai198NYJGlEmIFF6aWI1yzHAkontuzg+EXkcyKEGG?=
+ =?us-ascii?Q?63bjTfREmLpA6MJbNljfrg55MVrHHTRCRbFE7JPAKKwToQaFq++rEi5z68E5?=
+ =?us-ascii?Q?qNyvVNisCa0ZYutlPtb7SDe/PLSBP57kDA907fDBcHs7iEIJXxsxYkKDHctq?=
+ =?us-ascii?Q?bMerEmVlwFakMkiodPPJDL89nn6mk3JFxWdDnF2e/Vc6auBMwgdQlQhLZUTd?=
+ =?us-ascii?Q?+YB3VuysrHRIh9jt+d1kx5gEp9HVs2QusJ4CGy1l/PaTGQ/EnsWEu3UUoPDJ?=
+ =?us-ascii?Q?FeY9P+x0m6w92Tg8GBWbyz8sx+TaS1dOCQKkPirKlSJrXtT9APsMDJ4nwT0x?=
+ =?us-ascii?Q?ADY9bI5uv9Oc9e2i/xsrLAcpxE3MrZHFWjByeaD6shNcenT+J1hOuXTBSuqq?=
+ =?us-ascii?Q?vpy2hehcMiPqBZ2JELApoH5B0iY/lKyxeIVr6el8QIYNZnS+nsqCxfSoo/CU?=
+ =?us-ascii?Q?Kjoj69aWh1icKRoK27VaMl5FcIhZ9bT9ad5iPswA1tTnhX6CpkSvkgIf499g?=
+ =?us-ascii?Q?2LF+ZjOFqg0lZK45Mo/YUgrwPIsiuvbT4AEih+uZQ9hL3rE8Jnx8/E5koK0c?=
+ =?us-ascii?Q?SLZiB0/nRwTNfFx7xb6uOlVNBQN49Sn44kfYyCtdFzx/5NZQO/scoA4bAs+f?=
+ =?us-ascii?Q?Y+dI0Hg6iT3SFFXBa3TYRL57Weqau8fQxHnfmzf4z9xAbUK0Pkavaz8xXznp?=
+ =?us-ascii?Q?lhcH0kU7CV3sOcqnBVwivTTaxJjMlZEc91HvOH57W83fS7ZgO6e7Np2Ag8au?=
+ =?us-ascii?Q?YcoER/thfqBSrlv2JjB7xNFCBOeheAR44WL4XHZP5kOrvhSQf9Ar1Lx7FuzW?=
+ =?us-ascii?Q?rHH8RQWbfDa0gbVIPPn03X/dGGZVOT/qbPk/kccq6zAPiLyJ4DFO0eZUlCD1?=
+ =?us-ascii?Q?3W/U0J6fhgXG8ZzosEzA+4bSf118yuR3E6fzqhsY2Srut/ZWNv6LGoIgVbgj?=
+ =?us-ascii?Q?t5Qhpv78+2jxvLoEUpEvbbY0s0Zl/gV4bZHeJlWlrglIx4Gshn9w5rOkm8oL?=
+ =?us-ascii?Q?Fb7DZY9jqotjt2ToErFZ8u2ihj4t+LOWoIzU0NE9k0lKxWYO6bCaHKFycaX5?=
+ =?us-ascii?Q?9d8ZS6+onMb8aDkvkEwQv6g=3D?=
+X-OriginatorOrg: nxp.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 155106ab-f2fb-42cb-239c-08d9a9094571
+X-MS-Exchange-CrossTenant-AuthSource: VI1PR04MB4688.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Nov 2021 13:59:13.7036
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: gG8pPavJxYyx8ZNeB5QHGm4pSE/EThJGSuWnvamMyP5QNLeovTL0r8U6qWm40xvZE6uz4BwoD7Rh8rKg212uOQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR0402MB3406
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 16.11.21 г. 12:20 ч., Tomi Valkeinen wrote:
-> On 16/11/2021 10:27, Ivaylo Dimitrov wrote:
->> Hi,
->>
->> On 16.11.21 г. 8:42 ч., Tomi Valkeinen wrote:
->>> On 15/11/2021 19:15, Ivaylo Dimitrov wrote:
->>>> Hi,
->>>>
->>>> On 15.11.21 г. 17:37 ч., Tomi Valkeinen wrote:
->>>>> On 15/11/2021 15:55, Ivaylo Dimitrov wrote:
->>>>>> Hi Tomi,
->>>>>>
->>>>>> On 15.11.21 г. 10:42 ч., Tomi Valkeinen wrote:
->>>>>>> Hi,
->>>>>>>
->>>>>>> On 13/11/2021 11:53, Ivaylo Dimitrov wrote:
->>>>>>>> Memory of BOs backed by TILER is not contiguous, but 
->>>>>>>> omap_gem_map_dma_buf()
->>>>>>>> exports it like it is. This leads to (possibly) invalid memory 
->>>>>>>> accesses if
->>>>>>>> another device imports such a BO.
->>>>>>>
->>>>>>> This is one reason why TILER hasn't been officially supported. 
->>>>>>> But the above is not exactly right, or at least not the whole truth.
->>>>>>>
->>>>>>
->>>>>> Definitely, not only these BOs lie about their memory layout, they 
->>>>>> lie about size and alignment as well. I have 2 more patches here 
->>>>>> (one is to align TILER memory on page, as proposed by Matthijs in 
->>>>>> the other mail, the other to set the correct size when exporting 
->>>>>> TILER BO), but I wanted to hear from you first, like, what is the 
->>>>>> general trend :) .
->>>>>
->>>>> My thoughts here are that the current code doesn't work in 
->>>>> practice, so if you get it fixed, it's great =).
->>>>>
->>>>>> Also, I have another patch in mind, that will enable exporting of 
->>>>>> buffers that are not TILER backed, but are not CMA backed either. 
->>>>>> SGX for example does not need CMA memory to render to.
->>>>>
->>>>> What do you mean with this? DSS needs contiguous memory, so the 
->>>>> memory has to be 1) physically contiguous, 2) mapped with DMM or 3) 
->>>>> mapped with TILER. There's no reason for the driver to export 
->>>>> non-contiguous memory.
->>>>>
->>>>
->>>> DSS yes, but, omapdrm is used to allocate non-scanout buffers as 
->>>> well, which do not need to be (and in practice are not) contiguous. 
->>>> GPU (or anyone with MMU) can render on them (DRI buffers for 
->>>> example) and later on those buffers can be copied (blit) to the 
->>>> framebuffer. Yes, not zero-copy, but if you're doing compositing, 
->>>> there is no option anyway.
->>>>
->>>> Exactly this is done by omap-video driver for example. GBM BOs are 
->>>> allocated through omapdrm as well.
->>>
->>> That is not correct and shouldn't be done. omapdrm is not a generic 
->>> memory allocator. We have real generic allocators, so those should be 
->>> used. Or, if the buffer is only used for a single device, the buffer 
->>> should be allocated from that device's driver.
->>>
->>
->> Yes, I saw the comment in kernel headers that dumb buffers should not 
->> be used for rendering 
->> (https://elixir.bootlin.com/linux/latest/source/include/drm/drm_drv.h#L361). 
->> This makes no sense to me at all, but maybe I am missing the point.
+On 21-11-15 12:17:46, Saravana Kannan wrote:
+> On Wed, Nov 10, 2021 at 12:24 PM Saravana Kannan <saravanak@google.com> wrote:
+> >
+> > On Wed, Nov 10, 2021 at 4:16 AM Abel Vesa <abelvesa@kernel.org> wrote:
+> > >
+> > > On 21-09-28 17:07:33, Saravana Kannan wrote:
+> > > > fw_devlink could end up creating device links for bus only devices.
+> > > > However, bus only devices don't get probed and can block probe() or
+> > > > sync_state() [1] call backs of other devices. To avoid this, probe these
+> > > > devices using the simple-pm-bus driver.
+> > > >
+> > > > However, there are instances of devices that are not simple buses (they get
+> > > > probed by their specific drivers) that also list the "simple-bus" (or other
+> > > > bus only compatible strings) in their compatible property to automatically
+> > > > populate their child devices. We still want these devices to get probed by
+> > > > their specific drivers. So, we make sure this driver only probes devices
+> > > > that are only buses.
+> > > >
+> > > > [1] - https://lore.kernel.org/lkml/CAPDyKFo9Bxremkb1dDrr4OcXSpE0keVze94Cm=zrkOVxHHxBmQ@mail.gmail.com/
+> > > > Fixes: c442a0d18744 ("driver core: Set fw_devlink to "permissive" behavior by default")
+> > > > Signed-off-by: Saravana Kannan <saravanak@google.com>
+> > > > Tested-by: Saravana Kannan <saravanak@google.com>
+> > > > Tested-by: Ulf Hansson <ulf.hansson@linaro.org>
+> > > > ---
+> > > >  drivers/bus/simple-pm-bus.c | 42 ++++++++++++++++++++++++++++++++++---
+> > > >  1 file changed, 39 insertions(+), 3 deletions(-)
+> > > >
+> > > > diff --git a/drivers/bus/simple-pm-bus.c b/drivers/bus/simple-pm-bus.c
+> > > > index 01a3d0cd08ed..6b8d6257ed8a 100644
+> > > > --- a/drivers/bus/simple-pm-bus.c
+> > > > +++ b/drivers/bus/simple-pm-bus.c
+> > > > @@ -13,11 +13,36 @@
+> > > >  #include <linux/platform_device.h>
+> > > >  #include <linux/pm_runtime.h>
+> > > >
+> > > > -
+> > > >  static int simple_pm_bus_probe(struct platform_device *pdev)
+> > > >  {
+> > > > -     const struct of_dev_auxdata *lookup = dev_get_platdata(&pdev->dev);
+> > > > -     struct device_node *np = pdev->dev.of_node;
+> > > > +     const struct device *dev = &pdev->dev;
+> > > > +     const struct of_dev_auxdata *lookup = dev_get_platdata(dev);
+> > > > +     struct device_node *np = dev->of_node;
+> > > > +     const struct of_device_id *match;
+> > > > +
+> > > > +     /*
+> > > > +      * Allow user to use driver_override to bind this driver to a
+> > > > +      * transparent bus device which has a different compatible string
+> > > > +      * that's not listed in simple_pm_bus_of_match. We don't want to do any
+> > > > +      * of the simple-pm-bus tasks for these devices, so return early.
+> > > > +      */
+> > > > +     if (pdev->driver_override)
+> > > > +             return 0;
+> > > > +
+> > > > +     match = of_match_device(dev->driver->of_match_table, dev);
+> > > > +     /*
+> > > > +      * These are transparent bus devices (not simple-pm-bus matches) that
+> > > > +      * have their child nodes populated automatically.  So, don't need to
+> > > > +      * do anything more. We only match with the device if this driver is
+> > > > +      * the most specific match because we don't want to incorrectly bind to
+> > > > +      * a device that has a more specific driver.
+> > > > +      */
+> > > > +     if (match && match->data) {
+> > > > +             if (of_property_match_string(np, "compatible", match->compatible) == 0)
+> > > > +                     return 0;
+> > > > +             else
+> > > > +                     return -ENODEV;
+> > > > +     }
+> > >
+> > > This change is breaking the expected behavior for the already existent
+> > > simple-bus nodes. All the simple-bus compatibles should be replaced now
+> > > to simple-pm-bus. In my case, on some i.MX8 platforms, without the
+> > > devlink, the devices suspend sequence changes (and even breaks).
+> > >
+> > > To avoid breaking the already existent simple-bus nodes, maybe the logic
+> > > should've been reversed: keep the simple-bus as is and add another
+> > > compatible, IDK, something like simple-trasnparent-bus, or something.
+> >
+> > The intent of this change IS to affect existing simple-bus nodes (but
+> > not in the way it's affecting you). But if it's breaking stuff, we
+> > obviously need to fix it.
+> >
+> > I have a hunch on what's going on in your case, but can you point me
+> > to the specific simple-bus node that's getting affected? I'm expecting
+> > it to be a simple-bus node that gets added AFTER this driver is
+> > registered at device_initcall (module_init gets converted to
+> > device_initcall).
+> >
+
+Well, for now, I can't pinpoint exactly one specific dts node.
+My usecase is a little bit more complicated since it's only happening
+in conjunction with a local change in the imx-mu-irq driver
+in our local tree. Basically, the local change is forcing a suspend abort by
+calling pm_system_wake if there is an irq from SCU triggered after the
+suspend noirq imx-mu-irq driver callback has been called.
+If we replace all the simple-bus with simple-pm-bus, everything works
+fine. 
+
+> > Also, can you try this hack patch to see if it helps your case?
+> > https://lore.kernel.org/lkml/CAGETcx9U130Oq-umrvXME4JhEpO0Wadoki3kNxx=0-YvTR6PtQ@mail.gmail.com/
+> >
+
+Nope, it doesn't work with this patch either.
+
+And the funny thing is, even if I add the pm_runtime_enable to your patch
+like this:
+
+diff --git a/drivers/bus/simple-pm-bus.c b/drivers/bus/simple-pm-bus.c
+index 6b8d6257ed8a..a13324fd700b 100644
+--- a/drivers/bus/simple-pm-bus.c
++++ b/drivers/bus/simple-pm-bus.c
+@@ -38,9 +38,11 @@ static int simple_pm_bus_probe(struct platform_device *pdev)
+         * a device that has a more specific driver.
+         */
+        if (match && match->data) {
+-               if (of_property_match_string(np, "compatible", match->compatible) == 0)
++               if (of_property_match_string(np, "compatible", match->compatible) == 0) {
++                       pm_runtime_enable(&pdev->dev);
++                       of_platform_populate(np, NULL, lookup, &pdev->dev);
+                        return 0;
+-               else
++               } else
+                        return -ENODEV;
+        }
+
+I get the following warning:
+
+[    1.009392] ------------[ cut here ]------------
+[    1.013681] Enabling runtime PM for inactive device (bus@5d000000) with active children
+[    1.021721] WARNING: CPU: 3 PID: 1 at drivers/base/power/runtime.c:1439 pm_runtime_enable+0xc0/0x100
+[    1.030794] Modules linked in:                                              
+[    1.033837] CPU: 3 PID: 1 Comm: swapper/0 Not tainted 5.15.0-04906-gc0a8c67532b6-dirty #226
+[    1.042175] Hardware name: Freescale i.MX8QXP MEK (DT)
+[    1.047302] pstate: 600000c5 (nZCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[    1.054248] pc : pm_runtime_enable+0xc0/0x100
+[    1.058594] lr : pm_runtime_enable+0xc0/0x100
+[    1.062938] sp : ffff800011e4bb60                                           
+[    1.066237] x29: ffff800011e4bb60 x28: 0000000000000000 x27: ffff8000119204d0
+[    1.073361] x26: ffff8000119c1060 x25: ffff8000119c1078 x24: ffff80001190f0a0
+[    1.080484] x23: 0000000000000000 x22: 0000000000000000 x21: ffff0008006a00f4
+[    1.087608] x20: 0000000000000000 x19: ffff0008006a0010 x18: 0000000000000030
+[    1.094732] x17: 6974636120687469 x16: 7720293030303030 x15: 3064354073756228
+[    1.101856] x14: 2065636976656420 x13: ffff800011c21dc0 x12: 0000000000000246
+[    1.108981] x11: 00000000000000c2 x10: ffff800011c79dc0 x9 : 00000000fffff000
+[    1.116103] x8 : ffff800011c21dc0 x7 : ffff800011c79dc0 x6 : 0000000000000000
+[    1.123227] x5 : 000000000000bff4 x4 : 0000000000000000 x3 : 00000000ffffefff
+[    1.130351] x2 : ffff800011c21d30 x1 : 6bf7c63081c63600 x0 : 0000000000000000
+[    1.137478] Call trace:                                                     
+[    1.139910]  pm_runtime_enable+0xc0/0x100
+[    1.143903]  simple_pm_bus_probe+0x80/0xf0
+[    1.147986]  platform_probe+0x6c/0xe0
+[    1.151637]  really_probe.part.0+0x9c/0x310
+[    1.155805]  __driver_probe_device+0x98/0x144
+[    1.160149]  driver_probe_device+0xc8/0x15c
+[    1.164319]  __driver_attach+0xfc/0x190
+[    1.168141]  bus_for_each_dev+0x70/0xc0
+[    1.171964]  driver_attach+0x28/0x3c                                        
+[    1.175526]  bus_add_driver+0x108/0x1f0
+[    1.179348]  driver_register+0x7c/0x130
+[    1.183173]  __platform_driver_register+0x2c/0x40
+[    1.187862]  simple_pm_bus_driver_init+0x20/0x2c
+[    1.192466]  do_one_initcall+0x54/0x1bc
+[    1.196289]  kernel_init_freeable+0x210/0x294
+[    1.200633]  kernel_init+0x28/0x130                                         
+[    1.204110]  ret_from_fork+0x10/0x20                                        
+[    1.207678] ---[ end trace 719a02e69bfeb03f ]---
+
+though it should be behaving exactly like in the case of simple-pm-bus.
+
+Maybe I'm missing something here.
+
+I'll keep digging.
+
+> > I have some thoughts on how I could fix this, but I need to think
+> > about a few cases.
 > 
-> I believe that comments refers to another issue: a dumb buffer from may 
-> not be usable for rendering. It's only guaranteed to be 
-> readable/writable by the CPU.
+> Hi Abel,
 > 
-> What I'm talking about is that a driver must support memory allocations 
-> for buffers that the device handled by the driver can use. In many cases 
-> that allocated buffer also works with other devices, and thus dmabuf 
-> export/import can be used. But a driver supporting memory allocations 
-> for buffers that the device itself cannot use is just wrong.
-> 
->> Also, it could be that the implementation of omap-video and/or PVR 
->> userspace blobs is against the specs, but I see omap-video calling 
->> DRM_IOCTL_OMAP_GEM_NEW for DRI buffers without OMAP_BO_SCANOUT and 
->> libdbm.so calling DRM_IOCTL_MODE_CREATE_DUMB to create buffers then 
->> used for rendering.
-> 
-> I think neither of those are exactly material to be used as examples on 
-> how to do things. And there's lots of history there. We didn't have 
-> generic allocators back then.
-> 
->> This is not an issue on omap4 an later, because when export of that 
->> buffer is requested, omapdrm uses DMM and exports a single scatterlist 
->> entry, IIUC.
->>
->> But, on omap3, given there is no DMM, export is simply refused. I 
->> don't see that as a consistent behaviour - we shall either a) export 
->> non-scanout buffers (scattered ones) using whatever is supported (DMM 
->> and single scatterlist entry on omap4 (and later), multiple-entry 
->> scatterlist on omap3) or b) always require OMAP_BO_SCANOUT for BOs to 
->> be exported and refuse to export if no such flag is set. I would say 
->> b) is not a good option which leaves a) only.
-> 
-> I think we should always require OMAP_BO_SCANOUT, or rather, drop the 
-> flag totally and always expect the buffer to be a scanout buffer. The 
-> only use for DSS is scanout, and those are the only buffers that omapdrm 
-> needs to support. But that would be breaking the uAPI, so I think we 
-> just have to support what we do now.
-> 
->> BTW, I think DMM is not really needed unless userspace requests 
->> mmap(), in theory we can provide userspace with view through DMM but 
->> give device drivers multiple entry scatterlist, potentially saving DMM 
->> space.
-> 
-> The userspace (CPU) doesn't need the DMM, the CPU has an MMU. I thought 
-> we already skip the DMM when mapping to the userspace. But in TILER case 
-> we always need TILER, even with the CPU.
-> 
->> I hope I made it clearer now why I think this feature shall be 
->> implemented.
-> 
-> I think it's just adding more wrong on top of the old wrong =).
-> 
-> Also, if we need DMM/TILER allocations for other devices than DSS (but 
-> so far this hasn't been mentioned), then I think the DMM/TILER 
-> functionality should be separated from omapdrm and moved to (I think) 
-> dma-heap.
+> Friendly reminder.
 > 
 
-I see. Ok, it is not that much of an issue for me to carry one 
-out-of-tree patch if needed.
+Sorry for the late reply.
 
->>>>>> 2. Set exp_info.size = omap_gem_mmap_size(obj); when exporting a 
->>>>>> BO. That way importer knows the real BO memory size (including 
->>>>>> alignment etc) so he will be able to calculate the number of pages 
->>>>>> he needs to map the scatterlist.
->>>>>
->>>>> Can you elaborate what this means?
->>>>>
->>>>
->>>> When we align to page, we shall report the size including the 
->>>> alignment, no? Or, it is the importer that shall take care to 
->>>> calculate BO size( including the alignment) based on scatterlist if 
->>>> he needs to?
->>>
->>> I'm not sure... But I guess the export size should include the 
->>> alignment.
->>>
->>
->> My understanding as well. Will sent that change as a part of page 
->> alignment patch.
->>
->>> Hmm... I haven't had enough coffee yet, but how does this go... Let's 
->>> say we have a tiled fb, and the width gets expanded to a page. What 
->>> happens to reads/writes that happen outside the fb, but still within 
->>> the page? Those should cause an error or do nothing, but is it 
->>> possible that they go through TILER and get mapped to some real 
->>> memory location?
->>>
->>
->> I lack the details here, but reading through TRM leaves me with the 
->> impression that TILER smallest unit is a tile, and every tile is 
->> backed by a real memory page (4KiB), so outside read-writes will end 
->> up in memory that's there but unused and will do nothing.
->>
->> omap_gem_new() calls tiler_align(), which in turn seems to return 
->> page-aligned size, so I think there is no issue here.
-> 
-> Maybe, but, consider this example, with numbers totally out of thin air: 
-> We have a fb with the width of 32 pixels, so 128 bytes. If we have tiles 
-> which cover 32 x 32 pixels (so 4096 bytes with 4 bpp), we need one tile 
-> to cover the width. But we have all the rest of the page mapped, so 3968 
-> bytes that are not covered with a tile (or rather, we haven't configured 
-> that tile, or maybe the tile contains old configuration).
-> 
-> I could be totally wrong here, as I don't remember the details. But I do 
-> think that it's very easy to get this wrong, creating memory corruptions 
-> and/or security violations.
-> 
-
-I see what you mean and I think you are right. What about configuring 
-(if we use your made-up values) those 31 'unused' TILER entries to point 
-to the same page tile 1 points to? If we need more than one tile (say N) 
-to cover the width, apply the same logic, like, tile N+1 points to page 
-1, N+2 to page 2 and so on. Or, allocate one extra page and setup all 
-'unused' tiles to point to it? Both will guarantee no other memory can 
-be accessed, IIUC, though I prefer the 'overlap' workaround.
-
-Also, we can have a single page used to back all the 'unused' tiler 
-entries, for all the TILER BOs, but with such an attributes that it is 
-not actually accessible (not sure how such a page shall be allocated 
-though), so if someone tries to access memory outside of the allowed 
-region and hits that page, we'll either have SEGFAULT or OOPS.
-
-Ivo
+> -Saravana
