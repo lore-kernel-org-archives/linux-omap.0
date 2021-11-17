@@ -2,132 +2,172 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B586DC43217
-	for <linux-omap@archiver.kernel.org>; Wed, 17 Nov 2021 14:20:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4B44C433F5
+	for <linux-omap@archiver.kernel.org>; Wed, 17 Nov 2021 14:20:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A0E2263214
-	for <linux-omap@archiver.kernel.org>; Wed, 17 Nov 2021 14:20:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD27C61A79
+	for <linux-omap@archiver.kernel.org>; Wed, 17 Nov 2021 14:20:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238427AbhKQOW7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 17 Nov 2021 09:22:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54758 "EHLO
+        id S238374AbhKQOXD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 17 Nov 2021 09:23:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238385AbhKQOWn (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 17 Nov 2021 09:22:43 -0500
-Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4D03C06120A
-        for <linux-omap@vger.kernel.org>; Wed, 17 Nov 2021 06:19:34 -0800 (PST)
-Received: by mail-wr1-x42f.google.com with SMTP id u1so4984791wru.13
-        for <linux-omap@vger.kernel.org>; Wed, 17 Nov 2021 06:19:34 -0800 (PST)
+        with ESMTP id S238418AbhKQOW7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 17 Nov 2021 09:22:59 -0500
+Received: from mail-wr1-x430.google.com (mail-wr1-x430.google.com [IPv6:2a00:1450:4864:20::430])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65A10C06122D
+        for <linux-omap@vger.kernel.org>; Wed, 17 Nov 2021 06:19:39 -0800 (PST)
+Received: by mail-wr1-x430.google.com with SMTP id u1so4985312wru.13
+        for <linux-omap@vger.kernel.org>; Wed, 17 Nov 2021 06:19:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=baylibre-com.20210112.gappssmtp.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ybygRqz89X6PWHUm5yVoNp/ouF0lEkQ3IO8ZQyZIpmw=;
-        b=6A/IHLLB6/oQZkGwdVYvRX0+wArc2hL3/y8nPki86c+4dU8T7I50askZ82FWCnEmsS
-         qyyvwjQhCHnDiu+tgb/XnhyIVZLR8UR7TJ6z1SutLU//aHzEXDBaApAGOQtplQNDDU/9
-         NKB+Ed37syi/YU6XehLpKgu366RAL8YPBozm1LGaLDrmKyY19WUy3IwxVaSzsWxZSAso
-         giT8YIGO1RoPwwZcRt0a/1jCP6l1merJdQd9aAy34obaSgxnYkGG0Ea2QPshWVpwPNA6
-         WOy5SMaUiwIXoGB0Oydb44ej87rqFyVQdJBfSgNbn/p9xJYv6rSuuo0sT1cGuOIitZ2H
-         /l1g==
+        bh=Z7XROMuoMUndfAObhvgnMrtL9JrHT86GQvneGL5hOEY=;
+        b=AVRpLMfxCJQRGv0y6ImphRLweCTVNdidTEV3BLg7/KA7ozeKmVcjEjCNl3BgYPV3ii
+         3ngHNZJaBnzSh7PLPu5GA6/lWggGssH9WARO913D3cH3iIF5fkFH+f92OCiuF0KUl3iI
+         owDxFaIvPLAh3BJFnIO4sz80tjKqMnt7dzQPu9jLtdF8LH/G8wdFhXf+lKRAjgxGD9Ks
+         27+jisIvXyu2wXEBR0cmeE4/1wwvvAyi5Czgh93CRuhYpniz+5pW8O8j2oXzrXILSwPl
+         OT+MahWH50o0URrH4X2h32ppkTTf5ktPCytDdfJ6m72474bYRuckHpQXt3kCGmpifwcd
+         JTig==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ybygRqz89X6PWHUm5yVoNp/ouF0lEkQ3IO8ZQyZIpmw=;
-        b=MHEcq6zLVmWDOExEmAG6uMCOUJJ8AiMWOrDuGw4svZp44h8TCllB6fK3gyTD1LwvSc
-         usPa4Ljkk+BaTCV8oMCIBXGHtp0reLvZyjsZkI9jwvkp3j3XtoXwAeQkZGKhiWtvZ+EW
-         JtWYdFFK4l1ByTKtab8shTiLl31EsrTo7Dfk7SZu3FH0vGFDs7b7TMb+jnWg2Qy2C7Nu
-         iqcWyCfdalEZB0feznJOQVFqx5bZFkTVjwhsiw34XzPqpRRPHojJrhTonG2vMNcDJ2i8
-         8a7VUOXrAtwtkz7naUOpCY+UX/tmlzVWtw10c9cwi7Sd3bD1BQi9pEBlDrb/gO5PiBLr
-         mMfA==
-X-Gm-Message-State: AOAM531zecKSuRZr6dFScQhJOr9XCNpuPlD17hZ9KiWjLQIDYhqDiuS/
-        2i047XpVSmnJVq5TSKwJ6sTYeMVnWz2uKF0w
-X-Google-Smtp-Source: ABdhPJyGYg9Z2tde6LZd6N3n1S6Xjr7QCyaRmF3v5j14j0oLqwEn0zizDO/pf+hpuGrawjr3nMH3uw==
-X-Received: by 2002:a05:6000:381:: with SMTP id u1mr19710700wrf.383.1637158773387;
-        Wed, 17 Nov 2021 06:19:33 -0800 (PST)
+        bh=Z7XROMuoMUndfAObhvgnMrtL9JrHT86GQvneGL5hOEY=;
+        b=PxQi9r1sMK0RZoOJ4VypBht4pHkzfxGW0KiLaUhHy861dpWu/wieAdoYdH2jF7guDD
+         GtAAeS9Fa6E/GMv72Ne7BGzVi0Q46EmwScleH2EcD57UkxhMGr4jRCIBXK8nwxXhHqrq
+         4tB4sgrlUi4R9LVHShMzZjgPzfJCn6TKfHlYBwrzItF6nQimvxpQsmsZi/6fpzpbo4Af
+         Y6Vg8NMXFWhBCUe1ZtzPsjdN07MTGHgBRzK6RHL7+X1kFVT409HX2kyt8TPcOxz6ajmI
+         1mZcZofj22gdKYfatraxEjJbTtESS8LWom4RPk57hzTXuR5tRe/RX28K8itCv918CXGl
+         twqQ==
+X-Gm-Message-State: AOAM530boY9JMRRSw0nOPv/4TY9PFP0g1krVAG+BUhxX4EpywPbzPmj5
+        3o0BD9wFcgr1bT1Lw7Sat9fuIA==
+X-Google-Smtp-Source: ABdhPJxtqq9P4rD5wH2L6JkUHJ8yLqNqWeuBSt1tS6kZhEWgYfB/kb6C4FIfFmVMXeKVach9cdPrRQ==
+X-Received: by 2002:a05:6000:1862:: with SMTP id d2mr20330364wri.251.1637158777855;
+        Wed, 17 Nov 2021 06:19:37 -0800 (PST)
 Received: from localhost.localdomain ([2001:861:44c0:66c0:f98b:434c:566c:492d])
-        by smtp.gmail.com with ESMTPSA id o10sm33803wri.15.2021.11.17.06.19.32
+        by smtp.gmail.com with ESMTPSA id o10sm33803wri.15.2021.11.17.06.19.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 17 Nov 2021 06:19:32 -0800 (PST)
+        Wed, 17 Nov 2021 06:19:37 -0800 (PST)
 From:   Neil Armstrong <narmstrong@baylibre.com>
 To:     tomba@kernel.org
 Cc:     linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-kernel@vger.kernel.org, khilman@baylibre.com,
-        Neil Armstrong <narmstrong@baylibre.com>,
         Benoit Parrot <bparrot@ti.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
         Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-Subject: [PATCH v7 1/9] drm/omap: add sanity plane state check
-Date:   Wed, 17 Nov 2021 15:19:20 +0100
-Message-Id: <20211117141928.771082-2-narmstrong@baylibre.com>
+Subject: [PATCH v7 5/9] drm/omap: omap_plane: subclass drm_plane_state
+Date:   Wed, 17 Nov 2021 15:19:24 +0100
+Message-Id: <20211117141928.771082-6-narmstrong@baylibre.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20211117141928.771082-1-narmstrong@baylibre.com>
 References: <20211117141928.771082-1-narmstrong@baylibre.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2065; h=from:subject; bh=fRkx/RPkFxPenXM1+XojYlY6DoZHNd/vTOwe0D2eHgI=; b=owEBbQKS/ZANAwAKAXfc29rIyEnRAcsmYgBhlQ9LcfQR81+VKXldrcyliXmf4wAP1+2GSxnSWUvK iH4ZMFaJAjMEAAEKAB0WIQQ9U8YmyFYF/h30LIt33NvayMhJ0QUCYZUPSwAKCRB33NvayMhJ0c0REA Ck1IPmCiheHrRrGeQ9Rsgt9sOU1sUsI4o8CIeVTG2Tp2iBf9DrA9Dc6A9OVkpfHkG4eaaqPvycyX0N ucX+m58NAKu89/S7Pp+Aa4Pekj8qnwae3shxOq9Lbk/SaEqqpUTYQhoSYpG1pp14LJxM07pmjQ/xgU AKusu1twKCUaWR/2LHtF+kb71frnhnvwepacO4o7UZFP0XNGd7OIbUBrBaUdtoJHrpYuxqc1TAenYq 5ApLS6cLdZ6rdo2kqXbyqtUdrUr/Ol8Hpepz+V1tUFUqkF2voOalYEngbO5jLFIoOIc7DKXi5/VSYx beo9lPw1z3gZcTLqQdQzf4aL+txhac3IfXFTM/CJTHpI+qSBtq5UZgDv5uOAiUfU3RVKr9vRrnk9ju OtNM6xGjVk22CO0NKqJW+OIE5rAvSLKtiRaR5+CzJEivfcb5Cr959TkDTawwy8Ut0j3njHyLcSIJeo wKVoMhjcCNKXfSG3QyTXly4uFYId4pgUHWZGupLtPAt1JtuTKcYO9KAR4r3rlvuC5UOw6cXBj+9GlF LQDcn7Q8fpcOFx9IxXtzpereG1wPxpfLxiUVhBf4p2j1LSORGpJC47h2C4bCvJnj8ZNaZm+S+B+qha A+dv5cgMRRwZJzBQMo8NzuDkhNwmtP4AVTh6E5J9gRGwFYehgpF+0VVRTg6A==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2857; i=narmstrong@baylibre.com;
+ h=from:subject; bh=wprebf5uOc8BWQya/EJqV1uICFFQ6AiuRw3piy3F3/s=;
+ b=owEBbQKS/ZANAwAKAXfc29rIyEnRAcsmYgBhlQ9M1QiYTusr8ZvoTMumWHhn7A0DvlhqufmL4C8b
+ 36n+Rs+JAjMEAAEKAB0WIQQ9U8YmyFYF/h30LIt33NvayMhJ0QUCYZUPTAAKCRB33NvayMhJ0fg7EA
+ CqoUSF+KiXfDfGX6aACnQAeSwlsftC1xouMBP1Hqg2KclI0fX55XTlpznJogIaPJ5K2iRi2Fs1iqRB
+ ++7IFCAjlSw5nrPK+EU9BKk97airrlU0aC4ek4DqQebw0DP1YpZB0OhzKuNe9W6XDhGW5g6WTc0DUr
+ 9ASwVbluz/ABEj6Ko580UAtDE77N3ICOBTUdNpBgJzjmlrL14ipHEatLwf+6AvviQ2vzCLfjOVxj9J
+ id2wGXgseghtV0pax0THuQMWTFOm6avj+YMpGTJimJyG9/DvPBSONBQmAQCtHcu4OJb3bWt21XWvBe
+ WHAlCrftlkC3oKsfxlkgxA+DeIvKiH0fyqKeSkLb3IwZDaYgc9aqmW1OdJMlPYMJ6B1UQO3TUBiOP4
+ f7l3eBhWXjdx1JbueO0gZBGwCynIPHfiPX6vG1JYeAvIXF9QGd4HrJPzbMof/Q9TIU/NMzo/9N0ZtK
+ l1BeEHFTVDs2YUXvR6Nmc0gvqzUD962DOeXuDcqnDJfaMt0WAb7KvVzCWxxhuzif+UBBOnJtOAcU1i
+ XBvyNKBGOy18gCXKM5X434MNpu6IYEOGTFrWL8hHkjpJQNH8v7A5DEbpysP8f3MoRxtxN4ZLTIn5Vr
+ qcR/NIhKdJ4AWeuOZYZca+1No3EAPBe8vhsP0Ac1s7pkFjZysbpyoXqqQpwg==
 X-Developer-Key: i=narmstrong@baylibre.com; a=openpgp; fpr=89EC3D058446217450F22848169AB7B1A4CFF8AE
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Call drm_atomic_helper_check_plane_state() from the plane
-atomic_check() callback in order to add plane state sanity
-checking.
+From: Benoit Parrot <bparrot@ti.com>
 
-It will permit filtering out totally bad scaling factors, even
-if the real check are done later in the atomic commit.
+In preparation to add omap plane state specific extensions we need to
+subclass drm_plane_state and add the relevant helpers.
 
-Calling drm_atomic_helper_check_plane_state() also sets
-plane_state->visible which will be useful when dynamically
-assigning hw overlays to planes.
+The addition of specific extension will be done separately.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
 ---
- drivers/gpu/drm/omapdrm/omap_plane.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/gpu/drm/omapdrm/omap_plane.c | 36 +++++++++++++++++++++++++---
+ 1 file changed, 33 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
-index 512af976b7e9..c3de4f339387 100644
+index 8cc2b899f20c..72d5adbbadfa 100644
 --- a/drivers/gpu/drm/omapdrm/omap_plane.c
 +++ b/drivers/gpu/drm/omapdrm/omap_plane.c
-@@ -104,12 +104,15 @@ static void omap_plane_atomic_disable(struct drm_plane *plane,
- 	dispc_ovl_enable(priv->dispc, omap_plane->id, false);
+@@ -16,6 +16,13 @@
+  * plane funcs
+  */
+ 
++#define to_omap_plane_state(x) container_of(x, struct omap_plane_state, base)
++
++struct omap_plane_state {
++	/* Must be first. */
++	struct drm_plane_state base;
++};
++
+ #define to_omap_plane(x) container_of(x, struct omap_plane, base)
+ 
+ struct omap_plane {
+@@ -221,11 +228,17 @@ void omap_plane_install_properties(struct drm_plane *plane,
+ static void omap_plane_reset(struct drm_plane *plane)
+ {
+ 	struct omap_plane *omap_plane = to_omap_plane(plane);
++	struct omap_plane_state *omap_state;
+ 
+-	drm_atomic_helper_plane_reset(plane);
+-	if (!plane->state)
++	if (plane->state)
++		drm_atomic_helper_plane_destroy_state(plane, plane->state);
++
++	omap_state = kzalloc(sizeof(*omap_state), GFP_KERNEL);
++	if (!omap_state)
+ 		return;
+ 
++	__drm_atomic_helper_plane_reset(plane, &omap_state->base);
++
+ 	/*
+ 	 * Set the zpos default depending on whether we are a primary or overlay
+ 	 * plane.
+@@ -236,6 +249,23 @@ static void omap_plane_reset(struct drm_plane *plane)
+ 	plane->state->color_range = DRM_COLOR_YCBCR_FULL_RANGE;
  }
  
-+#define FRAC_16_16(mult, div)    (((mult) << 16) / (div))
++static struct drm_plane_state *
++omap_plane_atomic_duplicate_state(struct drm_plane *plane)
++{
++	struct omap_plane_state *state;
 +
- static int omap_plane_atomic_check(struct drm_plane *plane,
- 				   struct drm_atomic_state *state)
- {
- 	struct drm_plane_state *new_plane_state = drm_atomic_get_new_plane_state(state,
- 										 plane);
- 	struct drm_crtc_state *crtc_state;
-+	int ret;
- 
- 	if (!new_plane_state->fb)
- 		return 0;
-@@ -127,6 +130,18 @@ static int omap_plane_atomic_check(struct drm_plane *plane,
- 	if (!crtc_state->enable)
- 		return 0;
- 
-+	/*
-+	 * Note: these are just sanity checks to filter out totally bad scaling
-+	 * factors. The real limits must be calculated case by case, and
-+	 * unfortunately we currently do those checks only at the commit
-+	 * phase in dispc.
-+	 */
-+	ret = drm_atomic_helper_check_plane_state(new_plane_state, crtc_state,
-+						  FRAC_16_16(1, 8), FRAC_16_16(8, 1),
-+						  true, true);
-+	if (ret)
-+		return ret;
++	if (WARN_ON(!plane->state))
++		return NULL;
 +
- 	if (new_plane_state->crtc_x < 0 || new_plane_state->crtc_y < 0)
- 		return -EINVAL;
- 
++	state = kmalloc(sizeof(*state), GFP_KERNEL);
++	if (!state)
++		return NULL;
++
++	__drm_atomic_helper_plane_duplicate_state(plane, &state->base);
++
++	return &state->base;
++}
++
+ static int omap_plane_atomic_set_property(struct drm_plane *plane,
+ 					  struct drm_plane_state *state,
+ 					  struct drm_property *property,
+@@ -271,7 +301,7 @@ static const struct drm_plane_funcs omap_plane_funcs = {
+ 	.disable_plane = drm_atomic_helper_disable_plane,
+ 	.reset = omap_plane_reset,
+ 	.destroy = omap_plane_destroy,
+-	.atomic_duplicate_state = drm_atomic_helper_plane_duplicate_state,
++	.atomic_duplicate_state = omap_plane_atomic_duplicate_state,
+ 	.atomic_destroy_state = drm_atomic_helper_plane_destroy_state,
+ 	.atomic_set_property = omap_plane_atomic_set_property,
+ 	.atomic_get_property = omap_plane_atomic_get_property,
 -- 
 2.25.1
 
