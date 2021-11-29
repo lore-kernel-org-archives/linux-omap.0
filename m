@@ -2,248 +2,146 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55455C433EF
-	for <linux-omap@archiver.kernel.org>; Mon, 29 Nov 2021 10:24:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C499FC433F5
+	for <linux-omap@archiver.kernel.org>; Mon, 29 Nov 2021 13:13:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344489AbhK2K1v (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 29 Nov 2021 05:27:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41588 "EHLO
+        id S238754AbhK2NQ1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 29 Nov 2021 08:16:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232949AbhK2KZv (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2021 05:25:51 -0500
-Received: from mail-wm1-x336.google.com (mail-wm1-x336.google.com [IPv6:2a00:1450:4864:20::336])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A75EC061374
-        for <linux-omap@vger.kernel.org>; Mon, 29 Nov 2021 01:56:26 -0800 (PST)
-Received: by mail-wm1-x336.google.com with SMTP id 137so14066225wma.1
-        for <linux-omap@vger.kernel.org>; Mon, 29 Nov 2021 01:56:26 -0800 (PST)
+        with ESMTP id S1377107AbhK2NO0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 29 Nov 2021 08:14:26 -0500
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6D8CC0048DF
+        for <linux-omap@vger.kernel.org>; Mon, 29 Nov 2021 03:55:07 -0800 (PST)
+Received: by mail-wr1-x42f.google.com with SMTP id d9so15305320wrw.4
+        for <linux-omap@vger.kernel.org>; Mon, 29 Nov 2021 03:55:07 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=JoYsHU+XJpC5AlXMYy6dlFDTBWZmry/p4RloOev9FFw=;
-        b=sS+elfRruvzi6wtAMsU/s+WNTxXW1bfySN8LfJ8IUQMovxXGfHp9ghpNCYglOmE0Hu
-         xk1H8EfBzfdEBJiqAydhcxEQ6tJrUEJzefpPyEfZHcP1BVxp3BaMW1wFf67lzKa8CMXT
-         5GGMta5RdyaT9oVWaKWF4X0e/AjTRIcbjku5JEJqOvFHkxeydPm9VllvVPBHARsKFwLl
-         1pNe1UuiL82xffXYJybUDewoFZFQWd/dlEVKNNWBRDQ7fgYHwUz9YbWh2069Oflv9Qz/
-         AcQL0olLD980D9eQsZqTG61PYVjCgw3BPx4h+5f0AEyHedPS7SVZirBysQtqzQWXmsIp
-         Ldyg==
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=VVOPTlZ25TG0A/D/zPlBV/5uhzVs33QmnMBQ/KVuzok=;
+        b=lkwhQKXAkPk/45MOJA8n7UmDgKAdLF4A1HrNaCp2DAoqL5jLTFjou3x32wDBBU6GIT
+         yI/CJhxLCUTnAb5/Em/j6rhcsE0aVo3sMd3LYPxdE5+hC1/mTgxkJqsMs5FMlUOo6mFj
+         p7BNzyn9xjUhYwkgG5BzPtj9HurcHm+ccwOPwS4lv9ee0Rp8UDrMmrydCXbQHsTaZXjk
+         xJu5xIGGnwbHMKU206LqjROnwejVkM/SZiOAqwNOvL8q0Fxve51MyLPqAjPb4PZY1YMm
+         QSzNrZA4BSS9QFja3wZ8ES46Bccp24Bd6Zbx0NoBWxwAbV7Rw05PPAukg5XBBny7eyFr
+         nlLw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=JoYsHU+XJpC5AlXMYy6dlFDTBWZmry/p4RloOev9FFw=;
-        b=GpiJ3tGDbhpuCj/yKUxaGuf/+/+r1s5bl/qYWQESXPSHJflE84X7ozD8H73x1YPcaz
-         OLM+anWzn0OqKfN7d7Kevrq3dn7tyxAaS92uHAh2/Ioo1hsdn+jI61dDmm2XVaQkJGqe
-         3/utnMSCdGIMdJZxgCP7xvr4yhWPOfU0a4QxTuXudFn9wCqoAHJV6n722gAUnIV+h2M4
-         kvPHRQ5Tl4eopJ3XccMRYSEghoQyD6YF+ff7nKI9oDIii3K+o+Ka2k5nKLDRrvZWhv4s
-         rxFzkVH+RvL2yqaqHUvy0mjN7yamOnUB89AqRMVbUazvwtb+EfNgD8986jUfujrcFNyW
-         PLsQ==
-X-Gm-Message-State: AOAM533GZd58S5Ay+VL2b5h0Yy/rEDUwlB2ZgPy8hZl2+tJt/5GqseEP
-        mVprwYURR1sng7Bt4oSxb7CNoA==
-X-Google-Smtp-Source: ABdhPJx/wqUhMKyU8qOU/313Add1TM/BvSiew6HbDgIqgaQwkq+sPRs6LA2xh9cQDneaokaPe1CSbA==
-X-Received: by 2002:a05:600c:3489:: with SMTP id a9mr35644457wmq.53.1638179784955;
-        Mon, 29 Nov 2021 01:56:24 -0800 (PST)
-Received: from ?IPv6:2a01:e34:ed2f:f020:8236:a2e5:8d62:e9cd? ([2a01:e34:ed2f:f020:8236:a2e5:8d62:e9cd])
-        by smtp.googlemail.com with ESMTPSA id h13sm13642392wrx.82.2021.11.29.01.56.23
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 29 Nov 2021 01:56:24 -0800 (PST)
-Subject: Re: [PATCH] ARM: dts: Fix timer regression for beagleboard revision c
-To:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc:     =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=VVOPTlZ25TG0A/D/zPlBV/5uhzVs33QmnMBQ/KVuzok=;
+        b=c4Ag9Ozc2C8hmKR/pqUxkAEAx7Z6mqOXnC34C8pH66wOgRWWw1Wes3Bpe3P4l45uYW
+         tbVbcrj9sssT5dHQi/o6jo+BCmc+nznleB13uIjyI4VQHmGpxSMpLdwiQD3cwQtaD+9P
+         6YDzAmueYKCxr1YCUnqgFlHBLP4n3ji0tsCvIEa1ipdkwy0Xjk9WjrzW2PkyEyBxHh7p
+         K2jm3/zyJM1HbsNgiSANmYdpk5a5IynNtCBJkqNRQPM2nUBW5rM3Ygbr/AZnBMsSaRpa
+         ETWOWTHGKOBsKw6VgUgjQOsJmM6i9UxR9uwVsyyjfzxPVAfkky+bh/bKrdWaiHcu03pJ
+         kXVA==
+X-Gm-Message-State: AOAM533JaIOkU9Ominq44/r0/AzqeBElkZ0u6hUkPJBbdmOemfsKyoUf
+        AEpPd6yD7M5IOzKz4aqiQVUQiQ==
+X-Google-Smtp-Source: ABdhPJzBdvU2Vc8uq5wk1K9UX3j47S9iY7roSh9nDqHEi2kZs1JBlBSlXeazNTFhoQ+QITHlIyszPw==
+X-Received: by 2002:adf:e742:: with SMTP id c2mr32868966wrn.498.1638186905995;
+        Mon, 29 Nov 2021 03:55:05 -0800 (PST)
+Received: from google.com ([2.31.167.18])
+        by smtp.gmail.com with ESMTPSA id y15sm16736665wry.72.2021.11.29.03.55.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 29 Nov 2021 03:55:05 -0800 (PST)
+Date:   Mon, 29 Nov 2021 11:55:01 +0000
+From:   Lee Jones <lee.jones@linaro.org>
+To:     Dmitry Osipenko <digetx@gmail.com>
+Cc:     Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Mark Brown <broonie@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Russell King <linux@armlinux.org.uk>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Joshua Thompson <funaho@jurai.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Nick Hu <nickhu@andestech.com>,
+        Greentime Hu <green.hu@gmail.com>,
+        Vincent Chen <deanbo422@gmail.com>,
+        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
         Thomas Gleixner <tglx@linutronix.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Jarkko Nikula <jarkko.nikula@bitmer.com>
-References: <20211125144834.52457-1-tony@atomide.com>
-From:   Daniel Lezcano <daniel.lezcano@linaro.org>
-Message-ID: <6ce29c03-03ce-8e65-76e1-40fe2bf23caa@linaro.org>
-Date:   Mon, 29 Nov 2021 10:56:23 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Len Brown <lenb@kernel.org>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Jonathan =?iso-8859-1?Q?Neusch=E4fer?= <j.neuschaefer@gmx.net>,
+        Tony Lindgren <tony@atomide.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Avi Fishman <avifishman70@gmail.com>,
+        Tomer Maimon <tmaimon77@gmail.com>,
+        Tali Perry <tali.perry1@gmail.com>,
+        Patrick Venture <venture@google.com>,
+        Nancy Yuen <yuenn@google.com>,
+        Benjamin Fair <benjaminfair@google.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
+        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
+        linux-omap@vger.kernel.org, openbmc@lists.ozlabs.org,
+        linux-tegra@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: Re: [PATCH v2 28/45] mfd: rn5t618: Use devm_register_power_handler()
+Message-ID: <YaS/lStp2b8GhVxw@google.com>
+References: <20211027211715.12671-1-digetx@gmail.com>
+ <20211027211715.12671-29-digetx@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20211125144834.52457-1-tony@atomide.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20211027211715.12671-29-digetx@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+On Thu, 28 Oct 2021, Dmitry Osipenko wrote:
 
-Hi Tony,
-
-On 25/11/2021 15:48, Tony Lindgren wrote:
-> Commit e428e250fde6 ("ARM: dts: Configure system timers for omap3")
-> caused a timer regression for beagleboard revision c where the system
-> clockevent stops working if omap3isp module is unloaded.
+> Use devm_register_power_handler() that replaces global pm_power_off
+> variable and allows to register multiple power-off handlers. It also
+> provides restart-handler support, i.e. all in one API.
 > 
-> Turns out we still have beagleboard revisions a-b4 capacitor c70 quirks
-> applied that limit the usable timers for no good reason. This also affects
-> the power management as we use the system clock instead of the 32k clock
-> source.
-> 
-> Let's fix the issue by adding a new omap3-beagle-ab4.dts for the old timer
-> quirks. This allows us to remove the timer quirks for later beagleboard
-> revisions. We also need to update the related timer quirk check for the
-> correct compatible property.
-> 
-> Fixes: e428e250fde6 ("ARM: dts: Configure system timers for omap3")
-> Cc: linux-kernel@vger.kernel.org
-> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Reported-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 > ---
->  .../devicetree/bindings/arm/omap/omap.txt     |  3 ++
->  arch/arm/boot/dts/Makefile                    |  1 +
->  arch/arm/boot/dts/omap3-beagle-ab4.dts        | 47 +++++++++++++++++++
->  arch/arm/boot/dts/omap3-beagle.dts            | 33 -------------
->  drivers/clocksource/timer-ti-dm-systimer.c    |  2 +-
->  5 files changed, 52 insertions(+), 34 deletions(-)
->  create mode 100644 arch/arm/boot/dts/omap3-beagle-ab4.dts
+>  drivers/mfd/rn5t618.c | 56 ++++++++++++++++---------------------------
+>  1 file changed, 21 insertions(+), 35 deletions(-)
 
-Usually, bindings DT and driver changes are separate patches
+For my own reference (apply this as-is to your sign-off block):
 
-
-> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> @@ -119,6 +119,9 @@ Boards (incomplete list of examples):
->  - OMAP3 BeagleBoard : Low cost community board
->    compatible = "ti,omap3-beagle", "ti,omap3430", "ti,omap3"
->  
-> +- OMAP3 BeagleBoard A to B4 : Early BeagleBoard revisions A to B4 with a timer quirk
-> +  compatible = "ti,omap3-beagle-ab4", "ti,omap3-beagle", "ti,omap3430", "ti,omap3"
-> +
->  - OMAP3 Tobi with Overo : Commercial expansion board with daughter board
->    compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3430", "ti,omap3"
->  
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -794,6 +794,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += \
->  	logicpd-som-lv-37xx-devkit.dtb \
->  	omap3430-sdp.dtb \
->  	omap3-beagle.dtb \
-> +	omap3-beagle-ab4.dtb \
->  	omap3-beagle-xm.dtb \
->  	omap3-beagle-xm-ab.dtb \
->  	omap3-cm-t3517.dtb \
-> diff --git a/arch/arm/boot/dts/omap3-beagle-ab4.dts b/arch/arm/boot/dts/omap3-beagle-ab4.dts
-> new file mode 100644
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-beagle-ab4.dts
-> @@ -0,0 +1,47 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/dts-v1/;
-> +
-> +#include "omap3-beagle.dts"
-> +
-> +/ {
-> +	model = "TI OMAP3 BeagleBoard A to B4";
-> +	compatible = "ti,omap3-beagle-ab4", "ti,omap3-beagle", "ti,omap3430", "ti,omap3";
-> +};
-> +
-> +/*
-> + * Workaround for capacitor C70 issue, see "Boards revision A and < B5"
-> + * section at https://elinux.org/BeagleBoard_Community
-> + */
-> +
-> +/* Unusable as clocksource because of unreliable oscillator */
-> +&counter32k {
-> +	status = "disabled";
-> +};
-> +
-> +/* Unusable as clockevent because of unreliable oscillator, allow to idle */
-> +&timer1_target {
-> +	/delete-property/ti,no-reset-on-init;
-> +	/delete-property/ti,no-idle;
-> +	timer@0 {
-> +		/delete-property/ti,timer-alwon;
-> +	};
-> +};
-> +
-> +/* Preferred always-on timer for clocksource */
-> +&timer12_target {
-> +	ti,no-reset-on-init;
-> +	ti,no-idle;
-> +	timer@0 {
-> +		/* Always clocked by secure_32k_fck */
-> +	};
-> +};
-> +
-> +/* Preferred timer for clockevent */
-> +&timer2_target {
-> +	ti,no-reset-on-init;
-> +	ti,no-idle;
-> +	timer@0 {
-> +		assigned-clocks = <&gpt2_fck>;
-> +		assigned-clock-parents = <&sys_ck>;
-> +	};
-> +};
-> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-> --- a/arch/arm/boot/dts/omap3-beagle.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle.dts
-> @@ -308,39 +308,6 @@ &usbhsehci {
->  	phys = <0 &hsusb2_phy>;
->  };
->  
-> -/* Unusable as clocksource because of unreliable oscillator */
-> -&counter32k {
-> -	status = "disabled";
-> -};
-> -
-> -/* Unusable as clockevent because if unreliable oscillator, allow to idle */
-> -&timer1_target {
-> -	/delete-property/ti,no-reset-on-init;
-> -	/delete-property/ti,no-idle;
-> -	timer@0 {
-> -		/delete-property/ti,timer-alwon;
-> -	};
-> -};
-> -
-> -/* Preferred always-on timer for clocksource */
-> -&timer12_target {
-> -	ti,no-reset-on-init;
-> -	ti,no-idle;
-> -	timer@0 {
-> -		/* Always clocked by secure_32k_fck */
-> -	};
-> -};
-> -
-> -/* Preferred timer for clockevent */
-> -&timer2_target {
-> -	ti,no-reset-on-init;
-> -	ti,no-idle;
-> -	timer@0 {
-> -		assigned-clocks = <&gpt2_fck>;
-> -		assigned-clock-parents = <&sys_ck>;
-> -	};
-> -};
-> -
->  &twl_gpio {
->  	ti,use-leds;
->  	/* pullups: BIT(1) */
-> diff --git a/drivers/clocksource/timer-ti-dm-systimer.c b/drivers/clocksource/timer-ti-dm-systimer.c
-> --- a/drivers/clocksource/timer-ti-dm-systimer.c
-> +++ b/drivers/clocksource/timer-ti-dm-systimer.c
-> @@ -241,7 +241,7 @@ static void __init dmtimer_systimer_assign_alwon(void)
->  	bool quirk_unreliable_oscillator = false;
->  
->  	/* Quirk unreliable 32 KiHz oscillator with incomplete dts */
-> -	if (of_machine_is_compatible("ti,omap3-beagle") ||
-> +	if (of_machine_is_compatible("ti,omap3-beagle-ab4") ||
->  	    of_machine_is_compatible("timll,omap3-devkit8000")) {
->  		quirk_unreliable_oscillator = true;
->  		counter_32k = -ENODEV;
-> 
-
+  Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
 
 -- 
-<http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+Lee Jones [李琼斯]
+Senior Technical Lead - Developer Services
+Linaro.org │ Open source software for Arm SoCs
+Follow Linaro: Facebook | Twitter | Blog
