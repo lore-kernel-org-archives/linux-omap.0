@@ -2,111 +2,74 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77BCAC433F5
-	for <linux-omap@archiver.kernel.org>; Wed,  1 Dec 2021 11:15:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 735BBC433EF
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Dec 2021 09:13:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237790AbhLALSa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 1 Dec 2021 06:18:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57410 "EHLO
+        id S1345791AbhLBJQl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Dec 2021 04:16:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237786AbhLALS1 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 1 Dec 2021 06:18:27 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E0DAC061574;
-        Wed,  1 Dec 2021 03:15:06 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id E05DECE1DCA;
-        Wed,  1 Dec 2021 11:15:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB200C53FCC;
-        Wed,  1 Dec 2021 11:15:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1638357303;
-        bh=ehVTzL9X6BysmNP85++ptIBdmSpHTbsCMyi3z2tu5D0=;
+        with ESMTP id S241170AbhLBJQl (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2021 04:16:41 -0500
+Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [IPv6:2001:4b98:dc2:55:216:3eff:fef7:d647])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CD09C06174A;
+        Thu,  2 Dec 2021 01:13:19 -0800 (PST)
+Received: from [192.168.1.111] (91-156-85-209.elisa-laajakaista.fi [91.156.85.209])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 507B22FD;
+        Thu,  2 Dec 2021 10:13:16 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1638436396;
+        bh=tzJsDh0PPZKdq6o7K1b10saCi/GCGiVRY0/vySx5B+o=;
         h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=HjFzzYB/CE/19drSrda2JNv9tdyBGIIOGNr0il7/WmQa5vCF21CUBUS0bqKZAhtJS
-         1Y5T6A/VJuGdGKwjxK4C7YXojve9Ebi7/l6p9wXK/12GFeOAY/945ZeMm2h1+k8FD7
-         qYTXtZ6UV4jXuP85XZ0bVSeNZ8VUCtIufsHsPcWzwba5KOf27Y7DhN67pxKhflnmod
-         l86/bg4KTuPQQUQhI2TUphk1hutcOl2JpIb73VBnCQVRZt4Ugkp35EoJfjvdMwa7RA
-         jFA/kWHDls45bQUQYSCpF3EVrB4n7zfQRWJAsKFc56WMXcYl57CamD6qZDBI1L8lAG
-         ifEiSWROxQQCw==
-Subject: Re: [PATCH 1/4] dt-bindings: memory-controllers: ti,gpmc: Add
- compatible for AM64
-To:     Rob Herring <robh@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>
-Cc:     tony@atomide.com, kishon@ti.com, nm@ti.com, vigneshr@ti.com,
-        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org
-References: <20211123102607.13002-1-rogerq@kernel.org>
- <20211123102607.13002-2-rogerq@kernel.org>
- <a28532b1-bfa0-031b-91cc-070cad557599@canonical.com>
- <YaafXKXfzBQaNSvq@robh.at.kernel.org>
-From:   Roger Quadros <rogerq@kernel.org>
-Message-ID: <acc05242-8d0a-093a-c076-af35a339333c@kernel.org>
-Date:   Wed, 1 Dec 2021 13:14:58 +0200
+        b=W+EZQEwdk7uVG3Ce8g0fb5qTNQBY2owueStf1g4tFKY5lEC2FnaEAL2YCSue2jNZD
+         G5+KvoW/o213OUM/T3KMcIk6/Ofau/+SCFI814WGoJilRLd3rWPsOaBOdPdtBxt9yi
+         4+H5XeTT8f0ick5yOgfekfiEWuTDzO9vrexawzEU=
+Subject: Re: [PATCH v3] drm: omapdrm: Export correct scatterlist for TILER
+ backed BOs
+To:     Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc:     matthijsvanduin@gmail.com, airlied@linux.ie, daniel@ffwll.ch,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        merlijn@wizzup.org, philipp@uvos.xyz,
+        laurent.pinchart@ideasonboard.com
+References: <3e9307e5-1f03-9854-2b2b-859173e8f2ae@gmail.com>
+ <1637309180-31032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+From:   Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
+Message-ID: <56fc4b66-c7c6-586e-229d-6850d561c6f7@ideasonboard.com>
+Date:   Thu, 2 Dec 2021 11:13:13 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.14.0
 MIME-Version: 1.0
-In-Reply-To: <YaafXKXfzBQaNSvq@robh.at.kernel.org>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1637309180-31032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+Hi,
 
-On 01/12/2021 00:02, Rob Herring wrote:
-> On Tue, Nov 23, 2021 at 08:47:57PM +0100, Krzysztof Kozlowski wrote:
->> On 23/11/2021 11:26, Roger Quadros wrote:
->>> AM64 SoC contains the GPMC module. Add compatible for it.
->>>
->>> Newer SoCs don't necessarily map GPMC data region at the same place
->>> as legacy SoCs. Add reg-names "data", to provide this information to
->>> the device driver.
->>>
->>> Cc: Rob Herring <robh+dt@kernel.org>
->>> Signed-off-by: Roger Quadros <rogerq@kernel.org>
->>> ---
->>>  .../bindings/memory-controllers/ti,gpmc.yaml         | 12 +++++++++++-
->>>  1 file changed, 11 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/memory-controllers/ti,gpmc.yaml b/Documentation/devicetree/bindings/memory-controllers/ti,gpmc.yaml
->>> index 25b42d68f9b3..1869cc6f949b 100644
->>> --- a/Documentation/devicetree/bindings/memory-controllers/ti,gpmc.yaml
->>> +++ b/Documentation/devicetree/bindings/memory-controllers/ti,gpmc.yaml
->>> @@ -23,13 +23,20 @@ properties:
->>>      items:
->>>        - enum:
->>>            - ti,am3352-gpmc
->>> +          - ti,am64-gpmc
->>>            - ti,omap2420-gpmc
->>>            - ti,omap2430-gpmc
->>>            - ti,omap3430-gpmc
->>>            - ti,omap4430-gpmc
->>>  
->>>    reg:
->>> -    maxItems: 1
->>> +    minItems: 1
->>> +    maxItems: 2
->>> +
->>> +  reg-names:
->>> +    items:
->>> +      - const: cfg
->>> +      - const: data
->>
->> I see your driver handles cases with only one reg item, but I have other
->> question - is it correct to have older (ARMv7) platform with two reg
->> items? Or can am64-gpmc come with only one reg?
->> IOW, I am surprised there is no if-else case precising this minItems
->> requirement for different SocS.
+On 19/11/2021 10:06, Ivaylo Dimitrov wrote:
+> Memory of BOs backed by TILER is not contiguous, but omap_gem_map_dma_buf()
+> exports it like it is. This leads to (possibly) invalid memory accesses if
+> another device imports such a BO.
 > 
-> I don't think that is needed here. If the assumption is 'reg-names' is 
-> only present when there are 2 entries, then it is fine. Maybe 
-> 'reg-names' should be required for ti,am64-gpmc though.
+> Fix that by providing sg that correctly describes TILER memory layout.
+> Align TILER allocations to page, so importer to be able to correctly set
+> its MMU if have one. Set export size accounting for the alignment. Also,
+> make sure to destroy sg on unpin, as it is no longer valid.
+> 
+> Tested on Motorola Droid4 by using GPU (sgx540) to render.
+> 
+> Suggested-by: Matthijs van Duin <matthijsvanduin@gmail.com>
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> ---
+>   drivers/gpu/drm/omapdrm/omap_gem.c        | 79 ++++++++++++++++++++++++++++++-
+>   drivers/gpu/drm/omapdrm/omap_gem.h        |  2 +
+>   drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c | 34 ++-----------
+>   3 files changed, 85 insertions(+), 30 deletions(-)
 
-Yes, I'll make 'reg-names' property required for ti,am64-gpmc.
+I'll pick this to my work branch which I use every day, and let it be 
+there for a few days. If I don't see any issues, I'll push to drm-misc-next.
 
-cheers,
--roger
+  Tomi
