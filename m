@@ -2,74 +2,188 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 735BBC433EF
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Dec 2021 09:13:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38846C43219
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Dec 2021 21:17:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345791AbhLBJQl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 2 Dec 2021 04:16:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48130 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241170AbhLBJQl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2021 04:16:41 -0500
-Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [IPv6:2001:4b98:dc2:55:216:3eff:fef7:d647])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CD09C06174A;
-        Thu,  2 Dec 2021 01:13:19 -0800 (PST)
-Received: from [192.168.1.111] (91-156-85-209.elisa-laajakaista.fi [91.156.85.209])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 507B22FD;
-        Thu,  2 Dec 2021 10:13:16 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1638436396;
-        bh=tzJsDh0PPZKdq6o7K1b10saCi/GCGiVRY0/vySx5B+o=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=W+EZQEwdk7uVG3Ce8g0fb5qTNQBY2owueStf1g4tFKY5lEC2FnaEAL2YCSue2jNZD
-         G5+KvoW/o213OUM/T3KMcIk6/Ofau/+SCFI814WGoJilRLd3rWPsOaBOdPdtBxt9yi
-         4+H5XeTT8f0ick5yOgfekfiEWuTDzO9vrexawzEU=
-Subject: Re: [PATCH v3] drm: omapdrm: Export correct scatterlist for TILER
- backed BOs
-To:     Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc:     matthijsvanduin@gmail.com, airlied@linux.ie, daniel@ffwll.ch,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        merlijn@wizzup.org, philipp@uvos.xyz,
-        laurent.pinchart@ideasonboard.com
-References: <3e9307e5-1f03-9854-2b2b-859173e8f2ae@gmail.com>
- <1637309180-31032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-From:   Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-Message-ID: <56fc4b66-c7c6-586e-229d-6850d561c6f7@ideasonboard.com>
-Date:   Thu, 2 Dec 2021 11:13:13 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.14.0
+        id S1377014AbhLBVVB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Dec 2021 16:21:01 -0500
+Received: from mga17.intel.com ([192.55.52.151]:39707 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1377001AbhLBVVA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 2 Dec 2021 16:21:00 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10186"; a="217531598"
+X-IronPort-AV: E=Sophos;i="5.87,282,1631602800"; 
+   d="scan'208";a="217531598"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Dec 2021 13:17:37 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.87,282,1631602800"; 
+   d="scan'208";a="460620438"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga006.jf.intel.com with ESMTP; 02 Dec 2021 13:17:26 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id A0E77B8; Thu,  2 Dec 2021 23:17:31 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Marc Zyngier <maz@kernel.org>,
+        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
+        Sergio Paracuellos <sergio.paracuellos@gmail.com>,
+        Chunyan Zhang <chunyan.zhang@unisoc.com>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Baruch Siach <baruch@tkos.co.il>,
+        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>, Tony Lindgren <tony@atomide.com>,
+        Nicolas Saenz Julienne <nsaenz@kernel.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jianqun Xu <jay.xu@rock-chips.com>,
+        Alexandru Ardelean <aardelean@deviqon.com>,
+        Thierry Reding <treding@nvidia.com>,
+        linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+        patches@opensource.cirrus.com,
+        bcm-kernel-feedback-list@broadcom.com,
+        linux-power@fi.rohmeurope.com,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, linux-pwm@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-unisoc@lists.infradead.org,
+        linux-rockchip@lists.infradead.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-tegra@vger.kernel.org
+Cc:     Ray Jui <rjui@broadcom.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        Gregory Fong <gregory.0xf0@gmail.com>,
+        Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>,
+        Keerthy <j-keerthy@ti.com>, Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang7@gmail.com>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Kevin Hilman <khilman@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Manivannan Sadhasivam <mani@kernel.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@foss.st.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>
+Subject: [PATCH v1 2/3] gpio: Setup parent device and get rid of unnecessary of_node assignment
+Date:   Thu,  2 Dec 2021 23:08:38 +0200
+Message-Id: <20211202210839.79140-2-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20211202210839.79140-1-andriy.shevchenko@linux.intel.com>
+References: <20211202210839.79140-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1637309180-31032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+Some of the drivers do not set parent device. This may lead to obstacles
+during debugging or understanding the device relations from the Linux
+point of view. Assign parent device for GPIO chips created by these
+drivers.
 
-On 19/11/2021 10:06, Ivaylo Dimitrov wrote:
-> Memory of BOs backed by TILER is not contiguous, but omap_gem_map_dma_buf()
-> exports it like it is. This leads to (possibly) invalid memory accesses if
-> another device imports such a BO.
-> 
-> Fix that by providing sg that correctly describes TILER memory layout.
-> Align TILER allocations to page, so importer to be able to correctly set
-> its MMU if have one. Set export size accounting for the alignment. Also,
-> make sure to destroy sg on unpin, as it is no longer valid.
-> 
-> Tested on Motorola Droid4 by using GPU (sgx540) to render.
-> 
-> Suggested-by: Matthijs van Duin <matthijsvanduin@gmail.com>
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> ---
->   drivers/gpu/drm/omapdrm/omap_gem.c        | 79 ++++++++++++++++++++++++++++++-
->   drivers/gpu/drm/omapdrm/omap_gem.h        |  2 +
->   drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c | 34 ++-----------
->   3 files changed, 85 insertions(+), 30 deletions(-)
+While at it, let GPIO library to assign of_node from the parent device.
 
-I'll pick this to my work branch which I use every day, and let it be 
-there for a few days. If I don't see any issues, I'll push to drm-misc-next.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/gpio/gpio-bcm-kona.c  | 2 +-
+ drivers/gpio/gpio-creg-snps.c | 2 +-
+ drivers/gpio/gpio-lpc32xx.c   | 2 +-
+ drivers/gpio/gpio-pxa.c       | 8 +++-----
+ 4 files changed, 6 insertions(+), 8 deletions(-)
 
-  Tomi
+diff --git a/drivers/gpio/gpio-bcm-kona.c b/drivers/gpio/gpio-bcm-kona.c
+index d329a143f5ec..e84474494429 100644
+--- a/drivers/gpio/gpio-bcm-kona.c
++++ b/drivers/gpio/gpio-bcm-kona.c
+@@ -606,7 +606,7 @@ static int bcm_kona_gpio_probe(struct platform_device *pdev)
+ 
+ 	kona_gpio->pdev = pdev;
+ 	platform_set_drvdata(pdev, kona_gpio);
+-	chip->of_node = dev->of_node;
++	chip->parent = dev;
+ 	chip->ngpio = kona_gpio->num_bank * GPIO_PER_BANK;
+ 
+ 	kona_gpio->irq_domain = irq_domain_add_linear(dev->of_node,
+diff --git a/drivers/gpio/gpio-creg-snps.c b/drivers/gpio/gpio-creg-snps.c
+index 1d0827e79703..789384c6e178 100644
+--- a/drivers/gpio/gpio-creg-snps.c
++++ b/drivers/gpio/gpio-creg-snps.c
+@@ -163,12 +163,12 @@ static int creg_gpio_probe(struct platform_device *pdev)
+ 
+ 	spin_lock_init(&hcg->lock);
+ 
++	hcg->gc.parent = dev;
+ 	hcg->gc.label = dev_name(dev);
+ 	hcg->gc.base = -1;
+ 	hcg->gc.ngpio = ngpios;
+ 	hcg->gc.set = creg_gpio_set;
+ 	hcg->gc.direction_output = creg_gpio_dir_out;
+-	hcg->gc.of_node = dev->of_node;
+ 
+ 	ret = devm_gpiochip_add_data(dev, &hcg->gc, hcg);
+ 	if (ret)
+diff --git a/drivers/gpio/gpio-lpc32xx.c b/drivers/gpio/gpio-lpc32xx.c
+index 4e626c4235c2..d2b65cfb336e 100644
+--- a/drivers/gpio/gpio-lpc32xx.c
++++ b/drivers/gpio/gpio-lpc32xx.c
+@@ -512,10 +512,10 @@ static int lpc32xx_gpio_probe(struct platform_device *pdev)
+ 		return PTR_ERR(reg_base);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(lpc32xx_gpiochip); i++) {
++		lpc32xx_gpiochip[i].chip.parent = &pdev->dev;
+ 		if (pdev->dev.of_node) {
+ 			lpc32xx_gpiochip[i].chip.of_xlate = lpc32xx_of_xlate;
+ 			lpc32xx_gpiochip[i].chip.of_gpio_n_cells = 3;
+-			lpc32xx_gpiochip[i].chip.of_node = pdev->dev.of_node;
+ 			lpc32xx_gpiochip[i].reg_base = reg_base;
+ 		}
+ 		devm_gpiochip_add_data(&pdev->dev, &lpc32xx_gpiochip[i].chip,
+diff --git a/drivers/gpio/gpio-pxa.c b/drivers/gpio/gpio-pxa.c
+index 382468e294e1..c7fbfa3ae43b 100644
+--- a/drivers/gpio/gpio-pxa.c
++++ b/drivers/gpio/gpio-pxa.c
+@@ -343,8 +343,7 @@ static int pxa_gpio_of_xlate(struct gpio_chip *gc,
+ }
+ #endif
+ 
+-static int pxa_init_gpio_chip(struct pxa_gpio_chip *pchip, int ngpio,
+-			      struct device_node *np, void __iomem *regbase)
++static int pxa_init_gpio_chip(struct pxa_gpio_chip *pchip, int ngpio, void __iomem *regbase)
+ {
+ 	int i, gpio, nbanks = DIV_ROUND_UP(ngpio, 32);
+ 	struct pxa_gpio_bank *bank;
+@@ -354,6 +353,7 @@ static int pxa_init_gpio_chip(struct pxa_gpio_chip *pchip, int ngpio,
+ 	if (!pchip->banks)
+ 		return -ENOMEM;
+ 
++	pchip->chip.parent = pchip->dev;
+ 	pchip->chip.label = "gpio-pxa";
+ 	pchip->chip.direction_input  = pxa_gpio_direction_input;
+ 	pchip->chip.direction_output = pxa_gpio_direction_output;
+@@ -365,7 +365,6 @@ static int pxa_init_gpio_chip(struct pxa_gpio_chip *pchip, int ngpio,
+ 	pchip->chip.free = gpiochip_generic_free;
+ 
+ #ifdef CONFIG_OF_GPIO
+-	pchip->chip.of_node = np;
+ 	pchip->chip.of_xlate = pxa_gpio_of_xlate;
+ 	pchip->chip.of_gpio_n_cells = 2;
+ #endif
+@@ -675,8 +674,7 @@ static int pxa_gpio_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* Initialize GPIO chips */
+-	ret = pxa_init_gpio_chip(pchip, pxa_last_gpio + 1, pdev->dev.of_node,
+-				 gpio_reg_base);
++	ret = pxa_init_gpio_chip(pchip, pxa_last_gpio + 1, gpio_reg_base);
+ 	if (ret) {
+ 		clk_put(clk);
+ 		return ret;
+-- 
+2.33.0
+
