@@ -2,461 +2,278 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0C3CC43219
-	for <linux-omap@archiver.kernel.org>; Thu,  2 Dec 2021 21:17:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEE5BC433EF
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Dec 2021 22:27:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377045AbhLBVVG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 2 Dec 2021 16:21:06 -0500
-Received: from mga12.intel.com ([192.55.52.136]:25479 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1377026AbhLBVVD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 2 Dec 2021 16:21:03 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10186"; a="216862369"
-X-IronPort-AV: E=Sophos;i="5.87,282,1631602800"; 
-   d="scan'208";a="216862369"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Dec 2021 13:17:39 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.87,282,1631602800"; 
-   d="scan'208";a="603129097"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga002.fm.intel.com with ESMTP; 02 Dec 2021 13:17:26 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 8B4C4109; Thu,  2 Dec 2021 23:17:31 +0200 (EET)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
-        Sergio Paracuellos <sergio.paracuellos@gmail.com>,
-        Chunyan Zhang <chunyan.zhang@unisoc.com>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Baruch Siach <baruch@tkos.co.il>,
-        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>, Tony Lindgren <tony@atomide.com>,
-        Nicolas Saenz Julienne <nsaenz@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jianqun Xu <jay.xu@rock-chips.com>,
-        Alexandru Ardelean <aardelean@deviqon.com>,
-        Thierry Reding <treding@nvidia.com>,
-        linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-        patches@opensource.cirrus.com,
-        bcm-kernel-feedback-list@broadcom.com,
-        linux-power@fi.rohmeurope.com,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, linux-pwm@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-unisoc@lists.infradead.org,
-        linux-rockchip@lists.infradead.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-tegra@vger.kernel.org
-Cc:     Ray Jui <rjui@broadcom.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Scott Branden <sbranden@broadcom.com>,
-        Gregory Fong <gregory.0xf0@gmail.com>,
-        Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>,
-        Keerthy <j-keerthy@ti.com>, Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang7@gmail.com>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Manivannan Sadhasivam <mani@kernel.org>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@foss.st.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>
-Subject: [PATCH v1 1/3] gpio: Get rid of duplicate of_node assignment in the drivers
-Date:   Thu,  2 Dec 2021 23:08:37 +0200
-Message-Id: <20211202210839.79140-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.33.0
+        id S1349229AbhLBWa7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Dec 2021 17:30:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60494 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1349193AbhLBWa7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Dec 2021 17:30:59 -0500
+Received: from mail-pl1-x635.google.com (mail-pl1-x635.google.com [IPv6:2607:f8b0:4864:20::635])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CB98C061759
+        for <linux-omap@vger.kernel.org>; Thu,  2 Dec 2021 14:27:36 -0800 (PST)
+Received: by mail-pl1-x635.google.com with SMTP id m24so723471pls.10
+        for <linux-omap@vger.kernel.org>; Thu, 02 Dec 2021 14:27:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=5WjMVJlEvHCp7tTv7npHyleFiHNkXhRhHCdBOuZtqvQ=;
+        b=Bjy1MQ1/dmjzsHusnNupzZgwROVBZHR+JowF629y1E1WFpdgUOafwyPSlDiFFbH4DS
+         TtmOv1mKEn8sS6GtBLCyMvee4wdRX9qPCJLPht+ksdTUTV8k07HfHtgVui1y1uKKElqY
+         h58KNT3N4Jkutcui3TbymX6qTPQ2JnAA4eAss=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=5WjMVJlEvHCp7tTv7npHyleFiHNkXhRhHCdBOuZtqvQ=;
+        b=nxXjgvifBhbrIed2QrcugoPxVxO57t/3uczT+EZ8u9oYNpmCiQmDU2VhvwA1yIQR5C
+         u3kT1bu4v2uuh//c161Y2LxNIAYvaHM/7uK45y7Dc8aSgwifA4uqzuy5CCB93YdO+E2S
+         /wSOXVpxSUhnWNhH8EjwVlTh6/NnAy11GOHMAXq9rrt/P38ya2/5hjkA9xcTOTbZEnaB
+         kR4vG2ExgefXz/bpoUJDwzp6frdzp5mOdug/UsYLWCNM8uffHbr1IzS/KEC+lnLyWm6e
+         ZLSPwvrZz8PC7BFKpSCC2kw/olvSNauFuusMtiBv0JUAVlmbQZkkqY/XFJD9rtg213Eq
+         l1sQ==
+X-Gm-Message-State: AOAM532jXu1o2epnC2pK4n/ABgUT1KDVwFoG9mCpR+gdCPfOn78TStU8
+        7FL0AQnCOXx/2zRmNye73izrWg==
+X-Google-Smtp-Source: ABdhPJyMSX7reHsiHW/u9oxdh7JPxePin6ydBK/uJtlLT6HG2XEj1YzWc6sEjYmPD3r5kOUwBPPOdA==
+X-Received: by 2002:a17:903:4053:b0:143:6d84:984c with SMTP id n19-20020a170903405300b001436d84984cmr18435905pla.37.1638484055856;
+        Thu, 02 Dec 2021 14:27:35 -0800 (PST)
+Received: from smtp.gmail.com ([2620:15c:202:201:f4f2:1b7e:5aea:bf3c])
+        by smtp.gmail.com with ESMTPSA id q9sm836934pfj.9.2021.12.02.14.27.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 02 Dec 2021 14:27:34 -0800 (PST)
+From:   Stephen Boyd <swboyd@chromium.org>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, freedreno@lists.freedesktop.org,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Chen Feng <puck.chen@hisilicon.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Christian Gmeiner <christian.gmeiner@gmail.com>,
+        Chun-Kuang Hu <chunkuang.hu@kernel.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Emma Anholt <emma@anholt.net>,
+        =?UTF-8?q?Heiko=20St=C3=BCbner?= <heiko@sntech.de>,
+        Inki Dae <inki.dae@samsung.com>,
+        James Qian Wang <james.qian.wang@arm.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Joerg Roedel <joro@8bytes.org>,
+        John Stultz <john.stultz@linaro.org>,
+        Joonyoung Shim <jy0922.shim@samsung.com>,
+        Jyri Sarha <jyri.sarha@iki.fi>,
+        Kai Vehmanen <kai.vehmanen@linux.intel.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-pm@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>,
+        Liviu Dudau <liviu.dudau@arm.com>,
+        Lucas Stach <l.stach@pengutronix.de>,
+        Mark Brown <broonie@kernel.org>,
+        Maxime Ripard <mripard@kernel.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Paul Cercueil <paul@crapouillou.net>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Rob Clark <robdclark@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Russell King <linux+etnaviv@armlinux.org.uk>,
+        Russell King <rmk+kernel@arm.linux.org.uk>,
+        Sandy Huang <hjc@rock-chips.com>,
+        Saravana Kannan <saravanak@google.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Takashi Iwai <tiwai@suse.com>,
+        Tian Tao <tiantao6@hisilicon.com>,
+        Tomas Winkler <tomas.winkler@intel.com>,
+        Tomi Valkeinen <tomba@kernel.org>,
+        Will Deacon <will@kernel.org>,
+        Xinliang Liu <xinliang.liu@linaro.org>,
+        Xinwei Kong <kong.kongxinwei@hisilicon.com>,
+        Yong Wu <yong.wu@mediatek.com>,
+        Vitaly Lubart <vitaly.lubart@intel.com>,
+        Daniele Ceraolo Spurio <daniele.ceraolospurio@intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>
+Subject: [PATCH v4 00/34] component: Make into an aggregate bus
+Date:   Thu,  2 Dec 2021 14:26:58 -0800
+Message-Id: <20211202222732.2453851-1-swboyd@chromium.org>
+X-Mailer: git-send-email 2.34.0.384.gca35af8252-goog
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-GPIO library does copy the of_node from the parent device of
-the GPIO chip, there is no need to repeat this in the individual
-drivers. Remove these assignment all at once.
+This series is from discussion we had on reordering the device lists for
+drm shutdown paths[1]. I've introduced an 'aggregate' bus that we put
+the aggregate device onto and then we probe the aggregate device once
+all the components are probed and call component_add(). The probe/remove
+hooks are where the bind/unbind calls go, and then a shutdown hook is
+added that can be used to shutdown the drm display pipeline at the right
+time.
 
-For the details one may look into the of_gpio_dev_init() implementation.
+This works for me on my sc7180 board. I no longer get a warning from i2c
+at shutdown that we're trying to make an i2c transaction after the i2c
+bus has been shutdown. There's more work to do on the msm drm driver to
+extract component device resources like clks, regulators, etc. out of
+the component bind function into the driver probe but I wanted to move
+everything over now in other component drivers before tackling that
+problem.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/gpio/gpio-adnp.c            | 1 -
- drivers/gpio/gpio-amdpt.c           | 4 +---
- drivers/gpio/gpio-bd70528.c         | 4 +---
- drivers/gpio/gpio-bd71828.c         | 1 -
- drivers/gpio/gpio-brcmstb.c         | 1 -
- drivers/gpio/gpio-davinci.c         | 1 -
- drivers/gpio/gpio-eic-sprd.c        | 1 -
- drivers/gpio/gpio-em.c              | 1 -
- drivers/gpio/gpio-ge.c              | 1 -
- drivers/gpio/gpio-grgpio.c          | 1 -
- drivers/gpio/gpio-gw-pld.c          | 1 -
- drivers/gpio/gpio-mt7621.c          | 1 -
- drivers/gpio/gpio-mvebu.c           | 1 -
- drivers/gpio/gpio-omap.c            | 3 ---
- drivers/gpio/gpio-palmas.c          | 4 +---
- drivers/gpio/gpio-pmic-eic-sprd.c   | 1 -
- drivers/gpio/gpio-raspberrypi-exp.c | 1 -
- drivers/gpio/gpio-rda.c             | 2 --
- drivers/gpio/gpio-rockchip.c        | 3 ---
- drivers/gpio/gpio-sama5d2-piobu.c   | 1 -
- drivers/gpio/gpio-sprd.c            | 1 -
- drivers/gpio/gpio-stmpe.c           | 1 -
- drivers/gpio/gpio-tc3589x.c         | 1 -
- drivers/gpio/gpio-tegra186.c        | 1 -
- drivers/gpio/gpio-tps65218.c        | 3 ---
- drivers/gpio/gpio-vf610.c           | 1 -
- drivers/gpio/gpio-xlp.c             | 1 -
- 27 files changed, 3 insertions(+), 40 deletions(-)
+Tested-by tags would be appreciated, and Acked-by/Reviewed-by tags too.
 
-diff --git a/drivers/gpio/gpio-adnp.c b/drivers/gpio/gpio-adnp.c
-index 8eedfc6451df..cc349d4e4973 100644
---- a/drivers/gpio/gpio-adnp.c
-+++ b/drivers/gpio/gpio-adnp.c
-@@ -458,7 +458,6 @@ static int adnp_gpio_setup(struct adnp *adnp, unsigned int num_gpios,
- 	chip->ngpio = num_gpios;
- 	chip->label = adnp->client->name;
- 	chip->parent = &adnp->client->dev;
--	chip->of_node = chip->parent->of_node;
- 	chip->owner = THIS_MODULE;
- 
- 	if (is_irq_controller) {
-diff --git a/drivers/gpio/gpio-amdpt.c b/drivers/gpio/gpio-amdpt.c
-index bbf53e289141..afe59fb79821 100644
---- a/drivers/gpio/gpio-amdpt.c
-+++ b/drivers/gpio/gpio-amdpt.c
-@@ -104,9 +104,7 @@ static int pt_gpio_probe(struct platform_device *pdev)
- 	pt_gpio->gc.request          = pt_gpio_request;
- 	pt_gpio->gc.free             = pt_gpio_free;
- 	pt_gpio->gc.ngpio            = PT_TOTAL_GPIO;
--#if defined(CONFIG_OF_GPIO)
--	pt_gpio->gc.of_node          = dev->of_node;
--#endif
-+
- 	ret = gpiochip_add_data(&pt_gpio->gc, pt_gpio);
- 	if (ret) {
- 		dev_err(dev, "Failed to register GPIO lib\n");
-diff --git a/drivers/gpio/gpio-bd70528.c b/drivers/gpio/gpio-bd70528.c
-index 397a50d6bc65..6874efc18f41 100644
---- a/drivers/gpio/gpio-bd70528.c
-+++ b/drivers/gpio/gpio-bd70528.c
-@@ -201,9 +201,7 @@ static int bd70528_probe(struct platform_device *pdev)
- 	bdgpio->gpio.set = bd70528_gpio_set;
- 	bdgpio->gpio.ngpio = 4;
- 	bdgpio->gpio.base = -1;
--#ifdef CONFIG_OF_GPIO
--	bdgpio->gpio.of_node = dev->parent->of_node;
--#endif
-+
- 	bdgpio->regmap = dev_get_regmap(dev->parent, NULL);
- 	if (!bdgpio->regmap)
- 		return -ENODEV;
-diff --git a/drivers/gpio/gpio-bd71828.c b/drivers/gpio/gpio-bd71828.c
-index c8e382b53f2f..b2ccc320c7b5 100644
---- a/drivers/gpio/gpio-bd71828.c
-+++ b/drivers/gpio/gpio-bd71828.c
-@@ -121,7 +121,6 @@ static int bd71828_probe(struct platform_device *pdev)
- 	 * "gpio-reserved-ranges" and exclude them from control
- 	 */
- 	bdgpio->gpio.ngpio = 4;
--	bdgpio->gpio.of_node = dev->parent->of_node;
- 	bdgpio->regmap = dev_get_regmap(dev->parent, NULL);
- 	if (!bdgpio->regmap)
- 		return -ENODEV;
-diff --git a/drivers/gpio/gpio-brcmstb.c b/drivers/gpio/gpio-brcmstb.c
-index 895a79936248..176c264bb959 100644
---- a/drivers/gpio/gpio-brcmstb.c
-+++ b/drivers/gpio/gpio-brcmstb.c
-@@ -703,7 +703,6 @@ static int brcmstb_gpio_probe(struct platform_device *pdev)
- 			goto fail;
- 		}
- 
--		gc->of_node = np;
- 		gc->owner = THIS_MODULE;
- 		gc->label = devm_kasprintf(dev, GFP_KERNEL, "%pOF", dev->of_node);
- 		if (!gc->label) {
-diff --git a/drivers/gpio/gpio-davinci.c b/drivers/gpio/gpio-davinci.c
-index cb5afaa7ed48..f960587f86a3 100644
---- a/drivers/gpio/gpio-davinci.c
-+++ b/drivers/gpio/gpio-davinci.c
-@@ -254,7 +254,6 @@ static int davinci_gpio_probe(struct platform_device *pdev)
- #ifdef CONFIG_OF_GPIO
- 	chips->chip.of_gpio_n_cells = 2;
- 	chips->chip.parent = dev;
--	chips->chip.of_node = dev->of_node;
- 	chips->chip.request = gpiochip_generic_request;
- 	chips->chip.free = gpiochip_generic_free;
- #endif
-diff --git a/drivers/gpio/gpio-eic-sprd.c b/drivers/gpio/gpio-eic-sprd.c
-index 865ab2b34fdd..8d722e026e9c 100644
---- a/drivers/gpio/gpio-eic-sprd.c
-+++ b/drivers/gpio/gpio-eic-sprd.c
-@@ -609,7 +609,6 @@ static int sprd_eic_probe(struct platform_device *pdev)
- 	sprd_eic->chip.ngpio = pdata->num_eics;
- 	sprd_eic->chip.base = -1;
- 	sprd_eic->chip.parent = &pdev->dev;
--	sprd_eic->chip.of_node = pdev->dev.of_node;
- 	sprd_eic->chip.direction_input = sprd_eic_direction_input;
- 	switch (sprd_eic->type) {
- 	case SPRD_EIC_DEBOUNCE:
-diff --git a/drivers/gpio/gpio-em.c b/drivers/gpio/gpio-em.c
-index 90b336e6ee27..858e6ebbb584 100644
---- a/drivers/gpio/gpio-em.c
-+++ b/drivers/gpio/gpio-em.c
-@@ -306,7 +306,6 @@ static int em_gio_probe(struct platform_device *pdev)
- 	}
- 
- 	gpio_chip = &p->gpio_chip;
--	gpio_chip->of_node = dev->of_node;
- 	gpio_chip->direction_input = em_gio_direction_input;
- 	gpio_chip->get = em_gio_get;
- 	gpio_chip->direction_output = em_gio_direction_output;
-diff --git a/drivers/gpio/gpio-ge.c b/drivers/gpio/gpio-ge.c
-index 636952769bc8..f6a3de99f7db 100644
---- a/drivers/gpio/gpio-ge.c
-+++ b/drivers/gpio/gpio-ge.c
-@@ -82,7 +82,6 @@ static int __init gef_gpio_probe(struct platform_device *pdev)
- 	gc->base = -1;
- 	gc->ngpio = (u16)(uintptr_t)of_device_get_match_data(&pdev->dev);
- 	gc->of_gpio_n_cells = 2;
--	gc->of_node = pdev->dev.of_node;
- 
- 	/* This function adds a memory mapped GPIO chip */
- 	ret = devm_gpiochip_add_data(&pdev->dev, gc, NULL);
-diff --git a/drivers/gpio/gpio-grgpio.c b/drivers/gpio/gpio-grgpio.c
-index f954359c9544..23d447e17a67 100644
---- a/drivers/gpio/gpio-grgpio.c
-+++ b/drivers/gpio/gpio-grgpio.c
-@@ -358,7 +358,6 @@ static int grgpio_probe(struct platform_device *ofdev)
- 	priv->imask = gc->read_reg(regs + GRGPIO_IMASK);
- 	priv->dev = &ofdev->dev;
- 
--	gc->of_node = np;
- 	gc->owner = THIS_MODULE;
- 	gc->to_irq = grgpio_to_irq;
- 	gc->label = devm_kasprintf(&ofdev->dev, GFP_KERNEL, "%pOF", np);
-diff --git a/drivers/gpio/gpio-gw-pld.c b/drivers/gpio/gpio-gw-pld.c
-index 242112ff60ee..77a3fbd46111 100644
---- a/drivers/gpio/gpio-gw-pld.c
-+++ b/drivers/gpio/gpio-gw-pld.c
-@@ -82,7 +82,6 @@ static int gw_pld_probe(struct i2c_client *client,
- 	gw->chip.base = -1;
- 	gw->chip.can_sleep = true;
- 	gw->chip.parent = dev;
--	gw->chip.of_node = np;
- 	gw->chip.owner = THIS_MODULE;
- 	gw->chip.label = dev_name(dev);
- 	gw->chip.ngpio = 8;
-diff --git a/drivers/gpio/gpio-mt7621.c b/drivers/gpio/gpio-mt7621.c
-index c3658a597a80..52b49e7a0a80 100644
---- a/drivers/gpio/gpio-mt7621.c
-+++ b/drivers/gpio/gpio-mt7621.c
-@@ -217,7 +217,6 @@ mediatek_gpio_bank_probe(struct device *dev,
- 	memset(rg, 0, sizeof(*rg));
- 
- 	spin_lock_init(&rg->lock);
--	rg->chip.of_node = node;
- 	rg->bank = bank;
- 
- 	dat = mtk->base + GPIO_REG_DATA + (rg->bank * GPIO_BANK_STRIDE);
-diff --git a/drivers/gpio/gpio-mvebu.c b/drivers/gpio/gpio-mvebu.c
-index 8f429d9f3661..4c1f9e1091b7 100644
---- a/drivers/gpio/gpio-mvebu.c
-+++ b/drivers/gpio/gpio-mvebu.c
-@@ -1183,7 +1183,6 @@ static int mvebu_gpio_probe(struct platform_device *pdev)
- 	mvchip->chip.base = id * MVEBU_MAX_GPIO_PER_BANK;
- 	mvchip->chip.ngpio = ngpios;
- 	mvchip->chip.can_sleep = false;
--	mvchip->chip.of_node = np;
- 	mvchip->chip.dbg_show = mvebu_gpio_dbg_show;
- 
- 	if (soc_variant == MVEBU_GPIO_SOC_VARIANT_A8K)
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 415e8df89d6f..e099c39e0355 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1419,9 +1419,6 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	bank->is_mpuio = pdata->is_mpuio;
- 	bank->non_wakeup_gpios = pdata->non_wakeup_gpios;
- 	bank->regs = pdata->regs;
--#ifdef CONFIG_OF_GPIO
--	bank->chip.of_node = of_node_get(node);
--#endif
- 
- 	if (node) {
- 		if (!of_property_read_bool(node, "ti,gpio-always-on"))
-diff --git a/drivers/gpio/gpio-palmas.c b/drivers/gpio/gpio-palmas.c
-index e8e9029ba5bd..bac10c2faf56 100644
---- a/drivers/gpio/gpio-palmas.c
-+++ b/drivers/gpio/gpio-palmas.c
-@@ -170,9 +170,7 @@ static int palmas_gpio_probe(struct platform_device *pdev)
- 	palmas_gpio->gpio_chip.set	= palmas_gpio_set;
- 	palmas_gpio->gpio_chip.get	= palmas_gpio_get;
- 	palmas_gpio->gpio_chip.parent = &pdev->dev;
--#ifdef CONFIG_OF_GPIO
--	palmas_gpio->gpio_chip.of_node = pdev->dev.of_node;
--#endif
-+
- 	palmas_pdata = dev_get_platdata(palmas->dev);
- 	if (palmas_pdata && palmas_pdata->gpio_base)
- 		palmas_gpio->gpio_chip.base = palmas_pdata->gpio_base;
-diff --git a/drivers/gpio/gpio-pmic-eic-sprd.c b/drivers/gpio/gpio-pmic-eic-sprd.c
-index 938285190566..e518490c4b68 100644
---- a/drivers/gpio/gpio-pmic-eic-sprd.c
-+++ b/drivers/gpio/gpio-pmic-eic-sprd.c
-@@ -331,7 +331,6 @@ static int sprd_pmic_eic_probe(struct platform_device *pdev)
- 	pmic_eic->chip.ngpio = SPRD_PMIC_EIC_NR;
- 	pmic_eic->chip.base = -1;
- 	pmic_eic->chip.parent = &pdev->dev;
--	pmic_eic->chip.of_node = pdev->dev.of_node;
- 	pmic_eic->chip.direction_input = sprd_pmic_eic_direction_input;
- 	pmic_eic->chip.request = sprd_pmic_eic_request;
- 	pmic_eic->chip.free = sprd_pmic_eic_free;
-diff --git a/drivers/gpio/gpio-raspberrypi-exp.c b/drivers/gpio/gpio-raspberrypi-exp.c
-index 64a552ecc2ad..3c414e0005fc 100644
---- a/drivers/gpio/gpio-raspberrypi-exp.c
-+++ b/drivers/gpio/gpio-raspberrypi-exp.c
-@@ -221,7 +221,6 @@ static int rpi_exp_gpio_probe(struct platform_device *pdev)
- 	rpi_gpio->gc.parent = dev;
- 	rpi_gpio->gc.label = MODULE_NAME;
- 	rpi_gpio->gc.owner = THIS_MODULE;
--	rpi_gpio->gc.of_node = np;
- 	rpi_gpio->gc.base = -1;
- 	rpi_gpio->gc.ngpio = NUM_GPIO;
- 
-diff --git a/drivers/gpio/gpio-rda.c b/drivers/gpio/gpio-rda.c
-index 463846431183..0d03f525dcd3 100644
---- a/drivers/gpio/gpio-rda.c
-+++ b/drivers/gpio/gpio-rda.c
-@@ -240,8 +240,6 @@ static int rda_gpio_probe(struct platform_device *pdev)
- 	rda_gpio->chip.label = dev_name(dev);
- 	rda_gpio->chip.ngpio = ngpios;
- 	rda_gpio->chip.base = -1;
--	rda_gpio->chip.parent = dev;
--	rda_gpio->chip.of_node = np;
- 
- 	if (rda_gpio->irq >= 0) {
- 		rda_gpio->irq_chip.name = "rda-gpio",
-diff --git a/drivers/gpio/gpio-rockchip.c b/drivers/gpio/gpio-rockchip.c
-index ce63cbd14d69..577abef578e1 100644
---- a/drivers/gpio/gpio-rockchip.c
-+++ b/drivers/gpio/gpio-rockchip.c
-@@ -566,9 +566,6 @@ static int rockchip_gpiolib_register(struct rockchip_pin_bank *bank)
- 	gc->ngpio = bank->nr_pins;
- 	gc->label = bank->name;
- 	gc->parent = bank->dev;
--#ifdef CONFIG_OF_GPIO
--	gc->of_node = of_node_get(bank->of_node);
--#endif
- 
- 	ret = gpiochip_add_data(gc, bank);
- 	if (ret) {
-diff --git a/drivers/gpio/gpio-sama5d2-piobu.c b/drivers/gpio/gpio-sama5d2-piobu.c
-index b7c950658170..3e95da717fc9 100644
---- a/drivers/gpio/gpio-sama5d2-piobu.c
-+++ b/drivers/gpio/gpio-sama5d2-piobu.c
-@@ -192,7 +192,6 @@ static int sama5d2_piobu_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, piobu);
- 	piobu->chip.label = pdev->name;
- 	piobu->chip.parent = &pdev->dev;
--	piobu->chip.of_node = pdev->dev.of_node;
- 	piobu->chip.owner = THIS_MODULE,
- 	piobu->chip.get_direction = sama5d2_piobu_get_direction,
- 	piobu->chip.direction_input = sama5d2_piobu_direction_input,
-diff --git a/drivers/gpio/gpio-sprd.c b/drivers/gpio/gpio-sprd.c
-index 9dd9dabb579e..9bff63990eee 100644
---- a/drivers/gpio/gpio-sprd.c
-+++ b/drivers/gpio/gpio-sprd.c
-@@ -237,7 +237,6 @@ static int sprd_gpio_probe(struct platform_device *pdev)
- 	sprd_gpio->chip.ngpio = SPRD_GPIO_NR;
- 	sprd_gpio->chip.base = -1;
- 	sprd_gpio->chip.parent = &pdev->dev;
--	sprd_gpio->chip.of_node = pdev->dev.of_node;
- 	sprd_gpio->chip.request = sprd_gpio_request;
- 	sprd_gpio->chip.free = sprd_gpio_free;
- 	sprd_gpio->chip.get = sprd_gpio_get;
-diff --git a/drivers/gpio/gpio-stmpe.c b/drivers/gpio/gpio-stmpe.c
-index dd4d58b4ae49..0fa4f0a93378 100644
---- a/drivers/gpio/gpio-stmpe.c
-+++ b/drivers/gpio/gpio-stmpe.c
-@@ -477,7 +477,6 @@ static int stmpe_gpio_probe(struct platform_device *pdev)
- 	stmpe_gpio->chip = template_chip;
- 	stmpe_gpio->chip.ngpio = stmpe->num_gpios;
- 	stmpe_gpio->chip.parent = &pdev->dev;
--	stmpe_gpio->chip.of_node = np;
- 	stmpe_gpio->chip.base = -1;
- 
- 	if (IS_ENABLED(CONFIG_DEBUG_FS))
-diff --git a/drivers/gpio/gpio-tc3589x.c b/drivers/gpio/gpio-tc3589x.c
-index 8d158492488f..443fe975bf13 100644
---- a/drivers/gpio/gpio-tc3589x.c
-+++ b/drivers/gpio/gpio-tc3589x.c
-@@ -319,7 +319,6 @@ static int tc3589x_gpio_probe(struct platform_device *pdev)
- 	tc3589x_gpio->chip.ngpio = tc3589x->num_gpio;
- 	tc3589x_gpio->chip.parent = &pdev->dev;
- 	tc3589x_gpio->chip.base = -1;
--	tc3589x_gpio->chip.of_node = np;
- 
- 	girq = &tc3589x_gpio->chip.irq;
- 	girq->chip = &tc3589x_gpio_irq_chip;
-diff --git a/drivers/gpio/gpio-tegra186.c b/drivers/gpio/gpio-tegra186.c
-index c026e7141e4e..7d90df8c097e 100644
---- a/drivers/gpio/gpio-tegra186.c
-+++ b/drivers/gpio/gpio-tegra186.c
-@@ -748,7 +748,6 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
- 	gpio->gpio.names = (const char * const *)names;
- 
- #if defined(CONFIG_OF_GPIO)
--	gpio->gpio.of_node = pdev->dev.of_node;
- 	gpio->gpio.of_gpio_n_cells = 2;
- 	gpio->gpio.of_xlate = tegra186_gpio_of_xlate;
- #endif /* CONFIG_OF_GPIO */
-diff --git a/drivers/gpio/gpio-tps65218.c b/drivers/gpio/gpio-tps65218.c
-index 912382be48e1..e1d425a18854 100644
---- a/drivers/gpio/gpio-tps65218.c
-+++ b/drivers/gpio/gpio-tps65218.c
-@@ -196,9 +196,6 @@ static int tps65218_gpio_probe(struct platform_device *pdev)
- 	tps65218_gpio->tps65218 = tps65218;
- 	tps65218_gpio->gpio_chip = template_chip;
- 	tps65218_gpio->gpio_chip.parent = &pdev->dev;
--#ifdef CONFIG_OF_GPIO
--	tps65218_gpio->gpio_chip.of_node = pdev->dev.of_node;
--#endif
- 
- 	return devm_gpiochip_add_data(&pdev->dev, &tps65218_gpio->gpio_chip,
- 				      tps65218_gpio);
-diff --git a/drivers/gpio/gpio-vf610.c b/drivers/gpio/gpio-vf610.c
-index e0f2b67558e7..20780c35da1b 100644
---- a/drivers/gpio/gpio-vf610.c
-+++ b/drivers/gpio/gpio-vf610.c
-@@ -298,7 +298,6 @@ static int vf610_gpio_probe(struct platform_device *pdev)
- 	}
- 
- 	gc = &port->gc;
--	gc->of_node = np;
- 	gc->parent = dev;
- 	gc->label = "vf610-gpio";
- 	gc->ngpio = VF610_GPIO_PER_PORT;
-diff --git a/drivers/gpio/gpio-xlp.c b/drivers/gpio/gpio-xlp.c
-index 0d94d3aef752..9bb0d1c17f67 100644
---- a/drivers/gpio/gpio-xlp.c
-+++ b/drivers/gpio/gpio-xlp.c
-@@ -374,7 +374,6 @@ static int xlp_gpio_probe(struct platform_device *pdev)
- 	gc->base = 0;
- 	gc->parent = &pdev->dev;
- 	gc->ngpio = ngpio;
--	gc->of_node = pdev->dev.of_node;
- 	gc->direction_output = xlp_gpio_dir_output;
- 	gc->direction_input = xlp_gpio_dir_input;
- 	gc->set = xlp_gpio_set;
+Changes since v3 (https://lore.kernel.org/r/20211026000044.885195-1-swboyd@chromium.org):
+ - Picked up tags
+ - Rebased to v5.16-rc2
+ - Updated component.c for a few new patches there
+ - Dropped a conversion patch
+ - Added a conversion patch
+
+Changes since v2 (https://lore.kernel.org/r/20211006193819.2654854-1-swboyd@chromium.org):
+ - Picked up acks
+ - Fixed build warnings/errors
+ - Reworked patch series to rename 'master' in a different patch
+
+Changes since v1 (https://lore.kernel.org/r/20210520002519.3538432-1-swboyd@chromium.org):
+ - Use devlink to connect components to the aggregate device
+ - Don't set the registering device as a parent of the aggregate device
+ - New patch for bind_component/unbind_component ops that takes the
+   aggregate device
+ - Convert all drivers in the tree to use the aggregate driver approach
+ - Allow one aggregate driver to be used for multiple aggregate devices
+
+[1] https://lore.kernel.org/r/20210508074118.1621729-1-swboyd@chromium.org
+
+
+Stephen Boyd (34):
+  component: Introduce struct aggregate_device
+  component: Remove most references to 'master'
+  component: Introduce the aggregate bus_type
+  component: Move struct aggregate_device out to header file
+  component: Add {bind,unbind}_component() ops that take aggregate
+    device
+  drm/of: Add a drm_of_aggregate_probe() API
+  drm/msm: Migrate to aggregate driver
+  drm/komeda: Migrate to aggregate driver
+  drm/arm/hdlcd: Migrate to aggregate driver
+  drm/malidp: Migrate to aggregate driver
+  drm/armada: Migrate to aggregate driver
+  drm/etnaviv: Migrate to aggregate driver
+  drm/kirin: Migrate to aggregate driver
+  drm/exynos: Migrate to aggregate driver
+  drm/imx: Migrate to aggregate driver
+  drm/ingenic: Migrate to aggregate driver
+  drm/mcde: Migrate to aggregate driver
+  drm/mediatek: Migrate to aggregate driver
+  drm/meson: Migrate to aggregate driver
+  drm/omap: Migrate to aggregate driver
+  drm/rockchip: Migrate to aggregate driver
+  drm/sti: Migrate to aggregate driver
+  drm/sun4i: Migrate to aggregate driver
+  drm/tilcdc: Migrate to aggregate driver
+  drm/vc4: Migrate to aggregate driver
+  iommu/mtk: Migrate to aggregate driver
+  mei: Migrate to aggregate driver
+  power: supply: ab8500: Migrate to aggregate driver
+  fbdev: omap2: Migrate to aggregate driver
+  sound: hdac: Migrate to aggregate driver
+  ASoC: codecs: wcd938x: Migrate to aggregate driver
+  mei: pxp: Migrate to aggregate driver
+  component: Get rid of drm_of_component_probe()
+  component: Remove component_master_ops and friends
+
+ drivers/base/component.c                      | 544 ++++++++++--------
+ .../gpu/drm/arm/display/komeda/komeda_drv.c   |  20 +-
+ drivers/gpu/drm/arm/hdlcd_drv.c               |  21 +-
+ drivers/gpu/drm/arm/malidp_drv.c              |  21 +-
+ drivers/gpu/drm/armada/armada_drv.c           |  23 +-
+ drivers/gpu/drm/drm_drv.c                     |   2 +-
+ drivers/gpu/drm/drm_of.c                      |  18 +-
+ drivers/gpu/drm/etnaviv/etnaviv_drv.c         |  20 +-
+ drivers/gpu/drm/exynos/exynos_drm_drv.c       |  21 +-
+ .../gpu/drm/hisilicon/kirin/kirin_drm_drv.c   |  20 +-
+ drivers/gpu/drm/imx/imx-drm-core.c            |  20 +-
+ drivers/gpu/drm/ingenic/ingenic-drm-drv.c     |  25 +-
+ drivers/gpu/drm/mcde/mcde_drv.c               |  23 +-
+ drivers/gpu/drm/mediatek/mtk_drm_drv.c        |  20 +-
+ drivers/gpu/drm/meson/meson_drv.c             |  21 +-
+ drivers/gpu/drm/msm/msm_drv.c                 |  46 +-
+ drivers/gpu/drm/omapdrm/dss/dss.c             |  20 +-
+ drivers/gpu/drm/rockchip/rockchip_drm_drv.c   |  20 +-
+ drivers/gpu/drm/sti/sti_drv.c                 |  20 +-
+ drivers/gpu/drm/sun4i/sun4i_drv.c             |  26 +-
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c           |  28 +-
+ drivers/gpu/drm/vc4/vc4_drv.c                 |  20 +-
+ drivers/iommu/mtk_iommu.c                     |  14 +-
+ drivers/iommu/mtk_iommu.h                     |   6 +-
+ drivers/iommu/mtk_iommu_v1.c                  |  14 +-
+ drivers/misc/mei/hdcp/mei_hdcp.c              |  22 +-
+ drivers/misc/mei/pxp/mei_pxp.c                |  22 +-
+ drivers/power/supply/ab8500_charger.c         |  22 +-
+ drivers/video/fbdev/omap2/omapfb/dss/dss.c    |  20 +-
+ include/drm/drm_of.h                          |  10 +-
+ include/linux/component.h                     |  92 ++-
+ sound/hda/hdac_component.c                    |  21 +-
+ sound/soc/codecs/wcd938x.c                    |  20 +-
+ 33 files changed, 772 insertions(+), 490 deletions(-)
+
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: Chen Feng <puck.chen@hisilicon.com>
+Cc: Chen-Yu Tsai <wens@csie.org>
+Cc: Christian Gmeiner <christian.gmeiner@gmail.com>
+Cc: Chun-Kuang Hu <chunkuang.hu@kernel.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Emma Anholt <emma@anholt.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Heiko Stübner" <heiko@sntech.de>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: James Qian Wang (Arm Technology China) <james.qian.wang@arm.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: Jyri Sarha <jyri.sarha@iki.fi>
+Cc: Kai Vehmanen <kai.vehmanen@linux.intel.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: <linux-fbdev@vger.kernel.org>
+Cc: <linux-omap@vger.kernel.org>
+Cc: <linux-pm@vger.kernel.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Liviu Dudau <liviu.dudau@arm.com>
+Cc: Lucas Stach <l.stach@pengutronix.de>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Neil Armstrong <narmstrong@baylibre.com>
+Cc: Paul Cercueil <paul@crapouillou.net>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Rob Clark <robdclark@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Russell King <linux+etnaviv@armlinux.org.uk>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Sandy Huang <hjc@rock-chips.com>
+Cc: Saravana Kannan <saravanak@google.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Tian Tao <tiantao6@hisilicon.com>
+Cc: Tomas Winkler <tomas.winkler@intel.com>
+Cc: Tomi Valkeinen <tomba@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Xinliang Liu <xinliang.liu@linaro.org>
+Cc: Xinwei Kong <kong.kongxinwei@hisilicon.com>
+Cc: Yong Wu <yong.wu@mediatek.com>
+Cc: Vitaly Lubart <vitaly.lubart@intel.com>
+Cc: Daniele Ceraolo Spurio <daniele.ceraolospurio@intel.com>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Kai Vehmanen <kai.vehmanen@linux.intel.com>
+
+base-commit: 136057256686de39cc3a07c2e39ef6bc43003ff6
 -- 
-2.33.0
+https://chromeos.dev
 
