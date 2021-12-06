@@ -2,55 +2,84 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49ED8C433F5
-	for <linux-omap@archiver.kernel.org>; Mon,  6 Dec 2021 13:19:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4BD7C4332F
+	for <linux-omap@archiver.kernel.org>; Mon,  6 Dec 2021 13:20:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244274AbhLFNWh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 6 Dec 2021 08:22:37 -0500
-Received: from mga06.intel.com ([134.134.136.31]:8951 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S244268AbhLFNWe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 6 Dec 2021 08:22:34 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10189"; a="298108286"
-X-IronPort-AV: E=Sophos;i="5.87,291,1631602800"; 
-   d="scan'208";a="298108286"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 05:19:05 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.87,291,1631602800"; 
-   d="scan'208";a="479112963"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga002.jf.intel.com with ESMTP; 06 Dec 2021 05:18:54 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 20B7EB8; Mon,  6 Dec 2021 15:19:00 +0200 (EET)
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        id S244310AbhLFNXf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 6 Dec 2021 08:23:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56826 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S243687AbhLFNXe (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 6 Dec 2021 08:23:34 -0500
+Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4E69C061354
+        for <linux-omap@vger.kernel.org>; Mon,  6 Dec 2021 05:20:05 -0800 (PST)
+Received: by mail-ed1-x530.google.com with SMTP id r11so42576927edd.9
+        for <linux-omap@vger.kernel.org>; Mon, 06 Dec 2021 05:20:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=hvZZ98+ZsTYkg5d9GGJxZP1sUx5SwZWVJ8siiSeTEiQ=;
+        b=2MOQRTdPkwhZdrDsZF8v1LkIe9VhVcu+CnHsKM9OdXefuBhdam0kh3pKuY/iXJ4jwh
+         zU6Pi0uyyixDjjwk/OQSxSOoc3iQ4xccBh7VU5XFj2RJmmXBFIQ5+C1z5IVbt1IIXZI9
+         dWJnZb7vMFYt3V5p/nBP65LNmmSKgBcIPbBTYhEdVlTDWAEZK/VS4uN6PLzPx/US5RWz
+         mZbpnIm91JPS41EBzCzQXFGe1mimok+Yzh24z3yokPYDAKM6CqgeVZv0RUMAMUb6bGfj
+         4BUxGDcldPfeerU2uRtK9S94iyKNhrpwRqnnngf6pKx2tQNdE8FduPUAGoYjZpp5I9Hz
+         mHRQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=hvZZ98+ZsTYkg5d9GGJxZP1sUx5SwZWVJ8siiSeTEiQ=;
+        b=3O5tblqmodXu3vVj3xYZ8E8l9OQq12E7ylnfiKw9ZofiNtpsEgMPVq4vEd9+jEJMn7
+         25mZwcK+xpadPbqEi4L2FP2R/QoY6uKy5XCpauVpVAbIsKSJUq5kH1v8jYoS9GrbnoOZ
+         ijXJPdDeoDFygYgcMtiJNszYgY16v+HfaytQNJkD5M2PVrEJpsxQnzHNgSZ1+s/LOb9Z
+         9W5qNAU41xkGnUREllpdGGL+PCF7JlmQqvAIMK8HUO48W6HHo5FU3Yu+i7h/qMxwQIZx
+         otYk6MWyAJHUMvftbLgQZw+6RqskEDfgoYgyjWMKXc5+r60xNznHCW38BVuSgdkp2iXC
+         7mhA==
+X-Gm-Message-State: AOAM533q5vH7NbagDUMg0523+OSEh3aOMxxG/uNC/BECKU6pzjr+SeRU
+        O2GzLkYh8lpptgIH/Kfb3VxN8ITcHAV0sC2Sv8mifQ==
+X-Google-Smtp-Source: ABdhPJxT2dlCIImgLcO5pXZfgOHvmQ1PFmCORP62C543H7xjg6esBcWHlJIUNIvBYImdxEeNXjaXGHzx8AiVjQpaFnY=
+X-Received: by 2002:a17:906:7b53:: with SMTP id n19mr45793820ejo.538.1638796804233;
+ Mon, 06 Dec 2021 05:20:04 -0800 (PST)
+MIME-Version: 1.0
+References: <20211202210839.79140-1-andriy.shevchenko@linux.intel.com>
+ <CACRpkdZbpKqG_uS2N8TW2-HL5CqnuKDpHVCabf66MyQQof0jOw@mail.gmail.com> <Ya4MFMWSyj4YbdNG@smile.fi.intel.com>
+In-Reply-To: <Ya4MFMWSyj4YbdNG@smile.fi.intel.com>
+From:   Bartosz Golaszewski <brgl@bgdev.pl>
+Date:   Mon, 6 Dec 2021 14:19:53 +0100
+Message-ID: <CAMRc=MfHir4B3X=Hhkb1_VBQJFE17=YEexDa-+cs2LnFASPRkA@mail.gmail.com>
+Subject: Re: [PATCH v1 1/3] gpio: Get rid of duplicate of_node assignment in
+ the drivers
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Linus Walleij <linus.walleij@linaro.org>,
         Marc Zyngier <maz@kernel.org>,
+        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
         Sergio Paracuellos <sergio.paracuellos@gmail.com>,
         Chunyan Zhang <chunyan.zhang@unisoc.com>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
         Baruch Siach <baruch@tkos.co.il>,
-        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
         <u.kleine-koenig@pengutronix.de>, Tony Lindgren <tony@atomide.com>,
         Nicolas Saenz Julienne <nsaenz@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
         Jianqun Xu <jay.xu@rock-chips.com>,
         Alexandru Ardelean <aardelean@deviqon.com>,
         Thierry Reding <treding@nvidia.com>,
-        linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         patches@opensource.cirrus.com,
-        bcm-kernel-feedback-list@broadcom.com,
-        linux-power@fi.rohmeurope.com,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, linux-pwm@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-unisoc@lists.infradead.org,
-        linux-rockchip@lists.infradead.org,
+        bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>,
+        linux-power <linux-power@fi.rohmeurope.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        "moderated list:ARM/Mediatek SoC..." 
+        <linux-mediatek@lists.infradead.org>, linux-pwm@vger.kernel.org,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        linux-unisoc@lists.infradead.org,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
         linux-stm32@st-md-mailman.stormreply.com,
-        linux-tegra@vger.kernel.org
-Cc:     Ray Jui <rjui@broadcom.com>,
+        linux-tegra@vger.kernel.org, Ray Jui <rjui@broadcom.com>,
         Florian Fainelli <f.fainelli@gmail.com>,
         Scott Branden <sbranden@broadcom.com>,
-        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
         Gregory Fong <gregory.0xf0@gmail.com>,
         Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>,
         Keerthy <j-keerthy@ti.com>, Orson Zhai <orsonzhai@gmail.com>,
@@ -70,121 +99,56 @@ Cc:     Ray Jui <rjui@broadcom.com>,
         Maxime Coquelin <mcoquelin.stm32@gmail.com>,
         Alexandre Torgue <alexandre.torgue@foss.st.com>,
         Jonathan Hunter <jonathanh@nvidia.com>
-Subject: [PATCH v2 2/3] gpio: Setup parent device and get rid of unnecessary of_node assignment
-Date:   Mon,  6 Dec 2021 15:18:51 +0200
-Message-Id: <20211206131852.74746-2-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211206131852.74746-1-andriy.shevchenko@linux.intel.com>
-References: <20211206131852.74746-1-andriy.shevchenko@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Some of the drivers do not set parent device. This may lead to obstacles
-during debugging or understanding the device relations from the Linux
-point of view. Assign parent device for GPIO chips created by these
-drivers.
+On Mon, Dec 6, 2021 at 2:13 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Sun, Dec 05, 2021 at 01:06:07AM +0100, Linus Walleij wrote:
+> > On Thu, Dec 2, 2021 at 10:17 PM Andy Shevchenko
+> > <andriy.shevchenko@linux.intel.com> wrote:
+> >
+> > > GPIO library does copy the of_node from the parent device of
+> > > the GPIO chip, there is no need to repeat this in the individual
+> > > drivers. Remove these assignment all at once.
+> > >
+> > > For the details one may look into the of_gpio_dev_init() implementation.
+> > >
+> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> >
+> > This is definitely a patch in the right direction, as Bart says
+> > it can be a bit dangerous, the outliers are those drivers that
+> > assign the .dev to something completely different than the
+> > the dev where the of_node is copied from.
+>
+> I carefully checked these all and this patch series is only for the cases
+> when I'm sure it's the same device, which is used as parent, and its of_node
+> supplied.
+>
+> > The idea was definitely always to only assign it in the core
+> > *unless* there is a reason to have a completely different
+> > of_node for some reason.
+> >
+> > > +++ b/drivers/gpio/gpio-rda.c
+> > > @@ -240,8 +240,6 @@ static int rda_gpio_probe(struct platform_device *pdev)
+> > >         rda_gpio->chip.label = dev_name(dev);
+> > >         rda_gpio->chip.ngpio = ngpios;
+> > >         rda_gpio->chip.base = -1;
+> > > -       rda_gpio->chip.parent = dev;
+> > > -       rda_gpio->chip.of_node = np;
+> >
+> > Mention in the commit message that in this driver
+> > you also drop the the .parent assignment because the
+> > core will handle it.
+>
+> Okay, I will update it. Also I'll update to the last codebase (dunno if Bart
+> is going to pull the IB from Lee where one of the drivers is gone: da53cc634cea
+> ("gpio: bd70528 Drop BD70528 support").
+>
 
-While at it, let GPIO library to assign of_node from the parent device.
+I didn't plan to, just drop it from your patch.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-v2: no change
- drivers/gpio/gpio-bcm-kona.c  | 2 +-
- drivers/gpio/gpio-creg-snps.c | 2 +-
- drivers/gpio/gpio-lpc32xx.c   | 2 +-
- drivers/gpio/gpio-pxa.c       | 8 +++-----
- 4 files changed, 6 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/gpio/gpio-bcm-kona.c b/drivers/gpio/gpio-bcm-kona.c
-index d329a143f5ec..e84474494429 100644
---- a/drivers/gpio/gpio-bcm-kona.c
-+++ b/drivers/gpio/gpio-bcm-kona.c
-@@ -606,7 +606,7 @@ static int bcm_kona_gpio_probe(struct platform_device *pdev)
- 
- 	kona_gpio->pdev = pdev;
- 	platform_set_drvdata(pdev, kona_gpio);
--	chip->of_node = dev->of_node;
-+	chip->parent = dev;
- 	chip->ngpio = kona_gpio->num_bank * GPIO_PER_BANK;
- 
- 	kona_gpio->irq_domain = irq_domain_add_linear(dev->of_node,
-diff --git a/drivers/gpio/gpio-creg-snps.c b/drivers/gpio/gpio-creg-snps.c
-index 1d0827e79703..789384c6e178 100644
---- a/drivers/gpio/gpio-creg-snps.c
-+++ b/drivers/gpio/gpio-creg-snps.c
-@@ -163,12 +163,12 @@ static int creg_gpio_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&hcg->lock);
- 
-+	hcg->gc.parent = dev;
- 	hcg->gc.label = dev_name(dev);
- 	hcg->gc.base = -1;
- 	hcg->gc.ngpio = ngpios;
- 	hcg->gc.set = creg_gpio_set;
- 	hcg->gc.direction_output = creg_gpio_dir_out;
--	hcg->gc.of_node = dev->of_node;
- 
- 	ret = devm_gpiochip_add_data(dev, &hcg->gc, hcg);
- 	if (ret)
-diff --git a/drivers/gpio/gpio-lpc32xx.c b/drivers/gpio/gpio-lpc32xx.c
-index 4e626c4235c2..d2b65cfb336e 100644
---- a/drivers/gpio/gpio-lpc32xx.c
-+++ b/drivers/gpio/gpio-lpc32xx.c
-@@ -512,10 +512,10 @@ static int lpc32xx_gpio_probe(struct platform_device *pdev)
- 		return PTR_ERR(reg_base);
- 
- 	for (i = 0; i < ARRAY_SIZE(lpc32xx_gpiochip); i++) {
-+		lpc32xx_gpiochip[i].chip.parent = &pdev->dev;
- 		if (pdev->dev.of_node) {
- 			lpc32xx_gpiochip[i].chip.of_xlate = lpc32xx_of_xlate;
- 			lpc32xx_gpiochip[i].chip.of_gpio_n_cells = 3;
--			lpc32xx_gpiochip[i].chip.of_node = pdev->dev.of_node;
- 			lpc32xx_gpiochip[i].reg_base = reg_base;
- 		}
- 		devm_gpiochip_add_data(&pdev->dev, &lpc32xx_gpiochip[i].chip,
-diff --git a/drivers/gpio/gpio-pxa.c b/drivers/gpio/gpio-pxa.c
-index 382468e294e1..c7fbfa3ae43b 100644
---- a/drivers/gpio/gpio-pxa.c
-+++ b/drivers/gpio/gpio-pxa.c
-@@ -343,8 +343,7 @@ static int pxa_gpio_of_xlate(struct gpio_chip *gc,
- }
- #endif
- 
--static int pxa_init_gpio_chip(struct pxa_gpio_chip *pchip, int ngpio,
--			      struct device_node *np, void __iomem *regbase)
-+static int pxa_init_gpio_chip(struct pxa_gpio_chip *pchip, int ngpio, void __iomem *regbase)
- {
- 	int i, gpio, nbanks = DIV_ROUND_UP(ngpio, 32);
- 	struct pxa_gpio_bank *bank;
-@@ -354,6 +353,7 @@ static int pxa_init_gpio_chip(struct pxa_gpio_chip *pchip, int ngpio,
- 	if (!pchip->banks)
- 		return -ENOMEM;
- 
-+	pchip->chip.parent = pchip->dev;
- 	pchip->chip.label = "gpio-pxa";
- 	pchip->chip.direction_input  = pxa_gpio_direction_input;
- 	pchip->chip.direction_output = pxa_gpio_direction_output;
-@@ -365,7 +365,6 @@ static int pxa_init_gpio_chip(struct pxa_gpio_chip *pchip, int ngpio,
- 	pchip->chip.free = gpiochip_generic_free;
- 
- #ifdef CONFIG_OF_GPIO
--	pchip->chip.of_node = np;
- 	pchip->chip.of_xlate = pxa_gpio_of_xlate;
- 	pchip->chip.of_gpio_n_cells = 2;
- #endif
-@@ -675,8 +674,7 @@ static int pxa_gpio_probe(struct platform_device *pdev)
- 	}
- 
- 	/* Initialize GPIO chips */
--	ret = pxa_init_gpio_chip(pchip, pxa_last_gpio + 1, pdev->dev.of_node,
--				 gpio_reg_base);
-+	ret = pxa_init_gpio_chip(pchip, pxa_last_gpio + 1, gpio_reg_base);
- 	if (ret) {
- 		clk_put(clk);
- 		return ret;
--- 
-2.33.0
-
+Bart
