@@ -2,68 +2,67 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2C1CC43217
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Dec 2021 19:21:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86BD4C433EF
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Dec 2021 19:59:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233594AbhLHTZR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Dec 2021 14:25:17 -0500
-Received: from mxout01.lancloud.ru ([45.84.86.81]:42572 "EHLO
+        id S235829AbhLHUC5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Dec 2021 15:02:57 -0500
+Received: from mxout01.lancloud.ru ([45.84.86.81]:43452 "EHLO
         mxout01.lancloud.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239940AbhLHTY7 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2021 14:24:59 -0500
+        with ESMTP id S229472AbhLHUC4 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Dec 2021 15:02:56 -0500
 Received: from LanCloud
-DKIM-Filter: OpenDKIM Filter v2.11.0 mxout01.lancloud.ru 91E2D209719A
+DKIM-Filter: OpenDKIM Filter v2.11.0 mxout01.lancloud.ru 6A75F205E469
 Received: from LanCloud
 Received: from LanCloud
 Received: from LanCloud
-From:   Sergey Shtylyov <s.shtylyov@omp.ru>
-To:     <linux-usb@vger.kernel.org>,
+Subject: Re: [PATCH v2 09/10] usb: host: ohci-omap: fix deferred probing
+To:     Aaro Koskinen <aaro.koskinen@iki.fi>
+CC:     <linux-usb@vger.kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Stern <stern@rowland.harvard.edu>
-CC:     <linux-omap@vger.kernel.org>
-Subject: [PATCH v2 09/10] usb: host: ohci-omap: fix deferred probing
-Date:   Wed, 8 Dec 2021 22:21:17 +0300
-Message-ID: <20211208192118.7483-10-s.shtylyov@omp.ru>
-X-Mailer: git-send-email 2.26.3
-In-Reply-To: <20211208192118.7483-1-s.shtylyov@omp.ru>
+        Alan Stern <stern@rowland.harvard.edu>,
+        <linux-omap@vger.kernel.org>
 References: <20211208192118.7483-1-s.shtylyov@omp.ru>
+ <20211208192118.7483-10-s.shtylyov@omp.ru>
+ <20211208195346.GC799423@darkstar.musicnaut.iki.fi>
+From:   Sergey Shtylyov <s.shtylyov@omp.ru>
+Organization: Open Mobile Platform
+Message-ID: <5b6cfb61-96b2-ddb7-795c-1a96119a2a35@omp.ru>
+Date:   Wed, 8 Dec 2021 22:59:22 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
+In-Reply-To: <20211208195346.GC799423@darkstar.musicnaut.iki.fi>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 X-Originating-IP: [192.168.11.198]
-X-ClientProxiedBy: LFEXT01.lancloud.ru (fd00:f066::141) To
+X-ClientProxiedBy: LFEXT02.lancloud.ru (fd00:f066::142) To
  LFEX1907.lancloud.ru (fd00:f066::207)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The driver overrides the error codes returned by platform_get_irq() to
--ENXIO for some strange reason, so if it returns -EPROBE_DEFER, the driver
-will fail the probe permanently instead of the deferred probing. Switch to
-propagating the error codes upstream.
+Hello!
 
-Fixes: 60bbfc84b6d9 ("USB OHCI controller support for PNX4008")
-Signed-off-by: Sergey Shtylyov <s.shtylyov@omp.ru>
----
-Changes in version 2:
-- refreshed the patch.
+On 12/8/21 10:53 PM, Aaro Koskinen wrote:
 
- drivers/usb/host/ohci-omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>> The driver overrides the error codes returned by platform_get_irq() to
+>> -ENXIO for some strange reason, so if it returns -EPROBE_DEFER, the driver
+>> will fail the probe permanently instead of the deferred probing. Switch to
+>> propagating the error codes upstream.
+>>
+>> Fixes: 60bbfc84b6d9 ("USB OHCI controller support for PNX4008")
+> 
+> I don't see how this Fixes commit is related to OHCI OMAP?
 
-diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
-index ded9738392e4..45dcf8292072 100644
---- a/drivers/usb/host/ohci-omap.c
-+++ b/drivers/usb/host/ohci-omap.c
-@@ -306,7 +306,7 @@ static int ohci_hcd_omap_probe(struct platform_device *pdev)
- 
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
--		retval = -ENXIO;
-+		retval = irq;
- 		goto err3;
- 	}
- 	retval = usb_add_hcd(hcd, irq, 0);
--- 
-2.26.3
+   Argh, I missed this! :-(
+   The whole series should be discarded, as the patch #8 also doesn't have the valid
+Fixes: tag, and I missed to add Alan's ACKs to patches #4..#9 too... :-/
 
+> A.
+> 
+>> Signed-off-by: Sergey Shtylyov <s.shtylyov@omp.ru>
+[...]
+
+MBR, Sergey
