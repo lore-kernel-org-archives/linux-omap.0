@@ -2,51 +2,84 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F41BAC4321E
-	for <linux-omap@archiver.kernel.org>; Tue, 14 Dec 2021 08:40:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C29FC433EF
+	for <linux-omap@archiver.kernel.org>; Tue, 14 Dec 2021 13:25:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231787AbhLNIkv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 14 Dec 2021 03:40:51 -0500
-Received: from mail.thebizzie.pl ([192.236.147.111]:41984 "EHLO
-        mail.thebizzie.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231886AbhLNIkv (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2021 03:40:51 -0500
-Received: by mail.thebizzie.pl (Postfix, from userid 1002)
-        id B0B5E181711; Tue, 14 Dec 2021 08:32:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=thebizzie.pl; s=mail;
-        t=1639470826; bh=kU+//Lu71IqgcFfjayWXuIc0mZtoyrYJc2YuqyU8eS8=;
-        h=Date:From:To:Subject:From;
-        b=MWhRU3BdVeaaHXYfdK4acgOTk1+vGsBCq0lSTggm1Ti/97R2gEPgoUjF7+ydOGHg6
-         cYNI+4HZxJcrkzHq43VHG3TFWrDCJ0dm9L7BOGhCvpvZOVVWvrjeAJWGYNnstsEqcf
-         wAgOns9Av7vH0O1UDaJsCy+6yChmoUG3q55Ma/Hc7GX+bYc2tcWVu9QfT82GNkmLeh
-         AUejDFeKVOfibMhxclMYGQCkx7vfdWCl7kU0LSDmpEAnwoZ2uwwTas6jbYGw85H4Ju
-         wHcHIXfgx1aXly+usbWAJlIUo1PXN4jIDedFQRAOIY6uiq3NNb2UdtzfGlNIt+auOU
-         XO21L7Pr1dqNQ==
-Received: by mail.thebizzie.pl for <linux-omap@vger.kernel.org>; Tue, 14 Dec 2021 08:32:04 GMT
-Message-ID: <20211214074500-0.1.7.2uw.0.pohixak7oa@thebizzie.pl>
-Date:   Tue, 14 Dec 2021 08:32:04 GMT
-From:   "Mateusz Adamczyk" <mateusz.adamczyk@thebizzie.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: Wycena paneli fotowoltaicznych
-X-Mailer: mail.thebizzie.pl
+        id S234365AbhLNNZk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 14 Dec 2021 08:25:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45748 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234390AbhLNNZj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 14 Dec 2021 08:25:39 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C776C061574;
+        Tue, 14 Dec 2021 05:25:39 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 57A91B819B2;
+        Tue, 14 Dec 2021 13:25:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDC96C34601;
+        Tue, 14 Dec 2021 13:25:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1639488337;
+        bh=xs9CT+vT0I9XeRbtg41qzxnI/2QJY28FPfoerDRgjQs=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=BD44nH7qLcwnHh34FdJHiDW7qsALFz2mZp9Waw9ACsWkS0UHT7mU9VATPk+S9VApi
+         r7L7f9SvSf/sFbiJR0lpiFXk7NYXzbsWOg/jdcfPvsFGlS8h+sEeXhHVNlBQy5weuH
+         eh+4iVErBr4Nhi3KiRDiaftr3a8Iu3nA/yeQTIoOQGekHMwRvEs6GiNzFOJpkvCYLU
+         oCT8s/w5b8123BDZImXGwRaIrknBRCcJpcKEhYW5CnyKJbKmUmd0eTfSPK6piKRIuD
+         Vz7t1Q7kSZ2+5Fn5yHntAi5puyWm9wnuYTvQF0R/1pr+IHCfQLxF9AflOWU5Zqpefq
+         kDFYgOLnmM6AA==
+From:   Mark Brown <broonie@kernel.org>
+To:     cgel.zte@gmail.com, tony@atomide.com
+Cc:     Minghao Chi <chi.minghao@zte.com.cn>,
+        Zeal Robot <zealci@zte.com.cn>, linux-kernel@vger.kernel.org,
+        lgirdwood@gmail.com, linux-omap@vger.kernel.org
+In-Reply-To: <20211213021655.435423-1-chi.minghao@zte.com.cn>
+References: <20211213021655.435423-1-chi.minghao@zte.com.cn>
+Subject: Re: [PATCH] drivers/regulator: remove redundant ret variable
+Message-Id: <163948833549.2871967.7166900849826265039.b4-ty@kernel.org>
+Date:   Tue, 14 Dec 2021 13:25:35 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On Mon, 13 Dec 2021 02:16:55 +0000, cgel.zte@gmail.com wrote:
+> From: Minghao Chi <chi.minghao@zte.com.cn>
+> 
+> Return value from twlreg_write() directly instead
+> of taking this in another redundant variable.
+> 
+> 
 
-dostrzegam mo=C5=BCliwo=C5=9B=C4=87 wsp=C3=B3=C5=82pracy z Pa=C5=84stwa f=
-irm=C4=85.
+Applied to
 
-=C5=9Awiadczymy kompleksow=C4=85 obs=C5=82ug=C4=99 inwestycji w fotowolta=
-ik=C4=99, kt=C3=B3ra obni=C5=BCa koszty energii elektrycznej nawet o 90%.
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git for-next
 
-Czy s=C4=85 Pa=C5=84stwo zainteresowani weryfikacj=C4=85 wst=C4=99pnych p=
-ropozycji?
+Thanks!
 
+[1/1] drivers/regulator: remove redundant ret variable
+      commit: c57dbcab04449ec869561a9056d0de1a07cbb863
 
-Pozdrawiam,
-Mateusz Adamczyk
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
