@@ -2,71 +2,74 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C46AC433EF
-	for <linux-omap@archiver.kernel.org>; Wed, 15 Dec 2021 16:03:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3C2DC433EF
+	for <linux-omap@archiver.kernel.org>; Wed, 15 Dec 2021 20:31:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244145AbhLOQDr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 15 Dec 2021 11:03:47 -0500
-Received: from mail-oi1-f171.google.com ([209.85.167.171]:46743 "EHLO
-        mail-oi1-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232066AbhLOQDr (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2021 11:03:47 -0500
-Received: by mail-oi1-f171.google.com with SMTP id s139so32198149oie.13;
-        Wed, 15 Dec 2021 08:03:47 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=mTcNTFB+NbkHTcAd9qD1dVkWYrQ03s2LijZVy1oBOuU=;
-        b=joWO7PS6lWR0YEQjbF82GhunRWrsd9NAw/NtpCm1wUhcmx9rXCT8x+faROwvAa9Uor
-         XH2zlGMsSCvhJ3ftDCzbw+UF/AYGGJFx0CHUbc4yetTRXcLDZoTF84fyKENV7Rhn3Jjs
-         HFkgc0m4Y7D3gkzpgrr3m3wfcquVLlEZ3+dL8UQmSY5HEzbjZz9jQNqpG4cLOzsmXThG
-         ergNCKzDxTxVocG8x18pxp187JmhUk8sTEgV6v93a5ry1FW5pq0Qw7sUZ6jwEPRvfDAe
-         pG7B7InWF9Z75uJdhtwaCG5/7a1I5SAIRzr2uLbcXt8AlHML0SsreDmcAu5dkKXvak0z
-         kkdw==
-X-Gm-Message-State: AOAM5307IpXW1tXg5Rf+opEipydPWGA55ikYpGfmUs57ZVZBIIRS5LII
-        N72qI67bxDc4BO9zptTzzw==
-X-Google-Smtp-Source: ABdhPJxcEC8GaG5MiQpyLT/0ZeKJG5yMFntxwwj5HQx++f6s884/vXuecGcVNLCcGHcV0hCCY5AVXg==
-X-Received: by 2002:a05:6808:1919:: with SMTP id bf25mr411273oib.33.1639584226858;
-        Wed, 15 Dec 2021 08:03:46 -0800 (PST)
-Received: from robh.at.kernel.org (66-90-148-213.dyn.grandenetworks.net. [66.90.148.213])
-        by smtp.gmail.com with ESMTPSA id d6sm499525otb.4.2021.12.15.08.03.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Dec 2021 08:03:45 -0800 (PST)
-Received: (nullmailer pid 1397034 invoked by uid 1000);
-        Wed, 15 Dec 2021 16:03:45 -0000
-Date:   Wed, 15 Dec 2021 10:03:45 -0600
-From:   Rob Herring <robh@kernel.org>
-To:     Roger Quadros <rogerq@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-        devicetree@vger.kernel.org, kishon@ti.com, nm@ti.com,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        tony@atomide.com, krzysztof.kozlowski@canonical.com,
-        vigneshr@ti.com
-Subject: Re: [PATCH v2 1/4] dt-bindings: memory-controllers: ti,gpmc: Add
- compatible for AM64
-Message-ID: <YboR4WAKRu8ui9HZ@robh.at.kernel.org>
-References: <20211208124611.16843-1-rogerq@kernel.org>
+        id S236041AbhLOUbU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 15 Dec 2021 15:31:20 -0500
+Received: from jabberwock.ucw.cz ([46.255.230.98]:46296 "EHLO
+        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234794AbhLOUbT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 15 Dec 2021 15:31:19 -0500
+Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
+        id 590531C0B98; Wed, 15 Dec 2021 21:31:18 +0100 (CET)
+Date:   Wed, 15 Dec 2021 21:31:13 +0100
+From:   Pavel Machek <pavel@ucw.cz>
+To:     Merlijn Wajer <merlijn@wizzup.org>
+Cc:     Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Dev Null <devnull@uvos.xyz>, Tony Lindgren <tony@atomide.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        "Sicelo A. Mhlongo" <absicsz@gmail.com>,
+        =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Dan Murphy <dmurphy@ti.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] ARM: dts: omap3-n900: Fix lp5523 for multi color
+Message-ID: <20211215203113.GE28336@duo.ucw.cz>
+References: <20211212224007.10293-1-merlijn@wizzup.org>
+ <20211212224007.10293-2-merlijn@wizzup.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="a1QUDc0q7S3U7/Jg"
 Content-Disposition: inline
-In-Reply-To: <20211208124611.16843-1-rogerq@kernel.org>
+In-Reply-To: <20211212224007.10293-2-merlijn@wizzup.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, 08 Dec 2021 14:46:08 +0200, Roger Quadros wrote:
-> AM64 SoC contains the GPMC module. Add compatible for it.
-> 
-> Newer SoCs don't necessarily map GPMC data region at the same place
-> as legacy SoCs. Add reg-names "data", to provide this information to
-> the device driver.
-> 
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Signed-off-by: Roger Quadros <rogerq@kernel.org>
-> ---
->  .../bindings/memory-controllers/ti,gpmc.yaml  | 23 ++++++++++++++++++-
->  1 file changed, 22 insertions(+), 1 deletion(-)
-> 
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+--a1QUDc0q7S3U7/Jg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> From: "Sicelo A. Mhlongo" <absicsz@gmail.com>
+>=20
+> Since the LED multicolor framework support was added in commit
+> 92a81562e695 ("leds: lp55xx: Add multicolor framework support to lp55xx")
+> LEDs on this platform stopped working.
+
+Does this change names is /sys/class/leds?
+
+Best regards,
+								Pavel
+--=20
+http://www.livejournal.com/~pavelmachek
+
+--a1QUDc0q7S3U7/Jg
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCYbpQkQAKCRAw5/Bqldv6
+8vpmAKCmg+y81WeSFmyrK2qvObpFyZI28gCeKQovv1MP1lI3LSdsWLab55DwqFE=
+=mEH/
+-----END PGP SIGNATURE-----
+
+--a1QUDc0q7S3U7/Jg--
