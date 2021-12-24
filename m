@@ -2,63 +2,160 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75787C43217
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Dec 2021 17:12:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6302BC433FE
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Dec 2021 19:27:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349438AbhLWRMO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Dec 2021 12:12:14 -0500
-Received: from mxout01.lancloud.ru ([45.84.86.81]:41330 "EHLO
-        mxout01.lancloud.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349420AbhLWRMK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Dec 2021 12:12:10 -0500
-Received: from LanCloud
-DKIM-Filter: OpenDKIM Filter v2.11.0 mxout01.lancloud.ru 5F6222024192
-Received: from LanCloud
-Received: from LanCloud
-Received: from LanCloud
-From:   Sergey Shtylyov <s.shtylyov@omp.ru>
-To:     Ulf Hansson <ulf.hansson@linaro.org>, <linux-mmc@vger.kernel.org>
-CC:     Aaro Koskinen <aaro.koskinen@iki.fi>, <linux-omap@vger.kernel.org>
-Subject: [PATCH RFC 05/13] mmc: omap: fix deferred probing
-Date:   Thu, 23 Dec 2021 20:11:54 +0300
-Message-ID: <20211223171202.8224-6-s.shtylyov@omp.ru>
-X-Mailer: git-send-email 2.26.3
-In-Reply-To: <20211223171202.8224-1-s.shtylyov@omp.ru>
-References: <20211223171202.8224-1-s.shtylyov@omp.ru>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [192.168.11.198]
-X-ClientProxiedBy: LFEXT02.lancloud.ru (fd00:f066::142) To
- LFEX1907.lancloud.ru (fd00:f066::207)
+        id S1353531AbhLXT1O (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Dec 2021 14:27:14 -0500
+Received: from relmlor2.renesas.com ([210.160.252.172]:25711 "EHLO
+        relmlie6.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1353467AbhLXT0z (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>);
+        Fri, 24 Dec 2021 14:26:55 -0500
+X-IronPort-AV: E=Sophos;i="5.88,233,1635174000"; 
+   d="scan'208";a="105121735"
+Received: from unknown (HELO relmlir6.idc.renesas.com) ([10.200.68.152])
+  by relmlie6.idc.renesas.com with ESMTP; 25 Dec 2021 04:26:54 +0900
+Received: from localhost.localdomain (unknown [10.226.36.204])
+        by relmlir6.idc.renesas.com (Postfix) with ESMTP id 5655F40F520F;
+        Sat, 25 Dec 2021 04:26:52 +0900 (JST)
+From:   Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+To:     netdev@vger.kernel.org,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>
+Cc:     Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org,
+        Prabhakar <prabhakar.csengg@gmail.com>,
+        Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+        linux-omap@vger.kernel.org
+Subject: [PATCH 8/8] net: ethernet: ti: davinci_emac: Use platform_get_irq() to get the interrupt
+Date:   Fri, 24 Dec 2021 19:26:26 +0000
+Message-Id: <20211224192626.15843-9-prabhakar.mahadev-lad.rj@bp.renesas.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20211224192626.15843-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
+References: <20211224192626.15843-1-prabhakar.mahadev-lad.rj@bp.renesas.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The driver overrides the error codes returned by platform_get_irq() to
--ENXIO, so if it returns -EPROBE_DEFER, the driver will fail the probe
-permanently instead of the deferred probing. Switch to propagating the
-error codes upstream.
+platform_get_resource(pdev, IORESOURCE_IRQ, ..) relies on static
+allocation of IRQ resources in DT core code, this causes an issue
+when using hierarchical interrupt domains using "interrupts" property
+in the node as this bypasses the hierarchical setup and messes up the
+irq chaining.
 
-Fixes: 9ec36cafe43b ("of/irq: do irq resolution in platform_get_irq")
-Signed-off-by: Sergey Shtylyov <s.shtylyov@omp.ru>
+In preparation for removal of static setup of IRQ resource from DT core
+code use platform_get_irq() for DT users only.
+
+While at it propagate error code in case request_irq() fails instead of
+returning -EBUSY.
+
+Signed-off-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 ---
- drivers/mmc/host/omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/ti/davinci_emac.c | 69 ++++++++++++++++----------
+ 1 file changed, 42 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 5e5af34090f1..ecf2a68d0e84 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1343,7 +1343,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index d55f06120ce7..31df3267a01a 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -1454,23 +1454,33 @@ static int emac_dev_open(struct net_device *ndev)
+ 	}
  
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0)
--		return -ENXIO;
-+		return irq;
+ 	/* Request IRQ */
+-	while ((res = platform_get_resource(priv->pdev, IORESOURCE_IRQ,
+-					    res_num))) {
+-		for (irq_num = res->start; irq_num <= res->end; irq_num++) {
+-			if (request_irq(irq_num, emac_irq, 0, ndev->name,
+-					ndev)) {
+-				dev_err(emac_dev,
+-					"DaVinci EMAC: request_irq() failed\n");
+-				ret = -EBUSY;
++	if (dev_of_node(&priv->pdev->dev)) {
++		while ((ret = platform_get_irq_optional(priv->pdev, res_num)) != -ENXIO) {
++			if (ret < 0)
++				goto rollback;
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	host->virt_base = devm_ioremap_resource(&pdev->dev, res);
++			ret = request_irq(ret, emac_irq, 0, ndev->name, ndev);
++			if (ret) {
++				dev_err(emac_dev, "DaVinci EMAC: request_irq() failed\n");
+ 				goto rollback;
+ 			}
++			res_num++;
+ 		}
+-		res_num++;
++	} else {
++		while ((res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, res_num))) {
++			for (irq_num = res->start; irq_num <= res->end; irq_num++) {
++				ret = request_irq(irq_num, emac_irq, 0, ndev->name, ndev);
++				if (ret) {
++					dev_err(emac_dev, "DaVinci EMAC: request_irq() failed\n");
++					goto rollback;
++				}
++			}
++			res_num++;
++		}
++		/* prepare counters for rollback in case of an error */
++		res_num--;
++		irq_num--;
+ 	}
+-	/* prepare counters for rollback in case of an error */
+-	res_num--;
+-	irq_num--;
+ 
+ 	/* Start/Enable EMAC hardware */
+ 	emac_hw_enable(priv);
+@@ -1554,16 +1564,24 @@ static int emac_dev_open(struct net_device *ndev)
+ 	napi_disable(&priv->napi);
+ 
+ rollback:
+-	for (q = res_num; q >= 0; q--) {
+-		res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, q);
+-		/* at the first iteration, irq_num is already set to the
+-		 * right value
+-		 */
+-		if (q != res_num)
+-			irq_num = res->end;
++	if (dev_of_node(&priv->pdev->dev)) {
++		for (q = res_num - 1; q >= 0; q--) {
++			irq_num = platform_get_irq(priv->pdev, q);
++			if (irq_num > 0)
++				free_irq(irq_num, ndev);
++		}
++	} else {
++		for (q = res_num; q >= 0; q--) {
++			res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, q);
++			/* at the first iteration, irq_num is already set to the
++			 * right value
++			 */
++			if (q != res_num)
++				irq_num = res->end;
+ 
+-		for (m = irq_num; m >= res->start; m--)
+-			free_irq(m, ndev);
++			for (m = irq_num; m >= res->start; m--)
++				free_irq(m, ndev);
++		}
+ 	}
+ 	cpdma_ctlr_stop(priv->dma);
+ 	pm_runtime_put(&priv->pdev->dev);
+@@ -1899,13 +1917,10 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 		goto err_free_txchan;
+ 	}
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-	if (!res) {
+-		dev_err(&pdev->dev, "error getting irq res\n");
+-		rc = -ENOENT;
++	rc = platform_get_irq(pdev, 0);
++	if (rc < 0)
+ 		goto err_free_rxchan;
+-	}
+-	ndev->irq = res->start;
++	ndev->irq = rc;
+ 
+ 	rc = davinci_emac_try_get_mac(pdev, res_ctrl ? 0 : 1, priv->mac_addr);
+ 	if (!rc)
 -- 
-2.26.3
+2.17.1
 
