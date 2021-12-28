@@ -2,112 +2,169 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42B84C433F5
-	for <linux-omap@archiver.kernel.org>; Sun, 26 Dec 2021 13:07:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 745FBC433EF
+	for <linux-omap@archiver.kernel.org>; Tue, 28 Dec 2021 18:09:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233522AbhLZNHK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 26 Dec 2021 08:07:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58482 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231607AbhLZNHJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 26 Dec 2021 08:07:09 -0500
-Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C04CC06173E;
-        Sun, 26 Dec 2021 05:07:09 -0800 (PST)
-Received: by mail-ed1-x52a.google.com with SMTP id m21so52686835edc.0;
-        Sun, 26 Dec 2021 05:07:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=B2+ZyCKMgaCn+yHM6iaIMiaErSxz8x8VEPA7/E0hwSA=;
-        b=l2yDrf+QDS8RAWsZgi9vW77rfw+j+Rdb9oMINXHtP6SqPqkVii8HAI2Ih4tFLZdmTK
-         6zz96U+qc9gKteY8tlKffzB/EuF07UbiQS9DleCs3TGoSeVdsHgmRrA1PjjVJtHkhVp4
-         L72e9nigt/e1MBR7oIjEIaSENoOV+TEiVwCcNOGxrGXCIWebAu4+cmOJK9b8J9GiDPU5
-         Xz+mIBaqi9mz7TvVbd7viX5hmTttoLWCCj3xvYzIJ3BHfbYRZpgJdcWEv0EzWULNevSV
-         oXyFa/fX7sbi/4B0g1tqB7H9E7lMIhWfdE0fbkaTJy6bauH18GMFUbuGgG8wOInTBwAT
-         PVlQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=B2+ZyCKMgaCn+yHM6iaIMiaErSxz8x8VEPA7/E0hwSA=;
-        b=iWOHwXztvj4aOzOU2dTBMzQO4Ursqyycdn6pVzG75LiWysuyz5VTo+ZmoL7ZGIlFog
-         eLhEgkeWE3buVGCylEnL0W3hGp1P5Am/aWqchLMl7oOANDgBFXGUj5YEWLCnHLc3znFc
-         qu9OULf9Dth0PUVTUKgk1/J4JW6DGaOSN2yO9G7aN+SXj6jyzfHjh185Uwuch18Qh93N
-         oUG/MNFxrH9prO+GOkMCXeLZhnD4CckxeqCbVWTcrrN0nxx86yXM7nq6JXyLkyVS33nk
-         9TwXkSnSVl+ZF10Fg/GANewG1e7rjLJdVOJSQZaVj9mLhCbPAZfhI184OhP3kiiU07rp
-         BlBw==
-X-Gm-Message-State: AOAM530RjN6In5QD+JvPBE7f4PzSMTIKP4FopBXGSRKmPvaArewI0Rln
-        5FShRp/4m9D6ARQNQi2xG8PUZIyLh6duvrlaof0=
-X-Google-Smtp-Source: ABdhPJzUou2795TF47OxmF5US3Gh4JD147IGIAJSe1uBVIvJQ0UC3+hhhkzQQqz6jlb3Zk+gNB9FWmbxuZro6bk+Vj0=
-X-Received: by 2002:a17:906:7953:: with SMTP id l19mr11214698ejo.71.1640524027713;
- Sun, 26 Dec 2021 05:07:07 -0800 (PST)
-MIME-Version: 1.0
-References: <20201121030156.22857-1-s-anna@ti.com>
-In-Reply-To: <20201121030156.22857-1-s-anna@ti.com>
-From:   Christian Gmeiner <christian.gmeiner@gmail.com>
-Date:   Sun, 26 Dec 2021 14:06:56 +0100
-Message-ID: <CAH9NwWfFMv0TrHLbAhL6Ykn78jNZDs8e=c30U-QC0mG3jcY5mw@mail.gmail.com>
-Subject: Re: [PATCH v2 0/3] remoteproc sysfs fixes/improvements
-To:     Suman Anna <s-anna@ti.com>
-Cc:     Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Arnaud Pouliquen <arnaud.pouliquen@st.com>,
-        Loic Pallardy <loic.pallardy@st.com>,
-        Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>,
-        Tony Lindgren <tony@atomide.com>,
-        linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        id S231825AbhL1SJ4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 28 Dec 2021 13:09:56 -0500
+Received: from sender11-of-o51.zoho.eu ([31.186.226.237]:21106 "EHLO
+        sender11-of-o51.zoho.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231502AbhL1SJ4 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 28 Dec 2021 13:09:56 -0500
+X-Greylist: delayed 770 seconds by postgrey-1.27 at vger.kernel.org; Tue, 28 Dec 2021 13:09:56 EST
+ARC-Seal: i=1; a=rsa-sha256; t=1640714974; cv=none; 
+        d=zohomail.eu; s=zohoarc; 
+        b=b+2at6/dS3v78Y4eHWBZ+2wS9KgpDxcfg90OGlhKXFSnZpa1Iy7LrzS41PAghefXVdxUWhrLSlgAajpDxXVhVk3gkwA8uVLGCfG6PjhGbFJD/EBYmvyrbMIduCYJuvbsbWov3l6VjuRUPcDNSFUjT5QGFvY82Ej5fimGi4sHVY8=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
+        t=1640714974; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=oynB9R8k0PLl1IH46elp4NZHwnEBnjiXaZcMGJZ+cRY=; 
+        b=EJoBw4b5ePgr40U5SjGlpKS2nEGxPrKIrV9RZRwOx6vYwkXJBvzGcTfOnR/ql9qzKm03QSDuUyDX+q4gBupGbpVEhS+Nr78rE/z+Yi4Lez7GOxkjl7S3jJDLB5eEZ7+1gUJ0IuPgnLcTBqsIzHZONcEkCu4dYY18zcH22VY+f30=
+ARC-Authentication-Results: i=1; mx.zohomail.eu;
+        spf=pass  smtp.mailfrom=philipp@uvos.xyz;
+        dmarc=pass header.from=<philipp@uvos.xyz>
+Received: from UVOSLinux (aftr-37-201-192-113.unity-media.net [37.201.192.113]) by mx.zoho.eu
+        with SMTPS id 1640714972300267.32556141033467; Tue, 28 Dec 2021 19:09:32 +0100 (CET)
+Date:   Tue, 28 Dec 2021 19:09:31 +0100
+From:   Carl Philipp Klemm <philipp@uvos.xyz>
+To:     alsa-devel@alsa-project.org
+Cc:     merlijn@wizzup.org, tony@atomide.com, sre@kernel.org,
+        linux-omap@vger.kernel.org, kuninori.morimoto.gx@renesas.com
+Subject: [RFC PATCH 1/3] ASoC: simple-card-utils: add support for componants
+ provideing jack events via set_jack
+Message-Id: <20211228190931.df5d518220080a734532ebfd@uvos.xyz>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-unknown-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-ZohoMailClient: External
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi all.
+This allows componants that want a jack to report state on to do so by calling
+set_jack on components implementing this function.
 
-Am Sa., 21. Nov. 2020 um 04:05 Uhr schrieb Suman Anna <s-anna@ti.com>:
->
-> Hi All,
->
-> This is a refresh of the unaccepted patches from an old series [1].
-> Patches 2 and 3 from that series were merged and these are rebased and
-> revised versions of the same patches. I had forgotten about these patches,
-> and am resurrecting these again. Patches are on top of latest 5.10-rc4.
->
-> The features being introduced here will be needed by the recently posted PRU
-> remoteproc driver [2] in addition to the existing Wkup M3 remoteproc driver.
-> Both of these drivers follow a client-driven boot methodology, with the latter
-> strictly booted by another driver in kernel. The PRU remoteproc driver will be
-> supporting both in-kernel clients as well as control from userspace orthogonally.
-> The logic though is applicable and useful to any remoteproc driver not using
-> 'auto-boot' and using an external driver/application to boot the remoteproc.
->
-> regards
-> Suman
->
-> [1] https://patchwork.kernel.org/project/linux-remoteproc/cover/20180915003725.17549-1-s-anna@ti.com/
-> [2] https://patchwork.kernel.org/project/linux-remoteproc/cover/20201119140850.12268-1-grzegorz.jaszczyk@linaro.org/
->
-> Suman Anna (3):
->   remoteproc: Fix unbalanced boot with sysfs for no auto-boot rprocs
->   remoteproc: Introduce deny_sysfs_ops flag
->   remoteproc: wkup_m3: Set deny_sysfs_ops flag
->
->  drivers/remoteproc/remoteproc_sysfs.c | 28 ++++++++++++++++++++++++++-
->  drivers/remoteproc/wkup_m3_rproc.c    |  1 +
->  include/linux/remoteproc.h            |  2 ++
->  3 files changed, 30 insertions(+), 1 deletion(-)
->
-> --
-> 2.28.0
->
+Im not entirely sure this is the right way to do this so RFC
 
-Is there any update on this patch series?
+Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
+---
+ include/sound/simple_card_utils.h     |  6 ++--
+ sound/soc/generic/simple-card-utils.c | 47 +++++++++++++++++++--------
+ 2 files changed, 36 insertions(+), 17 deletions(-)
 
+diff --git a/include/sound/simple_card_utils.h b/include/sound/simple_card_utils.h
+index 51b3b485a92e..547ad537613d 100644
+--- a/include/sound/simple_card_utils.h
++++ b/include/sound/simple_card_utils.h
+@@ -57,8 +57,8 @@ struct asoc_simple_priv {
+ 		struct prop_nums num;
+ 		unsigned int mclk_fs;
+ 	} *dai_props;
+-	struct asoc_simple_jack hp_jack;
+-	struct asoc_simple_jack mic_jack;
++	struct asoc_simple_jack *hp_jack;
++	struct asoc_simple_jack *mic_jack;
+ 	struct snd_soc_dai_link *dai_link;
+ 	struct asoc_simple_dai *dais;
+ 	struct snd_soc_dai_link_component *dlcs;
+@@ -173,7 +173,7 @@ int asoc_simple_parse_pin_switches(struct snd_soc_card *card,
+ 				   char *prefix);
+ 
+ int asoc_simple_init_jack(struct snd_soc_card *card,
+-			       struct asoc_simple_jack *sjack,
++			       struct asoc_simple_jack **sjack,
+ 			       int is_hp, char *prefix, char *pin);
+ int asoc_simple_init_priv(struct asoc_simple_priv *priv,
+ 			       struct link_info *li);
+diff --git a/sound/soc/generic/simple-card-utils.c b/sound/soc/generic/simple-card-utils.c
+index 10c63b73900c..1899feba16cc 100644
+--- a/sound/soc/generic/simple-card-utils.c
++++ b/sound/soc/generic/simple-card-utils.c
+@@ -395,6 +395,7 @@ int asoc_simple_dai_init(struct snd_soc_pcm_runtime *rtd)
+ 	struct asoc_simple_priv *priv = snd_soc_card_get_drvdata(rtd->card);
+ 	struct simple_dai_props *props = simple_priv_to_props(priv, rtd->num);
+ 	struct asoc_simple_dai *dai;
++	struct snd_soc_component *component;
+ 	int i, ret;
+ 
+ 	for_each_prop_dai_codec(props, i, dai) {
+@@ -412,6 +413,21 @@ int asoc_simple_dai_init(struct snd_soc_pcm_runtime *rtd)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	for_each_rtd_components(rtd, i, component) {
++		if (component->driver->set_jack) {
++			if (!priv->hp_jack) {
++				priv->hp_jack = devm_kzalloc(priv->snd_card.dev,
++					sizeof(*priv->hp_jack), GFP_KERNEL);
++				snd_soc_card_jack_new(&priv->snd_card,
++					"Headphones",
++					SND_JACK_HEADPHONE,
++					&priv->hp_jack->jack,
++					NULL, 0);
++			}
++			snd_soc_component_set_jack(component, &priv->hp_jack->jack, NULL);
++		}
++	}
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(asoc_simple_dai_init);
+@@ -554,7 +570,7 @@ int asoc_simple_parse_pin_switches(struct snd_soc_card *card,
+ EXPORT_SYMBOL_GPL(asoc_simple_parse_pin_switches);
+ 
+ int asoc_simple_init_jack(struct snd_soc_card *card,
+-			  struct asoc_simple_jack *sjack,
++			  struct asoc_simple_jack **sjack,
+ 			  int is_hp, char *prefix,
+ 			  char *pin)
+ {
+@@ -569,8 +585,6 @@ int asoc_simple_init_jack(struct snd_soc_card *card,
+ 	if (!prefix)
+ 		prefix = "";
+ 
+-	sjack->gpio.gpio = -ENOENT;
+-
+ 	if (is_hp) {
+ 		snprintf(prop, sizeof(prop), "%shp-det-gpio", prefix);
+ 		pin_name	= pin ? pin : "Headphones";
+@@ -588,21 +602,26 @@ int asoc_simple_init_jack(struct snd_soc_card *card,
+ 		return -EPROBE_DEFER;
+ 
+ 	if (gpio_is_valid(det)) {
+-		sjack->pin.pin		= pin_name;
+-		sjack->pin.mask		= mask;
++		struct asoc_simple_jack *sjack_d;
++
++		sjack = devm_kzalloc(dev, sizeof(*(*sjack)), GFP_KERNEL);
++		sjack_d = *sjack;
++
++		sjack_d->pin.pin		= pin_name;
++		sjack_d->pin.mask		= mask;
+ 
+-		sjack->gpio.name	= gpio_name;
+-		sjack->gpio.report	= mask;
+-		sjack->gpio.gpio	= det;
+-		sjack->gpio.invert	= !!(flags & OF_GPIO_ACTIVE_LOW);
+-		sjack->gpio.debounce_time = 150;
++		sjack_d->gpio.name	= gpio_name;
++		sjack_d->gpio.report	= mask;
++		sjack_d->gpio.gpio	= det;
++		sjack_d->gpio.invert	= !!(flags & OF_GPIO_ACTIVE_LOW);
++		sjack_d->gpio.debounce_time = 150;
+ 
+ 		snd_soc_card_jack_new(card, pin_name, mask,
+-				      &sjack->jack,
+-				      &sjack->pin, 1);
++				      &sjack_d->jack,
++				      &sjack_d->pin, 1);
+ 
+-		snd_soc_jack_add_gpios(&sjack->jack, 1,
+-				       &sjack->gpio);
++		snd_soc_jack_add_gpios(&sjack_d->jack, 1,
++				       &sjack_d->gpio);
+ 	}
+ 
+ 	return 0;
 -- 
-greets
---
-Christian Gmeiner, MSc
-
-https://christian-gmeiner.info/privacypolicy
+2.34.1
