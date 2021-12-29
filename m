@@ -2,245 +2,287 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C94BC433EF
-	for <linux-omap@archiver.kernel.org>; Wed, 29 Dec 2021 00:09:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E340EC433F5
+	for <linux-omap@archiver.kernel.org>; Wed, 29 Dec 2021 10:41:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237919AbhL2AJI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 28 Dec 2021 19:09:08 -0500
-Received: from sender11-of-o51.zoho.eu ([31.186.226.237]:21067 "EHLO
-        sender11-of-o51.zoho.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237922AbhL2AJI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 28 Dec 2021 19:09:08 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1640736536; cv=none; 
-        d=zohomail.eu; s=zohoarc; 
-        b=EJ29MdK6m5Fgn917PCnlh3jZB9LecR9z8HRJ8QLwF9ZOOVkV9+FevSrcHHdm9mJ//kUxjGzd6wHC+ACrwe46UP7AC/Nuh+Hs2GeIYFdLt/2UGVN+m37Tyve/273+pFAFrutsPZ3Z4ghdZGi+0xxSN7Z8ZpeMtKe3QSexL/A9Cjk=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
-        t=1640736536; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=L5ynz4Cb32LEIDZWVeXJVeYRML5HxABTPMj2ewKngso=; 
-        b=etEeqGAZGwIz1Uum3RYvheMUb0JOMsGFTO93e0HKMDNG/Zx2vzI5Gf6ZgPvjhvZ23Aj/N5M/UfgGq5dxVB3YkVdbV0YVz9UFDsu03xB3zPtE8UIYKRqzazzofm1T0jyai/Ys66whQISh1NYBWU36llo0FVKJMp4URq9d1TRAMV4=
-ARC-Authentication-Results: i=1; mx.zohomail.eu;
-        spf=pass  smtp.mailfrom=philipp@uvos.xyz;
-        dmarc=pass header.from=<philipp@uvos.xyz>
-Received: from UVOSLinux (aftr-37-201-192-113.unity-media.net [37.201.192.113]) by mx.zoho.eu
-        with SMTPS id 1640736534590204.40677702314417; Wed, 29 Dec 2021 01:08:54 +0100 (CET)
-Date:   Wed, 29 Dec 2021 01:08:53 +0100
-From:   Carl Philipp Klemm <philipp@uvos.xyz>
-To:     sre@kernel.org
-Cc:     merlijn@wizzup.org, tony@atomide.com, linux-omap@vger.kernel.org
-Subject: [PATCH V4] power: supply: cpcap-battery: Add battery type auto
- detection for mapphone devices
-Message-Id: <20211229010853.7561e139035e2dfbc328518e@uvos.xyz>
-In-Reply-To: <20211228185648.74ba318e9487ab03834ce40d@uvos.xyz>
-References: <20211228185648.74ba318e9487ab03834ce40d@uvos.xyz>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-unknown-linux-gnu)
-Mime-Version: 1.0
+        id S235575AbhL2KlR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 29 Dec 2021 05:41:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40476 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235553AbhL2KlQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 29 Dec 2021 05:41:16 -0500
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B256C061574
+        for <linux-omap@vger.kernel.org>; Wed, 29 Dec 2021 02:41:16 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=kemnade.info; s=20180802; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=PxAGsnf7ifUyNU+nGUfIxCWXrWF0nmnmpN2m1eGKYS0=; b=i7/5+8UdeOxyvlmgCNmvXcllV1
+        HnOUEtKms3fBYd89N17FAwaLzLqImrAjFmlFEKIhpiAJ8aUqbI90994sFKqjA094DeMn3Eahfj073
+        BQqzLz9xNrtDDSgWcKFZMzCogqTCuvqTC7aXzCX+jRQrlsvRK9CdghrlmGEMTu25QKsI=;
+Received: from p200300ccff0806001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff08:600:1a3d:a2ff:febf:d33a] helo=aktux)
+        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <andreas@kemnade.info>)
+        id 1n2WOF-0001Hl-Ha; Wed, 29 Dec 2021 11:41:03 +0100
+Date:   Wed, 29 Dec 2021 11:41:02 +0100
+From:   Andreas Kemnade <andreas@kemnade.info>
+To:     Carl Philipp Klemm <philipp@uvos.xyz>
+Cc:     sre@kernel.org, tony@atomide.com, merlijn@wizzup.org,
+        linux-omap@vger.kernel.org
+Subject: Re: [RFC PATCH] power: supply: cpcap-charger ramp up charge current
+ slowly
+Message-ID: <20211229114102.186d997f@aktux>
+In-Reply-To: <20211228190029.5a58776acce1352e4aac3e9c@uvos.xyz>
+References: <20211228190029.5a58776acce1352e4aac3e9c@uvos.xyz>
+X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-ZohoMailClient: External
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This allows cpcap-battery to detect whitch battery is inserted, HW4X or
-BW8X for xt875 and EB41 for xt894 by examining the battery nvmem. If no
-known battery is detected sane defaults are used.
+Hi,
 
-Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
----
- drivers/power/supply/cpcap-battery.c | 125 ++++++++++++++++++++-------
- 1 file changed, 92 insertions(+), 33 deletions(-)
+On Tue, 28 Dec 2021 19:00:29 +0100
+Carl Philipp Klemm <philipp@uvos.xyz> wrote:
 
-diff --git a/drivers/power/supply/cpcap-battery.c b/drivers/power/supply/cpcap-battery.c
-index 8d62d4241da3..ae284bdd6cc3 100644
---- a/drivers/power/supply/cpcap-battery.c
-+++ b/drivers/power/supply/cpcap-battery.c
-@@ -28,6 +28,7 @@
- #include <linux/power_supply.h>
- #include <linux/reboot.h>
- #include <linux/regmap.h>
-+#include <linux/nvmem-consumer.h>
- #include <linux/moduleparam.h>
- 
- #include <linux/iio/consumer.h>
-@@ -73,6 +74,9 @@
- 
- #define CPCAP_BATTERY_CC_SAMPLE_PERIOD_MS	250
- 
-+#define CPCAP_BATTERY_EB41_HW4X_ID 0x9E
-+#define CPCAP_BATTERY_BW8X_ID 0x98
-+
- enum {
- 	CPCAP_BATTERY_IIO_BATTDET,
- 	CPCAP_BATTERY_IIO_VOLTAGE,
-@@ -138,6 +142,7 @@ struct cpcap_battery_ddata {
- 	int charge_full;
- 	int status;
- 	u16 vendor;
-+	bool check_nvmem;
- 	unsigned int is_full:1;
- };
- 
-@@ -354,6 +359,88 @@ cpcap_battery_read_accumulated(struct cpcap_battery_ddata *ddata,
- 				       ccd->offset);
- }
- 
-+
-+/*
-+ * Based on the values from Motorola mapphone Linux kernel for the
-+ * stock Droid 4 battery eb41. In the Motorola mapphone Linux
-+ * kernel tree the value for pm_cd_factor is passed to the kernel
-+ * via device tree. If it turns out to be something device specific
-+ * we can consider that too later. These values are also fine for
-+ * Bionic's hw4x.
-+ *
-+ * And looking at the battery full and shutdown values for the stock
-+ * kernel on droid 4, full is 4351000 and software initiates shutdown
-+ * at 3078000. The device will die around 2743000.
-+ */
-+static const struct cpcap_battery_config cpcap_battery_eb41_data = {
-+	.cd_factor = 0x3cc,
-+	.info.technology = POWER_SUPPLY_TECHNOLOGY_LION,
-+	.info.voltage_max_design = 4351000,
-+	.info.voltage_min_design = 3100000,
-+	.info.charge_full_design = 1740000,
-+	.bat.constant_charge_voltage_max_uv = 4200000,
-+};
-+
-+/* Values for the extended Droid Bionic battery bw8x. */
-+static const struct cpcap_battery_config cpcap_battery_bw8x_data = {
-+	.cd_factor = 0x3cc,
-+	.info.technology = POWER_SUPPLY_TECHNOLOGY_LION,
-+	.info.voltage_max_design = 4200000,
-+	.info.voltage_min_design = 3200000,
-+	.info.charge_full_design = 2760000,
-+	.bat.constant_charge_voltage_max_uv = 4200000,
-+};
-+
-+/*
-+ * Safe values for any lipo battery likely to fit into a mapphone
-+ * battery bay.
-+ */
-+static const struct cpcap_battery_config cpcap_battery_unkown_data = {
-+	.cd_factor = 0x3cc,
-+	.info.technology = POWER_SUPPLY_TECHNOLOGY_LION,
-+	.info.voltage_max_design = 4200000,
-+	.info.voltage_min_design = 3200000,
-+	.info.charge_full_design = 3000000,
-+	.bat.constant_charge_voltage_max_uv = 4200000,
-+};
-+
-+static int cpcap_battery_match_nvmem(struct device *dev, const void *data)
-+{
-+	if (strcmp(dev_name(dev), "89-500029ba0f73") == 0)
-+		return 1;
-+	else
-+		return 0;
-+}
-+
-+static void cpcap_battery_detect_battery_type(struct cpcap_battery_ddata *ddata)
-+{
-+	struct nvmem_device *nvmem;
-+	u8 battery_id = 0;
-+
-+	ddata->check_nvmem = false;
-+
-+	nvmem = nvmem_device_find(NULL, &cpcap_battery_match_nvmem);
-+	if (IS_ERR_OR_NULL(nvmem)) {
-+		ddata->check_nvmem = true;
-+		dev_info_once(ddata->dev, "Can not find battery nvmem device. Assuming generic lipo battery\n");
-+	} else if (nvmem_device_read(nvmem, 2, 1, &battery_id) < 0) {
-+		battery_id = 0;
-+		ddata->check_nvmem = true;
-+		dev_warn(ddata->dev, "Can not read battery nvmem device. Assuming generic lipo battery\n");
-+	}
-+
-+	switch (battery_id) {
-+	case CPCAP_BATTERY_EB41_HW4X_ID:
-+		ddata->config = cpcap_battery_eb41_data;
-+		break;
-+	case CPCAP_BATTERY_BW8X_ID:
-+		ddata->config = cpcap_battery_bw8x_data;
-+		break;
-+	default:
-+		ddata->config = cpcap_battery_unkown_data;
-+	}
-+}
-+
- /**
-  * cpcap_battery_cc_get_avg_current - read cpcap coulumb counter
-  * @ddata: cpcap battery driver device data
-@@ -571,6 +658,9 @@ static int cpcap_battery_get_property(struct power_supply *psy,
- 	latest = cpcap_battery_latest(ddata);
- 	previous = cpcap_battery_previous(ddata);
- 
-+	if (ddata->check_nvmem)
-+		cpcap_battery_detect_battery_type(ddata);
-+
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_PRESENT:
- 		if (latest->temperature > CPCAP_NO_BATTERY || ignore_temperature_probe)
-@@ -982,30 +1072,10 @@ static int cpcap_battery_calibrate(struct cpcap_battery_ddata *ddata)
- 	return error;
- }
- 
--/*
-- * Based on the values from Motorola mapphone Linux kernel. In the
-- * the Motorola mapphone Linux kernel tree the value for pm_cd_factor
-- * is passed to the kernel via device tree. If it turns out to be
-- * something device specific we can consider that too later.
-- *
-- * And looking at the battery full and shutdown values for the stock
-- * kernel on droid 4, full is 4351000 and software initiates shutdown
-- * at 3078000. The device will die around 2743000.
-- */
--static const struct cpcap_battery_config cpcap_battery_default_data = {
--	.cd_factor = 0x3cc,
--	.info.technology = POWER_SUPPLY_TECHNOLOGY_LION,
--	.info.voltage_max_design = 4351000,
--	.info.voltage_min_design = 3100000,
--	.info.charge_full_design = 1740000,
--	.bat.constant_charge_voltage_max_uv = 4200000,
--};
--
- #ifdef CONFIG_OF
- static const struct of_device_id cpcap_battery_id_table[] = {
- 	{
- 		.compatible = "motorola,cpcap-battery",
--		.data = &cpcap_battery_default_data,
- 	},
- 	{},
- };
-@@ -1026,28 +1096,17 @@ static const struct power_supply_desc cpcap_charger_battery_desc = {
- static int cpcap_battery_probe(struct platform_device *pdev)
- {
- 	struct cpcap_battery_ddata *ddata;
--	const struct of_device_id *match;
- 	struct power_supply_config psy_cfg = {};
- 	int error;
- 
--	match = of_match_device(of_match_ptr(cpcap_battery_id_table),
--				&pdev->dev);
--	if (!match)
--		return -EINVAL;
--
--	if (!match->data) {
--		dev_err(&pdev->dev, "no configuration data found\n");
--
--		return -ENODEV;
--	}
--
- 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
- 	if (!ddata)
- 		return -ENOMEM;
- 
-+	cpcap_battery_detect_battery_type(ddata);
-+
- 	INIT_LIST_HEAD(&ddata->irq_list);
- 	ddata->dev = &pdev->dev;
--	memcpy(&ddata->config, match->data, sizeof(ddata->config));
- 
- 	ddata->reg = dev_get_regmap(ddata->dev->parent, NULL);
- 	if (!ddata->reg)
--- 
-2.34.1
+> Even after "power: supply: cpcap-charger: Add usleep to cpcap charger
+> to avoid usb plug bounce" several usb host port and cable combinations,
+> especially when combined with usb hubs can cause cpcap-charger to fail
+> to activate charging even when vbus is seemingly fine. Using a scope
+> this has been tracked down to vbus still dropping quite considerably
+> (around 1.5V) for severl us when charging is enabled in these
+> problematic port-hub-cable combinations. this is probubly due to line
+> inductivity.
+> 
+> To avoid this, after this patch, cpcap-charger will ramp up charge
+> current slowly until it hits set current. This makes vbus mutch
+> cleaner on the scope and avoids the problem of charging being disabled
+> due to under-voltage. As this ramping causes innate delay the dealy
+> previously added to combat the related but independent problem of the
+> usb plug pins bouncing has been made obsolete.
+> 
+this problem sounds familiar to me. I had a long battle with the
+twl4030 charger in the GTA04. So the problem is that whenever vbus
+drops below a certain line, charging is stopped. and not restarted when
+vbus rises again?
+The twl4030 charger driver has the logic to rise the current until
+vbus drops below a certain limit (the limit mentioned above + some
+safety margin).
+That solves problems related to weak supply not providing the requested
+current without too much voltage drop for whatever reason. 
+
+It does not solve every problem. Voltage might drop too much if you move
+cables around and charging stop, and you wonder why your phone battery
+get drained.
+
+I have also some solar cell with a usb cable without battery buffer.
+That is also an interesting problem.
+Similar situation if you just use a voltage converter at a bicycle hub
+dynamo to charge your mobile device.
+
+
+For that the following patch went in:
+commit 7f4a633d21331155ee06c5ee44749ed35a3a3cc5
+Author: NeilBrown <neil@brown.name>
+Date:   Thu Jul 30 10:11:24 2015 +1000
+
+    twl4030_charger: add software controlled linear charging mode.
+
+Charging path is not disabled because of vbus drops then, but also not
+when current drops below a limit, so you should not have the device in
+that mode for days.
+
+What I am now thinking: What about a functionality in power supply core
+(enabled by drivers requring that) to try to rise current/start charging
+periodically when vbus is there but current is below set limit? 
+
+Regards,
+Andreas
+
+
+> Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
+> ---
+>  drivers/power/supply/cpcap-charger.c | 85 +++++++++++++++++++++-------
+>  1 file changed, 65 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/cpcap-charger.c
+> index 60e0ce105a29..1ae252d84685 100644
+> --- a/drivers/power/supply/cpcap-charger.c
+> +++ b/drivers/power/supply/cpcap-charger.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/power_supply.h>
+>  #include <linux/regmap.h>
+> +#include <linux/sched.h>
+>  
+>  #include <linux/gpio/consumer.h>
+>  #include <linux/usb/phy_companion.h>
+> @@ -128,6 +129,7 @@ struct cpcap_charger_ddata {
+>  	struct list_head irq_list;
+>  	struct delayed_work detect_work;
+>  	struct delayed_work vbus_work;
+> +	struct delayed_work ramp_work;
+>  	struct gpio_desc *gpio[2];		/* gpio_reven0 & 1 */
+>  
+>  	struct iio_channel *channels[CPCAP_CHARGER_IIO_NR];
+> @@ -142,6 +144,7 @@ struct cpcap_charger_ddata {
+>  	int status;
+>  	int voltage;
+>  	int limit_current;
+> +	int set_current;
+>  };
+>  
+>  struct cpcap_interrupt_desc {
+> @@ -440,6 +443,21 @@ static int cpcap_charger_enable(struct cpcap_charger_ddata *ddata,
+>  	return error;
+>  }
+>  
+> +static int cpcap_charger_get_charge_current_reg(struct cpcap_charger_ddata *ddata)
+> +{
+> +	int error;
+> +	unsigned int val;
+> +
+> +	error = regmap_read(ddata->reg, CPCAP_REG_CRM, &val);
+> +
+> +	if (error) {
+> +		dev_err(ddata->dev, "%s failed with %i\n", __func__, error);
+> +		return -1;
+> +	}
+> +
+> +	return val & 0xf;
+> +}
+> +
+>  static bool cpcap_charger_vbus_valid(struct cpcap_charger_ddata *ddata)
+>  {
+>  	int error, value = 0;
+> @@ -607,6 +625,9 @@ static void cpcap_charger_disconnect(struct cpcap_charger_ddata *ddata,
+>  		break;
+>  	}
+>  
+> +	cancel_delayed_work_sync(&ddata->ramp_work);
+> +	ddata->set_current = 0;
+> +
+>  	error = cpcap_charger_disable(ddata);
+>  	if (error) {
+>  		cpcap_charger_update_state(ddata, POWER_SUPPLY_STATUS_UNKNOWN);
+> @@ -618,6 +639,40 @@ static void cpcap_charger_disconnect(struct cpcap_charger_ddata *ddata,
+>  	schedule_delayed_work(&ddata->detect_work, delay);
+>  }
+>  
+> +static void cpcap_charger_ramp_work(struct work_struct *work)
+> +{
+> +	struct cpcap_charger_ddata *ddata;
+> +	int ichrg;
+> +	int vchrg;
+> +	int ichrg_current;
+> +	int error;
+> +
+> +	ddata = container_of(work, struct cpcap_charger_ddata,
+> +		     ramp_work.work);
+> +
+> +	ichrg_current = cpcap_charger_get_charge_current_reg(ddata);
+> +	ichrg = cpcap_charger_current_to_regval(ddata->set_current);
+> +	vchrg = cpcap_charger_voltage_to_regval(ddata->voltage);
+> +	if (ichrg_current < ichrg)
+> +		++ichrg_current;
+> +	else if (ichrg_current > ichrg)
+> +		ichrg_current = ichrg;
+> +	else
+> +		return;
+> +
+> +	error = cpcap_charger_enable(ddata,
+> +					CPCAP_REG_CRM_VCHRG(vchrg),
+> +					ichrg_current, 0);
+> +	if (error) {
+> +		dev_err(ddata->dev, "cpcap_charger_enable failed with %i\n", error);
+> +		cpcap_charger_update_state(ddata, POWER_SUPPLY_STATUS_UNKNOWN);
+> +	} else {
+> +		if (ichrg_current == ichrg && ddata->status != POWER_SUPPLY_STATUS_CHARGING)
+> +			cpcap_charger_update_state(ddata, POWER_SUPPLY_STATUS_CHARGING);
+> +		schedule_delayed_work(&ddata->ramp_work, HZ/20);
+> +	}
+> +}
+> +
+>  static void cpcap_usb_detect(struct work_struct *work)
+>  {
+>  	struct cpcap_charger_ddata *ddata;
+> @@ -651,13 +706,10 @@ static void cpcap_usb_detect(struct work_struct *work)
+>  		return;
+>  	}
+>  
+> -	/* Delay for 80ms to avoid vbus bouncing when usb cable is plugged in */
+> -	usleep_range(80000, 120000);
+> -
+>  	/* Throttle chrgcurr2 interrupt for charger done and retry */
+>  	switch (ddata->status) {
+>  	case POWER_SUPPLY_STATUS_CHARGING:
+> -		if (s.chrgcurr2)
+> +		if (s.chrgcurr2 || delayed_work_pending(&ddata->ramp_work))
+>  			break;
+>  		new_state = POWER_SUPPLY_STATUS_FULL;
+>  
+> @@ -683,8 +735,6 @@ static void cpcap_usb_detect(struct work_struct *work)
+>  
+>  	if (!ddata->feeding_vbus && cpcap_charger_vbus_valid(ddata) &&
+>  	    s.chrgcurr1) {
+> -		int max_current;
+> -		int vchrg, ichrg;
+>  		union power_supply_propval val;
+>  		struct power_supply *battery;
+>  
+> @@ -701,25 +751,18 @@ static void cpcap_usb_detect(struct work_struct *work)
+>  			goto out_err;
+>  
+>  		if (val.intval) {
+> -			max_current = 1596000;
+> +			ddata->set_current = 1596000;
+>  		} else {
+>  			dev_info(ddata->dev, "battery not inserted, charging disabled\n");
+> -			max_current = 0;
+> +			ddata->set_current = 0;
+>  		}
+>  
+> -		if (max_current > ddata->limit_current)
+> -			max_current = ddata->limit_current;
+> -
+> -		ichrg = cpcap_charger_current_to_regval(max_current);
+> -		vchrg = cpcap_charger_voltage_to_regval(ddata->voltage);
+> -		error = cpcap_charger_enable(ddata,
+> -					     CPCAP_REG_CRM_VCHRG(vchrg),
+> -					     ichrg, 0);
+> -		if (error)
+> -			goto out_err;
+> -		cpcap_charger_update_state(ddata,
+> -					   POWER_SUPPLY_STATUS_CHARGING);
+> +		if (ddata->set_current > ddata->limit_current)
+> +			ddata->set_current = ddata->limit_current;
+> +		if (!delayed_work_pending(&ddata->ramp_work))
+> +			schedule_delayed_work(&ddata->ramp_work, HZ/20);
+>  	} else {
+> +		ddata->set_current = 0;
+>  		error = cpcap_charger_disable(ddata);
+>  		if (error)
+>  			goto out_err;
+> @@ -902,6 +945,7 @@ static int cpcap_charger_probe(struct platform_device *pdev)
+>  	INIT_LIST_HEAD(&ddata->irq_list);
+>  	INIT_DELAYED_WORK(&ddata->detect_work, cpcap_usb_detect);
+>  	INIT_DELAYED_WORK(&ddata->vbus_work, cpcap_charger_vbus_work);
+> +	INIT_DELAYED_WORK(&ddata->ramp_work, cpcap_charger_ramp_work);
+>  	platform_set_drvdata(pdev, ddata);
+>  
+>  	error = cpcap_charger_init_iio(ddata);
+> @@ -964,6 +1008,7 @@ static void cpcap_charger_shutdown(struct platform_device *pdev)
+>  	cpcap_charger_update_state(ddata, POWER_SUPPLY_STATUS_DISCHARGING);
+>  	cancel_delayed_work_sync(&ddata->vbus_work);
+>  	cancel_delayed_work_sync(&ddata->detect_work);
+> +	cancel_delayed_work_sync(&ddata->ramp_work);
+>  }
+>  
+>  static int cpcap_charger_remove(struct platform_device *pdev)
 
