@@ -2,126 +2,208 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19FDDC433EF
-	for <linux-omap@archiver.kernel.org>; Tue, 18 Jan 2022 02:35:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44841C433FE
+	for <linux-omap@archiver.kernel.org>; Tue, 18 Jan 2022 09:41:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240500AbiARCeb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 17 Jan 2022 21:34:31 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:43954 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245546AbiARC0r (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 17 Jan 2022 21:26:47 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A0A716115F;
-        Tue, 18 Jan 2022 02:26:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEC54C36AE3;
-        Tue, 18 Jan 2022 02:26:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1642472806;
-        bh=ufLzCl2omFWLzhWbChO1EMdtfVpNuNeChc52YK05Kdw=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=nFdso7uSf4o76dFV9m8TeaG/JQpWT9yygc6tWHehPyWfG5+Yyg6w+MTE0cYa30B1V
-         Oh9Qh6+IFOC+Hbqg8xJFo0rTC790zOyp7uCdjflUfHSsCJs//wAfn75lO1pFBkXbr8
-         87T3VFwzZ7MiK97nBOVLpCBOTPiNSCYVruSltbp2Hm7+efGkZUkQOOO0Z86tDcjrDo
-         a8U44yx6qVygnOPlXmhZEWxdX0Wn7J3i6lA8Ipqps7Gk1AEKhjtJvjJYzqXKLslM3W
-         iyvF8NeTmguk3fMfFJJwlLEwkrHZSVIIZQBggRyEK7ihnfnJ4fQvgu/2lZROMy2wo0
-         e4FIcnfJRa7gw==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Sasha Levin <sashal@kernel.org>,
-        abaci-bugfix@linux.alibaba.com, mchehab+huawei@kernel.org,
-        robh@kernel.org, caihuoqing@baidu.com, linux-mmc@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.16 139/217] mmc: omap_hsmmc: Revert special init for wl1251
-Date:   Mon, 17 Jan 2022 21:18:22 -0500
-Message-Id: <20220118021940.1942199-139-sashal@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220118021940.1942199-1-sashal@kernel.org>
-References: <20220118021940.1942199-1-sashal@kernel.org>
+        id S231286AbiARJlH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 18 Jan 2022 04:41:07 -0500
+Received: from muru.com ([72.249.23.125]:51126 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229604AbiARJlH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Tue, 18 Jan 2022 04:41:07 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 0A9C280C0;
+        Tue, 18 Jan 2022 09:41:54 +0000 (UTC)
+Date:   Tue, 18 Jan 2022 11:41:03 +0200
+From:   Tony Lindgren <tony@atomide.com>
+To:     Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc:     Johan Hovold <johan@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        linux-serial@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/7] serial: core: Add support of runtime PM
+Message-ID: <YeaLL0cJFeIhz1Tr@atomide.com>
+References: <20211115084203.56478-1-tony@atomide.com>
+ <20211115084203.56478-2-tony@atomide.com>
+ <YaX82wxybOZnPKpy@hovoldconsulting.com>
+ <YbGwaOj0ZbEuNEPA@atomide.com>
+ <YbHb7HRGGFRBorB7@smile.fi.intel.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YbHb7HRGGFRBorB7@smile.fi.intel.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Hi,
 
-[ Upstream commit dfb654f1885f05baf506cdfdbc3f7efa1d847d54 ]
+* Andy Shevchenko <andriy.shevchenko@intel.com> [211209 10:37]:
+> On Thu, Dec 09, 2021 at 09:29:44AM +0200, Tony Lindgren wrote:
+> > * Johan Hovold <johan@kernel.org> [211130 10:29]:
+> > > On Mon, Nov 15, 2021 at 10:41:57AM +0200, Tony Lindgren wrote:
+> > > > From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > > 
+> > > > 8250 driver has wrong implementation of runtime power management, i.e.
+> > > > it uses an irq_safe flag. The irq_safe flag takes a permanent usage count
+> > > > on the parent device preventing the parent from idling. This patch
+> > > > prepares for making runtime power management generic by adding runtime PM
+> > > > calls to serial core once for all UART drivers.
+> > > > 
+> > > > As we have serial drivers that do not enable runtime PM, and drivers that
+> > > > enable runtime PM, we add new functions for serial_pm_resume_and_get() and
+> > > > serial_pm_autosuspend() functions to handle errors and allow the use also
+> > > > for cases when runtime PM is not enabled. The other option considered was
+> > > > to not check for runtime PM enable errors. But some CPUs can hang when the
+> > > > clocks are not enabled for the device, so ignoring the errors is not a good
+> > > > option. Eventually with the serial port drivers updated, we should be able
+> > > > to just switch to using the standard runtime PM calls with no need for the
+> > > > wrapper functions.
+> > > 
+> > > A third option which needs to be considered is to always enable runtime
+> > > pm in core but to keep the ports active while they are opened unless a
+> > > driver opts in for more aggressive power management. This is how USB
+> > > devices are handled for example.
+> > > 
+> > > A next step could then be to move over uart_change_pm() to be handled
+> > > from the pm callbacks.
+> > 
+> > Yes that would be nice to do eventually :)
 
-Due to recent changes to the mmc core, card quirks can be applied based
-upon a compatible string in child OF node. The quirk needed for wl1251
-(SDIO card) is managed in the core, therefore there is no longer any reason
-to deal with this in omap_hsmmc too, so let's remove it.
+I think we should do the "third option" above as the first preparatory patch.
+It can be done separately from the rest of the series, and we avoid adding
+serial layer specific wrappers around runtime PM calls in the later patches.
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-Link: https://lore.kernel.org/r/77d313b97d1e18b0eb7ed2d88d718d960f329bb0.1636564631.git.hns@goldelico.com
-[Ulf: Re-wrote the commit message to make it more clear]
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/mmc/host/omap_hsmmc.c | 36 -----------------------------------
- 1 file changed, 36 deletions(-)
+Below is what I came up with for the preparatory patch, can you guys please
+take a look and see if you have better ideas?
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 9dafcbf969d96..fca30add563e9 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1499,41 +1499,6 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 	omap_hsmmc_set_bus_mode(host);
- }
+For system suspend and resume, it seems we don't need to do anything as
+runtime PM is anyways disabled already in prepare.
+
+Andy, care to give the following also a try for your serial port test
+cases?
+
+Regards,
+
+Tony
+
+8< --------------------
+diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
+--- a/drivers/tty/serial/8250/8250_core.c
++++ b/drivers/tty/serial/8250/8250_core.c
+@@ -997,6 +997,7 @@ int serial8250_register_8250_port(const struct uart_8250_port *up)
+ 		uart->port.regshift     = up->port.regshift;
+ 		uart->port.iotype       = up->port.iotype;
+ 		uart->port.flags        = up->port.flags | UPF_BOOT_AUTOCONF;
++		uart->port.supports_autosuspend = up->port.supports_autosuspend;
+ 		uart->bugs		= up->bugs;
+ 		uart->port.mapbase      = up->port.mapbase;
+ 		uart->port.mapsize      = up->port.mapsize;
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -1352,6 +1352,7 @@ static int omap8250_probe(struct platform_device *pdev)
+ 	up.rs485_start_tx = serial8250_em485_start_tx;
+ 	up.rs485_stop_tx = serial8250_em485_stop_tx;
+ 	up.port.has_sysrq = IS_ENABLED(CONFIG_SERIAL_8250_CONSOLE);
++	up.port.supports_autosuspend = 1;
  
--static void omap_hsmmc_init_card(struct mmc_host *mmc, struct mmc_card *card)
--{
--	struct omap_hsmmc_host *host = mmc_priv(mmc);
--
--	if (card->type == MMC_TYPE_SDIO || card->type == MMC_TYPE_SD_COMBO) {
--		struct device_node *np = mmc_dev(mmc)->of_node;
--
--		/*
--		 * REVISIT: should be moved to sdio core and made more
--		 * general e.g. by expanding the DT bindings of child nodes
--		 * to provide a mechanism to provide this information:
--		 * Documentation/devicetree/bindings/mmc/mmc-card.yaml
--		 */
--
--		np = of_get_compatible_child(np, "ti,wl1251");
--		if (np) {
--			/*
--			 * We have TI wl1251 attached to MMC3. Pass this
--			 * information to the SDIO core because it can't be
--			 * probed by normal methods.
--			 */
--
--			dev_info(host->dev, "found wl1251\n");
--			card->quirks |= MMC_QUIRK_NONSTD_SDIO;
--			card->cccr.wide_bus = 1;
--			card->cis.vendor = 0x104c;
--			card->cis.device = 0x9066;
--			card->cis.blksize = 512;
--			card->cis.max_dtr = 24000000;
--			card->ocr = 0x80;
--			of_node_put(np);
--		}
--	}
--}
--
- static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
+ 	ret = of_alias_get_id(np, "serial");
+ 	if (ret < 0) {
+diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -16,6 +16,7 @@
+ #include <linux/console.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/of.h>
++#include <linux/pm_runtime.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/device.h>
+@@ -184,6 +185,7 @@ static int uart_port_startup(struct tty_struct *tty, struct uart_state *state,
+ 		int init_hw)
  {
- 	struct omap_hsmmc_host *host = mmc_priv(mmc);
-@@ -1660,7 +1625,6 @@ static struct mmc_host_ops omap_hsmmc_ops = {
- 	.set_ios = omap_hsmmc_set_ios,
- 	.get_cd = mmc_gpio_get_cd,
- 	.get_ro = mmc_gpio_get_ro,
--	.init_card = omap_hsmmc_init_card,
- 	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
- };
+ 	struct uart_port *uport = uart_port_check(state);
++	struct device *dev = uport->dev;
+ 	unsigned long flags;
+ 	unsigned long page;
+ 	int retval = 0;
+@@ -191,6 +193,32 @@ static int uart_port_startup(struct tty_struct *tty, struct uart_state *state,
+ 	if (uport->type == PORT_UNKNOWN)
+ 		return 1;
  
++	/* Always enable autosuspend and consider child devices for serdev */
++	pm_runtime_use_autosuspend(dev);
++	pm_suspend_ignore_children(dev, false);
++
++	/*
++	 * If the port driver did not enable runtime PM in probe, do it now.
++	 * Devices that did not enable runtime PM get set active so we can
++	 * properly handler the returned errors for runtime PM calls.
++	 */
++	if (!pm_runtime_enabled(dev)) {
++		pm_runtime_set_active(dev);
++		pm_runtime_enable(dev);
++	} else {
++		uport->implements_pm_runtime = 1;
++	}
++
++	/*
++	 * Keep the port enabled unless autosuspend is supported.
++	 * Released in uart_shutdown().
++	 */
++	if (!uport->supports_autosuspend) {
++		retval = pm_runtime_resume_and_get(dev);
++		if (retval < 0)
++			return retval;
++	}
++
+ 	/*
+ 	 * Make sure the device is in D0 state.
+ 	 */
+@@ -279,6 +307,7 @@ static void uart_shutdown(struct tty_struct *tty, struct uart_state *state)
+ {
+ 	struct uart_port *uport = uart_port_check(state);
+ 	struct tty_port *port = &state->port;
++	struct device *dev = uport->dev;
+ 	unsigned long flags;
+ 	char *xmit_buf = NULL;
+ 
+@@ -313,6 +342,19 @@ static void uart_shutdown(struct tty_struct *tty, struct uart_state *state)
+ 	 */
+ 	tty_port_set_suspended(port, 0);
+ 
++	/* Runtime PM paired with configuration done in uart_port_startup() */
++	if (uport) {
++		dev = uport->dev;
++		pm_runtime_dont_use_autosuspend(dev);
++		pm_suspend_ignore_children(dev, true);
++		if (!uport->supports_autosuspend)
++			pm_runtime_put_sync(dev);
++		if (!uport->implements_pm_runtime) {
++			pm_runtime_set_suspended(dev);
++			pm_runtime_disable(dev);
++		}
++	}
++
+ 	/*
+ 	 * Do not free() the transmit buffer page under the port lock since
+ 	 * this can create various circular locking scenarios. For instance,
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -249,6 +249,8 @@ struct uart_port {
+ 	unsigned char		hub6;			/* this should be in the 8250 driver */
+ 	unsigned char		suspended;
+ 	unsigned char		console_reinit;
++	unsigned long		implements_pm_runtime:1;
++	unsigned long		supports_autosuspend:1;
+ 	const char		*name;			/* port name */
+ 	struct attribute_group	*attr_group;		/* port specific attributes */
+ 	const struct attribute_group **tty_groups;	/* all attributes (serial core use only) */
 -- 
 2.34.1
-
