@@ -2,450 +2,189 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FA74C433FE
-	for <linux-omap@archiver.kernel.org>; Sun, 23 Jan 2022 17:53:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3D14C433FE
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Jan 2022 12:21:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239405AbiAWRxn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 23 Jan 2022 12:53:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43118 "EHLO
+        id S239512AbiAXMVu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Jan 2022 07:21:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239398AbiAWRxl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 23 Jan 2022 12:53:41 -0500
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA895C06173B
-        for <linux-omap@vger.kernel.org>; Sun, 23 Jan 2022 09:53:40 -0800 (PST)
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1nBh2H-0007aG-Mg; Sun, 23 Jan 2022 18:52:17 +0100
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1nBh28-00BycE-Ac; Sun, 23 Jan 2022 18:52:07 +0100
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1nBh26-000tzT-Dk; Sun, 23 Jan 2022 18:52:06 +0100
-From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>
-To:     Mark Brown <broonie@kernel.org>
-Cc:     =?utf-8?q?Marek_Beh=C3=BAn?= <kabel@kernel.org>,
-        Peter Huewe <peterhuewe@gmx.de>,
-        Jarkko Sakkinen <jarkko@kernel.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Sam Ravnborg <sam@ravnborg.org>,
-        David Airlie <airlied@linux.ie>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Markuss Broks <markuss.broks@gmail.com>,
-        Emma Anholt <emma@anholt.net>,
-        David Lechner <david@lechnology.com>,
-        Kamlesh Gurudasani <kamlesh.gurudasani@gmail.com>,
-        =?utf-8?q?Noralf_Tr=C3=B8nnes?= <noralf@tronnes.org>,
-        Jean Delvare <jdelvare@suse.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Dan Robertson <dan@dlrobertson.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Michael Hennerich <Michael.Hennerich@analog.com>,
-        Marcus Folkesson <marcus.folkesson@gmail.com>,
-        Kent Gustavsson <kent@minoris.se>,
-        Rui Miguel Silva <rmfrfs@gmail.com>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
-        Antti Palosaari <crope@iki.fi>,
-        Lee Jones <lee.jones@linaro.org>,
-        Support Opensource <support.opensource@diasemi.com>,
-        Charles Keepax <ckeepax@opensource.cirrus.com>,
-        Richard Fitzgerald <rf@opensource.cirrus.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@foss.st.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Eric Piel <eric.piel@tremplin-utc.net>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Richard Weinberger <richard@nod.at>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Wolfgang Grandegger <wg@grandegger.com>,
-        Marc Kleine-Budde <mkl@pengutronix.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Manivannan Sadhasivam <mani@kernel.org>,
-        Thomas Kopp <thomas.kopp@microchip.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Vladimir Oltean <olteanv@gmail.com>,
-        Woojung Huh <woojung.huh@microchip.com>,
-        UNGLinuxDriver@microchip.com,
-        =?utf-8?q?=C5=81ukasz_Stelmach?= <l.stelmach@samsung.com>,
-        Alexander Aring <alex.aring@gmail.com>,
-        Stefan Schmidt <stefan@datenfreihafen.org>,
-        Harry Morris <h.morris@cascoda.com>,
-        Varka Bhadram <varkabhadram@gmail.com>,
-        Xue Liu <liuxuenetmail@gmail.com>, Alan Ott <alan@signal11.us>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Kalle Valo <kvalo@kernel.org>,
-        Ajay Singh <ajay.kathat@microchip.com>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
-        Mark Greer <mgreer@animalcreek.com>,
-        Benson Leung <bleung@chromium.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        Alessandro Zummo <a.zummo@towertech.it>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        =?utf-8?b?SsOpcsO0bWUgUG91aWxsZXI=?= <jerome.pouiller@silabs.com>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        Felipe Balbi <balbi@kernel.org>,
-        Daniel Thompson <daniel.thompson@linaro.org>,
-        Jingoo Han <jingoohan1@gmail.com>,
-        Helge Deller <deller@gmx.de>,
-        James Schulman <james.schulman@cirrus.com>,
-        David Rhodes <david.rhodes@cirrus.com>,
-        Lucas Tanure <tanureal@opensource.cirrus.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        =?utf-8?q?Nuno_S=C3=A1?= <nuno.sa@analog.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Daniel Mack <daniel@zonque.org>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Maxime Ripard <mripard@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Stephan Gerhold <stephan@gerhold.net>,
-        Alexandru Ardelean <ardeleanalex@gmail.com>,
-        Mike Looijmans <mike.looijmans@topic.nl>,
-        Gwendal Grignou <gwendal@chromium.org>,
-        Cai Huoqing <caihuoqing@baidu.com>,
-        Minghao Chi <chi.minghao@zte.com.cn>,
-        Antoniu Miclaus <antoniu.miclaus@analog.com>,
-        Julia Lawall <Julia.Lawall@inria.fr>,
-        =?utf-8?q?Ronald_Tschal=C3=A4r?= <ronald@innovation.ch>,
-        Marco Felsch <m.felsch@pengutronix.de>,
-        =?utf-8?q?Jonathan_Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>,
-        Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>,
-        Jon Hunter <jonathanh@nvidia.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Heiko Schocher <hs@denx.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        Colin Ian King <colin.king@intel.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Tudor Ambarus <tudor.ambarus@microchip.com>,
-        Matt Kline <matt@bitbashing.io>,
-        Torin Cooper-Bennun <torin@maxiluxsystems.com>,
-        Vincent Mailhol <mailhol.vincent@wanadoo.fr>,
-        =?utf-8?q?Stefan_M=C3=A4tje?= <stefan.maetje@esd.eu>,
-        Frieder Schrempf <frieder.schrempf@kontron.de>,
-        Wei Yongjun <weiyongjun1@huawei.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Nanyong Sun <sunnanyong@huawei.com>,
-        Yang Shen <shenyang39@huawei.com>,
-        dingsenjie <dingsenjie@yulong.com>,
-        Aditya Srivastava <yashsri421@gmail.com>,
-        Stefan Wahren <stefan.wahren@i2se.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Michael Walle <michael@walle.cc>,
-        Yang Li <yang.lee@linux.alibaba.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        wengjianfeng <wengjianfeng@yulong.com>,
-        Sidong Yang <realwakka@gmail.com>,
-        Paulo Miguel Almeida <paulo.miguel.almeida.rodenas@gmail.com>,
-        Zhang Qilong <zhangqilong3@huawei.com>,
-        Will Deacon <will@kernel.org>,
-        Mark Tomlinson <mark.tomlinson@alliedtelesis.co.nz>,
-        Davidlohr Bueso <dbueso@suse.de>, Claudius Heine <ch@denx.de>,
-        Jiri Prchal <jiri.prchal@aksignal.cz>,
-        linux-kernel@vger.kernel.org, linux-integrity@vger.kernel.org,
-        linux-clk@vger.kernel.org, linux-gpio@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-hwmon@vger.kernel.org,
-        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-        patches@opensource.cirrus.com, alsa-devel@alsa-project.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-can@vger.kernel.org,
-        netdev@vger.kernel.org, linux-wpan@vger.kernel.org,
-        linux-wireless@vger.kernel.org, libertas-dev@lists.infradead.org,
-        platform-driver-x86@vger.kernel.org, linux-rtc@vger.kernel.org,
-        linux-spi@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-staging@lists.linux.dev, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, linux-omap@vger.kernel.org,
-        kernel@pengutronix.de, Noralf Tronnes <notro@tronnes.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Guenter Roeck <groeck@google.com>,
-        Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Subject: [PATCH 0/5] spi: make remove callback a void function
-Date:   Sun, 23 Jan 2022 18:51:56 +0100
-Message-Id: <20220123175201.34839-1-u.kleine-koenig@pengutronix.de>
+        with ESMTP id S239407AbiAXMVp (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jan 2022 07:21:45 -0500
+Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5325C06173B;
+        Mon, 24 Jan 2022 04:21:44 -0800 (PST)
+Received: by mail-wr1-x42b.google.com with SMTP id a13so13231251wrh.9;
+        Mon, 24 Jan 2022 04:21:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=yNk3iptcaf318dqFvmgFI2Cy5wTzaw5Fh5cUP/iskfI=;
+        b=MzO9AUc2ANAyPODg7OE6uf3n3mk8jAUUPoucXqJIgb8W5HF3uINCqAKFWGOfc/howo
+         dZvdbFPLMKwN5ZmLKaUYyYrxw7pG87h0sCgUqaFFXaA8Gy+0d91NBChxVDZaUs3ri1ug
+         2u84lJUDxeV6AyifKzjZadF3iLiDH1yhfzOmCrhV+f9i0CUkfirDpurTgpOBcYhXGEIh
+         Tq7xrRFoNhnW0tdF4Fk/QG4kwzedYtal6sXiweCv7vL5x0//SCXHFVfGZuL6B8WodgHe
+         kDuXT8vHwvWDzBiGAko57Noxy2Iw70ZQEZhbs+GYrgsoJXDTGQwBX+8Rc4J31DQ8xDex
+         yHwQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=yNk3iptcaf318dqFvmgFI2Cy5wTzaw5Fh5cUP/iskfI=;
+        b=QwjR+VnNIwW2Kx5aPe5T+6ELdX4iw4uST4tztY/jP4YI08HXf4K5MUyWkp1AjaXh4c
+         B2gILsRPAZeeHS/tMRYXWlEs988TvEgRv56odtJFcPN89hrwf8p3caN4iPhRYVJ0dQcC
+         XK6/L+cZRQ24ngRxFzKuUqPoahN9cObIl2djDrvX5+OJH4+Kj72bKez7Sv7dtid/A1kd
+         YScDL3Jk/hcL0mjwBTCGN8FRg1A4zMrs9lry2kc/gNIQgGx6B7q29nPGJS+Yeyh3of3S
+         6cosPfSG6CkkMw2o5VzedVachxswbR1AYKeDFiQ+7OT0R8P+bk5f6Xit1BCHUsIfdUXo
+         NWIg==
+X-Gm-Message-State: AOAM533bJSOq1qdtPG/89CUJ6VcgW0ZwtHtzuuHgFdHWLXlVvCiw5+v2
+        Z/0xu2NEHDNNlr6ck6p630cwFyO9pRU=
+X-Google-Smtp-Source: ABdhPJxpFZOXc2gQIkGEiuUZRHxO0E1YI7AvQ9fqIfJ4409KMCRS1KZ2BLTx5rAooWuz0vvYxMIg2A==
+X-Received: by 2002:adf:f90c:: with SMTP id b12mr14161536wrr.379.1643026903103;
+        Mon, 24 Jan 2022 04:21:43 -0800 (PST)
+Received: from localhost.localdomain.at (62-178-82-229.cable.dynamic.surfer.at. [62.178.82.229])
+        by smtp.gmail.com with ESMTPSA id w8sm13984499wre.83.2022.01.24.04.21.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 24 Jan 2022 04:21:42 -0800 (PST)
+From:   Christian Gmeiner <christian.gmeiner@gmail.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Christian Gmeiner <christian.gmeiner@gmail.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        =?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH] Revert "PCI: j721e: Drop redundant struct device *"
+Date:   Mon, 24 Jan 2022 13:21:22 +0100
+Message-Id: <20220124122132.435743-1-christian.gmeiner@gmail.com>
 X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=13159; h=from:subject; bh=owUsrJiUxQg0WH9JiyxXcWg2QcQX/yEwEp5ObL2T9n0=; b=owGbwMvMwMV48I9IxdpTbzgZT6slMSS+nbpcuF1aSOHc7VvcKru0ItTvBT39tGSS6+W7Qqqsga+6 XV/1dDIaszAwcjHIiimy1BVpiU2QWPPfrmQJN8wgViaQKQxcnAIwkQJ1DoZJL1o6pbJMnj7jmr4qUS z5cENAvodiUGgJM7vdWk2x1lkXfyiGhedIbP/1ivHDvGRTmXL/wIg7PG/WnKtj3+Cxw3vSTCnTOzOd yi9M2O48eVabWmdxdar48r4nD8SX8C08EDSTi+vRDt+c6nvV3NfNWBp1n+gr+KXecpB0EyurXNg2We Uo48mJf1OlAs7efhjiFRf3rvCxJsfV54c496b3NyuWHJzSmuayo0HlZt6l61nCfqtvRPNVJB6OfXdb hs8hRbB7TVzWu4TqJTmrVkWmKp/49rnOYBtTkkTTztLDU1/M/GPS5CYxR5hB+kNfXS1Xv6L8fpUOs7 C3m3IdIjib3pfmHW2edIvrx04rAA==
-X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hello,
+This reverts commit 19e863828acf6d8ac8475ba1fd93c0fe17fdc4ef.
 
-this series goal is to change the spi remove callback's return value to void.
-After numerous patches nearly all drivers already return 0 unconditionally.
-The four first patches in this series convert the remaining three drivers to
-return 0, the final patch changes the remove prototype and converts all
-implementers.
+Fixes the following oops:
+ Unable to handle kernel NULL pointer dereference at virtual address 0000000000000010
+ Internal error: Oops: 96000004 [#1] PREEMPT SMP
+ Modules linked in:
+ CPU: 1 PID: 7 Comm: kworker/u4:0 Not tainted 5.17.0-rc1-00086-ge38b27816fea-dirty #71
+ Hardware name: CPE0108 (DT)
+ Workqueue: events_unbound deferred_probe_work_func
+ pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+ pc : j721e_pcie_probe+0x184/0x600
+ lr : j721e_pcie_probe+0x170/0x600
+ sp : ffff80000957bae0
+ x29: ffff80000957bae0 x28: ffff800009357000 x27: ffff00000000c078
+ x26: ffff00003fe047a8 x25: 0000000000000000 x24: ffff0000000f5280
+ x23: ffff800008c98f78 x22: ffff800008f90ff0 x21: ffff000000231410
+ x20: ffff000002ef2780 x19: 0000000000000021 x18: 0000000000000001
+ x17: 0000000000000000 x16: 0000000000058c00 x15: ffffffffffffffff
+ x14: ffffffffffffffff x13: 0000000000000010 x12: 0101010101010101
+ x11: 0000000000000040 x10: ffff8000093e06c8 x9 : ffff8000093e06c0
+ x8 : ffff000000400270 x7 : 0000000000000000 x6 : ffff000000231590
+ x5 : ffff80000957b9e0 x4 : 0000000000000000 x3 : ffff0000002314f4
+ x2 : 0000000000000000 x1 : ffff0000000f5280 x0 : 0000000000000000
+ Call trace:
+  j721e_pcie_probe+0x184/0x600
+  platform_probe+0x68/0xe0
+  really_probe+0x144/0x320
+  __driver_probe_device+0xc4/0xe0
+  driver_probe_device+0x7c/0x110
+  __device_attach_driver+0x90/0xe0
+  bus_for_each_drv+0x78/0xd0
+  __device_attach+0xf0/0x150
+  device_initial_probe+0x14/0x20
+  bus_probe_device+0x9c/0xb0
+  deferred_probe_work_func+0x88/0xc0
+  process_one_work+0x1bc/0x340
+  worker_thread+0x1f8/0x420
+  kthread+0x110/0x120
+  ret_from_fork+0x10/0x20
+ Code: f9400280 a90573fb d0005396 913fc2d6 (f9400800)
 
-The driver core doesn't support error handling on remove, the spi core issues
-only a very generic warning when a remove callback returns an error. If there
-is really the need for a function call that can fail, the driver can issue a
-more helpful error message. I didn't find a single driver where returning
-an error code and error handling in the spi core would have been helpful.
+Fixes: 19e863828acf ("PCI: j721e: Drop redundant struct device *")
+Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+---
+ drivers/pci/controller/cadence/pci-j721e.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-So change the prototype of the remove function to make it obvious for driver
-authors that there is no error handling in the spi core.
-
-The four preparatory patches were already send out, but not yet taken into
-next.
-
-Assuming Mark is fine with this change I'd like to have this go in during the
-next merge window. I guess we need a tag that can be pulled into trees that add
-a new driver in the next cycle. I can provide such a tag, but I'm open to
-alternatives.
-
-The patch set survived an allmodconfig build on various archs (arm64 m68k
-powerpc riscv s390 sparc64 x86_64) after the following two commits from
-next-20220121 were added to fix an unrelated build problem:
-
-        be973481daaa ("pinctrl: thunderbay: rework loops looking for groups names")
-        8687999e47d4 ("pinctrl: thunderbay: comment process of building functions a bit")
-
-Best regards
-Uwe
-
-Uwe Kleine-König (5):
-  staging: fbtft: Fix error path in fbtft_driver_module_init()
-  staging: fbtft: Deduplicate driver registration macros
-  tpm: st33zp24: Make st33zp24_remove() a void function
-  platform/chrome: cros_ec: Make cros_ec_unregister() return void
-  spi: make remove callback a void function
-
- drivers/bus/moxtet.c                          |  4 +-
- drivers/char/tpm/st33zp24/i2c.c               |  5 +-
- drivers/char/tpm/st33zp24/spi.c               |  9 +-
- drivers/char/tpm/st33zp24/st33zp24.c          |  3 +-
- drivers/char/tpm/st33zp24/st33zp24.h          |  2 +-
- drivers/char/tpm/tpm_tis_spi_main.c           |  3 +-
- drivers/clk/clk-lmk04832.c                    |  4 +-
- drivers/gpio/gpio-74x164.c                    |  4 +-
- drivers/gpio/gpio-max3191x.c                  |  4 +-
- drivers/gpio/gpio-max7301.c                   |  4 +-
- drivers/gpio/gpio-mc33880.c                   |  4 +-
- drivers/gpio/gpio-pisosr.c                    |  4 +-
- drivers/gpu/drm/panel/panel-abt-y030xx067a.c  |  4 +-
- drivers/gpu/drm/panel/panel-ilitek-ili9322.c  |  4 +-
- drivers/gpu/drm/panel/panel-ilitek-ili9341.c  |  3 +-
- drivers/gpu/drm/panel/panel-innolux-ej030na.c |  4 +-
- drivers/gpu/drm/panel/panel-lg-lb035q02.c     |  4 +-
- drivers/gpu/drm/panel/panel-lg-lg4573.c       |  4 +-
- drivers/gpu/drm/panel/panel-nec-nl8048hl11.c  |  4 +-
- drivers/gpu/drm/panel/panel-novatek-nt39016.c |  4 +-
- drivers/gpu/drm/panel/panel-samsung-db7430.c  |  3 +-
- drivers/gpu/drm/panel/panel-samsung-ld9040.c  |  4 +-
- drivers/gpu/drm/panel/panel-samsung-s6d27a1.c |  3 +-
- .../gpu/drm/panel/panel-samsung-s6e63m0-spi.c |  3 +-
- .../gpu/drm/panel/panel-sitronix-st7789v.c    |  4 +-
- drivers/gpu/drm/panel/panel-sony-acx565akm.c  |  4 +-
- drivers/gpu/drm/panel/panel-tpo-td028ttec1.c  |  4 +-
- drivers/gpu/drm/panel/panel-tpo-td043mtea1.c  |  4 +-
- drivers/gpu/drm/panel/panel-tpo-tpg110.c      |  3 +-
- .../gpu/drm/panel/panel-widechips-ws2401.c    |  3 +-
- drivers/gpu/drm/tiny/hx8357d.c                |  4 +-
- drivers/gpu/drm/tiny/ili9163.c                |  4 +-
- drivers/gpu/drm/tiny/ili9225.c                |  4 +-
- drivers/gpu/drm/tiny/ili9341.c                |  4 +-
- drivers/gpu/drm/tiny/ili9486.c                |  4 +-
- drivers/gpu/drm/tiny/mi0283qt.c               |  4 +-
- drivers/gpu/drm/tiny/repaper.c                |  4 +-
- drivers/gpu/drm/tiny/st7586.c                 |  4 +-
- drivers/gpu/drm/tiny/st7735r.c                |  4 +-
- drivers/hwmon/adcxx.c                         |  4 +-
- drivers/hwmon/adt7310.c                       |  3 +-
- drivers/hwmon/max1111.c                       |  3 +-
- drivers/hwmon/max31722.c                      |  4 +-
- drivers/iio/accel/bma400_spi.c                |  4 +-
- drivers/iio/accel/bmc150-accel-spi.c          |  4 +-
- drivers/iio/accel/bmi088-accel-spi.c          |  4 +-
- drivers/iio/accel/kxsd9-spi.c                 |  4 +-
- drivers/iio/accel/mma7455_spi.c               |  4 +-
- drivers/iio/accel/sca3000.c                   |  4 +-
- drivers/iio/adc/ad7266.c                      |  4 +-
- drivers/iio/adc/ltc2496.c                     |  4 +-
- drivers/iio/adc/mcp320x.c                     |  4 +-
- drivers/iio/adc/mcp3911.c                     |  4 +-
- drivers/iio/adc/ti-adc12138.c                 |  4 +-
- drivers/iio/adc/ti-ads7950.c                  |  4 +-
- drivers/iio/adc/ti-ads8688.c                  |  4 +-
- drivers/iio/adc/ti-tlc4541.c                  |  4 +-
- drivers/iio/amplifiers/ad8366.c               |  4 +-
- drivers/iio/common/ssp_sensors/ssp_dev.c      |  4 +-
- drivers/iio/dac/ad5360.c                      |  4 +-
- drivers/iio/dac/ad5380.c                      |  4 +-
- drivers/iio/dac/ad5446.c                      |  4 +-
- drivers/iio/dac/ad5449.c                      |  4 +-
- drivers/iio/dac/ad5504.c                      |  4 +-
- drivers/iio/dac/ad5592r.c                     |  4 +-
- drivers/iio/dac/ad5624r_spi.c                 |  4 +-
- drivers/iio/dac/ad5686-spi.c                  |  4 +-
- drivers/iio/dac/ad5761.c                      |  4 +-
- drivers/iio/dac/ad5764.c                      |  4 +-
- drivers/iio/dac/ad5791.c                      |  4 +-
- drivers/iio/dac/ad8801.c                      |  4 +-
- drivers/iio/dac/ltc1660.c                     |  4 +-
- drivers/iio/dac/ltc2632.c                     |  4 +-
- drivers/iio/dac/mcp4922.c                     |  4 +-
- drivers/iio/dac/ti-dac082s085.c               |  4 +-
- drivers/iio/dac/ti-dac7311.c                  |  3 +-
- drivers/iio/frequency/adf4350.c               |  4 +-
- drivers/iio/gyro/bmg160_spi.c                 |  4 +-
- drivers/iio/gyro/fxas21002c_spi.c             |  4 +-
- drivers/iio/health/afe4403.c                  |  4 +-
- drivers/iio/magnetometer/bmc150_magn_spi.c    |  4 +-
- drivers/iio/magnetometer/hmc5843_spi.c        |  4 +-
- drivers/iio/potentiometer/max5487.c           |  4 +-
- drivers/iio/pressure/ms5611_spi.c             |  4 +-
- drivers/iio/pressure/zpa2326_spi.c            |  4 +-
- drivers/input/keyboard/applespi.c             |  4 +-
- drivers/input/misc/adxl34x-spi.c              |  4 +-
- drivers/input/touchscreen/ads7846.c           |  4 +-
- drivers/input/touchscreen/cyttsp4_spi.c       |  4 +-
- drivers/input/touchscreen/tsc2005.c           |  4 +-
- drivers/leds/leds-cr0014114.c                 |  4 +-
- drivers/leds/leds-dac124s085.c                |  4 +-
- drivers/leds/leds-el15203000.c                |  4 +-
- drivers/leds/leds-spi-byte.c                  |  4 +-
- drivers/media/spi/cxd2880-spi.c               |  4 +-
- drivers/media/spi/gs1662.c                    |  4 +-
- drivers/media/tuners/msi001.c                 |  3 +-
- drivers/mfd/arizona-spi.c                     |  4 +-
- drivers/mfd/da9052-spi.c                      |  3 +-
- drivers/mfd/ezx-pcap.c                        |  4 +-
- drivers/mfd/madera-spi.c                      |  4 +-
- drivers/mfd/mc13xxx-spi.c                     |  3 +-
- drivers/mfd/rsmu_spi.c                        |  4 +-
- drivers/mfd/stmpe-spi.c                       |  4 +-
- drivers/mfd/tps65912-spi.c                    |  4 +-
- drivers/misc/ad525x_dpot-spi.c                |  3 +-
- drivers/misc/eeprom/eeprom_93xx46.c           |  4 +-
- drivers/misc/lattice-ecp3-config.c            |  4 +-
- drivers/misc/lis3lv02d/lis3lv02d_spi.c        |  4 +-
- drivers/mmc/host/mmc_spi.c                    |  3 +-
- drivers/mtd/devices/mchp23k256.c              |  4 +-
- drivers/mtd/devices/mchp48l640.c              |  4 +-
- drivers/mtd/devices/mtd_dataflash.c           |  4 +-
- drivers/mtd/devices/sst25l.c                  |  4 +-
- drivers/net/can/m_can/tcan4x5x-core.c         |  4 +-
- drivers/net/can/spi/hi311x.c                  |  4 +-
- drivers/net/can/spi/mcp251x.c                 |  4 +-
- .../net/can/spi/mcp251xfd/mcp251xfd-core.c    |  4 +-
- drivers/net/dsa/b53/b53_spi.c                 |  4 +-
- drivers/net/dsa/microchip/ksz8795_spi.c       |  4 +-
- drivers/net/dsa/microchip/ksz9477_spi.c       |  4 +-
- drivers/net/dsa/sja1105/sja1105_main.c        |  6 +-
- drivers/net/dsa/vitesse-vsc73xx-spi.c         |  6 +-
- drivers/net/ethernet/asix/ax88796c_main.c     |  4 +-
- drivers/net/ethernet/micrel/ks8851_spi.c      |  4 +-
- drivers/net/ethernet/microchip/enc28j60.c     |  4 +-
- drivers/net/ethernet/microchip/encx24j600.c   |  4 +-
- drivers/net/ethernet/qualcomm/qca_spi.c       |  4 +-
- drivers/net/ethernet/vertexcom/mse102x.c      |  4 +-
- drivers/net/ethernet/wiznet/w5100-spi.c       |  4 +-
- drivers/net/ieee802154/adf7242.c              |  4 +-
- drivers/net/ieee802154/at86rf230.c            |  4 +-
- drivers/net/ieee802154/ca8210.c               |  6 +-
- drivers/net/ieee802154/cc2520.c               |  4 +-
- drivers/net/ieee802154/mcr20a.c               |  4 +-
- drivers/net/ieee802154/mrf24j40.c             |  4 +-
- drivers/net/phy/spi_ks8995.c                  |  4 +-
- drivers/net/wan/slic_ds26522.c                |  3 +-
- drivers/net/wireless/intersil/p54/p54spi.c    |  4 +-
- .../net/wireless/marvell/libertas/if_spi.c    |  4 +-
- drivers/net/wireless/microchip/wilc1000/spi.c |  4 +-
- drivers/net/wireless/st/cw1200/cw1200_spi.c   |  4 +-
- drivers/net/wireless/ti/wl1251/spi.c          |  4 +-
- drivers/net/wireless/ti/wlcore/spi.c          |  4 +-
- drivers/nfc/nfcmrvl/spi.c                     |  3 +-
- drivers/nfc/st-nci/spi.c                      |  4 +-
- drivers/nfc/st95hf/core.c                     |  4 +-
- drivers/nfc/trf7970a.c                        |  4 +-
- drivers/platform/chrome/cros_ec.c             |  4 +-
- drivers/platform/chrome/cros_ec.h             |  2 +-
- drivers/platform/chrome/cros_ec_i2c.c         |  4 +-
- drivers/platform/chrome/cros_ec_lpc.c         |  4 +-
- drivers/platform/chrome/cros_ec_spi.c         |  4 +-
- drivers/platform/olpc/olpc-xo175-ec.c         |  4 +-
- drivers/rtc/rtc-ds1302.c                      |  3 +-
- drivers/rtc/rtc-ds1305.c                      |  4 +-
- drivers/rtc/rtc-ds1343.c                      |  4 +-
- drivers/spi/spi-mem.c                         |  6 +-
- drivers/spi/spi-slave-system-control.c        |  3 +-
- drivers/spi/spi-slave-time.c                  |  3 +-
- drivers/spi/spi-tle62x0.c                     |  3 +-
- drivers/spi/spi.c                             | 11 +--
- drivers/spi/spidev.c                          |  4 +-
- drivers/staging/fbtft/fbtft.h                 | 97 ++++++++-----------
- drivers/staging/pi433/pi433_if.c              |  4 +-
- drivers/staging/wfx/bus_spi.c                 |  3 +-
- drivers/tty/serial/max3100.c                  |  5 +-
- drivers/tty/serial/max310x.c                  |  3 +-
- drivers/tty/serial/sc16is7xx.c                |  4 +-
- drivers/usb/gadget/udc/max3420_udc.c          |  4 +-
- drivers/usb/host/max3421-hcd.c                |  3 +-
- drivers/video/backlight/ams369fg06.c          |  3 +-
- drivers/video/backlight/corgi_lcd.c           |  3 +-
- drivers/video/backlight/ili922x.c             |  3 +-
- drivers/video/backlight/l4f00242t03.c         |  3 +-
- drivers/video/backlight/lms501kf03.c          |  3 +-
- drivers/video/backlight/ltv350qv.c            |  3 +-
- drivers/video/backlight/tdo24m.c              |  3 +-
- drivers/video/backlight/tosa_lcd.c            |  4 +-
- drivers/video/backlight/vgg2432a4.c           |  4 +-
- drivers/video/fbdev/omap/lcd_mipid.c          |  4 +-
- .../displays/panel-lgphilips-lb035q02.c       |  4 +-
- .../omapfb/displays/panel-nec-nl8048hl11.c    |  4 +-
- .../omapfb/displays/panel-sony-acx565akm.c    |  4 +-
- .../omapfb/displays/panel-tpo-td028ttec1.c    |  4 +-
- .../omapfb/displays/panel-tpo-td043mtea1.c    |  4 +-
- include/linux/spi/spi.h                       |  2 +-
- sound/pci/hda/cs35l41_hda_spi.c               |  4 +-
- sound/soc/codecs/adau1761-spi.c               |  3 +-
- sound/soc/codecs/adau1781-spi.c               |  3 +-
- sound/soc/codecs/cs35l41-spi.c                |  4 +-
- sound/soc/codecs/pcm3168a-spi.c               |  4 +-
- sound/soc/codecs/pcm512x-spi.c                |  3 +-
- sound/soc/codecs/tlv320aic32x4-spi.c          |  4 +-
- sound/soc/codecs/tlv320aic3x-spi.c            |  4 +-
- sound/soc/codecs/wm0010.c                     |  4 +-
- sound/soc/codecs/wm8804-spi.c                 |  3 +-
- sound/spi/at73c213.c                          |  4 +-
- 198 files changed, 248 insertions(+), 617 deletions(-)
-
-
-base-commit: e783362eb54cd99b2cac8b3a9aeac942e6f6ac07
+diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
+index 489586a4cdc7..cd43d1898482 100644
+--- a/drivers/pci/controller/cadence/pci-j721e.c
++++ b/drivers/pci/controller/cadence/pci-j721e.c
+@@ -51,10 +51,11 @@ enum link_status {
+ #define MAX_LANES			2
+ 
+ struct j721e_pcie {
+-	struct cdns_pcie	*cdns_pcie;
++	struct device		*dev;
+ 	struct clk		*refclk;
+ 	u32			mode;
+ 	u32			num_lanes;
++	struct cdns_pcie	*cdns_pcie;
+ 	void __iomem		*user_cfg_base;
+ 	void __iomem		*intd_cfg_base;
+ 	u32			linkdown_irq_regfield;
+@@ -98,7 +99,7 @@ static inline void j721e_pcie_intd_writel(struct j721e_pcie *pcie, u32 offset,
+ static irqreturn_t j721e_pcie_link_irq_handler(int irq, void *priv)
+ {
+ 	struct j721e_pcie *pcie = priv;
+-	struct device *dev = pcie->cdns_pcie->dev;
++	struct device *dev = pcie->dev;
+ 	u32 reg;
+ 
+ 	reg = j721e_pcie_intd_readl(pcie, STATUS_REG_SYS_2);
+@@ -164,7 +165,7 @@ static const struct cdns_pcie_ops j721e_pcie_ops = {
+ static int j721e_pcie_set_mode(struct j721e_pcie *pcie, struct regmap *syscon,
+ 			       unsigned int offset)
+ {
+-	struct device *dev = pcie->cdns_pcie->dev;
++	struct device *dev = pcie->dev;
+ 	u32 mask = J721E_MODE_RC;
+ 	u32 mode = pcie->mode;
+ 	u32 val = 0;
+@@ -183,7 +184,7 @@ static int j721e_pcie_set_mode(struct j721e_pcie *pcie, struct regmap *syscon,
+ static int j721e_pcie_set_link_speed(struct j721e_pcie *pcie,
+ 				     struct regmap *syscon, unsigned int offset)
+ {
+-	struct device *dev = pcie->cdns_pcie->dev;
++	struct device *dev = pcie->dev;
+ 	struct device_node *np = dev->of_node;
+ 	int link_speed;
+ 	u32 val = 0;
+@@ -204,7 +205,7 @@ static int j721e_pcie_set_link_speed(struct j721e_pcie *pcie,
+ static int j721e_pcie_set_lane_count(struct j721e_pcie *pcie,
+ 				     struct regmap *syscon, unsigned int offset)
+ {
+-	struct device *dev = pcie->cdns_pcie->dev;
++	struct device *dev = pcie->dev;
+ 	u32 lanes = pcie->num_lanes;
+ 	u32 val = 0;
+ 	int ret;
+@@ -219,7 +220,7 @@ static int j721e_pcie_set_lane_count(struct j721e_pcie *pcie,
+ 
+ static int j721e_pcie_ctrl_init(struct j721e_pcie *pcie)
+ {
+-	struct device *dev = pcie->cdns_pcie->dev;
++	struct device *dev = pcie->dev;
+ 	struct device_node *node = dev->of_node;
+ 	struct of_phandle_args args;
+ 	unsigned int offset = 0;
+@@ -376,6 +377,7 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+ 	if (!pcie)
+ 		return -ENOMEM;
+ 
++	pcie->dev = dev;
+ 	pcie->mode = mode;
+ 	pcie->linkdown_irq_regfield = data->linkdown_irq_regfield;
+ 
 -- 
 2.34.1
 
