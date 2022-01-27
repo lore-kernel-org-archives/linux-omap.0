@@ -2,148 +2,206 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3794FC433EF
-	for <linux-omap@archiver.kernel.org>; Thu, 27 Jan 2022 20:03:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AA9FC433EF
+	for <linux-omap@archiver.kernel.org>; Thu, 27 Jan 2022 22:29:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240342AbiA0UDi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 27 Jan 2022 15:03:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43398 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343854AbiA0UCe (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2022 15:02:34 -0500
-Received: from mail-pg1-x52e.google.com (mail-pg1-x52e.google.com [IPv6:2607:f8b0:4864:20::52e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86AB6C06177B
-        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2022 12:02:32 -0800 (PST)
-Received: by mail-pg1-x52e.google.com with SMTP id q75so3229929pgq.5
-        for <linux-omap@vger.kernel.org>; Thu, 27 Jan 2022 12:02:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=91Z2d0mjHlreqpecJ7pSmgXY2IVlH38FqXsuAjWZmko=;
-        b=azXGQXgKkiXx9Hrb2SvK5M/d+nnYVFTKHAAmgUFanjAJD8SmcK8n3rWARtQsmdzh1w
-         uT0oNhth/wwX7p41tikgOyhpCmwn7PJgfgI7N8EJxphlXwshQpQiPh+AyY1cRqwxa6YN
-         fLmW6iHObG4gITceNhHTVVf1OF7Mysd4CU0IY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=91Z2d0mjHlreqpecJ7pSmgXY2IVlH38FqXsuAjWZmko=;
-        b=gD2Vsu2Kmy5kLTpuOOsu3xfE0CcIyKwvMISj9J8IPfw09OWHdrASx7yFHISBSEwqCd
-         65VBL3jXEKnjgfhE5Rqg1bCiNIyReU8jGhJgJmAbRzE02B3ZXgnT30+wW0ZjIPpvr4FY
-         UGdG4uinhyxs490ZpXcWsEDlRs6yNjbQKbqB6KUXwPaatEIjsVnw7GWeoluY4nAzwNNe
-         a5qqQuwdi+pKCl7cbdw8YPSb0EG3w5aw+TopEi+2cjUMFwhgVRodbhx3S1i+pwOI4W0R
-         0FtH4xUD2e9CoBexU0SUEYfj24qtHoFTKkFzW82WPzckLG8xiWxk4+dEeiv9Rpyg8hNh
-         P5Cg==
-X-Gm-Message-State: AOAM532FT/284GdXqq83r4y6b2E54t0ubCYI8k6XW07nf9u/SirKO7fg
-        PuDQ7wzNzCVK/F+7KAH76MhqEA==
-X-Google-Smtp-Source: ABdhPJxqGqvR7cwrQBut5IHmzB0xhFmu1buz49cWUzx4Hg9ZdT83OqiQnqJ+DRrh0+GRK3FZyg7Hzw==
-X-Received: by 2002:a65:6041:: with SMTP id a1mr3876357pgp.231.1643313752060;
-        Thu, 27 Jan 2022 12:02:32 -0800 (PST)
-Received: from smtp.gmail.com ([2620:15c:202:201:9246:1838:3243:3071])
-        by smtp.gmail.com with ESMTPSA id k21sm6561190pff.33.2022.01.27.12.02.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Jan 2022 12:02:31 -0800 (PST)
-From:   Stephen Boyd <swboyd@chromium.org>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Douglas Anderson <dianders@chromium.org>
-Cc:     linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, freedreno@lists.freedesktop.org,
-        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Rob Clark <robdclark@gmail.com>,
-        Russell King <rmk+kernel@arm.linux.org.uk>,
-        Saravana Kannan <saravanak@google.com>
-Subject: [PATCH v6 28/35] fbdev: omap2: Migrate to aggregate driver
-Date:   Thu, 27 Jan 2022 12:01:34 -0800
-Message-Id: <20220127200141.1295328-29-swboyd@chromium.org>
-X-Mailer: git-send-email 2.35.0.rc0.227.g00780c9af4-goog
-In-Reply-To: <20220127200141.1295328-1-swboyd@chromium.org>
-References: <20220127200141.1295328-1-swboyd@chromium.org>
+        id S240821AbiA0W3y (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 27 Jan 2022 17:29:54 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:43052 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240302AbiA0W3y (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jan 2022 17:29:54 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E8D0661BE7;
+        Thu, 27 Jan 2022 22:29:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0079DC340E4;
+        Thu, 27 Jan 2022 22:29:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1643322593;
+        bh=2A1Qz0GfrPyGcogA96dHYkOffh2OD1gRCsT/yYZhCRw=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=WQDfuj+H1ddbhDrcKs5pElGAYXWaeV06tQuylU55u+ZXetQSTaH8GNhDgqSeyv9dG
+         2BfJwtJeTHLIylQkV5XAMMUYputYwpNQufwX+3p1Ip34ztsx9gcIH+qv6MVEo4w7Up
+         WCWDW+fUulV6sP0rZVk5O8FB+qLVkSh6B85GivODMTnfDyK4rQ55BPIt3xxBriQpUI
+         Nwxp6yBDM41a40bb6L2hd5btFdA/Nh5uu5bvtmhBNhFBvFOhDaJZEgO6OYuLzm4Q6g
+         rsT0PjdG9xShjFKzUFEUEWzDJyUZfYGI4BTEqoWF67vVKRpFu0L7JDT502XCFPn+SQ
+         6jrLkM0+THcXg==
+Date:   Thu, 27 Jan 2022 16:29:51 -0600
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Christian Gmeiner <christian.gmeiner@gmail.com>
+Cc:     linux-kernel@vger.kernel.org,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] Revert "PCI: j721e: Drop redundant struct device *"
+Message-ID: <20220127222951.GA144828@bhelgaas>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220124122132.435743-1-christian.gmeiner@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Use an aggregate driver instead of component ops so that we can get
-proper driver probe ordering of the aggregate device with respect to all
-the component devices that make up the aggregate device.
+On Mon, Jan 24, 2022 at 01:21:22PM +0100, Christian Gmeiner wrote:
+> This reverts commit 19e863828acf6d8ac8475ba1fd93c0fe17fdc4ef.
+> 
+> Fixes the following oops:
+>  Unable to handle kernel NULL pointer dereference at virtual address 0000000000000010
 
-Cc: <linux-omap@vger.kernel.org>
-Cc: <linux-fbdev@vger.kernel.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Rob Clark <robdclark@gmail.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Saravana Kannan <saravanak@google.com>
-Signed-off-by: Stephen Boyd <swboyd@chromium.org>
----
- drivers/video/fbdev/omap2/omapfb/dss/dss.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+Hi Christian,
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-index a6b1c1598040..0bdb9f909992 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-@@ -1067,8 +1067,9 @@ static int dss_video_pll_probe(struct platform_device *pdev)
- }
+Would you mind trying this patch?
+
+commit 9d36a93af8fe ("PCI: j721e: Initialize pcie->cdns_pcie before using it")
+Author: Bjorn Helgaas <bhelgaas@google.com>
+Date:   Thu Jan 27 15:49:49 2022 -0600
+
+    PCI: j721e: Initialize pcie->cdns_pcie before using it
+    
+    Christian reported a NULL pointer dereference in j721e_pcie_probe() caused
+    by 19e863828acf ("PCI: j721e: Drop redundant struct device *"), which
+    removed struct j721e_pcie.dev since there's another copy in struct
+    cdns_pcie.dev reachable via j721e_pcie->cdns_pcie->dev.
+    
+    The problem is that j721e_pcie->cdns_pcie was dereferenced before being
+    initialized:
+    
+      j721e_pcie_probe
+        pcie = devm_kzalloc()             # struct j721e_pcie
+        j721e_pcie_ctrl_init(pcie)
+          dev = pcie->cdns_pcie->dev      <-- dereference cdns_pcie
+        switch (mode) {
+        case PCI_MODE_RC:
+          cdns_pcie = ...                 # alloc as part of pci_host_bridge
+          pcie->cdns_pcie = cdns_pcie     <-- initialize pcie->cdns_pcie
+    
+    Initialize pcie->cdns_pcie before it is used.
+    
+    Fixes: 19e863828acf ("PCI: j721e: Drop redundant struct device *")
+    Reported-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+    Link: https://lore.kernel.org/r/20220124122132.435743-1-christian.gmeiner@gmail.com
+    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+
+diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
+index 489586a4cdc7..5d950c1d9fd0 100644
+--- a/drivers/pci/controller/cadence/pci-j721e.c
++++ b/drivers/pci/controller/cadence/pci-j721e.c
+@@ -372,10 +372,48 @@ static int j721e_pcie_probe(struct platform_device *pdev)
  
- /* DSS HW IP initialisation */
--static int dss_bind(struct device *dev)
-+static int dss_bind(struct aggregate_device *adev)
- {
-+	struct device *dev = aggregate_device_parent(adev);
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct resource *dss_mem;
- 	u32 rev;
-@@ -1167,8 +1168,9 @@ static int dss_bind(struct device *dev)
- 	return r;
- }
+ 	mode = (u32)data->mode;
  
--static void dss_unbind(struct device *dev)
-+static void dss_unbind(struct aggregate_device *adev)
- {
-+	struct device *dev = aggregate_device_parent(adev);
- 	struct platform_device *pdev = to_platform_device(dev);
++	switch (mode) {
++	case PCI_MODE_RC:
++		if (!IS_ENABLED(CONFIG_PCIE_CADENCE_HOST))
++			return -ENODEV;
++
++		bridge = devm_pci_alloc_host_bridge(dev, sizeof(*rc));
++		if (!bridge)
++			return -ENOMEM;
++
++		if (!data->byte_access_allowed)
++			bridge->ops = &cdns_ti_pcie_host_ops;
++		rc = pci_host_bridge_priv(bridge);
++		rc->quirk_retrain_flag = data->quirk_retrain_flag;
++		rc->quirk_detect_quiet_flag = data->quirk_detect_quiet_flag;
++
++		cdns_pcie = &rc->pcie;
++		break;
++	case PCI_MODE_EP:
++		if (!IS_ENABLED(CONFIG_PCIE_CADENCE_EP))
++			return -ENODEV;
++
++		ep = devm_kzalloc(dev, sizeof(*ep), GFP_KERNEL);
++		if (!ep)
++			return -ENOMEM;
++
++		ep->quirk_detect_quiet_flag = data->quirk_detect_quiet_flag;
++
++		cdns_pcie = &ep->pcie;
++		break;
++	default:
++		dev_err(dev, "INVALID device type %d\n", mode);
++		return 0;
++	}
++
++	cdns_pcie->dev = dev;
++	cdns_pcie->ops = &j721e_pcie_ops;
++
+ 	pcie = devm_kzalloc(dev, sizeof(*pcie), GFP_KERNEL);
+ 	if (!pcie)
+ 		return -ENOMEM;
  
- 	dss_initialized = false;
-@@ -1188,9 +1190,13 @@ static void dss_unbind(struct device *dev)
- 	dss_put_clocks();
- }
++	pcie->cdns_pcie = cdns_pcie;
+ 	pcie->mode = mode;
+ 	pcie->linkdown_irq_regfield = data->linkdown_irq_regfield;
  
--static const struct component_master_ops dss_component_ops = {
--	.bind = dss_bind,
--	.unbind = dss_unbind,
-+static struct aggregate_driver dss_aggregate_driver = {
-+	.probe = dss_bind,
-+	.remove = dss_unbind,
-+	.driver = {
-+		.name = "dss_fbdev",
-+		.owner = THIS_MODULE,
-+	},
- };
+@@ -426,28 +464,6 @@ static int j721e_pcie_probe(struct platform_device *pdev)
  
- static int dss_component_compare(struct device *dev, void *data)
-@@ -1225,7 +1231,7 @@ static int dss_probe(struct platform_device *pdev)
- 	/* add all the child devices as components */
- 	device_for_each_child(&pdev->dev, &match, dss_add_child_component);
+ 	switch (mode) {
+ 	case PCI_MODE_RC:
+-		if (!IS_ENABLED(CONFIG_PCIE_CADENCE_HOST)) {
+-			ret = -ENODEV;
+-			goto err_get_sync;
+-		}
+-
+-		bridge = devm_pci_alloc_host_bridge(dev, sizeof(*rc));
+-		if (!bridge) {
+-			ret = -ENOMEM;
+-			goto err_get_sync;
+-		}
+-
+-		if (!data->byte_access_allowed)
+-			bridge->ops = &cdns_ti_pcie_host_ops;
+-		rc = pci_host_bridge_priv(bridge);
+-		rc->quirk_retrain_flag = data->quirk_retrain_flag;
+-		rc->quirk_detect_quiet_flag = data->quirk_detect_quiet_flag;
+-
+-		cdns_pcie = &rc->pcie;
+-		cdns_pcie->dev = dev;
+-		cdns_pcie->ops = &j721e_pcie_ops;
+-		pcie->cdns_pcie = cdns_pcie;
+-
+ 		gpiod = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
+ 		if (IS_ERR(gpiod)) {
+ 			ret = PTR_ERR(gpiod);
+@@ -497,23 +513,6 @@ static int j721e_pcie_probe(struct platform_device *pdev)
  
--	r = component_master_add_with_match(&pdev->dev, &dss_component_ops, match);
-+	r = component_aggregate_register(&pdev->dev, &dss_aggregate_driver, match);
- 	if (r)
- 		return r;
+ 		break;
+ 	case PCI_MODE_EP:
+-		if (!IS_ENABLED(CONFIG_PCIE_CADENCE_EP)) {
+-			ret = -ENODEV;
+-			goto err_get_sync;
+-		}
+-
+-		ep = devm_kzalloc(dev, sizeof(*ep), GFP_KERNEL);
+-		if (!ep) {
+-			ret = -ENOMEM;
+-			goto err_get_sync;
+-		}
+-		ep->quirk_detect_quiet_flag = data->quirk_detect_quiet_flag;
+-
+-		cdns_pcie = &ep->pcie;
+-		cdns_pcie->dev = dev;
+-		cdns_pcie->ops = &j721e_pcie_ops;
+-		pcie->cdns_pcie = cdns_pcie;
+-
+ 		ret = cdns_pcie_init_phy(dev, cdns_pcie);
+ 		if (ret) {
+ 			dev_err(dev, "Failed to init phy\n");
+@@ -525,8 +524,6 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+ 			goto err_pcie_setup;
  
-@@ -1234,7 +1240,7 @@ static int dss_probe(struct platform_device *pdev)
+ 		break;
+-	default:
+-		dev_err(dev, "INVALID device type %d\n", mode);
+ 	}
  
- static int dss_remove(struct platform_device *pdev)
- {
--	component_master_del(&pdev->dev, &dss_component_ops);
-+	component_aggregate_unregister(&pdev->dev, &dss_aggregate_driver);
  	return 0;
- }
- 
--- 
-https://chromeos.dev
-
