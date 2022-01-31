@@ -2,86 +2,235 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73E80C433EF
-	for <linux-omap@archiver.kernel.org>; Mon, 31 Jan 2022 10:16:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27E50C4167E
+	for <linux-omap@archiver.kernel.org>; Mon, 31 Jan 2022 11:11:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348392AbiAaKQJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 31 Jan 2022 05:16:09 -0500
-Received: from muru.com ([72.249.23.125]:44646 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232024AbiAaKQJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Mon, 31 Jan 2022 05:16:09 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 5F72B8027;
-        Mon, 31 Jan 2022 10:15:59 +0000 (UTC)
-Date:   Mon, 31 Jan 2022 12:16:06 +0200
-From:   Tony Lindgren <tony@atomide.com>
-To:     Drew Fustini <dfustini@baylibre.com>
-Cc:     Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Tero Kristo <kristo@kernel.org>, Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 2/2] clocksource/drivers/timer-ti-dm: Handle dra7 timer
- wrap errata i940
-Message-ID: <Yfe25rpSY8OFPxzr@atomide.com>
-References: <20210323074326.28302-1-tony@atomide.com>
- <20210323074326.28302-3-tony@atomide.com>
- <YfWsG0p6to3IJuvE@x1>
+        id S1359385AbiAaLLM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 31 Jan 2022 06:11:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44426 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377208AbiAaLJs (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 31 Jan 2022 06:09:48 -0500
+Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 588CAC0604D0;
+        Mon, 31 Jan 2022 03:06:34 -0800 (PST)
+Received: by mail-ed1-x52a.google.com with SMTP id u18so25814136edt.6;
+        Mon, 31 Jan 2022 03:06:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=MDHsNr9BVQwd4RB33QOSJmSn+RDo8Dtcj1lBoG/Wutk=;
+        b=IZWW0rfXWwaRLlMauBlzn7cDK6kct+DozbmXbLUZUkSJbaTQsXaScwZAj9EQtYkFzD
+         vdHDbqj11VqB9kU/HWiJg/1Oij6mPAY+dsq/AFldQQsZU4exYVu1IFiEjCtyH96QtPnN
+         dl9VAYEa6eaepGH70BonVcLfCkJif6UmIWjanCiIwBOHfIXC+jEiLoiJ/Ggs7GpgpwyM
+         w6M4PUmX/XO3iFyCPsX9qxRjJHiq1L6buBDrw1kucRJtRqYB6rY2vB3WCwj6nO/Vb7c9
+         yova4bZFXkjXijzRmn9hOl8oKjhnY4787xwKTxPT6J3q/qj/9dgVhMTgEACnwh+J+9He
+         qy4A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=MDHsNr9BVQwd4RB33QOSJmSn+RDo8Dtcj1lBoG/Wutk=;
+        b=M1ii99c8c7t3c3eO9A+bK1ESj1sNBVF0Y8KPPvoo2Di7Ci8uh9HTF8MnMbny2BzqF0
+         Fb6IaN0PR5pRCb55iJ2Q2tMrsQ5/gghnwWM9IinlSXbs+2jTvl+3L29DTc0+vC5AnO//
+         0MJz4pCokVztanGhn9HO1epxbhMeLhHGJ80GfMZ8D2xgmsxkiZMiu+VLVY144KAcD+dR
+         Ox47vnIfkl0tnitysrNuxCglKNJCAK3hg189fDhHpQb2KJWWW9w5btGn1kChBOKjkcsJ
+         XWt8gT1fXFwVJQiYd3u/ZiuavSbzwAnrudjUihgfspJXGuNicdEXNYIDD0Hvn3Pk86HA
+         P1Tw==
+X-Gm-Message-State: AOAM533hahTfMez4DjS+OpVhpKeWWOLuEKskYPh7PvmoKje5EcFMewEG
+        nvIIku8OW5e7nYi60W3o/h9KGBtV5SgrRb8uTNM=
+X-Google-Smtp-Source: ABdhPJyYfE7IfFvjGHneKbH8VY1690N2VLmKMeLE7sNlsCLAFTolVy/c0Iy04JmRhmvARgLgA1JKcHwMX6HBc2PDkA0=
+X-Received: by 2002:aa7:cd0e:: with SMTP id b14mr19859871edw.414.1643627192673;
+ Mon, 31 Jan 2022 03:06:32 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YfWsG0p6to3IJuvE@x1>
+References: <20220124122132.435743-1-christian.gmeiner@gmail.com> <20220127222951.GA144828@bhelgaas>
+In-Reply-To: <20220127222951.GA144828@bhelgaas>
+From:   Christian Gmeiner <christian.gmeiner@gmail.com>
+Date:   Mon, 31 Jan 2022 12:06:21 +0100
+Message-ID: <CAH9NwWeFm1UsBtGgHWhmhM2GgR5ciDXCi8H_p2KB01vfLPz6kQ@mail.gmail.com>
+Subject: Re: [PATCH] Revert "PCI: j721e: Drop redundant struct device *"
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+Am Do., 27. Jan. 2022 um 23:29 Uhr schrieb Bjorn Helgaas <helgaas@kernel.org>:
+>
+> On Mon, Jan 24, 2022 at 01:21:22PM +0100, Christian Gmeiner wrote:
+> > This reverts commit 19e863828acf6d8ac8475ba1fd93c0fe17fdc4ef.
+> >
+> > Fixes the following oops:
+> >  Unable to handle kernel NULL pointer dereference at virtual address 0000000000000010
+>
+> Hi Christian,
+>
+> Would you mind trying this patch?
+>
 
-* Drew Fustini <dfustini@baylibre.com> [220129 21:05]:
-> On Tue, Mar 23, 2021 at 09:43:26AM +0200, Tony Lindgren wrote:
-> > There is a timer wrap issue on dra7 for the ARM architected timer.
-> > In a typical clock configuration the timer fails to wrap after 388 days.
-> > 
-> > To work around the issue, we need to use timer-ti-dm percpu timers instead.
-> > 
-> > Let's configure dmtimer3 and 4 as percpu timers by default, and warn about
-> > the issue if the dtb is not configured properly.
-> 
-> Hi Tony,
-> 
-> This causes a conflict for IPU2 which is using timer 3 and 4.
-> 
-> From arch/arm/boot/dts/dra7-ipu-dsp-common.dtsi:
-> 
->   &ipu2 {
->           mboxes = <&mailbox6 &mbox_ipu2_ipc3x>;
->           ti,timers = <&timer3>;
->           ti,watchdog-timers = <&timer4>, <&timer9>;
->   };
+Works - thanks. You can add my Tested-by.
 
-OK, sorry I missed that part.
+> commit 9d36a93af8fe ("PCI: j721e: Initialize pcie->cdns_pcie before using it")
+> Author: Bjorn Helgaas <bhelgaas@google.com>
+> Date:   Thu Jan 27 15:49:49 2022 -0600
+>
+>     PCI: j721e: Initialize pcie->cdns_pcie before using it
+>
+>     Christian reported a NULL pointer dereference in j721e_pcie_probe() caused
+>     by 19e863828acf ("PCI: j721e: Drop redundant struct device *"), which
+>     removed struct j721e_pcie.dev since there's another copy in struct
+>     cdns_pcie.dev reachable via j721e_pcie->cdns_pcie->dev.
+>
+>     The problem is that j721e_pcie->cdns_pcie was dereferenced before being
+>     initialized:
+>
+>       j721e_pcie_probe
+>         pcie = devm_kzalloc()             # struct j721e_pcie
+>         j721e_pcie_ctrl_init(pcie)
+>           dev = pcie->cdns_pcie->dev      <-- dereference cdns_pcie
+>         switch (mode) {
+>         case PCI_MODE_RC:
+>           cdns_pcie = ...                 # alloc as part of pci_host_bridge
+>           pcie->cdns_pcie = cdns_pcie     <-- initialize pcie->cdns_pcie
+>
+>     Initialize pcie->cdns_pcie before it is used.
+>
+>     Fixes: 19e863828acf ("PCI: j721e: Drop redundant struct device *")
+>     Reported-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+>     Link: https://lore.kernel.org/r/20220124122132.435743-1-christian.gmeiner@gmail.com
+>     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+>
+> diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
+> index 489586a4cdc7..5d950c1d9fd0 100644
+> --- a/drivers/pci/controller/cadence/pci-j721e.c
+> +++ b/drivers/pci/controller/cadence/pci-j721e.c
+> @@ -372,10 +372,48 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+>
+>         mode = (u32)data->mode;
+>
+> +       switch (mode) {
+> +       case PCI_MODE_RC:
+> +               if (!IS_ENABLED(CONFIG_PCIE_CADENCE_HOST))
+> +                       return -ENODEV;
+> +
+> +               bridge = devm_pci_alloc_host_bridge(dev, sizeof(*rc));
+> +               if (!bridge)
+> +                       return -ENOMEM;
+> +
+> +               if (!data->byte_access_allowed)
+> +                       bridge->ops = &cdns_ti_pcie_host_ops;
+> +               rc = pci_host_bridge_priv(bridge);
+> +               rc->quirk_retrain_flag = data->quirk_retrain_flag;
+> +               rc->quirk_detect_quiet_flag = data->quirk_detect_quiet_flag;
+> +
+> +               cdns_pcie = &rc->pcie;
+> +               break;
+> +       case PCI_MODE_EP:
+> +               if (!IS_ENABLED(CONFIG_PCIE_CADENCE_EP))
+> +                       return -ENODEV;
+> +
+> +               ep = devm_kzalloc(dev, sizeof(*ep), GFP_KERNEL);
+> +               if (!ep)
+> +                       return -ENOMEM;
+> +
+> +               ep->quirk_detect_quiet_flag = data->quirk_detect_quiet_flag;
+> +
+> +               cdns_pcie = &ep->pcie;
+> +               break;
+> +       default:
+> +               dev_err(dev, "INVALID device type %d\n", mode);
+> +               return 0;
+> +       }
+> +
+> +       cdns_pcie->dev = dev;
+> +       cdns_pcie->ops = &j721e_pcie_ops;
+> +
+>         pcie = devm_kzalloc(dev, sizeof(*pcie), GFP_KERNEL);
+>         if (!pcie)
+>                 return -ENOMEM;
+>
+> +       pcie->cdns_pcie = cdns_pcie;
+>         pcie->mode = mode;
+>         pcie->linkdown_irq_regfield = data->linkdown_irq_regfield;
+>
+> @@ -426,28 +464,6 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+>
+>         switch (mode) {
+>         case PCI_MODE_RC:
+> -               if (!IS_ENABLED(CONFIG_PCIE_CADENCE_HOST)) {
+> -                       ret = -ENODEV;
+> -                       goto err_get_sync;
+> -               }
+> -
+> -               bridge = devm_pci_alloc_host_bridge(dev, sizeof(*rc));
+> -               if (!bridge) {
+> -                       ret = -ENOMEM;
+> -                       goto err_get_sync;
+> -               }
+> -
+> -               if (!data->byte_access_allowed)
+> -                       bridge->ops = &cdns_ti_pcie_host_ops;
+> -               rc = pci_host_bridge_priv(bridge);
+> -               rc->quirk_retrain_flag = data->quirk_retrain_flag;
+> -               rc->quirk_detect_quiet_flag = data->quirk_detect_quiet_flag;
+> -
+> -               cdns_pcie = &rc->pcie;
+> -               cdns_pcie->dev = dev;
+> -               cdns_pcie->ops = &j721e_pcie_ops;
+> -               pcie->cdns_pcie = cdns_pcie;
+> -
+>                 gpiod = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
+>                 if (IS_ERR(gpiod)) {
+>                         ret = PTR_ERR(gpiod);
+> @@ -497,23 +513,6 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+>
+>                 break;
+>         case PCI_MODE_EP:
+> -               if (!IS_ENABLED(CONFIG_PCIE_CADENCE_EP)) {
+> -                       ret = -ENODEV;
+> -                       goto err_get_sync;
+> -               }
+> -
+> -               ep = devm_kzalloc(dev, sizeof(*ep), GFP_KERNEL);
+> -               if (!ep) {
+> -                       ret = -ENOMEM;
+> -                       goto err_get_sync;
+> -               }
+> -               ep->quirk_detect_quiet_flag = data->quirk_detect_quiet_flag;
+> -
+> -               cdns_pcie = &ep->pcie;
+> -               cdns_pcie->dev = dev;
+> -               cdns_pcie->ops = &j721e_pcie_ops;
+> -               pcie->cdns_pcie = cdns_pcie;
+> -
+>                 ret = cdns_pcie_init_phy(dev, cdns_pcie);
+>                 if (ret) {
+>                         dev_err(dev, "Failed to init phy\n");
+> @@ -525,8 +524,6 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+>                         goto err_pcie_setup;
+>
+>                 break;
+> -       default:
+> -               dev_err(dev, "INVALID device type %d\n", mode);
+>         }
+>
+>         return 0;
 
-> I noticed an error ("could not get timer platform device") when booting
-> mainline on a BeagleBoard X15 (AM578):
-> 
->   omap-rproc 55020000.ipu: assigned reserved memory node ipu2-memory@95800000
->   remoteproc remoteproc1: 55020000.ipu is available
->   remoteproc remoteproc1: powering up 55020000.ipu
->   remoteproc remoteproc1: Booting fw image dra7-ipu2-fw.xem4, size 3747220
->   omap-rproc 55020000.ipu: could not get timer platform device
->   omap-rproc 55020000.ipu: omap_rproc_enable_timers failed: -19
->   remoteproc remoteproc1: can't start rproc 55020000.ipu: -19
-> 
-> I switched this errata fix to use timer 15 and 16 instead which resolves
-> the error.  Do you think that is an acceptable solution?
 
-I think the only difference is that timers 15 and 16 are in l4_per3 instead
-of l4_per1. I doubt that matters as they are pretty much always clocked in
-this case. If you want to check you can run cyclictest :)
 
-> If so, I will post the patch to the list.
+-- 
+greets
+--
+Christian Gmeiner, MSc
 
-OK thanks,
-
-Tony
+https://christian-gmeiner.info/privacypolicy
