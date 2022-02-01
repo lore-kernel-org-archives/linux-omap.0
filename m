@@ -2,37 +2,37 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20686C433F5
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Feb 2022 12:04:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D4A1C433FE
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Feb 2022 12:04:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237676AbiBAME2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Feb 2022 07:04:28 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:52694 "EHLO
+        id S237724AbiBAMEp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Feb 2022 07:04:45 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:52780 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237690AbiBAMEQ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2022 07:04:16 -0500
+        with ESMTP id S237705AbiBAMEj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2022 07:04:39 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BC4946151F;
-        Tue,  1 Feb 2022 12:03:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57DD8C340ED;
-        Tue,  1 Feb 2022 12:03:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C643E61528;
+        Tue,  1 Feb 2022 12:03:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64D16C340F6;
+        Tue,  1 Feb 2022 12:03:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1643717012;
-        bh=QTDSEgjqP7luf2gRYl6YaKV1lykiDQuMO/rtSnXfIBQ=;
+        s=k20201202; t=1643717014;
+        bh=ilwI/e1ttHjdl7xv7YPOr3xUTctN1SCSeqI4kAUKElM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Pzn11U8lQ1sbaHCow3r6eDwYc2MZzV4EVDyNLziribjv2My7HV33Ol7cUiYEezoK0
-         2CwmjT7tFW6lvCgaKsavTR0fs+5RY0crIroGHo/FDBzKkWXb2Tk5VFCFoH0ePPX8bU
-         Zmt4UXLJLHgRJOzqN9u6iI6ZpOvyGY5lvVo9RchKWPmCRfauEVTEbJvZjP03x3nuFj
-         zLmqMuok3fZDYAyg8RCGklZihz4kNBbGOTtU+cFWM2vODOtlz5QiIS2kvAuUitjffx
-         /1AisSz+WYe9g/h2+aV/0WQ0aFWVshkLJRhrzoulJ6YemrwLQlyxODBXrNeHYv3QIr
-         lhBCCz5/kyx9g==
+        b=uxffx4+hJrtA2LBp/3HCvF7Chr3pzY2PaAh9Rf/14mXpPqlHS4xR1e4wW4t1jBEt4
+         4P027AejzUZwke716bMW26OvM6EE3W4CkZol6c+Pk2oWIqwuXuER+yHw7GeRxChRmj
+         qIFXfzD2tZWRB7SyZ4XFM6vupJQf5zDminaKH+LpITDS9rm9Spwl+sPPfvSB63xQkN
+         gN+G08wUArGZsNWbAnCJKrkntfp89yg+rnoLatfDtBOBnkG2bpc4JLdaHRUQgbwATs
+         VwApeLfCBiMhT1KglPM7YD46TsoCJHe9V4P61cd3zmRgRh9tLpGJsgprlxVgP2Jifg
+         LWlBGER8Lp3yg==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=why.lan)
         by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <maz@kernel.org>)
-        id 1nErsg-004d46-CE; Tue, 01 Feb 2022 12:03:30 +0000
+        id 1nErsi-004d46-GH; Tue, 01 Feb 2022 12:03:32 +0000
 From:   Marc Zyngier <maz@kernel.org>
 To:     linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org,
@@ -50,9 +50,9 @@ Cc:     Linus Walleij <linus.walleij@linaro.org>,
         Tomer Maimon <tmaimon77@gmail.com>,
         Tali Perry <tali.perry1@gmail.com>,
         Emil Renner Berthing <kernel@esmil.dk>
-Subject: [PATCH 04/12] irqchip/renesas-irqc: Move PM device over to irq domain
-Date:   Tue,  1 Feb 2022 12:03:02 +0000
-Message-Id: <20220201120310.878267-5-maz@kernel.org>
+Subject: [PATCH 09/12] gpio: tpmx86: Move PM device over to irq domain
+Date:   Tue,  1 Feb 2022 12:03:07 +0000
+Message-Id: <20220201120310.878267-10-maz@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220201120310.878267-1-maz@kernel.org>
 References: <20220201120310.878267-1-maz@kernel.org>
@@ -70,29 +70,30 @@ Move the reference to the device over to the irq domain.
 
 Signed-off-by: Marc Zyngier <maz@kernel.org>
 ---
- drivers/irqchip/irq-renesas-irqc.c | 3 ++-
+ drivers/gpio/gpio-tqmx86.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/irqchip/irq-renesas-irqc.c b/drivers/irqchip/irq-renesas-irqc.c
-index 909325f88239..1ee5e9941f67 100644
---- a/drivers/irqchip/irq-renesas-irqc.c
-+++ b/drivers/irqchip/irq-renesas-irqc.c
-@@ -188,13 +188,14 @@ static int irqc_probe(struct platform_device *pdev)
- 	p->gc->reg_base = p->cpu_int_base;
- 	p->gc->chip_types[0].regs.enable = IRQC_EN_SET;
- 	p->gc->chip_types[0].regs.disable = IRQC_EN_STS;
--	p->gc->chip_types[0].chip.parent_device = dev;
- 	p->gc->chip_types[0].chip.irq_mask = irq_gc_mask_disable_reg;
- 	p->gc->chip_types[0].chip.irq_unmask = irq_gc_unmask_enable_reg;
- 	p->gc->chip_types[0].chip.irq_set_type	= irqc_irq_set_type;
- 	p->gc->chip_types[0].chip.irq_set_wake	= irqc_irq_set_wake;
- 	p->gc->chip_types[0].chip.flags	= IRQCHIP_MASK_ON_SUSPEND;
+diff --git a/drivers/gpio/gpio-tqmx86.c b/drivers/gpio/gpio-tqmx86.c
+index 5b103221b58d..fa4bc7481f9a 100644
+--- a/drivers/gpio/gpio-tqmx86.c
++++ b/drivers/gpio/gpio-tqmx86.c
+@@ -281,7 +281,6 @@ static int tqmx86_gpio_probe(struct platform_device *pdev)
+ 		u8 irq_status;
  
-+	irq_domain_set_pm_device(p->irq_domain, dev);
+ 		irq_chip->name = chip->label;
+-		irq_chip->parent_device = &pdev->dev;
+ 		irq_chip->irq_mask = tqmx86_gpio_irq_mask;
+ 		irq_chip->irq_unmask = tqmx86_gpio_irq_unmask;
+ 		irq_chip->irq_set_type = tqmx86_gpio_irq_set_type;
+@@ -316,6 +315,8 @@ static int tqmx86_gpio_probe(struct platform_device *pdev)
+ 		goto out_pm_dis;
+ 	}
+ 
++	irq_domain_set_pm_device(girq->domain, dev);
 +
- 	/* request interrupts one by one */
- 	for (k = 0; k < p->number_of_irqs; k++) {
- 		if (devm_request_irq(dev, p->irq[k].requested_irq,
+ 	dev_info(dev, "GPIO functionality initialized with %d pins\n",
+ 		 chip->ngpio);
+ 
 -- 
 2.30.2
 
