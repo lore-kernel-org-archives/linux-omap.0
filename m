@@ -2,37 +2,37 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68310C4332F
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Feb 2022 12:04:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7239AC433FE
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Feb 2022 12:04:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237559AbiBAMD7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Feb 2022 07:03:59 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:52568 "EHLO
+        id S237574AbiBAMEI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Feb 2022 07:04:08 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:52624 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237545AbiBAMD4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2022 07:03:56 -0500
+        with ESMTP id S237545AbiBAMEG (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Feb 2022 07:04:06 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B2569614EA;
-        Tue,  1 Feb 2022 12:03:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BC1DC340EB;
-        Tue,  1 Feb 2022 12:03:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 56305614F3;
+        Tue,  1 Feb 2022 12:03:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F1F9C340F1;
+        Tue,  1 Feb 2022 12:03:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1643717010;
-        bh=9Vi/dbHpmTpkL5NZYzRvz2xVSV/Pl1bMaDSOJ1lpwzM=;
-        h=From:To:Cc:Subject:Date:From;
-        b=NAt8A4exqO2aK1xkPhHTTUnlqYyTFwAK+Tzvkc9oond8tRZ899vciTg9EDrzQiskk
-         V08V+CeCYgRR99iFh8xLU8UflT88l8mOMSrtY8BY0BDtDRCCm9yq0wXGltZIB7Yrwe
-         bTNvW4jpX2mdcj3kF/H18xkmgpXppRKQZpnFfgk50u30NiInsAiaMDewgw11LrkJ/I
-         G9pIYXfZ7bWpYaAo2n1q0y3ByDjnRs0OTD8mx5VOoFlGwcfZqCPZTZ1AsfgbeqqLaA
-         rvm6vr/NHu8wjosLdOCXsydHQUXOpwzteOFRh2JL74vfUo0Sh5sMdc772iwyu5Qo4K
-         LZhf0rV38x5vg==
+        s=k20201202; t=1643717011;
+        bh=5li6uOCO4gX7ZJ2txGyIkmUBfTDqopiS+pQdRb6NCnA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=KB2h7AyKsZadfSSMWZQ8FIbuY6JIZXH8OhH7jRWWjdDVzdK8l08E2K2cwgLtc7vDY
+         u8Z1Nec+BBZoClrdGxqxe/t+AozvThp3bi6WePVDd6Lkm5jgJwx4c04T0Y+0Sgg3QQ
+         IW2YCauOHwKDIlnnyagypdU0vhPKbdih+XKptTVCyszhhafZc83ZK14PmJiTDRa2Bs
+         +Dw2bRSmwe2ayMeY8yzvtbSL8NcVO9t7b0grxDtjkr3NDfd12r9ii75HZy6ewU+iav
+         S2lgVFGjcxX8coLo+GFRDpClLEIHQVaN0FHqKnjq3uqF1FNlFULavi1ksc2grs4HiI
+         n6KqAkxz6Go4Q==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=why.lan)
         by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <maz@kernel.org>)
-        id 1nErse-004d46-Es; Tue, 01 Feb 2022 12:03:28 +0000
+        id 1nErsf-004d46-CV; Tue, 01 Feb 2022 12:03:29 +0000
 From:   Marc Zyngier <maz@kernel.org>
 To:     linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org,
@@ -50,10 +50,12 @@ Cc:     Linus Walleij <linus.walleij@linaro.org>,
         Tomer Maimon <tmaimon77@gmail.com>,
         Tali Perry <tali.perry1@gmail.com>,
         Emil Renner Berthing <kernel@esmil.dk>
-Subject: [PATCH 00/12] genirq: Move irqchip runtime PM over to irq domain
-Date:   Tue,  1 Feb 2022 12:02:58 +0000
-Message-Id: <20220201120310.878267-1-maz@kernel.org>
+Subject: [PATCH 02/12] irqchip/gic: Move PM device over to irq domain
+Date:   Tue,  1 Feb 2022 12:03:00 +0000
+Message-Id: <20220201120310.878267-3-maz@kernel.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220201120310.878267-1-maz@kernel.org>
+References: <20220201120310.878267-1-maz@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 185.219.108.64
@@ -64,66 +66,64 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Our irq_chip data structure currently suffers from two problems:
+Move the reference to the GIC device over to the irq domain.
+This allows for some localised cleanup.
 
-(1) the 'name' field is often dynamically populated with a reference
-    to the underlying HW (DT node dame, for example)
+Signed-off-by: Marc Zyngier <maz@kernel.org>
+---
+ drivers/irqchip/irq-gic.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-(2) the 'parent_device' which is used to implement runtime PM is also
-    dynamically populated
-
-(3) there is at least one instance of a subsystem messing with the
-    internals of irq_chip structures (gpiochip_set_irq_hooks is
-    what I know about)
-
-These things mean that although the primary use of irq_chip is to only
-contain function pointers and other *static* information, the above
-two fields result in these structures being copied in a number of
-drivers. Eventually, it would be much better if the various drivers
-would use irq_chip as an 'ops' data structure (potentially made
-read-only), and keep the dynamic information somewhere more suitable.
-
-For (2) we already have the irqdomain structure that is designed to
-deal with the context in which interrupts are used, and it makes sense
-to move the 'parent_device' field over to this structure. This is what
-this small series is doing, with some minor cleanup on the way.
-
-(1) and (3) will be dealt in separate series (and I don't have a good
-solution for (3) yet).
-
-Thanks,
-
-	M.
-
-Marc Zyngier (12):
-  genirq: Allow the PM device to originate from irq domain
-  irqchip/gic: Move PM device over to irq domain
-  irqchip/renesas-intc-gpio: Move PM device over to irq domain
-  irqchip/renesas-irqc: Move PM device over to irq domain
-  irqchip/imx-intmux: Move PM device over to irq domain
-  gpio: mt7621: Kill parent_device usage
-  gpio: omap: Move PM device over to irq domain
-  gpio: rcar: Move PM device over to irq domain
-  gpio: tpmx86: Move PM device over to irq domain
-  pinctrl: npcm: Fix broken references to chip->parent_device
-  pinctrl: starfive: Move PM device over to irq domain
-  genirq: Kill irq_chip::parent_device
-
- drivers/gpio/gpio-mt7621.c                |  1 -
- drivers/gpio/gpio-omap.c                  |  7 ++++---
- drivers/gpio/gpio-rcar.c                  |  2 +-
- drivers/gpio/gpio-tqmx86.c                |  3 ++-
- drivers/irqchip/irq-gic.c                 | 12 +++++------
- drivers/irqchip/irq-imx-intmux.c          |  8 +++-----
- drivers/irqchip/irq-renesas-intc-irqpin.c |  3 ++-
- drivers/irqchip/irq-renesas-irqc.c        |  3 ++-
- drivers/pinctrl/nuvoton/pinctrl-npcm7xx.c | 25 +++++++++++------------
- drivers/pinctrl/pinctrl-starfive.c        |  3 ++-
- include/linux/irq.h                       |  2 --
- include/linux/irqdomain.h                 | 10 +++++++++
- kernel/irq/chip.c                         | 20 +++++++++++++-----
- 13 files changed, 59 insertions(+), 40 deletions(-)
-
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index b8bb46c65a97..fb741b42ca2d 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -1127,13 +1127,12 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
+ 	.unmap = gic_irq_domain_unmap,
+ };
+ 
+-static void gic_init_chip(struct gic_chip_data *gic, struct device *dev,
+-			  const char *name, bool use_eoimode1)
++static void gic_init_chip(struct gic_chip_data *gic, const char *name,
++			  bool use_eoimode1)
+ {
+ 	/* Initialize irq_chip */
+ 	gic->chip = gic_chip;
+ 	gic->chip.name = name;
+-	gic->chip.parent_device = dev;
+ 
+ 	if (use_eoimode1) {
+ 		gic->chip.irq_mask = gic_eoimode1_mask_irq;
+@@ -1268,10 +1267,10 @@ static int __init __gic_init_bases(struct gic_chip_data *gic,
+ 
+ 	if (static_branch_likely(&supports_deactivate_key) && gic == &gic_data[0]) {
+ 		name = kasprintf(GFP_KERNEL, "GICv2");
+-		gic_init_chip(gic, NULL, name, true);
++		gic_init_chip(gic, name, true);
+ 	} else {
+ 		name = kasprintf(GFP_KERNEL, "GIC-%d", (int)(gic-&gic_data[0]));
+-		gic_init_chip(gic, NULL, name, false);
++		gic_init_chip(gic, name, false);
+ 	}
+ 
+ 	ret = gic_init_bases(gic, handle);
+@@ -1460,7 +1459,7 @@ int gic_of_init_child(struct device *dev, struct gic_chip_data **gic, int irq)
+ 	if (!*gic)
+ 		return -ENOMEM;
+ 
+-	gic_init_chip(*gic, dev, dev->of_node->name, false);
++	gic_init_chip(*gic, dev->of_node->name, false);
+ 
+ 	ret = gic_of_setup(*gic, dev->of_node);
+ 	if (ret)
+@@ -1472,6 +1471,7 @@ int gic_of_init_child(struct device *dev, struct gic_chip_data **gic, int irq)
+ 		return ret;
+ 	}
+ 
++	irq_domain_set_pm_device((*gic)->domain, dev);
+ 	irq_set_chained_handler_and_data(irq, gic_handle_cascade_irq, *gic);
+ 
+ 	return 0;
 -- 
 2.30.2
 
