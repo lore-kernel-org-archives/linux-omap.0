@@ -2,31 +2,31 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0476C433EF
-	for <linux-omap@archiver.kernel.org>; Thu,  3 Feb 2022 07:07:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C59BC433EF
+	for <linux-omap@archiver.kernel.org>; Thu,  3 Feb 2022 07:07:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242050AbiBCHHZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 3 Feb 2022 02:07:25 -0500
-Received: from muru.com ([72.249.23.125]:45754 "EHLO muru.com"
+        id S1347955AbiBCHH6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 3 Feb 2022 02:07:58 -0500
+Received: from muru.com ([72.249.23.125]:45762 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237239AbiBCHHY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Thu, 3 Feb 2022 02:07:24 -0500
+        id S239109AbiBCHH6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Thu, 3 Feb 2022 02:07:58 -0500
 Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 18428817C;
-        Thu,  3 Feb 2022 07:07:10 +0000 (UTC)
-Date:   Thu, 3 Feb 2022 09:07:23 +0200
+        by muru.com (Postfix) with ESMTPS id 59BBC817C;
+        Thu,  3 Feb 2022 07:07:43 +0000 (UTC)
+Date:   Thu, 3 Feb 2022 09:07:56 +0200
 From:   Tony Lindgren <tony@atomide.com>
 To:     peter.vasil@gmail.com
 Cc:     linux-omap@vger.kernel.org
-Subject: Re: [PATCH 1/6] dt-bindings: leds: Nokia Tahvo/Betty ASIC LEDPWM
- controller
-Message-ID: <Yft/K56SiK472But@atomide.com>
+Subject: Re: [PATCH 2/6] dt-bindings: regulator: Nokia Tahvo/Betty ASIC Vcore
+ regulator
+Message-ID: <Yft/TLRmYtSNXkzd@atomide.com>
 References: <20211224214512.1583430-1-peter.vasil@gmail.com>
- <20211224214512.1583430-2-peter.vasil@gmail.com>
+ <20211224214512.1583430-3-peter.vasil@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20211224214512.1583430-2-peter.vasil@gmail.com>
+In-Reply-To: <20211224214512.1583430-3-peter.vasil@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -34,8 +34,8 @@ X-Mailing-List: linux-omap@vger.kernel.org
 * peter.vasil@gmail.com <peter.vasil@gmail.com> [211224 21:53]:
 > From: Peter Vasil <peter.vasil@gmail.com>
 > 
-> One of the functions of Tahvo/Betty ASIC MFD chip is a PWM output able
-> to drive LED with 127 levels of brightness.
-> On Nokia N8x0 Internet Tablet devices, this controls the LCD backlight.
+> One of the functions of Tahvo/Betty ASIC MFD chip is a voltage regulator for
+> Vcore output, adjustable from 1.005V to 1.475V. On Nokia N8x0 Internet Tablet
+> devices, this controls power to the Epson S1D13745 framebuffer IC.
 
 Reviewed-by: Tony Lindgren <tony@atomide.com>
