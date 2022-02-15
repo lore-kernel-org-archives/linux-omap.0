@@ -2,26 +2,26 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B923EC4321E
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Feb 2022 10:00:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14F66C433EF
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Feb 2022 10:01:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236287AbiBOKBH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Feb 2022 05:01:07 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:36154 "EHLO
+        id S233750AbiBOKBi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Feb 2022 05:01:38 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:36166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236286AbiBOKBA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2022 05:01:00 -0500
+        with ESMTP id S236399AbiBOKBW (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2022 05:01:22 -0500
 Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB43910E562
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2022 02:00:48 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05AB9111DD9
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2022 02:01:00 -0800 (PST)
 Received: from dude.hi.pengutronix.de ([2001:67c:670:100:1d::7])
         by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.92)
         (envelope-from <ore@pengutronix.de>)
-        id 1nJudB-0001tE-P5; Tue, 15 Feb 2022 11:00:21 +0100
+        id 1nJudB-0001tK-Oc; Tue, 15 Feb 2022 11:00:21 +0100
 Received: from ore by dude.hi.pengutronix.de with local (Exim 4.94.2)
         (envelope-from <ore@pengutronix.de>)
-        id 1nJud9-009fw4-CS; Tue, 15 Feb 2022 11:00:19 +0100
+        id 1nJud9-009fwr-IZ; Tue, 15 Feb 2022 11:00:19 +0100
 From:   Oleksij Rempel <o.rempel@pengutronix.de>
 To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         "David S. Miller" <davem@davemloft.net>,
@@ -41,9 +41,9 @@ Cc:     Oleksij Rempel <o.rempel@pengutronix.de>, kernel@pengutronix.de,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-tegra@vger.kernel.org
-Subject: [PATCH v4 2/8] dt-bindings: net: add schema for Microchip/SMSC LAN95xx USB Ethernet controllers
-Date:   Tue, 15 Feb 2022 11:00:12 +0100
-Message-Id: <20220215100018.2306046-3-o.rempel@pengutronix.de>
+Subject: [PATCH v4 7/8] ARM: dts: tegra20/30: fix ethernet node name for different tegra boards
+Date:   Tue, 15 Feb 2022 11:00:17 +0100
+Message-Id: <20220215100018.2306046-8-o.rempel@pengutronix.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220215100018.2306046-1-o.rempel@pengutronix.de>
 References: <20220215100018.2306046-1-o.rempel@pengutronix.de>
@@ -57,105 +57,56 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Create initial schema for Microchip/SMSC LAN95xx USB Ethernet controllers and
-import some of currently supported USB IDs form drivers/net/usb/smsc95xx.c
-
-This devices are already used in some of DTs. So, this schema makes it official.
-NOTE: there was no previously documented txt based DT binding for this
-controllers.
+The node name of Ethernet controller should be "ethernet" instead of
+"asix" or "smsc" as required by Ethernet controller devicetree schema:
+ Documentation/devicetree/bindings/net/ethernet-controller.yaml
 
 Signed-off-by: Oleksij Rempel <o.rempel@pengutronix.de>
 ---
- .../bindings/net/microchip,lan95xx.yaml       | 80 +++++++++++++++++++
- 1 file changed, 80 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/net/microchip,lan95xx.yaml
+ arch/arm/boot/dts/tegra20-colibri.dtsi | 2 +-
+ arch/arm/boot/dts/tegra30-colibri.dtsi | 2 +-
+ arch/arm/boot/dts/tegra30-ouya.dts     | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/net/microchip,lan95xx.yaml b/Documentation/devicetree/bindings/net/microchip,lan95xx.yaml
-new file mode 100644
-index 000000000000..8521c65366b4
---- /dev/null
-+++ b/Documentation/devicetree/bindings/net/microchip,lan95xx.yaml
-@@ -0,0 +1,80 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/net/microchip,lan95xx.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: The device tree bindings for the USB Ethernet controllers
-+
-+maintainers:
-+  - Oleksij Rempel <o.rempel@pengutronix.de>
-+
-+description: |
-+  Device tree properties for hard wired SMSC95xx compatible USB Ethernet
-+  controller.
-+
-+allOf:
-+  - $ref: ethernet-controller.yaml#
-+
-+properties:
-+  compatible:
-+    items:
-+      - enum:
-+          - usb424,9500   # SMSC9500 USB Ethernet Device
-+          - usb424,9505   # SMSC9505 USB Ethernet Device
-+          - usb424,9530   # SMSC LAN9530 USB Ethernet Device
-+          - usb424,9730   # SMSC LAN9730 USB Ethernet Device
-+          - usb424,9900   # SMSC9500 USB Ethernet Device (SAL10)
-+          - usb424,9901   # SMSC9505 USB Ethernet Device (SAL10)
-+          - usb424,9902   # SMSC9500A USB Ethernet Device (SAL10)
-+          - usb424,9903   # SMSC9505A USB Ethernet Device (SAL10)
-+          - usb424,9904   # SMSC9512/9514 USB Hub & Ethernet Device (SAL10)
-+          - usb424,9905   # SMSC9500A USB Ethernet Device (HAL)
-+          - usb424,9906   # SMSC9505A USB Ethernet Device (HAL)
-+          - usb424,9907   # SMSC9500 USB Ethernet Device (Alternate ID)
-+          - usb424,9908   # SMSC9500A USB Ethernet Device (Alternate ID)
-+          - usb424,9909   # SMSC9512/9514 USB Hub & Ethernet Devic.  ID)
-+          - usb424,9e00   # SMSC9500A USB Ethernet Device
-+          - usb424,9e01   # SMSC9505A USB Ethernet Device
-+          - usb424,9e08   # SMSC LAN89530 USB Ethernet Device
-+          - usb424,ec00   # SMSC9512/9514 USB Hub & Ethernet Device
-+
-+  reg: true
-+  local-mac-address: true
-+  mac-address: true
-+
-+required:
-+  - compatible
-+  - reg
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    usb {
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+
-+        ethernet@1 {
-+            compatible = "usb424,ec00";
-+            reg = <1>;
-+            local-mac-address = [00 00 00 00 00 00];
-+        };
-+    };
-+  - |
-+    usb {
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+
-+        usb1@1 {
-+            compatible = "usb424,9514";
-+            reg = <1>;
-+            #address-cells = <1>;
-+            #size-cells = <0>;
-+
-+            ethernet@1 {
-+               compatible = "usb424,ec00";
-+               reg = <1>;
-+            };
-+        };
-+    };
+diff --git a/arch/arm/boot/dts/tegra20-colibri.dtsi b/arch/arm/boot/dts/tegra20-colibri.dtsi
+index 1eefb9ee4ac8..8ebd8afc857d 100644
+--- a/arch/arm/boot/dts/tegra20-colibri.dtsi
++++ b/arch/arm/boot/dts/tegra20-colibri.dtsi
+@@ -691,7 +691,7 @@ usb@c5004000 {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+-		asix@1 {
++		ethernet@1 {
+ 			compatible = "usbb95,772b";
+ 			reg = <1>;
+ 			local-mac-address = [00 00 00 00 00 00];
+diff --git a/arch/arm/boot/dts/tegra30-colibri.dtsi b/arch/arm/boot/dts/tegra30-colibri.dtsi
+index be691a1c33a1..22231d450b1b 100644
+--- a/arch/arm/boot/dts/tegra30-colibri.dtsi
++++ b/arch/arm/boot/dts/tegra30-colibri.dtsi
+@@ -960,7 +960,7 @@ usb@7d004000 {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+-		asix@1 {
++		ethernet@1 {
+ 			compatible = "usbb95,772b";
+ 			reg = <1>;
+ 			local-mac-address = [00 00 00 00 00 00];
+diff --git a/arch/arm/boot/dts/tegra30-ouya.dts b/arch/arm/boot/dts/tegra30-ouya.dts
+index a5cfbab5f565..e58dda4f9d2c 100644
+--- a/arch/arm/boot/dts/tegra30-ouya.dts
++++ b/arch/arm/boot/dts/tegra30-ouya.dts
+@@ -4553,7 +4553,7 @@ usb@7d004000 {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+-		smsc@2 { /* SMSC 10/100T Ethernet Controller */
++		ethernet@2 { /* SMSC 10/100T Ethernet Controller */
+ 			compatible = "usb424,9e00";
+ 			reg = <2>;
+ 			local-mac-address = [00 11 22 33 44 55];
 -- 
 2.30.2
 
