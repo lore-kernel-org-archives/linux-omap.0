@@ -2,47 +2,47 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAB8CC433FE
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Feb 2022 15:27:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C216EC433EF
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Feb 2022 15:30:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238654AbiBOP1R (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Feb 2022 10:27:17 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:44788 "EHLO
+        id S239911AbiBOPaJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Feb 2022 10:30:09 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:46306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239141AbiBOP1Q (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2022 10:27:16 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39C83A27BF;
-        Tue, 15 Feb 2022 07:27:05 -0800 (PST)
+        with ESMTP id S240106AbiBOP3v (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2022 10:29:51 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52A19AF1F9;
+        Tue, 15 Feb 2022 07:28:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CD695B81AEA;
-        Tue, 15 Feb 2022 15:27:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B310C340F1;
-        Tue, 15 Feb 2022 15:27:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 51713615CE;
+        Tue, 15 Feb 2022 15:28:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF969C340F1;
+        Tue, 15 Feb 2022 15:28:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1644938822;
+        s=k20201202; t=1644938915;
         bh=E8X8be894fHh241pFPixddfhnlq8eHFkwL8tLTXtjqA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SUbpJBn53ZqjGUToNLqcDj8FbimYhSenC4NFfkgrGIu34R+XTkq95bU4+EwCK+CH7
-         iqrsTf/tpE5QeuVGuvEmQQISN3XIj5YdODF0wGqFHLUdaXcze+gnwpDWAbnyQX24mh
-         Z+AGisnZo+md1UQXySt8htyCyLwatxDRdtBQX6CSU2QHoJcRbeQo/kb+nqp8ipGbxJ
-         GE8e70RcdnSuHYHh2s7xIXWOkC3qk9q1lJquqf9vRbzv9AwJdseIgtsFB2RVqICQ6z
-         qtvwaRQBhrRuHRkYEq08gaeiEn8pRR3qwIAZjlnFZd7nAHGnsZI0w8c2MVt/R3ORcY
-         EcQgQKGzgXVJw==
+        b=G1HYo8frO0hwy/Id252sLBhPa/C18zMnSEwDmyRamIf863fWBD+C6HlcunLXfPMdX
+         ScTGY1vPohNnv1ho9+Y5jalsmU+vtDQgXBNiigphD3jlBQ4K62XGMt5BzGjBP21bfX
+         /Z8HU9i8/XKA5mJtQhaHrMSs9VuB/SgfaEGEa+DtTKGRP1ijQfskkBGjA2TPMn76bT
+         2VvSS5rhUegn2RdSHVxsbITaW64TyRtKGLrCjkO2VThwYin+6pwG3L6aSB9h2ZQeMd
+         uiFDhid63gsD99G6EGOs+j7g2Z+TxON3B/X/RIcQp+gq8Y4kSFeswVg29Vqi52oe/0
+         yKw3GzaYEBL+g==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Ye Guojin <ye.guojin@zte.com.cn>, Zeal Robot <zealci@zte.com.cn>,
         Tony Lindgren <tony@atomide.com>,
         Sasha Levin <sashal@kernel.org>, linux@armlinux.org.uk,
         linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH AUTOSEL 5.16 02/34] ARM: OMAP2+: adjust the location of put_device() call in omapdss_init_of
-Date:   Tue, 15 Feb 2022 10:26:25 -0500
-Message-Id: <20220215152657.580200-2-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 02/33] ARM: OMAP2+: adjust the location of put_device() call in omapdss_init_of
+Date:   Tue, 15 Feb 2022 10:28:00 -0500
+Message-Id: <20220215152831.580780-2-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220215152657.580200-1-sashal@kernel.org>
-References: <20220215152657.580200-1-sashal@kernel.org>
+In-Reply-To: <20220215152831.580780-1-sashal@kernel.org>
+References: <20220215152831.580780-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
