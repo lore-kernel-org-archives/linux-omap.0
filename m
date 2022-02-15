@@ -2,138 +2,118 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD38DC433FE
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Feb 2022 20:47:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EEA4C4332F
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Feb 2022 21:01:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244144AbiBOUrJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Feb 2022 15:47:09 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:33790 "EHLO
+        id S244245AbiBOVBZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Feb 2022 16:01:25 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:59980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232797AbiBOUrI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2022 15:47:08 -0500
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58B6FD93;
-        Tue, 15 Feb 2022 12:46:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
-        s=badeba3b8450; t=1644957995;
-        bh=0OSbOP7dVuxah5dzxOSWPDpWQt+waq4IO/yrm245na0=;
-        h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:In-Reply-To;
-        b=RM8lbqfXj4CquNffPjLDAk/zqsA2R7oPEntJIfErC/JFzifQUKiCCwI3sQ/AwS3UH
-         u+PDvEN61F59Ofw1QXdQ7s99jAvoAWJRtsvl3CYAHnhMh1rMymay5Nv8yKR1A9xG1K
-         XK+pIDDlkBrtJwgBGiQ/YPmKR4xRWeE8wNcYaJAw=
-X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
-Received: from [192.168.20.60] ([92.116.185.100]) by mail.gmx.net (mrgmx105
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1MJE27-1naNTk1Cfr-00KivD; Tue, 15
- Feb 2022 21:46:35 +0100
-Message-ID: <7e60cd01-8afc-ddb5-a1bb-6e9f53ccfba5@gmx.de>
-Date:   Tue, 15 Feb 2022 21:46:24 +0100
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.3.0
-Subject: Re: [PATCH 22/23] video: omapfb: dss: Make use of the helper
- component_compare_dev
-Content-Language: en-US
-To:     Yong Wu <yong.wu@mediatek.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        David Airlie <airlied@linux.ie>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        dri-devel@lists.freedesktop.org
-Cc:     James Wang <james.qian.wang@arm.com>,
-        Liviu Dudau <liviu.dudau@arm.com>,
-        iommu@lists.linux-foundation.org,
-        Matthias Brugger <matthias.bgg@gmail.com>,
+        with ESMTP id S235440AbiBOVBY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2022 16:01:24 -0500
+Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FFC927FE3;
+        Tue, 15 Feb 2022 13:01:14 -0800 (PST)
+Received: by mail-pf1-x42c.google.com with SMTP id c4so282622pfl.7;
+        Tue, 15 Feb 2022 13:01:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=wTa2P1MgBvk9m62qPWIOit490TSiIyPTgJSzWGel9bY=;
+        b=Rs1oCdwMxQfYIGJWKXdRuZnB1Ma80VhEoTYeNZtsDwRds0jVEX5HUNouyWNpmnPRKb
+         HrTm06k3tzmIkSplIDIRp684mUUaOheiW/2QtnudPz20P9C8zBxZYOByhkQ4IovjwnNm
+         gHmN6sHkkNbAviSAEYQRkXI65xNnpBRvYb9v2CvjUk5LzL6CqNDk13QeIt9g9sdrQMO/
+         B/bhfV5Cd2A4UTggseJf4bvZj70EpYruSXaUY9s1t+/VjpfyHxIpuR9qWDQvNJXHl2NT
+         wKbWwhiOGuuRMHGLMGPAETmWCZpAijdKjM52I71SuZ9GXDQYgLSEykguUq2mYOQQClOn
+         tfng==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=wTa2P1MgBvk9m62qPWIOit490TSiIyPTgJSzWGel9bY=;
+        b=gttvPXs0JJzkW2KEzGutEgF+BslUPfMQ794H4Q+zItntEQ5UYM3uEyryDtJWItXLWz
+         U4tJrhiosY66N2NN8RNT3xcPWbTpIkB++gwCMXQqs2kkIJ1bYWAqA2qksmN3SFu/FevE
+         8DJH5RB8BsIq50M5KdTyOcdOsXflEKn/8rUbUrrlR3O3zs7+9KUzj2IHMG5lpZ460epa
+         avIBEm4XepWqL5eOLuIIJpr0eobfq5OgdfkA2cNf+1ORZolTkduW9keJGDFAo+AgSQNi
+         L84RlZHie2adCSQx1u8D/lQUws9IFMCtDU23+jsSOkYpXniGustZzDMMfkpUnG9Nm2oP
+         ucYA==
+X-Gm-Message-State: AOAM5327KHvc+TjiEVXGHNTbezky5tkculQHv+y9MLAhHBpxq6YPwTok
+        3g6z4Ia3BIInsauGWQ3x7ynOX1SRwYQ=
+X-Google-Smtp-Source: ABdhPJxyQSAmCDE8WPMyCfUAI8JQM4Z7dyqZXvdtO7dYQTgEBuIQYkUh24QMtAyo8fvuDu2mO6aCAw==
+X-Received: by 2002:a63:234d:: with SMTP id u13mr628141pgm.128.1644958873451;
+        Tue, 15 Feb 2022 13:01:13 -0800 (PST)
+Received: from [10.67.48.245] ([192.19.223.252])
+        by smtp.googlemail.com with ESMTPSA id w12sm3306242pgl.64.2022.02.15.13.01.07
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 15 Feb 2022 13:01:12 -0800 (PST)
+Subject: Re: [PATCH v3 4/8] ARM: dts: bcm283x: fix ethernet node name
+To:     Oleksij Rempel <o.rempel@pengutronix.de>,
+        =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
         Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
-        linux-kernel@vger.kernel.org, Joerg Roedel <joro@8bytes.org>,
-        Will Deacon <will@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-mediatek@lists.infradead.org,
-        Chun-Kuang Hu <chunkuang.hu@kernel.org>,
+        Nicolas Saenz Julienne <nsaenz@kernel.org>,
+        Ray Jui <rjui@broadcom.com>, Rob Herring <robh+dt@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Scott Branden <sbranden@broadcom.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Tony Lindgren <tony@atomide.com>
+Cc:     kernel@pengutronix.de, bcm-kernel-feedback-list@broadcom.com,
+        netdev@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-rpi-kernel@lists.infradead.org,
         linux-arm-kernel@lists.infradead.org,
-        Stephen Boyd <sboyd@kernel.org>,
-        AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>,
-        Hsin-Yi Wang <hsinyi@chromium.org>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Tomasz Figa <tfiga@chromium.org>, srv_heupstream@mediatek.com,
-        Rob Clark <robdclark@gmail.com>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        Sebastian Reichel <sre@kernel.org>, linux-omap@vger.kernel.org,
-        linux-fbdev@vger.kernel.org
-References: <20220214060819.7334-1-yong.wu@mediatek.com>
- <20220214060819.7334-23-yong.wu@mediatek.com>
-From:   Helge Deller <deller@gmx.de>
-In-Reply-To: <20220214060819.7334-23-yong.wu@mediatek.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:MjTT6/0mKscyzurmEJq+TRDLFWm722/o5oh1VceIWTDo9Su6z33
- Uqcw4r79WPXMZ1MHVQ5YZwMpT3/LUtQYuMEKT1s4Qsw268nztXs8M1PHTdwFSaaX3fRCVHa
- I5hj8j+9RzGYlu8e8qiZ43jIdVRKdmD+CGxvzWPF1Cw57f4/4D8ejp1FysOEiqU6iTGSqwc
- ErfKQfh2UKAhLIHNSceWg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:EO1+Ylb+ev0=:HpXUahwDBxS2Q6GJ/UdQMa
- n+62M3husXUXoHxxs8AxzjuuYDkqIBegYnyeAV7YgP0Mle0rT21+2LEV21Cm/oK+NdFah8S9W
- CpzPyAZIRuU01jq211YudtbXnvFOMgwbjvey4rIl2NTTJUDs+3nbJ6EgXSJwHO77nbgaCNttA
- G+VtN7qVCXCtu780Msj9tZjo7C1oDNvtl1Z0DVM0OdyjyuO5D93T57PbebQJO+46L8tQ0bfg4
- PClJhDBMO98xxmJRVp6iBSjNS7q7geteQaZ0ZJQVZhNyuKpKUNS7ESMvNsPEhSTzcXNJDdgSx
- Vq9g3AnCPk01P40v1QI4BqRKbdc93kQn/QMzvwnd6VKhhT5hOO0TqppV8u07Mwhznrax7VcRW
- +v1Ixw3WjKmrwEdG4wxBOsqT1dFC/6QoqorX3z1sqp7Ag6Ncwj2vZEjoNZ1YUThIr4BpD/vWq
- hjpVXVTw/vir74eHyvdnz2eZXfQD7YPWYiK3z1oTwSGkoUciP9hPqvp4WS1qWPD3Wx4UiMz4y
- 2dpK2641P1xHzfATt1y9hhMgc6vt9XFxpm9Ycl0uN+Nf/W9WIYa2fD+vPujh/CyO3jLklKrNP
- rhbT5NjDJGfC/AFaC2iH75aCY+P5r1pQZOBnvTunjmLUTuER4bhCqMQqM9G+WAIVA1mScRE7x
- z5RtmJWkKSwplc9SI/e09hsIAALu0cz7R3+T3vF1BUPB0RwiiTFPg2EbSOsu0l9GrJ8CkvoHP
- 6ajgPfPMXcn62tOWZWD9MMtunWjyjGeCeU0sZsO37FBgxO6O75XX5KNPo3ZtVKQ/rb45z2Rj6
- BmFoOKHsV5p6ypFwr9d2I3zNEcl0DYDNBnMwKA/3QTkYeOJgYkBDK8DU7dxFOUM6q9OWcMRcY
- NoMQI8g/0H0GxrMHZA3BmETGV399e4Ve0zB9yhBv/cd9YdH0LKj0wm2/KEIbC/oPNQrOB040l
- zX8J1rybbjKBBzimlhU2e1yTmGHdV4geJl204qxFdDOHSN0uiAnzvI89ljAQcys4MdV9EpQSa
- NnChsjeiQrZB5ZntJzdsbaO7RJJahTHLc0+epBUeuUd6C0orPGZgiQsH8Kwcy4p8Uu6vZoYIV
- JC4pPsVjDwiUHc=
+        linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-tegra@vger.kernel.org
+References: <20220215080937.2263111-1-o.rempel@pengutronix.de>
+ <20220215080937.2263111-4-o.rempel@pengutronix.de>
+From:   Florian Fainelli <f.fainelli@gmail.com>
+Message-ID: <f5ea3375-0306-e37f-5847-e1472164d7b7@gmail.com>
+Date:   Tue, 15 Feb 2022 13:01:06 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.14.0
+MIME-Version: 1.0
+In-Reply-To: <20220215080937.2263111-4-o.rempel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 2/14/22 07:08, Yong Wu wrote:
-> Use the common compare helper from component.
->
-> Cc: Helge Deller <deller@gmx.de>
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-fbdev@vger.kernel.org
-> Signed-off-by: Yong Wu <yong.wu@mediatek.com>
+On 2/15/22 12:09 AM, Oleksij Rempel wrote:
+> It should be "ethernet@x" instead of "usbether@x"
+> 
+> Signed-off-by: Oleksij Rempel <o.rempel@pengutronix.de>
 
-Applied to the fbdev for-next branch.
+This looks like, a quick grep on the u-boot source code seems to suggest
+that only one file is assuming that 'usbether@1' is to be used as a node
+name and the error message does not even match the code it is patching:
 
-Thanks!
-Helge
+board/liebherr/xea/xea.c:
+  #ifdef CONFIG_OF_BOARD_SETUP
+  static int fdt_fixup_l2switch(void *blob)
+  {
+          u8 ethaddr[6];
+          int ret;
 
->  drivers/video/fbdev/omap2/omapfb/dss/dss.c | 8 +-------
->  1 file changed, 1 insertion(+), 7 deletions(-)
->
-> diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/=
-fbdev/omap2/omapfb/dss/dss.c
-> index a6b1c1598040..45b9d3cf3860 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> @@ -1193,12 +1193,6 @@ static const struct component_master_ops dss_comp=
-onent_ops =3D {
->  	.unbind =3D dss_unbind,
->  };
->
-> -static int dss_component_compare(struct device *dev, void *data)
-> -{
-> -	struct device *child =3D data;
-> -	return dev =3D=3D child;
-> -}
-> -
->  static int dss_add_child_component(struct device *dev, void *data)
->  {
->  	struct component_match **match =3D data;
-> @@ -1212,7 +1206,7 @@ static int dss_add_child_component(struct device *=
-dev, void *data)
->  	if (strstr(dev_name(dev), "rfbi"))
->  		return 0;
->
-> -	component_match_add(dev->parent, match, dss_component_compare, dev);
-> +	component_match_add(dev->parent, match, component_compare_dev, dev);
->
->  	return 0;
->  }
->
+          if (eth_env_get_enetaddr("ethaddr", ethaddr)) {
+                  ret = fdt_find_and_setprop(blob,
 
+"/ahb@80080000/switch@800f0000",
+                                             "local-mac-address",
+ethaddr, 6, 1);
+                  if (ret < 0)
+                          printf("%s: can't find usbether@1 node: %d\n",
+                                 __func__, ret);
+          }
+
+          return 0;
+  }
+
+I will wait for the other maintainers on the other patches to provide
+some feedback, but if all is well, will apply this one soon.
+-- 
+Florian
