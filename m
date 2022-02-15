@@ -2,26 +2,26 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86EF6C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E375EC4167D
 	for <linux-omap@archiver.kernel.org>; Tue, 15 Feb 2022 08:10:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235179AbiBOIKb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Feb 2022 03:10:31 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:52652 "EHLO
+        id S235205AbiBOIKc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Feb 2022 03:10:32 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:52648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235181AbiBOIKV (ORCPT
+        with ESMTP id S235157AbiBOIKV (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Feb 2022 03:10:21 -0500
 Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF38A2DAB2
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C0322DAB0
         for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2022 00:10:06 -0800 (PST)
 Received: from dude.hi.pengutronix.de ([2001:67c:670:100:1d::7])
         by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.92)
         (envelope-from <ore@pengutronix.de>)
-        id 1nJsu4-0002EG-5R; Tue, 15 Feb 2022 09:09:40 +0100
+        id 1nJsu4-0002EL-57; Tue, 15 Feb 2022 09:09:40 +0100
 Received: from ore by dude.hi.pengutronix.de with local (Exim 4.94.2)
         (envelope-from <ore@pengutronix.de>)
-        id 1nJsu2-009Ul3-6G; Tue, 15 Feb 2022 09:09:38 +0100
+        id 1nJsu2-009Uln-CF; Tue, 15 Feb 2022 09:09:38 +0100
 From:   Oleksij Rempel <o.rempel@pengutronix.de>
 To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         "David S. Miller" <davem@davemloft.net>,
@@ -41,9 +41,9 @@ Cc:     Oleksij Rempel <o.rempel@pengutronix.de>, kernel@pengutronix.de,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-tegra@vger.kernel.org
-Subject: [PATCH v3 3/8] dt-bindings: usb: ci-hdrc-usb2: fix node node for ethernet controller
-Date:   Tue, 15 Feb 2022 09:09:32 +0100
-Message-Id: <20220215080937.2263111-3-o.rempel@pengutronix.de>
+Subject: [PATCH v3 8/8] arm64: dts: imx8mm-kontron: fix ethernet node name
+Date:   Tue, 15 Feb 2022 09:09:37 +0100
+Message-Id: <20220215080937.2263111-8-o.rempel@pengutronix.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220215080937.2263111-1-o.rempel@pengutronix.de>
 References: <20220215080937.2263111-1-o.rempel@pengutronix.de>
@@ -57,27 +57,27 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This documentation provides wrong node name for the Ethernet controller.
-It should be "ethernet" instead of "smsc"
+The node name of Ethernet controller should be "ethernet" instead of
+"usbether"
 
 Signed-off-by: Oleksij Rempel <o.rempel@pengutronix.de>
 ---
- Documentation/devicetree/bindings/usb/ci-hdrc-usb2.txt | 2 +-
+ arch/arm64/boot/dts/freescale/imx8mm-kontron-n801x-s.dts | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/ci-hdrc-usb2.txt b/Documentation/devicetree/bindings/usb/ci-hdrc-usb2.txt
-index a5c5db6a0b2d..ba51fb1252b9 100644
---- a/Documentation/devicetree/bindings/usb/ci-hdrc-usb2.txt
-+++ b/Documentation/devicetree/bindings/usb/ci-hdrc-usb2.txt
-@@ -151,7 +151,7 @@ Example for HSIC:
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-kontron-n801x-s.dts b/arch/arm64/boot/dts/freescale/imx8mm-kontron-n801x-s.dts
+index d40caf14ac4a..23be1ec538ba 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-kontron-n801x-s.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-kontron-n801x-s.dts
+@@ -182,7 +182,7 @@ usb1@1 {
  		#address-cells = <1>;
  		#size-cells = <0>;
  
--		usbnet: smsc@1 {
+-		usbnet: usbether@1 {
 +		usbnet: ethernet@1 {
- 			compatible = "usb424,9730";
+ 			compatible = "usb424,ec00";
  			reg = <1>;
- 		};
+ 			local-mac-address = [ 00 00 00 00 00 00 ];
 -- 
 2.30.2
 
