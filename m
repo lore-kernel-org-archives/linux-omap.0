@@ -2,31 +2,30 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97EA5C433F5
-	for <linux-omap@archiver.kernel.org>; Wed, 16 Feb 2022 07:17:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B7EC433EF
+	for <linux-omap@archiver.kernel.org>; Wed, 16 Feb 2022 07:50:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229851AbiBPHRY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 16 Feb 2022 02:17:24 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:34250 "EHLO
+        id S231208AbiBPHu1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 16 Feb 2022 02:50:27 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:42238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229812AbiBPHRW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2022 02:17:22 -0500
+        with ESMTP id S231211AbiBPHuY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2022 02:50:24 -0500
 Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F317286D5
-        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2022 23:17:05 -0800 (PST)
-Received: from ptx.hi.pengutronix.de ([2001:67c:670:100:1d::c0])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8A911D967C
+        for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2022 23:50:01 -0800 (PST)
+Received: from dude.hi.pengutronix.de ([2001:67c:670:100:1d::7])
         by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.92)
         (envelope-from <ore@pengutronix.de>)
-        id 1nKEYJ-0007Pg-NX; Wed, 16 Feb 2022 08:16:39 +0100
-Received: from ore by ptx.hi.pengutronix.de with local (Exim 4.92)
+        id 1nKF46-000360-Ud; Wed, 16 Feb 2022 08:49:30 +0100
+Received: from ore by dude.hi.pengutronix.de with local (Exim 4.94.2)
         (envelope-from <ore@pengutronix.de>)
-        id 1nKEYE-0000vr-0Z; Wed, 16 Feb 2022 08:16:34 +0100
-Date:   Wed, 16 Feb 2022 08:16:33 +0100
+        id 1nKF45-00FBbR-5J; Wed, 16 Feb 2022 08:49:29 +0100
 From:   Oleksij Rempel <o.rempel@pengutronix.de>
-To:     Florian Fainelli <f.fainelli@gmail.com>
-Cc:     =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         "David S. Miller" <davem@davemloft.net>,
+        Florian Fainelli <f.fainelli@gmail.com>,
         Jakub Kicinski <kuba@kernel.org>,
         Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
         Nicolas Saenz Julienne <nsaenz@kernel.org>,
@@ -34,31 +33,23 @@ Cc:     =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
         Sascha Hauer <s.hauer@pengutronix.de>,
         Scott Branden <sbranden@broadcom.com>,
         Shawn Guo <shawnguo@kernel.org>,
-        Tony Lindgren <tony@atomide.com>, kernel@pengutronix.de,
+        Tony Lindgren <tony@atomide.com>
+Cc:     Oleksij Rempel <o.rempel@pengutronix.de>, kernel@pengutronix.de,
         bcm-kernel-feedback-list@broadcom.com, netdev@vger.kernel.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-usb@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
         linux-arm-kernel@lists.infradead.org,
         linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-tegra@vger.kernel.org
-Subject: Re: [PATCH v3 4/8] ARM: dts: bcm283x: fix ethernet node name
-Message-ID: <20220216071633.GB19299@pengutronix.de>
-References: <20220215080937.2263111-1-o.rempel@pengutronix.de>
- <20220215080937.2263111-4-o.rempel@pengutronix.de>
- <f5ea3375-0306-e37f-5847-e1472164d7b7@gmail.com>
+Subject: [PATCH v5 4/9] ARM: dts: bcm283x: fix ethernet node name
+Date:   Wed, 16 Feb 2022 08:49:22 +0100
+Message-Id: <20220216074927.3619425-5-o.rempel@pengutronix.de>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220216074927.3619425-1-o.rempel@pengutronix.de>
+References: <20220216074927.3619425-1-o.rempel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <f5ea3375-0306-e37f-5847-e1472164d7b7@gmail.com>
-X-Sent-From: Pengutronix Hildesheim
-X-URL:  http://www.pengutronix.de/
-X-IRC:  #ptxdist @freenode
-X-Accept-Language: de,en
-X-Accept-Content-Type: text/plain
-X-Uptime: 08:10:05 up 67 days, 15:55, 56 users,  load average: 0.27, 0.23,
- 0.18
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c0
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::7
 X-SA-Exim-Mail-From: ore@pengutronix.de
 X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
 X-PTX-Original-Recipient: linux-omap@vger.kernel.org
@@ -66,50 +57,45 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, Feb 15, 2022 at 01:01:06PM -0800, Florian Fainelli wrote:
-> On 2/15/22 12:09 AM, Oleksij Rempel wrote:
-> > It should be "ethernet@x" instead of "usbether@x"
-> > 
-> > Signed-off-by: Oleksij Rempel <o.rempel@pengutronix.de>
-> 
-> This looks like, a quick grep on the u-boot source code seems to suggest
-> that only one file is assuming that 'usbether@1' is to be used as a node
-> name and the error message does not even match the code it is patching:
-> 
-> board/liebherr/xea/xea.c:
->   #ifdef CONFIG_OF_BOARD_SETUP
->   static int fdt_fixup_l2switch(void *blob)
->   {
->           u8 ethaddr[6];
->           int ret;
-> 
->           if (eth_env_get_enetaddr("ethaddr", ethaddr)) {
->                   ret = fdt_find_and_setprop(blob,
-> 
-> "/ahb@80080000/switch@800f0000",
->                                              "local-mac-address",
-> ethaddr, 6, 1);
->                   if (ret < 0)
->                           printf("%s: can't find usbether@1 node: %d\n",
->                                  __func__, ret);
->           }
+It should be "ethernet@x" instead of "usbether@x" as required by Ethernet
+controller devicetree schema:
+ Documentation/devicetree/bindings/net/ethernet-controller.yaml
 
-\o/ :)
+This patch can potentially affect boot loaders patching against full
+node path instead of using device aliases.
 
->           return 0;
->   }
-> 
-> I will wait for the other maintainers on the other patches to provide
-> some feedback, but if all is well, will apply this one soon.
+Signed-off-by: Oleksij Rempel <o.rempel@pengutronix.de>
+---
+ arch/arm/boot/dts/bcm283x-rpi-smsc9512.dtsi | 2 +-
+ arch/arm/boot/dts/bcm283x-rpi-smsc9514.dtsi | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Full path fdt matching has proven to be not stable enough. Especially on
-chips with early DT adaptation like iMX. It is better to use aliases
-where possible. 
-
-Regards,
-Oleksij
+diff --git a/arch/arm/boot/dts/bcm283x-rpi-smsc9512.dtsi b/arch/arm/boot/dts/bcm283x-rpi-smsc9512.dtsi
+index 967e081cb9c2..882b13807075 100644
+--- a/arch/arm/boot/dts/bcm283x-rpi-smsc9512.dtsi
++++ b/arch/arm/boot/dts/bcm283x-rpi-smsc9512.dtsi
+@@ -12,7 +12,7 @@ usb1@1 {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+-		ethernet: usbether@1 {
++		ethernet: ethernet@1 {
+ 			compatible = "usb424,ec00";
+ 			reg = <1>;
+ 		};
+diff --git a/arch/arm/boot/dts/bcm283x-rpi-smsc9514.dtsi b/arch/arm/boot/dts/bcm283x-rpi-smsc9514.dtsi
+index dc7ae776db5f..4273b90b53cc 100644
+--- a/arch/arm/boot/dts/bcm283x-rpi-smsc9514.dtsi
++++ b/arch/arm/boot/dts/bcm283x-rpi-smsc9514.dtsi
+@@ -11,7 +11,7 @@ usb1@1 {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+-		ethernet: usbether@1 {
++		ethernet: ethernet@1 {
+ 			compatible = "usb424,ec00";
+ 			reg = <1>;
+ 		};
 -- 
-Pengutronix e.K.                           |                             |
-Steuerwalder Str. 21                       | http://www.pengutronix.de/  |
-31137 Hildesheim, Germany                  | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+2.30.2
+
