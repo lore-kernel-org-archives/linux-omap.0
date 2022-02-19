@@ -2,51 +2,51 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35D4DC43217
-	for <linux-omap@archiver.kernel.org>; Sat, 19 Feb 2022 21:55:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1BA5C4321E
+	for <linux-omap@archiver.kernel.org>; Sat, 19 Feb 2022 21:55:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243227AbiBSV4P (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 19 Feb 2022 16:56:15 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:55410 "EHLO
+        id S243204AbiBSV4Q (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 19 Feb 2022 16:56:16 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:55372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243167AbiBSV4N (ORCPT
+        with ESMTP id S243209AbiBSV4N (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2022 16:56:13 -0500
-Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01C20541B5
-        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 13:55:46 -0800 (PST)
-Received: by mail-pj1-x1034.google.com with SMTP id q11-20020a17090a304b00b001b94d25eaecso11665422pjl.4
-        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 13:55:46 -0800 (PST)
+Received: from mail-pl1-x62d.google.com (mail-pl1-x62d.google.com [IPv6:2607:f8b0:4864:20::62d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1B3C54685
+        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 13:55:49 -0800 (PST)
+Received: by mail-pl1-x62d.google.com with SMTP id ay3so1059539plb.1
+        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 13:55:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=baylibre-com.20210112.gappssmtp.com; s=20210112;
         h=from:to:subject:date:message-id:in-reply-to:references:mime-version
          :content-transfer-encoding;
-        bh=9DbHqa7/PuuNUMOB7llAk+nGQ8XUCY82hlr70rx3hVw=;
-        b=lMjdjwfj/yDZTTN1HHuqEqPG/1HemUUV8Zai5f4adJ5QtFzGfu892IQ+bv5mTvsCdC
-         hKeH346azPEzDp7/Qee0oz31oraJBCRHEJBp+3bc0zfjWKaIC/2DErWJW/PlQiSEp796
-         +pDt3kN28gf1Bgr0wZ8xOlhxKf6CBK7MQleRRBLx3tdSPuDwDfxkjCdpPfluTJXCWWke
-         fLVHPkKFGUsMUAwLRWalE3t5L6NumiQ64GU6D0CahKtRD5D562bkHFyaSM+XyjtTwnL5
-         cxTLxN6H3KPXLOyCgUmogh5pOcF1ugmkJvBage57cVzRK9F2p5b1aDgP+nRfPkWEfAj8
-         HA2g==
+        bh=CHkmrYvj5o3Fvy+E5fMWk8LislxIdO58ETqj8OSQKGc=;
+        b=cS7KyWnM1357k+YCng24Fih0jgFnP+ZaK0QNBtuh0U98ESMyakH971ptDSZAKHJSqr
+         gQiK+13pz5YcRpIRf9RLWnb01Yt+oAM/vBAH9WkXJS+x7fXTEXqU/HwzvznPNZx7EI4D
+         +9PAorOQjHodo/XaFAH5lcDpJhWbS9fIuC/nTZdVsB3+ZhVecVhmFBld6hrdzc7Z08ke
+         fQDx3Ur74vXYAoaz2En6XXWMzLCckz49CRwjfPsLHdUgW1cjMiHVSdQ/O8z4tZFeoK7K
+         7cutFt6sV8FRaf/7DP3/fmsfpXwFAdjFcwX2NO2pM5m3+KqUrUrp7gMiMq9sX2EuHaAw
+         bbaQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=9DbHqa7/PuuNUMOB7llAk+nGQ8XUCY82hlr70rx3hVw=;
-        b=rl8ITaZe+L3qwvVmfBnfGdYGURNjGDEpCBsE8M8DtOZ3RtO44puM8TWYNVJT27RG44
-         Gqg3F5VekShBDU2xIJyjxrHm2rFqEwbNtc/ewivJgy5pzhzq5pONnsJkl/fd80Xrauh7
-         fruG3WjhNN64Ro7+sDh0LxVTMm5SD1MMWZQsH5BDLwSFRaPQdY+4Xm4Er+iUhl4Kalr1
-         t24eavY6NkRXKOlqQMuJHSCS+ND5FAgg3DhdORTOG3un3YPfanhTBOj4Iab8OYC1UGzS
-         fxdZjKZNUsk+JVWJi19wde2Pko4T5NpkGSfpzcAepH/ei42a7mV5S/AE0hghFu+CvQ1t
-         n2pg==
-X-Gm-Message-State: AOAM530U4NDZ2KJ2NcLTOOvYuUuP7JikgMmUlONktsJpjjZ6Gv9yIwSh
-        3Z+vAg51u5WzSFEllsiETeGWXg==
-X-Google-Smtp-Source: ABdhPJwn7h7JYGRUMVhMEzpjLHw+5/dBjRfY4qeN6ev9JfTP0JOjdKzAk7hp+6ntGi56C2g+1y40Vg==
-X-Received: by 2002:a17:90b:358d:b0:1bb:74a3:7088 with SMTP id mm13-20020a17090b358d00b001bb74a37088mr14369662pjb.141.1645307746444;
-        Sat, 19 Feb 2022 13:55:46 -0800 (PST)
+        bh=CHkmrYvj5o3Fvy+E5fMWk8LislxIdO58ETqj8OSQKGc=;
+        b=aa3XYHgTnnhgY6vVEyfBV13dspUIzes47ai8CAA0T3fKq0QxT1RYZEklEpwIOiTNLU
+         0Eqs4FmkRbqFEmeq+HG2tZbxoAknpDIEcb6JglwaO4qH3AfZsWytKw8+LB6QegYpgBhd
+         z2GKhGjGxjj3rfFXLDJIhfyUSOyNV8YRcbLM1E9ut5gWCk0FrkS/acJ2d81ve6UnwIvq
+         qhqt7a4nvaguvYi5ZVrbFQWzwsAw5/EfC7AryyP57BrjVkAewV/9jVYiR4MH0dlcYU+Z
+         88s5gJzj7OqZS3QabYLhwspJvDUQvgSRZ1D7/+CLM8EJ5761gjUoVGwuRExixFbI3fVG
+         FPAg==
+X-Gm-Message-State: AOAM533WyHHnvOr2IxwGqVcKf+mOHT7CFE1uwzRHslbQJTFF7eOg5J39
+        TShYMF3OBkwNUSAhz07fyrd5qA==
+X-Google-Smtp-Source: ABdhPJwpaKlSS0zWq/DC5GlNZ7JnBiaOFnULT1QI8rhBXIzxuZrY1N+KNe6Y/5hmSg2nymovw4b1hg==
+X-Received: by 2002:a17:903:2311:b0:14e:eb4f:4559 with SMTP id d17-20020a170903231100b0014eeb4f4559mr13034737plh.138.1645307749017;
+        Sat, 19 Feb 2022 13:55:49 -0800 (PST)
 Received: from x1.hsd1.or.comcast.net ([2601:1c2:1001:7090:31ab:1e81:9550:f30a])
-        by smtp.gmail.com with ESMTPSA id i17sm13447337pgn.82.2022.02.19.13.55.45
+        by smtp.gmail.com with ESMTPSA id i17sm13447337pgn.82.2022.02.19.13.55.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 19 Feb 2022 13:55:46 -0800 (PST)
+        Sat, 19 Feb 2022 13:55:48 -0800 (PST)
 From:   Drew Fustini <dfustini@baylibre.com>
 To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Bjorn Andersson <bjorn.andersson@linaro.org>,
@@ -60,9 +60,9 @@ To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Santosh Shilimkar <ssantosh@kernel.org>,
         Tony Lindgren <tony@atomide.com>, s-anna@ti.com,
         khilman@baylibre.com
-Subject: [PATCH 05/11] soc: ti: wkup_m3_ipc: Add support for IO Isolation
-Date:   Sat, 19 Feb 2022 13:53:22 -0800
-Message-Id: <20220219215328.485660-6-dfustini@baylibre.com>
+Subject: [PATCH 07/11] dt-bindings: wkup_m3_ipc: Add scale-data-fw property
+Date:   Sat, 19 Feb 2022 13:53:24 -0800
+Message-Id: <20220219215328.485660-8-dfustini@baylibre.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220219215328.485660-1-dfustini@baylibre.com>
 References: <20220219215328.485660-1-dfustini@baylibre.com>
@@ -74,80 +74,42 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Dave Gerlach <d-gerlach@ti.com>
 
-AM43xx support isolation of the IOs so that control is taken
-from the peripheral they are connected to and overridden by values
-present in the CTRL_CONF_* registers for the pad in the control module.
+Add documentation for scale-data-fw property on the wkup_m3_ipc node to
+enable I2C PMIC voltage scaling. The property contains the name of a
+binary file for the CM3 firmware to load.
 
-The actual toggling happens from the wkup_m3, so use a DT property from
-thea wkup_m3_ipc node to allow the PM code to communicate the necessity
-for placing the IOs into isolation to the firmware.
+Based on previous work by Russ Dill.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
+[dfustini: split dt-binding change into separate patch]
 Signed-off-by: Drew Fustini <dfustini@baylibre.com>
 ---
- drivers/soc/ti/wkup_m3_ipc.c | 14 ++++++++++++--
- include/linux/wkup_m3_ipc.h  |  1 +
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/soc/ti/wkup_m3_ipc.txt        | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/soc/ti/wkup_m3_ipc.c b/drivers/soc/ti/wkup_m3_ipc.c
-index 974b4118a893..e7ae942b7014 100644
---- a/drivers/soc/ti/wkup_m3_ipc.c
-+++ b/drivers/soc/ti/wkup_m3_ipc.c
-@@ -46,6 +46,8 @@
- #define IPC_VTT_STAT_MASK		(0x1 << 3)
- #define IPC_VTT_GPIO_PIN_SHIFT		(0x4)
- #define IPC_VTT_GPIO_PIN_MASK		(0x3f << 4)
-+#define IPC_IO_ISOLATION_STAT_SHIFT	(10)
-+#define IPC_IO_ISOLATION_STAT_MASK	(0x1 << 10)
+diff --git a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+index df6b600abf4c..01b78a9da943 100644
+--- a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
++++ b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+@@ -56,6 +56,17 @@ Example:
+ 		};
+ 	};
  
- #define M3_STATE_UNKNOWN		0
- #define M3_STATE_RESET			1
-@@ -228,6 +230,11 @@ static void wkup_m3_set_vtt_gpio(struct wkup_m3_ipc *m3_ipc, int gpio)
- 			    (gpio << IPC_VTT_GPIO_PIN_SHIFT);
- }
- 
-+static void wkup_m3_set_io_isolation(struct wkup_m3_ipc *m3_ipc)
-+{
-+	m3_ipc->isolation_conf = (1 << IPC_IO_ISOLATION_STAT_SHIFT);
-+}
++Support for I2C PMIC Voltage Scaling
++--------------------
++It is possible to pass the name of a binary file to laod to the CM3 firmware
++in order to provide I2C sequences for the CM3 to send out to the PMIC during
++low power mode entry.
 +
- /* Public functions */
- /**
-  * wkup_m3_set_mem_type - Pass wkup_m3 which type of memory is in use
-@@ -308,8 +315,8 @@ static int wkup_m3_prepare_low_power(struct wkup_m3_ipc *m3_ipc, int state)
- 	wkup_m3_ctrl_ipc_write(m3_ipc, m3_ipc->resume_addr, 0);
- 	wkup_m3_ctrl_ipc_write(m3_ipc, m3_power_state, 1);
- 	wkup_m3_ctrl_ipc_write(m3_ipc, m3_ipc->mem_type |
--			       m3_ipc->vtt_conf, 4);
--
-+			       m3_ipc->vtt_conf |
-+			       m3_ipc->isolation_conf, 4);
- 	wkup_m3_ctrl_ipc_write(m3_ipc, DS_IPC_DEFAULT, 2);
- 	wkup_m3_ctrl_ipc_write(m3_ipc, DS_IPC_DEFAULT, 3);
- 	wkup_m3_ctrl_ipc_write(m3_ipc, DS_IPC_DEFAULT, 5);
-@@ -519,6 +526,9 @@ static int wkup_m3_ipc_probe(struct platform_device *pdev)
- 			dev_warn(dev, "Invalid VTT GPIO(%d) pin\n", temp);
- 	}
- 
-+	if (of_find_property(np, "ti,set-io-isolation", NULL))
-+		wkup_m3_set_io_isolation(m3_ipc);
++Optional properties:
++--------------------
++- scale-data-fw:	Name of the firmware binary in /lib/firmware to copy to m3
++			aux data.
 +
- 	/*
- 	 * Wait for firmware loading completion in a thread so we
- 	 * can boot the wkup_m3 as soon as it's ready without holding
-diff --git a/include/linux/wkup_m3_ipc.h b/include/linux/wkup_m3_ipc.h
-index 2bc52c6381d5..b706eac58f92 100644
---- a/include/linux/wkup_m3_ipc.h
-+++ b/include/linux/wkup_m3_ipc.h
-@@ -34,6 +34,7 @@ struct wkup_m3_ipc {
- 	int mem_type;
- 	unsigned long resume_addr;
- 	int vtt_conf;
-+	int isolation_conf;
- 	int state;
- 
- 	struct completion sync_complete;
+ Support for VTT Toggle
+ ==================================
+ In order to enable the support for VTT toggle during Suspend/Resume
 -- 
 2.32.0
 
