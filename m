@@ -2,31 +2,31 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF4CBC433EF
-	for <linux-omap@archiver.kernel.org>; Sun, 20 Feb 2022 00:30:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64378C433F5
+	for <linux-omap@archiver.kernel.org>; Sun, 20 Feb 2022 00:31:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241921AbiBTAa6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 19 Feb 2022 19:30:58 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:52206 "EHLO
+        id S241151AbiBTAbd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 19 Feb 2022 19:31:33 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:52394 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232470AbiBTAa5 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2022 19:30:57 -0500
+        with ESMTP id S240166AbiBTAbc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2022 19:31:32 -0500
 Received: from sender11-of-o51.zoho.eu (sender11-of-o51.zoho.eu [31.186.226.237])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEE3A42A14
-        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 16:30:36 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1645316098; cv=none; 
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 013CB42A12
+        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 16:31:12 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1645316154; cv=none; 
         d=zohomail.eu; s=zohoarc; 
-        b=iHTfEyOMVKQCQUWTEkxAl7lD59sCRhIq4DcgSqMi+dBUaQI/XXXLG33RtXJUKF9uYLaXkGHujgROognsNWRqybGaRtAZyou1K//uu3TVVV6lLzIh4z7J2gQvreQKpPEdzz9U4oOH7eKa+E8VLW/t1ZgCS3a3QwWp0PMMfq5kejo=
+        b=MCHuuHDjdn9vTCTaInxeBtnVm6klEwwndrwNrc0hSC+ObLlaVkCB7iZdY2LazrJGZigzsns6mNeK4B8RrcVZ4mhxLEEEdt9nu6aBWXHjFY+l70SHXrkjQjqv+WuevWp0hOZZqA4PGHq5ULuF03Inqkcg4g/0xsyprI83NalK9Ww=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
-        t=1645316098; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=I2SPFUqVbuiNnXgGeTuoa/g4+z6ufb1oWENl/qsaZ88=; 
-        b=IihROJ3ugIWVGgG6QS7hYdrzkUhhCaxoTv4Js1Pbl4Pjqi9ogFgL11i+1z5Yh08Gv6qVoiLEQHUARzH9MYceGANS4oFR2a4jAr1ApBdVdWVd5i89IAuxdE5/b7jxknrgAbhPu3fT/quDassy3sngUBlfXjDvU26g/tjYN5lA0S0=
+        t=1645316154; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=rVajd+WbGj4V8f+yOgZscqhIxYchcnZitCfUwjk8AGw=; 
+        b=grQCF+ObNbDPNjF8ZGujA7nsOIFXkWzNqlg5cWPrgPPsgKXlkdFB/BnUilyc/eae7urXEgzGQSvKOiZjflOVnai2jYNyXxYV8VOe/j24/hfbToPfnuedtm6DWwxYjQGLDqKnOt1l4BfuzHW7vU/QGXVHpJehu7XKipbGQaFgDM8=
 ARC-Authentication-Results: i=1; mx.zohomail.eu;
         spf=pass  smtp.mailfrom=philipp@uvos.xyz;
         dmarc=pass header.from=<philipp@uvos.xyz>
 Received: from UVOSLinux (ip-037-201-192-120.um10.pools.vodafone-ip.de [37.201.192.120]) by mx.zoho.eu
-        with SMTPS id 1645316096336579.5571665667055; Sun, 20 Feb 2022 01:14:56 +0100 (CET)
-Date:   Sun, 20 Feb 2022 01:14:54 +0100
+        with SMTPS id 1645316152037962.4617882343289; Sun, 20 Feb 2022 01:15:52 +0100 (CET)
+Date:   Sun, 20 Feb 2022 01:15:51 +0100
 From:   Carl Philipp Klemm <philipp@uvos.xyz>
 To:     Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 Cc:     "kuninori.morimoto.gx@gmail.com" <kuninori.morimoto.gx@gmail.com>,
@@ -35,9 +35,8 @@ Cc:     "kuninori.morimoto.gx@gmail.com" <kuninori.morimoto.gx@gmail.com>,
         "tony@atomide.com" <tony@atomide.com>,
         "sre@kernel.org" <sre@kernel.org>,
         "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: [PATCH 1/6] ASoC: simple_card_utils: call
- snd_soc_component_set_jack() at asoc_simple_init_jack()
-Message-Id: <20220220011454.34b190c26487faa18c16e4d2@uvos.xyz>
+Subject: [PATCH 3/6] ASoC: cpcap: add headphone jack plug detection support
+Message-Id: <20220220011551.a132b8f7d033d3e1eb731013@uvos.xyz>
 In-Reply-To: <OS3PR01MB8426FD3FD1B45BB31C971A56D4509@OS3PR01MB8426.jpnprd01.prod.outlook.com>
 References: <20211228190931.df5d518220080a734532ebfd@uvos.xyz>
         <87a6gawxpe.wl-kuninori.morimoto.gx@gmail.com>
@@ -54,253 +53,240 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Current simple-card / audio-graph-card are detecting HP/MIC at card->probe
-timing (= A), and not calling snd_soc_component_set_jack() for it.
-Other sound card drivers are using dai_link->init timing (= B) for
-both detecting and set_jack().
+Implements an interrupt handler that fires when a headphone
+is inserted. A jack must be provided to the codec via
+snd_soc_component_driver .set_jack
 
-	static int snd_soc_bind_card(...)
-	{
-		....
-(A)		ret = snd_soc_card_probe(card);
-		...
-		for_each_card_rtds(card, rtd) {
-(B)			ret = soc_init_pcm_runtime(card, rtd);
-			...
-		}
-		...
-	}
-
-This patch
-(a) calls set_jack() (= Y) at asoc_simple_init_jack() (= X) which is
-    used to detect HP/MIC.
-(b) calls it from dai_link->init timing (= B) instead of card->probe
-    timing (= A).
-(c) allows  non-gpio jacks to be reported by a componant give it via
-    snd_soc_component_set_jack if a of node defined by the driver is set
-(d) remove card->init (= A) timing function from
-    simple-card / audio-graph-card.
-
-(X)	int asoc_simple_init_jack(...)
-	{
-		...
-		if (gpio_is_valid(det)) {
-			...
-
-			snd_soc_card_jack_new(...);
-			snd_soc_jack_add_gpios(...);
-			for_each_card_components(card, component)
-(Y)				snd_soc_component_set_jack(component, ...);
-		}
-		...
-	}
-
-One note here is that simple-card needs PREFIX to detecting HP/MIC,
-but it is not needed on audio-graph-card.
-Thus simple-card uses local function for it, and audio-graph-card is
-using global function and sharing the code with
-audio-graph-card / audio-graph-card2 / audio-graph-card2-custom-sample /
-tegra_audio_graph_card.
-
-Co-Developed-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
 ---
- include/sound/simple_card_utils.h             |  2 +-
- .../generic/audio-graph-card2-custom-sample.c |  3 +-
- sound/soc/generic/audio-graph-card2.c         |  3 +-
- sound/soc/generic/simple-card-utils.c         | 20 +++++++++-
- sound/soc/generic/simple-card.c               | 40 ++++++++++---------
- sound/soc/tegra/tegra_audio_graph_card.c      |  2 +-
- 6 files changed, 44 insertions(+), 26 deletions(-)
+ sound/soc/codecs/cpcap.c | 104 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 94 insertions(+), 10 deletions(-)
 
-diff --git a/include/sound/simple_card_utils.h b/include/sound/simple_card_utils.h
-index df430f1c2a10..34891da5a0fa 100644
---- a/include/sound/simple_card_utils.h
-+++ b/include/sound/simple_card_utils.h
-@@ -182,7 +182,7 @@ int asoc_simple_init_priv(struct asoc_simple_priv *priv,
- 			       struct link_info *li);
- int asoc_simple_remove(struct platform_device *pdev);
+diff --git a/sound/soc/codecs/cpcap.c b/sound/soc/codecs/cpcap.c
+index 598e09024e23..8114d78726ff 100644
+--- a/sound/soc/codecs/cpcap.c
++++ b/sound/soc/codecs/cpcap.c
+@@ -15,6 +15,7 @@
+ #include <sound/core.h>
+ #include <sound/soc.h>
+ #include <sound/tlv.h>
++#include <sound/jack.h>
  
--int asoc_graph_card_probe(struct snd_soc_card *card);
-+int asoc_graph_dai_init(struct snd_soc_pcm_runtime *rtd);
- int asoc_graph_is_ports0(struct device_node *port);
+ /* Register 512 CPCAP_REG_VAUDIOC --- Audio Regulator and Bias Voltage */
+ #define CPCAP_BIT_AUDIO_LOW_PWR           6
+@@ -252,8 +253,14 @@ enum cpcap_dai {
+ };
  
- #ifdef DEBUG
-diff --git a/sound/soc/generic/audio-graph-card2-custom-sample.c b/sound/soc/generic/audio-graph-card2-custom-sample.c
-index 4a2c743e286c..da6cb69faa8d 100644
---- a/sound/soc/generic/audio-graph-card2-custom-sample.c
-+++ b/sound/soc/generic/audio-graph-card2-custom-sample.c
-@@ -34,8 +34,7 @@ static int custom_card_probe(struct snd_soc_card *card)
- 
- 	custom_priv->custom_params = 1;
- 
--	/* you can use generic probe function */
--	return asoc_graph_card_probe(card);
-+	return 0;
- }
- 
- static int custom_hook_pre(struct asoc_simple_priv *priv)
-diff --git a/sound/soc/generic/audio-graph-card2.c b/sound/soc/generic/audio-graph-card2.c
-index b6049bcfb771..dacf158389f9 100644
---- a/sound/soc/generic/audio-graph-card2.c
-+++ b/sound/soc/generic/audio-graph-card2.c
-@@ -710,7 +710,7 @@ static void graph_link_init(struct asoc_simple_priv *priv,
- 		daiclk = snd_soc_daifmt_clock_provider_fliped(daiclk);
- 
- 	dai_link->dai_fmt	= daifmt | daiclk;
--	dai_link->init		= asoc_simple_dai_init;
-+	dai_link->init		= asoc_graph_dai_init;
- 	dai_link->ops		= &graph_ops;
- 	if (priv->ops)
- 		dai_link->ops	= priv->ops;
-@@ -1180,7 +1180,6 @@ int audio_graph2_parse_of(struct asoc_simple_priv *priv, struct device *dev,
- 	if (!li)
- 		return -ENOMEM;
- 
--	card->probe	= asoc_graph_card_probe;
- 	card->owner	= THIS_MODULE;
- 	card->dev	= dev;
- 
-diff --git a/sound/soc/generic/simple-card-utils.c b/sound/soc/generic/simple-card-utils.c
-index 850e968677f1..a135c85584df 100644
---- a/sound/soc/generic/simple-card-utils.c
-+++ b/sound/soc/generic/simple-card-utils.c
-@@ -588,6 +588,8 @@ int asoc_simple_init_jack(struct snd_soc_card *card,
- 		return -EPROBE_DEFER;
- 
- 	if (gpio_is_valid(det)) {
-+		struct snd_soc_component *component;
+ struct cpcap_audio {
++	struct device *dev;
+ 	struct snd_soc_component *component;
+ 	struct regmap *regmap;
++	struct snd_soc_jack *hp_jack;
 +
- 		sjack->pin.pin		= pin_name;
- 		sjack->pin.mask		= mask;
- 
-@@ -603,6 +605,15 @@ int asoc_simple_init_jack(struct snd_soc_card *card,
- 
- 		snd_soc_jack_add_gpios(&sjack->jack, 1,
- 				       &sjack->gpio);
++	struct delayed_work jack_detect_work;
 +
-+		for_each_card_components(card, component)
-+			snd_soc_component_set_jack(component, &sjack->jack, NULL);
-+	} else if (of_property_read_bool(dev->of_node, prefix)) {
-+		snd_soc_card_jack_new(card, pin_name, mask,
-+				      &sjack->jack,
-+				      &sjack->pin, 1);
-+		for_each_card_components(card, component)
-+			snd_soc_component_set_jack(component, &sjack->jack, NULL);
- 	}
++	int hp_irq;
  
- 	return 0;
-@@ -758,11 +769,16 @@ int asoc_simple_remove(struct platform_device *pdev)
- }
- EXPORT_SYMBOL_GPL(asoc_simple_remove);
+ 	u16 vendor;
  
--int asoc_graph_card_probe(struct snd_soc_card *card)
-+int asoc_graph_dai_init(struct snd_soc_pcm_runtime *rtd)
- {
-+	struct snd_soc_card *card = rtd->card;
- 	struct asoc_simple_priv *priv = snd_soc_card_get_drvdata(card);
- 	int ret;
- 
-+	ret = asoc_simple_dai_init(rtd);
-+	if (ret < 0)
-+		return ret;
-+
- 	ret = asoc_simple_init_hp(card, &priv->hp_jack, NULL);
- 	if (ret < 0)
- 		return ret;
-@@ -773,7 +789,7 @@ int asoc_graph_card_probe(struct snd_soc_card *card)
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(asoc_graph_card_probe);
-+EXPORT_SYMBOL_GPL(asoc_graph_dai_init);
- 
- int asoc_graph_is_ports0(struct device_node *np)
- {
-diff --git a/sound/soc/generic/simple-card.c b/sound/soc/generic/simple-card.c
-index a3a7990b5cb6..0ead77c40a30 100644
---- a/sound/soc/generic/simple-card.c
-+++ b/sound/soc/generic/simple-card.c
-@@ -149,6 +149,27 @@ static int simple_parse_node(struct asoc_simple_priv *priv,
+@@ -603,6 +610,21 @@ static int cpcap_input_left_mux_put_enum(struct snd_kcontrol *kcontrol,
  	return 0;
  }
  
-+static int simple_dai_init(struct snd_soc_pcm_runtime *rtd)
++static struct snd_soc_jack_pin headset_jack_pins[] = {
++	{
++		.pin = "Headset Right Playback Route",
++		.mask = SND_JACK_HEADPHONE,
++	},
++	{
++		.pin = "Headset Left Playback Route",
++		.mask = SND_JACK_HEADPHONE,
++	},
++	{
++		.pin = "Headphones",
++		.mask = SND_JACK_HEADPHONE,
++	}
++};
++
+ static const struct snd_kcontrol_new cpcap_input_left_mux =
+ 	SOC_DAPM_ENUM_EXT("Input Left", cpcap_input_left_mux_enum,
+ 			  cpcap_input_left_mux_get_enum,
+@@ -1561,8 +1583,6 @@ static int cpcap_dai_mux(struct cpcap_audio *cpcap, bool swap_dai_configuration)
+ 	u16 voice_mask = BIT(CPCAP_BIT_DIG_AUD_IN);
+ 	int err;
+ 
+-
+-
+ 	if (!swap_dai_configuration) {
+ 		/* Codec on DAI0, HiFi on DAI1 */
+ 		voice_val = 0;
+@@ -1586,6 +1606,44 @@ static int cpcap_dai_mux(struct cpcap_audio *cpcap, bool swap_dai_configuration)
+ 	return 0;
+ }
+ 
++static irqreturn_t cpcap_hp_irq_thread(int irq, void *arg)
 +{
-+	struct snd_soc_card *card = rtd->card;
-+	struct asoc_simple_priv *priv = snd_soc_card_get_drvdata(card);
-+	int ret;
++	struct cpcap_audio *cpcap = arg;
++	int val = -1;
++	bool plugged;
 +
-+	ret = asoc_simple_dai_init(rtd);
-+	if (ret < 0)
-+		return ret;
++	regmap_read(cpcap->regmap, CPCAP_REG_INTS1, &val);
++	plugged = val & (1<<9);
 +
-+	ret = asoc_simple_init_hp(card, &priv->hp_jack, PREFIX);
-+	if (ret < 0)
-+		return ret;
++	if (!cpcap->component) {
++		dev_warn(cpcap->dev, "%s called before component is ready.", __func__);
++		return IRQ_HANDLED;
++	}
 +
-+	ret = asoc_simple_init_mic(card, &priv->mic_jack, PREFIX);
-+	if (ret < 0)
-+		return ret;
++	if (!cpcap->hp_jack) {
++		dev_warn(cpcap->dev, "%s called before jack is ready.", __func__);
++		return IRQ_HANDLED;
++	}
++
++	snd_soc_jack_report(cpcap->hp_jack, plugged ? 0 : SND_JACK_HEADPHONE, SND_JACK_HEADPHONE);
++
++	return IRQ_HANDLED;
++}
++
++static int cpcap_set_jack_detect(struct snd_soc_component *component,
++	struct snd_soc_jack *hp_jack, void *data)
++{
++	struct cpcap_audio *cpcap = snd_soc_component_get_drvdata(component);
++
++	if (!cpcap->hp_jack) {
++		dev_info(cpcap->dev, "registering jack");
++		cpcap->hp_jack = hp_jack;
++		snd_soc_jack_add_pins(hp_jack, ARRAY_SIZE(headset_jack_pins), headset_jack_pins);
++	}
 +
 +	return 0;
 +}
 +
- static int simple_link_init(struct asoc_simple_priv *priv,
- 			    struct device_node *node,
- 			    struct device_node *codec,
-@@ -164,7 +185,7 @@ static int simple_link_init(struct asoc_simple_priv *priv,
- 	if (ret < 0)
- 		return 0;
- 
--	dai_link->init			= asoc_simple_dai_init;
-+	dai_link->init			= simple_dai_init;
- 	dai_link->ops			= &simple_ops;
- 
- 	return asoc_simple_set_dailink_name(dev, dai_link, name);
-@@ -587,22 +608,6 @@ static int simple_get_dais_count(struct asoc_simple_priv *priv,
- 				    simple_count_dpcm);
- }
- 
--static int simple_soc_probe(struct snd_soc_card *card)
--{
--	struct asoc_simple_priv *priv = snd_soc_card_get_drvdata(card);
--	int ret;
--
--	ret = asoc_simple_init_hp(card, &priv->hp_jack, PREFIX);
--	if (ret < 0)
--		return ret;
--
--	ret = asoc_simple_init_mic(card, &priv->mic_jack, PREFIX);
--	if (ret < 0)
--		return ret;
--
--	return 0;
--}
--
- static int asoc_simple_probe(struct platform_device *pdev)
+ static int cpcap_audio_reset(struct snd_soc_component *component,
+ 			     bool swap_dai_configuration)
  {
- 	struct asoc_simple_priv *priv;
-@@ -620,7 +625,6 @@ static int asoc_simple_probe(struct platform_device *pdev)
- 	card = simple_priv_to_card(priv);
- 	card->owner		= THIS_MODULE;
- 	card->dev		= dev;
--	card->probe		= simple_soc_probe;
- 	card->driver_name       = "simple-card";
+@@ -1628,13 +1686,9 @@ static int cpcap_audio_reset(struct snd_soc_component *component,
  
- 	li = devm_kzalloc(dev, sizeof(*li), GFP_KERNEL);
-diff --git a/sound/soc/tegra/tegra_audio_graph_card.c b/sound/soc/tegra/tegra_audio_graph_card.c
-index 1f2c5018bf5a..404762d40389 100644
---- a/sound/soc/tegra/tegra_audio_graph_card.c
-+++ b/sound/soc/tegra/tegra_audio_graph_card.c
-@@ -184,7 +184,7 @@ static int tegra_audio_graph_card_probe(struct snd_soc_card *card)
- 		return PTR_ERR(priv->clk_plla_out0);
- 	}
+ static int cpcap_soc_probe(struct snd_soc_component *component)
+ {
+-	struct cpcap_audio *cpcap;
++	struct cpcap_audio *cpcap = snd_soc_component_get_drvdata(component);
+ 	int err;
  
--	return asoc_graph_card_probe(card);
+-	cpcap = devm_kzalloc(component->dev, sizeof(*cpcap), GFP_KERNEL);
+-	if (!cpcap)
+-		return -ENOMEM;
+-	snd_soc_component_set_drvdata(component, cpcap);
+ 	cpcap->component = component;
+ 
+ 	cpcap->regmap = dev_get_regmap(component->dev->parent, NULL);
+@@ -1657,6 +1711,7 @@ static struct snd_soc_component_driver soc_codec_dev_cpcap = {
+ 	.num_dapm_widgets	= ARRAY_SIZE(cpcap_dapm_widgets),
+ 	.dapm_routes		= intercon,
+ 	.num_dapm_routes	= ARRAY_SIZE(intercon),
++	.set_jack = cpcap_set_jack_detect,
+ 	.idle_bias_on		= 1,
+ 	.use_pmdown_time	= 1,
+ 	.endianness		= 1,
+@@ -1665,13 +1720,42 @@ static struct snd_soc_component_driver soc_codec_dev_cpcap = {
+ 
+ static int cpcap_codec_probe(struct platform_device *pdev)
+ {
+-	struct device_node *codec_node =
+-		of_get_child_by_name(pdev->dev.parent->of_node, "audio-codec");
++	struct cpcap_audio *cpcap;
++	struct device_node *codec_node;
++	int ret;
+ 
++	codec_node = of_get_child_by_name(pdev->dev.parent->of_node, "audio-codec");
+ 	pdev->dev.of_node = codec_node;
+ 
+-	return devm_snd_soc_register_component(&pdev->dev, &soc_codec_dev_cpcap,
++	cpcap = devm_kzalloc(&pdev->dev, sizeof(*cpcap), GFP_KERNEL);
++	if (!cpcap)
++		return -ENOMEM;
++	dev_set_drvdata(&pdev->dev, cpcap);
++
++	ret = devm_snd_soc_register_component(&pdev->dev, &soc_codec_dev_cpcap,
+ 				      cpcap_dai, ARRAY_SIZE(cpcap_dai));
++	if (ret < 0)
++		return ret;
++
++	cpcap->hp_irq = platform_get_irq_byname(pdev, "hpplugged");
++	if (cpcap->hp_irq < 0)
++		return -ENODEV;
++
++	cpcap->dev = &pdev->dev;
++
++	ret = devm_request_threaded_irq(&pdev->dev, cpcap->hp_irq, NULL,
++					  cpcap_hp_irq_thread,
++					  IRQF_TRIGGER_RISING |
++					  IRQF_TRIGGER_FALLING |
++					  IRQF_ONESHOT,
++					  "cpcap-codec-headphone", cpcap);
++	if (ret) {
++		dev_err(&pdev->dev, "could not get irq: %i\n",
++			ret);
++		return ret;
++	}
++
 +	return 0;
  }
  
- static int tegra_audio_graph_probe(struct platform_device *pdev)
+ static struct platform_driver cpcap_codec_driver = {
 -- 
 2.35.1
+
+-- 
+Carl Philipp Klemm <philipp@uvos.xyz> <carl@uvos.xyz>
+
+On Mon, 10 Jan 2022 23:27:52 +0000
+Kuninori Morimoto <kuninori.morimoto.gx@renesas.com> wrote:
+
+> 
+> Hi Carl
+> 
+> >> (X)	int asoc_simple_init_jack(...)
+> >> 	{
+> >> 		...
+> >> 		if (gpio_is_valid(det)) {
+> >> 			...
+> >> 
+> >> 			snd_soc_card_jack_new(...);
+> >> 			snd_soc_jack_add_gpios(...);
+> >> 			for_each_card_components(card, component)
+> >> (Y)				snd_soc_component_set_jack(component, ...);
+> >> 		}
+> >> 		...
+> >> 	}
+> >
+> > So for the case of cpcap codec on motorola mapphones this dosent help,
+> > because we dont have a gpio to sense plug state, thus no gpio in dts
+> > and thus gpio_is_valid will return false, therefore, no jack.
+> >
+> > Moving 
+> >
+> > sjack->pin.pin		= pin_name;
+> > sjack->pin.mask		= mask;
+> >
+> > snd_soc_card_jack_new(card, pin_name, mask,
+> > 		      &sjack->jack,
+> > 		      &sjack->pin, 1);
+> >
+> > and
+> >
+> > for_each_card_components(card, component)
+> > 			snd_soc_component_set_jack(component, &sjack->jack, NULL);
+> >
+> > outside of the if block should make this work, at least cpcap gets the jack then.
+> 
+> I see.
+> 
+> simple-card is checking hp-det-gpio on DT now.
+> I guess it can help you if simple-card also check "hp-det" (no gpio)
+> (and customize previous patch) ?
+> Is "enable-hp" better naming... ?
+> 
+> Best regards
+> ---
+> Kuninori Morimoto
