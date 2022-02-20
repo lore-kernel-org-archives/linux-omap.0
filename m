@@ -2,32 +2,31 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB490C433F5
-	for <linux-omap@archiver.kernel.org>; Sun, 20 Feb 2022 00:19:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 153DDC433F5
+	for <linux-omap@archiver.kernel.org>; Sun, 20 Feb 2022 00:30:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241468AbiBTATk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 19 Feb 2022 19:19:40 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:56008 "EHLO
+        id S240503AbiBTAa4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 19 Feb 2022 19:30:56 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:52188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232461AbiBTATj (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2022 19:19:39 -0500
-X-Greylist: delayed 229 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 19 Feb 2022 16:19:19 PST
+        with ESMTP id S232470AbiBTAaz (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2022 19:30:55 -0500
 Received: from sender11-of-o51.zoho.eu (sender11-of-o51.zoho.eu [31.186.226.237])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C54053B46
-        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 16:19:19 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1645316342; cv=none; 
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC72042A12
+        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 16:30:35 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1645316110; cv=none; 
         d=zohomail.eu; s=zohoarc; 
-        b=ANJbQkDemwckzFSq+2xpdp8T2cyPG9vn8p476qj5LWOs51BQPu3EzGnJ92NVZTu21KcC/vByCKjifnFIglMzop/se9/LdkUBuLBnnaPEPB/5GGzhN/9jrXsZY/NTLtIetHi1SsLVPvvRwLyv2d0tCxDbBOk2pI/MkRNFTDDr7Ms=
+        b=bigFUDdZ2wMnQ2d/5wIhFdqxm3e8RFNL8UU+YYJizwNThxZm2DV8IQKCTnEoydNVnYatyeug07+MC93WV0Cq/s9FHTcVvyWsA0YO//W6wQzsr61yFSr4K62tVuBOom7duvYVg9kIin+zWA4Npo/GwoksTbXnqHY7lw1APVC7jlI=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
-        t=1645316342; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=3HCff0o6L0WKF7HPzVEAjwajRGUlkG9L5kSxZwlqVrk=; 
-        b=fUbKkdkQ+biq2Ebzk9Cm94OeWoaFS3WVf0B1Ezkke+8HdDxD72n+uv/SV6qvAhfc71P23TgvMBKQWxhYmwWwZuQAgIb0E/xI749twmEWMxrUL4G8/LtVAZkK/jTsa4vr5s4U0YHcqkDIn8pgi0bVL3cjYnHDnb8EFZjpcmsxhCY=
+        t=1645316110; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=TxrtmrJJ22codCwapsCweA2PwXwm9IdvB4gM7D6ogMw=; 
+        b=PZjAw1owXJ0EQauvT7b9RidiwdVqelT8/XA9GjOJizyZx7o8556Vmvw4VT9QEKXHd+2RA6e+8NeZ3g7oenDhDka+bP+cAhhQcDKrNFbKj/n5VZKeeGUHOi1kGKNqNjiEem1rcYLcvzUtouaPJmr6uaFN0ILZb0Z+G50R8qk0KsY=
 ARC-Authentication-Results: i=1; mx.zohomail.eu;
         spf=pass  smtp.mailfrom=philipp@uvos.xyz;
         dmarc=pass header.from=<philipp@uvos.xyz>
 Received: from UVOSLinux (ip-037-201-192-120.um10.pools.vodafone-ip.de [37.201.192.120]) by mx.zoho.eu
-        with SMTPS id 1645316339280515.4397359881773; Sun, 20 Feb 2022 01:18:59 +0100 (CET)
-Date:   Sun, 20 Feb 2022 01:18:58 +0100
+        with SMTPS id 1645316109044132.10370953547556; Sun, 20 Feb 2022 01:15:09 +0100 (CET)
+Date:   Sun, 20 Feb 2022 01:15:08 +0100
 From:   Carl Philipp Klemm <philipp@uvos.xyz>
 To:     Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 Cc:     "kuninori.morimoto.gx@gmail.com" <kuninori.morimoto.gx@gmail.com>,
@@ -36,9 +35,9 @@ Cc:     "kuninori.morimoto.gx@gmail.com" <kuninori.morimoto.gx@gmail.com>,
         "tony@atomide.com" <tony@atomide.com>,
         "sre@kernel.org" <sre@kernel.org>,
         "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: [PATCH 6/6] Documentation: sound: audio-graph-card: update dts
- bindings to add has-hp-jack
-Message-Id: <20220220011858.d07e957747d22299a1c37df8@uvos.xyz>
+Subject: [PATCH 2/6] ASoC: audio-graph-card: use new functionality in
+ simple_card_utils to implement has-hp-jack of property
+Message-Id: <20220220011508.b60109377252d188ed3ccb02@uvos.xyz>
 In-Reply-To: <OS3PR01MB8426FD3FD1B45BB31C971A56D4509@OS3PR01MB8426.jpnprd01.prod.outlook.com>
 References: <20211228190931.df5d518220080a734532ebfd@uvos.xyz>
         <87a6gawxpe.wl-kuninori.morimoto.gx@gmail.com>
@@ -55,24 +54,44 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+Setting this will cause audio-graph-card to register a headphone jack
+and provide it to its componants via set_jack.
+
 Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
 ---
- Documentation/devicetree/bindings/sound/audio-graph.yaml | 2 ++
- 1 file changed, 2 insertions(+)
+ sound/soc/generic/audio-graph-card.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/sound/audio-graph.yaml b/Documentation/devicetree/bindings/sound/audio-graph.yaml
-index 4b46794e5153..5844b900789a 100644
---- a/Documentation/devicetree/bindings/sound/audio-graph.yaml
-+++ b/Documentation/devicetree/bindings/sound/audio-graph.yaml
-@@ -38,6 +38,8 @@ properties:
-     maxItems: 1
-   mic-det-gpio:
-     maxItems: 1
-+  hp-det-gpio:
-+    description: Set this properties if the device has a headphone jack to be reported on by a snd_soc_component
+diff --git a/sound/soc/generic/audio-graph-card.c b/sound/soc/generic/audio-graph-card.c
+index 7eb027238327..32a81bf10f18 100644
+--- a/sound/soc/generic/audio-graph-card.c
++++ b/sound/soc/generic/audio-graph-card.c
+@@ -259,7 +259,7 @@ static int graph_link_init(struct asoc_simple_priv *priv,
+ 	if (ret < 0)
+ 		return ret;
  
- required:
-   - dais
+-	dai_link->init		= asoc_simple_dai_init;
++	dai_link->init		= asoc_graph_dai_init;
+ 	dai_link->ops		= &graph_ops;
+ 	if (priv->ops)
+ 		dai_link->ops	= priv->ops;
+@@ -568,6 +568,8 @@ int audio_graph_parse_of(struct asoc_simple_priv *priv, struct device *dev)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	asoc_simple_init_jack(card, &priv->hp_jack, TRUE, "has-hp-jack", NULL);
++
+ 	memset(li, 0, sizeof(*li));
+ 	ret = graph_for_each_link(priv, li,
+ 				  graph_dai_link_of,
+@@ -719,7 +721,6 @@ static int graph_probe(struct platform_device *pdev)
+ 	card = simple_priv_to_card(priv);
+ 	card->dapm_widgets	= graph_dapm_widgets;
+ 	card->num_dapm_widgets	= ARRAY_SIZE(graph_dapm_widgets);
+-	card->probe		= asoc_graph_card_probe;
+ 
+ 	if (of_device_get_match_data(dev))
+ 		priv->dpcm_selectable = 1;
 -- 
 2.35.1
 
