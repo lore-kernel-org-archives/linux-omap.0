@@ -2,103 +2,77 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6A24C43217
-	for <linux-omap@archiver.kernel.org>; Sat, 19 Feb 2022 21:56:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB490C433F5
+	for <linux-omap@archiver.kernel.org>; Sun, 20 Feb 2022 00:19:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243178AbiBSV42 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 19 Feb 2022 16:56:28 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:55384 "EHLO
+        id S241468AbiBTATk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 19 Feb 2022 19:19:40 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:56008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243202AbiBSV4N (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2022 16:56:13 -0500
-Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EC85541BD
-        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 13:55:48 -0800 (PST)
-Received: by mail-pg1-x532.google.com with SMTP id l73so10884757pge.11
-        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 13:55:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20210112.gappssmtp.com; s=20210112;
-        h=from:to:subject:date:message-id:in-reply-to:references:mime-version
-         :content-transfer-encoding;
-        bh=65Eb1HUPdIjM8zVi86DKNREnJ4z9OvkieF1s3FEMLrI=;
-        b=4VytRZT6CAyhgtB0WgTO1CmH6FyEiVE195+cE4dlZVCWFZ8iudpzgTS+gBHtUACxvT
-         MIhY2IZkpmy+hYNGyiNLj9Y0MnvZ5oytRW9znNCeTPHETg9mvXJEBGHAHEdlGiJRuNLt
-         D+NUYwS3fm0pLZSNi2C+PmG/A8uDIxZr9DmzK08CFnih9aSO6qES+NCnIBrB3KUMnrbm
-         kpLLAwu2YKChJx0fZYrR3/P1jV9rMelaKyUtjcKN/EnWjFr8gf9C+6LL0fF+akcmtImi
-         Bk0gAc2Jo5ISBuUh8e3VOK1t/cbq9ZGfd+0hq6z+P+AQypLHD1kIcNXwooUfd9dPHsB4
-         evUw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=65Eb1HUPdIjM8zVi86DKNREnJ4z9OvkieF1s3FEMLrI=;
-        b=v3R/bFttFNyg2xxDfOYZeypqL6xKHYO1HQzn0dk5jGYqpTy12pbKgDOKj8jVGzMnhA
-         vP5aIt0ctEA69DYxH4HqsHgktcR7DNUTF4xwBimZ0bcl0KsKm2AvbNgTeQNURij6FgN5
-         7/AyOw5zZdn9j/+plQso4SkG211U5lNRyaUbk8IrEdxgnQl2ralM6JUTAQtlnqTGgnDX
-         NLPLUiaJwdSlCPTmTUILN3Rncql0Zroa15r7EbhZSjywqHtjLvFoYs/phqDic6p7NRdw
-         J8h+XQ1I8NzLsBmpyVqd1oqI+qUjmn9435Ldl/rsgRq4bemmtgLJUne0GlbCCF2YcPGY
-         sR/Q==
-X-Gm-Message-State: AOAM533mwWVbagk2kbPCGIoOGBnbE/X6zkMsTj1PCEFLJZVmKAsCxk/l
-        dWcPTI5wxbIeLi4DH1CJkb5hZw==
-X-Google-Smtp-Source: ABdhPJzR11qeGJpsKF8keWXr323YCIBX9Clo8mnHXsBsgwGyif8SWMepT1n0NinmAP+YMeQZ1Q2ZaA==
-X-Received: by 2002:a63:3f42:0:b0:363:c08a:8dfd with SMTP id m63-20020a633f42000000b00363c08a8dfdmr11119666pga.108.1645307747624;
-        Sat, 19 Feb 2022 13:55:47 -0800 (PST)
-Received: from x1.hsd1.or.comcast.net ([2601:1c2:1001:7090:31ab:1e81:9550:f30a])
-        by smtp.gmail.com with ESMTPSA id i17sm13447337pgn.82.2022.02.19.13.55.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 19 Feb 2022 13:55:47 -0800 (PST)
-From:   Drew Fustini <dfustini@baylibre.com>
-To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Dave Gerlach <d-gerlach@ti.com>, devicetree@vger.kernel.org,
-        Drew Fustini <dfustini@baylibre.com>,
-        Keerthy <j-keerthy@ti.com>, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Nishanth Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Tony Lindgren <tony@atomide.com>, s-anna@ti.com,
-        khilman@baylibre.com
-Subject: [PATCH 06/11] ARM: dts: am437x-gp-evm: Enable wkup_m3 control of IO isolation
-Date:   Sat, 19 Feb 2022 13:53:23 -0800
-Message-Id: <20220219215328.485660-7-dfustini@baylibre.com>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20220219215328.485660-1-dfustini@baylibre.com>
-References: <20220219215328.485660-1-dfustini@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S232461AbiBTATj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2022 19:19:39 -0500
+X-Greylist: delayed 229 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 19 Feb 2022 16:19:19 PST
+Received: from sender11-of-o51.zoho.eu (sender11-of-o51.zoho.eu [31.186.226.237])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C54053B46
+        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 16:19:19 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1645316342; cv=none; 
+        d=zohomail.eu; s=zohoarc; 
+        b=ANJbQkDemwckzFSq+2xpdp8T2cyPG9vn8p476qj5LWOs51BQPu3EzGnJ92NVZTu21KcC/vByCKjifnFIglMzop/se9/LdkUBuLBnnaPEPB/5GGzhN/9jrXsZY/NTLtIetHi1SsLVPvvRwLyv2d0tCxDbBOk2pI/MkRNFTDDr7Ms=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
+        t=1645316342; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=3HCff0o6L0WKF7HPzVEAjwajRGUlkG9L5kSxZwlqVrk=; 
+        b=fUbKkdkQ+biq2Ebzk9Cm94OeWoaFS3WVf0B1Ezkke+8HdDxD72n+uv/SV6qvAhfc71P23TgvMBKQWxhYmwWwZuQAgIb0E/xI749twmEWMxrUL4G8/LtVAZkK/jTsa4vr5s4U0YHcqkDIn8pgi0bVL3cjYnHDnb8EFZjpcmsxhCY=
+ARC-Authentication-Results: i=1; mx.zohomail.eu;
+        spf=pass  smtp.mailfrom=philipp@uvos.xyz;
+        dmarc=pass header.from=<philipp@uvos.xyz>
+Received: from UVOSLinux (ip-037-201-192-120.um10.pools.vodafone-ip.de [37.201.192.120]) by mx.zoho.eu
+        with SMTPS id 1645316339280515.4397359881773; Sun, 20 Feb 2022 01:18:59 +0100 (CET)
+Date:   Sun, 20 Feb 2022 01:18:58 +0100
+From:   Carl Philipp Klemm <philipp@uvos.xyz>
+To:     Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc:     "kuninori.morimoto.gx@gmail.com" <kuninori.morimoto.gx@gmail.com>,
+        "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+        "merlijn@wizzup.org" <merlijn@wizzup.org>,
+        "tony@atomide.com" <tony@atomide.com>,
+        "sre@kernel.org" <sre@kernel.org>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: [PATCH 6/6] Documentation: sound: audio-graph-card: update dts
+ bindings to add has-hp-jack
+Message-Id: <20220220011858.d07e957747d22299a1c37df8@uvos.xyz>
+In-Reply-To: <OS3PR01MB8426FD3FD1B45BB31C971A56D4509@OS3PR01MB8426.jpnprd01.prod.outlook.com>
+References: <20211228190931.df5d518220080a734532ebfd@uvos.xyz>
+        <87a6gawxpe.wl-kuninori.morimoto.gx@gmail.com>
+        <20220105101028.620b7f2cb7727eedfccd933e@uvos.xyz>
+        <87r19ld48v.wl-kuninori.morimoto.gx@gmail.com>
+        <20220108145749.f55500222b049f344415a5c3@uvos.xyz>
+        <OS3PR01MB8426FD3FD1B45BB31C971A56D4509@OS3PR01MB8426.jpnprd01.prod.outlook.com>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-unknown-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-ZohoMailClient: External
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Dave Gerlach <d-gerlach@ti.com>
-
-With this flag wkup_m3 is able to control IO isolation during
-suspend on the board.
-
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Signed-off-by: Drew Fustini <dfustini@baylibre.com>
+Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts | 4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/devicetree/bindings/sound/audio-graph.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 4416ddb559e4..91b67b428a06 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -1127,6 +1127,10 @@ &cpu {
- 	cpu0-supply = <&dcdc2>;
- };
+diff --git a/Documentation/devicetree/bindings/sound/audio-graph.yaml b/Documentation/devicetree/bindings/sound/audio-graph.yaml
+index 4b46794e5153..5844b900789a 100644
+--- a/Documentation/devicetree/bindings/sound/audio-graph.yaml
++++ b/Documentation/devicetree/bindings/sound/audio-graph.yaml
+@@ -38,6 +38,8 @@ properties:
+     maxItems: 1
+   mic-det-gpio:
+     maxItems: 1
++  hp-det-gpio:
++    description: Set this properties if the device has a headphone jack to be reported on by a snd_soc_component
  
-+&wkup_m3_ipc {
-+	ti,set-io-isolation;
-+};
-+
- &pruss1_mdio {
- 	status = "disabled";
- };
+ required:
+   - dais
 -- 
-2.32.0
+2.35.1
 
