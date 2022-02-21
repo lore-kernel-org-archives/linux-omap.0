@@ -2,77 +2,135 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1374C433EF
-	for <linux-omap@archiver.kernel.org>; Sun, 20 Feb 2022 00:31:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3769C4332F
+	for <linux-omap@archiver.kernel.org>; Mon, 21 Feb 2022 12:55:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242116AbiBTAbn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 19 Feb 2022 19:31:43 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:52446 "EHLO
+        id S1358372AbiBUM4D (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 21 Feb 2022 07:56:03 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:52190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232359AbiBTAbm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2022 19:31:42 -0500
-Received: from sender11-of-o51.zoho.eu (sender11-of-o51.zoho.eu [31.186.226.237])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C17F242A12
-        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2022 16:31:22 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1645316164; cv=none; 
-        d=zohomail.eu; s=zohoarc; 
-        b=GQUXnUfVFb+lJI89pARVaTkmxrrHzpirWaNhF186rebZDVPZ2LrA2w4mHv51BQ+h0yh+tNb7sHhKfnx7OLtPQkTG1Yc7zatSqwEBXudtGyKZU/QV9WBvrtyISPOFxB77LcAN5dva6dd2cPpzXWFNmNbLF5fVj5+RTGtWh7rm8Bw=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
-        t=1645316164; h=Cc:Date:From:Message-ID:Subject:To; 
-        bh=qW+UNzqp9Isd5ma7U5fPqp+trQ8QY8pCXccwmXwzSpw=; 
-        b=PTNr/OzpGZXEnJiIQISJ2hQKVWJ8XVmiRDX3PVVRY3SNGoslimTpLXNl5SPJuQBpd00Xa1898twZXME0vsFexXrCub5s+BQB6VyewoyIO9UhSusjX9fu7uwzzUZY0qedNXxEGBcVVAUycl/yv1237j6J4/Rblh83TPLJJwguiYI=
-ARC-Authentication-Results: i=1; mx.zohomail.eu;
-        spf=pass  smtp.mailfrom=philipp@uvos.xyz;
-        dmarc=pass header.from=<philipp@uvos.xyz>
-Received: from UVOSLinux (ip-037-201-192-120.um10.pools.vodafone-ip.de [37.201.192.120]) by mx.zoho.eu
-        with SMTPS id 164531616270238.25836167433181; Sun, 20 Feb 2022 01:16:02 +0100 (CET)
-Date:   Sun, 20 Feb 2022 01:16:01 +0100
-From:   Carl Philipp Klemm <philipp@uvos.xyz>
-To:     Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc:     "kuninori.morimoto.gx@gmail.com" <kuninori.morimoto.gx@gmail.com>,
-        "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
-        "merlijn@wizzup.org" <merlijn@wizzup.org>,
-        "tony@atomide.com" <tony@atomide.com>,
-        "sre@kernel.org" <sre@kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Message-ID: <17f147c448f.39e900c2-265391827.-7512123469039839057@zoho.eu>
-Subject: [PATCH 6/6] Documentation: sound: audio-graph-card: update dts
-X-ZohoMailClient: External
+        with ESMTP id S233385AbiBUM4C (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2022 07:56:02 -0500
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC3531C10F;
+        Mon, 21 Feb 2022 04:55:39 -0800 (PST)
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 21LCtNQl071574;
+        Mon, 21 Feb 2022 06:55:23 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1645448123;
+        bh=Ldesc9E9S6OV1ULQBDllRREpqpso1MX11dz5s4qIfkE=;
+        h=Date:From:To:CC:Subject:References:In-Reply-To;
+        b=bN3yr06kwogpyXgikL5UHPTiPSSyPuoFfAMjZFdF0kxOpZU1h3oeDpIezYGXghR75
+         HP5cueo8zogJ5n4Sptor4c0ktOsbf6t2FR5kReY4TjpineJZfnf0golZj90l0HbGze
+         EZgzEQGZohwP8/Z3J/yWSFDWrbYL3BDLK/DDVRd4=
+Received: from DFLE101.ent.ti.com (dfle101.ent.ti.com [10.64.6.22])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 21LCtMlw059858
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 21 Feb 2022 06:55:22 -0600
+Received: from DFLE111.ent.ti.com (10.64.6.32) by DFLE101.ent.ti.com
+ (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14; Mon, 21
+ Feb 2022 06:55:22 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE111.ent.ti.com
+ (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14 via
+ Frontend Transport; Mon, 21 Feb 2022 06:55:22 -0600
+Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 21LCtM5f038962;
+        Mon, 21 Feb 2022 06:55:22 -0600
+Date:   Mon, 21 Feb 2022 06:55:22 -0600
+From:   Nishanth Menon <nm@ti.com>
+To:     Drew Fustini <dfustini@baylibre.com>
+CC:     =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Dave Gerlach <d-gerlach@ti.com>, <devicetree@vger.kernel.org>,
+        Keerthy <j-keerthy@ti.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-remoteproc@vger.kernel.org>,
+        Mathieu Poirier <mathieu.poirier@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Tony Lindgren <tony@atomide.com>, <s-anna@ti.com>,
+        <khilman@baylibre.com>
+Subject: Re: [PATCH 02/11] dt-bindings: wkup_m3_ipc: Add vtt toggling bindings
+Message-ID: <20220221125522.l3tntb6i7yjxp6vb@flattered>
+References: <20220219215328.485660-1-dfustini@baylibre.com>
+ <20220219215328.485660-3-dfustini@baylibre.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20220219215328.485660-3-dfustini@baylibre.com>
+User-Agent: NeoMutt/20171215
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
- bindings to add has-hp-jack
-Message-Id: <20220220011601.4424ad416d65b836e3165cfa@uvos.xyz>
-In-Reply-To: <OS3PR01MB8426FD3FD1B45BB31C971A56D4509@OS3PR01MB8426.jpnprd01.prod.outlook.com>
-References: <20211228190931.df5d518220080a734532ebfd@uvos.xyz>
-	<87a6gawxpe.wl-kuninori.morimoto.gx@gmail.com>
-	<20220105101028.620b7f2cb7727eedfccd933e@uvos.xyz>
-	<87r19ld48v.wl-kuninori.morimoto.gx@gmail.com>
-	<20220108145749.f55500222b049f344415a5c3@uvos.xyz>
-	<OS3PR01MB8426FD3FD1B45BB31C971A56D4509@OS3PR01MB8426.jpnprd01.prod.outlook.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-unknown-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+On 13:53-20220219, Drew Fustini wrote:
+> From: Dave Gerlach <d-gerlach@ti.com>
+> 
+> Add description of the wkup_m3_ipc DT properties that can be used to
+> toggle VTT regulator during low power mode transitions.
+> 
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> Signed-off-by: Drew Fustini <dfustini@baylibre.com>
+> ---
+>  .../bindings/soc/ti/wkup_m3_ipc.txt           | 34 +++++++++++++++++++
 
-Signed-off-by: Carl Philipp Klemm <philipp@uvos.xyz>
----
- Documentation/devicetree/bindings/sound/audio-graph.yaml | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/sound/audio-graph.yaml b/Documentation/devicetree/bindings/sound/audio-graph.yaml
-index 4b46794e5153..5844b900789a 100644
---- a/Documentation/devicetree/bindings/sound/audio-graph.yaml
-+++ b/Documentation/devicetree/bindings/sound/audio-graph.yaml
-@@ -38,6 +38,8 @@ properties:
-     maxItems: 1
-   mic-det-gpio:
-     maxItems: 1
-+  hp-det-gpio:
-+    description: Set this properties if the device has a headphone jack to be reported on by a snd_soc_component
- 
- required:
-   - dais
+NAK. no more txt files please. convert to yaml prior to adding features.
+
+>  1 file changed, 34 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+> index 401550487ed6..4cdbb60fd0d0 100644
+> --- a/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+> +++ b/Documentation/devicetree/bindings/soc/ti/wkup_m3_ipc.txt
+> @@ -55,3 +55,37 @@ Example:
+>  			...
+>  		};
+>  	};
+> +
+> +Support for VTT Toggle
+> +==================================
+> +In order to enable the support for VTT toggle during Suspend/Resume
+> +sequence needed by some boards (like AM335x EVM-SK & AM437x GP EVM),
+> +the below DT properties are required. It is possible to toggle VTT
+> +using one of two methods depending on the SoC being used, either
+> +GPIO0 toggle (AM335x and AM437x), or any GPIO with DS_PAD_CONFIG
+> +bits in the control module (AM437x only).
+> +
+> +VTT Toggle using GPIO0
+> +----------------------------------
+> +Supported by: AM335x and AM437x
+> +Used on: AM335x EVM-SK
+> +
+> +Optional properties:
+> +- ti,needs-vtt-toggle:	Indicates that the boards requires VTT toggling
+> +			during suspend/resume.
+> +- ti,vtt-gpio-pin:	Specifies the GPIO0 pin used for VTT toggle.
+> +
+> +Important Note:
+> +- Here it is assumed that VTT Toggle will be done using a pin on GPIO-0 Instance.
+> +  It will not work on any other GPIO using the above properties, regardless of
+> +  which part is being used.
+> +
+> +Example:
+> +	wkup_m3_ipc: wkup_m3_ipc@1324 {
+> +		compatible = "ti,am3352-wkup-m3-ipc";
+> +		...
+> +		...
+> +		ti,needs-vtt-toggle;
+> +		ti,vtt-gpio-pin = <7>;
+> +		...
+> +	};
+> -- 
+> 2.32.0
+> 
+
 -- 
-2.35.1
+Regards,
+Nishanth Menon
+Key (0xDDB5849D1736249D)/Fingerprint: F8A2 8693 54EB 8232 17A3  1A34 DDB5 849D 1736 249D
