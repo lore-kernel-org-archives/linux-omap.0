@@ -2,115 +2,103 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 217AFC433F5
-	for <linux-omap@archiver.kernel.org>; Thu,  3 Mar 2022 17:18:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91F15C433EF
+	for <linux-omap@archiver.kernel.org>; Thu,  3 Mar 2022 18:01:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233121AbiCCRTX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 3 Mar 2022 12:19:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49560 "EHLO
+        id S235557AbiCCSBu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 3 Mar 2022 13:01:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47070 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235284AbiCCRTW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2022 12:19:22 -0500
-Received: from mail-io1-xd30.google.com (mail-io1-xd30.google.com [IPv6:2607:f8b0:4864:20::d30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD3DD1768EA;
-        Thu,  3 Mar 2022 09:18:36 -0800 (PST)
-Received: by mail-io1-xd30.google.com with SMTP id t11so6595060ioi.7;
-        Thu, 03 Mar 2022 09:18:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=0WF3B5MhmM4VMTKxqIPbUl7+aYszdv2qaJTWGu36x48=;
-        b=njhaYPGdjPvmw5QM90U49Q4Ymshn7zeqlSQBGMVtO8tQUksrPUiBsclxp8+rFi9ejq
-         sK1nbemdUcaiqMXQFYMBUwIdBdznC7wjzlJ9M6b7OhlpjEyBVitzBw63TroEw8CDOuhK
-         VWtY4HTnBwfeY4Wy9e1px7iFzt/SC4fxE9D8R9QPF6l78P5XqwFXbsaL8MV8ld073yOR
-         oy4dhyXK+Hsg3NA4RH3uEtni1/kSzGIKbexmIAJ1W/U/9eilRNpDgcpJWllPJ3kC6XVP
-         6S10wA+gDKgHCYi+eMf97q7iBP+u/CS5Qp6zhqercoCtowW9znXpTgF2tHVhjptmy3ZZ
-         +Wrg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=0WF3B5MhmM4VMTKxqIPbUl7+aYszdv2qaJTWGu36x48=;
-        b=pKaVR1+lMotTK+Uta4xLqJBFwuvcrSNjYZra4BneIXv5B0/twxEMqzZAH6nGFGVB3A
-         OqK9y+ZuAonDljHA2n8CaMx1tnI9rNpdn6PvVKJGD8zBTC3d97GdBFSCLl/uyzKnCAZy
-         T5Ydm9bnSPtQ6UUTaV3B1xuJj5g7wk6X5i9IYSNXVPzbJsKUAk0ON04Ev89HYHk+9bwh
-         NQDyPEOhrafLHlhyeY97CHRC3yoicREx01bDePmxduduAZsjEXzSMuBN2fGRBovJe+hC
-         FaP5cCnEx0lTZGJywFldyNS4FHvt7UWdMXu0LLWC+oFHUGm1aKdytsZTusfSQ9KPMMLh
-         xTwQ==
-X-Gm-Message-State: AOAM530ohHMc++tPUk6BG7+Qk8wBAcalMiKG6QvBT3pRgAVGv1DM7ajZ
-        U98LhBMqOjT5NsbTg44XPM2uAamknowQZA==
-X-Google-Smtp-Source: ABdhPJwwZbYuhjgp3vYy95ehiMEQUCMr4P3uLS4JxL0pUCEASWodXfSIWznGeLwWsW6fTXDebSdzig==
-X-Received: by 2002:a02:1183:0:b0:314:4120:1fbe with SMTP id 125-20020a021183000000b0031441201fbemr30693303jaf.129.1646327915784;
-        Thu, 03 Mar 2022 09:18:35 -0800 (PST)
-Received: from aford-OptiPlex-7050.logicpd.com ([174.46.170.158])
-        by smtp.gmail.com with ESMTPSA id b11-20020a92c56b000000b002c5ff65adffsm3016655ilj.31.2022.03.03.09.18.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Mar 2022 09:18:35 -0800 (PST)
-From:   Adam Ford <aford173@gmail.com>
-To:     linux-omap@vger.kernel.org
-Cc:     aford@beaconembedded.com, Adam Ford <aford173@gmail.com>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] ARM: dts: logicpd-som-lv: Move pinmuxing to peripheral nodes
-Date:   Thu,  3 Mar 2022 11:18:18 -0600
-Message-Id: <20220303171818.11060-2-aford173@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20220303171818.11060-1-aford173@gmail.com>
-References: <20220303171818.11060-1-aford173@gmail.com>
+        with ESMTP id S231147AbiCCSBu (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2022 13:01:50 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2510198D1D;
+        Thu,  3 Mar 2022 10:01:04 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 34D636198A;
+        Thu,  3 Mar 2022 18:01:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88E04C004E1;
+        Thu,  3 Mar 2022 18:01:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1646330463;
+        bh=04i2eZv5qTAuP3AEyiHIUhvzqHVYSg3BWxLhzLKqjlw=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=fThq9067ilo5VqJdZcN905SWb/WIOXTBNq9YhSAdlOjllMfhmm47DQpdfYhlMfTNK
+         oTxJY9wqpBlz050G/bqoK6B65W9typ9QGvks4S0KOQBsE2GTSySHuKYoHYoagF4elI
+         Do/f/sxE9cOLrCitJHgrSoAa6xuI9gb3rLbd0iVo6cO1TFxvOkGI5Y6WE5uKwj3Bak
+         PEvshiZYoVt3vpz8qejgQdLM1O/EmF3VuHRRNZWVqVNDsZwX0N6CmXpC924l5wsu/s
+         pmIXzeXQRtiv6LRmznrVoCaVzzw+8yXzIoyKdUxEbicv+8AVMU034LghLjDXL3XW31
+         M6yy5Of9aeS8w==
+Received: from johan by xi.lan with local (Exim 4.94.2)
+        (envelope-from <johan@kernel.org>)
+        id 1nPpl8-0000io-7K; Thu, 03 Mar 2022 19:01:02 +0100
+From:   Johan Hovold <johan@kernel.org>
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>
+Subject: [PATCH 1/2] ARM: OMAP2+: drop omap_device_register() helper
+Date:   Thu,  3 Mar 2022 19:00:13 +0100
+Message-Id: <20220303180014.2639-2-johan@kernel.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220303180014.2639-1-johan@kernel.org>
+References: <20220303180014.2639-1-johan@kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Move some pinmux references to their respective peripherals.
-This keeps the pins in safe-mode until they are requested.
+The omap_device_register() helper is unused since commit 82f12e64a019
+("ARM: OMAP2+: Drop legacy init for sdma") and can be removed.
 
-Signed-off-by: Adam Ford <aford173@gmail.com>
+Signed-off-by: Johan Hovold <johan@kernel.org>
+---
+ arch/arm/mach-omap2/omap_device.c | 17 -----------------
+ arch/arm/mach-omap2/omap_device.h |  1 -
+ 2 files changed, 18 deletions(-)
 
-diff --git a/arch/arm/boot/dts/logicpd-som-lv.dtsi b/arch/arm/boot/dts/logicpd-som-lv.dtsi
-index 55b619c99e24..9ba0ea4eb48a 100644
---- a/arch/arm/boot/dts/logicpd-som-lv.dtsi
-+++ b/arch/arm/boot/dts/logicpd-som-lv.dtsi
-@@ -27,6 +27,8 @@
- 
- 	/* HS USB Host PHY on PORT 1 */
- 	hsusb2_phy: hsusb2_phy {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&hsusb2_reset_pin>;
- 		compatible = "usb-nop-xceiv";
- 		reset-gpios = <&gpio1 4 GPIO_ACTIVE_LOW>; /* gpio_4 */
- 		#phy-cells = <0>;
-@@ -144,6 +146,8 @@
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 56d6814bec26..3cfa7b01a24b 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -473,23 +473,6 @@ struct dev_pm_domain omap_device_pm_domain = {
+ 	}
  };
  
- &usbhshost {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&hsusb2_pins>;
- 	port2-mode = "ehci-phy";
- };
- 
-@@ -151,10 +155,7 @@
- 	phys = <0 &hsusb2_phy>;
- };
- 
+-/**
+- * omap_device_register - register an omap_device with one omap_hwmod
+- * @pdev: the platform device (omap_device) to register.
+- *
+- * Register the omap_device structure.  This currently just calls
+- * platform_device_register() on the underlying platform_device.
+- * Returns the return value of platform_device_register().
+- */
+-int omap_device_register(struct platform_device *pdev)
+-{
+-	pr_debug("omap_device: %s: registering\n", pdev->name);
 -
- &omap3_pmx_core {
--	pinctrl-names = "default";
--	pinctrl-0 = <&hsusb2_pins>;
+-	dev_pm_domain_set(&pdev->dev, &omap_device_pm_domain);
+-	return platform_device_add(pdev);
+-}
+-
+-
+ /* Public functions for use by device drivers through struct platform_data */
  
- 	mmc3_pins: pinmux_mm3_pins {
- 		pinctrl-single,pins = <
-@@ -250,8 +251,7 @@
- };
+ /**
+diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
+index f77e76a7841a..d607532cf5e0 100644
+--- a/arch/arm/mach-omap2/omap_device.h
++++ b/arch/arm/mach-omap2/omap_device.h
+@@ -71,7 +71,6 @@ int omap_device_idle(struct platform_device *pdev);
+ struct omap_device *omap_device_alloc(struct platform_device *pdev,
+ 				      struct omap_hwmod **ohs, int oh_cnt);
+ void omap_device_delete(struct omap_device *od);
+-int omap_device_register(struct platform_device *pdev);
  
- &omap3_pmx_wkup {
--	pinctrl-names = "default";
--	pinctrl-0 = <&hsusb2_reset_pin>;
-+
- 	hsusb2_reset_pin: pinmux_hsusb1_reset_pin {
- 		pinctrl-single,pins = <
- 			OMAP3_WKUP_IOPAD(0x2a0e, PIN_OUTPUT | MUX_MODE4)	/* sys_boot2.gpio_4 */
+ struct device *omap_device_get_by_hwmod_name(const char *oh_name);
+ 
 -- 
-2.17.1
+2.34.1
 
