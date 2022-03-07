@@ -2,99 +2,160 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF67EC433FE
-	for <linux-omap@archiver.kernel.org>; Sat,  5 Mar 2022 16:56:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74472C433EF
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Mar 2022 11:28:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229864AbiCEQ47 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 5 Mar 2022 11:56:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39446 "EHLO
+        id S242089AbiCGL3s (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Mar 2022 06:29:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46574 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229543AbiCEQ46 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2022 11:56:58 -0500
-Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA3E14A931;
-        Sat,  5 Mar 2022 08:56:04 -0800 (PST)
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 225GtVwN011482;
-        Sat, 5 Mar 2022 10:55:31 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1646499331;
-        bh=y9pljp/pPzhOyhCwyrHJTvduYB4Oz8enqlds0O1sMPU=;
-        h=Date:From:To:CC:Subject:References:In-Reply-To;
-        b=c6o1oX/ZiYF9xzNXDZ9tjTeRB6WAE3NRV42QwEH+ZyP6IOgeXP6f2PkzzyKDhHG6/
-         iew7Mdumy3p+D4I19YkQC6q4W+vtoRcXS7jveic9ugdkbdn+FelRyGulBMExhVrU9F
-         0+D76l09pj2cpzi0iAUkG6hmn1+9wSiDuks6sFWg=
-Received: from DLEE102.ent.ti.com (dlee102.ent.ti.com [157.170.170.32])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 225GtUT2082346
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Sat, 5 Mar 2022 10:55:31 -0600
-Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14; Sat, 5
- Mar 2022 10:55:30 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE100.ent.ti.com
- (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14 via
- Frontend Transport; Sat, 5 Mar 2022 10:55:30 -0600
-Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 225GtURZ076806;
-        Sat, 5 Mar 2022 10:55:30 -0600
-Date:   Sat, 5 Mar 2022 10:55:30 -0600
-From:   Bryan Brattlof <bb@ti.com>
-To:     YueHaibing <yuehaibing@huawei.com>
-CC:     <edubezval@gmail.com>, <j-keerthy@ti.com>, <rafael@kernel.org>,
-        <daniel.lezcano@linaro.org>, <amitk@kernel.org>,
-        <rui.zhang@intel.com>, <romain.naour@smile.fr>,
-        <linux-pm@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH -next] thermal: ti-soc-thermal: Remove unused function
- ti_thermal_get_temp()
-Message-ID: <20220305165530.lro7ups4xv2injik@bryanbrattlof.com>
-References: <20220305125047.26948-1-yuehaibing@huawei.com>
+        with ESMTP id S242982AbiCGL3P (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2022 06:29:15 -0500
+Received: from mslow1.mail.gandi.net (mslow1.mail.gandi.net [217.70.178.240])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1884257166
+        for <linux-omap@vger.kernel.org>; Mon,  7 Mar 2022 03:10:49 -0800 (PST)
+Received: from relay9-d.mail.gandi.net (unknown [IPv6:2001:4b98:dc4:8::229])
+        by mslow1.mail.gandi.net (Postfix) with ESMTP id C9C86C58DC
+        for <linux-omap@vger.kernel.org>; Mon,  7 Mar 2022 11:10:47 +0000 (UTC)
+Received: (Authenticated sender: miquel.raynal@bootlin.com)
+        by mail.gandi.net (Postfix) with ESMTPSA id E1EA1FF80E;
+        Mon,  7 Mar 2022 11:10:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
+        t=1646651440;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=va6hgBVRbtr10BKiH5oDCOu0VwLfnjed/wWRNnb7DUY=;
+        b=gC3ndSWkdul0/O5Y4jHV6jR7MkWuyj436eSHmu6S2Z9kuJJDSUV/+c8Xr4gqjTTzXxPi+e
+        yn8Lz317xPszLkKWTUlDMBkooNHSefTzJUtscXF5RjZ4EQIcZHO31ulyM+57oIEl/H6Mqu
+        iY3E52NJNZNdzNUFaXXfRfr0nTlvpgUqBqlckY7VlUqJ+Lvem3NbcSekMU1w4LIhNRBzkE
+        /jRyqod+8XYQiPJml0/297HhrIfs4htUqbz8dfBWo0IkqRf7CsYNFbOI5wPGWxeF3wa+0e
+        i/yxXJGB8jMuo5CbkqTpqa/UBaJxO4JnO9AnsMj4QhLR6S9cDwXfWzfy1dPIFQ==
+Date:   Mon, 7 Mar 2022 12:10:33 +0100
+From:   Miquel Raynal <miquel.raynal@bootlin.com>
+To:     "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Lee Jones <lee.jones@linaro.org>, linux-iio@vger.kernel.org,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Ryan Barnett <ryan.barnett@collins.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Discussions about the Letux Kernel 
+        <letux-kernel@openphoenux.org>
+Subject: Re: [PATCH v6 14/48] mfd: ti_am335x_tscadc: Don't search the tree
+ for our clock
+Message-ID: <20220307121033.5630fee7@xps13>
+In-Reply-To: <7336E356-57E3-4BC5-B098-0A791C2CB360@goldelico.com>
+References: <20211015081506.933180-1-miquel.raynal@bootlin.com>
+        <20211015081506.933180-15-miquel.raynal@bootlin.com>
+        <7336E356-57E3-4BC5-B098-0A791C2CB360@goldelico.com>
+Organization: Bootlin
+X-Mailer: Claws Mail 3.17.7 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-In-Reply-To: <20220305125047.26948-1-yuehaibing@huawei.com>
-User-Agent: NeoMutt/20171215
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On March  5, 2022, thus sayeth YueHaibing:
-> commit b263b473bf62 ("thermal: ti-soc-thermal: Remove redundant code")
-> left behind this, remove it.
-> 
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+Hi Nikolaus,
 
-Reviewed-by: Bryan Brattlof <bb@ti.com>
+hns@goldelico.com wrote on Fri, 4 Mar 2022 23:38:25 +0100:
 
-thanks for helping clean the codebase :)
-~Bryan
+> Hi Miquel,
+> I recently found that our BeagleBoneBlack with external touch screen stop=
+ped
+> to find it.
+>=20
+> A git bisect revealed this patch (merged into v5.16-rc1) as the first bad:
+>=20
+> > Am 15.10.2021 um 10:14 schrieb Miquel Raynal <miquel.raynal@bootlin.com=
+>:
+> >=20
+> > There is a single clock available in our node, which is named
+> > "fck". The clock handler then points to adc_tsc_fck but no need to point
+> > directly to it and do a full tree search.
+> >=20
+> > Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+> > ---
+> > drivers/mfd/ti_am335x_tscadc.c | 2 +-
+> > 1 file changed, 1 insertion(+), 1 deletion(-)
+> >=20
+> > diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tsc=
+adc.c
+> > index e2c4416f192d..8af44c08d925 100644
+> > --- a/drivers/mfd/ti_am335x_tscadc.c
+> > +++ b/drivers/mfd/ti_am335x_tscadc.c
+> > @@ -206,7 +206,7 @@ static	int ti_tscadc_probe(struct platform_device *=
+pdev)
+> > 	 * This frequency is valid since TSC_ADC_SS controller design
+> > 	 * assumes the OCP clock is at least 6x faster than the ADC clock.
+> > 	 */
+> > -	clk =3D devm_clk_get(&pdev->dev, "adc_tsc_fck");
+> > +	clk =3D devm_clk_get(&pdev->dev, NULL);
+> > 	if (IS_ERR(clk)) {
+> > 		dev_err(&pdev->dev, "failed to get TSC fck\n");
+> > 		err =3D PTR_ERR(clk);
+> > --=20
+> > 2.27.0
+> >  =20
+>=20
+> While I understand the reasons for this change there seems to be something
+> missing now in the device tree because the clock isn't found any more.
+>=20
+> After knowing about the problem I could also locate the log entry:
+>=20
+> [    4.456680] ti_am3359-tscadc 44e0d000.tscadc: failed to get TSC fck
+>=20
+> Reverting your patch makes it work again.
 
-> ---
->  drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 8 --------
->  1 file changed, 8 deletions(-)
-> 
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> index 0959632b2170..703039d8b937 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> @@ -107,14 +107,6 @@ static inline int __ti_thermal_get_temp(void *devdata, int *temp)
->  	return ret;
->  }
->  
-> -static inline int ti_thermal_get_temp(struct thermal_zone_device *thermal,
-> -				      int *temp)
-> -{
-> -	struct ti_thermal_data *data = thermal->devdata;
-> -
-> -	return __ti_thermal_get_temp(data, temp);
-> -}
-> -
->  static int __ti_thermal_get_trend(void *p, int trip, enum thermal_trend *trend)
->  {
->  	struct ti_thermal_data *data = p;
-> -- 
-> 2.17.1
-> 
+Sorry for the wrong behavior on your side and thanks for the
+investigation.
+
+> Is there missing a change in the am335x-boneblack or am335x DTS?
+
+I've looked at the code and indeed the am33xx-clock.dtsi file defines
+the touchscreen clock, but unfortunately the am33xx-l4.dtsi file which
+defines the touchscreen node does not reference the clock. The bindings
+clearly require the clocks to be referenced but I believe this was not
+noticed until now because the clock exist and clk_get() did a lookup
+across the tree.
+
+On my side I tested it with an am437x SoC which uses another base
+device tree, which properly references the touchscreen clock where it's
+needed.
+
+I will send a patch (untested), can you give it a try and report if it
+fixes your issue?
+
+>=20
+> Our (private) DTS looks like this, i.e. we don't play with clocks inherit=
+ed
+> from mainline tree:
+>=20
+> #include "am335x-boneblack.dts"
+>=20
+> ...
+>=20
+> &tscadc {
+>         status =3D "okay";
+>=20
+>         tsc {
+>                 ti,wires =3D <4>;
+>                 ti,x-plate-resistance =3D <600>;
+>                 ti,coordinate-readouts =3D <5>;
+>                 ti,wire-config =3D <0x00 0x11 0x22 0x33>;
+>         };
+>=20
+>         adc {
+>                 ti,adc-channels =3D <4 5 6 7>;
+>         };
+> };
+>=20
+> BR and thanks,
+> Nikolaus
+
+Thanks,
+Miqu=C3=A8l
