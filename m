@@ -2,115 +2,55 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D6D8C433F5
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Mar 2022 13:03:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F655C433EF
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Mar 2022 09:00:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346992AbiCHNEv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Mar 2022 08:04:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44394 "EHLO
+        id S231642AbiCIJBF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 9 Mar 2022 04:01:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346893AbiCHNEu (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2022 08:04:50 -0500
-Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [85.215.255.80])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5C503A72F;
-        Tue,  8 Mar 2022 05:03:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1646744618;
-    s=strato-dkim-0002; d=goldelico.com;
-    h=Message-Id:Date:Subject:Cc:To:From:Cc:Date:From:Subject:Sender;
-    bh=l1dgMSGICGJL3G77F/MPWlIsjBwTBpqOBLaKyLXW79w=;
-    b=DmqrWWPHGZ8QJ4BswwQFN7jzgi05Pb8UnZ/RgxewGrLoUgORkbaOzhaOAuX0r/t0S6
-    TZvDK8VF4xDrgBN35MWNaCs2pHbQ9eARMTI//y7m5UjxKgc48zXUtyVA5n3uFgHV4EFH
-    vRP4fJdxRN/4+yCXpqXxwfxFCDOOCefu1pzJPWyymCy2uisk7vaB36hfbyOKrcrDyXf+
-    nTgTzmg8Vf12SEVI/JwsiXncQfD5ZKDtiP4qpKX1NrryTaS/ZwKUMiM0zhkaYnkoP1Bk
-    fITk2JtEpe8S0fW+v6W1KTCi5Tcoj8uY/fMkLb9R3PBAhkPktpdGEyDcpzxokx29KcZZ
-    X/PQ==
-Authentication-Results: strato.com;
-    dkim=none
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o1OAA2UMf2MwPVbpc9Y="
-X-RZG-CLASS-ID: mo00
-Received: from iMac.fritz.box
-    by smtp.strato.de (RZmta 47.40.1 DYNA|AUTH)
-    with ESMTPSA id n729cey28D3cSKb
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
-        (Client did not present a certificate);
-    Tue, 8 Mar 2022 14:03:38 +0100 (CET)
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-To:     Felipe Balbi <balbi@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        tony@atomide.com
-Cc:     linux-omap@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org,
-        kernel@pyra-handheld.com,
-        "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH] usb: dwc3: omap: fix "unbalanced disables for smps10_out1" on omap5evm
-Date:   Tue,  8 Mar 2022 14:03:37 +0100
-Message-Id: <af3b750dc2265d875deaabcf5f80098c9645da45.1646744616.git.hns@goldelico.com>
-X-Mailer: git-send-email 2.33.0
+        with ESMTP id S231659AbiCIJBE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2022 04:01:04 -0500
+Received: from mail.olerise.pl (mail.olerise.pl [46.183.184.59])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 691A948898
+        for <linux-omap@vger.kernel.org>; Wed,  9 Mar 2022 01:00:06 -0800 (PST)
+Received: by mail.olerise.pl (Postfix, from userid 1001)
+        id 0BA1843C12; Wed,  9 Mar 2022 09:56:04 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=olerise.pl; s=mail;
+        t=1646816179; bh=ZNYiuZLXlxCdAPtstEG/gwJieB5RBwA/cHj1SZ3Mpl0=;
+        h=Date:From:To:Subject:From;
+        b=d/Xs6JSGlaJA0Y8MrcARMPEf/IC3B6edRsCRZlHTPQ+r22nzddLQ2ecmaDrdLDYBf
+         dfKz0XLKxoxfHOD7o5d3nN78zDo6u+8QrTNIVBDd0Fuw+NmAJ2FfXilxB7vSAnGPEX
+         /1sGFX9BfjtioEHDSoKkyYhbTao6jUtlg+W21kkByrJa87wkRvBceNEz0mWra636KS
+         GLO3fxXr15EXRK85YyA4i77CQtR/HFibbuB1Hwf2eF0aPryWatUY+ZEPjWN2iNqftc
+         ORUzSHs/xHv9yfkpu+I6kCoODAoAzqeOSsEMfy9pyCoBEpP1rRW/YbAeEhg8j/neF+
+         D2kbt7WXlIfUQ==
+Received: by mail.olerise.pl for <linux-omap@vger.kernel.org>; Wed,  9 Mar 2022 08:55:55 GMT
+Message-ID: <20220309084500-0.1.27.nruz.0.lbim165z2e@olerise.pl>
+Date:   Wed,  9 Mar 2022 08:55:55 GMT
+From:   =?UTF-8?Q? "Miko=C5=82aj_Rudzik" ?= <mikolaj.rudzik@olerise.pl>
+To:     <linux-omap@vger.kernel.org>
+Subject: =?UTF-8?Q?Nap=C5=82yw_Klient=C3=B3w_ze_strony?=
+X-Mailer: mail.olerise.pl
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Usually, the vbus_regulator (smps10 on omap5evm) boots up disabled.
+Dzie=C5=84 dobry,
 
-Hence calling regulator_disable() indirectly through dwc3_omap_set_mailbox()
-during probe leads to:
+chcia=C5=82bym poinformowa=C4=87 Pa=C5=84stwa o mo=C5=BCliwo=C5=9Bci pozy=
+skania nowych zlece=C5=84 ze strony www.
 
-[   10.332764] WARNING: CPU: 0 PID: 1628 at drivers/regulator/core.c:2853 _regulator_disable+0x40/0x164
-[   10.351919] unbalanced disables for smps10_out1
-[   10.361298] Modules linked in: dwc3_omap(+) clk_twl6040 at24 gpio_twl6040 palmas_gpadc palmas_pwrbutton
-industrialio snd_soc_omap_mcbsp(+) snd_soc_ti_sdma display_connector ti_tpd12s015 drm leds_gpio
-drm_panel_orientation_quirks ip_tables x_tables ipv6 autofs4
-[   10.387818] CPU: 0 PID: 1628 Comm: systemd-udevd Not tainted 5.17.0-rc1-letux-lpae+ #8139
-[   10.405129] Hardware name: Generic OMAP5 (Flattened Device Tree)
-[   10.411455]  unwind_backtrace from show_stack+0x10/0x14
-[   10.416970]  show_stack from dump_stack_lvl+0x40/0x4c
-[   10.422313]  dump_stack_lvl from __warn+0xb8/0x170
-[   10.427377]  __warn from warn_slowpath_fmt+0x70/0x9c
-[   10.432595]  warn_slowpath_fmt from _regulator_disable+0x40/0x164
-[   10.439037]  _regulator_disable from regulator_disable+0x30/0x64
-[   10.445382]  regulator_disable from dwc3_omap_set_mailbox+0x8c/0xf0 [dwc3_omap]
-[   10.453116]  dwc3_omap_set_mailbox [dwc3_omap] from dwc3_omap_probe+0x2b8/0x394 [dwc3_omap]
-[   10.467021]  dwc3_omap_probe [dwc3_omap] from platform_probe+0x58/0xa8
-[   10.481762]  platform_probe from really_probe+0x168/0x2fc
-[   10.481782]  really_probe from __driver_probe_device+0xc4/0xd8
-[   10.481782]  __driver_probe_device from driver_probe_device+0x24/0xa4
-[   10.503762]  driver_probe_device from __driver_attach+0xc4/0xd8
-[   10.510018]  __driver_attach from bus_for_each_dev+0x64/0xa0
-[   10.516001]  bus_for_each_dev from bus_add_driver+0x148/0x1a4
-[   10.524880]  bus_add_driver from driver_register+0xb4/0xf8
-[   10.530678]  driver_register from do_one_initcall+0x90/0x1c4
-[   10.536661]  do_one_initcall from do_init_module+0x4c/0x200
-[   10.536683]  do_init_module from load_module+0x13dc/0x1910
-[   10.551159]  load_module from sys_finit_module+0xc8/0xd8
-[   10.561319]  sys_finit_module from __sys_trace_return+0x0/0x18
-[   10.561336] Exception stack(0xc344bfa8 to 0xc344bff0)
-[   10.561341] bfa0:                   b6fb5778 b6fab8d8 00000007 b6ecfbb8 00000000 b6ed0398
-[   10.561341] bfc0: b6fb5778 b6fab8d8 855c0500 0000017b 00020000 b6f9a3cc 00000000 b6fb5778
-[   10.595500] bfe0: bede18f8 bede18e8 b6ec9aeb b6dda1c2
-[   10.601345] ---[ end trace 0000000000000000 ]---
+Widzimy zainteresowanie potencjalnych Klient=C3=B3w Pa=C5=84stwa firm=C4=85=
+, dlatego ch=C4=99tnie pomo=C5=BCemy Pa=C5=84stwu dotrze=C4=87 z ofert=C4=
+=85 do wi=C4=99kszego grona odbiorc=C3=B3w poprzez efektywne metody pozyc=
+jonowania strony w Google.
 
-Fix this unnecessary warning by checking if the regulator is enabled.
+Czy m=C3=B3g=C5=82bym liczy=C4=87 na kontakt zwrotny?
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- drivers/usb/dwc3/dwc3-omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index e196673f5c64..efaf0db595f4 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -242,7 +242,7 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
- 		break;
- 
- 	case OMAP_DWC3_ID_FLOAT:
--		if (omap->vbus_reg)
-+		if (omap->vbus_reg && regulator_is_enabled(omap->vbus_reg))
- 			regulator_disable(omap->vbus_reg);
- 		val = dwc3_omap_read_utmi_ctrl(omap);
- 		val |= USBOTGSS_UTMI_OTG_CTRL_IDDIG;
--- 
-2.33.0
-
+Pozdrawiam
+Miko=C5=82aj Rudzik
