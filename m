@@ -2,57 +2,57 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08858C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 680F4C433FE
 	for <linux-omap@archiver.kernel.org>; Fri, 11 Mar 2022 03:32:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346193AbiCKDdv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 10 Mar 2022 22:33:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44814 "EHLO
+        id S1346140AbiCKDdw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 10 Mar 2022 22:33:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346338AbiCKDc6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2022 22:32:58 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74F51FBA4A;
-        Thu, 10 Mar 2022 19:31:44 -0800 (PST)
+        with ESMTP id S1346350AbiCKDdA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2022 22:33:00 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DF15EB313;
+        Thu, 10 Mar 2022 19:31:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B2D6FB82A0A;
-        Fri, 11 Mar 2022 03:31:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F7BDC340EC;
-        Fri, 11 Mar 2022 03:31:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 00ED061380;
+        Fri, 11 Mar 2022 03:31:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 593CFC340EC;
+        Fri, 11 Mar 2022 03:31:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1646969483;
-        bh=we8U5VPOWvug58XQa0Zr6jucknRVaa+zCZLPU3etEzA=;
+        s=k20201202; t=1646969505;
+        bh=/hrzm9cGSEwjsb2/X7PwCayhl/+z0FsjT+gVG1/+r2Q=;
         h=In-Reply-To:References:Subject:From:Cc:To:Date:From;
-        b=sCA+QLWDMPe4eM++nBaIlIe9GX2m+s0eYHHcrzUssFim7eBHJWPoK5ULMrON5gXqZ
-         UKPh7zGucHIYZnsHMKOo+ni+zUUaPgcUmV3SU3wmw2RbFk5kolV327njqLgVF7C2GO
-         Gmu/3CyGypyx65mOyqsOsRHOEjXy5RYptUrgYuyoRmZTtL7Qs6Y+XfbtWAf8LeWH4l
-         TCsVjCuM11vGQf9ujZlttFtSxcpYUYWNmG+AwYwIvjTj+xgq/5EGTLuWqBYmQqajxN
-         SuQmNRErjQyPHKFz0XyN9ac/15w/gONe0CWxUh5eAJOfpFHzguqV5wtyMwVebbx9cr
-         4L/8IWKi/BAAg==
+        b=ArWnMqdDO72mUHUL8FOSN1RfwimvJaO402E9uJP9ap2h6zSxtC57gwk+uP+n7ZKuU
+         DpMtRwcJjJ9WyWYpKT7ZV8YRj3+X1x3O6ozMxeYbZgXUid3PGIp0T4nMQxyfKgIv0M
+         5ldP8XNmDyr81SG0IZG9YT99ro6DBx4s/pTivnn9Btb/KuhP+k+7WVvlmeXqVBRrk4
+         uwdtNoLCoSVaP2+4bJZ/vYt5J0IE3h9MpkFUjM1ys5ouqGfwFDIp4zUCxJXKkr4i6o
+         Incj1N6VSnPPW7WaY1bzByHkKSjHSX6PlufGq+27Cr0JwRO5RP7Xz5t+2Mbh/pASkY
+         rcprLfv2/zmuw==
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20220204071449.16762-5-tony@atomide.com>
-References: <20220204071449.16762-1-tony@atomide.com> <20220204071449.16762-5-tony@atomide.com>
-Subject: Re: [PATCH 4/8] clk: ti: Add ti_find_clock_provider() to use clock-output-names
+In-Reply-To: <20220204071449.16762-7-tony@atomide.com>
+References: <20220204071449.16762-1-tony@atomide.com> <20220204071449.16762-7-tony@atomide.com>
+Subject: Re: [PATCH 6/8] clk: ti: Add ti_dt_clk_name() helper to use clock-output-names
 From:   Stephen Boyd <sboyd@kernel.org>
 Cc:     Michael Turquette <mturquette@baylibre.com>,
         Stephen Boyd <sboyd@codeaurora.org>,
         Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
 To:     Tony Lindgren <tony@atomide.com>, linux-clk@vger.kernel.org
-Date:   Thu, 10 Mar 2022 19:31:21 -0800
+Date:   Thu, 10 Mar 2022 19:31:43 -0800
 User-Agent: alot/0.10
-Message-Id: <20220311033123.5F7BDC340EC@smtp.kernel.org>
+Message-Id: <20220311033145.593CFC340EC@smtp.kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Quoting Tony Lindgren (2022-02-03 23:14:45)
-> Let's add ti_find_clock_provider() so we can use clock-output-names
-> to name the clock provider instead of relying on non-standard devicetree
-> node names.
+Quoting Tony Lindgren (2022-02-03 23:14:47)
+> Let's create the clock alias based on the clock-output-names property if
+> available. Also the component clock drivers can use ti_dt_clk_name() in
+> the following patches.
 >=20
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
