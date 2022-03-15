@@ -2,81 +2,61 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AFF3C433EF
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Mar 2022 21:25:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7E8BC433FE
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Mar 2022 22:48:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237513AbiCOV0v (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Mar 2022 17:26:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58540 "EHLO
+        id S1352368AbiCOWuH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Mar 2022 18:50:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235170AbiCOV0v (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2022 17:26:51 -0400
+        with ESMTP id S1350376AbiCOWuE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2022 18:50:04 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EB245BD1F;
-        Tue, 15 Mar 2022 14:25:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49CB756C21;
+        Tue, 15 Mar 2022 15:48:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C91A2B818C2;
-        Tue, 15 Mar 2022 21:25:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65F90C340E8;
-        Tue, 15 Mar 2022 21:25:35 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 00EC5B818D3;
+        Tue, 15 Mar 2022 22:48:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AED3CC340E8;
+        Tue, 15 Mar 2022 22:48:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1647379535;
-        bh=a1DRy59KBSvpfBS/knLhFJ3ZhRJa4GK/pC3wt82Aazg=;
+        s=k20201202; t=1647384529;
+        bh=AbKXXpWtIybMeDJAnL0pTXEGeuf+WhH1XeWvboxWJfw=;
         h=In-Reply-To:References:Subject:From:Cc:To:Date:From;
-        b=mFVNMHAbPL6IOWUZTbNqcg30Izqmcnx2wnhHjAwEhbr3Uh1MfOA5Xgveq14jaLmMY
-         +jx8sFq48rQJHZt3tRAUhgYmT5blF0kTKIw/K8RwIkGObtxi7STtKdp3MtspmGCcW0
-         Fos83M9XFosBM23PHGN/AOewfSOBBfFlmsVgPHZZWfMJHXw5tWultRIoEscuIP37O7
-         94MfPrKLYEWRuwDpHkS8VvwZVfqL1R58tEsRNhZGdMZFVFVnUOhhaFLgUHvT5QcKCp
-         ekSfd+c2j/eyGDwv01RrZTz0Go1QVlDZ9lWxGjooXQN5tYbkqpRxYZEnnwbgJLjSly
-         NdyLhc/4qI5Qg==
+        b=FCY/KOAuxadBlAw2dOhF565hovODg4HmxRtqT7Je0ujCg22wNMmW8lpBFHNzVC/OB
+         DfXxAw8/QqRMXTrfAu1Ab+nIhsS0gRanjRKjqyTodO04v+rtiRipHzvxO4DubCIekG
+         PY2mCwp2NcMMr0Uq9hrrYrznQtoSUTT/uE7GMFAjSEBC1vKARtH5C/Uvw/Ycd4RJYV
+         KFYk8TRCudblFrNbRnRwQjphkTygEFqPrDhymMg/g01njMPQdOpYf6kC90fpnk1/62
+         HBysgvu1Key2fTmvKbYnXaTdn0LRkU19wJYCSw15D6XLCUTCyRRdOMv/UK8sQKDT0j
+         QU4z9MJIsC2MQ==
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <YixV85yYNy+xxYEE@atomide.com>
-References: <20220204084339.12341-1-tony@atomide.com> <20220204084339.12341-2-tony@atomide.com> <20220311033439.15316C340EC@smtp.kernel.org> <YixV85yYNy+xxYEE@atomide.com>
-Subject: Re: [PATCH 1/5] ARM: dts: Add clock-output-names for omap4
+In-Reply-To: <20220314115354.144023-15-Julia.Lawall@inria.fr>
+References: <20220314115354.144023-1-Julia.Lawall@inria.fr> <20220314115354.144023-15-Julia.Lawall@inria.fr>
+Subject: Re: [PATCH 14/30] clk: ti: clkctrl: fix typos in comments
 From:   Stephen Boyd <sboyd@kernel.org>
-Cc:     linux-omap@vger.kernel.org,
-        =?utf-8?q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org, Tero Kristo <kristo@kernel.org>,
-        linux-clk@vger.kernel.org
-To:     Tony Lindgren <tony@atomide.com>
-Date:   Tue, 15 Mar 2022 14:25:32 -0700
+Cc:     kernel-janitors@vger.kernel.org,
+        Michael Turquette <mturquette@baylibre.com>,
+        linux-omap@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+To:     Julia Lawall <Julia.Lawall@inria.fr>,
+        Tero Kristo <kristo@kernel.org>
+Date:   Tue, 15 Mar 2022 15:48:47 -0700
 User-Agent: alot/0.10
-Message-Id: <20220315212535.65F90C340E8@smtp.kernel.org>
+Message-Id: <20220315224849.AED3CC340E8@smtp.kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Quoting Tony Lindgren (2022-03-12 00:12:35)
-> Hi,
+Quoting Julia Lawall (2022-03-14 04:53:38)
+> Various spelling mistakes in comments.
+> Detected with the help of Coccinelle.
 >=20
-> * Stephen Boyd <sboyd@kernel.org> [220311 03:33]:
-> > Quoting Tony Lindgren (2022-02-04 00:43:35)
-> > > To stop using the non-standard node name based clock naming, let's
-> > > first add the clock-output-names property. This allows us to stop usi=
-ng
-> > > the internal legacy clock naming and unify the naming for the TI SoCs=
- in
-> > > the following patches.
-> > >=20
-> > > Note that we must wait on fixing the node naming issues until after t=
-he
-> > > internal clock names have been updated to avoid adding name translati=
-on
-> > > unnecessarily.
-> > >=20
-> > > Cc: Stephen Boyd <sboyd@kernel.org>
-> > > Cc: Tero Kristo <kristo@kernel.org>
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > ---
-> >=20
-> > I assume I don't merge this through clk tree.
+> Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
 >=20
-> AFAIK these won't conflict with other dts changes, so you could merge
-> them if you like and they look OK. Or we can also wait for v5.18-rc1 and
-> then I'll pick up the dts changes.
+> ---
 
-I'll let you take them through arm-soc.
+Applied to clk-next
