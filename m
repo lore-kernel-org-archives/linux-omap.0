@@ -2,70 +2,107 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6064BC433FE
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Mar 2022 10:38:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABF0EC433EF
+	for <linux-omap@archiver.kernel.org>; Sat, 19 Mar 2022 03:58:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235221AbiCRKjX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Mar 2022 06:39:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37486 "EHLO
+        id S230259AbiCSEAD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 19 Mar 2022 00:00:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235167AbiCRKjL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2022 06:39:11 -0400
-Received: from mail3-relais-sop.national.inria.fr (mail3-relais-sop.national.inria.fr [192.134.164.104])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5EEC8908A;
-        Fri, 18 Mar 2022 03:37:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=inria.fr; s=dc;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=QtFW6Q+pfo+IdSPSw6/HTOFAVn24hdsGX+8wfv0Ib98=;
-  b=G72E4xSQfkVFZTg0XnMPo5ZsuOOfydikSaj5TMGIqVFTRqiztEBRI81S
-   kdJMhnqach7lQSPt0MfEVfFQWDG2Wli4fHgo84rrzolr8UNcXgRUFKgGm
-   aZwlAeVRggpN6hkDjLDw4iJbDInCUZsRRuSpbGPuSoVkg3SSaTSiXoDG9
-   c=;
-Authentication-Results: mail3-relais-sop.national.inria.fr; dkim=none (message not signed) header.i=none; spf=SoftFail smtp.mailfrom=Julia.Lawall@inria.fr; dmarc=fail (p=none dis=none) d=inria.fr
-X-IronPort-AV: E=Sophos;i="5.90,192,1643670000"; 
-   d="scan'208";a="8935673"
-Received: from i80.paris.inria.fr (HELO i80.paris.inria.fr.) ([128.93.90.48])
-  by mail3-relais-sop.national.inria.fr with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2022 11:37:40 +0100
-From:   Julia Lawall <Julia.Lawall@inria.fr>
-To:     Paul Walmsley <paul@pwsan.com>
-Cc:     kernel-janitors@vger.kernel.org,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] ARM: OMAP1: fix typos in comments
-Date:   Fri, 18 Mar 2022 11:37:28 +0100
-Message-Id: <20220318103729.157574-33-Julia.Lawall@inria.fr>
-X-Mailer: git-send-email 2.20.1
+        with ESMTP id S242119AbiCSD7u (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2022 23:59:50 -0400
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6918C12A8F3;
+        Fri, 18 Mar 2022 20:57:52 -0700 (PDT)
+Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 22J2ro58012531;
+        Sat, 19 Mar 2022 03:57:15 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-type : content-transfer-encoding; s=corp-2021-07-09;
+ bh=dOCvppNUKgOlcA89bNUdrq8FTQRYfsjfsvR3rEo7hmg=;
+ b=rB4F0btdvmuQ8qSVzB0TI/MVdj6L1wLlPT1srOv4birzBP2VsA5D9mxqDnty9FGI031e
+ OhuXiDi8PP/hnk9+43pScgnlvc1Msx3IXhpur+XlVll5oz+03KUF4YG2ZJeO5ctAVyuc
+ ABInatOkvEpdjQe0XOBM3Vw23gTi3RCDw1NbsqI8/p8gXop58M1CrcTLpLi34DxilkOw
+ aIKWvxzBLmxogO1BmHkA0n6pbxmOlCrA4EQcUelFgQP2O0W9a5LqlQOoSqpIeuQaOZbZ
+ 7pKjNVt7qrQPqi5lf6wtbxwtbMHhpxhomcEA8IcEfMLaUK5a8MKBz0qkUbZ41JgSbvMB dA== 
+Received: from phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta02.appoci.oracle.com [147.154.114.232])
+        by mx0b-00069f02.pphosted.com with ESMTP id 3ew6ss016q-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sat, 19 Mar 2022 03:57:15 +0000
+Received: from pps.filterd (phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+        by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 22J3uvsm007045;
+        Sat, 19 Mar 2022 03:57:14 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+        by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com with ESMTP id 3ew5kyshp1-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sat, 19 Mar 2022 03:57:14 +0000
+Received: from phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 22J3v5Qm007126;
+        Sat, 19 Mar 2022 03:57:13 GMT
+Received: from ca-mkp.mkp.ca.oracle.com (ca-mkp.ca.oracle.com [10.156.108.201])
+        by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com with ESMTP id 3ew5kyshmn-6;
+        Sat, 19 Mar 2022 03:57:13 +0000
+From:   "Martin K. Petersen" <martin.petersen@oracle.com>
+To:     Julia Lawall <Julia.Lawall@inria.fr>, linux-can@vger.kernel.org
+Cc:     "Martin K . Petersen" <martin.petersen@oracle.com>,
+        Sean Wang <sean.wang@mediatek.com>,
+        Jernej Skrabec <jernej.skrabec@gmail.com>,
+        linux-rdma@vger.kernel.org, Jonas Karlman <jonas@kwiboo.se>,
+        linux-s390@vger.kernel.org,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+        linux-clk@vger.kernel.org, linux-spi@vger.kernel.org,
+        Shayne Chen <shayne.chen@mediatek.com>, netdev@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, Jiri Olsa <jolsa@kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
+        linux-staging@lists.linux.dev, Namhyung Kim <namhyung@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-perf-users@vger.kernel.org, linux-wireless@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org, linux-sunxi@lists.linux.dev,
+        Sven Schnelle <svens@linux.ibm.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-power@fi.rohmeurope.com, linux-mtd@lists.infradead.org,
+        target-devel@vger.kernel.org,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-mediatek@lists.infradead.org,
+        Christian Borntraeger <borntraeger@linux.ibm.com>
+Subject: Re: [PATCH 00/30] fix typos in comments
+Date:   Fri, 18 Mar 2022 23:56:56 -0400
+Message-Id: <164766213032.31329.14855996441316567317.b4-ty@oracle.com>
+X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20220314115354.144023-1-Julia.Lawall@inria.fr>
+References: <20220314115354.144023-1-Julia.Lawall@inria.fr>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
+X-Proofpoint-ORIG-GUID: ryygBDbx4ESlJehbCVsBuy2qL-PPuldd
+X-Proofpoint-GUID: ryygBDbx4ESlJehbCVsBuy2qL-PPuldd
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Various spelling mistakes in comments.
-Detected with the help of Coccinelle.
+On Mon, 14 Mar 2022 12:53:24 +0100, Julia Lawall wrote:
 
-Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
+> Various spelling mistakes in comments.
+> Detected with the help of Coccinelle.
+> 
 
----
- arch/arm/mach-omap1/clock_data.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Applied to 5.18/scsi-queue, thanks!
 
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index 3ebcd96efbff..c761e72563c1 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -818,7 +818,7 @@ int __init omap1_clk_init(void)
- 		omap_readw(ARM_SYSST), omap_readw(DPLL_CTL),
- 		omap_readw(ARM_CKCTL));
- 
--	/* We want to be in syncronous scalable mode */
-+	/* We want to be in synchronous scalable mode */
- 	omap_writew(0x1000, ARM_SYSST);
- 
- 
+[02/30] scsi: lpfc: fix typos in comments
+        https://git.kernel.org/mkp/scsi/c/9a866e6aaf4e
+[17/30] scsi: elx: libefc_sli: fix typos in comments
+        https://git.kernel.org/mkp/scsi/c/8037185d1ad8
+[24/30] scsi: qla2xxx: fix typos in comments
+        https://git.kernel.org/mkp/scsi/c/5419e0f15622
+[25/30] treewide: fix typos in comments
+        https://git.kernel.org/mkp/scsi/c/9d05790f5187
 
+-- 
+Martin K. Petersen	Oracle Linux Engineering
