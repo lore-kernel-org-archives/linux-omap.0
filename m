@@ -2,95 +2,94 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2A04C433EF
-	for <linux-omap@archiver.kernel.org>; Sat, 19 Mar 2022 11:23:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5387CC433F5
+	for <linux-omap@archiver.kernel.org>; Sat, 19 Mar 2022 18:50:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242786AbiCSLYZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 19 Mar 2022 07:24:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53998 "EHLO
+        id S243931AbiCSSvV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 19 Mar 2022 14:51:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48728 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238827AbiCSLYY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Mar 2022 07:24:24 -0400
-X-Greylist: delayed 415 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 19 Mar 2022 04:23:02 PDT
-Received: from meesny.iki.fi (meesny.iki.fi [IPv6:2001:67c:2b0:1c1::201])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D510C1C7F17;
-        Sat, 19 Mar 2022 04:23:02 -0700 (PDT)
+        with ESMTP id S239382AbiCSSvU (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Mar 2022 14:51:20 -0400
+X-Greylist: delayed 27184 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 19 Mar 2022 11:49:57 PDT
+Received: from lahtoruutu.iki.fi (lahtoruutu.iki.fi [185.185.170.37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F67621D7EF;
+        Sat, 19 Mar 2022 11:49:57 -0700 (PDT)
 Received: from darkstar.musicnaut.iki.fi (85-76-3-17-nat.elisa-mobile.fi [85.76.3.17])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: aaro.koskinen)
-        by meesny.iki.fi (Postfix) with ESMTPSA id 2421220AF5;
-        Sat, 19 Mar 2022 13:16:02 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=meesny;
-        t=1647688562;
+        by lahtoruutu.iki.fi (Postfix) with ESMTPSA id 90D401B005E7;
+        Sat, 19 Mar 2022 20:49:54 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=lahtoruutu;
+        t=1647715795;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=O3HSI3kgBP9o10gxLuhqQNqLjuiIJtyoXFee1GnFDww=;
-        b=TkMLjdYlVQkEsd/BWSVLtjFp8B67Ez3eL4BSXr0RA+K4/KZVTk70jqOF5kFaavGKqP4Wfs
-        WYOewSwRGkUoEgAwaWmDcMX28ae3IeJ+SSqOqm4n2hrDrPTSnbrczkXggvrdW8AS+OuG4A
-        MW28lQgDLjhMZNtGh6ow+BIuAiXHdz4=
-Date:   Sat, 19 Mar 2022 13:16:00 +0200
+        bh=UZiM45VyUb2qyeM2RPKLOiRoIP0g6aqsRFs2FjvcgMs=;
+        b=nxWUY/hMxJdb2PwmYVBvX+fR1NveAJnAKYoJFBJAG/GUG8xvSw2fz52G6Xo7wKHVSr0qwn
+        y39uFTLQKpAJ2LOb1jdTkPjk/Zt5T5jreEhYN8yP4TF9UQhAyQu/oY1k0KrkW8wEcc62wx
+        hgWZdU0Ir9TEgYVwQvuA77rpIIpnzBAWdTNFDE/OOASjwzPcwCHVKHWp8J5ObeXTUrPPQF
+        Duxt2vtLvOlF83OUlNBDJVr7FW8Gx/lf19F0Wjk2lqqS05+WB9Tp3Q8fhmjAXMDEKbV9Rm
+        JQ36TlD+HL+7kDAn5ARVDvKbi+A8x4ygbfpY6IVeLZ7fg8GsHqUwI2oyqpeYEg==
+Date:   Sat, 19 Mar 2022 20:49:52 +0200
 From:   Aaro Koskinen <aaro.koskinen@iki.fi>
-To:     Julia Lawall <Julia.Lawall@inria.fr>
-Cc:     kernel-janitors@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] omap1: htc_herald: fix typos in comments
-Message-ID: <20220319111600.GC1986@darkstar.musicnaut.iki.fi>
-References: <20220318103729.157574-27-Julia.Lawall@inria.fr>
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Paul Walmsley <paul@pwsan.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Helge Deller <deller@gmx.de>, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC RFT PATCH 0/4] ARM: OMAP1: clock: Convert to CCF
+Message-ID: <20220319184952.GF1986@darkstar.musicnaut.iki.fi>
+References: <20220310233307.99220-1-jmkrzyszt@gmail.com>
+ <YixWZ+IiN2l9jmzg@atomide.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220318103729.157574-27-Julia.Lawall@inria.fr>
+In-Reply-To: <YixWZ+IiN2l9jmzg@atomide.com>
 ARC-Authentication-Results: i=1;
         ORIGINATING;
         auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
-ARC-Seal: i=1; s=meesny; d=iki.fi; t=1647688562; a=rsa-sha256; cv=none;
-        b=M8vH3FQS7nMt/sEnmefQnt/ZQdwIv5ZXxQuReK8V8VxC0tmsowmna3DAczgS7a4prjQyje
-        U/tFgcWy+ZTYOtitNqo4vUzu503yFxL341nLhd97ZEMLAMCMwZiQLuAiNPEsPRLE1JLIND
-        ilIr0artOjDu2hbfuGT4+BMBuv08+S8=
+ARC-Seal: i=1; s=lahtoruutu; d=iki.fi; t=1647715795; a=rsa-sha256;
+        cv=none;
+        b=XXxZOctinU4m+znhMMf9d6S+wOdBCmt0XyYtVcfB49SQV+My3T/COD9lnwqsHqGmemMSKt
+        xUDRk3eFN4xj4Yux0YCVP/m/6Y9WwNbzDvxSa1ydkD1n+xmpirjWvZTydgl3mC/bAkZTz3
+        OE7QN4T3EazF7J9VmhmkHSy5jEaPkcAo5kGTQifvI4qRdFJWRHIBIl+HJVkszX/osqg7Qw
+        EyUck589BQEubVQwgJ+9kfzPJyeYPOjAdXbHI7OIffaGDKYhJcDXbxlMjrW24x/4lc3OS+
+        mVsbOA3le7oxnC0zYMp1VvmDIiN16CEbqDKm8LeYxUaM6XGdyWlucQc1J9dgsg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
-        s=meesny; t=1647688562;
+        s=lahtoruutu; t=1647715795;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=O3HSI3kgBP9o10gxLuhqQNqLjuiIJtyoXFee1GnFDww=;
-        b=cVhaRE9aKxgRXpjNeSDtn7BCgdquclIasP3INrQmN9teRDa4wFerlEolusuFKmx3cWp3Bf
-        H6x5kJVi+J7k5GGNsMIHEPLvFxXsDNbzYvXC61kmuVoLFARt3w+hsZdhGEKUyvWGNEWDPd
-        t0/gF0fIlBo52HVdV9PyMe7ZE/m7ut0=
+        bh=UZiM45VyUb2qyeM2RPKLOiRoIP0g6aqsRFs2FjvcgMs=;
+        b=UYpNc8T8xI9LyrGirHytNxANqphjTTOj7resU82lQ3iQE5zo6nFg23tVN4gleAXzWN9YZS
+        PXjwkOj10cw49XsQDTm6mMsTiVWCPbuoCjgZfUFG6Nb3s0lIL1CYM1ybfAMJNZFbUiOAGU
+        c7mS7Cnx23qRqn+qyW+ncAgS++2xTayKtNvic4hOA1bSXrE1U+AgNBIBVPQjkMI5xazmH7
+        v9SsbokuHStuXPoaK/wmYE4/4LxZxJu13UnbAZpVzYXKEjyNxEfDwD2Ad5mQxuoaKh4bTe
+        tl9s6P83zykboVBrXzizFQ8eGHwvU4W1LvSQqe+B9Fj24rL9q6ko5D7/FfLBRg==
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Mar 18, 2022 at 11:37:22AM +0100, Julia Lawall wrote:
-> Various spelling mistakes in comments.
-> Detected with the help of Coccinelle.
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
+Hi,
 
-Reviewed-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+On Sat, Mar 12, 2022 at 10:14:31AM +0200, Tony Lindgren wrote:
+> * Janusz Krzysztofik <jmkrzyszt@gmail.com> [220310 23:32]:
+> > The main motivation behind this series is planned resurection of OMAP1
+> > camera driver.  Since OMAP1 clock internals have never been visible to
+> > drivers, that driver used to use v4l2-clk to expose a pixel clock for a
+> > sensor.  The v4l2-clk code has been recently depreciated and removed from
+> > the media subtree, hence the need for an alternative solution.
+> 
+> Nice :) This will also help Arnd with building multi-v5 kernels.
+
+This will need more testing still... The patch 4 is breaking at least 770
+(the display/fb doesn't work anymore).
 
 A.
-
-> 
-> ---
->  arch/arm/mach-omap1/board-htcherald.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
-> index 258304edf23e..d528b8497061 100644
-> --- a/arch/arm/mach-omap1/board-htcherald.c
-> +++ b/arch/arm/mach-omap1/board-htcherald.c
-> @@ -170,7 +170,7 @@ static const unsigned int htc_herald_keymap[] = {
->  	KEY(3, 0, KEY_VOLUMEUP), /* Volume up */
->  	KEY(4, 0, KEY_F2),  /* Right bar (landscape) */
->  	KEY(5, 0, KEY_MAIL), /* Win key (portrait) */
-> -	KEY(6, 0, KEY_DIRECTORY), /* Right bar (protrait) */
-> +	KEY(6, 0, KEY_DIRECTORY), /* Right bar (portrait) */
->  	KEY(0, 1, KEY_LEFTCTRL), /* Windows key */
->  	KEY(1, 1, KEY_COMMA),
->  	KEY(2, 1, KEY_M),
-> 
