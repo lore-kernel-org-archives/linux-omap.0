@@ -2,65 +2,65 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BA47C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE9FFC433FE
 	for <linux-omap@archiver.kernel.org>; Fri, 25 Mar 2022 10:06:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358606AbiCYKIX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1358611AbiCYKIX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Fri, 25 Mar 2022 06:08:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51026 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51036 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358604AbiCYKIW (ORCPT
+        with ESMTP id S1358605AbiCYKIW (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2022 06:08:22 -0400
-Received: from EUR04-HE1-obe.outbound.protection.outlook.com (mail-eopbgr70052.outbound.protection.outlook.com [40.107.7.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA391CFBB8;
+Received: from EUR04-DB3-obe.outbound.protection.outlook.com (mail-eopbgr60081.outbound.protection.outlook.com [40.107.6.81])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0386FCFBBC;
         Fri, 25 Mar 2022 03:06:48 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=d5kci1H9ytcKEfdjHVpBl5E2B/M6ewhYHiDeaGQk9Vl69NblRInIzwkL7rlJcjJX0JamVuxxPg1SzYm0XcBNgyBnryDP9I+eIi/2hXb0Ru59gXO1U6h47agBrBxklgNCW+KJW1PdHShIVU2/TRBtA8NHC7E+TUQyPXT/R3ZjDLSAwoJ/qQXaulMvHEQgPFTyVxoiXXZFn30dq+C4SnbmTY2AySE+Mp8trrLcinFBmzS4mNk5GRhmLkb2GdWHJCkB4u1JhCfTO2gTEasAyl8hIQ/JW8jgrKI4pycFADUX8GX7PI60Mn6EJ4OGF9nBphhioaMy09uQoSPU9rMRvOwyhQ==
+ b=Ih8SlA6lzaWxqWVTplcDEWEizYEpMUsuCoESkUPR2Lec3GVjiGEA8PtqGmhnYD0oQdMw62DBSiwc/PzU3rE2Cwgx6k5nBbZ7j3Oj9LKvp0ms7W7GNhwq4SJXbzUJBOE+AVvqziRmHd3wbm8d0VcZfgyzZ0ndz8MREMqCOgfKB/5B3Z2f5mHii5HMEjRE5/n+kC5VOW0ZzXqUzwI3dRmatMX+q+OlEhQT/6hWk5vdK6AKCTkvHd/ZVoq6v4GSZ/1aiLv04DqwYhKlSsarOcZqzjphfn7AoMbaDcbT2sA/DaajREpEX9pHPZW9MngG96zLfgWHkr9pUh9hle8DVyNH8g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=d8+emKMsoSAvt8yDUGswWvEYqF50aUsMHG90VxOOTqU=;
- b=DYseBWCzlMS4anyfMTKsfOOGA28VKWVhwnsj7UVZAqWQ3SvXpbGoZWTMPen64TvvGRvr0jvX8XY2bpbn7vx+oAOjkH1uRLz/jBVqReWAM+qrBc3jeQVBRFIqmr4q3w849SNfoUoFTqdBV3sl/GFeU74IQYg0kIvwlR9uAf2xylSsXnDJkrcxQELstYquzODaXVyucB0m5D3QsBg9iZiLjTfQdNB8oWMB3eyK1kro4S+pq4ZHS6huwC9ojvEwSH5pAd/KwLvK1LMOiu4C+8xPkjchwULkqPAfIMalihZ80cPrYDbvgHHUPA2qj4YaVHERjaO55MWxUAJKlbWAsDGFIA==
+ bh=qf0MshCFPwDoVd0aMdofMkuvFa4y+PjCSxm+g7IlAUQ=;
+ b=RTetQxgfhiq9dY/azMALYc8MmAkR2uspaaESW/p+2Jxu5ZlkmrbFNREnY8UgBG6heJbu/LGToUb7mpJrBEEu/9W3Gw7686bEJ+fELBXpQYU+MZ3XqAokYb7PhtijXH+Hg81PvMRDMyrE16AOhoSciIL54DmhhEVJQQcZdBaB4Qq1GKkEyict1vhol54XDdKDqQM3r0XwQLadKtaBh9RUntTcrpNEIq+gCTLuDAQv7oZYht6aJljRwZYKf0Rl5yqyLgty4V/6B9C16NXPnyAO9nwBfEpZzZJet3ufV1w/4ZXHc84jk79CGoYo7z9risro9RqvfmomAnCRAOrKAkrPJw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 139.15.153.200) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=in.bosch.com;
+ 139.15.153.203) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=in.bosch.com;
  dmarc=pass (p=reject sp=none pct=100) action=none header.from=in.bosch.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=in.bosch.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=d8+emKMsoSAvt8yDUGswWvEYqF50aUsMHG90VxOOTqU=;
- b=ELri/lx2bfc9idxjZbpDoOTqywb5qK081sX60IgIB/owN0yWoXJjUSizJTCcKYdaYOgnfCMq8oVHPrusF9t0BptD98WUjesYZ9F4hx+kITFc9PrIgHK80TuqrpsQYt/+GLGjvT4kP+eadrfsUOueegKxJfGP4f/UH6b4gpVVjuQ=
-Received: from DU2PR04CA0233.eurprd04.prod.outlook.com (2603:10a6:10:2b1::28)
- by AM9PR10MB4231.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:20b:1f6::22) with
+ bh=qf0MshCFPwDoVd0aMdofMkuvFa4y+PjCSxm+g7IlAUQ=;
+ b=DHotUuHhmbI3KdEqf0o1piCaHPg2IbI8O6iUVAPOROznzA+KmsoX/5OZwniGr6iJGvllD0ERkB7aRDz+zaiTQYMRmGMmUUvgFwenbXdseUj4gpqP7uLWyTZS4dv1X+qjVbagT9gCjAaE6ZYijmr0aWgUK01dZg7xDcD/RMfAZeg=
+Received: from AS9PR06CA0075.eurprd06.prod.outlook.com (2603:10a6:20b:464::23)
+ by PA4PR10MB4399.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:102:102::14) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5102.16; Fri, 25 Mar
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5102.19; Fri, 25 Mar
  2022 10:06:46 +0000
-Received: from DB5EUR03FT046.eop-EUR03.prod.protection.outlook.com
- (2603:10a6:10:2b1:cafe::e3) by DU2PR04CA0233.outlook.office365.com
- (2603:10a6:10:2b1::28) with Microsoft SMTP Server (version=TLS1_2,
+Received: from AM5EUR03FT011.eop-EUR03.prod.protection.outlook.com
+ (2603:10a6:20b:464:cafe::bd) by AS9PR06CA0075.outlook.office365.com
+ (2603:10a6:20b:464::23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5102.17 via Frontend
  Transport; Fri, 25 Mar 2022 10:06:46 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 139.15.153.200)
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 139.15.153.203)
  smtp.mailfrom=in.bosch.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=in.bosch.com;
 Received-SPF: Pass (protection.outlook.com: domain of in.bosch.com designates
- 139.15.153.200 as permitted sender) receiver=protection.outlook.com;
- client-ip=139.15.153.200; helo=eop.bosch-org.com;
-Received: from eop.bosch-org.com (139.15.153.200) by
- DB5EUR03FT046.mail.protection.outlook.com (10.152.21.230) with Microsoft SMTP
+ 139.15.153.203 as permitted sender) receiver=protection.outlook.com;
+ client-ip=139.15.153.203; helo=eop.bosch-org.com;
+Received: from eop.bosch-org.com (139.15.153.203) by
+ AM5EUR03FT011.mail.protection.outlook.com (10.152.16.152) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
  15.20.5102.18 via Frontend Transport; Fri, 25 Mar 2022 10:06:46 +0000
-Received: from FE-EXCAS2001.de.bosch.com (10.139.217.200) by eop.bosch-org.com
- (139.15.153.200) with Microsoft SMTP Server (version=TLS1_2,
+Received: from SI-EXCAS2001.de.bosch.com (10.139.217.202) by eop.bosch-org.com
+ (139.15.153.203) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2375.24; Fri, 25 Mar
- 2022 11:06:39 +0100
+ 2022 11:06:35 +0100
 Received: from SI-HUB2000.de.bosch.com (10.4.103.108) by
- FE-EXCAS2001.de.bosch.com (10.139.217.200) with Microsoft SMTP Server
+ SI-EXCAS2001.de.bosch.com (10.139.217.202) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2375.24; Fri, 25 Mar 2022 11:06:39 +0100
+ 15.1.2375.24; Fri, 25 Mar 2022 11:06:35 +0100
 Received: from localhost.localdomain (10.167.1.162) by SI-HUB2000.de.bosch.com
  (10.4.103.108) with Microsoft SMTP Server id 15.1.2375.24; Fri, 25 Mar 2022
- 11:06:37 +0100
+ 11:06:33 +0100
 From:   <Gireesh.Hiremath@in.bosch.com>
 To:     <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-omap@vger.kernel.org>, <robh+dt@kernel.org>,
@@ -68,9 +68,9 @@ To:     <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
 CC:     <sjoerd.simons@collabora.co.uk>, <VinayKumar.Shettar@in.bosch.com>,
         <Govindaraji.Sivanantham@in.bosch.com>,
         <anaclaudia.dias@de.bosch.com>, <Gireesh.Hiremath@in.bosch.com>
-Subject: [PATCH 04/15] ARM: dts: am335x: Guardian: Disable poweroff support from RTC
-Date:   Fri, 25 Mar 2022 10:06:02 +0000
-Message-ID: <20220325100613.1494-5-Gireesh.Hiremath@in.bosch.com>
+Subject: [PATCH 02/15] ARM: dts: am335x: Guardian: Rename power button label
+Date:   Fri, 25 Mar 2022 10:06:00 +0000
+Message-ID: <20220325100613.1494-3-Gireesh.Hiremath@in.bosch.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20220325100613.1494-1-Gireesh.Hiremath@in.bosch.com>
 References: <20220325100613.1494-1-Gireesh.Hiremath@in.bosch.com>
@@ -80,50 +80,81 @@ Content-Type: text/plain
 X-Originating-IP: [10.167.1.162]
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 31fe1690-6117-4ac3-370e-08da0e472bb9
-X-MS-TrafficTypeDiagnostic: AM9PR10MB4231:EE_
-X-Microsoft-Antispam-PRVS: <AM9PR10MB4231B595E80EE5FD8F905257A61A9@AM9PR10MB4231.EURPRD10.PROD.OUTLOOK.COM>
+X-MS-Office365-Filtering-Correlation-Id: f13058d0-8bfd-4ada-fdc1-08da0e472bd8
+X-MS-TrafficTypeDiagnostic: PA4PR10MB4399:EE_
+X-Microsoft-Antispam-PRVS: <PA4PR10MB439959251199076853052E72A61A9@PA4PR10MB4399.EURPRD10.PROD.OUTLOOK.COM>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: paoYz7ZDYKVjaa4hsxn6KRlvrjlCFnjZfVizPwSWXo7XXFkG4sqwYFPS6fytq8UDgwPr6Wvl3U4CRGctr5iaqkR2IQZDUq7iLBb2N9ZsJ4kMjmru68+QfX40sZ3mI+T2rpLKjHsCEVG2cedK2hmGdnmZvptjp30z0w9Q8HP+TWgRnuz7irrHE3DO292KO+NBLLT9IV0Tj6ex8wiMkCTDemqYqFy5uR05rSPG1pF+U/lGr4Eb3DplVSGv5bf6shULH91GoObRARZYWbC+c24wqlSc6T77MhStSvfWuRuFCe07bKrTK6bIqO5dbQBIWwqnoNr/Bm7HMFW9OT7KeTnst/b+++NmRhVF9WVSbL2RKJLeHCZqYyftEucGGEFT5Vls21A9TQnCzsLjIlW7MdyUyetLB4RjFjIUnlL+bzZyWIs+T5MrqSKEYRwWGuLfAP880XG85/bpcgMCdubv3nCLsTO7IToukUv8ACXNPPUHLpPxIwch8ib2xp03286L0j5fPs6KuWJPddft8Fi4LFow6l8Odq6B23QSKTc5k2NS2Ivv27gFNvYCpZ27K2wXrxIzGU2mwp5MTDoJqXK5QgTgafdSCpcMs4zMxtgWbe6oypK50d3UmLv0SjmmRzpWKgOawPW3nskjChH7ogkbbC0c/V7rjf1eeB6YzRD7P4sxbHnccRdgFHjdAYAiJpdpDFna8IRM0f4gds7uEm9UM/U1bw==
-X-Forefront-Antispam-Report: CIP:139.15.153.200;CTRY:DE;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:eop.bosch-org.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230001)(4636009)(36840700001)(40470700004)(46966006)(110136005)(4744005)(316002)(54906003)(2876002)(356005)(8676002)(82960400001)(86362001)(47076005)(2616005)(36860700001)(107886003)(40460700003)(70586007)(70206006)(1076003)(16526019)(8936002)(186003)(4326008)(83380400001)(336012)(508600001)(26005)(2906002)(6666004)(82310400004)(5660300002)(81166007)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: VugNongvWuABEvvUJJdtj0Z1kakmECeWAjnYSiU58AvaqX7n6Doo8OlCy8z7b+vY7evxW+SFw6UljI92caSKhkudewXtmKi8vm9AFOa3yXeqXoXeLgcbl4vQXeWgf35N5fksr9p9Bvc4gDR2TwfZRKEKYyq/qA7TElNKVm/uu8eKD6eMOZ9i2E4q/lklYlPkBv6MY03ri3PGyK12H5h5BOkIyC+cYppegq6sXtk+4zVOyJBDo7T+E7qrjzopuqENLR7lamk0WEu18pm7bQOkAKL/hRE7LWdKuLVRkKj1Mgez8RTLdHADVH1Rlb9KIkpBGvY1aNy4NIAoCG5WGL8MRAi1w8MrXsY9DIq9v6XTXO4jA0fvEGk8zilajfF51epVOJ7ggoX1yyrDDxOnwqjpF80bmTWjTo5aJTroiQK8au8TSPQdBa4fparG4qYge07zsS71UB7uuc4eLcLb4LH18ISMU42UlxM+dU1VGJJnB9S1qIxmO3goqebXoifiZAnDHCEOxN/6PHXw14Z9x+IFa0Ao6cu/7G3k73m6b8z+ZbpfVf/L4QjxhCSjMweEsY8qLafq/OMdvb1gsjn2UtDKhHsqDudYGLYjs8rSWzotewqaDBnBmK4WcPzOQqqYTvi/ljnLMzcBRIShpsifhc6smamB7meUs0APmbu17tIY7ejjJnZezZ8JCLXmITVKePfFziSJtHgXawTkum6lxvD6dA==
+X-Forefront-Antispam-Report: CIP:139.15.153.203;CTRY:DE;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:eop.bosch-org.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230001)(4636009)(36840700001)(40470700004)(46966006)(6666004)(336012)(356005)(82960400001)(47076005)(54906003)(8936002)(316002)(5660300002)(110136005)(82310400004)(83380400001)(1076003)(2616005)(86362001)(36860700001)(107886003)(26005)(4326008)(508600001)(81166007)(8676002)(70586007)(70206006)(186003)(40460700003)(16526019)(2906002)(2876002)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: in.bosch.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Mar 2022 10:06:46.4278
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Mar 2022 10:06:46.6516
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 31fe1690-6117-4ac3-370e-08da0e472bb9
+X-MS-Exchange-CrossTenant-Network-Message-Id: f13058d0-8bfd-4ada-fdc1-08da0e472bd8
 X-MS-Exchange-CrossTenant-Id: 0ae51e19-07c8-4e4b-bb6d-648ee58410f4
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=0ae51e19-07c8-4e4b-bb6d-648ee58410f4;Ip=[139.15.153.200];Helo=[eop.bosch-org.com]
-X-MS-Exchange-CrossTenant-AuthSource: DB5EUR03FT046.eop-EUR03.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=0ae51e19-07c8-4e4b-bb6d-648ee58410f4;Ip=[139.15.153.203];Helo=[eop.bosch-org.com]
+X-MS-Exchange-CrossTenant-AuthSource: AM5EUR03FT011.eop-EUR03.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM9PR10MB4231
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PA4PR10MB4399
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Gireesh Hiremath <Gireesh.Hiremath@in.bosch.com>
 
- * Disabling poweroff support form RTC will allow poweroff
-   to handle from other machanism
+ * Rename label button to power button
 
 Signed-off-by: Gireesh Hiremath <Gireesh.Hiremath@in.bosch.com>
 ---
- arch/arm/boot/dts/am335x-guardian.dts | 1 -
- 1 file changed, 1 deletion(-)
+ arch/arm/boot/dts/am335x-guardian.dts | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-guardian.dts b/arch/arm/boot/dts/am335x-guardian.dts
-index 6f59c5f36c0d..46314f1bc85b 100644
+index 41b7adf78656..645de77bdb56 100644
 --- a/arch/arm/boot/dts/am335x-guardian.dts
 +++ b/arch/arm/boot/dts/am335x-guardian.dts
-@@ -282,7 +282,6 @@
- &rtc {
- 	clocks = <&clk_32768_ck>, <&clk_24mhz_clkctrl AM3_CLK_24MHZ_CLKDIV32K_CLKCTRL 0>;
- 	clock-names = "ext-clk", "int-clk";
--	system-power-controller;
- };
+@@ -29,21 +29,22 @@
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	};
  
- &spi0 {
+-	gpio_keys {
++	guardian_buttons: gpio-keys {
++		pinctrl-names = "default";
++		pinctrl-0 = <&guardian_button_pins>;
+ 		compatible = "gpio-keys";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&gpio_keys_pins>;
+ 
+-		button21 {
++		power-button {
+ 			label = "guardian-power-button";
+ 			linux,code = <KEY_POWER>;
+-			gpios = <&gpio2 21 0>;
++			gpios = <&gpio2 21 GPIO_ACTIVE_LOW>;
+ 			wakeup-source;
+ 		};
+ 	};
+ 
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 		pinctrl-names = "default";
+@@ -365,9 +366,9 @@
+ 		>;
+ 	};
+ 
+-	gpio_keys_pins: pinmux_gpio_keys_pins {
++	guardian_button_pins: pinmux_guardian_button_pins {
+ 		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x940, PIN_INPUT | MUX_MODE7)
++			AM33XX_IOPAD(0x940, PIN_INPUT | MUX_MODE7) /* (M16) gmii1_rxd0.gpio2[21] */
+ 		>;
+ 	};
+ 
 -- 
 2.20.1
 
