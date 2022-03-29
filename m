@@ -2,117 +2,145 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 055DCC433FE
-	for <linux-omap@archiver.kernel.org>; Tue, 29 Mar 2022 10:06:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A456DC4332F
+	for <linux-omap@archiver.kernel.org>; Tue, 29 Mar 2022 13:20:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234967AbiC2KIZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 29 Mar 2022 06:08:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47824 "EHLO
+        id S236360AbiC2NWN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 29 Mar 2022 09:22:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232312AbiC2KIY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2022 06:08:24 -0400
-Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C0C2127589;
-        Tue, 29 Mar 2022 03:06:42 -0700 (PDT)
-Received: by mail-wm1-x330.google.com with SMTP id bi13-20020a05600c3d8d00b0038c2c33d8f3so949563wmb.4;
-        Tue, 29 Mar 2022 03:06:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=gJYdJOur1iY6XbbeGXFj0ECGEHoJkzCeSnRWw+1akAE=;
-        b=g1SGsbd/jLtCfDq6yzASjQLg1D1Di4TRzjMb5UiIfrE9WiDmnp4ps8sIblZUNtYLhl
-         BEYp/E3cwcQ3Zx0+p3QoptHL3A/ppqsLefEG80tXSSwr+mpdP4i1AcDwb/671KD/V7Or
-         SrBc47ULMLUb19cniOzsSHJIDLc2hutPluz+X07qok/90+UjDzhv6DSHFkWqgCReRafg
-         8hQGGxrcX5P2AlRlhAUeG7o275fLN5UY/luSiQ/PippZc5scePfD88DWfB5YY4mbajP2
-         /wEv07hBPdodolgvcwPf/ryO4mcjf2pm6CqHleQKRp4LwbU9hZS+Lg1pg+jJITwfzWUK
-         5rMA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=gJYdJOur1iY6XbbeGXFj0ECGEHoJkzCeSnRWw+1akAE=;
-        b=tJUfPXpB3D2Xr+ifPFHavkeZNEPQfTtJn/OUXgNNdDNK7IJJvF28uxxd3HaUo5EoVl
-         DU3BecZu54cfnnrUnz4gbwCDeYy475OG/I5eEv1ayFd8Mx/EX4N966VkSRN6OYQ3qMZL
-         huOOgIHooNwpXcdJO3lzCWKt6VjlC675C9CDeICyDrvWVZfFonlA16xSs7Gd40B6sVTo
-         OL7W0l+nS77jrGDwSJ6U7XlgmaeVhBHZssjRicRpVvjCMTCnrYv6JkjBdU+ld5L4QBYN
-         WF4KkMsSnfX0T3+GHWOxQabWecMGtPSvmCXWLaMfGf/wNx5cgnsBkMgl9g+8Q2TfX6tp
-         CI3A==
-X-Gm-Message-State: AOAM533VsGwlnV6P5hUppzwI4BcK6mAItODsRNu2yon+FtI4iBdCf5Kb
-        /TM+8NycYzU1/kB4h6W7Tgk=
-X-Google-Smtp-Source: ABdhPJw/yl37bo84CH0/pwnTrqSkLHICdBHbZfyNAKleJ5pkLbBWcMtajlzC2TVgbnU7tHyn6wt30Q==
-X-Received: by 2002:a05:600c:a47:b0:37c:965:2b6f with SMTP id c7-20020a05600c0a4700b0037c09652b6fmr5636166wmq.31.1648548400811;
-        Tue, 29 Mar 2022 03:06:40 -0700 (PDT)
-Received: from [192.168.1.145] ([207.188.167.132])
-        by smtp.gmail.com with ESMTPSA id a11-20020a5d456b000000b0020406ce0e06sm14201716wrc.94.2022.03.29.03.06.38
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 29 Mar 2022 03:06:39 -0700 (PDT)
-Message-ID: <6dafde7d-17c6-bd25-dbe8-7f7acf80fd91@gmail.com>
-Date:   Tue, 29 Mar 2022 12:06:38 +0200
+        with ESMTP id S234222AbiC2NWN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2022 09:22:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 594E913FAF;
+        Tue, 29 Mar 2022 06:20:30 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E7CFE61556;
+        Tue, 29 Mar 2022 13:20:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 079B3C2BBE4;
+        Tue, 29 Mar 2022 13:20:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1648560029;
+        bh=vcBGlG+sqaPt0UpTdoZ2lc9iEFALH1pzWeKYoBtVGc0=;
+        h=Date:Subject:To:References:Cc:From:In-Reply-To:From;
+        b=Lf6UdkMwpGMKF/bCzH0duecbGSrWXhu70CtFUq2mNv7IsC6370BCiPtfWXaI+yKF/
+         UQxjxo/5ELIHPpruCIzbUN34wBvgy5Fc7eS22PnhD5aL+YcFYfFaN/O+tr+ZmUM+S5
+         A/HxyRRfNmBU9vHwyfdDK7puvv8H+mPmsnx7QORDs2EqLL+mvW+oCz1joHCa6v9S30
+         zZSq7JcFWt8iEt24hFmi80tnq5vNy7tr3oSE2yE/htc0EfUX3gZEr+PbO1Xh/RhzQv
+         IsUb015h84Gz6Om/nGHx49iikUSPAbDyLFfT+LjbZl0E6DwqI3AOYIbHwd8W8xbJcf
+         NtJzDPqA8j7Dw==
+Message-ID: <85eb14ec-f465-7447-ad77-a3dabc666f47@kernel.org>
+Date:   Tue, 29 Mar 2022 15:20:18 +0200
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
  Thunderbird/91.5.0
 Subject: Re: [RFC PATCH 0/1] Categorize ARM dts directory
 Content-Language: en-US
-To:     Tony Lindgren <tony@atomide.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     Daniel Palmer <daniel@0x0f.com>,
-        Ansuel Smith <ansuelsmth@gmail.com>,
+To:     Ansuel Smith <ansuelsmth@gmail.com>,
         Rob Herring <robh+dt@kernel.org>,
         Krzysztof Kozlowski <krzk+dt@kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        DTML <devicetree@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-actions@lists.infradead.org, linux-sunxi@lists.linux.dev,
-        "open list:TI ETHERNET SWITCH DRIVER (CPSW)" 
-        <linux-omap@vger.kernel.org>,
-        "open list:ARM/Amlogic Meson..." <linux-amlogic@lists.infradead.org>,
-        linux-arm-kernel@axis.com, linux-aspeed@lists.ozlabs.org,
-        linux-rpi-kernel <linux-rpi-kernel@lists.infradead.org>,
-        chrome-platform@lists.linux.dev,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-actions@lists.infradead.org,
+        linux-sunxi@lists.linux.dev, linux-omap@vger.kernel.org,
+        linux-amlogic@lists.infradead.org, linux-arm-kernel@axis.com,
+        linux-aspeed@lists.ozlabs.org,
+        linux-rpi-kernel@lists.infradead.org,
+        chrome-platform@lists.linux.dev, linux-renesas-soc@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
         linux-stm32@st-md-mailman.stormreply.com,
         kernel@dh-electronics.com, linux-mediatek@lists.infradead.org,
-        openbmc@lists.ozlabs.org,
-        linux-tegra <linux-tegra@vger.kernel.org>, linux-oxnas@groups.io,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        openbmc@lists.ozlabs.org, linux-tegra@vger.kernel.org,
+        linux-oxnas@groups.io, linux-arm-msm@vger.kernel.org,
         linux-unisoc@lists.infradead.org,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        linux-rockchip@lists.infradead.org,
         linux-realtek-soc@lists.infradead.org
 References: <20220328000915.15041-1-ansuelsmth@gmail.com>
- <CAFr9PXkgrRe-=E=GhNnZ4w1x_FMb97-_RmX6ND1vEd74_TbZSw@mail.gmail.com>
- <YkK691VG6ON/6Ysn@atomide.com>
- <CAMuHMdXDDNTgBdJTa8+H1H5v1gAarp07xxWu_E1JL8mXS8HPMg@mail.gmail.com>
- <YkLXTWdZ3zASxr4H@atomide.com>
-From:   Matthias Brugger <matthias.bgg@gmail.com>
-In-Reply-To: <YkLXTWdZ3zASxr4H@atomide.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Cc:     Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+From:   Krzysztof Kozlowski <krzk@kernel.org>
+In-Reply-To: <20220328000915.15041-1-ansuelsmth@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-
-
-On 29/03/2022 11:54, Tony Lindgren wrote:
-> * Geert Uytterhoeven <geert@linux-m68k.org> [220329 09:02]:
->> On Tue, Mar 29, 2022 at 10:03 AM Tony Lindgren <tony@atomide.com> wrote:
->>> For example, I have a pile of pending omap clock clean-up dts patches
->>> posted and tested waiting for v5.19-rc1 to apply. I'd rather not start
->>> redoing or fixing up the patches with sed :)
->>
->> Git merge/rebase/cherry-pick should handle renames fine?
+On 28/03/2022 02:09, Ansuel Smith wrote:
+> Hi,
+> as the title say, the intention of this ""series"" is to finally categorize
+> the ARM dts directory in subdirectory for each oem.
 > 
-> Possibly.. Not sure I'd count on that based on my earlier experiences
-> though :)
+> The main reason for this is that it became unpractical to handle 2600
+> dts files and try to even understand/edit/check the situation for a
+> specific target.
+> 
+> In arm64 we already have this kind of separation and I honestly think
+> that this was never proposed for ARM due to the fact that there are
+> 2600+ files to sort and the fact that it will be a mess to merge this
+> entirely but IMHO with a little bit of effort we can finally solve this
+> problem and have a well organized directory just like arm64.
+> 
+> Some prerequisite on how this work was done:
+> - This comes entirely from a python script created by me for the task.
+>   linked here [1]
+> - I had to manually categorize all the different arch in the makefile
+>   based on the oem. I searched every arch on the internet trying to
+>   understand the correct oem. I hope they are correct but I would love
+>   some comments about them.
+> - This current ""series"" is all squashed in one big commit to better
+>   receive comments for this. The final version ideally would have all
+>   changes in separate commits. The script can already do this, it's just
+>   commented.
+> 
+> Here is a list of some discoveries while doing all the sorting.
+> These are totally additional reason why we need this.
+> 
+> While creating the script I discovered some funny things:
+> - We have orphan dts! There are dts that are never compiled and are
+>   there just for reference. We would never have noticed this without this
+>   change and probably nobody noticed it. They are currently all listed
+>   in the python script.
+> - We have dtsi shared across different oem. My current solution for them
+>   is: NOT SORT THEM and leave them in the generic directory and create a
+>   link in each oem dts that points to these dtsi. This is to try in
+>   every way possible to skip any additional changes to the dts.
+>   Current dtsi that suffers from this are only 3. (listed in the script)
+> - arm64 dts and dtsi reference ARM dts. Obviously this change would cause
+>   broken include for these special dtsi. The script creates a dependency
+>   table of the entire arm64 directory and fix every broken dependency
+>   (hoping they all use a sane include logic... regex is used to parse
+>   all the different dependency)
+> 
+> So in short the script does the following steps:
+> 1. Enumerate all the action to do... (dts to move, scan dependency for
+>    the dts...)
+> 2. Generate the arm64 dependency
+> 3. Creates the Makefile
+> 4. Generate the Makefiles for the current oem
+> 5. Move all the related dts and dtsi for the current oem
+> 6. Check broken dependency and fix them by editing the dts and writing
+>    the correct include (or fix any symbolic link)
+> 
+> This is an output that describes all the things done by the script [2]
+> 
+> I really hope I didn't commit any logic mistake in the script but most
+> of the work should be done.
 > 
 
-Yes. If this could be split up in per silicon-vendor patches, the maintainer 
-could take them. Although it might be a pain to soc maintainers to resolve small 
-conflicts when merging that branches.
++Cc Arnd and Olof,
 
-Just my 5 cents.
+Ansuel,
+Thanks for you patch. Please cc the SoC maintainers in such submissions.
+It seems that you got some quite nice discussion, but still the core
+folks are not Cced, so no one would be able to take your patch...
 
-Matthias
+I am pretty sure we were discussing such split idea in the past and it
+did not get traction, but I cannot recall the exact discussion.
+
+To me the idea is good but will cause huge `git am` conflicts.
+Cherry-picks, backports and merges should nicely detect path renames,
+but git am (and b4 am) I think cannot.
+
+Best regards,
+Krzysztof
