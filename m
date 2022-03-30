@@ -2,109 +2,82 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9294EC433FE
-	for <linux-omap@archiver.kernel.org>; Wed, 30 Mar 2022 11:58:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06DCCC433F5
+	for <linux-omap@archiver.kernel.org>; Wed, 30 Mar 2022 14:00:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243859AbiC3MAa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 30 Mar 2022 08:00:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35530 "EHLO
+        id S1346497AbiC3OC2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 30 Mar 2022 10:02:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344281AbiC3Lzq (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2022 07:55:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBA9E2E691;
-        Wed, 30 Mar 2022 04:53:51 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 271AE6170B;
-        Wed, 30 Mar 2022 11:53:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACCE5C340F3;
-        Wed, 30 Mar 2022 11:53:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648641230;
-        bh=d1WhqMnR0SZYGD78p5l5bAJASVYV7v2GXdl4z6axBfQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=f8dE4H7oP0DVBvFcMBnbMgb0AXgTl2sc3s644k+NEgkkzDwGVM4WsG3IyHxvc6Nrm
-         6KQGKNA1YzYIrSRPvGVXWm8p/yIKlXuOlVanADwvNcuZHgAT/NOKasIOO/s8VEE9KI
-         DS4hHX5eDx1Bjmg3PgKyxACcdN3wsOBHhzgDP/+ODrDQ5INSvt4jWI2FePJirnG+em
-         hzPvXpD7zuMZKTpPnZvMU9G5oaXqe0qbmjNcifuMV84/vgsb5H4Si6Ke5+lW2XubWL
-         yWoJe9SDGSb/prVwFmujEtUNLzmUmu1lgXH3sX8pIeodYfifpYEvKM3u3+D+bt0ln7
-         AYYS4UJQkXbmw==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jing Yao <yao.jing2@zte.com.cn>, Zeal Robot <zealci@zte.com.cn>,
-        Helge Deller <deller@gmx.de>, Sasha Levin <sashal@kernel.org>,
-        tomi.valkeinen@ti.com, linux-omap@vger.kernel.org,
-        linux-fbdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 08/20] video: fbdev: omapfb: panel-dsi-cm: Use sysfs_emit() instead of snprintf()
-Date:   Wed, 30 Mar 2022 07:53:24 -0400
-Message-Id: <20220330115336.1672930-8-sashal@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220330115336.1672930-1-sashal@kernel.org>
-References: <20220330115336.1672930-1-sashal@kernel.org>
+        with ESMTP id S238147AbiC3OC1 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2022 10:02:27 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0E25111434B;
+        Wed, 30 Mar 2022 07:00:41 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 1504180FA;
+        Wed, 30 Mar 2022 13:58:34 +0000 (UTC)
+Date:   Wed, 30 Mar 2022 17:00:39 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Lu Baolu <baolu.lu@linux.intel.com>
+Cc:     Joerg Roedel <joro@8bytes.org>, Jason Gunthorpe <jgg@nvidia.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        Kevin Tian <kevin.tian@intel.com>,
+        Ashok Raj <ashok.raj@intel.com>, Will Deacon <will@kernel.org>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Eric Auger <eric.auger@redhat.com>,
+        Liu Yi L <yi.l.liu@intel.com>,
+        Jacob jun Pan <jacob.jun.pan@intel.com>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org,
+        Christoph Hellwig <hch@lst.de>, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, regressions@lists.linux.dev
+Subject: Re: [PATCH v4 8/9] iommu: Remove unused argument in
+ is_attach_deferred
+Message-ID: <YkRiawC2T9g+CHSJ@atomide.com>
+References: <20220216025249.3459465-1-baolu.lu@linux.intel.com>
+ <20220216025249.3459465-9-baolu.lu@linux.intel.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220216025249.3459465-9-baolu.lu@linux.intel.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Jing Yao <yao.jing2@zte.com.cn>
+Hi,
 
-[ Upstream commit f63658a59c3d439c8ad7b290f8ec270980e0f384 ]
+* Lu Baolu <baolu.lu@linux.intel.com> [700101 02:00]:
+> The is_attach_deferred iommu_ops callback is a device op. The domain
+> argument is unnecessary and never used. Remove it to make code clean.
 
-Use sysfs_emit instead of scnprintf, snprintf or sprintf.
+Looks like this causes a regression for at least drivers/iommu/omap-iommu.c.
 
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Signed-off-by: Jing Yao <yao.jing2@zte.com.cn>
-Signed-off-by: Helge Deller <deller@gmx.de>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+To me it seems the issue is there is no is_attach_deferred implemented, so
+we get a NULL pointer dereference at virtual address 00000008:
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-index bef431530090..25cc0bcdfe19 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-@@ -413,7 +413,7 @@ static ssize_t dsicm_num_errors_show(struct device *dev,
- 	if (r)
- 		return r;
- 
--	return snprintf(buf, PAGE_SIZE, "%d\n", errors);
-+	return sysfs_emit(buf, "%d\n", errors);
- }
- 
- static ssize_t dsicm_hw_revision_show(struct device *dev,
-@@ -444,7 +444,7 @@ static ssize_t dsicm_hw_revision_show(struct device *dev,
- 	if (r)
- 		return r;
- 
--	return snprintf(buf, PAGE_SIZE, "%02x.%02x.%02x\n", id1, id2, id3);
-+	return sysfs_emit(buf, "%02x.%02x.%02x\n", id1, id2, id3);
- }
- 
- static ssize_t dsicm_store_ulps(struct device *dev,
-@@ -494,7 +494,7 @@ static ssize_t dsicm_show_ulps(struct device *dev,
- 	t = ddata->ulps_enabled;
- 	mutex_unlock(&ddata->lock);
- 
--	return snprintf(buf, PAGE_SIZE, "%u\n", t);
-+	return sysfs_emit(buf, "%u\n", t);
- }
- 
- static ssize_t dsicm_store_ulps_timeout(struct device *dev,
-@@ -541,7 +541,7 @@ static ssize_t dsicm_show_ulps_timeout(struct device *dev,
- 	t = ddata->ulps_timeout;
- 	mutex_unlock(&ddata->lock);
- 
--	return snprintf(buf, PAGE_SIZE, "%u\n", t);
-+	return sysfs_emit(buf, "%u\n", t);
- }
- 
- static DEVICE_ATTR(num_dsi_errors, S_IRUGO, dsicm_num_errors_show, NULL);
--- 
-2.34.1
+__iommu_probe_device from probe_iommu_group+0x2c/0x38
+probe_iommu_group from bus_for_each_dev+0x74/0xbc
+bus_for_each_dev from bus_iommu_probe+0x34/0x2e8
+bus_iommu_probe from bus_set_iommu+0x80/0xc8
+bus_set_iommu from omap_iommu_init+0x88/0xcc
+omap_iommu_init from do_one_initcall+0x44/0x24c
 
+Any ideas for a fix?
+
+It would be good to fix this quickly so we don't end up with a broken
+v5.18-rc1..
+
+For reference, this is mainline commit 41bb23e70b50 ("iommu: Remove unused
+argument in is_attach_deferred").
+
+Regards,
+
+Tony
+
+#regzbot ^introduced 41bb23e70b50
