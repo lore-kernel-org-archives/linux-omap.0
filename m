@@ -2,47 +2,47 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90F4DC4332F
-	for <linux-omap@archiver.kernel.org>; Wed, 30 Mar 2022 11:55:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F193C3527B
+	for <linux-omap@archiver.kernel.org>; Wed, 30 Mar 2022 11:55:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344990AbiC3L4x (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 30 Mar 2022 07:56:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56766 "EHLO
+        id S1345009AbiC3L44 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 30 Mar 2022 07:56:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345813AbiC3LzD (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2022 07:55:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1894B264546;
-        Wed, 30 Mar 2022 04:51:47 -0700 (PDT)
+        with ESMTP id S1345171AbiC3LyL (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2022 07:54:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE464264F79;
+        Wed, 30 Mar 2022 04:50:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 720B2615E2;
-        Wed, 30 Mar 2022 11:51:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB76DC3410F;
-        Wed, 30 Mar 2022 11:51:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E70396162C;
+        Wed, 30 Mar 2022 11:50:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 747C5C34113;
+        Wed, 30 Mar 2022 11:50:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648641098;
-        bh=NllYYjWNYzcx38lK6Tp0ggC0JWbVpRuJplNhOQvulmw=;
+        s=k20201202; t=1648641031;
+        bh=TfW7T4LLiZbMAJKWnDbyoXtY7mFp1MuFCsVtbGpkdmo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TKpiNqoPXVlETMLSiBpaqeDnc6518HfPVaQliLavblaWFzB+84OKiY10+xcwxVkjA
-         mvODHfEK3HUTfcA3LclPT5LaZxNnto+N9MUs7R11Ao6+OlKBpoDOhG927QDPIzCkRH
-         ZvuWdxTlLL8dpHvgJD/ERof/xj/YHLvLmVNsGqeRZaOSKZJ9Y/YUOf5bdLEwJH48KZ
-         GCUch0O1jN2Dc18c9z5ekP5Z3G9X78oU2DBl62r9KyTQbpK+0E8o2cUEwQakjqLEGl
-         zpUqi5PMHn/fx//7O+4VI7t5A15YSW2fAhE0VwwPqOsxFValbgApQ/3dRZiqXr5Xjn
-         p9WgIYbimJDlQ==
+        b=cJEMcIX7H/ocg6izY2RDsuoJDTFc5l+QO1QhIJiTID62w/plTnMuctEn/Cg68Kx07
+         /5qKsXOv/sKd7cUoBrOz+uHLbOLTuQjofkZOawEbBeCfRrHhBfa+BAihHa1gR37MrV
+         MXwjqFcePxr9dst8Mk5qycbKej+972QGL63EE9nrfDvPauOqtijzyI7BkeY7/HOu/g
+         918fhdTabHmdNpaFV6lyU+R7IrQvZAmikCKNOOFqOauL81U5BHA+y2bVPoO1ltJXX1
+         U/xSD12B6ciWhb+BjfeQbJ5EZ9TdS0G7SMCNJ8CFuuw31ECkZ6lXYAS44BTz2Ydf89
+         eOfiE5VASY4Mw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Yang Guang <yang.guang5@zte.com.cn>,
         Zeal Robot <zealci@zte.com.cn>, Helge Deller <deller@gmx.de>,
         Sasha Levin <sashal@kernel.org>, tomi.valkeinen@ti.com,
         linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 09/37] video: fbdev: omapfb: acx565akm: replace snprintf with sysfs_emit
-Date:   Wed, 30 Mar 2022 07:50:54 -0400
-Message-Id: <20220330115122.1671763-9-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 16/50] video: fbdev: omapfb: acx565akm: replace snprintf with sysfs_emit
+Date:   Wed, 30 Mar 2022 07:49:30 -0400
+Message-Id: <20220330115005.1671090-16-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220330115122.1671763-1-sashal@kernel.org>
-References: <20220330115122.1671763-1-sashal@kernel.org>
+In-Reply-To: <20220330115005.1671090-1-sashal@kernel.org>
+References: <20220330115005.1671090-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -70,7 +70,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
-index 1293515e4b16..0cbc5b9183f8 100644
+index 8d8b5ff7d43c..3696eb09b69b 100644
 --- a/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
 +++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
 @@ -476,7 +476,7 @@ static ssize_t show_cabc_available_modes(struct device *dev,
