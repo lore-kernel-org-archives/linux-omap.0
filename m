@@ -2,103 +2,71 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A12C433EF
-	for <linux-omap@archiver.kernel.org>; Thu, 31 Mar 2022 15:44:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEA15C433F5
+	for <linux-omap@archiver.kernel.org>; Thu, 31 Mar 2022 16:07:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237271AbiCaPqG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 31 Mar 2022 11:46:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43148 "EHLO
+        id S233760AbiCaQJo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 31 Mar 2022 12:09:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239394AbiCaPpz (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 31 Mar 2022 11:45:55 -0400
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.17.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4460B1E3E12
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2022 08:40:28 -0700 (PDT)
-Received: from mail-wr1-f52.google.com ([209.85.221.52]) by
- mrelayeu.kundenserver.de (mreue106 [213.165.67.113]) with ESMTPSA (Nemesis)
- id 1N6bwO-1o6Em62lt0-0186vg for <linux-omap@vger.kernel.org>; Thu, 31 Mar
- 2022 17:27:12 +0200
-Received: by mail-wr1-f52.google.com with SMTP id d7so270749wrb.7
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2022 08:27:12 -0700 (PDT)
-X-Gm-Message-State: AOAM5324dNn4+xaJufFZgEon2F5e1Ey9B29ZPX4m6QjD3jokzhHelhY1
-        KtXsA3dnXwNhUGW1LaP7iHGk4ni7rz+bBa/ny4g=
-X-Google-Smtp-Source: ABdhPJwNSM0UPgMK82zCcXQokJhVgb7Jdyd+nDEsdwbJizQMKYr7d7Nzx0eIP307bNx4hdcIfywaECIL/l0my3kSiyY=
-X-Received: by 2002:adf:e54e:0:b0:205:a9be:c66e with SMTP id
- z14-20020adfe54e000000b00205a9bec66emr4509725wrm.192.1648740432273; Thu, 31
- Mar 2022 08:27:12 -0700 (PDT)
+        with ESMTP id S234276AbiCaQJo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 31 Mar 2022 12:09:44 -0400
+Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D95CB1F1259
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2022 09:07:56 -0700 (PDT)
+Received: by mail-wm1-x32b.google.com with SMTP id l7-20020a05600c1d0700b0038c99618859so1987042wms.2
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2022 09:07:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:date:mime-version:from:to:subject
+         :content-transfer-encoding;
+        bh=gDhoX2vp0X4fbn9hhWYTzWQWTzyqRleqCJPPleiUnqg=;
+        b=F+xZF83DzB0SIBCsJs9aZAXikTEhUFMQUrGTIqpEOb01/pOuBjXrfTE5ww51cVqE8V
+         BMDVZgs6GrIg14zEP0k/TyG5xergPISMHkCypLwqBMmzGIP3c9YDgyXOLu9IgMfzKrmH
+         EQgZ+XoTq/Dgo1LA91yWErQUmrUcQXiorLNlQKgQljMOo2SSJ0kzQyzsopbzIncF6NkG
+         parfM4sWS2zvNcLQ8mCJXCDR+q1PulrxZGQJd2TpO4Zl6HF4xayc0F438TpVj40oe3L1
+         SiOUSstml66Vw8PeGVNDhyOIBktL8BAiNDMWiYdZl1qE+E0wPrhrUFFsR88+jRg2Bsou
+         UmMA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:from:to:subject
+         :content-transfer-encoding;
+        bh=gDhoX2vp0X4fbn9hhWYTzWQWTzyqRleqCJPPleiUnqg=;
+        b=HYpdfEf31Kdx2ZY5LtgSJQaz4QNjNwJi1K+UEaj5LLiGqFTNvvOfn6W1Y7wfEgc/6T
+         kHJC7zfg+pB65I+w4hXi+sDimGx5yQmg5+tDoYu8A4H6zPjTptaqQQn973bFhGfCKf1w
+         QdR1Jmiv+IB4zC5iEnpxPoCMHXWcLCiOxIL6tyFVKTz3eu7aUz+pQt5IvuXdAr8p4qls
+         kkYrzC3+5GJMLB//SpQ6vB0GidUKWmneH0CxSLK60I9/sfWkm/GreFRQD81zA1zaJJch
+         xfDAernW2xAb5jMFzyw2Tu+lLcJba0CFHLm18pUvVd1wxbeEOyAGD5LkmiJHD2o5wlCa
+         5oFQ==
+X-Gm-Message-State: AOAM53115uKBHmPqrBuyomlQXzH/oQMfk2BCqm+Q9ypf/jZ6exlfEFUh
+        dyk2fa9o39OvHW4dxqZUBe3p9pkldfQ=
+X-Google-Smtp-Source: ABdhPJxL9bwcG83FhVnFAePVJi3GdezRfUBUFErjlCLAYsDhW6aPnWhj87WpOXziG/g4O4Pc3SoDQA==
+X-Received: by 2002:a05:600c:190a:b0:38c:c9f9:f85b with SMTP id j10-20020a05600c190a00b0038cc9f9f85bmr5338023wmq.27.1648742875110;
+        Thu, 31 Mar 2022 09:07:55 -0700 (PDT)
+Received: from DESKTOP-R5VBAL5 ([39.53.224.185])
+        by smtp.gmail.com with ESMTPSA id b5-20020adfde05000000b00205bdc6bd57sm11422181wrm.95.2022.03.31.09.07.53
+        for <linux-omap@vger.kernel.org>
+        (version=TLS1 cipher=ECDHE-ECDSA-AES128-SHA bits=128/128);
+        Thu, 31 Mar 2022 09:07:54 -0700 (PDT)
+Message-ID: <6245d1da.1c69fb81.8d821.e527@mx.google.com>
+Date:   Thu, 31 Mar 2022 09:07:54 -0700 (PDT)
+X-Google-Original-Date: 31 Mar 2022 12:07:54 -0400
 MIME-Version: 1.0
-References: <20220331144225.56553-1-tony@atomide.com>
-In-Reply-To: <20220331144225.56553-1-tony@atomide.com>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Thu, 31 Mar 2022 17:26:55 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a2-ik1e+DZV5g9hera8qzpBOURPLrPHPst3UKhwLKEOMg@mail.gmail.com>
-Message-ID: <CAK8P3a2-ik1e+DZV5g9hera8qzpBOURPLrPHPst3UKhwLKEOMg@mail.gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix regression for smc calls for vmap stack
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     linux-omap <linux-omap@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Ard Biesheuvel <ardb@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:XWKdJwgeCfkyGxSfUOs/qz0lg7A9h+iA8DQUrQSksUQHGpBycXy
- ofzaVphw08RN6xiWknzdDjifng3EpStQoVqvdrFVsqnRJXPYoCtghiwJuc9ZBcbGk5eUl7/
- 8Q0GGFpKgILob4x+UfUdUrN9LBQoPvu/FrtyPD/zdKXkzBy//7SVinePk5Y2Ym4u77XmmH9
- JZTwnc03y912gUmhhaSZg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:p3yEiktZ40A=:JO7dgI1K7T/+Tn8mWtJF8d
- uRqXIIOIyYZ9wxiSXWfHcMWBL7igoZFM2t+BQ3AcK3nu8Jdj6y3oF+tGsrt1o3c+Z5NSgI4UF
- AyR73esUCn3bUuMRaOUQ5rghKCF3JesUN+2Ku1wKhHLbWlTjDqDI8dkJ1SVCFZ1m5LVTqNs4g
- 5QEJ/vgYuFCrykYxI+UoMRy/zXR5iQ2i/Vw3wGxwIDhwZTO+ud2l5FbvTZuoauGXqi9ZB7jno
- 494pcQO7uCToVHzZVPhgm3h3g2MirKvQyTrrLJ5kDGGOEKAEc+BMxH8U5ijSnYtZeNvoOKN/I
- YdrS81cDGcHqlrfptLnum5idANA260fjiqOpMxZ0JkB+TQNQB/UXjzYwhBQzjbtmhM+7x5rse
- ymu96G8fYBOUyZdkAuptmLPcmKR/LkY86dDBLg3D6MeV8CsVupCaTXEsm1KdMSxaVfurVwdrK
- Fo/cYvPk0S7S9Zdf/a6i7wi+L3lbe3GBT2j1JtsziPxBDGkslwc98xXNM3eN3Ga+strDzV5lP
- gzpaPwSRtftfEp7CnpLGkcl3/CATHOzaYLdLvkgtJXQs626R4KE5QovsJ6xZlGsgF9zImDdti
- ToSQYjyCCUBp/MBQkLw8lUHyjIWI5L69yQDz+nyjTALlsWQXBX1f7V2cVTloVCTkQbpNIvjZh
- DZZvWLoiYd75aXRkdE0OS4oWdnn/tj+eGcJi5ogYDWIK550vf+7VW5zW9NKqZbVjuNFo=
+From:   armanddreamlandestimation@gmail.com
+To:     linux-omap@vger.kernel.org
+Subject: Estimating Services
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, Mar 31, 2022 at 4:42 PM Tony Lindgren <tony@atomide.com> wrote:
-> diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
-> --- a/arch/arm/mach-omap2/omap-secure.c
-> +++ b/arch/arm/mach-omap2/omap-secure.c
-> @@ -59,8 +59,8 @@ static void __init omap_optee_init_check(void)
->  u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs, u32 arg1, u32 arg2,
->                                                          u32 arg3, u32 arg4)
->  {
-> +       static u32 param[5];
->         u32 ret;
-> -       u32 param[5];
+Hi,=0D=0A=0D=0AWe provide estimation & quantities takeoff service=
+s. We are providing 98-100 accuracy in our estimates and take-off=
+s. Please tell us if you need any estimating services regarding y=
+our projects.=0D=0A=0D=0ASend over the plans and mention the exac=
+t scope of work and shortly we will get back with a proposal on w=
+hich our charges and turnaround time will be mentioned=0D=0A=0D=0A=
+You may ask for sample estimates and take-offs. Thanks.=0D=0A=0D=0A=
+Kind Regards=0D=0AArmand Southern=0D=0ADreamland Estimation, LLC
 
-I think for this one, you do need to use a DEFINE_PER_CPU() to make it
-work when multiple cores run into the function concurrently. This is entered
-on OMAP44xx from irq_notifier() with cmd==CPU_CLUSTER_PM_ENTER
-and from start_secondary(). I suspect that one can show these never happen
-on more than one CPU at a time, but I have not been able to prove that
-myself.
-
-> @@ -119,8 +119,8 @@ phys_addr_t omap_secure_ram_mempool_base(void)
->  #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
->  u32 omap3_save_secure_ram(void __iomem *addr, int size)
->  {
-> +       static u32 param[5];
->         u32 ret;
-> -       u32 param[5];
->
->         if (size != OMAP3_SAVE_SECURE_RAM_SZ)
->                 return OMAP3_SAVE_SECURE_RAM_SZ;
-> @@ -153,8 +153,8 @@ u32 omap3_save_secure_ram(void __iomem *addr, int size)
->  u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 nargs,
->                            u32 arg1, u32 arg2, u32 arg3, u32 arg4)
->  {
-> +       static u32 param[5];
->         u32 ret;
-> -       u32 param[5];
->
->         param[0] = nargs+1; /* RX-51 needs number of arguments + 1 */
->         param[1] = arg1;
-
-These look good, as they are clearly only run on single-core SoCs
-with preemption disabled.
-
-         Arnd
