@@ -2,47 +2,47 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55091C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AAB5C35296
 	for <linux-omap@archiver.kernel.org>; Fri,  1 Apr 2022 15:14:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348113AbiDAPPc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 1 Apr 2022 11:15:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57470 "EHLO
+        id S244638AbiDAPPl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 1 Apr 2022 11:15:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350406AbiDAOr3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2022 10:47:29 -0400
+        with ESMTP id S1350049AbiDAO6w (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2022 10:58:52 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB3B52A3393;
-        Fri,  1 Apr 2022 07:37:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A61517DCBE;
+        Fri,  1 Apr 2022 07:46:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 73B71B82515;
-        Fri,  1 Apr 2022 14:37:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EF56C36AE2;
-        Fri,  1 Apr 2022 14:37:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BAE85B823EB;
+        Fri,  1 Apr 2022 14:45:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA73CC2BBE4;
+        Fri,  1 Apr 2022 14:45:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648823836;
-        bh=BQ+000fsdHVkiRIowF2xgMLddbyFXjMD5fDA8h5TuYY=;
+        s=k20201202; t=1648824358;
+        bh=dr75DPGQ6+X8H9VykmissgWMTjaiFb68Wk9EWqQlYj0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kczo9mwX1el9axt1gYtWObqVpVzSFxPSsrrQZIoK3tDQ5H82gkvXvw8sRR+DtLzin
-         +JXXYa5uYobM+isEkOeO5WKihvQM5ud6cSDoBVSLSY8dPJ+xUK+K+3mgD++/sR+Rl7
-         Qgishz/+y7YeGjNBNSJg97IsOUEG1aihi2mHeNgWdls5U3tedeHjeUQoOBfHqFDi+X
-         hRMTT+OAOkdBq6AcEtD1Ykd5XeqRmmKLM5fUk7m/YfzU8tvob4OzQ/mMzdvJ5CupKU
-         s2GVsX9LV/IfHJkLZeS6e6wB7qBOLwK4cDVsF+XDorRNMfdg8RSX9euI06zUe3tzIv
-         js1BSKbkScU0w==
+        b=RN9EjlfqsWu0tZ6yKAIv/RvGdANq607Ixuc6iAm5DVsG1dEAFpDW4RawPEWoZEImH
+         iiAU5aytxMP/aZ6UfHdNwqYdH+o4JJu76+qCRNc5R86BY0WS7G5961MR6i5kxRVJ9x
+         jn8e6mN18cyyRtnaAE9dMiD0fQypBoqYHut7TR7APvoI6fH4RCC2Ihn2fXChYarkvI
+         BfxmQ5KjCCtnFGURgxckyfC80nW4iCzdD4zNzg+j/RUMg+VpO474Iax865uH9LM/qw
+         +eYXzdNX3nviNUp7VfaSyz2/Vyaq/Rfe5wYnaKc9os60AVdPFc0HoJGj7/OXUMPr39
+         fBPIStTppZa+w==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "H. Nikolaus Schaller" <hns@goldelico.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Sasha Levin <sashal@kernel.org>, balbi@kernel.org,
         linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.16 098/109] usb: dwc3: omap: fix "unbalanced disables for smps10_out1" on omap5evm
-Date:   Fri,  1 Apr 2022 10:32:45 -0400
-Message-Id: <20220401143256.1950537-98-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 32/37] usb: dwc3: omap: fix "unbalanced disables for smps10_out1" on omap5evm
+Date:   Fri,  1 Apr 2022 10:44:41 -0400
+Message-Id: <20220401144446.1954694-32-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220401143256.1950537-1-sashal@kernel.org>
-References: <20220401143256.1950537-1-sashal@kernel.org>
+In-Reply-To: <20220401144446.1954694-1-sashal@kernel.org>
+References: <20220401144446.1954694-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -105,7 +105,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index e196673f5c64..efaf0db595f4 100644
+index e8acad49a53a..81ee1cd794f7 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
 @@ -242,7 +242,7 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
