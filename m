@@ -2,121 +2,182 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FAA8C433F5
-	for <linux-omap@archiver.kernel.org>; Fri,  1 Apr 2022 15:14:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12750C433EF
+	for <linux-omap@archiver.kernel.org>; Sat,  2 Apr 2022 10:15:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348627AbiDAPPp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 1 Apr 2022 11:15:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57462 "EHLO
+        id S231462AbiDBKRk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 2 Apr 2022 06:17:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352427AbiDAOuV (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2022 10:50:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2AB32B3309;
-        Fri,  1 Apr 2022 07:41:41 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9FA1D60BC2;
-        Fri,  1 Apr 2022 14:41:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F9F7C34111;
-        Fri,  1 Apr 2022 14:41:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648824101;
-        bh=BQ+000fsdHVkiRIowF2xgMLddbyFXjMD5fDA8h5TuYY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=IHKsmGdCZijXrEkZZKd0ON7WKUn2GT+ftkVXhzL1VWfy7DAx+reesrGNn4J2rBCg9
-         CU6qjRG9uIfbrd0ZxjD1dIwYcbp+G5RtU8moHc5Nnfdd3K4CYROW3uU0uAwZLQw44q
-         bt6o2djI67O2jS5qC44PySAXQ8vdiau6RSIk1KAcySLrXjOheYGFJZ9i54K/Z/309N
-         kd3O/nfBHTul+KORdg/zU70fnGOS1DQwbPth69D8keLMy8ASV89XCglwbCngQZIRxF
-         AbIJlSuaCQA8ske1Dastx7PaDWoj7Lsqn0dv2BEBTYm0ypK9tlvTgbYK4ucPwNG2Na
-         Y0HBYvaN09Egg==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "H. Nikolaus Schaller" <hns@goldelico.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Sasha Levin <sashal@kernel.org>, balbi@kernel.org,
-        linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 87/98] usb: dwc3: omap: fix "unbalanced disables for smps10_out1" on omap5evm
-Date:   Fri,  1 Apr 2022 10:37:31 -0400
-Message-Id: <20220401143742.1952163-87-sashal@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220401143742.1952163-1-sashal@kernel.org>
-References: <20220401143742.1952163-1-sashal@kernel.org>
+        with ESMTP id S229605AbiDBKRj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 2 Apr 2022 06:17:39 -0400
+Received: from mail-wm1-x336.google.com (mail-wm1-x336.google.com [IPv6:2a00:1450:4864:20::336])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A13E61A8C15
+        for <linux-omap@vger.kernel.org>; Sat,  2 Apr 2022 03:15:46 -0700 (PDT)
+Received: by mail-wm1-x336.google.com with SMTP id l62-20020a1c2541000000b0038e4570af2fso2794167wml.5
+        for <linux-omap@vger.kernel.org>; Sat, 02 Apr 2022 03:15:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=smile-fr.20210112.gappssmtp.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=XSmrmCqv7JvnAGZF2beI3ID/v9DbpyxJzGmC94Doqcw=;
+        b=FVVJdlxeIK/HBqQOhoENiqR0u3W17/mf4JJ/fQx6apWoiwTP5DJiP6zJDWLW2/rTme
+         CXWsgIFeSU1xhoDSRGpm97+R2E2pIlmn5TpeK12Fkmy9g3+ykQj2DKOX+nU/JMTXoMb9
+         b6hsxj9AY3n/KskEoPsZGsOn/dK+usNp5wqDKilre1Tmbw6sct0LgCBBKgmTXxTyD1ZD
+         ZH0GIxJbyqe3MuiB7kscAQbwq8FpwJk2/07hNRsorEfRor0kAZBZJmFQSwSL46qZDnGp
+         wMQMdXxSxgsnaxvRxZ70LyKFVUTnAabh4CBshVgySdohAKReGiwi+v88qIRA3/svjY1M
+         xv4A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=XSmrmCqv7JvnAGZF2beI3ID/v9DbpyxJzGmC94Doqcw=;
+        b=4nQe5GuAajCWmqEcIJ+faLeYBTk7VDl+2OWP5ib91/+33/yjAYgZcIuzv6jBHUX1R2
+         oq+b52lChU9e6V4HbvDDz4Mnd1kozknVvOqLo2VyX5l4cLmvmmkEIBpqITXzI92Z34AP
+         zbBG5m7wgXkhgzV2OFM0Y5FtsByFHax06J9Q5uY3jU4Pphkdxt3TEp1ZLynbCvYfOzNQ
+         c9Nl7XRnw75T1yoaUtq83jLDCLW2haPzk5rdPJn5evsskcFnOPColXuSdr2sw8PtPN68
+         4itwsqlzHGXgQomBwmTkepAsVzyAbM6l6F8MzIN53HY0KfXXtFyyNG1Y/hAgdHeS1nFo
+         88Zg==
+X-Gm-Message-State: AOAM530mlh/DmR2fiDX5MHZPk67bQ40tk0DTa7JWsPrQzVcStY0f+gFf
+        Fx6e/9Hjimg6USGS/M2ycAUiwIZ2tDVMvw==
+X-Google-Smtp-Source: ABdhPJxCcL0EwciPZGNFzNXbE7w45VSMhNros2F8BOb50DEnIlV5UVda3WrFXgxrqzWTbgvgT1QXGw==
+X-Received: by 2002:a05:600c:5108:b0:38e:617d:80b8 with SMTP id o8-20020a05600c510800b0038e617d80b8mr2139998wms.65.1648894545145;
+        Sat, 02 Apr 2022 03:15:45 -0700 (PDT)
+Received: from ?IPV6:2a01:cb05:8f8a:1800:1c97:b8d1:b477:d53f? (2a01cb058f8a18001c97b8d1b477d53f.ipv6.abo.wanadoo.fr. [2a01:cb05:8f8a:1800:1c97:b8d1:b477:d53f])
+        by smtp.gmail.com with ESMTPSA id t4-20020adfe104000000b00205b50f04f0sm4223243wrz.86.2022.04.02.03.15.44
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 02 Apr 2022 03:15:44 -0700 (PDT)
+Message-ID: <2d192056-4977-9e2e-f661-23e05e2a6584@smile.fr>
+Date:   Sat, 2 Apr 2022 12:15:43 +0200
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: AM5749: tty serial 8250 omap driver crash
+Content-Language: en-US
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     linux-omap@vger.kernel.org
+References: <e3cf5082-b494-9309-6878-da208920fa5a@smile.fr>
+ <YgT/fhpFQfkj1b0j@atomide.com>
+ <9f0cb8f9-ac94-eb50-266a-95df521a7360@smile.fr>
+ <YgoIMPZd7bi6XDGW@atomide.com> <YgpUNMAiXgu+vrtl@atomide.com>
+ <ca2faa1d-715b-77f8-4f19-037ba9aabc8e@smile.fr>
+ <YgzkLjWwIlm9/SiK@atomide.com>
+ <114d59cb-bbea-6298-c346-3f50f04ab2a5@smile.fr>
+ <Yg4CZb1Jy2M8wwn/@atomide.com>
+ <77a24941-4c46-8d78-391a-d3d1018f311a@smile.fr>
+ <Yg5GdIp5Glp9p/G5@atomide.com>
+From:   Romain Naour <romain.naour@smile.fr>
+In-Reply-To: <Yg5GdIp5Glp9p/G5@atomide.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Hello Tony,
 
-[ Upstream commit ac01df343e5a6c6bcead2ed421af1fde30f73e7e ]
+Sorry for the delay.
 
-Usually, the vbus_regulator (smps10 on omap5evm) boots up disabled.
+Le 17/02/2022 à 13:58, Tony Lindgren a écrit :
+> * Romain Naour <romain.naour@smile.fr> [220217 09:09]:
+>> On u-boot devicetree the uart4 node is missing, but we don't plan to use the gps
+>> from uboot :)
+>> Should I add the uart4 node?
+> 
+> There should be no need for that, kernel should be able to initialize it
+> properly no matter what the state is from the bootloader.
 
-Hence calling regulator_disable() indirectly through dwc3_omap_set_mailbox()
-during probe leads to:
+ok
 
-[   10.332764] WARNING: CPU: 0 PID: 1628 at drivers/regulator/core.c:2853 _regulator_disable+0x40/0x164
-[   10.351919] unbalanced disables for smps10_out1
-[   10.361298] Modules linked in: dwc3_omap(+) clk_twl6040 at24 gpio_twl6040 palmas_gpadc palmas_pwrbutton
-industrialio snd_soc_omap_mcbsp(+) snd_soc_ti_sdma display_connector ti_tpd12s015 drm leds_gpio
-drm_panel_orientation_quirks ip_tables x_tables ipv6 autofs4
-[   10.387818] CPU: 0 PID: 1628 Comm: systemd-udevd Not tainted 5.17.0-rc1-letux-lpae+ #8139
-[   10.405129] Hardware name: Generic OMAP5 (Flattened Device Tree)
-[   10.411455]  unwind_backtrace from show_stack+0x10/0x14
-[   10.416970]  show_stack from dump_stack_lvl+0x40/0x4c
-[   10.422313]  dump_stack_lvl from __warn+0xb8/0x170
-[   10.427377]  __warn from warn_slowpath_fmt+0x70/0x9c
-[   10.432595]  warn_slowpath_fmt from _regulator_disable+0x40/0x164
-[   10.439037]  _regulator_disable from regulator_disable+0x30/0x64
-[   10.445382]  regulator_disable from dwc3_omap_set_mailbox+0x8c/0xf0 [dwc3_omap]
-[   10.453116]  dwc3_omap_set_mailbox [dwc3_omap] from dwc3_omap_probe+0x2b8/0x394 [dwc3_omap]
-[   10.467021]  dwc3_omap_probe [dwc3_omap] from platform_probe+0x58/0xa8
-[   10.481762]  platform_probe from really_probe+0x168/0x2fc
-[   10.481782]  really_probe from __driver_probe_device+0xc4/0xd8
-[   10.481782]  __driver_probe_device from driver_probe_device+0x24/0xa4
-[   10.503762]  driver_probe_device from __driver_attach+0xc4/0xd8
-[   10.510018]  __driver_attach from bus_for_each_dev+0x64/0xa0
-[   10.516001]  bus_for_each_dev from bus_add_driver+0x148/0x1a4
-[   10.524880]  bus_add_driver from driver_register+0xb4/0xf8
-[   10.530678]  driver_register from do_one_initcall+0x90/0x1c4
-[   10.536661]  do_one_initcall from do_init_module+0x4c/0x200
-[   10.536683]  do_init_module from load_module+0x13dc/0x1910
-[   10.551159]  load_module from sys_finit_module+0xc8/0xd8
-[   10.561319]  sys_finit_module from __sys_trace_return+0x0/0x18
-[   10.561336] Exception stack(0xc344bfa8 to 0xc344bff0)
-[   10.561341] bfa0:                   b6fb5778 b6fab8d8 00000007 b6ecfbb8 00000000 b6ed0398
-[   10.561341] bfc0: b6fb5778 b6fab8d8 855c0500 0000017b 00020000 b6f9a3cc 00000000 b6fb5778
-[   10.595500] bfe0: bede18f8 bede18e8 b6ec9aeb b6dda1c2
-[   10.601345] ---[ end trace 0000000000000000 ]---
+> 
+>> Since removing the uart quirk had some other side effect, I did a shameless hack
+>> in 8250_omap.c to disable autosuspend.
+>>
+>> -	pm_runtime_put_autosuspend(port->dev);
+>> +	pm_runtime_dont_use_autosuspend(port->dev);
+>>
+>> With that the uart is always up and running.
+> 
+> Yes but note that 8250_omap autosuspend does not do anything unless the
+> timeouts are manually enabled by the userspace. They are initialized to -1
+> during probe.
 
-Fix this unnecessary warning by checking if the regulator is enabled.
+Actually it's not initialized to -1 on my board, it's initialized to 0. See
+commit [1].
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-Link: https://lore.kernel.org/r/af3b750dc2265d875deaabcf5f80098c9645da45.1646744616.git.hns@goldelico.com
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/usb/dwc3/dwc3-omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I'm starting to think that is an issue when the 8250_omap driver is used with
+another driver like the gnss serial driver (using a serdev driver).
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index e196673f5c64..efaf0db595f4 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -242,7 +242,7 @@ static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
- 		break;
- 
- 	case OMAP_DWC3_ID_FLOAT:
--		if (omap->vbus_reg)
-+		if (omap->vbus_reg && regulator_is_enabled(omap->vbus_reg))
- 			regulator_disable(omap->vbus_reg);
- 		val = dwc3_omap_read_utmi_ctrl(omap);
- 		val |= USBOTGSS_UTMI_OTG_CTRL_IDDIG;
--- 
-2.34.1
+Since the commit [1] there is no autosuspend delay at all, I would suggest to
+add a default autosuspend delay value. I tested with 200ms based on another example.
+
+diff --git a/drivers/tty/serial/8250/8250_omap.c
+b/drivers/tty/serial/8250/8250_omap.c
+index ec7304d57f5f..8ba830bd493a 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -108,6 +108,9 @@
+ /* RX FIFO occupancy indicator */
+ #define UART_OMAP_RX_LVL               0x19
+
++/* Runtime PM autosuspend timeout: 0ms may trigger wakeup issues */
++#define UART_AUTOSUSPEND_TIMEOUT               200
++
+ struct omap8250_priv {
+        int line;
+        u8 habit;
+@@ -1409,6 +1412,8 @@ static int omap8250_probe(struct platform_device *pdev)
+         */
+        if (!of_get_available_child_count(pdev->dev.of_node))
+                pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
++       else
++               pm_runtime_set_autosuspend_delay(&pdev->dev,
+UART_AUTOSUSPEND_TIMEOUT);
+
+        pm_runtime_irq_safe(&pdev->dev);
+
+
+[1]
+https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/commit/?id=627a545c6bb0c7de09208e6546f5111290477261
+
+> 
+>>> The test script I posted does that for all the uarts, probably best not
+>>> to do that until the other issues are sorted out :) If so, maybe the issue
+>>> on close is that the uart has already autoidled.
+>>
+>> Indeed. But I'm not sure why the autosuspend is enabled by default?
+> 
+> See above, it's always been initialized to -1 by default so it won't
+> do anything. But if you ran the test script I posted, autosuspend timeout
+> got enabled for all the uarts. But maybe the issue you posted is yet
+> another issue that I don't quite understand yet.
+> 
+> To me it seems we should always have runtime PM functions enable the
+> serial port to usable state and get rid of the conditional enable for
+> probe and dma.
+
+I'm not able to reproduce the issue by preventing the device from being power
+managed. I tried with both method:
+
+echo "-1" > /sys/bus/platform/devices/4806e000.serial/power/autosuspend_delay_ms
+
+or
+
+echo on > /sys/bus/platform/devices/4806e000.serial/power/control
+
+I also played with your script modified to keep autosuspend_delay_ms to 0
+(default on my board), but It doesn't trigger the issue.
+
+Note: /sys/bus/platform/devices/4806e000.serial/power/wakeup doesn't exist here.
+
+If setting autosuspend_delay to 200ms by default is ok, I will send a patch.
+
+Best regards,
+Romain
+
+> 
+> Regards,
+> 
+> Tony
 
