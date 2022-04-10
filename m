@@ -2,39 +2,38 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A324AC433F5
-	for <linux-omap@archiver.kernel.org>; Sun, 10 Apr 2022 01:01:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E899EC433EF
+	for <linux-omap@archiver.kernel.org>; Sun, 10 Apr 2022 11:55:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233599AbiDJBEB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 9 Apr 2022 21:04:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46272 "EHLO
+        id S238598AbiDJL50 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 10 Apr 2022 07:57:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233703AbiDJBEA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 9 Apr 2022 21:04:00 -0400
-X-Greylist: delayed 1836 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 09 Apr 2022 18:01:48 PDT
+        with ESMTP id S229768AbiDJL5Z (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 10 Apr 2022 07:57:25 -0400
 Received: from guaco.floridaarsonseminar.com (guaco.floridaarsonseminar.com [85.202.169.206])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A61CC1F62D
-        for <linux-omap@vger.kernel.org>; Sat,  9 Apr 2022 18:01:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69EF137030
+        for <linux-omap@vger.kernel.org>; Sun, 10 Apr 2022 04:55:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=dkim; d=floridaarsonseminar.com;
  h=Reply-To:From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding; i=rae.leo@floridaarsonseminar.com;
  bh=MnUf62F7Cn+TYukvIUFpyVBy5Yk=;
- b=iM5b+wHZMo15262X24xlyY2jImAmmVw6y/UMNY8RNwyjV/q/Z88zRXRTtUzxy8pbDFzDrn8WpEHF
-   PS4MQkejNFyrtHiaCzQecYISxOhFlQyhG2kZKbUJbsMiGokG4QznI3XaPZpt0JjjpjCNlHK9u9Tf
-   f9IxSDquc5v/1EtoXdcaqZggAPDXZ97RhWtnfcROksuJN8QkSvFsTEINiwR1mKyIuErTl3OLJ/3H
-   bp3Sl9K+3MjFmVn1xNB2M61zJ6bcse+GsNj8D+vBdHrfKTFGgItXs2GLwfusf4E6zDlbh5cxK6Uh
-   L/iTfHGT4IUk9y4iFRWwQ62TXGp8Lw+ZouKyDA==
+ b=i2Vqh0/77J06Y6QGWOkVqy8F/CQovXyGKeIJ9eNVec+TN4WAxICQW1EYP7fzZ1TmXKSLlfUnq+Km
+   u+MqxJbaAPveU9i4+bUsaF7snydVd+fwRSiDPKmuXDByJnCqG3Ldpo1RFng11EDbZwccSfz/3gaa
+   0DfiFos92gvwTDDWV3KEI7PCEkzYv3O1zBIBA3G5+Wr8f4zEwNVYSuZK8FUlJkw4RlaPOheSkcTN
+   90amLZHXn0o2Ro8aF/hYdrB8s1swOKbQCXtBsutVMVGYMhENtdiKo/YCniG/BkdQ9hu5RELe0tvF
+   KJM+LnwC2cz7c7jZiWms2LEQdkMBr3cdOPFlLQ==
 DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns; s=dkim; d=floridaarsonseminar.com;
- b=Y8d9xZC/QZ7rjHalZsmyF+X827sSB0WUTuKA8WYK86SIo3C8XFyf3h+m9zDjTJhMUVMFrw8fLaQF
-   cWMqFiJEbcs81zamTr6oZ0D6TSeVAlxkd6ONPwzY6jonRJlGFLG1L4dNxJHvuU20B7v4YvAQ+wqQ
-   u2gQYXAm/9PO9x/eD9rQAoDlHh1hgmpZyt+CLSez18xuWffWLhOdRCRz68l4mXgynY1TmGtsGVxM
-   lebzoBc6Kl4UJgsQEZIHC3bIRFpNZXtjf2nlcWfiG3Bw+KRBUAKKIwhle0wvBSgdh/oPS3EcDT/K
-   TFq64xmEMi7YHz3XhQQHWVGFWRMcIuCIezeKNA==;
+ b=Nk2h+T/GD5z8sR8tUZ4Noqx8l8unT/euqWWu785jiOF/JVv9Aah5NEoHhZrgWNyyIZljWQ9gEitD
+   HUBZHtmXANmU8b7hCTI7aZPBHg2ir4o+cCUbOONkytWSEv6oGnwqLd6WoVWRFKPCuJ8ygLnVD+7d
+   sTqs8FsV8lCf9AvGxORSbRANvw7nQbDYsHjACB77DLghaDpf94q/5yr6Z+xiKTo3IdtsbESqzYgY
+   CYdefpTh+NFL1+bEoBq4xZoKZm2vg7sVtqgO1RdizcpCj4Td2xZtaiy5sAvSbxXC3uV2kJhxRvzz
+   qj21cGdr1+GqhHqHxi4UX6EfFVUW+FOjhjH3TQ==;
 Reply-To: ayvamustafa22@gmail.com
 From:   rae.leo@floridaarsonseminar.com
 To:     linux-omap@vger.kernel.org
 Subject: Hello
-Date:   10 Apr 2022 02:31:09 +0200
-Message-ID: <20220410023109.528A51F1C4CADDE9@floridaarsonseminar.com>
+Date:   10 Apr 2022 13:55:11 +0200
+Message-ID: <20220410135511.CF03423D05A92FB5@floridaarsonseminar.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
         charset="utf-8"
