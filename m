@@ -2,60 +2,74 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E899EC433EF
-	for <linux-omap@archiver.kernel.org>; Sun, 10 Apr 2022 11:55:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2458FC433EF
+	for <linux-omap@archiver.kernel.org>; Mon, 11 Apr 2022 08:00:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238598AbiDJL50 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 10 Apr 2022 07:57:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55034 "EHLO
+        id S243200AbiDKICo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 11 Apr 2022 04:02:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229768AbiDJL5Z (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 10 Apr 2022 07:57:25 -0400
-Received: from guaco.floridaarsonseminar.com (guaco.floridaarsonseminar.com [85.202.169.206])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69EF137030
-        for <linux-omap@vger.kernel.org>; Sun, 10 Apr 2022 04:55:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=dkim; d=floridaarsonseminar.com;
- h=Reply-To:From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding; i=rae.leo@floridaarsonseminar.com;
- bh=MnUf62F7Cn+TYukvIUFpyVBy5Yk=;
- b=i2Vqh0/77J06Y6QGWOkVqy8F/CQovXyGKeIJ9eNVec+TN4WAxICQW1EYP7fzZ1TmXKSLlfUnq+Km
-   u+MqxJbaAPveU9i4+bUsaF7snydVd+fwRSiDPKmuXDByJnCqG3Ldpo1RFng11EDbZwccSfz/3gaa
-   0DfiFos92gvwTDDWV3KEI7PCEkzYv3O1zBIBA3G5+Wr8f4zEwNVYSuZK8FUlJkw4RlaPOheSkcTN
-   90amLZHXn0o2Ro8aF/hYdrB8s1swOKbQCXtBsutVMVGYMhENtdiKo/YCniG/BkdQ9hu5RELe0tvF
-   KJM+LnwC2cz7c7jZiWms2LEQdkMBr3cdOPFlLQ==
-DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns; s=dkim; d=floridaarsonseminar.com;
- b=Nk2h+T/GD5z8sR8tUZ4Noqx8l8unT/euqWWu785jiOF/JVv9Aah5NEoHhZrgWNyyIZljWQ9gEitD
-   HUBZHtmXANmU8b7hCTI7aZPBHg2ir4o+cCUbOONkytWSEv6oGnwqLd6WoVWRFKPCuJ8ygLnVD+7d
-   sTqs8FsV8lCf9AvGxORSbRANvw7nQbDYsHjACB77DLghaDpf94q/5yr6Z+xiKTo3IdtsbESqzYgY
-   CYdefpTh+NFL1+bEoBq4xZoKZm2vg7sVtqgO1RdizcpCj4Td2xZtaiy5sAvSbxXC3uV2kJhxRvzz
-   qj21cGdr1+GqhHqHxi4UX6EfFVUW+FOjhjH3TQ==;
-Reply-To: ayvamustafa22@gmail.com
-From:   rae.leo@floridaarsonseminar.com
-To:     linux-omap@vger.kernel.org
-Subject: Hello
-Date:   10 Apr 2022 13:55:11 +0200
-Message-ID: <20220410135511.CF03423D05A92FB5@floridaarsonseminar.com>
+        with ESMTP id S241013AbiDKICn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 11 Apr 2022 04:02:43 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 91FE2DE8;
+        Mon, 11 Apr 2022 01:00:29 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id C25BB809F;
+        Mon, 11 Apr 2022 07:57:57 +0000 (UTC)
+Date:   Mon, 11 Apr 2022 11:00:27 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Rob Herring <robh@kernel.org>
+Cc:     Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>, Nishanth Menon <nm@ti.com>,
+        Keerthy <j-keerthy@ti.com>, linux-arm-kernel@lists.infradead.org,
+        Krzysztof Kozlowski <krzk+dt@kernel.org>
+Subject: Re: [PATCH] dt-bindings: timer: Update TI timer to yaml and add
+ compatible for am6
+Message-ID: <YlPgG0M6IS60Q1bc@atomide.com>
+References: <20220408081258.57213-1-tony@atomide.com>
+ <1649432514.728371.3536062.nullmailer@robh.at.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1649432514.728371.3536062.nullmailer@robh.at.kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-sauda=C3=A7=C3=B5es ,
+* Rob Herring <robh@kernel.org> [220408 15:39]:
+> On Fri, 08 Apr 2022 11:12:58 +0300, Tony Lindgren wrote:
+> > Let's update the TI timer binding to use yaml. And add compatible for
+> > ti,am654-timer for TI am64, am65 and j72 SoCs. As the timer hardware is
+> > the same between am64, am65 and j72 we use the compatible name for the
+> > earliest SoC with this timer.
+> > 
+> > As this binding is specific to the TI dual-mode timers also known
+> > as dm-timers, let's use ti,timer-dm.yaml naming for the new file.
+> > 
+> > Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+> > Cc: Keerthy <j-keerthy@ti.com>
+> > Cc: Nishanth Menon <nm@ti.com>
+> > Cc: Vignesh Raghavendra <vigneshr@ti.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  .../bindings/timer/ti,timer-dm.yaml           | 105 ++++++++++++++++++
+> >  .../devicetree/bindings/timer/ti,timer.txt    |  44 --------
+> >  2 files changed, 105 insertions(+), 44 deletions(-)
+> >  create mode 100644 Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
+> >  delete mode 100644 Documentation/devicetree/bindings/timer/ti,timer.txt
+> > 
+> 
+> Running 'make dtbs_check' with the schema in this patch gives the
+> following warnings. Consider if they are expected or the schema is
+> incorrect. These may not be new warnings.
 
-Estou procurando um parente do meu falecido cliente Sr. Robert,=20
-que perdeu a vida devido =C3=A0 doen=C3=A7a do Coronav=C3=ADrus, que ele=20=
+Well I was planning to drop the unused ti,am4372-timer related properties,
+but instead will document those as discussed in the related dts thread.
+I'll be sending an updated version a bit later on.
 
-contraiu durante sua viagem de neg=C3=B3cios na China. Eu sou seu=20
-advogado pessoal e estou procurando seus parentes mais pr=C3=B3ximos,=20
-entrei em contato com voc=C3=AA para trabalhar comigo na garantia da=20
-transfer=C3=AAncia de um fundo fiduci=C3=A1rio, quatro milh=C3=B5es,=20
-quatrocentos e vinte mil d=C3=B3lares, legado por meu falecido=20
-cliente.
+Regards,
 
-Entre em contato comigo imediatamente para obter mais=20
-informa=C3=A7=C3=B5es.
-
-esperando
-Mustaf=C3=A1 Aivaz
+Tony
