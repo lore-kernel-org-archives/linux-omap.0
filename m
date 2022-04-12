@@ -2,103 +2,85 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17B68C433EF
-	for <linux-omap@archiver.kernel.org>; Tue, 12 Apr 2022 23:24:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2E43C433F5
+	for <linux-omap@archiver.kernel.org>; Tue, 12 Apr 2022 23:29:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229806AbiDLX0h (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 12 Apr 2022 19:26:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44316 "EHLO
+        id S230170AbiDLXcJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 12 Apr 2022 19:32:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229947AbiDLX0G (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2022 19:26:06 -0400
-Received: from mail-oi1-f178.google.com (mail-oi1-f178.google.com [209.85.167.178])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F649AA008;
-        Tue, 12 Apr 2022 15:39:28 -0700 (PDT)
-Received: by mail-oi1-f178.google.com with SMTP id t21so221122oie.11;
-        Tue, 12 Apr 2022 15:39:28 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=u5PY6bLLimNR2B9Ro1s012CPiuANxLHzj7d6SR7unFo=;
-        b=F7xwzY3YjV93/9+MUbx/UXyxeDFgD0Y9ejtCawp4fs+5rW5Lmp6X+LvHLzmnM7GC/K
-         eewGdnktiPqQxdT23vCMxKJ0PqPm3isWdrwi71FZsE3oyoepyAhmnOkIQm0aUcdVijMN
-         lBqoRXJz4NCKgaSlJZRe38hshv4GUQvGdiG7kRzONGxAP6NM0kPiSGhfgGf8wrwTaOOg
-         83SGr5uAf6g3mPOX9R0jNvxb5pogWFBvZxfQDbXaXKB/wK8si0GPanghSBKqO/6Nc25D
-         dif+tgLJTfOeCZYmqWwxJmusEM12hpkKrPBtVu0SL7cMYC5AdRJPe1nu/U3h2VGMFdah
-         iIgA==
-X-Gm-Message-State: AOAM531as1vUq+o9bfq4CQ3C5DnxLV2R7RsgG1x2aQ1UlqJGbfdUcgMe
-        51sO+mce+nJjy/vVZ/kMIJeFyTE9rw==
-X-Google-Smtp-Source: ABdhPJykGbTkNeqZUZwrtwbR21vkEyiUetGMMb79dTKsreuCOdjCTmDpP1AygrrvTQP2tAFtrU6hQQ==
-X-Received: by 2002:a05:6870:b155:b0:e2:e3e5:4722 with SMTP id a21-20020a056870b15500b000e2e3e54722mr2950716oal.8.1649798816531;
-        Tue, 12 Apr 2022 14:26:56 -0700 (PDT)
-Received: from robh.at.kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id 5-20020a056870100500b000ddac364643sm13743560oai.30.2022.04.12.14.26.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 12 Apr 2022 14:26:56 -0700 (PDT)
-Received: (nullmailer pid 971959 invoked by uid 1000);
-        Tue, 12 Apr 2022 21:26:55 -0000
-Date:   Tue, 12 Apr 2022 16:26:55 -0500
-From:   Rob Herring <robh@kernel.org>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Krzysztof Kozlowski <krzk+dt@kernel.org>,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-omap@vger.kernel.org,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Keerthy <j-keerthy@ti.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Nishanth Menon <nm@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>
-Subject: Re: [PATCHv3 0/2] Convert TI dmtimer binding to yaml
-Message-ID: <YlXun5/rKNPvLZs3@robh.at.kernel.org>
-References: <20220412131644.59195-1-tony@atomide.com>
+        with ESMTP id S230186AbiDLXb7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2022 19:31:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B60615758C
+        for <linux-omap@vger.kernel.org>; Tue, 12 Apr 2022 15:26:33 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 415E3B82070
+        for <linux-omap@vger.kernel.org>; Tue, 12 Apr 2022 22:26:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3900C385A6;
+        Tue, 12 Apr 2022 22:26:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1649802391;
+        bh=VqRfAFLFoRfWJldgRiRIY25GFSd4Ta7g9o7aklHvEBM=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=e6yfAnhCdjKjb/cHk+E0lN3HbyLHNcsjIAGOjYMbTo7g4oYwefbjU630vbH2zoBDe
+         8C2mBwIZvn1hosXmPoNHVUmKSXUVfDIwiedR/u3Rr5hNMBrkzj0U9GW8n4/xenWHoB
+         83aqUpYaxPhVFZsNlDavPnD2Jc4MQzCs108d6FStpHaQDc/cDzN8ThF4mpOrYhu9hf
+         nL2IMmXU/s36quFXT84Lsh2IyPLsvTTnjL+Ut1jOtMGzY1ZgtXSQGqC+P/ZabH7rUv
+         yn9B+WZiOGUoSjJabjb6Y4YsthVHVKSg4wCs7JPo5Ej00Oay7RVXZ+RSeWO35+usPh
+         2Y1aSej9TR+SA==
+From:   Mark Brown <broonie@kernel.org>
+To:     jmkrzyszt@gmail.com
+Cc:     linux-omap@vger.kernel.org, peter.ujfalusi@gmail.com,
+        lgirdwood@gmail.com, alsa-devel@alsa-project.org
+In-Reply-To: <20220407191202.46206-1-jmkrzyszt@gmail.com>
+References: <20220402120106.131118-1-jmkrzyszt@gmail.com> <20220407191202.46206-1-jmkrzyszt@gmail.com>
+Subject: Re: [PATCH v2] ASoC: ti: osk5912: Make it CCF clk API compatible
+Message-Id: <164980238972.480306.7278363796389340760.b4-ty@kernel.org>
+Date:   Tue, 12 Apr 2022 23:26:29 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220412131644.59195-1-tony@atomide.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, Apr 12, 2022 at 04:16:42PM +0300, Tony Lindgren wrote:
-> Hi all,
+On Thu, 7 Apr 2022 21:12:02 +0200, Janusz Krzysztofik wrote:
+> The driver, OMAP1 specific, now omits clk_prepare/unprepare() steps, not
+> supported by OMAP1 custom implementation of clock API.  However, non-CCF
+> stubs of those functions exist for use on such platforms until converted
+> to CCF.
 > 
-> Here's v3 changes for TI dmtimer changes.
+> Update the driver to be compatible with CCF implementation of clock API.
+> 
+> [...]
 
-You missed 'v3' on the patches.
+Applied to
 
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
-> Changes since v1:
-> 
-> - Improve yaml for various checks based on comments from Krzysztof
->   and Nishanth
-> 
-> - Add checks for am4 timer as pointed out by Krzysztof and Rob
-> 
-> - Split am6 additions into a separate patch as suggested by Krzysztof
-> 
-> Changes since v2:
-> 
-> - Improve yaml for more checks based on comments from Grygorii and
->   Krzysztof
-> 
-> 
-> Tony Lindgren (2):
->   dt-bindings: timer: Update TI timer to yaml
->   dt-bindings: timer: Add compatible for am6 for TI timer-dm
-> 
->  .../bindings/pwm/pwm-omap-dmtimer.txt         |   2 +-
->  .../bindings/timer/ti,timer-dm.yaml           | 171 ++++++++++++++++++
->  .../devicetree/bindings/timer/ti,timer.txt    |  44 -----
->  3 files changed, 172 insertions(+), 45 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
->  delete mode 100644 Documentation/devicetree/bindings/timer/ti,timer.txt
-> 
-> -- 
-> 2.35.1
-> 
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-next
+
+Thanks!
+
+[1/1] ASoC: ti: osk5912: Make it CCF clk API compatible
+      commit: 90b76a3cb9bf208286851560cfc70830c91c1d3f
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
