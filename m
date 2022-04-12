@@ -2,100 +2,58 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B374C43219
-	for <linux-omap@archiver.kernel.org>; Tue, 12 Apr 2022 10:46:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACFB4C4321E
+	for <linux-omap@archiver.kernel.org>; Tue, 12 Apr 2022 10:46:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356954AbiDLKsg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 12 Apr 2022 06:48:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53716 "EHLO
+        id S1357562AbiDLKse (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 12 Apr 2022 06:48:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358951AbiDLKrL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2022 06:47:11 -0400
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C99115831;
-        Tue, 12 Apr 2022 02:48:18 -0700 (PDT)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 23C9m9fX068820;
-        Tue, 12 Apr 2022 04:48:09 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1649756889;
-        bh=oo/tXq73UbjZAm3rmxiOUmk5elaZWHi5nZWbvKutxNs=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=bnRbeBCLWi9CKTN2UR2+QtlX+9i+TZJ4KWTeaG9FRJedDMkxGhm649EQOmI8oDgz/
-         KaNoZTbNLuviV1ICohpeTzBv2ve4kXj44NDXk4oE/Ou2ALc39i7o+RXW51tzUTJ1Vo
-         j8iXgP6L7iY9s8qpN6kFu/F8Bp8FnvEj78b3QCFY=
-Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 23C9m8GX012241
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 12 Apr 2022 04:48:09 -0500
-Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14; Tue, 12
- Apr 2022 04:48:08 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14 via
- Frontend Transport; Tue, 12 Apr 2022 04:48:08 -0500
-Received: from [10.249.96.184] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 23C9m5sc101666;
-        Tue, 12 Apr 2022 04:48:05 -0500
-Message-ID: <863f6209-9c33-ed02-5b33-606cbaea865f@ti.com>
-Date:   Tue, 12 Apr 2022 12:48:06 +0300
+        with ESMTP id S1351859AbiDLKnP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2022 06:43:15 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6A6B476E06;
+        Tue, 12 Apr 2022 02:39:46 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 326AB8061;
+        Tue, 12 Apr 2022 09:37:13 +0000 (UTC)
+Date:   Tue, 12 Apr 2022 12:39:44 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Adam Ford <aford173@gmail.com>
+Cc:     linux-omap@vger.kernel.org, aford@beaconembedded.com,
+        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ARM: dts: am3517-evm: Fix misc pinmuxing
+Message-ID: <YlVI4EAX5is25bqh@atomide.com>
+References: <20220226214820.747847-1-aford173@gmail.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: [PATCH 1/2] dt-bindings: timer: Update TI timer to yaml
-Content-Language: en-US
-To:     Tony Lindgren <tony@atomide.com>
-CC:     Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzk+dt@kernel.org>,
-        <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-omap@vger.kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>
-References: <20220411111858.16814-1-tony@atomide.com>
- <173629f2-b37e-75ad-7601-4f24b8561f8a@ti.com> <YlU9mtM23bllohK3@atomide.com>
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-In-Reply-To: <YlU9mtM23bllohK3@atomide.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220226214820.747847-1-aford173@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-
-
-On 12/04/2022 11:51, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko@ti.com> [220412 08:35]:
->> On 11/04/2022 14:18, Tony Lindgren wrote:
->>> +  reg:
->>> +    minItems: 1
->>> +    maxItems: 2
->>> +    description: Timer IO register range
->>
->> if i'm not mistaken - you need to provide description for every item unless it's obviously determined by "-names" properties
+* Adam Ford <aford173@gmail.com> [220226 23:47]:
+> The bootloader for the AM3517 has previously done much of the pin
+> muxing, but as the bootloader is moving more and more to a model
+> based on the device tree, it may no longer automatically pux the
+> pins, so it is necessary to add the pinmuxing to the Linux device
+> trees so the respective peripherals can remain functional.
 > 
-> OK thanks will update for reg and clocks.
-> 
->>> +  clock-names:
->>> +    description:
->>> +      Timer clock names like "fck", "timer_sys_ck".
->>
->> and description here make no sense
-> 
-> So you just want to leave out the description from the clock-names if
-> I read your comment above right?
+> Fixes: 6ed1d7997561 ("ARM: dts: am3517-evm: Add support for UI board and Audio")
+> Signed-off-by: Adam Ford <aford173@gmail.com>
+> ---
+> I put the fixes tag here, because I feel that the pinmuxing should not
+> have depended on the bootloader, but if it's not appropriate, feel free
+> to drop the fixes tag when applying or I can submit a subsequent patch
+> with the fixes tag dropped.
 
-yes.
+Makes sense as a fix as confusing issues like this are annoying. So
+applying into fixes fixes with s/pux/mux/ typo correction.
 
-> 
-> Regards,
-> 
-> Tony
+Regards,
 
--- 
-Best regards,
-Grygorii, Ukraine
+Tony
