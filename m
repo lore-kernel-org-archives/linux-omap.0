@@ -2,329 +2,306 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57DF1C43217
-	for <linux-omap@archiver.kernel.org>; Tue, 12 Apr 2022 11:48:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAE7DC433FE
+	for <linux-omap@archiver.kernel.org>; Tue, 12 Apr 2022 13:23:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343797AbiDLLuV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 12 Apr 2022 07:50:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36032 "EHLO
+        id S1356173AbiDLNZf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 12 Apr 2022 09:25:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353391AbiDLLs0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2022 07:48:26 -0400
-Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A353618B18;
-        Tue, 12 Apr 2022 03:29:42 -0700 (PDT)
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 23CATYB7108170;
-        Tue, 12 Apr 2022 05:29:34 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1649759374;
-        bh=Ie1CjRD+pt23VZcOFMX0xR+Q4I0rfY1AoMsBHpHp70U=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=ZYozED5nXyWgW1b/Hei7GcBtstgLiGJBBu+ghvVSGQOcUF1xpmBDzz/nkz5UWUpjK
-         oxZ6e+y8MaM5Y+RviL1wxu1kbM/HbiTKJkrlYFB11q9R6QhXr4ieWLwMpLaVoLo/KA
-         2pCzTRTjcWXtnHTLedcHFxo3TBfPAUMXZrg4XwS8=
-Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 23CATYoI103449
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 12 Apr 2022 05:29:34 -0500
-Received: from DLEE104.ent.ti.com (157.170.170.34) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14; Tue, 12
- Apr 2022 05:29:33 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE104.ent.ti.com
- (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14 via
- Frontend Transport; Tue, 12 Apr 2022 05:29:33 -0500
-Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 23CATWPP005040;
-        Tue, 12 Apr 2022 05:29:32 -0500
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-To:     "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>
-CC:     <linux-kernel@vger.kernel.org>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
+        with ESMTP id S1356074AbiDLNY6 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2022 09:24:58 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 26D63BEC;
+        Tue, 12 Apr 2022 06:17:04 -0700 (PDT)
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id D8020814A;
+        Tue, 12 Apr 2022 13:14:28 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzk+dt@kernel.org>
+Cc:     devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
         Vignesh Raghavendra <vigneshr@ti.com>,
-        <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Vladimir Oltean <vladimir.oltean@nxp.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next v3 2/3] net: ethernet: ti: am65-cpsw: enable bc/mc storm prevention support
-Date:   Tue, 12 Apr 2022 13:29:28 +0300
-Message-ID: <20220412102929.30719-3-grygorii.strashko@ti.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20220412102929.30719-1-grygorii.strashko@ti.com>
-References: <20220412102929.30719-1-grygorii.strashko@ti.com>
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Subject: [PATCH 1/2] dt-bindings: timer: Update TI timer to yaml
+Date:   Tue, 12 Apr 2022 16:16:43 +0300
+Message-Id: <20220412131644.59195-2-tony@atomide.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220412131644.59195-1-tony@atomide.com>
+References: <20220412131644.59195-1-tony@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This patch enables support for ingress broadcast(BC)/multicast(MC) packets
-rate limiting in TI AM65x CPSW driver (the corresponding ALE support was
-added in previous patch) by implementing HW offload for simple tc-flower
-with policer action with matches on dst_mac/mask:
- - ff:ff:ff:ff:ff:ff/ff:ff:ff:ff:ff:ff has to be used for BC packets rate
-limiting (exact match)
- - 01:00:00:00:00:00/01:00:00:00:00:00 fixed value has to be used for MC
-packets rate limiting
+Let's update the TI timer binding to use yaml. As this binding is specific
+to the TI dual-mode timers also known as dm-timers, let's use file name
+ti,timer-dm.yaml to avoid confusion with other timers.
 
-The CPSW supports MC/BC packets rate limiting in packets/sec and affects
-all ingress MC/BC packets and serves as BC/MC storm prevention feature.
+We also correct the issue with the old binding that was out of date for
+several properties.
 
-Examples:
-- BC rate limit to 1000pps:
-  tc qdisc add dev eth0 clsact
-  tc filter add dev eth0 ingress flower skip_sw dst_mac ff:ff:ff:ff:ff:ff \
-  action police pkts_rate 1000 pkts_burst 1 drop
+The am43 related timers are undocumented, but compatible with the am3
+timers. Let's add the am43 timers too.
 
-- MC rate limit to 20000pps:
-  tc qdisc add dev eth0 clsact
-  tc filter add dev eth0 ingress flower skip_sw dst_mac 01:00:00:00:00:00/01:00:00:00:00:00 \
-  action police rate pkts_rate 20000 pkts_burst 1 drop
+The dm814 and dm816 timers are missing, let's add them.
 
-  pkts_burst - not used.
+Some timers on some SoCs are dual mapped, like the ABE timers on omap4
+and 5. The reg property maxItems must be updated to 2.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+The timer clocks can be managed by the parent interconnect target module
+with no clocks assigned for the timer node. And in some cases the SoC may
+need to configure additional clocks for the timer in addition to the
+functional clock.
+
+The clock names are optional and not specific to the comptible property.
+For example, dra7 timers on l3 interconnect do not need clock-names,while
+the timers on dra7 l4 interconnect need them with both being compatible
+with ti,omap5430-timer.
+
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/net/ethernet/ti/am65-cpsw-qos.c | 180 ++++++++++++++++++++++++
- drivers/net/ethernet/ti/am65-cpsw-qos.h |   8 ++
- 2 files changed, 188 insertions(+)
+ .../bindings/pwm/pwm-omap-dmtimer.txt         |   2 +-
+ .../bindings/timer/ti,timer-dm.yaml           | 161 ++++++++++++++++++
+ .../devicetree/bindings/timer/ti,timer.txt    |  44 -----
+ 3 files changed, 162 insertions(+), 45 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
+ delete mode 100644 Documentation/devicetree/bindings/timer/ti,timer.txt
 
-diff --git a/drivers/net/ethernet/ti/am65-cpsw-qos.c b/drivers/net/ethernet/ti/am65-cpsw-qos.c
-index ebcc6386cc34..aa32dd905e2b 100644
---- a/drivers/net/ethernet/ti/am65-cpsw-qos.c
-+++ b/drivers/net/ethernet/ti/am65-cpsw-qos.c
-@@ -8,10 +8,12 @@
+diff --git a/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt b/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
+--- a/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
++++ b/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
+@@ -2,7 +2,7 @@
  
- #include <linux/pm_runtime.h>
- #include <linux/time.h>
-+#include <net/pkt_cls.h>
- 
- #include "am65-cpsw-nuss.h"
- #include "am65-cpsw-qos.h"
- #include "am65-cpts.h"
-+#include "cpsw_ale.h"
- 
- #define AM65_CPSW_REG_CTL			0x004
- #define AM65_CPSW_PN_REG_CTL			0x004
-@@ -588,12 +590,190 @@ static int am65_cpsw_setup_taprio(struct net_device *ndev, void *type_data)
- 	return am65_cpsw_set_taprio(ndev, type_data);
- }
- 
-+static int am65_cpsw_qos_clsflower_add_policer(struct am65_cpsw_port *port,
-+					       struct netlink_ext_ack *extack,
-+					       struct flow_cls_offload *cls,
-+					       u64 rate_pkt_ps)
-+{
-+	struct flow_rule *rule = flow_cls_offload_flow_rule(cls);
-+	struct flow_dissector *dissector = rule->match.dissector;
-+	static const u8 mc_mac[] = {0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
-+	struct am65_cpsw_qos *qos = &port->qos;
-+	struct flow_match_eth_addrs match;
-+	int ret;
+ Required properties:
+ - compatible: Shall contain "ti,omap-dmtimer-pwm".
+-- ti,timers: phandle to PWM capable OMAP timer. See timer/ti,timer.txt for info
++- ti,timers: phandle to PWM capable OMAP timer. See timer/ti,timer-dm.yaml for info
+   about these timers.
+ - #pwm-cells: Should be 3. See pwm.yaml in this directory for a description of
+   the cells format.
+diff --git a/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml b/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
+new file mode 100644
+--- /dev/null
++++ b/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
+@@ -0,0 +1,161 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/timer/ti,timer-dm.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
 +
-+	if (dissector->used_keys &
-+	    ~(BIT(FLOW_DISSECTOR_KEY_BASIC) |
-+	      BIT(FLOW_DISSECTOR_KEY_CONTROL) |
-+	      BIT(FLOW_DISSECTOR_KEY_ETH_ADDRS))) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Unsupported keys used");
-+		return -EOPNOTSUPP;
-+	}
++title: TI dual-mode timer
 +
-+	if (!flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ETH_ADDRS)) {
-+		NL_SET_ERR_MSG_MOD(extack, "Not matching on eth address");
-+		return -EOPNOTSUPP;
-+	}
++maintainers:
++  - Tony Lindgren <tony@atomide.com>
 +
-+	flow_rule_match_eth_addrs(rule, &match);
++description: |
++  The TI dual-mode timer is a general purpose timer with PWM capabilities.
 +
-+	if (!is_zero_ether_addr(match.mask->src)) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Matching on source MAC not supported");
-+		return -EOPNOTSUPP;
-+	}
++properties:
++  compatible:
++    oneOf:
++      - items:
++          - enum:
++              - ti,am335x-timer
++              - ti,am335x-timer-1ms
++              - ti,dm814-timer
++              - ti,dm816-timer
++              - ti,omap2420-timer
++              - ti,omap3430-timer
++              - ti,omap4430-timer
++              - ti,omap5430-timer
++      - items:
++          - const: ti,am4372-timer
++          - const: ti,am335x-timer
++      - items:
++          - const: ti,am4372-timer-1ms
++          - const: ti,am335x-timer-1ms
 +
-+	if (is_broadcast_ether_addr(match.key->dst) &&
-+	    is_broadcast_ether_addr(match.mask->dst)) {
-+		ret = cpsw_ale_rx_ratelimit_bc(port->common->ale, port->port_id, rate_pkt_ps);
-+		if (ret)
-+			return ret;
++  reg:
++    minItems: 1
++    maxItems: 2
 +
-+		qos->ale_bc_ratelimit.cookie = cls->cookie;
-+		qos->ale_bc_ratelimit.rate_packet_ps = rate_pkt_ps;
-+	} else if (ether_addr_equal_unaligned(match.key->dst, mc_mac) &&
-+		   ether_addr_equal_unaligned(match.mask->dst, mc_mac)) {
-+		ret = cpsw_ale_rx_ratelimit_mc(port->common->ale, port->port_id, rate_pkt_ps);
-+		if (ret)
-+			return ret;
++  clocks:
++    minItems: 1
++    maxItems: 2
 +
-+		qos->ale_mc_ratelimit.cookie = cls->cookie;
-+		qos->ale_mc_ratelimit.rate_packet_ps = rate_pkt_ps;
-+	} else {
-+		NL_SET_ERR_MSG_MOD(extack, "Not supported matching key");
-+		return -EOPNOTSUPP;
-+	}
++  clock-names:
++    minItems: 1
++    maxItems: 2
 +
-+	return 0;
-+}
++  interrupts:
++    description:
++      Interrupt if available. The timer PWM features may be usable
++      in a limited way even without interrupts.
++    maxItems: 1
 +
-+static int am65_cpsw_qos_clsflower_policer_validate(const struct flow_action *action,
-+						    const struct flow_action_entry *act,
-+						    struct netlink_ext_ack *extack)
-+{
-+	if (act->police.exceed.act_id != FLOW_ACTION_DROP) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Offload not supported when exceed action is not drop");
-+		return -EOPNOTSUPP;
-+	}
++  ti,timer-alwon:
++    description:
++      Timer is always enabled when the SoC is powered. Note that some SoCs like
++      am335x can suspend to PM coprocessor RTC only mode and in that case the
++      SoC power is cut including timers.
++    type: boolean
 +
-+	if (act->police.notexceed.act_id != FLOW_ACTION_PIPE &&
-+	    act->police.notexceed.act_id != FLOW_ACTION_ACCEPT) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Offload not supported when conform action is not pipe or ok");
-+		return -EOPNOTSUPP;
-+	}
++  ti,timer-dsp:
++    description:
++      Timer is routable to the DSP in addition to the operating system.
++    type: boolean
 +
-+	if (act->police.notexceed.act_id == FLOW_ACTION_ACCEPT &&
-+	    !flow_action_is_last_entry(action, act)) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Offload not supported when conform action is ok, but action is not last");
-+		return -EOPNOTSUPP;
-+	}
++  ti,timer-pwm:
++    description:
++      Timer has been wired for PWM capability.
++    type: boolean
 +
-+	if (act->police.rate_bytes_ps || act->police.peakrate_bytes_ps ||
-+	    act->police.avrate || act->police.overhead) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Offload not supported when bytes per second/peakrate/avrate/overhead is configured");
-+		return -EOPNOTSUPP;
-+	}
++  ti,timer-secure:
++    description:
++      Timer access has been limited to secure mode only.
++    type: boolean
 +
-+	return 0;
-+}
++  ti,hwmods:
++    description:
++      Name of the HWMOD associated with timer. This is for legacy
++      omap2/3 platforms only.
++    $ref: /schemas/types.yaml#/definitions/string
++    deprecated: true
 +
-+static int am65_cpsw_qos_configure_clsflower(struct am65_cpsw_port *port,
-+					     struct flow_cls_offload *cls)
-+{
-+	struct flow_rule *rule = flow_cls_offload_flow_rule(cls);
-+	struct netlink_ext_ack *extack = cls->common.extack;
-+	const struct flow_action_entry *act;
-+	int i, ret;
++required:
++  - compatible
++  - reg
++  - interrupts
 +
-+	flow_action_for_each(i, act, &rule->action) {
-+		switch (act->id) {
-+		case FLOW_ACTION_POLICE:
-+			ret = am65_cpsw_qos_clsflower_policer_validate(&rule->action, act, extack);
-+			if (ret)
-+				return ret;
++additionalProperties: false
 +
-+			return am65_cpsw_qos_clsflower_add_policer(port, extack, cls,
-+								   act->police.rate_pkt_ps);
-+		default:
-+			NL_SET_ERR_MSG_MOD(extack,
-+					   "Action not supported");
-+			return -EOPNOTSUPP;
-+		}
-+	}
-+	return -EOPNOTSUPP;
-+}
++allOf:
++  - if:
++      properties:
++        compatible:
++          contains:
++            enum:
++              - ti,omap3430-timer
++              - ti,omap4430-timer
++              - ti,omap5430-timer
++    then:
++      properties:
++        reg:
++          oneOf:
++            - items:
++                - description: IO address
++            - items:
++                - description: CPU to L4 ABE IO address
++                - description: L3 to L4 ABE IO address
++        clocks:
++          oneOf:
++            - items:
++                - description: Functional clock
++            - items:
++                - description: Functional clock
++                - description: System clock
++        clock-names:
++          oneOf:
++            - items:
++                - const: fck
++            - items:
++                - const: fck
++                - const: timer_sys_ck
++    else:
++      properties:
++        reg:
++          items:
++            - description: IO address
++        clocks:
++          items:
++            - description: Functional clock
++        clock-names:
++          items:
++            - const: fck
 +
-+static int am65_cpsw_qos_delete_clsflower(struct am65_cpsw_port *port, struct flow_cls_offload *cls)
-+{
-+	struct am65_cpsw_qos *qos = &port->qos;
++  - if:
++      properties:
++        compatible:
++          contains:
++            enum:
++              - ti,dm814-timer
++              - ti,dm816-timer
++              - ti,omap2420-timer
++              - ti,omap3430-timer
++    then:
++      properties:
++        ti,hwmods:
++          items:
++            - pattern: "^timer([1-9]|1[0-2])$"
++    else:
++      properties:
++        ti,hwmods: false
 +
-+	if (cls->cookie == qos->ale_bc_ratelimit.cookie) {
-+		qos->ale_bc_ratelimit.cookie = 0;
-+		qos->ale_bc_ratelimit.rate_packet_ps = 0;
-+		cpsw_ale_rx_ratelimit_bc(port->common->ale, port->port_id, 0);
-+	}
-+
-+	if (cls->cookie == qos->ale_mc_ratelimit.cookie) {
-+		qos->ale_mc_ratelimit.cookie = 0;
-+		qos->ale_mc_ratelimit.rate_packet_ps = 0;
-+		cpsw_ale_rx_ratelimit_mc(port->common->ale, port->port_id, 0);
-+	}
-+
-+	return 0;
-+}
-+
-+static int am65_cpsw_qos_setup_tc_clsflower(struct am65_cpsw_port *port,
-+					    struct flow_cls_offload *cls_flower)
-+{
-+	switch (cls_flower->command) {
-+	case FLOW_CLS_REPLACE:
-+		return am65_cpsw_qos_configure_clsflower(port, cls_flower);
-+	case FLOW_CLS_DESTROY:
-+		return am65_cpsw_qos_delete_clsflower(port, cls_flower);
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+}
-+
-+static int am65_cpsw_qos_setup_tc_block_cb(enum tc_setup_type type, void *type_data, void *cb_priv)
-+{
-+	struct am65_cpsw_port *port = cb_priv;
-+
-+	if (!tc_cls_can_offload_and_chain0(port->ndev, type_data))
-+		return -EOPNOTSUPP;
-+
-+	switch (type) {
-+	case TC_SETUP_CLSFLOWER:
-+		return am65_cpsw_qos_setup_tc_clsflower(port, type_data);
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+}
-+
-+static LIST_HEAD(am65_cpsw_qos_block_cb_list);
-+
-+static int am65_cpsw_qos_setup_tc_block(struct net_device *ndev, struct flow_block_offload *f)
-+{
-+	struct am65_cpsw_port *port = am65_ndev_to_port(ndev);
-+
-+	return flow_block_cb_setup_simple(f, &am65_cpsw_qos_block_cb_list,
-+					  am65_cpsw_qos_setup_tc_block_cb,
-+					  port, port, true);
-+}
-+
- int am65_cpsw_qos_ndo_setup_tc(struct net_device *ndev, enum tc_setup_type type,
- 			       void *type_data)
- {
- 	switch (type) {
- 	case TC_SETUP_QDISC_TAPRIO:
- 		return am65_cpsw_setup_taprio(ndev, type_data);
-+	case TC_SETUP_BLOCK:
-+		return am65_cpsw_qos_setup_tc_block(ndev, type_data);
- 	default:
- 		return -EOPNOTSUPP;
- 	}
-diff --git a/drivers/net/ethernet/ti/am65-cpsw-qos.h b/drivers/net/ethernet/ti/am65-cpsw-qos.h
-index e8f1b6b59e93..fb223b43b196 100644
---- a/drivers/net/ethernet/ti/am65-cpsw-qos.h
-+++ b/drivers/net/ethernet/ti/am65-cpsw-qos.h
-@@ -14,11 +14,19 @@ struct am65_cpsw_est {
- 	struct tc_taprio_qopt_offload taprio;
- };
- 
-+struct am65_cpsw_ale_ratelimit {
-+	unsigned long cookie;
-+	u64 rate_packet_ps;
-+};
-+
- struct am65_cpsw_qos {
- 	struct am65_cpsw_est *est_admin;
- 	struct am65_cpsw_est *est_oper;
- 	ktime_t link_down_time;
- 	int link_speed;
-+
-+	struct am65_cpsw_ale_ratelimit ale_bc_ratelimit;
-+	struct am65_cpsw_ale_ratelimit ale_mc_ratelimit;
- };
- 
- int am65_cpsw_qos_ndo_setup_tc(struct net_device *ndev, enum tc_setup_type type,
++examples:
++  - |
++    timer1: timer@0 {
++      compatible = "ti,am335x-timer-1ms";
++      reg = <0x0 0x400>;
++      interrupts = <67>;
++      ti,timer-alwon;
++      clocks = <&timer1_fck>;
++      clock-names = "fck";
++    };
++...
+diff --git a/Documentation/devicetree/bindings/timer/ti,timer.txt b/Documentation/devicetree/bindings/timer/ti,timer.txt
+deleted file mode 100644
+--- a/Documentation/devicetree/bindings/timer/ti,timer.txt
++++ /dev/null
+@@ -1,44 +0,0 @@
+-OMAP Timer bindings
+-
+-Required properties:
+-- compatible:		Should be set to one of the below. Please note that
+-			OMAP44xx devices have timer instances that are 100%
+-			register compatible with OMAP3xxx devices as well as
+-			newer timers that are not 100% register compatible.
+-			So for OMAP44xx devices timer instances may use
+-			different compatible strings.
+-
+-			ti,omap2420-timer (applicable to OMAP24xx devices)
+-			ti,omap3430-timer (applicable to OMAP3xxx/44xx devices)
+-			ti,omap4430-timer (applicable to OMAP44xx devices)
+-			ti,omap5430-timer (applicable to OMAP543x devices)
+-			ti,am335x-timer	(applicable to AM335x devices)
+-			ti,am335x-timer-1ms (applicable to AM335x devices)
+-
+-- reg:			Contains timer register address range (base address and
+-			length).
+-- interrupts: 		Contains the interrupt information for the timer. The
+-			format is being dependent on which interrupt controller
+-			the OMAP device uses.
+-- ti,hwmods:		Name of the hwmod associated to the timer, "timer<X>",
+-			where <X> is the instance number of the timer from the
+-			HW spec.
+-
+-Optional properties:
+-- ti,timer-alwon:	Indicates the timer is in an alway-on power domain.
+-- ti,timer-dsp:		Indicates the timer can interrupt the on-chip DSP in
+-			addition to the ARM CPU.
+-- ti,timer-pwm: 	Indicates the timer can generate a PWM output.
+-- ti,timer-secure: 	Indicates the timer is reserved on a secure OMAP device
+-			and therefore cannot be used by the kernel.
+-
+-Example:
+-
+-timer12: timer@48304000 {
+-	compatible = "ti,omap3430-timer";
+-	reg = <0x48304000 0x400>;
+-	interrupts = <95>;
+-	ti,hwmods = "timer12"
+-	ti,timer-alwon;
+-	ti,timer-secure;
+-};
 -- 
-2.17.1
-
+2.35.1
