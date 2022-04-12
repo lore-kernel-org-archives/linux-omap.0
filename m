@@ -2,24 +2,24 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD838C433FE
-	for <linux-omap@archiver.kernel.org>; Tue, 12 Apr 2022 10:12:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EE41C433FE
+	for <linux-omap@archiver.kernel.org>; Tue, 12 Apr 2022 10:13:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233550AbiDLKPI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 12 Apr 2022 06:15:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48254 "EHLO
+        id S234044AbiDLKPN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 12 Apr 2022 06:15:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352300AbiDLJmd (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2022 05:42:33 -0400
+        with ESMTP id S1354423AbiDLKDY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2022 06:03:24 -0400
 Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B29AE13DFD;
-        Tue, 12 Apr 2022 01:51:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B6F69255A0;
+        Tue, 12 Apr 2022 02:10:42 -0700 (PDT)
 Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 00B628061;
-        Tue, 12 Apr 2022 08:49:06 +0000 (UTC)
-Date:   Tue, 12 Apr 2022 11:51:38 +0300
+        by muru.com (Postfix) with ESMTPS id 688D98061;
+        Tue, 12 Apr 2022 09:08:09 +0000 (UTC)
+Date:   Tue, 12 Apr 2022 12:10:40 +0300
 From:   Tony Lindgren <tony@atomide.com>
-To:     Grygorii Strashko <grygorii.strashko@ti.com>
+To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 Cc:     Rob Herring <robh+dt@kernel.org>,
         Krzysztof Kozlowski <krzk+dt@kernel.org>,
         devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
@@ -28,36 +28,57 @@ Cc:     Rob Herring <robh+dt@kernel.org>,
         Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
         Vignesh Raghavendra <vigneshr@ti.com>
 Subject: Re: [PATCH 1/2] dt-bindings: timer: Update TI timer to yaml
-Message-ID: <YlU9mtM23bllohK3@atomide.com>
+Message-ID: <YlVCEIPFQjFs+kwM@atomide.com>
 References: <20220411111858.16814-1-tony@atomide.com>
- <173629f2-b37e-75ad-7601-4f24b8561f8a@ti.com>
+ <3f3ec103-a7d8-b56d-afff-94a0379dffec@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <173629f2-b37e-75ad-7601-4f24b8561f8a@ti.com>
+In-Reply-To: <3f3ec103-a7d8-b56d-afff-94a0379dffec@linaro.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [220412 08:35]:
-> On 11/04/2022 14:18, Tony Lindgren wrote:
+Hi,
+
+* Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org> [220412 08:58]:
+> On 11/04/2022 13:18, Tony Lindgren wrote:
+> > Some timers on some SoCs are dual mapped, like the ABE timers on omap4
+> > and 5. The reg property maxItems must be updated to 2.
+
+So on omap4/5 there are timers with a single IO register and with
+dual mapped IO registers.
+
+> (...)
+> 
 > > +  reg:
 > > +    minItems: 1
 > > +    maxItems: 2
 > > +    description: Timer IO register range
+> > +
 > 
-> if i'm not mistaken - you need to provide description for every item unless it's obviously determined by "-names" properties
-
-OK thanks will update for reg and clocks.
-
-> > +  clock-names:
-> > +    description:
-> > +      Timer clock names like "fck", "timer_sys_ck".
+> Apart from what Grygorii said, it would be useful if you add "if:then:"
+> case constraining it per implementation (as I understood from commit msg
+> only some use double mapping).
 > 
-> and description here make no sense
+> This looks like:
+> https://elixir.bootlin.com/linux/v5.18-rc2/source/Documentation/devicetree/bindings/clock/samsung,exynos7885-clock.yaml#L53
 
-So you just want to leave out the description from the clock-names if
-I read your comment above right?
+Yes I tried, but see the above. The compatible property is the same for
+single mapped and dual mapped timers on the same SoC for omap4/5.
+
+> Similarly should be done for clocks, unless it's impossible (same
+> compatible uses different setups of clocks).
+
+It's the same situation for clocks, the same compatible is used for
+timers with one clock and timers with two clocks for example on dra7.
+
+I'll check the description again to clarify this, maybe it's not
+clear yet.
+
+> BTW, it's a bit confusing it is not a v2...
+
+Oops sorry looks like I forgot to update the version.
 
 Regards,
 
