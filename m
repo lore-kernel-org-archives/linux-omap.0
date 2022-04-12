@@ -2,202 +2,90 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5215BC4332F
-	for <linux-omap@archiver.kernel.org>; Tue, 12 Apr 2022 02:27:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90256C433FE
+	for <linux-omap@archiver.kernel.org>; Tue, 12 Apr 2022 10:12:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238083AbiDLC3T (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 11 Apr 2022 22:29:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36240 "EHLO
+        id S1351976AbiDLKOt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 12 Apr 2022 06:14:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48264 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238768AbiDLC3S (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 11 Apr 2022 22:29:18 -0400
-Received: from mail-oi1-x22f.google.com (mail-oi1-x22f.google.com [IPv6:2607:f8b0:4864:20::22f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBC272E9DE
-        for <linux-omap@vger.kernel.org>; Mon, 11 Apr 2022 19:26:59 -0700 (PDT)
-Received: by mail-oi1-x22f.google.com with SMTP id w127so17662462oig.10
-        for <linux-omap@vger.kernel.org>; Mon, 11 Apr 2022 19:26:59 -0700 (PDT)
+        with ESMTP id S1352276AbiDLJmd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2022 05:42:33 -0400
+Received: from mail-ej1-x634.google.com (mail-ej1-x634.google.com [IPv6:2a00:1450:4864:20::634])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54F0013EA0
+        for <linux-omap@vger.kernel.org>; Tue, 12 Apr 2022 01:52:58 -0700 (PDT)
+Received: by mail-ej1-x634.google.com with SMTP id i27so35922793ejd.9
+        for <linux-omap@vger.kernel.org>; Tue, 12 Apr 2022 01:52:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=mK8JcrG8Qx2kyMEBNEpiV/VoNjnbjCx6vfxA6ZQWMKQ=;
-        b=rS0NZmTt44rjYAkBCsrNwXriu57BaIZUATZhgV6TKotVaRv3kECL/YGYu8wDiILrsd
-         iJ936GXx4PSHbW5R3y/RIa3UbuWCvPfAzETQwVo9Q/PI93RfPmwfyDF8H0+qd9GIbZWi
-         PAfR7CDPhb/VpqR/G1y4QOiZPYVYnf3dbEw3e5y/cy2cfIU0iSA9Ui2G9X1yFvp/0WLK
-         L741lCGtTRiiohYk/HqzoGjJhciuyf5aTr4wG7vcwqYI06dIyJB1Dob1NcHzGGByc4UB
-         aeXLfQckVVGFq3YWmnx9ynY99ho0pCrCOQDaBWdDpSkeEJ/iLXxUi6UDYCtqHZ8YQwQK
-         ni/A==
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=dj68v7iu4Zt3Rzs0Pr5P8M0h7tKrLiKnCdRAOyQi4b8=;
+        b=HQ55l30vbFVJvqpeXp1l8IXzSOjWY485eG2FfD+kUxM4bjNgoBmffODquo7YfAji4k
+         v7opRaTpvu1EhneX/zxbWhlxQSotXi6u+ZBKyJ/MXh5r8hHzVoh9/cOhfEeX5hPz8QxV
+         hgZBRlJExPbcUnCZAmVe9po7PtDUnmEK68QKMvsh/rP5T+ZuxPkcfhEF8kU5MNEAe+F5
+         FWG7zYI7ix4Aaco6FL433jpU9vAb46I91/unZHoiE/2n8isXKF1YBB3OQtAN//JsKQvA
+         qPneSOsT/dj1m2vLzNqQY7eNrVo8dk8AqFz/nzuR81MM8JMYZQvJ8gahf9jVcB6axKWS
+         h99A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=mK8JcrG8Qx2kyMEBNEpiV/VoNjnbjCx6vfxA6ZQWMKQ=;
-        b=Y+2KYZqHuTa3Kk8DB1ycqGQccZXMy8A3m/nhPdSFLQngdkA9+dFnQ1QZ0mSKG6PsKi
-         2udj6N7LHc5ZiozAjIUAvUGNbR83CS74pjSD2i+nH22lEq0zPljvJ1r9RhugKRK0stIv
-         OeeJMbNXDHyBAkUDrSW1yUpHlENdjwkGXI2MK103ubhJcvCKQGuyUPDzVWGJmI8ZT5fo
-         NZHYz52oVfT2bj9WAXmC1t+xT5Q4BowrFilzKV+cotZrXJvhJzFdNLv3wNrVc2Fam59a
-         Itq8MiY2Tx4sqmva9FZZ8m57PaE2RQQkhF+TwVIVqEIe4XD+ByfbIQJ/3BZorxRUzbuE
-         m+lw==
-X-Gm-Message-State: AOAM531wuqqQoMrHkyErV0Ej0zZBsTs7x1uEEkzOW2E1z0oo0sLE2s1O
-        KpxHoa620DjVxXFExfQ0BGG0MbVskRrrDvNr
-X-Google-Smtp-Source: ABdhPJwiPXSmxKWuhSyRkhkg/sD3E+kIyeohpDu6LQ6plE/QLEfcaNrVHANbTmxfzoYlkQ3d7p6H0A==
-X-Received: by 2002:a05:6808:1827:b0:2da:5085:2e78 with SMTP id bh39-20020a056808182700b002da50852e78mr868079oib.172.1649730419134;
-        Mon, 11 Apr 2022 19:26:59 -0700 (PDT)
-Received: from builder.lan ([2600:1700:a0:3dc8:3697:f6ff:fe85:aac9])
-        by smtp.gmail.com with ESMTPSA id g25-20020a544f99000000b002da70c710b8sm12286102oiy.54.2022.04.11.19.26.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 11 Apr 2022 19:26:58 -0700 (PDT)
-Date:   Mon, 11 Apr 2022 21:26:56 -0500
-From:   Bjorn Andersson <bjorn.andersson@linaro.org>
-To:     Rob Herring <robh@kernel.org>
-Cc:     soc@kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        Krzysztof Kozlowski <krzk+dt@kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Beno?t Cousson <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Andy Gross <agross@kernel.org>, linux-omap@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH] ARM: dts: Fix more boolean properties with values
-Message-ID: <YlTjcNNM/22wtjSY@builder.lan>
-References: <20220407225107.2175958-1-robh@kernel.org>
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=dj68v7iu4Zt3Rzs0Pr5P8M0h7tKrLiKnCdRAOyQi4b8=;
+        b=hE0Hwe2yWebGKffA6Kj9V4fIkUPJWGWNuouIJ9sdHQbVdMOdcwiOrMdodWp9rs+EWT
+         8nNElaIEnBjstz61PrIdJS2D2elSdBg8lwTh/tjYt+Amc3eW7XN6hv4osapEvVWFmLA5
+         8M8DqhX5YMLprdWIW3xUAdNvkgyiX4wJxLMXBNJQThpmZf8/Ulj6T4uqbpLhVq0znT0e
+         lxQVbVq2dAbPc3Zj46GNziffwPjHFjQUzPpNNn4BisPxT+fv1tcU4HqE/sZ3ma4ewz5Y
+         /QIbE7e9pOU0AHVZ+ALK3RAmSe/j0TMlrTsQ+zqcDSHme/j5NHT/ixbiIsnHocQHLpzJ
+         fGFw==
+X-Gm-Message-State: AOAM5330JO6zyTKy2GMHuHoNEPj+8VOEpyQSX7ySgVg3o+QkzvNk+7+C
+        Or9FJUu7a9b+3M+qX1m6o8oB+g==
+X-Google-Smtp-Source: ABdhPJwn2W0cfR+I7hVcqq37Lr+K8WL4A4Qnbv5VSlQnKDOTGwkfVuSezqX9jlnGL2F05n3DFIAdig==
+X-Received: by 2002:a17:907:94cd:b0:6e0:b001:aeb6 with SMTP id dn13-20020a17090794cd00b006e0b001aeb6mr33427745ejc.283.1649753576934;
+        Tue, 12 Apr 2022 01:52:56 -0700 (PDT)
+Received: from [192.168.0.194] (xdsl-188-155-201-27.adslplus.ch. [188.155.201.27])
+        by smtp.gmail.com with ESMTPSA id s4-20020a170906bc4400b006e893908c4csm2156922ejv.60.2022.04.12.01.52.55
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 12 Apr 2022 01:52:56 -0700 (PDT)
+Message-ID: <0c87a45c-3d77-1941-f095-4547b8f46390@linaro.org>
+Date:   Tue, 12 Apr 2022 10:52:55 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20220407225107.2175958-1-robh@kernel.org>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: [PATCH 2/2] dt-bindings: timer: Add compatible for am6 for TI
+ timer-dm
+Content-Language: en-US
+To:     Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzk+dt@kernel.org>
+Cc:     devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>
+References: <20220411111858.16814-1-tony@atomide.com>
+ <20220411111858.16814-2-tony@atomide.com>
+From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+In-Reply-To: <20220411111858.16814-2-tony@atomide.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu 07 Apr 17:51 CDT 2022, Rob Herring wrote:
-
-> Boolean properties in DT are present or not present and don't take a value.
-> A property such as 'foo = <0>;' evaluated to true. IOW, the value doesn't
-> matter.
+On 11/04/2022 13:18, Tony Lindgren wrote:
+> Let's add compatible for ti,am654-timer for TI am64, am65 and j72 SoCs.
+> As the timer hardware is the same between am64, am65 and j72 we use the
+> compatible name for the earliest SoC with this timer.
 > 
-> It may have been intended that 0 values are false, but there is no change
-> in behavior with this patch.
+> The timer interrupts are not routable for the operating system for some
+> timers on am6. Let's make sure the interrupts are configured for the
+> timers on all other SoCs.
 > 
-> Cc: Krzysztof Kozlowski <krzk+dt@kernel.org>
-> Cc: Nicolas Ferre <nicolas.ferre@microchip.com>
-> Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
-> Cc: Claudiu Beznea <claudiu.beznea@microchip.com>
-> Cc: Shawn Guo <shawnguo@kernel.org>
-> Cc: Sascha Hauer <s.hauer@pengutronix.de>
-> Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
-> Cc: Fabio Estevam <festevam@gmail.com>
-> Cc: NXP Linux Team <linux-imx@nxp.com>
-> Cc: "Benoît Cousson" <bcousson@baylibre.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Andy Gross <agross@kernel.org>
-> Cc: Bjorn Andersson <bjorn.andersson@linaro.org>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-arm-msm@vger.kernel.org
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> ---
->  arch/arm/boot/dts/at91-sam9_l9260.dts            | 2 +-
->  arch/arm/boot/dts/imx28-ts4600.dts               | 2 +-
->  arch/arm/boot/dts/logicpd-torpedo-baseboard.dtsi | 4 ++--
->  arch/arm/boot/dts/qcom-ipq8064.dtsi              | 8 ++++----
 
-Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 
-Regards,
-Bjorn
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 
->  4 files changed, 8 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/at91-sam9_l9260.dts b/arch/arm/boot/dts/at91-sam9_l9260.dts
-> index 1e2a28c2f365..2fb51b9aca2a 100644
-> --- a/arch/arm/boot/dts/at91-sam9_l9260.dts
-> +++ b/arch/arm/boot/dts/at91-sam9_l9260.dts
-> @@ -101,7 +101,7 @@ pinctrl_board_mmc0: mmc0-board {
->  		nand0: nand@40000000 {
->  			nand-bus-width = <8>;
->  			nand-ecc-mode = "soft";
-> -			nand-on-flash-bbt = <1>;
-> +			nand-on-flash-bbt;
->  			status = "okay";
->  		};
->  
-> diff --git a/arch/arm/boot/dts/imx28-ts4600.dts b/arch/arm/boot/dts/imx28-ts4600.dts
-> index 097ec35c62d8..0d58da1c0cc5 100644
-> --- a/arch/arm/boot/dts/imx28-ts4600.dts
-> +++ b/arch/arm/boot/dts/imx28-ts4600.dts
-> @@ -26,7 +26,7 @@ ssp0: spi@80010000 {
->  				pinctrl-0 = <&mmc0_4bit_pins_a
->  					     &mmc0_sck_cfg
->  					     &en_sd_pwr>;
-> -				broken-cd = <1>;
-> +				broken-cd;
->  				bus-width = <4>;
->  				vmmc-supply = <&reg_vddio_sd0>;
->  				status = "okay";
-> diff --git a/arch/arm/boot/dts/logicpd-torpedo-baseboard.dtsi b/arch/arm/boot/dts/logicpd-torpedo-baseboard.dtsi
-> index b4664ab00256..d3da8b1b473b 100644
-> --- a/arch/arm/boot/dts/logicpd-torpedo-baseboard.dtsi
-> +++ b/arch/arm/boot/dts/logicpd-torpedo-baseboard.dtsi
-> @@ -118,8 +118,8 @@ usb@6,0 {
->  		gpmc,device-width = <2>;
->  		gpmc,wait-pin = <0>;
->  		gpmc,burst-length = <4>;
-> -		gpmc,cycle2cycle-samecsen = <1>;
-> -		gpmc,cycle2cycle-diffcsen = <1>;
-> +		gpmc,cycle2cycle-samecsen;
-> +		gpmc,cycle2cycle-diffcsen;
->  		gpmc,cs-on-ns = <0>;
->  		gpmc,cs-rd-off-ns = <45>;
->  		gpmc,cs-wr-off-ns = <45>;
-> diff --git a/arch/arm/boot/dts/qcom-ipq8064.dtsi b/arch/arm/boot/dts/qcom-ipq8064.dtsi
-> index 996f4458d9fc..8cb04aa8ed2f 100644
-> --- a/arch/arm/boot/dts/qcom-ipq8064.dtsi
-> +++ b/arch/arm/boot/dts/qcom-ipq8064.dtsi
-> @@ -972,7 +972,7 @@ gmac0: ethernet@37000000 {
->  
->  			snps,axi-config = <&stmmac_axi_setup>;
->  			snps,pbl = <32>;
-> -			snps,aal = <1>;
-> +			snps,aal;
->  
->  			qcom,nss-common = <&nss_common>;
->  			qcom,qsgmii-csr = <&qsgmii_csr>;
-> @@ -996,7 +996,7 @@ gmac1: ethernet@37200000 {
->  
->  			snps,axi-config = <&stmmac_axi_setup>;
->  			snps,pbl = <32>;
-> -			snps,aal = <1>;
-> +			snps,aal;
->  
->  			qcom,nss-common = <&nss_common>;
->  			qcom,qsgmii-csr = <&qsgmii_csr>;
-> @@ -1020,7 +1020,7 @@ gmac2: ethernet@37400000 {
->  
->  			snps,axi-config = <&stmmac_axi_setup>;
->  			snps,pbl = <32>;
-> -			snps,aal = <1>;
-> +			snps,aal;
->  
->  			qcom,nss-common = <&nss_common>;
->  			qcom,qsgmii-csr = <&qsgmii_csr>;
-> @@ -1044,7 +1044,7 @@ gmac3: ethernet@37600000 {
->  
->  			snps,axi-config = <&stmmac_axi_setup>;
->  			snps,pbl = <32>;
-> -			snps,aal = <1>;
-> +			snps,aal;
->  
->  			qcom,nss-common = <&nss_common>;
->  			qcom,qsgmii-csr = <&qsgmii_csr>;
-> -- 
-> 2.32.0
-> 
+
+Best regards,
+Krzysztof
