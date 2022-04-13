@@ -2,57 +2,165 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41A02C433EF
-	for <linux-omap@archiver.kernel.org>; Wed, 13 Apr 2022 09:32:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AE54C433EF
+	for <linux-omap@archiver.kernel.org>; Wed, 13 Apr 2022 09:35:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230306AbiDMJec (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 13 Apr 2022 05:34:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43742 "EHLO
+        id S229586AbiDMJh5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 13 Apr 2022 05:37:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231166AbiDMJeb (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 13 Apr 2022 05:34:31 -0400
-X-Greylist: delayed 3300 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 13 Apr 2022 02:32:11 PDT
-Received: from mail.growthmindset24.pl (mail.growthmindset24.pl [212.237.36.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 812F853B69
-        for <linux-omap@vger.kernel.org>; Wed, 13 Apr 2022 02:32:11 -0700 (PDT)
-Received: by mail.growthmindset24.pl (Postfix, from userid 1001)
-        id 33E4A88B1B; Wed, 13 Apr 2022 08:41:25 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=growthmindset24.pl;
-        s=mail; t=1649835775;
-        bh=FDuFY3XQoq0gMX1b2gxgT7Py2p4Sxl0PJZYZ4NVaPho=;
-        h=Date:From:To:Subject:From;
-        b=w+6yxFnSna6/Vf5LI+ZBp2gu+r3b5efN+mkV/CRX1lEF88bdkMPiPIV+toFFSu+Q6
-         4e9wWRQxCLDzhWctVO7Dwi7fDAzrhKMDuDhqOStKngLGTofXU4Ym0P+M8imze1yvnE
-         dRdJguhde7taASSgwblKBoCMX733wqRcVPK/+WYc1+sAzGf/S0s6E7AThZASpq+3El
-         LpKnLf5KmLWD3iVhlgYEl+peVpY6LctpcPMKCKk1zKEi/buu5Tibon7/5RUvTnEkXB
-         rAhWlx1aW59C0Z8mWDOCCZB8ciM4jdG4JhsvaHalJ0nBxxiWGnjRMCNKGRwQn2+ONO
-         rvuX380IMRofA==
-Received: by mail.growthmindset24.pl for <linux-omap@vger.kernel.org>; Wed, 13 Apr 2022 07:40:10 GMT
-Message-ID: <20220413074502-0.1.2x.dtwd.0.lma3j42c6o@growthmindset24.pl>
-Date:   Wed, 13 Apr 2022 07:40:10 GMT
-From:   =?UTF-8?Q? "Przemys=C5=82aw_Wr=C3=B3blewski" ?= 
-        <przemyslaw.wroblewski@growthmindset24.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: Wycena paneli fotowoltaicznych
-X-Mailer: mail.growthmindset24.pl
+        with ESMTP id S231349AbiDMJhz (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 13 Apr 2022 05:37:55 -0400
+Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CFE653E10;
+        Wed, 13 Apr 2022 02:35:34 -0700 (PDT)
+Received: by mail-pj1-x1029.google.com with SMTP id md4so1413954pjb.4;
+        Wed, 13 Apr 2022 02:35:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=/a7BzFN2ctOPRBd9oUWUrScQo5EEkuSIQfpImBe6rnE=;
+        b=I90iibzSdzn+cqhB2DXoa6KLTCJaYar2EiIgmCSBrZVg3dCjj52kRl5OqwkY2lHsys
+         l8aIKnzASwNb2U5xuJ4ZBayF3bLN9uv9cVQg5wwpQLRSkdFhdrArdvqJhd3vBJyS4JaN
+         wR28i/Xa6FsfHvSbPLoA/98HZOMC7EHbN3w6bmn4HZsYfAVoc1TtWaaoxJE7JT09oeqj
+         YbC1H89SiJDCxWA92uclljjTOpyqudsq+KYPLavzpDc4cfMCbngPGzwmDyaMd3xK2WkT
+         VScZ71aPK8bbAihoXtNTL4x6JPKX83xbFd5dB6o8sqOiFQE4zfHianOCtoJpUFcNNx52
+         /VmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=/a7BzFN2ctOPRBd9oUWUrScQo5EEkuSIQfpImBe6rnE=;
+        b=VyT3Ard7MMoackziZB92Gjlmsg/7GSdI9a5ivuDs5msc58KFri+tiEFPF2Q+Ok+9xW
+         Yv5mQul1MXL8Q15NWw1e1pKnbJtjDpPRRyVpQusgYW8LYQ5dVyqkuyLvI7gnOCF1fZR5
+         7KtJIQsUEf2+xi7LBowjDy1bE3ZmFys8QxDsAeZr3P9ywiG0lBKWrzt6aRPcTSST/PMW
+         1/ptBSo1/wY267IdQ4Qu4zRVGv9Dns4uPbpS7zfCghbCqPbwXhpJUrLTXvQID/sikcX8
+         raZzjpgzsRXJDxct6WedVBz+gw46CPaqMheF9W4Edwi63RZBo+C8Z6H4HnZd3hyVSn1r
+         Xa9g==
+X-Gm-Message-State: AOAM5300J5jsB/XP1ZpmdXcQibdM5hsmG2iOXPfhjv6HoFYYjltSowUe
+        qaUdyTLgo45cZtifxJUeJNE=
+X-Google-Smtp-Source: ABdhPJwTJVrtAYTdoE6pUKxTEQVVIrUZU1wLgzdAsEDbTjMXYK0ZJfLhWxBoBhx+EB116oYkPExZRg==
+X-Received: by 2002:a17:90b:390c:b0:1c7:9a94:1797 with SMTP id ob12-20020a17090b390c00b001c79a941797mr9728575pjb.221.1649842533823;
+        Wed, 13 Apr 2022 02:35:33 -0700 (PDT)
+Received: from localhost.localdomain ([193.203.214.57])
+        by smtp.gmail.com with ESMTPSA id md4-20020a17090b23c400b001cb66e3e1f8sm2409048pjb.0.2022.04.13.02.35.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 13 Apr 2022 02:35:33 -0700 (PDT)
+From:   cgel.zte@gmail.com
+X-Google-Original-From: chi.minghao@zte.com.cn
+To:     grygorii.strashko@ti.com
+Cc:     davem@davemloft.net, kuba@kernel.org, linux-omap@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Minghao Chi <chi.minghao@zte.com.cn>,
+        Zeal Robot <zealci@zte.com.cn>
+Subject: [PATCH] net: ethernet: ti: cpsw_new: use pm_runtime_resume_and_get() instead of pm_runtime_get_sync()
+Date:   Wed, 13 Apr 2022 09:35:29 +0000
+Message-Id: <20220413093529.2538378-1-chi.minghao@zte.com.cn>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry,
+From: Minghao Chi <chi.minghao@zte.com.cn>
 
-dostrzegam mo=C5=BCliwo=C5=9B=C4=87 wsp=C3=B3=C5=82pracy z Pa=C5=84stwa f=
-irm=C4=85.
+Using pm_runtime_resume_and_get is more appropriate
+for simplifing code
 
-=C5=9Awiadczymy kompleksow=C4=85 obs=C5=82ug=C4=99 inwestycji w fotowolta=
-ik=C4=99, kt=C3=B3ra obni=C5=BCa koszty energii elektrycznej nawet o 90%.
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
+---
+ drivers/net/ethernet/ti/cpsw_new.c | 33 ++++++++++--------------------
+ 1 file changed, 11 insertions(+), 22 deletions(-)
 
-Czy s=C4=85 Pa=C5=84stwo zainteresowani weryfikacj=C4=85 wst=C4=99pnych p=
-ropozycji?
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index bd4b1528cf99..13e54b05953c 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -449,11 +449,9 @@ static int cpsw_ndo_vlan_rx_add_vid(struct net_device *ndev,
+ 	if (vid == cpsw->data.default_vlan)
+ 		return 0;
+ 
+-	ret = pm_runtime_get_sync(cpsw->dev);
+-	if (ret < 0) {
+-		pm_runtime_put_noidle(cpsw->dev);
++	ret = pm_runtime_resume_and_get(cpsw->dev);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	/* In dual EMAC, reserved VLAN id should not be used for
+ 	 * creating VLAN interfaces as this can break the dual
+@@ -829,11 +827,9 @@ static int cpsw_ndo_open(struct net_device *ndev)
+ 
+ 	dev_info(priv->dev, "starting ndev. mode: %s\n",
+ 		 cpsw_is_switch_en(cpsw) ? "switch" : "dual_mac");
+-	ret = pm_runtime_get_sync(cpsw->dev);
+-	if (ret < 0) {
+-		pm_runtime_put_noidle(cpsw->dev);
++	ret = pm_runtime_resume_and_get(cpsw->dev);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	/* Notify the stack of the actual queue counts. */
+ 	ret = netif_set_real_num_tx_queues(ndev, cpsw->tx_ch_num);
+@@ -985,11 +981,9 @@ static int cpsw_ndo_set_mac_address(struct net_device *ndev, void *p)
+ 	if (!is_valid_ether_addr(addr->sa_data))
+ 		return -EADDRNOTAVAIL;
+ 
+-	ret = pm_runtime_get_sync(cpsw->dev);
+-	if (ret < 0) {
+-		pm_runtime_put_noidle(cpsw->dev);
++	ret = pm_runtime_resume_and_get(cpsw->dev);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	vid = cpsw->slaves[slave_no].port_vlan;
+ 	flags = ALE_VLAN | ALE_SECURE;
+@@ -1024,11 +1018,9 @@ static int cpsw_ndo_vlan_rx_kill_vid(struct net_device *ndev,
+ 	if (vid == cpsw->data.default_vlan)
+ 		return 0;
+ 
+-	ret = pm_runtime_get_sync(cpsw->dev);
+-	if (ret < 0) {
+-		pm_runtime_put_noidle(cpsw->dev);
++	ret = pm_runtime_resume_and_get(cpsw->dev);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	/* reset the return code as pm_runtime_get_sync() can return
+ 	 * non zero values as well.
+@@ -1918,9 +1910,8 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	/* Need to enable clocks with runtime PM api to access module
+ 	 * registers
+ 	 */
+-	ret = pm_runtime_get_sync(dev);
++	ret = pm_runtime_resume_and_get(dev);
+ 	if (ret < 0) {
+-		pm_runtime_put_noidle(dev);
+ 		pm_runtime_disable(dev);
+ 		return ret;
+ 	}
+@@ -2045,11 +2036,9 @@ static int cpsw_remove(struct platform_device *pdev)
+ 	struct cpsw_common *cpsw = platform_get_drvdata(pdev);
+ 	int ret;
+ 
+-	ret = pm_runtime_get_sync(&pdev->dev);
+-	if (ret < 0) {
+-		pm_runtime_put_noidle(&pdev->dev);
++	ret = pm_runtime_resume_and_get(&pdev->dev);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	cpsw_unregister_notifiers(cpsw);
+ 	cpsw_unregister_devlink(cpsw);
+-- 
+2.25.1
 
 
-Pozdrawiam,
-Przemys=C5=82aw Wr=C3=B3blewski
