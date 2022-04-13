@@ -2,88 +2,57 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61C4BC433F5
-	for <linux-omap@archiver.kernel.org>; Wed, 13 Apr 2022 08:42:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41A02C433EF
+	for <linux-omap@archiver.kernel.org>; Wed, 13 Apr 2022 09:32:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233941AbiDMIo0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 13 Apr 2022 04:44:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38222 "EHLO
+        id S230306AbiDMJec (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 13 Apr 2022 05:34:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233330AbiDMIoY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 13 Apr 2022 04:44:24 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 318274AE1B;
-        Wed, 13 Apr 2022 01:42:04 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id D170980F5;
-        Wed, 13 Apr 2022 08:39:28 +0000 (UTC)
-Date:   Wed, 13 Apr 2022 11:42:02 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc:     Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzk+dt@kernel.org>,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-omap@vger.kernel.org,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>
-Subject: Re: [PATCH v4 1/2] dt-bindings: timer: Update TI timer to yaml
-Message-ID: <YlaM2rq53q+UsEjG@atomide.com>
-References: <20220413081042.27088-1-tony@atomide.com>
- <20220413081042.27088-2-tony@atomide.com>
- <bd861601-1c17-1905-b267-8d8ccb444d8b@linaro.org>
+        with ESMTP id S231166AbiDMJeb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 13 Apr 2022 05:34:31 -0400
+X-Greylist: delayed 3300 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 13 Apr 2022 02:32:11 PDT
+Received: from mail.growthmindset24.pl (mail.growthmindset24.pl [212.237.36.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 812F853B69
+        for <linux-omap@vger.kernel.org>; Wed, 13 Apr 2022 02:32:11 -0700 (PDT)
+Received: by mail.growthmindset24.pl (Postfix, from userid 1001)
+        id 33E4A88B1B; Wed, 13 Apr 2022 08:41:25 +0100 (BST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=growthmindset24.pl;
+        s=mail; t=1649835775;
+        bh=FDuFY3XQoq0gMX1b2gxgT7Py2p4Sxl0PJZYZ4NVaPho=;
+        h=Date:From:To:Subject:From;
+        b=w+6yxFnSna6/Vf5LI+ZBp2gu+r3b5efN+mkV/CRX1lEF88bdkMPiPIV+toFFSu+Q6
+         4e9wWRQxCLDzhWctVO7Dwi7fDAzrhKMDuDhqOStKngLGTofXU4Ym0P+M8imze1yvnE
+         dRdJguhde7taASSgwblKBoCMX733wqRcVPK/+WYc1+sAzGf/S0s6E7AThZASpq+3El
+         LpKnLf5KmLWD3iVhlgYEl+peVpY6LctpcPMKCKk1zKEi/buu5Tibon7/5RUvTnEkXB
+         rAhWlx1aW59C0Z8mWDOCCZB8ciM4jdG4JhsvaHalJ0nBxxiWGnjRMCNKGRwQn2+ONO
+         rvuX380IMRofA==
+Received: by mail.growthmindset24.pl for <linux-omap@vger.kernel.org>; Wed, 13 Apr 2022 07:40:10 GMT
+Message-ID: <20220413074502-0.1.2x.dtwd.0.lma3j42c6o@growthmindset24.pl>
+Date:   Wed, 13 Apr 2022 07:40:10 GMT
+From:   =?UTF-8?Q? "Przemys=C5=82aw_Wr=C3=B3blewski" ?= 
+        <przemyslaw.wroblewski@growthmindset24.pl>
+To:     <linux-omap@vger.kernel.org>
+Subject: Wycena paneli fotowoltaicznych
+X-Mailer: mail.growthmindset24.pl
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <bd861601-1c17-1905-b267-8d8ccb444d8b@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org> [220413 08:34]:
-> On 13/04/2022 10:10, Tony Lindgren wrote:
-> > +allOf:
-> > +  - if:
-> > +      not:
-> > +        properties:
-> > +          compatible:
-> > +            contains:
-> > +              enum:
-> > +                - ti,omap3430-timer
-> > +                - ti,omap4430-timer
-> > +                - ti,omap5430-timer
-> > +    then:
-> > +      properties:
-> > +        reg:
-> > +          items:
-> > +            - description: IO address
-> 
-> You can skip the items because they are the same as in properties
-> before. Just keep maxItems:1.
+Dzie=C5=84 dobry,
 
-OK great.
+dostrzegam mo=C5=BCliwo=C5=9B=C4=87 wsp=C3=B3=C5=82pracy z Pa=C5=84stwa f=
+irm=C4=85.
 
-> > +          maxItems: 1
-> > +        clocks:
-> > +          items:
-> > +            - description: Functional clock
-> 
-> The same.
-> 
-> > +          maxItems: 1
-> > +        clock-names:
-> > +          items:
-> > +            - const: fck
-> 
-> The same.
-> 
-> > +          maxItems: 1
-> 
-> Rest is good.
+=C5=9Awiadczymy kompleksow=C4=85 obs=C5=82ug=C4=99 inwestycji w fotowolta=
+ik=C4=99, kt=C3=B3ra obni=C5=BCa koszty energii elektrycznej nawet o 90%.
 
-OK
+Czy s=C4=85 Pa=C5=84stwo zainteresowani weryfikacj=C4=85 wst=C4=99pnych p=
+ropozycji?
 
-Thanks,
 
-Tony
+Pozdrawiam,
+Przemys=C5=82aw Wr=C3=B3blewski
