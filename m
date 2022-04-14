@@ -2,21 +2,21 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A2D4C43217
-	for <linux-omap@archiver.kernel.org>; Thu, 14 Apr 2022 08:58:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4544C4332F
+	for <linux-omap@archiver.kernel.org>; Thu, 14 Apr 2022 08:58:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241345AbiDNJAw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 14 Apr 2022 05:00:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43608 "EHLO
+        id S241353AbiDNJAv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 14 Apr 2022 05:00:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241323AbiDNJAu (ORCPT
+        with ESMTP id S241317AbiDNJAu (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 14 Apr 2022 05:00:50 -0400
 Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BEED16AA75;
-        Thu, 14 Apr 2022 01:58:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 632AB6A058;
+        Thu, 14 Apr 2022 01:58:18 -0700 (PDT)
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id A21D980A4;
-        Thu, 14 Apr 2022 08:55:34 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 615A18132;
+        Thu, 14 Apr 2022 08:55:39 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     Rob Herring <robh+dt@kernel.org>,
         Krzysztof Kozlowski <krzk+dt@kernel.org>
@@ -24,65 +24,72 @@ Cc:     devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-omap@vger.kernel.org,
         Daniel Lezcano <daniel.lezcano@linaro.org>,
         Grygorii Strashko <grygorii.strashko@ti.com>,
-        Keerthy <j-keerthy@ti.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Nishanth Menon <nm@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>
-Subject: [PATCH v5 0/2] Convert TI dmtimer binding to yaml
-Date:   Thu, 14 Apr 2022 11:58:05 +0300
-Message-Id: <20220414085807.7389-1-tony@atomide.com>
+        Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Subject: [PATCH v5 2/2] dt-bindings: timer: Add compatible for am6 for TI timer-dm
+Date:   Thu, 14 Apr 2022 11:58:07 +0300
+Message-Id: <20220414085807.7389-3-tony@atomide.com>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220414085807.7389-1-tony@atomide.com>
+References: <20220414085807.7389-1-tony@atomide.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+Let's add compatible for ti,am654-timer for TI am64, am65 and j72 SoCs.
+As the timer hardware is the same between am64, am65 and j72 we use the
+compatible name for the earliest SoC with this timer.
 
-Here are v5 changes for TI dmtimer.
+The timer interrupts are not routable for the operating system for some
+timers on am6. Let's make sure the interrupts are configured for the
+timers on all other SoCs.
 
-Regards,
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ .../devicetree/bindings/timer/ti,timer-dm.yaml       | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-Tony
-
-
-Changes since v1:
-
-- Improve yaml for various checks based on comments from Krzysztof
-  and Nishanth
-
-- Add checks for am4 timer as pointed out by Krzysztof and Rob
-
-- Split am6 additions into a separate patch as suggested by Krzysztof
-
-Changes since v2:
-
-- Improve yaml for more checks based on comments from Grygorii and
-  Krzysztof
-
-Changes since v3:
-
-- Simplify constraints for reg, clocks and clock-names as suggested by
-  Krzysztof
-
-- Use version number for patches too as suggested by Rob
-
-Changes since v4:
-
-- Drop duplicated items as noted by Krzysztof
-
-
-Tony Lindgren (2):
-  dt-bindings: timer: Update TI timer to yaml
-  dt-bindings: timer: Add compatible for am6 for TI timer-dm
-
- .../bindings/pwm/pwm-omap-dmtimer.txt         |   2 +-
- .../bindings/timer/ti,timer-dm.yaml           | 152 ++++++++++++++++++
- .../devicetree/bindings/timer/ti,timer.txt    |  44 -----
- 3 files changed, 153 insertions(+), 45 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
- delete mode 100644 Documentation/devicetree/bindings/timer/ti,timer.txt
-
+diff --git a/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml b/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
+--- a/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
++++ b/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
+@@ -19,6 +19,7 @@ properties:
+           - enum:
+               - ti,am335x-timer
+               - ti,am335x-timer-1ms
++              - ti,am654-timer
+               - ti,dm814-timer
+               - ti,dm816-timer
+               - ti,omap2420-timer
+@@ -88,11 +89,20 @@ properties:
+ required:
+   - compatible
+   - reg
+-  - interrupts
+ 
+ additionalProperties: false
+ 
+ allOf:
++  - if:
++      not:
++        properties:
++          compatible:
++            contains:
++              const: ti,am654-timer
++    then:
++      required:
++        - interrupts
++
+   - if:
+       not:
+         properties:
 -- 
 2.35.1
