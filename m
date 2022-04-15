@@ -2,131 +2,80 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EDF1C433F5
-	for <linux-omap@archiver.kernel.org>; Fri, 15 Apr 2022 08:59:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47763C433F5
+	for <linux-omap@archiver.kernel.org>; Fri, 15 Apr 2022 10:20:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241176AbiDOJCR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 15 Apr 2022 05:02:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39654 "EHLO
+        id S1345747AbiDOKW4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 15 Apr 2022 06:22:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229460AbiDOJCQ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 15 Apr 2022 05:02:16 -0400
-Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D664745AFB
-        for <linux-omap@vger.kernel.org>; Fri, 15 Apr 2022 01:59:47 -0700 (PDT)
-Received: by mail-wm1-x32b.google.com with SMTP id m15-20020a7bca4f000000b0038fdc1394b1so3885300wml.2
-        for <linux-omap@vger.kernel.org>; Fri, 15 Apr 2022 01:59:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=smile-fr.20210112.gappssmtp.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=8/TXbsT8teCEmzE4dKBRkHwWmwMIpGUt/j6OmZyhVs8=;
-        b=zcuSPMiyE4DadhWmqIxhMhkVRG1EODIESBPqrLgc1bDtVPYwKf3N4qAJwfMyMUJkJy
-         qGP0rM6LvQPrcfInwuww1spzKroUuFjnsWyF7/AHnbfK7V9o59Z0q2CtscbBJMOUSdYl
-         m+7uV7vHSa+xdCxbz5gw5rHfEkSzA6fH6X5LoasT6dp7/LV+N/CVM48pLD1vs/4AmkjO
-         2XQXg1UHhsII2STcFhWN9d6vtkd+vOovWDJiG6gNBw7QiY+L6TObOEOdrzFxPlg+kVDp
-         XAvrDDje+hSI8FuLzJ1sZsE/tokjKJ8zw9TPEHZBrlizPPazgjNukZdomX+7fvj3xsQE
-         jBWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=8/TXbsT8teCEmzE4dKBRkHwWmwMIpGUt/j6OmZyhVs8=;
-        b=1eq8lghSNBTLEoOQVokBR1pN8iSYMV26ooB1b2lWvYcTKtxR7QOypVqWgOP0g1wY1K
-         unxKP8i+eo3lmgjNUyBzK0CulPQzmcGRYH7LXqMviDeoAaGgxIRoBxNZnbJxU/YXA3i8
-         7CbgVd8U75OAhOWZRgb4q1b7bXQUoVjVPewDP9qMWDyneaEvGtFKD08b4dyw/ZWMzf5M
-         7bz1lEGy+QSEI+CLUpIAYQgc234JyyRBUOlWrynBp4zYwUIDXVTluUHGiiEgix+yVm6i
-         1sNW6XaG5z6azmElCXu1E0vjJtsSA0JG0PLOLr7a5PFOaM9IoryNtoHj8GjM2DyvqjB+
-         3BZQ==
-X-Gm-Message-State: AOAM5309LZPIfLPhj9S9EmyRGdpD4fFMVbvSq5hUEC5dKuVsONM/YOs+
-        qeHfHqufdNH7yNasSf8+DgohvA==
-X-Google-Smtp-Source: ABdhPJxzM1b28MxcPYpVlkWFMBt4zpNJk7HpRWqFcxIiFvIoZonhstKNM9sMl32pcHIQU9hrh9BKtw==
-X-Received: by 2002:a05:600c:29c7:b0:38e:c58d:7b00 with SMTP id s7-20020a05600c29c700b0038ec58d7b00mr2450360wmd.47.1650013186426;
-        Fri, 15 Apr 2022 01:59:46 -0700 (PDT)
-Received: from ?IPV6:2a01:cb05:8f8a:1800:1c97:b8d1:b477:d53f? (2a01cb058f8a18001c97b8d1b477d53f.ipv6.abo.wanadoo.fr. [2a01:cb05:8f8a:1800:1c97:b8d1:b477:d53f])
-        by smtp.gmail.com with ESMTPSA id c18-20020a7bc852000000b0038ebf5f191esm9404929wml.45.2022.04.15.01.59.45
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 15 Apr 2022 01:59:45 -0700 (PDT)
-Message-ID: <371c1efe-8cff-8bab-8466-02efe4c3d155@smile.fr>
-Date:   Fri, 15 Apr 2022 10:59:44 +0200
+        with ESMTP id S1352285AbiDOKWo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 15 Apr 2022 06:22:44 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BD59BB090;
+        Fri, 15 Apr 2022 03:20:17 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D6660B82DF0;
+        Fri, 15 Apr 2022 10:20:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 6ED6EC385A9;
+        Fri, 15 Apr 2022 10:20:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1650018014;
+        bh=l2KznDaCtzmx1/xgHYyx6zS/0bXDVgbRWJyNftfqi2Y=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=W/2mqORsjBpfW3MXFBys8jg5717nbr4KP4f8pQ42Uu94qwVPhOgcQvChYXVd263CY
+         5SIqv3ZCBW5n6R4zwDm2SFCC+3/801Uk9MrXm38Zs1PyYT9TaJLD1t7gZiFY6xQow4
+         mAPuNE/LzlFmXmkB0TnUtRhYJsc2gaRt/xBr/XFgOtipMcMehHIHX3sV96eYQjIC98
+         m1ihrfqkpUPG9cO1v0m86dpQZbe7m1wyqFh/Yt9JrKZxCCJfXqfg0ngVdvMprC3eUo
+         jvxeQ5XD5pjgAU4dNRz/sFkwWPYt2PsNMCNzap+26oQDoNekt1wTDGEJTgsuT4S4O+
+         JAqz4eyJ+evbA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 534E3EAC09C;
+        Fri, 15 Apr 2022 10:20:14 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: [PATCH v4 0/4] memory: omap-gpmc: Add AM64 SoC support
-Content-Language: en-US
-To:     Roger Quadros <rogerq@kernel.org>,
-        krzysztof.kozlowski@canonical.com, miquel.raynal@bootlin.com,
-        tony@atomide.com
-Cc:     robh@kernel.org, kishon@ti.com, nm@ti.com, vigneshr@ti.com,
-        linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-References: <20211221131757.2030-1-rogerq@kernel.org>
-From:   Romain Naour <romain.naour@smile.fr>
-In-Reply-To: <20211221131757.2030-1-rogerq@kernel.org>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH] net: ethernet: ti: cpsw_priv: using pm_runtime_resume_and_get
+ instead of pm_runtime_get_sync
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <165001801433.12692.8817498230724778911.git-patchwork-notify@kernel.org>
+Date:   Fri, 15 Apr 2022 10:20:14 +0000
+References: <20220413093836.2538690-1-chi.minghao@zte.com.cn>
+In-Reply-To: <20220413093836.2538690-1-chi.minghao@zte.com.cn>
+To:     CGEL <cgel.zte@gmail.com>
+Cc:     grygorii.strashko@ti.com, davem@davemloft.net, kuba@kernel.org,
+        pabeni@redhat.com, toke@redhat.com, linux-omap@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        chi.minghao@zte.com.cn, zealci@zte.com.cn
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hello,
+Hello:
 
-Le 21/12/2021 à 14:17, Roger Quadros a écrit :
-> Hi,
+This patch was applied to netdev/net-next.git (master)
+by David S. Miller <davem@davemloft.net>:
+
+On Wed, 13 Apr 2022 09:38:36 +0000 you wrote:
+> From: Minghao Chi <chi.minghao@zte.com.cn>
 > 
-> TI's AM64 SoC contains one GPMC module. Add driver support for it.
-
-What's the status of the GPMC interface on K3 architecture, especially for AM65,
-AM62 and other Jacinto 7 CPU devices ?
-
-TI currently don't recommend to use it for now even if there are still some GPMC
-use case with FPGA devices:
-
-https://e2e.ti.com/support/processors-group/processors/f/processors-forum/994191/am6442-am64x-gpmc-support
-
-This patch series add omap-gpmc support for AM64 Soc but as of kernel 5.18-rc2,
-there is no devicetree using ti,am64-gpmc.
-
-This patch seems missing (at least):
-https://git.ti.com/cgit/ti-linux-kernel/ti-linux-kernel/commit/?h=ti-linux-5.10.y&id=55c102a75d399896c7396229cd687bf97afb5cf6
-
-Thanks!
-
-Best regards,
-Romain
-
+> Using pm_runtime_resume_and_get is more appropriate
+> for simplifing code
 > 
-> cheers,
-> -roger
+> Reported-by: Zeal Robot <zealci@zte.com.cn>
+> Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
 > 
-> Changelog:
-> v4
-> - move compatible match table to header file so it can be used by
-> GPMC driver even when NAND driver is not enabled or as a module.
-> GPMC driver is always enabled as built-in.
-> - Select OMAP_GPMC driver from MTD_NAND_OMAP2 driver config as
-> OMAP_GPMC is not essential for ARCH_K3 boot.
-> 
-> v3
-> - use compatible match table for checking for NAND controller node in
-> GPMC driver.
-> 
-> v2
-> - update DT binding doc to make reg-names and power-domains property
-> required only for specific SoC.
-> 
-> Roger Quadros (4):
->   dt-bindings: memory-controllers: ti,gpmc: Add compatible for AM64
->   memory: omap-gpmc: Add support for GPMC on AM64 SoC
->   memory: omap-gpmc: Use a compatible match table when checking for NAND
->     controller
->   mtd: rawnand: omap2: Select GPMC device driver for ARCH_K3
-> 
->  .../bindings/memory-controllers/ti,gpmc.yaml  | 23 +++++++++-
->  drivers/memory/omap-gpmc.c                    | 46 ++++++++++++++-----
->  drivers/mtd/nand/raw/Kconfig                  |  1 +
->  drivers/mtd/nand/raw/omap2.c                  |  5 +-
->  include/linux/platform_data/mtd-nand-omap2.h  |  9 +++-
->  5 files changed, 67 insertions(+), 17 deletions(-)
-> 
+> [...]
+
+Here is the summary with links:
+  - net: ethernet: ti: cpsw_priv: using pm_runtime_resume_and_get instead of pm_runtime_get_sync
+    https://git.kernel.org/netdev/net-next/c/be52d266d293
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
