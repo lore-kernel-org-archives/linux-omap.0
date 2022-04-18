@@ -2,136 +2,126 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA49FC433EF
-	for <linux-omap@archiver.kernel.org>; Fri, 15 Apr 2022 13:06:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5648C433EF
+	for <linux-omap@archiver.kernel.org>; Mon, 18 Apr 2022 06:29:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229671AbiDONJV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 15 Apr 2022 09:09:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57054 "EHLO
+        id S229516AbiDRGcJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 18 Apr 2022 02:32:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229584AbiDONJU (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 15 Apr 2022 09:09:20 -0400
-Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E530F5130A
-        for <linux-omap@vger.kernel.org>; Fri, 15 Apr 2022 06:06:48 -0700 (PDT)
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 23FD6VGD051337;
-        Fri, 15 Apr 2022 08:06:31 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1650027992;
-        bh=Ve5xYqL0vSew6zIe9aVuRNUvwNXQm0EYwplrOk14rUc=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=vyVbrHcPYrc7p31oFsSy1C9miGI/Bzk/0QeWtYKd3cqMEZLncyZPk1vJbW1DdCVLU
-         jy+u8aakdjX/sFLkrHHyF/vk9iO6VXf734/BKWlf5WbRymLKKXMrySVJWMYMEIz5rL
-         zEW1xqWfF4JyOuQiFzj9OEDqMOEIvAPK9muaJORo=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 23FD6VGK128449
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 15 Apr 2022 08:06:31 -0500
-Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14; Fri, 15
- Apr 2022 08:06:31 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14 via
- Frontend Transport; Fri, 15 Apr 2022 08:06:31 -0500
-Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 23FD6SkE028604;
-        Fri, 15 Apr 2022 08:06:28 -0500
-Message-ID: <5d8ba4e2-a281-5d0f-d65f-bb0121165b73@ti.com>
-Date:   Fri, 15 Apr 2022 16:06:30 +0300
+        with ESMTP id S232367AbiDRGcH (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2022 02:32:07 -0400
+Received: from mail-qk1-x72c.google.com (mail-qk1-x72c.google.com [IPv6:2607:f8b0:4864:20::72c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B7F418E0E;
+        Sun, 17 Apr 2022 23:29:29 -0700 (PDT)
+Received: by mail-qk1-x72c.google.com with SMTP id b189so10562089qkf.11;
+        Sun, 17 Apr 2022 23:29:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=4ZNxKkB1heXshxCdkEbaHOZ1fBK6TexM+Jzjx/u/3mE=;
+        b=agKys+0f9B8+rSNrGPubzZYwAMOCNPp+KyH39Uo+8JOadAlMbwSceqA4BguldvGJWm
+         vCYjn0TUYIY5iTCMob2vo5gEz4aIH56qNPNa5gJjqGkYRI5DdPudaQC9ZSSGLVhvUAYa
+         iwEtiK9Up1VbT3mhVV9uRM28/gIfPra2kPkYhT1xA4MQXAtj3Y1nJ2F89LYtjGWW1e8F
+         dJuV5aG+dxoTH7f5n8IvyS6li71+/ufGEJeg2lITo0qho7RJ0VDWUg9NXi6ETKvG5jC1
+         I5HWD4VIVavBK5ljSscJD1c88bRlFKMcDy9xIZuCytAt+w+x2F2HcprvFCDnphXMlq11
+         KVIw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=4ZNxKkB1heXshxCdkEbaHOZ1fBK6TexM+Jzjx/u/3mE=;
+        b=V0OgXb/xEuXcXGxoWP04owSEr0QSyY/RZd1iwB/dBAyij8CqU7LZfajlgEp6qXZupo
+         YgaQy+wDK6TUK/flTETRVWzyNKixyDByMvYiaxyIwCiTEXW1/AgIobay1M0k88g2uh+8
+         vfS5NmSnjOJDGXhvRaZ33gQAlRTPvDQKIAznabq5TTxVheCdrnO+RTUSRWerIjWYBbWb
+         weUZYnXc4y1S/DJYIgmbtwoNjkqIm2Y9e4EyPXconTcvMMB9F2zdRqqdqvUzyAQYFyke
+         1qbu/u3UEQMhG+YFE9i1q9vNUxxl1K+d1V2aOTM9EUFAJXVW+f13LDlrivraizBxkuC5
+         5HQg==
+X-Gm-Message-State: AOAM532vJpm9aMkW0uhJxMnxgM+F1zYBIJN/qzSXUDOEtA7e8fIZqej8
+        B5hrn2v3oC/kaqpm7wUj/y094Nr0QxU=
+X-Google-Smtp-Source: ABdhPJyVwl94lwStyIiTsrgoJZ1Q8p4COL0lQihBGHuXyhMvdWo+5AO0tzliP/ZkPPgeHaILIw0Q2g==
+X-Received: by 2002:a05:620a:2681:b0:67e:933e:54b6 with SMTP id c1-20020a05620a268100b0067e933e54b6mr5861271qkp.428.1650263368206;
+        Sun, 17 Apr 2022 23:29:28 -0700 (PDT)
+Received: from localhost.localdomain ([193.203.214.57])
+        by smtp.gmail.com with ESMTPSA id t198-20020a3746cf000000b0069c51337badsm6238458qka.45.2022.04.17.23.29.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 17 Apr 2022 23:29:27 -0700 (PDT)
+From:   cgel.zte@gmail.com
+X-Google-Original-From: chi.minghao@zte.com.cn
+To:     grygorii.strashko@ti.com
+Cc:     davem@davemloft.net, kuba@kernel.org, linux-omap@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Minghao Chi <chi.minghao@zte.com.cn>,
+        Zeal Robot <zealci@zte.com.cn>
+Subject: [PATCH] drivers: net: davinci_mdio: using pm_runtime_resume_and_get instead of pm_runtime_get_sync
+Date:   Mon, 18 Apr 2022 06:29:21 +0000
+Message-Id: <20220418062921.2557884-1-chi.minghao@zte.com.cn>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: [PATCH v4 0/4] memory: omap-gpmc: Add AM64 SoC support
-Content-Language: en-US
-To:     Romain Naour <romain.naour@smile.fr>,
-        Roger Quadros <rogerq@kernel.org>,
-        <krzysztof.kozlowski@canonical.com>, <miquel.raynal@bootlin.com>,
-        <tony@atomide.com>
-CC:     <robh@kernel.org>, <kishon@ti.com>, <nm@ti.com>, <vigneshr@ti.com>,
-        <linux-mtd@lists.infradead.org>, <linux-omap@vger.kernel.org>
-References: <20211221131757.2030-1-rogerq@kernel.org>
- <371c1efe-8cff-8bab-8466-02efe4c3d155@smile.fr>
-From:   Grygorii Strashko <grygorii.strashko@ti.com>
-In-Reply-To: <371c1efe-8cff-8bab-8466-02efe4c3d155@smile.fr>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+From: Minghao Chi <chi.minghao@zte.com.cn>
 
+Using pm_runtime_resume_and_get is more appropriate
+for simplifing code
 
-On 15/04/2022 11:59, Romain Naour wrote:
-> Hello,
-> 
-> Le 21/12/2021 à 14:17, Roger Quadros a écrit :
->> Hi,
->>
->> TI's AM64 SoC contains one GPMC module. Add driver support for it.
-> 
-> What's the status of the GPMC interface on K3 architecture, especially for AM65,
-> AM62 and other Jacinto 7 CPU devices ?
-> 
-> TI currently don't recommend to use it for now even if there are still some GPMC
-> use case with FPGA devices:
-> 
-> https://e2e.ti.com/support/processors-group/processors/f/processors-forum/994191/am6442-am64x-gpmc-support
-> 
-> This patch series add omap-gpmc support for AM64 Soc but as of kernel 5.18-rc2,
-> there is no devicetree using ti,am64-gpmc.
-> 
-> This patch seems missing (at least):
-> https://git.ti.com/cgit/ti-linux-kernel/ti-linux-kernel/commit/?h=ti-linux-5.10.y&id=55c102a75d399896c7396229cd687bf97afb5cf6
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
+---
+ drivers/net/ethernet/ti/davinci_mdio.c | 18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-It's not how LKML development process works - driver changes has to be sent first
-and then DT changes  as they accepted by different maintainers and through different trees.
-
-> 
-> Thanks!
-> 
-> Best regards,
-> Romain
-> 
->>
->> cheers,
->> -roger
->>
->> Changelog:
->> v4
->> - move compatible match table to header file so it can be used by
->> GPMC driver even when NAND driver is not enabled or as a module.
->> GPMC driver is always enabled as built-in.
->> - Select OMAP_GPMC driver from MTD_NAND_OMAP2 driver config as
->> OMAP_GPMC is not essential for ARCH_K3 boot.
->>
->> v3
->> - use compatible match table for checking for NAND controller node in
->> GPMC driver.
->>
->> v2
->> - update DT binding doc to make reg-names and power-domains property
->> required only for specific SoC.
->>
->> Roger Quadros (4):
->>    dt-bindings: memory-controllers: ti,gpmc: Add compatible for AM64
->>    memory: omap-gpmc: Add support for GPMC on AM64 SoC
->>    memory: omap-gpmc: Use a compatible match table when checking for NAND
->>      controller
->>    mtd: rawnand: omap2: Select GPMC device driver for ARCH_K3
->>
->>   .../bindings/memory-controllers/ti,gpmc.yaml  | 23 +++++++++-
->>   drivers/memory/omap-gpmc.c                    | 46 ++++++++++++++-----
->>   drivers/mtd/nand/raw/Kconfig                  |  1 +
->>   drivers/mtd/nand/raw/omap2.c                  |  5 +-
->>   include/linux/platform_data/mtd-nand-omap2.h  |  9 +++-
->>   5 files changed, 67 insertions(+), 17 deletions(-)
->>
-> 
-
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index fce2626e34fa..ea3772618043 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -134,11 +134,9 @@ static int davinci_mdio_reset(struct mii_bus *bus)
+ 	u32 phy_mask, ver;
+ 	int ret;
+ 
+-	ret = pm_runtime_get_sync(data->dev);
+-	if (ret < 0) {
+-		pm_runtime_put_noidle(data->dev);
++	ret = pm_runtime_resume_and_get(data->dev);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	/* wait for scan logic to settle */
+ 	msleep(PHY_MAX_ADDR * data->access_time);
+@@ -232,11 +230,9 @@ static int davinci_mdio_read(struct mii_bus *bus, int phy_id, int phy_reg)
+ 	if (phy_reg & ~PHY_REG_MASK || phy_id & ~PHY_ID_MASK)
+ 		return -EINVAL;
+ 
+-	ret = pm_runtime_get_sync(data->dev);
+-	if (ret < 0) {
+-		pm_runtime_put_noidle(data->dev);
++	ret = pm_runtime_resume_and_get(data->dev);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	reg = (USERACCESS_GO | USERACCESS_READ | (phy_reg << 21) |
+ 	       (phy_id << 16));
+@@ -276,11 +272,9 @@ static int davinci_mdio_write(struct mii_bus *bus, int phy_id,
+ 	if (phy_reg & ~PHY_REG_MASK || phy_id & ~PHY_ID_MASK)
+ 		return -EINVAL;
+ 
+-	ret = pm_runtime_get_sync(data->dev);
+-	if (ret < 0) {
+-		pm_runtime_put_noidle(data->dev);
++	ret = pm_runtime_resume_and_get(data->dev);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	reg = (USERACCESS_GO | USERACCESS_WRITE | (phy_reg << 21) |
+ 		   (phy_id << 16) | (phy_data & USERACCESS_DATA));
 -- 
-Best regards,
-Grygorii, Ukraine
+2.25.1
+
+
