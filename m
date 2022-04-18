@@ -2,89 +2,130 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BAEAC433FE
-	for <linux-omap@archiver.kernel.org>; Mon, 18 Apr 2022 11:04:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F7D9C43219
+	for <linux-omap@archiver.kernel.org>; Mon, 18 Apr 2022 12:27:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235062AbiDRLHJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 18 Apr 2022 07:07:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36936 "EHLO
+        id S238824AbiDRM3q (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 18 Apr 2022 08:29:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231496AbiDRLHI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2022 07:07:08 -0400
-Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE5741A061
-        for <linux-omap@vger.kernel.org>; Mon, 18 Apr 2022 04:04:29 -0700 (PDT)
-Received: by mail-ej1-x62c.google.com with SMTP id r13so26243602ejd.5
-        for <linux-omap@vger.kernel.org>; Mon, 18 Apr 2022 04:04:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=6U9l77FD33XoUxlN4C0IowgyHbs01XD4FahB9dQjefs=;
-        b=NShyOkE824I21KiCOZkQ+WGa6uc9uVI/EIRHGtVSTtEjc0Rv4/rW/9Eph3QsS2yRSN
-         IxbMM3DBA9iMNxEDaUylJjN6+4P3nNE0tmA+FvuXSBHa5t3d/Hvi8sHjs2PBd/MYbnTd
-         Pr1TrthcpxsGYqY8BX3M98xN7I+uHaNIe57Ae8zu4dExc9NO+PBqpHdwpkDEGP8+K8kt
-         N22l93EEPm9fcyqflvrUljAhYhf5ZfMNSuSzTyn4q0Y+yegJVAp/YSlqW4U3rtsuj8S5
-         8/bPAhQiAiESSZ5WtyWgJdypgQGaIX0v/crn4eMbu3euqlof+7keGUBAcBq7rftgiPdb
-         6DrQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=6U9l77FD33XoUxlN4C0IowgyHbs01XD4FahB9dQjefs=;
-        b=I1YZMrGQRItvHRBK5toxh9l5OXQ/5wOSlz0r3T1oydIqP+BNEV70hbLmzD03RWhH60
-         lY1ka7xYSMcW89iswLKJd/R+2aVHCFMiXXZ3BzayRnx4BIwI68K3X/razNyt0rykE8aj
-         BjGIMzivP90HIDboC69kYKgkARdrOiMFaixWxYbHJCynp2gQXNIJO0boSUJQ5WZrPhKW
-         CklIty93fGfzpoq6n+Q9vv3HJFl2aIGBLpuhLwPNdQCGvdjOL5BpCO3gavG8QzOFzu3u
-         3BPJwmZG3a715NkXgGcPlcbNM29LeULIj/1d9mxb5otR9MW4MI3rGMo4X43Tg2d3HxGA
-         RrBQ==
-X-Gm-Message-State: AOAM532zfZvMpOUqwP0sTOUzXCDRCDWgTqg9jlojedOKK5dRGwGB0vOE
-        GgjQYWxqEzc8dlSn7HMTbNYmYg==
-X-Google-Smtp-Source: ABdhPJxQp369tmI5wz7ZkbMi5huMsFAnrQPw01ST5ZsVv7AcoYpJMxb6xWt+YNdUPpZpiv/nu9RJMQ==
-X-Received: by 2002:a17:906:1ec3:b0:6cf:d118:59e2 with SMTP id m3-20020a1709061ec300b006cfd11859e2mr8698405ejj.767.1650279868386;
-        Mon, 18 Apr 2022 04:04:28 -0700 (PDT)
-Received: from [192.168.0.217] (xdsl-188-155-176-92.adslplus.ch. [188.155.176.92])
-        by smtp.gmail.com with ESMTPSA id ch4-20020a170906c2c400b006efcc061c1fsm293563ejb.178.2022.04.18.04.04.26
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 18 Apr 2022 04:04:27 -0700 (PDT)
-Message-ID: <ebb51ba4-a199-96ee-6a88-6b917bc9c9d5@linaro.org>
-Date:   Mon, 18 Apr 2022 13:04:26 +0200
+        with ESMTP id S239640AbiDRM2j (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2022 08:28:39 -0400
+Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 339E621E2F;
+        Mon, 18 Apr 2022 05:22:14 -0700 (PDT)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 23ICM56U006670;
+        Mon, 18 Apr 2022 07:22:05 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1650284525;
+        bh=Ryf8QU+g8COGczEAs/AGfht94S0bmmvBQwEjGlJGfWw=;
+        h=Date:Subject:To:CC:References:From:In-Reply-To;
+        b=MFO0lMyvGtSGo1zBBR77+gvmW/ow/ISpAv6hVj2YLOoFSbKwENQifgHweFccQV7rY
+         MaUjwrnlQP92cvLEBw/zwvUVrlzMoHKATGk9PlTYSbXUI8DxYO+6ZFiMdK5+nW6cAD
+         cSBVbKKPo0lqsoC5QwbMYQCBHBxSHUlB2UJP2yzI=
+Received: from DLEE104.ent.ti.com (dlee104.ent.ti.com [157.170.170.34])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 23ICM572008142
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 18 Apr 2022 07:22:05 -0500
+Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE104.ent.ti.com
+ (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14; Mon, 18
+ Apr 2022 07:22:04 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14 via
+ Frontend Transport; Mon, 18 Apr 2022 07:22:04 -0500
+Received: from [10.250.100.73] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 23ICM2NJ077609;
+        Mon, 18 Apr 2022 07:22:02 -0500
+Message-ID: <534bc162-05e8-c39a-9318-0a729d1771a9@ti.com>
+Date:   Mon, 18 Apr 2022 15:22:06 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
  Thunderbird/91.7.0
-Subject: Re: [PATCH v5 1/2] dt-bindings: timer: Update TI timer to yaml
+Subject: Re: [PATCH v5 2/2] dt-bindings: timer: Add compatible for am6 for TI
+ timer-dm
 Content-Language: en-US
 To:     Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
         Krzysztof Kozlowski <krzk+dt@kernel.org>
-Cc:     devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-omap@vger.kernel.org,
+CC:     <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>,
         Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
         Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 References: <20220414085807.7389-1-tony@atomide.com>
- <20220414085807.7389-2-tony@atomide.com>
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <20220414085807.7389-2-tony@atomide.com>
-Content-Type: text/plain; charset=UTF-8
+ <20220414085807.7389-3-tony@atomide.com>
+From:   Grygorii Strashko <grygorii.strashko@ti.com>
+In-Reply-To: <20220414085807.7389-3-tony@atomide.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 14/04/2022 10:58, Tony Lindgren wrote:
-> Let's update the TI timer binding to use yaml. As this binding is specific
-> to the TI dual-mode timers also known as dm-timers, let's use file name
-> ti,timer-dm.yaml to avoid confusion with other timers.
+
+
+On 14/04/2022 11:58, Tony Lindgren wrote:
+> Let's add compatible for ti,am654-timer for TI am64, am65 and j72 SoCs.
+> As the timer hardware is the same between am64, am65 and j72 we use the
+> compatible name for the earliest SoC with this timer.
 > 
-> We add checks for the deprecated ti,hwmods property as done for other TI
-> device driver bindings earlier.
+> The timer interrupts are not routable for the operating system for some
+> timers on am6. Let's make sure the interrupts are configured for the
+> timers on all other SoCs.
 > 
+> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: Keerthy <j-keerthy@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Vignesh Raghavendra <vigneshr@ti.com>
+> Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   .../devicetree/bindings/timer/ti,timer-dm.yaml       | 12 +++++++++++-
+>   1 file changed, 11 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml b/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
+> --- a/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
+> +++ b/Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
+> @@ -19,6 +19,7 @@ properties:
+>             - enum:
+>                 - ti,am335x-timer
+>                 - ti,am335x-timer-1ms
+> +              - ti,am654-timer
+>                 - ti,dm814-timer
+>                 - ti,dm816-timer
+>                 - ti,omap2420-timer
+> @@ -88,11 +89,20 @@ properties:
+>   required:
+>     - compatible
+>     - reg
+> -  - interrupts
+>   
+>   additionalProperties: false
+>   
+>   allOf:
+> +  - if:
+> +      not:
+> +        properties:
+> +          compatible:
+> +            contains:
+> +              const: ti,am654-timer
+> +    then:
+> +      required:
+> +        - interrupts
+> +
+>     - if:
+>         not:
+>           properties:
 
+Thanks you,
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
-Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-
-
+-- 
 Best regards,
-Krzysztof
+Grygorii, Ukraine
