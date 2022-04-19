@@ -2,35 +2,35 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66A7BC43217
-	for <linux-omap@archiver.kernel.org>; Tue, 19 Apr 2022 13:41:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7392EC4332F
+	for <linux-omap@archiver.kernel.org>; Tue, 19 Apr 2022 13:41:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352781AbiDSNnz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 19 Apr 2022 09:43:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36932 "EHLO
+        id S1352786AbiDSNn4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 19 Apr 2022 09:43:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352514AbiDSNmE (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2022 09:42:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F0DE37BF2;
-        Tue, 19 Apr 2022 06:39:17 -0700 (PDT)
+        with ESMTP id S234762AbiDSNnI (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2022 09:43:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C35AE182;
+        Tue, 19 Apr 2022 06:40:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E7101616A8;
-        Tue, 19 Apr 2022 13:39:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A81EFC385AC;
-        Tue, 19 Apr 2022 13:39:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7A754B81983;
+        Tue, 19 Apr 2022 13:40:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B32FFC385A5;
+        Tue, 19 Apr 2022 13:40:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1650375556;
-        bh=f9Y/96hrDNAN/+YDT6y/IETuuHURcMDkd3mR04iG5MY=;
+        s=k20201202; t=1650375623;
+        bh=R5zRvKa0SoyT3N6cs+9ATf3vspiQLolbMLlEiLA/7fA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ebr5utca6XgjB3tSpUqlgAxa1J/VO+5Up3W225Ck2Y1KV0kHl25WxqiLaxQnTrrDP
-         o4ZMRT5uiqJlbasFReJEEjIucMAj0DIkjrh7yNwei7KTqUAxhrCrbIU9vS1MWfztjT
-         pnZZDXwYX8Bp58oIwWuMxVkm3t1lAwr40PquGM25WMYWoQU4zuhNhfylYnCyYIm7KS
-         AxbhGnhgw8s8/7Sp0BNcsDkI0IMc9J8IbULGpS4rd/U42TIh6dRRUrDsawrsOWc7ZZ
-         Lnc4CsAY2Xr00xDadJHWFy5+sqJIjPU+QvQwa5Q0tAKRS7Lo54LfD5qNiWFtBeJuUY
-         ATdlp/KQHWVdA==
+        b=h4qvsRlCqc1+D/Un3T++kg9XOlylFj9tu57mNt8nm00hUNQ6OKBJwfaNIy8CUc5b/
+         qlJ5Qll9E9CFFYZxtIhDJzmK+qDlqq4+ArAd2BBXudLqHYrCpKgbUoCnwsfLaR2pgk
+         Q7EkW4bPFi3bk0l1eRnod+7F8TcxdVYbp1x3X1kd6GHmuGnsuLz3ITS24UVsnNzXdg
+         x/K6BdB+SIi+C9NttQpeR53oMsrljIEQWrLP8CdiwfvAVwJt/CIv2ZT1IB0hwp9ZMU
+         YhjJTR86Ah4hamcr5wDfPSVrUyclrlzsHDyDQ4lgL5SrWli+rzKao8UrzltowcxyNH
+         vWiGzLOvfg/Eg==
 From:   Arnd Bergmann <arnd@kernel.org>
 To:     linux-omap@vger.kernel.org, tony@atomide.com, aaro.koskinen@iki.fi,
         jmkrzyszt@gmail.com
@@ -56,11 +56,10 @@ Cc:     Arnd Bergmann <arnd@arndb.de>,
         linux-usb@vger.kernel.org, dmaengine@vger.kernel.org,
         linux-input@vger.kernel.org, linux-mmc@vger.kernel.org,
         linux-serial@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org,
-        Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 13/41] clocksource: ti-dmtimer: avoid using mach/hardware.h
-Date:   Tue, 19 Apr 2022 15:36:55 +0200
-Message-Id: <20220419133723.1394715-14-arnd@kernel.org>
+        linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 22/41] ARM: omap1: move plat/dma.c to mach/omap-dma.c
+Date:   Tue, 19 Apr 2022 15:37:04 +0200
+Message-Id: <20220419133723.1394715-23-arnd@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20220419133723.1394715-1-arnd@kernel.org>
 References: <20220419133723.1394715-1-arnd@kernel.org>
@@ -72,29 +71,48 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-As a preparation for future omap1 multiplatform support, stop
-using mach/hardware.h and instead include the omap1-io.h
-for low-level register access to MOD_CONF_CTRL_1.
+Most of the interface functions in plat/dma.c are only used from the
+USB driver, which is practically OMAP1 specific, except for compile
+testing.
 
-Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+The omap_get_plat_info(), omap_request_dma() and omap_free_dma()
+functions are never called on omap2 because of runtime checks.
+
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/clocksource/timer-ti-dm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap1/Makefile                        | 2 +-
+ arch/arm/{plat-omap/dma.c => mach-omap1/omap-dma.c} | 0
+ arch/arm/plat-omap/Makefile                         | 2 +-
+ 3 files changed, 2 insertions(+), 2 deletions(-)
+ rename arch/arm/{plat-omap/dma.c => mach-omap1/omap-dma.c} (100%)
 
-diff --git a/drivers/clocksource/timer-ti-dm.c b/drivers/clocksource/timer-ti-dm.c
-index 3e52c5226c4d..df4a73ea6651 100644
---- a/drivers/clocksource/timer-ti-dm.c
-+++ b/drivers/clocksource/timer-ti-dm.c
-@@ -433,7 +433,7 @@ int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
- }
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index 450bbf552b57..0615cb0ba580 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -5,7 +5,7 @@
  
- #if defined(CONFIG_ARCH_OMAP1)
--#include <mach/hardware.h>
-+#include <linux/soc/ti/omap1-io.h>
+ # Common support
+ obj-y := io.o id.o sram-init.o sram.o time.o irq.o mux.o flash.o \
+-	 serial.o devices.o dma.o fb.o
++	 serial.o devices.o dma.o omap-dma.o fb.o
+ obj-y += clock.o clock_data.o opp_data.o reset.o pm_bus.o timer.o
  
- static struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
- {
+ ifneq ($(CONFIG_SND_SOC_OMAP_MCBSP),)
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/mach-omap1/omap-dma.c
+similarity index 100%
+rename from arch/arm/plat-omap/dma.c
+rename to arch/arm/mach-omap1/omap-dma.c
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 68ccec9de106..5d55295a14ee 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -6,4 +6,4 @@
+ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/arch/arm/plat-omap/include
+ 
+ # Common support
+-obj-y := sram.o dma.o
++obj-y := sram.o
 -- 
 2.29.2
 
