@@ -2,35 +2,35 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E27A1C4167D
-	for <linux-omap@archiver.kernel.org>; Tue, 19 Apr 2022 13:42:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C24B5C433FE
+	for <linux-omap@archiver.kernel.org>; Tue, 19 Apr 2022 13:42:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352595AbiDSNoz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 19 Apr 2022 09:44:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40140 "EHLO
+        id S1352601AbiDSNo5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 19 Apr 2022 09:44:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352699AbiDSNnh (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2022 09:43:37 -0400
+        with ESMTP id S1352613AbiDSNl4 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2022 09:41:56 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 102ED24F;
-        Tue, 19 Apr 2022 06:40:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C45BD37BF3;
+        Tue, 19 Apr 2022 06:39:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C68D6B8197F;
-        Tue, 19 Apr 2022 13:40:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD49CC385AA;
-        Tue, 19 Apr 2022 13:40:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8176FB81982;
+        Tue, 19 Apr 2022 13:39:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2380AC385A8;
+        Tue, 19 Apr 2022 13:39:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1650375652;
-        bh=++wgzzP18IgZjv9gq3IHjeFk3mw3AxMESGKM1bss8GE=;
+        s=k20201202; t=1650375549;
+        bh=vO/bPd1PQ9hX0L2CV68DjG3d21RjoFDCbeNW9JFFn4s=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=t77plAsS6dzi52zALntxTrIsGvlZ7TVWnBbbBL6BHh9HDB22Vsg+GSU1TUGr/L7yo
-         4VED/jnUp/m/iprQbhEzkF/oCLBhn5mjye8/COB4ccOhKBk+sJixyUn/j4z5hhYvAS
-         fOMPXYC1p6lswgiO83CT8qRkpbcih1isQSb5qwxzvrTQT+MaBaR+iH3FJlzRpZeFL+
-         xLv4MH8XhKivg2WwM9SJ6+BOtF2fIbLSMuGDS0PC2ZNc4r0d6HSPSj40prxX3RgJXN
-         wDqi6ESmFTYAF/uvoZWrHFUtV7uChc7cszyCFCMHFQ8dub8SswJUKqRzrKaa1+D2F9
-         cs9GhVWEGvR5A==
+        b=i/7k/0F4r+E1Ur3z329l1Cj5g6ftB8oHQwHSKR1c5qv5Sg7DTH6Yfai9kN/3xqIG2
+         6IN+CC95Vy2J9Ecwiqu9jWLiRWHVIRsEYbraSEFksjcs4ejGoj4CLQt1bPvfSrevg1
+         Yq0O4PA1y1h2ip/jGL8GEaPuT5rLYGT2eKrRRFBMDLn3T+XmQZzgJHZaYZjmp5Ifqh
+         zPEF1FobgULdceNOjlrrAVUkcHB8AklSGR/iVkkqLtnOeADz098ACszzEAEOTLv0jD
+         wNQhDFHsfHDookQXljdeMUAjhviMzHxOZBk30q/fEeERal0vp7CC5caie0j1VqHLTj
+         MLWQvzBYRx05A==
 From:   Arnd Bergmann <arnd@kernel.org>
 To:     linux-omap@vger.kernel.org, tony@atomide.com, aaro.koskinen@iki.fi,
         jmkrzyszt@gmail.com
@@ -56,10 +56,12 @@ Cc:     Arnd Bergmann <arnd@arndb.de>,
         linux-usb@vger.kernel.org, dmaengine@vger.kernel.org,
         linux-input@vger.kernel.org, linux-mmc@vger.kernel.org,
         linux-serial@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 26/41] ARM: omap1: relocate static I/O mapping
-Date:   Tue, 19 Apr 2022 15:37:08 +0200
-Message-Id: <20220419133723.1394715-27-arnd@kernel.org>
+        linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Felipe Balbi <felipe.balbi@linux.intel.com>
+Subject: [PATCH 12/41] usb: omap: avoid mach/*.h headers
+Date:   Tue, 19 Apr 2022 15:36:54 +0200
+Message-Id: <20220419133723.1394715-13-arnd@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20220419133723.1394715-1-arnd@kernel.org>
 References: <20220419133723.1394715-1-arnd@kernel.org>
@@ -71,49 +73,117 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-The address range 0xfee00000-0xfeffffff is used for PCI and
-PCMCIA I/O port mappings, but OMAP1 has its static mappings
-there as well.
+The omap usb drivers still rely on mach/*.h headers that
+are explicitly or implicitly included, but all the required
+definitions are now in include/linux/soc/ti/, so use those
+instead and allow compile-testing on other architectures.
 
-Move the OMAP1 addresses a little higher to avoid crashing
-at boot.
-
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm/Kconfig.debug                      | 6 +++---
- arch/arm/mach-omap1/include/mach/hardware.h | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/usb/gadget/udc/Kconfig     | 2 +-
+ drivers/usb/gadget/udc/omap_udc.c  | 2 ++
+ drivers/usb/host/Kconfig           | 2 +-
+ drivers/usb/host/ohci-omap.c       | 7 +++----
+ drivers/usb/phy/Kconfig            | 3 ++-
+ drivers/usb/phy/phy-isp1301-omap.c | 4 ++--
+ 6 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
-index 0c9497d549e3..f57b449000f7 100644
---- a/arch/arm/Kconfig.debug
-+++ b/arch/arm/Kconfig.debug
-@@ -1837,9 +1837,9 @@ config DEBUG_UART_VIRT
- 	default 0xfec00000 if ARCH_IXP4XX && !CPU_BIG_ENDIAN
- 	default 0xfec00003 if ARCH_IXP4XX && CPU_BIG_ENDIAN
- 	default 0xfef36000 if DEBUG_HIGHBANK_UART
--	default 0xfefb0000 if DEBUG_OMAP1UART1 || DEBUG_OMAP7XXUART1
--	default 0xfefb0800 if DEBUG_OMAP1UART2 || DEBUG_OMAP7XXUART2
--	default 0xfefb9800 if DEBUG_OMAP1UART3 || DEBUG_OMAP7XXUART3
-+	default 0xff000000 if DEBUG_OMAP1UART1 || DEBUG_OMAP7XXUART1
-+	default 0xff000800 if DEBUG_OMAP1UART2 || DEBUG_OMAP7XXUART2
-+	default 0xff009800 if DEBUG_OMAP1UART3 || DEBUG_OMAP7XXUART3
- 	default 0xffd01000 if DEBUG_HIP01_UART
- 	default DEBUG_UART_PHYS if !MMU
- 	depends on DEBUG_LL_UART_8250 || DEBUG_LL_UART_PL01X || \
-diff --git a/arch/arm/mach-omap1/include/mach/hardware.h b/arch/arm/mach-omap1/include/mach/hardware.h
-index 05c5cd3e95f4..e3522e601ccd 100644
---- a/arch/arm/mach-omap1/include/mach/hardware.h
-+++ b/arch/arm/mach-omap1/include/mach/hardware.h
-@@ -63,7 +63,7 @@ static inline u32 omap_cs3_phys(void)
+diff --git a/drivers/usb/gadget/udc/Kconfig b/drivers/usb/gadget/udc/Kconfig
+index 69394dc1cdfb..cee934dce4f0 100644
+--- a/drivers/usb/gadget/udc/Kconfig
++++ b/drivers/usb/gadget/udc/Kconfig
+@@ -128,7 +128,7 @@ config USB_GR_UDC
  
- #endif	/* ifndef __ASSEMBLER__ */
+ config USB_OMAP
+ 	tristate "OMAP USB Device Controller"
+-	depends on ARCH_OMAP1
++	depends on ARCH_OMAP1 || (ARCH_OMAP && COMPILE_TEST)
+ 	depends on ISP1301_OMAP || !(MACH_OMAP_H2 || MACH_OMAP_H3)
+ 	help
+ 	   Many Texas Instruments OMAP processors have flexible full
+diff --git a/drivers/usb/gadget/udc/omap_udc.c b/drivers/usb/gadget/udc/omap_udc.c
+index b1da584585cf..5096d24915ce 100644
+--- a/drivers/usb/gadget/udc/omap_udc.c
++++ b/drivers/usb/gadget/udc/omap_udc.c
+@@ -43,6 +43,8 @@
+ #include <linux/platform_data/usb-omap1.h>
  
--#define OMAP1_IO_OFFSET		0x01000000	/* Virtual IO = 0xfefb0000 */
-+#define OMAP1_IO_OFFSET		0x00fb0000	/* Virtual IO = 0xff000000 */
- #define OMAP1_IO_ADDRESS(pa)	IOMEM((pa) - OMAP1_IO_OFFSET)
+ #include <linux/soc/ti/omap1-usb.h>
++#include <linux/soc/ti/omap1-soc.h>
++#include <linux/soc/ti/omap1-io.h>
  
- #include <mach/serial.h>
+ #include "omap_udc.h"
+ 
+diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+index 57ca5f97a3dc..682b3d2da623 100644
+--- a/drivers/usb/host/Kconfig
++++ b/drivers/usb/host/Kconfig
+@@ -214,7 +214,7 @@ config USB_EHCI_HCD_NPCM7XX
+ 
+ config USB_EHCI_HCD_OMAP
+ 	tristate "EHCI support for OMAP3 and later chips"
+-	depends on ARCH_OMAP
++	depends on ARCH_OMAP || COMPILE_TEST
+ 	depends on NOP_USB_XCEIV
+ 	default y
+ 	help
+diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+index 7be1ffefc40e..750a90c41a0a 100644
+--- a/drivers/usb/host/ohci-omap.c
++++ b/drivers/usb/host/ohci-omap.c
+@@ -27,6 +27,9 @@
+ #include <linux/platform_device.h>
+ #include <linux/platform_data/usb-omap1.h>
+ #include <linux/soc/ti/omap1-usb.h>
++#include <linux/soc/ti/omap1-mux.h>
++#include <linux/soc/ti/omap1-soc.h>
++#include <linux/soc/ti/omap1-io.h>
+ #include <linux/signal.h>
+ #include <linux/usb.h>
+ #include <linux/usb/hcd.h>
+@@ -36,10 +39,6 @@
+ #include <asm/io.h>
+ #include <asm/mach-types.h>
+ 
+-#include <mach/mux.h>
+-
+-#include <mach/hardware.h>
+-
+ #define DRIVER_DESC "OHCI OMAP driver"
+ 
+ struct ohci_omap_priv {
+diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+index 52eebcb88c1f..2acbe41fbf7e 100644
+--- a/drivers/usb/phy/Kconfig
++++ b/drivers/usb/phy/Kconfig
+@@ -30,7 +30,8 @@ config FSL_USB2_OTG
+ 
+ config ISP1301_OMAP
+ 	tristate "Philips ISP1301 with OMAP OTG"
+-	depends on I2C && ARCH_OMAP_OTG
++	depends on I2C
++	depends on ARCH_OMAP_OTG || (ARM && COMPILE_TEST)
+ 	depends on USB
+ 	depends on USB_GADGET || !USB_GADGET # if USB_GADGET=m, this can't be 'y'
+ 	select USB_PHY
+diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
+index 88aade82b82b..f8bd93fe69cd 100644
+--- a/drivers/usb/phy/phy-isp1301-omap.c
++++ b/drivers/usb/phy/phy-isp1301-omap.c
+@@ -23,9 +23,9 @@
+ #include <asm/irq.h>
+ #include <asm/mach-types.h>
+ 
+-#include <mach/mux.h>
+-
++#include <linux/soc/ti/omap1-mux.h>
+ #include <linux/soc/ti/omap1-usb.h>
++#include <linux/soc/ti/omap1-io.h>
+ 
+ #undef VERBOSE
+ 
 -- 
 2.29.2
 
