@@ -2,35 +2,35 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E662CC433FE
-	for <linux-omap@archiver.kernel.org>; Tue, 19 Apr 2022 13:45:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20DEEC43219
+	for <linux-omap@archiver.kernel.org>; Tue, 19 Apr 2022 13:45:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353021AbiDSNsg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 19 Apr 2022 09:48:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43178 "EHLO
+        id S1353054AbiDSNsh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 19 Apr 2022 09:48:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352864AbiDSNpY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2022 09:45:24 -0400
+        with ESMTP id S1353182AbiDSNsL (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2022 09:48:11 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8183939173;
-        Tue, 19 Apr 2022 06:41:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F816F6A;
+        Tue, 19 Apr 2022 06:42:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 238BDB8198B;
-        Tue, 19 Apr 2022 13:41:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85ADEC385B0;
-        Tue, 19 Apr 2022 13:41:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 390B8B81986;
+        Tue, 19 Apr 2022 13:42:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58C17C385B1;
+        Tue, 19 Apr 2022 13:42:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1650375699;
-        bh=UESTNhRpqCdmOp1XFvzi39fpM7sULzK7+yHauqukJgM=;
+        s=k20201202; t=1650375744;
+        bh=W3qNGAAX2ECL+9vJh3xisWUOh4fEYqZMZtajKR6sclM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qN9Y+eXIXoBe7y4TGwmSZZVExIPvDiGiWQet4fH81EnPncUzwHNWtwJGsY0JYakO5
-         ieE4QfHwXAynpvZYZ8I/rORqxFxxcrHC8uhh9dPC5cMy5EFTa1VMfxpra8+tJNdEGG
-         y/nxkofQTm0FspP0LVUYlssfbUKsMywSyPappcPTyOe/CcTltiL0WCa18tUiJ5htqe
-         P7yjD5xk7TGFmi/cCP8q3ujCRWlK/rt27yUduttq75nsmlB26koCVmVI39ToEeDgJ3
-         4QYMXy9PKlQiS9e/fHPi6ZUa8bAMf16ReuxZRt8ni4Y+YGTV+WxebK/v6W2sjZcyA9
-         IDq9aNHMe6VJg==
+        b=SKr7WyMGRCWl7v/bvtIsgn5/V3JSlMflq4Q/DrYtsnDWWlhOP2f/QZz/mAStrQbfv
+         OSwRVbecQTirW0bkg8ct8ZX3ZvidG0fdpIIrdb2ikG6e1iNCk3oIpODN2KEsBn4jaL
+         iL1TEBzQNkc83ablhzvNcTWLRxSQzhIsMUM2UfvRw82yolwxFIjf4Y+jmK8MZi28dA
+         ifEP8JGP4wd2T+YWPd4y4nvn8O71HicpNzx1mj7AHN8SDPpjQNwTaZ+3S7klD2C0Uk
+         BJ3IJCwHBlprKwQ/njIgRCNqvECW/GFDYnEeMMMA/9HeNtfHcZKV7YKlqEhQpUs3u3
+         p4wr3YRVJnM7w==
 From:   Arnd Bergmann <arnd@kernel.org>
 To:     linux-omap@vger.kernel.org, tony@atomide.com, aaro.koskinen@iki.fi,
         jmkrzyszt@gmail.com
@@ -57,9 +57,9 @@ Cc:     Arnd Bergmann <arnd@arndb.de>,
         linux-input@vger.kernel.org, linux-mmc@vger.kernel.org,
         linux-serial@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 32/41] ARM: OMAP1: clock: Fix UART rate reporting algorithm
-Date:   Tue, 19 Apr 2022 15:37:14 +0200
-Message-Id: <20220419133723.1394715-33-arnd@kernel.org>
+Subject: [PATCH 38/41] [MERGED] mmc: omap: Make it CCF clk API compatible
+Date:   Tue, 19 Apr 2022 15:37:20 +0200
+Message-Id: <20220419133723.1394715-39-arnd@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20220419133723.1394715-1-arnd@kernel.org>
 References: <20220419133723.1394715-1-arnd@kernel.org>
@@ -71,29 +71,90 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-Since its introduction to the mainline kernel, omap1_uart_recalc() helper
-makes incorrect use of clk->enable_bit as a ready to use bitmap mask while
-it only provides the bit number.  Fix it.
+The driver, OMAP specific, now omits clk_prepare/unprepare() steps, not
+supported by OMAP custom implementation of clock API.  However, non-CCF
+stubs of those functions exist for use on such platforms until converted
+to CCF.
+
+Update the driver to be compatible with CCF implementation of clock API.
 
 Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm/mach-omap1/clock.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/omap.c | 23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 44877554eb41..42e094e781ce 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -41,7 +41,7 @@ static DEFINE_SPINLOCK(clockfw_lock);
- unsigned long omap1_uart_recalc(struct clk *clk)
- {
- 	unsigned int val = __raw_readl(clk->enable_reg);
--	return val & clk->enable_bit ? 48000000 : 12000000;
-+	return val & 1 << clk->enable_bit ? 48000000 : 12000000;
- }
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 5e5af34090f1..57d39283924d 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1374,7 +1374,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 	host->iclk = clk_get(&pdev->dev, "ick");
+ 	if (IS_ERR(host->iclk))
+ 		return PTR_ERR(host->iclk);
+-	clk_enable(host->iclk);
++	clk_prepare_enable(host->iclk);
  
- unsigned long omap1_sossi_recalc(struct clk *clk)
+ 	host->fclk = clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(host->fclk)) {
+@@ -1382,16 +1382,18 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 		goto err_free_iclk;
+ 	}
+ 
++	ret = clk_prepare(host->fclk);
++	if (ret)
++		goto err_put_fclk;
++
+ 	host->dma_tx_burst = -1;
+ 	host->dma_rx_burst = -1;
+ 
+ 	host->dma_tx = dma_request_chan(&pdev->dev, "tx");
+ 	if (IS_ERR(host->dma_tx)) {
+ 		ret = PTR_ERR(host->dma_tx);
+-		if (ret == -EPROBE_DEFER) {
+-			clk_put(host->fclk);
+-			goto err_free_iclk;
+-		}
++		if (ret == -EPROBE_DEFER)
++			goto err_free_fclk;
+ 
+ 		host->dma_tx = NULL;
+ 		dev_warn(host->dev, "TX DMA channel request failed\n");
+@@ -1403,8 +1405,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 		if (ret == -EPROBE_DEFER) {
+ 			if (host->dma_tx)
+ 				dma_release_channel(host->dma_tx);
+-			clk_put(host->fclk);
+-			goto err_free_iclk;
++			goto err_free_fclk;
+ 		}
+ 
+ 		host->dma_rx = NULL;
+@@ -1454,9 +1455,12 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 		dma_release_channel(host->dma_tx);
+ 	if (host->dma_rx)
+ 		dma_release_channel(host->dma_rx);
++err_free_fclk:
++	clk_unprepare(host->fclk);
++err_put_fclk:
+ 	clk_put(host->fclk);
+ err_free_iclk:
+-	clk_disable(host->iclk);
++	clk_disable_unprepare(host->iclk);
+ 	clk_put(host->iclk);
+ 	return ret;
+ }
+@@ -1476,8 +1480,9 @@ static int mmc_omap_remove(struct platform_device *pdev)
+ 
+ 	mmc_omap_fclk_enable(host, 0);
+ 	free_irq(host->irq, host);
++	clk_unprepare(host->fclk);
+ 	clk_put(host->fclk);
+-	clk_disable(host->iclk);
++	clk_disable_unprepare(host->iclk);
+ 	clk_put(host->iclk);
+ 
+ 	if (host->dma_tx)
 -- 
 2.29.2
 
