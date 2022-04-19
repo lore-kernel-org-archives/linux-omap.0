@@ -2,35 +2,35 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7392EC4332F
-	for <linux-omap@archiver.kernel.org>; Tue, 19 Apr 2022 13:41:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F8EFC433F5
+	for <linux-omap@archiver.kernel.org>; Tue, 19 Apr 2022 13:41:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352786AbiDSNn4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 19 Apr 2022 09:43:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39934 "EHLO
+        id S1352800AbiDSNn5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 19 Apr 2022 09:43:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234762AbiDSNnI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2022 09:43:08 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C35AE182;
-        Tue, 19 Apr 2022 06:40:25 -0700 (PDT)
+        with ESMTP id S1352809AbiDSNmx (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2022 09:42:53 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BBE9182;
+        Tue, 19 Apr 2022 06:40:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7A754B81983;
-        Tue, 19 Apr 2022 13:40:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B32FFC385A5;
-        Tue, 19 Apr 2022 13:40:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4B94DB81983;
+        Tue, 19 Apr 2022 13:40:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9990AC385AF;
+        Tue, 19 Apr 2022 13:40:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1650375623;
-        bh=R5zRvKa0SoyT3N6cs+9ATf3vspiQLolbMLlEiLA/7fA=;
+        s=k20201202; t=1650375608;
+        bh=9+ljq5dQueH2G15TUC+ZLkwgSkKDWfTDa0M3UxfDvzI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=h4qvsRlCqc1+D/Un3T++kg9XOlylFj9tu57mNt8nm00hUNQ6OKBJwfaNIy8CUc5b/
-         qlJ5Qll9E9CFFYZxtIhDJzmK+qDlqq4+ArAd2BBXudLqHYrCpKgbUoCnwsfLaR2pgk
-         Q7EkW4bPFi3bk0l1eRnod+7F8TcxdVYbp1x3X1kd6GHmuGnsuLz3ITS24UVsnNzXdg
-         x/K6BdB+SIi+C9NttQpeR53oMsrljIEQWrLP8CdiwfvAVwJt/CIv2ZT1IB0hwp9ZMU
-         YhjJTR86Ah4hamcr5wDfPSVrUyclrlzsHDyDQ4lgL5SrWli+rzKao8UrzltowcxyNH
-         vWiGzLOvfg/Eg==
+        b=UZEWjobJJdf/97+RsHjNB+jMk4tP3Pl4vgk6cxlQnhU41tj2I/yINK+gRoMdoNOUR
+         Y7MRcUEAGnlNliwHS5DlBG2gtVRR+NX39wFuq/IGF0bnCo9HD4/Ko6wpnFF46X1ylv
+         iALan+QzhQpH4nbYopoyAajxQA2oBzcqItCFMpy/SY9vH4HlIcvpT8NRLMP54afeyx
+         u1+GxMJCkZOQYlBflCn6XehmD8eQEUOxgT0Tgy+CE5qdUt9iLLhEzYm8twoL8sueZd
+         +tmqfAeeno42q0iwsr0p6BakCbrKJuvbO2sq+/dI7pXW42969rnsk5HKJ4ZbkYUR14
+         LrA6BeSwSde3w==
 From:   Arnd Bergmann <arnd@kernel.org>
 To:     linux-omap@vger.kernel.org, tony@atomide.com, aaro.koskinen@iki.fi,
         jmkrzyszt@gmail.com
@@ -57,9 +57,9 @@ Cc:     Arnd Bergmann <arnd@arndb.de>,
         linux-input@vger.kernel.org, linux-mmc@vger.kernel.org,
         linux-serial@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 22/41] ARM: omap1: move plat/dma.c to mach/omap-dma.c
-Date:   Tue, 19 Apr 2022 15:37:04 +0200
-Message-Id: <20220419133723.1394715-23-arnd@kernel.org>
+Subject: [PATCH 20/41] dma: omap: hide legacy interface
+Date:   Tue, 19 Apr 2022 15:37:02 +0200
+Message-Id: <20220419133723.1394715-21-arnd@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20220419133723.1394715-1-arnd@kernel.org>
 References: <20220419133723.1394715-1-arnd@kernel.org>
@@ -71,48 +71,134 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-Most of the interface functions in plat/dma.c are only used from the
-USB driver, which is practically OMAP1 specific, except for compile
-testing.
+The legacy interface for omap-dma is only used on OMAP1, and the
+same is true for the non-DT case. Make both of these conditional on
+CONFIG_ARCH_OMAP1 being set to simplify the dependency.
 
-The omap_get_plat_info(), omap_request_dma() and omap_free_dma()
-functions are never called on omap2 because of runtime checks.
+The non-OMAP stub functions in include/linux/omap-dma.h are note needed
+any more either now, because they are only called on OMAP1.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm/mach-omap1/Makefile                        | 2 +-
- arch/arm/{plat-omap/dma.c => mach-omap1/omap-dma.c} | 0
- arch/arm/plat-omap/Makefile                         | 2 +-
- 3 files changed, 2 insertions(+), 2 deletions(-)
- rename arch/arm/{plat-omap/dma.c => mach-omap1/omap-dma.c} (100%)
+ drivers/dma/ti/omap-dma.c | 19 +++++++++++++------
+ include/linux/omap-dma.h  | 22 ----------------------
+ 2 files changed, 13 insertions(+), 28 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index 450bbf552b57..0615cb0ba580 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -5,7 +5,7 @@
+diff --git a/drivers/dma/ti/omap-dma.c b/drivers/dma/ti/omap-dma.c
+index 8e52a0dc1f78..27f5019bdc1e 100644
+--- a/drivers/dma/ti/omap-dma.c
++++ b/drivers/dma/ti/omap-dma.c
+@@ -699,6 +699,11 @@ static void omap_dma_put_lch(struct omap_dmadev *od, int lch)
+ 	mutex_unlock(&od->lch_lock);
+ }
  
- # Common support
- obj-y := io.o id.o sram-init.o sram.o time.o irq.o mux.o flash.o \
--	 serial.o devices.o dma.o fb.o
-+	 serial.o devices.o dma.o omap-dma.o fb.o
- obj-y += clock.o clock_data.o opp_data.o reset.o pm_bus.o timer.o
++static inline bool omap_dma_legacy(struct omap_dmadev *od)
++{
++	return IS_ENABLED(CONFIG_ARCH_OMAP1) && od->legacy;
++}
++
+ static int omap_dma_alloc_chan_resources(struct dma_chan *chan)
+ {
+ 	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
+@@ -706,7 +711,7 @@ static int omap_dma_alloc_chan_resources(struct dma_chan *chan)
+ 	struct device *dev = od->ddev.dev;
+ 	int ret;
  
- ifneq ($(CONFIG_SND_SOC_OMAP_MCBSP),)
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/mach-omap1/omap-dma.c
-similarity index 100%
-rename from arch/arm/plat-omap/dma.c
-rename to arch/arm/mach-omap1/omap-dma.c
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 68ccec9de106..5d55295a14ee 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -6,4 +6,4 @@
- ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/arch/arm/plat-omap/include
+-	if (od->legacy) {
++	if (omap_dma_legacy(od)) {
+ 		ret = omap_request_dma(c->dma_sig, "DMA engine",
+ 				       omap_dma_callback, c, &c->dma_ch);
+ 	} else {
+@@ -718,7 +723,7 @@ static int omap_dma_alloc_chan_resources(struct dma_chan *chan)
+ 	if (ret >= 0) {
+ 		omap_dma_assign(od, c, c->dma_ch);
  
- # Common support
--obj-y := sram.o dma.o
-+obj-y := sram.o
+-		if (!od->legacy) {
++		if (!omap_dma_legacy(od)) {
+ 			unsigned val;
+ 
+ 			spin_lock_irq(&od->irq_lock);
+@@ -757,7 +762,7 @@ static void omap_dma_free_chan_resources(struct dma_chan *chan)
+ 	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
+ 	struct omap_chan *c = to_omap_dma_chan(chan);
+ 
+-	if (!od->legacy) {
++	if (!omap_dma_legacy(od)) {
+ 		spin_lock_irq(&od->irq_lock);
+ 		od->irq_enable_mask &= ~BIT(c->dma_ch);
+ 		omap_dma_glbl_write(od, IRQENABLE_L1, od->irq_enable_mask);
+@@ -768,7 +773,7 @@ static void omap_dma_free_chan_resources(struct dma_chan *chan)
+ 	od->lch_map[c->dma_ch] = NULL;
+ 	vchan_free_chan_resources(&c->vc);
+ 
+-	if (od->legacy)
++	if (omap_dma_legacy(od))
+ 		omap_free_dma(c->dma_ch);
+ 	else
+ 		omap_dma_put_lch(od, c->dma_ch);
+@@ -1674,12 +1679,14 @@ static int omap_dma_probe(struct platform_device *pdev)
+ 			dev_err(&pdev->dev, "omap_system_dma_plat_info is missing");
+ 			return -ENODEV;
+ 		}
+-	} else {
++	} else if (IS_ENABLED(CONFIG_ARCH_OMAP1)) {
+ 		od->cfg = &default_cfg;
+ 
+ 		od->plat = omap_get_plat_info();
+ 		if (!od->plat)
+ 			return -EPROBE_DEFER;
++	} else {
++		return -ENODEV;
+ 	}
+ 
+ 	od->reg_map = od->plat->reg_map;
+@@ -1855,7 +1862,7 @@ static int omap_dma_remove(struct platform_device *pdev)
+ 
+ 	dma_async_device_unregister(&od->ddev);
+ 
+-	if (!od->legacy) {
++	if (!omap_dma_legacy(od)) {
+ 		/* Disable all interrupts */
+ 		omap_dma_glbl_write(od, IRQENABLE_L0, 0);
+ 	}
+diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
+index 07fa58ae9902..254b4e10511b 100644
+--- a/include/linux/omap-dma.h
++++ b/include/linux/omap-dma.h
+@@ -292,7 +292,6 @@ struct omap_system_dma_plat_info {
+ #define dma_omap15xx()	__dma_omap15xx(d)
+ #define dma_omap16xx()	__dma_omap16xx(d)
+ 
+-#if defined(CONFIG_ARCH_OMAP)
+ extern struct omap_system_dma_plat_info *omap_get_plat_info(void);
+ 
+ extern void omap_set_dma_priority(int lch, int dst_port, int priority);
+@@ -340,25 +339,4 @@ static inline int omap_lcd_dma_running(void)
+ }
+ #endif
+ 
+-#else /* CONFIG_ARCH_OMAP */
+-static inline void omap_set_dma_priority(int lch, int dst_port, int priority)
+-{
+-}
+-
+-static inline struct omap_system_dma_plat_info *omap_get_plat_info(void)
+-{
+-	return NULL;
+-}
+-
+-static inline int omap_request_dma(int dev_id, const char *dev_name,
+-			void (*callback)(int lch, u16 ch_status, void *data),
+-			void *data, int *dma_ch)
+-{
+-	return -ENODEV;
+-}
+-
+-static inline void omap_free_dma(int ch) { }
+-
+-#endif /* CONFIG_ARCH_OMAP */
+-
+ #endif /* __LINUX_OMAP_DMA_H */
 -- 
 2.29.2
 
