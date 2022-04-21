@@ -2,98 +2,80 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C0C9C433FE
-	for <linux-omap@archiver.kernel.org>; Thu, 21 Apr 2022 12:15:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAFBDC433EF
+	for <linux-omap@archiver.kernel.org>; Thu, 21 Apr 2022 12:40:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234910AbiDUMSa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 21 Apr 2022 08:18:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58604 "EHLO
+        id S1385245AbiDUMnC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 21 Apr 2022 08:43:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44826 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231570AbiDUMSa (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Apr 2022 08:18:30 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E65F92D1DC
-        for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2022 05:15:40 -0700 (PDT)
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 086E78106;
-        Thu, 21 Apr 2022 12:12:47 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     soc@kernel.org
-Cc:     arm@kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        "Tony Lindgren" <tony@atomide.com>
-Subject: [GIT PULL] Fixes for omaps
-Date:   Thu, 21 Apr 2022 15:15:27 +0300
-Message-Id: <pull-1650543308-836725@atomide.com>
-X-Mailer: git-send-email 2.35.2
+        with ESMTP id S1385061AbiDUMnB (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Apr 2022 08:43:01 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC4BD1CFEA;
+        Thu, 21 Apr 2022 05:40:12 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 49A2B61C5A;
+        Thu, 21 Apr 2022 12:40:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id A79B4C385A1;
+        Thu, 21 Apr 2022 12:40:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1650544811;
+        bh=W830rsXdVoz6lGkLr6jz/XzdBaWMYcxDel5ra7LJO3I=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=np8KbkB0CuWJSnDyEtWq9lIDu9iGdDihH9vlphk/9CiKjmUBY07helW6DRA4DTiht
+         6ft88xPDrmjvSuJYSMHuhEvtxw6kOzAxWZ05vbnc4MtGPNNAhhk0Rsc+B1kEzlBvDk
+         +lQo259F0CJ8vgYyffcUe/eyQWJm42da85stthOAxEUO1oIwEEErYv2LIVJ2Ia4fyj
+         jkCeHdrcbAIRLHFsczGlU+38OIQ1D+QY3vT4zQkAxoSomKnWhOllDb4HucfdoXbUO/
+         CvZn5FudSKhCsBOQMum2bOTcOaS6Pk4F6laLcArvOrFc87rCb4GN18b/UAe/0gk+oa
+         VyKG52+Ma4iTw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 86F04EAC09C;
+        Thu, 21 Apr 2022 12:40:11 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH] drivers: net: davinci_mdio: using pm_runtime_resume_and_get
+ instead of pm_runtime_get_sync
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <165054481154.27620.9902312033676025709.git-patchwork-notify@kernel.org>
+Date:   Thu, 21 Apr 2022 12:40:11 +0000
+References: <20220418062921.2557884-1-chi.minghao@zte.com.cn>
+In-Reply-To: <20220418062921.2557884-1-chi.minghao@zte.com.cn>
+To:     Lv Ruyi <cgel.zte@gmail.com>
+Cc:     grygorii.strashko@ti.com, davem@davemloft.net, kuba@kernel.org,
+        linux-omap@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, chi.minghao@zte.com.cn,
+        zealci@zte.com.cn
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+Hello:
 
-The following changes since commit 71ff461c3f41f6465434b9e980c01782763e7ad8:
+This patch was applied to netdev/net-next.git (master)
+by Paolo Abeni <pabeni@redhat.com>:
 
-  iommu/omap: Fix regression in probe for NULL pointer dereference (2022-04-08 11:16:29 +0200)
+On Mon, 18 Apr 2022 06:29:21 +0000 you wrote:
+> From: Minghao Chi <chi.minghao@zte.com.cn>
+> 
+> Using pm_runtime_resume_and_get is more appropriate
+> for simplifing code
+> 
+> Reported-by: Zeal Robot <zealci@zte.com.cn>
+> Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
+> 
+> [...]
 
-are available in the Git repository at:
+Here is the summary with links:
+  - drivers: net: davinci_mdio: using pm_runtime_resume_and_get instead of pm_runtime_get_sync
+    https://git.kernel.org/netdev/net-next/c/4facbe3d4426
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.18/fixes-take2
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-for you to fetch changes up to 46ff3df87215ff42c0cd2c4bdb7d74540384a69c:
 
-  ARM: dts: logicpd-som-lv: Fix wrong pinmuxing on OMAP35 (2022-04-14 11:38:44 +0300)
-
-----------------------------------------------------------------
-Fixes for omaps
-
-Few regression fixes for omap variants. These mostly fix issues related to
-warnings added for system suspend, and some devicetree issues:
-
-- Make ti-sysc driver quirks for gpt12 timer omap3 specific to fix
-  timer clock disabling for am335x system suspend
-
-- Fix new system suspend warning for dra7 vpe caused by trying to
-  use register bits not wired for vpe
-
-- Fix mmc boot order for omap3-gta04 that has no mmc2 or 3 wired
-
-- Add missing touchscreen properties for am3
-
-- Fix pin muxing for logicpd-som-lv and am3517-evm to not depend on
-  earlier bootloader versions
-
-- Fix refcount leak for omap_gic_of_init
-
-----------------------------------------------------------------
-Adam Ford (2):
-      ARM: dts: am3517-evm: Fix misc pinmuxing
-      ARM: dts: logicpd-som-lv: Fix wrong pinmuxing on OMAP35
-
-H. Nikolaus Schaller (1):
-      ARM: dts: Fix mmc order for omap3-gta04
-
-Miaoqian Lin (1):
-      ARM: OMAP2+: Fix refcount leak in omap_gic_of_init
-
-Miquel Raynal (1):
-      ARM: dts: am33xx-l4: Add missing touchscreen clock properties
-
-Tony Lindgren (2):
-      bus: ti-sysc: Make omap3 gpt12 quirk handling SoC specific
-      ARM: dts: dra7: Fix suspend warning for vpe powerdomain
-
- arch/arm/boot/dts/am33xx-l4.dtsi                 |  2 ++
- arch/arm/boot/dts/am3517-evm.dts                 | 45 +++++++++++++++++++++---
- arch/arm/boot/dts/am3517-som.dtsi                |  9 +++++
- arch/arm/boot/dts/dra7-l4.dtsi                   |  4 +--
- arch/arm/boot/dts/logicpd-som-lv-35xx-devkit.dts | 15 ++++++++
- arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts | 15 ++++++++
- arch/arm/boot/dts/logicpd-som-lv.dtsi            | 15 --------
- arch/arm/boot/dts/omap3-gta04.dtsi               |  2 ++
- arch/arm/mach-omap2/omap4-common.c               |  2 ++
- drivers/bus/ti-sysc.c                            | 16 ++++++++-
- 10 files changed, 102 insertions(+), 23 deletions(-)
