@@ -2,77 +2,132 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81403C433EF
-	for <linux-omap@archiver.kernel.org>; Thu, 21 Apr 2022 12:40:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80230C4321E
+	for <linux-omap@archiver.kernel.org>; Thu, 21 Apr 2022 13:34:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231928AbiDUMne (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 21 Apr 2022 08:43:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45134 "EHLO
+        id S1386876AbiDUNhn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 21 Apr 2022 09:37:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53728 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231220AbiDUMnd (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Apr 2022 08:43:33 -0400
-Received: from mout.kundenserver.de (mout.kundenserver.de [217.72.192.74])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDCCA220CB
-        for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2022 05:40:43 -0700 (PDT)
-Received: from mail-wm1-f43.google.com ([209.85.128.43]) by
- mrelayeu.kundenserver.de (mreue109 [213.165.67.113]) with ESMTPSA (Nemesis)
- id 1MtfRp-1o2k2m0Ltf-00v8Ka for <linux-omap@vger.kernel.org>; Thu, 21 Apr
- 2022 14:35:39 +0200
-Received: by mail-wm1-f43.google.com with SMTP id p189so3106257wmp.3
-        for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2022 05:35:39 -0700 (PDT)
-X-Gm-Message-State: AOAM533J4mnjo1wtn7tvhMCvrg/RREmO3bFLcUmv+fsm8GfDAlF0cFSP
-        b8FaK2es06u1C/4H7XxRYZvTAZSic87thMLixpo=
-X-Google-Smtp-Source: ABdhPJyNF2euNOgMLkVa0dx5yacmTJRRySkkqP2RuczwMAMvOSzpbCElGtv/AMTcjGmOjglKJB29I01rrjD2SHNDudg=
-X-Received: by 2002:a05:600c:25c5:b0:38f:f0b9:4c8c with SMTP id
- 5-20020a05600c25c500b0038ff0b94c8cmr8754525wml.20.1650544538781; Thu, 21 Apr
- 2022 05:35:38 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220413081656.27848-1-tony@atomide.com>
-In-Reply-To: <20220413081656.27848-1-tony@atomide.com>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Thu, 21 Apr 2022 14:35:22 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a1c4H1Bi9ExfgSHg6uUdQD77UChjD528MmFPpFjrvSqFQ@mail.gmail.com>
-Message-ID: <CAK8P3a1c4H1Bi9ExfgSHg6uUdQD77UChjD528MmFPpFjrvSqFQ@mail.gmail.com>
-Subject: Re: [PATCH] MAINTAINERS: omap1: Add Janusz as an additional maintainer
-To:     Tony Lindgren <tony@atomide.com>
+        with ESMTP id S230271AbiDUNhb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Apr 2022 09:37:31 -0400
+Received: from lahtoruutu.iki.fi (lahtoruutu.iki.fi [IPv6:2a0b:5c81:1c1::37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AFD12ED69;
+        Thu, 21 Apr 2022 06:34:41 -0700 (PDT)
+Received: from darkstar.musicnaut.iki.fi (85-76-47-192-nat.elisa-mobile.fi [85.76.47.192])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: aaro.koskinen)
+        by lahtoruutu.iki.fi (Postfix) with ESMTPSA id 047811B00252;
+        Thu, 21 Apr 2022 16:34:32 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=lahtoruutu;
+        t=1650548074;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=oVFIWam2OH5Kq5QzsfblzUEMIMiatzAi7D5irCcCglk=;
+        b=Xk3qyrppSMBB4y+4boXcQF3oQ0tJICSyEousvelDBkd8/PVx55tQbJieAi/Q0KQa0aNG+G
+        Gh88Z+pM8E36JmzxlWSVvjXm3PFhBwLXYL2LZOWOsctt2/ybfngzEzXevKqVRqqsk+dHOX
+        5L1WRR3RN0Tc57TLDGaoxQzs/vTRLS73kqV8NQ7Pr+rYaKPhEVw6YpbHAi1CUcgHmT/iJb
+        sSsFTNRKlLJoxWjnYPJUSCoDtMuNfYAqp6Y4933cAcgTAbeGBst/0aU+ZHi8x118KnYG/L
+        TTEMpWSI21eBdlKccjScwxNSRB5ywON2ldVT1bI/+m9vyrFPnxxWxtiiOfNC6w==
+Date:   Thu, 21 Apr 2022 16:34:31 +0300
+From:   Aaro Koskinen <aaro.koskinen@iki.fi>
+To:     Arnd Bergmann <arnd@kernel.org>
 Cc:     linux-omap <linux-omap@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Tony Lindgren <tony@atomide.com>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
         Arnd Bergmann <arnd@arndb.de>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:M6m87tsI7azc2nG5ieF3dnxnH13AbFlNvCddRz+Z6RtCVUILueQ
- o1Fjz+LnU/Wo9OoFVzKfURCUctY3noaDezKRzITYwwMGxePq+atCVSq7xo4PHdpnfGRT3WP
- WPUnujBeyZfsECYwU9kC7SRxrdhM4OLOWrMHQJpWu9mYmzRhtwZcmkLaooIquQlAaoVE8JH
- 5aX0D1ncQGxPSx5fFdPxg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:p04iig/D5Fo=:QksiS5Qr8auSRFlSRYDZS0
- +pUgasHaKsd8Zj1XrwPpC9ZAw1PL/PBz5I2nFyuP64xzA5WuOcsn+tFh09+HZVeNzO8Igrb8u
- rSPV1KABLlcvkNaXNcVszjULhHrVJw69ROiPBXbyzsGsnU4Bpk7eNKLgk/eOLm8Rk5mkNhmDC
- hdfyBUVOIqEmsx86Q7sPfKeOOZ0NKy/AGaHkXAcHjaG1IfNPuEG6VzKzLk4lajIrylETwW6XY
- zD8K1WoLDKJKiPMeHV8PH4p6RfozjNeJ7pvYKzRR7ODwh9juGBLZuBV9QiT4dqJ2c+bfpLSuz
- aAJw6fcYfXKLHKYSpNW/W2gFmQH5BrV6/S7/W/pXxcvdU00pR94y/XaUYWb2kcnR87RIwAa3k
- 1lf7K0V7zlfEkATSmGXkDO0a1sjwA4rx9DTotN4RINl1XuAT7Deh37bsfnv5qoRXdj6xgoJ4p
- wUC619YJp9PV0KRBDOAPYxza9jT8Z2TLWsZTcqEZlpB9p0+pJs8Ga5INnknFuV97hVXUC2iLd
- r6sxFLhccXdfppmUVmk4s/Bn7LzQl5ER3dkCpjGEwOHamfCyFuEgPmGDknB6aUmw4oKLYEWON
- 7crBbkweAhpWs+VCJqd5tOxuVHXYez/JUg6BKww3lAghkFp+FREEkP10G2Ul9a8g0hTYjjBJW
- ONjJ1XdfXgAZ6BhUjx1zihB3QpMexCjT2tirTQQeplrr5iSFTxfAqUnLjj5bBfqSOD2LPF1dV
- Yk4GD324ePgZss+GXlSaGxT4wg0FUW1F2qPH6iN/cmJWpUIeCDgPwCUrVGOMLwL1fqXGboqKH
- l/J98Smm5Sl4VWfB0CMuaQq/3Onp2z6L5r8mLQD9lhyTM4sa3w=
+        Russell King <linux@armlinux.org.uk>,
+        Paul Walmsley <paul@pwsan.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Peter Ujfalusi <peter.ujfalusi@gmail.com>,
+        Vinod Koul <vkoul@kernel.org>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Mark Brown <broonie@kernel.org>,
+        Felipe Balbi <balbi@kernel.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Lee Jones <lee.jones@linaro.org>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Jingoo Han <jingoohan1@gmail.com>,
+        Helge Deller <deller@gmx.de>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        USB list <linux-usb@vger.kernel.org>,
+        dmaengine@vger.kernel.org,
+        "open list:HID CORE LAYER" <linux-input@vger.kernel.org>,
+        linux-mmc <linux-mmc@vger.kernel.org>,
+        "open list:SERIAL DRIVERS" <linux-serial@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+        ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 00/41] OMAP1 full multiplatform conversion
+Message-ID: <20220421133431.GE1947@darkstar.musicnaut.iki.fi>
+References: <20220419133723.1394715-1-arnd@kernel.org>
+ <20220420170836.GB1947@darkstar.musicnaut.iki.fi>
+ <CAK8P3a1+sOrn8BWPVc7f+QFZ5=7fE6=MLsMYV9t+HJcG2aRCXA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a1+sOrn8BWPVc7f+QFZ5=7fE6=MLsMYV9t+HJcG2aRCXA@mail.gmail.com>
+ARC-Seal: i=1; s=lahtoruutu; d=iki.fi; t=1650548074; a=rsa-sha256;
+        cv=none;
+        b=ENXGTtwbaVogGy0K8rD23cjHmjO1KDBpZYPSWyAXiJ0/g3DluUJMMqXizYyXV1sh/1O56S
+        hChw4SwQwbKFg4HYlY2SOiU8koj4G0UA6uGgTWSMxSwgySv+tbXfSR2Tt70pNgc6FN/vqj
+        fDExRVdSPenGd/ZTQhfjmyvSX3P7pooRbwh0WQDjEhItMOJyG5yZgN9teFQT3NBHXEEZkO
+        lTJHNaVgxdVFvqiak5FfjdiYOvwW5qr/IFspdks2sOUviaT7JpvKaacUapRAwuXFYtOguN
+        JXEZ3bM5xviSbbt9Tw3xErBDkB9cnwUXXzqGZHNp79d0+eb+sY0cVMOQI8ss7A==
+ARC-Authentication-Results: i=1;
+        ORIGINATING;
+        auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
+        s=lahtoruutu; t=1650548074;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=oVFIWam2OH5Kq5QzsfblzUEMIMiatzAi7D5irCcCglk=;
+        b=Eu1uUO0EKvbhrdQZfCpIhRELzJA5jQZA+tye8R+aaTvgG9DkVEsXKYWX2Sby3kmhYmBCFx
+        570Cbs63dCqUFZqQdnWOK5t2vzZfwXPpwZynEikAKA3hi3QfuIi/BoBmae0xNSLey+fMmB
+        6AN1xF39YRJln008whjTgBohIBALbd/JXyh+rxwe1mx9rmT55Z+64rbOepQpAj7WZ0ttFr
+        jnTgxti7i7/9Pg4jNgskYWOOvKpXwrgTWzEQwA6H3TD1Jh0kJTMK2AunGS+FmvtC90A9Rp
+        r/9gYERVC+5BvSqEpSaGtYy+3htyiKaREqUWXaB7dxpxJqJYBA33p4txWzgVSw==
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, Apr 13, 2022 at 10:16 AM Tony Lindgren <tony@atomide.com> wrote:
->
-> Janusz has been active with improving and testing the omap1 SoC support
-> and has been recently working on adding support for the common clock
-> framework.
->
-> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Hi,
 
-Applied to the omap1-multiplatform branch now, thanks
+On Wed, Apr 20, 2022 at 10:00:13PM +0200, Arnd Bergmann wrote:
+> On Wed, Apr 20, 2022 at 7:08 PM Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+> > On Tue, Apr 19, 2022 at 03:36:42PM +0200, Arnd Bergmann wrote:
+> > > From: Arnd Bergmann <arnd@arndb.de>
+> > >
+> > > This is the full series for converting OMAP1 to multiplatform, rebased
+> > > from my 2019 attempt to do the same thing. The soc tree contains simpler
+> > > patches to do the same for iop32x, ixp4xx, ep93xx and s3c24xx, which
+> > > means we are getting closer to completing this for all ARMv5 platforms
+> > > (I have patches for PXA, which is the last one remaining).
+> > >
+> > > Janusz already tested the branch separately and did the missing work
+> > > for the common-clk conversion after my previous approach was broken.
+> >
+> > I tested the full series on the following OMAP1 boards: ams-delta,
+> > nokia770, osk, palmte and sx1 (QEMU only).
+> >
+> > Apart from the earlyprintk breakage, everything seemed to work OK.
+> 
+> Nice, thanks a lot for testing!
 
-       Arnd
+With the updated patch 26 also earlyprintk now works, so if you still
+update the patches, feel free to add for the whole series:
+
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+Thanks,
+
+A.
