@@ -2,40 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68656C433F5
-	for <linux-omap@archiver.kernel.org>; Thu, 21 Apr 2022 12:07:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26382C433EF
+	for <linux-omap@archiver.kernel.org>; Thu, 21 Apr 2022 12:08:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1382993AbiDUMKc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 21 Apr 2022 08:10:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53472 "EHLO
+        id S1354455AbiDUMLc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 21 Apr 2022 08:11:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351963AbiDUMKc (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Apr 2022 08:10:32 -0400
+        with ESMTP id S1351963AbiDUMLc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Apr 2022 08:11:32 -0400
 Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3DF3B1F63A
-        for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2022 05:07:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 30CAD25C57;
+        Thu, 21 Apr 2022 05:08:43 -0700 (PDT)
 Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 26BCC8106;
-        Thu, 21 Apr 2022 12:04:51 +0000 (UTC)
-Date:   Thu, 21 Apr 2022 15:07:41 +0300
+        by muru.com (Postfix) with ESMTPS id 1C0978106;
+        Thu, 21 Apr 2022 12:05:51 +0000 (UTC)
+Date:   Thu, 21 Apr 2022 15:08:41 +0300
 From:   Tony Lindgren <tony@atomide.com>
-To:     Geert Uytterhoeven <geert+renesas@glider.be>
-Cc:     linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] bus: ti-sysc: Drop commas after SoC match table sentinels
-Message-ID: <YmFJDTeqRcwb5Ucu@atomide.com>
-References: <602f74030dc746eaa9f82f115acc46e62c6be165.1646311501.git.geert+renesas@glider.be>
+To:     yegorslists@googlemail.com
+Cc:     linux-omap@vger.kernel.org, bcousson@baylibre.com,
+        robh+dt@kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH] ARM: dts: am335x-baltos: update MPU regulator range
+Message-ID: <YmFJSTr7KfLgzzME@atomide.com>
+References: <20220419143923.25196-1-yegorslists@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <602f74030dc746eaa9f82f115acc46e62c6be165.1646311501.git.geert+renesas@glider.be>
+In-Reply-To: <20220419143923.25196-1-yegorslists@googlemail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Geert Uytterhoeven <geert+renesas@glider.be> [220303 14:44]:
-> It does not make sense to have a comma after a sentinel, as any new
-> elements must be added before the sentinel.
+* yegorslists@googlemail.com <yegorslists@googlemail.com> [220419 17:36]:
+> From: Yegor Yefremov <yegorslists@googlemail.com>
+> 
+> Update the max MPU voltage range to align with the maximum
+> possible value allowed in the operating-points table, which is max
+> target voltage of 132500 uV + 2%.
 
-Applying into omap-for-v5.19/ti-sysc thanks.
+Applying into omap-for-v5.19/dt thanks.
 
 Tony
