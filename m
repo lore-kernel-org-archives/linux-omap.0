@@ -2,69 +2,84 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55B76C433EF
-	for <linux-omap@archiver.kernel.org>; Sat, 23 Apr 2022 06:16:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 908F1C433EF
+	for <linux-omap@archiver.kernel.org>; Mon, 25 Apr 2022 06:46:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232375AbiDWGTr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 23 Apr 2022 02:19:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60232 "EHLO
+        id S236545AbiDYGt7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 25 Apr 2022 02:49:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230324AbiDWGTo (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 23 Apr 2022 02:19:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C0771A8C09;
-        Fri, 22 Apr 2022 23:16:45 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 485E560AFA;
-        Sat, 23 Apr 2022 06:16:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9095DC385A0;
-        Sat, 23 Apr 2022 06:16:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1650694604;
-        bh=NVI7VzmGBiOb+BBY2T+Sry5ii2m+JF0yOSOAGGiJGNA=;
-        h=From:To:Cc:Subject:References:Date:In-Reply-To:From;
-        b=TDuUON4SFSkzEbWklnAI+3lnzbniB8kLFlbcWVemxsIJYxQk2TwXi6dXAS5XkMmM8
-         NK951vyvCCosAr5rTQjj/KuZIXgDShmGTB043Z/iEOhRm8wrqNroXk3NWkStHP97nO
-         7Gt6Hmu322Dip+uoTweYkFUPRzPEfqro6YXR1uQGV8S3NOgUeeMEj2e1BUaDfXrmqx
-         VC1k7rL/uzdBmVR2eSV46wyvZBphfk/kDtN6/QyeQ49MSkofBTP8R4Ez1JdB9bL7EY
-         A0EntQezILIo6CT/9AbOoW146GVfX0/xl4P5+B6LcQvBqiYQJS3hy5mkz8XjEPWPXH
-         4qnUKAsfkd6hA==
-From:   Kalle Valo <kvalo@kernel.org>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Yegor Yefremov <yegorslists@googlemail.com>,
+        with ESMTP id S231792AbiDYGt6 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 25 Apr 2022 02:49:58 -0400
+Received: from mail-io1-xd34.google.com (mail-io1-xd34.google.com [IPv6:2607:f8b0:4864:20::d34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F13E366F8A;
+        Sun, 24 Apr 2022 23:46:54 -0700 (PDT)
+Received: by mail-io1-xd34.google.com with SMTP id p62so14892900iod.0;
+        Sun, 24 Apr 2022 23:46:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=+hmsH5keO46hs2cNa85ZpA/Y+Y0MOYjGvgOWRr8GDzM=;
+        b=mHBVuX4SgON7Y2qWzJ5+Sgcw/+FSVsjzx6ReiK57wFvjJExQeaKalrDZaB5fhZbteE
+         N9DecHKpXvzsFcWFPDi7Tl4kEgchgwpZZwzYoJx9Rmz1nYJ1UEv1aqPIlTsZpdEqnw2O
+         Gp3JbWxxdFfF+Hj2JfHoiQGzMEEBN9M73x17wgnD1WYxwKaxSmJMu0MbkUSOyGrPe+yi
+         up0p2GEP8m6fnvxNPcy50Vk9kax6EvgR3VakmHTpMQUK/BVBV6UBg3+yK9mgvno9VXVf
+         nDeTdF50NH7SGgJ8JxZ1DOaHjf+tvY/mW1UwiyQOjVB+Bhj0XG+cTt1R44IUFw4lXION
+         7UEg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=+hmsH5keO46hs2cNa85ZpA/Y+Y0MOYjGvgOWRr8GDzM=;
+        b=ABWU7da6iZKelfb8vXuV6wjEJLV+hCXLqKgepvHJTthviXCpEKWVJoRAQOy+vKF52X
+         FRIkAHLKCZiLnlGzWM5hii/a2Uv1zDHb/fAUBLCMkt+BqCpeCBcV/DT/4/x7KQJkhxzP
+         UgvOkaoBJ0CySyPACwJeq0+hC6I6NX4yUMToBGB3vTuOkwgz2yADinJvjPdRKmuMDtS8
+         wzwhR1TDyeUXc+79caLx3QIXH17gyQGFeZ/Zw3czquKzSIN7S3L1N56OQyzz7TRwVeQo
+         HRKmZ2HUxo50yFZ0qV5MZ3uUkmcmJJgr2eM3PcgWHbGmBRQHqdKKxmJOzogijN0yY2TT
+         rhZA==
+X-Gm-Message-State: AOAM531Bwgcma5HePLmTL//z7XWTj9b0L/0bOTBYMZGZTA4XJSlCufic
+        100JRm3L1EpV7zqPzEiKFSX/piZDugByTROLa58gOaVe
+X-Google-Smtp-Source: ABdhPJwCEsJtaGmusq/EvWmxZw3eqhF28LcMm2e7o3DzZTDJOCc/mrHPeqQvIk5Dz0RNnz5mRml3cg3zJz8qK+3lmaU=
+X-Received: by 2002:a05:6638:258e:b0:32a:7db9:e769 with SMTP id
+ s14-20020a056638258e00b0032a7db9e769mr6603394jat.113.1650869214437; Sun, 24
+ Apr 2022 23:46:54 -0700 (PDT)
+MIME-Version: 1.0
+References: <CAGm1_ktEim1vGOf5i=H_sqrPvg=dT50790YYwXgYKgAut-a=ng@mail.gmail.com>
+ <YmDpTAu9wmlLijDA@atomide.com> <CAGm1_kv+b1h1OuWr4w5jS_mqfQpXF7UexiWFsOSs+MJK546=ew@mail.gmail.com>
+ <CAGm1_ksOt-JtOcTBG7wEqaHagx1NTGYXTMTOG40AN2RELqWKwg@mail.gmail.com>
+ <YmKaoRfxo4bMzDdR@atomide.com> <87ee1oqq7s.fsf@tynnyri.adurom.net>
+In-Reply-To: <87ee1oqq7s.fsf@tynnyri.adurom.net>
+From:   Yegor Yefremov <yegorslists@googlemail.com>
+Date:   Mon, 25 Apr 2022 08:43:26 +0200
+Message-ID: <CAGm1_kvjdOdXVd5DTUZZx33dQNxtdc+tiGqnP8mA+Gz73GtXiQ@mail.gmail.com>
+Subject: Re: wl18xx: NVS file handling
+To:     Kalle Valo <kvalo@kernel.org>
+Cc:     Tony Lindgren <tony@atomide.com>,
         Linux-OMAP <linux-omap@vger.kernel.org>,
         linux-wireless@vger.kernel.org, sebastian.reichel@collabora.co.uk
-Subject: Re: wl18xx: NVS file handling
-References: <CAGm1_ktEim1vGOf5i=H_sqrPvg=dT50790YYwXgYKgAut-a=ng@mail.gmail.com>
-        <YmDpTAu9wmlLijDA@atomide.com>
-        <CAGm1_kv+b1h1OuWr4w5jS_mqfQpXF7UexiWFsOSs+MJK546=ew@mail.gmail.com>
-        <CAGm1_ksOt-JtOcTBG7wEqaHagx1NTGYXTMTOG40AN2RELqWKwg@mail.gmail.com>
-        <YmKaoRfxo4bMzDdR@atomide.com>
-Date:   Sat, 23 Apr 2022 09:16:39 +0300
-In-Reply-To: <YmKaoRfxo4bMzDdR@atomide.com> (Tony Lindgren's message of "Fri,
-        22 Apr 2022 15:08:01 +0300")
-Message-ID: <87ee1oqq7s.fsf@tynnyri.adurom.net>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
-MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Hi Kalle,
 
-> * Yegor Yefremov <yegorslists@googlemail.com> [220422 10:40]:
->> Wouldn't we need this functionality [1] to make the NVS fw file optional? :-(
->> 
->> [1] https://patchwork.kernel.org/project/linux-dmaengine/patch/20181112160143.4459-1-l.stach@pengutronix.de/
+On Sat, Apr 23, 2022 at 8:16 AM Kalle Valo <kvalo@kernel.org> wrote:
 >
-> Hmm yeah, how about if we use just an empty nvs file for no warnings then?
+> Tony Lindgren <tony@atomide.com> writes:
+>
+> > * Yegor Yefremov <yegorslists@googlemail.com> [220422 10:40]:
+> >> Wouldn't we need this functionality [1] to make the NVS fw file optional? :-(
+> >>
+> >> [1] https://patchwork.kernel.org/project/linux-dmaengine/patch/20181112160143.4459-1-l.stach@pengutronix.de/
+> >
+> > Hmm yeah, how about if we use just an empty nvs file for no warnings then?
+>
+> What's wrong with firmware_request_nowarn()?
 
-What's wrong with firmware_request_nowarn()?
+The driver uses asynchronous semantics for NVS loading. Hence, I
+didn't want to change this.
 
--- 
-https://patchwork.kernel.org/project/linux-wireless/list/
-
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+Regards,
+Yegor
