@@ -2,108 +2,70 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0F8DC43217
-	for <linux-omap@archiver.kernel.org>; Mon, 25 Apr 2022 22:22:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F03FC433EF
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Apr 2022 08:05:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238085AbiDYWZO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 25 Apr 2022 18:25:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50058 "EHLO
+        id S1344219AbiDZIIn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Apr 2022 04:08:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343639AbiDYV6L (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 25 Apr 2022 17:58:11 -0400
-Received: from mail-oa1-f44.google.com (mail-oa1-f44.google.com [209.85.160.44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E75CBE17;
-        Mon, 25 Apr 2022 14:55:06 -0700 (PDT)
-Received: by mail-oa1-f44.google.com with SMTP id 586e51a60fabf-e93ff05b23so4430850fac.9;
-        Mon, 25 Apr 2022 14:55:06 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=HTkzAgDwzrdZmDYnPnvTFadbGOqHK7m6HemofDQ+FyM=;
-        b=jQTmCzJkK6NKHyM1IkUb/l9WWb7BTWfWCe2agZ7Y2V+0uCT3gA9QEATXfEvizLleDY
-         gdXiytuOndVhXkNgU4v7REfvAEFmCbDYPPKA7uDw3+SVwxRwat+LONnKjuuKwxcy0dyL
-         KUr3C/7GwuxwlsrmiszOLvprteRfEH+5hV3u39UO4e0SUoiNZCrHvWdxsigKZy+tNqCB
-         mTU5tM5ceTNzbovpdL+D/ZvOMpyLRK8AVKC9kCQG5KuWjvgSBKE+/hMJHEhjBCoBNYUS
-         dzQ6YmjBduh36/lt9LGh/+7aa+SdiJdlB5DzeRk2n0M9eUU+FVjzARYjBJT2dnqs9WI+
-         phaw==
-X-Gm-Message-State: AOAM53135yBg/ODkQ8jmcFSZUUe5p26Oao+jB4eJhJw5flpEdloIP7h7
-        1X2EU4zZ9pAgF+bu4BHG5w==
-X-Google-Smtp-Source: ABdhPJzr8e6EkxJlu1x1gyG1/vlRIBa5TnoQWrsIxjxtMp08fnlWfg91vZsMNL/8phQfL4LFsZ1Riw==
-X-Received: by 2002:a05:6870:b152:b0:e6:77a6:7ee0 with SMTP id a18-20020a056870b15200b000e677a67ee0mr8311135oal.78.1650923705701;
-        Mon, 25 Apr 2022 14:55:05 -0700 (PDT)
-Received: from robh.at.kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id n62-20020acaef41000000b002ef646e6690sm4262334oih.53.2022.04.25.14.55.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 25 Apr 2022 14:55:05 -0700 (PDT)
-Received: (nullmailer pid 360889 invoked by uid 1000);
-        Mon, 25 Apr 2022 21:55:04 -0000
-Date:   Mon, 25 Apr 2022 16:55:04 -0500
-From:   Rob Herring <robh@kernel.org>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Nishanth Menon <nm@ti.com>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org,
-        Keerthy <j-keerthy@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Krzysztof Kozlowski <krzk+dt@kernel.org>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v5 1/2] dt-bindings: timer: Update TI timer to yaml
-Message-ID: <YmcYuHQB+PRmFmwy@robh.at.kernel.org>
-References: <20220414085807.7389-1-tony@atomide.com>
- <20220414085807.7389-2-tony@atomide.com>
+        with ESMTP id S232960AbiDZIIf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 26 Apr 2022 04:08:35 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 94C29DF3B;
+        Tue, 26 Apr 2022 01:05:26 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id A378580C0;
+        Tue, 26 Apr 2022 08:02:23 +0000 (UTC)
+Date:   Tue, 26 Apr 2022 11:05:23 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Ren Yu <renyu@nfschina.com>
+Cc:     aaro.koskinen@iki.fi, linux@armlinux.org.uk,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, liqiong@nfschina.com,
+        yuzhe@nfschina.com, Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] plat-omap: check return value of ioremap()
+Message-ID: <Ymenw5/haMIjFlCP@atomide.com>
+References: <20220425110845.415439-1-renyu@nfschina.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220414085807.7389-2-tony@atomide.com>
+In-Reply-To: <20220425110845.415439-1-renyu@nfschina.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, 14 Apr 2022 11:58:06 +0300, Tony Lindgren wrote:
-> Let's update the TI timer binding to use yaml. As this binding is specific
-> to the TI dual-mode timers also known as dm-timers, let's use file name
-> ti,timer-dm.yaml to avoid confusion with other timers.
-> 
-> We add checks for the deprecated ti,hwmods property as done for other TI
-> device driver bindings earlier.
-> 
-> We also correct the issue with the old binding that was out of date for
-> several properties.
-> 
-> The am43 related timers are undocumented, but compatible with the am3
-> timers. Let's add the am43 timers too.
-> 
-> The dm814 and dm816 timers are missing, let's add them.
-> 
-> Some timers on some SoCs are dual mapped, like the ABE timers on omap4
-> and 5. The reg property maxItems must be updated to 2.
-> 
-> The timer clocks can be managed by the parent interconnect target module
-> with no clocks assigned for the timer node. And in some cases, the SoC may
-> need to configure additional system clock for the timer in addition to the
-> functional clock.
-> 
-> The clock names are optional and not specific to the comptible property.
-> For example, dra7 timers on l3 interconnect do not need clock-names, while
-> the timers on dra7 l4 interconnect need them with both being compatible
-> with ti,omap5430-timer.
-> 
-> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Vignesh Raghavendra <vigneshr@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  .../bindings/pwm/pwm-omap-dmtimer.txt         |   2 +-
->  .../bindings/timer/ti,timer-dm.yaml           | 142 ++++++++++++++++++
->  .../devicetree/bindings/timer/ti,timer.txt    |  44 ------
->  3 files changed, 143 insertions(+), 45 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/timer/ti,timer-dm.yaml
->  delete mode 100644 Documentation/devicetree/bindings/timer/ti,timer.txt
-> 
+Hi,
 
-Applied, thanks!
+* Ren Yu <renyu@nfschina.com> [220425 11:08]:
+> When ioremap() failed,return err
+
+This file is no longer being used and getting removed in Linux next.
+See commit 7058e68c2fed ("ARM: omap: remove debug-leds driver").
+
+Thanks,
+
+Tony
+
+> Signed-off-by: Ren Yu <renyu@nfschina.com>
+> ---
+>  arch/arm/plat-omap/debug-leds.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/arch/arm/plat-omap/debug-leds.c b/arch/arm/plat-omap/debug-leds.c
+> index 2b698d074874..bf5034e10f6e 100644
+> --- a/arch/arm/plat-omap/debug-leds.c
+> +++ b/arch/arm/plat-omap/debug-leds.c
+> @@ -109,6 +109,9 @@ static int fpga_probe(struct platform_device *pdev)
+>  		return -ENODEV;
+>  
+>  	fpga = ioremap(iomem->start, resource_size(iomem));
+> +	if (!fpga)
+> +		return -ENOMEM;
+> +
+>  	writew_relaxed(0xff, &fpga->leds);
+>  
+>  	for (i = 0; i < ARRAY_SIZE(dbg_leds); i++) {
+> -- 
+> 2.25.1
+> 
