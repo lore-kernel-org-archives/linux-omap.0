@@ -2,79 +2,70 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0647CC4332F
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Apr 2022 08:32:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED8B8C433FE
+	for <linux-omap@archiver.kernel.org>; Tue, 26 Apr 2022 08:37:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344997AbiDZIfO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Apr 2022 04:35:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35620 "EHLO
+        id S241488AbiDZIkf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 26 Apr 2022 04:40:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345172AbiDZIeL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 26 Apr 2022 04:34:11 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71A956E8FE;
-        Tue, 26 Apr 2022 01:26:20 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 26F98B81CF9;
-        Tue, 26 Apr 2022 08:26:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B103AC385A4;
-        Tue, 26 Apr 2022 08:26:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1650961577;
-        bh=NVUJ0VORKi7g0jZiS1qERChpaAaP2AdAWHVP0rm62mI=;
-        h=From:To:Cc:Subject:Date:From;
-        b=RDMfNqTLJeauKUffKk9z6elUttJ2T3yrOJhLD/2W9oSrW/xrzV4m9NyT0ubeMi1vi
-         PzmDKvPgzBbw/Efv5yOeBL45LZvmyFJ0FUESFeWEql3jgE/mKr4DAWRBdzdGp1JCPR
-         I7b6G+KWS/Tbyz1KLRdP5/RL03iYot09ye9uo9r37vz9lFFIUiMcaiIJ1ebY81UMgH
-         2W4DMKjpWPBekpMp4zlYX0wSjt8UZ1PTvelgmSTx2T4fMwGaS/jvcJAshRcdj1uVa4
-         HCT/EV4FwhKZBnK8+CfzFVs9eY4pYiOHYEEeVP8uoTDb0DWboYp76HiuGY46rh3z+R
-         oXAaC81v093Yw==
-From:   Roger Quadros <rogerq@kernel.org>
-To:     krzk@kernel.org
-Cc:     miquel.raynal@bootlin.com, tony@atomide.com, vigneshr@ti.com,
-        kishon@ti.com, nm@ti.com, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Roger Quadros <rogerq@kernel.org>
-Subject: [PATCH v4 0/2] memory: omap-gpmc: Allow module build
-Date:   Tue, 26 Apr 2022 11:26:09 +0300
-Message-Id: <20220426082611.24427-1-rogerq@kernel.org>
-X-Mailer: git-send-email 2.17.1
+        with ESMTP id S1345777AbiDZIja (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 26 Apr 2022 04:39:30 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BBC8D4474C
+        for <linux-omap@vger.kernel.org>; Tue, 26 Apr 2022 01:31:00 -0700 (PDT)
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id 0B3E480C0;
+        Tue, 26 Apr 2022 08:27:57 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     soc@kernel.org
+Cc:     arm@kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        "Tony Lindgren" <tony@atomide.com>
+Subject: [GIT PULL 1/2] Binding changes for omaps
+Date:   Tue, 26 Apr 2022 11:30:54 +0300
+Message-Id: <pull-1650961799-428630@atomide.com>
+X-Mailer: git-send-email 2.35.2
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+From: "Tony Lindgren" <tony@atomide.com>
 
-These patches allow OMAP_GPMC config to be visible in menuconfig
-and buildable as a module.
+The following changes since commit 3123109284176b1532874591f7c81f3837bbdc17:
 
-cheers,
--roger
+  Linux 5.18-rc1 (2022-04-03 14:08:21 -0700)
 
-Changelog:
-v4:
-- drop COMPILE_TEST as include/linux/irqdomain.h does not have
-fallbacks if CONFIG_IRQ_DOMAIN is not available. So build will
-fail with COMPILE_TEST on platforms not having CONFIG_IRQ_DOMAIN.
-- use GPL instead of GPL v2 for MODULE_LICENSE. Fixes checkpatch
-warning.
+are available in the Git repository at:
 
-v3:
-- Remove not required MODULE_ALIAS
-- Mention in commit message why we need to remove of_match_node() call
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/bindings-signed
 
-v2:
-- Allow building as a module
+for you to fetch changes up to fc3d39d5758dc001662df5aac825b2b6bcb6476f:
 
-Roger Quadros (2):
-  memory: omap-gpmc: Make OMAP_GPMC config visible and selectable
-  memory: omap-gpmc: Allow building as a module
+  dt-bindings: clock: ti: Add clock-output-names for TI composite clocks (2022-04-11 16:02:50 +0300)
 
- drivers/memory/Kconfig     |  2 +-
- drivers/memory/omap-gpmc.c | 43 ++++++++++++++++++++------------------
- 2 files changed, 24 insertions(+), 21 deletions(-)
+----------------------------------------------------------------
+Clock binding updates for omaps
 
--- 
-2.17.1
+Minor clock binding changes to document clock-output-names usage for omaps
+so we can fix lots of related dt bindings check warnings. The related driver
+changes already got merged for v5.18.
 
+----------------------------------------------------------------
+Tony Lindgren (3):
+      dt-bindings: omap: Add clock-output-names and #clock-cells
+      dt-bindings: clock: ti: Add clock-output-names for clockctrl
+      dt-bindings: clock: ti: Add clock-output-names for TI composite clocks
+
+ Documentation/devicetree/bindings/arm/omap/prcm.txt               | 7 ++++++-
+ Documentation/devicetree/bindings/clock/ti-clkctrl.txt            | 4 +++-
+ Documentation/devicetree/bindings/clock/ti/clockdomain.txt        | 3 +++
+ Documentation/devicetree/bindings/clock/ti/composite.txt          | 3 +++
+ Documentation/devicetree/bindings/clock/ti/fixed-factor-clock.txt | 1 +
+ Documentation/devicetree/bindings/clock/ti/gate.txt               | 1 +
+ Documentation/devicetree/bindings/clock/ti/interface.txt          | 1 +
+ Documentation/devicetree/bindings/clock/ti/mux.txt                | 1 +
+ 8 files changed, 19 insertions(+), 2 deletions(-)
