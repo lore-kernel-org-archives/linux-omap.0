@@ -2,76 +2,98 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07304C433F5
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Apr 2022 15:53:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D4B1C433F5
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Apr 2022 16:13:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240362AbiD0P4p (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Apr 2022 11:56:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49310 "EHLO
+        id S242434AbiD0QRF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Apr 2022 12:17:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240310AbiD0P4h (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2022 11:56:37 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D871761603;
-        Wed, 27 Apr 2022 08:53:18 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 78C65B8268B;
-        Wed, 27 Apr 2022 15:53:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6EF1C385A7;
-        Wed, 27 Apr 2022 15:53:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1651074796;
-        bh=BDKIiD9beLvivRREVaE3Jra+TQ7wcfAfvUf5BKdrx3o=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=NHZyxSV/PaMA6rFvtES5a6sKGOE4AI8nLSEjo963Ibxx7jhUrqcLlqNka2LbJ6XhA
-         8I69YdXN0WgssO8TlfSK7ybno6G4kRu4P3FiJLBZenBbjzoVBO2I1n6/viRieo0LOF
-         cRbTbIYtDwf+ZL/2231H/b6VpoUaVjrq2RRIweUM39D4gQc2i73qVsVElYbRp2OcOe
-         +2vtHk3/QeVEqmRILhNtyqaOFZCsSv90uC11SZmWyebWWOU/5vj+2zdt5JdYSYZS06
-         DPpwFeolOJmZwRw+22shZX12v/hpReLVNUjrD0z39prNJiue7/M02raWxh2CVi9HLJ
-         cbBJMSz+CWC9A==
-Date:   Wed, 27 Apr 2022 08:53:14 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Vladimir Oltean <vladimir.oltean@nxp.com>
-Cc:     "davem@davemloft.net" <davem@davemloft.net>,
-        "pabeni@redhat.com" <pabeni@redhat.com>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "grygorii.strashko@ti.com" <grygorii.strashko@ti.com>,
-        "chi.minghao@zte.com.cn" <chi.minghao@zte.com.cn>,
-        "toke@redhat.com" <toke@redhat.com>,
-        "chenhao288@hisilicon.com" <chenhao288@hisilicon.com>,
-        "moyufeng@huawei.com" <moyufeng@huawei.com>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH net-next 03/14] eth: cpsw: remove a copy of the
- NAPI_POLL_WEIGHT define
-Message-ID: <20220427085314.326be7d0@kernel.org>
-In-Reply-To: <20220427154702.fbpxfjp4h7ey5ea2@skbuf>
-References: <20220427154111.529975-1-kuba@kernel.org>
-        <20220427154111.529975-4-kuba@kernel.org>
-        <20220427154702.fbpxfjp4h7ey5ea2@skbuf>
+        with ESMTP id S243904AbiD0QPf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2022 12:15:35 -0400
+Received: from mail-ej1-x62f.google.com (mail-ej1-x62f.google.com [IPv6:2a00:1450:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2621F3BA58
+        for <linux-omap@vger.kernel.org>; Wed, 27 Apr 2022 09:11:55 -0700 (PDT)
+Received: by mail-ej1-x62f.google.com with SMTP id gh6so4476237ejb.0
+        for <linux-omap@vger.kernel.org>; Wed, 27 Apr 2022 09:11:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=1p5Gf/ZzMBda/+Dyw0bd70cBiwm1tqXf7hCWQtWqsEE=;
+        b=smFD5V6J9pPL6PEJv25+/3PFL2X+WQ3Kyn12ozctaStrdNKV5sG6aqFI8JCZ5ddHCE
+         ECQCPe/hY0ENMJzK8NjAefYL1znjAJ4MC0z1veVjm+99Lhv2bilZNlhaRLpH6+C0/lXu
+         XEqzIKVhXU0tE3DPOvCEFtlpxfU0OysHyIPl0jFQczRGCf3kmrLen7e9QYBaPdxYH7P2
+         66rd4jZu47gMnjCXc4UhX8wxezYzOrgLwYJJhsL+BiSRNlaUep00H2hYHjn5RV/6yzoT
+         zosfmLTcVVMmTWTu9hBDTeN9YP40ueo8rpZldzL7wxzQ59cl7iMDrXlYTo5PoJgjmWpn
+         MEng==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=1p5Gf/ZzMBda/+Dyw0bd70cBiwm1tqXf7hCWQtWqsEE=;
+        b=oMbbZuY/kMPnR+ZaDGsnDiasJKCc+4lkEtlqZHTsqxJf0Q1xkMUtnn/U3blOZMLmc8
+         QfUWzhfmTMKHn6Nm/9JA5FHB5w798ocNTz5MOcxUHVrW/a/hO9G2oBuUcof6+kNMJTHE
+         aNxm8CNhayvBVFg0AAHhFn6jVWTFbdnjKFCIUcJIMb/V1bnAr8Bkxuk8Jw10LWnoeZlR
+         qNYrRBVnMYULoW9noa30KoqCLS9Sxsg8e5itWOLnR0SPcC0tfV/NO3Jp1BbP687cpnTU
+         po7u/HjcwrvjqqvDjQcQqqokC6Kz8SDlsPFB+8xG0m52OXx7ns4cSmN1Jw5/f1P6bAR4
+         ciIQ==
+X-Gm-Message-State: AOAM530W1WIkC+UUPT1wKXF3Qw2vMqNs6m8pVfGceGiXNGuueBUkMek6
+        nKi5idx+Abe/I2yDwVkm+RKDpg==
+X-Google-Smtp-Source: ABdhPJwXKEYcbdCdmGX9YcKJChevv92DETVDL64z5HohA/FFcRgldB5wG73bsS8XPMg1i6ElPuKMIQ==
+X-Received: by 2002:a17:907:629a:b0:6d7:b33e:43f4 with SMTP id nd26-20020a170907629a00b006d7b33e43f4mr27742808ejc.149.1651075910203;
+        Wed, 27 Apr 2022 09:11:50 -0700 (PDT)
+Received: from localhost.localdomain (xdsl-188-155-176-92.adslplus.ch. [188.155.176.92])
+        by smtp.gmail.com with ESMTPSA id m1-20020a170906234100b006ef83025804sm7124610eja.87.2022.04.27.09.11.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 27 Apr 2022 09:11:47 -0700 (PDT)
+From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Vinod Koul <vkoul@kernel.org>, linux-usb@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        dmaengine@vger.kernel.org
+Cc:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Subject: [PATCH v2 4/6] ARM: dts: am33xx: use new 'dma-channels/requests' properties
+Date:   Wed, 27 Apr 2022 18:11:24 +0200
+Message-Id: <20220427161126.647073-5-krzysztof.kozlowski@linaro.org>
+X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20220427161126.647073-1-krzysztof.kozlowski@linaro.org>
+References: <20220427161126.647073-1-krzysztof.kozlowski@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, 27 Apr 2022 15:47:03 +0000 Vladimir Oltean wrote:
-> On Wed, Apr 27, 2022 at 08:41:00AM -0700, Jakub Kicinski wrote:
-> > Defining local versions of NAPI_POLL_WEIGHT with the same
-> > values in the drivers just makes refactoring harder.
-> > 
-> > Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-> > ---
-> > CC: grygorii.strashko@ti.com
-> > CC: chi.minghao@zte.com.cn
-> > CC: vladimir.oltean@nxp.com  
-> 
-> Fine with me (I mean, I don't even know why I'm copied on cpsw changes).
+The '#dma-channels' and '#dma-requests' properties were deprecated in
+favor of these defined by generic dma-common DT bindings.
 
-get_maintainer, I didn't bother filtering this time
+Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> Why is the weight even an argument to netif_napi_add() anyway?
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index f6ec85d58dd1..55ffb0813ded 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -461,8 +461,8 @@ cppi41dma: dma-controller@2000 {
+ 				interrupts = <17>;
+ 				interrupt-names = "glue";
+ 				#dma-cells = <2>;
+-				#dma-channels = <30>;
+-				#dma-requests = <256>;
++				dma-channels = <30>;
++				dma-requests = <256>;
+ 			};
+ 		};
+ 
+-- 
+2.32.0
 
-Right, not sure, see the cover letter.
