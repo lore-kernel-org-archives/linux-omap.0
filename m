@@ -2,93 +2,96 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC8FCC433EF
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Apr 2022 16:14:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B91CC433FE
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Apr 2022 18:20:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242277AbiD0QSF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Apr 2022 12:18:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45996 "EHLO
+        id S244759AbiD0SYA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Apr 2022 14:24:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243775AbiD0QPY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2022 12:15:24 -0400
-Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69F6537A00
-        for <linux-omap@vger.kernel.org>; Wed, 27 Apr 2022 09:11:43 -0700 (PDT)
-Received: by mail-ed1-x531.google.com with SMTP id z19so2497235edx.9
-        for <linux-omap@vger.kernel.org>; Wed, 27 Apr 2022 09:11:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=FHQXh9gRHSuCtKpw4S8gNEXf40YtVi/37N45wueEtCE=;
-        b=whQlgOgZ1T4nh5vFwqRU4TA9h4eZzMhFhfvjD1KFTbysCz1xTn36hj8mp0McdsPks0
-         hfh6AymX7rYfW6UPr06z0ltHndyGPdP2oMwtiqrhFyYt6Kp7xDItzu1cCiLUK9wXmMSi
-         KB17ptN8Yagim/pv3z0Qd5PP/3XfuXvfO2znNw4Gq0l5gZTHLsiKAvbUZ8Myr71028Jr
-         1ReMRE/IZsMmJqBGrFZnWzIeLdyybOmS6ZtjJWsyGsin41kMW35dKxzqELef5NQVbGqe
-         MZYYlw0zdvbglPcQxzqEjR9/73RCe3Z2N5Ytp0mOeFE6NacKQLdIxyHTPdXz1wcg47/l
-         pzsg==
+        with ESMTP id S244725AbiD0SX6 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2022 14:23:58 -0400
+Received: from mail-oa1-f42.google.com (mail-oa1-f42.google.com [209.85.160.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71C5B35843;
+        Wed, 27 Apr 2022 11:20:46 -0700 (PDT)
+Received: by mail-oa1-f42.google.com with SMTP id 586e51a60fabf-e5ca5c580fso2845814fac.3;
+        Wed, 27 Apr 2022 11:20:46 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=FHQXh9gRHSuCtKpw4S8gNEXf40YtVi/37N45wueEtCE=;
-        b=TcsWC7DPkENCDOCyWxCIFu1dEdD3tvIQ+I1io0Ur6TI+cdEjj+9z8akdzZyzw4YBSm
-         NpI+T7s/sq3xjdrFUTdyDsTgeymk3aYGtsq+ZChc1IRngTj9gNJLmyvxWlci8yQnK1wM
-         3/ZSqTxutMQWAw8tWu9fwUy9/tl44MoGtBiyESMSK3FDdp7QN8hMLt8QDJrtQcoEhFPw
-         my1H+nN2eBtKhWVD5l7RsKtazWCEBaQIYsMS2VcM+nKz95MvvuvBRhcNZm1fYZnPkvLu
-         jbQQGA4qfQWhNNy+rXZJ6yXvoIkZXImOdx9hFbBrrAygcHyE2+zMbxbXjxuQ7QEykOjS
-         KXVQ==
-X-Gm-Message-State: AOAM533G8Rk2lMntXm1OKXALyUSPE6qHIpmcR40GGx2+5C9O4RSNRbuy
-        1c6m+FVwahX1r4Izun2vLnHa3w==
-X-Google-Smtp-Source: ABdhPJy/QgE4GcAklbebq4FtmcUymveQXY2Wss5nt06fNQ1+geuX8b6wnTlKKIZ0cRgMRpDbpMGaEQ==
-X-Received: by 2002:aa7:c70f:0:b0:425:f70d:b34 with SMTP id i15-20020aa7c70f000000b00425f70d0b34mr12765572edq.306.1651075899438;
-        Wed, 27 Apr 2022 09:11:39 -0700 (PDT)
-Received: from localhost.localdomain (xdsl-188-155-176-92.adslplus.ch. [188.155.176.92])
-        by smtp.gmail.com with ESMTPSA id m1-20020a170906234100b006ef83025804sm7124610eja.87.2022.04.27.09.11.36
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=erT8GaO5VJG+GW9l/VolBcF/EAyslpb9BP1kfnKesbQ=;
+        b=HwbO4/mftBDDaZsyCpd7QWBYOiG2tw0p83olRh2g3ZNkOdEt5BvZXLh5ndYhDAdgHW
+         KQVqVAz9NIBd2o0cENZCYZTbLbpuXgvXBMtqzIRJkEikoZoLty2PrCgfTckQOgU/CnKr
+         9tSZHWA5Dv7fnKX12lK/YxbenmaszV/JL8ivhXJlibRSa6r8dyW7QvHzBUgxX39LfQXc
+         0dU6bridxsRji9rGbLUPvCro4C83nGp7QxKRg+c9FO1bIv45Sz2GI7D624dsUoqTvuEA
+         dmIleks7qtHudNXFSWCFZEfrRiAUbJvN9Af3YsL31KbZDTu9C4UPYzZb5/JwvsI9z/45
+         MbrA==
+X-Gm-Message-State: AOAM530izG8CG2H/JfNa/WYzvJYzsXyE5wSQMoWxgkiFfWIsgldTKkPH
+        rCajitqeqF5xIUS0efWOuQ==
+X-Google-Smtp-Source: ABdhPJwD3AlwDSbDDJxgnqmixNW2BPvjNJ83aCGRkV3w9EnlDDeJMSilHkwvvkRGfHszHyhiPM7+Vg==
+X-Received: by 2002:a05:6870:b402:b0:d3:3712:efa7 with SMTP id x2-20020a056870b40200b000d33712efa7mr11833514oap.88.1651083645769;
+        Wed, 27 Apr 2022 11:20:45 -0700 (PDT)
+Received: from robh.at.kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
+        by smtp.gmail.com with ESMTPSA id t3-20020a05687044c300b000e686d13892sm952200oai.44.2022.04.27.11.20.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Apr 2022 09:11:37 -0700 (PDT)
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
+        Wed, 27 Apr 2022 11:20:45 -0700 (PDT)
+Received: (nullmailer pid 400627 invoked by uid 1000);
+        Wed, 27 Apr 2022 18:20:44 -0000
+Date:   Wed, 27 Apr 2022 13:20:44 -0500
+From:   Rob Herring <robh@kernel.org>
+To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
         Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>,
         Bartosz Golaszewski <brgl@bgdev.pl>,
         Vinod Koul <vkoul@kernel.org>, linux-usb@vger.kernel.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         dmaengine@vger.kernel.org
-Cc:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Subject: [PATCH v2 0/6] dmaengine/ARM: use proper 'dma-channels/requests' properties
-Date:   Wed, 27 Apr 2022 18:11:20 +0200
-Message-Id: <20220427161126.647073-1-krzysztof.kozlowski@linaro.org>
-X-Mailer: git-send-email 2.32.0
+Subject: Re: [PATCH v2 4/6] ARM: dts: am33xx: use new 'dma-channels/requests'
+ properties
+Message-ID: <YmmJfInA0hNQOhDN@robh.at.kernel.org>
+References: <20220427161126.647073-1-krzysztof.kozlowski@linaro.org>
+ <20220427161126.647073-5-krzysztof.kozlowski@linaro.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220427161126.647073-5-krzysztof.kozlowski@linaro.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi,
+On Wed, Apr 27, 2022 at 06:11:24PM +0200, Krzysztof Kozlowski wrote:
+> The '#dma-channels' and '#dma-requests' properties were deprecated in
+> favor of these defined by generic dma-common DT bindings.
+> 
+> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index f6ec85d58dd1..55ffb0813ded 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -461,8 +461,8 @@ cppi41dma: dma-controller@2000 {
+>  				interrupts = <17>;
+>  				interrupt-names = "glue";
+>  				#dma-cells = <2>;
+> -				#dma-channels = <30>;
+> -				#dma-requests = <256>;
+> +				dma-channels = <30>;
+> +				dma-requests = <256>;
 
-The core DT schema defines generic 'dma-channels' and 'dma-requests'
-properties, so in preparation to moving bindings to DT schema, convert
-existing users of '#dma-channels' and '#dma-requests' to the generic
-variant.
+You could keep the old properties for compatibility and to apply 
+immediately.
 
-Not tested on hardware.
-
-IMPORTANT
-=========
-The patchset is not bisectable! The DTS patches should be applied a
-release *after* driver change is accepted.
-
-Changes since v1
-================
-1. Add missing TI patches.
-
-See also:
-[1] https://lore.kernel.org/linux-devicetree/fedb56be-f275-aabb-cdf5-dbd394b8a7bd@linaro.org/T/#m6235f451045c337d70a62dc65eab9a716618550b
-
-Best regards,
-Krzysztof
+>  			};
+>  		};
+>  
+> -- 
+> 2.32.0
+> 
+> 
