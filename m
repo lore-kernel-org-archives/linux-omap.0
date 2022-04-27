@@ -2,61 +2,165 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54476C433F5
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Apr 2022 12:08:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82AA2C4332F
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Apr 2022 15:41:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233589AbiD0MLy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Apr 2022 08:11:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44754 "EHLO
+        id S240101AbiD0Poq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Apr 2022 11:44:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233584AbiD0MLw (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2022 08:11:52 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1E547554B6
-        for <linux-omap@vger.kernel.org>; Wed, 27 Apr 2022 05:08:42 -0700 (PDT)
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 0AA9380E4;
-        Wed, 27 Apr 2022 12:05:36 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     soc@kernel.org
-Cc:     arm@kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        "Tony Lindgren" <tony@atomide.com>
-Subject: [GIT PULL 4/4] Drivers changes for ti-sysc
-Date:   Wed, 27 Apr 2022 15:08:28 +0300
-Message-Id: <pull-1651061256-836848@atomide.com-4>
-X-Mailer: git-send-email 2.35.2
-In-Reply-To: <pull-1651061256-836848@atomide.com>
-References: <pull-1651061256-836848@atomide.com>
+        with ESMTP id S240139AbiD0Poo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2022 11:44:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60A7BE0AC;
+        Wed, 27 Apr 2022 08:41:24 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B097618F3;
+        Wed, 27 Apr 2022 15:41:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CBAAC385AF;
+        Wed, 27 Apr 2022 15:41:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1651074083;
+        bh=8awBbU0kDevZDPWjt3mx3CiKYVArRWf3BdXSHzS1gE4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=B9p5Siha/7wtpTum4+7jVOyZsUGMhLmq0aXYIcs32aHb7rkrFNBwBLetzp9dRb4G7
+         l++pFY4sBgb08gLumZ4bJ7+jaXlvEcl6pupEZ40be+gYbdn3H0+F6TkB6/RWTIuaY8
+         /TH/I8G6fsKiRgqNM2N0lYnMeVwF/U+LaIFyKgmSTJXtEI/PDMTA8Kj1QxRkfFwSHd
+         UEnrlsmzL6KO4lT9jtP3JscxCMaO2NFPT/t/u9lcQacP/sWVAhPmCPz6I7nwvpb4GI
+         FqLG+gUXbGc++WDfpnycFlDUPamM7n11L4hgJHC71m4wWI0MyJGImbL0slz+KYS3K7
+         C3hg0b6hSSQkw==
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     davem@davemloft.net, pabeni@redhat.com
+Cc:     netdev@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
+        grygorii.strashko@ti.com, chi.minghao@zte.com.cn,
+        vladimir.oltean@nxp.com, toke@redhat.com, chenhao288@hisilicon.com,
+        moyufeng@huawei.com, linux-omap@vger.kernel.org
+Subject: [PATCH net-next 03/14] eth: cpsw: remove a copy of the NAPI_POLL_WEIGHT define
+Date:   Wed, 27 Apr 2022 08:41:00 -0700
+Message-Id: <20220427154111.529975-4-kuba@kernel.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220427154111.529975-1-kuba@kernel.org>
+References: <20220427154111.529975-1-kuba@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+Defining local versions of NAPI_POLL_WEIGHT with the same
+values in the drivers just makes refactoring harder.
 
-The following changes since commit 71ff461c3f41f6465434b9e980c01782763e7ad8:
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+---
+CC: grygorii.strashko@ti.com
+CC: chi.minghao@zte.com.cn
+CC: vladimir.oltean@nxp.com
+CC: toke@redhat.com
+CC: chenhao288@hisilicon.com
+CC: moyufeng@huawei.com
+CC: linux-omap@vger.kernel.org
+---
+ drivers/net/ethernet/ti/cpsw.c      |  4 ++--
+ drivers/net/ethernet/ti/cpsw_new.c  |  4 ++--
+ drivers/net/ethernet/ti/cpsw_priv.c | 12 ++++++------
+ drivers/net/ethernet/ti/cpsw_priv.h |  1 -
+ 4 files changed, 10 insertions(+), 11 deletions(-)
 
-  iommu/omap: Fix regression in probe for NULL pointer dereference (2022-04-08 11:16:29 +0200)
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index e6ad2e53f1cd..662435e36805 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1639,10 +1639,10 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	ndev->ethtool_ops = &cpsw_ethtool_ops;
+ 	netif_napi_add(ndev, &cpsw->napi_rx,
+ 		       cpsw->quirk_irq ? cpsw_rx_poll : cpsw_rx_mq_poll,
+-		       CPSW_POLL_WEIGHT);
++		       NAPI_POLL_WEIGHT);
+ 	netif_tx_napi_add(ndev, &cpsw->napi_tx,
+ 			  cpsw->quirk_irq ? cpsw_tx_poll : cpsw_tx_mq_poll,
+-			  CPSW_POLL_WEIGHT);
++			  NAPI_POLL_WEIGHT);
+ 
+ 	/* register the network device */
+ 	SET_NETDEV_DEV(ndev, dev);
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index 0f31cb4168bb..b33781ed760e 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -1416,11 +1416,11 @@ static int cpsw_create_ports(struct cpsw_common *cpsw)
+ 			netif_napi_add(ndev, &cpsw->napi_rx,
+ 				       cpsw->quirk_irq ?
+ 				       cpsw_rx_poll : cpsw_rx_mq_poll,
+-				       CPSW_POLL_WEIGHT);
++				       NAPI_POLL_WEIGHT);
+ 			netif_tx_napi_add(ndev, &cpsw->napi_tx,
+ 					  cpsw->quirk_irq ?
+ 					  cpsw_tx_poll : cpsw_tx_mq_poll,
+-					  CPSW_POLL_WEIGHT);
++					  NAPI_POLL_WEIGHT);
+ 		}
+ 
+ 		napi_ndev = ndev;
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
+index 887285c57db8..758295c898ac 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.c
++++ b/drivers/net/ethernet/ti/cpsw_priv.c
+@@ -364,7 +364,7 @@ void cpsw_split_res(struct cpsw_common *cpsw)
+ 	if (cpsw->tx_ch_num == rlim_ch_num) {
+ 		max_rate = consumed_rate;
+ 	} else if (!rlim_ch_num) {
+-		ch_budget = CPSW_POLL_WEIGHT / cpsw->tx_ch_num;
++		ch_budget = NAPI_POLL_WEIGHT / cpsw->tx_ch_num;
+ 		bigest_rate = 0;
+ 		max_rate = consumed_rate;
+ 	} else {
+@@ -379,19 +379,19 @@ void cpsw_split_res(struct cpsw_common *cpsw)
+ 		if (max_rate < consumed_rate)
+ 			max_rate *= 10;
+ 
+-		ch_budget = (consumed_rate * CPSW_POLL_WEIGHT) / max_rate;
+-		ch_budget = (CPSW_POLL_WEIGHT - ch_budget) /
++		ch_budget = (consumed_rate * NAPI_POLL_WEIGHT) / max_rate;
++		ch_budget = (NAPI_POLL_WEIGHT - ch_budget) /
+ 			    (cpsw->tx_ch_num - rlim_ch_num);
+ 		bigest_rate = (max_rate - consumed_rate) /
+ 			      (cpsw->tx_ch_num - rlim_ch_num);
+ 	}
+ 
+ 	/* split tx weight/budget */
+-	budget = CPSW_POLL_WEIGHT;
++	budget = NAPI_POLL_WEIGHT;
+ 	for (i = 0; i < cpsw->tx_ch_num; i++) {
+ 		ch_rate = cpdma_chan_get_rate(txv[i].ch);
+ 		if (ch_rate) {
+-			txv[i].budget = (ch_rate * CPSW_POLL_WEIGHT) / max_rate;
++			txv[i].budget = (ch_rate * NAPI_POLL_WEIGHT) / max_rate;
+ 			if (!txv[i].budget)
+ 				txv[i].budget++;
+ 			if (ch_rate > bigest_rate) {
+@@ -417,7 +417,7 @@ void cpsw_split_res(struct cpsw_common *cpsw)
+ 		txv[bigest_rate_ch].budget += budget;
+ 
+ 	/* split rx budget */
+-	budget = CPSW_POLL_WEIGHT;
++	budget = NAPI_POLL_WEIGHT;
+ 	ch_budget = budget / cpsw->rx_ch_num;
+ 	for (i = 0; i < cpsw->rx_ch_num; i++) {
+ 		cpsw->rxv[i].budget = ch_budget;
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
+index fc591f5ebe18..34230145ca0b 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.h
++++ b/drivers/net/ethernet/ti/cpsw_priv.h
+@@ -89,7 +89,6 @@ do {								\
+ #define CPDMA_TXCP		0x40
+ #define CPDMA_RXCP		0x60
+ 
+-#define CPSW_POLL_WEIGHT	64
+ #define CPSW_RX_VLAN_ENCAP_HDR_SIZE		4
+ #define CPSW_MIN_PACKET_SIZE_VLAN	(VLAN_ETH_ZLEN)
+ #define CPSW_MIN_PACKET_SIZE	(ETH_ZLEN)
+-- 
+2.34.1
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v5.19/ti-sysc-signed
-
-for you to fetch changes up to b6cd9be3d288249f52a1bcb10f7dbd445747ee59:
-
-  bus: ti-sysc: Drop commas after SoC match table sentinels (2022-04-21 15:07:24 +0300)
-
-----------------------------------------------------------------
-Driver changes for omaps
-
-One patch to remove commas from sentinels for ti-sysc.
-
-----------------------------------------------------------------
-Geert Uytterhoeven (1):
-      bus: ti-sysc: Drop commas after SoC match table sentinels
-
- drivers/bus/ti-sysc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
