@@ -2,28 +2,28 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B54B7C4167D
-	for <linux-omap@archiver.kernel.org>; Fri, 29 Apr 2022 07:06:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20B69C4321E
+	for <linux-omap@archiver.kernel.org>; Fri, 29 Apr 2022 07:06:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354942AbiD2HJt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 29 Apr 2022 03:09:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51774 "EHLO
+        id S1354949AbiD2HJv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 29 Apr 2022 03:09:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354940AbiD2HJt (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2022 03:09:49 -0400
+        with ESMTP id S1354946AbiD2HJu (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2022 03:09:50 -0400
 Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DC694BE9DA;
-        Fri, 29 Apr 2022 00:06:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C4EB2BE9C8;
+        Fri, 29 Apr 2022 00:06:33 -0700 (PDT)
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 712778138;
-        Fri, 29 Apr 2022 07:03:23 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 592148138;
+        Fri, 29 Apr 2022 07:03:25 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         devicetree@vger.kernel.org
-Subject: [PATCH 09/19] ARM: dts: Group omap3 CM_ICLKEN_WKUP clocks
-Date:   Fri, 29 Apr 2022 10:06:03 +0300
-Message-Id: <20220429070613.62360-10-tony@atomide.com>
+Subject: [PATCH 11/19] ARM: dts: Group omap3 CM_CLKSEL1_PLL clocks
+Date:   Fri, 29 Apr 2022 10:06:05 +0300
+Message-Id: <20220429070613.62360-12-tony@atomide.com>
 X-Mailer: git-send-email 2.35.2
 In-Reply-To: <20220429070613.62360-1-tony@atomide.com>
 References: <20220429070613.62360-1-tony@atomide.com>
@@ -43,143 +43,111 @@ names for the clocks.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- .../dts/omap36xx-omap3430es2plus-clocks.dtsi  | 19 ++--
- arch/arm/boot/dts/omap3xxx-clocks.dtsi        | 90 ++++++++++---------
- 2 files changed, 62 insertions(+), 47 deletions(-)
+ arch/arm/boot/dts/omap3xxx-clocks.dtsi | 72 ++++++++++++++------------
+ 1 file changed, 40 insertions(+), 32 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi b/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
---- a/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap36xx-omap3430es2plus-clocks.dtsi
-@@ -183,12 +183,19 @@ usim_fck: usim_fck {
- 		clocks = <&usim_gate_fck>, <&usim_mux_fck>;
- 	};
- 
--	usim_ick: usim_ick@c10 {
--		#clock-cells = <0>;
--		compatible = "ti,omap3-interface-clock";
--		clocks = <&wkup_l4_ick>;
--		reg = <0x0c10>;
--		ti,bit-shift = <9>;
-+	clock@c10 {
-+		compatible = "ti,clksel";
-+		reg = <0xc10>;
-+		#clock-cells = <2>;
-+		#address-cells = <0>;
-+
-+		usim_ick: clock-usim-ick {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "usim_ick";
-+			clocks = <&wkup_l4_ick>;
-+			ti,bit-shift = <9>;
-+		};
- 	};
- };
- 
 diff --git a/arch/arm/boot/dts/omap3xxx-clocks.dtsi b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
 --- a/arch/arm/boot/dts/omap3xxx-clocks.dtsi
 +++ b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
-@@ -1074,52 +1074,60 @@ wkup_32k_fck: wkup_32k_fck {
+@@ -301,16 +301,6 @@ mcbsp_clks: mcbsp_clks {
+ 		clock-frequency = <0x0>;
+ 	};
+ 
+-	dpll3_m2_ck: dpll3_m2_ck@d40 {
+-		#clock-cells = <0>;
+-		compatible = "ti,divider-clock";
+-		clocks = <&dpll3_ck>;
+-		ti,bit-shift = <27>;
+-		ti,max-div = <31>;
+-		reg = <0x0d40>;
+-		ti,index-starts-at-one;
+-	};
+-
+ 	core_ck: core_ck {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-factor-clock";
+@@ -361,12 +351,46 @@ cm_96m_fck: cm_96m_fck {
  		clock-div = <1>;
  	};
  
--	wdt2_ick: wdt2_ick@c10 {
+-	omap_96m_fck: omap_96m_fck@d40 {
 -		#clock-cells = <0>;
--		compatible = "ti,omap3-interface-clock";
--		clocks = <&wkup_l4_ick>;
--		reg = <0x0c10>;
--		ti,bit-shift = <5>;
--	};
-+	/* CM_ICLKEN_WKUP */
-+	clock@c10 {
+-		compatible = "ti,mux-clock";
+-		clocks = <&cm_96m_fck>, <&sys_ck>;
+-		ti,bit-shift = <6>;
+-		reg = <0x0d40>;
++	/* CM_CLKSEL1_PLL */
++	clock@d40 {
 +		compatible = "ti,clksel";
-+		reg = <0xc10>;
++		reg = <0xd40>;
 +		#clock-cells = <2>;
 +		#address-cells = <0>;
- 
--	wdt1_ick: wdt1_ick@c10 {
--		#clock-cells = <0>;
--		compatible = "ti,omap3-interface-clock";
--		clocks = <&wkup_l4_ick>;
--		reg = <0x0c10>;
--		ti,bit-shift = <4>;
--	};
-+		wdt2_ick: clock-wdt2-ick {
++
++		dpll3_m2_ck: clock-dpll3-m2 {
 +			#clock-cells = <0>;
-+			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "wdt2_ick";
-+			clocks = <&wkup_l4_ick>;
-+			ti,bit-shift = <5>;
-+		};
- 
--	gpio1_ick: gpio1_ick@c10 {
--		#clock-cells = <0>;
--		compatible = "ti,omap3-interface-clock";
--		clocks = <&wkup_l4_ick>;
--		reg = <0x0c10>;
--		ti,bit-shift = <3>;
--	};
-+		wdt1_ick: clock-wdt1-ick {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "wdt1_ick";
-+			clocks = <&wkup_l4_ick>;
-+			ti,bit-shift = <4>;
-+		};
- 
--	omap_32ksync_ick: omap_32ksync_ick@c10 {
--		#clock-cells = <0>;
--		compatible = "ti,omap3-interface-clock";
--		clocks = <&wkup_l4_ick>;
--		reg = <0x0c10>;
--		ti,bit-shift = <2>;
--	};
-+		gpio1_ick: clock-gpio1-ick {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "gpio1_ick";
-+			clocks = <&wkup_l4_ick>;
-+			ti,bit-shift = <3>;
-+		};
- 
--	gpt12_ick: gpt12_ick@c10 {
--		#clock-cells = <0>;
--		compatible = "ti,omap3-interface-clock";
--		clocks = <&wkup_l4_ick>;
--		reg = <0x0c10>;
--		ti,bit-shift = <1>;
--	};
-+		omap_32ksync_ick: clock-omap-32ksync-ick {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "omap_32ksync_ick";
-+			clocks = <&wkup_l4_ick>;
-+			ti,bit-shift = <2>;
-+		};
- 
--	gpt1_ick: gpt1_ick@c10 {
--		#clock-cells = <0>;
--		compatible = "ti,omap3-interface-clock";
--		clocks = <&wkup_l4_ick>;
--		reg = <0x0c10>;
--		ti,bit-shift = <0>;
-+		gpt12_ick: clock-gpt12-ick {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "gpt12_ick";
-+			clocks = <&wkup_l4_ick>;
-+			ti,bit-shift = <1>;
++			compatible = "ti,divider-clock";
++			clock-output-names = "dpll3_m2_ck";
++			clocks = <&dpll3_ck>;
++			ti,bit-shift = <27>;
++			ti,max-div = <31>;
++			ti,index-starts-at-one;
 +		};
 +
-+		gpt1_ick: clock-gpt1-ick {
++		omap_96m_fck: clock-omap-96m-fck {
 +			#clock-cells = <0>;
-+			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "gpt1_ick";
-+			clocks = <&wkup_l4_ick>;
-+			ti,bit-shift = <0>;
++			compatible = "ti,mux-clock";
++			clock-output-names = "omap_96m_fck";
++			clocks = <&cm_96m_fck>, <&sys_ck>;
++			ti,bit-shift = <6>;
++		};
++
++		omap_54m_fck: clock-omap-54m-fck {
++			#clock-cells = <0>;
++			compatible = "ti,mux-clock";
++			clock-output-names = "omap_54m_fck";
++			clocks = <&dpll4_m3x2_ck>, <&sys_altclk>;
++			ti,bit-shift = <5>;
++		};
++
++		omap_48m_fck: clock-omap-48m-fck {
++			#clock-cells = <0>;
++			compatible = "ti,mux-clock";
++			clock-output-names = "omap_48m_fck";
++			clocks = <&cm_96m_d2_fck>, <&sys_altclk>;
++			ti,bit-shift = <3>;
 +		};
  	};
  
- 	per_96m_fck: per_96m_fck {
+ 	dpll4_m3_ck: dpll4_m3_ck@e40 {
+@@ -396,14 +420,6 @@ dpll4_m3x2_ck: dpll4_m3x2_ck@d00 {
+ 		ti,set-bit-to-disable;
+ 	};
+ 
+-	omap_54m_fck: omap_54m_fck@d40 {
+-		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&dpll4_m3x2_ck>, <&sys_altclk>;
+-		ti,bit-shift = <5>;
+-		reg = <0x0d40>;
+-	};
+-
+ 	cm_96m_d2_fck: cm_96m_d2_fck {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-factor-clock";
+@@ -412,14 +428,6 @@ cm_96m_d2_fck: cm_96m_d2_fck {
+ 		clock-div = <2>;
+ 	};
+ 
+-	omap_48m_fck: omap_48m_fck@d40 {
+-		#clock-cells = <0>;
+-		compatible = "ti,mux-clock";
+-		clocks = <&cm_96m_d2_fck>, <&sys_altclk>;
+-		ti,bit-shift = <3>;
+-		reg = <0x0d40>;
+-	};
+-
+ 	omap_12m_fck: omap_12m_fck {
+ 		#clock-cells = <0>;
+ 		compatible = "fixed-factor-clock";
 -- 
 2.35.2
