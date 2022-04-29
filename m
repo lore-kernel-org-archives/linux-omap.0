@@ -2,28 +2,28 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A721C4167E
-	for <linux-omap@archiver.kernel.org>; Fri, 29 Apr 2022 07:06:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8816C433FE
+	for <linux-omap@archiver.kernel.org>; Fri, 29 Apr 2022 07:06:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354922AbiD2HJo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 29 Apr 2022 03:09:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51162 "EHLO
+        id S1354927AbiD2HJq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 29 Apr 2022 03:09:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354925AbiD2HJn (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2022 03:09:43 -0400
+        with ESMTP id S1354926AbiD2HJq (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2022 03:09:46 -0400
 Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EBBD1BE9CF;
-        Fri, 29 Apr 2022 00:06:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1291ABE9D4;
+        Fri, 29 Apr 2022 00:06:29 -0700 (PDT)
 Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 7E5FC81A5;
-        Fri, 29 Apr 2022 07:03:18 +0000 (UTC)
+        by muru.com (Postfix) with ESMTP id 925258138;
+        Fri, 29 Apr 2022 07:03:20 +0000 (UTC)
 From:   Tony Lindgren <tony@atomide.com>
 To:     linux-omap@vger.kernel.org
 Cc:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         devicetree@vger.kernel.org
-Subject: [PATCH 04/19] ARM: dts: Group omap3 crypto accelerator clocks
-Date:   Fri, 29 Apr 2022 10:05:58 +0300
-Message-Id: <20220429070613.62360-5-tony@atomide.com>
+Subject: [PATCH 06/19] ARM: dts: Group omap3 CM_ICLKEN3_CORE clocks
+Date:   Fri, 29 Apr 2022 10:06:00 +0300
+Message-Id: <20220429070613.62360-7-tony@atomide.com>
 X-Mailer: git-send-email 2.35.2
 In-Reply-To: <20220429070613.62360-1-tony@atomide.com>
 References: <20220429070613.62360-1-tony@atomide.com>
@@ -43,105 +43,70 @@ names for the clocks.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- .../boot/dts/omap34xx-omap36xx-clocks.dtsi    | 77 ++++++++++---------
- 1 file changed, 42 insertions(+), 35 deletions(-)
+ .../boot/dts/omap34xx-omap36xx-clocks.dtsi    | 21 +++++++++++++------
+ ...map36xx-am35xx-omap3430es2plus-clocks.dtsi | 20 ++++++++++++------
+ 2 files changed, 29 insertions(+), 12 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi b/arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi
 --- a/arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi
 +++ b/arch/arm/boot/dts/omap34xx-omap36xx-clocks.dtsi
-@@ -13,36 +13,51 @@ security_l4_ick2: security_l4_ick2 {
- 		clock-div = <1>;
+@@ -231,12 +231,21 @@ mspro_fck: clock-mspro-fck {
+ 			ti,bit-shift = <23>;
+ 		};
  	};
- 
--	aes1_ick: aes1_ick@a14 {
+-	mad2d_ick: mad2d_ick@a18 {
 -		#clock-cells = <0>;
 -		compatible = "ti,omap3-interface-clock";
--		clocks = <&security_l4_ick2>;
+-		clocks = <&l3_ick>;
+-		reg = <0x0a18>;
 -		ti,bit-shift = <3>;
--		reg = <0x0a14>;
--	};
-+	clock@a14 {
++
++	/* CM_ICLKEN3_CORE */
++	clock@a18 {
 +		compatible = "ti,clksel";
-+		reg = <0xa14>;
++		reg = <0xa18>;
 +		#clock-cells = <2>;
 +		#address-cells = <0>;
- 
--	rng_ick: rng_ick@a14 {
--		#clock-cells = <0>;
--		compatible = "ti,omap3-interface-clock";
--		clocks = <&security_l4_ick2>;
--		reg = <0x0a14>;
--		ti,bit-shift = <2>;
--	};
-+		aes1_ick: clock-aes1-ick {
++
++		mad2d_ick: clock-mad2d-ick {
 +			#clock-cells = <0>;
 +			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "aes1_ick";
-+			clocks = <&security_l4_ick2>;
++			clock-output-names = "mad2d_ick";
++			clocks = <&l3_ick>;
 +			ti,bit-shift = <3>;
 +		};
+ 	};
  
--	sha11_ick: sha11_ick@a14 {
+ };
+diff --git a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+--- a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
++++ b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+@@ -133,12 +133,20 @@ usbtll_fck: usbtll_fck@a08 {
+ 		ti,bit-shift = <2>;
+ 	};
+ 
+-	usbtll_ick: usbtll_ick@a18 {
 -		#clock-cells = <0>;
 -		compatible = "ti,omap3-interface-clock";
--		clocks = <&security_l4_ick2>;
--		reg = <0x0a14>;
--		ti,bit-shift = <1>;
--	};
-+		rng_ick: clock-rng-ick {
+-		clocks = <&core_l4_ick>;
+-		reg = <0x0a18>;
+-		ti,bit-shift = <2>;
++	/* CM_ICLKEN3_CORE */
++	clock@a18 {
++		compatible = "ti,clksel";
++		reg = <0xa18>;
++		#clock-cells = <2>;
++		#address-cells = <0>;
++
++		usbtll_ick: clock-usbtll-ick {
 +			#clock-cells = <0>;
 +			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "rng_ick";
-+			clocks = <&security_l4_ick2>;
++			clock-output-names = "usbtll_ick";
++			clocks = <&core_l4_ick>;
 +			ti,bit-shift = <2>;
 +		};
- 
--	des1_ick: des1_ick@a14 {
--		#clock-cells = <0>;
--		compatible = "ti,omap3-interface-clock";
--		clocks = <&security_l4_ick2>;
--		reg = <0x0a14>;
--		ti,bit-shift = <0>;
-+		sha11_ick: clock-sha11-ick {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "sha11_ick";
-+			clocks = <&security_l4_ick2>;
-+			ti,bit-shift = <1>;
-+		};
-+
-+		des1_ick: clock-des1-ick {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "des1_ick";
-+			clocks = <&security_l4_ick2>;
-+			ti,bit-shift = <0>;
-+		};
-+
-+		pka_ick: clock-pka-ick {
-+			#clock-cells = <0>;
-+			compatible = "ti,omap3-interface-clock";
-+			clock-output-names = "pka_ick";
-+			clocks = <&security_l3_ick>;
-+			ti,bit-shift = <4>;
-+		};
  	};
  
- 	cam_mclk: cam_mclk@f00 {
-@@ -78,14 +93,6 @@ security_l3_ick: security_l3_ick {
- 		clock-div = <1>;
- 	};
- 
--	pka_ick: pka_ick@a14 {
--		#clock-cells = <0>;
--		compatible = "ti,omap3-interface-clock";
--		clocks = <&security_l3_ick>;
--		reg = <0x0a14>;
--		ti,bit-shift = <4>;
--	};
--
- 	icr_ick: icr_ick@a10 {
- 		#clock-cells = <0>;
- 		compatible = "ti,omap3-interface-clock";
+ 	clock@a10 {
 -- 
 2.35.2
