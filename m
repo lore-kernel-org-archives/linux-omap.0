@@ -2,94 +2,104 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 912BCC433F5
-	for <linux-omap@archiver.kernel.org>; Tue,  3 May 2022 08:29:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3387C433F5
+	for <linux-omap@archiver.kernel.org>; Tue,  3 May 2022 10:06:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232027AbiECIdN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 3 May 2022 04:33:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45374 "EHLO
+        id S229793AbiECKJ1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 3 May 2022 06:09:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231897AbiECIdM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2022 04:33:12 -0400
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.17.10])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BE5432058
-        for <linux-omap@vger.kernel.org>; Tue,  3 May 2022 01:29:41 -0700 (PDT)
-Received: from mail-ot1-f47.google.com ([209.85.210.47]) by
- mrelayeu.kundenserver.de (mreue107 [213.165.67.113]) with ESMTPSA (Nemesis)
- id 1Md66H-1oLgcC1DYR-00aADF; Tue, 03 May 2022 10:24:35 +0200
-Received: by mail-ot1-f47.google.com with SMTP id 31-20020a9d0822000000b00605f1807664so8152468oty.3;
-        Tue, 03 May 2022 01:24:34 -0700 (PDT)
-X-Gm-Message-State: AOAM53074jkgLK+v5S2QeAd1nHKqbiNBsFoPaeAmpveEG9ztG5S9Fbbn
-        +xAKNUreKB60yNmbly/v3+td1gGxEsM+b2flrwQ=
-X-Google-Smtp-Source: ABdhPJwrDtRFKbzWyx5Thvx9iv9ah7eyFBtB8lxLn/zZfAdnxobNy3HzZif7KpemB7VbxNVkIL6z9jSMtRXvIKtqCl4=
-X-Received: by 2002:a81:9213:0:b0:2f6:eaae:d22f with SMTP id
- j19-20020a819213000000b002f6eaaed22fmr14611680ywg.249.1651564406792; Tue, 03
- May 2022 00:53:26 -0700 (PDT)
+        with ESMTP id S234317AbiECKJK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2022 06:09:10 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0656E205F8
+        for <linux-omap@vger.kernel.org>; Tue,  3 May 2022 03:05:36 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id EEAAC8162;
+        Tue,  3 May 2022 10:02:19 +0000 (UTC)
+Date:   Tue, 3 May 2022 13:05:34 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Romain Naour <romain.naour@smile.fr>
+Cc:     linux-omap@vger.kernel.org
+Subject: Re: AM5749: tty serial 8250 omap driver crash
+Message-ID: <YnD+brrvs36aL71B@atomide.com>
+References: <9f0cb8f9-ac94-eb50-266a-95df521a7360@smile.fr>
+ <YgoIMPZd7bi6XDGW@atomide.com>
+ <YgpUNMAiXgu+vrtl@atomide.com>
+ <ca2faa1d-715b-77f8-4f19-037ba9aabc8e@smile.fr>
+ <YgzkLjWwIlm9/SiK@atomide.com>
+ <114d59cb-bbea-6298-c346-3f50f04ab2a5@smile.fr>
+ <Yg4CZb1Jy2M8wwn/@atomide.com>
+ <77a24941-4c46-8d78-391a-d3d1018f311a@smile.fr>
+ <Yg5GdIp5Glp9p/G5@atomide.com>
+ <2d192056-4977-9e2e-f661-23e05e2a6584@smile.fr>
 MIME-Version: 1.0
-References: <202205031017.4TwMan3l-lkp@intel.com> <YnCXTPrbLhvfRVDm@e3a974050dc4>
- <CAK8P3a1xMeLa72YKMufdej6KguDwiSXtZmMqRxOt5B05x_fx3A@mail.gmail.com> <YnDaINQbVtoJz1T3@atomide.com>
-In-Reply-To: <YnDaINQbVtoJz1T3@atomide.com>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Tue, 3 May 2022 09:53:10 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a2NOfu52tADw30e6Bfik56_+PbUv6_+ADs=PUE-6NSrbQ@mail.gmail.com>
-Message-ID: <CAK8P3a2NOfu52tADw30e6Bfik56_+PbUv6_+ADs=PUE-6NSrbQ@mail.gmail.com>
-Subject: Re: [PATCH] ARM: dove: fix returnvar.cocci warnings
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Arnd Bergmann <arnd@arndb.de>, kernel test robot <lkp@intel.com>,
-        kbuild-all@lists.01.org,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-omap <linux-omap@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:74Mgwc2DUG5mMwrZ6MNsmoljzN6pyJ9yjLycxRNFA3NqtnvQWvr
- +XXc1CwiRNmjo/CHNnk9+yENODqvKGuJ7B71HiOOTee+ifhGGaplPvstsZEDQr8Co3QMA6p
- 5Uk5Xn1+YkJ0lZaorHRMpaPbP4yJtzAU0rnEvz1bCxIg7lyZqZnBc1HbBjBZzINP2n/BLLF
- TzMmA22OUqRjjhUusxGIw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:zOs/EaUZU5g=:neyHM/Ij/EFNn2vmpKEHnX
- W9RnhJzkcNmp2L7mVzFd4pjUJ+oPpumCNTTT5/XDrHruNf5Yn5WahVBfsPoZ2QfDCIBRJY5oI
- xKp61Dk5iHxsu3gciAr2Kt6xSGoo9t1PmWXICfRcE6Ap/ralzQE32Of0H/2rL2O1ube++XWA5
- Go4joyompIy4FkODjUwZ8s6qx8NVWjdbTu7jABuGoEg4KcLjgr8twISWIfAClpz9hAYr89YNm
- xnOkKWrmv76gYf3x9RjRTTtJKUGamZlo/bL3IVF+AXzKBhYwmJjcBn72f96sA6vFwnsjnjT4R
- /tIkhJvgI0N72YqLtRsHhVO1va0Pzk5PG+TMg62qlM64Pw9hM1crjUUA9S8j4GaNXwh86e8ll
- CIIfY10q89a1WWRLPZ8dJ4KKkdi2R2/9bf88+3QLOE1/wparfXfBklLiB3vUa3zJvJgUEjNn7
- zfNLlDetZz4P8zFtC9djYbcA43iJFfq/ALcWYMMLDueSvaPF9hJwKCgeCTMiFFJ7x3NlIXzy1
- Lp2jD7Jss287t/bZowJFMXDB5CbWPdH7l4HNZTJO0cTIfxoDqovn4jUbypXTmHXi2EIB5vxM9
- Hayi7m/lSci++kFilSXuDIcJ0BvCnccF2YAdwIravKgpf42K56MMulCLNJWYuKyfeOTDbHjmO
- bEPRdp06A2EmDd6UX/4afTuuTFx48kiEvJQCed4nh36jgyZbsXL/9d0ZyopaQAY3Z8c8HA+jS
- EgtBG3hknfbUEfz/tlLeVx0sLyu2dqnrxILf/jrjEmIPnkBHqBQ0ISE+FrCJNsTJPGfgSzWv/
- lWn2Jpovjzr+1EtDeakh8rjkhIVvP5pyEbu3fEc1FokOr8eml0=
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2d192056-4977-9e2e-f661-23e05e2a6584@smile.fr>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, May 3, 2022 at 9:30 AM Tony Lindgren <tony@atomide.com> wrote:
-> * Arnd Bergmann <arnd@arndb.de> [220503 07:18]:
-> > On Tue, May 3, 2022 at 4:45 AM kernel test robot <lkp@intel.com> wrote:
-> > >
-> > > From: kernel test robot <lkp@intel.com>
-> > >
-> > > arch/arm/mach-omap2/dma.c:82:10-16: Unneeded variable: "errata". Return "0" on line 161
-> > >
-> > >
-> > >  Remove unneeded variable used to store return value.
-> > >
-> > > Generated by: scripts/coccinelle/misc/returnvar.cocci
-> > >
-> > > Reported-by: kernel test robot <lkp@intel.com>
-> > > Signed-off-by: kernel test robot <lkp@intel.com>
-> >
-> > I checked the patch, and unfortunately it is wrong, the current code
-> > needs to stay.
-> > The problem is the SET_DMA_ERRATA() macro that accesses the
-> > local 'errata' variable.
->
-> Yeah this one keeps popping up. Maybe we can make SET_DMA_ERRATA
-> into a function or have it at least change it to set the errata
-> value.
+Hi,
 
-I would just remove the macro and open-code the assignment, which
-I think makes it more readable to both people and tools.
+* Romain Naour <romain.naour@smile.fr> [220402 10:13]:
+> Le 17/02/2022 à 13:58, Tony Lindgren a écrit :
+> > Yes but note that 8250_omap autosuspend does not do anything unless the
+> > timeouts are manually enabled by the userspace. They are initialized to -1
+> > during probe.
+> 
+> Actually it's not initialized to -1 on my board, it's initialized to 0. See
+> commit [1].
 
-     Arnd
+Oh you're right. The default should be initialized to 2000ms though, not 0.
+
+> I'm starting to think that is an issue when the 8250_omap driver is used with
+> another driver like the gnss serial driver (using a serdev driver).
+
+Oh yes you are right. We do this conditionally now.
+
+> Since the commit [1] there is no autosuspend delay at all, I would suggest to
+> add a default autosuspend delay value. I tested with 200ms based on another example.
+> 
+> diff --git a/drivers/tty/serial/8250/8250_omap.c
+> b/drivers/tty/serial/8250/8250_omap.c
+> index ec7304d57f5f..8ba830bd493a 100644
+> --- a/drivers/tty/serial/8250/8250_omap.c
+> +++ b/drivers/tty/serial/8250/8250_omap.c
+> @@ -108,6 +108,9 @@
+>  /* RX FIFO occupancy indicator */
+>  #define UART_OMAP_RX_LVL               0x19
+> 
+> +/* Runtime PM autosuspend timeout: 0ms may trigger wakeup issues */
+> +#define UART_AUTOSUSPEND_TIMEOUT               200
+> +
+>  struct omap8250_priv {
+>         int line;
+>         u8 habit;
+> @@ -1409,6 +1412,8 @@ static int omap8250_probe(struct platform_device *pdev)
+>          */
+>         if (!of_get_available_child_count(pdev->dev.of_node))
+>                 pm_runtime_set_autosuspend_delay(&pdev->dev, -1);
+> +       else
+> +               pm_runtime_set_autosuspend_delay(&pdev->dev,
+> UART_AUTOSUSPEND_TIMEOUT);
+> 
+>         pm_runtime_irq_safe(&pdev->dev);
+
+Hmm the value should be set to the default 2000ms already. If it's not, then we
+need to find out what is setting it to 0.
+
+For adjusting the timeout, you may want to check the child serdev driver
+runtime PM autosuspend timeout, adjusting that seems a better place to
+prevent the 8250 idle. Not sure how we should handle the 8250 specific
+timeout though based on the serdev driver requirements.
+
+Regards,
+
+Tony
+
+
+> [1]
+> https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/commit/?id=627a545c6bb0c7de09208e6546f5111290477261
