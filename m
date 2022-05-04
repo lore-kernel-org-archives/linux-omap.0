@@ -2,46 +2,46 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF570C433F5
-	for <linux-omap@archiver.kernel.org>; Wed,  4 May 2022 15:02:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89F27C433F5
+	for <linux-omap@archiver.kernel.org>; Wed,  4 May 2022 21:56:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351619AbiEDPF6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 4 May 2022 11:05:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54030 "EHLO
+        id S1349043AbiEDWAB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 4 May 2022 18:00:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351740AbiEDPFy (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2022 11:05:54 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B38937BFE;
-        Wed,  4 May 2022 08:02:12 -0700 (PDT)
+        with ESMTP id S234763AbiEDWAA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2022 18:00:00 -0400
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACDBA4C7AA;
+        Wed,  4 May 2022 14:56:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1651676532; x=1683212532;
+  t=1651701382; x=1683237382;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=LZOSHgzaH7gLto7Bh3nkfkwcqKHDQok+ILvZzSVOYjg=;
-  b=ZjgxmahrcAphXHDP1RXUPU+pnXKdpQsqQPnLzNV7UM3OPiU6xXd4Vzex
-   e/p/EbpdpsLxw1qVEI6Csf9P89YI3KD0JCdTALl56HzxEBrYt83VL+DcG
-   Sg7jzUDdfdI6ayaxiKfTzaLMDTNAoG3gRvF5+FSGNWGmLbVSYLqdlVYaI
-   f7sahqqDAhoVXB0IDS+AuCAP8zebVKZ1lpiv7KtntNJwq7snWX6bYVqtY
-   +81eLaaZGy/2KaoJer3qFaAB+wUfhK8UglXzJAMaaJXn4kioLsgl8Zc+s
-   MW8XV8g5QPXMnQeiwusekmVxtp1EUOPxkIeAhT8qR+0zbOztf/+SXiRaW
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10337"; a="247700267"
-X-IronPort-AV: E=Sophos;i="5.91,198,1647327600"; 
-   d="scan'208";a="247700267"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 May 2022 08:02:11 -0700
+  bh=+cX/q4hHSfZpA/7ngY9zmqJ7LOdjeasO74bF651bmBA=;
+  b=ZJkvpZReD92IrM+mF4FvfU4hvhtO7ylt2i+QU6kW11/ARxUbOfJmSNtO
+   xTxk8hZOPtQE5j67DJ59+C4VTQfyaUZdoCMy2l8INPTVJ/XHj2ckhOj/s
+   bcNrFAAmuY9WStz9lLXAXeMrV3ArzDVfRmw8RddP1llHV9gWcz+ogkcJX
+   odhCsofKXlCY6VxwvNZ5ZFkuKmqxxp/QxYJ+UrLAmcZar4JTw3BCUT7/h
+   jesUxo1qYCdA6A3jdNc4GNsI5ek7OO6+LnGdwcLUZvB8cpvkZxTpm0vPs
+   TsOvoBLyUlMe3PCoCrDmAnAD6aEnoqsU8RFvpX/F7vw4n+adyQRKq2VHG
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10337"; a="354346934"
+X-IronPort-AV: E=Sophos;i="5.91,199,1647327600"; 
+   d="scan'208";a="354346934"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 May 2022 14:56:22 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.91,198,1647327600"; 
-   d="scan'208";a="811155238"
+X-IronPort-AV: E=Sophos;i="5.91,199,1647327600"; 
+   d="scan'208";a="562931838"
 Received: from lkp-server01.sh.intel.com (HELO 5056e131ad90) ([10.239.97.150])
-  by fmsmga006.fm.intel.com with ESMTP; 04 May 2022 08:02:06 -0700
+  by orsmga007.jf.intel.com with ESMTP; 04 May 2022 14:56:16 -0700
 Received: from kbuild by 5056e131ad90 with local (Exim 4.95)
         (envelope-from <lkp@intel.com>)
-        id 1nmGVx-000BSl-JB;
-        Wed, 04 May 2022 15:02:05 +0000
-Date:   Wed, 4 May 2022 23:01:17 +0800
+        id 1nmMyl-000BoJ-RK;
+        Wed, 04 May 2022 21:56:15 +0000
+Date:   Thu, 5 May 2022 05:56:06 +0800
 From:   kernel test robot <lkp@intel.com>
 To:     Gireesh.Hiremath@in.bosch.com, linux-omap@vger.kernel.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
@@ -52,12 +52,12 @@ To:     Gireesh.Hiremath@in.bosch.com, linux-omap@vger.kernel.org,
         m.felsch@pengutronix.de, swboyd@chromium.org,
         fengping.yu@mediatek.com, y.oudjana@protonmail.com,
         rdunlap@infradead.org, colin.king@intel.com
-Cc:     kbuild-all@lists.01.org, sjoerd.simons@collabora.co.uk,
-        VinayKumar.Shettar@in.bosch.com,
+Cc:     llvm@lists.linux.dev, kbuild-all@lists.01.org,
+        sjoerd.simons@collabora.co.uk, VinayKumar.Shettar@in.bosch.com,
         Govindaraji.Sivanantham@in.bosch.com, anaclaudia.dias@de.bosch.com
 Subject: Re: [PATCH 2/4] Input: mt-matrix-keypad: Add Bosch mt matrix keypad
  driver
-Message-ID: <202205042204.lz58BhXF-lkp@intel.com>
+Message-ID: <202205050513.PAcNKUP3-lkp@intel.com>
 References: <20220504105254.1576-2-Gireesh.Hiremath@in.bosch.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -73,15 +73,15 @@ Thank you for the patch! Perhaps something to improve:
 
 [auto build test WARNING on tmlind-omap/for-next]
 [also build test WARNING on next-20220504]
-[cannot apply to dtor-input/next robh/for-next balbi-usb/testing/next v5.18-rc5]
+[cannot apply to dtor-input/next robh/for-next v5.18-rc5]
 [If your patch is applied to the wrong git tree, kindly drop us a note.
 And when submitting patch, we suggest to use '--base' as documented in
 https://git-scm.com/docs/git-format-patch]
 
 url:    https://github.com/intel-lab-lkp/linux/commits/Gireesh-Hiremath-in-bosch-com/ARM-dts-am335x-Guardian-switch-to-AM33XX_PADCONF-pinmux-macro/20220504-185623
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git for-next
-config: sh-allmodconfig (https://download.01.org/0day-ci/archive/20220504/202205042204.lz58BhXF-lkp@intel.com/config)
-compiler: sh4-linux-gcc (GCC) 11.3.0
+config: x86_64-allmodconfig (https://download.01.org/0day-ci/archive/20220505/202205050513.PAcNKUP3-lkp@intel.com/config)
+compiler: clang version 15.0.0 (https://github.com/llvm/llvm-project 363b3a645a1e30011cc8da624f13dac5fd915628)
 reproduce (this is a W=1 build):
         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
         chmod +x ~/bin/make.cross
@@ -91,58 +91,114 @@ reproduce (this is a W=1 build):
         git checkout 8dae1bf10aa8e74feb1bca5eb708e98e9492a587
         # save the config file
         mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.3.0 make.cross W=1 O=build_dir ARCH=sh SHELL=/bin/bash drivers/input/keyboard/
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=x86_64 SHELL=/bin/bash drivers/input/keyboard/
 
 If you fix the issue, kindly add following tag as appropriate
 Reported-by: kernel test robot <lkp@intel.com>
 
 All warnings (new ones prefixed by >>):
 
->> drivers/input/keyboard/mt_matrix_keypad.c:51:6: warning: no previous prototype for 'init_phase' [-Wmissing-prototypes]
-      51 | void init_phase(struct mt_matrix_keypad_platform_data *pdata)
-         |      ^~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:58:6: warning: no previous prototype for 'button_init' [-Wmissing-prototypes]
-      58 | void button_init(struct button *btn, bool btn_hw_state, int key)
-         |      ^~~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:70:1: warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
-      70 | const struct button_states get_button_state(struct button *btn)
-         | ^~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:70:28: warning: no previous prototype for 'get_button_state' [-Wmissing-prototypes]
-      70 | const struct button_states get_button_state(struct button *btn)
-         |                            ^~~~~~~~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:75:17: warning: no previous prototype for 'get_and_clear_events' [-Wmissing-prototypes]
-      75 | union typeEvent get_and_clear_events(struct button *btn)
-         |                 ^~~~~~~~~~~~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:84:9: warning: no previous prototype for 'get_btn_index' [-Wmissing-prototypes]
-      84 | uint8_t get_btn_index(struct mt_matrix_keypad_platform_data *pdata, int btn_key)
-         |         ^~~~~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:95:6: warning: no previous prototype for 'set_btn_state_by_hw' [-Wmissing-prototypes]
-      95 | void set_btn_state_by_hw(struct button *btn, bool boButtonState)
-         |      ^~~~~~~~~~~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:100:6: warning: no previous prototype for 'check_button_changes' [-Wmissing-prototypes]
-     100 | bool check_button_changes(struct button *btn)
-         |      ^~~~~~~~~~~~~~~~~~~~
-   drivers/input/keyboard/mt_matrix_keypad.c:124:1: warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
-     124 | const struct button_states
-         | ^~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:125:1: warning: no previous prototype for 'get_btn_id_state' [-Wmissing-prototypes]
-     125 | get_btn_id_state(const struct mt_matrix_keypad_platform_data *pdata,
-         | ^~~~~~~~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:135:1: warning: no previous prototype for 'get_and_clear_btn_events' [-Wmissing-prototypes]
-     135 | get_and_clear_btn_events(const struct mt_matrix_keypad_platform_data *pdata,
-         | ^~~~~~~~~~~~~~~~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:144:6: warning: no previous prototype for 'button_hdl_init' [-Wmissing-prototypes]
-     144 | void button_hdl_init(struct mt_matrix_keypad_platform_data *pdata)
-         |      ^~~~~~~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:171:6: warning: no previous prototype for 'on_button_event' [-Wmissing-prototypes]
-     171 | bool on_button_event(const struct mt_matrix_keypad_platform_data *pdata,
-         |      ^~~~~~~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:196:6: warning: no previous prototype for 'process_button_events' [-Wmissing-prototypes]
-     196 | void process_button_events(const struct mt_matrix_keypad_platform_data *pdata,
-         |      ^~~~~~~~~~~~~~~~~~~~~
->> drivers/input/keyboard/mt_matrix_keypad.c:219:6: warning: no previous prototype for 'update_buttons' [-Wmissing-prototypes]
-     219 | void update_buttons(struct mt_matrix_keypad_platform_data *pdata,
-         |      ^~~~~~~~~~~~~~
+>> drivers/input/keyboard/mt_matrix_keypad.c:51:6: warning: no previous prototype for function 'init_phase' [-Wmissing-prototypes]
+   void init_phase(struct mt_matrix_keypad_platform_data *pdata)
+        ^
+   drivers/input/keyboard/mt_matrix_keypad.c:51:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   void init_phase(struct mt_matrix_keypad_platform_data *pdata)
+   ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:58:6: warning: no previous prototype for function 'button_init' [-Wmissing-prototypes]
+   void button_init(struct button *btn, bool btn_hw_state, int key)
+        ^
+   drivers/input/keyboard/mt_matrix_keypad.c:58:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   void button_init(struct button *btn, bool btn_hw_state, int key)
+   ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:70:1: warning: 'const' type qualifier on return type has no effect [-Wignored-qualifiers]
+   const struct button_states get_button_state(struct button *btn)
+   ^~~~~~
+>> drivers/input/keyboard/mt_matrix_keypad.c:70:28: warning: no previous prototype for function 'get_button_state' [-Wmissing-prototypes]
+   const struct button_states get_button_state(struct button *btn)
+                              ^
+   drivers/input/keyboard/mt_matrix_keypad.c:70:7: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   const struct button_states get_button_state(struct button *btn)
+         ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:75:17: warning: no previous prototype for function 'get_and_clear_events' [-Wmissing-prototypes]
+   union typeEvent get_and_clear_events(struct button *btn)
+                   ^
+   drivers/input/keyboard/mt_matrix_keypad.c:75:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   union typeEvent get_and_clear_events(struct button *btn)
+   ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:84:9: warning: no previous prototype for function 'get_btn_index' [-Wmissing-prototypes]
+   uint8_t get_btn_index(struct mt_matrix_keypad_platform_data *pdata, int btn_key)
+           ^
+   drivers/input/keyboard/mt_matrix_keypad.c:84:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   uint8_t get_btn_index(struct mt_matrix_keypad_platform_data *pdata, int btn_key)
+   ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:95:6: warning: no previous prototype for function 'set_btn_state_by_hw' [-Wmissing-prototypes]
+   void set_btn_state_by_hw(struct button *btn, bool boButtonState)
+        ^
+   drivers/input/keyboard/mt_matrix_keypad.c:95:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   void set_btn_state_by_hw(struct button *btn, bool boButtonState)
+   ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:100:6: warning: no previous prototype for function 'check_button_changes' [-Wmissing-prototypes]
+   bool check_button_changes(struct button *btn)
+        ^
+   drivers/input/keyboard/mt_matrix_keypad.c:100:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   bool check_button_changes(struct button *btn)
+   ^
+   static 
+   drivers/input/keyboard/mt_matrix_keypad.c:124:1: warning: 'const' type qualifier on return type has no effect [-Wignored-qualifiers]
+   const struct button_states
+   ^~~~~~
+>> drivers/input/keyboard/mt_matrix_keypad.c:125:1: warning: no previous prototype for function 'get_btn_id_state' [-Wmissing-prototypes]
+   get_btn_id_state(const struct mt_matrix_keypad_platform_data *pdata,
+   ^
+   drivers/input/keyboard/mt_matrix_keypad.c:124:7: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   const struct button_states
+         ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:135:1: warning: no previous prototype for function 'get_and_clear_btn_events' [-Wmissing-prototypes]
+   get_and_clear_btn_events(const struct mt_matrix_keypad_platform_data *pdata,
+   ^
+   drivers/input/keyboard/mt_matrix_keypad.c:134:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   union typeEvent
+   ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:144:6: warning: no previous prototype for function 'button_hdl_init' [-Wmissing-prototypes]
+   void button_hdl_init(struct mt_matrix_keypad_platform_data *pdata)
+        ^
+   drivers/input/keyboard/mt_matrix_keypad.c:144:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   void button_hdl_init(struct mt_matrix_keypad_platform_data *pdata)
+   ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:171:6: warning: no previous prototype for function 'on_button_event' [-Wmissing-prototypes]
+   bool on_button_event(const struct mt_matrix_keypad_platform_data *pdata,
+        ^
+   drivers/input/keyboard/mt_matrix_keypad.c:171:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   bool on_button_event(const struct mt_matrix_keypad_platform_data *pdata,
+   ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:200:7: warning: variable 'any_btn_served' set but not used [-Wunused-but-set-variable]
+           bool any_btn_served = false;
+                ^
+>> drivers/input/keyboard/mt_matrix_keypad.c:196:6: warning: no previous prototype for function 'process_button_events' [-Wmissing-prototypes]
+   void process_button_events(const struct mt_matrix_keypad_platform_data *pdata,
+        ^
+   drivers/input/keyboard/mt_matrix_keypad.c:196:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   void process_button_events(const struct mt_matrix_keypad_platform_data *pdata,
+   ^
+   static 
+>> drivers/input/keyboard/mt_matrix_keypad.c:219:6: warning: no previous prototype for function 'update_buttons' [-Wmissing-prototypes]
+   void update_buttons(struct mt_matrix_keypad_platform_data *pdata,
+        ^
+   drivers/input/keyboard/mt_matrix_keypad.c:219:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   void update_buttons(struct mt_matrix_keypad_platform_data *pdata,
+   ^
+   static 
+   16 warnings generated.
 
 
 vim +/init_phase +51 drivers/input/keyboard/mt_matrix_keypad.c
@@ -228,7 +284,7 @@ vim +/init_phase +51 drivers/input/keyboard/mt_matrix_keypad.c
    121		return btn->event.status.boGlobalChanged;
    122	}
    123	
- > 124	const struct button_states
+   124	const struct button_states
  > 125	get_btn_id_state(const struct mt_matrix_keypad_platform_data *pdata,
    126			 int btn_index)
    127	{
@@ -304,7 +360,7 @@ vim +/init_phase +51 drivers/input/keyboard/mt_matrix_keypad.c
    197				   struct input_dev *input_dev)
    198	{
    199		int btn_index;
-   200		bool any_btn_served = false;
+ > 200		bool any_btn_served = false;
    201	
    202		for (btn_index = 0; btn_index < pdata->num_of_button; btn_index++) {
    203			const union typeEvent beEvent =
