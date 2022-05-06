@@ -2,65 +2,65 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F320FC43219
-	for <linux-omap@archiver.kernel.org>; Fri,  6 May 2022 07:29:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0545C433EF
+	for <linux-omap@archiver.kernel.org>; Fri,  6 May 2022 07:29:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1389536AbiEFHc6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1389527AbiEFHc6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Fri, 6 May 2022 03:32:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49982 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1378251AbiEFHc4 (ORCPT
+        with ESMTP id S240161AbiEFHc4 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2022 03:32:56 -0400
-Received: from EUR01-VE1-obe.outbound.protection.outlook.com (mail-eopbgr140089.outbound.protection.outlook.com [40.107.14.89])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A4DA66FA0;
-        Fri,  6 May 2022 00:29:13 -0700 (PDT)
+Received: from EUR01-DB5-obe.outbound.protection.outlook.com (mail-eopbgr150045.outbound.protection.outlook.com [40.107.15.45])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD96A66F97;
+        Fri,  6 May 2022 00:29:10 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=eRUPARCI+gSyLGQmveZx+QXPFv79FDXtbhWEVZzkYXWUwYgTXxqYiFnOxBj6FnlYHCcHd7jzzY03pHDyF/OGFkFe1BIVn5CKkiTPEvycjNhJAv5WfqgxLN6O1iicGXQ4h6Za8by6Pe56g7l50ZU5Zmju//vMH7dJyhn49326+nDxZgc7N43/lxMLD5w3ZCdnkMUOk4AoertizLgKcb0oTxQaqCRwBeueimS0oM9WEiVQhLZJYGDgmw7Clhn7ZgwLv12GED8pDIqnQTdBX/bOflAokxemQBB9FU1XYcmfsjX/lAl1St5UwDdJtFiSyoZrPWLA+Zt1PXspkqPL2GQSzw==
+ b=BwgYSsK1Xcfo2gOS1cdyvpe+fG/hpIQ33lFYx0ZFlJmHAcGiePi6M371/YwELb64JxjeU4/Fdj6EpEsZHVL8NYQlhw1kjvrzrAD0wI+Br2pE8qqLa3YVG8DKXe3hv7+lTqXATZdyhOMv5YTbI+zZUaFicbrbnvTi8iBp1hJ0OD4MV1dIDVXyiGipyX6kL+xsN05sFBKzZIkVmcBlRZ/kfFTSxBa3yzJu+02DHtX3dEE2e69VWoxdiCFeG9yRNRAQn+NpHgFEbvIF7TES4OxuDEpVe7JaYxbXZ4yyjUsHT1EZEcuMFAFUKuVKRyBlOJD+xck8TXlxUy26paRl0segCg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Ra9aVPNgEMdzmUCQXvAKbZdrFWPXBt2CyVsxdFca7Rs=;
- b=QYimufKSTYUFi0dmHsXZj5gqWn02a53bsXnh2MuO1l8Y2Wou3ApiiMsiS7V/vQp5O3VLcptyP36t5e6j8II8rDadWZeIKtYLUJMzj+pZ0kSLmfQxWw+pEk5x2axAEGjBFzYOQWVGqs6a01zTwKIJZSBTgNdY2E0bQGMgfbSVIr3Pu1GBoKOO4gRU7p29HcubXbaXui7au9rCmVGCUPPLrdaUI6O52vk77WzUc4fjUy476hN20XD9lUHrgrK8HdfeMZe2upGjb63X0AWkZgty/Bz1V1rvWmHyz9bmqxV5p4xhNEpa4mUrHI4F2xmxul5azL1qFVZ/UFp/8GfTlA12BA==
+ bh=NpmYBC/isXjTkDVRznKgiK/+FZEmaiU+i3rlY86ykXQ=;
+ b=JebdVzLymu5C5BXWr20pa+ffqJdElhh29EYqlCtlSwGPaK2GSH6NEap4mYVygw4CbE23rsVXHNDjgd2CxLHOp2uoXx4dqUTzxsWkm/ic4zkf4XBc4nCK/MflirfHXHmqvHSqIHJ8V7kcNhmPoP36dt8IUEUTygCEnvxrd7VgkoP0PW0vdkGtIOrw1lxok71eHGBrKEwlF8hILtuE0Hv1YAV7cU6I2cR0sPv/3fPaTUSdDKQYyzf7zRqrH4/q5+RMExqg4U6wjgeCVgMk0tS7KsWr39g0Gr36BZDb84G9XXr+RrcS2J5OhxsxXYj60m53XvarZ042grQWa1NDrTJjoQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 139.15.153.200) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=in.bosch.com;
+ 139.15.153.203) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=in.bosch.com;
  dmarc=pass (p=reject sp=none pct=100) action=none header.from=in.bosch.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=in.bosch.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Ra9aVPNgEMdzmUCQXvAKbZdrFWPXBt2CyVsxdFca7Rs=;
- b=DgFZ9MGB50cYRsr+Irb0QRMhxzUvP5u2j7iUXTrDXWssWmvUuq56OvHTqvBCJHNJN3lMUZaylPV8x4EUMUh/x+1K1B1hILBcXpYHAz6DDf9lXHpciI7+SAiGn5Wv0r5LXloznw+OsJgfn2RJTCGwW2sj7lV12kxxNCHyaB5tYJo=
-Received: from AS8P251CA0019.EURP251.PROD.OUTLOOK.COM (2603:10a6:20b:2f2::22)
- by AM5PR10MB1843.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:206:1d::12) with
+ bh=NpmYBC/isXjTkDVRznKgiK/+FZEmaiU+i3rlY86ykXQ=;
+ b=gg8BYAjqOCdYDh7yPwP2AnSwwZedulysFT2EZIhQ1EIL7O2PZH5hYqmu4zIQdrsRUfryyf+2WUJ12Sp1jRbqvBM/Ss3AqwmXTJao4+JppBucSr52VHEehIR7MvVgmKYEU6uVXhWEujWSfoeF0OPFISHYEQFccfGcDFaQ9NUjr2Y=
+Received: from AM6PR08CA0026.eurprd08.prod.outlook.com (2603:10a6:20b:c0::14)
+ by AM0PR10MB3969.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:20b:157::9) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5206.24; Fri, 6 May
- 2022 07:29:11 +0000
-Received: from VE1EUR03FT010.eop-EUR03.prod.protection.outlook.com
- (2603:10a6:20b:2f2:cafe::50) by AS8P251CA0019.outlook.office365.com
- (2603:10a6:20b:2f2::22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5227.18 via Frontend
- Transport; Fri, 6 May 2022 07:29:11 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 139.15.153.200)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5227.18; Fri, 6 May
+ 2022 07:29:08 +0000
+Received: from AM5EUR03FT063.eop-EUR03.prod.protection.outlook.com
+ (2603:10a6:20b:c0:cafe::2) by AM6PR08CA0026.outlook.office365.com
+ (2603:10a6:20b:c0::14) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5227.20 via Frontend
+ Transport; Fri, 6 May 2022 07:29:08 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 139.15.153.203)
  smtp.mailfrom=in.bosch.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=in.bosch.com;
 Received-SPF: Pass (protection.outlook.com: domain of in.bosch.com designates
- 139.15.153.200 as permitted sender) receiver=protection.outlook.com;
- client-ip=139.15.153.200; helo=eop.bosch-org.com;
-Received: from eop.bosch-org.com (139.15.153.200) by
- VE1EUR03FT010.mail.protection.outlook.com (10.152.18.113) with Microsoft SMTP
+ 139.15.153.203 as permitted sender) receiver=protection.outlook.com;
+ client-ip=139.15.153.203; helo=eop.bosch-org.com;
+Received: from eop.bosch-org.com (139.15.153.203) by
+ AM5EUR03FT063.mail.protection.outlook.com (10.152.16.226) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.5227.15 via Frontend Transport; Fri, 6 May 2022 07:29:10 +0000
+ 15.20.5227.15 via Frontend Transport; Fri, 6 May 2022 07:29:08 +0000
 Received: from FE-EXCAS2001.de.bosch.com (10.139.217.200) by eop.bosch-org.com
- (139.15.153.200) with Microsoft SMTP Server (version=TLS1_2,
+ (139.15.153.203) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2375.24; Fri, 6 May
- 2022 09:29:10 +0200
+ 2022 09:29:02 +0200
 Received: from SI-HUB2000.de.bosch.com (10.4.103.108) by
  FE-EXCAS2001.de.bosch.com (10.139.217.200) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2375.24; Fri, 6 May 2022 09:29:10 +0200
+ 15.1.2375.24; Fri, 6 May 2022 09:29:02 +0200
 Received: from localhost.localdomain (10.167.1.123) by SI-HUB2000.de.bosch.com
  (10.4.103.108) with Microsoft SMTP Server id 15.1.2375.24; Fri, 6 May 2022
- 09:29:06 +0200
+ 09:28:57 +0200
 From:   <Gireesh.Hiremath@in.bosch.com>
 To:     <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-input@vger.kernel.org>,
@@ -74,113 +74,449 @@ To:     <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>,
 CC:     <sjoerd.simons@collabora.co.uk>, <VinayKumar.Shettar@in.bosch.com>,
         <Govindaraji.Sivanantham@in.bosch.com>,
         <anaclaudia.dias@de.bosch.com>
-Subject: [PATCH v2 3/4] ARM: dts: am335x: Guardian: add keymap to mt matrix keypad
-Date:   Fri, 6 May 2022 07:27:36 +0000
-Message-ID: <20220506072737.1590-3-Gireesh.Hiremath@in.bosch.com>
+Subject: [PATCH v2 1/4] ARM: dts: am335x: Guardian: switch to AM33XX_PADCONF pinmux macro
+Date:   Fri, 6 May 2022 07:27:34 +0000
+Message-ID: <20220506072737.1590-1-Gireesh.Hiremath@in.bosch.com>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20220506072737.1590-1-Gireesh.Hiremath@in.bosch.com>
-References: <20220506072737.1590-1-Gireesh.Hiremath@in.bosch.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-Originating-IP: [10.167.1.123]
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 24ed3e19-90cc-4d80-71df-08da2f321d12
-X-MS-TrafficTypeDiagnostic: AM5PR10MB1843:EE_
-X-Microsoft-Antispam-PRVS: <AM5PR10MB184347C8EFD48C52E2D665D4A6C59@AM5PR10MB1843.EURPRD10.PROD.OUTLOOK.COM>
+X-MS-Office365-Filtering-Correlation-Id: a2c2f344-43eb-4588-262a-08da2f321b87
+X-MS-TrafficTypeDiagnostic: AM0PR10MB3969:EE_
+X-Microsoft-Antispam-PRVS: <AM0PR10MB3969AC956725FC14727FAD74A6C59@AM0PR10MB3969.EURPRD10.PROD.OUTLOOK.COM>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: zn5xc/aAVkfDM0A0LCT0ah74ymR12uKPUZyRgazftFmxDtgvpzYex6HYF04MnimHM3CzySwsd1NiN5VZeT9q5sXTw/InPoq26MdCaz8+maMVtbCo5Nyr73QdxDJvQAYZBT3LGrW8VGWD/3Y5RYjouFFQT6mct9w7QJ8v8t3ARcjOMYmBOTAs6wxBF9Gln2zkx+6+DlmOLDykRTfJsjf7dWcao8RZpTyjXFUJiMG5S+hCc3eyYj3Sl3sek4pYTZdZbL9ivG3czij2PASIshGTRVv44DVCuhrObyc4QUhEfbDitl+nBxNBJJGfizuR+G2V+3fe96I269Pv0PJ8buyTuG67wresYtH+j7mIvfN8E1IykaQNHdrYOMtPckW1d0aFbB1SjpAvqacPBNBNuCrPjybhchqFEZ4ngQotUhOeDXysP3WttSXKHp2Qa8PH418p8/UBryb4/lhcvddzRCl+3PE8SwIQmrrtM+kffjIG7S0HPwvLwXYwOT04v+8CqaF3Z7yQCdrsolnlTLLzxHdPf7Bs9WAJZM0tphWLIbp+TepptxBLqgZq8kf340L/nb1rbG5gSJCdr/+6z5G2TfzXTpZ2RWfEjyprHZo6rGcyf6zJIMvwBt+OsbGUxrZwq5iGjhsBBVd3UsCKU+VmWBKa4ax6tBOakndNtqRPMyrTmz4AKSXKtxHHlS3TKA37RSLDyfkfn0viaRYWhTYJGcQVyPWyGzWjK5A+BalWazvgc6s=
-X-Forefront-Antispam-Report: CIP:139.15.153.200;CTRY:DE;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:eop.bosch-org.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230001)(4636009)(46966006)(40470700004)(36840700001)(2616005)(110136005)(186003)(26005)(7049001)(54906003)(7416002)(81166007)(82960400001)(40460700003)(5660300002)(2876002)(6666004)(356005)(107886003)(70586007)(8676002)(4326008)(921005)(70206006)(316002)(36860700001)(8936002)(336012)(16526019)(1076003)(86362001)(47076005)(508600001)(83380400001)(2906002)(82310400005)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: JBEzwcpWiBVPC0zZyvdWhpIqOs0DryCSnJqBeJDgJTf4ubBOY+m0ptIotEnH3m/F45D8I3j21NF0XfajU5GBnfqfSjcXvDFmPTWtsdJeao4Bjr+Q8e1+T8D/k31wLa0+85cmeGbFYccRrFMs4HMcdnVM5YoqsMtvSO7vf04ixzsUO9vWEDRWE1HzDv1P3Wtmxb2ykUPSGazmRLqKyx1CYEWFvYSVhX4kLYHrjvozsPV7MzXNQlJvQ5c/YC6idZOA9mGGooFfbHWmNC54EPcyuEzc/OeD2pLpKq1q2xhJ4Mc4oziuv2jYpRPDh9m7A0+C2KlTrUK5lE/7rwSYBU/lv4crpuQtwOIqDOhDQBlchF5FQxtQ6iK4DZ2UJ9MXbMNqmoqreLjTfiEnEewJtxFtFyQ6qkarSQ1n5Be5u5OPoF50jsb5WYfqD/kvP2VdMIcLTvLnVEjSHL//JNl61dgDp5itUn6A+d3WvUfYv7Igh9/wWCmaNpIMh4HoyofKHxcBtLCJUZfCXbKno1GVU5uCxOYcMhT37v3DZLYMI2/H6mtOYWdMYoIdpwnxkcPjuYGSnafbwDN3U6IorpVp6yT/0Vviu8QHwJhFoZif1xtb8sJED5wHr/TXrUqatntrEeUDFt0L7UK5lkVXlHtN9vsV3rjFUzVgfnhjU2WAhc2A0y9Ci2RtFFDwA0Ak42evJnalINvabrCoCMaJPH+foczGsJZ3SzRVEPFMNrWTfW79zHk=
+X-Forefront-Antispam-Report: CIP:139.15.153.203;CTRY:DE;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:eop.bosch-org.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230001)(4636009)(46966006)(36840700001)(40470700004)(2616005)(186003)(16526019)(47076005)(86362001)(1076003)(83380400001)(107886003)(336012)(356005)(7416002)(81166007)(5660300002)(82960400001)(36860700001)(2906002)(8936002)(40460700003)(508600001)(70586007)(70206006)(8676002)(4326008)(110136005)(6666004)(316002)(54906003)(921005)(7049001)(30864003)(26005)(82310400005)(2876002)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: in.bosch.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 May 2022 07:29:10.8016
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 May 2022 07:29:08.2121
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 24ed3e19-90cc-4d80-71df-08da2f321d12
+X-MS-Exchange-CrossTenant-Network-Message-Id: a2c2f344-43eb-4588-262a-08da2f321b87
 X-MS-Exchange-CrossTenant-Id: 0ae51e19-07c8-4e4b-bb6d-648ee58410f4
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=0ae51e19-07c8-4e4b-bb6d-648ee58410f4;Ip=[139.15.153.200];Helo=[eop.bosch-org.com]
-X-MS-Exchange-CrossTenant-AuthSource: VE1EUR03FT010.eop-EUR03.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=0ae51e19-07c8-4e4b-bb6d-648ee58410f4;Ip=[139.15.153.203];Helo=[eop.bosch-org.com]
+X-MS-Exchange-CrossTenant-AuthSource: AM5EUR03FT063.eop-EUR03.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM5PR10MB1843
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR10MB3969
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Gireesh Hiremath <Gireesh.Hiremath@in.bosch.com>
 
-add linux,keymap to mt matrix keypad
+switch the pin definitions from AM33XX_IOPAD to AM33XX_PADCONF macro
 
 Signed-off-by: Gireesh Hiremath <Gireesh.Hiremath@in.bosch.com>
 ---
-Changes since v1:
-	- updated node names
 
- arch/arm/boot/dts/am335x-guardian.dts | 44 ++++++++++++++++++++++-----
- 1 file changed, 36 insertions(+), 8 deletions(-)
+No changes since v1
+
+ arch/arm/boot/dts/am335x-guardian.dts | 229 +++++++++++++++-----------
+ 1 file changed, 132 insertions(+), 97 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-guardian.dts b/arch/arm/boot/dts/am335x-guardian.dts
-index 94d9e51cd0f9..a172d0e2842f 100644
+index 1a7e187b1953..94d9e51cd0f9 100644
 --- a/arch/arm/boot/dts/am335x-guardian.dts
 +++ b/arch/arm/boot/dts/am335x-guardian.dts
-@@ -120,20 +120,48 @@
- 		regulator-max-microvolt = <3300000>;
+@@ -485,7 +485,7 @@
+ 	clkout2_pin: pinmux_clkout2_pin {
+ 		pinctrl-single,pins = <
+ 			/* xdma_event_intr1.clkout2 */
+-			AM33XX_IOPAD(0x9b4, PIN_OUTPUT_PULLDOWN | MUX_MODE3)
++			AM33XX_PADCONF(AM335X_PIN_XDMA_EVENT_INTR1, PIN_OUTPUT_PULLDOWN, MUX_MODE3)
+ 		>;
  	};
  
--	mt_keypad: mt_keypad@0 {
--		compatible = "gpio-mt-keypad";
-+	keypad {
-+		compatible = "gpio-mt-matrix-keypad";
- 		debounce-delay-ms = <10>;
- 		col-scan-delay-us = <2>;
--		keypad,num-lines = <5>;
-+		number-of-buttons = <7>;
- 		linux,no-autorepeat;
- 		gpio-activelow;
- 		line-gpios = <
--			&gpio1 24 GPIO_ACTIVE_LOW    /*gpio_56*/
--			&gpio1 23 GPIO_ACTIVE_LOW    /*gpio_55*/
--			&gpio1 22 GPIO_ACTIVE_LOW    /*gpio_54*/
--			&gpio1 20 GPIO_ACTIVE_LOW    /*gpio_52*/
--			&gpio1 16 GPIO_ACTIVE_LOW    /*gpio_48*/
-+			&gpio1 24 1	/*gpio_56*/
-+			&gpio1 23 1	/*gpio_55*/
-+			&gpio1 22 1	/*gpio_54*/
-+			&gpio1 20 1	/*gpio_52*/
-+			&gpio1 16 1	/*gpio_48*/
+@@ -493,254 +493,289 @@
+ 		pinctrl-single,pins = <
+ 			/* ADC_BATSENSE_EN */
+ 			/* (A14) MCASP0_AHCLKx.gpio3[21] */
+-			AM33XX_IOPAD(0x9ac, PIN_OUTPUT_PULLDOWN | MUX_MODE7 )
++			AM33XX_PADCONF(AM335X_PIN_MCASP0_AHCLKX, PIN_OUTPUT_PULLDOWN, MUX_MODE7)
+ 			/* ADC_COINCELL_EN */
+ 			/* (J16) MII1_TX_EN.gpio3[3] */
+-			AM33XX_IOPAD(0x914, PIN_OUTPUT_PULLDOWN | MUX_MODE7 )
++			AM33XX_PADCONF(AM335X_PIN_MII1_TX_EN, PIN_OUTPUT_PULLDOWN, MUX_MODE7)
+ 			/* ASP_ENABLE */
+ 			/* (A13) MCASP0_ACLKx.gpio3[14] */
+-			AM33XX_IOPAD(0x990, PIN_OUTPUT_PULLUP | MUX_MODE7)
++			AM33XX_PADCONF(AM335X_PIN_MCASP0_ACLKX, PIN_OUTPUT_PULLUP, MUX_MODE7)
+ 			/* (D16) uart1_rxd.uart1_rxd */
+-			AM33XX_IOPAD(0x980, PIN_INPUT | MUX_MODE7)
++			AM33XX_PADCONF(AM335X_PIN_UART1_RXD, PIN_INPUT, MUX_MODE7)
+ 			/* (D15) uart1_txd.uart1_txd */
+-			AM33XX_IOPAD(0x984, PIN_INPUT | MUX_MODE7)
++			AM33XX_PADCONF(AM335X_PIN_UART1_TXD, PIN_INPUT, MUX_MODE7)
+ 			/*SWITCH-OFF_3V6*/
+ 			/* (M18) gpio0[1] */
+-			AM33XX_IOPAD(0x94c, PIN_OUTPUT_PULLUP | MUX_MODE7)
++			AM33XX_PADCONF(AM335X_PIN_MDC, PIN_OUTPUT_PULLUP, MUX_MODE7)
+ 			/* MIRACULIX */
+ 			/* (H17) gmii1_crs.gpio3[1] */
+-			AM33XX_IOPAD(0x90c, PIN_OUTPUT_PULLDOWN | MUX_MODE7 )
++			AM33XX_PADCONF(AM335X_PIN_MII1_CRS, PIN_OUTPUT_PULLDOWN, MUX_MODE7 )
+ 			/* (H18) rmii1_refclk.gpio0[29] */
+-			AM33XX_IOPAD(0x944, PIN_OUTPUT_PULLDOWN | MUX_MODE7 )
++			AM33XX_PADCONF(AM335X_PIN_RMII1_REF_CLK, PIN_OUTPUT_PULLDOWN, MUX_MODE7)
+ 			/* (J18) gmii1_txd3.gpio0[16] */
+-			AM33XX_IOPAD(0x91c, PIN_INPUT           | MUX_MODE7 )
++			AM33XX_PADCONF(AM335X_PIN_MII1_TXD3, PIN_INPUT, MUX_MODE7)
+ 			/* (J17) gmii1_rxdv.gpio3[4] */
+-			AM33XX_IOPAD(0x918, PIN_OUTPUT_PULLDOWN | MUX_MODE7 )
++			AM33XX_PADCONF(AM335X_PIN_MII1_RX_DV, PIN_OUTPUT_PULLDOWN, MUX_MODE7)
  		>;
-+		linux,keymap = <
-+			0x00000000 /* row 0, col 0, KEY_RESERVED */
-+			0x0001000a /* row 0, col 1, KEY_9 */
-+			0x00020003 /* row 0, col 2, KEY_2 */
-+			0x00030000 /* row 0, col 3, KEY_RESERVED */
-+			0x00040002 /* row 0, col 4, KEY_1 */
-+			0x0100000a /* row 1, col 0, KEY_9 */
-+			0x01010000 /* row 1, col 1, KEY_RESERVED */
-+			0x01020007 /* row 1, col 2, KEY_6 */
-+			0x01030000 /* row 1, col 3, KEY_RESERVED */
-+			0x01040000 /* row 1, col 4, KEY_RESERVED */
-+			0x02000003 /* row 2, col 0, KEY_2 */
-+			0x02010007 /* row 2, col 1, KEY_6 */
-+			0x02020000 /* row 2, col 2, KEY_RESERVED */
-+			0x02030005 /* row 2, col 3, KEY_4 */
-+			0x02040008 /* row 2, col 4, KEY_7 */
-+			0x03000000 /* row 3, col 0, KEY_RESERVED */
-+			0x03010000 /* row 3, col 1, KEY_RESERVED */
-+			0x03020005 /* row 3, col 2, KEY_4 */
-+			0x03030000 /* row 3, col 3, KEY_RESERVED */
-+			0x03040009 /* row 3, col 4, KEY_8 */
-+			0x04000002 /* row 4, col 0, KEY_1 */
-+			0x04010000 /* row 4, col 1, KEY_RESERVED */
-+			0x04020008 /* row 4, col 2, KEY_7 */
-+			0x04030009 /* row 4, col 3, KEY_8 */
-+			0x04040000 /* row 4, col 4, KEY_RESERVED */
-+		>;
-+
+ 	};
+ 
+ 	guardian_beeper_pins: pinmux_dmtimer7_pins {
+ 		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x968, PIN_OUTPUT | MUX_MODE5) /* (E18) timer7 */
++			/* (E18) timer7 */
++			AM33XX_PADCONF(AM335X_PIN_UART0_CTSN, PIN_OUTPUT, MUX_MODE5)
+ 		>;
+ 	};
+ 
+ 	guardian_button_pins: pinmux_guardian_button_pins {
+ 		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x940, PIN_INPUT | MUX_MODE7) /* (M16) gmii1_rxd0.gpio2[21] */
+-			AM33XX_IOPAD(0x884, PIN_INPUT | MUX_MODE7) /* (V9)  gpmc_csn2.gpio1[31] */
++			/* (M16) gmii1_rxd0.gpio2[21] */
++			AM33XX_PADCONF(AM335X_PIN_MII1_RXD0, PIN_INPUT, MUX_MODE7)
++			/* (V9)  gpmc_csn2.gpio1[31] */
++			AM33XX_PADCONF(AM335X_PIN_GPMC_CSN2, PIN_INPUT, MUX_MODE7)
+ 		>;
+ 	};
+ 
+ 
+ 	i2c0_pins: pinmux_i2c0_pins {
+ 		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x988, PIN_INPUT_PULLUP | MUX_MODE0) /* i2c0_sda.i2c0_sda */
+-			AM33XX_IOPAD(0x98c, PIN_INPUT_PULLUP | MUX_MODE0) /* i2c0_scl.i2c0_scl */
++			/* i2c0_sda.i2c0_sda */
++			AM33XX_PADCONF(AM335X_PIN_I2C0_SDA, PIN_INPUT_PULLUP, MUX_MODE0)
++			/* i2c0_scl.i2c0_scl */
++			AM33XX_PADCONF(AM335X_PIN_I2C0_SCL, PIN_INPUT_PULLUP, MUX_MODE0)
+ 		>;
+ 	};
+ 
+ 	led_bl_pins: gpio_led_bl_pins {
+ 		pinctrl-single,pins = <
+ 			/* P9_14, gpmc_a[2].GPIO1[18] (backlight control) */
+-			AM33XX_IOPAD(0x848, PIN_OUTPUT | MUX_MODE7)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_A2, PIN_OUTPUT, MUX_MODE7)
+ 		>;
+ 	};
+ 
+ 	lcd_disen_pins: pinmux_lcd_disen_pins {
+ 		pinctrl-single,pins = <
+ 			/* P9_27, mcasp0_fsr.gpio3[19] (lcd_disen) */
+-			AM33XX_IOPAD(0x9a4, PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_MCASP0_FSR, PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW, MUX_MODE7)
+ 		>;
+ 	};
+ 
+ 	lcd_pins_default: pinmux_lcd_pins_default {
+ 		pinctrl-single,pins = <
+ 			/* (U10) gpmc_ad8.lcd_data23 */
+-			AM33XX_IOPAD(0x820, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE1)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD8, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE1)
+ 			/* (T10) gpmc_ad9.lcd_data22 */
+-			AM33XX_IOPAD(0x824, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE1)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD9, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE1)
+ 			/* (T11) gpmc_ad10.lcd_data21 */
+-			AM33XX_IOPAD(0x828, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE1)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD10, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE1)
+ 			/* (U12) gpmc_ad11.lcd_data20 */
+-			AM33XX_IOPAD(0x82c, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE1)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD11, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE1)
+ 			/* (T12) gpmc_ad12.lcd_data19 */
+-			AM33XX_IOPAD(0x830, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE1)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD12, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE1)
+ 			/* (R12) gpmc_ad13.lcd_data18 */
+-			AM33XX_IOPAD(0x834, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE1)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD13, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE1)
+ 			/* (V13) gpmc_ad14.lcd_data17 */
+-			AM33XX_IOPAD(0x838, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE1)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD14, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE1)
+ 			/* (U13) gpmc_ad15.lcd_data16 */
+-			AM33XX_IOPAD(0x83c, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE1)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD15, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE1)
+ 			/* lcd_data0.lcd_data0 */
+-			AM33XX_IOPAD(0x8a0, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA0, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data1.lcd_data1 */
+-			AM33XX_IOPAD(0x8a4, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA1, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data2.lcd_data2 */
+-			AM33XX_IOPAD(0x8a8, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA2, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data3.lcd_data3 */
+-			AM33XX_IOPAD(0x8ac, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA3, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data4.lcd_data4 */
+-			AM33XX_IOPAD(0x8b0, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA4, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data5.lcd_data5 */
+-			AM33XX_IOPAD(0x8b4, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA5, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data6.lcd_data6 */
+-			AM33XX_IOPAD(0x8b8, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA6, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data7.lcd_data7 */
+-			AM33XX_IOPAD(0x8bc, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA7, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data8.lcd_data8 */
+-			AM33XX_IOPAD(0x8c0, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA8, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data9.lcd_data9 */
+-			AM33XX_IOPAD(0x8c4, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA9, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data10.lcd_data10 */
+-			AM33XX_IOPAD(0x8c8, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA10, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data11.lcd_data11 */
+-			AM33XX_IOPAD(0x8cc, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA11, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data12.lcd_data12 */
+-			AM33XX_IOPAD(0x8d0, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA12, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data13.lcd_data13 */
+-			AM33XX_IOPAD(0x8d4, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA13, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data14.lcd_data14 */
+-			AM33XX_IOPAD(0x8d8, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA14, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_data15.lcd_data15 */
+-			AM33XX_IOPAD(0x8dc, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_DATA15, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_vsync.lcd_vsync */
+-			AM33XX_IOPAD(0x8e0, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_VSYNC, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_hsync.lcd_hsync */
+-			AM33XX_IOPAD(0x8e4, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_HSYNC, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_pclk.lcd_pclk */
+-			AM33XX_IOPAD(0x8e8, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_LCD_PCLK, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 			/* lcd_ac_bias_en.lcd_ac_bias_en */
+-			AM33XX_IOPAD(0x8ec, PIN_OUTPUT | SLEWCTRL_SLOW | MUX_MODE0)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_AC_BIAS_EN, PIN_OUTPUT | SLEWCTRL_SLOW, MUX_MODE0)
+ 		>;
+ 	};
+ 
+ 	lcd_pins_sleep: pinmux_lcd_pins_sleep {
+ 		pinctrl-single,pins = <
+ 			/* lcd_data0.lcd_data0 */
+-			AM33XX_IOPAD(0x8a0, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA0, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data1.lcd_data1 */
+-			AM33XX_IOPAD(0x8a4, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA1, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data2.lcd_data2 */
+-			AM33XX_IOPAD(0x8a8, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA2, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data3.lcd_data3 */
+-			AM33XX_IOPAD(0x8ac, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA3, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data4.lcd_data4 */
+-			AM33XX_IOPAD(0x8b0, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA4, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data5.lcd_data5 */
+-			AM33XX_IOPAD(0x8b4, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA5, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data6.lcd_data6 */
+-			AM33XX_IOPAD(0x8b8, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA6, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data7.lcd_data7 */
+-			AM33XX_IOPAD(0x8bc, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA7, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data8.lcd_data8 */
+-			AM33XX_IOPAD(0x8c0, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA8, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data9.lcd_data9 */
+-			AM33XX_IOPAD(0x8c4, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA9, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data10.lcd_data10 */
+-			AM33XX_IOPAD(0x8c8, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA10, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data11.lcd_data11 */
+-			AM33XX_IOPAD(0x8cc, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA11, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data12.lcd_data12 */
+-			AM33XX_IOPAD(0x8d0, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA12, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data13.lcd_data13 */
+-			AM33XX_IOPAD(0x8d4, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA13, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data14.lcd_data14 */
+-			AM33XX_IOPAD(0x8d8, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA14, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_data15.lcd_data15 */
+-			AM33XX_IOPAD(0x8dc, PULL_DISABLE | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_DATA15, PULL_DISABLE | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_vsync.lcd_vsync */
+-			AM33XX_IOPAD(0x8e0, PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_VSYNC, PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_hsync.lcd_hsync */
+-			AM33XX_IOPAD(0x8e4, PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_HSYNC, PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_pclk.lcd_pclk */
+-			AM33XX_IOPAD(0x8e8, PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_PCLK, PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW, MUX_MODE7)
+ 			/* lcd_ac_bias_en.lcd_ac_bias_en */
+-			AM33XX_IOPAD(0x8ec, PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW | MUX_MODE7)
++			AM33XX_PADCONF
++			(AM335X_PIN_LCD_AC_BIAS_EN, PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW, MUX_MODE7)
+ 		>;
+ 	};
+ 
+ 	guardian_led_pins: pinmux_guardian_led_pins {
+ 		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x868, PIN_OUTPUT | MUX_MODE7) /* (T16) gpmc_a10.gpio1[26] */
++			/* (T16) gpmc_a10.gpio1[26] */
++			AM33XX_PADCONF(AM335X_PIN_GPMC_A10, PIN_OUTPUT, MUX_MODE7)
+ 		>;
+ 	};
+ 
+ 	mmc1_pins: pinmux_mmc1_pins {
+ 		pinctrl-single,pins = <
+-			AM33XX_IOPAD(0x8f0, PIN_INPUT_PULLUP | MUX_MODE0)  /* mmc0_dat3.mmc0_dat3 */
+-			AM33XX_IOPAD(0x8f4, PIN_INPUT_PULLUP | MUX_MODE0)  /* mmc0_dat2.mmc0_dat2 */
+-			AM33XX_IOPAD(0x8f8, PIN_INPUT_PULLUP | MUX_MODE0)  /* mmc0_dat1.mmc0_dat1 */
+-			AM33XX_IOPAD(0x8fc, PIN_INPUT_PULLUP | MUX_MODE0)  /* mmc0_dat0.mmc0_dat0 */
+-			AM33XX_IOPAD(0x900, PIN_INPUT_PULLUP | MUX_MODE0)  /* mmc0_clk.mmc0_clk */
+-			AM33XX_IOPAD(0x904, PIN_INPUT_PULLUP | MUX_MODE0)  /* mmc0_cmd.mmc0_cmd */
+-			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7)         /* GPIO0_6 */
++			/* mmc0_dat3.mmc0_dat3 */
++			AM33XX_PADCONF(AM335X_PIN_MMC0_DAT3, PIN_INPUT_PULLUP, MUX_MODE0)
++			/* mmc0_dat2.mmc0_dat2 */
++			AM33XX_PADCONF(AM335X_PIN_MMC0_DAT2, PIN_INPUT_PULLUP, MUX_MODE0)
++			/* mmc0_dat1.mmc0_dat1 */
++			AM33XX_PADCONF(AM335X_PIN_MMC0_DAT1, PIN_INPUT_PULLUP, MUX_MODE0)
++			/* mmc0_dat0.mmc0_dat0 */
++			AM33XX_PADCONF(AM335X_PIN_MMC0_DAT0, PIN_INPUT_PULLUP, MUX_MODE0)
++			/* mmc0_clk.mmc0_clk */
++			AM33XX_PADCONF(AM335X_PIN_MMC0_CLK, PIN_INPUT_PULLUP, MUX_MODE0)
++			/* mmc0_cmd.mmc0_cmd */
++			AM33XX_PADCONF(AM335X_PIN_MMC0_CMD, PIN_INPUT_PULLUP, MUX_MODE0)
++			/* GPIO0_6 */
++			AM33XX_PADCONF(AM335X_PIN_SPI0_CS1, PIN_INPUT, MUX_MODE7)
+ 		>;
+ 	};
+ 
+ 	spi0_pins: pinmux_spi0_pins {
+ 		pinctrl-single,pins = <
+ 			/* SPI0_CLK  - spi0_clk.spi */
+-			AM33XX_IOPAD(0x950, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_SPI0_SCLK, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
+ 			/* SPI0_MOSI - spi0_d0.spi0 */
+-			AM33XX_IOPAD(0x954, PIN_OUTPUT_PULLUP | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_SPI0_D0, PIN_OUTPUT_PULLUP, MUX_MODE0)
+ 			/* SPI0_MISO - spi0_d1.spi0 */
+-			AM33XX_IOPAD(0x958, PIN_INPUT_PULLUP | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP, MUX_MODE0)
+ 			/* SPI0_CS0 - spi */
+-			AM33XX_IOPAD(0x95c, PIN_OUTPUT_PULLUP | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_SPI0_CS0, PIN_OUTPUT_PULLUP, MUX_MODE0)
+ 		>;
+ 	};
+ 
+ 	uart0_pins: pinmux_uart0_pins {
+ 		pinctrl-single,pins = <
+ 			/* uart0_rxd.uart0_rxd */
+-			AM33XX_IOPAD(0x970, PIN_INPUT_PULLUP | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_UART0_RXD, PIN_INPUT_PULLUP, MUX_MODE0)
+ 			/* uart0_txd.uart0_txd */
+-			AM33XX_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_UART0_TXD, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
+ 		>;
+ 	};
+ 
+ 	uart2_pins: pinmux_uart2_pins {
+ 		pinctrl-single,pins = <
+ 			/* K18 uart2_rxd.mirx_txd */
+-			AM33XX_IOPAD(0x92c, PIN_INPUT_PULLUP | MUX_MODE1)
++			AM33XX_PADCONF(AM335X_PIN_MII1_TX_CLK, PIN_INPUT_PULLUP, MUX_MODE1)
+ 			/* L18 uart2_txd.mirx_rxd */
+-			AM33XX_IOPAD(0x930, PIN_OUTPUT_PULLDOWN | MUX_MODE1)
++			AM33XX_PADCONF(AM335X_PIN_MII1_RX_CLK, PIN_OUTPUT_PULLDOWN, MUX_MODE1)
+ 		>;
+ 	};
+ 
+ 	nandflash_pins: pinmux_nandflash_pins {
+ 		pinctrl-single,pins = <
+ 			/* (U7) gpmc_ad0.gpmc_ad0 */
+-			AM33XX_IOPAD(0x800, PIN_INPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD0, PIN_INPUT, MUX_MODE0)
+ 			/* (V7) gpmc_ad1.gpmc_ad1 */
+-			AM33XX_IOPAD(0x804, PIN_INPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD1, PIN_INPUT, MUX_MODE0)
+ 			/* (R8) gpmc_ad2.gpmc_ad2 */
+-			AM33XX_IOPAD(0x808, PIN_INPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD2, PIN_INPUT, MUX_MODE0)
+ 			/* (T8) gpmc_ad3.gpmc_ad3 */
+-			AM33XX_IOPAD(0x80c, PIN_INPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD3, PIN_INPUT, MUX_MODE0)
+ 			/* (U8) gpmc_ad4.gpmc_ad4 */
+-			AM33XX_IOPAD(0x810, PIN_INPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD4, PIN_INPUT, MUX_MODE0)
+ 			/* (V8) gpmc_ad5.gpmc_ad5 */
+-			AM33XX_IOPAD(0x814, PIN_INPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD5, PIN_INPUT, MUX_MODE0)
+ 			/* (R9) gpmc_ad6.gpmc_ad6 */
+-			AM33XX_IOPAD(0x818, PIN_INPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD6, PIN_INPUT, MUX_MODE0)
+ 			/* (T9) gpmc_ad7.gpmc_ad7 */
+-			AM33XX_IOPAD(0x81c, PIN_INPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_AD7, PIN_INPUT, MUX_MODE0)
+ 			/* (T17) gpmc_wait0.gpmc_wait0 */
+-			AM33XX_IOPAD(0x870, PIN_INPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_WAIT0, PIN_INPUT, MUX_MODE0)
+ 			/* (U17) gpmc_wpn.gpmc_wpn */
+-			AM33XX_IOPAD(0x874, PIN_OUTPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_WPN, PIN_OUTPUT, MUX_MODE0)
+ 			/* (V6) gpmc_csn0.gpmc_csn0 */
+-			AM33XX_IOPAD(0x87c, PIN_OUTPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_CSN0, PIN_OUTPUT, MUX_MODE0)
+ 			/* (R7) gpmc_advn_ale.gpmc_advn_ale */
+-			AM33XX_IOPAD(0x890, PIN_OUTPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_ADVN_ALE, PIN_OUTPUT, MUX_MODE0)
+ 			/* (T7) gpmc_oen_ren.gpmc_oen_ren */
+-			AM33XX_IOPAD(0x894, PIN_OUTPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_OEN_REN, PIN_OUTPUT, MUX_MODE0)
+ 			/* (U6) gpmc_wen.gpmc_wen */
+-			AM33XX_IOPAD(0x898, PIN_OUTPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_WEN, PIN_OUTPUT, MUX_MODE0)
+ 			/* (T6) gpmc_be0n_cle.gpmc_be0n_cle */
+-			AM33XX_IOPAD(0x89c, PIN_OUTPUT | MUX_MODE0)
++			AM33XX_PADCONF(AM335X_PIN_GPMC_BEN0_CLE, PIN_OUTPUT, MUX_MODE0)
+ 		>;
  	};
  };
- 
 -- 
 2.20.1
 
