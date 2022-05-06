@@ -2,83 +2,92 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E250EC433EF
-	for <linux-omap@archiver.kernel.org>; Thu,  5 May 2022 16:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E5DEC433EF
+	for <linux-omap@archiver.kernel.org>; Fri,  6 May 2022 01:11:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232478AbiEEQfL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 May 2022 12:35:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59498 "EHLO
+        id S1387797AbiEFBOs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 May 2022 21:14:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238980AbiEEQfK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2022 12:35:10 -0400
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5B76541A4;
-        Thu,  5 May 2022 09:31:30 -0700 (PDT)
+        with ESMTP id S1387795AbiEFBOs (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2022 21:14:48 -0400
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9980261296;
+        Thu,  5 May 2022 18:11:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1651768290; x=1683304290;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=J1ejMXF3Bd/GCmguw/mohOzkY0z/abBYcpbEVngnjig=;
-  b=KSBY0jJmug1QLSllDfxfXJoymE8MCbG4vSp2SNpi4ko5CBkdKaYBv8na
-   oAXqk5im1MyZtnkOM4csj/zmr80lNEEQ7bqQmSZxkCOtyDBVO3eKHn3LC
-   1PPAnTDzVJDbY8uTYACwn3Q4x5uNwT0++oMXF2zrLtJJEnL3G41GXw3ZD
-   13Xa6qKC1hPOF4m31Wx5RFd8gArAec5xgL6KLT1dU8UbjJmkZd514vGnJ
-   JqXWoWkKYQADCLBK5IzN4yKtrL9bwTwmvwHr6/JLbAEhvkGVeRGWYGJO+
-   zMb07850Elzk6kMAx94ejo55gHydwI5wSgXjFw3cZdUff86bALm41oqDH
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="328713910"
-X-IronPort-AV: E=Sophos;i="5.91,201,1647327600"; 
-   d="scan'208";a="328713910"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 May 2022 09:31:18 -0700
-X-IronPort-AV: E=Sophos;i="5.91,201,1647327600"; 
-   d="scan'208";a="694739879"
-Received: from evegaag-mobl1.amr.corp.intel.com (HELO [10.209.187.127]) ([10.209.187.127])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 May 2022 09:31:17 -0700
-Message-ID: <8704209d-d487-a297-b05a-5db99f5f808c@intel.com>
-Date:   Thu, 5 May 2022 09:31:37 -0700
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.1
-Subject: Re: [PATCH] ARM: dove: fix returnvar.cocci warnings
-Content-Language: en-US
-To:     Arnd Bergmann <arnd@arndb.de>, kernel test robot <lkp@intel.com>
-Cc:     kbuild-all@lists.01.org,
+  t=1651799465; x=1683335465;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=r/8ZoH7x8kextBDC9EcGTqQBcpjNzluLvqs0Fv7Xd98=;
+  b=iRx210wxuD9SCk11oM5LRKUR3mNo+Q+0uulJn/iBtZ4c4ZXWIyqQBm76
+   FzGzosnQerwa9zfjGZ3iOyRXy1SlNKu5ZMs2WQ3+XWPILo695sXqKHDwt
+   qPqDcRECfYD1fqYQxG1xTghHQDmLQ8fx7ABA1HvhXWx91I3ZiZ8m+RUiP
+   umT3L3QcvPLjVkrmCyP9Ls5eMjuHS2fSqV7NO9MX5ZAGBqa6eBAg3u57Y
+   yTq4BEMP+sLy4H/NvghepXTFLzR7xbykYreAy8W9KpRTnd/1EHEFOQiSR
+   0WMRGo6SHYloX3t8Oi8VgPJMD8FHjdFQjJXE5GYkdGwltmgDyuSKi2AI+
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10338"; a="331298546"
+X-IronPort-AV: E=Sophos;i="5.91,203,1647327600"; 
+   d="scan'208";a="331298546"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 May 2022 18:11:05 -0700
+X-IronPort-AV: E=Sophos;i="5.91,203,1647327600"; 
+   d="scan'208";a="537630977"
+Received: from rli9-dbox.sh.intel.com (HELO rli9-dbox) ([10.239.159.142])
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 May 2022 18:11:02 -0700
+Date:   Fri, 6 May 2022 09:09:13 +0800
+From:   Philip Li <philip.li@intel.com>
+To:     Dave Hansen <dave.hansen@intel.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>, kernel test robot <lkp@intel.com>,
+        kbuild-all@lists.01.org,
         Linux Memory Management List <linux-mm@kvack.org>,
         Tony Lindgren <tony@atomide.com>,
         Russell King <linux@armlinux.org.uk>,
         linux-omap <linux-omap@vger.kernel.org>,
         Linux ARM <linux-arm-kernel@lists.infradead.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] ARM: dove: fix returnvar.cocci warnings
+Message-ID: <YnR1OTpYADQy6Xa8@rli9-dbox>
 References: <202205031017.4TwMan3l-lkp@intel.com>
  <YnCXTPrbLhvfRVDm@e3a974050dc4>
  <CAK8P3a1xMeLa72YKMufdej6KguDwiSXtZmMqRxOt5B05x_fx3A@mail.gmail.com>
-From:   Dave Hansen <dave.hansen@intel.com>
-In-Reply-To: <CAK8P3a1xMeLa72YKMufdej6KguDwiSXtZmMqRxOt5B05x_fx3A@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+ <8704209d-d487-a297-b05a-5db99f5f808c@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8704209d-d487-a297-b05a-5db99f5f808c@intel.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 5/3/22 00:21, Arnd Bergmann wrote:
-> On Tue, May 3, 2022 at 4:45 AM kernel test robot <lkp@intel.com> wrote:
->> From: kernel test robot <lkp@intel.com>
->>
->> arch/arm/mach-omap2/dma.c:82:10-16: Unneeded variable: "errata". Return "0" on line 161
->>
->>  Remove unneeded variable used to store return value.
->>
->> Generated by: scripts/coccinelle/misc/returnvar.cocci
->>
->> Reported-by: kernel test robot <lkp@intel.com>
->> Signed-off-by: kernel test robot <lkp@intel.com>
-> I checked the patch, and unfortunately it is wrong, the current code
-> needs to stay.
-> The problem is the SET_DMA_ERRATA() macro that accesses the
-> local 'errata' variable.
+On Thu, May 05, 2022 at 09:31:37AM -0700, Dave Hansen wrote:
+> On 5/3/22 00:21, Arnd Bergmann wrote:
+> > On Tue, May 3, 2022 at 4:45 AM kernel test robot <lkp@intel.com> wrote:
+> >> From: kernel test robot <lkp@intel.com>
+> >>
+> >> arch/arm/mach-omap2/dma.c:82:10-16: Unneeded variable: "errata". Return "0" on line 161
+> >>
+> >>  Remove unneeded variable used to store return value.
+> >>
+> >> Generated by: scripts/coccinelle/misc/returnvar.cocci
+> >>
+> >> Reported-by: kernel test robot <lkp@intel.com>
+> >> Signed-off-by: kernel test robot <lkp@intel.com>
+> > I checked the patch, and unfortunately it is wrong, the current code
+> > needs to stay.
+> > The problem is the SET_DMA_ERRATA() macro that accesses the
+> > local 'errata' variable.
+> 
+> 0day folks, do we have humans looking over these before they're going
+> out to the list?  If not, can we add some?  If so, can the humans get a
+> little more discerning? ;)
 
-0day folks, do we have humans looking over these before they're going
-out to the list?  If not, can we add some?  If so, can the humans get a
-little more discerning? ;)
+Sorry all for the bad patch. So far, we pick up several cocci warnings that
+we have confidence based on early result analysis and feedback, for these
+warnings, 0day sends out patch automatically.
+
+Thanks for the suggestion Dave, We will change current process to be more
+conservative and to avoid false patch by adding human analysis.
+
+Thanks
