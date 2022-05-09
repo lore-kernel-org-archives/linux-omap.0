@@ -2,103 +2,96 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0819C433EF
-	for <linux-omap@archiver.kernel.org>; Sat,  7 May 2022 15:46:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58DAAC4167D
+	for <linux-omap@archiver.kernel.org>; Mon,  9 May 2022 05:16:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1385881AbiEGPuj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 7 May 2022 11:50:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34282 "EHLO
+        id S231464AbiEIFUi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 9 May 2022 01:20:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1386376AbiEGPug (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 May 2022 11:50:36 -0400
-Received: from mail-ed1-x52b.google.com (mail-ed1-x52b.google.com [IPv6:2a00:1450:4864:20::52b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CAAB396AB
-        for <linux-omap@vger.kernel.org>; Sat,  7 May 2022 08:46:48 -0700 (PDT)
-Received: by mail-ed1-x52b.google.com with SMTP id g20so11735081edw.6
-        for <linux-omap@vger.kernel.org>; Sat, 07 May 2022 08:46:48 -0700 (PDT)
+        with ESMTP id S234445AbiEIFPF (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2022 01:15:05 -0400
+Received: from mail-pf1-x430.google.com (mail-pf1-x430.google.com [IPv6:2607:f8b0:4864:20::430])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0148B20F46
+        for <linux-omap@vger.kernel.org>; Sun,  8 May 2022 22:11:11 -0700 (PDT)
+Received: by mail-pf1-x430.google.com with SMTP id a11so11298705pff.1
+        for <linux-omap@vger.kernel.org>; Sun, 08 May 2022 22:11:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=qlyXe/PCI3WzsN++V/F01ukEV4Sfb+BkaPj3isarbsE=;
-        b=xrTpFictnSpYWAbaK34I5kAuP6u5mfh8p4ZMdPl0gsNf9yZLSy+FOyYutaX2wDGMOQ
-         E7Zuc9LI7nZu8m1CWX2xYsvVftdkHwfMkFcNy2nJX0h6II8jhWy8eqzHl1Rjmtjdjc5T
-         Ivqt1O7dpycqNAadYpSoGnJBeYmzXmdJYelpWiJcRux6AkSgU1/QlzpIE5V9MVxiChAE
-         7aHnGEqOOG8D0w7DtTw32j0yAU5jdk5Yvp8v18xR+GyYQmZNfzPlK/UPBTQsQ8MHFcnB
-         9lj34pnxk6fqrnjDy4sl+XVF012uBkJ50EHDhZ5fQxkPq8lHtWig0KVDQvA8jZ9jdQx8
-         FpRQ==
+        d=baylibre-com.20210112.gappssmtp.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
+        bh=rDSFCO+czyrWwVIb/ri2W/5CAZ/bjTYqyMNHNUzLBgc=;
+        b=NGeVsQ++HGtjZxzvUZn1nbfaCrKKTfnM27oWvJsxcQJiAy3hRTbcCH2794ZktMDynH
+         R9268OPrKnRi0SxVYCY6APSONAAW56+inot6dKaYvxxiVLvViByq6EpMmXmtQQ9W3zvM
+         noWZh5xnsQQHzXO1FSFi+X4Gumb189wYfLmLhtqViQkZVktne7fXneH4BFF7cj6X4rsq
+         6QI1jPOs3L5/8JvrCyigC6idtOfVxKY1C9aluVUxfuDMub6jQGS5embdFASWhukIScVZ
+         SOatnziUTIe157Q6TVh9w90rUGNYDl7h0PZEjTMKQ0OZlr0FEd9q3rIyrlMMKzdAKDX6
+         5+ZA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=qlyXe/PCI3WzsN++V/F01ukEV4Sfb+BkaPj3isarbsE=;
-        b=8ImApmtX8H8TfITMVzMnDKk9xLtDSBgpdhBAFPBnhxRWsGtOfDiSrYTuN/1DN5RNcp
-         sRZWOBxFFeQjWtBVvYHdZ5sp7H+WLDohDE+2zNVSUuBLAvD/DJ8j+/46NrSJtMsCyhip
-         vcIb0HMCxc9YWUDDRIiUNf4+AQKPYVVNKrrt+LkrhfXfgEfnNmq64XFVBAw0h6muww7O
-         MsCJiimp+GqpAYvB3gZfDWtFQosaSYt0OiLVetkzBNuw7rwST8P/22vQ+iLvKM+XIWhm
-         pGb7pKmERRBIE/C3+5vxL2TLTFudrMVKSg90ejVDcGqJZ68a3W+fqGSv2fwCJJjAh7UC
-         VWOA==
-X-Gm-Message-State: AOAM533V2k7XQ9+75ROpvTvXXfeJxS6hP0OamiToUCaQ11Ya3qcGJPiF
-        eimXd6AdGvO58OvGuhsjRWe/qg==
-X-Google-Smtp-Source: ABdhPJxJf8kIvRK6Bki9YpxPo960c5ocwQlBvB85sRQc9cAbdz7vRzpsUHob3PP+BzKSzUC3Lz8m8g==
-X-Received: by 2002:a05:6402:520e:b0:428:22d0:e996 with SMTP id s14-20020a056402520e00b0042822d0e996mr8987898edd.250.1651938407017;
-        Sat, 07 May 2022 08:46:47 -0700 (PDT)
-Received: from [192.168.0.232] (xdsl-188-155-176-92.adslplus.ch. [188.155.176.92])
-        by smtp.gmail.com with ESMTPSA id gz12-20020a170906f2cc00b006f3ef214de8sm3109579ejb.78.2022.05.07.08.46.45
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 07 May 2022 08:46:46 -0700 (PDT)
-Message-ID: <1b180b09-f2e6-e3dc-ba93-45b03dfcdcbb@linaro.org>
-Date:   Sat, 7 May 2022 17:46:45 +0200
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition;
+        bh=rDSFCO+czyrWwVIb/ri2W/5CAZ/bjTYqyMNHNUzLBgc=;
+        b=jf/3N+F8/Ji934FRdU92BGNY+630D4rNZZwinxIotdm8zVXc1Rea9oERBzfh3DSwd9
+         7rl7iUyJHvZgVc3LOc0gWV604TI+BloHFdPRDqY6/FUWmK5bySMAiwqjJZmdoCWvgC86
+         yFAaaptH2pY22Q6TaWWSf06+m4v2O4TDaFInvzr1Hr7q+hOaqy49dV7n6xe634zFEkZC
+         IUbeOGOMQ2HaBJNpNWCH69woe1pfe5DZIzBIjWYQbV871XKr1MHjCnUqlqRPFk4HkATj
+         uKv+w4w6aiITfGYw9zh4EcUfmlbgMfdHbg0tnpllrroPTq9xAxDWEkfIOgCjeXNl2iis
+         uFKg==
+X-Gm-Message-State: AOAM531ZIa2mo4ttLa4ysLqwOt2yi9AImB1VUNhjaJx4qwtSCGn8x42V
+        SrUDG8Vaxf0eG2DKPx7/NmxcUg==
+X-Google-Smtp-Source: ABdhPJzQmAGyTKxouc0RQtiPKY+fyHgHySgxrAsDXhahZmKoQArbKkfoIBffIe19H+asxSznCOZPgA==
+X-Received: by 2002:a63:7d4a:0:b0:398:dad:6963 with SMTP id m10-20020a637d4a000000b003980dad6963mr11871980pgn.329.1652073071387;
+        Sun, 08 May 2022 22:11:11 -0700 (PDT)
+Received: from x1 ([2601:1c2:1001:7090:8a29:6b15:2464:b015])
+        by smtp.gmail.com with ESMTPSA id t9-20020a170902a5c900b0015e8d4eb1e3sm6027714plq.45.2022.05.08.22.11.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 08 May 2022 22:11:10 -0700 (PDT)
+Date:   Sun, 8 May 2022 22:12:08 -0700
+From:   Drew Fustini <dfustini@baylibre.com>
+To:     Tony Lindgren <tony@atomide.com>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc:     Dave Gerlach <d-gerlach@ti.com>, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: dmtimer: ack pending interrupt during suspend on am335x/am437x?
+Message-ID: <YniiqM0S+hwsGFni@x1>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.1
-Subject: Re: [PATCH v2 2/4] Input: mt-matrix-keypad: Add Bosch mt matrix
- keypad driver
-Content-Language: en-US
-To:     Gireesh.Hiremath@in.bosch.com, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-input@vger.kernel.org, bcousson@baylibre.com,
-        tony@atomide.com, robh+dt@kernel.org,
-        krzysztof.kozlowski+dt@linaro.org, dmitry.torokhov@gmail.com,
-        mkorpershoek@baylibre.com, davidgow@google.com,
-        m.felsch@pengutronix.de, swboyd@chromium.org,
-        fengping.yu@mediatek.com, y.oudjana@protonmail.com,
-        rdunlap@infradead.org, colin.king@intel.com
-Cc:     sjoerd.simons@collabora.co.uk, VinayKumar.Shettar@in.bosch.com,
-        Govindaraji.Sivanantham@in.bosch.com, anaclaudia.dias@de.bosch.com
-References: <20220506072737.1590-1-Gireesh.Hiremath@in.bosch.com>
- <20220506072737.1590-2-Gireesh.Hiremath@in.bosch.com>
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <20220506072737.1590-2-Gireesh.Hiremath@in.bosch.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 06/05/2022 09:27, Gireesh.Hiremath@in.bosch.com wrote:
->>
->>> both matric_keypad.c and mt_matrix_kepad.c logically operate differently,
->>> my openion is not to merge both.
->>
->> IMHO from the user/system-integrator pov it is looking the same and so
->> one driver should be fine. To distinguish between both modes we could
->> add dt-property or add a new dt-compatible like "gpio-matrix-keypad-v2".
->>
-> 
-> as mentioned above our keypad is not complete matrix keypad  and it will
-> not be compatible with matrix_keypad diver. that is the reason we derived
-> mt matrix keypad driver.
-> 
-> to avoid confusion, we will rename the driver as bosch_mt_keypad.c
-> if you suggest.
+Hello Daniel, Tony suggested I mail you along with the list to get
+feedback. I'm attempting to upstream these two patches [1][2] from
+ti-linux-5.4.y for arch/arm/mach-omap2/timer.c:
+96f4c6e2ba8a ("ARM: OMAP2+: timer: Ack pending interrupt during suspend")
+7ae7dd5f8272 ("ARM: OMAP2+: timer: Extend pending interrupt ACK for gic")
 
-Sending a new version while discussions are ongoing is not how we reach
-consensus.
+On the TI AM335x and AM437x SoCs, it is possible for a late interrupt to
+be generated which will cause a suspend failure. The first patch makes
+omap_clkevt_idle() ack the irq both in the timer peripheral register
+and in the interrupt controller to avoid the issue.
 
-Make the driver as part of matrix-keypad driver or bring real arguments
-why it cannot be merged.
+On AM437x only, the GIC cannot be directly acked using only the irqchip
+calls. To workaround that, the second patch maps the GIC_CPU_BASE and
+reads the GIC_CPU_INTACK register before calling irq_eoi to properly ack
+the late timer interrupts that show up during suspend.
 
-Best regards,
-Krzysztof
+However, Tony removed most of arch/arm/mach-omap2/timer.c with:
+2ee04b88547a ("ARM: OMAP2+: Drop old timer code for dmtimer and 32k counter")
+
+The timers are now implemented in drivers/clocksource/timer-ti-dm.c and
+drivers/clocksource/timer-ti-dm-systimer.c. The function
+dmtimer_clocksource_suspend() disables the dmtimer and clock but does
+not ack any interrupts.
+
+Tony suggested the right place to ack the interrupt during suspend is
+in CPU_CLUSTER_PM_ENTER inside omap_timer_context_notifier().
+
+Do you think that would be an acceptable approach?
+
+Thank you,
+Drew
+
+[1] https://git.ti.com/cgit/ti-linux-kernel/ti-linux-kernel/commit/?h=ti-linux-5.4.y&id=96f4c6e2ba8a
+[2] https://git.ti.com/cgit/ti-linux-kernel/ti-linux-kernel/commit/?h=ti-linux-5.4.y&id=7ae7dd5f8272
