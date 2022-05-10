@@ -2,69 +2,92 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEC59C433EF
-	for <linux-omap@archiver.kernel.org>; Mon,  9 May 2022 13:48:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADDC0C433F5
+	for <linux-omap@archiver.kernel.org>; Tue, 10 May 2022 06:49:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236381AbiEINwi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 May 2022 09:52:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37286 "EHLO
+        id S237341AbiEJGxa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 May 2022 02:53:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236373AbiEINwg (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2022 09:52:36 -0400
-Received: from michel.telenet-ops.be (michel.telenet-ops.be [IPv6:2a02:1800:110:4::f00:18])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A64611C965A
-        for <linux-omap@vger.kernel.org>; Mon,  9 May 2022 06:48:42 -0700 (PDT)
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:8886:2b92:63eb:2922])
-        by michel.telenet-ops.be with bizsmtp
-        id Udob2700B0moLbn06dob56; Mon, 09 May 2022 15:48:40 +0200
-Received: from rox.of.borg ([192.168.97.57])
-        by ramsan.of.borg with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1no3kZ-003Xmr-3S; Mon, 09 May 2022 15:48:35 +0200
-Received: from geert by rox.of.borg with local (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1no3kY-003NFe-HA; Mon, 09 May 2022 15:48:34 +0200
-From:   Geert Uytterhoeven <geert+renesas@glider.be>
-To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Roger Quadros <rogerq@kernel.org>
-Cc:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH] memory: OMAP_GPMC should depend on ARCH_OMAP2PLUS || ARCH_K3
-Date:   Mon,  9 May 2022 15:48:33 +0200
-Message-Id: <2b7d411b4a7913335082c858cb0d63b9e4bf7c5b.1652103920.git.geert+renesas@glider.be>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S236920AbiEJGx3 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 May 2022 02:53:29 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6E43C2AC0EB;
+        Mon,  9 May 2022 23:49:31 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 70FFD80EE;
+        Tue, 10 May 2022 06:46:00 +0000 (UTC)
+Date:   Tue, 10 May 2022 09:49:29 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Drew Fustini <dfustini@baylibre.com>
+Cc:     Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Dave Gerlach <d-gerlach@ti.com>, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: dmtimer: ack pending interrupt during suspend on am335x/am437x?
+Message-ID: <YnoK+XQiargRGUy/@atomide.com>
+References: <YniiqM0S+hwsGFni@x1>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YniiqM0S+hwsGFni@x1>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The Texas Instruments OMAP General Purpose Memory Controller (GPMC) is
-only present on TI OMAP2/3/4/5, AM33xx, AM43x, DRA7xx, TI81xx, and K3
-SoCs.  Hence add a dependency on ARCH_OMAP2PLUS || ARCH_K3, to prevent
-asking the user about this driver when configuring a kernel without
-OMAP2+ or K3 SoC family support.
+* Drew Fustini <dfustini@baylibre.com> [220509 05:07]:
+> Hello Daniel, Tony suggested I mail you along with the list to get
+> feedback. I'm attempting to upstream these two patches [1][2] from
+> ti-linux-5.4.y for arch/arm/mach-omap2/timer.c:
+> 96f4c6e2ba8a ("ARM: OMAP2+: timer: Ack pending interrupt during suspend")
+> 7ae7dd5f8272 ("ARM: OMAP2+: timer: Extend pending interrupt ACK for gic")
+> 
+> On the TI AM335x and AM437x SoCs, it is possible for a late interrupt to
+> be generated which will cause a suspend failure. The first patch makes
+> omap_clkevt_idle() ack the irq both in the timer peripheral register
+> and in the interrupt controller to avoid the issue.
+> 
+> On AM437x only, the GIC cannot be directly acked using only the irqchip
+> calls. To workaround that, the second patch maps the GIC_CPU_BASE and
+> reads the GIC_CPU_INTACK register before calling irq_eoi to properly ack
+> the late timer interrupts that show up during suspend.
+> 
+> However, Tony removed most of arch/arm/mach-omap2/timer.c with:
+> 2ee04b88547a ("ARM: OMAP2+: Drop old timer code for dmtimer and 32k counter")
+> 
+> The timers are now implemented in drivers/clocksource/timer-ti-dm.c and
+> drivers/clocksource/timer-ti-dm-systimer.c. The function
+> dmtimer_clocksource_suspend() disables the dmtimer and clock but does
+> not ack any interrupts.
+> 
+> Tony suggested the right place to ack the interrupt during suspend is
+> in CPU_CLUSTER_PM_ENTER inside omap_timer_context_notifier().
+> 
+> Do you think that would be an acceptable approach?
 
-Fixes: be34f45f0d4aa91c ("memory: omap-gpmc: Make OMAP_GPMC config visible and selectable")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
- drivers/memory/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+Based on what we chatted on irc yesterday, I'd suggest try resetting the
+clockevent on suspend first for am3/4 at omap_clockevent_idle() and see if
+that takes care of the issue. If it's the timer hardware blocking the
+deeper idle states, this should work, and GIC will lose it's context
+on system suspend anyways.
 
-diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
-index b7800b37af78a996..f00757912e2e4c1e 100644
---- a/drivers/memory/Kconfig
-+++ b/drivers/memory/Kconfig
-@@ -105,6 +105,7 @@ config TI_EMIF
- config OMAP_GPMC
- 	tristate "Texas Instruments OMAP SoC GPMC driver"
- 	depends on OF_ADDRESS
-+	depends on ARCH_OMAP2PLUS || ARCH_K3 || COMPILE_TEST
- 	select GPIOLIB
- 	help
- 	  This driver is for the General Purpose Memory Controller (GPMC)
--- 
-2.25.1
+If there's still a pending interrupt status blocking deeper idle
+states for system suspend after clockevent reset, then maybe the related
+interrupt controller(s) should clear/reset the state for context lossy
+suspend for CPU_CLUSTER_PM_ENTER for system suspend.
 
+Looks like for GIC we have gic_dist_save() being called but it does not
+seem to clear anything for system suspend.
+
+For runtime PM, we don't want to clear any pending interrupts on
+CPU_CLUSTER_PM_ENTER :)
+
+Seems like a system suspend/resume test loop should be first run to
+trigger the issue and see what is still missing.
+
+Regards,
+
+Tony
+
+
+> [1] https://git.ti.com/cgit/ti-linux-kernel/ti-linux-kernel/commit/?h=ti-linux-5.4.y&id=96f4c6e2ba8a
+> [2] https://git.ti.com/cgit/ti-linux-kernel/ti-linux-kernel/commit/?h=ti-linux-5.4.y&id=7ae7dd5f8272
