@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19B7FC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7AA2C4167E
 	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 15:50:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240002AbiESPtz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 19 May 2022 11:49:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39340 "EHLO
+        id S241293AbiESPt6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 19 May 2022 11:49:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241418AbiESPso (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 11:48:44 -0400
+        with ESMTP id S241356AbiESPsn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 11:48:43 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 823B3F7491;
-        Thu, 19 May 2022 08:44:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51C49F7481;
+        Thu, 19 May 2022 08:44:55 -0700 (PDT)
 Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24JBHtak024228;
-        Thu, 19 May 2022 10:43:37 -0500
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24J66mWC012194;
+        Thu, 19 May 2022 10:43:39 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=/gQn5VqxSvFGthWPKYzAXcr6OhyWOljQxKT58oQ/PNs=;
- b=ORyx7ppv3ZYqmdTjinNhY95PTkMT6kF9bPchZUmTwu67B4i4rXPj4CG96ERS8wd/D43b
- bw+LuBUl9AbuCIJ13g8iPLmf/MgU0PqmG/iOcKVjNjppL03Hdq6VuoEMe67/RkuiFRXG
- 2zRGqHwnafP3PFyb4B/VkQ2F5R3RraiIfGbzeqx8GRjLa8uvOYIRIxInoM3wSw3ez+xI
- fGBG50QEcUB7Cxeu6iIiMOywnxkehe2MYJ/NW+IDMys4HpxUDoNYSV5kVw/QO4OjjDfW
- GJYmTPMCPyk62ezMPizfxFwU/ZUtN3yJ/PwZ5E/FBMr0sAhz+x9v2AvBWU/1YFXfJw7x hA== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3g28upf5dm-11
+ bh=Hbt5hcL/CH9zDfKOG46hFLImfYROum7HenxT3cTBb6Q=;
+ b=Vihn8DV1R+wbdB9q3t2Nz0YUyYRxm1JmRhbMerBzCbLTkyeeLGdorv0bzHJXzmwNRJ2w
+ iw5PH0Alh3Mu0+xfGeOS9dhGXGZgWQ7NtgzAgHAVxgjBFIuMB+bSj11zPS0JU4367OR+
+ +di3g/CD+cXEE6zT5tAjAZrFnG7oNRgdE6qbOMExJUNqa3vNshFtzuK6xaePfXCtx/Xl
+ +kB4M1PM2uDFIGzun1RJWVwvFkUACwO+T7UYO9cuwftrf2oOQaz7kB5fP2b3b23gXZkn
+ xs5r4s51M2MbVu0gvFNGzBsD2c2zO6LYURDr896n+XF/dPEPF9c0jyC9pm9rrMELs9EZ 0A== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3g28upf5dn-15
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 19 May 2022 10:43:36 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 19 May 2022 10:43:38 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 19 May
- 2022 16:43:20 +0100
+ 2022 16:43:21 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.24 via Frontend
- Transport; Thu, 19 May 2022 16:43:20 +0100
+ Transport; Thu, 19 May 2022 16:43:21 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 8043211DB;
-        Thu, 19 May 2022 15:43:20 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id D02F811D3;
+        Thu, 19 May 2022 15:43:21 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -57,17 +57,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <peter.ujfalusi@gmail.com>, <jarkko.nikula@bitmer.com>,
         <heiko@sntech.de>, <jbrunet@baylibre.com>, <kernel@pengutronix.de>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>
-Subject: [PATCH 30/56] ASoC: atmel: Rename set_fmt_new back to set_fmt
-Date:   Thu, 19 May 2022 16:42:52 +0100
-Message-ID: <20220519154318.2153729-31-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 49/56] ASoC: sunxi: Rename set_fmt_new back to set_fmt
+Date:   Thu, 19 May 2022 16:43:11 +0100
+Message-ID: <20220519154318.2153729-50-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
 References: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: BV7oT_e1dJCP6p6_K2YC2RjwWOsk2pVq
-X-Proofpoint-ORIG-GUID: BV7oT_e1dJCP6p6_K2YC2RjwWOsk2pVq
+X-Proofpoint-GUID: X4Drpa-lc_DkTuCu5ArOiCCfpMNoJfVZ
+X-Proofpoint-ORIG-GUID: X4Drpa-lc_DkTuCu5ArOiCCfpMNoJfVZ
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -79,64 +79,36 @@ callback.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/atmel/atmel-i2s.c     | 2 +-
- sound/soc/atmel/atmel_ssc_dai.c | 2 +-
- sound/soc/atmel/mchp-i2s-mcc.c  | 2 +-
- sound/soc/atmel/mchp-pdmc.c     | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ sound/soc/sunxi/sun4i-i2s.c   | 2 +-
+ sound/soc/sunxi/sun8i-codec.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/atmel/atmel-i2s.c b/sound/soc/atmel/atmel-i2s.c
-index c5ce695da5866..ba56d6ac7e571 100644
---- a/sound/soc/atmel/atmel-i2s.c
-+++ b/sound/soc/atmel/atmel-i2s.c
-@@ -533,7 +533,7 @@ static const struct snd_soc_dai_ops atmel_i2s_dai_ops = {
- 	.prepare	= atmel_i2s_prepare,
- 	.trigger	= atmel_i2s_trigger,
- 	.hw_params	= atmel_i2s_hw_params,
--	.set_fmt_new	= atmel_i2s_set_dai_fmt,
-+	.set_fmt	= atmel_i2s_set_dai_fmt,
- };
+diff --git a/sound/soc/sunxi/sun4i-i2s.c b/sound/soc/sunxi/sun4i-i2s.c
+index 872838d3e0a94..f58aa6406a874 100644
+--- a/sound/soc/sunxi/sun4i-i2s.c
++++ b/sound/soc/sunxi/sun4i-i2s.c
+@@ -1081,7 +1081,7 @@ static int sun4i_i2s_set_tdm_slot(struct snd_soc_dai *dai,
  
- static int atmel_i2s_dai_probe(struct snd_soc_dai *dai)
-diff --git a/sound/soc/atmel/atmel_ssc_dai.c b/sound/soc/atmel/atmel_ssc_dai.c
-index da094762dc994..c92905e343e7e 100644
---- a/sound/soc/atmel/atmel_ssc_dai.c
-+++ b/sound/soc/atmel/atmel_ssc_dai.c
-@@ -835,7 +835,7 @@ static const struct snd_soc_dai_ops atmel_ssc_dai_ops = {
- 	.prepare	= atmel_ssc_prepare,
- 	.trigger	= atmel_ssc_trigger,
- 	.hw_params	= atmel_ssc_hw_params,
--	.set_fmt_new	= atmel_ssc_set_dai_fmt,
-+	.set_fmt	= atmel_ssc_set_dai_fmt,
- 	.set_clkdiv	= atmel_ssc_set_dai_clkdiv,
- };
- 
-diff --git a/sound/soc/atmel/mchp-i2s-mcc.c b/sound/soc/atmel/mchp-i2s-mcc.c
-index 48d434e0c3318..269eab56b6dd9 100644
---- a/sound/soc/atmel/mchp-i2s-mcc.c
-+++ b/sound/soc/atmel/mchp-i2s-mcc.c
-@@ -877,7 +877,7 @@ static const struct snd_soc_dai_ops mchp_i2s_mcc_dai_ops = {
- 	.trigger	= mchp_i2s_mcc_trigger,
- 	.hw_params	= mchp_i2s_mcc_hw_params,
- 	.hw_free	= mchp_i2s_mcc_hw_free,
--	.set_fmt_new	= mchp_i2s_mcc_set_dai_fmt,
-+	.set_fmt	= mchp_i2s_mcc_set_dai_fmt,
- 	.set_tdm_slot	= mchp_i2s_mcc_set_dai_tdm_slot,
- };
- 
-diff --git a/sound/soc/atmel/mchp-pdmc.c b/sound/soc/atmel/mchp-pdmc.c
-index b3f04fa2f6089..b9f6370594482 100644
---- a/sound/soc/atmel/mchp-pdmc.c
-+++ b/sound/soc/atmel/mchp-pdmc.c
-@@ -708,7 +708,7 @@ static int mchp_pdmc_trigger(struct snd_pcm_substream *substream,
+ static const struct snd_soc_dai_ops sun4i_i2s_dai_ops = {
+ 	.hw_params	= sun4i_i2s_hw_params,
+-	.set_fmt_new	= sun4i_i2s_set_fmt,
++	.set_fmt	= sun4i_i2s_set_fmt,
+ 	.set_sysclk	= sun4i_i2s_set_sysclk,
+ 	.set_tdm_slot	= sun4i_i2s_set_tdm_slot,
+ 	.trigger	= sun4i_i2s_trigger,
+diff --git a/sound/soc/sunxi/sun8i-codec.c b/sound/soc/sunxi/sun8i-codec.c
+index 6e9ef948d6621..90d74a2d53f38 100644
+--- a/sound/soc/sunxi/sun8i-codec.c
++++ b/sound/soc/sunxi/sun8i-codec.c
+@@ -630,7 +630,7 @@ static int sun8i_codec_hw_free(struct snd_pcm_substream *substream,
  }
  
- static const struct snd_soc_dai_ops mchp_pdmc_dai_ops = {
--	.set_fmt_new	= mchp_pdmc_set_fmt,
-+	.set_fmt	= mchp_pdmc_set_fmt,
- 	.startup	= mchp_pdmc_startup,
- 	.shutdown	= mchp_pdmc_shutdown,
- 	.hw_params	= mchp_pdmc_hw_params,
+ static const struct snd_soc_dai_ops sun8i_codec_dai_ops = {
+-	.set_fmt_new	= sun8i_codec_set_fmt,
++	.set_fmt	= sun8i_codec_set_fmt,
+ 	.set_tdm_slot	= sun8i_codec_set_tdm_slot,
+ 	.startup	= sun8i_codec_startup,
+ 	.hw_params	= sun8i_codec_hw_params,
 -- 
 2.30.2
 
