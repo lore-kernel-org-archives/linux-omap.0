@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52663C4332F
-	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 15:49:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3F4DC433EF
+	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 15:49:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234692AbiESPto (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 19 May 2022 11:49:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53820 "EHLO
+        id S239279AbiESPtw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 19 May 2022 11:49:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241428AbiESPsx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 11:48:53 -0400
+        with ESMTP id S241748AbiESPtT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 11:49:19 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27159FD35E;
-        Thu, 19 May 2022 08:45:03 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBCC75C745;
+        Thu, 19 May 2022 08:46:33 -0700 (PDT)
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24J6k11m002261;
-        Thu, 19 May 2022 10:43:31 -0500
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24J6k12D002261;
+        Thu, 19 May 2022 10:43:42 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=Yd0cAQSedFMycXCxPoAg0L5aPNoKfkfIW3+XQJ+og9U=;
- b=L0kTv7DqrTasPfqs1qdQbcKeowa4PoXC1JlkAhKCWy1JRwGj7FcBPXdoa+yodMN+rhsC
- lo3xqb04gM+d4DBFIEQZ05vRktl/8EEVOf+2CWD7vZKTTR/Px3CtFnSf6e9qU0aNMG0p
- hd49bPGaOs8KpebqE+5WA2uf8YWT14wifPCmgP7uCfne8Cr/uQl6Nujfm9s7OsuTEpCs
- K02QmwWs7dcHv1qxN+bdZmXmjUrrKnQIK4EVyKENOL6QDKH2Av6G+uRqj40TFu9QUz2I
- xFIapgG0pXvc2wvufmeTWq71S3XbyXh6Ln9kyHnECWusNXVTVygZEnxzmz5iwBQYULxu VQ== 
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3g29u37mcg-2
+ bh=6mTjIZUWoZpEGVJmhxV/vdP+YUiKF5Itks5Sv+ThYC8=;
+ b=ba3Ptcr5qGrujJvnAPfZEW8yVCxSexAxWM6s8hEBk4yu3Tmrk6ZQ4O6BhhCQPsWIfmk3
+ sTUPe9dxSB52g3vN/tYDc0xmBYaf9mqg2UqYsDLD141PdOG0MFIVAAGTizwkI1SfOd9O
+ IInIndLbRmzLhbrFEy3W0on6O0OLRB/H6eZu7Fr4tN2oMi+invX1dxegpFDRnSGUPGIl
+ FzzagUXfKN8eyhC2jSj+KtkgwOJMVdmtTYojqGLr2xiaed0mDaGXMyMSUI4ZKQ86JYuP
+ A6Ow1vPRpOcJ/r5iddaf4e5Dn+NeQCQGQv2Q7Ar+LjdmOw8HHT/pDQAinV9ZX1oBw2fa Ew== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3g29u37mcf-13
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 19 May 2022 10:43:31 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 19 May 2022 10:43:42 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 19 May
- 2022 16:43:18 +0100
+ 2022 16:43:21 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.24 via Frontend
- Transport; Thu, 19 May 2022 16:43:18 +0100
+ Transport; Thu, 19 May 2022 16:43:21 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id D112F11D4;
-        Thu, 19 May 2022 15:43:18 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 8D77A11D1;
+        Thu, 19 May 2022 15:43:21 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -57,69 +57,58 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <peter.ujfalusi@gmail.com>, <jarkko.nikula@bitmer.com>,
         <heiko@sntech.de>, <jbrunet@baylibre.com>, <kernel@pengutronix.de>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>
-Subject: [PATCH 07/56] ASoC: dwc: Update to use set_fmt_new callback
-Date:   Thu, 19 May 2022 16:42:29 +0100
-Message-ID: <20220519154318.2153729-8-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 44/56] ASoC: qcom: Rename set_fmt_new back to set_fmt
+Date:   Thu, 19 May 2022 16:43:06 +0100
+Message-ID: <20220519154318.2153729-45-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
 References: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: concj0zx7CiOXvoUGleae8R55AUn_QvF
-X-Proofpoint-ORIG-GUID: concj0zx7CiOXvoUGleae8R55AUn_QvF
+X-Proofpoint-GUID: zRllUCbOAc3RO7F-jelcP60LQStRuNv3
+X-Proofpoint-ORIG-GUID: zRllUCbOAc3RO7F-jelcP60LQStRuNv3
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-As part of updating the core to directly tell drivers if they are clock
-provider or consumer update this CPU side driver to use the new direct
+Now the core has been migrated across to the new direct clock
+specification we can move the drivers back to the normal set_fmt
 callback.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/dwc/dwc-i2s.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ sound/soc/qcom/qdsp6/q6afe-dai.c        | 2 +-
+ sound/soc/qcom/qdsp6/q6apm-lpass-dais.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/dwc/dwc-i2s.c b/sound/soc/dwc/dwc-i2s.c
-index 1edac3e10f345..d3778d2d739d8 100644
---- a/sound/soc/dwc/dwc-i2s.c
-+++ b/sound/soc/dwc/dwc-i2s.c
-@@ -357,20 +357,20 @@ static int dw_i2s_set_fmt(struct snd_soc_dai *cpu_dai, unsigned int fmt)
- 	int ret = 0;
- 
- 	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
--	case SND_SOC_DAIFMT_CBP_CFP:
-+	case SND_SOC_DAIFMT_BC_FC:
- 		if (dev->capability & DW_I2S_SLAVE)
- 			ret = 0;
- 		else
- 			ret = -EINVAL;
- 		break;
--	case SND_SOC_DAIFMT_CBC_CFC:
-+	case SND_SOC_DAIFMT_BP_FP:
- 		if (dev->capability & DW_I2S_MASTER)
- 			ret = 0;
- 		else
- 			ret = -EINVAL;
- 		break;
--	case SND_SOC_DAIFMT_CBP_CFC:
--	case SND_SOC_DAIFMT_CBC_CFP:
-+	case SND_SOC_DAIFMT_BC_FP:
-+	case SND_SOC_DAIFMT_BP_FC:
- 		ret = -EINVAL;
- 		break;
- 	default:
-@@ -387,7 +387,7 @@ static const struct snd_soc_dai_ops dw_i2s_dai_ops = {
- 	.hw_params	= dw_i2s_hw_params,
- 	.prepare	= dw_i2s_prepare,
- 	.trigger	= dw_i2s_trigger,
--	.set_fmt	= dw_i2s_set_fmt,
-+	.set_fmt_new	= dw_i2s_set_fmt,
+diff --git a/sound/soc/qcom/qdsp6/q6afe-dai.c b/sound/soc/qcom/qdsp6/q6afe-dai.c
+index 8f8794cffc1c5..8bb7452b8f18c 100644
+--- a/sound/soc/qcom/qdsp6/q6afe-dai.c
++++ b/sound/soc/qcom/qdsp6/q6afe-dai.c
+@@ -648,7 +648,7 @@ static const struct snd_soc_dai_ops q6hdmi_ops = {
+ static const struct snd_soc_dai_ops q6i2s_ops = {
+ 	.prepare	= q6afe_dai_prepare,
+ 	.hw_params	= q6i2s_hw_params,
+-	.set_fmt_new	= q6i2s_set_fmt,
++	.set_fmt	= q6i2s_set_fmt,
+ 	.shutdown	= q6afe_dai_shutdown,
+ 	.set_sysclk	= q6afe_mi2s_set_sysclk,
+ };
+diff --git a/sound/soc/qcom/qdsp6/q6apm-lpass-dais.c b/sound/soc/qcom/qdsp6/q6apm-lpass-dais.c
+index 82ee52051f831..ce9e5646d8f3a 100644
+--- a/sound/soc/qcom/qdsp6/q6apm-lpass-dais.c
++++ b/sound/soc/qcom/qdsp6/q6apm-lpass-dais.c
+@@ -207,7 +207,7 @@ static const struct snd_soc_dai_ops q6i2s_ops = {
+ 	.shutdown	= q6apm_lpass_dai_shutdown,
+ 	.set_channel_map  = q6dma_set_channel_map,
+ 	.hw_params        = q6dma_hw_params,
+-	.set_fmt_new	= q6i2s_set_fmt,
++	.set_fmt	= q6i2s_set_fmt,
  };
  
- #ifdef CONFIG_PM
+ static const struct snd_soc_component_driver q6apm_lpass_dai_component = {
 -- 
 2.30.2
 
