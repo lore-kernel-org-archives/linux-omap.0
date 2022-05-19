@@ -2,113 +2,115 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A99EC4167E
-	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 15:52:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6710DC433FE
+	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 16:52:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241296AbiESPv7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 19 May 2022 11:51:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54042 "EHLO
+        id S241234AbiESQwT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 19 May 2022 12:52:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241294AbiESPsl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 11:48:41 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F4101F688C;
-        Thu, 19 May 2022 08:44:48 -0700 (PDT)
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24J6k125002261;
-        Thu, 19 May 2022 10:43:39 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding : content-type; s=PODMain02222019;
- bh=/Vh2SSKq+ZiPwDHO9oXSfym8TofsOkknVTrQqYugMjQ=;
- b=QHcKzU05AkZsvP6zzEZRGcPdecHY2a0AE3Q8zoMtgQS4CyN1oxFZitXe7gkJrsagLPzW
- bm5WnDCFM2KOGvrzERJ8gFZF3fUFMJ/6huMjTizEI/ZZXr6/rH8cBMBLiGPxUQTLTaHp
- kJM566Lk4ndnleP7fSf/sSCWThtZ8NUc679otuZ6YUorjuDrdfRR2AT6qJxPfZjBq8/E
- pFuGvHkohAfq8xYehZsNJPxIqxUke1fO/At/DKI7gX5oveoW5iZQGpgmnIkuIwLWOhKe
- GTV5S9lofiNMNkWp8w1RKa6O9Ui7g+J+Ya3GfBvl5WGNRhQkCwQfquqaCvjn4jfEE8vn iw== 
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3g29u37mcg-10
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 19 May 2022 10:43:38 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 19 May
- 2022 16:43:21 +0100
-Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.24 via Frontend
- Transport; Thu, 19 May 2022 16:43:21 +0100
-Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id C6D3911D1;
-        Thu, 19 May 2022 15:43:21 +0000 (UTC)
-From:   Charles Keepax <ckeepax@opensource.cirrus.com>
-To:     <broonie@kernel.org>
-CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
-        <nicolas.ferre@microchip.com>, <nsaenz@kernel.org>,
-        <shawnguo@kernel.org>, <linux-imx@nxp.com>,
-        <cezary.rojewski@intel.com>,
-        <pierre-louis.bossart@linux.intel.com>,
-        <linux-mips@vger.kernel.org>, <linux-mediatek@lists.infradead.org>,
-        <linux-amlogic@lists.infradead.org>, <daniel@zonque.org>,
-        <srinivas.kandagatla@linaro.org>,
-        <linux-rockchip@lists.infradead.org>, <krzk@kernel.org>,
-        <linux-stm32@st-md-mailman.stormreply.com>,
-        <linux-sunxi@lists.linux.dev>, <linux-tegra@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>, <linux-xtensa@linux-xtensa.org>,
-        <peter.ujfalusi@gmail.com>, <jarkko.nikula@bitmer.com>,
-        <heiko@sntech.de>, <jbrunet@baylibre.com>, <kernel@pengutronix.de>,
-        <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>
-Subject: [PATCH 48/56] ASoC: stm: Rename set_fmt_new back to set_fmt
-Date:   Thu, 19 May 2022 16:43:10 +0100
-Message-ID: <20220519154318.2153729-49-ckeepax@opensource.cirrus.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
-References: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
+        with ESMTP id S235521AbiESQwS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 12:52:18 -0400
+Received: from mail-yw1-x1129.google.com (mail-yw1-x1129.google.com [IPv6:2607:f8b0:4864:20::1129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C79715AEC8;
+        Thu, 19 May 2022 09:52:16 -0700 (PDT)
+Received: by mail-yw1-x1129.google.com with SMTP id 00721157ae682-2fefb051547so63017427b3.5;
+        Thu, 19 May 2022 09:52:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=lHCXvfU913UZzWwkWLW8PuUF55J+NqN7GNP5EdosEmA=;
+        b=PmWqJxxifKIoOgHFXmefLeMf5SNVsk8hDjVTNrBVEGLYoDc1OflT/W/t6tCoRq3bFS
+         Zsj+hHaUHB2vloNW/GMQTopmCmwq5+ADqPsH1BRegbriHDTsEN5pys++wP0kQFgLuKLW
+         BnMAtgGNO3ZV1yLp8Ga+O5Nvcyr/UwaVYNpguYa0dx4bnw2nq7XfK1v1xgEI9PDWxqG9
+         jCQ6bqv9RiFFlOdtMKB1IavNGfFxL9U1LEsr0v4bGra3LlphCkUArMKOk5Kjx0ss0y/7
+         5bgXb9fm6VpyMM3pK7iWkZI340+ZVySJUatMphxu/PMqm6l2a7zVJc3HWyKMnfxNfMIT
+         boOg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=lHCXvfU913UZzWwkWLW8PuUF55J+NqN7GNP5EdosEmA=;
+        b=OCWMz6gX1ln9BO93B0dBcK69YtMErq/D4rwl34lLcPz0GUGFTXtXik29YfSH2c0f5M
+         xPauNUzyWMRHldUB1+15TfMXkReRwG9x9m/tTCbm394uYBUFynXnMzefvcrVa3jFXZek
+         JW1aS9Q2IJMrpMjNrJFPaBwXtWmEukZCgjoWsCNAEO10/0iAdhYQdq9bdJWpRgkvTYfQ
+         e7Zj9LeQPYGUtrRaxnUChOwDKTnH4zM0HhwTIdwvF2NaUJuoUck4kv952DfxBoc6dPoY
+         KdhnNQZG5QBXDsn7mykc0nJ3JYk5qSxEGq9okO8cMdI3lYnGkh22I6xFa6qYbNgAnIhv
+         7LgQ==
+X-Gm-Message-State: AOAM531z5JXNkf8/tjlyqjdyCbkkiRbFxWl6fk7FjnAaLDtQgyXMAcvM
+        qLVSRqxX8d/MvSFtQgp3wuSxhAQnJvAff9v6Azg=
+X-Google-Smtp-Source: ABdhPJxgwqortp6LMKQqdJfzXMmfQSE/OcnF3FErWG8XOevuRbeXOgq6I2WrPKba3Od1VBXy6oyEfNaFprdUyPboKIk=
+X-Received: by 2002:a0d:cd06:0:b0:2f8:f39c:4cfc with SMTP id
+ p6-20020a0dcd06000000b002f8f39c4cfcmr5740233ywd.495.1652979135944; Thu, 19
+ May 2022 09:52:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-GUID: uX5BcH2_PS0VOR5b6FUXvepUeguu_WOq
-X-Proofpoint-ORIG-GUID: uX5BcH2_PS0VOR5b6FUXvepUeguu_WOq
-X-Proofpoint-Spam-Reason: safe
+References: <CAGm1_kvEcvzKBb2O7NEa1SDt8MuOQfnN8LQ+voNGUBDR8JpKSg@mail.gmail.com>
+ <YnNb5M+gHI4hIaPG@atomide.com> <CAGm1_kstAbEZXBYwoK4GrFxMmPi=kpmdfJd1WAB8XSE_vNTTNg@mail.gmail.com>
+ <Ynyd9HeFNmGQiovY@atomide.com> <CAK8P3a2wrH9XxGF6uBeQ6J0+KhehxsFO63R6qcwZ1DexH4N=2Q@mail.gmail.com>
+ <CAGm1_ku85dL_zn4=9=OVkS3S3eBH-eqrc-c1UZyvnERbMrW98Q@mail.gmail.com>
+In-Reply-To: <CAGm1_ku85dL_zn4=9=OVkS3S3eBH-eqrc-c1UZyvnERbMrW98Q@mail.gmail.com>
+From:   Yegor Yefremov <yegorslists@googlemail.com>
+Date:   Thu, 19 May 2022 18:52:04 +0200
+Message-ID: <CAGm1_kvKxe+RFNSxzZq+hy9594ek-s8owneXQqBMy8PxwdHP8Q@mail.gmail.com>
+Subject: Re: am335x: 5.18.x: system stalling
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Tony Lindgren <tony@atomide.com>, Ard Biesheuvel <ardb@kernel.org>,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        linux-clk <linux-clk@vger.kernel.org>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Now the core has been migrated across to the new direct clock
-specification we can move the drivers back to the normal set_fmt
-callback.
+Hi Arnd,
 
-Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
----
- sound/soc/stm/stm32_i2s.c     | 2 +-
- sound/soc/stm/stm32_sai_sub.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+On Thu, May 12, 2022 at 12:20 PM Yegor Yefremov
+<yegorslists@googlemail.com> wrote:
+>
+> Hi Arnd,
+>
+> On Thu, May 12, 2022 at 10:43 AM Arnd Bergmann <arnd@arndb.de> wrote:
+> >
+> > On Thu, May 12, 2022 at 7:41 AM Tony Lindgren <tony@atomide.com> wrote:
+> > > * Yegor Yefremov <yegorslists@googlemail.com> [220511 14:16]:
+> > > > On Thu, May 5, 2022 at 7:08 AM Tony Lindgren <tony@atomide.com> wrote:
+> > > > > * Yegor Yefremov <yegorslists@googlemail.com> [220504 10:35]:
+> > > > > > Hi Tony, all,
+> > > > > >
+> > > > > > since kernel 5.18.x (5.17.x doesn't show this behavior), the system
+> > > > > > stalls as soon as I invoke the following commands (initializing
+> > > > > > USB-to-CAN converter):
+> > > > > >
+> > > > > > slcand -o -s8 -t hw -S 3000000 /dev/ttyUSB0
+> > > > > > ip link set slcan0 up
+> >
+> > Oh, I missed this part at first and only looked at the backtrace.
+> > Which CAN driver
+> > are you using? It's likely a problem in the kernel driver.
+>
+> I am using the slcan driver [1].
+>
+> > CONFIG_DMA_API_DEBUG is still likely to pinpoint the bug, but I might also
+> > just see it by looking at the right source file.
+>
+> I'll try to get more debug info with CONFIG_DMA_API_DEBUG.
 
-diff --git a/sound/soc/stm/stm32_i2s.c b/sound/soc/stm/stm32_i2s.c
-index 30c04f96ef1d6..32d885f84a922 100644
---- a/sound/soc/stm/stm32_i2s.c
-+++ b/sound/soc/stm/stm32_i2s.c
-@@ -954,7 +954,7 @@ static const struct regmap_config stm32_h7_i2s_regmap_conf = {
- 
- static const struct snd_soc_dai_ops stm32_i2s_pcm_dai_ops = {
- 	.set_sysclk	= stm32_i2s_set_sysclk,
--	.set_fmt_new	= stm32_i2s_set_dai_fmt,
-+	.set_fmt	= stm32_i2s_set_dai_fmt,
- 	.startup	= stm32_i2s_startup,
- 	.hw_params	= stm32_i2s_hw_params,
- 	.trigger	= stm32_i2s_trigger,
-diff --git a/sound/soc/stm/stm32_sai_sub.c b/sound/soc/stm/stm32_sai_sub.c
-index 9f169b93fa740..e09221b5f1f3a 100644
---- a/sound/soc/stm/stm32_sai_sub.c
-+++ b/sound/soc/stm/stm32_sai_sub.c
-@@ -1225,7 +1225,7 @@ static int stm32_sai_dai_probe(struct snd_soc_dai *cpu_dai)
- 
- static const struct snd_soc_dai_ops stm32_sai_pcm_dai_ops = {
- 	.set_sysclk	= stm32_sai_set_sysclk,
--	.set_fmt_new	= stm32_sai_set_dai_fmt,
-+	.set_fmt	= stm32_sai_set_dai_fmt,
- 	.set_tdm_slot	= stm32_sai_set_dai_tdm_slot,
- 	.startup	= stm32_sai_startup,
- 	.hw_params	= stm32_sai_hw_params,
--- 
-2.30.2
+DMA_API_DEBUG showed nothing new. But disabling the CPUfreq driver
+"solved" the problem. I have tried different governors and got these
+two groups:
 
+ondemand, schedutil - cause the problem
+conservative, powersave, performance and userspace - don't cause the problem
+
+So far, I have only seen the same debug output that I've initially
+sent and in most cases, the system stalls without the output.
+
+Yegor
+>
+> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/net/can/slcan.c?h=v5.18-rc6
+>
+> Yegor
+> >        Arnd
