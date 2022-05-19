@@ -2,43 +2,43 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 997CFC41535
-	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 15:50:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 349FEC4332F
+	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 15:50:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241298AbiESPuH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 19 May 2022 11:50:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39276 "EHLO
+        id S241420AbiESPuL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 19 May 2022 11:50:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241550AbiESPsn (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 11:48:43 -0400
+        with ESMTP id S241376AbiESPsm (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 11:48:42 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 978AFF68BB;
-        Thu, 19 May 2022 08:44:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53640F6899;
+        Thu, 19 May 2022 08:44:49 -0700 (PDT)
 Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24J66mW0012194;
-        Thu, 19 May 2022 10:43:28 -0500
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24JBHtag024228;
+        Thu, 19 May 2022 10:43:33 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=hmj+dNo3rOiKGjUzlsevHW/nHS/7sRRohQXepmEJ2pw=;
- b=aR4oLplxQeflxJ33VqVpaCxZqWM1xcR3lF5eG4OH3aF8Nsvl+X+mDqK9coo/CPyx3n8u
- wP92T8+trRjhRvCjFZi5jLjuT7WGE/wUml+blcA6pfeAb4hu7IstpOVhlpxW3bTYZd4E
- dKf+vtFlRVPV3fXzFq3mzwz/KM+vQMe8NYIVVcMaryV2JdL7puB3WPBql6DB2RN12a+0
- nVujdBVoO5qjJvD6ZvV17mdw84IukUOUo9C9rzphBYPLcvOmv9uk/u8t8JLExVpEwx4W
- JoxOj5Ez2cWQJh3t6ftes55OzBs+MMOa+glUAfo31X8cwAz6QPN3l8WDhlG0uNeeZdIf rA== 
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3g28upf5dn-3
+ bh=u8gBawUReRW33h0mniJ3wlAUhVgNuvljzoZnaATo57I=;
+ b=M/4dhBalZkqhwecDygq2BOkY14axdf929ROve2KoSnX0Xz9UcvEbE3wGiwMwi1kiuaA1
+ KV/6zwkXN4FOTmr50Y2vWCF1WRiXB3xEveCUw6jpw3854voBz1U9U3yQBJMr6MBHNcgk
+ AU8XmexMHVVcIoGrbrJJhbDrUndDo4+YlQcJYl5NR32p8hu/deB2uTdEp0SrutRLS1Zm
+ yGSIlhBLGn/NERlQ0FTWbIeyw9urYMbgzJib4oxtyODW1dhJ4H5yoN7PEH2CIoV0rybd
+ eJwg4PUsSJiBf6D6nS0zKM4pPfhZQP9KUs/SHR/hpYgOkXg07utfiJxbNWs6FVgZwFkd iA== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3g28upf5dm-8
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 19 May 2022 10:43:28 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 19 May 2022 10:43:32 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 19 May
  2022 16:43:19 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.24 via Frontend
  Transport; Thu, 19 May 2022 16:43:19 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 43112476;
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 6ACBD475;
         Thu, 19 May 2022 15:43:19 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
@@ -57,97 +57,55 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <peter.ujfalusi@gmail.com>, <jarkko.nikula@bitmer.com>,
         <heiko@sntech.de>, <jbrunet@baylibre.com>, <kernel@pengutronix.de>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>
-Subject: [PATCH 13/56] ASoC: mediatek: Update to use set_fmt_new callback
-Date:   Thu, 19 May 2022 16:42:35 +0100
-Message-ID: <20220519154318.2153729-14-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 15/56] ASoC: mxs-saif: Update to use set_fmt_new callback
+Date:   Thu, 19 May 2022 16:42:37 +0100
+Message-ID: <20220519154318.2153729-16-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
 References: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: aPgLAPo5I4mVVPR3iN8V7AYT3qCMgllF
-X-Proofpoint-ORIG-GUID: aPgLAPo5I4mVVPR3iN8V7AYT3qCMgllF
+X-Proofpoint-GUID: _nMYoHwWi3DHMM7mJQrsrBSLpPWKVhs4
+X-Proofpoint-ORIG-GUID: _nMYoHwWi3DHMM7mJQrsrBSLpPWKVhs4
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 As part of updating the core to directly tell drivers if they are clock
-provider or consumer update these CPU side drivers to use the new direct
+provider or consumer update this CPU side driver to use the new direct
 callback.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/mediatek/mt8195/mt8195-dai-etdm.c | 10 +++++-----
- sound/soc/mediatek/mt8195/mt8195-dai-pcm.c  |  8 ++++----
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ sound/soc/mxs/mxs-saif.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/sound/soc/mediatek/mt8195/mt8195-dai-etdm.c b/sound/soc/mediatek/mt8195/mt8195-dai-etdm.c
-index c02c10da36004..5f7c9516dfa18 100644
---- a/sound/soc/mediatek/mt8195/mt8195-dai-etdm.c
-+++ b/sound/soc/mediatek/mt8195/mt8195-dai-etdm.c
-@@ -2172,11 +2172,11 @@ static int mtk_dai_etdm_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
- 		return -EINVAL;
- 	}
- 
+diff --git a/sound/soc/mxs/mxs-saif.c b/sound/soc/mxs/mxs-saif.c
+index 7afe1a1acc568..38de46ba1583a 100644
+--- a/sound/soc/mxs/mxs-saif.c
++++ b/sound/soc/mxs/mxs-saif.c
+@@ -358,8 +358,8 @@ static int mxs_saif_set_dai_fmt(struct snd_soc_dai *cpu_dai, unsigned int fmt)
+ 	 * Saif internally could be slave when working on EXTMASTER mode.
+ 	 * We just hide this to machine driver.
+ 	 */
 -	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
--	case SND_SOC_DAIFMT_CBM_CFM:
-+	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
-+	case SND_SOC_DAIFMT_BC_FC:
- 		etdm_data->slave_mode = true;
- 		break;
 -	case SND_SOC_DAIFMT_CBS_CFS:
-+	case SND_SOC_DAIFMT_BP_FP:
- 		etdm_data->slave_mode = false;
- 		break;
- 	default:
-@@ -2346,7 +2346,7 @@ static const struct snd_soc_dai_ops mtk_dai_etdm_ops = {
- 	.hw_params = mtk_dai_etdm_hw_params,
- 	.trigger = mtk_dai_etdm_trigger,
- 	.set_sysclk = mtk_dai_etdm_set_sysclk,
--	.set_fmt = mtk_dai_etdm_set_fmt,
-+	.set_fmt_new = mtk_dai_etdm_set_fmt,
- 	.set_tdm_slot = mtk_dai_etdm_set_tdm_slot,
- };
- 
-@@ -2356,7 +2356,7 @@ static const struct snd_soc_dai_ops mtk_dai_hdmitx_dptx_ops = {
- 	.hw_params	= mtk_dai_hdmitx_dptx_hw_params,
- 	.trigger	= mtk_dai_hdmitx_dptx_trigger,
- 	.set_sysclk	= mtk_dai_hdmitx_dptx_set_sysclk,
--	.set_fmt	= mtk_dai_etdm_set_fmt,
-+	.set_fmt_new	= mtk_dai_etdm_set_fmt,
- };
- 
- /* dai driver */
-diff --git a/sound/soc/mediatek/mt8195/mt8195-dai-pcm.c b/sound/soc/mediatek/mt8195/mt8195-dai-pcm.c
-index 12644ded83d59..37a8968ac21dc 100644
---- a/sound/soc/mediatek/mt8195/mt8195-dai-pcm.c
-+++ b/sound/soc/mediatek/mt8195/mt8195-dai-pcm.c
-@@ -266,11 +266,11 @@ static int mtk_dai_pcm_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
- 		return -EINVAL;
- 	}
- 
--	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
--	case SND_SOC_DAIFMT_CBM_CFM:
 +	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
-+	case SND_SOC_DAIFMT_BC_FC:
- 		pcmif_priv->slave_mode = 1;
- 		break;
--	case SND_SOC_DAIFMT_CBS_CFS:
 +	case SND_SOC_DAIFMT_BP_FP:
- 		pcmif_priv->slave_mode = 0;
- 		break;
- 	default:
-@@ -282,7 +282,7 @@ static int mtk_dai_pcm_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
- 
- static const struct snd_soc_dai_ops mtk_dai_pcm_ops = {
- 	.prepare	= mtk_dai_pcm_prepare,
--	.set_fmt	= mtk_dai_pcm_set_fmt,
-+	.set_fmt_new	= mtk_dai_pcm_set_fmt,
+ 		if (saif->id == saif->master_id)
+ 			scr &= ~BM_SAIF_CTRL_SLAVE_MODE;
+ 		else
+@@ -642,7 +642,7 @@ static const struct snd_soc_dai_ops mxs_saif_dai_ops = {
+ 	.prepare = mxs_saif_prepare,
+ 	.hw_params = mxs_saif_hw_params,
+ 	.set_sysclk = mxs_saif_set_dai_sysclk,
+-	.set_fmt = mxs_saif_set_dai_fmt,
++	.set_fmt_new = mxs_saif_set_dai_fmt,
  };
  
- /* dai driver */
+ static struct snd_soc_dai_driver mxs_saif_dai = {
 -- 
 2.30.2
 
