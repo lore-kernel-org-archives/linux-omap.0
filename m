@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 733D0C433EF
-	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 15:48:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1761C43219
+	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 15:48:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233022AbiESPs2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 19 May 2022 11:48:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53698 "EHLO
+        id S233273AbiESPsa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 19 May 2022 11:48:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241494AbiESPqT (ORCPT
+        with ESMTP id S241573AbiESPqT (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 11:46:19 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E445EAFB27;
-        Thu, 19 May 2022 08:44:27 -0700 (PDT)
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24J6k11w002261;
-        Thu, 19 May 2022 10:43:36 -0500
+Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EC4BBA55C;
+        Thu, 19 May 2022 08:44:28 -0700 (PDT)
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24J66mW3012194;
+        Thu, 19 May 2022 10:43:31 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=M2IDrEb5l2+llrK3AWp4NytfJMdMlvgjjqfAQyTGOFY=;
- b=Hvf/VWWuJTxL/QeMVXtUWD9CdqbYQldrSJlKQnKSCLiMvKOM4CQOLMTKR5TkUxS18vej
- 3gK7LDtO28l91Fa4owOa/Xh2fxF1/3OqFCrjS9vQVeej0K+ACQudoK6BWiPWSdDZTBUF
- V2X73VOv26SQiGDJKeuSxP4JXBJgvlD/0GXIgGQ3x/3h4Tj0Y1IkX4oJSxkzRLiZeSwQ
- rGl5AoHf1kBBSpyRO2PrSKmaCeG1SQvrO1bZnCt6Bxz2Pmd//glzWxbYUhgCcCB+ECKJ
- s3oqpa3VEQPF2AP0GfIYaaxfciBzN4CEoOcQdk7bHcq7Kb6Xe3oMKJpa8HmdZmmp0YUd Jg== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3g29u37mcf-6
+ bh=QWGxPrxVtFm+ch47fPmaDYCLhGIbEJL7uvqlM4S3iww=;
+ b=k8jqS5KqIwT/A0SfwAxfT8H8o0hIu5XXPQjdwQL6ALQqAILOhShblXHzE1eiHUFCQzAj
+ jWpzLC2mfmV70TA4vDvMoVtUi3vcKBMx9+yykt/DZuqul5peS7MkV8RMjEbm8tc/F6CE
+ NJEZspovLEavMfXY+maFY4nf90E54ISuXkhLk3QQ14cy0SN6GFtaEXqhPtSNKswlp0+O
+ Kn19XBPVrfhjiCYYatMZz/V6/6j5QXwPFRSu/08KyuXUe0uXxpFJeFjprRLUnttXZh8y
+ jFeRn9mgQaPDVW9KaArgPW1k6n4p8syaaceTbyDtJtYHWRKaKq27MQJGsMps+zVNA/vZ Hg== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3g28upf5dn-6
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 19 May 2022 10:43:35 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 19 May 2022 10:43:31 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 19 May
- 2022 16:43:20 +0100
+ 2022 16:43:19 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.24 via Frontend
- Transport; Thu, 19 May 2022 16:43:20 +0100
+ Transport; Thu, 19 May 2022 16:43:19 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 6425711D1;
-        Thu, 19 May 2022 15:43:20 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id CE76011D3;
+        Thu, 19 May 2022 15:43:19 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -57,70 +57,144 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <peter.ujfalusi@gmail.com>, <jarkko.nikula@bitmer.com>,
         <heiko@sntech.de>, <jbrunet@baylibre.com>, <kernel@pengutronix.de>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>
-Subject: [PATCH 28/56] ASoC: core: Always send the CPU DAI a direct clock specifier
-Date:   Thu, 19 May 2022 16:42:50 +0100
-Message-ID: <20220519154318.2153729-29-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 20/56] ASoC: sh: Update to use set_fmt_new callback
+Date:   Thu, 19 May 2022 16:42:42 +0100
+Message-ID: <20220519154318.2153729-21-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
 References: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: Kv30fN5Me0SIZP34T-2FsGb4QLZ3P59w
-X-Proofpoint-ORIG-GUID: Kv30fN5Me0SIZP34T-2FsGb4QLZ3P59w
+X-Proofpoint-GUID: dSYIdavaSRil3PHyQkx5BJ_gEjfqh0Kd
+X-Proofpoint-ORIG-GUID: dSYIdavaSRil3PHyQkx5BJ_gEjfqh0Kd
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-All CPU drivers are now updated to accept a direct indication of
-whether they are clock provider or consumer, rather than being told
-if the CODEC is clock provider. As such update the core to always
-pass this direct indication rather than only if the new set_fmt_new
-callback is defined. Note this makes no difference to the CODEC
-side of the DAI link as it was already being directly told if it
-was clock provider under the old system.
+As part of updating the core to directly tell drivers if they are clock
+provider or consumer update these CPU side drivers to use the new direct
+callback.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/soc-core.c | 15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ sound/soc/sh/fsi.c       |  8 ++++----
+ sound/soc/sh/rcar/core.c |  6 +++---
+ sound/soc/sh/rz-ssi.c    |  4 ++--
+ sound/soc/sh/ssi.c       | 12 ++++++------
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
-index 90f4265bea501..227540851dedf 100644
---- a/sound/soc/soc-core.c
-+++ b/sound/soc/soc-core.c
-@@ -1214,7 +1214,6 @@ int snd_soc_runtime_set_dai_fmt(struct snd_soc_pcm_runtime *rtd,
- {
- 	struct snd_soc_dai *cpu_dai;
- 	struct snd_soc_dai *codec_dai;
--	unsigned int inv_dai_fmt;
- 	unsigned int i;
+diff --git a/sound/soc/sh/fsi.c b/sound/soc/sh/fsi.c
+index e9a1eb6bdf66a..4058d60b7e931 100644
+--- a/sound/soc/sh/fsi.c
++++ b/sound/soc/sh/fsi.c
+@@ -1646,10 +1646,10 @@ static int fsi_dai_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
  	int ret;
  
-@@ -1227,19 +1226,11 @@ int snd_soc_runtime_set_dai_fmt(struct snd_soc_pcm_runtime *rtd,
- 			return ret;
+ 	/* set clock master audio interface */
+-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
+-	case SND_SOC_DAIFMT_CBM_CFM:
++	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
++	case SND_SOC_DAIFMT_BC_FC:
+ 		break;
+-	case SND_SOC_DAIFMT_CBS_CFS:
++	case SND_SOC_DAIFMT_BP_FP:
+ 		fsi->clk_master = 1; /* cpu is master */
+ 		break;
+ 	default:
+@@ -1724,7 +1724,7 @@ static const struct snd_soc_dai_ops fsi_dai_ops = {
+ 	.startup	= fsi_dai_startup,
+ 	.shutdown	= fsi_dai_shutdown,
+ 	.trigger	= fsi_dai_trigger,
+-	.set_fmt	= fsi_dai_set_fmt,
++	.set_fmt_new	= fsi_dai_set_fmt,
+ 	.hw_params	= fsi_dai_hw_params,
+ 	.auto_selectable_formats	= &fsi_dai_formats,
+ 	.num_auto_selectable_formats	= 1,
+diff --git a/sound/soc/sh/rcar/core.c b/sound/soc/sh/rcar/core.c
+index eb762ab94d3ed..0ac15b74c58a8 100644
+--- a/sound/soc/sh/rcar/core.c
++++ b/sound/soc/sh/rcar/core.c
+@@ -756,10 +756,10 @@ static int rsnd_soc_dai_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
+ 
+ 	/* set clock master for audio interface */
+ 	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
+-	case SND_SOC_DAIFMT_CBP_CFP:
++	case SND_SOC_DAIFMT_BC_FC:
+ 		rdai->clk_master = 0;
+ 		break;
+-	case SND_SOC_DAIFMT_CBC_CFC:
++	case SND_SOC_DAIFMT_BP_FP:
+ 		rdai->clk_master = 1; /* cpu is master */
+ 		break;
+ 	default:
+@@ -1068,7 +1068,7 @@ static const struct snd_soc_dai_ops rsnd_soc_dai_ops = {
+ 	.startup	= rsnd_soc_dai_startup,
+ 	.shutdown	= rsnd_soc_dai_shutdown,
+ 	.trigger	= rsnd_soc_dai_trigger,
+-	.set_fmt	= rsnd_soc_dai_set_fmt,
++	.set_fmt_new	= rsnd_soc_dai_set_fmt,
+ 	.set_tdm_slot	= rsnd_soc_set_dai_tdm_slot,
+ 	.prepare	= rsnd_soc_dai_prepare,
+ 	.auto_selectable_formats	= rsnd_soc_dai_formats,
+diff --git a/sound/soc/sh/rz-ssi.c b/sound/soc/sh/rz-ssi.c
+index e392de7a262ef..0557d22a089f3 100644
+--- a/sound/soc/sh/rz-ssi.c
++++ b/sound/soc/sh/rz-ssi.c
+@@ -767,7 +767,7 @@ static int rz_ssi_dai_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
+ 	struct rz_ssi_priv *ssi = snd_soc_dai_get_drvdata(dai);
+ 
+ 	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
+-	case SND_SOC_DAIFMT_CBC_CFC:
++	case SND_SOC_DAIFMT_BP_FP:
+ 		break;
+ 	default:
+ 		dev_err(ssi->dev, "Codec should be clk and frame consumer\n");
+@@ -840,7 +840,7 @@ static int rz_ssi_dai_hw_params(struct snd_pcm_substream *substream,
+ 
+ static const struct snd_soc_dai_ops rz_ssi_dai_ops = {
+ 	.trigger	= rz_ssi_dai_trigger,
+-	.set_fmt	= rz_ssi_dai_set_fmt,
++	.set_fmt_new	= rz_ssi_dai_set_fmt,
+ 	.hw_params	= rz_ssi_dai_hw_params,
+ };
+ 
+diff --git a/sound/soc/sh/ssi.c b/sound/soc/sh/ssi.c
+index 15b01bcefca5c..95571cbeae296 100644
+--- a/sound/soc/sh/ssi.c
++++ b/sound/soc/sh/ssi.c
+@@ -291,16 +291,16 @@ static int ssi_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
+ 		return -EINVAL;
  	}
  
--	/*
--	 * Flip the polarity for the "CPU" end of a CODEC<->CODEC link
--	 */
--	inv_dai_fmt = snd_soc_daifmt_clock_provider_flipped(dai_fmt);
-+	/* Flip the polarity for the "CPU" end of link */
-+	dai_fmt = snd_soc_daifmt_clock_provider_flipped(dai_fmt);
+-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
+-	case SND_SOC_DAIFMT_CBM_CFM:
++	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
++	case SND_SOC_DAIFMT_BC_FC:
+ 		break;
+-	case SND_SOC_DAIFMT_CBS_CFM:
++	case SND_SOC_DAIFMT_BP_FC:
+ 		ssicr |= CR_SCK_MASTER;
+ 		break;
+-	case SND_SOC_DAIFMT_CBM_CFS:
++	case SND_SOC_DAIFMT_BC_FP:
+ 		ssicr |= CR_SWS_MASTER;
+ 		break;
+-	case SND_SOC_DAIFMT_CBS_CFS:
++	case SND_SOC_DAIFMT_BP_FP:
+ 		ssicr |= CR_SWS_MASTER | CR_SCK_MASTER;
+ 		break;
+ 	default:
+@@ -336,7 +336,7 @@ static const struct snd_soc_dai_ops ssi_dai_ops = {
+ 	.hw_params	= ssi_hw_params,
+ 	.set_sysclk	= ssi_set_sysclk,
+ 	.set_clkdiv	= ssi_set_clkdiv,
+-	.set_fmt	= ssi_set_fmt,
++	.set_fmt_new	= ssi_set_fmt,
+ };
  
- 	for_each_rtd_cpu_dais(rtd, i, cpu_dai) {
--		unsigned int fmt = dai_fmt;
--
--		if (cpu_dai->driver->ops->set_fmt_new ||
--		    snd_soc_component_is_codec(cpu_dai->component))
--			fmt = inv_dai_fmt;
--
--		ret = snd_soc_dai_set_fmt(cpu_dai, fmt);
-+		ret = snd_soc_dai_set_fmt(cpu_dai, dai_fmt);
- 		if (ret != 0 && ret != -ENOTSUPP)
- 			return ret;
- 	}
+ static struct snd_soc_dai_driver sh4_ssi_dai[] = {
 -- 
 2.30.2
 
