@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 110B3C43219
-	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 15:46:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C794C43219
+	for <linux-omap@archiver.kernel.org>; Thu, 19 May 2022 15:46:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240722AbiESPqp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 19 May 2022 11:46:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53432 "EHLO
+        id S240792AbiESPqq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 19 May 2022 11:46:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233763AbiESPpU (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 11:45:20 -0400
+        with ESMTP id S235728AbiESPp7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2022 11:45:59 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBA1B7A458;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD32C7CB0B;
         Thu, 19 May 2022 08:44:17 -0700 (PDT)
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24J6k11u002261;
-        Thu, 19 May 2022 10:43:35 -0500
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24J6k11r002261;
+        Thu, 19 May 2022 10:43:33 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=AjjqMicnhPoZqT6UYhPvoYkn3XWnwuGY9ExR1ybyO/8=;
- b=NK96uTLoDF75ZrvxXTw7p6hi4vOr0sdLWBCFb7xG2WQmM7XY+OSWKOGylt80CwFHEW0E
- vFhM7kYvrRxtFCW7nLM2xduTcKUBmqHh4lQr8sV/uUkgXbFgGEfe+1xcxQfVQOFwvqf5
- A3pODWEL7GZnc8tJxO1yIoPrWM2qx0A+NkP7QDSgAyQ44vklOyxds0962e9L+amBschB
- JVN5JmUiThHA6OHIZ85kQQCP4n9hf8oh1h9ejwTkDE6OFAmENLWwJLW+EJStVYBoKQjB
- DA7lPaF2/RSeC7+BYerdro+mM77ha8x4GHdwnkNK4ugcjsHnlIdFQhBfyMpWDB8diSJ/ wA== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3g29u37mcf-5
+ bh=kD1B773MBiF628MCZwnfrPTmWdTJLUu9t12F6hptUHY=;
+ b=TSLKxYscgRc9jKl+hEETDkrYIvTiB4UPv/6nhCHjUH5XOstT131BPrwSJZHWBRyuNzS1
+ +B7tFgf/jze5q1i3qFfF5TMcJ4EC4GEQ0GPzLt8QcDpqZO8HlricKMF3HfV9wNhlaOFU
+ sBnwccf/wMFK3yIznxYd4Xb9RhjKiqHb8bafasf7yzsLCpN2IV20CVoPjaqqdy3MHtDB
+ fT9yMFc3L9zuWiYs6IyKrnjGyu7kH8Lossnnv+qfEetF9UorrdjbQmNG7Rfv5bATjGcV
+ tapwxGtWyqxZrw7UtFKafJKZFPYlZAhrOm4clX6u9AVy7poQeZkN4G0ZomtFZBnnvaKn Og== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3g29u37mcg-4
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 19 May 2022 10:43:34 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 19 May 2022 10:43:33 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 19 May
- 2022 16:43:19 +0100
+ 2022 16:43:20 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.24 via Frontend
- Transport; Thu, 19 May 2022 16:43:19 +0100
+ Transport; Thu, 19 May 2022 16:43:20 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id BA87A476;
-        Thu, 19 May 2022 15:43:19 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 2966811D3;
+        Thu, 19 May 2022 15:43:20 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -57,17 +57,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <peter.ujfalusi@gmail.com>, <jarkko.nikula@bitmer.com>,
         <heiko@sntech.de>, <jbrunet@baylibre.com>, <kernel@pengutronix.de>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>
-Subject: [PATCH 19/56] ASoC: samsung: Update to use set_fmt_new callback
-Date:   Thu, 19 May 2022 16:42:41 +0100
-Message-ID: <20220519154318.2153729-20-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 25/56] ASoC: ti: Update to use set_fmt_new callback
+Date:   Thu, 19 May 2022 16:42:47 +0100
+Message-ID: <20220519154318.2153729-26-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
 References: <20220519154318.2153729-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: 579zJA1j8qpgk8t0NR1Uq8E4v_eh2bkG
-X-Proofpoint-ORIG-GUID: 579zJA1j8qpgk8t0NR1Uq8E4v_eh2bkG
+X-Proofpoint-GUID: OER1QOyeDbNm0qMCxJiWWWldW5oVeyzz
+X-Proofpoint-ORIG-GUID: OER1QOyeDbNm0qMCxJiWWWldW5oVeyzz
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -79,120 +79,222 @@ callback.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/samsung/i2s.c         | 8 ++++----
- sound/soc/samsung/pcm.c         | 6 +++---
- sound/soc/samsung/s3c-i2s-v2.c  | 8 ++++----
- sound/soc/samsung/s3c24xx-i2s.c | 8 ++++----
- 4 files changed, 15 insertions(+), 15 deletions(-)
+ sound/soc/ti/davinci-i2s.c   | 34 +++++++++++++++++-----------------
+ sound/soc/ti/davinci-mcasp.c | 12 ++++++------
+ sound/soc/ti/omap-mcbsp.c    | 14 +++++++-------
+ 3 files changed, 30 insertions(+), 30 deletions(-)
 
-diff --git a/sound/soc/samsung/i2s.c b/sound/soc/samsung/i2s.c
-index 70c827162be4d..9ed275ebd744e 100644
---- a/sound/soc/samsung/i2s.c
-+++ b/sound/soc/samsung/i2s.c
-@@ -671,11 +671,11 @@ static int i2s_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
+diff --git a/sound/soc/ti/davinci-i2s.c b/sound/soc/ti/davinci-i2s.c
+index 0363a088d2e00..c7368d5296688 100644
+--- a/sound/soc/ti/davinci-i2s.c
++++ b/sound/soc/ti/davinci-i2s.c
+@@ -230,15 +230,15 @@ static int davinci_i2s_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 
+ 	dev->fmt = fmt;
+ 	/* set master/slave audio interface */
+-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
+-	case SND_SOC_DAIFMT_CBS_CFS:
++	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
++	case SND_SOC_DAIFMT_BP_FP:
+ 		/* cpu is master */
+ 		pcr = DAVINCI_MCBSP_PCR_FSXM |
+ 			DAVINCI_MCBSP_PCR_FSRM |
+ 			DAVINCI_MCBSP_PCR_CLKXM |
+ 			DAVINCI_MCBSP_PCR_CLKRM;
+ 		break;
+-	case SND_SOC_DAIFMT_CBM_CFS:
++	case SND_SOC_DAIFMT_BC_FP:
+ 		pcr = DAVINCI_MCBSP_PCR_FSRM | DAVINCI_MCBSP_PCR_FSXM;
+ 		/*
+ 		 * Selection of the clock input pin that is the
+@@ -260,7 +260,7 @@ static int davinci_i2s_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 		}
+ 
+ 		break;
+-	case SND_SOC_DAIFMT_CBM_CFM:
++	case SND_SOC_DAIFMT_BC_FC:
+ 		/* codec is master */
+ 		pcr = 0;
+ 		break;
+@@ -395,12 +395,12 @@ static int davinci_i2s_hw_params(struct snd_pcm_substream *substream,
+ 		davinci_mcbsp_write_reg(dev, DAVINCI_MCBSP_SPCR_REG, spcr);
+ 	}
+ 
+-	master = dev->fmt & SND_SOC_DAIFMT_MASTER_MASK;
++	master = dev->fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK;
+ 	fmt = params_format(params);
+ 	mcbsp_word_length = asp_word_length[fmt];
+ 
+ 	switch (master) {
+-	case SND_SOC_DAIFMT_CBS_CFS:
++	case SND_SOC_DAIFMT_BP_FP:
+ 		freq = clk_get_rate(dev->clk);
+ 		srgr = DAVINCI_MCBSP_SRGR_FSGM |
+ 		       DAVINCI_MCBSP_SRGR_CLKSM;
+@@ -426,7 +426,7 @@ static int davinci_i2s_hw_params(struct snd_pcm_substream *substream,
+ 		clk_div &= 0xFF;
+ 		srgr |= clk_div;
+ 		break;
+-	case SND_SOC_DAIFMT_CBM_CFS:
++	case SND_SOC_DAIFMT_BC_FP:
+ 		srgr = DAVINCI_MCBSP_SRGR_FSGM;
+ 		clk_div = dev->clk_div - 1;
+ 		srgr |= DAVINCI_MCBSP_SRGR_FWID(mcbsp_word_length * 8 - 1);
+@@ -434,7 +434,7 @@ static int davinci_i2s_hw_params(struct snd_pcm_substream *substream,
+ 		clk_div &= 0xFF;
+ 		srgr |= clk_div;
+ 		break;
+-	case SND_SOC_DAIFMT_CBM_CFM:
++	case SND_SOC_DAIFMT_BC_FC:
+ 		/* Clock and frame sync given from external sources */
+ 		i = hw_param_interval(params, SNDRV_PCM_HW_PARAM_SAMPLE_BITS);
+ 		srgr = DAVINCI_MCBSP_SRGR_FSGM;
+@@ -473,15 +473,15 @@ static int davinci_i2s_hw_params(struct snd_pcm_substream *substream,
+ 			fmt = double_fmt[fmt];
+ 		}
+ 		switch (master) {
+-		case SND_SOC_DAIFMT_CBS_CFS:
+-		case SND_SOC_DAIFMT_CBS_CFM:
++		case SND_SOC_DAIFMT_BP_FP:
++		case SND_SOC_DAIFMT_BP_FC:
+ 			rcr |= DAVINCI_MCBSP_RCR_RFRLEN2(0);
+ 			xcr |= DAVINCI_MCBSP_XCR_XFRLEN2(0);
+ 			rcr |= DAVINCI_MCBSP_RCR_RPHASE;
+ 			xcr |= DAVINCI_MCBSP_XCR_XPHASE;
+ 			break;
+-		case SND_SOC_DAIFMT_CBM_CFM:
+-		case SND_SOC_DAIFMT_CBM_CFS:
++		case SND_SOC_DAIFMT_BC_FC:
++		case SND_SOC_DAIFMT_BC_FP:
+ 			rcr |= DAVINCI_MCBSP_RCR_RFRLEN2(element_cnt - 1);
+ 			xcr |= DAVINCI_MCBSP_XCR_XFRLEN2(element_cnt - 1);
+ 			break;
+@@ -492,13 +492,13 @@ static int davinci_i2s_hw_params(struct snd_pcm_substream *substream,
+ 	mcbsp_word_length = asp_word_length[fmt];
+ 
+ 	switch (master) {
+-	case SND_SOC_DAIFMT_CBS_CFS:
+-	case SND_SOC_DAIFMT_CBS_CFM:
++	case SND_SOC_DAIFMT_BP_FP:
++	case SND_SOC_DAIFMT_BP_FC:
+ 		rcr |= DAVINCI_MCBSP_RCR_RFRLEN1(0);
+ 		xcr |= DAVINCI_MCBSP_XCR_XFRLEN1(0);
+ 		break;
+-	case SND_SOC_DAIFMT_CBM_CFM:
+-	case SND_SOC_DAIFMT_CBM_CFS:
++	case SND_SOC_DAIFMT_BC_FC:
++	case SND_SOC_DAIFMT_BC_FP:
+ 		rcr |= DAVINCI_MCBSP_RCR_RFRLEN1(element_cnt - 1);
+ 		xcr |= DAVINCI_MCBSP_XCR_XFRLEN1(element_cnt - 1);
+ 		break;
+@@ -606,7 +606,7 @@ static const struct snd_soc_dai_ops davinci_i2s_dai_ops = {
+ 	.prepare	= davinci_i2s_prepare,
+ 	.trigger	= davinci_i2s_trigger,
+ 	.hw_params	= davinci_i2s_hw_params,
+-	.set_fmt	= davinci_i2s_set_dai_fmt,
++	.set_fmt_new	= davinci_i2s_set_dai_fmt,
+ 	.set_clkdiv	= davinci_i2s_dai_set_clkdiv,
+ 
+ };
+diff --git a/sound/soc/ti/davinci-mcasp.c b/sound/soc/ti/davinci-mcasp.c
+index 377be2e2b6ee7..961bac6963652 100644
+--- a/sound/soc/ti/davinci-mcasp.c
++++ b/sound/soc/ti/davinci-mcasp.c
+@@ -492,8 +492,8 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 	mcasp_mod_bits(mcasp, DAVINCI_MCASP_RXFMT_REG, FSRDLY(data_delay),
+ 		       FSRDLY(3));
+ 
+-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
+-	case SND_SOC_DAIFMT_CBS_CFS:
++	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
++	case SND_SOC_DAIFMT_BP_FP:
+ 		/* codec is clock and frame slave */
+ 		mcasp_set_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
+ 		mcasp_set_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+@@ -510,7 +510,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 
+ 		mcasp->bclk_master = 1;
+ 		break;
+-	case SND_SOC_DAIFMT_CBS_CFM:
++	case SND_SOC_DAIFMT_BP_FC:
+ 		/* codec is clock slave and frame master */
+ 		mcasp_set_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
+ 		mcasp_clr_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+@@ -527,7 +527,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 
+ 		mcasp->bclk_master = 1;
+ 		break;
+-	case SND_SOC_DAIFMT_CBM_CFS:
++	case SND_SOC_DAIFMT_BC_FP:
+ 		/* codec is clock master and frame slave */
+ 		mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
+ 		mcasp_set_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+@@ -544,7 +544,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 
+ 		mcasp->bclk_master = 0;
+ 		break;
+-	case SND_SOC_DAIFMT_CBM_CFM:
++	case SND_SOC_DAIFMT_BC_FC:
+ 		/* codec is clock and frame master */
+ 		mcasp_clr_bits(mcasp, DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
+ 		mcasp_clr_bits(mcasp, DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+@@ -1620,7 +1620,7 @@ static const struct snd_soc_dai_ops davinci_mcasp_dai_ops = {
+ 	.trigger	= davinci_mcasp_trigger,
+ 	.delay		= davinci_mcasp_delay,
+ 	.hw_params	= davinci_mcasp_hw_params,
+-	.set_fmt	= davinci_mcasp_set_dai_fmt,
++	.set_fmt_new	= davinci_mcasp_set_dai_fmt,
+ 	.set_clkdiv	= davinci_mcasp_set_clkdiv,
+ 	.set_sysclk	= davinci_mcasp_set_sysclk,
+ 	.set_tdm_slot	= davinci_mcasp_set_tdm_slot,
+diff --git a/sound/soc/ti/omap-mcbsp.c b/sound/soc/ti/omap-mcbsp.c
+index 4479d74f0a458..5bfb56d4ff844 100644
+--- a/sound/soc/ti/omap-mcbsp.c
++++ b/sound/soc/ti/omap-mcbsp.c
+@@ -1036,8 +1036,8 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 
+ 	/* In McBSP master modes, FRAME (i.e. sample rate) is generated
+ 	 * by _counting_ BCLKs. Calculate frame size in BCLKs */
+-	master = mcbsp->fmt & SND_SOC_DAIFMT_MASTER_MASK;
+-	if (master ==	SND_SOC_DAIFMT_CBS_CFS) {
++	master = mcbsp->fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK;
++	if (master == SND_SOC_DAIFMT_BP_FP) {
+ 		div = mcbsp->clk_div ? mcbsp->clk_div : 1;
+ 		framesize = (mcbsp->in_freq / div) / params_rate(params);
+ 
+@@ -1136,20 +1136,20 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
  		return -EINVAL;
  	}
  
 -	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
--	case SND_SOC_DAIFMT_CBM_CFM:
+-	case SND_SOC_DAIFMT_CBS_CFS:
 +	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
-+	case SND_SOC_DAIFMT_BC_FC:
- 		tmp |= mod_slave;
++	case SND_SOC_DAIFMT_BP_FP:
+ 		/* McBSP master. Set FS and bit clocks as outputs */
+ 		regs->pcr0	|= FSXM | FSRM |
+ 				   CLKXM | CLKRM;
+ 		/* Sample rate generator drives the FS */
+ 		regs->srgr2	|= FSGM;
  		break;
--	case SND_SOC_DAIFMT_CBS_CFS:
-+	case SND_SOC_DAIFMT_BP_FP:
- 		/*
- 		 * Set default source clock in Master mode, only when the
- 		 * CLK_I2S_RCLK_SRC clock is not exposed so we ensure any
-@@ -1107,7 +1107,7 @@ static int samsung_i2s_dai_remove(struct snd_soc_dai *dai)
- static const struct snd_soc_dai_ops samsung_i2s_dai_ops = {
- 	.trigger = i2s_trigger,
- 	.hw_params = i2s_hw_params,
--	.set_fmt = i2s_set_fmt,
-+	.set_fmt_new = i2s_set_fmt,
- 	.set_clkdiv = i2s_set_clkdiv,
- 	.set_sysclk = i2s_set_sysclk,
- 	.startup = i2s_startup,
-diff --git a/sound/soc/samsung/pcm.c b/sound/soc/samsung/pcm.c
-index 4c4dfde0568fe..818172d8832d2 100644
---- a/sound/soc/samsung/pcm.c
-+++ b/sound/soc/samsung/pcm.c
-@@ -340,8 +340,8 @@ static int s3c_pcm_set_fmt(struct snd_soc_dai *cpu_dai,
- 		goto exit;
- 	}
- 
--	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
--	case SND_SOC_DAIFMT_CBS_CFS:
-+	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
-+	case SND_SOC_DAIFMT_BP_FP:
- 		/* Nothing to do, Master by default */
+-	case SND_SOC_DAIFMT_CBM_CFS:
++	case SND_SOC_DAIFMT_BC_FP:
+ 		/* McBSP slave. FS clock as output */
+ 		regs->srgr2	|= FSGM;
+ 		regs->pcr0	|= FSXM | FSRM;
+ 		break;
+-	case SND_SOC_DAIFMT_CBM_CFM:
++	case SND_SOC_DAIFMT_BC_FC:
+ 		/* McBSP slave */
  		break;
  	default:
-@@ -437,7 +437,7 @@ static const struct snd_soc_dai_ops s3c_pcm_dai_ops = {
- 	.set_clkdiv	= s3c_pcm_set_clkdiv,
- 	.trigger	= s3c_pcm_trigger,
- 	.hw_params	= s3c_pcm_hw_params,
--	.set_fmt	= s3c_pcm_set_fmt,
-+	.set_fmt_new	= s3c_pcm_set_fmt,
- };
- 
- static int s3c_pcm_dai_probe(struct snd_soc_dai *dai)
-diff --git a/sound/soc/samsung/s3c-i2s-v2.c b/sound/soc/samsung/s3c-i2s-v2.c
-index de66cc422e6ea..9c8a0697849d7 100644
---- a/sound/soc/samsung/s3c-i2s-v2.c
-+++ b/sound/soc/samsung/s3c-i2s-v2.c
-@@ -252,12 +252,12 @@ static int s3c2412_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
- 	iismod = readl(i2s->regs + S3C2412_IISMOD);
- 	pr_debug("hw_params r: IISMOD: %x \n", iismod);
- 
--	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
--	case SND_SOC_DAIFMT_CBM_CFM:
-+	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
-+	case SND_SOC_DAIFMT_BC_FC:
- 		i2s->master = 0;
- 		iismod |= S3C2412_IISMOD_SLAVE;
- 		break;
--	case SND_SOC_DAIFMT_CBS_CFS:
-+	case SND_SOC_DAIFMT_BP_FP:
- 		i2s->master = 1;
- 		iismod &= ~S3C2412_IISMOD_SLAVE;
- 		break;
-@@ -666,7 +666,7 @@ int s3c_i2sv2_register_component(struct device *dev, int id,
- 	ops->trigger = s3c2412_i2s_trigger;
- 	if (!ops->hw_params)
- 		ops->hw_params = s3c_i2sv2_hw_params;
--	ops->set_fmt = s3c2412_i2s_set_fmt;
-+	ops->set_fmt_new = s3c2412_i2s_set_fmt;
- 	ops->set_clkdiv = s3c2412_i2s_set_clkdiv;
- 	ops->set_sysclk = s3c_i2sv2_set_sysclk;
- 
-diff --git a/sound/soc/samsung/s3c24xx-i2s.c b/sound/soc/samsung/s3c24xx-i2s.c
-index 0f46304eaa4f3..6226b3b585e54 100644
---- a/sound/soc/samsung/s3c24xx-i2s.c
-+++ b/sound/soc/samsung/s3c24xx-i2s.c
-@@ -169,11 +169,11 @@ static int s3c24xx_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
- 	iismod = readl(s3c24xx_i2s.regs + S3C2410_IISMOD);
- 	pr_debug("hw_params r: IISMOD: %x \n", iismod);
- 
--	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
--	case SND_SOC_DAIFMT_CBM_CFM:
-+	switch (fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK) {
-+	case SND_SOC_DAIFMT_BC_CFC:
- 		iismod |= S3C2410_IISMOD_SLAVE;
- 		break;
--	case SND_SOC_DAIFMT_CBS_CFS:
-+	case SND_SOC_DAIFMT_BP_FP:
- 		iismod &= ~S3C2410_IISMOD_SLAVE;
- 		break;
- 	default:
-@@ -394,7 +394,7 @@ static int s3c24xx_i2s_resume(struct snd_soc_component *component)
- static const struct snd_soc_dai_ops s3c24xx_i2s_dai_ops = {
- 	.trigger	= s3c24xx_i2s_trigger,
- 	.hw_params	= s3c24xx_i2s_hw_params,
--	.set_fmt	= s3c24xx_i2s_set_fmt,
-+	.set_fmt_new	= s3c24xx_i2s_set_fmt,
- 	.set_clkdiv	= s3c24xx_i2s_set_clkdiv,
- 	.set_sysclk	= s3c24xx_i2s_set_sysclk,
+@@ -1271,7 +1271,7 @@ static const struct snd_soc_dai_ops mcbsp_dai_ops = {
+ 	.trigger	= omap_mcbsp_dai_trigger,
+ 	.delay		= omap_mcbsp_dai_delay,
+ 	.hw_params	= omap_mcbsp_dai_hw_params,
+-	.set_fmt	= omap_mcbsp_dai_set_dai_fmt,
++	.set_fmt_new	= omap_mcbsp_dai_set_dai_fmt,
+ 	.set_clkdiv	= omap_mcbsp_dai_set_clkdiv,
+ 	.set_sysclk	= omap_mcbsp_dai_set_dai_sysclk,
  };
 -- 
 2.30.2
