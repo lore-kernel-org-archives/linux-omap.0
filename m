@@ -2,57 +2,134 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D82E5C433EF
-	for <linux-omap@archiver.kernel.org>; Tue, 24 May 2022 08:09:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58DD6C433F5
+	for <linux-omap@archiver.kernel.org>; Tue, 24 May 2022 13:38:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231292AbiEXIJP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 24 May 2022 04:09:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37242 "EHLO
+        id S233427AbiEXNi1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 24 May 2022 09:38:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231290AbiEXIJN (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 May 2022 04:09:13 -0400
-Received: from mail.greatagencyonline.pl (mail.greatagencyonline.pl [89.40.125.71])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDEBB77F05
-        for <linux-omap@vger.kernel.org>; Tue, 24 May 2022 01:09:12 -0700 (PDT)
-Received: by mail.greatagencyonline.pl (Postfix, from userid 1001)
-        id 4077FA971E; Tue, 24 May 2022 09:00:57 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=greatagencyonline.pl;
-        s=mail; t=1653379260;
-        bh=ksvwLPFdjL017OLwir5xHXy3Vmrj/5fhZ5DwBI62qzc=;
-        h=Date:From:To:Subject:From;
-        b=Sj6AzCZpVPPwK0ZsjQ3dtn/oso9wTYzNunBoPerR/1AnlG56F2M1bP7r7TKVG8Qzk
-         w7WppumNazGjwWMBjfck2JmAWaifZGSoSIQ8Dl75R8uU1OeUJwugJaQGfsQLvvpDvx
-         TZL26ATcNCWzmKLgdP6odSsJOXL4wxDGIVknB2c9cTkyGRlAHrrkQr5G55zleVm7nX
-         ICFW0zoaHnw/k/LtXzjXeY/7AjLTSV1F0YltYSuYf+aqNFSgnCi/R7cI8/JrOsAoU1
-         dIE9GXoQZQ66Qk+GYzlp3ySfWCH4eY0uvnk0JxPqk82qs3F0zYPu7UrhmYJl2LFKP5
-         FY4ezUEs4I8cg==
-Received: by mail.greatagencyonline.pl for <linux-omap@vger.kernel.org>; Tue, 24 May 2022 08:00:54 GMT
-Message-ID: <20220524074502-0.1.43.vxb8.0.zt6jic5be0@greatagencyonline.pl>
-Date:   Tue, 24 May 2022 08:00:54 GMT
-From:   =?UTF-8?Q? "Miko=C5=82aj_Rudzik" ?= 
-        <mikolaj.rudzik@greatagencyonline.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: =?UTF-8?Q?Nap=C5=82yw_Klient=C3=B3w_ze_strony?=
-X-Mailer: mail.greatagencyonline.pl
+        with ESMTP id S231971AbiEXNi0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 May 2022 09:38:26 -0400
+Received: from mail-yb1-xb2f.google.com (mail-yb1-xb2f.google.com [IPv6:2607:f8b0:4864:20::b2f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F005B75213;
+        Tue, 24 May 2022 06:38:25 -0700 (PDT)
+Received: by mail-yb1-xb2f.google.com with SMTP id s14so3570021ybc.10;
+        Tue, 24 May 2022 06:38:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=a7K02siOWCjBPHJ/N7NfpvThuWXbwOYCbTDmR8EMUaY=;
+        b=ML9vz3JqGsm18QLFOzYFXiI0o515V3vdtA397fdxanu9u1f9pNKpT1SYxPXr6Ip9cJ
+         clNtG0GfaSKxIaPe+9BqzNFfcpLn6pVOteP9wI8jbwSp7lpHhqlK8PgGSzhb46SfZkOz
+         BxrXlTV7JX0WVkkuvzFJo7Op30RZ4gbbnv41ptT1pywds/VXhql3DB8SngsCUdNgtmgQ
+         W7+xrXYxJcOVmfrXvqPQYq70IpaJC/4RZMdp7OiVauFacD3WX22jdY2TFBmp/6PgI/NZ
+         ubiZICXuuAfm6zS7K47UP/SON01cG3S9XGFyZ+h4XN0SypQX7wi92OmAqqN55DgufUZ5
+         aMIw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=a7K02siOWCjBPHJ/N7NfpvThuWXbwOYCbTDmR8EMUaY=;
+        b=7RV/qv7cVp6te4OevRtrwr1aW23dOKOZHCKP4rsxOFw7phzpmVFCZt0lFLlgBNI4c+
+         39n0ZCXIXpb+YTeVk7lcgwKjQSQ0/P0g1xcZ7RJpgOAwcVQEk1zRDnpmSk/lgtYxh6A2
+         jNCKegPl73rFn43x4TspMRU0lJaOU79bECiknI1RLStE2vOMgVZpfULKjRTnh3uw3fTn
+         NEAEDkteCzFJ1Zkg72pXE7p/m+56VIlsvvF5TuYIwtrvS5g3vVY/XFkaDFiUPsH/6LId
+         uAFTXN1/anTmjLNneF8d3jWnjsZy337TmWkJEEhfB14ZA//Fx+jsEgun6jVgb/DPGWrP
+         SHvQ==
+X-Gm-Message-State: AOAM531HgoFn4EP7IT6HTKy17w3068PZuOfppulelVL/O+Gpx4Jux/BX
+        OmKMSQ1Ktvi+C9Xxppw9UChq3Qu86+hexevuGiPcwMR1SIU=
+X-Google-Smtp-Source: ABdhPJwPxe+ejl2APV4T9cgV1ZBHOWJgH2A70FN8su8l4jbO58aY+UO3i5eMhepdZmKJoVZtZvTjXyJZyRJRPK+zI6U=
+X-Received: by 2002:a25:2c81:0:b0:64d:f21d:1fab with SMTP id
+ s123-20020a252c81000000b0064df21d1fabmr26524917ybs.355.1653399505148; Tue, 24
+ May 2022 06:38:25 -0700 (PDT)
 MIME-Version: 1.0
+References: <CAGm1_kvEcvzKBb2O7NEa1SDt8MuOQfnN8LQ+voNGUBDR8JpKSg@mail.gmail.com>
+ <YnNb5M+gHI4hIaPG@atomide.com> <CAGm1_kstAbEZXBYwoK4GrFxMmPi=kpmdfJd1WAB8XSE_vNTTNg@mail.gmail.com>
+ <Ynyd9HeFNmGQiovY@atomide.com> <CAK8P3a2wrH9XxGF6uBeQ6J0+KhehxsFO63R6qcwZ1DexH4N=2Q@mail.gmail.com>
+ <CAGm1_ku85dL_zn4=9=OVkS3S3eBH-eqrc-c1UZyvnERbMrW98Q@mail.gmail.com>
+ <CAGm1_kvKxe+RFNSxzZq+hy9594ek-s8owneXQqBMy8PxwdHP8Q@mail.gmail.com> <CAK8P3a1YTBRO_pRZLqbNHwG4DaYA56tn1_E0g3c1VW0B-jz-qg@mail.gmail.com>
+In-Reply-To: <CAK8P3a1YTBRO_pRZLqbNHwG4DaYA56tn1_E0g3c1VW0B-jz-qg@mail.gmail.com>
+From:   Yegor Yefremov <yegorslists@googlemail.com>
+Date:   Tue, 24 May 2022 15:38:13 +0200
+Message-ID: <CAGm1_kuaRr3BFWSq-2v4vT0VbVvMX=kMHQsQ1KZnKe9UEff3MA@mail.gmail.com>
+Subject: Re: am335x: 5.18.x: system stalling
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Tony Lindgren <tony@atomide.com>, Ard Biesheuvel <ardb@kernel.org>,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        linux-clk <linux-clk@vger.kernel.org>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry,
+Hi Arnd,
 
-chcia=C5=82bym poinformowa=C4=87 Pa=C5=84stwa o mo=C5=BCliwo=C5=9Bci pozy=
-skania nowych zlece=C5=84 ze strony www.
+On Sat, May 21, 2022 at 9:41 PM Arnd Bergmann <arnd@arndb.de> wrote:
+>
+> On Thu, May 19, 2022 at 5:52 PM Yegor Yefremov
+> <yegorslists@googlemail.com> wrote:
+> > On Thu, May 12, 2022 at 12:20 PM Yegor Yefremov
+> > <yegorslists@googlemail.com> wrote:
+> > > On Thu, May 12, 2022 at 10:43 AM Arnd Bergmann <arnd@arndb.de> wrote:
+> > > >
+> > > > On Thu, May 12, 2022 at 7:41 AM Tony Lindgren <tony@atomide.com> wrote:
+> > > > > * Yegor Yefremov <yegorslists@googlemail.com> [220511 14:16]:
+> > > > > > On Thu, May 5, 2022 at 7:08 AM Tony Lindgren <tony@atomide.com> wrote:
+> > > > > > > * Yegor Yefremov <yegorslists@googlemail.com> [220504 10:35]:
+> > > > > > > > Hi Tony, all,
+> > > > > > > >
+> > > > > > > > since kernel 5.18.x (5.17.x doesn't show this behavior), the system
+> > > > > > > > stalls as soon as I invoke the following commands (initializing
+> > > > > > > > USB-to-CAN converter):
+> > > > > > > >
+> > > > > > > > slcand -o -s8 -t hw -S 3000000 /dev/ttyUSB0
+> > > > > > > > ip link set slcan0 up
+> > > >
+> > > > Oh, I missed this part at first and only looked at the backtrace.
+> > > > Which CAN driver
+> > > > are you using? It's likely a problem in the kernel driver.
+> > >
+> > > I am using the slcan driver [1].
+>
+> Ok, so this is just a serial port based driver, which means the
+> follow-up question
+> is what you use for your uart. Is this one of the USB-serial ones or an on-chip
+> uart? Which driver?
 
-Widzimy zainteresowanie potencjalnych Klient=C3=B3w Pa=C5=84stwa firm=C4=85=
-, dlatego ch=C4=99tnie pomo=C5=BCemy Pa=C5=84stwu dotrze=C4=87 z ofert=C4=
-=85 do wi=C4=99kszego grona odbiorc=C3=B3w poprzez efektywne metody pozyc=
-jonowania strony w Google.
+This is the following chain: am335x -> musb-> ftdi_sio (FT-X flavor).
 
-Czy m=C3=B3g=C5=82bym liczy=C4=87 na kontakt zwrotny?
+I have also tried another system with two FT4232 chips (RS232 devices)
+and performed transmission tests. This had no effect, the system
+didn't stall.
 
+> > > > CONFIG_DMA_API_DEBUG is still likely to pinpoint the bug, but I might also
+> > > > just see it by looking at the right source file.
+> > >
+> > > I'll try to get more debug info with CONFIG_DMA_API_DEBUG.
+> >
+> > DMA_API_DEBUG showed nothing new. But disabling the CPUfreq driver
+> > "solved" the problem. I have tried different governors and got these
+> > two groups:
+> >
+> > ondemand, schedutil - cause the problem
+> > conservative, powersave, performance and userspace - don't cause the problem
+> >
+> > So far, I have only seen the same debug output that I've initially
+> > sent and in most cases, the system stalls without the output.
+>
+> Ok, so that sounds like it happens when you change the frequency.
+> I assume this means you are using drivers/cpufreq/omap-cpufreq.c?
 
-Pozdrawiam,
-Miko=C5=82aj Rudzik
+Yes.
+
+> When using the usersapce governor, do you see problems when you
+> manually change the frequency from sysfs?
+
+No, I can switch between 300MHz and 600MHz and perform CAN tests.
+Everything goes well.
+
+Yegor
