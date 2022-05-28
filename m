@@ -2,30 +2,48 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11C0FC433EF
-	for <linux-omap@archiver.kernel.org>; Sat, 28 May 2022 13:14:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEE42C433FE
+	for <linux-omap@archiver.kernel.org>; Sat, 28 May 2022 20:00:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235638AbiE1NOP convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 28 May 2022 09:14:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37086 "EHLO
+        id S229454AbiE1UAX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 28 May 2022 16:00:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235631AbiE1NOO (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 28 May 2022 09:14:14 -0400
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.126.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B08D19C01;
-        Sat, 28 May 2022 06:14:10 -0700 (PDT)
-Received: from mail-yb1-f180.google.com ([209.85.219.180]) by
- mrelayeu.kundenserver.de (mreue009 [213.165.67.97]) with ESMTPSA (Nemesis) id
- 1MCsLo-1o3hh2464m-008rtv; Sat, 28 May 2022 15:14:09 +0200
-Received: by mail-yb1-f180.google.com with SMTP id z186so7842201ybz.3;
-        Sat, 28 May 2022 06:14:08 -0700 (PDT)
-X-Gm-Message-State: AOAM531+PoH+yiquIQU4H1Fwge4ZxyF6R/cO4wE4V4D5Rlm0mVhKs39v
-        xq0GtKTO6T7xPvSTd350RNQ2LqU4e122S9LDlMw=
-X-Google-Smtp-Source: ABdhPJyguWa96+0lPvTeqCEV6/LGQ59wW0u7JuLPaWpR+8VjbwDjqo/tET/Zy7enU3pvsb8nexEPETNryWIm/aRIB2U=
-X-Received: by 2002:a25:bd8b:0:b0:657:8392:55c3 with SMTP id
- f11-20020a25bd8b000000b00657839255c3mr10466309ybh.452.1653743647744; Sat, 28
- May 2022 06:14:07 -0700 (PDT)
+        with ESMTP id S229459AbiE1UAX (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 28 May 2022 16:00:23 -0400
+Received: from mail-ot1-x335.google.com (mail-ot1-x335.google.com [IPv6:2607:f8b0:4864:20::335])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 289C184A23;
+        Sat, 28 May 2022 13:00:18 -0700 (PDT)
+Received: by mail-ot1-x335.google.com with SMTP id h9-20020a056830400900b0060b03bfe792so5168226ots.12;
+        Sat, 28 May 2022 13:00:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=/KLzDOmIX3qxkjLX++pQxe3ly1Uf5qfCdyEeGZRMrK8=;
+        b=DJyM1fGwnWaTVgarAIn6vo+ICUbSBPq904MOk79IGYpchYCRLrPd09FH9w91800JGh
+         UkYsSOxDZ83vv4XGKRDFxTrMDNak9PrxP+D+BHoTAtEuyZ9GZ//yl38w/4x4VB6FZqQz
+         8KlGhKbxYkDV1MH3VynFB7GcTszRK+qCg1GcAqqVEEwiT+41+6dQouFkA7gwsj7i6V4I
+         6yFx94yVBcqDKMoQStwB7kOOiQi5snJd1OjL5K3mqunmnjd7HoKYd/8IskVkhCEt+JCV
+         kG964+uBcphyWRV+xLvoKKLEri4t9eMDNcZ98DI55krwzlA/UE2rSfrfR+IesUV6NZ7h
+         YNLw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=/KLzDOmIX3qxkjLX++pQxe3ly1Uf5qfCdyEeGZRMrK8=;
+        b=oHqypsjqdkIK6jAvrb4eJOeRdZ4Fb4fz1vQKo1A6Uf+hojwtho+j853YYRD4GUCzJl
+         h/0DYMGa999+XCCYriBsa9u2s/4ycRMVb+OGphXYYrjypDbv3mbo1567gYwila/oWtwh
+         KbPBHTzR8+mmt1Pb6Rr+Mfm/eDY7EpxLRpJmkB3QPfADV8pzflEfbIiShTVLB0XtIDYh
+         S2+2LBvE9sRCfNoC+nRlXnLDaEk9XqoZPLir7e3rWJcEG72XyrlLkoT0dA3lFwr+q4cc
+         k7sk6iE8+fUg42UmrcmkW/0jlw+j0MCQrppIhnSq3yr7nhOkgoiV1+F/HLaQQzmWPbJ0
+         zgsQ==
+X-Gm-Message-State: AOAM5311OprUah42uRVd4gyKEluqdqvf3Rr3oBq36xZ4Z60MqBjCGM0r
+        0ieolvOdNNiIkswJfdYIziFhPipDZY5dRBiE4Uhyf8vm
+X-Google-Smtp-Source: ABdhPJzhRTTaLOpHb1BSjGMpVBAepKYVSPnglt2YA0M4Ryvvi8CwshOaYDYgXo6qcQO6GXJ/VSEYoCB/En8gC/rPqqk=
+X-Received: by 2002:a25:af02:0:b0:64f:72b8:ce50 with SMTP id
+ a2-20020a25af02000000b0064f72b8ce50mr35392183ybh.528.1653766109000; Sat, 28
+ May 2022 12:28:29 -0700 (PDT)
 MIME-Version: 1.0
 References: <CAK8P3a1YTBRO_pRZLqbNHwG4DaYA56tn1_E0g3c1VW0B-jz-qg@mail.gmail.com>
  <CAGm1_kuaRr3BFWSq-2v4vT0VbVvMX=kMHQsQ1KZnKe9UEff3MA@mail.gmail.com>
@@ -45,61 +63,53 @@ References: <CAK8P3a1YTBRO_pRZLqbNHwG4DaYA56tn1_E0g3c1VW0B-jz-qg@mail.gmail.com>
  <CAGm1_kta63UM8um5BB5jOh+r9uFMiGwAiYsrNDOwG3dN-Oo47Q@mail.gmail.com>
  <CAK8P3a2yaKcEiO-LvH5z5azTEX1XTh=9U2MChRS92dtatceY5g@mail.gmail.com>
  <CAGm1_kvXaH19nOmP_Dy3nxWpG0UiX7eyauTLB+9Cd2rBovDcEQ@mail.gmail.com>
- <CAMj1kXFfc-e0+dpLJHj9W+=YS=3i0t1+wxF+4qJ5K-g7pTd+YQ@mail.gmail.com> <CAGm1_ksndacPPpyZknvHip=7Fv+3NxXjyfCm_DDMm4EbcBuBig@mail.gmail.com>
-In-Reply-To: <CAGm1_ksndacPPpyZknvHip=7Fv+3NxXjyfCm_DDMm4EbcBuBig@mail.gmail.com>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Sat, 28 May 2022 15:13:50 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a2VV26MhWz95OwfKz+2k35ee8V876iqdJdZ4o1HuNba8A@mail.gmail.com>
-Message-ID: <CAK8P3a2VV26MhWz95OwfKz+2k35ee8V876iqdJdZ4o1HuNba8A@mail.gmail.com>
+ <CAMj1kXFfc-e0+dpLJHj9W+=YS=3i0t1+wxF+4qJ5K-g7pTd+YQ@mail.gmail.com>
+ <CAGm1_ksndacPPpyZknvHip=7Fv+3NxXjyfCm_DDMm4EbcBuBig@mail.gmail.com> <CAK8P3a2VV26MhWz95OwfKz+2k35ee8V876iqdJdZ4o1HuNba8A@mail.gmail.com>
+In-Reply-To: <CAK8P3a2VV26MhWz95OwfKz+2k35ee8V876iqdJdZ4o1HuNba8A@mail.gmail.com>
+From:   Yegor Yefremov <yegorslists@googlemail.com>
+Date:   Sat, 28 May 2022 21:28:17 +0200
+Message-ID: <CAGm1_ktyCchFwVWhFtrgR621s_fPZJ3u8UmgOPbg7OCOq0h6ZA@mail.gmail.com>
 Subject: Re: am335x: 5.18.x: system stalling
-To:     Yegor Yefremov <yegorslists@googlemail.com>
-Cc:     Ard Biesheuvel <ardb@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Tony Lindgren <tony@atomide.com>,
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Ard Biesheuvel <ardb@kernel.org>, Tony Lindgren <tony@atomide.com>,
         Linux-OMAP <linux-omap@vger.kernel.org>,
         linux-clk <linux-clk@vger.kernel.org>,
         Stephen Boyd <sboyd@kernel.org>,
         Linux ARM <linux-arm-kernel@lists.infradead.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-X-Provags-ID: V03:K1:v/vgM9TyMDPvBXEjHRNt783/GGGVoL+MieqKRMlZvU80/dQGfFq
- mKuKg7onizq9oHMxN9Xb25XfULbd7XzpATOXrC3f9Y4T91YOnhEm61Pji3NLChygMC0Q6Lu
- 4Y5X2kckcpOkGViEyZYAeo6EGpcPSh42U+x/TujwMGJfsHrygsilpbiz2I3HhaJGnux3Kj+
- TLOQiZ4Yh/pG0uFSbqaEQ==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:nFIkU0Q9HJA=:c4XEXvtRrcz/Jdx7ksqtTk
- mKYu8nt5Sx8R2vw48WVlLqmBpUhVOkRf1kjGeD0/CJQs8G06xr/OBQv4FLs+Gqm8ubX6w+yRq
- ZOVYbrYlqRM6vDW6hGgBEyc/8o/LqkH9RKpXY2vrlXzklY2rgiMDdspPCtiCSDZLqdNpwlvXz
- lE0Z7k8L4WaTxezhkCtcVS11o1Baa/FCyF92vLfUVOuIWFKJ5dEVhPR0YSe7djgA0dDrxY9Jz
- TcMkMbisTiBeDhCtqPHB6UmxD65kjt5HC0i0uz4VAFmES1y8lNIfhi5rtMrBeZMLtQA+HD3X9
- 8rqYQAOKLtZKGsqlWaG/tuBiXm/fVWE8inmbI1muR1Y4K13469A8srECHiT8K/oxbV+T/kcJC
- kFhZKuVljX1ETGRqZABq1SC5mZMVNM3SpT5nRWxl7s680aLO5dLTmZ62K/zRJ69ZTSMcNYy7g
- CTZvHOvYrqjo8IVVfE1VgqHYlVCCjXKRFG/rvNkHur3asfIKZUwrME3wchnxye6WVHkSyY2Ep
- blriBG2OpDZifiR4uz3A/kZsZ3PkJpI03wblD4Qc90MyG1z+mWrMz6V00mXTmCfzbKIhGzhc3
- Yu3JDpnLrK4tks447tSZ+NnGi1bw3YeQESuy4bUsvaZvSmeYELd0TKZ+2+U9YefsGROXCB95z
- 333vCZr8ItxFgxl0aObMZonZPZJxmmbNI61Iv94PhGEigj3yEPW8aHWhmpJbNL8bbPjEQQ6Q4
- pYhgC/PWKHDf0bzhmrBzKmZdNe0l3tHjT9FHuw==
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sat, May 28, 2022 at 3:01 PM Yegor Yefremov
-<yegorslists@googlemail.com> wrote:
-> On Sat, May 28, 2022 at 11:07 AM Ard Biesheuvel <ardb@kernel.org> wrote:
-> In file included from ./include/linux/irqflags.h:17,
->                  from ./arch/arm/include/asm/bitops.h:28,
->                  from ./include/linux/bitops.h:33,
->                  from ./include/linux/log2.h:12,
->                  from kernel/bounds.c:13:
-> ./arch/arm/include/asm/percpu.h: In function ‘__my_cpu_offset’:
-> ./arch/arm/include/asm/percpu.h:32:9: error: ‘__per_cpu_offset’
-> undeclared (first use in this function); did you mean
-> ‘__my_cpu_offset’?
->    32 |  return __per_cpu_offset[0];
->       |         ^~~~~~~~~~~~~~~~
->       |         __my_cpu_offset
-> ./arch/arm/include/asm/percpu.h:32:9: note: each undeclared identifier
-> is reported only once for each function it appears in
+On Sat, May 28, 2022 at 3:14 PM Arnd Bergmann <arnd@arndb.de> wrote:
+>
+> On Sat, May 28, 2022 at 3:01 PM Yegor Yefremov
+> <yegorslists@googlemail.com> wrote:
+> > On Sat, May 28, 2022 at 11:07 AM Ard Biesheuvel <ardb@kernel.org> wrote=
+:
+> > In file included from ./include/linux/irqflags.h:17,
+> >                  from ./arch/arm/include/asm/bitops.h:28,
+> >                  from ./include/linux/bitops.h:33,
+> >                  from ./include/linux/log2.h:12,
+> >                  from kernel/bounds.c:13:
+> > ./arch/arm/include/asm/percpu.h: In function =E2=80=98__my_cpu_offset=
+=E2=80=99:
+> > ./arch/arm/include/asm/percpu.h:32:9: error: =E2=80=98__per_cpu_offset=
+=E2=80=99
+> > undeclared (first use in this function); did you mean
+> > =E2=80=98__my_cpu_offset=E2=80=99?
+> >    32 |  return __per_cpu_offset[0];
+> >       |         ^~~~~~~~~~~~~~~~
+> >       |         __my_cpu_offset
+> > ./arch/arm/include/asm/percpu.h:32:9: note: each undeclared identifier
+> > is reported only once for each function it appears in
+>
+> I think you just missed the line in my patch that adds the
+> "extern unsigned long __per_cpu_offset[];" variable declaration.
 
-I think you just missed the line in my patch that adds the
-"extern unsigned long __per_cpu_offset[];" variable declaration.
+My bad.
 
-       Arnd
+So, I tried both variants and both led to stalls.
+
+Yegor
