@@ -2,48 +2,29 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E070C43217
-	for <linux-omap@archiver.kernel.org>; Wed,  1 Jun 2022 07:36:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4725EC433FE
+	for <linux-omap@archiver.kernel.org>; Wed,  1 Jun 2022 07:59:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345526AbiFAHg2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 1 Jun 2022 03:36:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55378 "EHLO
+        id S244461AbiFAH7s (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 1 Jun 2022 03:59:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345599AbiFAHgZ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2022 03:36:25 -0400
-Received: from mail-yw1-x112f.google.com (mail-yw1-x112f.google.com [IPv6:2607:f8b0:4864:20::112f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 867BB8BD2E;
-        Wed,  1 Jun 2022 00:36:23 -0700 (PDT)
-Received: by mail-yw1-x112f.google.com with SMTP id 00721157ae682-306b5b452b1so9307017b3.1;
-        Wed, 01 Jun 2022 00:36:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=googlemail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=7CCQa39SGQ9dVfo6kYlr8Pz8EWwXxGFs+Ui1e66PB8U=;
-        b=brofxjrOJHt1PACyZ46xvD4vWJ8JJyiRQP+f62CYBQFOgISBkGBEnugmpZ0hDPNkby
-         vv+TeqtwR2FDFnjidTGtjvGW5fr/g/gUijbmZiRZtOQA8q+ybM91bYUwEZmuMleAPaqT
-         BKkH8ZUxs91xT+5C3QCOVyOrH5WP6+MRsxwMUDUScJybF3mlrjLVPU0VVHgMWU/h6l1X
-         WaXB/7NSrkhd3KA4cKwX6AotiTFIb3/Dy9O59MD8DNkOh4jCE+F5GytJ5ec0x7zI93mr
-         t8x9NNoSOgoKF8hHCoCucAMlUODvvNACGQLgKN6HFzFgfT+g8aodYvOF6Ysg/b96nhLs
-         jp5g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=7CCQa39SGQ9dVfo6kYlr8Pz8EWwXxGFs+Ui1e66PB8U=;
-        b=r7b+nyHJOOZeHDeMkqTBy1e380KfzCITUuCFs6MurjFEwOQPrD4N0lSh03cf8n7eTy
-         tMiBz4cWukWcmaEvs/iZxChIzLINYA7TO1wp+nIlIK2NSzCGezAwZ2Vy0ZCRN6B7m/BR
-         WNF+G9QgUCFPEPODFHJ13y5f5xKhpe8YY0RM/xgXYo3FfbdDsU1nxm25eqKedaDZ2NSP
-         xH07YHx5+UR4YS3/fOR0whDJD9PB2axPD+3vlkNUB5izka1YRbkbwNkB+aykkH3yudqQ
-         vYd4F8BkpSFMMOdwBPHVeMyVRHRgWS0LZ1fzqqV74mUxjqgV39oTyRZjr/RPfZr5hxOQ
-         FbDA==
-X-Gm-Message-State: AOAM533Vx6mlkbFMNEwKizO/nRPQfbzTw/CCrVMcdO1DlBmqCK+G85SE
-        GJCEjFID35botGWsqNmYLCTUFoEGnjA80tcf3q8FlofwjfU=
-X-Google-Smtp-Source: ABdhPJy1YMedQNa6c5TKF2oWOm2qRGAFR7bQLRhS8gDTqJgtMv5B9JnCe2XnJW/ELrrnHsx1QcVgh8tEuvG2q2RQKsM=
-X-Received: by 2002:a05:690c:102:b0:2ef:48d8:24c3 with SMTP id
- bd2-20020a05690c010200b002ef48d824c3mr69734516ywb.153.1654068982718; Wed, 01
- Jun 2022 00:36:22 -0700 (PDT)
+        with ESMTP id S1350449AbiFAH7r (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2022 03:59:47 -0400
+Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.17.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62BF58B08C;
+        Wed,  1 Jun 2022 00:59:44 -0700 (PDT)
+Received: from mail-yb1-f172.google.com ([209.85.219.172]) by
+ mrelayeu.kundenserver.de (mreue109 [213.165.67.113]) with ESMTPSA (Nemesis)
+ id 1MlfCm-1nVXHp0VwQ-00ioNe; Wed, 01 Jun 2022 09:59:43 +0200
+Received: by mail-yb1-f172.google.com with SMTP id z186so1533387ybz.3;
+        Wed, 01 Jun 2022 00:59:42 -0700 (PDT)
+X-Gm-Message-State: AOAM533uDDlKAiJvtiPnLfcWiu7XEv8ZMgcCb5XiR8Yw8nM1+6e1Uh2D
+        XeazRkhtHhMMCDYqqSCTS2l31eQ3M66h8PL6t5c=
+X-Google-Smtp-Source: ABdhPJzoWPaCkT1VZk6Y6xdPwsZG7YGq4YdyqYdk9hnpO8XDD4fVWG6RMcr3k33Ge326LgxfboYwcTuMLxQdt36KBvI=
+X-Received: by 2002:a25:4f0a:0:b0:64f:6a76:3d8f with SMTP id
+ d10-20020a254f0a000000b0064f6a763d8fmr52296373ybb.134.1654070381814; Wed, 01
+ Jun 2022 00:59:41 -0700 (PDT)
 MIME-Version: 1.0
 References: <CAK8P3a1YTBRO_pRZLqbNHwG4DaYA56tn1_E0g3c1VW0B-jz-qg@mail.gmail.com>
  <CAGm1_kuaRr3BFWSq-2v4vT0VbVvMX=kMHQsQ1KZnKe9UEff3MA@mail.gmail.com>
@@ -70,70 +51,75 @@ References: <CAK8P3a1YTBRO_pRZLqbNHwG4DaYA56tn1_E0g3c1VW0B-jz-qg@mail.gmail.com>
  <CAK8P3a02uFq4edc_VzPaNQXp_cuLXUMbF4c=k6KATApS9hNHkw@mail.gmail.com>
  <CAMj1kXEvxP8ULqy7ajT_cSxMzYLJuCjEZGfYBb=F9qOwz-AFaQ@mail.gmail.com>
  <CAGm1_ksF1UPpdeiTnADiQK8MFbvP8-eDhc=yaCL75EsE_pG=-g@mail.gmail.com>
- <CAGm1_ksmXTnEo_Mxk7+S4vs_CQAs5ZHoEOpq9Tq3ZFf7sruX7A@mail.gmail.com> <CAK8P3a1nhBnbbocBNkKUKYhw14OYE0WPEyQcJJXzbpW4uASu_Q@mail.gmail.com>
-In-Reply-To: <CAK8P3a1nhBnbbocBNkKUKYhw14OYE0WPEyQcJJXzbpW4uASu_Q@mail.gmail.com>
-From:   Yegor Yefremov <yegorslists@googlemail.com>
-Date:   Wed, 1 Jun 2022 09:36:11 +0200
-Message-ID: <CAGm1_kswMZkoV9_DnB71ugVTF_rh5SV2NazkHROwXiFqhxTWYA@mail.gmail.com>
+ <CAGm1_ksmXTnEo_Mxk7+S4vs_CQAs5ZHoEOpq9Tq3ZFf7sruX7A@mail.gmail.com>
+ <CAK8P3a1nhBnbbocBNkKUKYhw14OYE0WPEyQcJJXzbpW4uASu_Q@mail.gmail.com> <CAGm1_kswMZkoV9_DnB71ugVTF_rh5SV2NazkHROwXiFqhxTWYA@mail.gmail.com>
+In-Reply-To: <CAGm1_kswMZkoV9_DnB71ugVTF_rh5SV2NazkHROwXiFqhxTWYA@mail.gmail.com>
+From:   Arnd Bergmann <arnd@arndb.de>
+Date:   Wed, 1 Jun 2022 09:59:24 +0200
+X-Gmail-Original-Message-ID: <CAK8P3a0Qdav2JaF8yLydxr9amQp30gnY67CVx+ubowUHeG1VeA@mail.gmail.com>
+Message-ID: <CAK8P3a0Qdav2JaF8yLydxr9amQp30gnY67CVx+ubowUHeG1VeA@mail.gmail.com>
 Subject: Re: am335x: 5.18.x: system stalling
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Ard Biesheuvel <ardb@kernel.org>, Tony Lindgren <tony@atomide.com>,
+To:     Yegor Yefremov <yegorslists@googlemail.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ardb@kernel.org>,
+        Tony Lindgren <tony@atomide.com>,
         Linux-OMAP <linux-omap@vger.kernel.org>,
         linux-clk <linux-clk@vger.kernel.org>,
         Stephen Boyd <sboyd@kernel.org>,
         Linux ARM <linux-arm-kernel@lists.infradead.org>
 Content-Type: text/plain; charset="UTF-8"
+X-Provags-ID: V03:K1:b9ASgxEDgqZ8ii6ib33MpCJCchT4gApGIl6hJpXQkZxL19nTNn5
+ qBv1LR5oi0gJ3Oatwh5ZRa7C7V5IwQ8VKdIy+LcmmrGJSVLw3Cfy4nCGcrUftkMgowZhZw7
+ vLWbPZZSFDdWnS3HrmYmFWDs7WdplVvfKBoy3rjw1JoUQoEzO0gOMmT0XNWn6BnYmkvadGN
+ x8DwSdXK6uQDo9oJBNtCQ==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:J7AHqQzNyl8=:4qgbc1LXw0qHAMXwqp1VbV
+ xtBKmdy//u7/kvw3cYUGC/RnoVNarlY9gy91VSl94iO5uLjZrrYaRgjq6NvU41RDnVNozbBR9
+ LjWB4A2hWTJXgxx9d6NBNJt/0vIUAx4hFFZyo36uR4oKWX9KqHvT8zZNk2d595T1bgiDoX/ID
+ a3fsicIYSroE48A1fAvWyIHwEj2XBVEMa3XgDFnNiIjx7lqUnWRyasBP867UUx3Twa8HoimOU
+ ULVtX514v5/95Iy1tdsrl5GaPpxFpPwm/C1KMoNQ/0oKLQ8fi4ahz+sULaJFWK0oZ9fxOpVM2
+ lcfPVep4yFwqSZpT+JPRT34V5ciJKs7f+5ukDiYF7jLgvF6ngsxyffCAiTszHuVnUZ4n7859e
+ KVI1Y06bz7ZP1bQAsFCqEOzddQgqfHKmlFBPnsT5m+TuVjrV/v/Fz72I0Q9ypS4OBQiI4wK8a
+ RmNvUGTIm+Pqxb+FVNdHpCZ3LMCMerF/56qQuB7e7HLZIYUVStcl1X87KnqgnmwW3bvYeLKYE
+ +LfSY+fmXecq9RxDgDwYBQtIbgehKipbnJ5CdOgjOZfEChqJ7kUMFWZTept081JHQeiiEDZPB
+ ajIkbaOgBGdljFofwhNOGjqPBN/FD7zplBsyhJOxI/O364/XTvkvgOA31dAhQ6TmyDF8K5gRM
+ o2Hp3pA/Gl5fHGAGr5GxYYOn4Hy9buaq4yvWjsrNVesWnEiNVFh+dg6/74y1BnvFYP7jBJvHJ
+ rSggpRxIBnHa4IAtoKPJF+ico5Yr7nyhUVWgTedbEK7OmdS5ES9Mk3DcL5wkG538je5DdT7cb
+ D2XdB2fiVx6pazJTFUvk3HcXwV0+9ENdw3gNm2XgaE5p1FwJRXmLEugnDnpKhfc7d9hUfU9gc
+ W2HEtEzaFxzYTqG65/vw==
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, May 31, 2022 at 5:23 PM Arnd Bergmann <arnd@arndb.de> wrote:
->
-> On Tue, May 31, 2022 at 4:16 PM Yegor Yefremov
-> <yegorslists@googlemail.com> wrote:
-> > On Tue, May 31, 2022 at 10:36 AM Yegor Yefremov <yegorslists@googlemail.com> wrote:
-> > # bad: [b6b3b4814e77d2f5a7517297e9ac1d1aa1cda103] [PART 1] ARM:
-> > implement THREAD_INFO_IN_TASK for uniprocessor systems
-> > git bisect bad b6b3b4814e77d2f5a7517297e9ac1d1aa1cda103
-> > # good: [dccfc18999cf4b4e518f01d5c7c578426166e5f2] ARM: v7m: enable
-> > support for IRQ stacks
-> > git bisect good dccfc18999cf4b4e518f01d5c7c578426166e5f2
-> > # first bad commit: [b6b3b4814e77d2f5a7517297e9ac1d1aa1cda103] [PART
-> > 1] ARM: implement THREAD_INFO_IN_TASK for uniprocessor systems
+On Wed, Jun 1, 2022 at 9:36 AM Yegor Yefremov
+<yegorslists@googlemail.com> wrote:
+> On Tue, May 31, 2022 at 5:23 PM Arnd Bergmann <arnd@arndb.de> wrote:
+> > I've pushed a modified branch now, with that fix on the broken commit,
+> > and another change to make CONFIG_IRQSTACKS user-selectable rather
+> > than always enabled. That should tell us if the problem is in the SMP
+> > patching or in the irqstacks.
 > >
-> > Though commit b6b3b4814e77d2f5a7517297e9ac1d1aa1cda103 led to a broken
-> > kernel that didn't even show any output after the bootloader had
-> > started it.
-> >
-> > Commit 2d3456213319c0277ee6082946c43c3afacca9b4 showed the expected stalling.
+> > Can you test the top of this branch with CONFIG_IRQSTACKS disabled,
+> > and (if that still stalls) retest the fixed commit f0191ea5c2e5 ("[PART 1]
+> > ARM: implement THREAD_INFO_IN_TASK for uniprocessor systems")?
 >
-> Ok, good, so we know that the "ARM: implement THREAD_INFO_IN_TASK for
-> uniprocessor system" commit caused the problem then. This is what we had
-> already assumed, but now it's confirmed.
->
-> Too bad I screwed up that "this_cpu_offset" macro, I think it should
-> have been
->
-> @@ -286,7 +286,7 @@ THUMB(      fpreg   .req    r7      )
->          *                   register 'rd'
->          */
->         .macro          this_cpu_offset, rd:req
-> -       mov             \rd, #0
-> +       ldr_va          \rd, __per_cpu_offset
->         .endm
->
->         /*
->
-> I've pushed a modified branch now, with that fix on the broken commit,
-> and another change to make CONFIG_IRQSTACKS user-selectable rather
-> than always enabled. That should tell us if the problem is in the SMP
-> patching or in the irqstacks.
->
-> Can you test the top of this branch with CONFIG_IRQSTACKS disabled,
-> and (if that still stalls) retest the fixed commit f0191ea5c2e5 ("[PART 1]
-> ARM: implement THREAD_INFO_IN_TASK for uniprocessor systems")?
+> 1. the top of this branch with CONFIG_IRQSTACKS disabled stalls
+> 2. f0191ea5c2e5 with the same config - not
 
-1. the top of this branch with CONFIG_IRQSTACKS disabled stalls
-2. f0191ea5c2e5 with the same config - not
+Ok, perfect, that does narrow down the problem quite a bit: The final
+patch has seven changes, all of which can be done individually because
+in each case the simplified version in f0191ea5c2e5 is meant to run
+the exact same instructions as the version after the change, when running
+on a uniprocessor machine such as your am335x.
 
-Yegor
+You have already shown earlier that the get_current() and
+__my_cpu_offset() functions are not to blame here, as reverting
+only those does not change the behavior.
+
+This leaves the is_smp() check in set_current(), and the
+four macros in <asm/assembler.h>. I don't see anything obviously
+wrong with any of those five, but I would bet on the macros
+here. Can you try bisecting into this commit, maybe reverting
+the changes to set_current and get_current first, and then
+narrowing it down to (hopefully) a single macro that causes the
+problem?
+
+        Arnd
