@@ -2,85 +2,114 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6BC9CCA468
-	for <linux-omap@archiver.kernel.org>; Wed,  1 Jun 2022 14:11:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED634C433EF
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Jun 2022 03:08:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351142AbiFAOLl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 1 Jun 2022 10:11:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50642 "EHLO
+        id S233400AbiFBDIv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 1 Jun 2022 23:08:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354644AbiFAOJg (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2022 10:09:36 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4B3DDF61;
-        Wed,  1 Jun 2022 07:01:07 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 928D3B81AE7;
-        Wed,  1 Jun 2022 14:01:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECD29C341C0;
-        Wed,  1 Jun 2022 14:01:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1654092065;
-        bh=v3S7+R/sqeurSfR1qnzvW17UXWm4tAY5LvvhEotC0/Q=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WPnj6FY3j1y0HlonOZz4Fsj3VAqv29aTraydBFX3KtM5AUvWqUVlclr8k8LD3Upl3
-         SMJRAU0+/udkw/Y11MwWScLNj5ONEG6EDm0ukLEgapbE4XJ32ljz8N9ucRBeRIdOu/
-         V+3gkR7JN3QDpOZWi++AsNYUViW312qdSKiASw6jnOVfHldwmms7dPuzJ4MGiKiEeU
-         OGAvSU38udtZT6tobSOKCis0237vut9jYQbx5NVwrSYNxwRDLFXpnM+bP+nfmLHyVj
-         MGShB3d5paUWbFkf32RzoSjk/YoqbbTe+QVLdiq8reswwPn7Lk5NMyQOE6TdVloEPL
-         CMaNf1zpW2YCw==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        with ESMTP id S230042AbiFBDIu (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2022 23:08:50 -0400
+Received: from mail-pl1-x632.google.com (mail-pl1-x632.google.com [IPv6:2607:f8b0:4864:20::632])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DA023DDE9;
+        Wed,  1 Jun 2022 20:08:48 -0700 (PDT)
+Received: by mail-pl1-x632.google.com with SMTP id s14so3412521plk.8;
+        Wed, 01 Jun 2022 20:08:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=J2cdsfsG0mpf92WrWuIuHSZ0x1jXPLBhoImykLvIqzA=;
+        b=pSb/+V/Y/7pccZ7WlsxWvJdyPY0ZpgBrsBVRM8K0EDEFPn8E6KDNuj/+Vj06xGNlpK
+         o7Oj19uOgWXo44bNs+7TtwLhSGy756IsK1FIELD06fXsmnd0spueWX4yvLpDfUruJ8tl
+         KcRsISb6SVbN3sFl6tA46xEJgT9qlKfet6AambiuXjWCjcuVMQi0KoDqzL/qntzJWAyx
+         NfpW+YFAf+WFj0PtR3ZizDhWchpZZTNYQ04om0WH8eJF8ZcqL48GO878P5cYciskPhKV
+         XuVA1hrq+/4G2wPiB1c2sfdF6iB9NN82bsU+DIM+j00XkopjIkDBR+pgirumFwrpfZmf
+         QrKQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=J2cdsfsG0mpf92WrWuIuHSZ0x1jXPLBhoImykLvIqzA=;
+        b=GPak3IDfaVL+GZqz+FZizYxCe+JnNl7PH5aZQnvvprc78K1wC83+iD5NasjTuwR15K
+         qIenl7yeJEvJ2AsyPL5FDDtNzflPNvGSJwfasa4GXNigQcR4Sg3KJ7qkeuGb7e6NHpYJ
+         FtPt9cjCMfGhCirGe2zkxdMDgb0NfydHxvxKzraLjaUfx+//1f7ZhRRsuDOSdhZZByvN
+         QCYV11xUIF9LEM2DCOw24I9hFnajW8dwg8svVGpfqlXr7PyCwW+kqJTAOHaOdwJrFq3V
+         wcBs8eYesRQg9Yfc1YicnAs5GMVg8iSwrUSImPHg+aNn8+4lHN6W2CUxn3NgLl75rWyM
+         qGtg==
+X-Gm-Message-State: AOAM530kJ+wvA6S+TIPwDz4SMJjfiBYIE0fOjYnsSYM7uVSbQd/v+X/f
+        +9T+5TzhuwkzkW8QDDkPeok=
+X-Google-Smtp-Source: ABdhPJwmr7yCGlGsGBxiF2TATphq27GajOli/euKSMx07hdul5BkpqZyebCmLrnNWmPNbwuD0Pzuig==
+X-Received: by 2002:a17:902:ebca:b0:15f:4cc5:f40f with SMTP id p10-20020a170902ebca00b0015f4cc5f40fmr2643383plg.96.1654139327765;
+        Wed, 01 Jun 2022 20:08:47 -0700 (PDT)
+Received: from localhost.localdomain ([202.120.234.246])
+        by smtp.googlemail.com with ESMTPSA id e22-20020a17090a4a1600b001e345c579d5sm2056326pjh.26.2022.06.01.20.08.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 01 Jun 2022 20:08:47 -0700 (PDT)
+From:   Miaoqian Lin <linmq006@gmail.com>
+To:     Tero Kristo <kristo@kernel.org>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
         Tony Lindgren <tony@atomide.com>,
-        Arnd Bergmann <arnd@arndb.de>, Sasha Levin <sashal@kernel.org>,
-        paul@pwsan.com, aaro.koskinen@iki.fi, linux@armlinux.org.uk,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH AUTOSEL 4.9 02/11] ARM: OMAP1: clock: Fix UART rate reporting algorithm
-Date:   Wed,  1 Jun 2022 10:00:51 -0400
-Message-Id: <20220601140100.2005469-2-sashal@kernel.org>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220601140100.2005469-1-sashal@kernel.org>
-References: <20220601140100.2005469-1-sashal@kernel.org>
+        Miaoqian Lin <linmq006@gmail.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        linux-omap@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] clk: ti: dra7-atl: Fix reference leak in of_dra7_atl_clk_probe
+Date:   Thu,  2 Jun 2022 07:08:36 +0400
+Message-Id: <20220602030838.52057-1-linmq006@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+pm_runtime_get_sync() will increment pm usage counter.
+Forgetting to putting operation will result in reference leak.
+Add missing pm_runtime_put_sync in some error paths.
 
-[ Upstream commit 338d5d476cde853dfd97378d20496baabc2ce3c0 ]
-
-Since its introduction to the mainline kernel, omap1_uart_recalc() helper
-makes incorrect use of clk->enable_bit as a ready to use bitmap mask while
-it only provides the bit number.  Fix it.
-
-Signed-off-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Fixes: 9ac33b0ce81f ("CLK: TI: Driver for DRA7 ATL (Audio Tracking Logic)")
+Signed-off-by: Miaoqian Lin <linmq006@gmail.com>
 ---
- arch/arm/mach-omap1/clock.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/clk/ti/clk-dra7-atl.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 034b89499bd7..a3599696e7cc 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -44,7 +44,7 @@ static DEFINE_SPINLOCK(clockfw_lock);
- unsigned long omap1_uart_recalc(struct clk *clk)
- {
- 	unsigned int val = __raw_readl(clk->enable_reg);
--	return val & clk->enable_bit ? 48000000 : 12000000;
-+	return val & 1 << clk->enable_bit ? 48000000 : 12000000;
+diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
+index aa0950c4f498..5c278d6c985e 100644
+--- a/drivers/clk/ti/clk-dra7-atl.c
++++ b/drivers/clk/ti/clk-dra7-atl.c
+@@ -253,14 +253,16 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
+ 		if (rc) {
+ 			pr_err("%s: failed to lookup atl clock %d\n", __func__,
+ 			       i);
+-			return -EINVAL;
++			ret = -EINVAL;
++			goto pm_put;
+ 		}
+ 
+ 		clk = of_clk_get_from_provider(&clkspec);
+ 		if (IS_ERR(clk)) {
+ 			pr_err("%s: failed to get atl clock %d from provider\n",
+ 			       __func__, i);
+-			return PTR_ERR(clk);
++			ret = PTR_ERR(clk);
++			goto pm_put;
+ 		}
+ 
+ 		cdesc = to_atl_desc(__clk_get_hw(clk));
+@@ -293,8 +295,9 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
+ 		if (cdesc->enabled)
+ 			atl_clk_enable(__clk_get_hw(clk));
+ 	}
+-	pm_runtime_put_sync(cinfo->dev);
+ 
++pm_put:
++	pm_runtime_put_sync(cinfo->dev);
+ 	return ret;
  }
  
- unsigned long omap1_sossi_recalc(struct clk *clk)
 -- 
-2.35.1
+2.25.1
 
