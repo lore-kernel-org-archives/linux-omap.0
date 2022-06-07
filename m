@@ -2,192 +2,214 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66671C43334
-	for <linux-omap@archiver.kernel.org>; Tue,  7 Jun 2022 08:55:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC06CC433EF
+	for <linux-omap@archiver.kernel.org>; Tue,  7 Jun 2022 11:08:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234772AbiFGIzq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 7 Jun 2022 04:55:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38592 "EHLO
+        id S239246AbiFGLIS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 7 Jun 2022 07:08:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238752AbiFGIzp (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2022 04:55:45 -0400
-Received: from mail-yw1-x1135.google.com (mail-yw1-x1135.google.com [IPv6:2607:f8b0:4864:20::1135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16FDF95A04;
-        Tue,  7 Jun 2022 01:55:43 -0700 (PDT)
-Received: by mail-yw1-x1135.google.com with SMTP id 00721157ae682-300628e76f3so167714757b3.12;
-        Tue, 07 Jun 2022 01:55:43 -0700 (PDT)
+        with ESMTP id S242518AbiFGLID (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2022 07:08:03 -0400
+Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E05C01053E6
+        for <linux-omap@vger.kernel.org>; Tue,  7 Jun 2022 04:04:09 -0700 (PDT)
+Received: by mail-lf1-x130.google.com with SMTP id a2so27747783lfc.2
+        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2022 04:04:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=googlemail.com; s=20210112;
+        d=linaro.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=DCFzqf63qTXvY8vrDH8nEkvB0ZzP3LV9vfnLAnBhtZ0=;
-        b=OXAAsSsqWJi+ZmAnZHwZ3Ov4KAt9dijXM7JEfwDpKzXyfryCFwOzxbC3QZhnFXHp9L
-         LFuoi9R8HCIN42XSmqaOQu/XHZqAplNELcuxGGf2VoLBfO3pDcPH93CRMlOVPp8GvbeK
-         qJMmXW0vrt5fobyjEU9WsB+TnJ+ocqasY9EneC+gsH6xNA+vf/ufJDaJr6y94B0CeBBU
-         gaidajhkoKxsVf6D19cMn5pyY4AhQzoUquMv7X3d6hp4zAVC+3zU+lCaMZfz7I+9F4e6
-         pvfblRek8KAGF6ibobsIKH/5/5T74ofRtv2DmzOZI7um4Vz2stoHiTvErbBBkwqUdyil
-         nYEA==
+         :cc:content-transfer-encoding;
+        bh=aO/lSvFaLajkL7Ac/IqTCOTSOPQr+6oNuobROU/TF8k=;
+        b=plZ0JtxWk2Nc24B6pQU1IdzZ7fMFVakDlxjXm1dhZfOhbMC11ALQejl6bnQ4uXxFQq
+         CiRvRizUUB6Q6XOYtz7/pBHYG3DyAdJKKaej8Ki2oFk96Vg4LC8B5NRrQbwIGp50BvQq
+         PCPkamJ/f1O0MGhS4o5loFLInz8co4ctI11OggzRThUimjtNATTeEVur3srhTyvR5aNE
+         UkIncS+2ZcyEDZIzLq6wIxUJfD2flK51qsJ0r3PzGh7yV5Z8nN7KJJePQsOOybCwmYLW
+         GsUb+yluSCn1dtqSGUZvDycBaNNTBCK3iNAg6a5K1Vnz4JR2nK3FrJo1qP6RE2P0bOpK
+         w+Sw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=DCFzqf63qTXvY8vrDH8nEkvB0ZzP3LV9vfnLAnBhtZ0=;
-        b=JFNUP0lvf94KlctMs7wkDXBdNqSouFEgFBsa5SNK3qqWsnojKcLSwTVOCEQ2rq9xYd
-         vEfezFTQkxP76UUO1wErXbHMmq9a818QxxRHwVfnKdciKLdnlAPAOg5NIUeIkzSr0ofw
-         xx/ZoYcthmsuaavUE97IyPwDck/DnO0XMcCG+8jUDGqIBPqwShr+i3mxlaa4Aj1UZmlw
-         TSQ2woviz1s0biMWsKj8kDy3zdmbu7guSx+360ieboWvgtCPgcoiMmg2MP/xU1wSq+Sh
-         javDicJdFyx5M17ljRO9/xDz50fLsk05Ve1XIyuufoZEL5tXNCPotiG0Cp+S5WWAESL4
-         iV7g==
-X-Gm-Message-State: AOAM532aKKBwMGvdevSi2tqptjy8PlFe0UPyqYoPH+0/a/46p3QBzWcu
-        m30O3OiSgaJxXVmH6fB4vMsaSuQFRhgSm6xHo0TGFTahMWs=
-X-Google-Smtp-Source: ABdhPJyGq9SkLesbmhzSr0UuAwuQTtqxxJDorC0eVc6BFNqsVApafYC11XsGlvmyENwQQcTAjo58orj6ynKJSPaNcr8=
-X-Received: by 2002:a81:190f:0:b0:313:43b8:155c with SMTP id
- 15-20020a81190f000000b0031343b8155cmr1295247ywz.495.1654592142166; Tue, 07
- Jun 2022 01:55:42 -0700 (PDT)
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=aO/lSvFaLajkL7Ac/IqTCOTSOPQr+6oNuobROU/TF8k=;
+        b=0/OWLk3/rr7BLO/lCJKMmXHm2n8OB0dOEGMeQyATbsN3bdmuS4Wx/2aHTxVEEgb17J
+         RLSXPhD1QOpL9Lu6h0ivemVvwVRxcN6YNC1LW3re9eNIqJ556uMx6hGY3fdHRy2sBA8g
+         5WimFV5I70ZDoRr1dFKFuq/bDUhmINkU6+5n8fg28D7qJWTDO8jqr1F5Fjb5nuAnCIAP
+         Ji+LsuxSkASTpEXFCU1Q2Lu+8pEeQiBg+z7ihcDeQs7P3nP1csZh3Kfo5HtmHpG7RDOO
+         b1x7wYNcHaBihOBxmnyG1Rh/NR6Er2YSWe54bgW38gXUE1cg1SeE8+g0udpQz6eLyt64
+         tptw==
+X-Gm-Message-State: AOAM533fAMw/IUjxbdHgGYugYLym0Gj7gJdvNzMRjrJ3viXzLsgOHqZP
+        psTmlK0w74XwMIcUmNjpqqUOzXOgJrHuUZ1+ULYidg==
+X-Google-Smtp-Source: ABdhPJwD90lne0lHTxYJKzLqW7u3faS4ilXkDxuw9Uqee5o04CDWGrVYZ5DTYIRIF+JkxWbqPbdIMnggcfaJZleojrA=
+X-Received: by 2002:a19:ac42:0:b0:478:593c:e6fe with SMTP id
+ r2-20020a19ac42000000b00478593ce6femr17856420lfc.254.1654599847422; Tue, 07
+ Jun 2022 04:04:07 -0700 (PDT)
 MIME-Version: 1.0
-References: <CAK8P3a1YTBRO_pRZLqbNHwG4DaYA56tn1_E0g3c1VW0B-jz-qg@mail.gmail.com>
- <CAGm1_kuaRr3BFWSq-2v4vT0VbVvMX=kMHQsQ1KZnKe9UEff3MA@mail.gmail.com>
- <Yozpa3DlLLEzBR8W@atomide.com> <CAGm1_ku5EusuSJ9zhYZBRGdRUr8_NYsx3=BZQkuYtNJpq3Tn_w@mail.gmail.com>
- <Yo8cLxktTytqAEV3@atomide.com> <CAMj1kXEr848Jaxfk64wDgFHMmq-CLvgXtH_sfqVC-4DRLwCDqA@mail.gmail.com>
- <CAGm1_ksuNbMvg5tVOHswMRWQyX8ZA_U-49Ge6uoG0xV7x5viHA@mail.gmail.com>
- <CAK8P3a04Qc3Qkb2s1OmCFVKi=yrLReL4Np0JJYjskMWozBDr7Q@mail.gmail.com>
- <CAGm1_kvnqOz68UDL=n80kZd1UoUaPGJG10YvkxUnezg1rSf6Lg@mail.gmail.com>
- <CAK8P3a2qat95d14QDp7HfKmqm8Kw0s0WVeLH=GkgBwH2c7nJ8A@mail.gmail.com>
- <YpB0tdMHh/aBlfyk@atomide.com> <CAK8P3a3ocZDD9odfDe_WBeovHXCNU4CSScrmE4HVtLKef_z+EQ@mail.gmail.com>
- <CAGm1_ktOPgUSVjPP44Y49GgFLpDMrECu7eqQu7d2ZvJiOftWAQ@mail.gmail.com>
- <CAK8P3a36s6S2B8PTixxEkmaKXL88NAydTm4abdeC+roGtrUTsw@mail.gmail.com>
- <CAGm1_kvdhqrptEYy8WMfqZqG6gaWoBtAojSW5uXYnyXMVfV=Fw@mail.gmail.com>
- <CAK8P3a22hmSnS4X93ETLpF7vPtK_F1TD51SK5VvhEz9L9H4i3g@mail.gmail.com>
- <CAMj1kXF2NFxiNm=9ixOncN_wkgg2NrNNm9vE-CGUvpJuThj3JA@mail.gmail.com>
- <CAK8P3a1DnyNvBqdRGHAnHcXBfoNPn4GfUmf_SBGRRU3q3iwwvg@mail.gmail.com>
- <CAGm1_kta63UM8um5BB5jOh+r9uFMiGwAiYsrNDOwG3dN-Oo47Q@mail.gmail.com>
- <CAK8P3a2yaKcEiO-LvH5z5azTEX1XTh=9U2MChRS92dtatceY5g@mail.gmail.com>
- <CAGm1_kvXaH19nOmP_Dy3nxWpG0UiX7eyauTLB+9Cd2rBovDcEQ@mail.gmail.com>
- <CAMj1kXFfc-e0+dpLJHj9W+=YS=3i0t1+wxF+4qJ5K-g7pTd+YQ@mail.gmail.com>
- <CAGm1_ksndacPPpyZknvHip=7Fv+3NxXjyfCm_DDMm4EbcBuBig@mail.gmail.com>
- <CAK8P3a2VV26MhWz95OwfKz+2k35ee8V876iqdJdZ4o1HuNba8A@mail.gmail.com>
- <CAGm1_ktyCchFwVWhFtrgR621s_fPZJ3u8UmgOPbg7OCOq0h6ZA@mail.gmail.com>
- <CAK8P3a02uFq4edc_VzPaNQXp_cuLXUMbF4c=k6KATApS9hNHkw@mail.gmail.com>
- <CAMj1kXEvxP8ULqy7ajT_cSxMzYLJuCjEZGfYBb=F9qOwz-AFaQ@mail.gmail.com>
- <CAGm1_ksF1UPpdeiTnADiQK8MFbvP8-eDhc=yaCL75EsE_pG=-g@mail.gmail.com>
- <CAGm1_ksmXTnEo_Mxk7+S4vs_CQAs5ZHoEOpq9Tq3ZFf7sruX7A@mail.gmail.com>
- <CAK8P3a1nhBnbbocBNkKUKYhw14OYE0WPEyQcJJXzbpW4uASu_Q@mail.gmail.com>
- <CAGm1_kswMZkoV9_DnB71ugVTF_rh5SV2NazkHROwXiFqhxTWYA@mail.gmail.com>
- <CAK8P3a0Qdav2JaF8yLydxr9amQp30gnY67CVx+ubowUHeG1VeA@mail.gmail.com>
- <CAMj1kXEL48=w08A2t7522y1visAUcnkkq4LA6ERRP_FbCbEgiw@mail.gmail.com>
- <CAMj1kXFmFfQ1oZ-CUcwe+ojSkk+9KBH1azhGrEJ4=-pZgMXX-Q@mail.gmail.com>
- <CAGm1_ku-tygQJrgvHnvJd0xzb6Vw3t_qdz_VKHJx4YWSxCEryA@mail.gmail.com>
- <CAMj1kXHUoDQ0xZ4yBx9uT6D9=6xfOsJoWLoOKho_-=Z9uYS30w@mail.gmail.com>
- <CAGm1_ks8g3RNwOkC8C_B2eYz56cEA7L-6CRdmqmNwSvAg-JP_g@mail.gmail.com>
- <CAMj1kXH+WR03MX94rd1p7Yz60mfrkOvOx=NYoZ9FCSnqMP4nTw@mail.gmail.com>
- <CAGm1_kvZ_6tPgfrTc3pH+6TedoU+mvuEXb+7aEp5mXfx516fmA@mail.gmail.com>
- <CAMj1kXEfKLYYxt9imEO155oxWTzXtWPpF8txGZ-xCs_6vez-WA@mail.gmail.com>
- <CAGm1_kvJpoDk=G3xYKT5UD5QnjRGr9Npft-8OCgtB9+qCjRtqQ@mail.gmail.com>
- <CAGm1_kvrivJLsFJaZtr6ojryDZFu3Xmpum8FURoFT9vMr54LUA@mail.gmail.com>
- <CAK8P3a2113EnZw9BNjCYYmKuNqEk4CtZCC0ydBNNQXetvzTSEg@mail.gmail.com>
- <CAGm1_kuUVKAxcxENnvsq5AGzeXAeXP6yLmjt1MQSpfjdcvZjng@mail.gmail.com>
- <CAK8P3a1VeP6YMYV6hh13K1Q3epuO5wRUmTByY7YVVT86J1giqg@mail.gmail.com> <CAMj1kXEzK2eEXLHP2OH6APpw+yC66XQafFWs6kMni1i+bDC4uA@mail.gmail.com>
-In-Reply-To: <CAMj1kXEzK2eEXLHP2OH6APpw+yC66XQafFWs6kMni1i+bDC4uA@mail.gmail.com>
-From:   Yegor Yefremov <yegorslists@googlemail.com>
-Date:   Tue, 7 Jun 2022 10:55:30 +0200
-Message-ID: <CAGm1_kvutEPNXSVLD6PJ+ND8urrTksKHtELwCLd7sboBUyoz+w@mail.gmail.com>
-Subject: Re: am335x: 5.18.x: system stalling
-To:     Ard Biesheuvel <ardb@kernel.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>,
-        Linux-OMAP <linux-omap@vger.kernel.org>,
-        linux-clk <linux-clk@vger.kernel.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>
+References: <55A0788B-03E8-457E-B093-40FD93F1B9F3@goldelico.com>
+ <CAPDyKFrjH8c=2LYkzj81jm7t-sy-EBs3AMzAS7M=LEHsh9qCCA@mail.gmail.com> <FA636A4D-FA8F-48EE-80C4-EDDFD115FB25@goldelico.com>
+In-Reply-To: <FA636A4D-FA8F-48EE-80C4-EDDFD115FB25@goldelico.com>
+From:   Ulf Hansson <ulf.hansson@linaro.org>
+Date:   Tue, 7 Jun 2022 13:03:30 +0200
+Message-ID: <CAPDyKFoe5xYyiqNuOjLc4AnF-U_CwTujmNSjkjkW1E4O-8RKig@mail.gmail.com>
+Subject: Re: BUG in mmc: core: Disable card detect during shutdown
+To:     "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc:     Discussions about the Letux Kernel <letux-kernel@openphoenux.org>,
+        kernel@pyra-handheld.com, aTc <atc@k-n-p.org>,
+        Tony Lindgren <tony@atomide.com>,
+        linux-omap <linux-omap@vger.kernel.org>,
+        linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-mmc@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sun, Jun 5, 2022 at 4:59 PM Ard Biesheuvel <ardb@kernel.org> wrote:
+On Sat, 4 Jun 2022 at 12:16, H. Nikolaus Schaller <hns@goldelico.com> wrote=
+:
 >
-> On Fri, 3 Jun 2022 at 22:47, Arnd Bergmann <arnd@arndb.de> wrote:
+> Hi,
+>
+> > Am 03.06.2022 um 12:46 schrieb Ulf Hansson <ulf.hansson@linaro.org>:
 > >
-> > On Fri, Jun 3, 2022 at 9:11 PM Yegor Yefremov
-> > <yegorslists@googlemail.com> wrote:
-> > >
-> > > With compiled-in drivers the system doesn't stall. All other tests and
-> > > related outputs will come next week.
+> > On Mon, 30 May 2022 at 18:55, H. Nikolaus Schaller <hns@goldelico.com> =
+wrote:
+> >>
+> >> Hi Ulf,
+> >> users did report a strange issue that the OMAP5 based Pyra does not
+> >> shutdown if a kernel 5.10.116 is used.
+> >>
+>
+> ...
+>
+> >> mmc_stop_host() is not called but __mmc_stop_host() is called 4 times.
+> >> There are 4 active MMC interfaces in the Pyra - 3 for (=C2=B5)SD slots
+> >> and one for an SDIO WLAN module.
+> >>
+> >> Now it looks as if 3 of them are properly teared down (two of them
+> >> seem to have host->slot.cd_irq >=3D 0) but on the fourth call
+> >> cancel_delayed_work_sync(&host->detect); does not return. This is
+> >> likely the location of the stall why we don't see a "reboot: Power dow=
+n"
+> >>
+> >> Any ideas?
 > >
-> > Ah, nice!
+> > I guess the call to cancel_delayed_work_sync() in __mmc_stop_host()
+> > hangs for one of the mmc hosts. This shouldn't happen - and indicates
+> > that there is something else being wrong.
+>
+> Yes, you were right...
+>
 > >
-> > It's probably a reasonable assumption that the smp-patched get_current()
-> > is (at least sometimes) broken in modules but working in the kernel itself.
-> > I suppose that means in the worst case we can hot-fix the issue by
-> > having an 'extern' version of get_current() for the case of
-> > armv6+smp+module ;-)
+> > See more suggestions below.
 > >
->
-> I've coded something up along those lines, and pushed it to my
-> am335x-stall-test branch.
->
-> > Maybe start with the ".long 0xe7f001f2" hack I suggested in my last
-> > mail. If that gives you an oops for the module case, then we know
-> > that the patching doesn't work at all and you don't have to try anything
-> > else, otherwise it's more likely that an incorrect instruction sequence
-> > is patched in.
+> >>
+> >> BR and thanks,
+> >> Nikolaus
+> >>
+> >> printk hack:
+> >>
+> >> void __mmc_stop_host(struct mmc_host *host)
+> >> {
+> >> printk("%s 1\n", __func__);
+> >>        if (host->slot.cd_irq >=3D 0) {
+> >> printk("%s 2\n", __func__);
+> >>                mmc_gpio_set_cd_wake(host, false);
+> >> printk("%s 3\n", __func__);
+> >>                disable_irq(host->slot.cd_irq);
+> >> printk("%s 4\n", __func__);
+> >>        }
+> >>
+> >>        host->rescan_disable =3D 1;
+> >> printk("%s 5\n", __func__);
 > >
+> > My guess is that it's the same mmc host that causes the hang. I
+> > suggest you print the name of the host too, to verify that. Something
+> > along the lines of the below.
+> >
+> > printk("%s: %s 5\n", mmc_hostname(host), __func__);
 >
-> Yeah, I'd be really surprised if the patching misses some occurrences,
-> so I have no clue what is going on here.
+> To my surprise, this did report an mmc6 host port where the OMAP5 only ha=
+s 4...
 >
-> Yegor, can you please try my branch with the original config (i.e.,
-> slcan and ftdio as modules)
+> Yes, we have a special driver for the txs02612 sdio switch and voltage tr=
+anslator
+> chip to make two ports out of the single mmc2 port of the OMAP5 SoC.
 >
-> https://git.kernel.org/pub/scm/linux/kernel/git/ardb/linux.git/log/?h=am335x-stall-test
+> This driver was begun ca. 7 years ago but never finished...
+>
+> The idea is to make a mmc port have several subports. For the Pyra handhe=
+ld hardware
+> we needed 5 mmc/sdio interfaces but the omap5 only has 4 of them availabl=
+e to us.
+>
+> So the txs02612 drivers is sitting between the omap5 mmc2 host pins and s=
+witches
+> between an =C2=B5SD slot and an eMMC.
+>
+> Therefore, the driver is a mmc client driver (like e.g. the driver of som=
+e WiFi chip
+> connected to some SDIO port) and provides multiple mmc host interfaces.
+>
+> It should intercept data transfer requests to its multiple mmc hosts, syn=
+chronize
+> (or enqueue) them, control the switch gpio and forward requests to the pr=
+ocessor's
+> mmc host port so that they are processed (after switching).
+>
+> We never continued to make this work...
 
-@Arnd: I have applied your patch with this change:
+Well, I can imagine that it's just very difficult to make this work properl=
+y.
 
-asm("0: .long 0xe7f001f2                        \n\t" // BUG() trap
+Moreover, the mmc core and its block layer code isn't designed to
+support this type of configuration. For example, the I/O scheduling
+can't work with this setup.
 
-But it revealed nothing new:
+>
+> What remained is simple code to manually throw the switch through some /s=
+ysfs
+> control file after doing an eject and before a fresh partprobe.
+>
+> Still, the probe function of the txs02612 driver does two calls to mmc_ad=
+d_host().
+> These seem to make
+>
+> >
+> >>        cancel_delayed_work_sync(&host->detect);
+>
+> get stuck. Most likely because the initialization is not complete for han=
+dling
+> card detection.
+>
+> >>
+> >> --- here should be another __mmc_stop_host 6
+> >> --- and reboot: Power down
+> >
+> > When/if you figured out that it's the same host that hangs, you could
+> > try to disable that host through the DTS files (add status =3D
+> > "disabled" in the device node, for example) - and see if that works.
+>
+> When not calling mmc_add_host() in our txs02612 driver fragment we can
+> properly shut down the OMAP5. That is the solution with the least efforts=
+.
+> The other would be to make the txs02612 properly work...
+>
+> So in summary there is no bug upstream. It is in our tree.
 
-[   50.754130] rcu: INFO: rcu_sched self-detected stall on CPU
-[   50.760834] rcu:     0-...!: (2600 ticks this GP)
-idle=ec9/1/0x40000004 softirq=1852/1852 fqs=0
-[   50.770407]  (t=2600 jiffies g=2577 q=17)
-[   50.775046] rcu: rcu_sched kthread timer wakeup didn't happen for
-2599 jiffies! g2577 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402
-[   50.786961] rcu:     Possible timer handling issue on cpu=0 timer-softirq=872
-[   50.794429] rcu: rcu_sched kthread starved for 2600 jiffies! g2577
-f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402 ->cpu=0
-[   50.805403] rcu:     Unless rcu_sched kthread gets sufficient CPU
-time, OOM is now expected behavior.
-[   50.814927] rcu: RCU grace-period kthread stack dump:
-[   50.820464] task:rcu_sched       state:I stack:    0 pid:   10
-ppid:     2 flags:0x00000000
-[   50.830019] [<c0b683d4>] (__schedule) from [<c0b68d18>] (schedule+0x54/0xe8)
-[   50.838470] [<c0b68d18>] (schedule) from [<c0b6f51c>]
-(schedule_timeout+0xa8/0x210)
-[   50.847208] [<c0b6f51c>] (schedule_timeout) from [<c01d85b4>]
-(rcu_gp_fqs_loop+0x118/0x6b4)
-[   50.856631] [<c01d85b4>] (rcu_gp_fqs_loop) from [<c01dc4e4>]
-(rcu_gp_kthread+0x138/0x30c)
-[   50.865832] [<c01dc4e4>] (rcu_gp_kthread) from [<c0164df8>]
-(kthread+0x13c/0x164)
-[   50.874315] [<c0164df8>] (kthread) from [<c0100140>]
-(ret_from_fork+0x14/0x34)
-[   50.882477] rcu: Stack dump where RCU GP kthread last ran:
-[   50.888512] NMI backtrace for cpu 0
-[   50.892575] CPU: 0 PID: 62 Comm: kworker/0:12 Not tainted 5.16.0-rc1 #1
-[   50.899912] Hardware name: Generic AM33XX (Flattened Device Tree)
-[   50.906610] Workqueue: events dbs_work_handler
-[   50.912202] [<c0111600>] (unwind_backtrace) from [<c010bff4>]
-(show_stack+0x10/0x14)
-[   50.921035] [<c010bff4>] (show_stack) from [<d03919f0>] (0xd03919f0)
-[   50.928943] NMI backtrace for cpu 0
-[   50.933084] CPU: 0 PID: 62 Comm: kworker/0:12 Not tainted 5.16.0-rc1 #1
-[   50.940419] Hardware name: Generic AM33XX (Flattened Device Tree)
-[   50.947083] Workqueue: events dbs_work_handler
-[   50.952574] [<c0111600>] (unwind_backtrace) from [<c010bff4>]
-(show_stack+0x10/0x14)
-[   50.961334] [<c010bff4>] (show_stack) from [<d03919f0>] (0xd03919f0)
+Thanks for sharing the details.
 
-@Ard: I have tried your branch
-(21b6671c82d4df52ea0c7837705331acb375c5c8). The system still stalls.
+>
+> If you are interested in how our code fragment for the txs02612 looks lik=
+e:
+>
+> https://git.goldelico.com/?p=3Dletux-kernel.git;a=3Dshortlog;h=3Drefs/hea=
+ds/letux/txs02612
+>
+> Maybe you have some suggestions to make it work?
 
-Yegor
+Sorry, but I have lots of things to do at this point, maybe some other time=
+.
+
+Kind regards
+Uffe
