@@ -2,85 +2,127 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBCFCCCA48A
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 00:42:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC698C43334
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 09:16:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346456AbiFHAmf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 7 Jun 2022 20:42:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54724 "EHLO
+        id S234785AbiFHJQG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Jun 2022 05:16:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1441932AbiFGW6U (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2022 18:58:20 -0400
-X-Greylist: delayed 1826 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 07 Jun 2022 13:03:41 PDT
-Received: from 9.mo575.mail-out.ovh.net (9.mo575.mail-out.ovh.net [46.105.78.111])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF8E332E773
-        for <linux-omap@vger.kernel.org>; Tue,  7 Jun 2022 13:03:41 -0700 (PDT)
-Received: from player698.ha.ovh.net (unknown [10.109.138.64])
-        by mo575.mail-out.ovh.net (Postfix) with ESMTP id C641923C7B
-        for <linux-omap@vger.kernel.org>; Tue,  7 Jun 2022 19:24:48 +0000 (UTC)
-Received: from sk2.org (82-65-25-201.subs.proxad.net [82.65.25.201])
-        (Authenticated sender: steve@sk2.org)
-        by player698.ha.ovh.net (Postfix) with ESMTPSA id 7CF082B4804EA;
-        Tue,  7 Jun 2022 19:24:38 +0000 (UTC)
-Authentication-Results: garm.ovh; auth=pass (GARM-110S0043757001c-4f3a-4d1c-ba12-6ec75814bbad,
-                    38FB55E0ED6224772C245AF554E1AE62085133ED) smtp.auth=steve@sk2.org
-X-OVh-ClientIp: 82.65.25.201
-From:   Stephen Kitt <steve@sk2.org>
-To:     Antonino Daplas <adaplas@gmail.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Helge Deller <deller@gmx.de>, Paul Mackerras <paulus@samba.org>
-Cc:     linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Stephen Kitt <steve@sk2.org>, linux-omap@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: [PATCH 6/7] fbdev: omapfb: panel-dsi-cm: Use backlight helper
-Date:   Tue,  7 Jun 2022 21:23:34 +0200
-Message-Id: <20220607192335.1137249-7-steve@sk2.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220607192335.1137249-1-steve@sk2.org>
-References: <20220607192335.1137249-1-steve@sk2.org>
+        with ESMTP id S235607AbiFHJPH (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 05:15:07 -0400
+Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1A411E44C4;
+        Wed,  8 Jun 2022 01:39:57 -0700 (PDT)
+Received: by mail-pj1-x1032.google.com with SMTP id cx11so17988377pjb.1;
+        Wed, 08 Jun 2022 01:39:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
+        bh=JASAiT3vXh0ZJKWH+RJe3v1twmK34V/YWwlarnk5/x0=;
+        b=mzh5bNGbHr3vGSP7PJBL66nAkjOZ/q2p2L8puGTWPsHBE8qiaedY6T1LYAjy/dViU2
+         MIOWg+tV9Id8u1JadoTwdlMJTkOXPbATkDPz22j48vXFBm+UERMywzJuHCK+wvwxkrEo
+         2lple/TzyYJ9gkFxugOXyrvoHHWnrzaY4PLDqr8YiH1qP5pq1LAo+nfdaLNgQxyEE5/U
+         5M1a9q9Io3KBHQgg/e8YQk3u60XyR6LJGnxNTnU36cvpLQyS07qWRNhBW6bIFTMr6T1C
+         XktI+luDD4TbwmretCKI+ZJESgm2qvlqjpu77Ore4mLokpYo3RBvjPVr/julwkwlBz/D
+         rS8A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition;
+        bh=JASAiT3vXh0ZJKWH+RJe3v1twmK34V/YWwlarnk5/x0=;
+        b=WXZznnKjnHdqn8aOMrPBuMwzv3wN01OriIMAV2kbyrGTDltIzp1EnofpXbboLKJcfq
+         CZ9gC3rSdet9WGkncQE5jUlw5c1bEHzNYlaUaIlheOqSiOUKBvlgUHK/JtcinGKM1XLF
+         ao0TsjgEyDgzrA6YW4tjee7A3W8U+GU6XrNUu237KT70tymnk0PWCYZyH04PHJQ2Bkyk
+         Su/IUsYw1K21A843cPBcjvdcQauUdsmAnf6hAUuFE3TIxelwB4HHS3pe5HEGrWPL2F+g
+         vSX12ERJl1JxZEso5GE1M2nLeMXzXzwZ50hVsn1kVoqC/PWW1boss2KNiKxu6o9mtEGI
+         ipdg==
+X-Gm-Message-State: AOAM531/sRgiXNJGRRrfLPRKu8Wvyn/o34lgWJobXRHimV7/MPaCLJ9s
+        w2F+SacQ5xYd1ONVjI0ini8=
+X-Google-Smtp-Source: ABdhPJz6h8AXUH2LJZjDhTb51xavtnq5fJGuXMz/UJjlqctNAsIAqj4tOG3352gD8ob9z1b304PQ+Q==
+X-Received: by 2002:a17:90a:9741:b0:1e8:a001:5caa with SMTP id i1-20020a17090a974100b001e8a0015caamr8765872pjw.231.1654677597383;
+        Wed, 08 Jun 2022 01:39:57 -0700 (PDT)
+Received: from localhost (subs02-180-214-232-66.three.co.id. [180.214.232.66])
+        by smtp.gmail.com with ESMTPSA id u5-20020a170903108500b00161f9e72233sm13800249pld.261.2022.06.08.01.39.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 08 Jun 2022 01:39:56 -0700 (PDT)
+Date:   Wed, 8 Jun 2022 15:39:54 +0700
+From:   Bagas Sanjaya <bagasdotme@gmail.com>
+To:     Linux ARM <linux-arm-kernel@lists.infradead.org>
+Cc:     =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        Russell King <linux@armlinux.org.uk>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
+        linux-kernel@vger.kernel.org
+Subject: virt_to_phys outside array bounds warning (GCC 12.1.0)
+Message-ID: <YqBgWoXQmzVczRDo@debian.me>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Ovh-Tracer-Id: 11961560612720903913
-X-VR-SPAMSTATE: OK
-X-VR-SPAMSCORE: -100
-X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvfedruddthedgudefjecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfqggfjpdevjffgvefmvefgnecuuegrihhlohhuthemucehtddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkffojghfggfgsedtkeertdertddtnecuhfhrohhmpefuthgvphhhvghnucfmihhtthcuoehsthgvvhgvsehskhdvrdhorhhgqeenucggtffrrghtthgvrhhnpeeghffhleeigffhteeiffelveefhfeiudehkedtgefhgedvleffgfejgfdtveeigeenucfkpheptddrtddrtddrtddpkedvrdeihedrvdehrddvtddunecuvehluhhsthgvrhfuihiivgepfeenucfrrghrrghmpehmohguvgepshhmthhpohhuthdphhgvlhhopehplhgrhigvrheileekrdhhrgdrohhvhhdrnhgvthdpihhnvghtpedtrddtrddtrddtpdhmrghilhhfrhhomhepshhtvghvvgesshhkvddrohhrghdpnhgspghrtghpthhtohepuddprhgtphhtthhopehlihhnuhigqdhomhgrphesvhhgvghrrdhkvghrnhgvlhdrohhrghdpoffvtefjohhsthepmhhoheejhe
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Instead of retrieving the backlight brightness in struct
-backlight_properties manually, and then checking whether the backlight
-should be on at all, use backlight_get_brightness() which does all
-this and insulates this from future changes.
+Hi everyone,
 
-Signed-off-by: Stephen Kitt <steve@sk2.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
----
- drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+When cross-compiling arm 5.19-rc1 kernel using GCC 12.1.0 (armv7 with neon
+fpu, multi_v7_defconfig), I got outside array bounds warning pointing to
+virt_to_phys() macro:
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-index a2c7c5cb1523..236430b5dc52 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-@@ -331,13 +331,7 @@ static int dsicm_bl_update_status(struct backlight_device *dev)
- 	struct panel_drv_data *ddata = dev_get_drvdata(&dev->dev);
- 	struct omap_dss_device *in = ddata->in;
- 	int r;
--	int level;
--
--	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
--			dev->props.power == FB_BLANK_UNBLANK)
--		level = dev->props.brightness;
--	else
--		level = 0;
-+	int level = backlight_get_brightness(dev);
- 
- 	dev_dbg(&ddata->pdev->dev, "update brightness to %d\n", level);
- 
+  DTC     arch/arm/boot/dts/am335x-evm.dtb
+In file included from ./arch/arm/include/asm/page.h:163,
+                 from ./arch/arm/include/asm/thread_info.h:14,
+                 from ./include/linux/thread_info.h:60,
+                 from ./include/asm-generic/preempt.h:5,
+                 from ./arch/arm/include/generated/asm/preempt.h:1,
+                 from ./include/linux/preempt.h:78,
+                 from ./include/linux/spinlock.h:55,
+                 from ./include/linux/wait.h:9,
+                 from ./include/linux/wait_bit.h:8,
+                 from ./include/linux/fs.h:6,
+                 from ./include/linux/proc_fs.h:10,
+                 from ./include/linux/efi.h:19,
+                 from arch/arm/kernel/setup.c:7:
+In function 'request_standard_resources',
+    inlined from 'setup_arch' at arch/arm/kernel/setup.c:1158:2:
+./arch/arm/include/asm/memory.h:311:22: warning: array subscript -1 is outside array bounds of 'char[2147483647]' [-Warray-bounds]
+  311 | #define virt_to_phys virt_to_phys
+arch/arm/kernel/setup.c:855:31: note: in expansion of macro 'virt_to_phys'
+  855 |         kernel_code.end     = virt_to_phys(__init_begin - 1);
+      |                               ^~~~~~~~~~~~
+In file included from ./include/linux/pid_namespace.h:7,
+                 from ./include/linux/ptrace.h:10,
+                 from ./include/linux/elfcore.h:11,
+                 from ./include/linux/crash_core.h:6,
+                 from ./include/linux/kexec.h:18,
+                 from arch/arm/kernel/setup.c:20:
+./include/linux/mm.h: In function 'setup_arch':
+./include/linux/mm.h:2500:21: note: at offset -1 into object '__init_begin' of size [0, 2147483647]
+ 2500 |         extern char __init_begin[], __init_end[];
+      |                     ^~~~~~~~~~~~
+In function 'request_standard_resources',
+    inlined from 'setup_arch' at arch/arm/kernel/setup.c:1158:2:
+./arch/arm/include/asm/memory.h:311:22: warning: array subscript -1 is outside array bounds of 'char[2147483647]' [-Warray-bounds]
+  311 | #define virt_to_phys virt_to_phys
+arch/arm/kernel/setup.c:857:31: note: in expansion of macro 'virt_to_phys'
+  857 |         kernel_data.end     = virt_to_phys(_end - 1);
+      |                               ^~~~~~~~~~~~
+In file included from ./arch/arm/include/asm/sections.h:5,
+                 from ./include/linux/interrupt.h:21,
+                 from ./include/linux/rtc.h:17,
+                 from ./include/linux/efi.h:20:
+./include/asm-generic/sections.h: In function 'setup_arch':
+./include/asm-generic/sections.h:41:13: note: at offset -1 into object '_end' of size [0, 2147483647]
+   41 | extern char _end[];
+      |             ^~~~
+
+Thanks.
+
+Reported-by: Bagas Sanjaya <bagasdotme@gmail.com>
+
 -- 
-2.30.2
-
+An old man doll... just what I always wanted! - Clara
