@@ -2,112 +2,147 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EFBECCA47E
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 10:09:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12393CCA49C
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 14:47:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235965AbiFHKJq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Jun 2022 06:09:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35570 "EHLO
+        id S242588AbiFHOrU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Jun 2022 10:47:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236189AbiFHKIM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 06:08:12 -0400
-Received: from mail-pj1-x102c.google.com (mail-pj1-x102c.google.com [IPv6:2607:f8b0:4864:20::102c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45DA51B0780;
-        Wed,  8 Jun 2022 02:51:36 -0700 (PDT)
-Received: by mail-pj1-x102c.google.com with SMTP id j7so18116515pjn.4;
-        Wed, 08 Jun 2022 02:51:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=fauG2+ouC/pE9fJBFguldPR02kf/OkXrX9OF5a1epKw=;
-        b=HMDNWEhCcLSUhdf09KbZLJllzy0AHoA5hc7cY+4DfDKpW3uhdJJGQTM+yjNkBMqLC0
-         rel0nka4lEpbb+UZaUt2hdT2PndkqBx9zUxAjumk+h47hcHBM/kwuB01UJ2vi57TYn1S
-         bQYn+pk+nuP3R1TtODW7OP1xUqdV8AsjP9m2AQQU4wWsRjO8MqdDt49f8k7fRbhjrEGK
-         BR8Ad9MoyjpPqYQf/1w6npeHENegaiZkU1umUoVJlpoj/YNRrQ4d2io8IAjflbzm+L4R
-         1sJN0vFwes29VAAdtCA3+nhPFeSHeqwhgIU1IYGqBiwoBG1qB6AG5kzC/m4B/DwShDUt
-         UHyg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=fauG2+ouC/pE9fJBFguldPR02kf/OkXrX9OF5a1epKw=;
-        b=JVdBqo2+E22LHn0+jbrBhtHLC4D9x/nr1ATfVZkTshNFcksdet+30xZEa7NthhUoLV
-         GGf7k6uYWt8Ehvws9lpadtEkg8JcZJ1uAhJ+cHPSPCerPicL6AClCRknbmjVsnRmpMND
-         IHZeKRHfUUfd1tqFegcU5ETPPCK2x1f6g4JataOC8HUSuBkJowNDApfsdP4QCFXdl/WY
-         Noq6+8Kfrdhm8jo+BSDUdFAruzehufdkIobuqQO4K9uNQggVWOG72vTRQCYuNI656lA+
-         uXlRPS8TSnoSyA/Cz5HQAwGGFzZkmT71Q6svoWvVJihMiVxezhLPHJXKqWq2VJJZaqug
-         lkZg==
-X-Gm-Message-State: AOAM530Z8sJk7EXq1TKqNQwu2/9sN0mIPVSd8HMvxijy9GhGFVQ7WU3l
-        WnzbyzS4Ahw3llQ1hyEfSVU=
-X-Google-Smtp-Source: ABdhPJxEWS/rHoQGxKsD3tIotODBmp2FZwHZA31x813cDASnCP9ZP49/qjqKKz0GqJChqK0YicDI1A==
-X-Received: by 2002:a17:90b:3b8a:b0:1e2:ee1e:6340 with SMTP id pc10-20020a17090b3b8a00b001e2ee1e6340mr36776831pjb.38.1654681895328;
-        Wed, 08 Jun 2022 02:51:35 -0700 (PDT)
-Received: from [192.168.43.80] (subs03-180-214-233-80.three.co.id. [180.214.233.80])
-        by smtp.gmail.com with ESMTPSA id e13-20020aa798cd000000b0050dc76281b8sm15275765pfm.146.2022.06.08.02.51.28
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 08 Jun 2022 02:51:33 -0700 (PDT)
-Message-ID: <28ec9f61-3086-a12e-3e8d-33f855f916fc@gmail.com>
-Date:   Wed, 8 Jun 2022 16:51:26 +0700
+        with ESMTP id S242186AbiFHOq7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 10:46:59 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABAD9253307;
+        Wed,  8 Jun 2022 07:46:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
+        Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
+        Content-ID:Content-Description:In-Reply-To;
+        bh=fn1U7MEbZz2QK5hbMetRGs1LaJ4dLQ5TDl+y9fGIqjs=; b=AHoLDlFIJpM2yJSN34mWYuYDyZ
+        RrXBAbCHcbiLETtqHyostv6hzGyHst5r7VORCZGrERmGvvRqMr2NwXjLQsK1TYGzVvVJBLCgsCf3j
+        LieJtCZHAdjEyntbLFkbTU93xwC08IjFigevejKo+3rMPJ833Xxh7xrrmgzcKasuf6t3frm6PkmxU
+        vZovY0XqO2YqPGD7SFjfk9rslAidePmYi7ReTaMHUlcVRH/amspREeDyWUmyOeqnEP6bQYjeAjWHS
+        JBInW3LvF6tscP+ZjodqILQopYhhA13ptDRMV4kNqtb9FKzkYAPZG/ay8CNlYM5sVD+3xA6vTTC0E
+        vR1dCMqg==;
+Received: from dhcp-077-249-017-003.chello.nl ([77.249.17.3] helo=noisy.programming.kicks-ass.net)
+        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nywwz-0066Bh-PG; Wed, 08 Jun 2022 14:46:26 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 03F4C302E49;
+        Wed,  8 Jun 2022 16:46:23 +0200 (CEST)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
+        id 75C7720C10EAF; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
+Message-ID: <20220608144516.871305980@infradead.org>
+User-Agent: quilt/0.66
+Date:   Wed, 08 Jun 2022 16:27:38 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     peterz@infradead.org
+Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        vgupta@kernel.org, linux@armlinux.org.uk,
+        ulli.kroll@googlemail.com, linus.walleij@linaro.org,
+        shawnguo@kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
+        kernel@pengutronix.de, festevam@gmail.com, linux-imx@nxp.com,
+        tony@atomide.com, khilman@kernel.org, catalin.marinas@arm.com,
+        will@kernel.org, guoren@kernel.org, bcain@quicinc.com,
+        chenhuacai@kernel.org, kernel@xen0n.name, geert@linux-m68k.org,
+        sammy@sammy.net, monstr@monstr.eu, tsbogend@alpha.franken.de,
+        dinguyen@kernel.org, jonas@southpole.se,
+        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
+        James.Bottomley@HansenPartnership.com, deller@gmx.de,
+        mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
+        paul.walmsley@sifive.com, palmer@dabbelt.com,
+        aou@eecs.berkeley.edu, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
+        svens@linux.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org,
+        davem@davemloft.net, richard@nod.at,
+        anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
+        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
+        dave.hansen@linux.intel.com, x86@kernel.org, hpa@zytor.com,
+        acme@kernel.org, mark.rutland@arm.com,
+        alexander.shishkin@linux.intel.com, jolsa@kernel.org,
+        namhyung@kernel.org, jgross@suse.com, srivatsa@csail.mit.edu,
+        amakhalov@vmware.com, pv-drivers@vmware.com,
+        boris.ostrovsky@oracle.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        rafael@kernel.org, lenb@kernel.org, pavel@ucw.cz,
+        gregkh@linuxfoundation.org, mturquette@baylibre.com,
+        sboyd@kernel.org, daniel.lezcano@linaro.org, lpieralisi@kernel.org,
+        sudeep.holla@arm.com, agross@kernel.org,
+        bjorn.andersson@linaro.org, anup@brainfault.org,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        jacob.jun.pan@linux.intel.com, Arnd Bergmann <arnd@arndb.de>,
+        yury.norov@gmail.com, andriy.shevchenko@linux.intel.com,
+        linux@rasmusvillemoes.dk, rostedt@goodmis.org, pmladek@suse.com,
+        senozhatsky@chromium.org, john.ogness@linutronix.de,
+        paulmck@kernel.org, frederic@kernel.org, quic_neeraju@quicinc.com,
+        josh@joshtriplett.org, mathieu.desnoyers@efficios.com,
+        jiangshanlai@gmail.com, joel@joelfernandes.org,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, bsegall@google.com, mgorman@suse.de,
+        bristot@redhat.com, vschneid@redhat.com, jpoimboe@kernel.org,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-perf-users@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        xen-devel@lists.xenproject.org, linux-xtensa@linux-xtensa.org,
+        linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
+        linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
+        rcu@vger.kernel.org
+Subject: [PATCH 15/36] cpuidle,cpu_pm: Remove RCU fiddling from cpu_pm_{enter,exit}()
+References: <20220608142723.103523089@infradead.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.10.0
-Subject: Re: virt_to_phys outside array bounds warning (GCC 12.1.0)
-Content-Language: en-US
-To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>
-Cc:     =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-        Russell King <linux@armlinux.org.uk>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
-        linux-kernel@vger.kernel.org, Kees Cook <keescook@chromium.org>,
-        Naresh Kamboju <naresh.kamboju@linaro.org>,
-        Andrew Morton <akpm@linux-foundation.org>
-References: <YqBgWoXQmzVczRDo@debian.me>
- <e8f8f42b-9df3-d9a1-893e-0f972e27ef80@linaro.org>
-From:   Bagas Sanjaya <bagasdotme@gmail.com>
-In-Reply-To: <e8f8f42b-9df3-d9a1-893e-0f972e27ef80@linaro.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 6/8/22 16:28, Krzysztof Kozlowski wrote:
-> On 08/06/2022 10:39, Bagas Sanjaya wrote:
->> Hi everyone,
->>
->> When cross-compiling arm 5.19-rc1 kernel using GCC 12.1.0 (armv7 with neon
->> fpu, multi_v7_defconfig), I got outside array bounds warning pointing to
->> virt_to_phys() macro:
->>
-> 
-> Thanks for the report!
-> 
-> I think this was already reported:
-> https://lore.kernel.org/all/CAK8P3a3X0UwQiVNZqvGmSKi8BX6zg=k07+9Q3rDGqHVkc8Hdsg@mail.gmail.com/
-> 
+All callers should still have RCU enabled.
 
-The report above is for arm64, but similar to this report (arm report).
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ kernel/cpu_pm.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-> Anyway, for the future:
-> I don't think the CC list matches the problem. Please bisect this issue
-> (since it is reproducible build time, it should be straightforward) to
-> find offending commit and then Cc responsible people and maintainers
-> (scripts/get_maintainer.pl). Ccing half-random people might not get
-> necessary attention.
-> 
+--- a/kernel/cpu_pm.c
++++ b/kernel/cpu_pm.c
+@@ -30,16 +30,9 @@ static int cpu_pm_notify(enum cpu_pm_eve
+ {
+ 	int ret;
+ 
+-	/*
+-	 * This introduces a RCU read critical section, which could be
+-	 * disfunctional in cpu idle. Copy RCU_NONIDLE code to let RCU know
+-	 * this.
+-	 */
+-	rcu_irq_enter_irqson();
+ 	rcu_read_lock();
+ 	ret = raw_notifier_call_chain(&cpu_pm_notifier.chain, event, NULL);
+ 	rcu_read_unlock();
+-	rcu_irq_exit_irqson();
+ 
+ 	return notifier_to_errno(ret);
+ }
+@@ -49,11 +42,9 @@ static int cpu_pm_notify_robust(enum cpu
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	rcu_irq_enter_irqson();
+ 	raw_spin_lock_irqsave(&cpu_pm_notifier.lock, flags);
+ 	ret = raw_notifier_call_chain_robust(&cpu_pm_notifier.chain, event_up, event_down, NULL);
+ 	raw_spin_unlock_irqrestore(&cpu_pm_notifier.lock, flags);
+-	rcu_irq_exit_irqson();
+ 
+ 	return notifier_to_errno(ret);
+ }
 
-I think the most likely culprit is commit 37efe6427dd50e ("[ARM] use asm/sections.h")
-and 14c4a533e0996f ("ARM: 8583/1: mm: fix location of _etext").
 
-
-Thanks.
-
--- 
-An old man doll... just what I always wanted! - Clara
