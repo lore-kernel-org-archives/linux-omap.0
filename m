@@ -2,57 +2,98 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0448AC43334
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 09:25:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B86CC433EF
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 09:56:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234435AbiFHJZx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Jun 2022 05:25:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56528 "EHLO
+        id S235573AbiFHJ4M (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Jun 2022 05:56:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233569AbiFHJZV (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 05:25:21 -0400
-X-Greylist: delayed 1786 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 08 Jun 2022 01:48:17 PDT
-Received: from mail.puregrowthonline.pl (mail.puregrowthonline.pl [51.38.124.91])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27CC513D33
-        for <linux-omap@vger.kernel.org>; Wed,  8 Jun 2022 01:48:17 -0700 (PDT)
-Received: by mail.puregrowthonline.pl (Postfix, from userid 1002)
-        id 862ADA2A7E; Wed,  8 Jun 2022 08:10:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=puregrowthonline.pl;
-        s=mail; t=1654675851;
-        bh=CSKXLMgcdpWkXuTgJn5+jsCVobtU9JEF4vCnS5z6McM=;
-        h=Date:From:To:Subject:From;
-        b=SKPElaaapB9aOHWHpU3Q8E2KwYenzimMHNmlUwyZY12lXCAx3dkZad7JWVNDv/X4M
-         Ff0UlcFImzpuFC5goLmZeTTTOzad4T/KwWjmHphv3HzB1Uj3dB0DAXBLoFCa+hE+XL
-         Lm4wkQXf57UEoJBgzM+mXdM/8zR1G6hqUTTRIWWp+wEEISQ5KbyPSAOmGQzeK87O1d
-         z95LCZvFPx1pG092S3b76zz7FnGGDAtu3plyAMy6pp82C75X1VbJhHQSK/WDNovzYt
-         nBcrJ+7rVGTgyUpCH6i0MgGRjnV00h4/DbYG2zSaZlMa3QkpHhWpPgWX9N674palZu
-         yC809tH699AQA==
-Received: by mail.puregrowthonline.pl for <linux-omap@vger.kernel.org>; Wed,  8 Jun 2022 08:10:14 GMT
-Message-ID: <20220608064500-0.1.41.cyr5.0.16ch3e17om@puregrowthonline.pl>
-Date:   Wed,  8 Jun 2022 08:10:14 GMT
-From:   "Wiktor Nurek" <wiktor.nurek@puregrowthonline.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: =?UTF-8?Q?Nap=C5=82yw_Klient=C3=B3w_ze_strony?=
-X-Mailer: mail.puregrowthonline.pl
+        with ESMTP id S235431AbiFHJzq (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 05:55:46 -0400
+Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE77B1D0CE
+        for <linux-omap@vger.kernel.org>; Wed,  8 Jun 2022 02:28:50 -0700 (PDT)
+Received: by mail-ed1-x533.google.com with SMTP id x62so26233931ede.10
+        for <linux-omap@vger.kernel.org>; Wed, 08 Jun 2022 02:28:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=tYlyFzass8h6qw1uVJCGkyhUXjbk3smDlrzXeVxT2u0=;
+        b=nkmMdQf5gBkPPQncIiRbX4OmocdVvb04QgoCyoOvb8/BiZwuwtHzO3RYNw51QcVBLn
+         FUDNeSqLLD0qO2q19UR6R3rElVE/6r+TzOl8iFFLxMGm+f9TKQKPmS9CjnbvO4KEaxI9
+         jh1wHL6AsGDk2UTWVzk6V6D5Yie/8QFRJ3me7cKSRKv7+q9LE9L1KGKbADEBUDnyevjO
+         dcoTdsctg5XxZ89ef8k9GYLUvvZSeXpYS79pvU3vGvVXxDvHlyQcqEP/V6Y89LA3RQb1
+         ndcc/WGZ7LAgsabiri48VMWywJfIz1fEJb8CYw7jZzOYumL5/Qt60W3Ghlr5GznqczUM
+         nReA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=tYlyFzass8h6qw1uVJCGkyhUXjbk3smDlrzXeVxT2u0=;
+        b=6amLRqRkvANfxyQahroVvntrel/yRbjOBDyfbNqHz67AnfNNeYkQ4a8FtdXtkMXgv0
+         Z4DJMA/MkF5jT1rREBbhiMNBjh91n6VYuAfwqhBEPjwkJ+hcQxtDBI/B7tCSvAFo5aL0
+         MlmhWWkJrIfDwz7U2tXk4laNojqhYo8y/Ls1u6+zH8iURM0BpWHfzGlBSl5LHDYeVMrC
+         wuUrHiqqSEA2PQL5wqwVWpd0zALfC3GU2lTvRK7C0L8nk56/exqE6ahR0cyGR1JmKr3H
+         ArQzv44igqSB89LzFHoXo/ZmSzZistqmbT7KH/LH7n77CeBytINc5ueHiZHlEKKfQyfv
+         sB1A==
+X-Gm-Message-State: AOAM532UrPA6d/FvEIidPAAjliUz41Riq34wBWw8BkoSvKb/GHyTC3Wj
+        ra1ur16Qr4PkmClx5eXIjQ1ioA==
+X-Google-Smtp-Source: ABdhPJxSvoedkDPLE3K7WO2Ng7V7WDi6E5/s8bE2TvqYyjk3hC0W2h/BYjqHyqu0LAowzu3WzqtrZA==
+X-Received: by 2002:a05:6402:c44:b0:431:52cc:f933 with SMTP id cs4-20020a0564020c4400b0043152ccf933mr18473131edb.41.1654680529297;
+        Wed, 08 Jun 2022 02:28:49 -0700 (PDT)
+Received: from [192.168.0.191] (xdsl-188-155-176-92.adslplus.ch. [188.155.176.92])
+        by smtp.gmail.com with ESMTPSA id o13-20020a17090608cd00b006fedcb78854sm8876898eje.164.2022.06.08.02.28.48
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 08 Jun 2022 02:28:48 -0700 (PDT)
+Message-ID: <e8f8f42b-9df3-d9a1-893e-0f972e27ef80@linaro.org>
+Date:   Wed, 8 Jun 2022 11:28:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.10.0
+Subject: Re: virt_to_phys outside array bounds warning (GCC 12.1.0)
+Content-Language: en-US
+To:     Bagas Sanjaya <bagasdotme@gmail.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>
+Cc:     =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        Russell King <linux@armlinux.org.uk>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
+        linux-kernel@vger.kernel.org
+References: <YqBgWoXQmzVczRDo@debian.me>
+From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+In-Reply-To: <YqBgWoXQmzVczRDo@debian.me>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On 08/06/2022 10:39, Bagas Sanjaya wrote:
+> Hi everyone,
+> 
+> When cross-compiling arm 5.19-rc1 kernel using GCC 12.1.0 (armv7 with neon
+> fpu, multi_v7_defconfig), I got outside array bounds warning pointing to
+> virt_to_phys() macro:
+> 
 
-chcia=C5=82bym poinformowa=C4=87 Pa=C5=84stwa o mo=C5=BCliwo=C5=9Bci pozy=
-skania nowych zlece=C5=84 ze strony www.
+Thanks for the report!
 
-Widzimy zainteresowanie potencjalnych Klient=C3=B3w Pa=C5=84stwa firm=C4=85=
-, dlatego ch=C4=99tnie pomo=C5=BCemy Pa=C5=84stwu dotrze=C4=87 z ofert=C4=
-=85 do wi=C4=99kszego grona odbiorc=C3=B3w poprzez efektywne metody pozyc=
-jonowania strony w Google.
+I think this was already reported:
+https://lore.kernel.org/all/CAK8P3a3X0UwQiVNZqvGmSKi8BX6zg=k07+9Q3rDGqHVkc8Hdsg@mail.gmail.com/
 
-Czy m=C3=B3g=C5=82bym liczy=C4=87 na kontakt zwrotny?
+Anyway, for the future:
+I don't think the CC list matches the problem. Please bisect this issue
+(since it is reproducible build time, it should be straightforward) to
+find offending commit and then Cc responsible people and maintainers
+(scripts/get_maintainer.pl). Ccing half-random people might not get
+necessary attention.
 
-
-Pozdrawiam serdecznie,
-Wiktor Nurek
+Best regards,
+Krzysztof
