@@ -2,42 +2,42 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60815CCA487
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 14:47:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAA95CCA486
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 14:47:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242658AbiFHOrY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Jun 2022 10:47:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56644 "EHLO
+        id S242679AbiFHOr0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Jun 2022 10:47:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242162AbiFHOq6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 10:46:58 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCA1A1D519F;
-        Wed,  8 Jun 2022 07:46:49 -0700 (PDT)
+        with ESMTP id S242004AbiFHOqv (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 10:46:51 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 878E120181;
+        Wed,  8 Jun 2022 07:46:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
+        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=ou5L3Xuucqh3BNNcA7ggTsb03AZP3YIS722c+bYuzBQ=; b=BlrojMz/WbhW29sFV97MzV8OkQ
-        RbPl1tJnHXIxdvTZTXTAPTmSz82CraWzijvfQReGUaxdfpAVsIqf9Bb7I3yG0HKOfVEo+V/hsP2Tv
-        xAP72un6N9viz+BOTJqpO3xb9FBcnrwXu0Gqj13RaQnBFwYVICpLsQ8t1YVJW3yIqgPUGxlKeZQQa
-        wm9PfHjlB6b5hxLvDrFrmSoKqCA8FrBYK4ijrnoK9S26gtG5d7JvNQgnB3qFhJdY6O5LRL7OKQml2
-        wR/6W03N4QPRSI/uLHemk8EACeFDyHzTzxsOWMn7vQaYtoNYqZ8KVlqIi2qkvjgfrO7eQCRMWk3/x
-        gAoOvSaw==;
+        bh=rveYe0whW8HL+t/HGSaazkf4IJzq2XAc7vdeRKjh+gA=; b=cpKCmyhyv7OuEJMBrNQU4CnHNj
+        GnUCgs7XSOxkFha/sPdTsxeTS+e9qjtwJrPFHfUSepmSzQvRHqWJ38pWwyP7CmKl7WsF5ifJzwn8I
+        KgcYBvLkrDSlv9M2MdiJ1ToWAySQoRg4+zQfyu6Q6UOoUhyP16vlSGNMW8FRmKgzk6H/TOalA6UnM
+        2dQx2jKA7llK73O+p7WvYuYBEr0UYXjBd0MyFHzz2ajO12weAftc5aMVdLFZY5KBowFC3EUic0nAb
+        Ua8Il7Isw4DFhFw47bHPIFnvHlD9Gmhxxc/vlsT8NNGa/EFOaC4CUBfTzrFKLdx4VhHOvfmU/Hr+j
+        qShSPhlg==;
 Received: from dhcp-077-249-017-003.chello.nl ([77.249.17.3] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nywwz-0066Bd-Bp; Wed, 08 Jun 2022 14:46:26 +0000
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nywx2-00ChXE-Jq; Wed, 08 Jun 2022 14:46:28 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id D9EBA302E2E;
-        Wed,  8 Jun 2022 16:46:22 +0200 (CEST)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id A0926302EA2;
+        Wed,  8 Jun 2022 16:46:23 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 6DFDD20C10EA7; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
-Message-ID: <20220608144516.743744529@infradead.org>
+        id 90A2620C10ED8; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
+Message-ID: <20220608144517.313931267@infradead.org>
 User-Agent: quilt/0.66
-Date:   Wed, 08 Jun 2022 16:27:36 +0200
+Date:   Wed, 08 Jun 2022 16:27:45 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
@@ -98,7 +98,7 @@ Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
         linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
         rcu@vger.kernel.org
-Subject: [PATCH 13/36] cpuidle,dt: Push RCU-idle into driver
+Subject: [PATCH 22/36] arm,smp: Remove trace_.*_rcuidle() usage
 References: <20220608142723.103523089@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -106,143 +106,50 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Doing RCU-idle outside the driver, only to then temporarily enable it
-again before going idle is daft.
+None of these functions should ever be ran with RCU disabled anymore.
 
-Notably: this converts all dt_init_idle_driver() and
-__CPU_PM_CPU_IDLE_ENTER() users for they are inextrably intertwined.
+Specifically, do_handle_IPI() is only called from handle_IPI() which
+explicitly does irq_enter()/irq_exit() which ensures RCU is watching.
+
+The problem with smp_cross_call() was, per commit 7c64cc0531fa ("arm: Use
+_rcuidle for smp_cross_call() tracepoints"), that
+cpuidle_enter_state_coupled() already had RCU disabled, but that's
+long been fixed by commit 1098582a0f6c ("sched,idle,rcu: Push rcu_idle
+deeper into the idle path").
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c    |    4 ++--
- drivers/acpi/processor_idle.c        |    2 ++
- drivers/cpuidle/cpuidle-arm.c        |    1 +
- drivers/cpuidle/cpuidle-big_little.c |    8 ++++++--
- drivers/cpuidle/cpuidle-psci.c       |    1 +
- drivers/cpuidle/cpuidle-qcom-spm.c   |    1 +
- drivers/cpuidle/cpuidle-riscv-sbi.c  |    1 +
- drivers/cpuidle/dt_idle_states.c     |    2 +-
- include/linux/cpuidle.h              |    4 ++++
- 9 files changed, 19 insertions(+), 5 deletions(-)
+ arch/arm/kernel/smp.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1200,6 +1200,8 @@ static int acpi_processor_setup_lpi_stat
- 		state->target_residency = lpi->min_residency;
- 		if (lpi->arch_flags)
- 			state->flags |= CPUIDLE_FLAG_TIMER_STOP;
-+		if (lpi->entry_method == ACPI_CSTATE_FFH)
-+			state->flags |= CPUIDLE_FLAG_RCU_IDLE;
- 		state->enter = acpi_idle_lpi_enter;
- 		drv->safe_state_index = i;
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -639,7 +639,7 @@ static void do_handle_IPI(int ipinr)
+ 	unsigned int cpu = smp_processor_id();
+ 
+ 	if ((unsigned)ipinr < NR_IPI)
+-		trace_ipi_entry_rcuidle(ipi_types[ipinr]);
++		trace_ipi_entry(ipi_types[ipinr]);
+ 
+ 	switch (ipinr) {
+ 	case IPI_WAKEUP:
+@@ -686,7 +686,7 @@ static void do_handle_IPI(int ipinr)
  	}
---- a/drivers/cpuidle/cpuidle-arm.c
-+++ b/drivers/cpuidle/cpuidle-arm.c
-@@ -53,6 +53,7 @@ static struct cpuidle_driver arm_idle_dr
- 	 * handler for idle state index 0.
- 	 */
- 	.states[0] = {
-+		.flags			= CPUIDLE_FLAG_RCU_IDLE,
- 		.enter                  = arm_enter_idle_state,
- 		.exit_latency           = 1,
- 		.target_residency       = 1,
---- a/drivers/cpuidle/cpuidle-big_little.c
-+++ b/drivers/cpuidle/cpuidle-big_little.c
-@@ -64,7 +64,8 @@ static struct cpuidle_driver bl_idle_lit
- 		.enter			= bl_enter_powerdown,
- 		.exit_latency		= 700,
- 		.target_residency	= 2500,
--		.flags			= CPUIDLE_FLAG_TIMER_STOP,
-+		.flags			= CPUIDLE_FLAG_TIMER_STOP |
-+					  CPUIDLE_FLAG_RCU_IDLE,
- 		.name			= "C1",
- 		.desc			= "ARM little-cluster power down",
- 	},
-@@ -85,7 +86,8 @@ static struct cpuidle_driver bl_idle_big
- 		.enter			= bl_enter_powerdown,
- 		.exit_latency		= 500,
- 		.target_residency	= 2000,
--		.flags			= CPUIDLE_FLAG_TIMER_STOP,
-+		.flags			= CPUIDLE_FLAG_TIMER_STOP |
-+					  CPUIDLE_FLAG_RCU_IDLE,
- 		.name			= "C1",
- 		.desc			= "ARM big-cluster power down",
- 	},
-@@ -124,11 +126,13 @@ static int bl_enter_powerdown(struct cpu
- 				struct cpuidle_driver *drv, int idx)
+ 
+ 	if ((unsigned)ipinr < NR_IPI)
+-		trace_ipi_exit_rcuidle(ipi_types[ipinr]);
++		trace_ipi_exit(ipi_types[ipinr]);
+ }
+ 
+ /* Legacy version, should go away once all irqchips have been converted */
+@@ -709,7 +709,7 @@ static irqreturn_t ipi_handler(int irq,
+ 
+ static void smp_cross_call(const struct cpumask *target, unsigned int ipinr)
  {
- 	cpu_pm_enter();
-+	rcu_idle_enter();
+-	trace_ipi_raise_rcuidle(target, ipi_types[ipinr]);
++	trace_ipi_raise(target, ipi_types[ipinr]);
+ 	__ipi_send_mask(ipi_desc[ipinr], target);
+ }
  
- 	cpu_suspend(0, bl_powerdown_finisher);
- 
- 	/* signals the MCPM core that CPU is out of low power state */
- 	mcpm_cpu_powered_up();
-+	rcu_idle_exit();
- 
- 	cpu_pm_exit();
- 
---- a/drivers/cpuidle/cpuidle-psci.c
-+++ b/drivers/cpuidle/cpuidle-psci.c
-@@ -357,6 +357,7 @@ static int psci_idle_init_cpu(struct dev
- 	 * PSCI idle states relies on architectural WFI to be represented as
- 	 * state index 0.
- 	 */
-+	drv->states[0].flags = CPUIDLE_FLAG_RCU_IDLE;
- 	drv->states[0].enter = psci_enter_idle_state;
- 	drv->states[0].exit_latency = 1;
- 	drv->states[0].target_residency = 1;
---- a/drivers/cpuidle/cpuidle-qcom-spm.c
-+++ b/drivers/cpuidle/cpuidle-qcom-spm.c
-@@ -72,6 +72,7 @@ static struct cpuidle_driver qcom_spm_id
- 	.owner = THIS_MODULE,
- 	.states[0] = {
- 		.enter			= spm_enter_idle_state,
-+		.flags			= CPUIDLE_FLAG_RCU_IDLE,
- 		.exit_latency		= 1,
- 		.target_residency	= 1,
- 		.power_usage		= UINT_MAX,
---- a/drivers/cpuidle/cpuidle-riscv-sbi.c
-+++ b/drivers/cpuidle/cpuidle-riscv-sbi.c
-@@ -332,6 +332,7 @@ static int sbi_cpuidle_init_cpu(struct d
- 	drv->cpumask = (struct cpumask *)cpumask_of(cpu);
- 
- 	/* RISC-V architectural WFI to be represented as state index 0. */
-+	drv->states[0].flags = CPUIDLE_FLAG_RCU_IDLE;
- 	drv->states[0].enter = sbi_cpuidle_enter_state;
- 	drv->states[0].exit_latency = 1;
- 	drv->states[0].target_residency = 1;
---- a/drivers/cpuidle/dt_idle_states.c
-+++ b/drivers/cpuidle/dt_idle_states.c
-@@ -77,7 +77,7 @@ static int init_state_node(struct cpuidl
- 	if (err)
- 		desc = state_node->name;
- 
--	idle_state->flags = 0;
-+	idle_state->flags = CPUIDLE_FLAG_RCU_IDLE;
- 	if (of_property_read_bool(state_node, "local-timer-stop"))
- 		idle_state->flags |= CPUIDLE_FLAG_TIMER_STOP;
- 	/*
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -282,14 +282,18 @@ extern s64 cpuidle_governor_latency_req(
- 	int __ret = 0;							\
- 									\
- 	if (!idx) {							\
-+		rcu_idle_enter();					\
- 		cpu_do_idle();						\
-+		rcu_idle_exit();					\
- 		return idx;						\
- 	}								\
- 									\
- 	if (!is_retention)						\
- 		__ret =  cpu_pm_enter();				\
- 	if (!__ret) {							\
-+		rcu_idle_enter();					\
- 		__ret = low_level_idle_enter(state);			\
-+		rcu_idle_exit();					\
- 		if (!is_retention)					\
- 			cpu_pm_exit();					\
- 	}								\
 
 
