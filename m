@@ -2,42 +2,42 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DD4AC28D13
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F38BBC2BBE6
 	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 14:47:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242636AbiFHOrW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Jun 2022 10:47:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57688 "EHLO
+        id S242648AbiFHOrX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Jun 2022 10:47:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242272AbiFHOrE (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 10:47:04 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E462E1AF1F;
-        Wed,  8 Jun 2022 07:46:56 -0700 (PDT)
+        with ESMTP id S242143AbiFHOq5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 10:46:57 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEDE942A1E;
+        Wed,  8 Jun 2022 07:46:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
+        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=T8wRwm6eLEEe+d6prOVCLJdHQ0FxyXLfs5ZoW8qxROY=; b=KdlHDYbP1+zGMiG9i/1io3nlIW
-        t6AKT7oBRI82YNNtnR0KlgedY971iOVdgX/AP0qJHsdC2vcD8XO3pIcuf5D8Avk081yhFNufjwdhA
-        AHAos8T3gWtZJ454m/93g0TX1GFhREeELcijLPcRyCEiBcUPGxRGodH+z/cz1lsYN8PeaJdgBiqDx
-        xwhVhdcsnRR0sLOTAaofD3+RQgmfyKC7Ya/bUZHWiqOZjWzWwP3Odj0+c99KB5HBbkYI7Kv341KGf
-        mEwBcpvJZX9yt0fQC9RncllLHFqMIAvuUvrQXf6uq5ip/COU708YHqhwUFnG9nmXu+X9n00QbQVt7
-        q/ewPAnw==;
+        bh=O62myI6pQAS8t81lbED6UulH15u+VxDiccCxL8l46b0=; b=gT8EMkBd6bMPLcSrcn+tIlmqrQ
+        gTlIn15eBCUJQJ7odUKeDR2ZWGk6cr6CL+IgYOg0zC0XwW4KvSjAi4QIaQShcZztyyB5uW4tjGOZ+
+        Xx0k619Zyq8PzUIepWyk++0mEYVwQwRDrMoV5OMsBFqmPNytGFdVmw1KNESQJd2/bvekElwzIcwfq
+        h9dM8RgSuGh8dAJ/hoh8FLTtUTAzinFeiF1y1HPLwogXCp0Uo4fTbKBO+SfwljZRT7cvOxCuC5v2c
+        rVPi+OaAn7J4nbIx17Sn50Rh+9lBzO0j0yDzRiHN+flr/WJFb/Do9/yGDSiiRsQ1W4fIUFcfmvAbk
+        rGLVyLLg==;
 Received: from dhcp-077-249-017-003.chello.nl ([77.249.17.3] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nywx6-00ChZn-Gw; Wed, 08 Jun 2022 14:46:32 +0000
+        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nywww-0066BA-Sa; Wed, 08 Jun 2022 14:46:23 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 04592302F50;
-        Wed,  8 Jun 2022 16:46:24 +0200 (CEST)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 7CEEA30220F;
+        Wed,  8 Jun 2022 16:46:20 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id C421820C119B8; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
-Message-ID: <20220608144518.073801916@infradead.org>
+        id 3CA0E20C0F9A5; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
+Message-ID: <20220608144516.047149313@infradead.org>
 User-Agent: quilt/0.66
-Date:   Wed, 08 Jun 2022 16:27:57 +0200
+Date:   Wed, 08 Jun 2022 16:27:25 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
@@ -98,7 +98,7 @@ Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
         linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
         rcu@vger.kernel.org
-Subject: [PATCH 34/36] cpuidle,omap3: Push RCU-idle into omap_sram_idle()
+Subject: [PATCH 02/36] x86/idle: Replace x86_idle with a static_call
 References: <20220608142723.103523089@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -106,89 +106,116 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-OMAP3 uses full SoC suspend modes as idle states, as such it needs the
-whole power-domain and clock-domain code from the idle path.
-
-All that code is not suitable to run with RCU disabled, as such push
-RCU-idle deeper still.
+Typical boot time setup; no need to suffer an indirect call for that.
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Reviewed-by: Frederic Weisbecker <frederic@kernel.org>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |    4 +---
- arch/arm/mach-omap2/pm.h          |    2 +-
- arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++++--
- 3 files changed, 12 insertions(+), 6 deletions(-)
+ arch/x86/kernel/process.c |   50 +++++++++++++++++++++++++---------------------
+ 1 file changed, 28 insertions(+), 22 deletions(-)
 
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -133,9 +133,7 @@ static int omap3_enter_idle(struct cpuid
- 	}
- 
- 	/* Execute ARM wfi */
--	cpuidle_rcu_enter();
--	omap_sram_idle();
--	cpuidle_rcu_exit();
-+	omap_sram_idle(true);
- 
- 	/*
- 	 * Call idle CPU PM enter notifier chain to restore
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -29,7 +29,7 @@ static inline int omap4_idle_init(void)
- 
- extern void *omap3_secure_ram_storage;
- extern void omap3_pm_off_mode_enable(int);
--extern void omap_sram_idle(void);
-+extern void omap_sram_idle(bool rcuidle);
- extern int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused);
- 
- #if defined(CONFIG_PM_OPP)
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -26,6 +26,7 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-+#include <linux/cpuidle.h>
- 
+--- a/arch/x86/kernel/process.c
++++ b/arch/x86/kernel/process.c
+@@ -24,6 +24,7 @@
+ #include <linux/cpuidle.h>
+ #include <linux/acpi.h>
+ #include <linux/elf-randomize.h>
++#include <linux/static_call.h>
  #include <trace/events/power.h>
+ #include <linux/hw_breakpoint.h>
+ #include <asm/cpu.h>
+@@ -692,7 +693,23 @@ void __switch_to_xtra(struct task_struct
+ unsigned long boot_option_idle_override = IDLE_NO_OVERRIDE;
+ EXPORT_SYMBOL(boot_option_idle_override);
  
-@@ -174,7 +175,7 @@ static int omap34xx_do_sram_idle(unsigne
- 	return 0;
+-static void (*x86_idle)(void);
++/*
++ * We use this if we don't have any better idle routine..
++ */
++void __cpuidle default_idle(void)
++{
++	raw_safe_halt();
++}
++#if defined(CONFIG_APM_MODULE) || defined(CONFIG_HALTPOLL_CPUIDLE_MODULE)
++EXPORT_SYMBOL(default_idle);
++#endif
++
++DEFINE_STATIC_CALL_NULL(x86_idle, default_idle);
++
++static bool x86_idle_set(void)
++{
++	return !!static_call_query(x86_idle);
++}
+ 
+ #ifndef CONFIG_SMP
+ static inline void play_dead(void)
+@@ -715,28 +732,17 @@ void arch_cpu_idle_dead(void)
+ /*
+  * Called from the generic idle code.
+  */
+-void arch_cpu_idle(void)
+-{
+-	x86_idle();
+-}
+-
+-/*
+- * We use this if we don't have any better idle routine..
+- */
+-void __cpuidle default_idle(void)
++void __cpuidle arch_cpu_idle(void)
+ {
+-	raw_safe_halt();
++	static_call(x86_idle)();
+ }
+-#if defined(CONFIG_APM_MODULE) || defined(CONFIG_HALTPOLL_CPUIDLE_MODULE)
+-EXPORT_SYMBOL(default_idle);
+-#endif
+ 
+ #ifdef CONFIG_XEN
+ bool xen_set_default_idle(void)
+ {
+-	bool ret = !!x86_idle;
++	bool ret = x86_idle_set();
+ 
+-	x86_idle = default_idle;
++	static_call_update(x86_idle, default_idle);
+ 
+ 	return ret;
+ }
+@@ -859,20 +865,20 @@ void select_idle_routine(const struct cp
+ 	if (boot_option_idle_override == IDLE_POLL && smp_num_siblings > 1)
+ 		pr_warn_once("WARNING: polling idle and HT enabled, performance may degrade\n");
+ #endif
+-	if (x86_idle || boot_option_idle_override == IDLE_POLL)
++	if (x86_idle_set() || boot_option_idle_override == IDLE_POLL)
+ 		return;
+ 
+ 	if (boot_cpu_has_bug(X86_BUG_AMD_E400)) {
+ 		pr_info("using AMD E400 aware idle routine\n");
+-		x86_idle = amd_e400_idle;
++		static_call_update(x86_idle, amd_e400_idle);
+ 	} else if (prefer_mwait_c1_over_halt(c)) {
+ 		pr_info("using mwait in idle threads\n");
+-		x86_idle = mwait_idle;
++		static_call_update(x86_idle, mwait_idle);
+ 	} else if (cpu_feature_enabled(X86_FEATURE_TDX_GUEST)) {
+ 		pr_info("using TDX aware idle routine\n");
+-		x86_idle = tdx_safe_halt;
++		static_call_update(x86_idle, tdx_safe_halt);
+ 	} else
+-		x86_idle = default_idle;
++		static_call_update(x86_idle, default_idle);
  }
  
--void omap_sram_idle(void)
-+void omap_sram_idle(bool rcuidle)
- {
- 	/* Variable to tell what needs to be saved and restored
- 	 * in omap_sram_idle*/
-@@ -254,11 +255,18 @@ void omap_sram_idle(void)
- 	 */
- 	if (save_state)
- 		omap34xx_save_context(omap3_arm_context);
-+
-+	if (rcuidle)
-+		cpuidle_rcu_enter();
-+
- 	if (save_state == 1 || save_state == 3)
- 		cpu_suspend(save_state, omap34xx_do_sram_idle);
- 	else
- 		omap34xx_do_sram_idle(save_state);
- 
-+	if (rcuidle)
-+		rcuidle_rcu_exit();
-+
- 	/* Restore normal SDRC POWER settings */
- 	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
- 	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
-@@ -316,7 +324,7 @@ static int omap3_pm_suspend(void)
- 
- 	omap3_intc_suspend();
- 
--	omap_sram_idle();
-+	omap_sram_idle(false);
- 
- restore:
- 	/* Restore next_pwrsts */
+ void amd_e400_c1e_apic_setup(void)
+@@ -925,7 +931,7 @@ static int __init idle_setup(char *str)
+ 		 * To continue to load the CPU idle driver, don't touch
+ 		 * the boot_option_idle_override.
+ 		 */
+-		x86_idle = default_idle;
++		static_call_update(x86_idle, default_idle);
+ 		boot_option_idle_override = IDLE_HALT;
+ 	} else if (!strcmp(str, "nomwait")) {
+ 		/*
 
 
