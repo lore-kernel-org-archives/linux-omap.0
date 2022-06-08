@@ -2,42 +2,42 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72084CCA499
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 14:47:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC497C2BBEC
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 14:47:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242898AbiFHOrr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Jun 2022 10:47:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58632 "EHLO
+        id S242882AbiFHOrq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Jun 2022 10:47:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242642AbiFHOrW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 10:47:22 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 239172533F0;
-        Wed,  8 Jun 2022 07:47:04 -0700 (PDT)
+        with ESMTP id S242425AbiFHOrK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 10:47:10 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 150BE42A1E;
+        Wed,  8 Jun 2022 07:46:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
+        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=n+8kbD5k3joQL4tu1DQuka314sY5HtbiPc/MGM3uXCw=; b=jw4TwDmyl0kTYSCugapOboyvFt
-        l7u+2MwOkIDDfwEYhz+kVcSLr6ed0DAexVxesoxoXeJI6zgAjlsnuseqRA8YMfKpXesu9nZKUGG5N
-        tZBB1Sy3MqpS0ZwBcfksrZWV8KweBxp5dfNuLJ+jL4j3yqlYbOsZ5V4mmrWi12VSljq6d05DZ0RjD
-        /WK3pfNZYHkBSY2MPV1AmqLsA2StIXk6qZywGWP1AP7x0tS+ScWqEwGEKHfmYPwNeKrZSXGOHsAFl
-        DyYw2fFlGVZdqgioksMVuJO2U+xVQpY0sU451X2b0zL/4kkUs6F0ccQsq14rEgbL4P4ji9lmbwQ+T
-        iT1gTN+g==;
+        bh=HzY3jBvKRSGcnvMJEPYny4/0n/oTUbqDiv/WYyIgET0=; b=MGGRvqyXkFG18Addzz24MaA9vS
+        KmKQ42ydJ+KU3tAZnF66vsw9m2PhxgnUWtQITetZSoUstRo9chWzM+pJToCvulnxBdLidR3LPZU9g
+        MCsdS+XO5E6NmCZ7IJG/1MVQEavZDiwD4mzz26MJYQoWsqwHPNvRUi+aXX4DF0kV9Z0/v4ltjK50+
+        mh1yS8lRn4S5pqQ50oj37jOYJn8NGaaqrAwwQzXnxG1wSkmLsddHvJaUrs6wmpz682hMPMgvjIwA5
+        egpS5lzCOnI3oME6jAwmxjbpFe/dD5lggiDQn5ZT4ZAMGklNowzkgdj6nkeWrbtFrCB+auOjUHR7l
+        b3VJCIpA==;
 Received: from dhcp-077-249-017-003.chello.nl ([77.249.17.3] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nywx2-00ChXO-V1; Wed, 08 Jun 2022 14:46:29 +0000
+        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nywx6-0066Dk-FR; Wed, 08 Jun 2022 14:46:33 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id A06F1302E99;
-        Wed,  8 Jun 2022 16:46:23 +0200 (CEST)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 0C594302F56;
+        Wed,  8 Jun 2022 16:46:24 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 8D44D20C10ED6; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
-Message-ID: <20220608144517.251109029@infradead.org>
+        id C77CE20C119BA; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
+Message-ID: <20220608144518.136731332@infradead.org>
 User-Agent: quilt/0.66
-Date:   Wed, 08 Jun 2022 16:27:44 +0200
+Date:   Wed, 08 Jun 2022 16:27:58 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
@@ -97,9 +97,8 @@ Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
         linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
         linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
-        rcu@vger.kernel.org, Isaku Yamahata <isaku.yamahata@gmail.com>,
-        kirill.shutemov@linux.intel.com
-Subject: [PATCH 21/36] x86/tdx: Remove TDX_HCALL_ISSUE_STI
+        rcu@vger.kernel.org
+Subject: [PATCH 35/36] cpuidle,powerdomain: Remove trace_.*_rcuidle()
 References: <20220608142723.103523089@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -107,110 +106,149 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Now that arch_cpu_idle() is expected to return with IRQs disabled,
-avoid the useless STI/CLI dance.
+OMAP was the one and only user.
 
-Per the specs this is supposed to work, but nobody has yet relied up
-this behaviour so broken implementations are possible.
-
-Cc: Isaku Yamahata <isaku.yamahata@gmail.com>
-Cc: kirill.shutemov@linux.intel.com
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- arch/x86/coco/tdx/tdcall.S        |   13 -------------
- arch/x86/coco/tdx/tdx.c           |   23 ++++-------------------
- arch/x86/include/asm/shared/tdx.h |    1 -
- 3 files changed, 4 insertions(+), 33 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c |   10 +++++-----
+ drivers/base/power/runtime.c      |   24 ++++++++++++------------
+ 2 files changed, 17 insertions(+), 17 deletions(-)
 
---- a/arch/x86/coco/tdx/tdcall.S
-+++ b/arch/x86/coco/tdx/tdcall.S
-@@ -139,19 +139,6 @@ SYM_FUNC_START(__tdx_hypercall)
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -187,9 +187,9 @@ static int _pwrdm_state_switch(struct po
+ 			trace_state = (PWRDM_TRACE_STATES_FLAG |
+ 				       ((next & OMAP_POWERSTATE_MASK) << 8) |
+ 				       ((prev & OMAP_POWERSTATE_MASK) << 0));
+-			trace_power_domain_target_rcuidle(pwrdm->name,
+-							  trace_state,
+-							  raw_smp_processor_id());
++			trace_power_domain_target(pwrdm->name,
++						  trace_state,
++						  raw_smp_processor_id());
+ 		}
+ 		break;
+ 	default:
+@@ -541,8 +541,8 @@ int pwrdm_set_next_pwrst(struct powerdom
  
- 	movl $TDVMCALL_EXPOSE_REGS_MASK, %ecx
+ 	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+ 		/* Trace the pwrdm desired target state */
+-		trace_power_domain_target_rcuidle(pwrdm->name, pwrst,
+-						  raw_smp_processor_id());
++		trace_power_domain_target(pwrdm->name, pwrst,
++					  raw_smp_processor_id());
+ 		/* Program the pwrdm desired target state */
+ 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+ 	}
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -442,7 +442,7 @@ static int rpm_idle(struct device *dev,
+ 	int (*callback)(struct device *);
+ 	int retval;
  
--	/*
--	 * For the idle loop STI needs to be called directly before the TDCALL
--	 * that enters idle (EXIT_REASON_HLT case). STI instruction enables
--	 * interrupts only one instruction later. If there is a window between
--	 * STI and the instruction that emulates the HALT state, there is a
--	 * chance for interrupts to happen in this window, which can delay the
--	 * HLT operation indefinitely. Since this is the not the desired
--	 * result, conditionally call STI before TDCALL.
--	 */
--	testq $TDX_HCALL_ISSUE_STI, %rsi
--	jz .Lskip_sti
--	sti
--.Lskip_sti:
- 	tdcall
+-	trace_rpm_idle_rcuidle(dev, rpmflags);
++	trace_rpm_idle(dev, rpmflags);
+ 	retval = rpm_check_suspend_allowed(dev);
+ 	if (retval < 0)
+ 		;	/* Conditions are wrong. */
+@@ -481,7 +481,7 @@ static int rpm_idle(struct device *dev,
+ 			dev->power.request_pending = true;
+ 			queue_work(pm_wq, &dev->power.work);
+ 		}
+-		trace_rpm_return_int_rcuidle(dev, _THIS_IP_, 0);
++		trace_rpm_return_int(dev, _THIS_IP_, 0);
+ 		return 0;
+ 	}
  
- 	/*
---- a/arch/x86/coco/tdx/tdx.c
-+++ b/arch/x86/coco/tdx/tdx.c
-@@ -124,7 +124,7 @@ static u64 get_cc_mask(void)
- 	return BIT_ULL(gpa_width - 1);
+@@ -493,7 +493,7 @@ static int rpm_idle(struct device *dev,
+ 	wake_up_all(&dev->power.wait_queue);
+ 
+  out:
+-	trace_rpm_return_int_rcuidle(dev, _THIS_IP_, retval);
++	trace_rpm_return_int(dev, _THIS_IP_, retval);
+ 	return retval ? retval : rpm_suspend(dev, rpmflags | RPM_AUTO);
  }
  
--static u64 __cpuidle __halt(const bool irq_disabled, const bool do_sti)
-+static u64 __cpuidle __halt(const bool irq_disabled)
- {
- 	struct tdx_hypercall_args args = {
- 		.r10 = TDX_HYPERCALL_STANDARD,
-@@ -144,20 +144,14 @@ static u64 __cpuidle __halt(const bool i
- 	 * can keep the vCPU in virtual HLT, even if an IRQ is
- 	 * pending, without hanging/breaking the guest.
- 	 */
--	return __tdx_hypercall(&args, do_sti ? TDX_HCALL_ISSUE_STI : 0);
-+	return __tdx_hypercall(&args, 0);
+@@ -557,7 +557,7 @@ static int rpm_suspend(struct device *de
+ 	struct device *parent = NULL;
+ 	int retval;
+ 
+-	trace_rpm_suspend_rcuidle(dev, rpmflags);
++	trace_rpm_suspend(dev, rpmflags);
+ 
+  repeat:
+ 	retval = rpm_check_suspend_allowed(dev);
+@@ -708,7 +708,7 @@ static int rpm_suspend(struct device *de
+ 	}
+ 
+  out:
+-	trace_rpm_return_int_rcuidle(dev, _THIS_IP_, retval);
++	trace_rpm_return_int(dev, _THIS_IP_, retval);
+ 
+ 	return retval;
+ 
+@@ -760,7 +760,7 @@ static int rpm_resume(struct device *dev
+ 	struct device *parent = NULL;
+ 	int retval = 0;
+ 
+-	trace_rpm_resume_rcuidle(dev, rpmflags);
++	trace_rpm_resume(dev, rpmflags);
+ 
+  repeat:
+ 	if (dev->power.runtime_error) {
+@@ -925,7 +925,7 @@ static int rpm_resume(struct device *dev
+ 		spin_lock_irq(&dev->power.lock);
+ 	}
+ 
+-	trace_rpm_return_int_rcuidle(dev, _THIS_IP_, retval);
++	trace_rpm_return_int(dev, _THIS_IP_, retval);
+ 
+ 	return retval;
  }
+@@ -1081,7 +1081,7 @@ int __pm_runtime_idle(struct device *dev
+ 		if (retval < 0) {
+ 			return retval;
+ 		} else if (retval > 0) {
+-			trace_rpm_usage_rcuidle(dev, rpmflags);
++			trace_rpm_usage(dev, rpmflags);
+ 			return 0;
+ 		}
+ 	}
+@@ -1119,7 +1119,7 @@ int __pm_runtime_suspend(struct device *
+ 		if (retval < 0) {
+ 			return retval;
+ 		} else if (retval > 0) {
+-			trace_rpm_usage_rcuidle(dev, rpmflags);
++			trace_rpm_usage(dev, rpmflags);
+ 			return 0;
+ 		}
+ 	}
+@@ -1202,7 +1202,7 @@ int pm_runtime_get_if_active(struct devi
+ 	} else {
+ 		retval = atomic_inc_not_zero(&dev->power.usage_count);
+ 	}
+-	trace_rpm_usage_rcuidle(dev, 0);
++	trace_rpm_usage(dev, 0);
+ 	spin_unlock_irqrestore(&dev->power.lock, flags);
  
- static bool handle_halt(void)
- {
--	/*
--	 * Since non safe halt is mainly used in CPU offlining
--	 * and the guest will always stay in the halt state, don't
--	 * call the STI instruction (set do_sti as false).
--	 */
- 	const bool irq_disabled = irqs_disabled();
--	const bool do_sti = false;
+ 	return retval;
+@@ -1566,7 +1566,7 @@ void pm_runtime_allow(struct device *dev
+ 	if (ret == 0)
+ 		rpm_idle(dev, RPM_AUTO | RPM_ASYNC);
+ 	else if (ret > 0)
+-		trace_rpm_usage_rcuidle(dev, RPM_AUTO | RPM_ASYNC);
++		trace_rpm_usage(dev, RPM_AUTO | RPM_ASYNC);
  
--	if (__halt(irq_disabled, do_sti))
-+	if (__halt(irq_disabled))
- 		return false;
+  out:
+ 	spin_unlock_irq(&dev->power.lock);
+@@ -1635,7 +1635,7 @@ static void update_autosuspend(struct de
+ 			atomic_inc(&dev->power.usage_count);
+ 			rpm_resume(dev, 0);
+ 		} else {
+-			trace_rpm_usage_rcuidle(dev, 0);
++			trace_rpm_usage(dev, 0);
+ 		}
+ 	}
  
- 	return true;
-@@ -165,22 +159,13 @@ static bool handle_halt(void)
- 
- void __cpuidle tdx_safe_halt(void)
- {
--	 /*
--	  * For do_sti=true case, __tdx_hypercall() function enables
--	  * interrupts using the STI instruction before the TDCALL. So
--	  * set irq_disabled as false.
--	  */
- 	const bool irq_disabled = false;
--	const bool do_sti = true;
- 
- 	/*
- 	 * Use WARN_ONCE() to report the failure.
- 	 */
--	if (__halt(irq_disabled, do_sti))
-+	if (__halt(irq_disabled))
- 		WARN_ONCE(1, "HLT instruction emulation failed\n");
--
--	/* XXX I can't make sense of what @do_sti actually does */
--	raw_local_irq_disable();
- }
- 
- static bool read_msr(struct pt_regs *regs)
---- a/arch/x86/include/asm/shared/tdx.h
-+++ b/arch/x86/include/asm/shared/tdx.h
-@@ -8,7 +8,6 @@
- #define TDX_HYPERCALL_STANDARD  0
- 
- #define TDX_HCALL_HAS_OUTPUT	BIT(0)
--#define TDX_HCALL_ISSUE_STI	BIT(1)
- 
- #define TDX_CPUID_LEAF_ID	0x21
- #define TDX_IDENT		"IntelTDX    "
 
 
