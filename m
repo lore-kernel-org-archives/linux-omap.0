@@ -2,48 +2,46 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E258C43334
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 16:08:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A541CCA483
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Jun 2022 18:15:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244899AbiFHQIz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Jun 2022 12:08:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50132 "EHLO
+        id S234798AbiFHSO2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Jun 2022 14:14:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244756AbiFHQIv (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 12:08:51 -0400
-Received: from mail-yb1-f180.google.com (mail-yb1-f180.google.com [209.85.219.180])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FAC03A70B;
-        Wed,  8 Jun 2022 09:08:49 -0700 (PDT)
-Received: by mail-yb1-f180.google.com with SMTP id l204so37280388ybf.10;
-        Wed, 08 Jun 2022 09:08:49 -0700 (PDT)
+        with ESMTP id S234055AbiFHSNU (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2022 14:13:20 -0400
+Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com [209.85.219.181])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C812515BC;
+        Wed,  8 Jun 2022 11:13:19 -0700 (PDT)
+Received: by mail-yb1-f181.google.com with SMTP id g201so10024238ybf.12;
+        Wed, 08 Jun 2022 11:13:19 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=kprufSUtg2c0Z0Z7k//OQq4qpvnNTKXHCWDLteZACkI=;
-        b=4OZPGArm5aASPMYGwigE9LVS/MEQLszXMZDPERe69ojjRlPgPzS/wZbuhr+m//jOcQ
-         saiRQKU7WvQ/GKoWpvr0hGYxfKKW0kb+CBU5UAII+DGSpD4KOSTxAz2LThLG1e6uc0tl
-         k00diWkqstl5X+pkvVYEFhUE1hnrgkEr50j/CKiq9CsMbHxDGqft1WW3iRT3df9y/WVf
-         BY35xbzqpa9I/DRbxRItMbMxlSSuUnBslnWIPXYWPGTBhCNBouspf/6WDOXrdqh11DCA
-         K8HC0ViN8PIYJ2HperziM+GTi+ddvWabIAjRPVOgePcJ8dkMSPXUUukv+2p27yqshHzB
-         1jeg==
-X-Gm-Message-State: AOAM533NroIWprpGWUpKchA2E69B/tPMTX2biRRW/ZCVvIxpPCR2Pz9K
-        Mw7asq1GQU/yWCjABLbZEyx/qhVQvpJn6zIkEB0=
-X-Google-Smtp-Source: ABdhPJyG4ZT1DjeY4ERw/W2efwDb4GS4TUltgXoK23+ZW/CgpHQ75Z+ngY7GcqUaxeuwjXh809zcJPBimQ/BOSJe/30=
-X-Received: by 2002:a25:d98b:0:b0:65c:9dc9:7a8f with SMTP id
- q133-20020a25d98b000000b0065c9dc97a8fmr34529681ybg.622.1654704528580; Wed, 08
- Jun 2022 09:08:48 -0700 (PDT)
+        bh=ZQePx5uIM1fUidMEiJVM5nuB6ZzPVeEu38qEpc1UrpE=;
+        b=Y/oeeMQrCREMAWANBtrC3FoGXp50sFBMnvCLxNPWQwAAPNWWQOkGGgixDidmNA78qT
+         clugwm9GcFMfOiHKMFqmPr4YFjITcvy/m+W7TJjdwWIUt0b61YYnS5a5Ja6XU1sgIpKB
+         Pm/Mm9CmG1gnlgOJpnVbJbX07BFJRtxidTRQz2J5crD0Rj39JU06MjPOmWSd+PQegvqs
+         2NEZnU9t4ZKpAuKBBfq063e/AZvZDsnvsSTKKhA1xtMm69DZdg470FMZT3BMx/iUZMFC
+         fRn+Kh0ynK56XfSD4mP29RmHGjBnrTah7cayY4bS13J74zv/qIlZpzjdh9+r70yRAwFk
+         k7TA==
+X-Gm-Message-State: AOAM532H0P+P0gEeBUMURTlrmxKFI3cgqxKlR3kTeYkp0afaOZ5IrLRC
+        4oJnJvc0sE0hIltjXsKSr7cofCI1puZ0V6AEq0A=
+X-Google-Smtp-Source: ABdhPJyd1CrHem+vVK3IGyX/t5xH0MretwaFF4fsfRB0Td7tNKI/Gb3F1VH58WOF1ULS3yEBVcV2AFovGma6uhuJi5U=
+X-Received: by 2002:a5b:4a:0:b0:663:7c5b:a5ba with SMTP id e10-20020a5b004a000000b006637c5ba5bamr17352131ybp.81.1654711998678;
+ Wed, 08 Jun 2022 11:13:18 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220608142723.103523089@infradead.org> <20220608144516.172460444@infradead.org>
- <CAJZ5v0gW-zD8Mgghy70f3rFz0QoozCwZ9idyrqtFgA6SWHK5XQ@mail.gmail.com> <YqDEwMDSL1YXdHFH@hirez.programming.kicks-ass.net>
-In-Reply-To: <YqDEwMDSL1YXdHFH@hirez.programming.kicks-ass.net>
+References: <20220608142723.103523089@infradead.org> <20220608144516.047149313@infradead.org>
+In-Reply-To: <20220608144516.047149313@infradead.org>
 From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 8 Jun 2022 18:08:37 +0200
-Message-ID: <CAJZ5v0hFfhxjp5cVNz+JSWcWx5ga1cDccmsqKAVgxp-JWs9upg@mail.gmail.com>
-Subject: Re: [PATCH 04/36] cpuidle,intel_idle: Fix CPUIDLE_FLAG_IRQ_ENABLE
+Date:   Wed, 8 Jun 2022 20:13:07 +0200
+Message-ID: <CAJZ5v0g=jcRkMhVoNkZzSaM0viK0C7WN6T5C1_3VQ5GGGQkSzQ@mail.gmail.com>
+Subject: Re: [PATCH 02/36] x86/idle: Replace x86_idle with a static_call
 To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     "Rafael J. Wysocki" <rafael@kernel.org>, rth@twiddle.net,
-        ink@jurassic.park.msu.ru, mattst88@gmail.com, vgupta@kernel.org,
+Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        vgupta@kernel.org,
         Russell King - ARM Linux <linux@armlinux.org.uk>,
         ulli.kroll@googlemail.com,
         Linus Walleij <linus.walleij@linaro.org>,
@@ -93,8 +91,8 @@ Cc:     "Rafael J. Wysocki" <rafael@kernel.org>, rth@twiddle.net,
         Juergen Gross <jgross@suse.com>, srivatsa@csail.mit.edu,
         amakhalov@vmware.com, pv-drivers@vmware.com,
         Boris Ostrovsky <boris.ostrovsky@oracle.com>, chris@zankel.net,
-        jcmvbkbc@gmail.com, Len Brown <lenb@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
+        jcmvbkbc@gmail.com, "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Michael Turquette <mturquette@baylibre.com>,
         Stephen Boyd <sboyd@kernel.org>,
@@ -156,29 +154,121 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, Jun 8, 2022 at 5:48 PM Peter Zijlstra <peterz@infradead.org> wrote:
+On Wed, Jun 8, 2022 at 4:47 PM Peter Zijlstra <peterz@infradead.org> wrote:
 >
-> On Wed, Jun 08, 2022 at 05:01:05PM +0200, Rafael J. Wysocki wrote:
-> > On Wed, Jun 8, 2022 at 4:47 PM Peter Zijlstra <peterz@infradead.org> wrote:
-> > >
-> > > Commit c227233ad64c ("intel_idle: enable interrupts before C1 on
-> > > Xeons") wrecked intel_idle in two ways:
-> > >
-> > >  - must not have tracing in idle functions
-> > >  - must return with IRQs disabled
-> > >
-> > > Additionally, it added a branch for no good reason.
-> > >
-> > > Fixes: c227233ad64c ("intel_idle: enable interrupts before C1 on Xeons")
-> > > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> >
-> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > And do I think correctly that this can be applied without the rest of
-> > the series?
+> Typical boot time setup; no need to suffer an indirect call for that.
 >
-> Yeah, I don't think this relies on any of the preceding patches. If you
-> want to route this through the pm/fixes tree that's fine.
+> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> Reviewed-by: Frederic Weisbecker <frederic@kernel.org>
 
-OK, thanks, applied (and I moved the intel_idle() kerneldoc so it is
-next to the function to avoid the docs build warning).
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+> ---
+>  arch/x86/kernel/process.c |   50 +++++++++++++++++++++++++---------------------
+>  1 file changed, 28 insertions(+), 22 deletions(-)
+>
+> --- a/arch/x86/kernel/process.c
+> +++ b/arch/x86/kernel/process.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/cpuidle.h>
+>  #include <linux/acpi.h>
+>  #include <linux/elf-randomize.h>
+> +#include <linux/static_call.h>
+>  #include <trace/events/power.h>
+>  #include <linux/hw_breakpoint.h>
+>  #include <asm/cpu.h>
+> @@ -692,7 +693,23 @@ void __switch_to_xtra(struct task_struct
+>  unsigned long boot_option_idle_override = IDLE_NO_OVERRIDE;
+>  EXPORT_SYMBOL(boot_option_idle_override);
+>
+> -static void (*x86_idle)(void);
+> +/*
+> + * We use this if we don't have any better idle routine..
+> + */
+> +void __cpuidle default_idle(void)
+> +{
+> +       raw_safe_halt();
+> +}
+> +#if defined(CONFIG_APM_MODULE) || defined(CONFIG_HALTPOLL_CPUIDLE_MODULE)
+> +EXPORT_SYMBOL(default_idle);
+> +#endif
+> +
+> +DEFINE_STATIC_CALL_NULL(x86_idle, default_idle);
+> +
+> +static bool x86_idle_set(void)
+> +{
+> +       return !!static_call_query(x86_idle);
+> +}
+>
+>  #ifndef CONFIG_SMP
+>  static inline void play_dead(void)
+> @@ -715,28 +732,17 @@ void arch_cpu_idle_dead(void)
+>  /*
+>   * Called from the generic idle code.
+>   */
+> -void arch_cpu_idle(void)
+> -{
+> -       x86_idle();
+> -}
+> -
+> -/*
+> - * We use this if we don't have any better idle routine..
+> - */
+> -void __cpuidle default_idle(void)
+> +void __cpuidle arch_cpu_idle(void)
+>  {
+> -       raw_safe_halt();
+> +       static_call(x86_idle)();
+>  }
+> -#if defined(CONFIG_APM_MODULE) || defined(CONFIG_HALTPOLL_CPUIDLE_MODULE)
+> -EXPORT_SYMBOL(default_idle);
+> -#endif
+>
+>  #ifdef CONFIG_XEN
+>  bool xen_set_default_idle(void)
+>  {
+> -       bool ret = !!x86_idle;
+> +       bool ret = x86_idle_set();
+>
+> -       x86_idle = default_idle;
+> +       static_call_update(x86_idle, default_idle);
+>
+>         return ret;
+>  }
+> @@ -859,20 +865,20 @@ void select_idle_routine(const struct cp
+>         if (boot_option_idle_override == IDLE_POLL && smp_num_siblings > 1)
+>                 pr_warn_once("WARNING: polling idle and HT enabled, performance may degrade\n");
+>  #endif
+> -       if (x86_idle || boot_option_idle_override == IDLE_POLL)
+> +       if (x86_idle_set() || boot_option_idle_override == IDLE_POLL)
+>                 return;
+>
+>         if (boot_cpu_has_bug(X86_BUG_AMD_E400)) {
+>                 pr_info("using AMD E400 aware idle routine\n");
+> -               x86_idle = amd_e400_idle;
+> +               static_call_update(x86_idle, amd_e400_idle);
+>         } else if (prefer_mwait_c1_over_halt(c)) {
+>                 pr_info("using mwait in idle threads\n");
+> -               x86_idle = mwait_idle;
+> +               static_call_update(x86_idle, mwait_idle);
+>         } else if (cpu_feature_enabled(X86_FEATURE_TDX_GUEST)) {
+>                 pr_info("using TDX aware idle routine\n");
+> -               x86_idle = tdx_safe_halt;
+> +               static_call_update(x86_idle, tdx_safe_halt);
+>         } else
+> -               x86_idle = default_idle;
+> +               static_call_update(x86_idle, default_idle);
+>  }
+>
+>  void amd_e400_c1e_apic_setup(void)
+> @@ -925,7 +931,7 @@ static int __init idle_setup(char *str)
+>                  * To continue to load the CPU idle driver, don't touch
+>                  * the boot_option_idle_override.
+>                  */
+> -               x86_idle = default_idle;
+> +               static_call_update(x86_idle, default_idle);
+>                 boot_option_idle_override = IDLE_HALT;
+>         } else if (!strcmp(str, "nomwait")) {
+>                 /*
+>
+>
