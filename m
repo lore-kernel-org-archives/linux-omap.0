@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E450ECCA48B
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:36:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3445BCCA483
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:36:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377939AbiFPOgV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Jun 2022 10:36:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43476 "EHLO
+        id S1377921AbiFPOgW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Jun 2022 10:36:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377843AbiFPOfx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2022 10:35:53 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE44B205EE;
-        Thu, 16 Jun 2022 07:35:51 -0700 (PDT)
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25G4igBb030693;
-        Thu, 16 Jun 2022 09:34:41 -0500
+        with ESMTP id S1377822AbiFPOfu (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2022 10:35:50 -0400
+Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E23612DD65;
+        Thu, 16 Jun 2022 07:35:48 -0700 (PDT)
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25GBnCaN029573;
+        Thu, 16 Jun 2022 09:34:45 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=lqoRHHMFIgIRfllvN5faHs45FcRKNS8aA5VFm9IyeX0=;
- b=EXYkDl5DZtSX5yFG8rdWUmqR3uWcOW929GGq+uPnQj/6c4pn077mS/7kkLtL9sg0ArZ1
- ao1tHaxJWDNwiT9jgJppVvZ02uH7uEN1imBGhGY39DJa2ZQgJNKBd1o/IY5OvmsZltwF
- xuKJ2kTsokLbE2nzbymIBy2Rd1JV6mPx10oRusfBr8W+r/OwYaIsrphA/haZqtWell8q
- S0R8JDG9yBKAr62+4vgLPNHguspPgjE+stt+KVJF2sE6iMJBEOGVjaOn5aexlRmo4cGd
- k4Js07y33S6EbDAnJOE9wQqWUN1Dkvij2GusKT03ULg6ON58enFB8RK97yJw9Rlrival HQ== 
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gmrf35vuw-6
+ bh=UJuHWsEpHcokhmwrN5fDMiRU1wxk1Rq6SwDqBfahFe8=;
+ b=ZtLjH2jITqDxo5HxkOsBH4/LYuu+WWdElHfHDAs43NxQ+f54ymf+tjIn+63BGloD4NpJ
+ 9cq7oeJVUI/ZSnKSV7AGToHksISHPAWPc02HRYHhsWjISPqjwTAkEXcgu20or7sKPRio
+ wlbsi/SirbkHNvf59BWV75lJUKJvE9GVPlzOwa61IswMvl6/m09/cXWsVfW6Py+0G7eG
+ 4JS335B+Gu++EEF58YKGkgKbhr7wFKgRevMDudgHczqnT8qL6QmBa9iYFYhlIUsHEEeF
+ yqSCXN8aBMVj3fJqHWLvnHHHYmLmZ8Nx0vlwQOOJ4G64cDmW7lmBO0awnGo9hiKSbYcT Kw== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gmqfq5w3m-7
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 16 Jun 2022 09:34:40 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 16 Jun 2022 09:34:44 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 16 Jun
- 2022 15:34:32 +0100
+ 2022 15:34:33 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 16 Jun 2022 15:34:32 +0100
+ Transport; Thu, 16 Jun 2022 15:34:33 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id BB05411DB;
-        Thu, 16 Jun 2022 14:34:32 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 8E41B11D3;
+        Thu, 16 Jun 2022 14:34:33 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -59,17 +59,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>
-Subject: [PATCH 35/96] media: TDA1997x: Remove now redundant non_legacy_dai_naming flag
-Date:   Thu, 16 Jun 2022 15:33:28 +0100
-Message-ID: <20220616143429.1324494-36-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 45/96] ASoC: uniphier: Remove now redundant non_legacy_dai_naming flag
+Date:   Thu, 16 Jun 2022 15:33:38 +0100
+Message-ID: <20220616143429.1324494-46-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 References: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: 15T4vG9PNYUITCohKksVNcfIB2iiKG-V
-X-Proofpoint-ORIG-GUID: 15T4vG9PNYUITCohKksVNcfIB2iiKG-V
+X-Proofpoint-ORIG-GUID: qjLHDRidj9HdpbM3NirBhuKFY2fD0dT5
+X-Proofpoint-GUID: qjLHDRidj9HdpbM3NirBhuKFY2fD0dT5
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -81,21 +81,21 @@ the non_legacy_dai_naming flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- drivers/media/i2c/tda1997x.c | 1 -
+ sound/soc/uniphier/evea.c | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/i2c/tda1997x.c b/drivers/media/i2c/tda1997x.c
-index 8fafce26d62fa..965c7afec57d3 100644
---- a/drivers/media/i2c/tda1997x.c
-+++ b/drivers/media/i2c/tda1997x.c
-@@ -2517,7 +2517,6 @@ static struct snd_soc_component_driver tda1997x_codec_driver = {
+diff --git a/sound/soc/uniphier/evea.c b/sound/soc/uniphier/evea.c
+index 96343d19a1e0f..42403ae8e31b2 100644
+--- a/sound/soc/uniphier/evea.c
++++ b/sound/soc/uniphier/evea.c
+@@ -397,7 +397,6 @@ static struct snd_soc_component_driver soc_codec_evea = {
  	.idle_bias_on		= 1,
  	.use_pmdown_time	= 1,
  	.endianness		= 1,
 -	.non_legacy_dai_naming	= 1,
  };
  
- static int tda1997x_probe(struct i2c_client *client,
+ static struct snd_soc_dai_driver soc_dai_evea[] = {
 -- 
 2.30.2
 
