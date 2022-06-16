@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED407CCA48A
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:35:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD060CCA481
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:35:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377539AbiFPOfz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Jun 2022 10:35:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43340 "EHLO
+        id S1377410AbiFPOf4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Jun 2022 10:35:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377749AbiFPOfp (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2022 10:35:45 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1837131917;
+        with ESMTP id S1377453AbiFPOfq (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2022 10:35:46 -0400
+Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6152A33A0F;
         Thu, 16 Jun 2022 07:35:40 -0700 (PDT)
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25GC07C5027888;
-        Thu, 16 Jun 2022 09:34:33 -0500
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25G8o9fc009500;
+        Thu, 16 Jun 2022 09:34:54 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=+ZJvFPqRLHsK8VJgqeCq9KcDpAuthuuELv8JAfqtDxU=;
- b=nej2Axtf3Ci8j7ARIaEkPtOyX3vHnMlxdIR7EowuXUDmwLLCRbwyITudvd2N+3nyYidV
- wWfhF62jHLB4vyOrVOqj5afDE3XT+8sjGTkl23WZwFFI5sMNH3hXMdmtpARcb6ljKktV
- 6TVNLBGOtAFjlfXtMV/KxKtCSNHigrUCHwiA6Y9HWNW3KTOIm+PTPuhunABhBPu8sWiP
- yzV8LE1mphYrBVqok4aLeYyd1vllWn3abct/40oDOOFplUn0WWMq27eRffnO7xH6mBbh
- h0lrs4F/hFFmTHRk33zfORXdEQRJV5XF2X3ulmj/ibqLJAfpXR8BeAW4FJRMoBG/elyH 0w== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gmrf35vuu-2
+ bh=lh7UQEX0kU+iQnt9yjv/Ak7Aj+spwbbMvg6HY5Ou4c8=;
+ b=T3lNCs32CvmRwC+vJXdIjpU2bk4lO986NtotvdeJEe1E1gEVydhXjHs83cyGIECvbnoW
+ 06m5hEmpmilnB46/Xq1+8NeawaOYIiAFcEpmoPKcgIiYElQMU7NJRg/j9c/6nzorg36g
+ awpcqEPRod6yvfcbCH147Az8P2Wrtn52TpadKpn4khunqNsXjpn6O20tBw4RY+mRdMHs
+ lmuVWEKc+nn+cR5/G1hxsMNtSg4bFaPL3/syE+tQleIp9sLJipm4uddqadMrQ64HUFrf
+ b82dZ6wrGb7jtQ6Tl3N70wZD+jRPfcfUHlbGKcJ7DZZmBeVOeUz5p1fFtNZWxzdxigkj VA== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gmqfq5w3u-10
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 16 Jun 2022 09:34:33 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 16 Jun 2022 09:34:54 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 16 Jun
- 2022 15:34:30 +0100
+ 2022 15:34:37 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 16 Jun 2022 15:34:30 +0100
+ Transport; Thu, 16 Jun 2022 15:34:37 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 282A9478;
-        Thu, 16 Jun 2022 14:34:30 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 4F43A11D3;
+        Thu, 16 Jun 2022 14:34:37 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -59,44 +59,44 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>
-Subject: [PATCH 03/96] drm/vc4: Migrate to new style legacy DAI naming flag
-Date:   Thu, 16 Jun 2022 15:32:56 +0100
-Message-ID: <20220616143429.1324494-4-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 91/96] ASoC: stac9766: Remove now redundant non_legacy_dai_naming flag
+Date:   Thu, 16 Jun 2022 15:34:24 +0100
+Message-ID: <20220616143429.1324494-92-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 References: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: 5u1n12_iA3o4iDdyKTapjKv8prc9bFEK
-X-Proofpoint-ORIG-GUID: 5u1n12_iA3o4iDdyKTapjKv8prc9bFEK
+X-Proofpoint-ORIG-GUID: 52GKgpDm3KmMR0TFZncqEQ7Eux8mKfaD
+X-Proofpoint-GUID: 52GKgpDm3KmMR0TFZncqEQ7Eux8mKfaD
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Change the legacy DAI naming flag from opting in to the new scheme
-(non_legacy_dai_naming), to opting out of it (legacy_dai_naming).
-This driver appears to be on the CPU side of the DAI link and
-currently uses the legacy naming, so add the new flag.
+The ASoC core has now been changed to default to the non-legacy DAI
+naming, as such drivers using the new scheme no longer need to specify
+the non_legacy_dai_naming flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- drivers/gpu/drm/vc4/vc4_hdmi.c | 1 +
- 1 file changed, 1 insertion(+)
+ sound/soc/codecs/stac9766.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
-index 823d812f49829..3e3bd88745b7c 100644
---- a/drivers/gpu/drm/vc4/vc4_hdmi.c
-+++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
-@@ -1969,6 +1969,7 @@ static int vc4_hdmi_audio_prepare(struct device *dev, void *data,
- 
- static const struct snd_soc_component_driver vc4_hdmi_audio_cpu_dai_comp = {
- 	.name = "vc4-hdmi-cpu-dai-component",
-+	.legacy_dai_naming = 1,
+diff --git a/sound/soc/codecs/stac9766.c b/sound/soc/codecs/stac9766.c
+index d99f6e466d0a3..1824a71fe053d 100644
+--- a/sound/soc/codecs/stac9766.c
++++ b/sound/soc/codecs/stac9766.c
+@@ -313,8 +313,6 @@ static const struct snd_soc_component_driver soc_component_dev_stac9766 = {
+ 	.idle_bias_on		= 1,
+ 	.use_pmdown_time	= 1,
+ 	.endianness		= 1,
+-	.non_legacy_dai_naming	= 1,
+-
  };
  
- static int vc4_hdmi_audio_cpu_dai_probe(struct snd_soc_dai *dai)
+ static int stac9766_probe(struct platform_device *pdev)
 -- 
 2.30.2
 
