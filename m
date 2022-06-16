@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15733CCA482
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA4B5CCA485
 	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:35:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232987AbiFPOf3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Jun 2022 10:35:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42646 "EHLO
+        id S1377163AbiFPOfa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Jun 2022 10:35:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377163AbiFPOf2 (ORCPT
+        with ESMTP id S1377712AbiFPOf2 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2022 10:35:28 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84FFB1D312;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA7341DA45;
         Thu, 16 Jun 2022 07:35:27 -0700 (PDT)
 Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25G8o9fb009500;
-        Thu, 16 Jun 2022 09:34:53 -0500
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25GC0DJc015765;
+        Thu, 16 Jun 2022 09:34:38 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=0akrc3t0gvqgAg9mHNYY5I7ETdh3VIkukD6HTMu03Q8=;
- b=q7LrAlFwIiE/GMjv+gmw0BeiUScqWVA3lIPKl9o3pD5wApfRXkoyNhGRPXeDqkrnPVsO
- AE7CM/4VYRgMJp96H4Ci1WsRuZQ/VE06LmDQiIsmGNb31KPLlJHNVlUvzNeRBBPNV+sJ
- BWGz7zXIuw0Qny/xgtfpMhJcUQg3iHpxvONz/6NLBMt0Z4HrSpqDpDfpaW+iVTGZBTdm
- 7CzY+DXPDK8dhycXjvr3pzOFoArpPefrPgJ3UQya67GYrIa9UJfNcqHlSNW03x8z1/Hk
- oo+Zg/mNOdWhrJ9IOlDj/R0BA16zYbwES8Ea1O2FS5dFIXUqX7G1OlCLhmWzZ4ZD2jUf +Q== 
+ bh=ZCITtJ1KUhO3m0hQgxKHALQnZSotGGuUuKGm6KuVmmc=;
+ b=m69t8gFE7S2gSBkUxOPiADwSPUC62pqTNxCxTS1ANW5kgPeKu/J+pHz0ztQT0D922tDu
+ GiVopaBxL2FGqDH7Y0LhxZcsOJMz2s+ro3hV1qk+e4tuaNsVrFI248vAcSuSDyfoKi2g
+ gRspf2XGNn8ota7d46jJv6CQGlNVM23sXJoriNSLVpuR9f5pCARG7aPO1NGmQw8PC0g/
+ pVcu6ansmtioKZ38iSrKv91e6h4tLf3ZJcA+Loow/HZL7d5q9NsEX7vNHEqLQyGM4GxN
+ faTPO8j+m5C2DkAQtk5163rJFjh/7+f3iWBUAtnDnwla9tnwSxd0TNpK4LUzHx+fhFwF GQ== 
 Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gmqfq5w3u-9
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gmqfq5w3h-10
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 16 Jun 2022 09:34:53 -0500
+        Thu, 16 Jun 2022 09:34:38 -0500
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
  (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 16 Jun
- 2022 15:34:37 +0100
+ 2022 15:34:31 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 16 Jun 2022 15:34:37 +0100
+ Transport; Thu, 16 Jun 2022 15:34:31 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 0FD1611DA;
-        Thu, 16 Jun 2022 14:34:37 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 7A8EC11D3;
+        Thu, 16 Jun 2022 14:34:31 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -59,43 +59,168 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>
-Subject: [PATCH 88/96] ASoC: rk817: Remove now redundant non_legacy_dai_naming flag
-Date:   Thu, 16 Jun 2022 15:34:21 +0100
-Message-ID: <20220616143429.1324494-89-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 20/96] ASoC: fsl: Migrate to new style legacy DAI naming flag
+Date:   Thu, 16 Jun 2022 15:33:13 +0100
+Message-ID: <20220616143429.1324494-21-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 References: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: La93Ypk-ahqMimJJJMwhQn0hp7GlFJ4D
-X-Proofpoint-GUID: La93Ypk-ahqMimJJJMwhQn0hp7GlFJ4D
+X-Proofpoint-ORIG-GUID: q3wxFhw9DIjTkf02NbyOlQ_pKVrbeAUy
+X-Proofpoint-GUID: q3wxFhw9DIjTkf02NbyOlQ_pKVrbeAUy
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The ASoC core has now been changed to default to the non-legacy DAI
-naming, as such drivers using the new scheme no longer need to specify
-the non_legacy_dai_naming flag.
+Change the legacy DAI naming flag from opting in to the new scheme
+(non_legacy_dai_naming), to opting out of it (legacy_dai_naming).
+These drivers appear to be on the CPU side of the DAI link and
+currently uses the legacy naming, so add the new flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/codecs/rk817_codec.c | 1 -
- 1 file changed, 1 deletion(-)
+ sound/soc/fsl/fsl_aud2htx.c     | 3 ++-
+ sound/soc/fsl/fsl_easrc.c       | 7 ++++---
+ sound/soc/fsl/fsl_esai.c        | 3 ++-
+ sound/soc/fsl/fsl_rpmsg.c       | 3 ++-
+ sound/soc/fsl/fsl_sai.c         | 3 ++-
+ sound/soc/fsl/fsl_spdif.c       | 3 ++-
+ sound/soc/fsl/fsl_ssi.c         | 1 +
+ sound/soc/fsl/fsl_xcvr.c        | 3 ++-
+ sound/soc/fsl/mpc5200_psc_i2s.c | 3 ++-
+ 9 files changed, 19 insertions(+), 10 deletions(-)
 
-diff --git a/sound/soc/codecs/rk817_codec.c b/sound/soc/codecs/rk817_codec.c
-index cce6f4e7992f5..2a5b274bfc0f5 100644
---- a/sound/soc/codecs/rk817_codec.c
-+++ b/sound/soc/codecs/rk817_codec.c
-@@ -444,7 +444,6 @@ static const struct snd_soc_component_driver soc_codec_dev_rk817 = {
- 	.idle_bias_on = 1,
- 	.use_pmdown_time = 1,
- 	.endianness = 1,
--	.non_legacy_dai_naming = 1,
- 	.controls = rk817_volume_controls,
- 	.num_controls = ARRAY_SIZE(rk817_volume_controls),
- 	.dapm_routes = rk817_dapm_routes,
+diff --git a/sound/soc/fsl/fsl_aud2htx.c b/sound/soc/fsl/fsl_aud2htx.c
+index 422922146f2a5..873295f59ad7b 100644
+--- a/sound/soc/fsl/fsl_aud2htx.c
++++ b/sound/soc/fsl/fsl_aud2htx.c
+@@ -103,7 +103,8 @@ static struct snd_soc_dai_driver fsl_aud2htx_dai = {
+ };
+ 
+ static const struct snd_soc_component_driver fsl_aud2htx_component = {
+-	.name	= "fsl-aud2htx",
++	.name			= "fsl-aud2htx",
++	.legacy_dai_naming	= 1,
+ };
+ 
+ static const struct reg_default fsl_aud2htx_reg_defaults[] = {
+diff --git a/sound/soc/fsl/fsl_easrc.c b/sound/soc/fsl/fsl_easrc.c
+index be14f84796cb4..ea96b0fb6b202 100644
+--- a/sound/soc/fsl/fsl_easrc.c
++++ b/sound/soc/fsl/fsl_easrc.c
+@@ -1572,9 +1572,10 @@ static struct snd_soc_dai_driver fsl_easrc_dai = {
+ };
+ 
+ static const struct snd_soc_component_driver fsl_easrc_component = {
+-	.name		= "fsl-easrc-dai",
+-	.controls       = fsl_easrc_snd_controls,
+-	.num_controls   = ARRAY_SIZE(fsl_easrc_snd_controls),
++	.name			= "fsl-easrc-dai",
++	.controls		= fsl_easrc_snd_controls,
++	.num_controls		= ARRAY_SIZE(fsl_easrc_snd_controls),
++	.legacy_dai_naming	= 1,
+ };
+ 
+ static const struct reg_default fsl_easrc_reg_defaults[] = {
+diff --git a/sound/soc/fsl/fsl_esai.c b/sound/soc/fsl/fsl_esai.c
+index 75f7807df29af..5c21fc490fce1 100644
+--- a/sound/soc/fsl/fsl_esai.c
++++ b/sound/soc/fsl/fsl_esai.c
+@@ -824,7 +824,8 @@ static struct snd_soc_dai_driver fsl_esai_dai = {
+ };
+ 
+ static const struct snd_soc_component_driver fsl_esai_component = {
+-	.name		= "fsl-esai",
++	.name			= "fsl-esai",
++	.legacy_dai_naming	= 1,
+ };
+ 
+ static const struct reg_default fsl_esai_reg_defaults[] = {
+diff --git a/sound/soc/fsl/fsl_rpmsg.c b/sound/soc/fsl/fsl_rpmsg.c
+index 19fd312508839..bf94838bdbefe 100644
+--- a/sound/soc/fsl/fsl_rpmsg.c
++++ b/sound/soc/fsl/fsl_rpmsg.c
+@@ -135,7 +135,8 @@ static struct snd_soc_dai_driver fsl_rpmsg_dai = {
+ };
+ 
+ static const struct snd_soc_component_driver fsl_component = {
+-	.name           = "fsl-rpmsg",
++	.name			= "fsl-rpmsg",
++	.legacy_dai_naming	= 1,
+ };
+ 
+ static const struct fsl_rpmsg_soc_data imx7ulp_data = {
+diff --git a/sound/soc/fsl/fsl_sai.c b/sound/soc/fsl/fsl_sai.c
+index 4f5bd9597c746..68b5b488deebd 100644
+--- a/sound/soc/fsl/fsl_sai.c
++++ b/sound/soc/fsl/fsl_sai.c
+@@ -767,7 +767,8 @@ static struct snd_soc_dai_driver fsl_sai_dai_template = {
+ };
+ 
+ static const struct snd_soc_component_driver fsl_component = {
+-	.name           = "fsl-sai",
++	.name			= "fsl-sai",
++	.legacy_dai_naming	= 1,
+ };
+ 
+ static struct reg_default fsl_sai_reg_defaults_ofs0[] = {
+diff --git a/sound/soc/fsl/fsl_spdif.c b/sound/soc/fsl/fsl_spdif.c
+index 42d11aca38a10..0504431792cf9 100644
+--- a/sound/soc/fsl/fsl_spdif.c
++++ b/sound/soc/fsl/fsl_spdif.c
+@@ -1237,7 +1237,8 @@ static struct snd_soc_dai_driver fsl_spdif_dai = {
+ };
+ 
+ static const struct snd_soc_component_driver fsl_spdif_component = {
+-	.name		= "fsl-spdif",
++	.name			= "fsl-spdif",
++	.legacy_dai_naming	= 1,
+ };
+ 
+ /* FSL SPDIF REGMAP */
+diff --git a/sound/soc/fsl/fsl_ssi.c b/sound/soc/fsl/fsl_ssi.c
+index 7dd0c48cd9ae4..c9e0e31d5b34d 100644
+--- a/sound/soc/fsl/fsl_ssi.c
++++ b/sound/soc/fsl/fsl_ssi.c
+@@ -1182,6 +1182,7 @@ static struct snd_soc_dai_driver fsl_ssi_dai_template = {
+ 
+ static const struct snd_soc_component_driver fsl_ssi_component = {
+ 	.name = "fsl-ssi",
++	.legacy_dai_naming = 1,
+ };
+ 
+ static struct snd_soc_dai_driver fsl_ssi_ac97_dai = {
+diff --git a/sound/soc/fsl/fsl_xcvr.c b/sound/soc/fsl/fsl_xcvr.c
+index 55e640cba87d0..c043efe4548d1 100644
+--- a/sound/soc/fsl/fsl_xcvr.c
++++ b/sound/soc/fsl/fsl_xcvr.c
+@@ -911,7 +911,8 @@ static struct snd_soc_dai_driver fsl_xcvr_dai = {
+ };
+ 
+ static const struct snd_soc_component_driver fsl_xcvr_comp = {
+-	.name = "fsl-xcvr-dai",
++	.name			= "fsl-xcvr-dai",
++	.legacy_dai_naming	= 1,
+ };
+ 
+ static const struct reg_default fsl_xcvr_reg_defaults[] = {
+diff --git a/sound/soc/fsl/mpc5200_psc_i2s.c b/sound/soc/fsl/mpc5200_psc_i2s.c
+index 3149d59ae968d..73f3e61f208a7 100644
+--- a/sound/soc/fsl/mpc5200_psc_i2s.c
++++ b/sound/soc/fsl/mpc5200_psc_i2s.c
+@@ -148,7 +148,8 @@ static struct snd_soc_dai_driver psc_i2s_dai[] = {{
+ } };
+ 
+ static const struct snd_soc_component_driver psc_i2s_component = {
+-	.name		= "mpc5200-i2s",
++	.name			= "mpc5200-i2s",
++	.legacy_dai_naming	= 1,
+ };
+ 
+ /* ---------------------------------------------------------------------
 -- 
 2.30.2
 
