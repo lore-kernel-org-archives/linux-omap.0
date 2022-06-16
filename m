@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E01C4C04E85
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:36:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76039C433EF
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:36:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377767AbiFPOf7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Jun 2022 10:35:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43048 "EHLO
+        id S1377891AbiFPOgA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Jun 2022 10:36:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377769AbiFPOfr (ORCPT
+        with ESMTP id S1377776AbiFPOfr (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2022 10:35:47 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A44F1EC55;
+Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA5D33BA6C;
         Thu, 16 Jun 2022 07:35:41 -0700 (PDT)
-Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25GBnCaI029573;
-        Thu, 16 Jun 2022 09:34:41 -0500
+Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25GC07C6027888;
+        Thu, 16 Jun 2022 09:34:34 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=mIa1mkeEkrDJt0gyT2HtnOxCb8TL4rQN20e++H56G2c=;
- b=WF++K2livlbXpnkZLU36xjroMdLavKv47c7KhXYxHJ4WSkyR4VqtHiV2Eul68RXkLdI9
- /8iLqZPBRVmFElqqX8dkPma0XjdzDfFVTSWhwxfvghoaanoULYURQ221tIhmMTA04P+c
- 6ODQfViNSnC67OdV7BaUPZEJNbAyCLgiREWik52KQG/SuBpWuUCiabIGCnu/Jixy9gTM
- Nh4q9k60goUMaVqzHn+HzIvjcChdzkM6Ha9EKD9QwIa8YPYIOpIwaLBn6kpF0wWRVVHA
- jm0eWBzaawskt5ekD9OPUlnlqrKLffkRs4m63XFWJeAtSe9tBvOTu4G6fu56rO67l6C1 Qw== 
+ bh=7CFQF1uFAN//bgNV90FI/dawvD8nMJvY6YyL1sfuCCA=;
+ b=ePnypGaimYdu2/E8otHOHksaSwEI5tFkGl6y5Fq3xzm+ht5yAmsKe9zYayduWqH2l84m
+ +uSblyGRlCsz1UswsGo1JJRZIA/9cg6MImFz80nZWQQ/Rmi/houUjEOK9YPO16Twbwi7
+ cgBX7LywrKgY+drQ32+vFhYGlROm0xP2UyMNV/CKGDBzpWE3bYcV0I+qg+vsUATkgh6N
+ 7M27SS2klufV+yIfqrkp1Y6TOwlri2kJEX6XJS4bNKvEbVVFK5T7MsftYcvWdsmBsb+5
+ rTd6ciptBkUWMy5ll2o0Th4aohIInfJTIAvFb3GNfGKQRIrrxt8A3RWBU1/H8Vk8sa5R Hw== 
 Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gmqfq5w3m-2
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gmrf35vuu-3
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 16 Jun 2022 09:34:40 -0500
+        Thu, 16 Jun 2022 09:34:34 -0500
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 16 Jun
- 2022 15:34:32 +0100
+ 2022 15:34:30 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 16 Jun 2022 15:34:32 +0100
+ Transport; Thu, 16 Jun 2022 15:34:30 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 053C511D3;
-        Thu, 16 Jun 2022 14:34:32 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 7E197478;
+        Thu, 16 Jun 2022 14:34:30 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -59,17 +59,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>
-Subject: [PATCH 26/96] ASoC: rockchip: Migrate to new style legacy DAI naming flag
-Date:   Thu, 16 Jun 2022 15:33:19 +0100
-Message-ID: <20220616143429.1324494-27-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 07/96] ASoC: ep93xx: Migrate to new style legacy DAI naming flag
+Date:   Thu, 16 Jun 2022 15:33:00 +0100
+Message-ID: <20220616143429.1324494-8-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 References: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: IpsGq9FoaXt-9eT2DdnEMXdnzL34HmIT
-X-Proofpoint-GUID: IpsGq9FoaXt-9eT2DdnEMXdnzL34HmIT
+X-Proofpoint-GUID: m1riLdFR0JRu_RIVN-zzoYOQGXWc_1Al
+X-Proofpoint-ORIG-GUID: m1riLdFR0JRu_RIVN-zzoYOQGXWc_1Al
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -82,60 +82,42 @@ currently uses the legacy naming, so add the new flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/rockchip/rockchip_i2s.c     | 1 +
- sound/soc/rockchip/rockchip_i2s_tdm.c | 1 +
- sound/soc/rockchip/rockchip_pdm.c     | 1 +
- sound/soc/rockchip/rockchip_spdif.c   | 1 +
- 4 files changed, 4 insertions(+)
+ sound/soc/cirrus/ep93xx-ac97.c | 3 ++-
+ sound/soc/cirrus/ep93xx-i2s.c  | 7 ++++---
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/sound/soc/rockchip/rockchip_i2s.c b/sound/soc/rockchip/rockchip_i2s.c
-index 47a3971a9ce14..2eb1a9bf4c00b 100644
---- a/sound/soc/rockchip/rockchip_i2s.c
-+++ b/sound/soc/rockchip/rockchip_i2s.c
-@@ -498,6 +498,7 @@ static struct snd_soc_dai_driver rockchip_i2s_dai = {
- 
- static const struct snd_soc_component_driver rockchip_i2s_component = {
- 	.name = DRV_NAME,
-+	.legacy_dai_naming = 1,
+diff --git a/sound/soc/cirrus/ep93xx-ac97.c b/sound/soc/cirrus/ep93xx-ac97.c
+index 16f9bb283b5cb..37593abe60532 100644
+--- a/sound/soc/cirrus/ep93xx-ac97.c
++++ b/sound/soc/cirrus/ep93xx-ac97.c
+@@ -355,7 +355,8 @@ static struct snd_soc_dai_driver ep93xx_ac97_dai = {
  };
  
- static bool rockchip_i2s_wr_reg(struct device *dev, unsigned int reg)
-diff --git a/sound/soc/rockchip/rockchip_i2s_tdm.c b/sound/soc/rockchip/rockchip_i2s_tdm.c
-index 48b3ecfa58b46..2aad0f309cb63 100644
---- a/sound/soc/rockchip/rockchip_i2s_tdm.c
-+++ b/sound/soc/rockchip/rockchip_i2s_tdm.c
-@@ -1120,6 +1120,7 @@ static const struct snd_soc_dai_ops rockchip_i2s_tdm_dai_ops = {
- 
- static const struct snd_soc_component_driver rockchip_i2s_tdm_component = {
- 	.name = DRV_NAME,
-+	.legacy_dai_naming = 1,
+ static const struct snd_soc_component_driver ep93xx_ac97_component = {
+-	.name		= "ep93xx-ac97",
++	.name			= "ep93xx-ac97",
++	.legacy_dai_naming	= 1,
  };
  
- static bool rockchip_i2s_tdm_wr_reg(struct device *dev, unsigned int reg)
-diff --git a/sound/soc/rockchip/rockchip_pdm.c b/sound/soc/rockchip/rockchip_pdm.c
-index 64d9891b6434f..6d93155411b03 100644
---- a/sound/soc/rockchip/rockchip_pdm.c
-+++ b/sound/soc/rockchip/rockchip_pdm.c
-@@ -405,6 +405,7 @@ static struct snd_soc_dai_driver rockchip_pdm_dai = {
- 
- static const struct snd_soc_component_driver rockchip_pdm_component = {
- 	.name = "rockchip-pdm",
-+	.legacy_dai_naming = 1,
+ static int ep93xx_ac97_probe(struct platform_device *pdev)
+diff --git a/sound/soc/cirrus/ep93xx-i2s.c b/sound/soc/cirrus/ep93xx-i2s.c
+index 47959794353a7..982151330c896 100644
+--- a/sound/soc/cirrus/ep93xx-i2s.c
++++ b/sound/soc/cirrus/ep93xx-i2s.c
+@@ -422,9 +422,10 @@ static struct snd_soc_dai_driver ep93xx_i2s_dai = {
  };
  
- static int rockchip_pdm_runtime_suspend(struct device *dev)
-diff --git a/sound/soc/rockchip/rockchip_spdif.c b/sound/soc/rockchip/rockchip_spdif.c
-index d027ca4b17964..8bef572d3cbc1 100644
---- a/sound/soc/rockchip/rockchip_spdif.c
-+++ b/sound/soc/rockchip/rockchip_spdif.c
-@@ -225,6 +225,7 @@ static struct snd_soc_dai_driver rk_spdif_dai = {
- 
- static const struct snd_soc_component_driver rk_spdif_component = {
- 	.name = "rockchip-spdif",
-+	.legacy_dai_naming = 1,
+ static const struct snd_soc_component_driver ep93xx_i2s_component = {
+-	.name		= "ep93xx-i2s",
+-	.suspend	= ep93xx_i2s_suspend,
+-	.resume		= ep93xx_i2s_resume,
++	.name			= "ep93xx-i2s",
++	.suspend		= ep93xx_i2s_suspend,
++	.resume			= ep93xx_i2s_resume,
++	.legacy_dai_naming	= 1,
  };
  
- static bool rk_spdif_wr_reg(struct device *dev, unsigned int reg)
+ static int ep93xx_i2s_probe(struct platform_device *pdev)
 -- 
 2.30.2
 
