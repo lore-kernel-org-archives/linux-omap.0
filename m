@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B748CCA490
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:36:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43D55CCA49D
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:36:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377792AbiFPOgL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Jun 2022 10:36:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43340 "EHLO
+        id S1377906AbiFPOgK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Jun 2022 10:36:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377745AbiFPOfs (ORCPT
+        with ESMTP id S1377809AbiFPOfs (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2022 10:35:48 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04D5223BE2;
+Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55A3F3DA50;
         Thu, 16 Jun 2022 07:35:47 -0700 (PDT)
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25G4igBa030693;
-        Thu, 16 Jun 2022 09:34:40 -0500
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25G8o9fd009500;
+        Thu, 16 Jun 2022 09:34:55 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=PWSGRrWgNvQqI/FJwn730ONsTAALyjkFDX1e4aDoN0Y=;
- b=aunoSd3Y2LL2Jh+8WAGSuUqS/F2Tah6wB9r4VPbfcwz95TZhTzl3UQ9GceTQLDOs532y
- iJ89IK50EAtZ4TMSfizFzR7Tvmturi6f+su6cOwHpNSPUpN+q4Sfb2ZqrcwBtuiWTFj/
- B+45969XSLj0aFL8/laa4Rqq/aqHvT5ebKeoa2163CMTDIgWN3lknry43+v57P78+u9C
- wnqkoiMeDYqBImmmP638gYKomrQBgbDtO8wAgSIPGKX9OGb1yuiR0IkSmd3AocEB6pm4
- NK0HGv1yk7ByxuVsi8FA6tFUaL6pwXX8er0JLSEKQoKFAh0MrG03/3W+Y7T2txTgxlat /Q== 
+ bh=C9jFcjILUBruvY5FmPmFUeeMJvd0Y1YtT+zram/FiSo=;
+ b=W5Jth0HTIoyjFKA24zOJnZ4VNNJsVBCY5kmAN1OBatSpD4cbsX3eg/3feaWSh1KVOfQe
+ yKAXwWHFwV0LOJlHfxSJTe44vU6yHwqbznIVU12LpLnzYCwqsXAn8nbkL/iSMMk7sqsp
+ R59jhjr1g4ckeYyBM4lb0zmtcRNxLBDF74KRwSRN1Q3ZXkQgxNaxo1Bm7kBO/DJq+/Ui
+ Fahr0REUGrPrRfRQhu6UEpe3XxUi/zXv0EDYotr6pRbwFNcSe7jtw9QAlPatT+nEqlD9
+ zhmtlWjb4NPTYO5Dmy1MMMLjCSNFZhnmXD6rDwP3dKuB+7NLIxTsgzz6DQqW/JegnDBx uw== 
 Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gmrf35vuw-5
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gmqfq5w3u-11
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 16 Jun 2022 09:34:40 -0500
+        Thu, 16 Jun 2022 09:34:55 -0500
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
  (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 16 Jun
- 2022 15:34:32 +0100
+ 2022 15:34:37 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 16 Jun 2022 15:34:32 +0100
+ Transport; Thu, 16 Jun 2022 15:34:37 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 84C4C11D3;
-        Thu, 16 Jun 2022 14:34:32 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 79AE811D3;
+        Thu, 16 Jun 2022 14:34:37 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -59,46 +59,43 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>
-Subject: [PATCH 32/96] ASoC: mxs-saif: Migrate to new style legacy DAI naming flag
-Date:   Thu, 16 Jun 2022 15:33:25 +0100
-Message-ID: <20220616143429.1324494-33-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 93/96] ASoC: tscs42xx: Remove now redundant non_legacy_dai_naming flag
+Date:   Thu, 16 Jun 2022 15:34:26 +0100
+Message-ID: <20220616143429.1324494-94-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 References: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: aFh-e9vjHCOO20rpLqkPvBmaX-DQ1kFa
-X-Proofpoint-ORIG-GUID: aFh-e9vjHCOO20rpLqkPvBmaX-DQ1kFa
+X-Proofpoint-ORIG-GUID: WrhzynNDdJ61Yn2Ei9CuNKGX9BvMWZMz
+X-Proofpoint-GUID: WrhzynNDdJ61Yn2Ei9CuNKGX9BvMWZMz
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Change the legacy DAI naming flag from opting in to the new scheme
-(non_legacy_dai_naming), to opting out of it (legacy_dai_naming).
-This driver appears to be on the CPU side of the DAI link and
-currently uses the legacy naming, so add the new flag.
+The ASoC core has now been changed to default to the non-legacy DAI
+naming, as such drivers using the new scheme no longer need to specify
+the non_legacy_dai_naming flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/mxs/mxs-saif.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ sound/soc/codecs/tscs42xx.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/sound/soc/mxs/mxs-saif.c b/sound/soc/mxs/mxs-saif.c
-index 467b0f2ce0bb1..ac761d3a01c05 100644
---- a/sound/soc/mxs/mxs-saif.c
-+++ b/sound/soc/mxs/mxs-saif.c
-@@ -663,7 +663,8 @@ static struct snd_soc_dai_driver mxs_saif_dai = {
+diff --git a/sound/soc/codecs/tscs42xx.c b/sound/soc/codecs/tscs42xx.c
+index 4fb0bb01bcdc0..fa0c525189c20 100644
+--- a/sound/soc/codecs/tscs42xx.c
++++ b/sound/soc/codecs/tscs42xx.c
+@@ -1358,7 +1358,6 @@ static const struct snd_soc_component_driver soc_codec_dev_tscs42xx = {
+ 	.idle_bias_on		= 1,
+ 	.use_pmdown_time	= 1,
+ 	.endianness		= 1,
+-	.non_legacy_dai_naming	= 1,
  };
  
- static const struct snd_soc_component_driver mxs_saif_component = {
--	.name		= "mxs-saif",
-+	.name			= "mxs-saif",
-+	.legacy_dai_naming	= 1,
- };
- 
- static irqreturn_t mxs_saif_irq(int irq, void *dev_id)
+ static inline void init_coeff_ram_cache(struct tscs42xx *tscs42xx)
 -- 
 2.30.2
 
