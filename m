@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB54CCCA48D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A15ACCA48A
 	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:35:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377734AbiFPOfd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1377733AbiFPOfd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Thu, 16 Jun 2022 10:35:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42730 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377726AbiFPOfb (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2022 10:35:31 -0400
+        with ESMTP id S1377678AbiFPOf3 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2022 10:35:29 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 937641F61B;
-        Thu, 16 Jun 2022 07:35:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E51E3120A5;
+        Thu, 16 Jun 2022 07:35:28 -0700 (PDT)
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25GC07CH027888;
-        Thu, 16 Jun 2022 09:34:43 -0500
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25GC07CM027888;
+        Thu, 16 Jun 2022 09:34:49 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=UKatc6+tXyUsYCxIUlOCKACRDXtjL/84KfpSbCPcQ6U=;
- b=PVEf/gSBt1LrSmysiT/MfKCEqEuopaWdPpEGU6ngsUBRBfSA3DVN619Ate1wBzxNso82
- /d+DwJ2CB9MVBEfTyWHEbVWVRrA4Um6ZdSHZ6rcUKMCCGRKs847pYfYVdic7OowtWiy5
- PRphUBqgwffGkX177bGgo8IfWe2mt/cn0rOv2CAcZ1iD1++4evb48Oacy/TM5aZKhj8O
- P/yTHnlVN7vTTq8Ym1cXRWpuyw3w2U1YfKHSgXozo/HZdS3kwo2PsTjbey8H+K51fEqT
- 4qBpeUkyOsQ0oxd26dWX476QmNP1PSE+Gw141MYWtRj18bB/cLKnpv4MzDsBncpq+YC9 +Q== 
+ bh=JO8NBab2cbm4CapYQjM6kTT0OCNFUo++ytFT3/9UaJM=;
+ b=O7nGCtH1WradPw6CQBeJRhAAm8VTiNTcA478ER9PrKT5l7vQMmW6OZIVqj3KWT1ddPJq
+ yTFoC9g9rRdUZTJyktV+/JmB69/6JAsCIbRrve1MgirAHs0HMwGdKM2QrQwMO+g5O/Xr
+ 9dZzYV7eWe2/YT9jTcMBNF15Uy1uVKj8zHO9keMFVtVIo2sFWRz5pUIfW7sX9ryHVGjz
+ W7NwihDKqQ6A0ofAAifVOHcfITmGyOLS6u0EjeFgaYrH4+57r//xxFbOrYywrRHD0N+c
+ +vi2SB2z0urGCYGZpJ2gzZAFaDTKVuW/sPGJ9RRlOJe0DBOhwo964jGnAZjM5aHxz3Pf lw== 
 Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gmrf35vuu-14
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gmrf35vuu-19
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 16 Jun 2022 09:34:43 -0500
+        Thu, 16 Jun 2022 09:34:48 -0500
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 16 Jun
- 2022 15:34:33 +0100
+ 2022 15:34:34 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 16 Jun 2022 15:34:33 +0100
+ Transport; Thu, 16 Jun 2022 15:34:34 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 07BB011DA;
-        Thu, 16 Jun 2022 14:34:33 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id DB57F11DA;
+        Thu, 16 Jun 2022 14:34:34 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -59,17 +59,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>
-Subject: [PATCH 38/96] ASoC: pistachio: Remove now redundant non_legacy_dai_naming flag
-Date:   Thu, 16 Jun 2022 15:33:31 +0100
-Message-ID: <20220616143429.1324494-39-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 63/96] ASoC: twl*: Remove now redundant non_legacy_dai_naming flag
+Date:   Thu, 16 Jun 2022 15:33:56 +0100
+Message-ID: <20220616143429.1324494-64-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 References: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: kgcjvTB7aSQbNwlmVULg7B1ofhUZ2hNS
-X-Proofpoint-ORIG-GUID: kgcjvTB7aSQbNwlmVULg7B1ofhUZ2hNS
+X-Proofpoint-GUID: rI3K8K_AgUttdG0dkUtSe2R8ffmme3dd
+X-Proofpoint-ORIG-GUID: rI3K8K_AgUttdG0dkUtSe2R8ffmme3dd
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -81,21 +81,34 @@ the non_legacy_dai_naming flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/img/pistachio-internal-dac.c | 1 -
- 1 file changed, 1 deletion(-)
+ sound/soc/codecs/twl4030.c | 1 -
+ sound/soc/codecs/twl6040.c | 1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/sound/soc/img/pistachio-internal-dac.c b/sound/soc/img/pistachio-internal-dac.c
-index 802c0ee63aa26..e3b858643bd5d 100644
---- a/sound/soc/img/pistachio-internal-dac.c
-+++ b/sound/soc/img/pistachio-internal-dac.c
-@@ -138,7 +138,6 @@ static const struct snd_soc_component_driver pistachio_internal_dac_driver = {
- 	.num_dapm_routes	= ARRAY_SIZE(pistachio_internal_dac_routes),
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
+index 0ba3546ef8708..0359618ae8653 100644
+--- a/sound/soc/codecs/twl4030.c
++++ b/sound/soc/codecs/twl4030.c
+@@ -2188,7 +2188,6 @@ static const struct snd_soc_component_driver soc_component_dev_twl4030 = {
+ 	.num_dapm_routes	= ARRAY_SIZE(intercon),
  	.use_pmdown_time	= 1,
  	.endianness		= 1,
 -	.non_legacy_dai_naming	= 1,
  };
  
- static int pistachio_internal_dac_probe(struct platform_device *pdev)
+ static int twl4030_codec_probe(struct platform_device *pdev)
+diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
+index b37203336c4e0..dd5ee5dc0cd75 100644
+--- a/sound/soc/codecs/twl6040.c
++++ b/sound/soc/codecs/twl6040.c
+@@ -1153,7 +1153,6 @@ static const struct snd_soc_component_driver soc_component_dev_twl6040 = {
+ 	.suspend_bias_off	= 1,
+ 	.idle_bias_on		= 1,
+ 	.endianness		= 1,
+-	.non_legacy_dai_naming	= 1,
+ };
+ 
+ static int twl6040_codec_probe(struct platform_device *pdev)
 -- 
 2.30.2
 
