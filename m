@@ -2,32 +2,32 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA974CCA496
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:36:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 997A5CCA499
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Jun 2022 14:36:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377722AbiFPOgF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Jun 2022 10:36:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43470 "EHLO
+        id S1377789AbiFPOgG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Jun 2022 10:36:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377789AbiFPOfs (ORCPT
+        with ESMTP id S1377786AbiFPOfs (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2022 10:35:48 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBBE91CFFC;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25EDA3C4A2;
         Thu, 16 Jun 2022 07:35:44 -0700 (PDT)
 Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25GC0DJV015765;
-        Thu, 16 Jun 2022 09:34:33 -0500
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25GC0DJU015765;
+        Thu, 16 Jun 2022 09:34:32 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=FzDSh8zY1KDxF7rJkQVN5S8yOHbt/setTYgyg3pJdkA=;
- b=WW+n3LXm4IbcCA9uCF6xcs3J0zac5kNaujrwPbxuQSlMcbQbLtXd0558rBikZ8SU51ws
- 2s7Y72rFxKL1OD0QTFwA7b3yMUa2RhUL3TNqvc29Q+7c7E/jTpqFAxcwSrilPxr7F8+e
- Q1vU3/2kHOhWdAslx/T1uK71nMFFqFk85qh7cCs5vWsMQHq28QVBTClUYGRCzfzDuCDE
- HR8eIdkKDGiE7tY/SzIvBNX3Ab9AgHKx690fEXmucp8+G1hd3C1V6husVL7Gy/IHcvpm
- aryzqujEVCtTiBdSNDJKMabYujaLFH78AX2o+hBzcGF9p472Wn4nTCfbvJBF3bxPra/e ng== 
+ bh=iTADTC41E6DONZdlcFN/gxhcVbEVFbHK0N8VRx+RW/0=;
+ b=CtEU1trLhTtJHQ8TJeXZ0N5NndFZa3sPzSI36KjKJNfIQjsRVDJufzx/xYkisOJ01YuE
+ 3BdNzsJlyh7x1q9n7yOppnybpHDFpMpP5uzVOTxKAT/14+aE9yAcdo1nCEjvUtDufCSC
+ 5FnHM5DVx3HqormEmYNx4n6W9fPpdM5PqUIyFI4e79kGImqlE5PgzvB5exrWWxk1+rAj
+ jJtllzg25iBe6E2QeJofe6K11IEVKaCIEMaHCksXTJruRYhqf8iALv7sLx48ByHEXR/m
+ NxeZ9vFs7NLdc+FWDoLVDWzNA+XH9rbL/ArNgD1ENcNCbS6BBu5WT8iG1F9ytcsZAG4W nw== 
 Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gmqfq5w3h-3
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gmqfq5w3h-2
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
         Thu, 16 Jun 2022 09:34:32 -0500
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
@@ -38,7 +38,7 @@ Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
  Transport; Thu, 16 Jun 2022 15:34:30 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 54422468;
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 121E4468;
         Thu, 16 Jun 2022 14:34:30 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
@@ -59,17 +59,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>
-Subject: [PATCH 05/96] ASoC: spear: Migrate to new style legacy DAI naming flag
-Date:   Thu, 16 Jun 2022 15:32:58 +0100
-Message-ID: <20220616143429.1324494-6-ckeepax@opensource.cirrus.com>
+Subject: [PATCH 02/96] soundwire: intel: Migrate to new style legacy DAI naming flag
+Date:   Thu, 16 Jun 2022 15:32:55 +0100
+Message-ID: <20220616143429.1324494-3-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 References: <20220616143429.1324494-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: JgVujUQviHpgxqwaL04xCfEOCuXtML3x
-X-Proofpoint-GUID: JgVujUQviHpgxqwaL04xCfEOCuXtML3x
+X-Proofpoint-ORIG-GUID: xxJ1aLEDe60DOgwDL7K9-ZJ4hQoG5LP1
+X-Proofpoint-GUID: xxJ1aLEDe60DOgwDL7K9-ZJ4hQoG5LP1
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -77,43 +77,30 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 Change the legacy DAI naming flag from opting in to the new scheme
 (non_legacy_dai_naming), to opting out of it (legacy_dai_naming).
-These drivers appear to be on the CPU side of the DAI link and
+This driver appears to be on the CPU side of the DAI link and
 currently uses the legacy naming, so add the new flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/spear/spdif_in.c  | 3 ++-
- sound/soc/spear/spdif_out.c | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/soundwire/intel.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/spear/spdif_in.c b/sound/soc/spear/spdif_in.c
-index 4b68d6ee75da4..4ad8b1fc713a7 100644
---- a/sound/soc/spear/spdif_in.c
-+++ b/sound/soc/spear/spdif_in.c
-@@ -172,7 +172,8 @@ static struct snd_soc_dai_driver spdif_in_dai = {
+diff --git a/drivers/soundwire/intel.c b/drivers/soundwire/intel.c
+index 505c5ef061e3f..0268fa527c0c0 100644
+--- a/drivers/soundwire/intel.c
++++ b/drivers/soundwire/intel.c
+@@ -1097,8 +1097,9 @@ static const struct snd_soc_dai_ops intel_pcm_dai_ops = {
  };
  
- static const struct snd_soc_component_driver spdif_in_component = {
--	.name		= "spdif-in",
-+	.name			= "spdif-in",
+ static const struct snd_soc_component_driver dai_component = {
+-	.name           = "soundwire",
+-	.suspend	= intel_component_dais_suspend
++	.name			= "soundwire",
++	.suspend		= intel_component_dais_suspend,
 +	.legacy_dai_naming	= 1,
  };
  
- static irqreturn_t spdif_in_irq(int irq, void *arg)
-diff --git a/sound/soc/spear/spdif_out.c b/sound/soc/spear/spdif_out.c
-index 549295a6ed501..fb107c5790add 100644
---- a/sound/soc/spear/spdif_out.c
-+++ b/sound/soc/spear/spdif_out.c
-@@ -273,7 +273,8 @@ static struct snd_soc_dai_driver spdif_out_dai = {
- };
- 
- static const struct snd_soc_component_driver spdif_out_component = {
--	.name		= "spdif-out",
-+	.name			= "spdif-out",
-+	.legacy_dai_naming	= 1,
- };
- 
- static int spdif_out_probe(struct platform_device *pdev)
+ static int intel_create_dai(struct sdw_cdns *cdns,
 -- 
 2.30.2
 
