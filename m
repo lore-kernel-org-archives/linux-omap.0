@@ -2,89 +2,69 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BB3BC433EF
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Jun 2022 08:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54366C433EF
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Jun 2022 14:58:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234828AbiFQIXU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Jun 2022 04:23:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33478 "EHLO
+        id S234265AbiFQO6h (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Jun 2022 10:58:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231694AbiFQIXU (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2022 04:23:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D71464BD2;
-        Fri, 17 Jun 2022 01:23:19 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CDAFC61FA7;
-        Fri, 17 Jun 2022 08:23:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20996C3411F;
-        Fri, 17 Jun 2022 08:23:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1655454198;
-        bh=ZG1PRw5VnASc89o/sYJOq7OiWVJgsMuC9yddKS4CDrA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=lT4Ro3kc+A+y+QX6qf1iKCZL6VGsTamd7TWyXJxZ2TgoTwfV5oSwsiZ05/Bq3z9IC
-         2uNbFIfQvVNRYjJkhVFsY2BWsYBvW3xuP9vMO9+85A0paewaFf0eXvtE+dLv59lF/i
-         KU3d1/XThv0zX0yeZ0/g47Y7eAIgVru13ITMzQYfhXy45s0giDW8i8MvMj8LAtTck+
-         cd3I++eF16H73f81p1ss27mLF6cf1fcCqRGxSsVhFVR/qZSO4fWgnjJsdhv0DVrOnE
-         iUIlBWlrsurY4mh7jG3/giMqgCMcoDTIoUsfJKtC9I7e0yzq2Cv+NACt0wYW3+LrpB
-         Fv6MAEBlZtZjA==
-Date:   Fri, 17 Jun 2022 09:23:12 +0100
-From:   Mark Brown <broonie@kernel.org>
-To:     David Owens <daowens01@gmail.com>
-Cc:     Peter Ujfalusi <peter.ujfalusi@gmail.com>,
-        Jarkko Nikula <jarkko.nikula@bitmer.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        David Owens <dowens@precisionplanting.com>,
-        alsa-devel@alsa-project.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3] ASoC: ti: omap-mcbsp: duplicate sysfs error
-Message-ID: <Yqw58Jt9Pky/mYdc@sirena.org.uk>
-References: <20220616202645.1645972-1-dowens@precisionplanting.com>
+        with ESMTP id S1382980AbiFQO6f (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2022 10:58:35 -0400
+Received: from mail-m964.mail.126.com (mail-m964.mail.126.com [123.126.96.4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 21B132ED43;
+        Fri, 17 Jun 2022 07:58:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=C9dWw
+        lJTkPVFPy+ldljG5siVelWvaG/RDmrjHzyN2Zg=; b=hAXLU8E4EYCHfu1gvSvXw
+        cO29KcVRNG2xee1bodrA6D47p5dfuioG1eSWcthuLIWZ9jVBIYh9cTRmAuPPK6QN
+        v1TUMAGb9vOQ0JPCk7odkc3v3aZT/CcrBalAa2+g5tcXYAQBwnGsaZCiZj19ohMo
+        TEUANFnJ17TPnxRBZDa0ZA=
+Received: from localhost.localdomain (unknown [124.16.139.61])
+        by smtp9 (Coremail) with SMTP id NeRpCgBncrd8lqxiCpXrEw--.40452S2;
+        Fri, 17 Jun 2022 22:58:05 +0800 (CST)
+From:   Liang He <windhl@126.com>
+To:     tony@atomide.com, linux@armlinux.org.uk
+Cc:     windhl@126.com, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] arm: mach-omap2: display: Fix refcount leak bug
+Date:   Fri, 17 Jun 2022 22:58:03 +0800
+Message-Id: <20220617145803.4050918-1-windhl@126.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="xbvFMKB/P2J9t+zG"
-Content-Disposition: inline
-In-Reply-To: <20220616202645.1645972-1-dowens@precisionplanting.com>
-X-Cookie: 98% lean.
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: NeRpCgBncrd8lqxiCpXrEw--.40452S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrZF4fWry3Gry7Cr4UZr15XFb_yoW3GFc_tw
+        n3Xw1fJryrta1vg3yDur4rWrsYqw45Gr17Xr92qF12ka12qF17ZrWjywn2qrWUWFWYyrW3
+        Cr97GFy5CwsrJjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7xRtgAwDUUUUU==
+X-Originating-IP: [124.16.139.61]
+X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbi7R0jF1pEAOCisQAAsp
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+In omapdss_init_fbdev(), of_find_node_by_name() will return a node
+pointer with refcount incremented. We should use of_node_put() when
+it is not used anymore.
 
---xbvFMKB/P2J9t+zG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Liang He <windhl@126.com>
+---
+ arch/arm/mach-omap2/display.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-On Thu, Jun 16, 2022 at 03:26:45PM -0500, David Owens wrote:
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 21413a9b7b6c..eb09a25e3b45 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -211,6 +211,7 @@ static int __init omapdss_init_fbdev(void)
+ 	node = of_find_node_by_name(NULL, "omap4_padconf_global");
+ 	if (node)
+ 		omap4_dsi_mux_syscon = syscon_node_to_regmap(node);
++	of_node_put(node);
+ 
+ 	return 0;
+ }
+-- 
+2.25.1
 
-> sysfs: cannot create duplicate filename '/devices/platform/68000000.ocp/4=
-9022000.mcbsp/max_tx_thres'
->=20
-> Signed-off-by: David Owens <dowens@precisionplanting.com>
-> ---
-
-Please carry forward tags like acks unless you make changes to the patch
-which would invalidate them.  No need to resend for this alone.
-
---xbvFMKB/P2J9t+zG
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmKsOfAACgkQJNaLcl1U
-h9AURwf/f6I/e2bDkIEEwNwEPBB1bwhn2Ume/aTTU7/TGFfAbhYa83++IgU/cF7B
-AQHpwlpoktSXH+1RkSCKAcyEyGUPqTZ1eCkvQKz+jWwY/SkVBkBCfDyol1nwkemY
-lLjSMOqiHyD3f1APtYct9T394Ds92LRQoobqwxB8cQoOjbjIIEpODoUCvexMGRMC
-YnQLl4E0CLydjipC3buAjqYF3oR7z2E4ntVVhYUGUID5pDgCqE+ELWluwwUf+tL1
-jCtSMlGORLrIojhA8G8+eYzFy6X0niIbWBRfHaD5XC1wkX1S5BqsbXLgoaSvOHpX
-hkIjUyYdMzPeGTUy3TNzBlGZ5hFqdA==
-=rwQu
------END PGP SIGNATURE-----
-
---xbvFMKB/P2J9t+zG--
