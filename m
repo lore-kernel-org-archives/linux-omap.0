@@ -2,80 +2,70 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C29C433EF
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Jun 2022 04:03:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4697C43334
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Jun 2022 04:27:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379702AbiFQEDK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Jun 2022 00:03:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56762 "EHLO
+        id S1345930AbiFQE1J (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Jun 2022 00:27:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232836AbiFQEDI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2022 00:03:08 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4090D13F3F;
-        Thu, 16 Jun 2022 21:03:07 -0700 (PDT)
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id D09E0812F;
-        Fri, 17 Jun 2022 03:58:15 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     Ulf Hansson <ulf.hansson@linaro.org>
-Cc:     Adrian Hunter <adrian.hunter@intel.com>,
-        Chunyan Zhang <zhang.chunyan@linaro.org>,
-        Faiz Abbas <faiz_abbas@ti.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org,
-        Yegor Yefremov <yegorslists@googlemail.com>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] mmc: sdhci-omap: Fix a lockdep warning for PM runtime init
-Date:   Fri, 17 Jun 2022 07:03:00 +0300
-Message-Id: <20220617040300.30321-1-tony@atomide.com>
-X-Mailer: git-send-email 2.36.1
+        with ESMTP id S229781AbiFQE1I (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2022 00:27:08 -0400
+X-Greylist: delayed 1846 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 16 Jun 2022 21:27:07 PDT
+Received: from mail-m963.mail.126.com (mail-m963.mail.126.com [123.126.96.3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0168A663F0
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2022 21:27:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=FK3+6
+        hlQB3HGXoQhyC6dprNvmAP51TusZx/O2PywBRE=; b=UWafGE1UiUdqxOtFRJ1tx
+        PJYNaoA6tu9+k2wp6y2wvijB1R4W67Xni+Miw+8cbNisIho0StWZxTqdfiNQKrho
+        0iI56/xxFwV3vjZ57TA7mvHiCGwwkLNAVEDTptvfHbjxiEDanJdZ+ADl0quZVKex
+        arCWJuFt98w3/H3Z1YikgQ=
+Received: from localhost.localdomain (unknown [124.16.139.61])
+        by smtp8 (Coremail) with SMTP id NORpCgAHu49F+6tiYaBRFw--.26457S2;
+        Fri, 17 Jun 2022 11:55:57 +0800 (CST)
+From:   Liang He <windhl@126.com>
+To:     tony@atomide.com, linux@armlinux.org.uk
+Cc:     windhl@126.com, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] arm: mach-omap2: omap4-common: Fix refcount leak bug
+Date:   Fri, 17 Jun 2022 11:55:48 +0800
+Message-Id: <20220617035548.4003393-1-windhl@126.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: NORpCgAHu49F+6tiYaBRFw--.26457S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWruFyfGr18WFyxAryfuF4DJwb_yoWfJFgEqw
+        n2g395Jrsag3Z3Ka47Ca15Gr4jgw1rWrs7W3s7ZF15Ka1UJr43ArZ2vas2yryDX3yrKrW3
+        ZFZFyw4Fkw1avjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUUVWlJUUUUU==
+X-Originating-IP: [124.16.139.61]
+X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbi7Q0jF1pEANzlIQAAsS
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We need hardware enabled early in probe to detect capabilities, but must
-not call sdhci_runtime_resume_host() until sdhci_setup_host() has been
-called. Let's check for an initialized controller like we already do
-for context restore.
+In omap4_sram_init(), of_find_compatible_node() will return a node
+pointer with refcount incremented. We should use of_node_put() when
+it is not used anymore.
 
-Fixes: f433e8aac6b9 ("mmc: sdhci-omap: Implement PM runtime functions")
-Reported-by: Yegor Yefremov <yegorslists@googlemail.com>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Liang He <windhl@126.com>
 ---
- drivers/mmc/host/sdhci-omap.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/omap4-common.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
---- a/drivers/mmc/host/sdhci-omap.c
-+++ b/drivers/mmc/host/sdhci-omap.c
-@@ -1441,7 +1441,8 @@ static int __maybe_unused sdhci_omap_runtime_suspend(struct device *dev)
- 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
- 	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
- 
--	sdhci_runtime_suspend_host(host);
-+	if (omap_host->con != -EINVAL)
-+		sdhci_runtime_suspend_host(host);
- 
- 	sdhci_omap_context_save(omap_host);
- 
-@@ -1458,10 +1459,10 @@ static int __maybe_unused sdhci_omap_runtime_resume(struct device *dev)
- 
- 	pinctrl_pm_select_default_state(dev);
- 
--	if (omap_host->con != -EINVAL)
-+	if (omap_host->con != -EINVAL) {
- 		sdhci_omap_context_restore(omap_host);
--
--	sdhci_runtime_resume_host(host, 0);
-+		sdhci_runtime_resume_host(host, 0);
-+	}
- 
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 6d1eb4eefefe..e981bf57e64f 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -135,6 +135,7 @@ static int __init omap4_sram_init(void)
+ 		pr_warn("%s:Unable to allocate sram needed to handle errata I688\n",
+ 			__func__);
+ 	sram_pool = of_gen_pool_get(np, "sram", 0);
++	of_node_put(np);
+ 	if (!sram_pool)
+ 		pr_warn("%s:Unable to get sram pool needed to handle errata I688\n",
+ 			__func__);
 -- 
-2.36.1
+2.25.1
+
