@@ -2,70 +2,111 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4697C43334
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Jun 2022 04:27:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06251C43334
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Jun 2022 06:25:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345930AbiFQE1J (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Jun 2022 00:27:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45118 "EHLO
+        id S234463AbiFQGZj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Jun 2022 02:25:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229781AbiFQE1I (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2022 00:27:08 -0400
-X-Greylist: delayed 1846 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 16 Jun 2022 21:27:07 PDT
-Received: from mail-m963.mail.126.com (mail-m963.mail.126.com [123.126.96.3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0168A663F0
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2022 21:27:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=FK3+6
-        hlQB3HGXoQhyC6dprNvmAP51TusZx/O2PywBRE=; b=UWafGE1UiUdqxOtFRJ1tx
-        PJYNaoA6tu9+k2wp6y2wvijB1R4W67Xni+Miw+8cbNisIho0StWZxTqdfiNQKrho
-        0iI56/xxFwV3vjZ57TA7mvHiCGwwkLNAVEDTptvfHbjxiEDanJdZ+ADl0quZVKex
-        arCWJuFt98w3/H3Z1YikgQ=
-Received: from localhost.localdomain (unknown [124.16.139.61])
-        by smtp8 (Coremail) with SMTP id NORpCgAHu49F+6tiYaBRFw--.26457S2;
-        Fri, 17 Jun 2022 11:55:57 +0800 (CST)
-From:   Liang He <windhl@126.com>
-To:     tony@atomide.com, linux@armlinux.org.uk
-Cc:     windhl@126.com, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] arm: mach-omap2: omap4-common: Fix refcount leak bug
-Date:   Fri, 17 Jun 2022 11:55:48 +0800
-Message-Id: <20220617035548.4003393-1-windhl@126.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S230307AbiFQGZj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2022 02:25:39 -0400
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08D184B40B;
+        Thu, 16 Jun 2022 23:25:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1655447138; x=1686983138;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=9jX8x1B0yyMxIR5oC5RaasA8RuJ4KOsyAyVIyowaP3U=;
+  b=Dr+rNexBITT+LV2qVZ8tyb1DOL5ojTAn6eHpI1zy+3PUKv/3SgJs2387
+   SvaZqs4QYXQyLEVu7PQKN49HNCcinMvZ95uSD0sdMGscJhpVQMkMTwPVJ
+   VaChYboxD8r50Rywu3IhP6xRd16pGTEMgHTWh8kS3mWkj4Oqj16j+mj00
+   a4NZOucUCl1WliNE6Z3GF3D+fyxD+L0Pwebl52P4Uri4PEVVqpQozaEzs
+   RmoX26JAWymW0LErq+EeF8Y5mDc0CMb/ctI3hSInjQWAkRVukiyofBI1j
+   QAkULj8Ve4mkKztGcXiYibQN5ZUYUTitpqhFxwi/Cltj9OE+ZQfL8i0PH
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10380"; a="365784557"
+X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
+   d="scan'208";a="365784557"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2022 23:25:37 -0700
+X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
+   d="scan'208";a="641906970"
+Received: from ahunter6-mobl1.ger.corp.intel.com (HELO [10.0.2.15]) ([10.252.33.57])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2022 23:25:34 -0700
+Message-ID: <173521c9-2e5c-8301-1dcf-b6f692866ef2@intel.com>
+Date:   Fri, 17 Jun 2022 09:25:31 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: NORpCgAHu49F+6tiYaBRFw--.26457S2
-X-Coremail-Antispam: 1Uf129KBjvdXoWruFyfGr18WFyxAryfuF4DJwb_yoWfJFgEqw
-        n2g395Jrsag3Z3Ka47Ca15Gr4jgw1rWrs7W3s7ZF15Ka1UJr43ArZ2vas2yryDX3yrKrW3
-        ZFZFyw4Fkw1avjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUUVWlJUUUUU==
-X-Originating-IP: [124.16.139.61]
-X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbi7Q0jF1pEANzlIQAAsS
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Firefox/91.0 Thunderbird/91.9.1
+Subject: Re: [PATCH] mmc: sdhci-omap: Fix a lockdep warning for PM runtime
+ init
+Content-Language: en-US
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     Adrian Hunter <adrian.hunter@intel.com>,
+        Chunyan Zhang <zhang.chunyan@linaro.org>,
+        Faiz Abbas <faiz_abbas@ti.com>,
+        Kishon Vijay Abraham I <kishon@ti.com>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org,
+        Yegor Yefremov <yegorslists@googlemail.com>,
+        Arnd Bergmann <arnd@arndb.de>
+References: <20220617040300.30321-1-tony@atomide.com>
+From:   Adrian Hunter <adrian.hunter@intel.com>
+Organization: Intel Finland Oy, Registered Address: PL 281, 00181 Helsinki,
+ Business Identity Code: 0357606 - 4, Domiciled in Helsinki
+In-Reply-To: <20220617040300.30321-1-tony@atomide.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-In omap4_sram_init(), of_find_compatible_node() will return a node
-pointer with refcount incremented. We should use of_node_put() when
-it is not used anymore.
+On 17/06/22 07:03, Tony Lindgren wrote:
+> We need hardware enabled early in probe to detect capabilities, but must
+> not call sdhci_runtime_resume_host() until sdhci_setup_host() has been
+> called. Let's check for an initialized controller like we already do
+> for context restore.
 
-Signed-off-by: Liang He <windhl@126.com>
----
- arch/arm/mach-omap2/omap4-common.c | 1 +
- 1 file changed, 1 insertion(+)
+Begs the question: why not prevent runtime pm until after sdhci_setup_host().
+Maybe expand the commit message explanation a bit?
 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 6d1eb4eefefe..e981bf57e64f 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -135,6 +135,7 @@ static int __init omap4_sram_init(void)
- 		pr_warn("%s:Unable to allocate sram needed to handle errata I688\n",
- 			__func__);
- 	sram_pool = of_gen_pool_get(np, "sram", 0);
-+	of_node_put(np);
- 	if (!sram_pool)
- 		pr_warn("%s:Unable to get sram pool needed to handle errata I688\n",
- 			__func__);
--- 
-2.25.1
+> 
+> Fixes: f433e8aac6b9 ("mmc: sdhci-omap: Implement PM runtime functions")
+> Reported-by: Yegor Yefremov <yegorslists@googlemail.com>
+> Suggested-by: Arnd Bergmann <arnd@arndb.de>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/mmc/host/sdhci-omap.c | 9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
+> --- a/drivers/mmc/host/sdhci-omap.c
+> +++ b/drivers/mmc/host/sdhci-omap.c
+> @@ -1441,7 +1441,8 @@ static int __maybe_unused sdhci_omap_runtime_suspend(struct device *dev)
+>  	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+>  	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
+>  
+> -	sdhci_runtime_suspend_host(host);
+> +	if (omap_host->con != -EINVAL)
+> +		sdhci_runtime_suspend_host(host);
+>  
+>  	sdhci_omap_context_save(omap_host);
+>  
+> @@ -1458,10 +1459,10 @@ static int __maybe_unused sdhci_omap_runtime_resume(struct device *dev)
+>  
+>  	pinctrl_pm_select_default_state(dev);
+>  
+> -	if (omap_host->con != -EINVAL)
+> +	if (omap_host->con != -EINVAL) {
+>  		sdhci_omap_context_restore(omap_host);
+> -
+> -	sdhci_runtime_resume_host(host, 0);
+> +		sdhci_runtime_resume_host(host, 0);
+> +	}
+>  
+>  	return 0;
+>  }
 
