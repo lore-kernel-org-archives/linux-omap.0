@@ -2,91 +2,122 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 413D3C433EF
-	for <linux-omap@archiver.kernel.org>; Sat, 18 Jun 2022 02:19:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F15F4CCA482
+	for <linux-omap@archiver.kernel.org>; Sat, 18 Jun 2022 03:03:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230264AbiFRCTo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Jun 2022 22:19:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36592 "EHLO
+        id S233179AbiFRDDn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Jun 2022 23:03:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39832 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229615AbiFRCTo (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2022 22:19:44 -0400
-X-Greylist: delayed 1880 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 17 Jun 2022 19:19:42 PDT
-Received: from m15112.mail.126.com (m15112.mail.126.com [220.181.15.112])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 433356A026
-        for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2022 19:19:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=EjjGP
-        vuthmf5Z8jDqlrttQfgUbB5nVt8z60LWABfKwI=; b=bD7Xe2LRBrupq2bCnTEke
-        H1XOZLfVavb55KglvUsMqxl7ikYqccbgIWYeJK7Z4uMQFYhzoblIvSgkLfrk17D+
-        GJVbNeI0hH/vAkeA5AG2DA24sIrMIvF+VntLIJ5NaQKc9B3FwcjobBGAMpFtS8JT
-        GQOtZtltIHSvepaMshxAIQ=
-Received: from localhost.localdomain (unknown [124.16.139.61])
-        by smtp2 (Coremail) with SMTP id DMmowACXBAHDLq1ifz5mDg--.23118S2;
-        Sat, 18 Jun 2022 09:47:48 +0800 (CST)
-From:   Liang He <windhl@126.com>
-To:     tony@atomide.com, linux@armlinux.org.uk
-Cc:     windhl@126.com, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] arm/mach-omap2: Fix refcount leak bug in omap_hwmod.c
-Date:   Sat, 18 Jun 2022 09:47:47 +0800
-Message-Id: <20220618014747.4055279-1-windhl@126.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S1383900AbiFRDDl (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2022 23:03:41 -0400
+Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 520BA6CAA7;
+        Fri, 17 Jun 2022 20:03:40 -0700 (PDT)
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 25I32Nt4004650;
+        Fri, 17 Jun 2022 22:02:23 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1655521343;
+        bh=v9iLe16OQzDjus8PgEyzt81ju785zygpn75Qb7cPKDk=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=ubm9+IAhGGTk3kdTt5x7vdcv21zn8SduavN1QPsDFtatpMEQLnnpq14kmxzjhSdoM
+         EhSYzwprF+3qoaWgxqEa7tkCA7AfNzT0CIUyyPN2V1vMiSYZKDtU+T7Pvq2yIkEfs4
+         7jCtmDUFYShPMx+ispwTz24Ou/91SMS8cN3blxkI=
+Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 25I32NTI008896
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 17 Jun 2022 22:02:23 -0500
+Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14; Fri, 17
+ Jun 2022 22:02:22 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14 via
+ Frontend Transport; Fri, 17 Jun 2022 22:02:22 -0500
+Received: from localhost (ileax41-snat.itg.ti.com [10.172.224.153])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 25I32MBg024730;
+        Fri, 17 Jun 2022 22:02:22 -0500
+From:   Nishanth Menon <nm@ti.com>
+To:     <krzysztof.kozlowski@linaro.org>, <olof@lixom.net>,
+        <soc@kernel.org>, Arnd Bergmann <arnd@arndb.de>, <arm@kernel.org>
+CC:     Nishanth Menon <nm@ti.com>, <linux-input@vger.kernel.org>,
+        <khuong@os.amperecomputing.com>, <heiko@sntech.de>,
+        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <jonathanh@nvidia.com>, <sebastian.hesselbarth@gmail.com>,
+        <agross@kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-gpio@vger.kernel.org>, <tony@atomide.com>,
+        <nicolas.ferre@microchip.com>, <joel@jms.id.au>,
+        <linux-arm-msm@vger.kernel.org>, <robh+dt@kernel.org>,
+        <bcousson@baylibre.com>, <thierry.reding@gmail.com>,
+        <claudiu.beznea@microchip.com>, <vigneshr@ti.com>,
+        <bjorn.andersson@linaro.org>, <openbmc@lists.ozlabs.org>,
+        <peda@axentia.se>, <andrew@lunn.ch>,
+        <linux-aspeed@lists.ozlabs.org>, <linus.walleij@linaro.org>,
+        <festevam@gmail.com>, <xuwei5@hisilicon.com>,
+        <alexandre.belloni@bootlin.com>, <leoyang.li@nxp.com>,
+        <michal.simek@xilinx.com>, <andrew@aj.id.au>, <kristo@kernel.org>,
+        <linux-imx@nxp.com>, <krzysztof.kozlowski+dt@linaro.org>,
+        <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>,
+        <linux-arm-kernel@lists.infradead.org>, <matthias.bgg@gmail.com>,
+        <j.neuschaefer@gmx.net>, <gregory.clement@bootlin.com>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-rockchip@lists.infradead.org>, <linux@armlinux.org.uk>,
+        <kernel@pengutronix.de>, <dmitry.torokhov@gmail.com>,
+        <linux-tegra@vger.kernel.org>
+Subject: Re: (subset) [PATCH v3 00/40] dt-bindings: input: gpio-keys: rework matching children
+Date:   Fri, 17 Jun 2022 22:02:21 -0500
+Message-ID: <165552126299.28422.3856100388848453087.b4-ty@ti.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20220616005224.18391-1-krzysztof.kozlowski@linaro.org>
+References: <20220616005224.18391-1-krzysztof.kozlowski@linaro.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: DMmowACXBAHDLq1ifz5mDg--.23118S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7KrW7Cr1ktr4rXr1xGF1xZrb_yoW8GrW5p3
-        92k395tr1UWws7J3yktFyqqrW29w1DCrWqyr9xCw1Ika1DCr4rZr4rtF90k345JFWru3WF
-        yF4Fyw17W3Z8u3DanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0z__MakUUUUU=
-X-Originating-IP: [124.16.139.61]
-X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbizgUkF18RPUQLLQAAsp
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-In _init(), of_find_node_by_name() will return a node pointer with
-refcount incremented. We should use of_node_put() in fail path or
-when it is not used anymore.
+Hi Krzysztof Kozlowski,
 
-NOTE: As the ref will be passed from 'bus' to 'np' by the xx_lookup(),
-in normal exit path, we should call of_node_put() at the end use of 'np',
-not the end use of 'bus'.
+On Wed, 15 Jun 2022 17:52:24 -0700, Krzysztof Kozlowski wrote:
+> Merging
+> =======
+> 1. dt-bindings: rebased on top of Rob's:
+>    https://lore.kernel.org/all/20220608211207.2058487-1-robh@kernel.org/
+> 
+> 2. DTS patches are independent. They can be picked up directly by sub-arch
+>    maintainers, by Arnd or Olof, or eventually by me (if you wish).
+> 
+> [...]
 
-Signed-off-by: Liang He <windhl@126.com>
----
- arch/arm/mach-omap2/omap_hwmod.c | 4 ++++
- 1 file changed, 4 insertions(+)
+I have applied the following to branch ti-k3-dts-next on [1].
+Thank you!
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 31d1a21f6041..007e73cc0471 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2365,6 +2365,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
- 
- 	r = _init_mpu_rt_base(oh, NULL, index, np);
- 	if (r < 0) {
-+		of_node_put(bus);
- 		WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
- 		     oh->name);
- 		return 0;
-@@ -2372,6 +2373,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
- 
- 	r = _init_clocks(oh, np);
- 	if (r < 0) {
-+		of_node_put(bus);
- 		WARN(1, "omap_hwmod: %s: couldn't init clocks\n", oh->name);
- 		return -EINVAL;
- 	}
-@@ -2385,6 +2387,8 @@ static int __init _init(struct omap_hwmod *oh, void *data)
- 			parse_module_flags(oh, child);
- 	}
- 
-+	of_node_put(bus);
-+
- 	oh->_state = _HWMOD_STATE_INITIALIZED;
- 
- 	return 0;
+[29/40] arm64: dts: ti: align gpio-key node names with dtschema
+        commit: 85423386c9763fb20159892631eccc481a2d9b71
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent up the chain during
+the next merge window (or sooner if it is a relevant bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/ti/linux.git
 -- 
-2.25.1
+Regards,
+Nishanth Menon
+Key (0xDDB5849D1736249D) / Fingerprint: F8A2 8693 54EB 8232 17A3  1A34 DDB5 849D 1736 249D
 
