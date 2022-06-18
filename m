@@ -2,119 +2,69 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9122EC43334
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Jun 2022 18:12:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55C38C43334
+	for <linux-omap@archiver.kernel.org>; Sat, 18 Jun 2022 02:06:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383562AbiFQSM4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Jun 2022 14:12:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45594 "EHLO
+        id S232864AbiFRCGg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Jun 2022 22:06:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54664 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383595AbiFQSMq (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2022 14:12:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3ACBFE038;
-        Fri, 17 Jun 2022 11:12:44 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9364661F41;
-        Fri, 17 Jun 2022 18:12:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA29FC341C5;
-        Fri, 17 Jun 2022 18:12:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1655489563;
-        bh=bUPFzcA2bwrfrcLXD7x3oRlhBEAEkGwIHCdUjnjME3U=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=TzEkn0jgFwCR+zHucfSU4ACpiT+fNkS2SkFZmgsY4v8y5M3CnzX+KS6IUY8wdxqZv
-         bPLoZOVE6WGVIg4R5nrb0saH0gbx+9qBInXQ7heDbJSX8lK99o/MiR2N3JljAbl+Oc
-         CHZfNqt4+z7CCQ60+9dGyhQG57CnXBJ5hiaQBq7wd0Zn+i7HklQdvGyT+nOeCs0T0K
-         nPdmfyat8StE/e95a3xGNcHoNzE8dcYkRMwuLn5EGmwVPd/8upE+ubrIKgU2QFOCOB
-         JUuoF3x8Z8kSPF89Xm2v3RZQF8VoEdbTFhp7XhKPcsZWVbiPv7cJ60RiD+VZK88Ppb
-         9JEPbYeNFIQTg==
-Date:   Fri, 17 Jun 2022 19:12:37 +0100
-From:   Mark Brown <broonie@kernel.org>
-To:     David Owens <daowens01@gmail.com>
-Cc:     Peter Ujfalusi <peter.ujfalusi@gmail.com>,
-        Jarkko Nikula <jarkko.nikula@bitmer.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        David Owens <dowens@precisionplanting.com>,
-        alsa-devel@alsa-project.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3] ASoC: ti: omap-mcbsp: duplicate sysfs error
-Message-ID: <YqzEFX1rIRIwJCnl@sirena.org.uk>
-References: <20220616202645.1645972-1-dowens@precisionplanting.com>
+        with ESMTP id S230301AbiFRCGf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2022 22:06:35 -0400
+Received: from mail-m963.mail.126.com (mail-m963.mail.126.com [123.126.96.3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 852BF6BFCF;
+        Fri, 17 Jun 2022 19:06:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=EAsCU
+        KKeiwY5QLBCLD7SywZlE+l74qoFoWfMvGpQHv0=; b=cOVoDSiURhPxJq7MmGH7E
+        8id3oXGzTAyz7CAQsZzx4empc38ABwgfvJo23GS5zIbOnpFYoBpOypI7bzdvageo
+        OPCo90Nk5ZHvC046/A3ejAzfiPBYbKqsDjInZLcMhICZ1SxcV9tnZdje1BuyBD0+
+        EEVseGHEwfTFyWoxJb3hmg=
+Received: from localhost.localdomain (unknown [124.16.139.61])
+        by smtp8 (Coremail) with SMTP id NORpCgCHGocMM61iFnKOFw--.45543S2;
+        Sat, 18 Jun 2022 10:06:05 +0800 (CST)
+From:   Liang He <windhl@126.com>
+To:     tony@atomide.com, linux@armlinux.org.uk
+Cc:     windhl@126.com, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] arm: mach-omap2: pdata-quirks: Fix refcount leak bug
+Date:   Sat, 18 Jun 2022 10:06:03 +0800
+Message-Id: <20220618020603.4055792-1-windhl@126.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="u2XbzTKFvyqRa/q5"
-Content-Disposition: inline
-In-Reply-To: <20220616202645.1645972-1-dowens@precisionplanting.com>
-X-Cookie: My life is a patio of fun!
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: NORpCgCHGocMM61iFnKOFw--.45543S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrtF1rtw13Cr4xGr45Aw13Arb_yoWxtFX_Xw
+        n3Ka1xXrn3Jw4Iqr1Dtr4fGr1vvwsIgrsrW34IqFn0kayUXFy7Ar4qya92qFWDuFW5K3yY
+        qr4kCw15u3W2gjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUUyCJJUUUUU==
+X-Originating-IP: [124.16.139.61]
+X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbiuA0kF2JVj6tbagAAsk
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+In pdata_quirks_init_clocks(), the loop contains
+of_find_node_by_name() but without corresponding of_node_put().
 
---u2XbzTKFvyqRa/q5
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Liang He <windhl@126.com>
+---
+ arch/arm/mach-omap2/pdata-quirks.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-On Thu, Jun 16, 2022 at 03:26:45PM -0500, David Owens wrote:
-> Convert to managed versions of sysfs and clk allocation to simplify
-> unbinding and error handling in probe.  Managed sysfs node
-> creation specifically addresses the following error seen the second time
-> probe is attempted after sdma_pcm_platform_register() previously requested
-> probe deferral:
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 13f1b89f74b8..5b99d602c87b 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -540,6 +540,8 @@ pdata_quirks_init_clocks(const struct of_device_id *omap_dt_match_table)
+ 
+ 		of_platform_populate(np, omap_dt_match_table,
+ 				     omap_auxdata_lookup, NULL);
++
++		of_node_put(np);
+ 	}
+ }
+ 
+-- 
+2.25.1
 
-This breaks an x86 allmodconfig build:
-
-In file included from /build/stage/linux/include/linux/kobject.h:20,
-                 from /build/stage/linux/include/linux/module.h:21,
-                 from /build/stage/linux/sound/soc/ti/omap-mcbsp.c:12:
-/build/stage/linux/sound/soc/ti/omap-mcbsp.c:604:18: error: =E2=80=98additi=
-onal_groups=E2=80=99 defined but not used [-Werror=3Dunused-variable]
-  604 | ATTRIBUTE_GROUPS(additional);
-      |                  ^~~~~~~~~~
-/build/stage/linux/include/linux/sysfs.h:154:38: note: in definition of mac=
-ro =E2=80=98__ATTRIBUTE_GROUPS=E2=80=99
-  154 | static const struct attribute_group *_name##_groups[] =3D {       \
-      |                                      ^~~~~
-/build/stage/linux/sound/soc/ti/omap-mcbsp.c:604:1: note: in expansion of m=
-acro =E2=80=98ATTRIBUTE_GROUPS=E2=80=99
-  604 | ATTRIBUTE_GROUPS(additional);
-      | ^~~~~~~~~~~~~~~~
-In file included from /build/stage/linux/include/linux/kobject.h:20,
-                 from /build/stage/linux/include/linux/module.h:21,
-                 from /build/stage/linux/sound/soc/ti/omap-mcbsp-st.c:12:
-/build/stage/linux/sound/soc/ti/omap-mcbsp-st.c:299:18: error: =E2=80=98sid=
-etone_groups=E2=80=99 defined but not used [-Werror=3Dunused-variable]
-  299 | ATTRIBUTE_GROUPS(sidetone);
-      |                  ^~~~~~~~
-/build/stage/linux/include/linux/sysfs.h:154:38: note: in definition of mac=
-ro =E2=80=98__ATTRIBUTE_GROUPS=E2=80=99
-  154 | static const struct attribute_group *_name##_groups[] =3D {       \
-      |                                      ^~~~~
-/build/stage/linux/sound/soc/ti/omap-mcbsp-st.c:299:1: note: in expansion o=
-f macro =E2=80=98ATTRIBUTE_GROUPS=E2=80=99
-  299 | ATTRIBUTE_GROUPS(sidetone);
-      | ^~~~~~~~~~~~~~~~
-cc1: all warnings being treated as errors
-
---u2XbzTKFvyqRa/q5
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmKsxBQACgkQJNaLcl1U
-h9CbVAf/bLEYqN9UltUUtE4QfUjkIThFiIGPqM6T7Lr0oitKtqpZGp9i2uqREP8Y
-67Eks5a6Zs3SZr7ERZ4nYj/rurE+Jd5YgjxQ5SnGtj8tEFEe6/bzOmCzql0eyRX/
-VuFTxyaDKi7QwfejecS3lQIxtWKLbUKw3rRBTF8LMH55Hnw2/oCNYL9djV80lena
-GoaJVJYcxFU5Glv4J0ISgs1Oih1rHpI8SegCxqpdiHH2mPELxGB7BcyIyLS3x9yb
-BL0dxS8LNRDmakViC8B2csXBjMIq310UogmzfMGyTtV2o/bijJ2eM0LiORCPOAGh
-EdOyjsMBlX00w5lh3tyDdOYltpf8IQ==
-=VZEL
------END PGP SIGNATURE-----
-
---u2XbzTKFvyqRa/q5--
