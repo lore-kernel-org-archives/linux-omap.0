@@ -2,42 +2,42 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE8EAC433EF
-	for <linux-omap@archiver.kernel.org>; Tue, 21 Jun 2022 18:54:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85EF8C43334
+	for <linux-omap@archiver.kernel.org>; Tue, 21 Jun 2022 18:57:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230386AbiFUSyo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 21 Jun 2022 14:54:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50904 "EHLO
+        id S233517AbiFUS5L (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 21 Jun 2022 14:57:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52268 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230071AbiFUSyn (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2022 14:54:43 -0400
-Received: from smtpbg.qq.com (smtpbg139.qq.com [175.27.65.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A99915FE4;
-        Tue, 21 Jun 2022 11:54:36 -0700 (PDT)
-X-QQ-mid: bizesmtp82t1655837655tbb8zg4g
+        with ESMTP id S1350789AbiFUS5K (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jun 2022 14:57:10 -0400
+Received: from smtpbg.qq.com (smtpbg136.qq.com [106.55.201.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E985B2A26F;
+        Tue, 21 Jun 2022 11:57:04 -0700 (PDT)
+X-QQ-mid: bizesmtp81t1655837745tf77ccv4
 Received: from ubuntu.localdomain ( [106.117.99.68])
         by bizesmtp.qq.com (ESMTP) with 
-        id ; Wed, 22 Jun 2022 02:54:11 +0800 (CST)
+        id ; Wed, 22 Jun 2022 02:55:40 +0800 (CST)
 X-QQ-SSF: 01000000008000B0B000B00A0000000
-X-QQ-FEAT: e00egQTBacTlcDxwIZzv4cwiUY0YAZ5kptuyvGlLEHWQoXnT7viwCQeLnJBsD
-        aCN96z90YuCSZ31/ZQsyYPNbZWAxLGT0d2iCvT20BTkHS1JA0E2DXKE3jB3tGm2drgSZISY
-        Spf5wgKE2mL34i4Xkkwbkrjn1vyI9+PegpUGjy4cAamRlmmagAhBa2olMotGHtVILIZzwXn
-        WY/y8nnWjzL2ZxqdIhwpgdptfgFTgIGY2GoBbTbbKkXMnU3z9RKrh0jVpWFzz1ufzmtqbQR
-        92dYz0J/hhkMH+o3Dq/e4WtIQNNYCQAKE+gZjvG6ERpW13hxk2nRgMOo/9VLgRXZxKnmYb9
-        +De5bvlNROZyY+MBq4=
+X-QQ-FEAT: OgQh5dxRN5wbavA1GfzuufKZqLUg4wAI9+JIV47vYKEuw9sHuek563x2EmWfR
+        kUKQViagBIljkrsybiRSNkrMi6wkuyggXAxdkvDVJtwanDJJ8c8QRNHn2z1Ot0T9EvTHnPW
+        M2UkZD8DJRDIA9R830uknoMgoCkgyQfYIXib8KN8Y43WCgQVDTgKM4pzuDn1YettdaXVutc
+        0K/I0zkp+PKvgPqGjTXeEYgQhN7TwPhP3D910qO+BIQ9NKmMm4f/gSIGFAPwVp4FHM5WCPD
+        DAtYyuHoD86E9umdDIYD668uz5v8lsQSQe7vZUuQ9d/ssCeeueTkIRukdpENqNDc6HfONnM
+        kjmHDaXMESyv6oqCY0=
 X-QQ-GoodBg: 0
 From:   Jiang Jian <jiangjian@cdjrlc.com>
 To:     deller@gmx.de
-Cc:     b.zolnierkie@samsung.com, arnd@arndb.de, tony@atomide.com,
-        jiangjian@cdjrlc.com, jmkrzyszt@gmail.com,
-        linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Cc:     arnd@arndb.de, tony@atomide.com, jiangjian@cdjrlc.com,
+        jmkrzyszt@gmail.com, linux-fbdev@vger.kernel.org,
+        linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org
 Subject: [PATCH] video: fbdev: omap: Remove duplicate 'the' in two places.
-Date:   Wed, 22 Jun 2022 02:54:09 +0800
-Message-Id: <20220621185409.4859-1-jiangjian@cdjrlc.com>
+Date:   Wed, 22 Jun 2022 02:55:38 +0800
+Message-Id: <20220621185538.6072-1-jiangjian@cdjrlc.com>
 X-Mailer: git-send-email 2.17.1
 X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtp:cdjrlc.com:qybgspam:qybgspam6
+Feedback-ID: bizesmtp:cdjrlc.com:qybgspam:qybgspam7
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -68,5 +68,4 @@ index c90eb8ca58af..66aff6cd1df0 100644
  	 */
 -- 
 2.17.1
-
 
