@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CB20C2BBE6
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:53:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89AE2CCA482
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231977AbiFWMx6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Jun 2022 08:53:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37356 "EHLO
+        id S231945AbiFWMx7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Jun 2022 08:53:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231945AbiFWMxx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:53:53 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F9A22ED47;
-        Thu, 23 Jun 2022 05:53:51 -0700 (PDT)
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25N6FQeU013924;
-        Thu, 23 Jun 2022 07:53:07 -0500
+        with ESMTP id S231922AbiFWMxz (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:53:55 -0400
+Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77D462ED47;
+        Thu, 23 Jun 2022 05:53:54 -0700 (PDT)
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25N5mxlA032604;
+        Thu, 23 Jun 2022 07:53:04 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=zQRzG9lSCmk/k4e5JnTlev/FoIoDPsWc475D5DF4tf0=;
- b=YXzpSnMPYNHiuzncD64LUR8zNBGx08k9+H4GPUi56sJ7dr8+zApj+3LX+ghkZYxGjhEd
- /uaHwB3XlPW0/ksrkcjoudNyRlKiZMw0oGPKq7KVdMbmI2M8Z9TT9OqwT1dRzaeI/F/l
- C12tYbtvdqwsl0Sc38gYr5ERsoXPrw5/du6jluSZwJTrLKOxrxGaQdetr2+gxK5MQezJ
- Q4fUkdRc0fkLZtzjSLgMtAeailbDwHnUE7wQIgtDLF3qFpD8HVdqB9j2O1lkquXzjZdw
- Rj6ee7HRbpfB0GfAvPOC+99k8PiL68Jt2vOegCZgA7BJpr1k6HT+4LqcH4CVJRlmgZhq ww== 
+ bh=qOp9CNr8xuEBmYgxLwGQMDAEhDGEXJlwGGPQ7bYPJSA=;
+ b=GwlcncXrmaCYYxNZou6cu+CAkkDmEmOMxRUlqlVxOKshccecE5PHEP2yPBuGHlsinh6z
+ dVUR2XiuGI7bcu+YYJmuj5uG5xwyUhoMcNwzeAi0qdxTXA1wiSS3fvyOgQL5WcL1I2WW
+ AdVX8d9UKVaNAqp+sv1vsbDQw6rRgslvnnaLy/l0T8TC6Xrvnyu54RYSnAQYHkhHVhna
+ RrbAMeXCi1MqAdbONFPclWr2KiXCVrUJ2FSiNVqWAGs96GtvjOqXxcUqFv3Jqfbik1/w
+ 2ch844LsWYfPq/uuALkT2MDsIDDVipAZBF/fvKIogfM1InHriwf3exKpLvTCqzfNphO2 +A== 
 Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4x-6
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gsb4p6wvu-9
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 23 Jun 2022 07:53:07 -0500
+        Thu, 23 Jun 2022 07:53:04 -0500
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 23 Jun
- 2022 13:52:56 +0100
+ 2022 13:52:54 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 23 Jun 2022 13:52:55 +0100
+ Transport; Thu, 23 Jun 2022 13:52:54 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id ECB3B11D1;
-        Thu, 23 Jun 2022 12:52:55 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 6570F11D4;
+        Thu, 23 Jun 2022 12:52:54 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -60,17 +60,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>,
         <frattaroli.nicolas@gmail.com>
-Subject: [PATCH v2 58/96] ASoC: ssm*: Remove now redundant non_legacy_dai_naming flag
-Date:   Thu, 23 Jun 2022 13:52:12 +0100
-Message-ID: <20220623125250.2355471-59-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 41/96] ASoC: sunxi: Remove now redundant non_legacy_dai_naming flag
+Date:   Thu, 23 Jun 2022 13:51:55 +0100
+Message-ID: <20220623125250.2355471-42-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 References: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: _57XAwb-QirBbGlCXD92BJdLs7cvdev6
-X-Proofpoint-ORIG-GUID: _57XAwb-QirBbGlCXD92BJdLs7cvdev6
+X-Proofpoint-GUID: _j0O2qMq-IIs_wPEfaSzgCsFX1fZVU5g
+X-Proofpoint-ORIG-GUID: _j0O2qMq-IIs_wPEfaSzgCsFX1fZVU5g
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -82,47 +82,58 @@ the non_legacy_dai_naming flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/codecs/ssm2518.c | 1 -
- sound/soc/codecs/ssm2602.c | 1 -
- sound/soc/codecs/ssm4567.c | 1 -
- 3 files changed, 3 deletions(-)
+ sound/soc/sunxi/sun4i-codec.c | 4 ----
+ sound/soc/sunxi/sun8i-codec.c | 1 -
+ 2 files changed, 5 deletions(-)
 
-diff --git a/sound/soc/codecs/ssm2518.c b/sound/soc/codecs/ssm2518.c
-index 012f209e76e90..6d88478482990 100644
---- a/sound/soc/codecs/ssm2518.c
-+++ b/sound/soc/codecs/ssm2518.c
-@@ -721,7 +721,6 @@ static const struct snd_soc_component_driver ssm2518_component_driver = {
- 	.num_dapm_routes	= ARRAY_SIZE(ssm2518_routes),
- 	.use_pmdown_time	= 1,
- 	.endianness		= 1,
--	.non_legacy_dai_naming	= 1,
- };
- 
- static const struct regmap_config ssm2518_regmap_config = {
-diff --git a/sound/soc/codecs/ssm2602.c b/sound/soc/codecs/ssm2602.c
-index 1821854ca0f37..cbbe83b85adaf 100644
---- a/sound/soc/codecs/ssm2602.c
-+++ b/sound/soc/codecs/ssm2602.c
-@@ -624,7 +624,6 @@ static const struct snd_soc_component_driver soc_component_dev_ssm2602 = {
+diff --git a/sound/soc/sunxi/sun4i-codec.c b/sound/soc/sunxi/sun4i-codec.c
+index bc634962a57ee..830beb38bf156 100644
+--- a/sound/soc/sunxi/sun4i-codec.c
++++ b/sound/soc/sunxi/sun4i-codec.c
+@@ -881,7 +881,6 @@ static const struct snd_soc_component_driver sun4i_codec_codec = {
  	.idle_bias_on		= 1,
  	.use_pmdown_time	= 1,
  	.endianness		= 1,
 -	.non_legacy_dai_naming	= 1,
  };
  
- static bool ssm2602_register_volatile(struct device *dev, unsigned int reg)
-diff --git a/sound/soc/codecs/ssm4567.c b/sound/soc/codecs/ssm4567.c
-index b47321c597d0e..4b0265617c7b5 100644
---- a/sound/soc/codecs/ssm4567.c
-+++ b/sound/soc/codecs/ssm4567.c
-@@ -427,7 +427,6 @@ static const struct snd_soc_component_driver ssm4567_component_driver = {
- 	.num_dapm_routes	= ARRAY_SIZE(ssm4567_routes),
+ static const struct snd_soc_component_driver sun7i_codec_codec = {
+@@ -894,7 +893,6 @@ static const struct snd_soc_component_driver sun7i_codec_codec = {
+ 	.idle_bias_on		= 1,
  	.use_pmdown_time	= 1,
  	.endianness		= 1,
 -	.non_legacy_dai_naming	= 1,
  };
  
- static const struct regmap_config ssm4567_regmap_config = {
+ /*** sun6i Codec ***/
+@@ -1202,7 +1200,6 @@ static const struct snd_soc_component_driver sun6i_codec_codec = {
+ 	.idle_bias_on		= 1,
+ 	.use_pmdown_time	= 1,
+ 	.endianness		= 1,
+-	.non_legacy_dai_naming	= 1,
+ };
+ 
+ /* sun8i A23 codec */
+@@ -1230,7 +1227,6 @@ static const struct snd_soc_component_driver sun8i_a23_codec_codec = {
+ 	.idle_bias_on		= 1,
+ 	.use_pmdown_time	= 1,
+ 	.endianness		= 1,
+-	.non_legacy_dai_naming	= 1,
+ };
+ 
+ static const struct snd_soc_component_driver sun4i_codec_component = {
+diff --git a/sound/soc/sunxi/sun8i-codec.c b/sound/soc/sunxi/sun8i-codec.c
+index f797c535f2983..9844978d91e6e 100644
+--- a/sound/soc/sunxi/sun8i-codec.c
++++ b/sound/soc/sunxi/sun8i-codec.c
+@@ -1278,7 +1278,6 @@ static const struct snd_soc_component_driver sun8i_soc_component = {
+ 	.probe			= sun8i_codec_component_probe,
+ 	.idle_bias_on		= 1,
+ 	.endianness		= 1,
+-	.non_legacy_dai_naming	= 1,
+ };
+ 
+ static const struct regmap_config sun8i_codec_regmap_config = {
 -- 
 2.30.2
 
