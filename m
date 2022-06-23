@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5998CCA486
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:56:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C245CCA489
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:56:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232049AbiFWM4d (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Jun 2022 08:56:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41552 "EHLO
+        id S232173AbiFWM4e (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Jun 2022 08:56:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41542 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231846AbiFWM4Z (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:56:25 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38FFC4B87B;
-        Thu, 23 Jun 2022 05:56:24 -0700 (PDT)
-Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NBvlrF011978;
-        Thu, 23 Jun 2022 07:52:59 -0500
+        with ESMTP id S232017AbiFWM40 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:56:26 -0400
+Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2651C4B42F;
+        Thu, 23 Jun 2022 05:56:25 -0700 (PDT)
+Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NBNlqV015665;
+        Thu, 23 Jun 2022 07:52:54 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=Tu/WQm2FL2SPUViv8WWXoQaXIl+eGAzL/AaxkzkbEBw=;
- b=DD+38VDD0o80wNycNX/vhRKVKJA6TzKywq+dC3EJJwBenl1JxktiKxEEwhTKguR9nIWh
- HdcraE9lA1qlJ40izR1a49m4D03vynq4lVjLODVU4CnUD/MJPZMB356lj3GlBtro46vp
- hvZZ0rCahrviixOwAdCfB4iryPy63ikwN02T7/ovXhYVhtiCdKKs9dde7afMQXPSEzz6
- hZLEGdnAcLvoqZtomT5R+b8EZEoO7AZslnBatBlQ8k7Khg0bpfuAjcB7y/VI4CXaqviL
- TF1PgSULAaqGiXVZX8xntwdv1wL/M86ERDdJS/bBV43oCYCU4wH1aXAGXAdaARSq3nXM uw== 
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gsb4p6wvp-10
+ bh=iTADTC41E6DONZdlcFN/gxhcVbEVFbHK0N8VRx+RW/0=;
+ b=f1NlkSxjmkIbyl7yrJ4ITRn+rlbYWlwwJH0fAY2afpmc/cGHIevbyLAaSBqk4I0EhKNV
+ oHyP3cCN093+S2pz3sRcFA2CRi/7OmlGXBDouvptThVy5ZKM95gdw1WVXCIENf1T1+2U
+ qZ8yPshZ/3PlROGumGs4/btzvxjsmweETvCGjI0yjtDCBCIxr0f0qoilF0LnSn7BXbw6
+ r/wxa2wFABekJT7fyzWVkDTQN0TYtnlanFcHshcld+R+fdUOl77ka/HTOk+lO46l8isn
+ 86sG09kVd8dltjXZR5B8G6bXJpx2rVRN4EZ2RZY0zHeYMJ76dLEPGjpr7TUyTFo/Kdcx Aw== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4j-2
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 23 Jun 2022 07:52:59 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 23 Jun 2022 07:52:54 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 23 Jun
- 2022 13:52:53 +0100
+ 2022 13:52:50 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 23 Jun 2022 13:52:53 +0100
+ Transport; Thu, 23 Jun 2022 13:52:50 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id E658411D3;
-        Thu, 23 Jun 2022 12:52:52 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id DF2C911D1;
+        Thu, 23 Jun 2022 12:52:50 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -60,17 +60,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>,
         <frattaroli.nicolas@gmail.com>
-Subject: [PATCH v2 24/96] ASoC: qcom: Migrate to new style legacy DAI naming flag
-Date:   Thu, 23 Jun 2022 13:51:38 +0100
-Message-ID: <20220623125250.2355471-25-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 02/96] soundwire: intel: Migrate to new style legacy DAI naming flag
+Date:   Thu, 23 Jun 2022 13:51:16 +0100
+Message-ID: <20220623125250.2355471-3-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 References: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: wVbUk9EDGXJ-wibpUtyKNMaQLq8KcH0w
-X-Proofpoint-ORIG-GUID: wVbUk9EDGXJ-wibpUtyKNMaQLq8KcH0w
+X-Proofpoint-GUID: Ae11oZOIO58_z_pb2qsaSmlcs1fUAi_h
+X-Proofpoint-ORIG-GUID: Ae11oZOIO58_z_pb2qsaSmlcs1fUAi_h
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -78,61 +78,30 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 Change the legacy DAI naming flag from opting in to the new scheme
 (non_legacy_dai_naming), to opting out of it (legacy_dai_naming).
-These drivers appear to be on the CPU side of the DAI link and
+This driver appears to be on the CPU side of the DAI link and
 currently uses the legacy naming, so add the new flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/qcom/lpass-cpu.c       |  1 +
- sound/soc/qcom/qdsp6/q6asm-dai.c | 23 ++++++++++++-----------
- 2 files changed, 13 insertions(+), 11 deletions(-)
+ drivers/soundwire/intel.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/qcom/lpass-cpu.c b/sound/soc/qcom/lpass-cpu.c
-index e6846ad2b5fa4..6f1cd38000016 100644
---- a/sound/soc/qcom/lpass-cpu.c
-+++ b/sound/soc/qcom/lpass-cpu.c
-@@ -472,6 +472,7 @@ static int asoc_qcom_of_xlate_dai_name(struct snd_soc_component *component,
- static const struct snd_soc_component_driver lpass_cpu_comp_driver = {
- 	.name = "lpass-cpu",
- 	.of_xlate_dai_name = asoc_qcom_of_xlate_dai_name,
-+	.legacy_dai_naming = 1,
+diff --git a/drivers/soundwire/intel.c b/drivers/soundwire/intel.c
+index 505c5ef061e3f..0268fa527c0c0 100644
+--- a/drivers/soundwire/intel.c
++++ b/drivers/soundwire/intel.c
+@@ -1097,8 +1097,9 @@ static const struct snd_soc_dai_ops intel_pcm_dai_ops = {
  };
  
- static bool lpass_cpu_regmap_writeable(struct device *dev, unsigned int reg)
-diff --git a/sound/soc/qcom/qdsp6/q6asm-dai.c b/sound/soc/qcom/qdsp6/q6asm-dai.c
-index b74b67720ef43..5fc8088e63c81 100644
---- a/sound/soc/qcom/qdsp6/q6asm-dai.c
-+++ b/sound/soc/qcom/qdsp6/q6asm-dai.c
-@@ -1205,17 +1205,18 @@ static const struct snd_soc_dapm_widget q6asm_dapm_widgets[] = {
- };
- 
- static const struct snd_soc_component_driver q6asm_fe_dai_component = {
--	.name		= DRV_NAME,
--	.open		= q6asm_dai_open,
--	.hw_params	= q6asm_dai_hw_params,
--	.close		= q6asm_dai_close,
--	.prepare	= q6asm_dai_prepare,
--	.trigger	= q6asm_dai_trigger,
--	.pointer	= q6asm_dai_pointer,
--	.pcm_construct	= q6asm_dai_pcm_new,
--	.compress_ops	= &q6asm_dai_compress_ops,
--	.dapm_widgets	= q6asm_dapm_widgets,
--	.num_dapm_widgets = ARRAY_SIZE(q6asm_dapm_widgets),
-+	.name			= DRV_NAME,
-+	.open			= q6asm_dai_open,
-+	.hw_params		= q6asm_dai_hw_params,
-+	.close			= q6asm_dai_close,
-+	.prepare		= q6asm_dai_prepare,
-+	.trigger		= q6asm_dai_trigger,
-+	.pointer		= q6asm_dai_pointer,
-+	.pcm_construct		= q6asm_dai_pcm_new,
-+	.compress_ops		= &q6asm_dai_compress_ops,
-+	.dapm_widgets		= q6asm_dapm_widgets,
-+	.num_dapm_widgets	= ARRAY_SIZE(q6asm_dapm_widgets),
+ static const struct snd_soc_component_driver dai_component = {
+-	.name           = "soundwire",
+-	.suspend	= intel_component_dais_suspend
++	.name			= "soundwire",
++	.suspend		= intel_component_dais_suspend,
 +	.legacy_dai_naming	= 1,
  };
  
- static struct snd_soc_dai_driver q6asm_fe_dais_template[] = {
+ static int intel_create_dai(struct sdw_cdns *cdns,
 -- 
 2.30.2
 
