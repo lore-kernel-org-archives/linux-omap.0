@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56E01C19F56
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:53:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 709A6CCA47C
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231975AbiFWMx5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Jun 2022 08:53:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37328 "EHLO
+        id S231837AbiFWMx6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Jun 2022 08:53:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231934AbiFWMxw (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:53:52 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E871403E3;
+        with ESMTP id S231946AbiFWMxx (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:53:53 -0400
+Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61E4F3FBC8;
         Thu, 23 Jun 2022 05:53:51 -0700 (PDT)
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25N6FQeh013924;
-        Thu, 23 Jun 2022 07:53:19 -0500
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25N5mxlH032604;
+        Thu, 23 Jun 2022 07:53:09 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=TeKfedTH0Ouzg/AS1v+qBN/wdMbF8epgQhipJsCmHVs=;
- b=fPVlkrWJutj4xIozpUEep7GO0LqChcVt+bxov8JY6SYn0Bpa0yAJnX8D8r0WRQqyT4yi
- RZDJHRCPsySvvRChpK8OVELyNSH9koikyY1WvdNhV/yJADWKnLbKbp1LCd1gCt7fV/vz
- AGZFbvfycUkILY7hoplJB+/V3rIY+K5Li7ypeHXxbvAMC5Imk/bmMZ09x4aj3HMqCJW3
- jH74PxHNcMaU+pPDsaYYqNHde8PN5UBUv9AcuYoZCWsvUl5L+lHiMd4X+deZaRAs13/X
- n5fEgbqh8aXddK/Xr7/oumHeZsXtYKNkX3b02P7JRpSk+oNqa3FmLkaUvV40yyIyUhhQ 9g== 
+ bh=avjLxigMrxetdyxZqWwe0OLMhUgOp78UdK7tlCOvsq8=;
+ b=pn0UwtgRR2voYaZKK2ub0W04UzE+t/WUJVLYzCSJa9mNHQ7oTeCc4vJGLs5PAQjaiaHc
+ IdddJDeAEf9/WlHBTRcgLtJZztkvJMrImRT7tWvlFquYdiJ6kzSd3jOrg4e5bbFUu863
+ By22Lxq5+Xpa8Too2a3hSFY3AZNte3nVqRHC5q8UwsrA+b8zJHTrW4vjR2+QGwSXiRj8
+ THZ3wVflB8IbKEzuLa+pQVALcB6foDVE9caqxDX3/Ih58X8wtCsfTBwT3PGX/gCZYeCA
+ V3s+Xg0ibi8qCDCAacleH9A/mC760bHZ4/in+UBqYToFq+cw0FpI8YKcUFwQbG3W0Qna mg== 
 Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4x-19
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gsb4p6wvu-16
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 23 Jun 2022 07:53:18 -0500
+        Thu, 23 Jun 2022 07:53:09 -0500
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 23 Jun
- 2022 13:52:59 +0100
+ 2022 13:52:57 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 23 Jun 2022 13:52:59 +0100
+ Transport; Thu, 23 Jun 2022 13:52:57 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 25FAB11D3;
-        Thu, 23 Jun 2022 12:52:59 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 5889211D3;
+        Thu, 23 Jun 2022 12:52:57 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -60,17 +60,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>,
         <frattaroli.nicolas@gmail.com>
-Subject: [PATCH v2 94/96] ASoC: wl1273: Remove now redundant non_legacy_dai_naming flag
-Date:   Thu, 23 Jun 2022 13:52:48 +0100
-Message-ID: <20220623125250.2355471-95-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 74/96] ASoC: cx20442: Remove now redundant non_legacy_dai_naming flag
+Date:   Thu, 23 Jun 2022 13:52:28 +0100
+Message-ID: <20220623125250.2355471-75-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 References: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: eiNMX25Yp5ydE-rs49yuVRagAeqplw3V
-X-Proofpoint-ORIG-GUID: eiNMX25Yp5ydE-rs49yuVRagAeqplw3V
+X-Proofpoint-GUID: TWXdDHHyxaqAc-GdiUA3mK4koh28PGjc
+X-Proofpoint-ORIG-GUID: TWXdDHHyxaqAc-GdiUA3mK4koh28PGjc
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -82,21 +82,21 @@ the non_legacy_dai_naming flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/codecs/wl1273.c | 1 -
+ sound/soc/codecs/cx20442.c | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/sound/soc/codecs/wl1273.c b/sound/soc/codecs/wl1273.c
-index 02232f64110e0..626278e4c9238 100644
---- a/sound/soc/codecs/wl1273.c
-+++ b/sound/soc/codecs/wl1273.c
-@@ -475,7 +475,6 @@ static const struct snd_soc_component_driver soc_component_dev_wl1273 = {
+diff --git a/sound/soc/codecs/cx20442.c b/sound/soc/codecs/cx20442.c
+index 1af0bf5f1e2f5..43c0cac0ec9e8 100644
+--- a/sound/soc/codecs/cx20442.c
++++ b/sound/soc/codecs/cx20442.c
+@@ -411,7 +411,6 @@ static const struct snd_soc_component_driver cx20442_component_dev = {
  	.idle_bias_on		= 1,
  	.use_pmdown_time	= 1,
  	.endianness		= 1,
 -	.non_legacy_dai_naming	= 1,
  };
  
- static int wl1273_platform_probe(struct platform_device *pdev)
+ static int cx20442_platform_probe(struct platform_device *pdev)
 -- 
 2.30.2
 
