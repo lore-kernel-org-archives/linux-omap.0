@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FAFACCA49E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE67FC433EF
 	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231863AbiFWMyf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Jun 2022 08:54:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38362 "EHLO
+        id S232027AbiFWMyg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Jun 2022 08:54:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231993AbiFWMyb (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:54:31 -0400
+        with ESMTP id S231905AbiFWMyc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:54:32 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FFC441FBB;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC40F42481;
         Thu, 23 Jun 2022 05:54:30 -0700 (PDT)
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NAKUtE006859;
-        Thu, 23 Jun 2022 07:53:11 -0500
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NBNlqX015665;
+        Thu, 23 Jun 2022 07:52:55 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=PTP0VGxQptvCXp26N2iV4AnKY7UMF6SODHbSK4xE09c=;
- b=dRT5oRxzSN3LpRS4fXbjpTQSoA+0epFsssS1EbN2ahEdZ3DOXAzNve3KZ7JFdvTAp03B
- 41nGVDOryDV46k3HZeJ5ifeXCKvMpSWM3bTo7ZKHxqMqTF/FWMW9Yhi6LbHP8fuo6LhW
- LbcRbEIcCLXr/zFx2VRbnjD8ULtGrAjjniPFSGgw6tj4SPMcLthtcec2uImKcaSvK0+x
- sqeJxn77B+LPdvKzo1126NjIpUdmJScPe56j6EoaSSh+qAkYa7Cl3O2jUj8BLaggbFZZ
- b9tJnBY/+NicRnsrSbueViNQvgeLNiBjeme6sME3rRt/TGogYXzpWrf9YoggC5IQ7oWf 6Q== 
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4u-12
+ bh=qFSgNYX1ptHx3ipGzxboQwtB9TZr5xpVdo+hP8vZjJM=;
+ b=HfhzjAXCMyDKnCSTVEaiZi2yCshZSmIZ4cW4k5KaoUn+hTkmnUtwYl+IF2786FRHA97M
+ V8oX/Hmfos3KV8FxDCstedHvWNPmO7iPh4uzF1Ox+kdcsrSW2qBGIY5GcspZYfiJx58h
+ ylmk0kzxMDgXRy9b1ZqixT8NCA4SXemjtBcHCQ/MNNWATyZGsdGN9hTycYxjz00X3+El
+ 4F//2TbuTXe5qQfySRpLG+rgpYYV66xK7fd8BB/BJTx1C0SVkAg1MTpsrmf3wUM8YQn4
+ l1zjSiE1GuFrWEMh8L9tMCXntgyp4GW6qWYPWQgz9nk9/qvmIe63PtFkXWbBrAWz+5Xa Mw== 
+Received: from ediex01.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4j-4
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 23 Jun 2022 07:53:11 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 23 Jun 2022 07:52:55 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
+ (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 23 Jun
- 2022 13:52:57 +0100
+ 2022 13:52:51 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 23 Jun 2022 13:52:57 +0100
+ Transport; Thu, 23 Jun 2022 13:52:51 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 97DBB11D3;
-        Thu, 23 Jun 2022 12:52:57 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 6A5B1478;
+        Thu, 23 Jun 2022 12:52:51 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -60,43 +60,83 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>,
         <frattaroli.nicolas@gmail.com>
-Subject: [PATCH v2 77/96] ASoC: hdac_hdmi: Remove now redundant non_legacy_dai_naming flag
-Date:   Thu, 23 Jun 2022 13:52:31 +0100
-Message-ID: <20220623125250.2355471-78-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 08/96] ASoC: stm32: Migrate to new style legacy DAI naming flag
+Date:   Thu, 23 Jun 2022 13:51:22 +0100
+Message-ID: <20220623125250.2355471-9-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 References: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: F533nTJ_LfjqDWYnuO914-F_6wKf3qRg
-X-Proofpoint-ORIG-GUID: F533nTJ_LfjqDWYnuO914-F_6wKf3qRg
+X-Proofpoint-GUID: Dvzy2Hk5MagPDS3RATX6-WRRTOSLJq0B
+X-Proofpoint-ORIG-GUID: Dvzy2Hk5MagPDS3RATX6-WRRTOSLJq0B
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The ASoC core has now been changed to default to the non-legacy DAI
-naming, as such drivers using the new scheme no longer need to specify
-the non_legacy_dai_naming flag.
+Change the legacy DAI naming flag from opting in to the new scheme
+(non_legacy_dai_naming), to opting out of it (legacy_dai_naming).
+These drivers appear to be on the CPU side of the DAI link and
+currently uses the legacy naming, so add the new flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/codecs/hdac_hdmi.c | 1 -
- 1 file changed, 1 deletion(-)
+ sound/soc/stm/stm32_adfsdm.c  | 1 +
+ sound/soc/stm/stm32_i2s.c     | 1 +
+ sound/soc/stm/stm32_sai_sub.c | 1 +
+ sound/soc/stm/stm32_spdifrx.c | 1 +
+ 4 files changed, 4 insertions(+)
 
-diff --git a/sound/soc/codecs/hdac_hdmi.c b/sound/soc/codecs/hdac_hdmi.c
-index 66408a98298be..cb23650ad5223 100644
---- a/sound/soc/codecs/hdac_hdmi.c
-+++ b/sound/soc/codecs/hdac_hdmi.c
-@@ -2058,7 +2058,6 @@ static const struct snd_soc_component_driver hdmi_hda_codec = {
- 	.remove			= hdmi_codec_remove,
- 	.use_pmdown_time	= 1,
- 	.endianness		= 1,
--	.non_legacy_dai_naming	= 1,
+diff --git a/sound/soc/stm/stm32_adfsdm.c b/sound/soc/stm/stm32_adfsdm.c
+index 122805160e70b..04f2912e14181 100644
+--- a/sound/soc/stm/stm32_adfsdm.c
++++ b/sound/soc/stm/stm32_adfsdm.c
+@@ -149,6 +149,7 @@ static const struct snd_soc_dai_driver stm32_adfsdm_dai = {
+ 
+ static const struct snd_soc_component_driver stm32_adfsdm_dai_component = {
+ 	.name = "stm32_dfsdm_audio",
++	.legacy_dai_naming = 1,
  };
  
- static void hdac_hdmi_get_chmap(struct hdac_device *hdev, int pcm_idx,
+ static void stm32_memcpy_32to16(void *dest, const void *src, size_t n)
+diff --git a/sound/soc/stm/stm32_i2s.c b/sound/soc/stm/stm32_i2s.c
+index 32d885f84a922..6aafe793eec44 100644
+--- a/sound/soc/stm/stm32_i2s.c
++++ b/sound/soc/stm/stm32_i2s.c
+@@ -978,6 +978,7 @@ static const struct snd_dmaengine_pcm_config stm32_i2s_pcm_config = {
+ 
+ static const struct snd_soc_component_driver stm32_i2s_component = {
+ 	.name = "stm32-i2s",
++	.legacy_dai_naming = 1,
+ };
+ 
+ static void stm32_i2s_dai_init(struct snd_soc_pcm_stream *stream,
+diff --git a/sound/soc/stm/stm32_sai_sub.c b/sound/soc/stm/stm32_sai_sub.c
+index 03cc6d12d18bb..eb31b49e65978 100644
+--- a/sound/soc/stm/stm32_sai_sub.c
++++ b/sound/soc/stm/stm32_sai_sub.c
+@@ -1336,6 +1336,7 @@ static const struct snd_dmaengine_pcm_config stm32_sai_pcm_config_spdif = {
+ 
+ static const struct snd_soc_component_driver stm32_component = {
+ 	.name = "stm32-sai",
++	.legacy_dai_naming = 1,
+ };
+ 
+ static const struct of_device_id stm32_sai_sub_ids[] = {
+diff --git a/sound/soc/stm/stm32_spdifrx.c b/sound/soc/stm/stm32_spdifrx.c
+index 6f7882c4fe6ad..0f71467567176 100644
+--- a/sound/soc/stm/stm32_spdifrx.c
++++ b/sound/soc/stm/stm32_spdifrx.c
+@@ -888,6 +888,7 @@ static const struct snd_pcm_hardware stm32_spdifrx_pcm_hw = {
+ 
+ static const struct snd_soc_component_driver stm32_spdifrx_component = {
+ 	.name = "stm32-spdifrx",
++	.legacy_dai_naming = 1,
+ };
+ 
+ static const struct snd_dmaengine_pcm_config stm32_spdifrx_pcm_config = {
 -- 
 2.30.2
 
