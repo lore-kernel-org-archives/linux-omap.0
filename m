@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B2A7CCA486
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4867BC2BBEB
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232057AbiFWMyk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Jun 2022 08:54:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38564 "EHLO
+        id S232066AbiFWMyl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Jun 2022 08:54:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232042AbiFWMyh (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:54:37 -0400
+        with ESMTP id S232035AbiFWMyg (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:54:36 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF43342ECD;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34AAF42A15;
         Thu, 23 Jun 2022 05:54:36 -0700 (PDT)
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NBNlqm015665;
-        Thu, 23 Jun 2022 07:53:08 -0500
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NAKUt5006859;
+        Thu, 23 Jun 2022 07:53:04 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=l/BjmovFcC1gHztHkGDqa9sIcCV4lLUAh4OlqigaJOs=;
- b=NN+O+SU5AtTfF/Cj888CEDrGYASE0mwfWgVdeBj3K0jAaZdKwamOdDnnMMN82A4wnmE9
- KijZwIZXpzQfTJAzYxAlRGkSPIoXjg8zdNldvM1W8GTjZ4dxQrHN+JBIqTvI2db/f184
- iiC3lrkMGq2pPZHdb1t+z+jjZAtVfhokUqrtuKdL3mnUCSoy8J5JgCSSlaCAhtg8L9eM
- X0YtX1hd6aZco1foUIiJLLcl278lsuiYVy0AZwavA9Npqdf3QoYmlhOe24p/yC2y83XX
- se1PFXnl5/PLoZBFVbqJpUYMBiO2Uu7+Ibe5ol7SyURonkYQu22yDdwv36B9MXaP8Gnm yg== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4j-19
+ bh=IRJFhcj+htr8j8A51xKsCTuIkZGBefkGMm7EkX0r/Yg=;
+ b=X6AHZDHUi32P1Pya6Lf1nAVxQ+D0bLSdsb2TUYAKQaV2WlfJM0mL/72+xON73WjMbgfW
+ VNbKkYlfPdxT9a7PIfsWU8FYvxDTaSJLz+7lWEhHQLs8htjseGZowWoTovb27zsu1mFO
+ 4rxJ8dOEGlgsiEcFrPvMHYCYiSRPBCTTWuudj7uqSZWFMgZL9P8SXUTgWVZrD1+F9NQy
+ YIVoTalhQivUOZuBeJhgqsauiC0m45hrZ5bMOulhlmJTnwHjNWSl3/xZGsRLDkndWKDN
+ rPicPIUIzt7n3QmYJPRDYwj2MgVigHTssYgadopFNECm9keAMxVB7AvBGFsfdiyPonMV ug== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4u-4
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 23 Jun 2022 07:53:07 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 23 Jun 2022 07:53:03 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 23 Jun
- 2022 13:52:56 +0100
+ 2022 13:52:54 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 23 Jun 2022 13:52:56 +0100
+ Transport; Thu, 23 Jun 2022 13:52:54 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 2F17D11D4;
-        Thu, 23 Jun 2022 12:52:56 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 9CB7711D1;
+        Thu, 23 Jun 2022 12:52:54 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -60,17 +60,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>,
         <frattaroli.nicolas@gmail.com>
-Subject: [PATCH v2 61/96] ASoC: tfa*: Remove now redundant non_legacy_dai_naming flag
-Date:   Thu, 23 Jun 2022 13:52:15 +0100
-Message-ID: <20220623125250.2355471-62-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 44/96] ASoC: topology: KUnit: Remove now redundant non_legacy_dai_naming flag
+Date:   Thu, 23 Jun 2022 13:51:58 +0100
+Message-ID: <20220623125250.2355471-45-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 References: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: c6BG-vub188I_XRw4QLITLFLgZM1-CQv
-X-Proofpoint-ORIG-GUID: c6BG-vub188I_XRw4QLITLFLgZM1-CQv
+X-Proofpoint-GUID: GtvL_AZVvXuE77-O9X0l-x3NYt0RlWyb
+X-Proofpoint-ORIG-GUID: GtvL_AZVvXuE77-O9X0l-x3NYt0RlWyb
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -82,34 +82,37 @@ the non_legacy_dai_naming flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/codecs/tfa9879.c | 1 -
- sound/soc/codecs/tfa989x.c | 1 -
- 2 files changed, 2 deletions(-)
+ sound/soc/soc-topology-test.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/sound/soc/codecs/tfa9879.c b/sound/soc/codecs/tfa9879.c
-index 41a9b1b76e629..9f7902ec40db4 100644
---- a/sound/soc/codecs/tfa9879.c
-+++ b/sound/soc/codecs/tfa9879.c
-@@ -235,7 +235,6 @@ static const struct snd_soc_component_driver tfa9879_component = {
- 	.idle_bias_on		= 1,
- 	.use_pmdown_time	= 1,
- 	.endianness		= 1,
--	.non_legacy_dai_naming	= 1,
+diff --git a/sound/soc/soc-topology-test.c b/sound/soc/soc-topology-test.c
+index 225d743559741..3acd42a288d6c 100644
+--- a/sound/soc/soc-topology-test.c
++++ b/sound/soc/soc-topology-test.c
+@@ -104,7 +104,6 @@ static const struct snd_soc_component_driver test_component = {
+ 	.name = "sound-soc-topology-test",
+ 	.probe = d_probe,
+ 	.remove = d_remove,
+-	.non_legacy_dai_naming = 1,
  };
  
- static const struct regmap_config tfa9879_regmap = {
-diff --git a/sound/soc/codecs/tfa989x.c b/sound/soc/codecs/tfa989x.c
-index 8ab2656de7505..1c27429b9af64 100644
---- a/sound/soc/codecs/tfa989x.c
-+++ b/sound/soc/codecs/tfa989x.c
-@@ -138,7 +138,6 @@ static const struct snd_soc_component_driver tfa989x_component = {
- 	.num_dapm_routes	= ARRAY_SIZE(tfa989x_dapm_routes),
- 	.use_pmdown_time	= 1,
- 	.endianness		= 1,
--	.non_legacy_dai_naming	= 1,
+ /* ===== TOPOLOGY TEMPLATES ================================================= */
+@@ -238,7 +237,6 @@ static int d_probe_null_comp(struct snd_soc_component *component)
+ static const struct snd_soc_component_driver test_component_null_comp = {
+ 	.name = "sound-soc-topology-test",
+ 	.probe = d_probe_null_comp,
+-	.non_legacy_dai_naming = 1,
  };
  
- static const unsigned int tfa989x_rates[] = {
+ static void snd_soc_tplg_test_load_with_null_comp(struct kunit *test)
+@@ -344,7 +342,6 @@ static int d_probe_null_fw(struct snd_soc_component *component)
+ static const struct snd_soc_component_driver test_component_null_fw = {
+ 	.name = "sound-soc-topology-test",
+ 	.probe = d_probe_null_fw,
+-	.non_legacy_dai_naming = 1,
+ };
+ 
+ static void snd_soc_tplg_test_load_with_null_fw(struct kunit *test)
 -- 
 2.30.2
 
