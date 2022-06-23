@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98104CCA489
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D42D5C2BBF4
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232097AbiFWMyr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Jun 2022 08:54:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38558 "EHLO
+        id S232042AbiFWMys (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Jun 2022 08:54:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232063AbiFWMyk (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:54:40 -0400
+        with ESMTP id S232080AbiFWMyn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:54:43 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 312AA41321;
-        Thu, 23 Jun 2022 05:54:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C60142EE9;
+        Thu, 23 Jun 2022 05:54:42 -0700 (PDT)
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NBNlqk015665;
-        Thu, 23 Jun 2022 07:53:06 -0500
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NAKUtG006859;
+        Thu, 23 Jun 2022 07:53:13 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=DN8v8qtec1v5YCZ914sIJGES0VWwSNxzupuu1YFG+cU=;
- b=a+wqoo7WmKUWzuaF6s3PqYdvm5nMcG61wN7LtWhiHwENCBq5DuI9DUsex4LBAde0zbu6
- AyBcusxWMYlxgM1xYeMOUKqUpmq9zD4uNR5KMHp/3GUpknh4Yz6J2bQgXmFas8SGzr4S
- c6WPWF8KvE+ytV0V1+gWue6pbbAV8zWDPEHkDZzKWEpbEsMSBI5kv3dPjgD4C5P9CTTx
- B3htNmmUbaI6eXuYcHeLToo8cTVxkIph2xY8vepS/i89Z/5xWzdmFQb9u9JerdJCgJS3
- hyGwJU0KrYibtTZQCBq+233agutZhMiISgyChWdpU/xLUO3NEi83opFHgIiKyK8A/xLp dA== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4j-17
+ bh=ITZCKseAYP/CcCrXZ3DK1sIOpRPIavot825/wiVnEJc=;
+ b=C0KDLep1dlCiUaBm0b4uWWGrrstAJxHasfKt5EskfdxLBQT8H9vUlIcfEfS2mN5OmKqB
+ 3w2B6A9PgQFcaW3KOi9Y/f4Rk1FJtedcyxYiDOckPJ/NPHIwsqRtgT91TC0mzPjxceTz
+ VfMSAkO387PvT3layq5k5apm7pRfAT0zVCicTtkRcuLOqnA9UTMutXBfm7yJ0+HaNmAe
+ rnr4lQrdytBx+hKekOEF4egEnnceE48iRf2ksE/B5Ca+c3AflwswJuJnGlSkleFb70dT
+ 9nNhZljy/NuKKORYfIPc0Fv+ZvOq0TfQ7HuZzIXdHmXcXfh2EJimEzift38j/E64kidR Uw== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4u-14
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 23 Jun 2022 07:53:06 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 23 Jun 2022 07:53:13 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 23 Jun
- 2022 13:52:55 +0100
+ 2022 13:52:57 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 23 Jun 2022 13:52:55 +0100
+ Transport; Thu, 23 Jun 2022 13:52:57 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 79EF511D4;
-        Thu, 23 Jun 2022 12:52:55 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id DB95B11D3;
+        Thu, 23 Jun 2022 12:52:57 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -60,17 +60,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>,
         <frattaroli.nicolas@gmail.com>
-Subject: [PATCH v2 53/96] ASoC: msm*: Remove now redundant non_legacy_dai_naming flag
-Date:   Thu, 23 Jun 2022 13:52:07 +0100
-Message-ID: <20220623125250.2355471-54-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 80/96] ASoC: inno_rk3036: Remove now redundant non_legacy_dai_naming flag
+Date:   Thu, 23 Jun 2022 13:52:34 +0100
+Message-ID: <20220623125250.2355471-81-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 References: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: XpI5MOfl5aHmcnSBssvYb8RHyC6P163D
-X-Proofpoint-ORIG-GUID: XpI5MOfl5aHmcnSBssvYb8RHyC6P163D
+X-Proofpoint-GUID: Pbdq89buI_3nRZn1S0UbT5YNZv9oM1xf
+X-Proofpoint-ORIG-GUID: Pbdq89buI_3nRZn1S0UbT5YNZv9oM1xf
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -82,34 +82,21 @@ the non_legacy_dai_naming flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/codecs/msm8916-wcd-analog.c  | 1 -
- sound/soc/codecs/msm8916-wcd-digital.c | 1 -
- 2 files changed, 2 deletions(-)
+ sound/soc/codecs/inno_rk3036.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/sound/soc/codecs/msm8916-wcd-analog.c b/sound/soc/codecs/msm8916-wcd-analog.c
-index e52a559c52d68..78e543eb3c834 100644
---- a/sound/soc/codecs/msm8916-wcd-analog.c
-+++ b/sound/soc/codecs/msm8916-wcd-analog.c
-@@ -1128,7 +1128,6 @@ static const struct snd_soc_component_driver pm8916_wcd_analog = {
+diff --git a/sound/soc/codecs/inno_rk3036.c b/sound/soc/codecs/inno_rk3036.c
+index ca0f4c1911e48..8222cde6e3b90 100644
+--- a/sound/soc/codecs/inno_rk3036.c
++++ b/sound/soc/codecs/inno_rk3036.c
+@@ -387,7 +387,6 @@ static const struct snd_soc_component_driver rk3036_codec_driver = {
  	.idle_bias_on		= 1,
  	.use_pmdown_time	= 1,
  	.endianness		= 1,
 -	.non_legacy_dai_naming	= 1,
  };
  
- static int pm8916_wcd_analog_parse_dt(struct device *dev,
-diff --git a/sound/soc/codecs/msm8916-wcd-digital.c b/sound/soc/codecs/msm8916-wcd-digital.c
-index 098a58990f07d..d490a0f186752 100644
---- a/sound/soc/codecs/msm8916-wcd-digital.c
-+++ b/sound/soc/codecs/msm8916-wcd-digital.c
-@@ -1155,7 +1155,6 @@ static const struct snd_soc_component_driver msm8916_wcd_digital = {
- 	.idle_bias_on		= 1,
- 	.use_pmdown_time	= 1,
- 	.endianness		= 1,
--	.non_legacy_dai_naming	= 1,
- };
- 
- static const struct regmap_config msm8916_codec_regmap_config = {
+ static const struct regmap_config rk3036_codec_regmap_config = {
 -- 
 2.30.2
 
