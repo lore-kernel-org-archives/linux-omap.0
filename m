@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1582BC433EF
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:55:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F13E5CCA483
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:55:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231815AbiFWMzh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Jun 2022 08:55:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40402 "EHLO
+        id S230308AbiFWMzj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Jun 2022 08:55:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231436AbiFWMze (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:55:34 -0400
+        with ESMTP id S231716AbiFWMzi (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:55:38 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2219749FA8;
-        Thu, 23 Jun 2022 05:55:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A8784704C;
+        Thu, 23 Jun 2022 05:55:38 -0700 (PDT)
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25N6FQeZ013924;
-        Thu, 23 Jun 2022 07:53:12 -0500
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NAKUtJ006859;
+        Thu, 23 Jun 2022 07:53:15 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=xY4xsRe/jm0kTWlxz5PklVpNc7pAIqqRFHsrc/CWjnk=;
- b=jt29CdWrWSWfKr3GZUhIf8QgQmkYFFwfa6sXhqt5Hb44GE4jbrASSXLQIg5Y0el7YgmZ
- CKvAUIkIiTH+yDvEsPxx7v6pXvBIIlP5j6ybSnaQaV9/ZqChkighQJP/i8lTmsIOUd23
- 3MQtNbzQnvym9oYwyZ3ODNq8SHNWO+9t/f4kV5oyYmJYL0N+YbEgBualnyOY0bduLdIk
- 0morg5+ol/RkVZEaemBu6PvrDbko3RiCzw3DYqRpIq4zwOooswUl2Jk8+IWe8L9iEkNQ
- h1IqfPd+oD+cfFiLhxAokePofuAqLj0iBAV3bsXWlo4cVx/Hjuv5jwEf/F7vpPCdeZtx ug== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4x-11
+ bh=BgbBX9Efb8K0LJNikCHrznq2RAOzoLRPZllxMCU4hQg=;
+ b=BlSXO39AK6ILlrMGhditR/qvxvAwY1jMLgZ0oQIUcRy2EMQB0Kp7rUM8XGWn88LqGtTa
+ PZRH18Key0WntsJs3vZcCHbOvT4x0RcEi1W7OqmcnQTV+y2QZoKJx+PwwuH63H7JyvZd
+ 0EWp/duQ0UF0mXlLqm24AyhoQnTKEKSNTq+ofEfY+3LDviMhvjeUOciUfR0TX2+DkwVW
+ MuBa3NqryCLshfuxNZH7VFlp8g1R9duzcaL6gAii2V3ORRcrxPYfXkUBowqIaXbH8ZIE
+ XEyuJmcKAbEajkuvGtsSSirzDPkeNMJfPJ86f+GocycR10QTqaGGUKa2NdKZQ/ccQfPp 9w== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4u-17
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 23 Jun 2022 07:53:12 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 23 Jun 2022 07:53:15 -0500
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 23 Jun
- 2022 13:52:58 +0100
+ 2022 13:52:59 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 23 Jun 2022 13:52:58 +0100
+ Transport; Thu, 23 Jun 2022 13:52:59 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 3C39211D1;
-        Thu, 23 Jun 2022 12:52:58 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 53DC811D1;
+        Thu, 23 Jun 2022 12:52:59 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -60,43 +60,42 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>,
         <frattaroli.nicolas@gmail.com>
-Subject: [PATCH v2 84/96] ASoC: lm49453: Remove now redundant non_legacy_dai_naming flag
-Date:   Thu, 23 Jun 2022 13:52:38 +0100
-Message-ID: <20220623125250.2355471-85-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 96/96] ASoC: soc-component: Remove non_legacy_dai_naming flag
+Date:   Thu, 23 Jun 2022 13:52:50 +0100
+Message-ID: <20220623125250.2355471-97-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 References: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: XHvTX0m-iPXG2kAAB051DJjgEXEsWkzw
-X-Proofpoint-ORIG-GUID: XHvTX0m-iPXG2kAAB051DJjgEXEsWkzw
+X-Proofpoint-GUID: fUGTb7dJJMOmVmNkY5DMbA2EPSxXxxUM
+X-Proofpoint-ORIG-GUID: fUGTb7dJJMOmVmNkY5DMbA2EPSxXxxUM
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The ASoC core has now been changed to default to the non-legacy DAI
-naming, as such drivers using the new scheme no longer need to specify
-the non_legacy_dai_naming flag.
+Now all the users are moved over to the new legacy_dai_naming flag,
+remove the now unused old flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/codecs/lm49453.c | 1 -
+ include/sound/soc-component.h | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/sound/soc/codecs/lm49453.c b/sound/soc/codecs/lm49453.c
-index c4900ada86184..a2e782cc4276a 100644
---- a/sound/soc/codecs/lm49453.c
-+++ b/sound/soc/codecs/lm49453.c
-@@ -1399,7 +1399,6 @@ static const struct snd_soc_component_driver soc_component_dev_lm49453 = {
- 	.num_dapm_routes	= ARRAY_SIZE(lm49453_audio_map),
- 	.use_pmdown_time	= 1,
- 	.endianness		= 1,
--	.non_legacy_dai_naming	= 1,
- };
+diff --git a/include/sound/soc-component.h b/include/sound/soc-component.h
+index 96c2f5fffc51e..c26ffb033777a 100644
+--- a/include/sound/soc-component.h
++++ b/include/sound/soc-component.h
+@@ -180,7 +180,6 @@ struct snd_soc_component_driver {
+ 	 */
+ 	unsigned int endianness:1;
+ 	unsigned int legacy_dai_naming:1;
+-	unsigned int non_legacy_dai_naming:1;
  
- static const struct regmap_config lm49453_regmap_config = {
+ 	/* this component uses topology and ignore machine driver FEs */
+ 	const char *ignore_machine;
 -- 
 2.30.2
 
