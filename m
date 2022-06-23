@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 388C7CCA493
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:53:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 434ACCCA487
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:53:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231346AbiFWMxl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Jun 2022 08:53:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36882 "EHLO
+        id S231890AbiFWMxm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Jun 2022 08:53:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231853AbiFWMxk (ORCPT
+        with ESMTP id S231879AbiFWMxk (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:53:40 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A2653F893;
-        Thu, 23 Jun 2022 05:53:39 -0700 (PDT)
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NBNlqY015665;
-        Thu, 23 Jun 2022 07:52:56 -0500
+Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AA283FBFC;
+        Thu, 23 Jun 2022 05:53:40 -0700 (PDT)
+Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
+        by mx0b-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25N5mxl6032604;
+        Thu, 23 Jun 2022 07:53:01 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=Z4rUFJQC8NApp1mf+grKH2chieKDYOmZYhpQ8q1UBdg=;
- b=aLSraIrWITGiBOcFA6hNe2+W5IL9LQUyRqPKGyzwSuR63Xd5iFYeTEzkV4XR0dJY1pLn
- mUko42c8R5izsTr9RKVa7cxfgXcH4OHd3zk8DYeMGRrpRLaWtgY4Jw/PZ7UNjXuqTmkz
- a82mE/Ij2R5DblmTe5cYFVvbKHmFr8i1qsvFezx0xgdP/SRywqmxPwPNQ+AuL6HqQA2o
- h9N5uSOWsSAsiF/tjFkVbmmC/LFB/s/rwzO2Y9SLvP78gp3ljg50owJh/bhq5/Xf8XXl
- dsIiU6sN18cB2tsvtGmbQ6IFUneQLAptYVXOoabSoVwPYD2i1/6IS6P9e3D3DDkVy4MN og== 
+ bh=JmkHTSCH/Vzo0UL/hxDhsbzieslKfnK4gSF844vPDiQ=;
+ b=AK5ZvusCpI4cZuRLaaIcdLA0KXmNoT3kbBThcEHrVAkOEBpQN6SobFBxNxDiJ1KjGjGW
+ mZBD97EiBqH2Xo9esoEQWb7JlCdQDNmj7v8pYSVksg1CvV/OEWj8G04bDxY7Fx0av/EZ
+ 0L3RvTCFAwWo2xEy/W/HArdveWwc14xZlXiWwbGEGt9L5stKPlq7lx2jXVLjdB+x2QXy
+ DIECCOGHNFhUg8MSqhrWhRIfUKz2L95cHlQbWTLQXLeF2Vf3mRmHt0EIXafSjq+4Ntbw
+ jlBtyUYZP/D/k9TFeGXUOzST3+QerRa6eG3c5/0cYNyIUPg6ioPOfgE4ECednfLWza+W Tw== 
 Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4j-5
+        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3gsb4p6wvu-5
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 23 Jun 2022 07:52:56 -0500
+        Thu, 23 Jun 2022 07:53:01 -0500
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 23 Jun
- 2022 13:52:51 +0100
+ 2022 13:52:52 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 23 Jun 2022 13:52:51 +0100
+ Transport; Thu, 23 Jun 2022 13:52:52 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 7E7B111D3;
-        Thu, 23 Jun 2022 12:52:51 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id B65B611D1;
+        Thu, 23 Jun 2022 12:52:52 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -60,17 +60,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>,
         <frattaroli.nicolas@gmail.com>
-Subject: [PATCH v2 09/96] ASoC: bcm: Migrate to new style legacy DAI naming flag
-Date:   Thu, 23 Jun 2022 13:51:23 +0100
-Message-ID: <20220623125250.2355471-10-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 22/96] ASoC: adi: Migrate to new style legacy DAI naming flag
+Date:   Thu, 23 Jun 2022 13:51:36 +0100
+Message-ID: <20220623125250.2355471-23-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 References: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: oTIhZNeE1i-V1Cle97d6U4QPXI3ihz54
-X-Proofpoint-ORIG-GUID: oTIhZNeE1i-V1Cle97d6U4QPXI3ihz54
+X-Proofpoint-GUID: scsfREw1y04SpNc1YjmV2z0HuOIAoK_0
+X-Proofpoint-ORIG-GUID: scsfREw1y04SpNc1YjmV2z0HuOIAoK_0
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -83,55 +83,34 @@ currently uses the legacy naming, so add the new flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/bcm/bcm2835-i2s.c          | 3 ++-
- sound/soc/bcm/bcm63xx-i2s-whistler.c | 1 +
- sound/soc/bcm/cygnus-ssp.c           | 7 ++++---
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ sound/soc/adi/axi-i2s.c   | 1 +
+ sound/soc/adi/axi-spdif.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/sound/soc/bcm/bcm2835-i2s.c b/sound/soc/bcm/bcm2835-i2s.c
-index e39c8d9f40995..f4d84774dac72 100644
---- a/sound/soc/bcm/bcm2835-i2s.c
-+++ b/sound/soc/bcm/bcm2835-i2s.c
-@@ -821,7 +821,8 @@ static const struct regmap_config bcm2835_regmap_config = {
- };
+diff --git a/sound/soc/adi/axi-i2s.c b/sound/soc/adi/axi-i2s.c
+index 1289cb4e2988c..b1342351bff43 100644
+--- a/sound/soc/adi/axi-i2s.c
++++ b/sound/soc/adi/axi-i2s.c
+@@ -161,6 +161,7 @@ static struct snd_soc_dai_driver axi_i2s_dai = {
  
- static const struct snd_soc_component_driver bcm2835_i2s_component = {
--	.name		= "bcm2835-i2s-comp",
-+	.name			= "bcm2835-i2s-comp",
-+	.legacy_dai_naming	= 1,
- };
- 
- static int bcm2835_i2s_probe(struct platform_device *pdev)
-diff --git a/sound/soc/bcm/bcm63xx-i2s-whistler.c b/sound/soc/bcm/bcm63xx-i2s-whistler.c
-index 527caf430715b..2da1384ffe911 100644
---- a/sound/soc/bcm/bcm63xx-i2s-whistler.c
-+++ b/sound/soc/bcm/bcm63xx-i2s-whistler.c
-@@ -218,6 +218,7 @@ static struct snd_soc_dai_driver bcm63xx_i2s_dai = {
- 
- static const struct snd_soc_component_driver bcm63xx_i2s_component = {
- 	.name = "bcm63xx",
+ static const struct snd_soc_component_driver axi_i2s_component = {
+ 	.name = "axi-i2s",
 +	.legacy_dai_naming = 1,
  };
  
- static int bcm63xx_i2s_dev_probe(struct platform_device *pdev)
-diff --git a/sound/soc/bcm/cygnus-ssp.c b/sound/soc/bcm/cygnus-ssp.c
-index 4bfa2d715ff4d..8b7a215730707 100644
---- a/sound/soc/bcm/cygnus-ssp.c
-+++ b/sound/soc/bcm/cygnus-ssp.c
-@@ -1201,9 +1201,10 @@ static const struct snd_soc_dai_driver cygnus_spdif_dai_info = {
- static struct snd_soc_dai_driver cygnus_ssp_dai[CYGNUS_MAX_PORTS];
+ static const struct regmap_config axi_i2s_regmap_config = {
+diff --git a/sound/soc/adi/axi-spdif.c b/sound/soc/adi/axi-spdif.c
+index 8d4a6cb4e5c55..51b968ea21daa 100644
+--- a/sound/soc/adi/axi-spdif.c
++++ b/sound/soc/adi/axi-spdif.c
+@@ -167,6 +167,7 @@ static struct snd_soc_dai_driver axi_spdif_dai = {
  
- static const struct snd_soc_component_driver cygnus_ssp_component = {
--	.name		= "cygnus-audio",
--	.suspend	= cygnus_ssp_suspend,
--	.resume		= cygnus_ssp_resume,
-+	.name			= "cygnus-audio",
-+	.suspend		= cygnus_ssp_suspend,
-+	.resume			= cygnus_ssp_resume,
-+	.legacy_dai_naming	= 1,
+ static const struct snd_soc_component_driver axi_spdif_component = {
+ 	.name = "axi-spdif",
++	.legacy_dai_naming = 1,
  };
  
- /*
+ static const struct regmap_config axi_spdif_regmap_config = {
 -- 
 2.30.2
 
