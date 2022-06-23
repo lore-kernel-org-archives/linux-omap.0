@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAAF1CCA482
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50482CCA48E
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231986AbiFWMya (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Jun 2022 08:54:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38274 "EHLO
+        id S231882AbiFWMyb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Jun 2022 08:54:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231882AbiFWMy2 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:54:28 -0400
+        with ESMTP id S231871AbiFWMy1 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:54:27 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F53541FBB;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DE714198E;
         Thu, 23 Jun 2022 05:54:27 -0700 (PDT)
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NBNlqb015665;
-        Thu, 23 Jun 2022 07:52:59 -0500
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25N6FQef013924;
+        Thu, 23 Jun 2022 07:53:17 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=dui2WyLPcVQAcGZTKMeDfiNpSHT7WGXeltT4HVqDtXA=;
- b=jzhGlWvxAaHLfiiUUttoY42mgLqWo/gAk7UqW6G3aNWmNBlofWGPJtujl1OXq0NL5F3W
- Clma+tLYRliTWCTJGDuYwXfZEpGQJj9gJl3/wYdJ47eNUCDF9BnYH5LiKj2VtYKp5aHI
- vmMs8g56CmvjgsYoT5Tzccf5Vm9ZsqousSN154gVQbLn6PwtvFuCMTrvt7OuDRri/Uvc
- 5nFXi1wv0kUIq0shLO45VNlq3CmeLnJCgBwstT/db1ETeywe1xVT+Go4cHvNxkwzxRet
- JEiEgafcpeV0PUTjbtGiG4St2LBXeRVB+d7uIZNm7C7LWolsKDql8j9yILbjydrdRp4L fg== 
+ bh=gfAjeuTJgrfbbUARWAZ0uMTILKOVHkuBefDmweg4me0=;
+ b=JGlw1xhXhTlpAtp32XJYxPONGwhCfgCazEV2ndgp/1nGXjj7viq5nTuzrLqTRC+f26al
+ womvWjInJBUlSAV95cvTmrdvrl+XMFusWDrEy3Fub9fCctNazWSzZKYAVmifZMdR/4/V
+ c8bVUabJNdn0PmnASMDxPhklUaQcUF/CYyqyoZ2/IVoHCU3zl3/Dnh9DouySw2xOllNB
+ jdeF+hLn2kkGKDuPgg5ISf6syqdDj6Kz5az1soeRjxBWbfvPPce6ZDzDbznaRDlN7mvn
+ fiIHAJhFJNQ0P6omfY0jAoY+teTbPOMnd+RmVWVqF4DMo/9Ov0ovdAPlhHYtVif+E1ak kA== 
 Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4j-8
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4x-17
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Thu, 23 Jun 2022 07:52:58 -0500
+        Thu, 23 Jun 2022 07:53:17 -0500
 Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 23 Jun
- 2022 13:52:52 +0100
+ 2022 13:52:59 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 23 Jun 2022 13:52:52 +0100
+ Transport; Thu, 23 Jun 2022 13:52:59 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 3E8DF478;
-        Thu, 23 Jun 2022 12:52:52 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id EC35C11D4;
+        Thu, 23 Jun 2022 12:52:58 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -60,46 +60,43 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>,
         <frattaroli.nicolas@gmail.com>
-Subject: [PATCH v2 17/96] ASoC: sti-uniperf: Migrate to new style legacy DAI naming flag
-Date:   Thu, 23 Jun 2022 13:51:31 +0100
-Message-ID: <20220623125250.2355471-18-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 92/96] ASoC: sti-sas: Remove now redundant non_legacy_dai_naming flag
+Date:   Thu, 23 Jun 2022 13:52:46 +0100
+Message-ID: <20220623125250.2355471-93-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 References: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: VMp9MBPYpbjMvS9wn2kz3hDp3A_95lnC
-X-Proofpoint-ORIG-GUID: VMp9MBPYpbjMvS9wn2kz3hDp3A_95lnC
+X-Proofpoint-GUID: HvPIwdqpK7ltr9dhHMLQAwmnVoB4amg1
+X-Proofpoint-ORIG-GUID: HvPIwdqpK7ltr9dhHMLQAwmnVoB4amg1
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Change the legacy DAI naming flag from opting in to the new scheme
-(non_legacy_dai_naming), to opting out of it (legacy_dai_naming).
-This driver appears to be on the CPU side of the DAI link and
-currently uses the legacy naming, so add the new flag.
+The ASoC core has now been changed to default to the non-legacy DAI
+naming, as such drivers using the new scheme no longer need to specify
+the non_legacy_dai_naming flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/sti/sti_uniperif.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ sound/soc/codecs/sti-sas.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/sound/soc/sti/sti_uniperif.c b/sound/soc/sti/sti_uniperif.c
-index 34668fe3909d1..a4d74d1e3c240 100644
---- a/sound/soc/sti/sti_uniperif.c
-+++ b/sound/soc/sti/sti_uniperif.c
-@@ -376,7 +376,8 @@ static const struct snd_soc_dai_driver sti_uniperiph_dai_template = {
- static const struct snd_soc_component_driver sti_uniperiph_dai_component = {
- 	.name = "sti_cpu_dai",
- 	.suspend = sti_uniperiph_suspend,
--	.resume = sti_uniperiph_resume
-+	.resume = sti_uniperiph_resume,
-+	.legacy_dai_naming = 1,
+diff --git a/sound/soc/codecs/sti-sas.c b/sound/soc/codecs/sti-sas.c
+index 10a6a112f4b47..f076878908eec 100644
+--- a/sound/soc/codecs/sti-sas.c
++++ b/sound/soc/codecs/sti-sas.c
+@@ -398,7 +398,6 @@ static struct snd_soc_component_driver sti_sas_driver = {
+ 	.idle_bias_on		= 1,
+ 	.use_pmdown_time	= 1,
+ 	.endianness		= 1,
+-	.non_legacy_dai_naming	= 1,
  };
  
- static int sti_uniperiph_cpu_dai_of(struct device_node *node,
+ static const struct of_device_id sti_sas_dev_match[] = {
 -- 
 2.30.2
 
