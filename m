@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 686C8CCA496
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 097DACCA48A
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Jun 2022 12:54:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232008AbiFWMyd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Jun 2022 08:54:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38292 "EHLO
+        id S232014AbiFWMye (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Jun 2022 08:54:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231853AbiFWMy2 (ORCPT
+        with ESMTP id S231838AbiFWMy2 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jun 2022 08:54:28 -0400
 Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BC2742A15;
-        Thu, 23 Jun 2022 05:54:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D19FA427E2;
+        Thu, 23 Jun 2022 05:54:27 -0700 (PDT)
 Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NBNlqn015665;
+        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25NAKUtB006859;
         Thu, 23 Jun 2022 07:53:08 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=PODMain02222019;
- bh=xdF4YDhZ4w4zOj7PPUNU1RDXQ9HdkgKMF96WzVRvWg8=;
- b=Vs8PbI/KqrP9KqbOwe8jGz1n0wVMIq30bQE5ydvtxs15KKM2a/diT6O2dvt2wIboW52+
- FKtxt2CIsTNzlm4r3pirOPwr6ABh4V2frBU1WgtszIjqsaNIh5ffTNgZlSJFLHD6D2et
- eRNUDjWEwms2Xzvwm7hxweWme5oJyYBOqZxOYBqf1WD90zfTV33SxBws+4nM/04RkvOS
- 5Nb/3EI6zFpOx9SQscY+JETShKcp+IK0QxwRWOchL7mKOvnfHIoshCHxVBUPsAQeOqaw
- yxOky18MdkXe+DZXQO4VnH9dK/jYRDxyV3XubkEa6wspb88K1SzBgdY6i4cwF0G9v6cp RA== 
-Received: from ediex01.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4j-20
+ bh=VclkzQCOr+1kSUkVCDwH35JAS9t3X3gZbI+rF0fHvWk=;
+ b=K34pF9vt8g9wBTEANX3LtcPLIOm6RIeuIzlV+ybmKG8PrD+T0HMDYUvgEmfrVf36CZwY
+ DEbWywefjUJGI0Zeok3bQbXp/mCNCIOyk8pQGoZ84m7mZwit4mYUq556RKWQbjEKD6AA
+ ZD3hCwZdAk+mMzm/K0HIUvQKsD7ah7ouSPoOsq6AUqyyShSW1n+ROwYS6iXzew02bL0s
+ rzJZPN3OOBWS+Krj7aFPzW06n7Lfy/GuFVGSUPPX+q6zBBFmDA/DoioAS5Vj2I5Gb3vX
+ h1XFVuvFyXbfmsJXW9EUCR+YaGHZe/PD3UBByAMRJDWzw/wD8S9k773hW2MUVAJjeGyF GA== 
+Received: from ediex02.ad.cirrus.com ([84.19.233.68])
+        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3gsc41fa4u-9
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
         Thu, 23 Jun 2022 07:53:08 -0500
-Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX01.ad.cirrus.com
- (198.61.84.80) with Microsoft SMTP Server (version=TLS1_2,
+Received: from EDIEX01.ad.cirrus.com (198.61.84.80) by EDIEX02.ad.cirrus.com
+ (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.28; Thu, 23 Jun
- 2022 13:52:57 +0100
+ 2022 13:52:56 +0100
 Received: from ediswmail.ad.cirrus.com (198.61.86.93) by EDIEX01.ad.cirrus.com
  (198.61.84.80) with Microsoft SMTP Server id 15.1.2375.28 via Frontend
- Transport; Thu, 23 Jun 2022 13:52:57 +0100
+ Transport; Thu, 23 Jun 2022 13:52:56 +0100
 Received: from algalon.ad.cirrus.com (algalon.ad.cirrus.com [198.90.251.122])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 0C8FC11DA;
-        Thu, 23 Jun 2022 12:52:57 +0000 (UTC)
+        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id A3ED811D4;
+        Thu, 23 Jun 2022 12:52:56 +0000 (UTC)
 From:   Charles Keepax <ckeepax@opensource.cirrus.com>
 To:     <broonie@kernel.org>
 CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
@@ -60,17 +60,17 @@ CC:     <lgirdwood@gmail.com>, <kuninori.morimoto.gx@renesas.com>,
         <dri-devel@lists.freedesktop.org>,
         <linux-rpi-kernel@lists.infradead.org>,
         <frattaroli.nicolas@gmail.com>
-Subject: [PATCH v2 71/96] ASoC: bt-sco: Remove now redundant non_legacy_dai_naming flag
-Date:   Thu, 23 Jun 2022 13:52:25 +0100
-Message-ID: <20220623125250.2355471-72-ckeepax@opensource.cirrus.com>
+Subject: [PATCH v2 67/96] ASoC: ab8500: Remove now redundant non_legacy_dai_naming flag
+Date:   Thu, 23 Jun 2022 13:52:21 +0100
+Message-ID: <20220623125250.2355471-68-ckeepax@opensource.cirrus.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 References: <20220623125250.2355471-1-ckeepax@opensource.cirrus.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: KHw6Wr4z8yCSTqj6_KA0dmXnnL2z5pjA
-X-Proofpoint-ORIG-GUID: KHw6Wr4z8yCSTqj6_KA0dmXnnL2z5pjA
+X-Proofpoint-GUID: FbXLWl96VIAOKjjfqrzOee1mMZtaUsjL
+X-Proofpoint-ORIG-GUID: FbXLWl96VIAOKjjfqrzOee1mMZtaUsjL
 X-Proofpoint-Spam-Reason: safe
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -82,21 +82,21 @@ the non_legacy_dai_naming flag.
 
 Signed-off-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 ---
- sound/soc/codecs/bt-sco.c | 1 -
+ sound/soc/codecs/ab8500-codec.c | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/sound/soc/codecs/bt-sco.c b/sound/soc/codecs/bt-sco.c
-index cf17b9741bd83..4086b6a53de8c 100644
---- a/sound/soc/codecs/bt-sco.c
-+++ b/sound/soc/codecs/bt-sco.c
-@@ -69,7 +69,6 @@ static const struct snd_soc_component_driver soc_component_dev_bt_sco = {
+diff --git a/sound/soc/codecs/ab8500-codec.c b/sound/soc/codecs/ab8500-codec.c
+index cbd4a92cb06ce..68342917419e4 100644
+--- a/sound/soc/codecs/ab8500-codec.c
++++ b/sound/soc/codecs/ab8500-codec.c
+@@ -2523,7 +2523,6 @@ static const struct snd_soc_component_driver ab8500_component_driver = {
  	.idle_bias_on		= 1,
  	.use_pmdown_time	= 1,
  	.endianness		= 1,
 -	.non_legacy_dai_naming	= 1,
  };
  
- static int bt_sco_probe(struct platform_device *pdev)
+ static int ab8500_codec_driver_probe(struct platform_device *pdev)
 -- 
 2.30.2
 
