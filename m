@@ -2,45 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0FE0C433EF
-	for <linux-omap@archiver.kernel.org>; Fri,  1 Jul 2022 11:28:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3700CC433EF
+	for <linux-omap@archiver.kernel.org>; Fri,  1 Jul 2022 11:35:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234586AbiGAL2q (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 1 Jul 2022 07:28:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59274 "EHLO
+        id S233327AbiGALfL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 1 Jul 2022 07:35:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36698 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233360AbiGAL2o (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2022 07:28:44 -0400
-Received: from mail-m964.mail.126.com (mail-m964.mail.126.com [123.126.96.4])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8998B13DEF
-        for <linux-omap@vger.kernel.org>; Fri,  1 Jul 2022 04:28:39 -0700 (PDT)
+        with ESMTP id S233234AbiGALfK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 1 Jul 2022 07:35:10 -0400
+Received: from m15111.mail.126.com (m15111.mail.126.com [220.181.15.111])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 40207814AB
+        for <linux-omap@vger.kernel.org>; Fri,  1 Jul 2022 04:35:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=HK0Ux
-        GmbKcMBQFG6B2BMlrbdPZBNhKOypZTXeCTRJho=; b=gw0JN7l815K03g0p2koyb
-        c+eUXP9sl9DIr11ol7BlUK2SiR+vfeabhaDhSpmCntvIJEudNmyyf5CtbXnIPI1I
-        3uHNOj9cw21Mzt6lgu8BEhDt1sbcMyo62kQLUW3dgg72uDFKbn25IssjMgy05Ilp
-        syF8PvsyKrq751TmwdiBvA=
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=iXYAj
+        Cez7FimfKnHDWkF9EsiI2KXgUtvzxPYj8CxWXE=; b=gy57wLjgHSi/QVmtUbOsS
+        WLEpX2KsXFif4f1MOCOrLn3r0znTCiZEjuhxa0vRyP9W24jDSU5k9IqIvyGPKfuu
+        hVy9iQDfJY8Zi9suorbQS4FdEH0As0ZBEyvrzUfTXcQwrHYXkfEfWx840413vjjH
+        uI/UoMoja16mF0GV/Ezxkw=
 Received: from localhost.localdomain (unknown [124.16.139.61])
-        by smtp9 (Coremail) with SMTP id NeRpCgAHJtD62b5ibZSuFw--.17397S3;
-        Fri, 01 Jul 2022 19:26:53 +0800 (CST)
+        by smtp1 (Coremail) with SMTP id C8mowABXNibg275itdsZFw--.42148S2;
+        Fri, 01 Jul 2022 19:34:56 +0800 (CST)
 From:   Liang He <windhl@126.com>
 To:     tony@atomide.com, linux@armlinux.org.uk,
         linux-omap@vger.kernel.org, windhl@126.com
-Subject: [PATCH 2/3] arm: omap2: pm33xx-core: Fix missing of_node_put() in amx3_idle_init()
-Date:   Fri,  1 Jul 2022 19:26:48 +0800
-Message-Id: <20220701112649.233322-2-windhl@126.com>
+Cc:     Miaoqian Lin <linmq006@gmail.com>
+Subject: [PATCH v2] arm: omap2: pm33xx-core: Fix missing of_node_put() in amx3_idle_init()
+Date:   Fri,  1 Jul 2022 19:34:55 +0800
+Message-Id: <20220701113455.233531-1-windhl@126.com>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220701112649.233322-1-windhl@126.com>
-References: <20220701112649.233322-1-windhl@126.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: NeRpCgAHJtD62b5ibZSuFw--.17397S3
-X-Coremail-Antispam: 1Uf129KBjvdXoW7Gry7Cr4rCw4UZFyxKFWDtwb_yoWktrc_Ww
-        1I9397Jr4rtw10gFZ8uan5WwnYywn7GrZrXryIkF4qkayjvFW7X39xW34xKFWUWFWYkrW3
-        trs7Xw129w15tjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7sRAHUDDUUUUU==
+X-CM-TRANSID: C8mowABXNibg275itdsZFw--.42148S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7tr18GrW7CFW7tryrJw1UKFg_yoW8Xr4fpr
+        Z8Ca9Yk348Ww1UG3ySqFZavrWq93WqkrWFyr98Ca1xtan3Ja4fAryFvrZ8uw4fJFySq3Wr
+        Zw10yryDuayDXrUanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRYYLPUUUUU=
 X-Originating-IP: [124.16.139.61]
-X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbi3B0xF1pED1yKCAAAso
+X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbi7R4xF1pEAUXnRAABst
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -49,8 +48,16 @@ To keep refcount balance, we need to call of_node_put() for the
 reference 'state_node' returned by of_parse_phandle() in fail
 path or when it is not used anymore.
 
+Fixes: 06ee7a950b6a ("ARM: OMAP2+: pm33xx-core: Add cpuidle_ops for am335x/am437x")
+Co-authored-by: Miaoqian Lin <linmq006@gmail.com>
 Signed-off-by: Liang He <windhl@126.com>
 ---
+ changelog:
+ 
+ v2: add Co-authored-by Miaoqian Ling and fix tag
+ v1: fix missing of_node_put() bug, but with some error with
+'format-patch'
+
  arch/arm/mach-omap2/pm33xx-core.c | 6 +++++-
  1 file changed, 5 insertions(+), 1 deletion(-)
 
