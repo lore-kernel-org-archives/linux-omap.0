@@ -2,207 +2,327 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DA43CCA481
-	for <linux-omap@archiver.kernel.org>; Fri,  8 Jul 2022 10:04:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9C12C433EF
+	for <linux-omap@archiver.kernel.org>; Sun, 10 Jul 2022 06:52:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237773AbiGHKEy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 8 Jul 2022 06:04:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50840 "EHLO
+        id S229537AbiGJGwY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 10 Jul 2022 02:52:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237576AbiGHKEv (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 8 Jul 2022 06:04:51 -0400
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32CC421E01;
-        Fri,  8 Jul 2022 03:04:51 -0700 (PDT)
-Received: from pps.filterd (m0246617.ppops.net [127.0.0.1])
-        by mx0b-00069f02.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 2689TC68005072;
-        Fri, 8 Jul 2022 10:03:43 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : content-type : in-reply-to :
- mime-version; s=corp-2021-07-09;
- bh=5pLPxSfVxyKstenSeJF5S36kf0san/dvZM+lTJUj5kk=;
- b=PA50aJSWEClK7uNepTEBZoL1lirjNs/B6KGo9hv+IgJJBjI6PrnU57gxCy/+qz2/vyQj
- oL0aTg5oA3vyQMa5i4vjthnyKQ6BWTpbc8hSzC0vhsKNARztRAH/NSsh9dW8f41s1/so
- h5x4py0i5Nyy4To7vgnyw4i4pepyPuSuElcTKvhwEliSRnJF5BIoM6faxeMhcKGZ71tu
- g6CK9oLrA1c0tCFliM/drLZbAOaKa4nWye+NvPyHRWT2dOAH5yfsktPPdZbnkumXqDVe
- vFnJqDCdS5VkE4w/NgvMoS8PEsTTgT8axv27cKNHj4hM8Pf0gEOvc6MehQ4ndh5dhJ+k bw== 
-Received: from iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta03.appoci.oracle.com [130.35.103.27])
-        by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3h4ubyqr0t-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 08 Jul 2022 10:03:43 +0000
-Received: from pps.filterd (iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-        by iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 268A1thI017973;
-        Fri, 8 Jul 2022 10:03:41 GMT
-Received: from nam11-co1-obe.outbound.protection.outlook.com (mail-co1nam11lp2170.outbound.protection.outlook.com [104.47.56.170])
-        by iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com with ESMTP id 3h4ud9qcwg-2
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 08 Jul 2022 10:03:41 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TuiT5fxH64XD++PmsUHkgC7ckixWshUllFXzVoKD339c0SUUkEprR7RnhpyFoyYisCA3NgjigZj0XW0EB5megweHyiCr6hSkfjB4vmdtFZJIMeIcOup727hO99v4rU+KHGM2VxwCN0yEPdAuLSBVLjtDTX+2+alSVMxVUN1rOEFRoTOqCwuurnCJXuJ1xPpJDNTQHwg2CNYTSw5W3ZOLPO8s1GctuCHa9QH/Ddp/uuq+iey3U7OeI5ijPny7xK4dwWsD56h4gO5WjB52nrwuK9WvUAqgGj2AkqywRBgcs4ouzPFjlOii0aq44XhdilOpDJ5HsYjXYD41Haw5vgod9g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=5pLPxSfVxyKstenSeJF5S36kf0san/dvZM+lTJUj5kk=;
- b=kn1SRlyC5i2qMq14iJp3u48Sc+6YLSyptZNqh+j52LiRAD4GE2LcttsO6tAENFsPKuzk0Ce08wCzR+lQG8YmiaOgDnuauDBR2FvBbWexvMMmaZ1Gtgall4dYhQ8nFYVBMV+c4a2xbe0iKblpnv5Lbi5/H/pOGmdYGjmGP1p+wxaosjR71LV5GqWcVa04uuscYArmjbbs+qiZZIVeTb6tTvgvlzG5R23qxAzaJ8iflf+0CtE45WIcD0krL0IkSbT/GPMV9C2DEQxNKh8rwrnxfyMJIVACZCMqqIyLV0YCRqAjFA2nxRbNB1uuBMsc2b+mBbGgrzbk6dvqLMZZkRVkOg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5pLPxSfVxyKstenSeJF5S36kf0san/dvZM+lTJUj5kk=;
- b=d5aihqu/jeH907HQhVDkAIsIAk1o2UUnZLfhRzqbZs24b2LPJu/0i/iO9RegZ/usVjNRK7F6zKl0TV7RkbNtwNk5jSLgf7v7g1ni6mo16f9Ema6DtSWAvvMnjH5lMjvtoIAn4Dcxo3jB26XbdYBYv/P0T7VJlIaKMBVEZ26Hd3s=
-Received: from MWHPR1001MB2365.namprd10.prod.outlook.com
- (2603:10b6:301:2d::28) by CH0PR10MB4924.namprd10.prod.outlook.com
- (2603:10b6:610:ca::19) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.20; Fri, 8 Jul
- 2022 10:03:37 +0000
-Received: from MWHPR1001MB2365.namprd10.prod.outlook.com
- ([fe80::5020:9b82:5917:40b]) by MWHPR1001MB2365.namprd10.prod.outlook.com
- ([fe80::5020:9b82:5917:40b%6]) with mapi id 15.20.5417.016; Fri, 8 Jul 2022
- 10:03:37 +0000
-Date:   Fri, 8 Jul 2022 13:02:19 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Guenter Roeck <linux@roeck-us.net>
-Cc:     Greg KH <gregkh@linuxfoundation.org>,
-        kernel test robot <lkp@intel.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        virtualization@lists.linux-foundation.org,
-        usbb2k-api-dev@nongnu.org, tipc-discussion@lists.sourceforge.net,
-        target-devel@vger.kernel.org, sound-open-firmware@alsa-project.org,
-        samba-technical@lists.samba.org, rds-devel@oss.oracle.com,
-        patches@opensource.cirrus.com, osmocom-net-gprs@lists.osmocom.org,
-        openipmi-developer@lists.sourceforge.net, nvdimm@lists.linux.dev,
-        ntb@lists.linux.dev, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, mjpeg-users@lists.sourceforge.net,
-        megaraidlinux.pdl@broadcom.com, linuxppc-dev@lists.ozlabs.org,
-        linux1394-devel@lists.sourceforge.net, linux-x25@vger.kernel.org,
-        linux-wpan@vger.kernel.org, linux-wireless@vger.kernel.org,
-        linux-watchdog@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-staging@lists.linux.dev, linux-serial@vger.kernel.org,
-        linux-sctp@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-rockchip@lists.infradead.org,
-        linux-renesas-soc@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-phy@lists.infradead.org, linux-perf-users@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-parport@lists.infradead.org,
-        linux-parisc@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-nfc@lists.01.org, linux-mtd@lists.infradead.org,
-        linux-mmc@vger.kernel.org, linux-mm@kvack.org,
-        linux-mediatek@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-integrity@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-ide@vger.kernel.org, linux-hwmon@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-fpga@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, linux-ext4@vger.kernel.org,
-        linux-efi@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-cxl@vger.kernel.org, linux-crypto@vger.kernel.org,
-        linux-clk@vger.kernel.org, linux-cifs@vger.kernel.org,
-        linux-btrfs@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-bcache@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-amlogic@lists.infradead.org, linaro-mm-sig@lists.linaro.org,
-        legousb-devel@lists.sourceforge.net, kvm@vger.kernel.org,
-        keyrings@vger.kernel.org, isdn4linux@listserv.isdn4linux.de,
-        iommu@lists.linux.dev, iommu@lists.linux-foundation.org,
-        intel-wired-lan@lists.osuosl.org, greybus-dev@lists.linaro.org,
-        dri-devel@lists.freedesktop.org, dm-devel@redhat.com,
-        devicetree@vger.kernel.org, dev@openvswitch.org,
-        dccp@vger.kernel.org, damon@lists.linux.dev,
-        coreteam@netfilter.org, cgroups@vger.kernel.org,
-        ceph-devel@vger.kernel.org, ath11k@lists.infradead.org,
-        apparmor@lists.ubuntu.com, amd-gfx@lists.freedesktop.org,
-        alsa-devel@alsa-project.org,
-        accessrunner-general@lists.sourceforge.net
-Subject: Re: [linux-next:master] BUILD REGRESSION
- 088b9c375534d905a4d337c78db3b3bfbb52c4a0
-Message-ID: <20220708100219.GJ2338@kadam>
-References: <62c683a2.g1VSVt6BrQC6ZzOz%lkp@intel.com>
- <YsaUgfPbOg7WuBuB@kroah.com>
- <20220707140258.GA3492673@roeck-us.net>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220707140258.GA3492673@roeck-us.net>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-ClientProxiedBy: JNAP275CA0050.ZAFP275.PROD.OUTLOOK.COM (2603:1086:0:4e::10)
- To MWHPR1001MB2365.namprd10.prod.outlook.com (2603:10b6:301:2d::28)
+        with ESMTP id S229469AbiGJGwX (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 10 Jul 2022 02:52:23 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48B4BEE22
+        for <linux-omap@vger.kernel.org>; Sat,  9 Jul 2022 23:52:22 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EDEC5B807EC
+        for <linux-omap@vger.kernel.org>; Sun, 10 Jul 2022 06:52:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06478C3411E;
+        Sun, 10 Jul 2022 06:52:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1657435939;
+        bh=7TBmHOFj8aLotQi+NQ2mw6iyHWksq0Lkb+HTF1hlO88=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=EdzOQypJQHXW2vpCwso3zkv6h5BbkEJjestrioYypczh6TVT10RRFVGgLWF1Dtfqr
+         2cTEZk3yKT/kykwejgBnUBFW/rydJVVWVQn0aJ4LMmA/2R9kBB2sM4tC50KSNLNA1r
+         XAZn0ycUf8KjRBKoPe0+u1VlVTR+aB+sMRgtqlhzr9EFFEdoS9qJpWVx/gGXglqeGx
+         BDRp4+Fszx9scmBrhGk/6M/PtOIHKOS8Y3HWjZZJAHOPTBT7lRVbZuTSEoojSMAy3D
+         8UwFsOpTQUYO4r0fr2qWdCE/b64wcEIGA3B9o5iw0T6/aNU22qKicEiovuDWjVaU1y
+         xMSqEp03Z33Nw==
+Message-ID: <3f04c503-7f48-3c39-083a-aec076706deb@kernel.org>
+Date:   Sun, 10 Jul 2022 12:22:13 +0530
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 60888dca-74ab-415d-c312-08da60c91fbd
-X-MS-TrafficTypeDiagnostic: CH0PR10MB4924:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: QpeUnUA80G+bljAIjcJUjdGQmN5uY1eFjfrdzbA17ZIS3uabFZv6Hj1kGve2Lkd6ukSIrwiau9r0ovgbwx+dZEkKmEv6+vXYk4KZAt/MIhaL91UGE+paD/7pDhxzw4BYYVzzpcTlpWSU2EifziKfjy7zSFc7TnpneOwuqT8aeevBVsak78DiURzZSmtUYh/Qt36gA5/ksmagoLtxfOrwnwiX4glTSsn8t5yf7q4IzdByoZMhq0/OHP2LZ5gMTFtZ6UHjHdMMXGvblMy4nwFFyDxr86OS56TwXu8Un5G4D4DsBq8RB57WhWGKUtSyUbZZbVRFVkXmco1NenhtSk86OVpxyYHEtK55FxQsoFvpcV9t5yQLp1tE1ssb1OlZae0sqORl49xAPisMT7jN1cFGRywkbs4jxpVhNo8QYdWoQ3VACsB1KUJ93fDES9dLhmgaIFwDWA8dmP2LXuL1Pd+DFJJTLkU2NgkpHh5jR/cu2c2jTU6PpCMhJIrwzdDt8sfkR6UcBI76NJL0PW+PVyYni0a7Pe3rbeU1PW70RjKKv2/VmnwT8TE08KBGeDQFp1AHEmMbpH2SgzlQWxMvwgGWtM/6/xUqkCQd/CwrTTQo63A1MOH6B7syzqHOaHclI2HJeLiaHI3iu+zlJxnG2+klM626OprekeiAtpkpRWukWRhFT8PONEEVRTQsT2XM6vCyFIqckzuC+ioRgs4tOx6NIenPb/oTrABzGoY+mHsNaR1Q2HerdVNbOlkOvYEcJhoSs2/qCEmiEqL11HGPPZoOhtWl90u/pVoJWO8OqO1Cy/1JYLe4uJbmE6i1YFG6PeLI
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1001MB2365.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(7916004)(376002)(346002)(136003)(39860400002)(396003)(366004)(33716001)(33656002)(478600001)(41300700001)(44832011)(52116002)(6486002)(38100700002)(6506007)(316002)(54906003)(6666004)(4744005)(38350700002)(6916009)(2906002)(86362001)(66556008)(6512007)(66946007)(8676002)(7336002)(7366002)(7416002)(7406005)(26005)(9686003)(5660300002)(66476007)(186003)(4326008)(1076003)(83380400001)(8936002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?uG7EisZU53uo3Eyn1rAkH1Zp7prdDVjLvtewrji3nHaInhwwPqKJd8IS9Ml6?=
- =?us-ascii?Q?cCMDRE9xZtRy2ixvN9HtQCxQ6wyVdCMjht4JEfcGvVBGnhiqaHo4dtqdZQNj?=
- =?us-ascii?Q?TGMY5D1FDrgRGu1ZqSXbxw6awVGysMa0+MX66gOjQV085NsMve2O4eyl5F5y?=
- =?us-ascii?Q?1R/1hXNMky/piEnyu/AV2u9cPc8QXEEh5K/YB5xHM0lnOA68c0zycKWASuhL?=
- =?us-ascii?Q?Kla+gf2FV2JSVMUu/Ri/D4jFuSeza/bxZHWLcnm2ZsVWcrf0/LgByhqRjtSp?=
- =?us-ascii?Q?is7aqVU5aytLlmIcj33/i5SfhSOL6wtmqbxmSOEOtAVcsEJtIXON2a0hsur6?=
- =?us-ascii?Q?hsWV1BvYk4AATAbHUOntCKDw5fmW1Zb7JOZVwY9IVuxyRJroXe+t96bJLXrI?=
- =?us-ascii?Q?MssjNzxXj4Jypus/6TmDDUIrYr/PohLpQ7G33Mmk20Wl8iVHL8gXU0umskty?=
- =?us-ascii?Q?O4Hi9SohVBBFpOOh6t4TgJ/w2hGioWQ3sldG+lmRcJwb3j0MzuvquWbIKe1R?=
- =?us-ascii?Q?gnxXwQFlT03ge3rnLtt4I5eXee2ZugYaT8hbKKltmH00UW2rot4ogdsXX2iI?=
- =?us-ascii?Q?DNsESB9w2oxovD/ZQf1hpR0G4CNtCUS0CYB5QKnSBDpXPeXkQpoHeFzSSfjR?=
- =?us-ascii?Q?wLuWIMCwND+t3ovztoAdWN/UQtE5mMC0kkUBUToTTjIvLciDMD0PSNB6BJUe?=
- =?us-ascii?Q?w0PR0q9LRd1D/jkiavRKpLKgXzeczspq+Psu7R01u1srIE/QHzUUjYVl5f9a?=
- =?us-ascii?Q?L02x85oqudSEWTubWsX6ss1WfTqA+8NqL5ENwQjoi9UEoTolcwA7e2XUcwAO?=
- =?us-ascii?Q?ic9ZTDSAl8/AsX+2l6+qsgzLGODxDFe3K1ko9b4kwkQxpr9NU9z8O/MWDlAK?=
- =?us-ascii?Q?Dnlvq31Zf740z3fuyX3wN9p5/ha59mVpxZF+xjtVxT7DoDfkostGyBOBfUce?=
- =?us-ascii?Q?e6fdpEx92+LmFi1lzmVO4Ia+ECDiem6tXYEmQXIyfxx3Lw0RUCChVAujKWLo?=
- =?us-ascii?Q?oUy4+s0iF6iSny0nF8zOLNHqJzxvFEexDubf1ILb/3btBYa9NgUS5BOaIoA9?=
- =?us-ascii?Q?WqJ1H2aDG9Kic8ymHAc4FFqNBtuTucRoBG6Ms8LMqLNF0Vza4OaikcRksmX4?=
- =?us-ascii?Q?rgBMlDqx5pO3KFCTenU+qbHOBovKp6H6HnXn/7m/aF3l+ZqmdwuG77shGwxJ?=
- =?us-ascii?Q?u+KGV063dyQ+dCgsyvudHwbxefjBFDbkHK/Ybw0NmKX2mYGuv7jbzKnp7JDc?=
- =?us-ascii?Q?AF5HmXDQhKXZbO2HxUKsXY8vRrxFZhmbIJJMirc8HFwPS3gAzjzb+szX+vF7?=
- =?us-ascii?Q?xOUKc56091EkjOl6fcqQEf5AMF6UjW4HOZCLHO1S/4o81dPO+oVZQykyHGNa?=
- =?us-ascii?Q?fevSECWId0k6CwanCU7579YdUXJJMBRkComEJNrTAoR4lhftqLiI0U3rDdrj?=
- =?us-ascii?Q?Del01xUlm7N66LbqNEPYOHt8Vj9P+Nd4ahXQKeqyeKRQ+d5V2/xM7j6eGiim?=
- =?us-ascii?Q?CELTFADnEsTdWjQiE8bsPhByqbhH87XWEemEF1ulwsM6DII28FAYU+uBiySC?=
- =?us-ascii?Q?89eQCwECLDAfd9gxbLFLH7xJjKAclbo03RJxaMbLiExaPJ39HgBBQBjVroGH?=
- =?us-ascii?Q?Pw=3D=3D?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 60888dca-74ab-415d-c312-08da60c91fbd
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1001MB2365.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Jul 2022 10:03:37.5131
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Xmfxxd2ImvCkN86fhSrHry1xr1wVpvkQCd/kvXC28R2/OhB8G8NrxAgoSiTGxSTnG4h/h/BFA9rqzl+lMJyKXtKr24bFre3OPhNr8wLciI8=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH0PR10MB4924
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.517,18.0.883
- definitions=2022-07-08_08:2022-06-28,2022-07-08 signatures=0
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 bulkscore=0 malwarescore=0
- mlxscore=0 spamscore=0 suspectscore=0 adultscore=0 mlxlogscore=999
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2206140000
- definitions=main-2207080036
-X-Proofpoint-GUID: icb9VT_VTJOlnrB-CrUswsRECbryCeZq
-X-Proofpoint-ORIG-GUID: icb9VT_VTJOlnrB-CrUswsRECbryCeZq
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.9.1
+Subject: Re: raw/omap2: erasing issue
+Content-Language: en-US
+To:     Yegor Yefremov <yegorslists@googlemail.com>
+Cc:     linux-mtd@lists.infradead.org,
+        Linux-OMAP <linux-omap@vger.kernel.org>,
+        miquel.raynal@bootlin.com
+References: <CAGm1_ktXBp-sz3Dud_G0iqOG=vA=Xp-bj-icwNLVgq-AMqKO7A@mail.gmail.com>
+ <72686231-c372-a4fe-347e-39470790fa65@kernel.org>
+ <CAGm1_kvRuWY7t2d_BtuSLGEL1u4njRqha=D0f7eN9F5XG8GrLQ@mail.gmail.com>
+ <CAGm1_kuucv71AdPkSW8Eog2T9rZRA3uiL4+ok-aWCVsj-z2eew@mail.gmail.com>
+ <5a36197d-7ed5-c06a-0a7e-73b808526dcd@kernel.org>
+ <feff53c6-a38c-1592-b3ef-1ff236da17f9@kernel.org>
+ <CAGm1_kvQ-NA4topLTu2hrQqx6picci8d+AeMVBtw44nJ7mYVow@mail.gmail.com>
+ <25109f4c-110f-b534-1c5a-c571b5c70333@kernel.org>
+ <CAGm1_ku0pGqfi8a++jNYeYNk1Hv9QgxsjKqOtetk8QzrTcFtPg@mail.gmail.com>
+ <981dfc27-cbe5-9672-3647-397e6416578b@kernel.org>
+ <CAGm1_kuXTuhoB1-K=_bFLBicWi5PWuejwO0yhPC6E41RZxe10w@mail.gmail.com>
+ <CAGm1_kuDRuxWGW3rZgaNMNiTm-rUuWe=-5pD0BqRJZBTYtW=EA@mail.gmail.com>
+From:   Roger Quadros <rogerq@kernel.org>
+In-Reply-To: <CAGm1_kuDRuxWGW3rZgaNMNiTm-rUuWe=-5pD0BqRJZBTYtW=EA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, Jul 07, 2022 at 07:02:58AM -0700, Guenter Roeck wrote:
-> and the NULL
-> dereferences in the binder driver are at the very least suspicious.
+Hello Yegor,
 
-The NULL dereferences in binder are just nonsense Sparse annotations.
-They don't affect runtime.
+On 05/07/2022 17:46, Yegor Yefremov wrote:
+> Hi Roger,
+> 
+> On Mon, Jul 4, 2022 at 12:31 PM Yegor Yefremov
+> <yegorslists@googlemail.com> wrote:
+>>
+>> Hi Roger,
+>>
+>> On Mon, Jul 4, 2022 at 12:28 PM Roger Quadros <rogerq@kernel.org> wrote:
+>>>
+>>> Hello Yegor,
+>>>
+>>> On 04/07/2022 14:28, Yegor Yefremov wrote:
+>>>> Hi Roger,
+>>>>
+>>>> On Thu, Jun 30, 2022 at 1:22 PM Roger Quadros <rogerq@kernel.org> wrote:
+>>>>>
+>>>>> Hi Yegor,
+>>>>>llo 
+>>>>> On 29/06/2022 17:23, Yegor Yefremov wrote:
+>>>>>> Hi Roger,
+>>>>>>
+>>>>>> On Wed, Jun 29, 2022 at 3:44 PM Roger Quadros <rogerq@kernel.org> wrote:
+>>>>>>>
+>>>>>>> Hi Yegor,
+>>>>>>>
+>>>>>>> On 29/06/2022 14:33, Roger Quadros wrote:
+>>>>>>>> Hi Yegor,
+>>>>>>>>
+>>>>>>>> On 28/06/2022 14:59, Yegor Yefremov wrote:
+>>>>>>>>> On Tue, Jun 28, 2022 at 1:57 PM Yegor Yefremov
+>>>>>>>>> <yegorslists@googlemail.com> wrote:
+>>>>>>>>>>
+>>>>>>>>>> Hi Roger,
+>>>>>>>>>>
+>>>>>>>>>> On Tue, Jun 28, 2022 at 1:44 PM Roger Quadros <rogerq@kernel.org> wrote:
+>>>>>>>>>>>
+>>>>>>>>>>> Hi Yegor,
+>>>>>>>>>>>
+>>>>>>>>>>> On 28/06/2022 13:48, Yegor Yefremov wrote:
+>>>>>>>>>>>> Since linux 5.17 I get the following issue when doing ubiformat:
+>>>>>>>>>>>>
+>>>>>>>>>>>> # ubiformat -y /dev/mtd5
+>>>>>>>>>>>> ubiformat: mtd5 (nand), size 265945088 bytes (253.6 MiB), 2029
+>>>>>>>>>>>> eraseblocks of 131072 bytes (128.0 KiB), min. I/O size 2048 bytes
+>>>>>>>>>>>> libscan: scanning eraseblock 1097 -- 54 % complete  eth1 timed out to bring up
+>>>>>>>>>>>> libscan: scanning eraseblock 2028 -- 100 % complete
+>>>>>>>>>>>> ubiformat: 2001 eraseblocks have valid erase counter, mean value is 9
+>>>>>>>>>>>> ubiformat: 2 eraseblocks are supposedly empty
+>>>>>>>>>>>> ubiformat: 26 bad eraseblocks found, numbers: 3, 4, 5, 6, 8, 9, 10,
+>>>>>>>>>>>> 11, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25, 26, 27, 29, 30,
+>>>>>>>>>>>> 31, 32
+>>>>>>>>>>>
+>>>>>>>>>>> I'm guessing these bad blocks recently added due to the offending patch?
+>>>>>>>>>>
+>>>>>>>>>> Yes.
+>>>>>>>>>>
+>>>>>>>>>>>> ubiformat: formatting eras[   33.644323] nand: nand_erase_nand:
+>>>>>>>>>>>> attempt to erase a bad block at page 0x00000d40
+>>>>>>>>>>>> ubiformat: formatting eraseblock 28[   33.658809] nand:
+>>>>>>>>>>>> nand_erase_nand: attempt to erase a bad block at page 0x00000d80
+>>>>>>>>>>>> ubiformat: formatting eraseblock 29 --  1 % [   33.674531] nand:
+>>>>>>>>>>>> nand_erase_nand: attempt to erase a bad block at page 0x00000dc0
+>>>>>>>>>>>> ubiformat: formatting eraseblock 30 --  1 % complete [   33.684508]
+>>>>>>>>>>>> nand: nand_erase_nand: attempt to erase a bad block at page 0x00000e00
+>>>>>>>>>>>> ubiformat: formatting eraseblock 34 --  1 % complete  libmtd: error!:
+>>>>>>>>>>>> MEMERASE64 ioctl failed for eraseblock 34 (mtd5)
+>>>>>>>>>>>>         error 5 (Input/output error)
+>>>>>>>>>>>>
+>>>>>>>>>>>> ubiformat: error!: failed to erase eraseblock 34
+>>>>>>>>>>>>            error 5 (Input/output error)
+>>>>>>>>>>>> ubiformat: marking block 34 bad
+>>>>>>>>>>>> ubiformat: formatting eraseblock 35 --  1 % complete  libmtd: error!:
+>>>>>>>>>>>> MEMERASE64 ioctl failed for eraseblock 35 (mtd5)
+>>>>>>>>>>>>         error 5 (Input/output error)
+>>>>>>>>>>>>
+>>>>>>>>>>>> ubiformat: error!: failed to erase eraseblock 35
+>>>>>>>>>>>>            error 5 (Input/output error)
+>>>>>>>>>>>> ubiformat: marking block 35 bad
+>>>>>>>>>>>> ubiformat: formatting eraseblock 36 --  1 % complete  libmtd: error!:
+>>>>>>>>>>>> MEMERASE64 ioctl failed for eraseblock 36 (mtd5)
+>>>>>>>>>>>>         error 5 (Input/output error)
+>>>>>>>>>>>>
+>>>>>>>>>>>> ubiformat: error!: failed to erase eraseblock 36
+>>>>>>>>>>>>            error 5 (Input/output error)
+>>>>>>>>>>>> ubiformat: marking block 36 bad
+>>>>>>>>>>>> ubiformat: formatting eraseblock 37 --  1 % complete  libmtd: error!:
+>>>>>>>>>>>> MEMERASE64 ioctl failed for eraseblock 37 (mtd5)
+>>>>>>>>>>>>         error 5 (Input/output error)
+>>>>>>>>>>>>
+>>>>>>>>>>>> ubiformat: error!: failed to erase eraseblock 37
+>>>>>>>>>>>>            error 5 (Input/output error)
+>>>>>>>>>>>> ubiformat: marking block 37 bad
+>>>>>>>>>>>>
+>>>>>>>>>>>> ubiformat: error!: consecutive bad blocks exceed limit: 4, bad flash?
+>>>>>>>>>>>> # [   36.322563] vwl1271: disabling
+>>>>>>>>>>>>
+>>>>>>>>>>>> git bisect pointed to the following commit:
+>>>>>>>>>>>>
+>>>>>>>>>>>> a9e849efca4f9c7732ea4a81f13ec96208994b22 is the first bad commit
+>>>>>>>>>>>> commit a9e849efca4f9c7732ea4a81f13ec96208994b22
+>>>>>>>>>>>> Author: Roger Quadros <rogerq@kernel.org>
+>>>>>>>>>>>> Date:   Thu Dec 9 11:04:55 2021 +0200
+>>>>>>>>>>>>
+>>>>>>>>>>>>     mtd: rawnand: omap2: move to exec_op interface
+>>>>>>>>>>>>
+>>>>>>>>>>>>     Stop using legacy interface and move to the exec_op interface.
+>>>>>>>>>>>>
+>>>>>>>>>>>>     Signed-off-by: Roger Quadros <rogerq@kernel.org>
+>>>>>>>>>>>>     Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+>>>>>>>>>>>>     Link: https://lore.kernel.org/linux-mtd/20211209090458.24830-4-rogerq@kernel.org
+>>>>>>>>>>>>
+>>>>>>>>>>>> :040000 040000 2341051b8aa8e6b554b8a44d2934f76d1aa460c4
+>>>>>>>>>>>> c1727080ff16c403f4ad5ed840acc90127b632f8 M      drivers
+>>>>>>>>>>>>
+>>>>>>>>>>>> Info to my NAND flash:
+>>>>>>>>>>>>
+>>>>>>>>>>>> [    5.695760] nand: device found, Manufacturer ID: 0x2c, Chip ID: 0xda
+>>>>>>>>>>>> [    5.702193] nand: Micron MT29F2G08ABAEAWP
+>>>>>>>>>>>> [    5.706356] nand: 256 MiB, SLC, erase size: 128 KiB, page size:
+>>>>>>>>>>>> 2048, OOB size: 64
+>>>>>>>>>>>> [    5.714204] nand: using OMAP_ECC_BCH8_CODE_HW ECC scheme
+>>>>>>>>>>>> [    5.719673] 6 cmdlinepart partitions found on MTD device omap2-nand.0
+>>>>>>>>>>>> [    5.726232] Creating 6 MTD partitions on "omap2-nand.0":
+>>>>>>>>>>>> [    5.731594] 0x000000000000-0x000000020000 : "SPL"
+>>>>>>>>>>>> [    5.737788] mtdblock: MTD device 'SPL' is NAND, please consider
+>>>>>>>>>>>> using UBI block devices instead.
+>>>>>>>>>>>> [    5.750113] 0x000000020000-0x000000040000 : "SPL.backup1"
+>>>>>>>>>>>> [    5.756916] mtdblock: MTD device 'SPL.backup1' is NAND, please
+>>>>>>>>>>>> consider using UBI block devices instead.
+>>>>>>>>>>>> [    5.769870] 0x000000040000-0x000000060000 : "SPL.backup2"
+>>>>>>>>>>>> [    5.776695] mtdblock: MTD device 'SPL.backup2' is NAND, please
+>>>>>>>>>>>> consider using UBI block devices instead.
+>>>>>>>>>>>> [    5.789559] 0x000000060000-0x000000080000 : "SPL.backup3"
+>>>>>>>>>>>> [    5.796423] mtdblock: MTD device 'SPL.backup3' is NAND, please
+>>>>>>>>>>>> consider using UBI block devices instead.
+>>>>>>>>>>>> [    5.809341] 0x000000080000-0x000000260000 : "u-boot"
+>>>>>>>>>>>> [    5.816652] mtdblock: MTD device 'u-boot' is NAND, please consider
+>>>>>>>>>>>> using UBI block devices instead.
+>>>>>>>>>>>> [    5.829189] 0x000000260000-0x000010000000 : "UBI"
+>>>>>>>>>>>> [    5.971508] mtdblock: MTD device 'UBI' is NAND, please consider
+>>>>>>>>>>>> using UBI block devices instead.
+>>>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>> What platform are you on?
+>>>>>>>>>>> I do remember testing this on omap3-beagle but it does not use BCH8 ECC scheme.
+>>>>>>>>>>
+>>>>>>>>>> I am on am335x [1]
+>>>>>>>>>>
+>>>>>>>>>> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/am335x-baltos-ir5221.dts?h=v5.19-rc4
+>>>>>>>>>
+>>>>>>>>> NAND node definition [1]:
+>>>>>>>>>
+>>>>>>>>> &gpmc {
+>>>>>>>>> pinctrl-names = "default";
+>>>>>>>>> pinctrl-0 = <&nandflash_pins_s0>;
+>>>>>>>>> ranges = <0 0 0x08000000 0x10000000>; /* CS0: NAND */
+>>>>>>>>> status = "okay";
+>>>>>>>>>
+>>>>>>>>> nand@0,0 {
+>>>>>>>>> compatible = "ti,omap2-nand";
+>>>>>>>>> reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
+>>>>>>>>> interrupt-parent = <&gpmc>;
+>>>>>>>>> interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
+>>>>>>>>>     <1 IRQ_TYPE_NONE>; /* termcount */
+>>>>>>>>> rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
+>>>>>>>>> nand-bus-width = <8>;
+>>>>>>>>> ti,nand-ecc-opt = "bch8";
+>>>>>>>>> ti,nand-xfer-type = "polled";
+>>>>>>>>
+>>>>>>>> Could you please change this to "prefetch-polled" and see if it fixes the issue?
+>>>>>>>>
+>>>>>>>
+>>>>>>> I tried to set ti,nand-xfer-type to "polled" on beagle-c4 board and could not reproduce the issue
+>>>>>>> I will need your help please to debug this issue.
+>>>>>>>
+>>>>>>> Could you please apply the below patch on top of commit a9e849efca4f9c7732ea4a81f13ec96208994b22
+>>>>>>> and send me the full kernel log and output of ubiformat command?
+>>>>>>
+>>>>>> I'll post the data later.
+>>>>>>
+>>>>>> The test with the "prefetch-polled" setting looks promising:
+>>>>>>
+>>>>>> 1. ubiformat runs without issues
+>>>>>> 2. I can boot from NAND after "cat MLO > /dev/mtdblock0", etc.
+>>>>>> 3. the kernel can mount UBIFS as rootfs
+>>>>>>
+>>>>>> The only issue I have for now, is that barebox fails to correctly
+>>>>>> mount the first partition (the second with UBIFS rootfs - no problem).
+>>>>>> This is how I write to NAND:
+>>>>>>
+>>>>>> ubiformat -y /dev/mtd5
+>>>>>> ubiattach -p /dev/mtd5
+>>>>>> ubimkvol /dev/ubi0 -N kernel -s 56MiB
+>>>>>> mount -t ubifs ubi0:kernel /mnt
+>>>>>> cp kernel-fit.itb /mnt
+>>>>>> umount /mnt
+>>>>>> ubimkvol /dev/ubi0 -N rootfs -s 180MiB
+>>>>>> ubiupdatevol /dev/ubi0_1 rootfs.ubifs
+>>>>>>
+>>>>>> barebox log:
+>>>>>>
+>>>>>> Booting from NAND
+>>>>>> ubi0: scanning is finished
+>>>>>> ubi0: registering /dev/nand0.UBI.ubi
+>>>>>> ubi0: registering kernel as /dev/nand0.UBI.ubi.kernel
+>>>>>> ubi0: registering rootfs as /dev/nand0.UBI.ubi.rootfs
+>>>>>> ubi0: attached mtd0 (name "nand0.UBI", size 253 MiB) to ubi0
+>>>>>> ubi0: PEB size: 131072 bytes (128 KiB), LEB size: 129024 bytes
+>>>>>> ubi0: min./max. I/O unit sizes: 2048/2048, sub-page size 512
+>>>>>> ubi0: VID header offset: 512 (aligned 512), data offset: 2048
+>>>>>> ubi0: good PEBs: 1999, bad PEBs: 30, corrupted PEBs: 0
+>>>>>
+>>>>> Note that we now have 30 bad PEBs. I suppose these are not
+>>>>> really bad and we need to somehow clear bad block status for these.
+>>>>
+>>>> Do you mean using u-boot's "nand scrab"? So far, I didn't found any
+>>>> other option. There are numerous threads both mtd and barebox mailing
+>>>> lists but no implementation.
+>>>>
+>>>> Unfortunately, I don't have the initial BBT info. So let's hope the
+>>>> system can handle this.
+>>>
+>>>
+>>> "nand scrub" will mark all sectors not-bad so doesn't look like the best option.
+>>> I was wondering if there is a better way to selectively mark individual sectors not bad.
+>>
+>> Haven't found anything suitable so far.
+>>
+>>>>
+>>>> Btw, I have applied your debug patch and executed a ubiformat command
+>>>> but the debug messages weren't triggered.
+>>>
+>>> That is because you no longer see errors during nand erase. Did you try
+>>> going back to ti,nand-xfer-type = "polled" ?
+>>
+>> I have applied the patch to a9e849efca4f9c7732ea4a81f13ec96208994b22
+>> and at that time our DTS still has xfer type as "polled" and ubiformat
+>> command failed as expected.
+> 
+> I think the issue is solved. The bootloader was actually complaining
+> about the missing zstd support. I could see this with the latest
+> barebox version (2022.06).
+> 
+> I've also switched to "ti,nand-xfer-type = "prefetch-dma";" as other DTS do.
 
-drivers/android/binder.c:1481:19-23: ERROR: from is NULL but dereferenced.
-drivers/android/binder.c:2920:29-33: ERROR: target_thread is NULL but dereferenced.
-drivers/android/binder.c:353:25-35: ERROR: node -> proc is NULL but dereferenced.
-drivers/android/binder.c:4888:16-20: ERROR: t is NULL but dereferenced.
+Just to conclude,
+1) Barebox issue was barebox configuration related.
+2) NAND erase issue was fixed by switching to "prefetch-dma" or "prefetch-polled"
 
-regards,
-dan carpenter
+Does the issue still happen with "polled"? If yes it might be due to too less
+GPMC timing value for Read/Busy signalling.
 
+Can you please send a patch with the fix? Thanks!
+
+> 
+> Thanks for your help.
+> 
+> Yegor
+
+cheers,
+-roger
