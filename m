@@ -2,155 +2,406 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14063C433EF
-	for <linux-omap@archiver.kernel.org>; Wed, 13 Jul 2022 10:54:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED0E0C43334
+	for <linux-omap@archiver.kernel.org>; Thu, 14 Jul 2022 06:45:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235383AbiGMKyo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 13 Jul 2022 06:54:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47434 "EHLO
+        id S231311AbiGNGp0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 14 Jul 2022 02:45:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235406AbiGMKyn (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 13 Jul 2022 06:54:43 -0400
-Received: from mail-il1-x12b.google.com (mail-il1-x12b.google.com [IPv6:2607:f8b0:4864:20::12b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACAD4FF588
-        for <linux-omap@vger.kernel.org>; Wed, 13 Jul 2022 03:54:41 -0700 (PDT)
-Received: by mail-il1-x12b.google.com with SMTP id h16so6443411ila.2
-        for <linux-omap@vger.kernel.org>; Wed, 13 Jul 2022 03:54:41 -0700 (PDT)
+        with ESMTP id S229455AbiGNGpZ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 14 Jul 2022 02:45:25 -0400
+Received: from mail-yb1-xb31.google.com (mail-yb1-xb31.google.com [IPv6:2607:f8b0:4864:20::b31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A65622515
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jul 2022 23:45:24 -0700 (PDT)
+Received: by mail-yb1-xb31.google.com with SMTP id i206so1659436ybc.5
+        for <linux-omap@vger.kernel.org>; Wed, 13 Jul 2022 23:45:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
+        d=googlemail.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=24vatrNQy4mAwOD26diK3DSgxu+qePazInIA4QqKNZk=;
-        b=jfPZqHtoZbCOAxAg1WVYPBaHFTGcLSOGYzT+uhgLdeaz/mz+HHbRWMu5ugQaM3N1/b
-         6WPI8XXLnORiaMuhQNWtbu+lIjiHz1915u6o+Quvz8WBxsOHGMRWVgE3i2Dcj8faF/Kh
-         L0M21NTtlwbhswZlUuy/Xvje11Bc75+yhKHVTPGIuRzMh+IYHyNarfx9yw39ojFTIpq/
-         57RC1cGLmEwFCmo0uFjJiKnHK4CbItqPrfDrPaX5T7q6E2DlG2Ca/fZhzwj3HFJ8lZJO
-         cw1I8PUdk8FlDtecDxAIX5dNiFJliz7AeqlrFu7oswhzOrNgXDrS+ciVlsAlVfhsYr/r
-         U9Mw==
+        bh=sa394u24lXvY23y95+1G8hmxWS5GPwHAwvbyINalFkY=;
+        b=Vd0H0VyK7uwZhLxOrobcO6JXHUV22/ypqiaXzdxidhMVI8iFAUoyuCMmpQXvncy5cq
+         SsUDv7nXvkwXO/0szKZWPL0rcW0YVmHqTb33HBU97nAnuCZH0iL4d42f0rmVzUt3AbwK
+         ZPffgswahBcC3X+vE6elRUAkVBdHWiZwqZ0qv5HQOYGyC1Ed04fbAOUXD4P/uGmA/ATs
+         ckoRp2UCO5mqt0SUZMARSXWUi7FU+sTS1QOPuwgyp4KWDmcP+XQjCrfkEyZbOiph+LZF
+         1I3k3ad7vcRa2VXkM7gVk+S6ydXBab80mpRIOe9i2di+l+h+RYXCYOPMQv03vLk/TbJ+
+         iInQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=24vatrNQy4mAwOD26diK3DSgxu+qePazInIA4QqKNZk=;
-        b=jdAj1TLojS25ePCn5hjFvrg6z/gj6Zsm/ePXsxEt6crNmuA4hqhifs7SJtsvRDuW0j
-         uj4i0YtvF4gMq24dRbUfNmPWf6iE5FPW8aGIVmdjUUGjUcTuYB/c8rlfvvTwBQoiOTjc
-         7pCjQokFXkj48Zb8OZRceZkwTqCJ8aTI0vTh2Ak63c94IIPj+0zNmPAQzZXcgCbweif8
-         fGHxfU+wTXGdfowe8FK5UsYl7guSueClSnHeS/lfLDtvQBFpBEaZZdPwLX4mPbmuwSfo
-         xWw18GPuFgzgwSiv0L8Yf+ODY4ySFprhdF4cuVDrnYXzMF4V65pzVeW4iCS3D0lO9MyO
-         5LpA==
-X-Gm-Message-State: AJIora9HZ6Zw5OdqP6B0+tMdhZEYns3gOEiYk1xIHWU6Hag+kj8Dv37+
-        3sFiW8Ee1NUZ+n8mOy6QGQtqsxWzgNDsKYc4bcKeZZJ13DQ=
-X-Google-Smtp-Source: AGRyM1v1QI/iq6qY76yqPD/R27P3k4+BLtKUnZOAwoRG74WvRGL2i+kIVVkgi1EoGXhAzXt3jqv8++rgnPFnESaU8Ls=
-X-Received: by 2002:a05:6e02:10d1:b0:2dc:2443:f651 with SMTP id
- s17-20020a056e0210d100b002dc2443f651mr1492776ilj.172.1657709680990; Wed, 13
- Jul 2022 03:54:40 -0700 (PDT)
+        bh=sa394u24lXvY23y95+1G8hmxWS5GPwHAwvbyINalFkY=;
+        b=y6pERjbRXLVHWXgweSCu/kW7Sbl88vhiyOXFJDZwI/O1V29HkjkKnk46mT/5mNdP3k
+         ILbRFAFFuFgZ0SUQjp+a3lTxNLHOT5FbZaCYfv0JesXprdPgHouzmjzsFV3hBSgaim7b
+         V6/3rsZQswO7tpheKUBdr043REJXiQ+9Q8lJMwDXc2AGLd29vLuSXBLCA+3poEq1Pioq
+         o2jdQT7qaHJjsb+hUrG6tj0Sm4X9oYSPQBoVlOFlp4jJ1MVK414Wp2HZotWqgcH+lfa2
+         ROcREyKT1S+Rfj1y8n5WCoGcowLk6be9DC4m9Ck8Ghr/JJqTxsgxfYBgSlc/WDZZC8Nx
+         8oPQ==
+X-Gm-Message-State: AJIora+x5gMKCGTr/Vrbt/pTPPGDVMWRqhbfvH6EIw3u1O4/HSnWnhzZ
+        04UuiPR2K4ADuGbl1T7YYdrJKa82oIj2RhrA0vZgHF5X
+X-Google-Smtp-Source: AGRyM1stkUyZIiTsZjYFPSzBORJFE9kAdeeJx2LHrWMQQPhdp3yn6fO3HPL3S+WV3atoykYKcj3+OVPTvDxpCoMwoVQ=
+X-Received: by 2002:a25:71c4:0:b0:66f:95ff:b30 with SMTP id
+ m187-20020a2571c4000000b0066f95ff0b30mr6785852ybc.63.1657781123440; Wed, 13
+ Jul 2022 23:45:23 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220622051215.34063-1-tony@atomide.com> <CAPDyKFpNBQK3QZk-+5-4YB8=2O3sxwj5-nThd00ayp7FHSjUSA@mail.gmail.com>
- <YrlKjZHJ37PHy9af@atomide.com> <CAPDyKFqxSuuMtmfqwSojPqfHhv4RDLtRQf+JbOGZJkxVhDDAtQ@mail.gmail.com>
- <Ys1msXeqPipP7J5g@atomide.com>
-In-Reply-To: <Ys1msXeqPipP7J5g@atomide.com>
-From:   Ulf Hansson <ulf.hansson@linaro.org>
-Date:   Wed, 13 Jul 2022 12:54:04 +0200
-Message-ID: <CAPDyKFrT4hR_HYAsA77ea6j7YMvZ4941aXpN28r_GgF5VLMoEw@mail.gmail.com>
-Subject: Re: [PATCH v2 1/1] mmc: sdhci-omap: Fix a lockdep warning for PM
- runtime init
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Adrian Hunter <adrian.hunter@intel.com>,
-        Chunyan Zhang <zhang.chunyan@linaro.org>,
-        Faiz Abbas <faiz_abbas@ti.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org,
-        Yegor Yefremov <yegorslists@googlemail.com>,
-        Arnd Bergmann <arnd@arndb.de>
+References: <20220712071647.21551-1-yegorslists@googlemail.com>
+In-Reply-To: <20220712071647.21551-1-yegorslists@googlemail.com>
+From:   Yegor Yefremov <yegorslists@googlemail.com>
+Date:   Thu, 14 Jul 2022 08:45:12 +0200
+Message-ID: <CAGm1_ksVSB-9EeY-JxvY2VeYqPM+5YtGOTcu6aHWE7rN7CUvYQ@mail.gmail.com>
+Subject: Re: [PATCH] ARM: dts: am335x-baltos: add GPIO names for ir3220 and
+ ir5221 devices
+To:     Linux-OMAP <linux-omap@vger.kernel.org>
+Cc:     Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, 12 Jul 2022 at 14:18, Tony Lindgren <tony@atomide.com> wrote:
->
-> * Ulf Hansson <ulf.hansson@linaro.org> [220712 09:52]:
-> > On Mon, 27 Jun 2022 at 08:13, Tony Lindgren <tony@atomide.com> wrote:
-> > >
-> > > * Ulf Hansson <ulf.hansson@linaro.org> [220623 12:55]:
-> > > > On Wed, 22 Jun 2022 at 07:12, Tony Lindgren <tony@atomide.com> wrote:
-> > > > >
-> > > > > We need runtime PM enabled early in probe before sdhci_setup_host() for
-> > > > > sdhci_omap_set_capabilities(). But on the first runtime resume we must
-> > > > > not call sdhci_runtime_resume_host() as sdhci_setup_host() has not been
-> > > > > called yet. Let's check for an initialized controller like we already do
-> > > > > for context restore to fix a lockdep warning.
-> > > >
-> > > > Thanks for explaining the background to the problem. However, looking
-> > > > a bit closer I am worried that the error path in ->probe() is broken
-> > > > too.
-> > > >
-> > > > It seems in the error path, at the label "err_rpm_put", there is a
-> > > > call to pm_runtime_put_autosuspend(). This doesn't really guarantee
-> > > > that the ->runtime_suspend() callback will be invoked, which I guess
-> > > > is the assumption, don't you think?
-> > >
-> > > OK I'll check and send a separate patch for that.
-> > >
-> > > > That said, I wonder if it would not be easier to convert the ->probe()
-> > > > function to make use of pm_runtime_get_noresume() and
-> > > > pm_runtime_set_active() instead. In this way the ->probe() function
-> > > > becomes responsible of turning on/off the resources "manually" that it
-> > > > requires to probe (and when it fails to probe), while we can keep the
-> > > > ->runtime_suspend|resume() callbacks simpler.
-> > > >
-> > > > Did that make sense to you?
-> > >
-> > > Simpler would be better :) We need to call pm_runtime_get_sync() at some
-> > > point though to enable the parent device hierarchy.
-> >
-> > Is there a parent device that has runtime PM enabled?
->
-> Yes there is the interconnect target module device as the parent with
-> runtime PM enabled. So the sdhci-omap driver needs the parent enabled.
+Hi Tony,
 
-I see, thanks for clarifying!
+On Tue, Jul 12, 2022 at 9:16 AM <yegorslists@googlemail.com> wrote:
+>
+> From: Yegor Yefremov <yegorslists@googlemail.com>
+>
+> Add GPIO names for both SoC and TCA6416 lines.
+>
+> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+> ---
+>  arch/arm/boot/dts/am335x-baltos-ir3220.dts | 148 +++++++++++++++++++++
+>  arch/arm/boot/dts/am335x-baltos-ir5221.dts | 148 +++++++++++++++++++++
+>  2 files changed, 296 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/am335x-baltos-ir3220.dts b/arch/arm/boot/dts/am335x-baltos-ir3220.dts
+> index 2123bd589484..ca31733f90b1 100644
+> --- a/arch/arm/boot/dts/am335x-baltos-ir3220.dts
+> +++ b/arch/arm/boot/dts/am335x-baltos-ir3220.dts
+> @@ -91,6 +91,10 @@
+>                 interrupts = <20 IRQ_TYPE_EDGE_RISING>;
+>                 pinctrl-names = "default";
+>                 pinctrl-0 = <&tca6416_pins>;
+> +               gpio-line-names = "GP_IN0", "GP_IN1", "GP_IN2", "GP_IN3",
+> +                                 "GP_OUT0", "GP_OUT1", "GP_OUT2", "GP_OUT3",
+> +                                 "ModeA0", "ModeA1", "ModeA2", "ModeA3",
+> +                                 "ModeB0", "ModeB1", "ModeB2", "ModeB3";
+>         };
+>  };
+>
+> @@ -123,3 +127,147 @@
+>         pinctrl-0 = <&mmc1_pins>;
+>         cd-gpios = <&gpio2 18 GPIO_ACTIVE_LOW>;
+>  };
+> +
+> +&gpio0 {
+> +       gpio-line-names =
+> +               "MDIO",
+> +               "MDC",
+> +               "UART2_RX",
+> +               "UART2_TX",
+> +               "I2C1_SDA",
+> +               "I2C1_SCL",
+> +               "WLAN_BTN",
+> +               "W_DISABLE",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "I2C2_SDA",
+> +               "I2C2_SCL",
+> +               "UART1_RX",
+> +               "UART1_TX",
+> +               "onrisc:blue:wlan",
+> +               "onrisc:green:app",
+> +               "USB0_DRVVBUS",
+> +               "ETH2_INT",
+> +               "TCA6416_INT",
+> +               "RMII1_TXD1",
+> +               "MMC1_DAT0",
+> +               "MMC1_DAT1",
+> +               "NC",
+> +               "NC",
+> +               "MMC1_DAT2",
+> +               "MMC1_DAT3",
+> +               "RMII1_TXD0",
+> +               "NC",
+> +               "GPMC_WAIT0",
+> +               "GPMC_WP_N";
+> +};
+> +
+> +&gpio1 {
+> +       gpio-line-names =
+> +               "GPMC_AD0",
+> +               "GPMC_AD1",
+> +               "GPMC_AD2",
+> +               "GPMC_AD3",
+> +               "GPMC_AD4",
+> +               "GPMC_AD5",
+> +               "GPMC_AD6",
+> +               "GPMC_AD7",
+> +               "NC",
+> +               "NC",
+> +               "CONSOLE_RX",
+> +               "CONSOLE_TX",
+> +               "UART2_DTR",
+> +               "UART2_DSR",
+> +               "UART2_DCD",
+> +               "UART2_RI",
+> +               "RGMII2_TCTL",
+> +               "RGMII2_RCTL",
+> +               "RGMII2_TD3",
+> +               "RGMII2_TD2",
+> +               "RGMII2_TD1",
+> +               "RGMII2_TD0",
+> +               "RGMII2_TCLK",
+> +               "RGMII2_RCLK",
+> +               "RGMII2_RD3",
+> +               "RGMII2_RD2",
+> +               "RGMII2_RD1",
+> +               "RGMII2_RD0",
+> +               "PMIC_INT1",
+> +               "GPMC_CSN0_Flash",
+> +               "MMC1_CLK",
+> +               "MMC1_CMD";
+> +};
+> +
+> +&gpio2 {
+> +       gpio-line-names =
+> +               "GPMC_CSN3_BUS",
+> +               "GPMC_CLK",
+> +               "GPMC_ADVN_ALE",
+> +               "GPMC_OEN_RE_N",
+> +               "GPMC_WE_N",
+> +               "GPMC_BEN0_CLE",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "SD_CD",
+> +               "SD_WP",
+> +               "RMII1_RXD1",
+> +               "RMII1_RXD0",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "MMC0_DAT3",
+> +               "MMC0_DAT2",
+> +               "MMC0_DAT1",
+> +               "MMC0_DAT0",
+> +               "MMC0_CLK",
+> +               "MMC0_CMD";
+> +};
+> +
+> +&gpio3 {
+> +       gpio-line-names =
+> +               "onrisc:red:power",
+> +               "RMII1_CRS_DV",
+> +               "RMII1_RXER",
+> +               "RMII1_TXEN",
+> +               "3G_PWR_EN",
+> +               "UART2_CTSN",
+> +               "UART2_RTSN",
+> +               "WLAN_IRQ",
+> +               "WLAN_EN",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "USB1_DRVVBUS",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC";
+> +};
+> diff --git a/arch/arm/boot/dts/am335x-baltos-ir5221.dts b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
+> index 2f3872dbf4f4..950a07fc5a70 100644
+> --- a/arch/arm/boot/dts/am335x-baltos-ir5221.dts
+> +++ b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
+> @@ -99,6 +99,10 @@
+>                 interrupts = <20 IRQ_TYPE_EDGE_RISING>;
+>                 pinctrl-names = "default";
+>                 pinctrl-0 = <&tca6416_pins>;
+> +               gpio-line-names = "GP_IN0", "GP_IN1", "GP_IN2", "GP_IN3",
+> +                                 "GP_OUT0", "GP_OUT1", "GP_OUT2", "GP_OUT3",
+> +                                 "ModeA0", "ModeA1", "ModeA2", "ModeA3",
+> +                                 "ModeB0", "ModeB1", "ModeB2", "ModeB3";
+>         };
+>  };
+>
+> @@ -147,3 +151,147 @@
+>         pinctrl-0 = <&mmc1_pins>;
+>         cd-gpios = <&gpio2 18 GPIO_ACTIVE_LOW>;
+>  };
+> +
+> +&gpio0 {
+> +       gpio-line-names =
+> +               "MDIO",
+> +               "MDC",
+> +               "UART2_RX",
+> +               "UART2_TX",
+> +               "I2C1_SDA",
+> +               "I2C1_SCL",
+> +               "WLAN_BTN",
+> +               "W_DISABLE",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "I2C2_SDA",
+> +               "I2C2_SCL",
+> +               "UART1_RX",
+> +               "UART1_TX",
+> +               "onrisc:blue:wlan",
+> +               "onrisc:green:app",
+> +               "USB0_DRVVBUS",
+> +               "ETH2_INT",
+> +               "TCA6416_INT",
+> +               "RMII1_TXD1",
+> +               "MMC1_DAT0",
+> +               "MMC1_DAT1",
+> +               "NC",
+> +               "NC",
+> +               "MMC1_DAT2",
+> +               "MMC1_DAT3",
+> +               "RMII1_TXD0",
+> +               "NC",
+> +               "GPMC_WAIT0",
+> +               "GPMC_WP_N";
+> +};
+> +
+> +&gpio1 {
+> +       gpio-line-names =
+> +               "GPMC_AD0",
+> +               "GPMC_AD1",
+> +               "GPMC_AD2",
+> +               "GPMC_AD3",
+> +               "GPMC_AD4",
+> +               "GPMC_AD5",
+> +               "GPMC_AD6",
+> +               "GPMC_AD7",
+> +               "DCAN1_TX",
+> +               "DCAN1_RX",
+> +               "CONSOLE_RX",
+> +               "CONSOLE_TX",
+> +               "UART2_DTR",
+> +               "UART2_DSR",
+> +               "UART2_DCD",
+> +               "UART2_RI",
+> +               "RGMII2_TCTL",
+> +               "RGMII2_RCTL",
+> +               "RGMII2_TD3",
+> +               "RGMII2_TD2",
+> +               "RGMII2_TD1",
+> +               "RGMII2_TD0",
+> +               "RGMII2_TCLK",
+> +               "RGMII2_RCLK",
+> +               "RGMII2_RD3",
+> +               "RGMII2_RD2",
+> +               "RGMII2_RD1",
+> +               "RGMII2_RD0",
+> +               "PMIC_INT1",
+> +               "GPMC_CSN0_Flash",
+> +               "MMC1_CLK",
+> +               "MMC1_CMD";
+> +};
+> +
+> +&gpio2 {
+> +       gpio-line-names =
+> +               "GPMC_CSN3_BUS",
+> +               "GPMC_CLK",
+> +               "GPMC_ADVN_ALE",
+> +               "GPMC_OEN_RE_N",
+> +               "GPMC_WE_N",
+> +               "GPMC_BEN0_CLE",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "SD_CD",
+> +               "SD_WP",
+> +               "RMII1_RXD1",
+> +               "RMII1_RXD0",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "MMC0_DAT3",
+> +               "MMC0_DAT2",
+> +               "MMC0_DAT1",
+> +               "MMC0_DAT0",
+> +               "MMC0_CLK",
+> +               "MMC0_CMD";
+> +};
+> +
+> +&gpio3 {
+> +       gpio-line-names =
+> +               "onrisc:red:power",
+> +               "RMII1_CRS_DV",
+> +               "RMII1_RXER",
+> +               "RMII1_TXEN",
+> +               "3G_PWR_EN",
+> +               "UART2_CTSN",
+> +               "UART2_RTSN",
+> +               "WLAN_IRQ",
+> +               "WLAN_EN",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "USB1_DRVVBUS",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC",
+> +               "NC";
+> +};
+> --
+> 2.17.0
 
->
-> > In other cases, it should be fine to use pm_runtime_set_active()
-> > during ->probe().
->
-> Yup, this can't be done here though AFAIK. Something needs to enable
-> runtime PM for the parent device to have the sdhci registers accessible.
->
-> > > Just calling the
-> > > sdhci_omap runtime functions is not enough. And we still need to check
-> > > for the valid context too. Also I'm not convinced that calling
-> > > pm_runtime_get_sync() on the parent device would do the right thing on
-> > > old omap3 devices without bigger changes..
-> >
-> > I certainly agree. The parent should not be managed directly by the
-> > sdhci driver.
->
-> OK
->
-> > One thing that can be discussed though, is whether
-> > pm_runtime_set_active() actually should runtime resume the parent,
-> > which would make the behaviour consistent with how suppliers are being
-> > treated.
->
-> Hmm yeah that's an interesting idea.
->
-> > > But maybe you have some better
-> > > ideas that I'm not considering.
-> >
-> > I can try to draft a patch, if that would help? But, let's finalize
-> > the discussion above first (apologize for the delay).
->
-> OK. Should we apply the $subject patch to fix the splat meanwhile
-> though? Seems like what you're suggesting may take some more discussion
-> on the mailing lists.
+Ignore this patch. I'll send v2.
 
-Yep, that seems like a reasonable way forward. I keep you cced if/when
-I propose something that can replace it.
-
-So I applied the v2 for fixes and by adding a stable tag, thanks!
-
-Kind regards
-Uffe
+Yegor
