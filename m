@@ -2,69 +2,65 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2366C43334
-	for <linux-omap@archiver.kernel.org>; Mon, 18 Jul 2022 13:20:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB4C2C433EF
+	for <linux-omap@archiver.kernel.org>; Tue, 19 Jul 2022 10:23:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235219AbiGRNUx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 18 Jul 2022 09:20:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46858 "EHLO
+        id S232548AbiGSKX2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 19 Jul 2022 06:23:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234003AbiGRNUw (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jul 2022 09:20:52 -0400
-Received: from smtpbg.qq.com (biz-43-154-54-12.mail.qq.com [43.154.54.12])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3D2823BE0;
-        Mon, 18 Jul 2022 06:20:44 -0700 (PDT)
-X-QQ-mid: bizesmtp66t1658150428t089shao
-Received: from localhost.localdomain ( [171.223.96.21])
-        by bizesmtp.qq.com (ESMTP) with 
-        id ; Mon, 18 Jul 2022 21:20:26 +0800 (CST)
-X-QQ-SSF: 01000000002000E0U000C00A0000020
-X-QQ-FEAT: k8Irs33ik7s8+LDNgwQfUQb5+vzWdafLy8ge4WgpIkeh6/AP3USDYHOEgBTU0
-        MIJaDIsnc55bd6tFYynX3NepwRBGMvMbSXFKlNHIWc8TlUuuBGUDA4Vuckae7Ig8jG89MyO
-        R2hp5KUrACg1+l7MynRa592dOc/lZt2/02MHN4/agoMKQzBzIPkyJ/rENHYlRS6uMDn42T5
-        No3iCYnS34uPo+jCEFaVKMExr+RAAtXedtOThEgrnUXpw4fo1r4vMyPhE9Z9SajbULYuom9
-        G9UAOAiQiu+GHTEoTWjSFUvAilaO2dKXxkPWfxBJnvOAvhrQ4MCskxwCRY9ATyvdz3b1wk8
-        JsuAakuA1dpnzR568XW3l6htbQFqNJrN+eH3X5SMcM6hhGOQhI4O2DvlL0rU2wQfuFDguFU
-        hL70BKgiqfam24i79MBLUA==
-X-QQ-GoodBg: 0
-From:   Jason Wang <wangborong@cdjrlc.com>
-To:     j-keerthy@ti.com
-Cc:     edubezval@gmail.com, rafael@kernel.org, daniel.lezcano@linaro.org,
-        amitk@kernel.org, rui.zhang@intel.com, linux-pm@vger.kernel.org,
+        with ESMTP id S229478AbiGSKX1 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jul 2022 06:23:27 -0400
+Received: from mail.ispras.ru (mail.ispras.ru [83.149.199.84])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 933941114C;
+        Tue, 19 Jul 2022 03:23:26 -0700 (PDT)
+Received: from localhost.localdomain (unknown [83.149.199.65])
+        by mail.ispras.ru (Postfix) with ESMTPS id C47D140737D5;
+        Tue, 19 Jul 2022 10:23:24 +0000 (UTC)
+From:   Andrey Strachuk <strochuk@ispras.ru>
+To:     Tero Kristo <kristo@kernel.org>
+Cc:     Andrey Strachuk <strochuk@ispras.ru>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Colin Ian King <colin.i.king@googlemail.com>,
         linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jason Wang <wangborong@cdjrlc.com>
-Subject: [PATCH] thermal/ti-soc-thermal: Fix comment typo
-Date:   Fri, 15 Jul 2022 13:18:29 +0800
-Message-Id: <20220715051829.30927-1-wangborong@cdjrlc.com>
-X-Mailer: git-send-email 2.35.1
+        ldv-project@linuxtesting.org
+Subject: [PATCH] clk/ti/adpll: remove useless comparison in ti_adpll_free_resources()
+Date:   Tue, 19 Jul 2022 13:23:19 +0300
+Message-Id: <20220719102319.5912-1-strochuk@ispras.ru>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtp:cdjrlc.com:qybglogicsvr:qybglogicsvr6
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The double `and' is duplicated in line 229, remove one.
+Local variable 'ac' is initialized by an address
+of field of ti_adpll_data, so it does not make
+sense to compare 'ac' with NULL.
 
-Signed-off-by: Jason Wang <wangborong@cdjrlc.com>
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
+
+Signed-off-by: Andrey Strachuk <strochuk@ispras.ru>
+Fixes: 21330497f303 ("clk: ti: Add support for dm814x ADPLL")
 ---
- drivers/thermal/ti-soc-thermal/ti-bandgap.c | 2 +-
+ drivers/clk/ti/adpll.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-index ea0603b59309..67050a1a5b07 100644
---- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-@@ -226,7 +226,7 @@ static irqreturn_t ti_bandgap_talert_irq_handler(int irq, void *data)
- 		/*
- 		 * One TALERT interrupt: Two sources
- 		 * If the interrupt is due to t_hot then mask t_hot and
--		 * and unmask t_cold else mask t_cold and unmask t_hot
-+		 * unmask t_cold else mask t_cold and unmask t_hot
- 		 */
- 		if (t_hot) {
- 			ctrl &= ~tsr->mask_hot_mask;
+diff --git a/drivers/clk/ti/adpll.c b/drivers/clk/ti/adpll.c
+index 962502ca7ff0..7207915f9440 100644
+--- a/drivers/clk/ti/adpll.c
++++ b/drivers/clk/ti/adpll.c
+@@ -772,7 +772,7 @@ static void ti_adpll_free_resources(struct ti_adpll_data *d)
+ 	for (i = TI_ADPLL_M3; i >= 0; i--) {
+ 		struct ti_adpll_clock *ac = &d->clocks[i];
+ 
+-		if (!ac || IS_ERR_OR_NULL(ac->clk))
++		if (IS_ERR_OR_NULL(ac->clk))
+ 			continue;
+ 		if (ac->cl)
+ 			clkdev_drop(ac->cl);
 -- 
-2.35.1
+2.25.1
 
