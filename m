@@ -2,192 +2,150 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6C2FC25B08
-	for <linux-omap@archiver.kernel.org>; Sat, 30 Jul 2022 23:45:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B24FC19F29
+	for <linux-omap@archiver.kernel.org>; Mon,  1 Aug 2022 21:25:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236272AbiG3Xpi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 30 Jul 2022 19:45:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52212 "EHLO
+        id S234532AbiHAVZu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 1 Aug 2022 17:25:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233302AbiG3Xpd (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 30 Jul 2022 19:45:33 -0400
-Received: from server.lespinasse.org (server.lespinasse.org [63.205.204.226])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF717DFAB;
-        Sat, 30 Jul 2022 16:45:30 -0700 (PDT)
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
- d=lespinasse.org; i=@lespinasse.org; q=dns/txt; s=srv-79-ed;
- t=1659224730; h=date : from : to : cc : subject : message-id :
- references : mime-version : content-type : in-reply-to : from;
- bh=nAVqtDkPyoGTnjQOsobKhENqaeU5rNiWFfP8mKVev5k=;
- b=HFFhCK7R4iKO9dp7xadnNvlJ3TFgnIFCD+mWF8YiQOWKhEk/dwPTWNRYWGC9XfN1WRDf2
- g306xaRkvMw+dqoAw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lespinasse.org;
- i=@lespinasse.org; q=dns/txt; s=srv-79-rsa; t=1659224730; h=date :
- from : to : cc : subject : message-id : references : mime-version :
- content-type : in-reply-to : from;
- bh=nAVqtDkPyoGTnjQOsobKhENqaeU5rNiWFfP8mKVev5k=;
- b=xEm4vrS+nhrfg16KlTSOz6xKHVgl2anxivbQOaQ8iyITrSIXx3k7S+7DNm3/9PE3/hP5/
- weBfs5WCmns8PrJOUh5+LyucC170rSw2K/NgNrAjDpputAJGflo+dG36LsXYxD+GZSSZKbP
- Pj/N5DYITgz/J3aBedmEOjvEEcNa6ityOyI32KA+gNj6htWosOb+QOsIsRx/2q9SXnXOMQE
- CoO7nRU+J2kcBx1HiMTnfjr/eN+QixQZGT0tRp8own4vN9hl237pUBRGLyuycFtncUUh4v4
- MsO6ge1ke2qwlIabxdvLZxjhahuiQC5BaBfCoCYkudJkUo4tS5HM55MrUsVw==
-Received: by server.lespinasse.org (Postfix, from userid 1000)
-        id F117B160977; Sat, 30 Jul 2022 16:45:29 -0700 (PDT)
-Date:   Sat, 30 Jul 2022 16:45:29 -0700
-From:   Michel Lespinasse <michel@lespinasse.org>
-To:     "Rafael J. Wysocki" <rafael@kernel.org>
-Cc:     Michel Lespinasse <michel@lespinasse.org>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Richard Henderson <rth@twiddle.net>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>, vgupta@kernel.org,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        ulli.kroll@googlemail.com,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        dl-linux-imx <linux-imx@nxp.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Kevin Hilman <khilman@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        bcain@quicinc.com, Huacai Chen <chenhuacai@kernel.org>,
-        kernel@xen0n.name, Geert Uytterhoeven <geert@linux-m68k.org>,
-        sammy@sammy.net, Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        dinguyen@kernel.org, jonas@southpole.se,
-        stefan.kristiansson@saunalahti.fi,
-        Stafford Horne <shorne@gmail.com>,
-        James Bottomley <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        David Miller <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        anton.ivanov@cambridgegreys.com,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, acme@kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        jolsa@kernel.org, namhyung@kernel.org,
-        Juergen Gross <jgross@suse.com>, srivatsa@csail.mit.edu,
-        amakhalov@vmware.com, pv-drivers@vmware.com,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>, Len Brown <lenb@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Anup Patel <anup@brainfault.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jon Hunter <jonathanh@nvidia.com>,
-        Jacob Pan <jacob.jun.pan@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Yury Norov <yury.norov@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Petr Mladek <pmladek@suse.com>, senozhatsky@chromium.org,
-        John Ogness <john.ogness@linutronix.de>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        quic_neeraju@quicinc.com, Josh Triplett <josh@joshtriplett.org>,
-        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-        Lai Jiangshan <jiangshanlai@gmail.com>,
-        Joel Fernandes <joel@joelfernandes.org>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Benjamin Segall <bsegall@google.com>,
-        Mel Gorman <mgorman@suse.de>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        vschneid@redhat.com, jpoimboe@kernel.org,
-        linux-alpha@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-snps-arc@lists.infradead.org,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux OMAP Mailing List <linux-omap@vger.kernel.org>,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        openrisc@lists.librecores.org,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-s390@vger.kernel.org,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        linux-perf-users@vger.kernel.org,
-        virtualization@lists.linux-foundation.org,
-        xen-devel@lists.xenproject.org, linux-xtensa@linux-xtensa.org,
-        ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        linux-clk <linux-clk@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        linux-tegra <linux-tegra@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>, rcu@vger.kernel.org,
-        rh0@fb.com
-Subject: Re: [PATCH 04/36] cpuidle,intel_idle: Fix CPUIDLE_FLAG_IRQ_ENABLE
-Message-ID: <20220730234529.GC1587@lespinasse.org>
-References: <20220608142723.103523089@infradead.org>
- <20220608144516.172460444@infradead.org>
- <20220725194306.GA14746@lespinasse.org>
- <20220728172053.GA3607379@paulmck-ThinkPad-P17-Gen-1>
- <20220729102458.GA1695@lespinasse.org>
- <CAJZ5v0gyPtX=ksCibo2ZN_BztCqUn9KRtRu+gsJ5KetB_1MwEQ@mail.gmail.com>
- <20220730094800.GB1587@lespinasse.org>
- <CAJZ5v0hXVjsWab=qYZfXBTqcjkpWV0CFT9_oQBKQ28rFG3_VLw@mail.gmail.com>
+        with ESMTP id S235236AbiHAVYv (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 1 Aug 2022 17:24:51 -0400
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7A9A481C8
+        for <linux-omap@vger.kernel.org>; Mon,  1 Aug 2022 14:24:01 -0700 (PDT)
+Received: by mail-wr1-x434.google.com with SMTP id j1so7243394wrw.1
+        for <linux-omap@vger.kernel.org>; Mon, 01 Aug 2022 14:24:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linexp-org.20210112.gappssmtp.com; s=20210112;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc;
+        bh=fQwrODMneSzL3hNZushZmArM7t54Sdd+4j1p+OO3JS8=;
+        b=7p+CjkFGKSQi35uasn1I3nC8Ivn3QGuamMVh8OMTFvATCqAwxvcKhJ4fWBUs0X37rg
+         1x49X71uxJ+JIWRFnXCkWQoWVTge4O+YhBXNP6qLWujn6XgGu7UjbpG2P7tI+infzAaP
+         NEx6kvhlLJg0YQGgevzh2S02rHQQem7JjI9S2DHPRecvo06U6A1dzOQp7lgOruWddOwV
+         bznRgIbJpqcSeoyFwtGL/gn8DGToZy60EX78L8l/obXwB3UfkCBw4MrdWLIH9ejDxMzA
+         SHtdstwoNAg3g/E1qxfPmKd1MRd+XxcG6x/QewBcNRDgBPLKdsY+UmEmK0NKpF8dGRgm
+         3ARQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc;
+        bh=fQwrODMneSzL3hNZushZmArM7t54Sdd+4j1p+OO3JS8=;
+        b=USkel9AWK3LQczuhZG0jxh00L//unsXznDPhG98uVFIr/SUNF8gLzC+XwrgYqQVpgQ
+         mlvqP/XsrU8guooVqryMk90MNDDsEkWakwNM0RWfEv7rnBbTG7i4zm5/YIru9+x1X+TB
+         5gspV2fY818u5KYSvCj/zQSd2+AlNBYXcatfAtaqknLNAyfMNXolMFtS5M147I0HjkfW
+         mYsG5iQtB2qvkH6wkJyCnuHH6HpYqjV/s6IsRPo7zvhBiubFl3O50YNoLsN0GXk8ND1w
+         hfNfc0dvnRy9S70yXhhnVZ4txIPb7mJo04dt8bpJEnxPnKIZvswLN2BTLa8Ik6raeFtf
+         6W4g==
+X-Gm-Message-State: ACgBeo3v7roqI9FAPIN01lTBiRYM6RX0Ft7VUxTw2UGEP+3FJBiw9vqx
+        t22aDtt+6leqyJKs1XeR/q9c5A==
+X-Google-Smtp-Source: AA6agR5gxjnhIhcm2aWRQ7S0rlS9V5GLVEtm+FGT8nMQNHuNVnBHScn86jTXsRtYkJ8hm0husOpLKA==
+X-Received: by 2002:adf:ee4b:0:b0:21e:8e1a:8f3c with SMTP id w11-20020adfee4b000000b0021e8e1a8f3cmr10979273wro.346.1659389041182;
+        Mon, 01 Aug 2022 14:24:01 -0700 (PDT)
+Received: from mai.box.freepro.com ([2a05:6e02:1041:c10:d00:ceb8:9c09:1302])
+        by smtp.gmail.com with ESMTPSA id c7-20020adffb07000000b0021e501519d3sm12995285wrr.67.2022.08.01.14.23.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 01 Aug 2022 14:24:00 -0700 (PDT)
+From:   Daniel Lezcano <daniel.lezcano@linexp.org>
+To:     daniel.lezcano@linaro.org, rafael@kernel.org
+Cc:     rui.zhang@intel.com, linux-pm@vger.kernel.org,
+        linux-kernel@vger.kernel.org, khilman@baylibre.com,
+        abailon@baylibre.com, lukasz.luba@arm.com, broonie@kernel.org,
+        damien.lemoal@opensource.wdc.com, heiko@sntech.de,
+        hayashi.kunihiko@socionext.com, mhiramat@kernel.org,
+        talel@amazon.com, thierry.reding@gmail.com, digetx@gmail.com,
+        jonathanh@nvidia.com, anarsoul@gmail.com, tiny.windzz@gmail.com,
+        baolin.wang7@gmail.com, f.fainelli@gmail.com,
+        bjorn.andersson@linaro.org, mcoquelin.stm32@gmail.com,
+        glaroque@baylibre.com, miquel.raynal@bootlin.com,
+        shawnguo@kernel.org, niklas.soderlund@ragnatech.se,
+        matthias.bgg@gmail.com, j-keerthy@ti.com,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Amit Kucheria <amitk@kernel.org>,
+        linux-omap@vger.kernel.org (open list:TI BANDGAP AND THERMAL DRIVER)
+Subject: [PATCH v4 24/32] thermal/drivers/ti-soc: Switch to new of API
+Date:   Mon,  1 Aug 2022 23:22:36 +0200
+Message-Id: <20220801212244.1124867-25-daniel.lezcano@linexp.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220801212244.1124867-1-daniel.lezcano@linexp.org>
+References: <20220801212244.1124867-1-daniel.lezcano@linexp.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hXVjsWab=qYZfXBTqcjkpWV0CFT9_oQBKQ28rFG3_VLw@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sat, Jul 30, 2022 at 09:52:34PM +0200, Rafael J. Wysocki wrote:
-> On Sat, Jul 30, 2022 at 11:48 AM Michel Lespinasse
-> <michel@lespinasse.org> wrote:
-> > I'm not sure if that was the patch you meant to send though, as it
-> > seems it's only adding a tracepoint so shouldn't make any difference
-> > if I'm not actually using the tracepoint ?
-> 
-> You are right, it looks like I pasted a link to a different patch by
-> mistake.  Sorry about that.
-> 
-> I meant this one:
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git/commit/?h=pm&id=d295ad34f236c3518634fb6403d4c0160456e470
-> 
-> which will appear in the final 5.19.
+The thermal OF code has a new API allowing to migrate the OF
+initialization to a simpler approach. The ops are no longer device
+tree specific and are the generic ones provided by the core code.
 
-Thanks. I can confirm that this patch fixes the boot time debug
-warnings for me. And I see that linus already merged it, nice!
+Convert the ops to the thermal_zone_device_ops format and use the new
+API to register the thermal zone with these generic ops.
 
---
-Michel "walken" Lespinasse.
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linexp.org>
+---
+ .../thermal/ti-soc-thermal/ti-thermal-common.c   | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index 703039d8b937..8a9055bd376e 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -65,10 +65,10 @@ static inline int ti_thermal_hotspot_temperature(int t, int s, int c)
+ 
+ /* thermal zone ops */
+ /* Get temperature callback function for thermal zone */
+-static inline int __ti_thermal_get_temp(void *devdata, int *temp)
++static inline int __ti_thermal_get_temp(struct thermal_zone_device *tz, int *temp)
+ {
+ 	struct thermal_zone_device *pcb_tz = NULL;
+-	struct ti_thermal_data *data = devdata;
++	struct ti_thermal_data *data = tz->devdata;
+ 	struct ti_bandgap *bgp;
+ 	const struct ti_temp_sensor *s;
+ 	int ret, tmp, slope, constant;
+@@ -85,8 +85,8 @@ static inline int __ti_thermal_get_temp(void *devdata, int *temp)
+ 		return ret;
+ 
+ 	/* Default constants */
+-	slope = thermal_zone_get_slope(data->ti_thermal);
+-	constant = thermal_zone_get_offset(data->ti_thermal);
++	slope = thermal_zone_get_slope(tz);
++	constant = thermal_zone_get_offset(tz);
+ 
+ 	pcb_tz = data->pcb_tz;
+ 	/* In case pcb zone is available, use the extrapolation rule with it */
+@@ -107,9 +107,9 @@ static inline int __ti_thermal_get_temp(void *devdata, int *temp)
+ 	return ret;
+ }
+ 
+-static int __ti_thermal_get_trend(void *p, int trip, enum thermal_trend *trend)
++static int __ti_thermal_get_trend(struct thermal_zone_device *tz, int trip, enum thermal_trend *trend)
+ {
+-	struct ti_thermal_data *data = p;
++	struct ti_thermal_data *data = tz->devdata;
+ 	struct ti_bandgap *bgp;
+ 	int id, tr, ret = 0;
+ 
+@@ -130,7 +130,7 @@ static int __ti_thermal_get_trend(void *p, int trip, enum thermal_trend *trend)
+ 	return 0;
+ }
+ 
+-static const struct thermal_zone_of_device_ops ti_of_thermal_ops = {
++static const struct thermal_zone_device_ops ti_of_thermal_ops = {
+ 	.get_temp = __ti_thermal_get_temp,
+ 	.get_trend = __ti_thermal_get_trend,
+ };
+@@ -170,7 +170,7 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
+ 		return -EINVAL;
+ 
+ 	/* in case this is specified by DT */
+-	data->ti_thermal = devm_thermal_zone_of_sensor_register(bgp->dev, id,
++	data->ti_thermal = devm_thermal_of_zone_register(bgp->dev, id,
+ 					data, &ti_of_thermal_ops);
+ 	if (IS_ERR(data->ti_thermal)) {
+ 		dev_err(bgp->dev, "thermal zone device is NULL\n");
+-- 
+2.25.1
+
