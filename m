@@ -2,150 +2,89 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B24FC19F29
-	for <linux-omap@archiver.kernel.org>; Mon,  1 Aug 2022 21:25:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68618C00140
+	for <linux-omap@archiver.kernel.org>; Tue,  2 Aug 2022 07:47:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234532AbiHAVZu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 1 Aug 2022 17:25:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49146 "EHLO
+        id S236062AbiHBHrq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 2 Aug 2022 03:47:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235236AbiHAVYv (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 1 Aug 2022 17:24:51 -0400
-Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7A9A481C8
-        for <linux-omap@vger.kernel.org>; Mon,  1 Aug 2022 14:24:01 -0700 (PDT)
-Received: by mail-wr1-x434.google.com with SMTP id j1so7243394wrw.1
-        for <linux-omap@vger.kernel.org>; Mon, 01 Aug 2022 14:24:01 -0700 (PDT)
+        with ESMTP id S234754AbiHBHro (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 2 Aug 2022 03:47:44 -0400
+Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90C311707F;
+        Tue,  2 Aug 2022 00:47:42 -0700 (PDT)
+Received: by mail-pj1-x102d.google.com with SMTP id b4so2679902pji.4;
+        Tue, 02 Aug 2022 00:47:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linexp-org.20210112.gappssmtp.com; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc;
-        bh=fQwrODMneSzL3hNZushZmArM7t54Sdd+4j1p+OO3JS8=;
-        b=7p+CjkFGKSQi35uasn1I3nC8Ivn3QGuamMVh8OMTFvATCqAwxvcKhJ4fWBUs0X37rg
-         1x49X71uxJ+JIWRFnXCkWQoWVTge4O+YhBXNP6qLWujn6XgGu7UjbpG2P7tI+infzAaP
-         NEx6kvhlLJg0YQGgevzh2S02rHQQem7JjI9S2DHPRecvo06U6A1dzOQp7lgOruWddOwV
-         bznRgIbJpqcSeoyFwtGL/gn8DGToZy60EX78L8l/obXwB3UfkCBw4MrdWLIH9ejDxMzA
-         SHtdstwoNAg3g/E1qxfPmKd1MRd+XxcG6x/QewBcNRDgBPLKdsY+UmEmK0NKpF8dGRgm
-         3ARQ==
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc;
+        bh=6asRODmKw6yxS4ioTuMFP/4VNFqB0bV8/bgYU9lk6AA=;
+        b=IgvVa6aZOCwu+xsnzkqGLYwWryfk8JepZYVKz7P7apzXy4OqmUkaYlGCGHgY/q9ye/
+         72Pp8JiXLfWU0tgRpL3YOrgeB0WZ2qe6QfTUIWtG9ItsjuQsD3qRj8vxxUztJBu93Kin
+         1B1yCoYGr7dlTQ9e2/TKKDOF8jwPRfJ5w+W1RFDSbnk1+CSIWOACsUbQt6tfjdh93DI0
+         mCNl7YVa9Ky0Gz0YAK7kg2Lgf/LtyUjRGj/9rDH485hIguHI8g4y0LrGBrtAtFJmM36A
+         TzKLxQKtY6PO0PcR2teQ+oYeTg+1LglU0JWa5mnBoIFgrxdUszwczJLjDjsvZ8VEDxwY
+         H+xg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc;
-        bh=fQwrODMneSzL3hNZushZmArM7t54Sdd+4j1p+OO3JS8=;
-        b=USkel9AWK3LQczuhZG0jxh00L//unsXznDPhG98uVFIr/SUNF8gLzC+XwrgYqQVpgQ
-         mlvqP/XsrU8guooVqryMk90MNDDsEkWakwNM0RWfEv7rnBbTG7i4zm5/YIru9+x1X+TB
-         5gspV2fY818u5KYSvCj/zQSd2+AlNBYXcatfAtaqknLNAyfMNXolMFtS5M147I0HjkfW
-         mYsG5iQtB2qvkH6wkJyCnuHH6HpYqjV/s6IsRPo7zvhBiubFl3O50YNoLsN0GXk8ND1w
-         hfNfc0dvnRy9S70yXhhnVZ4txIPb7mJo04dt8bpJEnxPnKIZvswLN2BTLa8Ik6raeFtf
-         6W4g==
-X-Gm-Message-State: ACgBeo3v7roqI9FAPIN01lTBiRYM6RX0Ft7VUxTw2UGEP+3FJBiw9vqx
-        t22aDtt+6leqyJKs1XeR/q9c5A==
-X-Google-Smtp-Source: AA6agR5gxjnhIhcm2aWRQ7S0rlS9V5GLVEtm+FGT8nMQNHuNVnBHScn86jTXsRtYkJ8hm0husOpLKA==
-X-Received: by 2002:adf:ee4b:0:b0:21e:8e1a:8f3c with SMTP id w11-20020adfee4b000000b0021e8e1a8f3cmr10979273wro.346.1659389041182;
-        Mon, 01 Aug 2022 14:24:01 -0700 (PDT)
-Received: from mai.box.freepro.com ([2a05:6e02:1041:c10:d00:ceb8:9c09:1302])
-        by smtp.gmail.com with ESMTPSA id c7-20020adffb07000000b0021e501519d3sm12995285wrr.67.2022.08.01.14.23.59
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc;
+        bh=6asRODmKw6yxS4ioTuMFP/4VNFqB0bV8/bgYU9lk6AA=;
+        b=Yjh/odyuWut3qG57aNiJA/McWwrCDSR7L7a4kc5FEScP2cQOn40SlVvCksZ850UqUt
+         Uo67iVhcz1ZQr0IPritXOw5/SCwBiCx8oaR9XDSPNPp4SRZ1BGrWd6S7zam2POYC/ELW
+         jouo7fvihVEcfpigkDgdWUZ5ZEzGvl4Mj8PNTvMLAHrpZxqJHYuAPTIgXd3JPRjl24xx
+         O42NVd/iHTlG09SBuQu5QT/X1nFqNd7jtdVHDiJcbf9JAtcgsg3WnigChpH3gV1KsFAC
+         OHakbml9QL0x78NltXiORuNb2N9rcw/qGUNYIm2q7EzGyO+AQ5j++8ZnRyMvPp5NBXk1
+         /vuw==
+X-Gm-Message-State: ACgBeo01kaNdDr5f8u0hUDW3OalYOPx6g/SKqyqJ8kScOqsywISuXQVi
+        c1UoNZ8GvLEwOH+C81xKrXW2F6aRmCQ=
+X-Google-Smtp-Source: AA6agR5TSJ++0nQD3vWSqQ1mPdnuwR+HvgJk4ZNTeEjLxb7wus3tfz5ZoHlpfLjEqcWTUl2be2KgFw==
+X-Received: by 2002:a17:902:ea07:b0:16e:daf6:6087 with SMTP id s7-20020a170902ea0700b0016edaf66087mr12024306plg.68.1659426461966;
+        Tue, 02 Aug 2022 00:47:41 -0700 (PDT)
+Received: from localhost.localdomain ([193.203.214.57])
+        by smtp.gmail.com with ESMTPSA id p1-20020a170902e74100b0016bcc35000asm10866845plf.302.2022.08.02.00.47.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 Aug 2022 14:24:00 -0700 (PDT)
-From:   Daniel Lezcano <daniel.lezcano@linexp.org>
-To:     daniel.lezcano@linaro.org, rafael@kernel.org
-Cc:     rui.zhang@intel.com, linux-pm@vger.kernel.org,
-        linux-kernel@vger.kernel.org, khilman@baylibre.com,
-        abailon@baylibre.com, lukasz.luba@arm.com, broonie@kernel.org,
-        damien.lemoal@opensource.wdc.com, heiko@sntech.de,
-        hayashi.kunihiko@socionext.com, mhiramat@kernel.org,
-        talel@amazon.com, thierry.reding@gmail.com, digetx@gmail.com,
-        jonathanh@nvidia.com, anarsoul@gmail.com, tiny.windzz@gmail.com,
-        baolin.wang7@gmail.com, f.fainelli@gmail.com,
-        bjorn.andersson@linaro.org, mcoquelin.stm32@gmail.com,
-        glaroque@baylibre.com, miquel.raynal@bootlin.com,
-        shawnguo@kernel.org, niklas.soderlund@ragnatech.se,
-        matthias.bgg@gmail.com, j-keerthy@ti.com,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Amit Kucheria <amitk@kernel.org>,
-        linux-omap@vger.kernel.org (open list:TI BANDGAP AND THERMAL DRIVER)
-Subject: [PATCH v4 24/32] thermal/drivers/ti-soc: Switch to new of API
-Date:   Mon,  1 Aug 2022 23:22:36 +0200
-Message-Id: <20220801212244.1124867-25-daniel.lezcano@linexp.org>
+        Tue, 02 Aug 2022 00:47:41 -0700 (PDT)
+From:   cgel.zte@gmail.com
+X-Google-Original-From: ye.xingchen@zte.com.cn
+To:     linux-kernel@vger.kernel.org
+Cc:     davem@davemloft.net, linux-omap@vger.kernel.org,
+        netdev@vger.kernel.org, ye xingchen <ye.xingchen@zte.com.cn>,
+        Zeal Robot <zealci@zte.com.cn>
+Subject: [PATCH linux-next] net: ethernet: ti:using the pm_runtime_resume_and_get  to simplify the code Using pm_runtime_resume_and_get() to instade of  pm_runtime_get_sync and pm_runtime_put_noidle.
+Date:   Tue,  2 Aug 2022 07:47:37 +0000
+Message-Id: <20220802074737.1648723-1-ye.xingchen@zte.com.cn>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220801212244.1124867-1-daniel.lezcano@linexp.org>
-References: <20220801212244.1124867-1-daniel.lezcano@linexp.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The thermal OF code has a new API allowing to migrate the OF
-initialization to a simpler approach. The ops are no longer device
-tree specific and are the generic ones provided by the core code.
+From: ye xingchen <ye.xingchen@zte.com.cn>
 
-Convert the ops to the thermal_zone_device_ops format and use the new
-API to register the thermal zone with these generic ops.
-
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linexp.org>
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Signed-off-by: ye xingchen <ye.xingchen@zte.com.cn>
 ---
- .../thermal/ti-soc-thermal/ti-thermal-common.c   | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/net/ethernet/ti/cpsw_priv.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index 703039d8b937..8a9055bd376e 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -65,10 +65,10 @@ static inline int ti_thermal_hotspot_temperature(int t, int s, int c)
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.c b/drivers/net/ethernet/ti/cpsw_priv.c
+index 758295c898ac..abe5b65de415 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.c
++++ b/drivers/net/ethernet/ti/cpsw_priv.c
+@@ -1539,9 +1539,8 @@ static int cpsw_qos_setup_tc_block_cb(enum tc_setup_type type, void *type_data,
+ 	if (!tc_cls_can_offload_and_chain0(priv->ndev, type_data))
+ 		return -EOPNOTSUPP;
  
- /* thermal zone ops */
- /* Get temperature callback function for thermal zone */
--static inline int __ti_thermal_get_temp(void *devdata, int *temp)
-+static inline int __ti_thermal_get_temp(struct thermal_zone_device *tz, int *temp)
- {
- 	struct thermal_zone_device *pcb_tz = NULL;
--	struct ti_thermal_data *data = devdata;
-+	struct ti_thermal_data *data = tz->devdata;
- 	struct ti_bandgap *bgp;
- 	const struct ti_temp_sensor *s;
- 	int ret, tmp, slope, constant;
-@@ -85,8 +85,8 @@ static inline int __ti_thermal_get_temp(void *devdata, int *temp)
+-	ret = pm_runtime_get_sync(priv->dev);
++	ret = pm_runtime_resume_and_get(priv->dev);
+ 	if (ret < 0) {
+-		pm_runtime_put_noidle(priv->dev);
  		return ret;
+ 	}
  
- 	/* Default constants */
--	slope = thermal_zone_get_slope(data->ti_thermal);
--	constant = thermal_zone_get_offset(data->ti_thermal);
-+	slope = thermal_zone_get_slope(tz);
-+	constant = thermal_zone_get_offset(tz);
- 
- 	pcb_tz = data->pcb_tz;
- 	/* In case pcb zone is available, use the extrapolation rule with it */
-@@ -107,9 +107,9 @@ static inline int __ti_thermal_get_temp(void *devdata, int *temp)
- 	return ret;
- }
- 
--static int __ti_thermal_get_trend(void *p, int trip, enum thermal_trend *trend)
-+static int __ti_thermal_get_trend(struct thermal_zone_device *tz, int trip, enum thermal_trend *trend)
- {
--	struct ti_thermal_data *data = p;
-+	struct ti_thermal_data *data = tz->devdata;
- 	struct ti_bandgap *bgp;
- 	int id, tr, ret = 0;
- 
-@@ -130,7 +130,7 @@ static int __ti_thermal_get_trend(void *p, int trip, enum thermal_trend *trend)
- 	return 0;
- }
- 
--static const struct thermal_zone_of_device_ops ti_of_thermal_ops = {
-+static const struct thermal_zone_device_ops ti_of_thermal_ops = {
- 	.get_temp = __ti_thermal_get_temp,
- 	.get_trend = __ti_thermal_get_trend,
- };
-@@ -170,7 +170,7 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
- 		return -EINVAL;
- 
- 	/* in case this is specified by DT */
--	data->ti_thermal = devm_thermal_zone_of_sensor_register(bgp->dev, id,
-+	data->ti_thermal = devm_thermal_of_zone_register(bgp->dev, id,
- 					data, &ti_of_thermal_ops);
- 	if (IS_ERR(data->ti_thermal)) {
- 		dev_err(bgp->dev, "thermal zone device is NULL\n");
 -- 
 2.25.1
-
