@@ -2,73 +2,73 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CFBDC3F6B0
-	for <linux-omap@archiver.kernel.org>; Mon, 22 Aug 2022 19:29:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75D42C32774
+	for <linux-omap@archiver.kernel.org>; Mon, 22 Aug 2022 19:32:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238760AbiHVT34 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 22 Aug 2022 15:29:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41586 "EHLO
+        id S238499AbiHVTb7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 22 Aug 2022 15:31:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238761AbiHVT3k (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2022 15:29:40 -0400
-Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 312604F65F;
-        Mon, 22 Aug 2022 12:24:09 -0700 (PDT)
-Received: by mail-ot1-x329.google.com with SMTP id o15-20020a9d718f000000b00638c1348012so8381090otj.2;
-        Mon, 22 Aug 2022 12:24:09 -0700 (PDT)
+        with ESMTP id S238936AbiHVTal (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2022 15:30:41 -0400
+Received: from mail-oi1-f175.google.com (mail-oi1-f175.google.com [209.85.167.175])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AE0F58DEA;
+        Mon, 22 Aug 2022 12:25:14 -0700 (PDT)
+Received: by mail-oi1-f175.google.com with SMTP id j5so13391442oih.6;
+        Mon, 22 Aug 2022 12:25:14 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc;
-        bh=8zy7YCWL5YZTEH0yzkezpqZ96keenfHSDIKWTIiVfgw=;
-        b=ADXtPQ0Zl0lz8VdHyI2ow6pdVOSGSxaLMhEEKIUHXfX/uqASKhc9MY9DnCeM2tKFhY
-         Rr6iIJoNMuYM6R9yfC6LiZZ6iC02g2IffcsHEVfdvgwPoXCt1ZOUAbAPS5tOtUZvn+Gw
-         MlMTq4rxS65TbwVhnQ0s6GfRVipID4s0R+xiWM3R2a5ndnSv1WGttVETSDfG0JoiBvz0
-         QOqk1i/QmGokI2MC/x+lBcy0jFjBHe7LVX2UxtgvRJ8Xk/Stj3rTNYfuGvLB7mET2/9U
-         insjQFJuuY4KLWoARUAxayNKclTz6EO2pfJOo1Pp+L7CSXIr2q1LjCZI46XN6GOO+vFa
-         dwZQ==
-X-Gm-Message-State: ACgBeo1CtAkDzrshnQhYQvkVdtmUvCTWFt4eXCU28y1goQ7JVRan8tkz
-        uJnoUaycwIjFc7I4zx76AQ==
-X-Google-Smtp-Source: AA6agR4Yhy+q1icNwprzoYLj6JYDzQtQ1J/JCtznjaPHD+6F092GBaDf5PsttXwKM4eRbJgkp/cPdg==
-X-Received: by 2002:a05:6830:90c:b0:637:18c0:b750 with SMTP id v12-20020a056830090c00b0063718c0b750mr7936744ott.385.1661196188346;
-        Mon, 22 Aug 2022 12:23:08 -0700 (PDT)
+        bh=YBa4Wpb/1K3mz75p1OPVR3AVlx1stGTKnEAnSXaWGEc=;
+        b=oh3Gr+wltQLYWZ2DTpp6Pw/80Kl/hy0zj3+tZmEkfdNV3Y8TJH4L6J5gydzZXiWKGv
+         Dzj3ARzn9X2h+VTF7YHD8IjjLs6fjKSjNuoXhuEeVSF1/yu1g/hFKM4uDXd4jlG3aNL1
+         U1turCNCoF9re9KKYw59a2AM3xlm7hiOdxogcO1S6Pxg61+Cp6PNJir58nc99DG3YCAM
+         vb7dVoXLxTz6PRSZWEdZIe++S71CVMJDMa2vRSsTcHesz04rrYnXAdWxnGvaa3uWfpFF
+         VOCxBvI2nDKivsbI2myEl9Yibf/u6eMkdjOlEdX7xu5j0Pb8CyISmTs8FOZSmTCaQIve
+         7FZQ==
+X-Gm-Message-State: ACgBeo20fcZKJa1BJt0fmM+hhWC403rh2Nd9pJ8WJLfCpRQz99610DSA
+        Y6+6gKoFGkdLjZAGvZHimg==
+X-Google-Smtp-Source: AA6agR4yidOvnPilwMylDNgezwAjLFjDT0pd8MDJ4gX+NgTAQQYnJjX9woySWud8W/j1lDm5RISF1A==
+X-Received: by 2002:a05:6808:1b0c:b0:345:2df:b297 with SMTP id bx12-20020a0568081b0c00b0034502dfb297mr12004875oib.236.1661196313793;
+        Mon, 22 Aug 2022 12:25:13 -0700 (PDT)
 Received: from robh.at.kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id m3-20020a0568301e6300b00636d6571ff7sm3059517otr.70.2022.08.22.12.23.07
+        by smtp.gmail.com with ESMTPSA id y12-20020a544d8c000000b00342d207e68bsm2691610oix.37.2022.08.22.12.25.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 22 Aug 2022 12:23:07 -0700 (PDT)
-Received: (nullmailer pid 296993 invoked by uid 1000);
-        Mon, 22 Aug 2022 19:23:06 -0000
-Date:   Mon, 22 Aug 2022 14:23:06 -0500
+        Mon, 22 Aug 2022 12:25:12 -0700 (PDT)
+Received: (nullmailer pid 308105 invoked by uid 1000);
+        Mon, 22 Aug 2022 19:25:11 -0000
+Date:   Mon, 22 Aug 2022 14:25:11 -0500
 From:   Rob Herring <robh@kernel.org>
 To:     Mithil Bavishi <bavishimithil@gmail.com>
-Cc:     tony@atomide.com, dmitry.torokhov@gmail.com,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-omap@vger.kernel.org, krzysztof.kozlowski+dt@linaro.org,
-        lee@kernel.org, linux-input@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-        sre@kernel.org, linux-pm@vger.kernel.org, contact@paulk.fr,
-        linux@armlinux.org.uk
-Subject: Re: [PATCH 02/10] dt-bindings: power: reset: Move twl4030-power from
- mfd to power/reset
-Message-ID: <20220822192306.GA296915-robh@kernel.org>
+Cc:     dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+        linux-pm@vger.kernel.org, contact@paulk.fr, sre@kernel.org,
+        lee@kernel.org, krzysztof.kozlowski+dt@linaro.org,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        robh+dt@kernel.org, tony@atomide.com, linux@armlinux.org.uk,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 04/10] dt-bindings: input: twl-pwrbutton: Add support for
+ twl6030-pwrbutton
+Message-ID: <20220822192511.GA308017-robh@kernel.org>
 References: <20220820071659.1215-1-bavishimithil@gmail.com>
- <20220820071659.1215-3-bavishimithil@gmail.com>
+ <20220820071659.1215-5-bavishimithil@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220820071659.1215-3-bavishimithil@gmail.com>
+In-Reply-To: <20220820071659.1215-5-bavishimithil@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sat, 20 Aug 2022 12:46:52 +0530, Mithil Bavishi wrote:
-> Move the documentation for twl4030-power from mfd to power/reset
+On Sat, 20 Aug 2022 12:46:54 +0530, Mithil Bavishi wrote:
+> Adds documentation for the compatible string for twl6030 powerbutton
+> support.
 > 
+> Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
 > Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
 > ---
->  .../devicetree/bindings/{mfd => power/reset}/twl4030-power.txt    | 0
->  1 file changed, 0 insertions(+), 0 deletions(-)
->  rename Documentation/devicetree/bindings/{mfd => power/reset}/twl4030-power.txt (100%)
+>  Documentation/devicetree/bindings/input/twl4030-pwrbutton.txt | 1 +
+>  1 file changed, 1 insertion(+)
 > 
 
 Acked-by: Rob Herring <robh@kernel.org>
