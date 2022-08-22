@@ -2,43 +2,43 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 469EDC38159
-	for <linux-omap@archiver.kernel.org>; Mon, 22 Aug 2022 19:32:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82B8FC48BE4
+	for <linux-omap@archiver.kernel.org>; Mon, 22 Aug 2022 19:32:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238593AbiHVTcA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S238531AbiHVTcA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 22 Aug 2022 15:32:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38936 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38366 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239107AbiHVTaz (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2022 15:30:55 -0400
-Received: from mail-oa1-f42.google.com (mail-oa1-f42.google.com [209.85.160.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82EDB5A2DA;
-        Mon, 22 Aug 2022 12:26:11 -0700 (PDT)
-Received: by mail-oa1-f42.google.com with SMTP id 586e51a60fabf-11c896b879bso14115638fac.3;
-        Mon, 22 Aug 2022 12:26:11 -0700 (PDT)
+        with ESMTP id S238911AbiHVTai (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 22 Aug 2022 15:30:38 -0400
+Received: from mail-oa1-f51.google.com (mail-oa1-f51.google.com [209.85.160.51])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFB8758DD1;
+        Mon, 22 Aug 2022 12:25:10 -0700 (PDT)
+Received: by mail-oa1-f51.google.com with SMTP id 586e51a60fabf-11ba6e79dd1so14089985fac.12;
+        Mon, 22 Aug 2022 12:25:10 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc;
-        bh=wfja3dpgpGFQd71CyL+Eqxhc94bh068SJCYS3i8QECM=;
-        b=HgIvu92TsIdeaHEFEzFI2Rp0/9dvXoX6rDx5ntv6ma/PzNgdbdmCRh8WE9YQWiA5GD
-         FlE3v98+/8zVheE1Q143O0693EyvHdYqMDAZM7kW4jGAbvnCuulICEOemYQOj4rhSAgh
-         udLOYs5rqkVsgUmNHmMlQ2RXB7apriUUCIdhXP9vzc/DimEz9/VLDwzYObVJlLXJ4iPz
-         tuffssZ7iHv9ae4UeWDQ8AiqijEfadWtlO/53u9Vl9a/VrJdNa0hFreZ1r4hG+KL6xXN
-         N4e53Ic1M+GWN6CGfnX0x+xxyWelDEhqABJAIfcigi8/wSbN6RSy3HzW/2LQMPxbauWo
-         FcFg==
-X-Gm-Message-State: ACgBeo0dqrFj5A6jDHKtlLV7orSFYR7HPsU/bG//+K19pWMmVAylnu6l
-        S3e/mhZTHuc/35ODcpMZag==
-X-Google-Smtp-Source: AA6agR5lq+EcF8u5MMVPUiMEfbyTX71703uezHObOPXLNPPPqslQkYADJa6bf1poUrTi7HAaKRzczQ==
-X-Received: by 2002:a05:6870:58a1:b0:118:8649:ab9e with SMTP id be33-20020a05687058a100b001188649ab9emr10124932oab.5.1661196370735;
-        Mon, 22 Aug 2022 12:26:10 -0700 (PDT)
+        bh=aqQ8EKilZNTR/MiCMHbW5S0C4/ZNQc/wn/QhlT3yNkA=;
+        b=HHRrQqJTaYyqhm5SEDs341jEyGlML3vtqXjVKpOHBTjv3ttwjL7OnxgK+nqeSnVKXi
+         y70iz9zINragPQhuSlP19IB523DCRvy4flbU6uJ+oG+PV31js8BC6KmxdRwBxlxxSPf/
+         ncsowbC9REklUj8jL6A6/Lkep0G6YZlLqOsvFoeQ3yurUczS4ZKwflENkTPPN06oifRO
+         kVLEmzWsJI9USHdpOhFuM1jIirrpmYCBNV3kdqWrY6DpSI0Vv+d8qUT1B36xGnRYmp4M
+         AB0+L6iA6vI58ueiI3r858qCjB57/r9kV/tAZDgRBwR95AWNmaPhHsyPN7TV1gSOvSNh
+         5msw==
+X-Gm-Message-State: ACgBeo34NZ9N8dkHsIfOXRxkeiRqnZkOfbDohAY8H+KWo/kxEoNbQLlT
+        tkLBPs2xxzaziB04DHja4A==
+X-Google-Smtp-Source: AA6agR6WVI+/ceHbcBFR3xERiwrg/JO0+C7B4r7ga9Jn2f2JU+p2NFgk5jKwJ+rdMDIxRELPayZTxg==
+X-Received: by 2002:a05:6870:5591:b0:10e:20d0:b2cb with SMTP id n17-20020a056870559100b0010e20d0b2cbmr13027000oao.12.1661196292263;
+        Mon, 22 Aug 2022 12:24:52 -0700 (PDT)
 Received: from robh.at.kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id 187-20020aca05c4000000b00343459324besm2739811oif.49.2022.08.22.12.26.09
+        by smtp.gmail.com with ESMTPSA id w9-20020a0568080d4900b00334c2e81dfbsm2802210oik.0.2022.08.22.12.24.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 22 Aug 2022 12:26:10 -0700 (PDT)
-Received: (nullmailer pid 315358 invoked by uid 1000);
-        Mon, 22 Aug 2022 19:26:09 -0000
-Date:   Mon, 22 Aug 2022 14:26:09 -0500
+        Mon, 22 Aug 2022 12:24:51 -0700 (PDT)
+Received: (nullmailer pid 306067 invoked by uid 1000);
+        Mon, 22 Aug 2022 19:24:50 -0000
+Date:   Mon, 22 Aug 2022 14:24:50 -0500
 From:   Rob Herring <robh@kernel.org>
 To:     Mithil Bavishi <bavishimithil@gmail.com>
 Cc:     linux-input@vger.kernel.org, devicetree@vger.kernel.org,
@@ -47,50 +47,71 @@ Cc:     linux-input@vger.kernel.org, devicetree@vger.kernel.org,
         dmitry.torokhov@gmail.com, krzysztof.kozlowski+dt@linaro.org,
         lee@kernel.org, sre@kernel.org, tony@atomide.com,
         linux@armlinux.org.uk, contact@paulk.fr
-Subject: Re: [PATCH 09/10] dt-bindings: input: Rename twl4030-pwrbutton to
- twl-pwrbutton
-Message-ID: <20220822192609.GA310932-robh@kernel.org>
+Subject: Re: [PATCH 05/10] dt-bindings: power: reset: Add bindings for
+ twl6030-power
+Message-ID: <20220822192450.GA297299-robh@kernel.org>
 References: <20220820071659.1215-1-bavishimithil@gmail.com>
- <20220820071659.1215-10-bavishimithil@gmail.com>
+ <20220820071659.1215-6-bavishimithil@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220820071659.1215-10-bavishimithil@gmail.com>
+In-Reply-To: <20220820071659.1215-6-bavishimithil@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Sat, Aug 20, 2022 at 12:46:59PM +0530, Mithil Bavishi wrote:
-> This changes the Documentation of the twl4030-pwrbutton to
-> make it more generic as it can support other chips than
-> twl4030 as well.
-
-This should be part of patch 4.
-
+On Sat, Aug 20, 2022 at 12:46:55PM +0530, Mithil Bavishi wrote:
+> Adds documentation for the twl6030 power driver.
 > 
+> Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
 > Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
 > ---
->  .../input/{twl4030-pwrbutton.txt => twl-pwrbutton.txt}        | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->  rename Documentation/devicetree/bindings/input/{twl4030-pwrbutton.txt => twl-pwrbutton.txt} (81%)
+>  .../bindings/power/reset/twl6030-power.txt    | 31 +++++++++++++++++++
+
+New bindings must be DT schema format.
+
+>  1 file changed, 31 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/power/reset/twl6030-power.txt
 > 
-> diff --git a/Documentation/devicetree/bindings/input/twl4030-pwrbutton.txt b/Documentation/devicetree/bindings/input/twl-pwrbutton.txt
-> similarity index 81%
-> rename from Documentation/devicetree/bindings/input/twl4030-pwrbutton.txt
-> rename to Documentation/devicetree/bindings/input/twl-pwrbutton.txt
-> index 9a0b765d3..43addc04d 100644
-> --- a/Documentation/devicetree/bindings/input/twl4030-pwrbutton.txt
-> +++ b/Documentation/devicetree/bindings/input/twl-pwrbutton.txt
-> @@ -1,6 +1,6 @@
-> -Texas Instruments TWL family (twl4030) pwrbutton module
-> +Texas Instruments TWL family pwrbutton module
->  
-> -This module is part of the TWL4030. For more details about the whole
-> +This module is part of a TWL chip. For more details about the whole
->  chip see Documentation/devicetree/bindings/mfd/twl-family.txt.
->  
->  This module provides a simple power button event via an Interrupt.
-> -- 
-> 2.25.1
-> 
-> 
+> diff --git a/Documentation/devicetree/bindings/power/reset/twl6030-power.txt b/Documentation/devicetree/bindings/power/reset/twl6030-power.txt
+> new file mode 100644
+> index 000000000..946bb3d9f
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/power/reset/twl6030-power.txt
+> @@ -0,0 +1,31 @@
+> +Texas Instruments TWL family (twl6030) reset and power management module
+> +
+> +For now, the binding only supports the complete shutdown of the system after
+> +poweroff.
+> +
+> +Required properties:
+> +- compatible : must be
+> +       "ti,twl6030-power"
+> +
+> +Optional properties:
+> +
+> +- ti,system-power-controller: This indicates that TWL6030 is the
+
+We have a generic property for this.
+
+> +  power supply master of the system. With this flag, the chip will
+> +  initiate an ACTIVE-to-OFF or SLEEP-to-OFF transition when the
+> +  system poweroffs.
+> +
+> +Example:
+> +&i2c1 {
+> +       clock-frequency = <2600000>;
+> +
+> +       twl: twl@48 {
+> +               reg = <0x48>;
+> +               interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+> +               interrupt-parent = <&intc>;
+> +
+> +               twl_power: power {
+> +                       compatible = "ti,twl6030-power";
+> +                       ti,system-power-controller;
+
+Why do you need a child node here? There aren't any resources for the 
+sub-block.
+
+Rob
