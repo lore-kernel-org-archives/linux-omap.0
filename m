@@ -2,63 +2,65 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE0E9C32793
-	for <linux-omap@archiver.kernel.org>; Tue, 23 Aug 2022 14:04:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AC10C3814E
+	for <linux-omap@archiver.kernel.org>; Tue, 23 Aug 2022 16:03:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240980AbiHWOEQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 23 Aug 2022 10:04:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46488 "EHLO
+        id S243985AbiHWQCg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 23 Aug 2022 12:02:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242407AbiHWODJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 23 Aug 2022 10:03:09 -0400
+        with ESMTP id S244282AbiHWQAm (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 23 Aug 2022 12:00:42 -0400
 Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 29861246D0B;
-        Tue, 23 Aug 2022 04:12:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 269EE23DF38;
+        Tue, 23 Aug 2022 05:12:14 -0700 (PDT)
 Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id A54398125;
-        Tue, 23 Aug 2022 10:06:25 +0000 (UTC)
-Date:   Tue, 23 Aug 2022 13:13:31 +0300
+        by muru.com (Postfix) with ESMTPS id 8690C8125;
+        Tue, 23 Aug 2022 11:45:41 +0000 (UTC)
+Date:   Tue, 23 Aug 2022 14:52:47 +0300
 From:   Tony Lindgren <tony@atomide.com>
 To:     Romain Naour <romain.naour@smile.fr>
-Cc:     linux-omap@vger.kernel.org,
-        U-Boot Mailing List <u-boot@lists.denx.de>,
-        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
-        devicetree@vger.kernel.org, Stephen Boyd <sboyd@kernel.org>,
-        Tero Kristo <kristo@kernel.org>, s-anna@ti.com
-Subject: Re: [PATCH] ARM: dts: Use clock-output-names for dra7
-Message-ID: <YwSoSzWBZEGy5UlQ@atomide.com>
-References: <20220204080842.40673-1-tony@atomide.com>
- <2404bcc0-d01c-1ff1-6ea1-bfdef38cb64e@smile.fr>
+Cc:     Stephen Boyd <sboyd@kernel.org>,
+        Jan Kiszka <jan.kiszka@siemens.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        linux-omap@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] clk: ti: Fix reference imbalance in
+ ti_find_clock_provider
+Message-ID: <YwS/j5ATAfCb1U4l@atomide.com>
+References: <63d9211f-d5ce-562e-358a-50f26c7caf35@siemens.com>
+ <20220819212337.AECB9C433D6@smtp.kernel.org>
+ <c62649f0-2be1-459c-bfa5-4c94a3e4300f@smile.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <2404bcc0-d01c-1ff1-6ea1-bfdef38cb64e@smile.fr>
+In-Reply-To: <c62649f0-2be1-459c-bfa5-4c94a3e4300f@smile.fr>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Romain Naour <romain.naour@smile.fr> [220823 08:25]:
+* Romain Naour <romain.naour@smile.fr> [220823 09:22]:
 > Hello,
 > 
-> Le 04/02/2022 à 09:08, Tony Lindgren a écrit :
-> > With the TI clocks supporting the use of clock-output-names devicetree
-> > property, we no longer need to use non-standard node names for clocks.
+> Le 19/08/2022 à 23:23, Stephen Boyd a écrit :
+> > Quoting Jan Kiszka (2022-08-08 15:26:58)
+> >> From: Jan Kiszka <jan.kiszka@siemens.com>
+> >>
+> >> When a clock is found via clock-output-names, we need to reference it
+> >> explicitly to match of_find_node_by_name behavior. Failing to do so
+> >> causes warnings like this:
+> >>
 > > 
-> > Depends-on: 31aa7056bbec ("ARM: dts: Don't use legacy clock defines for dra7 clkctrl")
-> > Depends-on: 9206a3af4fc0 ("clk: ti: Move dra7 clock devices out of the legacy section")
-> > Cc: Stephen Boyd <sboyd@kernel.org>
-> > Cc: Tero Kristo <kristo@kernel.org>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > Is this superseeded by
+> > https://lore.kernel.org/r/20220621091118.33930-1-tony@atomide.com?
 > 
-> With this patch applied, u-boot triggers a new warning while applying clock fixup:
+> I noticed the same issue and tested separately with both patches.
 > 
-> ft_fixup_clocks failed for DSP voltage domain: <valid offset/length>
+> Indeed, this patch is not needed anymore with "[PATCH] clk: ti: Fix missing
+> of_node_get() ti_find_clock_provider()" applied.
 
-Hmm sounds like u-boot might be automatically syncing to Linux dts files,
-and now needs some patching to make use of clock-output-names. The old
-non-standard method of relying for node names to get the clock name will
-not work as we use generic node names such as "clock".
+OK good to hear and thanks for testing.
 
 Regards,
 
