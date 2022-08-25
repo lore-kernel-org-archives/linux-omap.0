@@ -2,67 +2,66 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92714C28D13
-	for <linux-omap@archiver.kernel.org>; Thu, 25 Aug 2022 07:09:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63B44C28D13
+	for <linux-omap@archiver.kernel.org>; Thu, 25 Aug 2022 12:34:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236566AbiHYHJy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 25 Aug 2022 03:09:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43520 "EHLO
+        id S241832AbiHYMec (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 25 Aug 2022 08:34:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235442AbiHYHJx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 25 Aug 2022 03:09:53 -0400
-X-Greylist: delayed 304 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 25 Aug 2022 00:09:50 PDT
-Received: from out30-42.freemail.mail.aliyun.com (unknown [115.124.30.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 689FA11455;
-        Thu, 25 Aug 2022 00:09:50 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R381e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=yang.lee@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VNCEMA-_1661411080;
-Received: from localhost(mailfrom:yang.lee@linux.alibaba.com fp:SMTPD_---0VNCEMA-_1661411080)
-          by smtp.aliyun-inc.com;
-          Thu, 25 Aug 2022 15:04:40 +0800
-From:   Yang Li <yang.lee@linux.alibaba.com>
+        with ESMTP id S237455AbiHYMeb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 25 Aug 2022 08:34:31 -0400
+Received: from bg5.exmail.qq.com (bg4.exmail.qq.com [43.155.67.158])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4E35AED89;
+        Thu, 25 Aug 2022 05:34:29 -0700 (PDT)
+X-QQ-mid: bizesmtp68t1661430866ta51x04m
+Received: from localhost.localdomain ( [182.148.14.124])
+        by bizesmtp.qq.com (ESMTP) with 
+        id ; Thu, 25 Aug 2022 20:34:24 +0800 (CST)
+X-QQ-SSF: 01000000002000C0E000B00A0000000
+X-QQ-FEAT: r/cTxDoDoiH37fhH4E8Ls+G6Pfl4eerV3Sc/K80AH+f9IIoeCEvXrAGEFlfOn
+        +0Jz4spDcFJLIbRHlBChya/h3w2OMuS9yRynX/bWdE+JQC5awFW1hG/yyKIcBHwwRauJq2A
+        HYDvfXGEfrxC+RJCL3oAJ3oBSPF/jnNFquN3MUHEsIprJo9MwWdWjDExYJXp9L9foLkT21M
+        9kzQl/p+uqd2IoxlYOp2AyFYKhCpdemf4O1xjlOLeFWkj531TBt+H/wSteCnWp/SLiaD4X7
+        9tBV2SRFpYDcOtQUOqjurv7UOpI+hvE3pIRP2e/Nvm1RZJjwVA4KA801/rfW67qGPIOe0Mq
+        oEP6OFbtnYDMiSyUjc8Y1/GE9BuI9sWPdcu3TEpZGT9dAYnM+5277uMGKj1lCMsjTlttqNK
+X-QQ-GoodBg: 0
+From:   Jilin Yuan <yuanjilin@cdjrlc.com>
 To:     tony@atomide.com
-Cc:     lgirdwood@gmail.com, broonie@kernel.org,
-        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Yang Li <yang.lee@linux.alibaba.com>,
-        Abaci Robot <abaci@linux.alibaba.com>
-Subject: [PATCH -next] regulator: drivers: Remove unnecessary print function dev_err()
-Date:   Thu, 25 Aug 2022 15:04:38 +0800
-Message-Id: <20220825070438.128093-1-yang.lee@linux.alibaba.com>
-X-Mailer: git-send-email 2.20.1.7.g153144c
+Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jilin Yuan <yuanjilin@cdjrlc.com>
+Subject: [PATCH] drivers/bus: fix repeated words in comments
+Date:   Thu, 25 Aug 2022 20:34:18 +0800
+Message-Id: <20220825123418.37676-1-yuanjilin@cdjrlc.com>
+X-Mailer: git-send-email 2.36.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtp:cdjrlc.com:qybglogicsvr:qybglogicsvr4
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The print function dev_err() is redundant because
-platform_get_irq_byname() already prints an error.
+ Delete the redundant word 'the'.
 
-Link: https://bugzilla.openanolis.cn/show_bug.cgi?id=1986
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
+Signed-off-by: Jilin Yuan <yuanjilin@cdjrlc.com>
 ---
- drivers/regulator/tps65219-regulator.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/bus/ti-sysc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
-index 7ba2594e437c..ab16e6665625 100644
---- a/drivers/regulator/tps65219-regulator.c
-+++ b/drivers/regulator/tps65219-regulator.c
-@@ -363,11 +363,9 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
- 		irq_type = &tps65219_regulator_irq_types[i];
- 
- 		irq = platform_get_irq_byname(pdev, irq_type->irq_name);
--		if (irq < 0) {
--			dev_err(tps->dev, "Failed to get IRQ %s: %d\n",
--				irq_type->irq_name, irq);
-+		if (irq < 0)
- 			return -EINVAL;
--		}
-+
- 		irq_data[i].dev = tps->dev;
- 		irq_data[i].type = irq_type;
- 
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+index 51d772bb8046..2386e8013e18 100644
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -915,7 +915,7 @@ static int sysc_check_registers(struct sysc *ddata)
+  * within the interconnect target module range. For example, SGX has
+  * them at offset 0x1fc00 in the 32MB module address space. And cpsw
+  * has them at offset 0x1200 in the CPSW_WR child. Usually the
+- * the interconnect target module registers are at the beginning of
++ * interconnect target module registers are at the beginning of
+  * the module range though.
+  */
+ static int sysc_ioremap(struct sysc *ddata)
 -- 
-2.20.1.7.g153144c
+2.36.1
 
