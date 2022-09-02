@@ -2,55 +2,191 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51A94ECAAA1
-	for <linux-omap@archiver.kernel.org>; Fri,  2 Sep 2022 08:15:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 290C8C6FA81
+	for <linux-omap@archiver.kernel.org>; Fri,  2 Sep 2022 09:10:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235749AbiIBIPg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 2 Sep 2022 04:15:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58996 "EHLO
+        id S235178AbiIBJKr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 2 Sep 2022 05:10:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235781AbiIBIPZ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2022 04:15:25 -0400
-Received: from mail.connexion24.pl (mail.connexion24.pl [141.94.21.111])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 781052A958
-        for <linux-omap@vger.kernel.org>; Fri,  2 Sep 2022 01:15:24 -0700 (PDT)
-Received: by mail.connexion24.pl (Postfix, from userid 1002)
-        id D130CAF05E; Fri,  2 Sep 2022 07:56:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=connexion24.pl;
-        s=mail; t=1662105390;
-        bh=ChRcLNpIfKnVgp03/tSyWuRw1tWSTk/OEiEnuZMWs58=;
-        h=Date:From:To:Subject:From;
-        b=BC2/MHzT5LUbsryHo0mjuBIOXrTKoZ6n1tpg1tXMjswhq1WpXys/AX8vyCqnU3yWW
-         /qJDm/qHv6ARJtncCq0svlqj9/pB5DZISj+AaMU74hOEDK3kXJMgpFFqJv7IVGk8qV
-         jbo690byD3oDc1/p1Um22/9vLnODRszTPsoi+2Pt7jyPSsSoohj1T9FNMuye+eRDpF
-         f5tx9SOfZZKS3hYTodfAPh2iOTTscI/eX3z/0xwT62FgN90EeURf8P1DsTRbVvmaZS
-         C0kU9xirxptZNFM8NEn6ggqeZs6WIFF8e0duv2w+zMYgSartMELnL1OQnRDPRVwi5o
-         bC3E14BldokmA==
-Received: by mail.connexion24.pl for <linux-omap@vger.kernel.org>; Fri,  2 Sep 2022 07:55:42 GMT
-Message-ID: <20220902064500-0.1.5l.ytuy.0.7ilvfdy27a@connexion24.pl>
-Date:   Fri,  2 Sep 2022 07:55:42 GMT
-From:   "Norbert Karecki" <norbert.karecki@connexion24.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: Wycena paneli fotowoltaicznych
-X-Mailer: mail.connexion24.pl
+        with ESMTP id S230317AbiIBJKq (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 2 Sep 2022 05:10:46 -0400
+Received: from EUR05-DB8-obe.outbound.protection.outlook.com (mail-db8eur05on2068.outbound.protection.outlook.com [40.107.20.68])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E82650069;
+        Fri,  2 Sep 2022 02:10:45 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Ph6YG4SMNePfUhIfFE2EHWL7zPUABHZLG3Qt0saJ4xWgZLSYU0zahEL49TrJdeQosJk38iOeSijsoRktOx4HijYnSiNIz/U3ZAnfwSDIX/1b37j3GefPLXmS5XeRWU97aJz2KHAZ1goLTmCN7YoMv5sgNyIlTaVL6WxVyOuJhNVh5usX3gQvNDMp+y/g9D+Uiw3JD4Qe5SvGRq1HmqkjH1Z3mmQtgEMzG0c+zGEfhWKKYrHuH3rB6Tsstfq5Ivl68I+aBx7PGWIxy6cBn/0M4RSmaadV/f6L0lKFxxsjUbAnwXWZUwJDfKyRIAT5ZZv8R/8miZj39jjKLetGjuB/Wg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=VcSPUM7JKx60kqiVPlvPob4IqPGkJo80FpolQhbmIdg=;
+ b=d34JzQXSbszcKYdT2BP7wEAOG4XXSK/OOePKj2osAHWYn5Ol0KR7d5Ai6H9WFs+6VFT6BWAfJw2+nMlEpa2QeXl53ijQkrRgyKFokvc4gI8OqtOGIwEMyvgMT5P4MV33e7JA0RITvqdPia1B9GVas6nRJHLhNS0meRhd8KvVKPd+94/tBMWgxPUHmm4YXKyn3uxVLzNnGvCI2HX6c5KDGYTzY10+vsN4clKwfecmJkKWrFatwga97VQw5w9M9pjXETftxG46E2k5L1yhUHloTukKzJzEAJXDWslSztCcx+DW/NtGZhU4u8kC+Uj2Fj52mfXohO1q+sg4JWD4XGqaHQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 194.138.21.76) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=siemens.com;
+ dmarc=pass (p=none sp=none pct=100) action=none header.from=siemens.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=siemens.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=VcSPUM7JKx60kqiVPlvPob4IqPGkJo80FpolQhbmIdg=;
+ b=BthK32XOgk3XYWIYhfD8gfk7Yy4ohGEV7U/H00HGd3I7U+5H/gn2rqCGq+hEZIEy89nNVfQuHhqvznzhMr+Rce0LRomC8/MonjR2eem+zCGLLvzHT/UMd5TkQdy04KXsQs7z+0Zg8fVaroSv52T1hQf04aBzpiTWwqQY8WkQVXxf1/xcrBOALXv/pQE7NP3G8Kc0pdqO5k32dr8YfoCNZR5Uh/5j7QPtsyxfCgFCKtAT2BEy0C87nVPucVVvQw1iOsRDyiuw7M0tGAseFMTKPQjprVIqP+HycYDLnS6VY6FK2HKbLB6paIfKCfUc6ngz31dF0Wb7Srpyl3cU/ieftg==
+Received: from DU2PR04CA0302.eurprd04.prod.outlook.com (2603:10a6:10:2b5::7)
+ by PR3PR10MB3834.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:102:2a::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5588.12; Fri, 2 Sep
+ 2022 09:10:43 +0000
+Received: from DB5EUR01FT092.eop-EUR01.prod.protection.outlook.com
+ (2603:10a6:10:2b5:cafe::ad) by DU2PR04CA0302.outlook.office365.com
+ (2603:10a6:10:2b5::7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5588.15 via Frontend
+ Transport; Fri, 2 Sep 2022 09:10:43 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 194.138.21.76)
+ smtp.mailfrom=siemens.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=siemens.com;
+Received-SPF: Pass (protection.outlook.com: domain of siemens.com designates
+ 194.138.21.76 as permitted sender) receiver=protection.outlook.com;
+ client-ip=194.138.21.76; helo=hybrid.siemens.com; pr=C
+Received: from hybrid.siemens.com (194.138.21.76) by
+ DB5EUR01FT092.mail.protection.outlook.com (10.152.4.170) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.5588.10 via Frontend Transport; Fri, 2 Sep 2022 09:10:42 +0000
+Received: from DEMCHDC8WAA.ad011.siemens.net (139.25.226.104) by
+ DEMCHDC8VSA.ad011.siemens.net (194.138.21.76) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.12; Fri, 2 Sep 2022 11:10:42 +0200
+Received: from bennie-lenovo.fritz.box (139.21.146.191) by
+ DEMCHDC8WAA.ad011.siemens.net (139.25.226.104) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.7; Fri, 2 Sep 2022 11:10:40 +0200
+From:   "B. Niedermayr" <benedikt.niedermayr@siemens.com>
+To:     <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>
+CC:     <rogerq@kernel.org>, <tony@atomide.com>, <krzk@kernel.org>,
+        <robh+dt@kernel.org>
+Subject: [PATCH v2 2/3] memory: omap-gpmc: add support for wait pin polarity
+Date:   Fri, 2 Sep 2022 11:10:27 +0200
+Message-ID: <20220902091028.1346952-3-benedikt.niedermayr@siemens.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220902091028.1346952-1-benedikt.niedermayr@siemens.com>
+References: <20220902091028.1346952-1-benedikt.niedermayr@siemens.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [139.21.146.191]
+X-ClientProxiedBy: DEMCHDC8A0A.ad011.siemens.net (139.25.226.106) To
+ DEMCHDC8WAA.ad011.siemens.net (139.25.226.104)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 5415cff9-117a-4128-2e26-08da8cc30370
+X-MS-TrafficTypeDiagnostic: PR3PR10MB3834:EE_
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: S8EIlBkrCQHQnLByOfkfAM2w3rZvo6oxNawkSzQ1/xJsLt7L8wwyV11FS32KWoZuzYTIBnCxc5P6I3pvhxcFinWdmtHblFRLC3VBtw3jVkBQ2IXpF68dlblWVm7tIDLFtipsjIcu2z9C0sKaqpEOotATWHRiHX6X6DAspcUcZFgtdLsd6jPwPNbO4RL0c9dfZB/Gb27At0WSC9vxbkjyQORDvwA89OECC+GHCmFNWXG/AqJAQ5NCEGqTZJ9KbziQ/TatB+Rc6LHXhkP1uUPhmGBvTR+OIps2IA0z9RNMrjzBx3jmwO6VZwde1g1TZj2apWgZ00yzxDXhW4C6pnhfHPhwWZPlCbxS+udeIGk6/sg+Z71xcMSjy9a93CCHuIXshTbYwMizfEi6XNdmnZw0z5J21Je1BHg63/NOXmEyiV/bCRZtGqbwhxIsaHBLtvsF7m10mTcicAO1QkLVoTbmL/UwEHZC9XbosUmsztWCT9ZH3NzwEEgjpSasd+r+89vumROnWuT1eTiL58+UFKNLDSnd3ZiCu1Dx4ByLo+/gihy7RnJTUrUnV2S+5PAhw6z4ajf5NaR0gMQm/Buo+hvvc2O5J3lm7MQvEbX8tQtgZdF4fNeyOIweSdl2rFQH4MD+tc432CgBBrgeAf9MImYPXdVEpPMaGBjInHtdjML5Ojcy1dg6kR9Y0R39E7O86ug6exQUsB5FUY4GGGf/IgsdHYr8Z2u455g2V9UMsWqvaNAp2lvlsx3gESpvJsbv7Tv1tMXaLqQyAg//faovurdfdVdGb1RvtUmQqLoTxzkHYEeoXvOGrYU75i7d/N/Mopeq
+X-Forefront-Antispam-Report: CIP:194.138.21.76;CTRY:DE;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:hybrid.siemens.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230016)(4636009)(346002)(136003)(396003)(39860400002)(376002)(46966006)(36840700001)(40470700004)(47076005)(26005)(2616005)(186003)(336012)(16526019)(956004)(1076003)(40480700001)(8936002)(5660300002)(36756003)(86362001)(41300700001)(6666004)(478600001)(36860700001)(40460700003)(356005)(83380400001)(4326008)(8676002)(82310400005)(110136005)(54906003)(2906002)(316002)(81166007)(82960400001)(82740400003)(70206006)(70586007)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: siemens.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Sep 2022 09:10:42.9760
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5415cff9-117a-4128-2e26-08da8cc30370
+X-MS-Exchange-CrossTenant-Id: 38ae3bcd-9579-4fd4-adda-b42e1495d55a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=38ae3bcd-9579-4fd4-adda-b42e1495d55a;Ip=[194.138.21.76];Helo=[hybrid.siemens.com]
+X-MS-Exchange-CrossTenant-AuthSource: DB5EUR01FT092.eop-EUR01.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PR3PR10MB3834
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry,
+From: Benedikt Niedermayr <benedikt.niedermayr@siemens.com>
 
-dostrzegam mo=C5=BCliwo=C5=9B=C4=87 wsp=C3=B3=C5=82pracy z Pa=C5=84stwa f=
-irm=C4=85.
+Setting the wait pin polarity from the device tree is currently not
+possible. The device tree property "gpmc,wait-pin-polarity" can be used
+for that. If this property is missing the previous default value
+is used instead, which preserves backwards compatibility.
 
-=C5=9Awiadczymy kompleksow=C4=85 obs=C5=82ug=C4=99 inwestycji w fotowolta=
-ik=C4=99, kt=C3=B3ra obni=C5=BCa koszty energii elektrycznej nawet o 90%.
+The wait pin polarity is then set via the gpiochip
+direction_input callback function.
 
-Czy s=C4=85 Pa=C5=84stwo zainteresowani weryfikacj=C4=85 wst=C4=99pnych p=
-ropozycji?
+Signed-off-by: Benedikt Niedermayr <benedikt.niedermayr@siemens.com>
+---
+ drivers/memory/omap-gpmc.c              | 30 ++++++++++++++++++++-----
+ include/linux/platform_data/gpmc-omap.h |  1 +
+ 2 files changed, 26 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index 579903457415..be3c35ae9619 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -35,6 +35,8 @@
+ 
+ #include <linux/platform_data/mtd-nand-omap2.h>
+ 
++#include "../gpio/gpiolib.h"
++
+ #define	DEVICE_NAME		"omap-gpmc"
+ 
+ /* GPMC register offsets */
+@@ -1980,6 +1982,11 @@ void gpmc_read_settings_dt(struct device_node *np, struct gpmc_settings *p)
+ 							"gpmc,wait-on-read");
+ 		p->wait_on_write = of_property_read_bool(np,
+ 							 "gpmc,wait-on-write");
++		p->wait_pin_polarity = of_property_read_u32(np,
++								 "gpmc,wait-pin-polarity",
++								 &p->wait_pin_polarity);
++		if (p->wait_pin_polarity < 0)
++			p->wait_pin_polarity = GPIO_ACTIVE_HIGH;
+ 		if (!p->wait_on_read && !p->wait_on_write)
+ 			pr_debug("%s: rd/wr wait monitoring not enabled!\n",
+ 				 __func__);
+@@ -2210,10 +2217,11 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	if (gpmc_s.wait_on_read || gpmc_s.wait_on_write) {
+ 		unsigned int wait_pin = gpmc_s.wait_pin;
+ 
+-		waitpin_desc = gpiochip_request_own_desc(&gpmc->gpio_chip,
+-							 wait_pin, "WAITPIN",
+-							 GPIO_ACTIVE_HIGH,
+-							 GPIOD_IN);
++		waitpin_desc =
++			gpiochip_request_own_desc(&gpmc->gpio_chip,
++				wait_pin, "WAITPIN",
++				gpmc_s.wait_pin_polarity ? GPIO_ACTIVE_HIGH : GPIO_ACTIVE_LOW,
++				GPIOD_IN);
+ 		if (IS_ERR(waitpin_desc)) {
+ 			ret = PTR_ERR(waitpin_desc);
+ 			if (ret == -EBUSY) {
+@@ -2342,7 +2350,19 @@ static int gpmc_gpio_get_direction(struct gpio_chip *chip, unsigned int offset)
+ static int gpmc_gpio_direction_input(struct gpio_chip *chip,
+ 				     unsigned int offset)
+ {
+-	return 0;	/* we're input only */
++	u32 reg;
++	struct gpio_desc *desc = gpiochip_get_desc(chip, offset);
++
++	offset += 8;
++	reg = gpmc_read_reg(GPMC_CONFIG);
++
++	if (BIT(FLAG_ACTIVE_LOW) & desc->flags)
++		reg &= ~BIT(offset);
++	else
++		reg |= BIT(offset);
++
++	gpmc_write_reg(GPMC_CONFIG, reg);
++	return 0;
+ }
+ 
+ static int gpmc_gpio_direction_output(struct gpio_chip *chip,
+diff --git a/include/linux/platform_data/gpmc-omap.h b/include/linux/platform_data/gpmc-omap.h
+index c9cc4e32435d..bf4f2246f31d 100644
+--- a/include/linux/platform_data/gpmc-omap.h
++++ b/include/linux/platform_data/gpmc-omap.h
+@@ -149,6 +149,7 @@ struct gpmc_settings {
+ 	u32 device_width;	/* device bus width (8 or 16 bit) */
+ 	u32 mux_add_data;	/* multiplex address & data */
+ 	u32 wait_pin;		/* wait-pin to be used */
++	u32 wait_pin_polarity;	/* wait-pin polarity */
+ };
+ 
+ /* Data for each chip select */
+-- 
+2.25.1
 
-Pozdrawiam,
-Norbert Karecki
