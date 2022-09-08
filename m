@@ -2,44 +2,77 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05422C38145
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Sep 2022 05:19:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3208ECAAD5
+	for <linux-omap@archiver.kernel.org>; Thu,  8 Sep 2022 09:35:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229664AbiIGFTv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 7 Sep 2022 01:19:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38774 "EHLO
+        id S229669AbiIHJfg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 8 Sep 2022 05:35:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229666AbiIGFTr (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 7 Sep 2022 01:19:47 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7313113FA7
-        for <linux-omap@vger.kernel.org>; Tue,  6 Sep 2022 22:19:45 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id F0B3580E1;
-        Wed,  7 Sep 2022 05:12:06 +0000 (UTC)
-Date:   Wed, 7 Sep 2022 08:19:43 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     yegorslists@googlemail.com
-Cc:     linux-omap@vger.kernel.org, robh+dt@kernel.org
-Subject: Re: [PATCH v2 1/5] ARM: dts: am335x-baltos: add GPIO names for
- ir3220 and ir5221 devices
-Message-ID: <Yxgp71Sm6EoRyKIa@atomide.com>
-References: <20220726083444.10159-1-yegorslists@googlemail.com>
+        with ESMTP id S229563AbiIHJfe (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 8 Sep 2022 05:35:34 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70799C6521;
+        Thu,  8 Sep 2022 02:35:26 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E5236B82063;
+        Thu,  8 Sep 2022 09:35:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC22BC433C1;
+        Thu,  8 Sep 2022 09:35:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1662629723;
+        bh=BsvpsZnx9KnJ8QRTFvQwCTuxSuSoudkvqY4ah5XzgaE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=j/3qQZQhJ7d9HsS6s5HL+atI4EWkc5zIhvQSSaBbIOiJh8TY12r2wAyySq6udDFfY
+         zIArbaYivjHQzdtStin/yoXYtXGIc1eypGmkU89LN7kLJDfdaf0nXlQAwOqhV12PLV
+         3xEljeFaSjAClKQ6dZAATabiiL3zFRs3hnszcT+RYM/QH4GV4JXr2mK3EZBEl7y2tE
+         vI9Q7j6Rskc4zeiE2Cqb+5AEAxe+ON6HbhKqrgDHusjOjRDYbIqcKqvUPvmh/fPyNH
+         LK8ij4/BYn58ibIO/gwN9S0oiXm9cmAh09jgkgAKqlvZCDinjbqF01ZJv7iMp9k/U0
+         O1qYkkl/SXzHQ==
+Date:   Thu, 8 Sep 2022 10:35:18 +0100
+From:   Lee Jones <lee@kernel.org>
+To:     Linus Walleij <linus.walleij@linaro.org>
+Cc:     linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Cory Maccarrone <darkstar6262@gmail.com>,
+        linux-omap@vger.kernel.org
+Subject: Re: [PATCH] mfd/omap1: htc-i2cpld: Convert to a pure GPIO driver
+Message-ID: <Yxm3Vp/Ivn/1xGj2@google.com>
+References: <20220905115810.5987-1-linus.walleij@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220726083444.10159-1-yegorslists@googlemail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20220905115810.5987-1-linus.walleij@linaro.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* yegorslists@googlemail.com <yegorslists@googlemail.com> [220726 11:28]:
-> From: Yegor Yefremov <yegorslists@googlemail.com>
+On Mon, 05 Sep 2022, Linus Walleij wrote:
+
+> Instead of passing GPIO numbers pertaining to ourselves through
+> platform data, just request GPIO descriptors from our own GPIO
+> chips and use them, and cut down on the unnecessary complexity.
 > 
-> Add GPIO names for both SoC and TCA6416 lines.
+> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Cory Maccarrone <darkstar6262@gmail.com>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+> ---
+> If one of the OMAP1 people can provide an ACK then it's best
+> if Lee takes this into the MFD tree.
+> ---
+>  arch/arm/mach-omap1/board-htcherald.c |  9 ----
+>  drivers/mfd/htc-i2cpld.c              | 59 ++++++++++++---------------
+>  include/linux/htcpld.h                |  2 -
+>  3 files changed, 26 insertions(+), 44 deletions(-)
 
-Thanks applying all into omap-for-v6.1/dt.
+Applied, thanks.
 
-Regards,
-
-Tony
+-- 
+Lee Jones [李琼斯]
