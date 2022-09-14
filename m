@@ -2,25 +2,25 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D01AFECAAD3
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Sep 2022 03:46:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9A05C6FA89
+	for <linux-omap@archiver.kernel.org>; Wed, 14 Sep 2022 03:46:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229700AbiINDqW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 13 Sep 2022 23:46:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59982 "EHLO
+        id S229611AbiINDqX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 13 Sep 2022 23:46:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229611AbiINDqU (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2022 23:46:20 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD5736AA27;
-        Tue, 13 Sep 2022 20:46:18 -0700 (PDT)
-Received: from kwepemi500012.china.huawei.com (unknown [172.30.72.54])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4MS5lq1LVFznV0W;
-        Wed, 14 Sep 2022 11:43:35 +0800 (CST)
+        with ESMTP id S229489AbiINDqV (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Sep 2022 23:46:21 -0400
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3F536AA1A;
+        Tue, 13 Sep 2022 20:46:19 -0700 (PDT)
+Received: from kwepemi500012.china.huawei.com (unknown [172.30.72.57])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4MS5kc66dfzcjdB;
+        Wed, 14 Sep 2022 11:42:32 +0800 (CST)
 Received: from cgs.huawei.com (10.244.148.83) by
  kwepemi500012.china.huawei.com (7.221.188.12) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Wed, 14 Sep 2022 11:46:15 +0800
+ 15.1.2375.24; Wed, 14 Sep 2022 11:46:17 +0800
 From:   Gaosheng Cui <cuigaosheng1@huawei.com>
 To:     <rostedt@goodmis.org>, <mingo@redhat.com>, <linux@armlinux.org.uk>,
         <tony@atomide.com>, <bcousson@baylibre.com>, <paul@pwsan.com>,
@@ -31,10 +31,12 @@ To:     <rostedt@goodmis.org>, <mingo@redhat.com>, <linux@armlinux.org.uk>,
 CC:     <linux-arm-kernel@lists.infradead.org>,
         <linux-omap@vger.kernel.org>, <linux-usb@vger.kernel.org>,
         <linux-samsung-soc@vger.kernel.org>
-Subject: [PATCH 0/3] Remove unused declarations for arm
-Date:   Wed, 14 Sep 2022 11:46:12 +0800
-Message-ID: <20220914034615.1240860-1-cuigaosheng1@huawei.com>
+Subject: [PATCH 2/3] ARM: s3c: remove orphan declarations from arch/arm/mach-s3c/devs.h
+Date:   Wed, 14 Sep 2022 11:46:14 +0800
+Message-ID: <20220914034615.1240860-3-cuigaosheng1@huawei.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220914034615.1240860-1-cuigaosheng1@huawei.com>
+References: <20220914034615.1240860-1-cuigaosheng1@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -46,24 +48,28 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This series contains a few cleanup patches, to remove unused
-declarations which have been removed. Thanks!
+s3c64xx_device_spi1 and s3c64xx_device_spi2 were removed by
+commit f1ba938e4f98 ("spi: s3c64xx: Delete unused boardfile
+helpers"), so remove the declaration, too.
 
-Gaosheng Cui (3):
-  ARM: OMAP2+: remove orphan declarations from omap2
-  ARM: s3c: remove orphan declarations from arch/arm/mach-s3c/devs.h
-  ARM: ftrace: remove unused ftrace_graph_caller_old() declaration
+Signed-off-by: Gaosheng Cui <cuigaosheng1@huawei.com>
+---
+ arch/arm/mach-s3c/devs.h | 2 --
+ 1 file changed, 2 deletions(-)
 
- arch/arm/kernel/ftrace.c                     | 1 -
- arch/arm/mach-omap2/common.h                 | 3 ---
- arch/arm/mach-omap2/omap_hwmod.h             | 3 ---
- arch/arm/mach-omap2/omap_hwmod_common_data.h | 1 -
- arch/arm/mach-omap2/omap_opp_data.h          | 5 -----
- arch/arm/mach-omap2/serial.h                 | 3 ---
- arch/arm/mach-omap2/usb.h                    | 1 -
- arch/arm/mach-s3c/devs.h                     | 2 --
- 8 files changed, 19 deletions(-)
-
+diff --git a/arch/arm/mach-s3c/devs.h b/arch/arm/mach-s3c/devs.h
+index 02b0c5750572..991b9b2006a1 100644
+--- a/arch/arm/mach-s3c/devs.h
++++ b/arch/arm/mach-s3c/devs.h
+@@ -33,8 +33,6 @@ extern struct platform_device s3c64xx_device_onenand1;
+ extern struct platform_device s3c64xx_device_pcm0;
+ extern struct platform_device s3c64xx_device_pcm1;
+ extern struct platform_device s3c64xx_device_spi0;
+-extern struct platform_device s3c64xx_device_spi1;
+-extern struct platform_device s3c64xx_device_spi2;
+ 
+ extern struct platform_device s3c_device_adc;
+ extern struct platform_device s3c_device_cfcon;
 -- 
 2.25.1
 
