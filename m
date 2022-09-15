@@ -2,86 +2,79 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A7A0C6FA8A
-	for <linux-omap@archiver.kernel.org>; Wed, 14 Sep 2022 14:34:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 536CBC6FA82
+	for <linux-omap@archiver.kernel.org>; Thu, 15 Sep 2022 01:43:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230101AbiINOeC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 14 Sep 2022 10:34:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57416 "EHLO
+        id S229767AbiIOBnm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 14 Sep 2022 21:43:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230140AbiINOeA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2022 10:34:00 -0400
-Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be [IPv6:2a02:1800:120:4::f00:13])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE7637F0B0
-        for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2022 07:33:57 -0700 (PDT)
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed50:e925:8cbe:2e99:b03b])
-        by baptiste.telenet-ops.be with bizsmtp
-        id KqZi2800x3vs4GX01qZiPY; Wed, 14 Sep 2022 16:33:55 +0200
-Received: from rox.of.borg ([192.168.97.57])
-        by ramsan.of.borg with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1oYTSP-005B5L-Tv; Wed, 14 Sep 2022 16:33:41 +0200
-Received: from geert by rox.of.borg with local (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1oYTS7-000zXB-0s; Wed, 14 Sep 2022 16:33:23 +0200
-From:   Geert Uytterhoeven <geert+renesas@glider.be>
-To:     Russell King <linux@armlinux.org.uk>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Tony Lindgren <tony@atomide.com>,
-        Andrzej Hajda <andrzej.hajda@intel.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Robert Foss <robert.foss@linaro.org>,
-        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        Jernej Skrabec <jernej.skrabec@gmail.com>,
-        David Airlie <airlied@linux.ie>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Fabrizio Castro <fabrizio.castro.jz@renesas.com>
-Cc:     dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH v2 2/3] [RFC] arm64: dts: renesas: cat874: Drop bogus clocks property
-Date:   Wed, 14 Sep 2022 16:33:21 +0200
-Message-Id: <97b949cddd7e30e9c05873800330dccd3483b12b.1663165552.git.geert+renesas@glider.be>
+        with ESMTP id S230039AbiIOBnj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 14 Sep 2022 21:43:39 -0400
+Received: from mail-m965.mail.126.com (mail-m965.mail.126.com [123.126.96.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0282C8D3EE
+        for <linux-omap@vger.kernel.org>; Wed, 14 Sep 2022 18:43:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=26gGZ
+        Tw4OQNkXxJ3ttJM4G7oxdRW1/QI2logWeIh9Kg=; b=I9KcWGGB4aQup4YrXdBHs
+        xqBowB94+Rnm+RhXWZqD72qUQWyBeQYmcXTF1grdd8MBBp1R2ZWFFMcv1gembVZQ
+        ekHfklCoUWow0iIBpF7T4JKVbG7+K92T8LO3F8EUeeVDMcR0SA65Geb/4HQuwM1i
+        Vn9n3DDJJI/l+ko2Rnzg7M=
+Received: from localhost.localdomain (unknown [124.16.139.61])
+        by smtp10 (Coremail) with SMTP id NuRpCgD3+jolgyJj993WBg--.27316S2;
+        Thu, 15 Sep 2022 09:43:03 +0800 (CST)
+From:   Liang He <windhl@126.com>
+To:     tony@atomide.com, linux@armlinux.org.uk,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc:     windhl@126.com, chenmengda2009@163.com
+Subject: [PATCH] ARM: OMAP2+: Hold reference returned from of_find_xxx API
+Date:   Thu, 15 Sep 2022 09:42:58 +0800
+Message-Id: <20220915014258.3999504-1-windhl@126.com>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <cover.1663165552.git.geert+renesas@glider.be>
-References: <cover.1663165552.git.geert+renesas@glider.be>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: NuRpCgD3+jolgyJj993WBg--.27316S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrurykJFy5tF4xAw1rCFyrCrg_yoWkZwc_A3
+        Z2gws3Xr1FyF40gw1DCr45ursYkws5Cr47Wa4IqrW5Ka1aqw43XFsFvr9rJrW5ua17GrW3
+        AFn7ur4rA34DGjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7xRWWl97UUUUU==
+X-Originating-IP: [124.16.139.61]
+X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbi2gd9F1uwMvZ1YAAAsN
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The NXP TDA998x HDMI transmitter Device Tree binding documentation does
-not mention a clocks property.
+In omap4_twl_init(), we should hold the reference returned from
+of_find_compatible_node() which has increased the refcount and
+then call of_node_put() with it when done.
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Fixes: ccd369455a23 ("ARM: OMAP2+: Remove bogus warnings for machines without twl PMIC")
+Signed-off-by: Liang He <windhl@126.com>
+Signed-off-by: Mengda Chen <chenmengda2009@163.com>
 ---
-Is this property just missing from the bindings?
-The driver doesn't seem to use it.
+ arch/arm/mach-omap2/omap_twl.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-v2:
-  - No changes.
----
- arch/arm64/boot/dts/renesas/r8a774c0-cat874.dts | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/arch/arm64/boot/dts/renesas/r8a774c0-cat874.dts b/arch/arm64/boot/dts/renesas/r8a774c0-cat874.dts
-index 5a6ea08ffd2b2791..d42e24d9c09b9162 100644
---- a/arch/arm64/boot/dts/renesas/r8a774c0-cat874.dts
-+++ b/arch/arm64/boot/dts/renesas/r8a774c0-cat874.dts
-@@ -239,7 +239,6 @@ tda19988: tda19988@70 {
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index d4dab041324d..07b5f17066ce 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -213,11 +213,13 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
+ int __init omap4_twl_init(void)
+ {
+ 	struct voltagedomain *voltdm;
++	struct device_node *np;
  
- 		#sound-dai-cells = <0>;
- 		audio-ports = <TDA998x_I2S 0x03>;
--		clocks = <&rcar_sound 1>;
+ 	if (!cpu_is_omap44xx() ||
+-	    of_find_compatible_node(NULL, NULL, "motorola,cpcap"))
++	    (np = of_find_compatible_node(NULL, NULL, "motorola,cpcap"))) {
++		of_node_put(np);
+ 		return -ENODEV;
+-
++	}
+ 	voltdm = voltdm_lookup("mpu");
+ 	omap_voltage_register_pmic(voltdm, &omap4_mpu_pmic);
  
- 		ports {
- 			#address-cells = <1>;
 -- 
 2.25.1
 
