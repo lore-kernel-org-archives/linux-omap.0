@@ -2,161 +2,237 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A01BC54EE9
-	for <linux-omap@archiver.kernel.org>; Fri, 16 Sep 2022 12:09:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2FEAC6FA82
+	for <linux-omap@archiver.kernel.org>; Fri, 16 Sep 2022 19:29:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229876AbiIPMJN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 16 Sep 2022 08:09:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60158 "EHLO
+        id S230106AbiIPT34 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 16 Sep 2022 15:29:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43996 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229959AbiIPMJM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2022 08:09:12 -0400
-Received: from EUR05-AM6-obe.outbound.protection.outlook.com (mail-am6eur05on2082.outbound.protection.outlook.com [40.107.22.82])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36B59AFAD0;
-        Fri, 16 Sep 2022 05:09:11 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=EawTRJxy+rvuaNTWTJYbH+OQiwgyRTTXVnW5dNcwnUojGAdXgzkb2gs/ccFr788el+hENAnZSnOc9PCN+drZ/7qp2C7FXVuBRgb8pmhFaovPsxiLQ3ttEVWw99Nx/A+SG/IU9vort2PvXU3cLd7DIR82wfEtq7wSDa3T5tBHNA4K3xQ8oU0YZFgHClT6m9uen05FZv1i0jNArefPI/p4ui9n7SSEu+gDX0UIHc/vMYqsdOd3BoOZag27vvbvLcH7TnVqB11yq4evPscrgzQrPcx7+dhGhIfqeQVWVwaT1MZIjns+ET1SLqhoGJOZk9mYpZlg2mZ2APWVbCgFQqeExQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=dyf94WJFP348oa3g0gktBfN9qvq3qbmcUsesPkG+9HY=;
- b=MZJze6THDRu2hren96vYirHyY1R1EH5AINrKmfbww4hNtrQoqw1uhVX7YzrvT/fhQLPHlVCunkl2EaWZlRKN/G1PViOFTJiRXjrCRHy8arZWuaUOzH6BcGs8k+MUAvXI1Jjz84Q/ccO+N+mEBoW4lgj6jLQo539envSlzrDvXuHJ/2z7AkSO3YrS3/RRpcUmyFm8BcUsB3HWKERctiGmwOzWorbsMPeBAD+dxK9fnmVHujqh7Bcm2glHRhVejbDbgI/G4qNDnjjiUUfREfec9QnVmtbLzjOmW9M/UdwN6UHiiLCjfwtVT96v/+J+rqqTSfkFWRfR1Y9GrQ6i8lulsA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 194.138.21.74) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=siemens.com;
- dmarc=pass (p=none sp=none pct=100) action=none header.from=siemens.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=siemens.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=dyf94WJFP348oa3g0gktBfN9qvq3qbmcUsesPkG+9HY=;
- b=VGanrd8C/aCM+rQzeyw+6qj1ILuurScph2dE1ZIuu8InGAple2ORGfF3pgAOufSRAWLz0c8Y0TUU/O9dmxduHjf28bo/8YrtoG9b1rNhQ82C+vmpdFy8izbrUaW9QvrMCINTM6cNoJzH2te/qGxOGC1xhV8u2qik9z698/Ze2C92BmqInkTYg6AotxH6cReU0seaPdQlhJq0k8tlL6O4q2eMbjk6oOCGmkVTYerD7Pg5oB6/Kh+yHYqZpfbC1IhGmS0k0symPl5rhanI8jGubQPX5YKVog3hU1eWsUELXTgMJ0vrTruHSJtWelIHvSjIP2gGBuPEgShqwiCWRdHlgg==
-Received: from GV3P280CA0056.SWEP280.PROD.OUTLOOK.COM (2603:10a6:150:9::10) by
- PAXPR10MB5638.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:102:244::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5612.22; Fri, 16 Sep
- 2022 12:08:05 +0000
-Received: from HE1EUR01FT063.eop-EUR01.prod.protection.outlook.com
- (2603:10a6:150:9:cafe::7) by GV3P280CA0056.outlook.office365.com
- (2603:10a6:150:9::10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5632.15 via Frontend
- Transport; Fri, 16 Sep 2022 12:08:02 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 194.138.21.74)
- smtp.mailfrom=siemens.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=siemens.com;
-Received-SPF: Pass (protection.outlook.com: domain of siemens.com designates
- 194.138.21.74 as permitted sender) receiver=protection.outlook.com;
- client-ip=194.138.21.74; helo=hybrid.siemens.com; pr=C
-Received: from hybrid.siemens.com (194.138.21.74) by
- HE1EUR01FT063.mail.protection.outlook.com (10.152.1.51) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.5632.12 via Frontend Transport; Fri, 16 Sep 2022 12:08:02 +0000
-Received: from DEMCHDC89XA.ad011.siemens.net (139.25.226.103) by
- DEMCHDC8VQA.ad011.siemens.net (194.138.21.74) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1118.12; Fri, 16 Sep 2022 14:08:00 +0200
-Received: from bennie-lenovo.fritz.box (144.145.220.65) by
- DEMCHDC89XA.ad011.siemens.net (139.25.226.103) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.12; Fri, 16 Sep 2022 14:07:59 +0200
-From:   "B. Niedermayr" <benedikt.niedermayr@siemens.com>
-To:     <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>
-CC:     <rogerq@kernel.org>, <tony@atomide.com>,
-        <krzysztof.kozlowski@linaro.org>, <robh+dt@kernel.org>
-Subject: [PATCH v5 1/3] memory: omap-gpmc: allow shared wait pins
-Date:   Fri, 16 Sep 2022 14:07:47 +0200
-Message-ID: <20220916120749.2517727-2-benedikt.niedermayr@siemens.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220916120749.2517727-1-benedikt.niedermayr@siemens.com>
-References: <20220916120749.2517727-1-benedikt.niedermayr@siemens.com>
+        with ESMTP id S229457AbiIPT3z (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 16 Sep 2022 15:29:55 -0400
+Received: from mail-ot1-f54.google.com (mail-ot1-f54.google.com [209.85.210.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31D7D29CB0;
+        Fri, 16 Sep 2022 12:29:54 -0700 (PDT)
+Received: by mail-ot1-f54.google.com with SMTP id u6-20020a056830118600b006595e8f9f3fso3362402otq.1;
+        Fri, 16 Sep 2022 12:29:54 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date;
+        bh=OB5NCz64cDZ4/Yf4QpF2872Y4Qqzscs/5jTTATIjmnM=;
+        b=4c6wd7QU0K5sopw8AR8n+x/SDcYZS6hCuvOZybZUbjhmpKZnDT9aVHh+1B3FIMMMzA
+         Puf/hgbQnNgjX3FIngfJR1RPL+bjc9ud+odWoFQlcs1PTR/XpUny5Z9wu6kxKOMOBR1B
+         j8eXutoaOcYeYp1fAKsJhNqf4+5DAIyc1KcS7YPE8a7Fji1TyCHWW2Qjzw7TJgYAOJhd
+         FqjXmyqpTwsxv1ZudGlr/WUHcd9SYZRUu/+39iTO85Ujb43lEprOB9y6ENzVMYx0yAw6
+         46nCSZuF3HO5ZfX1ovJDNHZsYiDBWH0ZF/HXBjsaJZ54ACLpS/2rsiPWSla/SaXtQxNZ
+         ZhjA==
+X-Gm-Message-State: ACrzQf041oZF1jaiY35DGr9iSQIEqDi46DqhK+ZowmrXnw8zI/aR8jX8
+        /8aecPAdm2h+mn6lqh6LuA==
+X-Google-Smtp-Source: AMsMyM4H95t5Igw8deTnTowfnD2pJt70FJKnkiKmQGDXKRQ1kNqYPD86UfFnWiUF0xTtj0cjOFe76g==
+X-Received: by 2002:a05:6830:6605:b0:656:c1b3:5d0a with SMTP id cp5-20020a056830660500b00656c1b35d0amr2978466otb.180.1663356593394;
+        Fri, 16 Sep 2022 12:29:53 -0700 (PDT)
+Received: from robh.at.kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
+        by smtp.gmail.com with ESMTPSA id a65-20020a9d2647000000b006391bdbb361sm10168430otb.31.2022.09.16.12.29.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 16 Sep 2022 12:29:53 -0700 (PDT)
+Received: (nullmailer pid 1130396 invoked by uid 1000);
+        Fri, 16 Sep 2022 19:29:52 -0000
+Date:   Fri, 16 Sep 2022 14:29:52 -0500
+From:   Rob Herring <robh@kernel.org>
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
+Cc:     Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        David Airlie <airlied@linux.ie>,
+        linux-renesas-soc@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Jernej Skrabec <jernej.skrabec@gmail.com>,
+        =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Krzysztof Kozlowski <k.kozlowski.k@gmail.com>,
+        devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-omap@vger.kernel.org,
+        Fabrizio Castro <fabrizio.castro.jz@renesas.com>,
+        Andrzej Hajda <andrzej.hajda@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Jonas Karlman <jonas@kwiboo.se>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Robert Foss <robert.foss@linaro.org>
+Subject: Re: [PATCH v2 3/3] dt-bindings: display: bridge: nxp,tda998x:
+ Convert to json-schema
+Message-ID: <20220916192952.GA1130333-robh@kernel.org>
+References: <cover.1663165552.git.geert+renesas@glider.be>
+ <1224e757ec958f8b29ec66e783a7ee805c339d84.1663165552.git.geert+renesas@glider.be>
+ <20220915092649.moyd6j6jm7dk6vmh@krzk-bin>
+ <CAMuHMdWqQXm66kbbKdK0O2qQFM_3oGEWEGmh4LxBZwR-PDc_Hg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Originating-IP: [144.145.220.65]
-X-ClientProxiedBy: DEMCHDC89XA.ad011.siemens.net (139.25.226.103) To
- DEMCHDC89XA.ad011.siemens.net (139.25.226.103)
-X-TM-AS-Product-Ver: SMEX-14.0.0.3080-8.6.1018-26680.007
-X-TM-AS-Result: No-10--12.932000-8.000000
-X-TMASE-MatchedRID: YeslW8iZUfPMYa5soaxdevS8hmHHS12Le/GSmEODdnIdZEkR8Y/meX+s
-        iCf/QKJTdANxGD2/8Th88Abx2XH5NlppNBoXxD2IjUkjodfNrfZjFNgY8SnxHA3BRWEgXqlWWNb
-        BpQ++I1mRiV0eo0RbuK1uNfgQaqvvSqdra4WWujyPQi9XuOWoOEPu4/hW5W83U9ht8cPjV45nAs
-        t8At+c3ceQfu6iwSfsJVibDTTQXq1wDPi4qgkFxCfEMauXqN9RTVAfo9STYMOK5Jq39CIIv+uLF
-        ZZYlisfHxPMjOKY7A8LbigRnpKlKTpcQTtiHDgWM36TonZTaOPY8ftIlo0kbUqSpMkU30hB0m0/
-        /9UUQaRta2wryESZag==
-X-TM-AS-User-Approved-Sender: No
-X-TM-AS-User-Blocked-Sender: No
-X-TMASE-Result: 10--12.932000-8.000000
-X-TMASE-Version: SMEX-14.0.0.3080-8.6.1018-26680.007
-X-TM-SNTS-SMTP: AD166C68398BD1A34AA7112FCE0560E7EF40665841A8F99ACB28101A975A4D462000:8
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: HE1EUR01FT063:EE_|PAXPR10MB5638:EE_
-X-MS-Office365-Filtering-Correlation-Id: 22677c36-62cf-4ce0-9dd4-08da97dc1ac7
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: uK62T+ymgefUu7GhCVsf/8SmjE0Nn23TtREA0AWv7ExuURTJt4e45psjDiAQ1O/Oosth0m+gDoNqzeMlzLoIDdqQZqY4NVMIVGEPaJUXlhFukoBI/CR7gslzfREGdDpoHTsP4KsBRbWnOaQlP+7mx77RLXIY0jl7yaLiufv6cn6EthHTbLBiwQpquwviElt0KNtJdtOdNN7el37VqFKJwdERAtu4nuzED5YUd5yeuc7iFCPi8+14oxDmh0eT0ActSegdCuEGau8TqTblf3ns8HAYkwnKGO6cuJ5EqxaGcXzHpgsIbbjJlvkPpg/oDkFByW7OCXm19h0FYDftiqTfZFAIQaFB2FsG4JfL2eKFtUZVNEYuZfMW7McZBll1xBz6L3oJb3mOllkDYQMcElqPUrX10+re+oVaUvANQFRytxqb2hXtjgw3LSh5qbXcPQ8gUzizmwfx5rU3i1Ulxf5cSeUFSDxYJ+vRdNg+awP4pEHOO39VgTv6hkzCY2joF3NtJd6oN0lckmAiK1sB/O1pYZZ5y73dGRuRr0G7OBjX4/Yf3/F3CkGXbLDsrH89FEoo3C2PbhhzVl5XuP64w3BpEqf17pW0/+F7bfycc+jqsO/hxBAeKyCj+Wqrc5WGecrhN5dRm2wehIb/Y0ikuszv2Fcc0KhtUJU4SwzudIkftYQkWK273vrQHod1CldYEE89KBoP26YrV68+FRMDa3o9saycXYWlBmx9x6KWpKcnGB3a9Y8h1NOkc598V9+bivw/VD+fsEtT8fXdGbrde7qHxw==
-X-Forefront-Antispam-Report: CIP:194.138.21.74;CTRY:DE;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:hybrid.siemens.com;PTR:hybrid.siemens.com;CAT:NONE;SFS:(13230022)(4636009)(396003)(39860400002)(346002)(136003)(376002)(451199015)(40470700004)(36840700001)(46966006)(478600001)(110136005)(36860700001)(82740400003)(40480700001)(316002)(4326008)(70586007)(82310400005)(7596003)(356005)(26005)(7636003)(54906003)(8936002)(5660300002)(70206006)(40460700003)(2616005)(82960400001)(6666004)(8676002)(41300700001)(16526019)(2906002)(336012)(186003)(47076005)(86362001)(956004)(83380400001)(36756003)(1076003);DIR:OUT;SFP:1101;
-X-OriginatorOrg: siemens.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Sep 2022 12:08:02.3298
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 22677c36-62cf-4ce0-9dd4-08da97dc1ac7
-X-MS-Exchange-CrossTenant-Id: 38ae3bcd-9579-4fd4-adda-b42e1495d55a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=38ae3bcd-9579-4fd4-adda-b42e1495d55a;Ip=[194.138.21.74];Helo=[hybrid.siemens.com]
-X-MS-Exchange-CrossTenant-AuthSource: HE1EUR01FT063.eop-EUR01.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PAXPR10MB5638
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdWqQXm66kbbKdK0O2qQFM_3oGEWEGmh4LxBZwR-PDc_Hg@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Benedikt Niedermayr <benedikt.niedermayr@siemens.com>
+On Thu, 15 Sep 2022 12:15:28 +0100, Geert Uytterhoeven wrote:
+> Hi Krzysztof,
+> 
+> On Thu, Sep 15, 2022 at 10:26 AM Krzysztof Kozlowski
+> <k.kozlowski.k@gmail.com> wrote:
+> > On Wed, 14 Sep 2022 16:33:22 +0200, Geert Uytterhoeven wrote:
+> > > Convert the NXP TDA998x HDMI transmitter Device Tree binding
+> > > documentation to json-schema.
+> > >
+> > > Add missing "#sound-dai-cells" property.
+> > > Add ports hierarchy, as an alternative to port.
+> > > Drop pinctrl properties, as they do not belong here.
+> > >
+> > > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> > > ---
+> > > v2:
+> > >   - Add maximum to video-ports,
+> > >   - Drop unneeded maxItems for audio-ports,
+> > >   - Complete port descriptions.
+> > > ---
+> > >  .../bindings/display/bridge/nxp,tda998x.yaml  | 109 ++++++++++++++++++
+> > >  .../bindings/display/bridge/tda998x.txt       |  54 ---------
+> > >  2 files changed, 109 insertions(+), 54 deletions(-)
+> > >  create mode 100644 Documentation/devicetree/bindings/display/bridge/nxp,tda998x.yaml
+> > >  delete mode 100644 Documentation/devicetree/bindings/display/bridge/tda998x.txt
+> > >
+> >
+> > Running 'make dtbs_check' with the schema in this patch gives the
+> > following warnings. Consider if they are expected or the schema is
+> > incorrect. These may not be new warnings.
+> >
+> > Note that it is not yet a requirement to have 0 warnings for dtbs_check.
+> > This will change in the future.
+> >
+> > Full log is available here: https://patchwork.ozlabs.org/patch/
+> >
+> >
+> > tda19988@70: 'clocks' does not match any of the regexes: 'pinctrl-[0-9]+'
+> >         arch/arm64/boot/dts/renesas/r8a774c0-cat874.dtb
+> >         arch/arm64/boot/dts/renesas/r8a774c0-ek874.dtb
+> >         arch/arm64/boot/dts/renesas/r8a774c0-ek874-idk-2121wr.dtb
+> >         arch/arm64/boot/dts/renesas/r8a774c0-ek874-mipi-2.1.dtb
+> >
+> > tda19988@70: ports: 'oneOf' conditional failed, one must be fixed:
+> >         arch/arm/boot/dts/am335x-boneblack.dtb
+> >         arch/arm/boot/dts/am335x-boneblack-wireless.dtb
+> >         arch/arm/boot/dts/am335x-sancloud-bbe.dtb
+> >
+> > tda19988@70: ports:port@0: 'reg' is a required property
+> >         arch/arm/boot/dts/am335x-boneblack.dtb
+> >         arch/arm/boot/dts/am335x-boneblack-wireless.dtb
+> >         arch/arm/boot/dts/am335x-sancloud-bbe.dtb
+> >
+> > tda9988@70: ports: 'oneOf' conditional failed, one must be fixed:
+> >         arch/arm/boot/dts/am335x-myirtech-myd.dtb
+> >
+> > tda9988@70: ports:port@0: 'reg' is a required property
+> >         arch/arm/boot/dts/am335x-myirtech-myd.dtb
+> 
+> Please test this with the earlier patches in the same series applied ;-)
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
+> 
+> 
+> From git@z Thu Jan  1 00:00:00 1970
+> Return-Path: <devicetree-owner@kernel.org>
+> X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+> 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+> Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+> 	by smtp.lore.kernel.org (Postfix) with ESMTP id 56EEEC6FA8B
+> 	for <linux-devicetree@archiver.kernel.org>;
+>  Wed, 14 Sep 2022 14:34:04 +0000 (UTC)
+> Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+>         id S230118AbiINOeC (ORCPT
+>         <rfc822;linux-devicetree@archiver.kernel.org>);
+>         Wed, 14 Sep 2022 10:34:02 -0400
+> Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57410 "EHLO
+>         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+>         with ESMTP id S230133AbiINOeA (ORCPT
+>         <rfc822;devicetree@vger.kernel.org>); Wed, 14 Sep 2022 10:34:00 -0400
+> Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be
+>  [IPv6:2a02:1800:120:4::f00:13])
+>         by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC42B7C301
+>         for <devicetree@vger.kernel.org>;
+>  Wed, 14 Sep 2022 07:33:57 -0700 (PDT)
+> Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed50:e925:8cbe:2e99:b03b])
+>         by baptiste.telenet-ops.be with bizsmtp
+>         id KqZi2800s3vs4GX01qZiPV; Wed, 14 Sep 2022 16:33:55 +0200
+> Received: from rox.of.borg ([192.168.97.57])
+>         by ramsan.of.borg with esmtps  (TLS1.3) tls
+>  TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+>         (Exim 4.93)
+>         (envelope-from <geert@linux-m68k.org>)
+>         id 1oYTSP-005B5L-Rc; Wed, 14 Sep 2022 16:33:41 +0200
+> Received: from geert by rox.of.borg with local (Exim 4.93)
+>         (envelope-from <geert@linux-m68k.org>)
+>         id 1oYTS7-000zXm-2p; Wed, 14 Sep 2022 16:33:23 +0200
+> From: Geert Uytterhoeven <geert+renesas@glider.be>
+> To: Russell King <linux@armlinux.org.uk>,
+>         Rob Herring <robh+dt@kernel.org>,
+>         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+>         Tony Lindgren <tony@atomide.com>,
+>         Andrzej Hajda <andrzej.hajda@intel.com>,
+>         Neil Armstrong <narmstrong@baylibre.com>,
+>         Robert Foss <robert.foss@linaro.org>,
+>         Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+>         Jonas Karlman <jonas@kwiboo.se>,
+>         Jernej Skrabec <jernej.skrabec@gmail.com>,
+>         David Airlie <airlied@linux.ie>,
+>         Daniel Vetter <daniel@ffwll.ch>,
+>         =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+>         Magnus Damm <magnus.damm@gmail.com>,
+>         Fabrizio Castro <fabrizio.castro.jz@renesas.com>
+> Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+>         linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+>         Geert Uytterhoeven <geert+renesas@glider.be>
+> Subject: [PATCH v2 3/3] dt-bindings: display: bridge: nxp,tda998x: Convert to
+>  json-schema
+> Date: Wed, 14 Sep 2022 16:33:22 +0200
+> Message-Id:
+>  <1224e757ec958f8b29ec66e783a7ee805c339d84.1663165552.git.geert+renesas@glider.be>
+> X-Mailer: git-send-email 2.25.1
+> In-Reply-To: <cover.1663165552.git.geert+renesas@glider.be>
+> References: <cover.1663165552.git.geert+renesas@glider.be>
+> MIME-Version: 1.0
+> Content-Transfer-Encoding: 8bit
+> Precedence: bulk
+> List-ID: <devicetree.vger.kernel.org>
+> X-Mailing-List: devicetree@vger.kernel.org
+> 
+> Convert the NXP TDA998x HDMI transmitter Device Tree binding
+> documentation to json-schema.
+> 
+> Add missing "#sound-dai-cells" property.
+> Add ports hierarchy, as an alternative to port.
+> Drop pinctrl properties, as they do not belong here.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> ---
+> v2:
+>   - Add maximum to video-ports,
+>   - Drop unneeded maxItems for audio-ports,
+>   - Complete port descriptions.
+> ---
+>  .../bindings/display/bridge/nxp,tda998x.yaml  | 109 ++++++++++++++++++
+>  .../bindings/display/bridge/tda998x.txt       |  54 ---------
+>  2 files changed, 109 insertions(+), 54 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/display/bridge/nxp,tda998x.yaml
+>  delete mode 100644 Documentation/devicetree/bindings/display/bridge/tda998x.txt
+> 
 
-Newer kernels refuse to probe when using the same wait pin for
-different chipselect regions.
-But this may be a usecase when connecting for example FPGA or ASIC
-modules to the gpmc, which only got one wait pin installed.
-
-The wait-pin allocation is now tracked by the gpmc driver in order
-to be sure that the wait pin has been indeed requested by gpmc.
-Therefore the "wait_pin_alloc_mask" has been introduced.
-
-Signed-off-by: Benedikt Niedermayr <benedikt.niedermayr@siemens.com>
----
- drivers/memory/omap-gpmc.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index d9bf1c2ac319..ea495e93766b 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -232,6 +232,7 @@ struct gpmc_device {
- 	int irq;
- 	struct irq_chip irq_chip;
- 	struct gpio_chip gpio_chip;
-+	unsigned long wait_pin_alloc_mask;
- 	int nirqs;
- 	struct resource *data;
- };
-@@ -2221,9 +2222,16 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 							 GPIO_ACTIVE_HIGH,
- 							 GPIOD_IN);
- 		if (IS_ERR(waitpin_desc)) {
--			dev_err(&pdev->dev, "invalid wait-pin: %d\n", wait_pin);
- 			ret = PTR_ERR(waitpin_desc);
--			goto err;
-+			if (ret == -EBUSY &&
-+			    test_bit(wait_pin, &gpmc->wait_pin_alloc_mask)) {
-+				dev_info(&pdev->dev, "shared wait-pin: %d\n", wait_pin);
-+			} else {
-+				dev_err(&pdev->dev, "invalid wait-pin: %d\n", wait_pin);
-+				goto err;
-+			}
-+		} else {
-+			set_bit(wait_pin, &gpmc->wait_pin_alloc_mask);
- 		}
- 	}
- 
--- 
-2.34.1
-
+Applied, thanks!
