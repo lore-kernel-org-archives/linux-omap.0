@@ -2,42 +2,42 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92B4BC6FD28
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Sep 2022 10:17:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D953C6FA90
+	for <linux-omap@archiver.kernel.org>; Mon, 19 Sep 2022 10:17:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230363AbiISKRa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 19 Sep 2022 06:17:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49324 "EHLO
+        id S229730AbiISKRc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 19 Sep 2022 06:17:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229678AbiISKRG (ORCPT
+        with ESMTP id S229926AbiISKRG (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2022 06:17:06 -0400
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5559B1C91F;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55BBD1EC62;
         Mon, 19 Sep 2022 03:17:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=wztoayxqdaRhc3fzwYQuz0RAh5ZT6y7bJFX0CXMuNy8=; b=ADXtthd/kB2UkNVNsBZX3mcAgx
-        eb1wSA1egq4M07Od+XfETtj3lhd4iMNEvYwcU9NzeS13eZKp+mowXOQTzEFZK7CeroXVfNcUNAucm
-        DFEs4ENnbXNf93/JuDzTXaj8dDvpaoObTItrP5rfAcPTaGTUO9u17CB7M9lBwSzhZqApt31copOyD
-        THHS1zzgB7BqCqSJl0DeM5JLgmoPtje3pC9taSIf0jDAy3NiwNozoFE6k7Aa6gH0axWhSw0Ae2Kln
-        k7+RKfh2KfpdBiXJ6godhy6Y1cfSrmD10KmQxJ5TbTEnSM6kxy+r95TYqIDfTireSwql4ofArgV57
-        wDOwI0dQ==;
+        bh=t0hoKUhhRPcpNA2sMhDiSnk+WMkt/R0zO6loPF3PH9w=; b=Pu2ax4C+q2gikvdKh53kb5LQaq
+        1icXVAPPb5rTxmDMICtYx2G9B9yrHKvYB27SoYQJT/Juj9Z0e/ciHJ7RnfVuY0UEjWNyVpkpns/fy
+        /NILdltY1jI6makeZnfd6Ue64JSOcginNFswX+VLat0o+YrsIuhjqYP8sxzm+/aHtz2+5+wAVzwMQ
+        Z6tx/N/mzW2m5hIYqNNQHq8hVqXusyw1qoanShE7Uh/Lm8p05qkgyTLMAP6KM2PwHkRt1IYSrnHns
+        bdeqefliBxf1GDAvIiKTpMroNoGSw6cOFgqeoY/+lppO/2cDzth/JGUAVVk19kUUcCVXxh2cgXBOx
+        JuF2Xc/w==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
         by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1oaDpF-004ahj-DU; Mon, 19 Sep 2022 10:16:29 +0000
+        id 1oaDpE-004ahd-SP; Mon, 19 Sep 2022 10:16:28 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 9BFB4302A1D;
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 7F6DD301BCC;
         Mon, 19 Sep 2022 12:16:24 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id D336C2BA49039; Mon, 19 Sep 2022 12:16:21 +0200 (CEST)
-Message-ID: <20220919101520.602636221@infradead.org>
+        id C99462BA49037; Mon, 19 Sep 2022 12:16:21 +0200 (CEST)
+Message-ID: <20220919101520.466971769@infradead.org>
 User-Agent: quilt/0.66
-Date:   Mon, 19 Sep 2022 11:59:43 +0200
+Date:   Mon, 19 Sep 2022 11:59:41 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -98,8 +98,10 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-xtensa@linux-xtensa.org, linux-acpi@vger.kernel.org,
         linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-arch@vger.kernel.org, kasan-dev@googlegroups.com
-Subject: [PATCH v2 04/44] cpuidle: Move IRQ state validation
+        linux-arch@vger.kernel.org, kasan-dev@googlegroups.com,
+        Frederic Weisbecker <frederic@kernel.org>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: [PATCH v2 02/44] x86/idle: Replace x86_idle with a static_call
 References: <20220919095939.761690562@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -107,41 +109,117 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Make cpuidle_enter_state() consistent with the s2idle variant and
-verify ->enter() always returns with interrupts disabled.
+Typical boot time setup; no need to suffer an indirect call for that.
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Reviewed-by: Frederic Weisbecker <frederic@kernel.org>
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/cpuidle/cpuidle.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/x86/kernel/process.c |   50 +++++++++++++++++++++++++---------------------
+ 1 file changed, 28 insertions(+), 22 deletions(-)
 
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -236,7 +236,11 @@ int cpuidle_enter_state(struct cpuidle_d
- 	stop_critical_timings();
- 	if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
- 		ct_idle_enter();
-+
- 	entered_state = target_state->enter(dev, drv, index);
-+	if (WARN_ONCE(!irqs_disabled(), "%ps leaked IRQ state", target_state->enter))
-+		raw_local_irq_disable();
-+
- 	if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
- 		ct_idle_exit();
- 	start_critical_timings();
-@@ -248,12 +252,8 @@ int cpuidle_enter_state(struct cpuidle_d
- 	/* The cpu is no longer idle or about to enter idle. */
- 	sched_idle_set_state(NULL);
+--- a/arch/x86/kernel/process.c
++++ b/arch/x86/kernel/process.c
+@@ -24,6 +24,7 @@
+ #include <linux/cpuidle.h>
+ #include <linux/acpi.h>
+ #include <linux/elf-randomize.h>
++#include <linux/static_call.h>
+ #include <trace/events/power.h>
+ #include <linux/hw_breakpoint.h>
+ #include <asm/cpu.h>
+@@ -692,7 +693,23 @@ void __switch_to_xtra(struct task_struct
+ unsigned long boot_option_idle_override = IDLE_NO_OVERRIDE;
+ EXPORT_SYMBOL(boot_option_idle_override);
  
--	if (broadcast) {
--		if (WARN_ON_ONCE(!irqs_disabled()))
--			local_irq_disable();
+-static void (*x86_idle)(void);
++/*
++ * We use this if we don't have any better idle routine..
++ */
++void __cpuidle default_idle(void)
++{
++	raw_safe_halt();
++}
++#if defined(CONFIG_APM_MODULE) || defined(CONFIG_HALTPOLL_CPUIDLE_MODULE)
++EXPORT_SYMBOL(default_idle);
++#endif
++
++DEFINE_STATIC_CALL_NULL(x86_idle, default_idle);
++
++static bool x86_idle_set(void)
++{
++	return !!static_call_query(x86_idle);
++}
+ 
+ #ifndef CONFIG_SMP
+ static inline void play_dead(void)
+@@ -715,28 +732,17 @@ void arch_cpu_idle_dead(void)
+ /*
+  * Called from the generic idle code.
+  */
+-void arch_cpu_idle(void)
+-{
+-	x86_idle();
+-}
 -
-+	if (broadcast)
- 		tick_broadcast_exit();
--	}
+-/*
+- * We use this if we don't have any better idle routine..
+- */
+-void __cpuidle default_idle(void)
++void __cpuidle arch_cpu_idle(void)
+ {
+-	raw_safe_halt();
++	static_call(x86_idle)();
+ }
+-#if defined(CONFIG_APM_MODULE) || defined(CONFIG_HALTPOLL_CPUIDLE_MODULE)
+-EXPORT_SYMBOL(default_idle);
+-#endif
  
- 	if (!cpuidle_state_is_coupled(drv, index))
- 		local_irq_enable();
+ #ifdef CONFIG_XEN
+ bool xen_set_default_idle(void)
+ {
+-	bool ret = !!x86_idle;
++	bool ret = x86_idle_set();
+ 
+-	x86_idle = default_idle;
++	static_call_update(x86_idle, default_idle);
+ 
+ 	return ret;
+ }
+@@ -859,20 +865,20 @@ void select_idle_routine(const struct cp
+ 	if (boot_option_idle_override == IDLE_POLL && smp_num_siblings > 1)
+ 		pr_warn_once("WARNING: polling idle and HT enabled, performance may degrade\n");
+ #endif
+-	if (x86_idle || boot_option_idle_override == IDLE_POLL)
++	if (x86_idle_set() || boot_option_idle_override == IDLE_POLL)
+ 		return;
+ 
+ 	if (boot_cpu_has_bug(X86_BUG_AMD_E400)) {
+ 		pr_info("using AMD E400 aware idle routine\n");
+-		x86_idle = amd_e400_idle;
++		static_call_update(x86_idle, amd_e400_idle);
+ 	} else if (prefer_mwait_c1_over_halt(c)) {
+ 		pr_info("using mwait in idle threads\n");
+-		x86_idle = mwait_idle;
++		static_call_update(x86_idle, mwait_idle);
+ 	} else if (cpu_feature_enabled(X86_FEATURE_TDX_GUEST)) {
+ 		pr_info("using TDX aware idle routine\n");
+-		x86_idle = tdx_safe_halt;
++		static_call_update(x86_idle, tdx_safe_halt);
+ 	} else
+-		x86_idle = default_idle;
++		static_call_update(x86_idle, default_idle);
+ }
+ 
+ void amd_e400_c1e_apic_setup(void)
+@@ -925,7 +931,7 @@ static int __init idle_setup(char *str)
+ 		 * To continue to load the CPU idle driver, don't touch
+ 		 * the boot_option_idle_override.
+ 		 */
+-		x86_idle = default_idle;
++		static_call_update(x86_idle, default_idle);
+ 		boot_option_idle_override = IDLE_HALT;
+ 	} else if (!strcmp(str, "nomwait")) {
+ 		/*
 
 
