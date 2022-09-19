@@ -2,186 +2,158 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6A9DC6FA82
-	for <linux-omap@archiver.kernel.org>; Mon, 19 Sep 2022 09:38:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98A1DC6FA9C
+	for <linux-omap@archiver.kernel.org>; Mon, 19 Sep 2022 10:17:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229700AbiISJin (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 19 Sep 2022 05:38:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57930 "EHLO
+        id S230327AbiISKRY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 19 Sep 2022 06:17:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229706AbiISJim (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2022 05:38:42 -0400
-Received: from mail-lf1-x12b.google.com (mail-lf1-x12b.google.com [IPv6:2a00:1450:4864:20::12b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBD8A1D326
-        for <linux-omap@vger.kernel.org>; Mon, 19 Sep 2022 02:38:41 -0700 (PDT)
-Received: by mail-lf1-x12b.google.com with SMTP id u18so45971164lfo.8
-        for <linux-omap@vger.kernel.org>; Mon, 19 Sep 2022 02:38:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date;
-        bh=VJimzBdVCtfgS8uCmHW6ptZG5H95UCJL58R73+bcUzo=;
-        b=ggetqmZugjx7COrp1WBrIR/W6P8NW8I7XMS+drsAeLOzArF90aIiNVOy7zgeflf70t
-         YjQqhV5GjyLWWWN6KlSfg0hDxeKDhNmTqSstIwDSkbdx975ejBJILtJUdYcOcj2cIVBv
-         MJjlZWhbE1tvDtAeoDKQHtni5nwHPv4F+J2VOxukj18BWMbt1oedyjFDVkQIR2pMoX3W
-         GZWDhsSqmPp1x6djWwokuTIut+t5kp7YghckXPrYU9uVifCmyoIEcQQCGIg0sDV60LU5
-         TbuYUEsayCesJhKvvf1uQntnJzCEcs6kW1CuC3Fx8bROjGpXfxvGa2fN9evufcmekgo9
-         +pAA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date;
-        bh=VJimzBdVCtfgS8uCmHW6ptZG5H95UCJL58R73+bcUzo=;
-        b=XscuzNxI68II8AvsF2witYq7+fgKVDyueQmMe9UmTltuh0jrN3T4tKU/PVn0rUfTZy
-         f+y2pQ9TsvfG+C9Mt0O+yAxPBeSUQoZI5jxHxf45nOyjy+C5eSz+WXbLa8tI//4jONYm
-         9AEaFR/EBwjrMqPXYAnGahqlX63Gd1XoCsOUgAY+AXdoDn21hz5pkeAQm6IIhnHKDZTW
-         H7fDPZa9wMl+EO0KGMf+jJ8I5c7zSEPqtshHil+aNjT+IYGXjYCeqf9/wp5zhKQ2EnFh
-         6H/T/k5ZaJOp5yIMgFXsJAG6coBfWUs4h5WcVc1EJU8w5nOvE9+d5gR5wwprbgszGaT8
-         uQhA==
-X-Gm-Message-State: ACrzQf0V1izTOF6pQHqR/3b17BLWEkx1raexCKF4Ly4hlco7fpjyP+yp
-        v0CLP4EqVh4yCjv+yZFyO03QJw==
-X-Google-Smtp-Source: AMsMyM5TaSJssuJzH24HVBt1+dktVcXRxMnTBik6Q6/oKgURMUa6pRcdLnmtl1pzarraziayZ505UQ==
-X-Received: by 2002:ac2:5f1a:0:b0:497:e106:e597 with SMTP id 26-20020ac25f1a000000b00497e106e597mr6157114lfq.135.1663580319883;
-        Mon, 19 Sep 2022 02:38:39 -0700 (PDT)
-Received: from [192.168.0.21] (78-11-189-27.static.ip.netia.com.pl. [78.11.189.27])
-        by smtp.gmail.com with ESMTPSA id b4-20020a056512070400b004946c99e78asm5103217lfs.277.2022.09.19.02.38.38
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 19 Sep 2022 02:38:39 -0700 (PDT)
-Message-ID: <6dd3d41b-eb75-3754-8a17-a8cb4bc838a8@linaro.org>
-Date:   Mon, 19 Sep 2022 11:38:38 +0200
+        with ESMTP id S229714AbiISKRG (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 19 Sep 2022 06:17:06 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 556271EAF3;
+        Mon, 19 Sep 2022 03:17:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
+        Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
+        Content-ID:Content-Description:In-Reply-To;
+        bh=oZwbrkDz2YxQ2tCMIP+SsyU178fWwXoNNNkzTKP67NE=; b=KweB4P8d5D7zkwnL4EDlpnZYcN
+        a9E5xKCTRFYcTufTdlClTGA3iDArhS2rXRQxTKlrXXlrj0UpFCMBatcGTn5dPeA+O4C2MMnypMOxO
+        5v2si5huymLU8WeP2fVE7BDJzihOP+9J3kc2xjZv42l6rH6S36237oq0Fd+r9PUqoyjp+xxFFpIHO
+        +0LT+KJAgXQRKmewdBNUpCB6GardBaz99pO4SDUmqaat0xpyL/RD1zXk0smpZADkhrnDQ8EGTDY6w
+        VPHghONnzwfMVAWRBRjATrTLZKECEJxso7CGz23vtaOidDm2gFnFt6vHX8G+IsOsJbZb9RAt1bDBu
+        aILnL3hQ==;
+Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1oaDpF-004ahs-VQ; Mon, 19 Sep 2022 10:16:30 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id AD9D3302D68;
+        Mon, 19 Sep 2022 12:16:24 +0200 (CEST)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
+        id D7B952BA4903A; Mon, 19 Sep 2022 12:16:21 +0200 (CEST)
+Message-ID: <20220919101520.669962810@infradead.org>
+User-Agent: quilt/0.66
+Date:   Mon, 19 Sep 2022 11:59:44 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     peterz@infradead.org
+Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, vgupta@kernel.org, linux@armlinux.org.uk,
+        ulli.kroll@googlemail.com, linus.walleij@linaro.org,
+        shawnguo@kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
+        kernel@pengutronix.de, festevam@gmail.com, linux-imx@nxp.com,
+        tony@atomide.com, khilman@kernel.org, catalin.marinas@arm.com,
+        will@kernel.org, guoren@kernel.org, bcain@quicinc.com,
+        chenhuacai@kernel.org, kernel@xen0n.name, geert@linux-m68k.org,
+        sammy@sammy.net, monstr@monstr.eu, tsbogend@alpha.franken.de,
+        dinguyen@kernel.org, jonas@southpole.se,
+        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
+        James.Bottomley@HansenPartnership.com, deller@gmx.de,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        paul.walmsley@sifive.com, palmer@dabbelt.com,
+        aou@eecs.berkeley.edu, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
+        svens@linux.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org,
+        davem@davemloft.net, richard@nod.at,
+        anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
+        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
+        dave.hansen@linux.intel.com, x86@kernel.org, hpa@zytor.com,
+        acme@kernel.org, mark.rutland@arm.com,
+        alexander.shishkin@linux.intel.com, jolsa@kernel.org,
+        namhyung@kernel.org, jgross@suse.com, srivatsa@csail.mit.edu,
+        amakhalov@vmware.com, pv-drivers@vmware.com,
+        boris.ostrovsky@oracle.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        rafael@kernel.org, lenb@kernel.org, pavel@ucw.cz,
+        gregkh@linuxfoundation.org, mturquette@baylibre.com,
+        sboyd@kernel.org, daniel.lezcano@linaro.org, lpieralisi@kernel.org,
+        sudeep.holla@arm.com, agross@kernel.org,
+        bjorn.andersson@linaro.org, konrad.dybcio@somainline.org,
+        anup@brainfault.org, thierry.reding@gmail.com,
+        jonathanh@nvidia.com, jacob.jun.pan@linux.intel.com,
+        atishp@atishpatra.org, Arnd Bergmann <arnd@arndb.de>,
+        yury.norov@gmail.com, andriy.shevchenko@linux.intel.com,
+        linux@rasmusvillemoes.dk, dennis@kernel.org, tj@kernel.org,
+        cl@linux.com, rostedt@goodmis.org, pmladek@suse.com,
+        senozhatsky@chromium.org, john.ogness@linutronix.de,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, bsegall@google.com, mgorman@suse.de,
+        bristot@redhat.com, vschneid@redhat.com, fweisbec@gmail.com,
+        ryabinin.a.a@gmail.com, glider@google.com, andreyknvl@gmail.com,
+        dvyukov@google.com, vincenzo.frascino@arm.com,
+        Andrew Morton <akpm@linux-foundation.org>, jpoimboe@kernel.org,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        linux-perf-users@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        linux-xtensa@linux-xtensa.org, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-arch@vger.kernel.org, kasan-dev@googlegroups.com
+Subject: [PATCH v2 05/44] cpuidle,riscv: Push RCU-idle into driver
+References: <20220919095939.761690562@infradead.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.13.0
-Subject: Re: [PATCH v5 2/3] memory: omap-gpmc: add support for wait pin
- polarity
-Content-Language: en-US
-To:     "B. Niedermayr" <benedikt.niedermayr@siemens.com>,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc:     rogerq@kernel.org, tony@atomide.com, robh+dt@kernel.org
-References: <20220916120749.2517727-1-benedikt.niedermayr@siemens.com>
- <20220916120749.2517727-3-benedikt.niedermayr@siemens.com>
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <20220916120749.2517727-3-benedikt.niedermayr@siemens.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 16/09/2022 14:07, B. Niedermayr wrote:
-> From: Benedikt Niedermayr <benedikt.niedermayr@siemens.com>
-> 
-> The waitpin polarity can be configured via the WAITPIN<X>POLARITY bits
-> in the GPMC_CONFIG register. This is currently not supported by the
-> driver. This patch adds support for setting the required register bits
-> with the "gpmc,wait-pin-polarity" dt-property.
-> 
-> Signed-off-by: Benedikt Niedermayr <benedikt.niedermayr@siemens.com>
-> ---
->  drivers/memory/omap-gpmc.c              | 27 +++++++++++++++++++++++++
->  include/linux/platform_data/gpmc-omap.h |  6 ++++++
->  2 files changed, 33 insertions(+)
-> 
-> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-> index ea495e93766b..2853fc28bccc 100644
-> --- a/drivers/memory/omap-gpmc.c
-> +++ b/drivers/memory/omap-gpmc.c
-> @@ -132,6 +132,7 @@
->  #define GPMC_CONFIG_DEV_SIZE	0x00000002
->  #define GPMC_CONFIG_DEV_TYPE	0x00000003
->  
-> +#define GPMC_CONFIG_WAITPINPOLARITY(pin)	(BIT(pin) << 8)
->  #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
->  #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
->  #define GPMC_CONFIG1_READTYPE_ASYNC     (0 << 29)
-> @@ -1882,6 +1883,17 @@ int gpmc_cs_program_settings(int cs, struct gpmc_settings *p)
->  
->  	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, config1);
->  
-> +	if (p->wait_pin_polarity != WAITPINPOLARITY_DEFAULT) {
-> +		config1 = gpmc_read_reg(GPMC_CONFIG);
-> +
-> +		if (p->wait_pin_polarity == WAITPINPOLARITY_ACTIVE_LOW)
-> +			config1 &= ~GPMC_CONFIG_WAITPINPOLARITY(p->wait_pin);
-> +		else if (p->wait_pin_polarity == WAITPINPOLARITY_ACTIVE_HIGH)
-> +			config1 |= GPMC_CONFIG_WAITPINPOLARITY(p->wait_pin);
-> +
-> +		gpmc_write_reg(GPMC_CONFIG, config1);
+Doing RCU-idle outside the driver, only to then temporarily enable it
+again, at least twice, before going idle is daft.
 
-What happens if wait pin is shared and you have different polarities in
-both of devices?
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ drivers/cpuidle/cpuidle-riscv-sbi.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-> +	}
-> +
->  	return 0;
->  }
->  
-> @@ -1981,7 +1993,22 @@ void gpmc_read_settings_dt(struct device_node *np, struct gpmc_settings *p)
->  				__func__);
->  	}
->  
-> +	p->wait_pin_polarity = WAITPINPOLARITY_DEFAULT;
-> +
->  	if (!of_property_read_u32(np, "gpmc,wait-pin", &p->wait_pin)) {
-> +		if (!of_property_read_u32(np, "gpmc,wait-pin-polarity",
-> +					  &p->wait_pin_polarity)) {
-> +			if (p->wait_pin_polarity != WAITPINPOLARITY_ACTIVE_HIGH &&
-> +			    p->wait_pin_polarity != WAITPINPOLARITY_ACTIVE_LOW &&
-> +			    p->wait_pin_polarity != WAITPINPOLARITY_DEFAULT) {
+--- a/drivers/cpuidle/cpuidle-riscv-sbi.c
++++ b/drivers/cpuidle/cpuidle-riscv-sbi.c
+@@ -116,12 +116,12 @@ static int __sbi_enter_domain_idle_state
+ 		return -1;
+ 
+ 	/* Do runtime PM to manage a hierarchical CPU toplogy. */
+-	ct_irq_enter_irqson();
+ 	if (s2idle)
+ 		dev_pm_genpd_suspend(pd_dev);
+ 	else
+ 		pm_runtime_put_sync_suspend(pd_dev);
+-	ct_irq_exit_irqson();
++
++	ct_idle_enter();
+ 
+ 	if (sbi_is_domain_state_available())
+ 		state = sbi_get_domain_state();
+@@ -130,12 +130,12 @@ static int __sbi_enter_domain_idle_state
+ 
+ 	ret = sbi_suspend(state) ? -1 : idx;
+ 
+-	ct_irq_enter_irqson();
++	ct_idle_exit();
++
+ 	if (s2idle)
+ 		dev_pm_genpd_resume(pd_dev);
+ 	else
+ 		pm_runtime_get_sync(pd_dev);
+-	ct_irq_exit_irqson();
+ 
+ 	cpu_pm_exit();
+ 
+@@ -246,6 +246,7 @@ static int sbi_dt_cpu_init_topology(stru
+ 	 * of a shared state for the domain, assumes the domain states are all
+ 	 * deeper states.
+ 	 */
++	drv->states[state_count - 1].flags |= CPUIDLE_FLAG_RCU_IDLE;
+ 	drv->states[state_count - 1].enter = sbi_enter_domain_idle_state;
+ 	drv->states[state_count - 1].enter_s2idle =
+ 					sbi_enter_s2idle_domain_idle_state;
 
-WAITPINPOLARITY_DEFAULT is not allowed in DT, so you can skip it.
 
-> +				pr_err("%s: Invalid wait-pin-polarity (pin: %d, pol: %d)\n",
-
-dev_err, not pr_err
-
-> +				       __func__, p->wait_pin, p->wait_pin_polarity);
-
-Skip __func__
-
-> +				p->wait_pin_polarity = WAITPINPOLARITY_DEFAULT;
-> +			}
-> +		} else {
-> +			pr_err("%s: Failed to read gpmc,wait-pin-polarity\n", __func__);
-
-Ditto.
-
-> +		}
-> +
->  		p->wait_on_read = of_property_read_bool(np,
->  							"gpmc,wait-on-read");
->  		p->wait_on_write = of_property_read_bool(np,
-> diff --git a/include/linux/platform_data/gpmc-omap.h b/include/linux/platform_data/gpmc-omap.h
-> index c9cc4e32435d..c46c28069c31 100644
-> --- a/include/linux/platform_data/gpmc-omap.h
-> +++ b/include/linux/platform_data/gpmc-omap.h
-> @@ -136,6 +136,11 @@ struct gpmc_device_timings {
->  #define GPMC_MUX_AAD			1	/* Addr-Addr-Data multiplex */
->  #define GPMC_MUX_AD			2	/* Addr-Data multiplex */
->  
-> +/* Wait pin polarity values */
-> +#define WAITPINPOLARITY_DEFAULT -1
-
-Missing prefix. This is a global header.
-
-> +#define WAITPINPOLARITY_ACTIVE_LOW 0
-> +#define WAITPINPOLARITY_ACTIVE_HIGH 1
-> +
->  struct gpmc_settings {
->  	bool burst_wrap;	/* enables wrap bursting */
->  	bool burst_read;	/* enables read page/burst mode */
-> @@ -149,6 +154,7 @@ struct gpmc_settings {
->  	u32 device_width;	/* device bus width (8 or 16 bit) */
->  	u32 mux_add_data;	/* multiplex address & data */
->  	u32 wait_pin;		/* wait-pin to be used */
-> +	u32 wait_pin_polarity;	/* wait-pin polarity */
-
-Skip the comment. You just copied the name of variable. Such comments
-are useless.
-
-We do not have KPIs in kernel to achieve some comment-ratio...
-
-Best regards,
-Krzysztof
