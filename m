@@ -2,25 +2,25 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 044EFC6FA8B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3A1EC6FA8E
 	for <linux-omap@archiver.kernel.org>; Tue, 20 Sep 2022 13:01:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229925AbiITNBQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 20 Sep 2022 09:01:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35106 "EHLO
+        id S230201AbiITNBS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 20 Sep 2022 09:01:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230123AbiITNBP (ORCPT
+        with ESMTP id S230246AbiITNBP (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Tue, 20 Sep 2022 09:01:15 -0400
 Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2351E617C
-        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2022 06:01:13 -0700 (PDT)
-Received: from kwepemi500012.china.huawei.com (unknown [172.30.72.56])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4MX1lj3Lwmz14QvS;
-        Tue, 20 Sep 2022 20:57:05 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6169C63F04
+        for <linux-omap@vger.kernel.org>; Tue, 20 Sep 2022 06:01:14 -0700 (PDT)
+Received: from kwepemi500012.china.huawei.com (unknown [172.30.72.54])
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4MX1lk6Yt3z14QvN;
+        Tue, 20 Sep 2022 20:57:06 +0800 (CST)
 Received: from cgs.huawei.com (10.244.148.83) by
  kwepemi500012.china.huawei.com (7.221.188.12) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Tue, 20 Sep 2022 21:01:10 +0800
+ 15.1.2375.31; Tue, 20 Sep 2022 21:01:12 +0800
 From:   Gaosheng Cui <cuigaosheng1@huawei.com>
 To:     <paul@pwsan.com>, <tony@atomide.com>, <linux@armlinux.org.uk>,
         <khilman@kernel.org>, <daniel@zonque.org>,
@@ -28,10 +28,12 @@ To:     <paul@pwsan.com>, <tony@atomide.com>, <linux@armlinux.org.uk>,
         <cuigaosheng1@huawei.com>
 CC:     <linux-omap@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH 0/3] Remove unused declarations from arm
-Date:   Tue, 20 Sep 2022 21:01:07 +0800
-Message-ID: <20220920130110.1104272-1-cuigaosheng1@huawei.com>
+Subject: [PATCH 3/3] ARM: pxa: remove orphan colibri_pxa3xx_init_mmc from arch/arm/mach-pxa/colibri.h
+Date:   Tue, 20 Sep 2022 21:01:10 +0800
+Message-ID: <20220920130110.1104272-4-cuigaosheng1@huawei.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220920130110.1104272-1-cuigaosheng1@huawei.com>
+References: <20220920130110.1104272-1-cuigaosheng1@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -43,21 +45,34 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This series contains a few cleanup patches, to remove unused
-declarations which have been removed. Thanks!
+All uses of colibri_pxa3xx_init_mmc() have been removed by
+commit 9b6956f45132 ("ARM: pxa: Push Colibri evalboard MFP
+into module files").
 
-Gaosheng Cui (3):
-  ARM: OMAP2+: Remove orphan declarations from arch/arm/mach-omap2/pm.h
-  ARM: OMAP2+: clock: Remove orphan declarations from
-    arch/arm/mach-omap2/clock.h
-  ARM: pxa: remove orphan colibri_pxa3xx_init_mmc from
-    arch/arm/mach-pxa/colibri.h
+So remove the orphan declaration and the unused inline function.
 
- arch/arm/mach-omap2/clock.h | 3 ---
- arch/arm/mach-omap2/pm.h    | 3 ---
+Signed-off-by: Gaosheng Cui <cuigaosheng1@huawei.com>
+---
  arch/arm/mach-pxa/colibri.h | 6 ------
- 3 files changed, 12 deletions(-)
+ 1 file changed, 6 deletions(-)
 
+diff --git a/arch/arm/mach-pxa/colibri.h b/arch/arm/mach-pxa/colibri.h
+index 01a46f36cc1f..f44046f87983 100644
+--- a/arch/arm/mach-pxa/colibri.h
++++ b/arch/arm/mach-pxa/colibri.h
+@@ -30,12 +30,6 @@ static inline void colibri_pxa270_income_boardinit(void) {}
+  * common settings for all modules
+  */
+ 
+-#if defined(CONFIG_MMC_PXA) || defined(CONFIG_MMC_PXA_MODULE)
+-extern void colibri_pxa3xx_init_mmc(mfp_cfg_t *pins, int len, int detect_pin);
+-#else
+-static inline void colibri_pxa3xx_init_mmc(mfp_cfg_t *pins, int len, int detect_pin) {}
+-#endif
+-
+ #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
+ extern void colibri_pxa3xx_init_lcd(int bl_pin);
+ #else
 -- 
 2.25.1
 
