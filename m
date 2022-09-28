@@ -2,84 +2,69 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD795C04A95
-	for <linux-omap@archiver.kernel.org>; Wed, 28 Sep 2022 07:15:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5871EC32771
+	for <linux-omap@archiver.kernel.org>; Wed, 28 Sep 2022 07:32:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233342AbiI1HPF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 28 Sep 2022 03:15:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58230 "EHLO
+        id S233599AbiI1Hcp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 28 Sep 2022 03:32:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233315AbiI1HPD (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 28 Sep 2022 03:15:03 -0400
-Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B167C15734;
-        Wed, 28 Sep 2022 00:14:56 -0700 (PDT)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 28S7Ebg0065997;
-        Wed, 28 Sep 2022 02:14:37 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1664349277;
-        bh=F9c9kYNufz7ig/6Cx1Q4VpArre0AWDUO2cP2JP9tKi0=;
-        h=From:To:CC:Subject:Date;
-        b=WOHxHf2YWP+2ckGmEk3haCUCGVo3k3m+QlwsZ3ViUnDgkmSO3o5Yval+9ejC5hTyF
-         qeHZwA1oF9hboDY6uNHHlGtb13s2qau4Zds+acJajCcLcTueyjyCcoUF7KneFrmx7r
-         XisQ5h1YxKXNSe7TG+3oNXNsummdGLOOm+3O9sS0=
-Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 28S7EbQs114589
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 28 Sep 2022 02:14:37 -0500
-Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.6; Wed, 28
- Sep 2022 02:14:37 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.6 via
- Frontend Transport; Wed, 28 Sep 2022 02:14:37 -0500
-Received: from a0393678ub.dal.design.ti.com (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 28S7EX4c103835;
-        Wed, 28 Sep 2022 02:14:34 -0500
-From:   Kishon Vijay Abraham I <kishon@ti.com>
-To:     Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>
-CC:     =?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>,
-        Rob Herring <robh@kernel.org>, <linux-pci@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        with ESMTP id S233619AbiI1Hch (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 28 Sep 2022 03:32:37 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 09252EFF55;
+        Wed, 28 Sep 2022 00:32:15 -0700 (PDT)
+Received: from hillo.muru.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTP id 6F5A6816A;
+        Wed, 28 Sep 2022 07:21:46 +0000 (UTC)
+From:   Tony Lindgren <tony@atomide.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     Johan Hovold <johan@kernel.org>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
         Vignesh Raghavendra <vigneshr@ti.com>,
-        Kishon Vijay Abraham I <kishon@kernel.org>,
-        Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH] MAINTAINERS: Add Vignesh Raghavendra as maintainer of TI DRA7XX/J721E driver
-Date:   Wed, 28 Sep 2022 12:44:18 +0530
-Message-ID: <20220928071418.30456-1-kishon@ti.com>
-X-Mailer: git-send-email 2.17.1
+        linux-serial@vger.kernel.org, linux-omap@vger.kernel.org,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Merlijn Wajer <merlijn@wizzup.org>,
+        Romain Naour <romain.naour@smile.fr>
+Subject: [RFC PATCH 2/5] serial: 8250: omap: Fix unpaired pm_runtime_put_sync() in omap8250_remove()
+Date:   Wed, 28 Sep 2022 10:29:31 +0300
+Message-Id: <20220928072934.48359-3-tony@atomide.com>
+X-Mailer: git-send-email 2.37.3
+In-Reply-To: <20220928072934.48359-1-tony@atomide.com>
+References: <20220928072934.48359-1-tony@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add Vignesh Raghavendra as maintainer of TI DRA7XX/J721E driver.
+On remove, we get an error for "Runtime PM usage count underflow!". I guess
+this driver is mostly built-in, and this issue has gone unnoticed for a
+while. Somehow I did not catch this issue with my earlier fix done with
+commit 4e0f5cc65098 ("serial: 8250_omap: Fix probe and remove for PM
+runtime").
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Fixes: 4e0f5cc65098 ("serial: 8250_omap: Fix probe and remove for PM runtime")
+Depends-on: dd8088d5a896 ("PM: runtime: Add pm_runtime_resume_and_get to deal with usage counter")
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/tty/serial/8250/8250_omap.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index efada49e2e2e..c368f5aa7429 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -15667,7 +15667,7 @@ F:	Documentation/devicetree/bindings/pci/snps,dw-pcie-ep.yaml
- F:	drivers/pci/controller/dwc/*designware*
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -1475,6 +1475,11 @@ static int omap8250_probe(struct platform_device *pdev)
+ static int omap8250_remove(struct platform_device *pdev)
+ {
+ 	struct omap8250_priv *priv = platform_get_drvdata(pdev);
++	int err;
++
++	err = pm_runtime_resume_and_get(&pdev->dev);
++	if (err)
++		return err;
  
- PCI DRIVER FOR TI DRA7XX/J721E
--M:	Kishon Vijay Abraham I <kishon@ti.com>
-+M:	Vignesh Raghavendra <vigneshr@ti.com>
- L:	linux-omap@vger.kernel.org
- L:	linux-pci@vger.kernel.org
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ 	pm_runtime_dont_use_autosuspend(&pdev->dev);
+ 	pm_runtime_put_sync(&pdev->dev);
 -- 
-2.17.1
-
+2.37.3
