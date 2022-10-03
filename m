@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFB82C433FE
-	for <linux-omap@archiver.kernel.org>; Mon,  3 Oct 2022 09:31:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1240DC433F5
+	for <linux-omap@archiver.kernel.org>; Mon,  3 Oct 2022 09:31:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231162AbiJCJbe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 3 Oct 2022 05:31:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56566 "EHLO
+        id S230384AbiJCJbu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 3 Oct 2022 05:31:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229898AbiJCJ3b (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2022 05:29:31 -0400
-Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE7B952DC8
-        for <linux-omap@vger.kernel.org>; Mon,  3 Oct 2022 02:27:41 -0700 (PDT)
-Received: by mail-wr1-x42e.google.com with SMTP id bk15so15772142wrb.13
-        for <linux-omap@vger.kernel.org>; Mon, 03 Oct 2022 02:27:41 -0700 (PDT)
+        with ESMTP id S229791AbiJCJ3x (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2022 05:29:53 -0400
+Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6E5653018
+        for <linux-omap@vger.kernel.org>; Mon,  3 Oct 2022 02:27:48 -0700 (PDT)
+Received: by mail-wr1-x436.google.com with SMTP id w18so7045931wro.7
+        for <linux-omap@vger.kernel.org>; Mon, 03 Oct 2022 02:27:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=Bvo7EJO01qiFSqaGbT4JiAGDEh8uk0vvz3ltgjeJ4xY=;
-        b=W8ReuKq7jMw2pEnUxARbGJlF66wfoQjg77hHrUh6nC3tjrBDcuDBiUJBkLHLHKhJer
-         mpIne0abBol1bAOH7i+luGK7um7d+qNm0/chXUcthIDDARkvmvzuIew1TTTxnTqFBE+r
-         ECQO2cLGey9/bgIKD1WRr4joW/DotdD2wSkmlnN+JpJv6vyt9oGmnARpJJMQ4D2wcYpY
-         ni7W/TXqbROKufTlSeo3OMrqkazbe34ydWVtz0TXbU9+X4WXvWf8ZWJdOgy80DbVmvlY
-         pDT6uXObL2BoQ4a4Ofqgq2n+lNH2XZtiCsdGDuN0ZPymWCD+o0GcMcSDnmMlwe9R6+fp
-         plIw==
+        bh=xYvlHjUzJ1gAdl8KtmAH0mCHcP29B+tCMOTUThwt7jg=;
+        b=t1jsrwSi+vb/a0cOl/6g8pQAclvuqJEGFnUAevnbjkn+nJslxfxB2sNGKmYY6hY0Eb
+         U7WNxo0g0Rsj9Z1FfrcjMzshkUarOCClWcFUB36DpRpZakPSsBsAbRhgPNV97fnaChFr
+         TNY3tOJemcb4+R0paotaSQgI/NwtZaWq7CtWUVG3rvmmEPVK4+X5AP5pnhIEEnUAcJrR
+         kCA7EoCldARnmYvr/WOGfo3ova5r6CVcQJ4Y5jNeb6RD5LCz1LldoJXRvRqwQ7jWVKeK
+         rdpqMvKfWIYCUGNR50TOTy9QOO6l3lhZ0s+eN603Gy938a8nin7WnZ8asn/hRfEb5NC4
+         8M9g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date;
-        bh=Bvo7EJO01qiFSqaGbT4JiAGDEh8uk0vvz3ltgjeJ4xY=;
-        b=KhuTTd13DYZEmtVmtc4DyCk4HHItwLe/OGlYCiYDGcsVwZ91UupfqszDZ/+rMfI/7k
-         Lk70i19diW+YtqBsL84blclbPu/jyqIMfth3uTI4TlE37VAJ5FiXGb0jhHIzM46m5RAC
-         OXXMzJIVdEHJ7GyTWzogEUCWOemKwwzTxXA6WbxMOL7ofLV2aL/QskxKg8ozwzxAuE8J
-         mPBO3ZZXidi6lyPxpz9VUFcJT5pov7VVIdPFvWCBuWSdJaPjDrCoAx6NiTEd/qMNSYZq
-         SRAgF+pDGzbosrXZTVh3Z2W1tYrAwotlmEsrfhnlczwfAd6wnoCt2Ei6qnNvkxYAyAgn
-         CWfw==
-X-Gm-Message-State: ACrzQf3A/sOu2teDpdYj80cOh2UlWQ7P3xUtkweWq8313snug2iLFIWo
-        ugKnra4M9UjXbUI/VzEArjnGOw==
-X-Google-Smtp-Source: AMsMyM6ELzLHVK4/BCcPbpIkgCQlGCCs9OZGnaeVi3u5I4MTLMi0XYiBPGTqyEgDtCUZssOE4JC0UQ==
-X-Received: by 2002:a5d:6da1:0:b0:22b:774:52c3 with SMTP id u1-20020a5d6da1000000b0022b077452c3mr12601883wrs.172.1664789261097;
-        Mon, 03 Oct 2022 02:27:41 -0700 (PDT)
+        bh=xYvlHjUzJ1gAdl8KtmAH0mCHcP29B+tCMOTUThwt7jg=;
+        b=j4Ok5TgvEbyBLYpBpTXSDKHrEgGXE3AgZNDC6Pse2DtkcU3QLSt4GDrjr83b72LCBG
+         nCqcnS2f6x8T/vGvsOrjjLI1j+eO1JVEacRmlafHT1eni/dNcsGEuorHzpxWOp1UUEJ+
+         F8f+7+qlfVX8n6jEjOjuiAxqBSCt+yzM+q5gQ1AhWxzyR49Vk/5pB+PKMfxbpBJxfE3G
+         +bzxG06Gv05Bh6ge4tBq8hVeNs++obE6oUBBbijFNxVwx5WF4/BVPZ6zBapY8kmCCajk
+         kQGf6tKnbisWC0wf1JuniWIiEYcYN6oIe3Vf4wdc9UbAYIs9llh2sZljxlO3sUkDzDRx
+         fNUQ==
+X-Gm-Message-State: ACrzQf11kA1nxrnLcEM/nVJVGDBc3EzxyIR7icgcw9PZnueogMBuu4IS
+        fsaxmt76V6GFowz/e2o6Wwv1TQ==
+X-Google-Smtp-Source: AMsMyM4O9FEYjkKTECrwNknXqTrJGK74Dpt7gm7DcW/ug6IBOPCQ4bnjHfrvTR93huq/5pFURgA0ow==
+X-Received: by 2002:a05:6000:1541:b0:22a:3b77:6ef4 with SMTP id 1-20020a056000154100b0022a3b776ef4mr12312239wry.303.1664789244392;
+        Mon, 03 Oct 2022 02:27:24 -0700 (PDT)
 Received: from mai.. ([2a05:6e02:1041:c10:f3a:9f5e:1605:a75a])
-        by smtp.gmail.com with ESMTPSA id ay3-20020a5d6f03000000b0022cc157bf26sm9707520wrb.85.2022.10.03.02.27.38
+        by smtp.gmail.com with ESMTPSA id ay3-20020a5d6f03000000b0022cc157bf26sm9707520wrb.85.2022.10.03.02.27.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 Oct 2022 02:27:40 -0700 (PDT)
+        Mon, 03 Oct 2022 02:27:23 -0700 (PDT)
 From:   Daniel Lezcano <daniel.lezcano@linaro.org>
 To:     daniel.lezcano@linaro.org, rafael@kernel.org
 Cc:     linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
@@ -95,9 +95,9 @@ Cc:     linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-omap@vger.kernel.org
-Subject: [PATCH v8 26/29] thermal/drivers/acerhdf: Use generic thermal_zone_get_trip() function
-Date:   Mon,  3 Oct 2022 11:25:59 +0200
-Message-Id: <20221003092602.1323944-27-daniel.lezcano@linaro.org>
+Subject: [PATCH v8 21/29] thermal/drivers/imx: Use generic thermal_zone_get_trip() function
+Date:   Mon,  3 Oct 2022 11:25:54 +0200
+Message-Id: <20221003092602.1323944-22-daniel.lezcano@linaro.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20221003092602.1323944-1-daniel.lezcano@linaro.org>
 References: <20221003092602.1323944-1-daniel.lezcano@linaro.org>
@@ -116,141 +116,170 @@ Convert ops content logic into generic trip points and register them with the
 thermal zone.
 
 Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-Acked-by: Peter Kästle <peter@piie.net>
 ---
- drivers/platform/x86/acerhdf.c | 73 ++++++++++++----------------------
- 1 file changed, 26 insertions(+), 47 deletions(-)
+ drivers/thermal/imx_thermal.c | 72 +++++++++++++----------------------
+ 1 file changed, 27 insertions(+), 45 deletions(-)
 
-diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-index 3463629f8764..a7407aa032ba 100644
---- a/drivers/platform/x86/acerhdf.c
-+++ b/drivers/platform/x86/acerhdf.c
-@@ -46,6 +46,8 @@
-  * measured by the on-die thermal monitor are within 0 <= Tj <= 90. So,
-  * assume 89°C is critical temperature.
-  */
-+#define ACERHDF_DEFAULT_TEMP_FANON 60000
-+#define ACERHDF_DEFAULT_TEMP_FANOFF 53000
- #define ACERHDF_TEMP_CRIT 89000
- #define ACERHDF_FAN_OFF 0
- #define ACERHDF_FAN_AUTO 1
-@@ -70,8 +72,8 @@ static int kernelmode;
- #endif
+diff --git a/drivers/thermal/imx_thermal.c b/drivers/thermal/imx_thermal.c
+index 16663373b682..fb0d5cab70af 100644
+--- a/drivers/thermal/imx_thermal.c
++++ b/drivers/thermal/imx_thermal.c
+@@ -76,7 +76,6 @@
+ enum imx_thermal_trip {
+ 	IMX_TRIP_PASSIVE,
+ 	IMX_TRIP_CRITICAL,
+-	IMX_TRIP_NUM,
+ };
  
- static unsigned int interval = 10;
--static unsigned int fanon = 60000;
--static unsigned int fanoff = 53000;
-+static unsigned int fanon = ACERHDF_DEFAULT_TEMP_FANON;
-+static unsigned int fanoff = ACERHDF_DEFAULT_TEMP_FANOFF;
- static unsigned int verbose;
- static unsigned int list_supported;
- static unsigned int fanstate = ACERHDF_FAN_AUTO;
-@@ -137,6 +139,15 @@ struct ctrl_settings {
- 	int mcmd_enable;
+ #define IMX_POLLING_DELAY		2000 /* millisecond */
+@@ -115,6 +114,11 @@ struct thermal_soc_data {
+ 	u32 low_alarm_shift;
  };
  
 +static struct thermal_trip trips[] = {
-+	[0] = { .temperature = ACERHDF_DEFAULT_TEMP_FANON,
-+		.hysteresis = ACERHDF_DEFAULT_TEMP_FANON - ACERHDF_DEFAULT_TEMP_FANOFF,
-+		.type = THERMAL_TRIP_ACTIVE },
-+
-+	[1] = { .temperature = ACERHDF_TEMP_CRIT,
-+		.type = THERMAL_TRIP_CRITICAL }
++	[IMX_TRIP_PASSIVE]  = { .type = THERMAL_TRIP_PASSIVE  },
++	[IMX_TRIP_CRITICAL] = { .type = THERMAL_TRIP_CRITICAL },
 +};
 +
- static struct ctrl_settings ctrl_cfg __read_mostly;
+ static struct thermal_soc_data thermal_imx6q_data = {
+ 	.version = TEMPMON_IMX6Q,
  
- /* Register addresses and values for different BIOS versions */
-@@ -326,6 +337,15 @@ static void acerhdf_check_param(struct thermal_zone_device *thermal)
- 		fanon = ACERHDF_MAX_FANON;
- 	}
+@@ -201,8 +205,6 @@ struct imx_thermal_data {
+ 	struct thermal_cooling_device *cdev;
+ 	struct regmap *tempmon;
+ 	u32 c1, c2; /* See formula in imx_init_calib() */
+-	int temp_passive;
+-	int temp_critical;
+ 	int temp_max;
+ 	int alarm_temp;
+ 	int last_temp;
+@@ -279,12 +281,12 @@ static int imx_get_temp(struct thermal_zone_device *tz, int *temp)
  
-+	if (fanon < fanoff) {
-+		pr_err("fanoff temperature (%d) is above fanon temperature (%d), clamping to %d\n",
-+		       fanoff, fanon, fanon);
-+		fanoff = fanon;
-+	};
-+
-+	trips[0].temperature = fanon;
-+	trips[0].hysteresis  = fanon - fanoff;
-+
- 	if (kernelmode && prev_interval != interval) {
- 		if (interval > ACERHDF_MAX_INTERVAL) {
- 			pr_err("interval too high, set to %d\n",
-@@ -424,43 +444,6 @@ static int acerhdf_change_mode(struct thermal_zone_device *thermal,
+ 	/* Update alarm value to next higher trip point for TEMPMON_IMX6Q */
+ 	if (data->socdata->version == TEMPMON_IMX6Q) {
+-		if (data->alarm_temp == data->temp_passive &&
+-			*temp >= data->temp_passive)
+-			imx_set_alarm_temp(data, data->temp_critical);
+-		if (data->alarm_temp == data->temp_critical &&
+-			*temp < data->temp_passive) {
+-			imx_set_alarm_temp(data, data->temp_passive);
++		if (data->alarm_temp == trips[IMX_TRIP_PASSIVE].temperature &&
++			*temp >= trips[IMX_TRIP_PASSIVE].temperature)
++			imx_set_alarm_temp(data, trips[IMX_TRIP_CRITICAL].temperature);
++		if (data->alarm_temp == trips[IMX_TRIP_CRITICAL].temperature &&
++			*temp < trips[IMX_TRIP_PASSIVE].temperature) {
++			imx_set_alarm_temp(data, trips[IMX_TRIP_PASSIVE].temperature);
+ 			dev_dbg(&tz->device, "thermal alarm off: T < %d\n",
+ 				data->alarm_temp / 1000);
+ 		}
+@@ -330,29 +332,10 @@ static int imx_change_mode(struct thermal_zone_device *tz,
  	return 0;
  }
  
--static int acerhdf_get_trip_type(struct thermal_zone_device *thermal, int trip,
--				 enum thermal_trip_type *type)
+-static int imx_get_trip_type(struct thermal_zone_device *tz, int trip,
+-			     enum thermal_trip_type *type)
 -{
--	if (trip == 0)
--		*type = THERMAL_TRIP_ACTIVE;
--	else if (trip == 1)
--		*type = THERMAL_TRIP_CRITICAL;
--	else
--		return -EINVAL;
--
+-	*type = (trip == IMX_TRIP_PASSIVE) ? THERMAL_TRIP_PASSIVE :
+-					     THERMAL_TRIP_CRITICAL;
 -	return 0;
 -}
 -
--static int acerhdf_get_trip_hyst(struct thermal_zone_device *thermal, int trip,
--				 int *temp)
--{
--	if (trip != 0)
--		return -EINVAL;
--
--	*temp = fanon - fanoff;
--
--	return 0;
--}
--
--static int acerhdf_get_trip_temp(struct thermal_zone_device *thermal, int trip,
--				 int *temp)
--{
--	if (trip == 0)
--		*temp = fanon;
--	else if (trip == 1)
--		*temp = ACERHDF_TEMP_CRIT;
--	else
--		return -EINVAL;
--
--	return 0;
--}
--
- static int acerhdf_get_crit_temp(struct thermal_zone_device *thermal,
- 				 int *temperature)
+ static int imx_get_crit_temp(struct thermal_zone_device *tz, int *temp)
  {
-@@ -474,13 +457,9 @@ static struct thermal_zone_device_ops acerhdf_dev_ops = {
- 	.unbind = acerhdf_unbind,
- 	.get_temp = acerhdf_get_ec_temp,
- 	.change_mode = acerhdf_change_mode,
--	.get_trip_type = acerhdf_get_trip_type,
--	.get_trip_hyst = acerhdf_get_trip_hyst,
--	.get_trip_temp = acerhdf_get_trip_temp,
- 	.get_crit_temp = acerhdf_get_crit_temp,
- };
- 
+-	struct imx_thermal_data *data = tz->devdata;
 -
- /*
-  * cooling device callback functions
-  * get maximal fan cooling state
-@@ -710,10 +689,10 @@ static int __init acerhdf_register_thermal(void)
- 	if (IS_ERR(cl_dev))
+-	*temp = data->temp_critical;
+-	return 0;
+-}
+-
+-static int imx_get_trip_temp(struct thermal_zone_device *tz, int trip,
+-			     int *temp)
+-{
+-	struct imx_thermal_data *data = tz->devdata;
++	*temp = trips[IMX_TRIP_CRITICAL].temperature;
+ 
+-	*temp = (trip == IMX_TRIP_PASSIVE) ? data->temp_passive :
+-					     data->temp_critical;
+ 	return 0;
+ }
+ 
+@@ -371,10 +354,10 @@ static int imx_set_trip_temp(struct thermal_zone_device *tz, int trip,
+ 		return -EPERM;
+ 
+ 	/* do not allow passive to be set higher than critical */
+-	if (temp < 0 || temp > data->temp_critical)
++	if (temp < 0 || temp > trips[IMX_TRIP_CRITICAL].temperature)
  		return -EINVAL;
  
--	thz_dev = thermal_zone_device_register("acerhdf", 2, 0, NULL,
--					      &acerhdf_dev_ops,
--					      &acerhdf_zone_params, 0,
--					      (kernelmode) ? interval*1000 : 0);
-+	thz_dev = thermal_zone_device_register_with_trips("acerhdf", trips, ARRAY_SIZE(trips),
-+							  0, NULL, &acerhdf_dev_ops,
-+							  &acerhdf_zone_params, 0,
-+							  (kernelmode) ? interval*1000 : 0);
- 	if (IS_ERR(thz_dev))
- 		return -EINVAL;
+-	data->temp_passive = temp;
++	trips[IMX_TRIP_PASSIVE].temperature = temp;
  
+ 	imx_set_alarm_temp(data, temp);
+ 
+@@ -423,8 +406,6 @@ static struct thermal_zone_device_ops imx_tz_ops = {
+ 	.unbind = imx_unbind,
+ 	.get_temp = imx_get_temp,
+ 	.change_mode = imx_change_mode,
+-	.get_trip_type = imx_get_trip_type,
+-	.get_trip_temp = imx_get_trip_temp,
+ 	.get_crit_temp = imx_get_crit_temp,
+ 	.set_trip_temp = imx_set_trip_temp,
+ };
+@@ -507,8 +488,8 @@ static void imx_init_temp_grade(struct platform_device *pdev, u32 ocotp_mem0)
+ 	 * Set the critical trip point at 5 °C under max
+ 	 * Set the passive trip point at 10 °C under max (changeable via sysfs)
+ 	 */
+-	data->temp_critical = data->temp_max - (1000 * 5);
+-	data->temp_passive = data->temp_max - (1000 * 10);
++	trips[IMX_TRIP_PASSIVE].temperature = data->temp_max - (1000 * 10);
++	trips[IMX_TRIP_CRITICAL].temperature = data->temp_max - (1000 * 5);
+ }
+ 
+ static int imx_init_from_tempmon_data(struct platform_device *pdev)
+@@ -743,12 +724,13 @@ static int imx_thermal_probe(struct platform_device *pdev)
+ 		goto legacy_cleanup;
+ 	}
+ 
+-	data->tz = thermal_zone_device_register("imx_thermal_zone",
+-						IMX_TRIP_NUM,
+-						BIT(IMX_TRIP_PASSIVE), data,
+-						&imx_tz_ops, NULL,
+-						IMX_PASSIVE_DELAY,
+-						IMX_POLLING_DELAY);
++	data->tz = thermal_zone_device_register_with_trips("imx_thermal_zone",
++							   trips,
++							   ARRAY_SIZE(trips),
++							   BIT(IMX_TRIP_PASSIVE), data,
++							   &imx_tz_ops, NULL,
++							   IMX_PASSIVE_DELAY,
++							   IMX_POLLING_DELAY);
+ 	if (IS_ERR(data->tz)) {
+ 		ret = PTR_ERR(data->tz);
+ 		dev_err(&pdev->dev,
+@@ -758,8 +740,8 @@ static int imx_thermal_probe(struct platform_device *pdev)
+ 
+ 	dev_info(&pdev->dev, "%s CPU temperature grade - max:%dC"
+ 		 " critical:%dC passive:%dC\n", data->temp_grade,
+-		 data->temp_max / 1000, data->temp_critical / 1000,
+-		 data->temp_passive / 1000);
++		 data->temp_max / 1000, trips[IMX_TRIP_CRITICAL].temperature / 1000,
++		 trips[IMX_TRIP_PASSIVE].temperature / 1000);
+ 
+ 	/* Enable measurements at ~ 10 Hz */
+ 	regmap_write(map, data->socdata->measure_freq_ctrl + REG_CLR,
+@@ -767,10 +749,10 @@ static int imx_thermal_probe(struct platform_device *pdev)
+ 	measure_freq = DIV_ROUND_UP(32768, 10); /* 10 Hz */
+ 	regmap_write(map, data->socdata->measure_freq_ctrl + REG_SET,
+ 		     measure_freq << data->socdata->measure_freq_shift);
+-	imx_set_alarm_temp(data, data->temp_passive);
++	imx_set_alarm_temp(data, trips[IMX_TRIP_PASSIVE].temperature);
+ 
+ 	if (data->socdata->version == TEMPMON_IMX6SX)
+-		imx_set_panic_temp(data, data->temp_critical);
++		imx_set_panic_temp(data, trips[IMX_TRIP_CRITICAL].temperature);
+ 
+ 	regmap_write(map, data->socdata->sensor_ctrl + REG_CLR,
+ 		     data->socdata->power_down_mask);
 -- 
 2.34.1
 
