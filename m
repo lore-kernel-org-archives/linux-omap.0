@@ -2,435 +2,160 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A2D0C433F5
-	for <linux-omap@archiver.kernel.org>; Mon,  3 Oct 2022 21:27:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BE73C433FE
+	for <linux-omap@archiver.kernel.org>; Tue,  4 Oct 2022 02:40:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229811AbiJCV1r (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 3 Oct 2022 17:27:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44890 "EHLO
+        id S229514AbiJDCkp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 3 Oct 2022 22:40:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229747AbiJCV1Q (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2022 17:27:16 -0400
-Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EB4C558E5
-        for <linux-omap@vger.kernel.org>; Mon,  3 Oct 2022 14:18:12 -0700 (PDT)
-Received: by mail-wr1-x42a.google.com with SMTP id r6so18516736wru.8
-        for <linux-omap@vger.kernel.org>; Mon, 03 Oct 2022 14:18:11 -0700 (PDT)
+        with ESMTP id S229468AbiJDCko (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 3 Oct 2022 22:40:44 -0400
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2113.outbound.protection.outlook.com [40.107.220.113])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76190205DE;
+        Mon,  3 Oct 2022 19:40:43 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=XHe7pGqofZlO9QaKg8iP3Tlk7od9tLFypft2ZM/lnh1e78q2FtvHgoxkl0fI6JR7ly4ixxjmyeqnhRautY9WMO/GucNbTxxQVd7pz4FP8mjuiWXOSGrzRUoz+uCAsi25xx1s0UTDwZ7A3fhIplmYrU8eoW9nbatNhOm8MmlO653FViYxDFlQKT0K0mx2H013jhjTOIHB2PAg73v0IsLsffUeyMveHASdrH7iopoqnwnYNJreprOAIL1gp1Lf5rSiBPjZeoVajKFMwcQkZ7xUBX+r0LKQmOP3nndIJbESup41tGw3PZnI9p8OUfZaP5Fx5JdmPGSLn6RPi2SLAX5fTQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=MCT+LscCuj3wVlkUtuEJf2sd8P5iKQQffnWstdmoYm4=;
+ b=MfY+00TtW2lTsyJ8wuNQyeJaGXZQmxvyBGD2D0CaN4DEg2pRFk4YT8SODvF+u7+Bx80j+XaZvizh8bL+YZ77THP9k3YCHZUDBJ4mcA77YGhtGGVkwdR8LDZYxvPgwUt243Z1EmaRWgDEpCyXULcViLaAOZ7jk/P/ji7xN/RZifScLLj5gLhNdb3tO8NUfnR19e+7kYmdIGiphc+svD4GHa/PZFT5PdhPk1dDANS3AQHV+f0b/AKS1aH0lBq8AH/js2TKVkdIONbh/oe9KIzw4LAM0UAM2irnmuJp07nE8jhZ6dEmNDljIoWHCfij7AmOfD93M8S2AHQ4lJrQaKZQEg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=in-advantage.com; dmarc=pass action=none
+ header.from=in-advantage.com; dkim=pass header.d=in-advantage.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date;
-        bh=Axxsa4o83JxVySF0VeMEEgQfzZQEKD42u7jzjyEhlTA=;
-        b=Xj5R/xtYz0KVD8v36F7VJfwh0AouVJWpEaeGMIJV93h8iQ0EYzDjZ1zTozM6TufDg3
-         0KM9P0ctFd3Fs7cUhCJjrwScSreI+E9HIlZm/OZ/bkI1nqVDTey0WZYSWgaiEJfegKim
-         /LJw/rCP1DeHLNdozCvsBhU3yFjf4n80/pMNtq1T8zjTiJ36lahBrdTiZ9jB1PlJPLG4
-         eJpf94uwUzubWN/ss3zYtJJ37EO6J2ndTIECOcuK/YgL77S2SyUyW/wFzGVFObQ+WgbF
-         g4KiY4ITBf4jbBVOTXr5v4v+khxASQWurI+57sRxRT8flp5xOw8DV2jJif41PPNbicf0
-         Or4g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date;
-        bh=Axxsa4o83JxVySF0VeMEEgQfzZQEKD42u7jzjyEhlTA=;
-        b=vyj7xIza0Osot5nsxNep3FjFKI1R+LbtiTwGjIZXIQybIX6Uib7oIOgWS1jIhQZ9b4
-         cNMecNaPnaeElmFDvolnyNk35gxDFbsHfvrlamOd8jUkZI1am1soUPkOa5QOZYsLyT11
-         3ytg7CyLDHTFg+kMd1EE3xLwikcbFAqykfbxgiZNmJzd3gvdkexU063lu+kuIJU268XA
-         /hhVpHdygKqRTW9T/6K7zAIVcjos7H6LHWBuR7i1EdeMPxQSF0KOwl1tmBMlIQY7wqR5
-         vLaZAp9WuO5Q+KVgHWQ+pSTAc3i8P95jRM7DHCO0Rf4O6ZAwCKjLBk0RcSlLMs8JiTWu
-         hdyA==
-X-Gm-Message-State: ACrzQf1diZFVCMD+gdMZFJqIbRDRvMwYeDkwNUCqjCXS5uKfbx//TyyX
-        UsiazoE1cni4qVUfbbF3cxjpLw==
-X-Google-Smtp-Source: AMsMyM5ldop9A6R5ttlN72dKmImyDiKX+QeWExu9pLifC5OYYNjcvQZwV3oYzqRijrfGYgHtgvvn7Q==
-X-Received: by 2002:a05:6000:2ad:b0:228:cf8f:fe85 with SMTP id l13-20020a05600002ad00b00228cf8ffe85mr14608289wry.94.1664831890494;
-        Mon, 03 Oct 2022 14:18:10 -0700 (PDT)
-Received: from ?IPV6:2a05:6e02:1041:c10:c456:8337:99aa:2667? ([2a05:6e02:1041:c10:c456:8337:99aa:2667])
-        by smtp.googlemail.com with ESMTPSA id g10-20020a05600c4eca00b003a62400724bsm14660100wmq.0.2022.10.03.14.18.08
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 03 Oct 2022 14:18:09 -0700 (PDT)
-Message-ID: <c3258cb2-9a56-d048-5738-1132331a157d@linaro.org>
-Date:   Mon, 3 Oct 2022 23:18:07 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-Subject: Re: [PATCH v8 00/29] Rework the trip points creation
-Content-Language: en-US
-To:     Marek Szyprowski <m.szyprowski@samsung.com>, rafael@kernel.org
-Cc:     linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
-        rui.zhang@intel.com,
-        Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>,
-        Support Opensource <support.opensource@diasemi.com>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Andy Gross <agross@kernel.org>,
-        Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Alim Akhtar <alim.akhtar@samsung.com>, netdev@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-omap@vger.kernel.org
-References: <CGME20221003092704eucas1p2875c1f996dfd60a58f06cf986e02e8eb@eucas1p2.samsung.com>
- <20221003092602.1323944-1-daniel.lezcano@linaro.org>
- <8cdd1927-da38-c23e-fa75-384694724b1c@samsung.com>
-From:   Daniel Lezcano <daniel.lezcano@linaro.org>
-In-Reply-To: <8cdd1927-da38-c23e-fa75-384694724b1c@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+ d=inadvantage.onmicrosoft.com; s=selector2-inadvantage-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=MCT+LscCuj3wVlkUtuEJf2sd8P5iKQQffnWstdmoYm4=;
+ b=aWncP1IyZbQ0V9EQnhdwHGounTrvOLXzk6tIDrKoGfdIxws26Z5y/4FLoq0Lo0xTQkUGRProEpUHh8u2u2jH/YvWuzqNRFuN6KtDbsdOUJ4fBaWBZ19FG5YpMorCenHSXxX+2EV05ZYSTEvKzGPRVUbHa94YvZDhCpH6eS2gAHo=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=in-advantage.com;
+Received: from MWHPR1001MB2351.namprd10.prod.outlook.com
+ (2603:10b6:301:35::37) by CY8PR10MB6802.namprd10.prod.outlook.com
+ (2603:10b6:930:99::19) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5676.24; Tue, 4 Oct
+ 2022 02:40:36 +0000
+Received: from MWHPR1001MB2351.namprd10.prod.outlook.com
+ ([fe80::ee5e:cbf9:e304:942f]) by MWHPR1001MB2351.namprd10.prod.outlook.com
+ ([fe80::ee5e:cbf9:e304:942f%7]) with mapi id 15.20.5676.028; Tue, 4 Oct 2022
+ 02:40:36 +0000
+From:   Colin Foster <colin.foster@in-advantage.com>
+To:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc:     Tony Lindgren <tony@atomide.com>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>, soc@kernel.org,
+        Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
+Subject: [RFC v1 0/1] add support for Phytec PCM-049 and PCM-959
+Date:   Mon,  3 Oct 2022 19:40:11 -0700
+Message-Id: <20221004024012.1386218-1-colin.foster@in-advantage.com>
+X-Mailer: git-send-email 2.25.1
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: BY5PR04CA0029.namprd04.prod.outlook.com
+ (2603:10b6:a03:1d0::39) To MWHPR1001MB2351.namprd10.prod.outlook.com
+ (2603:10b6:301:35::37)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MWHPR1001MB2351:EE_|CY8PR10MB6802:EE_
+X-MS-Office365-Filtering-Correlation-Id: 48c0ded8-e4b1-429b-c9cb-08daa5b1d0db
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: P+wvhCLvF1yQRpVAIgN7LRQ1dmisWGCsAT49cKl3TPWbN7jPsPlpl53xG7K3duJpe26ddYrRaYxFcjINviEsw8BM10kOSiHvl/ZM8EfdcNxRl7+zIve32nlxX3nLh0zat1Df8Vthq3U4Z9TrfwofKiYZzevjeDgTdYgbpAvv5AZcpwLX2aZwmDKqaTxq0r+v79fVW0vQLTPMYDX9bhvl8R+nMe5xcJlTDOXwtWQ62O79tGVwb4ZQIgKRdMiAms5SvjTygM8MltdOC1AXzC/TJ8orgUuqHPlnfZlXCbxvZv4xrhJt5P0TasUpIlUdYD/T8TKIczTP6dwOXv6LRwQX2U6u++GQ74koAWgtroJ6e3dWLlS7Wrww4PBPBhE8fhKYTCtdvmvoIk3xJlzgdTpDIZYP+X5YKSVUNRHJnMnpTUucpsmWun6WTx88zLcwxHOBzk/Gg/vgy2EdH5MNNGz5nQmguVVgXTaPuB7cbXPggAOoEbXVuL9Is3OsoQBAIeM2f+1ws0ioRvVMcwIRWapG+GlfvOWxWywczitSH3gX4v/GvXmNzJsKDU1CiAJm6Z4r71V/82WwABTtELA877Q9eq5p0ZPi691aL5HJU0fqKPJ4GTW/BwyYpM5JF3pv1WFDBUWd0mUzFk8KuyvsQfTw68fDaTgCsafA5OH6OvMJ8NsAeQiGreuXBL7ef/IsidMjC/56//dWSy2fPesYrmJuny0rELFkM50DqzaeL5MkclVTpGjddN0omfW48i4hxzohtr+skXa8ZI6f1VlTwzc4H/AXXL/7ToFL8eLHjg5jOiE=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1001MB2351.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(376002)(396003)(346002)(136003)(366004)(39840400004)(451199015)(66899015)(2906002)(316002)(5660300002)(44832011)(66946007)(8676002)(66476007)(66556008)(4326008)(7416002)(86362001)(6666004)(54906003)(966005)(6486002)(8936002)(36756003)(41300700001)(6506007)(478600001)(2616005)(52116002)(26005)(6512007)(186003)(1076003)(83380400001)(38100700002)(38350700002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?2pK9q9GVGbJ21gsDzJNcHPCwg1aQVGMRGQr4XNqqq1DYILMjIoyuLsNZVMD8?=
+ =?us-ascii?Q?f5iTufRsN3fM32ewaeDKJ+rgum7CWxX3gp1Bbc2ZStgs/MIgIfnqn4lemr6Y?=
+ =?us-ascii?Q?G34/XT2bdKeIm+KoC0eBPJIr1s3FdzOdRVb7SSueK7QXgnlQ8+iELeKANT+Q?=
+ =?us-ascii?Q?LbDoyYKTsvh0M5YV0VGHQyXTpYluTP+F6g+Es1+UaUI6VrFmy9z5xCAUVbcb?=
+ =?us-ascii?Q?DkqpfVzqzPM2kqgwfOcrfpGmL/WWMvnYKFZ3IcCqsKxTKphO6b15x+ZUvOLN?=
+ =?us-ascii?Q?NBriid6eB9FPCmE9jB0R5duxVJWUAMzOw6/Ys/ghRPdzv2X01436CJObFENm?=
+ =?us-ascii?Q?dRd9P5m6Cgf53Rl3zJayfPu0z2J3PpczLMwKIbly2NlHQNJP9M4opqDCI55K?=
+ =?us-ascii?Q?INAQBRS3Yn3BEWBKvU11j/AOU/r7b39zG8AYME0oacY3jO5kq8n9zRjqXupx?=
+ =?us-ascii?Q?xH+K3SlhernONcyqOXkwohmK3ns8XgE63s4bwqCKznO4Jg5pnUFBIt0IFYhC?=
+ =?us-ascii?Q?ViUsLVv91oYIhtgIbuFmX+miWFh1sXf+3LmqF/TMAlDEB52uO6kVlNAfgZoB?=
+ =?us-ascii?Q?zPYCXh1rv2+OrDOhn173EYxWcfETZVCSZIH8BHspXb8HoAYUcpwVW/Z7IF/V?=
+ =?us-ascii?Q?VXRM9DfExV7FKGFW68JAxR9f9rK2aPtkRM2hfPS5XQ7Mr2YsGwNgRd0TYDYq?=
+ =?us-ascii?Q?TeKqJqj1r2rsEm5KJzHjCdAi6Wg8wIqftgDPHqTZNjumYh0NwgGHY6UK9ymw?=
+ =?us-ascii?Q?RufMoycIYT31nNfqeNy6aZZTp/STszynfXIZsilF6eglT3MUT9bkqyN2EqBi?=
+ =?us-ascii?Q?8E4phTFS2/rx4G5+RkGHQNbRmwGF3uNffnNpMbbEcaw1IUWvdKvcbwv8cHwD?=
+ =?us-ascii?Q?wnTAXHRNu3ldlkiNJJqxITbiJfYtou+ITHA/niCvJd4RkGJ8y46Y80tFquE5?=
+ =?us-ascii?Q?hPWb/LnWPc9Xy43He0oR2ZwsjCs6nAERN/H6qZ2MYLOn/0rlI8/hil7Ysp+v?=
+ =?us-ascii?Q?HKsk8Chw33wuWu2jJQl9CgWxXvyB5SwNxVGJVSG2Dg7ZQaO8/Fv6kqzOmYbD?=
+ =?us-ascii?Q?4ELUJeQ0I2Puqn1BnnD9OcRS1LzrBjSp5iJVc6w2a4Umq0cWgWpQVvsjWHPv?=
+ =?us-ascii?Q?FvEg+4/bzfcgjmGRbavjxOcr4ZFMWrp4A1ytK+RXQQtMGAstDVKPn4MYGgJk?=
+ =?us-ascii?Q?pYpGVYPXGPd85xk9ZFbM81KzyyRSOQd0GXugyML84le+DWPCVOV1uwOBqt/g?=
+ =?us-ascii?Q?ELS02X0vVvqNoC8IpxBR4F0BBKBaI5qtejSTjgFtVZcv8agtxNGAMuaXDuK2?=
+ =?us-ascii?Q?c2Gc2rXUvbvoHdnId0C3F519bH8Nc6e0K0yV3LbEd4cb+Jgv37nTlb/olufG?=
+ =?us-ascii?Q?3Ig+UcCBwhKmxlu9zoULbadOz3EivQMtY/RKKnNpi8j8oQLz2FdyFuv06bvs?=
+ =?us-ascii?Q?5JBHil00XqWXG7i/Ig9Vb3Ik44tGJP/Z0NOm5nsz4q/q2ZY2uF9sXI7iWJsQ?=
+ =?us-ascii?Q?jqPos/bBwcz3kar8FJjVP0v4D1y1iBxC9VWfpezjfgm7X1oVeYigVB0ZymSi?=
+ =?us-ascii?Q?5QEO+LRIIXUC1VjG/eQgcLE/Fe/YxIgrP6XkDUWxtOAfVZwdcvL7BEYEGB5U?=
+ =?us-ascii?Q?aw=3D=3D?=
+X-OriginatorOrg: in-advantage.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 48c0ded8-e4b1-429b-c9cb-08daa5b1d0db
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1001MB2351.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Oct 2022 02:40:36.0237
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 48e842ca-fbd8-4633-a79d-0c955a7d3aae
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 9wWEoYXTEF2k7sxRDdF8JcK6Y+4kb8RchgZVb9CLm4czlzHJSRD9DbuNJuPv92Bw3iser9FAUtENaD5vEu/z+03gLaz0MpgmyslioWi96ok=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR10MB6802
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 03/10/2022 16:10, Marek Szyprowski wrote:
-> Hi Daniel,
-> 
-> On 03.10.2022 11:25, Daniel Lezcano wrote:
->> This work is the pre-requisite of handling correctly when the trip
->> point are crossed. For that we need to rework how the trip points are
->> declared and assigned to a thermal zone.
->>
->> Even if it appears to be a common sense to have the trip points being
->> ordered, this no guarantee neither documentation telling that is the
->> case.
->>
->> One solution could have been to create an ordered array of trips built
->> when registering the thermal zone by calling the different get_trip*
->> ops. However those ops receive a thermal zone pointer which is not
->> known as it is in the process of creating it.
->>
->> This cyclic dependency shows we have to rework how we manage the trip
->> points.
->>
->> Actually, all the trip points definition can be common to the backend
->> sensor drivers and we can factor out the thermal trip structure in all
->> of them.
->>
->> Then, as we register the thermal trips array, they will be available
->> in the thermal zone structure and a core function can return the trip
->> given its id.
->>
->> The get_trip_* ops won't be needed anymore and could be removed. The
->> resulting code will be another step forward to a self encapsulated
->> generic thermal framework.
->>
->> Most of the drivers can be converted more or less easily. This series
->> does a first round with most of the drivers. Some remain and will be
->> converted but with a smaller set of changes as the conversion is a bit
->> more complex.
->>
->> Changelog:
->> v8:
->> - Pretty oneline change and parenthesis removal (Rafael)
->> - Collected tags
->> v7:
->> - Added missing return 0 in the x86_pkg_temp driver
->> v6:
->> - Improved the code for the get_crit_temp() function as suggested by
->> Rafael
->> - Removed inner parenthesis in the set_trip_temp() function and invert the
->> conditions. Check the type of the trip point is unchanged
->> - Folded patch 4 with 1
->> - Add per thermal zone info message in the bang-bang governor
->> - Folded the fix for an uninitialized variable in
->> int340x_thermal_zone_add()
->> v5:
->> - Fixed a deadlock when calling thermal_zone_get_trip() while
->> handling the thermal zone lock
->> - Remove an extra line in the sysfs change
->> - Collected tags
->> v4:
->> - Remove extra lines on exynos changes as reported by Krzysztof Kozlowski
->> - Collected tags
->> v3:
->> - Reorg the series to be git-bisect safe
->> - Added the set_trip generic function
->> - Added the get_crit_temp generic function
->> - Removed more dead code in the thermal-of
->> - Fixed the exynos changelog
->> - Fixed the error check for the exynos drivers
->> - Collected tags
->> v2:
->> - Added missing EXPORT_SYMBOL_GPL() for thermal_zone_get_trip()
->> - Removed tab whitespace in the acerhdf driver
->> - Collected tags
->>
->> Cc: Raju Rangoju <rajur@chelsio.com>
->> Cc: "David S. Miller" <davem@davemloft.net>
->> Cc: Eric Dumazet <edumazet@google.com>
->> Cc: Jakub Kicinski <kuba@kernel.org>
->> Cc: Paolo Abeni <pabeni@redhat.com>
->> Cc: Peter Kaestle <peter@piie.net>
->> Cc: Hans de Goede <hdegoede@redhat.com>
->> Cc: Mark Gross <markgross@kernel.org>
->> Cc: Miquel Raynal <miquel.raynal@bootlin.com>
->> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
->> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
->> Cc: Amit Kucheria <amitk@kernel.org>
->> Cc: Zhang Rui <rui.zhang@intel.com>
->> Cc: Nicolas Saenz Julienne <nsaenz@kernel.org>
->> Cc: Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>
->> Cc: Florian Fainelli <f.fainelli@gmail.com>
->> Cc: Ray Jui <rjui@broadcom.com>
->> Cc: Scott Branden <sbranden@broadcom.com>
->> Cc: Support Opensource <support.opensource@diasemi.com>
->> Cc: Lukasz Luba <lukasz.luba@arm.com>
->> Cc: Shawn Guo <shawnguo@kernel.org>
->> Cc: Sascha Hauer <s.hauer@pengutronix.de>
->> Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
->> Cc: Fabio Estevam <festevam@gmail.com>
->> Cc: NXP Linux Team <linux-imx@nxp.com>
->> Cc: Thara Gopinath <thara.gopinath@linaro.org>
->> Cc: Andy Gross <agross@kernel.org>
->> Cc: Bjorn Andersson <bjorn.andersson@linaro.org>
->> Cc: "Niklas Söderlund" <niklas.soderlund@ragnatech.se>
->> Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
->> Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
->> Cc: Alim Akhtar <alim.akhtar@samsung.com>
->> Cc: Thierry Reding <thierry.reding@gmail.com>
->> Cc: Jonathan Hunter <jonathanh@nvidia.com>
->> Cc: Eduardo Valentin <edubezval@gmail.com>
->> Cc: Keerthy <j-keerthy@ti.com>
->> Cc: Kunihiko Hayashi <hayashi.kunihiko@socionext.com>
->> Cc: Masami Hiramatsu <mhiramat@kernel.org>
->> Cc: Antoine Tenart <atenart@kernel.org>
->> Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
->> Cc: Dmitry Osipenko <digetx@gmail.com>
->> Cc: netdev@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: platform-driver-x86@vger.kernel.org
->> Cc: linux-pm@vger.kernel.org
->> Cc: linux-rpi-kernel@lists.infradead.org
->> Cc: linux-arm-kernel@lists.infradead.org
->> Cc: linux-arm-msm@vger.kernel.org
->> Cc: linux-renesas-soc@vger.kernel.org
->> Cc: linux-samsung-soc@vger.kernel.org
->> Cc: linux-tegra@vger.kernel.org
->> Cc: linux-omap@vger.kernel.org
->>
->> Daniel Lezcano (29):
->> thermal/core: Add a generic thermal_zone_get_trip() function
->> thermal/sysfs: Always expose hysteresis attributes
->> thermal/core: Add a generic thermal_zone_set_trip() function
->> thermal/core/governors: Use thermal_zone_get_trip() instead of ops
->> functions
->> thermal/of: Use generic thermal_zone_get_trip() function
->> thermal/of: Remove unused functions
->> thermal/drivers/exynos: Use generic thermal_zone_get_trip() function
->> thermal/drivers/exynos: of_thermal_get_ntrips()
->> thermal/drivers/exynos: Replace of_thermal_is_trip_valid() by
->> thermal_zone_get_trip()
->> thermal/drivers/tegra: Use generic thermal_zone_get_trip() function
->> thermal/drivers/uniphier: Use generic thermal_zone_get_trip() function
->> thermal/drivers/hisi: Use generic thermal_zone_get_trip() function
->> thermal/drivers/qcom: Use generic thermal_zone_get_trip() function
->> thermal/drivers/armada: Use generic thermal_zone_get_trip() function
->> thermal/drivers/rcar_gen3: Use the generic function to get the number
->> of trips
->> thermal/of: Remove of_thermal_get_ntrips()
->> thermal/of: Remove of_thermal_is_trip_valid()
->> thermal/of: Remove of_thermal_set_trip_hyst()
->> thermal/of: Remove of_thermal_get_crit_temp()
->> thermal/drivers/st: Use generic trip points
->> thermal/drivers/imx: Use generic thermal_zone_get_trip() function
->> thermal/drivers/rcar: Use generic thermal_zone_get_trip() function
->> thermal/drivers/broadcom: Use generic thermal_zone_get_trip() function
->> thermal/drivers/da9062: Use generic thermal_zone_get_trip() function
->> thermal/drivers/ti: Remove unused macros ti_thermal_get_trip_value() /
->> ti_thermal_trip_is_valid()
->> thermal/drivers/acerhdf: Use generic thermal_zone_get_trip() function
->> thermal/drivers/cxgb4: Use generic thermal_zone_get_trip() function
->> thermal/intel/int340x: Replace parameter to simplify
->> thermal/drivers/intel: Use generic thermal_zone_get_trip() function
-> 
-> I've tested this v8 patchset after fixing the issue with Exynos TMU with
-> https://lore.kernel.org/all/20221003132943.1383065-1-daniel.lezcano@linaro.org/
-> patch and I got the following lockdep warning on all Exynos-based boards:
-> 
-> 
-> ======================================================
-> WARNING: possible circular locking dependency detected
-> 6.0.0-rc1-00083-ge5c9d117223e #12945 Not tainted
-> ------------------------------------------------------
-> swapper/0/1 is trying to acquire lock:
-> c1ce66b0 (&data->lock#2){+.+.}-{3:3}, at: exynos_get_temp+0x3c/0xc8
-> 
-> but task is already holding lock:
-> c2979b94 (&tz->lock){+.+.}-{3:3}, at:
-> thermal_zone_device_update.part.0+0x3c/0x528
-> 
-> which lock already depends on the new lock.
+As should be clear for the title and patch title, this is adding initial
+support for the OMAP 4460 SOM and dev kit for Phytec's PCM959 evaluation
+kit.
 
-I'm wondering if the problem is not already there and related to 
-data->lock ...
+The PCM049 is a legacy SOM offered by Phytec:
+https://www.phytec.com/legacy-soms/
+There was a vendor BSP offered by Phytec, but that never entered the
+Device Tree era. This patch is meant to change that.
 
-Doesn't the thermal zone lock already prevent racy access to the data 
-structure?
+This devicetree boots into a stable state from mainline Barebox, where
+the devices are supported. I used the Pandaboard as my Buildroot
+template to make a bootable SD card. MDEV loads all modules. I'm doing
+verification with omap2plus_defconfig.
 
-Another question: if the sensor clock is disabled after reading it, how 
-does the hardware update the temperature and detect the programed 
-threshold is crossed?
 
-> the existing dependency chain (in reverse order) is:
-> 
-> -> #1 (&tz->lock){+.+.}-{3:3}:
->          mutex_lock_nested+0x1c/0x24
->          thermal_zone_get_trip+0x20/0x44
->          exynos_tmu_initialize+0x144/0x1e0
->          exynos_tmu_probe+0x2b0/0x728
->          platform_probe+0x5c/0xb8
->          really_probe+0xe0/0x414
->          __driver_probe_device+0xa0/0x208
->          driver_probe_device+0x30/0xc0
->          __driver_attach+0xf0/0x1f0
->          bus_for_each_dev+0x70/0xb0
->          bus_add_driver+0x174/0x218
->          driver_register+0x88/0x11c
->          do_one_initcall+0x64/0x380
->          kernel_init_freeable+0x1c0/0x224
->          kernel_init+0x18/0x12c
->          ret_from_fork+0x14/0x2c
->          0x0
-> 
-> -> #0 (&data->lock#2){+.+.}-{3:3}:
->          lock_acquire+0x124/0x3e4
->          __mutex_lock+0x90/0x948
->          mutex_lock_nested+0x1c/0x24
->          exynos_get_temp+0x3c/0xc8
->          __thermal_zone_get_temp+0x5c/0x12c
->          thermal_zone_device_update.part.0+0x78/0x528
->          __thermal_cooling_device_register.part.0+0x298/0x354
->          __cpufreq_cooling_register.constprop.0+0x138/0x218
->          of_cpufreq_cooling_register+0x48/0x8c
->          cpufreq_online+0x8d0/0xb2c
->          cpufreq_add_dev+0xb0/0xec
->          subsys_interface_register+0x108/0x118
->          cpufreq_register_driver+0x15c/0x380
->          dt_cpufreq_probe+0x2e4/0x434
->          platform_probe+0x5c/0xb8
->          really_probe+0xe0/0x414
->          __driver_probe_device+0xa0/0x208
->          driver_probe_device+0x30/0xc0
->          __driver_attach+0xf0/0x1f0
->          bus_for_each_dev+0x70/0xb0
->          bus_add_driver+0x174/0x218
->          driver_register+0x88/0x11c
->          do_one_initcall+0x64/0x380
->          kernel_init_freeable+0x1c0/0x224
->          kernel_init+0x18/0x12c
->          ret_from_fork+0x14/0x2c
->          0x0
-> 
-> other info that might help us debug this:
-> 
->    Possible unsafe locking scenario:
-> 
->          CPU0                    CPU1
->          ----                    ----
->     lock(&tz->lock);
->                                  lock(&data->lock#2);
->                                  lock(&tz->lock);
->     lock(&data->lock#2);
-> 
->    *** DEADLOCK ***
-> 
-> 5 locks held by swapper/0/1:
->    #0: c1c8648c (&dev->mutex){....}-{3:3}, at: __driver_attach+0xe4/0x1f0
->    #1: c1210434 (cpu_hotplug_lock){++++}-{0:0}, at:
-> cpufreq_register_driver+0xc4/0x380
->    #2: c1ed8298 (subsys mutex#8){+.+.}-{3:3}, at:
-> subsys_interface_register+0x4c/0x118
->    #3: c131f944 (thermal_list_lock){+.+.}-{3:3}, at:
-> __thermal_cooling_device_register.part.0+0x238/0x354
->    #4: c2979b94 (&tz->lock){+.+.}-{3:3}, at:
-> thermal_zone_device_update.part.0+0x3c/0x528
-> 
-> stack backtrace:
-> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 6.0.0-rc1-00083-ge5c9d117223e
-> #12945
-> Hardware name: Samsung Exynos (Flattened Device Tree)
->    unwind_backtrace from show_stack+0x10/0x14
->    show_stack from dump_stack_lvl+0x58/0x70
->    dump_stack_lvl from check_noncircular+0xf0/0x158
->    check_noncircular from __lock_acquire+0x15e8/0x2a7c
->    __lock_acquire from lock_acquire+0x124/0x3e4
->    lock_acquire from __mutex_lock+0x90/0x948
->    __mutex_lock from mutex_lock_nested+0x1c/0x24
->    mutex_lock_nested from exynos_get_temp+0x3c/0xc8
->    exynos_get_temp from __thermal_zone_get_temp+0x5c/0x12c
->    __thermal_zone_get_temp from thermal_zone_device_update.part.0+0x78/0x528
->    thermal_zone_device_update.part.0 from
-> __thermal_cooling_device_register.part.0+0x298/0x354
->    __thermal_cooling_device_register.part.0 from
-> __cpufreq_cooling_register.constprop.0+0x138/0x218
->    __cpufreq_cooling_register.constprop.0 from
-> of_cpufreq_cooling_register+0x48/0x8c
->    of_cpufreq_cooling_register from cpufreq_online+0x8d0/0xb2c
->    cpufreq_online from cpufreq_add_dev+0xb0/0xec
->    cpufreq_add_dev from subsys_interface_register+0x108/0x118
->    subsys_interface_register from cpufreq_register_driver+0x15c/0x380
->    cpufreq_register_driver from dt_cpufreq_probe+0x2e4/0x434
->    dt_cpufreq_probe from platform_probe+0x5c/0xb8
->    platform_probe from really_probe+0xe0/0x414
->    really_probe from __driver_probe_device+0xa0/0x208
->    __driver_probe_device from driver_probe_device+0x30/0xc0
->    driver_probe_device from __driver_attach+0xf0/0x1f0
->    __driver_attach from bus_for_each_dev+0x70/0xb0
->    bus_for_each_dev from bus_add_driver+0x174/0x218
->    bus_add_driver from driver_register+0x88/0x11c
->    driver_register from do_one_initcall+0x64/0x380
->    do_one_initcall from kernel_init_freeable+0x1c0/0x224
->    kernel_init_freeable from kernel_init+0x18/0x12c
->    kernel_init from ret_from_fork+0x14/0x2c
-> Exception stack(0xf082dfb0 to 0xf082dff8)
-> ...
-> 
-> Let me know if You need anything more to test.
-> 
-> 
->> drivers/net/ethernet/chelsio/cxgb4/cxgb4.h | 2 -
->> .../ethernet/chelsio/cxgb4/cxgb4_thermal.c | 41 +----
->> drivers/platform/x86/acerhdf.c | 73 +++-----
->> drivers/thermal/armada_thermal.c | 39 ++---
->> drivers/thermal/broadcom/bcm2835_thermal.c | 8 +-
->> drivers/thermal/da9062-thermal.c | 52 +-----
->> drivers/thermal/gov_bang_bang.c | 39 +++--
->> drivers/thermal/gov_fair_share.c | 18 +-
->> drivers/thermal/gov_power_allocator.c | 51 +++---
->> drivers/thermal/gov_step_wise.c | 22 ++-
->> drivers/thermal/hisi_thermal.c | 11 +-
->> drivers/thermal/imx_thermal.c | 72 +++-----
->> .../int340x_thermal/int340x_thermal_zone.c | 33 ++--
->> .../int340x_thermal/int340x_thermal_zone.h | 4 +-
->> .../processor_thermal_device.c | 10 +-
->> drivers/thermal/intel/x86_pkg_temp_thermal.c | 120 +++++++------
->> drivers/thermal/qcom/qcom-spmi-temp-alarm.c | 39 ++---
->> drivers/thermal/rcar_gen3_thermal.c | 2 +-
->> drivers/thermal/rcar_thermal.c | 53 +-----
->> drivers/thermal/samsung/exynos_tmu.c | 57 +++----
->> drivers/thermal/st/st_thermal.c | 47 +----
->> drivers/thermal/tegra/soctherm.c | 33 ++--
->> drivers/thermal/tegra/tegra30-tsensor.c | 17 +-
->> drivers/thermal/thermal_core.c | 160 +++++++++++++++---
->> drivers/thermal/thermal_core.h | 24 +--
->> drivers/thermal/thermal_helpers.c | 28 +--
->> drivers/thermal/thermal_netlink.c | 21 +--
->> drivers/thermal/thermal_of.c | 116 -------------
->> drivers/thermal/thermal_sysfs.c | 133 +++++----------
->> drivers/thermal/ti-soc-thermal/ti-thermal.h | 15 --
->> drivers/thermal/uniphier_thermal.c | 27 ++-
->> include/linux/thermal.h | 10 ++
->> 32 files changed, 559 insertions(+), 818 deletions(-)
->>
-> Best regards
-> 
+I'm submitting this as an RFC for two reasons. First, because we're now
+in the 6.1 window, but second because there are some uncertainties that
+came up while upgrading everything. Particularly around GPMC.
 
+As far as I can tell, the flash and ethernet both work as expected. The
+timings from omap-gpmc-smsc9221.dtsi are what is needed (even though
+they don't match Barebox). I also used the timings from omap3-ldp.dts as
+my guide for the flash timings, as it seemed to be the only OMAP2+ GPMC
+device that has Micron NAND.
+
+The main difference that I came across was NAND Flash ECC settings.
+Initially I could run `dd if=/dev/mtd0 of=foo count=1` and read the
+flash, but see ECC errors. It wasn't until I added
+ti,elm-id = <&elm>;
+that I saw these errors go away. Seemingly none of this code existed at
+the time of the last vendor BSP update (3.4.41) so I'm hopeful that this
+is correct - or at least not a "red flag, you're doing it completely
+wrong and your flash is going to corrupt itself tomorrow" scenario.
+
+
+
+Colin Foster (1):
+  arm: dts: omap4: pcm959: add initial support for phytec pcm959
+
+ arch/arm/boot/dts/Makefile                  |   1 +
+ arch/arm/boot/dts/omap4-phytec-pcm-049.dtsi | 352 ++++++++++++++++++++
+ arch/arm/boot/dts/omap4-phytec-pcm-959.dts  | 130 ++++++++
+ 3 files changed, 483 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap4-phytec-pcm-049.dtsi
+ create mode 100644 arch/arm/boot/dts/omap4-phytec-pcm-959.dts
 
 -- 
-<http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
+2.25.1
 
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
