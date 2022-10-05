@@ -2,187 +2,376 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0C71C43219
-	for <linux-omap@archiver.kernel.org>; Wed,  5 Oct 2022 13:05:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AEE9C433FE
+	for <linux-omap@archiver.kernel.org>; Wed,  5 Oct 2022 14:22:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229783AbiJENFx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 5 Oct 2022 09:05:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49378 "EHLO
+        id S229903AbiJEOWk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 5 Oct 2022 10:22:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229505AbiJENFv (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2022 09:05:51 -0400
-Received: from mailout1.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E87A8220F1
-        for <linux-omap@vger.kernel.org>; Wed,  5 Oct 2022 06:05:47 -0700 (PDT)
-Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
-        by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20221005130543euoutp0169c909b41863d3b8a17941f06721dfde~bLhJS5XWn1552415524euoutp01L
-        for <linux-omap@vger.kernel.org>; Wed,  5 Oct 2022 13:05:43 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w1.samsung.com 20221005130543euoutp0169c909b41863d3b8a17941f06721dfde~bLhJS5XWn1552415524euoutp01L
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-        s=mail20170921; t=1664975143;
-        bh=cShw/3LGlylN+4jJotpQbuNoLk30Zznf4m8prglpDWE=;
-        h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
-        b=S/UHF0e2phRkGiCF0XGwtynhMSI6OuPOWGnyUO31/4azPx9Fd/P482Gl+oVJELhmQ
-         4jSqwCm04jceqZqXx7ZIDlc124H3kU9UGzGKbKQ0r9kZHRmSgCpFwDeWXGZJSZtX8T
-         i62BfLpu0Uya4Uk6HTG2BvfShkSGvcgkGRaYS9oA=
-Received: from eusmges1new.samsung.com (unknown [203.254.199.242]) by
-        eucas1p1.samsung.com (KnoxPortal) with ESMTP id
-        20221005130543eucas1p1aed6763fdecb50ca11125c7eec2cbbf0~bLhI6xuMy3238032380eucas1p14;
-        Wed,  5 Oct 2022 13:05:43 +0000 (GMT)
-Received: from eucas1p1.samsung.com ( [182.198.249.206]) by
-        eusmges1new.samsung.com (EUCPMTA) with SMTP id 1B.A2.29727.6218D336; Wed,  5
-        Oct 2022 14:05:42 +0100 (BST)
-Received: from eusmtrp2.samsung.com (unknown [182.198.249.139]) by
-        eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
-        20221005130542eucas1p1a50cb2c3ee56c7c6b3b78f9d4b191abf~bLhIInLdI3061230612eucas1p19;
-        Wed,  5 Oct 2022 13:05:42 +0000 (GMT)
-Received: from eusmgms2.samsung.com (unknown [182.198.249.180]) by
-        eusmtrp2.samsung.com (KnoxPortal) with ESMTP id
-        20221005130542eusmtrp2fa51b0c29199130127621c85d53fce3c~bLhIHmN630188401884eusmtrp2Y;
-        Wed,  5 Oct 2022 13:05:42 +0000 (GMT)
-X-AuditID: cbfec7f2-205ff7000001741f-4f-633d81261c13
-Received: from eusmtip2.samsung.com ( [203.254.199.222]) by
-        eusmgms2.samsung.com (EUCPMTA) with SMTP id BA.2D.10862.6218D336; Wed,  5
-        Oct 2022 14:05:42 +0100 (BST)
-Received: from [106.210.134.192] (unknown [106.210.134.192]) by
-        eusmtip2.samsung.com (KnoxPortal) with ESMTPA id
-        20221005130541eusmtip25243c5df6e3b8a7331bd5ea6df42850f~bLhHDpACD0498804988eusmtip2d;
-        Wed,  5 Oct 2022 13:05:41 +0000 (GMT)
-Message-ID: <207c1979-0da2-b05d-fead-6880ad956b90@samsung.com>
-Date:   Wed, 5 Oct 2022 15:05:41 +0200
+        with ESMTP id S229653AbiJEOWi (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 5 Oct 2022 10:22:38 -0400
+Received: from EUR03-DBA-obe.outbound.protection.outlook.com (mail-dbaeur03on2046.outbound.protection.outlook.com [40.107.104.46])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D3BA786FA;
+        Wed,  5 Oct 2022 07:22:37 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=R/xTWJT1DBECsVu0ddtHtPskB0NmGtHsNTNRMAeGeClGgrQZW9Q1Zbx7cmQsPZC+IWQdCR8pSgwE9M2JJU57ivlFqjZztnLS4X6dtaIdpn8OpMOPfC1gM46yERBp4YICOE3BkIN57mVI6Hm5DAOU/2XUH1T5S16fzgTrZkzF89zFS9n3BtjOnJTWqSJII1qW3zgMKTOPX0blQ1boo0qWBtfpTzMSg0kq1fQ/A+IjQ/FCcdHGDjQcbxJaUbJYIt6oEyboVlPxbDRgi7KZPRAax3HFd2BwI4sdX9Oc8U8rlEERmcN2TRvVOqYtOmTWDVtVZnYXCa6u01GRFpr34Re88A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=u3eaEGnI8Lu+uyDfI6rvSMDdWhG67cN8Qw2JQEk0zFI=;
+ b=ko3XwSTbS3zgDi+Yu0jt+IQl3Y+dExK6aXOTu5Iy2Gt2dPoB87PN88AX7vQmU/YxMp5KkGTmts0YRNacI7xIQWtoWT+wSxxXFeSg/b3ve+GLayFCmo5XN97NGTOSSDMaiCfOEXVdlSICuITLEtxRbphGd0fpZd8uI3kcF/QpHcODUqpY/5LN41mJkqvP6Y7FCC3chGKb8RqJXDfvNMatOjRQkcn9t/zNg9ZIBKe+1IcK0Tm1pqAprznkUPvpLAjsf+EUZFGuHCe04+OX/fYADwDEJFVVcs513uKxaocc/QJi9vgapkcxJpIzoNv/T/QLHvflJyjXYnd3OuetfwMx0w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 194.138.21.74) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=siemens.com;
+ dmarc=pass (p=none sp=none pct=100) action=none header.from=siemens.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=siemens.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=u3eaEGnI8Lu+uyDfI6rvSMDdWhG67cN8Qw2JQEk0zFI=;
+ b=cQHe9fuI4Q+EVzyOvFlG+c2HC+FUJ7KCPFkXf1iWTP3/HkoNv6HruXrIbzPqITIW16LKexUWCNQp8daIWjeg0pRGaaeeQnNz1OP1PclhQteW/emGTimHIyr5xdNIKkJVpkCt0gubKzzxf3zjy69MwtlEVPt5oMDRlgrmII3R0CoHDMPLBhQRVW9GQWiDKINSEBfVOnzOrP5GGI8jj12+eDYkc9f8BLSCnt2Fb0am271K7u4IF1mTpKhRUWoDsxfiXX5ya+FcAsCEmjkWpVYqInLbPoWpXDrOi0BmGnonjeI963QJZncnAWjrIFhb98eWejAJmBvFu4sDMmseewU/gw==
+Received: from DU2P250CA0029.EURP250.PROD.OUTLOOK.COM (2603:10a6:10:231::34)
+ by AM7PR10MB3876.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:20b:175::24) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5676.28; Wed, 5 Oct
+ 2022 14:22:34 +0000
+Received: from DB5EUR01FT040.eop-EUR01.prod.protection.outlook.com
+ (2603:10a6:10:231:cafe::e) by DU2P250CA0029.outlook.office365.com
+ (2603:10a6:10:231::34) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5676.32 via Frontend
+ Transport; Wed, 5 Oct 2022 14:22:34 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 194.138.21.74)
+ smtp.mailfrom=siemens.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=siemens.com;
+Received-SPF: Pass (protection.outlook.com: domain of siemens.com designates
+ 194.138.21.74 as permitted sender) receiver=protection.outlook.com;
+ client-ip=194.138.21.74; helo=hybrid.siemens.com; pr=C
+Received: from hybrid.siemens.com (194.138.21.74) by
+ DB5EUR01FT040.mail.protection.outlook.com (10.152.5.25) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.5709.10 via Frontend Transport; Wed, 5 Oct 2022 14:22:34 +0000
+Received: from DEMCHDC89XA.ad011.siemens.net (139.25.226.103) by
+ DEMCHDC8VQA.ad011.siemens.net (194.138.21.74) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.12; Wed, 5 Oct 2022 16:22:34 +0200
+Received: from bennie-lenovo.fritz.box (144.145.220.67) by
+ DEMCHDC89XA.ad011.siemens.net (139.25.226.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.12; Wed, 5 Oct 2022 16:22:33 +0200
+From:   "B. Niedermayr" <benedikt.niedermayr@siemens.com>
+To:     <devicetree@vger.kernel.org>, <linux-omap@vger.kernel.org>
+CC:     <krzysztof.kozlowski@linaro.org>, <robh+dt@kernel.org>,
+        <rogerq@kernel.org>, <tony@atomide.com>
+Subject: [PATCH v7 1/2] memory: omap-gpmc: wait pin additions
+Date:   Wed, 5 Oct 2022 16:22:23 +0200
+Message-ID: <20221005142224.287982-2-benedikt.niedermayr@siemens.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20221005142224.287982-1-benedikt.niedermayr@siemens.com>
+References: <20221005142224.287982-1-benedikt.niedermayr@siemens.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0)
-        Gecko/20100101 Thunderbird/91.13.1
-Subject: Re: [PATCH v8 00/29] Rework the trip points creation
-Content-Language: en-US
-To:     Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc:     linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
-        rui.zhang@intel.com,
-        Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>,
-        Support Opensource <support.opensource@diasemi.com>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Andy Gross <agross@kernel.org>,
-        Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Alim Akhtar <alim.akhtar@samsung.com>, netdev@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-omap@vger.kernel.org, rafael@kernel.org
-From:   Marek Szyprowski <m.szyprowski@samsung.com>
-In-Reply-To: <851008bf-145d-224c-87a8-cb6ec1e9addb@linaro.org>
-Content-Transfer-Encoding: 7bit
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFmpkk+LIzCtJLcpLzFFi42LZduznOV21Rttkg9/XrS3OPf7NYvFg3jY2
-        i7W9R1ksvm+5zmQx77OsxaqpO1ks9r7eym6x6fE1VouJ+8+yW3T9WslscXnXHDaL2Uv6WSw+
-        9x5htNj68h2TxcTbG9gtZpzfx2TR+WUWm8WxBWIWq/e8YLaY+2Uqs8WTh31sFntbLzI7iHnM
-        un+WzWPFJ32PnbPusnss3vOSyWPTqk42jzvX9rB5bF5S77Hx3Q4mj/6/Bh59W1YxenzeJBfA
-        HcVlk5Kak1mWWqRvl8CVsXLTSraCv/wVFze/YmpgbOPtYuTgkBAwkXg+T7SLkYtDSGAFo8Tz
-        f59ZIZwvjBK7H75lh3A+M0rM2PSBsYuRE6zj4qNHLBCJ5YwSP859Z4ZwPjJKXF6yiR2kilfA
-        TuLn2sdgNouAisSi582MEHFBiZMzn7CA2KICyRI/uw6wgdjCArYS7390gtUzC4hL3HoynwnE
-        FhHQk2h838YEsoBZYAqbxOEVe1lBEmwChhJdb7vAmjmBlh3ZsAiqWV5i+9s5zBCnvuKUODHR
-        FsJ2kZg/6S4ThC0s8er4FnYIW0bi/875YAskBNoZJRb8vg/lTGCUaHh+C+ppa4k7536xgYKM
-        WUBTYv0ufUjoOUrc/+cPYfJJ3HgrCHECn8SkbdOZIcK8Eh1tQhAz1CRmHV8Ht/XghUvMExiV
-        ZiGFyiwk389C8swshLULGFlWMYqnlhbnpqcWG+allusVJ+YWl+al6yXn525iBKbS0/+Of9rB
-        OPfVR71DjEwcjIcYJTiYlUR4eU/aJAvxpiRWVqUW5ccXleakFh9ilOZgURLnZZuhlSwkkJ5Y
-        kpqdmlqQWgSTZeLglGpgas1MywlXW6yRvWzhuUS/oxOTTppaP9/kmKzPFxEUopizT8O0wNm2
-        aX9r6JKILwqnVqyUKhD7WbFlS/i74w+ubdT7fr/52CfZJ5mnd2wwYNVk7GH0/ZY3a8KfW3OU
-        M9uvrT0nzXXI2Mjk7fxDiqLy5TGuC2JO9Zlf/nNecva3A2v9OZPmvLK5cHTdRvF93tXS4uEp
-        fTmngzQ+p/AE6UysU/FdZVpdmm8xOyd1X36Pi8vDSUWR/gblZufs2EVN9Y93hU80fXYyKv+I
-        YVPJ7v7+rcuTiqR2Lj+7Osbr7r6vaa0LS382yZ6Jeu6z5orKgje9XK95hftf1J0oVr5/5kWY
-        NeuH+Km5FlqZKpWvjqxQYinOSDTUYi4qTgQA70iftBQEAAA=
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFprMKsWRmVeSWpSXmKPExsVy+t/xe7pqjbbJBttb2SzOPf7NYvFg3jY2
-        i7W9R1ksvm+5zmQx77OsxaqpO1ks9r7eym6x6fE1VouJ+8+yW3T9WslscXnXHDaL2Uv6WSw+
-        9x5htNj68h2TxcTbG9gtZpzfx2TR+WUWm8WxBWIWq/e8YLaY+2Uqs8WTh31sFntbLzI7iHnM
-        un+WzWPFJ32PnbPusnss3vOSyWPTqk42jzvX9rB5bF5S77Hx3Q4mj/6/Bh59W1YxenzeJBfA
-        HaVnU5RfWpKqkJFfXGKrFG1oYaRnaGmhZ2RiqWdobB5rZWSqpG9nk5Kak1mWWqRvl6CXsXLT
-        SraCv/wVFze/YmpgbOPtYuTkkBAwkbj46BFLFyMXh5DAUkaJlytb2CESMhInpzWwQtjCEn+u
-        dbGB2EIC7xklZu8OA7F5Bewkfq59DFbPIqAiseh5MyNEXFDi5MwnLCC2qECyxMs/E8FqhAVs
-        Jd7/6ASzmQXEJW49mc8EYosI6Ek0vm9jgohPY5P4/DkeYtdGJon3W+pBbDYBQ4mutxA3cALt
-        PbJhEdQcM4murV2MELa8xPa3c5gnMArNQnLGLCTrZiFpmYWkZQEjyypGkdTS4tz03GIjveLE
-        3OLSvHS95PzcTYzA1LHt2M8tOxhXvvqod4iRiYPxEKMEB7OSCC/vSZtkId6UxMqq1KL8+KLS
-        nNTiQ4ymwLCYyCwlmpwPTF55JfGGZgamhiZmlgamlmbGSuK8ngUdiUIC6YklqdmpqQWpRTB9
-        TBycUg1M1fHK5u17e/xmPNAx/RH0+cWjBb8WrNXuNq34YHCgtn/5TlP7D3sKTu25XGdRv+Bo
-        oMPkE2zaJ5cdPzpr9inpX/6XOaK26YtPvS8ygaf5seqXe+0nVrnrNpe0+Z9e/SOpau82KdeZ
-        J2Vkru5/EVpp7Cj1wkzmg0iIo6HeXPkwqU0PC9Iap8yJesKwfzqXW6GYzvcLrEL2N40WJrjP
-        3szWtf2Uada+eyXyJi2z9Phn7N6RvLljdZqM9uFwg+K7eW41zayWv3UMdkV+n7np305rbdGb
-        t7tCMuctC7JT2X7EV3mP2PRd+xP61F8/NJB9vf1I0+KwwILXh3j22pbOLnhya8YOsRa7yJzF
-        cj45z6adV2Ipzkg01GIuKk4EAIdUMlKmAwAA
-X-CMS-MailID: 20221005130542eucas1p1a50cb2c3ee56c7c6b3b78f9d4b191abf
-X-Msg-Generator: CA
-Content-Type: text/plain; charset="utf-8"
-X-RootMTR: 20221003092704eucas1p2875c1f996dfd60a58f06cf986e02e8eb
-X-EPHeader: CA
-CMS-TYPE: 201P
-X-CMS-RootMailID: 20221003092704eucas1p2875c1f996dfd60a58f06cf986e02e8eb
-References: <CGME20221003092704eucas1p2875c1f996dfd60a58f06cf986e02e8eb@eucas1p2.samsung.com>
-        <20221003092602.1323944-1-daniel.lezcano@linaro.org>
-        <8cdd1927-da38-c23e-fa75-384694724b1c@samsung.com>
-        <c3258cb2-9a56-d048-5738-1132331a157d@linaro.org>
-        <851008bf-145d-224c-87a8-cb6ec1e9addb@linaro.org>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [144.145.220.67]
+X-ClientProxiedBy: DEMCHDC89XA.ad011.siemens.net (139.25.226.103) To
+ DEMCHDC89XA.ad011.siemens.net (139.25.226.103)
+X-TM-AS-Product-Ver: SMEX-14.0.0.3080-8.6.1018-26680.007
+X-TM-AS-Result: No-10--14.897700-8.000000
+X-TMASE-MatchedRID: 72LmfBRVXZx9FLoMFmUuDthqUVCOck0ftrzk2ZRuBsoMOWxRtywg+jh4
+        aiF3uCM2HWtVZN0asTgf18Czy93s4fathQv6lzDi7uTk+xoYFu6b/N9SeJFyxcmiSRTHZQzXDmT
+        V5r5yWnqOGxiV2ubMadskxtNP0r9NefILjeEZ79/vcnIVT5xVcyHhSBQfglfsA9lly13c/gGOVG
+        ny5q72hquPvo9L6iaI0zNps+LI1+t2PULLZTziu9tnBGusYR3PDEVT5M0HH4UaPMGCcVm9Diu1T
+        i/fdPHBIIvbIEPeuIEccGRhta5Q6rPIKjrFoGoy9plodGf603n/R1NSMc2qCednG4+P1pj7yiKg
+        KtIyB4qQc9WQFO7fU1aPo0QygOyiQfigoiUyKIWlBrV+KMJAP0s3SiaAjbkfCWlWR223da4Bmf/
+        gD11vZB6njTSt2k4LFQLH9fnGRSfKkzYAd7QJFOxgfj2sQEjggQFyHQeFnIMjRwcsjqWGAjFcf9
+        2WG8u/HnddRfSLChTsq4UteQrM5yVYwXvjZbQj9LuVp2lfQNdvpNRj/SLt26oXHZz/dXlx64sVl
+        liWKx8fE8yM4pjsDwtuKBGekqUpOlxBO2IcOBZy2vCcLGx/yxtkdA7I+fBMu3uBoKWfQgrma/uS
+        mSYR5zSxxGdt3wab
+X-TM-AS-User-Approved-Sender: No
+X-TM-AS-User-Blocked-Sender: No
+X-TMASE-Result: 10--14.897700-8.000000
+X-TMASE-Version: SMEX-14.0.0.3080-8.6.1018-26680.007
+X-TM-SNTS-SMTP: E0A234761B05804188569D42EA18749983A68489FD577338EC531DF41FA648232000:8
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DB5EUR01FT040:EE_|AM7PR10MB3876:EE_
+X-MS-Office365-Filtering-Correlation-Id: 9d95772c-f5e7-4a42-2980-08daa6dd0c0d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: cOUyVD2GF85B8XS0DJZlVR0QUINpO1jz+arrxYlBJ1dPtLDKHqbhmHVmute3XE7nu/7wdflJc8KkmsgJe+6lP3aAtMo4nFfdMwKy8z6ohqZgtEqU9oejyFn1s/mlthJfTMejpoonKykZXjLzuXINLvIIXbKTeoiqgriO0mzGt9VJDXMEi3/hxnN/EV6jlYYX9OjnxM1VrRml5XbThw5pl9LLxKFzjwEaHwXOg/lJTPMyR+ca1gT/9zhaVcTnuKsiHZoA5fLIFf/KqG38911WWbtdo8lC2Afmh6e3bpnEVTgQqLSlCddo19bncChmn4Pdvv9ExNW5y0mAuIaWZ2sdUYBUYQJC0xzbLy1ZTVaAWn67ObDL/4YlnJutu3Frx00rNcbgzfdyVTIuCZsZlEaiC0aQpnuFBZcSoacBPV9e9cv01hLqoS+jx5kIHs8/KdAA6RlifLzNLXzU8n7x3xLqo8R+GWawLt2+nCljuXqMtf/ZG/j0YWC6eFT67KPrP/6yO2fxF3n1As/O8nTEbONyYJA/b1xFzmq1uLlou9CIE/j6AqkaHHV5Q5nz14UEvVkDArT9SZ+c74kMu4TySI+oZAe+LrpBvzIRGusMNqvZRuuUAr3Si/D72J7wTXbWDladLANDHjzopSH9m6PK3KR03ybLDP1VbSzYqjGVkjS7B0+fwWryGUGN4QiyAdoWGvN0QBKuO2A8GYs7WjL9DZRAvxAJZVcJRdoPi6+Ht4qoVlmhvCIIwVH7qp9J36XpdRGaQYxmMo6ctBpjAEq3Zf+QVg==
+X-Forefront-Antispam-Report: CIP:194.138.21.74;CTRY:DE;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:hybrid.siemens.com;PTR:hybrid.siemens.com;CAT:NONE;SFS:(13230022)(4636009)(396003)(376002)(136003)(39860400002)(346002)(451199015)(40470700004)(46966006)(36840700001)(40480700001)(2906002)(7636003)(356005)(7596003)(36860700001)(478600001)(82310400005)(82740400003)(82960400001)(36756003)(86362001)(70586007)(8676002)(83380400001)(2616005)(16526019)(6666004)(26005)(186003)(316002)(54906003)(40460700003)(956004)(110136005)(5660300002)(41300700001)(4326008)(336012)(47076005)(1076003)(70206006)(8936002);DIR:OUT;SFP:1101;
+X-OriginatorOrg: siemens.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Oct 2022 14:22:34.5737
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9d95772c-f5e7-4a42-2980-08daa6dd0c0d
+X-MS-Exchange-CrossTenant-Id: 38ae3bcd-9579-4fd4-adda-b42e1495d55a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=38ae3bcd-9579-4fd4-adda-b42e1495d55a;Ip=[194.138.21.74];Helo=[hybrid.siemens.com]
+X-MS-Exchange-CrossTenant-AuthSource: DB5EUR01FT040.eop-EUR01.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM7PR10MB3876
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+From: Benedikt Niedermayr <benedikt.niedermayr@siemens.com>
 
-On 05.10.2022 14:37, Daniel Lezcano wrote:
->
-> Hi Marek,
->
-> On 03/10/2022 23:18, Daniel Lezcano wrote:
->
-> [ ... ]
->
->>> I've tested this v8 patchset after fixing the issue with Exynos TMU 
->>> with
->>> https://lore.kernel.org/all/20221003132943.1383065-1-daniel.lezcano@linaro.org/ 
->>>
->>> patch and I got the following lockdep warning on all Exynos-based 
->>> boards:
->>>
->>>
->>> ======================================================
->>> WARNING: possible circular locking dependency detected
->>> 6.0.0-rc1-00083-ge5c9d117223e #12945 Not tainted
->>> ------------------------------------------------------
->>> swapper/0/1 is trying to acquire lock:
->>> c1ce66b0 (&data->lock#2){+.+.}-{3:3}, at: exynos_get_temp+0x3c/0xc8
->>>
->>> but task is already holding lock:
->>> c2979b94 (&tz->lock){+.+.}-{3:3}, at:
->>> thermal_zone_device_update.part.0+0x3c/0x528
->>>
->>> which lock already depends on the new lock.
->>
->> I'm wondering if the problem is not already there and related to 
->> data->lock ...
->>
->> Doesn't the thermal zone lock already prevent racy access to the data 
->> structure?
->>
->> Another question: if the sensor clock is disabled after reading it, 
->> how does the hardware update the temperature and detect the programed 
->> threshold is crossed?
->
-> just a gentle ping, as the fix will depend on your answer ;)
->
-Sorry, I've been busy with other stuff. I thought I will fix this once I 
-find a bit of spare time.
+This patch introduces support for setting the wait-pin polarity as well
+as using the same wait-pin for different CS regions.
 
-IMHO the clock management is a bit over-engineered, as there is little 
-(if any) benefit from such fine grade clock management. That clock is 
-needed only for the AHB related part of the TMU (reading/writing the 
-registers). The IRQ generation and temperature measurement is clocked 
-from so called 'sclk' (special clock).
+The waitpin polarity can be configured via the WAITPIN<X>POLARITY bits
+in the GPMC_CONFIG register. This is currently not supported by the
+driver. This patch adds support for setting the required register bits
+with the "ti,wait-pin-polarity" dt-property.
 
-I also briefly looked at the code and the internal lock doesn't look to 
-be really necessary assuming that the thermal core already serializes 
-all the calls.
+The wait-pin can also be shared between different CS regions for special
+usecases. Therefore GPMC must keep track of wait-pin allocations, so it
+knows that either GPMC itself or another driver has the ownership.
 
-Best regards
+Signed-off-by: Benedikt Niedermayr <benedikt.niedermayr@siemens.com>
+---
+ drivers/memory/omap-gpmc.c              | 122 +++++++++++++++++++++---
+ include/linux/platform_data/gpmc-omap.h |   8 ++
+ 2 files changed, 117 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index d9bf1c2ac319..95c4e61753c0 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -132,6 +132,7 @@
+ #define GPMC_CONFIG_DEV_SIZE	0x00000002
+ #define GPMC_CONFIG_DEV_TYPE	0x00000003
+ 
++#define GPMC_CONFIG_WAITPINPOLARITY(pin)	(BIT(pin) << 8)
+ #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+ #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
+ #define GPMC_CONFIG1_READTYPE_ASYNC     (0 << 29)
+@@ -227,11 +228,18 @@ struct omap3_gpmc_regs {
+ 	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
+ };
+ 
++struct gpmc_waitpin {
++	u32 pin;
++	u32 polarity;
++	struct gpio_desc *desc;
++};
++
+ struct gpmc_device {
+ 	struct device *dev;
+ 	int irq;
+ 	struct irq_chip irq_chip;
+ 	struct gpio_chip gpio_chip;
++	struct gpmc_waitpin *waitpins;
+ 	int nirqs;
+ 	struct resource *data;
+ };
+@@ -1030,6 +1038,62 @@ void gpmc_cs_free(int cs)
+ }
+ EXPORT_SYMBOL(gpmc_cs_free);
+ 
++static bool gpmc_is_valid_waitpin(u32 waitpin)
++{
++	return waitpin >= 0 && waitpin < gpmc_nr_waitpins;
++}
++
++static int gpmc_alloc_waitpin(struct gpmc_device *gpmc,
++			      struct gpmc_settings *p)
++{
++	int ret;
++	struct gpmc_waitpin *waitpin;
++	struct gpio_desc *waitpin_desc;
++
++	if (!gpmc_is_valid_waitpin(p->wait_pin))
++		return -EINVAL;
++
++	waitpin = &gpmc->waitpins[p->wait_pin];
++
++	/* Reserve the GPIO for wait pin usage.
++	 * GPIO polarity doesn't matter here. Wait pin polarity
++	 * is set in GPMC_CONFIG register.
++	 */
++	waitpin_desc = gpiochip_request_own_desc(&gpmc->gpio_chip,
++						 p->wait_pin, "WAITPIN",
++						 GPIO_ACTIVE_HIGH,
++						 GPIOD_IN);
++
++	ret = PTR_ERR(waitpin_desc);
++	if (IS_ERR(waitpin_desc) && ret != -EBUSY)
++		return ret;
++
++	if (!waitpin->desc) {
++		/* New wait pin */
++		waitpin->desc = waitpin_desc;
++		waitpin->pin = p->wait_pin;
++		waitpin->polarity = p->wait_pin_polarity;
++	} else {
++		/* Shared wait pin */
++		if (p->wait_pin_polarity != waitpin->polarity ||
++		    p->wait_pin != waitpin->pin) {
++			dev_err(gpmc->dev,
++				"shared-wait-pin: invalid configuration\n");
++			return -EINVAL;
++		}
++		dev_info(gpmc->dev, "shared wait-pin: %d\n", waitpin->pin);
++	}
++
++	return 0;
++}
++
++static void gpmc_free_waitpin(struct gpmc_device *gpmc,
++			      int wait_pin)
++{
++	if (gpmc_is_valid_waitpin(wait_pin))
++		gpiochip_free_own_desc(gpmc->waitpins[wait_pin].desc);
++}
++
+ /**
+  * gpmc_configure - write request to configure gpmc
+  * @cmd: command type
+@@ -1881,6 +1945,17 @@ int gpmc_cs_program_settings(int cs, struct gpmc_settings *p)
+ 
+ 	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, config1);
+ 
++	if (p->wait_pin_polarity != GPMC_WAITPINPOLARITY_INVALID) {
++		config1 = gpmc_read_reg(GPMC_CONFIG);
++
++		if (p->wait_pin_polarity == GPMC_WAITPINPOLARITY_ACTIVE_LOW)
++			config1 &= ~GPMC_CONFIG_WAITPINPOLARITY(p->wait_pin);
++		else if (p->wait_pin_polarity == GPMC_WAITPINPOLARITY_ACTIVE_HIGH)
++			config1 |= GPMC_CONFIG_WAITPINPOLARITY(p->wait_pin);
++
++		gpmc_write_reg(GPMC_CONFIG, config1);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -1980,7 +2055,25 @@ void gpmc_read_settings_dt(struct device_node *np, struct gpmc_settings *p)
+ 				__func__);
+ 	}
+ 
++	p->wait_pin = GPMC_WAITPIN_DEFAULT;
++	p->wait_pin_polarity = GPMC_WAITPINPOLARITY_INVALID;
++
+ 	if (!of_property_read_u32(np, "gpmc,wait-pin", &p->wait_pin)) {
++		if (!gpmc_is_valid_waitpin(p->wait_pin)) {
++			pr_err("%s: Invalid wait-pin (%d)\n", __func__, p->wait_pin);
++			p->wait_pin = GPMC_WAITPIN_DEFAULT;
++		}
++
++		if (!of_property_read_u32(np, "gpmc,wait-pin-polarity",
++					  &p->wait_pin_polarity)) {
++			if (p->wait_pin_polarity != GPMC_WAITPINPOLARITY_ACTIVE_HIGH &&
++			    p->wait_pin_polarity != GPMC_WAITPINPOLARITY_ACTIVE_LOW) {
++				pr_err("%s: Invalid wait-pin-polarity (%d)\n",
++				       __func__, p->wait_pin_polarity);
++				p->wait_pin_polarity = GPMC_WAITPINPOLARITY_INVALID;
++				}
++		}
++
+ 		p->wait_on_read = of_property_read_bool(np,
+ 							"gpmc,wait-on-read");
+ 		p->wait_on_write = of_property_read_bool(np,
+@@ -2085,7 +2178,6 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	const char *name;
+ 	int ret, cs;
+ 	u32 val;
+-	struct gpio_desc *waitpin_desc = NULL;
+ 	struct gpmc_device *gpmc = platform_get_drvdata(pdev);
+ 
+ 	if (of_property_read_u32(child, "reg", &cs) < 0) {
+@@ -2214,17 +2306,9 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 
+ 	/* Reserve wait pin if it is required and valid */
+ 	if (gpmc_s.wait_on_read || gpmc_s.wait_on_write) {
+-		unsigned int wait_pin = gpmc_s.wait_pin;
+-
+-		waitpin_desc = gpiochip_request_own_desc(&gpmc->gpio_chip,
+-							 wait_pin, "WAITPIN",
+-							 GPIO_ACTIVE_HIGH,
+-							 GPIOD_IN);
+-		if (IS_ERR(waitpin_desc)) {
+-			dev_err(&pdev->dev, "invalid wait-pin: %d\n", wait_pin);
+-			ret = PTR_ERR(waitpin_desc);
++		ret = gpmc_alloc_waitpin(gpmc, &gpmc_s);
++		if (ret < 0)
+ 			goto err;
+-		}
+ 	}
+ 
+ 	gpmc_cs_show_timings(cs, "before gpmc_cs_program_settings");
+@@ -2268,7 +2352,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	ret = -ENODEV;
+ 
+ err_cs:
+-	gpiochip_free_own_desc(waitpin_desc);
++	gpmc_free_waitpin(gpmc, gpmc_s.wait_pin);
+ err:
+ 	gpmc_cs_free(cs);
+ 
+@@ -2395,7 +2479,7 @@ static int gpmc_gpio_init(struct gpmc_device *gpmc)
+ 
+ static int gpmc_probe(struct platform_device *pdev)
+ {
+-	int rc;
++	int rc, i;
+ 	u32 l;
+ 	struct resource *res;
+ 	struct gpmc_device *gpmc;
+@@ -2455,6 +2539,15 @@ static int gpmc_probe(struct platform_device *pdev)
+ 		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
+ 	}
+ 
++	gpmc->waitpins = devm_kzalloc(&pdev->dev,
++				      gpmc_nr_waitpins * sizeof(struct gpmc_waitpin),
++				      GFP_KERNEL);
++	if (!gpmc->waitpins)
++		return -ENOMEM;
++
++	for (i = 0; i < gpmc_nr_waitpins; i++)
++		gpmc->waitpins[i].pin = GPMC_WAITPIN_DEFAULT;
++
+ 	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_get_sync(&pdev->dev);
+ 
+@@ -2505,8 +2598,11 @@ static int gpmc_probe(struct platform_device *pdev)
+ 
+ static int gpmc_remove(struct platform_device *pdev)
+ {
++	int i;
+ 	struct gpmc_device *gpmc = platform_get_drvdata(pdev);
+ 
++	for (i = 0; i < gpmc_nr_waitpins; i++)
++		gpmc_free_waitpin(gpmc, i);
+ 	gpmc_free_irq(gpmc);
+ 	gpmc_mem_exit();
+ 	pm_runtime_put_sync(&pdev->dev);
+diff --git a/include/linux/platform_data/gpmc-omap.h b/include/linux/platform_data/gpmc-omap.h
+index c9cc4e32435d..9aa47dd9b6c6 100644
+--- a/include/linux/platform_data/gpmc-omap.h
++++ b/include/linux/platform_data/gpmc-omap.h
+@@ -136,6 +136,13 @@ struct gpmc_device_timings {
+ #define GPMC_MUX_AAD			1	/* Addr-Addr-Data multiplex */
+ #define GPMC_MUX_AD			2	/* Addr-Data multiplex */
+ 
++/* Wait pin polarity values */
++#define GPMC_WAITPINPOLARITY_INVALID -1
++#define GPMC_WAITPINPOLARITY_ACTIVE_LOW 0
++#define GPMC_WAITPINPOLARITY_ACTIVE_HIGH 1
++
++#define GPMC_WAITPIN_DEFAULT -1
++
+ struct gpmc_settings {
+ 	bool burst_wrap;	/* enables wrap bursting */
+ 	bool burst_read;	/* enables read page/burst mode */
+@@ -149,6 +156,7 @@ struct gpmc_settings {
+ 	u32 device_width;	/* device bus width (8 or 16 bit) */
+ 	u32 mux_add_data;	/* multiplex address & data */
+ 	u32 wait_pin;		/* wait-pin to be used */
++	u32 wait_pin_polarity;
+ };
+ 
+ /* Data for each chip select */
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+2.25.1
 
