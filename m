@@ -2,35 +2,35 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6655C433F5
-	for <linux-omap@archiver.kernel.org>; Sun,  9 Oct 2022 22:23:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 654C4C433FE
+	for <linux-omap@archiver.kernel.org>; Sun,  9 Oct 2022 22:28:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231629AbiJIWW7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 9 Oct 2022 18:22:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44714 "EHLO
+        id S232182AbiJIW2V (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 9 Oct 2022 18:28:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231740AbiJIWVx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 9 Oct 2022 18:21:53 -0400
+        with ESMTP id S231808AbiJIW00 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 9 Oct 2022 18:26:26 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DB781CB2E;
-        Sun,  9 Oct 2022 15:17:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8B383E75A;
+        Sun,  9 Oct 2022 15:18:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9E3A5B80DDB;
-        Sun,  9 Oct 2022 22:11:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F68CC433D7;
-        Sun,  9 Oct 2022 22:11:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0F777B80DC9;
+        Sun,  9 Oct 2022 22:17:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1134BC433D6;
+        Sun,  9 Oct 2022 22:17:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665353503;
+        s=k20201202; t=1665353863;
         bh=drDk/Q5G58QaH21cmrlVgYMK81JcWEHdkp3sIMzdQGA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fIQx0skP3ajc88P2V1NVpN4+BznHWSaVuhqVN+2x2fq1G75SPPVQ9ZTx+KEiJ8Giw
-         f+K1PlmazvMXTiN6AZgdRjeraChHiFOnRsurdrphJdm9IjcXgtI53WtINovdCcSasJ
-         ZqBvq39fvATP+R7cCInZJNko7hc80ogfUtvQorP3g2CyjglwcLtX2BMiJ08f+8yeS5
-         HbkFdlNI8tK7+d7PFSLyMBA0XHTzaspAcsa/FLNtL0K3n7oo61h8EjTpp0pyBk1aIM
-         sPxfWby5AMhe35RP0+X+7QgHapotjfEjumcHeCqB+joWnUVz2QZww4eq6BMcDG0znG
-         LIl07mSpGxWyw==
+        b=t/0aK4xTRs+DYXrNkWZXOh+87LWVaJpz9WEGN6YqxIzLkkdzgGO3udom8e8KSnv5u
+         sSkWpGTCyteIEdGtWljF4OBYo96X2BSPW/FBryeLZUysBwYfCXuMap7LIpo9k0cLSl
+         9rvUwwucs1hj6oHmFazVoaXi9k9Zh32gbyJOFTx94LJoYKloEX0nwvU3x9sLsJqqip
+         zLIsHVEx52G/HXVfS1PRdjRs1BEKeJ6AzL55uIdoW0oSt4jXPesybyAxqrpsGTLO8K
+         KGbQ1xaha4Jm48ncc83kbBmDwIaELtMI53sgo3kZo1NBz5B8RM7nRAFcxkvTmHKH8e
+         woBtnK3wl7rtA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Nathan Huckleberry <nhuck@google.com>,
@@ -39,15 +39,15 @@ Cc:     Nathan Huckleberry <nhuck@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
         Sasha Levin <sashal@kernel.org>, davem@davemloft.net,
         edumazet@google.com, pabeni@redhat.com, ndesaulniers@google.com,
-        prabhakar.mahadev-lad.rj@bp.renesas.com, mkl@pengutronix.de,
-        shayagr@amazon.com, chi.minghao@zte.com.cn, bigunclemax@gmail.com,
+        prabhakar.mahadev-lad.rj@bp.renesas.com, chi.minghao@zte.com.cn,
+        wsa+renesas@sang-engineering.com, bigunclemax@gmail.com,
         linux-omap@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.0 47/77] net: ethernet: ti: davinci_emac: Fix return type of emac_dev_xmit
-Date:   Sun,  9 Oct 2022 18:07:24 -0400
-Message-Id: <20221009220754.1214186-47-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.19 44/73] net: ethernet: ti: davinci_emac: Fix return type of emac_dev_xmit
+Date:   Sun,  9 Oct 2022 18:14:22 -0400
+Message-Id: <20221009221453.1216158-44-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20221009220754.1214186-1-sashal@kernel.org>
-References: <20221009220754.1214186-1-sashal@kernel.org>
+In-Reply-To: <20221009221453.1216158-1-sashal@kernel.org>
+References: <20221009221453.1216158-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
