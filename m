@@ -2,35 +2,35 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B4D5C433F5
-	for <linux-omap@archiver.kernel.org>; Sun,  9 Oct 2022 22:08:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD87BC433FE
+	for <linux-omap@archiver.kernel.org>; Sun,  9 Oct 2022 22:21:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230331AbiJIWI5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 9 Oct 2022 18:08:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41364 "EHLO
+        id S231673AbiJIWVH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 9 Oct 2022 18:21:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44340 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230406AbiJIWI3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 9 Oct 2022 18:08:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C83F286C0;
-        Sun,  9 Oct 2022 15:08:24 -0700 (PDT)
+        with ESMTP id S231872AbiJIWTh (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 9 Oct 2022 18:19:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB64F3CBF9;
+        Sun,  9 Oct 2022 15:16:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0BC8860C93;
-        Sun,  9 Oct 2022 22:08:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAFC3C433D6;
-        Sun,  9 Oct 2022 22:08:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 31CEA60DBB;
+        Sun,  9 Oct 2022 22:15:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20FC9C433D7;
+        Sun,  9 Oct 2022 22:15:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665353300;
+        s=k20201202; t=1665353737;
         bh=vT7Q6sU90rduuqxqS5trs7s3dVF0Knuk5sg5ohmKtRw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rwY8P7b/RdPBrBvDNftXDc+nUhwd9tanWmHFK5dibNb03jB1lh89dJIJXVNpY5jds
-         VlnV3wPlNB5KE5x5Z1n8b88WQm6y4BufRnN9nZCm6XJ5FJ8tv3OOyI+7WqtKfpbW//
-         b5xBT5sVUT5NccXkpC11JOJS0Dux2FdqDXgOUjre1AJj790eVVgt5/4I/szF08Kf9J
-         AqmnYkvFNPBu3bB/0G4WXm7ik9ebGbLA1rbkwmNVexJxb3b6zBY+hvl5r9n2YPCjvm
-         RD8xGiW0fxWW6cVsMLnLYgfZ6rK07CBwoVUdd6jNBVwRK+ZsJ3FD6W6bvu7R36KQ19
-         KsIv1PwnDnnDA==
+        b=psVCSCSEg8D6OAAy+yaNL7t5dLAS12tNMfCbPy9i/FkD4EIUSJTOcAcMqvRqqeubJ
+         O71mIObdIdOganG/GqXcr0H6y0MMZvgaoBiuCfmIn8XsLmTpEA+kGjzdy6PwyzvsL5
+         /Ak9qhw1dxobq6zxe6Wq9qmhFzd88AmAj71oAJnKb8FDaYeK1oksUED2wE3JSu/D/G
+         Qs8JpG2wBIXRM6haTW+Rj4KG+dCSseh4vOAg+m5vcolOJGuK+a/rVG6FcJzKCtCtzJ
+         EUpuH52LwKC5DuIXEhANLXlXH6jhFaeZQGl4CB9wWpKLpG29C1FH0XfSwxp4VQ17nF
+         PY3uQ1xZ5/J5A==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Ravi Gunasekaran <r-gunasekaran@ti.com>,
@@ -38,15 +38,15 @@ Cc:     Ravi Gunasekaran <r-gunasekaran@ti.com>,
         Andrew Lunn <andrew@lunn.ch>,
         "David S . Miller" <davem@davemloft.net>,
         Sasha Levin <sashal@kernel.org>, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, gustavoars@kernel.org,
-        keescook@chromium.org, chi.minghao@zte.com.cn,
+        kuba@kernel.org, pabeni@redhat.com, keescook@chromium.org,
+        chi.minghao@zte.com.cn, gustavoars@kernel.org,
         linux-omap@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.0 08/77] net: ethernet: ti: davinci_mdio: Add workaround for errata i2329
-Date:   Sun,  9 Oct 2022 18:06:45 -0400
-Message-Id: <20221009220754.1214186-8-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.19 07/73] net: ethernet: ti: davinci_mdio: Add workaround for errata i2329
+Date:   Sun,  9 Oct 2022 18:13:45 -0400
+Message-Id: <20221009221453.1216158-7-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20221009220754.1214186-1-sashal@kernel.org>
-References: <20221009220754.1214186-1-sashal@kernel.org>
+In-Reply-To: <20221009221453.1216158-1-sashal@kernel.org>
+References: <20221009221453.1216158-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
