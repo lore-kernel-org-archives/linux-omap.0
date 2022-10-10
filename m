@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BC06C43217
-	for <linux-omap@archiver.kernel.org>; Mon, 10 Oct 2022 20:17:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD184C352A1
+	for <linux-omap@archiver.kernel.org>; Mon, 10 Oct 2022 20:17:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230208AbiJJURs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 10 Oct 2022 16:17:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52854 "EHLO
+        id S230212AbiJJURu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 10 Oct 2022 16:17:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230014AbiJJUQ3 (ORCPT
+        with ESMTP id S230013AbiJJUQ3 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2022 16:16:29 -0400
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AC5F7A531;
-        Mon, 10 Oct 2022 13:15:48 -0700 (PDT)
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D25975398;
+        Mon, 10 Oct 2022 13:15:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1665432951; x=1696968951;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=t1xRFnUPElYqDjMs4zdDsLQygWvuck9itzpGsx3MSs8=;
-  b=h5e8etAwb1xRasD3jjnoqme5D4o091tvYsGW0ONpJtlhgDj3eKjlYkR5
-   ++5GOF9WThi5xYMuyaJSZPKUp+kPQrtJW2C9/+7t8J3/T3FR4p3+9j85Z
-   ID0DjHAIdh8BvXJZpSeECrBeqxBXu9xtLsq0MZPeyb/625i9tm1FC4SRl
-   e3NaXS0Ln7vZDKCvThC+f3UqTO98xI5M7Kerf0FkiHzvFtuwszqwUWL4c
-   WiMGhXXqF45xyW5qvJc6rATWt47RY7/c7BdqhvizTRGCJR086PaXYD1yi
-   t5Vd4fa6CXngWWE4j/VH3qhjSMOwijNo8FI3JSyVk7dj0y9AWe7x+X7YT
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10496"; a="303066218"
+  bh=RVFrUEXuSld0nkWuLc5y3Izxz33brkaj0hm5K7SscxY=;
+  b=AnB3IGJ8jjNGaWPgE1LxaSguSH3i3wMWqfPve/Iy43XqW1mnEPHksOvd
+   khTJiqmBGzbIN4zgqSzP705ERAzS2IXRr/Bqapv+hgENiXlU4WcGWDJ6i
+   Q4RSuyORMQM6VyXsV7a7g2Rbo9G3H6eePFMYr+EuMUuMrd1BzBvGVal3o
+   lEo8rN+Pb+nU8eIPAcLE+KjXvEATRMdSt0Ff9O7zzo96+tj+/55Jsyvhm
+   Bm4f1Q3I3dYUqzLgBUuPKMQw0YiMnC9gPYs0mnLD84AWP5jMdbYwd3p+m
+   ngk9DMiUpHS9X7FbWww3Q6vTxkj23TPLgipH7kQGNTz4KnyPY4s63ig6A
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10496"; a="366317941"
 X-IronPort-AV: E=Sophos;i="5.95,173,1661842800"; 
-   d="scan'208";a="303066218"
+   d="scan'208";a="366317941"
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Oct 2022 13:15:44 -0700
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Oct 2022 13:15:33 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10496"; a="715240840"
+X-IronPort-AV: E=McAfee;i="6500,9779,10496"; a="715240794"
 X-IronPort-AV: E=Sophos;i="5.95,173,1661842800"; 
-   d="scan'208";a="715240840"
+   d="scan'208";a="715240794"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by FMSMGA003.fm.intel.com with ESMTP; 10 Oct 2022 13:15:33 -0700
+  by FMSMGA003.fm.intel.com with ESMTP; 10 Oct 2022 13:15:22 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id F17429F6; Mon, 10 Oct 2022 23:15:13 +0300 (EEST)
+        id 564CE752; Mon, 10 Oct 2022 23:15:13 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Marc Zyngier <maz@kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -131,9 +131,9 @@ Cc:     Thierry Reding <thierry.reding@gmail.com>,
         Emil Renner Berthing <kernel@esmil.dk>,
         Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
         Masami Hiramatsu <mhiramat@kernel.org>
-Subject: [PATCH v2 28/36] pinctrl: tegra: Add missed header(s)
-Date:   Mon, 10 Oct 2022 23:14:44 +0300
-Message-Id: <20221010201453.77401-29-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 18/36] pinctrl: qcom: Add missed header(s)
+Date:   Mon, 10 Oct 2022 23:14:34 +0300
+Message-Id: <20221010201453.77401-19-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20221010201453.77401-1-andriy.shevchenko@linux.intel.com>
 References: <20221010201453.77401-1-andriy.shevchenko@linux.intel.com>
@@ -150,29 +150,59 @@ While at it, sort headers alphabetically.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/pinctrl/tegra/pinctrl-tegra.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/pinctrl/qcom/pinctrl-spmi-gpio.c | 8 +++++---
+ drivers/pinctrl/qcom/pinctrl-spmi-mpp.c  | 8 +++++---
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/pinctrl/tegra/pinctrl-tegra.c b/drivers/pinctrl/tegra/pinctrl-tegra.c
-index 50bd26a30ac0..834a2d50f89b 100644
---- a/drivers/pinctrl/tegra/pinctrl-tegra.c
-+++ b/drivers/pinctrl/tegra/pinctrl-tegra.c
-@@ -15,11 +15,13 @@
- #include <linux/io.h>
+diff --git a/drivers/pinctrl/qcom/pinctrl-spmi-gpio.c b/drivers/pinctrl/qcom/pinctrl-spmi-gpio.c
+index 8c31a8f6b7e4..89695b5a2ce7 100644
+--- a/drivers/pinctrl/qcom/pinctrl-spmi-gpio.c
++++ b/drivers/pinctrl/qcom/pinctrl-spmi-gpio.c
+@@ -9,15 +9,17 @@
+ #include <linux/module.h>
  #include <linux/of.h>
- #include <linux/platform_device.h>
-+#include <linux/seq_file.h>
-+#include <linux/slab.h>
-+
- #include <linux/pinctrl/machine.h>
-+#include <linux/pinctrl/pinconf.h>
- #include <linux/pinctrl/pinctrl.h>
- #include <linux/pinctrl/pinmux.h>
+ #include <linux/of_irq.h>
+-#include <linux/pinctrl/pinconf-generic.h>
 -#include <linux/pinctrl/pinconf.h>
--#include <linux/slab.h>
+-#include <linux/pinctrl/pinmux.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
++#include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/spmi.h>
+ #include <linux/types.h>
+ 
++#include <linux/pinctrl/pinconf-generic.h>
++#include <linux/pinctrl/pinconf.h>
++#include <linux/pinctrl/pinmux.h>
++
+ #include <dt-bindings/pinctrl/qcom,pmic-gpio.h>
  
  #include "../core.h"
- #include "../pinctrl-utils.h"
+diff --git a/drivers/pinctrl/qcom/pinctrl-spmi-mpp.c b/drivers/pinctrl/qcom/pinctrl-spmi-mpp.c
+index 6937157f50b3..063177b79927 100644
+--- a/drivers/pinctrl/qcom/pinctrl-spmi-mpp.c
++++ b/drivers/pinctrl/qcom/pinctrl-spmi-mpp.c
+@@ -7,14 +7,16 @@
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/of_irq.h>
+-#include <linux/pinctrl/pinconf-generic.h>
+-#include <linux/pinctrl/pinconf.h>
+-#include <linux/pinctrl/pinmux.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
++#include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ 
++#include <linux/pinctrl/pinconf-generic.h>
++#include <linux/pinctrl/pinconf.h>
++#include <linux/pinctrl/pinmux.h>
++
+ #include <dt-bindings/pinctrl/qcom,pmic-mpp.h>
+ 
+ #include "../core.h"
 -- 
 2.35.1
 
