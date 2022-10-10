@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EFE1C4167B
-	for <linux-omap@archiver.kernel.org>; Mon, 10 Oct 2022 20:16:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2775C4321E
+	for <linux-omap@archiver.kernel.org>; Mon, 10 Oct 2022 20:16:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229844AbiJJUQh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 10 Oct 2022 16:16:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50826 "EHLO
+        id S230057AbiJJUQ5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 10 Oct 2022 16:16:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229909AbiJJUPt (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2022 16:15:49 -0400
+        with ESMTP id S229967AbiJJUQJ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2022 16:16:09 -0400
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44024796AC;
-        Mon, 10 Oct 2022 13:15:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDFFB79A70;
+        Mon, 10 Oct 2022 13:15:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1665432938; x=1696968938;
+  t=1665432940; x=1696968940;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=xi/Nfv8WtOYvT0HZPT8w43GxR/eWjmHTHS8mPgZHjTw=;
-  b=j6Ltm369hlMrA9ptlcFEXS0nbjmLclwdbA6VmV3OZjrlzPvDNsAFQBAe
-   C5gJfCvIFNH3AN/hmfTHbuCVX7AwEcA16bfEPTiSzLjyYbaJx+QXH0fRh
-   04u22NQVeATSDV3dsNlvzN9QaswRB7axS2HJM/PTclbsMD0tjhVvkwQw2
-   DbZhH2WP1HL8p6MUoWZmIhrpyD2gE/i0FfDZHtSjOB5XJLnSQ+SaRXxHc
-   9pplFct8U7oOEIGULi49HlzhhMBQEnJWop9+ykiQIGnZLa1mcDCIufYaH
-   6x6clhtHKNLfOg99+dUB4GtawSghmgkMkyFiOo3FQ78RNgPta+hXbH/RS
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10496"; a="301936471"
+  bh=N4OtaOoXwvvb5/ySH2kBz2B22fZT096o5UGFMBTbpyY=;
+  b=lYlM7BIPy874HHFWB7cIQ4XfmYD49J7SGV/FxuuuSLXsim/lxu8Igdsx
+   IBREk0NAWePn1AcHshaTs/IouL8RKHoiVEeN0RWECOy5xMZLvHXdb469i
+   Q8xV6KpI/sDOelC1/d5T/6ZSigvcjG3cXfS5k7/tZVKnTOoDqZVzL7tZz
+   0o4o09HjZ4lnN9y/tf4W6E4BS2xj6khLBW+nYucMgl7IVdkapybombD2Y
+   AvZ6jItaZgbLsqnPeIPZu540AJ3Hs0gRLukpYRDnCIiGVBw+M4uwSgi3s
+   xi0BuVsbjvsxRoyZ0hIDlB9lzZIKU4/WBrSUeQtiaWjy7YJkcHl+nNUrj
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10496"; a="301936487"
 X-IronPort-AV: E=Sophos;i="5.95,173,1661842800"; 
-   d="scan'208";a="301936471"
+   d="scan'208";a="301936487"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Oct 2022 13:15:34 -0700
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Oct 2022 13:15:37 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10496"; a="603862936"
+X-IronPort-AV: E=McAfee;i="6500,9779,10496"; a="603862954"
 X-IronPort-AV: E=Sophos;i="5.95,173,1661842800"; 
-   d="scan'208";a="603862936"
+   d="scan'208";a="603862954"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga006.jf.intel.com with ESMTP; 10 Oct 2022 13:15:23 -0700
+  by orsmga006.jf.intel.com with ESMTP; 10 Oct 2022 13:15:26 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 75476781; Mon, 10 Oct 2022 23:15:13 +0300 (EEST)
+        id A21D189E; Mon, 10 Oct 2022 23:15:13 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Marc Zyngier <maz@kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -131,9 +131,9 @@ Cc:     Thierry Reding <thierry.reding@gmail.com>,
         Emil Renner Berthing <kernel@esmil.dk>,
         Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
         Masami Hiramatsu <mhiramat@kernel.org>
-Subject: [PATCH v2 20/36] pinctrl: samsung: Add missed header(s)
-Date:   Mon, 10 Oct 2022 23:14:36 +0300
-Message-Id: <20221010201453.77401-21-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 23/36] pinctrl: sprd: Add missed header(s)
+Date:   Mon, 10 Oct 2022 23:14:39 +0300
+Message-Id: <20221010201453.77401-24-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20221010201453.77401-1-andriy.shevchenko@linux.intel.com>
 References: <20221010201453.77401-1-andriy.shevchenko@linux.intel.com>
@@ -150,35 +150,30 @@ While at it, sort headers alphabetically.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/pinctrl/samsung/pinctrl-samsung.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/pinctrl/sprd/pinctrl-sprd.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pinctrl/samsung/pinctrl-samsung.c b/drivers/pinctrl/samsung/pinctrl-samsung.c
-index bd13b5ef246d..5736761927cb 100644
---- a/drivers/pinctrl/samsung/pinctrl-samsung.c
-+++ b/drivers/pinctrl/samsung/pinctrl-samsung.c
-@@ -15,15 +15,16 @@
- // but provides extensions to which platform specific implementation of the gpio
- // and wakeup interrupts can be hooked to.
- 
--#include <linux/init.h>
--#include <linux/platform_device.h>
--#include <linux/io.h>
--#include <linux/property.h>
--#include <linux/slab.h>
- #include <linux/err.h>
- #include <linux/gpio/driver.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
- #include <linux/irqdomain.h>
+diff --git a/drivers/pinctrl/sprd/pinctrl-sprd.c b/drivers/pinctrl/sprd/pinctrl-sprd.c
+index dca7a505d413..c1806b7dcf78 100644
+--- a/drivers/pinctrl/sprd/pinctrl-sprd.c
++++ b/drivers/pinctrl/sprd/pinctrl-sprd.c
+@@ -13,12 +13,14 @@
+ #include <linux/of.h>
  #include <linux/of_device.h>
-+#include <linux/platform_device.h>
-+#include <linux/property.h>
-+#include <linux/seq_file.h>
+ #include <linux/platform_device.h>
 +#include <linux/slab.h>
- #include <linux/spinlock.h>
++
++#include <linux/pinctrl/consumer.h>
+ #include <linux/pinctrl/machine.h>
+-#include <linux/pinctrl/pinconf.h>
+ #include <linux/pinctrl/pinconf-generic.h>
++#include <linux/pinctrl/pinconf.h>
+ #include <linux/pinctrl/pinctrl.h>
+ #include <linux/pinctrl/pinmux.h>
+-#include <linux/slab.h>
  
  #include "../core.h"
+ #include "../pinmux.h"
 -- 
 2.35.1
 
