@@ -2,280 +2,119 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0FE1C433F5
-	for <linux-omap@archiver.kernel.org>; Tue, 11 Oct 2022 14:07:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D209C433FE
+	for <linux-omap@archiver.kernel.org>; Tue, 11 Oct 2022 14:07:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230116AbiJKOHG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 11 Oct 2022 10:07:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33808 "EHLO
+        id S230104AbiJKOHg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 11 Oct 2022 10:07:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230016AbiJKOGi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2022 10:06:38 -0400
-Received: from mail-lj1-x231.google.com (mail-lj1-x231.google.com [IPv6:2a00:1450:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F05495AF9
-        for <linux-omap@vger.kernel.org>; Tue, 11 Oct 2022 07:06:20 -0700 (PDT)
-Received: by mail-lj1-x231.google.com with SMTP id x18so8395519ljm.1
-        for <linux-omap@vger.kernel.org>; Tue, 11 Oct 2022 07:06:20 -0700 (PDT)
+        with ESMTP id S230020AbiJKOHQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2022 10:07:16 -0400
+Received: from mail-qv1-xf33.google.com (mail-qv1-xf33.google.com [IPv6:2607:f8b0:4864:20::f33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 972AA97EE6;
+        Tue, 11 Oct 2022 07:06:56 -0700 (PDT)
+Received: by mail-qv1-xf33.google.com with SMTP id i9so9020763qvo.0;
+        Tue, 11 Oct 2022 07:06:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20210112.gappssmtp.com; s=20210112;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=WIzxr5nZexO1FxXGdVJNZa1N49u2iSyEWqopWkSvo2A=;
-        b=MgigEhGpaKokMwdkMs7sJQO+ksJB5pJ4+ffIzaMtOC4tMDk+4fcRCo3kF+8eOalD9D
-         UizVqpHyfGwT7SBfwtIez5tvkCeVp4dD+3ri6f5CvUpeer/AqCPN0tei6ZtXlX6MOwhk
-         CJz5555i3YyL0CBG7xSfxrWG0CU6p2g4u+gJio8bpSng/yudRONkgjXQWFPRnseCuvMI
-         cSgkTGPewcVLuddXtxdcqpCLtHkIoWs0O0yNnzm5Dj+IesiyGL4yJuEHWHicwpcTMTrw
-         txBTr76SPYChdpg8yobja2Nuaio+yTIQLIsUOQ0np6Zzarf2AE8jRX2QL8xJkmnFT8gx
-         sQXg==
+        d=gmail.com; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=+HNmks9UCwWqSHnlQF/VVdsqmuEvvfPoRyptBcZQL9k=;
+        b=msa4PNVS9ssC3unsAJLPN4JOFKLQnZ9nJ9j+hgYWqa1WhYjBC+QwGXiYJ3RoUZR8tP
+         +5svgHV23iWwxKwBeCwvj1cZCmLQmUWOHKZxyC7KTcQbKkQzAY3XBv7X3SUCt37EasWv
+         1fIkEclsAjhGKWUMP6B2ZJzMBDXaRpIzDayFbG7EuBYP/daJFFMYEila/eO6cWfrGfb7
+         Cmt0jTmSQ3BcE03XlDBjwLSR72Ynu5+MeTr/72s8g6zvvG8SmF8XQSIMChsgR+9vNcyz
+         QBqgvCFYTwNQXFhloJG6fu6twmg8Cx2kUUEh86vaVsaMNml6NqsqmUGM8oYehfmsWrk0
+         DljA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=WIzxr5nZexO1FxXGdVJNZa1N49u2iSyEWqopWkSvo2A=;
-        b=g+j3sxSm57KNp9+EHaBFw9/REldd0lhKuGrEwps0S6WNrUxWyO7+t5/kpDunFA8nFB
-         S7bgrqOl9eyzxW6Ie8rDMRsI0VbPRZwtbKCgWojrcSdw+n5skR7U9ceGPHeW7QLRxgNW
-         krLvg8RqiNZUvRNJjnvey0gYw+ScU7KlXfyNOfxEYOEktgTCHh11HwfTVnjJPpYHDKJX
-         yK4GBMSXFyStxEwFX8zXF5pnnUrr9cK3q4uZmBG+8BWYoDSynPdOrJIbGGp08S3R81jZ
-         j7iZbGCUqQ4JZFz/72zchOPOpg6TTUzSVpIhu7gz6LzM5QazcLvpCm9S606R89JZvpbH
-         B7kg==
-X-Gm-Message-State: ACrzQf1/KOw9IfLAJRAXWl8Zrsv2e8SfavbNz9ab2uz7bzizDo5GvsoU
-        sqoy6W8khRn7DztgY+JzOFOrQRLRgOtbEon4
-X-Google-Smtp-Source: AMsMyM4Pj4ttACgOqP2xdHy84J1vw9Nl7jhJtJItNWVizul460SgCOJzMGvSjg5EOGrbcuFGHyXTUw==
-X-Received: by 2002:a5d:64aa:0:b0:230:71e5:c540 with SMTP id m10-20020a5d64aa000000b0023071e5c540mr7452734wrp.625.1665497168765;
-        Tue, 11 Oct 2022 07:06:08 -0700 (PDT)
-Received: from localhost.localdomain (192.201.68.85.rev.sfr.net. [85.68.201.192])
-        by smtp.gmail.com with ESMTPSA id z2-20020a5d44c2000000b0022e55f40bc7sm11437453wrr.82.2022.10.11.07.06.07
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=+HNmks9UCwWqSHnlQF/VVdsqmuEvvfPoRyptBcZQL9k=;
+        b=Gc0rySmtR1rRriErhE5p7Fo3aYsskBRhX9FpG2Z1h9Xq7/lKcIwmUe/XYr9VCMO/D7
+         K0BkDu9WsObFoVOwhN5q/yyvfuxA9WQdOXTuLUoFlaAw5/TIzU/zZCef7FuOgey7cIIM
+         G7WvFe/lWJeoOrTdHC561xVegfdrLlJfspvjV0XpTeQ8lTfDzu7j/nAnKsTJ5m8jN6Pl
+         gDmaShjVVMXccqM/T8WMeAkty2tljZvcD52uhAkCsIGICOtu7+O91IGrpaAAfNGHbqQl
+         HMPvVR9hO391sg/WW/bYOBRxrcNETr1wBm54ZgdSLl2T8mERJHoLFlHspYGIiuWB7Y3v
+         gwgw==
+X-Gm-Message-State: ACrzQf10/ShO0Wuv0OZCIAr8xSesJoX0zTGryLMEZk6fwXYoga36QDVo
+        Bl00fjvDDmGJ4LSsOcpYkrZgH14TjUA=
+X-Google-Smtp-Source: AMsMyM7rlMH3XCKtXyssekGp5zIMw6llth321QMJ/MedxUU3Cti/Cd4XretvhoDGKAdO59kuU7aXkQ==
+X-Received: by 2002:a17:902:b48b:b0:182:42ce:5779 with SMTP id y11-20020a170902b48b00b0018242ce5779mr11547325plr.103.1665497203869;
+        Tue, 11 Oct 2022 07:06:43 -0700 (PDT)
+Received: from google.com ([2620:15c:9d:2:bff:9bd3:c2da:5f42])
+        by smtp.gmail.com with ESMTPSA id b2-20020a170902ed0200b00176d347e9a7sm8574045pld.233.2022.10.11.07.06.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 11 Oct 2022 07:06:08 -0700 (PDT)
-From:   Jerome Neanne <jneanne@baylibre.com>
-To:     lgirdwood@gmail.com, broonie@kernel.org, robh+dt@kernel.org,
-        nm@ti.com, kristo@kernel.org, dmitry.torokhov@gmail.com,
-        krzysztof.kozlowski+dt@linaro.org, catalin.marinas@arm.com,
-        will@kernel.org, lee@kernel.org, tony@atomide.com, vigneshr@ti.com,
-        bjorn.andersson@linaro.org, shawnguo@kernel.org,
-        geert+renesas@glider.be, dmitry.baryshkov@linaro.org,
-        marcel.ziswiler@toradex.com, vkoul@kernel.org,
-        biju.das.jz@bp.renesas.com, arnd@arndb.de, jeff@labundy.com
-Cc:     afd@ti.com, khilman@baylibre.com, narmstrong@baylibre.com,
-        msp@baylibre.com, j-keerthy@ti.com, jneanne@baylibre.com,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: [PATCH v6 5/6] Input: Add tps65219 interrupt driven powerbutton
-Date:   Tue, 11 Oct 2022 16:05:48 +0200
-Message-Id: <20221011140549.16761-6-jneanne@baylibre.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20221011140549.16761-1-jneanne@baylibre.com>
-References: <20221011140549.16761-1-jneanne@baylibre.com>
+        Tue, 11 Oct 2022 07:06:43 -0700 (PDT)
+Date:   Tue, 11 Oct 2022 07:06:40 -0700
+From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To:     Sebastian Reichel <sre@kernel.org>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/4] ARM: dts: omap3-n900: fix LCD reset line polarity
+Message-ID: <Y0V4cLGbYe4j+ls6@google.com>
+References: <20221004213503.848262-1-dmitry.torokhov@gmail.com>
+ <Y0UDEtQlN5Y9h7BU@atomide.com>
+ <20221011123726.elsr53ue7nxzhvww@mercury.elektranox.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221011123726.elsr53ue7nxzhvww@mercury.elektranox.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Markus Schneider-Pargmann <msp@baylibre.com>
+Hi Sebastian,
 
-TPS65219 has different interrupts compared to other TPS6521* chips.
-TPS65219 defines two interrupts for the powerbutton one for push and one
-for release.
+On Tue, Oct 11, 2022 at 02:37:26PM +0200, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Tue, Oct 11, 2022 at 08:45:54AM +0300, Tony Lindgren wrote:
+> > * Dmitry Torokhov <dmitry.torokhov@gmail.com> [221004 21:26]:
+> > > The LCD driver (panel-sony-acx565akm), when probing, starts with line
+> > > driven low, and then toggles it to high and keeps it there. Also, the
+> > > line is driven low when powering off the device, and ls released when
+> > > powering it back on. This means that the reset line should be described
+> > > as "active low" in DTS. This will be important when the driver is
+> > > converted to gpiod API which respects the polarity declared in DTS.
+> > 
+> > We should ensure these patches get merged together with the driver
+> > change to avoid breaking LCD for booting. Probably no need to have
+> > the driver quirk handling for inverted polartity in this case.
+> > 
+> > It's probably easiest to have an immutable branch for the driver
+> > changes I can base the dts changes on. Or I can ack the dts changes
+> > if they get merged with the driver.
+> 
+> Both drivers are already using gpiod API:
+> 
+> drivers/gpu/drm/panel/panel-sony-acx565akm.c
+> drivers/gpu/drm/panel/panel-dsi-cm.c
 
-This driver is very simple in that it maps the push interrupt to a key
-input and the release interrupt to a key release.
+I was looking at
 
-Signed-off-by: Markus Schneider-Pargmann <msp@baylibre.com>
-Signed-off-by: Jerome Neanne <jneanne@baylibre.com>
----
- drivers/input/misc/Kconfig              |  10 ++
- drivers/input/misc/Makefile             |   1 +
- drivers/input/misc/tps65219-pwrbutton.c | 148 ++++++++++++++++++++++++
- 3 files changed, 159 insertions(+)
- create mode 100644 drivers/input/misc/tps65219-pwrbutton.c
+drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
+drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
 
-diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-index a18ab7358d8f..18d4a321e7ff 100644
---- a/drivers/input/misc/Kconfig
-+++ b/drivers/input/misc/Kconfig
-@@ -468,6 +468,16 @@ config INPUT_TPS65218_PWRBUTTON
- 	  To compile this driver as a module, choose M here. The module will
- 	  be called tps65218-pwrbutton.
- 
-+config INPUT_TPS65219_PWRBUTTON
-+	tristate "TPS65219 Power button driver"
-+	depends on MFD_TPS65219
-+	help
-+	  Say Y here if you want to enable power button reporting for
-+	  TPS65219 Power Management IC devices.
-+
-+	  To compile this driver as a module, choose M here. The module will
-+	  be called tps65219-pwrbutton.
-+
- config INPUT_AXP20X_PEK
- 	tristate "X-Powers AXP20X power button driver"
- 	depends on MFD_AXP20X
-diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-index 28dfc444f0a9..fe8f47402d12 100644
---- a/drivers/input/misc/Makefile
-+++ b/drivers/input/misc/Makefile
-@@ -78,6 +78,7 @@ obj-$(CONFIG_INPUT_SOC_BUTTON_ARRAY)	+= soc_button_array.o
- obj-$(CONFIG_INPUT_SPARCSPKR)		+= sparcspkr.o
- obj-$(CONFIG_INPUT_STPMIC1_ONKEY)  	+= stpmic1_onkey.o
- obj-$(CONFIG_INPUT_TPS65218_PWRBUTTON)	+= tps65218-pwrbutton.o
-+obj-$(CONFIG_INPUT_TPS65219_PWRBUTTON)	+= tps65219-pwrbutton.o
- obj-$(CONFIG_INPUT_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
- obj-$(CONFIG_INPUT_TWL4030_VIBRA)	+= twl4030-vibra.o
- obj-$(CONFIG_INPUT_TWL6040_VIBRA)	+= twl6040-vibra.o
-diff --git a/drivers/input/misc/tps65219-pwrbutton.c b/drivers/input/misc/tps65219-pwrbutton.c
-new file mode 100644
-index 000000000000..245134bdb59e
---- /dev/null
-+++ b/drivers/input/misc/tps65219-pwrbutton.c
-@@ -0,0 +1,148 @@
-+// SPDX-License-Identifier: GPL-2.0
-+//
-+// Driver for TPS65219 Push Button
-+//
-+// Copyright (C) 2022 BayLibre Incorporated - https://www.baylibre.com/
-+
-+#include <linux/init.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/mfd/tps65219.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+#include <linux/slab.h>
-+
-+struct tps65219_pwrbutton {
-+	struct device *dev;
-+	struct input_dev *idev;
-+	char phys[32];
-+};
-+
-+static irqreturn_t tps65219_pb_push_irq(int irq, void *_pwr)
-+{
-+	struct tps65219_pwrbutton *pwr = _pwr;
-+
-+	input_report_key(pwr->idev, KEY_POWER, 1);
-+	pm_wakeup_event(pwr->dev, 0);
-+	input_sync(pwr->idev);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t tps65219_pb_release_irq(int irq, void *_pwr)
-+{
-+	struct tps65219_pwrbutton *pwr = _pwr;
-+
-+	input_report_key(pwr->idev, KEY_POWER, 0);
-+	input_sync(pwr->idev);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int tps65219_pb_probe(struct platform_device *pdev)
-+{
-+	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
-+	struct device *dev = &pdev->dev;
-+	struct tps65219_pwrbutton *pwr;
-+	struct input_dev *idev;
-+	int error;
-+	int push_irq;
-+	int release_irq;
-+
-+	pwr = devm_kzalloc(dev, sizeof(*pwr), GFP_KERNEL);
-+	if (!pwr)
-+		return -ENOMEM;
-+
-+	idev = devm_input_allocate_device(dev);
-+	if (!idev)
-+		return -ENOMEM;
-+
-+	idev->name = pdev->name;
-+	snprintf(pwr->phys, sizeof(pwr->phys), "%s/input0",
-+		 pdev->name);
-+	idev->phys = pwr->phys;
-+	idev->id.bustype = BUS_I2C;
-+
-+	input_set_capability(idev, EV_KEY, KEY_POWER);
-+
-+	pwr->dev = dev;
-+	pwr->idev = idev;
-+	device_init_wakeup(dev, true);
-+
-+	push_irq = platform_get_irq(pdev, 0);
-+	if (push_irq < 0)
-+		return -EINVAL;
-+
-+	release_irq = platform_get_irq(pdev, 1);
-+	if (release_irq < 0)
-+		return -EINVAL;
-+
-+	error = devm_request_threaded_irq(dev, push_irq, NULL,
-+					  tps65219_pb_push_irq,
-+					  IRQF_ONESHOT,
-+					  dev->init_name, pwr);
-+	if (error) {
-+		dev_err(dev, "failed to request push IRQ #%d: %d\n", push_irq,
-+			error);
-+		return error;
-+	}
-+
-+	error = devm_request_threaded_irq(dev, release_irq, NULL,
-+					  tps65219_pb_release_irq,
-+					  IRQF_ONESHOT,
-+					  dev->init_name, pwr);
-+	if (error) {
-+		dev_err(dev, "failed to request release IRQ #%d: %d\n",
-+			release_irq, error);
-+		return error;
-+	}
-+
-+	error = input_register_device(idev);
-+	if (error) {
-+		dev_err(dev, "Can't register power button: %d\n", error);
-+		return error;
-+	}
-+
-+	/* Enable interrupts for the pushbutton */
-+	regmap_clear_bits(tps->regmap, TPS65219_REG_MASK_CONFIG,
-+			  TPS65219_REG_MASK_INT_FOR_PB_MASK);
-+
-+	/* Set PB/EN/VSENSE pin to be a pushbutton */
-+	regmap_update_bits(tps->regmap, TPS65219_REG_MFP_2_CONFIG,
-+			   TPS65219_MFP_2_EN_PB_VSENSE_MASK, TPS65219_MFP_2_PB);
-+
-+	return 0;
-+}
-+
-+static int tps65219_pb_remove(struct platform_device *pdev)
-+{
-+	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
-+
-+	/* Disable interrupt for the pushbutton */
-+	return regmap_update_bits(tps->regmap, TPS65219_REG_MASK_CONFIG,
-+				  TPS65219_REG_MASK_INT_FOR_PB_MASK,
-+				  TPS65219_REG_MASK_INT_FOR_PB_MASK);
-+}
-+
-+static const struct platform_device_id tps65219_pwrbtn_id_table[] = {
-+	{ "tps65219-pwrbutton", },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(platform, tps65219_pwrbtn_id_table);
-+
-+static struct platform_driver tps65219_pb_driver = {
-+	.probe = tps65219_pb_probe,
-+	.remove = tps65219_pb_remove,
-+	.driver = {
-+		.name = "tps65219_pwrbutton",
-+	},
-+	.id_table = tps65219_pwrbtn_id_table,
-+};
-+module_platform_driver(tps65219_pb_driver);
-+
-+MODULE_DESCRIPTION("TPS65219 Power Button");
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Markus Schneider-Pargmann <msp@baylibre.com");
+which are not using gpiod. Should they be retired?
+
+> 
+> So this just breaks things.
+
+I missed the drivers in drivers/gpu/... and I see that they essentially
+abuse gpiod API as gpiod_set_value() operates on logical level
+(active/inactive) and not absolute (high/low). They should either use
+the gpiod_*_raw() variants, or they should be adjusted to do the proper
+thing together with the accompanying DTS change.
+
+What are your preferences?
+
+Thanks.
+
 -- 
-2.17.1
-
+Dmitry
