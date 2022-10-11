@@ -2,121 +2,165 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF5BBC433FE
-	for <linux-omap@archiver.kernel.org>; Tue, 11 Oct 2022 14:47:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D499AC4167B
+	for <linux-omap@archiver.kernel.org>; Tue, 11 Oct 2022 14:50:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229852AbiJKOrm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 11 Oct 2022 10:47:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56436 "EHLO
+        id S229874AbiJKOuD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 11 Oct 2022 10:50:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229811AbiJKOrl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2022 10:47:41 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id ED8D95AC6F;
-        Tue, 11 Oct 2022 07:47:40 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 5A59A80F9;
-        Tue, 11 Oct 2022 14:38:52 +0000 (UTC)
-Date:   Tue, 11 Oct 2022 17:47:39 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc:     Sebastian Reichel <sre@kernel.org>,
-        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-Subject: Re: [PATCH 1/4] ARM: dts: omap3-n900: fix LCD reset line polarity
-Message-ID: <Y0WCCw8k+KTuvdWX@atomide.com>
-References: <20221004213503.848262-1-dmitry.torokhov@gmail.com>
- <Y0UDEtQlN5Y9h7BU@atomide.com>
- <20221011123726.elsr53ue7nxzhvww@mercury.elektranox.org>
- <Y0V4cLGbYe4j+ls6@google.com>
- <Y0V99Agad6Ma+yTC@atomide.com>
- <Y0V/82JsRVZh6PlL@google.com>
+        with ESMTP id S229573AbiJKOuB (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2022 10:50:01 -0400
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0562B1D0FA;
+        Tue, 11 Oct 2022 07:49:57 -0700 (PDT)
+Received: from [192.168.1.100] (2-237-20-237.ip236.fastwebnet.it [2.237.20.237])
+        (using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: kholk11)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id 3DECE660235B;
+        Tue, 11 Oct 2022 15:49:51 +0100 (BST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
+        s=mail; t=1665499795;
+        bh=WjWfvO7t5fdyGrI6m+hgGbT3QH4QBKj79I/hqKmON7Y=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=JOT+AnjvhQZ3vD+INlRyJUZGm23CWRspXdxuJNoFNT/2BU3BDi5IDkH2Yrh9cl34H
+         N8tYn0ib9h2NSJZ2wAIfZfryQVLEoNCgFUyUgtoeB3uep2/6DEsQ7yGEO0febOyHvI
+         hMQps4hKjRpiDfHJVubm1kSgDODcE0fxz35XL3pmTQUoBsYWlj52rSQaBN3or/Qysa
+         Nnl5TlEZJvEM/mGOVrA3G338yKAO4fX3D/W0mLbDZJMGmbluyKM/eYT4wVNA1RFmtD
+         w5vR7Uu6LnwTML9dH9/oGV1Cci4KZACKsyC/Ihfwo8y3IRLkhbhb0iRzW5ZY4Zwh1d
+         X736PHBsaUIKg==
+Message-ID: <74cdcd93-a528-ec8c-0808-0d698b86e47d@collabora.com>
+Date:   Tue, 11 Oct 2022 16:49:48 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y0V/82JsRVZh6PlL@google.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.2.0
+Subject: Re: [PATCH v2 14/36] pinctrl: mediatek: Add missed header(s)
+Content-Language: en-US
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Marc Zyngier <maz@kernel.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Kent Gibson <warthog618@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Billy Tsai <billy_tsai@aspeedtech.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Chen-Yu Tsai <wenst@chromium.org>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Samuel Holland <samuel@sholland.org>,
+        Horatiu Vultur <horatiu.vultur@microchip.com>,
+        =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <rafal@milecki.pl>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+        Phil Edworthy <phil.edworthy@renesas.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Fabien Dessenne <fabien.dessenne@foss.st.com>,
+        Prathamesh Shete <pshete@nvidia.com>,
+        Basavaraj Natikar <Basavaraj.Natikar@amd.com>,
+        linux-gpio@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-actions@lists.infradead.org,
+        linux-aspeed@lists.ozlabs.org, openbmc@lists.ozlabs.org,
+        linux-rpi-kernel@lists.infradead.org, alsa-devel@alsa-project.org,
+        patches@opensource.cirrus.com, linux-mediatek@lists.infradead.org,
+        linux-mips@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-omap@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org
+Cc:     Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Patrice Chotard <patrice.chotard@foss.st.com>,
+        =?UTF-8?Q?Andreas_F=c3=a4rber?= <afaerber@suse.de>,
+        Manivannan Sadhasivam <mani@kernel.org>,
+        Andrew Jeffery <andrew@aj.id.au>,
+        Joel Stanley <joel@jms.id.au>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ray Jui <rjui@broadcom.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        Broadcom internal kernel review list 
+        <bcm-kernel-feedback-list@broadcom.com>,
+        Charles Keepax <ckeepax@opensource.cirrus.com>,
+        Richard Fitzgerald <rf@opensource.cirrus.com>,
+        Dong Aisheng <aisheng.dong@nxp.com>,
+        Fabio Estevam <festevam@gmail.com>,
+        Shawn Guo <shawnguo@kernel.org>, Jacky Bai <ping.bai@nxp.com>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Andy Shevchenko <andy@kernel.org>,
+        Sean Wang <sean.wang@kernel.org>, Andrew Lunn <andrew@lunn.ch>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Avi Fishman <avifishman70@gmail.com>,
+        Tomer Maimon <tmaimon77@gmail.com>,
+        Tali Perry <tali.perry1@gmail.com>,
+        Patrick Venture <venture@google.com>,
+        Nancy Yuen <yuenn@google.com>,
+        Benjamin Fair <benjaminfair@google.com>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Paul Cercueil <paul@crapouillou.net>,
+        Damien Le Moal <damien.lemoal@wdc.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@foss.st.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        Andy Gross <agross@kernel.org>,
+        Konrad Dybcio <konrad.dybcio@somainline.org>,
+        Tomasz Figa <tomasz.figa@gmail.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Alim Akhtar <alim.akhtar@samsung.com>,
+        Viresh Kumar <vireshk@kernel.org>,
+        Shiraz Hashim <shiraz.linux.kernel@gmail.com>, soc@kernel.org,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Emil Renner Berthing <kernel@esmil.dk>,
+        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
+        Masami Hiramatsu <mhiramat@kernel.org>
+References: <20221010201453.77401-1-andriy.shevchenko@linux.intel.com>
+ <20221010201453.77401-15-andriy.shevchenko@linux.intel.com>
+From:   AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>
+In-Reply-To: <20221010201453.77401-15-andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Dmitry Torokhov <dmitry.torokhov@gmail.com> [221011 14:30]:
-> On Tue, Oct 11, 2022 at 05:30:12PM +0300, Tony Lindgren wrote:
-> > * Dmitry Torokhov <dmitry.torokhov@gmail.com> [221011 13:57]:
-> > > Hi Sebastian,
-> > > 
-> > > On Tue, Oct 11, 2022 at 02:37:26PM +0200, Sebastian Reichel wrote:
-> > > > Hi,
-> > > > 
-> > > > On Tue, Oct 11, 2022 at 08:45:54AM +0300, Tony Lindgren wrote:
-> > > > > * Dmitry Torokhov <dmitry.torokhov@gmail.com> [221004 21:26]:
-> > > > > > The LCD driver (panel-sony-acx565akm), when probing, starts with line
-> > > > > > driven low, and then toggles it to high and keeps it there. Also, the
-> > > > > > line is driven low when powering off the device, and ls released when
-> > > > > > powering it back on. This means that the reset line should be described
-> > > > > > as "active low" in DTS. This will be important when the driver is
-> > > > > > converted to gpiod API which respects the polarity declared in DTS.
-> > > > > 
-> > > > > We should ensure these patches get merged together with the driver
-> > > > > change to avoid breaking LCD for booting. Probably no need to have
-> > > > > the driver quirk handling for inverted polartity in this case.
-> > > > > 
-> > > > > It's probably easiest to have an immutable branch for the driver
-> > > > > changes I can base the dts changes on. Or I can ack the dts changes
-> > > > > if they get merged with the driver.
-> > > > 
-> > > > Both drivers are already using gpiod API:
-> > > > 
-> > > > drivers/gpu/drm/panel/panel-sony-acx565akm.c
-> > > > drivers/gpu/drm/panel/panel-dsi-cm.c
-> > > 
-> > > I was looking at
-> > > 
-> > > drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
-> > > drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-> > 
-> > Ah OK that explains :)
-> > 
-> > > which are not using gpiod. Should they be retired?
-> > 
-> > Yes we should just get rid of them with omapdrm working just fine.
+Il 10/10/22 22:14, Andy Shevchenko ha scritto:
+> Do not imply that some of the generic headers may be always included.
+> Instead, include explicitly what we are direct user of.
 > 
-> Will you be submitting such patches? I'd like to get rid of
-> of_get_named_gpio() and friends if I can...
-
-Adding Tomi to Cc, my guess is he already has such patches and knows
-better which ones can go :)
-
-> > > > So this just breaks things.
-> > > 
-> > > I missed the drivers in drivers/gpu/... and I see that they essentially
-> > > abuse gpiod API as gpiod_set_value() operates on logical level
-> > > (active/inactive) and not absolute (high/low). They should either use
-> > > the gpiod_*_raw() variants, or they should be adjusted to do the proper
-> > > thing together with the accompanying DTS change.
-> > > 
-> > > What are your preferences?
-> > 
-> > Seems like high/low at the connected device end is what we should use,
-> > right? Otherwise things will misbehave if the panel is connected to
-> > some other SoC possibly.
+> While at it, sort headers alphabetically.
 > 
-> It is exactly because of this case the driver should use active/inactive
-> and follow polarity described in DTS. If the driver does:
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>   drivers/pinctrl/mediatek/pinctrl-moore.c | 3 +++
+>   drivers/pinctrl/mediatek/pinctrl-paris.c | 5 +++++
+>   2 files changed, 8 insertions(+)
 > 
-> 	gpiod_set_value_cansleep(d->reset, 1);
-> 
-> then if DTS is saying that the reset line is active low, under the wraps
-> the line will be driven to "0", but if DTS is saying that the line is
-> active high, then the very same call will drive the line to "1".
-> 
-> This allows accommodating different designs without having to change the
-> driver code.
+> diff --git a/drivers/pinctrl/mediatek/pinctrl-moore.c b/drivers/pinctrl/mediatek/pinctrl-moore.c
+> index 526faaebaf77..9474ada5addb 100644
+> --- a/drivers/pinctrl/mediatek/pinctrl-moore.c
+> +++ b/drivers/pinctrl/mediatek/pinctrl-moore.c
+> @@ -9,6 +9,9 @@
+>    */
+>   
+>   #include <linux/gpio/driver.h>
+> +
 
-OK
+Apart from this blank line that I deem unnecessary....
 
-Thanks,
+Reviewed-by: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
 
-Tony
+
