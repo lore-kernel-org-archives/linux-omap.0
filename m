@@ -2,94 +2,139 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEDB7C4332F
-	for <linux-omap@archiver.kernel.org>; Tue, 11 Oct 2022 14:51:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC198C4167B
+	for <linux-omap@archiver.kernel.org>; Tue, 11 Oct 2022 15:30:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230091AbiJKOvO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 11 Oct 2022 10:51:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35662 "EHLO
+        id S231761AbiJKPan (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 11 Oct 2022 11:30:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230012AbiJKOur (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2022 10:50:47 -0400
-Received: from mail-qt1-x82d.google.com (mail-qt1-x82d.google.com [IPv6:2607:f8b0:4864:20::82d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96CA597ECD
-        for <linux-omap@vger.kernel.org>; Tue, 11 Oct 2022 07:50:37 -0700 (PDT)
-Received: by mail-qt1-x82d.google.com with SMTP id l28so2849504qtv.4
-        for <linux-omap@vger.kernel.org>; Tue, 11 Oct 2022 07:50:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=ARkoPd8M29kPGeM8qAWkfi6M8hZhp8t8SkTlUe/Jc3A=;
-        b=IWg6YoA+R7v4mauRKQrSCQgXgONUNjMUZKf3hMdGFKBs19oQlccYIH3Dt2H4nqXjd5
-         lyjnDsbUVM+rt9nzkHZ72mOwr1YCjZegGE+b6ne+0pVvaId/nRqZXlTMpELUPvnMq6CJ
-         shbVvHkkms9M6CjpMI7Mzpy9Z7x9Z7rGGKWZw1Q24qIToaAxY4eJjd3X1G5RLusItVuK
-         SjYbH4pqcO0jddEDpyHPmrUO43xhn/xWrRlbkGsQjzpdwNxx+FIjYJ/GthD0DXo96RhW
-         mseHa48tNZGf4FlCcr8Zhm6IPzmXeZWgCtNHBMMAmdUrEmZSecNEIUvPiBUmTuPh9yB2
-         DK2g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ARkoPd8M29kPGeM8qAWkfi6M8hZhp8t8SkTlUe/Jc3A=;
-        b=FxRZ+G7KV27PU7Yc+0VCb+213M7EThDfdW79alU+8bMlqzx5FRePQOIqRGIscbj08+
-         crcn8mNO3drKKRxUy9AqNtbzbsSDpXQdbYi3tz8sSKpYkaTsbQZE1CHFvxAHB9xs5Qg9
-         C3AhrI3HRChdyhKlcjnkygPqDUXGGNcZiAqDNlKtwXo365Nys2crfNOj/yxLtEn3RdRg
-         BULEhupc+sJ6TkiJL+UH5Qy+57PnrVbnBmmmyPL1lXU9paVxgbEuTS9T9m/XPI10MBbr
-         1ygMsesvWl4py9fSfFpMluS1lgENWCQWV9PBljm8nGBdPjJFuwDcHzXOZ9g/vsFIFlJ0
-         da8Q==
-X-Gm-Message-State: ACrzQf0KPSytpgT5h2C0SSB8ADqDIoeZsnO32DDc/LV4QHIEAh97h3BX
-        yNcBW/ZJvgFkMaBLsOL+5xxQbQ==
-X-Google-Smtp-Source: AMsMyM4+tXXvWkoKLCPUTn8kj2gzDJcsSI7tHkYr4xYjw4DcJe9MBSvtRF/eE+iCFLqTtili11742g==
-X-Received: by 2002:a05:622a:138e:b0:399:2b42:5ff1 with SMTP id o14-20020a05622a138e00b003992b425ff1mr10561720qtk.361.1665499835495;
-        Tue, 11 Oct 2022 07:50:35 -0700 (PDT)
-Received: from [192.168.1.57] (cpe-72-225-192-120.nyc.res.rr.com. [72.225.192.120])
-        by smtp.gmail.com with ESMTPSA id a18-20020a05622a02d200b0039543f89109sm11383713qtx.96.2022.10.11.07.50.33
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 11 Oct 2022 07:50:34 -0700 (PDT)
-Message-ID: <72b9809e-d6d7-862a-26b8-221d14ea4322@linaro.org>
-Date:   Tue, 11 Oct 2022 10:48:22 -0400
+        with ESMTP id S231750AbiJKPaS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2022 11:30:18 -0400
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A329D8A1DC;
+        Tue, 11 Oct 2022 08:20:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1665501629; x=1697037629;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=hq8H9GCveZZvFxxgF//YL8HEPEJFc1DXWo1WrcAUuRw=;
+  b=P+M2h2GAqEQrORySnVPqKIJPcPtn61kSU+QCDHIASXORTqQKjC815oAY
+   ZfVrVXOQC4ekWqSuabTR5OpzFwaJA+KJ75YpDrbaSqao0mKaSfo/VTUMU
+   q5g+1C31tJKnR8SYPvCQlRJ0esXOdAWmRPf0r4/6UBrb3gJF8mkB38qlL
+   oD2jCT01msFBRb0QvvKgRWbliYA412Yxln1d6nPflYabXvz2FyE445epq
+   Td+Nhy2zFFjUZS7iVc7QXnXvMicuwi6JNVff5XaJA4OCQ60UPOXJcKkGt
+   WAwXeWW5zUM3MmGaIZenInTF31t2ThsfMF6MMDNXUY22aqTxQM1QDllt9
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10497"; a="291848461"
+X-IronPort-AV: E=Sophos;i="5.95,176,1661842800"; 
+   d="scan'208";a="291848461"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Oct 2022 08:19:20 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10497"; a="955372479"
+X-IronPort-AV: E=Sophos;i="5.95,176,1661842800"; 
+   d="scan'208";a="955372479"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga005.fm.intel.com with ESMTP; 11 Oct 2022 08:19:15 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1oiH2H-005NYA-25;
+        Tue, 11 Oct 2022 18:19:13 +0300
+Date:   Tue, 11 Oct 2022 18:19:13 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
+Cc:     Kent Gibson <warthog618@gmail.com>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        linux-gpio@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-actions@lists.infradead.org,
+        linux-aspeed@lists.ozlabs.org, openbmc@lists.ozlabs.org,
+        linux-rpi-kernel@lists.infradead.org, alsa-devel@alsa-project.org,
+        patches@opensource.cirrus.com, linux-mediatek@lists.infradead.org,
+        linux-mips@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-omap@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH v2 02/36] gpiolib: cdev: Add missed header(s)
+Message-ID: <Y0WJcXzkkK4oGbrR@smile.fi.intel.com>
+References: <20221010201453.77401-1-andriy.shevchenko@linux.intel.com>
+ <20221010201453.77401-3-andriy.shevchenko@linux.intel.com>
+ <Y0SyVwjDl7NGfTPn@sol>
+ <CAHp75Vf4oS8g0zxgismtLrzsJ7AE-bdMEq+GAzx2=Mwnhuk3UA@mail.gmail.com>
+ <Y0V0IXF3sASTGdMU@smile.fi.intel.com>
+ <Y0V57gI75ik4ki3A@sol>
+ <Y0V9eJX7a0fe6EfX@smile.fi.intel.com>
+ <CAMuHMdUhSKuJ3N5zf_+ad_dFu6kSmVTqRpgFUWtd54S9ryw=ew@mail.gmail.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.3.2
-Subject: Re: [PATCH v6 6/6] arm64: defconfig: Add tps65219 as modules
-Content-Language: en-US
-To:     Jerome Neanne <jneanne@baylibre.com>, lgirdwood@gmail.com,
-        broonie@kernel.org, robh+dt@kernel.org, nm@ti.com,
-        kristo@kernel.org, dmitry.torokhov@gmail.com,
-        krzysztof.kozlowski+dt@linaro.org, catalin.marinas@arm.com,
-        will@kernel.org, lee@kernel.org, tony@atomide.com, vigneshr@ti.com,
-        bjorn.andersson@linaro.org, shawnguo@kernel.org,
-        geert+renesas@glider.be, dmitry.baryshkov@linaro.org,
-        marcel.ziswiler@toradex.com, vkoul@kernel.org,
-        biju.das.jz@bp.renesas.com, arnd@arndb.de, jeff@labundy.com
-Cc:     afd@ti.com, khilman@baylibre.com, narmstrong@baylibre.com,
-        msp@baylibre.com, j-keerthy@ti.com, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-input@vger.kernel.org, linux-omap@vger.kernel.org
-References: <20221011140549.16761-1-jneanne@baylibre.com>
- <20221011140549.16761-7-jneanne@baylibre.com>
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <20221011140549.16761-7-jneanne@baylibre.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdUhSKuJ3N5zf_+ad_dFu6kSmVTqRpgFUWtd54S9ryw=ew@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 11/10/2022 10:05, Jerome Neanne wrote:
-> This adds defconfig option to support TPS65219 PMIC, MFD, Regulators
+On Tue, Oct 11, 2022 at 04:39:46PM +0200, Geert Uytterhoeven wrote:
+> On Tue, Oct 11, 2022 at 4:31 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Tue, Oct 11, 2022 at 10:13:02PM +0800, Kent Gibson wrote:
+> > > On Tue, Oct 11, 2022 at 04:48:17PM +0300, Andy Shevchenko wrote:
+> > > > On Tue, Oct 11, 2022 at 11:05:42AM +0300, Andy Shevchenko wrote:
+> > > > > On Tue, Oct 11, 2022 at 3:02 AM Kent Gibson <warthog618@gmail.com> wrote:
+> > > > > > On Mon, Oct 10, 2022 at 11:14:18PM +0300, Andy Shevchenko wrote:
 
-Do not use "This commit/patch".
-https://elixir.bootlin.com/linux/v5.17.1/source/Documentation/process/submitting-patches.rst#L95
+...
 
-> and power-button.
+> > > > > > > -#include <linux/gpio.h>
+> > > > > > >  #include <linux/gpio/driver.h>
+> > > > > > > +#include <linux/gpio.h>
+> > > > > > > +#include <linux/hte.h>
+> > > > > >
+> > > > > > Ok with the hte re-order.
+> > > > > >
+> > > > > > But moving the gpio subsystem header after the gpio/driver is not
+> > > > > > alphabetical ('.' precedes '/') and it read better and made more sense
+> > > > > > to me the way it was.
+> > > > >
+> > > > > I see, I guess this is vim sort vs shell sort. Strange, they should
+> > > > > follow the locale settings...
+> > > >
+> > > > I have checked, the shell and vim sort gave the same result as in this patch.
+> > > >
+> > >
+> > > The original order (sans hte.h) was done by VSCode Sort Lines Ascending,
+> > > and that still returns the same result.  That matches what I would
+> > > expect to see given the content of the text.
+> > >
+> > > And for me vim also gives the original order.
+> > >
+> > > Just to confirm - is '.' 0x2e and '/' 0x2f in your universe?
+> >
+> > $ LC_COLLATE=C sort test1.txt
+> > #include <linux/gpio.h>
+> > #include <linux/gpio/driver.h>
+> >
+> > $ LC_COLLATE= sort test1.txt
+> > #include <linux/gpio/driver.h>
+> > #include <linux/gpio.h>
+> >
+> > I guess this explains the difference. Currently I have en_US.UTF-8.
+> 
+> Throwing my can of paint into the mix...
+> 
+> I think it is more logical to first include the general <linux/gpio.h>,
+> followed by whatever <linux/gpio-foo.h> and <linux/gpio/bar.h>,
+> irrespective of (language-specific or phonebook) sort order.
+> 
+> Yeah, it sucks that this requires some manual work after running sort...
 
-You explained what you did, which is easily visible. You did not explain
-why you are doing it.
+It seems that kind of issue is in this patch only.
 
-Best regards,
-Krzysztof
+-- 
+With Best Regards,
+Andy Shevchenko
+
 
