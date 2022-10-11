@@ -2,48 +2,50 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCA0BC4321E
-	for <linux-omap@archiver.kernel.org>; Tue, 11 Oct 2022 09:05:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95D19C4167B
+	for <linux-omap@archiver.kernel.org>; Tue, 11 Oct 2022 09:06:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229987AbiJKJFZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 11 Oct 2022 05:05:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53192 "EHLO
+        id S230011AbiJKJGu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 11 Oct 2022 05:06:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58876 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229835AbiJKJFS (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2022 05:05:18 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E0EF57273;
-        Tue, 11 Oct 2022 02:05:15 -0700 (PDT)
-Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
-        by mx0a-001ae601.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 29B5tpq8002064;
-        Tue, 11 Oct 2022 04:04:01 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=PODMain02222019;
- bh=uC/3T3eGWGFOEE1PbRSfClhA+s+YXINyGNLQ2E3nzRI=;
- b=Eqt0HEjl4HUC1I5SG11ICumXSv1k9d5cWofmQzkWUH2trm3jUTD+u/G2Apo/fsSb/cSG
- Tng23BiSSDN5jFWaZNgOaFOOIIzazw5pNqpYPCUWag8OwtSdpHakIct1ESArNLkNJ0of
- Xm5zmUclf5hNi4T1CjfgYghZ79wqGh6Q7V9aNUCOOZ+X3gbAOEXOSz7QEPMb4ZPkmawG
- ctBvlVxGU+zctoeD/CUTZvVxJkjdIdwzEZOQtwPdzz7ArdID4uqQQpbxPU6f79jyQETN
- 2nTesBLmGIsh9NM22V7r9Ury3vf5q8z4vtAkbXqpCUc0MtSOWoMivhnQjDryye4ogbNk mg== 
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 3k36m1u4wn-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 11 Oct 2022 04:04:01 -0500
-Received: from ediex02.ad.cirrus.com (198.61.84.81) by ediex02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1118.12; Tue, 11 Oct
- 2022 04:03:59 -0500
-Received: from ediswmail.ad.cirrus.com (198.61.86.93) by
- anon-ediex02.ad.cirrus.com (198.61.84.81) with Microsoft SMTP Server id
- 15.2.1118.12 via Frontend Transport; Tue, 11 Oct 2022 04:03:59 -0500
-Received: from ediswmail.ad.cirrus.com (ediswmail.ad.cirrus.com [198.61.86.93])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id 53567356B;
-        Tue, 11 Oct 2022 09:03:59 +0000 (UTC)
-Date:   Tue, 11 Oct 2022 09:03:59 +0000
-From:   Charles Keepax <ckeepax@opensource.cirrus.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-CC:     Marc Zyngier <maz@kernel.org>, Bartosz Golaszewski <brgl@bgdev.pl>,
+        with ESMTP id S229454AbiJKJGs (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2022 05:06:48 -0400
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DADE238A2A;
+        Tue, 11 Oct 2022 02:06:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1665479207; x=1697015207;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=EDe69pp5/h3Ee30GI4SHuwJ5qjyCZy1LPPLfzPY94CE=;
+  b=Jxl5CAiAO+vcLOWFqte46wjALoSuXe+mt91aG1+AxeKpnBqEhrLAuMgl
+   frgvnyMhUlnJdeSYP+JQ2v3JAdxlwdocE/nSSCFV86hll2yMOO7UlKIiX
+   2ND6hj8oajQo3akv3HE0y3DgvAVYi/6c2BIPYLqtOLT2JDiJpy4eO0dUu
+   EQNrmVbBkhPU/VpjmhEw0reJRiX+Byn73QUtmjArR53lA1VxoJap9ZpBb
+   tEO5WBAKhyfm2aeht6yDPijKliMp8imSCLN45Wr/2p2cenS6xyrtrFDw9
+   RSZbLJ2yj4f+YHMjM9J79p3p3MOBcGnkmHwvjNtZgePBYdTHLtHFoeww8
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10496"; a="305506730"
+X-IronPort-AV: E=Sophos;i="5.95,176,1661842800"; 
+   d="scan'208";a="305506730"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Oct 2022 02:06:43 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10496"; a="659467328"
+X-IronPort-AV: E=Sophos;i="5.95,176,1661842800"; 
+   d="scan'208";a="659467328"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga001.jf.intel.com with ESMTP; 11 Oct 2022 02:06:21 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1oiBDL-005Eh1-1p;
+        Tue, 11 Oct 2022 12:06:15 +0300
+Date:   Tue, 11 Oct 2022 12:06:15 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Emil Renner Berthing <emil.renner.berthing@canonical.com>
+Cc:     Marc Zyngier <maz@kernel.org>, Bartosz Golaszewski <brgl@bgdev.pl>,
         Kent Gibson <warthog618@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Billy Tsai <billy_tsai@aspeedtech.com>,
@@ -66,19 +68,17 @@ CC:     Marc Zyngier <maz@kernel.org>, Bartosz Golaszewski <brgl@bgdev.pl>,
         Fabien Dessenne <fabien.dessenne@foss.st.com>,
         Prathamesh Shete <pshete@nvidia.com>,
         Basavaraj Natikar <Basavaraj.Natikar@amd.com>,
-        <linux-gpio@vger.kernel.org>, <linux-tegra@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>, <linux-actions@lists.infradead.org>,
-        <linux-aspeed@lists.ozlabs.org>, <openbmc@lists.ozlabs.org>,
-        <linux-rpi-kernel@lists.infradead.org>,
-        <alsa-devel@alsa-project.org>, <patches@opensource.cirrus.com>,
-        <linux-mediatek@lists.infradead.org>, <linux-mips@vger.kernel.org>,
-        <linux-riscv@lists.infradead.org>, <linux-omap@vger.kernel.org>,
-        <linux-stm32@st-md-mailman.stormreply.com>,
-        <linux-arm-msm@vger.kernel.org>,
-        <linux-renesas-soc@vger.kernel.org>,
-        <linux-samsung-soc@vger.kernel.org>,
+        linux-gpio@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-actions@lists.infradead.org,
+        linux-aspeed@lists.ozlabs.org, openbmc@lists.ozlabs.org,
+        linux-rpi-kernel@lists.infradead.org, alsa-devel@alsa-project.org,
+        patches@opensource.cirrus.com, linux-mediatek@lists.infradead.org,
+        linux-mips@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-omap@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
         Thierry Reding <thierry.reding@gmail.com>,
         Jonathan Hunter <jonathanh@nvidia.com>,
         Patrice Chotard <patrice.chotard@foss.st.com>,
@@ -91,6 +91,7 @@ CC:     Marc Zyngier <maz@kernel.org>, Bartosz Golaszewski <brgl@bgdev.pl>,
         Scott Branden <sbranden@broadcom.com>,
         Broadcom internal kernel review list 
         <bcm-kernel-feedback-list@broadcom.com>,
+        Charles Keepax <ckeepax@opensource.cirrus.com>,
         Richard Fitzgerald <rf@opensource.cirrus.com>,
         Dong Aisheng <aisheng.dong@nxp.com>,
         Fabio Estevam <festevam@gmail.com>,
@@ -98,7 +99,6 @@ CC:     Marc Zyngier <maz@kernel.org>, Bartosz Golaszewski <brgl@bgdev.pl>,
         Pengutronix Kernel Team <kernel@pengutronix.de>,
         Sascha Hauer <s.hauer@pengutronix.de>,
         NXP Linux Team <linux-imx@nxp.com>,
-        Andy Shevchenko <andy@kernel.org>,
         Sean Wang <sean.wang@kernel.org>, Andrew Lunn <andrew@lunn.ch>,
         Gregory Clement <gregory.clement@bootlin.com>,
         Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
@@ -125,39 +125,49 @@ CC:     Marc Zyngier <maz@kernel.org>, Bartosz Golaszewski <brgl@bgdev.pl>,
         Sylwester Nawrocki <s.nawrocki@samsung.com>,
         Alim Akhtar <alim.akhtar@samsung.com>,
         Viresh Kumar <vireshk@kernel.org>,
-        Shiraz Hashim <shiraz.linux.kernel@gmail.com>,
-        <soc@kernel.org>, Orson Zhai <orsonzhai@gmail.com>,
+        Shiraz Hashim <shiraz.linux.kernel@gmail.com>, soc@kernel.org,
+        Orson Zhai <orsonzhai@gmail.com>,
         Baolin Wang <baolin.wang@linux.alibaba.com>,
         Chunyan Zhang <zhang.lyra@gmail.com>,
         Emil Renner Berthing <kernel@esmil.dk>,
         Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
         Masami Hiramatsu <mhiramat@kernel.org>
-Subject: Re: [PATCH v2 13/36] pinctrl: lochnagar: Add missed header(s)
-Message-ID: <20221011090359.GE92394@ediswmail.ad.cirrus.com>
+Subject: Re: [PATCH v2 25/36] pinctrl: starfive: Add missed header(s)
+Message-ID: <Y0UyB8n52Nma8UWz@smile.fi.intel.com>
 References: <20221010201453.77401-1-andriy.shevchenko@linux.intel.com>
- <20221010201453.77401-14-andriy.shevchenko@linux.intel.com>
+ <20221010201453.77401-26-andriy.shevchenko@linux.intel.com>
+ <CAJM55Z_ApPowttZrjn_0dUs81H4FfByDfv=fbhvmHquipULANg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20221010201453.77401-14-andriy.shevchenko@linux.intel.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-Proofpoint-GUID: Q0XwLx7qaYTbXGAyatd6dgbnlBdk8dwU
-X-Proofpoint-ORIG-GUID: Q0XwLx7qaYTbXGAyatd6dgbnlBdk8dwU
-X-Proofpoint-Spam-Reason: safe
+In-Reply-To: <CAJM55Z_ApPowttZrjn_0dUs81H4FfByDfv=fbhvmHquipULANg@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Oct 10, 2022 at 11:14:29PM +0300, Andy Shevchenko wrote:
-> Do not imply that some of the generic headers may be always included.
-> Instead, include explicitly what we are direct user of.
+On Tue, Oct 11, 2022 at 10:31:33AM +0200, Emil Renner Berthing wrote:
+> On Mon, 10 Oct 2022 at 22:26, Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> >
+> > Do not imply that some of the generic headers may be always included.
+> > Instead, include explicitly what we are direct user of.
+> >
+> > While at it, sort headers alphabetically.
 > 
-> While at it, sort headers alphabetically.
+> The patch is fine, but I don't see any sorting other than just adding
+> the headers at the appropriate place.
+
+I will amend commit message here.
+
+> In any case
 > 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
+> Acked-by: Emil Renner Berthing <emil.renner.berthing@canonical.com>
 
-Acked-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+Thank you!
 
-Thanks,
-Charles
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
