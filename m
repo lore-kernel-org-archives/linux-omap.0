@@ -2,138 +2,119 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A22A6C4167D
-	for <linux-omap@archiver.kernel.org>; Tue, 11 Oct 2022 14:40:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D3E4C433F5
+	for <linux-omap@archiver.kernel.org>; Tue, 11 Oct 2022 14:46:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229749AbiJKOkE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 11 Oct 2022 10:40:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40648 "EHLO
+        id S229508AbiJKOqd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 11 Oct 2022 10:46:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229453AbiJKOkD (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2022 10:40:03 -0400
-Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C60C813FB8;
-        Tue, 11 Oct 2022 07:40:01 -0700 (PDT)
-Received: by mail-qt1-f177.google.com with SMTP id cj27so8340090qtb.7;
-        Tue, 11 Oct 2022 07:40:01 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=7sKcP+GTT+SWbU28Mvg7qTSCnoQqhpg8QoNv8i57vas=;
-        b=1aNMOHpvof8T12wTAyU55u7qVFoNhS1TB23r1CqXs3i1eZK+TM5HO59VOvt6M/E27R
-         EA38S3n/l+OM2H2sSAdK/RugbSUkW0SR5K/icQ3Q1jzYLG5x4NpMuSx0ThSgbFRv2IK6
-         7yUDy4NEgldJumzmi3qa+RobR1ce6xc63cez23NNNEBEC5YMA5jMvku0xy3BTQbLTLtX
-         AfnpU0jDlsNRErk7JqdRLNmqaeb5fkPOYNg2h+pgKouGSh8exYETRNtek7P0gDUcd69D
-         4bxucfkk+JDtgW0y8yBxvVlFPp0EZ4DBuF/lqh7uo6wUu+EyQW9xIK2ZadmP9hfbvyQX
-         O1fg==
-X-Gm-Message-State: ACrzQf1SCNwAc5AdJHKXDqN3KCAbnw9ZsWfgLowXcIs+kRXuz8atLkb2
-        4a9rw6P7hoQGpjXE/a70EFcW5vWbkGb1NQ==
-X-Google-Smtp-Source: AMsMyM4YpuJRtELUxBQ47QR4BZqAaZNk2NdfGebfSuG/kCUVyPn3dFtBV9xGHo8vAZs7LWsqk/l0hA==
-X-Received: by 2002:ac8:7c4c:0:b0:35c:fa89:5a30 with SMTP id o12-20020ac87c4c000000b0035cfa895a30mr19674630qtv.359.1665499200606;
-        Tue, 11 Oct 2022 07:40:00 -0700 (PDT)
-Received: from mail-yb1-f182.google.com (mail-yb1-f182.google.com. [209.85.219.182])
-        by smtp.gmail.com with ESMTPSA id az31-20020a05620a171f00b006ce9e880c6fsm13030433qkb.111.2022.10.11.07.39.58
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 11 Oct 2022 07:39:58 -0700 (PDT)
-Received: by mail-yb1-f182.google.com with SMTP id b145so16775121yba.0;
-        Tue, 11 Oct 2022 07:39:58 -0700 (PDT)
-X-Received: by 2002:a25:4fc2:0:b0:6be:afb4:d392 with SMTP id
- d185-20020a254fc2000000b006beafb4d392mr21857240ybb.604.1665499197788; Tue, 11
- Oct 2022 07:39:57 -0700 (PDT)
+        with ESMTP id S229477AbiJKOqc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2022 10:46:32 -0400
+X-Greylist: delayed 902 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 11 Oct 2022 07:46:31 PDT
+Received: from mickerik.phytec.de (mickerik.phytec.de [91.26.50.163])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76ED953A7D
+        for <linux-omap@vger.kernel.org>; Tue, 11 Oct 2022 07:46:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; d=phytec.de; s=a4; c=relaxed/simple;
+        q=dns/txt; i=@phytec.de; t=1665498687; x=1668090687;
+        h=From:Sender:Reply-To:Subject:Date:Message-ID:To:CC:MIME-Version:Content-Type:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=equtmR2d5OAipEVECfM56QMXz5HBC8fNB6XzPBn+joU=;
+        b=VZWdkdpd18pHtgKa3YF+w+7dOJsrLhMW+N0/MlL/auWCTjR+xf/4HjcZ61MuHh3G
+        8vepAzuj7y7gXZFyG4WbujXmjMdmkZGmm0zPAD2vRszyrHDObsEiMAdp9oqpyzsX
+        P69TWP6JgqEFfeyHp/3atHoQjip4+JN6BdGq+YzNaQE=;
+X-AuditID: ac14000a-83bf370000003940-aa-63457e3fbe91
+Received: from florix.phytec.de (Unknown_Domain [172.25.0.13])
+        (using TLS with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (Client did not present a certificate)
+        by mickerik.phytec.de (PHYTEC Mail Gateway) with SMTP id D2.9A.14656.F3E75436; Tue, 11 Oct 2022 16:31:27 +0200 (CEST)
+Received: from lws-dhaller.phytec.de (172.25.0.11) by Florix.phytec.de
+ (172.25.0.13) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Tue, 11 Oct
+ 2022 16:31:27 +0200
+From:   Dominik Haller <d.haller@phytec.de>
+To:     <linux-omap@vger.kernel.org>
+CC:     <bcousson@baylibre.com>, <tony@atomide.com>, <robh+dt@kernel.org>,
+        <krzysztof.kozlowski+dt@linaro.org>, <devicetree@vger.kernel.org>,
+        <upstream@phytec.de>
+Subject: [PATCH] ARM: dts: am335x-pcm-953: Define fixed regulators in root node
+Date:   Tue, 11 Oct 2022 16:31:15 +0200
+Message-ID: <20221011143115.248003-1-d.haller@phytec.de>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <20221010201453.77401-1-andriy.shevchenko@linux.intel.com>
- <20221010201453.77401-3-andriy.shevchenko@linux.intel.com>
- <Y0SyVwjDl7NGfTPn@sol> <CAHp75Vf4oS8g0zxgismtLrzsJ7AE-bdMEq+GAzx2=Mwnhuk3UA@mail.gmail.com>
- <Y0V0IXF3sASTGdMU@smile.fi.intel.com> <Y0V57gI75ik4ki3A@sol> <Y0V9eJX7a0fe6EfX@smile.fi.intel.com>
-In-Reply-To: <Y0V9eJX7a0fe6EfX@smile.fi.intel.com>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Tue, 11 Oct 2022 16:39:46 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdUhSKuJ3N5zf_+ad_dFu6kSmVTqRpgFUWtd54S9ryw=ew@mail.gmail.com>
-Message-ID: <CAMuHMdUhSKuJ3N5zf_+ad_dFu6kSmVTqRpgFUWtd54S9ryw=ew@mail.gmail.com>
-Subject: Re: [PATCH v2 02/36] gpiolib: cdev: Add missed header(s)
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Kent Gibson <warthog618@gmail.com>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        linux-gpio@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-actions@lists.infradead.org,
-        linux-aspeed@lists.ozlabs.org, openbmc@lists.ozlabs.org,
-        linux-rpi-kernel@lists.infradead.org, alsa-devel@alsa-project.org,
-        patches@opensource.cirrus.com, linux-mediatek@lists.infradead.org,
-        linux-mips@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-omap@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [172.25.0.11]
+X-ClientProxiedBy: Florix.phytec.de (172.25.0.13) To Florix.phytec.de
+ (172.25.0.13)
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrGLMWRmVeSWpSXmKPExsWyRpKBV9e+zjXZ4MtqfYs78/+yWsw/co7V
+        ou/FQ2aL2Uv6WSxa9x5ht9h/xcuBzePb10ksHu9vtLJ7bFrVyeZx59oeNo/Pm+QCWKO4bFJS
+        czLLUov07RK4MuY+ncdU8J63YvmFB+wNjIe4uxg5OSQETCTWzHrG2MXIxSEksIRJYsavFjYI
+        5ymjxLSGScwgVWwCmhLTJ21lBLFFBBQkjhxpYgUpYhZYxCix/d9/NpCEsIC/xPap/8CKWARU
+        Jf73v2UFsXkFLCRar39jh1gnLzHz0nd2iLigxMmZT1hAbGagePPW2cwQtoTEwRcvwGwhkPo1
+        3awwvdPOvWaGsEMl5q/5zj6BUWAWklGzkIyahWTUAkbmVYxCuZnJ2alFmdl6BRmVJanJeimp
+        mxhBYS3CwLWDsW+OxyFGJg7GQ4wSHMxKIryM852ShXhTEiurUovy44tKc1KLDzFKc7AoifPe
+        72FKFBJITyxJzU5NLUgtgskycXBKNTAKGIQ5VD0/x/DOaPLOGzlF21NuiATVTPgi9zpxv6FA
+        jbSmSp3t/zo9KyPHCrYKc/0Ii9UvwzWdI+acnHxIkFuoRcGh90nWi/LVx20P9CqyL9NorH64
+        /K73cq/K/w9YPk+p1fqmIPb4uVrHp0nfFrKaL64+kt2n5epSd+YEq1CUdUPSnvccj5RYijMS
+        DbWYi4oTAd2tSWtZAgAA
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Andy,
+Remove the regulators node and define fixed regulators in the root node.
+Prevents the sdhci-omap driver from waiting in probe deferral forever
+because of the missing vmmc-supply and keeps am335x-pcm-953 consistent with
+the other Phytec AM335 boards.
 
-On Tue, Oct 11, 2022 at 4:31 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Tue, Oct 11, 2022 at 10:13:02PM +0800, Kent Gibson wrote:
-> > On Tue, Oct 11, 2022 at 04:48:17PM +0300, Andy Shevchenko wrote:
-> > > On Tue, Oct 11, 2022 at 11:05:42AM +0300, Andy Shevchenko wrote:
-> > > > On Tue, Oct 11, 2022 at 3:02 AM Kent Gibson <warthog618@gmail.com> wrote:
-> > > > > On Mon, Oct 10, 2022 at 11:14:18PM +0300, Andy Shevchenko wrote:
->
-> ...
->
-> > > > > > -#include <linux/gpio.h>
-> > > > > >  #include <linux/gpio/driver.h>
-> > > > > > +#include <linux/gpio.h>
-> > > > > > +#include <linux/hte.h>
-> > > > >
-> > > > > Ok with the hte re-order.
-> > > > >
-> > > > > But moving the gpio subsystem header after the gpio/driver is not
-> > > > > alphabetical ('.' precedes '/') and it read better and made more sense
-> > > > > to me the way it was.
-> > > >
-> > > > I see, I guess this is vim sort vs shell sort. Strange, they should
-> > > > follow the locale settings...
-> > >
-> > > I have checked, the shell and vim sort gave the same result as in this patch.
-> > >
-> >
-> > The original order (sans hte.h) was done by VSCode Sort Lines Ascending,
-> > and that still returns the same result.  That matches what I would
-> > expect to see given the content of the text.
-> >
-> > And for me vim also gives the original order.
-> >
-> > Just to confirm - is '.' 0x2e and '/' 0x2f in your universe?
->
-> $ LC_COLLATE=C sort test1.txt
-> #include <linux/gpio.h>
-> #include <linux/gpio/driver.h>
->
-> $ LC_COLLATE= sort test1.txt
-> #include <linux/gpio/driver.h>
-> #include <linux/gpio.h>
->
-> I guess this explains the difference. Currently I have en_US.UTF-8.
+Fixes: bb07a829ec38 ("ARM: dts: Add support for phyCORE-AM335x PCM-953 carrier board")
+Signed-off-by: Dominik Haller <d.haller@phytec.de>
+---
+ arch/arm/boot/dts/am335x-pcm-953.dtsi | 28 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-Throwing my can of paint into the mix...
+diff --git a/arch/arm/boot/dts/am335x-pcm-953.dtsi b/arch/arm/boot/dts/am335x-pcm-953.dtsi
+index dae448040a97..947497413977 100644
+--- a/arch/arm/boot/dts/am335x-pcm-953.dtsi
++++ b/arch/arm/boot/dts/am335x-pcm-953.dtsi
+@@ -12,22 +12,20 @@ / {
+ 	compatible = "phytec,am335x-pcm-953", "phytec,am335x-phycore-som", "ti,am33xx";
+ 
+ 	/* Power */
+-	regulators {
+-		vcc3v3: fixedregulator@1 {
+-			compatible = "regulator-fixed";
+-			regulator-name = "vcc3v3";
+-			regulator-min-microvolt = <3300000>;
+-			regulator-max-microvolt = <3300000>;
+-			regulator-boot-on;
+-		};
++	vcc3v3: fixedregulator1 {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc3v3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-boot-on;
++	};
+ 
+-		vcc1v8: fixedregulator@2 {
+-			compatible = "regulator-fixed";
+-			regulator-name = "vcc1v8";
+-			regulator-min-microvolt = <1800000>;
+-			regulator-max-microvolt = <1800000>;
+-			regulator-boot-on;
+-		};
++	vcc1v8: fixedregulator2 {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc1v8";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-boot-on;
+ 	};
+ 
+ 	/* User IO */
+-- 
+2.25.1
 
-I think it is more logical to first include the general <linux/gpio.h>,
-followed by whatever <linux/gpio-foo.h> and <linux/gpio/bar.h>,
-irrespective of (language-specific or phonebook) sort order.
-
-Yeah, it sucks that this requires some manual work after running sort...
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
