@@ -2,118 +2,114 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 433C3C4321E
-	for <linux-omap@archiver.kernel.org>; Thu, 20 Oct 2022 07:11:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0AD2C43217
+	for <linux-omap@archiver.kernel.org>; Thu, 20 Oct 2022 13:41:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229914AbiJTHLg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 20 Oct 2022 03:11:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51338 "EHLO
+        id S230495AbiJTNlm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 20 Oct 2022 09:41:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230060AbiJTHLf (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Oct 2022 03:11:35 -0400
-Received: from out5-smtp.messagingengine.com (out5-smtp.messagingengine.com [66.111.4.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3CA65153814;
-        Thu, 20 Oct 2022 00:11:33 -0700 (PDT)
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-        by mailout.nyi.internal (Postfix) with ESMTP id 39D925C0118;
-        Thu, 20 Oct 2022 03:11:32 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute3.internal (MEProxy); Thu, 20 Oct 2022 03:11:32 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to; s=fm2; t=1666249892; x=1666336292; bh=VKnxMFhTQ2
-        bD9dGwCnO8mk5gYoCFAkEbzjlFbm9rovY=; b=mx0RguBAra0abQu7M4Y1+MUi33
-        KMNn/vZOiCggNhPBxxFZUy2NzCTRt5cfJi6DqRtGr0aU8kyjB0FuCWdRE1ESSVfO
-        sIFWbYRFVHB+W0CzZqepqCpzSWp1QUBRE8IEt1rnmVnhXu1i1lVReTstddxV6b8O
-        mnXzD7xtSvK91uJ3//4bI5OJDkxANxoYGFvZEBO+ozuHvP/Jfc9yHUqhQfuaKKyL
-        MTdJkm9dzDJGKelIfVHqklogaMsblFo0pnIQi+ajn//A85+RCtzTt+vTTBEY4rzx
-        XPT6s1r2QRz8Qyh+sjpqXq+mV4rIoew/aoTklNlH8vDPJEqKjY8naO6n9RZg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
-        :mime-version:references:reply-to:sender:subject:subject:to:to
-        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-        fm3; t=1666249892; x=1666336292; bh=VKnxMFhTQ2bD9dGwCnO8mk5gYoCF
-        AkEbzjlFbm9rovY=; b=CIlSjHmAXwsx/YWjLQ/Wzj/EjQQQxjDG1krSeXGRKQ0l
-        BSSuMXZWkLWWl7uwBhn/gjcYkKWK6/rvHTI7T5FHSHCD971EEB6UplprIf90tSFm
-        WNnkRj3o+wv3B1uGjGFuBsulNxGuYML4VylSUo8WeMzmheUc5pnoEcIDBtPvdkmA
-        H73zV8CAS27N2P8LoV1SaKHIweN+ah5O7VHk9yXVWs04Fb9GpTqiiGBkklghLxDP
-        wremdM+FfvBpDZLpyTSo/OrDw4lajm+h4MQzyeEXgpyb+MLq0V6V5xN+rivG6bY0
-        MJDWUFiUsxltMj2RO6z2zxsEU51kdKDnfHl4LsMM8A==
-X-ME-Sender: <xms:o_RQY-ZLJTRzMXsItyMbHQlmCV04T7mk8EY3alVsMM_cMrwQdVSm2A>
-    <xme:o_RQYxYREGqXTgQVjaqvE0I02peT7IFLWfJRdxD6hF03QwzitqrVZlUg6yJ16IM2U
-    jfrYF4erALQtkFXX2w>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrfeelhedguddujecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
-    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
-    enucfjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdet
-    rhhnugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrg
-    htthgvrhhnpeffheeugeetiefhgeethfejgfdtuefggeejleehjeeutefhfeeggefhkedt
-    keetffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
-    grrhhnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:o_RQY49i2WOHU2ZiybVKJPOyczK_wN43XuENDHBGLcGzpojd6SVoTQ>
-    <xmx:o_RQYwrd0vSjaZX8pHoF2YxiJMRG2qB6V3yzlszB_e4pPqDNXA74Bg>
-    <xmx:o_RQY5rd2l0cCOIvWxxOLlYhaVvDMXoXGOvG6_UDlyPiJcNBXWEQnw>
-    <xmx:pPRQY6Tmh5Y_tereJiQL4ZAD0PAJQTUsYaXFKet4i3vvMsv2uSsTJA>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 588A1B60086; Thu, 20 Oct 2022 03:11:31 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.7.0-alpha0-1047-g9e4af4ada4-fm-20221005.001-g9e4af4ad
-Mime-Version: 1.0
-Message-Id: <1b632df1-7e3c-456d-8629-dc36efd9fe15@app.fastmail.com>
-In-Reply-To: <20221019171541.GA41568@darkstar.musicnaut.iki.fi>
-References: <20221019144119.3848027-1-arnd@kernel.org>
- <20221019150410.3851944-1-arnd@kernel.org>
- <20221019150410.3851944-13-arnd@kernel.org>
- <20221019171541.GA41568@darkstar.musicnaut.iki.fi>
-Date:   Thu, 20 Oct 2022 09:11:11 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Aaro Koskinen" <aaro.koskinen@iki.fi>,
-        "Arnd Bergmann" <arnd@kernel.org>
-Cc:     linux-arm-kernel@lists.infradead.org,
-        "Janusz Krzysztofik" <jmkrzyszt@gmail.com>,
-        "Tony Lindgren" <tony@atomide.com>, linux-kernel@vger.kernel.org,
-        Linux-OMAP <linux-omap@vger.kernel.org>,
-        "Lee Jones" <lee@kernel.org>,
-        "Ulf Hansson" <ulf.hansson@linaro.org>,
-        "Felipe Balbi" <balbi@kernel.org>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        linux-i2c@vger.kernel.org,
-        "linux-mmc @ vger . kernel . org" <linux-mmc@vger.kernel.org>,
-        linux-usb@vger.kernel.org
-Subject: Re: [PATCH 13/17] ARM: omap1: remove unused board files
-Content-Type: text/plain
+        with ESMTP id S230026AbiJTNla (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Oct 2022 09:41:30 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FE051A7A0E;
+        Thu, 20 Oct 2022 06:41:17 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DC9CBB82661;
+        Thu, 20 Oct 2022 13:41:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D035C433D6;
+        Thu, 20 Oct 2022 13:41:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1666273263;
+        bh=YsFcTa55ZQFPp0hOeLu/vtpfvJF13IE3dXu8sPusS9k=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=hU++4MKiV/tZw08OHjSB/oNvjhtwTriYLPcXmwNHrx6ihtwizIERxo4J4tQEN8tgX
+         v9P9FZeP7pJVvvhPp4mMLX6+xLZFjPxd1mwHaVC3PSR0A2Xu1V1undmXZUzEZ7VspG
+         2L+wHLz33YyRgaTWoo5qCOv6EZ2xKsGz3sVmnvKypMPxB/PweR1DkK0sJDol7K9csR
+         d0Ts5e8L9ueAV+RKCpLMpWqI00I6HMGeE9n8cDPjZl3lwCEeir7Iq79yJk6hebfEc+
+         i9pSIPC2g9AiGCJ3u0ln5kSGw7fmSunAOAsr1r++MsYawyYPNdg/ynUHjWOnPkyR+6
+         +gqMZktB2QLWQ==
+Date:   Thu, 20 Oct 2022 08:41:01 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     kernel test robot <lkp@intel.com>
+Cc:     Lorenzo Pieralisi <lpieralisi@kernel.org>, kbuild-all@lists.01.org,
+        Kishon Vijay Abraham I <kishon@kernel.org>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Rob Herring <robh@kernel.org>,
+        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+        Minghuan Lian <minghuan.Lian@nxp.com>,
+        Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Toan Le <toan@os.amperecomputing.com>,
+        Joyce Ooi <joyce.ooi@intel.com>, Ray Jui <rjui@broadcom.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        Conor Dooley <conor.dooley@microchip.com>,
+        Daire McNamara <daire.mcnamara@microchip.com>,
+        Shawn Lin <shawn.lin@rock-chips.com>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Bharat Kumar Gogada <bharat.kumar.gogada@amd.com>,
+        Michal Simek <monstr@monstr.eu>,
+        bcm-kernel-feedback-list@broadcom.com, linux-omap@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-tegra@vger.kernel.org, linux-riscv@lists.infradead.org
+Subject: Re: [PATCH] PCI: Remove unnecessary of_irq.h includes
+Message-ID: <20221020134101.GA90102@bhelgaas>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <202210201618.NsgGYbMI-lkp@intel.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, Oct 19, 2022, at 19:15, Aaro Koskinen wrote:
-> Hi,
->
-> On Wed, Oct 19, 2022 at 05:03:35PM +0200, Arnd Bergmann wrote:
->> From: Arnd Bergmann <arnd@arndb.de>
->> 
->> All board support that was marked as 'unused' earlier can
->> now be removed, leaving the five machines that that still
->> had someone using them in 2022, or that are supported in
->> qemu.
-> [...]
->>  config OMAP_OSK_MISTRAL
->>  	bool "Mistral QVGA board Support"
->>  	depends on MACH_OMAP_OSK
->> -	depends on UNUSED_BOARD_FILES
->>  	help
->>  	  The OSK supports an optional add-on board with a Quarter-VGA
->>  	  touchscreen, PDA-ish buttons, a resume button, bicolor LED,
->>  	  and camera connector.  Say Y here if you have this board.
->
-> Shouldn't this go away as well?
+On Thu, Oct 20, 2022 at 04:09:37PM +0800, kernel test robot wrote:
+> Hi Bjorn,
+> 
+> I love your patch! Yet something to improve:
+> 
+> [auto build test ERROR on helgaas-pci/next]
+> [also build test ERROR on xilinx-xlnx/master rockchip/for-next linus/master v6.1-rc1 next-20221020]
+> [If your patch is applied to the wrong git tree, kindly drop us a note.
+> And when submitting patch, we suggest to use '--base' as documented in
+> https://git-scm.com/docs/git-format-patch#_base_tree_information]
+> 
+> url:    https://github.com/intel-lab-lkp/linux/commits/Bjorn-Helgaas/PCI-Remove-unnecessary-of_irq-h-includes/20221020-100633
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git next
+> patch link:    https://lore.kernel.org/r/20221019195452.37606-1-helgaas%40kernel.org
+> patch subject: [PATCH] PCI: Remove unnecessary of_irq.h includes
+> config: ia64-randconfig-r026-20221020
+> compiler: ia64-linux-gcc (GCC) 12.1.0
+> reproduce (this is a W=1 build):
+>         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # https://github.com/intel-lab-lkp/linux/commit/273a24b16a40ffd6a64c6c55aecbfae00a1cd996
+>         git remote add linux-review https://github.com/intel-lab-lkp/linux
+>         git fetch --no-tags linux-review Bjorn-Helgaas/PCI-Remove-unnecessary-of_irq-h-includes/20221020-100633
+>         git checkout 273a24b16a40ffd6a64c6c55aecbfae00a1cd996
+>         # save the config file
+>         mkdir build_dir && cp config build_dir/.config
+>         COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=ia64 SHELL=/bin/bash drivers/pci/controller/
 
-No, this one was incorrectly annotated, it's not actually
-a board but it's an option for the OSK board that is not
-getting removed. I considered making a separate patch
-for removing the dependency, but that didn't seem worth it.
+FYI, the instructions above didn't work for me.  Missing "config".
 
-    Arnd
+  $ git remote add linux-review https://github.com/intel-lab-lkp/linux
+  $ git fetch --no-tags linux-review Bjorn-Helgaas/PCI-Remove-unnecessary-of_irq-h-includes/20221020-100633
+  $ git checkout 273a24b16a40ffd6a64c6c55aecbfae00a1cd996
+  HEAD is now at 273a24b16a40 PCI: Remove unnecessary of_irq.h includes
+  $ mkdir build_dir && cp config build_dir/.config
+  cp: cannot stat 'config': No such file or directory
+
+  $ COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=ia64 SHELL=/bin/bash drivers/pci/controller/
+  Compiler will be installed in /home/bjorn/0day
+  Cannot find ia64-linux under https://download.01.org/0day-ci/cross-package check /tmp/0day-ci-crosstool-files
+  Please set new url, e.g. export URL=https://cdn.kernel.org/pub/tools/crosstool/files/bin/x86_64
+  gcc crosstool install failed
+  Install gcc cross compiler failed
+  setup_crosstool failed
+
