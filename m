@@ -2,66 +2,76 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EC6DC04A95
-	for <linux-omap@archiver.kernel.org>; Sat, 22 Oct 2022 05:36:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 295F0C433FE
+	for <linux-omap@archiver.kernel.org>; Sat, 22 Oct 2022 11:06:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229761AbiJVFgS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 22 Oct 2022 01:36:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54826 "EHLO
+        id S231127AbiJVLG4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 22 Oct 2022 07:06:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229765AbiJVFgR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 22 Oct 2022 01:36:17 -0400
-Received: from bg4.exmail.qq.com (bg4.exmail.qq.com [43.154.221.58])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB03A28B1FC;
-        Fri, 21 Oct 2022 22:36:13 -0700 (PDT)
-X-QQ-mid: bizesmtp63t1666416969tzmap60o
-Received: from localhost.localdomain ( [182.148.15.254])
-        by bizesmtp.qq.com (ESMTP) with 
-        id ; Sat, 22 Oct 2022 13:36:08 +0800 (CST)
-X-QQ-SSF: 01000000000000C0E000000A0000000
-X-QQ-FEAT: r/cTxDoDoiHtF+qYAVJu9vtCCJV3DBLH0AuDzXdVIaIYzdJI/plmbSJG/poTi
-        f8FWgJBNC5GsvpMTk4rwvAGIK011LhmQ5n+pNVuhZn6maA/82oSYG/rPr+JaIHgYa7K3trM
-        6I+bAlbLZqLQUDKOhd3sIU/Z8R7oSpQyAf8yKUURdYGKz8UeHxucVcYo3jwWkokZL2wgucQ
-        zJLO62qhpuecQLB7oe5kpnoaTIrslVOTLDmuzKLb41DtQJ9gzF6m7n11JLvTT65hUGl7x+K
-        q46k3W9AohUOS2SSk0LY34u4sbk+SJvnDKHdGDahcWNOOMsjE4yYNwoaQrZasGZLSKG6Zys
-        dia0Ke3OIkT+kBXwmjjBs1FieekT2ZnGfaH1z9x8AdicvwltCU=
-X-QQ-GoodBg: 0
-From:   wangjianli <wangjianli@cdjrlc.com>
-To:     tony@atomide.com
-Cc:     linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        wangjianli <wangjianli@cdjrlc.com>
-Subject: [PATCH] drivers/bus: fix repeated words in comments
-Date:   Sat, 22 Oct 2022 13:36:02 +0800
-Message-Id: <20221022053602.24624-1-wangjianli@cdjrlc.com>
-X-Mailer: git-send-email 2.36.1
+        with ESMTP id S231162AbiJVLGd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 22 Oct 2022 07:06:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C75FE5A3CE;
+        Sat, 22 Oct 2022 03:24:12 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5777D60B24;
+        Sat, 22 Oct 2022 10:24:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34E7CC433D6;
+        Sat, 22 Oct 2022 10:24:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1666434250;
+        bh=l+9LqRHCf0p03ONxHuUbZfrISFee3GbEgSplOTK5/X8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Caijj8iAZMY3tIs9fYMyWcG2Rm1TdPtNWGkZTQSyeOCB32VfuGtdKVdXbhR/Ecvcq
+         HejXmyr+B52rYroWVCK8GzP9twmx+0SAP5xK3ndhMeDYHTL3kFG7qy58iClPKepnaq
+         OlMCuZYtjN2SZ0IIZepCV+Z1aHLzsWBcXih75q0c=
+Date:   Sat, 22 Oct 2022 12:24:08 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     linux-arm-kernel@lists.infradead.org,
+        Paul Walmsley <paul@pwsan.com>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org,
+        Kevin Hilman <khilman@kernel.org>,
+        Mark Brown <broonie@kernel.org>,
+        Felipe Balbi <balbi@kernel.org>,
+        Alan Stern <stern@rowland.harvard.edu>, Bin Liu <b-liu@ti.com>,
+        Helge Deller <deller@gmx.de>, linux-usb@vger.kernel.org,
+        linux-spi@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH 14/17] ARM: omap1: remove dead code
+Message-ID: <Y1PEyMdtirtZvbkQ@kroah.com>
+References: <20221019144119.3848027-1-arnd@kernel.org>
+ <20221019150410.3851944-1-arnd@kernel.org>
+ <20221019150410.3851944-14-arnd@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtp:cdjrlc.com:qybglogicsvr:qybglogicsvr7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221019150410.3851944-14-arnd@kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Delete the redundant word 'the'.
+On Wed, Oct 19, 2022 at 05:03:36PM +0200, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+> 
+> After the removal of the unused board files, I went through the
+> omap1 code to look for code that no longer has any callers
+> and remove that.
+> 
+> In particular, support for the omap7xx/omap8xx family is now
+> completely unused, so I'm only leaving omap15xx/omap16xx/omap59xx.
+> 
+> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Signed-off-by: wangjianli <wangjianli@cdjrlc.com>
----
- drivers/bus/ti-sysc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index 9a7d12332fad..a864f24d6b4f 100644
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -912,7 +912,7 @@ static int sysc_check_registers(struct sysc *ddata)
-  * Note that the interconnect target module registers can be anywhere
-  * within the interconnect target module range. For example, SGX has
-  * them at offset 0x1fc00 in the 32MB module address space. And cpsw
-- * has them at offset 0x1200 in the CPSW_WR child. Usually the
-+ * has them at offset 0x1200 in the CPSW_WR child. Usually
-  * the interconnect target module registers are at the beginning of
-  * the module range though.
-  */
--- 
-2.36.1
-
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
