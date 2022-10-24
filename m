@@ -2,114 +2,164 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 667DEFA373F
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Oct 2022 17:29:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 563E4C38A2D
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Oct 2022 17:40:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230332AbiJXR3l (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Oct 2022 13:29:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33666 "EHLO
+        id S233595AbiJXRkt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Oct 2022 13:40:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234412AbiJXR3E (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2022 13:29:04 -0400
-Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42C8D76570;
-        Mon, 24 Oct 2022 09:05:04 -0700 (PDT)
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-        by mailout.west.internal (Postfix) with ESMTP id F1F3D320076F;
-        Mon, 24 Oct 2022 12:02:34 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute3.internal (MEProxy); Mon, 24 Oct 2022 12:02:36 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to; s=fm2; t=1666627354; x=1666713754; bh=icgj1uEJtY
-        GqD+reQlzk/FX1027W4qJc11yfxx1nfMc=; b=nRqqed7n0WSU2HtMrYyagXLHLM
-        gLuRmUsCVCXHU/RLF4lT4ap4gp3ey/2LEHxivyi5fv2nZDTdshlQufjb1RZA3MXa
-        1q1ZPNRLIHhr6DShmhfTc+mVqVkkNpGShcQR4X3aBM5sJunyHZDlv/tqX3P5l4Kv
-        HjwBSCGZ9Zbj6GDvsWhZv/tOHYACYXUc/pIdVzV2jveqTpgPiua9laO4x81yf0s6
-        SHGJggjidU/tdKwliTWYSzbubdcBwVDK9sPIgWE2w3StxY8qRrll+r5VW/z+vuCf
-        VfU4TNwL9t8EFM7v1wYPWtHTPtWE287kCy22qRfVNXomPevpgrjfnO56cAzw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
-        :mime-version:references:reply-to:sender:subject:subject:to:to
-        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-        fm3; t=1666627354; x=1666713754; bh=icgj1uEJtYGqD+reQlzk/FX1027W
-        4qJc11yfxx1nfMc=; b=PERaMDbQvT7LbZ1a44RxhBL1rnm0QUbi4YhIxyinUgVQ
-        VXa7OY7rg3UTa9/TBEnbY2F7TGP46qkeD+QTpl8kt71ZWZVh1flQDrBLwGx8RFVK
-        UZ4M6o2dFUe/Ei7xqf/bBXsvVgVV5chRJrBIv++ipQy9aNizf5FPRqxSLDV09U2u
-        YN+gn+WGr476zEeKpP9UsVECaN3c3QEMhL0tk0dDPlpBHn6JfEBeiSNdhkJxkeyf
-        OGv16/YbD9atIm/yyRQyAg2O0YorodyU5PUOjLsDxOsvw801u2yA8NgfyI9EJuAQ
-        5T9y6Y78j5SWRhm3SEC46xJQyJNjx0pmX+K0LAWTYA==
-X-ME-Sender: <xms:GbdWYwZpHEjlXgYqJ_RgZXrgHK2kX7V8gCxtAhZZYyQbEEEzL5bbiQ>
-    <xme:GbdWY7Y38odImXBlQ8YBzr0UKl5tIPWyxybTq4kvIJv6RT0btfgzSp9_zhLUReWLi
-    N5RIvLINv4gRlM1mNI>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrgedtgedgleduucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:GbdWY6-UV6cQpRp_iU48UVeoa2XEV97G3-x1rFcVP2uAFBqoqr2X7g>
-    <xmx:GbdWY6r0Fgi5TFudIfOQEkT3ZmkOaVzfQ8_NS71kZRc5hO_UCykcag>
-    <xmx:GbdWY7qskkY867NII9Da03ZLdV2vK5OXmJQ1hf6nPQLC_JoGY51WYA>
-    <xmx:GrdWY0Q_PzX2yUhax7ARpo-QVtdDbdYzf6mICseHbVsx2DBy5z6wyQ>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 9D0F2B60086; Mon, 24 Oct 2022 12:02:33 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.7.0-alpha0-1047-g9e4af4ada4-fm-20221005.001-g9e4af4ad
-Mime-Version: 1.0
-Message-Id: <aa4195a9-f6be-4600-82df-8b5d1035ebd5@app.fastmail.com>
-In-Reply-To: <Y1YnT+/ZdoglcdS4@atomide.com>
-References: <20221019144119.3848027-1-arnd@kernel.org>
- <20221019150410.3851944-1-arnd@kernel.org>
- <20221019150410.3851944-13-arnd@kernel.org>
- <20221019171541.GA41568@darkstar.musicnaut.iki.fi>
- <1b632df1-7e3c-456d-8629-dc36efd9fe15@app.fastmail.com>
- <20221020193511.GB3019@t60.musicnaut.iki.fi>
- <de36ec6b-2e7c-48eb-9682-f60d8e4011da@app.fastmail.com>
- <20221021111101.GC3019@t60.musicnaut.iki.fi> <Y1YnT+/ZdoglcdS4@atomide.com>
-Date:   Mon, 24 Oct 2022 18:02:13 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Tony Lindgren" <tony@atomide.com>,
-        "Aaro Koskinen" <aaro.koskinen@iki.fi>
-Cc:     "Arnd Bergmann" <arnd@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        "Janusz Krzysztofik" <jmkrzyszt@gmail.com>,
-        linux-kernel@vger.kernel.org,
-        Linux-OMAP <linux-omap@vger.kernel.org>,
-        "Lee Jones" <lee@kernel.org>,
-        "Ulf Hansson" <ulf.hansson@linaro.org>,
-        "Felipe Balbi" <balbi@kernel.org>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        linux-i2c@vger.kernel.org,
-        "linux-mmc @ vger . kernel . org" <linux-mmc@vger.kernel.org>,
-        linux-usb@vger.kernel.org
-Subject: Re: [PATCH 13/17] ARM: omap1: remove unused board files
-Content-Type: text/plain
+        with ESMTP id S233702AbiJXRjq (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2022 13:39:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D24F28713;
+        Mon, 24 Oct 2022 09:15:18 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E8376148F;
+        Mon, 24 Oct 2022 15:38:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51AEBC433C1;
+        Mon, 24 Oct 2022 15:38:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1666625915;
+        bh=wux6EqMXii7mN6a3wT+F/1I+JfEHefiaJO7AH5NkY4o=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=kVBWFdKYvN82MUPfnNFWwU4y2CUonUB5+PGsLCJGV+LRA8z8UDgMhnOfdwVmEbGIE
+         Rj7NQcn2O2byo+LXfPVki8qMjR1iVOOkeXNmjFEXN5mxgRRrjRE2Vde1EvgS3CoJvX
+         nEOppM3E0R5JwYAK+QX6Lv8XpRoMJo8eN6hF0KS6y6YrpFLVN5YE2EbMTzMcCBMZEy
+         fEmm2H7ocfQLY+E4MNletALqwJ12g91n3wU+GLOnyT2FtHU/Vmfhp30U52o8Qqu8uS
+         BMTkr3aFOUT4yoIVVu9k6iZhdwHQ450aiU0NANWTHk+9obIxOG0JYDWQrOR1/lAT7Z
+         UvcsCoMm9sStw==
+From:   Arnd Bergmann <arnd@kernel.org>
+To:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 06/10] ARM: omap2: smartreflex: remove on_init control
+Date:   Mon, 24 Oct 2022 17:38:10 +0200
+Message-Id: <20221024153814.254652-7-arnd@kernel.org>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20221024153814.254652-1-arnd@kernel.org>
+References: <20221024153814.254652-1-arnd@kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Oct 24, 2022, at 07:49, Tony Lindgren wrote:
-> * Aaro Koskinen <aaro.koskinen@iki.fi> [221021 11:02]:
->> I was only referring to this Mistral add-on board and related display
->> drivers.
->> 
->> The main OSK board support is still needed and used.
+From: Arnd Bergmann <arnd@arndb.de>
 
-Ok, got it.
+Nothing calls omap_enable_smartreflex_on_init() any more, so it
+does not need to be tracked either.
 
-> I'm pretty sure I have that display, but I was booting my OSK in a
-> rack anyways so I rarely saw the LCD in use. No objections from me
-> for removing the LCD support for OSK if nobody is using it.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/mach-omap2/pm.h          |  3 ---
+ arch/arm/mach-omap2/sr_device.c   | 13 -------------
+ drivers/soc/ti/smartreflex.c      |  4 ----
+ include/linux/power/smartreflex.h |  3 ---
+ 4 files changed, 23 deletions(-)
 
-I was going to leave Mistral in, thinking it's just a device definition,
-but upon closer look I found that this is a somewhat annoyingly
-written part that hardcodes GPIO numbers in unusual ways, so I'm
-adding a patch to remove it now.
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 80e84ae66aee..f523ca03161f 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -110,14 +110,11 @@ extern u16 pm44xx_errata;
+ 
+ #ifdef CONFIG_POWER_AVS_OMAP
+ extern int omap_devinit_smartreflex(void);
+-extern void omap_enable_smartreflex_on_init(void);
+ #else
+ static inline int omap_devinit_smartreflex(void)
+ {
+ 	return -EINVAL;
+ }
+-
+-static inline void omap_enable_smartreflex_on_init(void) {}
+ #endif
+ 
+ #ifdef CONFIG_TWL4030_CORE
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index db672cf19a51..d2133423b0c9 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -26,8 +26,6 @@
+ #include "control.h"
+ #include "pm.h"
+ 
+-static bool sr_enable_on_init;
+-
+ /* Read EFUSE values from control registers for OMAP3430 */
+ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 				struct omap_sr_data *sr_data)
+@@ -144,8 +142,6 @@ static int __init sr_init_by_name(const char *name, const char *voltdm)
+ 
+ 	sr_set_nvalues(volt_data, sr_data);
+ 
+-	sr_data->enable_on_init = sr_enable_on_init;
+-
+ exit:
+ 	i++;
+ 
+@@ -173,15 +169,6 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
+ }
+ #endif
+ 
+-/*
+- * API to be called from board files to enable smartreflex
+- * autocompensation at init.
+- */
+-void __init omap_enable_smartreflex_on_init(void)
+-{
+-	sr_enable_on_init = true;
+-}
+-
+ static const char * const omap4_sr_instances[] = {
+ 	"mpu",
+ 	"iva",
+diff --git a/drivers/soc/ti/smartreflex.c b/drivers/soc/ti/smartreflex.c
+index ad2bb72e640c..2108232d6fa4 100644
+--- a/drivers/soc/ti/smartreflex.c
++++ b/drivers/soc/ti/smartreflex.c
+@@ -198,7 +198,6 @@ static void sr_stop_vddautocomp(struct omap_sr *sr)
+  */
+ static int sr_late_init(struct omap_sr *sr_info)
+ {
+-	struct omap_sr_data *pdata = sr_info->pdev->dev.platform_data;
+ 	int ret = 0;
+ 
+ 	if (sr_class->notify && sr_class->notify_flags && sr_info->irq) {
+@@ -209,9 +208,6 @@ static int sr_late_init(struct omap_sr *sr_info)
+ 		disable_irq(sr_info->irq);
+ 	}
+ 
+-	if (pdata && pdata->enable_on_init)
+-		sr_start_vddautocomp(sr_info);
+-
+ 	return ret;
+ 
+ error:
+diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
+index 167b9b040091..3a2c79dfc1ff 100644
+--- a/include/linux/power/smartreflex.h
++++ b/include/linux/power/smartreflex.h
+@@ -273,8 +273,6 @@ struct omap_sr_nvalue_table {
+  * @senn_avgweight	SENNAVGWEIGHT value of the sr AVGWEIGHT register
+  * @senp_avgweight	SENPAVGWEIGHT value of the sr AVGWEIGHT register
+  * @nvalue_count:	Number of distinct nvalues in the nvalue table
+- * @enable_on_init:	whether this sr module needs to enabled at
+- *			boot up or not.
+  * @nvalue_table:	table containing the  efuse offsets and nvalues
+  *			corresponding to them.
+  * @voltdm:		Pointer to the voltage domain associated with the SR
+@@ -290,7 +288,6 @@ struct omap_sr_data {
+ 	u32				senn_avgweight;
+ 	u32				senp_avgweight;
+ 	int				nvalue_count;
+-	bool				enable_on_init;
+ 	struct omap_sr_nvalue_table	*nvalue_table;
+ 	struct voltagedomain		*voltdm;
+ };
+-- 
+2.29.2
 
-     Arnd
