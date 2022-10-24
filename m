@@ -2,42 +2,42 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7FEEFA3746
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Oct 2022 17:05:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AA11FA373F
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Oct 2022 17:05:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230102AbiJXRFb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Oct 2022 13:05:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54856 "EHLO
+        id S233628AbiJXRFc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Oct 2022 13:05:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235445AbiJXREg (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2022 13:04:36 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D86DD8EF5;
-        Mon, 24 Oct 2022 08:40:38 -0700 (PDT)
+        with ESMTP id S235273AbiJXREV (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2022 13:04:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 719C3A50ED;
+        Mon, 24 Oct 2022 08:40:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1748A6148E;
-        Mon, 24 Oct 2022 15:38:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49D89C433D7;
-        Mon, 24 Oct 2022 15:38:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6BDD8B811C2;
+        Mon, 24 Oct 2022 15:38:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6E3DC433D6;
+        Mon, 24 Oct 2022 15:38:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1666625910;
-        bh=KwMZrO00iVnxwnhEpYpfBtEpyDgfWlroRyU4bRtZWH4=;
+        s=k20201202; t=1666625919;
+        bh=X4rAnmFhah1kdNXPF3V+U8K+wcI+iCdD1LhiLBT7mcw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=YKpn0jSnwzMlsvSYThZiufeQx1e/whTC74gY5Nd2K8R6wv4gSGXrVakmoOyPx3tof
-         yGWyVwmerRVWNSjLTxBM8InjUU/OGvY6xgwZY1IB8GVQStJThdgZ9iNn1jezWHDkMr
-         bZkOzToUxKlo+qqR/iJeltBZ/FM4tLoSOqc8Asp0XDB80kTwbg2/OZrbkVYu7BvzJw
-         LbX8jQhlNCkMssgMaIA+9gLYXcyS72WUE4RiI2GGWH1HzI2OcXyoj+pXc/4f5w8UdJ
-         EvUuBmfLggxsqTev4mO1gMd47rn20mn8e940nbnIqjdhn2KUbtztNWGkXiHblmCFy6
-         Dxs2TDS5b5pkQ==
+        b=IM40F2Kn8KW7Qu7s3UPXy+FWfIPtUCy7+ezMMTPZlSUc1Q1Os9kpNZ05aJa277MfH
+         4t+73plmZGQr1TZcV7DsOdqu47DagMowuSo94NzU1/OUJtPVT4QlsSqY0SPeTAJxEI
+         L3ddREKv39497rTXG4Ue28+HkIH+FY97ZTdb34d/XE+ofW+RQR1Vug7s5wqB1VRv9b
+         RZIljHyMS5AlqCBvD/yS4HtzdlHLfbU+QXo6ba4zJheFBiKpdFOuoIRjwVl/uwGbRt
+         qORLmNXL2hKaYvH4pnbcwGqo3kjz3krFRxcG/YLmHZmf7ITTAwKOu3CjFrJtS3U47S
+         jNihgJLOANPEw==
 From:   Arnd Bergmann <arnd@kernel.org>
 To:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 03/10] ARM: omap2: remove unused omap_hwmod_reset.c
-Date:   Mon, 24 Oct 2022 17:38:07 +0200
-Message-Id: <20221024153814.254652-4-arnd@kernel.org>
+Subject: [PATCH 08/10] ARM: omap2: remove unused declarations
+Date:   Mon, 24 Oct 2022 17:38:12 +0200
+Message-Id: <20221024153814.254652-9-arnd@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20221024153814.254652-1-arnd@kernel.org>
 References: <20221024153814.254652-1-arnd@kernel.org>
@@ -49,153 +49,235 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-Since commit 90aa4ed5a43f ("ARM: OMAP2+: Drop legacy platform
-data for dra7 rtcss"), this is not used any more and can be
-removed.
+These functions were removed at some point in the
+past, but the extraneous declarations were left behind.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm/mach-omap2/Makefile           |  2 +-
- arch/arm/mach-omap2/omap_hwmod.h       |  7 --
- arch/arm/mach-omap2/omap_hwmod_reset.c | 98 --------------------------
- 3 files changed, 1 insertion(+), 106 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/omap_hwmod_reset.c
+ arch/arm/mach-omap2/clock.h                  |  5 -----
+ arch/arm/mach-omap2/common.h                 | 11 -----------
+ arch/arm/mach-omap2/omap_hwmod.h             |  9 ---------
+ arch/arm/mach-omap2/omap_hwmod_common_data.h |  1 -
+ arch/arm/mach-omap2/omap_opp_data.h          |  5 -----
+ arch/arm/mach-omap2/pm.h                     | 18 ------------------
+ arch/arm/mach-omap2/powerdomain.h            |  2 --
+ arch/arm/mach-omap2/prm2xxx_3xxx.h           |  3 ---
+ arch/arm/mach-omap2/sdrc.h                   |  1 -
+ arch/arm/mach-omap2/sram.h                   |  4 ----
+ arch/arm/mach-omap2/voltage.h                |  1 -
+ 11 files changed, 60 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 2feb9f6630af..43b44e0858c1 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -7,7 +7,7 @@
- obj-y := id.o io.o control.o devices.o fb.o pm.o \
- 	 common.o dma.o omap-headsmp.o sram.o
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index f365614405e8..41391fa1418a 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -63,11 +63,6 @@
  
--hwmod-common				= omap_hwmod.o omap_hwmod_reset.o \
-+hwmod-common				= omap_hwmod.o \
- 					  omap_hwmod_common_data.o \
- 					  omap_hwmod_common_ipblock_data.o \
- 					  omap_device.o display.o hdq1w.o \
+ extern struct ti_clk_ll_ops omap_clk_ll_ops;
+ 
+-extern const struct clkops clkops_omap2_dflt_wait;
+-extern const struct clkops clkops_omap2_dflt;
+-
+-extern struct clk_functions omap2_clk_functions;
+-
+ int __init omap2_clk_setup_ll_ops(void);
+ 
+ void __init ti_clk_init_features(void);
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 415ca353a345..112e7966107c 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -87,12 +87,6 @@ static inline int amx3_common_pm_init(void)
+ }
+ #endif
+ 
+-extern void omap2_init_common_infrastructure(void);
+-
+-extern void omap_init_time(void);
+-extern void omap3_secure_sync32k_timer_init(void);
+-extern void omap3_gptimer_timer_init(void);
+-extern void omap4_local_timer_init(void);
+ #ifdef CONFIG_CACHE_L2X0
+ int omap_l2_cache_init(void);
+ #define OMAP_L2C_AUX_CTRL	(L2C_AUX_CTRL_SHARED_OVERRIDE | \
+@@ -229,11 +223,6 @@ void __init ti81xx_map_io(void);
+ 	}							\
+ })
+ 
+-extern struct device *omap2_get_mpuss_device(void);
+-extern struct device *omap2_get_iva_device(void);
+-extern struct device *omap2_get_l3_device(void);
+-extern struct device *omap4_get_dsp_device(void);
+-
+ void omap_gic_of_init(void);
+ 
+ #ifdef CONFIG_CACHE_L2X0
 diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 6962a8d267e7..1bb42f3d2e83 100644
+index 3fa6d217ab83..b6b53170ad1e 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.h
 +++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -669,13 +669,6 @@ omap_hwmod_for_each_by_class(const char *classname,
- }
- #endif	/* CONFIG_OMAP_HWMOD */
+@@ -638,11 +638,6 @@ void omap_hwmod_write(u32 v, struct omap_hwmod *oh, u16 reg_offs);
+ u32 omap_hwmod_read(struct omap_hwmod *oh, u16 reg_offs);
+ int omap_hwmod_softreset(struct omap_hwmod *oh);
  
--/*
-- *
-- */
+-int omap_hwmod_count_resources(struct omap_hwmod *oh, unsigned long flags);
+-int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res);
+-int omap_hwmod_get_resource_byname(struct omap_hwmod *oh, unsigned int type,
+-				   const char *name, struct resource *res);
 -
--void omap_hwmod_rtc_unlock(struct omap_hwmod *oh);
--void omap_hwmod_rtc_lock(struct omap_hwmod *oh);
+ void __iomem *omap_hwmod_get_mpu_rt_va(struct omap_hwmod *oh);
+ 
+ int omap_hwmod_for_each_by_class(const char *classname,
+@@ -672,12 +667,8 @@ omap_hwmod_for_each_by_class(const char *classname,
+ extern int omap2420_hwmod_init(void);
+ extern int omap2430_hwmod_init(void);
+ extern int omap3xxx_hwmod_init(void);
+-extern int omap44xx_hwmod_init(void);
+-extern int am33xx_hwmod_init(void);
+ extern int dm814x_hwmod_init(void);
+ extern int dm816x_hwmod_init(void);
+-extern int dra7xx_hwmod_init(void);
+-int am43xx_hwmod_init(void);
+ 
+ extern int __init omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois);
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+index c8eb1e6cc4a9..e0d65ad65614 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+@@ -59,7 +59,6 @@ extern struct omap_hwmod_ocp_if omap2_l4_core__uart2;
+ extern struct omap_hwmod_ocp_if omap2_l4_core__uart3;
+ extern struct omap_hwmod_ocp_if omap2xxx_l4_core__mcspi1;
+ extern struct omap_hwmod_ocp_if omap2xxx_l4_core__mcspi2;
+-extern struct omap_hwmod_ocp_if omap2xxx_l4_core__timer2;
+ extern struct omap_hwmod_ocp_if omap2xxx_l4_core__timer3;
+ extern struct omap_hwmod_ocp_if omap2xxx_l4_core__timer4;
+ extern struct omap_hwmod_ocp_if omap2xxx_l4_core__timer5;
+diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
+index 88375ab38e31..ed84fe95e857 100644
+--- a/arch/arm/mach-omap2/omap_opp_data.h
++++ b/arch/arm/mach-omap2/omap_opp_data.h
+@@ -71,11 +71,6 @@ struct omap_opp_def {
+ 	.vp_errgain	= _errgain				       \
+ }
+ 
+-/* Use this to initialize the default table */
+-extern int __init omap_init_opp_table(struct omap_opp_def *opp_def,
+-		u32 opp_def_size);
 -
- /*
-  * Chip variant-specific hwmod init routines - XXX should be converted
-  * to use initcalls once the initial boot ordering is straightened out
-diff --git a/arch/arm/mach-omap2/omap_hwmod_reset.c b/arch/arm/mach-omap2/omap_hwmod_reset.c
-deleted file mode 100644
-index 143623bb056d..000000000000
---- a/arch/arm/mach-omap2/omap_hwmod_reset.c
-+++ /dev/null
-@@ -1,98 +0,0 @@
--/*
-- * OMAP IP block custom reset and preprogramming stubs
-- *
-- * Copyright (C) 2012 Texas Instruments, Inc.
-- * Paul Walmsley
-- *
-- * A small number of IP blocks need custom reset and preprogramming
-- * functions.  The stubs in this file provide a standard way for the
-- * hwmod code to call these functions, which are to be located under
-- * drivers/.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- */
--#include <linux/kernel.h>
--#include <linux/errno.h>
 -
--#include "omap_hwmod.h"
--#include "common.h"
--
--#define OMAP_RTC_STATUS_REG	0x44
--#define OMAP_RTC_KICK0_REG	0x6c
--#define OMAP_RTC_KICK1_REG	0x70
--
--#define OMAP_RTC_KICK0_VALUE	0x83E70B13
--#define OMAP_RTC_KICK1_VALUE	0x95A4F1E0
--#define OMAP_RTC_STATUS_BUSY	BIT(0)
--#define OMAP_RTC_MAX_READY_TIME	50
--
--/**
-- * omap_rtc_wait_not_busy - Wait for the RTC BUSY flag
-- * @oh: struct omap_hwmod *
-- *
-- * For updating certain RTC registers, the MPU must wait
-- * for the BUSY status in OMAP_RTC_STATUS_REG to become zero.
-- * Once the BUSY status is zero, there is a 15 microseconds access
-- * period in which the MPU can program.
-- */
--static void omap_rtc_wait_not_busy(struct omap_hwmod *oh)
+ extern struct omap_volt_data omap34xx_vddmpu_volt_data[];
+ extern struct omap_volt_data omap34xx_vddcore_volt_data[];
+ extern struct omap_volt_data omap36xx_vddmpu_volt_data[];
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 0c95774a4b8f..90a341b0369c 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -32,20 +32,6 @@ extern void omap3_pm_off_mode_enable(int);
+ extern void omap_sram_idle(void);
+ extern int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused);
+ 
+-#if defined(CONFIG_PM_OPP)
+-extern int omap3_opp_init(void);
+-extern int omap4_opp_init(void);
+-#else
+-static inline int omap3_opp_init(void)
 -{
--	int i;
--
--	/* BUSY may stay active for 1/32768 second (~30 usec) */
--	omap_test_timeout(omap_hwmod_read(oh, OMAP_RTC_STATUS_REG)
--			  & OMAP_RTC_STATUS_BUSY, OMAP_RTC_MAX_READY_TIME, i);
--	/* now we have ~15 microseconds to read/write various registers */
+-	return -EINVAL;
 -}
--
--/**
-- * omap_hwmod_rtc_unlock - Unlock the Kicker mechanism.
-- * @oh: struct omap_hwmod *
-- *
-- * RTC IP have kicker feature. This prevents spurious writes to its registers.
-- * In order to write into any of the RTC registers, KICK values has te be
-- * written in respective KICK registers. This is needed for hwmod to write into
-- * sysconfig register.
-- */
--void omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
+-static inline int omap4_opp_init(void)
 -{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	omap_rtc_wait_not_busy(oh);
--	omap_hwmod_write(OMAP_RTC_KICK0_VALUE, oh, OMAP_RTC_KICK0_REG);
--	omap_hwmod_write(OMAP_RTC_KICK1_VALUE, oh, OMAP_RTC_KICK1_REG);
--	local_irq_restore(flags);
+-	return -EINVAL;
 -}
+-#endif
 -
--/**
-- * omap_hwmod_rtc_lock - Lock the Kicker mechanism.
-- * @oh: struct omap_hwmod *
-- *
-- * RTC IP have kicker feature. This prevents spurious writes to its registers.
-- * Once the RTC registers are written, KICK mechanism needs to be locked,
-- * in order to prevent any spurious writes. This function locks back the RTC
-- * registers once hwmod completes its write into sysconfig register.
-- */
--void omap_hwmod_rtc_lock(struct omap_hwmod *oh)
--{
--	unsigned long flags;
+ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+ 
+@@ -58,9 +44,6 @@ extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
+ #endif /* CONFIG_PM_DEBUG */
+ 
+ /* 24xx */
+-extern void omap24xx_idle_loop_suspend(void);
+-extern unsigned int omap24xx_idle_loop_suspend_sz;
 -
--	local_irq_save(flags);
--	omap_rtc_wait_not_busy(oh);
--	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK0_REG);
--	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK1_REG);
--	local_irq_restore(flags);
--}
+ extern void omap24xx_cpu_suspend(u32 dll_ctrl, void __iomem *sdrc_dlla_ctrl,
+ 					void __iomem *sdrc_power);
+ extern unsigned int omap24xx_cpu_suspend_sz;
+@@ -120,7 +103,6 @@ static inline int omap_devinit_smartreflex(void)
+ #ifdef CONFIG_TWL4030_CORE
+ extern int omap3_twl_init(void);
+ extern int omap4_twl_init(void);
+-extern int omap3_twl_set_sr_bit(bool enable);
+ #else
+ static inline int omap3_twl_init(void)
+ {
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 2eaabd94986f..4c5284d0fd62 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -208,8 +208,6 @@ struct powerdomain *pwrdm_lookup(const char *name);
+ 
+ int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
+ 			void *user);
+-int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
+-			void *user);
+ 
+ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
+ 
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+index 3d803f7182b9..bc263d564acc 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+@@ -104,9 +104,6 @@ int omap2_prm_deassert_hardreset(u8 rst_shift, u8 st_shift, u8 part,
+ 				 s16 prm_mod, u16 reset_offset,
+ 				 u16 st_offset);
+ 
+-extern int omap2_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
+-extern int omap2_pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
+-extern int omap2_pwrdm_read_pwrst(struct powerdomain *pwrdm);
+ extern int omap2_pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank,
+ 				    u8 pwrst);
+ extern int omap2_pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank,
+diff --git a/arch/arm/mach-omap2/sdrc.h b/arch/arm/mach-omap2/sdrc.h
+index 5a44d64e3fbe..07ff33b006a7 100644
+--- a/arch/arm/mach-omap2/sdrc.h
++++ b/arch/arm/mach-omap2/sdrc.h
+@@ -92,7 +92,6 @@ struct memory_timings {
+ };
+ 
+ extern void omap2xxx_sdrc_init_params(u32 force_lock_to_unlock_mode);
+-struct omap_sdrc_params *rx51_get_sdram_timings(void);
+ 
+ u32 omap2xxx_sdrc_dll_is_unlocked(void);
+ u32 omap2xxx_sdrc_reprogram(u32 level, u32 force);
+diff --git a/arch/arm/mach-omap2/sram.h b/arch/arm/mach-omap2/sram.h
+index 271062f23482..030cabc39821 100644
+--- a/arch/arm/mach-omap2/sram.h
++++ b/arch/arm/mach-omap2/sram.h
+@@ -17,10 +17,6 @@ extern int __init omap_sram_init(void);
+ 
+ extern void *omap_sram_push(void *funcp, unsigned long size);
+ 
+-/* Do not use these */
+-extern void omap24xx_sram_reprogram_clock(u32 ckctl, u32 dpllctl);
+-extern unsigned long omap24xx_sram_reprogram_clock_sz;
+-
+ extern void omap242x_sram_ddr_init(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
+ 						u32 base_cs, u32 force_unlock);
+ extern unsigned long omap242x_sram_ddr_init_sz;
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 4a225f9559a5..5beb91ce3b38 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -163,7 +163,6 @@ extern void omap54xx_voltagedomains_init(void);
+ 
+ struct voltagedomain *voltdm_lookup(const char *name);
+ void voltdm_init(struct voltagedomain **voltdm_list);
+-int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
+ int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+ void voltdm_reset(struct voltagedomain *voltdm);
+ unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
 -- 
 2.29.2
 
