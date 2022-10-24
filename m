@@ -2,43 +2,45 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAD4DFA3743
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Oct 2022 17:05:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7FEEFA3746
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Oct 2022 17:05:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233382AbiJXRF1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Oct 2022 13:05:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54858 "EHLO
+        id S230102AbiJXRFb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Oct 2022 13:05:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235444AbiJXREg (ORCPT
+        with ESMTP id S235445AbiJXREg (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2022 13:04:36 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D096A2C653;
-        Mon, 24 Oct 2022 08:40:32 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D86DD8EF5;
+        Mon, 24 Oct 2022 08:40:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CBFB7B81031;
-        Mon, 24 Oct 2022 15:38:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43859C433D6;
-        Mon, 24 Oct 2022 15:38:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1748A6148E;
+        Mon, 24 Oct 2022 15:38:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49D89C433D7;
+        Mon, 24 Oct 2022 15:38:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1666625905;
-        bh=BTjmI1O7Y0s3CyCTarlAy4q8fd3YY5qQOUFNKk5u7QM=;
-        h=From:To:Cc:Subject:Date:From;
-        b=pW9+KqGNotlAgjc2vDD76rpSNDPOBOxftgjGAaCVc77nje6eZCrR9Pl18Qv0S/3HL
-         xlu+wdKiGxySQyuRvE/8Au+/zIowzwMiB6tRUbikS7AdzUXPQi+jNXW4nVAFQhzpOp
-         NPXh5pHtmZOzobG00aY/TDliCe8rijkw0udEwqf/+IX8BfQZPkujtHd9mTbqxI1Kml
-         wHjd6ct9gLIguIhAEtASSFArz7Tuo/zYRTWmQs1KrKfccFp3TG54BZhRvVKmMapAvb
-         +e0O24sc1BJMGh0K/67Da8VL9wESagvo6FlRNNyvY6cnxqH3atQ52baNg1U//H3KNe
-         7SGctLjTBTQNQ==
+        s=k20201202; t=1666625910;
+        bh=KwMZrO00iVnxwnhEpYpfBtEpyDgfWlroRyU4bRtZWH4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=YKpn0jSnwzMlsvSYThZiufeQx1e/whTC74gY5Nd2K8R6wv4gSGXrVakmoOyPx3tof
+         yGWyVwmerRVWNSjLTxBM8InjUU/OGvY6xgwZY1IB8GVQStJThdgZ9iNn1jezWHDkMr
+         bZkOzToUxKlo+qqR/iJeltBZ/FM4tLoSOqc8Asp0XDB80kTwbg2/OZrbkVYu7BvzJw
+         LbX8jQhlNCkMssgMaIA+9gLYXcyS72WUE4RiI2GGWH1HzI2OcXyoj+pXc/4f5w8UdJ
+         EvUuBmfLggxsqTev4mO1gMd47rn20mn8e940nbnIqjdhn2KUbtztNWGkXiHblmCFy6
+         Dxs2TDS5b5pkQ==
 From:   Arnd Bergmann <arnd@kernel.org>
 To:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 00/10] ARM: omap2: assorted cleanups
-Date:   Mon, 24 Oct 2022 17:38:04 +0200
-Message-Id: <20221024153814.254652-1-arnd@kernel.org>
+Subject: [PATCH 03/10] ARM: omap2: remove unused omap_hwmod_reset.c
+Date:   Mon, 24 Oct 2022 17:38:07 +0200
+Message-Id: <20221024153814.254652-4-arnd@kernel.org>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20221024153814.254652-1-arnd@kernel.org>
+References: <20221024153814.254652-1-arnd@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -47,94 +49,153 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-While going through the removal of board files on some other
-platforms, I noticed a bit of outdated code on omap2+ that
-was left behind after the platform became DT only.
+Since commit 90aa4ed5a43f ("ARM: OMAP2+: Drop legacy platform
+data for dra7 rtcss"), this is not used any more and can be
+removed.
 
-I can put this into the same cleanup tree as the omap1 patches,
-or you can merge these into your omap2 tree if there are likely
-conflicts with other patches.
-
-Arnd Bergmann (10):
-  ARM: omap2: remove unused USB code
-  ARM: omap2: remove unused headers
-  ARM: omap2: remove unused omap_hwmod_reset.c
-  ARM: omap2: simplify clock2xxx header
-  ARM: omap2: remove APLL control
-  ARM: omap2: smartreflex: remove on_init control
-  ARM: omap2: remove unused functions
-  ARM: omap2: remove unused declarations
-  ARM: omap2: remove unused omap2_pm_init
-  ARM: omap2: make functions static
-
- arch/arm/mach-omap2/Makefile                  |   3 +-
- arch/arm/mach-omap2/board-n8x0.c              |   2 +-
- arch/arm/mach-omap2/clkt2xxx_dpllcore.c       |   1 +
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c  |  14 +-
- arch/arm/mach-omap2/clock.c                   |   2 -
- arch/arm/mach-omap2/clock.h                   |   7 -
- arch/arm/mach-omap2/clock2xxx.h               |  29 --
- arch/arm/mach-omap2/clock3xxx.h               |  21 --
- arch/arm/mach-omap2/clockdomain.c             |  44 +--
- arch/arm/mach-omap2/clockdomain.h             |   4 -
- arch/arm/mach-omap2/cm2xxx.c                  | 101 +-----
- arch/arm/mach-omap2/cm2xxx.h                  |   7 -
- arch/arm/mach-omap2/cm2xxx_3xxx.h             |   5 -
- arch/arm/mach-omap2/common.h                  |  28 --
- arch/arm/mach-omap2/control.c                 |  73 ----
- arch/arm/mach-omap2/control.h                 |   5 -
- arch/arm/mach-omap2/id.c                      |   2 +-
- arch/arm/mach-omap2/id.h                      |   2 -
- arch/arm/mach-omap2/io.c                      |  21 +-
- arch/arm/mach-omap2/omap-secure.c             |   7 +-
- arch/arm/mach-omap2/omap-secure.h             |   3 -
- arch/arm/mach-omap2/omap_device.c             |  74 +----
- arch/arm/mach-omap2/omap_device.h             |  14 -
- arch/arm/mach-omap2/omap_hwmod.c              |  94 +-----
- arch/arm/mach-omap2/omap_hwmod.h              |  21 --
- arch/arm/mach-omap2/omap_hwmod_2420_data.c    |   1 -
- .../omap_hwmod_2xxx_3xxx_ipblock_data.c       |   2 +-
- .../omap_hwmod_2xxx_interconnect_data.c       |   1 -
- .../mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  12 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   1 -
- arch/arm/mach-omap2/omap_hwmod_common_data.h  |   6 -
- arch/arm/mach-omap2/omap_hwmod_reset.c        |  98 ------
- arch/arm/mach-omap2/omap_opp_data.h           |   5 -
- arch/arm/mach-omap2/omap_phy_internal.c       |  87 -----
- arch/arm/mach-omap2/pm.c                      |   8 +-
- arch/arm/mach-omap2/pm.h                      |  25 --
- arch/arm/mach-omap2/pm24xx.c                  | 312 ------------------
- arch/arm/mach-omap2/powerdomain.c             | 108 +-----
- arch/arm/mach-omap2/powerdomain.h             |   8 -
- arch/arm/mach-omap2/prcm-common.h             |   1 -
- arch/arm/mach-omap2/prcm_mpu44xx.c            |  12 -
- arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h      |   2 -
- arch/arm/mach-omap2/prm.h                     |   4 -
- arch/arm/mach-omap2/prm2xxx_3xxx.h            |   3 -
- arch/arm/mach-omap2/prm3xxx.c                 |   5 +-
- arch/arm/mach-omap2/prm3xxx.h                 |   2 -
- arch/arm/mach-omap2/prm_common.c              |  55 +--
- arch/arm/mach-omap2/sdrc.c                    |  51 +--
- arch/arm/mach-omap2/sdrc.h                    |   5 -
- arch/arm/mach-omap2/serial.h                  |  66 ----
- arch/arm/mach-omap2/sr_device.c               |  13 -
- arch/arm/mach-omap2/sram.h                    |   4 -
- arch/arm/mach-omap2/usb-tusb6010.c            |   6 +-
- arch/arm/mach-omap2/usb.h                     |  71 ----
- arch/arm/mach-omap2/vc.c                      |  15 -
- arch/arm/mach-omap2/voltage.c                 |   2 +-
- arch/arm/mach-omap2/voltage.h                 |   2 -
- drivers/soc/ti/smartreflex.c                  |   4 -
- include/linux/platform_data/voltage-omap.h    |   1 -
- include/linux/power/smartreflex.h             |   3 -
- include/linux/usb/musb.h                      |   2 -
- 61 files changed, 49 insertions(+), 1538 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/clock3xxx.h
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/mach-omap2/Makefile           |  2 +-
+ arch/arm/mach-omap2/omap_hwmod.h       |  7 --
+ arch/arm/mach-omap2/omap_hwmod_reset.c | 98 --------------------------
+ 3 files changed, 1 insertion(+), 106 deletions(-)
  delete mode 100644 arch/arm/mach-omap2/omap_hwmod_reset.c
- delete mode 100644 arch/arm/mach-omap2/pm24xx.c
- delete mode 100644 arch/arm/mach-omap2/serial.h
- delete mode 100644 arch/arm/mach-omap2/usb.h
 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 2feb9f6630af..43b44e0858c1 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -7,7 +7,7 @@
+ obj-y := id.o io.o control.o devices.o fb.o pm.o \
+ 	 common.o dma.o omap-headsmp.o sram.o
+ 
+-hwmod-common				= omap_hwmod.o omap_hwmod_reset.o \
++hwmod-common				= omap_hwmod.o \
+ 					  omap_hwmod_common_data.o \
+ 					  omap_hwmod_common_ipblock_data.o \
+ 					  omap_device.o display.o hdq1w.o \
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 6962a8d267e7..1bb42f3d2e83 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -669,13 +669,6 @@ omap_hwmod_for_each_by_class(const char *classname,
+ }
+ #endif	/* CONFIG_OMAP_HWMOD */
+ 
+-/*
+- *
+- */
+-
+-void omap_hwmod_rtc_unlock(struct omap_hwmod *oh);
+-void omap_hwmod_rtc_lock(struct omap_hwmod *oh);
+-
+ /*
+  * Chip variant-specific hwmod init routines - XXX should be converted
+  * to use initcalls once the initial boot ordering is straightened out
+diff --git a/arch/arm/mach-omap2/omap_hwmod_reset.c b/arch/arm/mach-omap2/omap_hwmod_reset.c
+deleted file mode 100644
+index 143623bb056d..000000000000
+--- a/arch/arm/mach-omap2/omap_hwmod_reset.c
++++ /dev/null
+@@ -1,98 +0,0 @@
+-/*
+- * OMAP IP block custom reset and preprogramming stubs
+- *
+- * Copyright (C) 2012 Texas Instruments, Inc.
+- * Paul Walmsley
+- *
+- * A small number of IP blocks need custom reset and preprogramming
+- * functions.  The stubs in this file provide a standard way for the
+- * hwmod code to call these functions, which are to be located under
+- * drivers/.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- */
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-
+-#include "omap_hwmod.h"
+-#include "common.h"
+-
+-#define OMAP_RTC_STATUS_REG	0x44
+-#define OMAP_RTC_KICK0_REG	0x6c
+-#define OMAP_RTC_KICK1_REG	0x70
+-
+-#define OMAP_RTC_KICK0_VALUE	0x83E70B13
+-#define OMAP_RTC_KICK1_VALUE	0x95A4F1E0
+-#define OMAP_RTC_STATUS_BUSY	BIT(0)
+-#define OMAP_RTC_MAX_READY_TIME	50
+-
+-/**
+- * omap_rtc_wait_not_busy - Wait for the RTC BUSY flag
+- * @oh: struct omap_hwmod *
+- *
+- * For updating certain RTC registers, the MPU must wait
+- * for the BUSY status in OMAP_RTC_STATUS_REG to become zero.
+- * Once the BUSY status is zero, there is a 15 microseconds access
+- * period in which the MPU can program.
+- */
+-static void omap_rtc_wait_not_busy(struct omap_hwmod *oh)
+-{
+-	int i;
+-
+-	/* BUSY may stay active for 1/32768 second (~30 usec) */
+-	omap_test_timeout(omap_hwmod_read(oh, OMAP_RTC_STATUS_REG)
+-			  & OMAP_RTC_STATUS_BUSY, OMAP_RTC_MAX_READY_TIME, i);
+-	/* now we have ~15 microseconds to read/write various registers */
+-}
+-
+-/**
+- * omap_hwmod_rtc_unlock - Unlock the Kicker mechanism.
+- * @oh: struct omap_hwmod *
+- *
+- * RTC IP have kicker feature. This prevents spurious writes to its registers.
+- * In order to write into any of the RTC registers, KICK values has te be
+- * written in respective KICK registers. This is needed for hwmod to write into
+- * sysconfig register.
+- */
+-void omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	omap_rtc_wait_not_busy(oh);
+-	omap_hwmod_write(OMAP_RTC_KICK0_VALUE, oh, OMAP_RTC_KICK0_REG);
+-	omap_hwmod_write(OMAP_RTC_KICK1_VALUE, oh, OMAP_RTC_KICK1_REG);
+-	local_irq_restore(flags);
+-}
+-
+-/**
+- * omap_hwmod_rtc_lock - Lock the Kicker mechanism.
+- * @oh: struct omap_hwmod *
+- *
+- * RTC IP have kicker feature. This prevents spurious writes to its registers.
+- * Once the RTC registers are written, KICK mechanism needs to be locked,
+- * in order to prevent any spurious writes. This function locks back the RTC
+- * registers once hwmod completes its write into sysconfig register.
+- */
+-void omap_hwmod_rtc_lock(struct omap_hwmod *oh)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	omap_rtc_wait_not_busy(oh);
+-	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK0_REG);
+-	omap_hwmod_write(0x0, oh, OMAP_RTC_KICK1_REG);
+-	local_irq_restore(flags);
+-}
 -- 
 2.29.2
 
