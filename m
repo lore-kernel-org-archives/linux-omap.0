@@ -2,42 +2,42 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3152C38A2D
-	for <linux-omap@archiver.kernel.org>; Mon, 24 Oct 2022 17:12:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACE23C38A2D
+	for <linux-omap@archiver.kernel.org>; Mon, 24 Oct 2022 17:29:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233959AbiJXRMp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Oct 2022 13:12:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51480 "EHLO
+        id S230270AbiJXR3I (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Oct 2022 13:29:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234234AbiJXRMb (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2022 13:12:31 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACD7CA99C4;
-        Mon, 24 Oct 2022 08:47:30 -0700 (PDT)
+        with ESMTP id S231618AbiJXR2U (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2022 13:28:20 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 162515FCB;
+        Mon, 24 Oct 2022 09:03:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 2A1FECE1894;
-        Mon, 24 Oct 2022 15:38:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39A04C433D6;
-        Mon, 24 Oct 2022 15:38:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AE3B3B811F8;
+        Mon, 24 Oct 2022 15:38:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02BD3C433D7;
+        Mon, 24 Oct 2022 15:38:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1666625922;
-        bh=/8jDtxqnl7niHxk1zz2MXK8dHL5Pq5bCc9LHkJNr30I=;
+        s=k20201202; t=1666625917;
+        bh=jApnP8iKySHZaETbBxPwcRr9cryXnwQ5EJzFYO4cLsc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=d4FcPe6GRX0jivqFMD74XeNvnwFNiURs8fNiV/vKYaFgx7vYR3WEBPSCLEgkNbvWO
-         491qzoeG+G9I6/y0D6lm0ICTd0SDmVzUFY/1lZZhEHJUQXXdq5hHblk9XmRanZODoD
-         3nw6/wo9CRw2fvrAwxpr2hqnwbxIVjzcd5iMbyPpt5rVP3SPMft7sgPgSQF+wpwZa9
-         47Y1anE6NSBnPC0AbK2x4XCOLiWGDT4ZGCZ1wDwsDOZauKsKjpXuyUqAX+dxTZCI59
-         VJeq7z9Y8OBQVeN52BbSJfjmzZkyMMLWSxE7eo/SSlNSECCGQ7ybIs06+siLIUN4hT
-         X+1RZqHhEMsPg==
+        b=P0syD7u4MdQP2EGqpjkGXDJwOT7k2rGH1QsIy2giQlCEQUPRHBFEQ8hWLEvJLF3e+
+         72a7/VXgTjxTbQCN8uMF9RlXpAyR3Srjw8s1/wkEUyF00AYBiXVbzRIaENo3pCXn3L
+         FEL5BvqS0/Z9XVWqsVb1HaRHUQWmhaNArB/tmq7ByLI4T5p+dc1KeBZj4m9WBUGRdU
+         TUjS0H6naXHeYH77t5ZlKQ3wy5FAkJex4YMZVVGjUnSUbxnBVyHqp59pZaWwBQed3Z
+         i9TlkNWwohKMZZKrcfjt/LOp64xrXr/YyijayD3tEXYXyy14IzY+TYUu7t5gACGV+P
+         I3fFRASxqN04w==
 From:   Arnd Bergmann <arnd@kernel.org>
 To:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 10/10] ARM: omap2: make functions static
-Date:   Mon, 24 Oct 2022 17:38:14 +0200
-Message-Id: <20221024153814.254652-11-arnd@kernel.org>
+Subject: [PATCH 07/10] ARM: omap2: remove unused functions
+Date:   Mon, 24 Oct 2022 17:38:11 +0200
+Message-Id: <20221024153814.254652-8-arnd@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20221024153814.254652-1-arnd@kernel.org>
 References: <20221024153814.254652-1-arnd@kernel.org>
@@ -49,633 +49,951 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-A number of functions are only called from the file they
-are defined in, so remove the extern declarations and
-make them local to those files.
+These are a number of individual functions that were either never
+used, or that had their last user removed in a prior cleanup.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm/mach-omap2/board-n8x0.c                   |  2 +-
- arch/arm/mach-omap2/clockdomain.c                  |  4 ++--
- arch/arm/mach-omap2/clockdomain.h                  |  2 --
- arch/arm/mach-omap2/cm2xxx.c                       |  4 ++--
- arch/arm/mach-omap2/cm2xxx.h                       |  2 --
- arch/arm/mach-omap2/common.h                       |  2 --
- arch/arm/mach-omap2/id.c                           |  2 +-
- arch/arm/mach-omap2/id.h                           |  2 --
- arch/arm/mach-omap2/io.c                           |  2 +-
- arch/arm/mach-omap2/omap-secure.c                  |  2 +-
- arch/arm/mach-omap2/omap-secure.h                  |  2 --
- arch/arm/mach-omap2/omap_device.c                  | 14 ++++++++++----
- arch/arm/mach-omap2/omap_device.h                  |  9 ---------
- arch/arm/mach-omap2/omap_hwmod.c                   |  4 +++-
- arch/arm/mach-omap2/omap_hwmod.h                   |  1 -
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |  2 +-
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  6 +++---
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |  4 ----
- arch/arm/mach-omap2/pm.c                           |  2 +-
- arch/arm/mach-omap2/powerdomain.c                  |  8 ++++----
- arch/arm/mach-omap2/powerdomain.h                  |  3 ---
- arch/arm/mach-omap2/prcm-common.h                  |  1 -
- arch/arm/mach-omap2/prm.h                          |  1 -
- arch/arm/mach-omap2/prm3xxx.c                      |  5 +++--
- arch/arm/mach-omap2/prm3xxx.h                      |  2 --
- arch/arm/mach-omap2/prm_common.c                   |  4 ++--
- arch/arm/mach-omap2/sdrc.c                         |  2 +-
- arch/arm/mach-omap2/sdrc.h                         |  1 -
- arch/arm/mach-omap2/usb-tusb6010.c                 |  6 ++----
- arch/arm/mach-omap2/voltage.c                      |  2 +-
- arch/arm/mach-omap2/voltage.h                      |  1 -
- include/linux/platform_data/voltage-omap.h         |  1 -
- include/linux/usb/musb.h                           |  2 --
- 33 files changed, 39 insertions(+), 68 deletions(-)
+ arch/arm/mach-omap2/clockdomain.c             |  40 -------
+ arch/arm/mach-omap2/clockdomain.h             |   2 -
+ arch/arm/mach-omap2/common.h                  |   3 -
+ arch/arm/mach-omap2/control.c                 |  73 -------------
+ arch/arm/mach-omap2/control.h                 |   5 -
+ arch/arm/mach-omap2/io.c                      |   6 --
+ arch/arm/mach-omap2/omap-secure.c             |   5 -
+ arch/arm/mach-omap2/omap-secure.h             |   1 -
+ arch/arm/mach-omap2/omap_device.c             |  60 -----------
+ arch/arm/mach-omap2/omap_device.h             |   5 -
+ arch/arm/mach-omap2/omap_hwmod.c              |  90 ----------------
+ arch/arm/mach-omap2/omap_hwmod.h              |   4 -
+ .../mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   6 --
+ arch/arm/mach-omap2/omap_hwmod_common_data.h  |   1 -
+ arch/arm/mach-omap2/pm.c                      |   6 --
+ arch/arm/mach-omap2/pm.h                      |   4 -
+ arch/arm/mach-omap2/powerdomain.c             | 100 ------------------
+ arch/arm/mach-omap2/powerdomain.h             |   3 -
+ arch/arm/mach-omap2/prcm_mpu44xx.c            |  12 ---
+ arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h      |   2 -
+ arch/arm/mach-omap2/prm.h                     |   3 -
+ arch/arm/mach-omap2/prm_common.c              |  51 ---------
+ arch/arm/mach-omap2/sdrc.c                    |  49 ---------
+ arch/arm/mach-omap2/sdrc.h                    |   3 -
+ arch/arm/mach-omap2/vc.c                      |  15 ---
+ 25 files changed, 549 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 5e86145db0e2..eb21a4cc5e4d 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -505,7 +505,7 @@ static void __init n8x0_mmc_init(void)
- }
- #else
- static struct omap_mmc_platform_data mmc1_data;
--void __init n8x0_mmc_init(void)
-+static void __init n8x0_mmc_init(void)
- {
- }
- #endif	/* CONFIG_MMC_OMAP */
 diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index f4e488e72515..d145e7ac709b 100644
+index 1feb0098705e..f4e488e72515 100644
 --- a/arch/arm/mach-omap2/clockdomain.c
 +++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -831,7 +831,7 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
-  * -EINVAL if @clkdm is NULL or if clockdomain does not support
-  * software-initiated sleep; 0 upon success.
-  */
--int clkdm_sleep_nolock(struct clockdomain *clkdm)
-+static int clkdm_sleep_nolock(struct clockdomain *clkdm)
- {
- 	int ret;
+@@ -1043,46 +1043,6 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+ 	pwrdm_unlock(clkdm->pwrdm.ptr);
+ }
  
-@@ -885,7 +885,7 @@ int clkdm_sleep(struct clockdomain *clkdm)
-  * -EINVAL if @clkdm is NULL or if the clockdomain does not support
-  * software-controlled wakeup; 0 upon success.
-  */
--int clkdm_wakeup_nolock(struct clockdomain *clkdm)
-+static int clkdm_wakeup_nolock(struct clockdomain *clkdm)
- {
- 	int ret;
+-/**
+- * clkdm_in_hwsup - is clockdomain @clkdm have hardware-supervised idle enabled?
+- * @clkdm: struct clockdomain *
+- *
+- * Returns true if clockdomain @clkdm currently has
+- * hardware-supervised idle enabled, or false if it does not or if
+- * @clkdm is NULL.  It is only valid to call this function after
+- * clkdm_init() has been called.  This function does not actually read
+- * bits from the hardware; it instead tests an in-memory flag that is
+- * changed whenever the clockdomain code changes the auto-idle mode.
+- */
+-bool clkdm_in_hwsup(struct clockdomain *clkdm)
+-{
+-	bool ret;
+-
+-	if (!clkdm)
+-		return false;
+-
+-	ret = (clkdm->_flags & _CLKDM_FLAG_HWSUP_ENABLED) ? true : false;
+-
+-	return ret;
+-}
+-
+-/**
+- * clkdm_missing_idle_reporting - can @clkdm enter autoidle even if in use?
+- * @clkdm: struct clockdomain *
+- *
+- * Returns true if clockdomain @clkdm has the
+- * CLKDM_MISSING_IDLE_REPORTING flag set, or false if not or @clkdm is
+- * null.  More information is available in the documentation for the
+- * CLKDM_MISSING_IDLE_REPORTING macro.
+- */
+-bool clkdm_missing_idle_reporting(struct clockdomain *clkdm)
+-{
+-	if (!clkdm)
+-		return false;
+-
+-	return (clkdm->flags & CLKDM_MISSING_IDLE_REPORTING) ? true : false;
+-}
+-
+ /* Public autodep handling functions (deprecated) */
  
+ /**
 diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index a6bce3795a32..c36fb2721261 100644
+index 68550b23c938..a6bce3795a32 100644
 --- a/arch/arm/mach-omap2/clockdomain.h
 +++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -204,9 +204,7 @@ void clkdm_allow_idle(struct clockdomain *clkdm);
+@@ -203,8 +203,6 @@ void clkdm_allow_idle_nolock(struct clockdomain *clkdm);
+ void clkdm_allow_idle(struct clockdomain *clkdm);
  void clkdm_deny_idle_nolock(struct clockdomain *clkdm);
  void clkdm_deny_idle(struct clockdomain *clkdm);
+-bool clkdm_in_hwsup(struct clockdomain *clkdm);
+-bool clkdm_missing_idle_reporting(struct clockdomain *clkdm);
  
--int clkdm_wakeup_nolock(struct clockdomain *clkdm);
+ int clkdm_wakeup_nolock(struct clockdomain *clkdm);
  int clkdm_wakeup(struct clockdomain *clkdm);
--int clkdm_sleep_nolock(struct clockdomain *clkdm);
- int clkdm_sleep(struct clockdomain *clkdm);
- 
- int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk);
-diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
-index 17833e0f22f8..1c6d69f4bf49 100644
---- a/arch/arm/mach-omap2/cm2xxx.c
-+++ b/arch/arm/mach-omap2/cm2xxx.c
-@@ -145,8 +145,8 @@ static int omap2xxx_cm_split_idlest_reg(struct clk_omap_reg *idlest_reg,
-  * (@prcm_mod, @idlest_id, @idlest_shift) is clocked.  Return 0 upon
-  * success or -EBUSY if the module doesn't enable in time.
-  */
--int omap2xxx_cm_wait_module_ready(u8 part, s16 prcm_mod, u16 idlest_id,
--				  u8 idlest_shift)
-+static int omap2xxx_cm_wait_module_ready(u8 part, s16 prcm_mod, u16 idlest_id,
-+					 u8 idlest_shift)
- {
- 	int ena = 0, i = 0;
- 	u8 cm_idlest_reg;
-diff --git a/arch/arm/mach-omap2/cm2xxx.h b/arch/arm/mach-omap2/cm2xxx.h
-index ee0cb40691b2..7cbeff15ffb0 100644
---- a/arch/arm/mach-omap2/cm2xxx.h
-+++ b/arch/arm/mach-omap2/cm2xxx.h
-@@ -46,8 +46,6 @@
- extern void omap2xxx_cm_set_dpll_disable_autoidle(void);
- extern void omap2xxx_cm_set_dpll_auto_low_power_stop(void);
- 
--int omap2xxx_cm_wait_module_ready(u8 part, s16 prcm_mod, u16 idlest_id,
--				  u8 idlest_shift);
- extern int omap2xxx_cm_fclks_active(void);
- extern int omap2xxx_cm_mpu_retention_allowed(void);
- extern u32 omap2xxx_cm_get_core_clk_src(void);
 diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index ebf0266e1943..08034d589081 100644
+index fc041d18809b..415ca353a345 100644
 --- a/arch/arm/mach-omap2/common.h
 +++ b/arch/arm/mach-omap2/common.h
-@@ -106,7 +106,6 @@ void omap2420_init_early(void);
+@@ -120,7 +120,6 @@ static inline void omap5_realtime_timer_init(void)
+ void omap2420_init_early(void);
  void omap2430_init_early(void);
  void omap3430_init_early(void);
+-void omap35xx_init_early(void);
  void omap3630_init_early(void);
--void omap3_init_early(void);	/* Do not use this one */
+ void omap3_init_early(void);	/* Do not use this one */
  void am33xx_init_early(void);
- void am35xx_init_early(void);
- void ti814x_init_early(void);
-@@ -120,7 +119,6 @@ void omap4430_init_late(void);
+@@ -133,8 +132,6 @@ void omap4430_init_early(void);
+ void omap5_init_early(void);
+ void omap3_init_late(void);
+ void omap4430_init_late(void);
+-void omap2420_init_late(void);
+-void omap2430_init_late(void);
  void ti81xx_init_late(void);
  void am33xx_init_late(void);
  void omap5_init_late(void);
--int omap2_common_pm_late_init(void);
- void dra7xx_init_early(void);
- void dra7xx_init_late(void);
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index c514a9602269..79860b23030d 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -226,68 +226,7 @@ void omap3_ctrl_write_boot_mode(u8 bootmode)
  
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 59755b5a1ad7..98999aa8cc0c 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -117,7 +117,7 @@ static struct omap_id omap_ids[] __initdata = {
- static void __iomem *tap_base;
- static u16 tap_prod_id;
- 
--void omap_get_die_id(struct omap_die_id *odi)
-+static void omap_get_die_id(struct omap_die_id *odi)
- {
- 	if (soc_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
- 		odi->id_0 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_0);
-diff --git a/arch/arm/mach-omap2/id.h b/arch/arm/mach-omap2/id.h
-index d1735f4497e3..ded7392f0526 100644
---- a/arch/arm/mach-omap2/id.h
-+++ b/arch/arm/mach-omap2/id.h
-@@ -14,6 +14,4 @@ struct omap_die_id {
- 	u32 id_3;
- };
- 
--void omap_get_die_id(struct omap_die_id *odi);
--
  #endif
+ 
+-/**
+- * omap_ctrl_write_dsp_boot_addr - set boot address for a remote processor
+- * @bootaddr: physical address of the boot loader
+- *
+- * Set boot address for the boot loader of a supported processor
+- * when a power ON sequence occurs.
+- */
+-void omap_ctrl_write_dsp_boot_addr(u32 bootaddr)
+-{
+-	u32 offset = cpu_is_omap243x() ? OMAP243X_CONTROL_IVA2_BOOTADDR :
+-		     cpu_is_omap34xx() ? OMAP343X_CONTROL_IVA2_BOOTADDR :
+-		     cpu_is_omap44xx() ? OMAP4_CTRL_MODULE_CORE_DSP_BOOTADDR :
+-		     soc_is_omap54xx() ? OMAP4_CTRL_MODULE_CORE_DSP_BOOTADDR :
+-		     0;
+-
+-	if (!offset) {
+-		pr_err("%s: unsupported omap type\n", __func__);
+-		return;
+-	}
+-
+-	omap_ctrl_writel(bootaddr, offset);
+-}
+-
+-/**
+- * omap_ctrl_write_dsp_boot_mode - set boot mode for a remote processor
+- * @bootmode: 8-bit value to pass to some boot code
+- *
+- * Sets boot mode for the boot loader of a supported processor
+- * when a power ON sequence occurs.
+- */
+-void omap_ctrl_write_dsp_boot_mode(u8 bootmode)
+-{
+-	u32 offset = cpu_is_omap243x() ? OMAP243X_CONTROL_IVA2_BOOTMOD :
+-		     cpu_is_omap34xx() ? OMAP343X_CONTROL_IVA2_BOOTMOD :
+-		     0;
+-
+-	if (!offset) {
+-		pr_err("%s: unsupported omap type\n", __func__);
+-		return;
+-	}
+-
+-	omap_ctrl_writel(bootmode, offset);
+-}
+-
+ #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+-/*
+- * Clears the scratchpad contents in case of cold boot-
+- * called during bootup
+- */
+-void omap3_clear_scratchpad_contents(void)
+-{
+-	u32 max_offset = OMAP343X_SCRATCHPAD_ROM_OFFSET;
+-	void __iomem *v_addr;
+-	u32 offset = 0;
+-
+-	v_addr = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD_ROM);
+-	if (omap3xxx_prm_clear_global_cold_reset()) {
+-		for ( ; offset <= max_offset; offset += 0x4)
+-			writel_relaxed(0x0, (v_addr + offset));
+-	}
+-}
+-
+ /* Populate the scratchpad structure with restore structure */
+ void omap3_save_scratchpad_contents(void)
+ {
+@@ -846,15 +785,3 @@ int __init omap_control_init(void)
+ 	return ret;
+ 
+ }
+-
+-/**
+- * omap3_control_legacy_iomap_init - legacy iomap init for clock providers
+- *
+- * Legacy iomap init for clock provider. Needed only by legacy boot mode,
+- * where the base addresses are not parsed from DT, but still required
+- * by the clock driver to be setup properly.
+- */
+-void __init omap3_control_legacy_iomap_init(void)
+-{
+-	omap2_clk_legacy_provider_init(TI_CLKM_SCRM, omap2_ctrl_base);
+-}
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index c4ca30ba1790..7e7440533bf9 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -512,8 +512,6 @@ extern void omap_ctrl_writeb(u8 val, u16 offset);
+ extern void omap_ctrl_writew(u16 val, u16 offset);
+ extern void omap_ctrl_writel(u32 val, u16 offset);
+ 
+-extern void omap3_save_scratchpad_contents(void);
+-extern void omap3_clear_scratchpad_contents(void);
+ extern void omap3_restore(void);
+ extern void omap3_restore_es3(void);
+ extern void omap3_restore_3630(void);
+@@ -521,14 +519,11 @@ extern u32 omap3_arm_context[128];
+ extern void omap3_control_save_context(void);
+ extern void omap3_control_restore_context(void);
+ extern void omap3_ctrl_write_boot_mode(u8 bootmode);
+-extern void omap_ctrl_write_dsp_boot_addr(u32 bootaddr);
+-extern void omap_ctrl_write_dsp_boot_mode(u8 bootmode);
+ extern void omap3630_ctrl_disable_rta(void);
+ extern int omap3_ctrl_save_padconf(void);
+ void omap3_ctrl_init(void);
+ int omap2_control_base_init(void);
+ int omap_control_init(void);
+-void __init omap3_control_legacy_iomap_init(void);
+ #else
+ #define omap_ctrl_readb(x)		0
+ #define omap_ctrl_readw(x)		0
 diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 81cb175c2dbe..14ec3f78000b 100644
+index 375fea35b981..e45a3ce97085 100644
 --- a/arch/arm/mach-omap2/io.c
 +++ b/arch/arm/mach-omap2/io.c
-@@ -461,7 +461,7 @@ void __init omap2430_init_early(void)
-  * same machine_id for 34xx and 36xx beagle.. Will get fixed with DT.
-  */
- #ifdef CONFIG_ARCH_OMAP3
--void __init omap3_init_early(void)
-+static void __init omap3_init_early(void)
- {
- 	omap2_set_globals_tap(OMAP343X_CLASS, OMAP2_L4_IO_ADDRESS(0x4830A000));
- 	omap2_set_globals_sdrc(OMAP2_L3_IO_ADDRESS(OMAP343X_SDRC_BASE),
-diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
-index 41aec5c93a70..29c7350b06ab 100644
---- a/arch/arm/mach-omap2/omap-secure.c
-+++ b/arch/arm/mach-omap2/omap-secure.c
-@@ -152,7 +152,7 @@ u32 omap3_save_secure_ram(void *addr, int size)
-  * NOTE: rx51_secure_dispatcher differs from omap_secure_dispatcher because
-  *       it calling omap_smc3() instead omap_smc2() and param[0] is nargs+1
-  */
--u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 nargs,
-+static u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 nargs,
- 			   u32 arg1, u32 arg2, u32 arg3, u32 arg4)
- {
- 	static u32 param[5];
-diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
-index 2ce26a86b7bd..2517c4a5a0e2 100644
---- a/arch/arm/mach-omap2/omap-secure.h
-+++ b/arch/arm/mach-omap2/omap-secure.h
-@@ -74,8 +74,6 @@ extern int omap_secure_ram_reserve_memblock(void);
- extern u32 save_secure_ram_context(u32 args_pa);
- extern u32 omap3_save_secure_ram(void *save_regs, int size);
- 
--extern u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 nargs,
--				  u32 arg1, u32 arg2, u32 arg3, u32 arg4);
- extern u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits);
- extern u32 rx51_secure_rng_call(u32 ptr, u32 count, u32 flag);
- 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 0594aaaa1a98..4afa2f08e668 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -39,6 +39,12 @@
- #include "omap_device.h"
- #include "omap_hwmod.h"
- 
-+static struct omap_device *omap_device_alloc(struct platform_device *pdev,
-+				struct omap_hwmod **ohs, int oh_cnt);
-+static void omap_device_delete(struct omap_device *od);
-+static struct dev_pm_domain omap_device_fail_pm_domain;
-+static struct dev_pm_domain omap_device_pm_domain;
-+
- /* Private functions */
- 
- static void _add_clkdev(struct omap_device *od, const char *clk_alias,
-@@ -296,7 +302,7 @@ static int _omap_device_idle_hwmods(struct omap_device *od)
-  *
-  * Returns an struct omap_device pointer or ERR_PTR() on error;
-  */
--struct omap_device *omap_device_alloc(struct platform_device *pdev,
-+static struct omap_device *omap_device_alloc(struct platform_device *pdev,
- 					struct omap_hwmod **ohs, int oh_cnt)
- {
- 	int ret = -ENOMEM;
-@@ -333,7 +339,7 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
- 	return ERR_PTR(ret);
+@@ -494,12 +494,6 @@ void __init omap3430_init_early(void)
+ 	omap_clk_soc_init = omap3430_dt_clk_init;
  }
  
--void omap_device_delete(struct omap_device *od)
-+static void omap_device_delete(struct omap_device *od)
+-void __init omap35xx_init_early(void)
+-{
+-	omap3_init_early();
+-	omap_clk_soc_init = omap3430_dt_clk_init;
+-}
+-
+ void __init omap3630_init_early(void)
  {
- 	if (!od)
- 		return;
-@@ -425,14 +431,14 @@ static int _od_resume_noirq(struct device *dev)
- #define _od_resume_noirq NULL
- #endif
+ 	omap3_init_early();
+diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
+index fb9c114b9dd7..41aec5c93a70 100644
+--- a/arch/arm/mach-omap2/omap-secure.c
++++ b/arch/arm/mach-omap2/omap-secure.c
+@@ -118,11 +118,6 @@ int __init omap_secure_ram_reserve_memblock(void)
+ 	return 0;
+ }
  
--struct dev_pm_domain omap_device_fail_pm_domain = {
-+static struct dev_pm_domain omap_device_fail_pm_domain = {
- 	.ops = {
- 		SET_RUNTIME_PM_OPS(_od_fail_runtime_suspend,
- 				   _od_fail_runtime_resume, NULL)
- 	}
+-phys_addr_t omap_secure_ram_mempool_base(void)
+-{
+-	return omap_secure_memblock_base;
+-}
+-
+ #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+ u32 omap3_save_secure_ram(void *addr, int size)
+ {
+diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
+index 9e67d4efdd0c..2ce26a86b7bd 100644
+--- a/arch/arm/mach-omap2/omap-secure.h
++++ b/arch/arm/mach-omap2/omap-secure.h
+@@ -70,7 +70,6 @@ extern void omap_smccc_smc(u32 fn, u32 arg);
+ extern void omap_smc1(u32 fn, u32 arg);
+ extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
+ extern u32 omap_smc3(u32 id, u32 process, u32 flag, u32 pargs);
+-extern phys_addr_t omap_secure_ram_mempool_base(void);
+ extern int omap_secure_ram_reserve_memblock(void);
+ extern u32 save_secure_ram_context(u32 args_pa);
+ extern u32 omap3_save_secure_ram(void *save_regs, int size);
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 8b3701901991..0594aaaa1a98 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -285,34 +285,6 @@ static int _omap_device_idle_hwmods(struct omap_device *od)
+ 
+ /* Public functions for use by core code */
+ 
+-/**
+- * omap_device_get_context_loss_count - get lost context count
+- * @pdev: The platform device to update.
+- *
+- * Using the primary hwmod, query the context loss count for this
+- * device.
+- *
+- * Callers should consider context for this device lost any time this
+- * function returns a value different than the value the caller got
+- * the last time it called this function.
+- *
+- * If any hwmods exist for the omap_device associated with @pdev,
+- * return the context loss counter for that hwmod, otherwise return
+- * zero.
+- */
+-int omap_device_get_context_loss_count(struct platform_device *pdev)
+-{
+-	struct omap_device *od;
+-	u32 ret = 0;
+-
+-	od = to_omap_device(pdev);
+-
+-	if (od->hwmods_cnt)
+-		ret = omap_hwmod_get_context_loss_count(od->hwmods[0]);
+-
+-	return ret;
+-}
+-
+ /**
+  * omap_device_alloc - allocate an omap_device
+  * @pdev: platform_device that will be included in this omap_device
+@@ -592,38 +564,6 @@ int omap_device_deassert_hardreset(struct platform_device *pdev,
+ 	return ret;
+ }
+ 
+-/**
+- * omap_device_get_by_hwmod_name() - convert a hwmod name to
+- * device pointer.
+- * @oh_name: name of the hwmod device
+- *
+- * Returns back a struct device * pointer associated with a hwmod
+- * device represented by a hwmod_name
+- */
+-struct device *omap_device_get_by_hwmod_name(const char *oh_name)
+-{
+-	struct omap_hwmod *oh;
+-
+-	if (!oh_name) {
+-		WARN(1, "%s: no hwmod name!\n", __func__);
+-		return ERR_PTR(-EINVAL);
+-	}
+-
+-	oh = omap_hwmod_lookup(oh_name);
+-	if (!oh) {
+-		WARN(1, "%s: no hwmod for %s\n", __func__,
+-			oh_name);
+-		return ERR_PTR(-ENODEV);
+-	}
+-	if (!oh->od) {
+-		WARN(1, "%s: no omap_device for %s\n", __func__,
+-			oh_name);
+-		return ERR_PTR(-ENODEV);
+-	}
+-
+-	return &oh->od->pdev->dev;
+-}
+-
+ static struct notifier_block platform_nb = {
+ 	.notifier_call = _omap_device_notifier_call,
  };
- 
--struct dev_pm_domain omap_device_pm_domain = {
-+static struct dev_pm_domain omap_device_pm_domain = {
- 	.ops = {
- 		SET_RUNTIME_PM_OPS(_od_runtime_suspend, _od_runtime_resume,
- 				   NULL)
 diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
-index 455f0a2b43ee..aa8096ecb23c 100644
+index d607532cf5e0..455f0a2b43ee 100644
 --- a/arch/arm/mach-omap2/omap_device.h
 +++ b/arch/arm/mach-omap2/omap_device.h
-@@ -25,9 +25,6 @@
+@@ -72,11 +72,6 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
+ 				      struct omap_hwmod **ohs, int oh_cnt);
+ void omap_device_delete(struct omap_device *od);
  
- #include "omap_hwmod.h"
- 
--extern struct dev_pm_domain omap_device_pm_domain;
--extern struct dev_pm_domain omap_device_fail_pm_domain;
+-struct device *omap_device_get_by_hwmod_name(const char *oh_name);
 -
- /* omap_device._state values */
- #define OMAP_DEVICE_STATE_UNKNOWN	0
- #define OMAP_DEVICE_STATE_ENABLED	1
-@@ -66,12 +63,6 @@ struct omap_device {
- int omap_device_enable(struct platform_device *pdev);
- int omap_device_idle(struct platform_device *pdev);
- 
--/* Core code interface */
--
--struct omap_device *omap_device_alloc(struct platform_device *pdev,
--				      struct omap_hwmod **ohs, int oh_cnt);
--void omap_device_delete(struct omap_device *od);
+-/* OMAP PM interface */
+-int omap_device_get_context_loss_count(struct platform_device *pdev);
 -
  /* Other */
  
  int omap_device_assert_hardreset(struct platform_device *pdev,
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index b03be626bc99..5a2a9b8e61ed 100644
+index 31d1a21f6041..b03be626bc99 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3054,6 +3054,8 @@ int __init omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois)
- 	return 0;
+@@ -3763,55 +3763,6 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh)
+  * IP block data retrieval functions
+  */
+ 
+-/**
+- * omap_hwmod_get_pwrdm - return pointer to this module's main powerdomain
+- * @oh: struct omap_hwmod *
+- *
+- * Return the powerdomain pointer associated with the OMAP module
+- * @oh's main clock.  If @oh does not have a main clk, return the
+- * powerdomain associated with the interface clock associated with the
+- * module's MPU port. (XXX Perhaps this should use the SDMA port
+- * instead?)  Returns NULL on error, or a struct powerdomain * on
+- * success.
+- */
+-struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh)
+-{
+-	struct clk *c;
+-	struct omap_hwmod_ocp_if *oi;
+-	struct clockdomain *clkdm;
+-	struct clk_hw_omap *clk;
+-	struct clk_hw *hw;
+-
+-	if (!oh)
+-		return NULL;
+-
+-	if (oh->clkdm)
+-		return oh->clkdm->pwrdm.ptr;
+-
+-	if (oh->_clk) {
+-		c = oh->_clk;
+-	} else {
+-		oi = _find_mpu_rt_port(oh);
+-		if (!oi)
+-			return NULL;
+-		c = oi->_clk;
+-	}
+-
+-	hw = __clk_get_hw(c);
+-	if (!hw)
+-		return NULL;
+-
+-	clk = to_clk_hw_omap(hw);
+-	if (!clk)
+-		return NULL;
+-
+-	clkdm = clk->clkdm;
+-	if (!clkdm)
+-		return NULL;
+-
+-	return clkdm->pwrdm.ptr;
+-}
+-
+ /**
+  * omap_hwmod_get_mpu_rt_va - return the module's base address (for the MPU)
+  * @oh: struct omap_hwmod *
+@@ -3977,32 +3928,6 @@ int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state)
+ 	return ret;
  }
  
-+static int __init omap_hwmod_setup_one(const char *oh_name);
-+
+-/**
+- * omap_hwmod_get_context_loss_count - get lost context count
+- * @oh: struct omap_hwmod *
+- *
+- * Returns the context loss count of associated @oh
+- * upon success, or zero if no context loss data is available.
+- *
+- * On OMAP4, this queries the per-hwmod context loss register,
+- * assuming one exists.  If not, or on OMAP2/3, this queries the
+- * enclosing powerdomain context loss count.
+- */
+-int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
+-{
+-	struct powerdomain *pwrdm;
+-	int ret = 0;
+-
+-	if (soc_ops.get_context_lost)
+-		return soc_ops.get_context_lost(oh);
+-
+-	pwrdm = omap_hwmod_get_pwrdm(oh);
+-	if (pwrdm)
+-		ret = pwrdm_get_context_loss_count(pwrdm);
+-
+-	return ret;
+-}
+-
  /**
-  * _ensure_mpu_hwmod_is_setup - ensure the MPU SS hwmod is init'ed and set up
-  * @oh: pointer to the hwmod currently being set up (usually not the MPU)
-@@ -3084,7 +3086,7 @@ static void __init _ensure_mpu_hwmod_is_setup(struct omap_hwmod *oh)
-  * registered omap_hwmod.  Also calls _setup() on each hwmod.  Returns
-  * -EINVAL upon error or 0 upon success.
-  */
--int __init omap_hwmod_setup_one(const char *oh_name)
-+static int __init omap_hwmod_setup_one(const char *oh_name)
- {
- 	struct omap_hwmod *oh;
+  * omap_hwmod_init - initialize the hwmod code
+  *
+@@ -4054,18 +3979,3 @@ void __init omap_hwmod_init(void)
  
+ 	inited = true;
+ }
+-
+-/**
+- * omap_hwmod_get_main_clk - get pointer to main clock name
+- * @oh: struct omap_hwmod *
+- *
+- * Returns the main clock name assocated with @oh upon success,
+- * or NULL if @oh is NULL.
+- */
+-const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh)
+-{
+-	if (!oh)
+-		return NULL;
+-
+-	return oh->main_clk;
+-}
 diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index b6b53170ad1e..dcab7a01c10e 100644
+index 1bb42f3d2e83..3fa6d217ab83 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.h
 +++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -615,7 +615,6 @@ struct omap_hwmod *omap_hwmod_lookup(const char *name);
- int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
- 			void *data);
+@@ -643,7 +643,6 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res);
+ int omap_hwmod_get_resource_byname(struct omap_hwmod *oh, unsigned int type,
+ 				   const char *name, struct resource *res);
  
--int __init omap_hwmod_setup_one(const char *name);
- int omap_hwmod_parse_module_range(struct omap_hwmod *oh,
- 				  struct device_node *np,
- 				  struct resource *res);
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-index 2581b8a5f866..67f1f38909d9 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-@@ -62,7 +62,7 @@ struct omap_hwmod_class iva_hwmod_class = {
- 	.name = "iva",
- };
+-struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh);
+ void __iomem *omap_hwmod_get_mpu_rt_va(struct omap_hwmod *oh);
  
--struct omap_hwmod_class_sysconfig omap2_hdq1w_sysc = {
-+static struct omap_hwmod_class_sysconfig omap2_hdq1w_sysc = {
- 	.rev_offs	= 0x0,
- 	.sysc_offs	= 0x14,
- 	.syss_offs	= 0x18,
+ int omap_hwmod_for_each_by_class(const char *classname,
+@@ -652,12 +651,9 @@ int omap_hwmod_for_each_by_class(const char *classname,
+ 				 void *user);
+ 
+ int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
+-int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+ 
+ extern void __init omap_hwmod_init(void);
+ 
+-const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh);
+-
+ #else	/* CONFIG_OMAP_HWMOD */
+ 
+ static inline int
 diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index 9ab1d57f8b73..4982e04ead53 100644
+index 9156f2bfbc8d..9ab1d57f8b73 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -30,7 +30,7 @@ static struct omap_hwmod_class_sysconfig omap2_dispc_sysc = {
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
+@@ -189,12 +189,6 @@ struct omap_hwmod omap2xxx_mpu_hwmod = {
+ 	.main_clk	= "mpu_ck",
  };
  
--struct omap_hwmod_class omap2_dispc_hwmod_class = {
-+static struct omap_hwmod_class omap2_dispc_hwmod_class = {
- 	.name	= "dispc",
- 	.sysc	= &omap2_dispc_sysc,
- };
-@@ -47,7 +47,7 @@ static struct omap_hwmod_class_sysconfig omap2xxx_timer_sysc = {
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
- 
--struct omap_hwmod_class omap2xxx_timer_hwmod_class = {
-+static struct omap_hwmod_class omap2xxx_timer_hwmod_class = {
- 	.name	= "timer",
- 	.sysc	= &omap2xxx_timer_sysc,
- };
-@@ -67,7 +67,7 @@ static struct omap_hwmod_class_sysconfig omap2xxx_wd_timer_sysc = {
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
- 
--struct omap_hwmod_class omap2xxx_wd_timer_hwmod_class = {
-+static struct omap_hwmod_class omap2xxx_wd_timer_hwmod_class = {
- 	.name		= "wd_timer",
- 	.sysc		= &omap2xxx_wd_timer_sysc,
- 	.pre_shutdown	= &omap2_wd_timer_disable,
+-/* IVA2 */
+-struct omap_hwmod omap2xxx_iva_hwmod = {
+-	.name		= "iva",
+-	.class		= &iva_hwmod_class,
+-};
+-
+ /* timer3 */
+ struct omap_hwmod omap2xxx_timer3_hwmod = {
+ 	.name		= "timer3",
 diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/mach-omap2/omap_hwmod_common_data.h
-index e0d65ad65614..69dddc53e1d8 100644
+index 0045e6680a63..c8eb1e6cc4a9 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
 +++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
-@@ -84,14 +84,10 @@ extern struct omap_hwmod_class mpu_hwmod_class;
- extern struct omap_hwmod_class iva_hwmod_class;
- extern struct omap_hwmod_class omap2_uart_class;
- extern struct omap_hwmod_class omap2_dss_hwmod_class;
--extern struct omap_hwmod_class omap2_dispc_hwmod_class;
- extern struct omap_hwmod_class omap2_rfbi_hwmod_class;
- extern struct omap_hwmod_class omap2_venc_hwmod_class;
--extern struct omap_hwmod_class_sysconfig omap2_hdq1w_sysc;
- extern struct omap_hwmod_class omap2_hdq1w_class;
- 
--extern struct omap_hwmod_class omap2xxx_timer_hwmod_class;
--extern struct omap_hwmod_class omap2xxx_wd_timer_hwmod_class;
- extern struct omap_hwmod_class omap2xxx_gpio_hwmod_class;
- extern struct omap_hwmod_class omap2xxx_mailbox_hwmod_class;
- extern struct omap_hwmod_class omap2xxx_mcspi_class;
+@@ -20,7 +20,6 @@ extern struct omap_hwmod omap2xxx_l3_main_hwmod;
+ extern struct omap_hwmod omap2xxx_l4_core_hwmod;
+ extern struct omap_hwmod omap2xxx_l4_wkup_hwmod;
+ extern struct omap_hwmod omap2xxx_mpu_hwmod;
+-extern struct omap_hwmod omap2xxx_iva_hwmod;
+ extern struct omap_hwmod omap2xxx_timer3_hwmod;
+ extern struct omap_hwmod omap2xxx_timer4_hwmod;
+ extern struct omap_hwmod omap2xxx_timer5_hwmod;
 diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 53a132f11961..700869c9eae1 100644
+index da829a90fe8c..53a132f11961 100644
 --- a/arch/arm/mach-omap2/pm.c
 +++ b/arch/arm/mach-omap2/pm.c
-@@ -134,7 +134,7 @@ int __maybe_unused omap_pm_nop_init(void)
+@@ -54,12 +54,6 @@ static struct omap2_oscillator oscillator = {
+ 	.shutdown_time = ULONG_MAX,
+ };
  
- int (*omap_pm_soc_init)(void);
- 
--int __init omap2_common_pm_late_init(void)
-+static int __init omap2_common_pm_late_init(void)
+-void omap_pm_setup_oscillator(u32 tstart, u32 tshut)
+-{
+-	oscillator.startup_time = tstart;
+-	oscillator.shutdown_time = tshut;
+-}
+-
+ void omap_pm_get_oscillator(u32 *tstart, u32 *tshut)
  {
- 	int error;
+ 	if (!tstart || !tshut)
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index f523ca03161f..0c95774a4b8f 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -142,13 +142,9 @@ static inline int omap4_cpcap_init(void)
+ #endif
  
+ #ifdef CONFIG_PM
+-extern void omap_pm_setup_oscillator(u32 tstart, u32 tshut);
+ extern void omap_pm_get_oscillator(u32 *tstart, u32 *tshut);
+-extern void omap_pm_setup_sr_i2c_pcb_length(u32 mm);
+ #else
+-static inline void omap_pm_setup_oscillator(u32 tstart, u32 tshut) { }
+ static inline void omap_pm_get_oscillator(u32 *tstart, u32 *tshut) { *tstart = *tshut = 0; }
+-static inline void omap_pm_setup_sr_i2c_pcb_length(u32 mm) { }
+ #endif
+ 
+ #ifdef CONFIG_SUSPEND
 diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 0155a1e57a87..fd974514a7b2 100644
+index 2d747f6cffe8..0155a1e57a87 100644
 --- a/arch/arm/mach-omap2/powerdomain.c
 +++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -37,8 +37,8 @@
+@@ -1148,82 +1148,6 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 pwrst)
+ 	return ret;
+ }
  
- #define PWRDM_TRACE_STATES_FLAG	(1<<31)
- 
--void pwrdms_save_context(void);
--void pwrdms_restore_context(void);
-+static void pwrdms_save_context(void);
-+static void pwrdms_restore_context(void);
- 
- enum {
- 	PWRDM_STATE_NOW = 0,
-@@ -1174,12 +1174,12 @@ static int pwrdm_restore_context(struct powerdomain *pwrdm, void *unused)
+-/**
+- * pwrdm_get_context_loss_count - get powerdomain's context loss count
+- * @pwrdm: struct powerdomain * to wait for
+- *
+- * Context loss count is the sum of powerdomain off-mode counter, the
+- * logic off counter and the per-bank memory off counter.  Returns negative
+- * (and WARNs) upon error, otherwise, returns the context loss count.
+- */
+-int pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
+-{
+-	int i, count;
+-
+-	if (!pwrdm) {
+-		WARN(1, "powerdomain: %s: pwrdm is null\n", __func__);
+-		return -ENODEV;
+-	}
+-
+-	count = pwrdm->state_counter[PWRDM_POWER_OFF];
+-	count += pwrdm->ret_logic_off_counter;
+-
+-	for (i = 0; i < pwrdm->banks; i++)
+-		count += pwrdm->ret_mem_off_counter[i];
+-
+-	/*
+-	 * Context loss count has to be a non-negative value. Clear the sign
+-	 * bit to get a value range from 0 to INT_MAX.
+-	 */
+-	count &= INT_MAX;
+-
+-	pr_debug("powerdomain: %s: context loss count = %d\n",
+-		 pwrdm->name, count);
+-
+-	return count;
+-}
+-
+-/**
+- * pwrdm_can_ever_lose_context - can this powerdomain ever lose context?
+- * @pwrdm: struct powerdomain *
+- *
+- * Given a struct powerdomain * @pwrdm, returns 1 if the powerdomain
+- * can lose either memory or logic context or if @pwrdm is invalid, or
+- * returns 0 otherwise.  This function is not concerned with how the
+- * powerdomain registers are programmed (i.e., to go off or not); it's
+- * concerned with whether it's ever possible for this powerdomain to
+- * go off while some other part of the chip is active.  This function
+- * assumes that every powerdomain can go to either ON or INACTIVE.
+- */
+-bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm)
+-{
+-	int i;
+-
+-	if (!pwrdm) {
+-		pr_debug("powerdomain: %s: invalid powerdomain pointer\n",
+-			 __func__);
+-		return true;
+-	}
+-
+-	if (pwrdm->pwrsts & PWRSTS_OFF)
+-		return true;
+-
+-	if (pwrdm->pwrsts & PWRSTS_RET) {
+-		if (pwrdm->pwrsts_logic_ret & PWRSTS_OFF)
+-			return true;
+-
+-		for (i = 0; i < pwrdm->banks; i++)
+-			if (pwrdm->pwrsts_mem_ret[i] & PWRSTS_OFF)
+-				return true;
+-	}
+-
+-	for (i = 0; i < pwrdm->banks; i++)
+-		if (pwrdm->pwrsts_mem_on[i] & PWRSTS_OFF)
+-			return true;
+-
+-	return false;
+-}
+-
+ /**
+  * pwrdm_save_context - save powerdomain registers
+  *
+@@ -1250,25 +1174,6 @@ static int pwrdm_restore_context(struct powerdomain *pwrdm, void *unused)
  	return 0;
  }
  
--void pwrdms_save_context(void)
-+static void pwrdms_save_context(void)
+-static int pwrdm_lost_power(struct powerdomain *pwrdm, void *unused)
+-{
+-	int state;
+-
+-	/*
+-	 * Power has been lost across all powerdomains, increment the
+-	 * counter.
+-	 */
+-
+-	state = pwrdm_read_pwrst(pwrdm);
+-	if (state != PWRDM_POWER_OFF) {
+-		pwrdm->state_counter[state]++;
+-		pwrdm->state_counter[PWRDM_POWER_OFF]++;
+-	}
+-	pwrdm->state = state;
+-
+-	return 0;
+-}
+-
+ void pwrdms_save_context(void)
  {
  	pwrdm_for_each(pwrdm_save_context, NULL);
- }
- 
--void pwrdms_restore_context(void)
-+static void pwrdms_restore_context(void)
+@@ -1278,8 +1183,3 @@ void pwrdms_restore_context(void)
  {
  	pwrdm_for_each(pwrdm_restore_context, NULL);
  }
+-
+-void pwrdms_lost_power(void)
+-{
+-	pwrdm_for_each(pwrdm_lost_power, NULL);
+-}
 diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 4c5284d0fd62..fbc89999460b 100644
+index 907cc659f47a..2eaabd94986f 100644
 --- a/arch/arm/mach-omap2/powerdomain.h
 +++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -269,7 +269,4 @@ extern struct powerdomain gfx_omap2_pwrdm;
- extern void pwrdm_lock(struct powerdomain *pwrdm);
- extern void pwrdm_unlock(struct powerdomain *pwrdm);
+@@ -243,8 +243,6 @@ int pwrdm_state_switch_nolock(struct powerdomain *pwrdm);
+ int pwrdm_state_switch(struct powerdomain *pwrdm);
+ int pwrdm_pre_transition(struct powerdomain *pwrdm);
+ int pwrdm_post_transition(struct powerdomain *pwrdm);
+-int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+-bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
  
--extern void pwrdms_save_context(void);
--extern void pwrdms_restore_context(void);
--
+ extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 state);
+ 
+@@ -276,5 +274,4 @@ extern void pwrdm_unlock(struct powerdomain *pwrdm);
+ extern void pwrdms_save_context(void);
+ extern void pwrdms_restore_context(void);
+ 
+-extern void pwrdms_lost_power(void);
  #endif
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 48e804c93caf..5e3544a63526 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -550,7 +550,6 @@ struct omap_prcm_init_data {
- 	struct device_node *np;
- };
+diff --git a/arch/arm/mach-omap2/prcm_mpu44xx.c b/arch/arm/mach-omap2/prcm_mpu44xx.c
+index 5add541e3b41..7236c50388a8 100644
+--- a/arch/arm/mach-omap2/prcm_mpu44xx.c
++++ b/arch/arm/mach-omap2/prcm_mpu44xx.c
+@@ -35,18 +35,6 @@ void omap4_prcm_mpu_write_inst_reg(u32 val, s16 inst, u16 reg)
+ 	writel_relaxed(val, OMAP44XX_PRCM_MPU_REGADDR(inst, reg));
+ }
  
--extern void omap_prcm_irq_cleanup(void);
- extern int omap_prcm_register_chain_handler(
- 	struct omap_prcm_irq_setup *irq_setup);
- extern int omap_prcm_event_to_irq(const char *event);
+-u32 omap4_prcm_mpu_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 reg)
+-{
+-	u32 v;
+-
+-	v = omap4_prcm_mpu_read_inst_reg(inst, reg);
+-	v &= ~mask;
+-	v |= bits;
+-	omap4_prcm_mpu_write_inst_reg(v, inst, reg);
+-
+-	return v;
+-}
+-
+ /**
+  * omap2_set_globals_prcm_mpu - set the MPU PRCM base address (for early use)
+  * @prcm_mpu: PRCM_MPU base virtual address
+diff --git a/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h b/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
+index 7c6377566f33..0c519447e790 100644
+--- a/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
++++ b/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
+@@ -26,8 +26,6 @@ extern struct omap_domain_base prcm_mpu_base;
+ 
+ extern u32 omap4_prcm_mpu_read_inst_reg(s16 inst, u16 idx);
+ extern void omap4_prcm_mpu_write_inst_reg(u32 val, s16 inst, u16 idx);
+-extern u32 omap4_prcm_mpu_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst,
+-					    s16 idx);
+ extern void __init omap2_set_globals_prcm_mpu(void __iomem *prcm_mpu);
+ #endif
+ 
 diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index bad15ba5256c..fc45a7ed09bb 100644
+index 08df78810a5e..bad15ba5256c 100644
 --- a/arch/arm/mach-omap2/prm.h
 +++ b/arch/arm/mach-omap2/prm.h
-@@ -16,7 +16,6 @@
+@@ -15,7 +15,6 @@
+ # ifndef __ASSEMBLER__
  extern struct omap_domain_base prm_base;
  extern u16 prm_features;
+-extern void omap2_set_globals_prm(void __iomem *prm);
  int omap_prcm_init(void);
--int omap2_prm_base_init(void);
+ int omap2_prm_base_init(void);
  int omap2_prcm_base_init(void);
- # endif
+@@ -156,12 +155,10 @@ int omap_prm_assert_hardreset(u8 shift, u8 part, s16 prm_mod, u16 offset);
+ int omap_prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part, s16 prm_mod,
+ 				u16 offset, u16 st_offset);
+ int omap_prm_is_hardreset_asserted(u8 shift, u8 part, s16 prm_mod, u16 offset);
+-extern u32 prm_read_reset_sources(void);
+ extern bool prm_was_any_context_lost_old(u8 part, s16 inst, u16 idx);
+ extern void prm_clear_context_loss_flags_old(u8 part, s16 inst, u16 idx);
+ void omap_prm_reset_system(void);
  
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 63e73e9b82bc..1b5d08f594aa 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -32,6 +32,7 @@ static void omap3xxx_prm_read_pending_irqs(unsigned long *events);
- static void omap3xxx_prm_ocp_barrier(void);
- static void omap3xxx_prm_save_and_clear_irqen(u32 *saved_mask);
- static void omap3xxx_prm_restore_irqen(u32 *saved_mask);
-+static void omap3xxx_prm_iva_idle(void);
+-void omap_prm_reconfigure_io_chain(void);
+ int omap_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
  
- static const struct omap_prcm_irq omap3_prcm_irqs[] = {
- 	OMAP_PRCM_IRQ("wkup",	0,	0),
-@@ -268,7 +269,7 @@ static int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
-  * Toggles the reset signal to modem IP block. Required to allow
-  * OMAP3430 without stacked modem to idle properly.
-  */
--void __init omap3_prm_reset_modem(void)
-+static void __init omap3_prm_reset_modem(void)
- {
- 	omap2_prm_write_mod_reg(
- 		OMAP3430_RM_RSTCTRL_CORE_MODEM_SW_RSTPWRON_MASK |
-@@ -469,7 +470,7 @@ static u32 omap3xxx_prm_read_reset_sources(void)
-  * function forces the IVA2 into idle state so it can go
-  * into retention/off and thus allow full-chip retention/off.
-  */
--void omap3xxx_prm_iva_idle(void)
-+static void omap3xxx_prm_iva_idle(void)
- {
- 	/* ensure IVA2 clock is disabled */
- 	omap2_cm_write_mod_reg(0, OMAP3430_IVA2_MOD, CM_FCLKEN);
-diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
-index ed7c389aa5a7..ab899e461c62 100644
---- a/arch/arm/mach-omap2/prm3xxx.h
-+++ b/arch/arm/mach-omap2/prm3xxx.h
-@@ -138,8 +138,6 @@ extern void omap3_prm_vcvp_write(u32 val, u8 offset);
- extern u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
- 
- int __init omap3xxx_prm_init(const struct omap_prcm_init_data *data);
--void omap3xxx_prm_iva_idle(void);
--void omap3_prm_reset_modem(void);
- int omap3xxx_prm_clear_global_cold_reset(void);
- void omap3_prm_save_scratchpad_contents(u32 *ptr);
- void omap3_prm_init_pm(bool has_uart4, bool has_iva);
+ /*
 diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 9a27f566612f..fd896f2295a1 100644
+index fb2d48cfe756..9a27f566612f 100644
 --- a/arch/arm/mach-omap2/prm_common.c
 +++ b/arch/arm/mach-omap2/prm_common.c
-@@ -187,7 +187,7 @@ int omap_prcm_event_to_irq(const char *name)
+@@ -344,41 +344,6 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
+ 	return -ENOMEM;
+ }
+ 
+-/**
+- * omap2_set_globals_prm - set the PRM base address (for early use)
+- * @prm: PRM base virtual address
+- *
+- * XXX Will be replaced when the PRM/CM drivers are completed.
+- */
+-void __init omap2_set_globals_prm(void __iomem *prm)
+-{
+-	prm_base.va = prm;
+-}
+-
+-/**
+- * prm_read_reset_sources - return the sources of the SoC's last reset
+- *
+- * Return a u32 bitmask representing the reset sources that caused the
+- * SoC to reset.  The low-level per-SoC functions called by this
+- * function remap the SoC-specific reset source bits into an
+- * OMAP-common set of reset source bits, defined in
+- * arch/arm/mach-omap2/prm.h.  Returns the standardized reset source
+- * u32 bitmask from the hardware upon success, or returns (1 <<
+- * OMAP_UNKNOWN_RST_SRC_ID_SHIFT) if no low-level read_reset_sources()
+- * function was registered.
+- */
+-u32 prm_read_reset_sources(void)
+-{
+-	u32 ret = 1 << OMAP_UNKNOWN_RST_SRC_ID_SHIFT;
+-
+-	if (prm_ll_data->read_reset_sources)
+-		ret = prm_ll_data->read_reset_sources();
+-	else
+-		WARN_ONCE(1, "prm: %s: no mapping function defined for reset sources\n", __func__);
+-
+-	return ret;
+-}
+-
+ /**
+  * prm_was_any_context_lost_old - was device context lost? (old API)
+  * @part: PRM partition ID (e.g., OMAP4430_PRM_PARTITION)
+@@ -488,22 +453,6 @@ int omap_prm_is_hardreset_asserted(u8 shift, u8 part, s16 prm_mod, u16 offset)
+ 	return prm_ll_data->is_hardreset_asserted(shift, part, prm_mod, offset);
+ }
+ 
+-/**
+- * omap_prm_reconfigure_io_chain - clear latches and reconfigure I/O chain
+- *
+- * Clear any previously-latched I/O wakeup events and ensure that the
+- * I/O wakeup gates are aligned with the current mux settings.
+- * Calls SoC specific I/O chain reconfigure function if available,
+- * otherwise does nothing.
+- */
+-void omap_prm_reconfigure_io_chain(void)
+-{
+-	if (!prcm_irq_setup || !prcm_irq_setup->reconfigure_io_chain)
+-		return;
+-
+-	prcm_irq_setup->reconfigure_io_chain();
+-}
+-
+ /**
+  * omap_prm_reset_system - trigger global SW reset
   *
-  * No return value.
-  */
--void omap_prcm_irq_cleanup(void)
-+static void omap_prcm_irq_cleanup(void)
- {
- 	unsigned int irq;
- 	int i;
-@@ -689,7 +689,7 @@ static const struct of_device_id omap_prcm_dt_match_table[] __initconst = {
-  * on the DT data. Returns 0 in success, negative error value
-  * otherwise.
-  */
--int __init omap2_prm_base_init(void)
-+static int __init omap2_prm_base_init(void)
- {
- 	struct device_node *np;
- 	const struct of_device_id *match;
 diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-index 9900fc777f39..b1bf9e24d442 100644
+index 2be4106d0dd6..9900fc777f39 100644
 --- a/arch/arm/mach-omap2/sdrc.c
 +++ b/arch/arm/mach-omap2/sdrc.c
-@@ -45,7 +45,7 @@ static struct omap2_sms_regs sms_context;
-  *
-  * Save SMS registers that need to be restored after off mode.
-  */
--void omap2_sms_save_context(void)
-+static void omap2_sms_save_context(void)
- {
- 	sms_context.sms_sysconfig = sms_read_reg(SMS_SYSCONFIG);
+@@ -60,55 +60,6 @@ void omap2_sms_restore_context(void)
+ 	sms_write_reg(sms_context.sms_sysconfig, SMS_SYSCONFIG);
  }
+ 
+-/**
+- * omap2_sdrc_get_params - return SDRC register values for a given clock rate
+- * @r: SDRC clock rate (in Hz)
+- * @sdrc_cs0: chip select 0 ram timings **
+- * @sdrc_cs1: chip select 1 ram timings **
+- *
+- * Return pre-calculated values for the SDRC_ACTIM_CTRLA,
+- *  SDRC_ACTIM_CTRLB, SDRC_RFR_CTRL and SDRC_MR registers in sdrc_cs[01]
+- *  structs,for a given SDRC clock rate 'r'.
+- * These parameters control various timing delays in the SDRAM controller
+- *  that are expressed in terms of the number of SDRC clock cycles to
+- *  wait; hence the clock rate dependency.
+- *
+- * Supports 2 different timing parameters for both chip selects.
+- *
+- * Note 1: the sdrc_init_params_cs[01] must be sorted rate descending.
+- * Note 2: If sdrc_init_params_cs_1 is not NULL it must be of same size
+- *  as sdrc_init_params_cs_0.
+- *
+- * Fills in the struct omap_sdrc_params * for each chip select.
+- * Returns 0 upon success or -1 upon failure.
+- */
+-int omap2_sdrc_get_params(unsigned long r,
+-			  struct omap_sdrc_params **sdrc_cs0,
+-			  struct omap_sdrc_params **sdrc_cs1)
+-{
+-	struct omap_sdrc_params *sp0, *sp1;
+-
+-	if (!sdrc_init_params_cs0)
+-		return -1;
+-
+-	sp0 = sdrc_init_params_cs0;
+-	sp1 = sdrc_init_params_cs1;
+-
+-	while (sp0->rate && sp0->rate != r) {
+-		sp0++;
+-		if (sdrc_init_params_cs1)
+-			sp1++;
+-	}
+-
+-	if (!sp0->rate)
+-		return -1;
+-
+-	*sdrc_cs0 = sp0;
+-	*sdrc_cs1 = sp1;
+-	return 0;
+-}
+-
+-
+ void __init omap2_set_globals_sdrc(void __iomem *sdrc, void __iomem *sms)
+ {
+ 	omap2_sdrc_base = sdrc;
 diff --git a/arch/arm/mach-omap2/sdrc.h b/arch/arm/mach-omap2/sdrc.h
-index 07ff33b006a7..45b35422b587 100644
+index 5bdb832665c0..5a44d64e3fbe 100644
 --- a/arch/arm/mach-omap2/sdrc.h
 +++ b/arch/arm/mach-omap2/sdrc.h
-@@ -80,7 +80,6 @@ static inline void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+@@ -80,9 +80,6 @@ static inline void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
  					  struct omap_sdrc_params *sdrc_cs1) {};
  #endif
  
--void omap2_sms_save_context(void);
+-int omap2_sdrc_get_params(unsigned long r,
+-			  struct omap_sdrc_params **sdrc_cs0,
+-			  struct omap_sdrc_params **sdrc_cs1);
+ void omap2_sms_save_context(void);
  void omap2_sms_restore_context(void);
  
- struct memory_timings {
-diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
-index a0c4c42e56b9..18fa52f828dc 100644
---- a/arch/arm/mach-omap2/usb-tusb6010.c
-+++ b/arch/arm/mach-omap2/usb-tusb6010.c
-@@ -97,7 +97,7 @@ static int tusb_set_sync_mode(unsigned sysclk_ps)
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index ea02d40405c4..fc26b96a20cc 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -802,21 +802,6 @@ static u8 omap_vc_calc_vsel(struct voltagedomain *voltdm, u32 uvolt)
+ 	return voltdm->pmic->uv_to_vsel(uvolt);
  }
  
- /* tusb driver calls this when it changes the chip's clocking */
--int tusb6010_platform_retime(unsigned is_refclk)
-+static int tusb6010_platform_retime(unsigned is_refclk)
- {
- 	static const char	error[] =
- 		KERN_ERR "tusb6010 %s retime error %d\n";
-@@ -121,7 +121,6 @@ int tusb6010_platform_retime(unsigned is_refclk)
- done:
- 	return status;
- }
--EXPORT_SYMBOL_GPL(tusb6010_platform_retime);
- 
- static struct resource tusb_resources[] = {
- 	/* Order is significant!  The start/end fields
-@@ -154,8 +153,7 @@ static struct platform_device tusb_device = {
- 
- 
- /* this may be called only from board-*.c setup code */
--int __init
--tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
-+int __init tusb6010_setup_interface(struct musb_hdrc_platform_data *data,
- 		unsigned ps_refclk, unsigned waitpin,
- 		unsigned async, unsigned sync,
- 		unsigned irq, unsigned dmachan)
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 0a0c771dbb0a..49e8bc69abdd 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -67,7 +67,7 @@ unsigned long voltdm_get_voltage(struct voltagedomain *voltdm)
-  * This API should be called by the kernel to do the voltage scaling
-  * for a particular voltage domain during DVFS.
-  */
--int voltdm_scale(struct voltagedomain *voltdm,
-+static int voltdm_scale(struct voltagedomain *voltdm,
- 		 unsigned long target_volt)
- {
- 	int ret, i;
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 5beb91ce3b38..e610f63a020d 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -163,7 +163,6 @@ extern void omap54xx_voltagedomains_init(void);
- 
- struct voltagedomain *voltdm_lookup(const char *name);
- void voltdm_init(struct voltagedomain **voltdm_list);
--int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
- void voltdm_reset(struct voltagedomain *voltdm);
- unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
- #endif
-diff --git a/include/linux/platform_data/voltage-omap.h b/include/linux/platform_data/voltage-omap.h
-index 43e8da9fb447..6d74e507dbd2 100644
---- a/include/linux/platform_data/voltage-omap.h
-+++ b/include/linux/platform_data/voltage-omap.h
-@@ -29,7 +29,6 @@ struct omap_volt_data {
- struct voltagedomain;
- 
- struct voltagedomain *voltdm_lookup(const char *name);
--int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
- unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
- struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
- 		unsigned long volt);
-diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index fc6c77918481..e4a3ad3c800f 100644
---- a/include/linux/usb/musb.h
-+++ b/include/linux/usb/musb.h
-@@ -143,8 +143,6 @@ extern int __init tusb6010_setup_interface(
- 		unsigned async_cs, unsigned sync_cs,
- 		unsigned irq, unsigned dmachan);
- 
--extern int tusb6010_platform_retime(unsigned is_refclk);
+-#ifdef CONFIG_PM
+-/**
+- * omap_pm_setup_sr_i2c_pcb_length - set length of SR I2C traces on PCB
+- * @mm: length of the PCB trace in millimetres
+- *
+- * Sets the PCB trace length for the I2C channel. By default uses 63mm.
+- * This is needed for properly calculating the capacitance value for
+- * the PCB trace, and for setting the SR I2C channel timing parameters.
+- */
+-void __init omap_pm_setup_sr_i2c_pcb_length(u32 mm)
+-{
+-	sr_i2c_pcb_length = mm;
+-}
+-#endif
 -
- #endif	/* OMAP2 */
- 
- #endif /* __LINUX_USB_MUSB_H */
+ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+ {
+ 	struct omap_vc_channel *vc = voltdm->vc;
 -- 
 2.29.2
 
