@@ -2,239 +2,78 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBC14FA3743
-	for <linux-omap@archiver.kernel.org>; Thu, 27 Oct 2022 08:57:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B14A7FA3743
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Oct 2022 00:27:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235136AbiJ0I5k (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 27 Oct 2022 04:57:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39628 "EHLO
+        id S234486AbiJ1A1O (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 27 Oct 2022 20:27:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235064AbiJ0I5j (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Oct 2022 04:57:39 -0400
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A17C7159A15;
-        Thu, 27 Oct 2022 01:57:37 -0700 (PDT)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 29R8vLTG036224;
-        Thu, 27 Oct 2022 03:57:21 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1666861041;
-        bh=WSphPNCMMomakVlZKExO4pe91Ws671ehmxCpzjw9FJE=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=SKDucDQPsSzL9OU20l13/sVNnajffg25sAoEZpTno2eYLCI6pv1A59kRD+1uwqX1c
-         X9AfQx+OZWaHHHPGlU88CYZ3CKkwuG+N8nYaIDMPXxnN+GE1n4vQg1oy0XOOYHFoCz
-         /r39JsRd9YZvjmrHswofkzVfp+gtUDveoz58d2bI=
-Received: from DLEE100.ent.ti.com (dlee100.ent.ti.com [157.170.170.30])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 29R8vLxK006138
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 27 Oct 2022 03:57:21 -0500
-Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE100.ent.ti.com
- (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.6; Thu, 27
- Oct 2022 03:57:21 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.6 via
- Frontend Transport; Thu, 27 Oct 2022 03:57:21 -0500
-Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 29R8vKIL047278;
-        Thu, 27 Oct 2022 03:57:20 -0500
-From:   Achal Verma <a-verma1@ti.com>
-To:     Tom Joseph <tjoseph@cadence.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Krzysztof Wilczy_ski <kw@linux.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>
-CC:     <linux-pci@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Achal Verma <a-verma1@ti.com>,
-        Milind Parab <mparab@cadence.com>
-Subject: [PATCH 1/2] PCI: cadence: Add support to build pcie-cadence library as module.
-Date:   Thu, 27 Oct 2022 14:27:17 +0530
-Message-ID: <20221027085718.291510-2-a-verma1@ti.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20221027085718.291510-1-a-verma1@ti.com>
-References: <20221027085718.291510-1-a-verma1@ti.com>
+        with ESMTP id S229998AbiJ1A1N (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Oct 2022 20:27:13 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 383A198C96;
+        Thu, 27 Oct 2022 17:27:13 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E6285B82712;
+        Fri, 28 Oct 2022 00:27:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89A81C43470;
+        Fri, 28 Oct 2022 00:27:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1666916830;
+        bh=ar2vAUeJp1Fss0BY6YHlg7m1SFzX7KDPJuR8DDTS1Pw=;
+        h=In-Reply-To:References:Subject:From:Cc:To:Date:From;
+        b=gvEH3r80quhFTCgGtDp6SZsI4k7FrSXzRy0dSujUUpq1JAOjEgAbE6rTq2t969c8E
+         ZyCoO3BgUIfu/hP9JmW/5d5ptATjoHcAgKn+zuAdyEEWgbSeYqdsZvsW3Ip/OqbDCm
+         Ju4LMPz7t/aVo8hVLaMztaKUZII4Q8WXY4a/lqBUBAVWs/WN+yb9EfIssq5V+xXilg
+         UbBKm1dDzEAApR5QDh7L+sevwZ/8qFJOHzS8muBD5PaZmOL1EDrd8dw66JiVGywwBg
+         EHAKjnh4rGkBj9d0yjczw9xeCOmaYTC0ZCP+klt7lN/Z1anhZvJz+PbHQuv4+B9W5T
+         T3JZAw3XOpzgQ==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20221018160352.1591428-1-dario.binacchi@amarulasolutions.com>
+References: <20221018160352.1591428-1-dario.binacchi@amarulasolutions.com>
+Subject: Re: [PATCH v2] clk: ti: dra7-atl: don't allocate `parent_names' variable
+From:   Stephen Boyd <sboyd@kernel.org>
+Cc:     Amarula patchwork <linux-amarula@amarulasolutions.com>,
+        michael@amarulasolutions.com,
+        Dario Binacchi <dario.binacchi@amarulasolutions.com>,
+        kernel test robot <lkp@intel.com>,
+        Allison Randal <allison@lohutok.net>,
+        Miaoqian Lin <linmq006@gmail.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Tero Kristo <kristo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Tony Lindgren <tony@atomide.com>, linux-clk@vger.kernel.org,
+        linux-omap@vger.kernel.org
+To:     Dario Binacchi <dario.binacchi@amarulasolutions.com>,
+        linux-kernel@vger.kernel.org
+Date:   Thu, 27 Oct 2022 17:27:08 -0700
+User-Agent: alot/0.10
+Message-Id: <20221028002710.89A81C43470@smtp.kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add support to build pcie-cadence library as module.
+Quoting Dario Binacchi (2022-10-18 09:03:52)
+> diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
+> index ff4d6a951681..78482d1a4a33 100644
+> --- a/drivers/clk/ti/clk-dra7-atl.c
+> +++ b/drivers/clk/ti/clk-dra7-atl.c
+> @@ -188,24 +188,17 @@ static void __init of_dra7_atl_clock_setup(struct d=
+evice_node *node)
+>                 goto cleanup;
+>         }
+> =20
+> -       parent_names =3D kzalloc(sizeof(char *), GFP_KERNEL);
+> -
+> -       if (!parent_names)
+> -               goto cleanup;
+> -
+>         parent_names[0] =3D of_clk_get_parent_name(node, 0);
 
-Signed-off-by: Achal Verma <a-verma1@ti.com>
----
- drivers/pci/controller/cadence/Kconfig             | 6 +++---
- drivers/pci/controller/cadence/pcie-cadence-ep.c   | 4 ++++
- drivers/pci/controller/cadence/pcie-cadence-host.c | 5 +++++
- drivers/pci/controller/cadence/pcie-cadence.c      | 9 +++++++++
- drivers/pci/controller/cadence/pcie-cadence.h      | 4 ++--
- 5 files changed, 23 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/pci/controller/cadence/Kconfig b/drivers/pci/controller/cadence/Kconfig
-index 5d30564190e1..693c41fe32ce 100644
---- a/drivers/pci/controller/cadence/Kconfig
-+++ b/drivers/pci/controller/cadence/Kconfig
-@@ -4,16 +4,16 @@ menu "Cadence PCIe controllers support"
- 	depends on PCI
- 
- config PCIE_CADENCE
--	bool
-+	tristate
- 
- config PCIE_CADENCE_HOST
--	bool
-+	tristate
- 	depends on OF
- 	select IRQ_DOMAIN
- 	select PCIE_CADENCE
- 
- config PCIE_CADENCE_EP
--	bool
-+	tristate
- 	depends on OF
- 	depends on PCI_ENDPOINT
- 	select PCIE_CADENCE
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-index b8b655d4047e..598b2b9c5969 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-@@ -5,6 +5,7 @@
- 
- #include <linux/delay.h>
- #include <linux/kernel.h>
-+#include <linux/module.h>
- #include <linux/of.h>
- #include <linux/pci-epc.h>
- #include <linux/platform_device.h>
-@@ -741,3 +742,6 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
- 
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_ep_setup);
-+
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-index 940c7dd701d6..84754c63df34 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-host.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-@@ -5,6 +5,7 @@
- 
- #include <linux/delay.h>
- #include <linux/kernel.h>
-+#include <linux/module.h>
- #include <linux/list_sort.h>
- #include <linux/of_address.h>
- #include <linux/of_pci.h>
-@@ -70,6 +71,7 @@ void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
- 
- 	return rc->cfg_base + (where & 0xfff);
- }
-+EXPORT_SYMBOL_GPL(cdns_pci_map_bus);
- 
- static struct pci_ops cdns_pcie_host_ops = {
- 	.map_bus	= cdns_pci_map_bus,
-@@ -542,3 +544,6 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- 
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_host_setup);
-+
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.c b/drivers/pci/controller/cadence/pcie-cadence.c
-index 13c4032ca379..8e3a86578284 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence.c
-@@ -4,6 +4,7 @@
- // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
- 
- #include <linux/kernel.h>
-+#include <linux/module.h>
- 
- #include "pcie-cadence.h"
- 
-@@ -22,6 +23,7 @@ void cdns_pcie_detect_quiet_min_delay_set(struct cdns_pcie *pcie)
- 
- 	cdns_pcie_writel(pcie, CDNS_PCIE_LTSSM_CONTROL_CAP, ltssm_control_cap);
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_detect_quiet_min_delay_set);
- 
- void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 busnr, u8 fn,
- 				   u32 r, bool is_io,
-@@ -99,6 +101,7 @@ void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 busnr, u8 fn,
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR0(r), addr0);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR1(r), addr1);
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_set_outbound_region);
- 
- void cdns_pcie_set_outbound_region_for_normal_msg(struct cdns_pcie *pcie,
- 						  u8 busnr, u8 fn,
-@@ -133,6 +136,7 @@ void cdns_pcie_set_outbound_region_for_normal_msg(struct cdns_pcie *pcie,
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR0(r), addr0);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR1(r), addr1);
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_set_outbound_region_for_normal_msg);
- 
- void cdns_pcie_reset_outbound_region(struct cdns_pcie *pcie, u32 r)
- {
-@@ -145,6 +149,7 @@ void cdns_pcie_reset_outbound_region(struct cdns_pcie *pcie, u32 r)
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR0(r), 0);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR1(r), 0);
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_reset_outbound_region);
- 
- void cdns_pcie_disable_phy(struct cdns_pcie *pcie)
- {
-@@ -155,6 +160,7 @@ void cdns_pcie_disable_phy(struct cdns_pcie *pcie)
- 		phy_exit(pcie->phy[i]);
- 	}
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_disable_phy);
- 
- int cdns_pcie_enable_phy(struct cdns_pcie *pcie)
- {
-@@ -242,6 +248,7 @@ int cdns_pcie_init_phy(struct device *dev, struct cdns_pcie *pcie)
- 
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_init_phy);
- 
- static int cdns_pcie_suspend_noirq(struct device *dev)
- {
-@@ -270,3 +277,5 @@ const struct dev_pm_ops cdns_pcie_pm_ops = {
- 	NOIRQ_SYSTEM_SLEEP_PM_OPS(cdns_pcie_suspend_noirq,
- 				  cdns_pcie_resume_noirq)
- };
-+
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index 190786e47df9..65b330c28299 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.h
-+++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -514,7 +514,7 @@ static inline bool cdns_pcie_link_up(struct cdns_pcie *pcie)
- 	return true;
- }
- 
--#ifdef CONFIG_PCIE_CADENCE_HOST
-+#if IS_ENABLED(CONFIG_PCIE_CADENCE_HOST)
- int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
- void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
- 			       int where);
-@@ -531,7 +531,7 @@ static inline void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int d
- }
- #endif
- 
--#ifdef CONFIG_PCIE_CADENCE_EP
-+#if IS_ENABLED(CONFIG_PCIE_CADENCE_EP)
- int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep);
- #else
- static inline int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
--- 
-2.17.1
-
+Can you use struct clk_parent_data instead and assign index to 0? Then
+we don't even need to use of_clk_get_parent_name() here.
