@@ -2,110 +2,244 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95D1EC4332F
-	for <linux-omap@archiver.kernel.org>; Wed,  2 Nov 2022 22:02:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83D45C433FE
+	for <linux-omap@archiver.kernel.org>; Wed,  2 Nov 2022 23:24:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230259AbiKBWCs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 2 Nov 2022 18:02:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50262 "EHLO
+        id S231513AbiKBXYq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 2 Nov 2022 19:24:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230224AbiKBWCr (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2022 18:02:47 -0400
-Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93F3BF5A8
-        for <linux-omap@vger.kernel.org>; Wed,  2 Nov 2022 15:02:46 -0700 (PDT)
-Received: by mail-pj1-x102b.google.com with SMTP id o7so14315029pjj.1
-        for <linux-omap@vger.kernel.org>; Wed, 02 Nov 2022 15:02:46 -0700 (PDT)
+        with ESMTP id S231378AbiKBXYG (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2022 19:24:06 -0400
+Received: from mail-pg1-x534.google.com (mail-pg1-x534.google.com [IPv6:2607:f8b0:4864:20::534])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CBA6DF93;
+        Wed,  2 Nov 2022 16:20:21 -0700 (PDT)
+Received: by mail-pg1-x534.google.com with SMTP id v3so175756pgh.4;
+        Wed, 02 Nov 2022 16:20:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=tDdQ76HTuetM+x0U50OZVmoiEGjK/pNJ2DGCTRImjr8=;
-        b=KQiJkZtePhI2flEsUJPvJWcVFKJ+OroKKLIqrw7gi+MX+q2049MD3JdT/HnYDFu9WR
-         zLFsSCKGQMStyQIn1lzgksLz8eM0HdHrRUXnS3XiBPbgf+cvVwhSqUXkg1CPQQjS8peH
-         VqixHIIJaqwe+pLijCFPO7sKai856yU/ibvqI=
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Zl1LKmv4RLjwNkqEhUgdxCW+8uunPRUGj73i8adfR+c=;
+        b=Zral2Tj/aqfFI6R5Pqa5+FbaXdIvhtCzWT9QuQkI1+iVSW6VPfvqYzp5hZbaGyM9zV
+         dviv0OaZpUtGn+8f3wdQhkx8rhgri5HxRR5b7zoIsvQhSHZ/XEpT2lBzZUyHER398uIo
+         Q2woa/bwgmHk85q/XSl4Pxxrcfi26Bp8OdIo9KBB2pUKqzhwlgKJwDjQjnO/9PzrfmDG
+         lpocig4tQCJfGtwVIIomgjZt2tYopKPbZw7X9iOFDecI9rPcUrz2z+JiyHpgyJFqCVZz
+         fTWV6omQ7w4zOLKfWc8vE0NZNN7IFZ6FTIiyRK9O2blO6De32TTBZCVAFxBn3346LjBp
+         p+2w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=tDdQ76HTuetM+x0U50OZVmoiEGjK/pNJ2DGCTRImjr8=;
-        b=5fXDCVWMW9DBTRpC6ncLgGMupn42jGMBGj6CA6lm8mKQv6VFF6KeKV2iJYEfMUYCRK
-         eVZHuY2CuX+aZI095iFhJnFuHLkNKfa7Tjw3YrACahnx3yU9uYggEnlf0iJnjqkjRKE9
-         bUS5OqlEGEM+JnIgm7kWB8/SvwjsQe7aJAY+3Yw/UR3WdPJH2DcziHhANBHgRps3x3E9
-         /AaB4kCnYreNDF0j5WFY6wmRRBSnzN9psw3UyHFb6FXE0EJv3hQ1B/ZkVVR37UcaJGW0
-         5G+ONLHiGzd6TKTgiTMGo6+D3U4UYbdNu0KnwejS9ocYzvEirwI1WBr5OD+qPPyUBlEq
-         VVtg==
-X-Gm-Message-State: ACrzQf2XxAZYgKI16lVi/VJEjFWbyfdDo9lOSX4UXo7Oq3lYElKuQC+6
-        M/7Ge6IIQllxIav9ZXr5CYxzMA==
-X-Google-Smtp-Source: AMsMyM4WkfzMykXnG15VA0dkbaFs2pJjZSHDWxSbgybvMUsbX2OvhgJaXXTBVFr7hoOw8Zjy6TVn2g==
-X-Received: by 2002:a17:90b:1095:b0:213:ee6a:f268 with SMTP id gj21-20020a17090b109500b00213ee6af268mr16266724pjb.213.1667426566071;
-        Wed, 02 Nov 2022 15:02:46 -0700 (PDT)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id a20-20020a621a14000000b0056c6e59fb69sm8926019pfa.83.2022.11.02.15.02.45
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Zl1LKmv4RLjwNkqEhUgdxCW+8uunPRUGj73i8adfR+c=;
+        b=VX1Z1iN+Na5Kl1vW4DO50r/+C9UJotVAM1uXxcyXjUiHqnkIZNU/E4TJBfYaWn17zz
+         Tr9RtyN2CCLeQnfAcVKRdvmufqXMt++f02sFCb+J8iaLAUpmx5ZwzsQ+D3OwIcp8b/Fw
+         JNJpwCe/w9RLsvqgL7zJxLLyLIjz+nkzdimkwUNoPIMoDdL6CGtLBw7Ph29XcJK+vJDU
+         hTd+CQ3TRvVRLQlub+Gt5ckrRc1ANcBjdx26sbl3amSIsh3p4z9yz6+/kT2Maf5vJe67
+         7jUnRsxKxYMosoq57i/YOCxFAwnUVo0hwWMS0v4ESHeKCC0ei6du4y5tQWIFhndF/Z2A
+         Rl4g==
+X-Gm-Message-State: ACrzQf2N5e8N6Kyk7CFuBj8Ovyt634u0orh4G6UUEfT5MT3KEVDr0we+
+        Xnb7ZGdIVuQMgRlLChEu5zM=
+X-Google-Smtp-Source: AMsMyM6dCoQNWzn7ubeBVKYazgU6QRjmm+3+vw/zeNXUI4k5UYmv2ktqNQxKSozLyBhDVQ2DNB2HXQ==
+X-Received: by 2002:a63:105e:0:b0:46e:9bac:1c3 with SMTP id 30-20020a63105e000000b0046e9bac01c3mr22873269pgq.388.1667431210664;
+        Wed, 02 Nov 2022 16:20:10 -0700 (PDT)
+Received: from dtor-ws.mtv.corp.google.com ([2620:15c:9d:2:a6ae:11ff:fe11:fcc3])
+        by smtp.gmail.com with ESMTPSA id p8-20020a170902780800b00186e2123506sm8842073pll.300.2022.11.02.16.20.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 02 Nov 2022 15:02:45 -0700 (PDT)
-Date:   Wed, 2 Nov 2022 15:02:44 -0700
-From:   Kees Cook <keescook@chromium.org>
-To:     Nathan Chancellor <nathan@kernel.org>
-Cc:     William Breathitt Gray <william.gray@linaro.org>,
-        linux-iio@vger.kernel.org,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>,
-        Sami Tolvanen <samitolvanen@google.com>, llvm@lists.linux.dev,
-        linux-kernel@vger.kernel.org, patches@lists.linux.dev,
-        Patrick Havelange <patrick.havelange@essensium.com>,
-        Jarkko Nikula <jarkko.nikula@linux.intel.com>,
-        Oleksij Rempel <linux@rempel-privat.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabrice Gasnier <fabrice.gasnier@foss.st.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Julien Panis <jpanis@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-omap@vger.kernel.org
-Subject: Re: [PATCH 1/4] counter: Adjust final parameter type in function and
- signal callbacks
-Message-ID: <202211021501.88D8147@keescook>
-References: <20221102172217.2860740-1-nathan@kernel.org>
- <202211021216.FF49E84C69@keescook>
- <Y2LR13xrrauVmeXP@dev-arch.thelio-3990X>
+        Wed, 02 Nov 2022 16:20:09 -0700 (PDT)
+From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To:     Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
+Cc:     Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/3] ASoC: tlv320aic3x: remove support for platform data
+Date:   Wed,  2 Nov 2022 16:20:03 -0700
+Message-Id: <20221102232004.1721864-2-dmitry.torokhov@gmail.com>
+X-Mailer: git-send-email 2.38.1.273.g43a17bfeac-goog
+In-Reply-To: <20221102232004.1721864-1-dmitry.torokhov@gmail.com>
+References: <20221102232004.1721864-1-dmitry.torokhov@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y2LR13xrrauVmeXP@dev-arch.thelio-3990X>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, Nov 02, 2022 at 01:23:51PM -0700, Nathan Chancellor wrote:
-> Right, I am not the biggest fan of this change myself and it is entirely
-> possible that I am misreading the warnings from the commit message but I
-> do not see how
-> 
->         comp_node.comp.signal_u32_read = counter->ops->signal_read;
-> 
-> and
-> 
->         comp_node.comp.count_u32_read = counter->ops->function_read;
-> 
-> in counter_add_watch(),
-> 
->         comp.signal_u32_read = counter->ops->signal_read;
-> 
-> in counter_signal_attrs_create(), and
-> 
->         comp.count_u32_read = counter->ops->function_read;
->         comp.count_u32_write = counter->ops->function_write;
-> 
-> in counter_count_attrs_create() are currently safe under kCFI, since the
-> final parameter type of the prototypes in 'struct counter_ops' does not
-> match the final parameter type of the prototypes in 'struct
-> counter_comp'. I would expect the indirect calls in counter_get_data()
-> and counter_comp_u32_show() to fail currently.
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ include/sound/tlv320aic3x.h    | 65 ----------------------------------
+ sound/soc/codecs/tlv320aic3x.c | 12 +++----
+ sound/soc/codecs/tlv320aic3x.h | 43 ++++++++++++++++++++++
+ 3 files changed, 48 insertions(+), 72 deletions(-)
+ delete mode 100644 include/sound/tlv320aic3x.h
 
-Ah! Thank you -- those were the places I couldn't find.
-
+diff --git a/include/sound/tlv320aic3x.h b/include/sound/tlv320aic3x.h
+deleted file mode 100644
+index b660a9ed05ec..000000000000
+--- a/include/sound/tlv320aic3x.h
++++ /dev/null
+@@ -1,65 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * Platform data for Texas Instruments TLV320AIC3x codec
+- *
+- * Author: Jarkko Nikula <jarkko.nikula@bitmer.com>
+- */
+-#ifndef __TLV320AIC3x_H__
+-#define __TLV320AIC3x_H__
+-
+-/* GPIO API */
+-enum {
+-	AIC3X_GPIO1_FUNC_DISABLED		= 0,
+-	AIC3X_GPIO1_FUNC_AUDIO_WORDCLK_ADC	= 1,
+-	AIC3X_GPIO1_FUNC_CLOCK_MUX		= 2,
+-	AIC3X_GPIO1_FUNC_CLOCK_MUX_DIV2		= 3,
+-	AIC3X_GPIO1_FUNC_CLOCK_MUX_DIV4		= 4,
+-	AIC3X_GPIO1_FUNC_CLOCK_MUX_DIV8		= 5,
+-	AIC3X_GPIO1_FUNC_SHORT_CIRCUIT_IRQ	= 6,
+-	AIC3X_GPIO1_FUNC_AGC_NOISE_IRQ		= 7,
+-	AIC3X_GPIO1_FUNC_INPUT			= 8,
+-	AIC3X_GPIO1_FUNC_OUTPUT			= 9,
+-	AIC3X_GPIO1_FUNC_DIGITAL_MIC_MODCLK	= 10,
+-	AIC3X_GPIO1_FUNC_AUDIO_WORDCLK		= 11,
+-	AIC3X_GPIO1_FUNC_BUTTON_IRQ		= 12,
+-	AIC3X_GPIO1_FUNC_HEADSET_DETECT_IRQ	= 13,
+-	AIC3X_GPIO1_FUNC_HEADSET_DETECT_OR_BUTTON_IRQ	= 14,
+-	AIC3X_GPIO1_FUNC_ALL_IRQ		= 16
+-};
+-
+-enum {
+-	AIC3X_GPIO2_FUNC_DISABLED		= 0,
+-	AIC3X_GPIO2_FUNC_HEADSET_DETECT_IRQ	= 2,
+-	AIC3X_GPIO2_FUNC_INPUT			= 3,
+-	AIC3X_GPIO2_FUNC_OUTPUT			= 4,
+-	AIC3X_GPIO2_FUNC_DIGITAL_MIC_INPUT	= 5,
+-	AIC3X_GPIO2_FUNC_AUDIO_BITCLK		= 8,
+-	AIC3X_GPIO2_FUNC_HEADSET_DETECT_OR_BUTTON_IRQ = 9,
+-	AIC3X_GPIO2_FUNC_ALL_IRQ		= 10,
+-	AIC3X_GPIO2_FUNC_SHORT_CIRCUIT_OR_AGC_IRQ = 11,
+-	AIC3X_GPIO2_FUNC_HEADSET_OR_BUTTON_PRESS_OR_SHORT_CIRCUIT_IRQ = 12,
+-	AIC3X_GPIO2_FUNC_SHORT_CIRCUIT_IRQ	= 13,
+-	AIC3X_GPIO2_FUNC_AGC_NOISE_IRQ		= 14,
+-	AIC3X_GPIO2_FUNC_BUTTON_PRESS_IRQ	= 15
+-};
+-
+-enum aic3x_micbias_voltage {
+-	AIC3X_MICBIAS_OFF = 0,
+-	AIC3X_MICBIAS_2_0V = 1,
+-	AIC3X_MICBIAS_2_5V = 2,
+-	AIC3X_MICBIAS_AVDDV = 3,
+-};
+-
+-struct aic3x_setup_data {
+-	unsigned int gpio_func[2];
+-};
+-
+-struct aic3x_pdata {
+-	int gpio_reset; /* < 0 if not used */
+-	struct aic3x_setup_data *setup;
+-
+-	/* Selects the micbias voltage */
+-	enum aic3x_micbias_voltage micbias_vg;
+-};
+-
+-#endif
+diff --git a/sound/soc/codecs/tlv320aic3x.c b/sound/soc/codecs/tlv320aic3x.c
+index 08938801daec..9b2bb99cc165 100644
+--- a/sound/soc/codecs/tlv320aic3x.c
++++ b/sound/soc/codecs/tlv320aic3x.c
+@@ -45,7 +45,6 @@
+ #include <sound/soc.h>
+ #include <sound/initval.h>
+ #include <sound/tlv.h>
+-#include <sound/tlv320aic3x.h>
+ 
+ #include "tlv320aic3x.h"
+ 
+@@ -66,6 +65,10 @@ struct aic3x_disable_nb {
+ 	struct aic3x_priv *aic3x;
+ };
+ 
++struct aic3x_setup_data {
++	unsigned int gpio_func[2];
++};
++
+ /* codec private data */
+ struct aic3x_priv {
+ 	struct snd_soc_component *component;
+@@ -1748,7 +1751,6 @@ static const struct reg_sequence aic3007_class_d[] = {
+ 
+ int aic3x_probe(struct device *dev, struct regmap *regmap, kernel_ulong_t driver_data)
+ {
+-	struct aic3x_pdata *pdata = dev->platform_data;
+ 	struct aic3x_priv *aic3x;
+ 	struct aic3x_setup_data *ai3x_setup;
+ 	struct device_node *np = dev->of_node;
+@@ -1768,11 +1770,7 @@ int aic3x_probe(struct device *dev, struct regmap *regmap, kernel_ulong_t driver
+ 	regcache_cache_only(aic3x->regmap, true);
+ 
+ 	dev_set_drvdata(dev, aic3x);
+-	if (pdata) {
+-		aic3x->gpio_reset = pdata->gpio_reset;
+-		aic3x->setup = pdata->setup;
+-		aic3x->micbias_vg = pdata->micbias_vg;
+-	} else if (np) {
++	if (np) {
+ 		ai3x_setup = devm_kzalloc(dev, sizeof(*ai3x_setup), GFP_KERNEL);
+ 		if (!ai3x_setup)
+ 			return -ENOMEM;
+diff --git a/sound/soc/codecs/tlv320aic3x.h b/sound/soc/codecs/tlv320aic3x.h
+index 14298f9e6d9b..066e5a6322b8 100644
+--- a/sound/soc/codecs/tlv320aic3x.h
++++ b/sound/soc/codecs/tlv320aic3x.h
+@@ -298,4 +298,47 @@ enum {
+ #define AIC3X_BUTTON_DEBOUNCE_SHIFT 	0
+ #define AIC3X_BUTTON_DEBOUNCE_MASK	3
+ 
++/* GPIO API */
++enum {
++	AIC3X_GPIO1_FUNC_DISABLED		= 0,
++	AIC3X_GPIO1_FUNC_AUDIO_WORDCLK_ADC	= 1,
++	AIC3X_GPIO1_FUNC_CLOCK_MUX		= 2,
++	AIC3X_GPIO1_FUNC_CLOCK_MUX_DIV2		= 3,
++	AIC3X_GPIO1_FUNC_CLOCK_MUX_DIV4		= 4,
++	AIC3X_GPIO1_FUNC_CLOCK_MUX_DIV8		= 5,
++	AIC3X_GPIO1_FUNC_SHORT_CIRCUIT_IRQ	= 6,
++	AIC3X_GPIO1_FUNC_AGC_NOISE_IRQ		= 7,
++	AIC3X_GPIO1_FUNC_INPUT			= 8,
++	AIC3X_GPIO1_FUNC_OUTPUT			= 9,
++	AIC3X_GPIO1_FUNC_DIGITAL_MIC_MODCLK	= 10,
++	AIC3X_GPIO1_FUNC_AUDIO_WORDCLK		= 11,
++	AIC3X_GPIO1_FUNC_BUTTON_IRQ		= 12,
++	AIC3X_GPIO1_FUNC_HEADSET_DETECT_IRQ	= 13,
++	AIC3X_GPIO1_FUNC_HEADSET_DETECT_OR_BUTTON_IRQ	= 14,
++	AIC3X_GPIO1_FUNC_ALL_IRQ		= 16
++};
++
++enum {
++	AIC3X_GPIO2_FUNC_DISABLED		= 0,
++	AIC3X_GPIO2_FUNC_HEADSET_DETECT_IRQ	= 2,
++	AIC3X_GPIO2_FUNC_INPUT			= 3,
++	AIC3X_GPIO2_FUNC_OUTPUT			= 4,
++	AIC3X_GPIO2_FUNC_DIGITAL_MIC_INPUT	= 5,
++	AIC3X_GPIO2_FUNC_AUDIO_BITCLK		= 8,
++	AIC3X_GPIO2_FUNC_HEADSET_DETECT_OR_BUTTON_IRQ = 9,
++	AIC3X_GPIO2_FUNC_ALL_IRQ		= 10,
++	AIC3X_GPIO2_FUNC_SHORT_CIRCUIT_OR_AGC_IRQ = 11,
++	AIC3X_GPIO2_FUNC_HEADSET_OR_BUTTON_PRESS_OR_SHORT_CIRCUIT_IRQ = 12,
++	AIC3X_GPIO2_FUNC_SHORT_CIRCUIT_IRQ	= 13,
++	AIC3X_GPIO2_FUNC_AGC_NOISE_IRQ		= 14,
++	AIC3X_GPIO2_FUNC_BUTTON_PRESS_IRQ	= 15
++};
++
++enum aic3x_micbias_voltage {
++	AIC3X_MICBIAS_OFF = 0,
++	AIC3X_MICBIAS_2_0V = 1,
++	AIC3X_MICBIAS_2_5V = 2,
++	AIC3X_MICBIAS_AVDDV = 3,
++};
++
+ #endif /* _AIC3X_H */
 -- 
-Kees Cook
+2.38.1.273.g43a17bfeac-goog
+
