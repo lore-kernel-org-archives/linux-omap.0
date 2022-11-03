@@ -2,62 +2,62 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1E1FC4167B
-	for <linux-omap@archiver.kernel.org>; Thu,  3 Nov 2022 22:48:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F343DC4332F
+	for <linux-omap@archiver.kernel.org>; Thu,  3 Nov 2022 22:48:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231782AbiKCWsN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 3 Nov 2022 18:48:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58630 "EHLO
+        id S230410AbiKCWsP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 3 Nov 2022 18:48:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230139AbiKCWri (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2022 18:47:38 -0400
-Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50B4B2098B;
-        Thu,  3 Nov 2022 15:47:37 -0700 (PDT)
-Received: by mail-pj1-x102b.google.com with SMTP id f5-20020a17090a4a8500b002131bb59d61so6342002pjh.1;
-        Thu, 03 Nov 2022 15:47:37 -0700 (PDT)
+        with ESMTP id S231364AbiKCWrs (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2022 18:47:48 -0400
+Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BA9D22B36;
+        Thu,  3 Nov 2022 15:47:41 -0700 (PDT)
+Received: by mail-pf1-x42b.google.com with SMTP id y203so2973882pfb.4;
+        Thu, 03 Nov 2022 15:47:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=p1QS6c1ubJslyni/M0MzNlDBEaUKL9IFEtYjlcS9VxU=;
-        b=ky/2ICJ4Vfu+5Fdz5JuABjS8rlBaLcKAxbzw0SZC2D34+Txmhf0KOVhJtwqgv/6XOk
-         CnE6Ltk8PeZ1KMD6b6YFrBtaYzbwId1ccjnT0LniazU4vqUBZbaZ6VJPEGzbHq1FoQzs
-         Gq4q7bfdcvyHIvlp/ZqTkoeRTT/6iCU/lDUmDB6Yrb+U1v9/2y579zIjGWOKdpNnbgZJ
-         KNck/JrQ9af+Kdah+jsu66NeRnzyH25x28cbyP1y9nbv584UmrvrxVHcOtfxz97xr6PI
-         Xm+DnuGvdUpjcImHNoQ5M+iuPcSNVzgdGFLoDGFffaOo56W9b/C3DGiIIyW+01iQK7nf
-         AIpw==
+        bh=RHI/xFFeRzT7bXVgR68Vv5jAb3+4xiWk2TAa6nZk8uQ=;
+        b=eppigY3FRRZ3Lly4WKWIBCFVErzxsv3x8EkO0KDL4qt2E/diahaGWERtT7didkD+CG
+         TZPc/ziS9I2b7iH5Pvu4BJkNrPwWIF7dXG/86rw1brIaCYPghtLih1ntPRL4hhHTNuYW
+         3Y6//YHbytiqnYWXT/ohneN3zEFFfuiwUW+3XdihDsNDvdjuOwC9/oZFIwSGMa1WM58y
+         NDmtx0uPUijW6FtZIs8O91CmT3lAGeVw35tl5IeMd7dCKxIJ8drcZyYimIB5Ck9euXch
+         dLI11KvAo3anSm6mfYPmY+h2HnHM0SjpXmOwErxwI3gOl+II0lzcC5J7RExenogIY13x
+         ujbg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=p1QS6c1ubJslyni/M0MzNlDBEaUKL9IFEtYjlcS9VxU=;
-        b=WOddxYQTAbDHT+HgPZJbzj7VuUXYC34A291/J0QcISogrrC5af0NcPGvbGdyjO4lX+
-         M+I/bmFCOp6B+jL39DSSCAarXRdBBnp03WDRtU5Ghpuoq3x2MXY8FM/JHN0MmSmUG/lE
-         1oF5Cg2jdwe7X7/vtnY61C/91F+Jc8k2hmusiNrgTT9EkUAwS3Ras98gTMBiS7CtiNMi
-         rYLZkOKlHERQnhyEmww9kgyKoA45EgXSR6VvrHHhIYxTZIk4iJvtuKqj0inwy3ikW2K4
-         wlGKYoYxjcEZmit4ZnlZ5zG0LdaQAHdU57QLfjEN4DrEUWfxK1TF60zDuAApodYNdMqs
-         hyug==
-X-Gm-Message-State: ACrzQf3Kr2V5kAV1heuegfnyBEfg3+CwxWQ2zdY/MOmG1FzzHsR8RxFk
-        3U9SqwAxK4665cIhKcfeZz0=
-X-Google-Smtp-Source: AMsMyM4b2fcM9qthGWolUVjBnQCmaTmPTMhorzMS6m1FwpyODUIn3xZawlZGlfODpJmUwdrdcxue4g==
-X-Received: by 2002:a17:90a:19c8:b0:211:d22b:9f14 with SMTP id 8-20020a17090a19c800b00211d22b9f14mr203412pjj.68.1667515656617;
-        Thu, 03 Nov 2022 15:47:36 -0700 (PDT)
+        bh=RHI/xFFeRzT7bXVgR68Vv5jAb3+4xiWk2TAa6nZk8uQ=;
+        b=itEYAyPuR7NhD9eg0y2z6LSuMOy5v7YYmssMjzLfwS04tGLKX/xGLLbv91/9Sw+7mL
+         l0R4VuTRwq9t/3IsEq0COLqBa5ZWfVCOy0YjZjnh+/tU1Y30cnIy4aQTfyHvrr0ZcQJ4
+         1riKFtGi7K5j2mg6GbeTKKpnT41qoNG63WnJ8ES+0skLHWIg3nlr7ztxxtgt4vf6sLB2
+         UYV5gUAMUhu/aBehMcSy1KJytYNBlyFUmVduLzec8h5DZt3uLcsASoe+nyIfh1GKAP0f
+         ZqCQEqocTSaLWPpOgxxoMj7LztjyjztuCDUh1FOfpuINHktixwsIScMYB/aE+prh3/za
+         5ppg==
+X-Gm-Message-State: ACrzQf22btObhz2OreNsqFzVNnocZSUM7b3+Ks3IFyCaYhzRB14qZQrI
+        J6fLuznpDAdZPJ2o9dDMdcg=
+X-Google-Smtp-Source: AMsMyM42Q0EmJ+IW4zT5DYgA9bNOc0NIWiT20qXiQOIV2th7Vm2X69HmpGZhb42qJt/yJUB5gpSlaw==
+X-Received: by 2002:a63:d202:0:b0:46f:930:ea56 with SMTP id a2-20020a63d202000000b0046f0930ea56mr28743512pgg.275.1667515660559;
+        Thu, 03 Nov 2022 15:47:40 -0700 (PDT)
 Received: from dtor-ws.mtv.corp.google.com ([2620:15c:9d:2:a6ae:11ff:fe11:fcc3])
-        by smtp.gmail.com with ESMTPSA id g13-20020aa796ad000000b0056be1d7d4a3sm1280421pfk.73.2022.11.03.15.47.34
+        by smtp.gmail.com with ESMTPSA id g13-20020aa796ad000000b0056be1d7d4a3sm1280421pfk.73.2022.11.03.15.47.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Nov 2022 15:47:35 -0700 (PDT)
+        Thu, 03 Nov 2022 15:47:39 -0700 (PDT)
 From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
 To:     Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
         Helge Deller <deller@gmx.de>, Tony Lindgren <tony@atomide.com>,
         Sebastian Reichel <sre@kernel.org>
 Cc:     linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org,
         linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
-Subject: [PATCH 09/13] omapfb: connector-analog-tv: remove support for platform data
-Date:   Thu,  3 Nov 2022 15:46:52 -0700
-Message-Id: <20221103-omapfb-gpiod-v1-9-c3d53ca7988f@gmail.com>
+Subject: [PATCH 11/13] omapfb: panel-lgphilips-lb035q02: remove backlight GPIO handling
+Date:   Thu,  3 Nov 2022 15:46:54 -0700
+Message-Id: <20221103-omapfb-gpiod-v1-11-c3d53ca7988f@gmail.com>
 X-Mailer: git-send-email 2.38.1.431.g37b22c650d-goog
 In-Reply-To: <20221103-omapfb-gpiod-v1-0-c3d53ca7988f@gmail.com>
 References: <20221103-omapfb-gpiod-v1-0-c3d53ca7988f@gmail.com>
@@ -69,146 +69,89 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-There are no users of connector_atv_platform_data in the mainline
-kernel so support for it can be removed from the panel driver.
+With f048e8c1d169 ("omapfb: panel-lgphilips-lb035q02: Remove legacy boot
+support") it is no longer possible to specify GPIO to control the
+backlight. Remove code trying to request and toggle it.
 
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- .../omap2/omapfb/displays/connector-analog-tv.c    | 60 +++-------------------
- include/video/omap-panel-data.h                    | 34 ------------
- 2 files changed, 8 insertions(+), 86 deletions(-)
+ .../omapfb/displays/panel-lgphilips-lb035q02.c      | 21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
-index a9fd732f8103..0daaf9f89bab 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
-@@ -12,7 +12,6 @@
- #include <linux/of.h>
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c
+index 3ce1f9d2e7c4..e69856cb62d5 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-lgphilips-lb035q02.c
+@@ -11,7 +11,7 @@
+ #include <linux/delay.h>
+ #include <linux/spi/spi.h>
+ #include <linux/mutex.h>
+-#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
  
  #include <video/omapfb_dss.h>
--#include <video/omap-panel-data.h>
  
- struct panel_drv_data {
- 	struct omap_dss_device dssdev;
-@@ -178,53 +177,15 @@ static struct omap_dss_driver tvc_driver = {
- 	.set_wss		= tvc_set_wss,
+@@ -46,9 +46,6 @@ struct panel_drv_data {
+ 
+ 	struct omap_video_timings videomode;
+ 
+-	/* used for non-DT boot, to be removed */
+-	int backlight_gpio;
+-
+ 	struct gpio_desc *enable_gpio;
  };
  
--static int tvc_probe_pdata(struct platform_device *pdev)
--{
--	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
--	struct connector_atv_platform_data *pdata;
--	struct omap_dss_device *in, *dssdev;
+@@ -166,9 +163,6 @@ static int lb035q02_enable(struct omap_dss_device *dssdev)
+ 	if (ddata->enable_gpio)
+ 		gpiod_set_value_cansleep(ddata->enable_gpio, 1);
+ 
+-	if (gpio_is_valid(ddata->backlight_gpio))
+-		gpio_set_value_cansleep(ddata->backlight_gpio, 1);
 -
--	pdata = dev_get_platdata(&pdev->dev);
+ 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+ 
+ 	return 0;
+@@ -185,9 +179,6 @@ static void lb035q02_disable(struct omap_dss_device *dssdev)
+ 	if (ddata->enable_gpio)
+ 		gpiod_set_value_cansleep(ddata->enable_gpio, 0);
+ 
+-	if (gpio_is_valid(ddata->backlight_gpio))
+-		gpio_set_value_cansleep(ddata->backlight_gpio, 0);
 -
--	in = omap_dss_find_output(pdata->source);
--	if (in == NULL) {
--		dev_err(&pdev->dev, "Failed to find video source\n");
--		return -EPROBE_DEFER;
+ 	in->ops.dpi->disable(in);
+ 
+ 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+@@ -250,8 +241,6 @@ static int lb035q02_probe_of(struct spi_device *spi)
+ 
+ 	ddata->enable_gpio = gpio;
+ 
+-	ddata->backlight_gpio = -ENOENT;
+-
+ 	in = omapdss_of_find_source_for_first_ep(node);
+ 	if (IS_ERR(in)) {
+ 		dev_err(&spi->dev, "failed to find video source\n");
+@@ -284,13 +273,6 @@ static int lb035q02_panel_spi_probe(struct spi_device *spi)
+ 	if (r)
+ 		return r;
+ 
+-	if (gpio_is_valid(ddata->backlight_gpio)) {
+-		r = devm_gpio_request_one(&spi->dev, ddata->backlight_gpio,
+-				GPIOF_OUT_INIT_LOW, "panel backlight");
+-		if (r)
+-			goto err_gpio;
 -	}
 -
--	ddata->in = in;
--
--	ddata->invert_polarity = pdata->invert_polarity;
--
--	dssdev = &ddata->dssdev;
--	dssdev->name = pdata->name;
--
--	return 0;
--}
--
--static int tvc_probe_of(struct platform_device *pdev)
--{
--	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
--	struct device_node *node = pdev->dev.of_node;
--	struct omap_dss_device *in;
--
--	in = omapdss_of_find_source_for_first_ep(node);
--	if (IS_ERR(in)) {
--		dev_err(&pdev->dev, "failed to find video source\n");
--		return PTR_ERR(in);
--	}
--
--	ddata->in = in;
--
--	return 0;
--}
--
- static int tvc_probe(struct platform_device *pdev)
- {
- 	struct panel_drv_data *ddata;
- 	struct omap_dss_device *dssdev;
- 	int r;
+ 	ddata->videomode = lb035q02_timings;
  
-+	if (!pdev->dev.of_node)
-+		return -ENODEV;
-+
- 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
- 	if (!ddata)
- 		return -ENOMEM;
-@@ -232,16 +193,11 @@ static int tvc_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, ddata);
- 	ddata->dev = &pdev->dev;
+ 	dssdev = &ddata->dssdev;
+@@ -310,7 +292,6 @@ static int lb035q02_panel_spi_probe(struct spi_device *spi)
+ 	return 0;
  
--	if (dev_get_platdata(&pdev->dev)) {
--		r = tvc_probe_pdata(pdev);
--		if (r)
--			return r;
--	} else if (pdev->dev.of_node) {
--		r = tvc_probe_of(pdev);
--		if (r)
--			return r;
--	} else {
--		return -ENODEV;
-+	ddata->in = omapdss_of_find_source_for_first_ep(pdev->dev.of_node);
-+	r = PTR_ERR_OR_ZERO(ddata->in);
-+	if (r) {
-+		dev_err(&pdev->dev, "failed to find video source\n");
-+		return r;
- 	}
- 
- 	ddata->timings = tvc_pal_timings;
-diff --git a/include/video/omap-panel-data.h b/include/video/omap-panel-data.h
-deleted file mode 100644
-index 18172d7b97d0..000000000000
---- a/include/video/omap-panel-data.h
-+++ /dev/null
-@@ -1,34 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- * Header containing platform_data structs for omap panels
-- *
-- * Copyright (C) 2013 Texas Instruments
-- * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-- *	   Archit Taneja <archit@ti.com>
-- *
-- * Copyright (C) 2011 Texas Instruments
-- * Author: Mayuresh Janorkar <mayur@ti.com>
-- *
-- * Copyright (C) 2010 Canonical Ltd.
-- * Author: Bryan Wu <bryan.wu@canonical.com>
-- */
--
--#ifndef __OMAP_PANEL_DATA_H
--#define __OMAP_PANEL_DATA_H
--
--#include <video/display_timing.h>
--
--/**
-- * connector_atv platform data
-- * @name: name for this display entity
-- * @source: name of the display entity used as a video source
-- * @invert_polarity: invert signal polarity
-- */
--struct connector_atv_platform_data {
--	const char *name;
--	const char *source;
--
--	bool invert_polarity;
--};
--
--#endif /* __OMAP_PANEL_DATA_H */
+ err_reg:
+-err_gpio:
+ 	omap_dss_put_device(ddata->in);
+ 	return r;
+ }
 
 -- 
 b4 0.11.0-dev-5166b
