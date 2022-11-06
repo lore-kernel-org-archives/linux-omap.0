@@ -2,111 +2,81 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F247C433FE
-	for <linux-omap@archiver.kernel.org>; Sat,  5 Nov 2022 00:01:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 272E6C4332F
+	for <linux-omap@archiver.kernel.org>; Sun,  6 Nov 2022 06:25:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229485AbiKEABm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 4 Nov 2022 20:01:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39960 "EHLO
+        id S229562AbiKFGZu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 6 Nov 2022 01:25:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229492AbiKEABh (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2022 20:01:37 -0400
-Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7986742F44;
-        Fri,  4 Nov 2022 17:01:36 -0700 (PDT)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 2A5015bb068560;
-        Fri, 4 Nov 2022 19:01:05 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1667606465;
-        bh=70/J8OoLwMz2ZYUbC2R1pWuNjEn/hRSMKPEEuh66w90=;
-        h=Date:From:To:CC:Subject:References:In-Reply-To;
-        b=Gv3WplavkR0OhY3cyw5apGFxR8Pf4CI2qe6wRU3/3HFrBUeOEZpOLj8xzHzVACoLa
-         HfODwGrn/JtbF4xchec3d9/wau+CU2O5VbVnZTeCrc1mBQWK3TZP1Zm0vcp3FIEAy7
-         7bl9h7DVTgXC33YKFhXXlUaKA0MUNVwhVwtcB20I=
-Received: from DFLE104.ent.ti.com (dfle104.ent.ti.com [10.64.6.25])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 2A5014iV084742
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 4 Nov 2022 19:01:04 -0500
-Received: from DFLE104.ent.ti.com (10.64.6.25) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.6; Fri, 4 Nov
- 2022 19:01:04 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.6 via
- Frontend Transport; Fri, 4 Nov 2022 19:01:04 -0500
-Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 2A5014d5015472;
-        Fri, 4 Nov 2022 19:01:04 -0500
-Date:   Fri, 4 Nov 2022 19:01:04 -0500
-From:   Nishanth Menon <nm@ti.com>
-To:     jerome Neanne <jneanne@baylibre.com>
-CC:     Lee Jones <lee@kernel.org>, <lgirdwood@gmail.com>,
-        <broonie@kernel.org>, <robh+dt@kernel.org>, <kristo@kernel.org>,
-        <dmitry.torokhov@gmail.com>, <krzysztof.kozlowski+dt@linaro.org>,
-        <catalin.marinas@arm.com>, <will@kernel.org>, <tony@atomide.com>,
-        <vigneshr@ti.com>, <bjorn.andersson@linaro.org>,
-        <shawnguo@kernel.org>, <geert+renesas@glider.be>,
-        <dmitry.baryshkov@linaro.org>, <marcel.ziswiler@toradex.com>,
-        <vkoul@kernel.org>, <biju.das.jz@bp.renesas.com>, <arnd@arndb.de>,
-        <jeff@labundy.com>, <afd@ti.com>, <khilman@baylibre.com>,
-        <narmstrong@baylibre.com>, <msp@baylibre.com>, <j-keerthy@ti.com>,
-        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-input@vger.kernel.org>, <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH v6 4/6] mfd: tps65219: Add driver for TI TPS65219 PMIC
-Message-ID: <20221105000104.rtj3r6ufqwqmepon@keenly>
-References: <20221011140549.16761-1-jneanne@baylibre.com>
- <20221011140549.16761-5-jneanne@baylibre.com>
- <Y1+q2Usm9ecicXqp@google.com>
- <1383fd22-c720-811e-a2bb-be2151675089@baylibre.com>
+        with ESMTP id S229556AbiKFGZt (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 6 Nov 2022 01:25:49 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 221C3DF59;
+        Sat,  5 Nov 2022 23:25:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:In-Reply-To:References;
+        bh=5SDRXSxMWlUUbPkDm/PxbafoOSGwgChTiTX8o4kcnFs=; b=OtHvTeo+vzTRfVCnhEJDuEKv1/
+        wV69kB36ag1cN6N67bOEKgN9X9koB+S2VWXL3eBOnzdvqpSeDPSxrWI7T7fWvlOhjUgOLJZS8+LN/
+        dMCVzDce7fZeTobLxQcy8JVI2IMJ3YeFFCs64bmKIGTIJaDnkIHJEYSh/jhsla/ygVlsWOp6iON7v
+        UEH/laLwCPmvF+ZSAz9NqVD3pYUkOSRny2IWBlV43UEbvigmZvsONWUmxkl61W6jmx0QmzOoHcIW8
+        WMjCEK2oXyXPePRd/clLr1cv6gAikUeQghlPyjZ0dABCsCUUwmnS/ZvIbqkry5jvh2X7pwYZYAsHN
+        nmokIXcQ==;
+Received: from [2601:1c2:d80:3110::a2e7] (helo=casper.infradead.org)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1orZ6J-008eYA-0p; Sun, 06 Nov 2022 06:25:47 +0000
+From:   Randy Dunlap <rdunlap@infradead.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        kernel test robot <lkp@intel.com>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Arnd Bergmann <arnd@arndb.de>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Subject: [PATCH] ARM: omap1: set ARCH_OMAP1_ANY for ARCH_OMAP1
+Date:   Sat,  5 Nov 2022 23:25:36 -0700
+Message-Id: <20221106062536.26369-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.38.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <1383fd22-c720-811e-a2bb-be2151675089@baylibre.com>
-User-Agent: NeoMutt/20171215
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 13:58-20221104, jerome Neanne wrote:
-> 
-[...]
+Fix a build error by setting ARCH_OMAP1_ANY Kconfig symbol.
+Fixes this build error:
 
-> 
-> > 
-> > Can you try an compile with W=1 please.
-> This raise one warning on mfd:
-> drivers/mfd/tps65219.c:28:12: warning: ‘tps65219_soft_shutdown’ defined but
-> not used [-Wunused-function]
->    28 | static int tps65219_soft_shutdown(struct tps65219 *tps)
->       |            ^~~~~~~~~~~~~~~~~~~~~~
-> soft_shutdown has been validated and is used in TI baseline even if not
-> hooked in upstream version further to this review:
-> https://lore.kernel.org/lkml/20220825150224.826258-5-msp@baylibre.com/
-> 
-> It was a TI requirement to implement it...
-> Let me know if you want me to remove this function or if we can keep it like
-> this.
+arm-linux-gnueabi-ld: drivers/video/backlight/omap1_bl.o: in function `omapbl_probe':
+omap1_bl.c:(.text+0x1b4): undefined reference to `omap_cfg_reg'
 
-There are platforms without psci, correct? I think the comment was to
-drop the force override with system-power-controller property,
+Fixes: 7036440eab3e ("ARM: omap1: enable multiplatform")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
+---
+ arch/arm/mach-omap1/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-if (!pm_power_off) {
-	tps65219_i2c_client = client;
-	pm_power_off = &tps65219_pm_power_off;
-}
-
-Could still be valid for such platforms, no? I do see that the
-capability that the PMIC has - which is software shutdown is a valid
-feature that we support in many different PMIC drivers. Is'nt the job of
-the driver to introduce the functionality in a manner that is
-appropriate to the OS framework?
-
--- 
-Regards,
-Nishanth Menon
-Key (0xDDB5849D1736249D) / Fingerprint: F8A2 8693 54EB 8232 17A3  1A34 DDB5 849D 1736 249D
+diff -- a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
+--- a/arch/arm/mach-omap1/Kconfig
++++ b/arch/arm/mach-omap1/Kconfig
+@@ -47,7 +47,8 @@ config ARCH_OMAP16XX
+ 
+ config ARCH_OMAP1_ANY
+ 	select ARCH_OMAP
+-	def_bool ARCH_OMAP730 || ARCH_OMAP850 || ARCH_OMAP15XX || ARCH_OMAP16XX
++	def_bool ARCH_OMAP730 || ARCH_OMAP850 || ARCH_OMAP15XX || \
++		ARCH_OMAP16XX || ARCH_OMAP1
+ 
+ config ARCH_OMAP
+ 	bool
