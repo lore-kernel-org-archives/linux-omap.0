@@ -2,118 +2,125 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71DFCC43219
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Nov 2022 08:56:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5042BC433FE
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Nov 2022 21:18:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229541AbiKGI4j (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Nov 2022 03:56:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56404 "EHLO
+        id S233070AbiKGVS2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Nov 2022 16:18:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229586AbiKGI4i (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2022 03:56:38 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1BBF15836;
-        Mon,  7 Nov 2022 00:56:37 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9B85FB80E59;
-        Mon,  7 Nov 2022 08:56:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51FF3C433D6;
-        Mon,  7 Nov 2022 08:56:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1667811395;
-        bh=mRQqDDo7h2WtOH56vRgwnhYTYbCXcOsZBM0uKXEWQ+Y=;
-        h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
-        b=HIRQu2IRF9Jddq2VZbtwVA7irRrBf0ivmSk6B0iqHD9LnZkrTxqOhB9w7cDYRxxeG
-         UEjoq8H95pL9q8mW9zfyeAxwF3Qf0HezTTcaC744Z2i7FPBKs+w2nS9uPlwfdMopN2
-         XjpVI1Xf0cFru/UxK8Aeetl1LPAy9wdw9xSxg1HwZzqgvdzPdDEFgIZcFYjnwEFj7X
-         R/2yQvK+mNv9SG5Tw0g7lfkwr2jc6/V/Xq0+I4Wmaw58YknBNYf0rkSBOlbNPQKnJZ
-         SXDONxBn2MnRMiyAcm6x56dl+NrEKlioY0X/NdogX6+pFsvT6Q7JkCIDiYaNv8rlZn
-         pOinaR69fud9w==
-Message-ID: <e4e4c4f0-782b-9f89-d7a2-859c7759ca66@kernel.org>
-Date:   Mon, 7 Nov 2022 10:56:30 +0200
+        with ESMTP id S233557AbiKGVSE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2022 16:18:04 -0500
+Received: from mail-pf1-x42a.google.com (mail-pf1-x42a.google.com [IPv6:2607:f8b0:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 566C7317FE
+        for <linux-omap@vger.kernel.org>; Mon,  7 Nov 2022 13:14:53 -0800 (PST)
+Received: by mail-pf1-x42a.google.com with SMTP id m6so11880529pfb.0
+        for <linux-omap@vger.kernel.org>; Mon, 07 Nov 2022 13:14:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre-com.20210112.gappssmtp.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:references
+         :in-reply-to:subject:cc:to:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=5sT7hyCzk9AIqzLbGef+IZ6oJ71RYXWRSZsmUSzO4Yg=;
+        b=P39f7quD853DqM9BBAZi7j1TweO0zXhBFPBLff8eSw0GyPIz2vlyw2NVWhiVuCc9on
+         ZwVgJzNNqjm3e5FZtd6E7iux1mqK/TfXu9YuFK8up7u7ux+VO6b7VNSQk7Mxs3rH6eJN
+         Z7Cd+eLOaD6B3EbEqKVnzXjDCYTHNRcGg43OpYLgICerBRLns7ZVbqpDb5gute1wLruH
+         aJHq2V7yN1f0vRjwa8TwiapmnSZxbOB6B8/GOHUq+PQL/5p6MgBTnMuWz+FCYu+JieUH
+         VbiIsg7WjXHu8Wws2UzTZvODI36Ihj6SCAykvT91K+3xGAQfxqn/5jCOFNzwwPHzMu4L
+         goTg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:references
+         :in-reply-to:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=5sT7hyCzk9AIqzLbGef+IZ6oJ71RYXWRSZsmUSzO4Yg=;
+        b=ffeEvf6B3TptH9I8l7q1fRiUFZVWKffbtyW/KkInZLTbxItOvqrnjYqro++EQHov4O
+         1ORrRvDwBKqCS7QwbcGQ/zTQTndJueQMV2muD5ozPi1lCDwji3jJC9iJf7D+FJfbTkHW
+         0lAZTlXloB9NW56o1miQMSYvnR8qsEqy7Zl6nyPTszBMCEhgdK4KkUCH1/Hkz7DnGM16
+         FQ+AaXIZoTrASKDcjyj2R9rfvl+TimrOXvQj5FDW9q+9PyuxyBfEfIN/x4nfPWLmnTx9
+         8muKomDBxyNiFVSExSsIN1d+lo/9mYZ+Mdap4Xi9UPDlyb1xcfsAmi58FvZeAzekPzDO
+         RyPA==
+X-Gm-Message-State: ACrzQf3PU8f+PD3T343hD/MqQqudwLrsHqy9cQrCuYDq2WalAvg2XZuk
+        +SSv0WVh/OVmBMUC7Tjq8zvtyw==
+X-Google-Smtp-Source: AMsMyM4fNroJ8un5Wi3EJ604VEP8sq2WlbsGxu3Ax4KtJVEcz4IY0/3AIrVFwaBzallESNsw1/AyxQ==
+X-Received: by 2002:a63:5811:0:b0:46f:a710:1b77 with SMTP id m17-20020a635811000000b0046fa7101b77mr39853531pgb.392.1667855692494;
+        Mon, 07 Nov 2022 13:14:52 -0800 (PST)
+Received: from localhost ([75.172.139.56])
+        by smtp.gmail.com with ESMTPSA id a10-20020a63cd4a000000b0043941566481sm4624005pgj.39.2022.11.07.13.14.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Nov 2022 13:14:52 -0800 (PST)
+From:   Kevin Hilman <khilman@baylibre.com>
+To:     Nishanth Menon <nm@ti.com>, jerome Neanne <jneanne@baylibre.com>
+Cc:     Lee Jones <lee@kernel.org>, lgirdwood@gmail.com,
+        broonie@kernel.org, robh+dt@kernel.org, kristo@kernel.org,
+        dmitry.torokhov@gmail.com, krzysztof.kozlowski+dt@linaro.org,
+        catalin.marinas@arm.com, will@kernel.org, tony@atomide.com,
+        vigneshr@ti.com, bjorn.andersson@linaro.org, shawnguo@kernel.org,
+        geert+renesas@glider.be, dmitry.baryshkov@linaro.org,
+        marcel.ziswiler@toradex.com, vkoul@kernel.org,
+        biju.das.jz@bp.renesas.com, arnd@arndb.de, jeff@labundy.com,
+        afd@ti.com, narmstrong@baylibre.com, msp@baylibre.com,
+        j-keerthy@ti.com, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-input@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v6 4/6] mfd: tps65219: Add driver for TI TPS65219 PMIC
+In-Reply-To: <20221105000104.rtj3r6ufqwqmepon@keenly>
+References: <20221011140549.16761-1-jneanne@baylibre.com>
+ <20221011140549.16761-5-jneanne@baylibre.com>
+ <Y1+q2Usm9ecicXqp@google.com>
+ <1383fd22-c720-811e-a2bb-be2151675089@baylibre.com>
+ <20221105000104.rtj3r6ufqwqmepon@keenly>
+Date:   Mon, 07 Nov 2022 13:14:51 -0800
+Message-ID: <7heduewjp0.fsf@baylibre.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.9.1
-Subject: Re: Coverity: gpmc_is_valid_waitpin(): Control flow issues
-Content-Language: en-US
-From:   Roger Quadros <rogerq@kernel.org>
-To:     coverity-bot <keescook@chromium.org>,
-        Benedikt Niedermayr <benedikt.niedermayr@siemens.com>
-Cc:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-        linux-omap@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        linux-next@vger.kernel.org, linux-hardening@vger.kernel.org
-References: <202211041233.4D45359E7@keescook>
- <7cdf3d14-3f1b-7cd4-e8b9-e94b5359bf82@kernel.org>
-In-Reply-To: <7cdf3d14-3f1b-7cd4-e8b9-e94b5359bf82@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+Nishanth Menon <nm@ti.com> writes:
 
+> On 13:58-20221104, jerome Neanne wrote:
+>>=20
+> [...]
+>
+>>=20
+>> >=20
+>> > Can you try an compile with W=3D1 please.
+>> This raise one warning on mfd:
+>> drivers/mfd/tps65219.c:28:12: warning: =E2=80=98tps65219_soft_shutdown=
+=E2=80=99 defined but
+>> not used [-Wunused-function]
+>>    28 | static int tps65219_soft_shutdown(struct tps65219 *tps)
+>>       |            ^~~~~~~~~~~~~~~~~~~~~~
+>> soft_shutdown has been validated and is used in TI baseline even if not
+>> hooked in upstream version further to this review:
+>> https://lore.kernel.org/lkml/20220825150224.826258-5-msp@baylibre.com/
+>>=20
+>> It was a TI requirement to implement it...
+>> Let me know if you want me to remove this function or if we can keep it =
+like
+>> this.
+>
+> There are platforms without psci, correct? I think the comment was to
+> drop the force override with system-power-controller property,
+>
+> if (!pm_power_off) {
+> 	tps65219_i2c_client =3D client;
+> 	pm_power_off =3D &tps65219_pm_power_off;
+> }
+>
+> Could still be valid for such platforms, no? I do see that the
+> capability that the PMIC has - which is software shutdown is a valid
+> feature that we support in many different PMIC drivers. Is'nt the job of
+> the driver to introduce the functionality in a manner that is
+> appropriate to the OS framework?
 
-On 07/11/2022 10:53, Roger Quadros wrote:
-> Hi Benedikt,
-> 
-> On 04/11/2022 21:33, coverity-bot wrote:
->> Hello!
->>
->> This is an experimental semi-automated report about issues detected by
->> Coverity from a scan of next-20221104 as part of the linux-next scan project:
->> https://scan.coverity.com/projects/linux-next-weekly-scan
->>
->> You're getting this email because you were associated with the identified
->> lines of code (noted below) that were touched by commits:
->>
->>   Wed Nov 2 10:02:39 2022 -0400
->>     89aed3cd5cb9 ("memory: omap-gpmc: wait pin additions")
->>
->> Coverity reported the following:
->>
->> *** CID 1527139:  Control flow issues  (NO_EFFECT)
->> drivers/memory/omap-gpmc.c:1048 in gpmc_is_valid_waitpin()
->> 1042     	spin_unlock(&gpmc_mem_lock);
->> 1043     }
->> 1044     EXPORT_SYMBOL(gpmc_cs_free);
->> 1045
->> 1046     static bool gpmc_is_valid_waitpin(u32 waitpin)
-> 
-> We will need to change this waitpin argument to int.
-> In addition we will also need to change
-> struct gpmc_waitpin->pin and struct gpmc_setting->wait_pin
-> to int as in the code we are relying on GPMC_WAITPIN_INVALID logic which is -1.
+Yeah, I think Nishanth is right here.
 
-Another alternative with less churn is to leave them as u32
-but make GPMC_WAITPIN_INVALID set to a large positive number.
+We should probably keep the `if (!pm_power_off)` part so the PMIC will
+be used if PSCI is not, but it also allows an easy way to test/use the PMIC
+shutdown functionality downstream if needed.
 
-> 
->> 1047     {
->> vvv     CID 1527139:  Control flow issues  (NO_EFFECT)
->> vvv     This greater-than-or-equal-to-zero comparison of an unsigned value is always true. "waitpin >= 0U".
->> 1048     	return waitpin >= 0 && waitpin < gpmc_nr_waitpins;
->> 1049     }
->> 1050
->> 1051     static int gpmc_alloc_waitpin(struct gpmc_device *gpmc,
->> 1052     			      struct gpmc_settings *p)
->> 1053     {
->>
->> If this is a false positive, please let us know so we can mark it as
->> such, or teach the Coverity rules to be smarter. If not, please make
->> sure fixes get into linux-next. :) For patches fixing this, please
->> include these lines (but double-check the "Fixes" first):
->>
->> Reported-by: coverity-bot <keescook+coverity-bot@chromium.org>
->> Addresses-Coverity-ID: 1527139 ("Control flow issues")
->> Fixes: 89aed3cd5cb9 ("memory: omap-gpmc: wait pin additions")
->>
->> Thanks for your attention!
->>
-> 
-
-cheers,
--roger
+Kevin
