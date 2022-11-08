@@ -2,52 +2,53 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BAA7C433FE
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Nov 2022 18:12:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B68AC4332F
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Nov 2022 18:12:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234472AbiKHSMD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Nov 2022 13:12:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60602 "EHLO
+        id S234761AbiKHSMG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Nov 2022 13:12:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234758AbiKHSMA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2022 13:12:00 -0500
-Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EBF0554CC
-        for <linux-omap@vger.kernel.org>; Tue,  8 Nov 2022 10:11:58 -0800 (PST)
-Received: by mail-wm1-x32d.google.com with SMTP id t4so9325853wmj.5
-        for <linux-omap@vger.kernel.org>; Tue, 08 Nov 2022 10:11:58 -0800 (PST)
+        with ESMTP id S234495AbiKHSME (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2022 13:12:04 -0500
+Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D8D05984E
+        for <linux-omap@vger.kernel.org>; Tue,  8 Nov 2022 10:12:00 -0800 (PST)
+Received: by mail-wr1-x42a.google.com with SMTP id l14so22316455wrw.2
+        for <linux-omap@vger.kernel.org>; Tue, 08 Nov 2022 10:12:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=baylibre-com.20210112.gappssmtp.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=WLjAfgXrY6iJ/scApshW4hQNZQBkL3nMQTzPyRA/Obo=;
-        b=wdkxgsgVnJdyizPXCxIkbwj0180QnsDpzSBH3moSDjBmmto1uZ54uGEjCnVLtq6hd+
-         PDPOlTNjFcRBBnBGhYHgT13X5jR27y8NixF1yl835kEjduAQaEvvtrLudrICkjNYHJvV
-         yQ4y/zvOUNwBtKPHB2hZ+c/bmXacipZdAD0HPaSLLC162zd2Lo0i6kUGBOHAKdApjNT4
-         kyyFyJfP47zZPMsGHnUDz583NoEG/9mKzErUsNRU6n6Ys27kyX8iBJhTS1D/hT4jAods
-         bT+TVFgX92+b5HTh4PD/koX0t73B9ako+lytupbYOhlzGX8E6Wlvp2kunie2mbcgvxPi
-         KTcA==
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=1m1DidO2rzjDMZlrvrKtja69hwcXTFXw0zP1Dxjbaww=;
+        b=P1bMXtA9ILahSmDOLipS/vaBF54BtW3he0nIKaV3F1tou04OZJoD1ZlskG63rQ/p/e
+         f5QqCc36wvzp5Wcs+dnGtQ6GV5bmbADV9jb8khubwXHU2YVQd5Xcobtw+ab0rr8bGP5y
+         RF4IoulpEZo6LZt+n9U1NK4OT8LfR+BAZUQjGkcqp0ymrEYTmsCP8bKANJgFFfqIB3ex
+         sSAz9wt9TtxnZks6JtFG/IdC4ncWgjTEWd3/ls8cvd2uTo5/OQV1ffhJatQ/Ru8OXOYE
+         +ZZhB+4M24NZbsexDA2VUToTZAIAw3V3FXgmj8s3ryRuBh8z9DtioUDF+y+VYamqhFEF
+         jMpA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=WLjAfgXrY6iJ/scApshW4hQNZQBkL3nMQTzPyRA/Obo=;
-        b=3OwKquk4UjL8R8pGLOe8j1NX5ME5WpNLl4CjfwsY4ZBsIuCYOjTQTDQipHiqItHOY2
-         7+Ngr6EK3dpFEY3F0d4ZJDGvI3ydBVBVL57LA1agt2zmTMAkN29DAh3tLAqnEqsh98Q3
-         g1DXg8fSNPIsoNoIUUNMYwxYojdX2XzD5/QRTkSMdZT1XCcLlIThpiEUp84ORsRhvE4Y
-         GObimZ2nJhC0+fXmT47txhqiJeGKrBlAuy0YEyZ3UisvaNUNsH8jSiH6kx4ijlTNfgwR
-         yJ/Tln6rcbkK043eGrwM3hXfczUg16qJKhmxrF6I8AtfM+ZPTIA/AjiqRyR3IesIHMNo
-         x1BA==
-X-Gm-Message-State: ACrzQf1mygPYg01dnxljD/QwkAqtpF935PGFYhSN5kO3OWaGX/wspY3E
-        4RbxrWIZ1JeIU+4cJ8pb242U5A==
-X-Google-Smtp-Source: AMsMyM5FqYutJUSJ6XbIxmAWRIfI8aNW03g0ydxdb/+41CbBFkbtxJ+oROmeateisOYYMIhw2B3HwA==
-X-Received: by 2002:a05:600c:354f:b0:3cf:4c20:584b with SMTP id i15-20020a05600c354f00b003cf4c20584bmr47536057wmq.58.1667931117025;
-        Tue, 08 Nov 2022 10:11:57 -0800 (PST)
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=1m1DidO2rzjDMZlrvrKtja69hwcXTFXw0zP1Dxjbaww=;
+        b=nqFPp9tLkzOMZCsb+q2rK1cdZRl0VM9Ffe4vwzWgkDM61I2/HiVtxyEN9FPSRgnZ4Y
+         qw73+rJugeXC/lII0Y+YYXbhvnBY+CJq3H4Es61E+urlpsPuI4CrAtAEVM98rx9scrda
+         MalVaJsyDNvusfYyvdUqZawaFbDVbf3RVzJTd8Fho21mWvhM2BYIPXPArWvFZ/H56r1g
+         MG1KJntJkqGw4SnCBoRJrn3w9vYxjubOGwxbHgv/rM2nq4ZGdvckWdTPN0rGVGmJDHPt
+         X0K/Y8UDSGAlscvN8p6BK4UaOqatHRUQH4HnbhI9sqBCFdDDSf/IktO9vHQvab4jSWME
+         xNkw==
+X-Gm-Message-State: ACrzQf2wfS7VTE/6TEPD5d/AqnlBZeVTv5/t/US057ZGZlQDeQOwDL/p
+        lILQuLHNIma72jbRomfzdlmg8Q==
+X-Google-Smtp-Source: AMsMyM4zwNIKjWHFWuuVksh8ihwA/QeBVm6znp/91kqCcZh6c1XMvSaZUB3EAGZQ+xveSVcckOCYDQ==
+X-Received: by 2002:adf:f943:0:b0:232:ce6b:40d4 with SMTP id q3-20020adff943000000b00232ce6b40d4mr37395557wrr.453.1667931118943;
+        Tue, 08 Nov 2022 10:11:58 -0800 (PST)
 Received: from nicolas-Precision-3551.home ([2001:861:5180:dcc0:7d10:e9e8:fd9a:2f72])
-        by smtp.gmail.com with ESMTPSA id q12-20020a5d61cc000000b002238ea5750csm13037109wrv.72.2022.11.08.10.11.55
+        by smtp.gmail.com with ESMTPSA id q12-20020a5d61cc000000b002238ea5750csm13037109wrv.72.2022.11.08.10.11.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Nov 2022 10:11:56 -0800 (PST)
+        Tue, 08 Nov 2022 10:11:58 -0800 (PST)
 From:   Nicolas Frayer <nfrayer@baylibre.com>
 To:     nm@ti.com, ssantosh@kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, peter.ujfalusi@gmail.com,
@@ -56,51 +57,86 @@ To:     nm@ti.com, ssantosh@kernel.org, linux-kernel@vger.kernel.org,
         kuba@kernel.org, pabeni@redhat.com, linux-omap@vger.kernel.org,
         netdev@vger.kernel.org
 Cc:     khilman@baylibre.com, glaroque@baylibre.com, nfrayer@baylibre.com
-Subject: [PATCH v4 0/4] soc: ti: Add module build support to the socinfo
-Date:   Tue,  8 Nov 2022 19:11:40 +0100
-Message-Id: <20221108181144.433087-1-nfrayer@baylibre.com>
+Subject: [PATCH v4 2/4] soc: ti: Add module build support
+Date:   Tue,  8 Nov 2022 19:11:42 +0100
+Message-Id: <20221108181144.433087-3-nfrayer@baylibre.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20221108181144.433087-1-nfrayer@baylibre.com>
+References: <20221108181144.433087-1-nfrayer@baylibre.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-In order for the TI K3 SoC info driver to be built as a module, the
-following changes have been made:
-- Converted memory allocations to devm and added the remove callback
-- Added necessary code to build the driver as a module
-- UDMA: Added deferred probe when soc_device_match() fails because the
-socinfo driver is built as a module and hasn't probed yet
-- MDIO: Same as the UDMA driver, return deferred probe if
-soc_device_match() returns null
+Added module build support for the TI K3 SoC info driver.
 
-v2->v3:
-dropped module conversion part of this series while other driver
-dependencies on socinfo are worked out.
-A dependency issue is introduced by changing subsys_initcall()
-to module_platform_driver(). Some drivers using the socinfo information
-probe before the socinfo driver itself and it makes their probe fail.
+Signed-off-by: Nicolas Frayer <nfrayer@baylibre.com>
+---
+ arch/arm64/Kconfig.platforms |  1 -
+ drivers/soc/ti/Kconfig       |  3 ++-
+ drivers/soc/ti/k3-socinfo.c  | 11 +++++++++++
+ 3 files changed, 13 insertions(+), 2 deletions(-)
 
-v3->v4:
-reintegrated the module build support and added patches for udma and mdio
-drivers to allow for deferred probe if socinfo hasn't probed yet.
-
-Nicolas Frayer (4):
-  soc: ti: Convert allocations to devm
-  soc: ti: Add module build support
-  dmaengine: ti: k3-udma: Deferring probe when soc_device_match()
-    returns NULL
-  net: ethernet: ti: davinci_mdio: Deferring probe when
-    soc_device_match() returns NULL
-
- arch/arm64/Kconfig.platforms           |  1 -
- drivers/dma/ti/k3-udma.c               |  2 +-
- drivers/net/ethernet/ti/davinci_mdio.c |  4 +++
- drivers/soc/ti/Kconfig                 |  3 +-
- drivers/soc/ti/k3-socinfo.c            | 47 ++++++++++++++++----------
- 5 files changed, 37 insertions(+), 20 deletions(-)
-
+diff --git a/arch/arm64/Kconfig.platforms b/arch/arm64/Kconfig.platforms
+index 76580b932e44..4f2f92eb499f 100644
+--- a/arch/arm64/Kconfig.platforms
++++ b/arch/arm64/Kconfig.platforms
+@@ -130,7 +130,6 @@ config ARCH_K3
+ 	select TI_SCI_PROTOCOL
+ 	select TI_SCI_INTR_IRQCHIP
+ 	select TI_SCI_INTA_IRQCHIP
+-	select TI_K3_SOCINFO
+ 	help
+ 	  This enables support for Texas Instruments' K3 multicore SoC
+ 	  architecture.
+diff --git a/drivers/soc/ti/Kconfig b/drivers/soc/ti/Kconfig
+index 7e2fb1c16af1..1a730c057cce 100644
+--- a/drivers/soc/ti/Kconfig
++++ b/drivers/soc/ti/Kconfig
+@@ -74,7 +74,8 @@ config TI_K3_RINGACC
+ 	  If unsure, say N.
+ 
+ config TI_K3_SOCINFO
+-	bool
++	tristate "TI K3 SoC info driver"
++	default y
+ 	depends on ARCH_K3 || COMPILE_TEST
+ 	select SOC_BUS
+ 	select MFD_SYSCON
+diff --git a/drivers/soc/ti/k3-socinfo.c b/drivers/soc/ti/k3-socinfo.c
+index 19f3e74f5376..98348f998e0f 100644
+--- a/drivers/soc/ti/k3-socinfo.c
++++ b/drivers/soc/ti/k3-socinfo.c
+@@ -13,6 +13,7 @@
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/sys_soc.h>
++#include <linux/module.h>
+ 
+ #define CTRLMMR_WKUP_JTAGID_REG		0
+ /*
+@@ -141,6 +142,7 @@ static const struct of_device_id k3_chipinfo_of_match[] = {
+ 	{ .compatible = "ti,am654-chipid", },
+ 	{ /* sentinel */ },
+ };
++MODULE_DEVICE_TABLE(of, k3_chipinfo_of_match);
+ 
+ static struct platform_driver k3_chipinfo_driver = {
+ 	.driver = {
+@@ -156,3 +158,12 @@ static int __init k3_chipinfo_init(void)
+ 	return platform_driver_register(&k3_chipinfo_driver);
+ }
+ subsys_initcall(k3_chipinfo_init);
++
++static void __exit k3_chipinfo_exit(void)
++{
++	platform_driver_unregister(&k3_chipinfo_driver);
++}
++module_exit(k3_chipinfo_exit);
++
++MODULE_DESCRIPTION("TI K3 SoC info driver");
++MODULE_LICENSE("GPL");
 -- 
 2.25.1
 
