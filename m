@@ -2,96 +2,79 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DECAC43217
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Nov 2022 09:40:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 390ACC433FE
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Nov 2022 12:15:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233767AbiKHJku (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Nov 2022 04:40:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54198 "EHLO
+        id S234091AbiKHMPC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Nov 2022 07:15:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233817AbiKHJki (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2022 04:40:38 -0500
-Received: from mail-lj1-x229.google.com (mail-lj1-x229.google.com [IPv6:2a00:1450:4864:20::229])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 401F6317DE
-        for <linux-omap@vger.kernel.org>; Tue,  8 Nov 2022 01:40:36 -0800 (PST)
-Received: by mail-lj1-x229.google.com with SMTP id s24so20215533ljs.11
-        for <linux-omap@vger.kernel.org>; Tue, 08 Nov 2022 01:40:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=nwGH3xncezy8aE+xydBamp1X2UzAG0+D2pQxSdjT3Go=;
-        b=PguF6LnLRQ/cpoVLZlxFFNefduNiIZHPgBoSTGmze3dAN+AliIFf9pQcwZzBAdrJs+
-         bT4oyiQjoIIApKKZOQWKdEqeMyMEW3JoLlrVuHXITZgB0NkyBzyEGfyBz/CPJBBSqZXi
-         KNj22sWWhCl2xPc0pPLBw0D/wR1jp2xksw1JazMlcvaHQTS0eAbELD3pwm/Ob7EcxfNS
-         O0k8jjEUg2eOCJvJgyGpDm7NVALcKS/4qOhxrLMlosDiZrSmoEtx0eIeVRXcSB7jtY8r
-         uOCvGB64HPdapt+WCwWGecQctc1t0p+Wt8JHyRfbRFa//ys8PO6jHc5Ocsq1hrynOebU
-         7VQQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=nwGH3xncezy8aE+xydBamp1X2UzAG0+D2pQxSdjT3Go=;
-        b=ccs9FCHDLRecliFb/5WXgd/rfTSo67ZFgVmazWcZufKBs3uM4S4LftmLyAyskpEgRg
-         o1ibhKVx6y0PR/DFUWKuGIkKe+gjcH40XchgnQZBDoCI6S3eLgXfYVe1b6qOxqqc/Ryc
-         ft8REqcyc1ckS/oYsE4n+5/tZ+8Qji3D0R4pJ6SEC75+7pG4h9/kYYGtKBBmsFPJ+Koi
-         x9obnEm9wVTKYzjgMcVCtJozvxHTAUZ5kIiNng1DqRrSZodqGY/CKavdsz9NU73nbIMw
-         +3daYfQb7+wdJvkcMy3MwnnDdXuQ1brZtgwxOKD0SUIagfXbouH5SL6lFp7Spcp78Mlm
-         mY4Q==
-X-Gm-Message-State: ACrzQf2w9sFQyG5F+10qh2cNl4qcZYMHo6aIhv/Ul7L0WN9aB1kgyyYr
-        R84xj0Zkitj3DBqtIBZQb4Th9ovy6sn+cQ==
-X-Google-Smtp-Source: AMsMyM6g0IjhpvwW0iRhgu1Nh1ZcIdl7Lok+Zjry8sEZS7v3Grs0teipqFv3tlbCkRt6UTvGImC4Vg==
-X-Received: by 2002:a2e:978a:0:b0:277:107:725f with SMTP id y10-20020a2e978a000000b002770107725fmr17989655lji.417.1667900434663;
-        Tue, 08 Nov 2022 01:40:34 -0800 (PST)
-Received: from [192.168.0.20] (088156142199.dynamic-2-waw-k-3-2-0.vectranet.pl. [88.156.142.199])
-        by smtp.gmail.com with ESMTPSA id u28-20020a2eb81c000000b0026dc7b59d8esm1658719ljo.22.2022.11.08.01.40.33
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 08 Nov 2022 01:40:34 -0800 (PST)
-Message-ID: <5791ab49-debf-53d6-f076-0e46c4f392ea@linaro.org>
-Date:   Tue, 8 Nov 2022 10:40:33 +0100
+        with ESMTP id S234027AbiKHMPA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2022 07:15:00 -0500
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2002B2D1FD;
+        Tue,  8 Nov 2022 04:14:52 -0800 (PST)
+Received: from dggpemm500023.china.huawei.com (unknown [172.30.72.54])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4N66Qr6YWkzHqPG;
+        Tue,  8 Nov 2022 20:11:48 +0800 (CST)
+Received: from dggpemm500007.china.huawei.com (7.185.36.183) by
+ dggpemm500023.china.huawei.com (7.185.36.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Tue, 8 Nov 2022 20:14:49 +0800
+Received: from huawei.com (10.175.103.91) by dggpemm500007.china.huawei.com
+ (7.185.36.183) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Tue, 8 Nov
+ 2022 20:14:48 +0800
+From:   Yang Yingliang <yangyingliang@huawei.com>
+To:     <linux-mmc@vger.kernel.org>, <linux-omap@vger.kernel.org>
+CC:     <ulf.hansson@linaro.org>, <lgirdwood@gmail.com>,
+        <broonie@kernel.org>, <yangyingliang@huawei.com>
+Subject: [PATCH] mmc: host: omap_hsmmc: fix return value check of mmc_add_host()
+Date:   Tue, 8 Nov 2022 20:13:16 +0800
+Message-ID: <20221108121316.340354-1-yangyingliang@huawei.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.2
-Subject: Re: Coverity: gpmc_is_valid_waitpin(): Control flow issues
-Content-Language: en-US
-To:     "Niedermayr, BENEDIKT" <benedikt.niedermayr@siemens.com>,
-        "rogerq@kernel.org" <rogerq@kernel.org>,
-        "keescook@chromium.org" <keescook@chromium.org>
-Cc:     "gustavo@embeddedor.com" <gustavo@embeddedor.com>,
-        "tony@atomide.com" <tony@atomide.com>,
-        "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        "linux-hardening@vger.kernel.org" <linux-hardening@vger.kernel.org>
-References: <202211041233.4D45359E7@keescook>
- <7cdf3d14-3f1b-7cd4-e8b9-e94b5359bf82@kernel.org>
- <e4e4c4f0-782b-9f89-d7a2-859c7759ca66@kernel.org>
- <b18cddde778ada5030f6a80308854cf9c0dc4d23.camel@siemens.com>
- <57664014384bae015d593a7c6c6b7715fda3e89d.camel@siemens.com>
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <57664014384bae015d593a7c6c6b7715fda3e89d.camel@siemens.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.103.91]
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ dggpemm500007.china.huawei.com (7.185.36.183)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 08/11/2022 09:15, Niedermayr, BENEDIKT wrote:
+mmc_add_host() may return error, if we ignore its return value,
+it will lead two issues:
+1. The memory that allocated in mmc_alloc_host() is leaked.
+2. In the remove() path, mmc_remove_host() will be called to
+   delete device, but it's not added yet, it will lead a kernel
+   crash because of null-ptr-deref in device_del().
 
->>> Another alternative with less churn is to leave them as u32
->>> but make GPMC_WAITPIN_INVALID set to a large positive number.
->> Ok, I will fix that. 
->> Do I need to send a new fix-patch on top the current patch series? 
->> Or should I just send only the bugfix-patch for the coverity-bot? 
->>
-> Sorry, another Question: 
-> Is it somehow possible to check locally if the bugfix actually fixed the bug, before I submit the patch?
+Fix this by checking the return value and goto error path wihch
+will call mmc_free_host().
 
-I think only if you have Coverity somewhere in your company set for
-testing kernel...
+Fixes: a45c6cb81647 ("[ARM] 5369/1: omap mmc: Add new omap hsmmc controller for 2430 and 34xx, v3")
+Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
+---
+ drivers/mmc/host/omap_hsmmc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Best regards,
-Krzysztof
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index fca30add563e..4bd744755205 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1946,7 +1946,9 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	if (!ret)
+ 		mmc->caps |= MMC_CAP_SDIO_IRQ;
+ 
+-	mmc_add_host(mmc);
++	ret = mmc_add_host(mmc);
++	if (ret)
++		goto err_irq;
+ 
+ 	if (mmc_pdata(host)->name != NULL) {
+ 		ret = device_create_file(&mmc->class_dev, &dev_attr_slot_name);
+-- 
+2.25.1
 
