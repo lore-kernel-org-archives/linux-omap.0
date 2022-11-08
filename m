@@ -2,96 +2,100 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00195C43217
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Nov 2022 18:12:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC0DBC43217
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Nov 2022 18:19:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233981AbiKHSML (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Nov 2022 13:12:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60694 "EHLO
+        id S234808AbiKHSTk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Nov 2022 13:19:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234635AbiKHSME (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2022 13:12:04 -0500
-Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 544575985F
-        for <linux-omap@vger.kernel.org>; Tue,  8 Nov 2022 10:12:01 -0800 (PST)
-Received: by mail-wm1-x335.google.com with SMTP id ja4-20020a05600c556400b003cf6e77f89cso1487038wmb.0
-        for <linux-omap@vger.kernel.org>; Tue, 08 Nov 2022 10:12:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20210112.gappssmtp.com; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=A8Nn7FR+ibB53QJL8o9ZqwbAccpQC4pR0InqfudyfLs=;
-        b=PBjnfDVmggCWMS+XYXPxAz5Am3hcRfWSxmYSECtzCK6iTX7uOwU6CzJYJDkLTML2+m
-         Nv/WVSYdtAY0PKfDxZLJ/LXynJJafnY/stksKFozK4dbIM+iPhPoFwgJwG13aNwBBX3W
-         wvsQ8fGLerysGOXIwc/Gzk2EiWgff6bEd6KWuBAHk0I2l27IkzR/5tsYnbstN66ETAjb
-         HNZXvWvsbMoXfL1z+9BsFcMmvI7AERuBSoeDKZX7b/eGcXSfGiNxEF3UBU2T8Q/suGBr
-         R6TPk5+ryEBj+RhpPICftHvxHnFt9ZzHi2D8pS2z3MQcI3Q5PlC3GjvHIARZZweq5lOx
-         c+GQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=A8Nn7FR+ibB53QJL8o9ZqwbAccpQC4pR0InqfudyfLs=;
-        b=JHga0XTV7cCui3IrmKVSdsuYYxz1oNgHQIQhmXf7YYbs3LMEkgOqGiPjbwINqe1iMC
-         2PixP8KKlb/h7/bM7QeKSB7USwSu1dOUkuYnd1XMJTGe1SEDf0m9BFjyWXQsmmm1vl0f
-         skcjV5lmSfDWn4/tenm6XRMlLtDKNnRovQC2kaPbX1DXwHZwbWVB7CKS/aXI1qvVLdxy
-         /XSjZCOe4D8FhCAvftdH1Vus6TxNaqeCCftZmGNsjY7d4oON7tqEh1sqhL/XHNB5h2Jk
-         HM68agElLUct6oMlMwtr6Br3N6eUeQ1XOldU7GN8k43juGqztcImNm0Z4ApO4RKdBXKp
-         oJiA==
-X-Gm-Message-State: ANoB5pl/glaOPUh7QXAbNLR0TWeaiz811kWQSrUxtilKWy7szYN19yxn
-        6KwvFqoEbdpqT7cyFOHvBJxJkA==
-X-Google-Smtp-Source: AA0mqf5OYJs6Mea9M4/w5JBh0YgnFEs93kqHNrZKS3FhEDXrM473nHj+/uL++VfmlJWAiAn+kgB4jg==
-X-Received: by 2002:a05:600c:2d44:b0:3cf:aae0:8367 with SMTP id a4-20020a05600c2d4400b003cfaae08367mr8518017wmg.132.1667931119895;
-        Tue, 08 Nov 2022 10:11:59 -0800 (PST)
-Received: from nicolas-Precision-3551.home ([2001:861:5180:dcc0:7d10:e9e8:fd9a:2f72])
-        by smtp.gmail.com with ESMTPSA id q12-20020a5d61cc000000b002238ea5750csm13037109wrv.72.2022.11.08.10.11.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Nov 2022 10:11:59 -0800 (PST)
-From:   Nicolas Frayer <nfrayer@baylibre.com>
-To:     nm@ti.com, ssantosh@kernel.org, linux-kernel@vger.kernel.org,
+        with ESMTP id S234851AbiKHSTZ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2022 13:19:25 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C44AA6829C;
+        Tue,  8 Nov 2022 10:18:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
+        Message-ID:Sender:Reply-To:Content-ID:Content-Description;
+        bh=/NV/G8kmhD3cnbrD7pOd/P2VxmCy3komDGmfanRTrNU=; b=WRuWJBW4qT8dQ6a/l6dgACTuPR
+        Rzv2mQjp7BXfM4QF93HHeV1Hfrgm6tRPREqGBHD0oFRuMLOU5Gr/HGilN28F1aWna01CSTVIPNTbX
+        anXvMrGdGfCX/AEEn1QPkKPmy16b8PVFkgOyu5oOBcHeMFhOnjOhQPlwHDP324G1K/qm80A1Earc4
+        vT3dSEuj0LIiglQhp7kuQBGiGR7HBiyromRYI1edDX9iIBr/CYzP14pN5Pe5kXtjEnzA5OtECMnmi
+        5tPSgRasoFGdH7xpfdmnFa7s5+ZhySv6q+M9hvoNSSDN/iVUx7Cb15Joh/kiI8EQ+ddA4rNmk93Fy
+        maKsyy6Q==;
+Received: from [2601:1c2:d80:3110::a2e7]
+        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1osTB6-007Pyt-Fl; Tue, 08 Nov 2022 18:18:28 +0000
+Message-ID: <d0a8d451-2068-6536-3969-5cdfcd09d595@infradead.org>
+Date:   Tue, 8 Nov 2022 10:18:27 -0800
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.1
+Subject: Re: [PATCH v4 2/4] soc: ti: Add module build support
+Content-Language: en-US
+To:     Nicolas Frayer <nfrayer@baylibre.com>, nm@ti.com,
+        ssantosh@kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, peter.ujfalusi@gmail.com,
         vkoul@kernel.org, dmaengine@vger.kernel.org,
         grygorii.strashko@ti.com, davem@davemloft.net, edumazet@google.com,
         kuba@kernel.org, pabeni@redhat.com, linux-omap@vger.kernel.org,
         netdev@vger.kernel.org
-Cc:     khilman@baylibre.com, glaroque@baylibre.com, nfrayer@baylibre.com
-Subject: [PATCH v4 3/4] dmaengine: ti: k3-udma: Deferring probe when soc_device_match() returns NULL
-Date:   Tue,  8 Nov 2022 19:11:43 +0100
-Message-Id: <20221108181144.433087-4-nfrayer@baylibre.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20221108181144.433087-1-nfrayer@baylibre.com>
+Cc:     khilman@baylibre.com, glaroque@baylibre.com
 References: <20221108181144.433087-1-nfrayer@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+ <20221108181144.433087-3-nfrayer@baylibre.com>
+From:   Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <20221108181144.433087-3-nfrayer@baylibre.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-When the k3 socinfo driver is built as a module, there is a possibility
-that it will probe after the k3 udma driver and the later returns -ENODEV.
-By deferring the k3 udma probe we allow the k3 socinfo to probe and
-register the soc_device_attribute structure needed by the k3 udma driver.
+Hi--
 
-Signed-off-by: Nicolas Frayer <nfrayer@baylibre.com>
----
- drivers/dma/ti/k3-udma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 11/8/22 10:11, Nicolas Frayer wrote:
+> Added module build support for the TI K3 SoC info driver.
+> 
+> Signed-off-by: Nicolas Frayer <nfrayer@baylibre.com>
+> ---
+>  arch/arm64/Kconfig.platforms |  1 -
+>  drivers/soc/ti/Kconfig       |  3 ++-
+>  drivers/soc/ti/k3-socinfo.c  | 11 +++++++++++
+>  3 files changed, 13 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm64/Kconfig.platforms b/arch/arm64/Kconfig.platforms
+> index 76580b932e44..4f2f92eb499f 100644
+> --- a/arch/arm64/Kconfig.platforms
+> +++ b/arch/arm64/Kconfig.platforms
+> @@ -130,7 +130,6 @@ config ARCH_K3
+>  	select TI_SCI_PROTOCOL
+>  	select TI_SCI_INTR_IRQCHIP
+>  	select TI_SCI_INTA_IRQCHIP
+> -	select TI_K3_SOCINFO
+>  	help
+>  	  This enables support for Texas Instruments' K3 multicore SoC
+>  	  architecture.
+> diff --git a/drivers/soc/ti/Kconfig b/drivers/soc/ti/Kconfig
+> index 7e2fb1c16af1..1a730c057cce 100644
+> --- a/drivers/soc/ti/Kconfig
+> +++ b/drivers/soc/ti/Kconfig
+> @@ -74,7 +74,8 @@ config TI_K3_RINGACC
+>  	  If unsure, say N.
+>  
+>  config TI_K3_SOCINFO
+> -	bool
+> +	tristate "TI K3 SoC info driver"
+> +	default y
 
-diff --git a/drivers/dma/ti/k3-udma.c b/drivers/dma/ti/k3-udma.c
-index 7b5081989b3d..a6bb5077900b 100644
---- a/drivers/dma/ti/k3-udma.c
-+++ b/drivers/dma/ti/k3-udma.c
-@@ -5285,7 +5285,7 @@ static int udma_probe(struct platform_device *pdev)
- 	soc = soc_device_match(k3_soc_devices);
- 	if (!soc) {
- 		dev_err(dev, "No compatible SoC found\n");
--		return -ENODEV;
-+		return -EPROBE_DEFER;
- 	}
- 	ud->soc_data = soc->data;
- 
+Maybe
+	default ARCH_K3
+?
+
+>  	depends on ARCH_K3 || COMPILE_TEST
+>  	select SOC_BUS
+>  	select MFD_SYSCON
+
+
 -- 
-2.25.1
-
+~Randy
