@@ -2,53 +2,53 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE91DC4167D
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Nov 2022 16:09:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7401C4167B
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Nov 2022 16:09:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231499AbiKIQJe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S229586AbiKIQJe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Wed, 9 Nov 2022 11:09:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54866 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231478AbiKIQJY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Nov 2022 11:09:24 -0500
-Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40848101C9
-        for <linux-omap@vger.kernel.org>; Wed,  9 Nov 2022 08:09:23 -0800 (PST)
-Received: by mail-wr1-x42c.google.com with SMTP id a14so26487116wru.5
-        for <linux-omap@vger.kernel.org>; Wed, 09 Nov 2022 08:09:23 -0800 (PST)
+        with ESMTP id S231518AbiKIQJX (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Nov 2022 11:09:23 -0500
+Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C83E220CE
+        for <linux-omap@vger.kernel.org>; Wed,  9 Nov 2022 08:09:22 -0800 (PST)
+Received: by mail-wr1-x436.google.com with SMTP id v1so26443360wrt.11
+        for <linux-omap@vger.kernel.org>; Wed, 09 Nov 2022 08:09:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=newflow-co-uk.20210112.gappssmtp.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=qy2f8+NzXqqh+hHluSqYA8rs21AngxEcIYG3EwxYgis=;
-        b=XPHxngsFSQWue5/ZKwoWGPpRSKFXWSnBa+6is4ftxGzhgzZYsXOceU9y1WN5JtVn1B
-         aUiiZwBBdtB41SEVfqzVa/PikXsXGL1DrArg8Wv69qjCeaX8lirPnjTb0ASfilOtraGy
-         2EI8ckjZXxgHO+ndRxlRY1JuCfJ8MfSuOtzIuSRvvOZN4/Tbi7Ca2fLNVMOAlbe5auY1
-         aqXuIGSemPtRn7gTm2BiU3i3V6pem2ToV6TF8q1WiPWNYfDhdj6cK1Z23+c2UpASLvQv
-         i3iplUkCgb7oFZjHTmRTsIsFXPLboquP5m8L3JeS+GntDH7zb+pWOuXMKzyV4yKf5eu9
-         O3Fw==
+        bh=mZWwNSEAuMfkLC1//h9rhEQdeaWkxTtOogVUcqByABI=;
+        b=DyyM7OXTB4UJmJ8I8T/ovHtsqnCJLeta8aQ4cnQBcoO2caXnhXcA61FKkwxeH6xXsC
+         OlQ/gOBB5WZh15vqFGANySRt7ypc2/Xvfa/wjxBsGWaehz01Zf1X6cTqnYnmIp5/MErU
+         vnRjY/u/4lHFoEbeTWv0FxVToQS/BC95P0yXrTP+8Gz3NVvcbSj9DE+HnrKtg8MCWT5q
+         KZuQvHjZDWfSwRVkco+40tYcMqozj2r6IV6CkpQYbZ4u7o9b7u445ydSsJpVPT+9S/PR
+         NPHx0SV4zmZsxSOJwbbMptyz+WjY4F42ZlDjeyf7GnMBfshbyHo9MEPT5vLrYJvvxcYu
+         WPBA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=qy2f8+NzXqqh+hHluSqYA8rs21AngxEcIYG3EwxYgis=;
-        b=RLyQoSd3ZIkUQbdDiu6lKzzSx9Xxz2PLuHc1r936vpkPAnk/HaYolWpLRSKA8wHziK
-         hMo7XjsROlfy4el6Nl9a7UvFN2miBugUq1uSWkx4Mw9s/Vm2FeI29As0qPGkCr+tE60u
-         X+Wll1tFseEDNXGhVjTZIzDYBi7Jf7EGVy/vlcjvqX23LOkMnve0Vhi2tK0q9ci4nHIj
-         dIaz4p7nGApFCjHKcp077k5lRWG8rAnsLeBhNTIUCmqHKeEWnbWMIoY/dPcgAxpm8m0w
-         vXwWvBXqG3YOlyJxRqhyUPwaen98p72hFcxsnlbA0YLlVleb+Byp9vv5MgXRQ9TqvM7q
-         9bow==
-X-Gm-Message-State: ACrzQf3xKXB2FQ5PAqua6E41cdpi1xtOs0BgWKG38uUChwSPGE69+Y8V
-        2MgrN95XT9B7CXuSy7j7Lp9bLA==
-X-Google-Smtp-Source: AMsMyM4kMZdZIbntenev7NAd8FtPrEx319fPVgDr1A96WLsrqhQsOxDeGrhtoxh8EkTb1EysuRexfQ==
-X-Received: by 2002:a5d:58d7:0:b0:236:6c53:6123 with SMTP id o23-20020a5d58d7000000b002366c536123mr39987592wrf.719.1668010162874;
-        Wed, 09 Nov 2022 08:09:22 -0800 (PST)
+        bh=mZWwNSEAuMfkLC1//h9rhEQdeaWkxTtOogVUcqByABI=;
+        b=Ys8KvU7roG+DxVVp6SWaRQ87eiKyA6wvpC0UQf5qMpUQodX26FmNcr4xfmdhSscIL2
+         kSk6tATvmPoReOSuiCOwSLeudq8QCiGQ+8AOVsWOj8+Qzwkq/qEQ4q/k+iUOHUe5KEqm
+         qUD2iNn9bKqRndGpFamhbYpZTItXKiOvkzw954CpnmXJU85cDQxsCpaFS3ecDjCqyQT2
+         7Jxv6vzWPK12wS3kn03HqujU5ymGp75WXdJZJYqJAe/qIXgb8RPxGF7hQepT4CewN2e4
+         X4i0cAK01RCLJRhU+lS6b1wcu/53CgrG1jVH8CXgdwT6O2oHjUpadn+ch6YzUH6D121w
+         umyA==
+X-Gm-Message-State: ACrzQf1YimSTLg3OQ8koXHW+Fcvg2nv5CzmnzEGt69Vor+hufsNLQhBf
+        TWselffAEbKNoIY8qJrKpoycLQ==
+X-Google-Smtp-Source: AMsMyM4MbiwJYQDTdPHUWGLJ5LwaSU5ZSyFSnw+N9Wteih8C3GJQFIO3o931AsfYTN8MaLW09vOeyw==
+X-Received: by 2002:a5d:5643:0:b0:236:699c:6cd8 with SMTP id j3-20020a5d5643000000b00236699c6cd8mr39608243wrw.435.1668010160873;
+        Wed, 09 Nov 2022 08:09:20 -0800 (PST)
 Received: from mpfj-unity.. ([94.12.112.226])
-        by smtp.gmail.com with ESMTPSA id n4-20020a5d6604000000b002366fb99cdasm13307772wru.50.2022.11.09.08.09.21
+        by smtp.gmail.com with ESMTPSA id n4-20020a5d6604000000b002366fb99cdasm13307772wru.50.2022.11.09.08.09.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Nov 2022 08:09:22 -0800 (PST)
+        Wed, 09 Nov 2022 08:09:20 -0800 (PST)
 From:   Mark Jackson <mpfj@newflow.co.uk>
 To:     Mark Jackson <mpfj@newflow.co.uk>,
         =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
@@ -57,9 +57,9 @@ To:     Mark Jackson <mpfj@newflow.co.uk>,
         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
         linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH 5/5] ARM: dts: nanobone: Enable USB host
-Date:   Wed,  9 Nov 2022 16:09:04 +0000
-Message-Id: <20221109160904.183147-6-mpfj@newflow.co.uk>
+Subject: [PATCH 3/5] ARM: dts: nanobone: Enable I2C temperature sensor
+Date:   Wed,  9 Nov 2022 16:09:02 +0000
+Message-Id: <20221109160904.183147-4-mpfj@newflow.co.uk>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20221109160904.183147-1-mpfj@newflow.co.uk>
 References: <20221109160904.183147-1-mpfj@newflow.co.uk>
@@ -69,28 +69,29 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add missing entry to enable the USB host.
+The NanoBone platform supports a temperature sensor on the I2C bus.
 
 Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
 ---
- arch/arm/boot/dts/am335x-nano.dts | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/boot/dts/am335x-nano.dts | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-nano.dts b/arch/arm/boot/dts/am335x-nano.dts
-index 728164298a5e..61af12b70688 100644
+index cecc2afaeff4..2be831927af6 100644
 --- a/arch/arm/boot/dts/am335x-nano.dts
 +++ b/arch/arm/boot/dts/am335x-nano.dts
-@@ -423,6 +423,10 @@ &mmc1 {
- 	wp-gpios = <&gpio3 18 GPIO_ACTIVE_HIGH>;
+@@ -212,6 +212,11 @@ &uart5 {
+ 	status = "okay";
  };
  
-+&usb0 {
-+	dr_mode = "host";
++temperature-sensor@48 {
++	compatible = "lm75";
++	reg = <0x48>;
 +};
 +
- #include "tps65217.dtsi"
- 
- &tps {
+ &i2c0 {
+ 	status = "okay";
+ 	pinctrl-names = "default";
 -- 
 2.34.1
 
