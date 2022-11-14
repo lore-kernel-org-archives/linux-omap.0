@@ -2,144 +2,86 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 228E5C43219
-	for <linux-omap@archiver.kernel.org>; Sun, 13 Nov 2022 18:11:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6031C433FE
+	for <linux-omap@archiver.kernel.org>; Mon, 14 Nov 2022 11:38:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235085AbiKMSL5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 13 Nov 2022 13:11:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56018 "EHLO
+        id S235859AbiKNLiN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 14 Nov 2022 06:38:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235214AbiKMSLz (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 13 Nov 2022 13:11:55 -0500
-Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAB8D21A7
-        for <linux-omap@vger.kernel.org>; Sun, 13 Nov 2022 10:11:54 -0800 (PST)
-Received: by mail-ed1-x52d.google.com with SMTP id u24so14240412edd.13
-        for <linux-omap@vger.kernel.org>; Sun, 13 Nov 2022 10:11:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amarulasolutions.com; s=google;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=uVJeOgU1MIdsaRRuNRXfWkoor1WXWdAlm1t56aPqLUQ=;
-        b=ZeE7sehyqyO8yEGseHk2i8Alz+UA6NHE4c0cFh7YkV/8NlpSx2RpWD4vMfON3omgrB
-         lMRk0aYkM8yi9B5gWpTacPadQ85MRiQorRk9YokTWE7FPEcTJoP9fO6AdmGdhw0YrOxG
-         0OLBu3M43F13pPkadkbKJ/bHckw/gai77fgps=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=uVJeOgU1MIdsaRRuNRXfWkoor1WXWdAlm1t56aPqLUQ=;
-        b=LkQkpYAOsJRV3wW1HaEKcqzuECu1dYJ6gAT9KFet/livSx61Cn8XLdfUCNA1QvzVBa
-         XJOqmRARFXztUfanj23IbhBmnTXYoEjgBuTyP68fyTDbdM42m/qrW8hA6rjbDWr+Jk1m
-         nIvjHRDhvr0+qB+azlK8G6P/6ljMIqWiBj7qisKZ4W8gybsq9CbVL7QcwMEHgabGDpxh
-         7ttC0B/lVaYJikSJPzDv+Iy5+7doCkygO1U3JpFSvWpx1bFArV3onGcyhRiHgKNrTB7R
-         hObtVXBxTD/mVgnUgfUxJNRCLZY0zwAxfBFILlATTc6aL03bWx0a4L6TJZNbblkKTaQF
-         1etg==
-X-Gm-Message-State: ANoB5pm6ETG9f8Os1bTQFA9vOF35FY64smM3OMegdVOQDWJ7Fuew9XEp
-        ospK1YBe7KtZL3eoOdTlz6CXdw==
-X-Google-Smtp-Source: AA0mqf5ezW1G+OZ8sWz55+aS7bofz0kd9bhX7jV4sX3OArkjBj2ZqzWGEEuR0nCjDcBecItFzHS4WA==
-X-Received: by 2002:a05:6402:291e:b0:45c:98a9:7bbf with SMTP id ee30-20020a056402291e00b0045c98a97bbfmr8617406edb.372.1668363113421;
-        Sun, 13 Nov 2022 10:11:53 -0800 (PST)
-Received: from dario-ThinkPad-T14s-Gen-2i.homenet.telecomitalia.it (host-79-40-103-33.business.telecomitalia.it. [79.40.103.33])
-        by smtp.gmail.com with ESMTPSA id i20-20020a50fd14000000b004618a89d273sm3753534eds.36.2022.11.13.10.11.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 13 Nov 2022 10:11:53 -0800 (PST)
-From:   Dario Binacchi <dario.binacchi@amarulasolutions.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     Amarula patchwork <linux-amarula@amarulasolutions.com>,
-        michael@amarulasolutions.com,
-        Dario Binacchi <dario.binacchi@amarulasolutions.com>,
-        kernel test robot <lkp@intel.com>,
-        Allison Randal <allison@lohutok.net>,
-        Miaoqian Lin <linmq006@gmail.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Tero Kristo <kristo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Tony Lindgren <tony@atomide.com>, linux-clk@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: [PATCH v4 2/2] clk: ti: dra7-atl: don't allocate `parent_names' variable
-Date:   Sun, 13 Nov 2022 19:11:47 +0100
-Message-Id: <20221113181147.1626585-2-dario.binacchi@amarulasolutions.com>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20221113181147.1626585-1-dario.binacchi@amarulasolutions.com>
-References: <20221113181147.1626585-1-dario.binacchi@amarulasolutions.com>
+        with ESMTP id S229484AbiKNLiM (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 14 Nov 2022 06:38:12 -0500
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A546E0E8
+        for <linux-omap@vger.kernel.org>; Mon, 14 Nov 2022 03:38:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=kemnade.info; s=20220719; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=PrNFcixPn+MG01/kOkfXY15R3eqYFpWyt4XCXqLRKZw=; b=o6LrO2wEvWbArpEl35UG3pfve4
+        pmgTJlph6PWlbj/TxUT9agy8bDiIJdLumoR6gkf9l4CWwa/z1KYZ+meCI0SIqEF4FjawMjFDFNRV9
+        FlImaaI99FdPktA3BcEGYsubQ4vizqlYR6drGdOwDdcZS8n0ClcJG8zW7LDijJm1rNHwjRuxEVJQh
+        shsiGoG22eXtuid0CPN78od/kuL86t1X+mhs0It5JHAxt+BRBfVBHV53hv+F4puRezvePLgLcxe3g
+        dhVA9hu3io8Xsh/Z0r/IQcWc6vnbdFxlFyKSxEr0GAy/VH0S/8bI52wIkulDecWBx8tiRl0WX+AXG
+        xTEXKmVw==;
+Received: from p200300ccff0644001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff06:4400:1a3d:a2ff:febf:d33a] helo=aktux)
+        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <andreas@kemnade.info>)
+        id 1ouXmx-00042k-2H; Mon, 14 Nov 2022 12:38:07 +0100
+Date:   Mon, 14 Nov 2022 12:38:05 +0100
+From:   Andreas Kemnade <andreas@kemnade.info>
+To:     Tony Lindgren <tony@atomide.com>
+Cc:     deffo@gmx.de, linux-omap@vger.kernel.org, aford173@gmail.com
+Subject: Re: twl: not initialized and twl6030_uv_to_vsel problems
+Message-ID: <20221114123805.60ada45e@aktux>
+In-Reply-To: <20191230174010.GO35479@atomide.com>
+References: <trinity-8c439dd8-69cc-4bbc-812f-a063b15a9369-1576233714035@3c-app-gmx-bs17>
+        <20191230174010.GO35479@atomide.com>
+X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The `parent_names' variable was freed also in case of kzalloc() error.
-Instead of modifying the code to perform a proper memory release, I
-decided to fix the bug by not allocating memory.
-Since only one parent name is referenced, it is not necessary to
-allocate this variable at runtime and therefore you can avoid calling
-the kzalloc() function. This simplifies the code (even calls to kfree
-can be removed) and improves the performance of the routine.
+Hi,
 
-Signed-off-by: Dario Binacchi <dario.binacchi@amarulasolutions.com>
-Reported-by: kernel test robot <lkp@intel.com>
+as am taming the Epson Moverio BT-200 containing
+an omap 4660, I came across that this issue. The kernel hangs somewhere
+after this, I am still debugging.
 
----
+What is the impact of all this? Just not working cpufreq modifications?
 
-(no changes since v3)
+On Mon, 30 Dec 2019 09:40:10 -0800
+Tony Lindgren <tony@atomide.com> wrote:
 
-Changes in v3:
-- Add the "clk: ti: add of_ti_clk_register() helper" patch to the series.
-- Use a variable of type struct clk_parent_data to furthermore simplify
-  the code.
-- Update the commit message.
+> * deffo@gmx.de <deffo@gmx.de> [191213 10:42]:
+> > Thanks for the link Adam, I fixed this on my local branch.
+> > 
+so, it did not went into mainline kernel? Can/did you
+publish the fix?
 
-Changes in v2:
-- Fix compiling error
-- Add kernel test robot's Reported-by tag.
+> > Concerning the
+> > 
+> > [    2.318054] twl: not initialized
+> > 
+seen this also
 
- drivers/clk/ti/clk-dra7-atl.c | 14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+> > error, this is due to the fact, that the twl itself is probed later:
+> > 
+> > [    3.042114] twl_probe() called
+> > 
+and the kernel hangs before that (probably still some other problem, still investigating)
 
-diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
-index 1c576599f6db..d964e3affd42 100644
---- a/drivers/clk/ti/clk-dra7-atl.c
-+++ b/drivers/clk/ti/clk-dra7-atl.c
-@@ -163,8 +163,8 @@ static const struct clk_ops atl_clk_ops = {
- static void __init of_dra7_atl_clock_setup(struct device_node *node)
- {
- 	struct dra7_atl_desc *clk_hw = NULL;
-+	struct clk_parent_data pdata = { .index = 0 };
- 	struct clk_init_data init = { NULL };
--	const char **parent_names = NULL;
- 	const char *name;
- 	struct clk *clk;
- 
-@@ -188,24 +188,14 @@ static void __init of_dra7_atl_clock_setup(struct device_node *node)
- 		goto cleanup;
- 	}
- 
--	parent_names = kzalloc(sizeof(char *), GFP_KERNEL);
--
--	if (!parent_names)
--		goto cleanup;
--
--	parent_names[0] = of_clk_get_parent_name(node, 0);
--
--	init.parent_names = parent_names;
--
-+	init.parent_data = &pdata;
- 	clk = of_ti_clk_register(node, &clk_hw->hw, name);
- 
- 	if (!IS_ERR(clk)) {
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
--		kfree(parent_names);
- 		return;
- 	}
- cleanup:
--	kfree(parent_names);
- 	kfree(clk_hw);
- }
- CLK_OF_DECLARE(dra7_atl_clock, "ti,dra7-atl-clock", of_dra7_atl_clock_setup);
--- 
-2.32.0
+> > So it cannot be available at this point. Might be a fundamental problem in the chronological order of init calls?  
+> 
+> Hmm maybe the related omap_*_initcall() needs to use *_initcall_sync()?
+> 
+so there is no fix yet?
 
+Regards
+Andreas
