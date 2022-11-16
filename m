@@ -2,71 +2,114 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B86FC43217
-	for <linux-omap@archiver.kernel.org>; Wed, 16 Nov 2022 16:51:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0131BC4332F
+	for <linux-omap@archiver.kernel.org>; Wed, 16 Nov 2022 18:11:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234187AbiKPQvO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 16 Nov 2022 11:51:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35930 "EHLO
+        id S234780AbiKPSL4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 16 Nov 2022 13:11:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239079AbiKPQur (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 16 Nov 2022 11:50:47 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F223EBFD;
-        Wed, 16 Nov 2022 08:49:27 -0800 (PST)
+        with ESMTP id S234613AbiKPSLy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 16 Nov 2022 13:11:54 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBAF06175A;
+        Wed, 16 Nov 2022 10:11:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F47C61EEE;
-        Wed, 16 Nov 2022 16:49:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8684C433C1;
-        Wed, 16 Nov 2022 16:49:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9BF40B81E4F;
+        Wed, 16 Nov 2022 18:11:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AEE4C433D6;
+        Wed, 16 Nov 2022 18:11:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1668617367;
-        bh=16nnj3/xX+6iwyOgTVs9QzovzYa3SNqQYQfd1VXyLeo=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cRlE3TGR1U6cSXl9fCHIs/XV+TdWdcs1TMYAMDX5IWHXUGnSlu2GVTDFRuKhE4VOl
-         +abfIUsa9kbUOuYcqWi7o4oDK+DCRpCYUNAC0nXEAqzWT5dGEgam3hyrxSPVyCdl7j
-         oU2woeD6kE4BKXBAw98UQ5WEAXiNatFhBmHIqd5brvAI3eS9nhYBuoApAp+fYZ4p3d
-         F0091tTLQTi7S4kWOZv9wBUX3PYpw1HBskoCE1MstIiJ5eWwR4mIcFp7XGOYFCqytb
-         7rfAdNldYJd88eUIHV+EOgK1PQ3rqyrsnPbcQaibnCEKtCWWEWohoH6EiMXkTnBzL4
-         eYweCjtYAAKLA==
-From:   Roger Quadros <rogerq@kernel.org>
-To:     davem@davemloft.net, kuba@kernel.org
-Cc:     edumazet@google.com, pabeni@redhat.com, vigneshr@ti.com,
-        linux-omap@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Roger Quadros <rogerq@kernel.org>
-Subject: [PATCH 2/4] net: ethernet: ti: am65-cpsw-nuss: Remove redundant ALE_CLEAR
-Date:   Wed, 16 Nov 2022 18:49:13 +0200
-Message-Id: <20221116164915.13236-3-rogerq@kernel.org>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20221116164915.13236-1-rogerq@kernel.org>
-References: <20221116164915.13236-1-rogerq@kernel.org>
+        s=k20201202; t=1668622311;
+        bh=w0UO98liO5fLCNnlMHd5BQufutT9Of+UoFv/uKbaByY=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=lAKPE3PSimsi0+eDiHvPD0qlee7GY738+lb4Z/kt+iyzopEL4vDLZBi2713YTl0LP
+         Kg1W0TOqgwruvLtNRIAZeZdf+tOwkqFXGYuZTkjeF8kYL4U+1HUrwiD9Z8zcdGm76R
+         4zwKh9CeSj8QWrYOZ7ll+7j7kTij7cCB7ulC/B/LXk1QAXeSP+tLmI1FHZRGW+jhY9
+         E0bNNr7YN82FOI/HOt/wUjgBmdSgcQxsTlc8wz8mijzDTZZbR9RAX9FVNzdimGvy8n
+         zD65CrnJ4UCifwzRNdMuOhc/yqHSdSW9A/RqKevSBiy5GSJZ2kleyAtIPxdW7Nz04i
+         mJo1QaKw6/5Sw==
+Date:   Wed, 16 Nov 2022 18:11:43 +0000
+From:   Lee Jones <lee@kernel.org>
+To:     Jerome Neanne <jneanne@baylibre.com>
+Cc:     lgirdwood@gmail.com, broonie@kernel.org, robh+dt@kernel.org,
+        nm@ti.com, kristo@kernel.org, dmitry.torokhov@gmail.com,
+        krzysztof.kozlowski+dt@linaro.org, catalin.marinas@arm.com,
+        will@kernel.org, tony@atomide.com, vigneshr@ti.com,
+        shawnguo@kernel.org, geert+renesas@glider.be,
+        dmitry.baryshkov@linaro.org, marcel.ziswiler@toradex.com,
+        vkoul@kernel.org, biju.das.jz@bp.renesas.com, arnd@arndb.de,
+        jeff@labundy.com, afd@ti.com, khilman@baylibre.com,
+        narmstrong@baylibre.com, msp@baylibre.com, j-keerthy@ti.com,
+        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org,
+        linux-omap@vger.kernel.org
+Subject: Re: [PATCH v7 4/6] mfd: tps65219: Add driver for TI TPS65219 PMIC
+Message-ID: <Y3Un36o/lACru9Kq@google.com>
+References: <20221104152311.1098603-1-jneanne@baylibre.com>
+ <20221104152311.1098603-5-jneanne@baylibre.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20221104152311.1098603-5-jneanne@baylibre.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-ALE_CLEAR command is issued in cpsw_ale_start() so no need
-to issue it before the call to cpsw_ale_start().
+On Fri, 04 Nov 2022, Jerome Neanne wrote:
 
-Fixes: fd23df72f2be ("net: ethernet: ti: am65-cpsw: Add suspend/resume support")
-Signed-off-by: Roger Quadros <rogerq@kernel.org>
----
- drivers/net/ethernet/ti/am65-cpsw-nuss.c | 1 -
- 1 file changed, 1 deletion(-)
+> The TPS65219 is a power management IC PMIC designed to supply a wide
+> range of SoCs in both portable and stationary applications. Any SoC can
+> control TPS65219 over a standard I2C interface.
+> 
+> It contains the following components:
+> - Regulators.
+> - Over Temperature warning and Shut down.
+> - GPIOs
+> - Multi Function Pins (MFP)
+> - power-button
+> 
+> This patch adds support for tps65219 PMIC. At this time only
+> the functionalities listed below are made available:
+> 
+> - Regulators probe and functionalities
+> - warm and cold reset support
+> - SW shutdown support
+> - Regulator warnings via IRQs
+> - Power-button via IRQ
+> 
+> Signed-off-by: Jerome Neanne <jneanne@baylibre.com>
+> Signed-off-by: Markus Schneider-Pargmann <msp@baylibre.com>
+> Acked-for-mfd-by: Lee Jones <lee@kernel.org>
+> ---
+> 
+> Notes:
+>     Changes in v7:
+>     Lee Jones review
+>     - Kconfig nit: button that is
+>     - tps65219.c, nits: '\n' x2
+>     - tps65219.c, nit: { .name = "tps65219-gpios", },
+>     - tps65219.h, nit: Power Management IC
+>     - tps65219.h, rework header: struct tps65219
+>     - tps65219.h, remove Superflous " " /* MFD_TPS65219_H */
+>     - remove unused tps65219_soft_shutdown further to make W=1 check
+>     Biju Das review:
+>     - Remove all includes that are not mandatory
+>     - Remove container_of err check
+> 
+>  MAINTAINERS                  |   1 +
+>  drivers/mfd/Kconfig          |  14 ++
+>  drivers/mfd/Makefile         |   1 +
+>  drivers/mfd/tps65219.c       | 299 ++++++++++++++++++++++++++++++
+>  include/linux/mfd/tps65219.h | 345 +++++++++++++++++++++++++++++++++++
+>  5 files changed, 660 insertions(+)
+>  create mode 100644 drivers/mfd/tps65219.c
+>  create mode 100644 include/linux/mfd/tps65219.h
 
-diff --git a/drivers/net/ethernet/ti/am65-cpsw-nuss.c b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-index f8899ac5e249..4107e9df65cd 100644
---- a/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-+++ b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
-@@ -404,7 +404,6 @@ static int am65_cpsw_nuss_common_open(struct am65_cpsw_common *common)
- 	/* disable priority elevation */
- 	writel(0, common->cpsw_base + AM65_CPSW_REG_PTYPE);
- 
--	cpsw_ale_control_set(common->ale, 0, ALE_CLEAR, 1);
- 	cpsw_ale_start(common->ale);
- 
- 	/* limit to one RX flow only */
+Applied, thanks.
+
 -- 
-2.17.1
-
+Lee Jones [李琼斯]
