@@ -2,43 +2,46 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E3CBC4321E
-	for <linux-omap@archiver.kernel.org>; Sat, 19 Nov 2022 00:10:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E32F5C4332F
+	for <linux-omap@archiver.kernel.org>; Sat, 19 Nov 2022 00:35:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237651AbiKSAKo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Nov 2022 19:10:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40098 "EHLO
+        id S235871AbiKSAfe (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 18 Nov 2022 19:35:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55252 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237511AbiKSAJu (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Nov 2022 19:09:50 -0500
+        with ESMTP id S235833AbiKSAfB (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Nov 2022 19:35:01 -0500
 Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 921BCA5705
-        for <linux-omap@vger.kernel.org>; Fri, 18 Nov 2022 15:33:08 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB2B8729BF
+        for <linux-omap@vger.kernel.org>; Fri, 18 Nov 2022 15:42:56 -0800 (PST)
 Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
         by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.92)
         (envelope-from <ukl@pengutronix.de>)
-        id 1owA9J-0004HR-TP; Fri, 18 Nov 2022 23:47:53 +0100
+        id 1owA9h-0005GX-7Q; Fri, 18 Nov 2022 23:48:17 +0100
 Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
         by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
         (envelope-from <ukl@pengutronix.de>)
-        id 1owA9H-0058iL-GI; Fri, 18 Nov 2022 23:47:52 +0100
+        id 1owA9e-0058rp-Cb; Fri, 18 Nov 2022 23:48:15 +0100
 Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
         (envelope-from <ukl@pengutronix.de>)
-        id 1owA9F-0000Lv-Nm; Fri, 18 Nov 2022 23:47:49 +0100
+        id 1owA9e-0000UF-Lg; Fri, 18 Nov 2022 23:48:14 +0100
 From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <uwe@kleine-koenig.org>
 To:     Angel Iglesias <ang.iglesiasg@gmail.com>,
         Lee Jones <lee.jones@linaro.org>,
         Grant Likely <grant.likely@linaro.org>,
         Wolfram Sang <wsa@kernel.org>,
-        Tony Lindgren <tony@atomide.com>, Lee Jones <lee@kernel.org>
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Felipe Balbi <felipe.balbi@linux.intel.com>
 Cc:     linux-i2c@vger.kernel.org, kernel@pengutronix.de,
         =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 449/606] mfd: palmas: Convert to i2c's .probe_new()
-Date:   Fri, 18 Nov 2022 23:43:03 +0100
-Message-Id: <20221118224540.619276-450-uwe@kleine-koenig.org>
+        <u.kleine-koenig@pengutronix.de>, linux-usb@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 575/606] usb: isp1301-omap: Convert to i2c's .probe_new()
+Date:   Fri, 18 Nov 2022 23:45:09 +0100
+Message-Id: <20221118224540.619276-576-uwe@kleine-koenig.org>
 X-Mailer: git-send-email 2.38.1
 In-Reply-To: <20221118224540.619276-1-uwe@kleine-koenig.org>
 References: <20221118224540.619276-1-uwe@kleine-koenig.org>
@@ -60,31 +63,30 @@ can be trivially converted.
 
 Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 ---
- drivers/mfd/palmas.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/usb/phy/phy-isp1301-omap.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index 8b7429bd2e3e..d26d82c85ba8 100644
---- a/drivers/mfd/palmas.c
-+++ b/drivers/mfd/palmas.c
-@@ -502,8 +502,7 @@ static const struct of_device_id of_palmas_match_tbl[] = {
- };
- MODULE_DEVICE_TABLE(of, of_palmas_match_tbl);
+diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
+index e5d3f206097c..931610b76f3d 100644
+--- a/drivers/usb/phy/phy-isp1301-omap.c
++++ b/drivers/usb/phy/phy-isp1301-omap.c
+@@ -1471,7 +1471,7 @@ isp1301_start_hnp(struct usb_otg *otg)
+ /*-------------------------------------------------------------------------*/
  
--static int palmas_i2c_probe(struct i2c_client *i2c,
--			    const struct i2c_device_id *id)
-+static int palmas_i2c_probe(struct i2c_client *i2c)
+ static int
+-isp1301_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
++isp1301_probe(struct i2c_client *i2c)
  {
- 	struct palmas *palmas;
- 	struct palmas_platform_data *pdata;
-@@ -732,7 +731,7 @@ static struct i2c_driver palmas_i2c_driver = {
- 		   .name = "palmas",
- 		   .of_match_table = of_palmas_match_tbl,
+ 	int			status;
+ 	struct isp1301		*isp;
+@@ -1616,7 +1616,7 @@ static struct i2c_driver isp1301_driver = {
+ 	.driver = {
+ 		.name	= "isp1301_omap",
  	},
--	.probe = palmas_i2c_probe,
-+	.probe_new = palmas_i2c_probe,
- 	.remove = palmas_i2c_remove,
- 	.id_table = palmas_i2c_id,
+-	.probe		= isp1301_probe,
++	.probe_new	= isp1301_probe,
+ 	.remove		= isp1301_remove,
+ 	.id_table	= isp1301_id,
  };
 -- 
 2.38.1
