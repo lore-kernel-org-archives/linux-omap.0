@@ -2,67 +2,109 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78D91C433FE
-	for <linux-omap@archiver.kernel.org>; Sun, 20 Nov 2022 22:12:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A59EDC4332F
+	for <linux-omap@archiver.kernel.org>; Sun, 20 Nov 2022 22:12:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229644AbiKTWM0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 20 Nov 2022 17:12:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56184 "EHLO
+        id S229775AbiKTWM1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 20 Nov 2022 17:12:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229617AbiKTWMY (ORCPT
+        with ESMTP id S229622AbiKTWMY (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Sun, 20 Nov 2022 17:12:24 -0500
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C6DB26486;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECAF626552;
         Sun, 20 Nov 2022 14:12:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=kemnade.info; s=20220719; h=Content-Transfer-Encoding:MIME-Version:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=mHensYgwzIJKT532DNKE/RSfHEKyHXNfQyHZcpZq60w=; b=KPaM8bls9zL606ZIVqyXz+QTGU
-        8S+NWcrXOYQLWqLUB8B07gLJOc9HQzg0ird4q796confO1q8SpSFqYWdf9Yiy9EZH3Ix8QBGeaY3A
-        djZab63MN86cbzq+uutgBGKxsZd/KhdMu46fkfXsH4f21sfqXjei0sa55MlG6+6zabZ12TrV+XNXq
-        aFxFFehe7SC06yD6Q5MTLeBVDQpI1useTqVBJbMOEp1CxU61kzqH5bejgRCXzmTypYHQjvug9Sacj
-        CN505enOwJpqr/WQ7+OSwgkFgB4BWRnR0gBHhUq06pkQC4XigR6p/nhSIOH6FNlHaReCec3XlW5BM
-        7emjknZQ==;
+        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
+        Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=/bcYYEBupthiwQFde2svNyfveIgcGiNItZQIVI9J6Ss=; b=Bg5jbkqHupRZJTsHapmaeOsvZu
+        LI4K4Y8mGOaSMFKqz5evy0COP2ho8d+q8mprBht9AgcaCGFKGllwhdifTJwEjEwhK/Nt+/sN1wbGN
+        ukDZ821qV4C40N3IEbjBWAmiAnfEhQ9PYWLwITdcAUPFcUVYHbQTJY+c4VyZrHNUKbl6fktJv7DXs
+        b71/72DRPJywmI4p//ikfup3Hxj6D5Fqn7oDhTFqAMAoSbotFcDNYKyx99RBlrPQlXl7DEqZmUhI2
+        0JU3HqPd5Cs0mThu8P1skZ5/WDMkYnPdNIh45ki/alZXXCux9+znFmKRHIPZaRSSMDuvOOQYtJt/f
+        j7Ruz+fA==;
 Received: from p200300ccff43b2001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff43:b200:1a3d:a2ff:febf:d33a] helo=aktux)
         by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.89)
         (envelope-from <andreas@kemnade.info>)
-        id 1owsXt-00068k-HP; Sun, 20 Nov 2022 23:12:13 +0100
+        id 1owsXw-00069B-6U; Sun, 20 Nov 2022 23:12:16 +0100
 Received: from andi by aktux with local (Exim 4.94.2)
         (envelope-from <andreas@kemnade.info>)
-        id 1owsXs-00Cypf-EJ; Sun, 20 Nov 2022 23:12:12 +0100
+        id 1owsXv-00Cypm-CX; Sun, 20 Nov 2022 23:12:15 +0100
 From:   Andreas Kemnade <andreas@kemnade.info>
 To:     tony@atomide.com, lgirdwood@gmail.com, broonie@kernel.org,
         Nicolae_Rosia@mentor.com, linux-omap@vger.kernel.org,
         linux-kernel@vger.kernel.org
 Cc:     Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH 0/2] regulator: twl6030: some TWL6032 fixes
-Date:   Sun, 20 Nov 2022 23:12:06 +0100
-Message-Id: <20221120221208.3093727-1-andreas@kemnade.info>
+Subject: [PATCH 2/2] regulator: twl6030: fix get status of twl6032 regulators
+Date:   Sun, 20 Nov 2022 23:12:08 +0100
+Message-Id: <20221120221208.3093727-3-andreas@kemnade.info>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20221120221208.3093727-1-andreas@kemnade.info>
+References: <20221120221208.3093727-1-andreas@kemnade.info>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-There are some problems regarding TWL6032 regulators, including
-inconsistent states. They come to light during porting support
-for the Epson Moverio BT-200 to newer kernels. 
-Information sources are the 3.0 vendor kernel 
-(http://epsonservice.goepson.com/downloads/VI-APS/BT200_kernel.tgz)
-and git blame archeology.
+Status is reported as always off in the 6032 case. Status
+reporting now matches the logic in the setters. Once of
+the differences to the 6030 is that there are no groups,
+therefore the state needs to be read out in the lower bits.
 
-Andreas Kemnade (2):
-  regulator: twl6030: re-add TWL6032_SUBCLASS
-  regulator: twl6030: fix get status of twl6032 regulators
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ drivers/regulator/twl6030-regulator.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
- drivers/regulator/twl6030-regulator.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/regulator/twl6030-regulator.c b/drivers/regulator/twl6030-regulator.c
+index 7c7e3648ea4b..f3856750944f 100644
+--- a/drivers/regulator/twl6030-regulator.c
++++ b/drivers/regulator/twl6030-regulator.c
+@@ -67,6 +67,7 @@ struct twlreg_info {
+ #define TWL6030_CFG_STATE_SLEEP	0x03
+ #define TWL6030_CFG_STATE_GRP_SHIFT	5
+ #define TWL6030_CFG_STATE_APP_SHIFT	2
++#define TWL6030_CFG_STATE_MASK		0x03
+ #define TWL6030_CFG_STATE_APP_MASK	(0x03 << TWL6030_CFG_STATE_APP_SHIFT)
+ #define TWL6030_CFG_STATE_APP(v)	(((v) & TWL6030_CFG_STATE_APP_MASK) >>\
+ 						TWL6030_CFG_STATE_APP_SHIFT)
+@@ -128,13 +129,14 @@ static int twl6030reg_is_enabled(struct regulator_dev *rdev)
+ 		if (grp < 0)
+ 			return grp;
+ 		grp &= P1_GRP_6030;
++		val = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_STATE);
++		val = TWL6030_CFG_STATE_APP(val);
+ 	} else {
++		val = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_STATE);
++		val &= TWL6030_CFG_STATE_MASK;
+ 		grp = 1;
+ 	}
+ 
+-	val = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_STATE);
+-	val = TWL6030_CFG_STATE_APP(val);
+-
+ 	return grp && (val == TWL6030_CFG_STATE_ON);
+ }
+ 
+@@ -187,7 +189,12 @@ static int twl6030reg_get_status(struct regulator_dev *rdev)
+ 
+ 	val = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_STATE);
+ 
+-	switch (TWL6030_CFG_STATE_APP(val)) {
++	if (info->features & TWL6032_SUBCLASS)
++		val &= TWL6030_CFG_STATE_MASK;
++	else
++		val = TWL6030_CFG_STATE_APP(val);
++
++	switch (val) {
+ 	case TWL6030_CFG_STATE_ON:
+ 		return REGULATOR_STATUS_NORMAL;
+ 
 -- 
 2.30.2
 
