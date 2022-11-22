@@ -2,62 +2,134 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EFE6C43219
-	for <linux-omap@archiver.kernel.org>; Tue, 22 Nov 2022 09:41:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EB85C43217
+	for <linux-omap@archiver.kernel.org>; Tue, 22 Nov 2022 10:43:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233346AbiKVJlW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 22 Nov 2022 04:41:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41968 "EHLO
+        id S232809AbiKVKnK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 22 Nov 2022 05:43:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233340AbiKVJlM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2022 04:41:12 -0500
-X-Greylist: delayed 904 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 22 Nov 2022 01:41:10 PST
-Received: from mail.axisfairfi.com (mail.axisfairfi.com [94.177.230.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B43DE51C2F
-        for <linux-omap@vger.kernel.org>; Tue, 22 Nov 2022 01:41:08 -0800 (PST)
-Received: by mail.axisfairfi.com (Postfix, from userid 1001)
-        id C45E3825A9; Tue, 22 Nov 2022 09:15:31 +0000 (GMT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=axisfairfi.com;
-        s=mail; t=1669108533;
-        bh=0BgaW9t8GFER5QecxVkFsHrVi3gO/4V5KAZgJaiRYBs=;
-        h=Date:From:To:Subject:From;
-        b=TAAkBYCAn6Zy/OXoWL9AgOeCAmnup7QKA5vr8iNXa67PbC/1AJzkouU2E0xNzfYar
-         /6l1sMrOXGMUd5uZXf0O7Lb50USocWPRCnOFTr2uVdn0hp4J9CQLucL7CA6jwhUV0z
-         SAN9zcLuCrU7msOYATX10zD8S39HUMDiFdEinUq6p7YwDjzNj47q8ZWxxIfQV50kiW
-         GV2zZrBYFgQoSlx+jp3svEophcRwtMO5/Kmij4OBSgG9j+dPNI7jk5ZnxWvDvp4J4a
-         rmTvo91iL/gPmDItLvaoqrkcsTxx4Q5A1oQCJn0tguWY9EogDV0nO8KnJLB2n4ZkLC
-         sO88A/Kzogx0Q==
-Received: by mail.axisfairfi.com for <linux-omap@vger.kernel.org>; Tue, 22 Nov 2022 09:15:27 GMT
-Message-ID: <20221122074500-0.1.d.ocg.0.m2ppx7r0ue@axisfairfi.com>
-Date:   Tue, 22 Nov 2022 09:15:27 GMT
-From:   "Zbynek Spacek" <zbynek.spacek@axisfairfi.com>
-To:     <linux-omap@vger.kernel.org>
-Subject: Silikonmischungen
-X-Mailer: mail.axisfairfi.com
+        with ESMTP id S232378AbiKVKmk (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2022 05:42:40 -0500
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 21A2E5FAA;
+        Tue, 22 Nov 2022 02:37:28 -0800 (PST)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 20AEF8061;
+        Tue, 22 Nov 2022 10:27:14 +0000 (UTC)
+Date:   Tue, 22 Nov 2022 12:37:26 +0200
+From:   Tony Lindgren <tony@atomide.com>
+To:     Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Cc:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Nishanth Menon <nm@ti.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>
+Subject: Re: [PATCH v2 1/2] dt-bindings: pwm: Allow decimal format in
+ addition to hex format
+Message-ID: <Y3ymZphck8JM6g9B@atomide.com>
+References: <20221121115525.36362-1-tony@atomide.com>
+ <20221121144000.7weeyfbbulltfxmd@pengutronix.de>
+ <Y3uPvYqaILNiYW8K@atomide.com>
+ <bb5ac0cf-84eb-165f-40bb-0f3c9afe084f@linaro.org>
+ <Y3xTi5JeLPSWchT7@atomide.com>
+ <20221122093650.oouke2utlkvdd7r6@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20221122093650.oouke2utlkvdd7r6@pengutronix.de>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Good morning,
+* Uwe Kleine-König <u.kleine-koenig@pengutronix.de> [221122 09:26]:
+> On Tue, Nov 22, 2022 at 06:43:55AM +0200, Tony Lindgren wrote:
+> > * Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org> [221121 16:05]:
+> > > On 21/11/2022 15:48, Tony Lindgren wrote:
+> > > > * Uwe Kleine-König <u.kleine-koenig@pengutronix.de> [221121 14:30]:
+> > > >> On Mon, Nov 21, 2022 at 01:55:24PM +0200, Tony Lindgren wrote:
+> > > >>> Let's allow node numbering in decimal format too.
+> > > >>>
+> > > >>> Simple human-readable increments/IDs are usually decimal, hex is only for
+> > > >>> addresses as noted by Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>.
+> > > >>>
+> > > >>> Cc: Thierry Reding <thierry.reding@gmail.com>
+> > > >>> Cc: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+> > > >>> Suggested-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+> > > >>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > > >>> ---
+> > > >>>  Documentation/devicetree/bindings/pwm/pwm.yaml | 2 +-
+> > > >>>  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > >>>
+> > > >>> diff --git a/Documentation/devicetree/bindings/pwm/pwm.yaml b/Documentation/devicetree/bindings/pwm/pwm.yaml
+> > > >>> --- a/Documentation/devicetree/bindings/pwm/pwm.yaml
+> > > >>> +++ b/Documentation/devicetree/bindings/pwm/pwm.yaml
+> > > >>> @@ -13,7 +13,7 @@ select: false
+> > > >>>  
+> > > >>>  properties:
+> > > >>>    $nodename:
+> > > >>> -    pattern: "^pwm(@.*|-[0-9a-f])*$"
+> > > >>> +    pattern: "^pwm(@.*|-([0-9a-f]|1[0-5]))*$"
+> > > >>
+> > > >> I wonder why you don't make this:
+> > > >>
+> > > >> +    pattern: "^pwm(@.*|-[0-9a-f]*)$"
+> > > 
+> > > Yes, the '*' should be within ().
+> > 
+> > Sorry I guess I don't follow. So for what type of naming is the second '*'
+> > actually needed here, or is it needed at all?
+> > 
+> > We only want to match the following:
+> > 
+> > pwm@1234
+> > 
+> > pwm-0
+> > ...
+> > pwm-f
+> > 
+> > And now also:
+> > 
+> > pwm-0
+> > ...
+> > pwm-15
+> > 
+> > Is there yet another format I'm missing?
+> 
+> I think there is a misunderstanding about the type of pattern here. Do
+> we talk about a shell pattern where "[0-9a-f]*" matches a name starting
+> with a hex digit followed by any number of any caracter, or is it a
+> regexp where the * means "any number of the preceding pattern", so
+> effectively a word consisting of only hex digits.
+> 
+> The .* part makes me think we're talking about a regexp, so the old
+> pattern ("^pwm(@.*|-[0-9a-f])*$") means that
+> 
+> 	pwm-1-2-3-4
+> 
+> is allowed but
+> 
+> 	pwm-10
+> 
+> isn't. And I think what we want is:
+> 
+> 	"^pwm(@.*|-[0-9a-f]*)$"
 
-do you need intermediates for processing, plastics (e.g. rubber) or silic=
-one mixtures?
+Heh so this fails for just node name pwm:
 
-We provide a wide range of silicone rubbers with various properties, sili=
-cone mixtures from renowned manufacturers such as Wacker, Elastosil LR an=
-d dyes, stabilizers, primers and anti-adhesive additives.
+pwm: $nodename:0: 'pwm' does not match '^pwm(@.*|-[0-9a-f]*)$'
 
-We also produce technical silicone compounds with increased resistance to=
- oils, resistant to high temperatures and water vapor, conductive and man=
-y more.
+Maybe that's why the second '..)*$' was there originally for?
+And adding it back there fixes pwm but allows pwm-1-2-3..
 
-We provide fast order fulfillment, timely deliveries and cost optimizatio=
-n.
+> (or maybe better "^pwm(@.+|-[0-9a-f]+)$" ?)
 
-Can I introduce what we can offer you?
+And this too fails for just pwm node name.
 
+Regards,
 
-Zbynek Spacek
+Tony
