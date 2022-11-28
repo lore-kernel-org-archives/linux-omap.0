@@ -2,47 +2,47 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 822A5C4332F
-	for <linux-omap@archiver.kernel.org>; Mon, 28 Nov 2022 17:46:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03C72C47090
+	for <linux-omap@archiver.kernel.org>; Mon, 28 Nov 2022 17:48:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233530AbiK1RqP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 28 Nov 2022 12:46:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35164 "EHLO
+        id S233653AbiK1RsF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 28 Nov 2022 12:48:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233357AbiK1Rpe (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 28 Nov 2022 12:45:34 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D8992CE21;
-        Mon, 28 Nov 2022 09:41:19 -0800 (PST)
+        with ESMTP id S233869AbiK1Rr0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 28 Nov 2022 12:47:26 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3907B86B;
+        Mon, 28 Nov 2022 09:42:28 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DED30B80E81;
-        Mon, 28 Nov 2022 17:41:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C357DC433C1;
-        Mon, 28 Nov 2022 17:41:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F9CB612F3;
+        Mon, 28 Nov 2022 17:42:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E474C433D7;
+        Mon, 28 Nov 2022 17:42:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1669657270;
-        bh=bU25Nii84+2iHsLAjyvDjHvd8R4uQjmsRD9iQBkNt8A=;
+        s=k20201202; t=1669657348;
+        bh=kGXYwuwyXtJQosUTTYFlFgheBkhyd/jCLJw5xzoWDHU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=p4YL6y53Ub1LWd7orWo8f2yJRZuuFvSEHnkjNIwBPZG597JT9R4kRmICS+A+WPazQ
-         DeTrESBshVh3akzNHQpY8oNbSUKVozKXeSg2t0Ij+B+c5MIKwpjkzc3x/+aSYOuIni
-         3CsoEiCnfnRa5VnY/5WN/NhgJ7prm95jMpFMTv/AQmNaifTQRXt6TXyTrvXcImUEKs
-         HLqi6qmoCIjLkTTB2aBLjYlWN2I4j0N+ivpcWI/MgVh5YtjULQDVV9Pu3Pnkjnpfbk
-         biNbHUnj3Isc37M1M6Ad8YebJeoMXSh7zf5i4B94X1+3D256zoejpNcUD2z6d2pIg+
-         aHiAuIpcrwsgw==
+        b=o0edW0ORqBa75a+hMswA5y/ZWtAvHQdb1LUR96SxCxufzwdJApfneSeIyztprs/PD
+         C1005IcMzDUZ+NdDpy58yOtlkbxJ1Y3WSbcZ0n7GGrVm0NJlsSWR6xbp8i/AI9DoGQ
+         f8G8ZQ8+3/r/j+KZkcg4FNqqLuD9yQ70h+3oNGWobdjv+lLhMBP2GT2JE0QmGTXkW9
+         J5RzvJUygXC+pKl1J5OZpZv7eru0KLd+LNz5jTRm0AxyjKuSHMr6pZhvMITlnQWj+k
+         1f8k2XEhiO3kzrhpBZLpw1X1JkJ6Za2jHNL+ls77l27hKS1wGcnXe51K/x3AQylM6l
+         EzAy1Qa8WkXnA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Andreas Kemnade <andreas@kemnade.info>,
         Mark Brown <broonie@kernel.org>,
         Sasha Levin <sashal@kernel.org>, tony@atomide.com,
         lgirdwood@gmail.com, linux-omap@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 20/24] regulator: twl6030: fix get status of twl6032 regulators
-Date:   Mon, 28 Nov 2022 12:40:20 -0500
-Message-Id: <20221128174027.1441921-20-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 13/16] regulator: twl6030: fix get status of twl6032 regulators
+Date:   Mon, 28 Nov 2022 12:41:56 -0500
+Message-Id: <20221128174201.1442499-13-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20221128174027.1441921-1-sashal@kernel.org>
-References: <20221128174027.1441921-1-sashal@kernel.org>
+In-Reply-To: <20221128174201.1442499-1-sashal@kernel.org>
+References: <20221128174201.1442499-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -69,7 +69,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 11 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/regulator/twl6030-regulator.c b/drivers/regulator/twl6030-regulator.c
-index 430265c404d6..7ee05556d783 100644
+index b8100c3cedad..103cc29e1d96 100644
 --- a/drivers/regulator/twl6030-regulator.c
 +++ b/drivers/regulator/twl6030-regulator.c
 @@ -67,6 +67,7 @@ struct twlreg_info {
