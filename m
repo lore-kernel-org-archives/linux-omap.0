@@ -2,92 +2,108 @@ Return-Path: <linux-omap-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3589C6370A
-	for <linux-omap@archiver.kernel.org>; Thu,  8 Dec 2022 11:00:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 760ECC4332F
+	for <linux-omap@archiver.kernel.org>; Thu,  8 Dec 2022 11:00:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229783AbiLHLAN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 8 Dec 2022 06:00:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35596 "EHLO
+        id S230294AbiLHLAr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 8 Dec 2022 06:00:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229786AbiLHK7y (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2022 05:59:54 -0500
-Received: from elvis.franken.de (elvis.franken.de [193.175.24.41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4A04B5C77D;
-        Thu,  8 Dec 2022 02:52:55 -0800 (PST)
-Received: from uucp (helo=alpha)
-        by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
-        id 1p3EW2-0002wy-01; Thu, 08 Dec 2022 11:52:34 +0100
-Received: by alpha.franken.de (Postfix, from userid 1000)
-        id 99685C2487; Thu,  8 Dec 2022 11:36:47 +0100 (CET)
-Date:   Thu, 8 Dec 2022 11:36:47 +0100
-From:   Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-To:     Geert Uytterhoeven <geert+renesas@glider.be>
-Cc:     =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Joel Stanley <joel@jms.id.au>,
-        Andrew Jeffery <andrew@aj.id.au>,
-        Avi Fishman <avifishman70@gmail.com>,
-        Tomer Maimon <tmaimon77@gmail.com>,
-        Tali Perry <tali.perry1@gmail.com>,
-        Patrick Venture <venture@google.com>,
-        Nancy Yuen <yuenn@google.com>,
-        Benjamin Fair <benjaminfair@google.com>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Stefan Agner <stefan@agner.ch>, Li Yang <leoyang.li@nxp.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        UNGLinuxDriver@microchip.com,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-aspeed@lists.ozlabs.org, openbmc@lists.ozlabs.org,
-        linux-renesas-soc@vger.kernel.org, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH 10/11] MIPS: mscc: jaguar2: Fix pca9545 i2c-mux node names
-Message-ID: <20221208103647.GB8388@alpha.franken.de>
-References: <cover.1669999298.git.geert+renesas@glider.be>
- <5eb01c348c5dd90887b33e866555df8f1067e9df.1669999298.git.geert+renesas@glider.be>
+        with ESMTP id S230296AbiLHLAN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2022 06:00:13 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04A192677;
+        Thu,  8 Dec 2022 02:55:45 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A079EB82396;
+        Thu,  8 Dec 2022 10:55:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B3DBC433C1;
+        Thu,  8 Dec 2022 10:55:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1670496942;
+        bh=OtqWu+aDjadxVuvyRi4BAI56AMslW80IYarQiIJA7e0=;
+        h=From:To:Cc:Subject:Date:From;
+        b=gQijJEMdCmHyZjO0UuTDe3wRIednN+54/3N4FMY+E5t2qjy5gXBf9XSEqfkxz8yG9
+         ZPx79XhwHov5QwYIcRZMdK02QVCya3GawEc+CqvbFzQhjUKGm7WUwApylzUblj1cjZ
+         OZnY+KTU0xktR5tZ6mnMYnGF+FB0dqgjRHt0vRH63kQItSi9jceqWoivA/61AbNXR+
+         2C4y/STnPkrqhwJqC+vDHKJMNL/ViT+AGtm8F6tWTmQkZXJitVVNUSz8DHQ0J86OPt
+         rrxCJgWK5n4wRM3HozEMMR2ND26PeMS/FqPVZAbvVtuf8zgA11pjnnqKWQF+M+sGRF
+         R0T+E2MV3O9bw==
+From:   Roger Quadros <rogerq@kernel.org>
+To:     davem@davemloft.net, maciej.fijalkowski@intel.com, kuba@kernel.org
+Cc:     andrew@lunn.ch, edumazet@google.com, pabeni@redhat.com,
+        vigneshr@ti.com, s-vadapalli@ti.com, linux-omap@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Roger Quadros <rogerq@kernel.org>
+Subject: [PATCH net-next] net: ethernet: ti: am65-cpsw: Fix PM runtime leakage in am65_cpsw_nuss_ndo_slave_open()
+Date:   Thu,  8 Dec 2022 12:55:34 +0200
+Message-Id: <20221208105534.63709-1-rogerq@kernel.org>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5eb01c348c5dd90887b33e866555df8f1067e9df.1669999298.git.geert+renesas@glider.be>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Dec 02, 2022 at 05:49:25PM +0100, Geert Uytterhoeven wrote:
-> "make dtbs_check":
-> 
->     arch/mips/boot/dts/mscc/jaguar2_pcb110.dtb: pca9545@70: $nodename:0: 'pca9545@70' does not match '^(i2c-?)?mux'
-> 	    From schema: Documentation/devicetree/bindings/i2c/i2c-mux-pca954x.yaml
->     arch/mips/boot/dts/mscc/jaguar2_pcb110.dtb: pca9545@70: Unevaluated properties are not allowed ('#address-cells', '#size-cells', 'i2c@0', 'i2c@1', 'i2c@2', 'i2c@3' were unexpected)
-> 	    From schema: Documentation/devicetree/bindings/i2c/i2c-mux-pca954x.yaml
->     ...
-> 
-> Fix this by renaming PCA9545 nodes to "i2c-mux", to match the I2C bus
-> multiplexer/switch DT bindings and the Generic Names Recommendation in
-> the Devicetree Specification.
-> 
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> ---
->  arch/mips/boot/dts/mscc/jaguar2_pcb110.dts | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+Ensure pm_runtime_put() is issued in error path.
 
-applied to mips-next.
+Reported-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Roger Quadros <rogerq@kernel.org>
+---
+ drivers/net/ethernet/ti/am65-cpsw-nuss.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-Thomas.
-
+diff --git a/drivers/net/ethernet/ti/am65-cpsw-nuss.c b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
+index b8f7080434cb..58c20e4c0e9f 100644
+--- a/drivers/net/ethernet/ti/am65-cpsw-nuss.c
++++ b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
+@@ -573,20 +573,21 @@ static int am65_cpsw_nuss_ndo_slave_open(struct net_device *ndev)
+ 	reg = cpsw_sl_reg_read(port->slave.mac_sl, CPSW_SL_SOFT_RESET);
+ 	if (reg) {
+ 		dev_err(common->dev, "soft RESET didn't complete\n");
+-		return -ETIMEDOUT;
++		ret = -ETIMEDOUT;
++		goto runtime_put;
+ 	}
+ 
+ 	/* Notify the stack of the actual queue counts. */
+ 	ret = netif_set_real_num_tx_queues(ndev, common->tx_ch_num);
+ 	if (ret) {
+ 		dev_err(common->dev, "cannot set real number of tx queues\n");
+-		return ret;
++		goto runtime_put;
+ 	}
+ 
+ 	ret = netif_set_real_num_rx_queues(ndev, AM65_CPSW_MAX_RX_QUEUES);
+ 	if (ret) {
+ 		dev_err(common->dev, "cannot set real number of rx queues\n");
+-		return ret;
++		goto runtime_put;
+ 	}
+ 
+ 	for (i = 0; i < common->tx_ch_num; i++)
+@@ -594,7 +595,7 @@ static int am65_cpsw_nuss_ndo_slave_open(struct net_device *ndev)
+ 
+ 	ret = am65_cpsw_nuss_common_open(common);
+ 	if (ret)
+-		return ret;
++		goto runtime_put;
+ 
+ 	common->usage_count++;
+ 
+@@ -622,6 +623,10 @@ static int am65_cpsw_nuss_ndo_slave_open(struct net_device *ndev)
+ error_cleanup:
+ 	am65_cpsw_nuss_ndo_slave_stop(ndev);
+ 	return ret;
++
++runtime_put:
++	pm_runtime_put(common->dev);
++	return ret;
+ }
+ 
+ static void am65_cpsw_nuss_rx_cleanup(void *data, dma_addr_t desc_dma)
 -- 
-Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
-good idea.                                                [ RFC1925, 2.3 ]
+2.34.1
+
