@@ -2,90 +2,73 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4AF8C4332F
-	for <linux-omap@archiver.kernel.org>; Wed,  4 Jan 2023 04:38:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8605C4332F
+	for <linux-omap@archiver.kernel.org>; Wed,  4 Jan 2023 16:17:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238506AbjADEiZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 3 Jan 2023 23:38:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49026 "EHLO
+        id S239913AbjADQRt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 4 Jan 2023 11:17:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238581AbjADEiW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2023 23:38:22 -0500
-Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFD0413D27;
-        Tue,  3 Jan 2023 20:38:17 -0800 (PST)
-Received: by mail-wm1-x329.google.com with SMTP id p1-20020a05600c1d8100b003d8c9b191e0so25602863wms.4;
-        Tue, 03 Jan 2023 20:38:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=OXCiZDi2+Assy8TyLoUyrmIVdMgcXdRyVjJ9cIBOPR4=;
-        b=CR8cvdUBgKIaLWQvsuJVPGdFHjACjWpQnVgw+nvPiTsRyiM1M/5HoaOyHoH0Hpkwns
-         CvAT4wyShSBlbRKxGNUdhMUoVgSKwysCiikpjX+0bQ7Q2+jC5pPMzD2sYl2rYOMw4EIF
-         gqd6xW4I2yHtNpWi0Wnmt2lqcEtpMCfurRYjtI5oO17VdIULKiuM3Ipvyu0Y/qR6CQG3
-         2dG5i8MrBhlsUyTgSygo53O3wzMgTRFcgtHSGo07lCVkQsY+J6U4N3CMA3vZKeWGiSCV
-         37bTluAv4JvwEZ54F3iUnLZ5PSP934YXpPmFvI+65v4PALrwPml1zAPuTrDbHo72cUnj
-         cyhQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=OXCiZDi2+Assy8TyLoUyrmIVdMgcXdRyVjJ9cIBOPR4=;
-        b=dLI6zdbTIYTTxtWpGCFam9Q8xD6/EIX+5bWls3xLBFsokiaxfRmcl1sbT4DoTWwJnH
-         tl/hNdPfXU0AzTuepDpsF91GMRHkguFuZTtLaIxlWLXIx/c7+EngH/sDIF+yVvts2WkP
-         3ZB89POuO8vEVf3nBxltw6jA6mot51n+Z1uNYjqSq9/11Q9xAbGNBqzpgQ7TQUnairLj
-         JK9x50SwHorWttj4bE+6uIJJihMLnsJHxriAxuR87rjVacFt8dM7jnVoUIljENmxMhqi
-         hklOFtM4TIKI/YOoJR5R+dN204VlMLcKwe8R4nCr0dJ9cmyv87yLXjfeB4cdL9BA0cQq
-         CY6A==
-X-Gm-Message-State: AFqh2krb2KcvS88GTywsU8uU6wZ1vCWvi/x7sMRmBUoYJ/XJHuuR46OU
-        xX0jpAoOgR4O7dRv+foler6CIOZsDPiGchE/
-X-Google-Smtp-Source: AMrXdXshAF02SVtvI0gbrJ8d/iQjU4KzkZy5rOnJ56mFSRDY4s7tKIcsIE3Br+8evxwRRsrRQCUDJQ==
-X-Received: by 2002:a05:600c:1f12:b0:3cf:a851:d2f2 with SMTP id bd18-20020a05600c1f1200b003cfa851d2f2mr32875474wmb.21.1672807096372;
-        Tue, 03 Jan 2023 20:38:16 -0800 (PST)
-Received: from tp440p.steeds.sam ([2602:fbf6:10:8::2])
-        by smtp.gmail.com with ESMTPSA id bg24-20020a05600c3c9800b003cfa3a12660sm506881wmb.1.2023.01.03.20.38.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Jan 2023 20:38:16 -0800 (PST)
-Date:   Wed, 4 Jan 2023 06:38:03 +0200
-From:   Sicelo <absicsz@gmail.com>
-To:     Colin Foster <colin.foster@in-advantage.com>
-Cc:     devicetree@vger.kernel.org, linux-omap@vger.kernel.org,
-        "B. Niedermayr" <benedikt.niedermayr@siemens.com>,
-        krzysztof.kozlowski@linaro.org, robh+dt@kernel.org,
-        rogerq@kernel.org, tony@atomide.com
-Subject: Re: gpmc wait pin regression from 89aed3cd5cb9
-Message-ID: <Y7UCq+umIJScfQ16@tp440p.steeds.sam>
-References: <Y7SoIxhkOiCS+BFj@colin-ia-desktop>
+        with ESMTP id S239915AbjADQRo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2023 11:17:44 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2957CCD2;
+        Wed,  4 Jan 2023 08:17:43 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BC5BC617A9;
+        Wed,  4 Jan 2023 16:17:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AED1C433D2;
+        Wed,  4 Jan 2023 16:17:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1672849062;
+        bh=PXjg8l9xNNWMxJbfGxkrZ5VoCzj53LmR0NTnWk0bFOM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=nCc9rTUgLcNfiEG2oQB6HMDo1nBojPYPe8espWSXK9QYcoruovIrI5On8IV8+mrd+
+         2mQwDrbYEB7i4lEE2H7h8ESEqTclcLCeIde+E8zxg7mmgmVioTcea1D+UIhRZvn6+2
+         oVe+NxDv35pzlQhlIJ9b7h/boosEe3qvzu+5reDIBQtSIAes/O6o3VFpn/m2hyjQ3w
+         mdH/XPAADk9HM9L/MW5R+qjwPx/IAJ0iA+9JmMnu6ROy8SVXHYMOQjUlq8d1pTIq+i
+         /+92aLdfWNO4ZTpQfJ7ITUkK4rOi7HJrKPriSHn1nFsUTgdZOY9H8k2NPdYgqGA+/E
+         gQzW+ePQhpXkA==
+Date:   Wed, 4 Jan 2023 16:17:35 +0000
+From:   Lee Jones <lee@kernel.org>
+To:     Andreas Kemnade <andreas@kemnade.info>
+Cc:     tony@atomide.com, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Bin Liu <b-liu@ti.com>
+Subject: Re: [PATCH v2] mfd: twl: fix TWL6032 phy vbus detection
+Message-ID: <Y7Wmn06iHri/hfzC@google.com>
+References: <20221208215723.217557-1-andreas@kemnade.info>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Y7SoIxhkOiCS+BFj@colin-ia-desktop>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20221208215723.217557-1-andreas@kemnade.info>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Colin
+On Thu, 08 Dec 2022, Andreas Kemnade wrote:
 
-On Tue, Jan 03, 2023 at 02:11:47PM -0800, Colin Foster wrote:
+> TWL6032 has a few charging registers prepended before the charging
+> registers the TWL6030 has. To be able to use common register defines
+> declare the additional registers as additional module.
+> At the moment this affects the access to CHARGERUSB_CTRL1 in
+> phy-twl6030-usb.  Without this patch, it is accessing the wrong register
+> on TWL6032.
+> The consequence is that presence of Vbus is not reported.
 > 
-> After commit 89aed3cd5cb9 ("memory: omap-gpmc: wait pin additions") the
-> SMSC stops working because existing device trees don't have a default
-> "gpmc,wait-pin" defined.
-> 
-> I fixed the issue for myself by adding this to my .dtsi, but I imagine
-> any existing device trees that use the OMAP / SMSC combination will be
-> similarly broken in 6.2-rc2.
-> 
-> My latest DT submission shows the use of the omap-gpmc-smsc9221.dtsi
-> without the addition of gpmc,wait-pin which worked in 6.1:
+> Cc: Bin Liu <b-liu@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
+> Changes in v2:
+>  - remove comment
+>  drivers/mfd/twl-core.c  | 9 ++++-----
+>  include/linux/mfd/twl.h | 2 ++
+>  2 files changed, 6 insertions(+), 5 deletions(-)
 
-I also had the same issue in 6.2-rc2. However, I found the problem has
-already been fixed at:
+Applied, thanks
 
-https://lore.kernel.org/linux-omap/20221209123147.591982-1-benedikt.niedermayr@siemens.com/
-
-Hope this helps you
-
-Sicelo
+-- 
+Lee Jones [李琼斯]
