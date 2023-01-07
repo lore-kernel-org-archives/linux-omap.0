@@ -2,46 +2,46 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D5E9C678DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59C53C678DC
 	for <linux-omap@archiver.kernel.org>; Sat,  7 Jan 2023 18:27:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232800AbjAGS1F (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 7 Jan 2023 13:27:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52660 "EHLO
+        id S232124AbjAGS1G (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 7 Jan 2023 13:27:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232649AbjAGS01 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:27 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E92D40855;
+        with ESMTP id S232671AbjAGS02 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:28 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0A8040C0C;
         Sat,  7 Jan 2023 10:26:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3C201B8069C;
+        by ams.source.kernel.org (Postfix) with ESMTPS id C73B0B8069F;
         Sat,  7 Jan 2023 18:26:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 9C8F8C433B0;
-        Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 0630FC43323;
+        Sat,  7 Jan 2023 18:26:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673115981;
-        bh=iwnNyRt1Uh/vn2VAl963Pb04rJrM5CLPdltH1F0ndxY=;
+        s=k20201202; t=1673115982;
+        bh=xpo8jUeerzmavUSQe9zKlH8WJyJePz17BLWzlSJ9W5w=;
         h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-        b=u0EYwiLFKeoi8LdlxSUgU5clp48P68nrijqXpU4h7+Z5CLlDdoNeKp4Mx+akH8xWT
-         AKhCN20VnV4AN9UVPTyftgJhOQNDK8pvOY1XBNk5SLA6lE737TImt53rj9Ons3EczW
-         3oexI3lb5LkoAqb1aj6i42N4OvFj560LZlbBlzdBG7oF8jkuNXIfwRDnZpOuTqD451
-         jXbqxJg7XPOhxiZQVfQJ8KiOM9mA8ZkcR0RibQi56Tqan+KqBKvIO2j849SCEGcZPi
-         lB94kSOFN+MT0G13wsnTJ7ewxD9JyBbcOjHrE7uqytPX+UJYhYVDIQ5T1AJL4g3g2+
-         PO7L9YSEUF9HQ==
+        b=leSuGdHpQ5DishtvWWyEHD84Rm+3zDpxcCk6Y/o5NTJYim1zGPo/nCCGi4ApYAmy5
+         EGPK6F9qRo9FA79zd96UlO8+oj7N9uIqJpTRy4x/wHdIBbOGYh0cXV0rSfMsiQaTRA
+         v0UEBf9kIh57tMQLQAE8TwDjdE1kJ3OK7oxPEqMFT/Ub/bv63O5PS8Npo+Ycim1/os
+         B60WufGI+Ceet6SmbiOonk0wvsqabqYtY7L8a867H0+wzmf4WjjRAnoiidtyztMs67
+         i93IRKMOI7IDyPWcz0VgvqKkn2Gfh23SlDjV/RJ9KWzU5152Y6/OhuNViPzi5nf7F/
+         5U+P5w5KEdTQA==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by smtp.lore.kernel.org (Postfix) with ESMTP id 88F6CC54EBD;
+        by smtp.lore.kernel.org (Postfix) with ESMTP id E6565C46467;
         Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
 From:   Sam Ravnborg via B4 Submission Endpoint 
         <devnull+sam.ravnborg.org@kernel.org>
-Date:   Sat, 07 Jan 2023 19:26:22 +0100
-Subject: [PATCH 08/15] video: fbdev: omap2: Introduce backlight_get_brightness()
+Date:   Sat, 07 Jan 2023 19:26:27 +0100
+Subject: [PATCH 13/15] backlight: omap1: Use backlight helpers
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-8-1bd9bafb351f@ravnborg.org>
+Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-13-1bd9bafb351f@ravnborg.org>
 References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
 In-Reply-To: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
 To:     Nicolas Ferre <nicolas.ferre@microchip.com>,
@@ -60,18 +60,13 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-omap@vger.kernel.org, linux-staging@lists.linux.dev,
         linuxppc-dev@lists.ozlabs.org, Stephen Kitt <steve@sk2.org>,
-        Sam Ravnborg <sam@ravnborg.org>,
-        Allison Randal <allison@lohutok.net>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Enrico Weigelt <info@metux.net>,
-        Alexios Zavras <alexios.zavras@intel.com>
+        Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.11.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=3952;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=3774;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=rBdlXn3SJoyXVGp9uzOjpAfLNvN20Ns2vzMuJ6kxYVQ=; =?utf-8?q?b=3DSe0re9Bl1ixb?=
- =?utf-8?q?eQqgTVCOFbfiMaV8wK5dyWiyyTDaZXRNHbQpUsMhAzYvPdOF7Fw51VxQ1DRCZitU?=
- +Z1PfROxCt3Qh2feioD4dKYYqFcvi1MHfgqxhL6GFEL5iOWFqHYg
+ bh=srCckeZD3FDZipiWT3z6Jx0O9ZavywUIgE9g9CQnkT4=; =?utf-8?q?b=3DZnBn79WC7Jd0?=
+ =?utf-8?q?7w2kvEoUqNXOLxMXiRR81z3KD4hu/AuT4FkBWuhIb8mnv9JkUKSSwMaj8t3RWh8T?=
+ 8DR2+MBwD0MvdIdeiVcdPN0SSEF+zFiSKPHpLxPwqkw+xml8oExD
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Submission Endpoint for sam@ravnborg.org/20230107 with auth_id=22
@@ -83,119 +78,143 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Introduce backlight_get_brightness() to simplify logic
-and avoid direct access to backlight properties.
+Rework backlight handling to avoid access to the deprecated
+backlight_properties.fb_blank member.
+
+The rework includes removal of get_brightness() operation,
+because there was no read back from HW so no use for it.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Allison Randal <allison@lohutok.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Enrico Weigelt <info@metux.net>
-Cc: Alexios Zavras <alexios.zavras@intel.com>
+Cc: Lee Jones <lee@kernel.org>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Jingoo Han <jingoohan1@gmail.com>
 ---
- .../fbdev/omap2/omapfb/displays/panel-dsi-cm.c     | 19 +-----------------
- .../omap2/omapfb/displays/panel-sony-acx565akm.c   | 23 +++++++---------------
- 2 files changed, 8 insertions(+), 34 deletions(-)
+ drivers/video/backlight/omap1_bl.c | 67 +++++---------------------------------
+ 1 file changed, 9 insertions(+), 58 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-index a2c7c5cb1523..bd73aa5328c9 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
-@@ -330,14 +330,8 @@ static int dsicm_bl_update_status(struct backlight_device *dev)
- {
- 	struct panel_drv_data *ddata = dev_get_drvdata(&dev->dev);
- 	struct omap_dss_device *in = ddata->in;
-+	int level = backlight_get_brightness(dev);
- 	int r;
--	int level;
+diff --git a/drivers/video/backlight/omap1_bl.c b/drivers/video/backlight/omap1_bl.c
+index 69a49384b3de..49f37da857e7 100644
+--- a/drivers/video/backlight/omap1_bl.c
++++ b/drivers/video/backlight/omap1_bl.c
+@@ -20,9 +20,6 @@
+ #define OMAPBL_MAX_INTENSITY		0xff
+ 
+ struct omap_backlight {
+-	int powermode;
+-	int current_intensity;
 -
--	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
--			dev->props.power == FB_BLANK_UNBLANK)
--		level = dev->props.brightness;
--	else
--		level = 0;
- 
- 	dev_dbg(&ddata->pdev->dev, "update brightness to %d\n", level);
- 
-@@ -360,17 +354,7 @@ static int dsicm_bl_update_status(struct backlight_device *dev)
- 	return r;
+ 	struct device *dev;
+ 	struct omap_backlight_config *pdata;
+ };
+@@ -37,82 +34,40 @@ static inline void omapbl_send_enable(int enable)
+ 	omap_writeb(enable, OMAP_PWL_CLK_ENABLE);
  }
  
--static int dsicm_bl_get_intensity(struct backlight_device *dev)
+-static void omapbl_blank(struct omap_backlight *bl, int mode)
 -{
--	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
--			dev->props.power == FB_BLANK_UNBLANK)
--		return dev->props.brightness;
+-	if (bl->pdata->set_power)
+-		bl->pdata->set_power(bl->dev, mode);
+-
+-	switch (mode) {
+-	case FB_BLANK_NORMAL:
+-	case FB_BLANK_VSYNC_SUSPEND:
+-	case FB_BLANK_HSYNC_SUSPEND:
+-	case FB_BLANK_POWERDOWN:
+-		omapbl_send_intensity(0);
+-		omapbl_send_enable(0);
+-		break;
+-
+-	case FB_BLANK_UNBLANK:
+-		omapbl_send_intensity(bl->current_intensity);
+-		omapbl_send_enable(1);
+-		break;
+-	}
+-}
+-
+ #ifdef CONFIG_PM_SLEEP
+ static int omapbl_suspend(struct device *dev)
+ {
+ 	struct backlight_device *bl_dev = dev_get_drvdata(dev);
+-	struct omap_backlight *bl = bl_get_data(bl_dev);
+ 
+-	omapbl_blank(bl, FB_BLANK_POWERDOWN);
++	backlight_disable(bl_dev);
+ 	return 0;
+ }
+ 
+ static int omapbl_resume(struct device *dev)
+ {
+ 	struct backlight_device *bl_dev = dev_get_drvdata(dev);
+-	struct omap_backlight *bl = bl_get_data(bl_dev);
+ 
+-	omapbl_blank(bl, bl->powermode);
++	backlight_enable(bl_dev);
+ 	return 0;
+ }
+ #endif
+ 
+-static int omapbl_set_power(struct backlight_device *dev, int state)
+-{
+-	struct omap_backlight *bl = bl_get_data(dev);
+-
+-	omapbl_blank(bl, state);
+-	bl->powermode = state;
 -
 -	return 0;
 -}
 -
- static const struct backlight_ops dsicm_bl_ops = {
--	.get_brightness = dsicm_bl_get_intensity,
- 	.update_status  = dsicm_bl_update_status,
- };
- 
-@@ -1251,7 +1235,6 @@ static int dsicm_probe(struct platform_device *pdev)
- 
- 		ddata->bldev = bldev;
- 
--		bldev->props.fb_blank = FB_BLANK_UNBLANK;
- 		bldev->props.power = FB_BLANK_UNBLANK;
- 		bldev->props.brightness = 255;
- 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
-index c0965bee12c5..c9c8f10e2e2f 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-sony-acx565akm.c
-@@ -337,16 +337,10 @@ static int acx565akm_get_actual_brightness(struct panel_drv_data *ddata)
- static int acx565akm_bl_update_status(struct backlight_device *dev)
+ static int omapbl_update_status(struct backlight_device *dev)
  {
- 	struct panel_drv_data *ddata = dev_get_drvdata(&dev->dev);
--	int level;
-+	int level = backlight_get_brightness(dev);
+-	struct omap_backlight *bl = bl_get_data(dev);
++	int brightness = backlight_get_brightness(dev);
  
- 	dev_dbg(&ddata->spi->dev, "%s\n", __func__);
- 
--	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
--			dev->props.power == FB_BLANK_UNBLANK)
--		level = dev->props.brightness;
--	else
--		level = 0;
--
- 	if (ddata->has_bc)
- 		acx565akm_set_brightness(ddata, level);
- 	else
-@@ -364,15 +358,13 @@ static int acx565akm_bl_get_intensity(struct backlight_device *dev)
- 	if (!ddata->has_bc)
- 		return -ENODEV;
- 
--	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
--			dev->props.power == FB_BLANK_UNBLANK) {
--		if (ddata->has_bc)
--			return acx565akm_get_actual_brightness(ddata);
--		else
--			return dev->props.brightness;
--	}
-+	if (backlight_is_blank(dev))
-+		return 0;
- 
--	return 0;
-+	if (ddata->has_bc)
-+		return acx565akm_get_actual_brightness(ddata);
-+	else
-+		return backlight_get_brightness(dev);
- }
- 
- static int acx565akm_bl_update_status_locked(struct backlight_device *dev)
-@@ -795,7 +787,6 @@ static int acx565akm_probe(struct spi_device *spi)
+-	if (bl->current_intensity != dev->props.brightness) {
+-		if (bl->powermode == FB_BLANK_UNBLANK)
+-			omapbl_send_intensity(dev->props.brightness);
+-		bl->current_intensity = dev->props.brightness;
++	if (brightness > 0) {
++		omapbl_send_intensity(dev->props.brightness);
++		omapbl_send_enable(1);
++	} else {
++		omapbl_send_intensity(0);
++		omapbl_send_enable(0);
  	}
  
- 	memset(&props, 0, sizeof(props));
--	props.fb_blank = FB_BLANK_UNBLANK;
- 	props.power = FB_BLANK_UNBLANK;
- 	props.type = BACKLIGHT_RAW;
+-	if (dev->props.fb_blank != bl->powermode)
+-		omapbl_set_power(dev, dev->props.fb_blank);
+-
+ 	return 0;
+ }
+ 
+-static int omapbl_get_intensity(struct backlight_device *dev)
+-{
+-	struct omap_backlight *bl = bl_get_data(dev);
+-
+-	return bl->current_intensity;
+-}
+-
+ static const struct backlight_ops omapbl_ops = {
+-	.get_brightness = omapbl_get_intensity,
+ 	.update_status  = omapbl_update_status,
+ };
+ 
+@@ -139,9 +94,6 @@ static int omapbl_probe(struct platform_device *pdev)
+ 	if (IS_ERR(dev))
+ 		return PTR_ERR(dev);
+ 
+-	bl->powermode = FB_BLANK_POWERDOWN;
+-	bl->current_intensity = 0;
+-
+ 	bl->pdata = pdata;
+ 	bl->dev = &pdev->dev;
+ 
+@@ -149,7 +101,6 @@ static int omapbl_probe(struct platform_device *pdev)
+ 
+ 	omap_cfg_reg(PWL);	/* Conflicts with UART3 */
+ 
+-	dev->props.fb_blank = FB_BLANK_UNBLANK;
+ 	dev->props.brightness = pdata->default_intensity;
+ 	omapbl_update_status(dev);
  
 
 -- 
