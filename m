@@ -2,46 +2,47 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3348C54EBC
-	for <linux-omap@archiver.kernel.org>; Sat,  7 Jan 2023 18:26:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C502C678D6
+	for <linux-omap@archiver.kernel.org>; Sat,  7 Jan 2023 18:27:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232807AbjAGS0t (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 7 Jan 2023 13:26:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52584 "EHLO
+        id S232876AbjAGS0y (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 7 Jan 2023 13:26:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232574AbjAGS0Z (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:25 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7479440C0C;
-        Sat,  7 Jan 2023 10:26:24 -0800 (PST)
+        with ESMTP id S232494AbjAGS0Y (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:24 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D78137260;
+        Sat,  7 Jan 2023 10:26:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 27AF6B8069A;
-        Sat,  7 Jan 2023 18:26:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 5C138C433A1;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9F55860BB5;
+        Sat,  7 Jan 2023 18:26:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id D6118C43396;
         Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
         s=k20201202; t=1673115981;
-        bh=UgErG0ahXvin5KqprcP4yTzkDgUMgisxrCT5F6v9v3s=;
+        bh=NopO6/WDONQttpL/maFut1E5RlkJB2uOICrSmRTuvrs=;
         h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-        b=CQ5EFq+2BPJRiq3zf5snT1YX3p1YtwrJOo0UElQbxKCbR2zY/q0mm4QOeEwFbp0ob
-         wUKiM7ao8aI3qoMlKhkOZyBDK30hY9q6LvDt3jfbG4Ze4T+I4UWSQYU+/vwLW9Qydd
-         ZCx0Cp/78jutBDA25G5AXNmT4rc3GObY0qBV0Bxvv6OQGC4u19HXcqMGJXqNUiVHY1
-         +T7FM2SaxNG7uxi0OfBE+WHStPObR8Mbj2CGH4o3xT4I7bChwIDdc2m26PTFcSomG/
-         NeqTXSUoIeLn+P2wyPY0OZKk2JaTqOGlKH6Jzqsx70Yilgo+unfuPggd3lgcyKUjZo
-         YePqEkpjt0sHQ==
+        b=a+TGg0zalLu1IZUe0Dusx60kOUTAgJB6i2V0ntZSdpG5hA7ZzF9GFzb2Jzh5cLqTV
+         udilmzFV/9GY2Q3+sJ1scx5kxvtRS4G/9uxntABwo7uUwhgf6vFzlxK7WJqaNC5zMo
+         2N3akNeLX30I+ZVwfVcQoVc25k6ocdIxpIS3uirQJC6Ehp1L01MwXb9Exhe/1cLaPD
+         6BQnOgaCjj1iWPKfalhHAuMKx/39xYumSGulqURz1zsjcovak9tmiWrsqRY/YJaXxL
+         xZsAIM0ke+gx7atPRAuPhTvpBKHxO1nLnBlU+RrLEzUE+Ak8SXCQIo7SBDQpfYHPnz
+         UFvQ6BGEyrU1g==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by smtp.lore.kernel.org (Postfix) with ESMTP id 475E3C64981;
+        by smtp.lore.kernel.org (Postfix) with ESMTP id C4E09C54EBC;
         Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
 From:   Sam Ravnborg via B4 Submission Endpoint 
         <devnull+sam.ravnborg.org@kernel.org>
-Date:   Sat, 07 Jan 2023 19:26:19 +0100
-Subject: [PATCH 05/15] video: fbdev: riva: Introduce backlight_get_brightness()
+Date:   Sat, 07 Jan 2023 19:26:25 +0100
+Subject: [PATCH 11/15] powerpc: via-pmu-backlight: Introduce
+ backlight_get_brightness()
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-5-1bd9bafb351f@ravnborg.org>
+Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-11-1bd9bafb351f@ravnborg.org>
 References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
 In-Reply-To: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
 To:     Nicolas Ferre <nicolas.ferre@microchip.com>,
@@ -62,11 +63,11 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linuxppc-dev@lists.ozlabs.org, Stephen Kitt <steve@sk2.org>,
         Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.11.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=1045;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=1090;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=j+HG2wSYqKNwTOfMiYjFHzSzlk0PGcAa2iiQeKtebpY=; =?utf-8?q?b=3DevW/7HEX3Tem?=
- =?utf-8?q?ZDTb3xs/18D5j66JRDk706eBMxDT6tdbE2dYtO9k/ExWbYOdsP9oRSxX+glDRK5M?=
- rxyrw8CID7AkL98sYMTbditO+j8pldVv8MCsELvig9PWwKcqU/Rv
+ bh=lPqymbzfNTifpXa2QzoPI3zSglttX8N9s2/xbxu8aQ4=; =?utf-8?q?b=3DoM0VPahuDXBa?=
+ =?utf-8?q?8NICHQ0XEZfUD/cH3Cz8tGxqgZI94evf9mznv/gWoWJFlh9dpNlj1GiU49BWm0cl?=
+ g1Zmn+5lAV0k2VgXGHyPJ7cqtCg0PIxR/iXKZWAR3vZGmqh+vYaD
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Submission Endpoint for sam@ravnborg.org/20230107 with auth_id=22
@@ -82,31 +83,31 @@ Introduce backlight_get_brightness() to simplify logic
 and avoid direct access to backlight properties.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: linux-fbdev@vger.kernel.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: linuxppc-dev@lists.ozlabs.org
 ---
- drivers/video/fbdev/riva/fbdev.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/macintosh/via-pmu-backlight.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/drivers/video/fbdev/riva/fbdev.c b/drivers/video/fbdev/riva/fbdev.c
-index 644278146d3b..41edc6e79460 100644
---- a/drivers/video/fbdev/riva/fbdev.c
-+++ b/drivers/video/fbdev/riva/fbdev.c
-@@ -293,13 +293,7 @@ static int riva_bl_update_status(struct backlight_device *bd)
+diff --git a/drivers/macintosh/via-pmu-backlight.c b/drivers/macintosh/via-pmu-backlight.c
+index 2194016122d2..c2d87e7fa85b 100644
+--- a/drivers/macintosh/via-pmu-backlight.c
++++ b/drivers/macintosh/via-pmu-backlight.c
+@@ -71,12 +71,7 @@ static int pmu_backlight_get_level_brightness(int level)
+ static int __pmu_backlight_update_status(struct backlight_device *bd)
  {
- 	struct riva_par *par = bl_get_data(bd);
- 	U032 tmp_pcrt, tmp_pmc;
--	int level;
+ 	struct adb_request req;
+-	int level = bd->props.brightness;
+-
 -
 -	if (bd->props.power != FB_BLANK_UNBLANK ||
 -	    bd->props.fb_blank != FB_BLANK_UNBLANK)
 -		level = 0;
--	else
--		level = bd->props.brightness;
 +	int level = backlight_get_brightness(bd);
  
- 	tmp_pmc = NV_RD32(par->riva.PMC, 0x10F0) & 0x0000FFFF;
- 	tmp_pcrt = NV_RD32(par->riva.PCRTC0, 0x081C) & 0xFFFFFFFC;
+ 	if (level > 0) {
+ 		int pmulevel = pmu_backlight_get_level_brightness(level);
 
 -- 
 2.34.1
