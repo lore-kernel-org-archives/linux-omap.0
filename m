@@ -2,125 +2,114 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93440C4708D
-	for <linux-omap@archiver.kernel.org>; Fri,  6 Jan 2023 11:15:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0363C54EBC
+	for <linux-omap@archiver.kernel.org>; Sat,  7 Jan 2023 18:26:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229564AbjAFLPZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 6 Jan 2023 06:15:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55894 "EHLO
+        id S232537AbjAGS0Y (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 7 Jan 2023 13:26:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52522 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229472AbjAFLPY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jan 2023 06:15:24 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E1006EC95;
-        Fri,  6 Jan 2023 03:15:23 -0800 (PST)
+        with ESMTP id S232207AbjAGS0X (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:23 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FFDB3F10C;
+        Sat,  7 Jan 2023 10:26:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1248CB81CDE;
-        Fri,  6 Jan 2023 11:15:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1EB8C433D2;
-        Fri,  6 Jan 2023 11:15:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F0C5360BAD;
+        Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 49F6AC433A0;
+        Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673003720;
-        bh=AY+EUNxLVUahOuHk2agSSXRRnUVJYLimnavTHNTsJKo=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=umc1j0Gz4jTDpUKZHCfkiq2xV3+7ElDvGTdxk6s3o9EAXFkWJTnzP1elSSzA5uUs6
-         j377WuTFRWf7a7zE1yVlOLpfqMVGJnta26ErNs4FjOmx7Ai+56CUjCvohJ83jHYX98
-         Zpnf9tYghb9SJZvpjDt7Ykmgke0OPIJjX6M9kidWzuKv6CidNWiU0GhzgFUXqnHZIB
-         G9CjUnS1lOiMHm0RUJiav/cMIby7ZrFcvu2Y9yD506q0/LJCITGNuEl1Ji1qex88oD
-         OC0hqtJx3Mn/aGMC1Yj6sDtaN/E3rHiDfwyq1aCdKk//UtjB4uhCl0cYbmDRHl9s1B
-         wuiRe59zIQbUQ==
-Message-ID: <be0dd0b2-4857-c110-4d35-076de0b14d72@kernel.org>
-Date:   Fri, 6 Jan 2023 13:15:12 +0200
+        s=k20201202; t=1673115981;
+        bh=stKQw4ypuM0c2CGPJsNtwm+f9+XYDr8crV+YAKDS7Qg=;
+        h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+        b=HXp0PrAmyat56OZcxRyrQ/u0BelQxizvXcSVJ/N3/uFmiUg6VQTRXJtGXsYB14EHz
+         +nHBE4J5sNIy6jBDIClPyrBAZv3W/RoIFnJbLVPQ7ZAs3VfvliAlE6DuGOKl7zfLq4
+         44Aif18Fp3M7Ph3Az3wBULTOOFWPfMFSHahDAygGGiAaD97eZnpk68RhtrZLLOzvlV
+         Fx4tAS8UpfshZxo7EQCsGIB068l83dPE5lXJpxr2kxeeQQgEeeOJTWld2h3AY1U/dQ
+         S//nSCeosL5beIgaC+DwF2MMBtoer1V9fbzl7ibWqEo+WbO2HJSpsK4zQDkQ9C2LcC
+         9dU3qSq2Fb9Tg==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by smtp.lore.kernel.org (Postfix) with ESMTP id 399B4C54EBD;
+        Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
+From:   Sam Ravnborg via B4 Submission Endpoint 
+        <devnull+sam.ravnborg.org@kernel.org>
+Date:   Sat, 07 Jan 2023 19:26:18 +0100
+Subject: [PATCH 04/15] video: fbdev: radeon: Introduce backlight_get_brightness()
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.2
-Subject: Re: [PATCH v3 1/2] dt-bindings: net: Add ICSSG Ethernet Driver
- bindings
-Content-Language: en-US
-To:     Andrew Lunn <andrew@lunn.ch>
-Cc:     Md Danish Anwar <danishanwar@ti.com>,
-        "Andrew F. Davis" <afd@ti.com>, Tero Kristo <t-kristo@ti.com>,
-        Suman Anna <s-anna@ti.com>, YueHaibing <yuehaibing@huawei.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        "David S. Miller" <davem@davemloft.net>, nm@ti.com,
-        ssantosh@kernel.org, srk@ti.com, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, netdev@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-References: <20221223110930.1337536-1-danishanwar@ti.com>
- <20221223110930.1337536-2-danishanwar@ti.com> <Y6W7FNzJEHYt6URg@lunn.ch>
- <620ce8e6-2b40-1322-364a-0099a6e2af26@kernel.org> <Y7Mjx8ZEVEcU2mK8@lunn.ch>
- <b55dec4b-4fd5-71fa-4073-b5793cafdee7@kernel.org> <Y7cFUW6dFRaI+nPV@lunn.ch>
-From:   Roger Quadros <rogerq@kernel.org>
-In-Reply-To: <Y7cFUW6dFRaI+nPV@lunn.ch>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-4-1bd9bafb351f@ravnborg.org>
+References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
+In-Reply-To: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
+To:     Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Helge Deller <deller@gmx.de>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Antonino Daplas <adaplas@gmail.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Robin van der Gracht <robin@protonic.nl>,
+        Miguel Ojeda <ojeda@kernel.org>, Lee Jones <lee@kernel.org>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Jingoo Han <jingoohan1@gmail.com>
+Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-staging@lists.linux.dev,
+        linuxppc-dev@lists.ozlabs.org, Stephen Kitt <steve@sk2.org>,
+        Sam Ravnborg <sam@ravnborg.org>
+X-Mailer: b4 0.11.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=1304;
+ i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
+ bh=Go6rR02iCXe+4kQHAFtFCxiJJyvkl/oj7VhzPcU0Z6Y=; =?utf-8?q?b=3DflqgadwX+l3X?=
+ =?utf-8?q?JQBMurYVeZ5lw7jYwnq+fjSaCXLgDVsWCF4QeU+pM/JkNHOUd4eAe48lF762VyAl?=
+ Zy46RGaUDUVM8Rn1neRnITDLjeGxeqHCDC0WSLnf3NCp1XdsYp8r
+X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
+ pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
+X-Endpoint-Received: by B4 Submission Endpoint for sam@ravnborg.org/20230107 with auth_id=22
+X-Original-From: Sam Ravnborg <sam@ravnborg.org>
+Reply-To: <sam@ravnborg.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 05/01/2023 19:13, Andrew Lunn wrote:
->>>> On 23/12/2022 16:28, Andrew Lunn wrote:
->>>>>> +        ethernet-ports {
->>>>>> +            #address-cells = <1>;
->>>>>> +            #size-cells = <0>;
->>>>>> +            pruss2_emac0: port@0 {
->>>>>> +                reg = <0>;
->>>>>> +                phy-handle = <&pruss2_eth0_phy>;
->>>>>> +                phy-mode = "rgmii-rxid";
->>>>>
->>>>> That is unusual. Where are the TX delays coming from?
->>>>
->>>> >From the below property
->>>>
->>>> +                ti,syscon-rgmii-delay = <&scm_conf 0x4120>;
->>>>
->>>> The TX delay can be enabled/disabled from within the ICSSG block.
->>>>
->>>> If this property exists and PHY mode is neither PHY_INTERFACE_MODE_RGMII_ID
->>>> nor PHY_INTERFACE_MODE_RGMII_TXID then the internal delay is enabled.
->>>>
->>>> This logic is in prueth_config_rgmiidelay() function in the introduced driver.
->>>
->>> What nearly every other MAC driver does is pass the phy-mode to the
->>> PHY and lets the PHY add the delays. I would recommend you do that,
->>> rather than be special and different.
->>
->>
->> If I remember right we couldn't disable MAC TX delay on some earlier silicon
->> so had to take this route. I don't remember why we couldn't disable it though.
->>
->> In more recent Silicon Manuals I do see that MAC TX delay can be enabled/disabled.
->> If this really is the case then we should change to
->>
->>  phy-mode = "rgmii-id";
->>
->> And let PHY handle the TX+RX delays.
-> 
-> DT describes the board. PHY mode indicates what delays the board
-> requires, because the board itself is not performing the delays by
-> using extra long lines. So typically, phy-mode is rgmii-id, indicating
-> delays need to be added somewhere in both directions.
-> 
-> Who adds the delays is then between the MAC and the PHY. In most
-> cases, the MAC does nothing, and passes phy-mode to the PHY and the
-> PHY does it.
-> 
-> But it is also possible for the MAC to do the delay. So if you cannot
-> actually disable the TX delay in the MAC, that is O.K. But you need to
-> modify phy-mode you pass to the PHY to indicate the MAC is doing the
-> delay, otherwise the PHY will additionally do the delay. So your DT
-> will contain rgmii-id, because that is what the board requires, but
-> the MAC will pass rmgii-rxid to the PHY, since that is what the PHY
-> needs to add.
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Thanks for the explanation. :)
+Introduce backlight_get_brightness() to simplify logic
+and avoid direct access to backlight properties.
 
-cheers,
--roger
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: linux-fbdev@vger.kernel.org
+---
+ drivers/video/fbdev/aty/radeon_backlight.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/video/fbdev/aty/radeon_backlight.c b/drivers/video/fbdev/aty/radeon_backlight.c
+index d2c1263ad260..22a39fea7b89 100644
+--- a/drivers/video/fbdev/aty/radeon_backlight.c
++++ b/drivers/video/fbdev/aty/radeon_backlight.c
+@@ -54,14 +54,10 @@ static int radeon_bl_update_status(struct backlight_device *bd)
+ 		return 0;
+ 
+ 	/* We turn off the LCD completely instead of just dimming the
+-	 * backlight. This provides some greater power saving and the display
+-	 * is useless without backlight anyway.
++	 * backlight if level < 1. This provides some greater power saving
++	 * and the display is useless without backlight anyway.
+ 	 */
+-        if (bd->props.power != FB_BLANK_UNBLANK ||
+-	    bd->props.fb_blank != FB_BLANK_UNBLANK)
+-		level = 0;
+-	else
+-		level = bd->props.brightness;
++	level = backlight_get_brightness(bd);
+ 
+ 	del_timer_sync(&rinfo->lvds_timer);
+ 	radeon_engine_idle();
+
+-- 
+2.34.1
