@@ -2,49 +2,39 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59C53C678DC
-	for <linux-omap@archiver.kernel.org>; Sat,  7 Jan 2023 18:27:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AB7DC46467
+	for <linux-omap@archiver.kernel.org>; Sat,  7 Jan 2023 20:52:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232124AbjAGS1G (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 7 Jan 2023 13:27:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52680 "EHLO
+        id S232479AbjAGUwc convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 7 Jan 2023 15:52:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232671AbjAGS02 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:28 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0A8040C0C;
-        Sat,  7 Jan 2023 10:26:26 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C73B0B8069F;
-        Sat,  7 Jan 2023 18:26:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 0630FC43323;
-        Sat,  7 Jan 2023 18:26:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673115982;
-        bh=xpo8jUeerzmavUSQe9zKlH8WJyJePz17BLWzlSJ9W5w=;
-        h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-        b=leSuGdHpQ5DishtvWWyEHD84Rm+3zDpxcCk6Y/o5NTJYim1zGPo/nCCGi4ApYAmy5
-         EGPK6F9qRo9FA79zd96UlO8+oj7N9uIqJpTRy4x/wHdIBbOGYh0cXV0rSfMsiQaTRA
-         v0UEBf9kIh57tMQLQAE8TwDjdE1kJ3OK7oxPEqMFT/Ub/bv63O5PS8Npo+Ycim1/os
-         B60WufGI+Ceet6SmbiOonk0wvsqabqYtY7L8a867H0+wzmf4WjjRAnoiidtyztMs67
-         i93IRKMOI7IDyPWcz0VgvqKkn2Gfh23SlDjV/RJ9KWzU5152Y6/OhuNViPzi5nf7F/
-         5U+P5w5KEdTQA==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by smtp.lore.kernel.org (Postfix) with ESMTP id E6565C46467;
-        Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
-From:   Sam Ravnborg via B4 Submission Endpoint 
-        <devnull+sam.ravnborg.org@kernel.org>
-Date:   Sat, 07 Jan 2023 19:26:27 +0100
-Subject: [PATCH 13/15] backlight: omap1: Use backlight helpers
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-13-1bd9bafb351f@ravnborg.org>
-References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
-In-Reply-To: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
-To:     Nicolas Ferre <nicolas.ferre@microchip.com>,
+        with ESMTP id S231962AbjAGUwa (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 15:52:30 -0500
+X-Greylist: delayed 601 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 07 Jan 2023 12:52:29 PST
+Received: from 7.mo575.mail-out.ovh.net (7.mo575.mail-out.ovh.net [46.105.63.230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BFFA4566A
+        for <linux-omap@vger.kernel.org>; Sat,  7 Jan 2023 12:52:28 -0800 (PST)
+Received: from director2.ghost.mail-out.ovh.net (unknown [10.109.146.19])
+        by mo575.mail-out.ovh.net (Postfix) with ESMTP id 41DA323BC1
+        for <linux-omap@vger.kernel.org>; Sat,  7 Jan 2023 20:36:55 +0000 (UTC)
+Received: from ghost-submission-6684bf9d7b-lxtls (unknown [10.110.115.90])
+        by director2.ghost.mail-out.ovh.net (Postfix) with ESMTPS id BD8F71FE98;
+        Sat,  7 Jan 2023 20:36:50 +0000 (UTC)
+Received: from sk2.org ([37.59.142.105])
+        by ghost-submission-6684bf9d7b-lxtls with ESMTPSA
+        id eSsCKuLXuWPI3wUAubRvvA
+        (envelope-from <steve@sk2.org>); Sat, 07 Jan 2023 20:36:50 +0000
+Authentication-Results: garm.ovh; auth=pass (GARM-105G0067839b063-0764-4415-809e-52a6ec1d72ef,
+                    DAE31E0ADBCC733EDB52157E78EF0D9B49FF90DC) smtp.auth=steve@sk2.org
+X-OVh-ClientIp: 37.167.110.121
+Date:   Sat, 07 Jan 2023 21:36:47 +0100
+From:   Stephen Kitt <steve@sk2.org>
+To:     sam@ravnborg.org,
+        Sam Ravnborg via B4 Submission Endpoint 
+        <devnull+sam.ravnborg.org@kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
         Helge Deller <deller@gmx.de>,
         Alexandre Belloni <alexandre.belloni@bootlin.com>,
         Claudiu Beznea <claudiu.beznea@microchip.com>,
@@ -56,166 +46,117 @@ To:     Nicolas Ferre <nicolas.ferre@microchip.com>,
         Miguel Ojeda <ojeda@kernel.org>, Lee Jones <lee@kernel.org>,
         Daniel Thompson <daniel.thompson@linaro.org>,
         Jingoo Han <jingoohan1@gmail.com>
-Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+CC:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-omap@vger.kernel.org, linux-staging@lists.linux.dev,
-        linuxppc-dev@lists.ozlabs.org, Stephen Kitt <steve@sk2.org>,
-        Sam Ravnborg <sam@ravnborg.org>
-X-Mailer: b4 0.11.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=3774;
- i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=srCckeZD3FDZipiWT3z6Jx0O9ZavywUIgE9g9CQnkT4=; =?utf-8?q?b=3DZnBn79WC7Jd0?=
- =?utf-8?q?7w2kvEoUqNXOLxMXiRR81z3KD4hu/AuT4FkBWuhIb8mnv9JkUKSSwMaj8t3RWh8T?=
- 8DR2+MBwD0MvdIdeiVcdPN0SSEF+zFiSKPHpLxPwqkw+xml8oExD
-X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
- pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
-X-Endpoint-Received: by B4 Submission Endpoint for sam@ravnborg.org/20230107 with auth_id=22
-X-Original-From: Sam Ravnborg <sam@ravnborg.org>
-Reply-To: <sam@ravnborg.org>
+        linuxppc-dev@lists.ozlabs.org, Sam Ravnborg <sam@ravnborg.org>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>
+Subject: =?US-ASCII?Q?Re=3A_=5BPATCH_01/15=5D_video=3A_fbdev=3A_atm?= =?US-ASCII?Q?el=5Flcdfb=3A_Rework_backlight_handling?=
+User-Agent: K-9 Mail for Android
+In-Reply-To: <20230107-sam-video-backlight-drop-fb_blank-v1-1-1bd9bafb351f@ravnborg.org>
+References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org> <20230107-sam-video-backlight-drop-fb_blank-v1-1-1bd9bafb351f@ravnborg.org>
+Message-ID: <553AE999-CAF1-4E59-9F3F-68591ED192DE@sk2.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 8BIT
+X-Ovh-Tracer-Id: 15557403441115072134
+X-VR-SPAMSTATE: OK
+X-VR-SPAMSCORE: -100
+X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrkedvgddufeeiucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuqfggjfdpvefjgfevmfevgfenuceurghilhhouhhtmecuhedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepfffhvfevufgfjghfkfggtgfgsehtqhhmtddtreejnecuhfhrohhmpefuthgvphhhvghnucfmihhtthcuoehsthgvvhgvsehskhdvrdhorhhgqeenucggtffrrghtthgvrhhnpeekvddvteekgedtkefgueefheetheefffdtfeeuveettdejjeeutdetkefggeegleenucffohhmrghinheplhhkmhhlrdhorhhgnecukfhppeduvdejrddtrddtrddupdefjedrheelrddugedvrddutdehnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepuddvjedrtddrtddruddpmhgrihhlfhhrohhmpeeoshhtvghvvgesshhkvddrohhrgheqpdhnsggprhgtphhtthhopedupdhrtghpthhtoheplhhinhhugidqohhmrghpsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdfovfetjfhoshhtpehmohehjeehpdhmohguvgepshhmthhpohhuth
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
+On 7 January 2023 19:26:15 CET, Sam Ravnborg via B4 Submission Endpoint <devnull+sam.ravnborg.org@kernel.org> wrote:
+>From: Sam Ravnborg <sam@ravnborg.org>
+>
+>The atmel_lcdfb had code to save/restore power state.
+>This is not needed so drop it.
+>
+>Introduce backlight_is_brightness() to make logic simpler.
+>
+>Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+>Cc: Nicolas Ferre <nicolas.ferre@microchip.com>
+>Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
+>Cc: Ludovic Desroches <ludovic.desroches@microchip.com>
+>Cc: linux-fbdev@vger.kernel.org
+>Cc: linux-arm-kernel@lists.infradead.org
+>---
+> drivers/video/fbdev/atmel_lcdfb.c | 24 +++---------------------
+> 1 file changed, 3 insertions(+), 21 deletions(-)
+>
+>diff --git a/drivers/video/fbdev/atmel_lcdfb.c b/drivers/video/fbdev/atmel_lcdfb.c
+>index 1fc8de4ecbeb..d297b3892637 100644
+>--- a/drivers/video/fbdev/atmel_lcdfb.c
+>+++ b/drivers/video/fbdev/atmel_lcdfb.c
+>@@ -49,7 +49,6 @@ struct atmel_lcdfb_info {
+> 	struct clk		*lcdc_clk;
+> 
+> 	struct backlight_device	*backlight;
+>-	u8			bl_power;
+> 	u8			saved_lcdcon;
+> 
+> 	u32			pseudo_palette[16];
+>@@ -109,32 +108,18 @@ static u32 contrast_ctr = ATMEL_LCDC_PS_DIV8
+> static int atmel_bl_update_status(struct backlight_device *bl)
+> {
+> 	struct atmel_lcdfb_info *sinfo = bl_get_data(bl);
+>-	int			power = sinfo->bl_power;
+>-	int			brightness = bl->props.brightness;
+>+	int brightness;
+> 
+>-	/* REVISIT there may be a meaningful difference between
+>-	 * fb_blank and power ... there seem to be some cases
+>-	 * this doesn't handle correctly.
+>-	 */
+>-	if (bl->props.fb_blank != sinfo->bl_power)
+>-		power = bl->props.fb_blank;
+>-	else if (bl->props.power != sinfo->bl_power)
+>-		power = bl->props.power;
+>-
+>-	if (brightness < 0 && power == FB_BLANK_UNBLANK)
+>-		brightness = lcdc_readl(sinfo, ATMEL_LCDC_CONTRAST_VAL);
+>-	else if (power != FB_BLANK_UNBLANK)
+>-		brightness = 0;
+>+	brightness = backlight_get_brightness(bl);
+> 
+> 	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_VAL, brightness);
+>+
+> 	if (contrast_ctr & ATMEL_LCDC_POL_POSITIVE)
+> 		lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR,
+> 			brightness ? contrast_ctr : 0);
+> 	else
+> 		lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, contrast_ctr);
+> 
+>-	bl->props.fb_blank = bl->props.power = sinfo->bl_power = power;
+>-
+> 	return 0;
+> }
+> 
+>@@ -155,8 +140,6 @@ static void init_backlight(struct atmel_lcdfb_info *sinfo)
+> 	struct backlight_properties props;
+> 	struct backlight_device	*bl;
+> 
+>-	sinfo->bl_power = FB_BLANK_UNBLANK;
+>-
+> 	if (sinfo->backlight)
+> 		return;
+> 
+>@@ -173,7 +156,6 @@ static void init_backlight(struct atmel_lcdfb_info *sinfo)
+> 	sinfo->backlight = bl;
+> 
+> 	bl->props.power = FB_BLANK_UNBLANK;
+>-	bl->props.fb_blank = FB_BLANK_UNBLANK;
+> 	bl->props.brightness = atmel_bl_get_brightness(bl);
+> }
+> 
+>
 
-Rework backlight handling to avoid access to the deprecated
-backlight_properties.fb_blank member.
+Hi Sam,
 
-The rework includes removal of get_brightness() operation,
-because there was no read back from HW so no use for it.
+I’d submitted quite a few more of these previously (and you’d reviewed them), see e.g. the thread starting at https://lkml.org/lkml/2022/6/7/4365, and yesterday, https://lkml.org/lkml/2023/1/6/520, https://lkml.org/lkml/2023/1/6/656, https://lkml.org/lkml/2023/1/6/970, https://lkml.org/lkml/2023/1/6/643, and https://lkml.org/lkml/2023/1/6/680. There are a few more, I can find them if it’s any use.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Lee Jones <lee@kernel.org>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Jingoo Han <jingoohan1@gmail.com>
----
- drivers/video/backlight/omap1_bl.c | 67 +++++---------------------------------
- 1 file changed, 9 insertions(+), 58 deletions(-)
+Regards,
 
-diff --git a/drivers/video/backlight/omap1_bl.c b/drivers/video/backlight/omap1_bl.c
-index 69a49384b3de..49f37da857e7 100644
---- a/drivers/video/backlight/omap1_bl.c
-+++ b/drivers/video/backlight/omap1_bl.c
-@@ -20,9 +20,6 @@
- #define OMAPBL_MAX_INTENSITY		0xff
- 
- struct omap_backlight {
--	int powermode;
--	int current_intensity;
--
- 	struct device *dev;
- 	struct omap_backlight_config *pdata;
- };
-@@ -37,82 +34,40 @@ static inline void omapbl_send_enable(int enable)
- 	omap_writeb(enable, OMAP_PWL_CLK_ENABLE);
- }
- 
--static void omapbl_blank(struct omap_backlight *bl, int mode)
--{
--	if (bl->pdata->set_power)
--		bl->pdata->set_power(bl->dev, mode);
--
--	switch (mode) {
--	case FB_BLANK_NORMAL:
--	case FB_BLANK_VSYNC_SUSPEND:
--	case FB_BLANK_HSYNC_SUSPEND:
--	case FB_BLANK_POWERDOWN:
--		omapbl_send_intensity(0);
--		omapbl_send_enable(0);
--		break;
--
--	case FB_BLANK_UNBLANK:
--		omapbl_send_intensity(bl->current_intensity);
--		omapbl_send_enable(1);
--		break;
--	}
--}
--
- #ifdef CONFIG_PM_SLEEP
- static int omapbl_suspend(struct device *dev)
- {
- 	struct backlight_device *bl_dev = dev_get_drvdata(dev);
--	struct omap_backlight *bl = bl_get_data(bl_dev);
- 
--	omapbl_blank(bl, FB_BLANK_POWERDOWN);
-+	backlight_disable(bl_dev);
- 	return 0;
- }
- 
- static int omapbl_resume(struct device *dev)
- {
- 	struct backlight_device *bl_dev = dev_get_drvdata(dev);
--	struct omap_backlight *bl = bl_get_data(bl_dev);
- 
--	omapbl_blank(bl, bl->powermode);
-+	backlight_enable(bl_dev);
- 	return 0;
- }
- #endif
- 
--static int omapbl_set_power(struct backlight_device *dev, int state)
--{
--	struct omap_backlight *bl = bl_get_data(dev);
--
--	omapbl_blank(bl, state);
--	bl->powermode = state;
--
--	return 0;
--}
--
- static int omapbl_update_status(struct backlight_device *dev)
- {
--	struct omap_backlight *bl = bl_get_data(dev);
-+	int brightness = backlight_get_brightness(dev);
- 
--	if (bl->current_intensity != dev->props.brightness) {
--		if (bl->powermode == FB_BLANK_UNBLANK)
--			omapbl_send_intensity(dev->props.brightness);
--		bl->current_intensity = dev->props.brightness;
-+	if (brightness > 0) {
-+		omapbl_send_intensity(dev->props.brightness);
-+		omapbl_send_enable(1);
-+	} else {
-+		omapbl_send_intensity(0);
-+		omapbl_send_enable(0);
- 	}
- 
--	if (dev->props.fb_blank != bl->powermode)
--		omapbl_set_power(dev, dev->props.fb_blank);
--
- 	return 0;
- }
- 
--static int omapbl_get_intensity(struct backlight_device *dev)
--{
--	struct omap_backlight *bl = bl_get_data(dev);
--
--	return bl->current_intensity;
--}
--
- static const struct backlight_ops omapbl_ops = {
--	.get_brightness = omapbl_get_intensity,
- 	.update_status  = omapbl_update_status,
- };
- 
-@@ -139,9 +94,6 @@ static int omapbl_probe(struct platform_device *pdev)
- 	if (IS_ERR(dev))
- 		return PTR_ERR(dev);
- 
--	bl->powermode = FB_BLANK_POWERDOWN;
--	bl->current_intensity = 0;
--
- 	bl->pdata = pdata;
- 	bl->dev = &pdev->dev;
- 
-@@ -149,7 +101,6 @@ static int omapbl_probe(struct platform_device *pdev)
- 
- 	omap_cfg_reg(PWL);	/* Conflicts with UART3 */
- 
--	dev->props.fb_blank = FB_BLANK_UNBLANK;
- 	dev->props.brightness = pdata->default_intensity;
- 	omapbl_update_status(dev);
- 
-
--- 
-2.34.1
+Stephen
