@@ -2,46 +2,46 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE565C54EBD
-	for <linux-omap@archiver.kernel.org>; Sat,  7 Jan 2023 18:26:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94C29C678DC
+	for <linux-omap@archiver.kernel.org>; Sat,  7 Jan 2023 18:27:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232831AbjAGS0u (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 7 Jan 2023 13:26:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52586 "EHLO
+        id S232904AbjAGS0z (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 7 Jan 2023 13:26:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232585AbjAGS0Z (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:25 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57AF73FA25;
+        with ESMTP id S232493AbjAGS0Y (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:24 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 340D43F13B;
         Sat,  7 Jan 2023 10:26:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 71F18B8047E;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9364360B9B;
         Sat,  7 Jan 2023 18:26:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 15737C433F0;
+Received: by smtp.kernel.org (Postfix) with ESMTPS id B24DAC43445;
         Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
         s=k20201202; t=1673115981;
-        bh=2NgRSukIsXpmr4ezznzNGR723w5oZTyOcLNPLclIT8w=;
+        bh=FpJgYKX0WvqOM6qXNZm3orw83KtE8CnVdKskuu7Bxj8=;
         h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-        b=rlMftI1JL5hJ/vKUK6hgp9gjqtc3W7HcF+9QURm5qT53z5i/VXxG69OkwpfgZGbTR
-         ZVpNJGFKTfRa8zjCHKjYYcs7m7TmL7OEfI7xyG9CsORNNiOvUsNUjEI7IXpd05JSHG
-         YTt3BDLf1OGm6npZG9f0n1bFdbh0u/PprR0zcYL/enO+X84iEaGLlAktqThawoxhkj
-         /R/4nBSt0qLZJ/AU5ssdZjnZKdozQqiZtjlXmta12H7oTa7Oqfbenh8YDkr2AnwMfK
-         AzuPmmFgkbijCVt5UPeuA+6c0oh4f6aexZ0PqPZi2LyYYJVIfTWVwsKXqjoFJWGH7e
-         v5dB2Z0T0y+iA==
+        b=ibafoQF9RQ0654p7+XrOtYyy0N7e1+Wqbgurr/s3R0c31xlvWMaiv1rE43GmUD0ax
+         1uKtvH80Di1rpSHQJe+XRgjTJHrofPadAh/ODHSirpNZAFmmMTVoFeMkhMqF2M+/Qu
+         WixKllalmm7bZbY2IRu/nqJzf6pqWuaniQUtGDhj54eKNMlAEYrq6fZ1KlFl1OT+YX
+         VlpA1g/VS6yYLtn1NxEKn3c6ox3/JuoX4jCkSLY1e0Gw/W5jtHzqrJqEjbuhLSPnHx
+         vYPFsreIQl0LgDBkgFOOLtrp9vDAjIyfpPUWOJji2EM4Q4MDv7NkHov4t04dpqNoph
+         XMqhiOwWLdVzg==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by smtp.lore.kernel.org (Postfix) with ESMTP id EB3F6C54EBC;
-        Sat,  7 Jan 2023 18:26:20 +0000 (UTC)
+        by smtp.lore.kernel.org (Postfix) with ESMTP id 9DC36C63797;
+        Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
 From:   Sam Ravnborg via B4 Submission Endpoint 
         <devnull+sam.ravnborg.org@kernel.org>
-Date:   Sat, 07 Jan 2023 19:26:15 +0100
-Subject: [PATCH 01/15] video: fbdev: atmel_lcdfb: Rework backlight handling
+Date:   Sat, 07 Jan 2023 19:26:23 +0100
+Subject: [PATCH 09/15] staging: fbtft: fb_ssd1351.c: Introduce backlight_is_blank()
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-1-1bd9bafb351f@ravnborg.org>
+Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-9-1bd9bafb351f@ravnborg.org>
 References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
 In-Reply-To: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
 To:     Nicolas Ferre <nicolas.ferre@microchip.com>,
@@ -61,13 +61,13 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-omap@vger.kernel.org, linux-staging@lists.linux.dev,
         linuxppc-dev@lists.ozlabs.org, Stephen Kitt <steve@sk2.org>,
         Sam Ravnborg <sam@ravnborg.org>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 X-Mailer: b4 0.11.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=2641;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=1470;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=00kGRCWi8cuXpKBxkvC737vLzE0DLWF6H/syUZozYj0=; =?utf-8?q?b=3Dn0gLcHxryjYg?=
- =?utf-8?q?M/3rj8DxmkGGgj+kqUIxzuWt9FYoauHAwjD31UB8ShIRk/2wtjXq9fNHAF2YAhlJ?=
- YGxA/gk7AfjT/Ak1jBRmIYhfO1fh+3b+KaplQZMvBeYtU5vrsyPE
+ bh=G6rOZdtEwpeQEO+0r3oVVgedO7Rz1feTEQR8eX27nq4=; =?utf-8?q?b=3D+S7h4F0wUNPp?=
+ =?utf-8?q?/JDzVLZhorRrHoeXoMU92DpeyUhmf+Ru9VbwxZ4HQL+EQ45PgrZJYvAfns99nGaz?=
+ +nssZXN1Aj803PnEukV8/v1tXrrRhgpXnDQN/jH9brZR1cK2eNGw
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Submission Endpoint for sam@ravnborg.org/20230107 with auth_id=22
@@ -79,86 +79,44 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-The atmel_lcdfb had code to save/restore power state.
-This is not needed so drop it.
+Avoiding direct access to backlight_properties.props.
 
-Introduce backlight_is_brightness() to make logic simpler.
+Access to the deprecated props.fb_blank replaced by backlight_is_blank().
+Access to props.power is dropped - it was only used for debug.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Nicolas Ferre <nicolas.ferre@microchip.com>
-Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
-Cc: Ludovic Desroches <ludovic.desroches@microchip.com>
+Cc: Stephen Kitt <steve@sk2.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: linux-fbdev@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
 ---
- drivers/video/fbdev/atmel_lcdfb.c | 24 +++---------------------
- 1 file changed, 3 insertions(+), 21 deletions(-)
+ drivers/staging/fbtft/fb_ssd1351.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/video/fbdev/atmel_lcdfb.c b/drivers/video/fbdev/atmel_lcdfb.c
-index 1fc8de4ecbeb..d297b3892637 100644
---- a/drivers/video/fbdev/atmel_lcdfb.c
-+++ b/drivers/video/fbdev/atmel_lcdfb.c
-@@ -49,7 +49,6 @@ struct atmel_lcdfb_info {
- 	struct clk		*lcdc_clk;
- 
- 	struct backlight_device	*backlight;
--	u8			bl_power;
- 	u8			saved_lcdcon;
- 
- 	u32			pseudo_palette[16];
-@@ -109,32 +108,18 @@ static u32 contrast_ctr = ATMEL_LCDC_PS_DIV8
- static int atmel_bl_update_status(struct backlight_device *bl)
+diff --git a/drivers/staging/fbtft/fb_ssd1351.c b/drivers/staging/fbtft/fb_ssd1351.c
+index b8d55aa8c5c7..995fbd2f3dc6 100644
+--- a/drivers/staging/fbtft/fb_ssd1351.c
++++ b/drivers/staging/fbtft/fb_ssd1351.c
+@@ -190,15 +190,12 @@ static struct fbtft_display display = {
+ static int update_onboard_backlight(struct backlight_device *bd)
  {
- 	struct atmel_lcdfb_info *sinfo = bl_get_data(bl);
--	int			power = sinfo->bl_power;
--	int			brightness = bl->props.brightness;
-+	int brightness;
+ 	struct fbtft_par *par = bl_get_data(bd);
+-	bool on;
++	bool blank = backlight_is_blank(bd);
  
--	/* REVISIT there may be a meaningful difference between
--	 * fb_blank and power ... there seem to be some cases
--	 * this doesn't handle correctly.
--	 */
--	if (bl->props.fb_blank != sinfo->bl_power)
--		power = bl->props.fb_blank;
--	else if (bl->props.power != sinfo->bl_power)
--		power = bl->props.power;
--
--	if (brightness < 0 && power == FB_BLANK_UNBLANK)
--		brightness = lcdc_readl(sinfo, ATMEL_LCDC_CONTRAST_VAL);
--	else if (power != FB_BLANK_UNBLANK)
--		brightness = 0;
-+	brightness = backlight_get_brightness(bl);
+-	fbtft_par_dbg(DEBUG_BACKLIGHT, par,
+-		      "%s: power=%d, fb_blank=%d\n",
+-		      __func__, bd->props.power, bd->props.fb_blank);
++	fbtft_par_dbg(DEBUG_BACKLIGHT, par, "%s: blank=%d\n", __func__, blank);
  
- 	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_VAL, brightness);
-+
- 	if (contrast_ctr & ATMEL_LCDC_POL_POSITIVE)
- 		lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR,
- 			brightness ? contrast_ctr : 0);
- 	else
- 		lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, contrast_ctr);
+-	on = !backlight_is_blank(bd);
+ 	/* Onboard backlight connected to GPIO0 on SSD1351, GPIO1 unused */
+-	write_reg(par, 0xB5, on ? 0x03 : 0x02);
++	write_reg(par, 0xB5, !blank ? 0x03 : 0x02);
  
--	bl->props.fb_blank = bl->props.power = sinfo->bl_power = power;
--
  	return 0;
  }
- 
-@@ -155,8 +140,6 @@ static void init_backlight(struct atmel_lcdfb_info *sinfo)
- 	struct backlight_properties props;
- 	struct backlight_device	*bl;
- 
--	sinfo->bl_power = FB_BLANK_UNBLANK;
--
- 	if (sinfo->backlight)
- 		return;
- 
-@@ -173,7 +156,6 @@ static void init_backlight(struct atmel_lcdfb_info *sinfo)
- 	sinfo->backlight = bl;
- 
- 	bl->props.power = FB_BLANK_UNBLANK;
--	bl->props.fb_blank = FB_BLANK_UNBLANK;
- 	bl->props.brightness = atmel_bl_get_brightness(bl);
- }
- 
 
 -- 
 2.34.1
