@@ -2,46 +2,46 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A606BC63797
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4A6CC678D5
 	for <linux-omap@archiver.kernel.org>; Sat,  7 Jan 2023 18:27:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232954AbjAGS06 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 7 Jan 2023 13:26:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52556 "EHLO
+        id S232480AbjAGS1A (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 7 Jan 2023 13:27:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232523AbjAGS0Y (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:24 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F4593FA08;
-        Sat,  7 Jan 2023 10:26:23 -0800 (PST)
+        with ESMTP id S232641AbjAGS00 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:26 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E87E240C0D;
+        Sat,  7 Jan 2023 10:26:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0DA6760BAF;
+        by ams.source.kernel.org (Postfix) with ESMTPS id 481B5B8069E;
         Sat,  7 Jan 2023 18:26:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id E7C93C4331F;
+Received: by smtp.kernel.org (Postfix) with ESMTPS id C762EC433F2;
         Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
         s=k20201202; t=1673115981;
-        bh=k6GhPkgGzFPXhbpSbgYgfWurCn/PwPN46xikLiDVBGI=;
+        bh=QCUNFz0znSG4dFhceksvrEhuu6q18JaC/eU7eQcVMhs=;
         h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-        b=s2d5eUacCnjXmq03ZUK+XQNzk+qYMHUhpitWDD9vRY1/+gN3cnh5gH/smgeRXj+F4
-         nY3qr4AhGIwfxGxaRbyOgVSz/z+JzDqqzGHD7FWlqsTI4oD+mpVhuAda7fAGZ+W8Ut
-         No1zWZz3JQpUHMZHCIfnp0qNKBOWrISPtMSN7l0Y9C7kJGyAElAXgK2IChEpUVrcYf
-         PDDXiScLEWvM2n1tXgPGhHMYmf/ic+JTvobZEU6b0EXNsz7r9Mjg5KFFnFQDs83Yoq
-         CNvW7VkgZYu/ywR/LHe+a18zS1vnyY4gm9eEoKHTCPXeiaxzz80KSSQjx/8LHCiulz
-         RYljxm6+3xXog==
+        b=gNCmrHkcPqnUS0a3xVSYftIawDJL6WdNZqVopye1CwTMJj+OhmtcQYMLORNIz1FOo
+         S97tPD0HherWzF5Kwps1d8EAJxEhyUXvwpLBl/h5GGtdVQoVjd2DT3CgfL1IeGxijp
+         snFUERcxs8PBMKNIMpS3HePYw3vZejQWMRJJwDJlwBV/xBj1KLy1uAxFeW5XxMSQTs
+         rGUfWMHLMEYk4qDrkJ699dpdgnxHQmp6LgXcA3g/E9PzRQVGY8PoSwAFEQTJ5M9LVL
+         gizeOLkHxcMldONRUSdVHL+ZgJ7gDSv/UrELN9hk8nJSzZK5th0Fx7sDpSCD4AgI6w
+         BljwABlVUmJ3w==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by smtp.lore.kernel.org (Postfix) with ESMTP id D5B19C54EBD;
+        by smtp.lore.kernel.org (Postfix) with ESMTP id AE3BBC46467;
         Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
 From:   Sam Ravnborg via B4 Submission Endpoint 
         <devnull+sam.ravnborg.org@kernel.org>
-Date:   Sat, 07 Jan 2023 19:26:26 +0100
-Subject: [PATCH 12/15] auxdisplay: ht16k33: Introduce backlight_get_brightness()
+Date:   Sat, 07 Jan 2023 19:26:24 +0100
+Subject: [PATCH 10/15] staging: fbtft: core: Introduce backlight_is_blank()
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-12-1bd9bafb351f@ravnborg.org>
+Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-10-1bd9bafb351f@ravnborg.org>
 References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
 In-Reply-To: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
 To:     Nicolas Ferre <nicolas.ferre@microchip.com>,
@@ -61,13 +61,16 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-omap@vger.kernel.org, linux-staging@lists.linux.dev,
         linuxppc-dev@lists.ozlabs.org, Stephen Kitt <steve@sk2.org>,
         Sam Ravnborg <sam@ravnborg.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Peter Suti <peter.suti@streamunlimited.com>
 X-Mailer: b4 0.11.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=1102;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=1663;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=kjBoW0w8G4MLxd8tLQs7ggdCYZkvfjXTRMQ+r94GOdY=; =?utf-8?q?b=3D0kWokjMYRuMZ?=
- =?utf-8?q?fLaCdD4imFEpA4wcUDa+Xj2qmv4HJ40saoFGwVXUtDMJ9OE5NEw8o8Fe16McI0pJ?=
- f+So/WcWDu7T91QYTw2iTMWidajyr5qNRhSvSdK9HUs9qckprcMR
+ bh=Wny8vn8SDkRFcw+Qd/s3t358GYJs/Zyqd9rf2tuHfYI=; =?utf-8?q?b=3DpUFPIy6NmR07?=
+ =?utf-8?q?yB69L54dJFCXBLLZDCl3QadyGkyvIJRXwpp/cDw+au/L/QLDJM/P3+uhQAXfQqQh?=
+ c5dV85FVDaufnLt7Gjhp/q9XLr2r6KxOVyTl6bK1oMF8wdtfOS7s
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Submission Endpoint for sam@ravnborg.org/20230107 with auth_id=22
@@ -79,37 +82,50 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Introduce backlight_get_brightness() to simplify logic
-and avoid direct access to backlight properties.
+Avoiding direct access to backlight_properties.props.
+
+Access to the deprecated props.fb_blank replaced by backlight_is_blank().
+Access to props.power is dropped - it was only used for debug.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Robin van der Gracht <robin@protonic.nl>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Javier Martinez Canillas <javierm@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Stephen Kitt <steve@sk2.org>
+Cc: Peter Suti <peter.suti@streamunlimited.com>
+Cc: linux-fbdev@vger.kernel.org
 ---
- drivers/auxdisplay/ht16k33.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/staging/fbtft/fbtft-core.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/auxdisplay/ht16k33.c b/drivers/auxdisplay/ht16k33.c
-index 02425991c159..15ab118c80f5 100644
---- a/drivers/auxdisplay/ht16k33.c
-+++ b/drivers/auxdisplay/ht16k33.c
-@@ -314,14 +314,9 @@ static int ht16k33_initialize(struct ht16k33_priv *priv)
- 
- static int ht16k33_bl_update_status(struct backlight_device *bl)
+diff --git a/drivers/staging/fbtft/fbtft-core.c b/drivers/staging/fbtft/fbtft-core.c
+index afaba94d1d1c..1746327e1939 100644
+--- a/drivers/staging/fbtft/fbtft-core.c
++++ b/drivers/staging/fbtft/fbtft-core.c
+@@ -132,15 +132,15 @@ static int fbtft_backlight_update_status(struct backlight_device *bd)
  {
--	int brightness = bl->props.brightness;
-+	int brightness = backlight_get_brightness(bl);
- 	struct ht16k33_priv *priv = bl_get_data(bl);
+ 	struct fbtft_par *par = bl_get_data(bd);
+ 	bool polarity = par->polarity;
++	bool blank = backlight_is_blank(bd);
  
--	if (bl->props.power != FB_BLANK_UNBLANK ||
--	    bl->props.fb_blank != FB_BLANK_UNBLANK ||
--	    bl->props.state & BL_CORE_FBBLANK)
--		brightness = 0;
--
- 	return ht16k33_brightness_set(priv, brightness);
+-	fbtft_par_dbg(DEBUG_BACKLIGHT, par,
+-		      "%s: polarity=%d, power=%d, fb_blank=%d\n",
+-		      __func__, polarity, bd->props.power, bd->props.fb_blank);
++	fbtft_par_dbg(DEBUG_BACKLIGHT, par, "%s: polarity=%d, blank=%d\n",
++		      __func__, polarity, blank);
+ 
+-	if (!backlight_is_blank(bd))
+-		gpiod_set_value(par->gpio.led[0], polarity);
+-	else
++	if (blank)
+ 		gpiod_set_value(par->gpio.led[0], !polarity);
++	else
++		gpiod_set_value(par->gpio.led[0], polarity);
+ 
+ 	return 0;
  }
- 
 
 -- 
 2.34.1
