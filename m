@@ -2,46 +2,46 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2A66C678D7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F355FC678D9
 	for <linux-omap@archiver.kernel.org>; Sat,  7 Jan 2023 18:27:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232699AbjAGS1C (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 7 Jan 2023 13:27:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52622 "EHLO
+        id S232754AbjAGS1E (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 7 Jan 2023 13:27:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232633AbjAGS00 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:26 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E88FB40C12;
-        Sat,  7 Jan 2023 10:26:24 -0800 (PST)
+        with ESMTP id S232647AbjAGS01 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jan 2023 13:26:27 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7104A40C08;
+        Sat,  7 Jan 2023 10:26:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 40A1EB80689;
+        by ams.source.kernel.org (Postfix) with ESMTPS id BE900B80707;
         Sat,  7 Jan 2023 18:26:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 72536C433AC;
-        Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 14232C43325;
+        Sat,  7 Jan 2023 18:26:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673115981;
-        bh=CGUKurJK1iYSsqV7DCPY1kNfW8t884NAue0bEi2srQ8=;
+        s=k20201202; t=1673115982;
+        bh=SjEXDcxd+wP5nx2Qt2TI3P4sxguFwMHIJck6CTMy4h4=;
         h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-        b=kSLKP185ei3AEEFXwIPjE6QdJYPCRuPWWZvaRE10jNJrkmZelz1gq3fQ0Du4yaoWP
-         Rn6vIKFT5nTUkWwS8HQK7A+D1JjcOyi2Qp+l997hHlO8UYi5KGumFH9Iv97Yoxosnf
-         c5qEE5PEkasLF1dsL8AAhXWQUkvg5i4Se7up6Xi8uPsprJClqDFEcsxW25/7tbfsfS
-         XuY7rH4o8KbpzSiR/pwIc638TR5aKUgelx94MH9TmTUjqYYTH0SnwhjE6nzRmFHnWE
-         H0ZtguvJ6iOZPhsthGsTri3tuv5xSpovkt7K7vUiFzkkDSDs27VQo+1XAYZEl5hkxr
-         lAcNIXVoJ11BA==
+        b=eVFt1praUtSy9SLyuRZ8HK6ttWVjZLhbVuOWZ1UP2GaH4eBiGK8qMXCkAwo54KPEQ
+         BdNulawL+1EDpxs5TDDEcBmweHmDf5VzjX9o5nrLl2iUgvc3Rptrjkf7pqldfjvddF
+         xrRShUmkxSZxF6x4nSZZY9VikQdM/u4kb/macdtJnxG6U/EC7DDM9igF3HjKwhHe1P
+         SJh4HL/vFZvt4UIBvGWvpAmXWuaAJ2JKPxvI3oT6a4JjbQy4Ty8XoZxtcaehoEF43z
+         19NdBItXL21Uy9WazM+XIJ5XmsH/pZIZOcK0NrqOpOhd4gWHyJ5ZnKksWoLxJ5FJ5u
+         op4HsJFaydwjA==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by smtp.lore.kernel.org (Postfix) with ESMTP id 5C3E7C46467;
-        Sat,  7 Jan 2023 18:26:21 +0000 (UTC)
+        by smtp.lore.kernel.org (Postfix) with ESMTP id 054BFC54EBC;
+        Sat,  7 Jan 2023 18:26:22 +0000 (UTC)
 From:   Sam Ravnborg via B4 Submission Endpoint 
         <devnull+sam.ravnborg.org@kernel.org>
-Date:   Sat, 07 Jan 2023 19:26:20 +0100
-Subject: [PATCH 06/15] video: fbdev: aty128fb: Introduce backlight_get_brightness()
+Date:   Sat, 07 Jan 2023 19:26:28 +0100
+Subject: [PATCH 14/15] backlight: tosa: Use backlight helper
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-6-1bd9bafb351f@ravnborg.org>
+Message-Id: <20230107-sam-video-backlight-drop-fb_blank-v1-14-1bd9bafb351f@ravnborg.org>
 References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
 In-Reply-To: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
 To:     Nicolas Ferre <nicolas.ferre@microchip.com>,
@@ -62,11 +62,11 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linuxppc-dev@lists.ozlabs.org, Stephen Kitt <steve@sk2.org>,
         Sam Ravnborg <sam@ravnborg.org>
 X-Mailer: b4 0.11.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=1162;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1673115978; l=1164;
  i=sam@ravnborg.org; s=20230107; h=from:subject:message-id;
- bh=n8Kx2XY+cYFmLkcdV5dyk6zjH/vhpqMDIzovg3Z1GFo=; =?utf-8?q?b=3DqvKdgsM7OlWq?=
- =?utf-8?q?GoR/P13Xavz5UkNGEdv1D6H6ewY0ou7Vszpmyqw86Gyff1CGVv3rHRS/v1qiPegZ?=
- IzxoKSMSBSuVXcEH8FTi9l2NNIUcaugLu4GMLSPyYepKLKiAsSsb
+ bh=TiWKXtIRXmpUw/px6HIrIXkwB1iOud1SvGNIg23j2tc=; =?utf-8?q?b=3D58e624VDMkDH?=
+ =?utf-8?q?ye2VhFgLUprGgEmC4cjpB62XJtnFRSF9zXBgn6AjMkxv5uKzvqWz18/h1I4SuRN7?=
+ d8AnGMa0CQN1M+u17H3W2BQG2L5Klm/uDXn9OmNUOoeaOkYVE1n3
 X-Developer-Key: i=sam@ravnborg.org; a=ed25519;
  pk=R0+pqV7BRYOAeOIGkyOrSNke7arx5y3LkEuNi37YEyU=
 X-Endpoint-Received: by B4 Submission Endpoint for sam@ravnborg.org/20230107 with auth_id=22
@@ -76,42 +76,38 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
+From: Stephen Kitt <steve@sk2.org>
 
-Introduce backlight_get_brightness() to simplify logic
-and avoid direct access to backlight properties.
+Instead of retrieving the backlight brightness in struct
+backlight_properties manually, and then checking whether the backlight
+should be on at all, use backlight_get_brightness() which does all
+this and insulates this from future changes.
 
+Signed-off-by: Stephen Kitt <steve@sk2.org>
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: linux-fbdev@vger.kernel.org
 ---
- drivers/video/fbdev/aty/aty128fb.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/video/backlight/tosa_bl.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/drivers/video/fbdev/aty/aty128fb.c b/drivers/video/fbdev/aty/aty128fb.c
-index dd31b9d7d337..736126cc5049 100644
---- a/drivers/video/fbdev/aty/aty128fb.c
-+++ b/drivers/video/fbdev/aty/aty128fb.c
-@@ -1764,17 +1764,10 @@ static int aty128_bl_update_status(struct backlight_device *bd)
- {
- 	struct aty128fb_par *par = bl_get_data(bd);
- 	unsigned int reg = aty_ld_le32(LVDS_GEN_CNTL);
--	int level;
--
--	if (bd->props.power != FB_BLANK_UNBLANK ||
--	    bd->props.fb_blank != FB_BLANK_UNBLANK ||
--	    !par->lcd_on)
--		level = 0;
--	else
--		level = bd->props.brightness;
-+	int level = backlight_get_brightness(bd);
+diff --git a/drivers/video/backlight/tosa_bl.c b/drivers/video/backlight/tosa_bl.c
+index f55b3d616a87..cb07f13dd886 100644
+--- a/drivers/video/backlight/tosa_bl.c
++++ b/drivers/video/backlight/tosa_bl.c
+@@ -50,13 +50,8 @@ static void tosa_bl_set_backlight(struct tosa_bl_data *data, int brightness)
  
- 	reg |= LVDS_BL_MOD_EN | LVDS_BLON;
--	if (level > 0) {
-+	if (level > 0 || par->lcd_on) {
- 		reg |= LVDS_DIGION;
- 		if (!(reg & LVDS_ON)) {
- 			reg &= ~LVDS_BLON;
+ static int tosa_bl_update_status(struct backlight_device *dev)
+ {
+-	struct backlight_properties *props = &dev->props;
+ 	struct tosa_bl_data *data = bl_get_data(dev);
+-	int power = max(props->power, props->fb_blank);
+-	int brightness = props->brightness;
+-
+-	if (power)
+-		brightness = 0;
++	int brightness = backlight_get_brightness(dev);
+ 
+ 	tosa_bl_set_backlight(data, brightness);
+ 
 
 -- 
 2.34.1
