@@ -2,238 +2,146 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAC2BC54EBE
-	for <linux-omap@archiver.kernel.org>; Sun,  8 Jan 2023 15:58:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 961AEC53210
+	for <linux-omap@archiver.kernel.org>; Sun,  8 Jan 2023 17:27:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231253AbjAHP6Z (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 8 Jan 2023 10:58:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55718 "EHLO
+        id S231279AbjAHR07 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 8 Jan 2023 12:26:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231269AbjAHP6X (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2023 10:58:23 -0500
-Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D443ABCBA;
-        Sun,  8 Jan 2023 07:58:21 -0800 (PST)
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 308FvwuT077262;
-        Sun, 8 Jan 2023 09:57:58 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1673193478;
-        bh=xAnPPGpVZlwRxy0iSh6xiiIJfjz/4/RR/G6X8Sfotdc=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=fECJ2QG4F96/TMqs+FQNV3XFwuOQOZYYtXLiXeexp27p8yWUPdMVPxz8k41qubgzn
-         0iAj5Za31tI+yhtB/Zn9XaguSqPe55BSe+C43N92I+7iHDNg+uqBAFShXtbZ7pReMP
-         b8aC/u+R26VogaFP5DBInfSLf78OrGsE/tVSaGc0=
-Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 308FvwBI002555
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Sun, 8 Jan 2023 09:57:58 -0600
-Received: from DLEE115.ent.ti.com (157.170.170.26) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Sun, 8
- Jan 2023 09:57:57 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
- Frontend Transport; Sun, 8 Jan 2023 09:57:57 -0600
-Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 308FvuSJ027400;
-        Sun, 8 Jan 2023 09:57:57 -0600
-From:   Achal Verma <a-verma1@ti.com>
-To:     Tom Joseph <tjoseph@cadence.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Krzysztof Wilczy_ski <kw@linux.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>
-CC:     <linux-pci@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Achal Verma <a-verma1@ti.com>,
-        Milind Parab <mparab@cadence.com>
-Subject: [PATCH v2 1/2] PCI: cadence: Add support to build pcie-cadence library as module.
-Date:   Sun, 8 Jan 2023 21:27:54 +0530
-Message-ID: <20230108155755.2614147-2-a-verma1@ti.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230108155755.2614147-1-a-verma1@ti.com>
-References: <20230108155755.2614147-1-a-verma1@ti.com>
+        with ESMTP id S231134AbjAHR06 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2023 12:26:58 -0500
+Received: from mout.gmx.net (mout.gmx.net [212.227.15.18])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0104CE12;
+        Sun,  8 Jan 2023 09:26:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
+        t=1673198777; bh=7v/7zj2Ysz+/w95b1kVq+oD2bzqjczc2L3mL7k87WRA=;
+        h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:In-Reply-To;
+        b=mSEqKLllgfaugEUfwK1DpPrKag9byMTMLILVvzboSZPDzN7DwyzMSecpRQMcjBYxj
+         pj0rdSo5U+fSPsljmVc1C0LFpIrSqT5w6GQQEg6m4+o2U+egvvGryWEidj9Z/drf/H
+         guX99U+MmRRs1DE6MyCFachtRZamU6Can45Erl7Smo9trEl/NAdVk+l2hGvseDGxWv
+         /M95xPilavrfcFC9obqbWatVy3RU29HQJA0QvQp6dbs8gwmdoRcNfNxZwWPiwgEfYu
+         ca8AHIT5Aev1OAO29txxakpsD1NwmxZ6ZTlt+dRXHASiC7ZTMP/+PeeBVO1v5rH3Y7
+         tDSPYx2XGQBjA==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from [192.168.20.60] ([92.116.135.194]) by mail.gmx.net (mrgmx005
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 1Mel3n-1ogbfA2j3d-00amNL; Sun, 08
+ Jan 2023 18:26:17 +0100
+Message-ID: <811a392a-d634-5557-dd58-57f1580e28f2@gmx.de>
+Date:   Sun, 8 Jan 2023 18:26:12 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.0
+Subject: Re: [PATCH 01/15] video: fbdev: atmel_lcdfb: Rework backlight
+ handling
+Content-Language: en-US
+To:     Sam Ravnborg <sam@ravnborg.org>, Stephen Kitt <steve@sk2.org>
+Cc:     Sam Ravnborg via B4 Submission Endpoint 
+        <devnull+sam.ravnborg.org@kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Antonino Daplas <adaplas@gmail.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Robin van der Gracht <robin@protonic.nl>,
+        Miguel Ojeda <ojeda@kernel.org>, Lee Jones <lee@kernel.org>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Jingoo Han <jingoohan1@gmail.com>, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-staging@lists.linux.dev,
+        linuxppc-dev@lists.ozlabs.org,
+        Ludovic Desroches <ludovic.desroches@microchip.com>
+References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
+ <20230107-sam-video-backlight-drop-fb_blank-v1-1-1bd9bafb351f@ravnborg.org>
+ <553AE999-CAF1-4E59-9F3F-68591ED192DE@sk2.org>
+ <Y7nb2q6SDota/rTU@ravnborg.org>
+From:   Helge Deller <deller@gmx.de>
+In-Reply-To: <Y7nb2q6SDota/rTU@ravnborg.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:T9uileinKOrfmfXULyUKIEJ7Q5sw2pWalYogfbz1gtzJSOq1Nnk
+ V1Zd+9ekAM/oEwNZj1ns1vPVvUAvy44ZTl/BH109UTdaVmWLFROcAvtyBj2aiXsnhpoNIYK
+ f6LsM16mV7xk2n5D7VSkS/fvq9QrFB+Qsr4JdY1dEhwACqZ+EY+1G3NYsfmX6ypM+wH5gFE
+ /7WyOoTkU98Aw7Eoh7DaA==
+UI-OutboundReport: notjunk:1;M01:P0:6EvwsDxHCUk=;/ufhnGN+zI+oDWZwCc4k4w2CiV6
+ QrBtAZx6984DADkmIhmphyAOMnO+EsKjlmNqXIClAaw7V8tj9JPpHNARsM246kng951NRk2oi
+ /byMbKSDYi8rsJz7nXc/8KdnxSv+1burzS9rBLLQM/SSTUMuQUByG7DylwBo981H4z994LqZg
+ KLx+5Rc+JTjZRTHm7FAkEiXfexyhIuoMWuFoc8+oJtEX8HPb5zhB5OYNiVjMNrPqGx2C+3K7v
+ sAZWfQ7gadJK+ycK0a+DF6ZK6q1LsCz+1WRS2kTIc9PJ8/LSLnFu85kOu+o+9tCNP4DY5zQ5p
+ NhGfVTn5bxnME9Sfjeg+9Tr9u6dO9obRYORwJqPjaDTe9+CZNal/yd1ZwaAro20jGQk4TVyDa
+ LkGBCsyMdaLmZYKdXXuZBayAMT8PyJ9HI4w/2Y3jeySKFTrrCPt2MgKeLt5Cqy6vUEvLdAXC6
+ y0Ril9BxeR4vpeFvuNrwd4GuHDQngvSxVPqvMgf9aMfVU/HTZ0ND9Ff0zHT5k+CYIfU9ozKXw
+ WAJ9oQAhGTIpHa1DGlP6FNxdU0ewRRtrxDez7r0n0fX2Zesqdwb93PvYFJUz/NaUPU2MoemBZ
+ PtnNHPXybe5g2TGiVP5ruaDYkd/2yG87qwT269V9l+B2aBIckWPR8RiFPdO+VgqKSSRILZAvu
+ Xcsx1fp/7/gviRZ9yGN1JlA8f+Dfko5WDu+R0kGU1IgSRGJ3aNB9IlxTKhDshTXZ446gME2//
+ HQlzmCrV6kWA+h8ISQpNIPgwhV/sb1/m7HSHW3yfdftuO+AaZA0FhJ/kKMk+6QHaigTShvBIA
+ dfiV4QG0v6WifGj7P5cbgofBhvUlZ3ZDqiloZyOB5ccr4M3sIufP2OCBfjm0AXFsWAIChC2Cg
+ bC7QBlhaNveFAmYsdFSSPtz2++nCIfoAnf+6cNmVDXN3eAGT4HtkCZDEmS/w+OGm4ZNZAzGPW
+ BztdIqZ4VB6gHHWaPzjmxy5jaag=
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add support to build pcie-cadence library as module.
+On 1/7/23 21:53, Sam Ravnborg wrote:
+> Hi Stephen.
+>
+> On Sat, Jan 07, 2023 at 09:36:47PM +0100, Stephen Kitt wrote:
+>> On 7 January 2023 19:26:15 CET, Sam Ravnborg via B4 Submission Endpoint=
+ <devnull+sam.ravnborg.org@kernel.org> wrote:
+>>> From: Sam Ravnborg <sam@ravnborg.org>
+>>>
+>>> The atmel_lcdfb had code to save/restore power state.
+>>> This is not needed so drop it.
+>>>
+>>> Introduce backlight_is_brightness() to make logic simpler.
+>>>
+>>> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+>>> Cc: Nicolas Ferre <nicolas.ferre@microchip.com>
+>>> Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
+>>> Cc: Ludovic Desroches <ludovic.desroches@microchip.com>
+>>> Cc: linux-fbdev@vger.kernel.org
+>>> Cc: linux-arm-kernel@lists.infradead.org
+>>> ---
+>>> drivers/video/fbdev/atmel_lcdfb.c | 24 +++---------------------
+>>> 1 file changed, 3 insertions(+), 21 deletions(-)
+> ...
+>>
+>> Hi Sam,
+>>
+>> I=E2=80=99d submitted quite a few more of these previously (and you=E2=
+=80=99d reviewed them), see e.g. the thread starting at https://lkml.org/l=
+kml/2022/6/7/4365, and yesterday, https://lkml.org/lkml/2023/1/6/520, http=
+s://lkml.org/lkml/2023/1/6/656, https://lkml.org/lkml/2023/1/6/970, https:=
+//lkml.org/lkml/2023/1/6/643, and https://lkml.org/lkml/2023/1/6/680. Ther=
+e are a few more, I can find them if it=E2=80=99s any use.
+>
+> The patches from yesterday was what triggered me to resurrect an old
+> branch of mine where I had done something similar. I had lost all
+> memory of reviewing similar patches from you.
+>
+>
+> Helge - could you pick the reviewed patches from:
+> https://lore.kernel.org/all/20220607192335.1137249-1-steve@sk2.org/
+> [This is the same mail as Stephen refer to above - looked up via lore].
 
-Signed-off-by: Achal Verma <a-verma1@ti.com>
----
- drivers/pci/controller/cadence/Kconfig             | 6 +++---
- drivers/pci/controller/cadence/pcie-cadence-ep.c   | 4 ++++
- drivers/pci/controller/cadence/pcie-cadence-host.c | 5 +++++
- drivers/pci/controller/cadence/pcie-cadence.c      | 9 +++++++++
- drivers/pci/controller/cadence/pcie-cadence.h      | 4 ++--
- 5 files changed, 23 insertions(+), 5 deletions(-)
+I just pulled those 7 patches into fbdev/for-next.
+If you need more, please let me know,
 
-diff --git a/drivers/pci/controller/cadence/Kconfig b/drivers/pci/controller/cadence/Kconfig
-index 5d30564190e1..693c41fe32ce 100644
---- a/drivers/pci/controller/cadence/Kconfig
-+++ b/drivers/pci/controller/cadence/Kconfig
-@@ -4,16 +4,16 @@ menu "Cadence PCIe controllers support"
- 	depends on PCI
- 
- config PCIE_CADENCE
--	bool
-+	tristate
- 
- config PCIE_CADENCE_HOST
--	bool
-+	tristate
- 	depends on OF
- 	select IRQ_DOMAIN
- 	select PCIE_CADENCE
- 
- config PCIE_CADENCE_EP
--	bool
-+	tristate
- 	depends on OF
- 	depends on PCI_ENDPOINT
- 	select PCIE_CADENCE
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-index b8b655d4047e..598b2b9c5969 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-@@ -5,6 +5,7 @@
- 
- #include <linux/delay.h>
- #include <linux/kernel.h>
-+#include <linux/module.h>
- #include <linux/of.h>
- #include <linux/pci-epc.h>
- #include <linux/platform_device.h>
-@@ -741,3 +742,6 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
- 
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_ep_setup);
-+
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-index 940c7dd701d6..84754c63df34 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-host.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-@@ -5,6 +5,7 @@
- 
- #include <linux/delay.h>
- #include <linux/kernel.h>
-+#include <linux/module.h>
- #include <linux/list_sort.h>
- #include <linux/of_address.h>
- #include <linux/of_pci.h>
-@@ -70,6 +71,7 @@ void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
- 
- 	return rc->cfg_base + (where & 0xfff);
- }
-+EXPORT_SYMBOL_GPL(cdns_pci_map_bus);
- 
- static struct pci_ops cdns_pcie_host_ops = {
- 	.map_bus	= cdns_pci_map_bus,
-@@ -542,3 +544,6 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- 
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_host_setup);
-+
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.c b/drivers/pci/controller/cadence/pcie-cadence.c
-index 13c4032ca379..8e3a86578284 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence.c
-@@ -4,6 +4,7 @@
- // Author: Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
- 
- #include <linux/kernel.h>
-+#include <linux/module.h>
- 
- #include "pcie-cadence.h"
- 
-@@ -22,6 +23,7 @@ void cdns_pcie_detect_quiet_min_delay_set(struct cdns_pcie *pcie)
- 
- 	cdns_pcie_writel(pcie, CDNS_PCIE_LTSSM_CONTROL_CAP, ltssm_control_cap);
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_detect_quiet_min_delay_set);
- 
- void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 busnr, u8 fn,
- 				   u32 r, bool is_io,
-@@ -99,6 +101,7 @@ void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 busnr, u8 fn,
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR0(r), addr0);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR1(r), addr1);
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_set_outbound_region);
- 
- void cdns_pcie_set_outbound_region_for_normal_msg(struct cdns_pcie *pcie,
- 						  u8 busnr, u8 fn,
-@@ -133,6 +136,7 @@ void cdns_pcie_set_outbound_region_for_normal_msg(struct cdns_pcie *pcie,
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR0(r), addr0);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR1(r), addr1);
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_set_outbound_region_for_normal_msg);
- 
- void cdns_pcie_reset_outbound_region(struct cdns_pcie *pcie, u32 r)
- {
-@@ -145,6 +149,7 @@ void cdns_pcie_reset_outbound_region(struct cdns_pcie *pcie, u32 r)
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR0(r), 0);
- 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR1(r), 0);
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_reset_outbound_region);
- 
- void cdns_pcie_disable_phy(struct cdns_pcie *pcie)
- {
-@@ -155,6 +160,7 @@ void cdns_pcie_disable_phy(struct cdns_pcie *pcie)
- 		phy_exit(pcie->phy[i]);
- 	}
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_disable_phy);
- 
- int cdns_pcie_enable_phy(struct cdns_pcie *pcie)
- {
-@@ -242,6 +248,7 @@ int cdns_pcie_init_phy(struct device *dev, struct cdns_pcie *pcie)
- 
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(cdns_pcie_init_phy);
- 
- static int cdns_pcie_suspend_noirq(struct device *dev)
- {
-@@ -270,3 +277,5 @@ const struct dev_pm_ops cdns_pcie_pm_ops = {
- 	NOIRQ_SYSTEM_SLEEP_PM_OPS(cdns_pcie_suspend_noirq,
- 				  cdns_pcie_resume_noirq)
- };
-+
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index 190786e47df9..65b330c28299 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.h
-+++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -514,7 +514,7 @@ static inline bool cdns_pcie_link_up(struct cdns_pcie *pcie)
- 	return true;
- }
- 
--#ifdef CONFIG_PCIE_CADENCE_HOST
-+#if IS_ENABLED(CONFIG_PCIE_CADENCE_HOST)
- int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
- void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
- 			       int where);
-@@ -531,7 +531,7 @@ static inline void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int d
- }
- #endif
- 
--#ifdef CONFIG_PCIE_CADENCE_EP
-+#if IS_ENABLED(CONFIG_PCIE_CADENCE_EP)
- int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep);
- #else
- static inline int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
--- 
-2.25.1
+Thanks!
+Helge
+
+
+>
+> Stephen - I expect Daniel/Lee to take care of the patches from yesterday=
+.
+> If you can look up other pending patches from you please do so, so we
+> can have them applied.
+> Preferably with links to lore - as this makes it easier to apply them.
+>
+> Review of what is unique in this set would be appreciated.
+>
+> 	Sam
 
