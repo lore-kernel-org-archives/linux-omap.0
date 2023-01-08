@@ -2,33 +2,33 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3489FC54EBC
-	for <linux-omap@archiver.kernel.org>; Sun,  8 Jan 2023 19:37:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF70FC54EBD
+	for <linux-omap@archiver.kernel.org>; Sun,  8 Jan 2023 19:42:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230396AbjAHThF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 8 Jan 2023 14:37:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48012 "EHLO
+        id S229459AbjAHTmr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 8 Jan 2023 14:42:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230193AbjAHThE (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2023 14:37:04 -0500
-X-Greylist: delayed 42571 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 08 Jan 2023 11:37:02 PST
-Received: from 18.mo583.mail-out.ovh.net (18.mo583.mail-out.ovh.net [178.33.45.10])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEE4CAE7B
-        for <linux-omap@vger.kernel.org>; Sun,  8 Jan 2023 11:37:02 -0800 (PST)
-Received: from director9.ghost.mail-out.ovh.net (unknown [10.109.146.20])
-        by mo583.mail-out.ovh.net (Postfix) with ESMTP id B61A9238AC
-        for <linux-omap@vger.kernel.org>; Sun,  8 Jan 2023 19:28:30 +0000 (UTC)
-Received: from ghost-submission-6684bf9d7b-jkvnz (unknown [10.110.115.217])
-        by director9.ghost.mail-out.ovh.net (Postfix) with ESMTPS id 5F9761FF09;
-        Sun,  8 Jan 2023 19:28:25 +0000 (UTC)
-Received: from sk2.org ([37.59.142.109])
-        by ghost-submission-6684bf9d7b-jkvnz with ESMTPSA
-        id EegsFFkZu2NcfgEALOiSWw
-        (envelope-from <steve@sk2.org>); Sun, 08 Jan 2023 19:28:25 +0000
-Authentication-Results: garm.ovh; auth=pass (GARM-109S00347102589-c051-4779-a238-3104c8c3a5ba,
+        with ESMTP id S233810AbjAHTm3 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2023 14:42:29 -0500
+X-Greylist: delayed 38233 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 08 Jan 2023 11:42:02 PST
+Received: from 9.mo583.mail-out.ovh.net (9.mo583.mail-out.ovh.net [178.32.96.204])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F06FEB863
+        for <linux-omap@vger.kernel.org>; Sun,  8 Jan 2023 11:42:02 -0800 (PST)
+Received: from director10.ghost.mail-out.ovh.net (unknown [10.109.143.220])
+        by mo583.mail-out.ovh.net (Postfix) with ESMTP id 2CA8D23090
+        for <linux-omap@vger.kernel.org>; Sun,  8 Jan 2023 19:32:53 +0000 (UTC)
+Received: from ghost-submission-6684bf9d7b-47dbt (unknown [10.110.103.73])
+        by director10.ghost.mail-out.ovh.net (Postfix) with ESMTPS id 82FB61FDA8;
+        Sun,  8 Jan 2023 19:32:50 +0000 (UTC)
+Received: from sk2.org ([37.59.142.110])
+        by ghost-submission-6684bf9d7b-47dbt with ESMTPSA
+        id suVQGmIau2PZhg0A1/aQ0w
+        (envelope-from <steve@sk2.org>); Sun, 08 Jan 2023 19:32:50 +0000
+Authentication-Results: garm.ovh; auth=pass (GARM-110S004d95a66cd-0637-4714-9dc0-8c81f479a7fd,
                     5128B599F7D401446F64D4771BE19AB2B9CD7A8B) smtp.auth=steve@sk2.org
 X-OVh-ClientIp: 82.65.25.201
-Date:   Sun, 8 Jan 2023 20:28:17 +0100
+Date:   Sun, 8 Jan 2023 20:32:46 +0100
 From:   Stephen Kitt <steve@sk2.org>
 To:     Sam Ravnborg via B4 Submission Endpoint 
         <devnull+sam.ravnborg.org@kernel.org>
@@ -47,115 +47,145 @@ Cc:     <sam@ravnborg.org>, Nicolas Ferre <nicolas.ferre@microchip.com>,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-omap@vger.kernel.org, linux-staging@lists.linux.dev,
-        linuxppc-dev@lists.ozlabs.org,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 09/15] staging: fbtft: fb_ssd1351.c: Introduce
- backlight_is_blank()
-Message-ID: <20230108202817.7890f85c@heffalump.sk2.org>
-In-Reply-To: <20230107-sam-video-backlight-drop-fb_blank-v1-9-1bd9bafb351f@ravnborg.org>
+        linuxppc-dev@lists.ozlabs.org
+Subject: Re: [PATCH 15/15] backlight: backlight: Drop the deprecated
+ fb_blank property
+Message-ID: <20230108203246.3ca507df@heffalump.sk2.org>
+In-Reply-To: <20230107-sam-video-backlight-drop-fb_blank-v1-15-1bd9bafb351f@ravnborg.org>
 References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
-        <20230107-sam-video-backlight-drop-fb_blank-v1-9-1bd9bafb351f@ravnborg.org>
+        <20230107-sam-video-backlight-drop-fb_blank-v1-15-1bd9bafb351f@ravnborg.org>
 X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/7r7u4ublxCZJ9BAQVs4mie8";
+Content-Type: multipart/signed; boundary="Sig_/yBkUQ5TN6WQX1gLgYbjZw/r";
  protocol="application/pgp-signature"; micalg=pgp-sha512
-X-Ovh-Tracer-Id: 1827898502950454918
+X-Ovh-Tracer-Id: 1901926421308278406
 X-VR-SPAMSTATE: OK
 X-VR-SPAMSCORE: -100
-X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrkeeggdduvdekucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuqfggjfdpvefjgfevmfevgfenuceurghilhhouhhtmecuhedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepfffhvfevuffkjghfofggtgesghdtreerredtvdenucfhrhhomhepufhtvghphhgvnhcumfhithhtuceoshhtvghvvgesshhkvddrohhrgheqnecuggftrfgrthhtvghrnhepfeffgefhgfeuueeffeejieefieefgfefffethfdtudegvdejueelhffhfeegjeeinecukfhppeduvdejrddtrddtrddupdefjedrheelrddugedvrddutdelnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepuddvjedrtddrtddruddpmhgrihhlfhhrohhmpeeoshhtvghvvgesshhkvddrohhrgheqpdhnsggprhgtphhtthhopedupdhrtghpthhtoheplhhinhhugidqohhmrghpsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdfovfetjfhoshhtpehmohehkeefpdhmohguvgepshhmthhpohhuth
+X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrkeeggdduvdelucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuqfggjfdpvefjgfevmfevgfenuceurghilhhouhhtmecuhedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepfffhvfevuffkjghfofggtgesghdtreerredtvdenucfhrhhomhepufhtvghphhgvnhcumfhithhtuceoshhtvghvvgesshhkvddrohhrgheqnecuggftrfgrthhtvghrnhepfeffgefhgfeuueeffeejieefieefgfefffethfdtudegvdejueelhffhfeegjeeinecukfhppeduvdejrddtrddtrddupdefjedrheelrddugedvrdduuddtnecuvehluhhsthgvrhfuihiivgepfeenucfrrghrrghmpehinhgvthepuddvjedrtddrtddruddpmhgrihhlfhhrohhmpeeoshhtvghvvgesshhkvddrohhrgheqpdhnsggprhgtphhtthhopedupdhrtghpthhtoheplhhinhhugidqohhmrghpsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdfovfetjfhoshhtpehmohehkeefpdhmohguvgepshhmthhpohhuth
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
---Sig_/7r7u4ublxCZJ9BAQVs4mie8
+--Sig_/yBkUQ5TN6WQX1gLgYbjZw/r
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, 07 Jan 2023 19:26:23 +0100, Sam Ravnborg via B4 Submission Endpoint
+On Sat, 07 Jan 2023 19:26:29 +0100, Sam Ravnborg via B4 Submission Endpoint
 <devnull+sam.ravnborg.org@kernel.org> wrote:
 
 > From: Sam Ravnborg <sam@ravnborg.org>
 >=20
-> Avoiding direct access to backlight_properties.props.
->=20
-> Access to the deprecated props.fb_blank replaced by backlight_is_blank().
-> Access to props.power is dropped - it was only used for debug.
+> With all users gone remove the deprecated fb_blank member in
+> backlight_properties.
 >=20
 > Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-> Cc: Stephen Kitt <steve@sk2.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Lee Jones <lee@kernel.org>
 > Cc: Daniel Thompson <daniel.thompson@linaro.org>
-> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Cc: linux-fbdev@vger.kernel.org
+> Cc: Jingoo Han <jingoohan1@gmail.com>
 > ---
->  drivers/staging/fbtft/fb_ssd1351.c | 9 +++------
->  1 file changed, 3 insertions(+), 6 deletions(-)
+>  drivers/video/backlight/backlight.c |  2 --
+>  include/linux/backlight.h           | 22 ----------------------
+>  2 files changed, 24 deletions(-)
 >=20
-> diff --git a/drivers/staging/fbtft/fb_ssd1351.c
-> b/drivers/staging/fbtft/fb_ssd1351.c index b8d55aa8c5c7..995fbd2f3dc6 100=
-644
-> --- a/drivers/staging/fbtft/fb_ssd1351.c
-> +++ b/drivers/staging/fbtft/fb_ssd1351.c
-> @@ -190,15 +190,12 @@ static struct fbtft_display display =3D {
->  static int update_onboard_backlight(struct backlight_device *bd)
->  {
->  	struct fbtft_par *par =3D bl_get_data(bd);
-> -	bool on;
-> +	bool blank =3D backlight_is_blank(bd);
+> diff --git a/drivers/video/backlight/backlight.c
+> b/drivers/video/backlight/backlight.c index b788ff3d0f45..9b0557d094c5
+> 100644 --- a/drivers/video/backlight/backlight.c
+> +++ b/drivers/video/backlight/backlight.c
+> @@ -118,14 +118,12 @@ static int fb_notifier_callback(struct notifier_blo=
+ck
+> *self, bd->fb_bl_on[node] =3D true;
+>  		if (!bd->use_count++) {
+>  			bd->props.state &=3D ~BL_CORE_FBBLANK;
+> -			bd->props.fb_blank =3D FB_BLANK_UNBLANK;
+>  			backlight_update_status(bd);
+>  		}
+>  	} else if (fb_blank !=3D FB_BLANK_UNBLANK && bd->fb_bl_on[node]) {
+>  		bd->fb_bl_on[node] =3D false;
+>  		if (!(--bd->use_count)) {
+>  			bd->props.state |=3D BL_CORE_FBBLANK;
+> -			bd->props.fb_blank =3D fb_blank;
+>  			backlight_update_status(bd);
+>  		}
+>  	}
+> diff --git a/include/linux/backlight.h b/include/linux/backlight.h
+> index 614653e07e3a..c8622d6cc8c5 100644
+> --- a/include/linux/backlight.h
+> +++ b/include/linux/backlight.h
+> @@ -218,25 +218,6 @@ struct backlight_properties {
+>  	 */
+>  	int power;
 > =20
-> -	fbtft_par_dbg(DEBUG_BACKLIGHT, par,
-> -		      "%s: power=3D%d, fb_blank=3D%d\n",
-> -		      __func__, bd->props.power, bd->props.fb_blank);
-> +	fbtft_par_dbg(DEBUG_BACKLIGHT, par, "%s: blank=3D%d\n", __func__,
-> blank);=20
-> -	on =3D !backlight_is_blank(bd);
->  	/* Onboard backlight connected to GPIO0 on SSD1351, GPIO1 unused */
-> -	write_reg(par, 0xB5, on ? 0x03 : 0x02);
-> +	write_reg(par, 0xB5, !blank ? 0x03 : 0x02);
+> -	/**
+> -	 * @fb_blank: The power state from the FBIOBLANK ioctl.
+> -	 *
+> -	 * When the FBIOBLANK ioctl is called @fb_blank is set to the
+> -	 * blank parameter and the update_status() operation is called.
+> -	 *
+> -	 * When the backlight device is enabled @fb_blank is set
+> -	 * to FB_BLANK_UNBLANK. When the backlight device is disabled
+> -	 * @fb_blank is set to FB_BLANK_POWERDOWN.
+> -	 *
+> -	 * Backlight drivers should avoid using this property. It has been
+> -	 * replaced by state & BL_CORE_FBLANK (although most drivers should
+> -	 * use backlight_is_blank() as the preferred means to get the blank
+> -	 * state).
+> -	 *
+> -	 * fb_blank is deprecated and will be removed.
+> -	 */
+> -	int fb_blank;
+> -
+>  	/**
+>  	 * @type: The type of backlight supported.
+>  	 *
+> @@ -366,7 +347,6 @@ static inline int backlight_enable(struct
+> backlight_device *bd) return 0;
 > =20
->  	return 0;
+>  	bd->props.power =3D FB_BLANK_UNBLANK;
+> -	bd->props.fb_blank =3D FB_BLANK_UNBLANK;
+>  	bd->props.state &=3D ~BL_CORE_FBBLANK;
+> =20
+>  	return backlight_update_status(bd);
+> @@ -382,7 +362,6 @@ static inline int backlight_disable(struct
+> backlight_device *bd) return 0;
+> =20
+>  	bd->props.power =3D FB_BLANK_POWERDOWN;
+> -	bd->props.fb_blank =3D FB_BLANK_POWERDOWN;
+>  	bd->props.state |=3D BL_CORE_FBBLANK;
+> =20
+>  	return backlight_update_status(bd);
+> @@ -403,7 +382,6 @@ static inline int backlight_disable(struct
+> backlight_device *bd) static inline bool backlight_is_blank(const struct
+> backlight_device *bd) {
+>  	return bd->props.power !=3D FB_BLANK_UNBLANK ||
+> -	       bd->props.fb_blank !=3D FB_BLANK_UNBLANK ||
+>  	       bd->props.state & (BL_CORE_SUSPENDED | BL_CORE_FBBLANK);
 >  }
+> =20
 >=20
 > --=20
 > 2.34.1
 
-For debugging purposes here, would there be any point in logging props.stat=
-e?
-As in
-
-        fbtft_par_dbg(DEBUG_BACKLIGHT, par,
--                     "%s: power=3D%d, fb_blank=3D%d\n",
--                     __func__, bd->props.power, bd->props.fb_blank);
-+                     "%s: power=3D%d, state=3D%u\n",
-+                     __func__, bd->props.power, bd->props.state);
-
-In any case,
-
 Reviewed-by: Stephen Kitt <steve@sk2.org>
 
-Regards,
-
-Stephen
-
---Sig_/7r7u4ublxCZJ9BAQVs4mie8
+--Sig_/yBkUQ5TN6WQX1gLgYbjZw/r
 Content-Type: application/pgp-signature
 Content-Description: OpenPGP digital signature
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEEnPVX/hPLkMoq7x0ggNMC9Yhtg5wFAmO7GVIACgkQgNMC9Yht
-g5x37A/7B3puI8clzUcFlUoGWvM7pLm9F6edVmfW2Ck32NHOFEQ+oECUWSeX2T5+
-Ol8So/dDrSXGuqFUKEAjbn++F54QGE2LveKquiPDIOxwQMiZQdj8WvqLHWe3qzv2
-e1Am1nIijJ6mEph2pnKUhoriwloWC1EsY+au3CjU9iWdVa57tyeRUL4hScUpelyr
-6ysQxU3G0Rd5xkVe3V1RCHwxu7x6IK7lcQbk+9HpN1N3yDSTPZjHJAuIsVZYjlly
-TBc0BMhZGwK4XHcRi03Sm6rby7tNS+uZilljBtMjOKfDZx1M53iReLmQFMwk4pTb
-e0mC/zdp6MaGDdYI5FavZkHC8OOmKvfZnOKGZnuxdE5XERx9j7FoSPrm1/PrkAop
-1X+Ku2r+JKw96kq+pRg2I2zbtODbjrRdK6GmrDUZznfG5aMcZeZqDXnBMOBeolZz
-rjGVMeDzt2xJGCFIUFyiWnqwRoFoPkXs5cEklkYfszxnLnuWA20EhaWTpL1+w89k
-d0LymgENWcL7IzaazX/FOaX950T5K0iIGd7EnKR3R7eLYq/4W3fa2v/wNR2NehQs
-nP39LfiNX7brah5GIfGlQanv9YxJ7XaqUEVyKkC9Y37SpTfzbzuVY0ndx+z1Y3zD
-sDB0Ut1gNyL4DjtVgMu8Q9miiMuDKyL41MaxMEZpcKYIfQIEhVU=
-=y2dJ
+iQIzBAEBCgAdFiEEnPVX/hPLkMoq7x0ggNMC9Yhtg5wFAmO7Gl4ACgkQgNMC9Yht
+g5y/2w//YCUl1TkgG93owd5rHJe5atRiC7gzYhi2cXiLb4frAyT/Sq738el5nh/Z
+6/kSEgZzvvj/iz1dFtHOpIyTANzgs3yBsojNX4ho8fkvt3J/dAKj30B14B0mJs0P
+mLGiJUxnW0fDk+fMdFcZnLoy2gf9urLiFq/p96r0lSehWJPXDisX/Me4DYjzbJq4
+UlhEPo4j3lqG8624kue9o8gTptP07mUVVs3O3dGvwTFXWw8PJmnyg3nsQ+rgpXUq
+iPbugQwwQf4AAnJQJ7UfYYeKEu/I5edKumccCgWwOC/oIh6JcJ9I0C1UUz2g32YD
+IU24rf9kRptTdECdkIHPD4h8EHN4PZa5IFKEQ6xXBb7vpyxCEMiuXw2ey3UcRLc3
+K/lsX1EBfzGEIgPVH0uSPyFyoIHrz8azEL2p9Eq+DnZfF5UKhXHFFQiL5vAVECiH
+RupGAdt83VvLAw4l7Lz2Pi3yFs109SBqHcM/mVQTVEn2Zl+0xmjrywo3Avnh2ECw
+87e12iSv8J2QckPFlzQDVHrmnNqk5Ue9dTLiYDnMW4aiYxVsiHzEC6cXlQtiOofE
+MS0UF5PBVgSc1BXa6v9tSVoHsPSNh/GWRTY6Mm74AHKjIxsOy/tLf9KFyDP+Lt2e
+M5T4OHPlMrKyE5e0ULdVRc9fF50cFsb/jbJHbdPiZ7lIKlKVUko=
+=PJeH
 -----END PGP SIGNATURE-----
 
---Sig_/7r7u4ublxCZJ9BAQVs4mie8--
+--Sig_/yBkUQ5TN6WQX1gLgYbjZw/r--
