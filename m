@@ -2,320 +2,101 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAE6BC61DB3
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Jan 2023 16:17:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ED13C5479D
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Jan 2023 16:28:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231777AbjAIQRQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 Jan 2023 11:17:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50778 "EHLO
+        id S231586AbjAIQ2C (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 9 Jan 2023 11:28:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229969AbjAIQQx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jan 2023 11:16:53 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C28EBF48;
-        Mon,  9 Jan 2023 08:16:52 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8BB676118C;
-        Mon,  9 Jan 2023 16:16:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9794BC433F0;
-        Mon,  9 Jan 2023 16:16:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673281011;
-        bh=PmhN31TQlCHG66Ep9AWwrNPbC2HLA7D9FAalYlsE44E=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rFwraePG+womAa0oFp873AfKcQOEDOPHZj4vSUSpiL3HaHwtw5spVA82m/Ty9z5mj
-         dDhFhk/hUDFEqWkUaUcb9hAewIkSDaoR9oKqDHRMFje400usY9V0wEUmPdj/v4+R8f
-         KvSbZKT81FVQQ3BioFYmsqIR3xrbFRNMj5dAry8s+s1BZLC1dxwcPKXGQNnW13pNlW
-         I4pBkeIMC/Gohqj4e4Q2RFW6I/MMn/hMN124bnqGwsLuBG8YzLDnQkNH7CXZ2kBiJT
-         oYjda+1l+BRJGByxfHRvJcOgH/ScElSbbEL75MCnKf4whsX27rYkTFgoa99o9muX2k
-         K+E2UurfUA5QQ==
-From:   Arnd Bergmann <arnd@kernel.org>
-To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>, stable@vger.kernel.org
-Subject: [PATCH 2/3] ARM: omap1: fix !ARCH_OMAP1_ANY link failures
-Date:   Mon,  9 Jan 2023 17:16:35 +0100
-Message-Id: <20230109161636.512203-3-arnd@kernel.org>
-X-Mailer: git-send-email 2.39.0
-In-Reply-To: <20230109161636.512203-1-arnd@kernel.org>
-References: <20230109161636.512203-1-arnd@kernel.org>
+        with ESMTP id S234001AbjAIQ1x (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jan 2023 11:27:53 -0500
+Received: from mailrelay5-1.pub.mailoutpod2-cph3.one.com (mailrelay5-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:404::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2F5CE0BD
+        for <linux-omap@vger.kernel.org>; Mon,  9 Jan 2023 08:27:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa2;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=dTBh2Be6Q1A/kCwcp9I8OjPATYhgdC0pFQ07Wxod3+Y=;
+        b=EOIf6mOnKkwHLtxJfgBg+c8bPYu10/CKQBjGac1w8zAfMoPxooFOFujSC2ijxczH4uOtY0Bvbr2DB
+         dOfgp/+5vh+TdYJ9/gS2dW0oSa9EK9kwH08Gq6W7zHk+zYtXjrMB5o85CSGzKR/qu4SxRHIkB3YjhJ
+         nK33nuOn8mS58pgxZ/8KZOujIXPLA8gEzLXSCWI63CwTYgbSjeYf3V9Aez9KhtnTgwWvhq865DJmyl
+         OegDyOeMmkzrZLPHNHiOW8GLRLIFT2s4E6jlU9Z8KUTOcuTJzwVr7O4P+N+b3pvZOFVL9/CY1/0CS7
+         UyPxebBNy3HMfqddcSX+d0Qa+M9j2aQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed2;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=dTBh2Be6Q1A/kCwcp9I8OjPATYhgdC0pFQ07Wxod3+Y=;
+        b=6W6KcsOY9JYk9b8jg6LJ3hg3GFrer/Pt34tm0RAXXpZTaoIrXrRW9qNshWIWd8BH9aKUo8XvraB9r
+         XpoLe/SAQ==
+X-HalOne-ID: 8af36721-903a-11ed-b86b-7703b0afff57
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay5 (Halon) with ESMTPSA
+        id 8af36721-903a-11ed-b86b-7703b0afff57;
+        Mon, 09 Jan 2023 16:27:45 +0000 (UTC)
+Date:   Mon, 9 Jan 2023 17:27:44 +0100
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Daniel Thompson <daniel.thompson@linaro.org>
+Cc:     Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Helge Deller <deller@gmx.de>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Antonino Daplas <adaplas@gmail.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Robin van der Gracht <robin@protonic.nl>,
+        Miguel Ojeda <ojeda@kernel.org>, Lee Jones <lee@kernel.org>,
+        Jingoo Han <jingoohan1@gmail.com>, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-staging@lists.linux.dev,
+        linuxppc-dev@lists.ozlabs.org, Stephen Kitt <steve@sk2.org>
+Subject: Re: [PATCH 15/15] backlight: backlight: Drop the deprecated fb_blank
+ property
+Message-ID: <Y7xAgHgg0sfh32Ga@ravnborg.org>
+References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
+ <20230107-sam-video-backlight-drop-fb_blank-v1-15-1bd9bafb351f@ravnborg.org>
+ <Y7v1OxdowGdxgvUj@aspen.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y7v1OxdowGdxgvUj@aspen.lan>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
+Hi Daniel.
 
-While compile-testing randconfig builds for the upcoming boardfile
-removal, I noticed that an earlier patch of mine was completely
-broken, and the introduction of CONFIG_ARCH_OMAP1_ANY only replaced
-one set of build failures with another one, now resulting in
-link failures like
+On Mon, Jan 09, 2023 at 11:06:35AM +0000, Daniel Thompson wrote:
+> On Sat, Jan 07, 2023 at 07:26:29PM +0100, Sam Ravnborg via B4 Submission Endpoint wrote:
+> > From: Sam Ravnborg <sam@ravnborg.org>
+> >
+> > With all users gone remove the deprecated fb_blank member in
+> > backlight_properties.
+> >
+> > Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+> > Cc: Lee Jones <lee@kernel.org>
+> > Cc: Daniel Thompson <daniel.thompson@linaro.org>
+> > Cc: Jingoo Han <jingoohan1@gmail.com>
+> 
+> 
+> Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
 
-ld: drivers/video/fbdev/omap/omapfb_main.o: in function `omapfb_do_probe':
-drivers/video/fbdev/omap/omapfb_main.c:1703: undefined reference to `omap_set_dma_priority'
-ld: drivers/dma/ti/omap-dma.o: in function `omap_dma_free_chan_resources':
-drivers/dma/ti/omap-dma.c:777: undefined reference to `omap_free_dma'
-drivers/dma/ti/omap-dma.c:1685: undefined reference to `omap_get_plat_info'
-ld: drivers/usb/gadget/udc/omap_udc.o: in function `next_in_dma':
-drivers/usb/gadget/udc/omap_udc.c:820: undefined reference to `omap_get_dma_active_status'
+Thanks for the follow-up on all the backlight related patches.
 
-I tried reworking it, but the resulting patch ended up much bigger than
-simply avoiding the original problem of unused-function warnings like
+> 
+> 
+> PS Please don't treat this like a maintainer Acked-by: and merge it
+>    (Lee's not on holiday so work with Lee to figure out the merge
+>    strategy ;-) ).
+Nope, I am aware that the usual pattern here and wait for Lee to show
+up.
+For this patch there is a bug as I need to update a comment.
+I will fix this when I resend after all the patches in flight has
+landed. So likely after the next merge window,
 
-arch/arm/mach-omap1/mcbsp.c:76:30: error: unused variable 'omap1_mcbsp_ops' [-Werror,-Wunused-variable]
-
-As a result, revert the previous fix, and rearrange the code that
-produces warnings to hide them. For mcbsp, the #ifdef check can
-simply be removed as the cpu_is_omapxxx() checks already achieve
-the same result, while in the io.c the easiest solution appears to
-be to merge the common map bits into each soc specific portion.
-This gets cleaned in a nicer way after omap7xx support gets dropped,
-as the remaining SoCs all have the exact same I/O map.
-
-Fixes: 615dce5bf736 ("ARM: omap1: fix build with no SoC selected")
-Cc: stable@vger.kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm/mach-omap1/Kconfig     |  5 +----
- arch/arm/mach-omap1/Makefile    |  4 ----
- arch/arm/mach-omap1/io.c        | 32 +++++++++++++++-----------------
- arch/arm/mach-omap1/mcbsp.c     | 21 ---------------------
- arch/arm/mach-omap1/pm.h        |  7 -------
- include/linux/soc/ti/omap1-io.h |  4 ++--
- 6 files changed, 18 insertions(+), 55 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-index 538a960257cc..7ec7ada287e0 100644
---- a/arch/arm/mach-omap1/Kconfig
-+++ b/arch/arm/mach-omap1/Kconfig
-@@ -4,6 +4,7 @@ menuconfig ARCH_OMAP1
- 	depends on ARCH_MULTI_V4T || ARCH_MULTI_V5
- 	depends on CPU_LITTLE_ENDIAN
- 	depends on ATAGS
-+	select ARCH_OMAP
- 	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ARCH_OMAP
- 	select CLKSRC_MMIO
-@@ -45,10 +46,6 @@ config ARCH_OMAP16XX
- 	select CPU_ARM926T
- 	select OMAP_DM_TIMER
- 
--config ARCH_OMAP1_ANY
--	select ARCH_OMAP
--	def_bool ARCH_OMAP730 || ARCH_OMAP850 || ARCH_OMAP15XX || ARCH_OMAP16XX
--
- config ARCH_OMAP
- 	bool
- 
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index 506074b86333..0615cb0ba580 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -3,8 +3,6 @@
- # Makefile for the linux kernel.
- #
- 
--ifdef CONFIG_ARCH_OMAP1_ANY
--
- # Common support
- obj-y := io.o id.o sram-init.o sram.o time.o irq.o mux.o flash.o \
- 	 serial.o devices.o dma.o omap-dma.o fb.o
-@@ -59,5 +57,3 @@ obj-$(CONFIG_ARCH_OMAP730)		+= gpio7xx.o
- obj-$(CONFIG_ARCH_OMAP850)		+= gpio7xx.o
- obj-$(CONFIG_ARCH_OMAP15XX)		+= gpio15xx.o
- obj-$(CONFIG_ARCH_OMAP16XX)		+= gpio16xx.o
--
--endif
-diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
-index d2db9b8aed3f..0074b011a05a 100644
---- a/arch/arm/mach-omap1/io.c
-+++ b/arch/arm/mach-omap1/io.c
-@@ -22,17 +22,14 @@
-  * The machine specific code may provide the extra mapping besides the
-  * default mapping provided here.
-  */
--static struct map_desc omap_io_desc[] __initdata = {
-+#if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP850)
-+static struct map_desc omap7xx_io_desc[] __initdata = {
- 	{
- 		.virtual	= OMAP1_IO_VIRT,
- 		.pfn		= __phys_to_pfn(OMAP1_IO_PHYS),
- 		.length		= OMAP1_IO_SIZE,
- 		.type		= MT_DEVICE
--	}
--};
--
--#if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP850)
--static struct map_desc omap7xx_io_desc[] __initdata = {
-+	},
- 	{
- 		.virtual	= OMAP7XX_DSP_BASE,
- 		.pfn		= __phys_to_pfn(OMAP7XX_DSP_START),
-@@ -49,6 +46,12 @@ static struct map_desc omap7xx_io_desc[] __initdata = {
- 
- #ifdef CONFIG_ARCH_OMAP15XX
- static struct map_desc omap1510_io_desc[] __initdata = {
-+	{
-+		.virtual	= OMAP1_IO_VIRT,
-+		.pfn		= __phys_to_pfn(OMAP1_IO_PHYS),
-+		.length		= OMAP1_IO_SIZE,
-+		.type		= MT_DEVICE
-+	},
- 	{
- 		.virtual	= OMAP1510_DSP_BASE,
- 		.pfn		= __phys_to_pfn(OMAP1510_DSP_START),
-@@ -65,6 +68,12 @@ static struct map_desc omap1510_io_desc[] __initdata = {
- 
- #if defined(CONFIG_ARCH_OMAP16XX)
- static struct map_desc omap16xx_io_desc[] __initdata = {
-+	{
-+		.virtual	= OMAP1_IO_VIRT,
-+		.pfn		= __phys_to_pfn(OMAP1_IO_PHYS),
-+		.length		= OMAP1_IO_SIZE,
-+		.type		= MT_DEVICE
-+	},
- 	{
- 		.virtual	= OMAP16XX_DSP_BASE,
- 		.pfn		= __phys_to_pfn(OMAP16XX_DSP_START),
-@@ -79,18 +88,9 @@ static struct map_desc omap16xx_io_desc[] __initdata = {
- };
- #endif
- 
--/*
-- * Maps common IO regions for omap1
-- */
--static void __init omap1_map_common_io(void)
--{
--	iotable_init(omap_io_desc, ARRAY_SIZE(omap_io_desc));
--}
--
- #if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP850)
- void __init omap7xx_map_io(void)
- {
--	omap1_map_common_io();
- 	iotable_init(omap7xx_io_desc, ARRAY_SIZE(omap7xx_io_desc));
- }
- #endif
-@@ -98,7 +98,6 @@ void __init omap7xx_map_io(void)
- #ifdef CONFIG_ARCH_OMAP15XX
- void __init omap15xx_map_io(void)
- {
--	omap1_map_common_io();
- 	iotable_init(omap1510_io_desc, ARRAY_SIZE(omap1510_io_desc));
- }
- #endif
-@@ -106,7 +105,6 @@ void __init omap15xx_map_io(void)
- #if defined(CONFIG_ARCH_OMAP16XX)
- void __init omap16xx_map_io(void)
- {
--	omap1_map_common_io();
- 	iotable_init(omap16xx_io_desc, ARRAY_SIZE(omap16xx_io_desc));
- }
- #endif
-diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
-index 05c25c432449..b1632cbe37e6 100644
---- a/arch/arm/mach-omap1/mcbsp.c
-+++ b/arch/arm/mach-omap1/mcbsp.c
-@@ -89,7 +89,6 @@ static struct omap_mcbsp_ops omap1_mcbsp_ops = {
- #define OMAP1610_MCBSP2_BASE	0xfffb1000
- #define OMAP1610_MCBSP3_BASE	0xe1017000
- 
--#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
- struct resource omap7xx_mcbsp_res[][6] = {
- 	{
- 		{
-@@ -159,14 +158,7 @@ static struct omap_mcbsp_platform_data omap7xx_mcbsp_pdata[] = {
- };
- #define OMAP7XX_MCBSP_RES_SZ		ARRAY_SIZE(omap7xx_mcbsp_res[1])
- #define OMAP7XX_MCBSP_COUNT		ARRAY_SIZE(omap7xx_mcbsp_res)
--#else
--#define omap7xx_mcbsp_res_0		NULL
--#define omap7xx_mcbsp_pdata		NULL
--#define OMAP7XX_MCBSP_RES_SZ		0
--#define OMAP7XX_MCBSP_COUNT		0
--#endif
- 
--#ifdef CONFIG_ARCH_OMAP15XX
- struct resource omap15xx_mcbsp_res[][6] = {
- 	{
- 		{
-@@ -266,14 +258,7 @@ static struct omap_mcbsp_platform_data omap15xx_mcbsp_pdata[] = {
- };
- #define OMAP15XX_MCBSP_RES_SZ		ARRAY_SIZE(omap15xx_mcbsp_res[1])
- #define OMAP15XX_MCBSP_COUNT		ARRAY_SIZE(omap15xx_mcbsp_res)
--#else
--#define omap15xx_mcbsp_res_0		NULL
--#define omap15xx_mcbsp_pdata		NULL
--#define OMAP15XX_MCBSP_RES_SZ		0
--#define OMAP15XX_MCBSP_COUNT		0
--#endif
- 
--#ifdef CONFIG_ARCH_OMAP16XX
- struct resource omap16xx_mcbsp_res[][6] = {
- 	{
- 		{
-@@ -373,12 +358,6 @@ static struct omap_mcbsp_platform_data omap16xx_mcbsp_pdata[] = {
- };
- #define OMAP16XX_MCBSP_RES_SZ		ARRAY_SIZE(omap16xx_mcbsp_res[1])
- #define OMAP16XX_MCBSP_COUNT		ARRAY_SIZE(omap16xx_mcbsp_res)
--#else
--#define omap16xx_mcbsp_res_0		NULL
--#define omap16xx_mcbsp_pdata		NULL
--#define OMAP16XX_MCBSP_RES_SZ		0
--#define OMAP16XX_MCBSP_COUNT		0
--#endif
- 
- static void omap_mcbsp_register_board_cfg(struct resource *res, int res_count,
- 			struct omap_mcbsp_platform_data *config, int size)
-diff --git a/arch/arm/mach-omap1/pm.h b/arch/arm/mach-omap1/pm.h
-index d9165709c532..0d1f092821ff 100644
---- a/arch/arm/mach-omap1/pm.h
-+++ b/arch/arm/mach-omap1/pm.h
-@@ -106,13 +106,6 @@
- #define OMAP7XX_IDLECT3		0xfffece24
- #define OMAP7XX_IDLE_LOOP_REQUEST	0x0C00
- 
--#if     !defined(CONFIG_ARCH_OMAP730) && \
--	!defined(CONFIG_ARCH_OMAP850) && \
--	!defined(CONFIG_ARCH_OMAP15XX) && \
--	!defined(CONFIG_ARCH_OMAP16XX)
--#warning "Power management for this processor not implemented yet"
--#endif
--
- #ifndef __ASSEMBLER__
- 
- #include <linux/clk.h>
-diff --git a/include/linux/soc/ti/omap1-io.h b/include/linux/soc/ti/omap1-io.h
-index f7f12728d4a6..9a60f45899d3 100644
---- a/include/linux/soc/ti/omap1-io.h
-+++ b/include/linux/soc/ti/omap1-io.h
-@@ -5,7 +5,7 @@
- #ifndef __ASSEMBLER__
- #include <linux/types.h>
- 
--#ifdef CONFIG_ARCH_OMAP1_ANY
-+#ifdef CONFIG_ARCH_OMAP1
- /*
-  * NOTE: Please use ioremap + __raw_read/write where possible instead of these
-  */
-@@ -15,7 +15,7 @@ extern u32 omap_readl(u32 pa);
- extern void omap_writeb(u8 v, u32 pa);
- extern void omap_writew(u16 v, u32 pa);
- extern void omap_writel(u32 v, u32 pa);
--#else
-+#elif defined(CONFIG_COMPILE_TEST)
- static inline u8 omap_readb(u32 pa)  { return 0; }
- static inline u16 omap_readw(u32 pa) { return 0; }
- static inline u32 omap_readl(u32 pa) { return 0; }
--- 
-2.39.0
+	Sam
 
