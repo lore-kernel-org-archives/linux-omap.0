@@ -2,35 +2,35 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52000C61DB3
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Jan 2023 16:17:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98885C678D5
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Jan 2023 16:17:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234251AbjAIQQv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 Jan 2023 11:16:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50732 "EHLO
+        id S229567AbjAIQRP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 9 Jan 2023 11:17:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231777AbjAIQQt (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jan 2023 11:16:49 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20E38C48;
-        Mon,  9 Jan 2023 08:16:49 -0800 (PST)
+        with ESMTP id S234927AbjAIQQ5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jan 2023 11:16:57 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33879D117;
+        Mon,  9 Jan 2023 08:16:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B12166118C;
-        Mon,  9 Jan 2023 16:16:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC111C433F1;
-        Mon,  9 Jan 2023 16:16:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id DFE76B80E34;
+        Mon,  9 Jan 2023 16:16:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FA60C433F2;
+        Mon,  9 Jan 2023 16:16:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673281008;
-        bh=i5nKSM8lt6iXWjRVvXe6ISTlNhz3W/J86aXjLiCfq28=;
+        s=k20201202; t=1673281013;
+        bh=maFSsDjqqGGoQ3/lQVYYKJAVzHG0X16yepNh/8qHMfo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BoWa+Dqb2kKSYvB/S0lCnDkIoT5EEajQ6f08EX5g5RoQJB0CorVULfIZ+ruYhpJSm
-         bUk5RFfdO8VkOjiOwskluCoQdmqW7NfzhSBpn6Sve7sy9UWpqZUIoBZiTY5nMkRNT2
-         kdVZLq9swqGtK1sQb1JbxqdEznOH/0frpMiXxpoRKu1ZbQ6BDzTKv9KFLS/1ygXiBh
-         Ez1CE5aXw0kpOTAIS59mmrvZsIgXt6xQ4f2BPcdfx26FmqbSeNdKUi8mFElfNaCin1
-         /kvY7MrChpAbbGiFoDPzGvmPUy8PPI9BC6A/e+IKan7jdIYxd/XvUe0IyWWP67O7RT
-         66xMHrWirKv3Q==
+        b=ZnXMUvjQXJEPbmIqZNiLAt1EAD0poi72kefAuSolZ3TlwF8VRF24JqaT9qfijYUSH
+         fkpByvhw2SACz18AdEZbHqLNZt9V5zBr4aW1Ofd4XW6ZidjsSgQk76Z5Drjb7+exEI
+         3dui/CxNvFPu0anR9HCj8zR5CZrA2p4GO8Hh+RbqZBF4BLlylSnhaRKGRfYBVGi8uK
+         5iF66Igh7fTo7R3moLgnkya2mlAjVH5medE7VcER/pb8za0KIkH3bzRArqap8/3DrQ
+         015NMAOgebqVfUYWaQ/8N6PXaORliBTRUOcDMKq3lJwYp4irYujbeFi8CufKjY1Vif
+         fJcVd8WxU2Fjg==
 From:   Arnd Bergmann <arnd@kernel.org>
 To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
         Janusz Krzysztofik <jmkrzyszt@gmail.com>,
@@ -40,9 +40,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         Daniel Mack <daniel@zonque.org>,
         Haojian Zhuang <haojian.zhuang@gmail.com>,
         Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 1/3] ARM: pxa: enable PXA310/PXA320 for DT-only build
-Date:   Mon,  9 Jan 2023 17:16:34 +0100
-Message-Id: <20230109161636.512203-2-arnd@kernel.org>
+Subject: [PATCH 3/3] ARM: omap1: fix building gpio15xx
+Date:   Mon,  9 Jan 2023 17:16:36 +0100
+Message-Id: <20230109161636.512203-4-arnd@kernel.org>
 X-Mailer: git-send-email 2.39.0
 In-Reply-To: <20230109161636.512203-1-arnd@kernel.org>
 References: <20230109161636.512203-1-arnd@kernel.org>
@@ -54,36 +54,37 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-After commit b5aaaa666a85 ("ARM: pxa: add Kconfig dependencies for
-ATAGS based boards"), the default PXA build no longer includes support
-for the board files that are considered unused.
+In some randconfig builds, the asm/irq.h header is not included
+in gpio15xx.c, so add an explicit include to avoid a build fialure:
 
-As a side-effect of this, the PXA310 and PXA320 support is not built
-into the kernel any more, even though it should work in principle as
-long as the symbols are enabled. As Robert points out, there are dts
-files for zylonite and cm-x300, though those have not made it into the
-mainline kernel.
+In file included from arch/arm/mach-omap1/gpio15xx.c:15:
+arch/arm/mach-omap1/irqs.h:99:34: error: 'NR_IRQS_LEGACY' undeclared here (not in a function)
+   99 | #define IH2_BASE                (NR_IRQS_LEGACY + 32)
+      |                                  ^~~~~~~~~~~~~~
+arch/arm/mach-omap1/irqs.h:105:38: note: in expansion of macro 'IH2_BASE'
+  105 | #define INT_MPUIO               (5 + IH2_BASE)
+      |                                      ^~~~~~~~
+arch/arm/mach-omap1/gpio15xx.c:28:27: note: in expansion of macro 'INT_MPUIO'
+   28 |                 .start  = INT_MPUIO,
+      |                           ^~~~~~~~~
 
-Link: https://lore.kernel.org/linux-arm-kernel/m2sfglh02h.fsf@free.fr/
-Reported-by: Robert Jarzmik <robert.jarzmik@free.fr>
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm/mach-pxa/Kconfig | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/mach-omap1/gpio15xx.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/mach-pxa/Kconfig b/arch/arm/mach-pxa/Kconfig
-index b90d98bae68d..03e25af6f48c 100644
---- a/arch/arm/mach-pxa/Kconfig
-+++ b/arch/arm/mach-pxa/Kconfig
-@@ -45,6 +45,8 @@ config MACH_PXA27X_DT
- config MACH_PXA3XX_DT
- 	bool "Support PXA3xx platforms from device tree"
- 	select CPU_PXA300
-+	select CPU_PXA310
-+	select CPU_PXA320
- 	select PINCTRL
- 	select POWER_SUPPLY
- 	select PXA3xx
+diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
+index c675f11de99d..61fa26efd865 100644
+--- a/arch/arm/mach-omap1/gpio15xx.c
++++ b/arch/arm/mach-omap1/gpio15xx.c
+@@ -11,6 +11,7 @@
+ #include <linux/gpio.h>
+ #include <linux/platform_data/gpio-omap.h>
+ #include <linux/soc/ti/omap1-soc.h>
++#include <asm/irq.h>
+ 
+ #include "irqs.h"
+ 
 -- 
 2.39.0
 
