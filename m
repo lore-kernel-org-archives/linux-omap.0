@@ -2,129 +2,104 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EFCBC5479D
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Jan 2023 20:42:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE63AC63797
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Jan 2023 10:09:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237303AbjAIUm2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 Jan 2023 15:42:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53014 "EHLO
+        id S229660AbjAJKJ3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Jan 2023 05:09:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237474AbjAIUm0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jan 2023 15:42:26 -0500
-X-Greylist: delayed 2320 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 09 Jan 2023 12:42:24 PST
-Received: from 9.mo575.mail-out.ovh.net (9.mo575.mail-out.ovh.net [46.105.78.111])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77AEF48CEB
-        for <linux-omap@vger.kernel.org>; Mon,  9 Jan 2023 12:42:24 -0800 (PST)
-Received: from director10.ghost.mail-out.ovh.net (unknown [10.108.1.121])
-        by mo575.mail-out.ovh.net (Postfix) with ESMTP id 88C99244F7
-        for <linux-omap@vger.kernel.org>; Mon,  9 Jan 2023 20:03:42 +0000 (UTC)
-Received: from ghost-submission-6684bf9d7b-pr92n (unknown [10.109.156.168])
-        by director10.ghost.mail-out.ovh.net (Postfix) with ESMTPS id 007F61FEA6;
-        Mon,  9 Jan 2023 20:03:39 +0000 (UTC)
-Received: from sk2.org ([37.59.142.98])
-        by ghost-submission-6684bf9d7b-pr92n with ESMTPSA
-        id 2FQONhtzvGPhugEAufjBpQ
-        (envelope-from <steve@sk2.org>); Mon, 09 Jan 2023 20:03:39 +0000
-Authentication-Results: garm.ovh; auth=pass (GARM-98R002fae975b0-c3d6-495c-8602-a37db480a49a,
-                    796317D5D98EA53ED2B7ABF3FE0FDD27B7A2AA3D) smtp.auth=steve@sk2.org
-X-OVh-ClientIp: 82.65.25.201
-Date:   Mon, 9 Jan 2023 21:03:38 +0100
-From:   Stephen Kitt <steve@sk2.org>
+        with ESMTP id S230133AbjAJKJ1 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jan 2023 05:09:27 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 548C54D731;
+        Tue, 10 Jan 2023 02:09:27 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C415061589;
+        Tue, 10 Jan 2023 10:09:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB743C433D2;
+        Tue, 10 Jan 2023 10:09:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1673345366;
+        bh=wbyd3dtAWj+DS0fcJULsfdTl+t+d2B5Uw2ZuQAp6tpM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=XKJ7hEZZUPaCSNrB26CzNsDjquQbBentUhlmtWHZJjjl5ajSRsc2cY1J6TlsbuK52
+         UoeGdRXnxLZ8mTjHgbPSqEmh732Odonfjc467CustS3+5wXOJ8G7sxPOOj5OmOUNRy
+         w0kKUTLk2m70RapGM9Y4KlCXmcVOjK/OPWsBagysaySfqoZm82qlsKdYmxswDYrer+
+         TbB8sWFTiUPd3iYuGD/0RfH2xQw1GdiwwQtq6XoVkDXuGvwSpzZu+xjIKPR/5OQlxm
+         16rTc6Mfdvm4x7QdvW8p5nVL1YDBiVFkf6NsLekUIa2pYUR8HMFXdeiKexpKNRNiyO
+         ttG8j2EPjTphQ==
+Date:   Tue, 10 Jan 2023 10:09:18 +0000
+From:   Lee Jones <lee@kernel.org>
 To:     Sam Ravnborg <sam@ravnborg.org>
-Cc:     Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        linux-staging@lists.linux.dev,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>,
-        Daniel Thompson <daniel.thompson@linaro.org>,
-        Helge Deller <deller@gmx.de>, Lee Jones <lee@kernel.org>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Miguel Ojeda <ojeda@kernel.org>,
-        Sam Ravnborg via B4 Submission Endpoint 
-        <devnull+sam.ravnborg.org@kernel.org>,
-        Antonino Daplas <adaplas@gmail.com>,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Robin van der Gracht <robin@protonic.nl>,
+Cc:     Daniel Thompson <daniel.thompson@linaro.org>,
         Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Jingoo Han <jingoohan1@gmail.com>,
-        linuxppc-dev@lists.ozlabs.org,
-        Claudiu Beznea <claudiu.beznea@microchip.com>
-Subject: Re: [PATCH 01/15] video: fbdev: atmel_lcdfb: Rework backlight
- handling
-Message-ID: <20230109210338.42c993bd@heffalump.sk2.org>
-In-Reply-To: <20230109205026.4c672dc8@heffalump.sk2.org>
+        Helge Deller <deller@gmx.de>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Antonino Daplas <adaplas@gmail.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Robin van der Gracht <robin@protonic.nl>,
+        Miguel Ojeda <ojeda@kernel.org>,
+        Jingoo Han <jingoohan1@gmail.com>, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-staging@lists.linux.dev,
+        linuxppc-dev@lists.ozlabs.org, Stephen Kitt <steve@sk2.org>
+Subject: Re: [PATCH 15/15] backlight: backlight: Drop the deprecated fb_blank
+ property
+Message-ID: <Y705TvBPWkHzeMrp@google.com>
 References: <20230107-sam-video-backlight-drop-fb_blank-v1-0-1bd9bafb351f@ravnborg.org>
-        <20230107-sam-video-backlight-drop-fb_blank-v1-1-1bd9bafb351f@ravnborg.org>
-        <553AE999-CAF1-4E59-9F3F-68591ED192DE@sk2.org>
-        <Y7nb2q6SDota/rTU@ravnborg.org>
-        <366FC0B8-21E2-4642-A5A5-CF4B6AB046B0@sk2.org>
-        <Y7smdFs2xgJwwVQO@ravnborg.org>
-        <20230109205026.4c672dc8@heffalump.sk2.org>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+ <20230107-sam-video-backlight-drop-fb_blank-v1-15-1bd9bafb351f@ravnborg.org>
+ <Y7v1OxdowGdxgvUj@aspen.lan>
+ <Y7xAgHgg0sfh32Ga@ravnborg.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/fAednxbP+nwMmsBkrG4.geO";
- protocol="application/pgp-signature"; micalg=pgp-sha512
-X-Ovh-Tracer-Id: 8295067564944492166
-X-VR-SPAMSTATE: OK
-X-VR-SPAMSCORE: -100
-X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrkeeigdduvdekucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuqfggjfdpvefjgfevmfevgfenuceurghilhhouhhtmecuhedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepfffhvfevuffkjghfofggtgesghdtreerredtjeenucfhrhhomhepufhtvghphhgvnhcumfhithhtuceoshhtvghvvgesshhkvddrohhrgheqnecuggftrfgrthhtvghrnhepgedtieevheduudejjeelheetvdejudehvdejudfggfetteekffevvdehjeekkeefnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucfkphepuddvjedrtddrtddruddpfeejrdehledrudegvddrleeknecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepuddvjedrtddrtddruddpmhgrihhlfhhrohhmpeeoshhtvghvvgesshhkvddrohhrgheqpdhnsggprhgtphhtthhopedupdhrtghpthhtoheplhhinhhugidqohhmrghpsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdfovfetjfhoshhtpehmohehjeehpdhmohguvgepshhmthhpohhuth
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <Y7xAgHgg0sfh32Ga@ravnborg.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
---Sig_/fAednxbP+nwMmsBkrG4.geO
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Mon, 09 Jan 2023, Sam Ravnborg wrote:
 
-On Mon, 9 Jan 2023 20:53:44 +0100, Stephen Kitt <steve@sk2.org> wrote:
-> On Sun, 8 Jan 2023 21:24:20 +0100, Sam Ravnborg <sam@ravnborg.org> wrote:
-> > > Here are my pending patches from last June on lore:
-> > >    =20
-> >=20
-> > All patches are handled I think except this: =20
-> > > * https://lore.kernel.org/lkml/20220608205623.2106113-1-steve@sk2.org/
-> > >  =20
-> >=20
-> > Can I ask you to drop the assignment that is not needed, and resend with
-> > the collected acks/r-b.
-> >=20
-> > With this, then all fbdev patches are handled. =20
->=20
-> Ah yes, it was revised as
-> https://lore.kernel.org/lkml/20220609180440.3138625-1-steve@sk2.org/ which
-> only got one ack (from you,
-> https://lore.kernel.org/lkml/YqJCKQmQEuVsbspK@ravnborg.org/). Should I
-> resend that or is that usable as-is? Or would it be better if I sent all =
-the
-> fbdev patches again (collecting all the acks and reviews)?
+> Hi Daniel.
+> 
+> On Mon, Jan 09, 2023 at 11:06:35AM +0000, Daniel Thompson wrote:
+> > On Sat, Jan 07, 2023 at 07:26:29PM +0100, Sam Ravnborg via B4 Submission Endpoint wrote:
+> > > From: Sam Ravnborg <sam@ravnborg.org>
+> > >
+> > > With all users gone remove the deprecated fb_blank member in
+> > > backlight_properties.
+> > >
+> > > Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+> > > Cc: Lee Jones <lee@kernel.org>
+> > > Cc: Daniel Thompson <daniel.thompson@linaro.org>
+> > > Cc: Jingoo Han <jingoohan1@gmail.com>
+> > 
+> > 
+> > Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
+> 
+> Thanks for the follow-up on all the backlight related patches.
+> 
+> > 
+> > 
+> > PS Please don't treat this like a maintainer Acked-by: and merge it
+> >    (Lee's not on holiday so work with Lee to figure out the merge
+> >    strategy ;-) ).
+> Nope, I am aware that the usual pattern here and wait for Lee to show
+> up.
 
-Since the others are already in fbdev/for-next, I=E2=80=99ve just resent v2=
- of this
-patch with your ack.
+It's on the list.  Only 50 more reviews in the backlog now!
 
-Regards,
+> For this patch there is a bug as I need to update a comment.
+> I will fix this when I resend after all the patches in flight has
+> landed. So likely after the next merge window,
 
-Stephen
-
---Sig_/fAednxbP+nwMmsBkrG4.geO
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEEnPVX/hPLkMoq7x0ggNMC9Yhtg5wFAmO8cxoACgkQgNMC9Yht
-g5wz4BAAij/m9s80FJhymF6GFXJ6JFByUsTaGBWbmyRNRWMW+VPEh24jzlOXCT6m
-eTqP1bR1+D+4DEYqRUyD0X7cf+k6KclOs4h83NnXQmVUWJ4KxMffVGWaRaWg3BGD
-LgSgo62wCa/tODFoCLVZ9gmDsLfLvrU3ig0SefMgqZTKUNI63JJuVIY3v9upc9Xp
-6mrj8xsiB9V5/GMgTlpcaoqTA8wb/OrJb2IvCEhcjFO7gti3LSSQ27VdA2WfGSpD
-x+Uok2MBGoSbughl1Q0qD3oQxEkg3jvF94/gXfY40uedF1hBw+A2/mqQJ8XSumxI
-H8rUTNeyeYailjBeegv0vhQYXjY3M8NiCbra54kWTRkFaIlORW1empICudxDuMvI
-zB/DkEDAp86lpVuzovuUipwazxxbQCWxYDtEtebXKRE8xsai7Q1r6OYUSO0WN5k6
-W3wbivddvTD2RjDbs0habIvERgM+A3lfGR4xor2hKL+XUkuw1zMavgRw1f/7Gk2N
-J5KECYty3zKbugnM5uBtsnNUobmc1OnmyH7i2tgizTnKccF7Dd7N9WUWlatuEqFQ
-+QIOt4j6Ii2FOuc/r122n8qNYePw/jyQZMpTBkUwAO6JH+Rv6NAnTOTCtBsT9lRq
-i3mEWOkkOot6W1vgAcoxmZjuFGyI8YLV1rlwGd1ceOkZvHsP8X0=
-=GTwo
------END PGP SIGNATURE-----
-
---Sig_/fAednxbP+nwMmsBkrG4.geO--
+-- 
+Lee Jones [李琼斯]
