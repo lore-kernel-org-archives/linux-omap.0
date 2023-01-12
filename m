@@ -2,43 +2,42 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A626AC71145
-	for <linux-omap@archiver.kernel.org>; Thu, 12 Jan 2023 20:03:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3541C678D6
+	for <linux-omap@archiver.kernel.org>; Thu, 12 Jan 2023 20:04:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241283AbjALUD2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 12 Jan 2023 15:03:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44162 "EHLO
+        id S241298AbjALUDb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 12 Jan 2023 15:03:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232583AbjALT7N (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2023 14:59:13 -0500
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 529DDE85;
-        Thu, 12 Jan 2023 11:58:06 -0800 (PST)
+        with ESMTP id S232194AbjALT7T (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2023 14:59:19 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A3522623;
+        Thu, 12 Jan 2023 11:58:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
+        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=Xy9+JvHHctWh2TNOLRKTbmGfpkTQoSEdFlJnj8l2Ws0=; b=H/JWwXj+fruT2n2ZggShyCiaCr
-        C0NO8NHqWgGdWdfhj47dyjkAOMyjOvS98/iJtTLXBjiZzyHX2eEymB/xPkkf4LWGqUonmm8rtzHQt
-        onCM6HJZ8sxPDUGvmqQPcy8e1XwIg6xOdxox8aOm71bfnN25uLQabCsLErFKiCQtQ2khpLz1Mk4s8
-        i5nZs4+e5gXEvI6IXuz+LSuYp8m8dgqmXGQysL0IhMZ9nc3NzV7/9PvpGGt//aarH3f/ZUWr9mvBX
-        1JW+DC86JnLlhRDgTFVQSBqPdoic2gviPxZdLhMOL6P5ea4+OLbYAOGIeiQ+hA3yTyP4gAJOMSOE1
-        02EZj2mw==;
+        bh=xUXFMmNjQb3UrGtSZK0a2nhjQSuKqnZvrBUrV/kGZ/M=; b=azd0lEFhtyA7/aLM4gfZG1Cdp3
+        7NU3r969okzjxqcSyuA1vE+R2WnLvkbW43aMYTQl8A+OMQs4BGyVUe/mdDDkYK4sq5GuqaMDdK3nQ
+        mF4/8WjcxS6GyrdwizZfZHi98CgxEnfqDyYYUuh6dsDEfNM6pZY3bv79cj1EUtiafbAvbGi3Zoodv
+        q3oyyOIbvVtD0Z25JQmgF9Yy3twtU782/WTN1SiAuh8rW47DB3F8jKxk6GeMuzzcUytvUZ3k5qQN2
+        xwJHT13n8NNxGibRxm8fKw3yFq3ZFyd8yvfAHp0jp7adZU6B9GTx3x5QVwVeGWFHBoGHyIY8F3WG5
+        EkCNyHWg==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1pG3hC-0045nx-0Y;
-        Thu, 12 Jan 2023 19:57:06 +0000
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1pG3hg-005OjH-AW; Thu, 12 Jan 2023 19:57:36 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id E1A413033C0;
-        Thu, 12 Jan 2023 20:57:12 +0100 (CET)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id EDBC9303462;
+        Thu, 12 Jan 2023 20:57:13 +0100 (CET)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 996452CCF1F4C; Thu, 12 Jan 2023 20:57:07 +0100 (CET)
-Message-ID: <20230112195539.576412812@infradead.org>
+        id 49A802CD0121F; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
+Message-ID: <20230112195541.721697850@infradead.org>
 User-Agent: quilt/0.66
-Date:   Thu, 12 Jan 2023 20:43:18 +0100
+Date:   Thu, 12 Jan 2023 20:43:53 +0100
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -105,7 +104,7 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com,
         "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v3 04/51] cpuidle: Move IRQ state validation
+Subject: [PATCH v3 39/51] arm,omap2: Use WFI for omap2_pm_idle()
 References: <20230112194314.845371875@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -113,45 +112,97 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Make cpuidle_enter_state() consistent with the s2idle variant and
-verify ->enter() always returns with interrupts disabled.
+arch_cpu_idle() is a very simple idle interface and exposes only a
+single idle state and is expected to not require RCU and not do any
+tracing/instrumentation.
 
+As such, omap2_pm_idle() is not a valid implementation. Replace it
+with a simple (shallow) omap2_do_wfi() call.
+
+Omap2 doesn't have a cpuidle driver; but adding one would be the
+recourse to (re)gain the other idle states.
+
+Suggested-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Acked-by: Frederic Weisbecker <frederic@kernel.org>
 Tested-by: Tony Lindgren <tony@atomide.com>
 Tested-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- drivers/cpuidle/cpuidle.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/pm24xx.c |   51 +------------------------------------------
+ 1 file changed, 2 insertions(+), 49 deletions(-)
 
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -236,7 +236,11 @@ int cpuidle_enter_state(struct cpuidle_d
- 	stop_critical_timings();
- 	if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
- 		ct_idle_enter();
-+
- 	entered_state = target_state->enter(dev, drv, index);
-+	if (WARN_ONCE(!irqs_disabled(), "%ps leaked IRQ state", target_state->enter))
-+		raw_local_irq_disable();
-+
- 	if (!(target_state->flags & CPUIDLE_FLAG_RCU_IDLE))
- 		ct_idle_exit();
- 	start_critical_timings();
-@@ -248,12 +252,8 @@ int cpuidle_enter_state(struct cpuidle_d
- 	/* The cpu is no longer idle or about to enter idle. */
- 	sched_idle_set_state(NULL);
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -116,50 +116,12 @@ static int omap2_enter_full_retention(vo
  
--	if (broadcast) {
--		if (WARN_ON_ONCE(!irqs_disabled()))
--			local_irq_disable();
+ static int sti_console_enabled;
+ 
+-static int omap2_allow_mpu_retention(void)
+-{
+-	if (!omap2xxx_cm_mpu_retention_allowed())
+-		return 0;
+-	if (sti_console_enabled)
+-		return 0;
 -
-+	if (broadcast)
- 		tick_broadcast_exit();
--	}
+-	return 1;
+-}
+-
+-static void omap2_enter_mpu_retention(void)
++static void omap2_do_wfi(void)
+ {
+ 	const int zero = 0;
  
- 	if (!cpuidle_state_is_coupled(drv, index))
- 		local_irq_enable();
+-	/* The peripherals seem not to be able to wake up the MPU when
+-	 * it is in retention mode. */
+-	if (omap2_allow_mpu_retention()) {
+-		/* REVISIT: These write to reserved bits? */
+-		omap_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
+-		omap_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
+-		omap_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
+-
+-		/* Try to enter MPU retention */
+-		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
+-
+-	} else {
+-		/* Block MPU retention */
+-		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+-	}
+-
+ 	/* WFI */
+ 	asm("mcr p15, 0, %0, c7, c0, 4" : : "r" (zero) : "memory", "cc");
+-
+-	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+-}
+-
+-static int omap2_can_sleep(void)
+-{
+-	if (omap2xxx_cm_fclks_active())
+-		return 0;
+-	if (__clk_is_enabled(osc_ck))
+-		return 0;
+-
+-	return 1;
+ }
+ 
+ static void omap2_pm_idle(void)
+@@ -169,16 +131,7 @@ static void omap2_pm_idle(void)
+ 	if (omap_irq_pending())
+ 		return;
+ 
+-	error = cpu_cluster_pm_enter();
+-	if (error || !omap2_can_sleep()) {
+-		omap2_enter_mpu_retention();
+-		goto out_cpu_cluster_pm;
+-	}
+-
+-	omap2_enter_full_retention();
+-
+-out_cpu_cluster_pm:
+-	cpu_cluster_pm_exit();
++	omap2_do_wfi();
+ }
+ 
+ static void __init prcm_setup_regs(void)
 
 
