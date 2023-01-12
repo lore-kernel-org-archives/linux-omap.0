@@ -2,43 +2,42 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C21AC678D7
-	for <linux-omap@archiver.kernel.org>; Thu, 12 Jan 2023 20:12:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2913AC54EBE
+	for <linux-omap@archiver.kernel.org>; Thu, 12 Jan 2023 20:12:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241326AbjALUMP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 12 Jan 2023 15:12:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44140 "EHLO
+        id S241557AbjALUMS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 12 Jan 2023 15:12:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44156 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232708AbjALT7O (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2023 14:59:14 -0500
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EB86F5C;
-        Thu, 12 Jan 2023 11:58:06 -0800 (PST)
+        with ESMTP id S232397AbjALT7N (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2023 14:59:13 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9970BCDF;
+        Thu, 12 Jan 2023 11:58:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
+        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=H++Izq9gHCigzm3jyfqVQx/OXXHHURXAPu4rHKpriQs=; b=Oi0kUglcFrS3jIOUrZoDJvcOVN
-        KMsu46dZ6R4xAuLNdPZMHSde5BXLi7p5BoS3AvQIKTnK+Y7UxJNqVM2oTIBnlXrFTnLrdeXIfb+Qi
-        7AAikG9twh8Anr/sZFYaO7bb7qNnwpMCkz7DkMEjS9gx3+xe9hOodyU8GQp9X/lUnZ8sRJesyThHi
-        RIfrPCVCdHkqJ74NP1GdEPmsGlsYXN+DPENhh6IP5huV+DA0rAhflvdEIcm2geli5CAbtis/SJcyh
-        5rHDUys63xFKGoXiApF9zgw4oIsvJ6+DyPsl9rZJITMkEb2o+HPd+tXle08OBDnF39ptfNNqdFe8b
-        lJF6i9+g==;
+        bh=Un035BTYhsjREpZ4dpy/MHkkoifcKtLiH3nYidAuKL8=; b=P5c8UU2jghR82uJHaUsCbEyZY2
+        1BjYkq3jeF5ewbeuBixxGQ1MFHR9TCeHAHBjDMgt+hkRsw0FFt2ppNujpZmDy3BclS1Ums/sHfSGF
+        DsoLRzOAcjZb0YeI2dan/xzDO4bLczNXAS9bGqKX112iGbxaDbC1pmZnnUukuGv1RP3YOO+mA12eY
+        yRYq2ks+V6tltY12SJ/UDL++Q4qZeEYg7ljBwFyVCutcyQJ/H9pzwWVke2dKUZwwKrXgIGXwZmcPJ
+        pPt48ptlxwCsahE0v4HXTBqWzoIi9klWddYcc0T3lFrQ7of2NxwaFmInlnyrFVz5DKbqBazXyVs9+
+        ZpRfznRA==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1pG3hG-0045ov-0L;
-        Thu, 12 Jan 2023 19:57:10 +0000
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1pG3hu-005P7i-Rf; Thu, 12 Jan 2023 19:57:50 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 824E6303432;
-        Thu, 12 Jan 2023 20:57:13 +0100 (CET)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 4EAB5303484;
+        Thu, 12 Jan 2023 20:57:14 +0100 (CET)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 0D9AD2CCF62A9; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
-Message-ID: <20230112195540.804410487@infradead.org>
+        id 7C19A2CD066F8; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
+Message-ID: <20230112195542.397238052@infradead.org>
 User-Agent: quilt/0.66
-Date:   Thu, 12 Jan 2023 20:43:38 +0100
+Date:   Thu, 12 Jan 2023 20:44:04 +0100
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -102,11 +101,8 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-arch@vger.kernel.org, linux-mm@kvack.org,
-        linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com,
-        Marc Zyngier <maz@kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v3 24/51] arm64,smp: Remove trace_.*_rcuidle() usage
+        linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com
+Subject: [PATCH v3 50/51] cpuidle: Comments about noinstr/__cpuidle
 References: <20230112194314.845371875@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -114,39 +110,53 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Ever since commit d3afc7f12987 ("arm64: Allow IPIs to be handled as
-normal interrupts") this function is called in regular IRQ context.
+Add a few words on noinstr / __cpuidle usage.
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Acked-by: Marc Zyngier <maz@kernel.org>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Acked-by: Frederic Weisbecker <frederic@kernel.org>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- arch/arm64/kernel/smp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/cpuidle/cpuidle.c      |   12 ++++++++++++
+ include/linux/compiler_types.h |   10 ++++++++++
+ 2 files changed, 22 insertions(+)
 
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -865,7 +865,7 @@ static void do_handle_IPI(int ipinr)
- 	unsigned int cpu = smp_processor_id();
- 
- 	if ((unsigned)ipinr < NR_IPI)
--		trace_ipi_entry_rcuidle(ipi_types[ipinr]);
-+		trace_ipi_entry(ipi_types[ipinr]);
- 
- 	switch (ipinr) {
- 	case IPI_RESCHEDULE:
-@@ -914,7 +914,7 @@ static void do_handle_IPI(int ipinr)
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -252,6 +252,18 @@ noinstr int cpuidle_enter_state(struct c
+ 		instrumentation_begin();
  	}
  
- 	if ((unsigned)ipinr < NR_IPI)
--		trace_ipi_exit_rcuidle(ipi_types[ipinr]);
-+		trace_ipi_exit(ipi_types[ipinr]);
- }
++	/*
++	 * NOTE!!
++	 *
++	 * For cpuidle_state::enter() methods that do *NOT* set
++	 * CPUIDLE_FLAG_RCU_IDLE RCU will be disabled here and these functions
++	 * must be marked either noinstr or __cpuidle.
++	 *
++	 * For cpuidle_state::enter() methods that *DO* set
++	 * CPUIDLE_FLAG_RCU_IDLE this isn't required, but they must mark the
++	 * function calling ct_cpuidle_enter() as noinstr/__cpuidle and all
++	 * functions called within the RCU-idle region.
++	 */
+ 	entered_state = target_state->enter(dev, drv, index);
  
- static irqreturn_t ipi_handler(int irq, void *data)
+ 	if (WARN_ONCE(!irqs_disabled(), "%ps leaked IRQ state", target_state->enter))
+--- a/include/linux/compiler_types.h
++++ b/include/linux/compiler_types.h
+@@ -233,6 +233,16 @@ struct ftrace_likely_data {
+ 
+ #define noinstr __noinstr_section(".noinstr.text")
+ 
++/*
++ * The __cpuidle section is used twofold:
++ *
++ *  1) the original use -- identifying if a CPU is 'stuck' in idle state based
++ *     on it's instruction pointer. See cpu_in_idle().
++ *
++ *  2) supressing instrumentation around where cpuidle disables RCU; where the
++ *     function isn't strictly required for #1, this is interchangeable with
++ *     noinstr.
++ */
+ #define __cpuidle __noinstr_section(".cpuidle.text")
+ 
+ #endif /* __KERNEL__ */
 
 
