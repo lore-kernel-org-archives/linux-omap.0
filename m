@@ -2,96 +2,85 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22EA5C677F1
-	for <linux-omap@archiver.kernel.org>; Tue, 17 Jan 2023 21:39:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F09DAC38147
+	for <linux-omap@archiver.kernel.org>; Tue, 17 Jan 2023 22:45:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229567AbjAQVj0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 17 Jan 2023 16:39:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55960 "EHLO
+        id S229454AbjAQWpx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 17 Jan 2023 17:45:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229880AbjAQVit (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jan 2023 16:38:49 -0500
-Received: from mail-oi1-f171.google.com (mail-oi1-f171.google.com [209.85.167.171])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C86282E0E0;
-        Tue, 17 Jan 2023 12:04:39 -0800 (PST)
-Received: by mail-oi1-f171.google.com with SMTP id r9so16121408oie.13;
-        Tue, 17 Jan 2023 12:04:39 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=aL+np8smkP7FSXt9qO9bmY6grgj8WYKwJKgXRY8ZBcU=;
-        b=ikTRkX1bA2UJb+Yquk92pvl+/JkbnFTqnuoQzfjNSwet1djDujiLrnDR/4Pgjtv/iC
-         BLXNrSOFcGfqhat9i1SMVDvl+WcDItVLVt58yGluaBRupDohY/Ov5sL3PppMusbL8iG2
-         mmaTyCCXuspGlDDiP0fN2viSG1grGKTbY2Ee2ZJhbCwJdmj/rwfTs3dtatAoGBXn/ub1
-         IDDMjbBwPN0tL6fldWAI+mUx14bFMnPapK00SUG5pbJIDkZCeNmncQ3NQ0mj8XWQTx5d
-         /c8JkN/fRs2GDbArVAhgb4Q1/4LLT3c+QdvbEPGizM1M8PMq7qtaiUNgfb3BZTb2Yt3S
-         znuw==
-X-Gm-Message-State: AFqh2koe45A99Z2DMe2sEk0yfgeP8MWa4esk7JFar/49HP2lz8gWTFYG
-        Imtwr6itI0xhZkp2Fx70nA==
-X-Google-Smtp-Source: AMrXdXvmzGoLs6M8Mi2uZIM7/ivg4qx44J6VbPcY9Vptlack77OOKL/RsfLrl5jEf5MiYZddcjILzg==
-X-Received: by 2002:aca:f1a:0:b0:36a:9706:665f with SMTP id 26-20020aca0f1a000000b0036a9706665fmr979417oip.10.1673985878974;
-        Tue, 17 Jan 2023 12:04:38 -0800 (PST)
-Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id r21-20020a9d7515000000b0068646611d0bsm1943619otk.44.2023.01.17.12.04.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Jan 2023 12:04:38 -0800 (PST)
-Received: (nullmailer pid 3546639 invoked by uid 1000);
-        Tue, 17 Jan 2023 20:04:37 -0000
-Date:   Tue, 17 Jan 2023 14:04:37 -0600
-From:   Rob Herring <robh@kernel.org>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Nishanth Menon <nm@ti.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-gpio@vger.kernel.org, Vignesh Raghavendra <vigneshr@ti.com>
-Subject: Re: [PATCH v3 1/1] dt-bindings: pinctrl: Update pinctrl-single to
- use yaml
-Message-ID: <20230117200437.GA3538302-robh@kernel.org>
-References: <20230116071602.63788-1-tony@atomide.com>
- <167388667378.596858.12053272103098373981.robh@kernel.org>
- <CAL_JsqLQMkU-r=E2wmbgO9+PA=XxAeR2OC5isAYY701f6V+BOQ@mail.gmail.com>
- <Y8WFIzElz8/pv4uy@atomide.com>
+        with ESMTP id S229533AbjAQWnn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jan 2023 17:43:43 -0500
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E9C57D657;
+        Tue, 17 Jan 2023 14:31:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=kemnade.info; s=20220719; h=Content-Transfer-Encoding:MIME-Version:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=54+laNC9KWV7OlZbMfS8KMwp9ANabRHoFhhivcdROys=; b=vTtbu2duso/J6aniL1mcxVJYWR
+        r3R2wIvIvP7bfAvH2uVgbP45HCQBuUyarqNiJk53TdA3I+i3S40U4WGV5qTNVgs8gUdr/O2F0VD5T
+        f4HqgzUMVTm1tNlXryg1skLkgannYvLLm/P0pPgCRnfEzp+nmn1bXWUqVA0AqS9w7ic2yTAc8QMop
+        o9VOUNf1BA572yiMBblGrZVJpkiHCEiyd8xpsCbdYarZulvujlDKQGlC7zAOyuPbBg/prkptyZomq
+        +t1Jj02vW2FQNIxgLlaCxFDQjzoQ/tqBBWXz99zJJrnX9hS4Mc07QxTxQopaH6kWQ1XEBBbyDZNM+
+        Cq5jyopQ==;
+Received: from p200300ccff136d001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff13:6d00:1a3d:a2ff:febf:d33a] helo=aktux)
+        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <andreas@kemnade.info>)
+        id 1pHuTt-0006TY-Ne; Tue, 17 Jan 2023 23:31:01 +0100
+Received: from andi by aktux with local (Exim 4.94.2)
+        (envelope-from <andreas@kemnade.info>)
+        id 1pHuTt-00Awpj-5X; Tue, 17 Jan 2023 23:31:01 +0100
+From:   Andreas Kemnade <andreas@kemnade.info>
+To:     bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org,
+        krzysztof.kozlowski+dt@linaro.org, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH] ARM: dts: omap: gta04a5: cleanup i2c node names
+Date:   Tue, 17 Jan 2023 23:30:59 +0100
+Message-Id: <20230117223059.2609390-1-andreas@kemnade.info>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y8WFIzElz8/pv4uy@atomide.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Jan 16, 2023 at 07:10:59PM +0200, Tony Lindgren wrote:
-> * Rob Herring <robh+dt@kernel.org> [230116 16:39]:
-> > I imagine you don't want to go change all these node names, so I'd
-> > make the schema accept them.
-> 
-> Heh yeah, I was wondering about that too :) Some can be handled with a
-> regex, but there are still a lot of completely custom names. If you have
-> some preferred solution in mind, please let me know.
+Use generic node names.
 
-If just allowing 'pins' anywhere in the name is not enough, you can 
-match on any other property with 'additionalProperties'. There's some 
-examples in pinctrl bindings.
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ arch/arm/boot/dts/omap3-gta04a5.dts | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-additionalProperties:
-  type: object
-  properties:
-    ...
+diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts b/arch/arm/boot/dts/omap3-gta04a5.dts
+index 4f4e402ea3fa..53057d55cbed 100644
+--- a/arch/arm/boot/dts/omap3-gta04a5.dts
++++ b/arch/arm/boot/dts/omap3-gta04a5.dts
+@@ -120,17 +120,17 @@ &i2c2 {
+ 	/delete-node/ itg3200@68;
+ 	/delete-node/ hmc5843@1e;
+ 
+-	bmg160@69 {
++	gyrometer@69 {
+ 		compatible = "bosch,bmg160";
+ 		reg = <0x69>;
+ 	};
+ 
+-	bmc150@10 {
++	accelerometer@10 {
+ 		compatible = "bosch,bmc150_accel";
+ 		reg = <0x10>;
+ 	};
+ 
+-	bmc150@12 {
++	magnetometer@12 {
+ 		compatible = "bosch,bmc150_magn";
+ 		reg = <0x12>;
+ 	};
+-- 
+2.30.2
 
-Or use 'unevaluatedProperties' if there's properties defined behind a 
-$ref.
-
-There's also this hack, but I try to avoid it:
-
-patternProperties:
- '.*':
-   if:
-     type: object
-   then:
-     ...
-
-
-Rob
