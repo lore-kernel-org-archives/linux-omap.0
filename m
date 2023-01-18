@@ -2,120 +2,170 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59BE3C004D4
-	for <linux-omap@archiver.kernel.org>; Wed, 18 Jan 2023 09:59:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E64A3C32793
+	for <linux-omap@archiver.kernel.org>; Wed, 18 Jan 2023 13:33:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229475AbjARJ7b (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 18 Jan 2023 04:59:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40192 "EHLO
+        id S230114AbjARNdZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 18 Jan 2023 08:33:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34366 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230299AbjARJyh (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jan 2023 04:54:37 -0500
-Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D0728F7D2;
-        Wed, 18 Jan 2023 01:06:21 -0800 (PST)
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 30I969TF104115;
-        Wed, 18 Jan 2023 03:06:09 -0600
+        with ESMTP id S229450AbjARNc6 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jan 2023 08:32:58 -0500
+Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09C5358964;
+        Wed, 18 Jan 2023 04:59:57 -0800 (PST)
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 30ICxd5C042737;
+        Wed, 18 Jan 2023 06:59:39 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1674032769;
-        bh=/da+ssa5GDD6vweT7++x50Ek4g6HrX+yJTbxHpmjcwM=;
-        h=Date:CC:Subject:To:References:From:In-Reply-To;
-        b=VyNGN4/1efZ4VWOZP9XZ1ZoGXQAyENpXrPzInwoHAhnEOEfgizsU16ssgE562PMRp
-         DRdaKZV1+uC3V60HC9/3mwet8bCBCpAsqqzpLNdjz041VRpbvZ+0nJ8aaXFTTPaMMW
-         AkWwnDK2F2Zs2UjXTcVAAcBLeltrPztSxf8LEASw=
-Received: from DLEE101.ent.ti.com (dlee101.ent.ti.com [157.170.170.31])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 30I969HG007343
+        s=ti-com-17Q1; t=1674046780;
+        bh=OmDhyxusumxXEVyuH5Sjllr2iDvvrq2e6vgSiOeP5YM=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=KmOBihnfjfv9Qu0r/HhsNxQdion004LK+Ke+onUX4sHSZ0Nur7mzbw2I5dNMSmW8F
+         WmiAmxlj8tyqcvBaVkzooqQMAnxJ7MvEs+qFNU+CFE1QKp72QdjddHLu8DDrksD4e8
+         aWaxFQF9wSIC9lQSeUlhJRAzrg8MsitgrmGfABzc=
+Received: from DFLE103.ent.ti.com (dfle103.ent.ti.com [10.64.6.24])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 30ICxdQD010085
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 18 Jan 2023 03:06:09 -0600
-Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE101.ent.ti.com
- (157.170.170.31) with Microsoft SMTP Server (version=TLS1_2,
+        Wed, 18 Jan 2023 06:59:39 -0600
+Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Wed, 18
- Jan 2023 03:06:08 -0600
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE111.ent.ti.com
- (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
+ Jan 2023 06:59:39 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE109.ent.ti.com
+ (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
- Frontend Transport; Wed, 18 Jan 2023 03:06:08 -0600
-Received: from [172.24.145.61] (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 30I963Jf062854;
-        Wed, 18 Jan 2023 03:06:04 -0600
-Message-ID: <998410e8-7856-2b15-4312-e8f6fe868587@ti.com>
-Date:   Wed, 18 Jan 2023 14:36:03 +0530
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.2
-CC:     Tom Joseph <tjoseph@cadence.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Krzysztof Wilczy_ski <kw@linux.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        <linux-pci@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
+ Frontend Transport; Wed, 18 Jan 2023 06:59:39 -0600
+Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 30ICxc2V016777;
+        Wed, 18 Jan 2023 06:59:39 -0600
+From:   Achal Verma <a-verma1@ti.com>
+To:     <mranostay@ti.com>, <rogerq@kernel.org>, <lpieralisi@kernel.org>,
+        <robh@kernel.org>, <kw@linux.com>, <bhelgaas@google.com>,
+        <krzysztof.kozlowski@linaro.org>, <vigneshr@ti.com>,
+        <tjoseph@cadence.com>, <sergio.paracuellos@gmail.com>,
+        <pthombar@cadence.com>, <linux-pci@vger.kernel.org>
+CC:     <devicetree@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
-        Milind Parab <mparab@cadence.com>,
-        Jian Wang <jian-wang@ti.com>, <s-vadapalli@ti.com>
-Subject: Re: [PATCH] PCI: cadence: Fix next function value in case of ARI
-Content-Language: en-US
-To:     Achal Verma <a-verma1@ti.com>
-References: <20230118072035.3381993-1-a-verma1@ti.com>
-From:   Siddharth Vadapalli <s-vadapalli@ti.com>
-In-Reply-To: <20230118072035.3381993-1-a-verma1@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [PATCH v8 1/5] dt-bindings: PCI: ti,j721e-pci-*: add checks for num-lanes
+Date:   Wed, 18 Jan 2023 18:29:32 +0530
+Message-ID: <20230118125936.3456716-2-a-verma1@ti.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230118125936.3456716-1-a-verma1@ti.com>
+References: <20230118125936.3456716-1-a-verma1@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hello Achal,
+From: Matt Ranostay <mranostay@ti.com>
 
-On 18/01/23 12:50, Achal Verma wrote:
-> From: Jasko-EXT Wojciech <wojciech.jasko-EXT@continental-corporation.com>
-> 
-> Next function field in ARI_CAP_AND_CTR field register for last
-> function should be zero but thats not the case, so this patch
-> programs the next function field for last function as zero.
-> 
-> Signed-off-by: Jasko-EXT Wojciech <wojciech.jasko-EXT@continental-corporation.com>
-> Signed-off-by: Achal Verma <a-verma1@ti.com>
-> ---
->  drivers/pci/controller/cadence/pcie-cadence-ep.c | 15 ++++++++++++++-
->  drivers/pci/controller/cadence/pcie-cadence.h    |  6 ++++++
->  2 files changed, 20 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-> index b8b655d4047e..6b6904cf0123 100644
-> --- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
-> +++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
-> @@ -565,7 +565,8 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
->  	struct cdns_pcie *pcie = &ep->pcie;
->  	struct device *dev = pcie->dev;
->  	int max_epfs = sizeof(epc->function_num_map) * 8;
-> -	int ret, value, epf;
-> +	int ret, epf, last_fn;
-> +	u32 reg, value;
->  
->  	/*
->  	 * BIT(0) is hardwired to 1, hence function 0 is always enabled
-> @@ -573,6 +574,18 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
->  	 */
->  	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, epc->function_num_map);
->  
-> +	/* Setup ARI Next Function Number.
+Add num-lanes schema checks based on compatible string on available lanes
+for that platform.
 
-Please follow the standard multi-line commenting style with the first line being
-"/*" followed by the comment on the next line.
+Signed-off-by: Matt Ranostay <mranostay@ti.com>
+Signed-off-by: Achal Verma <a-verma1@ti.com>
+---
+ .../bindings/pci/ti,j721e-pci-ep.yaml         | 28 +++++++++++++++++--
+ .../bindings/pci/ti,j721e-pci-host.yaml       | 28 +++++++++++++++++--
+ 2 files changed, 50 insertions(+), 6 deletions(-)
 
-> +	 * This field should point to the next physical Function and 0 for
-> +	 * last Function.
-> +	 */
-> +	last_fn = find_last_bit(&epc->function_num_map, BITS_PER_LONG);
-> +	reg     = CDNS_PCIE_CORE_PF_I_ARI_CAP_AND_CTRL(last_fn);
-> +
-> +	// Clear Next Function Number for the last function used.
+diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
+index 10e6eabdff53..403cd3ef1177 100644
+--- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
++++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
+@@ -10,9 +10,6 @@ title: TI J721E PCI EP (PCIe Wrapper)
+ maintainers:
+   - Kishon Vijay Abraham I <kishon@ti.com>
+ 
+-allOf:
+-  - $ref: "cdns-pcie-ep.yaml#"
+-
+ properties:
+   compatible:
+     oneOf:
+@@ -65,6 +62,31 @@ properties:
+     items:
+       - const: link_state
+ 
++allOf:
++  - $ref: cdns-pcie-ep.yaml#
++  - if:
++      properties:
++        compatible:
++          enum:
++            - ti,am64-pcie-ep
++    then:
++      properties:
++        num-lanes:
++          minimum: 1
++          maximum: 1
++
++  - if:
++      properties:
++        compatible:
++          enum:
++            - ti,j7200-pcie-ep
++            - ti,j721e-pcie-ep
++    then:
++      properties:
++        num-lanes:
++          minimum: 1
++          maximum: 2
++
+ required:
+   - compatible
+   - reg
+diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+index b0513b197d08..7bd78cfca845 100644
+--- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
++++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
+@@ -10,9 +10,6 @@ title: TI J721E PCI Host (PCIe Wrapper)
+ maintainers:
+   - Kishon Vijay Abraham I <kishon@ti.com>
+ 
+-allOf:
+-  - $ref: "cdns-pcie-host.yaml#"
+-
+ properties:
+   compatible:
+     oneOf:
+@@ -98,6 +95,31 @@ properties:
+       interrupts:
+         maxItems: 1
+ 
++allOf:
++  - $ref: cdns-pcie-host.yaml#
++  - if:
++      properties:
++        compatible:
++          enum:
++            - ti,am64-pcie-host
++    then:
++      properties:
++        num-lanes:
++          minimum: 1
++          maximum: 1
++
++  - if:
++      properties:
++        compatible:
++          enum:
++            - ti,j7200-pcie-host
++            - ti,j721e-pcie-host
++    then:
++      properties:
++        num-lanes:
++          minimum: 1
++          maximum: 2
++
+ required:
+   - compatible
+   - reg
+-- 
+2.25.1
 
-Please enclose the comment within /* and */.
-
-Regards,
-Siddharth.
