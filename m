@@ -2,93 +2,130 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59073C00A5A
-	for <linux-omap@archiver.kernel.org>; Tue, 17 Jan 2023 22:45:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F21B7C38159
+	for <linux-omap@archiver.kernel.org>; Wed, 18 Jan 2023 07:53:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229648AbjAQWpy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 17 Jan 2023 17:45:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40612 "EHLO
+        id S229760AbjARHxf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 18 Jan 2023 02:53:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50778 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229556AbjAQWne (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jan 2023 17:43:34 -0500
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F43F5D93D;
-        Tue, 17 Jan 2023 14:30:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=kemnade.info; s=20220719; h=Content-Transfer-Encoding:MIME-Version:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=wIYWAmdqWjZbAmwLF7SivMb0k7ca08XLcKv5HclTrKA=; b=Fn2hN9fxVSVz4UpL3mvNLbpPFR
-        RVfsVru2B5XNcWywsH2HyfGIgKftm3RRUubfJ08ZqVapsTZY+KDPFiec5BsC0luh4LfVH0FU8FhM3
-        qJrgAfaJ19ayk1bG1AygCGT6POsHEPnohV2FY/7iXrIufqh0cl88eoiyPp98eGCBkgeV6ffcBkBEY
-        NfDf5maDmPht8gLZ8p2Zd7oCUBkeEYvlQNuAAtixwr7rNTie470S8kNPSvx9M7r/tYLqA3bcZ76gR
-        roEbO+OXLqlSG31yD+fs14Ohf45yV+Xfs0wEyswPCBXnKHuCvZcFNTTjSZ9bXnR0o9DKmguTIdGZh
-        mRaIh35w==;
-Received: from p200300ccff136d001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff13:6d00:1a3d:a2ff:febf:d33a] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <andreas@kemnade.info>)
-        id 1pHuTA-0006T7-G1; Tue, 17 Jan 2023 23:30:16 +0100
-Received: from andi by aktux with local (Exim 4.94.2)
-        (envelope-from <andreas@kemnade.info>)
-        id 1pHuT9-00AwoM-Qo; Tue, 17 Jan 2023 23:30:15 +0100
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org,
-        krzysztof.kozlowski+dt@linaro.org, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v2] ARM: dts: omap: gta04: add BNO055 IMU chip
-Date:   Tue, 17 Jan 2023 23:30:02 +0100
-Message-Id: <20230117223002.2609301-1-andreas@kemnade.info>
-X-Mailer: git-send-email 2.30.2
+        with ESMTP id S229709AbjARHxR (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jan 2023 02:53:17 -0500
+Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C529654C9;
+        Tue, 17 Jan 2023 23:20:50 -0800 (PST)
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 30I7KaxH081712;
+        Wed, 18 Jan 2023 01:20:36 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1674026437;
+        bh=KkFY6GKvqhnim7O+cjEqnGKGMnv1G70IhEgs+/7uVNM=;
+        h=From:To:CC:Subject:Date;
+        b=RaUg1slCIczvkNHhbOBh/Ha6FwfSCY2hU08sTPg4EMz++P79I7ep1et8HftEqr3PF
+         wHy7k7XZHPuyD1F05TYCrL9aqO8+SKkbvW/NL41gkIh8GUORRyj5j4a+lPqtcbcg91
+         3aGoWOLYliEeGyou3D6p2ri0yR/hTAgBUJj4LJYY=
+Received: from DLEE102.ent.ti.com (dlee102.ent.ti.com [157.170.170.32])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 30I7Ka0i008292
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Wed, 18 Jan 2023 01:20:36 -0600
+Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Wed, 18
+ Jan 2023 01:20:36 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE109.ent.ti.com
+ (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
+ Frontend Transport; Wed, 18 Jan 2023 01:20:36 -0600
+Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 30I7KZcY116191;
+        Wed, 18 Jan 2023 01:20:36 -0600
+From:   Achal Verma <a-verma1@ti.com>
+To:     Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Krzysztof Wilczy_ski <kw@linux.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>
+CC:     <linux-pci@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Achal Verma <a-verma1@ti.com>,
+        Milind Parab <mparab@cadence.com>, Jian Wang <jian-wang@ti.com>
+Subject: [PATCH] PCI: cadence: Fix next function value in case of ARI
+Date:   Wed, 18 Jan 2023 12:50:35 +0530
+Message-ID: <20230118072035.3381993-1-a-verma1@ti.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-There is finally a driver upstreamed, so add the
-device.
+From: Jasko-EXT Wojciech <wojciech.jasko-EXT@continental-corporation.com>
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+Next function field in ARI_CAP_AND_CTR field register for last
+function should be zero but thats not the case, so this patch
+programs the next function field for last function as zero.
+
+Signed-off-by: Jasko-EXT Wojciech <wojciech.jasko-EXT@continental-corporation.com>
+Signed-off-by: Achal Verma <a-verma1@ti.com>
 ---
-Changes in v2:
- use a generic node name
+ drivers/pci/controller/cadence/pcie-cadence-ep.c | 15 ++++++++++++++-
+ drivers/pci/controller/cadence/pcie-cadence.h    |  6 ++++++
+ 2 files changed, 20 insertions(+), 1 deletion(-)
 
- arch/arm/boot/dts/omap3-gta04a5.dts | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts b/arch/arm/boot/dts/omap3-gta04a5.dts
-index 0b5bd7388877..1ecdc985fa05 100644
---- a/arch/arm/boot/dts/omap3-gta04a5.dts
-+++ b/arch/arm/boot/dts/omap3-gta04a5.dts
-@@ -75,6 +75,11 @@ OMAP3_CORE1_IOPAD(0x2138, PIN_INPUT | MUX_MODE4) /* gpin114 */
- 		>;
- 	};
+diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
+index b8b655d4047e..6b6904cf0123 100644
+--- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
++++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
+@@ -565,7 +565,8 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
+ 	struct cdns_pcie *pcie = &ep->pcie;
+ 	struct device *dev = pcie->dev;
+ 	int max_epfs = sizeof(epc->function_num_map) * 8;
+-	int ret, value, epf;
++	int ret, epf, last_fn;
++	u32 reg, value;
  
-+	bno050_pins: pinmux-bno050-pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2136, PIN_INPUT | MUX_MODE4) /* gpin113 */
-+		>;
-+	};
- };
+ 	/*
+ 	 * BIT(0) is hardwired to 1, hence function 0 is always enabled
+@@ -573,6 +574,18 @@ static int cdns_pcie_ep_start(struct pci_epc *epc)
+ 	 */
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_LM_EP_FUNC_CFG, epc->function_num_map);
  
- /*
-@@ -136,4 +141,12 @@ bme280@76 {
- 		vdda-supply = <&vio>;
- 		vddd-supply = <&vio>;
- 	};
++	/* Setup ARI Next Function Number.
++	 * This field should point to the next physical Function and 0 for
++	 * last Function.
++	 */
++	last_fn = find_last_bit(&epc->function_num_map, BITS_PER_LONG);
++	reg     = CDNS_PCIE_CORE_PF_I_ARI_CAP_AND_CTRL(last_fn);
 +
-+	imu@29 {
-+		compatible = "bosch,bno055";
-+		reg = <0x29>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&bno050_pins>;
-+		/* interrupt at &gpio4 17 */
-+	};
- };
++	// Clear Next Function Number for the last function used.
++	value  = cdns_pcie_readl(pcie, reg);
++	value &= ~CDNS_PCIE_ARI_CAP_NFN_MASK;
++	cdns_pcie_writel(pcie, reg, value);
++
+ 	if (ep->quirk_disable_flr) {
+ 		for (epf = 0; epf < max_epfs; epf++) {
+ 			if (!(epc->function_num_map & BIT(epf)))
+diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
+index 190786e47df9..68c4c7878111 100644
+--- a/drivers/pci/controller/cadence/pcie-cadence.h
++++ b/drivers/pci/controller/cadence/pcie-cadence.h
+@@ -130,6 +130,12 @@
+ #define CDNS_PCIE_EP_FUNC_DEV_CAP_OFFSET	0xc0
+ #define CDNS_PCIE_EP_FUNC_SRIOV_CAP_OFFSET	0x200
+ 
++/*
++ * Endpoint PF Registers
++ */
++#define CDNS_PCIE_CORE_PF_I_ARI_CAP_AND_CTRL(fn)	(0x144 + (fn) * 0x1000)
++#define CDNS_PCIE_ARI_CAP_NFN_MASK	GENMASK(15, 8)
++
+ /*
+  * Root Port Registers (PCI configuration space for the root port function)
+  */
 -- 
-2.30.2
+2.25.1
 
