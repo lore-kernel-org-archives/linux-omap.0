@@ -2,43 +2,43 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AA6CC54EED
-	for <linux-omap@archiver.kernel.org>; Sun, 22 Jan 2023 12:21:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF958C25B4E
+	for <linux-omap@archiver.kernel.org>; Sun, 22 Jan 2023 12:21:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230079AbjAVMVj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 22 Jan 2023 07:21:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60586 "EHLO
+        id S230097AbjAVMVl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 22 Jan 2023 07:21:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229890AbjAVMVi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 22 Jan 2023 07:21:38 -0500
+        with ESMTP id S230005AbjAVMVj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 22 Jan 2023 07:21:39 -0500
 Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 640035BB7;
-        Sun, 22 Jan 2023 04:21:37 -0800 (PST)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 30MCLOu5106723;
-        Sun, 22 Jan 2023 06:21:24 -0600
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 309194ECF;
+        Sun, 22 Jan 2023 04:21:38 -0800 (PST)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 30MCLTgN106747;
+        Sun, 22 Jan 2023 06:21:29 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1674390084;
-        bh=TvLXqGFP62Kxbj9vLoF4VkS0d1KSy83RMoiHtO0IdzA=;
+        s=ti-com-17Q1; t=1674390089;
+        bh=fRSHuSmZfTiBYZk4PRNH9gbEGntiiMWgmXGkY1eFdQQ=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=C7DsTRmRz2zG8zyIKBkpcJQ9v6OTfepRGfzgrLPkCMR+TyKf1Fsi2Vm4Z47IWq0zE
-         FaMCkwwQKaEmf47aLhDEasL2fRmqWiAJB0zCHMRLD6NaTekTaRaCiFBssTKsSM2LOi
-         Mdi5PpQ1q/xkdnTCQqxKBBCCa5Lroc8mkiH/zH3o=
+        b=YN9Ap80vwY+HOduvdurX1Qiaew3l7YQ+jag7FKouXhlUo2JAdCjWUdfIiswxrzVnX
+         jISgbNjqXsPjZC7vHcWNfwh5iRaCgi7lu7tBMU9MKVy8ClpbM61Pj8ZVscou4O8f6R
+         CkPhHWDiVSqCQ/JyI8vAe6OeYfo3DytQORPJO8SI=
 Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 30MCLOsS075614
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 30MCLTk3102331
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Sun, 22 Jan 2023 06:21:24 -0600
-Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE114.ent.ti.com
+        Sun, 22 Jan 2023 06:21:29 -0600
+Received: from DFLE105.ent.ti.com (10.64.6.26) by DFLE114.ent.ti.com
  (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Sun, 22
- Jan 2023 06:21:24 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE100.ent.ti.com
- (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
+ Jan 2023 06:21:28 -0600
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE105.ent.ti.com
+ (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
- Frontend Transport; Sun, 22 Jan 2023 06:21:24 -0600
+ Frontend Transport; Sun, 22 Jan 2023 06:21:28 -0600
 Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 30MCLNTH029933;
-        Sun, 22 Jan 2023 06:21:24 -0600
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 30MCLSLR076479;
+        Sun, 22 Jan 2023 06:21:28 -0600
 From:   Achal Verma <a-verma1@ti.com>
 To:     <mranostay@ti.com>, <rogerq@kernel.org>, <lpieralisi@kernel.org>,
         <robh@kernel.org>, <kw@linux.com>, <bhelgaas@google.com>,
@@ -48,9 +48,9 @@ To:     <mranostay@ti.com>, <rogerq@kernel.org>, <lpieralisi@kernel.org>,
 CC:     <devicetree@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [PATCH v9 1/5] dt-bindings: PCI: ti,j721e-pci-*: add checks for num-lanes
-Date:   Sun, 22 Jan 2023 17:51:17 +0530
-Message-ID: <20230122122121.3552375-2-a-verma1@ti.com>
+Subject: [PATCH v9 4/5] dt-bindings: PCI: ti,j721e-pci-*: add j784s4-pci-* compatible strings
+Date:   Sun, 22 Jan 2023 17:51:20 +0530
+Message-ID: <20230122122121.3552375-5-a-verma1@ti.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20230122122121.3552375-1-a-verma1@ti.com>
 References: <20230122122121.3552375-1-a-verma1@ti.com>
@@ -64,102 +64,73 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Matt Ranostay <mranostay@ti.com>
 
-Add num-lanes schema checks based on compatible string on available lanes
-for that platform.
+Add definition for j784s4-pci-ep + j784s4-pci-host devices along with
+schema checks for num-lanes.
 
 Signed-off-by: Matt Ranostay <mranostay@ti.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 Signed-off-by: Achal Verma <a-verma1@ti.com>
 ---
- .../bindings/pci/ti,j721e-pci-ep.yaml         | 27 ++++++++++++++++---
- .../bindings/pci/ti,j721e-pci-host.yaml       | 27 ++++++++++++++++---
- 2 files changed, 48 insertions(+), 6 deletions(-)
+ .../devicetree/bindings/pci/ti,j721e-pci-ep.yaml     | 12 ++++++++++++
+ .../devicetree/bindings/pci/ti,j721e-pci-host.yaml   | 12 ++++++++++++
+ 2 files changed, 24 insertions(+)
 
 diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
-index 10e6eabdff53..32e0c70ed801 100644
+index 32e0c70ed801..d2fbf1f7aa54 100644
 --- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
 +++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
-@@ -10,9 +10,6 @@ title: TI J721E PCI EP (PCIe Wrapper)
- maintainers:
-   - Kishon Vijay Abraham I <kishon@ti.com>
- 
--allOf:
--  - $ref: "cdns-pcie-ep.yaml#"
--
- properties:
+@@ -14,6 +14,7 @@ properties:
    compatible:
      oneOf:
-@@ -65,6 +62,30 @@ properties:
-     items:
-       - const: link_state
+       - const: ti,j721e-pcie-ep
++      - const: ti,j784s4-pcie-ep
+       - description: PCIe EP controller in AM64
+         items:
+           - const: ti,am64-pcie-ep
+@@ -86,6 +87,17 @@ allOf:
+           minimum: 1
+           maximum: 2
  
-+allOf:
-+  - $ref: cdns-pcie-ep.yaml#
 +  - if:
 +      properties:
 +        compatible:
 +          enum:
-+            - ti,am64-pcie-ep
-+    then:
-+      properties:
-+        num-lanes:
-+          const: 1
-+
-+  - if:
-+      properties:
-+        compatible:
-+          enum:
-+            - ti,j7200-pcie-ep
-+            - ti,j721e-pcie-ep
++            - ti,j784s4-pcie-ep
 +    then:
 +      properties:
 +        num-lanes:
 +          minimum: 1
-+          maximum: 2
++          maximum: 4
 +
  required:
    - compatible
    - reg
 diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-index b0513b197d08..9d4611387387 100644
+index 9d4611387387..6522daf1f89c 100644
 --- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
 +++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-@@ -10,9 +10,6 @@ title: TI J721E PCI Host (PCIe Wrapper)
- maintainers:
-   - Kishon Vijay Abraham I <kishon@ti.com>
- 
--allOf:
--  - $ref: "cdns-pcie-host.yaml#"
--
- properties:
+@@ -14,6 +14,7 @@ properties:
    compatible:
      oneOf:
-@@ -98,6 +95,30 @@ properties:
-       interrupts:
-         maxItems: 1
+       - const: ti,j721e-pcie-host
++      - const: ti,j784s4-pcie-host
+       - description: PCIe controller in AM64
+         items:
+           - const: ti,am64-pcie-host
+@@ -119,6 +120,17 @@ allOf:
+           minimum: 1
+           maximum: 2
  
-+allOf:
-+  - $ref: cdns-pcie-host.yaml#
 +  - if:
 +      properties:
 +        compatible:
 +          enum:
-+            - ti,am64-pcie-host
-+    then:
-+      properties:
-+        num-lanes:
-+          const: 1
-+
-+  - if:
-+      properties:
-+        compatible:
-+          enum:
-+            - ti,j7200-pcie-host
-+            - ti,j721e-pcie-host
++            - ti,j784s4-pcie-host
 +    then:
 +      properties:
 +        num-lanes:
 +          minimum: 1
-+          maximum: 2
++          maximum: 4
 +
  required:
    - compatible
