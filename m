@@ -2,110 +2,126 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CD38C25B4E
-	for <linux-omap@archiver.kernel.org>; Sun, 22 Jan 2023 09:09:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14B4DC25B4E
+	for <linux-omap@archiver.kernel.org>; Sun, 22 Jan 2023 12:21:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229815AbjAVJJF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 22 Jan 2023 04:09:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35432 "EHLO
+        id S230055AbjAVMVj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 22 Jan 2023 07:21:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229480AbjAVJJE (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 22 Jan 2023 04:09:04 -0500
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72A3C1F4A5;
-        Sun, 22 Jan 2023 01:09:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=kemnade.info; s=20220719; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=VrpSjRVWRpLB+kPorI91UdQAtzr72U2i/Ay10A+MJmQ=; b=iVxCDSSLpwaBZwREXNIipYG3vR
-        4llqgpbYdLbFt1zbYcVwfBvPaCt+8On9z8KLmkf4Du996DtFfQ/+d2gUFdQ1WUvdD6v9vNmBCh6xv
-        5qO3OsVbKI2z3DkkGMo9yVtgKMRm+tmEPt9tE4ISb0aEsg2TcW319z2ijvj72Vg7PdEzJVUPgIR3M
-        gdsHpFReipT9d6iU7R6wn9QB5NTwVRWPF6r7RPN7xG1jdH904/D+eLGvLPO8GX6tb4K6z23Bj30dM
-        ymlsVFzQcpCKVybiVavDGY33spsFIonmPLNa3CSDFa2VFk3Beh4aDICYoGHkuF1Gdb8JTzsaGcJSM
-        Zy0Efdzg==;
-Received: from p200300ccff40f1001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff40:f100:1a3d:a2ff:febf:d33a] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <andreas@kemnade.info>)
-        id 1pJWLN-0002qn-Np; Sun, 22 Jan 2023 10:08:54 +0100
-Date:   Sun, 22 Jan 2023 10:08:52 +0100
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     Adam Ford <aford173@gmail.com>, bcousson@baylibre.com,
-        robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH] ARM: dts: gta04: fix excess dma channel usage
-Message-ID: <20230122100852.32ae082c@aktux>
-In-Reply-To: <Y8jxjBZrPV0n363P@atomide.com>
-References: <20230113211151.2314874-1-andreas@kemnade.info>
-        <CAHCN7xJH+c41Yas+xnWA57KNi9arOOJDxJ=joEDEJr2k6jrRrw@mail.gmail.com>
-        <Y8VkjQ2yZQssx/wJ@atomide.com>
-        <20230116173922.585904bf@aktux>
-        <Y8WBuKt6mw6TN1Cp@atomide.com>
-        <CAHCN7x+b2_dnpRs8RarhhgTfBrTVfGfmcQNbfHLoWBwkZ_3Puw@mail.gmail.com>
-        <Y8WEoxiOXgZNB1Oc@atomide.com>
-        <Y8jxjBZrPV0n363P@atomide.com>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        with ESMTP id S229921AbjAVMVi (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 22 Jan 2023 07:21:38 -0500
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 855E961A4;
+        Sun, 22 Jan 2023 04:21:37 -0800 (PST)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 30MCLRLH106734;
+        Sun, 22 Jan 2023 06:21:27 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1674390087;
+        bh=TISRczCqqClgTnuh9Jgbp4YdFIC7Href1UTZ0gVUQ5I=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=vEINhMjtD19zKyn81aKyiO8PEEYlg97ZkguUPjq6lA79zoe9+q7jb13wTyTtLdId5
+         9pOhwf79bQ5GIDtIP2xjd6Yd1LMqA0uW6Cwpmf4FeiZnOdYLzLO8W1ET5kWq0hzH+G
+         yYk/Kyd53aAGLjcgLeMIBm6apoU6AxNSd9NvdPWQ=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 30MCLRab102324
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Sun, 22 Jan 2023 06:21:27 -0600
+Received: from DFLE106.ent.ti.com (10.64.6.27) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Sun, 22
+ Jan 2023 06:21:27 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE106.ent.ti.com
+ (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
+ Frontend Transport; Sun, 22 Jan 2023 06:21:27 -0600
+Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 30MCLQWM029950;
+        Sun, 22 Jan 2023 06:21:27 -0600
+From:   Achal Verma <a-verma1@ti.com>
+To:     <mranostay@ti.com>, <rogerq@kernel.org>, <lpieralisi@kernel.org>,
+        <robh@kernel.org>, <kw@linux.com>, <bhelgaas@google.com>,
+        <krzysztof.kozlowski@linaro.org>, <vigneshr@ti.com>,
+        <tjoseph@cadence.com>, <sergio.paracuellos@gmail.com>,
+        <pthombar@cadence.com>, <linux-pci@vger.kernel.org>
+CC:     <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [PATCH v9 3/5] PCI: j721e: Add PCIe 4x lane selection support
+Date:   Sun, 22 Jan 2023 17:51:19 +0530
+Message-ID: <20230122122121.3552375-4-a-verma1@ti.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230122122121.3552375-1-a-verma1@ti.com>
+References: <20230122122121.3552375-1-a-verma1@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, 19 Jan 2023 09:30:20 +0200
-Tony Lindgren <tony@atomide.com> wrote:
+From: Matt Ranostay <mranostay@ti.com>
 
-> * Tony Lindgren <tony@atomide.com> [230116 17:33]:
-> > * Adam Ford <aford173@gmail.com> [230116 17:00]:  
-> > > Doesn't this imply the target-module stuff needs to be implemented for
-> > > the drivers?  It looks like a lot of the omap3 drivers are still using
-> > > hwmods although some have target-modules. In this case, the mcspi
-> > > drivers that Andreas is disabling don't appear to have target-module
-> > > stuff configured.  
-> > 
-> > Sorry I don't remember if omap_device.c ignores status disabled or not.
-> > But in any case, it should be trivial to update omap3.dtsi to configure
-> > some of the devices like mcspi to probe with device tree data and ti-sysc
-> > as needed.  
-> 
-> So as long as gta04 power management still behaves with this patch it
-> should good to go.
-> 
-# sleep 10 ; /usr/local/bin/idledump
-     CM_IDLEST1_CORE 00000042
-     CM_IDLEST3_CORE 00000000
-     CM_FCLKEN1_CORE 00000000
-     CM_FCLKEN3_CORE 00000002
-     CM_CLKSTST_CORE 00000003
-     CM_IDLEST_CKGEN 00000209
-    CM_IDLEST2_CKGEN 00000000
-       CM_FCLKEN_DSS 00000000
-       CM_IDLEST_DSS 00000000
-       CM_FCLKEN_CAM 00000000
-       CM_IDLEST_CAM 00000000
-       CM_FCLKEN_PER 00000000
-       CM_IDLEST_PER 00000000
+Add support for setting of two-bit field that allows selection of 4x lane
+PCIe which was previously limited to only 2x lanes.
 
+Signed-off-by: Matt Ranostay <mranostay@ti.com>
+Reviewed-by: Vignesh Raghavendra <vigneshr@ti.com>
+Reviewed-by: Roger Quadros <rogerq@kernel.org>
+Signed-off-by: Achal Verma <a-verma1@ti.com>
+---
+ drivers/pci/controller/cadence/pci-j721e.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-FCLKEN3_CORE becomes 0 after unbinding the bandgap sensor.
-
-but...
-# cat /sys/kernel/debug/pm_debug/time 
-usbhost_pwrdm (ON),OFF:830267486567,RET:0,INA:0,ON:12202880865
-sgx_pwrdm (INA),OFF:0,RET:0,INA:841224365234,ON:1245971680
-core_pwrdm (ON),OFF:0,RET:0,INA:0,ON:842470336914
-per_pwrdm (ON),OFF:520406799328,RET:30043365464,INA:0,ON:292020111087
-
-hmmm.... 
-
-but does not look like anything related to mcspi*.
-
-Regards,
-Andreas
+diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
+index f4dc2c5abedb..58dcac9021e4 100644
+--- a/drivers/pci/controller/cadence/pci-j721e.c
++++ b/drivers/pci/controller/cadence/pci-j721e.c
+@@ -42,7 +42,6 @@ enum link_status {
+ };
+ 
+ #define J721E_MODE_RC			BIT(7)
+-#define LANE_COUNT_MASK			BIT(8)
+ #define LANE_COUNT(n)			((n) << 8)
+ 
+ #define GENERATION_SEL_MASK		GENMASK(1, 0)
+@@ -52,6 +51,7 @@ struct j721e_pcie {
+ 	struct clk		*refclk;
+ 	u32			mode;
+ 	u32			num_lanes;
++	u32			max_lanes;
+ 	void __iomem		*user_cfg_base;
+ 	void __iomem		*intd_cfg_base;
+ 	u32			linkdown_irq_regfield;
+@@ -205,11 +205,15 @@ static int j721e_pcie_set_lane_count(struct j721e_pcie *pcie,
+ {
+ 	struct device *dev = pcie->cdns_pcie->dev;
+ 	u32 lanes = pcie->num_lanes;
++	u32 mask = BIT(8);
+ 	u32 val = 0;
+ 	int ret;
+ 
++	if (pcie->max_lanes == 4)
++		mask = GENMASK(9, 8);
++
+ 	val = LANE_COUNT(lanes - 1);
+-	ret = regmap_update_bits(syscon, offset, LANE_COUNT_MASK, val);
++	ret = regmap_update_bits(syscon, offset, mask, val);
+ 	if (ret)
+ 		dev_err(dev, "failed to set link count\n");
+ 
+@@ -441,7 +445,9 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+ 		dev_warn(dev, "num-lanes property not provided or invalid, setting num-lanes to 1\n");
+ 		num_lanes = 1;
+ 	}
++
+ 	pcie->num_lanes = num_lanes;
++	pcie->max_lanes = data->max_lanes;
+ 
+ 	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(48)))
+ 		return -EINVAL;
+-- 
+2.25.1
 
