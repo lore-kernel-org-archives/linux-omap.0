@@ -2,43 +2,43 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 765D8C25B50
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD600C61D97
 	for <linux-omap@archiver.kernel.org>; Mon, 23 Jan 2023 19:48:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232564AbjAWTsa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 23 Jan 2023 14:48:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52624 "EHLO
+        id S232829AbjAWTsb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 23 Jan 2023 14:48:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52628 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229913AbjAWTs3 (ORCPT
+        with ESMTP id S232486AbjAWTs3 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jan 2023 14:48:29 -0500
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9D54222C3;
-        Mon, 23 Jan 2023 11:48:27 -0800 (PST)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 30NJmLVE069757;
-        Mon, 23 Jan 2023 13:48:21 -0600
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96C6122A16;
+        Mon, 23 Jan 2023 11:48:28 -0800 (PST)
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 30NJmNQ6056304;
+        Mon, 23 Jan 2023 13:48:23 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1674503301;
-        bh=2deVQnpXjv2jkusjw58aOvaf5EeVgagttXtCwMY42tI=;
-        h=From:To:CC:Subject:Date;
-        b=LZfQoqi8fncgBDoAMBF3N7EjGljyuOZ0XcvyQMLjKTnF73kapHq9zMwK6P0RFtVqi
-         i/86k0+qgCYmGoKhSG6Dbx47IaLKtv9JWG1ZpNZmRVY1Z4wgl0GoHNWp76XgzUrifw
-         Vcuf27OCt/Pn8Mj5bASc97JMz7dlEyLM+yWBUocU=
-Received: from DFLE101.ent.ti.com (dfle101.ent.ti.com [10.64.6.22])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 30NJmL8j077799
+        s=ti-com-17Q1; t=1674503303;
+        bh=rhxpVG5PV9ncmort8qjs25IwF7oHDgVPnpJ++ljtdWE=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=gZwceNe+Pgf8QQYNjtYZbIucDW2tArcDOJY50VYo0dNFRh8t3zKJZe4SGLz0H0bJy
+         LyjmgHQm3xsQ2Pbb4i7IqPahh6VPa+CzTXCXmZlgq1dnC0zELU84SZufhREDmARVVZ
+         AD1W10OKnPXeutOzjwddeXLyimKJlVH/F/a0Ki4A=
+Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 30NJmNA7074509
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 23 Jan 2023 13:48:21 -0600
-Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE101.ent.ti.com
- (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 23 Jan 2023 13:48:23 -0600
+Received: from DFLE101.ent.ti.com (10.64.6.22) by DFLE105.ent.ti.com
+ (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Mon, 23
- Jan 2023 13:48:20 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE108.ent.ti.com
- (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+ Jan 2023 13:48:23 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE101.ent.ti.com
+ (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
- Frontend Transport; Mon, 23 Jan 2023 13:48:20 -0600
+ Frontend Transport; Mon, 23 Jan 2023 13:48:23 -0600
 Received: from ula0226330.dal.design.ti.com (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 30NJmJ0q031936;
-        Mon, 23 Jan 2023 13:48:19 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 30NJmJ0s031936;
+        Mon, 23 Jan 2023 13:48:21 -0600
 From:   Andrew Davis <afd@ti.com>
 To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>,
@@ -48,10 +48,12 @@ To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>
 CC:     Andrew Davis <afd@ti.com>
-Subject: [PATCH v3 0/3] AM57x EVM Device Tree Overlays
-Date:   Mon, 23 Jan 2023 13:48:15 -0600
-Message-ID: <20230123194818.21448-1-afd@ti.com>
+Subject: [PATCH v3 2/3] ARM: dts: ti: Add AM57xx GP EVM Rev A3 board support
+Date:   Mon, 23 Jan 2023 13:48:17 -0600
+Message-ID: <20230123194818.21448-3-afd@ti.com>
 X-Mailer: git-send-email 2.38.1
+In-Reply-To: <20230123194818.21448-1-afd@ti.com>
+References: <20230123194818.21448-1-afd@ti.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -60,45 +62,35 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hello all,
+The A3 revision of the AM57xx GP EVM has the same EVM feature set as the
+original but is paired with an updated revision C BeagleBoard X15.
 
-These is an uncontroversial (hopefully) DT Overlay to support the
-TI AM57x EVM. More complex cases are staged and ready to follow but
-wanted to test the water with this one.
+DT Overlays allow us to model this in the same way, we simply apply the
+EVM overlay to the Rev C BeagleBoard to create the Rev A3 AM57xx GP EVM.
 
-For some reason dtbs_check does not get run on overlays, this
-will need further investigation to fix in kbuild. For now I ran
-it through manually but am not 100% sure it actually checked it,
-so double checks here very welcome.
+Signed-off-by: Andrew Davis <afd@ti.com>
+---
+ arch/arm/boot/dts/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks,
-Andrew
-
-Changes from v2:
- - Rebased on v6.2-rc5
-
-Changes from v1:
- - Made touchscreen node name generic
- - Used proper interrupt flags
-
-Andrew Davis (3):
-  ARM: dts: ti: Add AM57xx GP EVM board support
-  ARM: dts: ti: Add AM57xx GP EVM Rev A3 board support
-  ARM: dts: am57xx-idk: Add IDK displays and touchscreens
-
- arch/arm/boot/dts/Makefile                    |   8 ++
- arch/arm/boot/dts/am571x-idk-touchscreen.dtso |  32 +++++
- arch/arm/boot/dts/am572x-idk-touchscreen.dtso |  32 +++++
- arch/arm/boot/dts/am57xx-evm.dtso             | 127 ++++++++++++++++++
- .../boot/dts/am57xx-idk-lcd-osd101t2045.dtso  |  63 +++++++++
- .../boot/dts/am57xx-idk-lcd-osd101t2587.dtso  |  66 +++++++++
- 6 files changed, 328 insertions(+)
- create mode 100644 arch/arm/boot/dts/am571x-idk-touchscreen.dtso
- create mode 100644 arch/arm/boot/dts/am572x-idk-touchscreen.dtso
- create mode 100644 arch/arm/boot/dts/am57xx-evm.dtso
- create mode 100644 arch/arm/boot/dts/am57xx-idk-lcd-osd101t2045.dtso
- create mode 100644 arch/arm/boot/dts/am57xx-idk-lcd-osd101t2587.dtso
-
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index fa14bdc36a99..ecc3b00bc2e2 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -989,11 +989,13 @@ dtb-$(CONFIG_SOC_OMAP5) += \
+ 	omap5-sbc-t54.dtb \
+ 	omap5-uevm.dtb
+ am57xx-evm-dtbs := am57xx-beagle-x15.dtb am57xx-evm.dtbo
++am57xx-evm-reva3-dtbs := am57xx-beagle-x15-revc.dtb am57xx-evm.dtbo
+ dtb-$(CONFIG_SOC_DRA7XX) += \
+ 	am57xx-beagle-x15.dtb \
+ 	am57xx-beagle-x15-revb1.dtb \
+ 	am57xx-beagle-x15-revc.dtb \
+ 	am57xx-evm.dtb \
++	am57xx-evm-reva3.dtb \
+ 	am5729-beagleboneai.dtb \
+ 	am57xx-cl-som-am57x.dtb \
+ 	am57xx-sbc-am57x.dtb \
 -- 
 2.38.1
 
