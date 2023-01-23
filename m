@@ -2,43 +2,43 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC41FC38142
-	for <linux-omap@archiver.kernel.org>; Mon, 23 Jan 2023 19:48:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C1BBC61DA2
+	for <linux-omap@archiver.kernel.org>; Mon, 23 Jan 2023 19:48:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232824AbjAWTsa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 23 Jan 2023 14:48:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52626 "EHLO
+        id S232827AbjAWTsd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 23 Jan 2023 14:48:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232143AbjAWTs3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jan 2023 14:48:29 -0500
-Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C947222EB;
-        Mon, 23 Jan 2023 11:48:28 -0800 (PST)
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 30NJmMYp118823;
-        Mon, 23 Jan 2023 13:48:22 -0600
+        with ESMTP id S232841AbjAWTsc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jan 2023 14:48:32 -0500
+Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7039222C3;
+        Mon, 23 Jan 2023 11:48:30 -0800 (PST)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 30NJmPEx029998;
+        Mon, 23 Jan 2023 13:48:25 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1674503302;
-        bh=l42DF2GRzwu8a1vF+2Bc76gNPOQJxpREkaMVBGfJQlg=;
+        s=ti-com-17Q1; t=1674503305;
+        bh=tptSK+K9WlreJxDt+ufoKKg8e77b46NODqKZ91yItUI=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=wPNpxkmLOFFJkZXrstyqScOdCZYWZmIrXGgxmY0aAYXBi1/FGWKChM6FGyZWB8nyM
-         Xpnko2hwwfSA28ngyOOZb2w6zyQloM253glzpwsnSzMd469B7bL7kmGCc1JjLLdSqQ
-         wVlkwVrvbNa5y7CxC3nfOcNTIsepL15kCzLa+4BQ=
-Received: from DLEE107.ent.ti.com (dlee107.ent.ti.com [157.170.170.37])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 30NJmMfo074500
+        b=pEpghtgmm7BTZim/J5U5nxdEsFLbNkpwkYcOXpw5ifGnh+qPCXe4vza2JSjcBctum
+         hmyu4S8WUZWhEmugY+gdieF6TiqE5gBD7501zWNaRzCJqgZzJlXlR00O0JWHav3SHM
+         l/hxtdYXfG/rEm8MJvecRMwEW7V9pKmSDMY91o6M=
+Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 30NJmPAi108327
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 23 Jan 2023 13:48:22 -0600
-Received: from DLEE115.ent.ti.com (157.170.170.26) by DLEE107.ent.ti.com
- (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 23 Jan 2023 13:48:25 -0600
+Received: from DLEE110.ent.ti.com (157.170.170.21) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Mon, 23
- Jan 2023 13:48:21 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
+ Jan 2023 13:48:24 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE110.ent.ti.com
+ (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
- Frontend Transport; Mon, 23 Jan 2023 13:48:21 -0600
+ Frontend Transport; Mon, 23 Jan 2023 13:48:24 -0600
 Received: from ula0226330.dal.design.ti.com (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 30NJmJ0r031936;
-        Mon, 23 Jan 2023 13:48:20 -0600
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 30NJmJ0t031936;
+        Mon, 23 Jan 2023 13:48:23 -0600
 From:   Andrew Davis <afd@ti.com>
 To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>,
@@ -48,9 +48,9 @@ To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
         <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>
 CC:     Andrew Davis <afd@ti.com>
-Subject: [PATCH v3 1/3] ARM: dts: ti: Add AM57xx GP EVM board support
-Date:   Mon, 23 Jan 2023 13:48:16 -0600
-Message-ID: <20230123194818.21448-2-afd@ti.com>
+Subject: [PATCH v3 3/3] ARM: dts: am57xx-idk: Add IDK displays and touchscreens
+Date:   Mon, 23 Jan 2023 13:48:18 -0600
+Message-ID: <20230123194818.21448-4-afd@ti.com>
 X-Mailer: git-send-email 2.38.1
 In-Reply-To: <20230123194818.21448-1-afd@ti.com>
 References: <20230123194818.21448-1-afd@ti.com>
@@ -62,173 +62,271 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The AM57xx GP EVM boards are built on top the AM57xx BeagleBoard-X15.
-The EVM extends the BeagleBoard by adding a touchscreen, some buttons,
-and a handful of peripheral extension slots.
+This is a more interesting use of DT Overlays than the previous patches.
+Here we have two touchscreen modules. Each is compatible with, and can be
+attached to, either of the two AM57xx IDK development board variants
+(AM571x or AM572x).
 
-Being a plugin extension of an existing standalone board; we define
-the am57xx-evm as a composite-DTB of the base am57xx-beagle-x15
-and a new am57xx-evm overlay.
+Due to the way the extension header was wired on the development boards,
+the touch sensor on the touchscreen modules will connect to different
+SoC pins when connected. For this the touch sensor is modeled as an
+additional overlay that is specific to the development board for which it
+is connected.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Basically the LCD overlay can be swapped, but the touchscreen overlay
+that attaches to the LCD must be used with the corresponding base DT
+and not to the LCD.
+
+AM571x -\ /- osd101t2045.dtbo -\ /- am571x-idk-touchscreen.dtbo
+         X                      X
+AM572x -/ \- osd101t2587.dtbo -/ \- am572x-idk-touchscreen.dtbo
+
 Signed-off-by: Andrew Davis <afd@ti.com>
 ---
- arch/arm/boot/dts/Makefile        |   2 +
- arch/arm/boot/dts/am57xx-evm.dtso | 127 ++++++++++++++++++++++++++++++
- 2 files changed, 129 insertions(+)
- create mode 100644 arch/arm/boot/dts/am57xx-evm.dtso
+ arch/arm/boot/dts/Makefile                    |  4 ++
+ arch/arm/boot/dts/am571x-idk-touchscreen.dtso | 32 +++++++++
+ arch/arm/boot/dts/am572x-idk-touchscreen.dtso | 32 +++++++++
+ .../boot/dts/am57xx-idk-lcd-osd101t2045.dtso  | 63 ++++++++++++++++++
+ .../boot/dts/am57xx-idk-lcd-osd101t2587.dtso  | 66 +++++++++++++++++++
+ 5 files changed, 197 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am571x-idk-touchscreen.dtso
+ create mode 100644 arch/arm/boot/dts/am572x-idk-touchscreen.dtso
+ create mode 100644 arch/arm/boot/dts/am57xx-idk-lcd-osd101t2045.dtso
+ create mode 100644 arch/arm/boot/dts/am57xx-idk-lcd-osd101t2587.dtso
 
 diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index d08a3c450ce7..fa14bdc36a99 100644
+index ecc3b00bc2e2..e3e8b3eb34b0 100644
 --- a/arch/arm/boot/dts/Makefile
 +++ b/arch/arm/boot/dts/Makefile
-@@ -988,10 +988,12 @@ dtb-$(CONFIG_SOC_OMAP5) += \
- 	omap5-igep0050.dtb \
- 	omap5-sbc-t54.dtb \
- 	omap5-uevm.dtb
-+am57xx-evm-dtbs := am57xx-beagle-x15.dtb am57xx-evm.dtbo
- dtb-$(CONFIG_SOC_DRA7XX) += \
- 	am57xx-beagle-x15.dtb \
- 	am57xx-beagle-x15-revb1.dtb \
- 	am57xx-beagle-x15-revc.dtb \
-+	am57xx-evm.dtb \
- 	am5729-beagleboneai.dtb \
+@@ -1000,8 +1000,12 @@ dtb-$(CONFIG_SOC_DRA7XX) += \
  	am57xx-cl-som-am57x.dtb \
  	am57xx-sbc-am57x.dtb \
-diff --git a/arch/arm/boot/dts/am57xx-evm.dtso b/arch/arm/boot/dts/am57xx-evm.dtso
+ 	am572x-idk.dtb \
++	am572x-idk-touchscreen.dtbo \
+ 	am571x-idk.dtb \
++	am571x-idk-touchscreen.dtbo \
+ 	am574x-idk.dtb \
++	am57xx-idk-lcd-osd101t2045.dtbo \
++	am57xx-idk-lcd-osd101t2587.dtbo \
+ 	dra7-evm.dtb \
+ 	dra72-evm.dtb \
+ 	dra72-evm-revc.dtb \
+diff --git a/arch/arm/boot/dts/am571x-idk-touchscreen.dtso b/arch/arm/boot/dts/am571x-idk-touchscreen.dtso
 new file mode 100644
-index 000000000000..12385a31061e
+index 000000000000..c051ee6c1130
 --- /dev/null
-+++ b/arch/arm/boot/dts/am57xx-evm.dtso
-@@ -0,0 +1,127 @@
++++ b/arch/arm/boot/dts/am571x-idk-touchscreen.dtso
+@@ -0,0 +1,32 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * DT overlay for AM57xx GP EVM boards
-+ *
-+ * Copyright (C) 2020-2022 Texas Instruments Incorporated - https://www.ti.com/
++ * Copyright (C) 2019-2022 Texas Instruments Incorporated - https://www.ti.com/
 + */
 +
 +/dts-v1/;
 +/plugin/;
 +
-+#include <dt-bindings/interrupt-controller/irq.h>
 +#include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/input/input.h>
++#include <dt-bindings/interrupt-controller/irq.h>
++
++&i2c1 {
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	touchscreen: edt-ft5506@38 {
++		compatible = "edt,edt-ft5506", "edt,edt-ft5x06";
++
++		reg = <0x38>;
++
++		interrupt-parent = <&gpio5>;
++		interrupts = <6 IRQ_TYPE_EDGE_FALLING>;
++
++		/* GPIO line is inverted before going to touch panel */
++		reset-gpios = <&gpio6 15 GPIO_ACTIVE_LOW>;
++
++		touchscreen-size-x = <1920>;
++		touchscreen-size-y = <1200>;
++
++		wakeup-source;
++	};
++};
+diff --git a/arch/arm/boot/dts/am572x-idk-touchscreen.dtso b/arch/arm/boot/dts/am572x-idk-touchscreen.dtso
+new file mode 100644
+index 000000000000..573e932b1239
+--- /dev/null
++++ b/arch/arm/boot/dts/am572x-idk-touchscreen.dtso
+@@ -0,0 +1,32 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2019-2022 Texas Instruments Incorporated - https://www.ti.com/
++ */
++
++/dts-v1/;
++/plugin/;
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/interrupt-controller/irq.h>
++
++&i2c1 {
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	touchscreen: edt-ft5506@38 {
++		compatible = "edt,edt-ft5506", "edt,edt-ft5x06";
++
++		reg = <0x38>;
++
++		interrupt-parent = <&gpio3>;
++		interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
++
++		/* GPIO line is inverted before going to touch panel */
++		reset-gpios = <&gpio6 15 GPIO_ACTIVE_LOW>;
++
++		touchscreen-size-x = <1920>;
++		touchscreen-size-y = <1200>;
++
++		wakeup-source;
++	};
++};
+diff --git a/arch/arm/boot/dts/am57xx-idk-lcd-osd101t2045.dtso b/arch/arm/boot/dts/am57xx-idk-lcd-osd101t2045.dtso
+new file mode 100644
+index 000000000000..25d74e9f3c9e
+--- /dev/null
++++ b/arch/arm/boot/dts/am57xx-idk-lcd-osd101t2045.dtso
+@@ -0,0 +1,63 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2019-2022 Texas Instruments Incorporated - https://www.ti.com/
++ */
++
++/dts-v1/;
++/plugin/;
 +
 +&{/} {
-+	compatible = "ti,am5728-evm", "ti,am572x-beagle-x15", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
-+	model = "TI AM5728 EVM";
-+
 +	aliases {
 +		display0 = "/display";
-+		display1 = "/connector"; // Fixme: &lcd0 and &hdmi0 could be
-+					 // resolved here correcly based on
-+					 // information in the base dtb symbol
-+					 // table with a fix in dtc
-+	};
-+
-+	gpio-keys {
-+		compatible = "gpio-keys";
-+
-+		button-user1 {
-+			gpios = <&gpio2 23 GPIO_ACTIVE_LOW>;
-+			label = "USER1";
-+			linux,code = <BTN_1>;
-+		};
-+
-+		button-user2 {
-+			gpios = <&gpio2 25 GPIO_ACTIVE_LOW>;
-+			label = "USER2";
-+			linux,code = <BTN_2>;
-+		};
-+
-+		button-user3 {
-+			gpios = <&gpio2 28 GPIO_ACTIVE_LOW>;
-+			label = "USER3";
-+			linux,code = <BTN_3>;
-+		};
-+
-+		button-user4 {
-+			gpios = <&gpio2 24 GPIO_ACTIVE_LOW>;
-+			label = "USER4";
-+			linux,code = <BTN_4>;
-+		};
-+
-+		button-user5 {
-+			gpios = <&gpio2 20 GPIO_ACTIVE_LOW>;
-+			label = "USER5";
-+			linux,code = <BTN_5>;
-+		};
-+	};
-+
-+	lcd0: display {
-+		compatible = "osddisplays,osd070t1718-19ts", "panel-dpi";
-+		backlight = <&lcd_bl>;
-+		enable-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
-+		label = "lcd";
-+
-+		port {
-+			lcd_in: endpoint {
-+				remote-endpoint = <&dpi_out>;
-+			};
-+		};
++		display1 = "/connector";
 +	};
 +
 +	lcd_bl: backlight {
 +		compatible = "pwm-backlight";
-+		brightness-levels = <0 243 245 247 249 251 252 253 255>;
++		pwms = <&ecap0 0 50000 1>;
++		brightness-levels = <0 51 53 56 62 75 101 152 255>;
 +		default-brightness-level = <8>;
-+		pwms = <&ehrpwm1 0 50000 0>;
 +	};
 +};
 +
-+&ehrpwm1 {
++&dsi_bridge {
 +	status = "okay";
-+};
-+
-+&epwmss1 {
-+	status = "okay";
-+};
-+
-+&i2c5 {
-+	status = "okay";
-+	clock-frequency = <400000>;
 +
 +	#address-cells = <1>;
 +	#size-cells = <0>;
 +
-+	touchscreen@5c {
-+		compatible = "pixcir,pixcir_tangoc";
-+		attb-gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
-+		interrupt-parent = <&gpio2>;
-+		interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
-+		reg = <0x5c>;
-+		reset-gpio = <&gpio2 6 GPIO_ACTIVE_HIGH>;
-+		touchscreen-size-x = <1024>;
-+		touchscreen-size-y = <600>;
-+	};
-+};
++	lcd: display {
++		compatible = "osddisplays,osd101t2045-53ts";
++		reg = <0>;
 +
-+&uart8 {
-+	status = "okay";
-+};
++		label = "lcd";
 +
-+&dss {
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
++		backlight = <&lcd_bl>;
 +
-+		port@0 {
-+			reg = <0>;
-+
-+			dpi_out: endpoint {
-+				data-lines = <24>;
-+				remote-endpoint = <&lcd_in>;
++		port {
++			lcd_in: endpoint {
++				remote-endpoint = <&dsi_out>;
 +			};
 +		};
 +	};
++};
++
++&dsi_bridge_ports {
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	port@1 {
++		reg = <1>;
++		dsi_out: endpoint {
++			remote-endpoint = <&lcd_in>;
++		};
++	};
++};
++
++&epwmss0 {
++	status = "okay";
++};
++
++&ecap0 {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am57xx-idk-lcd-osd101t2587.dtso b/arch/arm/boot/dts/am57xx-idk-lcd-osd101t2587.dtso
+new file mode 100644
+index 000000000000..8cea7ba32487
+--- /dev/null
++++ b/arch/arm/boot/dts/am57xx-idk-lcd-osd101t2587.dtso
+@@ -0,0 +1,66 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2019-2022 Texas Instruments Incorporated - https://www.ti.com/
++ */
++
++/dts-v1/;
++/plugin/;
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/interrupt-controller/irq.h>
++
++&{/} {
++	aliases {
++		display0 = "/display";
++		display1 = "/connector";
++	};
++
++	lcd_bl: backlight {
++		compatible = "pwm-backlight";
++		pwms = <&ecap0 0 50000 1>;
++		brightness-levels = <0 51 53 56 62 75 101 152 255>;
++		default-brightness-level = <8>;
++	};
++};
++
++&dsi_bridge {
++	status = "okay";
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	lcd: display {
++		compatible = "osddisplays,osd101t2587-53ts";
++		reg = <0>;
++
++		label = "lcd";
++
++		backlight = <&lcd_bl>;
++
++		port {
++			lcd_in: endpoint {
++				remote-endpoint = <&dsi_out>;
++			};
++		};
++	};
++};
++
++&dsi_bridge_ports {
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	port@1 {
++		reg = <1>;
++		dsi_out: endpoint {
++			remote-endpoint = <&lcd_in>;
++		};
++	};
++};
++
++&epwmss0 {
++	status = "okay";
++};
++
++&ecap0 {
++	status = "okay";
 +};
 -- 
 2.38.1
