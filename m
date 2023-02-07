@@ -2,119 +2,206 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B09C5C636CC
-	for <linux-omap@archiver.kernel.org>; Tue,  7 Feb 2023 10:14:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55AFDC64EC6
+	for <linux-omap@archiver.kernel.org>; Tue,  7 Feb 2023 14:29:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230501AbjBGKOQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 7 Feb 2023 05:14:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45482 "EHLO
+        id S231727AbjBGO3b (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 7 Feb 2023 09:29:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231518AbjBGKOJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 7 Feb 2023 05:14:09 -0500
-X-Greylist: delayed 452 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 07 Feb 2023 02:14:07 PST
-Received: from st43p00im-zteg10063501.me.com (st43p00im-zteg10063501.me.com [17.58.63.176])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D73A6C17D
-        for <linux-omap@vger.kernel.org>; Tue,  7 Feb 2023 02:14:07 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
-        s=1a1hai; t=1675764394;
-        bh=uy/u/jBsLuDEhP7DZbXSmCIaVmd50OFJVFk6lVxCMTQ=;
-        h=From:To:Subject:Date:Message-Id:MIME-Version;
-        b=WE5GgMq/MzwH3oRueLocrSeoZKe//cptxsnNPSY1ZBvNgM05+hC8sEMOsNN5hBhzZ
-         C9i09bsvt7WkMCX0sjEZXoBP/Q6oG1v/9+ypNeEbIdjctQDhAIWH35s9pIcBtTbLkm
-         VhbMC5+z6c7FCo+wkYEReLGEbhrTFeIgrPVSS1hoIhDVmWQ6iZU7nNuxanUVep+sYn
-         Cwdn2HNfqRJKLV9vX79byWHAEuhdofpGC4UqjujvfUodn2d94kMJNWlzpStXiy/jk9
-         MWUqibOgw4NF+4jMyHdWnAXKbSphTdorNV5Wr3brrkUQJVta4TKuLuVBh0KdosMKDa
-         zBY/KIbGporHw==
-Received: from apollo.fritz.box (st43p00im-dlb-asmtp-mailmevip.me.com [17.42.251.41])
-        by st43p00im-zteg10063501.me.com (Postfix) with ESMTPSA id 308374C17A5;
-        Tue,  7 Feb 2023 10:06:33 +0000 (UTC)
-From:   Lucy Mielke <mielkesteven@icloud.com>
-To:     deller@gmx.de, linux-fbdev@vger.kernel.org,
-        linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc:     linux-kernel@vger.kernel.org, arnd@arndb.de
-Subject: [PATCH] fbdev: omapfb: cleanup inconsistent indentation
-Date:   Tue,  7 Feb 2023 11:06:30 +0100
-Message-Id: <20230207100630.11644-1-mielkesteven@icloud.com>
+        with ESMTP id S232154AbjBGO33 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 7 Feb 2023 09:29:29 -0500
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 693F3190;
+        Tue,  7 Feb 2023 06:29:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1675780168; x=1707316168;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=slc0KZtNoZ1bsJm/e5gBRrLuxfQ5uLgrlphY9y9ttTg=;
+  b=lpiMw+Bj0CmC8rQDkHxuRJRcqbqGh5mJ1leqs4iGwudehS+pojE39vvU
+   6ccy9coHWxN94L3+2Y4tRFFTOScYKWknUgvwm7t8LM2YbtQx2gd2qqQeQ
+   z+/ePK5laZ7hfRnru1ZbEYlq5ko8KlFQoSnq3XpHWyqfwaVPoJAR6gmIh
+   bRIW5cOl7/0k6e4G5SM0YdkQw0EQaz9MXmaT0tMISgBCQVt3xIXqLc/Nj
+   OwahdjmUl6Tf+gi+7pmOlu0SHgVrAJ7iNg1NoScMS06EhxUx3G4RxOAh9
+   6WsVz1p7c9WYZnMSHQ39ynhAZF1AfcL5Rxrkj3ooUBue/uvog+2hqDPcn
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10614"; a="329537327"
+X-IronPort-AV: E=Sophos;i="5.97,278,1669104000"; 
+   d="scan'208";a="329537327"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2023 06:29:27 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10614"; a="790811308"
+X-IronPort-AV: E=Sophos;i="5.97,278,1669104000"; 
+   d="scan'208";a="790811308"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga004.jf.intel.com with ESMTP; 07 Feb 2023 06:29:22 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+        id 95C3D1C5; Tue,  7 Feb 2023 16:30:00 +0200 (EET)
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Devarsh Thakkar <devarsht@ti.com>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Stefan Schmidt <stefan@datenfreihafen.org>,
+        Miquel Raynal <miquel.raynal@bootlin.com>,
+        linux-gpio@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        linux-doc-tw-discuss@lists.sourceforge.net,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-wpan@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        SHA-cyfmac-dev-list@infineon.com, linux-arch@vger.kernel.org,
+        devicetree@vger.kernel.org
+Cc:     Bartosz Golaszewski <brgl@bgdev.pl>,
+        Jonathan Corbet <corbet@lwn.net>, Alex Shi <alexs@kernel.org>,
+        Yanteng Si <siyanteng@loongson.cn>,
+        Hu Haowen <src.res@email.cn>,
+        Russell King <linux@armlinux.org.uk>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        Alim Akhtar <alim.akhtar@samsung.com>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        Mun Yew Tham <mun.yew.tham@intel.com>,
+        Keerthy <j-keerthy@ti.com>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alexander Aring <alex.aring@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Arend van Spriel <aspriel@gmail.com>,
+        Franky Lin <franky.lin@broadcom.com>,
+        Hante Meuleman <hante.meuleman@broadcom.com>,
+        Kalle Valo <kvalo@kernel.org>, Qiang Zhao <qiang.zhao@nxp.com>,
+        Li Yang <leoyang.li@nxp.com>, Lee Jones <lee@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+Subject: [PATCH v3 00/12] gpiolib cleanups
+Date:   Tue,  7 Feb 2023 16:29:40 +0200
+Message-Id: <20230207142952.51844-1-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.39.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-GUID: Gq_PqnEGhE0xunAGRdTHGMQPVdHOi2Vh
-X-Proofpoint-ORIG-GUID: Gq_PqnEGhE0xunAGRdTHGMQPVdHOi2Vh
-X-Proofpoint-Virus-Version: =?UTF-8?Q?vendor=3Dfsecure_engine=3D1.1.170-22c6f66c430a71ce266a39bfe25bc?=
- =?UTF-8?Q?2903e8d5c8f:6.0.425,18.0.572,17.11.62.513.0000000_definitions?=
- =?UTF-8?Q?=3D2022-01-14=5F01:2022-01-14=5F01,2020-02-14=5F11,2021-12-02?=
- =?UTF-8?Q?=5F01_signatures=3D0?=
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 mlxscore=0 clxscore=1015
- malwarescore=0 mlxlogscore=681 phishscore=0 bulkscore=0 suspectscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2209130000 definitions=main-2302070090
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This cleans up the indentation according to the Linux kernel coding
-style, and should fix the warning created by the kernel test robot.
+These are some older patches Arnd did last year, rebased to
+linux-next-20230207. On top there are Andy's patches regarding
+similar topic.
 
-Fixes: 8b08cf2b64f5a60594b07795b2ad518c6d044566 ("OMAP: add TI OMAP
-	framebuffer driver")
+The main goal is to remove some of the legacy bits of the gpiolib
+interfaces, where the corner cases are easily avoided or replaced
+with gpio descriptor based interfaces.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Lucy Mielke <mielkesteven@icloud.com>
----
- drivers/video/fbdev/omap/omapfb_main.c | 32 +++++++++++++++-----------
- 1 file changed, 19 insertions(+), 13 deletions(-)
+Changes in v3:
+- reworked touchscreen patch in accordance with Dmitry's comments
+- rebased on the latest Linux Next
+- added on top Andy's series
 
-diff --git a/drivers/video/fbdev/omap/omapfb_main.c b/drivers/video/fbdev/omap/omapfb_main.c
-index 1f3df2055ff0..4b673daa32cb 100644
---- a/drivers/video/fbdev/omap/omapfb_main.c
-+++ b/drivers/video/fbdev/omap/omapfb_main.c
-@@ -78,7 +78,7 @@ static struct platform_device omapdss_device = {
- 	.name		= "omapdss_dss",
- 	.id		= -1,
- 	.dev            = {
--		.release = omapdss_release,
-+	.release	= omapdss_release,
- 	},
- };
- 
-@@ -544,19 +544,25 @@ static int set_fb_var(struct fb_info *fbi,
- 		var->yoffset = var->yres_virtual - var->yres;
- 
- 	if (plane->color_mode == OMAPFB_COLOR_RGB444) {
--		var->red.offset	  = 8; var->red.length	 = 4;
--						var->red.msb_right   = 0;
--		var->green.offset = 4; var->green.length = 4;
--						var->green.msb_right = 0;
--		var->blue.offset  = 0; var->blue.length  = 4;
--						var->blue.msb_right  = 0;
-+		var->red.offset		= 8; 
-+		var->red.length		= 4;
-+		var->red.msb_right	= 0;
-+		var->green.offset	= 4; 
-+		var->green.length	= 4;
-+		var->green.msb_right	= 0;
-+		var->blue.offset	= 0; 
-+		var->blue.length	= 4;
-+		var->blue.msb_right	= 0;
- 	} else {
--		var->red.offset	 = 11; var->red.length	 = 5;
--						var->red.msb_right   = 0;
--		var->green.offset = 5;  var->green.length = 6;
--						var->green.msb_right = 0;
--		var->blue.offset = 0;  var->blue.length  = 5;
--						var->blue.msb_right  = 0;
-+		var->red.offset		= 11; 
-+		var->red.length		= 5;
-+		var->red.msb_right	= 0;
-+		var->green.offset	= 5;  
-+		var->green.length	= 6;
-+		var->green.msb_right	= 0;
-+		var->blue.offset	= 0;
-+		var->blue.length	= 5;
-+		var->blue.msb_right	= 0;
- 	}
- 
- 	var->height		= -1;
+Changes in v2:
+- dropped patch 8 after Andy's identical patch was merged
+- rebase on latest gpio tree
+- leave unused gpio_cansleep() in place for now
+- address feedback from Andy Shevchenko
+
+Andy Shevchenko (5):
+  gpio: aggregator: Add missing header(s)
+  gpiolib: Drop unused forward declaration from driver.h
+  gpiolib: Deduplicate forward declarations in consumer.h
+  gpiolib: Group forward declarations in consumer.h
+  gpiolib: Clean up headers
+
+Arnd Bergmann (7):
+  gpiolib: remove empty asm/gpio.h files
+  gpiolib: coldfire: remove custom asm/gpio.h
+  gpiolib: remove asm-generic/gpio.h
+  gpiolib: remove gpio_set_debounce
+  gpiolib: remove legacy gpio_export
+  gpiolib: split linux/gpio/driver.h out of linux/gpio.h
+  gpiolib: split of_mm_gpio_chip out of linux/of_gpio.h
+
+ Documentation/admin-guide/gpio/sysfs.rst      |   2 +-
+ Documentation/driver-api/gpio/legacy.rst      |  23 ---
+ .../zh_CN/driver-api/gpio/legacy.rst          |  20 ---
+ Documentation/translations/zh_TW/gpio.txt     |  19 ---
+ MAINTAINERS                                   |   1 -
+ arch/arm/Kconfig                              |   1 -
+ arch/arm/include/asm/gpio.h                   |  21 ---
+ arch/arm/mach-omap1/irq.c                     |   1 +
+ arch/arm/mach-omap2/pdata-quirks.c            |   9 +-
+ arch/arm/mach-orion5x/board-rd88f5182.c       |   1 +
+ arch/arm/mach-s3c/s3c64xx.c                   |   1 +
+ arch/arm/mach-sa1100/assabet.c                |   1 +
+ arch/arm/plat-orion/gpio.c                    |   1 +
+ arch/m68k/Kconfig.cpu                         |   1 -
+ arch/m68k/include/asm/gpio.h                  |  95 -----------
+ arch/m68k/include/asm/mcfgpio.h               |   2 +-
+ arch/powerpc/platforms/44x/Kconfig            |   1 +
+ arch/powerpc/platforms/4xx/gpio.c             |   2 +-
+ arch/powerpc/platforms/8xx/Kconfig            |   1 +
+ arch/powerpc/platforms/8xx/cpm1.c             |   2 +-
+ arch/powerpc/platforms/Kconfig                |   2 +
+ arch/powerpc/sysdev/cpm_common.c              |   2 +-
+ arch/sh/Kconfig                               |   1 -
+ arch/sh/boards/board-magicpanelr2.c           |   1 +
+ arch/sh/boards/mach-ap325rxa/setup.c          |   7 +-
+ arch/sh/include/asm/gpio.h                    |  45 ------
+ drivers/gpio/Kconfig                          |  19 ++-
+ drivers/gpio/TODO                             |  15 +-
+ drivers/gpio/gpio-aggregator.c                |   9 +-
+ drivers/gpio/gpio-altera.c                    |   2 +-
+ drivers/gpio/gpio-davinci.c                   |   2 -
+ drivers/gpio/gpio-mm-lantiq.c                 |   2 +-
+ drivers/gpio/gpio-mpc5200.c                   |   2 +-
+ drivers/gpio/gpiolib-acpi.c                   |  10 +-
+ drivers/gpio/gpiolib-acpi.h                   |   1 -
+ drivers/gpio/gpiolib-of.c                     |   9 +-
+ drivers/gpio/gpiolib-of.h                     |   1 -
+ drivers/gpio/gpiolib-swnode.c                 |   5 +-
+ drivers/gpio/gpiolib-sysfs.c                  |  25 ++-
+ drivers/gpio/gpiolib.c                        |   9 +-
+ drivers/input/touchscreen/ads7846.c           |  24 +--
+ drivers/media/pci/sta2x11/sta2x11_vip.c       |  10 +-
+ drivers/net/ieee802154/ca8210.c               |   3 +-
+ .../broadcom/brcm80211/brcmsmac/led.c         |   1 +
+ drivers/pinctrl/core.c                        |   1 -
+ drivers/soc/fsl/qe/gpio.c                     |   2 +-
+ include/asm-generic/gpio.h                    | 147 ------------------
+ include/linux/gpio.h                          | 100 +++++++-----
+ include/linux/gpio/consumer.h                 |  24 +--
+ include/linux/gpio/driver.h                   |  31 +++-
+ .../legacy-of-mm-gpiochip.h}                  |  33 +---
+ include/linux/mfd/ucb1x00.h                   |   1 +
+ include/linux/of_gpio.h                       |  21 ---
+ 53 files changed, 223 insertions(+), 549 deletions(-)
+ delete mode 100644 arch/arm/include/asm/gpio.h
+ delete mode 100644 arch/m68k/include/asm/gpio.h
+ delete mode 100644 arch/sh/include/asm/gpio.h
+ delete mode 100644 include/asm-generic/gpio.h
+ copy include/linux/{of_gpio.h => gpio/legacy-of-mm-gpiochip.h} (50%)
+
 -- 
 2.39.1
 
