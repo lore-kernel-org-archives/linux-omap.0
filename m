@@ -2,129 +2,81 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6BDBC05027
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Feb 2023 12:56:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB2D0C05027
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Feb 2023 13:12:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230434AbjBHM4h (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Feb 2023 07:56:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48066 "EHLO
+        id S231327AbjBHNMR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Feb 2023 08:12:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229630AbjBHM4h (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2023 07:56:37 -0500
-Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FA5630EB6;
-        Wed,  8 Feb 2023 04:56:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-        s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
-        Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-        Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
-        bh=5oTXr0EPcDd/e3wIuQRZ5u10MSlrlS9A+107BrjVmHs=; b=lZXrR+cpLuZWFm1TV1kwOBAI8X
-        3orKSsD9snMKmhpFBtZ2MknaMyc6+SXMyBUch2d47V7zsB7267Y3jphpG0NH5u1HSgxXsgUtg7JXd
-        sKM1ffrc3/sDrSfUlDxW/5wVK3gKYtCgGo/8QX7RMPNu2WwRBAbx058NOymLLOcQIlF8=;
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
-        (envelope-from <andrew@lunn.ch>)
-        id 1pPjzn-004Oze-F9; Wed, 08 Feb 2023 13:56:19 +0100
-Date:   Wed, 8 Feb 2023 13:56:19 +0100
-From:   Andrew Lunn <andrew@lunn.ch>
-To:     Md Danish Anwar <a0501179@ti.com>
-Cc:     Roger Quadros <rogerq@kernel.org>,
-        MD Danish Anwar <danishanwar@ti.com>,
-        "Andrew F. Davis" <afd@ti.com>, Suman Anna <s-anna@ti.com>,
-        YueHaibing <yuehaibing@huawei.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        "David S. Miller" <davem@davemloft.net>, nm@ti.com,
-        ssantosh@kernel.org, srk@ti.com, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, netdev@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [EXTERNAL] Re: [EXTERNAL] Re: [PATCH v4 2/2] net: ti:
- icssg-prueth: Add ICSSG ethernet driver
-Message-ID: <Y+Ob8++GWciL127K@lunn.ch>
-References: <20230206060708.3574472-1-danishanwar@ti.com>
- <20230206060708.3574472-3-danishanwar@ti.com>
- <Y+ELeSQX+GWS5N2p@lunn.ch>
- <42503a0d-b434-bbcc-553d-a326af5b4918@ti.com>
- <e8158969-08d0-1edc-24be-8c300a71adbd@kernel.org>
- <4438fb71-7e20-6532-a858-b688bc64e826@ti.com>
+        with ESMTP id S229965AbjBHNMQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2023 08:12:16 -0500
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDDFE460AF;
+        Wed,  8 Feb 2023 05:12:14 -0800 (PST)
+Received: from [192.168.1.100] (2-237-20-237.ip236.fastwebnet.it [2.237.20.237])
+        (using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        (Authenticated sender: kholk11)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id 670BB660209D;
+        Wed,  8 Feb 2023 13:12:12 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
+        s=mail; t=1675861933;
+        bh=UOCZJc3cdFQz7WthuBqxrwG8dtBB60ZKl7NVR8Pqvfo=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=kyU+9mQdEod0ItgZqYe2WGyoUkGROJ+uKVETSfQgPaNxgTuPD9jNVuf+b/4DU+Xbg
+         isKqJj80vNFveMnyV74RA48dg2zUazykij7yww34rdUwhpTwvuboAzhVdUEaPHa8HM
+         K+se12Gcx4BL5Pebq6kHLh+hBvacCeGvLfnfXZ4hNEk442X/gFWBeLK+nw8Re/PliP
+         /ncMNzw7q9IlUQrFaWIYlrg+3lp8d54W8XbwIDI+ZEo8myUvxDTcIqq8Tt9n0OrcG7
+         1sXaFrD0dy1RHdbgcj8M6bGGAwUJYRhXg9WYCkxSkEKF21c9o/xxxh42ON70sHnkVe
+         9kO9odKEySRkQ==
+Message-ID: <3b421ab5-9b97-4f50-f65e-471a6d09f568@collabora.com>
+Date:   Wed, 8 Feb 2023 14:12:09 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4438fb71-7e20-6532-a858-b688bc64e826@ti.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.1
+Subject: Re: [PATCH] cpufreq: Make cpufreq_unregister_driver() return void
+Content-Language: en-US
+To:     =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        iresh Kumar <viresh.kumar@linaro.org>
+Cc:     Markus Mayer <mmayer@broadcom.com>,
+        Broadcom internal kernel review list 
+        <bcm-kernel-feedback-list@broadcom.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Konrad Dybcio <konrad.dybcio@linaro.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, kernel@pengutronix.de
+References: <20230207195909.474953-1-u.kleine-koenig@pengutronix.de>
+From:   AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>
+In-Reply-To: <20230207195909.474953-1-u.kleine-koenig@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-> >>>> +static int prueth_config_rgmiidelay(struct prueth *prueth,
-> >>>> +				    struct device_node *eth_np,
-> >>>> +				    phy_interface_t phy_if)
-> >>>> +{
-> >>>
-> >>> ...
-> >>>
-> >>>> +	if (phy_if == PHY_INTERFACE_MODE_RGMII_ID ||
-> >>>> +	    phy_if == PHY_INTERFACE_MODE_RGMII_TXID)
-> >>>> +		rgmii_tx_id |= ICSSG_CTRL_RGMII_ID_MODE;
-> >>>> +
-> >>>> +	regmap_update_bits(ctrl_mmr, icssgctrl_reg, ICSSG_CTRL_RGMII_ID_MODE, rgmii_tx_id);
-> > 
-> > This is only applicable to some devices so you need to restrict this only
-> > to those devices.
-> > 
+Il 07/02/23 20:59, Uwe Kleine-König ha scritto:
+> All but a few drivers ignore the return value of
+> cpufreq_unregister_driver(). Those few that don't only call it after
+> cpufreq_register_driver() succeeded, in which case the call doesn't
+> fail.
 > 
-> Currently ICSSG driver is getting upstreamed for AM65 SR2.0 device, so I don't
-> think there is any need for any device related restriction. Once support for
-> other devices are enabled for upstream, we can modify this accordingly.
-
-The problem is, this is a board property, not a SoC property. What if
-somebody designs a board with extra long clock lines in order to add
-the delay?
-
-> I checked the latest Technical Reference Manual [1] (Section 5.1.3.4.49, Table
-> 5-624) for AM65 Silicon Revision 2.0.
+> Make the function return no value and add a WARN_ON for the case that
+> the function is called in an invalid situation (i.e. without a previous
+> successful call to cpufreq_register_driver()).
 > 
-> Below is the description in Table 5-624
-> 
-> BIT	    : 24
-> Field	    : RGMII0_ID_MODE
-> Type	    : R/W
-> Reset	    : 0h
-> Description : Controls the PRU_ICSSG0 RGMII0 port internal transmit delay
-> 	      0h - Internal transmit delay is enabled
-> 	      1h - Reserved
-> 
-> The TX internal delay is always enabled and couldn't be disabled as 1h is
-> reserved. So hardware support for disabling TX internal delay is not there.
+> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 
-So if somebody passes a phy-mode which requires it disabled, you need
-to return -EINVAL, to indicate the hardware cannot actually do it.
+For MTK and generic part:
 
-> As, TX internal delay is always there, there is no need to enable it in MAC or
-> PHY. So no need of API prueth_config_rgmiidelay().
-> 
-> My approach to handle delay would be as below.
-> 
-> *) Keep phy-mode = "rgmii-id" in DT as asked by Andrew.
+Reviewed-by: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
 
-As i said this depends on the board, not the SoC. In theory, you could
-design a board with an extra long RX clock line, and then use phy-mode
-rgmii-txid, meaning the MAC/PHY combination needs to add the TX delay.
 
-> *) Let TX internal delay enabled in Hardware.
-> *) Let PHY configure RX internal delay.
-> *) Remove prueth_config_rgmiidelay() API is there is no use of this. TX
-> Internal delay is always enabled.
-> *) Instead of calling prueth_config_rgmiidelay() API in prueth_netdev_init()
-> API, add below if condition.
-> 
-> 	if(emac->phy_if == PHY_INTERFACE_MODE_RGMII_ID)
-> 		emac->phy_if == PHY_INTERFACE_MODE_RGMII_RXID
-
-You should handle all cases where a TX delay is requested, not just
-ID.
-
-	Andrew
