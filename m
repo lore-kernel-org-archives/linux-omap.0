@@ -2,81 +2,122 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB2D0C05027
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Feb 2023 13:12:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB2B3C64EC5
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Feb 2023 14:52:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231327AbjBHNMR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Feb 2023 08:12:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56418 "EHLO
+        id S231594AbjBHOwA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Feb 2023 09:52:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229965AbjBHNMQ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2023 08:12:16 -0500
-Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDDFE460AF;
-        Wed,  8 Feb 2023 05:12:14 -0800 (PST)
-Received: from [192.168.1.100] (2-237-20-237.ip236.fastwebnet.it [2.237.20.237])
-        (using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        (Authenticated sender: kholk11)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id 670BB660209D;
-        Wed,  8 Feb 2023 13:12:12 +0000 (GMT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1675861933;
-        bh=UOCZJc3cdFQz7WthuBqxrwG8dtBB60ZKl7NVR8Pqvfo=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=kyU+9mQdEod0ItgZqYe2WGyoUkGROJ+uKVETSfQgPaNxgTuPD9jNVuf+b/4DU+Xbg
-         isKqJj80vNFveMnyV74RA48dg2zUazykij7yww34rdUwhpTwvuboAzhVdUEaPHa8HM
-         K+se12Gcx4BL5Pebq6kHLh+hBvacCeGvLfnfXZ4hNEk442X/gFWBeLK+nw8Re/PliP
-         /ncMNzw7q9IlUQrFaWIYlrg+3lp8d54W8XbwIDI+ZEo8myUvxDTcIqq8Tt9n0OrcG7
-         1sXaFrD0dy1RHdbgcj8M6bGGAwUJYRhXg9WYCkxSkEKF21c9o/xxxh42ON70sHnkVe
-         9kO9odKEySRkQ==
-Message-ID: <3b421ab5-9b97-4f50-f65e-471a6d09f568@collabora.com>
-Date:   Wed, 8 Feb 2023 14:12:09 +0100
+        with ESMTP id S231256AbjBHOvx (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2023 09:51:53 -0500
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F345C15B;
+        Wed,  8 Feb 2023 06:51:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1675867913; x=1707403913;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=3P68b0TVOlpRiURRNLVvw64Yo8IjZVFB+vqzhU4qIC8=;
+  b=N4m5Epe6+urLldVT+ALcBfv7cRHHaaacs8NI6i86a+/bMg7up1jRQul3
+   K2cXc9lMW+EVI7gkHMN61O28/BPPihQ+YbJgorsIhnSvftSYEVyRGkTfC
+   ZCix5FuXDdTfOSIHY5zTGRSuFjnR2TX4Vs5YCran3+jezZ8FTp7t4rYKZ
+   6icmnw5U8T8SVX3MHd8g1iPkGC8Wj0VXJlpSy+Xa5KAOUw8qCEuswgy9k
+   wrzatSM7BmFrjHXRGa784JlNOErghFYOjQ2SdnyyhN+QNMlBGc0NG1WgY
+   cRm7XE/vO320D5kl4GsxEcmF06ICIIT+o0t2yeXOac4WWy+cbdT7IJDdY
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10615"; a="313454189"
+X-IronPort-AV: E=Sophos;i="5.97,281,1669104000"; 
+   d="scan'208";a="313454189"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Feb 2023 06:51:51 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10615"; a="841199018"
+X-IronPort-AV: E=Sophos;i="5.97,281,1669104000"; 
+   d="scan'208";a="841199018"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga005.jf.intel.com with ESMTP; 08 Feb 2023 06:51:44 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1pPlnR-004ANT-0z;
+        Wed, 08 Feb 2023 16:51:41 +0200
+Date:   Wed, 8 Feb 2023 16:51:41 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Linus Walleij <linus.walleij@linaro.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Stefan Schmidt <stefan@datenfreihafen.org>,
+        Miquel Raynal <miquel.raynal@bootlin.com>,
+        linux-gpio@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        linux-doc-tw-discuss@lists.sourceforge.net,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
+        linux-acpi@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-wpan@vger.kernel.org,
+        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        SHA-cyfmac-dev-list@infineon.com, linux-arch@vger.kernel.org,
+        devicetree@vger.kernel.org, Bartosz Golaszewski <brgl@bgdev.pl>
+Subject: Re: [PATCH v3 06/12] gpiolib: split linux/gpio/driver.h out of
+ linux/gpio.h
+Message-ID: <Y+O2/dVDcvnXByc+@smile.fi.intel.com>
+References: <20230207142952.51844-1-andriy.shevchenko@linux.intel.com>
+ <20230207142952.51844-7-andriy.shevchenko@linux.intel.com>
+ <CACRpkdaPgjDijPjCdinWy5_Rd8g3idv-8K=YPTv5iTfJKFuJfw@mail.gmail.com>
+ <Y+LWyc4rqCVq5hEi@smile.fi.intel.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.6.1
-Subject: Re: [PATCH] cpufreq: Make cpufreq_unregister_driver() return void
-Content-Language: en-US
-To:     =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        iresh Kumar <viresh.kumar@linaro.org>
-Cc:     Markus Mayer <mmayer@broadcom.com>,
-        Broadcom internal kernel review list 
-        <bcm-kernel-feedback-list@broadcom.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Kevin Hilman <khilman@kernel.org>,
-        Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        Konrad Dybcio <konrad.dybcio@linaro.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, kernel@pengutronix.de
-References: <20230207195909.474953-1-u.kleine-koenig@pengutronix.de>
-From:   AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>
-In-Reply-To: <20230207195909.474953-1-u.kleine-koenig@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y+LWyc4rqCVq5hEi@smile.fi.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Il 07/02/23 20:59, Uwe Kleine-König ha scritto:
-> All but a few drivers ignore the return value of
-> cpufreq_unregister_driver(). Those few that don't only call it after
-> cpufreq_register_driver() succeeded, in which case the call doesn't
-> fail.
+On Wed, Feb 08, 2023 at 12:55:06AM +0200, Andy Shevchenko wrote:
+> On Tue, Feb 07, 2023 at 03:55:23PM +0100, Linus Walleij wrote:
+> > On Tue, Feb 7, 2023 at 3:29 PM Andy Shevchenko
+> > <andriy.shevchenko@linux.intel.com> wrote:
+> > 
+> > > From: Arnd Bergmann <arnd@arndb.de>
+> > >
+> > > Almost all gpio drivers include linux/gpio/driver.h, and other
+> > > files should not rely on includes from this header.
+> > >
+> > > Remove the indirect include from here and include the correct
+> > > headers directly from where they are used.
 > 
-> Make the function return no value and add a WARN_ON for the case that
-> the function is called in an invalid situation (i.e. without a previous
-> successful call to cpufreq_register_driver()).
+> ...
 > 
-> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+> > Make sure you push this to the kernel.org build servers (zeroday builds),
+> 
+> Of course, that is the purpose of publishing this before the release (so we
+> will have some TODO list that eventually this can be applied for v6.4-rc1).
+> 
+> > I think this patch needs to hit some more files, in my tests with a similar
+> > patch at least these:
+> 
+> Right. I forgot to also incorporate your stuff into this series.
+> Do you have anything that I can take as is?
 
-For MTK and generic part:
+I'm going to incorporate the following:
 
-Reviewed-by: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+	gpio: Make the legacy <linux/gpio.h> consumer-only
+	ARM: s3c24xx: Use the right include
+	ARM: orion/gpio: Use the right include
+	hte: tegra-194: Use proper includes
+	pcmcia: pxa2xx_viper: Include dependency
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
