@@ -2,44 +2,44 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3956C6379F
-	for <linux-omap@archiver.kernel.org>; Tue, 14 Feb 2023 13:23:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65A8FC61DA4
+	for <linux-omap@archiver.kernel.org>; Tue, 14 Feb 2023 13:23:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231905AbjBNNXj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 14 Feb 2023 08:23:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34602 "EHLO
+        id S232684AbjBNNXl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 14 Feb 2023 08:23:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232387AbjBNNXi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2023 08:23:38 -0500
+        with ESMTP id S232586AbjBNNXk (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2023 08:23:40 -0500
 Received: from mickerik.phytec.de (mickerik.phytec.de [91.26.50.163])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B96A3C32
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2023 05:23:37 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17CE53C32
+        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2023 05:23:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; d=phytec.de; s=a4; c=relaxed/simple;
-        q=dns/txt; i=@phytec.de; t=1676381001; x=1678973001;
+        q=dns/txt; i=@phytec.de; t=1676381002; x=1678973002;
         h=From:Sender:Reply-To:Subject:Date:Message-ID:To:CC:MIME-Version:Content-Type:
         Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
         List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=Z72v9l6jvwkfJKFAyRbI/kXtM353TiJxZfuvGN/dUOw=;
-        b=i9Cbgck/q0JYAz7vfrIJXgAncsJzn5h2QRfdrY7QwAQgysALlySnuki9/PVf65w0
-        sL6K5uL8Yno0wOR5eB0y2EnT1rNUljQVEJrq1oWP3ITHSUsKtLMQDkpbaSzxxgnp
-        mJWcoQ5bjIuV9FWxGxQLXOVaTlwk0f5bovhqX8obdBk=;
-X-AuditID: ac14000a-923ff70000007ecb-ec-63eb8b491179
+        bh=8xy/K+4z50iTJ0iawcWRl+mC77/bLmBwoTEX0QSeD4Y=;
+        b=XTtV0or7IREHc4d7JErr5TBd9STvfgxNDPRWonBOMxPXkhYV5xuzHbREpidPHtIO
+        Ora+jYeS9aRc12o/jRsonOF/fznSzdbGAOYHiEtsQWm8j59yW/fey8mtkosyW2+u
+        TYw14NA4T2HzM7Q/q3LhH/9RbyM77vhhosFuqjxJ9dk=;
+X-AuditID: ac14000a-917fe70000007ecb-ef-63eb8b4ac19e
 Received: from florix.phytec.de (Unknown_Domain [172.25.0.13])
         (using TLS with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (Client did not present a certificate)
-        by mickerik.phytec.de (PHYTEC Mail Gateway) with SMTP id 30.D9.32459.94B8BE36; Tue, 14 Feb 2023 14:23:21 +0100 (CET)
+        by mickerik.phytec.de (PHYTEC Mail Gateway) with SMTP id 31.D9.32459.A4B8BE36; Tue, 14 Feb 2023 14:23:22 +0100 (CET)
 Received: from llp-Hemer.phytec.de (172.25.0.11) by Florix.phytec.de
  (172.25.0.13) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Tue, 14 Feb
- 2023 14:23:21 +0100
+ 2023 14:23:22 +0100
 From:   Steffen Hemer <s.hemer@phytec.de>
 To:     <linux-omap@vger.kernel.org>
 CC:     <upstream@lists.phytec.de>, <krzysztof.kozlowski+dt@linaro.org>,
         <robh+dt@kernel.org>, <tony@atomide.com>, <bcousson@baylibre.com>
-Subject: [PATCH 3/8] ARM: dts: am335x-wega: Change node name of sound card, remove underscores.
-Date:   Tue, 14 Feb 2023 14:22:57 +0100
-Message-ID: <20230214132302.39087-3-s.hemer@phytec.de>
+Subject: [PATCH 6/8] ARM: dts: am335x-phycore-som: Remove underscore in node names.
+Date:   Tue, 14 Feb 2023 14:23:00 +0100
+Message-ID: <20230214132302.39087-6-s.hemer@phytec.de>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230214132302.39087-1-s.hemer@phytec.de>
 References: <20230214132302.39087-1-s.hemer@phytec.de>
@@ -49,95 +49,68 @@ Content-Type: text/plain
 X-Originating-IP: [172.25.0.11]
 X-ClientProxiedBy: Berlix.phytec.de (172.25.0.12) To Florix.phytec.de
  (172.25.0.13)
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrELMWRmVeSWpSXmKPExsWyRpKBV9ez+3WyQeMGc4s78/+yWvS9eMhs
-        MXtJP4tF694j7Bb7r3hZdL9Td2Dz+PZ1EovH+xut7B6bVnWyedy5tofNo7+7hdXj8ya5ALYo
-        LpuU1JzMstQifbsEroy39xoYC3pEK5qurWFpYDwv2MXIySEhYCLR9qKdpYuRi0NIYDGTxIO2
-        D1DOY0aJx/N+MIFUsQmoS8zf+50dxBYRUJA4cqSJFaSIWaCDUaJ5ZjdYQlggXuLi111sIDaL
-        gKrEsznfWEBsXgEziVMvOtkg1slL7D94lhnE5hQwl1g+4Q1YXAiopv3wHah6QYmTM5+A2cxA
-        9c1bZzND2BISB1+8YIaol5OYc+ojM8zMaedeQ9mhEp1/7rNMYBSahWTULCSjZiEZtYCReRWj
-        UG5mcnZqUWa2XkFGZUlqsl5K6iZGUDyIMHDtYOyb43GIkYmD8RCjBAezkgiv8NMXyUK8KYmV
-        ValF+fFFpTmpxYcYpTlYlMR57/cwJQoJpCeWpGanphakFsFkmTg4pRoYS/wZt/ifu9nxXeav
-        OEd4G9/F5l/OPO2O6ww3xiwy3fd56dnZbL/X6i2J6e9UffLh6FXNE0WyjQrhU6o6Tqx2rrlZ
-        pTur/8+ho8ee8D9eJ3ZEJO5JZ/harU672vxn8/xDogtifgW1HNtl9XGFce0unbTL+Wu+GfSX
-        XZr0Puf0z1/+3nM/mjDcUmIpzkg01GIuKk4EAGB1mNN1AgAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrALMWRmVeSWpSXmKPExsWyRpKBV9er+3Wywfl1QhZ35v9lteh78ZDZ
+        YvaSfhaL1r1H2C32X/Gy6H6n7sDm8e3rJBaP9zda2T02repk87hzbQ+bR393C6vH501yAWxR
+        XDYpqTmZZalF+nYJXBlPGvvZCq7yVqx+cpilgXE/dxcjJ4eEgIlE34FLjF2MXBxCAouZJFYd
+        +csMkhASeMwosfG6KIjNJqAuMX/vd3YQW0RAQeLIkSZWkAZmgQ5GieaZ3WAJYYFgiYVzTwPZ
+        HBwsAqoS9zckg4R5BcwkWhZ+YYFYJi+x/+BZsPmcAuYSyye8YYPYZSbRfvgOC0S9oMTJmU/A
+        bGag+uats5khbAmJgy9eQN0mJzHn1EdmmJnTzr2GskMlOv/cZ5nAKDQLyahZSEbNQjJqASPz
+        Kkah3Mzk7NSizGy9gozKktRkvZTUTYygWBBh4NrB2DfH4xAjEwfjIUYJDmYlEV7hpy+ShXhT
+        EiurUovy44tKc1KLDzFKc7AoifPe72FKFBJITyxJzU5NLUgtgskycXBKNTBmM5cndwcaJn5Q
+        7u7kkVQ4J2wi3mdw6uYUl8+3TzBffabhznwu+5rJu89We0RFJMUOFjnPvp3vNy/Y4vQRm41e
+        dX37NdP1OT9wRu42PRDhzGwpold09VZamn/malmdU4zXp56dslFslfWvv9fvTY/fwqnosCDe
+        ciWbvtm1tyd/vOM8IrsrfqkSS3FGoqEWc1FxIgANTR93cwIAAA==
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Change node name of sound card to recommended generic and remove also
-further underscores in other node names.
+Remove underscore in node names following conventions.
 
 Signed-off-by: Steffen Hemer <s.hemer@phytec.de>
 ---
- arch/arm/boot/dts/am335x-wega.dtsi | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/arm/boot/dts/am335x-phycore-som.dtsi | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-wega.dtsi b/arch/arm/boot/dts/am335x-wega.dtsi
-index 6c5d26bbe952..7e9a07b519bd 100644
---- a/arch/arm/boot/dts/am335x-wega.dtsi
-+++ b/arch/arm/boot/dts/am335x-wega.dtsi
-@@ -8,7 +8,7 @@ / {
- 	model = "Phytec AM335x phyBOARD-WEGA";
- 	compatible = "phytec,am335x-wega", "phytec,am335x-phycore-som", "ti,am33xx";
+diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+index 6819cec588a7..5bb05620da56 100644
+--- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
++++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+@@ -49,7 +49,7 @@ &sham {
  
--	sound: sound-iface {
-+	sound: sound {
- 		compatible = "simple-audio-card";
- 		simple-audio-card,name = "snd-wega";
- 		simple-audio-card,format = "i2s";
-@@ -50,7 +50,7 @@ vcc3v3: fixedregulator1 {
- 
- /* Audio */
+ /* EMMC */
  &am33xx_pinmux {
--	mcasp0_pins: pinmux_mcasp0 {
-+	mcasp0_pins: pinmux-mcasp0 {
+-	emmc_pins: pinmux_emmc_pins {
++	emmc_pins: pinmux-emmc-pins {
  		pinctrl-single,pins = <
- 			AM33XX_PADCONF(AM335X_PIN_MCASP0_AHCLKX, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
- 			AM33XX_PADCONF(AM335X_PIN_MCASP0_ACLKX, PIN_INPUT_PULLDOWN, MUX_MODE0)
-@@ -91,7 +91,7 @@ &mcasp0 {
+ 			AM33XX_PADCONF(AM335X_PIN_GPMC_CSN1, PIN_INPUT_PULLUP, MUX_MODE2)	/* gpmc_csn1.mmc1_clk */
+ 			AM33XX_PADCONF(AM335X_PIN_GPMC_CSN2, PIN_INPUT_PULLUP, MUX_MODE2)	/* gpmc_csn2.mmc1_cmd */
+@@ -125,7 +125,7 @@ &mac_sw {
  
- /* CAN Busses */
+ /* I2C Busses */
  &am33xx_pinmux {
--	dcan1_pins: pinmux_dcan1 {
-+	dcan1_pins: pinmux-dcan1 {
+-	i2c0_pins: pinmux_i2c0 {
++	i2c0_pins: pinmux-i2c0 {
  		pinctrl-single,pins = <
- 			AM33XX_PADCONF(AM335X_PIN_UART0_CTSN, PIN_OUTPUT_PULLUP, MUX_MODE2) /* uart0_ctsn.d_can1_tx */
- 			AM33XX_PADCONF(AM335X_PIN_UART0_RTSN, PIN_INPUT_PULLUP, MUX_MODE2) /* uart0_rtsn.d_can1_rx */
-@@ -107,7 +107,7 @@ &dcan1 {
+ 			AM33XX_PADCONF(AM335X_PIN_I2C0_SDA, PIN_INPUT, MUX_MODE0)
+ 			AM33XX_PADCONF(AM335X_PIN_I2C0_SCL, PIN_INPUT, MUX_MODE0)
+@@ -165,7 +165,7 @@ i2c_rtc: rtc@68 {
  
- /* Ethernet */
+ /* NAND memory */
  &am33xx_pinmux {
--	ethernet1_pins: pinmux_ethernet1 {
-+	ethernet1_pins: pinmux-ethernet1 {
- 		pinctrl-single,pins = <
- 			AM33XX_PADCONF(AM335X_PIN_GPMC_A0, PIN_OUTPUT, MUX_MODE1)		/* gpmc_a0.mii2_txen */
- 			AM33XX_PADCONF(AM335X_PIN_GPMC_A1, PIN_INPUT_PULLDOWN, MUX_MODE1)	/* gpmc_a1.mii2_rxdv */
-@@ -147,7 +147,7 @@ &mac_sw {
+-		nandflash_pins: pinmux_nandflash {
++		nandflash_pins: pinmux-nandflash {
+ 			pinctrl-single,pins = <
+ 			AM33XX_PADCONF(AM335X_PIN_GPMC_AD0, PIN_INPUT_PULLUP, MUX_MODE0)
+ 			AM33XX_PADCONF(AM335X_PIN_GPMC_AD1, PIN_INPUT_PULLUP, MUX_MODE0)
+@@ -317,7 +317,7 @@ vmmc_reg: regulator@12 {
  
- /* MMC */
+ /* SPI Busses */
  &am33xx_pinmux {
--	mmc1_pins: pinmux_mmc1 {
-+	mmc1_pins: pinmux-mmc1 {
+-	spi0_pins: pinmux_spi0 {
++	spi0_pins: pinmux-spi0 {
  		pinctrl-single,pins = <
- 			AM33XX_PADCONF(AM335X_PIN_MMC0_DAT3, PIN_INPUT_PULLUP, MUX_MODE0)
- 			AM33XX_PADCONF(AM335X_PIN_MMC0_DAT2, PIN_INPUT_PULLUP, MUX_MODE0)
-@@ -177,14 +177,14 @@ &vdig1_reg {
- 
- /* UARTs */
- &am33xx_pinmux {
--	uart0_pins: pinmux_uart0 {
-+	uart0_pins: pinmux-uart0 {
- 		pinctrl-single,pins = <
- 			AM33XX_PADCONF(AM335X_PIN_UART0_RXD, PIN_INPUT_PULLUP, MUX_MODE0)
- 			AM33XX_PADCONF(AM335X_PIN_UART0_TXD, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
- 		>;
- 	};
- 
--	uart1_pins: pinmux_uart1_pins {
-+	uart1_pins: pinmux-uart1 {
- 		pinctrl-single,pins = <
- 			AM33XX_PADCONF(AM335X_PIN_UART1_RXD, PIN_INPUT_PULLUP, MUX_MODE0)
- 			AM33XX_PADCONF(AM335X_PIN_UART1_TXD, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
+ 			AM33XX_PADCONF(AM335X_PIN_SPI0_SCLK, PIN_INPUT_PULLDOWN, MUX_MODE0)
+ 			AM33XX_PADCONF(AM335X_PIN_SPI0_D0, PIN_INPUT_PULLDOWN, MUX_MODE0)
 -- 
 2.34.1
 
