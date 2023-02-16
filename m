@@ -2,60 +2,60 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CB2BC636D6
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Feb 2023 09:37:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69FC4C64ED6
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Feb 2023 09:37:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230062AbjBPJhQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Feb 2023 04:37:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48288 "EHLO
+        id S230088AbjBPJhW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Feb 2023 04:37:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230003AbjBPJhM (ORCPT
+        with ESMTP id S230055AbjBPJhM (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2023 04:37:12 -0500
-Received: from mail-lf1-x12a.google.com (mail-lf1-x12a.google.com [IPv6:2a00:1450:4864:20::12a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B637C3C7B7
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2023 01:37:07 -0800 (PST)
-Received: by mail-lf1-x12a.google.com with SMTP id x40so1987159lfu.12
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2023 01:37:07 -0800 (PST)
+Received: from mail-lf1-x131.google.com (mail-lf1-x131.google.com [IPv6:2a00:1450:4864:20::131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF5B738677
+        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2023 01:37:09 -0800 (PST)
+Received: by mail-lf1-x131.google.com with SMTP id y25so2009021lfa.9
+        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2023 01:37:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=socMBmV/RtzXdC0lENqhNAKtiRaFWq2x7qFneE75pvo=;
-        b=CIEs55h+qegmVCQQtvSRFL7kkeH+n1eQEXzGWKvslE0c0ZGnl4tZJVn/G/ZveZVNXi
-         G16QjP6aWUW1Fn3Iw6Ldy3JlsMlH1s3slkjVwl7aO+beFJ13JTeYhQzshPByQ9EC35KW
-         6Me3e0BI5Dcoz4+o1pjiUZ/wnCxlhW4XHe4ngqRrI9t/LzyL/6iy2nm9MLsGl6NiMwzN
-         NAQGLltNargU3RS/cc8YdMWjspyKkY/Xmc5WXHaZZhgoLOMQPvvO0rIS0hqRDAuIcj10
-         xczHKBRvI9HaL0XTXHiO8l/3qPoahVtdwH0hR/aCGxGR77E+/E5K8T4AsNFxpZD7TsIS
-         bTAw==
+        bh=V/0FpUId6HClHb1SAI405Gamha8rwtpWaTK6vOeKAsI=;
+        b=V1qW6TAh7MAURs+MZCDZ8uiulmt6PpzPTJTS0BRM1nNrYuSWhjLQq6n8AnYF9NnixA
+         oSYKPab2EfDdOoL9d9E9VBFGO46VqR12pTeb4iyIDfHjEIrWZNh0DnB+aT/yr4Lx+2x+
+         m/u6em6i5LX2S0MHyIw/C5J98hnZTRwHSfE7/XTl2XlNkm9jyFPQs0YKIFDHE+Z8z4nh
+         XTXr6doIg0Q2+p4eHCEGGKLp7pGhPkCh6ghH+0nQ0OjFHozHTsGUeSiY9HKoF1IyeBx5
+         5guhYksfP9gWobJNN/9L8ni6jc3ozRd7OWgTBcdvWhmL1ht9el5QeAsrNdOswY5RFnwT
+         W/hw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=socMBmV/RtzXdC0lENqhNAKtiRaFWq2x7qFneE75pvo=;
-        b=ddmjbuifjr+L0TAxePXw37S4xE8boILvTX4LTe8RIVQRPderX5akiAacv6DEkUl2TL
-         6PN8vLGuRqXE4L+D+UZVRiPo73L35qe3pSxZFMILVluAsNg7Ai0tMJETv1j+o0EFdcIj
-         CgQhabR+1ADChO50caGMpOQZnj33UOPTdRWr0uYqzFkK3PpFTf1d6+jhABaxmIopsDyy
-         z/GWSlss2SnWCcgyj90XhPl7eNy1w1/kyvZ8es4Pwf3pOIc2U5ifpTVIKuioYC7NYRMr
-         375x5p3lGynX6hpdhMMXsjtDFUFV0LFijPBI1efTXn0QeWmiLS5FVNcSWimJs2Hp7c2z
-         NBLg==
-X-Gm-Message-State: AO0yUKXZAsFfjymVsPxzyUyz4h0ETEvILlmyc7Mz6NPg7CmZmlq2086I
-        tMhMdM3HfDaG8XfhH37rfbB7RCbZ/+ilNKbG
-X-Google-Smtp-Source: AK7set+ZbKFnwzlE7WSgdc2N9QgzemmI+prUvUkugK9IyS4roaQBmY5qLq4edobITtzsUKzBjELvLw==
-X-Received: by 2002:ac2:53a8:0:b0:4b5:178f:a14c with SMTP id j8-20020ac253a8000000b004b5178fa14cmr1412575lfh.16.1676540225687;
-        Thu, 16 Feb 2023 01:37:05 -0800 (PST)
+        bh=V/0FpUId6HClHb1SAI405Gamha8rwtpWaTK6vOeKAsI=;
+        b=goiZkMfsRRUr1iPkPm18zOxIpDauuHWpToG91rOJnatiT2x0SPKbKLyit+qCfp996Y
+         5tGct9/A2CK8iQm3UcGmzrX7cSyX2UxgnFZlJv1Q0k2Hq4eoghFmCegbe1roOarX9rbC
+         w0P/wFWf4Q9SUbHqXh77u5R85E+TfueMaFRkxWI+s4tsKAnYWbuP2bM/qoU4haikrIxW
+         XSUlB6pmxExrOXWnTWvUxjnJkgv1aw/D62BvDK7TQHE7GtZWHrFkb40fienQrp/UL3+m
+         LP+WTnC/+t0WmN/a8SqqFP3WV/4zzGzMX/cMaaXmh0EGJK+VlK8+cL65MAdqE993s6nU
+         5hqg==
+X-Gm-Message-State: AO0yUKXQbndjTxVw+J9YjLwU+yXJK7TXlk0TCs2ROSJxhMI6DjA9xLrH
+        /i30fRiAtan/XfhpAKiTwgSuoJ4eumnROEM5
+X-Google-Smtp-Source: AK7set/26jnve47VIeaaZXAa3EILsyiizsaEe4Zh5KRQayUltcbyJkCNsKMt+3Vt3rPvVH7weGuiBg==
+X-Received: by 2002:ac2:4c91:0:b0:4cc:8294:e960 with SMTP id d17-20020ac24c91000000b004cc8294e960mr2177300lfl.3.1676540227888;
+        Thu, 16 Feb 2023 01:37:07 -0800 (PST)
 Received: from [127.0.1.1] ([85.235.12.219])
-        by smtp.gmail.com with ESMTPSA id r3-20020a19ac43000000b004d8758a452asm229069lfc.288.2023.02.16.01.37.04
+        by smtp.gmail.com with ESMTPSA id r3-20020a19ac43000000b004d8758a452asm229069lfc.288.2023.02.16.01.37.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Feb 2023 01:37:05 -0800 (PST)
+        Thu, 16 Feb 2023 01:37:07 -0800 (PST)
 From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 16 Feb 2023 10:37:02 +0100
-Subject: [PATCH 01/17] gpio: altera: Convert to immutable irq_chip
+Date:   Thu, 16 Feb 2023 10:37:04 +0100
+Subject: [PATCH 03/17] gpio: aspeed: Convert to immutable irq_chip
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230215-immutable-chips-v1-1-51a8f224a5d0@linaro.org>
+Message-Id: <20230215-immutable-chips-v1-3-51a8f224a5d0@linaro.org>
 References: <20230215-immutable-chips-v1-0-51a8f224a5d0@linaro.org>
 In-Reply-To: <20230215-immutable-chips-v1-0-51a8f224a5d0@linaro.org>
 To:     Mun Yew Tham <mun.yew.tham@intel.com>,
@@ -88,80 +88,107 @@ intuition.
 Cc: Marc Zyngier <maz@kernel.org>
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- drivers/gpio/gpio-altera.c | 25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ drivers/gpio/gpio-aspeed.c | 44 ++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 38 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpio/gpio-altera.c b/drivers/gpio/gpio-altera.c
-index b59fae993626..c1599edb3453 100644
---- a/drivers/gpio/gpio-altera.c
-+++ b/drivers/gpio/gpio-altera.c
-@@ -24,14 +24,12 @@
- * @interrupt_trigger	: specifies the hardware configured IRQ trigger type
- *			  (rising, falling, both, high)
- * @mapped_irq		: kernel mapped irq number.
--* @irq_chip		: IRQ chip configuration
- */
- struct altera_gpio_chip {
- 	struct of_mm_gpio_chip mmchip;
- 	raw_spinlock_t gpio_lock;
- 	int interrupt_trigger;
- 	int mapped_irq;
--	struct irq_chip irq_chip;
- };
+diff --git a/drivers/gpio/gpio-aspeed.c b/drivers/gpio/gpio-aspeed.c
+index a94da80d3a95..9c4852de2733 100644
+--- a/drivers/gpio/gpio-aspeed.c
++++ b/drivers/gpio/gpio-aspeed.c
+@@ -15,6 +15,7 @@
+ #include <linux/module.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <linux/platform_device.h>
++#include <linux/seq_file.h>
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
  
- static void altera_gpio_irq_unmask(struct irq_data *d)
-@@ -43,6 +41,7 @@ static void altera_gpio_irq_unmask(struct irq_data *d)
+@@ -53,7 +54,7 @@ struct aspeed_gpio_config {
+  */
+ struct aspeed_gpio {
+ 	struct gpio_chip chip;
+-	struct irq_chip irqc;
++	struct device *dev;
+ 	raw_spinlock_t lock;
+ 	void __iomem *base;
+ 	int irq;
+@@ -566,6 +567,10 @@ static void aspeed_gpio_irq_set_mask(struct irq_data *d, bool set)
  
- 	altera_gc = gpiochip_get_data(irq_data_get_irq_chip_data(d));
- 	mm_gc = &altera_gc->mmchip;
-+	gpiochip_enable_irq(&mm_gc->gc, irqd_to_hwirq(d));
+ 	addr = bank_reg(gpio, bank, reg_irq_enable);
  
- 	raw_spin_lock_irqsave(&altera_gc->gpio_lock, flags);
- 	intmask = readl(mm_gc->regs + ALTERA_GPIO_IRQ_MASK);
-@@ -68,6 +67,7 @@ static void altera_gpio_irq_mask(struct irq_data *d)
- 	intmask &= ~BIT(irqd_to_hwirq(d));
- 	writel(intmask, mm_gc->regs + ALTERA_GPIO_IRQ_MASK);
- 	raw_spin_unlock_irqrestore(&altera_gc->gpio_lock, flags);
-+	gpiochip_disable_irq(&mm_gc->gc, irqd_to_hwirq(d));
++	/* Unmasking the IRQ */
++	if (set)
++		gpiochip_enable_irq(&gpio->chip, irqd_to_hwirq(d));
++
+ 	raw_spin_lock_irqsave(&gpio->lock, flags);
+ 	copro = aspeed_gpio_copro_request(gpio, offset);
+ 
+@@ -579,6 +584,10 @@ static void aspeed_gpio_irq_set_mask(struct irq_data *d, bool set)
+ 	if (copro)
+ 		aspeed_gpio_copro_release(gpio, offset);
+ 	raw_spin_unlock_irqrestore(&gpio->lock, flags);
++
++	/* Masking the IRQ */
++	if (!set)
++		gpiochip_disable_irq(&gpio->chip, irqd_to_hwirq(d));
  }
  
- /*
-@@ -233,6 +233,17 @@ static void altera_gpio_irq_leveL_high_handler(struct irq_desc *desc)
- 	chained_irq_exit(chip, desc);
+ static void aspeed_gpio_irq_mask(struct irq_data *d)
+@@ -1080,6 +1089,30 @@ int aspeed_gpio_copro_release_gpio(struct gpio_desc *desc)
  }
+ EXPORT_SYMBOL_GPL(aspeed_gpio_copro_release_gpio);
  
-+static const struct irq_chip altera_gpio_irq_chip = {
-+	.name = "altera-gpio",
-+	.irq_mask = altera_gpio_irq_mask,
-+	.irq_unmask = altera_gpio_irq_unmask,
-+	.irq_set_type = altera_gpio_irq_set_type,
-+	.irq_startup  = altera_gpio_irq_startup,
-+	.irq_shutdown = altera_gpio_irq_mask,
++static void aspeed_gpio_irq_print_chip(struct irq_data *d, struct seq_file *p)
++{
++	const struct aspeed_gpio_bank *bank;
++	struct aspeed_gpio *gpio;
++	u32 bit;
++	int rc, offset;
++
++	rc = irqd_to_aspeed_gpio_data(d, &gpio, &bank, &bit, &offset);
++	if (rc)
++		return;
++
++	seq_printf(p, dev_name(gpio->dev));
++}
++
++static const struct irq_chip aspeed_gpio_irq_chip = {
++	.irq_ack = aspeed_gpio_irq_ack,
++	.irq_mask = aspeed_gpio_irq_mask,
++	.irq_unmask = aspeed_gpio_irq_unmask,
++	.irq_set_type = aspeed_gpio_set_type,
++	.irq_print_chip = aspeed_gpio_irq_print_chip,
 +	.flags = IRQCHIP_IMMUTABLE,
 +	GPIOCHIP_IRQ_RESOURCE_HELPERS,
 +};
 +
- static int altera_gpio_probe(struct platform_device *pdev)
- {
- 	struct device_node *node = pdev->dev.of_node;
-@@ -278,15 +289,9 @@ static int altera_gpio_probe(struct platform_device *pdev)
- 	}
- 	altera_gc->interrupt_trigger = reg;
+ /*
+  * Any banks not specified in a struct aspeed_bank_props array are assumed to
+  * have the properties:
+@@ -1149,6 +1182,8 @@ static int __init aspeed_gpio_probe(struct platform_device *pdev)
+ 	if (IS_ERR(gpio->base))
+ 		return PTR_ERR(gpio->base);
  
--	altera_gc->irq_chip.name = "altera-gpio";
--	altera_gc->irq_chip.irq_mask     = altera_gpio_irq_mask;
--	altera_gc->irq_chip.irq_unmask   = altera_gpio_irq_unmask;
--	altera_gc->irq_chip.irq_set_type = altera_gpio_irq_set_type;
--	altera_gc->irq_chip.irq_startup  = altera_gpio_irq_startup;
--	altera_gc->irq_chip.irq_shutdown = altera_gpio_irq_mask;
--
- 	girq = &altera_gc->mmchip.gc.irq;
--	girq->chip = &altera_gc->irq_chip;
-+	gpio_irq_chip_set_chip(girq, &altera_gpio_irq_chip);
++	gpio->dev = &pdev->dev;
 +
- 	if (altera_gc->interrupt_trigger == IRQ_TYPE_LEVEL_HIGH)
- 		girq->parent_handler = altera_gpio_irq_leveL_high_handler;
- 	else
+ 	raw_spin_lock_init(&gpio->lock);
+ 
+ 	gpio_id = of_match_node(aspeed_gpio_of_table, pdev->dev.of_node);
+@@ -1208,12 +1243,9 @@ static int __init aspeed_gpio_probe(struct platform_device *pdev)
+ 
+ 		gpio->irq = rc;
+ 		girq = &gpio->chip.irq;
+-		girq->chip = &gpio->irqc;
++		gpio_irq_chip_set_chip(girq, &aspeed_gpio_irq_chip);
+ 		girq->chip->name = dev_name(&pdev->dev);
+-		girq->chip->irq_ack = aspeed_gpio_irq_ack;
+-		girq->chip->irq_mask = aspeed_gpio_irq_mask;
+-		girq->chip->irq_unmask = aspeed_gpio_irq_unmask;
+-		girq->chip->irq_set_type = aspeed_gpio_set_type;
++
+ 		girq->parent_handler = aspeed_gpio_irq_handler;
+ 		girq->num_parents = 1;
+ 		girq->parents = devm_kcalloc(&pdev->dev, 1,
 
 -- 
 2.34.1
