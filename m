@@ -2,62 +2,62 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57625C636D6
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Feb 2023 09:37:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 744F6C636D6
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Feb 2023 09:37:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230042AbjBPJhJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Feb 2023 04:37:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48128 "EHLO
+        id S229629AbjBPJhL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Feb 2023 04:37:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229554AbjBPJhI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2023 04:37:08 -0500
-Received: from mail-lf1-x12c.google.com (mail-lf1-x12c.google.com [IPv6:2a00:1450:4864:20::12c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79CC934F78
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2023 01:37:06 -0800 (PST)
-Received: by mail-lf1-x12c.google.com with SMTP id bp15so1981690lfb.13
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2023 01:37:06 -0800 (PST)
+        with ESMTP id S230007AbjBPJhK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2023 04:37:10 -0500
+Received: from mail-lf1-x12d.google.com (mail-lf1-x12d.google.com [IPv6:2a00:1450:4864:20::12d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A25A92DE5D
+        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2023 01:37:08 -0800 (PST)
+Received: by mail-lf1-x12d.google.com with SMTP id y25so2008969lfa.9
+        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2023 01:37:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=J4kcTI2putLnbdN9MP2mFPB2+31xxohlAWl8A4kqJzM=;
-        b=IWvdWUomqTO8QzgT9/RsA6AztLIRxUOVfgNmvqvN5Gxqy/9cUOZIxx4zOEI1GUMEuO
-         V9TAsRuESAn9eSAcdJ2Q3Y3LmKVgHE8dfzqSPMuCxP/X5dVXTxpT/3K4G5ne2L20BOdg
-         +Ns/bp3nNMVysizAwePy8SWWIByCVc5VQGg8CAYpY3pYPX0k66HI0RMoIupaYO98vhyF
-         UQv0R+0F5TTrERZ+m2rMar8TvjV9kY3VTcqgBRT3yds+E6jk3uqrdTy6JBPMpNEg1k6H
-         AheohWlxTzNKMooy9nCo7cHAhRm+3PHCMpalddk4nPGaayP7ES+3UEPmE2SdsVilbLTV
-         raJg==
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=oTDvGM9p1jJCryqrt+aMoXej/NnnEuuvfQsw+EzO32s=;
+        b=y2mQvmmUVj3HR0h5kau6zCrKsh4HXqe/j4fug+zGCIRzs7GU3A0y8VkVmN/AnB4t+I
+         Rkdjb2Znj4eZUteiBWpj0wCeSBmKzOqWYDccpcouTRnGsszTJVYP+8lwINCQ+u3lx+0I
+         PE5VPgdzWxC/djxtmhCEwjGPrMT8ug832gann1eOu+EjyS8Y1Iym3kNGwmDGaOdWCIDe
+         UOwuAe5FEW3xV9Ag6i//giVsAR7eWTT4NNz/gv5lpwaH0uIqcNGULCo6FAG41MHbhnNO
+         1BMKNh/xGUkN3eFlxy3jMFR3hhNnJ/uspr9BEr3wGz5WDeF7+yJkoOmdUk7xBoP+HKlo
+         GUww==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=J4kcTI2putLnbdN9MP2mFPB2+31xxohlAWl8A4kqJzM=;
-        b=RVi2QWpYmvxpRS5ZNBrOHUwJYlLI3VWkv2ycGCjGemb6yMl4uCXWxB/S+j2U2qiKUS
-         C0OrL5b+Rd20GAgBuDNhLi9KweP+Bs37SVD76JdP6Yd19Obzdq3aJsB5ox4UVKEmMP1w
-         E0FwYAsjZYGQQLUus/NOVANWeVIC7dzhZLEhx7taxb417rEFOjqiwpf6cWwlLF7gnKqY
-         PuStNpRkrxAUqliM/jOAZwvXvTpb2e2BO9+BY0q6C+rPj0yocUkjQJLJH08v7bEAmMV9
-         95REw+7Gltj08N3aMyqT3o5FgwgFnK110hV6hFDoXniYLVhIWw8/fvSFaVjH7laAsnfZ
-         BT2Q==
-X-Gm-Message-State: AO0yUKW2PUkjcDgyO2PrMzPiP26KtrwMEH5AFyTi6KUD+r3RwcoyQvX9
-        6+HpdXpw5fR4CcJaOcRYsMh18rSliUhRc+DE
-X-Google-Smtp-Source: AK7set8LMDSUl/0lfLpNLdxiWXIpZtBeu3tMcI1noiOnxnhVDDzyYiOekOwnbuCrkq4smDZqBa7rOg==
-X-Received: by 2002:a05:6512:48f:b0:4ce:88af:473b with SMTP id v15-20020a056512048f00b004ce88af473bmr1118725lfq.54.1676540224493;
-        Thu, 16 Feb 2023 01:37:04 -0800 (PST)
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=oTDvGM9p1jJCryqrt+aMoXej/NnnEuuvfQsw+EzO32s=;
+        b=JsUbyhnavizECCNfyw8o1r9++5pPFqWgtsCErXtimERAsgO0+2yVZj1ChAYgtTLUsr
+         nyN2uG6cc4GW7Aw3+qdCOK4CxPz0n/iB0rT/DvVQpupXDMOsh68xG6Zimo5rtELNuqsP
+         sGb/s5WgV24HkaoYjVQP/mc6mEr2W7hxpKPeY5I2dzAalJfMAgMHhZlc+56xSIoJ0H1z
+         l810pkpCRn368SCmg3qJwXJkjt2qp2GwlQoWFiQZpj5b9RKq4KSwPPkk5x5bJ9YPdNnC
+         H+r08wY1l12ZXMTF87BTf71vkA5n3ANPyPDS/fOAvqqvFW/+g79ovq/14DQwYtZeDSm2
+         1VdQ==
+X-Gm-Message-State: AO0yUKXcGGCf7Anfo4TL7pRMgk1c4WPU26YPYsUv6KTMblZMs7ZWvQB+
+        N+NuUWcsDxQgbV6Hy8a9PFFguwVJXARfplcm
+X-Google-Smtp-Source: AK7set/UuZ3iGPgCIG1LjJxkZdfB0cTOEeTV65m/CJRDE6EpngVKikEyoHCuLAvayFQk+4GEcnqLMw==
+X-Received: by 2002:ac2:4c29:0:b0:4b3:d6e1:26bb with SMTP id u9-20020ac24c29000000b004b3d6e126bbmr1460112lfq.29.1676540226776;
+        Thu, 16 Feb 2023 01:37:06 -0800 (PST)
 Received: from [127.0.1.1] ([85.235.12.219])
-        by smtp.gmail.com with ESMTPSA id r3-20020a19ac43000000b004d8758a452asm229069lfc.288.2023.02.16.01.37.03
+        by smtp.gmail.com with ESMTPSA id r3-20020a19ac43000000b004d8758a452asm229069lfc.288.2023.02.16.01.37.05
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Feb 2023 01:37:04 -0800 (PST)
+        Thu, 16 Feb 2023 01:37:06 -0800 (PST)
 From:   Linus Walleij <linus.walleij@linaro.org>
-Subject: [PATCH 00/17] Mass convert GPIO IRQ chips to be immutable
-Date:   Thu, 16 Feb 2023 10:37:01 +0100
-Message-Id: <20230215-immutable-chips-v1-0-51a8f224a5d0@linaro.org>
+Date:   Thu, 16 Feb 2023 10:37:03 +0100
+Subject: [PATCH 02/17] gpio: adnp: Convert to immutable irq_chip
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAD357WMC/0XNQQqDMBCF4avIrDtgprTBXqV0kaSjGdAYMioF8
- e6N3XT5w/t4OygXYYVHs0PhTVTmVMNcGgjRpYFR3rWBWrq2ZG4o07Quzo+MIUpWtHfqiMja3jB
- U5Z0y+uJSiKcbssx/cw5y4V4+v8vn6zi+Vg6p2IIAAAA=
+Message-Id: <20230215-immutable-chips-v1-2-51a8f224a5d0@linaro.org>
+References: <20230215-immutable-chips-v1-0-51a8f224a5d0@linaro.org>
+In-Reply-To: <20230215-immutable-chips-v1-0-51a8f224a5d0@linaro.org>
 To:     Mun Yew Tham <mun.yew.tham@intel.com>,
         Bartosz Golaszewski <brgl@bgdev.pl>,
         Joel Stanley <joel@jms.id.au>,
@@ -76,71 +76,69 @@ Cc:     linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-aspeed@lists.ozlabs.org, linux-omap@vger.kernel.org,
         Linus Walleij <linus.walleij@linaro.org>,
-        Marc Zyngier <maz@kernel.org>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>
+        Marc Zyngier <maz@kernel.org>
 X-Mailer: b4 0.12.1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-We are getting tired of these irq_chips not getting converted
-to be immutable, so I just take out the big hammer and fix
-some that I deem not too complex as best I can.
+Convert the driver to immutable irq-chip with a bit of
+intuition.
 
-I stopped after doing some, I will take another sweep at some
-point I guess.
-
-Please test if you have the hardware. The OMAP patch especially,
-hi Tony ;)
-
-I don't expect this to be merged to v6.3, but as Bartosz may
-feel it is fixes material they are of course fine to trickle
-in on a case-by-case basis.
-
+Cc: Marc Zyngier <maz@kernel.org>
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 ---
-Linus Walleij (17):
-      gpio: altera: Convert to immutable irq_chip
-      gpio: adnp: Convert to immutable irq_chip
-      gpio: aspeed: Convert to immutable irq_chip
-      gpio: aspeed-sgpio: Convert to immutable irq_chip
-      gpio: ath79: Convert to immutable irq_chip
-      gpio: cadence: Convert to immutable irq_chip
-      gpio: eic_sprd: Convert to immutable irq_chip
-      gpio: hisi: Convert to immutable irq_chip
-      gpio: hlwd: Convert to immutable irq_chip
-      gpio: idt3243x: Convert to immutable irq_chip
-      gpio: msc313: Convert to immutable irq_chip
-      gpio: mlxbf2: Convert to immutable irq_chip
-      gpio: max732x: Convert to immutable irq_chip
-      gpio: omap: Drop irq_base
-      gpio: omap: Convert to immutable irq_chip
-      gpio: pci-idio-16: Convert to immutable irq_chip
-      gpio: pcie-idio-24: Convert to immutable irq_chip
+ drivers/gpio/gpio-adnp.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
- drivers/gpio/gpio-adnp.c         |  9 ++++-
- drivers/gpio/gpio-altera.c       | 25 +++++++-----
- drivers/gpio/gpio-aspeed-sgpio.c | 44 +++++++++++++++++----
- drivers/gpio/gpio-aspeed.c       | 44 ++++++++++++++++++---
- drivers/gpio/gpio-ath79.c        |  8 +++-
- drivers/gpio/gpio-cadence.c      | 10 +++--
- drivers/gpio/gpio-eic-sprd.c     | 33 +++++++++++-----
- drivers/gpio/gpio-hisi.c         | 25 +++++++-----
- drivers/gpio/gpio-hlwd.c         | 33 ++++++++++++----
- drivers/gpio/gpio-idt3243x.c     | 11 ++++--
- drivers/gpio/gpio-max732x.c      |  8 +++-
- drivers/gpio/gpio-mlxbf2.c       | 32 ++++++++++++----
- drivers/gpio/gpio-msc313.c       | 26 +++++++++++--
- drivers/gpio/gpio-omap.c         | 83 ++++++++++++++++++++++------------------
- drivers/gpio/gpio-pci-idio-16.c  | 12 ++++--
- drivers/gpio/gpio-pcie-idio-24.c | 12 ++++--
- 16 files changed, 297 insertions(+), 118 deletions(-)
----
-base-commit: 1b929c02afd37871d5afb9d498426f83432e71c2
-change-id: 20230215-immutable-chips-762922277f1e
+diff --git a/drivers/gpio/gpio-adnp.c b/drivers/gpio/gpio-adnp.c
+index a6439e3daff0..9b01c391efce 100644
+--- a/drivers/gpio/gpio-adnp.c
++++ b/drivers/gpio/gpio-adnp.c
+@@ -307,6 +307,7 @@ static void adnp_irq_mask(struct irq_data *d)
+ 	unsigned int pos = d->hwirq & 7;
+ 
+ 	adnp->irq_enable[reg] &= ~BIT(pos);
++	gpiochip_disable_irq(gc, irqd_to_hwirq(d));
+ }
+ 
+ static void adnp_irq_unmask(struct irq_data *d)
+@@ -316,6 +317,7 @@ static void adnp_irq_unmask(struct irq_data *d)
+ 	unsigned int reg = d->hwirq >> adnp->reg_shift;
+ 	unsigned int pos = d->hwirq & 7;
+ 
++	gpiochip_enable_irq(gc, irqd_to_hwirq(d));
+ 	adnp->irq_enable[reg] |= BIT(pos);
+ }
+ 
+@@ -372,13 +374,15 @@ static void adnp_irq_bus_unlock(struct irq_data *d)
+ 	mutex_unlock(&adnp->irq_lock);
+ }
+ 
+-static struct irq_chip adnp_irq_chip = {
++static const struct irq_chip adnp_irq_chip = {
+ 	.name = "gpio-adnp",
+ 	.irq_mask = adnp_irq_mask,
+ 	.irq_unmask = adnp_irq_unmask,
+ 	.irq_set_type = adnp_irq_set_type,
+ 	.irq_bus_lock = adnp_irq_bus_lock,
+ 	.irq_bus_sync_unlock = adnp_irq_bus_unlock,
++	.flags = IRQCHIP_IMMUTABLE,
++	GPIOCHIP_IRQ_RESOURCE_HELPERS,
+ };
+ 
+ static int adnp_irq_setup(struct adnp *adnp)
+@@ -469,7 +473,8 @@ static int adnp_gpio_setup(struct adnp *adnp, unsigned int num_gpios,
+ 			return err;
+ 
+ 		girq = &chip->irq;
+-		girq->chip = &adnp_irq_chip;
++		gpio_irq_chip_set_chip(girq, &adnp_irq_chip);
++
+ 		/* This will let us handle the parent IRQ in the driver */
+ 		girq->parent_handler = NULL;
+ 		girq->num_parents = 0;
 
-Best regards,
 -- 
-Linus Walleij <linus.walleij@linaro.org>
+2.34.1
 
