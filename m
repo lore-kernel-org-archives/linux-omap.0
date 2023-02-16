@@ -2,168 +2,362 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BFD1C636CC
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Feb 2023 12:06:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43BC0C61DA4
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Feb 2023 15:34:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229436AbjBPMGs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Feb 2023 07:06:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50552 "EHLO
+        id S229973AbjBPPeL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Feb 2023 10:34:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229866AbjBPMGp (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2023 07:06:45 -0500
-Received: from mail-oa1-x36.google.com (mail-oa1-x36.google.com [IPv6:2001:4860:4864:20::36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B07C4DE3D
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2023 04:06:42 -0800 (PST)
-Received: by mail-oa1-x36.google.com with SMTP id 586e51a60fabf-16aa71c1600so2231281fac.11
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2023 04:06:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=mRWEN0keF6NiEd7O9ayzoP6wwuhhhF8V1d3xPTIxNoI=;
-        b=CoYVjdLzmYKvj7Vd87G8M0+tYb1Ba3tu1VwpLjaeGT/voYVghBoZRmM3+NienWGtJU
-         MeuZV+1IDBoQO59Jj+fWFaIIHgUFxpG6EyTJ+CSnW819UHaOAv9ugYbCRh7m94dzjC2k
-         5P0Otds2OcdruKvClfV1YcUlCxNC7O7iC4pesdlSbV8v1Xw+ibyXN2ukLOxwQ/WzGiSl
-         qkfAUjvubdR7Lf9Dudmsni/8S6hkq9i3mIm9cQ3CNfSodZaLJZKuj7vf/OLtjIC3OL/W
-         LUihx7TpXmnrgxDgiV6QlthzG9184i9sa4dGeoaLus31NR4hFhW00FPj8MW+q2sIFUWU
-         dalQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=mRWEN0keF6NiEd7O9ayzoP6wwuhhhF8V1d3xPTIxNoI=;
-        b=fiuQuYC3I3+9SbmKAT5NtmALfIxQTFD35mtFIEpVbyhLQvB6L45VKdIXArQmxzxkED
-         Bg59ImljbCua+bJ7yw9In5O3Ylx1ssNnongWZ4mT/xQ+Nt+8yjx3fODySyuNNFoyuCxD
-         5H6SB8r32KzF9uD4qGmnDMWBe1s7jbalGNygM9k3bmz4yjA8pkGzi144HgxRyb1K/Eri
-         Ws/1Uf0VJBH2JylfCcaIXZlZA/uRwSo4fbpKlEquZ+j+jqHQVHOIjTQQE45JNrh00Zes
-         MX8xYYmzRU8hclI8OPS59Mp0jRUiYPtJ6y6L4GT3Lv4+ssiOFsQdyXH8fN9+q42MjL+Z
-         SPhw==
-X-Gm-Message-State: AO0yUKWhUPI1tUcFQeJv4yWTfLqMjs1lwWz5t2ifavVOd4YUmX6XaDgS
-        WU0eKHi+TVvz10BqY2QtA1F3Gw==
-X-Google-Smtp-Source: AK7set94J1nmitezcU13KRwKZUpuXlQCbbTw5DAP8kxFwGDFXsKNw5nnYXe6YgwYapp9po8R9SvLqQ==
-X-Received: by 2002:a05:6870:b51f:b0:16d:ea1d:6a6a with SMTP id v31-20020a056870b51f00b0016dea1d6a6amr2823105oap.40.1676549201345;
-        Thu, 16 Feb 2023 04:06:41 -0800 (PST)
-Received: from fedora (69-109-179-158.lightspeed.dybhfl.sbcglobal.net. [69.109.179.158])
-        by smtp.gmail.com with ESMTPSA id m3-20020a056870a40300b00152c52608dbsm476595oal.34.2023.02.16.04.06.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Feb 2023 04:06:40 -0800 (PST)
-Date:   Wed, 8 Feb 2023 06:17:14 -0500
-From:   William Breathitt Gray <william.gray@linaro.org>
-To:     Linus Walleij <linus.walleij@linaro.org>
-Cc:     Mun Yew Tham <mun.yew.tham@intel.com>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Joel Stanley <joel@jms.id.au>,
-        Andrew Jeffery <andrew@aj.id.au>, Alban Bedel <albeu@free.fr>,
-        Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang@linux.alibaba.com>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Jay Fang <f.fangjian@huawei.com>,
-        Daniel Palmer <daniel@thingy.jp>,
-        Romain Perier <romain.perier@gmail.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>, linux-gpio@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-aspeed@lists.ozlabs.org, linux-omap@vger.kernel.org,
-        Marc Zyngier <maz@kernel.org>
-Subject: Re: [PATCH 17/17] gpio: pcie-idio-24: Convert to immutable irq_chip
-Message-ID: <Y+OEujGudfk1SkSS@fedora>
-References: <20230215-immutable-chips-v1-0-51a8f224a5d0@linaro.org>
- <20230215-immutable-chips-v1-17-51a8f224a5d0@linaro.org>
+        with ESMTP id S229873AbjBPPeK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2023 10:34:10 -0500
+Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70E7613D4F;
+        Thu, 16 Feb 2023 07:34:07 -0800 (PST)
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 31GFXfov120311;
+        Thu, 16 Feb 2023 09:33:41 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1676561621;
+        bh=u3jhDRVvhzaDvG3WrKImoKtXR1CDbSnJ2NhA4UTl/nk=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=q3xpZ/S6NPu09X8JQPxjkD1xxE9a9DkN7eLkYpt7CaIKd4+6Oe9uSweoryuEreqtX
+         4Fxg1PfqYfWQ3DKaZF2Lp+XwpjGrSxzUuJioa421LrY/w9kVRp/LPMB5lS4O+Vj0az
+         AGiqLEqjzfHy41WlDM3/JpfekfAyqytczvqK1CXs=
+Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 31GFXfqt040321
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 16 Feb 2023 09:33:41 -0600
+Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Thu, 16
+ Feb 2023 09:33:41 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
+ Frontend Transport; Thu, 16 Feb 2023 09:33:41 -0600
+Received: from ula0226330.dal.design.ti.com (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 31GFXdce018680;
+        Thu, 16 Feb 2023 09:33:40 -0600
+From:   Andrew Davis <afd@ti.com>
+To:     Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Colin Foster <colin.foster@in-advantage.com>,
+        Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
+CC:     <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>, Andrew Davis <afd@ti.com>
+Subject: [RFC 1/2] ARM: dts: omap: Drop ti,omap36xx compatible
+Date:   Thu, 16 Feb 2023 09:33:38 -0600
+Message-ID: <20230216153339.19987-2-afd@ti.com>
+X-Mailer: git-send-email 2.39.1
+In-Reply-To: <20230216153339.19987-1-afd@ti.com>
+References: <20230216153339.19987-1-afd@ti.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="cyeQsMhX/E0TO8qE"
-Content-Disposition: inline
-In-Reply-To: <20230215-immutable-chips-v1-17-51a8f224a5d0@linaro.org>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+This was not matched anywhere and provides no additional information.
 
---cyeQsMhX/E0TO8qE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Andrew Davis <afd@ti.com>
+---
+ arch/arm/boot/dts/omap3-beagle-xm.dts              | 2 +-
+ arch/arm/boot/dts/omap3-cm-t3730.dts               | 2 +-
+ arch/arm/boot/dts/omap3-igep0020-rev-f.dts         | 2 +-
+ arch/arm/boot/dts/omap3-igep0020.dts               | 2 +-
+ arch/arm/boot/dts/omap3-igep0030-rev-g.dts         | 2 +-
+ arch/arm/boot/dts/omap3-igep0030.dts               | 2 +-
+ arch/arm/boot/dts/omap3-lilly-dbb056.dts           | 2 +-
+ arch/arm/boot/dts/omap3-n9.dts                     | 2 +-
+ arch/arm/boot/dts/omap3-n950.dts                   | 2 +-
+ arch/arm/boot/dts/omap3-overo-storm-alto35.dts     | 2 +-
+ arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts | 2 +-
+ arch/arm/boot/dts/omap3-overo-storm-gallop43.dts   | 2 +-
+ arch/arm/boot/dts/omap3-overo-storm-palo35.dts     | 2 +-
+ arch/arm/boot/dts/omap3-overo-storm-palo43.dts     | 2 +-
+ arch/arm/boot/dts/omap3-overo-storm-summit.dts     | 2 +-
+ arch/arm/boot/dts/omap3-overo-storm-tobi.dts       | 2 +-
+ arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts    | 2 +-
+ arch/arm/boot/dts/omap3-pandora-1ghz.dts           | 2 +-
+ arch/arm/boot/dts/omap3-sbc-t3730.dts              | 2 +-
+ arch/arm/boot/dts/omap3-sniper.dts                 | 2 +-
+ arch/arm/boot/dts/omap3-zoom3.dts                  | 2 +-
+ 21 files changed, 21 insertions(+), 21 deletions(-)
 
-On Thu, Feb 16, 2023 at 10:37:18AM +0100, Linus Walleij wrote:
-> Convert the driver to immutable irq-chip with a bit of
-> intuition.
->=20
-> Cc: Marc Zyngier <maz@kernel.org>
-> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index 35eced6521efb..1a085bc013177 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -8,7 +8,7 @@
+ 
+ / {
+ 	model = "TI OMAP3 BeagleBoard xM";
+-	compatible = "ti,omap3-beagle-xm", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "ti,omap3-beagle-xm", "ti,omap3630", "ti,omap3";
+ 
+ 	cpus {
+ 		cpu@0 {
+diff --git a/arch/arm/boot/dts/omap3-cm-t3730.dts b/arch/arm/boot/dts/omap3-cm-t3730.dts
+index 48e48b0c81901..e1b1a047f77a0 100644
+--- a/arch/arm/boot/dts/omap3-cm-t3730.dts
++++ b/arch/arm/boot/dts/omap3-cm-t3730.dts
+@@ -9,7 +9,7 @@
+ 
+ / {
+ 	model = "CompuLab CM-T3730";
+-	compatible = "compulab,omap3-cm-t3730", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "compulab,omap3-cm-t3730", "ti,omap3630", "ti,omap3";
+ 
+ 	wl12xx_vmmc2: wl12xx_vmmc2 {
+ 		compatible = "regulator-fixed";
+diff --git a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
+index 9dca5bfc87ab2..eadb5b857f48b 100644
+--- a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
++++ b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
+@@ -10,7 +10,7 @@
+ 
+ / {
+ 	model = "IGEPv2 Rev. F (TI OMAP AM/DM37x)";
+-	compatible = "isee,omap3-igep0020-rev-f", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "isee,omap3-igep0020-rev-f", "ti,omap3630", "ti,omap3";
+ 
+ 	/* Regulator to trigger the WL_EN signal of the Wifi module */
+ 	lbep5clwmc_wlen: regulator-lbep5clwmc-wlen {
+diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+index c6f863bc03adf..3f0197ceae09e 100644
+--- a/arch/arm/boot/dts/omap3-igep0020.dts
++++ b/arch/arm/boot/dts/omap3-igep0020.dts
+@@ -10,7 +10,7 @@
+ 
+ / {
+ 	model = "IGEPv2 Rev. C (TI OMAP AM/DM37x)";
+-	compatible = "isee,omap3-igep0020", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "isee,omap3-igep0020", "ti,omap3630", "ti,omap3";
+ 
+ 	vmmcsdio_fixed: fixedregulator-mmcsdio {
+ 		compatible = "regulator-fixed";
+diff --git a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+index 8e9c12cf51a7b..bc95a8df2e6a1 100644
+--- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
++++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+@@ -10,7 +10,7 @@
+ 
+ / {
+ 	model = "IGEP COM MODULE Rev. G (TI OMAP AM/DM37x)";
+-	compatible = "isee,omap3-igep0030-rev-g", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "isee,omap3-igep0030-rev-g", "ti,omap3630", "ti,omap3";
+ 
+ 	/* Regulator to trigger the WL_EN signal of the Wifi module */
+ 	lbep5clwmc_wlen: regulator-lbep5clwmc-wlen {
+diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts/omap3-igep0030.dts
+index 5188f96f431e7..d36ceecb7328c 100644
+--- a/arch/arm/boot/dts/omap3-igep0030.dts
++++ b/arch/arm/boot/dts/omap3-igep0030.dts
+@@ -10,7 +10,7 @@
+ 
+ / {
+ 	model = "IGEP COM MODULE Rev. E (TI OMAP AM/DM37x)";
+-	compatible = "isee,omap3-igep0030", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "isee,omap3-igep0030", "ti,omap3630", "ti,omap3";
+ 
+ 	vmmcsdio_fixed: fixedregulator-mmcsdio {
+ 		compatible = "regulator-fixed";
+diff --git a/arch/arm/boot/dts/omap3-lilly-dbb056.dts b/arch/arm/boot/dts/omap3-lilly-dbb056.dts
+index ecb4ef738e07b..f6bbea2be54c5 100644
+--- a/arch/arm/boot/dts/omap3-lilly-dbb056.dts
++++ b/arch/arm/boot/dts/omap3-lilly-dbb056.dts
+@@ -8,7 +8,7 @@
+ 
+ / {
+ 	model = "INCOstartec LILLY-DBB056 (DM3730)";
+-	compatible = "incostartec,omap3-lilly-dbb056", "incostartec,omap3-lilly-a83x", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "incostartec,omap3-lilly-dbb056", "incostartec,omap3-lilly-a83x", "ti,omap3630", "ti,omap3";
+ };
+ 
+ &twl {
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+index d211bcc311745..a3cf3f443785f 100644
+--- a/arch/arm/boot/dts/omap3-n9.dts
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -12,7 +12,7 @@
+ 
+ / {
+ 	model = "Nokia N9";
+-	compatible = "nokia,omap3-n9", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "nokia,omap3-n9", "ti,omap3630", "ti,omap3";
+ };
+ 
+ &i2c2 {
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index b2f480022ff6e..cbaf79c4e8422 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -12,7 +12,7 @@
+ 
+ / {
+ 	model = "Nokia N950";
+-	compatible = "nokia,omap3-n950", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "nokia,omap3-n950", "ti,omap3630", "ti,omap3";
+ 
+ 	keys {
+ 		compatible = "gpio-keys";
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-alto35.dts b/arch/arm/boot/dts/omap3-overo-storm-alto35.dts
+index 7f04dfad82034..3eb935df04dcc 100644
+--- a/arch/arm/boot/dts/omap3-overo-storm-alto35.dts
++++ b/arch/arm/boot/dts/omap3-overo-storm-alto35.dts
+@@ -14,5 +14,5 @@
+ 
+ / {
+ 	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on Alto35";
+-	compatible = "gumstix,omap3-overo-alto35", "gumstix,omap3-overo", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "gumstix,omap3-overo-alto35", "gumstix,omap3-overo", "ti,omap3630", "ti,omap3";
+ };
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts b/arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts
+index bc5a04e033362..3af8d10d72247 100644
+--- a/arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts
++++ b/arch/arm/boot/dts/omap3-overo-storm-chestnut43.dts
+@@ -14,7 +14,7 @@
+ 
+ / {
+ 	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on Chestnut43";
+-	compatible = "gumstix,omap3-overo-chestnut43", "gumstix,omap3-overo", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "gumstix,omap3-overo-chestnut43", "gumstix,omap3-overo", "ti,omap3630", "ti,omap3";
+ };
+ 
+ &omap3_pmx_core2 {
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-gallop43.dts b/arch/arm/boot/dts/omap3-overo-storm-gallop43.dts
+index 065c31cbf0e29..813e3c9fe3b64 100644
+--- a/arch/arm/boot/dts/omap3-overo-storm-gallop43.dts
++++ b/arch/arm/boot/dts/omap3-overo-storm-gallop43.dts
+@@ -14,7 +14,7 @@
+ 
+ / {
+ 	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on Gallop43";
+-	compatible = "gumstix,omap3-overo-gallop43", "gumstix,omap3-overo", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "gumstix,omap3-overo-gallop43", "gumstix,omap3-overo", "ti,omap3630", "ti,omap3";
+ };
+ 
+ &omap3_pmx_core2 {
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-palo35.dts b/arch/arm/boot/dts/omap3-overo-storm-palo35.dts
+index e38c1c51392c5..8405bd9262de6 100644
+--- a/arch/arm/boot/dts/omap3-overo-storm-palo35.dts
++++ b/arch/arm/boot/dts/omap3-overo-storm-palo35.dts
+@@ -14,7 +14,7 @@
+ 
+ / {
+ 	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on Palo35";
+-	compatible = "gumstix,omap3-overo-palo35", "gumstix,omap3-overo", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "gumstix,omap3-overo-palo35", "gumstix,omap3-overo", "ti,omap3630", "ti,omap3";
+ };
+ 
+ &omap3_pmx_core2 {
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-palo43.dts b/arch/arm/boot/dts/omap3-overo-storm-palo43.dts
+index e6dc23159c4d9..b9558d736e795 100644
+--- a/arch/arm/boot/dts/omap3-overo-storm-palo43.dts
++++ b/arch/arm/boot/dts/omap3-overo-storm-palo43.dts
+@@ -14,7 +14,7 @@
+ 
+ / {
+ 	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on Palo43";
+-	compatible = "gumstix,omap3-overo-palo43", "gumstix,omap3-overo", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "gumstix,omap3-overo-palo43", "gumstix,omap3-overo", "ti,omap3630", "ti,omap3";
+ };
+ 
+ &omap3_pmx_core2 {
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-summit.dts b/arch/arm/boot/dts/omap3-overo-storm-summit.dts
+index 587c08ce282d3..fcfc449f2abea 100644
+--- a/arch/arm/boot/dts/omap3-overo-storm-summit.dts
++++ b/arch/arm/boot/dts/omap3-overo-storm-summit.dts
+@@ -14,7 +14,7 @@
+ 
+ / {
+ 	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on Summit";
+-	compatible = "gumstix,omap3-overo-summit", "gumstix,omap3-overo", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "gumstix,omap3-overo-summit", "gumstix,omap3-overo", "ti,omap3630", "ti,omap3";
+ };
+ 
+ &omap3_pmx_core2 {
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-tobi.dts b/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
+index f57de6010994e..6d14466c180af 100644
+--- a/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
++++ b/arch/arm/boot/dts/omap3-overo-storm-tobi.dts
+@@ -14,6 +14,6 @@
+ 
+ / {
+ 	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on Tobi";
+-	compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3630", "ti,omap3";
+ };
+ 
+diff --git a/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts b/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts
+index 281af6c113beb..bcf20ff3f2813 100644
+--- a/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts
++++ b/arch/arm/boot/dts/omap3-overo-storm-tobiduo.dts
+@@ -14,5 +14,5 @@
+ 
+ / {
+ 	model = "OMAP36xx/AM37xx/DM37xx Gumstix Overo on TobiDuo";
+-	compatible = "gumstix,omap3-overo-tobiduo", "gumstix,omap3-overo", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "gumstix,omap3-overo-tobiduo", "gumstix,omap3-overo", "ti,omap3630", "ti,omap3";
+ };
+diff --git a/arch/arm/boot/dts/omap3-pandora-1ghz.dts b/arch/arm/boot/dts/omap3-pandora-1ghz.dts
+index ea509956d7aca..c0252f8a798aa 100644
+--- a/arch/arm/boot/dts/omap3-pandora-1ghz.dts
++++ b/arch/arm/boot/dts/omap3-pandora-1ghz.dts
+@@ -16,7 +16,7 @@
+ / {
+ 	model = "Pandora Handheld Console 1GHz";
+ 
+-	compatible = "openpandora,omap3-pandora-1ghz", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "openpandora,omap3-pandora-1ghz", "ti,omap3630", "ti,omap3";
+ };
+ 
+ &omap3_pmx_core2 {
+diff --git a/arch/arm/boot/dts/omap3-sbc-t3730.dts b/arch/arm/boot/dts/omap3-sbc-t3730.dts
+index eb3893b9535e6..4c36bde62491d 100644
+--- a/arch/arm/boot/dts/omap3-sbc-t3730.dts
++++ b/arch/arm/boot/dts/omap3-sbc-t3730.dts
+@@ -8,7 +8,7 @@
+ 
+ / {
+ 	model = "CompuLab SBC-T3730 with CM-T3730";
+-	compatible = "compulab,omap3-sbc-t3730", "compulab,omap3-cm-t3730", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "compulab,omap3-sbc-t3730", "compulab,omap3-cm-t3730", "ti,omap3630", "ti,omap3";
+ 
+ 	aliases {
+ 		display0 = &dvi0;
+diff --git a/arch/arm/boot/dts/omap3-sniper.dts b/arch/arm/boot/dts/omap3-sniper.dts
+index b6879cdc5c13e..0591af4941847 100644
+--- a/arch/arm/boot/dts/omap3-sniper.dts
++++ b/arch/arm/boot/dts/omap3-sniper.dts
+@@ -9,7 +9,7 @@
+ 
+ / {
+ 	model = "LG Optimus Black";
+-	compatible = "lg,omap3-sniper", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "lg,omap3-sniper", "ti,omap3630", "ti,omap3";
+ 
+ 	cpus {
+ 		cpu@0 {
+diff --git a/arch/arm/boot/dts/omap3-zoom3.dts b/arch/arm/boot/dts/omap3-zoom3.dts
+index ce58b1f208e81..ab52e8d68f760 100644
+--- a/arch/arm/boot/dts/omap3-zoom3.dts
++++ b/arch/arm/boot/dts/omap3-zoom3.dts
+@@ -9,7 +9,7 @@
+ 
+ / {
+ 	model = "TI Zoom3";
+-	compatible = "ti,omap3-zoom3", "ti,omap3630", "ti,omap36xx", "ti,omap3";
++	compatible = "ti,omap3-zoom3", "ti,omap3630", "ti,omap3";
+ 
+ 	cpus {
+ 		cpu@0 {
+-- 
+2.39.1
 
-Acked-by: William Breathitt Gray <william.gray@linaro.org>
-
-> ---
->  drivers/gpio/gpio-pcie-idio-24.c | 12 +++++++++---
->  1 file changed, 9 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/gpio/gpio-pcie-idio-24.c b/drivers/gpio/gpio-pcie-id=
-io-24.c
-> index 8a9b98fa418f..ac42150f4009 100644
-> --- a/drivers/gpio/gpio-pcie-idio-24.c
-> +++ b/drivers/gpio/gpio-pcie-idio-24.c
-> @@ -396,6 +396,8 @@ static void idio_24_irq_mask(struct irq_data *data)
->  	}
-> =20
->  	raw_spin_unlock_irqrestore(&idio24gpio->lock, flags);
-> +
-> +	gpiochip_disable_irq(chip, irqd_to_hwirq(data));
->  }
-> =20
->  static void idio_24_irq_unmask(struct irq_data *data)
-> @@ -408,6 +410,8 @@ static void idio_24_irq_unmask(struct irq_data *data)
->  	const unsigned long bank_offset =3D bit_offset / 8;
->  	unsigned char cos_enable_state;
-> =20
-> +	gpiochip_enable_irq(chip, irqd_to_hwirq(data));
-> +
->  	raw_spin_lock_irqsave(&idio24gpio->lock, flags);
-> =20
->  	prev_irq_mask =3D idio24gpio->irq_mask >> bank_offset * 8;
-> @@ -437,12 +441,14 @@ static int idio_24_irq_set_type(struct irq_data *da=
-ta, unsigned int flow_type)
->  	return 0;
->  }
-> =20
-> -static struct irq_chip idio_24_irqchip =3D {
-> +static const struct irq_chip idio_24_irqchip =3D {
->  	.name =3D "pcie-idio-24",
->  	.irq_ack =3D idio_24_irq_ack,
->  	.irq_mask =3D idio_24_irq_mask,
->  	.irq_unmask =3D idio_24_irq_unmask,
-> -	.irq_set_type =3D idio_24_irq_set_type
-> +	.irq_set_type =3D idio_24_irq_set_type,
-> +	.flags =3D IRQCHIP_IMMUTABLE,
-> +	GPIOCHIP_IRQ_RESOURCE_HELPERS,
->  };
-> =20
->  static irqreturn_t idio_24_irq_handler(int irq, void *dev_id)
-> @@ -535,7 +541,7 @@ static int idio_24_probe(struct pci_dev *pdev, const =
-struct pci_device_id *id)
->  	idio24gpio->chip.set_multiple =3D idio_24_gpio_set_multiple;
-> =20
->  	girq =3D &idio24gpio->chip.irq;
-> -	girq->chip =3D &idio_24_irqchip;
-> +	gpio_irq_chip_set_chip(girq, &idio_24_irqchip);
->  	/* This will let us handle the parent IRQ in the driver */
->  	girq->parent_handler =3D NULL;
->  	girq->num_parents =3D 0;
->=20
-> --=20
-> 2.34.1
->=20
-
---cyeQsMhX/E0TO8qE
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEARYKAB0WIQSNN83d4NIlKPjon7a1SFbKvhIjKwUCY+OEugAKCRC1SFbKvhIj
-K02BAP91FSltXanO1Y/3GfoNBCJE7RStvsFHG9hsQlUmwpOJuwEA/eYRZLIo5k9G
-AtVeJJfhJC6J5AUcb0/9/dTNIIukVQ4=
-=HUho
------END PGP SIGNATURE-----
-
---cyeQsMhX/E0TO8qE--
