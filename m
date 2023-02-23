@@ -2,62 +2,164 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B343EC61DA4
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Feb 2023 08:39:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6905DC61DA4
+	for <linux-omap@archiver.kernel.org>; Thu, 23 Feb 2023 09:56:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233226AbjBWIj4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Feb 2023 03:39:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37276 "EHLO
+        id S234314AbjBWJ4s (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 23 Feb 2023 04:56:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233668AbjBWIju (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2023 03:39:50 -0500
-X-Greylist: delayed 526 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 23 Feb 2023 00:39:47 PST
-Received: from mail.surechiers.com (mail.surechiers.com [80.211.239.236])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2673731E00
-        for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2023 00:39:47 -0800 (PST)
-Received: by mail.surechiers.com (Postfix, from userid 1002)
-        id 8F80C82B1D; Thu, 23 Feb 2023 09:30:55 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=surechiers.com;
-        s=mail; t=1677141059;
-        bh=xg3VVY9SU+I+f+ynMyY8e0Lum0EY/KrTvpy5BYTg7yw=;
-        h=Date:From:To:Subject:From;
-        b=esByPpLWeGTsLgsR8Iv0aNgEaSopcU5oIWFsJIYtY25JMkQiYD/0kl3ZTYCbWY6d4
-         58b+nK1GGjO+uzqk0lTiQJd+6KQQvNfDC9BpIxmIYNoYTw6ukfGvFjTeU/9ImjcZ+Z
-         5MSVFeQM+Vvd0hxIRekxig/5jL6qG1NBo0Acz3CnrVYsPhomuIEmyoU9zHbrG8psHH
-         jaMwj9DQuvg9yxcBqbYe8icwQYHS4dhcEPW5g3ifdbAyuXieaJ5QUxFfgSVvmxFN97
-         liS9S1S6x9u2vCpKr9eH3Z6noIWxA0qdjSwI+B0brQkQXorGZMwc1DDsnHtVNC1Z0u
-         PuXpt785YzQgw==
-Received: by mail.surechiers.com for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2023 08:30:53 GMT
-Message-ID: <20230223084500-0.1.b.dr3.0.9wtb67fgka@surechiers.com>
-Date:   Thu, 23 Feb 2023 08:30:53 GMT
-From:   =?UTF-8?Q? "J=C3=A1chym_Zdr=C3=A1hal" ?= 
-        <jachym.zdrahal@surechiers.com>
-To:     <linux-omap@vger.kernel.org>
-Subject: Renovace podlahy
-X-Mailer: mail.surechiers.com
+        with ESMTP id S234212AbjBWJ4W (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2023 04:56:22 -0500
+Received: from mail-wr1-x435.google.com (mail-wr1-x435.google.com [IPv6:2a00:1450:4864:20::435])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31F5E51F96
+        for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2023 01:56:06 -0800 (PST)
+Received: by mail-wr1-x435.google.com with SMTP id t15so10290386wrz.7
+        for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2023 01:56:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=zqMvyew1VuvLR+5MrHi+CVRR54Ec9Hg3AWm5Uzuvhkk=;
+        b=y7DPYrkGk9xCwkGpaQAeXdWfCjSmojs2x7UvFOZ+JGW+Um8i0jZjaVS/JoDxV3yUZ0
+         r2mzgdIy6vEOoh0l3o6m0w1lKsOZgXuQqbdwACzgM/m1DpSE+5//S4EF3vj81Dbd1bLm
+         O4drKYRElSQ+HYorlA1n5JY9qwn/cNvnG0dTpi7UPGpPhIeDGCGUamJ8HfxuemB1tIsZ
+         5NptNCmJtIF7INhKAxupGcRrEHkhAFbInzl5ei9Zqhy18pNNqLHEl5mIWMHcxWTaF7TL
+         Lpib0IIgJrbiFYLDfpwk8fax+5qTX5rFXQOM1RvNC/rEYzOahY/lMrmWjmfm5Iwh/+xS
+         BCWw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=zqMvyew1VuvLR+5MrHi+CVRR54Ec9Hg3AWm5Uzuvhkk=;
+        b=jpHEr20WtQiFcJMbpIb6WCSdPpgSRADNuDtreelX/q+wRAGb3bADrkTY5BlmLawC63
+         jxCSA3GLZFsCef2jxej4dDpJ9Rxn0HHokjO5ll6xWyyIwWTa95EbhGiephpRc3txgFqT
+         rJuFGYFPTH6RMnHNqJ2oZ4QpUzSlse09/NkT1IcXa4b9YnFzp/5Afg7ardy3WX1T61es
+         Mvjy7stvDIVYQch9MdvNbIQQ9HaxclzZtSOiuRYSalC3154XGfAvwJijTEj3TgDC89dq
+         4C02NelCNkO5Txs0sw+vn9gqP4XEOGDzDzm9QY4ij/V83XrY55ied7nYBG0Y0fx6fcQ6
+         f1uQ==
+X-Gm-Message-State: AO0yUKUbQMCCAWhZj8qk8CbzWUGKwtJXThbWOov9r/Y22vq4K7vC8wCY
+        8YQWjhFPu9Lul+MGrEwEcB7Nig==
+X-Google-Smtp-Source: AK7set9wKGyiCs4mhXfwoAzjxI0hINeis8DMPCt/2knY34phjllU4IYlzLKUeg8KQ1/3trkYX25LXw==
+X-Received: by 2002:a5d:4806:0:b0:2c5:5a68:958 with SMTP id l6-20020a5d4806000000b002c55a680958mr10075206wrq.33.1677146164810;
+        Thu, 23 Feb 2023 01:56:04 -0800 (PST)
+Received: from ?IPV6:2a05:6e02:1041:c10:c265:a8c7:c71d:6e47? ([2a05:6e02:1041:c10:c265:a8c7:c71d:6e47])
+        by smtp.googlemail.com with ESMTPSA id u4-20020adfed44000000b002c706c754fesm6399145wro.32.2023.02.23.01.56.03
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 23 Feb 2023 01:56:04 -0800 (PST)
+Message-ID: <2b843912-cc9b-f1ac-1f81-28e3ecf8daba@linaro.org>
+Date:   Thu, 23 Feb 2023 10:56:02 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.7.1
+Subject: Re: [PATCH v2 06/16] thermal: Don't use 'device' internal thermal
+ zone structure field
+Content-Language: en-US
+To:     "Rafael J. Wysocki" <rafael@kernel.org>
+Cc:     linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Balsam CHIHI <bchihi@baylibre.com>,
+        Amit Kucheria <amitk@kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Keerthy <j-keerthy@ti.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        Ido Schimmel <idosch@nvidia.com>,
+        Mark Brown <broonie@kernel.org>,
+        "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "open list:TI BANDGAP AND THERMAL DRIVER" 
+        <linux-omap@vger.kernel.org>,
+        "moderated list:ARM/Mediatek SoC support" 
+        <linux-mediatek@lists.infradead.org>
+References: <20230221180710.2781027-1-daniel.lezcano@linaro.org>
+ <20230221180710.2781027-7-daniel.lezcano@linaro.org>
+ <CAJZ5v0gTmi7ZeDDdHWGWju4m3bv2366oVqSP1dGOT+3jLV-jaw@mail.gmail.com>
+ <0889767f-d187-0cb4-895e-c149517b6636@linaro.org>
+ <CAJZ5v0h=UCOyJ88UgEdqch4NZK+DaT8jWnDaguQGNx-KOMhPPA@mail.gmail.com>
+From:   Daniel Lezcano <daniel.lezcano@linaro.org>
+In-Reply-To: <CAJZ5v0h=UCOyJ88UgEdqch4NZK+DaT8jWnDaguQGNx-KOMhPPA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dobr=C3=A9 r=C3=A1no,
+On 22/02/2023 21:06, Rafael J. Wysocki wrote:
+> On Wed, Feb 22, 2023 at 9:00 PM Daniel Lezcano
+> <daniel.lezcano@linaro.org> wrote:
+>>
+>> On 22/02/2023 20:43, Rafael J. Wysocki wrote:
+>>> On Tue, Feb 21, 2023 at 7:07 PM Daniel Lezcano
+>>> <daniel.lezcano@linaro.org> wrote:
+>>>>
+>>>> Some drivers are directly using the thermal zone's 'device' structure
+>>>> field.
+>>>>
+>>>> Use the driver device pointer instead of the thermal zone device when
+>>>> it is available.
+>>>>
+>>>> Remove the traces when they are duplicate with the traces in the core
+>>>> code.
+>>>>
+>>>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+>>>> Reviewed-by: Balsam CHIHI <bchihi@baylibre.com> #Mediatek LVTS
+>>>> ---
+>>
+>> [ ... ]
+>>
+>>>>           thermal_zone_device_update(data->ti_thermal, THERMAL_EVENT_UNSPECIFIED);
+>>>>
+>>>> -       dev_dbg(&data->ti_thermal->device, "updated thermal zone %s\n",
+>>>> +       dev_dbg(data->bgp->dev, "updated thermal zone %s\n",
+>>>>                   data->ti_thermal->type);
+>>>
+>>> The code before the change is more consistent, because it refers to
+>>> the same object in both instances.
+>>>
+>>> It looks like a type field accessor is needed, eg. thermal_zone_device_type()?
+>>>
+>>> Or move the debug message to thermal_zone_device_update()?
+>>
+>> Actually it is done on purpose because the patch 9 replaces the accesses
+>> to 'type' by 'id', the thermal_zone_device_type() accessor won't be needed.
+> 
+> Cool.
+> 
+> However, this is a change in behavior (albeit small) which doesn't
+> appear to be necessary.
+> 
+> What would be wrong with having a tz->type accessor too?
 
-m=C4=9Bli byste z=C3=A1jem o beze=C5=A1v=C3=A9, chemicky, n=C3=A1razu a o=
-t=C4=9Bru odoln=C3=A9 podlahy?
+I can add the 'type' accessor but from my point of view it is not 
+correct because the information belongs to the thermal framework and it 
+is used to export the information in the sysfs which is along with the 
+directory name giving the id of the thermal zone.
 
-Zaji=C5=A1=C5=A5uj=C3=AD spolehlivost bez ohledu na to, zda je pou=C5=BE=C3=
-=ADv=C3=A1te v n=C3=A1ro=C4=8Dn=C3=BDch v=C3=BDrobn=C3=ADch prostorech, s=
-kladech, komunika=C4=8Dn=C3=ADch tras=C3=A1ch nebo komer=C4=8Dn=C3=ADch p=
-rostor=C3=A1ch.
+Actually, the useful information is the id of the thermal zone, not the 
+type. This one can be duplicate, for instance:
 
-Navrhli jsme snadno =C4=8Distiteln=C3=A9, hygienick=C3=A9 a protiskluzov=C3=
-=A9 podlahy pro pr=C5=AFmyslov=C3=A9 i komer=C4=8Dn=C3=AD pou=C5=BEit=C3=AD=
-=2E
+cat /sys/class/thermal/thermal_zone*/type
+acpitz
+acpitz
 
-Mohu nab=C3=ADdnout bezplatn=C3=BD audit va=C5=A1ich podlah spolu s kompl=
-exn=C3=AD anal=C3=BDzou podkladu. Mohu o tomhle zavolat?
+Given there are few places where 'type' is used in the drivers, I prefer 
+to directly change that to 'id' in the next patch instead of creating 
+the accessor for 'type', then send another series removing it.
 
 
-J=C3=A1chym Zdr=C3=A1hal
+-- 
+<http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
