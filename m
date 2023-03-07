@@ -2,130 +2,96 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDCC0C6FD1A
-	for <linux-omap@archiver.kernel.org>; Tue,  7 Mar 2023 15:31:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C416C6FD1B
+	for <linux-omap@archiver.kernel.org>; Tue,  7 Mar 2023 16:17:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229535AbjCGPbT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 7 Mar 2023 10:31:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55886 "EHLO
+        id S229881AbjCGQRj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 7 Mar 2023 11:17:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231260AbjCGPbK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 7 Mar 2023 10:31:10 -0500
+        with ESMTP id S229582AbjCGQRh (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 7 Mar 2023 11:17:37 -0500
 Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 922081BB;
-        Tue,  7 Mar 2023 07:30:59 -0800 (PST)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 327FUqEN074727;
-        Tue, 7 Mar 2023 09:30:52 -0600
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B5FE888A5;
+        Tue,  7 Mar 2023 08:17:35 -0800 (PST)
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 327GHGGY086203;
+        Tue, 7 Mar 2023 10:17:16 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1678203052;
-        bh=PuWg1KrKq8dl0F/f6mEpT2obJODTES6ox27OnS5IhC8=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=Wx4BMvIj6RXFBMeU0jhLXNBhI8sl0kRu8UYNISk+0Nyd1M/2XHeKg0BG8xhGSPLJi
-         OumPvdQDCAq2wJ2L60JZgVRAPjIC9hOtNZMjpb2B8Go7mtdmMys+Etnyg93al9Koby
-         f4j6kjgrcApt6JXkOWgDH4PHBQ+1BHqQ2VnQVZ7A=
-Received: from DLEE101.ent.ti.com (dlee101.ent.ti.com [157.170.170.31])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 327FUq9d003961
+        s=ti-com-17Q1; t=1678205836;
+        bh=sPtMFiWn6qZxTPtmEurnBZdw8JvGBI4vyPPxBHsw0dk=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=wfNvLzXWWTzZT1iM6+x1gfwb8k9mlqXsTQ0rjMcbcqT3ObbslruxBO0L0f3C+MHAz
+         u/d9TDpn0Zof21Ew7plvJYIQxmNwjzCPKdLmS4yl3JWEdc5tq1Lm4W2j85PudOdXBo
+         Vrcy68lfura85x24BBUJLdI1RUxoKmRZnM5yiJkw=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 327GHG3X011281
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 7 Mar 2023 09:30:52 -0600
-Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE101.ent.ti.com
- (157.170.170.31) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 7 Mar 2023 10:17:16 -0600
+Received: from DFLE106.ent.ti.com (10.64.6.27) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Tue, 7
- Mar 2023 09:30:51 -0600
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+ Mar 2023 10:17:15 -0600
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE106.ent.ti.com
+ (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
- Frontend Transport; Tue, 7 Mar 2023 09:30:52 -0600
-Received: from [10.250.175.93] (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 327FUmqG020149;
-        Tue, 7 Mar 2023 09:30:49 -0600
-Message-ID: <0e7dabfc-8350-2225-36ee-92aca36e069d@ti.com>
-Date:   Tue, 7 Mar 2023 21:00:47 +0530
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.6.1
-Subject: Re: [PATCH v1 06/11] thermal/drivers/ti: Use fixed update interval
-To:     Daniel Lezcano <daniel.lezcano@linaro.org>, <rafael@kernel.org>
-CC:     <rui.zhang@intel.com>, <amitk@kernel.org>,
-        Keerthy <j-keerthy@ti.com>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        "open list:TI BANDGAP AND THERMAL DRIVER" <linux-pm@vger.kernel.org>,
-        "open list:TI BANDGAP AND THERMAL DRIVER" 
+ Frontend Transport; Tue, 7 Mar 2023 10:17:15 -0600
+Received: from ula0226330.dal.design.ti.com (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 327GHFEw003079;
+        Tue, 7 Mar 2023 10:17:15 -0600
+From:   Andrew Davis <afd@ti.com>
+To:     Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Colin Foster <colin.foster@in-advantage.com>,
+        Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
+CC:     <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <linux-omap@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-References: <20230307133735.90772-1-daniel.lezcano@linaro.org>
- <20230307133735.90772-7-daniel.lezcano@linaro.org>
-Content-Language: en-US
-From:   "Gole, Dhruva" <d-gole@ti.com>
-Organization: Texas Instruments Incorporated
-In-Reply-To: <20230307133735.90772-7-daniel.lezcano@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+        <linux-arm-kernel@lists.infradead.org>, Andrew Davis <afd@ti.com>
+Subject: [PATCH v4 2/3] ARM: dts: ti: Add AM57xx GP EVM Rev A3 board support
+Date:   Tue, 7 Mar 2023 10:17:14 -0600
+Message-ID: <20230307161715.15209-3-afd@ti.com>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230307161715.15209-1-afd@ti.com>
+References: <20230307161715.15209-1-afd@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+The A3 revision of the AM57xx GP EVM has the same EVM feature set as the
+original but is paired with an updated revision C BeagleBoard X15.
 
-On 3/7/2023 7:07 PM, Daniel Lezcano wrote:
-> Currently the TI thermal driver sets the sensor update interval based
-> on the polling of the thermal zone. In order to get the polling rate,
-> the code inspects the thermal zone device strcuture internals, thus
-> breaking the self-encapsulation of the thermal framework core
-> framework.
->
-> On the other side, we see the common polling rates set in the device
-> tree for the platforms using this driver are 500 or 1000 ms.
->
-> Setting the polling rate to 250 ms would be far enough to cover the
-> combination we found in the device tree.
->
-> Instead of accessing the thermal zone device structure polling rate,
-> let's use a common update interval of 250 ms for the driver.
->
-> Cc: Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> ---
->  drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> index 0c8914017c18..430c4b43151f 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> @@ -23,6 +23,8 @@
->  #include "ti-bandgap.h"
->  #include "../thermal_hwmon.h"
->  
-> +#define TI_BANDGAP_UPDATE_INTERVAL_MS 250
-> +
->  /* common data structures */
->  struct ti_thermal_data {
->  	struct cpufreq_policy *policy;
-> @@ -159,7 +161,6 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
->  			     char *domain)
->  {
->  	struct ti_thermal_data *data;
-> -	int interval;
->  
->  	data = ti_bandgap_get_sensor_data(bgp, id);
->  
-> @@ -177,10 +178,9 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
->  		return PTR_ERR(data->ti_thermal);
->  	}
->  
-> -	interval = jiffies_to_msecs(data->ti_thermal->polling_delay_jiffies);
-> -
->  	ti_bandgap_set_sensor_data(bgp, id, data);
-> -	ti_bandgap_write_update_interval(bgp, data->sensor_id, interval);
-> +	ti_bandgap_write_update_interval(bgp, data->sensor_id,
-> +					 TI_BANDGAP_UPDATE_INTERVAL_MS);
-Reviewed-by: Dhruva Gole <d-gole@ti.com>
->  
->  	if (devm_thermal_add_hwmon_sysfs(bgp->dev, data->ti_thermal))
->  		dev_warn(bgp->dev, "failed to add hwmon sysfs attributes\n");
+DT Overlays allow us to model this in the same way, we simply apply the
+EVM overlay to the Rev C BeagleBoard to create the Rev A3 AM57xx GP EVM.
 
+Signed-off-by: Andrew Davis <afd@ti.com>
+---
+ arch/arm/boot/dts/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 7f850cf5f063..c1297fd06d2a 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -995,11 +995,13 @@ dtb-$(CONFIG_SOC_OMAP5) += \
+ 	omap5-sbc-t54.dtb \
+ 	omap5-uevm.dtb
+ am57xx-evm-dtbs := am57xx-beagle-x15.dtb am57xx-evm.dtbo
++am57xx-evm-reva3-dtbs := am57xx-beagle-x15-revc.dtb am57xx-evm.dtbo
+ dtb-$(CONFIG_SOC_DRA7XX) += \
+ 	am57xx-beagle-x15.dtb \
+ 	am57xx-beagle-x15-revb1.dtb \
+ 	am57xx-beagle-x15-revc.dtb \
+ 	am57xx-evm.dtb \
++	am57xx-evm-reva3.dtb \
+ 	am5729-beagleboneai.dtb \
+ 	am57xx-cl-som-am57x.dtb \
+ 	am57xx-sbc-am57x.dtb \
 -- 
-Regards,
-Dhruva Gole <d-gole@ti.com>
+2.39.2
 
