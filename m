@@ -2,178 +2,102 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8E17C742A7
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Mar 2023 09:25:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF876C6FD1F
+	for <linux-omap@archiver.kernel.org>; Wed,  8 Mar 2023 10:00:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229743AbjCHJZF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Mar 2023 04:25:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55330 "EHLO
+        id S230242AbjCHKAa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 8 Mar 2023 05:00:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231162AbjCHJYo (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Mar 2023 04:24:44 -0500
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0369F9E534;
-        Wed,  8 Mar 2023 01:24:23 -0800 (PST)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3289O4cl051801;
-        Wed, 8 Mar 2023 03:24:04 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1678267444;
-        bh=rzTr8bnTeROzzh3w38D9zwnOYt+bZ9ojJe2+VMJVvnQ=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=JLB8xsUVNWLxbNHbo2UlxozT+V1MrRfZo1gn1FVRQp6nLaXRgVVpUvi6dVzJqYrIS
-         VfpvhgZx955yyH1pwxTZJIaweCbQZi7CPRulD6orUv8rcX06ejRa+NJUGT3u4z0Oqe
-         X9FPiQUgPsi6qt3TaoYzWfgtOZCLzHvLygiedqbU=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3289O4F1118337
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 8 Mar 2023 03:24:04 -0600
-Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Wed, 8
- Mar 2023 03:24:04 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
- Frontend Transport; Wed, 8 Mar 2023 03:24:04 -0600
-Received: from [10.24.69.114] (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3289NwCP003784;
-        Wed, 8 Mar 2023 03:23:59 -0600
-Message-ID: <ed3dd4b6-658f-07d2-a055-4c38f2ec9db0@ti.com>
-Date:   Wed, 8 Mar 2023 14:53:57 +0530
+        with ESMTP id S230182AbjCHKA2 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Mar 2023 05:00:28 -0500
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B680E5D476
+        for <linux-omap@vger.kernel.org>; Wed,  8 Mar 2023 02:00:26 -0800 (PST)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pZqao-0004XU-NV; Wed, 08 Mar 2023 11:00:18 +0100
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pZqan-002gVv-JM; Wed, 08 Mar 2023 11:00:17 +0100
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pZqam-003Fih-IJ; Wed, 08 Mar 2023 11:00:16 +0100
+From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Arnd Bergmann <arnd@arndb.de>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        kernel@pengutronix.de
+Subject: [PATCH 5/8] ARM: omap1: omap-dma: Convert to platform remove callback returning void
+Date:   Wed,  8 Mar 2023 11:00:09 +0100
+Message-Id: <20230308100012.2539189-6-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.39.1
+In-Reply-To: <20230308100012.2539189-1-u.kleine-koenig@pengutronix.de>
+References: <20230308100012.2539189-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.7.1
-Subject: Re: [EXTERNAL] Re: [PATCH v3 4/6] soc: ti: pruss: Add helper
- functions to set GPI mode, MII_RT_event and XFR
-To:     Roger Quadros <rogerq@kernel.org>,
-        MD Danish Anwar <danishanwar@ti.com>,
-        "Andrew F. Davis" <afd@ti.com>, Suman Anna <s-anna@ti.com>,
-        "Vignesh Raghavendra" <vigneshr@ti.com>,
-        Tero Kristo <t-kristo@ti.com>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        "Santosh Shilimkar" <ssantosh@kernel.org>,
-        Nishanth Menon <nm@ti.com>
-CC:     <linux-remoteproc@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <srk@ti.com>, <devicetree@vger.kernel.org>,
-        <netdev@vger.kernel.org>
-References: <20230306110934.2736465-1-danishanwar@ti.com>
- <20230306110934.2736465-5-danishanwar@ti.com>
- <2f039534-dd21-7361-0fcd-b91da1636a3a@kernel.org>
-Content-Language: en-US
-From:   Md Danish Anwar <a0501179@ti.com>
-Organization: Texas Instruments
-In-Reply-To: <2f039534-dd21-7361-0fcd-b91da1636a3a@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1649; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=GfxekPO5UKLn9hjas5ERj7zT3o0wqe+aYW/DWQQii44=; b=owEBbQGS/pANAwAKAcH8FHityuwJAcsmYgBkCFydcC50jVpgCBwYz+Z6Spbf+aqtf7v/XMpeR vYfMoY5RXqJATMEAAEKAB0WIQR+cioWkBis/z50pAvB/BR4rcrsCQUCZAhcnQAKCRDB/BR4rcrs Cfg/B/9FgQlZjqJTF0Hvp8VukvQY+i4TRlrLzFWvtERqYxvybKgtEJhxsFYVb9g/yGxEOXOmF6j +CXCnzd0v880intLyhYflH6jSlzRhn1DWkPSLQSPVndeUwo5fIgl3a0jVnezq1A8q0qj5WttPCY 8/Hlc1EzTC6qkYByLl250TQaVni+nz9N5zjTkSP8bLSMBDdMfCvkoc7lOLVcSa2ElVgT5rwQcto C6PFbjpZ7tH0wuFUne0p5he+Sdk/czbVQ7xBvDpr9XJ6duQ/e8RrwBH/OxfkCgi82RN/N2LYrea aCO9sRFqAywYSNDBVuGxQF2CLlVfsXrXpxFvThfKpF4IDgIb
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Roger,
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is (mostly) ignored
+and this typically results in resource leaks. To improve here there is a
+quest to make the remove callback return void. In the first step of this
+quest all drivers are converted to .remove_new() which already returns
+void.
 
-On 08/03/23 14:04, Roger Quadros wrote:
-> Hi Danish,
-> 
-> On 06/03/2023 13:09, MD Danish Anwar wrote:
->> From: Suman Anna <s-anna@ti.com>
->>
->> The PRUSS CFG module is represented as a syscon node and is currently
->> managed by the PRUSS platform driver. Add easy accessor functions to set
->> GPI mode, MII_RT event enable/disable and XFR (XIN XOUT) enable/disable
->> to enable the PRUSS Ethernet usecase. These functions reuse the generic
->> pruss_cfg_update() API function.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> Co-developed-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
->> Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
->> Signed-off-by: Puranjay Mohan <p-mohan@ti.com>
->> ---
->>  include/linux/remoteproc/pruss.h | 55 ++++++++++++++++++++++++++++++++
->>  1 file changed, 55 insertions(+)
->>
->> diff --git a/include/linux/remoteproc/pruss.h b/include/linux/remoteproc/pruss.h
->> index d41bec448f06..7952f250301a 100644
->> --- a/include/linux/remoteproc/pruss.h
->> +++ b/include/linux/remoteproc/pruss.h
->> @@ -240,4 +240,59 @@ static inline bool is_pru_rproc(struct device *dev)
->>  	return true;
->>  }
->>  
->> +/**
->> + * pruss_cfg_gpimode() - set the GPI mode of the PRU
->> + * @pruss: the pruss instance handle
->> + * @pru_id: id of the PRU core within the PRUSS
->> + * @mode: GPI mode to set
->> + *
->> + * Sets the GPI mode for a given PRU by programming the
->> + * corresponding PRUSS_CFG_GPCFGx register
->> + *
->> + * Return: 0 on success, or an error code otherwise
->> + */
->> +static inline int pruss_cfg_gpimode(struct pruss *pruss,
->> +				    enum pruss_pru_id pru_id,
->> +				    enum pruss_gpi_mode mode)
->> +{
->> +	if (pru_id < 0 || pru_id >= PRUSS_NUM_PRUS)
->> +		return -EINVAL;
->> +
-> 
-> Should we check for invalid gpi mode and error out if so?
-> 
-Sure we can check for invalid gpi mode.
+Trivially convert this driver from always returning zero in the remove
+callback to the void returning variant.
 
-Does the below code snippet looks good to you?
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+ arch/arm/mach-omap1/omap-dma.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-	if(mode < PRUSS_GPI_MODE_DIRECT || mode > PRUSS_GPI_MODE_MII)
-		return -EINVAL;
-
->> +	return pruss_cfg_update(pruss, PRUSS_CFG_GPCFG(pru_id),
->> +				PRUSS_GPCFG_PRU_GPI_MODE_MASK,
->> +				mode << PRUSS_GPCFG_PRU_GPI_MODE_SHIFT);
->> +}
->> +
->> +/**
->> + * pruss_cfg_miirt_enable() - Enable/disable MII RT Events
->> + * @pruss: the pruss instance
->> + * @enable: enable/disable
->> + *
->> + * Enable/disable the MII RT Events for the PRUSS.
->> + *
->> + * Return: 0 on success, or an error code otherwise
->> + */
->> +static inline int pruss_cfg_miirt_enable(struct pruss *pruss, bool enable)
->> +{
->> +	u32 set = enable ? PRUSS_MII_RT_EVENT_EN : 0;
->> +
->> +	return pruss_cfg_update(pruss, PRUSS_CFG_MII_RT,
->> +				PRUSS_MII_RT_EVENT_EN, set);
->> +}
->> +
->> +/**
->> + * pruss_cfg_xfr_enable() - Enable/disable XIN XOUT shift functionality
->> + * @pruss: the pruss instance
->> + * @enable: enable/disable
->> + *
->> + * Return: 0 on success, or an error code otherwise
->> + */
->> +static inline int pruss_cfg_xfr_enable(struct pruss *pruss, bool enable)
->> +{
->> +	u32 set = enable ? PRUSS_SPP_XFER_SHIFT_EN : 0;
->> +
->> +	return pruss_cfg_update(pruss, PRUSS_CFG_SPP,
->> +				PRUSS_SPP_XFER_SHIFT_EN, set);
->> +}
->> +
->>  #endif /* __LINUX_PRUSS_H */
-> 
-> cheers,
-> -roger
-
+diff --git a/arch/arm/mach-omap1/omap-dma.c b/arch/arm/mach-omap1/omap-dma.c
+index f7e62de427f3..9ee472f8ead1 100644
+--- a/arch/arm/mach-omap1/omap-dma.c
++++ b/arch/arm/mach-omap1/omap-dma.c
+@@ -833,7 +833,7 @@ static int omap_system_dma_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int omap_system_dma_remove(struct platform_device *pdev)
++static void omap_system_dma_remove(struct platform_device *pdev)
+ {
+ 	int dma_irq, irq_rel = 0;
+ 
+@@ -841,13 +841,11 @@ static int omap_system_dma_remove(struct platform_device *pdev)
+ 		dma_irq = platform_get_irq(pdev, irq_rel);
+ 		free_irq(dma_irq, (void *)(irq_rel + 1));
+ 	}
+-
+-	return 0;
+ }
+ 
+ static struct platform_driver omap_system_dma_driver = {
+ 	.probe		= omap_system_dma_probe,
+-	.remove		= omap_system_dma_remove,
++	.remove_new	= omap_system_dma_remove,
+ 	.driver		= {
+ 		.name	= "omap_dma_system"
+ 	},
 -- 
-Thanks and Regards,
-Danish.
+2.39.1
+
