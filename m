@@ -2,60 +2,60 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3935C6FD19
-	for <linux-omap@archiver.kernel.org>; Thu,  9 Mar 2023 07:47:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E127C64EC4
+	for <linux-omap@archiver.kernel.org>; Thu,  9 Mar 2023 07:47:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230361AbjCIHrf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 9 Mar 2023 02:47:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46454 "EHLO
+        id S230366AbjCIHrp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 9 Mar 2023 02:47:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230301AbjCIHqo (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Mar 2023 02:46:44 -0500
-Received: from mail-lf1-x12a.google.com (mail-lf1-x12a.google.com [IPv6:2a00:1450:4864:20::12a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 570BFDDF2E
-        for <linux-omap@vger.kernel.org>; Wed,  8 Mar 2023 23:46:13 -0800 (PST)
-Received: by mail-lf1-x12a.google.com with SMTP id k14so1150081lfj.7
-        for <linux-omap@vger.kernel.org>; Wed, 08 Mar 2023 23:46:13 -0800 (PST)
+        with ESMTP id S230131AbjCIHqw (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Mar 2023 02:46:52 -0500
+Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A02FDD357
+        for <linux-omap@vger.kernel.org>; Wed,  8 Mar 2023 23:46:15 -0800 (PST)
+Received: by mail-lj1-x22c.google.com with SMTP id b13so916002ljf.6
+        for <linux-omap@vger.kernel.org>; Wed, 08 Mar 2023 23:46:15 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1678347971;
+        d=linaro.org; s=google; t=1678347974;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=vYLgGoAAs4DcH8LZQncbtVAjj3rbStL1HUOVD02/kfE=;
-        b=rJW1pSbwgXGQIlPm5ZBopg7dEA8C3O55AzE5vYaOruYmgvx5z0j4F7H0Lewh/xU3Dd
-         /xeRDYCyohcL0ULLOkqBAsG46h38ZzjlCTW3uMseFqTSg1h4cuygoaeaJL5N27Y+krl9
-         XwIDv02p5/81Z9aTe/zJ9iT+5T6G7cfeMDThpA/1G2zkZUNgLKvDm/s4yLJehxUn59Y2
-         zkg9YB16i46HNi0D1AyIlIyZSE9TCV2nAMM74+snebtys9ozxLiRKJ/Wn0yAwXt8WuXg
-         Wb1AXDnYkimrgs3ZMuS/B8e09KuQwmWyxwCQsGqDOjtXrKfgmI/NTlQOVLm6XUXiTC8D
-         bOIA==
+        bh=/ycp1fOFRcqnvrXtuAswlNcdj2NkXI8qjDu7ztULp4g=;
+        b=hfYUvbEJ/fIs0adm48Nn43F1+/5O7YPhYpEpE/GRRX2ZWZh6Gq+yCigTRjTLV/SkXN
+         EpZ/VQupisd3fsrS7/H/gCFUoMeX5JGZkvaZ7xtzK4gRVZZ2UmkBx9v5BfV5eY5PQy3b
+         sePtBA87IWZ8Ux7FBFpZ3wTFqe67boz1z867/kDMzJfoX82TaPRyMaelqKdFTikiOM8f
+         rvPfgXQXjKPcVm9VeRxRb7H+zXL989U9EAzlfR2uqXTYXvu98NBxaLBdDuUmo7+Pilld
+         0o3IRXZp5dLbQpnnOVuSp/qIX+2Ys07bLCdGkAgj0vbmtMvdKNe58z8YxfFQTFgwozP1
+         Nw5g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678347971;
+        d=1e100.net; s=20210112; t=1678347974;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=vYLgGoAAs4DcH8LZQncbtVAjj3rbStL1HUOVD02/kfE=;
-        b=knn7OaXtsAvANOf/jIZuXlhlOr3IvZ4qfZmMjtMGL8V5xU7ZHtEM4rh/9cXTMBk66U
-         fw4xyg4vyETfmbE9E7hzpqihsXEy4Jfy0rw05lfOnJ64hNb9chZp9Ks3ANwI7WWXeAjL
-         v7IINKCFXDuWd9T4VqJAIX56H6HhaVOG86KzYf5BPdMK+3Gp++/+q9cGCylbgZ5PpHI+
-         nApXvJJ8f61YNQeydBL3sK69bhIBPf0J9nAOeFl2U4cWM3Owkas4akee8nWVs0qrqy5B
-         /LKHjFBGuq2eOAZEpCnEoWrH579R28+ag93sAPpip3oHyqZ4HcBtaNo0Me5o8MBZdOrc
-         6DJw==
-X-Gm-Message-State: AO0yUKUcHvC/i78GzHjF1JOxM1o+NLuWT7Rbzo8w5ajLBrXMbZpEFx6n
-        Mo5JY2uJ2g1l4BRaoz+JuKHvmQ==
-X-Google-Smtp-Source: AK7set+OwrelDKOTCHQ5D4UzvKLaGoQSyvbZB2fwQemO/aBw4V37VR9FeZ0MmSn2ufVp+AZCP6MVTQ==
-X-Received: by 2002:ac2:5a4c:0:b0:4dc:7ff4:83f9 with SMTP id r12-20020ac25a4c000000b004dc7ff483f9mr6093156lfn.16.1678347971558;
-        Wed, 08 Mar 2023 23:46:11 -0800 (PST)
+        bh=/ycp1fOFRcqnvrXtuAswlNcdj2NkXI8qjDu7ztULp4g=;
+        b=iuV25QluECI9KzXyFOyNqnnz6JSgTGEHgbtHz/TcUYKQqaW/jd4ThC2tJEhQk/dQjl
+         wFKr3s2ARgFu91UKVkI4l5+PCT/i0pxdrXAdkvMEzBhCh2Hdu6oq/lInsZ9daKDy4dmU
+         tY/ITFrZv0ZRl/ibjJw8lhTp7wxhipbIQGZLznni7sLIKDjDpfiWSm2CDGf4cU6VOG0L
+         4VTANUgDXdymnLWiC7oYTEJ8L0TnpQh+n0VgdtKIVn2lFeoMnb5gz22kEU9ULefHzLNx
+         VYnmAHbmUNjUsD6jU4OeBp1PoiKIaJ5N+sN0Pngr1h8JVL3jnlY/3jyPM5GtAVoFUXyL
+         LFeg==
+X-Gm-Message-State: AO0yUKXwBt2elayVtwSNPI93BCqE+4wlmv8jgBp1rBKqHgWvvf6kMuQ2
+        xn4Pq04QmFRsQVreeebIs8J/pw==
+X-Google-Smtp-Source: AK7set+Rry5lPtiW93AZhDxq/Tyl/szlfsTGucmnPsQNNXqvYn6WiEk2+814+u0pUuLqnBF+Evuqnw==
+X-Received: by 2002:a05:651c:88:b0:293:3dd6:89a4 with SMTP id 8-20020a05651c008800b002933dd689a4mr6194273ljq.34.1678347973846;
+        Wed, 08 Mar 2023 23:46:13 -0800 (PST)
 Received: from [127.0.1.1] ([85.235.12.219])
-        by smtp.gmail.com with ESMTPSA id a6-20020a056512020600b004bb766e01a4sm2568972lfo.245.2023.03.08.23.46.10
+        by smtp.gmail.com with ESMTPSA id a6-20020a056512020600b004bb766e01a4sm2568972lfo.245.2023.03.08.23.46.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 08 Mar 2023 23:46:11 -0800 (PST)
+        Wed, 08 Mar 2023 23:46:13 -0800 (PST)
 From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 09 Mar 2023 08:46:03 +0100
-Subject: [PATCH v3 15/17] gpio: omap: Convert to immutable irq_chip
+Date:   Thu, 09 Mar 2023 08:46:05 +0100
+Subject: [PATCH v3 17/17] gpio: pcie-idio-24: Convert to immutable irq_chip
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230215-immutable-chips-v3-15-972542092a77@linaro.org>
+Message-Id: <20230215-immutable-chips-v3-17-972542092a77@linaro.org>
 References: <20230215-immutable-chips-v3-0-972542092a77@linaro.org>
 In-Reply-To: <20230215-immutable-chips-v3-0-972542092a77@linaro.org>
 To:     Mun Yew Tham <mun.yew.tham@intel.com>,
@@ -75,7 +75,7 @@ Cc:     linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-aspeed@lists.ozlabs.org, linux-omap@vger.kernel.org,
         Linus Walleij <linus.walleij@linaro.org>,
-        Marc Zyngier <maz@kernel.org>, Tony Lindgren <tony@atomide.com>
+        Marc Zyngier <maz@kernel.org>
 X-Mailer: b4 0.12.1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
@@ -84,167 +84,62 @@ X-Mailing-List: linux-omap@vger.kernel.org
 Convert the driver to immutable irq-chip with a bit of
 intuition.
 
-This driver require some special care: .irq_ack() was copied
-from dummy_irq_chip where it was defined as noop. This only
-makes sense if using handle_edge_irq() that will unconditionally
-call .irq_ack() to avoid a crash, but this driver is not ever
-using handle_edge_irq() so just avoid assigning .irq_ack().
-
-A separate chip had to be created for the non-wakeup instance.
-
 Cc: Marc Zyngier <maz@kernel.org>
-Reviewed-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
+Acked-by: William Breathitt Gray <william.gray@linaro.org>
 Acked-by: Marc Zyngier <maz@kernel.org>
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- drivers/gpio/gpio-omap.c | 68 ++++++++++++++++++++++++++++++++----------------
- 1 file changed, 45 insertions(+), 23 deletions(-)
+ drivers/gpio/gpio-pcie-idio-24.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 1cbd040cf796..a08be5bf6808 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -12,6 +12,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/interrupt.h>
-+#include <linux/seq_file.h>
- #include <linux/syscore_ops.h>
- #include <linux/err.h>
- #include <linux/clk.h>
-@@ -47,6 +48,7 @@ struct gpio_regs {
- struct gpio_bank {
- 	void __iomem *base;
- 	const struct omap_gpio_reg_offs *regs;
-+	struct device *dev;
- 
- 	int irq;
- 	u32 non_wakeup_gpios;
-@@ -681,6 +683,7 @@ static void omap_gpio_mask_irq(struct irq_data *d)
- 	omap_set_gpio_triggering(bank, offset, IRQ_TYPE_NONE);
- 	omap_set_gpio_irqenable(bank, offset, 0);
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
-+	gpiochip_disable_irq(&bank->chip, offset);
- }
- 
- static void omap_gpio_unmask_irq(struct irq_data *d)
-@@ -690,6 +693,7 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
- 	u32 trigger = irqd_get_trigger_type(d);
- 	unsigned long flags;
- 
-+	gpiochip_enable_irq(&bank->chip, offset);
- 	raw_spin_lock_irqsave(&bank->lock, flags);
- 	omap_set_gpio_irqenable(bank, offset, 1);
- 
-@@ -708,6 +712,40 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
- }
- 
-+static void omap_gpio_irq_print_chip(struct irq_data *d, struct seq_file *p)
-+{
-+	struct gpio_bank *bank = omap_irq_data_get_bank(d);
-+
-+	seq_printf(p, dev_name(bank->dev));
-+}
-+
-+static const struct irq_chip omap_gpio_irq_chip = {
-+	.irq_startup = omap_gpio_irq_startup,
-+	.irq_shutdown = omap_gpio_irq_shutdown,
-+	.irq_mask = omap_gpio_mask_irq,
-+	.irq_unmask = omap_gpio_unmask_irq,
-+	.irq_set_type = omap_gpio_irq_type,
-+	.irq_set_wake = omap_gpio_wake_enable,
-+	.irq_bus_lock = omap_gpio_irq_bus_lock,
-+	.irq_bus_sync_unlock = gpio_irq_bus_sync_unlock,
-+	.irq_print_chip = omap_gpio_irq_print_chip,
-+	.flags = IRQCHIP_MASK_ON_SUSPEND | IRQCHIP_IMMUTABLE,
-+	 GPIOCHIP_IRQ_RESOURCE_HELPERS,
-+};
-+
-+static const struct irq_chip omap_gpio_irq_chip_nowake = {
-+	.irq_startup = omap_gpio_irq_startup,
-+	.irq_shutdown = omap_gpio_irq_shutdown,
-+	.irq_mask = omap_gpio_mask_irq,
-+	.irq_unmask = omap_gpio_unmask_irq,
-+	.irq_set_type = omap_gpio_irq_type,
-+	.irq_bus_lock = omap_gpio_irq_bus_lock,
-+	.irq_bus_sync_unlock = gpio_irq_bus_sync_unlock,
-+	.irq_print_chip = omap_gpio_irq_print_chip,
-+	.flags = IRQCHIP_MASK_ON_SUSPEND | IRQCHIP_IMMUTABLE,
-+	 GPIOCHIP_IRQ_RESOURCE_HELPERS,
-+};
-+
- /*---------------------------------------------------------------------*/
- 
- static int omap_mpuio_suspend_noirq(struct device *dev)
-@@ -986,8 +1024,7 @@ static void omap_gpio_mod_init(struct gpio_bank *bank)
- 		writel_relaxed(0, base + bank->regs->ctrl);
- }
- 
--static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc,
--			       struct device *pm_dev)
-+static int omap_gpio_chip_init(struct gpio_bank *bank, struct device *pm_dev)
- {
- 	struct gpio_irq_chip *irq;
- 	static int gpio;
-@@ -1023,12 +1060,12 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc,
+diff --git a/drivers/gpio/gpio-pcie-idio-24.c b/drivers/gpio/gpio-pcie-idio-24.c
+index 8a9b98fa418f..ac42150f4009 100644
+--- a/drivers/gpio/gpio-pcie-idio-24.c
++++ b/drivers/gpio/gpio-pcie-idio-24.c
+@@ -396,6 +396,8 @@ static void idio_24_irq_mask(struct irq_data *data)
  	}
- 	bank->chip.ngpio = bank->width;
  
-+	irq = &bank->chip.irq;
- 	/* MPUIO is a bit different, reading IRQ status clears it */
- 	if (bank->is_mpuio && !bank->regs->wkup_en)
--		irqc->irq_set_wake = NULL;
--
--	irq = &bank->chip.irq;
--	irq->chip = irqc;
-+		gpio_irq_chip_set_chip(irq, &omap_gpio_irq_chip_nowake);
-+	else
-+		gpio_irq_chip_set_chip(irq, &omap_gpio_irq_chip);
- 	irq->handler = handle_bad_irq;
- 	irq->default_type = IRQ_TYPE_NONE;
- 	irq->num_parents = 1;
-@@ -1361,7 +1398,6 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	struct device_node *node = dev->of_node;
- 	const struct omap_gpio_platform_data *pdata;
- 	struct gpio_bank *bank;
--	struct irq_chip *irqc;
- 	int ret;
+ 	raw_spin_unlock_irqrestore(&idio24gpio->lock, flags);
++
++	gpiochip_disable_irq(chip, irqd_to_hwirq(data));
+ }
  
- 	pdata = device_get_match_data(dev);
-@@ -1374,21 +1410,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	if (!bank)
- 		return -ENOMEM;
+ static void idio_24_irq_unmask(struct irq_data *data)
+@@ -408,6 +410,8 @@ static void idio_24_irq_unmask(struct irq_data *data)
+ 	const unsigned long bank_offset = bit_offset / 8;
+ 	unsigned char cos_enable_state;
  
--	irqc = devm_kzalloc(dev, sizeof(*irqc), GFP_KERNEL);
--	if (!irqc)
--		return -ENOMEM;
--
--	irqc->irq_startup = omap_gpio_irq_startup,
--	irqc->irq_shutdown = omap_gpio_irq_shutdown,
--	irqc->irq_ack = dummy_irq_chip.irq_ack,
--	irqc->irq_mask = omap_gpio_mask_irq,
--	irqc->irq_unmask = omap_gpio_unmask_irq,
--	irqc->irq_set_type = omap_gpio_irq_type,
--	irqc->irq_set_wake = omap_gpio_wake_enable,
--	irqc->irq_bus_lock = omap_gpio_irq_bus_lock,
--	irqc->irq_bus_sync_unlock = gpio_irq_bus_sync_unlock,
--	irqc->name = dev_name(&pdev->dev);
--	irqc->flags = IRQCHIP_MASK_ON_SUSPEND;
-+	bank->dev = dev;
++	gpiochip_enable_irq(chip, irqd_to_hwirq(data));
++
+ 	raw_spin_lock_irqsave(&idio24gpio->lock, flags);
  
- 	bank->irq = platform_get_irq(pdev, 0);
- 	if (bank->irq <= 0) {
-@@ -1452,7 +1474,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 	prev_irq_mask = idio24gpio->irq_mask >> bank_offset * 8;
+@@ -437,12 +441,14 @@ static int idio_24_irq_set_type(struct irq_data *data, unsigned int flow_type)
+ 	return 0;
+ }
  
- 	omap_gpio_mod_init(bank);
+-static struct irq_chip idio_24_irqchip = {
++static const struct irq_chip idio_24_irqchip = {
+ 	.name = "pcie-idio-24",
+ 	.irq_ack = idio_24_irq_ack,
+ 	.irq_mask = idio_24_irq_mask,
+ 	.irq_unmask = idio_24_irq_unmask,
+-	.irq_set_type = idio_24_irq_set_type
++	.irq_set_type = idio_24_irq_set_type,
++	.flags = IRQCHIP_IMMUTABLE,
++	GPIOCHIP_IRQ_RESOURCE_HELPERS,
+ };
  
--	ret = omap_gpio_chip_init(bank, irqc, dev);
-+	ret = omap_gpio_chip_init(bank, dev);
- 	if (ret) {
- 		pm_runtime_put_sync(dev);
- 		pm_runtime_disable(dev);
+ static irqreturn_t idio_24_irq_handler(int irq, void *dev_id)
+@@ -535,7 +541,7 @@ static int idio_24_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	idio24gpio->chip.set_multiple = idio_24_gpio_set_multiple;
+ 
+ 	girq = &idio24gpio->chip.irq;
+-	girq->chip = &idio_24_irqchip;
++	gpio_irq_chip_set_chip(girq, &idio_24_irqchip);
+ 	/* This will let us handle the parent IRQ in the driver */
+ 	girq->parent_handler = NULL;
+ 	girq->num_parents = 0;
 
 -- 
 2.34.1
