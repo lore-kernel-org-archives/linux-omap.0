@@ -2,60 +2,60 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B34AC64EC4
-	for <linux-omap@archiver.kernel.org>; Thu,  9 Mar 2023 07:47:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B552C6FD1F
+	for <linux-omap@archiver.kernel.org>; Thu,  9 Mar 2023 07:47:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229651AbjCIHrS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 9 Mar 2023 02:47:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45552 "EHLO
+        id S230346AbjCIHrd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 9 Mar 2023 02:47:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230264AbjCIHql (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Mar 2023 02:46:41 -0500
-Received: from mail-lf1-x12d.google.com (mail-lf1-x12d.google.com [IPv6:2a00:1450:4864:20::12d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE0FDDD5BD
-        for <linux-omap@vger.kernel.org>; Wed,  8 Mar 2023 23:46:10 -0800 (PST)
-Received: by mail-lf1-x12d.google.com with SMTP id d36so1141569lfv.8
-        for <linux-omap@vger.kernel.org>; Wed, 08 Mar 2023 23:46:10 -0800 (PST)
+        with ESMTP id S230300AbjCIHqn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Mar 2023 02:46:43 -0500
+Received: from mail-lf1-x136.google.com (mail-lf1-x136.google.com [IPv6:2a00:1450:4864:20::136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A498DDF2B
+        for <linux-omap@vger.kernel.org>; Wed,  8 Mar 2023 23:46:13 -0800 (PST)
+Received: by mail-lf1-x136.google.com with SMTP id m6so1161697lfq.5
+        for <linux-omap@vger.kernel.org>; Wed, 08 Mar 2023 23:46:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1678347970;
+        d=linaro.org; s=google; t=1678347972;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=p1r1zyYA9t+QO+JcvGnUo/RuruD1eWdYkbb9TESedm0=;
-        b=Tn0kT9pG+OpUApaG8znHQ+ekGoIVakiLzD95tkVlpHddMSmj9vog6WG1rG3HUDZpgC
-         BuaWUky0NZEFG3ZjPUEXCHe4cjuJR4SB0LLxYr/6BEwlPalYqJ6aOkj73iU3gVyGurYv
-         dgBNUTKW/8M2EvU3Wvmzljdpz+fwneQxO6uQOe1kVLLE7T8m6XX3o8gLdJAbG+wZy4zM
-         JYyqjcm1V+q7sf8tnlK/k2TEUIIRKSJM4OF3CUv3TDMnLRdu342Hsyf6/PmXD1hTlhiV
-         bPOKa03FmOGd6MT+j+We7hC3UCMI3wCQXCQKuU11VOTZ204ZYL8/1oLy8hOm4JNjrCJM
-         m4pw==
+        bh=EBLzNrziBJousn1yobeY2nHyRl+4RLWPBMZMMzuQhho=;
+        b=bWmtMKb6fEUF/NZ6LH5RuXerUIViljmwR4bhAP4X3ybB1hO77AJtkWOPfPKgUmh/jW
+         TmF5VNEgVV1l9zxS2yaBM0mmE1P8UQMBVY06NqrmxcGTY2KexUr8WXnpjvApNqP0XgwS
+         xFDF/9ZXGlZWKSQproLVORlPhMr+pLQOhS6ifVO12cldkZJk2Kkl5fM2G7G0BomE5684
+         hMVjRCrFdG0EXD8hhzDA6Ppf/gHui37ivuZ/rMpnpbkI447fZlG798+d+wZkcNuKUBkP
+         ppUhPHLOOMIwamflqyJtuoMxXx+FJiaP+JGvKBF9r/jQnXxqls2IIuFdVMDMOeePY5T2
+         IbXQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678347970;
+        d=1e100.net; s=20210112; t=1678347972;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=p1r1zyYA9t+QO+JcvGnUo/RuruD1eWdYkbb9TESedm0=;
-        b=dtcdgAxlSodNEYDPZOSx0cKHaCVeYFb4Cxxpg2SEPWYSv9snfa0H4VskiQWR+AmESn
-         bLOBNYNMT57ogAtxvGqSV2EfbN9qwHJZnHcoEBL2P+9RXJkLYpFZgYxstMTuoYJm9LRx
-         YByFHS/h/MJFTu+lOR0HXvTjRYVIiv9CGx3SNZuR+AsR9fRbUHEKnbF1FZabPS/4Yjff
-         FjK+59s1ZaQCpJkPmvxlws7iNuzDt3Pgl7kMy0CEbV17mBWLsPRq5FIhlaBFEs4l3MXE
-         6AG5H4kPGH0+ob8DVIH/7uz5tIOe3Ks3+Lg1XihGxBV6Z27VpI/yq4UbJWm7DL/uhb19
-         yvOw==
-X-Gm-Message-State: AO0yUKV6Cv5RlCxSQkQoKPhbqaD0jPpYWvTIjb3tJtIcvgBA6OsgjNYu
-        xjF9tFx0SrSqGjFv99KpKWw1rw==
-X-Google-Smtp-Source: AK7set/7z6Z0N4Go3hn+jqpbROoq+slAfzXqziRoxhWDiBhE25au89gRe6ixCefCQGyqKogt0n9jjw==
-X-Received: by 2002:ac2:54a5:0:b0:4dc:4b92:dbc4 with SMTP id w5-20020ac254a5000000b004dc4b92dbc4mr5293556lfk.14.1678347970521;
-        Wed, 08 Mar 2023 23:46:10 -0800 (PST)
+        bh=EBLzNrziBJousn1yobeY2nHyRl+4RLWPBMZMMzuQhho=;
+        b=18RHSx6cgrv+uW5FEPbcaJ/NM0a7e92rVIXUlS8epRnrKLYKPg5u59DA1W+d5+MVgS
+         TKC5Up/fux5FnA5qb8VBhxcUv1oqmQxJzfdH7SwPuKNPwmsk8HWiiUuzHIPse2X70pho
+         OdAZ9w8sOQAYsFaeHJc5frpaBYfzSHiVIXGmWJEFaAKiMNsRkLAZfLbeNaf7zuj1xEcL
+         64/Kizg9vnNbgWC7S2G34XQZ766pvD7Dq5aIbM317p/vUbcVZ1U84xU87muppBYyopsN
+         Y+2CziZWRw3Iph13apdndTgHgiCLSMWsGN+qfl3VZjbrndb7WoNhWb5qdsWaLLSJyxxz
+         bLWw==
+X-Gm-Message-State: AO0yUKVpS4cnaF1F5s1ld1X0FfEH3Z+pIeL4cHqf/LOF4rvY1zJLbzt7
+        GOwheLaYJBU0/1Dtj6suvIy/aQ==
+X-Google-Smtp-Source: AK7set9olKiBOTVrFht+9xflh5zhHRdfaQm4sTKxC2vdSTyE8Hr2EklbTYRVmpul0pWlgnCeBjc9Zg==
+X-Received: by 2002:ac2:538c:0:b0:4d7:44c9:9f4c with SMTP id g12-20020ac2538c000000b004d744c99f4cmr5198184lfh.4.1678347972678;
+        Wed, 08 Mar 2023 23:46:12 -0800 (PST)
 Received: from [127.0.1.1] ([85.235.12.219])
-        by smtp.gmail.com with ESMTPSA id a6-20020a056512020600b004bb766e01a4sm2568972lfo.245.2023.03.08.23.46.09
+        by smtp.gmail.com with ESMTPSA id a6-20020a056512020600b004bb766e01a4sm2568972lfo.245.2023.03.08.23.46.11
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 08 Mar 2023 23:46:10 -0800 (PST)
+        Wed, 08 Mar 2023 23:46:12 -0800 (PST)
 From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 09 Mar 2023 08:46:02 +0100
-Subject: [PATCH v3 14/17] gpio: omap: Drop irq_base
+Date:   Thu, 09 Mar 2023 08:46:04 +0100
+Subject: [PATCH v3 16/17] gpio: pci-idio-16: Convert to immutable irq_chip
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230215-immutable-chips-v3-14-972542092a77@linaro.org>
+Message-Id: <20230215-immutable-chips-v3-16-972542092a77@linaro.org>
 References: <20230215-immutable-chips-v3-0-972542092a77@linaro.org>
 In-Reply-To: <20230215-immutable-chips-v3-0-972542092a77@linaro.org>
 To:     Mun Yew Tham <mun.yew.tham@intel.com>,
@@ -75,68 +75,71 @@ Cc:     linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-aspeed@lists.ozlabs.org, linux-omap@vger.kernel.org,
         Linus Walleij <linus.walleij@linaro.org>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <maz@kernel.org>
+        Marc Zyngier <maz@kernel.org>
 X-Mailer: b4 0.12.1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The OMAP1 at one point was using static irqs but that time is gone,
-OMAP1 uses sparse irqs like all other multiplatform targets so this
-static allocation of descriptors should just go.
+Convert the driver to immutable irq-chip with a bit of
+intuition.
 
-Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Marc Zyngier <maz@kernel.org>
+Acked-by: William Breathitt Gray <william.gray@linaro.org>
 Acked-by: Marc Zyngier <maz@kernel.org>
-Reviewed-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- drivers/gpio/gpio-omap.c | 15 ---------------
- 1 file changed, 15 deletions(-)
+ drivers/gpio/gpio-pci-idio-16.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index f5f3d4b22452..1cbd040cf796 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -992,7 +992,6 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc,
- 	struct gpio_irq_chip *irq;
- 	static int gpio;
- 	const char *label;
--	int irq_base = 0;
- 	int ret;
+diff --git a/drivers/gpio/gpio-pci-idio-16.c b/drivers/gpio/gpio-pci-idio-16.c
+index a86ce748384b..6726c32e31e6 100644
+--- a/drivers/gpio/gpio-pci-idio-16.c
++++ b/drivers/gpio/gpio-pci-idio-16.c
+@@ -107,6 +107,8 @@ static void idio_16_irq_mask(struct irq_data *data)
  
- 	/*
-@@ -1024,19 +1023,6 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc,
+ 		raw_spin_unlock_irqrestore(&idio16gpio->lock, flags);
  	}
- 	bank->chip.ngpio = bank->width;
++
++	gpiochip_disable_irq(chip, irqd_to_hwirq(data));
+ }
  
--#ifdef CONFIG_ARCH_OMAP1
--	/*
--	 * REVISIT: Once we have OMAP1 supporting SPARSE_IRQ, we can drop
--	 * irq_alloc_descs() since a base IRQ offset will no longer be needed.
--	 */
--	irq_base = devm_irq_alloc_descs(bank->chip.parent,
--					-1, 0, bank->width, 0);
--	if (irq_base < 0) {
--		dev_err(bank->chip.parent, "Couldn't allocate IRQ numbers\n");
--		return -ENODEV;
--	}
--#endif
--
- 	/* MPUIO is a bit different, reading IRQ status clears it */
- 	if (bank->is_mpuio && !bank->regs->wkup_en)
- 		irqc->irq_set_wake = NULL;
-@@ -1047,7 +1033,6 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc,
- 	irq->default_type = IRQ_TYPE_NONE;
- 	irq->num_parents = 1;
- 	irq->parents = &bank->irq;
--	irq->first = irq_base;
+ static void idio_16_irq_unmask(struct irq_data *data)
+@@ -117,6 +119,8 @@ static void idio_16_irq_unmask(struct irq_data *data)
+ 	const unsigned long prev_irq_mask = idio16gpio->irq_mask;
+ 	unsigned long flags;
  
- 	ret = gpiochip_add_data(&bank->chip, bank);
- 	if (ret)
++	gpiochip_enable_irq(chip, irqd_to_hwirq(data));
++
+ 	idio16gpio->irq_mask |= mask;
+ 
+ 	if (!prev_irq_mask) {
+@@ -138,12 +142,14 @@ static int idio_16_irq_set_type(struct irq_data *data, unsigned int flow_type)
+ 	return 0;
+ }
+ 
+-static struct irq_chip idio_16_irqchip = {
++static const struct irq_chip idio_16_irqchip = {
+ 	.name = "pci-idio-16",
+ 	.irq_ack = idio_16_irq_ack,
+ 	.irq_mask = idio_16_irq_mask,
+ 	.irq_unmask = idio_16_irq_unmask,
+-	.irq_set_type = idio_16_irq_set_type
++	.irq_set_type = idio_16_irq_set_type,
++	.flags = IRQCHIP_IMMUTABLE,
++	GPIOCHIP_IRQ_RESOURCE_HELPERS,
+ };
+ 
+ static irqreturn_t idio_16_irq_handler(int irq, void *dev_id)
+@@ -242,7 +248,7 @@ static int idio_16_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	idio_16_state_init(&idio16gpio->state);
+ 
+ 	girq = &idio16gpio->chip.irq;
+-	girq->chip = &idio_16_irqchip;
++	gpio_irq_chip_set_chip(girq, &idio_16_irqchip);
+ 	/* This will let us handle the parent IRQ in the driver */
+ 	girq->parent_handler = NULL;
+ 	girq->num_parents = 0;
 
 -- 
 2.34.1
