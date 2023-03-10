@@ -2,257 +2,165 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34363C6FD1F
-	for <linux-omap@archiver.kernel.org>; Fri, 10 Mar 2023 15:27:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51747C64EC4
+	for <linux-omap@archiver.kernel.org>; Fri, 10 Mar 2023 15:38:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234271AbjCJP1a (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 10 Mar 2023 10:27:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56274 "EHLO
+        id S230016AbjCJPis (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 10 Mar 2023 10:38:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234310AbjCJP1F (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Mar 2023 10:27:05 -0500
-Received: from mail-pl1-x632.google.com (mail-pl1-x632.google.com [IPv6:2607:f8b0:4864:20::632])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA6A012BAF8
-        for <linux-omap@vger.kernel.org>; Fri, 10 Mar 2023 07:16:07 -0800 (PST)
-Received: by mail-pl1-x632.google.com with SMTP id y11so5929209plg.1
-        for <linux-omap@vger.kernel.org>; Fri, 10 Mar 2023 07:16:07 -0800 (PST)
+        with ESMTP id S234332AbjCJPiS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Mar 2023 10:38:18 -0500
+Received: from mail-ua1-x931.google.com (mail-ua1-x931.google.com [IPv6:2607:f8b0:4864:20::931])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 911BD13550E
+        for <linux-omap@vger.kernel.org>; Fri, 10 Mar 2023 07:25:48 -0800 (PST)
+Received: by mail-ua1-x931.google.com with SMTP id h34so3758319uag.4
+        for <linux-omap@vger.kernel.org>; Fri, 10 Mar 2023 07:25:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1678461329;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=N39RYo79xVBTcwlXscYbtTZ48SrQ3sOuHu+uQiLwf8c=;
-        b=w1JpB/ZXvlR8nFbbRuZV13kAgblsxjtJ382xgxW9UzeSI+B3oi7mBtHDPakrflKi67
-         JEBe94Y824l+0EwHf05dF7FlkT9y8wmKkarFG4sWdJL55Wwae2RTDpbR/R/OFLLWtYin
-         nnGg0qDwFoPWvYHnbjgHLy2xwM5j3JVsUUWeGS6e9y9AJ6DplPucBwRDbAGCHyIVgtuw
-         mpZQEid0BvuDl7uBW9S9czZUiFClNkfN24ZMMNQcVse1m/k2fAAZ6R2yQxufCg9Du3UH
-         fHMEbaC+qfeXuWUHMsgJD4IzOJ5KHY1Gte9k9hGYwnmeEpY/4DhTggH+2PkFxuzYJYui
-         zBuA==
+        d=bgdev-pl.20210112.gappssmtp.com; s=20210112; t=1678461947;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=fdQamsC4vi5DdWnwK5HVEMpNIaeepKJtcchj23r+Ns8=;
+        b=xRgf8zpxpRcJiHDvwUeCgbDOhtkP0Co5sv+gAy33WegXPv7/8fF4TChaKaOtJk7Zib
+         p9248LVUG2Op1wOvSOlIN3/odHqRfA5uyWhQ+RCL/D4KcgIdvEK7nTGgRWvrJu7DwF68
+         sG9v09jiWmvcWoAMA4OCSI8OUiY6S1+HZGGVvsKUEhzElhGVBwNBQ+A+mX6wTv8S8gzJ
+         hMO8c8uEn1awYHv22BiJGlHel8L4nMzk7d8nnDK4iOpmrUHA4WqQN1E/ncqGT+JXGAxf
+         1MgZ/5aFZSZ+zMeSbZ4OgVDyVDApZSpdwrT/vE+wCvVqciX5oRp7fbLAcCZvvo6aOWTX
+         UDjg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678461329;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=N39RYo79xVBTcwlXscYbtTZ48SrQ3sOuHu+uQiLwf8c=;
-        b=zdJst5hc+Lrs/0Gz44m4lIRLzktBsJPybxjxIji9+AZu6jKX0Q2Rz69gMoPkVV9Z85
-         V6lHCmUrU04EK4TNYqpwjkyFTHHSNP2CwNjBAJrjaSMXLEFqXOJa3JvCLbdkz9h06tOH
-         MXnga8qBfZI+JZmZho3lj/84vo/x/7H7jN6xLczRkqzwe0VW6JyrxB0PiL9/xYGdP7lU
-         ls/kUxoDQG3OdAjBI1AxUznro7wG5BpignZMOTqPZf+oHHRWy44K0Go+/KmDBfRCnE4p
-         GRuUvx74EDsaIZcBAiuB5bXpaK37khTp8X4rK+GbZdmnV4sVx3DIsP7Jh7QWiTU0KDSH
-         S+sA==
-X-Gm-Message-State: AO0yUKUblIlJggYiyqIM9D3OgA9AjUT577DfA2M3PWl5PwOfDxEg1GfQ
-        llS8GhoFNoShajBmjZg+lrJtCCeWWJk0BY79Bo6hFA==
-X-Google-Smtp-Source: AK7set8wBPd3eR19/8FgGsEp0qu4kQMyEwrIG9kwt+pd8OJGY+yyFJ7UbTDzC6DqHo/XP34E4Wgb+nv47hPzv4BDAio=
-X-Received: by 2002:a17:90b:1283:b0:234:925b:7d61 with SMTP id
- fw3-20020a17090b128300b00234925b7d61mr9645631pjb.9.1678461328917; Fri, 10 Mar
- 2023 07:15:28 -0800 (PST)
+        d=1e100.net; s=20210112; t=1678461947;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=fdQamsC4vi5DdWnwK5HVEMpNIaeepKJtcchj23r+Ns8=;
+        b=Blm/r280dpgjgXthuXPJqOAbiCFz0xaOS7NEGPgdJUl9bN4oyunnLKDX/caUKBUWFg
+         fLhERIPNEiTlPy0VzyNvsFSRbUjm8WAgvMQcPhw7CBrZ0Q9BDsQO/taMdteF/2p2/N4j
+         F69VyAFFfgQeVEyqDnYab3FfDuu+ldQ2N+pn3/pixOExUn3bXL2dLA2wCGe1AVSa86Aw
+         CGyfgwcOBfu1wTJDCN4nFuT2OkVfGfLtErinGeBUZZ5XoR8NYeS1uwV+w5HqqDjeqoSp
+         tp/lg4AAZQ5V8a5lOSIWk42jgW63F3G09YupCyiCqxazC43hXV6hC/kGPIpMScTMILFe
+         nk9g==
+X-Gm-Message-State: AO0yUKWsmKxtDjv8TJwmBcINHJ4AQ7D0H2e5B/tUFumEJrNog/6WKIVi
+        3pEtrS2mbjlpNljq6nI7zWvPUjt3xetZIkC2296weA==
+X-Google-Smtp-Source: AK7set8JKIa0SDKefJ5/5r0bsBT4FjcaTDkUOLiUSu4UpVWrx/n+FeDaLWhaBvyJsXFMK706ylGuz6gzvS1T6/qS6zA=
+X-Received: by 2002:a05:6122:588:b0:42f:6cba:201f with SMTP id
+ i8-20020a056122058800b0042f6cba201fmr3007297vko.1.1678461947541; Fri, 10 Mar
+ 2023 07:25:47 -0800 (PST)
 MIME-Version: 1.0
-References: <20230310144715.1543836-1-robh@kernel.org>
-In-Reply-To: <20230310144715.1543836-1-robh@kernel.org>
-From:   Ulf Hansson <ulf.hansson@linaro.org>
-Date:   Fri, 10 Mar 2023 16:14:52 +0100
-Message-ID: <CAPDyKFrwH0uEZ+ikvaPkwsmT6-JoZwDC7SCfS-TX_pXyh38+-A@mail.gmail.com>
-Subject: Re: [PATCH] mmc: Use of_property_read_bool() for boolean properties
-To:     Rob Herring <robh@kernel.org>
-Cc:     Russell King <linux@armlinux.org.uk>,
-        Adrian Hunter <adrian.hunter@intel.com>,
-        Haibo Chen <haibo.chen@nxp.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Ben Dooks <ben-linux@fluff.org>,
-        Jaehoon Chung <jh80.chung@samsung.com>,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        devicetree@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+References: <20230215-immutable-chips-v3-0-972542092a77@linaro.org>
+In-Reply-To: <20230215-immutable-chips-v3-0-972542092a77@linaro.org>
+From:   Bartosz Golaszewski <brgl@bgdev.pl>
+Date:   Fri, 10 Mar 2023 16:25:36 +0100
+Message-ID: <CAMRc=MdyjQDEMNxGYOKwWHry7MnEFMHYZSg=-FPohNwn6dxjaQ@mail.gmail.com>
+Subject: Re: [PATCH v3 00/17] Mass convert GPIO IRQ chips to be immutable
+To:     Linus Walleij <linus.walleij@linaro.org>
+Cc:     Mun Yew Tham <mun.yew.tham@intel.com>,
+        Joel Stanley <joel@jms.id.au>,
+        Andrew Jeffery <andrew@aj.id.au>, Alban Bedel <albeu@free.fr>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Jay Fang <f.fangjian@huawei.com>,
+        Daniel Palmer <daniel@thingy.jp>,
+        Romain Perier <romain.perier@gmail.com>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Kevin Hilman <khilman@kernel.org>,
+        William Breathitt Gray <william.gray@linaro.org>,
+        linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
-        linux-renesas-soc@vger.kernel.org
+        linux-aspeed@lists.ozlabs.org, linux-omap@vger.kernel.org,
+        Marc Zyngier <maz@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, 10 Mar 2023 at 15:48, Rob Herring <robh@kernel.org> wrote:
+On Thu, Mar 9, 2023 at 8:45=E2=80=AFAM Linus Walleij <linus.walleij@linaro.=
+org> wrote:
 >
-> It is preferred to use typed property access functions (i.e.
-> of_property_read_<type> functions) rather than low-level
-> of_get_property/of_find_property functions for reading properties.
-> Convert reading boolean properties to to of_property_read_bool().
+> We are getting tired of these irq_chips not getting converted
+> to be immutable, so I just take out the big hammer and fix
+> some that I deem not too complex as best I can.
 >
-> Signed-off-by: Rob Herring <robh@kernel.org>
-
-Applied for next, thanks!
-
-Kind regards
-Uffe
-
-
+> I stopped after doing some, I will take another sweep at some
+> point I guess.
+>
+> This is v6.4 material.
+>
+> The last two patches to pci-idio-* (patch 15 and 16) can be
+> omitted if William's patches to convert this driver to
+> regmap GPIO are merged first.
+>
+> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 > ---
->  drivers/mmc/host/mmci.c            | 22 +++++++++++-----------
->  drivers/mmc/host/omap_hsmmc.c      |  8 ++++----
->  drivers/mmc/host/sdhci-esdhc-imx.c |  4 ++--
->  drivers/mmc/host/sdhci-pxav2.c     |  2 +-
->  drivers/mmc/host/sdhci-s3c.c       |  4 ++--
->  drivers/mmc/host/tmio_mmc_core.c   |  2 +-
->  drivers/mmc/host/wmt-sdmmc.c       |  6 ++----
->  7 files changed, 23 insertions(+), 25 deletions(-)
+> Changes in v3:
+> - Deleted the irq_chip->name assignment in the Aspeed driver
+> - Fold in a patch from Joel to make aspeed IRQs compulsory
+> - Link to v2: https://lore.kernel.org/r/20230215-immutable-chips-v2-0-d6b=
+0e3f2d991@linaro.org
 >
-> diff --git a/drivers/mmc/host/mmci.c b/drivers/mmc/host/mmci.c
-> index b9e5dfe74e5c..f2b2e8b0574e 100644
-> --- a/drivers/mmc/host/mmci.c
-> +++ b/drivers/mmc/host/mmci.c
-> @@ -1962,28 +1962,28 @@ static int mmci_of_parse(struct device_node *np, struct mmc_host *mmc)
->         if (ret)
->                 return ret;
+> Changes in v2:
+> - Rebased on v6.3-rc1
+> - Collected some test and ACK tags
+> - Link to v1: https://lore.kernel.org/r/20230215-immutable-chips-v1-0-51a=
+8f224a5d0@linaro.org
 >
-> -       if (of_get_property(np, "st,sig-dir-dat0", NULL))
-> +       if (of_property_read_bool(np, "st,sig-dir-dat0"))
->                 host->pwr_reg_add |= MCI_ST_DATA0DIREN;
-> -       if (of_get_property(np, "st,sig-dir-dat2", NULL))
-> +       if (of_property_read_bool(np, "st,sig-dir-dat2"))
->                 host->pwr_reg_add |= MCI_ST_DATA2DIREN;
-> -       if (of_get_property(np, "st,sig-dir-dat31", NULL))
-> +       if (of_property_read_bool(np, "st,sig-dir-dat31"))
->                 host->pwr_reg_add |= MCI_ST_DATA31DIREN;
-> -       if (of_get_property(np, "st,sig-dir-dat74", NULL))
-> +       if (of_property_read_bool(np, "st,sig-dir-dat74"))
->                 host->pwr_reg_add |= MCI_ST_DATA74DIREN;
-> -       if (of_get_property(np, "st,sig-dir-cmd", NULL))
-> +       if (of_property_read_bool(np, "st,sig-dir-cmd"))
->                 host->pwr_reg_add |= MCI_ST_CMDDIREN;
-> -       if (of_get_property(np, "st,sig-pin-fbclk", NULL))
-> +       if (of_property_read_bool(np, "st,sig-pin-fbclk"))
->                 host->pwr_reg_add |= MCI_ST_FBCLKEN;
-> -       if (of_get_property(np, "st,sig-dir", NULL))
-> +       if (of_property_read_bool(np, "st,sig-dir"))
->                 host->pwr_reg_add |= MCI_STM32_DIRPOL;
-> -       if (of_get_property(np, "st,neg-edge", NULL))
-> +       if (of_property_read_bool(np, "st,neg-edge"))
->                 host->clk_reg_add |= MCI_STM32_CLK_NEGEDGE;
-> -       if (of_get_property(np, "st,use-ckin", NULL))
-> +       if (of_property_read_bool(np, "st,use-ckin"))
->                 mmci_probe_level_translator(mmc);
+> ---
+> Joel Stanley (1):
+>       gpio: aspeed: Always register the irqchip
 >
-> -       if (of_get_property(np, "mmc-cap-mmc-highspeed", NULL))
-> +       if (of_property_read_bool(np, "mmc-cap-mmc-highspeed"))
->                 mmc->caps |= MMC_CAP_MMC_HIGHSPEED;
-> -       if (of_get_property(np, "mmc-cap-sd-highspeed", NULL))
-> +       if (of_property_read_bool(np, "mmc-cap-sd-highspeed"))
->                 mmc->caps |= MMC_CAP_SD_HIGHSPEED;
+> Linus Walleij (16):
+>       gpio: altera: Convert to immutable irq_chip
+>       gpio: adnp: Convert to immutable irq_chip
+>       gpio: aspeed: Convert to immutable irq_chip
+>       gpio: aspeed-sgpio: Convert to immutable irq_chip
+>       gpio: ath79: Convert to immutable irq_chip
+>       gpio: cadence: Convert to immutable irq_chip
+>       gpio: hisi: Convert to immutable irq_chip
+>       gpio: hlwd: Convert to immutable irq_chip
+>       gpio: idt3243x: Convert to immutable irq_chip
+>       gpio: msc313: Convert to immutable irq_chip
+>       gpio: mlxbf2: Convert to immutable irq_chip
+>       gpio: max732x: Convert to immutable irq_chip
+>       gpio: omap: Drop irq_base
+>       gpio: omap: Convert to immutable irq_chip
+>       gpio: pci-idio-16: Convert to immutable irq_chip
+>       gpio: pcie-idio-24: Convert to immutable irq_chip
 >
->         return 0;
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 4bd744755205..517dde777413 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1736,18 +1736,18 @@ static struct omap_hsmmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
->         if (legacy && legacy->name)
->                 pdata->name = legacy->name;
+>  drivers/gpio/gpio-adnp.c         |  9 ++++-
+>  drivers/gpio/gpio-altera.c       | 25 +++++++-----
+>  drivers/gpio/gpio-aspeed-sgpio.c | 44 +++++++++++++++++----
+>  drivers/gpio/gpio-aspeed.c       | 82 ++++++++++++++++++++++++++--------=
+-----
+>  drivers/gpio/gpio-ath79.c        |  8 +++-
+>  drivers/gpio/gpio-cadence.c      | 10 +++--
+>  drivers/gpio/gpio-hisi.c         | 25 +++++++-----
+>  drivers/gpio/gpio-hlwd.c         | 33 ++++++++++++----
+>  drivers/gpio/gpio-idt3243x.c     | 11 ++++--
+>  drivers/gpio/gpio-max732x.c      |  8 +++-
+>  drivers/gpio/gpio-mlxbf2.c       | 32 ++++++++++++----
+>  drivers/gpio/gpio-msc313.c       | 26 +++++++++++--
+>  drivers/gpio/gpio-omap.c         | 83 ++++++++++++++++++++++------------=
+------
+>  drivers/gpio/gpio-pci-idio-16.c  | 12 ++++--
+>  drivers/gpio/gpio-pcie-idio-24.c | 12 ++++--
+>  15 files changed, 290 insertions(+), 130 deletions(-)
+> ---
+> base-commit: fe15c26ee26efa11741a7b632e9f23b01aca4cc6
+> change-id: 20230215-immutable-chips-762922277f1e
 >
-> -       if (of_find_property(np, "ti,dual-volt", NULL))
-> +       if (of_property_read_bool(np, "ti,dual-volt"))
->                 pdata->controller_flags |= OMAP_HSMMC_SUPPORTS_DUAL_VOLT;
->
-> -       if (of_find_property(np, "ti,non-removable", NULL)) {
-> +       if (of_property_read_bool(np, "ti,non-removable")) {
->                 pdata->nonremovable = true;
->                 pdata->no_regulator_off_init = true;
->         }
->
-> -       if (of_find_property(np, "ti,needs-special-reset", NULL))
-> +       if (of_property_read_bool(np, "ti,needs-special-reset"))
->                 pdata->features |= HSMMC_HAS_UPDATED_RESET;
->
-> -       if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
-> +       if (of_property_read_bool(np, "ti,needs-special-hs-handling"))
->                 pdata->features |= HSMMC_HAS_HSPE_SUPPORT;
->
->         return pdata;
-> diff --git a/drivers/mmc/host/sdhci-esdhc-imx.c b/drivers/mmc/host/sdhci-esdhc-imx.c
-> index 58f042fdd4f4..d7c0c0b9e26c 100644
-> --- a/drivers/mmc/host/sdhci-esdhc-imx.c
-> +++ b/drivers/mmc/host/sdhci-esdhc-imx.c
-> @@ -1597,7 +1597,7 @@ sdhci_esdhc_imx_probe_dt(struct platform_device *pdev,
->         struct esdhc_platform_data *boarddata = &imx_data->boarddata;
->         int ret;
->
-> -       if (of_get_property(np, "fsl,wp-controller", NULL))
-> +       if (of_property_read_bool(np, "fsl,wp-controller"))
->                 boarddata->wp_type = ESDHC_WP_CONTROLLER;
->
->         /*
-> @@ -1614,7 +1614,7 @@ sdhci_esdhc_imx_probe_dt(struct platform_device *pdev,
->
->         of_property_read_u32(np, "fsl,strobe-dll-delay-target",
->                                 &boarddata->strobe_dll_delay_target);
-> -       if (of_find_property(np, "no-1-8-v", NULL))
-> +       if (of_property_read_bool(np, "no-1-8-v"))
->                 host->quirks2 |= SDHCI_QUIRK2_NO_1_8_V;
->
->         if (of_property_read_u32(np, "fsl,delay-line", &boarddata->delay_line))
-> diff --git a/drivers/mmc/host/sdhci-pxav2.c b/drivers/mmc/host/sdhci-pxav2.c
-> index fc306eb1f845..91aca8f8d6ef 100644
-> --- a/drivers/mmc/host/sdhci-pxav2.c
-> +++ b/drivers/mmc/host/sdhci-pxav2.c
-> @@ -228,7 +228,7 @@ static struct sdhci_pxa_platdata *pxav2_get_mmc_pdata(struct device *dev)
->         if (!pdata)
->                 return NULL;
->
-> -       if (of_find_property(np, "non-removable", NULL))
-> +       if (of_property_read_bool(np, "non-removable"))
->                 pdata->flags |= PXA_FLAG_CARD_PERMANENT;
->
->         of_property_read_u32(np, "bus-width", &bus_width);
-> diff --git a/drivers/mmc/host/sdhci-s3c.c b/drivers/mmc/host/sdhci-s3c.c
-> index 9085f3932443..504015e84308 100644
-> --- a/drivers/mmc/host/sdhci-s3c.c
-> +++ b/drivers/mmc/host/sdhci-s3c.c
-> @@ -437,12 +437,12 @@ static int sdhci_s3c_parse_dt(struct device *dev,
->         pdata->max_width = max_width;
->
->         /* get the card detection method */
-> -       if (of_get_property(node, "broken-cd", NULL)) {
-> +       if (of_property_read_bool(node, "broken-cd")) {
->                 pdata->cd_type = S3C_SDHCI_CD_NONE;
->                 return 0;
->         }
->
-> -       if (of_get_property(node, "non-removable", NULL)) {
-> +       if (of_property_read_bool(node, "non-removable")) {
->                 pdata->cd_type = S3C_SDHCI_CD_PERMANENT;
->                 return 0;
->         }
-> diff --git a/drivers/mmc/host/tmio_mmc_core.c b/drivers/mmc/host/tmio_mmc_core.c
-> index e24c3d284515..be7f18fd4836 100644
-> --- a/drivers/mmc/host/tmio_mmc_core.c
-> +++ b/drivers/mmc/host/tmio_mmc_core.c
-> @@ -1084,7 +1084,7 @@ static void tmio_mmc_of_parse(struct platform_device *pdev,
->          * For new platforms, please use "disable-wp" instead of
->          * "toshiba,mmc-wrprotect-disable"
->          */
-> -       if (of_get_property(np, "toshiba,mmc-wrprotect-disable", NULL))
-> +       if (of_property_read_bool(np, "toshiba,mmc-wrprotect-disable"))
->                 mmc->caps2 |= MMC_CAP2_NO_WRITE_PROTECT;
->  }
->
-> diff --git a/drivers/mmc/host/wmt-sdmmc.c b/drivers/mmc/host/wmt-sdmmc.c
-> index 9aa3027ca25e..68525d900046 100644
-> --- a/drivers/mmc/host/wmt-sdmmc.c
-> +++ b/drivers/mmc/host/wmt-sdmmc.c
-> @@ -802,10 +802,8 @@ static int wmt_mci_probe(struct platform_device *pdev)
->         priv->power_inverted = 0;
->         priv->cd_inverted = 0;
->
-> -       if (of_get_property(np, "sdon-inverted", NULL))
-> -               priv->power_inverted = 1;
-> -       if (of_get_property(np, "cd-inverted", NULL))
-> -               priv->cd_inverted = 1;
-> +       priv->power_inverted = of_property_read_bool(np, "sdon-inverted");
-> +       priv->cd_inverted = of_property_read_bool(np, "cd-inverted");
->
->         priv->sdmmc_base = of_iomap(np, 0);
->         if (!priv->sdmmc_base) {
+> Best regards,
 > --
-> 2.39.2
+> Linus Walleij <linus.walleij@linaro.org>
 >
+
+Normally these irq_chip conversions would go upstream as fixes but
+this time there are too many at once. I applied them to my
+gpio/for-next branch. Let's give them some time in next and later we
+can backport them if necessary.
+
+Bartosz
