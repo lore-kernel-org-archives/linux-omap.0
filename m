@@ -2,39 +2,39 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7246C742A7
-	for <linux-omap@archiver.kernel.org>; Fri, 10 Mar 2023 15:47:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D9FC74A5B
+	for <linux-omap@archiver.kernel.org>; Fri, 10 Mar 2023 15:47:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233175AbjCJPrb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 10 Mar 2023 10:47:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47458 "EHLO
+        id S234461AbjCJPrc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 10 Mar 2023 10:47:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234332AbjCJPrB (ORCPT
+        with ESMTP id S233814AbjCJPrB (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Mar 2023 10:47:01 -0500
 Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE400968FE;
-        Fri, 10 Mar 2023 07:37:07 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B3B2EBFA4;
+        Fri, 10 Mar 2023 07:37:10 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-        s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
-        Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-        Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
-        bh=4sSbpNcprPb8eBe1dmHD1XiLaW1EBIYi1S3oZ1ljkXQ=; b=B1e8PPb8dMa33jNS53TpZqi4ua
-        dwfXOMoyIeIY7wAffPe06ZR3P3WLR/nnrg0J+r+mx5Ylyb85YkWf7uBzDUjdtap1OhK8GffJV1sCG
-        7xVckGY6STeC0X5fMSl8e1WcE3987lRDbgEPDrRLUZtMyo/RDQoobdTCt0DJNFJjPj/w=;
+        s=20171124; h=In-Reply-To:Content-Transfer-Encoding:Content-Disposition:
+        Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:From:
+        Sender:Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Content-Disposition:
+        In-Reply-To:References; bh=MvFhqjBn8lsfHrgXKsRvl+cKYKntZywOxeyOqBNYdjE=; b=TM
+        3UJCQk0hGZKteBHnw0DOcgvkEPPN85rhLAKKF05n3myc43csiumRbPS4VkwATWqrDxI3A+KcJKEE7
+        Zk9OJ0g9VvNYEouuwIfV+LMEsiolzIN+8eYRgpkPr1cbHuGk/BBytaNqbNAGX3ChjucoUXKT7+hE9
+        hI4Z/BX8nNjvbo4=;
 Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
         (envelope-from <andrew@lunn.ch>)
-        id 1paec6-006zJM-JG; Fri, 10 Mar 2023 16:24:58 +0100
-Date:   Fri, 10 Mar 2023 16:24:58 +0100
+        id 1paej9-006zM1-Ig; Fri, 10 Mar 2023 16:32:15 +0100
+Date:   Fri, 10 Mar 2023 16:32:15 +0100
 From:   Andrew Lunn <andrew@lunn.ch>
-To:     =?iso-8859-1?Q?K=F6ry?= Maincent <kory.maincent@bootlin.com>
-Cc:     Michael Walle <michael@walle.cc>,
-        Horatiu Vultur <horatiu.vultur@microchip.com>,
-        Vladimir Oltean <vladimir.oltean@nxp.com>,
+To:     Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Cc:     =?iso-8859-1?Q?K=F6ry?= Maincent <kory.maincent@bootlin.com>,
         Florian Fainelli <f.fainelli@gmail.com>,
         Heiner Kallweit <hkallweit1@gmail.com>, netdev@vger.kernel.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-doc@vger.kernel.org, linux-omap@vger.kernel.org,
+        Michael Walle <michael@walle.cc>,
         Maxime Chevallier <maxime.chevallier@bootlin.com>,
         Richard Cochran <richardcochran@gmail.com>,
         thomas.petazzoni@bootlin.com, Russell King <linux@armlinux.org.uk>,
@@ -48,6 +48,8 @@ Cc:     Michael Walle <michael@walle.cc>,
         Jay Vosburgh <j.vosburgh@gmail.com>,
         Veaceslav Falico <vfalico@gmail.com>,
         Andy Gospodarek <andy@greyhouse.net>,
+        Joakim Zhang <qiangqing.zhang@nxp.com>,
+        Vladimir Oltean <vladimir.oltean@nxp.com>,
         Claudiu Manoil <claudiu.manoil@nxp.com>,
         Alexandre Belloni <alexandre.belloni@bootlin.com>,
         UNGLinuxDriver@microchip.com, Minghao Chi <chi.minghao@zte.com.cn>,
@@ -60,35 +62,44 @@ Cc:     Michael Walle <michael@walle.cc>,
         Marco Bonelli <marco@mebeim.net>
 Subject: Re: [PATCH v3 3/5] net: Let the active time stamping layer be
  selectable.
-Message-ID: <b6457962-1327-4baf-a64d-915cd7b92a8f@lunn.ch>
+Message-ID: <c0719411-4c8a-4af8-9cd1-f3386b8b8d15@lunn.ch>
 References: <20230308135936.761794-1-kory.maincent@bootlin.com>
  <20230308135936.761794-4-kory.maincent@bootlin.com>
- <20230308135936.761794-4-kory.maincent@bootlin.com>
- <20230308230321.liw3v255okrhxg6s@skbuf>
- <20230310114852.3cef643d@kmaincent-XPS-13-7390>
- <20230310113533.l7flaoli7y3bmlnr@skbuf>
- <b4ebfd3770ffa5ad1233d2b5e79499ee@walle.cc>
- <20230310131529.6bahmi4obryy5dsx@soft-dev3-1>
- <0d2304a9bc276a0d321629108cf8febd@walle.cc>
- <20230310150436.40ed168d@kmaincent-XPS-13-7390>
+ <6408a9b3c7ae1_13061c2082a@willemb.c.googlers.com.notmuch>
+ <20230310154125.696a3eb3@kmaincent-XPS-13-7390>
+ <640b45e9c765e_1dc964208eb@willemb.c.googlers.com.notmuch>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20230310150436.40ed168d@kmaincent-XPS-13-7390>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <640b45e9c765e_1dc964208eb@willemb.c.googlers.com.notmuch>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-> Adding this whitelist will add some PHY driver specific name in the phy API
-> core.
-> Will it be accepted? Is it not better to add a "legacy_default_timestamping"
-> boolean in the phy_device struct and set it for these 5 PHY drivers?
-> Then move on the default behavior to MAC default timestamping on the otehr
-> cases.
+On Fri, Mar 10, 2023 at 09:59:53AM -0500, Willem de Bruijn wrote:
+> Köry Maincent wrote:
+> > On Wed, 08 Mar 2023 10:28:51 -0500
+> > Willem de Bruijn <willemdebruijn.kernel@gmail.com> wrote:
+> > 
+> > > >  
+> > > > +	enum timestamping_layer selected_timestamping_layer;
+> > > > +  
+> > > 
+> > > can perhaps be a single bit rather than an enum
+> > 
+> > I need at least two bits to be able to list the PTPs available.
+> > Look at the ethtool_list_ptp function of the second patch.
+> 
+> In the available bitmap, yes. Since there are only two options,
+> in the selected case, a single bit would suffice.
 
-In the end, it is much the same thing. But if we really want this to
-be legacy, not used by new drivers, putting it into the core will make
-it harder for new drivers to set this bit and not get noticed during
-review.
+It was a bit tongue in cheek, but in an earlier thread discussing this
+problem, i listed how there could be up to 7 time stampers on the path
+from the RJ45 to the network stack.
 
-   Andrew
+We got into this problem by assuming there could only ever be one time
+stamper. Lets try to avoid potential problems of assuming there can
+only every be two time stampers by assuming there can be N stampers.
+
+     Andrew
