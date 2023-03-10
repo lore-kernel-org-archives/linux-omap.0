@@ -2,52 +2,53 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D64BC6FA99
-	for <linux-omap@archiver.kernel.org>; Fri, 10 Mar 2023 21:55:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80155C6FA99
+	for <linux-omap@archiver.kernel.org>; Fri, 10 Mar 2023 21:56:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232089AbjCJVzw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 10 Mar 2023 16:55:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59084 "EHLO
+        id S231846AbjCJV4G (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 10 Mar 2023 16:56:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232090AbjCJVz0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Mar 2023 16:55:26 -0500
-Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0F5D16321
-        for <linux-omap@vger.kernel.org>; Fri, 10 Mar 2023 13:51:59 -0800 (PST)
-Received: by mail-ed1-f54.google.com with SMTP id u9so26171152edd.2
-        for <linux-omap@vger.kernel.org>; Fri, 10 Mar 2023 13:51:59 -0800 (PST)
+        with ESMTP id S231877AbjCJVzk (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Mar 2023 16:55:40 -0500
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D5C1591EF
+        for <linux-omap@vger.kernel.org>; Fri, 10 Mar 2023 13:52:08 -0800 (PST)
+Received: by mail-ed1-f50.google.com with SMTP id cy23so25986251edb.12
+        for <linux-omap@vger.kernel.org>; Fri, 10 Mar 2023 13:52:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1678484756;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=wk7HS+JU2o5z8u8D+phfvsWKJzSNNAcdYUjf3Uh+O54=;
-        b=Er3ZlEVmoHoIsKsxxmk3YiAdjEKW2o7aagUdkvk8ACc/AZti0eUPVtEBK8r4r0smjz
-         pB+sZJQgrdwpZYqfgqnS00yJsCXRm4tuxpKc9Sv323GEDDFRnD1x9yhqAjA0TAH+pD39
-         /NgNPgn1qAdB2VMocKQHi9RfthoRIiGig5whQaEgGz2y6LGsFtY8/7u3AgHnh1ysTixO
-         lo6Fd82XFMyeVBYZ+eAjyGMolA6uQ3qrk/k7hLR6+oBu47T9as0SzNFVZLaPbQ5p0hEu
-         xzfTRrmQl+xvZUdIRvF+timC/BMSv6n2PpI4xuBenWLMdJ9K0wzRhzAUHGQoc6i5W58C
-         qjbA==
+        d=linaro.org; s=google; t=1678484762;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zfueC8Ud+TxsewqPkS/fDVgjDJwxhwka0PgPS2fY1z0=;
+        b=K90kT9LAH347IN7aaGanwpD1pGk+lr2nq1GFiAMOUVwmIajNMd6FSgYobHYmDVe9x+
+         Xp0RTAY0qIzp8AoHNjDiPlu+3mDAZfq/Vr8asnGZVsr79W36eaRS8WnYAvQX2tbrOEFh
+         2DKmocArpikKUh3AylbFB76+tUeJo+Z+ATf1qkC299jJSQxQ0Mp9SyRFgp10jIAgx6zp
+         b9IxsffVZrjR4bh4TiWORGRCvFLUvKkZcmN5ATVcoAIeDj0b9lvAAgcLhR26fXw/4hXx
+         xLzxw0tUw9i1/U96VbyETa6TnMH543wkwqp7D273J5X3JKQ6uQjUThg6on6eCTDis43o
+         Biew==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678484756;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=wk7HS+JU2o5z8u8D+phfvsWKJzSNNAcdYUjf3Uh+O54=;
-        b=2yLi7cqY8IHYoFdWOYIkS7vAynQG1BhGT0SAma65lHdzdH46HfXcbBiI0x5NIRKbLd
-         brpZBuLGtQ3Pz1/moyLfY1VD7/Ik7AQBzxyHqqv9uIFTS8M2NW+8YUPBgUC2lJB+AYhq
-         67r+tptHyg9/k8cQI3P7XUz2gYKYhx2BiF0BAxPOJ3EGO8IJ7AP8DMMT6S407mAV7k+a
-         pWnY6x7bjo1rJg+dXAhZPcGpxAR0PSGYbjJB5OAya3vthmoFN3ubi2A7DVTdaMtBKoR2
-         4YCzTr40scS5z8IBqpY4xtDNXT4RMKciSneTJXpkI+r4UnSLOeft1inLVaaY5ytaHMcd
-         haZA==
-X-Gm-Message-State: AO0yUKVmekE9CgMjRkFf3zjAUAOlWSsKEp3agHyKUYowcRS2SWLLdcKV
-        lmqWCQq8g2C22RyU0q0vjVjmCw==
-X-Google-Smtp-Source: AK7set+WoLtwDyXQs64e0OH3A2wuyS/PRDS8GfsEZZYgVKRSciJQ1Uv0cpz+JjrSwSdUGQxlZtR+eQ==
-X-Received: by 2002:a05:6402:202e:b0:4be:3b3e:c226 with SMTP id ay14-20020a056402202e00b004be3b3ec226mr23145020edb.7.1678484756376;
-        Fri, 10 Mar 2023 13:45:56 -0800 (PST)
+        d=1e100.net; s=20210112; t=1678484762;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=zfueC8Ud+TxsewqPkS/fDVgjDJwxhwka0PgPS2fY1z0=;
+        b=ppL9SQx/K5izIoZ6CXSTSDc6bmuGaTlCmRjOwhHhcQKKtcZKIhdV8UWlC9qO98/vFj
+         xOE4NgSe+Fjkd6AtJVo+cNrcaNeSuTdC2XbMumKA1UpUC5HSwqYJebfaf/sFqOGArWW3
+         Kd5hPmmqQ4ebH6cPjgwjXEOd+aaF9JCB/bWj6W5+AkXmtVQR659U0Ezxm2mEfnc9D6bO
+         xydvUpYZEPGft5yBEUcLYEJ6BS8cy8mr5ooTEHvU5/CcOEZqQ37xR+XMS1XiLy2vDEqN
+         5z2fs3bmqHhaB/W7yp71K1zcjhCN76vbNywTvnBPUP/ZjBxz5of9uD0ySARUCd+2m7UI
+         u82w==
+X-Gm-Message-State: AO0yUKWUVYonNQaLwh5O9Ljsbx8jh2L+OhDzyOrTli8UEfP9E24Gka5f
+        U1liIL/iWY1vObMRqnPckA1dgw==
+X-Google-Smtp-Source: AK7set/+NUmIgbATpN/GwzCK7LhiB3l9y1iTqOcCxXGLgQn2rcQCH7j8l4FZmoegGAD3sHE0TVBUJQ==
+X-Received: by 2002:a05:6402:128b:b0:4bf:4b5c:1d66 with SMTP id w11-20020a056402128b00b004bf4b5c1d66mr22987359edv.31.1678484761848;
+        Fri, 10 Mar 2023 13:46:01 -0800 (PST)
 Received: from krzk-bin.. ([2a02:810d:15c0:828:34:52e3:a77e:cac5])
-        by smtp.gmail.com with ESMTPSA id u7-20020a50d507000000b004be11e97ca2sm471873edi.90.2023.03.10.13.45.55
+        by smtp.gmail.com with ESMTPSA id u7-20020a50d507000000b004be11e97ca2sm471873edi.90.2023.03.10.13.46.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Mar 2023 13:45:55 -0800 (PST)
+        Fri, 10 Mar 2023 13:46:01 -0800 (PST)
 From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 To:     Liam Girdwood <lgirdwood@gmail.com>,
         Mark Brown <broonie@kernel.org>,
@@ -63,40 +64,40 @@ To:     Liam Girdwood <lgirdwood@gmail.com>,
         linux-mediatek@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-arm-msm@vger.kernel.org
 Cc:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Subject: [PATCH 1/9] regulator: lp872x: Mark OF related data as maybe unused
-Date:   Fri, 10 Mar 2023 22:45:45 +0100
-Message-Id: <20230310214553.275450-1-krzysztof.kozlowski@linaro.org>
+Subject: [PATCH 5/9] regulator: qcom_rpm: Drop of_match_ptr for ID table
+Date:   Fri, 10 Mar 2023 22:45:49 +0100
+Message-Id: <20230310214553.275450-5-krzysztof.kozlowski@linaro.org>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230310214553.275450-1-krzysztof.kozlowski@linaro.org>
+References: <20230310214553.275450-1-krzysztof.kozlowski@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The driver can be compile tested with !CONFIG_OF making certain data
-unused:
-
-  drivers/regulator/lp872x.c:931:34: error: ‘lp872x_dt_ids’ defined but not used [-Werror=unused-const-variable=]
+The driver is specific to ARCH_QCOM which depends on OF thus the driver
+is OF-only.  Its of_device_id table is built unconditionally, thus
+of_match_ptr() for ID table does not make sense.
 
 Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 ---
- drivers/regulator/lp872x.c | 2 +-
+ drivers/regulator/qcom_rpm-regulator.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/regulator/lp872x.c b/drivers/regulator/lp872x.c
-index c576894c3d52..c3a6e77db4d0 100644
---- a/drivers/regulator/lp872x.c
-+++ b/drivers/regulator/lp872x.c
-@@ -928,7 +928,7 @@ static int lp872x_probe(struct i2c_client *cl)
- 	return lp872x_regulator_register(lp);
- }
+diff --git a/drivers/regulator/qcom_rpm-regulator.c b/drivers/regulator/qcom_rpm-regulator.c
+index 3c41b71a1f52..602526669648 100644
+--- a/drivers/regulator/qcom_rpm-regulator.c
++++ b/drivers/regulator/qcom_rpm-regulator.c
+@@ -991,7 +991,7 @@ static struct platform_driver rpm_reg_driver = {
+ 	.probe          = rpm_reg_probe,
+ 	.driver  = {
+ 		.name  = "qcom_rpm_reg",
+-		.of_match_table = of_match_ptr(rpm_of_match),
++		.of_match_table = rpm_of_match,
+ 	},
+ };
  
--static const struct of_device_id lp872x_dt_ids[] = {
-+static const struct of_device_id lp872x_dt_ids[] __maybe_unused = {
- 	{ .compatible = "ti,lp8720", },
- 	{ .compatible = "ti,lp8725", },
- 	{ }
 -- 
 2.34.1
 
