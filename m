@@ -2,67 +2,110 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D321C6FD1C
-	for <linux-omap@archiver.kernel.org>; Fri, 10 Mar 2023 08:25:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F3B8C64EC4
+	for <linux-omap@archiver.kernel.org>; Fri, 10 Mar 2023 10:49:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230365AbjCJIZ4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 10 Mar 2023 03:25:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58158 "EHLO
+        id S230242AbjCJKtJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 10 Mar 2023 05:49:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230240AbjCJIZu (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Mar 2023 03:25:50 -0500
-X-Greylist: delayed 1800 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 10 Mar 2023 00:25:49 PST
-Received: from bitmer.com (server-237-49.tentacle.cloud [185.179.237.49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1B931070E1;
-        Fri, 10 Mar 2023 00:25:48 -0800 (PST)
-Received: from jarkko by bitmer.com with local (Exim 4.92)
-        (envelope-from <jarkko.nikula@bitmer.com>)
-        id 1paWpw-0003gh-Gf; Fri, 10 Mar 2023 09:06:44 +0200
-Date:   Fri, 10 Mar 2023 09:06:44 +0200
-From:   Jarkko Nikula <jarkko.nikula@bitmer.com>
-To:     Claudiu Beznea <claudiu.beznea@microchip.com>
-Cc:     perex@perex.cz, tiwai@suse.com, lgirdwood@gmail.com,
-        broonie@kernel.org, james.schulman@cirrus.com,
-        david.rhodes@cirrus.com, tanureal@opensource.cirrus.com,
-        rf@opensource.cirrus.com, oder_chiou@realtek.com,
-        shengjiu.wang@gmail.com, Xiubo.Lee@gmail.com, festevam@gmail.com,
-        nicoleotsuka@gmail.com, shawnguo@kernel.org,
-        s.hauer@pengutronix.de, kernel@pengutronix.de, linux-imx@nxp.com,
-        cezary.rojewski@intel.com, pierre-louis.bossart@linux.intel.com,
-        peter.ujfalusi@linux.intel.com, yung-chuan.liao@linux.intel.com,
-        ranjani.sridharan@linux.intel.com, kai.vehmanen@linux.intel.com,
-        matthias.bgg@gmail.com, srinivas.kandagatla@linaro.org,
-        bgoswami@quicinc.com, vkoul@kernel.org, daniel.baluta@nxp.com,
-        thierry.reding@gmail.com, jonathanh@nvidia.com,
-        alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
-        patches@opensource.cirrus.com, linuxppc-dev@lists.ozlabs.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org,
-        sound-open-firmware@alsa-project.org, linux-tegra@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: Re: [PATCH] ASoC: do not include pm_runtime.h if not used
-Message-ID: <20230310070644.GA13582@bitmer.com>
-References: <20230307103022.1007420-1-claudiu.beznea@microchip.com>
+        with ESMTP id S230189AbjCJKtG (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Mar 2023 05:49:06 -0500
+Received: from relay10.mail.gandi.net (relay10.mail.gandi.net [217.70.178.230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 242FC5F6F8;
+        Fri, 10 Mar 2023 02:49:03 -0800 (PST)
+Received: (Authenticated sender: kory.maincent@bootlin.com)
+        by mail.gandi.net (Postfix) with ESMTPSA id 00AF024000E;
+        Fri, 10 Mar 2023 10:48:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
+        t=1678445342;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=TXK5+wC62JoKME3nEZqOQhQA/bUpiBeggPC719tdP5s=;
+        b=bitzjo8Zb6zDvux2zrRGEQ84tScQ0MOpBXj+QCPMgP91wvsg74WjMYBNS329LKZ5xnxIFk
+        SW9/FpbbvA5/tr21em3NedjZNPyrbSR2Yp8p0AfXHM0pIFFCVsg2aYkU/GgUbPOPE0hVfi
+        F6ZLSh/Ask3v5rfDCcqmcdDWAaFuE0QnopZ7OzVj7HE0LNJTp57qq3xkKEzn2MMq4k5AJM
+        PZTROOQMFGqa7cbSl51g+s6p3XGZfZWQIeIxfxx124wqsph9vYmqaOXVWhvZO14LC7mvpe
+        RHSu2VJfH0URGTFQjAhSk4tBNSda4GB8DseTH8f1yO56jjfG2QPr957bw6kfaQ==
+Date:   Fri, 10 Mar 2023 11:48:52 +0100
+From:   =?UTF-8?B?S8O2cnk=?= Maincent <kory.maincent@bootlin.com>
+To:     Vladimir Oltean <vladimir.oltean@nxp.com>
+Cc:     Andrew Lunn <andrew@lunn.ch>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>, netdev@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-omap@vger.kernel.org,
+        Michael Walle <michael@walle.cc>,
+        Maxime Chevallier <maxime.chevallier@bootlin.com>,
+        Richard Cochran <richardcochran@gmail.com>,
+        thomas.petazzoni@bootlin.com, Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Jay Vosburgh <j.vosburgh@gmail.com>,
+        Veaceslav Falico <vfalico@gmail.com>,
+        Andy Gospodarek <andy@greyhouse.net>,
+        Claudiu Manoil <claudiu.manoil@nxp.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        UNGLinuxDriver@microchip.com, Minghao Chi <chi.minghao@zte.com.cn>,
+        Jie Wang <wangjie125@huawei.com>,
+        Oleksij Rempel <linux@rempel-privat.de>,
+        Sean Anderson <sean.anderson@seco.com>,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Alexander Lobakin <alexandr.lobakin@intel.com>,
+        Marco Bonelli <marco@mebeim.net>
+Subject: Re: [PATCH v3 3/5] net: Let the active time stamping layer be
+ selectable.
+Message-ID: <20230310114852.3cef643d@kmaincent-XPS-13-7390>
+In-Reply-To: <20230308230321.liw3v255okrhxg6s@skbuf>
+References: <20230308135936.761794-1-kory.maincent@bootlin.com>
+        <20230308135936.761794-1-kory.maincent@bootlin.com>
+        <20230308135936.761794-4-kory.maincent@bootlin.com>
+        <20230308135936.761794-4-kory.maincent@bootlin.com>
+        <20230308230321.liw3v255okrhxg6s@skbuf>
+Organization: bootlin
+X-Mailer: Claws Mail 3.17.5 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230307103022.1007420-1-claudiu.beznea@microchip.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, Mar 07, 2023 at 12:30:22PM +0200, Claudiu Beznea wrote:
-> Do not include pm_runtime.h header in files where runtime PM support is
-> not implemented.
-> 
-> Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
-> ---
-...
->  sound/soc/ti/omap-mcbsp-st.c                              | 1 -
->  36 files changed, 37 deletions(-)
+Hello Vladimir,
 
-Looks like header was copied by accident from omap-mcbsp.c when sidetone
-functionality was split into this new file.
+On Thu, 9 Mar 2023 01:03:21 +0200
+Vladimir Oltean <vladimir.oltean@nxp.com> wrote:
 
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+> (trimmed CC list of bouncing email addresses)
+ =20
+Thanks, I will be more careful on next patch series version.
+=20
+> From previous discussions, I believe that a device tree property was
+> added in order to prevent perceived performance regressions when
+> timestamping support is added to a PHY driver, correct?
+
+Yes, i.e. to select the default and better timestamp on a board.
+=20
+> I have a dumb question: if updating the device trees is needed in order
+> to prevent these behavior changes, then how is the regression problem
+> addressed for those device trees which don't contain this new property
+> (all device trees)?
+
+On that case there is not really solution, but be aware that
+CONFIG_PHY_TIMESTAMPING need to be activated to allow timestamping on the P=
+HY.
+Currently in mainline only few (3) defconfig have it enabled so it is really
+not spread, maybe I could add more documentation to prevent further regress=
+ion
+issue when adding support of timestamp to a PHY driver.
+
+Regards,
+K=C3=B6ry
