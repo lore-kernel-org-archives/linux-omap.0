@@ -2,53 +2,58 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A760C6FD1F
-	for <linux-omap@archiver.kernel.org>; Fri, 10 Mar 2023 14:47:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CBB4C64EC4
+	for <linux-omap@archiver.kernel.org>; Fri, 10 Mar 2023 14:53:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233064AbjCJOri (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 10 Mar 2023 09:47:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43678 "EHLO
+        id S233529AbjCJOxu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 10 Mar 2023 09:53:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233023AbjCJOrW (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Mar 2023 09:47:22 -0500
-Received: from mail-oa1-f49.google.com (mail-oa1-f49.google.com [209.85.160.49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C1E8105568;
-        Fri, 10 Mar 2023 06:47:04 -0800 (PST)
-Received: by mail-oa1-f49.google.com with SMTP id 586e51a60fabf-1755e639b65so6078243fac.3;
-        Fri, 10 Mar 2023 06:47:04 -0800 (PST)
+        with ESMTP id S233489AbjCJOxU (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Mar 2023 09:53:20 -0500
+Received: from mail-oi1-f179.google.com (mail-oi1-f179.google.com [209.85.167.179])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEDBF12B026;
+        Fri, 10 Mar 2023 06:49:22 -0800 (PST)
+Received: by mail-oi1-f179.google.com with SMTP id bg11so4401311oib.5;
+        Fri, 10 Mar 2023 06:49:22 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678459619;
+        d=1e100.net; s=20210112; t=1678459700;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=Ze4x2UjW4SC+7SgOWlyCc0ynsM258m+gI2GkQIZTPMI=;
-        b=yTt3CTEiH7cPMBp+ZAX14PZgaXmETv68qxJToExAFp3anwLcRJQr8Lwi2eWSxrSAqb
-         LDES7Zo/NifSQGbRrOUcUSVjh4G2mbDT/YsiBntb9DsC6Cl9cC3so/wPvkcccUIpiFww
-         fGw2T2pdJdAcFgUFr3zh2kR80PICZ3xlCoD4DG8IWeED7/t3wfG1zHnyVCxMzzRkYvAS
-         3D9s1QQEZdi4vimwlcdOxvmhsxX+jWLs6I8QpAcvbpAe75zRitsH2Q2oiFNAP+bDnQoh
-         MD6TymTyicoYlzm02C79BMC1zZ7s8Vbz/DJFgbMBGdsQwZ0+V3VLwONFj0OdFbOl0Vy/
-         DoXQ==
-X-Gm-Message-State: AO0yUKXu0WBUCF1cYqarvawRkMz5TxMrlGo7z2hm3jzGDf15SQJaLEvM
-        iSbwkynCJlH29eFt/yHt2wvYBNsY8g==
-X-Google-Smtp-Source: AK7set82KIT56SQJ6WqeSwMPkCDv0B0eHIXclgRxzxBAzHabdT7fVwRv6tyCkq20rhBO+1pi1bynLQ==
-X-Received: by 2002:a05:6870:73cc:b0:176:4920:bf8c with SMTP id a12-20020a05687073cc00b001764920bf8cmr16477103oan.55.1678459619557;
-        Fri, 10 Mar 2023 06:46:59 -0800 (PST)
+        bh=tCm7q3U60/6KX9NcfTGr2pgCK75ismvU0cilf2FoiGw=;
+        b=BgrvSnFROC0ijHIi650QY2Fx+hT4+KyHeonVoBY+ygi5mmTSabAya8yv4za8rvKvXC
+         YJDhs8e1Jhld1LWTbQKG9JlSCCit85cejfKKj0/SCbIQt/tebepplnfHo/zXhrBbEwIQ
+         4EYTxXcaW39k9JHo19R7hzBQ9sYva0OH7s/T6dHQrzflNTCVn7q5ABrSIccfgLFJPKcq
+         c0R0VVD98IhuB6+aX0qEEWI244MQ7qXkZhoimM5XlvtPYcMIVmnUodn8lmNxW0WUq5WG
+         k851etgYLHdXYKkWGsXclytNuz+FdhEkkhhNElZgLAQrjj7LY8epFBSmnSPWT/9V0XdZ
+         hNoA==
+X-Gm-Message-State: AO0yUKWu80XvnxL6A/3D/OcoDgpFGqXDvuZZosKW8F37P3zcoUsPAgXT
+        eNbYET2qA8PzyAFzkkvTJg==
+X-Google-Smtp-Source: AK7set+/P06XaRp7GkTwg3tc6gShVPdQ5zxSFTjc+shqKUaog2xzKowKu9ROn/VBl+65mw2D8Tw0Yw==
+X-Received: by 2002:a05:6808:86:b0:384:67e1:ca00 with SMTP id s6-20020a056808008600b0038467e1ca00mr9966724oic.48.1678459700609;
+        Fri, 10 Mar 2023 06:48:20 -0800 (PST)
 Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id e15-20020a056871044f00b0016e9308e17bsm73055oag.52.2023.03.10.06.46.58
+        by smtp.gmail.com with ESMTPSA id u26-20020a9d4d9a000000b00686a19ffef1sm92062otk.80.2023.03.10.06.48.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Mar 2023 06:46:59 -0800 (PST)
-Received: (nullmailer pid 1540838 invoked by uid 1000);
-        Fri, 10 Mar 2023 14:46:55 -0000
+        Fri, 10 Mar 2023 06:48:20 -0800 (PST)
+Received: (nullmailer pid 1545813 invoked by uid 1000);
+        Fri, 10 Mar 2023 14:47:28 -0000
 From:   Rob Herring <robh@kernel.org>
-To:     =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Paul Walmsley <paul@pwsan.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>
-Cc:     devicetree@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] ARM: omap2: Use of_property_read_bool() for boolean properties
-Date:   Fri, 10 Mar 2023 08:46:55 -0600
-Message-Id: <20230310144655.1540793-1-robh@kernel.org>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Bin Liu <b-liu@ti.com>, Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>
+Cc:     devicetree@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-tegra@vger.kernel.org
+Subject: [PATCH] usb: Use of_property_present() for testing DT property presence
+Date:   Fri, 10 Mar 2023 08:47:27 -0600
+Message-Id: <20230310144728.1545786-1-robh@kernel.org>
 X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -58,33 +63,89 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 It is preferred to use typed property access functions (i.e.
 of_property_read_<type> functions) rather than low-level
-of_get_property/of_find_property functions for reading properties.
-Convert reading boolean properties to to of_property_read_bool().
+of_get_property/of_find_property functions for reading properties. As
+part of this, convert of_get_property/of_find_property calls to the
+recently added of_property_present() helper when we just want to test
+for presence of a property and nothing more.
 
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/usb/gadget/udc/snps_udc_plat.c | 2 +-
+ drivers/usb/host/fsl-mph-dr-of.c       | 4 ++--
+ drivers/usb/musb/omap2430.c            | 2 +-
+ drivers/usb/phy/phy-mxs-usb.c          | 2 +-
+ drivers/usb/phy/phy-tegra-usb.c        | 2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 5a2a9b8e61ed..989195f6f7be 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2322,11 +2322,11 @@ static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
- static void __init parse_module_flags(struct omap_hwmod *oh,
- 				      struct device_node *np)
- {
--	if (of_find_property(np, "ti,no-reset-on-init", NULL))
-+	if (of_property_read_bool(np, "ti,no-reset-on-init"))
- 		oh->flags |= HWMOD_INIT_NO_RESET;
--	if (of_find_property(np, "ti,no-idle-on-init", NULL))
-+	if (of_property_read_bool(np, "ti,no-idle-on-init"))
- 		oh->flags |= HWMOD_INIT_NO_IDLE;
--	if (of_find_property(np, "ti,no-idle", NULL))
-+	if (of_property_read_bool(np, "ti,no-idle"))
- 		oh->flags |= HWMOD_NO_IDLE;
- }
+diff --git a/drivers/usb/gadget/udc/snps_udc_plat.c b/drivers/usb/gadget/udc/snps_udc_plat.c
+index 8bbb89c80348..0d3e705655b9 100644
+--- a/drivers/usb/gadget/udc/snps_udc_plat.c
++++ b/drivers/usb/gadget/udc/snps_udc_plat.c
+@@ -158,7 +158,7 @@ static int udc_plat_probe(struct platform_device *pdev)
+ 	}
  
+ 	/* Register for extcon if supported */
+-	if (of_get_property(dev->of_node, "extcon", NULL)) {
++	if (of_property_present(dev->of_node, "extcon")) {
+ 		udc->edev = extcon_get_edev_by_phandle(dev, 0);
+ 		if (IS_ERR(udc->edev)) {
+ 			if (PTR_ERR(udc->edev) == -EPROBE_DEFER)
+diff --git a/drivers/usb/host/fsl-mph-dr-of.c b/drivers/usb/host/fsl-mph-dr-of.c
+index 46c6a152b865..cdf71b716c2b 100644
+--- a/drivers/usb/host/fsl-mph-dr-of.c
++++ b/drivers/usb/host/fsl-mph-dr-of.c
+@@ -200,10 +200,10 @@ static int fsl_usb2_mph_dr_of_probe(struct platform_device *ofdev)
+ 	dev_data = get_dr_mode_data(np);
+ 
+ 	if (of_device_is_compatible(np, "fsl-usb2-mph")) {
+-		if (of_get_property(np, "port0", NULL))
++		if (of_property_present(np, "port0"))
+ 			pdata->port_enables |= FSL_USB2_PORT0_ENABLED;
+ 
+-		if (of_get_property(np, "port1", NULL))
++		if (of_property_present(np, "port1"))
+ 			pdata->port_enables |= FSL_USB2_PORT1_ENABLED;
+ 
+ 		pdata->operating_mode = FSL_USB2_MPH_HOST;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 44a21ec865fb..7f305b352591 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -334,7 +334,7 @@ static int omap2430_probe(struct platform_device *pdev)
+ 	 * Legacy SoCs using omap_device get confused if node is moved
+ 	 * because of interconnect properties mixed into the node.
+ 	 */
+-	if (of_get_property(np, "ti,hwmods", NULL)) {
++	if (of_property_present(np, "ti,hwmods")) {
+ 		dev_warn(&pdev->dev, "please update to probe with ti-sysc\n");
+ 		populate_irqs = true;
+ 	} else {
+diff --git a/drivers/usb/phy/phy-mxs-usb.c b/drivers/usb/phy/phy-mxs-usb.c
+index d2836ef5d15c..0a8e3fd699ca 100644
+--- a/drivers/usb/phy/phy-mxs-usb.c
++++ b/drivers/usb/phy/phy-mxs-usb.c
+@@ -733,7 +733,7 @@ static int mxs_phy_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	/* Some SoCs don't have anatop registers */
+-	if (of_get_property(np, "fsl,anatop", NULL)) {
++	if (of_property_present(np, "fsl,anatop")) {
+ 		mxs_phy->regmap_anatop = syscon_regmap_lookup_by_phandle
+ 			(np, "fsl,anatop");
+ 		if (IS_ERR(mxs_phy->regmap_anatop)) {
+diff --git a/drivers/usb/phy/phy-tegra-usb.c b/drivers/usb/phy/phy-tegra-usb.c
+index f0240107edb1..4d207ce3ddf2 100644
+--- a/drivers/usb/phy/phy-tegra-usb.c
++++ b/drivers/usb/phy/phy-tegra-usb.c
+@@ -1375,7 +1375,7 @@ static int tegra_usb_phy_probe(struct platform_device *pdev)
+ 	tegra_phy->is_legacy_phy =
+ 		of_property_read_bool(np, "nvidia,has-legacy-mode");
+ 
+-	if (of_find_property(np, "dr_mode", NULL))
++	if (of_property_present(np, "dr_mode"))
+ 		tegra_phy->mode = usb_get_dr_mode(&pdev->dev);
+ 	else
+ 		tegra_phy->mode = USB_DR_MODE_HOST;
 -- 
 2.39.2
 
