@@ -2,88 +2,111 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 024AAC6FD1C
-	for <linux-omap@archiver.kernel.org>; Sat, 11 Mar 2023 18:57:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9B9DC6FD1C
+	for <linux-omap@archiver.kernel.org>; Sun, 12 Mar 2023 09:42:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229830AbjCKS5x (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 11 Mar 2023 13:57:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59676 "EHLO
+        id S229585AbjCLJmY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 12 Mar 2023 05:42:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229450AbjCKS5w (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 11 Mar 2023 13:57:52 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BC0F32CC5;
-        Sat, 11 Mar 2023 10:57:51 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DE07F60D30;
-        Sat, 11 Mar 2023 18:57:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A1FAC4339C;
-        Sat, 11 Mar 2023 18:57:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1678561070;
-        bh=xaHRhiudUrbS+WkqUe8mCCCOPn8t0yaOAzuTsE+qPwk=;
-        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-        b=Pmhq+ipUicTMrtC7sWL3GgvGORYYsnb9be/+5LuGSHPh6uP36Fzlntpm58qIPpyQF
-         xbxhc9UR6QsFRd1Db/SUcbfC1FhffD21PYNk3QaHaPKeHaPjMJxXKLC2XaIZAEHRy/
-         fHSSdJJ8N3rrqH0b2wK7F/GlizK0DfAqGyNbjpuMeJ4dw6Iakh41v0cy0l78W9e0FX
-         6D7bC5df2Aae9CIVxqbSXx9ZI5zsznL1tDoD5ZhSZ3sg/LF8pPT15oIe6wV7jYJ68y
-         /AIEDxqIWsiq70c6ijs7ZhnajNgPgHfYKFo0rmihbdoQcK1o4jAZWkGunPP0eIJJTt
-         ixLqtdSBHqSlg==
-From:   Mark Brown <broonie@kernel.org>
-To:     Liam Girdwood <lgirdwood@gmail.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>
-Cc:     devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
-In-Reply-To: <20230310144722.1544843-1-robh@kernel.org>
-References: <20230310144722.1544843-1-robh@kernel.org>
-Subject: Re: [PATCH] regulator: Use of_property_read_bool() for boolean
- properties
-Message-Id: <167856106679.960737.10591965547383927223.b4-ty@kernel.org>
-Date:   Sat, 11 Mar 2023 18:57:46 +0000
+        with ESMTP id S229450AbjCLJmX (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 12 Mar 2023 05:42:23 -0400
+Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [IPv6:2001:4b98:dc2:55:216:3eff:fef7:d647])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7B074FAA2;
+        Sun, 12 Mar 2023 01:42:18 -0800 (PST)
+Received: from pendragon.ideasonboard.com (85-76-49-20-nat.elisa-mobile.fi [85.76.49.20])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id E5D30814;
+        Sun, 12 Mar 2023 10:42:14 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1678614135;
+        bh=2ZEVl5rsK5H4zvdfeUpUGY8WalO/tOcjHbf6ZixUYTY=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=uW96zgPhEyFUlg4cwx9U8aHK5ydpIh7K+GzgaU9BL/vhdw/+zL9BwsVRIklgwy83n
+         znnzlWCsVkBmtHm+lRiw3bEhYFZhWAax0IaEGUVALEnD+uuJxSGkkm7T2ZqG7LsoeF
+         i/JJlR0QZobdvA1oeaCuik3cfnIoI/l0HyEqwgro=
+Date:   Sun, 12 Mar 2023 11:42:16 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Cc:     Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Konrad Dybcio <konrad.dybcio@linaro.org>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH 2/9] regulator: max20086: Mark OF related data as maybe
+ unused
+Message-ID: <20230312094216.GC707@pendragon.ideasonboard.com>
+References: <20230310214553.275450-1-krzysztof.kozlowski@linaro.org>
+ <20230310214553.275450-2-krzysztof.kozlowski@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.13-dev-2eb1a
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20230310214553.275450-2-krzysztof.kozlowski@linaro.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, 10 Mar 2023 08:47:22 -0600, Rob Herring wrote:
-> It is preferred to use typed property access functions (i.e.
-> of_property_read_<type> functions) rather than low-level
-> of_get_property/of_find_property functions for reading properties.
-> Convert reading boolean properties to to of_property_read_bool().
+Hi Krzysztof,
+
+Thank you for the patch.
+
+On Fri, Mar 10, 2023 at 10:45:46PM +0100, Krzysztof Kozlowski wrote:
+> The driver can be compile tested with !CONFIG_OF making certain data
+> unused:
 > 
+>   drivers/regulator/max20086-regulator.c:289:34: error: ‘max20086_dt_ids’ defined but not used [-Werror=unused-const-variable=]
 > 
+> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+> ---
+>  drivers/regulator/max20086-regulator.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/regulator/max20086-regulator.c b/drivers/regulator/max20086-regulator.c
+> index b8bf76c170fe..c98a72f43935 100644
+> --- a/drivers/regulator/max20086-regulator.c
+> +++ b/drivers/regulator/max20086-regulator.c
+> @@ -286,7 +286,7 @@ static const struct i2c_device_id max20086_i2c_id[] = {
+>  
+>  MODULE_DEVICE_TABLE(i2c, max20086_i2c_id);
+>  
+> -static const struct of_device_id max20086_dt_ids[] = {
+> +static const struct of_device_id max20086_dt_ids[] __maybe_unused = {
 
-Applied to
+The following change would also work, as the of_match_table field of
+struct device_driver isn't conditioned by CONFIG_OF:
 
-   broonie/regulator.git for-next
+diff --git a/drivers/regulator/max20086-regulator.c b/drivers/regulator/max20086-regulator.c
+index b8bf76c170fe..ad92f84b4abb 100644
+--- a/drivers/regulator/max20086-regulator.c
++++ b/drivers/regulator/max20086-regulator.c
+@@ -320,7 +320,7 @@ MODULE_DEVICE_TABLE(of, max20086_dt_ids);
+ static struct i2c_driver max20086_regulator_driver = {
+ 	.driver = {
+ 		.name = "max20086",
+-		.of_match_table = of_match_ptr(max20086_dt_ids),
++		.of_match_table = max20086_dt_ids,
+ 	},
+ 	.probe_new = max20086_i2c_probe,
+ 	.id_table = max20086_i2c_id,
 
-Thanks!
+Your patch should reduce the module size without any real drawback as
+far as I can see, so that's probably best. I'm fine with either
+approach, so
 
-[1/1] regulator: Use of_property_read_bool() for boolean properties
-      commit: 5bd73a162bc881dbb98ff9909dd865286852ee2b
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.
+>  	{
+>  		.compatible = "maxim,max20086",
+>  		.data = &(const struct max20086_chip_info) {
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+-- 
+Regards,
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
+Laurent Pinchart
