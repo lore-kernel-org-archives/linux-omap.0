@@ -2,157 +2,100 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1BA5C74A5B
-	for <linux-omap@archiver.kernel.org>; Sun, 12 Mar 2023 12:14:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FA6FC6FD19
+	for <linux-omap@archiver.kernel.org>; Sun, 12 Mar 2023 16:15:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229685AbjCLMOb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 12 Mar 2023 08:14:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52284 "EHLO
+        id S230164AbjCLQPs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 12 Mar 2023 12:15:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229516AbjCLMOa (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 12 Mar 2023 08:14:30 -0400
-Received: from wnew4-smtp.messagingengine.com (wnew4-smtp.messagingengine.com [64.147.123.18])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C642D36FE1;
-        Sun, 12 Mar 2023 05:14:25 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailnew.west.internal (Postfix) with ESMTP id 2E8A02B066CB;
-        Sun, 12 Mar 2023 08:14:19 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute6.internal (MEProxy); Sun, 12 Mar 2023 08:14:23 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm2; t=1678623258; x=1678630458; bh=uOiTi6/NTNM3M
-        UGJcuvZvSM01KsroDdW5S+kXTtbd8w=; b=eHYyrL4NaW+yMUjCNptl5jYYtoi8E
-        hLBKzStAuQkG4v/z4hhP3kqHJQ2dwsRiMM/zQZmYQuybV3ns2BtF/u+8yL8z2Lpx
-        Fmm8zqjgnyTXuowli2+dSb8yfzjw4fhctK9VDp59jUGkHPWADWbTNq/qwMcS4V2D
-        nJzvwzXB3DZqQONKCTj7Ai1tlKWl3EuFudxD2O4eOA/UZCCneHrJ2UESteRQ80wa
-        DIqa4yLbBJCwUjKYoouq9gT2uFNwoaBp54W+m/0tweudxnh2fvhCVWnaKIgSmJRU
-        6fTwksJ6D/49vNcKmO24kfNVAM+PfU+O0BFXGq6gmpmocg7/R3c1RWetw==
-X-ME-Sender: <xms:GMINZGTf74JeblrjlpCh3YB4_QRRq8vjzK0oAN37uf84Wq2fmxR25A>
-    <xme:GMINZLwR_DLRm0xvpbHAjBj56JOUxatnZe2vfFGNpmMYMmk-Rc5duszkyCP3ccJqd
-    CMMbOhtJaOGzHw>
-X-ME-Received: <xmr:GMINZD3N8oWjeD-ZblmcgytVfWOgbjI-9Urb4YeJ1SDeIiaSlgllXVS72rYf>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrvddvvddgfeejucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepfffhvfevuffkfhggtggujgesthdtredttddtvdenucfhrhhomhepkfguohcu
-    ufgthhhimhhmvghluceoihguohhstghhsehiughoshgthhdrohhrgheqnecuggftrfgrth
-    htvghrnhepvddufeevkeehueegfedtvdevfefgudeifeduieefgfelkeehgeelgeejjeeg
-    gefhnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepih
-    guohhstghhsehiughoshgthhdrohhrgh
-X-ME-Proxy: <xmx:GMINZCCd5Yv4ayURM5DOEpHnfT7iGftOXamBF3b0R3zWoNndjgvtew>
-    <xmx:GMINZPhqsrHiMYhX0eZcE-3b2KPOlLyZft3GgY2KvKmPR4znhEQTFQ>
-    <xmx:GMINZOr3mCJj8kq-QN1JeGycDSOV_iFTbuNK_uDCf3DOYZ8phjakwA>
-    <xmx:GsINZCMz0m5ZZart7AcvGICSsoelDhvqQ3z5GzBg10_jUUYuoBThpmdI-JU>
-Feedback-ID: i494840e7:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sun,
- 12 Mar 2023 08:14:15 -0400 (EDT)
-Date:   Sun, 12 Mar 2023 14:14:12 +0200
-From:   Ido Schimmel <idosch@idosch.org>
-To:     Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc:     rafael@kernel.org, linux-kernel@vger.kernel.org,
-        linux-pm@vger.kernel.org, rui.zhang@intel.com,
-        Raju Rangoju <rajur@chelsio.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Peter Kaestle <peter@piie.net>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Amit Kucheria <amitk@kernel.org>,
-        Nicolas Saenz Julienne <nsaenz@kernel.org>,
-        Broadcom Kernel Team <bcm-kernel-feedback-list@broadcom.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Ray Jui <rjui@broadcom.com>,
-        Scott Branden <sbranden@broadcom.com>,
-        Support Opensource <support.opensource@diasemi.com>,
-        Lukasz Luba <lukasz.luba@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Thara Gopinath <thara.gopinath@linaro.org>,
-        Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?= 
-        <niklas.soderlund@ragnatech.se>,
-        Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Alim Akhtar <alim.akhtar@samsung.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Keerthy <j-keerthy@ti.com>,
-        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
-        Masami Hiramatsu <mhiramat@kernel.org>,
-        Antoine Tenart <atenart@kernel.org>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Dmitry Osipenko <digetx@gmail.com>, netdev@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-omap@vger.kernel.org,
-        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-        danieller@nvidia.com, vadimp@nvidia.com, petrm@nvidia.com
-Subject: Re: [PATCH v8 01/29] thermal/core: Add a generic
- thermal_zone_get_trip() function
-Message-ID: <ZA3CFNhU4AbtsP4G@shredder>
-References: <20221003092602.1323944-1-daniel.lezcano@linaro.org>
- <20221003092602.1323944-2-daniel.lezcano@linaro.org>
+        with ESMTP id S230095AbjCLQPf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 12 Mar 2023 12:15:35 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99AFF34F7E
+        for <linux-omap@vger.kernel.org>; Sun, 12 Mar 2023 09:15:33 -0700 (PDT)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pbOM1-0007sf-Uk; Sun, 12 Mar 2023 17:15:25 +0100
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pbOM1-003f3d-Bl; Sun, 12 Mar 2023 17:15:25 +0100
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pbOM0-004K9h-4q; Sun, 12 Mar 2023 17:15:24 +0100
+From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+To:     Tero Kristo <kristo@kernel.org>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>
+Cc:     linux-omap@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 27/30] clk: ti: Convert to platform remove callback returning void
+Date:   Sun, 12 Mar 2023 17:15:09 +0100
+Message-Id: <20230312161512.2715500-28-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.39.1
+In-Reply-To: <20230312161512.2715500-1-u.kleine-koenig@pengutronix.de>
+References: <20230312161512.2715500-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221003092602.1323944-2-daniel.lezcano@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1546; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=+eDcQI6Zb4aIs7d9bJFFkkDfJcRJeMKqXpNyUgVrxUw=; b=owEBbQGS/pANAwAKAcH8FHityuwJAcsmYgBkDfqAWH+TKlTmHEM6RxOYZ9/tjSDti0OgQsMd8 3lfr5mcv2GJATMEAAEKAB0WIQR+cioWkBis/z50pAvB/BR4rcrsCQUCZA36gAAKCRDB/BR4rcrs CUW0B/4jNY4NiHQmjbgaA87O5C1kRpCQk+LmocZoMsFOsC0tZJxOkF/iopdO1LZvnd6RO/TFNtL 4sHa7kuYCq4fzdCigy8ArkO4qcv3qjWbHjtF9IaIkRnfFQ5Q1xwqfuonhrhGANm/Lc9l823UMGV VMqyTVphe/dudZ8iH2wbqbyXsxosUjCbDg54p1tVjIRr9NwPsx8gc5ecRq4oP61hOcXBVXY2Z3g waRxdIPA0Pgllstt5/4O3iQl/Yd8o3L5a0lGs4x2Ov/sA8RjdSmqqOXwrxTfTE0MEjVhIACueWD AOC1aazeB2ueFvzfFAzgZPKfA4u1IKoDpyUS6Y2BNREilAg6
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Oct 03, 2022 at 11:25:34AM +0200, Daniel Lezcano wrote:
-> @@ -1252,9 +1319,10 @@ thermal_zone_device_register_with_trips(const char *type, struct thermal_trip *t
->  		goto release_device;
->  
->  	for (count = 0; count < num_trips; count++) {
-> -		if (tz->ops->get_trip_type(tz, count, &trip_type) ||
-> -		    tz->ops->get_trip_temp(tz, count, &trip_temp) ||
-> -		    !trip_temp)
-> +		struct thermal_trip trip;
-> +
-> +		result = thermal_zone_get_trip(tz, count, &trip);
-> +		if (result)
->  			set_bit(count, &tz->trips_disabled);
->  	}
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is (mostly) ignored
+and this typically results in resource leaks. To improve here there is a
+quest to make the remove callback return void. In the first step of this
+quest all drivers are converted to .remove_new() which already returns
+void.
 
-Daniel, this change makes it so that trip points with a temperature of
-zero are no longer disabled. This behavior was originally added in
-commit 81ad4276b505 ("Thermal: Ignore invalid trip points"). The mlxsw
-driver relies on this behavior - see mlxsw_thermal_module_trips_reset()
-- and with this change I see that the thermal subsystem tries to
-repeatedly set the state of the associated cooling devices to the
-maximum state. Other drivers might also be affected by this.
+Trivially convert this driver from always returning zero in the remove
+callback to the void returning variant.
 
-Following patch solves the problem for me:
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+ drivers/clk/ti/adpll.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 55679fd86505..b50931f84aaa 100644
---- a/drivers/thermal/thermal_core.c
-+++ b/drivers/thermal/thermal_core.c
-@@ -1309,7 +1309,7 @@ thermal_zone_device_register_with_trips(const char *type, struct thermal_trip *t
-                struct thermal_trip trip;
+diff --git a/drivers/clk/ti/adpll.c b/drivers/clk/ti/adpll.c
+index f5e7e2049241..6ecbba4342c5 100644
+--- a/drivers/clk/ti/adpll.c
++++ b/drivers/clk/ti/adpll.c
+@@ -931,13 +931,11 @@ static int ti_adpll_probe(struct platform_device *pdev)
+ 	return err;
+ }
  
-                result = thermal_zone_get_trip(tz, count, &trip);
--               if (result)
-+               if (result || !trip.temperature)
-                        set_bit(count, &tz->trips_disabled);
-        }
+-static int ti_adpll_remove(struct platform_device *pdev)
++static void ti_adpll_remove(struct platform_device *pdev)
+ {
+ 	struct ti_adpll_data *d = dev_get_drvdata(&pdev->dev);
+ 
+ 	ti_adpll_free_resources(d);
+-
+-	return 0;
+ }
+ 
+ static struct platform_driver ti_adpll_driver = {
+@@ -946,7 +944,7 @@ static struct platform_driver ti_adpll_driver = {
+ 		.of_match_table = ti_adpll_match,
+ 	},
+ 	.probe = ti_adpll_probe,
+-	.remove = ti_adpll_remove,
++	.remove_new = ti_adpll_remove,
+ };
+ 
+ static int __init ti_adpll_init(void)
+-- 
+2.39.1
 
-Should I submit it or do you have a better idea?
-
-Thanks
