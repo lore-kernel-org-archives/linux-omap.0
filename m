@@ -2,172 +2,53 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64BEDC6FD19
-	for <linux-omap@archiver.kernel.org>; Thu, 16 Mar 2023 07:15:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D10BAC7618B
+	for <linux-omap@archiver.kernel.org>; Thu, 16 Mar 2023 08:41:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230206AbjCPHPd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 16 Mar 2023 03:15:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44924 "EHLO
+        id S230254AbjCPIk7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 16 Mar 2023 04:40:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230235AbjCPHPT (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Mar 2023 03:15:19 -0400
-Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F3DCAA705;
-        Thu, 16 Mar 2023 00:14:52 -0700 (PDT)
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 32G7CfXH086570;
-        Thu, 16 Mar 2023 02:12:41 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1678950761;
-        bh=PpUfaVjVt4iNuG1/XgKubLP9ifTcdNa1nIS4MSP55A0=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=reDUKbjXiPiKIIW4sJI5/lfinnnvwnkJMulf/tqmCkFD5V6PbKouGMrmFon3MD7L3
-         05YvJnhyRtcckpp4VuLeop06AdXSmkX1yX0ligN4aib5p7F4IIrWZNeZqg0h/d+zFq
-         ETlFN5athlckioPBOg6p+wKsYOWaIST7YiYKE3PM=
-Received: from DFLE111.ent.ti.com (dfle111.ent.ti.com [10.64.6.32])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 32G7Cf90077894
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 16 Mar 2023 02:12:41 -0500
-Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE111.ent.ti.com
- (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Thu, 16
- Mar 2023 02:12:41 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE110.ent.ti.com
- (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
- Frontend Transport; Thu, 16 Mar 2023 02:12:41 -0500
-Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 32G7CeeQ072290;
-        Thu, 16 Mar 2023 02:12:40 -0500
-From:   Achal Verma <a-verma1@ti.com>
-To:     Tom Joseph <tjoseph@cadence.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Krzysztof Wilczy_ski <kw@linux.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>
-CC:     <linux-pci@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Achal Verma <a-verma1@ti.com>,
-        Milind Parab <mparab@cadence.com>,
-        <wojciech.jasko-EXT@continental-corporation.com>
-Subject: [PATCH v10 1/5] dt-bindings: PCI: ti,j721e-pci-*: add checks for num-lanes
-Date:   Thu, 16 Mar 2023 12:42:34 +0530
-Message-ID: <20230316071238.200992-2-a-verma1@ti.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230316071238.200992-1-a-verma1@ti.com>
-References: <20230316071238.200992-1-a-verma1@ti.com>
+        with ESMTP id S230425AbjCPIk4 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 16 Mar 2023 04:40:56 -0400
+Received: from mail.paretdee.com (mail.paretdee.com [141.95.17.174])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC9552BED6
+        for <linux-omap@vger.kernel.org>; Thu, 16 Mar 2023 01:40:47 -0700 (PDT)
+Received: by mail.paretdee.com (Postfix, from userid 1002)
+        id 95436A2AD0; Thu, 16 Mar 2023 08:40:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=paretdee.com; s=mail;
+        t=1678956046; bh=FLMIyM7qOCOVEMp1o/ltkgnLeuU0ZBlT9xWiZMBZ7Ag=;
+        h=Date:From:To:Subject:From;
+        b=dM/iDaLfrBG2NeqGeaSaxORN+OOryhMAbxWmXydbKYNsfolzRQr5NiUrdEMLYZzAW
+         /IkjhH2tmD91ir+NxK1zyWtEX3L7WKe16LUEl6E+uPwQBkKTjgJEQtjlX4RivO9sw+
+         cUlklQ+qIKh+2hvkwERixVcvi0bowA5EXlat1SYLwOqT2oq1Vvd+kWENBZd/iaGcxc
+         B+ApuyYUUj5q2ZIQTmvq77nzqjfHR6PaeCgH8pJMUBJ39JFBIYfRsmJXHcV41Z8rFn
+         I1p9teTfjd43m8ajtx5W8X1EQMH6JQGfbIBBu1zaeK8KiYWVR58z73XFIc4wpEnk9f
+         Tmrbd1tKd9OXg==
+Received: by mail.paretdee.com for <linux-omap@vger.kernel.org>; Thu, 16 Mar 2023 08:40:33 GMT
+Message-ID: <20230316074500-0.1.5h.cls0.0.8b4pep5q2p@paretdee.com>
+Date:   Thu, 16 Mar 2023 08:40:33 GMT
+From:   "Zbynek Spacek" <zbynek.spacek@paretdee.com>
+To:     <linux-omap@vger.kernel.org>
+Subject: Rubber Molded
+X-Mailer: mail.paretdee.com
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Matt Ranostay <mranostay@ti.com>
+Good morning,
 
-Add num-lanes schema checks based on compatible string on available lanes
-for that platform.
+we can offer unbeatable conditions for the supply of various silicone com=
+pounds and rubbers, liquid silicone rubber (LSR).
 
-Signed-off-by: Matt Ranostay <mranostay@ti.com>
-Signed-off-by: Achal Verma <a-verma1@ti.com>
----
- .../bindings/pci/ti,j721e-pci-ep.yaml         | 27 ++++++++++++++++---
- .../bindings/pci/ti,j721e-pci-host.yaml       | 27 ++++++++++++++++---
- 2 files changed, 48 insertions(+), 6 deletions(-)
+In our assortment you will also find cross-linking agents, stabilizers, d=
+yes and individual silicone mixtures that we will develop for your needs.
 
-diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
-index 10e6eabdff53..32e0c70ed801 100644
---- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
-+++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-ep.yaml
-@@ -10,9 +10,6 @@ title: TI J721E PCI EP (PCIe Wrapper)
- maintainers:
-   - Kishon Vijay Abraham I <kishon@ti.com>
- 
--allOf:
--  - $ref: "cdns-pcie-ep.yaml#"
--
- properties:
-   compatible:
-     oneOf:
-@@ -65,6 +62,30 @@ properties:
-     items:
-       - const: link_state
- 
-+allOf:
-+  - $ref: cdns-pcie-ep.yaml#
-+  - if:
-+      properties:
-+        compatible:
-+          enum:
-+            - ti,am64-pcie-ep
-+    then:
-+      properties:
-+        num-lanes:
-+          const: 1
-+
-+  - if:
-+      properties:
-+        compatible:
-+          enum:
-+            - ti,j7200-pcie-ep
-+            - ti,j721e-pcie-ep
-+    then:
-+      properties:
-+        num-lanes:
-+          minimum: 1
-+          maximum: 2
-+
- required:
-   - compatible
-   - reg
-diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-index 3d7aee97353a..2547088304e5 100644
---- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-+++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-@@ -10,9 +10,6 @@ title: TI J721E PCI Host (PCIe Wrapper)
- maintainers:
-   - Kishon Vijay Abraham I <kishon@ti.com>
- 
--allOf:
--  - $ref: "cdns-pcie-host.yaml#"
--
- properties:
-   compatible:
-     oneOf:
-@@ -94,6 +91,30 @@ properties:
-       interrupts:
-         maxItems: 1
- 
-+allOf:
-+  - $ref: cdns-pcie-host.yaml#
-+  - if:
-+      properties:
-+        compatible:
-+          enum:
-+            - ti,am64-pcie-host
-+    then:
-+      properties:
-+        num-lanes:
-+          const: 1
-+
-+  - if:
-+      properties:
-+        compatible:
-+          enum:
-+            - ti,j7200-pcie-host
-+            - ti,j721e-pcie-host
-+    then:
-+      properties:
-+        num-lanes:
-+          minimum: 1
-+          maximum: 2
-+
- required:
-   - compatible
-   - reg
--- 
-2.25.1
+Do you want to know what we can offer you?
 
+
+Best regards
+Zbynek Spacek
