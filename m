@@ -2,132 +2,131 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3382C76196
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Mar 2023 07:51:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0324DC74A5B
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Mar 2023 08:33:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230403AbjCQHvx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Mar 2023 03:51:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58112 "EHLO
+        id S231627AbjCQIdn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Mar 2023 04:33:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230383AbjCQHvv (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Mar 2023 03:51:51 -0400
-Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1881AC5AC9;
-        Fri, 17 Mar 2023 00:51:42 -0700 (PDT)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 32H7pQFE008664;
-        Fri, 17 Mar 2023 02:51:26 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1679039486;
-        bh=TISRczCqqClgTnuh9Jgbp4YdFIC7Href1UTZ0gVUQ5I=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=jaMqWZ5qBPyQA9WMOOvu0DfCBAw1ihhRm9e/tljBb5g/8vuNYFWURmsPhVMfYzbSw
-         R9UB2teEoReDNpyQMuipQBJm+i3yYtPQdG8u6bXW3bFHPHv7m4RPj3KEfDlnEX692Q
-         ZCEais0bbVQtg39nWls9UKEqnMqEfOA8eL6Tnj8c=
-Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 32H7pQD7119567
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 17 Mar 2023 02:51:26 -0500
-Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE115.ent.ti.com
- (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Fri, 17
- Mar 2023 02:51:26 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
- Frontend Transport; Fri, 17 Mar 2023 02:51:26 -0500
-Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 32H7pP24113752;
-        Fri, 17 Mar 2023 02:51:26 -0500
-From:   Achal Verma <a-verma1@ti.com>
-To:     Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Krzysztof Wilczy_ski <kw@linux.com>,
-        Rob Herring <robh@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Dhananjay Vilasrao Kangude <dkangude@cadence.com>,
-        Anindita Das <dasa@cadence.com>,
-        Yuan Zhao <yuanzhao@cadence.com>,
-        Milind Parab <mparab@cadence.com>
-CC:     <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Achal Verma <a-verma1@ti.com>
-Subject: [PATCH v11 3/5] PCI: j721e: Add PCIe 4x lane selection support
-Date:   Fri, 17 Mar 2023 13:21:18 +0530
-Message-ID: <20230317075120.506267-4-a-verma1@ti.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230317075120.506267-1-a-verma1@ti.com>
-References: <20230317075120.506267-1-a-verma1@ti.com>
+        with ESMTP id S231552AbjCQIdT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Mar 2023 04:33:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61D93DFB43;
+        Fri, 17 Mar 2023 01:32:03 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A206BB824F6;
+        Fri, 17 Mar 2023 08:32:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F06C8C433D2;
+        Fri, 17 Mar 2023 08:31:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1679041919;
+        bh=oomZDnVxdHZtUJnlVWXEtuwr3xT++1ZZD4/CrL6Q6KA=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=oZHAbvzuggGsV0kFkw//uH222iU6B2cdqfqqS+WMOBSAcPPZ36sGeR6ZWQlBe5V5/
+         xl53mRL8CXa4lKX89H74MVRR9BjfRDJtyYG/+/PL25S8TSBvJyPEMBleVfkNdCZt4U
+         7WcHsxKsMVkZokb42IE2Jfg1uM7+9/PFPN6V1mDeOcB5PRS8A43l1ETq53+1phO3ZG
+         7dFzutQO3OEq4gbTBoSjGIDsAgjDqwdN++zZ4fE8RlGRbKo+hEQM2tVOBLKgld7biN
+         OkAD9y39ug72oyhRCzeCg8lf2mnXmAAI52tvlcrlffTnCfuTuw6MUYlTDYmxenVx2s
+         LCn2hfN6fFrCg==
+Message-ID: <d8776be3-75a2-02fd-3702-79169675e4f6@kernel.org>
+Date:   Fri, 17 Mar 2023 10:31:52 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.8.0
+Subject: Re: [EXTERNAL] Re: [EXTERNAL] Re: [PATCH v4 4/5] soc: ti: pruss: Add
+ helper functions to set GPI mode, MII_RT_event and XFR
+Content-Language: en-US
+To:     Md Danish Anwar <a0501179@ti.com>,
+        MD Danish Anwar <danishanwar@ti.com>,
+        "Andrew F. Davis" <afd@ti.com>, Suman Anna <s-anna@ti.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Mathieu Poirier <mathieu.poirier@linaro.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Nishanth Menon <nm@ti.com>
+Cc:     linux-remoteproc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, srk@ti.com, devicetree@vger.kernel.org,
+        netdev@vger.kernel.org
+References: <20230313111127.1229187-1-danishanwar@ti.com>
+ <20230313111127.1229187-5-danishanwar@ti.com>
+ <d168e7dd-42a0-b728-5c4c-e97209c13871@kernel.org>
+ <b1409f34-86b5-14e8-f352-5032aa57ca46@ti.com>
+ <60e73395-f670-6eaa-0eb7-389553320a71@kernel.org>
+ <20718115-7606-a77b-7e4d-511ca9c1d798@ti.com>
+ <e49b9a78-5e35-209e-7ecc-2333478b98b0@kernel.org>
+ <468f85ad-e4b0-54e1-a5b9-4692ae8a1445@ti.com>
+ <455440f4-7f2b-366e-53ec-700c3bb98534@kernel.org>
+ <22b8860c-12bd-384d-41af-93f1dde9a0fd@ti.com>
+From:   Roger Quadros <rogerq@kernel.org>
+In-Reply-To: <22b8860c-12bd-384d-41af-93f1dde9a0fd@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Matt Ranostay <mranostay@ti.com>
 
-Add support for setting of two-bit field that allows selection of 4x lane
-PCIe which was previously limited to only 2x lanes.
 
-Signed-off-by: Matt Ranostay <mranostay@ti.com>
-Reviewed-by: Vignesh Raghavendra <vigneshr@ti.com>
-Reviewed-by: Roger Quadros <rogerq@kernel.org>
-Signed-off-by: Achal Verma <a-verma1@ti.com>
----
- drivers/pci/controller/cadence/pci-j721e.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+On 17/03/2023 07:02, Md Danish Anwar wrote:
+> 
+> 
+> On 16/03/23 19:34, Roger Quadros wrote:
+>>
+>> Hi,
+>>
+>> On 16/03/2023 15:11, Md Danish Anwar wrote:
+>>>
+>>>
+>>> On 16/03/23 17:49, Roger Quadros wrote:
+>>>>
+>>>>
+>>>> On 16/03/2023 13:44, Md Danish Anwar wrote:
+>>>>>
+>>>>> On 16/03/23 17:06, Roger Quadros wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> On 16/03/2023 13:05, Md Danish Anwar wrote:
+>>>>>>> Hi Roger,
+>>>>>>>
+>>>>>>> On 15/03/23 17:52, Roger Quadros wrote:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> On 13/03/2023 13:11, MD Danish Anwar wrote:
+>>>>>>>>> From: Suman Anna <s-anna@ti.com>
+>>
+> 
+> [..]
+> 
+>>> Sure, then I will use the existing enum pru_type.
+>>>
+>>> The enum pru_type is currently in drivers/remoteproc/pruss.c I will move this
+>>> enum definition from there to include/linux/remoteproc/pruss.h
+>>
+>> There are 2 public pruss.h files.
+>> 	include/linux/remoteproc/pruss.h
+>> and
+>> 	include/linux/pruss_driver.h
+>>
+>> Why is that and when to use what?
+>>
+> 
+> The include/linux/remoteproc/pruss.h file was introduced in series [1] as a
+> public header file for PRU_RPROC driver (drivers/remoteproc/pru_rproc.c)
+> 
+> The second header file include/linux/pruss_driver.h was introduced much earlier
+> as part of [2] , "soc: ti: pruss: Add a platform driver for PRUSS in TI SoCs".
+> 
+> As far as I can see, seems like pruss_driver.h was added as a public header
+> file for PRUSS platform driver (drivers/soc/ti/pruss.c)
+> 
+> [1] https://lore.kernel.org/all/20230106121046.886863-1-danishanwar@ti.com/
+> [2] https://lore.kernel.org/all/1542886753-17625-7-git-send-email-rogerq@ti.com/
 
-diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
-index f4dc2c5abedb..58dcac9021e4 100644
---- a/drivers/pci/controller/cadence/pci-j721e.c
-+++ b/drivers/pci/controller/cadence/pci-j721e.c
-@@ -42,7 +42,6 @@ enum link_status {
- };
- 
- #define J721E_MODE_RC			BIT(7)
--#define LANE_COUNT_MASK			BIT(8)
- #define LANE_COUNT(n)			((n) << 8)
- 
- #define GENERATION_SEL_MASK		GENMASK(1, 0)
-@@ -52,6 +51,7 @@ struct j721e_pcie {
- 	struct clk		*refclk;
- 	u32			mode;
- 	u32			num_lanes;
-+	u32			max_lanes;
- 	void __iomem		*user_cfg_base;
- 	void __iomem		*intd_cfg_base;
- 	u32			linkdown_irq_regfield;
-@@ -205,11 +205,15 @@ static int j721e_pcie_set_lane_count(struct j721e_pcie *pcie,
- {
- 	struct device *dev = pcie->cdns_pcie->dev;
- 	u32 lanes = pcie->num_lanes;
-+	u32 mask = BIT(8);
- 	u32 val = 0;
- 	int ret;
- 
-+	if (pcie->max_lanes == 4)
-+		mask = GENMASK(9, 8);
-+
- 	val = LANE_COUNT(lanes - 1);
--	ret = regmap_update_bits(syscon, offset, LANE_COUNT_MASK, val);
-+	ret = regmap_update_bits(syscon, offset, mask, val);
- 	if (ret)
- 		dev_err(dev, "failed to set link count\n");
- 
-@@ -441,7 +445,9 @@ static int j721e_pcie_probe(struct platform_device *pdev)
- 		dev_warn(dev, "num-lanes property not provided or invalid, setting num-lanes to 1\n");
- 		num_lanes = 1;
- 	}
-+
- 	pcie->num_lanes = num_lanes;
-+	pcie->max_lanes = data->max_lanes;
- 
- 	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(48)))
- 		return -EINVAL;
--- 
-2.25.1
+Thanks. "include/linux/remoteproc/pruss.h" seems appropriate for enum pru_type.
 
+cheers,
+-roger
