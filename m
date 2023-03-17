@@ -2,122 +2,113 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A538C74A5B
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Mar 2023 19:43:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D261EC76196
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Mar 2023 21:16:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229608AbjCQTnt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Mar 2023 15:43:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56528 "EHLO
+        id S229911AbjCQVQ2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Mar 2023 17:16:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49560 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229473AbjCQTnr (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Mar 2023 15:43:47 -0400
-Received: from mail-pg1-x536.google.com (mail-pg1-x536.google.com [IPv6:2607:f8b0:4864:20::536])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A89A1024B;
-        Fri, 17 Mar 2023 12:43:46 -0700 (PDT)
-Received: by mail-pg1-x536.google.com with SMTP id x37so3545624pga.1;
-        Fri, 17 Mar 2023 12:43:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1679082225;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=On053GRmvak1ihY8RYqod2dWpDbMYWVHxbUsiBufrE4=;
-        b=bWuWBxePZdmS6fAxELkPLZtrc3YBaRacBPWnUC8Fg9k847PqQEM6GBoznngWHnRiM1
-         UD2BY5mT1+gURMJ3oeXJBqMYo+/nA5HbL1pRA7qV/EVYvjnuKdh2rPo+oSs2cLja4vEa
-         FZdnsYdwMwvpyqc0ZOEjyN1BSRdOghVTk+z64Eprz4YLPxPixUWdRzgK45LObe5IgHu6
-         YPfN0xcIyKqY+RGRzwWlhhzMs5hUNkwWGv1/5bbcBTg0q6ubmKQeiXFXLQC5gYD4LMBg
-         o/uZ9tU8y+5MWct8zPWDGetHzEBI9/GQ4F7jxYsVXYxcUWg9HpxLT6AwiLpYgk0XJsaK
-         ynVg==
+        with ESMTP id S229734AbjCQVQ1 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Mar 2023 17:16:27 -0400
+Received: from mail-il1-f175.google.com (mail-il1-f175.google.com [209.85.166.175])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AD1469CFB;
+        Fri, 17 Mar 2023 14:16:26 -0700 (PDT)
+Received: by mail-il1-f175.google.com with SMTP id i19so3409878ila.10;
+        Fri, 17 Mar 2023 14:16:26 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679082225;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=On053GRmvak1ihY8RYqod2dWpDbMYWVHxbUsiBufrE4=;
-        b=jp5/gkBRn9oYA9xebmIUjpbbhKxAljJIWemE8iw8fwT1ww7+eVfZ/5amohEYw+uXzT
-         Svg8dcvOQA/tYN55Vc02c/+Coub8t4KOU8W4/aE+BuX//AEIqal3z3t/+Y8RLu1B+V/y
-         iyzHaiCdeCTibydUmuBiXwygW+N04u05oISXfN/7BNdrzP8TP9IAhm0MW0r+QILPm+g/
-         AF7BVO0JTcj+6dGK2b6oeK/kPt12IAnXnqmoBRhrdOBURmX/dWnTZDHoPCi85rp0hgnu
-         ukdDExBPFnwbHZ0rAveLL8aArmBiQOocm4ULnEQqnzuRD00ghLI9SFJk/RRUjjXNvgjL
-         hexg==
-X-Gm-Message-State: AO0yUKUy0fvVdKU1fLqwyAfIjvEeFblBIYJkhYTDzmbsdXL0LK/Gy2NO
-        +/kg2Xt0/eMY+ho0zu0IH1fnfmtoYWAUDwkQg+Y=
-X-Google-Smtp-Source: AK7set/VvoBvLQmtjKHDMAsTOMhGtcA3zjyXPp1c3IIegaU12wGeed1P6f+RMZv7TSZVS2hLxgZnuJm8cIHFpckQksw=
-X-Received: by 2002:a05:6a00:4ac7:b0:5a8:daec:c325 with SMTP id
- ds7-20020a056a004ac700b005a8daecc325mr1894046pfb.1.1679082225507; Fri, 17 Mar
- 2023 12:43:45 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230308135936.761794-4-kory.maincent@bootlin.com>
- <20230308230321.liw3v255okrhxg6s@skbuf> <20230310114852.3cef643d@kmaincent-XPS-13-7390>
- <20230310113533.l7flaoli7y3bmlnr@skbuf> <b4ebfd3770ffa5ad1233d2b5e79499ee@walle.cc>
- <20230310131529.6bahmi4obryy5dsx@soft-dev3-1> <20230310164451.ls7bbs6pdzs4m6pw@skbuf>
- <20230313084059.GA11063@pengutronix.de> <20230316160920.53737d1c@kmaincent-XPS-13-7390>
- <20230317152150.qahrr6w5x4o3eysz@skbuf> <20230317120744.5b7f1666@kernel.org>
-In-Reply-To: <20230317120744.5b7f1666@kernel.org>
-From:   Max Georgiev <glipus@gmail.com>
-Date:   Fri, 17 Mar 2023 13:43:34 -0600
-Message-ID: <CAP5jrPHep12hRbbcb5gXrZB5w_uzmVpEp4EhpfqW=9zC+zcu9A@mail.gmail.com>
-Subject: Re: [PATCH v3 3/5] net: Let the active time stamping layer be selectable.
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Vladimir Oltean <vladimir.oltean@nxp.com>,
-        =?UTF-8?Q?K=C3=B6ry_Maincent?= <kory.maincent@bootlin.com>,
-        Oleksij Rempel <o.rempel@pengutronix.de>,
-        Horatiu Vultur <horatiu.vultur@microchip.com>,
-        Michael Walle <michael@walle.cc>, Andrew Lunn <andrew@lunn.ch>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>, netdev@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-omap@vger.kernel.org,
-        Maxime Chevallier <maxime.chevallier@bootlin.com>,
-        Richard Cochran <richardcochran@gmail.com>,
-        thomas.petazzoni@bootlin.com, Russell King <linux@armlinux.org.uk>,
+        d=1e100.net; s=20210112; t=1679087785;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=E8EReBm37JWyJO8L1kIPOgKUl1U5FCQclLtDZ/qXfAs=;
+        b=T9OD8EDmmspN5qP6O0f9aqn23exd9IXa16FNFPu9CWKpEB6ZJdDN2SZYeKENQQG5Ef
+         fWY9t1SLe/M/Z9CZAAnsfuUSOSp7Oqquo7QN8gsMKC1U1BPWnun6YWISwZMWrRAyAoPW
+         mTW3MBSi6+9pZFblEhNr39Q672Uq9tn9FiIx1+XK1kbXENjlVrDX7WV1UcC0TilOPZF8
+         qqOrikKJnz8uyFGtl9f74h5ZcphO5DVL6kc6u4PcK6Yd4Q9/J+a5x98oqimeXLEeX23p
+         ubUZ6cloyeRehh8OJ9jKEWSTMsR4XvQkX8VSejJH11HjBrZp9cOzv9cA85blkSoMBB8N
+         N8gw==
+X-Gm-Message-State: AO0yUKWiwyBiUE9fqyYObhX5SfGwCBqeLxjAVE9YReg2bSWzqA07UcoL
+        bqLPWKVPzdczxfVfYTLtksl5rKLPBA==
+X-Google-Smtp-Source: AK7set+44jDdZQnQ5gK5eSj07BZtp0lA+8sBDtriRGbUAZiENzi39wMOmMGgf61Ip66/ii32uJBABg==
+X-Received: by 2002:a92:cc08:0:b0:317:99b9:3d1c with SMTP id s8-20020a92cc08000000b0031799b93d1cmr12777ilp.26.1679087785257;
+        Fri, 17 Mar 2023 14:16:25 -0700 (PDT)
+Received: from robh_at_kernel.org ([64.188.179.249])
+        by smtp.gmail.com with ESMTPSA id c7-20020a929407000000b003232362a4c2sm879970ili.8.2023.03.17.14.16.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 17 Mar 2023 14:16:23 -0700 (PDT)
+Received: (nullmailer pid 2819364 invoked by uid 1000);
+        Fri, 17 Mar 2023 21:16:21 -0000
+Date:   Fri, 17 Mar 2023 16:16:21 -0500
+From:   Rob Herring <robh@kernel.org>
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     Christian Lamparter <chunkeey@googlemail.com>,
+        Kalle Valo <kvalo@kernel.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org,
+        Tony Lindgren <tony@atomide.com>,
+        Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Felipe Balbi <balbi@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>,
-        Rob Herring <robh+dt@kernel.org>,
         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Jay Vosburgh <j.vosburgh@gmail.com>,
-        Veaceslav Falico <vfalico@gmail.com>,
-        Andy Gospodarek <andy@greyhouse.net>,
-        Claudiu Manoil <claudiu.manoil@nxp.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        UNGLinuxDriver@microchip.com, Minghao Chi <chi.minghao@zte.com.cn>,
-        Jie Wang <wangjie125@huawei.com>,
-        Oleksij Rempel <linux@rempel-privat.de>,
-        Sean Anderson <sean.anderson@seco.com>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        Alexander Lobakin <alexandr.lobakin@intel.com>,
-        Marco Bonelli <marco@mebeim.net>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] p54spi: convert to devicetree
+Message-ID: <20230317211621.GA2814846-robh@kernel.org>
+References: <20230314163201.955689-1-arnd@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230314163201.955689-1-arnd@kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Jakub,
+On Tue, Mar 14, 2023 at 05:30:56PM +0100, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+> 
+> The Prism54 SPI driver hardcodes GPIO numbers and expects users to
+> pass them as module parameters, apparently a relic from its life as a
+> staging driver. This works because there is only one user, the Nokia
+> N8x0 tablet.
+> 
+> Convert this to the gpio descriptor interface and move the gpio
+> line information into devicetree to improve this and simplify the
+> code at the same time.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> As I don't have an N8x0, this is completely untested.
+> 
+> I listed the driver authors (Johannes and Christian) as the maintainers
+> of the binding document, but I don't know if they actually have this
+> hardware. It might be better to list someone who is actually using it.
+> 
+> Among the various chip identifications, I wasn't sure which one to
+> use for the compatible string and the name of the binding document.
+> I picked st,stlc4560 as that was cited as the version in the N800
+> on multiple websites.
+> ---
+>  .../bindings/net/wireless/st,stlc45xx.yaml    | 64 +++++++++++++++++
+>  MAINTAINERS                                   |  1 +
+>  arch/arm/boot/dts/omap2.dtsi                  |  4 ++
+>  arch/arm/boot/dts/omap2420-n8x0-common.dtsi   | 12 ++++
+>  arch/arm/mach-omap2/board-n8x0.c              | 18 -----
+>  drivers/net/wireless/intersil/p54/p54spi.c    | 69 +++++++------------
+>  drivers/net/wireless/intersil/p54/p54spi.h    |  3 +
+>  7 files changed, 109 insertions(+), 62 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/net/wireless/st,stlc45xx.yaml
 
-I started working on a patch introducing NDO functions for hw
-timestamping, but unfortunately put it on hold.
-Let me finish it and send it out for review.
+Binding looks fine, but I assume you'll split this into at least 3 
+patches?
 
-On Fri, Mar 17, 2023 at 1:07=E2=80=AFPM Jakub Kicinski <kuba@kernel.org> wr=
-ote:
->
-> On Fri, 17 Mar 2023 17:21:50 +0200 Vladimir Oltean wrote:
-> > On Thu, Mar 16, 2023 at 04:09:20PM +0100, K=C3=B6ry Maincent wrote:
-> > > Was there any useful work that could be continued on managing timesta=
-mp through
-> > > NDOs. As it seem we will made some change to the timestamp API, maybe=
- it is a
-> > > good time to also take care of this.
-> >
-> > Not to my knowledge. Yes, I agree that it would be a good time to add a=
-n
-> > NDO for hwtimestamping (while keeping the ioctl fallback), then
-> > transitioning as many devices as we can, and removing the fallback when
-> > the transition is complete.
->
-> I believe Max was looking into it - hi Max! Did you make much
-> progress? Any code you could share to build on?
+Rob
