@@ -2,136 +2,368 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C388C74A5B
-	for <linux-omap@archiver.kernel.org>; Sat, 18 Mar 2023 14:47:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD184C7619A
+	for <linux-omap@archiver.kernel.org>; Sat, 18 Mar 2023 23:55:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229924AbjCROrD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 18 Mar 2023 10:47:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56158 "EHLO
+        id S229867AbjCRXzS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 18 Mar 2023 19:55:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229942AbjCROq7 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 18 Mar 2023 10:46:59 -0400
-Received: from APC01-TYZ-obe.outbound.protection.outlook.com (mail-tyzapc01on2109.outbound.protection.outlook.com [40.107.117.109])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4378DCA2F;
-        Sat, 18 Mar 2023 07:46:30 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=JtighpnZeyUCP0N8ueMLoTWZmULKd0IcA8fPSyZC5IzwwebHBwzN31ySC/hUI4zXysm5traLREJNz1di3g/dFXUHRkjGG1FBjXGM3ChqpxPhdguCML6JTrej0OdsAdFhBA51ECHOui1dsNzFl9d9aKqwa17Ev+w2gIkEgtoyfBLMbJsRFVzxN4EKLsBTtyv+1ENowM2sZX5+oJHb6sBg7Pum5ytbKY0nz5dqP11Qb+j+5Dm/+CPOLrUEtEnl5DK/tLQY+FRW3WM3Ds9aCB0B+cH57WtOu3BGKJ2x3zXVLuRdxPSmbCyRxRP79WRw0nSIVZ5d+JDvcowUI3rgCAcLjA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GE3MEtYd/t6m9uX7tsCrsm/xazH/HurMYPLnGfjf41A=;
- b=lSJC1M0lBOvH2H9Sb72AUiUkRFPaH+wkp6cEICkVsfPdgWgH643h4QbMNFiysPSTrfEveFE3Ez4aaOYLPIbsDKFkKfuIyFDdqF7X4Hul4vkstDTeMMTnzyXmggLxmw4fUrHhsaGO1CcTx2zlr9DpQ9xu6M1HKEnvyBa41kt7Ktqv7vmi/VQWXgQoqB/X/v4m5HcxBbhXUB9ZylcLI8C1MbuKUdHC08W50gHvP5crM3QqGFWTHIq3fYnKtWDvTKxA3Cgin4yNL/lyeBGMhz5o7HamisOd1dIVM78VK4tBzk5ocPUZ9w/sig+859Cr88xL+nZLQnXVYA4tLX8NHXf00A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=vivo.com; dmarc=pass action=none header.from=vivo.com;
- dkim=pass header.d=vivo.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=vivo.com; s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GE3MEtYd/t6m9uX7tsCrsm/xazH/HurMYPLnGfjf41A=;
- b=BstLJmB5qBYfLuP5aQTUGTnLzwbl2c1DKu4G+Bu7rS6d1fcHEyUW5Bv5D2OMOrfcJqtmo5vk+5vTNkQwSYh1mDkM4b/ykwzmcBk4CACWgzK0TsxBQiIn2uoACTEscCWxSfRTK2YJXivhhqV83Rb2Iiyn+7OpzECIFhGuafelVYFy+Sa4WZhmunv2RchGr7YGUUcvQYIo3vy/tgBeYyqWDtZ+kK5dFcv2Ml+4k9Eattc1uFy1iCYiCLGPhi+7VDI+6pV6KWk8hZDcoPENjnDkzdAXTp9npv8ZH3HgI6A7c/aynj3EFb8OOXaOVBnuD5MuQ+GgJUWv69hgwFS190XoSg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=vivo.com;
-Received: from SEZPR06MB5269.apcprd06.prod.outlook.com (2603:1096:101:78::6)
- by TY0PR06MB5283.apcprd06.prod.outlook.com (2603:1096:400:210::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6178.36; Sat, 18 Mar
- 2023 14:45:16 +0000
-Received: from SEZPR06MB5269.apcprd06.prod.outlook.com
- ([fe80::daf6:5ebb:a93f:1869]) by SEZPR06MB5269.apcprd06.prod.outlook.com
- ([fe80::daf6:5ebb:a93f:1869%9]) with mapi id 15.20.6178.036; Sat, 18 Mar 2023
- 14:45:16 +0000
-From:   Yangtao Li <frank.li@vivo.com>
-To:     Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Amit Kucheria <amitk@kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>
-Cc:     Yangtao Li <frank.li@vivo.com>, linux-pm@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 8/9] thermal/drivers/ti-soc: remove redundant msg in ti_thermal_expose_sensor()
-Date:   Sat, 18 Mar 2023 22:44:11 +0800
-Message-Id: <20230318144412.75046-8-frank.li@vivo.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20230318144412.75046-1-frank.li@vivo.com>
-References: <20230318144412.75046-1-frank.li@vivo.com>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: SI2PR02CA0032.apcprd02.prod.outlook.com
- (2603:1096:4:195::12) To SEZPR06MB5269.apcprd06.prod.outlook.com
- (2603:1096:101:78::6)
+        with ESMTP id S229841AbjCRXzQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 18 Mar 2023 19:55:16 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3EB522004
+        for <linux-omap@vger.kernel.org>; Sat, 18 Mar 2023 16:55:14 -0700 (PDT)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pdgNw-0004Eo-40; Sun, 19 Mar 2023 00:54:52 +0100
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pdgNq-0056bh-R5; Sun, 19 Mar 2023 00:54:46 +0100
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pdgNp-005zVW-VN; Sun, 19 Mar 2023 00:54:45 +0100
+From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+To:     Helge Deller <deller@gmx.de>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Tony Lindgren <tony@atomide.com>,
+        Jiapeng Chong <jiapeng.chong@linux.alibaba.com>,
+        Yu Zhe <yuzhe@nfschina.com>, Xu Panda <xu.panda@zte.com.cn>,
+        Zhang Qilong <zhangqilong3@huawei.com>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc:     linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, kernel@pengutronix.de
+Subject: [PATCH 30/51] video: fbdev: omapfb: Convert to platform remove callback returning void
+Date:   Sun, 19 Mar 2023 00:54:07 +0100
+Message-Id: <20230318235428.272091-31-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230318235428.272091-1-u.kleine-koenig@pengutronix.de>
+References: <20230318235428.272091-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SEZPR06MB5269:EE_|TY0PR06MB5283:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4d6364b3-69d4-46e8-16fa-08db27bf632c
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 1BvdNsw6gt6DYeYjrdBU3QtxleLDOZJtls2m8i9BtdZoGolzwC3gtrcLZlCJ+LWEQOG6ibDIJT/RQVi0HEfh5SvfDGBE+q0vveMz7rm/d3aZrghXd+xXW90y+YlZhIpVSA0Vxuok5Voh+3Cd+Jwr3bLVnflM/BAQWcAN3k5XIEgM4jfzUSRDVxvqm0KYKCvZ+tPuulVnnL2h2RQYNWwH/b/UeKUatv2kdi+JubrB26/SyMdyS3etjzNHcMdcmS+WswWV0ZuYUuU9go6N3ODCr78Dde0G4xLQunrbKFQ7fn/QWi+2wEQIz3a06lXi7OIB8vidQ1mc5zH4HynYkOHb1NkPJdC1trHfK5pJYo0kH2kp/Cmf5gFctcg3TzD2Y9N16j2gwajNJ0Zl64Kp8wv+AXz/+6U4R4LYkYWECKjtCchmBbNQE7mItMplUvy5zQiEOqmCN8IoPQfWJblxRNCTPOD/HYhU17fDDrpd8ynU87VkD5DezAGUg5DEh5CHhdcfXISYtgpb+BajRtp84dzAwdbi9DSaVMcdUSk/c/liTp9Z8CDM2C5dnsYndy0Y5vzietQWrvnkTdSZfxYMtsXjg3Ax9EAAq/OVQho/3aIAlCM41ySmxxwR+1t2a9Fnk1oPYsGF/fpyVhINP0iJ4IJnuvfH/qqBqqcODJ0lO7k6hyExGJmIPXe52mn3hnMws/MPKyP5AIDDOEOO5iy6T/ntPw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SEZPR06MB5269.apcprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(4636009)(39860400002)(376002)(366004)(346002)(136003)(396003)(451199018)(86362001)(36756003)(52116002)(316002)(66946007)(66556008)(66476007)(8676002)(4326008)(83380400001)(478600001)(110136005)(186003)(6512007)(6506007)(1076003)(26005)(2616005)(6486002)(6666004)(38100700002)(38350700002)(8936002)(41300700001)(4744005)(2906002)(5660300002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?X+e/OsTX4dDM+4MrTTTOyNlynD2MYhRnTYZXC62RGMWZNC6JpCGZBcAXnE5/?=
- =?us-ascii?Q?MRATcrH1+csMcmAhZXUmgwuvtJtmAeAZ6kfoEZeGYryMNDewWbWWy/F58SG9?=
- =?us-ascii?Q?Pj36WbKZN/5aP1iauhgGSMcIZIRX83hL4Jxir8k2zXb4K24sboHbcUcyDu5m?=
- =?us-ascii?Q?RvHYyUbDABEWv0+xippTXk3opk7Rh94ZTNVjozkgEMoU/1zNu+389BX8nSWj?=
- =?us-ascii?Q?J89PLnuKIMhlYXwAU3W3906ht3vVcmDBxwtmTCn3ox/z3QsCKR8TgEWxLNDP?=
- =?us-ascii?Q?XmxP3jnk84DDuD0DzbUDKdveQklDblzcrkB3954L6I1ijuodgdnBQNMPeknS?=
- =?us-ascii?Q?A57ZZRVdF1OSCJkP97hePZFicpj0Jd7fIpFzgsxafQMsEuJKxnvW671ORqQX?=
- =?us-ascii?Q?FYf6GhKkMFRFn7cYZ73+bcAtXKf1szRNsx20ioJDS2ree69WcbslvD52UTfa?=
- =?us-ascii?Q?h1kBLXZbR01CjusTdTTMkumlEOv8lkNMPa3/gmZgTFWZl7M1QzNemVhYSBK+?=
- =?us-ascii?Q?LXbC4CVGTXlopYaA1vJTzhCKro6BTR+nUCrpCL6+C6qMu+gTiX4Fh9LB/Wyz?=
- =?us-ascii?Q?MGk17/nYWioVeuUAHGTz1sPSWbOFLuSVPMjuuNhb2JDy5cimFZCTaQtEJ/21?=
- =?us-ascii?Q?7656YfE+YBJIJq5BpJb2OgHaWworiEe4mslguuWt9oEXG/GRgNC1S4avdo9w?=
- =?us-ascii?Q?E8bp1ie3rOAjD3zfEgoMApmn4kLN48U7WwXVtepNZdYov6eBEPvnAfkKiKLs?=
- =?us-ascii?Q?VbWP6xFXjjY6o1+WtDp/QK6Plx3HMwSdy6AuDeZUGnN5hZL/r2KzB0bVhR9v?=
- =?us-ascii?Q?h4jWoOs9CDVPtRQdz2VNjHeB+CQD4aYMtyf0VZl3hfHSdqhlUud9aBsB/HS1?=
- =?us-ascii?Q?8NETioCFM9u2Jd5BJykBC79Zf9KUtZkcV4gbhdA5IWFoZDpnE+B6kSR3qkoD?=
- =?us-ascii?Q?HXowRW59alpr+TUouWCWX5sfcKRBamnX0o8s4OP2xyjcsbRbM20p8i7UQyI0?=
- =?us-ascii?Q?j9LGrt/0bkbnpHn6CiQ9oUBnsyj469ITjItMGu0p4L5/V8CBI40wyICniFmc?=
- =?us-ascii?Q?VgipQ5LDzAJFuBgP81xzK+vjEZBXr/dg6WlJ9lToiIGdCAFPEeQoRkFeS0h8?=
- =?us-ascii?Q?VEcrYrJgiyv4RRut352S9mpBfKl8lA/EMlUEE2c1LwtGNGfwyhZZBhFPOgQt?=
- =?us-ascii?Q?0nMLivGqOchdUOPIZ94dbxjUHhiwc7z4+xX3eNn3qILONPm/DDB2c1rg2B7f?=
- =?us-ascii?Q?nMdWWxdY02uIAHAh0JMqy+qyhHjHrd+QozAJGRQxtXBOw0zpTnaDLPQXcRc0?=
- =?us-ascii?Q?3mnP5HATqGS1QL8LxHUPA6ch3/R1ngA+J50Ot4hqotFFE2GnqKJMiFZGn8Es?=
- =?us-ascii?Q?sB0oipEvnTBbYH7FKINNzlBHZQuoDiGjiYEE09PQYoiUrK6PPnJ66iaY8OA6?=
- =?us-ascii?Q?3hvBfCnTVYgymR4hESdvpB7Ha0f2dGYWZW5rUGEHVEmAWvfumvOpAArs7V7q?=
- =?us-ascii?Q?6nWR183hEed7ZoPtNaBWAIId9GAUzaIp1BdRK0brsP3qcDoHavlqiTa2hGDS?=
- =?us-ascii?Q?07rnYylvgY9Q7SvZGaL7z6I6bMKhHYI8MaHVtjjG?=
-X-OriginatorOrg: vivo.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4d6364b3-69d4-46e8-16fa-08db27bf632c
-X-MS-Exchange-CrossTenant-AuthSource: SEZPR06MB5269.apcprd06.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Mar 2023 14:45:16.1314
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 923e42dc-48d5-4cbe-b582-1a797a6412ed
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: UwANLDm7LTWDQCiym2Jkf7Iy/bWdzdxntgJ1n9sTHLlbpH9P2eDsVL30HZeSBC5wcGXBEqYwrNh24KC2cymBJw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TY0PR06MB5283
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=11405; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=EDo1aKr//a6fSQeLgJmtFuaS5zNte07XgYOIvfwCNuE=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBkFk7If3DWRwK0CgL/5etvBVaf95/C4zJtGKLr5 c4+YmguNRCJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZBZOyAAKCRCPgPtYfRL+ Tin+B/9zMPO7MOHCK7GgHr1I396v1t6o2mfmOsIBQkwZdfGNwI/TNKQyYtQk+4Q3SzVyR4Hh7JM hX5nL7E7GXHr89gR0Dqq4+kqHuiqXklN5I7kAUoVwIM86+euJevzMqnT0e3zGct97OcN9UZqaNM QoJYWQn9K+rTuzrJyeb13dKNoYTjFXfahDu5rxovjGrciqpTD+ZH7kSK7TsPhQEf8ECHJJOp6Om 3LTfB3Pp0DltlBy1VF0UyNNMDVfMJq8I2wC15wdjv+FAUTWQL5/KCFzlst9lZe4pWxxxfKm7eMM ToTjIvJOVBlprWjuHg2dfWKg8VjvDWcpAkObAXw2iU2mKJaN
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The upper-layer devm_thermal_add_hwmon_sysfs() function can directly
-print error information.
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is (mostly) ignored
+and this typically results in resource leaks. To improve here there is a
+quest to make the remove callback return void. In the first step of this
+quest all drivers are converted to .remove_new() which already returns
+void.
 
-Signed-off-by: Yangtao Li <frank.li@vivo.com>
+Trivially convert this driver from always returning zero in the remove
+callback to the void returning variant.
+
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 ---
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/video/fbdev/omap/omapfb_main.c         | 6 ++----
+ drivers/video/fbdev/omap2/omapfb/dss/core.c    | 6 ++----
+ drivers/video/fbdev/omap2/omapfb/dss/dispc.c   | 5 ++---
+ drivers/video/fbdev/omap2/omapfb/dss/dpi.c     | 5 ++---
+ drivers/video/fbdev/omap2/omapfb/dss/dsi.c     | 5 ++---
+ drivers/video/fbdev/omap2/omapfb/dss/dss.c     | 5 ++---
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c   | 5 ++---
+ drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c   | 5 ++---
+ drivers/video/fbdev/omap2/omapfb/dss/sdi.c     | 5 ++---
+ drivers/video/fbdev/omap2/omapfb/dss/venc.c    | 5 ++---
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 6 ++----
+ 11 files changed, 22 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index 0c8914017c18..e39091f999d9 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -182,8 +182,7 @@ int ti_thermal_expose_sensor(struct ti_bandgap *bgp, int id,
- 	ti_bandgap_set_sensor_data(bgp, id, data);
- 	ti_bandgap_write_update_interval(bgp, data->sensor_id, interval);
+diff --git a/drivers/video/fbdev/omap/omapfb_main.c b/drivers/video/fbdev/omap/omapfb_main.c
+index 1f3df2055ff0..764058f40341 100644
+--- a/drivers/video/fbdev/omap/omapfb_main.c
++++ b/drivers/video/fbdev/omap/omapfb_main.c
+@@ -1793,7 +1793,7 @@ void omapfb_register_panel(struct lcd_panel *panel)
+ EXPORT_SYMBOL_GPL(omapfb_register_panel);
  
--	if (devm_thermal_add_hwmon_sysfs(bgp->dev, data->ti_thermal))
--		dev_warn(bgp->dev, "failed to add hwmon sysfs attributes\n");
-+	devm_thermal_add_hwmon_sysfs(bgp->dev, data->ti_thermal);
+ /* Called when the device is being detached from the driver */
+-static int omapfb_remove(struct platform_device *pdev)
++static void omapfb_remove(struct platform_device *pdev)
+ {
+ 	struct omapfb_device *fbdev = platform_get_drvdata(pdev);
+ 	enum omapfb_state saved_state = fbdev->state;
+@@ -1805,8 +1805,6 @@ static int omapfb_remove(struct platform_device *pdev)
  
+ 	platform_device_unregister(&omapdss_device);
+ 	fbdev->dssdev = NULL;
+-
+-	return 0;
+ }
+ 
+ /* PM suspend */
+@@ -1831,7 +1829,7 @@ static int omapfb_resume(struct platform_device *pdev)
+ 
+ static struct platform_driver omapfb_driver = {
+ 	.probe		= omapfb_probe,
+-	.remove		= omapfb_remove,
++	.remove_new	= omapfb_remove,
+ 	.suspend	= omapfb_suspend,
+ 	.resume		= omapfb_resume,
+ 	.driver		= {
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/core.c b/drivers/video/fbdev/omap2/omapfb/dss/core.c
+index 37858be8be83..5fbd8885bad8 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/core.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/core.c
+@@ -171,13 +171,11 @@ static int __init omap_dss_probe(struct platform_device *pdev)
  	return 0;
  }
+ 
+-static int omap_dss_remove(struct platform_device *pdev)
++static void omap_dss_remove(struct platform_device *pdev)
+ {
+ 	unregister_pm_notifier(&omap_dss_pm_notif_block);
+ 
+ 	dss_uninitialize_debugfs();
+-
+-	return 0;
+ }
+ 
+ static void omap_dss_shutdown(struct platform_device *pdev)
+@@ -187,7 +185,7 @@ static void omap_dss_shutdown(struct platform_device *pdev)
+ }
+ 
+ static struct platform_driver omap_dss_driver = {
+-	.remove         = omap_dss_remove,
++	.remove_new     = omap_dss_remove,
+ 	.shutdown	= omap_dss_shutdown,
+ 	.driver         = {
+ 		.name   = "omapdss",
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
+index 92fb6b7e1f68..21fef9db90d2 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
+@@ -4017,10 +4017,9 @@ static int dispc_probe(struct platform_device *pdev)
+ 	return component_add(&pdev->dev, &dispc_component_ops);
+ }
+ 
+-static int dispc_remove(struct platform_device *pdev)
++static void dispc_remove(struct platform_device *pdev)
+ {
+ 	component_del(&pdev->dev, &dispc_component_ops);
+-	return 0;
+ }
+ 
+ static int dispc_runtime_suspend(struct device *dev)
+@@ -4073,7 +4072,7 @@ static const struct of_device_id dispc_of_match[] = {
+ 
+ static struct platform_driver omap_dispchw_driver = {
+ 	.probe		= dispc_probe,
+-	.remove         = dispc_remove,
++	.remove_new     = dispc_remove,
+ 	.driver         = {
+ 		.name   = "omapdss_dispc",
+ 		.pm	= &dispc_pm_ops,
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dpi.c b/drivers/video/fbdev/omap2/omapfb/dss/dpi.c
+index 99ce6e955a46..7c1b7d89389a 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dpi.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dpi.c
+@@ -810,15 +810,14 @@ static int dpi_probe(struct platform_device *pdev)
+ 	return component_add(&pdev->dev, &dpi_component_ops);
+ }
+ 
+-static int dpi_remove(struct platform_device *pdev)
++static void dpi_remove(struct platform_device *pdev)
+ {
+ 	component_del(&pdev->dev, &dpi_component_ops);
+-	return 0;
+ }
+ 
+ static struct platform_driver omap_dpi_driver = {
+ 	.probe		= dpi_probe,
+-	.remove		= dpi_remove,
++	.remove_new	= dpi_remove,
+ 	.driver         = {
+ 		.name   = "omapdss_dpi",
+ 		.suppress_bind_attrs = true,
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
+index 7cddb7b8ae34..b7eb17a16ec4 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
+@@ -5495,10 +5495,9 @@ static int dsi_probe(struct platform_device *pdev)
+ 	return component_add(&pdev->dev, &dsi_component_ops);
+ }
+ 
+-static int dsi_remove(struct platform_device *pdev)
++static void dsi_remove(struct platform_device *pdev)
+ {
+ 	component_del(&pdev->dev, &dsi_component_ops);
+-	return 0;
+ }
+ 
+ static int dsi_runtime_suspend(struct device *dev)
+@@ -5565,7 +5564,7 @@ static const struct of_device_id dsi_of_match[] = {
+ 
+ static struct platform_driver omap_dsihw_driver = {
+ 	.probe		= dsi_probe,
+-	.remove		= dsi_remove,
++	.remove_new	= dsi_remove,
+ 	.driver         = {
+ 		.name   = "omapdss_dsi",
+ 		.pm	= &dsi_pm_ops,
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+index 335e0af4eec1..d814e4baa4b3 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+@@ -1224,10 +1224,9 @@ static int dss_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int dss_remove(struct platform_device *pdev)
++static void dss_remove(struct platform_device *pdev)
+ {
+ 	component_master_del(&pdev->dev, &dss_component_ops);
+-	return 0;
+ }
+ 
+ static int dss_runtime_suspend(struct device *dev)
+@@ -1279,7 +1278,7 @@ MODULE_DEVICE_TABLE(of, dss_of_match);
+ 
+ static struct platform_driver omap_dsshw_driver = {
+ 	.probe		= dss_probe,
+-	.remove		= dss_remove,
++	.remove_new	= dss_remove,
+ 	.driver         = {
+ 		.name   = "omapdss_dss",
+ 		.pm	= &dss_pm_ops,
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c
+index 0f39612e002e..f05b4e35a842 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi4.c
+@@ -756,10 +756,9 @@ static int hdmi4_probe(struct platform_device *pdev)
+ 	return component_add(&pdev->dev, &hdmi4_component_ops);
+ }
+ 
+-static int hdmi4_remove(struct platform_device *pdev)
++static void hdmi4_remove(struct platform_device *pdev)
+ {
+ 	component_del(&pdev->dev, &hdmi4_component_ops);
+-	return 0;
+ }
+ 
+ static int hdmi_runtime_suspend(struct device *dev)
+@@ -792,7 +791,7 @@ static const struct of_device_id hdmi_of_match[] = {
+ 
+ static struct platform_driver omapdss_hdmihw_driver = {
+ 	.probe		= hdmi4_probe,
+-	.remove		= hdmi4_remove,
++	.remove_new	= hdmi4_remove,
+ 	.driver         = {
+ 		.name   = "omapdss_hdmi",
+ 		.pm	= &hdmi_pm_ops,
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c
+index bfccc2cb917a..03292945b1d4 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi5.c
+@@ -797,10 +797,9 @@ static int hdmi5_probe(struct platform_device *pdev)
+ 	return component_add(&pdev->dev, &hdmi5_component_ops);
+ }
+ 
+-static int hdmi5_remove(struct platform_device *pdev)
++static void hdmi5_remove(struct platform_device *pdev)
+ {
+ 	component_del(&pdev->dev, &hdmi5_component_ops);
+-	return 0;
+ }
+ 
+ static int hdmi_runtime_suspend(struct device *dev)
+@@ -834,7 +833,7 @@ static const struct of_device_id hdmi_of_match[] = {
+ 
+ static struct platform_driver omapdss_hdmihw_driver = {
+ 	.probe		= hdmi5_probe,
+-	.remove		= hdmi5_remove,
++	.remove_new	= hdmi5_remove,
+ 	.driver         = {
+ 		.name   = "omapdss_hdmi5",
+ 		.pm	= &hdmi_pm_ops,
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/sdi.c b/drivers/video/fbdev/omap2/omapfb/dss/sdi.c
+index 002f07f5480f..d527931b2b16 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/sdi.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/sdi.c
+@@ -375,15 +375,14 @@ static int sdi_probe(struct platform_device *pdev)
+ 	return component_add(&pdev->dev, &sdi_component_ops);
+ }
+ 
+-static int sdi_remove(struct platform_device *pdev)
++static void sdi_remove(struct platform_device *pdev)
+ {
+ 	component_del(&pdev->dev, &sdi_component_ops);
+-	return 0;
+ }
+ 
+ static struct platform_driver omap_sdi_driver = {
+ 	.probe		= sdi_probe,
+-	.remove         = sdi_remove,
++	.remove_new     = sdi_remove,
+ 	.driver         = {
+ 		.name   = "omapdss_sdi",
+ 		.suppress_bind_attrs = true,
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/venc.c b/drivers/video/fbdev/omap2/omapfb/dss/venc.c
+index 78a7309d25dd..c9d40e28a06f 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/venc.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/venc.c
+@@ -880,10 +880,9 @@ static int venc_probe(struct platform_device *pdev)
+ 	return component_add(&pdev->dev, &venc_component_ops);
+ }
+ 
+-static int venc_remove(struct platform_device *pdev)
++static void venc_remove(struct platform_device *pdev)
+ {
+ 	component_del(&pdev->dev, &venc_component_ops);
+-	return 0;
+ }
+ 
+ static int venc_runtime_suspend(struct device *dev)
+@@ -922,7 +921,7 @@ static const struct of_device_id venc_of_match[] = {
+ 
+ static struct platform_driver omap_venchw_driver = {
+ 	.probe		= venc_probe,
+-	.remove		= venc_remove,
++	.remove_new	= venc_remove,
+ 	.driver         = {
+ 		.name   = "omapdss_venc",
+ 		.pm	= &venc_pm_ops,
+diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+index 5ccddcfce722..c0538069eb48 100644
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+@@ -2599,7 +2599,7 @@ static int omapfb_probe(struct platform_device *pdev)
+ 	return r;
+ }
+ 
+-static int omapfb_remove(struct platform_device *pdev)
++static void omapfb_remove(struct platform_device *pdev)
+ {
+ 	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
+ 
+@@ -2610,13 +2610,11 @@ static int omapfb_remove(struct platform_device *pdev)
+ 	omapfb_free_resources(fbdev);
+ 
+ 	omapdss_compat_uninit();
+-
+-	return 0;
+ }
+ 
+ static struct platform_driver omapfb_driver = {
+ 	.probe		= omapfb_probe,
+-	.remove         = omapfb_remove,
++	.remove_new     = omapfb_remove,
+ 	.driver         = {
+ 		.name   = "omapfb",
+ 	},
 -- 
-2.35.1
+2.39.2
 
