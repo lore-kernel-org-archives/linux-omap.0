@@ -2,88 +2,103 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 517C1C6FD1D
-	for <linux-omap@archiver.kernel.org>; Tue, 21 Mar 2023 19:25:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA843C6FD1D
+	for <linux-omap@archiver.kernel.org>; Tue, 21 Mar 2023 19:33:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229645AbjCUTZb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 21 Mar 2023 15:25:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36982 "EHLO
+        id S229670AbjCUTdc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 21 Mar 2023 15:33:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48342 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229635AbjCUTZa (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Mar 2023 15:25:30 -0400
-Received: from jabberwock.ucw.cz (jabberwock.ucw.cz [46.255.230.98])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B82BCDCA;
-        Tue, 21 Mar 2023 12:25:27 -0700 (PDT)
-Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
-        id D13241C0E0F; Tue, 21 Mar 2023 20:25:25 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ucw.cz; s=gen1;
-        t=1679426725;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=FHp6qocT5JOMM3snOUIRNwEjiVup1saxJEKPXH3LIBE=;
-        b=gID0n8m6SA8ipfHjTNofqRiy7vmUspmy8RXVQ51Bvm2cAeUWSI8/6VTrv4WqYlh617PKFE
-        LtO0OLZJ3cZhzc7GIbPg9I4uF/h/lPdTSG4xGCOV1NT2R66UVZcO3KS3aOPU/IumwS/1Wl
-        2KrEILSyRMa0shcWlugJQDrXPFVlVKU=
-Date:   Tue, 21 Mar 2023 20:25:25 +0100
-From:   Pavel Machek <pavel@ucw.cz>
-To:     kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-        nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org,
-        martin_rysavy@centrum.cz, phone-devel@vger.kernel.org,
-        maemo-leste@lists.dyne.org
-Subject: d4: Usable with some caveats
-Message-ID: <ZBoEpYPKRFfr/cpR@duo.ucw.cz>
-References: <ZAcvuP8kmWveLoE/@duo.ucw.cz>
+        with ESMTP id S229891AbjCUTdb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 21 Mar 2023 15:33:31 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2AE1570A9
+        for <linux-omap@vger.kernel.org>; Tue, 21 Mar 2023 12:32:32 -0700 (PDT)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pehiW-0008EC-MA; Tue, 21 Mar 2023 20:32:20 +0100
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pehiU-005l5z-QE; Tue, 21 Mar 2023 20:32:18 +0100
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pehiU-006qxw-20; Tue, 21 Mar 2023 20:32:18 +0100
+From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+To:     Vignesh Raghavendra <vigneshr@ti.com>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        =?utf-8?q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>,
+        Bjorn Helgaas <bhelgaas@google.com>
+Cc:     Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        kernel@pengutronix.de
+Subject: [PATCH 05/15] PCI: cadence/j721e: Convert to platform remove callback returning void
+Date:   Tue, 21 Mar 2023 20:31:58 +0100
+Message-Id: <20230321193208.366561-6-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230321193208.366561-1-u.kleine-koenig@pengutronix.de>
+References: <20230321193208.366561-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="qmFDAhRrfFm1Hqfm"
-Content-Disposition: inline
-In-Reply-To: <ZAcvuP8kmWveLoE/@duo.ucw.cz>
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1766; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=QxQuCPkBX+gmn0DsDFMazRFbmA+rrNRdxWImQT9rru0=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBkGgYQ1j3K5rYmdgPYi1zdHVXsFc9Ws6RX4oYjT S1lZTdeizeJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZBoGEAAKCRCPgPtYfRL+ Tg0pCAChO/xohQuyvJzoG0F/9IkpLTb7vcvjZRFygLGbIhNQwl4fglw2bdYVH/FOcM6Wn4u+ZJV xcA2Lgcq+OXNlCqT3U1AJhJ5JPGu80t3C2WoRuk8hllnSkv+PTWWRDge9BW0blQvyIWeaPZUjpq CehhqW25molXb72kuGuyIhm7fNEiY2Cm4IfCYdxLIRMeQMfnPPHORYMuhbqJriAywh+KQHV5yXx QDtOGyQ3yLLiP9q/xopEgd/lALZgam8YeJ8VwTRFPoZyn7baPkGt6FaOs1980yua2KzsfPIjam/ r7lcLIYgIsS1/XEXYv/JuaZUK5GCoMDFENHAecJa/gl9lzoy
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is (mostly) ignored
+and this typically results in resource leaks. To improve here there is a
+quest to make the remove callback return void. In the first step of this
+quest all drivers are converted to .remove_new() which already returns
+void.
 
---qmFDAhRrfFm1Hqfm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Trivially convert this driver from always returning zero in the remove
+callback to the void returning variant.
 
-Hi!
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+ drivers/pci/controller/cadence/pci-j721e.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-So I believe I found out reason to high power consumption -- web
-browser. It is really easy to leave it running, and power consumption
-goes from 0.05A to 0.15A to roof depending on website.
+diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
+index cc83a8925ce0..e70213c9060a 100644
+--- a/drivers/pci/controller/cadence/pci-j721e.c
++++ b/drivers/pci/controller/cadence/pci-j721e.c
+@@ -542,7 +542,7 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int j721e_pcie_remove(struct platform_device *pdev)
++static void j721e_pcie_remove(struct platform_device *pdev)
+ {
+ 	struct j721e_pcie *pcie = platform_get_drvdata(pdev);
+ 	struct cdns_pcie *cdns_pcie = pcie->cdns_pcie;
+@@ -552,13 +552,11 @@ static int j721e_pcie_remove(struct platform_device *pdev)
+ 	cdns_pcie_disable_phy(cdns_pcie);
+ 	pm_runtime_put(dev);
+ 	pm_runtime_disable(dev);
+-
+-	return 0;
+ }
+ 
+ static struct platform_driver j721e_pcie_driver = {
+ 	.probe  = j721e_pcie_probe,
+-	.remove = j721e_pcie_remove,
++	.remove_new = j721e_pcie_remove,
+ 	.driver = {
+ 		.name	= "j721e-pcie",
+ 		.of_match_table = of_j721e_pcie_match,
+-- 
+2.39.2
 
-With the fix to stop charging on battery full, it is nice enough to
-use on daily basis. But there are still few problems:
-
-1) Booting with empty battery will result in Maemo booting then
-immediately shutting down, discharging battery all the time.
-
-2) Enabling bluetooth and leaving it enabled overnight will result in
-so many oopses it fills root filesystem with syslog.
-
-3) When root filesystem is full on boot, it results in hang with black
-screen.
-
-(And yes, today I hit 2) which let to empty battery and 3).)
-
-Best regards,
-								Pavel
---=20
-People of Russia, stop Putin before his war on Ukraine escalates.
-
---qmFDAhRrfFm1Hqfm
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCZBoEpQAKCRAw5/Bqldv6
-8mngAKCHkoASjYTwnGhYPwRuRYbftdnbBgCeMidJcnSkuzIYxHfmYmEGT/yXT0c=
-=6y8d
------END PGP SIGNATURE-----
-
---qmFDAhRrfFm1Hqfm--
