@@ -2,98 +2,106 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BD0DC6FD1C
-	for <linux-omap@archiver.kernel.org>; Thu, 23 Mar 2023 12:14:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DF61C6FD20
+	for <linux-omap@archiver.kernel.org>; Fri, 24 Mar 2023 07:14:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231486AbjCWMOR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 23 Mar 2023 08:14:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50800 "EHLO
+        id S231311AbjCXHN7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 24 Mar 2023 03:13:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59894 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231483AbjCWMN5 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 23 Mar 2023 08:13:57 -0400
-Received: from mail-yb1-xb30.google.com (mail-yb1-xb30.google.com [IPv6:2607:f8b0:4864:20::b30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 494DF15C8B
-        for <linux-omap@vger.kernel.org>; Thu, 23 Mar 2023 05:13:44 -0700 (PDT)
-Received: by mail-yb1-xb30.google.com with SMTP id k17so13739688ybm.11
-        for <linux-omap@vger.kernel.org>; Thu, 23 Mar 2023 05:13:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1679573622;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=ALFwvw50Oz+gjNGnlwxKeh+PF+7RPaNRR5vajpRayGA=;
-        b=lQ/Luegj+SIyFETuhC0mhnn/jgRkpkvEHiFYjAEuHWuSSJvn2FRgMIudLEGhPQ+g/s
-         qCKvIlkMea84aQzG0fNMn8cOfnzszxdcUzewbspuhaz6mEjeeqOY3FR+56+A9gnYRUc8
-         XjTh07K5Mrn8OoUOHcCvzjCC1dzHqxECkNZgUDCDqhh15BkUpyWE6z0YOYxzKa3/DogH
-         VOW6iLubS/7upy1Oik8vyhWoBsKwstOofF8l5P4Vl6lVuS6JHWTQOhv06QSgOyVoRNH1
-         pKJCUItaEvXrsdV0G3mZJ6IAojR3EcC/oznO/s8MXymCml5E4k60REnqcaVX0t7jx7fa
-         t6RQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679573622;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=ALFwvw50Oz+gjNGnlwxKeh+PF+7RPaNRR5vajpRayGA=;
-        b=hsDTe702TJfBKwg9LcMKuEcPHafi2lPIX73vwt5kKt9VChra9N38x1Hi4/Dp7JuEUl
-         V/GBAQ+f5XEdYJX+mGPvrVVcp9Z7UWoWfs1IZ4Nd5rhm20GKq6xrD04lVL2HT9zyxS3T
-         ZQh9NzmXjj/l6Fx1LRZAuv/RrM2E0nP9+Qs3DVUVHikbC82LBzcFAcZdEtJXKxq4wbgU
-         5l//VvGaHMzHeMjd5AeeHZ3A1HKUj9x7j4LT9FFEvqSUxMvJWzvnS5iOaeT2+DUYzyyp
-         OPGN7hCiggvE1Y8ExUbXU3Yd5ETbx4Jo0uy+7TvxI5x603Hmh3YEnIt3A+rkRXeRWDqh
-         FsKA==
-X-Gm-Message-State: AAQBX9fggrWsMMFQ/AcxJpg5GSksm28W4KPwkZM/JOEHTX7uTzQ7dwGo
-        op4FjNfYRocaQq6Xv/Z53nDVzvDztuqcoPis1PJlu4aIMOP8MSN3
-X-Google-Smtp-Source: AKy350ZmPZ6Bgl/nzWsMVVusfpOpXKH6gyaGevVQV5K60RTELmGqzP67HWjeBShZfhob5GCO1QOIGHoIxVmw/d31b5I=
-X-Received: by 2002:a05:6902:1203:b0:b71:f49f:8d22 with SMTP id
- s3-20020a056902120300b00b71f49f8d22mr1977317ybu.3.1679573622701; Thu, 23 Mar
- 2023 05:13:42 -0700 (PDT)
+        with ESMTP id S229536AbjCXHN6 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 24 Mar 2023 03:13:58 -0400
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB540D532;
+        Fri, 24 Mar 2023 00:13:56 -0700 (PDT)
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 32O7Dg2L053422;
+        Fri, 24 Mar 2023 02:13:42 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1679642022;
+        bh=ETyhzSkLMiBhoJJwftNzHfxbMQGF3UJPiIcYUOTMfoo=;
+        h=Date:Subject:To:CC:References:From:In-Reply-To;
+        b=FELYO/Lf7I+Cevm4rqmagustqteOQbpDwaJIdp3/NlDM1dnil5keOnE3sozCA40eZ
+         j2eZYIVenidTzkVbfKIFGfpAXqUDmT+WknpD8+lcUhVH+CDKZEUDsB9ohf8NVbEMy8
+         zWJKQnWp3/GB7wNEU62OcIppp/9H095V+oxHsu8w=
+Received: from DLEE102.ent.ti.com (dlee102.ent.ti.com [157.170.170.32])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 32O7Dge5000485
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 24 Mar 2023 02:13:42 -0500
+Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Fri, 24
+ Mar 2023 02:13:41 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE105.ent.ti.com
+ (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
+ Frontend Transport; Fri, 24 Mar 2023 02:13:41 -0500
+Received: from [10.24.69.114] (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 32O7Da1n072365;
+        Fri, 24 Mar 2023 02:13:37 -0500
+Message-ID: <4c9276e4-0c00-d2e9-bf9d-08cc73a75b6f@ti.com>
+Date:   Fri, 24 Mar 2023 12:43:36 +0530
 MIME-Version: 1.0
-References: <20230315053434.38316-1-yang.lee@linux.alibaba.com>
-In-Reply-To: <20230315053434.38316-1-yang.lee@linux.alibaba.com>
-From:   Ulf Hansson <ulf.hansson@linaro.org>
-Date:   Thu, 23 Mar 2023 13:13:07 +0100
-Message-ID: <CAPDyKFrmrHa7vRAVak7PcxFUPn2TN1n6+s7NQDCNHBwi6_m4KA@mail.gmail.com>
-Subject: Re: [PATCH -next] mmc: omap: Use devm_platform_get_and_ioremap_resource()
-To:     Yang Li <yang.lee@linux.alibaba.com>
-Cc:     linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.8.0
+Subject: Re: [PATCH v5 0/5] Introduce PRU platform consumer API
+Content-Language: en-US
+To:     Mathieu Poirier <mathieu.poirier@linaro.org>,
+        MD Danish Anwar <danishanwar@ti.com>
+CC:     <linux-remoteproc@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <srk@ti.com>, <devicetree@vger.kernel.org>,
+        <netdev@vger.kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>,
+        Nishanth Menon <nm@ti.com>, Tero Kristo <kristo@kernel.org>,
+        Roger Quadros <rogerq@kernel.org>,
+        "Andrew F. Davis" <afd@ti.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Suman Anna <s-anna@ti.com>,
+        Bjorn Andersson <andersson@kernel.org>
+References: <20230323062451.2925996-1-danishanwar@ti.com>
+From:   Md Danish Anwar <a0501179@ti.com>
+Organization: Texas Instruments
+In-Reply-To: <20230323062451.2925996-1-danishanwar@ti.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, 15 Mar 2023 at 06:34, Yang Li <yang.lee@linux.alibaba.com> wrote:
->
-> According to commit 890cc39a8799 ("drivers: provide
-> devm_platform_get_and_ioremap_resource()"), convert
-> platform_get_resource(), devm_ioremap_resource() to a single
-> call to devm_platform_get_and_ioremap_resource(), as this is exactly
-> what this function does.
->
-> Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
+Hi Mathieu,
 
-Applied for next, thanks!
+On 23/03/23 11:54, MD Danish Anwar wrote:
+> Hi All,
+> The Programmable Real-Time Unit and Industrial Communication Subsystem (PRU-ICSS
+> or simply PRUSS) on various TI SoCs consists of dual 32-bit RISC cores
+> (Programmable Real-Time Units, or PRUs) for program execution.
+> 
+> There are 3 foundation components for TI PRUSS subsystem: the PRUSS platform
+> driver, the PRUSS INTC driver and the PRUSS remoteproc driver. All of them have
+> already been merged and can be found under:
+> 1) drivers/soc/ti/pruss.c
+>    Documentation/devicetree/bindings/soc/ti/ti,pruss.yaml
+> 2) drivers/irqchip/irq-pruss-intc.c
+>    Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.yaml
+> 3) drivers/remoteproc/pru_rproc.c
+>    Documentation/devicetree/bindings/remoteproc/ti,pru-consumer.yaml
+> 
+> The programmable nature of the PRUs provide flexibility to implement custom
+> peripheral interfaces, fast real-time responses, or specialized data handling.
+> Example of a PRU consumer drivers will be: 
+>   - Software UART over PRUSS
+>   - PRU-ICSS Ethernet EMAC
+> 
+> In order to make usage of common PRU resources and allow the consumer drivers 
+> to configure the PRU hardware for specific usage the PRU API is introduced.
+>
+Roger has given his RBs for all the patches in this series. Tony has also given
+his RB.
 
-Kind regards
-Uffe
+Can you please have a look at this series.
 
-
-> ---
->  drivers/mmc/host/omap.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index 57d39283924d..ce78edfb402b 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -1345,8 +1345,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
->         if (irq < 0)
->                 return -ENXIO;
->
-> -       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -       host->virt_base = devm_ioremap_resource(&pdev->dev, res);
-> +       host->virt_base = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
->         if (IS_ERR(host->virt_base))
->                 return PTR_ERR(host->virt_base);
->
-> --
-> 2.20.1.7.g153144c
->
+-- 
+Thanks and Regards,
+Danish.
