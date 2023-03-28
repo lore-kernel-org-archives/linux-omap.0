@@ -2,56 +2,241 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D26C0C76195
-	for <linux-omap@archiver.kernel.org>; Tue, 28 Mar 2023 07:43:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CF1AC76195
+	for <linux-omap@archiver.kernel.org>; Tue, 28 Mar 2023 11:17:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232019AbjC1Hnj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 28 Mar 2023 03:43:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58856 "EHLO
+        id S232672AbjC1LRi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 28 Mar 2023 07:17:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232037AbjC1Hng (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 28 Mar 2023 03:43:36 -0400
-Received: from mail.lokoho.com (mail.lokoho.com [217.61.105.98])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B06F183
-        for <linux-omap@vger.kernel.org>; Tue, 28 Mar 2023 00:43:36 -0700 (PDT)
-Received: by mail.lokoho.com (Postfix, from userid 1001)
-        id 68BC4835A8; Tue, 28 Mar 2023 08:41:59 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=lokoho.com; s=mail;
-        t=1679989414; bh=Z0N5VlX9/JlryGOL5I747Le9USomZJCRNNGRT3LbbKc=;
-        h=Date:From:To:Subject:From;
-        b=BhLaxdNfPyqzGwid7VrHPmxFzmZO1XXCUrOKvMqS/GHWMdLNEYwFuWYlGwQv+XKDG
-         5Eq13Gv7zmh1ul9T3JhuzaIo1c+ac9FUyHJP6r4rqp18Wdet8jO6CQFLQoMg4XVNj0
-         TAsMovbjQyQL/JuV2A+DoCz+PLbLZsL9uKIRe4DGdC3trHYY77Jo0yC0z4n8Goglzm
-         sODzkL3VtDRCS5zEhQxOrA9rY0y7qVOOBc8Mx2G0f/DGPdXco9h6GUBNNaO/wyUjXz
-         zwQYXrHWrwYEJDoRW5OyLnJkOqDo/oVjtO+ZUTtA19daVDk9ZGHt79iEk70LxPc6Ig
-         Sb1DjmGooNNfw==
-Received: by mail.lokoho.com for <linux-omap@vger.kernel.org>; Tue, 28 Mar 2023 07:40:50 GMT
-Message-ID: <20230328074501-0.1.4x.1mzvz.0.fkbbe9sb37@lokoho.com>
-Date:   Tue, 28 Mar 2023 07:40:50 GMT
-From:   "Adam Charachuta" <adam.charachuta@lokoho.com>
-To:     <linux-omap@vger.kernel.org>
-Subject: =?UTF-8?Q?S=C5=82owa_kluczowe_do_wypozycjonowania?=
-X-Mailer: mail.lokoho.com
+        with ESMTP id S230226AbjC1LRc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 28 Mar 2023 07:17:32 -0400
+Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FE163C20;
+        Tue, 28 Mar 2023 04:17:30 -0700 (PDT)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 32SBH9xG108436;
+        Tue, 28 Mar 2023 06:17:09 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1680002229;
+        bh=+eoEEe1pmtcdoeNbEZvPGDZU834mlTMCt5fDZ1sH9SQ=;
+        h=Date:Subject:To:CC:References:From:In-Reply-To;
+        b=oGGoOHR38rHg1qUDXzXDofSvKLb4TCXoaDSwBXKvJqcFbaP2AZ6akfsbz4hZS1jMX
+         gRZ2Lj6Q7nNSA5gYVyHRgID/tmEGDY3kWCwgqo00dzrluSkMJ5DiWymlEqvP6zgs/w
+         kH1Zrq6uXL86JfNBFkHgQECIpJRLoclkvPnEX+iU=
+Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 32SBH9M6037561
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 28 Mar 2023 06:17:09 -0500
+Received: from DFLE105.ent.ti.com (10.64.6.26) by DFLE105.ent.ti.com
+ (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Tue, 28
+ Mar 2023 06:17:09 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE105.ent.ti.com
+ (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
+ Frontend Transport; Tue, 28 Mar 2023 06:17:09 -0500
+Received: from [10.24.69.114] (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 32SBH4Wp095866;
+        Tue, 28 Mar 2023 06:17:04 -0500
+Message-ID: <f5b84da7-313a-179b-5f35-aefffaa206a7@ti.com>
+Date:   Tue, 28 Mar 2023 16:47:03 +0530
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.8.0
+Subject: Re: [EXTERNAL] Re: [PATCH v5 3/5] soc: ti: pruss: Add
+ pruss_cfg_read()/update() API
+Content-Language: en-US
+To:     Mathieu Poirier <mathieu.poirier@linaro.org>,
+        MD Danish Anwar <danishanwar@ti.com>
+CC:     "Andrew F. Davis" <afd@ti.com>, Suman Anna <s-anna@ti.com>,
+        Roger Quadros <rogerq@kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Tero Kristo <kristo@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Nishanth Menon <nm@ti.com>, <linux-remoteproc@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <srk@ti.com>, <devicetree@vger.kernel.org>,
+        <netdev@vger.kernel.org>
+References: <20230323062451.2925996-1-danishanwar@ti.com>
+ <20230323062451.2925996-4-danishanwar@ti.com> <20230327210126.GC3158115@p14s>
+From:   Md Danish Anwar <a0501179@ti.com>
+Organization: Texas Instruments
+In-Reply-To: <20230327210126.GC3158115@p14s>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry,
-
-zapozna=C5=82em si=C4=99 z Pa=C5=84stwa ofert=C4=85 i z przyjemno=C5=9Bci=
-=C4=85 przyznaj=C4=99, =C5=BCe przyci=C4=85ga uwag=C4=99 i zach=C4=99ca d=
-o dalszych rozm=C3=B3w.=20
-
-Pomy=C5=9Bla=C5=82em, =C5=BCe mo=C5=BCe m=C3=B3g=C5=82bym mie=C4=87 sw=C3=
-=B3j wk=C5=82ad w Pa=C5=84stwa rozw=C3=B3j i pom=C3=B3c dotrze=C4=87 z t=C4=
-=85 ofert=C4=85 do wi=C4=99kszego grona odbiorc=C3=B3w. Pozycjonuj=C4=99 =
-strony www, dzi=C4=99ki czemu generuj=C4=85 =C5=9Bwietny ruch w sieci.
-
-Mo=C5=BCemy porozmawia=C4=87 w najbli=C5=BCszym czasie?
 
 
-Pozdrawiam
-Adam Charachuta
+On 28/03/23 02:31, Mathieu Poirier wrote:
+> On Thu, Mar 23, 2023 at 11:54:49AM +0530, MD Danish Anwar wrote:
+>> From: Suman Anna <s-anna@ti.com>
+>>
+>> Add two new generic API pruss_cfg_read() and pruss_cfg_update() to
+>> the PRUSS platform driver to read and program respectively a register
+>> within the PRUSS CFG sub-module represented by a syscon driver.
+>>
+>> These APIs are internal to PRUSS driver. Various useful registers
+>> and macros for certain register bit-fields and their values have also
+>> been added.
+>>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> Co-developed-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
+>> Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
+>> Signed-off-by: Puranjay Mohan <p-mohan@ti.com>
+>> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
+>> ---
+>>  drivers/soc/ti/pruss.c |   1 +
+>>  drivers/soc/ti/pruss.h | 112 +++++++++++++++++++++++++++++++++++++++++
+>>  2 files changed, 113 insertions(+)
+>>  create mode 100644 drivers/soc/ti/pruss.h
+>>
+> 
+> This patch doesn't compile without warnings.
+> 
+
+Sure, Mathieu. I'll check the warnings.
+
+>> diff --git a/drivers/soc/ti/pruss.c b/drivers/soc/ti/pruss.c
+>> index 126b672b9b30..2fa7df667592 100644
+>> --- a/drivers/soc/ti/pruss.c
+>> +++ b/drivers/soc/ti/pruss.c
+>> @@ -21,6 +21,7 @@
+>>  #include <linux/regmap.h>
+>>  #include <linux/remoteproc.h>
+>>  #include <linux/slab.h>
+>> +#include "pruss.h"
+>>  
+>>  /**
+>>   * struct pruss_private_data - PRUSS driver private data
+>> diff --git a/drivers/soc/ti/pruss.h b/drivers/soc/ti/pruss.h
+>> new file mode 100644
+>> index 000000000000..4626d5f6b874
+>> --- /dev/null
+>> +++ b/drivers/soc/ti/pruss.h
+>> @@ -0,0 +1,112 @@
+>> +/* SPDX-License-Identifier: GPL-2.0-only */
+>> +/*
+>> + * PRU-ICSS Subsystem user interfaces
+>> + *
+>> + * Copyright (C) 2015-2023 Texas Instruments Incorporated - http://www.ti.com
+>> + *	MD Danish Anwar <danishanwar@ti.com>
+>> + */
+>> +
+>> +#ifndef _SOC_TI_PRUSS_H_
+>> +#define _SOC_TI_PRUSS_H_
+>> +
+>> +#include <linux/bits.h>
+>> +#include <linux/regmap.h>
+>> +
+>> +/*
+>> + * PRU_ICSS_CFG registers
+>> + * SYSCFG, ISRP, ISP, IESP, IECP, SCRP applicable on AMxxxx devices only
+>> + */
+>> +#define PRUSS_CFG_REVID         0x00
+>> +#define PRUSS_CFG_SYSCFG        0x04
+>> +#define PRUSS_CFG_GPCFG(x)      (0x08 + (x) * 4)
+>> +#define PRUSS_CFG_CGR           0x10
+>> +#define PRUSS_CFG_ISRP          0x14
+>> +#define PRUSS_CFG_ISP           0x18
+>> +#define PRUSS_CFG_IESP          0x1C
+>> +#define PRUSS_CFG_IECP          0x20
+>> +#define PRUSS_CFG_SCRP          0x24
+>> +#define PRUSS_CFG_PMAO          0x28
+>> +#define PRUSS_CFG_MII_RT        0x2C
+>> +#define PRUSS_CFG_IEPCLK        0x30
+>> +#define PRUSS_CFG_SPP           0x34
+>> +#define PRUSS_CFG_PIN_MX        0x40
+>> +
+>> +/* PRUSS_GPCFG register bits */
+>> +#define PRUSS_GPCFG_PRU_GPO_SH_SEL              BIT(25)
+>> +
+>> +#define PRUSS_GPCFG_PRU_DIV1_SHIFT              20
+>> +#define PRUSS_GPCFG_PRU_DIV1_MASK               GENMASK(24, 20)
+>> +
+>> +#define PRUSS_GPCFG_PRU_DIV0_SHIFT              15
+>> +#define PRUSS_GPCFG_PRU_DIV0_MASK               GENMASK(15, 19)
+>> +
+>> +#define PRUSS_GPCFG_PRU_GPO_MODE                BIT(14)
+>> +#define PRUSS_GPCFG_PRU_GPO_MODE_DIRECT         0
+>> +#define PRUSS_GPCFG_PRU_GPO_MODE_SERIAL         BIT(14)
+>> +
+>> +#define PRUSS_GPCFG_PRU_GPI_SB                  BIT(13)
+>> +
+>> +#define PRUSS_GPCFG_PRU_GPI_DIV1_SHIFT          8
+>> +#define PRUSS_GPCFG_PRU_GPI_DIV1_MASK           GENMASK(12, 8)
+>> +
+>> +#define PRUSS_GPCFG_PRU_GPI_DIV0_SHIFT          3
+>> +#define PRUSS_GPCFG_PRU_GPI_DIV0_MASK           GENMASK(7, 3)
+>> +
+>> +#define PRUSS_GPCFG_PRU_GPI_CLK_MODE_POSITIVE   0
+>> +#define PRUSS_GPCFG_PRU_GPI_CLK_MODE_NEGATIVE   BIT(2)
+>> +#define PRUSS_GPCFG_PRU_GPI_CLK_MODE            BIT(2)
+>> +
+>> +#define PRUSS_GPCFG_PRU_GPI_MODE_MASK           GENMASK(1, 0)
+>> +#define PRUSS_GPCFG_PRU_GPI_MODE_SHIFT          0
+>> +
+>> +#define PRUSS_GPCFG_PRU_MUX_SEL_SHIFT           26
+>> +#define PRUSS_GPCFG_PRU_MUX_SEL_MASK            GENMASK(29, 26)
+>> +
+>> +/* PRUSS_MII_RT register bits */
+>> +#define PRUSS_MII_RT_EVENT_EN                   BIT(0)
+>> +
+>> +/* PRUSS_SPP register bits */
+>> +#define PRUSS_SPP_XFER_SHIFT_EN                 BIT(1)
+>> +#define PRUSS_SPP_PRU1_PAD_HP_EN                BIT(0)
+>> +#define PRUSS_SPP_RTU_XFR_SHIFT_EN              BIT(3)
+>> +
+>> +/**
+>> + * pruss_cfg_read() - read a PRUSS CFG sub-module register
+>> + * @pruss: the pruss instance handle
+>> + * @reg: register offset within the CFG sub-module
+>> + * @val: pointer to return the value in
+>> + *
+>> + * Reads a given register within the PRUSS CFG sub-module and
+>> + * returns it through the passed-in @val pointer
+>> + *
+>> + * Return: 0 on success, or an error code otherwise
+>> + */
+>> +static int pruss_cfg_read(struct pruss *pruss, unsigned int reg, unsigned int *val)
+>> +{
+>> +	if (IS_ERR_OR_NULL(pruss))
+>> +		return -EINVAL;
+>> +
+>> +	return regmap_read(pruss->cfg_regmap, reg, val);
+>> +}
+>> +
+>> +/**
+>> + * pruss_cfg_update() - configure a PRUSS CFG sub-module register
+>> + * @pruss: the pruss instance handle
+>> + * @reg: register offset within the CFG sub-module
+>> + * @mask: bit mask to use for programming the @val
+>> + * @val: value to write
+>> + *
+>> + * Programs a given register within the PRUSS CFG sub-module
+>> + *
+>> + * Return: 0 on success, or an error code otherwise
+>> + */
+>> +static int pruss_cfg_update(struct pruss *pruss, unsigned int reg,
+>> +			    unsigned int mask, unsigned int val)
+>> +{
+>> +	if (IS_ERR_OR_NULL(pruss))
+>> +		return -EINVAL;
+>> +
+>> +	return regmap_update_bits(pruss->cfg_regmap, reg, mask, val);
+>> +}
+>> +
+>> +#endif  /* _SOC_TI_PRUSS_H_ */
+>> -- 
+>> 2.25.1
+>>
+
+-- 
+Thanks and Regards,
+Danish.
