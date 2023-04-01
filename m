@@ -2,79 +2,161 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55AA3C76196
-	for <linux-omap@archiver.kernel.org>; Fri, 31 Mar 2023 11:37:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F261C77B61
+	for <linux-omap@archiver.kernel.org>; Sat,  1 Apr 2023 11:27:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230479AbjCaLhT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 31 Mar 2023 07:37:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49178 "EHLO
+        id S229825AbjDAL11 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 1 Apr 2023 07:27:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229967AbjCaLhT (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 31 Mar 2023 07:37:19 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 428AD171F;
-        Fri, 31 Mar 2023 04:37:17 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 3E7548027;
-        Fri, 31 Mar 2023 11:37:16 +0000 (UTC)
-Date:   Fri, 31 Mar 2023 14:37:14 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc:     Andreas Kemnade <andreas@kemnade.info>, robh+dt@kernel.org,
-        krzysztof.kozlowski+dt@linaro.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        Andrew Davis <afd@ti.com>
-Subject: Re: [PATCH v2] dt-bindings: omap: Convert omap.txt to yaml
-Message-ID: <20230331113714.GV7501@atomide.com>
-References: <20230329222246.3292766-1-andreas@kemnade.info>
- <20230330113918.GS7501@atomide.com>
- <20230330181506.4d5fcf51@aktux>
- <191c96d2-e51a-550e-16d9-0403e4528885@linaro.org>
+        with ESMTP id S229603AbjDAL10 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 1 Apr 2023 07:27:26 -0400
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 542DB22E87;
+        Sat,  1 Apr 2023 04:27:01 -0700 (PDT)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 331BQbkm042831;
+        Sat, 1 Apr 2023 06:26:37 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1680348397;
+        bh=6txK6JhGNmC1mVhE7nu+ujxZBb0FV1uO3fUqV2jp4bY=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=W1AAvOFmwKmRZaWVgQxoL8Sr3sorsrp+9O1do7fo4nKmFnZR0OjDw3i1cXsDst6To
+         TZbzDSAmleaMv2f6Jul8nxNeNbxGc5YwOaiGnImV2O6WyMpUCFtWS3I5mx4vsF6l85
+         8yASoxe3a4yf5QI9yWbdHKqPT/cp1LoOZWz+jkLY=
+Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 331BQbr8032235
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Sat, 1 Apr 2023 06:26:37 -0500
+Received: from DFLE111.ent.ti.com (10.64.6.32) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Sat, 1
+ Apr 2023 06:26:37 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE111.ent.ti.com
+ (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
+ Frontend Transport; Sat, 1 Apr 2023 06:26:37 -0500
+Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 331BQavw005559;
+        Sat, 1 Apr 2023 06:26:37 -0500
+From:   Achal Verma <a-verma1@ti.com>
+To:     Bjorn Helgaas <bhelgaas@google.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Krzysztof Wilczy_ski <kw@linux.com>,
+        Rob Herring <robh@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Dhananjay Vilasrao Kangude <dkangude@cadence.com>,
+        Anindita Das <dasa@cadence.com>,
+        Yuan Zhao <yuanzhao@cadence.com>,
+        Milind Parab <mparab@cadence.com>
+CC:     <linux-pci@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Achal Verma <a-verma1@ti.com>
+Subject: [PATCH v12 2/5] PCI: j721e: Add per platform maximum lane settings
+Date:   Sat, 1 Apr 2023 16:56:30 +0530
+Message-ID: <20230401112633.2406604-3-a-verma1@ti.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230401112633.2406604-1-a-verma1@ti.com>
+References: <20230401112633.2406604-1-a-verma1@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <191c96d2-e51a-550e-16d9-0403e4528885@linaro.org>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org> [230331 09:43]:
-> On 30/03/2023 18:15, Andreas Kemnade wrote:
-> > On Thu, 30 Mar 2023 14:39:18 +0300
-> > Tony Lindgren <tony@atomide.com> wrote:
-> > 
-> >> * Andreas Kemnade <andreas@kemnade.info> [230329 22:22]:
-> >>> From: Andrew Davis <afd@ti.com>
-> >>>
-> >>> Convert omap.txt to yaml.
-> >>>  Documentation/devicetree/bindings/arm/ti.yaml | 157 ++++++++++++++++++
-> >>>  1 file changed, 157 insertions(+)
-> >>>  create mode 100644 Documentation/devicetree/bindings/arm/ti.yaml  
-> >>
-> >> Great, can we also drop the old txt file or is more changes needed before
-> >> we can do that?
-> >>
-> > we have still 
-> > - ti,hwmods: list of hwmod names (ascii strings), that comes from the OMAP
-> >   HW documentation, attached to a device. Must contain at least
-> >   one hwmod.
-> > 
-> > Optional properties:
-> > - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
-> >   during suspend.
-> > - ti,no-reset-on-init: When present, the module should not be reset at init
-> > - ti,no-idle-on-init: When present, the module should not be idled at init
-> > - ti,no-idle: When present, the module is never allowed to idle.
-> > 
-> > These optional properties are not in the root node but in subnodes.
-> > From my guts feeling this belongs in a separate file and should
-> > be somehow dealed with in a second step.
-> > 
-> > So how to proceed?
-> 
-> Any compatible converted to DT Schema should be removed from TXT. It
-> does not mean entire TXT has to be removed if it contains other pieces.
+From: Matt Ranostay <mranostay@ti.com>
 
-Sounds good to me.
+Various platforms have different maximum amount of lanes that can be
+selected. Add max_lanes to struct j721e_pcie to allow for detection of this
+which is needed to calculate the needed bitmask size for the possible lane
+count.
 
-Tony
+Signed-off-by: Matt Ranostay <mranostay@ti.com>
+Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
+Signed-off-by: Achal Verma <a-verma1@ti.com>
+---
+ drivers/pci/controller/cadence/pci-j721e.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
+index cc83a8925ce0..f4dc2c5abedb 100644
+--- a/drivers/pci/controller/cadence/pci-j721e.c
++++ b/drivers/pci/controller/cadence/pci-j721e.c
+@@ -47,8 +47,6 @@ enum link_status {
+ 
+ #define GENERATION_SEL_MASK		GENMASK(1, 0)
+ 
+-#define MAX_LANES			2
+-
+ struct j721e_pcie {
+ 	struct cdns_pcie	*cdns_pcie;
+ 	struct clk		*refclk;
+@@ -71,6 +69,7 @@ struct j721e_pcie_data {
+ 	unsigned int		quirk_disable_flr:1;
+ 	u32			linkdown_irq_regfield;
+ 	unsigned int		byte_access_allowed:1;
++	unsigned int		max_lanes;
+ };
+ 
+ static inline u32 j721e_pcie_user_readl(struct j721e_pcie *pcie, u32 offset)
+@@ -290,11 +289,13 @@ static const struct j721e_pcie_data j721e_pcie_rc_data = {
+ 	.quirk_retrain_flag = true,
+ 	.byte_access_allowed = false,
+ 	.linkdown_irq_regfield = LINK_DOWN,
++	.max_lanes = 2,
+ };
+ 
+ static const struct j721e_pcie_data j721e_pcie_ep_data = {
+ 	.mode = PCI_MODE_EP,
+ 	.linkdown_irq_regfield = LINK_DOWN,
++	.max_lanes = 2,
+ };
+ 
+ static const struct j721e_pcie_data j7200_pcie_rc_data = {
+@@ -302,23 +303,27 @@ static const struct j721e_pcie_data j7200_pcie_rc_data = {
+ 	.quirk_detect_quiet_flag = true,
+ 	.linkdown_irq_regfield = J7200_LINK_DOWN,
+ 	.byte_access_allowed = true,
++	.max_lanes = 2,
+ };
+ 
+ static const struct j721e_pcie_data j7200_pcie_ep_data = {
+ 	.mode = PCI_MODE_EP,
+ 	.quirk_detect_quiet_flag = true,
+ 	.quirk_disable_flr = true,
++	.max_lanes = 2,
+ };
+ 
+ static const struct j721e_pcie_data am64_pcie_rc_data = {
+ 	.mode = PCI_MODE_RC,
+ 	.linkdown_irq_regfield = J7200_LINK_DOWN,
+ 	.byte_access_allowed = true,
++	.max_lanes = 1,
+ };
+ 
+ static const struct j721e_pcie_data am64_pcie_ep_data = {
+ 	.mode = PCI_MODE_EP,
+ 	.linkdown_irq_regfield = J7200_LINK_DOWN,
++	.max_lanes = 1,
+ };
+ 
+ static const struct of_device_id of_j721e_pcie_match[] = {
+@@ -432,8 +437,10 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+ 	pcie->user_cfg_base = base;
+ 
+ 	ret = of_property_read_u32(node, "num-lanes", &num_lanes);
+-	if (ret || num_lanes > MAX_LANES)
++	if (ret || num_lanes > data->max_lanes) {
++		dev_warn(dev, "num-lanes property not provided or invalid, setting num-lanes to 1\n");
+ 		num_lanes = 1;
++	}
+ 	pcie->num_lanes = num_lanes;
+ 
+ 	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(48)))
+-- 
+2.25.1
+
