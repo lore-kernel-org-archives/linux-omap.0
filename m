@@ -2,56 +2,56 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9CB0C76196
-	for <linux-omap@archiver.kernel.org>; Sun,  2 Apr 2023 16:43:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2019BC76196
+	for <linux-omap@archiver.kernel.org>; Sun,  2 Apr 2023 16:49:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231239AbjDBQnl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 2 Apr 2023 12:43:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55466 "EHLO
+        id S230289AbjDBQtF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 2 Apr 2023 12:49:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231187AbjDBQnf (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 2 Apr 2023 12:43:35 -0400
-Received: from ste-pvt-msa1.bahnhof.se (ste-pvt-msa1.bahnhof.se [213.80.101.70])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2129D18FAA;
-        Sun,  2 Apr 2023 09:43:34 -0700 (PDT)
+        with ESMTP id S229448AbjDBQtE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 2 Apr 2023 12:49:04 -0400
+Received: from pio-pvt-msa1.bahnhof.se (pio-pvt-msa1.bahnhof.se [79.136.2.40])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8044AE1A9
+        for <linux-omap@vger.kernel.org>; Sun,  2 Apr 2023 09:49:03 -0700 (PDT)
 Received: from localhost (localhost [127.0.0.1])
-        by ste-pvt-msa1.bahnhof.se (Postfix) with ESMTP id CA8F43FB38;
-        Sun,  2 Apr 2023 18:43:32 +0200 (CEST)
+        by pio-pvt-msa1.bahnhof.se (Postfix) with ESMTP id ADAD23FDB5;
+        Sun,  2 Apr 2023 18:43:27 +0200 (CEST)
 X-Virus-Scanned: Debian amavisd-new at bahnhof.se
-Authentication-Results: ste-pvt-msa1.bahnhof.se (amavisd-new);
+Authentication-Results: pio-pvt-msa1.bahnhof.se (amavisd-new);
         dkim=pass (2048-bit key) header.d=dalakolonin.se
-Received: from ste-pvt-msa1.bahnhof.se ([127.0.0.1])
-        by localhost (ste-pvt-msa1.bahnhof.se [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id hRrvXlEvjyb2; Sun,  2 Apr 2023 18:43:32 +0200 (CEST)
-Received: by ste-pvt-msa1.bahnhof.se (Postfix) with ESMTPA id 0A8193FA8F;
-        Sun,  2 Apr 2023 18:43:32 +0200 (CEST)
+Received: from pio-pvt-msa1.bahnhof.se ([127.0.0.1])
+        by localhost (pio-pvt-msa1.bahnhof.se [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id 0FwUw6B1vgxZ; Sun,  2 Apr 2023 18:43:27 +0200 (CEST)
+Received: by pio-pvt-msa1.bahnhof.se (Postfix) with ESMTPA id D99D93FD82;
+        Sun,  2 Apr 2023 18:43:26 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by zimbra.dalakolonin.se (Postfix) with ESMTP id 8F7B0937C0;
-        Sun,  2 Apr 2023 16:43:31 +0000 (UTC)
+        by zimbra.dalakolonin.se (Postfix) with ESMTP id D20DB937B9;
+        Sun,  2 Apr 2023 16:43:25 +0000 (UTC)
 Received: from zimbra.dalakolonin.se ([127.0.0.1])
         by localhost (zimbra.dalakolonin.se [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id JKD4FSV4JqrC; Sun,  2 Apr 2023 16:43:22 +0000 (UTC)
+        with ESMTP id lIpAZZPFtJfB; Sun,  2 Apr 2023 16:43:19 +0000 (UTC)
 Received: from localhost (localhost [127.0.0.1])
-        by zimbra.dalakolonin.se (Postfix) with ESMTP id E6B38937B0;
-        Sun,  2 Apr 2023 16:43:21 +0000 (UTC)
-DKIM-Filter: OpenDKIM Filter v2.10.3 zimbra.dalakolonin.se E6B38937B0
+        by zimbra.dalakolonin.se (Postfix) with ESMTP id 6F3DD93792;
+        Sun,  2 Apr 2023 16:43:18 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.10.3 zimbra.dalakolonin.se 6F3DD93792
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dalakolonin.se;
-        s=D374B428-D0A7-11ED-A657-75977B426508; t=1680453801;
-        bh=sSdmlIjoRWn1yhuvWO68xTpxveh96xI8zNrDWx1+g80=;
+        s=D374B428-D0A7-11ED-A657-75977B426508; t=1680453798;
+        bh=nzWLhIO9b9yXx9/x0jo6puIZ0zDR+M8hdZYvMF0djdA=;
         h=From:To:Date:Message-Id:MIME-Version;
-        b=QN37+ZQlGkNnqNukzY2lOZdWzQIlxyBP7dIa83CocW7N78+4cYRz76YT17Y9E2dlG
-         pFuIGkAM+ck2lpRT4KHurFg/uHeCUqD6ri0mwQMhdWH5IWWGUC3ebcpYzS4mnZuLmh
-         EfcEjGFRqx+1d4jLwjrVd1wG9OOdAXYPLRhn8B0YdKglGdbbDhAes5xNBg8mcsphml
-         HvZXEyESMDF9/ZvNM1wRKSfRw61WAZ/bk3vzj9Fw7Hq0xmKEP15GqasrSUUzHeMgdp
-         O3gnaK9DpwMMyHgmKN6HcTg60NOMzdNcALkDXxdSFOdgHqXg/LW/Ym40XP17g3VDXb
-         yiCSSiZA+v/TA==
+        b=cMdJOf7/iS7ZcfxYGbb2QdmpHaVat+mlusZk3tJ0RQqDv/D8T2wxboRM5moYqd0uk
+         fBIWutP4DLIZixHYfIm6hMh3xCBW7NMG5E9ICgBICUqV7FxkQG5916BDy3flhZSwXq
+         BorTyM4I0KUu8elDJ+EOKTD6a4hMPPzadwYYHQ9E60ZbFm4TfF66Gat8Az8My5ykb2
+         iti+ju5Y+yxtljtY9w8yf8eT2scesd/Rsqu6yTpM5/F7beu/omIbXTz3FelPV7d5zo
+         Nvy/giygc4I60ESnP5XdNMMBA/bhP/QKrp7RDLF/3l2SvzuO1AEN70TVp7ylOkHCyZ
+         DrPy/SOU31nkA==
 X-Virus-Scanned: amavisd-new at dalakolonin.se
 Received: from zimbra.dalakolonin.se ([127.0.0.1])
         by localhost (zimbra.dalakolonin.se [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id 5a8U8w8BseHi; Sun,  2 Apr 2023 16:43:21 +0000 (UTC)
+        with ESMTP id Udpnhxm-cUPj; Sun,  2 Apr 2023 16:43:18 +0000 (UTC)
 Received: from rack-server-1.dalakolonin.se (unknown [172.17.0.1])
-        by zimbra.dalakolonin.se (Postfix) with ESMTPSA id 65C38937A7;
-        Sun,  2 Apr 2023 16:43:20 +0000 (UTC)
+        by zimbra.dalakolonin.se (Postfix) with ESMTPSA id BF5EB9378A;
+        Sun,  2 Apr 2023 16:43:17 +0000 (UTC)
 From:   =?UTF-8?q?Patrik=20Dahlstr=C3=B6m?= <risca@dalakolonin.se>
 To:     linux-iio@vger.kernel.org
 Cc:     linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org,
@@ -59,9 +59,9 @@ Cc:     linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org,
         hns@goldelico.com, jic23@kernel.org, lars@metafoo.de,
         linux-omap@vger.kernel.org,
         =?UTF-8?q?Patrik=20Dahlstr=C3=B6m?= <risca@dalakolonin.se>
-Subject: [PATCH v2 7/7] iio: adc: palmas: don't alter event config on suspend/resume
-Date:   Sun,  2 Apr 2023 18:42:47 +0200
-Message-Id: <20230402164247.3089146-8-risca@dalakolonin.se>
+Subject: [PATCH v2 4/7] iio: adc: palmas: move eventX_enable into palmas_adc_event
+Date:   Sun,  2 Apr 2023 18:42:44 +0200
+Message-Id: <20230402164247.3089146-5-risca@dalakolonin.se>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20230402164247.3089146-1-risca@dalakolonin.se>
 References: <20230402164247.3089146-1-risca@dalakolonin.se>
@@ -72,58 +72,101 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The event config is controlled through the IIO events subsystem and
-device wakeup is controlled by /sys/devices/.../power/wakeup. Let's keep
-those two knobs independent.
+It just makes more sense to have all information regarding adc events in
+one place.
 
 Signed-off-by: Patrik Dahlstr=C3=B6m <risca@dalakolonin.se>
 ---
- drivers/iio/adc/palmas_gpadc.c | 16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ drivers/iio/adc/palmas_gpadc.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/iio/adc/palmas_gpadc.c b/drivers/iio/adc/palmas_gpad=
 c.c
-index f693d69a10a8..d4e1e80296d0 100644
+index fca455a4285e..f7eb445495b6 100644
 --- a/drivers/iio/adc/palmas_gpadc.c
 +++ b/drivers/iio/adc/palmas_gpadc.c
-@@ -1127,16 +1127,10 @@ static int palmas_gpadc_suspend(struct device *de=
-v)
+@@ -77,6 +77,7 @@ static struct palmas_gpadc_info palmas_gpadc_info[] =3D=
+ {
+ };
+=20
+ struct palmas_adc_event {
++	bool enabled;
+ 	int channel;
+ 	int raw_thresh;
+ 	enum iio_event_direction direction;
+@@ -119,8 +120,6 @@ struct palmas_gpadc {
+ 	struct completion		conv_completion;
+ 	struct palmas_adc_event		event0;
+ 	struct palmas_adc_event		event1;
+-	bool				event0_enable;
+-	bool				event1_enable;
+ 	int				auto_conversion_period;
+ 	struct mutex			lock;
+ };
+@@ -616,7 +615,7 @@ static int palmas_adc_configure_events(struct palmas_=
+gpadc *adc)
+ 	}
+=20
+ 	conv =3D 0;
+-	if (adc->event0_enable) {
++	if (adc->event0.enabled) {
+ 		struct palmas_adc_event *ev =3D &adc->event0;
+ 		int polarity;
+=20
+@@ -652,7 +651,7 @@ static int palmas_adc_configure_events(struct palmas_=
+gpadc *adc)
+ 		}
+ 	}
+=20
+-	if (adc->event1_enable) {
++	if (adc->event1.enabled) {
+ 		struct palmas_adc_event *ev =3D &adc->event1;
+ 		int polarity;
+=20
+@@ -727,7 +726,7 @@ static int palmas_gpadc_suspend(struct device *dev)
  {
  	struct iio_dev *indio_dev =3D dev_get_drvdata(dev);
  	struct palmas_gpadc *adc =3D iio_priv(indio_dev);
--	int wakeup =3D adc->event0.enabled || adc->event1.enabled;
--	int ret;
+-	int wakeup =3D adc->event0_enable || adc->event1_enable;
++	int wakeup =3D adc->event0.enabled || adc->event1.enabled;
+ 	int ret;
 =20
--	if (!device_may_wakeup(dev) || !wakeup)
-+	if (!device_may_wakeup(dev))
- 		return 0;
+ 	if (!device_may_wakeup(dev) || !wakeup)
+@@ -737,10 +736,10 @@ static int palmas_gpadc_suspend(struct device *dev)
+ 	if (ret < 0)
+ 		return ret;
 =20
--	ret =3D palmas_adc_configure_events(adc);
--	if (ret < 0)
--		return ret;
--
- 	if (adc->event0.enabled)
+-	if (adc->event0_enable)
++	if (adc->event0.enabled)
  		enable_irq_wake(adc->irq_auto_0);
 =20
-@@ -1150,16 +1144,10 @@ static int palmas_gpadc_resume(struct device *dev=
-)
+-	if (adc->event1_enable)
++	if (adc->event1.enabled)
+ 		enable_irq_wake(adc->irq_auto_1);
+=20
+ 	return 0;
+@@ -750,7 +749,7 @@ static int palmas_gpadc_resume(struct device *dev)
  {
  	struct iio_dev *indio_dev =3D dev_get_drvdata(dev);
  	struct palmas_gpadc *adc =3D iio_priv(indio_dev);
--	int wakeup =3D adc->event0.enabled || adc->event1.enabled;
--	int ret;
+-	int wakeup =3D adc->event0_enable || adc->event1_enable;
++	int wakeup =3D adc->event0.enabled || adc->event1.enabled;
+ 	int ret;
 =20
--	if (!device_may_wakeup(dev) || !wakeup)
-+	if (!device_may_wakeup(dev))
- 		return 0;
+ 	if (!device_may_wakeup(dev) || !wakeup)
+@@ -760,10 +759,10 @@ static int palmas_gpadc_resume(struct device *dev)
+ 	if (ret < 0)
+ 		return ret;
 =20
--	ret =3D palmas_adc_reset_events(adc);
--	if (ret < 0)
--		return ret;
--
- 	if (adc->event0.enabled)
+-	if (adc->event0_enable)
++	if (adc->event0.enabled)
  		disable_irq_wake(adc->irq_auto_0);
 =20
+-	if (adc->event1_enable)
++	if (adc->event1.enabled)
+ 		disable_irq_wake(adc->irq_auto_1);
+=20
+ 	return 0;
 --=20
 2.25.1
 
