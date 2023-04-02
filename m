@@ -2,56 +2,57 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2019BC76196
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4447C7619A
 	for <linux-omap@archiver.kernel.org>; Sun,  2 Apr 2023 16:49:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230289AbjDBQtF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S229448AbjDBQtF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Sun, 2 Apr 2023 12:49:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33932 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229448AbjDBQtE (ORCPT
+        with ESMTP id S229459AbjDBQtE (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Sun, 2 Apr 2023 12:49:04 -0400
+X-Greylist: delayed 340 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 02 Apr 2023 09:49:03 PDT
 Received: from pio-pvt-msa1.bahnhof.se (pio-pvt-msa1.bahnhof.se [79.136.2.40])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8044AE1A9
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B9E3DBD0
         for <linux-omap@vger.kernel.org>; Sun,  2 Apr 2023 09:49:03 -0700 (PDT)
 Received: from localhost (localhost [127.0.0.1])
-        by pio-pvt-msa1.bahnhof.se (Postfix) with ESMTP id ADAD23FDB5;
-        Sun,  2 Apr 2023 18:43:27 +0200 (CEST)
+        by pio-pvt-msa1.bahnhof.se (Postfix) with ESMTP id C86333FC16;
+        Sun,  2 Apr 2023 18:43:22 +0200 (CEST)
 X-Virus-Scanned: Debian amavisd-new at bahnhof.se
 Authentication-Results: pio-pvt-msa1.bahnhof.se (amavisd-new);
         dkim=pass (2048-bit key) header.d=dalakolonin.se
 Received: from pio-pvt-msa1.bahnhof.se ([127.0.0.1])
         by localhost (pio-pvt-msa1.bahnhof.se [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id 0FwUw6B1vgxZ; Sun,  2 Apr 2023 18:43:27 +0200 (CEST)
-Received: by pio-pvt-msa1.bahnhof.se (Postfix) with ESMTPA id D99D93FD82;
-        Sun,  2 Apr 2023 18:43:26 +0200 (CEST)
+        with ESMTP id bcwTJN0kyz-3; Sun,  2 Apr 2023 18:43:22 +0200 (CEST)
+Received: by pio-pvt-msa1.bahnhof.se (Postfix) with ESMTPA id E63843F2DE;
+        Sun,  2 Apr 2023 18:43:21 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by zimbra.dalakolonin.se (Postfix) with ESMTP id D20DB937B9;
-        Sun,  2 Apr 2023 16:43:25 +0000 (UTC)
+        by zimbra.dalakolonin.se (Postfix) with ESMTP id 65BF8937A6;
+        Sun,  2 Apr 2023 16:43:20 +0000 (UTC)
 Received: from zimbra.dalakolonin.se ([127.0.0.1])
         by localhost (zimbra.dalakolonin.se [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id lIpAZZPFtJfB; Sun,  2 Apr 2023 16:43:19 +0000 (UTC)
+        with ESMTP id 4l0jFikNRAVt; Sun,  2 Apr 2023 16:43:16 +0000 (UTC)
 Received: from localhost (localhost [127.0.0.1])
-        by zimbra.dalakolonin.se (Postfix) with ESMTP id 6F3DD93792;
-        Sun,  2 Apr 2023 16:43:18 +0000 (UTC)
-DKIM-Filter: OpenDKIM Filter v2.10.3 zimbra.dalakolonin.se 6F3DD93792
+        by zimbra.dalakolonin.se (Postfix) with ESMTP id 52B5A93776;
+        Sun,  2 Apr 2023 16:43:16 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.10.3 zimbra.dalakolonin.se 52B5A93776
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dalakolonin.se;
-        s=D374B428-D0A7-11ED-A657-75977B426508; t=1680453798;
-        bh=nzWLhIO9b9yXx9/x0jo6puIZ0zDR+M8hdZYvMF0djdA=;
+        s=D374B428-D0A7-11ED-A657-75977B426508; t=1680453796;
+        bh=rPuSfZ0YQ8EW/e9OiW3VYvpUsYmDhJpLHIhD8HkVNo0=;
         h=From:To:Date:Message-Id:MIME-Version;
-        b=cMdJOf7/iS7ZcfxYGbb2QdmpHaVat+mlusZk3tJ0RQqDv/D8T2wxboRM5moYqd0uk
-         fBIWutP4DLIZixHYfIm6hMh3xCBW7NMG5E9ICgBICUqV7FxkQG5916BDy3flhZSwXq
-         BorTyM4I0KUu8elDJ+EOKTD6a4hMPPzadwYYHQ9E60ZbFm4TfF66Gat8Az8My5ykb2
-         iti+ju5Y+yxtljtY9w8yf8eT2scesd/Rsqu6yTpM5/F7beu/omIbXTz3FelPV7d5zo
-         Nvy/giygc4I60ESnP5XdNMMBA/bhP/QKrp7RDLF/3l2SvzuO1AEN70TVp7ylOkHCyZ
-         DrPy/SOU31nkA==
+        b=Kjt9vBt/+c2GReEUBjpDi+Hjv+Fnodb37tBZmvrd9NN2QKKNT9LUmhWHE8UfO8qRF
+         ZOTK1fjMrGhsro8eafwuvZimzMH/6RCN5DQ0wfcsVCTY0VkklJMfgUovO3tpGMxh//
+         DtDiN//oIlK+iXHA8h8WPivBT4s/QcXT322gr6U8h4AszOIBZy4/j61VDybWp/Gh6l
+         gJWrgcDOYXqDUELHtq9Py1LSHDnwRK1GO0N7v/gvsjFtmk8JdxboXADK/i6FBONrk7
+         xi4Z9k8pWCUBvJoVzq35V99To0LBsSi1RGQBAxthR/zRTpQy3jcaJIZ+OnDTLaLCPH
+         Wkll6SuUSSJcw==
 X-Virus-Scanned: amavisd-new at dalakolonin.se
 Received: from zimbra.dalakolonin.se ([127.0.0.1])
         by localhost (zimbra.dalakolonin.se [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id Udpnhxm-cUPj; Sun,  2 Apr 2023 16:43:18 +0000 (UTC)
+        with ESMTP id aLgttvtyumkf; Sun,  2 Apr 2023 16:43:16 +0000 (UTC)
 Received: from rack-server-1.dalakolonin.se (unknown [172.17.0.1])
-        by zimbra.dalakolonin.se (Postfix) with ESMTPSA id BF5EB9378A;
-        Sun,  2 Apr 2023 16:43:17 +0000 (UTC)
+        by zimbra.dalakolonin.se (Postfix) with ESMTPSA id 16FDD93773;
+        Sun,  2 Apr 2023 16:43:16 +0000 (UTC)
 From:   =?UTF-8?q?Patrik=20Dahlstr=C3=B6m?= <risca@dalakolonin.se>
 To:     linux-iio@vger.kernel.org
 Cc:     linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org,
@@ -59,9 +60,9 @@ Cc:     linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org,
         hns@goldelico.com, jic23@kernel.org, lars@metafoo.de,
         linux-omap@vger.kernel.org,
         =?UTF-8?q?Patrik=20Dahlstr=C3=B6m?= <risca@dalakolonin.se>
-Subject: [PATCH v2 4/7] iio: adc: palmas: move eventX_enable into palmas_adc_event
-Date:   Sun,  2 Apr 2023 18:42:44 +0200
-Message-Id: <20230402164247.3089146-5-risca@dalakolonin.se>
+Subject: [PATCH v2 1/7] iio: adc: palmas: remove adc_wakeupX_data
+Date:   Sun,  2 Apr 2023 18:42:41 +0200
+Message-Id: <20230402164247.3089146-2-risca@dalakolonin.se>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20230402164247.3089146-1-risca@dalakolonin.se>
 References: <20230402164247.3089146-1-risca@dalakolonin.se>
@@ -72,101 +73,130 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-It just makes more sense to have all information regarding adc events in
-one place.
+It does not seem to be used by anyone and later patches in this series
+are made simpler by first removing this. There is now a lot of dead code
+that cannot be reached, until later patches revive it. Arguably, this is
+preferred over removing the code only to add it again.
 
 Signed-off-by: Patrik Dahlstr=C3=B6m <risca@dalakolonin.se>
 ---
- drivers/iio/adc/palmas_gpadc.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/iio/adc/palmas_gpadc.c | 50 ++++------------------------------
+ include/linux/mfd/palmas.h     |  8 ------
+ 2 files changed, 6 insertions(+), 52 deletions(-)
 
 diff --git a/drivers/iio/adc/palmas_gpadc.c b/drivers/iio/adc/palmas_gpad=
 c.c
-index fca455a4285e..f7eb445495b6 100644
+index 24d7c096e4b8..943ac579eb1f 100644
 --- a/drivers/iio/adc/palmas_gpadc.c
 +++ b/drivers/iio/adc/palmas_gpadc.c
-@@ -77,6 +77,7 @@ static struct palmas_gpadc_info palmas_gpadc_info[] =3D=
+@@ -76,6 +76,12 @@ static struct palmas_gpadc_info palmas_gpadc_info[] =3D=
  {
+ 	PALMAS_ADC_INFO(IN15, 0, 0, 0, 0, INVALID, INVALID, true),
  };
 =20
- struct palmas_adc_event {
-+	bool enabled;
- 	int channel;
- 	int raw_thresh;
- 	enum iio_event_direction direction;
-@@ -119,8 +120,6 @@ struct palmas_gpadc {
- 	struct completion		conv_completion;
- 	struct palmas_adc_event		event0;
- 	struct palmas_adc_event		event1;
--	bool				event0_enable;
--	bool				event1_enable;
- 	int				auto_conversion_period;
- 	struct mutex			lock;
++struct palmas_adc_wakeup_property {
++	int adc_channel_number;
++	int adc_high_threshold;
++	int adc_low_threshold;
++};
++
+ /*
+  * struct palmas_gpadc - the palmas_gpadc structure
+  * @ch0_current:	channel 0 current source setting
+@@ -492,11 +498,6 @@ static int palmas_gpadc_get_adc_dt_data(struct platf=
+orm_device *pdev,
+ 	return 0;
+ }
+=20
+-static void palmas_disable_wakeup(void *dev)
+-{
+-	device_wakeup_disable(dev);
+-}
+-
+ static int palmas_gpadc_probe(struct platform_device *pdev)
+ {
+ 	struct palmas_gpadc *adc;
+@@ -547,36 +548,6 @@ static int palmas_gpadc_probe(struct platform_device=
+ *pdev)
+ 		return dev_err_probe(adc->dev, ret,
+ 				     "request irq %d failed\n", adc->irq);
+=20
+-	if (gpadc_pdata->adc_wakeup1_data) {
+-		memcpy(&adc->wakeup1_data, gpadc_pdata->adc_wakeup1_data,
+-			sizeof(adc->wakeup1_data));
+-		adc->wakeup1_enable =3D true;
+-		adc->irq_auto_0 =3D  platform_get_irq(pdev, 1);
+-		ret =3D devm_request_threaded_irq(&pdev->dev, adc->irq_auto_0,
+-						NULL, palmas_gpadc_irq_auto,
+-						IRQF_ONESHOT,
+-						"palmas-adc-auto-0", adc);
+-		if (ret < 0)
+-			return dev_err_probe(adc->dev, ret,
+-					     "request auto0 irq %d failed\n",
+-					     adc->irq_auto_0);
+-	}
+-
+-	if (gpadc_pdata->adc_wakeup2_data) {
+-		memcpy(&adc->wakeup2_data, gpadc_pdata->adc_wakeup2_data,
+-				sizeof(adc->wakeup2_data));
+-		adc->wakeup2_enable =3D true;
+-		adc->irq_auto_1 =3D  platform_get_irq(pdev, 2);
+-		ret =3D devm_request_threaded_irq(&pdev->dev, adc->irq_auto_1,
+-						NULL, palmas_gpadc_irq_auto,
+-						IRQF_ONESHOT,
+-						"palmas-adc-auto-1", adc);
+-		if (ret < 0)
+-			return dev_err_probe(adc->dev, ret,
+-					     "request auto1 irq %d failed\n",
+-					     adc->irq_auto_1);
+-	}
+-
+ 	/* set the current source 0 (value 0/5/15/20 uA =3D> 0..3) */
+ 	if (gpadc_pdata->ch0_current <=3D 1)
+ 		adc->ch0_current =3D PALMAS_ADC_CH0_CURRENT_SRC_0;
+@@ -616,15 +587,6 @@ static int palmas_gpadc_probe(struct platform_device=
+ *pdev)
+ 			palmas_gpadc_calibrate(adc, i);
+ 	}
+=20
+-	if (adc->wakeup1_enable || adc->wakeup2_enable) {
+-		device_wakeup_enable(&pdev->dev);
+-		ret =3D devm_add_action_or_reset(&pdev->dev,
+-					       palmas_disable_wakeup,
+-					       &pdev->dev);
+-		if (ret)
+-			return ret;
+-	}
+-
+ 	return 0;
+ }
+=20
+diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+index 1e61c7e9f50d..55f22adb1a9e 100644
+--- a/include/linux/mfd/palmas.h
++++ b/include/linux/mfd/palmas.h
+@@ -129,12 +129,6 @@ struct palmas_pmic_driver_data {
+ 			    struct regulator_config config);
  };
-@@ -616,7 +615,7 @@ static int palmas_adc_configure_events(struct palmas_=
-gpadc *adc)
- 	}
 =20
- 	conv =3D 0;
--	if (adc->event0_enable) {
-+	if (adc->event0.enabled) {
- 		struct palmas_adc_event *ev =3D &adc->event0;
- 		int polarity;
+-struct palmas_adc_wakeup_property {
+-	int adc_channel_number;
+-	int adc_high_threshold;
+-	int adc_low_threshold;
+-};
+-
+ struct palmas_gpadc_platform_data {
+ 	/* Channel 3 current source is only enabled during conversion */
+ 	int ch3_current;	/* 0: off; 1: 10uA; 2: 400uA; 3: 800 uA */
+@@ -153,8 +147,6 @@ struct palmas_gpadc_platform_data {
+ 	int start_polarity;
 =20
-@@ -652,7 +651,7 @@ static int palmas_adc_configure_events(struct palmas_=
-gpadc *adc)
- 		}
- 	}
+ 	int auto_conversion_period_ms;
+-	struct palmas_adc_wakeup_property *adc_wakeup1_data;
+-	struct palmas_adc_wakeup_property *adc_wakeup2_data;
+ };
 =20
--	if (adc->event1_enable) {
-+	if (adc->event1.enabled) {
- 		struct palmas_adc_event *ev =3D &adc->event1;
- 		int polarity;
-=20
-@@ -727,7 +726,7 @@ static int palmas_gpadc_suspend(struct device *dev)
- {
- 	struct iio_dev *indio_dev =3D dev_get_drvdata(dev);
- 	struct palmas_gpadc *adc =3D iio_priv(indio_dev);
--	int wakeup =3D adc->event0_enable || adc->event1_enable;
-+	int wakeup =3D adc->event0.enabled || adc->event1.enabled;
- 	int ret;
-=20
- 	if (!device_may_wakeup(dev) || !wakeup)
-@@ -737,10 +736,10 @@ static int palmas_gpadc_suspend(struct device *dev)
- 	if (ret < 0)
- 		return ret;
-=20
--	if (adc->event0_enable)
-+	if (adc->event0.enabled)
- 		enable_irq_wake(adc->irq_auto_0);
-=20
--	if (adc->event1_enable)
-+	if (adc->event1.enabled)
- 		enable_irq_wake(adc->irq_auto_1);
-=20
- 	return 0;
-@@ -750,7 +749,7 @@ static int palmas_gpadc_resume(struct device *dev)
- {
- 	struct iio_dev *indio_dev =3D dev_get_drvdata(dev);
- 	struct palmas_gpadc *adc =3D iio_priv(indio_dev);
--	int wakeup =3D adc->event0_enable || adc->event1_enable;
-+	int wakeup =3D adc->event0.enabled || adc->event1.enabled;
- 	int ret;
-=20
- 	if (!device_may_wakeup(dev) || !wakeup)
-@@ -760,10 +759,10 @@ static int palmas_gpadc_resume(struct device *dev)
- 	if (ret < 0)
- 		return ret;
-=20
--	if (adc->event0_enable)
-+	if (adc->event0.enabled)
- 		disable_irq_wake(adc->irq_auto_0);
-=20
--	if (adc->event1_enable)
-+	if (adc->event1.enabled)
- 		disable_irq_wake(adc->irq_auto_1);
-=20
- 	return 0;
+ struct palmas_reg_init {
 --=20
 2.25.1
 
