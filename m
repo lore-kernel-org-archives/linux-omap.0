@@ -2,104 +2,160 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F85DC76196
-	for <linux-omap@archiver.kernel.org>; Sun,  2 Apr 2023 10:55:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88646C761AF
+	for <linux-omap@archiver.kernel.org>; Sun,  2 Apr 2023 16:43:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229503AbjDBKzh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 2 Apr 2023 06:55:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60062 "EHLO
+        id S230514AbjDBQn3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 2 Apr 2023 12:43:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230413AbjDBKzg (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 2 Apr 2023 06:55:36 -0400
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4583F1C1C6
-        for <linux-omap@vger.kernel.org>; Sun,  2 Apr 2023 03:55:33 -0700 (PDT)
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1pivMt-0008SR-K8; Sun, 02 Apr 2023 12:55:27 +0200
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1pivMr-008Qop-Gi; Sun, 02 Apr 2023 12:55:25 +0200
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1pivMq-009wlK-S2; Sun, 02 Apr 2023 12:55:24 +0200
-From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>
-To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>, Vignesh R <vigneshr@ti.com>
-Cc:     linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org,
-        kernel@pengtronix.de, "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-pm@vger.kernel.org
-Subject: [PATCH] i2c: omap: Don't do pm_runtime_resume in .remove()
-Date:   Sun,  2 Apr 2023 12:55:18 +0200
-Message-Id: <20230402105518.2512541-1-u.kleine-koenig@pengutronix.de>
-X-Mailer: git-send-email 2.39.2
+        with ESMTP id S230454AbjDBQn2 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 2 Apr 2023 12:43:28 -0400
+Received: from ste-pvt-msa1.bahnhof.se (ste-pvt-msa1.bahnhof.se [213.80.101.70])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03E2BEB73;
+        Sun,  2 Apr 2023 09:43:25 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by ste-pvt-msa1.bahnhof.se (Postfix) with ESMTP id EC0DF3F6EF;
+        Sun,  2 Apr 2023 18:43:23 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at bahnhof.se
+Authentication-Results: ste-pvt-msa1.bahnhof.se (amavisd-new);
+        dkim=pass (2048-bit key) header.d=dalakolonin.se
+Received: from ste-pvt-msa1.bahnhof.se ([127.0.0.1])
+        by localhost (ste-pvt-msa1.bahnhof.se [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id xfPpf1fz_h0h; Sun,  2 Apr 2023 18:43:23 +0200 (CEST)
+Received: by ste-pvt-msa1.bahnhof.se (Postfix) with ESMTPA id 1AD883F42D;
+        Sun,  2 Apr 2023 18:43:23 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by zimbra.dalakolonin.se (Postfix) with ESMTP id DB31C937B1;
+        Sun,  2 Apr 2023 16:43:22 +0000 (UTC)
+Received: from zimbra.dalakolonin.se ([127.0.0.1])
+        by localhost (zimbra.dalakolonin.se [127.0.0.1]) (amavisd-new, port 10032)
+        with ESMTP id HFoiwCDHRIdH; Sun,  2 Apr 2023 16:43:18 +0000 (UTC)
+Received: from localhost (localhost [127.0.0.1])
+        by zimbra.dalakolonin.se (Postfix) with ESMTP id AFCBF93789;
+        Sun,  2 Apr 2023 16:43:17 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.10.3 zimbra.dalakolonin.se AFCBF93789
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dalakolonin.se;
+        s=D374B428-D0A7-11ED-A657-75977B426508; t=1680453797;
+        bh=+IL/VOJpx/Evc5dCgWk5x3rUwfJq8dsip/nY6cvyErU=;
+        h=From:To:Date:Message-Id:MIME-Version;
+        b=a8t6789mmQI+9K7R7vspArIyig1h3/guiDMqemD6XbVOkVt96pM2DQbeElPmdAaCS
+         Zbn89NSIsJpemC3pUfWhYLaLWHZDZZKzdRxiD1jX01SWnkKstzf81ZkguMXg/Zsy1d
+         skUFy5E4GyEpwTG0Txs188eIpJOzzyrFWRFUeTCjz2a+KSIfZ/ySw8PJJpiLdBCFdG
+         +vkFSEVOwoi1otzamI9gfO670CZfkf3XVdhbRgaGcCps3pUK2lTpG5RV3DrbYyL2KT
+         zEbxTvAGiBbFYpRXmlI1CLSj5BD7YDJ/eX+YAZ3LDwhJoUNy5OMbOgqZFKmbGLcoJP
+         WgEcQBbdaxVLQ==
+X-Virus-Scanned: amavisd-new at dalakolonin.se
+Received: from zimbra.dalakolonin.se ([127.0.0.1])
+        by localhost (zimbra.dalakolonin.se [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id BrBSvqf0_VYi; Sun,  2 Apr 2023 16:43:17 +0000 (UTC)
+Received: from rack-server-1.dalakolonin.se (unknown [172.17.0.1])
+        by zimbra.dalakolonin.se (Postfix) with ESMTPSA id 5B46F9377C;
+        Sun,  2 Apr 2023 16:43:17 +0000 (UTC)
+From:   =?UTF-8?q?Patrik=20Dahlstr=C3=B6m?= <risca@dalakolonin.se>
+To:     linux-iio@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org,
+        kernel@pyra-handheld.com, pgoudagunta@nvidia.com,
+        hns@goldelico.com, jic23@kernel.org, lars@metafoo.de,
+        linux-omap@vger.kernel.org,
+        =?UTF-8?q?Patrik=20Dahlstr=C3=B6m?= <risca@dalakolonin.se>
+Subject: [PATCH v2 3/7] iio: adc: palmas: use iio_event_direction for threshold polarity
+Date:   Sun,  2 Apr 2023 18:42:43 +0200
+Message-Id: <20230402164247.3089146-4-risca@dalakolonin.se>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230402164247.3089146-1-risca@dalakolonin.se>
+References: <20230402164247.3089146-1-risca@dalakolonin.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1710; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=YuO3xNgH6GPTxtI5VYLq6i5csE6lG+Icg93FwUQ/z2U=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBkKV8VIYZQ26aaizqS1BwvhCK5/Koz/UEgHsQBZ 3D8nAnNaW2JATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZClfFQAKCRCPgPtYfRL+ TtWVB/4nKls0puq1UcPdg0iFBHiiJN03d3ido9512BseMSFyy+lTZ6S8cbRf8w6Fq0BDJa3I3BL 7fymnh8VHHP2ZGwar6q6dRQAHATL1vuqR70KWSPtFCLfqF+gcnDAKgwXOSMrScM1w5Lvewr34kn NklZ2CKwMpsfRkWg8nZ7rhaQ7RCi9eHgmGTJfb8rN/R1eIcJoAIQS/XnIiy93CxP7H5eUUyA/0m +epP7yoBuVofi0/zA9kJtDtvEgAdb5JLi76gBQFmtH6/bZFO6l32r0NzxnCWXNXz9Whp7qO5yB5 1I8S+9EG7GZ3mQZyabfGBbTyT5mZb9fC2/oUacadhs3DjNyD
-X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-omap@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-One of the first things that the driver's pm_runtime_resume callback
-does is to write zero to the OMAP_I2C_CON_REG register.
-So there is no need to have the device resumed just to write to the
-OMAP_I2C_CON_REG register and the call to pm_runtime_resume_and_get()
-can be dropped.
+Instead of having high_threshold > 0 as an indicator for upper threshold
+event and lower threshold event otherwise, use enum iio_event_direction
+instead. This is hopefully less ambiguous.
 
-The intended side effect of this commit is to remove an error path of
-the function resulting in the remove callback returning a mostly ignored
-error code. This prepares changing the prototype of struct
-platform_driver's remove callback to return void.
-
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Signed-off-by: Patrik Dahlstr=C3=B6m <risca@dalakolonin.se>
 ---
-Hello,
+ drivers/iio/adc/palmas_gpadc.c | 36 ++++++++++++++++++++++------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
 
-I'm not completely sure that the reasing in the commit log is sound.
-There might at least theoretical side effects of the register write
-that are different if the device is fully resumed.
-
-Best regards
-Uwe
-
- drivers/i2c/busses/i2c-omap.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index f9ae520aed22..a572f6d994ca 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1522,16 +1522,12 @@ omap_i2c_probe(struct platform_device *pdev)
- static int omap_i2c_remove(struct platform_device *pdev)
+diff --git a/drivers/iio/adc/palmas_gpadc.c b/drivers/iio/adc/palmas_gpad=
+c.c
+index 3ef0e1c08c8b..fca455a4285e 100644
+--- a/drivers/iio/adc/palmas_gpadc.c
++++ b/drivers/iio/adc/palmas_gpadc.c
+@@ -77,9 +77,9 @@ static struct palmas_gpadc_info palmas_gpadc_info[] =3D=
  {
- 	struct omap_i2c_dev	*omap = platform_get_drvdata(pdev);
--	int ret;
- 
- 	i2c_del_adapter(&omap->adapter);
--	ret = pm_runtime_resume_and_get(&pdev->dev);
--	if (ret < 0)
--		return ret;
- 
- 	omap_i2c_write_reg(omap, OMAP_I2C_CON_REG, 0);
-+
- 	pm_runtime_dont_use_autosuspend(&pdev->dev);
--	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 	return 0;
- }
-
-base-commit: fe15c26ee26efa11741a7b632e9f23b01aca4cc6
--- 
-2.39.2
+ };
+=20
+ struct palmas_adc_event {
+-	int adc_channel_number;
+-	int adc_high_threshold;
+-	int adc_low_threshold;
++	int channel;
++	int raw_thresh;
++	enum iio_event_direction direction;
+ };
+=20
+ /*
+@@ -617,16 +617,21 @@ static int palmas_adc_configure_events(struct palma=
+s_gpadc *adc)
+=20
+ 	conv =3D 0;
+ 	if (adc->event0_enable) {
++		struct palmas_adc_event *ev =3D &adc->event0;
+ 		int polarity;
+=20
+-		ch0 =3D adc->event0.adc_channel_number;
++		ch0 =3D ev->channel;
++		thres =3D ev->raw_thresh;
+ 		conv |=3D PALMAS_GPADC_AUTO_CTRL_AUTO_CONV0_EN;
+-		if (adc->event0.adc_high_threshold > 0) {
+-			thres =3D adc->event0.adc_high_threshold;
++		switch (ev->direction) {
++		case IIO_EV_DIR_RISING:
+ 			polarity =3D 0;
+-		} else {
+-			thres =3D adc->event0.adc_low_threshold;
++			break;
++		case IIO_EV_DIR_FALLING:
+ 			polarity =3D PALMAS_GPADC_THRES_CONV0_MSB_THRES_CONV0_POL;
++			break;
++		default:
++			return -EINVAL;
+ 		}
+=20
+ 		ret =3D palmas_write(adc->palmas, PALMAS_GPADC_BASE,
+@@ -648,16 +653,21 @@ static int palmas_adc_configure_events(struct palma=
+s_gpadc *adc)
+ 	}
+=20
+ 	if (adc->event1_enable) {
++		struct palmas_adc_event *ev =3D &adc->event1;
+ 		int polarity;
+=20
+-		ch1 =3D adc->event1.adc_channel_number;
++		ch1 =3D ev->channel;
++		thres =3D ev->raw_thresh;
+ 		conv |=3D PALMAS_GPADC_AUTO_CTRL_AUTO_CONV1_EN;
+-		if (adc->event1.adc_high_threshold > 0) {
+-			thres =3D adc->event1.adc_high_threshold;
++		switch (ev->direction) {
++		case IIO_EV_DIR_RISING:
+ 			polarity =3D 0;
+-		} else {
+-			thres =3D adc->event1.adc_low_threshold;
++			break;
++		case IIO_EV_DIR_FALLING:
+ 			polarity =3D PALMAS_GPADC_THRES_CONV1_MSB_THRES_CONV1_POL;
++			break;
++		default:
++			return -EINVAL;
+ 		}
+=20
+ 		ret =3D palmas_write(adc->palmas, PALMAS_GPADC_BASE,
+--=20
+2.25.1
 
