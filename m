@@ -2,283 +2,404 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAAC1C77B62
-	for <linux-omap@archiver.kernel.org>; Tue,  4 Apr 2023 11:54:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F3BAC761A6
+	for <linux-omap@archiver.kernel.org>; Tue,  4 Apr 2023 20:59:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234827AbjDDLyi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 4 Apr 2023 07:54:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60286 "EHLO
+        id S236374AbjDDU7x (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 4 Apr 2023 16:59:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234737AbjDDLyS (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 4 Apr 2023 07:54:18 -0400
-Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E65E4228;
-        Tue,  4 Apr 2023 04:54:02 -0700 (PDT)
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 334BrlgG071631;
-        Tue, 4 Apr 2023 06:53:47 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1680609227;
-        bh=PSEF9PKaq4DqE7eetCOk74X05JZ9Cnh2P7vAE2yAcTY=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=YED9DmopnKmYWayOBW0rzAIvHJDEc908advdAG5IWh13QJi0EJuCfDUPgB7SYeFFa
-         7oFcxiehLqM7JcLRtcPazp+ZLDSLkSrkoMINCLVywZpZcYkF1Op5XqXRyx6/5E1AJE
-         pqdXurVO8C0GQN0CdV2cc6Wejd/3H7JdQksGexcA=
-Received: from DLEE110.ent.ti.com (dlee110.ent.ti.com [157.170.170.21])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 334BrlUw033501
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 4 Apr 2023 06:53:47 -0500
-Received: from DLEE106.ent.ti.com (157.170.170.36) by DLEE110.ent.ti.com
- (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16; Tue, 4
- Apr 2023 06:53:47 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE106.ent.ti.com
- (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.16 via
- Frontend Transport; Tue, 4 Apr 2023 06:53:47 -0500
-Received: from lelv0854.itg.ti.com (lelv0854.itg.ti.com [10.181.64.140])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 334BrlZI080398;
-        Tue, 4 Apr 2023 06:53:47 -0500
-Received: from localhost (a0501179-pc.dhcp.ti.com [10.24.69.114])
-        by lelv0854.itg.ti.com (8.14.7/8.14.7) with ESMTP id 334Brk1W010005;
-        Tue, 4 Apr 2023 06:53:46 -0500
-From:   MD Danish Anwar <danishanwar@ti.com>
-To:     "Andrew F. Davis" <afd@ti.com>, Suman Anna <s-anna@ti.com>,
-        Roger Quadros <rogerq@kernel.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Tero Kristo <kristo@kernel.org>,
-        MD Danish Anwar <danishanwar@ti.com>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Nishanth Menon <nm@ti.com>
-CC:     <linux-remoteproc@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <srk@ti.com>, <devicetree@vger.kernel.org>,
-        <netdev@vger.kernel.org>
-Subject: [PATCH v7 4/4] soc: ti: pruss: Add helper functions to set GPI mode, MII_RT_event and XFR
-Date:   Tue, 4 Apr 2023 17:23:36 +0530
-Message-ID: <20230404115336.599430-5-danishanwar@ti.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230404115336.599430-1-danishanwar@ti.com>
-References: <20230404115336.599430-1-danishanwar@ti.com>
+        with ESMTP id S236386AbjDDU7s (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 4 Apr 2023 16:59:48 -0400
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a01:238:4321:8900:456f:ecd6:43e:202c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5013149D3;
+        Tue,  4 Apr 2023 13:59:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=kemnade.info; s=20220719; h=Content-Transfer-Encoding:MIME-Version:
+        References:In-Reply-To:Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:
+        Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=BMA6GaeXTNoUOIFAEXbjFzde+jkWk3a5P4IYnZnuNoA=; b=uMRus0xjWJNnvU1XPL5cfAbaF5
+        sJeYHMh1P6i+FymZnN/Miw68VuLH+gvrDUGQjlt0NXon8uoW4TcWcUH3WEVRHF9hkkxCtD8Pye/YP
+        Yh3TzMSorUKp4HWcHLff+yDbbQzqoSZLPwYdSNaYzJv/4traqYVheg6c1mRCRkzohYRrk1edI4bi+
+        Bhux/XxR7cJBX7SeZfS6vxMCe3kav1I/wPxSH7UQPwXd8RVUPeoJv0zV7VOHLIu9vscdW1MfKu3+t
+        wHEcJbT46xFap2xEpAd93TR2S3cml/P/yT3Dnb0Jc+Vg9qqwGPF1Vvfne+E3KwCuviy54qPM6+ZLA
+        PqSVnfRg==;
+Received: from p200300ccff1e1f001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff1e:1f00:1a3d:a2ff:febf:d33a] helo=aktux)
+        by mail.andi.de1.cc with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <andreas@kemnade.info>)
+        id 1pjnkh-0007tz-Sj; Tue, 04 Apr 2023 22:59:40 +0200
+Received: from andi by aktux with local (Exim 4.96)
+        (envelope-from <andreas@kemnade.info>)
+        id 1pjnkh-00EuLY-1w;
+        Tue, 04 Apr 2023 22:59:39 +0200
+From:   Andreas Kemnade <andreas@kemnade.info>
+To:     robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
+        tony@atomide.com, afd@ti.com, andreas@kemnade.info,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org
+Subject: [PATCH v4 1/2] dt-bindings: omap: Convert omap.txt to yaml
+Date:   Tue,  4 Apr 2023 22:58:43 +0200
+Message-Id: <20230404205844.3553159-2-andreas@kemnade.info>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230404205844.3553159-1-andreas@kemnade.info>
+References: <20230404205844.3553159-1-andreas@kemnade.info>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+From: Andrew Davis <afd@ti.com>
 
-The PRUSS CFG module is represented as a syscon node and is currently
-managed by the PRUSS platform driver. Add easy accessor functions to set
-GPI mode, MII_RT event enable/disable and XFR (XIN XOUT) enable/disable
-to enable the PRUSS Ethernet usecase. These functions reuse the generic
-pruss_cfg_update() API function.
+Convert omap.txt to yaml.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Co-developed-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
-Signed-off-by: Grzegorz Jaszczyk <grzegorz.jaszczyk@linaro.org>
-Signed-off-by: Puranjay Mohan <p-mohan@ti.com>
-Reviewed-by: Roger Quadros <rogerq@kernel.org>
-Reviewed-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
+CC: linux-omap@vger.kernel.org
+Signed-off-by: Andrew Davis <afd@ti.com>
+[various cleanup, adding Epson Moverio BT-200]
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- drivers/remoteproc/pru_rproc.c   | 15 -------
- drivers/soc/ti/pruss.c           | 74 ++++++++++++++++++++++++++++++++
- include/linux/remoteproc/pruss.h | 51 ++++++++++++++++++++++
- 3 files changed, 125 insertions(+), 15 deletions(-)
+ .../devicetree/bindings/arm/omap/omap.txt     | 152 ------------------
+ Documentation/devicetree/bindings/arm/ti.yaml | 147 +++++++++++++++++
+ 2 files changed, 147 insertions(+), 152 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/ti.yaml
 
-diff --git a/drivers/remoteproc/pru_rproc.c b/drivers/remoteproc/pru_rproc.c
-index 4ddd5854d56e..a88861737dec 100644
---- a/drivers/remoteproc/pru_rproc.c
-+++ b/drivers/remoteproc/pru_rproc.c
-@@ -81,21 +81,6 @@ enum pru_iomem {
- 	PRU_IOMEM_MAX,
- };
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index fa8b31660cadd..0608ef36d0a68 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -41,49 +41,11 @@ SoC Type (optional):
  
--/**
-- * enum pru_type - PRU core type identifier
-- *
-- * @PRU_TYPE_PRU: Programmable Real-time Unit
-- * @PRU_TYPE_RTU: Auxiliary Programmable Real-Time Unit
-- * @PRU_TYPE_TX_PRU: Transmit Programmable Real-Time Unit
-- * @PRU_TYPE_MAX: just keep this one at the end
-- */
--enum pru_type {
--	PRU_TYPE_PRU = 0,
--	PRU_TYPE_RTU,
--	PRU_TYPE_TX_PRU,
--	PRU_TYPE_MAX,
--};
+ SoC Families:
+ 
+-- OMAP2 generic - defaults to OMAP2420
+-  compatible = "ti,omap2"
+-- OMAP3 generic
+-  compatible = "ti,omap3"
+-- OMAP4 generic - defaults to OMAP4430
+-  compatible = "ti,omap4"
+-- OMAP5 generic - defaults to OMAP5430
+-  compatible = "ti,omap5"
+ - DRA7 generic - defaults to DRA742
+   compatible = "ti,dra7"
+-- AM33x generic
+-  compatible = "ti,am33xx"
+-- AM43x generic - defaults to AM4372
+-  compatible = "ti,am43"
+ 
+ SoCs:
+ 
+-- OMAP2420
+-  compatible = "ti,omap2420", "ti,omap2"
+-- OMAP2430
+-  compatible = "ti,omap2430", "ti,omap2"
 -
- /**
-  * struct pru_private_data - device data for a PRU core
-  * @type: type of the PRU core (PRU, RTU, Tx_PRU)
-diff --git a/drivers/soc/ti/pruss.c b/drivers/soc/ti/pruss.c
-index 0e37fe142615..64a1880ba4ee 100644
---- a/drivers/soc/ti/pruss.c
-+++ b/drivers/soc/ti/pruss.c
-@@ -213,6 +213,80 @@ int pruss_cfg_set_gpmux(struct pruss *pruss, enum pruss_pru_id pru_id, u8 mux)
- }
- EXPORT_SYMBOL_GPL(pruss_cfg_set_gpmux);
+-- OMAP3430
+-  compatible = "ti,omap3430", "ti,omap3"
+-  legacy: "ti,omap34xx" - please do not use any more
+-- AM3517
+-  compatible = "ti,am3517", "ti,omap3"
+-- OMAP3630
+-  compatible = "ti,omap3630", "ti,omap3"
+-  legacy: "ti,omap36xx" - please do not use any more
+-- AM335x
+-  compatible = "ti,am33xx"
+-
+-- OMAP4430
+-  compatible = "ti,omap4430", "ti,omap4"
+-- OMAP4460
+-  compatible = "ti,omap4460", "ti,omap4"
+-
+-- OMAP5430
+-  compatible = "ti,omap5430", "ti,omap5"
+-- OMAP5432
+-  compatible = "ti,omap5432", "ti,omap5"
+-
+ - DRA762
+   compatible = "ti,dra762", "ti,dra7"
  
-+/**
-+ * pruss_cfg_gpimode() - set the GPI mode of the PRU
-+ * @pruss: the pruss instance handle
-+ * @pru_id: id of the PRU core within the PRUSS
-+ * @mode: GPI mode to set
-+ *
-+ * Sets the GPI mode for a given PRU by programming the
-+ * corresponding PRUSS_CFG_GPCFGx register
-+ *
-+ * Return: 0 on success, or an error code otherwise
-+ */
-+int pruss_cfg_gpimode(struct pruss *pruss, enum pruss_pru_id pru_id,
-+		      enum pruss_gpi_mode mode)
-+{
-+	if (pru_id < 0 || pru_id >= PRUSS_NUM_PRUS)
-+		return -EINVAL;
-+
-+	if (mode < 0 || mode > PRUSS_GPI_MODE_MAX)
-+		return -EINVAL;
-+
-+	return pruss_cfg_update(pruss, PRUSS_CFG_GPCFG(pru_id),
-+				PRUSS_GPCFG_PRU_GPI_MODE_MASK,
-+				mode << PRUSS_GPCFG_PRU_GPI_MODE_SHIFT);
-+}
-+EXPORT_SYMBOL_GPL(pruss_cfg_gpimode);
-+
-+/**
-+ * pruss_cfg_miirt_enable() - Enable/disable MII RT Events
-+ * @pruss: the pruss instance
-+ * @enable: enable/disable
-+ *
-+ * Enable/disable the MII RT Events for the PRUSS.
-+ *
-+ * Return: 0 on success, or an error code otherwise
-+ */
-+int pruss_cfg_miirt_enable(struct pruss *pruss, bool enable)
-+{
-+	u32 set = enable ? PRUSS_MII_RT_EVENT_EN : 0;
-+
-+	return pruss_cfg_update(pruss, PRUSS_CFG_MII_RT,
-+				PRUSS_MII_RT_EVENT_EN, set);
-+}
-+EXPORT_SYMBOL_GPL(pruss_cfg_miirt_enable);
-+
-+/**
-+ * pruss_cfg_xfr_enable() - Enable/disable XIN XOUT shift functionality
-+ * @pruss: the pruss instance
-+ * @pru_type: PRU core type identifier
-+ * @enable: enable/disable
-+ *
-+ * Return: 0 on success, or an error code otherwise
-+ */
-+int pruss_cfg_xfr_enable(struct pruss *pruss, enum pru_type pru_type,
-+			 bool enable)
-+{
-+	u32 mask, set;
-+
-+	switch (pru_type) {
-+	case PRU_TYPE_PRU:
-+		mask = PRUSS_SPP_XFER_SHIFT_EN;
-+		break;
-+	case PRU_TYPE_RTU:
-+		mask = PRUSS_SPP_RTU_XFR_SHIFT_EN;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	set = enable ? mask : 0;
-+
-+	return pruss_cfg_update(pruss, PRUSS_CFG_SPP, mask, set);
-+}
-+EXPORT_SYMBOL_GPL(pruss_cfg_xfr_enable);
-+
- static void pruss_of_free_clk_provider(void *data)
- {
- 	struct device_node *clk_mux_np = data;
-diff --git a/include/linux/remoteproc/pruss.h b/include/linux/remoteproc/pruss.h
-index 5641153459a7..b68ab8735247 100644
---- a/include/linux/remoteproc/pruss.h
-+++ b/include/linux/remoteproc/pruss.h
-@@ -34,6 +34,33 @@ enum pruss_gp_mux_sel {
- 	PRUSS_GP_MUX_SEL_MAX,
- };
+@@ -96,116 +58,8 @@ SoCs:
+ - DRA718
+   compatible = "ti,dra718", "ti,dra722", "ti,dra72", "ti,dra7"
  
-+/*
-+ * enum pruss_gpi_mode - PRUSS GPI configuration modes, used
-+ *			 to program the PRUSS_GPCFG0/1 registers
-+ */
-+enum pruss_gpi_mode {
-+	PRUSS_GPI_MODE_DIRECT = 0,
-+	PRUSS_GPI_MODE_PARALLEL,
-+	PRUSS_GPI_MODE_28BIT_SHIFT,
-+	PRUSS_GPI_MODE_MII,
-+	PRUSS_GPI_MODE_MAX,
-+};
-+
-+/**
-+ * enum pru_type - PRU core type identifier
-+ *
-+ * @PRU_TYPE_PRU: Programmable Real-time Unit
-+ * @PRU_TYPE_RTU: Auxiliary Programmable Real-Time Unit
-+ * @PRU_TYPE_TX_PRU: Transmit Programmable Real-Time Unit
-+ * @PRU_TYPE_MAX: just keep this one at the end
-+ */
-+enum pru_type {
-+	PRU_TYPE_PRU = 0,
-+	PRU_TYPE_RTU,
-+	PRU_TYPE_TX_PRU,
-+	PRU_TYPE_MAX,
-+};
-+
- /**
-  * enum pruss_pru_id - PRU core identifiers
-  * @PRUSS_PRU0: PRU Core 0.
-@@ -98,6 +125,11 @@ int pruss_release_mem_region(struct pruss *pruss,
- 			     struct pruss_mem_region *region);
- int pruss_cfg_get_gpmux(struct pruss *pruss, enum pruss_pru_id pru_id, u8 *mux);
- int pruss_cfg_set_gpmux(struct pruss *pruss, enum pruss_pru_id pru_id, u8 mux);
-+int pruss_cfg_gpimode(struct pruss *pruss, enum pruss_pru_id pru_id,
-+		      enum pruss_gpi_mode mode);
-+int pruss_cfg_miirt_enable(struct pruss *pruss, bool enable);
-+int pruss_cfg_xfr_enable(struct pruss *pruss, enum pru_type pru_type,
-+			 bool enable);
+-- AM5748
+-  compatible = "ti,am5748", "ti,dra762", "ti,dra7"
+-
+-- AM5728
+-  compatible = "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
+-
+-- AM5726
+-  compatible = "ti,am5726", "ti,dra742", "ti,dra74", "ti,dra7"
+-
+-- AM5718
+-  compatible = "ti,am5718", "ti,dra722", "ti,dra72", "ti,dra7"
+-
+-- AM5716
+-  compatible = "ti,am5716", "ti,dra722", "ti,dra72", "ti,dra7"
+-
+-- AM4372
+-  compatible = "ti,am4372", "ti,am43"
+-
+ Boards (incomplete list of examples):
  
- #else
+-- OMAP3 BeagleBoard : Low cost community board
+-  compatible = "ti,omap3-beagle", "ti,omap3430", "ti,omap3"
+-
+-- OMAP3 BeagleBoard A to B4 : Early BeagleBoard revisions A to B4 with a timer quirk
+-  compatible = "ti,omap3-beagle-ab4", "ti,omap3-beagle", "ti,omap3430", "ti,omap3"
+-
+-- OMAP3 Tobi with Overo : Commercial expansion board with daughter board
+-  compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3430", "ti,omap3"
+-
+-- OMAP4 SDP : Software Development Board
+-  compatible = "ti,omap4-sdp", "ti,omap4430", "ti,omap4"
+-
+-- OMAP4 PandaBoard : Low cost community board
+-  compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4"
+-
+-- OMAP4 DuoVero with Parlor : Commercial expansion board with daughter board
+-  compatible = "gumstix,omap4-duovero-parlor", "gumstix,omap4-duovero", "ti,omap4430", "ti,omap4";
+-
+-- OMAP4 VAR-STK-OM44 : Commercial dev kit with VAR-OM44CustomBoard and VAR-SOM-OM44 w/WLAN
+-  compatible = "variscite,var-stk-om44", "variscite,var-som-om44", "ti,omap4460", "ti,omap4";
+-
+-- OMAP4 VAR-DVK-OM44 : Commercial dev kit with VAR-OM44CustomBoard, VAR-SOM-OM44 w/WLAN and LCD touchscreen
+-  compatible = "variscite,var-dvk-om44", "variscite,var-som-om44", "ti,omap4460", "ti,omap4";
+-
+-- OMAP3 EVM : Software Development Board for OMAP35x, AM/DM37x
+-  compatible = "ti,omap3-evm", "ti,omap3630", "ti,omap3"
+-
+-- AM335X EVM : Software Development Board for AM335x
+-  compatible = "ti,am335x-evm", "ti,am33xx"
+-
+-- AM335X Bone : Low cost community board
+-  compatible = "ti,am335x-bone", "ti,am33xx"
+-
+-- AM3359 ICEv2 : Low cost Industrial Communication Engine EVM.
+-  compatible = "ti,am3359-icev2", "ti,am33xx"
+-
+-- AM335X OrionLXm : Substation Automation Platform
+-  compatible = "novatech,am335x-lxm", "ti,am33xx"
+-
+-- AM335X phyBOARD-WEGA: Single Board Computer dev kit
+-  compatible = "phytec,am335x-wega", "phytec,am335x-phycore-som", "ti,am33xx"
+-
+-- AM335X CM-T335 : System On Module, built around the Sitara AM3352/4
+-  compatible = "compulab,cm-t335", "ti,am33xx"
+-
+-- AM335X SBC-T335 : single board computer, built around the Sitara AM3352/4
+-  compatible = "compulab,sbc-t335", "compulab,cm-t335", "ti,am33xx"
+-
+-- AM335X phyCORE-AM335x: Development kit
+-  compatible = "phytec,am335x-pcm-953", "phytec,am335x-phycore-som", "ti,am33xx"
+-
+-- AM335x phyBOARD-REGOR: Single Board Computer
+-  compatible = "phytec,am335x-regor", "phytec,am335x-phycore-som", "ti,am33xx"
+-
+-- AM335X UC-8100-ME-T: Communication-centric industrial computing platform
+-  compatible = "moxa,uc-8100-me-t", "ti,am33xx";
+-
+-- OMAP5 EVM : Evaluation Module
+-  compatible = "ti,omap5-evm", "ti,omap5"
+-
+-- AM437x CM-T43
+-  compatible = "compulab,am437x-cm-t43", "ti,am4372", "ti,am43"
+-
+-- AM437x SBC-T43
+-  compatible = "compulab,am437x-sbc-t43", "compulab,am437x-cm-t43", "ti,am4372", "ti,am43"
+-
+-- AM43x EPOS EVM
+-  compatible = "ti,am43x-epos-evm", "ti,am43", "ti,am438x"
+-
+-- AM437x GP EVM
+-  compatible = "ti,am437x-gp-evm", "ti,am4372", "ti,am43"
+-
+-- AM437x SK EVM: AM437x StarterKit Evaluation Module
+-  compatible = "ti,am437x-sk-evm", "ti,am4372", "ti,am43"
+-
+-- AM57XX CL-SOM-AM57x
+-  compatible = "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
+-
+-- AM57XX SBC-AM57x
+-  compatible = "compulab,sbc-am57x", "compulab,cl-som-am57x", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
+-
+-- AM5748 IDK
+-  compatible = "ti,am5748-idk", "ti,am5748", "ti,dra762", "ti,dra7";
+-
+-- AM5728 IDK
+-  compatible = "ti,am5728-idk", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
+-
+-- AM5718 IDK
+-  compatible = "ti,am5718-idk", "ti,am5718", "ti,dra7"
+-
+ - DRA762 EVM:  Software Development Board for DRA762
+   compatible = "ti,dra76-evm", "ti,dra762", "ti,dra7"
  
-@@ -133,6 +165,25 @@ static inline int pruss_cfg_set_gpmux(struct pruss *pruss,
- 	return ERR_PTR(-EOPNOTSUPP);
- }
+@@ -217,9 +71,3 @@ Boards (incomplete list of examples):
  
-+static inline int pruss_cfg_gpimode(struct pruss *pruss,
-+				    enum pruss_pru_id pru_id,
-+				    enum pruss_gpi_mode mode)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
+ - DRA718 EVM: Software Development Board for DRA718
+   compatible = "ti,dra718-evm", "ti,dra718", "ti,dra722", "ti,dra72", "ti,dra7"
+-
+-- DM3730 Logic PD Torpedo + Wireless: Commercial System on Module with WiFi and Bluetooth
+-  compatible = "logicpd,dm3730-torpedo-devkit", "ti,omap3630", "ti,omap3"
+-
+-- DM3730 Logic PD SOM-LV: Commercial System on Module with WiFi and Bluetooth
+-  compatible = "logicpd,dm3730-som-lv-devkit", "ti,omap3630", "ti,omap3"
+diff --git a/Documentation/devicetree/bindings/arm/ti.yaml b/Documentation/devicetree/bindings/arm/ti.yaml
+new file mode 100644
+index 0000000000000..d0374fea519d8
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/ti.yaml
+@@ -0,0 +1,147 @@
++# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/arm/ti.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
 +
-+static inline int pruss_cfg_miirt_enable(struct pruss *pruss, bool enable)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
++title: Texas Instruments OMAP SoC architecture
 +
-+static inline int pruss_cfg_xfr_enable(struct pruss *pruss,
-+				       enum pru_type pru_type,
-+				       bool enable);
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
++maintainers:
++  - Tony Lindgren <tony@atomide.com>
 +
- #endif /* CONFIG_TI_PRUSS */
- 
- #if IS_ENABLED(CONFIG_PRU_REMOTEPROC)
++description: Platforms based on Texas Instruments OMAP SoC architecture.
++
++properties:
++  $nodename:
++    const: '/'
++  compatible:
++    oneOf:
++
++      - description: TI OMAP2420 SoC based platforms
++        items:
++          - enum:
++              - nokia,n800
++              - nokia,n810
++              - nokia,n810-wimax
++              - ti,omap2420-h4
++          - const: ti,omap2420
++          - const: ti,omap2
++
++      - description: TI OMAP2430 SoC based platforms
++        items:
++          - enum:
++              - ti,omap2430-sdp # TI OMAP2430 SDP
++          - const: ti,omap2430
++          - const: ti,omap2
++
++      - description: TI OMAP3430 SoC based platforms
++        items:
++          - enum:
++              - compulab,omap3-cm-t3530
++              - logicpd,dm3730-som-lv-devkit  # LogicPD Zoom OMAP35xx SOM-LV Development Kit
++              - logicpd,dm3730-torpedo-devkit # LogicPD Zoom OMAP35xx Torpedo Development Kit
++              - nokia,omap3-n900
++              - openpandora,omap3-pandora-600mhz
++              - ti,omap3430-sdp
++              - ti,omap3-beagle
++              - ti,omap3-evm                  # TI OMAP35XX EVM (TMDSEVM3530)
++              - ti,omap3-ldp                  # TI OMAP3430 LDP (Zoom1 Labrador)
++              - timll,omap3-devkit8000
++          - const: ti,omap3430
++          - const: ti,omap3
++
++      - description: TI OMAP3630 SoC based platforms
++        items:
++          - enum:
++              - amazon,omap3-echo             # Amazon Echo (first generation)
++              - compulab,omap3-cm-t3730
++              - goldelico,gta04
++              - lg,omap3-sniper               # LG Optimus Black
++              - logicpd,dm3730-som-lv-devkit  # LogicPD Zoom DM3730 SOM-LV Development Kit
++              - logicpd,dm3730-torpedo-devkit # LogicPD Zoom DM3730 Torpedo + Wireless Development Kit
++              - nokia,omap3-n9
++              - nokia,omap3-n950
++              - openpandora,omap3-pandora-1ghz
++              - ti,omap3-beagle-xm
++              - ti,omap3-evm-37xx             # TI OMAP37XX EVM (TMDSEVM3730)
++              - ti,omap3-zoom3
++          - const: ti,omap3630
++          - const: ti,omap3
++
++      - description: TI AM35 SoC based platforms
++        items:
++          - enum:
++              - compulab,omap3-sbc-t3517 # CompuLab SBC-T3517 with CM-T3517
++              - teejet,mt_ventoux
++              - ti,am3517-craneboard     # TI AM3517 CraneBoard (TMDSEVM3517)
++              - ti,am3517-evm            # TI AM3517 EVM (AM3517/05 TMDSEVM3517)
++          - const: ti,am3517
++          - const: ti,omap3
++
++      - description: TI OMAP4430 SoC based platforms
++        items:
++          - enum:
++              - amazon,omap4-kc1        # Amazon Kindle Fire (first generation)
++              - motorola,droid4         # Motorola Droid 4 XT894
++              - motorola,droid-bionic   # Motorola Droid Bionic XT875
++              - ti,omap4-panda
++              - ti,omap4-sdp
++          - const: ti,omap4430
++          - const: ti,omap4
++
++      - description: TI OMAP4460 SoC based platforms
++        items:
++          - enum:
++              - epson,epson,embt2ws    # Epson Moverio BT-200
++              - ti,omap4-panda-es
++          - const: ti,omap4460
++          - const: ti,omap4
++
++      - description: TI OMAP5 SoC based platforms
++        items:
++          - enum:
++              - compulab,omap5-cm-t54
++              - isee,omap5-igep0050
++              - ti,omap5-uevm
++          - const: ti,omap5
++
++      - description: TI AM33 SoC based platforms
++        items:
++          - enum:
++              - bosch,am335x-guardian
++              - compulab,cm-t335
++              - gumstix,am335x-pepper
++              - moxa,uc-2101
++              - moxa,uc-8100-me-t
++              - novatech,am335x-lxm  # NovaTech OrionLXm
++              - tcl,am335x-sl50      # Toby Churchill SL50 Series
++              - ti,am335x-bone
++              - ti,am335x-evm
++              - ti,am335x-evmsk
++              - ti,am3359-icev2
++          - pattern: '^ti,am33(5[1246789]|xx)$' # ti,am33xx is legacy please use full SoC name
++
++      - description: TI AM43 SoC based platforms
++        items:
++          - enum:
++              - compulab,am437x-cm-t43
++              - ti,am437x-gp-evm
++              - ti,am437x-idk-evm
++              - ti,am437x-sk-evm
++          - pattern: '^ti,am4372[26789]$'
++          - const: ti,am43
++
++      - description: TI AM57 SoC based platforms
++        items:
++          - enum:
++              - beagle,am5729-beagleboneai
++              - compulab,cl-som-am57x
++              - ti,am5718-idk
++              - ti,am5728-idk
++              - ti,am5748-idk
++          - pattern: '^ti,am57[0124][689]$'
++          - const: ti,am57
++
++additionalProperties: true
++
++...
 -- 
-2.25.1
+2.39.2
 
