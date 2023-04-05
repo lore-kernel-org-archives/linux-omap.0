@@ -2,56 +2,56 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7337C77B71
-	for <linux-omap@archiver.kernel.org>; Wed,  5 Apr 2023 21:22:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F513C77B6C
+	for <linux-omap@archiver.kernel.org>; Wed,  5 Apr 2023 21:23:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234081AbjDEVW5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 5 Apr 2023 17:22:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40298 "EHLO
+        id S234373AbjDEVXV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 5 Apr 2023 17:23:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229553AbjDEVW4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 5 Apr 2023 17:22:56 -0400
-Received: from pio-pvt-msa3.bahnhof.se (pio-pvt-msa3.bahnhof.se [79.136.2.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D58DB61BF;
-        Wed,  5 Apr 2023 14:22:52 -0700 (PDT)
+        with ESMTP id S234251AbjDEVXS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 5 Apr 2023 17:23:18 -0400
+Received: from pio-pvt-msa2.bahnhof.se (pio-pvt-msa2.bahnhof.se [79.136.2.41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8D1E61BF;
+        Wed,  5 Apr 2023 14:23:09 -0700 (PDT)
 Received: from localhost (localhost [127.0.0.1])
-        by pio-pvt-msa3.bahnhof.se (Postfix) with ESMTP id CE9563F7F6;
-        Wed,  5 Apr 2023 23:22:49 +0200 (CEST)
+        by pio-pvt-msa2.bahnhof.se (Postfix) with ESMTP id 3AD023F4DA;
+        Wed,  5 Apr 2023 23:23:07 +0200 (CEST)
 X-Virus-Scanned: Debian amavisd-new at bahnhof.se
-Authentication-Results: pio-pvt-msa3.bahnhof.se (amavisd-new);
+Authentication-Results: pio-pvt-msa2.bahnhof.se (amavisd-new);
         dkim=pass (2048-bit key) header.d=dalakolonin.se
-Received: from pio-pvt-msa3.bahnhof.se ([127.0.0.1])
-        by localhost (pio-pvt-msa3.bahnhof.se [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id CSjlo38pbiCi; Wed,  5 Apr 2023 23:22:48 +0200 (CEST)
-Received: by pio-pvt-msa3.bahnhof.se (Postfix) with ESMTPA id 4FFD83F737;
-        Wed,  5 Apr 2023 23:22:47 +0200 (CEST)
+Received: from pio-pvt-msa2.bahnhof.se ([127.0.0.1])
+        by localhost (pio-pvt-msa2.bahnhof.se [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id t_WA2Mg8pMkx; Wed,  5 Apr 2023 23:23:06 +0200 (CEST)
+Received: by pio-pvt-msa2.bahnhof.se (Postfix) with ESMTPA id 7FA1B3F3A9;
+        Wed,  5 Apr 2023 23:23:06 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by zimbra.dalakolonin.se (Postfix) with ESMTP id CBADB94DC3;
-        Wed,  5 Apr 2023 21:22:46 +0000 (UTC)
+        by zimbra.dalakolonin.se (Postfix) with ESMTP id D88F094DFA;
+        Wed,  5 Apr 2023 21:23:05 +0000 (UTC)
 Received: from zimbra.dalakolonin.se ([127.0.0.1])
         by localhost (zimbra.dalakolonin.se [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id gYLVWoSoLt8J; Wed,  5 Apr 2023 21:22:42 +0000 (UTC)
+        with ESMTP id B7jsiih08e8c; Wed,  5 Apr 2023 21:22:57 +0000 (UTC)
 Received: from localhost (localhost [127.0.0.1])
-        by zimbra.dalakolonin.se (Postfix) with ESMTP id 7F8A194DBF;
-        Wed,  5 Apr 2023 21:22:42 +0000 (UTC)
-DKIM-Filter: OpenDKIM Filter v2.10.3 zimbra.dalakolonin.se 7F8A194DBF
+        by zimbra.dalakolonin.se (Postfix) with ESMTP id CEA1694DD9;
+        Wed,  5 Apr 2023 21:22:54 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.10.3 zimbra.dalakolonin.se CEA1694DD9
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dalakolonin.se;
-        s=D374B428-D0A7-11ED-A657-75977B426508; t=1680729762;
-        bh=aj7BJRGxp0A9WS53Fydt2hDFp/YXbSvFyWVqf4RUrfw=;
+        s=D374B428-D0A7-11ED-A657-75977B426508; t=1680729774;
+        bh=8oCsKoWj+OT4dqdz4wKUl0ESprUGM0ZozVBAf1AeyA0=;
         h=From:To:Date:Message-Id:MIME-Version;
-        b=bgdIWoBUGPYAQhu1xrYc6MAx9vWBNBCKkO0zkm/3GJ7H+ZPNaZ1vHbDdpEgfP2m8N
-         fP4UiShsNJRTysFzMLYkDm1iCBLhmFnH64PMxWTqyZ9CHobGLArlkW0QlrnPKUiSf4
-         j8SSIlGa6HG5+SAnG+epPRZuLR4ZsooJTdMpHp9Ck2p0nDW3ExWxuMXBLalfBdnPPa
-         v4VZ+9PHJbEsuQ+igZD3xcy3zF4Wpy4Yjt9LwO0EJbWFl1HwY5bO7X2ADT9OCMv4Eq
-         /LULOV3xEZr+u9PN02g2qjQVfh4bkgXzz/KIcwjFzTrMpdz0IWuuB61fL5YGZ/oaTS
-         /vj95R3EoynCg==
+        b=pq5LjY4swcA7YwZoss5qZBn7Fk1BvLJhUJIuWLkUq5nm3e2Igysq6O8u1JGxWl8B7
+         kiBoE6wPmAiRbGO+c3Y/2+2xyNuht2Zi6siVsMMczPUPLrQJ9CZreWGJ8BV0/MnVfA
+         p+sDlXcrEFImDUeu9htb3XfZCm7p1NewTd9BflLVy/ZKpx7TGAVo35iLxr23U5h3Pr
+         x4i6ZiYwmYS8jVAOJpitJx7HQnx6LlZJetTiaTT1AJCRB9wmflCHo5oBLbftDENzfQ
+         8Z6aS1Ucd7TbDiV4c+G2yiihihHquGNn+KvLMbYV6Q/5+HcBkjQRBZkqg6jD50rCmn
+         F88yrunmXTnzw==
 X-Virus-Scanned: amavisd-new at dalakolonin.se
 Received: from zimbra.dalakolonin.se ([127.0.0.1])
         by localhost (zimbra.dalakolonin.se [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id brz31VNIynod; Wed,  5 Apr 2023 21:22:42 +0000 (UTC)
+        with ESMTP id Uv4ko-kqoacb; Wed,  5 Apr 2023 21:22:54 +0000 (UTC)
 Received: from rack-server-1.dalakolonin.se (unknown [172.17.0.1])
-        by zimbra.dalakolonin.se (Postfix) with ESMTPSA id F0FE394DBC;
-        Wed,  5 Apr 2023 21:22:41 +0000 (UTC)
+        by zimbra.dalakolonin.se (Postfix) with ESMTPSA id BD65F94DD6;
+        Wed,  5 Apr 2023 21:22:53 +0000 (UTC)
 From:   =?UTF-8?q?Patrik=20Dahlstr=C3=B6m?= <risca@dalakolonin.se>
 To:     linux-iio@vger.kernel.org
 Cc:     linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org,
@@ -59,10 +59,12 @@ Cc:     linux-kernel@vger.kernel.org, letux-kernel@openphoenux.org,
         hns@goldelico.com, jic23@kernel.org, lars@metafoo.de,
         linux-omap@vger.kernel.org,
         =?UTF-8?q?Patrik=20Dahlstr=C3=B6m?= <risca@dalakolonin.se>
-Subject: [PATCH v3 0/7] iio: adc: palmas_gpadc: add iio events
-Date:   Wed,  5 Apr 2023 23:22:26 +0200
-Message-Id: <20230405212233.4167986-1-risca@dalakolonin.se>
+Subject: [PATCH v3 3/7] iio: adc: palmas: use iio_event_direction for threshold polarity
+Date:   Wed,  5 Apr 2023 23:22:29 +0200
+Message-Id: <20230405212233.4167986-4-risca@dalakolonin.se>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230405212233.4167986-1-risca@dalakolonin.se>
+References: <20230405212233.4167986-1-risca@dalakolonin.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
@@ -70,57 +72,90 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This series is based on linux-next/master [1] and [2].
+Instead of having high_threshold > 0 as an indicator for upper threshold
+event and lower threshold event otherwise, use enum iio_event_direction
+instead. This is hopefully less ambiguous.
 
-The palmas gpadc block has support for monitoring up to 2 ADC channels
-and issue an interrupt if they reach past a set threshold. This can be
-configured statically with device tree today, but it only gets enabled
-when reaching sleep mode. Also, it doesn't look like anyone is using it.
+Signed-off-by: Patrik Dahlstr=C3=B6m <risca@dalakolonin.se>
+---
+ drivers/iio/adc/palmas_gpadc.c | 36 ++++++++++++++++++++++------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
 
-Instead of this one special case, change the code so userspace can
-configure the ADC channels to their own needs through the iio events
-subsystem. The high and low threshold values can be set for every
-channel, but only 2 thresholds can be enabled at a time. Trying to
-enable more than 2 thresholds will result in an error.
-
-The configured thresholds will wake up the system from sleep mode if
-wakeup is enabled in /sys/devices/.../power/wakeup.
-
-The old platform data was removed.
-
-Thresholds, events, and wakeup were tested on omap5-uevm board. It wakes
-up from sleep mode when wakeup is enabled and a threshold is passed. A
-userspace tool for monitoring events and adjusting thresholds can be
-found at [3].
-
-V2 -> V3:
-* Rebased to linux-next.
-* Avoid reconfiguring events on error and when old =3D=3D new value.
-V1 -> V2:
-* Begin by removing adc_wakeupX_data instead of doing it last.
-* Split changes in smaller patches
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
-[2] https://lore.kernel.org/linux-iio/20230318163039.56115-1-jic23@kernel=
-.org/
-[3] https://github.com/Risca/pyra_vol_mon
-
-Patrik Dahlstr=C3=B6m (7):
-  iio: adc: palmas: remove adc_wakeupX_data
-  iio: adc: palmas: replace "wakeup" with "event"
-  iio: adc: palmas: use iio_event_direction for threshold polarity
-  iio: adc: palmas: move eventX_enable into palmas_adc_event
-  iio: adc: palmas: always reset events on unload
-  iio: adc: palmas: add support for iio threshold events
-  iio: adc: palmas: don't alter event config on suspend/resume
-
- drivers/iio/adc/palmas_gpadc.c | 559 +++++++++++++++++++++++++++------
- include/linux/mfd/palmas.h     |   8 -
- 2 files changed, 464 insertions(+), 103 deletions(-)
-
-
-base-commit: 8417c8f5007bf4567ccffda850a3157c7d905f67
-prerequisite-patch-id: b0418c707db13f514400956596e9ebe91c25bba0
+diff --git a/drivers/iio/adc/palmas_gpadc.c b/drivers/iio/adc/palmas_gpad=
+c.c
+index 55fdf59ef711..205a7628b235 100644
+--- a/drivers/iio/adc/palmas_gpadc.c
++++ b/drivers/iio/adc/palmas_gpadc.c
+@@ -77,9 +77,9 @@ static struct palmas_gpadc_info palmas_gpadc_info[] =3D=
+ {
+ };
+=20
+ struct palmas_adc_event {
+-	int adc_channel_number;
+-	int adc_high_threshold;
+-	int adc_low_threshold;
++	int channel;
++	int raw_thresh;
++	enum iio_event_direction direction;
+ };
+=20
+ /*
+@@ -618,16 +618,21 @@ static int palmas_adc_configure_events(struct palma=
+s_gpadc *adc)
+=20
+ 	conv =3D 0;
+ 	if (adc->event0_enable) {
++		struct palmas_adc_event *ev =3D &adc->event0;
+ 		int polarity;
+=20
+-		ch0 =3D adc->event0.adc_channel_number;
++		ch0 =3D ev->channel;
++		thres =3D ev->raw_thresh;
+ 		conv |=3D PALMAS_GPADC_AUTO_CTRL_AUTO_CONV0_EN;
+-		if (adc->event0.adc_high_threshold > 0) {
+-			thres =3D adc->event0.adc_high_threshold;
++		switch (ev->direction) {
++		case IIO_EV_DIR_RISING:
+ 			polarity =3D 0;
+-		} else {
+-			thres =3D adc->event0.adc_low_threshold;
++			break;
++		case IIO_EV_DIR_FALLING:
+ 			polarity =3D PALMAS_GPADC_THRES_CONV0_MSB_THRES_CONV0_POL;
++			break;
++		default:
++			return -EINVAL;
+ 		}
+=20
+ 		ret =3D palmas_write(adc->palmas, PALMAS_GPADC_BASE,
+@@ -649,16 +654,21 @@ static int palmas_adc_configure_events(struct palma=
+s_gpadc *adc)
+ 	}
+=20
+ 	if (adc->event1_enable) {
++		struct palmas_adc_event *ev =3D &adc->event1;
+ 		int polarity;
+=20
+-		ch1 =3D adc->event1.adc_channel_number;
++		ch1 =3D ev->channel;
++		thres =3D ev->raw_thresh;
+ 		conv |=3D PALMAS_GPADC_AUTO_CTRL_AUTO_CONV1_EN;
+-		if (adc->event1.adc_high_threshold > 0) {
+-			thres =3D adc->event1.adc_high_threshold;
++		switch (ev->direction) {
++		case IIO_EV_DIR_RISING:
+ 			polarity =3D 0;
+-		} else {
+-			thres =3D adc->event1.adc_low_threshold;
++			break;
++		case IIO_EV_DIR_FALLING:
+ 			polarity =3D PALMAS_GPADC_THRES_CONV1_MSB_THRES_CONV1_POL;
++			break;
++		default:
++			return -EINVAL;
+ 		}
+=20
+ 		ret =3D palmas_write(adc->palmas, PALMAS_GPADC_BASE,
 --=20
 2.25.1
 
