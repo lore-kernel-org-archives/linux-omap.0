@@ -2,101 +2,100 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85A3DC7619A
-	for <linux-omap@archiver.kernel.org>; Wed,  5 Apr 2023 12:22:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D3BBC76188
+	for <linux-omap@archiver.kernel.org>; Wed,  5 Apr 2023 14:11:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230012AbjDEMWn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 5 Apr 2023 08:22:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57330 "EHLO
+        id S238546AbjDEOLU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 5 Apr 2023 10:11:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237022AbjDEMWn (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 5 Apr 2023 08:22:43 -0400
-Received: from mail-oa1-f44.google.com (mail-oa1-f44.google.com [209.85.160.44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AA8740F9;
-        Wed,  5 Apr 2023 05:22:42 -0700 (PDT)
-Received: by mail-oa1-f44.google.com with SMTP id 586e51a60fabf-17ab3a48158so38218817fac.1;
-        Wed, 05 Apr 2023 05:22:42 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680697361;
-        h=date:subject:message-id:references:in-reply-to:cc:to:from
-         :mime-version:content-transfer-encoding:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=NSfrPjlVJHzjW3uMoWhp7KM1VxwusN7shMuo2xQFo9k=;
-        b=n789P3DaUbyKmiSZ/71NpOQdRrHm9w0/NHmjrbkgQCW8kL3kFq+xMlMT+C9Owz9SIM
-         zxN0iOsWwKkl7+ss8vPiQjFPQhFGmVS1/JKBsSZfDeZADKtAsAh4qS+7llVa14PFX5gp
-         NEfqWL68259mLaT/TIEqmt4gOoLLuO3HvRAcO0U9iZIxym+1AP2IUZLe9lD3SjzcdOtj
-         amcrZjMh9wezo82idO9JeqsF9ctEVBVSjlIhSX7ZWqGNZHM1HB+gxvIf75lnjDhfIJ/G
-         y58dq2BlkgjdNJNkZDibzPFyOiq8KmQImQJry7akeeCLMu5X2inKc/KToVVmgQrdwfPc
-         7CjA==
-X-Gm-Message-State: AAQBX9dZ5pIoB18DY8TqKwc5mMeGCxyiM9/zxx8/QA+h47ljRzH17B0B
-        dRg7lZ66BTyI1cnIiU20lg==
-X-Google-Smtp-Source: AKy350bxQFOfRudivyMhr/+BCbF7DH18yNjjV6tvn2ySdibKwHxp+oFHq07zqTxzwsCG2CzgtYhEhA==
-X-Received: by 2002:a05:6870:4592:b0:177:84b6:95 with SMTP id y18-20020a056870459200b0017784b60095mr3931234oao.15.1680697361204;
-        Wed, 05 Apr 2023 05:22:41 -0700 (PDT)
-Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id zg22-20020a0568716b1600b0017eb6cc4609sm5761428oab.39.2023.04.05.05.22.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 05 Apr 2023 05:22:40 -0700 (PDT)
-Received: (nullmailer pid 2357971 invoked by uid 1000);
-        Wed, 05 Apr 2023 12:22:40 -0000
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S238339AbjDEOKz (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 5 Apr 2023 10:10:55 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F8296591
+        for <linux-omap@vger.kernel.org>; Wed,  5 Apr 2023 07:10:24 -0700 (PDT)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pk3q5-0003GQ-Ut; Wed, 05 Apr 2023 16:10:17 +0200
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pk3q5-009Ac6-9u; Wed, 05 Apr 2023 16:10:17 +0200
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pk3q3-00AmU6-W3; Wed, 05 Apr 2023 16:10:16 +0200
+From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+To:     Bin Liu <b-liu@ti.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     linux-usb@vger.kernel.org, linux-omap@vger.kernel.org,
+        kernel@pengutronix.de
+Subject: [PATCH 07/10] usb: musb: omap2430: Convert to platform remove callback returning void
+Date:   Wed,  5 Apr 2023 16:10:06 +0200
+Message-Id: <20230405141009.3400693-8-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230405141009.3400693-1-u.kleine-koenig@pengutronix.de>
+References: <20230405141009.3400693-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-From:   Rob Herring <robh@kernel.org>
-To:     Andreas Kemnade <andreas@kemnade.info>
-Cc:     robh+dt@kernel.org, tony@atomide.com, afd@ti.com,
-        devicetree@vger.kernel.org, krzysztof.kozlowski+dt@linaro.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-In-Reply-To: <20230405065533.3561492-2-andreas@kemnade.info>
-References: <20230405065533.3561492-1-andreas@kemnade.info>
- <20230405065533.3561492-2-andreas@kemnade.info>
-Message-Id: <168069726212.2356047.14984700715493369958.robh@kernel.org>
-Subject: Re: [PATCH v5 1/2] dt-bindings: omap: Convert omap.txt to yaml
-Date:   Wed, 05 Apr 2023 07:22:40 -0500
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1612; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=fpeE+Ge4ARMI4IggZAgUxLsZl9QZ9LDERd7rfVKs2EA=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBkLYE43yepirPGkz3qKepI9oJn36TMEVA4O/IXA FrmyI5U64qJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZC2BOAAKCRCPgPtYfRL+ TrJXCACvi5mVqw9hDEcRHmCGkLofP4bhjj+qHHKDy2COi/8DWEGh2pFy3Y/E6hle+TZP7bMUBfW YV9rBTisj7ssLrEOy1UELFpTft1aeUMMjb8Od0cBe+cc9kxfqH7jfozhOidwpXmUrW1Yc83j4IX O7gpa+ofBxznsdtupasd/OJS30x3LNak29kZtoQ3mML60Z8VJczn0r7IsG6BVdY8Wc7rBb2c9Wo 19hjy++cCFCyg7W6r9XqfGIX++qGPfLVMdgB2YjmyWnBGGMqrDfLHbLIBd1KgDaUMixSa+bxrsc J3jW0kaNdKfW3QqX/u7ipjmVjCTvAfVQsImELmIHG8Mi0NUU
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is (mostly) ignored
+and this typically results in resource leaks. To improve here there is a
+quest to make the remove callback return void. In the first step of this
+quest all drivers are converted to .remove_new() which already returns
+void.
 
-On Wed, 05 Apr 2023 08:55:32 +0200, Andreas Kemnade wrote:
-> From: Andrew Davis <afd@ti.com>
-> 
-> Convert omap.txt to yaml.
-> 
-> CC: linux-omap@vger.kernel.org
-> Signed-off-by: Andrew Davis <afd@ti.com>
-> [various cleanup, adding Epson Moverio BT-200]
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
->  .../devicetree/bindings/arm/omap/omap.txt     | 152 ------------------
->  .../devicetree/bindings/arm/ti/omap.yaml      | 147 +++++++++++++++++
->  2 files changed, 147 insertions(+), 152 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/arm/ti/omap.yaml
-> 
+Trivially convert this driver from always returning zero in the remove
+callback to the void returning variant.
 
-My bot found errors running 'make DT_CHECKER_FLAGS=-m dt_binding_check'
-on your patch (DT_CHECKER_FLAGS is new in v5.13):
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+ drivers/usb/musb/omap2430.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-yamllint warnings/errors:
-
-dtschema/dtc warnings/errors:
-./Documentation/devicetree/bindings/arm/ti/omap.yaml: $id: relative path/filename doesn't match actual path or filename
-	expected: http://devicetree.org/schemas/arm/ti/omap.yaml#
-
-doc reference errors (make refcheckdocs):
-
-See https://patchwork.ozlabs.org/project/devicetree-bindings/patch/20230405065533.3561492-2-andreas@kemnade.info
-
-The base for the series is generally the latest rc1. A different dependency
-should be noted in *this* patch.
-
-If you already ran 'make dt_binding_check' and didn't see the above
-error(s), then make sure 'yamllint' is installed and dt-schema is up to
-date:
-
-pip3 install dtschema --upgrade
-
-Please check and re-submit after running the above command yourself. Note
-that DT_SCHEMA_FILES can be set to your schema file to speed up checking
-your schema. However, it must be unset to test all examples with your schema.
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 44a21ec865fb..b9ab0c48e2ee 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -471,14 +471,12 @@ static int omap2430_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int omap2430_remove(struct platform_device *pdev)
++static void omap2430_remove(struct platform_device *pdev)
+ {
+ 	struct omap2430_glue *glue = platform_get_drvdata(pdev);
+ 
+ 	platform_device_unregister(glue->musb);
+ 	pm_runtime_disable(glue->dev);
+-
+-	return 0;
+ }
+ 
+ #ifdef CONFIG_PM
+@@ -610,7 +608,7 @@ MODULE_DEVICE_TABLE(of, omap2430_id_table);
+ 
+ static struct platform_driver omap2430_driver = {
+ 	.probe		= omap2430_probe,
+-	.remove		= omap2430_remove,
++	.remove_new	= omap2430_remove,
+ 	.driver		= {
+ 		.name	= "musb-omap2430",
+ 		.pm	= DEV_PM_OPS,
+-- 
+2.39.2
 
