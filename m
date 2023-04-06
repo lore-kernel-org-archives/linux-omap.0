@@ -2,62 +2,149 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD0AAC76196
-	for <linux-omap@archiver.kernel.org>; Thu,  6 Apr 2023 09:56:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1390C76196
+	for <linux-omap@archiver.kernel.org>; Thu,  6 Apr 2023 13:15:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236554AbjDFJ4w (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 6 Apr 2023 05:56:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45670 "EHLO
+        id S229733AbjDFNP3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 6 Apr 2023 09:15:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236210AbjDFJ42 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 6 Apr 2023 05:56:28 -0400
-X-Greylist: delayed 4179 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 06 Apr 2023 02:54:28 PDT
-Received: from mail.feshiecree.pl (mail.feshiecree.pl [89.40.114.103])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 748A886B0
-        for <linux-omap@vger.kernel.org>; Thu,  6 Apr 2023 02:54:26 -0700 (PDT)
-Received: by mail.feshiecree.pl (Postfix, from userid 1001)
-        id 4286785BA3; Wed,  5 Apr 2023 09:28:28 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=feshiecree.pl;
-        s=mail; t=1680683354;
-        bh=hFxZwVw4rIL+JwfEOGI47p+fdoVOAeqVswP6NWoHSHQ=;
-        h=Date:From:To:Subject:From;
-        b=bX+pT7Pg9fz/57x9AoV9Yo0WvttZ0dntDbei+FSLAz8ZktOBji6VNZyJi1pZmOGbQ
-         vqRTRZlG6cOrOBzT5LsVD2BRDd9jGNwHpkc2r7sVklN/Ggt1PBLRj13ZosT2Ifi+QS
-         k1SGPb2w9ITpZQVDT2deqZp6WisZeNKnTKHVdbpkvN5b1rdSnBfaZrwhXwoQDbKfFB
-         3juCUIPM0enCqhuY0AM1Jx3rsgSt6R8p9Xmi+IKM+iFHfVngJSfEXi2FqVR83AR4O+
-         EdmdbDnUWteqvmLdSrFTNqcYNzdx1SRIBq8nRgakWvV5bFix9FHTnRXw3RVS9D62EQ
-         6qoXXhD+So63g==
-Received: by feshiecree.pl for <linux-omap@vger.kernel.org>; Wed,  5 Apr 2023 08:27:41 GMT
-Message-ID: <20230405084211-0.1.1u.6iql.0.njvhfphz8i@feshiecree.pl>
-Date:   Wed,  5 Apr 2023 08:27:41 GMT
-From:   "Krystian Wieczorek" <krystian.wieczorek@feshiecree.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: W sprawie samochodu
-X-Mailer: mail.feshiecree.pl
+        with ESMTP id S236995AbjDFNP0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 6 Apr 2023 09:15:26 -0400
+Received: from mail-wr1-x431.google.com (mail-wr1-x431.google.com [IPv6:2a00:1450:4864:20::431])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21D4D7EE7
+        for <linux-omap@vger.kernel.org>; Thu,  6 Apr 2023 06:15:25 -0700 (PDT)
+Received: by mail-wr1-x431.google.com with SMTP id l12so39464109wrm.10
+        for <linux-omap@vger.kernel.org>; Thu, 06 Apr 2023 06:15:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1680786923;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=z8jl2u7ZgIomwOzSs9gTkCTnXd22WXIrlnSqWMsc6pk=;
+        b=kDBn/dmCu985IQTLBWCcwWI4Q9kXEIZSWrO1xFMeJQadLDT4SmbNj2tA7fAkrtBVEx
+         190VkK3IKSdOk7aMZx7xCFQ17vXvjKmyYziqzMMhWweLUjvgVB9szl7TjqmcN/k1BHGH
+         Wl4moR+0SxMj4ggSdodfBomBhH659fuLkjeRgVLewmGkGz9hzH44HXr40SiMWV1wLqX0
+         NNZoziQBeyroM3nmA1mh/FNGhcQPe2xKWjbF1m39mZBBwkduYncrQDySUTdu9QEUrjRg
+         zrojhwYu+SMIaYU30i2GwOA6ne+96eUz6nZHRrDdYjOTJ1th/biVY5IPD2t64JDzwsmS
+         GIPw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680786923;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=z8jl2u7ZgIomwOzSs9gTkCTnXd22WXIrlnSqWMsc6pk=;
+        b=rix11Vf9VjIHkiYp4qFTlnLg5Nu7I5UQMmnbTvVlT4ClF3bJQr5NftkK5ufsuoBxpH
+         xPDJ1yVcijOl+e/F5SPkx40hhHk+zkwmm4vLbyjwWBsroHQLXuEZYlLMudJN/ck1TB1K
+         4ePkl0L7Z/IXHheDbSs94H9Y4J9vNHpB5rKBFgdOIt0hRbr3VXz/SdqU/g7OqWmW8Z/P
+         q3jXbgoKJEdjIGZA1jD20AuebHQBNOI35RI++LAQYPfaGXi/0OBwje58uOYh3puGvX41
+         yMKB54oVYdPIt89PXzm4gRufW8aNGsfIf3MCLlZ9lllvPHNZT+SaWGpFYq2aEJwJ1c41
+         47Yw==
+X-Gm-Message-State: AAQBX9fsUEpYgcFycbb1Wi9Wy5tZ+tCYH1c4MZIV98OMVZoZKyhj9GQF
+        PuPsc32NwpV9mya/odWpEHhDkRhdOKqKzG5QBvXGAQ==
+X-Google-Smtp-Source: AKy350bq2EBTopZZNM0f+YHHQfpscHHsUX8kWBbB0wT9Q3Hobf/OeHI3zi0Ixs6k5NucJt4veM2MPKre5NBx7CjYTLY=
+X-Received: by 2002:a5d:47a7:0:b0:2ee:b548:c64f with SMTP id
+ 7-20020a5d47a7000000b002eeb548c64fmr803994wrb.3.1680786923515; Thu, 06 Apr
+ 2023 06:15:23 -0700 (PDT)
 MIME-Version: 1.0
+References: <20230404115336.599430-1-danishanwar@ti.com> <86ee5333-6d65-d28b-0dd5-40dfe485d48b@ti.com>
+In-Reply-To: <86ee5333-6d65-d28b-0dd5-40dfe485d48b@ti.com>
+From:   Mathieu Poirier <mathieu.poirier@linaro.org>
+Date:   Thu, 6 Apr 2023 07:15:12 -0600
+Message-ID: <CANLsYkyrvAcVa8VNkbsrxyAC-60fyGYoXVS=fqwLcsMverzNcg@mail.gmail.com>
+Subject: Re: [PATCH v7 0/4] Introduce PRU platform consumer API
+To:     Md Danish Anwar <a0501179@ti.com>
+Cc:     MD Danish Anwar <danishanwar@ti.com>,
+        "Andrew F. Davis" <afd@ti.com>, Suman Anna <s-anna@ti.com>,
+        Roger Quadros <rogerq@kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Tero Kristo <kristo@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Nishanth Menon <nm@ti.com>, linux-remoteproc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, srk@ti.com, devicetree@vger.kernel.org,
+        netdev@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On Thu, 6 Apr 2023 at 00:54, Md Danish Anwar <a0501179@ti.com> wrote:
+>
+> On 04/04/23 17:23, MD Danish Anwar wrote:
+> > Hi All,
+> > The Programmable Real-Time Unit and Industrial Communication Subsystem =
+(PRU-ICSS
+> > or simply PRUSS) on various TI SoCs consists of dual 32-bit RISC cores
+> > (Programmable Real-Time Units, or PRUs) for program execution.
+> >
+> > There are 3 foundation components for TI PRUSS subsystem: the PRUSS pla=
+tform
+> > driver, the PRUSS INTC driver and the PRUSS remoteproc driver. All of t=
+hem have
+> > already been merged and can be found under:
+> > 1) drivers/soc/ti/pruss.c
+> >    Documentation/devicetree/bindings/soc/ti/ti,pruss.yaml
+> > 2) drivers/irqchip/irq-pruss-intc.c
+> >    Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc=
+.yaml
+> > 3) drivers/remoteproc/pru_rproc.c
+> >    Documentation/devicetree/bindings/remoteproc/ti,pru-consumer.yaml
+> >
+> > The programmable nature of the PRUs provide flexibility to implement cu=
+stom
+> > peripheral interfaces, fast real-time responses, or specialized data ha=
+ndling.
+> > Example of a PRU consumer drivers will be:
+> >   - Software UART over PRUSS
+> >   - PRU-ICSS Ethernet EMAC
+> >
+> > In order to make usage of common PRU resources and allow the consumer d=
+rivers
+> > to configure the PRU hardware for specific usage the PRU API is introdu=
+ced.
+> >
+> > This is the v7 of the old patch series [9].
+> >
+>
+> Hi Mathieu, Can you please review this series. I have addressed comments =
+made
+> by you in v5. I have also addressed Simon's comment in v6 and removed red=
+undant
+> macros from pruss.h header file.
+>
 
-chcieliby=C5=9Bmy zapewni=C4=87 Pa=C5=84stwu kompleksowe rozwi=C4=85zania=
-, je=C5=9Bli chodzi o system monitoringu GPS.
+You are pushing me to review your code 19 hours after sending the last
+revision?  Are you serious?
 
-Precyzyjne monitorowanie pojazd=C3=B3w na mapach cyfrowych, =C5=9Bledzeni=
-e ich parametr=C3=B3w eksploatacyjnych w czasie rzeczywistym oraz kontrol=
-a paliwa to kluczowe funkcjonalno=C5=9Bci naszego systemu.=20
-
-Organizowanie pracy pracownik=C3=B3w jest dzi=C4=99ki temu prostsze i bar=
-dziej efektywne, a oszcz=C4=99dno=C5=9Bci i optymalizacja w zakresie pono=
-szonych koszt=C3=B3w, maj=C4=85 dla ka=C5=BCdego przedsi=C4=99biorcy ogro=
-mne znaczenie.
-
-Dopasujemy nasz=C4=85 ofert=C4=99 do Pa=C5=84stwa oczekiwa=C5=84 i potrze=
-b organizacji. Czy mogliby=C5=9Bmy porozmawia=C4=87 o naszej propozycji?
-
-
-Pozdrawiam
-Krystian Wieczorek
+> > Changes from v6 [9] to v7:
+> > *) Addressed Simon's comment on patch 3 of this series and dropped unne=
+cassary
+> > macros from the patch.
+> >
+> > Changes from v5 [1] to v6:
+> > *) Added Reviewed by tags of Roger and Tony to the patches.
+> > *) Added Acked by tag of Mathieu to patch 2 of this series.
+> > *) Added NULL check for @mux in pruss_cfg_get_gpmux() API.
+> > *) Added comment to the pruss_get() function documentation mentioning i=
+t is
+> > expected the caller will have done a pru_rproc_get() on @rproc.
+> > *) Fixed compilation warning "warning: =E2=80=98pruss_cfg_update=E2=80=
+=99 defined but not used"
+> > in patch 3 by squashing patch 3 [7] and patch 5 [8] of previous revisio=
+n
+> > together. Squashed patch 5 instead of patch 4 with patch 3 because patc=
+h 5 uses
+> > both read() and update() APIs where as patch 4 only uses update() API.
+> > Previously pruss_cfg_read()/update() APIs were intoroduced in patch 3
+> > and used in patch 4 and 5. Now these APIs are introduced as well as use=
+d in
+> > patch 3.
+> >
+>
+>
+> --
+> Thanks and Regards,
+> Danish.
