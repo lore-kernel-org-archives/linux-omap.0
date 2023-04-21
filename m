@@ -2,44 +2,103 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A364AC77B73
-	for <linux-omap@archiver.kernel.org>; Thu, 20 Apr 2023 19:08:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 750DFC77B61
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Apr 2023 16:32:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230332AbjDTTH7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 20 Apr 2023 15:07:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37384 "EHLO
+        id S232958AbjDUQcJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 Apr 2023 12:32:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45672 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230118AbjDTTH6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 20 Apr 2023 15:07:58 -0400
-X-Greylist: delayed 1798 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 20 Apr 2023 12:07:56 PDT
-Received: from ODEDI148698.home (odedi148698.mywhc.ca [144.217.254.35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A674B10D1
-        for <linux-omap@vger.kernel.org>; Thu, 20 Apr 2023 12:07:56 -0700 (PDT)
-DKIM-Signature: v=1; c=relaxed/relaxed; h=content-type:mime-version:content-transfer-encoding:content-description:subject:to:from:date:reply-to:message-id;
- d=a2ict.com; s=default; a=rsa-sha256;
- bh=FQE3y/+3GQQzdAQHGLO+y57Gs24Zx9iAkvAV5kT0Bhk=;
- b=bjLxYa/nyzGbD/1rdBgpjwF6IacUwO68zzE9pXSRcrM9ncE+Cr4M1dhOeJLAeAlhk
- bygZ/kPRKmZ9r71m7aqKOSlkbKmxx9wqg/qfx0O4TNGQG+4valF/lk3XDm9UL+nY0W9
- XcobaSygM4eqyQM5GbAzU2Y6uv0LcUguFuTdKf4=;
-Received: from [51.89.94.142] ([51.89.94.142]) by home with
- MailEnable ESMTPA; Thu, 20 Apr 2023 18:29:33 +0000
-Content-Type: text/plain; charset="iso-8859-1"
+        with ESMTP id S232911AbjDUQcH (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Apr 2023 12:32:07 -0400
+Received: from mail-oo1-xc36.google.com (mail-oo1-xc36.google.com [IPv6:2607:f8b0:4864:20::c36])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73ADD14F50;
+        Fri, 21 Apr 2023 09:31:58 -0700 (PDT)
+Received: by mail-oo1-xc36.google.com with SMTP id 006d021491bc7-541b5cfa9d8so1381745eaf.0;
+        Fri, 21 Apr 2023 09:31:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1682094718; x=1684686718;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=T5OSoY157VoltSJbisqWs6GH2lNaxMJCjZwAmyir7xc=;
+        b=gcF4i1SkapY8J5OFCLcd3kIPEWM9qijjSFGgphEIbczO7OVYVMzReASpAN+6147duJ
+         IZUKmhMW7HLAb2WnQ/LKVOHW6/3wwNsB7LH/9i28QjlvIRtmrqo3JSw88RzTfmBy7l/m
+         rNb32aGcl33AnKfCQkvumsrKuh4cbbHPvPfJmgUCYweclsPLBuz8U9pE46APf/gZhlKM
+         G184xFewJAf6k7gIyxb7LVBtX5EgH8dhTbZu6oqRd44fm9Y+dOkrUU/AtGgA91cPNhT0
+         RjxRM9YKdHQZDp439M3OfWZtKhAYAw3wLY5Nzhawx+JII7TuyGQ8/0JGTvMZLesu1qZH
+         sRHg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682094718; x=1684686718;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=T5OSoY157VoltSJbisqWs6GH2lNaxMJCjZwAmyir7xc=;
+        b=f0Enfxz8fHMX7FpY5akNVSutM9VA1YZ67FT1LK7V6ySEmHLgJR+QuhNB/ZLFnu5qbd
+         TFgPYDjHndB32XVhgX1dGYBo+yyqdJjQWw82jIHqFY31ViHlZM9PwLuFqBop9EjqUR46
+         fYbZl7t5QrYOMUw17rnf+sNTO4t+7zitS+2j9xfi3Lrox/NkH1rWVz/mpxWj4Gk1iGYh
+         ejtBV76nzeQet36mGfHbWuLGfTpGn9CE7dcBO02ugKR8hpiRumdvOIzShoDtw3q0yQUs
+         SmLGkf1OQxpf3g5B/GpiflharJdUEvnfvF5Y0nmGv+15Cg8+smg+wwZtgtFFknnOibBJ
+         TWRA==
+X-Gm-Message-State: AAQBX9dMxfd54GFyhN83jtJGYPcS/4ZuPGOyIlQrLCo1oxKmu6Ehn5pp
+        NYZ+h+ypMBZYxIZJAl41Z+vgD8cx5CylRcAQ94Y=
+X-Google-Smtp-Source: AKy350a7czDy+mtezgyExBFoS3kP4dgM9ZIjJNn5ByJZm7g4A8o/5zOhXIGqL+Bj6fiUG0oM2tWEtzgdGpeV350F9VM=
+X-Received: by 2002:a05:6870:560e:b0:177:9993:ef49 with SMTP id
+ m14-20020a056870560e00b001779993ef49mr4628253oao.47.1682094717686; Fri, 21
+ Apr 2023 09:31:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Description: Mail message body
-Subject: ich bin Edwin Castro
-To:     linux-omap@vger.kernel.org
-From:   "Mr. Edwin Castro" <admin@a2ict.com>
-Date:   Thu, 20 Apr 2023 11:29:32 -0700
-Reply-To: charityhome_edwin@yahoo.com
-Message-ID: <826786A3B3C2430EA34F49F42F495A63.MAI@home>
+References: <20230419095051.3269777-1-danishanwar@ti.com>
+In-Reply-To: <20230419095051.3269777-1-danishanwar@ti.com>
+From:   Christian Gmeiner <christian.gmeiner@gmail.com>
+Date:   Fri, 21 Apr 2023 18:31:46 +0200
+Message-ID: <CAH9NwWczpqsV2LfSdu6_D4ZC7KwKdVBrqh5jNqi=acmUTva5NQ@mail.gmail.com>
+Subject: Re: [PATCH] arm64: defconfig: Enable PRUSS as module
+To:     MD Danish Anwar <danishanwar@ti.com>
+Cc:     rafal@milecki.pl, Mark Brown <broonie@kernel.org>,
+        nfraprado@collabora.com, Thierry Reding <treding@nvidia.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Bjorn Andersson <quic_bjorande@quicinc.com>,
+        Will Deacon <will@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>, nm@ti.com,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org, vigneshr@ti.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Mein Name ist Edwin Castro, ich habe den Powerball-Jackpot gewonnen und ich=
- spende die Summe von 2,8 Millionen Dollar an f=FCnf gl=FCckliche Menschen =
-auf der ganzen Welt...
+>
+> Enables PRUSS as kernel module for TI SoCs.
+>
+> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
 
-Kontaktieren Sie mich unter meiner E-Mail:charityhome_edwin@yahoo.com f=FCr=
- weitere Einzelheiten.
+Reviewed-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+
+> ---
+>  arch/arm64/configs/defconfig | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+> index a24609e14d50..2a362a902526 100644
+> --- a/arch/arm64/configs/defconfig
+> +++ b/arch/arm64/configs/defconfig
+> @@ -1277,6 +1277,7 @@ CONFIG_ARCH_TEGRA_186_SOC=y
+>  CONFIG_ARCH_TEGRA_194_SOC=y
+>  CONFIG_ARCH_TEGRA_234_SOC=y
+>  CONFIG_TI_SCI_PM_DOMAINS=y
+> +CONFIG_TI_PRUSS=m
+>  CONFIG_ARM_IMX_BUS_DEVFREQ=y
+>  CONFIG_ARM_IMX8M_DDRC_DEVFREQ=m
+>  CONFIG_ARM_MEDIATEK_CCI_DEVFREQ=m
+> --
+> 2.34.1
+>
+
+
+-- 
+greets
+--
+Christian Gmeiner, MSc
+
+https://christian-gmeiner.info/privacypolicy
