@@ -2,142 +2,129 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04E6BC7EE2E
-	for <linux-omap@archiver.kernel.org>; Fri,  5 May 2023 18:09:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F4E4C77B7C
+	for <linux-omap@archiver.kernel.org>; Sun,  7 May 2023 14:47:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231574AbjEESI6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 5 May 2023 14:08:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36206 "EHLO
+        id S231623AbjEGOrE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 7 May 2023 10:47:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230473AbjEESI5 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 5 May 2023 14:08:57 -0400
-Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3353E1A1FD;
-        Fri,  5 May 2023 11:08:56 -0700 (PDT)
-Received: by mail-pf1-x42b.google.com with SMTP id d2e1a72fcca58-64115eef620so21468643b3a.1;
-        Fri, 05 May 2023 11:08:56 -0700 (PDT)
+        with ESMTP id S231609AbjEGOrD (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 7 May 2023 10:47:03 -0400
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B69A11D8A
+        for <linux-omap@vger.kernel.org>; Sun,  7 May 2023 07:47:01 -0700 (PDT)
+Received: by mail-ed1-x531.google.com with SMTP id 4fb4d7f45d1cf-50bc37e1525so7045776a12.1
+        for <linux-omap@vger.kernel.org>; Sun, 07 May 2023 07:47:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1683310135; x=1685902135;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=3jmjCmOGhJKcTExgQHxoFdrZdNhIimvrG1KlJ+O2CnA=;
-        b=K0PiobN2K0CD1x/aK0LGxU/27Ndiiy3fP21rS2BmtRQcHEefRBzEKjTsRLJYEahi6T
-         0p6efnM3dGeXACImp1TH/0sv7ROoQguhATGB15wUfaJqt6NnRkN4yS4tvwXkq6JfGvKb
-         d6QPkljAU+BM2MzUZJLhEOlAA23YvvJKD6IPmyzANrbKlv6Vcsq1o67/Z2h4ICSmHJU9
-         pZmZk0xCt3FMh5MDlyo49MrZFNEQ6eoBpv4J2oFk+YjFJpqrfuLYbhBguRIZm3bztujZ
-         wSGZQkiG5PKBU9dUjNN//Zm+y0wc6Jj3mMr45r8z60uFXLcgftWIyJIku59qkOuRtlg/
-         3Qbw==
+        d=linaro.org; s=google; t=1683470819; x=1686062819;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Axa9RQ68hsv/IILOP7fge12GPPTaIZB7pViml3ZGK3o=;
+        b=ZC5rF4Ww89xsCnZB/W2qSgvkRurCeynQHDEJfJW6nuYDODQpHQrra4uAfylCuJyNCf
+         ofm0Z+scRP7HdD0yp1ZAGstWkbZLk7sBzo/vHoOHcwA1ISu4QD5NOQvC9093Fer/MAiJ
+         eQuG5uNWVqwQeC/jlEIj42fpC1cKCtcZhKeX+W1FJsZp6RhHqSALH2LOoEc3dGsYkB+F
+         q05aOknNjx1hAjS/pVzAbhmFarm/BhNCY6++DxWEJg5vUje0alJSYDjQw0XVf0vpqi2T
+         cSeVz8nkSeg39nYMWr0O4RYzSimgecqjAPa9akDajGNbCSx93fdRS6NK7zgSAQqRHFnr
+         O82A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683310135; x=1685902135;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=3jmjCmOGhJKcTExgQHxoFdrZdNhIimvrG1KlJ+O2CnA=;
-        b=KhGL17LwJmYny7XEnOb3tueFnBGnYJnfnZhT2tdbZ7ceccVBXYobc/4QVk/OGH5+yr
-         KmCHTeMdU5qRftI/3q7nGulUxMaZBTpr7RCfK+25X89OuR900aOj2mCtHC/ikb57VpSl
-         fLyL2R5ECGp0zq8KKFEWcgm5mcs7UaTxhe0MTOJ+pKHIYxdcAv05yvEPiiUgHeOsZExT
-         ECR7F4Hp4iX6LXC9hbtCJSXvwwY/JY8NlkLwv0v/TV8gCkZLkg/8BKTVQJGP1oEOeYwh
-         GdfgEVm86MxvEqeO8XDEEBDYoeIs4xBebr2g/tPC4GksLorqL0TYuKtMVhbGSaF7tP5l
-         6ubA==
-X-Gm-Message-State: AC+VfDyqxIWRBJH0F0XSXxTqNMmTo8nSILW2l5e8zYQO4iG+GWu2Iki3
-        tPwyMIG38m4Kssyhfs4s3WCbq+GsIpI=
-X-Google-Smtp-Source: ACHHUZ7Li5NhkqOE1+eiPls/+snjqcBfxl+Gcf+qRka4n1VUPtkhMwlUzgkzNuivRGulByJQdOt0tA==
-X-Received: by 2002:a17:90a:a595:b0:247:14ac:4d3a with SMTP id b21-20020a17090aa59500b0024714ac4d3amr2917795pjq.20.1683310135403;
-        Fri, 05 May 2023 11:08:55 -0700 (PDT)
-Received: from google.com ([2620:15c:9d:2:5658:95c:e1cf:a1b0])
-        by smtp.gmail.com with ESMTPSA id j6-20020a17090aeb0600b002500df72713sm3186230pjz.7.2023.05.05.11.08.53
+        d=1e100.net; s=20221208; t=1683470819; x=1686062819;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Axa9RQ68hsv/IILOP7fge12GPPTaIZB7pViml3ZGK3o=;
+        b=aP8Xs6iKQP32zOwB2kg4Kr5jsy+qADxZErJ5O4kbRJ/4UQq7T16zkDu+YuZckuWN+r
+         M7estL7OIzPpKR/Xb0Cb2tMhUMJk+Z0lTM4njDwJHYjSlhc61fs5KgDBX0+R9I+kDBxD
+         QaWd2ovTySjoZb3HpYTs5Ut/NPJAVKdWi1lTut4w3dOUxH8+H1Tsj573rGBoZbMQk+9T
+         2/0+QHVFKWbSXGMmR1wKEEzKfJJMYMPC3jgL+AlH6eRxU7Vaw9k9NN55qoF3QqOIKmNo
+         TyI+ISkU84pghdSYEutGP2W5naAUb2AOD/9HlbMu/4Du+lZYB3wEeT0fRrHe+5wNeTp4
+         wBWw==
+X-Gm-Message-State: AC+VfDzwDnMtrghakG1bbjtvFsbvLN02potpAGfCU7h+YzKaIf4c5Si+
+        HaSb1vlFARTXtxItsk3FvvbF+w==
+X-Google-Smtp-Source: ACHHUZ4z/mAGPq4xa//YhoiP75fH1bROCSH4dqKSxMFZxPU8cd7U9ak7duojvAubTAsoKbvfMk1jSw==
+X-Received: by 2002:a17:907:1687:b0:94e:1764:b0b5 with SMTP id hc7-20020a170907168700b0094e1764b0b5mr7742438ejc.69.1683470819525;
+        Sun, 07 May 2023 07:46:59 -0700 (PDT)
+Received: from krzk-bin.. ([2a02:810d:15c0:828:1757:b51a:9965:e81])
+        by smtp.gmail.com with ESMTPSA id mm6-20020a170906cc4600b00958079b676asm3706913ejb.122.2023.05.07.07.46.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 05 May 2023 11:08:54 -0700 (PDT)
-Date:   Fri, 5 May 2023 11:08:50 -0700
-From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To:     Linus Walleij <linus.walleij@linaro.org>
-Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Sun, 07 May 2023 07:46:59 -0700 (PDT)
+From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+To:     Tony Lindgren <tony@atomide.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
         Mark Brown <broonie@kernel.org>,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
-        Andreas Kemnade <andreas@kemnade.info>,
-        Helge Deller <deller@gmx.de>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-mmc@vger.kernel.org
-Subject: Re: [PATCH v3 1/3] Input: ads7846 - Convert to use software nodes
-Message-ID: <ZFVGMiuRT+e2eVXw@google.com>
-References: <20230430-nokia770-regression-v3-0-a6d0a89ffa8b@linaro.org>
- <20230430-nokia770-regression-v3-1-a6d0a89ffa8b@linaro.org>
+        Jerome Neanne <jneanne@baylibre.com>,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        stable@vger.kernel.org, khilman@baylibre.com, msp@baylibre.com,
+        j-keerthy@ti.com
+Subject: [RESEND PATCH] regulator: tps65219: Fix matching interrupts for their regulators
+Date:   Sun,  7 May 2023 16:46:56 +0200
+Message-Id: <20230507144656.192800-1-krzysztof.kozlowski@linaro.org>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230430-nokia770-regression-v3-1-a6d0a89ffa8b@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Linus,
-On Fri, May 05, 2023 at 01:16:55PM +0200, Linus Walleij wrote:
-> 
-> Populate the devices on the Nokia 770 CBUS I2C using software
-> nodes instead of platform data quirks. This includes the LCD
-> and the ADS7846 touchscreen so the conversion just brings the LCD
-> along with it as software nodes is an all-or-nothing design
-> pattern.
+The driver's probe() first registers regulators in a loop and then in a
+second loop passes them as irq data to the interrupt handlers.  However
+the function to get the regulator for given name
+tps65219_get_rdev_by_name() was a no-op due to argument passed by value,
+not pointer, thus the second loop assigned always same value - from
+previous loop.  The interrupts, when fired, where executed with wrong
+data.  Compiler also noticed it:
 
-Wow, so that worked , awesome!
+  drivers/regulator/tps65219-regulator.c: In function ‘tps65219_get_rdev_by_name’:
+  drivers/regulator/tps65219-regulator.c:292:60: error: parameter ‘dev’ set but not used [-Werror=unused-but-set-parameter]
 
-> +static const struct property_entry nokia770_ads7846_props[] = {
-> +	PROPERTY_ENTRY_U32("touchscreen-size-x", 4096),
-> +	PROPERTY_ENTRY_U32("touchscreen-size-y", 4096),
-> +	PROPERTY_ENTRY_U32("touchscreen-max-pressure", 256),
-> +	PROPERTY_ENTRY_U32("touchscreen-average-samples", 10),
-> +	PROPERTY_ENTRY_U16("ti,x-plate-ohms", 180),
-> +	PROPERTY_ENTRY_U16("ti,debounce-tol", 3),
-> +	PROPERTY_ENTRY_U16("ti,debounce-rep", 1),
-> +	PROPERTY_ENTRY_GPIO("pendown-gpios", &nokia770_gpiochip1_node,
-> +			    ADS7846_PENDOWN_GPIO, GPIO_ACTIVE_HIGH),
+Fixes: c12ac5fc3e0a ("regulator: drivers: Add TI TPS65219 PMIC regulators support")
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 
-Looking at the driver this actually needs to be GPIO_ACTIVE_LOW.
+---
 
->  
-> +static struct gpiod_lookup_table spitz_ads7846_gpio_table = {
-> +	.dev_id = "spi2.0",
-> +	.table = {
-> +		GPIO_LOOKUP("gpio-pxa", SPITZ_GPIO_TP_INT,
-> +			    "pendown", GPIO_ACTIVE_HIGH),
+Not tested.
+Sent two months ago and no comments, so resending.
 
-GPIO_ACTIVE_LOW here too.
+Cc: Jerome Neanne <jneanne@baylibre.com>
+Cc: khilman@baylibre.com
+Cc: msp@baylibre.com
+Cc: j-keerthy@ti.com
+---
+ drivers/regulator/tps65219-regulator.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-> +static struct gpiod_lookup_table db1100_touch_gpio_table = {
-> +	.dev_id = "spi0.0",
-> +	.table = {
-> +		GPIO_LOOKUP("alchemy-gpio2", 21,
-> +			    "pendown", GPIO_ACTIVE_HIGH),
-
-And here as well.
-
-> @@ -223,7 +220,7 @@ static int get_pendown_state(struct ads7846 *ts)
->  	if (ts->get_pendown_state)
->  		return ts->get_pendown_state();
->  
-> -	return !gpio_get_value(ts->gpio_pendown);
-> +	return !gpiod_get_value(ts->gpio_pendown);
-
-This needs to be
-
-	return !gpiod_get_value_raw(ts->gpio_pendown);
-
-I looked at various DTSes we have and they use a mix of active high and
-active low annotations, so we have to go with the "raw" variant for now,
-and then update to normal one once we update bad DTSes.
-
-Thanks!
-
+diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
+index b1719ee990ab..8971b507a79a 100644
+--- a/drivers/regulator/tps65219-regulator.c
++++ b/drivers/regulator/tps65219-regulator.c
+@@ -289,13 +289,13 @@ static irqreturn_t tps65219_regulator_irq_handler(int irq, void *data)
+ 
+ static int tps65219_get_rdev_by_name(const char *regulator_name,
+ 				     struct regulator_dev *rdevtbl[7],
+-				     struct regulator_dev *dev)
++				     struct regulator_dev **dev)
+ {
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(regulators); i++) {
+ 		if (strcmp(regulator_name, regulators[i].name) == 0) {
+-			dev = rdevtbl[i];
++			*dev = rdevtbl[i];
+ 			return 0;
+ 		}
+ 	}
+@@ -348,7 +348,7 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
+ 		irq_data[i].dev = tps->dev;
+ 		irq_data[i].type = irq_type;
+ 
+-		tps65219_get_rdev_by_name(irq_type->regulator_name, rdevtbl, rdev);
++		tps65219_get_rdev_by_name(irq_type->regulator_name, rdevtbl, &rdev);
+ 		if (IS_ERR(rdev)) {
+ 			dev_err(tps->dev, "Failed to get rdev for %s\n",
+ 				irq_type->regulator_name);
 -- 
-Dmitry
+2.34.1
+
