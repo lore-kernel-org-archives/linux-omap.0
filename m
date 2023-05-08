@@ -2,63 +2,59 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D4DAC7EE22
-	for <linux-omap@archiver.kernel.org>; Mon,  8 May 2023 21:20:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA2F0C7EE25
+	for <linux-omap@archiver.kernel.org>; Mon,  8 May 2023 21:24:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233831AbjEHVUq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 8 May 2023 17:20:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59930 "EHLO
+        id S229690AbjEHVX7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 8 May 2023 17:23:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233820AbjEHVUj (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 8 May 2023 17:20:39 -0400
-Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3625983E0
-        for <linux-omap@vger.kernel.org>; Mon,  8 May 2023 14:20:21 -0700 (PDT)
-Received: by mail-lf1-x130.google.com with SMTP id 2adb3069b0e04-4f13a72ff53so5611214e87.0
-        for <linux-omap@vger.kernel.org>; Mon, 08 May 2023 14:20:21 -0700 (PDT)
+        with ESMTP id S233355AbjEHVX5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 8 May 2023 17:23:57 -0400
+Received: from mail-yb1-xb35.google.com (mail-yb1-xb35.google.com [IPv6:2607:f8b0:4864:20::b35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30F5130F2
+        for <linux-omap@vger.kernel.org>; Mon,  8 May 2023 14:23:56 -0700 (PDT)
+Received: by mail-yb1-xb35.google.com with SMTP id 3f1490d57ef6-b9e27684b53so4501542276.0
+        for <linux-omap@vger.kernel.org>; Mon, 08 May 2023 14:23:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1683580820; x=1686172820;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=dK03E2M8l7bVCBNTqzVE5mVLTLIW5dP3PvhMkmEu44I=;
-        b=LQvB+8ogRPv04y19WvA4bz7w/wJIcDWbnDtyZLlF61s4C3dXWsHviBgL1vZ0d8vTnQ
-         iJTyC75PunKIctxUTawEGv6+kVpOsf5er8fGH700MPbKWcLhpODaZ93OyuL4lcRn7UZe
-         yFKv2dnS3Me3T7gE5qoha4EG0IAvrgRQ9NHBCByMHoGLDdWoPoDX6JSnXPboi6ILpT+0
-         zYkoVFwxzISejMGf9FEwFuPsuQ6x78BajEOx208y++QUiNA9PcQLlLuAXQfUtaL4lXx7
-         LMigrZvibVzhQ+H5SUeQz9tseL99XDg0kfbiiE+hP7ldQeTKnG8o+3ev89OcHyzlVZj2
-         8RFw==
+        d=linaro.org; s=google; t=1683581035; x=1686173035;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=7jGQCX8Vl6J+teZGmxFzw1k6uuzeGq3x6M1Mg+KmvWU=;
+        b=I88Y+UwW/ecdrdJYEYRQu84hQHEaAlwkBoqcY2OuiSC/fZd9XNJTetBoDsbTnL/mhS
+         ZuE4HjGiHTZs634+rfTp1iWzyZKxHdtSgv1t0C8ngfs2JYKt0bUVW/j15pBp6NAhiKGR
+         YKmwGJJP8/qagETAIGdZY8zpYZupX+SXkHtE5vyFWjBqJto4kUrgIwRuXcz+TO0lUGq8
+         jMoSb6nX6bsJ4RBVQ5uYeqbPfz4tAm1FZBC0TrKwbGYr/DvRxfNR9D2rEu/sfehNSTkM
+         zB4rT2OYkz5xjtBQkWRiDNoPPlQrctV8Ddiw1tEWVD53tZvZTnDKuAro4Tcxf0urL0Ic
+         bzPA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683580820; x=1686172820;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20221208; t=1683581035; x=1686173035;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=dK03E2M8l7bVCBNTqzVE5mVLTLIW5dP3PvhMkmEu44I=;
-        b=JXOuMrKY2yAlCEin/xVFRFegeFEij4ispzzDCZD1/jCYC7XloOBAJ847NySyUjYCF5
-         aL3ycJ1f1fuYWhUtXdrliO4G1iUMqONWnT37BH7PjLlUoeSZ7sFBNZgCyHf+r2+e21Ga
-         GPZTMyRFlzGvobG8GnYpL7Oh8+kGbcIwwQ8m/T7LbrDe80Q1NEii6wJA22jm9IRaBLLD
-         VF+BQcZ2XiM51vBFel0wj8+a4oDg9VxvqtSrWwhXOBMwtLbL+j/jYty1yP8TAuI8ammM
-         mz2WRAyuuU4f01bLnsfNgIqPB6eWkFveX4uGiqU7dejXHN4dWuYb2f0x8mVhH9EBLsI6
-         tmFQ==
-X-Gm-Message-State: AC+VfDy1+wxChdzbiw2c1LfDpBFjvHYuZMakhTRKXYqoAVRP83XOzU+1
-        zr7/mqv1ip75tHltSVxVKYMeHg==
-X-Google-Smtp-Source: ACHHUZ5h9zB+DF+SzOXMLkK9IEaMkoFaP5oV3ZE8LadUTKk9C4V94+SoqeKCIiPG3/AYEn/7ujSn7w==
-X-Received: by 2002:a19:550d:0:b0:4ef:d742:4dfe with SMTP id n13-20020a19550d000000b004efd7424dfemr124116lfe.65.1683580820134;
-        Mon, 08 May 2023 14:20:20 -0700 (PDT)
-Received: from [127.0.1.1] ([85.235.12.238])
-        by smtp.gmail.com with ESMTPSA id 4-20020ac24844000000b004edc3bd7fa1sm102164lfy.201.2023.05.08.14.20.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 May 2023 14:20:19 -0700 (PDT)
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Mon, 08 May 2023 23:20:08 +0200
-Subject: [PATCH v4 3/4] ARM: omap1: Fix up the Nokia 770 board device IRQs
+        bh=7jGQCX8Vl6J+teZGmxFzw1k6uuzeGq3x6M1Mg+KmvWU=;
+        b=Ur8rg1PvV0Y8sRHVaUwBsLo15GSr1OyDPAuvCnpSBjFuf3t5NyiRJp3dkWH/FgKRDl
+         FnBMvITDitEVCaqhr0fOQ55tk8b6Y9dYPOEW16KZbZN9T2+ubjuQLIJxbhHp/EmrZ9/e
+         eonFaLHumvpjPUyUU/24C0O88ReTDrNrPOdF7XLyh/9SRoVv3jzEUgZpaKlrQ6SjfcEV
+         +blXml0CfQTOfNDetMV6pHDzggcYIOQnhPYH38zwGcmDaUiXvXsTZyppQjJZoymh1IIw
+         UlCbLKDojsLW+w0HpvvKQOrWs8cQkKH5hmZKdTQxeZ32VIzObgaBqB1QaJYpLXi2XyMt
+         FGJg==
+X-Gm-Message-State: AC+VfDzJSq8XVh+WS4eW4IpAJNJH3WuZ9+ksEhrfpAs0XzkVJFc4MDck
+        gp3py/KC7n9O/oplUO/qEuTzNPuaCbhVDUtU7gQLXg==
+X-Google-Smtp-Source: ACHHUZ7rm8jz+s02nlAbnve92YjRuDz/1QELgf4UleY+8kKnTxtAJt2R2YQqJHyvz+tJndbn/SLgLqnkCbtBYasX8ws=
+X-Received: by 2002:a25:215:0:b0:ba2:77e:e5f8 with SMTP id 21-20020a250215000000b00ba2077ee5f8mr12026435ybc.1.1683581035348;
+ Mon, 08 May 2023 14:23:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230430-nokia770-regression-v4-3-9b6dc5536b17@linaro.org>
-References: <20230430-nokia770-regression-v4-0-9b6dc5536b17@linaro.org>
-In-Reply-To: <20230430-nokia770-regression-v4-0-9b6dc5536b17@linaro.org>
-To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+References: <20230430-nokia770-regression-v3-0-a6d0a89ffa8b@linaro.org>
+ <20230430-nokia770-regression-v3-1-a6d0a89ffa8b@linaro.org> <ZFVGMiuRT+e2eVXw@google.com>
+In-Reply-To: <ZFVGMiuRT+e2eVXw@google.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Mon, 8 May 2023 23:23:44 +0200
+Message-ID: <CACRpkdZUXOTOK9CObdXuHQx4PMD3ykMKco8X5ijchkZ8cEmQvA@mail.gmail.com>
+Subject: Re: [PATCH v3 1/3] Input: ads7846 - Convert to use software nodes
+To:     Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
         Janusz Krzysztofik <jmkrzyszt@gmail.com>,
         Tony Lindgren <tony@atomide.com>,
         Russell King <linux@armlinux.org.uk>,
@@ -66,132 +62,40 @@ To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
         Haojian Zhuang <haojian.zhuang@gmail.com>,
         Robert Jarzmik <robert.jarzmik@free.fr>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
         Mark Brown <broonie@kernel.org>,
         Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
         Andreas Kemnade <andreas@kemnade.info>,
         Helge Deller <deller@gmx.de>,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Cc:     linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
         linux-input@vger.kernel.org, linux-spi@vger.kernel.org,
         linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-mmc@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
-X-Mailer: b4 0.12.1
+        linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The platform devices on the Nokia 770 is using some
-board-specific IRQs that get statically assigned to platform
-devices in the boardfile.
+On Fri, May 5, 2023 at 8:08=E2=80=AFPM Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
 
-This does not work with dynamic IRQ chip bases.
+> > -     return !gpio_get_value(ts->gpio_pendown);
+> > +     return !gpiod_get_value(ts->gpio_pendown);
+>
+> This needs to be
+>
+>         return !gpiod_get_value_raw(ts->gpio_pendown);
 
-Utilize the NULL device to define some board-specific
-GPIO lookups and use these to immediately look up the
-same GPIOs, convert to IRQ numbers and pass as resources
-to the devices. This is ugly but should work.
+There is no such function. The gpio descriptor runpath simply assumes that
+device trees can be trusted.
 
-Fixes: 92bf78b33b0b ("gpio: omap: use dynamic allocation of base")
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
- arch/arm/mach-omap1/board-nokia770.c | 57 ++++++++++++++++++++++++++++--------
- 1 file changed, 44 insertions(+), 13 deletions(-)
+> I looked at various DTSes we have and they use a mix of active high and
+> active low annotations, so we have to go with the "raw" variant for now,
+> and then update to normal one once we update bad DTSes.
 
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index 218c928f71b3..8965df2c250d 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -6,7 +6,7 @@
-  */
- #include <linux/clkdev.h>
- #include <linux/irq.h>
--#include <linux/gpio.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/gpio/machine.h>
- #include <linux/gpio/property.h>
- #include <linux/kernel.h>
-@@ -250,19 +250,25 @@ static struct i2c_board_info nokia770_i2c_board_info_2[] __initdata = {
- 
- static void __init nokia770_cbus_init(void)
- {
--	const int retu_irq_gpio = 62;
--	const int tahvo_irq_gpio = 40;
--
--	if (gpio_request_one(retu_irq_gpio, GPIOF_IN, "Retu IRQ"))
--		return;
--	if (gpio_request_one(tahvo_irq_gpio, GPIOF_IN, "Tahvo IRQ")) {
--		gpio_free(retu_irq_gpio);
--		return;
-+	struct gpio_desc *d;
-+	int irq;
-+
-+	d = gpiod_get(NULL, "retu_irq", GPIOD_IN);
-+	if (IS_ERR(d)) {
-+		pr_err("Unable to get CBUS Retu IRQ GPIO descriptor\n");
-+	} else {
-+		irq = gpiod_to_irq(d);
-+		irq_set_irq_type(irq, IRQ_TYPE_EDGE_RISING);
-+		nokia770_i2c_board_info_2[0].irq = irq;
-+	}
-+	d = gpiod_get(NULL, "tahvo_irq", GPIOD_IN);
-+	if (IS_ERR(d)) {
-+		pr_err("Unable to get CBUS Tahvo IRQ GPIO descriptor\n");
-+	} else {
-+		irq = gpiod_to_irq(d);
-+		irq_set_irq_type(irq, IRQ_TYPE_EDGE_RISING);
-+		nokia770_i2c_board_info_2[1].irq = irq;
- 	}
--	irq_set_irq_type(gpio_to_irq(retu_irq_gpio), IRQ_TYPE_EDGE_RISING);
--	irq_set_irq_type(gpio_to_irq(tahvo_irq_gpio), IRQ_TYPE_EDGE_RISING);
--	nokia770_i2c_board_info_2[0].irq = gpio_to_irq(retu_irq_gpio);
--	nokia770_i2c_board_info_2[1].irq = gpio_to_irq(tahvo_irq_gpio);
- 	i2c_register_board_info(2, nokia770_i2c_board_info_2,
- 				ARRAY_SIZE(nokia770_i2c_board_info_2));
- 	device_create_managed_software_node(&nokia770_cbus_device.dev,
-@@ -275,8 +281,25 @@ static void __init nokia770_cbus_init(void)
- }
- #endif /* CONFIG_I2C_CBUS_GPIO */
- 
-+static struct gpiod_lookup_table nokia770_irq_gpio_table = {
-+	.dev_id = NULL,
-+	.table = {
-+		/* GPIO used by SPI device 1 */
-+		GPIO_LOOKUP("gpio-0-15", 15, "ads7846_irq",
-+			    GPIO_ACTIVE_HIGH),
-+		/* GPIO used for retu IRQ */
-+		GPIO_LOOKUP("gpio-48-63", 15, "retu_irq",
-+			    GPIO_ACTIVE_HIGH),
-+		/* GPIO used for tahvo IRQ */
-+		GPIO_LOOKUP("gpio-32-47", 8, "tahvo_irq",
-+			    GPIO_ACTIVE_HIGH),
-+	},
-+};
-+
- static void __init omap_nokia770_init(void)
- {
-+	struct gpio_desc *d;
-+
- 	/* On Nokia 770, the SleepX signal is masked with an
- 	 * MPUIO line by default.  It has to be unmasked for it
- 	 * to become functional */
-@@ -288,6 +311,14 @@ static void __init omap_nokia770_init(void)
- 
- 	software_node_register_node_group(nokia770_gpiochip_nodes);
- 	platform_add_devices(nokia770_devices, ARRAY_SIZE(nokia770_devices));
-+
-+	gpiod_add_lookup_table(&nokia770_irq_gpio_table);
-+	d = gpiod_get(NULL, "ads7846_irq", GPIOD_IN);
-+	if (IS_ERR(d))
-+		pr_err("Unable to get ADS7846 IRQ GPIO descriptor\n");
-+	else
-+		nokia770_spi_board_info[1].irq = gpiod_to_irq(d);
-+
- 	spi_register_board_info(nokia770_spi_board_info,
- 				ARRAY_SIZE(nokia770_spi_board_info));
- 	omap_serial_init();
+I just sighed and fixed all the device trees :D
 
--- 
-2.34.1
-
+Yours,
+Linus Walleij
