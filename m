@@ -2,84 +2,108 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8051EC77B7C
-	for <linux-omap@archiver.kernel.org>; Thu, 11 May 2023 22:31:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C19C77B7C
+	for <linux-omap@archiver.kernel.org>; Fri, 12 May 2023 07:08:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239342AbjEKWbR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 11 May 2023 18:31:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38394 "EHLO
+        id S240200AbjELHIz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 12 May 2023 03:08:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238381AbjEKWbQ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 11 May 2023 18:31:16 -0400
-X-Greylist: delayed 1802 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 11 May 2023 15:31:15 PDT
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 585692738;
-        Thu, 11 May 2023 15:31:15 -0700 (PDT)
-Received: from p200300ccff36df0080088350021b55c1.dip0.t-ipconnect.de ([2003:cc:ff36:df00:8008:8350:21b:55c1] helo=akair)
-        by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <andreas@kemnade.info>)
-        id 1pxDpi-0005dY-Fw; Thu, 11 May 2023 23:28:18 +0200
-Date:   Thu, 11 May 2023 23:28:12 +0200
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc:     robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
-        tony@atomide.com, afd@ti.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v6 1/2] dt-bindings: omap: Convert omap.txt to yaml
-Message-ID: <20230511232812.067440cf@akair>
-In-Reply-To: <eb4cf82d-f523-d5af-be18-25c37678a95a@linaro.org>
-References: <20230405161908.4312-1-andreas@kemnade.info>
-        <20230405161908.4312-2-andreas@kemnade.info>
-        <eb4cf82d-f523-d5af-be18-25c37678a95a@linaro.org>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.37; x86_64-pc-linux-gnu)
+        with ESMTP id S239956AbjELHIc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 12 May 2023 03:08:32 -0400
+Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C51011B65;
+        Fri, 12 May 2023 00:06:06 -0700 (PDT)
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 34C75G8h125729;
+        Fri, 12 May 2023 02:05:17 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1683875117;
+        bh=qrcAD5FB7M7FMMCKbVwpO1WbxqwiY986JY7vFr3TIUE=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=JIYYyK+HO/z9iJJJBMFBGb9gEPU81TF22pkqM7kOU3EQ5FXzG83WKHlezpZbz4444
+         EtN29gQDw69eF+DnbaED6kfjAXShMI5mbTTGtceUkoe1+JsJlsN2JNATxdO+ao561Y
+         t2MLspfqkkYcQFTYTtnTPAtioTlam8fHrptVb7rE=
+Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 34C75Gl3007289
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 12 May 2023 02:05:16 -0500
+Received: from DFLE107.ent.ti.com (10.64.6.28) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Fri, 12
+ May 2023 02:05:15 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE107.ent.ti.com
+ (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Fri, 12 May 2023 02:05:16 -0500
+Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 34C75E1w085112;
+        Fri, 12 May 2023 02:05:15 -0500
+From:   Achal Verma <a-verma1@ti.com>
+To:     Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Krzysztof Wilczy_ski <kw@linux.com>,
+        Rob Herring <robh@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Bjorn Andersson <quic_bjorande@quicinc.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Dmitry Baryshkov <dmitry.baryshkov@linaro.org>,
+        "N_colas F . R . A . Prado" <nfraprado@collabora.com>,
+        Mark Brown <broonie@kernel.org>,
+        Rafa_ Mi_ecki <rafal@milecki.pl>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Nishanth Menon <nm@ti.com>, Milind Parab <mparab@cadence.com>,
+        Swapnil Kashinath Jakhade <sjakhade@cadence.com>
+CC:     <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>, Achal Verma <a-verma1@ti.com>
+Subject: [PATCH 3/3] arm64: defconfig: enable J721e PCIe controller
+Date:   Fri, 12 May 2023 12:35:10 +0530
+Message-ID: <20230512070510.1873171-4-a-verma1@ti.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230512070510.1873171-1-a-verma1@ti.com>
+References: <20230512070510.1873171-1-a-verma1@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Am Thu, 6 Apr 2023 10:32:49 +0200
-schrieb Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>:
+Enable Cadence PCIe controller and pci-j721e drivers to be built as
+kernel modules.
 
-> On 05/04/2023 18:19, Andreas Kemnade wrote:
-> > From: Andrew Davis <afd@ti.com>
-> > 
-> > Convert omap.txt to yaml.
-> >   
-> 
-> 
-> > +      - description: TI AM43 SoC based platforms
-> > +        items:
-> > +          - enum:
-> > +              - compulab,am437x-cm-t43
-> > +              - ti,am437x-gp-evm
-> > +              - ti,am437x-idk-evm
-> > +              - ti,am437x-sk-evm
-> > +          - pattern: '^ti,am4372[26789]$'
-> > +          - const: ti,am43
-> > +
-> > +      - description: TI AM57 SoC based platforms
-> > +        items:
-> > +          - enum:
-> > +              - beagle,am5729-beagleboneai
-> > +              - compulab,cl-som-am57x
-> > +              - ti,am5718-idk
-> > +              - ti,am5728-idk
-> > +              - ti,am5748-idk
-> > +          - pattern: '^ti,am57[0124][689]$'  
-> 
-> I don't think my comments were resolved. I asked if it is possible to
-> make a board called "ti,am5718-idk" with "ti,am5749" or with
-> "ti,am5708"?
-> 
-I am preparing a reduced version of this without all that pattern
-matches where I do not know the intention the original author had. 
+Signed-off-by: Achal Verma <a-verma1@ti.com>
+---
+ arch/arm64/configs/defconfig | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-> What's more, you dropped several variations and compatibles against
-> original binding (all the "dra") and it is not explained in commit msg
-> at all.
->
-ok, time to better compare it by scrips, Did not notice
-the dra stuff  with am* in the other compatibles.
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index a24609e14d50..a4cf973e0aaa 100644
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -230,9 +230,16 @@ CONFIG_PCIE_HISI_STB=y
+ CONFIG_PCIE_TEGRA194_HOST=m
+ CONFIG_PCIE_VISCONTI_HOST=y
+ CONFIG_PCIE_LAYERSCAPE_GEN4=y
++CONFIG_PCIE_CADENCE=m
++CONFIG_PCIE_CADENCE_HOST=m
++CONFIG_PCIE_CADENCE_EP=m
++CONFIG_PCI_J721E=m
++CONFIG_PCI_J721E_HOST=m
++CONFIG_PCI_J721E_EP=m
+ CONFIG_PCI_ENDPOINT=y
+ CONFIG_PCI_ENDPOINT_CONFIGFS=y
+ CONFIG_PCI_EPF_TEST=m
++CONFIG_PCI_EPF_NTB=m
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
+ CONFIG_FW_LOADER_USER_HELPER=y
+-- 
+2.25.1
+
