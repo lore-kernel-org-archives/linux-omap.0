@@ -2,83 +2,64 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64C2EC77B75
-	for <linux-omap@archiver.kernel.org>; Mon, 15 May 2023 07:45:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D1EDC7EE2D
+	for <linux-omap@archiver.kernel.org>; Mon, 15 May 2023 07:45:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238839AbjEOHpa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 15 May 2023 03:45:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55646 "EHLO
+        id S239127AbjEOHpd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 15 May 2023 03:45:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229758AbjEOHp3 (ORCPT
+        with ESMTP id S238242AbjEOHp3 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 15 May 2023 03:45:29 -0400
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F317F120;
-        Mon, 15 May 2023 00:45:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A4E8128;
+        Mon, 15 May 2023 00:45:27 -0700 (PDT)
 Received: from p200300ccff34d8001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff34:d800:1a3d:a2ff:febf:d33a] helo=aktux)
         by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <andreas@kemnade.info>)
-        id 1pyStR-0003uR-AU; Mon, 15 May 2023 09:45:17 +0200
+        id 1pyStS-0003uV-1Z; Mon, 15 May 2023 09:45:18 +0200
 Received: from andi by aktux with local (Exim 4.96)
         (envelope-from <andreas@kemnade.info>)
-        id 1pyStQ-000HER-2d;
-        Mon, 15 May 2023 09:45:16 +0200
+        id 1pyStR-000HEa-2O;
+        Mon, 15 May 2023 09:45:17 +0200
 From:   Andreas Kemnade <andreas@kemnade.info>
 To:     robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
         conor+dt@kernel.org, tony@atomide.com, afd@ti.com,
         andreas@kemnade.info, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [PATCH v7 0/2] dt-bindings: omap: Convert omap.txt to yaml
-Date:   Mon, 15 May 2023 09:45:10 +0200
-Message-Id: <20230515074512.66226-1-andreas@kemnade.info>
+Subject: [PATCH v7 2/2] MAINTAINERS: add board bindings list to OMAP2+ files
+Date:   Mon, 15 May 2023 09:45:12 +0200
+Message-Id: <20230515074512.66226-3-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230515074512.66226-1-andreas@kemnade.info>
+References: <20230515074512.66226-1-andreas@kemnade.info>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Convert board compatibles to yaml and add the new yaml file to
-MAINTAINERS so that emails are properly distributed
+Add list of OMAP2+ boards to the corresponding section
 
-Changes in V7:
- - checked for lost compatibles
- - remove conversions with pattern matches probably allowing
-   too much
+CC: linux-omap@vger.kernel.org
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-Changes in V6:
- - reflect the rename also in the file header
-
-Changes in V5:
- - renamed the new file to ti/omap.yaml
-
-Changes in V4:
- - fix order 
- - re-add dra7 to .txt to have it sorted out later
-
-Changes in V3:
- - update MAINTAINERS
- - remove converted stuff from .txt
-
-Changes in V2:
-- renamed file
-- fixed gta04
-- added Openpandora, Epson Moverio BT-200
-- drop example
-- remove descriptions if just reformatting the name
-
-Andreas Kemnade (1):
-  MAINTAINERS: add board bindings list to OMAP2+ files
-
-Andrew Davis (1):
-  dt-bindings: omap: Partially convert omap.txt to yaml
-
- .../devicetree/bindings/arm/omap/omap.txt     |  99 ----------
- .../devicetree/bindings/arm/ti/omap.yaml      | 176 ++++++++++++++++++
- MAINTAINERS                                   |   1 +
- 3 files changed, 177 insertions(+), 99 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/ti/omap.yaml
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e0ad886d31632..3c85808bb2785 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -15404,6 +15404,7 @@ W:	http://www.muru.com/linux/omap/
+ W:	http://linux.omap.com/
+ Q:	http://patchwork.kernel.org/project/linux-omap/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
++F:	Documentation/devicetree/bindings/arm/ti/omap.yaml
+ F:	arch/arm/configs/omap2plus_defconfig
+ F:	arch/arm/mach-omap2/
+ F:	drivers/bus/ti-sysc.c
 -- 
 2.39.2
 
