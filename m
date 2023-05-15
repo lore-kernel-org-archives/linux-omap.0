@@ -2,368 +2,158 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67A4DC7EE2A
-	for <linux-omap@archiver.kernel.org>; Mon, 15 May 2023 07:45:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85D12C7EE22
+	for <linux-omap@archiver.kernel.org>; Mon, 15 May 2023 08:31:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239047AbjEOHpc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 15 May 2023 03:45:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55652 "EHLO
+        id S233752AbjEOIbq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 15 May 2023 04:31:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237575AbjEOHp3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 15 May 2023 03:45:29 -0400
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B85A7FC;
-        Mon, 15 May 2023 00:45:26 -0700 (PDT)
-Received: from p200300ccff34d8001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff34:d800:1a3d:a2ff:febf:d33a] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <andreas@kemnade.info>)
-        id 1pyStR-0003uT-ME; Mon, 15 May 2023 09:45:17 +0200
-Received: from andi by aktux with local (Exim 4.96)
-        (envelope-from <andreas@kemnade.info>)
-        id 1pyStR-000HEV-1F;
-        Mon, 15 May 2023 09:45:17 +0200
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
-        conor+dt@kernel.org, tony@atomide.com, afd@ti.com,
-        andreas@kemnade.info, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [PATCH v7 1/2] dt-bindings: omap: Partially convert omap.txt to yaml
-Date:   Mon, 15 May 2023 09:45:11 +0200
-Message-Id: <20230515074512.66226-2-andreas@kemnade.info>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230515074512.66226-1-andreas@kemnade.info>
-References: <20230515074512.66226-1-andreas@kemnade.info>
+        with ESMTP id S234377AbjEOIbN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 15 May 2023 04:31:13 -0400
+Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D769010C9
+        for <linux-omap@vger.kernel.org>; Mon, 15 May 2023 01:28:19 -0700 (PDT)
+Received: by mail-wm1-x335.google.com with SMTP id 5b1f17b1804b1-3f41dceb9c9so65111695e9.3
+        for <linux-omap@vger.kernel.org>; Mon, 15 May 2023 01:28:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1684139298; x=1686731298;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=08wnipZvDvV9LKo/hnrlT7svgYHC8T3eteafRvcM/Mc=;
+        b=KbCk1/qOs9Fwzo33x20FErGiITLuK5nG7Zdn6mIHBuxtGRyNHRVILGG/MeR5jevTxq
+         mkKdyy9AiNkBloZe2GlkkCF0Ac/RVqYzsMFuWlA4lZNY9fiufLVZ8I9+3Dt75TqIPnlh
+         DOz0BkCFxgHUgQsowEj0Np6HJzqo5sgVa0GMBt+r26YHU/nO3ZxsURskjzvqxerK5PkL
+         4QSbboobIHVmjK0WxZca2UcofYwjgdQbGZPWnVKs2Z0ECfFmgkRX9Juoti+WR8WiLD9v
+         AR/yXA1WDVX3gILCrZ6Y5HM+z4YZCyhmQtH4sNkVxnDycW6Em4jnJHruBTFf6W3pyBxU
+         nmuA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1684139298; x=1686731298;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=08wnipZvDvV9LKo/hnrlT7svgYHC8T3eteafRvcM/Mc=;
+        b=kfkCFeScqmLMnHPFv2S03pS/WFxO6aLGrXdg0tE2fxIGLHix7d85nkv2TO0kWFT8a/
+         VGJ2IEp7hxN8wMCX9z/JQOzcEgyRSCn4gfBdA/orffeo7+mK8ZvYI6bMfFP44/BGQsC0
+         qDX+mQFsf/6iOWkEz/HXiS4NdAMIrMyfezqXu+fq7OEUXvoBGICogNHBPKJPM2F+Mxhl
+         dmjkf2pWD+dJ4vfdwLxf7RT22YpnbV2lij5FboLFW+RAFJKSTbCp/0hfzSXs5mQj50RX
+         paKIE3f2ceK87zmsp7mnEFTb+8rXJ9FIvwA7JaYardPC6IUqNKyj+vAukw5gjcWYpiO+
+         vozw==
+X-Gm-Message-State: AC+VfDw19/74aAL6Aw5o7s7LLiUfsFv6WSM7FKko9jxEk2tCH7avirp1
+        xDzurkunHbo42+1wc3zPvW2jsg==
+X-Google-Smtp-Source: ACHHUZ54MLdQDwm4CQ73Nj9Y8XhwEMeioRNBdkRuqfGCMU1tJRcII083a9tzfSSDD+8I+WxLpLh+9A==
+X-Received: by 2002:a7b:cb53:0:b0:3f2:53a5:d308 with SMTP id v19-20020a7bcb53000000b003f253a5d308mr21950482wmj.6.1684139298322;
+        Mon, 15 May 2023 01:28:18 -0700 (PDT)
+Received: from localhost ([102.36.222.112])
+        by smtp.gmail.com with ESMTPSA id w12-20020a05600c474c00b003f07ef4e3e0sm28062465wmo.0.2023.05.15.01.28.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 15 May 2023 01:28:16 -0700 (PDT)
+Date:   Mon, 15 May 2023 11:28:01 +0300
+From:   Dan Carpenter <dan.carpenter@linaro.org>
+To:     tony@atomide.com
+Cc:     linux-omap@vger.kernel.org
+Subject: [bug report] bus: ti-sysc: Implement display subsystem reset quirk
+Message-ID: <a8ec8a68-9c2c-4076-bf47-09fccce7659f@kili.mountain>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Andrew Davis <afd@ti.com>
+Hello Tony Lindgren,
 
-Convert omap.txt to yaml.
+The patch 7324a7a0d5e2: "bus: ti-sysc: Implement display subsystem
+reset quirk" from Feb 24, 2020, leads to the following Smatch static
+checker warning:
 
-CC: linux-omap@vger.kernel.org
-Signed-off-by: Andrew Davis <afd@ti.com>
-[reduced to only OMAP3/4/5 and AM3, adding Epson Moverio BT-200]
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- .../devicetree/bindings/arm/omap/omap.txt     |  99 ----------
- .../devicetree/bindings/arm/ti/omap.yaml      | 176 ++++++++++++++++++
- 2 files changed, 176 insertions(+), 99 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/ti/omap.yaml
+	drivers/bus/ti-sysc.c:1806 sysc_quirk_dispc()
+	warn: masking a bool
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index fa8b31660cadd..c863ec07cbbb1 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -41,14 +41,6 @@ SoC Type (optional):
- 
- SoC Families:
- 
--- OMAP2 generic - defaults to OMAP2420
--  compatible = "ti,omap2"
--- OMAP3 generic
--  compatible = "ti,omap3"
--- OMAP4 generic - defaults to OMAP4430
--  compatible = "ti,omap4"
--- OMAP5 generic - defaults to OMAP5430
--  compatible = "ti,omap5"
- - DRA7 generic - defaults to DRA742
-   compatible = "ti,dra7"
- - AM33x generic
-@@ -58,32 +50,6 @@ SoC Families:
- 
- SoCs:
- 
--- OMAP2420
--  compatible = "ti,omap2420", "ti,omap2"
--- OMAP2430
--  compatible = "ti,omap2430", "ti,omap2"
--
--- OMAP3430
--  compatible = "ti,omap3430", "ti,omap3"
--  legacy: "ti,omap34xx" - please do not use any more
--- AM3517
--  compatible = "ti,am3517", "ti,omap3"
--- OMAP3630
--  compatible = "ti,omap3630", "ti,omap3"
--  legacy: "ti,omap36xx" - please do not use any more
--- AM335x
--  compatible = "ti,am33xx"
--
--- OMAP4430
--  compatible = "ti,omap4430", "ti,omap4"
--- OMAP4460
--  compatible = "ti,omap4460", "ti,omap4"
--
--- OMAP5430
--  compatible = "ti,omap5430", "ti,omap5"
--- OMAP5432
--  compatible = "ti,omap5432", "ti,omap5"
--
- - DRA762
-   compatible = "ti,dra762", "ti,dra7"
- 
-@@ -116,65 +82,6 @@ SoCs:
- 
- Boards (incomplete list of examples):
- 
--- OMAP3 BeagleBoard : Low cost community board
--  compatible = "ti,omap3-beagle", "ti,omap3430", "ti,omap3"
--
--- OMAP3 BeagleBoard A to B4 : Early BeagleBoard revisions A to B4 with a timer quirk
--  compatible = "ti,omap3-beagle-ab4", "ti,omap3-beagle", "ti,omap3430", "ti,omap3"
--
--- OMAP3 Tobi with Overo : Commercial expansion board with daughter board
--  compatible = "gumstix,omap3-overo-tobi", "gumstix,omap3-overo", "ti,omap3430", "ti,omap3"
--
--- OMAP4 SDP : Software Development Board
--  compatible = "ti,omap4-sdp", "ti,omap4430", "ti,omap4"
--
--- OMAP4 PandaBoard : Low cost community board
--  compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4"
--
--- OMAP4 DuoVero with Parlor : Commercial expansion board with daughter board
--  compatible = "gumstix,omap4-duovero-parlor", "gumstix,omap4-duovero", "ti,omap4430", "ti,omap4";
--
--- OMAP4 VAR-STK-OM44 : Commercial dev kit with VAR-OM44CustomBoard and VAR-SOM-OM44 w/WLAN
--  compatible = "variscite,var-stk-om44", "variscite,var-som-om44", "ti,omap4460", "ti,omap4";
--
--- OMAP4 VAR-DVK-OM44 : Commercial dev kit with VAR-OM44CustomBoard, VAR-SOM-OM44 w/WLAN and LCD touchscreen
--  compatible = "variscite,var-dvk-om44", "variscite,var-som-om44", "ti,omap4460", "ti,omap4";
--
--- OMAP3 EVM : Software Development Board for OMAP35x, AM/DM37x
--  compatible = "ti,omap3-evm", "ti,omap3630", "ti,omap3"
--
--- AM335X EVM : Software Development Board for AM335x
--  compatible = "ti,am335x-evm", "ti,am33xx"
--
--- AM335X Bone : Low cost community board
--  compatible = "ti,am335x-bone", "ti,am33xx"
--
--- AM3359 ICEv2 : Low cost Industrial Communication Engine EVM.
--  compatible = "ti,am3359-icev2", "ti,am33xx"
--
--- AM335X OrionLXm : Substation Automation Platform
--  compatible = "novatech,am335x-lxm", "ti,am33xx"
--
--- AM335X phyBOARD-WEGA: Single Board Computer dev kit
--  compatible = "phytec,am335x-wega", "phytec,am335x-phycore-som", "ti,am33xx"
--
--- AM335X CM-T335 : System On Module, built around the Sitara AM3352/4
--  compatible = "compulab,cm-t335", "ti,am33xx"
--
--- AM335X SBC-T335 : single board computer, built around the Sitara AM3352/4
--  compatible = "compulab,sbc-t335", "compulab,cm-t335", "ti,am33xx"
--
--- AM335X phyCORE-AM335x: Development kit
--  compatible = "phytec,am335x-pcm-953", "phytec,am335x-phycore-som", "ti,am33xx"
--
--- AM335x phyBOARD-REGOR: Single Board Computer
--  compatible = "phytec,am335x-regor", "phytec,am335x-phycore-som", "ti,am33xx"
--
--- AM335X UC-8100-ME-T: Communication-centric industrial computing platform
--  compatible = "moxa,uc-8100-me-t", "ti,am33xx";
--
--- OMAP5 EVM : Evaluation Module
--  compatible = "ti,omap5-evm", "ti,omap5"
- 
- - AM437x CM-T43
-   compatible = "compulab,am437x-cm-t43", "ti,am4372", "ti,am43"
-@@ -217,9 +124,3 @@ Boards (incomplete list of examples):
- 
- - DRA718 EVM: Software Development Board for DRA718
-   compatible = "ti,dra718-evm", "ti,dra718", "ti,dra722", "ti,dra72", "ti,dra7"
--
--- DM3730 Logic PD Torpedo + Wireless: Commercial System on Module with WiFi and Bluetooth
--  compatible = "logicpd,dm3730-torpedo-devkit", "ti,omap3630", "ti,omap3"
--
--- DM3730 Logic PD SOM-LV: Commercial System on Module with WiFi and Bluetooth
--  compatible = "logicpd,dm3730-som-lv-devkit", "ti,omap3630", "ti,omap3"
-diff --git a/Documentation/devicetree/bindings/arm/ti/omap.yaml b/Documentation/devicetree/bindings/arm/ti/omap.yaml
-new file mode 100644
-index 0000000000000..b18fc046390a4
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/ti/omap.yaml
-@@ -0,0 +1,176 @@
-+# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/arm/ti/omap.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: Texas Instruments OMAP SoC architecture
-+
-+maintainers:
-+  - Tony Lindgren <tony@atomide.com>
-+
-+description: Platforms based on Texas Instruments OMAP SoC architecture.
-+
-+properties:
-+  $nodename:
-+    const: '/'
-+  compatible:
-+    oneOf:
-+
-+      - description: TI OMAP2420 SoC based platforms
-+        items:
-+          - enum:
-+              - nokia,n800
-+              - nokia,n810
-+              - nokia,n810-wimax
-+              - ti,omap2420-h4
-+          - const: ti,omap2420
-+          - const: ti,omap2
-+
-+      - description: TI OMAP2430 SoC based platforms
-+        items:
-+          - enum:
-+              - ti,omap2430-sdp # TI OMAP2430 SDP
-+          - const: ti,omap2430
-+          - const: ti,omap2
-+
-+      - description: TI OMAP3430 SoC based platforms
-+        items:
-+          - enum:
-+              - compulab,omap3-cm-t3530
-+              - logicpd,dm3730-som-lv-devkit  # LogicPD Zoom OMAP35xx SOM-LV Development Kit
-+              - logicpd,dm3730-torpedo-devkit # LogicPD Zoom OMAP35xx Torpedo Development Kit
-+              - nokia,omap3-n900
-+              - openpandora,omap3-pandora-600mhz
-+              - ti,omap3430-sdp
-+              - ti,omap3-beagle
-+              - ti,omap3-evm                  # TI OMAP35XX EVM (TMDSEVM3530)
-+              - ti,omap3-ldp                  # TI OMAP3430 LDP (Zoom1 Labrador)
-+              - timll,omap3-devkit8000
-+          - const: ti,omap3430
-+          - const: ti,omap3
-+
-+      - description: Early BeagleBoard revisions A to B4 with a timer quirk
-+        items:
-+          - const: ti,omap3-beagle-ab4
-+          - const: ti,omap3-beagle
-+          - const: ti,omap3430
-+          - const: ti,omap3
-+
-+      - description: Gumstix Overo TI OMAP 3430/3630 boards + expansion boards
-+        items:
-+          - enum:
-+              - gumstix,omap3-overo-alto35
-+              - gumstix,omap3-overo-chestnut43
-+              - gumstix,omap3-overo-gallop43
-+              - gumstix,omap3-overo-palo35
-+              - gumstix,omap3-overo-palo43
-+              - gumstix,omap3-overo-summit
-+              - gumstix,omap3-overo-tobi
-+              - gumstix,omap3-overo-tobiduo
-+          - const: gumstix,omap3-overo
-+          - enum:
-+              - ti,omap3430
-+              - ti,omap3630
-+
-+      - description: TI OMAP3630 SoC based platforms
-+        items:
-+          - enum:
-+              - amazon,omap3-echo             # Amazon Echo (first generation)
-+              - compulab,omap3-cm-t3730
-+              - goldelico,gta04
-+              - lg,omap3-sniper               # LG Optimus Black
-+              - logicpd,dm3730-som-lv-devkit  # LogicPD Zoom DM3730 SOM-LV Development Kit
-+              - logicpd,dm3730-torpedo-devkit # LogicPD Zoom DM3730 Torpedo + Wireless Development Kit
-+              - nokia,omap3-n9
-+              - nokia,omap3-n950
-+              - openpandora,omap3-pandora-1ghz
-+              - ti,omap3-beagle-xm
-+              - ti,omap3-evm-37xx             # TI OMAP37XX EVM (TMDSEVM3730)
-+              - ti,omap3-zoom3
-+          - const: ti,omap3630
-+          - const: ti,omap3
-+
-+      - description: TI AM35 SoC based platforms
-+        items:
-+          - enum:
-+              - compulab,omap3-sbc-t3517 # CompuLab SBC-T3517 with CM-T3517
-+              - teejet,mt_ventoux
-+              - ti,am3517-craneboard     # TI AM3517 CraneBoard (TMDSEVM3517)
-+              - ti,am3517-evm            # TI AM3517 EVM (AM3517/05 TMDSEVM3517)
-+          - const: ti,am3517
-+          - const: ti,omap3
-+
-+      - description: TI AM33 based platform
-+        items:
-+          - enum:
-+              - compulab,cm-t335
-+              - moxa,uc-8100-me-t
-+              - novatech,am335x-lxm
-+              - ti,am335x-bone
-+              - ti,am335x-evm
-+              - ti,am3359-icev2
-+          - const: ti,am33xx
-+
-+      - description: Compulab board variants based on TI AM33
-+        items:
-+          - enum:
-+              - compulab,sbc-t335
-+          - const: compulab,cm-t335
-+          - const: ti,am33xx
-+
-+      - description: Phytec boards based on TI AM33
-+        items:
-+          - enum:
-+              - phytec,am335x-wega
-+              - phytec,am335x-pcm-953
-+              - phytec,am335x-regor
-+          - const: phytec,am335x-phycore-som
-+          - const: ti,am33xx
-+
-+      - description: TI OMAP4430 SoC based platforms
-+        items:
-+          - enum:
-+              - amazon,omap4-kc1        # Amazon Kindle Fire (first generation)
-+              - motorola,droid4         # Motorola Droid 4 XT894
-+              - motorola,droid-bionic   # Motorola Droid Bionic XT875
-+              - ti,omap4-panda
-+              - ti,omap4-sdp
-+          - const: ti,omap4430
-+          - const: ti,omap4
-+
-+      - description: OMAP4 DuoVero with Parlor expansion board/daughter board
-+        items:
-+          - const: gumstix,omap4-duovero-parlor
-+          - const: gumstix,omap4-duovero
-+          - const: ti,omap4430
-+          - const: ti,omap4
-+
-+      - description: TI OMAP4460 SoC based platforms
-+        items:
-+          - enum:
-+              - epson,embt2ws    # Epson Moverio BT-200
-+              - ti,omap4-panda-es
-+          - const: ti,omap4460
-+          - const: ti,omap4
-+
-+      - description: VAR-OM44 boards
-+        items:
-+          - enum:
-+              - variscite,var-dvk-om44
-+              - variscite,var-stk-om44
-+          - const: variscite,var-som-om44
-+          - const: ti,omap4460
-+          - const: ti,omap4
-+
-+      - description: TI OMAP5 SoC based platforms
-+        items:
-+          - enum:
-+              - compulab,omap5-cm-t54
-+              - isee,omap5-igep0050
-+              - ti,omap5-uevm
-+          - const: ti,omap5
-+
-+additionalProperties: true
-+
-+...
--- 
-2.39.2
+drivers/bus/ti-sysc.c
+    1756 static u32 sysc_quirk_dispc(struct sysc *ddata, int dispc_offset,
+    1757                             bool disable)
+    1758 {
+    1759         bool lcd_en, digit_en, lcd2_en = false, lcd3_en = false;
+    1760         const int lcd_en_mask = BIT(0), digit_en_mask = BIT(1);
+    1761         int manager_count;
+    1762         bool framedonetv_irq = true;
+    1763         u32 val, irq_mask = 0;
+    1764 
+    1765         switch (sysc_soc->soc) {
+    1766         case SOC_2420 ... SOC_3630:
+    1767                 manager_count = 2;
+    1768                 framedonetv_irq = false;
+    1769                 break;
+    1770         case SOC_4430 ... SOC_4470:
+    1771                 manager_count = 3;
+    1772                 break;
+    1773         case SOC_5430:
+    1774         case SOC_DRA7:
+    1775                 manager_count = 4;
+    1776                 break;
+    1777         case SOC_AM4:
+    1778                 manager_count = 1;
+    1779                 framedonetv_irq = false;
+    1780                 break;
+    1781         case SOC_UNKNOWN:
+    1782         default:
+    1783                 return 0;
+    1784         }
+    1785 
+    1786         /* Remap the whole module range to be able to reset dispc outputs */
+    1787         devm_iounmap(ddata->dev, ddata->module_va);
+    1788         ddata->module_va = devm_ioremap(ddata->dev,
+    1789                                         ddata->module_pa,
+    1790                                         ddata->module_size);
+    1791         if (!ddata->module_va)
+    1792                 return -EIO;
+    1793 
+    1794         /* DISP_CONTROL */
+    1795         val = sysc_read(ddata, dispc_offset + 0x40);
+    1796         lcd_en = val & lcd_en_mask;
+    1797         digit_en = val & digit_en_mask;
+    1798         if (lcd_en)
+    1799                 irq_mask |= BIT(0);                        /* FRAMEDONE */
+    1800         if (digit_en) {
+    1801                 if (framedonetv_irq)
+    1802                         irq_mask |= BIT(24);                /* FRAMEDONETV */
+    1803                 else
+    1804                         irq_mask |= BIT(2) | BIT(3);        /* EVSYNC bits */
+    1805         }
+--> 1806         if (disable & (lcd_en | digit_en))
 
+digit_en is BIT(1) so this mask doesn't make sense.  Probably logical
+&& and || were intended or && and |?
+
+    1807                 sysc_write(ddata, dispc_offset + 0x40,
+    1808                            val & ~(lcd_en_mask | digit_en_mask));
+    1809 
+    1810         if (manager_count <= 2)
+    1811                 return irq_mask;
+    1812 
+    1813         /* DISPC_CONTROL2 */
+    1814         val = sysc_read(ddata, dispc_offset + 0x238);
+    1815         lcd2_en = val & lcd_en_mask;
+    1816         if (lcd2_en)
+    1817                 irq_mask |= BIT(22);                        /* FRAMEDONE2 */
+    1818         if (disable && lcd2_en)
+    1819                 sysc_write(ddata, dispc_offset + 0x238,
+    1820                            val & ~lcd_en_mask);
+    1821 
+    1822         if (manager_count <= 3)
+    1823                 return irq_mask;
+    1824 
+    1825         /* DISPC_CONTROL3 */
+    1826         val = sysc_read(ddata, dispc_offset + 0x848);
+    1827         lcd3_en = val & lcd_en_mask;
+    1828         if (lcd3_en)
+    1829                 irq_mask |= BIT(30);                        /* FRAMEDONE3 */
+    1830         if (disable && lcd3_en)
+    1831                 sysc_write(ddata, dispc_offset + 0x848,
+    1832                            val & ~lcd_en_mask);
+    1833 
+    1834         return irq_mask;
+    1835 }
+
+regards,
+dan carpenter
