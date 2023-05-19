@@ -2,61 +2,104 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E31EEC77B75
-	for <linux-omap@archiver.kernel.org>; Fri, 19 May 2023 09:45:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A004FC7EE26
+	for <linux-omap@archiver.kernel.org>; Fri, 19 May 2023 14:13:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230357AbjESJpV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 19 May 2023 05:45:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47934 "EHLO
+        id S231792AbjESONB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 19 May 2023 10:13:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231967AbjESJpB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 May 2023 05:45:01 -0400
-Received: from mail.feshiecree.pl (mail.feshiecree.pl [89.40.114.103])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8A2D2130
-        for <linux-omap@vger.kernel.org>; Fri, 19 May 2023 02:43:57 -0700 (PDT)
-Received: by mail.feshiecree.pl (Postfix, from userid 1001)
-        id CDDBB864B9; Fri, 19 May 2023 10:41:34 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=feshiecree.pl;
-        s=mail; t=1684489325;
-        bh=hFxZwVw4rIL+JwfEOGI47p+fdoVOAeqVswP6NWoHSHQ=;
-        h=Date:From:To:Subject:From;
-        b=GWJm0jDPxo1mEl6wFZnN9MA3VFdTWuWTcV12T+aKqSLElBdDalxsYKqQNKCCJqqZj
-         zUbHzmWNPHIL0r5aIyHSN7wREdKvA61Q05OGX6nyvEXNaUeh+TFpmE0EpFWt+VBfdG
-         piZjj47ym5MVwrRsqxlH46bAMMfGifYm7zB3mYaUHkWUci8xJYJzbvKHxvDR9D+klV
-         yE9laepmhaajqPHlonSIZVNEIQd7NEa+Z7H+29L6yr8IXtO0WXJyHsvKe1bwnsSzZb
-         Nhlyb2pLciGiPxkfDFM31xH93nuhjYQRLA62I6GszYe//iXCpCfE93kgpu71N/zk1F
-         5AgRtSMEJqh3A==
-Received: by mail.feshiecree.pl for <linux-omap@vger.kernel.org>; Fri, 19 May 2023 09:41:03 GMT
-Message-ID: <20230519100149-0.1.2n.hsf0.0.jp553kaphy@feshiecree.pl>
-Date:   Fri, 19 May 2023 09:41:03 GMT
-From:   "Krystian Wieczorek" <krystian.wieczorek@feshiecree.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: W sprawie samochodu
-X-Mailer: mail.feshiecree.pl
+        with ESMTP id S230116AbjESONB (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 19 May 2023 10:13:01 -0400
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.21])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C9E0A3;
+        Fri, 19 May 2023 07:12:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
+        t=1684505573; i=deller@gmx.de;
+        bh=tbCcr/2mh99Kp/T8oPTjqL/r2ONKQOr37+TIk6y2YvU=;
+        h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:In-Reply-To;
+        b=QU3rSZnyziskHwpFiMvdLKp5YBwf+mDuFOKF2b9yKtQDrqCd9HdARJlKLsX6b1FpT
+         ufahe5XBrB5bF8QWMY8TT34Aq4UlAFZlU8Q5FrOVNudcCl4/5Xk/xExoGLvOq8XwDa
+         mduTZFYQTi2FnR/tdfkdEfQw765C2p28Q0oZ0mr+uXTJxFS8C1f1+GttT+Xvxf4/sl
+         GsbjHMAJzlYbwch+oKVhadqd48ZdfcCd2b+7Mbi7RXQvWr4t9KaZevR7rJEagN9rx4
+         X90LAg0G1Z6q+U2ninmOijB1kSMv2MTLnPFqHY+vnpwDWbPUTwEVes2zarxgkzx799
+         jAm6hyZQNAdtw==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from [192.168.20.60] ([94.134.152.232]) by mail.gmx.net (mrgmx104
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MtOGU-1qI6Qt1MQo-00urQa; Fri, 19
+ May 2023 16:12:53 +0200
+Message-ID: <3f3878f0-70c6-1f87-2257-30dfce8411e6@gmx.de>
+Date:   Fri, 19 May 2023 16:12:52 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.10.0
+Subject: Re: [PATCH] fbdev: omapfb: panel-tpo-td043mtea1: fix error code in
+ probe()
+Content-Language: en-US
+To:     Dan Carpenter <dan.carpenter@linaro.org>,
+        Cai Huoqing <cai.huoqing@linux.dev>
+Cc:     Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+References: <6f80089a-9223-4434-8da1-c071dd9367b5@kili.mountain>
+From:   Helge Deller <deller@gmx.de>
+In-Reply-To: <6f80089a-9223-4434-8da1-c071dd9367b5@kili.mountain>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:SW9PeyO7xD6f74VQh7991XhZwZncZqqfMuIV/Dw7/bDivEfCyfj
+ BcLXCaIVITjdqwhFGe5/OJ4Sn5849L2C8SJFeFbLhaX/t2J5rwDWOgdrQkfkPg8+qFiPsAs
+ hJFlsh3/wK79LWiuBvplR6t/RO2bIhU1UiVxBcnP6OLivXHtw2mm4+KbBpJajU3JkIkmPcO
+ b48qKRFnk/KmT1wguYUWA==
+UI-OutboundReport: notjunk:1;M01:P0:Z7TPJaraKlQ=;ZC+NnIOEKEAP0RToH8ucaYAC7oP
+ h2vRmVC49MXbQkTcgg1rl4zOZ5nn6eVWqo4mzWPaLAvnvllGneDqglToZVMqacotmzfFDpQ3v
+ 4TUAZveJk2NKiTwOsuoxgrE0szrb5ZOGx1KoN4GXA0B3JxS15MlLUUs3OBJHl1e/Rz6s1Qpcf
+ kkKtjggT9zZyzCwXxpQcmsOiirKZPgjAadJ9mJTQI4PvIVgLuxqIO+c7BVEDMtISy0B/+YKJX
+ Qzt71JrzdiVb5oc/UNRLi19b1wf2FFTZDiNscQpVjmhm+yfK7OJs+nqNHmeTf8PxPWKjfsyw/
+ lVT1b9mDlF5NN6ZcOdx+6FCsOxNl0HfZYZi7hPPPubkJtK9Sy2dc5jGGxBgUMVLu4tEiPUGMu
+ 8mlHJsju3yyV828KEtdvJRlfZ4oxMLoj7U3v+JW1N2qKDPB6KmGWIY6zXFTLWl8XskMoMZQi2
+ mpNrwujxFdA0ASzMnF7tdQEfjtnsIY9bt7aPlx9lX9ChLbhTefhL3FRou38bcZ6HPttFEUVk6
+ Zsby1PQmCpDnHOsXAvwJzy/VYeHh6p5721LDXYVLSsbNO0vBcGjKTz/EiNhbMbf4MW/TKPhXH
+ 9Jna7TGF12GzZOdJDNHQa506nJ33FSXEjuqKrahho/eGp6v2Oqpo/466rwy4qlTMsA+ojkNdI
+ H4N7GW3+7irmpv5NEgiPKm7VTGhiBY4Zp6F74HrWnFOg1L9hr4UanPeQecVgOdfY5gAgll3pc
+ y6MMjMxLg5kMY48yekfbUdCaq/P89MzPYzSskhHoXLwdANtsTEeUNBKL/DtaNolnc/IU7PMOg
+ 9bOi7SG5Gzv1VD4Tw3Wu5ZO2WxU2hKe97KX0qVoIBMTwLleRbbpOjb7cq3bFOl0kNBaVos3yj
+ ATDYcRtVmJAY+q9xsyUAlvau0G0Puz7XFmXnH6gp6SJHMMx5ofTNjsFw0tlqyWmW5XdpxQfct
+ rFUKrKVcEPUEMfkmmcDRcrHRac4=
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On 5/15/23 12:32, Dan Carpenter wrote:
+> This was using the wrong variable, "r", instead of "ddata->vcc_reg", so
+> it returned success instead of a negative error code.
+>
+> Fixes: 0d3dbeb8142a ("video: fbdev: omapfb: panel-tpo-td043mtea1: Make u=
+se of the helper function dev_err_probe()")
+> Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+> ---
+>   .../video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c   | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
 
-chcieliby=C5=9Bmy zapewni=C4=87 Pa=C5=84stwu kompleksowe rozwi=C4=85zania=
-, je=C5=9Bli chodzi o system monitoringu GPS.
+applied.
 
-Precyzyjne monitorowanie pojazd=C3=B3w na mapach cyfrowych, =C5=9Bledzeni=
-e ich parametr=C3=B3w eksploatacyjnych w czasie rzeczywistym oraz kontrol=
-a paliwa to kluczowe funkcjonalno=C5=9Bci naszego systemu.=20
+Thanks!
+Helge
 
-Organizowanie pracy pracownik=C3=B3w jest dzi=C4=99ki temu prostsze i bar=
-dziej efektywne, a oszcz=C4=99dno=C5=9Bci i optymalizacja w zakresie pono=
-szonych koszt=C3=B3w, maj=C4=85 dla ka=C5=BCdego przedsi=C4=99biorcy ogro=
-mne znaczenie.
+>
+> diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mt=
+ea1.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
+> index 1eaa35c27835..477789cff8e0 100644
+> --- a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
+> +++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
+> @@ -491,7 +491,8 @@ static int tpo_td043_probe(struct spi_device *spi)
+>
+>   	ddata->vcc_reg =3D devm_regulator_get(&spi->dev, "vcc");
+>   	if (IS_ERR(ddata->vcc_reg)) {
+> -		r =3D dev_err_probe(&spi->dev, r, "failed to get LCD VCC regulator\n"=
+);
+> +		r =3D dev_err_probe(&spi->dev, PTR_ERR(ddata->vcc_reg),
+> +				  "failed to get LCD VCC regulator\n");
+>   		goto err_regulator;
+>   	}
+>
 
-Dopasujemy nasz=C4=85 ofert=C4=99 do Pa=C5=84stwa oczekiwa=C5=84 i potrze=
-b organizacji. Czy mogliby=C5=9Bmy porozmawia=C4=87 o naszej propozycji?
-
-
-Pozdrawiam
-Krystian Wieczorek
