@@ -2,43 +2,43 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8A3FC7EE2F
-	for <linux-omap@archiver.kernel.org>; Tue, 30 May 2023 09:40:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 443E6C7EE31
+	for <linux-omap@archiver.kernel.org>; Tue, 30 May 2023 09:40:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230478AbjE3JkJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 30 May 2023 05:40:09 -0400
+        id S230453AbjE3JkK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 30 May 2023 05:40:10 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229976AbjE3JkA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 30 May 2023 05:40:00 -0400
-Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.154.123])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2769EA3;
-        Tue, 30 May 2023 02:39:59 -0700 (PDT)
+        with ESMTP id S230287AbjE3JkI (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 30 May 2023 05:40:08 -0400
+Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.153.233])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 110A3F0;
+        Tue, 30 May 2023 02:40:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
-  t=1685439599; x=1716975599;
+  t=1685439602; x=1716975602;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=0m1WdlpCymQ4W+Yto3Q078jszfReeoWsXUkNYrYgCKc=;
-  b=jJ6j2w9rHeyxhdn7eu7H6NoiAupU5tJh0SA63FT2b6+1JtrmTuhNmE1F
-   DnjW2O1c8MJmOBkpkQBZ3p421+QgZ4ZiOFZ3UNcOx3zAwTPrilSWGHvfc
-   yOLgMrgLj0OcWNFkUbjHa40ppcFdcS1VYqWUZ5y0/rguHqQNm9ARI4D1Q
-   arN8lo4pcqS3RG+53OFKd2n8JpUUFlIA+IibGxrLZOXAEUEzFsRr99kf1
-   7YWW2mr0Cd6elI8UZDywOntBhkjJYfRf9LNlEuUgodndeCNx31q/EjkY5
-   KCa55zVXUPKVLnlWXrv9Bae0sJN9Bkn4xYx7U+G4WLqY8q4rLORq4wAlN
-   A==;
+  bh=eULxRW5HiZYtKwH0qN2snrG4MCmtG1cxN6q/9u0F8p4=;
+  b=hTVqjvR2ukbezJJIEWi+nYafV2tQY+O1RpAM+3xlyv+EGbNUWAe7p2t2
+   pEb2b/7hZxzCpA2XYIFYAhvisg25zfAfBTi3Uaq7Bgv0YMbj/rtSypSYv
+   PrpQOM5z/OLM1C3bozAR4NoovylJYfHtqs1p/ZoKqqlol1YjHQ0p2QiK1
+   YOvWgmYY/NAG+yClDO5Y+ntB/WIvCVuAf9AOaDBMlZJEBNxGx0rFuv1ff
+   8ow1kEzkLNem3sQDxM2gdAh/XTVjLRVbjo7MwKOZOQuqgBes1tpKVBxnn
+   NayLh6rz3wOCKASCrhODe+ZbHHK9FIQKLO78HRxfZ+DrniGQcYy4yuYmz
+   w==;
 X-IronPort-AV: E=Sophos;i="6.00,203,1681196400"; 
-   d="scan'208";a="217919005"
+   d="scan'208";a="227558620"
 X-Amp-Result: SKIPPED(no attachment in message)
 Received: from unknown (HELO email.microchip.com) ([170.129.1.10])
-  by esa2.microchip.iphmx.com with ESMTP/TLS/AES256-SHA256; 30 May 2023 02:39:58 -0700
+  by esa1.microchip.iphmx.com with ESMTP/TLS/AES256-SHA256; 30 May 2023 02:40:02 -0700
 Received: from chn-vm-ex01.mchp-main.com (10.10.85.143) by
- chn-vm-ex02.mchp-main.com (10.10.85.144) with Microsoft SMTP Server
+ chn-vm-ex01.mchp-main.com (10.10.85.143) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.21; Tue, 30 May 2023 02:39:51 -0700
+ 15.1.2507.21; Tue, 30 May 2023 02:40:01 -0700
 Received: from m18063-ThinkPad-T460p.mchp-main.com (10.10.115.15) by
  chn-vm-ex01.mchp-main.com (10.10.85.143) with Microsoft SMTP Server id
- 15.1.2507.21 via Frontend Transport; Tue, 30 May 2023 02:39:44 -0700
+ 15.1.2507.21 via Frontend Transport; Tue, 30 May 2023 02:39:57 -0700
 From:   Claudiu Beznea <claudiu.beznea@microchip.com>
 To:     <mturquette@baylibre.com>, <sboyd@kernel.org>,
         <luca.ceresoli@bootlin.com>, <nm@ti.com>, <kristo@kernel.org>,
@@ -50,9 +50,9 @@ CC:     <aford173@gmail.com>, <mike.looijmans@topic.nl>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-omap@vger.kernel.org>,
         Claudiu Beznea <claudiu.beznea@microchip.com>
-Subject: [PATCH 3/8] clk: si5341: return error if one synth clock registration fails
-Date:   Tue, 30 May 2023 12:39:08 +0300
-Message-ID: <20230530093913.1656095-4-claudiu.beznea@microchip.com>
+Subject: [PATCH 5/8] clk: si5341: free unused memory on probe failure
+Date:   Tue, 30 May 2023 12:39:10 +0300
+Message-ID: <20230530093913.1656095-6-claudiu.beznea@microchip.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230530093913.1656095-1-claudiu.beznea@microchip.com>
 References: <20230530093913.1656095-1-claudiu.beznea@microchip.com>
@@ -63,63 +63,77 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-In case devm_clk_hw_register() fails for one of synth clocks the probe
-continues. Later on, when registering output clocks which have as parents
-all the synth clocks, in case there is registration failure for at least
-one synth clock the information passed to clk core for registering output
-clock is not right: init.num_parents is fixed but init.parents may contain
-an array with less parents.
+Pointers from synth_clock_names[] should be freed at the end of probe
+either on probe success or failure path.
 
-Fixes: 3044a860fd09 ("clk: Add Si5341/Si5340 driver")
+Fixes: b7bbf6ec4940 ("clk: si5341: Allow different output VDD_SEL values")
+Fixes: 9b13ff4340df ("clk: si5341: Add sysfs properties to allow checking/resetting device faults")
 Signed-off-by: Claudiu Beznea <claudiu.beznea@microchip.com>
 ---
- drivers/clk/clk-si5341.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/clk/clk-si5341.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/clk/clk-si5341.c b/drivers/clk/clk-si5341.c
-index 0e528d7ba656..6dca3288c894 100644
+index b2cf7edc8b30..c7d8cbd22bac 100644
 --- a/drivers/clk/clk-si5341.c
 +++ b/drivers/clk/clk-si5341.c
-@@ -1553,7 +1553,7 @@ static int si5341_probe(struct i2c_client *client)
- 	struct clk_init_data init;
- 	struct clk *input;
- 	const char *root_clock_name;
--	const char *synth_clock_names[SI5341_NUM_SYNTH];
-+	const char *synth_clock_names[SI5341_NUM_SYNTH] = { NULL };
- 	int err;
- 	unsigned int i;
- 	struct clk_si5341_output_config config[SI5341_MAX_NUM_OUTPUTS];
-@@ -1705,6 +1705,7 @@ static int si5341_probe(struct i2c_client *client)
+@@ -1744,7 +1744,7 @@ static int si5341_probe(struct i2c_client *client)
  		if (err) {
  			dev_err(&client->dev,
- 				"synth N%u registration failed\n", i);
+ 				"output %u registration failed\n", i);
+-			goto cleanup;
 +			goto free_clk_names;
  		}
+ 		if (config[i].always_on)
+ 			clk_prepare(data->clk[i].hw.clk);
+@@ -1754,7 +1754,7 @@ static int si5341_probe(struct i2c_client *client)
+ 			data);
+ 	if (err) {
+ 		dev_err(&client->dev, "unable to add clk provider\n");
+-		goto cleanup;
++		goto free_clk_names;
  	}
  
-@@ -1782,16 +1783,17 @@ static int si5341_probe(struct i2c_client *client)
- 		goto cleanup;
+ 	if (initialization_required) {
+@@ -1762,11 +1762,11 @@ static int si5341_probe(struct i2c_client *client)
+ 		regcache_cache_only(data->regmap, false);
+ 		err = regcache_sync(data->regmap);
+ 		if (err < 0)
+-			goto cleanup;
++			goto free_clk_names;
+ 
+ 		err = si5341_finalize_defaults(data);
+ 		if (err < 0)
+-			goto cleanup;
++			goto free_clk_names;
  	}
  
-+free_clk_names:
+ 	/* wait for device to report input clock present and PLL lock */
+@@ -1775,21 +1775,19 @@ static int si5341_probe(struct i2c_client *client)
+ 	       10000, 250000);
+ 	if (err) {
+ 		dev_err(&client->dev, "Error waiting for input clock or PLL lock\n");
+-		goto cleanup;
++		goto free_clk_names;
+ 	}
+ 
+ 	/* clear sticky alarm bits from initialization */
+ 	err = regmap_write(data->regmap, SI5341_STATUS_STICKY, 0);
+ 	if (err) {
+ 		dev_err(&client->dev, "unable to clear sticky status\n");
+-		goto cleanup;
++		goto free_clk_names;
+ 	}
+ 
+ 	err = sysfs_create_files(&client->dev.kobj, si5341_attributes);
+-	if (err) {
++	if (err)
+ 		dev_err(&client->dev, "unable to create sysfs files\n");
+-		goto cleanup;
+-	}
+ 
+ free_clk_names:
  	/* Free the names, clk framework makes copies */
- 	for (i = 0; i < data->num_synth; ++i)
- 		 devm_kfree(&client->dev, (void *)synth_clock_names[i]);
- 
--	return 0;
--
- cleanup:
--	for (i = 0; i < SI5341_MAX_NUM_OUTPUTS; ++i) {
--		if (data->clk[i].vddo_reg)
--			regulator_disable(data->clk[i].vddo_reg);
-+	if (err) {
-+		for (i = 0; i < SI5341_MAX_NUM_OUTPUTS; ++i) {
-+			if (data->clk[i].vddo_reg)
-+				regulator_disable(data->clk[i].vddo_reg);
-+		}
- 	}
- 	return err;
- }
 -- 
 2.34.1
 
