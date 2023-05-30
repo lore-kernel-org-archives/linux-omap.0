@@ -2,344 +2,95 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B99FFC77B7A
-	for <linux-omap@archiver.kernel.org>; Tue, 30 May 2023 08:00:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EAF7C7EE29
+	for <linux-omap@archiver.kernel.org>; Tue, 30 May 2023 09:39:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229845AbjE3IAb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 30 May 2023 04:00:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52762 "EHLO
+        id S230196AbjE3Jjl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 30 May 2023 05:39:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229825AbjE3IA3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 30 May 2023 04:00:29 -0400
-Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B0F2B0
-        for <linux-omap@vger.kernel.org>; Tue, 30 May 2023 01:00:26 -0700 (PDT)
-Received: by mail-wm1-x32d.google.com with SMTP id 5b1f17b1804b1-3f6094cb2d2so42981975e9.2
-        for <linux-omap@vger.kernel.org>; Tue, 30 May 2023 01:00:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20221208.gappssmtp.com; s=20221208; t=1685433625; x=1688025625;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=T89fO1iX8dooBAHqyAxjAzopLWomNCu3kMntxjnKti8=;
-        b=DiPCoeIM64Gd9saJ1HkPXbYkIomeQl5CiKgkBA4c0LZdBNWGpd1RNXtMfOc+F+v9lA
-         xXFsYZlE5f8L62iVTNeRaARGO3aW2iYsB8WEzDu/V+s+8N/qE6EFmuKmsCCS2Y13Y1ZQ
-         XcTdx+4SoesTkJuCf9u7fpA6XcTc9LiteBusuYUie3BGtIKZJ5OzMYt8YZioc5arJNp1
-         vh9BCeIBRsnIHjKC2pOD7nUI06cckRN8bBynfrysnQvr0Okeq8lnuRYqBXwneuQhDkCf
-         n308sp8QqmJjjmKGXjbkLCMf8HjSyEp07ADJeBa8KY3EkPSvazz+Rg/xEWAruvFy7NHb
-         Gy7A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685433625; x=1688025625;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=T89fO1iX8dooBAHqyAxjAzopLWomNCu3kMntxjnKti8=;
-        b=eFNBJ9ZyfSzc59Fq0bKWAGOAA9AT/Nrtylv9YF87uhd5KtHt3ML/F0HH4BbwfFGTbQ
-         DUVQbQdoY0EweNAqJ5uaUtqafu/8dk4P36w0PtXqpnNyE2eyl+kLklgXyzokiaqj5lwY
-         Cxhxfa5ZsQbSpmn2SBrWPkW6MUGILROddRMTZl01mA3HhdOFZdtVib7b5QuM8/61EvWk
-         bSF2qzfgVnmbTGSMAKehqBRvHY8IuNVO1o3ntJsL7S7NCweTnfNFTXKUomLt8UvpSjUc
-         Wsm8+k+T+NcM+Z3XGNlcmBew/7j0asHHOp1F7skA45JuDPWW6Y+KW3eYWZcgWhIa7Ub1
-         5yCA==
-X-Gm-Message-State: AC+VfDxEI3WDEXG8jKX/0q5MmliErE1Q5Z9z8znQXwO1tK5HVfEsAhXc
-        pTdWBBcdgIaNZtAJmMBzr5AvVQ==
-X-Google-Smtp-Source: ACHHUZ5tYqYvpO5/2Mh84Xl9HPsN+wlX8jmrBi+E3rUSmNtLMVrzTytmxsTgkjZa4L7CaHGA/mgCqA==
-X-Received: by 2002:a1c:f710:0:b0:3f4:2bce:eef8 with SMTP id v16-20020a1cf710000000b003f42bceeef8mr926151wmh.16.1685433624958;
-        Tue, 30 May 2023 01:00:24 -0700 (PDT)
-Received: from [127.0.1.1] (laubervilliers-658-1-213-31.w90-63.abo.wanadoo.fr. [90.63.244.31])
-        by smtp.gmail.com with ESMTPSA id m6-20020a7bce06000000b003f6050d35c9sm16409978wmc.20.2023.05.30.01.00.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 30 May 2023 01:00:24 -0700 (PDT)
-From:   Jerome Neanne <jneanne@baylibre.com>
-Date:   Tue, 30 May 2023 09:59:59 +0200
-Subject: [PATCH v4 1/2] gpio: tps65219: add GPIO support for TPS65219 PMIC
+        with ESMTP id S229550AbjE3Jjk (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 30 May 2023 05:39:40 -0400
+Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.154.123])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 299BBFC;
+        Tue, 30 May 2023 02:39:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
+  t=1685439577; x=1716975577;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=EilXIOvUaLl6Wbm/Y1NuawMKvR7ssqkmCU3WRLSqQPs=;
+  b=2FMHPj05fwHXm5WAAun6rvJUVbsgFB+m6GteUEJ1R9YycQJJpc0QzyBu
+   m6K2QWC4UEhmn1iaDEbwJ/jNJVFpbo16eUsol62ErHBn2W3GCPmKanR1n
+   8e6thTzVkpSoVw3nwEnSEMEdgEj4SK06ZxLZokowgkVnECerM7Qw78taR
+   qdFoM7PBypOiocFvrc7HZNpR1tqdVGvf3CmwWd5AyGXT2nunPUiPt7hPr
+   W/PTkI72iL96OaSy7DgvhmxOEj0NzOmjU067QdYCt5miEmRKjpbzbOcuA
+   YVD/Ij9cblbJNiOnnJhZm2iEHoZHTHzFIPnhhA4OHDFdaAirmQdeEbPru
+   Q==;
+X-IronPort-AV: E=Sophos;i="6.00,203,1681196400"; 
+   d="scan'208";a="217918973"
+X-Amp-Result: SKIPPED(no attachment in message)
+Received: from unknown (HELO email.microchip.com) ([170.129.1.10])
+  by esa2.microchip.iphmx.com with ESMTP/TLS/AES256-SHA256; 30 May 2023 02:39:36 -0700
+Received: from chn-vm-ex01.mchp-main.com (10.10.85.143) by
+ chn-vm-ex04.mchp-main.com (10.10.85.152) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.21; Tue, 30 May 2023 02:39:35 -0700
+Received: from m18063-ThinkPad-T460p.mchp-main.com (10.10.115.15) by
+ chn-vm-ex01.mchp-main.com (10.10.85.143) with Microsoft SMTP Server id
+ 15.1.2507.21 via Frontend Transport; Tue, 30 May 2023 02:39:31 -0700
+From:   Claudiu Beznea <claudiu.beznea@microchip.com>
+To:     <mturquette@baylibre.com>, <sboyd@kernel.org>,
+        <luca.ceresoli@bootlin.com>, <nm@ti.com>, <kristo@kernel.org>,
+        <ssantosh@kernel.org>, <michal.simek@xilinx.com>
+CC:     <aford173@gmail.com>, <mike.looijmans@topic.nl>,
+        <robert.hancock@calian.com>, <shawn.guo@linaro.org>,
+        <fabio.estevam@freescale.com>, <linux-clk@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>
+Subject: [PATCH 0/8] clk: check memory returned by {devm_}kasprintf()
+Date:   Tue, 30 May 2023 12:39:05 +0300
+Message-ID: <20230530093913.1656095-1-claudiu.beznea@microchip.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230511-tps65219-add-gpio-support-v4-1-b5d6a764d722@baylibre.com>
-References: <20230511-tps65219-add-gpio-support-v4-0-b5d6a764d722@baylibre.com>
-In-Reply-To: <20230511-tps65219-add-gpio-support-v4-0-b5d6a764d722@baylibre.com>
-To:     Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Tony Lindgren <tony@atomide.com>, Lee Jones <lee@kernel.org>
-Cc:     khilman@baylibre.com, msp@baylibre.com, francesco@dolcini.it,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-omap@vger.kernel.org,
-        Jonathan Cormier <jcormier@criticallink.com>,
-        Jerome Neanne <jneanne@baylibre.com>
-X-Mailer: b4 0.12.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1685433622; l=8728;
- i=jneanne@baylibre.com; s=20230511; h=from:subject:message-id;
- bh=8lkoF2Q6EcexrSLp/t/MhnTILTabGq5WU9fo1gYJj6U=;
- b=o6xvJEIXduMBNuzlMSbn/+ju+x0cpAqHGUOkn2bgKS0pRXudK1eTX321Mkh55Mw2NlOIZ6WwJ
- tiN4q176AJvB59LE0mPZYR+0wqI54SHOaSDs662Pg3OSZxnhOc9KlvI
-X-Developer-Key: i=jneanne@baylibre.com; a=ed25519;
- pk=5rvbqNoG+28jQjC9/50ToY7TgKWf9rJukuCI8b6jkUo=
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add support for TPS65219 PMICs GPIO interface.
+Hi,
 
-3 GPIO pins:
-- GPIO0 only is IO but input mode reserved for MULTI_DEVICE_ENABLE usage
-- GPIO1 and GPIO2 are Output only and referred as GPO1 and GPO2 in spec
+While browsing some code I noticed that there are places where pointer
+returned by devm_kasprintf() or kasprintf() is not checked. Thus I've
+tooked the chance and fixed this (by updating kmerr.cocci script,
+changes published at [1]). Along with it some other places where
+resources may need to be freed on failure paths were updated.
 
-GPIO0 is statically configured as input or output prior to Linux boot.
-it is used for MULTI_DEVICE_ENABLE function.
-This setting is statically configured by NVM.
-GPIO0 can't be used as a generic GPIO (specification Table 8-34).
-It's either a GPO when MULTI_DEVICE_EN=0 or a GPI when MULTI_DEVICE_EN=1.
+Thank you,
+Claudiu Beznea
 
-Datasheet describes specific usage for non standard GPIO.
-Link: https://www.ti.com/lit/ds/symlink/tps65219.pdf
+[1] https://lore.kernel.org/all/20230530074044.1603426-1-claudiu.beznea@microchip.com/
 
-Co-developed-by: Jonathan Cormier <jcormier@criticallink.com>
-Signed-off-by: Jonathan Cormier <jcormier@criticallink.com>
-Signed-off-by: Jerome Neanne <jneanne@baylibre.com>
----
- MAINTAINERS                  |   1 +
- drivers/gpio/Kconfig         |  15 ++++
- drivers/gpio/Makefile        |   1 +
- drivers/gpio/gpio-tps65219.c | 181 +++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 198 insertions(+)
+Claudiu Beznea (8):
+  clk: vc5: check memory returned by kasprintf()
+  clk: cdce925: check return value of kasprintf()
+  clk: si5341: return error if one synth clock registration fails
+  clk: si5341: check return value of {devm_}kasprintf()
+  clk: si5341: free unused memory on probe failure
+  clk: keystone: sci-clk: check return value of kasprintf()
+  clk: ti: clkctrl: check return value of kasprintf()
+  clk: clocking-wizard: check return value of devm_kasprintf()
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c0cde28c62c6..d912b7465e84 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -15398,6 +15398,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
- F:	arch/arm/configs/omap2plus_defconfig
- F:	arch/arm/mach-omap2/
- F:	drivers/bus/ti-sysc.c
-+F:	drivers/gpio/gpio-tps65219.c
- F:	drivers/i2c/busses/i2c-omap.c
- F:	drivers/irqchip/irq-omap-intc.c
- F:	drivers/mfd/*omap*.c
-diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index 5521f060d58e..337803b3a022 100644
---- a/drivers/gpio/Kconfig
-+++ b/drivers/gpio/Kconfig
-@@ -1440,6 +1440,21 @@ config GPIO_TPS65218
- 	  Select this option to enable GPIO driver for the TPS65218
- 	  chip family.
- 
-+config GPIO_TPS65219
-+	tristate "TPS65219 GPIO"
-+	depends on MFD_TPS65219
-+	default MFD_TPS65219
-+	help
-+	  Select this option to enable GPIO driver for the TPS65219 chip family.
-+	  GPIO0 is statically configured as input or output prior to Linux boot.
-+	  It is used for MULTI_DEVICE_ENABLE function.
-+	  This setting is statically configured by NVM.
-+	  GPIO0 can't be used as a generic GPIO.
-+	  It's either a GPO when MULTI_DEVICE_EN=0 or a GPI when MULTI_DEVICE_EN=1.
-+
-+	  This driver can also be built as a module.
-+	  If so, the module will be called gpio_tps65219.
-+
- config GPIO_TPS6586X
- 	bool "TPS6586X GPIO"
- 	depends on MFD_TPS6586X
-diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
-index 20036af3acb1..7843b16f5d59 100644
---- a/drivers/gpio/Makefile
-+++ b/drivers/gpio/Makefile
-@@ -160,6 +160,7 @@ obj-$(CONFIG_GPIO_TN48M_CPLD)		+= gpio-tn48m.o
- obj-$(CONFIG_GPIO_TPIC2810)		+= gpio-tpic2810.o
- obj-$(CONFIG_GPIO_TPS65086)		+= gpio-tps65086.o
- obj-$(CONFIG_GPIO_TPS65218)		+= gpio-tps65218.o
-+obj-$(CONFIG_GPIO_TPS65219)		+= gpio-tps65219.o
- obj-$(CONFIG_GPIO_TPS6586X)		+= gpio-tps6586x.o
- obj-$(CONFIG_GPIO_TPS65910)		+= gpio-tps65910.o
- obj-$(CONFIG_GPIO_TPS65912)		+= gpio-tps65912.o
-diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
-new file mode 100644
-index 000000000000..0c6ba7021a26
---- /dev/null
-+++ b/drivers/gpio/gpio-tps65219.c
-@@ -0,0 +1,181 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * GPIO driver for TI TPS65219 PMICs
-+ *
-+ * Copyright (C) 2022 Texas Instruments Incorporated - http://www.ti.com/
-+ */
-+
-+#include <linux/bits.h>
-+#include <linux/gpio/driver.h>
-+#include <linux/mfd/tps65219.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+
-+#define TPS65219_GPIO0_DIR_MASK		BIT(3)
-+#define TPS65219_GPIO0_OFFSET		2
-+#define TPS65219_GPIO0_IDX		0
-+#define TPS65219_GPIO_DIR_IN		1
-+#define TPS65219_GPIO_DIR_OUT		0
-+
-+struct tps65219_gpio {
-+	struct gpio_chip gpio_chip;
-+	struct tps65219 *tps;
-+};
-+
-+static int tps65219_gpio_get_direction(struct gpio_chip *gc, unsigned int offset)
-+{
-+	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
-+	int ret, val;
-+
-+	if (offset != TPS65219_GPIO0_IDX)
-+		return GPIO_LINE_DIRECTION_OUT;
-+
-+	ret = regmap_read(gpio->tps->regmap, TPS65219_REG_MFP_1_CONFIG, &val);
-+	if (ret)
-+		return ret;
-+
-+	return !!(val & TPS65219_GPIO0_DIR_MASK);
-+}
-+
-+static int tps65219_gpio_get(struct gpio_chip *gc, unsigned int offset)
-+{
-+	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
-+	struct device *dev = gpio->tps->dev;
-+	int ret, val;
-+
-+	if (offset != TPS65219_GPIO0_IDX) {
-+		dev_err(dev, "GPIO%d is output only, cannot get\n", offset);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	ret = regmap_read(gpio->tps->regmap, TPS65219_REG_MFP_CTRL, &val);
-+	if (ret)
-+		return ret;
-+
-+	ret = !!(val & BIT(TPS65219_MFP_GPIO_STATUS_MASK));
-+	dev_warn(dev, "GPIO%d = %d, MULTI_DEVICE_ENABLE, not a standard GPIO\n", offset, ret);
-+
-+	/* depends on NVM config return error if dir output else the GPIO0 status bit */
-+	if (tps65219_gpio_get_direction(gc, offset) == TPS65219_GPIO_DIR_OUT)
-+		return -EOPNOTSUPP;
-+
-+	return ret;
-+}
-+
-+static void tps65219_gpio_set(struct gpio_chip *gc, unsigned int offset, int value)
-+{
-+	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
-+	struct device *dev = gpio->tps->dev;
-+	int v, mask, bit;
-+
-+	bit = (offset == TPS65219_GPIO0_IDX) ? TPS65219_GPIO0_OFFSET : offset - 1;
-+
-+	mask = BIT(bit);
-+	v = value ? mask : 0;
-+
-+	if (regmap_update_bits(gpio->tps->regmap, TPS65219_REG_GENERAL_CONFIG, mask, v))
-+		dev_err(dev, "GPIO%d, set to value %d failed.\n", offset, value);
-+}
-+
-+static int tps65219_gpio_change_direction(struct gpio_chip *gc, unsigned int offset,
-+					  unsigned int direction)
-+{
-+	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
-+	struct device *dev = gpio->tps->dev;
-+
-+	/*
-+	 * Documentation is stating that GPIO0 direction must not be changed in Linux:
-+	 * Table 8-34. MFP_1_CONFIG(3): MULTI_DEVICE_ENABLE,
-+	 * Should only be changed in INITIALIZE state (prior to ON Request).
-+	 * Set statically by NVM, changing direction in application can cause a hang.
-+	 * Below can be used for test purpose only:
-+	 */
-+
-+	if (IS_ENABLED(CONFIG_DEBUG_GPIO)) {
-+		int ret = regmap_update_bits(gpio->tps->regmap, TPS65219_REG_MFP_1_CONFIG,
-+					     TPS65219_GPIO0_DIR_MASK, direction);
-+		if (ret) {
-+			dev_err(dev,
-+				"GPIO DEBUG enabled: Fail to change direction to %u for GPIO%d.\n",
-+				direction, offset);
-+			return ret;
-+		}
-+	}
-+
-+	dev_err(dev,
-+		"GPIO%d direction set by NVM, change to %u failed, not allowed by specification\n",
-+		 offset, direction);
-+
-+	return -EOPNOTSUPP;
-+}
-+
-+static int tps65219_gpio_direction_input(struct gpio_chip *gc, unsigned int offset)
-+{
-+	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
-+	struct device *dev = gpio->tps->dev;
-+
-+	if (offset != TPS65219_GPIO0_IDX) {
-+		dev_err(dev, "GPIO%d is output only, cannot change to input\n", offset);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (tps65219_gpio_get_direction(gc, offset) == TPS65219_GPIO_DIR_IN)
-+		return 0;
-+
-+	return tps65219_gpio_change_direction(gc, offset, TPS65219_GPIO_DIR_IN);
-+}
-+
-+static int tps65219_gpio_direction_output(struct gpio_chip *gc, unsigned int offset, int value)
-+{
-+	tps65219_gpio_set(gc, offset, value);
-+	if (offset != TPS65219_GPIO0_IDX)
-+		return 0;
-+
-+	if (tps65219_gpio_get_direction(gc, offset) == TPS65219_GPIO_DIR_OUT)
-+		return 0;
-+
-+	return tps65219_gpio_change_direction(gc, offset, TPS65219_GPIO_DIR_OUT);
-+}
-+
-+static const struct gpio_chip tps65219_template_chip = {
-+	.label			= "tps65219-gpio",
-+	.owner			= THIS_MODULE,
-+	.get_direction		= tps65219_gpio_get_direction,
-+	.direction_input	= tps65219_gpio_direction_input,
-+	.direction_output	= tps65219_gpio_direction_output,
-+	.get			= tps65219_gpio_get,
-+	.set			= tps65219_gpio_set,
-+	.base			= -1,
-+	.ngpio			= 3,
-+	.can_sleep		= true,
-+};
-+
-+static int tps65219_gpio_probe(struct platform_device *pdev)
-+{
-+	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
-+	struct tps65219_gpio *gpio;
-+
-+	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
-+	if (!gpio)
-+		return -ENOMEM;
-+
-+	gpio->tps = tps;
-+	gpio->gpio_chip = tps65219_template_chip;
-+	gpio->gpio_chip.parent = tps->dev;
-+
-+	return devm_gpiochip_add_data(&pdev->dev, &gpio->gpio_chip, gpio);
-+}
-+
-+static struct platform_driver tps65219_gpio_driver = {
-+	.driver = {
-+		.name = "tps65219-gpio",
-+	},
-+	.probe = tps65219_gpio_probe,
-+};
-+module_platform_driver(tps65219_gpio_driver);
-+
-+MODULE_ALIAS("platform:tps65219-gpio");
-+MODULE_AUTHOR("Jonathan Cormier <jcormier@criticallink.com>");
-+MODULE_DESCRIPTION("TPS65219 GPIO driver");
-+MODULE_LICENSE("GPL");
+ drivers/clk/clk-cdce925.c                  | 12 +++++++
+ drivers/clk/clk-si5341.c                   | 38 +++++++++++++---------
+ drivers/clk/clk-versaclock5.c              | 29 +++++++++++++++++
+ drivers/clk/keystone/sci-clk.c             |  2 ++
+ drivers/clk/ti/clkctrl.c                   |  7 ++++
+ drivers/clk/xilinx/clk-xlnx-clock-wizard.c |  5 +++
+ 6 files changed, 78 insertions(+), 15 deletions(-)
 
 -- 
 2.34.1
