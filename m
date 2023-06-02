@@ -2,76 +2,83 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DADDFC7EE2F
-	for <linux-omap@archiver.kernel.org>; Fri,  2 Jun 2023 07:00:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A309FC7EE29
+	for <linux-omap@archiver.kernel.org>; Fri,  2 Jun 2023 07:23:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233609AbjFBHAO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 2 Jun 2023 03:00:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53956 "EHLO
+        id S233795AbjFBHXB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 2 Jun 2023 03:23:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233391AbjFBHAN (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jun 2023 03:00:13 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5584813D;
-        Fri,  2 Jun 2023 00:00:12 -0700 (PDT)
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id E491D8111;
-        Fri,  2 Jun 2023 07:00:09 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jirislaby@kernel.org>,
+        with ESMTP id S234295AbjFBHWv (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jun 2023 03:22:51 -0400
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 934571BF;
+        Fri,  2 Jun 2023 00:22:43 -0700 (PDT)
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-96fe88cd2fcso238388466b.1;
+        Fri, 02 Jun 2023 00:22:43 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1685690562; x=1688282562;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=cvroderYS9TgB2JM1PlwHS0YOttaKTEpx7FpQU4spVI=;
+        b=JY2/i6xFkSKKjvWppwLHx6q4J2uHcshTjcw/lTO0X5vsvo0IM1qeFu7I8oqP/U0Fue
+         UgVIrxV9E9z1x0vXdZVqIolDmXS+zPd3RnYVXDs3QnomkIua6/76fqSaZQOSxIL7hdau
+         j8eUXwfiIJg1YcTz/5ZzSgeSg5F/iEu4URPAeOhLY5NIt6wuPifWQA8i4YJF+dxJUmnj
+         5OJet6VpHPqc5p2nnhB9sygQDXXQfzxiWjd7JbbVlhdKEZ2ZqiMI/NPdOO/aKlZ4X4n6
+         hooLqBJbQCnemWdLaxSr3TX4gC4J32V3nClYRXeHl35d1mJfPCKhahiKPeIGaJYjGPZx
+         O1tQ==
+X-Gm-Message-State: AC+VfDzXzmqAg88Fmm1/LpLajhXOw97QDJ8q+mZ0MC1Brgv536QOb5ZM
+        HCkDCtpamAOuPfhuIYjCoUFaHji/f2Y=
+X-Google-Smtp-Source: ACHHUZ4xp7HLi8GSIxvvkDX8Q2N4j2oKbd61KMy4vtNxsXlAbAOwHmSHe37NYzsznoM8RZH0eFr6Vg==
+X-Received: by 2002:a17:907:2d20:b0:96a:57fe:3bfb with SMTP id gs32-20020a1709072d2000b0096a57fe3bfbmr9664487ejc.26.1685690561764;
+        Fri, 02 Jun 2023 00:22:41 -0700 (PDT)
+Received: from ?IPV6:2a0b:e7c0:0:107::aaaa:59? ([2a0b:e7c0:0:107::aaaa:59])
+        by smtp.gmail.com with ESMTPSA id qh8-20020a170906eca800b009600ce4fb53sm411639ejb.37.2023.06.02.00.22.40
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 02 Jun 2023 00:22:41 -0700 (PDT)
+Message-ID: <9fad0236-eb21-aade-16e5-23d71da557c3@kernel.org>
+Date:   Fri, 2 Jun 2023 09:22:39 +0200
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.2
+Subject: Re: [PATCH v2 1/1] serial: core: Fix error handling for
+ serial_core_ctrl_device_add()
+Content-Language: en-US
+To:     Tony Lindgren <tony@atomide.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc:     Andy Shevchenko <andriy.shevchenko@intel.com>,
         Dhruva Gole <d-gole@ti.com>,
-        =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        =?UTF-8?Q?Ilpo_J=c3=a4rvinen?= <ilpo.jarvinen@linux.intel.com>,
         John Ogness <john.ogness@linutronix.de>,
         Johan Hovold <johan@kernel.org>,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         linux-omap@vger.kernel.org, linux-serial@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v2 1/1] serial: core: Fix error handling for serial_core_ctrl_device_add()
-Date:   Fri,  2 Jun 2023 10:00:05 +0300
-Message-ID: <20230602070007.59268-1-tony@atomide.com>
-X-Mailer: git-send-email 2.41.0
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20230602070007.59268-1-tony@atomide.com>
+From:   Jiri Slaby <jirislaby@kernel.org>
+In-Reply-To: <20230602070007.59268-1-tony@atomide.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Checking for NULL is incorrect as serial_base_ctrl_add() uses ERR_PTR().
+On 02. 06. 23, 9:00, Tony Lindgren wrote:
+> Checking for NULL is incorrect as serial_base_ctrl_add() uses ERR_PTR().
+> 
+> Let's also pass any returned error along, there's no reason to translate
+> all errors to -ENODEV.
+> 
+> Fixes: 84a9582fd203 ("serial: core: Start managing serial controllers to enable runtime PM")
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Let's also pass any returned error along, there's no reason to translate
-all errors to -ENODEV.
+Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
 
-Fixes: 84a9582fd203 ("serial: core: Start managing serial controllers to enable runtime PM")
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
-
-Changes since v1:
-
-- Stop translating all errors to -ENODEV
-
-- There's no need to use IS_ERR_OR_NULL() as noted by Jiri
-
----
- drivers/tty/serial/serial_core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
---- a/drivers/tty/serial/serial_core.c
-+++ b/drivers/tty/serial/serial_core.c
-@@ -3342,8 +3342,8 @@ int serial_core_register_port(struct uart_driver *drv, struct uart_port *port)
- 	ctrl_dev = serial_core_ctrl_find(drv, port->dev, port->ctrl_id);
- 	if (!ctrl_dev) {
- 		new_ctrl_dev = serial_core_ctrl_device_add(port);
--		if (!new_ctrl_dev) {
--			ret = -ENODEV;
-+		if (IS_ERR(new_ctrl_dev)) {
-+			ret = PTR_ERR(new_ctrl_dev);
- 			goto err_unlock;
- 		}
- 		ctrl_dev = new_ctrl_dev;
+thanks,
 -- 
-2.41.0
+js
+suse labs
+
