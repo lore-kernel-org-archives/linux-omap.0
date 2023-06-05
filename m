@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20FECC88C97
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D87DFC7EE33
 	for <linux-omap@archiver.kernel.org>; Mon,  5 Jun 2023 14:48:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230324AbjFEOs2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S232428AbjFEOs2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Mon, 5 Jun 2023 10:48:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36102 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234547AbjFEOsV (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jun 2023 10:48:21 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29DE79E;
+        with ESMTP id S233881AbjFEOsW (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jun 2023 10:48:22 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B8FAFA;
         Mon,  5 Jun 2023 07:48:20 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id DBB5A21B6C;
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 103191FE6A;
         Mon,  5 Jun 2023 14:48:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
         t=1685976498; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=ozEpeSChYsLdRSbGDMHalj1JUdV2/uZLlWjrrF7JQvc=;
-        b=kv9tSDmq9QrYL8LW/CLj8y1i5sBp6qWEMGMuzLD2zC0vd4+TeERAYD/uioJql4i8vNMmdv
-        1UjZs5zcRPlVuMbpLCxrGvG1k8LWA52IPJMRsDZBJzASALHxwj18quAPPX5fjisB9gJeSv
-        NuL+bCktfPD1iqj7iRqFbwbG4/9qvAA=
+        bh=Cgy5SZq9MCZLvOxgmNJ7A2RuClfMx1zPGnntoBC0HJU=;
+        b=HMFsfAlYA0JmGnw6xM5cst/GEwc2zVPkikVb31RUetCR1MX8luJbVl6z83sZZ6rgrBVQCF
+        cNg6PVWic0wX8ueumyz56/r1WSE6DBRnJbJitYzixV0FyLaeO7IcHZ4LoFGPJb8NlvdZA+
+        ioo1x6uAnZffJUXUCRqgVIVUaazpo4c=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
         s=susede2_ed25519; t=1685976498;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=ozEpeSChYsLdRSbGDMHalj1JUdV2/uZLlWjrrF7JQvc=;
-        b=lbcYrpe48OEta6/B8oN+PYswdSMV891ZT22+DIDzJfigogSSd0uvQpQB96ZHpaV/pi1nxv
-        MJD7gsRwi0lSzuDw==
+        bh=Cgy5SZq9MCZLvOxgmNJ7A2RuClfMx1zPGnntoBC0HJU=;
+        b=42Y8enHUVMIVKv/ZLg1uedPfCfgHeLsKysThcvbLwfNj+h2Jxx0giGj1Prx0I6c/bVXeXl
+        M9Ht15OAsAvgJfBg==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 96FB6139C8;
-        Mon,  5 Jun 2023 14:48:18 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id C2C44139C8;
+        Mon,  5 Jun 2023 14:48:17 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id CF8LJLL1fWQvXwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Mon, 05 Jun 2023 14:48:18 +0000
+        id QIC7LrH1fWQvXwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Mon, 05 Jun 2023 14:48:17 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
         deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
@@ -55,11 +55,10 @@ To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
 Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Antonino Daplas <adaplas@gmail.com>
-Subject: [PATCH 14/30] fbdev/nvidiafb: Reorder backlight and framebuffer init/cleanup
-Date:   Mon,  5 Jun 2023 16:47:56 +0200
-Message-Id: <20230605144812.15241-15-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH 11/30] fbdev/ep93xx-fb: Do not assign to struct fb_info.dev
+Date:   Mon,  5 Jun 2023 16:47:53 +0200
+Message-Id: <20230605144812.15241-12-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230605144812.15241-1-tzimmermann@suse.de>
 References: <20230605144812.15241-1-tzimmermann@suse.de>
@@ -69,49 +68,30 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The driver's backlight code requires the framebuffer to be
-registered. Therefore reorder the init and cleanup calls for
-both data structures.
+Do not assing the Linux device to struct fb_info.dev. The call to
+register_framebuffer() initializes the field to the fbdev device.
+Drivers should not override its value.
+
+Fixes a bug where the driver incorrectly decreases the hardware
+device's reference counter and leaks the fbdev device.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Antonino Daplas <adaplas@gmail.com>
 ---
- drivers/video/fbdev/nvidia/nvidia.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/fbdev/ep93xx-fb.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/video/fbdev/nvidia/nvidia.c b/drivers/video/fbdev/nvidia/nvidia.c
-index ea4ba3dfb96b..039e886346fa 100644
---- a/drivers/video/fbdev/nvidia/nvidia.c
-+++ b/drivers/video/fbdev/nvidia/nvidia.c
-@@ -1400,14 +1400,14 @@ static int nvidiafb_probe(struct pci_dev *pd, const struct pci_device_id *ent)
+diff --git a/drivers/video/fbdev/ep93xx-fb.c b/drivers/video/fbdev/ep93xx-fb.c
+index f6cd200fe50f..37309f9dbe82 100644
+--- a/drivers/video/fbdev/ep93xx-fb.c
++++ b/drivers/video/fbdev/ep93xx-fb.c
+@@ -474,7 +474,6 @@ static int ep93xxfb_probe(struct platform_device *pdev)
+ 	if (!info)
+ 		return -ENOMEM;
  
- 	pci_set_drvdata(pd, info);
- 
--	if (backlight)
--		nvidia_bl_init(par);
--
- 	if (register_framebuffer(info) < 0) {
- 		printk(KERN_ERR PFX "error registering nVidia framebuffer\n");
- 		goto err_out_iounmap_fb;
- 	}
- 
-+	if (backlight)
-+		nvidia_bl_init(par);
-+
- 	printk(KERN_INFO PFX
- 	       "PCI nVidia %s framebuffer (%dMB @ 0x%lX)\n",
- 	       info->fix.id,
-@@ -1439,9 +1439,9 @@ static void nvidiafb_remove(struct pci_dev *pd)
- 
- 	NVTRACE_ENTER();
- 
-+	nvidia_bl_exit(par);
- 	unregister_framebuffer(info);
- 
--	nvidia_bl_exit(par);
- 	arch_phys_wc_del(par->wc_cookie);
- 	iounmap(info->screen_base);
- 	fb_destroy_modedb(info->monspecs.modedb);
+-	info->dev = &pdev->dev;
+ 	platform_set_drvdata(pdev, info);
+ 	fbi = info->par;
+ 	fbi->mach_info = mach_info;
 -- 
 2.40.1
 
