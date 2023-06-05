@@ -2,84 +2,104 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16C7CC77B73
-	for <linux-omap@archiver.kernel.org>; Sun,  4 Jun 2023 15:50:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B295C77B73
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Jun 2023 03:04:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231809AbjFDPuH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 4 Jun 2023 11:50:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43820 "EHLO
+        id S232413AbjFEDEn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sun, 4 Jun 2023 23:04:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231805AbjFDPuH (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jun 2023 11:50:07 -0400
-X-Greylist: delayed 450 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 04 Jun 2023 08:50:06 PDT
-Received: from smtp.smtpout.orange.fr (smtp-29.smtpout.orange.fr [80.12.242.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8FAFDDA
-        for <linux-omap@vger.kernel.org>; Sun,  4 Jun 2023 08:50:06 -0700 (PDT)
-Received: from pop-os.home ([86.243.2.178])
-        by smtp.orange.fr with ESMTPA
-        id 5psGqNLaQt9zc5psGqXS2j; Sun, 04 Jun 2023 17:42:35 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
-        s=t20230301; t=1685893355;
-        bh=KSBCYH83xSlnxT9AqAr79v1PKm1DqpwXR0ggzhv2kFU=;
-        h=From:To:Cc:Subject:Date;
-        b=ZnL1ytK8458koQso49BCpWyOcEi755OnD8/aYZ70UWHbQUaXQ+XkwqFZLGG5+hG3Z
-         yaXTsYtK78QlhCXUpeznPk5AA2jU+eMpncJPkdKMUeAq8OcE53BPbyQ+T7f6CiQ7YP
-         zaQ6Wn66OPz1XYNoYQZH1LfM5PZRmm/Xg+BUaWjIxN9fHA97i0qZD7zpcpg7E+8+LX
-         UULF2+Wtpp9xj9ZFJyAa0pMqitEleMxEPKAUnIVNlsEpfr3PmbaXLiDiLnHrLjkNkk
-         Z6TIBh6/JrK674jq06KhMIcKUqxWNsn5aFWtT93SOOx+NN4lk8Ao7QlFbeKf9msp5Y
-         m4SnGCinLe35A==
-X-ME-Helo: pop-os.home
-X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
-X-ME-Date: Sun, 04 Jun 2023 17:42:35 +0200
-X-ME-IP: 86.243.2.178
-From:   Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-To:     Helge Deller <deller@gmx.de>, Imre Deak <imre.deak@nokia.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Krzysztof Helt <krzysztof.h1@wp.pl>,
-        Juha Yrjola <juha.yrjola@solidboot.com>
-Cc:     linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: [PATCH] video: fbdev: omapfb: lcd_mipid: Fix an error handling path in mipid_spi_probe()
-Date:   Sun,  4 Jun 2023 17:42:28 +0200
-Message-Id: <f17221571f619c0829db56354f2b74d22f6702a7.1685893329.git.christophe.jaillet@wanadoo.fr>
-X-Mailer: git-send-email 2.34.1
+        with ESMTP id S232053AbjFEDEl (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jun 2023 23:04:41 -0400
+Received: from mail-ua1-x92c.google.com (mail-ua1-x92c.google.com [IPv6:2607:f8b0:4864:20::92c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFD36BD
+        for <linux-omap@vger.kernel.org>; Sun,  4 Jun 2023 20:04:40 -0700 (PDT)
+Received: by mail-ua1-x92c.google.com with SMTP id a1e0cc1a2514c-76d846a4b85so1187163241.1
+        for <linux-omap@vger.kernel.org>; Sun, 04 Jun 2023 20:04:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1685934280; x=1688526280;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8GemXbMIq5lp+454RKyClJK8enwTWlxZVZu2OjpvqlY=;
+        b=oPX1da39xxxDeDArWOnV6VvW0eqMDZSK7f9Ve9mZ0kzDSYY1VOdxziYIN0/fC6NW1m
+         F/prs75MzDyyEYf0I12KVAvkEYP3P2XZcNI5tU3X7t4GTFd4snKp7LpRiaKWrmR/jKQ+
+         +HFYU/lo//sCc8NY3bh61JGMniX1nPvtycInI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1685934280; x=1688526280;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=8GemXbMIq5lp+454RKyClJK8enwTWlxZVZu2OjpvqlY=;
+        b=FaMNUq5VZxx1OVO8CvTWOwEzQdconbz4O17URqnjQqzVGeIu+dp5Jom/FKEtIjfLD2
+         ZTE1+qEIJK0MZlD5y7569imO5N9fnUUu3x7R/UNO7egS2xwa/VOzQh8Do7D8DK3QmG9A
+         xDd9Jdim0bjKc6NZwnztt1zvX2pXf26dxEO5JoE/fs1uDikZrgjS8W34WiM6UmLfZL8C
+         b14NeW0apjXgo9/hbcOhDepviM6ZlA/GNHWGeJ9lDNuUJ28DQHTVYBfJ/cXQyRH1R7E7
+         ybCbZ04Y439kAtArSM0ufWvse4W2NGZeMbSXevkkXuniwoi8ljqcFlRYzVi6dys/XDAy
+         EudQ==
+X-Gm-Message-State: AC+VfDx7oJWsvR19Y5oo72fTKiZ9R1C1q2K31v6/Y7AwFYtiz37RQ/Ka
+        EyDEiyPD48g978gI5dxYZR328brbar4CKwfeCWcz2Q==
+X-Google-Smtp-Source: ACHHUZ6jpGq4+6/+6ClKSVvkgkwQzzirwShAHbQSCjNu7NjQjavUuh0PcSmBXhB3NwTi/oX4WQQPRVTj7U6bPKM8aSE=
+X-Received: by 2002:a1f:3d4e:0:b0:45c:e022:d713 with SMTP id
+ k75-20020a1f3d4e000000b0045ce022d713mr4342803vka.12.1685934279946; Sun, 04
+ Jun 2023 20:04:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20230525113034.46880-1-tony@atomide.com> <20230602083335.GA181647@google.com>
+ <87a5xii33r.fsf@jogness.linutronix.de>
+In-Reply-To: <87a5xii33r.fsf@jogness.linutronix.de>
+From:   Chen-Yu Tsai <wenst@chromium.org>
+Date:   Mon, 5 Jun 2023 11:04:28 +0800
+Message-ID: <CAGXv+5Gy=SqKukrDTpx+qVDgNDzMmMcC+Y0wkgfRA9xZCKBA6w@mail.gmail.com>
+Subject: Re: [PATCH v12 1/1] serial: core: Start managing serial controllers
+ to enable runtime PM
+To:     John Ogness <john.ogness@linutronix.de>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@intel.com>,
+        Dhruva Gole <d-gole@ti.com>,
+        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Johan Hovold <johan@kernel.org>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        linux-omap@vger.kernel.org,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org,
+        =?UTF-8?B?TsOtY29sYXMgRi4gUi4gQS4gUHJhZG8=?= 
+        <nfraprado@collabora.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        linux-mediatek@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-If 'mipid_detect()' fails, we must free 'md' to avoid a memory leak.
+On Fri, Jun 2, 2023 at 6:13=E2=80=AFPM John Ogness <john.ogness@linutronix.=
+de> wrote:
+>
+> On 2023-06-02, Chen-Yu Tsai <wenst@chromium.org> wrote:
+> > This patch, in linux-next since 20230601, unfortunately breaks
+> > MediaTek based Chromebooks. The kernel hangs during the probe of the
+> > serial ports, which use the 8250_mtk driver.
+>
+> Are you sure it is this patch? Have you bisected it?
+>
+> Unfortunately next-20230601 also brought in a series that added
+> spinlocking to the 8250 driver. That may be the issue here instead.
+>
+> For 8250 bug reports we really need to bisection.
 
-Fixes: 66d2f99d0bb5 ("omapfb: add support for MIPI-DCS compatible LCDs")
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
- drivers/video/fbdev/omap/lcd_mipid.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+As Tony mentioned, you're off the hook for it.
 
-diff --git a/drivers/video/fbdev/omap/lcd_mipid.c b/drivers/video/fbdev/omap/lcd_mipid.c
-index e4a7f0b824ff..a0fc4570403b 100644
---- a/drivers/video/fbdev/omap/lcd_mipid.c
-+++ b/drivers/video/fbdev/omap/lcd_mipid.c
-@@ -571,11 +571,15 @@ static int mipid_spi_probe(struct spi_device *spi)
- 
- 	r = mipid_detect(md);
- 	if (r < 0)
--		return r;
-+		goto free_md;
- 
- 	omapfb_register_panel(&md->panel);
- 
- 	return 0;
-+
-+free_md:
-+	kfree(md);
-+	return r;
- }
- 
- static void mipid_spi_remove(struct spi_device *spi)
--- 
-2.34.1
+I should've been more clear. After reverting the top three patches in
+drivers/tty/serial from next-20230602, the system booted correctly again:
 
+    539914240a01 serial: core: Fix probing serial_base_bus devices
+    d0a396083e91 serial: core: Don't drop port_mutex in
+serial_core_remove_one_port
+    84a9582fd203 serial: core: Start managing serial controllers to
+enable runtime PM
+
+ChenYu
