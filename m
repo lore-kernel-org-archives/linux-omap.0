@@ -2,145 +2,115 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48874C7EE23
-	for <linux-omap@archiver.kernel.org>; Mon,  5 Jun 2023 13:18:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31124C7EE23
+	for <linux-omap@archiver.kernel.org>; Mon,  5 Jun 2023 14:48:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233157AbjFENSH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 5 Jun 2023 09:18:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36054 "EHLO
+        id S233820AbjFEOsS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 5 Jun 2023 10:48:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232683AbjFENSG (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jun 2023 09:18:06 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 418E6CD;
-        Mon,  5 Jun 2023 06:18:05 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 9C03080FE;
-        Mon,  5 Jun 2023 13:18:04 +0000 (UTC)
-Date:   Mon, 5 Jun 2023 16:18:03 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     Chen-Yu Tsai <wenst@chromium.org>
-Cc:     John Ogness <john.ogness@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@intel.com>,
-        Dhruva Gole <d-gole@ti.com>,
-        Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>,
-        Johan Hovold <johan@kernel.org>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        linux-omap@vger.kernel.org,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org,
-        =?utf-8?B?TsOtY29sYXMgRi4gUi4gQS4=?= Prado 
-        <nfraprado@collabora.com>,
-        AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>,
-        linux-mediatek@lists.infradead.org
-Subject: Re: [PATCH v12 1/1] serial: core: Start managing serial controllers
- to enable runtime PM
-Message-ID: <20230605131803.GA14287@atomide.com>
-References: <20230525113034.46880-1-tony@atomide.com>
- <20230602083335.GA181647@google.com>
- <87a5xii33r.fsf@jogness.linutronix.de>
- <20230603054139.GR14287@atomide.com>
- <20230603063533.GS14287@atomide.com>
- <20230605061511.GW14287@atomide.com>
- <CAGXv+5Fbx7eTxP0ep6DV+jyronAWxYvu2M-g=MjHGRhjSXUc=w@mail.gmail.com>
- <20230605122447.GY14287@atomide.com>
- <CAGXv+5HwL+R5QpO3pHGQd9qAxu2pCMDjYvdni1HjiC8eEE38mg@mail.gmail.com>
+        with ESMTP id S232342AbjFEOsR (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jun 2023 10:48:17 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DA5A100;
+        Mon,  5 Jun 2023 07:48:16 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 2F7B81FD66;
+        Mon,  5 Jun 2023 14:48:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1685976495; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=ZC4xx7emTv2a2UFR6kQdaFCgwhbw6bVXOEez8CyU1/c=;
+        b=mUzZuiZ6aF053sDvpp4FriypRbZ4TZ5GdiOy2xTbj9VKtUMMmhdTXgcN8c3PA7c2K3imX3
+        cq6bfAO85IQEGENNR41HhCw7IpyjuYnF6pZOFGAt0xDD8RiltH3hWX3Jpwn8YNLY7mOxqb
+        cwekQorakSqzsWB6uuoBwWcMXNn9gO4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1685976495;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=ZC4xx7emTv2a2UFR6kQdaFCgwhbw6bVXOEez8CyU1/c=;
+        b=sCYgZIOX2i3BAehRDWCz4hGErmxZ7qxx9Yatn/fm2L/IYlhHfdUbHWsAfo2jhPyNyhIf4N
+        oXX7REdgDNPP24AQ==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id DF6D013A3C;
+        Mon,  5 Jun 2023 14:48:14 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id YFCmNa71fWQvXwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Mon, 05 Jun 2023 14:48:14 +0000
+From:   Thomas Zimmermann <tzimmermann@suse.de>
+To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
+        deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
+        daniel.thompson@linaro.org, jingoohan1@gmail.com
+Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-staging@lists.linux.dev,
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH 01/30] backlight/bd6107: Compare against struct fb_info.device
+Date:   Mon,  5 Jun 2023 16:47:43 +0200
+Message-Id: <20230605144812.15241-2-tzimmermann@suse.de>
+X-Mailer: git-send-email 2.40.1
+In-Reply-To: <20230605144812.15241-1-tzimmermann@suse.de>
+References: <20230605144812.15241-1-tzimmermann@suse.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAGXv+5HwL+R5QpO3pHGQd9qAxu2pCMDjYvdni1HjiC8eEE38mg@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Chen-Yu Tsai <wenst@chromium.org> [230605 13:01]:
-> On Mon, Jun 5, 2023 at 8:24 PM Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > * Chen-Yu Tsai <wenst@chromium.org> [230605 11:34]:
-> > > On Mon, Jun 5, 2023 at 2:15 PM Tony Lindgren <tony@atomide.com> wrote:
-> > > > diff --git a/drivers/tty/serial/8250/8250_mtk.c b/drivers/tty/serial/8250/8250_mtk.c
-> > > > --- a/drivers/tty/serial/8250/8250_mtk.c
-> > > > +++ b/drivers/tty/serial/8250/8250_mtk.c
-> > > > @@ -425,11 +439,10 @@ mtk8250_set_termios(struct uart_port *port, struct ktermios *termios,
-> > > >  static int __maybe_unused mtk8250_runtime_suspend(struct device *dev)
-> > > >  {
-> > > >         struct mtk8250_data *data = dev_get_drvdata(dev);
-> > > > -       struct uart_8250_port *up = serial8250_get_port(data->line);
-> > > >
-> > > >         /* wait until UART in idle status */
-> > > >         while
-> > > > -               (serial_in(up, MTK_UART_DEBUG0));
-> > > > +               (mtk8250_read(data, MTK_UART_DEBUG0));
-> > >
-> > > I believe it still gets stuck here sometimes.
-> >
-> > Hmm so maybe you need to mtk8250_write(data, 0, MTK_UART_RATE_FIX) in
-> > probe before pm_runtime_resume_and_get() that enables the baud clock?
-> > That's something I changed, so maybe it messes up things.
-> 
-> I think it has something to do with the do_pm() function calling
-> the callbacks directly, then also calling runtime PM.
+Struct bd6107_platform_data refers to a platform device within
+the Linux device hierarchy. The test in bd6107_backlight_check_fb()
+compares it against the fbdev device in struct fb_info.dev, which
+is different. Fix the test by comparing to struct fb_info.device.
 
-Yeah I'm not following really what's going on there.. So then I guess the
-call for mtk8250_write(data, 0, MTK_UART_RATE_FIX) should be after the
-pm_runtime_resume_and_get() call.
+Fixes a bug in the backlight driver and prepares fbdev for making
+struct fb_info.dev optional.
 
-> > Looking at the 8250_mtk git log, it's runtime PM functions seem to only
-> > currently manage the baud clock so register access should be doable
-> > without runtime PM resume?
-> 
-> Actually it only manages the bus clock. The baud clock is simply the system
-> XTAL which is not gateble.
+Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Lee Jones <lee@kernel.org>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Jingoo Han <jingoohan1@gmail.com>
+---
+ drivers/video/backlight/bd6107.c     | 2 +-
+ include/linux/platform_data/bd6107.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-OK
+diff --git a/drivers/video/backlight/bd6107.c b/drivers/video/backlight/bd6107.c
+index f4db6c064635..fa3dd45c8f9d 100644
+--- a/drivers/video/backlight/bd6107.c
++++ b/drivers/video/backlight/bd6107.c
+@@ -104,7 +104,7 @@ static int bd6107_backlight_check_fb(struct backlight_device *backlight,
+ {
+ 	struct bd6107 *bd = bl_get_data(backlight);
+ 
+-	return bd->pdata->fbdev == NULL || bd->pdata->fbdev == info->dev;
++	return !bd->pdata->dev || bd->pdata->dev == info->device;
+ }
+ 
+ static const struct backlight_ops bd6107_backlight_ops = {
+diff --git a/include/linux/platform_data/bd6107.h b/include/linux/platform_data/bd6107.h
+index 54a06a4d2618..596ca4f95cfa 100644
+--- a/include/linux/platform_data/bd6107.h
++++ b/include/linux/platform_data/bd6107.h
+@@ -8,7 +8,7 @@
+ struct device;
+ 
+ struct bd6107_platform_data {
+-	struct device *fbdev;
++	struct device *dev;
+ 	unsigned int def_value;
+ };
+ 
+-- 
+2.40.1
 
-> > > With your earlier patch, it could get through registering the port, and
-> > > the console would show
-> > >
-> > >     11002000.serial: ttyS0 at MMIO 0x11002000 (irq = 240, base_baud =
-> > > 1625000) is a ST16650V2
-> > >
-> > > for the console UART.
-> >
-> > OK
-> >
-> > > Angelo mentioned that we should be using SLEEP_REQ/SLEEP_ACK registers
-> > > in the MTK UART hardware.
-> > >
-> > > I tried reworking it into your patch here, but it causes issues with the
-> > > UART-based Bluetooth on one of my devices. After the UART runtime suspends
-> > > and resumes, something is off and causes the transfers during Bluetooth
-> > > init to become corrupt.
-> > >
-> > > I'll try some more stuff, but the existing code seems timing dependent.
-> > > If I add too many printk statements to the runtime suspend/resume
-> > > callbacks, things seem to work. One time I even ended up with broken
-> > > UARTs but otherwise booted up the system.
-> >
-> > Well another thing that now changes is that we now runtime suspend the
-> > port at the end of the probe. What the 8250_mtk probe was doing earlier
-> > it was leaving the port baud clock enabled, but runtime PM disabled
-> > until mtk8250_do_pm() I guess.
-> 
-> I guess that's the biggest difference? Since the *bus* clock gets disabled,
-> any access will hang. Is it enough to just support runtime PM? Or do I have
-> to also have UART_CAP_RPM?
-
-Maybe try changing pm_runtime_put_sync() at the end of the probe to just
-pm_runtime_put_noidle()? Then the driver should be back to where it was
-with clocks enabled but runtime PM suspended.
-
-I don't think you need UART_CAP_RPM right now unless 8250_mtk adds support
-for autosuspend. That stuff will get replaced by the serial_core generic
-PM patch from Andy. I think in it's current form 8250_mtk just gets enabled
-when the port is opened, and disabled when the port is closed. And gets
-disabled for system suspend.
-
-Regards,
-
-Tony
