@@ -2,57 +2,57 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 815E3C8300C
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Jun 2023 07:46:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B954CC7EE23
+	for <linux-omap@archiver.kernel.org>; Wed,  7 Jun 2023 07:56:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235497AbjFGHp6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 7 Jun 2023 03:45:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39952 "EHLO
+        id S234667AbjFGH4B (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 7 Jun 2023 03:56:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239432AbjFGHpH (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jun 2023 03:45:07 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AF8F1BFF
-        for <linux-omap@vger.kernel.org>; Wed,  7 Jun 2023 00:41:50 -0700 (PDT)
+        with ESMTP id S232684AbjFGH4A (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jun 2023 03:56:00 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2555E173A
+        for <linux-omap@vger.kernel.org>; Wed,  7 Jun 2023 00:55:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1686123709;
+        s=mimecast20190719; t=1686124516;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
         bh=zrMzVIVwuoeUQwH5hpliW2Jq51XgxuMBmmo9TGjEBeo=;
-        b=DcMtqFOks/T2jqDkgzKDsboQ0sNeHns63qbfmZyRKBR0G9U60VnMEjc8KEIt5ngQxcJuBD
-        rUIHrzHhoxT7IXS29iLgdlBCDpkuza/C4tsARYxiNKkGL/B1UtNESxVoZZ40lm0PSEKSyH
-        tBBMNEB+1ophg/tNIJqZHZaNIn5GXsk=
-Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
- [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+        b=dQ+LGMm3qhCBheOFOJsgUvhyj/4bCJKIG1eoZQa+lHQu8F7AP+p72iFmSAF+f/v56LzgIF
+        maiOiEihhXCvhi14r+WGY6cb3OVmZc+0MRQFnDGmTdBFxyFIsK5AAeVburilz9z/YVAIGl
+        8BLPkTUt6sWqQGMudZ9d6CWl4jeyVqU=
+Received: from mail-lf1-f69.google.com (mail-lf1-f69.google.com
+ [209.85.167.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-447-XzRbYbKLMUmBogNfx9hanw-1; Wed, 07 Jun 2023 03:41:48 -0400
-X-MC-Unique: XzRbYbKLMUmBogNfx9hanw-1
-Received: by mail-wr1-f71.google.com with SMTP id ffacd0b85a97d-30e4d11a413so145774f8f.1
-        for <linux-omap@vger.kernel.org>; Wed, 07 Jun 2023 00:41:47 -0700 (PDT)
+ us-mta-146-M4ufQvUAP3SulYATOFHLVg-1; Wed, 07 Jun 2023 03:55:15 -0400
+X-MC-Unique: M4ufQvUAP3SulYATOFHLVg-1
+Received: by mail-lf1-f69.google.com with SMTP id 2adb3069b0e04-4f62d8e527bso1829801e87.1
+        for <linux-omap@vger.kernel.org>; Wed, 07 Jun 2023 00:55:14 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686123707; x=1688715707;
+        d=1e100.net; s=20221208; t=1686124513; x=1688716513;
         h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
          :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
         bh=zrMzVIVwuoeUQwH5hpliW2Jq51XgxuMBmmo9TGjEBeo=;
-        b=gQ9Qrf+d2+HvSPnAZW4c36UOSRNF5uRtPtXUSIwP+x0vzpQihE32MbzACt5henSNBR
-         GFSu3JlcQNf+CcBrL4VjhFi+ceh8oVMPryP37dsjMjoITsUPzUbvd0x7kdbdhUO2i6kE
-         uE8xf+Be/iYpoYVcJp0fz+SF6GCkiWXivrsF2184QCSPXgfQJXapFwZN5YVDxfXJVQ+g
-         yZV6sflaW0l7avPifeH7AqQsUb2NN1AGa0+o8/w+Xwz3j/1Yr6VLTs/0c4zYpJ2yHxhh
-         X9F6rVcSCk/pIXTZWCaUW0E5kW9Yw48kN8Jt8fvuezPzaAPhzgtD3k/A/bs4xQNQrVgO
-         fv7w==
-X-Gm-Message-State: AC+VfDxZrcURtvT1PHqR6+Wo+vS62j1zR3mP/cIa5hmr72lMBNXurTcg
-        paYa9RCC5jUOSLhrhL5cCpnSDLo0oquXePlsSnDwduUXtEPtw73xYrlekCuzwH+Jp1N+2+0njAw
-        J35wTvX+1nUe655Fi7PEFXQ==
-X-Received: by 2002:a5d:4ece:0:b0:306:2713:f7f with SMTP id s14-20020a5d4ece000000b0030627130f7fmr10418235wrv.11.1686123706977;
-        Wed, 07 Jun 2023 00:41:46 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ5Zd2a468z/A2yXcthK/MVOYuYJ+/wr3Irr4l7Jvn6olRO9xiMCz+lyONSCQCChNdNZRPbF/A==
-X-Received: by 2002:a5d:4ece:0:b0:306:2713:f7f with SMTP id s14-20020a5d4ece000000b0030627130f7fmr10418221wrv.11.1686123706744;
-        Wed, 07 Jun 2023 00:41:46 -0700 (PDT)
+        b=lhvCOuT/AePE0PokEbLIBtOD+LYq5yvV090c5LD6TnEgmXjqdLf5AjR0B9/neMScEw
+         +L3HtR8NqzP3LXCrt0XCvcZMQ0gMmKZKG4gSyGheiZxnKcjoT6sMCZ8ujU3Vsj2HNrcc
+         UwMS4GbvjaiIcNdRu7NxMxcrKw3s8WnJyHGUI9/SDvQJDgL2xh3IfQm5o09N+8RUgA2F
+         5uE8jvoVqg3J0GyKRAmbqOif3/0Zywu0Jk/U0VMiltWAYmZ5RLzuPBhqxs0yZVQXKQMV
+         28tC3Tt0+lRzDB/TOkxsFxvvCFnDWye4x7S/x7zn2OQB5B2AGBmlsq+8Bgk30R80StO+
+         3n+A==
+X-Gm-Message-State: AC+VfDyOtaYkBGtXVopN3bEBK39d7RsjOj7cPqh6CZZMiShW4fr0Yjz6
+        j1f3/t9zLYAmSoP/0PdQ1aRezSH6yZuycTVXAkpR18XdqTg+LZmixn0/9xxkWNHbML5nN4yhEot
+        CbcYZ2VXon/rigKin3/QGYg==
+X-Received: by 2002:ac2:5a19:0:b0:4f3:bb14:bd40 with SMTP id q25-20020ac25a19000000b004f3bb14bd40mr1643613lfn.36.1686124513740;
+        Wed, 07 Jun 2023 00:55:13 -0700 (PDT)
+X-Google-Smtp-Source: ACHHUZ5iJQ/YOY5BYJYpCuij2Dk8TuMWnzRrrUQf5oe61hk5gDfo5VjRa0aD7EjgG4gko6svJeBZBA==
+X-Received: by 2002:ac2:5a19:0:b0:4f3:bb14:bd40 with SMTP id q25-20020ac25a19000000b004f3bb14bd40mr1643602lfn.36.1686124513442;
+        Wed, 07 Jun 2023 00:55:13 -0700 (PDT)
 Received: from localhost (205.pool92-176-231.dynamic.orange.es. [92.176.231.205])
-        by smtp.gmail.com with ESMTPSA id f17-20020a7bc8d1000000b003f7e6d7f71esm1156174wml.36.2023.06.07.00.41.46
+        by smtp.gmail.com with ESMTPSA id z9-20020a5d4d09000000b0030e5c8d55f2sm480065wrt.6.2023.06.07.00.55.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Jun 2023 00:41:46 -0700 (PDT)
+        Wed, 07 Jun 2023 00:55:13 -0700 (PDT)
 From:   Javier Martinez Canillas <javierm@redhat.com>
 To:     Thomas Zimmermann <tzimmermann@suse.de>, daniel@ffwll.ch,
         sam@ravnborg.org, deller@gmx.de, geert+renesas@glider.be,
@@ -61,12 +61,13 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: Re: [PATCH 05/30] fbdev/atyfb: Use hardware device as backlight parent
-In-Reply-To: <20230605144812.15241-6-tzimmermann@suse.de>
+Subject: Re: [PATCH 07/30] fbdev/aty128fb: Use hardware device as backlight
+ parent
+In-Reply-To: <20230605144812.15241-8-tzimmermann@suse.de>
 References: <20230605144812.15241-1-tzimmermann@suse.de>
- <20230605144812.15241-6-tzimmermann@suse.de>
-Date:   Wed, 07 Jun 2023 09:41:45 +0200
-Message-ID: <87zg5bg1mu.fsf@minerva.mail-host-address-is-not-set>
+ <20230605144812.15241-8-tzimmermann@suse.de>
+Date:   Wed, 07 Jun 2023 09:55:12 +0200
+Message-ID: <87ttvjg10f.fsf@minerva.mail-host-address-is-not-set>
 MIME-Version: 1.0
 Content-Type: text/plain
 Precedence: bulk
