@@ -2,217 +2,366 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFCF5C7EE23
-	for <linux-omap@archiver.kernel.org>; Wed,  7 Jun 2023 18:18:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39E8FC77B7A
+	for <linux-omap@archiver.kernel.org>; Wed,  7 Jun 2023 19:39:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230046AbjFGSSG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 7 Jun 2023 14:18:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35232 "EHLO
+        id S230429AbjFGTjo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 7 Jun 2023 15:39:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231144AbjFGSSE (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jun 2023 14:18:04 -0400
-Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83F321FDE
-        for <linux-omap@vger.kernel.org>; Wed,  7 Jun 2023 11:17:39 -0700 (PDT)
-Received: by mail-ej1-x635.google.com with SMTP id a640c23a62f3a-977d4a1cf0eso618260166b.1
-        for <linux-omap@vger.kernel.org>; Wed, 07 Jun 2023 11:17:39 -0700 (PDT)
+        with ESMTP id S229925AbjFGTjn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jun 2023 15:39:43 -0400
+X-Greylist: delayed 774 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 07 Jun 2023 12:39:28 PDT
+Received: from mailrelay2-1.pub.mailoutpod2-cph3.one.com (mailrelay2-1.pub.mailoutpod2-cph3.one.com [46.30.211.177])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C68092103
+        for <linux-omap@vger.kernel.org>; Wed,  7 Jun 2023 12:39:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1686161850; x=1688753850;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=prDRECWq9gF2HlqhPhhfLHooXy3hmv9x6uJRavIYoMM=;
-        b=K8CKxwxxN45RRYaTH7NPm1PcmY5u9Gf+agf79C9mZHlN8CYjn0SvqEmRzpevWMmaj0
-         mhpDpp0KtIdV3xImPBNLj/6AalyMVyBbvf4X+LboPXyX3/mLFTSI5X+EDBye1KGVuQm2
-         9PLdOHTQuzN6xcm4aatFX34Swjx7jlpQ21OCyutgc/ClFDXHALAPNaF3fP8ybwDpBo4n
-         xFAVxB5O9J9gpHslhAfiEwdyPj4h2ctQ0k2tNERAnpI6L/qkR3zQQwCh5QP7Pp1aE8n4
-         9znUQsLY05jSaorR006Bdcc8zqOIDdEGKP/qUY5fUyfDEkd/nBxypOV9pwbcbIbWYjk4
-         C39w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686161850; x=1688753850;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=prDRECWq9gF2HlqhPhhfLHooXy3hmv9x6uJRavIYoMM=;
-        b=F6IqgQMt6G0KvlcDYkKzevVuf+49t1VOLiupqW3vmKzwX79fuTmErPDf2RQQC48kCI
-         PO9vo0FqfJvmKB62WFgQvwVcpBme2Ntvwz2cxGHoVbrTfrMTX+h8sr6QMELvZvOOuZS5
-         8HacalV/5BxgtnUVurrBSp26pcXYWtsOvrABVmbKCuMFfCJM0GujC8KzQGSBK7ltUhEX
-         K3wHznRVDc4Ja9icjrNmjLMWh/O7o1yn1lVRKoJFb0/4EptPK3d23E36E81+5y7ZOriR
-         p/cUZPi9snxq7P6YEfw06xbKejIR7qe82Ib0e/niI7Pn4oshfg3OLlKF3WuS4AzGU2KJ
-         0Nzw==
-X-Gm-Message-State: AC+VfDwiJCJsDLPEsQvGZX9vSlv5kIqfWCSrWpvSlGotxaWfZsNpKFPF
-        oGoXQHTWW3ZMoLugwvRw3wt0LMRpEvP7a+xIt6Q=
-X-Google-Smtp-Source: ACHHUZ6yoYhGvQnkxo1NhlbZPThR0OVI8Y6NmV6ZpfuYehTZsNtv3pdMlOHWJLxpGXA/52ORFV87KQ==
-X-Received: by 2002:a17:907:1606:b0:94a:7b2c:205e with SMTP id hb6-20020a170907160600b0094a7b2c205emr6065400ejc.72.1686161849737;
-        Wed, 07 Jun 2023 11:17:29 -0700 (PDT)
-Received: from [192.168.1.20] ([178.197.219.26])
-        by smtp.gmail.com with ESMTPSA id gu19-20020a170906f29300b0096a1ba4e0d1sm7262812ejb.32.2023.06.07.11.17.27
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 07 Jun 2023 11:17:29 -0700 (PDT)
-Message-ID: <a4134777-e43c-4b74-58d8-bff0c0d1a6f6@linaro.org>
-Date:   Wed, 7 Jun 2023 20:17:26 +0200
+        d=ravnborg.org; s=rsa1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=ECTW8pgcmkhUpSQVZL5jJ6voOQVX5f23HNCQpP2sp9g=;
+        b=SBZHpjOKIQWuXrRM4zXXNjBuMJ74rjPDrt6sSTNlNcbOIPE2AyumYBPFe297kBKjGKFyuPaiJWqJs
+         efa/0nXAJHvMIpL3HIVblR4D9xZG+9s+bd7memtfE43tXpZrs0W+Vt8wfXHRMtLExC5JXHUxszc1m2
+         Fb88koaLMwyb3cD7j6d3cI5gUYirgybTjBfW7JHcSeDDqiscWZfqSshZ0lO1fMQsVxZUdz4eQb9Ud8
+         ZY+YH9WgwF+116Nfq3HkRtCf1/RCCuuPk4npzXTns1E8PknWHqtxZec6M01z5Eu9KoVyEwmG9E4Zap
+         JTUtRQEU/U9hRtO8m8ZI4euzY7nuXAw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=ECTW8pgcmkhUpSQVZL5jJ6voOQVX5f23HNCQpP2sp9g=;
+        b=WEaOuxYmgOCYbfMPJWAd/h+gd0RhhzHqHvWQNDlw3EBQuExQm90o6Z3VFNdmk+Wng0vt4GPPj1bBR
+         Dciy2CwCA==
+X-HalOne-ID: dc1e239d-056a-11ee-b67c-13111ccb208d
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay2 (Halon) with ESMTPSA
+        id dc1e239d-056a-11ee-b67c-13111ccb208d;
+        Wed, 07 Jun 2023 19:38:24 +0000 (UTC)
+Date:   Wed, 7 Jun 2023 21:38:22 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Thomas Zimmermann <tzimmermann@suse.de>
+Cc:     daniel@ffwll.ch, javierm@redhat.com, deller@gmx.de,
+        geert+renesas@glider.be, lee@kernel.org,
+        daniel.thompson@linaro.org, jingoohan1@gmail.com,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-staging@lists.linux.dev
+Subject: Re: [PATCH 25/30] fbdev/core: Move framebuffer and backlight helpers
+ into separate files
+Message-ID: <20230607193822.GB670717@ravnborg.org>
+References: <20230605144812.15241-1-tzimmermann@suse.de>
+ <20230605144812.15241-26-tzimmermann@suse.de>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.2
-Subject: Re: [PATCH v6 1/1] dt-bindings: pinctrl: Update pinctrl-single to use
- yaml
-Content-Language: en-US
-To:     Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>
-Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        Nishanth Menon <nm@ti.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
-References: <20230605095216.18864-1-tony@atomide.com>
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <20230605095216.18864-1-tony@atomide.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230605144812.15241-26-tzimmermann@suse.de>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 05/06/2023 11:52, Tony Lindgren wrote:
-> Update binding for yaml and remove the old related txt bindings. Note that
-> we are also adding the undocumented pinctrl-single,slew-rate property. And
-> we only use the first example from the old binding.
+Hi Thomas,
+
+On Mon, Jun 05, 2023 at 04:48:07PM +0200, Thomas Zimmermann wrote:
+> Move framebuffer and backlight helpers into separate files. Leave
+> fbsysfs.c to sysfs-related code. No functional changes.
 > 
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Vignesh Raghavendra <vigneshr@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> The framebuffer helpers are not in fbmem.c because they are under
+> GPL-2.0-or-later copyright, while fbmem.c is GPL-2.0.
+> 
+> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Some nits that you decide what to do with.
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+
+I do not get why they are moved out in separate files.
+I guess the picture will materialize later.
+
+	Sam
+
 > ---
+>  drivers/video/fbdev/core/Makefile       |   4 +-
+>  drivers/video/fbdev/core/fb_backlight.c |  32 +++++++
+>  drivers/video/fbdev/core/fb_info.c      |  76 ++++++++++++++++
+>  drivers/video/fbdev/core/fbsysfs.c      | 110 +-----------------------
+>  4 files changed, 112 insertions(+), 110 deletions(-)
+>  create mode 100644 drivers/video/fbdev/core/fb_backlight.c
+>  create mode 100644 drivers/video/fbdev/core/fb_info.c
 > 
-> Changes since v5:
-> - Fix issues noted by Krzysztof
+> diff --git a/drivers/video/fbdev/core/Makefile b/drivers/video/fbdev/core/Makefile
+> index 8f0060160ffb..eee3295bc225 100644
+> --- a/drivers/video/fbdev/core/Makefile
+> +++ b/drivers/video/fbdev/core/Makefile
+> @@ -1,7 +1,9 @@
+>  # SPDX-License-Identifier: GPL-2.0
+>  obj-$(CONFIG_FB_NOTIFY)           += fb_notify.o
+>  obj-$(CONFIG_FB)                  += fb.o
+> -fb-y                              := fbmem.o fbmon.o fbcmap.o fbsysfs.o \
+> +fb-y                              := fb_backlight.o \
+> +                                     fb_info.o \
+> +                                     fbmem.o fbmon.o fbcmap.o fbsysfs.o \
+>                                       modedb.o fbcvt.o fb_cmdline.o fb_io_fops.o
+There is "+=" that can be used in Makefile, but people prefer '\' -
+sigh!
 
-
-
-> diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+>  fb-$(CONFIG_FB_DEFERRED_IO)       += fb_defio.o
+>  
+> diff --git a/drivers/video/fbdev/core/fb_backlight.c b/drivers/video/fbdev/core/fb_backlight.c
 > new file mode 100644
+> index 000000000000..feffe6c68039
 > --- /dev/null
-> +++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-> @@ -0,0 +1,206 @@
-> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-> +%YAML 1.2
-> +---
-> +$id: http://devicetree.org/schemas/pinctrl/pinctrl-single.yaml#
-> +$schema: http://devicetree.org/meta-schemas/core.yaml#
+> +++ b/drivers/video/fbdev/core/fb_backlight.c
+> @@ -0,0 +1,32 @@
+> +// SPDX-License-Identifier: GPL-2.0-or-later
+Hmm, can we change the license from 2.0 to 2.0-or-later without any
+concern? I hope so.
+
 > +
-> +title: Pinctrl driver for hardware with a single register for one or more pins
-
-I asked to drop the driver references but it is still here. Bindings are
-not describing drivers.
-
-"Generic Pin Controller with a Single Register for One or More Pins"
+> +#include <linux/export.h>
+> +#include <linux/fb.h>
+#include <linux/mutex.h> - to avoid relying on indirect includes?
 
 
 > +
-> +maintainers:
-> +  - Tony Lindgren <tony@atomide.com>
+> +#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
+> +/*
+> + * This function generates a linear backlight curve
+> + *
+> + *     0: off
+> + *   1-7: min
+> + * 8-127: linear from min to max
+> + */
+> +void fb_bl_default_curve(struct fb_info *fb_info, u8 off, u8 min, u8 max)
+> +{
+> +	unsigned int i, flat, count, range = (max - min);
 > +
-> +description:
-> +  Some pin controller devices use a single register for one or more pins. The
-> +  range of pin control registers can vary from one to many for each controller
-> +  instance. Some SoCs from Altera, Broadcom, HiSilicon, Ralink, and TI have this
-> +  kind of pin controller instances.
+> +	mutex_lock(&fb_info->bl_curve_mutex);
 > +
-> +properties:
-> +  compatible:
-> +    oneOf:
-> +      - enum:
-> +          - pinctrl-single
-> +          - pinconf-single
-> +      - items:
-> +          - enum:
-> +              - ti,am437-padconf
-> +              - ti,dra7-padconf
-> +              - ti,omap2420-padconf
-> +              - ti,omap2430-padconf
-> +              - ti,omap3-padconf
-> +              - ti,omap4-padconf
-> +              - ti,omap5-padconf
-> +          - const: pinctrl-single
+> +	fb_info->bl_curve[0] = off;
 > +
-> +  reg:
-> +    maxItems: 1
+> +	for (flat = 1; flat < (FB_BACKLIGHT_LEVELS / 16); ++flat)
+> +		fb_info->bl_curve[flat] = min;
 > +
-> +  interrupt-controller: true
+> +	count = FB_BACKLIGHT_LEVELS * 15 / 16;
+> +	for (i = 0; i < count; ++i)
+> +		fb_info->bl_curve[flat + i] = min + (range * (i + 1) / count);
 > +
-> +  '#interrupt-cells':
-> +    const: 1
+> +	mutex_unlock(&fb_info->bl_curve_mutex);
+> +}
+> +EXPORT_SYMBOL_GPL(fb_bl_default_curve);
+> +#endif
+> diff --git a/drivers/video/fbdev/core/fb_info.c b/drivers/video/fbdev/core/fb_info.c
+> new file mode 100644
+> index 000000000000..fb5b75009ee7
+> --- /dev/null
+> +++ b/drivers/video/fbdev/core/fb_info.c
+> @@ -0,0 +1,76 @@
+> +// SPDX-License-Identifier: GPL-2.0-or-later
 > +
-> +  '#address-cells':
-> +    const: 1
-> +
-> +  '#size-cells':
-> +    const: 0
-> +
-> +  '#pinctrl-cells':
-> +    description:
-> +      Number of cells. Usually 2, consisting of register offset, pin configuration
-> +      value, and pinmux mode. Some controllers may use 1 for just offset and value.
-> +    enum: [ 1, 2 ]
-> +
-> +  pinctrl-single,bit-per-mux:
-> +    description: Optional flag to indicate register controls more than one pin
-> +    type: boolean
-> +
-> +  pinctrl-single,function-mask:
-> +    description: Mask of the allowed register bits
-> +    $ref: /schemas/types.yaml#/definitions/uint32
-> +
-> +  pinctrl-single,function-off:
-> +    description: Optional function off mode for disabled state
-> +    $ref: /schemas/types.yaml#/definitions/uint32
-> +
-> +  pinctrl-single,register-width:
-> +    description: Width of pin specific bits in the register
-> +    $ref: /schemas/types.yaml#/definitions/uint32
-> +    enum: [ 8, 16, 32 ]
-> +
-> +  pinctrl-single,gpio-range:
-> +    description: Optional list of pin base, nr pins & gpio function
-> +    $ref: /schemas/types.yaml#/definitions/phandle-array
-> +    items:
-> +      - items:
-> +          - description: phandle of a gpio-range node
-> +          - description: pin base
-> +          - description: number of pins
-> +          - description: gpio function
-> +
-> +  '#gpio-range-cells':
-> +    description: No longer needed, may exist in older files for gpio-ranges
-> +    deprecated: true
-> +    const: 3
-> +
-> +  gpio-range:
-> +    description: Optional node for gpio range cells
-> +    type: object
-> +    additionalProperties: false
-> +    properties:
-> +      '#pinctrl-single,gpio-range-cells':
-> +        description: Number of gpio range cells
-> +        const: 3
-> +        $ref: /schemas/types.yaml#/definitions/uint32
-> +
-> +patternProperties:
-> +  '-pins$|-pin':
+> +#include <linux/export.h>
+> +#include <linux/fb.h>
+Same as above, consider including mutex.h
+Also slab.h
 
-you did not implement my comments fully, probably we misunderstood each
-other. Why do you allow anything after '-pin'? Let's make it pure suffix
-for both cases: '-pins?$'
-
-
-> +    description:
-> +      Pin group node name using naming ending in -pins, or having -pin
-> +      in the node name
-> +    type: object
-> +    additionalProperties: false
 > +
-
-
-Best regards,
-Krzysztof
-
+> +/**
+> + * framebuffer_alloc - creates a new frame buffer info structure
+> + *
+> + * @size: size of driver private data, can be zero
+> + * @dev: pointer to the device for this fb, this can be NULL
+> + *
+> + * Creates a new frame buffer info structure. Also reserves @size bytes
+> + * for driver private data (info->par). info->par (if any) will be
+> + * aligned to sizeof(long).
+> + *
+> + * Returns the new structure, or NULL if an error occurred.
+> + *
+> + */
+> +struct fb_info *framebuffer_alloc(size_t size, struct device *dev)
+> +{
+> +#define BYTES_PER_LONG (BITS_PER_LONG/8)
+> +#define PADDING (BYTES_PER_LONG - (sizeof(struct fb_info) % BYTES_PER_LONG))
+> +	int fb_info_size = sizeof(struct fb_info);
+> +	struct fb_info *info;
+> +	char *p;
+> +
+> +	if (size)
+> +		fb_info_size += PADDING;
+> +
+> +	p = kzalloc(fb_info_size + size, GFP_KERNEL);
+> +
+> +	if (!p)
+> +		return NULL;
+> +
+> +	info = (struct fb_info *) p;
+> +
+> +	if (size)
+> +		info->par = p + fb_info_size;
+> +
+> +	info->device = dev;
+> +	info->fbcon_rotate_hint = -1;
+> +
+> +#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
+> +	mutex_init(&info->bl_curve_mutex);
+> +#endif
+> +
+> +	return info;
+> +#undef PADDING
+> +#undef BYTES_PER_LONG
+> +}
+> +EXPORT_SYMBOL(framebuffer_alloc);
+> +
+> +/**
+> + * framebuffer_release - marks the structure available for freeing
+> + *
+> + * @info: frame buffer info structure
+> + *
+> + * Drop the reference count of the device embedded in the
+> + * framebuffer info structure.
+> + *
+> + */
+> +void framebuffer_release(struct fb_info *info)
+> +{
+> +	if (!info)
+> +		return;
+> +
+> +	if (WARN_ON(refcount_read(&info->count)))
+> +		return;
+> +
+> +#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
+> +	mutex_destroy(&info->bl_curve_mutex);
+> +#endif
+> +
+> +	kfree(info);
+> +}
+> +EXPORT_SYMBOL(framebuffer_release);
+> diff --git a/drivers/video/fbdev/core/fbsysfs.c b/drivers/video/fbdev/core/fbsysfs.c
+> index 0c33c4adcd79..849073f1ca06 100644
+> --- a/drivers/video/fbdev/core/fbsysfs.c
+> +++ b/drivers/video/fbdev/core/fbsysfs.c
+> @@ -5,93 +5,12 @@
+>   * Copyright (c) 2004 James Simmons <jsimmons@infradead.org>
+>   */
+>  
+> -/*
+> - * Note:  currently there's only stubs for framebuffer_alloc and
+> - * framebuffer_release here.  The reson for that is that until all drivers
+> - * are converted to use it a sysfsification will open OOPSable races.
+> - */
+> -
+> -#include <linux/kernel.h>
+> -#include <linux/slab.h>
+> +#include <linux/console.h>
+>  #include <linux/fb.h>
+>  #include <linux/fbcon.h>
+> -#include <linux/console.h>
+> -#include <linux/module.h>
+>  
+>  #define FB_SYSFS_FLAG_ATTR 1
+>  
+> -/**
+> - * framebuffer_alloc - creates a new frame buffer info structure
+> - *
+> - * @size: size of driver private data, can be zero
+> - * @dev: pointer to the device for this fb, this can be NULL
+> - *
+> - * Creates a new frame buffer info structure. Also reserves @size bytes
+> - * for driver private data (info->par). info->par (if any) will be
+> - * aligned to sizeof(long).
+> - *
+> - * Returns the new structure, or NULL if an error occurred.
+> - *
+> - */
+> -struct fb_info *framebuffer_alloc(size_t size, struct device *dev)
+> -{
+> -#define BYTES_PER_LONG (BITS_PER_LONG/8)
+> -#define PADDING (BYTES_PER_LONG - (sizeof(struct fb_info) % BYTES_PER_LONG))
+> -	int fb_info_size = sizeof(struct fb_info);
+> -	struct fb_info *info;
+> -	char *p;
+> -
+> -	if (size)
+> -		fb_info_size += PADDING;
+> -
+> -	p = kzalloc(fb_info_size + size, GFP_KERNEL);
+> -
+> -	if (!p)
+> -		return NULL;
+> -
+> -	info = (struct fb_info *) p;
+> -
+> -	if (size)
+> -		info->par = p + fb_info_size;
+> -
+> -	info->device = dev;
+> -	info->fbcon_rotate_hint = -1;
+> -
+> -#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
+> -	mutex_init(&info->bl_curve_mutex);
+> -#endif
+> -
+> -	return info;
+> -#undef PADDING
+> -#undef BYTES_PER_LONG
+> -}
+> -EXPORT_SYMBOL(framebuffer_alloc);
+> -
+> -/**
+> - * framebuffer_release - marks the structure available for freeing
+> - *
+> - * @info: frame buffer info structure
+> - *
+> - * Drop the reference count of the device embedded in the
+> - * framebuffer info structure.
+> - *
+> - */
+> -void framebuffer_release(struct fb_info *info)
+> -{
+> -	if (!info)
+> -		return;
+> -
+> -	if (WARN_ON(refcount_read(&info->count)))
+> -		return;
+> -
+> -#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
+> -	mutex_destroy(&info->bl_curve_mutex);
+> -#endif
+> -
+> -	kfree(info);
+> -}
+> -EXPORT_SYMBOL(framebuffer_release);
+> -
+>  static int activate(struct fb_info *fb_info, struct fb_var_screeninfo *var)
+>  {
+>  	int err;
+> @@ -551,30 +470,3 @@ void fb_cleanup_device(struct fb_info *fb_info)
+>  		fb_info->class_flag &= ~FB_SYSFS_FLAG_ATTR;
+>  	}
+>  }
+> -
+> -#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
+> -/* This function generates a linear backlight curve
+> - *
+> - *     0: off
+> - *   1-7: min
+> - * 8-127: linear from min to max
+> - */
+> -void fb_bl_default_curve(struct fb_info *fb_info, u8 off, u8 min, u8 max)
+> -{
+> -	unsigned int i, flat, count, range = (max - min);
+> -
+> -	mutex_lock(&fb_info->bl_curve_mutex);
+> -
+> -	fb_info->bl_curve[0] = off;
+> -
+> -	for (flat = 1; flat < (FB_BACKLIGHT_LEVELS / 16); ++flat)
+> -		fb_info->bl_curve[flat] = min;
+> -
+> -	count = FB_BACKLIGHT_LEVELS * 15 / 16;
+> -	for (i = 0; i < count; ++i)
+> -		fb_info->bl_curve[flat + i] = min + (range * (i + 1) / count);
+> -
+> -	mutex_unlock(&fb_info->bl_curve_mutex);
+> -}
+> -EXPORT_SYMBOL_GPL(fb_bl_default_curve);
+> -#endif
+> -- 
+> 2.40.1
