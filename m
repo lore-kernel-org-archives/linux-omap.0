@@ -2,99 +2,97 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B254C7EE37
-	for <linux-omap@archiver.kernel.org>; Thu,  8 Jun 2023 15:57:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DBE1C7EE2E
+	for <linux-omap@archiver.kernel.org>; Thu,  8 Jun 2023 19:45:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236178AbjFHP5c (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 8 Jun 2023 11:57:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46392 "EHLO
+        id S236338AbjFHTp5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 8 Jun 2023 15:45:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237672AbjFHP5a (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jun 2023 11:57:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A36761FCC;
-        Thu,  8 Jun 2023 08:57:15 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0397463188;
-        Thu,  8 Jun 2023 15:57:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C79C0C4339B;
-        Thu,  8 Jun 2023 15:57:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686239834;
-        bh=mecH44HKv66DOIzb6Cw7QlFUnI1jG2hQESu+9Iq7z0s=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=gmTwoGlBOFxuW3U7WjM9jDKF6jaDGwvSfgLS2gMLB3TrsKkjoaV87riWf4s+I830C
-         JWWtavKcosH0j49IiUnqYe2xCOD+BrZfbE+59OHmhjjbb45bQ/Cs7bA6dorYHCz5Ni
-         +5Er/qVJ1EHaTF/lyMf8H5QUPkcKmtv6jK3KsEFhclr2iQoCbkI0J6zvGKNKKJvW/6
-         mWzIybnytBozw1Uoyw3Odt7lpXQC6Z7uxcXiAYrstIHLKh4kImHetejrUPJwnGB+te
-         X0zO59VDgkgS4pRR1udZjkFnhgjRNDZg6OPc4qJ0JzKTejrstpoGwt+ArT9QDITK3v
-         g1b0zfZj5imdA==
-Date:   Thu, 8 Jun 2023 16:57:09 +0100
-From:   Lee Jones <lee@kernel.org>
-To:     Jerome Neanne <jneanne@baylibre.com>
-Cc:     tony@atomide.com, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, khilman@baylibre.com, nm@ti.com,
-        afd@ti.com, msp@baylibre.com
-Subject: Re: [RESEND PATCH v3] mfd: tps65219: Add support for soft shutdown
- via sys-off API
-Message-ID: <20230608155709.GA3572061@google.com>
-References: <20230608071947.3467751-1-jneanne@baylibre.com>
+        with ESMTP id S236240AbjFHTp4 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jun 2023 15:45:56 -0400
+Received: from mx01.omp.ru (mx01.omp.ru [90.154.21.10])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 539792134;
+        Thu,  8 Jun 2023 12:45:55 -0700 (PDT)
+Received: from localhost.localdomain (31.173.86.116) by msexch01.omp.ru
+ (10.188.4.12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.986.14; Thu, 8 Jun 2023
+ 22:45:52 +0300
+From:   Sergey Shtylyov <s.shtylyov@omp.ru>
+To:     Ulf Hansson <ulf.hansson@linaro.org>, <linux-mmc@vger.kernel.org>
+CC:     Aaro Koskinen <aaro.koskinen@iki.fi>, <linux-omap@vger.kernel.org>
+Subject: [PATCH v2 05/12] mmc: omap: fix deferred probing
+Date:   Thu, 8 Jun 2023 22:45:12 +0300
+Message-ID: <20230608194519.10665-6-s.shtylyov@omp.ru>
+X-Mailer: git-send-email 2.26.3
+In-Reply-To: <20230608194519.10665-1-s.shtylyov@omp.ru>
+References: <20230608194519.10665-1-s.shtylyov@omp.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230608071947.3467751-1-jneanne@baylibre.com>
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [31.173.86.116]
+X-ClientProxiedBy: msexch01.omp.ru (10.188.4.12) To msexch01.omp.ru
+ (10.188.4.12)
+X-KSE-ServerInfo: msexch01.omp.ru, 9
+X-KSE-AntiSpam-Interceptor-Info: scan successful
+X-KSE-AntiSpam-Version: 5.9.59, Database issued on: 06/08/2023 19:29:53
+X-KSE-AntiSpam-Status: KAS_STATUS_NOT_DETECTED
+X-KSE-AntiSpam-Method: none
+X-KSE-AntiSpam-Rate: 0
+X-KSE-AntiSpam-Info: Lua profiles 177946 [Jun 08 2023]
+X-KSE-AntiSpam-Info: Version: 5.9.59.0
+X-KSE-AntiSpam-Info: Envelope from: s.shtylyov@omp.ru
+X-KSE-AntiSpam-Info: LuaCore: 516 516 efd4d74ff4b68f90ca62ae34a19f27bf46d81db5
+X-KSE-AntiSpam-Info: {rep_avail}
+X-KSE-AntiSpam-Info: {Tracking_no_received}
+X-KSE-AntiSpam-Info: {Tracking_from_domain_doesnt_match_to}
+X-KSE-AntiSpam-Info: 31.173.86.116:7.1.2;127.0.0.199:7.1.2;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;omp.ru:7.1.1
+X-KSE-AntiSpam-Info: ApMailHostAddress: 31.173.86.116
+X-KSE-AntiSpam-Info: Rate: 0
+X-KSE-AntiSpam-Info: Status: not_detected
+X-KSE-AntiSpam-Info: Method: none
+X-KSE-AntiSpam-Info: Auth:dmarc=temperror header.from=omp.ru;spf=temperror
+ smtp.mailfrom=omp.ru;dkim=none
+X-KSE-Antiphishing-Info: Clean
+X-KSE-Antiphishing-ScanningType: Heuristic
+X-KSE-Antiphishing-Method: None
+X-KSE-Antiphishing-Bases: 06/08/2023 19:36:00
+X-KSE-Antivirus-Interceptor-Info: scan successful
+X-KSE-Antivirus-Info: Clean, bases: 6/8/2023 5:02:00 PM
+X-KSE-Attachment-Filter-Triggered-Rules: Clean
+X-KSE-Attachment-Filter-Triggered-Filters: Clean
+X-KSE-BulkMessagesFiltering-Scan-Result: InTheLimit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, 08 Jun 2023, Jerome Neanne wrote:
+The driver overrides the error codes returned by platform_get_irq() to
+-ENXIO, so if it returns -EPROBE_DEFER, the driver will fail the probe
+permanently instead of the deferred probing. Switch to propagating the
+error codes upstream.
 
-> Use new API for power-off mode support:
-> Link: https://lwn.net/Articles/894511/
-> Link: https://lore.kernel.org/all/7hfseqa7l0.fsf@baylibre.com/
-> 
-> sys-off API allows support of shutdown handler and restart handler.
-> 
-> Shutdown was not supported before that enhancement.
-> This is required for platform that are not using PSCI.
-> 
-> Test:
-> - restart:
->   # reboot
->   Default is cold reset:
->   # cat /sys/kernel/reboot/mode
->   Switch boot mode to warm reset:
->   # echo warm > /sys/kernel/reboot/mode
-> - power-off:
->   # halt
-> 
-> Tested on AM62-LP-SK board.
-> 
-> Signed-off-by: Jerome Neanne <jneanne@baylibre.com>
-> Suggested-by: Andrew Davis <afd@ti.com>
-> Reviewed-by: Andrew Davis <afd@ti.com>
-> ---
-> 
-> Notes:
->     Change-log v3 to v2
->     v2: Link: https://lore.kernel.org/lkml/20230511122100.2225417-1-jneanne@baylibre.com/
->     Lee Jones Review:
->     nits: rm not needed line wraps and restore a cr deleted not related with the patch.
->     
->     Change-log v2 to v1
->     v1: Link: https://lore.kernel.org/all/20230203140150.13071-1-jneanne@baylibre.com/
->     Andrew Davis Review:
->     - Use new helpers devm_register_restart_handler and devm_register_power_off_handler
->     Vignesh Raghavendra:
->     - Fix typo on board name in commit message
-> 
->  drivers/mfd/tps65219.c | 38 ++++++++++++++++++++++++++++----------
->  1 file changed, 28 insertions(+), 10 deletions(-)
+Fixes: 9ec36cafe43b ("of/irq: do irq resolution in platform_get_irq")
+Signed-off-by: Sergey Shtylyov <s.shtylyov@omp.ru>
+---
+Changes in version 2:
+- updated the fix due to the surrounding code change.
 
-Applied, thanks
+ drivers/mmc/host/omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index ce78edfb402b..86454f1182bb 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1343,7 +1343,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0)
+-		return -ENXIO;
++		return irq;
+ 
+ 	host->virt_base = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
+ 	if (IS_ERR(host->virt_base))
 -- 
-Lee Jones [李琼斯]
+2.26.3
+
