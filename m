@@ -2,67 +2,93 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4210C83005
-	for <linux-omap@archiver.kernel.org>; Sat, 10 Jun 2023 00:30:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD59CC77B7A
+	for <linux-omap@archiver.kernel.org>; Sat, 10 Jun 2023 14:05:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232602AbjFJAak convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 9 Jun 2023 20:30:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49676 "EHLO
+        id S233311AbjFJOFb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 10 Jun 2023 10:05:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231154AbjFJAah (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jun 2023 20:30:37 -0400
-X-Greylist: delayed 971 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 09 Jun 2023 17:30:36 PDT
-Received: from es.pcb.gov.my (es.pcb.gov.my [202.75.7.35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1C0DB3A81
-        for <linux-omap@vger.kernel.org>; Fri,  9 Jun 2023 17:30:35 -0700 (PDT)
-X-ASG-Debug-ID: 1686355820-1488a971bf06bd0005-g9IbbW
-Received: from mail.pcb.gov.my (mail.pcb.gov.my [10.28.173.47]) by es.pcb.gov.my with ESMTP id CG4g2691qlo3ehvc for <linux-omap@vger.kernel.org>; Sat, 10 Jun 2023 08:13:22 +0800 (+08)
-X-Barracuda-Envelope-From: herdayu@pcb.gov.my
-Received: from [193.169.254.61] (193.169.254.61) by EXCHANGE01.BPA.pcb.gov.my
- (10.28.173.47) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.721.2; Fri, 9 Jun 2023
- 01:18:56 +0800
-Reply-To: <alicewalt63@gmail.com>
-X-Barracuda-Effective-Source-IP: UNKNOWN[193.169.254.61]
-X-Barracuda-Apparent-Source-IP: 193.169.254.61
-From:   Alice Walton <herdayu@pcb.gov.my>
-To:     <linux-omap@vger.kernel.org>
-Subject: =?UTF-8?B?xI1lc3RpdGFt?=
-Date:   Thu, 8 Jun 2023 10:18:50 -0700
-X-ASG-Orig-Subj: =?UTF-8?B?xI1lc3RpdGFt?=
-Message-ID: <20230608101850.A038100CEB10011D@pcb.gov.my>
+        with ESMTP id S229749AbjFJOFa (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 10 Jun 2023 10:05:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 357801984;
+        Sat, 10 Jun 2023 07:05:29 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C61CF60FB5;
+        Sat, 10 Jun 2023 14:05:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C84AC433D2;
+        Sat, 10 Jun 2023 14:05:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1686405928;
+        bh=4F32DwLg6Rr6AdgDkL7pW4vNiCCunXcliQBuqU3PDZs=;
+        h=From:Date:Subject:To:Cc:From;
+        b=jJXddgvFvvVQIt0qsHhZExQrU8HbU0NPGLLOCg+pKXvcWRH9N2wllaBlyjbbQUbHW
+         DTPzy5p6L3uqqI7Xn8+OCArOqrqRJe+/TJNgK+cZJFpT2clwP34vmw1yex6EerT8DA
+         VuARGRknNfB9JQiistZOgxtMg7++czuft9JjZhu3xWi1g36lgkeeWuuBrdTKV4jebt
+         6VSofvyA4CCVSsUU3JL1RPU1msHwj/qkvUzMUoI0ABIba+hLntxHG6s/zRwQwmbTT1
+         vVWez0zdOPWtrimbu3frGtRO7vC/B2efn/C0oZfMYNThOHgMScbMUyIh1ZINbPUoQe
+         I0UKMyQ6/8W7Q==
+From:   Mark Brown <broonie@kernel.org>
+Date:   Sat, 10 Jun 2023 15:05:21 +0100
+Subject: [PATCH] mfd: twl6040: Use maple tree register cache
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-X-ClientProxiedBy: EXCHANGE01.BPA.pcb.gov.my (10.28.173.47) To
- EXCHANGE01.BPA.pcb.gov.my (10.28.173.47)
-X-Barracuda-Connect: mail.pcb.gov.my[10.28.173.47]
-X-Barracuda-Start-Time: 1686355996
-X-Barracuda-URL: https://10.28.173.25:443/cgi-mod/mark.cgi
-X-Barracuda-License: Expired
-X-Barracuda-BRTS-Status: 1
-X-Virus-Scanned: by bsmtpd at pcb.gov.my
-X-Barracuda-Scan-Msg-Size: 570
+Content-Transfer-Encoding: 7bit
+Message-Id: <20230609-mfd-twl6040-maple-v1-1-3493d051cd6f@kernel.org>
+X-B4-Tracking: v=1; b=H4sIACCDhGQC/x2NQQqDMBAAvyJ77sKaqph+pXiIutGlGmUjWhD/3
+ tjjDAxzQmQVjvDKTlDeJcoSEuSPDLrRhYFR+sRgyDypIouz73E7pooKwtmtEyNZKkpb1zb3BlL
+ XusjYqgvdeJfHop9br8pevv/Vu7muH3oTmjx6AAAA
+To:     Tony Lindgren <tony@atomide.com>, Lee Jones <lee@kernel.org>
+Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Mark Brown <broonie@kernel.org>
+X-Mailer: b4 0.13-dev-bfdf5
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1021; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=4F32DwLg6Rr6AdgDkL7pW4vNiCCunXcliQBuqU3PDZs=;
+ b=owEBbQGS/pANAwAKASTWi3JdVIfQAcsmYgBkhIMl7Ky+j1H5GvBqGWhJUIsVw4YhB2O94Esarh8W
+ jq23PpiJATMEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCZISDJQAKCRAk1otyXVSH0NomB/
+ 0f6DiDSaBQn7vG3WQWnkmXH5PDTbx3lmwRgTZ/WksgUHBcd+oe3sKn8VZofduwHovMSm9Bu2aKuHPA
+ oMBUzL0xFfREjtAwEU6mYsP/i7ut58Ow67Xk7/lfaMjfiMuF4biIBES5CjJlnMsbZeF+SjO3URsWZR
+ +0gcAhYI97IVhwzderXyjh8IncmITsOYlLAPFGSE9OIOStfP66yCtlh2TG1Kw2W+P1ngT4+/+MI9Jj
+ LFQGmlPEjcXnLyAV32jOKXM4zgenuZT8kZ7WRUGoLaPs9jqkGQQm8HS2P021AKJbgFO8+jQHwKXHFT
+ a5PwGqX+rrI220WeH/10Yc1Qp5rQfZ
+X-Developer-Key: i=broonie@kernel.org; a=openpgp;
+ fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-čestitam,
+The twl6040 is only capable of performing single register read and write
+operations which means it gains no advantage from using a rbtree register
+cache, convert it to using the more modern maple tree register cache
+instead. This should be more efficient.
 
-      Vaša e-pošta osvojila je 5.000.000,00 USD od strane Alice 
-Walton 2023 humanitarnog programa podrške donacijama. 
-Kontaktirajte nas za više pojedinosti o tome kako možete 
-zatražiti svoj donacijski fond.
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/mfd/twl6040.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Hvala i Bog blagoslovio
-Zaklada Alice Walton
-=========================================
-Congratulation,
+diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+index e982119bbefa..523439a16b7c 100644
+--- a/drivers/mfd/twl6040.c
++++ b/drivers/mfd/twl6040.c
+@@ -608,7 +608,7 @@ static const struct regmap_config twl6040_regmap_config = {
+ 	.volatile_reg = twl6040_volatile_reg,
+ 	.writeable_reg = twl6040_writeable_reg,
+ 
+-	.cache_type = REGCACHE_RBTREE,
++	.cache_type = REGCACHE_MAPLE,
+ 	.use_single_read = true,
+ 	.use_single_write = true,
+ };
 
-     Your email has won $5,000,000.00 USD by Alice Walton 2023 
-humanitarian donation support program. Contact us for more 
-details on how you can claim your donation fund.
+---
+base-commit: 9561de3a55bed6bdd44a12820ba81ec416e705a7
+change-id: 20230609-mfd-twl6040-maple-0904598891f2
 
-Thanks And God Bless
-Alice Walton Foundation
+Best regards,
+-- 
+Mark Brown <broonie@kernel.org>
+
