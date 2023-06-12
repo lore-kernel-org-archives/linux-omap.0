@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21CAEC88CB2
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Jun 2023 14:14:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDB71C88CB4
+	for <linux-omap@archiver.kernel.org>; Mon, 12 Jun 2023 14:14:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237641AbjFLOOf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 12 Jun 2023 10:14:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55216 "EHLO
+        id S237657AbjFLOOg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 12 Jun 2023 10:14:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237420AbjFLOOL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jun 2023 10:14:11 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E71A170B;
+        with ESMTP id S237427AbjFLOOM (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jun 2023 10:14:12 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F35EA1718;
         Mon, 12 Jun 2023 07:14:04 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id CA1C02283D;
-        Mon, 12 Jun 2023 14:14:02 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 7F7652048D;
+        Mon, 12 Jun 2023 14:14:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1686579242; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1686579243; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=ZMezLYvd1wM4r2U5/PT+E1dmbhnJeOMuc4XP7gGAyts=;
-        b=pos53zcO3/7qNVyViUFnRcWKhP5plrKrze/JvjwKxn8GCfYQA8qH/Uo9OF/pHPgJ2U8PWe
-        +UAmY2CDeLJWlQVQv9U7ustyi+70xxhrdngHuM0nW+ziQRpTbcAdUhjut6iSHOwt4x7Kec
-        VkgHiAAvJnhLnqC/KrZV0ATDTKea1HU=
+        bh=DApq01bMcWPqgYhwuryEu5qdYBZjYFccLYihwSFiAXk=;
+        b=Zora8HfwuVeNq+hm5G6DUqPUKgOtH8m30gUW2OZP6oVeOC0SvWGqgTfYBjKPMAc4pI9aQI
+        6Ew5qXJjBTM44urrB1/6yhlbyymEG/osTY/bs4iFSYk4d5bxC6F57x56AInpWgVPVsVN+X
+        4ceLrGintZ/Mib46vhkSzUt+OkIljto=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1686579242;
+        s=susede2_ed25519; t=1686579243;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=ZMezLYvd1wM4r2U5/PT+E1dmbhnJeOMuc4XP7gGAyts=;
-        b=N7FSzby/wxuYdzkiF+jH2GY6MlRjrhrIYQKfeIFzxZEcoBUt+c5a+Gz0cFdVBRSJXb+DF8
-        g39ye9qbPWa4MEBA==
+        bh=DApq01bMcWPqgYhwuryEu5qdYBZjYFccLYihwSFiAXk=;
+        b=H/zAlbOtFqKuNb3tKoyQFw3FYtGoeSWfqKSzX2hZ0Cmx54Oz0an5bSEQ+PUQanuJpxb/Pf
+        WQfNEU/GNlTsfLCg==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 793521357F;
-        Mon, 12 Jun 2023 14:14:02 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 30A641357F;
+        Mon, 12 Jun 2023 14:14:03 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id qDmsHCooh2RwGQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Mon, 12 Jun 2023 14:14:02 +0000
+        id CFDoCisoh2RwGQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Mon, 12 Jun 2023 14:14:03 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
         deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
@@ -56,11 +56,10 @@ To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
 Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Antonino Daplas <adaplas@gmail.com>
-Subject: [PATCH v2 23/38] fbdev/rivafb: Reorder backlight and framebuffer init/cleanup
-Date:   Mon, 12 Jun 2023 16:08:01 +0200
-Message-ID: <20230612141352.29939-24-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH v2 25/38] fbdev/sh7760fb: Use fb_dbg() in sh7760fb_get_color_info()
+Date:   Mon, 12 Jun 2023 16:08:03 +0200
+Message-ID: <20230612141352.29939-26-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230612141352.29939-1-tzimmermann@suse.de>
 References: <20230612141352.29939-1-tzimmermann@suse.de>
@@ -70,52 +69,64 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The driver's backlight code requires the framebuffer to be
-registered. Therefore reorder the init and cleanup calls for
-both data structures.
+Give struct fb_info to sh7760fb_get_color_info() and use it in
+call to fb_dbg(). Prepares fbdev for making struct fb_info.dev
+optional.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Antonino Daplas <adaplas@gmail.com>
-Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
 ---
- drivers/video/fbdev/riva/fbdev.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/fbdev/sh7760fb.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/fbdev/riva/fbdev.c b/drivers/video/fbdev/riva/fbdev.c
-index 41edc6e794603..e328b2d39e2b6 100644
---- a/drivers/video/fbdev/riva/fbdev.c
-+++ b/drivers/video/fbdev/riva/fbdev.c
-@@ -2031,9 +2031,6 @@ static int rivafb_probe(struct pci_dev *pd, const struct pci_device_id *ent)
+diff --git a/drivers/video/fbdev/sh7760fb.c b/drivers/video/fbdev/sh7760fb.c
+index 4c092c7935027..a2946f06d579e 100644
+--- a/drivers/video/fbdev/sh7760fb.c
++++ b/drivers/video/fbdev/sh7760fb.c
+@@ -118,7 +118,7 @@ static int sh7760_setcolreg (u_int regno,
+ 	return 0;
+ }
  
- 	pci_set_drvdata(pd, info);
- 
--	if (backlight)
--		riva_bl_init(info->par);
--
- 	ret = register_framebuffer(info);
- 	if (ret < 0) {
- 		printk(KERN_ERR PFX
-@@ -2041,6 +2038,9 @@ static int rivafb_probe(struct pci_dev *pd, const struct pci_device_id *ent)
- 		goto err_iounmap_screen_base;
+-static int sh7760fb_get_color_info(struct device *dev,
++static int sh7760fb_get_color_info(struct fb_info *info,
+ 				   u16 lddfr, int *bpp, int *gray)
+ {
+ 	int lbpp, lgray;
+@@ -150,7 +150,7 @@ static int sh7760fb_get_color_info(struct device *dev,
+ 		lgray = 0;
+ 		break;
+ 	default:
+-		dev_dbg(dev, "unsupported LDDFR bit depth.\n");
++		fb_dbg(info, "unsupported LDDFR bit depth.\n");
+ 		return -EINVAL;
  	}
  
-+	if (backlight)
-+		riva_bl_init(info->par);
-+
- 	printk(KERN_INFO PFX
- 		"PCI nVidia %s framebuffer ver %s (%dMB @ 0x%lX)\n",
- 		info->fix.id,
-@@ -2084,9 +2084,9 @@ static void rivafb_remove(struct pci_dev *pd)
- 	kfree(par->EDID);
- #endif
+@@ -170,7 +170,7 @@ static int sh7760fb_check_var(struct fb_var_screeninfo *var,
+ 	int ret, bpp;
  
-+	riva_bl_exit(info);
- 	unregister_framebuffer(info);
+ 	/* get color info from register value */
+-	ret = sh7760fb_get_color_info(info->dev, par->pd->lddfr, &bpp, NULL);
++	ret = sh7760fb_get_color_info(info, par->pd->lddfr, &bpp, NULL);
+ 	if (ret)
+ 		return ret;
  
--	riva_bl_exit(info);
- 	arch_phys_wc_del(par->wc_cookie);
- 	iounmap(par->ctrl_base);
- 	iounmap(info->screen_base);
+@@ -222,7 +222,7 @@ static int sh7760fb_set_par(struct fb_info *info)
+ 	vdln = vm->yres;
+ 
+ 	/* get color info from register value */
+-	ret = sh7760fb_get_color_info(info->dev, par->pd->lddfr, &bpp, &gray);
++	ret = sh7760fb_get_color_info(info, par->pd->lddfr, &bpp, &gray);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -381,7 +381,7 @@ static int sh7760fb_alloc_mem(struct fb_info *info)
+ 		return 0;
+ 
+ 	/* get color info from register value */
+-	ret = sh7760fb_get_color_info(info->dev, par->pd->lddfr, &bpp, NULL);
++	ret = sh7760fb_get_color_info(info, par->pd->lddfr, &bpp, NULL);
+ 	if (ret) {
+ 		printk(KERN_ERR "colinfo\n");
+ 		return ret;
 -- 
 2.41.0
 
