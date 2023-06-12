@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A742C88CBA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5D44C88CBF
 	for <linux-omap@archiver.kernel.org>; Mon, 12 Jun 2023 14:14:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237346AbjFLOOE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 12 Jun 2023 10:14:04 -0400
+        id S237357AbjFLOOF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 12 Jun 2023 10:14:05 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237249AbjFLON6 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jun 2023 10:13:58 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 849B810E9;
-        Mon, 12 Jun 2023 07:13:57 -0700 (PDT)
+        with ESMTP id S237278AbjFLOOA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jun 2023 10:14:00 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFD9219C;
+        Mon, 12 Jun 2023 07:13:58 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 0393A201D6;
-        Mon, 12 Jun 2023 14:13:56 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 7D9902283A;
+        Mon, 12 Jun 2023 14:13:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1686579236; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1686579237; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=WCRr3tcfQ+ViTqvRJUG7w6CzJZFM3ZnmBQeGqDoFNyA=;
-        b=B3c7FJ0o7rKovAlVqxsu+Jc3wMWjZdExXH2p5ByRwfcFc+ilXqYes3ifuEtwAiiCrDIhN8
-        cPt41wJHss0O3oTTg6pLfOWZEbyVZDdAH1WzxWbDAJligcdGIGgmJWO5l3MfvcQSUtUMFl
-        wlaLfObvsRRjCNdzMpHBMhHseFCyxzg=
+        bh=V05YqbcHFkVh40/g+io2C7/2OJyvLIuQRZ3y/TKygo8=;
+        b=T2euGdcQaW2rmPvlyCi7lJ1mkZrEd72+/fhhzMqgppXGBGopdDkJK5SKyCyb5T/C+loCv+
+        6OFAZDBPYb9PXIQchvOTpxeU9n8u/plj9XOG+ofNWocbJ3JWwHNvJJoyI503bSSjY9p9DA
+        e4teRawwOgNlbVcSg2ZLnL3ImsMqKBI=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1686579236;
+        s=susede2_ed25519; t=1686579237;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=WCRr3tcfQ+ViTqvRJUG7w6CzJZFM3ZnmBQeGqDoFNyA=;
-        b=nP6ok9tGNYJPhTfSJhnOUhfUDt2dDp8Vtejn+3CZPIECp+BZnHlWEb0ubXBjmw/nIr8MW4
-        sgkJX4ml2AN+WhBw==
+        bh=V05YqbcHFkVh40/g+io2C7/2OJyvLIuQRZ3y/TKygo8=;
+        b=vNbQs/Lji8VC4za6ijU1bMo1lBLxsxsTBPEICggoy20po+PG44rdnjGCWFShw4SwgP10Qb
+        7r4NlZRpNRfDSWAQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id A2A3C13A67;
-        Mon, 12 Jun 2023 14:13:55 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 2F94A13A67;
+        Mon, 12 Jun 2023 14:13:57 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id kCbcJiMoh2RwGQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Mon, 12 Jun 2023 14:13:55 +0000
+        id OMbTCiUoh2RwGQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Mon, 12 Jun 2023 14:13:57 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
         deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
@@ -56,12 +56,10 @@ To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
 Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Subject: [PATCH v2 04/38] backlight/gpio_backlight: Rename field 'fbdev' to 'dev'
-Date:   Mon, 12 Jun 2023 16:07:42 +0200
-Message-ID: <20230612141352.29939-5-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH v2 08/38] fbdev/atyfb: Use hardware device as backlight parent
+Date:   Mon, 12 Jun 2023 16:07:46 +0200
+Message-ID: <20230612141352.29939-9-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230612141352.29939-1-tzimmermann@suse.de>
 References: <20230612141352.29939-1-tzimmermann@suse.de>
@@ -71,81 +69,29 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Rename the field 'fbdev' in struct gpio_backlight_platform_data and
-struct gpio_backlight to 'dev', as they store pointers to the Linux
-platform device; not the fbdev device. Makes the code easier to
-understand.
+Use the hardware device in struct fb_info.device as parent of the
+backlight device. Aligns the driver with the rest of the codebase
+and prepares fbdev for making struct fb_info.dev optional.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Rich Felker <dalias@libc.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Lee Jones <lee@kernel.org>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Jingoo Han <jingoohan1@gmail.com>
-Cc: linux-sh@vger.kernel.org
+Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
 ---
- arch/sh/boards/mach-ecovec24/setup.c         | 2 +-
- drivers/video/backlight/gpio_backlight.c     | 6 +++---
- include/linux/platform_data/gpio_backlight.h | 2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/fbdev/aty/atyfb_base.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sh/boards/mach-ecovec24/setup.c b/arch/sh/boards/mach-ecovec24/setup.c
-index 674da7ebd8b7f..310513646c9b3 100644
---- a/arch/sh/boards/mach-ecovec24/setup.c
-+++ b/arch/sh/boards/mach-ecovec24/setup.c
-@@ -386,7 +386,7 @@ static struct property_entry gpio_backlight_props[] = {
- };
- 
- static struct gpio_backlight_platform_data gpio_backlight_data = {
--	.fbdev = &lcdc_device.dev,
-+	.dev = &lcdc_device.dev,
- };
- 
- static const struct platform_device_info gpio_backlight_device_info = {
-diff --git a/drivers/video/backlight/gpio_backlight.c b/drivers/video/backlight/gpio_backlight.c
-index 5c5c99f7979e3..d3bea42407f15 100644
---- a/drivers/video/backlight/gpio_backlight.c
-+++ b/drivers/video/backlight/gpio_backlight.c
-@@ -17,7 +17,7 @@
- #include <linux/slab.h>
- 
- struct gpio_backlight {
--	struct device *fbdev;
-+	struct device *dev;
- 	struct gpio_desc *gpiod;
- };
- 
-@@ -35,7 +35,7 @@ static int gpio_backlight_check_fb(struct backlight_device *bl,
- {
- 	struct gpio_backlight *gbl = bl_get_data(bl);
- 
--	return gbl->fbdev == NULL || gbl->fbdev == info->device;
-+	return !gbl->dev || gbl->dev == info->device;
- }
- 
- static const struct backlight_ops gpio_backlight_ops = {
-@@ -59,7 +59,7 @@ static int gpio_backlight_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	if (pdata)
--		gbl->fbdev = pdata->fbdev;
-+		gbl->dev = pdata->dev;
- 
- 	def_value = device_property_read_bool(dev, "default-on");
- 
-diff --git a/include/linux/platform_data/gpio_backlight.h b/include/linux/platform_data/gpio_backlight.h
-index 1a8b5b1946fe4..323fbf5f76139 100644
---- a/include/linux/platform_data/gpio_backlight.h
-+++ b/include/linux/platform_data/gpio_backlight.h
-@@ -8,7 +8,7 @@
- struct device;
- 
- struct gpio_backlight_platform_data {
--	struct device *fbdev;
-+	struct device *dev;
- };
- 
- #endif
+diff --git a/drivers/video/fbdev/aty/atyfb_base.c b/drivers/video/fbdev/aty/atyfb_base.c
+index 51504fe39054c..e1602e3fbc66b 100644
+--- a/drivers/video/fbdev/aty/atyfb_base.c
++++ b/drivers/video/fbdev/aty/atyfb_base.c
+@@ -2255,7 +2255,7 @@ static void aty_bl_init(struct atyfb_par *par)
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = FB_BACKLIGHT_LEVELS - 1;
+-	bd = backlight_device_register(name, info->dev, par, &aty_bl_data,
++	bd = backlight_device_register(name, info->device, par, &aty_bl_data,
+ 				       &props);
+ 	if (IS_ERR(bd)) {
+ 		info->bl_dev = NULL;
 -- 
 2.41.0
 
