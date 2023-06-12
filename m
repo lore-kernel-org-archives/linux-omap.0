@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1A93C88CBF
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Jun 2023 14:15:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF7E4C88CB7
+	for <linux-omap@archiver.kernel.org>; Mon, 12 Jun 2023 14:15:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237595AbjFLOO7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 12 Jun 2023 10:14:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55718 "EHLO
+        id S237613AbjFLOPA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 12 Jun 2023 10:15:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237573AbjFLOO0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jun 2023 10:14:26 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1CD41739;
-        Mon, 12 Jun 2023 07:14:07 -0700 (PDT)
+        with ESMTP id S237444AbjFLOOM (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jun 2023 10:14:12 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91C16171B;
+        Mon, 12 Jun 2023 07:14:05 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 2711120303;
-        Mon, 12 Jun 2023 14:14:06 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 3B9372283A;
+        Mon, 12 Jun 2023 14:14:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1686579246; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1686579244; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=0tu/JKMGLiCEE+vfj8wBgGdw9lM3UZPxyBeIhMkARs8=;
-        b=YW7dZ701TvOnqlMR8gFBysNuPUbYNTelX9vLjKSzornfYYZqF0nH4BOrftKaBX8W2D9qOs
-        5mVyk6TbL1FlvxhtHq7WEHfSW/x4FItGyUgHHaDAz0IFqQXtJAuw8umiJJrosUJ2byDdsN
-        vR8D1ePBy4GbOwa2TG5pluvK+sSnIR0=
+        bh=XZq7uuC2nsDif+K+IT1h1suAjzRhQ7TghVnMjkbiuGw=;
+        b=AHI08y1f8JihP03XKNpKbl1vaizBTPI5K43MMdO/TdETU8xB6NxuRhwJTpDwq0L68pX2nh
+        VC76+3s0mLv4yCZnoLFlhiNqXj7b8B33LLwRQh2b4ANcs/laSMCnUm6Xt3MA2TEDLXkuxC
+        uTksYprnh+U652UGBOwucn/rRHqF3pg=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1686579246;
+        s=susede2_ed25519; t=1686579244;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=0tu/JKMGLiCEE+vfj8wBgGdw9lM3UZPxyBeIhMkARs8=;
-        b=Pts4tHT1iMgkfuxBHUYSUhjmjw1VJOQj7Qpj5Mr2WWwSa4WQ+of8NRUgYpCN0dKaI7HfoN
-        6DWUpN6gVZewJ1Bw==
+        bh=XZq7uuC2nsDif+K+IT1h1suAjzRhQ7TghVnMjkbiuGw=;
+        b=hG44xHjYPp/Vn1tfM9aUynY4027Y/5BJBkSD+r6gUlRSZsPJ51SnGX59RBzWorB5BxzLmL
+        vDv0H2vYYTYZhRCQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id B88181357F;
-        Mon, 12 Jun 2023 14:14:05 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id DBEFF1357F;
+        Mon, 12 Jun 2023 14:14:03 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id UCENLC0oh2RwGQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Mon, 12 Jun 2023 14:14:05 +0000
+        id yJ6qNCsoh2RwGQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Mon, 12 Jun 2023 14:14:03 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
         deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
@@ -56,12 +56,10 @@ To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
 Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>, linux-pm@vger.kernel.org
-Subject: [PATCH v2 32/38] fbdev/core: Pass Linux device to pm_vt_switch_*() functions
-Date:   Mon, 12 Jun 2023 16:08:10 +0200
-Message-ID: <20230612141352.29939-33-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH v2 27/38] fbdev/sh7760fb: Alloc DMA memory from hardware device
+Date:   Mon, 12 Jun 2023 16:08:05 +0200
+Message-ID: <20230612141352.29939-28-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230612141352.29939-1-tzimmermann@suse.de>
 References: <20230612141352.29939-1-tzimmermann@suse.de>
@@ -71,47 +69,54 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Pass the Linux device to pm_vt_switch_*() instead of the virtual
-fbdev device. Prepares fbdev for making struct fb_info.dev optional.
-
-The type of device that is passed to the PM functions does not matter
-much. It is only a token within the internal list of known devices.
-The PM functions do not refer to any of the device's properties or its
-type.
+Pass the hardware device to the DMA helpers dma_alloc_coherent() and
+dma_free_coherent(). The fbdev device that is currently being used is
+a software device and does not provide DMA memory. Also update the
+related dev_*() output statements similarly.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: linux-pm@vger.kernel.org
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/video/fbdev/core/fbmem.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/fbdev/sh7760fb.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
-index 329d16e49a900..f91ae7d4c94d6 100644
---- a/drivers/video/fbdev/core/fbmem.c
-+++ b/drivers/video/fbdev/core/fbmem.c
-@@ -1478,9 +1478,9 @@ static int do_register_framebuffer(struct fb_info *fb_info)
- 		INIT_LIST_HEAD(&fb_info->modelist);
+diff --git a/drivers/video/fbdev/sh7760fb.c b/drivers/video/fbdev/sh7760fb.c
+index 65e2c71cf5b51..74543a1e30314 100644
+--- a/drivers/video/fbdev/sh7760fb.c
++++ b/drivers/video/fbdev/sh7760fb.c
+@@ -359,7 +359,7 @@ static void sh7760fb_free_mem(struct fb_info *info)
+ 	if (!info->screen_base)
+ 		return;
  
- 	if (fb_info->skip_vt_switch)
--		pm_vt_switch_required(fb_info->dev, false);
-+		pm_vt_switch_required(fb_info->device, false);
- 	else
--		pm_vt_switch_required(fb_info->dev, true);
-+		pm_vt_switch_required(fb_info->device, true);
+-	dma_free_coherent(info->dev, info->screen_size,
++	dma_free_coherent(info->device, info->screen_size,
+ 			  info->screen_base, par->fbdma);
  
- 	fb_var_to_videomode(&mode, &fb_info->var);
- 	fb_add_videomode(&mode, &fb_info->modelist);
-@@ -1520,7 +1520,7 @@ static void unlink_framebuffer(struct fb_info *fb_info)
+ 	par->fbdma = 0;
+@@ -408,14 +408,14 @@ static int sh7760fb_alloc_mem(struct fb_info *info)
+ 	if (vram < PAGE_SIZE)
+ 		vram = PAGE_SIZE;
  
- 	device_destroy(fb_class, MKDEV(FB_MAJOR, i));
+-	fbmem = dma_alloc_coherent(info->dev, vram, &par->fbdma, GFP_KERNEL);
++	fbmem = dma_alloc_coherent(info->device, vram, &par->fbdma, GFP_KERNEL);
  
--	pm_vt_switch_unregister(fb_info->dev);
-+	pm_vt_switch_unregister(fb_info->device);
+ 	if (!fbmem)
+ 		return -ENOMEM;
  
- 	unbind_console(fb_info);
+ 	if ((par->fbdma & SH7760FB_DMA_MASK) != SH7760FB_DMA_MASK) {
+ 		sh7760fb_free_mem(info);
+-		dev_err(info->dev, "kernel gave me memory at 0x%08lx, which is"
++		dev_err(info->device, "kernel gave me memory at 0x%08lx, which is"
+ 			"unusable for the LCDC\n", (unsigned long)par->fbdma);
+ 		return -ENOMEM;
+ 	}
+@@ -486,7 +486,7 @@ static int sh7760fb_probe(struct platform_device *pdev)
+ 
+ 	ret = sh7760fb_alloc_mem(info);
+ 	if (ret) {
+-		dev_dbg(info->dev, "framebuffer memory allocation failed!\n");
++		dev_dbg(info->device, "framebuffer memory allocation failed!\n");
+ 		goto out_unmap;
+ 	}
  
 -- 
 2.41.0
