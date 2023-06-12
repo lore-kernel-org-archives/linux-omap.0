@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF7E4C88CB7
-	for <linux-omap@archiver.kernel.org>; Mon, 12 Jun 2023 14:15:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F719CA9EAC
+	for <linux-omap@archiver.kernel.org>; Mon, 12 Jun 2023 14:15:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237613AbjFLOPA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 12 Jun 2023 10:15:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55414 "EHLO
+        id S232004AbjFLOPD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 12 Jun 2023 10:15:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55152 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237444AbjFLOOM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jun 2023 10:14:12 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91C16171B;
-        Mon, 12 Jun 2023 07:14:05 -0700 (PDT)
+        with ESMTP id S237490AbjFLOOS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jun 2023 10:14:18 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C78671730;
+        Mon, 12 Jun 2023 07:14:06 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 3B9372283A;
-        Mon, 12 Jun 2023 14:14:04 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 5A4FF20492;
+        Mon, 12 Jun 2023 14:14:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1686579244; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1686579245; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=XZq7uuC2nsDif+K+IT1h1suAjzRhQ7TghVnMjkbiuGw=;
-        b=AHI08y1f8JihP03XKNpKbl1vaizBTPI5K43MMdO/TdETU8xB6NxuRhwJTpDwq0L68pX2nh
-        VC76+3s0mLv4yCZnoLFlhiNqXj7b8B33LLwRQh2b4ANcs/laSMCnUm6Xt3MA2TEDLXkuxC
-        uTksYprnh+U652UGBOwucn/rRHqF3pg=
+        bh=1BuztNQSgsuQs3xHFrmB515HWtrc7sc9NpbsuatwBeo=;
+        b=gegpe+9vyLkqNTkBTGR11BZxPutYsTdnWCWxKeuaOS0A3zwa9/GFN33mfes/NH6t1b06rD
+        yjYWMgl4qmgcuI0w8L7QTIj8e8g7cV4uB+q8eQyVAW5gvOHrlTq/nP7PrE5bwCikwHwM8Z
+        n0b/NyoMOl3jV1EZ0mHlFed91dD8JdQ=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1686579244;
+        s=susede2_ed25519; t=1686579245;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=XZq7uuC2nsDif+K+IT1h1suAjzRhQ7TghVnMjkbiuGw=;
-        b=hG44xHjYPp/Vn1tfM9aUynY4027Y/5BJBkSD+r6gUlRSZsPJ51SnGX59RBzWorB5BxzLmL
-        vDv0H2vYYTYZhRCQ==
+        bh=1BuztNQSgsuQs3xHFrmB515HWtrc7sc9NpbsuatwBeo=;
+        b=FwMqr9WA9BT+eo+qmh+v4GptZ74lENjZYOvsjZqTEDkcu27nt6z1ivepQnIFjcF5Nk7j7k
+        lyDQiEhBQjlPzzBg==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id DBEFF1357F;
-        Mon, 12 Jun 2023 14:14:03 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 04AFF1357F;
+        Mon, 12 Jun 2023 14:14:05 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id yJ6qNCsoh2RwGQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Mon, 12 Jun 2023 14:14:03 +0000
+        id uFYyAC0oh2RwGQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Mon, 12 Jun 2023 14:14:05 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
         deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
@@ -56,10 +56,11 @@ To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
 Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v2 27/38] fbdev/sh7760fb: Alloc DMA memory from hardware device
-Date:   Mon, 12 Jun 2023 16:08:05 +0200
-Message-ID: <20230612141352.29939-28-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Steve Glendinning <steve.glendinning@shawell.net>
+Subject: [PATCH v2 30/38] fbdev/smscufx: Detect registered fb_info from refcount
+Date:   Mon, 12 Jun 2023 16:08:08 +0200
+Message-ID: <20230612141352.29939-31-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230612141352.29939-1-tzimmermann@suse.de>
 References: <20230612141352.29939-1-tzimmermann@suse.de>
@@ -69,55 +70,39 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Pass the hardware device to the DMA helpers dma_alloc_coherent() and
-dma_free_coherent(). The fbdev device that is currently being used is
-a software device and does not provide DMA memory. Also update the
-related dev_*() output statements similarly.
+Detect registered instances of fb_info by reading the reference
+counter from struct fb_info.read. Avoids looking at the dev field
+and prepares fbdev for making struct fb_info.dev optional.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Steve Glendinning <steve.glendinning@shawell.net>
+Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
 ---
- drivers/video/fbdev/sh7760fb.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/fbdev/smscufx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/fbdev/sh7760fb.c b/drivers/video/fbdev/sh7760fb.c
-index 65e2c71cf5b51..74543a1e30314 100644
---- a/drivers/video/fbdev/sh7760fb.c
-+++ b/drivers/video/fbdev/sh7760fb.c
-@@ -359,7 +359,7 @@ static void sh7760fb_free_mem(struct fb_info *info)
- 	if (!info->screen_base)
- 		return;
+diff --git a/drivers/video/fbdev/smscufx.c b/drivers/video/fbdev/smscufx.c
+index 17cec62cc65db..adb2b1fe8383c 100644
+--- a/drivers/video/fbdev/smscufx.c
++++ b/drivers/video/fbdev/smscufx.c
+@@ -1496,7 +1496,7 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
+ 	u8 *edid;
+ 	int i, result = 0, tries = 3;
  
--	dma_free_coherent(info->dev, info->screen_size,
-+	dma_free_coherent(info->device, info->screen_size,
- 			  info->screen_base, par->fbdma);
+-	if (info->dev) /* only use mutex if info has been registered */
++	if (refcount_read(&info->count)) /* only use mutex if info has been registered */
+ 		mutex_lock(&info->lock);
  
- 	par->fbdma = 0;
-@@ -408,14 +408,14 @@ static int sh7760fb_alloc_mem(struct fb_info *info)
- 	if (vram < PAGE_SIZE)
- 		vram = PAGE_SIZE;
+ 	edid = kmalloc(EDID_LENGTH, GFP_KERNEL);
+@@ -1610,7 +1610,7 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
+ 	if (edid && (dev->edid != edid))
+ 		kfree(edid);
  
--	fbmem = dma_alloc_coherent(info->dev, vram, &par->fbdma, GFP_KERNEL);
-+	fbmem = dma_alloc_coherent(info->device, vram, &par->fbdma, GFP_KERNEL);
+-	if (info->dev)
++	if (refcount_read(&info->count))
+ 		mutex_unlock(&info->lock);
  
- 	if (!fbmem)
- 		return -ENOMEM;
- 
- 	if ((par->fbdma & SH7760FB_DMA_MASK) != SH7760FB_DMA_MASK) {
- 		sh7760fb_free_mem(info);
--		dev_err(info->dev, "kernel gave me memory at 0x%08lx, which is"
-+		dev_err(info->device, "kernel gave me memory at 0x%08lx, which is"
- 			"unusable for the LCDC\n", (unsigned long)par->fbdma);
- 		return -ENOMEM;
- 	}
-@@ -486,7 +486,7 @@ static int sh7760fb_probe(struct platform_device *pdev)
- 
- 	ret = sh7760fb_alloc_mem(info);
- 	if (ret) {
--		dev_dbg(info->dev, "framebuffer memory allocation failed!\n");
-+		dev_dbg(info->device, "framebuffer memory allocation failed!\n");
- 		goto out_unmap;
- 	}
- 
+ 	return result;
 -- 
 2.41.0
 
