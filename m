@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7675C88CB8
-	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:10:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99075CA9EB1
+	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:11:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240669AbjFMLK6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 13 Jun 2023 07:10:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49262 "EHLO
+        id S242217AbjFMLK7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 13 Jun 2023 07:10:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242138AbjFMLKK (ORCPT
+        with ESMTP id S242135AbjFMLKK (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jun 2023 07:10:10 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B253010E3;
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2455D10DA;
         Tue, 13 Jun 2023 04:10:09 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 63597223E4;
-        Tue, 13 Jun 2023 11:10:08 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id AD58C1FDAE;
+        Tue, 13 Jun 2023 11:10:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1686654608; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1686654607; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=yHsYY4KkqinsC3hNy7+x1+/KpZqx4RkXsKhX6dnk4eY=;
-        b=K2rJNJxfzP7upRowYzs7e5sPaiHmP/Ietyvvwt588hWoZmYRvivCKm38mIu/6DuoWxTBQY
-        +re1bBD+5jKbfW0nlfydH9Q+9hUJnQSKWyzxAmkEiJbUQDQgV8GEF2VnFNXXDppVVxGcAp
-        KKdOS/g1Kt3J47NJDIcQwcpd53hTvxM=
+        bh=PjQ0WZPdIw3WWFfN2RUGJfJXUodE1BMieiwQSz+bnM8=;
+        b=QVFuBYIdNXyiUvUemFqtDdPYbPvEZHWw+StdMd6gHSnwAq4AgWPJUQUSb+NvimWCU549JP
+        BvYbAhSnQ21BPvWw2lsUCzUff2DnvTgg6PY26zzSBEZNXRNbg4DEK5SyvoHyaIJKilpeCf
+        76OhAZ1vgE3MSZqNJavWilfHYR4HU18=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1686654608;
+        s=susede2_ed25519; t=1686654607;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=yHsYY4KkqinsC3hNy7+x1+/KpZqx4RkXsKhX6dnk4eY=;
-        b=zA/qhXUKqKrL7esCdkSiWza8MO1kKeovzhPD/bLjn+XI+eireuiDt89TMNpwP3E7n4izdu
-        hFRfeA7qFYjPGdCA==
+        bh=PjQ0WZPdIw3WWFfN2RUGJfJXUodE1BMieiwQSz+bnM8=;
+        b=plfXBF+U/X2CU7hRpXgq1LPJz78Cf4Z479NDIlFRZwP34I0+P8+8oD/HNybb77DkAcDUeq
+        0lAuhAOQ6OIF5JDQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 1690613A47;
-        Tue, 13 Jun 2023 11:10:08 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 6676013A88;
+        Tue, 13 Jun 2023 11:10:07 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id YNF+BJBOiGR8CQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:08 +0000
+        id oFM1GI9OiGR8CQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:07 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
         deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
@@ -57,9 +57,9 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v3 37/38] fbdev/core: Rework fb init code
-Date:   Tue, 13 Jun 2023 13:07:12 +0200
-Message-ID: <20230613110953.24176-38-tzimmermann@suse.de>
+Subject: [PATCH v3 35/38] fbdev/core: Move procfs code to separate file
+Date:   Tue, 13 Jun 2023 13:07:10 +0200
+Message-ID: <20230613110953.24176-36-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230613110953.24176-1-tzimmermann@suse.de>
 References: <20230613110953.24176-1-tzimmermann@suse.de>
@@ -69,159 +69,223 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Init the class "graphics" before the rest of fbdev. Later steps, such
-as the sysfs code, depend on the class. Also arrange the module's exit
-code in reverse order.
+Move fbdev's procfs code into a separate file and contain it in
+init and cleanup helpers. For the cleanup, replace remove_proc_entry()
+with proc_remove(). It is equivalent in functionality, but looks
+more like an inverse of proc_create_seq().
 
-Unexport the global variable fb_class, which is only shared internally
-within the fbdev core module.
+v2:
+	* document proc_remove() usage (Sam)
+	* revert unrelated removal of for_each_registered_fb()
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/video/fbdev/core/fb_internal.h |  1 +
- drivers/video/fbdev/core/fbcon.c       |  1 +
- drivers/video/fbdev/core/fbmem.c       | 52 ++++++++++----------------
- include/linux/fb.h                     |  1 -
- 4 files changed, 22 insertions(+), 33 deletions(-)
+ drivers/video/fbdev/core/Makefile      |  1 +
+ drivers/video/fbdev/core/fb_internal.h | 12 ++++-
+ drivers/video/fbdev/core/fb_procfs.c   | 62 ++++++++++++++++++++++++++
+ drivers/video/fbdev/core/fbmem.c       | 48 +++-----------------
+ 4 files changed, 80 insertions(+), 43 deletions(-)
+ create mode 100644 drivers/video/fbdev/core/fb_procfs.c
 
+diff --git a/drivers/video/fbdev/core/Makefile b/drivers/video/fbdev/core/Makefile
+index eee3295bc2252..665320160f70a 100644
+--- a/drivers/video/fbdev/core/Makefile
++++ b/drivers/video/fbdev/core/Makefile
+@@ -3,6 +3,7 @@ obj-$(CONFIG_FB_NOTIFY)           += fb_notify.o
+ obj-$(CONFIG_FB)                  += fb.o
+ fb-y                              := fb_backlight.o \
+                                      fb_info.o \
++                                     fb_procfs.o \
+                                      fbmem.o fbmon.o fbcmap.o fbsysfs.o \
+                                      modedb.o fbcvt.o fb_cmdline.o fb_io_fops.o
+ fb-$(CONFIG_FB_DEFERRED_IO)       += fb_defio.o
 diff --git a/drivers/video/fbdev/core/fb_internal.h b/drivers/video/fbdev/core/fb_internal.h
-index abe06c9da36e3..0b43c0cd50968 100644
+index 0b9640ae7a3d2..51f7c9f04e45a 100644
 --- a/drivers/video/fbdev/core/fb_internal.h
 +++ b/drivers/video/fbdev/core/fb_internal.h
-@@ -11,6 +11,7 @@ int fb_register_chrdev(void);
- void fb_unregister_chrdev(void);
+@@ -3,7 +3,17 @@
+ #ifndef _FB_INTERNAL_H
+ #define _FB_INTERNAL_H
  
- /* fbmem.c */
-+extern struct class *fb_class;
- extern struct mutex registration_lock;
- extern struct fb_info *registered_fb[FB_MAX];
- extern int num_registered_fb;
-diff --git a/drivers/video/fbdev/core/fbcon.c b/drivers/video/fbdev/core/fbcon.c
-index c6c9d040bdec7..8e76bc246b387 100644
---- a/drivers/video/fbdev/core/fbcon.c
-+++ b/drivers/video/fbdev/core/fbcon.c
-@@ -78,6 +78,7 @@
- #include <asm/irq.h>
+-struct fb_info;
++#include <linux/fb.h>
++#include <linux/mutex.h>
++
++/* fbmem.c */
++extern struct mutex registration_lock;
++extern struct fb_info *registered_fb[FB_MAX];
++extern int num_registered_fb;
++
++/* fb_procfs.c */
++int fb_init_procfs(void);
++void fb_cleanup_procfs(void);
  
- #include "fbcon.h"
+ /* fbsysfs.c */
+ int fb_device_create(struct fb_info *fb_info);
+diff --git a/drivers/video/fbdev/core/fb_procfs.c b/drivers/video/fbdev/core/fb_procfs.c
+new file mode 100644
+index 0000000000000..59641142f8aad
+--- /dev/null
++++ b/drivers/video/fbdev/core/fb_procfs.c
+@@ -0,0 +1,62 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <linux/proc_fs.h>
++
 +#include "fb_internal.h"
- 
- /*
-  * FIXME: Locking
++
++static struct proc_dir_entry *fb_proc_dir_entry;
++
++static void *fb_seq_start(struct seq_file *m, loff_t *pos)
++{
++	mutex_lock(&registration_lock);
++
++	return (*pos < FB_MAX) ? pos : NULL;
++}
++
++static void fb_seq_stop(struct seq_file *m, void *v)
++{
++	mutex_unlock(&registration_lock);
++}
++
++static void *fb_seq_next(struct seq_file *m, void *v, loff_t *pos)
++{
++	(*pos)++;
++
++	return (*pos < FB_MAX) ? pos : NULL;
++}
++
++static int fb_seq_show(struct seq_file *m, void *v)
++{
++	int i = *(loff_t *)v;
++	struct fb_info *fi = registered_fb[i];
++
++	if (fi)
++		seq_printf(m, "%d %s\n", fi->node, fi->fix.id);
++
++	return 0;
++}
++
++static const struct seq_operations __maybe_unused fb_proc_seq_ops = {
++	.start	= fb_seq_start,
++	.stop	= fb_seq_stop,
++	.next	= fb_seq_next,
++	.show	= fb_seq_show,
++};
++
++int fb_init_procfs(void)
++{
++	struct proc_dir_entry *proc;
++
++	proc = proc_create_seq("fb", 0, NULL, &fb_proc_seq_ops);
++	if (!proc)
++		return -ENOMEM;
++
++	fb_proc_dir_entry = proc;
++
++	return 0;
++}
++
++void fb_cleanup_procfs(void)
++{
++	proc_remove(fb_proc_dir_entry);
++}
 diff --git a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
-index 4edf70241a23c..ee44a46a66be1 100644
+index 66532774d351e..536209901e32a 100644
 --- a/drivers/video/fbdev/core/fbmem.c
 +++ b/drivers/video/fbdev/core/fbmem.c
-@@ -44,6 +44,8 @@
+@@ -24,9 +24,7 @@
+ #include <linux/vt.h>
+ #include <linux/init.h>
+ #include <linux/linux_logo.h>
+-#include <linux/proc_fs.h>
+ #include <linux/platform_device.h>
+-#include <linux/seq_file.h>
+ #include <linux/console.h>
+ #include <linux/kmod.h>
+ #include <linux/err.h>
+@@ -48,8 +46,7 @@
  
  #define FBPIXMAPSIZE	(1024 * 8)
  
-+struct class *fb_class;
-+
- DEFINE_MUTEX(registration_lock);
+-static DEFINE_MUTEX(registration_lock);
+-
++DEFINE_MUTEX(registration_lock);
  struct fb_info *registered_fb[FB_MAX] __read_mostly;
  int num_registered_fb __read_mostly;
-@@ -899,9 +901,6 @@ fb_blank(struct fb_info *info, int blank)
- }
- EXPORT_SYMBOL(fb_blank);
+ #define for_each_registered_fb(i)		\
+@@ -705,40 +702,6 @@ int fb_show_logo(struct fb_info *info, int rotate) { return 0; }
+ EXPORT_SYMBOL(fb_prepare_logo);
+ EXPORT_SYMBOL(fb_show_logo);
  
--struct class *fb_class;
--EXPORT_SYMBOL(fb_class);
+-static void *fb_seq_start(struct seq_file *m, loff_t *pos)
+-{
+-	mutex_lock(&registration_lock);
+-	return (*pos < FB_MAX) ? pos : NULL;
+-}
 -
- static int fb_check_foreignness(struct fb_info *fi)
- {
- 	const bool foreign_endian = fi->flags & FBINFO_FOREIGN_ENDIAN;
-@@ -1108,59 +1107,48 @@ void fb_set_suspend(struct fb_info *info, int state)
- }
- EXPORT_SYMBOL(fb_set_suspend);
- 
--/**
-- *	fbmem_init - init frame buffer subsystem
-- *
-- *	Initialize the frame buffer subsystem.
-- *
-- *	NOTE: This function is _only_ to be called by drivers/char/mem.c.
-- *
-- */
+-static void *fb_seq_next(struct seq_file *m, void *v, loff_t *pos)
+-{
+-	(*pos)++;
+-	return (*pos < FB_MAX) ? pos : NULL;
+-}
 -
--static int __init
--fbmem_init(void)
-+static int __init fbmem_init(void)
+-static void fb_seq_stop(struct seq_file *m, void *v)
+-{
+-	mutex_unlock(&registration_lock);
+-}
+-
+-static int fb_seq_show(struct seq_file *m, void *v)
+-{
+-	int i = *(loff_t *)v;
+-	struct fb_info *fi = registered_fb[i];
+-
+-	if (fi)
+-		seq_printf(m, "%d %s\n", fi->node, fi->fix.id);
+-	return 0;
+-}
+-
+-static const struct seq_operations __maybe_unused proc_fb_seq_ops = {
+-	.start	= fb_seq_start,
+-	.next	= fb_seq_next,
+-	.stop	= fb_seq_stop,
+-	.show	= fb_seq_show,
+-};
+-
+ /*
+  * We hold a reference to the fb_info in file->private_data,
+  * but if the current registered fb has changed, we don't
+@@ -1624,8 +1587,9 @@ fbmem_init(void)
  {
  	int ret;
  
-+	fb_class = class_create("graphics");
-+	if (IS_ERR(fb_class)) {
-+		ret = PTR_ERR(fb_class);
-+		pr_err("Unable to create fb class; errno = %d\n", ret);
-+		goto err_fb_class;
-+	}
-+
- 	ret = fb_init_procfs();
- 	if (ret)
--		return ret;
-+		goto err_class_destroy;
+-	if (!proc_create_seq("fb", 0, NULL, &proc_fb_seq_ops))
+-		return -ENOMEM;
++	ret = fb_init_procfs();
++	if (ret)
++		return ret;
  
- 	ret = fb_register_chrdev();
- 	if (ret)
--		goto err_chrdev;
--
--	fb_class = class_create("graphics");
--	if (IS_ERR(fb_class)) {
--		ret = PTR_ERR(fb_class);
--		pr_warn("Unable to create fb class; errno = %d\n", ret);
--		fb_class = NULL;
--		goto err_class;
--	}
-+		goto err_fb_cleanup_procfs;
- 
- 	fb_console_init();
- 
- 	return 0;
- 
--err_class:
--	fb_unregister_chrdev();
--err_chrdev:
-+err_fb_cleanup_procfs:
- 	fb_cleanup_procfs();
-+err_class_destroy:
-+	class_destroy(fb_class);
-+err_fb_class:
-+	fb_class = NULL;
+ 	ret = register_chrdev(FB_MAJOR, "fb", &fb_fops);
+ 	if (ret) {
+@@ -1648,7 +1612,7 @@ fbmem_init(void)
+ err_class:
+ 	unregister_chrdev(FB_MAJOR, "fb");
+ err_chrdev:
+-	remove_proc_entry("fb", NULL);
++	fb_cleanup_procfs();
  	return ret;
  }
  
- #ifdef MODULE
--module_init(fbmem_init);
--static void __exit
--fbmem_exit(void)
-+static void __exit fbmem_exit(void)
+@@ -1659,7 +1623,7 @@ fbmem_exit(void)
  {
  	fb_console_exit();
--
-+	fb_unregister_chrdev();
- 	fb_cleanup_procfs();
+ 
+-	remove_proc_entry("fb", NULL);
++	fb_cleanup_procfs();
  	class_destroy(fb_class);
--	fb_unregister_chrdev();
+ 	unregister_chrdev(FB_MAJOR, "fb");
  }
- 
-+module_init(fbmem_init);
- module_exit(fbmem_exit);
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("Framebuffer base");
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 1988d11f78bcb..541a0e3ce21f4 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -609,7 +609,6 @@ extern int fb_new_modelist(struct fb_info *info);
- 
- extern bool fb_center_logo;
- extern int fb_logo_count;
--extern struct class *fb_class;
- 
- static inline void lock_fb_info(struct fb_info *info)
- {
 -- 
 2.41.0
 
