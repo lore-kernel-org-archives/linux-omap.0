@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C24DBCA9EC3
-	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:10:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FEEFCA9EB6
+	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:10:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241801AbjFMLKz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 13 Jun 2023 07:10:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49238 "EHLO
+        id S239420AbjFMLK5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 13 Jun 2023 07:10:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242130AbjFMLKJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jun 2023 07:10:09 -0400
+        with ESMTP id S242127AbjFMLKI (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jun 2023 07:10:08 -0400
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EC8110D8;
-        Tue, 13 Jun 2023 04:10:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65E8010DE;
+        Tue, 13 Jun 2023 04:10:07 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id BC3301FD96;
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 0EF4B1FDAC;
         Tue, 13 Jun 2023 11:10:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
         t=1686654606; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=0tu/JKMGLiCEE+vfj8wBgGdw9lM3UZPxyBeIhMkARs8=;
-        b=gD3RqIR7LLgIJf/raJmnBp1/fN4KnZuvNPMCPbw84+ze/hp19d9utOK8qOyPy48VnIqnDm
-        p4Q/O2MXj8GyfgEjzadd79h+eAyWFH+jnuF/maAGpA9qzaSZIma9pBPfZcp7HKxEmaRi2M
-        1YTy9q+B1aMBsXoMOOgREw3yxIRcG/8=
+        bh=1BuztNQSgsuQs3xHFrmB515HWtrc7sc9NpbsuatwBeo=;
+        b=xYlSFG6CqucP0AReBtnHoo9yOCqWmGRx8GiCt5Gl58QihD8IuNDmW8CKS8A31iXb6fJ0RS
+        eA04EwkVntJVCWq1v5ccReJin3qLpPO5q9lbtp6VsRnJL5aYmpQmAFAaF1BSYIXPB3fcru
+        z/js7oMGW+T8ByW/8u7MYj6rNxOsmmA=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
         s=susede2_ed25519; t=1686654606;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=0tu/JKMGLiCEE+vfj8wBgGdw9lM3UZPxyBeIhMkARs8=;
-        b=z6aeGbLJOcZkJ9fjFl/1u2Rjidi8dpSypWpN8+ijK0Z9nQzVcNkG20vHx1S9jFFMEHHvCA
-        JokW7PBXxayELLCA==
+        bh=1BuztNQSgsuQs3xHFrmB515HWtrc7sc9NpbsuatwBeo=;
+        b=MjJP+zQHwfGIHEIKvXvJwGD1mOWq2Pl3tjwOzzD3olGhg/J6xuIu2PdQewP/5i/xU66Izm
+        X35Ljej+qj7Kg5Bg==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 657E213483;
-        Tue, 13 Jun 2023 11:10:06 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id B1E4513483;
+        Tue, 13 Jun 2023 11:10:05 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id 0ITtF45OiGR8CQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:06 +0000
+        id aJ+qKo1OiGR8CQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:05 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
         deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
@@ -57,11 +57,10 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>, linux-pm@vger.kernel.org
-Subject: [PATCH v3 32/38] fbdev/core: Pass Linux device to pm_vt_switch_*() functions
-Date:   Tue, 13 Jun 2023 13:07:07 +0200
-Message-ID: <20230613110953.24176-33-tzimmermann@suse.de>
+        Steve Glendinning <steve.glendinning@shawell.net>
+Subject: [PATCH v3 30/38] fbdev/smscufx: Detect registered fb_info from refcount
+Date:   Tue, 13 Jun 2023 13:07:05 +0200
+Message-ID: <20230613110953.24176-31-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230613110953.24176-1-tzimmermann@suse.de>
 References: <20230613110953.24176-1-tzimmermann@suse.de>
@@ -71,48 +70,39 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Pass the Linux device to pm_vt_switch_*() instead of the virtual
-fbdev device. Prepares fbdev for making struct fb_info.dev optional.
-
-The type of device that is passed to the PM functions does not matter
-much. It is only a token within the internal list of known devices.
-The PM functions do not refer to any of the device's properties or its
-type.
+Detect registered instances of fb_info by reading the reference
+counter from struct fb_info.read. Avoids looking at the dev field
+and prepares fbdev for making struct fb_info.dev optional.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: linux-pm@vger.kernel.org
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Steve Glendinning <steve.glendinning@shawell.net>
+Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
 ---
- drivers/video/fbdev/core/fbmem.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/fbdev/smscufx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
-index 329d16e49a900..f91ae7d4c94d6 100644
---- a/drivers/video/fbdev/core/fbmem.c
-+++ b/drivers/video/fbdev/core/fbmem.c
-@@ -1478,9 +1478,9 @@ static int do_register_framebuffer(struct fb_info *fb_info)
- 		INIT_LIST_HEAD(&fb_info->modelist);
+diff --git a/drivers/video/fbdev/smscufx.c b/drivers/video/fbdev/smscufx.c
+index 17cec62cc65db..adb2b1fe8383c 100644
+--- a/drivers/video/fbdev/smscufx.c
++++ b/drivers/video/fbdev/smscufx.c
+@@ -1496,7 +1496,7 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
+ 	u8 *edid;
+ 	int i, result = 0, tries = 3;
  
- 	if (fb_info->skip_vt_switch)
--		pm_vt_switch_required(fb_info->dev, false);
-+		pm_vt_switch_required(fb_info->device, false);
- 	else
--		pm_vt_switch_required(fb_info->dev, true);
-+		pm_vt_switch_required(fb_info->device, true);
+-	if (info->dev) /* only use mutex if info has been registered */
++	if (refcount_read(&info->count)) /* only use mutex if info has been registered */
+ 		mutex_lock(&info->lock);
  
- 	fb_var_to_videomode(&mode, &fb_info->var);
- 	fb_add_videomode(&mode, &fb_info->modelist);
-@@ -1520,7 +1520,7 @@ static void unlink_framebuffer(struct fb_info *fb_info)
+ 	edid = kmalloc(EDID_LENGTH, GFP_KERNEL);
+@@ -1610,7 +1610,7 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
+ 	if (edid && (dev->edid != edid))
+ 		kfree(edid);
  
- 	device_destroy(fb_class, MKDEV(FB_MAJOR, i));
+-	if (info->dev)
++	if (refcount_read(&info->count))
+ 		mutex_unlock(&info->lock);
  
--	pm_vt_switch_unregister(fb_info->dev);
-+	pm_vt_switch_unregister(fb_info->device);
- 
- 	unbind_console(fb_info);
- 
+ 	return result;
 -- 
 2.41.0
 
