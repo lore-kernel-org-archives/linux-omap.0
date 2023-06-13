@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DBB7C88CB6
-	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:11:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8091CA9EA2
+	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:11:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239142AbjFMLLB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 13 Jun 2023 07:11:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49254 "EHLO
+        id S241571AbjFMLLC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 13 Jun 2023 07:11:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49264 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242133AbjFMLKK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jun 2023 07:10:10 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D07DE10E2;
-        Tue, 13 Jun 2023 04:10:08 -0700 (PDT)
+        with ESMTP id S242141AbjFMLKL (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jun 2023 07:10:11 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FCD6E52;
+        Tue, 13 Jun 2023 04:10:10 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 654481FD9B;
-        Tue, 13 Jun 2023 11:10:07 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id B9D59223F6;
+        Tue, 13 Jun 2023 11:10:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1686654607; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1686654608; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=eAk2/6ibdZH0kfzQKlGiXlQ0sdOrgLY8cFw5r/ejdU0=;
-        b=UAeqG60HF96B34Zb8zAbsUHqHdqePI2Hx+bnLL2Px0TLj8a3mnzADulBJ3wVGidBG0o4Ko
-        GlRFMR0g+DavopvYU02zi+YPIXlu+Mwqsmkb89lFkWP0LZCqqiMRg6G8kWKD1l3QKjqMRm
-        9Ueg7GU1QujWs6zJj1+WUvWDZd2mw1M=
+        bh=NMUGFh9KCquNJbPnqKzA8txyr6JzjJHDw8DvJ5I8F9w=;
+        b=zBqHXggDzswbHXBGA4Dzm0nOK51LWutn1yhE3ToelLVuCQdVV/rPas7ghLFJkD0LVNz+Mw
+        5J37Iyy9ATrI5jeX92dGpwxQTq3u27L2phGvaVkbLk2UQzGy6IkUCSFq6Pyp8U5WfFIwMk
+        93lDno6hUc/clsweR5LvP7ybJWkcTpE=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1686654607;
+        s=susede2_ed25519; t=1686654608;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=eAk2/6ibdZH0kfzQKlGiXlQ0sdOrgLY8cFw5r/ejdU0=;
-        b=n/47xsMt6I3VTPwwvPdH3F4k2gEB1fB8VpAdKGbLNVTKuiWzNRDqSR0yvco+uSJm7HMV+e
-        TvFvFmys1fyp9LAg==
+        bh=NMUGFh9KCquNJbPnqKzA8txyr6JzjJHDw8DvJ5I8F9w=;
+        b=HTGJXuDo0zhxlHgvG9IWXpKR61rAHngCIlXFnkUhXo1ueJ13V8j7W6Z68Et2KyCOeS9ALL
+        ymnRUAHbwAqitvDg==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 180FE13483;
-        Tue, 13 Jun 2023 11:10:07 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 6836013483;
+        Tue, 13 Jun 2023 11:10:08 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id wPfyBI9OiGR8CQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:07 +0000
+        id 8H2NGJBOiGR8CQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:08 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
         deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
@@ -56,10 +56,11 @@ To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
 Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v3 34/38] fbdev/core: Add fb_device_{create,destroy}()
-Date:   Tue, 13 Jun 2023 13:07:09 +0200
-Message-ID: <20230613110953.24176-35-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH v3 38/38] fbdev: Make support for userspace interfaces configurable
+Date:   Tue, 13 Jun 2023 13:07:13 +0200
+Message-ID: <20230613110953.24176-39-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230613110953.24176-1-tzimmermann@suse.de>
 References: <20230613110953.24176-1-tzimmermann@suse.de>
@@ -69,182 +70,244 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Move the logic to create and destroy fbdev devices into the new
-helpers fb_device_create() and fb_device_destroy().
+Add Kconfig option CONFIG_FB_DEVICE and make the virtual fbdev
+device optional. If the new option has not been selected, fbdev
+does not create files in devfs, sysfs or procfs.
 
-There was a call to fb_cleanup_device() in do_unregister_framebuffer()
-that was too late. The device had already been removed at this point.
-Move the call into fb_device_destroy().
+Most modern Linux systems run a DRM-based graphics stack that uses
+the kernel's framebuffer console, but has otherwise deprecated fbdev
+support. Yet fbdev userspace interfaces are still present.
 
-Declare the helpers in the new internal header file  fb_internal.h, as
-they are only used within the fbdev core module.
+The option makes it possible to use the fbdev subsystem as console
+implementation without support for userspace. This closes potential
+entry points to manipulate kernel or I/O memory via framebuffers. It
+also prevents the execution of driver code via ioctl or sysfs, both
+of which might allow malicious software to exploit bugs in the fbdev
+code.
+
+A small number of fbdev drivers require struct fbinfo.dev to be
+initialized, usually for the support of sysfs interface. Make these
+drivers depend on FB_DEVICE. They can later be fixed if necessary.
+
+v3:
+	* effect -> affect in Kconfig help (Daniel)
+v2:
+	* set FB_DEVICE default to y (Geert)
+	* comment on {get,put}_device() (Sam)
+	* Kconfig fixes (Sam)
+	* add TODO item about FB_DEVICE dependencies (Sam)
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/video/fbdev/core/fb_internal.h | 12 ++++++++
- drivers/video/fbdev/core/fbmem.c       | 21 +++-----------
- drivers/video/fbdev/core/fbsysfs.c     | 38 ++++++++++++++++++++++++--
- include/linux/fb.h                     |  3 --
- 4 files changed, 52 insertions(+), 22 deletions(-)
- create mode 100644 drivers/video/fbdev/core/fb_internal.h
+ Documentation/gpu/todo.rst               | 13 ++++++++
+ drivers/staging/fbtft/Kconfig            |  1 +
+ drivers/video/fbdev/Kconfig              | 13 ++++++++
+ drivers/video/fbdev/core/Makefile        |  7 +++--
+ drivers/video/fbdev/core/fb_internal.h   | 38 ++++++++++++++++++++++++
+ drivers/video/fbdev/omap2/omapfb/Kconfig |  2 +-
+ include/linux/fb.h                       |  2 ++
+ 7 files changed, 72 insertions(+), 4 deletions(-)
 
+diff --git a/Documentation/gpu/todo.rst b/Documentation/gpu/todo.rst
+index 68bdafa0284f5..f226f934ca5af 100644
+--- a/Documentation/gpu/todo.rst
++++ b/Documentation/gpu/todo.rst
+@@ -452,6 +452,19 @@ Contact: Thomas Zimmermann <tzimmermann@suse.de>
+ 
+ Level: Starter
+ 
++Remove driver dependencies on FB_DEVICE
++---------------------------------------
++
++A number of fbdev drivers provide attributes via sysfs and therefore depend
++on CONFIG_FB_DEVICE to be selected. Review each driver and attempt to make
++any dependencies on CONFIG_FB_DEVICE optional. At the minimum, the respective
++code in the driver could be conditionalized via ifdef CONFIG_FB_DEVICE. Not
++all drivers might be able to drop CONFIG_FB_DEVICE.
++
++Contact: Thomas Zimmermann <tzimmermann@suse.de>
++
++Level: Starter
++
+ 
+ Core refactorings
+ =================
+diff --git a/drivers/staging/fbtft/Kconfig b/drivers/staging/fbtft/Kconfig
+index 4d29e8c1014e0..5dda3c65a38e7 100644
+--- a/drivers/staging/fbtft/Kconfig
++++ b/drivers/staging/fbtft/Kconfig
+@@ -2,6 +2,7 @@
+ menuconfig FB_TFT
+ 	tristate "Support for small TFT LCD display modules"
+ 	depends on FB && SPI
++	depends on FB_DEVICE
+ 	depends on GPIOLIB || COMPILE_TEST
+ 	select FB_SYS_FILLRECT
+ 	select FB_SYS_COPYAREA
+diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
+index f82357d4f84da..fc51dd7342879 100644
+--- a/drivers/video/fbdev/Kconfig
++++ b/drivers/video/fbdev/Kconfig
+@@ -57,6 +57,16 @@ config FIRMWARE_EDID
+ 	  combination with certain motherboards and monitors are known to
+ 	  suffer from this problem.
+ 
++config FB_DEVICE
++	bool "Provide legacy /dev/fb* device"
++	depends on FB
++	default y
++	help
++	  Say Y here if you want the legacy /dev/fb* device file and
++	  interfaces within sysfs anc procfs. It is only required if you
++	  have userspace programs that depend on fbdev for graphics output.
++	  This does not affect the framebuffer console. If unsure, say N.
++
+ config FB_DDC
+ 	tristate
+ 	depends on FB
+@@ -1545,6 +1555,7 @@ config FB_3DFX_I2C
+ config FB_VOODOO1
+ 	tristate "3Dfx Voodoo Graphics (sst1) support"
+ 	depends on FB && PCI
++	depends on FB_DEVICE
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+@@ -1863,6 +1874,7 @@ config FB_SH_MOBILE_LCDC
+ 	tristate "SuperH Mobile LCDC framebuffer support"
+ 	depends on FB && HAVE_CLK && HAS_IOMEM
+ 	depends on SUPERH || ARCH_RENESAS || COMPILE_TEST
++	depends on FB_DEVICE
+ 	select FB_SYS_FILLRECT
+ 	select FB_SYS_COPYAREA
+ 	select FB_SYS_IMAGEBLIT
+@@ -1932,6 +1944,7 @@ config FB_SMSCUFX
+ config FB_UDL
+ 	tristate "Displaylink USB Framebuffer support"
+ 	depends on FB && USB
++	depends on FB_DEVICE
+ 	select FB_MODE_HELPERS
+ 	select FB_SYS_FILLRECT
+ 	select FB_SYS_COPYAREA
+diff --git a/drivers/video/fbdev/core/Makefile b/drivers/video/fbdev/core/Makefile
+index eea5938f74238..9150bafd9e899 100644
+--- a/drivers/video/fbdev/core/Makefile
++++ b/drivers/video/fbdev/core/Makefile
+@@ -2,12 +2,13 @@
+ obj-$(CONFIG_FB_NOTIFY)           += fb_notify.o
+ obj-$(CONFIG_FB)                  += fb.o
+ fb-y                              := fb_backlight.o \
+-                                     fb_chrdev.o \
+                                      fb_info.o \
+-                                     fb_procfs.o \
+-                                     fbmem.o fbmon.o fbcmap.o fbsysfs.o \
++                                     fbmem.o fbmon.o fbcmap.o \
+                                      modedb.o fbcvt.o fb_cmdline.o fb_io_fops.o
+ fb-$(CONFIG_FB_DEFERRED_IO)       += fb_defio.o
++fb-$(CONFIG_FB_DEVICE)            += fb_chrdev.o \
++                                     fb_procfs.o \
++                                     fbsysfs.o
+ 
+ ifeq ($(CONFIG_FRAMEBUFFER_CONSOLE),y)
+ fb-y				  += fbcon.o bitblit.o softcursor.o
 diff --git a/drivers/video/fbdev/core/fb_internal.h b/drivers/video/fbdev/core/fb_internal.h
-new file mode 100644
-index 0000000000000..0b9640ae7a3d2
---- /dev/null
+index 0b43c0cd50968..4c8d509a00265 100644
+--- a/drivers/video/fbdev/core/fb_internal.h
 +++ b/drivers/video/fbdev/core/fb_internal.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef _FB_INTERNAL_H
-+#define _FB_INTERNAL_H
-+
-+struct fb_info;
-+
-+/* fbsysfs.c */
-+int fb_device_create(struct fb_info *fb_info);
-+void fb_device_destroy(struct fb_info *fb_info);
-+
-+#endif
-diff --git a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
-index f91ae7d4c94d6..66532774d351e 100644
---- a/drivers/video/fbdev/core/fbmem.c
-+++ b/drivers/video/fbdev/core/fbmem.c
-@@ -40,6 +40,8 @@
- #include <video/nomodeset.h>
- #include <video/vga.h>
+@@ -3,12 +3,22 @@
+ #ifndef _FB_INTERNAL_H
+ #define _FB_INTERNAL_H
  
-+#include "fb_internal.h"
-+
-     /*
-      *  Frame buffer device initialization and setup routines
-      */
-@@ -1447,14 +1449,7 @@ static int do_register_framebuffer(struct fb_info *fb_info)
- 	mutex_init(&fb_info->lock);
- 	mutex_init(&fb_info->mm_lock);
- 
--	fb_info->dev = device_create(fb_class, fb_info->device,
--				     MKDEV(FB_MAJOR, i), NULL, "fb%d", i);
--	if (IS_ERR(fb_info->dev)) {
--		/* Not fatal */
--		printk(KERN_WARNING "Unable to create device for framebuffer %d; errno = %ld\n", i, PTR_ERR(fb_info->dev));
--		fb_info->dev = NULL;
--	} else
--		fb_init_device(fb_info);
-+	fb_device_create(fb_info);
- 
- 	if (fb_info->pixmap.addr == NULL) {
- 		fb_info->pixmap.addr = kmalloc(FBPIXMAPSIZE, GFP_KERNEL);
-@@ -1515,16 +1510,9 @@ static void unlink_framebuffer(struct fb_info *fb_info)
- 	if (WARN_ON(i < 0 || i >= FB_MAX || registered_fb[i] != fb_info))
- 		return;
- 
--	if (!fb_info->dev)
--		return;
--
--	device_destroy(fb_class, MKDEV(FB_MAJOR, i));
--
-+	fb_device_destroy(fb_info);
- 	pm_vt_switch_unregister(fb_info->device);
--
- 	unbind_console(fb_info);
--
--	fb_info->dev = NULL;
- }
- 
- static void do_unregister_framebuffer(struct fb_info *fb_info)
-@@ -1539,7 +1527,6 @@ static void do_unregister_framebuffer(struct fb_info *fb_info)
- 	fb_destroy_modelist(&fb_info->modelist);
- 	registered_fb[fb_info->node] = NULL;
- 	num_registered_fb--;
--	fb_cleanup_device(fb_info);
- #ifdef CONFIG_GUMSTIX_AM200EPD
- 	{
- 		struct fb_event event;
-diff --git a/drivers/video/fbdev/core/fbsysfs.c b/drivers/video/fbdev/core/fbsysfs.c
-index 849073f1ca067..fafe574398b01 100644
---- a/drivers/video/fbdev/core/fbsysfs.c
-+++ b/drivers/video/fbdev/core/fbsysfs.c
-@@ -8,6 +8,9 @@
- #include <linux/console.h>
++#include <linux/device.h>
  #include <linux/fb.h>
- #include <linux/fbcon.h>
-+#include <linux/major.h>
-+
-+#include "fb_internal.h"
+ #include <linux/mutex.h>
  
- #define FB_SYSFS_FLAG_ATTR 1
- 
-@@ -435,7 +438,7 @@ static struct device_attribute device_attrs[] = {
- #endif
- };
- 
--int fb_init_device(struct fb_info *fb_info)
-+static int fb_init_device(struct fb_info *fb_info)
- {
- 	int i, error = 0;
- 
-@@ -459,7 +462,7 @@ int fb_init_device(struct fb_info *fb_info)
- 	return 0;
- }
- 
--void fb_cleanup_device(struct fb_info *fb_info)
-+static void fb_cleanup_device(struct fb_info *fb_info)
- {
- 	unsigned int i;
- 
-@@ -470,3 +473,34 @@ void fb_cleanup_device(struct fb_info *fb_info)
- 		fb_info->class_flag &= ~FB_SYSFS_FLAG_ATTR;
- 	}
- }
-+
-+int fb_device_create(struct fb_info *fb_info)
+ /* fb_devfs.c */
++#if defined(CONFIG_FB_DEVICE)
+ int fb_register_chrdev(void);
+ void fb_unregister_chrdev(void);
++#else
++static inline int fb_register_chrdev(void)
 +{
-+	int node = fb_info->node;
-+	dev_t devt = MKDEV(FB_MAJOR, node);
-+	int ret;
-+
-+	fb_info->dev = device_create(fb_class, fb_info->device, devt, NULL, "fb%d", node);
-+	if (IS_ERR(fb_info->dev)) {
-+		/* Not fatal */
-+		ret = PTR_ERR(fb_info->dev);
-+		pr_warn("Unable to create device for framebuffer %d; error %d\n", node, ret);
-+		fb_info->dev = NULL;
-+	} else {
-+		fb_init_device(fb_info);
-+	}
++	return 0;
++}
++static inline void fb_unregister_chrdev(void)
++{ }
++#endif
+ 
+ /* fbmem.c */
+ extern struct class *fb_class;
+@@ -19,11 +29,39 @@ struct fb_info *get_fb_info(unsigned int idx);
+ void put_fb_info(struct fb_info *fb_info);
+ 
+ /* fb_procfs.c */
++#if defined(CONFIG_FB_DEVICE)
+ int fb_init_procfs(void);
+ void fb_cleanup_procfs(void);
++#else
++static inline int fb_init_procfs(void)
++{
++	return 0;
++}
++static inline void fb_cleanup_procfs(void)
++{ }
++#endif
+ 
+ /* fbsysfs.c */
++#if defined(CONFIG_FB_DEVICE)
+ int fb_device_create(struct fb_info *fb_info);
+ void fb_device_destroy(struct fb_info *fb_info);
++#else
++static inline int fb_device_create(struct fb_info *fb_info)
++{
++	/*
++	 * Acquire a reference on the parent device to avoid
++	 * unplug operations behind our back. With the fbdev
++	 * device enabled, this is performed within register_device().
++	 */
++	get_device(fb_info->device);
 +
 +	return 0;
 +}
-+
-+void fb_device_destroy(struct fb_info *fb_info)
++static inline void fb_device_destroy(struct fb_info *fb_info)
 +{
-+	dev_t devt = MKDEV(FB_MAJOR, fb_info->node);
-+
-+	if (!fb_info->dev)
-+		return;
-+
-+	fb_cleanup_device(fb_info);
-+	device_destroy(fb_class, devt);
-+	fb_info->dev = NULL;
++	/* Undo the get_device() from fb_device_create() */
++	put_device(fb_info->device);
 +}
++#endif
+ 
+ #endif
+diff --git a/drivers/video/fbdev/omap2/omapfb/Kconfig b/drivers/video/fbdev/omap2/omapfb/Kconfig
+index 69f9cb03507ef..21069fdb7cc21 100644
+--- a/drivers/video/fbdev/omap2/omapfb/Kconfig
++++ b/drivers/video/fbdev/omap2/omapfb/Kconfig
+@@ -5,9 +5,9 @@ config OMAP2_VRFB
+ menuconfig FB_OMAP2
+ 	tristate "OMAP2+ frame buffer support"
+ 	depends on FB
++	depends on FB_DEVICE
+ 	depends on DRM_OMAP = n
+ 	depends on GPIOLIB
+-
+ 	select FB_OMAP2_DSS
+ 	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
+ 	select FB_CFB_FILLRECT
 diff --git a/include/linux/fb.h b/include/linux/fb.h
-index ce6823e157e6b..1988d11f78bcb 100644
+index 541a0e3ce21f4..40ed1028160c0 100644
 --- a/include/linux/fb.h
 +++ b/include/linux/fb.h
-@@ -735,11 +735,8 @@ static inline bool fb_be_math(struct fb_info *info)
- #endif /* CONFIG_FB_FOREIGN_ENDIAN */
- }
+@@ -481,7 +481,9 @@ struct fb_info {
  
--/* drivers/video/fbsysfs.c */
- extern struct fb_info *framebuffer_alloc(size_t size, struct device *dev);
- extern void framebuffer_release(struct fb_info *info);
--extern int fb_init_device(struct fb_info *fb_info);
--extern void fb_cleanup_device(struct fb_info *head);
- extern void fb_bl_default_curve(struct fb_info *fb_info, u8 off, u8 min, u8 max);
- 
- /* drivers/video/fbmon.c */
+ 	const struct fb_ops *fbops;
+ 	struct device *device;		/* This is the parent */
++#if defined(CONFIG_FB_DEVICE)
+ 	struct device *dev;		/* This is this fb device */
++#endif
+ 	int class_flag;                    /* private sysfs flags */
+ #ifdef CONFIG_FB_TILEBLITTING
+ 	struct fb_tile_ops *tileops;    /* Tile Blitting */
 -- 
 2.41.0
 
