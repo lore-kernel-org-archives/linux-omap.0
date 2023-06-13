@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99075CA9EB1
-	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:11:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 630E1CA9EBD
+	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:11:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242217AbjFMLK7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 13 Jun 2023 07:10:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49256 "EHLO
+        id S242220AbjFMLLA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 13 Jun 2023 07:11:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49252 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242135AbjFMLKK (ORCPT
+        with ESMTP id S242132AbjFMLKK (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jun 2023 07:10:10 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2455D10DA;
-        Tue, 13 Jun 2023 04:10:09 -0700 (PDT)
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AA0D92;
+        Tue, 13 Jun 2023 04:10:08 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id AD58C1FDAE;
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 206FB1FDB8;
         Tue, 13 Jun 2023 11:10:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
         t=1686654607; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=PjQ0WZPdIw3WWFfN2RUGJfJXUodE1BMieiwQSz+bnM8=;
-        b=QVFuBYIdNXyiUvUemFqtDdPYbPvEZHWw+StdMd6gHSnwAq4AgWPJUQUSb+NvimWCU549JP
-        BvYbAhSnQ21BPvWw2lsUCzUff2DnvTgg6PY26zzSBEZNXRNbg4DEK5SyvoHyaIJKilpeCf
-        76OhAZ1vgE3MSZqNJavWilfHYR4HU18=
+        bh=4fsDwK3/MzhO/+4V6RVPaJy4VYKnZ6Si9bcp6FJanXE=;
+        b=ejpVMux/b1QuE5CJU6PidS4DSV7XpXpptL73BBmKjZGHoVUoCLKEqBaQWRtkjAhQ61y1Pp
+        qa2g7rJnvYOL7o74S/7RQsaur4g1DY3M1VvCeiMisUuC41kue4jW0NG16qV8nrARnawUHp
+        pB/d21/T1XNPywj8DQb8SVxigC6P5VI=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
         s=susede2_ed25519; t=1686654607;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=PjQ0WZPdIw3WWFfN2RUGJfJXUodE1BMieiwQSz+bnM8=;
-        b=plfXBF+U/X2CU7hRpXgq1LPJz78Cf4Z479NDIlFRZwP34I0+P8+8oD/HNybb77DkAcDUeq
-        0lAuhAOQ6OIF5JDQ==
+        bh=4fsDwK3/MzhO/+4V6RVPaJy4VYKnZ6Si9bcp6FJanXE=;
+        b=eOd/H7swFJ8KgbTzvhB+A/cbC2LClWf584d8eN8j0pTCDq86IAYSI+ISMpWCOFnbaXBrdH
+        ni1jqg3WGf3hZUDA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 6676013A88;
-        Tue, 13 Jun 2023 11:10:07 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id BFE8413A47;
+        Tue, 13 Jun 2023 11:10:06 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id oFM1GI9OiGR8CQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:07 +0000
+        id 6GEALo5OiGR8CQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:06 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
         deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
@@ -57,9 +57,9 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v3 35/38] fbdev/core: Move procfs code to separate file
-Date:   Tue, 13 Jun 2023 13:07:10 +0200
-Message-ID: <20230613110953.24176-36-tzimmermann@suse.de>
+Subject: [PATCH v3 33/38] fbdev/core: Move framebuffer and backlight helpers into separate files
+Date:   Tue, 13 Jun 2023 13:07:08 +0200
+Message-ID: <20230613110953.24176-34-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230613110953.24176-1-tzimmermann@suse.de>
 References: <20230613110953.24176-1-tzimmermann@suse.de>
@@ -69,223 +69,294 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Move fbdev's procfs code into a separate file and contain it in
-init and cleanup helpers. For the cleanup, replace remove_proc_entry()
-with proc_remove(). It is equivalent in functionality, but looks
-more like an inverse of proc_create_seq().
+Move framebuffer and backlight helpers into separate files. Leave
+fbsysfs.c to sysfs-related code. No functional changes.
+
+The framebuffer helpers are not in fbmem.c because they are under
+GPL-2.0-or-later copyright, while fbmem.c is GPL-2.0.
 
 v2:
-	* document proc_remove() usage (Sam)
-	* revert unrelated removal of for_each_registered_fb()
+	* include <linux/mutex.h> (Sam)
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/video/fbdev/core/Makefile      |  1 +
- drivers/video/fbdev/core/fb_internal.h | 12 ++++-
- drivers/video/fbdev/core/fb_procfs.c   | 62 ++++++++++++++++++++++++++
- drivers/video/fbdev/core/fbmem.c       | 48 +++-----------------
- 4 files changed, 80 insertions(+), 43 deletions(-)
- create mode 100644 drivers/video/fbdev/core/fb_procfs.c
+ drivers/video/fbdev/core/Makefile       |   4 +-
+ drivers/video/fbdev/core/fb_backlight.c |  33 +++++++
+ drivers/video/fbdev/core/fb_info.c      |  78 +++++++++++++++++
+ drivers/video/fbdev/core/fbsysfs.c      | 110 +-----------------------
+ 4 files changed, 115 insertions(+), 110 deletions(-)
+ create mode 100644 drivers/video/fbdev/core/fb_backlight.c
+ create mode 100644 drivers/video/fbdev/core/fb_info.c
 
 diff --git a/drivers/video/fbdev/core/Makefile b/drivers/video/fbdev/core/Makefile
-index eee3295bc2252..665320160f70a 100644
+index 8f0060160ffb7..eee3295bc2252 100644
 --- a/drivers/video/fbdev/core/Makefile
 +++ b/drivers/video/fbdev/core/Makefile
-@@ -3,6 +3,7 @@ obj-$(CONFIG_FB_NOTIFY)           += fb_notify.o
+@@ -1,7 +1,9 @@
+ # SPDX-License-Identifier: GPL-2.0
+ obj-$(CONFIG_FB_NOTIFY)           += fb_notify.o
  obj-$(CONFIG_FB)                  += fb.o
- fb-y                              := fb_backlight.o \
-                                      fb_info.o \
-+                                     fb_procfs.o \
-                                      fbmem.o fbmon.o fbcmap.o fbsysfs.o \
+-fb-y                              := fbmem.o fbmon.o fbcmap.o fbsysfs.o \
++fb-y                              := fb_backlight.o \
++                                     fb_info.o \
++                                     fbmem.o fbmon.o fbcmap.o fbsysfs.o \
                                       modedb.o fbcvt.o fb_cmdline.o fb_io_fops.o
  fb-$(CONFIG_FB_DEFERRED_IO)       += fb_defio.o
-diff --git a/drivers/video/fbdev/core/fb_internal.h b/drivers/video/fbdev/core/fb_internal.h
-index 0b9640ae7a3d2..51f7c9f04e45a 100644
---- a/drivers/video/fbdev/core/fb_internal.h
-+++ b/drivers/video/fbdev/core/fb_internal.h
-@@ -3,7 +3,17 @@
- #ifndef _FB_INTERNAL_H
- #define _FB_INTERNAL_H
  
--struct fb_info;
+diff --git a/drivers/video/fbdev/core/fb_backlight.c b/drivers/video/fbdev/core/fb_backlight.c
+new file mode 100644
+index 0000000000000..e2d3b3adc870f
+--- /dev/null
++++ b/drivers/video/fbdev/core/fb_backlight.c
+@@ -0,0 +1,33 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#include <linux/export.h>
 +#include <linux/fb.h>
 +#include <linux/mutex.h>
 +
-+/* fbmem.c */
-+extern struct mutex registration_lock;
-+extern struct fb_info *registered_fb[FB_MAX];
-+extern int num_registered_fb;
++#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
++/*
++ * This function generates a linear backlight curve
++ *
++ *     0: off
++ *   1-7: min
++ * 8-127: linear from min to max
++ */
++void fb_bl_default_curve(struct fb_info *fb_info, u8 off, u8 min, u8 max)
++{
++	unsigned int i, flat, count, range = (max - min);
 +
-+/* fb_procfs.c */
-+int fb_init_procfs(void);
-+void fb_cleanup_procfs(void);
- 
- /* fbsysfs.c */
- int fb_device_create(struct fb_info *fb_info);
-diff --git a/drivers/video/fbdev/core/fb_procfs.c b/drivers/video/fbdev/core/fb_procfs.c
++	mutex_lock(&fb_info->bl_curve_mutex);
++
++	fb_info->bl_curve[0] = off;
++
++	for (flat = 1; flat < (FB_BACKLIGHT_LEVELS / 16); ++flat)
++		fb_info->bl_curve[flat] = min;
++
++	count = FB_BACKLIGHT_LEVELS * 15 / 16;
++	for (i = 0; i < count; ++i)
++		fb_info->bl_curve[flat + i] = min + (range * (i + 1) / count);
++
++	mutex_unlock(&fb_info->bl_curve_mutex);
++}
++EXPORT_SYMBOL_GPL(fb_bl_default_curve);
++#endif
+diff --git a/drivers/video/fbdev/core/fb_info.c b/drivers/video/fbdev/core/fb_info.c
 new file mode 100644
-index 0000000000000..59641142f8aad
+index 0000000000000..8bdbefdd4b701
 --- /dev/null
-+++ b/drivers/video/fbdev/core/fb_procfs.c
-@@ -0,0 +1,62 @@
-+// SPDX-License-Identifier: GPL-2.0
++++ b/drivers/video/fbdev/core/fb_info.c
+@@ -0,0 +1,78 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
 +
-+#include <linux/proc_fs.h>
++#include <linux/export.h>
++#include <linux/fb.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
 +
-+#include "fb_internal.h"
-+
-+static struct proc_dir_entry *fb_proc_dir_entry;
-+
-+static void *fb_seq_start(struct seq_file *m, loff_t *pos)
++/**
++ * framebuffer_alloc - creates a new frame buffer info structure
++ *
++ * @size: size of driver private data, can be zero
++ * @dev: pointer to the device for this fb, this can be NULL
++ *
++ * Creates a new frame buffer info structure. Also reserves @size bytes
++ * for driver private data (info->par). info->par (if any) will be
++ * aligned to sizeof(long).
++ *
++ * Returns the new structure, or NULL if an error occurred.
++ *
++ */
++struct fb_info *framebuffer_alloc(size_t size, struct device *dev)
 +{
-+	mutex_lock(&registration_lock);
++#define BYTES_PER_LONG (BITS_PER_LONG/8)
++#define PADDING (BYTES_PER_LONG - (sizeof(struct fb_info) % BYTES_PER_LONG))
++	int fb_info_size = sizeof(struct fb_info);
++	struct fb_info *info;
++	char *p;
 +
-+	return (*pos < FB_MAX) ? pos : NULL;
++	if (size)
++		fb_info_size += PADDING;
++
++	p = kzalloc(fb_info_size + size, GFP_KERNEL);
++
++	if (!p)
++		return NULL;
++
++	info = (struct fb_info *) p;
++
++	if (size)
++		info->par = p + fb_info_size;
++
++	info->device = dev;
++	info->fbcon_rotate_hint = -1;
++
++#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
++	mutex_init(&info->bl_curve_mutex);
++#endif
++
++	return info;
++#undef PADDING
++#undef BYTES_PER_LONG
 +}
++EXPORT_SYMBOL(framebuffer_alloc);
 +
-+static void fb_seq_stop(struct seq_file *m, void *v)
++/**
++ * framebuffer_release - marks the structure available for freeing
++ *
++ * @info: frame buffer info structure
++ *
++ * Drop the reference count of the device embedded in the
++ * framebuffer info structure.
++ *
++ */
++void framebuffer_release(struct fb_info *info)
 +{
-+	mutex_unlock(&registration_lock);
++	if (!info)
++		return;
++
++	if (WARN_ON(refcount_read(&info->count)))
++		return;
++
++#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
++	mutex_destroy(&info->bl_curve_mutex);
++#endif
++
++	kfree(info);
 +}
-+
-+static void *fb_seq_next(struct seq_file *m, void *v, loff_t *pos)
-+{
-+	(*pos)++;
-+
-+	return (*pos < FB_MAX) ? pos : NULL;
-+}
-+
-+static int fb_seq_show(struct seq_file *m, void *v)
-+{
-+	int i = *(loff_t *)v;
-+	struct fb_info *fi = registered_fb[i];
-+
-+	if (fi)
-+		seq_printf(m, "%d %s\n", fi->node, fi->fix.id);
-+
-+	return 0;
-+}
-+
-+static const struct seq_operations __maybe_unused fb_proc_seq_ops = {
-+	.start	= fb_seq_start,
-+	.stop	= fb_seq_stop,
-+	.next	= fb_seq_next,
-+	.show	= fb_seq_show,
-+};
-+
-+int fb_init_procfs(void)
-+{
-+	struct proc_dir_entry *proc;
-+
-+	proc = proc_create_seq("fb", 0, NULL, &fb_proc_seq_ops);
-+	if (!proc)
-+		return -ENOMEM;
-+
-+	fb_proc_dir_entry = proc;
-+
-+	return 0;
-+}
-+
-+void fb_cleanup_procfs(void)
-+{
-+	proc_remove(fb_proc_dir_entry);
-+}
-diff --git a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
-index 66532774d351e..536209901e32a 100644
---- a/drivers/video/fbdev/core/fbmem.c
-+++ b/drivers/video/fbdev/core/fbmem.c
-@@ -24,9 +24,7 @@
- #include <linux/vt.h>
- #include <linux/init.h>
- #include <linux/linux_logo.h>
--#include <linux/proc_fs.h>
- #include <linux/platform_device.h>
--#include <linux/seq_file.h>
- #include <linux/console.h>
- #include <linux/kmod.h>
- #include <linux/err.h>
-@@ -48,8 +46,7 @@
++EXPORT_SYMBOL(framebuffer_release);
+diff --git a/drivers/video/fbdev/core/fbsysfs.c b/drivers/video/fbdev/core/fbsysfs.c
+index 0c33c4adcd798..849073f1ca067 100644
+--- a/drivers/video/fbdev/core/fbsysfs.c
++++ b/drivers/video/fbdev/core/fbsysfs.c
+@@ -5,93 +5,12 @@
+  * Copyright (c) 2004 James Simmons <jsimmons@infradead.org>
+  */
  
- #define FBPIXMAPSIZE	(1024 * 8)
+-/*
+- * Note:  currently there's only stubs for framebuffer_alloc and
+- * framebuffer_release here.  The reson for that is that until all drivers
+- * are converted to use it a sysfsification will open OOPSable races.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/slab.h>
++#include <linux/console.h>
+ #include <linux/fb.h>
+ #include <linux/fbcon.h>
+-#include <linux/console.h>
+-#include <linux/module.h>
  
--static DEFINE_MUTEX(registration_lock);
--
-+DEFINE_MUTEX(registration_lock);
- struct fb_info *registered_fb[FB_MAX] __read_mostly;
- int num_registered_fb __read_mostly;
- #define for_each_registered_fb(i)		\
-@@ -705,40 +702,6 @@ int fb_show_logo(struct fb_info *info, int rotate) { return 0; }
- EXPORT_SYMBOL(fb_prepare_logo);
- EXPORT_SYMBOL(fb_show_logo);
+ #define FB_SYSFS_FLAG_ATTR 1
  
--static void *fb_seq_start(struct seq_file *m, loff_t *pos)
+-/**
+- * framebuffer_alloc - creates a new frame buffer info structure
+- *
+- * @size: size of driver private data, can be zero
+- * @dev: pointer to the device for this fb, this can be NULL
+- *
+- * Creates a new frame buffer info structure. Also reserves @size bytes
+- * for driver private data (info->par). info->par (if any) will be
+- * aligned to sizeof(long).
+- *
+- * Returns the new structure, or NULL if an error occurred.
+- *
+- */
+-struct fb_info *framebuffer_alloc(size_t size, struct device *dev)
 -{
--	mutex_lock(&registration_lock);
--	return (*pos < FB_MAX) ? pos : NULL;
--}
+-#define BYTES_PER_LONG (BITS_PER_LONG/8)
+-#define PADDING (BYTES_PER_LONG - (sizeof(struct fb_info) % BYTES_PER_LONG))
+-	int fb_info_size = sizeof(struct fb_info);
+-	struct fb_info *info;
+-	char *p;
 -
--static void *fb_seq_next(struct seq_file *m, void *v, loff_t *pos)
+-	if (size)
+-		fb_info_size += PADDING;
+-
+-	p = kzalloc(fb_info_size + size, GFP_KERNEL);
+-
+-	if (!p)
+-		return NULL;
+-
+-	info = (struct fb_info *) p;
+-
+-	if (size)
+-		info->par = p + fb_info_size;
+-
+-	info->device = dev;
+-	info->fbcon_rotate_hint = -1;
+-
+-#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
+-	mutex_init(&info->bl_curve_mutex);
+-#endif
+-
+-	return info;
+-#undef PADDING
+-#undef BYTES_PER_LONG
+-}
+-EXPORT_SYMBOL(framebuffer_alloc);
+-
+-/**
+- * framebuffer_release - marks the structure available for freeing
+- *
+- * @info: frame buffer info structure
+- *
+- * Drop the reference count of the device embedded in the
+- * framebuffer info structure.
+- *
+- */
+-void framebuffer_release(struct fb_info *info)
 -{
--	(*pos)++;
--	return (*pos < FB_MAX) ? pos : NULL;
+-	if (!info)
+-		return;
+-
+-	if (WARN_ON(refcount_read(&info->count)))
+-		return;
+-
+-#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
+-	mutex_destroy(&info->bl_curve_mutex);
+-#endif
+-
+-	kfree(info);
 -}
+-EXPORT_SYMBOL(framebuffer_release);
 -
--static void fb_seq_stop(struct seq_file *m, void *v)
--{
--	mutex_unlock(&registration_lock);
--}
--
--static int fb_seq_show(struct seq_file *m, void *v)
--{
--	int i = *(loff_t *)v;
--	struct fb_info *fi = registered_fb[i];
--
--	if (fi)
--		seq_printf(m, "%d %s\n", fi->node, fi->fix.id);
--	return 0;
--}
--
--static const struct seq_operations __maybe_unused proc_fb_seq_ops = {
--	.start	= fb_seq_start,
--	.next	= fb_seq_next,
--	.stop	= fb_seq_stop,
--	.show	= fb_seq_show,
--};
--
- /*
-  * We hold a reference to the fb_info in file->private_data,
-  * but if the current registered fb has changed, we don't
-@@ -1624,8 +1587,9 @@ fbmem_init(void)
+ static int activate(struct fb_info *fb_info, struct fb_var_screeninfo *var)
  {
- 	int ret;
- 
--	if (!proc_create_seq("fb", 0, NULL, &proc_fb_seq_ops))
--		return -ENOMEM;
-+	ret = fb_init_procfs();
-+	if (ret)
-+		return ret;
- 
- 	ret = register_chrdev(FB_MAJOR, "fb", &fb_fops);
- 	if (ret) {
-@@ -1648,7 +1612,7 @@ fbmem_init(void)
- err_class:
- 	unregister_chrdev(FB_MAJOR, "fb");
- err_chrdev:
--	remove_proc_entry("fb", NULL);
-+	fb_cleanup_procfs();
- 	return ret;
+ 	int err;
+@@ -551,30 +470,3 @@ void fb_cleanup_device(struct fb_info *fb_info)
+ 		fb_info->class_flag &= ~FB_SYSFS_FLAG_ATTR;
+ 	}
  }
- 
-@@ -1659,7 +1623,7 @@ fbmem_exit(void)
- {
- 	fb_console_exit();
- 
--	remove_proc_entry("fb", NULL);
-+	fb_cleanup_procfs();
- 	class_destroy(fb_class);
- 	unregister_chrdev(FB_MAJOR, "fb");
- }
+-
+-#if IS_ENABLED(CONFIG_FB_BACKLIGHT)
+-/* This function generates a linear backlight curve
+- *
+- *     0: off
+- *   1-7: min
+- * 8-127: linear from min to max
+- */
+-void fb_bl_default_curve(struct fb_info *fb_info, u8 off, u8 min, u8 max)
+-{
+-	unsigned int i, flat, count, range = (max - min);
+-
+-	mutex_lock(&fb_info->bl_curve_mutex);
+-
+-	fb_info->bl_curve[0] = off;
+-
+-	for (flat = 1; flat < (FB_BACKLIGHT_LEVELS / 16); ++flat)
+-		fb_info->bl_curve[flat] = min;
+-
+-	count = FB_BACKLIGHT_LEVELS * 15 / 16;
+-	for (i = 0; i < count; ++i)
+-		fb_info->bl_curve[flat + i] = min + (range * (i + 1) / count);
+-
+-	mutex_unlock(&fb_info->bl_curve_mutex);
+-}
+-EXPORT_SYMBOL_GPL(fb_bl_default_curve);
+-#endif
 -- 
 2.41.0
 
