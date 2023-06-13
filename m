@@ -2,51 +2,51 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E05B6C88CBD
-	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:10:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 858A3CA9EA0
+	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:10:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242177AbjFMLKq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S238436AbjFMLKq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Tue, 13 Jun 2023 07:10:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49154 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242111AbjFMLKF (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jun 2023 07:10:05 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73A5910DA;
-        Tue, 13 Jun 2023 04:10:04 -0700 (PDT)
+        with ESMTP id S242109AbjFMLKE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jun 2023 07:10:04 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD5FAE52;
+        Tue, 13 Jun 2023 04:10:03 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 1E59022423;
-        Tue, 13 Jun 2023 11:10:03 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 72D5722422;
+        Tue, 13 Jun 2023 11:10:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1686654603; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1686654602; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=NGKt5YmPhNCFqEoOeZiLZcdEnnocMclPxDtWyUC/Kws=;
-        b=Tc1BsX3p0HnP5GYkZuvouwUtGzVdXJ8QomI5m6gNi4+dSOE68Ql3ETUIob7FKSWCa5wzlz
-        tdzF6JjmVkueFqvflbvNFefyr4sQ4gQt8Z4u/Ugdzd728zo5dPcQjnt2a0mXZ3ZbFzKT2J
-        +dDNgWoQmPXSK4sgZz2yfEamInAaB6I=
+        bh=cRJCI1DQyCCftvFjU3f789NQ4HahDIyRoVbm/3ldQBA=;
+        b=TNbrvrjTZ/MF6TDgcloaNlx9L7iyKuiH+xSnSkMWgt4Yf8HIWd4XKJxSqC/rmdVLAMogUg
+        NoR83gzOeP/cJhElTeecPOBWP8bLNuKUeFQKgI/MhDB4gxUyBagAnXv3au6NSFmwTr0Bx2
+        6AfaUvpNF3s+9Sl7XQlwbpUFBapaJW0=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1686654603;
+        s=susede2_ed25519; t=1686654602;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=NGKt5YmPhNCFqEoOeZiLZcdEnnocMclPxDtWyUC/Kws=;
-        b=mL2yWxxh51btib5rJ9xuKTlgXIBc8I0aqq7adz1tM3dlh6ddchBEKdo0hx44/UyzJy9kfV
-        /Qrh3lUw5jzq50Ag==
+        bh=cRJCI1DQyCCftvFjU3f789NQ4HahDIyRoVbm/3ldQBA=;
+        b=jz0m4YdfgQIYkF8jd3kA0FNs+89zJX2jgMK6U+4ASaeVPdbktSEB9iDt+XFjjkkUc9gq86
+        jW8IfeJ4jc2u/qAA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id C45D313A47;
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 23EE913A47;
         Tue, 13 Jun 2023 11:10:02 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id AOwML4pOiGR8CQAAMHmgww
+        id wBzGB4pOiGR8CQAAMHmgww
         (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:02 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
@@ -57,10 +57,10 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: [PATCH v3 21/38] fbdev/radeonfb: Reorder backlight and framebuffer cleanup
-Date:   Tue, 13 Jun 2023 13:06:56 +0200
-Message-ID: <20230613110953.24176-22-tzimmermann@suse.de>
+        Antonino Daplas <adaplas@gmail.com>
+Subject: [PATCH v3 19/38] fbdev/nvidiafb: Use hardware device as backlight parent
+Date:   Tue, 13 Jun 2023 13:06:54 +0200
+Message-ID: <20230613110953.24176-20-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230613110953.24176-1-tzimmermann@suse.de>
 References: <20230613110953.24176-1-tzimmermann@suse.de>
@@ -70,33 +70,31 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The driver's backlight code requires the framebuffer to be
-registered. Therefore reorder the cleanup calls for both data
-structures. The init calls are already in the correct order.
+Use the hardware device in struct fb_info.device as parent of the
+backlight device. Aligns the driver with the rest of the codebase
+and prepares fbdev for making struct fb_info.dev optional.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Antonino Daplas <adaplas@gmail.com>
 Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/video/fbdev/aty/radeon_base.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/video/fbdev/nvidia/nv_backlight.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/video/fbdev/aty/radeon_base.c b/drivers/video/fbdev/aty/radeon_base.c
-index 972c4bbedfa36..8f2a527c26ebf 100644
---- a/drivers/video/fbdev/aty/radeon_base.c
-+++ b/drivers/video/fbdev/aty/radeon_base.c
-@@ -2517,9 +2517,8 @@ static void radeonfb_pci_unregister(struct pci_dev *pdev)
- 
- 	del_timer_sync(&rinfo->lvds_timer);
- 	arch_phys_wc_del(rinfo->wc_cookie);
--        unregister_framebuffer(info);
--
-         radeonfb_bl_exit(rinfo);
-+	unregister_framebuffer(info);
- 
-         iounmap(rinfo->mmio_base);
-         iounmap(rinfo->fb_base);
+diff --git a/drivers/video/fbdev/nvidia/nv_backlight.c b/drivers/video/fbdev/nvidia/nv_backlight.c
+index 503a7a683855a..160da9c50a52c 100644
+--- a/drivers/video/fbdev/nvidia/nv_backlight.c
++++ b/drivers/video/fbdev/nvidia/nv_backlight.c
+@@ -98,7 +98,7 @@ void nvidia_bl_init(struct nvidia_par *par)
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = FB_BACKLIGHT_LEVELS - 1;
+-	bd = backlight_device_register(name, info->dev, par, &nvidia_bl_ops,
++	bd = backlight_device_register(name, info->device, par, &nvidia_bl_ops,
+ 				       &props);
+ 	if (IS_ERR(bd)) {
+ 		info->bl_dev = NULL;
 -- 
 2.41.0
 
