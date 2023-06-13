@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FEEFCA9EB6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7675C88CB8
 	for <linux-omap@archiver.kernel.org>; Tue, 13 Jun 2023 11:10:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239420AbjFMLK5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 13 Jun 2023 07:10:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49148 "EHLO
+        id S240669AbjFMLK6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 13 Jun 2023 07:10:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242127AbjFMLKI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jun 2023 07:10:08 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65E8010DE;
-        Tue, 13 Jun 2023 04:10:07 -0700 (PDT)
+        with ESMTP id S242138AbjFMLKK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jun 2023 07:10:10 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B253010E3;
+        Tue, 13 Jun 2023 04:10:09 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 0EF4B1FDAC;
-        Tue, 13 Jun 2023 11:10:06 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 63597223E4;
+        Tue, 13 Jun 2023 11:10:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1686654606; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1686654608; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=1BuztNQSgsuQs3xHFrmB515HWtrc7sc9NpbsuatwBeo=;
-        b=xYlSFG6CqucP0AReBtnHoo9yOCqWmGRx8GiCt5Gl58QihD8IuNDmW8CKS8A31iXb6fJ0RS
-        eA04EwkVntJVCWq1v5ccReJin3qLpPO5q9lbtp6VsRnJL5aYmpQmAFAaF1BSYIXPB3fcru
-        z/js7oMGW+T8ByW/8u7MYj6rNxOsmmA=
+        bh=yHsYY4KkqinsC3hNy7+x1+/KpZqx4RkXsKhX6dnk4eY=;
+        b=K2rJNJxfzP7upRowYzs7e5sPaiHmP/Ietyvvwt588hWoZmYRvivCKm38mIu/6DuoWxTBQY
+        +re1bBD+5jKbfW0nlfydH9Q+9hUJnQSKWyzxAmkEiJbUQDQgV8GEF2VnFNXXDppVVxGcAp
+        KKdOS/g1Kt3J47NJDIcQwcpd53hTvxM=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1686654606;
+        s=susede2_ed25519; t=1686654608;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=1BuztNQSgsuQs3xHFrmB515HWtrc7sc9NpbsuatwBeo=;
-        b=MjJP+zQHwfGIHEIKvXvJwGD1mOWq2Pl3tjwOzzD3olGhg/J6xuIu2PdQewP/5i/xU66Izm
-        X35Ljej+qj7Kg5Bg==
+        bh=yHsYY4KkqinsC3hNy7+x1+/KpZqx4RkXsKhX6dnk4eY=;
+        b=zA/qhXUKqKrL7esCdkSiWza8MO1kKeovzhPD/bLjn+XI+eireuiDt89TMNpwP3E7n4izdu
+        hFRfeA7qFYjPGdCA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id B1E4513483;
-        Tue, 13 Jun 2023 11:10:05 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 1690613A47;
+        Tue, 13 Jun 2023 11:10:08 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id aJ+qKo1OiGR8CQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:05 +0000
+        id YNF+BJBOiGR8CQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 13 Jun 2023 11:10:08 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
         deller@gmx.de, geert+renesas@glider.be, lee@kernel.org,
@@ -56,11 +56,10 @@ To:     daniel@ffwll.ch, javierm@redhat.com, sam@ravnborg.org,
 Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-sh@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-staging@lists.linux.dev, linux-kernel@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Steve Glendinning <steve.glendinning@shawell.net>
-Subject: [PATCH v3 30/38] fbdev/smscufx: Detect registered fb_info from refcount
-Date:   Tue, 13 Jun 2023 13:07:05 +0200
-Message-ID: <20230613110953.24176-31-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH v3 37/38] fbdev/core: Rework fb init code
+Date:   Tue, 13 Jun 2023 13:07:12 +0200
+Message-ID: <20230613110953.24176-38-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230613110953.24176-1-tzimmermann@suse.de>
 References: <20230613110953.24176-1-tzimmermann@suse.de>
@@ -70,39 +69,159 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Detect registered instances of fb_info by reading the reference
-counter from struct fb_info.read. Avoids looking at the dev field
-and prepares fbdev for making struct fb_info.dev optional.
+Init the class "graphics" before the rest of fbdev. Later steps, such
+as the sysfs code, depend on the class. Also arrange the module's exit
+code in reverse order.
+
+Unexport the global variable fb_class, which is only shared internally
+within the fbdev core module.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Steve Glendinning <steve.glendinning@shawell.net>
-Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/video/fbdev/smscufx.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/fbdev/core/fb_internal.h |  1 +
+ drivers/video/fbdev/core/fbcon.c       |  1 +
+ drivers/video/fbdev/core/fbmem.c       | 52 ++++++++++----------------
+ include/linux/fb.h                     |  1 -
+ 4 files changed, 22 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/video/fbdev/smscufx.c b/drivers/video/fbdev/smscufx.c
-index 17cec62cc65db..adb2b1fe8383c 100644
---- a/drivers/video/fbdev/smscufx.c
-+++ b/drivers/video/fbdev/smscufx.c
-@@ -1496,7 +1496,7 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
- 	u8 *edid;
- 	int i, result = 0, tries = 3;
+diff --git a/drivers/video/fbdev/core/fb_internal.h b/drivers/video/fbdev/core/fb_internal.h
+index abe06c9da36e3..0b43c0cd50968 100644
+--- a/drivers/video/fbdev/core/fb_internal.h
++++ b/drivers/video/fbdev/core/fb_internal.h
+@@ -11,6 +11,7 @@ int fb_register_chrdev(void);
+ void fb_unregister_chrdev(void);
  
--	if (info->dev) /* only use mutex if info has been registered */
-+	if (refcount_read(&info->count)) /* only use mutex if info has been registered */
- 		mutex_lock(&info->lock);
+ /* fbmem.c */
++extern struct class *fb_class;
+ extern struct mutex registration_lock;
+ extern struct fb_info *registered_fb[FB_MAX];
+ extern int num_registered_fb;
+diff --git a/drivers/video/fbdev/core/fbcon.c b/drivers/video/fbdev/core/fbcon.c
+index c6c9d040bdec7..8e76bc246b387 100644
+--- a/drivers/video/fbdev/core/fbcon.c
++++ b/drivers/video/fbdev/core/fbcon.c
+@@ -78,6 +78,7 @@
+ #include <asm/irq.h>
  
- 	edid = kmalloc(EDID_LENGTH, GFP_KERNEL);
-@@ -1610,7 +1610,7 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
- 	if (edid && (dev->edid != edid))
- 		kfree(edid);
+ #include "fbcon.h"
++#include "fb_internal.h"
  
--	if (info->dev)
-+	if (refcount_read(&info->count))
- 		mutex_unlock(&info->lock);
+ /*
+  * FIXME: Locking
+diff --git a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
+index 4edf70241a23c..ee44a46a66be1 100644
+--- a/drivers/video/fbdev/core/fbmem.c
++++ b/drivers/video/fbdev/core/fbmem.c
+@@ -44,6 +44,8 @@
  
- 	return result;
+ #define FBPIXMAPSIZE	(1024 * 8)
+ 
++struct class *fb_class;
++
+ DEFINE_MUTEX(registration_lock);
+ struct fb_info *registered_fb[FB_MAX] __read_mostly;
+ int num_registered_fb __read_mostly;
+@@ -899,9 +901,6 @@ fb_blank(struct fb_info *info, int blank)
+ }
+ EXPORT_SYMBOL(fb_blank);
+ 
+-struct class *fb_class;
+-EXPORT_SYMBOL(fb_class);
+-
+ static int fb_check_foreignness(struct fb_info *fi)
+ {
+ 	const bool foreign_endian = fi->flags & FBINFO_FOREIGN_ENDIAN;
+@@ -1108,59 +1107,48 @@ void fb_set_suspend(struct fb_info *info, int state)
+ }
+ EXPORT_SYMBOL(fb_set_suspend);
+ 
+-/**
+- *	fbmem_init - init frame buffer subsystem
+- *
+- *	Initialize the frame buffer subsystem.
+- *
+- *	NOTE: This function is _only_ to be called by drivers/char/mem.c.
+- *
+- */
+-
+-static int __init
+-fbmem_init(void)
++static int __init fbmem_init(void)
+ {
+ 	int ret;
+ 
++	fb_class = class_create("graphics");
++	if (IS_ERR(fb_class)) {
++		ret = PTR_ERR(fb_class);
++		pr_err("Unable to create fb class; errno = %d\n", ret);
++		goto err_fb_class;
++	}
++
+ 	ret = fb_init_procfs();
+ 	if (ret)
+-		return ret;
++		goto err_class_destroy;
+ 
+ 	ret = fb_register_chrdev();
+ 	if (ret)
+-		goto err_chrdev;
+-
+-	fb_class = class_create("graphics");
+-	if (IS_ERR(fb_class)) {
+-		ret = PTR_ERR(fb_class);
+-		pr_warn("Unable to create fb class; errno = %d\n", ret);
+-		fb_class = NULL;
+-		goto err_class;
+-	}
++		goto err_fb_cleanup_procfs;
+ 
+ 	fb_console_init();
+ 
+ 	return 0;
+ 
+-err_class:
+-	fb_unregister_chrdev();
+-err_chrdev:
++err_fb_cleanup_procfs:
+ 	fb_cleanup_procfs();
++err_class_destroy:
++	class_destroy(fb_class);
++err_fb_class:
++	fb_class = NULL;
+ 	return ret;
+ }
+ 
+ #ifdef MODULE
+-module_init(fbmem_init);
+-static void __exit
+-fbmem_exit(void)
++static void __exit fbmem_exit(void)
+ {
+ 	fb_console_exit();
+-
++	fb_unregister_chrdev();
+ 	fb_cleanup_procfs();
+ 	class_destroy(fb_class);
+-	fb_unregister_chrdev();
+ }
+ 
++module_init(fbmem_init);
+ module_exit(fbmem_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Framebuffer base");
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index 1988d11f78bcb..541a0e3ce21f4 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -609,7 +609,6 @@ extern int fb_new_modelist(struct fb_info *info);
+ 
+ extern bool fb_center_logo;
+ extern int fb_logo_count;
+-extern struct class *fb_class;
+ 
+ static inline void lock_fb_info(struct fb_info *info)
+ {
 -- 
 2.41.0
 
