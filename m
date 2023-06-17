@@ -2,62 +2,97 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 410A7EB64DA
-	for <linux-omap@archiver.kernel.org>; Fri, 16 Jun 2023 16:55:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D11FEB64DB
+	for <linux-omap@archiver.kernel.org>; Sat, 17 Jun 2023 20:36:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345794AbjFPQzW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 16 Jun 2023 12:55:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38318 "EHLO
+        id S1346507AbjFQUg5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 17 Jun 2023 16:36:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346140AbjFPQzD (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jun 2023 12:55:03 -0400
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D8434EFC;
-        Fri, 16 Jun 2023 09:53:33 -0700 (PDT)
-Received: from p5dcc3b18.dip0.t-ipconnect.de ([93.204.59.24] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <andreas@kemnade.info>)
-        id 1qAChO-0003FG-Nz; Fri, 16 Jun 2023 18:53:22 +0200
-Date:   Fri, 16 Jun 2023 18:53:20 +0200
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc:     robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
-        conor+dt@kernel.org, tony@atomide.com, afd@ti.com,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org
-Subject: Re: [PATCH v7 0/2] dt-bindings: omap: Convert omap.txt to yaml
-Message-ID: <20230616185320.61b33510@aktux>
-In-Reply-To: <37ef78ee-b290-ecfb-504d-cef5653d23f2@linaro.org>
-References: <20230515074512.66226-1-andreas@kemnade.info>
-        <20230613193257.267ad763@aktux>
-        <37ef78ee-b290-ecfb-504d-cef5653d23f2@linaro.org>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.24; x86_64-pc-linux-gnu)
+        with ESMTP id S1346491AbjFQUgw (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 17 Jun 2023 16:36:52 -0400
+Received: from mx01.omp.ru (mx01.omp.ru [90.154.21.10])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C85EB172C;
+        Sat, 17 Jun 2023 13:36:51 -0700 (PDT)
+Received: from localhost.localdomain (178.176.79.248) by msexch01.omp.ru
+ (10.188.4.12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.986.14; Sat, 17 Jun
+ 2023 23:36:48 +0300
+From:   Sergey Shtylyov <s.shtylyov@omp.ru>
+To:     Ulf Hansson <ulf.hansson@linaro.org>, <linux-mmc@vger.kernel.org>
+CC:     Aaro Koskinen <aaro.koskinen@iki.fi>, <linux-omap@vger.kernel.org>
+Subject: [PATCH v3 05/12] mmc: omap: fix deferred probing
+Date:   Sat, 17 Jun 2023 23:36:15 +0300
+Message-ID: <20230617203622.6812-6-s.shtylyov@omp.ru>
+X-Mailer: git-send-email 2.26.3
+In-Reply-To: <20230617203622.6812-1-s.shtylyov@omp.ru>
+References: <20230617203622.6812-1-s.shtylyov@omp.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [178.176.79.248]
+X-ClientProxiedBy: msexch01.omp.ru (10.188.4.12) To msexch01.omp.ru
+ (10.188.4.12)
+X-KSE-ServerInfo: msexch01.omp.ru, 9
+X-KSE-AntiSpam-Interceptor-Info: scan successful
+X-KSE-AntiSpam-Version: 5.9.59, Database issued on: 06/17/2023 20:23:23
+X-KSE-AntiSpam-Status: KAS_STATUS_NOT_DETECTED
+X-KSE-AntiSpam-Method: none
+X-KSE-AntiSpam-Rate: 0
+X-KSE-AntiSpam-Info: Lua profiles 178086 [Jun 16 2023]
+X-KSE-AntiSpam-Info: Version: 5.9.59.0
+X-KSE-AntiSpam-Info: Envelope from: s.shtylyov@omp.ru
+X-KSE-AntiSpam-Info: LuaCore: 517 517 b0056c19d8e10afbb16cb7aad7258dedb0179a79
+X-KSE-AntiSpam-Info: {rep_avail}
+X-KSE-AntiSpam-Info: {Tracking_no_received}
+X-KSE-AntiSpam-Info: {Tracking_from_domain_doesnt_match_to}
+X-KSE-AntiSpam-Info: omp.ru:7.1.1;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;127.0.0.199:7.1.2
+X-KSE-AntiSpam-Info: ApMailHostAddress: 178.176.79.248
+X-KSE-AntiSpam-Info: Rate: 0
+X-KSE-AntiSpam-Info: Status: not_detected
+X-KSE-AntiSpam-Info: Method: none
+X-KSE-AntiSpam-Info: Auth:dmarc=temperror header.from=omp.ru;spf=temperror
+ smtp.mailfrom=omp.ru;dkim=none
+X-KSE-Antiphishing-Info: Clean
+X-KSE-Antiphishing-ScanningType: Heuristic
+X-KSE-Antiphishing-Method: None
+X-KSE-Antiphishing-Bases: 06/17/2023 20:29:00
+X-KSE-Antivirus-Interceptor-Info: scan successful
+X-KSE-Antivirus-Info: Clean, bases: 6/17/2023 5:34:00 PM
+X-KSE-Attachment-Filter-Triggered-Rules: Clean
+X-KSE-Attachment-Filter-Triggered-Filters: Clean
+X-KSE-BulkMessagesFiltering-Scan-Result: InTheLimit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, 13 Jun 2023 20:43:55 +0200
-Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org> wrote:
+The driver overrides the error codes returned by platform_get_irq() to
+-ENXIO, so if it returns -EPROBE_DEFER, the driver will fail the probe
+permanently instead of the deferred probing. Switch to propagating the
+error codes upstream.
 
-> On 13/06/2023 19:32, Andreas Kemnade wrote:
-> > Hi,
-> > 
-> > any action still expected from my side?
-> > people gave R-bys...
-> > So looks like it is ready for the dt-folks to pick it up.
-> >   
-> 
-> It's SoC file, isn't it? Then goes via SoC tree.
-> 
-Apparently there was confusion about it. Quoting
-Tony:"And thanks for getting the
-omap.yaml conversion going, that will get merged by the dt folks."
+Fixes: 9ec36cafe43b ("of/irq: do irq resolution in platform_get_irq")
+Signed-off-by: Sergey Shtylyov <s.shtylyov@omp.ru>
+---
+Changes in version 2:
+- updated the fix due to the surrounding code change.
 
-I am fine with either, 
+ drivers/mmc/host/omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards
-Andreas
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index ce78edfb402b..86454f1182bb 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1343,7 +1343,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0)
+-		return -ENXIO;
++		return irq;
+ 
+ 	host->virt_base = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
+ 	if (IS_ERR(host->virt_base))
+-- 
+2.26.3
+
