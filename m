@@ -2,82 +2,72 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18AEDC001B0
-	for <linux-omap@archiver.kernel.org>; Wed,  5 Jul 2023 16:47:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0876C001B0
+	for <linux-omap@archiver.kernel.org>; Wed,  5 Jul 2023 19:05:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232111AbjGEQr0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 5 Jul 2023 12:47:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57892 "EHLO
+        id S233366AbjGETE6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 5 Jul 2023 15:04:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231741AbjGEQrX (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jul 2023 12:47:23 -0400
-Received: from vern.gendns.com (vern.gendns.com [98.142.107.122])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D037710EC;
-        Wed,  5 Jul 2023 09:47:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=lechnology.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:From:References:To:Subject:MIME-Version:Date:Message-ID:Sender:
-        Reply-To:Cc:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=wcPRR4CqUAZ/m80TOLg7mrR9VzFvX30Kf7EKwxfW274=; b=PS2Qpmb2genKViqub60NxNEzx2
-        uxTAD65Ax+CZAemq52w/JKlTVg+PbOa7TA2s5eou4R6NrQS63o/1EsXX+OikoZupdaH+3NJOD7GGk
-        5vVW/ZaOaJbnCY+X2sA5P6TKbmiSQt1urJPRQaANzyAIx6oyBH9fjCKkOtkA95ihmboSg9NsX/WaW
-        fSJnxUeOLl+ZujBUtUWTKJ46QG47KkBCY0Lc1leoi64Sb/Gh1Ho072lJqvkH4mpZF/9jOew+UKqVi
-        wWktHEYXedGN4lTpGzJ78Rxyx07ocMrNkQ4gVivMXkPhoYvdiaOOk8U8tkoyzaGVDlAZdMhCPO1wn
-        mq3eKhCA==;
-Received: from ip98-183-112-42.ok.ok.cox.net ([98.183.112.42]:57484 helo=[192.168.0.142])
-        by vern.gendns.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.96)
-        (envelope-from <david@lechnology.com>)
-        id 1qH5HL-0005Bm-2X;
-        Wed, 05 Jul 2023 12:23:04 -0400
-Message-ID: <81a3e6ea-c5bf-09e7-397f-8786474f66fa@lechnology.com>
-Date:   Wed, 5 Jul 2023 11:23:02 -0500
+        with ESMTP id S233522AbjGETEA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 5 Jul 2023 15:04:00 -0400
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8170D1FEB;
+        Wed,  5 Jul 2023 12:03:40 -0700 (PDT)
+Received: from p200300ccff0adc001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff0a:dc00:1a3d:a2ff:febf:d33a] helo=aktux)
+        by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <andreas@kemnade.info>)
+        id 1qH7mi-0017Xe-Bk; Wed, 05 Jul 2023 21:03:28 +0200
+Received: from andi by aktux with local (Exim 4.96)
+        (envelope-from <andreas@kemnade.info>)
+        id 1qH7mh-001UQk-36;
+        Wed, 05 Jul 2023 21:03:27 +0200
+From:   Andreas Kemnade <andreas@kemnade.info>
+To:     bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org,
+        krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
+        lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz,
+        tiwai@suse.com, peter.ujfalusi@gmail.com, jarkko.nikula@bitmer.com,
+        dmitry.torokhov@gmail.com, andreas@kemnade.info,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 1/3] ASoC: ti: omap-mcbsp: Ignore errors for getting fck_src
+Date:   Wed,  5 Jul 2023 21:03:22 +0200
+Message-Id: <20230705190324.355282-2-andreas@kemnade.info>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230705190324.355282-1-andreas@kemnade.info>
+References: <20230705190324.355282-1-andreas@kemnade.info>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [PATCH 2/2] arm64: dts: ti: add missing space before {
-Content-Language: en-US
-To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Conor Dooley <conor+dt@kernel.org>, Nishanth Menon <nm@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Tero Kristo <kristo@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-References: <20230705145755.292927-1-krzysztof.kozlowski@linaro.org>
- <20230705145755.292927-2-krzysztof.kozlowski@linaro.org>
-From:   David Lechner <david@lechnology.com>
-In-Reply-To: <20230705145755.292927-2-krzysztof.kozlowski@linaro.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - vern.gendns.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - lechnology.com
-X-Get-Message-Sender-Via: vern.gendns.com: authenticated_id: davidmain+lechnology.com/only user confirmed/virtual account not confirmed
-X-Authenticated-Sender: vern.gendns.com: davidmain@lechnology.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 7/5/23 9:57 AM, Krzysztof Kozlowski wrote:
-> Add missing whitespace between node name/label and opening {.
-> 
-> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-> ---
+Commit 349355ce3a05 ("ARM: OMAP2+: Drop legacy platform data for omap4 mcbsp")
+dropped prcm_fck for omap4, so the clk_src might not be available making the
+clk_get(src) fail. In such cases, rely on the devicetree to assign
+the correct parent.
 
-Reviewed-by: David Lechner <david@lechnology.com>
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ sound/soc/ti/omap-mcbsp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-
+diff --git a/sound/soc/ti/omap-mcbsp.c b/sound/soc/ti/omap-mcbsp.c
+index 21fa7b9787997..f9fe96b61852b 100644
+--- a/sound/soc/ti/omap-mcbsp.c
++++ b/sound/soc/ti/omap-mcbsp.c
+@@ -70,8 +70,8 @@ static int omap2_mcbsp_set_clks_src(struct omap_mcbsp *mcbsp, u8 fck_src_id)
+ 
+ 	fck_src = clk_get(mcbsp->dev, src);
+ 	if (IS_ERR(fck_src)) {
+-		dev_err(mcbsp->dev, "CLKS: could not clk_get() %s\n", src);
+-		return -EINVAL;
++		dev_info(mcbsp->dev, "CLKS: could not clk_get() %s\n", src);
++		return 0;
+ 	}
+ 
+ 	pm_runtime_put_sync(mcbsp->dev);
+-- 
+2.39.2
 
