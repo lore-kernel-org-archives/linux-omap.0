@@ -2,100 +2,123 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B976DC001DF
-	for <linux-omap@archiver.kernel.org>; Mon, 10 Jul 2023 13:03:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCEFDEB64DA
+	for <linux-omap@archiver.kernel.org>; Mon, 10 Jul 2023 13:09:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231808AbjGJNCt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 10 Jul 2023 09:02:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47976 "EHLO
+        id S229517AbjGJNI6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 10 Jul 2023 09:08:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231552AbjGJNBY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jul 2023 09:01:24 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A83E612A;
-        Mon, 10 Jul 2023 06:01:19 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 042211FF7A;
-        Mon, 10 Jul 2023 13:01:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1688994078; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
+        with ESMTP id S231886AbjGJNH5 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 10 Jul 2023 09:07:57 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEB5F10C4
+        for <linux-omap@vger.kernel.org>; Mon, 10 Jul 2023 06:06:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1688994333;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=/zUoLo2iOzomOZ9vT6lH81AsiLcKSFTf6r6yeZLXs+I=;
-        b=XOuadsPfz67AOSh7Ed7yHanRtTkDg8+PQa5iqXvtYgoQ13QNaWanlTvotm22780rhMVc5c
-        XMZ5B5u7dGHYW1r6KrvKRtIBSeSQ9zvLvgzbuZZ6PwL5ac+OiNkeICP1qMsOV59reVFZic
-        /4J6NeP1sx0oElFAXxuxXMYooJuJ2rI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1688994078;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=/zUoLo2iOzomOZ9vT6lH81AsiLcKSFTf6r6yeZLXs+I=;
-        b=grGc3342L/FzeU0I0LmlEHzF8hTY8FFCaYR9DhKTHgmez1voinzZf/yiixCQrBjCiOz0Fx
-        V4hMFgMLnvYfh2Dg==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 9C3FA13A05;
-        Mon, 10 Jul 2023 13:01:17 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id 2MfgJB0BrGTTFAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Mon, 10 Jul 2023 13:01:17 +0000
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-To:     deller@gmx.de, javierm@redhat.com
-Cc:     linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, linux-staging@lists.linux.dev,
+        bh=cSSXjKtHNo2g+s4fKQO8ycwZ9VSR9y5qDmg/kPz0J+8=;
+        b=NDekGdoVFuvPxqBPm/p8URYHUEwrlee7pnACszE4CztEXS8QClMi+uhA/7W5iKi6rNAU7A
+        ImwAW4o9H6riexZj7hlloOSE6AgNJcBLna4YcmqgtWhnM3Q8sxoa2otZsO/plrPDDIJjjv
+        S03AAqBX54a0A6gBqFiIzhASVHqu3NQ=
+Received: from mail-yb1-f198.google.com (mail-yb1-f198.google.com
+ [209.85.219.198]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-126-8HX3VgecNUmWGFRLgmqmpg-1; Mon, 10 Jul 2023 09:05:32 -0400
+X-MC-Unique: 8HX3VgecNUmWGFRLgmqmpg-1
+Received: by mail-yb1-f198.google.com with SMTP id 3f1490d57ef6-c5d16402b4eso5450137276.3
+        for <linux-omap@vger.kernel.org>; Mon, 10 Jul 2023 06:05:32 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688994331; x=1691586331;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=cSSXjKtHNo2g+s4fKQO8ycwZ9VSR9y5qDmg/kPz0J+8=;
+        b=Ffm6duMCA+G6AIoPwNjIyFBco3BrLoS7FdX/J71Om+AP3kK6GO5i2LsXeCiuVseV6e
+         tmjf5JsIKEJDpsXUnOM1LDFvsBxQuYbrk8TGjHi1i9DQDa0zHo+UgTUoyEhCZrvq9AFA
+         SrBTrqAuwW/cZiVJwbpBbebRl7I8hhiOopRdZ8cYoi4gBhSZ8f5GP0pBlJP6Gd8yubMJ
+         OppXOTDh641drik72FOT0k+jhHpGc6I1GxIgwUc4gjeRkliXV4JAY8dOHfCa1kzMp5EL
+         gYDHAFkH8LS5jO85ssZPbKZg8TQZ5WPRfmzSfbzU8b9YArucAeZ9ya5RpV/lGRW9p4e8
+         625w==
+X-Gm-Message-State: ABy/qLZoujQOztP3wzL1sQUsXhiFGPmkdrLO4Jufy6nvIoso5dMUZ9xq
+        TZZlcfbm2YcC5boTDa1zjVqFdowqr4ZoOU9HEsCYS+pd660KxjgrOA95r1NqIWPeVBEVIIMcf6s
+        cMcxuTwtBDcTd4t1j3VpIqS1hZAwzUu6JnNVDmw==
+X-Received: by 2002:a25:1f02:0:b0:c67:8903:532b with SMTP id f2-20020a251f02000000b00c678903532bmr9557469ybf.44.1688994331564;
+        Mon, 10 Jul 2023 06:05:31 -0700 (PDT)
+X-Google-Smtp-Source: APBJJlFYCDVRqXESu2lKlw5OOq57+bm9EWCrFUc3sqkdq7rbGFO3X2AFRnXejnh8LqRK8eFbanSG74Fa5+uKsOptTgw=
+X-Received: by 2002:a25:1f02:0:b0:c67:8903:532b with SMTP id
+ f2-20020a251f02000000b00c678903532bmr9557452ybf.44.1688994331376; Mon, 10 Jul
+ 2023 06:05:31 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230710130113.14563-1-tzimmermann@suse.de> <20230710130113.14563-11-tzimmermann@suse.de>
+In-Reply-To: <20230710130113.14563-11-tzimmermann@suse.de>
+From:   Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Date:   Mon, 10 Jul 2023 15:05:19 +0200
+Message-ID: <CAO-hwJLvBpNu1z4qM9+331-oUroh4g5HORL=EZS0nb+HHe+fdw@mail.gmail.com>
+Subject: Re: [PATCH 10/17] hid/picolcd: Remove flag FBINFO_FLAG_DEFAULT from
+ fbdev driver
+To:     Thomas Zimmermann <tzimmermann@suse.de>
+Cc:     deller@gmx.de, javierm@redhat.com, linux-sh@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-staging@lists.linux.dev,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-nvidia@lists.surfsouth.com,
         linux-hyperv@vger.kernel.org, linux-omap@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Kirti Wankhede <kwankhede@nvidia.com>
-Subject: [PATCH 07/17] vfio-mdev: Remove flag FBINFO_DEFAULT from fbdev sample driver
-Date:   Mon, 10 Jul 2023 14:50:11 +0200
-Message-ID: <20230710130113.14563-8-tzimmermann@suse.de>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230710130113.14563-1-tzimmermann@suse.de>
-References: <20230710130113.14563-1-tzimmermann@suse.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        =?UTF-8?Q?Bruno_Pr=C3=A9mont?= <bonbons@linux-vserver.org>,
+        Jiri Kosina <jikos@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The flag FBINFO_DEFAULT is 0 and has no effect, as struct fbinfo.flags
-has been allocated to zero by framebuffer_alloc(). So do not set it.
+On Mon, Jul 10, 2023 at 3:01=E2=80=AFPM Thomas Zimmermann <tzimmermann@suse=
+.de> wrote:
+>
+> The flag FBINFO_FLAG_DEFAULT is 0 and has no effect, as struct
+> fbinfo.flags has been allocated to zero by framebuffer_alloc(). So do
+> not set it.
+>
+> Flags should signal differences from the default values. After cleaning
+> up all occurences of FBINFO_FLAG_DEFAULT, the token can be removed.
+>
+> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+> Cc: "Bruno Pr=C3=A9mont" <bonbons@linux-vserver.org>
+> Cc: Jiri Kosina <jikos@kernel.org>
+> Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>
 
-Flags should signal differences from the default values. After cleaning
-up all occurences of FBINFO_DEFAULT, the token can be removed.
+Acked-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
 
-Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Kirti Wankhede <kwankhede@nvidia.com>
----
- samples/vfio-mdev/mdpy-fb.c | 1 -
- 1 file changed, 1 deletion(-)
+Feel free to take this through the DRI tree (or any other that handles
+FB) with the rest of the series if you want.
 
-diff --git a/samples/vfio-mdev/mdpy-fb.c b/samples/vfio-mdev/mdpy-fb.c
-index 3c8001b9e407..cda477b28685 100644
---- a/samples/vfio-mdev/mdpy-fb.c
-+++ b/samples/vfio-mdev/mdpy-fb.c
-@@ -162,7 +162,6 @@ static int mdpy_fb_probe(struct pci_dev *pdev,
- 	}
- 
- 	info->fbops = &mdpy_fb_ops;
--	info->flags = FBINFO_DEFAULT;
- 	info->pseudo_palette = par->palette;
- 
- 	ret = register_framebuffer(info);
--- 
-2.41.0
+Cheers,
+Benjamin
+
+> ---
+>  drivers/hid/hid-picolcd_fb.c | 1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/drivers/hid/hid-picolcd_fb.c b/drivers/hid/hid-picolcd_fb.c
+> index dabcd054dad9..d726aaafb146 100644
+> --- a/drivers/hid/hid-picolcd_fb.c
+> +++ b/drivers/hid/hid-picolcd_fb.c
+> @@ -527,7 +527,6 @@ int picolcd_init_framebuffer(struct picolcd_data *dat=
+a)
+>         info->var =3D picolcdfb_var;
+>         info->fix =3D picolcdfb_fix;
+>         info->fix.smem_len   =3D PICOLCDFB_SIZE*8;
+> -       info->flags =3D FBINFO_FLAG_DEFAULT;
+>
+>         fbdata =3D info->par;
+>         spin_lock_init(&fbdata->lock);
+> --
+> 2.41.0
+>
 
