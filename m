@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55A96C001DF
-	for <linux-omap@archiver.kernel.org>; Thu, 13 Jul 2023 13:03:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63977C05051
+	for <linux-omap@archiver.kernel.org>; Thu, 13 Jul 2023 13:04:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234709AbjGMNDu (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 13 Jul 2023 09:03:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40524 "EHLO
+        id S235015AbjGMNEI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 13 Jul 2023 09:04:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40590 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234603AbjGMNDs (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jul 2023 09:03:48 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D477D1989;
-        Thu, 13 Jul 2023 06:03:46 -0700 (PDT)
+        with ESMTP id S234720AbjGMNDu (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jul 2023 09:03:50 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D873F173F;
+        Thu, 13 Jul 2023 06:03:49 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 5CE741FDAF;
-        Thu, 13 Jul 2023 13:03:45 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 866B32218D;
+        Thu, 13 Jul 2023 13:03:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1689253425; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1689253428; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=N3ShY8nHVy2Uay8SMC7IIP+u11ICJ0kvaU7vZpkeGvw=;
-        b=neEEsF0423ZQegvd/Vl4uWyIfCVcI1SvBw9ly7Ix7PF+lJG0Jv0HzaRv5zSJ/+5NJuZ4bN
-        j/zJane2bcT1dnlOqTJd/fG6MpfCvQEhu8EOC61gY7mzJN07LYl+8LCZEcKPU4xkSX8GJj
-        /1AT+cJf+ciAPBRpproKLug6vUGGm2Q=
+        bh=ucmT+1GLTDoqupQ1pU8mLni2ss8QN6gSt8DgqXn9pcI=;
+        b=xDMQnaXrC0sbzn5vN86LIOql2HUYTjH6Rn2gk6GiGaPIgMn1wM9t8fyeFtlGeVLBKVRych
+        jZEQAhl9Cz+rXv2Xmv90zXqwpGPaTq3oQTLgj7bQsU93Ut1zQKNiVkAPZOvZ8Xw/7HLAvF
+        hfe8hTWSEW/ctYN/9cd4yTlUaNeyD7A=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1689253425;
+        s=susede2_ed25519; t=1689253428;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=N3ShY8nHVy2Uay8SMC7IIP+u11ICJ0kvaU7vZpkeGvw=;
-        b=xF3v5U/qkvo9ynqkbndFoJCYE760wJq4nAH1gPFvOoSXNSfFZMU61jYkDMSJN/NEAWGR9n
-        bP72sQTRjiBbTJDg==
+        bh=ucmT+1GLTDoqupQ1pU8mLni2ss8QN6gSt8DgqXn9pcI=;
+        b=PyQUJ+mjDGZPkhAsdSpBipeSRqA8G+lVO8ZMG+DvIZIx7osV1ZLdagMlZnxORWjReOpSlc
+        CGnqY7btTuRhblDQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id E075C13489;
-        Thu, 13 Jul 2023 13:03:44 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 2CAAD13A94;
+        Thu, 13 Jul 2023 13:03:48 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id sJ/jNTD2r2TVPgAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Thu, 13 Jul 2023 13:03:44 +0000
+        id eLT2CTT2r2TVPgAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Thu, 13 Jul 2023 13:03:48 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com
 Cc:     linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
@@ -59,13 +59,10 @@ Cc:     linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-hyperv@vger.kernel.org, linux-omap@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>,
-        Sam Ravnborg <sam@ravnborg.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Subject: [PATCH v2 08/18] sh: Assign FB_MODE_IS_UNKNOWN to struct fb_videomode.flag
-Date:   Thu, 13 Jul 2023 14:58:28 +0200
-Message-ID: <20230713130338.31086-9-tzimmermann@suse.de>
+        Sam Ravnborg <sam@ravnborg.org>
+Subject: [PATCH v2 15/18] fbdev/atafb: Remove flag FBINFO_FLAG_DEFAULT
+Date:   Thu, 13 Jul 2023 14:58:35 +0200
+Message-ID: <20230713130338.31086-16-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230713130338.31086-1-tzimmermann@suse.de>
 References: <20230713130338.31086-1-tzimmermann@suse.de>
@@ -75,37 +72,35 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Assign FB_MODE_IS_UNKNOWN to sh7763fb_videomode.flag instead of
-FBINFO_FLAG_DEFAULT. Both are 0, so the stored value does not change.
+The flag FBINFO_FLAG_DEFAULT is 0 and has no effect, as struct
+fbinfo.flags has been allocated to zero by a static declaration. So do
+not set it.
 
-FBINFO_FLAG_DEFAULT is a flag for a framebuffer in struct fb_info.
-Flags for videomodes are prefixed with FB_MODE_.
+Flags should signal differences from the default values. After cleaning
+up all occurrences of FBINFO_DEFAULT, the token will be removed.
 
 v2:
-	* assign FB_MODE_IS_UNKNOWN (Adrian)
+	* fix commit message (Miguel)
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Acked-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Helge Deller <deller@gmx.de>
 ---
- arch/sh/boards/mach-sh7763rdp/setup.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/fbdev/atafb.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/arch/sh/boards/mach-sh7763rdp/setup.c b/arch/sh/boards/mach-sh7763rdp/setup.c
-index 97e715e4e9b3..e25193001ea0 100644
---- a/arch/sh/boards/mach-sh7763rdp/setup.c
-+++ b/arch/sh/boards/mach-sh7763rdp/setup.c
-@@ -119,7 +119,7 @@ static struct fb_videomode sh7763fb_videomode = {
- 	.vsync_len = 1,
- 	.sync = 0,
- 	.vmode = FB_VMODE_NONINTERLACED,
--	.flag = FBINFO_FLAG_DEFAULT,
-+	.flag = FB_MODE_IS_UNKNOWN,
- };
+diff --git a/drivers/video/fbdev/atafb.c b/drivers/video/fbdev/atafb.c
+index 2bc4089865e6..c4a420b791b9 100644
+--- a/drivers/video/fbdev/atafb.c
++++ b/drivers/video/fbdev/atafb.c
+@@ -3112,7 +3112,6 @@ static int __init atafb_probe(struct platform_device *pdev)
+ #ifdef ATAFB_FALCON
+ 	fb_info.pseudo_palette = current_par.hw.falcon.pseudo_palette;
+ #endif
+-	fb_info.flags = FBINFO_FLAG_DEFAULT;
  
- static struct sh7760fb_platdata sh7763fb_def_pdata = {
+ 	if (!fb_find_mode(&fb_info.var, &fb_info, mode_option, atafb_modedb,
+ 			  NUM_TOTAL_MODES, &atafb_modedb[defmode],
 -- 
 2.41.0
 
