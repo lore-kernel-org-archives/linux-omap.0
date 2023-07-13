@@ -2,145 +2,95 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 257CBC001DD
-	for <linux-omap@archiver.kernel.org>; Thu, 13 Jul 2023 13:05:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87E06C001DF
+	for <linux-omap@archiver.kernel.org>; Thu, 13 Jul 2023 13:23:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235134AbjGMNFB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 13 Jul 2023 09:05:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40494 "EHLO
+        id S235179AbjGMNXk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 13 Jul 2023 09:23:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234205AbjGMNDp (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jul 2023 09:03:45 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A293E19BC;
-        Thu, 13 Jul 2023 06:03:44 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 6133C1FD8B;
-        Thu, 13 Jul 2023 13:03:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1689253423; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=X5e2EtC7tX/wjDBrtMR31UpAoX+1Wcwuu8ylwF2hDzw=;
-        b=ljuqTdK+pyLCCWZlSJiCoSIze5kUH/vlBsXi7alQcYfj6LHV/glZ/Bd8nhoffzKnlG7nG5
-        E7nMM5XDU6nKCvlODnaGiV5VQJfTyhX2ZRg0h0gUW1FoBfeO03LprOPZtqGWrm9OVR2xPF
-        4OTrSn1/K/wI86kikfQ0eEiT22j4aBU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1689253423;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=X5e2EtC7tX/wjDBrtMR31UpAoX+1Wcwuu8ylwF2hDzw=;
-        b=PJJxSgJlUZYLv6zPx3pYAuTdEkwJEjbsDRhzp+IGQHNzW5wkGANmKpDY/e7rXTnsjJXy9E
-        ERWd0lw76m9ESzDg==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 03D4D13489;
-        Thu, 13 Jul 2023 13:03:42 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id WIwCAC/2r2TVPgAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Thu, 13 Jul 2023 13:03:42 +0000
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-To:     deller@gmx.de, javierm@redhat.com
-Cc:     linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, linux-staging@lists.linux.dev,
+        with ESMTP id S235287AbjGMNW7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 13 Jul 2023 09:22:59 -0400
+Received: from mail-oi1-x232.google.com (mail-oi1-x232.google.com [IPv6:2607:f8b0:4864:20::232])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BD1835A4;
+        Thu, 13 Jul 2023 06:21:55 -0700 (PDT)
+Received: by mail-oi1-x232.google.com with SMTP id 5614622812f47-3a3373211a1so599566b6e.0;
+        Thu, 13 Jul 2023 06:21:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1689254505; x=1691846505;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=nMl5dn5Xz12gXOMX3oC+kNdFlWhzCPfH45LFdGwDg+c=;
+        b=eshePJRxBGfoEbxv/HATy/LbMrzsCDpyAiPdPWKP2+7M1zJL3N5KwDGRakUw3RzP4p
+         q0Cnwz0fdaQ+HyxVhl+a/PdVIYgV40UvVYeo6oku2ew3IT0bTt6UYAHjOIS6Vb6t9Mla
+         Zj8EL/FlPFPvHB5g71aE7gFP3zFqlG9d7Fbu8m/nhV/T9INJD8alH0sgU2iXPleyzim5
+         lINS3JcD7J0TOIOFW4pf/x8/SEpIIASy3dTyyqXfKshxdSJS0TlF/u7bPTHA+oWf2AYl
+         SPCY6gZL7ykEOqi+bfIKlTKf4FRPiV/L6IcHOgev/4QAZK/gwKYWQ5RBFTfBsMThGpXg
+         EmsA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1689254505; x=1691846505;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=nMl5dn5Xz12gXOMX3oC+kNdFlWhzCPfH45LFdGwDg+c=;
+        b=j83XsvWDS/59ZRtQNCcRAswIv16C/Ap9bYQ7j7wfNDDqZJGj+9X6PN0myKyTn4wU/i
+         y8lUrBbzN0IGkqFJIGn14itdBwejbJyGcz7lXonJZl1nmaadHFNEFCxwjdSooeEFarSt
+         I0VBTBUo3tKSKckSLv4oAgiPmUDwXMDtg0SWsjnciMEDu6D9tSVCAaimjZYd8ygMiWVn
+         MECXv/JlFjPyRMpIHomXKdSTxE+LEqSJsjSoGQhSW5+qEP9eCn97FpERdTAePvRLc7eQ
+         AIBcHvlK4CXCfHch8yENA+eInOM8R3OhlYuomglfXxtPR4OnRIBf1XICkzYjiANUcfZq
+         lfrQ==
+X-Gm-Message-State: ABy/qLYY6JcJ8DGyhX42Jaab91F5v99cEz0v9EICy2Nf3tor+kPCGGR2
+        URdZJuZIpI2Xxk5dU5zAEHUPOtkhGiETLimmigA=
+X-Google-Smtp-Source: APBJJlG+0WtfiM+r2sXZzO6HNFK4R91MA9ooy29hXDBdzlOr5q/1lWHuWptQzwph8RqHPwzWZYnIoYS2ozC9kDF6TM8=
+X-Received: by 2002:a05:6358:428e:b0:135:5934:2bba with SMTP id
+ s14-20020a056358428e00b0013559342bbamr2356344rwc.8.1689254505432; Thu, 13 Jul
+ 2023 06:21:45 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230713130338.31086-1-tzimmermann@suse.de> <20230713130338.31086-19-tzimmermann@suse.de>
+In-Reply-To: <20230713130338.31086-19-tzimmermann@suse.de>
+From:   Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date:   Thu, 13 Jul 2023 15:21:34 +0200
+Message-ID: <CANiq72mbLmMKph8aiz4apNF9n3MtVO-nhM9rEWYApZbSVAO9Qw@mail.gmail.com>
+Subject: Re: [PATCH v2 18/18] fbdev: Document that framebuffer_alloc() returns
+ zero'ed data
+To:     Thomas Zimmermann <tzimmermann@suse.de>
+Cc:     deller@gmx.de, javierm@redhat.com, linux-sh@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-staging@lists.linux.dev,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-nvidia@lists.surfsouth.com,
         linux-hyperv@vger.kernel.org, linux-omap@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Sam Ravnborg <sam@ravnborg.org>
-Subject: [PATCH v2 04/18] fbdev: Remove flag FBINFO_DEFAULT from fbdev drivers
-Date:   Thu, 13 Jul 2023 14:58:24 +0200
-Message-ID: <20230713130338.31086-5-tzimmermann@suse.de>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230713130338.31086-1-tzimmermann@suse.de>
-References: <20230713130338.31086-1-tzimmermann@suse.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Miguel Ojeda <ojeda@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The flag FBINFO_DEFAULT is 0 and has no effect, as struct fbinfo.flags
-has been allocated to zero by devm_kzalloc(). So do not set it.
+On Thu, Jul 13, 2023 at 3:03=E2=80=AFPM Thomas Zimmermann <tzimmermann@suse=
+.de> wrote:
+>
+> Most fbdev drivers depend on framebuffer_alloc() to initialize the
+> allocated memory to 0. Document this guarantee.
+>
+> Suggested-by: Miguel Ojeda <ojeda@kernel.org>
+> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+> Cc: Helge Deller <deller@gmx.de>
 
-Flags should signal differences from the default values. After cleaning
-up all occurrences of FBINFO_DEFAULT, the token will be removed.
+Thanks for sending this! Maybe this would be best earlier in the
+series, so that later patches make more sense (since they use the
+guarantee), but it is not a big deal.
 
-v2:
-	* fix commit message (Miguel)
+> + * aligned to sizeof(long). Both, the instance of struct fb_info and
+> + * the driver private data, are cleared to zero.
 
-Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Helge Deller <deller@gmx.de>
----
- drivers/video/fbdev/pxafb.c    | 1 -
- drivers/video/fbdev/sa1100fb.c | 1 -
- drivers/video/fbdev/wm8505fb.c | 3 +--
- drivers/video/fbdev/xilinxfb.c | 1 -
- 4 files changed, 1 insertion(+), 5 deletions(-)
+I think both commas may be best omitted (but I am not a native speaker).
 
-diff --git a/drivers/video/fbdev/pxafb.c b/drivers/video/fbdev/pxafb.c
-index 2a8b1dea3a67..c8c4677d06b4 100644
---- a/drivers/video/fbdev/pxafb.c
-+++ b/drivers/video/fbdev/pxafb.c
-@@ -1826,7 +1826,6 @@ static struct pxafb_info *pxafb_init_fbinfo(struct device *dev,
- 	fbi->fb.var.vmode	= FB_VMODE_NONINTERLACED;
- 
- 	fbi->fb.fbops		= &pxafb_ops;
--	fbi->fb.flags		= FBINFO_DEFAULT;
- 	fbi->fb.node		= -1;
- 
- 	addr = fbi;
-diff --git a/drivers/video/fbdev/sa1100fb.c b/drivers/video/fbdev/sa1100fb.c
-index a2408bf00ca0..3d76ce111488 100644
---- a/drivers/video/fbdev/sa1100fb.c
-+++ b/drivers/video/fbdev/sa1100fb.c
-@@ -1089,7 +1089,6 @@ static struct sa1100fb_info *sa1100fb_init_fbinfo(struct device *dev)
- 	fbi->fb.var.vmode	= FB_VMODE_NONINTERLACED;
- 
- 	fbi->fb.fbops		= &sa1100fb_ops;
--	fbi->fb.flags		= FBINFO_DEFAULT;
- 	fbi->fb.monspecs	= monspecs;
- 	fbi->fb.pseudo_palette	= fbi->pseudo_palette;
- 
-diff --git a/drivers/video/fbdev/wm8505fb.c b/drivers/video/fbdev/wm8505fb.c
-index 10a8b1250103..5833147aa43d 100644
---- a/drivers/video/fbdev/wm8505fb.c
-+++ b/drivers/video/fbdev/wm8505fb.c
-@@ -285,8 +285,7 @@ static int wm8505fb_probe(struct platform_device *pdev)
- 	fbi->fb.fix.accel	= FB_ACCEL_NONE;
- 
- 	fbi->fb.fbops		= &wm8505fb_ops;
--	fbi->fb.flags		= FBINFO_DEFAULT
--				| FBINFO_HWACCEL_COPYAREA
-+	fbi->fb.flags		= FBINFO_HWACCEL_COPYAREA
- 				| FBINFO_HWACCEL_FILLRECT
- 				| FBINFO_HWACCEL_XPAN
- 				| FBINFO_HWACCEL_YPAN
-diff --git a/drivers/video/fbdev/xilinxfb.c b/drivers/video/fbdev/xilinxfb.c
-index 2aa3a528277f..768a281a8d2c 100644
---- a/drivers/video/fbdev/xilinxfb.c
-+++ b/drivers/video/fbdev/xilinxfb.c
-@@ -324,7 +324,6 @@ static int xilinxfb_assign(struct platform_device *pdev,
- 	drvdata->info.fix.line_length = pdata->xvirt * BYTES_PER_PIXEL;
- 
- 	drvdata->info.pseudo_palette = drvdata->pseudo_palette;
--	drvdata->info.flags = FBINFO_DEFAULT;
- 	drvdata->info.var = xilinx_fb_var;
- 	drvdata->info.var.height = pdata->screen_height_mm;
- 	drvdata->info.var.width = pdata->screen_width_mm;
--- 
-2.41.0
+Reviewed-by: Miguel Ojeda <ojeda@kernel.org>
 
+Cheers,
+Miguel
