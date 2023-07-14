@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D905C25B79
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Jul 2023 07:52:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A471CC27C5F
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Jul 2023 07:52:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235756AbjGNHwh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 14 Jul 2023 03:52:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45834 "EHLO
+        id S235771AbjGNHwi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 14 Jul 2023 03:52:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235522AbjGNHwD (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jul 2023 03:52:03 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFDE930EF;
-        Fri, 14 Jul 2023 00:52:01 -0700 (PDT)
+        with ESMTP id S235550AbjGNHwH (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jul 2023 03:52:07 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C3983580;
+        Fri, 14 Jul 2023 00:52:05 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 833DC2215B;
-        Fri, 14 Jul 2023 07:52:00 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id C03DB1FDA2;
+        Fri, 14 Jul 2023 07:52:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1689321120; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1689321123; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=AudvpgVwEo8rKBJvmUL4nJ192ctihi90m956sryfWBI=;
-        b=wykmJUfY1D5ex36S6LI+kF19ksusw3sJZJUyIAhm/l3ionBeme5uc+s91tFqTAk5mKXcVa
-        SYtF2IfGApc4U4IXsnRls72i9Vjv3bMYN8NAXwUDUNwnDNmqbvI4VWDNF7Bu3wjt5KWK98
-        yDaasYg8miFghJ2Hz4jGKSJMrANiqsQ=
+        bh=85l2ukO3ODIPQ6vFxAUAj342VQosexDKbJyC6X6EE14=;
+        b=EnsEcGyfqq0kOkgwSp2971OUagS9I6Kq3FS3QoesQxzxxLFVVx7d6xBi6ikOmovOlN0UFl
+        cjgzkl1ESK0UmYPNzY73WQ70pkDJypVKOM2bSx2KDpzLrGwL26zXVu/xcKIWG5P7lQbg0u
+        Ukuv1XG9Sa1kuFa7aM8m2neGM9vAJD8=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1689321120;
+        s=susede2_ed25519; t=1689321123;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=AudvpgVwEo8rKBJvmUL4nJ192ctihi90m956sryfWBI=;
-        b=9PhfE3CxTj7I8+c5wma73L/mIyx7rd//nxbj+qgoPM+1bXhpSGrjvsEhc0NculMY76Q6a/
-        k0fyBdeWeXIOv5AQ==
+        bh=85l2ukO3ODIPQ6vFxAUAj342VQosexDKbJyC6X6EE14=;
+        b=XobNV/Jyb9yCeCLMoY/RztAO2gLUJ7Y86K4bpgtvqUqM9MRG0fSo/a+bslAULLcDQ+y/T9
+        j4E7DndDgNbWCZBw==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 293BC13A92;
-        Fri, 14 Jul 2023 07:52:00 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 77CB513A15;
+        Fri, 14 Jul 2023 07:52:03 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id sLNHCaD+sGQCQwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Fri, 14 Jul 2023 07:52:00 +0000
+        id YJt0HKP+sGQCQwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Fri, 14 Jul 2023 07:52:03 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com
 Cc:     linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
@@ -59,13 +59,10 @@ Cc:     linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-hyperv@vger.kernel.org, linux-omap@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>,
-        Sam Ravnborg <sam@ravnborg.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>
-Subject: [PATCH v3 08/18] sh: mach-sh7763rdp: Assign FB_MODE_IS_UNKNOWN to struct fb_videomode.flag
-Date:   Fri, 14 Jul 2023 09:49:34 +0200
-Message-ID: <20230714075155.5686-9-tzimmermann@suse.de>
+        Sam Ravnborg <sam@ravnborg.org>
+Subject: [PATCH v3 16/18] fbdev/pxafb: Remove flag FBINFO_FLAG_DEFAULT
+Date:   Fri, 14 Jul 2023 09:49:42 +0200
+Message-ID: <20230714075155.5686-17-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230714075155.5686-1-tzimmermann@suse.de>
 References: <20230714075155.5686-1-tzimmermann@suse.de>
@@ -75,40 +72,35 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Assign FB_MODE_IS_UNKNOWN to sh7763fb_videomode.flag instead of
-FBINFO_FLAG_DEFAULT. Both are 0, so the stored value does not change.
+The flag FBINFO_FLAG_DEFAULT is 0 and has no effect, as struct
+fbinfo.flags has been allocated to zero by devm_kzalloc(). So do not
+set it.
 
-FBINFO_FLAG_DEFAULT is a flag for a framebuffer in struct fb_info.
-Flags for videomodes are prefixed with FB_MODE_.
+Flags should signal differences from the default values. After cleaning
+up all occurrences of FBINFO_DEFAULT, the token will be removed.
 
-v3:
-	* include board name in commit message (Adrian)
 v2:
-	* assign FB_MODE_IS_UNKNOWN (Adrian)
+	* fix commit message (Miguel)
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Acked-by: Sam Ravnborg <sam@ravnborg.org>
-Acked-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Helge Deller <deller@gmx.de>
 ---
- arch/sh/boards/mach-sh7763rdp/setup.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/fbdev/pxafb.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/arch/sh/boards/mach-sh7763rdp/setup.c b/arch/sh/boards/mach-sh7763rdp/setup.c
-index 97e715e4e9b3..e25193001ea0 100644
---- a/arch/sh/boards/mach-sh7763rdp/setup.c
-+++ b/arch/sh/boards/mach-sh7763rdp/setup.c
-@@ -119,7 +119,7 @@ static struct fb_videomode sh7763fb_videomode = {
- 	.vsync_len = 1,
- 	.sync = 0,
- 	.vmode = FB_VMODE_NONINTERLACED,
--	.flag = FBINFO_FLAG_DEFAULT,
-+	.flag = FB_MODE_IS_UNKNOWN,
- };
+diff --git a/drivers/video/fbdev/pxafb.c b/drivers/video/fbdev/pxafb.c
+index c8c4677d06b4..beffb0602a2c 100644
+--- a/drivers/video/fbdev/pxafb.c
++++ b/drivers/video/fbdev/pxafb.c
+@@ -888,7 +888,6 @@ static void init_pxafb_overlay(struct pxafb_info *fbi, struct pxafb_layer *ofb,
+ 	ofb->fb.var.vmode		= FB_VMODE_NONINTERLACED;
  
- static struct sh7760fb_platdata sh7763fb_def_pdata = {
+ 	ofb->fb.fbops			= &overlay_fb_ops;
+-	ofb->fb.flags			= FBINFO_FLAG_DEFAULT;
+ 	ofb->fb.node			= -1;
+ 	ofb->fb.pseudo_palette		= NULL;
+ 
 -- 
 2.41.0
 
