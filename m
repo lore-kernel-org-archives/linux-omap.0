@@ -2,628 +2,609 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 618D4C001E0
-	for <linux-omap@archiver.kernel.org>; Fri, 14 Jul 2023 17:51:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D148BC3DA40
+	for <linux-omap@archiver.kernel.org>; Fri, 14 Jul 2023 17:51:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236342AbjGNRvt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 14 Jul 2023 13:51:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38466 "EHLO
+        id S236450AbjGNRvw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 14 Jul 2023 13:51:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236475AbjGNRvl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jul 2023 13:51:41 -0400
-Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B255E1BD4;
-        Fri, 14 Jul 2023 10:51:19 -0700 (PDT)
-Received: by mail-ed1-x52a.google.com with SMTP id 4fb4d7f45d1cf-52165886aa3so934587a12.3;
-        Fri, 14 Jul 2023 10:51:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1689356969; x=1691948969;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=NC5d4RwQCfp8AlIqPrzhfVbCgr0HcM0nwsYSbXqAxYE=;
-        b=rx2n/DUK5FdpNhorZRwEEki+42neY7ZsFn7dxJ+w0dyX+eW6z/W9Cq8sQP3V25FJXa
-         NFR58sOyCNYM/GahvZZlMRrwvVhJvBjYDMF7yAJc4BJyZ09MXKfyt/HyoqeocODycsed
-         p5E877/Nni8iIJIUcihPYei13XWJlLrzzWbWriWEbLctfyxtmqXWpzvRjUAugkoxNpNi
-         /8BOBWA8iLKwlRv4xWWSiyvmNzozl1ZvC3HJSUGErMYOuKsj8EEerw8L44wdf6RMjNc4
-         ur9VtTzYlljA3AaPEnC5mwWinmvG0RkK7cbk1q037RdUeo00q58A+wrdT/iN20EbSiGC
-         OUuw==
+        with ESMTP id S236501AbjGNRvn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 14 Jul 2023 13:51:43 -0400
+Received: from mail-il1-f169.google.com (mail-il1-f169.google.com [209.85.166.169])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6039235B7;
+        Fri, 14 Jul 2023 10:51:24 -0700 (PDT)
+Received: by mail-il1-f169.google.com with SMTP id e9e14a558f8ab-345d6dc271dso9717815ab.0;
+        Fri, 14 Jul 2023 10:51:24 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689356969; x=1691948969;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=NC5d4RwQCfp8AlIqPrzhfVbCgr0HcM0nwsYSbXqAxYE=;
-        b=CyAdwBMqbkZlrWMHit8srEtqQpCohDgLC8yQxDuTLp8HjtxFH4AJVe7IaAZpb/3EOu
-         WVuwNt1f0lCZjsDlMA5I/4E6pMVyDx+kfkt3kWN7RWVtENMelX1MEQ4Pl4yta0HK6I5K
-         qjiO9sc9Ainb8HmGY9dww/u8G+ZeJrFBo1xyS+OtvtrmT/LfT83ZG+KmBox45Zv6YPsl
-         UBIhzit7FctOrEyP29GHBagBJCCnGUnJtZdFqx2RN6mPe7Ln2B4PPjfw4gG5hcxmKoRm
-         k5Sw1oeXje4zRhkPfXNSkvDIlnPfeQkNXfRIUswZCpxc2QKmTMiauKhH/PYT2u3o60dy
-         PWag==
-X-Gm-Message-State: ABy/qLbjg7vSdKk5XcVdvIP0Dks5ifiJmgr40MEIE4h4j2v+2V0c0t5c
-        9ySfZkotBwUV0UOGZiYMWKofmKXozA4xDw8o+/Y=
-X-Google-Smtp-Source: APBJJlFfwFHwFk6noFrNZTWL+rppCw3afvIqC7GbXmVZFCFZjgyllSTZfCfNmb5FV0WLuiayOxJ87gfTFd1wpfViDLQ=
-X-Received: by 2002:a17:906:7484:b0:994:1806:fb96 with SMTP id
- e4-20020a170906748400b009941806fb96mr4552864ejl.16.1689356969312; Fri, 14 Jul
- 2023 10:49:29 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230714174525.4055475-1-robh@kernel.org>
-In-Reply-To: <20230714174525.4055475-1-robh@kernel.org>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Fri, 14 Jul 2023 20:48:52 +0300
-Message-ID: <CAHp75Vda=r4Fdty9f_SOFfYLzned9nnJF3vvGFKNX78rn0qGCQ@mail.gmail.com>
-Subject: Re: [PATCH] gpio: Explicitly include correct DT includes
-To:     Rob Herring <robh@kernel.org>
-Cc:     Alban Bedel <albeu@free.fr>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Andy Shevchenko <andy@kernel.org>,
-        Doug Berger <opendmb@gmail.com>,
-        Broadcom internal kernel review list 
-        <bcm-kernel-feedback-list@broadcom.com>,
-        Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>,
-        Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang@linux.alibaba.com>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Daniel Palmer <daniel@thingy.jp>,
-        Romain Perier <romain.perier@gmail.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
+        d=1e100.net; s=20221208; t=1689357002; x=1691949002;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=+f9hPpq/FXIH2pHQG9BDcclVOF3HlSLvSdnqDrW8SI0=;
+        b=Jm/Iij8cFfdgf2PJr7ntOaY3gjcwNWbifeGjloE8C0NLPJpB7i00FUt7RBg5Nz86O9
+         Y0I38BVhhYc3sZTFspKUPNW16z2fDKFC/w1PqaB2ZtPv7nh4qog24xaQEKkcZsezHnIe
+         VQUbCpHQviLjI0DyUdjS/zwOLJg3mS42MD6t/YYkvsS76KiZX1rxIcfqxNrbkNW8kkV3
+         9RoPte1q7kt1KIy7AA4l+FO6pT5B1Oae6la45Qgpt8iydlKm/N9gzN/mUnyHRSZO7NDC
+         ShlUzOCWhdnvRDa88tc2TWmvVT3jwkAj35U+XXu2o0Y9HWpP0G/iO0lUGeuT2ccBxtgy
+         66Yg==
+X-Gm-Message-State: ABy/qLaVGn/2OYKeVwpihufJicj7ZYBcz/X6tdf/+hO2i/pJ2ToWi76G
+        vGVYR9NlequlOA+rOkbwjQ==
+X-Google-Smtp-Source: APBJJlEmRadOVoGt8KXkozByqFztIzgh8zxRONlCM8tFyXmfW6xPPXdHjET1RPuYiepJ5yWUm0smmA==
+X-Received: by 2002:a92:d08c:0:b0:347:693a:a52b with SMTP id h12-20020a92d08c000000b00347693aa52bmr4722888ilh.6.1689357001812;
+        Fri, 14 Jul 2023 10:50:01 -0700 (PDT)
+Received: from robh_at_kernel.org ([64.188.179.250])
+        by smtp.gmail.com with ESMTPSA id c13-20020a92dc8d000000b00345da2c4776sm2856766iln.81.2023.07.14.10.49.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 14 Jul 2023 10:50:01 -0700 (PDT)
+Received: (nullmailer pid 4063470 invoked by uid 1000);
+        Fri, 14 Jul 2023 17:49:33 -0000
+From:   Rob Herring <robh@kernel.org>
+To:     Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Manivannan Sadhasivam <mani@kernel.org>,
+        Cristian Ciocaltea <cristian.ciocaltea@gmail.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Saravanan Sekar <sravanhome@gmail.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Konrad Dybcio <konrad.dybcio@linaro.org>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@foss.st.com>,
         Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
         Masami Hiramatsu <mhiramat@kernel.org>,
-        Shubhrajyoti Datta <shubhrajyoti.datta@amd.com>,
-        Srinivas Neeli <srinivas.neeli@amd.com>,
-        Michal Simek <michal.simek@amd.com>,
-        Nandor Han <nandor.han@ge.com>, devicetree@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-rockchip@lists.infradead.org, linux-tegra@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Liviu Dudau <liviu.dudau@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc:     devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-actions@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com
+Subject: [PATCH] regulator: Explicitly include correct DT includes
+Date:   Fri, 14 Jul 2023 11:49:28 -0600
+Message-Id: <20230714174930.4063320-1-robh@kernel.org>
+X-Mailer: git-send-email 2.40.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Jul 14, 2023 at 8:45=E2=80=AFPM Rob Herring <robh@kernel.org> wrote=
-:
->
-> The DT of_device.h and of_platform.h date back to the separate
-> of_platform_bus_type before it as merged into the regular platform bus.
-> As part of that merge prepping Arm DT support 13 years ago, they
-> "temporarily" include each other. They also include platform_device.h
-> and of.h. As a result, there's a pretty much random mix of those include
-> files used throughout the tree. In order to detangle these headers and
-> replace the implicit includes with struct declarations, users need to
-> explicitly include the correct includes.
+The DT of_device.h and of_platform.h date back to the separate
+of_platform_bus_type before it as merged into the regular platform bus.
+As part of that merge prepping Arm DT support 13 years ago, they
+"temporarily" include each other. They also include platform_device.h
+and of.h. As a result, there's a pretty much random mix of those include
+files used throughout the tree. In order to detangle these headers and
+replace the implicit includes with struct declarations, users need to
+explicitly include the correct includes.
 
-At least this makes GPIO drivers close to being agnostic.
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ drivers/regulator/act8945a-regulator.c      | 2 +-
+ drivers/regulator/atc260x-regulator.c       | 3 ++-
+ drivers/regulator/axp20x-regulator.c        | 1 -
+ drivers/regulator/cpcap-regulator.c         | 2 +-
+ drivers/regulator/fan53555.c                | 2 +-
+ drivers/regulator/fixed.c                   | 1 -
+ drivers/regulator/ltc3589.c                 | 1 -
+ drivers/regulator/max77826-regulator.c      | 1 -
+ drivers/regulator/mp5416.c                  | 2 +-
+ drivers/regulator/mp886x.c                  | 2 +-
+ drivers/regulator/mpq7920.c                 | 1 -
+ drivers/regulator/mt6315-regulator.c        | 2 +-
+ drivers/regulator/mt6359-regulator.c        | 3 ++-
+ drivers/regulator/mtk-dvfsrc-regulator.c    | 3 +--
+ drivers/regulator/pbias-regulator.c         | 1 -
+ drivers/regulator/pca9450-regulator.c       | 1 -
+ drivers/regulator/pwm-regulator.c           | 2 +-
+ drivers/regulator/qcom-rpmh-regulator.c     | 1 -
+ drivers/regulator/qcom_smd-regulator.c      | 1 -
+ drivers/regulator/qcom_usb_vbus-regulator.c | 1 -
+ drivers/regulator/rk808-regulator.c         | 3 ++-
+ drivers/regulator/rt5759-regulator.c        | 2 +-
+ drivers/regulator/stm32-pwr.c               | 3 +--
+ drivers/regulator/stm32-vrefbuf.c           | 2 +-
+ drivers/regulator/sy8824x.c                 | 2 +-
+ drivers/regulator/sy8827n.c                 | 2 +-
+ drivers/regulator/tps6286x-regulator.c      | 2 +-
+ drivers/regulator/tps6287x-regulator.c      | 2 +-
+ drivers/regulator/tps65218-regulator.c      | 2 +-
+ drivers/regulator/tps65219-regulator.c      | 2 +-
+ drivers/regulator/tps6594-regulator.c       | 2 +-
+ drivers/regulator/twl-regulator.c           | 1 -
+ drivers/regulator/twl6030-regulator.c       | 1 -
+ drivers/regulator/uniphier-regulator.c      | 2 +-
+ drivers/regulator/vctrl-regulator.c         | 2 +-
+ drivers/regulator/vexpress-regulator.c      | 3 ++-
+ 36 files changed, 28 insertions(+), 38 deletions(-)
 
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> ---
->  drivers/gpio/gpio-ath79.c         | 3 ++-
->  drivers/gpio/gpio-brcmstb.c       | 4 ++--
->  drivers/gpio/gpio-creg-snps.c     | 2 +-
->  drivers/gpio/gpio-eic-sprd.c      | 2 +-
->  drivers/gpio/gpio-ge.c            | 2 +-
->  drivers/gpio/gpio-grgpio.c        | 2 +-
->  drivers/gpio/gpio-hlwd.c          | 2 +-
->  drivers/gpio/gpio-logicvc.c       | 1 -
->  drivers/gpio/gpio-mb86s7x.c       | 2 +-
->  drivers/gpio/gpio-mpc5200.c       | 2 +-
->  drivers/gpio/gpio-mpc8xxx.c       | 4 +---
->  drivers/gpio/gpio-msc313.c        | 1 -
->  drivers/gpio/gpio-mxc.c           | 1 -
->  drivers/gpio/gpio-mxs.c           | 1 -
->  drivers/gpio/gpio-omap.c          | 1 -
->  drivers/gpio/gpio-palmas.c        | 1 -
->  drivers/gpio/gpio-pmic-eic-sprd.c | 2 +-
->  drivers/gpio/gpio-pxa.c           | 1 -
->  drivers/gpio/gpio-rcar.c          | 1 -
->  drivers/gpio/gpio-rockchip.c      | 2 +-
->  drivers/gpio/gpio-sprd.c          | 2 +-
->  drivers/gpio/gpio-stp-xway.c      | 3 ++-
->  drivers/gpio/gpio-syscon.c        | 1 -
->  drivers/gpio/gpio-tegra.c         | 2 +-
->  drivers/gpio/gpio-tegra186.c      | 2 +-
->  drivers/gpio/gpio-tps6586x.c      | 2 +-
->  drivers/gpio/gpio-tps65910.c      | 2 +-
->  drivers/gpio/gpio-ts4800.c        | 3 +--
->  drivers/gpio/gpio-ts4900.c        | 2 +-
->  drivers/gpio/gpio-uniphier.c      | 1 -
->  drivers/gpio/gpio-vf610.c         | 1 -
->  drivers/gpio/gpio-wcd934x.c       | 3 ++-
->  drivers/gpio/gpio-xilinx.c        | 4 ++--
->  drivers/gpio/gpio-xra1403.c       | 2 +-
->  34 files changed, 28 insertions(+), 39 deletions(-)
->
-> diff --git a/drivers/gpio/gpio-ath79.c b/drivers/gpio/gpio-ath79.c
-> index aa0a954b8392..f0c0c0f77eb0 100644
-> --- a/drivers/gpio/gpio-ath79.c
-> +++ b/drivers/gpio/gpio-ath79.c
-> @@ -9,8 +9,9 @@
->   */
->
->  #include <linux/gpio/driver.h>
-> +#include <linux/platform_device.h>
->  #include <linux/platform_data/gpio-ath79.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->  #include <linux/interrupt.h>
->  #include <linux/module.h>
->  #include <linux/irq.h>
-> diff --git a/drivers/gpio/gpio-brcmstb.c b/drivers/gpio/gpio-brcmstb.c
-> index 6566517fe0d8..bccdbfd5ec80 100644
-> --- a/drivers/gpio/gpio-brcmstb.c
-> +++ b/drivers/gpio/gpio-brcmstb.c
-> @@ -3,12 +3,12 @@
->
->  #include <linux/bitops.h>
->  #include <linux/gpio/driver.h>
-> -#include <linux/of_device.h>
-> -#include <linux/of_irq.h>
-> +#include <linux/of.h>
->  #include <linux/module.h>
->  #include <linux/irqdomain.h>
->  #include <linux/irqchip/chained_irq.h>
->  #include <linux/interrupt.h>
-> +#include <linux/platform_device.h>
->
->  enum gio_reg_index {
->         GIO_REG_ODEN =3D 0,
-> diff --git a/drivers/gpio/gpio-creg-snps.c b/drivers/gpio/gpio-creg-snps.=
-c
-> index 789384c6e178..4968232f70f2 100644
-> --- a/drivers/gpio/gpio-creg-snps.c
-> +++ b/drivers/gpio/gpio-creg-snps.c
-> @@ -8,7 +8,7 @@
->  #include <linux/gpio/driver.h>
->  #include <linux/io.h>
->  #include <linux/of.h>
-> -#include <linux/of_platform.h>
-> +#include <linux/platform_device.h>
->
->  #define MAX_GPIO       32
->
-> diff --git a/drivers/gpio/gpio-eic-sprd.c b/drivers/gpio/gpio-eic-sprd.c
-> index 84352a6f4973..67b1e09e8985 100644
-> --- a/drivers/gpio/gpio-eic-sprd.c
-> +++ b/drivers/gpio/gpio-eic-sprd.c
-> @@ -9,7 +9,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->  #include <linux/spinlock.h>
->
-> diff --git a/drivers/gpio/gpio-ge.c b/drivers/gpio/gpio-ge.c
-> index 7bd4c2a4cc11..4eecbc862abc 100644
-> --- a/drivers/gpio/gpio-ge.c
-> +++ b/drivers/gpio/gpio-ge.c
-> @@ -20,7 +20,7 @@
->  #include <linux/kernel.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->  #include <linux/of_address.h>
->  #include <linux/module.h>
->  #include <linux/gpio/driver.h>
-> diff --git a/drivers/gpio/gpio-grgpio.c b/drivers/gpio/gpio-grgpio.c
-> index bea0e32c195d..0163c95f6dd7 100644
-> --- a/drivers/gpio/gpio-grgpio.c
-> +++ b/drivers/gpio/gpio-grgpio.c
-> @@ -19,10 +19,10 @@
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/init.h>
-> +#include <linux/platform_device.h>
->  #include <linux/spinlock.h>
->  #include <linux/io.h>
->  #include <linux/of.h>
-> -#include <linux/of_platform.h>
->  #include <linux/gpio/driver.h>
->  #include <linux/slab.h>
->  #include <linux/err.h>
-> diff --git a/drivers/gpio/gpio-hlwd.c b/drivers/gpio/gpio-hlwd.c
-> index c208ac1c54a6..1bcfc1835dae 100644
-> --- a/drivers/gpio/gpio-hlwd.c
-> +++ b/drivers/gpio/gpio-hlwd.c
-> @@ -10,7 +10,7 @@
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/of.h>
-> -#include <linux/of_platform.h>
-> +#include <linux/platform_device.h>
->  #include <linux/seq_file.h>
->  #include <linux/slab.h>
->
-> diff --git a/drivers/gpio/gpio-logicvc.c b/drivers/gpio/gpio-logicvc.c
-> index 992cc958a43f..2b9876bc1383 100644
-> --- a/drivers/gpio/gpio-logicvc.c
-> +++ b/drivers/gpio/gpio-logicvc.c
-> @@ -8,7 +8,6 @@
->  #include <linux/gpio/driver.h>
->  #include <linux/module.h>
->  #include <linux/of.h>
-> -#include <linux/of_device.h>
->  #include <linux/of_address.h>
->  #include <linux/platform_device.h>
->  #include <linux/regmap.h>
-> diff --git a/drivers/gpio/gpio-mb86s7x.c b/drivers/gpio/gpio-mb86s7x.c
-> index 37c5363e391e..ca7eb5e8bfaa 100644
-> --- a/drivers/gpio/gpio-mb86s7x.c
-> +++ b/drivers/gpio/gpio-mb86s7x.c
-> @@ -10,11 +10,11 @@
->  #include <linux/io.h>
->  #include <linux/init.h>
->  #include <linux/clk.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/module.h>
->  #include <linux/err.h>
->  #include <linux/errno.h>
->  #include <linux/ioport.h>
-> -#include <linux/of_device.h>
->  #include <linux/gpio/driver.h>
->  #include <linux/platform_device.h>
->  #include <linux/spinlock.h>
-> diff --git a/drivers/gpio/gpio-mpc5200.c b/drivers/gpio/gpio-mpc5200.c
-> index 3b0bfff8c778..b49e3ca64015 100644
-> --- a/drivers/gpio/gpio-mpc5200.c
-> +++ b/drivers/gpio/gpio-mpc5200.c
-> @@ -10,7 +10,7 @@
->  #include <linux/slab.h>
->  #include <linux/gpio/legacy-of-mm-gpiochip.h>
->  #include <linux/io.h>
-> -#include <linux/of_platform.h>
-> +#include <linux/platform_device.h>
->  #include <linux/module.h>
->
->  #include <asm/mpc52xx.h>
-> diff --git a/drivers/gpio/gpio-mpc8xxx.c b/drivers/gpio/gpio-mpc8xxx.c
-> index 5979a36bf754..ebf2f511df59 100644
-> --- a/drivers/gpio/gpio-mpc8xxx.c
-> +++ b/drivers/gpio/gpio-mpc8xxx.c
-> @@ -9,12 +9,10 @@
->  #include <linux/acpi.h>
->  #include <linux/kernel.h>
->  #include <linux/init.h>
-> +#include <linux/platform_device.h>
->  #include <linux/spinlock.h>
->  #include <linux/io.h>
->  #include <linux/of.h>
-> -#include <linux/of_address.h>
-> -#include <linux/of_irq.h>
-> -#include <linux/of_platform.h>
->  #include <linux/property.h>
->  #include <linux/mod_devicetable.h>
->  #include <linux/slab.h>
-> diff --git a/drivers/gpio/gpio-msc313.c b/drivers/gpio/gpio-msc313.c
-> index 036ad2324892..2f448eb23abb 100644
-> --- a/drivers/gpio/gpio-msc313.c
-> +++ b/drivers/gpio/gpio-msc313.c
-> @@ -6,7 +6,6 @@
->  #include <linux/types.h>
->  #include <linux/io.h>
->  #include <linux/of.h>
-> -#include <linux/of_device.h>
->  #include <linux/of_irq.h>
->  #include <linux/gpio/driver.h>
->  #include <linux/module.h>
-> diff --git a/drivers/gpio/gpio-mxc.c b/drivers/gpio/gpio-mxc.c
-> index 9d0cec4b82a3..9d16371151d5 100644
-> --- a/drivers/gpio/gpio-mxc.c
-> +++ b/drivers/gpio/gpio-mxc.c
-> @@ -22,7 +22,6 @@
->  #include <linux/syscore_ops.h>
->  #include <linux/gpio/driver.h>
->  #include <linux/of.h>
-> -#include <linux/of_device.h>
->  #include <linux/bug.h>
->
->  #define IMX_SCU_WAKEUP_OFF             0
-> diff --git a/drivers/gpio/gpio-mxs.c b/drivers/gpio/gpio-mxs.c
-> index 390e619a2831..8e04c9c4b5a2 100644
-> --- a/drivers/gpio/gpio-mxs.c
-> +++ b/drivers/gpio/gpio-mxs.c
-> @@ -14,7 +14,6 @@
->  #include <linux/irqdomain.h>
->  #include <linux/of.h>
->  #include <linux/of_address.h>
-> -#include <linux/of_device.h>
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->  #include <linux/gpio/driver.h>
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index a08be5bf6808..2b78fde74e30 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -22,7 +22,6 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/pm.h>
->  #include <linux/of.h>
-> -#include <linux/of_device.h>
->  #include <linux/gpio/driver.h>
->  #include <linux/bitops.h>
->  #include <linux/platform_data/gpio-omap.h>
-> diff --git a/drivers/gpio/gpio-palmas.c b/drivers/gpio/gpio-palmas.c
-> index bac10c2faf56..6140e87c6754 100644
-> --- a/drivers/gpio/gpio-palmas.c
-> +++ b/drivers/gpio/gpio-palmas.c
-> @@ -12,7 +12,6 @@
->  #include <linux/init.h>
->  #include <linux/mfd/palmas.h>
->  #include <linux/of.h>
-> -#include <linux/of_device.h>
->  #include <linux/platform_device.h>
->
->  struct palmas_gpio {
-> diff --git a/drivers/gpio/gpio-pmic-eic-sprd.c b/drivers/gpio/gpio-pmic-e=
-ic-sprd.c
-> index c3e4d90f6b18..dabb0da3bd33 100644
-> --- a/drivers/gpio/gpio-pmic-eic-sprd.c
-> +++ b/drivers/gpio/gpio-pmic-eic-sprd.c
-> @@ -8,7 +8,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->  #include <linux/regmap.h>
->
-> diff --git a/drivers/gpio/gpio-pxa.c b/drivers/gpio/gpio-pxa.c
-> index a1630ed4b741..7e9f7a32d3ee 100644
-> --- a/drivers/gpio/gpio-pxa.c
-> +++ b/drivers/gpio/gpio-pxa.c
-> @@ -20,7 +20,6 @@
->  #include <linux/irqchip/chained_irq.h>
->  #include <linux/io.h>
->  #include <linux/of.h>
-> -#include <linux/of_device.h>
->  #include <linux/pinctrl/consumer.h>
->  #include <linux/platform_device.h>
->  #include <linux/syscore_ops.h>
-> diff --git a/drivers/gpio/gpio-rcar.c b/drivers/gpio/gpio-rcar.c
-> index 2525adb52f4f..86e69cde04da 100644
-> --- a/drivers/gpio/gpio-rcar.c
-> +++ b/drivers/gpio/gpio-rcar.c
-> @@ -15,7 +15,6 @@
->  #include <linux/irq.h>
->  #include <linux/module.h>
->  #include <linux/of.h>
-> -#include <linux/of_device.h>
->  #include <linux/pinctrl/consumer.h>
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
-> diff --git a/drivers/gpio/gpio-rockchip.c b/drivers/gpio/gpio-rockchip.c
-> index e5de15a2ab9a..b35b9604413f 100644
-> --- a/drivers/gpio/gpio-rockchip.c
-> +++ b/drivers/gpio/gpio-rockchip.c
-> @@ -17,10 +17,10 @@
->  #include <linux/module.h>
->  #include <linux/of.h>
->  #include <linux/of_address.h>
-> -#include <linux/of_device.h>
->  #include <linux/of_irq.h>
->  #include <linux/pinctrl/consumer.h>
->  #include <linux/pinctrl/pinconf-generic.h>
-> +#include <linux/platform_device.h>
->  #include <linux/regmap.h>
->
->  #include "../pinctrl/core.h"
-> diff --git a/drivers/gpio/gpio-sprd.c b/drivers/gpio/gpio-sprd.c
-> index 072b4e653216..c117c11bfb29 100644
-> --- a/drivers/gpio/gpio-sprd.c
-> +++ b/drivers/gpio/gpio-sprd.c
-> @@ -7,8 +7,8 @@
->  #include <linux/bitops.h>
->  #include <linux/gpio/driver.h>
->  #include <linux/kernel.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/module.h>
-> -#include <linux/of_device.h>
->  #include <linux/platform_device.h>
->  #include <linux/spinlock.h>
->
-> diff --git a/drivers/gpio/gpio-stp-xway.c b/drivers/gpio/gpio-stp-xway.c
-> index 4750ea34204c..053d616f2e02 100644
-> --- a/drivers/gpio/gpio-stp-xway.c
-> +++ b/drivers/gpio/gpio-stp-xway.c
-> @@ -4,11 +4,12 @@
->   *  Copyright (C) 2012 John Crispin <john@phrozen.org>
->   */
->
-> +#include <linux/platform_device.h>
->  #include <linux/slab.h>
->  #include <linux/init.h>
->  #include <linux/module.h>
->  #include <linux/types.h>
-> -#include <linux/of_platform.h>
-> +#include <linux/of.h>
->  #include <linux/mutex.h>
->  #include <linux/gpio/driver.h>
->  #include <linux/io.h>
-> diff --git a/drivers/gpio/gpio-syscon.c b/drivers/gpio/gpio-syscon.c
-> index 6076937b18e7..41bf47c8c983 100644
-> --- a/drivers/gpio/gpio-syscon.c
-> +++ b/drivers/gpio/gpio-syscon.c
-> @@ -9,7 +9,6 @@
->  #include <linux/gpio/driver.h>
->  #include <linux/module.h>
->  #include <linux/of.h>
-> -#include <linux/of_device.h>
->  #include <linux/platform_device.h>
->  #include <linux/regmap.h>
->  #include <linux/mfd/syscon.h>
-> diff --git a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
-> index 5b265a6fd3c1..ea715582bcf3 100644
-> --- a/drivers/gpio/gpio-tegra.c
-> +++ b/drivers/gpio/gpio-tegra.c
-> @@ -15,7 +15,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/io.h>
->  #include <linux/gpio/driver.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->  #include <linux/module.h>
->  #include <linux/seq_file.h>
-> diff --git a/drivers/gpio/gpio-tegra186.c b/drivers/gpio/gpio-tegra186.c
-> index 80d08ddde40e..d87dd06db40d 100644
-> --- a/drivers/gpio/gpio-tegra186.c
-> +++ b/drivers/gpio/gpio-tegra186.c
-> @@ -11,7 +11,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/irq.h>
->  #include <linux/module.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->  #include <linux/seq_file.h>
->
-> diff --git a/drivers/gpio/gpio-tps6586x.c b/drivers/gpio/gpio-tps6586x.c
-> index c5713524b581..d277aa951143 100644
-> --- a/drivers/gpio/gpio-tps6586x.c
-> +++ b/drivers/gpio/gpio-tps6586x.c
-> @@ -15,7 +15,7 @@
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/mfd/tps6586x.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->
->  /* GPIO control registers */
-> diff --git a/drivers/gpio/gpio-tps65910.c b/drivers/gpio/gpio-tps65910.c
-> index 321e6945f0be..187d21580573 100644
-> --- a/drivers/gpio/gpio-tps65910.c
-> +++ b/drivers/gpio/gpio-tps65910.c
-> @@ -15,7 +15,7 @@
->  #include <linux/i2c.h>
->  #include <linux/platform_device.h>
->  #include <linux/mfd/tps65910.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->
->  struct tps65910_gpio {
->         struct gpio_chip gpio_chip;
-> diff --git a/drivers/gpio/gpio-ts4800.c b/drivers/gpio/gpio-ts4800.c
-> index 95d80ba14bee..4748e3d47106 100644
-> --- a/drivers/gpio/gpio-ts4800.c
-> +++ b/drivers/gpio/gpio-ts4800.c
-> @@ -7,8 +7,7 @@
->
->  #include <linux/gpio/driver.h>
->  #include <linux/module.h>
-> -#include <linux/of_address.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->
->  #define DEFAULT_PIN_NUMBER      16
-> diff --git a/drivers/gpio/gpio-ts4900.c b/drivers/gpio/gpio-ts4900.c
-> index eba96319dac2..0f6397b77c9d 100644
-> --- a/drivers/gpio/gpio-ts4900.c
-> +++ b/drivers/gpio/gpio-ts4900.c
-> @@ -8,7 +8,7 @@
->
->  #include <linux/gpio/driver.h>
->  #include <linux/i2c.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->  #include <linux/module.h>
->  #include <linux/regmap.h>
->
-> diff --git a/drivers/gpio/gpio-uniphier.c b/drivers/gpio/gpio-uniphier.c
-> index 19ce6675cbc0..9725b7aa18a7 100644
-> --- a/drivers/gpio/gpio-uniphier.c
-> +++ b/drivers/gpio/gpio-uniphier.c
-> @@ -9,7 +9,6 @@
->  #include <linux/irqdomain.h>
->  #include <linux/module.h>
->  #include <linux/of.h>
-> -#include <linux/of_device.h>
->  #include <linux/of_irq.h>
->  #include <linux/platform_device.h>
->  #include <linux/spinlock.h>
-> diff --git a/drivers/gpio/gpio-vf610.c b/drivers/gpio/gpio-vf610.c
-> index d3f3a69d4907..54e7c51f48c8 100644
-> --- a/drivers/gpio/gpio-vf610.c
-> +++ b/drivers/gpio/gpio-vf610.c
-> @@ -17,7 +17,6 @@
->  #include <linux/irq.h>
->  #include <linux/platform_device.h>
->  #include <linux/of.h>
-> -#include <linux/of_device.h>
->  #include <linux/of_irq.h>
->  #include <linux/pinctrl/consumer.h>
->
-> diff --git a/drivers/gpio/gpio-wcd934x.c b/drivers/gpio/gpio-wcd934x.c
-> index 817750e4e033..2bba27b13947 100644
-> --- a/drivers/gpio/gpio-wcd934x.c
-> +++ b/drivers/gpio/gpio-wcd934x.c
-> @@ -1,11 +1,12 @@
->  // SPDX-License-Identifier: GPL-2.0
->  // Copyright (c) 2019, Linaro Limited
->
-> +#include <linux/mod_devicetable.h>
->  #include <linux/module.h>
->  #include <linux/gpio/driver.h>
-> +#include <linux/platform_device.h>
->  #include <linux/regmap.h>
->  #include <linux/slab.h>
-> -#include <linux/of_device.h>
->
->  #define WCD_PIN_MASK(p) BIT(p)
->  #define WCD_REG_DIR_CTL_OFFSET 0x42
-> diff --git a/drivers/gpio/gpio-xilinx.c b/drivers/gpio/gpio-xilinx.c
-> index 1fa66f2a667f..a16945e8319e 100644
-> --- a/drivers/gpio/gpio-xilinx.c
-> +++ b/drivers/gpio/gpio-xilinx.c
-> @@ -15,8 +15,8 @@
->  #include <linux/io.h>
->  #include <linux/irq.h>
->  #include <linux/module.h>
-> -#include <linux/of_device.h>
-> -#include <linux/of_platform.h>
-> +#include <linux/of.h>
-> +#include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/slab.h>
->
-> diff --git a/drivers/gpio/gpio-xra1403.c b/drivers/gpio/gpio-xra1403.c
-> index bbc06cdd9634..eed8a1684830 100644
-> --- a/drivers/gpio/gpio-xra1403.c
-> +++ b/drivers/gpio/gpio-xra1403.c
-> @@ -8,9 +8,9 @@
->  #include <linux/bitops.h>
->  #include <linux/gpio/driver.h>
->  #include <linux/kernel.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/module.h>
->  #include <linux/mutex.h>
-> -#include <linux/of_device.h>
->  #include <linux/seq_file.h>
->  #include <linux/spi/spi.h>
->  #include <linux/regmap.h>
-> --
-> 2.40.1
->
+diff --git a/drivers/regulator/act8945a-regulator.c b/drivers/regulator/act8945a-regulator.c
+index e26264529b74..24cbdd833863 100644
+--- a/drivers/regulator/act8945a-regulator.c
++++ b/drivers/regulator/act8945a-regulator.c
+@@ -8,7 +8,7 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+diff --git a/drivers/regulator/atc260x-regulator.c b/drivers/regulator/atc260x-regulator.c
+index 87e237d740bc..09fe51464090 100644
+--- a/drivers/regulator/atc260x-regulator.c
++++ b/drivers/regulator/atc260x-regulator.c
+@@ -7,7 +7,8 @@
+ 
+ #include <linux/mfd/atc260x/core.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ 
+diff --git a/drivers/regulator/axp20x-regulator.c b/drivers/regulator/axp20x-regulator.c
+index 810f90f3e2a1..c657820b0bbb 100644
+--- a/drivers/regulator/axp20x-regulator.c
++++ b/drivers/regulator/axp20x-regulator.c
+@@ -20,7 +20,6 @@
+ #include <linux/mfd/axp20x.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
+index 1fd79fb17303..6958d154442b 100644
+--- a/drivers/regulator/cpcap-regulator.c
++++ b/drivers/regulator/cpcap-regulator.c
+@@ -12,7 +12,7 @@
+ #include <linux/err.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/of_platform.h>
++#include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+diff --git a/drivers/regulator/fan53555.c b/drivers/regulator/fan53555.c
+index 289c06e09f47..48f312167e53 100644
+--- a/drivers/regulator/fan53555.c
++++ b/drivers/regulator/fan53555.c
+@@ -12,7 +12,7 @@
+ #include <linux/err.h>
+ #include <linux/i2c.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/param.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
+index 364d1a2683b7..55130efae9b8 100644
+--- a/drivers/regulator/fixed.c
++++ b/drivers/regulator/fixed.c
+@@ -25,7 +25,6 @@
+ #include <linux/gpio/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/clk.h>
+diff --git a/drivers/regulator/ltc3589.c b/drivers/regulator/ltc3589.c
+index e9751c206d95..cf931b8c36dc 100644
+--- a/drivers/regulator/ltc3589.c
++++ b/drivers/regulator/ltc3589.c
+@@ -10,7 +10,6 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/max77826-regulator.c b/drivers/regulator/max77826-regulator.c
+index 3855f5e686d8..5590cdf615b7 100644
+--- a/drivers/regulator/max77826-regulator.c
++++ b/drivers/regulator/max77826-regulator.c
+@@ -9,7 +9,6 @@
+ #include <linux/init.h>
+ #include <linux/err.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/mp5416.c b/drivers/regulator/mp5416.c
+index 3886b252fbe7..d068ac93d373 100644
+--- a/drivers/regulator/mp5416.c
++++ b/drivers/regulator/mp5416.c
+@@ -10,7 +10,7 @@
+ #include <linux/i2c.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+diff --git a/drivers/regulator/mp886x.c b/drivers/regulator/mp886x.c
+index ede1b1e58002..9911be2e6bac 100644
+--- a/drivers/regulator/mp886x.c
++++ b/drivers/regulator/mp886x.c
+@@ -9,7 +9,7 @@
+ #include <linux/gpio/consumer.h>
+ #include <linux/i2c.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/mpq7920.c b/drivers/regulator/mpq7920.c
+index bf677c535edc..4926c229109b 100644
+--- a/drivers/regulator/mpq7920.c
++++ b/drivers/regulator/mpq7920.c
+@@ -11,7 +11,6 @@
+ #include <linux/init.h>
+ #include <linux/err.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/mt6315-regulator.c b/drivers/regulator/mt6315-regulator.c
+index 8047081ea2f7..2608a6652d77 100644
+--- a/drivers/regulator/mt6315-regulator.c
++++ b/drivers/regulator/mt6315-regulator.c
+@@ -3,7 +3,7 @@
+ // Copyright (c) 2021 MediaTek Inc.
+ 
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+diff --git a/drivers/regulator/mt6359-regulator.c b/drivers/regulator/mt6359-regulator.c
+index 3eb86ec21d08..5cf6448fb05f 100644
+--- a/drivers/regulator/mt6359-regulator.c
++++ b/drivers/regulator/mt6359-regulator.c
+@@ -2,12 +2,13 @@
+ //
+ // Copyright (c) 2021 MediaTek Inc.
+ 
++#include <linux/platform_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/mfd/mt6359/registers.h>
+ #include <linux/mfd/mt6359p/registers.h>
+ #include <linux/mfd/mt6397/core.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+diff --git a/drivers/regulator/mtk-dvfsrc-regulator.c b/drivers/regulator/mtk-dvfsrc-regulator.c
+index efca67207a5a..f1280d45265d 100644
+--- a/drivers/regulator/mtk-dvfsrc-regulator.c
++++ b/drivers/regulator/mtk-dvfsrc-regulator.c
+@@ -6,8 +6,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+-#include <linux/of_device.h>
+-#include <linux/of_platform.h>
++#include <linux/of_.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/soc/mediatek/mtk_dvfsrc.h>
+diff --git a/drivers/regulator/pbias-regulator.c b/drivers/regulator/pbias-regulator.c
+index 0c9873e9abdc..cd5a0d7e4455 100644
+--- a/drivers/regulator/pbias-regulator.c
++++ b/drivers/regulator/pbias-regulator.c
+@@ -25,7 +25,6 @@
+ #include <linux/regmap.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ 
+ struct pbias_reg_info {
+ 	u32 enable;
+diff --git a/drivers/regulator/pca9450-regulator.c b/drivers/regulator/pca9450-regulator.c
+index 91bfb7e026c9..2ab365d2749f 100644
+--- a/drivers/regulator/pca9450-regulator.c
++++ b/drivers/regulator/pca9450-regulator.c
+@@ -11,7 +11,6 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+diff --git a/drivers/regulator/pwm-regulator.c b/drivers/regulator/pwm-regulator.c
+index b64d99695b84..2aff6db748e2 100644
+--- a/drivers/regulator/pwm-regulator.c
++++ b/drivers/regulator/pwm-regulator.c
+@@ -10,11 +10,11 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/err.h>
++#include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/pwm.h>
+ #include <linux/gpio/consumer.h>
+ 
+diff --git a/drivers/regulator/qcom-rpmh-regulator.c b/drivers/regulator/qcom-rpmh-regulator.c
+index f3b280af0773..ec1b50721ec6 100644
+--- a/drivers/regulator/qcom-rpmh-regulator.c
++++ b/drivers/regulator/qcom-rpmh-regulator.c
+@@ -7,7 +7,6 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+diff --git a/drivers/regulator/qcom_smd-regulator.c b/drivers/regulator/qcom_smd-regulator.c
+index 18189f35db68..f53ada076252 100644
+--- a/drivers/regulator/qcom_smd-regulator.c
++++ b/drivers/regulator/qcom_smd-regulator.c
+@@ -6,7 +6,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/qcom_usb_vbus-regulator.c b/drivers/regulator/qcom_usb_vbus-regulator.c
+index 57ec613f4a0a..cd94ed67621f 100644
+--- a/drivers/regulator/qcom_usb_vbus-regulator.c
++++ b/drivers/regulator/qcom_usb_vbus-regulator.c
+@@ -8,7 +8,6 @@
+ #include <linux/err.h>
+ #include <linux/kernel.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/rk808-regulator.c b/drivers/regulator/rk808-regulator.c
+index 460525ed006c..867a2cf243f6 100644
+--- a/drivers/regulator/rk808-regulator.c
++++ b/drivers/regulator/rk808-regulator.c
+@@ -17,9 +17,10 @@
+ #include <linux/delay.h>
+ #include <linux/gpio.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/of_gpio.h>
+ #include <linux/mfd/rk808.h>
++#include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/gpio/consumer.h>
+diff --git a/drivers/regulator/rt5759-regulator.c b/drivers/regulator/rt5759-regulator.c
+index 90555a9ef1b0..c2553dcee050 100644
+--- a/drivers/regulator/rt5759-regulator.c
++++ b/drivers/regulator/rt5759-regulator.c
+@@ -4,7 +4,7 @@
+ #include <linux/i2c.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/stm32-pwr.c b/drivers/regulator/stm32-pwr.c
+index 4c60eddad60d..85b0102fb9b1 100644
+--- a/drivers/regulator/stm32-pwr.c
++++ b/drivers/regulator/stm32-pwr.c
+@@ -6,8 +6,7 @@
+ #include <linux/io.h>
+ #include <linux/iopoll.h>
+ #include <linux/module.h>
+-#include <linux/of_address.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/stm32-vrefbuf.c b/drivers/regulator/stm32-vrefbuf.c
+index f5ccc7dd309a..717144cbe0f9 100644
+--- a/drivers/regulator/stm32-vrefbuf.c
++++ b/drivers/regulator/stm32-vrefbuf.c
+@@ -10,7 +10,7 @@
+ #include <linux/io.h>
+ #include <linux/iopoll.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/sy8824x.c b/drivers/regulator/sy8824x.c
+index d0703105c439..d49c0cba09fb 100644
+--- a/drivers/regulator/sy8824x.c
++++ b/drivers/regulator/sy8824x.c
+@@ -8,7 +8,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/sy8827n.c b/drivers/regulator/sy8827n.c
+index 433959b43549..f11ff38b36c9 100644
+--- a/drivers/regulator/sy8827n.c
++++ b/drivers/regulator/sy8827n.c
+@@ -9,7 +9,7 @@
+ #include <linux/gpio/consumer.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/tps6286x-regulator.c b/drivers/regulator/tps6286x-regulator.c
+index b1c4b5120745..c06f6d1dc737 100644
+--- a/drivers/regulator/tps6286x-regulator.c
++++ b/drivers/regulator/tps6286x-regulator.c
+@@ -4,7 +4,7 @@
+ #include <linux/err.h>
+ #include <linux/i2c.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/regulator/machine.h>
+diff --git a/drivers/regulator/tps6287x-regulator.c b/drivers/regulator/tps6287x-regulator.c
+index b1c0963586ac..19a4a300a963 100644
+--- a/drivers/regulator/tps6287x-regulator.c
++++ b/drivers/regulator/tps6287x-regulator.c
+@@ -8,8 +8,8 @@
+ 
+ #include <linux/err.h>
+ #include <linux/i2c.h>
++#include <linux/mod_devicetable.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/regulator/machine.h>
+diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
+index 13985883e5f0..f44b5767099c 100644
+--- a/drivers/regulator/tps65218-regulator.c
++++ b/drivers/regulator/tps65218-regulator.c
+@@ -8,12 +8,12 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include <linux/mod_devicetable.h>
+ #include <linux/module.h>
+ #include <linux/device.h>
+ #include <linux/init.h>
+ #include <linux/err.h>
+ #include <linux/platform_device.h>
+-#include <linux/of_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/regulator/driver.h>
+diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
+index 8971b507a79a..b4065356392f 100644
+--- a/drivers/regulator/tps65219-regulator.c
++++ b/drivers/regulator/tps65219-regulator.c
+@@ -15,8 +15,8 @@
+ #include <linux/device.h>
+ #include <linux/init.h>
+ #include <linux/err.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+-#include <linux/of_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/regulator/driver.h>
+diff --git a/drivers/regulator/tps6594-regulator.c b/drivers/regulator/tps6594-regulator.c
+index d5a574ec6d12..25ef102c8270 100644
+--- a/drivers/regulator/tps6594-regulator.c
++++ b/drivers/regulator/tps6594-regulator.c
+@@ -9,7 +9,7 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 3e724f5345de..5bacfcebf59a 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -12,7 +12,6 @@
+ #include <linux/err.h>
+ #include <linux/platform_device.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/twl6030-regulator.c b/drivers/regulator/twl6030-regulator.c
+index f9c695f9bde8..6eed0f6e0adb 100644
+--- a/drivers/regulator/twl6030-regulator.c
++++ b/drivers/regulator/twl6030-regulator.c
+@@ -13,7 +13,6 @@
+ #include <linux/err.h>
+ #include <linux/platform_device.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/uniphier-regulator.c b/drivers/regulator/uniphier-regulator.c
+index 7e2785e10dc6..1d8304b88bd6 100644
+--- a/drivers/regulator/uniphier-regulator.c
++++ b/drivers/regulator/uniphier-regulator.c
+@@ -7,7 +7,7 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+diff --git a/drivers/regulator/vctrl-regulator.c b/drivers/regulator/vctrl-regulator.c
+index 85dca90233f6..2796580a3a3c 100644
+--- a/drivers/regulator/vctrl-regulator.c
++++ b/drivers/regulator/vctrl-regulator.c
+@@ -10,7 +10,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
++#include <linux/platform_device.h>
+ #include <linux/regulator/coupler.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+diff --git a/drivers/regulator/vexpress-regulator.c b/drivers/regulator/vexpress-regulator.c
+index b545dbc70a4d..6687077e9a97 100644
+--- a/drivers/regulator/vexpress-regulator.c
++++ b/drivers/regulator/vexpress-regulator.c
+@@ -8,7 +8,8 @@
+ #include <linux/device.h>
+ #include <linux/err.h>
+ #include <linux/module.h>
+-#include <linux/of_device.h>
++#include <linux/mod_devicetable.h>
++#include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/of_regulator.h>
+-- 
+2.40.1
 
-
---=20
-With Best Regards,
-Andy Shevchenko
