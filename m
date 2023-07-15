@@ -2,189 +2,153 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69AA5C001E0
-	for <linux-omap@archiver.kernel.org>; Sat, 15 Jul 2023 18:34:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63F40C04FE1
+	for <linux-omap@archiver.kernel.org>; Sat, 15 Jul 2023 18:53:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230315AbjGOSeN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 15 Jul 2023 14:34:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46694 "EHLO
+        id S230376AbjGOSxy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 15 Jul 2023 14:53:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229500AbjGOSeM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 15 Jul 2023 14:34:12 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2DE22702;
-        Sat, 15 Jul 2023 11:34:10 -0700 (PDT)
+        with ESMTP id S229906AbjGOSxx (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 15 Jul 2023 14:53:53 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 786DD2729;
+        Sat, 15 Jul 2023 11:53:47 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 2CA3321A71;
-        Sat, 15 Jul 2023 18:34:09 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id EA2401F8CD;
+        Sat, 15 Jul 2023 18:53:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1689446049; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1689447225; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=RYeCd7HoR8uEw1k7ZVr0OZS9nvGsn4cIaqKR0z4Onsc=;
-        b=fQJ8Ed37zO2h2xpVGJHgeXgbFlMYWZiQyR2E1Vj6U9o3crxeMk6Dolw/GHlDs3gCiDCgEg
-        XjM6dYEHOsZpNig4WvurwGD2dKKAXItEsx1ugA2u1eeSyvSjJgOSdhbKIZ2/Z56MXGxR1q
-        r2BHnxcno8Eubp53rXNArviIQXb9i5I=
+        bh=sWCVV7wJiemOx2M9P2wz1m/QXnYnbGSsQYJ48wiDA5o=;
+        b=V6vRbybAq9ARL34BJ9Sh74wyjFzK7XI+ob8Ne24DQYLrCN1fZvKaAZ4dghwNLDW/fzMe34
+        5uBvZQM4sF/puAy8vvZO6iFLFLP7AoK0ZTzquyJrHtN8uFwWIVqtr2felTmZ6ey495AJYC
+        lpy+O6h+HbERXK0n0MlCa1do4Hv2g1c=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1689446049;
+        s=susede2_ed25519; t=1689447225;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=RYeCd7HoR8uEw1k7ZVr0OZS9nvGsn4cIaqKR0z4Onsc=;
-        b=yP408vg2SsLg1wW8YSLEtC9aqf9lJsv3y5D2L3sOOFaAgOiRrUy+nW21jIkbG7JG9RUM9X
-        Yua0AAwib+ee/1Dg==
+        bh=sWCVV7wJiemOx2M9P2wz1m/QXnYnbGSsQYJ48wiDA5o=;
+        b=Qb6n3UjprVOu2U+9Zflrq0O3KQFf2uw2iVWhp4sr0hLo+gBevwrbaxeRvaeTvlDB7+rrD2
+        /74J/7XyPCWPFODQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id E3F5D133F7;
-        Sat, 15 Jul 2023 18:34:08 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 7A56413A23;
+        Sat, 15 Jul 2023 18:53:45 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id HExLNqDmsmQlfwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Sat, 15 Jul 2023 18:34:08 +0000
-Message-ID: <317a9fd8-0ae9-daa0-012b-3908ca248b74@suse.de>
-Date:   Sat, 15 Jul 2023 20:34:08 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: [PATCH] fb: Explicitly include correct DT includes
-To:     Rob Herring <robh@kernel.org>, Helge Deller <deller@gmx.de>,
-        Michal Simek <michal.simek@amd.com>
-Cc:     devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-References: <20230714175035.4065508-1-robh@kernel.org>
-Content-Language: en-US
+        id EIXpHDnrsmQCBwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Sat, 15 Jul 2023 18:53:45 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
-In-Reply-To: <20230714175035.4065508-1-robh@kernel.org>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="------------fKlGCpVLu7rfpmAw9xHrErQE"
+To:     deller@gmx.de, javierm@redhat.com, geert@linux-m68k.org,
+        dan.carpenter@linaro.org
+Cc:     linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux-staging@lists.linux.dev,
+        linux-arm-kernel@lists.infradead.org,
+        linux-geode@lists.infradead.org, linux-hyperv@vger.kernel.org,
+        linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
+        Sam Ravnborg <sam@ravnborg.org>,
+        Patrik Jakobsson <patrik.r.jakobsson@gmail.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
+        "Pan, Xinhui" <Xinhui.Pan@amd.com>
+Subject: [PATCH v4 01/18] drm: Remove flag FBINFO_DEFAULT from fbdev emulation
+Date:   Sat, 15 Jul 2023 20:51:43 +0200
+Message-ID: <20230715185343.7193-2-tzimmermann@suse.de>
+X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20230715185343.7193-1-tzimmermann@suse.de>
+References: <20230715185343.7193-1-tzimmermann@suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---------------fKlGCpVLu7rfpmAw9xHrErQE
-Content-Type: multipart/mixed; boundary="------------Aa0Mf3WyZj0EdxJytzy7LFbU";
- protected-headers="v1"
-From: Thomas Zimmermann <tzimmermann@suse.de>
-To: Rob Herring <robh@kernel.org>, Helge Deller <deller@gmx.de>,
- Michal Simek <michal.simek@amd.com>
-Cc: devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
- linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Message-ID: <317a9fd8-0ae9-daa0-012b-3908ca248b74@suse.de>
-Subject: Re: [PATCH] fb: Explicitly include correct DT includes
-References: <20230714175035.4065508-1-robh@kernel.org>
-In-Reply-To: <20230714175035.4065508-1-robh@kernel.org>
+The flag FBINFO_DEFAULT is 0 and has no effect, as struct fbinfo.flags
+has been allocated to zero by framebuffer_alloc(). So do not set it.
 
---------------Aa0Mf3WyZj0EdxJytzy7LFbU
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: base64
+Flags should signal differences from the default values. After cleaning
+up all occurrences of FBINFO_DEFAULT, the token will be removed.
 
-SGkNCg0KQW0gMTQuMDcuMjMgdW0gMTk6NTAgc2NocmllYiBSb2IgSGVycmluZzoNCj4gVGhl
-IERUIG9mX2RldmljZS5oIGFuZCBvZl9wbGF0Zm9ybS5oIGRhdGUgYmFjayB0byB0aGUgc2Vw
-YXJhdGUNCj4gb2ZfcGxhdGZvcm1fYnVzX3R5cGUgYmVmb3JlIGl0IGFzIG1lcmdlZCBpbnRv
-IHRoZSByZWd1bGFyIHBsYXRmb3JtIGJ1cy4NCj4gQXMgcGFydCBvZiB0aGF0IG1lcmdlIHBy
-ZXBwaW5nIEFybSBEVCBzdXBwb3J0IDEzIHllYXJzIGFnbywgdGhleQ0KPiAidGVtcG9yYXJp
-bHkiIGluY2x1ZGUgZWFjaCBvdGhlci4gVGhleSBhbHNvIGluY2x1ZGUgcGxhdGZvcm1fZGV2
-aWNlLmgNCj4gYW5kIG9mLmguIEFzIGEgcmVzdWx0LCB0aGVyZSdzIGEgcHJldHR5IG11Y2gg
-cmFuZG9tIG1peCBvZiB0aG9zZSBpbmNsdWRlDQo+IGZpbGVzIHVzZWQgdGhyb3VnaG91dCB0
-aGUgdHJlZS4gSW4gb3JkZXIgdG8gZGV0YW5nbGUgdGhlc2UgaGVhZGVycyBhbmQNCj4gcmVw
-bGFjZSB0aGUgaW1wbGljaXQgaW5jbHVkZXMgd2l0aCBzdHJ1Y3QgZGVjbGFyYXRpb25zLCB1
-c2VycyBuZWVkIHRvDQo+IGV4cGxpY2l0bHkgaW5jbHVkZSB0aGUgY29ycmVjdCBpbmNsdWRl
-cy4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFJvYiBIZXJyaW5nIDxyb2JoQGtlcm5lbC5vcmc+
-DQpbLi4uXQ0KPiAgIA0KPiBAQCAtNDgsNyArNDgsNyBAQCBpbnQgc2J1c2ZiX21tYXBfaGVs
-cGVyKHN0cnVjdCBzYnVzX21tYXBfbWFwICptYXAsDQo+ICAgCXVuc2lnbmVkIGxvbmcgbWFw
-X29mZnNldCA9IDA7DQo+ICAgCXVuc2lnbmVkIGxvbmcgb2ZmOw0KPiAgIAlpbnQgaTsNCj4g
-LQ0KPiArDQoNClRoZSB2YXJpb3VzIHdoaXRlc3BhY2UgZml4ZXMgc2hvdWxkIHJhdGhlciBn
-byBpbnRvIGEgc2VwYXJhdGUgcGF0Y2guIFlvdSANCmNhbiBhZGQNCg0KUmV2aWV3ZWQtYnk6
-IFRob21hcyBaaW1tZXJtYW5uIDx0emltbWVybWFubkBzdXNlLmRlPg0KDQp0byB0aGUgd2hp
-dGVzcGFjZSBmaXggYW5kIHRoZSBpbmNsdWRlIGNsZWFudXAuDQoNCkJlc3QgcmVnYXJkcw0K
-VGhvbWFzDQoNCj4gICAJaWYgKCEodm1hLT52bV9mbGFncyAmIChWTV9TSEFSRUQgfCBWTV9N
-QVlTSEFSRSkpKQ0KPiAgIAkJcmV0dXJuIC1FSU5WQUw7DQo+ICAgDQo+IEBAIC03Miw3ICs3
-Miw3IEBAIGludCBzYnVzZmJfbW1hcF9oZWxwZXIoc3RydWN0IHNidXNfbW1hcF9tYXAgKm1h
-cCwNCj4gICAjZGVmaW5lIFBPRkZfTUFTSwkoUEFHRV9NQVNLfDB4MVVMKQ0KPiAgICNlbHNl
-DQo+ICAgI2RlZmluZSBQT0ZGX01BU0sJKFBBR0VfTUFTSykNCj4gLSNlbmRpZgkJCQkNCj4g
-KyNlbmRpZg0KPiAgIAkJCQltYXBfb2Zmc2V0ID0gKHBoeXNiYXNlICsgbWFwW2ldLnBvZmYp
-ICYgUE9GRl9NQVNLOw0KPiAgIAkJCQlicmVhazsNCj4gICAJCQl9DQo+IGRpZmYgLS1naXQg
-YS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L3N1bnh2cjEwMDAuYyBiL2RyaXZlcnMvdmlkZW8vZmJk
-ZXYvc3VueHZyMTAwMC5jDQo+IGluZGV4IDQ5MGJkOWExNDc2My4uMTdkNjFlMWQxMWE2IDEw
-MDY0NA0KPiAtLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L3N1bnh2cjEwMDAuYw0KPiArKysg
-Yi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L3N1bnh2cjEwMDAuYw0KPiBAQCAtOCw3ICs4LDggQEAN
-Cj4gICAjaW5jbHVkZSA8bGludXgva2VybmVsLmg+DQo+ICAgI2luY2x1ZGUgPGxpbnV4L2Zi
-Lmg+DQo+ICAgI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4NCj4gLSNpbmNsdWRlIDxsaW51eC9v
-Zl9kZXZpY2UuaD4NCj4gKyNpbmNsdWRlIDxsaW51eC9vZi5oPg0KPiArI2luY2x1ZGUgPGxp
-bnV4L3BsYXRmb3JtX2RldmljZS5oPg0KPiAgIA0KPiAgIHN0cnVjdCBnZmJfaW5mbyB7DQo+
-ICAgCXN0cnVjdCBmYl9pbmZvCQkqaW5mbzsNCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlk
-ZW8vZmJkZXYvc3VueHZyMjUwMC5jIGIvZHJpdmVycy92aWRlby9mYmRldi9zdW54dnIyNTAw
-LmMNCj4gaW5kZXggMmNhYjRiOWJlNjhhLi5lNjRlYzdkMGNhZjkgMTAwNjQ0DQo+IC0tLSBh
-L2RyaXZlcnMvdmlkZW8vZmJkZXYvc3VueHZyMjUwMC5jDQo+ICsrKyBiL2RyaXZlcnMvdmlk
-ZW8vZmJkZXYvc3VueHZyMjUwMC5jDQo+IEBAIC0xMCw3ICsxMCw3IEBADQo+ICAgI2luY2x1
-ZGUgPGxpbnV4L2ZiLmg+DQo+ICAgI2luY2x1ZGUgPGxpbnV4L3BjaS5oPg0KPiAgICNpbmNs
-dWRlIDxsaW51eC9pbml0Lmg+DQo+IC0jaW5jbHVkZSA8bGludXgvb2ZfZGV2aWNlLmg+DQo+
-ICsjaW5jbHVkZSA8bGludXgvb2YuaD4NCj4gICANCj4gICAjaW5jbHVkZSA8YXNtL2lvLmg+
-DQo+ICAgDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L3N1bnh2cjUwMC5j
-IGIvZHJpdmVycy92aWRlby9mYmRldi9zdW54dnI1MDAuYw0KPiBpbmRleCA2ZWMzNThhZjEy
-NTYuLmM0ZTAxZTg3MTQ4MyAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi9z
-dW54dnI1MDAuYw0KPiArKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L3N1bnh2cjUwMC5jDQo+
-IEBAIC0xMCw3ICsxMCw3IEBADQo+ICAgI2luY2x1ZGUgPGxpbnV4L2ZiLmg+DQo+ICAgI2lu
-Y2x1ZGUgPGxpbnV4L3BjaS5oPg0KPiAgICNpbmNsdWRlIDxsaW51eC9pbml0Lmg+DQo+IC0j
-aW5jbHVkZSA8bGludXgvb2ZfZGV2aWNlLmg+DQo+ICsjaW5jbHVkZSA8bGludXgvb2YuaD4N
-Cj4gICANCj4gICAjaW5jbHVkZSA8YXNtL2lvLmg+DQo+ICAgDQo+IGRpZmYgLS1naXQgYS9k
-cml2ZXJzL3ZpZGVvL2ZiZGV2L3RjeC5jIGIvZHJpdmVycy92aWRlby9mYmRldi90Y3guYw0K
-PiBpbmRleCBmYzNhYzIzMDFiNDUuLjI1NWViNTdhZWZhMiAxMDA2NDQNCj4gLS0tIGEvZHJp
-dmVycy92aWRlby9mYmRldi90Y3guYw0KPiArKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L3Rj
-eC5jDQo+IEBAIC0xNyw3ICsxNyw4IEBADQo+ICAgI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4N
-Cj4gICAjaW5jbHVkZSA8bGludXgvZmIuaD4NCj4gICAjaW5jbHVkZSA8bGludXgvbW0uaD4N
-Cj4gLSNpbmNsdWRlIDxsaW51eC9vZl9kZXZpY2UuaD4NCj4gKyNpbmNsdWRlIDxsaW51eC9v
-Zi5oPg0KPiArI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RldmljZS5oPg0KPiAgIA0KPiAg
-ICNpbmNsdWRlIDxhc20vaW8uaD4NCj4gICAjaW5jbHVkZSA8YXNtL2ZiaW8uaD4NCj4gZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJkZXYveGlsaW54ZmIuYyBiL2RyaXZlcnMvdmlk
-ZW8vZmJkZXYveGlsaW54ZmIuYw0KPiBpbmRleCAyYWEzYTUyODI3N2YuLjU0MmJhZGRkNTRh
-ZCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy92aWRlby9mYmRldi94aWxpbnhmYi5jDQo+ICsr
-KyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYveGlsaW54ZmIuYw0KPiBAQCAtMjQsMTQgKzI0LDEz
-IEBADQo+ICAgI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPg0KPiAgICNpbmNsdWRlIDxsaW51
-eC9rZXJuZWwuaD4NCj4gICAjaW5jbHVkZSA8bGludXgvZXJybm8uaD4NCj4gKyNpbmNsdWRl
-IDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4NCj4gICAjaW5jbHVkZSA8bGludXgvc3RyaW5n
-Lmg+DQo+ICAgI2luY2x1ZGUgPGxpbnV4L21tLmg+DQo+ICAgI2luY2x1ZGUgPGxpbnV4L2Zi
-Lmg+DQo+ICAgI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4NCj4gICAjaW5jbHVkZSA8bGludXgv
-ZG1hLW1hcHBpbmcuaD4NCj4gLSNpbmNsdWRlIDxsaW51eC9vZl9kZXZpY2UuaD4NCj4gLSNp
-bmNsdWRlIDxsaW51eC9vZl9wbGF0Zm9ybS5oPg0KPiAtI2luY2x1ZGUgPGxpbnV4L29mX2Fk
-ZHJlc3MuaD4NCj4gKyNpbmNsdWRlIDxsaW51eC9vZi5oPg0KPiAgICNpbmNsdWRlIDxsaW51
-eC9pby5oPg0KPiAgICNpbmNsdWRlIDxsaW51eC9zbGFiLmg+DQo+ICAgDQoNCi0tIA0KVGhv
-bWFzIFppbW1lcm1hbm4NCkdyYXBoaWNzIERyaXZlciBEZXZlbG9wZXINClNVU0UgU29mdHdh
-cmUgU29sdXRpb25zIEdlcm1hbnkgR21iSA0KRnJhbmtlbnN0cmFzc2UgMTQ2LCA5MDQ2MSBO
-dWVybmJlcmcsIEdlcm1hbnkNCkdGOiBJdm8gVG90ZXYsIEFuZHJldyBNeWVycywgQW5kcmV3
-IE1jRG9uYWxkLCBCb3VkaWVuIE1vZXJtYW4NCkhSQiAzNjgwOSAoQUcgTnVlcm5iZXJnKQ0K
+v2:
+	* fix commit message (Miguel)
 
+Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: "Christian König" <christian.koenig@amd.com>
+Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
+---
+ drivers/gpu/drm/drm_fbdev_dma.c       | 1 -
+ drivers/gpu/drm/drm_fbdev_generic.c   | 1 -
+ drivers/gpu/drm/gma500/fbdev.c        | 2 +-
+ drivers/gpu/drm/radeon/radeon_fbdev.c | 2 +-
+ 4 files changed, 2 insertions(+), 4 deletions(-)
 
---------------Aa0Mf3WyZj0EdxJytzy7LFbU--
+diff --git a/drivers/gpu/drm/drm_fbdev_dma.c b/drivers/gpu/drm/drm_fbdev_dma.c
+index f9b1f7cd31b7..ee7c265b0585 100644
+--- a/drivers/gpu/drm/drm_fbdev_dma.c
++++ b/drivers/gpu/drm/drm_fbdev_dma.c
+@@ -123,7 +123,6 @@ static int drm_fbdev_dma_helper_fb_probe(struct drm_fb_helper *fb_helper,
+ 	drm_fb_helper_fill_info(info, fb_helper, sizes);
+ 
+ 	info->fbops = &drm_fbdev_dma_fb_ops;
+-	info->flags = FBINFO_DEFAULT;
+ 
+ 	/* screen */
+ 	info->flags |= FBINFO_VIRTFB; /* system memory */
+diff --git a/drivers/gpu/drm/drm_fbdev_generic.c b/drivers/gpu/drm/drm_fbdev_generic.c
+index b9343fb6cf13..a0ea042b1526 100644
+--- a/drivers/gpu/drm/drm_fbdev_generic.c
++++ b/drivers/gpu/drm/drm_fbdev_generic.c
+@@ -109,7 +109,6 @@ static int drm_fbdev_generic_helper_fb_probe(struct drm_fb_helper *fb_helper,
+ 	drm_fb_helper_fill_info(info, fb_helper, sizes);
+ 
+ 	info->fbops = &drm_fbdev_generic_fb_ops;
+-	info->flags = FBINFO_DEFAULT;
+ 
+ 	/* screen */
+ 	info->flags |= FBINFO_VIRTFB | FBINFO_READS_FAST;
+diff --git a/drivers/gpu/drm/gma500/fbdev.c b/drivers/gpu/drm/gma500/fbdev.c
+index 054426549fc6..be8f5fbd5260 100644
+--- a/drivers/gpu/drm/gma500/fbdev.c
++++ b/drivers/gpu/drm/gma500/fbdev.c
+@@ -215,7 +215,7 @@ static int psb_fbdev_fb_probe(struct drm_fb_helper *fb_helper,
+ 	}
+ 
+ 	info->fbops = &psb_fbdev_fb_ops;
+-	info->flags = FBINFO_DEFAULT;
++
+ 	/* Accessed stolen memory directly */
+ 	info->screen_base = dev_priv->vram_addr + backing->offset;
+ 	info->screen_size = size;
+diff --git a/drivers/gpu/drm/radeon/radeon_fbdev.c b/drivers/gpu/drm/radeon/radeon_fbdev.c
+index f941e2e7cae6..68c06ac9acce 100644
+--- a/drivers/gpu/drm/radeon/radeon_fbdev.c
++++ b/drivers/gpu/drm/radeon/radeon_fbdev.c
+@@ -253,7 +253,7 @@ static int radeon_fbdev_fb_helper_fb_probe(struct drm_fb_helper *fb_helper,
+ 	}
+ 
+ 	info->fbops = &radeon_fbdev_fb_ops;
+-	info->flags = FBINFO_DEFAULT;
++
+ 	/* radeon resume is fragile and needs a vt switch to help it along */
+ 	info->skip_vt_switch = false;
+ 
+-- 
+2.41.0
 
---------------fKlGCpVLu7rfpmAw9xHrErQE
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature"
-
------BEGIN PGP SIGNATURE-----
-
-wsF5BAABCAAjFiEExndm/fpuMUdwYFFolh/E3EQov+AFAmSy5qAFAwAAAAAACgkQlh/E3EQov+DV
-hg//Xw0qaGOqIuiMoHIxPoO8/jbT0356p1A2GRp52n9+r+rHkHF4HBkb7K4W9jjF+5tjpd7chkiB
-8qEqheekrCWZ6Vg8ZqIDmJPes4pHsd56bExm6Jk8yTa7rShbN9Jdogm44a3TVOXcOVM+gHl0h3Jh
-GbksvdQX1g+l4EzK4UlFOBJit/oLHofORyKyki0I4a0kVyPbYj6ynVvwVIlFQbocybEUVTLfTGz7
-cHPzSdv7hsngyXhdqjzGNX4EMEwktcP42IXHv4Jrcxu2e4rILtJvmXvK5ku5t/FX6yMpxSU3oaaP
-t13+3PS/JVSt/S3X+kyQwazL2Jx4BBrWNRNlL1Dbm80OzdntELHprVOCvB+ZTq6Yz5OUfJbdh+00
-3SU6nfvCKNtOmEhaYyGE5XSlQPcjs43SABM5lqIZbdozKVB0EUPsRkOfa05ZrAykwha36qgUjDqf
-z4u9moi7/bPNo7REdwXW0ogALg+q3FFq3HfW2umUmh3Pu+YdMVBr7FF0yzzdyBN4IRrv0QljXhgl
-XjJgXl7r9Ize6S5GzfCVM7QUuR/LTL6vcP/wUy/Awemx6odLnVvxnKQipgrP6/dATviNyXPB5IrK
-5E32NfllUy4qk3XvVBbRV8Yr7OsXq0tn6jSQFvwDbU8QpeyPt+ERYjqMD1S+hDHoars/jf8eFkUb
-qtw=
-=Utls
------END PGP SIGNATURE-----
-
---------------fKlGCpVLu7rfpmAw9xHrErQE--
