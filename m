@@ -2,46 +2,47 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81219EB64DD
-	for <linux-omap@archiver.kernel.org>; Fri, 21 Jul 2023 10:35:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D814C0015E
+	for <linux-omap@archiver.kernel.org>; Fri, 21 Jul 2023 10:36:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230218AbjGUKfx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 21 Jul 2023 06:35:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38342 "EHLO
+        id S230080AbjGUKgl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 21 Jul 2023 06:36:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229872AbjGUKfv (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jul 2023 06:35:51 -0400
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97D90E4C;
-        Fri, 21 Jul 2023 03:35:50 -0700 (PDT)
+        with ESMTP id S229749AbjGUKgj (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 21 Jul 2023 06:36:39 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4CA9172A;
+        Fri, 21 Jul 2023 03:36:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1689935750; x=1721471750;
+  t=1689935797; x=1721471797;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=L/NJ/w10IQWUlEjyQLiO2uYOGxQAL9QJNmq1vUB6K94=;
-  b=Zs2ia3kzcbfkEdy3u7PEylQ31UpjU/azrllNlQjCMaCZPf87Mob0S0Ps
-   voUKC0c2Zb56wF/1X78+Uv8cUuNvTxO4ZXNASavgAoRZKuEEYnxgk+Ftr
-   8wy864u1MK/eGYsn4yPXr8AxqfE5r40REaB/PoJ4u8NbKHcp2m3ep4qZZ
-   ErGUMV/arTbq//2C3har9VaPfs0burOdpv7LdFXaZ528aABayFHLAsFLx
-   9lha/XX7xk0sz87OrY4NMVyBplPX526jBglPe6bixUEnopiqQY2mmGkNh
-   4W/kXnHGIbmj+afGY2F3iADbYBFD+MtrHZADmnKN2lnL1C/h2GoA0Kh1t
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10777"; a="364456802"
+  bh=9Pcy3XY7VtAgZTGY4GeeWAbZPg9qIYLRSlYZUTwuw5g=;
+  b=SVPIZIOly0Gdw+7OuPbGbHox/Did7AXZ/SeoGua/cplx5ePvk8ne4sWh
+   Hq7MHj2vmO5z/zLzcerH2PtxGfouzIFO7Sa44YdugS+XPy/euy6ISPmsO
+   e0e0jppoVLV7wyT/Hk/uYSGO0vm42kpGSeK5U9YwQ7QkWHrUSgJx0958Z
+   7K+seHRJJ0Bpv0kMHK0Qnz3k3nY+Cu0lxoQV8Y/Cw7oDwwpPPKrCpz0Gq
+   fwricUbOXHVpq/yQMvwwKF6UwWdwnEChni+kBNaAXoklRASd8MM30Wguj
+   2Mc8NSvCLp458jY8raoRn9shnKsgrs8l7Vpe8VbUjK2ZQVVQiYgHHyc/s
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10777"; a="367030658"
 X-IronPort-AV: E=Sophos;i="6.01,220,1684825200"; 
-   d="scan'208";a="364456802"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2023 03:35:50 -0700
+   d="scan'208";a="367030658"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2023 03:36:35 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.01,202,1684825200"; 
-   d="scan'208";a="868201893"
+X-IronPort-AV: E=McAfee;i="6600,9927,10777"; a="1055519765"
+X-IronPort-AV: E=Sophos;i="6.01,220,1684825200"; 
+   d="scan'208";a="1055519765"
 Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga001.fm.intel.com with ESMTP; 21 Jul 2023 03:35:48 -0700
+  by fmsmga005.fm.intel.com with ESMTP; 21 Jul 2023 03:36:32 -0700
 Received: from andy by smile.fi.intel.com with local (Exim 4.96)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1qMnU9-000Inx-2u;
-        Fri, 21 Jul 2023 13:35:45 +0300
-Date:   Fri, 21 Jul 2023 13:35:45 +0300
+        id 1qMnUt-000KTV-0e;
+        Fri, 21 Jul 2023 13:36:31 +0300
+Date:   Fri, 21 Jul 2023 13:36:30 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Tony Lindgren <tony@atomide.com>
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -53,39 +54,27 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org,
         linux-omap@vger.kernel.org
-Subject: Re: [PATCH v3 3/3] serial: core: Fix serial core controller port
- name to show controller id
-Message-ID: <ZLpfgcDD6UeOAh/e@smile.fi.intel.com>
+Subject: Re: [PATCH v3 0/3] Serial core controller port device name fixes
+Message-ID: <ZLpfrtxG3/TBS3Sk@smile.fi.intel.com>
 References: <20230721072147.59121-1-tony@atomide.com>
- <20230721072147.59121-4-tony@atomide.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230721072147.59121-4-tony@atomide.com>
+In-Reply-To: <20230721072147.59121-1-tony@atomide.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Jul 21, 2023 at 10:21:42AM +0300, Tony Lindgren wrote:
-> We are missing the serial core controller id for the serial core port
-> name. Let's fix the issue for sane /sys/bus/serial-core/devices, and to
-> avoid issues addressing serial ports later on.
+On Fri, Jul 21, 2023 at 10:21:39AM +0300, Tony Lindgren wrote:
+> A few issues have been found with device naming for the serial core
+> controller port device. These issues currently mostly affect the output
+> for /sys/bus/serial-base/devices, but need to be also fixed to avoid
+> port addressing issues later on.
 
-...
-
-> +	if (type == &serial_ctrl_type)
-> +		return dev_set_name(dev, "%s.%s.%d", type->name,
-
-> +	else if (type == &serial_port_type)
-> +		return dev_set_name(dev, "%s.%s.%d.%d", type->name,
-> +				    dev_name(port->dev), ctrl_id,
-> +				    port_id);
-> +	else
-
-Redundant 'else' in both cases.
-
-> +		return -EINVAL;
+With the addressed change,
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+for the entire series, good fixes!
 
 -- 
 With Best Regards,
