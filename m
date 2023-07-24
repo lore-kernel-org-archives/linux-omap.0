@@ -2,42 +2,42 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E5B3C04A6A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC846C41513
 	for <linux-omap@archiver.kernel.org>; Mon, 24 Jul 2023 15:39:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231435AbjGXPjc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 24 Jul 2023 11:39:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54322 "EHLO
+        id S231424AbjGXPjd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 24 Jul 2023 11:39:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54328 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231408AbjGXPjb (ORCPT
+        with ESMTP id S231422AbjGXPjb (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Mon, 24 Jul 2023 11:39:31 -0400
 Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1EE4E67;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1DF6E5A;
         Mon, 24 Jul 2023 08:39:25 -0700 (PDT)
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 36OFdDiK105747;
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 36OFdDEr105741;
         Mon, 24 Jul 2023 10:39:13 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
         s=ti-com-17Q1; t=1690213153;
-        bh=wrf/VlTVjRP32vq/HLx5BghtoeppF7dNnTNy6YfYPG0=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=DYIsnki2hFdp1/10JB4N0CUKSHRZTtQ9orFpZuT6j83y49jlSIQG2FolOJUigu5Zb
-         p9KTV1ArU6deA2xfRCXa25i58gX1Gd+Rjs3qCyrFvF0l+1oC584sp/LdGEHG+3LBZq
-         j7Mq4evp7OJoBmF1cQgYKQL1N17Ul5dgkA7calKQ=
-Received: from DFLE102.ent.ti.com (dfle102.ent.ti.com [10.64.6.23])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 36OFdDV9065756
+        bh=jHf1+YHcvRTgeIgRDILeKSMz+Sy3wzGvBzTKbbw5fto=;
+        h=From:To:CC:Subject:Date;
+        b=rDPsJaY6dowhP8j9yxBL6a+karBkPKJ24xhNVzzsR8hi9MRvtOfTNBd/CLXrk3+6w
+         GYLNrPoEHOUeW8DmXcVCET2kcd/YxlC8ti+xDLolemqrE+3xSuAY2OStvj/GkQJJpM
+         jXKi2y+mAxmR4Z2+5t1aPCvffoh1WNEI/SAt1fiU=
+Received: from DFLE106.ent.ti.com (dfle106.ent.ti.com [10.64.6.27])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 36OFdDUc018401
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
         Mon, 24 Jul 2023 10:39:13 -0500
-Received: from DFLE113.ent.ti.com (10.64.6.34) by DFLE102.ent.ti.com
- (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
+Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE106.ent.ti.com
+ (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 24
  Jul 2023 10:39:13 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE113.ent.ti.com
- (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
  Frontend Transport; Mon, 24 Jul 2023 10:39:13 -0500
 Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 36OFdDvX040489;
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 36OFdDsj126997;
         Mon, 24 Jul 2023 10:39:13 -0500
 From:   Nishanth Menon <nm@ti.com>
 To:     Tony Lindgren <tony@atomide.com>,
@@ -52,12 +52,10 @@ CC:     Vibhore Vardhan <vibhore@ti.com>, Dhruva Gole <d-gole@ti.com>,
         <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <devicetree@vger.kernel.org>, <linux-pm@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH 2/5] arm: dts: ti: omap: am5729-beagleboneai: Drop the OPP
-Date:   Mon, 24 Jul 2023 10:39:08 -0500
-Message-ID: <20230724153911.1376830-3-nm@ti.com>
+Subject: [PATCH 0/5] dt-bindings: opp/cpufreq: Convert ti-cpufreq to
+Date:   Mon, 24 Jul 2023 10:39:06 -0500
+Message-ID: <20230724153911.1376830-1-nm@ti.com>
 X-Mailer: git-send-email 2.40.0
-In-Reply-To: <20230724153911.1376830-1-nm@ti.com>
-References: <20230724153911.1376830-1-nm@ti.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -66,33 +64,43 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-opp_slow is not defined in the table in dra7 or derivatives, drop the
-definition.
+Hi,
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Should probably go via Tony's tree
+Patches 1-3 are probably meant for omap tree via Tony and cleansup the
+existing tree while the patches 4-5 convert the exiting txt bindings to
+yaml.
 
- arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts | 6 ------
- 1 file changed, 6 deletions(-)
+This series also fixes up a bunch of dtbs_check warnings introduced into
+the arm64/boot/dts/ti tree as well.
 
-diff --git a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-index 149cfafb90bf..9a234dc1431d 100644
---- a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-+++ b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-@@ -677,12 +677,6 @@ &i2c4 {
- 	clock-frequency = <100000>;
- };
- 
--&cpu0_opp_table {
--	opp_slow-500000000 {
--		opp-shared;
--	};
--};
--
- &ipu2 {
- 	status = "okay";
- 	memory-region = <&ipu2_memory_region>;
+Nishanth Menon (5):
+  arm: dts: ti: omap: omap36xx: Rename opp_supply nodename
+  arm: dts: ti: omap: am5729-beagleboneai: Drop the OPP
+  arm: dts: ti: omap: Fix OPP table node names
+  dt-bindings: opp: Convert ti-omap5-opp-supply.txt to yaml binding
+  dt-bindings: cpufreq: Convert ti-cpufreq.txt to yaml binding
+
+ .../bindings/cpufreq/ti-cpufreq.txt           | 132 ------------------
+ .../bindings/opp/opp-v2-ti-cpu.yaml           |  88 ++++++++++++
+ .../bindings/opp/ti,omap-opp-supply.yaml      | 108 ++++++++++++++
+ .../bindings/opp/ti-omap5-opp-supply.txt      |  63 ---------
+ .../arm/boot/dts/ti/omap/am335x-boneblack.dts |   3 +-
+ .../dts/ti/omap/am335x-osd335x-common.dtsi    |   3 +-
+ arch/arm/boot/dts/ti/omap/am33xx.dtsi         |  30 ++--
+ arch/arm/boot/dts/ti/omap/am3517.dtsi         |   6 +-
+ arch/arm/boot/dts/ti/omap/am4372.dtsi         |  15 +-
+ arch/arm/boot/dts/ti/omap/am437x-idk-evm.dts  |   6 +-
+ .../boot/dts/ti/omap/am5729-beagleboneai.dts  |   6 -
+ arch/arm/boot/dts/ti/omap/dra7.dtsi           |   9 +-
+ arch/arm/boot/dts/ti/omap/dra76x.dtsi         |   3 +-
+ arch/arm/boot/dts/ti/omap/omap34xx.dtsi       |  12 +-
+ arch/arm/boot/dts/ti/omap/omap36xx.dtsi       |  14 +-
+ 15 files changed, 261 insertions(+), 237 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
+ create mode 100644 Documentation/devicetree/bindings/opp/opp-v2-ti-cpu.yaml
+ create mode 100644 Documentation/devicetree/bindings/opp/ti,omap-opp-supply.yaml
+ delete mode 100644 Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt
+
 -- 
 2.40.0
 
