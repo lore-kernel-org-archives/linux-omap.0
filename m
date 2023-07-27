@@ -2,46 +2,46 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D35B2C001E0
-	for <linux-omap@archiver.kernel.org>; Thu, 27 Jul 2023 11:30:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 394E1C04A94
+	for <linux-omap@archiver.kernel.org>; Thu, 27 Jul 2023 11:30:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232410AbjG0Lab (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 27 Jul 2023 07:30:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55108 "EHLO
+        id S231361AbjG0Lar (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 27 Jul 2023 07:30:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232662AbjG0LaX (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jul 2023 07:30:23 -0400
-Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7F1D35BF;
-        Thu, 27 Jul 2023 04:30:02 -0700 (PDT)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 36RBTS2q119183;
-        Thu, 27 Jul 2023 06:29:28 -0500
+        with ESMTP id S231429AbjG0Lam (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jul 2023 07:30:42 -0400
+Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5728C2D4D;
+        Thu, 27 Jul 2023 04:30:12 -0700 (PDT)
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 36RBTgnB128131;
+        Thu, 27 Jul 2023 06:29:42 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1690457368;
-        bh=7Utm4F15aZgg90XqeSzYnnyLrRWHIRnHF8JlWQv6/rI=;
+        s=ti-com-17Q1; t=1690457382;
+        bh=IjBCbSJ221EebTwpD5WfVnJJ00Wo86oSbaahb9kz5ik=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=AebL+SFIBFiUjyK3sNmOvKZsi08Fu7ovIdtBkDHfh5jyeRFoN3bXaIZY5xYM9Gg9/
-         zSVNtQX7OwVMlM/FXcD+2d+bvcYqpPNcQwTvCWx2OqTM0JgqVS+wXB13nH4hvG3MZY
-         T8j6VlCYvF95W+bZ4OjiQ+Bd0SYziK37atagO3W4=
-Received: from DFLE102.ent.ti.com (dfle102.ent.ti.com [10.64.6.23])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 36RBTSIt105260
+        b=MwBXKwDw4hwV3OZJ1gQAv5DoZ5SebGJhDRzQ/SVNFtf0wwhr6JD/Gs+wte8zfjXXX
+         R/mMvWql7oPtYXfJfzPrcYo3K0pQiyOgFr4QriAiiUUiZmfzcQ41Wen+k7vz0GrTIk
+         NtrfjXj7iLRLhfhz2hSoWXNMkH1T0u8gNiqTszAc=
+Received: from DLEE100.ent.ti.com (dlee100.ent.ti.com [157.170.170.30])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 36RBTf6N039029
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 27 Jul 2023 06:29:28 -0500
-Received: from DFLE106.ent.ti.com (10.64.6.27) by DFLE102.ent.ti.com
- (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 27 Jul 2023 06:29:42 -0500
+Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE100.ent.ti.com
+ (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 27
- Jul 2023 06:29:27 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE106.ent.ti.com
- (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
+ Jul 2023 06:29:41 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Thu, 27 Jul 2023 06:29:27 -0500
+ Frontend Transport; Thu, 27 Jul 2023 06:29:41 -0500
 Received: from lelv0854.itg.ti.com (lelv0854.itg.ti.com [10.181.64.140])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 36RBTR4G094410;
-        Thu, 27 Jul 2023 06:29:27 -0500
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 36RBTfiN092690;
+        Thu, 27 Jul 2023 06:29:41 -0500
 Received: from localhost (uda0501179.dhcp.ti.com [172.24.227.217])
-        by lelv0854.itg.ti.com (8.14.7/8.14.7) with ESMTP id 36RBTQ9a001439;
-        Thu, 27 Jul 2023 06:29:27 -0500
+        by lelv0854.itg.ti.com (8.14.7/8.14.7) with ESMTP id 36RBTeaX001462;
+        Thu, 27 Jul 2023 06:29:40 -0500
 From:   MD Danish Anwar <danishanwar@ti.com>
 To:     Randy Dunlap <rdunlap@infradead.org>,
         Roger Quadros <rogerq@kernel.org>,
@@ -61,9 +61,9 @@ CC:     <nm@ti.com>, <srk@ti.com>, <linux-kernel@vger.kernel.org>,
         <devicetree@vger.kernel.org>, <netdev@vger.kernel.org>,
         <linux-omap@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH v12 08/10] net: ti: icssg-prueth: Add Standard network staticstics
-Date:   Thu, 27 Jul 2023 16:58:25 +0530
-Message-ID: <20230727112827.3977534-9-danishanwar@ti.com>
+Subject: [PATCH v12 10/10] net: ti: icssg-prueth: Add Power management support
+Date:   Thu, 27 Jul 2023 16:58:27 +0530
+Message-ID: <20230727112827.3977534-11-danishanwar@ti.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230727112827.3977534-1-danishanwar@ti.com>
 References: <20230727112827.3977534-1-danishanwar@ti.com>
@@ -75,95 +75,90 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Implement .ndo_get_stats64 to dump standard network interface
-statistics for ICSSG ethernet driver.
+Add suspend / resume APIs to support power management in ICSSG ethernet
+driver.
 
+Reviewed-by: Andrew Lunn <andrew@lunn.ch>
 Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
 ---
- drivers/net/ethernet/ti/icssg/icssg_prueth.c | 22 ++++++++++++++++++++
- drivers/net/ethernet/ti/icssg/icssg_prueth.h |  2 ++
- drivers/net/ethernet/ti/icssg/icssg_stats.c  | 13 ++++++++++++
- 3 files changed, 37 insertions(+)
+ drivers/net/ethernet/ti/icssg/icssg_prueth.c | 57 ++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
 diff --git a/drivers/net/ethernet/ti/icssg/icssg_prueth.c b/drivers/net/ethernet/ti/icssg/icssg_prueth.c
-index 3d36f2a79fc8..8a12d3b1ac1f 100644
+index 01ba397ea2b6..3319373f8457 100644
 --- a/drivers/net/ethernet/ti/icssg/icssg_prueth.c
 +++ b/drivers/net/ethernet/ti/icssg/icssg_prueth.c
-@@ -1244,6 +1244,27 @@ static int emac_ndo_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
- 	return phy_do_ioctl(ndev, ifr, cmd);
+@@ -1817,6 +1817,62 @@ static void prueth_remove(struct platform_device *pdev)
+ 		prueth_put_cores(prueth, ICSS_SLICE0);
  }
  
-+static void emac_ndo_get_stats64(struct net_device *ndev,
-+				 struct rtnl_link_stats64 *stats)
++#ifdef CONFIG_PM_SLEEP
++static int prueth_suspend(struct device *dev)
 +{
-+	struct prueth_emac *emac = netdev_priv(ndev);
++	struct prueth *prueth = dev_get_drvdata(dev);
++	struct net_device *ndev;
++	int i, ret;
 +
-+	emac_update_hardware_stats(emac);
++	for (i = 0; i < PRUETH_NUM_MACS; i++) {
++		ndev = prueth->registered_netdevs[i];
 +
-+	stats->rx_packets     = emac_get_stat_by_name(emac, "rx_packets");
-+	stats->rx_bytes       = emac_get_stat_by_name(emac, "rx_bytes");
-+	stats->tx_packets     = emac_get_stat_by_name(emac, "tx_packets");
-+	stats->tx_bytes       = emac_get_stat_by_name(emac, "tx_bytes");
-+	stats->rx_crc_errors  = emac_get_stat_by_name(emac, "rx_crc_errors");
-+	stats->rx_over_errors = emac_get_stat_by_name(emac, "rx_over_errors");
-+	stats->multicast      = emac_get_stat_by_name(emac, "rx_multicast_frames");
++		if (!ndev)
++			continue;
 +
-+	stats->rx_errors  = ndev->stats.rx_errors;
-+	stats->rx_dropped = ndev->stats.rx_dropped;
-+	stats->tx_errors  = ndev->stats.tx_errors;
-+	stats->tx_dropped = ndev->stats.tx_dropped;
-+}
-+
- static const struct net_device_ops emac_netdev_ops = {
- 	.ndo_open = emac_ndo_open,
- 	.ndo_stop = emac_ndo_stop,
-@@ -1253,6 +1274,7 @@ static const struct net_device_ops emac_netdev_ops = {
- 	.ndo_tx_timeout = emac_ndo_tx_timeout,
- 	.ndo_set_rx_mode = emac_ndo_set_rx_mode,
- 	.ndo_eth_ioctl = emac_ndo_ioctl,
-+	.ndo_get_stats64 = emac_ndo_get_stats64,
- };
- 
- /* get emac_port corresponding to eth_node name */
-diff --git a/drivers/net/ethernet/ti/icssg/icssg_prueth.h b/drivers/net/ethernet/ti/icssg/icssg_prueth.h
-index bbde423ec51d..f0db3558b7a8 100644
---- a/drivers/net/ethernet/ti/icssg/icssg_prueth.h
-+++ b/drivers/net/ethernet/ti/icssg/icssg_prueth.h
-@@ -51,6 +51,7 @@
- 
- /* Number of ICSSG related stats */
- #define ICSSG_NUM_STATS 60
-+#define ICSSG_NUM_STANDARD_STATS 31
- 
- /* Firmware status codes */
- #define ICSS_HS_FW_READY 0x55555555
-@@ -254,4 +255,5 @@ void icssg_config_set_speed(struct prueth_emac *emac);
- 
- void emac_stats_work_handler(struct work_struct *work);
- void emac_update_hardware_stats(struct prueth_emac *emac);
-+int emac_get_stat_by_name(struct prueth_emac *emac, char *stat_name);
- #endif /* __NET_TI_ICSSG_PRUETH_H */
-diff --git a/drivers/net/ethernet/ti/icssg/icssg_stats.c b/drivers/net/ethernet/ti/icssg/icssg_stats.c
-index 25deb368a3f0..bb0b33927e3b 100644
---- a/drivers/net/ethernet/ti/icssg/icssg_stats.c
-+++ b/drivers/net/ethernet/ti/icssg/icssg_stats.c
-@@ -42,3 +42,16 @@ void emac_stats_work_handler(struct work_struct *work)
- 	queue_delayed_work(system_long_wq, &emac->stats_work,
- 			   msecs_to_jiffies((STATS_TIME_LIMIT_1G_MS * 1000) / emac->speed));
- }
-+
-+int emac_get_stat_by_name(struct prueth_emac *emac, char *stat_name)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(icssg_all_stats); i++) {
-+		if (!strcmp(icssg_all_stats[i].name, stat_name))
-+			return emac->stats[icssg_all_stats[i].offset / sizeof(u32)];
++		if (netif_running(ndev)) {
++			netif_device_detach(ndev);
++			ret = emac_ndo_stop(ndev);
++			if (ret < 0) {
++				netdev_err(ndev, "failed to stop: %d", ret);
++				return ret;
++			}
++		}
 +	}
 +
-+	netdev_err(emac->ndev, "Invalid stats %s\n", stat_name);
-+	return -EINVAL;
++	return 0;
 +}
++
++static int prueth_resume(struct device *dev)
++{
++	struct prueth *prueth = dev_get_drvdata(dev);
++	struct net_device *ndev;
++	int i, ret;
++
++	for (i = 0; i < PRUETH_NUM_MACS; i++) {
++		ndev = prueth->registered_netdevs[i];
++
++		if (!ndev)
++			continue;
++
++		if (netif_running(ndev)) {
++			ret = emac_ndo_open(ndev);
++			if (ret < 0) {
++				netdev_err(ndev, "failed to start: %d", ret);
++				return ret;
++			}
++			netif_device_attach(ndev);
++		}
++	}
++
++	return 0;
++}
++#endif /* CONFIG_PM_SLEEP */
++
++static const struct dev_pm_ops prueth_dev_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(prueth_suspend, prueth_resume)
++};
++
+ static const struct prueth_pdata am654_icssg_pdata = {
+ 	.fdqring_mode = K3_RINGACC_RING_MODE_MESSAGE,
+ 	.quirk_10m_link_issue = 1,
+@@ -1834,6 +1890,7 @@ static struct platform_driver prueth_driver = {
+ 	.driver = {
+ 		.name = "icssg-prueth",
+ 		.of_match_table = prueth_dt_match,
++		.pm = &prueth_dev_pm_ops,
+ 	},
+ };
+ module_platform_driver(prueth_driver);
 -- 
 2.34.1
 
