@@ -2,62 +2,62 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10975C001DC
-	for <linux-omap@archiver.kernel.org>; Thu, 27 Jul 2023 15:26:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44905C41513
+	for <linux-omap@archiver.kernel.org>; Thu, 27 Jul 2023 15:26:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234011AbjG0P0v (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 27 Jul 2023 11:26:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38812 "EHLO
+        id S234599AbjG0P0w (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 27 Jul 2023 11:26:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38832 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234181AbjG0P0t (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jul 2023 11:26:49 -0400
-Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C39962D6A;
-        Thu, 27 Jul 2023 08:26:47 -0700 (PDT)
-Received: by mail-wr1-x42f.google.com with SMTP id ffacd0b85a97d-31786b71fdcso193632f8f.2;
-        Thu, 27 Jul 2023 08:26:47 -0700 (PDT)
+        with ESMTP id S234588AbjG0P0u (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jul 2023 11:26:50 -0400
+Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A97231FF2;
+        Thu, 27 Jul 2023 08:26:49 -0700 (PDT)
+Received: by mail-wm1-x32e.google.com with SMTP id 5b1f17b1804b1-3fbc656873eso12229525e9.1;
+        Thu, 27 Jul 2023 08:26:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1690471606; x=1691076406;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=GUQyuOtfNbWPvY5eKKHj+k484zL92SmCITGys5Zq2is=;
-        b=S5gVWoDdcvk+NvnLtoMM/XBJt3y/MmZuwC5G5oxghFxemupZ0CBfTN+v+UmMpmU0tl
-         zhEM8zPsQSCrKd5X3rY9BzOPoS1xVN3xyQzM11u3akp2ujSq7mK9DtTSO0zK01t+4PIp
-         sJZj7h5y9n+Rtq8KGcHURqbMdXo45mCcjaoizPKKHLfFogQ1/WSXgxrXrKlZxTdb2Oem
-         tGnsRynkAXv1m5tk4vKI3Zjq/iLf0dy3VUI2KLGCWxxzAe/N/WKqaQq57dgmcvzLTHIl
-         tZ/kxxIB4APH9XRitIjd7kN7pqWpcGUR84oWYorGPNY79Wfm/2wAB+gfdYK5Jkg2k6fI
-         yvkQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690471606; x=1691076406;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=gmail.com; s=20221208; t=1690471608; x=1691076408;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=GUQyuOtfNbWPvY5eKKHj+k484zL92SmCITGys5Zq2is=;
-        b=DPWNZHjtZoikXdICy9qTclcYuFjHYr6oyXVbGBLZRBxqIzGROKs87Uwx1dpO1HjNEs
-         McoRyy9G9822M8REYp9Jyc4p6rxkS0whAIMJK9t4oPbiuCTqonm++RXNTFScHIoW7HGn
-         +WUBR/vOYz3UKIsNhw7dB4+DrUtfjMy3Aayx1nay5+7D8wZxG5no2l9m7ujqPMuIuV9i
-         D7FyuZcVwumexCBwBUvDStB8cHhYW70faEzmfA4EX1R22z7giXNLDty6ZbPlmg9JYv9j
-         HiaR9Tt2N+305qwrOVKkNnlf8otsv7tgftmw35cmu5kQe9GHpgoUasZL09Zk4g8gGR5H
-         nqnw==
-X-Gm-Message-State: ABy/qLZ5D1MZnoIMSJJ9E8i/Qz6iQX8gSfZQT8XAuQ2JdR4KYW0k2yOG
-        uhCI1q6C5Qh6Y8JcXlcUJUI=
-X-Google-Smtp-Source: APBJJlHFzL6FoulKIhle8aYNwxrIqQJXRUpz53AOkn4fETi3AZ/P3ovRQGBkowuZ76zu/M+VYY4Tfw==
-X-Received: by 2002:a5d:658b:0:b0:317:6d9d:1250 with SMTP id q11-20020a5d658b000000b003176d9d1250mr1938309wru.61.1690471605833;
-        Thu, 27 Jul 2023 08:26:45 -0700 (PDT)
+        bh=z5lUd6tLllXoqVN95rU12GI/kHjXVOUk+BNB7Y22cto=;
+        b=FjsdD+F62OVFGK0evuFmUjv+fYHflFxnl7eTSOLR+NXfZROQ34Eou4GPvtFmLGiJwb
+         Ks70ALf537BmtGdLK4EB7Ufr6+Zu+b7jPbyo7IxuK8/NfIgkhA0/5j32Px3PuRN2Wh6q
+         Hmb8OtMzEH6euQFvszszXZ4erEJb5h/YmVrCJz1Z6DFjIxsFOHZOIWEmHAuybBNDPEPX
+         hX4cF2DoQ8xxqWjap1trw7ZrA5q0tocGUEiXVaT1VPUh1dZa2FQscPW0BTp3oPSbD9Dz
+         cvcBp+Qy0PZuq61ANQpoT6/cMDmAzmzNLo/SZp73vZqmOgM00VaYyqjdUIdN6c7IqeML
+         R10w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1690471608; x=1691076408;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=z5lUd6tLllXoqVN95rU12GI/kHjXVOUk+BNB7Y22cto=;
+        b=KjqA72P0/eF2AFM0NWZ+0x4rxBsLi14R3qrEqlh56mZhvVhx/qf5RYfHl+cs+wFclu
+         4d9ILcW6UAZJNWUssCn5vltQjuifni5LP2gegeQskW1sQry54WabNMFprfit315i99Cz
+         nmilhEKICo+I+oFHu2oG9bRTeO9ImBHULrsGpkQOQ6SQ/60Xwo+gYAc+nK2GEBJOIYbM
+         zTLpbWbomb3W407Cpy54awtjfmJSUBx5NbdB5sTEYupjuD6j2tHyMO9bAEBS5HZChOzQ
+         yi0DCzUxndCupjCRPrqI/DyfPHqylB1PWVLr+0QXbbgFxPO5qHahf/NNyzLS+MoeITon
+         7Byw==
+X-Gm-Message-State: ABy/qLbyOgrJNo8Rc0UYK/keKcb0J85IBe+MvmJ04pLO8iMA+TIL8CRA
+        wTb6bld8hUOnViABjH+7D2I=
+X-Google-Smtp-Source: APBJJlFjGqSrbh0oMoihKOPYd1QdUFuycfFOnzva1CI7AXyNbgeXj1ldzIMEDsOHkjausLac9x92sQ==
+X-Received: by 2002:a05:600c:ac1:b0:3fb:a100:2581 with SMTP id c1-20020a05600c0ac100b003fba1002581mr2186582wmr.14.1690471607767;
+        Thu, 27 Jul 2023 08:26:47 -0700 (PDT)
 Received: from [127.0.1.1] ([91.230.2.244])
-        by smtp.gmail.com with ESMTPSA id b17-20020adfde11000000b003143765e207sm2350622wrm.49.2023.07.27.08.26.45
+        by smtp.gmail.com with ESMTPSA id b17-20020adfde11000000b003143765e207sm2350622wrm.49.2023.07.27.08.26.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Jul 2023 08:26:45 -0700 (PDT)
+        Thu, 27 Jul 2023 08:26:47 -0700 (PDT)
 From:   Benjamin Bara <bbara93@gmail.com>
-Subject: [PATCH 0/6] regulator: pca9450: register restart handlers
-Date:   Thu, 27 Jul 2023 17:26:35 +0200
-Message-Id: <20230727-pca9450-reboot-v1-0-c8edb27bf404@skidata.com>
+Date:   Thu, 27 Jul 2023 17:26:37 +0200
+Subject: [PATCH 2/6] mfd: rk8xx: Specify restart mode
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAKuMwmQC/x3MQQqAIBBA0avErBNsMqyuEi3UxpqNhkYE0t2Tl
- m/xf4FMiSnD3BRIdHPmGCq6tgF3mLCT4K0aUGIvNSpxOjOpQYpENsZLSNsjdqN32iDU6Ezk+fm
- Hy/q+H+CkDbhgAAAA
+Message-Id: <20230727-pca9450-reboot-v1-2-c8edb27bf404@skidata.com>
+References: <20230727-pca9450-reboot-v1-0-c8edb27bf404@skidata.com>
+In-Reply-To: <20230727-pca9450-reboot-v1-0-c8edb27bf404@skidata.com>
 To:     Lee Jones <lee@kernel.org>,
         Thierry Reding <thierry.reding@gmail.com>,
         Jonathan Hunter <jonathanh@nvidia.com>,
@@ -75,47 +75,30 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi!
+From: Benjamin Bara <benjamin.bara@skidata.com>
 
-This series implements two restart handler registrations for the pca9450
-(6/6). As the pca9450 supports both, cold and warm resets, and there
-exist at least one other PMIC implementation which also implements a
-warm and a cold reset (tps65219), 1-5/6 should simplify/clarify the
-distinction process between warm/soft and cold/hard resets/restarts.
-Instead of deciding in the handler, this should be done during
-registration. The series is a follow-up to Dmitry's feedback, regarding
-checking the reboot_mode in the handler [1].
+Specify the implemented restart handler as a cold one.
 
-This series is based on linux-next and 6/6 depends on [2].
-
-Thanks & best regards,
-Benjamin
-
-[1] https://lore.kernel.org/all/7eddaf8c-ab04-7670-fc45-15f0fce5eff2@collabora.com/
-[2] https://lore.kernel.org/all/20230327-tegra-pmic-reboot-v7-3-18699d5dcd76@skidata.com/
-
+Signed-off-by: Benjamin Bara <benjamin.bara@skidata.com>
 ---
-Benjamin Bara (6):
-      kernel/reboot: distinguish between cold and warm
-      mfd: rk8xx: Specify restart mode
-      soc/tegra: pmc: Specify restart mode
-      mfd: tps65219: Specify restart mode
-      kernel/reboot: remove generic restart mode
-      regulator: pca9450: register restart handlers
+ drivers/mfd/rk8xx-core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
- drivers/mfd/rk8xx-core.c              |  3 +-
- drivers/mfd/tps65219.c                | 17 ++++++--
- drivers/regulator/pca9450-regulator.c | 59 +++++++++++++++++++++++++
- drivers/soc/tegra/pmc.c               |  2 +-
- include/linux/reboot.h                | 23 +++++++---
- include/linux/regulator/pca9450.h     |  7 +++
- kernel/reboot.c                       | 82 +++++++++++++++++++++++++++++------
- 7 files changed, 167 insertions(+), 26 deletions(-)
----
-base-commit: 4d2c646ac07cf4a35ef1c4a935a1a4fd6c6b1a36
-change-id: 20230724-pca9450-reboot-0b32218fc7a2
+diff --git a/drivers/mfd/rk8xx-core.c b/drivers/mfd/rk8xx-core.c
+index e8fc9e2ab1d0..15e8e6a9943a 100644
+--- a/drivers/mfd/rk8xx-core.c
++++ b/drivers/mfd/rk8xx-core.c
+@@ -697,7 +697,8 @@ int rk8xx_probe(struct device *dev, int variant, unsigned int irq, struct regmap
+ 		case RK809_ID:
+ 		case RK817_ID:
+ 			ret = devm_register_sys_off_handler(dev,
+-							    SYS_OFF_MODE_RESTART, SYS_OFF_PRIO_HIGH,
++							    SYS_OFF_MODE_RESTART_COLD,
++							    SYS_OFF_PRIO_HIGH,
+ 							    &rk808_restart, rk808);
+ 			if (ret)
+ 				dev_warn(dev, "failed to register rst handler, %d\n", ret);
 
-Best regards,
 -- 
-Benjamin Bara <benjamin.bara@skidata.com>
+2.34.1
 
