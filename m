@@ -2,46 +2,46 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2B0DC001DC
-	for <linux-omap@archiver.kernel.org>; Thu, 27 Jul 2023 11:30:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 013BBC04A6A
+	for <linux-omap@archiver.kernel.org>; Thu, 27 Jul 2023 11:30:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231922AbjG0LaG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 27 Jul 2023 07:30:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54980 "EHLO
+        id S232146AbjG0LaJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 27 Jul 2023 07:30:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232086AbjG0L3w (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jul 2023 07:29:52 -0400
-Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF2A7358A;
-        Thu, 27 Jul 2023 04:29:40 -0700 (PDT)
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 36RBT1Tr119121;
-        Thu, 27 Jul 2023 06:29:01 -0500
+        with ESMTP id S232434AbjG0L36 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jul 2023 07:29:58 -0400
+Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3645E30F7;
+        Thu, 27 Jul 2023 04:29:43 -0700 (PDT)
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 36RBTLNX084709;
+        Thu, 27 Jul 2023 06:29:21 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1690457341;
-        bh=IEH4yTi10RkH3tJJvcjqP8HsfdZ0N5m89bHnFN/xamk=;
+        s=ti-com-17Q1; t=1690457361;
+        bh=rNRXlEg6FR9PAJpPyNqq1ilFUgNel1pe6xQ1GSTdGug=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=pxwW5tTuVKQk/9K5LE0U9BkNIkp5SItZC1M7SdjdELzM/IVgvRa3303GLuTxyRSPm
-         DOi6OaIiEvJkZnWacE1xs9ruxS5xptjcUlUi/jlN4FuJJ3/1mCepqNyb+7PJd3sQsE
-         TR6UtcF4EeHiYCqn25qKjDqQtM970gbc8JK0cMYg=
-Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 36RBT1u0020211
+        b=HwdaggcMtO57ooSAmxsQVncRN5IOgEGobTv7NsrTW6I8KeRxay58gCn2993ArGXEn
+         6shsww29hn9yJBNM/6t7ZoOgwA8dk5ZaOvPXt6v0vC8ZOtwyy1iJFePmJiCdN6dzxC
+         Lo5wa7Wb8Xm4N8XtiUk6uKuG0yO89g9OuV8nPTtM=
+Received: from DLEE102.ent.ti.com (dlee102.ent.ti.com [157.170.170.32])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 36RBTLh6038887
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 27 Jul 2023 06:29:01 -0500
-Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE114.ent.ti.com
- (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+        Thu, 27 Jul 2023 06:29:21 -0500
+Received: from DLEE115.ent.ti.com (157.170.170.26) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 27
- Jul 2023 06:29:01 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE100.ent.ti.com
- (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
+ Jul 2023 06:29:21 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE115.ent.ti.com
+ (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Thu, 27 Jul 2023 06:29:01 -0500
+ Frontend Transport; Thu, 27 Jul 2023 06:29:20 -0500
 Received: from lelv0854.itg.ti.com (lelv0854.itg.ti.com [10.181.64.140])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 36RBT1qn014787;
-        Thu, 27 Jul 2023 06:29:01 -0500
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 36RBTLok070314;
+        Thu, 27 Jul 2023 06:29:21 -0500
 Received: from localhost (uda0501179.dhcp.ti.com [172.24.227.217])
-        by lelv0854.itg.ti.com (8.14.7/8.14.7) with ESMTP id 36RBT09M001377;
-        Thu, 27 Jul 2023 06:29:00 -0500
+        by lelv0854.itg.ti.com (8.14.7/8.14.7) with ESMTP id 36RBTKcU001421;
+        Thu, 27 Jul 2023 06:29:20 -0500
 From:   MD Danish Anwar <danishanwar@ti.com>
 To:     Randy Dunlap <rdunlap@infradead.org>,
         Roger Quadros <rogerq@kernel.org>,
@@ -61,9 +61,9 @@ CC:     <nm@ti.com>, <srk@ti.com>, <linux-kernel@vger.kernel.org>,
         <devicetree@vger.kernel.org>, <netdev@vger.kernel.org>,
         <linux-omap@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH v12 04/10] net: ti: icssg-prueth: Add icssg queues APIs and macros
-Date:   Thu, 27 Jul 2023 16:58:21 +0530
-Message-ID: <20230727112827.3977534-5-danishanwar@ti.com>
+Subject: [PATCH v12 07/10] net: ti: icssg-prueth: Add ICSSG Stats
+Date:   Thu, 27 Jul 2023 16:58:24 +0530
+Message-ID: <20230727112827.3977534-8-danishanwar@ti.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230727112827.3977534-1-danishanwar@ti.com>
 References: <20230727112827.3977534-1-danishanwar@ti.com>
@@ -75,60 +75,329 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add icssg_queue.c file. This file introduces macros and APIs related to
-ICSSG queues. These will be used by ICSSG Ethernet driver.
+Add icssg_stats.c to help dump, icssg related driver statistics.
 
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
+ICSSG has hardware registers for providing statistics like total rx bytes,
+total tx bytes, etc. These registers are of 32 bits and hence in case of 1G
+link, they overflows in around 32 seconds. The behaviour of these registers
+is such that they don't roll back to 0 after overflow but rather stay at
+UINT_MAX.
+
+These registers support a feature where the value written to them is
+subtracted from the register. This feature can be utilized to fix the
+overflowing of stats.
+
+This solution uses a Workqueues based solution where a function gets
+called before the registers overflow (every 25 seconds in 1G link, 25000
+seconds in 100M link), this function saves the register
+values in local variables and writes the last read value to the
+register. So any update during the read will be taken care of.
+
 Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
 ---
- drivers/net/ethernet/ti/icssg/icssg_queues.c | 38 ++++++++++++++++++++
- 1 file changed, 38 insertions(+)
- create mode 100644 drivers/net/ethernet/ti/icssg/icssg_queues.c
+ drivers/net/ethernet/ti/Makefile             |   1 +
+ drivers/net/ethernet/ti/icssg/icssg_prueth.c |   8 +
+ drivers/net/ethernet/ti/icssg/icssg_prueth.h |   8 +
+ drivers/net/ethernet/ti/icssg/icssg_stats.c  |  44 ++++++
+ drivers/net/ethernet/ti/icssg/icssg_stats.h  | 158 +++++++++++++++++++
+ 5 files changed, 219 insertions(+)
+ create mode 100644 drivers/net/ethernet/ti/icssg/icssg_stats.c
+ create mode 100644 drivers/net/ethernet/ti/icssg/icssg_stats.h
 
-diff --git a/drivers/net/ethernet/ti/icssg/icssg_queues.c b/drivers/net/ethernet/ti/icssg/icssg_queues.c
+diff --git a/drivers/net/ethernet/ti/Makefile b/drivers/net/ethernet/ti/Makefile
+index efb050cbb4a8..03d9b2b36b5f 100644
+--- a/drivers/net/ethernet/ti/Makefile
++++ b/drivers/net/ethernet/ti/Makefile
+@@ -36,3 +36,4 @@ icssg-prueth-y := k3-cppi-desc-pool.o \
+ 		  icssg/icssg_queues.o \
+ 		  icssg/icssg_config.o \
+ 		  icssg/icssg_mii_cfg.o \
++		  icssg/icssg_stats.o \
+diff --git a/drivers/net/ethernet/ti/icssg/icssg_prueth.c b/drivers/net/ethernet/ti/icssg/icssg_prueth.c
+index 49e21657d876..3d36f2a79fc8 100644
+--- a/drivers/net/ethernet/ti/icssg/icssg_prueth.c
++++ b/drivers/net/ethernet/ti/icssg/icssg_prueth.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/bitops.h>
+ #include <linux/clk.h>
++#include <linux/delay.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/dma/ti-cppi5.h>
+ #include <linux/etherdevice.h>
+@@ -1094,6 +1095,8 @@ static int emac_ndo_open(struct net_device *ndev)
+ 
+ 	prueth->emacs_initialized++;
+ 
++	queue_work(system_long_wq, &emac->stats_work.work);
++
+ 	return 0;
+ 
+ reset_tx_chan:
+@@ -1168,6 +1171,9 @@ static int emac_ndo_stop(struct net_device *ndev)
+ 
+ 	cancel_work_sync(&emac->rx_mode_work);
+ 
++	/* Destroying the queued work in ndo_stop() */
++	cancel_delayed_work_sync(&emac->stats_work);
++
+ 	/* stop PRUs */
+ 	prueth_emac_stop(emac);
+ 
+@@ -1317,6 +1323,8 @@ static int prueth_netdev_init(struct prueth *prueth,
+ 	}
+ 	INIT_WORK(&emac->rx_mode_work, emac_ndo_set_rx_mode_work);
+ 
++	INIT_DELAYED_WORK(&emac->stats_work, emac_stats_work_handler);
++
+ 	ret = pruss_request_mem_region(prueth->pruss,
+ 				       port == PRUETH_PORT_MII0 ?
+ 				       PRUSS_MEM_DRAM0 : PRUSS_MEM_DRAM1,
+diff --git a/drivers/net/ethernet/ti/icssg/icssg_prueth.h b/drivers/net/ethernet/ti/icssg/icssg_prueth.h
+index 69d1c9ee8e43..bbde423ec51d 100644
+--- a/drivers/net/ethernet/ti/icssg/icssg_prueth.h
++++ b/drivers/net/ethernet/ti/icssg/icssg_prueth.h
+@@ -49,6 +49,9 @@
+ 
+ #define ICSSG_MAX_RFLOWS	8	/* per slice */
+ 
++/* Number of ICSSG related stats */
++#define ICSSG_NUM_STATS 60
++
+ /* Firmware status codes */
+ #define ICSS_HS_FW_READY 0x55555555
+ #define ICSS_HS_FW_DEAD 0xDEAD0000	/* lower 16 bits contain error code */
+@@ -153,6 +156,9 @@ struct prueth_emac {
+ 	struct workqueue_struct	*cmd_wq;
+ 
+ 	struct pruss_mem_region dram;
++
++	struct delayed_work stats_work;
++	u64 stats[ICSSG_NUM_STATS];
+ };
+ 
+ /**
+@@ -246,4 +252,6 @@ void icssg_config_set_speed(struct prueth_emac *emac);
+ #define prueth_napi_to_tx_chn(pnapi) \
+ 	container_of(pnapi, struct prueth_tx_chn, napi_tx)
+ 
++void emac_stats_work_handler(struct work_struct *work);
++void emac_update_hardware_stats(struct prueth_emac *emac);
+ #endif /* __NET_TI_ICSSG_PRUETH_H */
+diff --git a/drivers/net/ethernet/ti/icssg/icssg_stats.c b/drivers/net/ethernet/ti/icssg/icssg_stats.c
 new file mode 100644
-index 000000000000..2e3f7db43db7
+index 000000000000..25deb368a3f0
 --- /dev/null
-+++ b/drivers/net/ethernet/ti/icssg/icssg_queues.c
-@@ -0,0 +1,38 @@
++++ b/drivers/net/ethernet/ti/icssg/icssg_stats.c
+@@ -0,0 +1,44 @@
 +// SPDX-License-Identifier: GPL-2.0
-+/* ICSSG Buffer queue helpers
++/* Texas Instruments ICSSG Ethernet driver
 + *
-+ * Copyright (C) 2021 Texas Instruments Incorporated - https://www.ti.com
++ * Copyright (C) 2018-2021 Texas Instruments Incorporated - https://www.ti.com/
++ *
 + */
 +
++#include "icssg_prueth.h"
++#include "icssg_stats.h"
 +#include <linux/regmap.h>
++
++static u32 stats_base[] = {	0x54c,	/* Slice 0 stats start */
++				0xb18,	/* Slice 1 stats start */
++};
++
++void emac_update_hardware_stats(struct prueth_emac *emac)
++{
++	struct prueth *prueth = emac->prueth;
++	int slice = prueth_emac_slice(emac);
++	u32 base = stats_base[slice];
++	u32 val;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(icssg_all_stats); i++) {
++		regmap_read(prueth->miig_rt,
++			    base + icssg_all_stats[i].offset,
++			    &val);
++		regmap_write(prueth->miig_rt,
++			     base + icssg_all_stats[i].offset,
++			     val);
++
++		emac->stats[i] += val;
++	}
++}
++
++void emac_stats_work_handler(struct work_struct *work)
++{
++	struct prueth_emac *emac = container_of(work, struct prueth_emac,
++						stats_work.work);
++	emac_update_hardware_stats(emac);
++
++	queue_delayed_work(system_long_wq, &emac->stats_work,
++			   msecs_to_jiffies((STATS_TIME_LIMIT_1G_MS * 1000) / emac->speed));
++}
+diff --git a/drivers/net/ethernet/ti/icssg/icssg_stats.h b/drivers/net/ethernet/ti/icssg/icssg_stats.h
+new file mode 100644
+index 000000000000..999a4a91276c
+--- /dev/null
++++ b/drivers/net/ethernet/ti/icssg/icssg_stats.h
+@@ -0,0 +1,158 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Texas Instruments ICSSG Ethernet driver
++ *
++ * Copyright (C) 2018-2022 Texas Instruments Incorporated - https://www.ti.com/
++ *
++ */
++
++#ifndef __NET_TI_ICSSG_STATS_H
++#define __NET_TI_ICSSG_STATS_H
++
 +#include "icssg_prueth.h"
 +
-+#define ICSSG_QUEUES_MAX		64
-+#define ICSSG_QUEUE_OFFSET		0xd00
-+#define ICSSG_QUEUE_PEEK_OFFSET		0xe00
-+#define ICSSG_QUEUE_CNT_OFFSET		0xe40
-+#define	ICSSG_QUEUE_RESET_OFFSET	0xf40
++#define STATS_TIME_LIMIT_1G_MS    25000    /* 25 seconds @ 1G */
 +
-+int __maybe_unused icssg_queue_pop(struct prueth *prueth, u8 queue)
-+{
-+	u32 val, cnt;
++struct miig_stats_regs {
++	/* Rx */
++	u32 rx_packets;
++	u32 rx_broadcast_frames;
++	u32 rx_multicast_frames;
++	u32 rx_crc_errors;
++	u32 rx_mii_error_frames;
++	u32 rx_odd_nibble_frames;
++	u32 rx_frame_max_size;
++	u32 rx_max_size_error_frames;
++	u32 rx_frame_min_size;
++	u32 rx_min_size_error_frames;
++	u32 rx_over_errors;
++	u32 rx_class0_hits;
++	u32 rx_class1_hits;
++	u32 rx_class2_hits;
++	u32 rx_class3_hits;
++	u32 rx_class4_hits;
++	u32 rx_class5_hits;
++	u32 rx_class6_hits;
++	u32 rx_class7_hits;
++	u32 rx_class8_hits;
++	u32 rx_class9_hits;
++	u32 rx_class10_hits;
++	u32 rx_class11_hits;
++	u32 rx_class12_hits;
++	u32 rx_class13_hits;
++	u32 rx_class14_hits;
++	u32 rx_class15_hits;
++	u32 rx_smd_frags;
++	u32 rx_bucket1_size;
++	u32 rx_bucket2_size;
++	u32 rx_bucket3_size;
++	u32 rx_bucket4_size;
++	u32 rx_64B_frames;
++	u32 rx_bucket1_frames;
++	u32 rx_bucket2_frames;
++	u32 rx_bucket3_frames;
++	u32 rx_bucket4_frames;
++	u32 rx_bucket5_frames;
++	u32 rx_bytes;
++	u32 rx_tx_total_bytes;
++	/* Tx */
++	u32 tx_packets;
++	u32 tx_broadcast_frames;
++	u32 tx_multicast_frames;
++	u32 tx_odd_nibble_frames;
++	u32 tx_underflow_errors;
++	u32 tx_frame_max_size;
++	u32 tx_max_size_error_frames;
++	u32 tx_frame_min_size;
++	u32 tx_min_size_error_frames;
++	u32 tx_bucket1_size;
++	u32 tx_bucket2_size;
++	u32 tx_bucket3_size;
++	u32 tx_bucket4_size;
++	u32 tx_64B_frames;
++	u32 tx_bucket1_frames;
++	u32 tx_bucket2_frames;
++	u32 tx_bucket3_frames;
++	u32 tx_bucket4_frames;
++	u32 tx_bucket5_frames;
++	u32 tx_bytes;
++};
 +
-+	if (queue >= ICSSG_QUEUES_MAX)
-+		return -EINVAL;
-+
-+	regmap_read(prueth->miig_rt, ICSSG_QUEUE_CNT_OFFSET + 4 * queue, &cnt);
-+	if (!cnt)
-+		return -EINVAL;
-+
-+	regmap_read(prueth->miig_rt, ICSSG_QUEUE_OFFSET + 4 * queue, &val);
-+
-+	return val;
++#define ICSSG_STATS(field, stats_type)			\
++{							\
++	#field,						\
++	offsetof(struct miig_stats_regs, field),	\
++	stats_type					\
 +}
 +
-+void __maybe_unused icssg_queue_push(struct prueth *prueth, int queue, u16 addr)
-+{
-+	if (queue >= ICSSG_QUEUES_MAX)
-+		return;
++struct icssg_stats {
++	char name[ETH_GSTRING_LEN];
++	u32 offset;
++	bool standard_stats;
++};
 +
-+	regmap_write(prueth->miig_rt, ICSSG_QUEUE_OFFSET + 4 * queue, addr);
-+}
++static const struct icssg_stats icssg_all_stats[] = {
++	/* Rx */
++	ICSSG_STATS(rx_packets, true),
++	ICSSG_STATS(rx_broadcast_frames, false),
++	ICSSG_STATS(rx_multicast_frames, true),
++	ICSSG_STATS(rx_crc_errors, true),
++	ICSSG_STATS(rx_mii_error_frames, false),
++	ICSSG_STATS(rx_odd_nibble_frames, false),
++	ICSSG_STATS(rx_frame_max_size, true),
++	ICSSG_STATS(rx_max_size_error_frames, false),
++	ICSSG_STATS(rx_frame_min_size, true),
++	ICSSG_STATS(rx_min_size_error_frames, false),
++	ICSSG_STATS(rx_over_errors, true),
++	ICSSG_STATS(rx_class0_hits, false),
++	ICSSG_STATS(rx_class1_hits, false),
++	ICSSG_STATS(rx_class2_hits, false),
++	ICSSG_STATS(rx_class3_hits, false),
++	ICSSG_STATS(rx_class4_hits, false),
++	ICSSG_STATS(rx_class5_hits, false),
++	ICSSG_STATS(rx_class6_hits, false),
++	ICSSG_STATS(rx_class7_hits, false),
++	ICSSG_STATS(rx_class8_hits, false),
++	ICSSG_STATS(rx_class9_hits, false),
++	ICSSG_STATS(rx_class10_hits, false),
++	ICSSG_STATS(rx_class11_hits, false),
++	ICSSG_STATS(rx_class12_hits, false),
++	ICSSG_STATS(rx_class13_hits, false),
++	ICSSG_STATS(rx_class14_hits, false),
++	ICSSG_STATS(rx_class15_hits, false),
++	ICSSG_STATS(rx_smd_frags, false),
++	ICSSG_STATS(rx_bucket1_size, true),
++	ICSSG_STATS(rx_bucket2_size, true),
++	ICSSG_STATS(rx_bucket3_size, true),
++	ICSSG_STATS(rx_bucket4_size, true),
++	ICSSG_STATS(rx_64B_frames, true),
++	ICSSG_STATS(rx_bucket1_frames, true),
++	ICSSG_STATS(rx_bucket2_frames, true),
++	ICSSG_STATS(rx_bucket3_frames, true),
++	ICSSG_STATS(rx_bucket4_frames, true),
++	ICSSG_STATS(rx_bucket5_frames, true),
++	ICSSG_STATS(rx_bytes, true),
++	ICSSG_STATS(rx_tx_total_bytes, false),
++	/* Tx */
++	ICSSG_STATS(tx_packets, true),
++	ICSSG_STATS(tx_broadcast_frames, false),
++	ICSSG_STATS(tx_multicast_frames, false),
++	ICSSG_STATS(tx_odd_nibble_frames, false),
++	ICSSG_STATS(tx_underflow_errors, false),
++	ICSSG_STATS(tx_frame_max_size, true),
++	ICSSG_STATS(tx_max_size_error_frames, false),
++	ICSSG_STATS(tx_frame_min_size, true),
++	ICSSG_STATS(tx_min_size_error_frames, false),
++	ICSSG_STATS(tx_bucket1_size, true),
++	ICSSG_STATS(tx_bucket2_size, true),
++	ICSSG_STATS(tx_bucket3_size, true),
++	ICSSG_STATS(tx_bucket4_size, true),
++	ICSSG_STATS(tx_64B_frames, true),
++	ICSSG_STATS(tx_bucket1_frames, true),
++	ICSSG_STATS(tx_bucket2_frames, true),
++	ICSSG_STATS(tx_bucket3_frames, true),
++	ICSSG_STATS(tx_bucket4_frames, true),
++	ICSSG_STATS(tx_bucket5_frames, true),
++	ICSSG_STATS(tx_bytes, true),
++};
++
++#endif /* __NET_TI_ICSSG_STATS_H */
 -- 
 2.34.1
 
