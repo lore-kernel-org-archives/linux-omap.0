@@ -2,60 +2,60 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4050BC41513
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B294C001E0
 	for <linux-omap@archiver.kernel.org>; Thu, 27 Jul 2023 15:26:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234627AbjG0P04 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 27 Jul 2023 11:26:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38916 "EHLO
+        id S233391AbjG0P0y (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 27 Jul 2023 11:26:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234601AbjG0P0x (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jul 2023 11:26:53 -0400
-Received: from mail-lj1-x229.google.com (mail-lj1-x229.google.com [IPv6:2a00:1450:4864:20::229])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CAD61FEC;
-        Thu, 27 Jul 2023 08:26:51 -0700 (PDT)
-Received: by mail-lj1-x229.google.com with SMTP id 38308e7fff4ca-2b9352ff1aeso16516681fa.1;
-        Thu, 27 Jul 2023 08:26:51 -0700 (PDT)
+        with ESMTP id S234595AbjG0P0u (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 27 Jul 2023 11:26:50 -0400
+Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B22631FF5;
+        Thu, 27 Jul 2023 08:26:48 -0700 (PDT)
+Received: by mail-wr1-x436.google.com with SMTP id ffacd0b85a97d-31765792c7cso1180620f8f.0;
+        Thu, 27 Jul 2023 08:26:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1690471609; x=1691076409;
+        d=gmail.com; s=20221208; t=1690471607; x=1691076407;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=HdSNTdHfu3gmfnNmRZ2hSNcbvNs2kLgKcLc95quFvnE=;
-        b=Ot63R368iSKukEqX+qAC4oDZKw7GhuAcTMUwho6PAJxiZPK18ngo6jwMnRNjiuzviz
-         gkNNylRKqi6X9L757EsPpYKtFQbb+RisWEfUA7RsDkNumkHgzLUMmqFLAHr3lKvhDSwK
-         8PV4j7sGqydTylHtyOuW4gSPtQA2vrTCKNIKIYvCxERNkgGIj0YZBYvAtZgmqR49kRpu
-         zFs6RIg1CIIzvsIpWz9XGwByufeeGFj0TxgY/irWUd3jqAt2Oq3Y1V58/Oe2h2e/Jhgw
-         v2Lr2YfuiySrvgVuQlpMUK9oe7nguXRcd27XtW6kfzZBJwE5OgkWmCXgcpt+DJrRVsha
-         AlDQ==
+        bh=R87BTfopelhJFglN5IN6As+cGJH4HVKKMNIB+DJTWpo=;
+        b=NZgk4HfJyy0U4LwtA03w7bjkCYbSBrHp5nQVOMa0tqIsIfnFDBSpzQAK9pPan32YCP
+         758WhVpcdhjbgLsuvtBOrQD+80wwe7F0GznGNKVr4kDJK8BYdLOFfXtxdB7XNrAR4+5C
+         9I4Uww/xYkLM7KkG92p0N5cuCmq730dfnY12q61mNO87ICkJfUjDf9/zbpfIFVbcMhRh
+         8Xb1CjUYih4bJAkOfFvj0pM65gx26WCjJIb7uZ9U2wVhehioTdTH7R8SjQr0cAY3zqtm
+         0ldygbdhKV4ZwI8DESfq2nYUf1YNEMfFJCS9c59FaVqcZwk89vBqaVLLo/+V+vCdB8NL
+         P4Kw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690471609; x=1691076409;
+        d=1e100.net; s=20221208; t=1690471607; x=1691076407;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=HdSNTdHfu3gmfnNmRZ2hSNcbvNs2kLgKcLc95quFvnE=;
-        b=eZafKpHztt883cNJSapLYwJPKb4jb6YuijerDHWUQKEep+zHi1LF60auiLjiDF6x6i
-         OPG5Gz6seYUVKeR/3VE0dXH1VNY2whJlOiCmEqM20BK7KS4hBYZysmNAtfK7tj4fAM7e
-         GOfDKZ54AJqN48YY32jSZt+RJvdSu5BIScB1PxURneNvcrpiPh/lRtAECwy3eND1i+Jo
-         L741sUPUFesQm2RKbv1DBMY0Lqhnl1nDAhVbuKax6YZbTLzsx2lRcGVW0OYbK2C0oWt3
-         huHyGB4cg54COmZEUYoX/W9rKzpi33x6VFrc+dwsydJrlrqNnqZRqv92xC2y8sv15AyK
-         +lKw==
-X-Gm-Message-State: ABy/qLb0QAiQeJTCOiiglxXyBKsVuIbn/AISvwa5yXICWy5qCD7BzrAh
-        JQPI7OqYKJsl5d+bjgDrGJjZATqU1bi9xaKX
-X-Google-Smtp-Source: APBJJlECjtY232aDHswklrgmAPFnRUY97te2qhkbwXkITkFGmWaf+ews7rGxaiPlP3xdW7gRsnxVOg==
-X-Received: by 2002:a05:6512:3c86:b0:4f8:7568:e94b with SMTP id h6-20020a0565123c8600b004f87568e94bmr2351473lfv.56.1690471609243;
-        Thu, 27 Jul 2023 08:26:49 -0700 (PDT)
+        bh=R87BTfopelhJFglN5IN6As+cGJH4HVKKMNIB+DJTWpo=;
+        b=GO8FeAjfRtSZhlGl1/Im5gvcABrzZqHdfxMe1ano+mmD8xw/tjUW8X3NFOCbIRWUje
+         pDAMZbPXF+oqC13RrSN+Tas3OLbVG1wQaIMH/nW5WTMoEpYQVIRyV22f3Lm7MoFn/n9E
+         X72pWBZVjiXX7qq4N/4jmt1TjTZDGG1lgkmG7ruuknrjuOuvmRcUtUncU06kougsfhvq
+         E7IsYHKZo4QDB0rXrxC3vKZa/hpoUbcMBO/5B/5J4TvgpTdKL7ggUqcV2W+SaE0ySWMl
+         ehii1ivr7MG0svZFtq9g9rRYJmC+4gFnYF/Zscv3j6pjUMO/TmBhvG0G5Nzd6540H4Rj
+         nyvg==
+X-Gm-Message-State: ABy/qLZq46i9LrEMZT+7q+DIMBomhmCnUqNgAvLNkZpfOonelgi51TCW
+        kq0FHiPVYuMc3fdXGC9OH7yA0N/ixD+Ij0IV
+X-Google-Smtp-Source: APBJJlGWncJjmVx3/BMhSoTbn13HjjrbEC9bf/p8ktEEBuc6Uxfm2DMRhqlYdSmkIsOlbWsCdcadaA==
+X-Received: by 2002:a5d:6744:0:b0:314:15a8:7879 with SMTP id l4-20020a5d6744000000b0031415a87879mr2219378wrw.34.1690471606869;
+        Thu, 27 Jul 2023 08:26:46 -0700 (PDT)
 Received: from [127.0.1.1] ([91.230.2.244])
-        by smtp.gmail.com with ESMTPSA id b17-20020adfde11000000b003143765e207sm2350622wrm.49.2023.07.27.08.26.48
+        by smtp.gmail.com with ESMTPSA id b17-20020adfde11000000b003143765e207sm2350622wrm.49.2023.07.27.08.26.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Jul 2023 08:26:49 -0700 (PDT)
+        Thu, 27 Jul 2023 08:26:46 -0700 (PDT)
 From:   Benjamin Bara <bbara93@gmail.com>
-Date:   Thu, 27 Jul 2023 17:26:39 +0200
-Subject: [PATCH 4/6] mfd: tps65219: Specify restart mode
+Date:   Thu, 27 Jul 2023 17:26:36 +0200
+Subject: [PATCH 1/6] kernel/reboot: distinguish between cold and warm
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230727-pca9450-reboot-v1-4-c8edb27bf404@skidata.com>
+Message-Id: <20230727-pca9450-reboot-v1-1-c8edb27bf404@skidata.com>
 References: <20230727-pca9450-reboot-v1-0-c8edb27bf404@skidata.com>
 In-Reply-To: <20230727-pca9450-reboot-v1-0-c8edb27bf404@skidata.com>
 To:     Lee Jones <lee@kernel.org>,
@@ -77,44 +77,198 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Benjamin Bara <benjamin.bara@skidata.com>
 
-As the tps65219 supports both, a cold and a warm reset, register a cold
-and a warm restart handler.
+As a couple of PMICs support warm and cold resets (e.g. tps65219 or
+pca9450) and the 'reboot_mode' kernel parameter allows to specify the
+reboot mode, distinguish between cold and warm reboot handlers.
+This is done by maintaining two different restart handler lists. When
+the mode is unspecified, the cold restart handlers are preferred
+(independent of their actual priority).
 
 Signed-off-by: Benjamin Bara <benjamin.bara@skidata.com>
 ---
- drivers/mfd/tps65219.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ include/linux/reboot.h | 22 ++++++++++++
+ kernel/reboot.c        | 92 ++++++++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 108 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/mfd/tps65219.c b/drivers/mfd/tps65219.c
-index 0e0c42e4fdfc..85752b93256e 100644
---- a/drivers/mfd/tps65219.c
-+++ b/drivers/mfd/tps65219.c
-@@ -278,12 +278,21 @@ static int tps65219_probe(struct i2c_client *client)
- 		}
- 	}
- 
--	ret = devm_register_restart_handler(tps->dev,
--					    tps65219_restart_handler,
--					    tps);
-+	ret = devm_register_cold_restart_handler(tps->dev,
-+						 tps65219_restart_handler,
-+						 tps);
- 
- 	if (ret) {
--		dev_err(tps->dev, "cannot register restart handler, %d\n", ret);
-+		dev_err(tps->dev, "cannot register cold restart handler, %d\n", ret);
-+		return ret;
-+	}
+diff --git a/include/linux/reboot.h b/include/linux/reboot.h
+index 2b6bb593be5b..05199aedb696 100644
+--- a/include/linux/reboot.h
++++ b/include/linux/reboot.h
+@@ -119,6 +119,20 @@ enum sys_off_mode {
+ 	 * Handlers restart system. Handlers are disallowed to sleep.
+ 	 */
+ 	SYS_OFF_MODE_RESTART,
 +
-+	ret = devm_register_warm_restart_handler(tps->dev,
-+						 tps65219_restart_handler,
-+						 tps);
++	/**
++	 * @SYS_OFF_MODE_RESTART_COLD:
++	 *
++	 * Handlers cold restart system. Handlers are disallowed to sleep.
++	 */
++	SYS_OFF_MODE_RESTART_COLD,
 +
-+	if (ret) {
-+		dev_err(tps->dev, "cannot register warm restart handler, %d\n", ret);
- 		return ret;
- 	}
++	/**
++	 * @SYS_OFF_MODE_RESTART_WARM:
++	 *
++	 * Handlers warm restart system. Handlers are disallowed to sleep.
++	 */
++	SYS_OFF_MODE_RESTART_WARM,
+ };
  
+ /**
+@@ -157,6 +171,14 @@ int devm_register_restart_handler(struct device *dev,
+ 				  int (*callback)(struct sys_off_data *data),
+ 				  void *cb_data);
+ 
++int devm_register_cold_restart_handler(struct device *dev,
++				       int (*callback)(struct sys_off_data *data),
++				       void *cb_data);
++
++int devm_register_warm_restart_handler(struct device *dev,
++				       int (*callback)(struct sys_off_data *data),
++				       void *cb_data);
++
+ int register_platform_power_off(void (*power_off)(void));
+ void unregister_platform_power_off(void (*power_off)(void));
+ 
+diff --git a/kernel/reboot.c b/kernel/reboot.c
+index 3bba88c7ffc6..d0d3faf70a79 100644
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -146,9 +146,15 @@ EXPORT_SYMBOL(devm_register_reboot_notifier);
+ 
+ /*
+  *	Notifier list for kernel code which wants to be called
+- *	to restart the system.
++ *	to cold restart the system.
+  */
+-static ATOMIC_NOTIFIER_HEAD(restart_handler_list);
++static ATOMIC_NOTIFIER_HEAD(cold_restart_handler_list);
++
++/*
++ *	Notifier list for kernel code which wants to be called
++ *	to warm restart the system.
++ */
++static ATOMIC_NOTIFIER_HEAD(warm_restart_handler_list);
+ 
+ /**
+  *	register_restart_handler - Register function to be called to reset
+@@ -190,7 +196,11 @@ static ATOMIC_NOTIFIER_HEAD(restart_handler_list);
+  */
+ int register_restart_handler(struct notifier_block *nb)
+ {
+-	return atomic_notifier_chain_register(&restart_handler_list, nb);
++	/*
++	 * Store all non-devm-based handlers in the warm list to ensure that the
++	 * "specified" handler are preferred over the "unspecified" ones.
++	 */
++	return atomic_notifier_chain_register(&warm_restart_handler_list, nb);
+ }
+ EXPORT_SYMBOL(register_restart_handler);
+ 
+@@ -205,7 +215,14 @@ EXPORT_SYMBOL(register_restart_handler);
+  */
+ int unregister_restart_handler(struct notifier_block *nb)
+ {
+-	return atomic_notifier_chain_unregister(&restart_handler_list, nb);
++	int ret;
++
++	ret = atomic_notifier_chain_unregister(&warm_restart_handler_list, nb);
++	if (ret == -ENOENT)
++		ret = atomic_notifier_chain_unregister(&cold_restart_handler_list,
++						       nb);
++
++	return ret;
+ }
+ EXPORT_SYMBOL(unregister_restart_handler);
+ 
+@@ -222,7 +239,18 @@ EXPORT_SYMBOL(unregister_restart_handler);
+  */
+ void do_kernel_restart(char *cmd)
+ {
+-	atomic_notifier_call_chain(&restart_handler_list, reboot_mode, cmd);
++	/*
++	 * REBOOT_GPIO can be either cold or warm -> let handler decide.
++	 * Prefer cold reboot if mode not specified.
++	 */
++	if (reboot_mode == REBOOT_UNDEFINED || reboot_mode == REBOOT_GPIO ||
++	    reboot_mode == REBOOT_HARD || reboot_mode == REBOOT_COLD)
++		atomic_notifier_call_chain(&cold_restart_handler_list,
++					   reboot_mode, cmd);
++	if (reboot_mode == REBOOT_UNDEFINED || reboot_mode == REBOOT_GPIO ||
++	    reboot_mode == REBOOT_SOFT || reboot_mode == REBOOT_WARM)
++		atomic_notifier_call_chain(&warm_restart_handler_list,
++					   reboot_mode, cmd);
+ }
+ 
+ void migrate_to_reboot_cpu(void)
+@@ -414,7 +442,15 @@ register_sys_off_handler(enum sys_off_mode mode,
+ 		break;
+ 
+ 	case SYS_OFF_MODE_RESTART:
+-		handler->list = &restart_handler_list;
++		handler->list = &warm_restart_handler_list;
++		break;
++
++	case SYS_OFF_MODE_RESTART_COLD:
++		handler->list = &cold_restart_handler_list;
++		break;
++
++	case SYS_OFF_MODE_RESTART_WARM:
++		handler->list = &warm_restart_handler_list;
+ 		break;
+ 
+ 	default:
+@@ -560,6 +596,50 @@ int devm_register_restart_handler(struct device *dev,
+ }
+ EXPORT_SYMBOL_GPL(devm_register_restart_handler);
+ 
++/**
++ *	devm_register_cold_restart_handler - Register cold restart handler
++ *	@dev: Device that registers callback
++ *	@callback: Callback function
++ *	@cb_data: Callback's argument
++ *
++ *	Registers resource-managed sys-off handler with a default priority
++ *	and using cold restart mode.
++ *
++ *	Returns zero on success, or error code on failure.
++ */
++int devm_register_cold_restart_handler(struct device *dev,
++				       int (*callback)(struct sys_off_data *data),
++				       void *cb_data)
++{
++	return devm_register_sys_off_handler(dev,
++					     SYS_OFF_MODE_RESTART_COLD,
++					     SYS_OFF_PRIO_DEFAULT,
++					     callback, cb_data);
++}
++EXPORT_SYMBOL_GPL(devm_register_cold_restart_handler);
++
++/**
++ *	devm_register_warm_restart_handler - Register warm restart handler
++ *	@dev: Device that registers callback
++ *	@callback: Callback function
++ *	@cb_data: Callback's argument
++ *
++ *	Registers resource-managed sys-off handler with a default priority
++ *	and using warm restart mode.
++ *
++ *	Returns zero on success, or error code on failure.
++ */
++int devm_register_warm_restart_handler(struct device *dev,
++				       int (*callback)(struct sys_off_data *data),
++				       void *cb_data)
++{
++	return devm_register_sys_off_handler(dev,
++					     SYS_OFF_MODE_RESTART_WARM,
++					     SYS_OFF_PRIO_DEFAULT,
++					     callback, cb_data);
++}
++EXPORT_SYMBOL_GPL(devm_register_warm_restart_handler);
++
+ static struct sys_off_handler *platform_power_off_handler;
+ 
+ static int platform_power_off_notify(struct sys_off_data *data)
 
 -- 
 2.34.1
