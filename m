@@ -2,65 +2,62 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30FCDC04A6A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB384C04FE1
 	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:23:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236148AbjG1SXV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 28 Jul 2023 14:23:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33284 "EHLO
+        id S236228AbjG1SXW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 28 Jul 2023 14:23:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231165AbjG1SXS (ORCPT
+        with ESMTP id S233675AbjG1SXS (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:23:18 -0400
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4782D4C21;
-        Fri, 28 Jul 2023 11:22:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40B9F4C18;
+        Fri, 28 Jul 2023 11:22:51 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 764FF1F8AA;
-        Fri, 28 Jul 2023 18:22:37 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id EB1CF1F891;
+        Fri, 28 Jul 2023 18:22:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690568557; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690568556; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=E9nHYd+XsGdw6qYC3Qs3un+dzRGZo7AZKK47M/gb5Q4=;
-        b=s+9BUBx+OThHuDei1aOODiE5Z7EIfAycRnPlaMqYPAnMMcmuHt2Y1mK9rW1DULwtU170+H
-        QlQKWNSFwZUbtMlZ1ah5e5MCv2RG2xMfYg2URQnv6tDVxzDCQFOHK0qMhm6yGi3jjsHWjH
-        C6ORDinhZt5qeAT9awyXyuEZFSS7ihw=
+        bh=/qXJ5rNWBP71LPKEnNowQIlNK4XWcoFcTQC5NoNWKHw=;
+        b=DKGZ9mjMhM5MRJsxIGSkwd8dC7VBPq+vfUpeqOKE+D4TUT7cQHLr3a6HW1O2KlAzDOuoMG
+        ctduWFviwRhfLmKjY4QyXaRaFiF93UO2bVKDbeDRSv+op7whPK8UanNLyFEynVQHtX1eqB
+        huoKIkQxQmYtnGqpKFg4MlP3XmI0M7Y=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690568557;
+        s=susede2_ed25519; t=1690568556;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=E9nHYd+XsGdw6qYC3Qs3un+dzRGZo7AZKK47M/gb5Q4=;
-        b=workckj+tQtlVQ4iIKzs/g07lgs4uUd1tKZew6JyLJNvjFaegG+Xz2S+C0O7lSrJdz4+18
-        fTKI66xqOEdwEOBw==
+        bh=/qXJ5rNWBP71LPKEnNowQIlNK4XWcoFcTQC5NoNWKHw=;
+        b=mLbs0lI03+YzCo4+UKN4xjuMOKp4ZOuzgBFrMee2bN6/j3yk4Kodb73dV/LIkd8BCkxZ8R
+        E5sitXt+sfG8LlCw==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 3361B13276;
-        Fri, 28 Jul 2023 18:22:37 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id B18AB13276;
+        Fri, 28 Jul 2023 18:22:36 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id yOaaC20HxGQ3CwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:37 +0000
+        id OL4+KmwHxGQ3CwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:36 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>
-Subject: [PATCH 04/47] fbdev/atmel_lcdfb: Use fbdev I/O helpers
-Date:   Fri, 28 Jul 2023 18:39:47 +0200
-Message-ID: <20230728182234.10680-5-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH 02/47] fbdev/acornfb: Use fbdev I/O helpers
+Date:   Fri, 28 Jul 2023 18:39:45 +0200
+Message-ID: <20230728182234.10680-3-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230728182234.10680-1-tzimmermann@suse.de>
 References: <20230728182234.10680-1-tzimmermann@suse.de>
@@ -78,49 +75,45 @@ The macro and token set the currently selected values, so there is
 no functional change.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Nicolas Ferre <nicolas.ferre@microchip.com>
-Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
-Cc: Claudiu Beznea <claudiu.beznea@microchip.com>
 ---
- drivers/video/fbdev/Kconfig       | 4 +---
- drivers/video/fbdev/atmel_lcdfb.c | 4 +---
+ drivers/video/fbdev/Kconfig   | 4 +---
+ drivers/video/fbdev/acornfb.c | 4 +---
  2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 2fcc29ec8252..d6bc0b66ba53 100644
+index c0b0419e98b6..2b1dd3700df6 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -713,9 +713,7 @@ config FB_ATMEL
- 	depends on FB && OF && HAVE_CLK && HAS_IOMEM
- 	depends on HAVE_FB_ATMEL || COMPILE_TEST
- 	select FB_BACKLIGHT
+@@ -139,9 +139,7 @@ config FB_ARMCLCD
+ config FB_ACORN
+ 	bool "Acorn VIDC support"
+ 	depends on (FB = y) && ARM && ARCH_ACORN
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IO_HELPERS
- 	select FB_MODE_HELPERS
- 	select VIDEOMODE_HELPERS
  	help
-diff --git a/drivers/video/fbdev/atmel_lcdfb.c b/drivers/video/fbdev/atmel_lcdfb.c
-index 3021660b3e87..c2db22fb529a 100644
---- a/drivers/video/fbdev/atmel_lcdfb.c
-+++ b/drivers/video/fbdev/atmel_lcdfb.c
-@@ -806,14 +806,12 @@ static int atmel_lcdfb_blank(int blank_mode, struct fb_info *info)
+ 	  This is the frame buffer device driver for the Acorn VIDC graphics
+ 	  hardware found in Acorn RISC PCs and other ARM-based machines.  If
+diff --git a/drivers/video/fbdev/acornfb.c b/drivers/video/fbdev/acornfb.c
+index 8fec21dfca09..8710a2f40d27 100644
+--- a/drivers/video/fbdev/acornfb.c
++++ b/drivers/video/fbdev/acornfb.c
+@@ -605,13 +605,11 @@ acornfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
  
- static const struct fb_ops atmel_lcdfb_ops = {
+ static const struct fb_ops acornfb_ops = {
  	.owner		= THIS_MODULE,
-+	FB_DEFAULT_IO_OPS,
- 	.fb_check_var	= atmel_lcdfb_check_var,
- 	.fb_set_par	= atmel_lcdfb_set_par,
- 	.fb_setcolreg	= atmel_lcdfb_setcolreg,
- 	.fb_blank	= atmel_lcdfb_blank,
- 	.fb_pan_display	= atmel_lcdfb_pan_display,
++	FB_IO_DEFAULT_OPS,
+ 	.fb_check_var	= acornfb_check_var,
+ 	.fb_set_par	= acornfb_set_par,
+ 	.fb_setcolreg	= acornfb_setcolreg,
+ 	.fb_pan_display	= acornfb_pan_display,
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
 -	.fb_imageblit	= cfb_imageblit,
  };
  
- static irqreturn_t atmel_lcdfb_interrupt(int irq, void *dev_id)
+ /*
 -- 
 2.41.0
 
