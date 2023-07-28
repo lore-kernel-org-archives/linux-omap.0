@@ -2,62 +2,63 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C31C001DF
-	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:24:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DF1BC0015E
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:24:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235368AbjG1SYY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 28 Jul 2023 14:24:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35380 "EHLO
+        id S236544AbjG1SY0 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 28 Jul 2023 14:24:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230267AbjG1SYS (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:24:18 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8415B49C6;
-        Fri, 28 Jul 2023 11:23:58 -0700 (PDT)
+        with ESMTP id S236598AbjG1SYV (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:24:21 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9DE649E1;
+        Fri, 28 Jul 2023 11:24:02 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 967A12199A;
-        Fri, 28 Jul 2023 18:22:42 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id AF67D1F8B0;
+        Fri, 28 Jul 2023 18:22:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690568562; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690568559; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=8WbxhGou89suyYiBMAPkYCpvm0XLx2p+PtogoTewYPM=;
-        b=GWkSqjnScAKHLhNDFcHBPiRUvWGjhOA13PPl/+aceaAVyowdBYzVRnNN41LfXvhydI6cjW
-        jDdv3QkIV3Y4KvuALC8IPn3PKROa3pEd4uECgG+x0oL44n2IS4HFweJv7vETqnCqeP/saF
-        /HwokK2W9Tem4V+kiYAFmRpc1d1VLbo=
+        bh=MzY4Z7rVG/OphoGTsd56EsvKTsMPfCHipdK3wXe7h1k=;
+        b=y1IQG77pq7PUOj25wm8nglLPJI2IYNE5kfXSPXHYRtkodDlep4bwlJKO6tblpjJhkT3iTo
+        XZ+NmR2ZBgjLeb38To+wC2BXEzfk13GJ/hH82ZKVTkG6fXPUzMFxTCiWaNVjLI8DioNtT8
+        pG7/J97VioWgzbKLoJnujF/zQzHD4vw=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690568562;
+        s=susede2_ed25519; t=1690568559;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=8WbxhGou89suyYiBMAPkYCpvm0XLx2p+PtogoTewYPM=;
-        b=IY6P4Se2sexkvgc2eIOaXaLWrlb6QeNkeNw9Yer88S1s/LOG+TrDE3JCeBOkiXRqzbZS0o
-        QB5GbyRJISooQ7Cg==
+        bh=MzY4Z7rVG/OphoGTsd56EsvKTsMPfCHipdK3wXe7h1k=;
+        b=Pl2zv3Zt2qjyHYC68htaxCLTtJ92EOJDTwrH4ZD/W4Zew8lpbSNlwgy7nK7ZfCPdvcWxp7
+        oCxRDk0MwZnTw5Bw==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 65F8C13276;
-        Fri, 28 Jul 2023 18:22:42 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 769F513276;
+        Fri, 28 Jul 2023 18:22:39 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id kBsjGHIHxGQ3CwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:42 +0000
+        id IOwOHG8HxGQ3CwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:39 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 25/47] fbdev/mmpfb: Use fbdev I/O helpers
-Date:   Fri, 28 Jul 2023 18:40:08 +0200
-Message-ID: <20230728182234.10680-26-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
+        Andres Salomon <dilinger@queued.net>
+Subject: [PATCH 13/47] fbdev/geode/gx1fb: Use fbdev I/O helpers
+Date:   Fri, 28 Jul 2023 18:39:56 +0200
+Message-ID: <20230728182234.10680-14-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230728182234.10680-1-tzimmermann@suse.de>
 References: <20230728182234.10680-1-tzimmermann@suse.de>
@@ -75,46 +76,47 @@ The macro and token set the currently selected values, so there is
 no functional change.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Andres Salomon <dilinger@queued.net>
 ---
- drivers/video/fbdev/mmp/fb/Kconfig | 4 +---
- drivers/video/fbdev/mmp/fb/mmpfb.c | 4 +---
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/video/fbdev/geode/Kconfig      | 4 +---
+ drivers/video/fbdev/geode/gx1fb_core.c | 5 +----
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/video/fbdev/mmp/fb/Kconfig b/drivers/video/fbdev/mmp/fb/Kconfig
-index 0ec2e3fb9e17..19420a9b5bc7 100644
---- a/drivers/video/fbdev/mmp/fb/Kconfig
-+++ b/drivers/video/fbdev/mmp/fb/Kconfig
-@@ -2,9 +2,7 @@
- config MMP_FB
- 	tristate "fb driver for Marvell MMP Display Subsystem"
- 	depends on FB
+diff --git a/drivers/video/fbdev/geode/Kconfig b/drivers/video/fbdev/geode/Kconfig
+index b184085a78c2..511d0b314a1d 100644
+--- a/drivers/video/fbdev/geode/Kconfig
++++ b/drivers/video/fbdev/geode/Kconfig
+@@ -45,9 +45,7 @@ config FB_GEODE_GX
+ config FB_GEODE_GX1
+ 	tristate "AMD Geode GX1 framebuffer support"
+ 	depends on FB && FB_GEODE
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IO_HELPERS
- 	default y
+ 	select VIDEO_NOMODESET
  	help
- 		fb driver for Marvell MMP Display Subsystem
-diff --git a/drivers/video/fbdev/mmp/fb/mmpfb.c b/drivers/video/fbdev/mmp/fb/mmpfb.c
-index ac9db01f29f2..df650af84840 100644
---- a/drivers/video/fbdev/mmp/fb/mmpfb.c
-+++ b/drivers/video/fbdev/mmp/fb/mmpfb.c
-@@ -454,14 +454,12 @@ static int mmpfb_blank(int blank, struct fb_info *info)
+ 	  Framebuffer driver for the display controller integrated into the
+diff --git a/drivers/video/fbdev/geode/gx1fb_core.c b/drivers/video/fbdev/geode/gx1fb_core.c
+index ddec35e3bbeb..db009ddcdfcb 100644
+--- a/drivers/video/fbdev/geode/gx1fb_core.c
++++ b/drivers/video/fbdev/geode/gx1fb_core.c
+@@ -255,14 +255,11 @@ static int parse_panel_option(struct fb_info *info)
  
- static const struct fb_ops mmpfb_ops = {
+ static const struct fb_ops gx1fb_ops = {
  	.owner		= THIS_MODULE,
 +	FB_DEFAULT_IO_OPS,
- 	.fb_blank	= mmpfb_blank,
- 	.fb_check_var	= mmpfb_check_var,
- 	.fb_set_par	= mmpfb_set_par,
- 	.fb_setcolreg	= mmpfb_setcolreg,
- 	.fb_pan_display	= mmpfb_pan_display,
+ 	.fb_check_var	= gx1fb_check_var,
+ 	.fb_set_par	= gx1fb_set_par,
+ 	.fb_setcolreg	= gx1fb_setcolreg,
+ 	.fb_blank       = gx1fb_blank,
+-	/* No HW acceleration for now. */
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
 -	.fb_imageblit	= cfb_imageblit,
  };
  
- static int modes_setup(struct mmpfb_info *fbi)
+ static struct fb_info *gx1fb_init_fbinfo(struct device *dev)
 -- 
 2.41.0
 
