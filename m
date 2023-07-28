@@ -2,62 +2,63 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB384C04FE1
-	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:23:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5292BC05052
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:23:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236228AbjG1SXW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 28 Jul 2023 14:23:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33214 "EHLO
+        id S235953AbjG1SXX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 28 Jul 2023 14:23:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233675AbjG1SXS (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:23:18 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40B9F4C18;
-        Fri, 28 Jul 2023 11:22:51 -0700 (PDT)
+        with ESMTP id S233880AbjG1SXT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:23:19 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BB0544A1;
+        Fri, 28 Jul 2023 11:22:54 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id EB1CF1F891;
-        Fri, 28 Jul 2023 18:22:36 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id AE5C32198B;
+        Fri, 28 Jul 2023 18:22:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690568556; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690568558; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=/qXJ5rNWBP71LPKEnNowQIlNK4XWcoFcTQC5NoNWKHw=;
-        b=DKGZ9mjMhM5MRJsxIGSkwd8dC7VBPq+vfUpeqOKE+D4TUT7cQHLr3a6HW1O2KlAzDOuoMG
-        ctduWFviwRhfLmKjY4QyXaRaFiF93UO2bVKDbeDRSv+op7whPK8UanNLyFEynVQHtX1eqB
-        huoKIkQxQmYtnGqpKFg4MlP3XmI0M7Y=
+        bh=T9SAFSgpGAEJdbhJhSEFbEbw7U4j0Z7cgxi8/fdl9XI=;
+        b=kTxiZU+ca7ZSCNtugSNGe+q2DYY2HQvJik4/TVz36Fvr8m5j9XDvbfjK3GtK7/qNQE5yaw
+        B/RDFndtnc2fNrJnRC3dEwBCW63K/B63t8mRySRduucfiDh9WTCkSX3QWJ1eFNwTJVxv6Y
+        8cAi96vUZUdlQeg1ug8pI/Mxk5cXScY=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690568556;
+        s=susede2_ed25519; t=1690568558;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=/qXJ5rNWBP71LPKEnNowQIlNK4XWcoFcTQC5NoNWKHw=;
-        b=mLbs0lI03+YzCo4+UKN4xjuMOKp4ZOuzgBFrMee2bN6/j3yk4Kodb73dV/LIkd8BCkxZ8R
-        E5sitXt+sfG8LlCw==
+        bh=T9SAFSgpGAEJdbhJhSEFbEbw7U4j0Z7cgxi8/fdl9XI=;
+        b=1h7xS0dXEkj5zRZY84juIPZZTgq8mh/pi7JYuEAfyI6EIqwRRAJBtPGn6flGMEadrhOxur
+        8vMR9JfeHsv0XRDA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id B18AB13276;
-        Fri, 28 Jul 2023 18:22:36 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 74918139BD;
+        Fri, 28 Jul 2023 18:22:38 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id OL4+KmwHxGQ3CwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:36 +0000
+        id +CeXG24HxGQ3CwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:38 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 02/47] fbdev/acornfb: Use fbdev I/O helpers
-Date:   Fri, 28 Jul 2023 18:39:45 +0200
-Message-ID: <20230728182234.10680-3-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
+        Peter Jones <pjones@redhat.com>
+Subject: [PATCH 09/47] fbdev/efifb: Use fbdev I/O helpers
+Date:   Fri, 28 Jul 2023 18:39:52 +0200
+Message-ID: <20230728182234.10680-10-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230728182234.10680-1-tzimmermann@suse.de>
 References: <20230728182234.10680-1-tzimmermann@suse.de>
@@ -75,45 +76,44 @@ The macro and token set the currently selected values, so there is
 no functional change.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Peter Jones <pjones@redhat.com>
 ---
- drivers/video/fbdev/Kconfig   | 4 +---
- drivers/video/fbdev/acornfb.c | 4 +---
+ drivers/video/fbdev/Kconfig | 4 +---
+ drivers/video/fbdev/efifb.c | 4 +---
  2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index c0b0419e98b6..2b1dd3700df6 100644
+index b10aac21eca2..62e24e47b677 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -139,9 +139,7 @@ config FB_ARMCLCD
- config FB_ACORN
- 	bool "Acorn VIDC support"
- 	depends on (FB = y) && ARM && ARCH_ACORN
+@@ -486,9 +486,7 @@ config FB_EFI
+ 	depends on (FB = y) && !IA64 && EFI
+ 	select APERTURE_HELPERS
+ 	select DRM_PANEL_ORIENTATION_QUIRKS
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IO_HELPERS
+ 	select SYSFB
  	help
- 	  This is the frame buffer device driver for the Acorn VIDC graphics
- 	  hardware found in Acorn RISC PCs and other ARM-based machines.  If
-diff --git a/drivers/video/fbdev/acornfb.c b/drivers/video/fbdev/acornfb.c
-index 8fec21dfca09..8710a2f40d27 100644
---- a/drivers/video/fbdev/acornfb.c
-+++ b/drivers/video/fbdev/acornfb.c
-@@ -605,13 +605,11 @@ acornfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
+ 	  This is the EFI frame buffer device driver. If the firmware on
+diff --git a/drivers/video/fbdev/efifb.c b/drivers/video/fbdev/efifb.c
+index 3391c8e84210..3a3e178258d1 100644
+--- a/drivers/video/fbdev/efifb.c
++++ b/drivers/video/fbdev/efifb.c
+@@ -277,11 +277,9 @@ static void efifb_destroy(struct fb_info *info)
  
- static const struct fb_ops acornfb_ops = {
+ static const struct fb_ops efifb_ops = {
  	.owner		= THIS_MODULE,
-+	FB_IO_DEFAULT_OPS,
- 	.fb_check_var	= acornfb_check_var,
- 	.fb_set_par	= acornfb_set_par,
- 	.fb_setcolreg	= acornfb_setcolreg,
- 	.fb_pan_display	= acornfb_pan_display,
++	FB_DEFAULT_IO_OPS,
+ 	.fb_destroy	= efifb_destroy,
+ 	.fb_setcolreg	= efifb_setcolreg,
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
 -	.fb_imageblit	= cfb_imageblit,
  };
  
- /*
+ static int efifb_setup(char *options)
 -- 
 2.41.0
 
