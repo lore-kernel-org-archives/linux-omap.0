@@ -2,51 +2,51 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B703C05052
-	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:24:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E93FC001E0
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:24:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236550AbjG1SYG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 28 Jul 2023 14:24:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35262 "EHLO
+        id S236452AbjG1SYL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 28 Jul 2023 14:24:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236441AbjG1SX5 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:23:57 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C2694488;
-        Fri, 28 Jul 2023 11:23:34 -0700 (PDT)
+        with ESMTP id S236453AbjG1SX7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:23:59 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 145504489;
+        Fri, 28 Jul 2023 11:23:36 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id ADAA21F8AC;
-        Fri, 28 Jul 2023 18:22:37 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 3828F21984;
+        Fri, 28 Jul 2023 18:22:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690568557; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690568558; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=h826pXZFzjmc8RrzIoj5uO6jcDGaolM2fZsjGtIMGJs=;
-        b=OLgddjAKlURkyy18MIlU3kCsZkT4orNfmzjrqVVCwqHr4x9gUK/T5acFBNq0kmXbOXmkaT
-        quRlQ84KYmbBBFDbBXlWO3sWQIwi/dB0W7acH8jEbYVXc+VnEYFHrIv/TK5RfAw7KhhrHX
-        iBNbIDjL8Bd7RwcFzu0QpJSlhikjf1w=
+        bh=IjH5bowVUAqk3BE8GsFsqWLQdv90txzcbcEQyYy2Rwk=;
+        b=K50ux6VivjneLkpkv8B/+HdcZ38/D2Tlq+9s3+90lU5c1ulgLS1laDwelzOAVfRGvGD0cx
+        4CsGg2NbDSmPfWT/7xEL7lhlLGtdRnrLDqrR9xxXf1SKb+HouTAcaSd2YUPQICiM6Ptwoj
+        RH1sjhT+lei2mvinvE5GVB4ZLVcys+A=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690568557;
+        s=susede2_ed25519; t=1690568558;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=h826pXZFzjmc8RrzIoj5uO6jcDGaolM2fZsjGtIMGJs=;
-        b=fqzU/pK3BQfGlxnSm6EUzEj0z2vzDkzHIBokS7qpHpGMjMPxRlWFXZ3a6y15/LGZHr5GwJ
-        BkHOtHV0mffZChDg==
+        bh=IjH5bowVUAqk3BE8GsFsqWLQdv90txzcbcEQyYy2Rwk=;
+        b=cTyxpjuJ4A/VJNlCqZcQXwTXXALJXSVhCWNA7SrV5C+vuaX7Xus6M2/ps93riByvD0ThEm
+        NeA6ah2e3TRbwHBw==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 78039139BD;
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id EE10A139BD;
         Fri, 28 Jul 2023 18:22:37 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id 8LNsHG0HxGQ3CwAAMHmgww
+        id iL5DOW0HxGQ3CwAAMHmgww
         (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:37 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
@@ -55,9 +55,9 @@ Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
         kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 05/47] fbdev/aty128fb: Use fbdev I/O helpers
-Date:   Fri, 28 Jul 2023 18:39:48 +0200
-Message-ID: <20230728182234.10680-6-tzimmermann@suse.de>
+Subject: [PATCH 07/47] fbdev/chipsfb: Use fbdev I/O helpers
+Date:   Fri, 28 Jul 2023 18:39:50 +0200
+Message-ID: <20230728182234.10680-8-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230728182234.10680-1-tzimmermann@suse.de>
 References: <20230728182234.10680-1-tzimmermann@suse.de>
@@ -76,48 +76,44 @@ no functional change.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 ---
- drivers/video/fbdev/Kconfig        | 4 +---
- drivers/video/fbdev/aty/aty128fb.c | 4 +---
+ drivers/video/fbdev/Kconfig   | 4 +---
+ drivers/video/fbdev/chipsfb.c | 4 +---
  2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index d6bc0b66ba53..ca2cfd7f9b32 100644
+index df3e80cd2403..02fa97d84eca 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -1098,10 +1098,8 @@ config FB_RADEON_DEBUG
- config FB_ATY128
- 	tristate "ATI Rage128 display support"
- 	depends on FB && PCI
+@@ -351,9 +351,7 @@ config FB_VALKYRIE
+ config FB_CT65550
+ 	bool "Chips 65550 display support"
+ 	depends on (FB = y) && PPC32 && PCI
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
- 	select FB_BACKLIGHT if FB_ATY128_BACKLIGHT
 +	select FB_IO_HELPERS
- 	select FB_MACMODES if PPC_PMAC
  	select VIDEO_NOMODESET
  	help
-diff --git a/drivers/video/fbdev/aty/aty128fb.c b/drivers/video/fbdev/aty/aty128fb.c
-index b44fc78ccd4f..c17212eb8b9f 100644
---- a/drivers/video/fbdev/aty/aty128fb.c
-+++ b/drivers/video/fbdev/aty/aty128fb.c
-@@ -504,6 +504,7 @@ static void aty128_bl_set_power(struct fb_info *info, int power);
+ 	  This is the frame buffer device driver for the Chips & Technologies
+diff --git a/drivers/video/fbdev/chipsfb.c b/drivers/video/fbdev/chipsfb.c
+index d5f43454ccd7..65a495509422 100644
+--- a/drivers/video/fbdev/chipsfb.c
++++ b/drivers/video/fbdev/chipsfb.c
+@@ -82,13 +82,11 @@ static int chipsfb_blank(int blank, struct fb_info *info);
  
- static const struct fb_ops aty128fb_ops = {
+ static const struct fb_ops chipsfb_ops = {
  	.owner		= THIS_MODULE,
 +	FB_DEFAULT_IO_OPS,
- 	.fb_check_var	= aty128fb_check_var,
- 	.fb_set_par	= aty128fb_set_par,
- 	.fb_setcolreg	= aty128fb_setcolreg,
-@@ -511,9 +512,6 @@ static const struct fb_ops aty128fb_ops = {
- 	.fb_blank	= aty128fb_blank,
- 	.fb_ioctl	= aty128fb_ioctl,
- 	.fb_sync	= aty128fb_sync,
+ 	.fb_check_var	= chipsfb_check_var,
+ 	.fb_set_par	= chipsfb_set_par,
+ 	.fb_setcolreg	= chipsfb_setcolreg,
+ 	.fb_blank	= chipsfb_blank,
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
 -	.fb_imageblit	= cfb_imageblit,
  };
  
-     /*
+ static int chipsfb_check_var(struct fb_var_screeninfo *var,
 -- 
 2.41.0
 
