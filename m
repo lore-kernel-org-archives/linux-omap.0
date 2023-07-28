@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC801C001E0
-	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:30:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B254C41513
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:30:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229764AbjG1SaE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 28 Jul 2023 14:30:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41664 "EHLO
+        id S231674AbjG1SaU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 28 Jul 2023 14:30:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230298AbjG1SaB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:30:01 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 881D64693;
-        Fri, 28 Jul 2023 11:29:41 -0700 (PDT)
+        with ESMTP id S232959AbjG1SaQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:30:16 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CF4B4487;
+        Fri, 28 Jul 2023 11:29:53 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 3ECDC2199E;
-        Fri, 28 Jul 2023 18:22:44 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id D0C951F8BF;
+        Fri, 28 Jul 2023 18:22:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690568564; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690568563; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=lmmHcyTiuWPM/9++rXsuc52B6f/WmFxn1DyJ4q6QSPM=;
-        b=bSwJDuUSBNFs12f4FIMWL1JZotqrofhEug7bDyLs0VBLiO/l/2psn4TK7gKJcTOwfQi4Mw
-        G34ZinDLKsDp9lhhwuBi4zfpQWHe33vZRzT1m88Vqy1f7orvM0J6zLJTjZEb9+XnNumbVO
-        K6s+1d0+FBPdi5AqU5Acj7SU2vh3LKE=
+        bh=4EI61ZoIDdyyabg4SX1EpFhpQPm3cKfb0Lwx/7dZn9g=;
+        b=XMbYCreOOUjpYVpa82JNMMFs5/8xkEZ7ZOGsO8SYrXIEbGaDXIf2IzZ411s3XbGXhABb+8
+        A+TsEcwIK/yeiGK391Q/gqy81KGM2+A43dFBwYa4Pfmygw1QNAZWbRdqTL9IWFtGxtZ2+v
+        kZKH5W7i87orAIHE1gJMzH4F8REcrGI=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690568564;
+        s=susede2_ed25519; t=1690568563;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=lmmHcyTiuWPM/9++rXsuc52B6f/WmFxn1DyJ4q6QSPM=;
-        b=rrSN67/FpCi0eSs/s46rkepwgoNu1qlOs2MZHJ2HrR6lrNdUlMw2UcGhOkEcv4tVkV+USv
-        GFiEZVZSvOxweXCQ==
+        bh=4EI61ZoIDdyyabg4SX1EpFhpQPm3cKfb0Lwx/7dZn9g=;
+        b=vSx6LneFVSt72RN1CANHJwaLGTzdnMHCD+Z3q0Q3xGXeaDFatwG719dGqYE5WV4xFrHp/m
+        bmZeJfj+0WYUrMCQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 10CA313276;
-        Fri, 28 Jul 2023 18:22:44 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 9B40813276;
+        Fri, 28 Jul 2023 18:22:43 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id WDU9A3QHxGQ3CwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:44 +0000
+        id MEAQJXMHxGQ3CwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:43 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
@@ -55,9 +55,9 @@ Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
         kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 33/47] fbdev/pmag-b-fb: Use fbdev I/O helpers
-Date:   Fri, 28 Jul 2023 18:40:16 +0200
-Message-ID: <20230728182234.10680-34-tzimmermann@suse.de>
+Subject: [PATCH 31/47] fbdev/pmag-aa-fb: Use fbdev I/O helpers
+Date:   Fri, 28 Jul 2023 18:40:14 +0200
+Message-ID: <20230728182234.10680-32-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230728182234.10680-1-tzimmermann@suse.de>
 References: <20230728182234.10680-1-tzimmermann@suse.de>
@@ -77,39 +77,39 @@ no functional change.
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 ---
  drivers/video/fbdev/Kconfig      | 4 +---
- drivers/video/fbdev/pmagb-b-fb.c | 4 +---
+ drivers/video/fbdev/pmag-aa-fb.c | 4 +---
  2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 24789cee3061..5fdfd3bb05cd 100644
+index 29353f03f7e3..a8e73bbdff68 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -1535,9 +1535,7 @@ config FB_PMAG_BA
- config FB_PMAGB_B
- 	tristate "PMAGB-B TURBOchannel framebuffer support"
+@@ -1519,9 +1519,7 @@ config FB_HIT
+ config FB_PMAG_AA
+ 	tristate "PMAG-AA TURBOchannel framebuffer support"
  	depends on FB && TC
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IO_HELPERS
  	help
- 	  Support for the PMAGB-B TURBOchannel framebuffer card used mainly
- 	  in the MIPS-based DECstation series. The card is currently only
-diff --git a/drivers/video/fbdev/pmagb-b-fb.c b/drivers/video/fbdev/pmagb-b-fb.c
-index 4ab4d6c7a975..861eb2146b81 100644
---- a/drivers/video/fbdev/pmagb-b-fb.c
-+++ b/drivers/video/fbdev/pmagb-b-fb.c
-@@ -123,10 +123,8 @@ static int pmagbbfb_setcolreg(unsigned int regno, unsigned int red,
+ 	  Support for the PMAG-AA TURBOchannel framebuffer card (1280x1024x1)
+ 	  used mainly in the MIPS-based DECstation series.
+diff --git a/drivers/video/fbdev/pmag-aa-fb.c b/drivers/video/fbdev/pmag-aa-fb.c
+index 7ee20db9ceb8..1b488b1f0ccb 100644
+--- a/drivers/video/fbdev/pmag-aa-fb.c
++++ b/drivers/video/fbdev/pmag-aa-fb.c
+@@ -149,10 +149,8 @@ static int aafb_blank(int blank, struct fb_info *info)
  
- static const struct fb_ops pmagbbfb_ops = {
+ static const struct fb_ops aafb_ops = {
  	.owner		= THIS_MODULE,
 +	FB_DEFAULT_IO_OPS,
- 	.fb_setcolreg	= pmagbbfb_setcolreg,
+ 	.fb_blank	= aafb_blank,
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
 -	.fb_imageblit	= cfb_imageblit,
+ 	.fb_cursor	= aafb_cursor,
  };
- 
  
 -- 
 2.41.0
