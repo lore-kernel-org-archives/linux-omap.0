@@ -2,63 +2,62 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1F59C001DF
-	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:25:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0E8EC0015E
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:26:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236839AbjG1SZq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 28 Jul 2023 14:25:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36588 "EHLO
+        id S236859AbjG1S0A (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 28 Jul 2023 14:26:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236622AbjG1SZR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:25:17 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06D6F49C3;
-        Fri, 28 Jul 2023 11:24:54 -0700 (PDT)
+        with ESMTP id S235910AbjG1SZT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:25:19 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D47A448F;
+        Fri, 28 Jul 2023 11:24:58 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 7BEC7219A2;
-        Fri, 28 Jul 2023 18:22:45 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 68B2A1F8BD;
+        Fri, 28 Jul 2023 18:22:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690568565; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690568563; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=kEfLtYXjC0zd+z0lNQg0Eq/SLh8MO/3nWvBHte60YPY=;
-        b=ZLEgAcBh237AfZiklwaMbGCsA/StnJbIHCL0n5sw2oy08ezxWDRwstxL6IL34lGR+se4n0
-        lAjgswx1wK6vpnJ5yFFhFMwKJBdlhb/UU5UjyskG+TIalXn7EZs0snN+GAe2NbJVSfZU68
-        FIGAch/0vWUSbANwVD5CvXv+FCYcwiM=
+        bh=Ndtl4dpde/kpJtGOO+emV4Asz2gnLQVVCUsiGr6PISo=;
+        b=Q33rgLjYSIDXBzGzCxXMQgZ4bzHVV70DYmyvQE93xKdB07b1NyL3wS3k5fco7ImLGWTuGO
+        wU6kyByxyE7uBsuvhrzRJWcHI81IM+psDLWcb8MpPI6eD7cvTnx/MeAU4RF53AC8G8LqRZ
+        o6CmwzV/jU4zxM25dl3iwr1N7EzmR5Q=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690568565;
+        s=susede2_ed25519; t=1690568563;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=kEfLtYXjC0zd+z0lNQg0Eq/SLh8MO/3nWvBHte60YPY=;
-        b=AnZHO7MhAdHSpAp2QmTL4eNbqcVzvgIR9V0QairR7rRh3cMrLDZI83YibXNEj+oKYnCuCP
-        rUDGkyuEPZ9bwBDA==
+        bh=Ndtl4dpde/kpJtGOO+emV4Asz2gnLQVVCUsiGr6PISo=;
+        b=7IRlRUtGzg5ArY6YD/P++yM/F6OlRuB4D236X4oX2Qp94PqM0plJ0f0NjQkGowkKedaCFm
+        60QhvDIsZWYsCxAA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 47CB8139BD;
-        Fri, 28 Jul 2023 18:22:45 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 38B1313276;
+        Fri, 28 Jul 2023 18:22:43 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id oNOjEHUHxGQ3CwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:45 +0000
+        id 4L4XDXMHxGQ3CwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:43 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
-        Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 39/47] fbdev/simplefb: Use fbdev I/O helpers
-Date:   Fri, 28 Jul 2023 18:40:22 +0200
-Message-ID: <20230728182234.10680-40-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH 29/47] fbdev/omapfb: Use fbdev I/O helpers
+Date:   Fri, 28 Jul 2023 18:40:12 +0200
+Message-ID: <20230728182234.10680-30-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230728182234.10680-1-tzimmermann@suse.de>
 References: <20230728182234.10680-1-tzimmermann@suse.de>
@@ -76,44 +75,45 @@ The macro and token set the currently selected values, so there is
 no functional change.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/video/fbdev/Kconfig    | 4 +---
- drivers/video/fbdev/simplefb.c | 4 +---
+ drivers/video/fbdev/omap/Kconfig       | 4 +---
+ drivers/video/fbdev/omap/omapfb_main.c | 4 +---
  2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index cdfe5b797d8f..d1042550ac6d 100644
---- a/drivers/video/fbdev/Kconfig
-+++ b/drivers/video/fbdev/Kconfig
-@@ -1939,9 +1939,7 @@ config FB_SIMPLE
+diff --git a/drivers/video/fbdev/omap/Kconfig b/drivers/video/fbdev/omap/Kconfig
+index a6548283451f..9fe72fd2ea36 100644
+--- a/drivers/video/fbdev/omap/Kconfig
++++ b/drivers/video/fbdev/omap/Kconfig
+@@ -3,9 +3,7 @@ config FB_OMAP
+ 	tristate "OMAP frame buffer support"
  	depends on FB
- 	depends on !DRM_SIMPLEDRM
- 	select APERTURE_HELPERS
+ 	depends on ARCH_OMAP1 || (ARM && COMPILE_TEST)
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IO_HELPERS
  	help
- 	  Say Y if you want support for a simple frame-buffer.
+ 	  Frame buffer driver for OMAP based boards.
  
-diff --git a/drivers/video/fbdev/simplefb.c b/drivers/video/fbdev/simplefb.c
-index 461e50c8dd1b..95036a000f51 100644
---- a/drivers/video/fbdev/simplefb.c
-+++ b/drivers/video/fbdev/simplefb.c
-@@ -109,11 +109,9 @@ static void simplefb_destroy(struct fb_info *info)
- 
- static const struct fb_ops simplefb_ops = {
+diff --git a/drivers/video/fbdev/omap/omapfb_main.c b/drivers/video/fbdev/omap/omapfb_main.c
+index 783bbe026207..56f06126fd54 100644
+--- a/drivers/video/fbdev/omap/omapfb_main.c
++++ b/drivers/video/fbdev/omap/omapfb_main.c
+@@ -1216,13 +1216,11 @@ static int omapfb_mmap(struct fb_info *info, struct vm_area_struct *vma)
+  */
+ static struct fb_ops omapfb_ops = {
  	.owner		= THIS_MODULE,
 +	FB_DEFAULT_IO_OPS,
- 	.fb_destroy	= simplefb_destroy,
- 	.fb_setcolreg	= simplefb_setcolreg,
+ 	.fb_open        = omapfb_open,
+ 	.fb_release     = omapfb_release,
+ 	.fb_setcolreg	= omapfb_setcolreg,
+ 	.fb_setcmap	= omapfb_setcmap,
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
 -	.fb_imageblit	= cfb_imageblit,
- };
- 
- static struct simplefb_format simplefb_formats[] = SIMPLEFB_FORMATS;
+ 	.fb_blank       = omapfb_blank,
+ 	.fb_ioctl	= omapfb_ioctl,
+ 	.fb_check_var	= omapfb_check_var,
 -- 
 2.41.0
 
