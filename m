@@ -2,62 +2,67 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C665BC04FE0
-	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:24:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFBCCC41513
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:24:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234797AbjG1SYa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 28 Jul 2023 14:24:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35380 "EHLO
+        id S231183AbjG1SYb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 28 Jul 2023 14:24:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236538AbjG1SY0 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:24:26 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFE12448D;
-        Fri, 28 Jul 2023 11:24:09 -0700 (PDT)
+        with ESMTP id S236621AbjG1SYW (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:24:22 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CA704488;
+        Fri, 28 Jul 2023 11:24:07 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id D215C219A1;
-        Fri, 28 Jul 2023 18:22:44 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 77E431F8B6;
+        Fri, 28 Jul 2023 18:22:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690568564; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690568561; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=4OUrrcgXyoPtms8129kLJuIQWu/MMVPehHLir/xXNZk=;
-        b=xDnGd60/keIT0eI8H1T4hX8Shvx4EtAX/EYCgfgGuO8L1v/DfhP+oDth+iH1kPcPyqUZEI
-        qgr4/0ao4JW0npGHC3JLcLvc6mJxhkYcLnYDKxG62D5aPxCiqmE8S46K4JRPg0u9MgIJ2I
-        Xv7rXxOpsCDm13Gz/f2TJ8HFOhT60/c=
+        bh=+ZSNnMtrCaIawQO2FqlS+esIa23JYqyvnFrsBAUE0L8=;
+        b=oU6V3x94Bw3s7L5VVeRvLyNHW8q30s28sqqEd6zLwp9qM/UsN4DriCCzw/aZdvK4Jrcppz
+        X8zQJhlRcdC1uZye1xZH4EzIT9jlEBJ//JRU+r4gQMOeMtOuWthyC4Kv8Ms6n7Tomo8nt9
+        KuBFKYQ5PakhApt2et+N2Lf7Q5AeZq4=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690568564;
+        s=susede2_ed25519; t=1690568561;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=4OUrrcgXyoPtms8129kLJuIQWu/MMVPehHLir/xXNZk=;
-        b=9bsrl3EmIo6tWkpaxzS4IC56xCnD1Jy7nZ5sPRdiuuL3WVbnA5jF5Oa7ah01T3BLnwyKvP
-        sHnQZTPVeVfaV7AA==
+        bh=+ZSNnMtrCaIawQO2FqlS+esIa23JYqyvnFrsBAUE0L8=;
+        b=f/JwcOsu5d4vAMD/zwDLiMWJDr8DuXS5kSBgsRvtrak/IiuPhgR1LzR0Y2QQ6FiU77+njK
+        ATGrnbvRLeBe4KCQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id A4EFF13276;
-        Fri, 28 Jul 2023 18:22:44 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 2ABD6139BD;
+        Fri, 28 Jul 2023 18:22:41 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id mCN8J3QHxGQ3CwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:44 +0000
+        id QByGCXEHxGQ3CwAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:41 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 36/47] fbdev/q40fb: Use fbdev I/O helpers
-Date:   Fri, 28 Jul 2023 18:40:19 +0200
-Message-ID: <20230728182234.10680-37-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>
+Subject: [PATCH 20/47] fbdev/imxfb: Use fbdev I/O helpers
+Date:   Fri, 28 Jul 2023 18:40:03 +0200
+Message-ID: <20230728182234.10680-21-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230728182234.10680-1-tzimmermann@suse.de>
 References: <20230728182234.10680-1-tzimmermann@suse.de>
@@ -75,42 +80,49 @@ The macro and token set the currently selected values, so there is
 no functional change.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
+Cc: Shawn Guo <shawnguo@kernel.org>
+Cc: Fabio Estevam <festevam@gmail.com>
+Cc: NXP Linux Team <linux-imx@nxp.com>
 ---
  drivers/video/fbdev/Kconfig | 4 +---
- drivers/video/fbdev/q40fb.c | 4 +---
+ drivers/video/fbdev/imxfb.c | 4 +---
  2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index a085e81276f4..f49a407a6f6a 100644
+index 9e0f7910283e..dba4c8df6c59 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -222,9 +222,7 @@ config FB_Q40
- 	bool
- 	depends on (FB = y) && Q40
- 	default y
+@@ -175,9 +175,7 @@ config FB_IMX
+ 	depends on FB && HAVE_CLK && HAS_IOMEM
+ 	depends on ARCH_MXC || COMPILE_TEST
+ 	select LCD_CLASS_DEVICE
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IO_HELPERS
+ 	select FB_MODE_HELPERS
+ 	select VIDEOMODE_HELPERS
  
- config FB_AMIGA
- 	tristate "Amiga native chipset support"
-diff --git a/drivers/video/fbdev/q40fb.c b/drivers/video/fbdev/q40fb.c
-index b180f0f6940e..e402d1de3218 100644
---- a/drivers/video/fbdev/q40fb.c
-+++ b/drivers/video/fbdev/q40fb.c
-@@ -76,10 +76,8 @@ static int q40fb_setcolreg(unsigned regno, unsigned red, unsigned green,
+diff --git a/drivers/video/fbdev/imxfb.c b/drivers/video/fbdev/imxfb.c
+index 78bae5f1e8b9..2e3b53bc9465 100644
+--- a/drivers/video/fbdev/imxfb.c
++++ b/drivers/video/fbdev/imxfb.c
+@@ -580,12 +580,10 @@ static int imxfb_blank(int blank, struct fb_info *info)
  
- static const struct fb_ops q40fb_ops = {
+ static const struct fb_ops imxfb_ops = {
  	.owner		= THIS_MODULE,
 +	FB_DEFAULT_IO_OPS,
- 	.fb_setcolreg	= q40fb_setcolreg,
+ 	.fb_check_var	= imxfb_check_var,
+ 	.fb_set_par	= imxfb_set_par,
+ 	.fb_setcolreg	= imxfb_setcolreg,
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
 -	.fb_imageblit	= cfb_imageblit,
+ 	.fb_blank	= imxfb_blank,
  };
  
- static int q40fb_probe(struct platform_device *dev)
 -- 
 2.41.0
 
