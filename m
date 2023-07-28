@@ -2,115 +2,74 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B254C41513
-	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:30:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17E5CC001E0
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:35:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231674AbjG1SaU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 28 Jul 2023 14:30:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41960 "EHLO
+        id S231468AbjG1Sfs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 28 Jul 2023 14:35:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232959AbjG1SaQ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:30:16 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CF4B4487;
-        Fri, 28 Jul 2023 11:29:53 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id D0C951F8BF;
-        Fri, 28 Jul 2023 18:22:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690568563; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=4EI61ZoIDdyyabg4SX1EpFhpQPm3cKfb0Lwx/7dZn9g=;
-        b=XMbYCreOOUjpYVpa82JNMMFs5/8xkEZ7ZOGsO8SYrXIEbGaDXIf2IzZ411s3XbGXhABb+8
-        A+TsEcwIK/yeiGK391Q/gqy81KGM2+A43dFBwYa4Pfmygw1QNAZWbRdqTL9IWFtGxtZ2+v
-        kZKH5W7i87orAIHE1gJMzH4F8REcrGI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690568563;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=4EI61ZoIDdyyabg4SX1EpFhpQPm3cKfb0Lwx/7dZn9g=;
-        b=vSx6LneFVSt72RN1CANHJwaLGTzdnMHCD+Z3q0Q3xGXeaDFatwG719dGqYE5WV4xFrHp/m
-        bmZeJfj+0WYUrMCQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 9B40813276;
-        Fri, 28 Jul 2023 18:22:43 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id MEAQJXMHxGQ3CwAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:43 +0000
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
-Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
+        with ESMTP id S231146AbjG1Sfr (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:35:47 -0400
+Received: from mailrelay1-1.pub.mailoutpod2-cph3.one.com (mailrelay1-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:400::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48EC04234
+        for <linux-omap@vger.kernel.org>; Fri, 28 Jul 2023 11:35:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=yhlqzaoSJHj1oBhyHOJO58FgrwVTmfOzCSyUIFeQhEY=;
+        b=PEcPzlAsab2q5HAQN/yHKrzMYVZOsRy7MUZatuyZWA7uM3kwzi/V0IIXBTqrf8Z4FmZHFIt/HybiZ
+         sbbJEqg+zqaWndIpRGziGwRAdnvYp2UskSeh4js0iHCY3oRw+McgFfjI0y7oLnQ5gzU+wULcIwUrBF
+         R1R+aeb9KCgPKAuaXafOc0IO4JfNWyvnuuBhLD0J0hshqdj5Vvu+c4ldj/WYrartBW4EK2ktP2/lhf
+         bp7IzcQFvT5d79Ly00On30yNXDukjQ+qvpzZLJdP2QU4xD5mCpGPPhj9JCV78AQSNl0UQedmdnBIp0
+         WYJ6GjaRnQ7Fz9qCJEPWPwQ3KqH2t6A==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=yhlqzaoSJHj1oBhyHOJO58FgrwVTmfOzCSyUIFeQhEY=;
+        b=y6kAh7BLK3FDXVvFJRPS8aaGvGwNkidIQo6yrUNTCXy1VTEvdvSmyPm1YcWkjEAF+PS7eF5bA8xDF
+         FKUq6KgBA==
+X-HalOne-ID: 8dec9b7e-2d75-11ee-9837-c5367ef0e45e
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay1 (Halon) with ESMTPSA
+        id 8dec9b7e-2d75-11ee-9837-c5367ef0e45e;
+        Fri, 28 Jul 2023 18:35:43 +0000 (UTC)
+Date:   Fri, 28 Jul 2023 20:35:41 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Thomas Zimmermann <tzimmermann@suse.de>
+Cc:     deller@gmx.de, javierm@redhat.com, linux-media@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 31/47] fbdev/pmag-aa-fb: Use fbdev I/O helpers
-Date:   Fri, 28 Jul 2023 18:40:14 +0200
-Message-ID: <20230728182234.10680-32-tzimmermann@suse.de>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230728182234.10680-1-tzimmermann@suse.de>
+        kvm@vger.kernel.org
+Subject: Re: [PATCH 00/47] fbdev: Use I/O helpers
+Message-ID: <20230728183541.GA1144760@ravnborg.org>
 References: <20230728182234.10680-1-tzimmermann@suse.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230728182234.10680-1-tzimmermann@suse.de>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Set struct fb_ops and with FB_DEFAULT_IO_OPS, fbdev's initializer
-for I/O memory. Sets the callbacks to the cfb_ and fb_io_ functions.
-Select the correct modules with Kconfig's FB_IO_HELPERS token.
+Hi Thomas,
 
-The macro and token set the currently selected values, so there is
-no functional change.
+On Fri, Jul 28, 2023 at 06:39:43PM +0200, Thomas Zimmermann wrote:
+> Most fbdev drivers operate on I/O memory. And most of those use the
+> default implementations for file I/O and console drawing. Convert all
+> these low-hanging fruits to the fb_ops initializer macro and Kconfig
+> token for fbdev I/O helpers.
+> 
+> The fbdev I/O helpers are easily grep-able. In a later patch, they can
+> be left to empty values if the rsp. funtionality, such as file I/O or
+> console, has been disabled.
+> 
+> There are no functional changes. The helpers set the defaults that
+> the drivers already use.
 
-Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
----
- drivers/video/fbdev/Kconfig      | 4 +---
- drivers/video/fbdev/pmag-aa-fb.c | 4 +---
- 2 files changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 29353f03f7e3..a8e73bbdff68 100644
---- a/drivers/video/fbdev/Kconfig
-+++ b/drivers/video/fbdev/Kconfig
-@@ -1519,9 +1519,7 @@ config FB_HIT
- config FB_PMAG_AA
- 	tristate "PMAG-AA TURBOchannel framebuffer support"
- 	depends on FB && TC
--	select FB_CFB_FILLRECT
--	select FB_CFB_COPYAREA
--	select FB_CFB_IMAGEBLIT
-+	select FB_IO_HELPERS
- 	help
- 	  Support for the PMAG-AA TURBOchannel framebuffer card (1280x1024x1)
- 	  used mainly in the MIPS-based DECstation series.
-diff --git a/drivers/video/fbdev/pmag-aa-fb.c b/drivers/video/fbdev/pmag-aa-fb.c
-index 7ee20db9ceb8..1b488b1f0ccb 100644
---- a/drivers/video/fbdev/pmag-aa-fb.c
-+++ b/drivers/video/fbdev/pmag-aa-fb.c
-@@ -149,10 +149,8 @@ static int aafb_blank(int blank, struct fb_info *info)
- 
- static const struct fb_ops aafb_ops = {
- 	.owner		= THIS_MODULE,
-+	FB_DEFAULT_IO_OPS,
- 	.fb_blank	= aafb_blank,
--	.fb_fillrect	= cfb_fillrect,
--	.fb_copyarea	= cfb_copyarea,
--	.fb_imageblit	= cfb_imageblit,
- 	.fb_cursor	= aafb_cursor,
- };
- 
--- 
-2.41.0
+I have browsed all patches - they all looks good.
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 
