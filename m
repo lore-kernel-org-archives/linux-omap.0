@@ -2,47 +2,51 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0006C04A6A
-	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:23:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39A87C001DF
+	for <linux-omap@archiver.kernel.org>; Fri, 28 Jul 2023 18:23:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231264AbjG1SXQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 28 Jul 2023 14:23:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33694 "EHLO
+        id S235539AbjG1SXV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 28 Jul 2023 14:23:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233675AbjG1SXN (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:23:13 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25F074C09;
-        Fri, 28 Jul 2023 11:22:45 -0700 (PDT)
+        with ESMTP id S230340AbjG1SXS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 28 Jul 2023 14:23:18 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EE1B4C1A;
+        Fri, 28 Jul 2023 11:22:52 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 6C0BF21892;
-        Fri, 28 Jul 2023 18:22:36 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 2FE091F892;
+        Fri, 28 Jul 2023 18:22:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690568556; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-        bh=9xhX/d0nOfcA8qfj6H2EWd8nVvr6t6TOcGSyy7Z6zD4=;
-        b=RQ3HSvcZyfM+2BUVtTgAA4ueCI0+q6Q+uiolZfqwnFwpqHOAnHQl4T8I4vJ0pk0OkwdMMm
-        u6SHVOBOHDQWiwc19fHKtAKTozXF4VCA3tefHLAN5kRSXQTFznhC+rWLxpd4AFZlG9qbYN
-        j4yCV7M6HeD4KZcPJNFbfcT8/Uc8VQ8=
+        t=1690568557; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=yQUe/KSPhKjnC5k7YyrysYfytJOPXbegUxuSTPleiPY=;
+        b=UzQGOrFVOALeQXadBWvDMRt/ky+olm3bo52CLTyW1A+0JZfDMprDwNIFRxeFcYku9HapAM
+        2vKJmw+nMf5cW/7r93aLvqCll8lk72GuFHGMs+Ost8jAP+HiLZVpVqcqEKmvv90fn7U9et
+        QW7CfvTMpoQK8DHBFGXsRsRvCjUan8g=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690568556;
+        s=susede2_ed25519; t=1690568557;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-        bh=9xhX/d0nOfcA8qfj6H2EWd8nVvr6t6TOcGSyy7Z6zD4=;
-        b=peACJPHExXeBvbK16dt3LKUcn3oBHF6g2LfMr/JVEUcIWslGUeexgmQmOGeOTrnGmMrLoL
-        H+kCuy5hud4acWDw==
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=yQUe/KSPhKjnC5k7YyrysYfytJOPXbegUxuSTPleiPY=;
+        b=/qYiposqiMODOsx27PYKsee3hGaLiuADtJbPDjfzEqXDkG3dSpZxc6mIgmycl5xdqbWJPj
+        IpxWqJg8jGCPj+AQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 3268913276;
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id EE122139BD;
         Fri, 28 Jul 2023 18:22:36 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id Fp1PC2wHxGQ3CwAAMHmgww
+        id 0JsyOWwHxGQ3CwAAMHmgww
         (envelope-from <tzimmermann@suse.de>); Fri, 28 Jul 2023 18:22:36 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
@@ -51,134 +55,64 @@ Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
         kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 00/47] fbdev: Use I/O helpers
-Date:   Fri, 28 Jul 2023 18:39:43 +0200
-Message-ID: <20230728182234.10680-1-tzimmermann@suse.de>
+Subject: [PATCH 03/47] fbdev/asiliantfb: Use fbdev I/O helpers
+Date:   Fri, 28 Jul 2023 18:39:46 +0200
+Message-ID: <20230728182234.10680-4-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20230728182234.10680-1-tzimmermann@suse.de>
+References: <20230728182234.10680-1-tzimmermann@suse.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Most fbdev drivers operate on I/O memory. And most of those use the
-default implementations for file I/O and console drawing. Convert all
-these low-hanging fruits to the fb_ops initializer macro and Kconfig
-token for fbdev I/O helpers.
+Set struct fb_ops and with FB_DEFAULT_IO_OPS, fbdev's initializer
+for I/O memory. Sets the callbacks to the cfb_ and fb_io_ functions.
+Select the correct modules with Kconfig's FB_IO_HELPERS token.
 
-The fbdev I/O helpers are easily grep-able. In a later patch, they can
-be left to empty values if the rsp. funtionality, such as file I/O or
-console, has been disabled.
+The macro and token set the currently selected values, so there is
+no functional change.
 
-There are no functional changes. The helpers set the defaults that
-the drivers already use.
+Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+---
+ drivers/video/fbdev/Kconfig      | 4 +---
+ drivers/video/fbdev/asiliantfb.c | 4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-Thomas Zimmermann (47):
-  media/vivid: Use fbdev I/O helpers
-  fbdev/acornfb: Use fbdev I/O helpers
-  fbdev/asiliantfb: Use fbdev I/O helpers
-  fbdev/atmel_lcdfb: Use fbdev I/O helpers
-  fbdev/aty128fb: Use fbdev I/O helpers
-  fbdev/carminefb: Use fbdev I/O helpers
-  fbdev/chipsfb: Use fbdev I/O helpers
-  fbdev/da8xx-fb: Use fbdev I/O helpers
-  fbdev/efifb: Use fbdev I/O helpers
-  fbdev/fm2fb: Use fbdev I/O helpers
-  fbdev/fsl-diu-fb: Use fbdev I/O helpers
-  fbdev/g364fb: Use fbdev I/O helpers
-  fbdev/geode/gx1fb: Use fbdev I/O helpers
-  fbdev/geode/gxfb: Use fbdev I/O helpers
-  fbdev/geode/lxfb: Use fbdev I/O helpers
-  fbdev/goldfishfb: Use fbdev I/O helpers
-  fbdev/grvga: Use fbdev I/O helpers
-  fbdev/gxt4500: Use fbdev I/O helpers
-  fbdev/i740fb: Use fbdev I/O helpers
-  fbdev/imxfb: Use fbdev I/O helpers
-  fbdev/kyro: Use fbdev I/O helpers
-  fbdev/macfb: Use fbdev I/O helpers
-  fbdev/maxinefb: Use fbdev I/O helpers
-  fbdev/mb862xxfb: Use fbdev I/O helpers
-  fbdev/mmpfb: Use fbdev I/O helpers
-  fbdev/mx3fb: Use fbdev I/O helpers
-  fbdev/ocfb: Use fbdev I/O helpers
-  fbdev/offb: Use fbdev I/O helpers
-  fbdev/omapfb: Use fbdev I/O helpers
-  fbdev/platinumfb: Use fbdev I/O helpers
-  fbdev/pmag-aa-fb: Use fbdev I/O helpers
-  fbdev/pmag-ba-fb: Use fbdev I/O helpers
-  fbdev/pmag-b-fb: Use fbdev I/O helpers
-  fbdev/pxa168fb: Use fbdev I/O helpers
-  fbdev/pxafb: Use fbdev I/O helpers
-  fbdev/q40fb: Use fbdev I/O helpers
-  fbdev/s3cfb: Use fbdev I/O helpers
-  fbdev/sh7760fb: Use fbdev I/O helpers
-  fbdev/simplefb: Use fbdev I/O helpers
-  fbdev/sstfb: Use fbdev I/O helpers
-  fbdev/sunxvr1000: Use fbdev I/O helpers
-  fbdev/sunxvr2500: Use fbdev I/O helpers
-  fbdev/uvesafb: Use fbdev I/O helpers
-  fbdev/valkyriefb: Use fbdev I/O helpers
-  fbdev/vesafb: Use fbdev I/O helpers
-  fbdev/xilinxfb: Use fbdev I/O helpers
-  vfio-dev/mdpy-fb: Use fbdev I/O helpers
-
- drivers/media/test-drivers/vivid/Kconfig     |   4 +-
- drivers/media/test-drivers/vivid/vivid-osd.c |   4 +-
- drivers/video/fbdev/Kconfig                  | 160 +++++--------------
- drivers/video/fbdev/acornfb.c                |   4 +-
- drivers/video/fbdev/asiliantfb.c             |   4 +-
- drivers/video/fbdev/atmel_lcdfb.c            |   4 +-
- drivers/video/fbdev/aty/aty128fb.c           |   4 +-
- drivers/video/fbdev/carminefb.c              |   5 +-
- drivers/video/fbdev/chipsfb.c                |   4 +-
- drivers/video/fbdev/da8xx-fb.c               |   4 +-
- drivers/video/fbdev/efifb.c                  |   4 +-
- drivers/video/fbdev/fm2fb.c                  |   4 +-
- drivers/video/fbdev/fsl-diu-fb.c             |   4 +-
- drivers/video/fbdev/g364fb.c                 |   4 +-
- drivers/video/fbdev/geode/Kconfig            |  12 +-
- drivers/video/fbdev/geode/gx1fb_core.c       |   5 +-
- drivers/video/fbdev/geode/gxfb_core.c        |   5 +-
- drivers/video/fbdev/geode/lxfb_core.c        |   5 +-
- drivers/video/fbdev/goldfishfb.c             |   4 +-
- drivers/video/fbdev/grvga.c                  |   4 +-
- drivers/video/fbdev/gxt4500.c                |   4 +-
- drivers/video/fbdev/i740fb.c                 |   4 +-
- drivers/video/fbdev/imxfb.c                  |   4 +-
- drivers/video/fbdev/kyro/fbdev.c             |   4 +-
- drivers/video/fbdev/macfb.c                  |   4 +-
- drivers/video/fbdev/maxinefb.c               |   4 +-
- drivers/video/fbdev/mb862xx/mb862xxfbdrv.c   |   4 +-
- drivers/video/fbdev/mmp/fb/Kconfig           |   4 +-
- drivers/video/fbdev/mmp/fb/mmpfb.c           |   4 +-
- drivers/video/fbdev/mx3fb.c                  |   4 +-
- drivers/video/fbdev/ocfb.c                   |   4 +-
- drivers/video/fbdev/offb.c                   |   4 +-
- drivers/video/fbdev/omap/Kconfig             |   4 +-
- drivers/video/fbdev/omap/omapfb_main.c       |   4 +-
- drivers/video/fbdev/platinumfb.c             |   4 +-
- drivers/video/fbdev/pmag-aa-fb.c             |   4 +-
- drivers/video/fbdev/pmag-ba-fb.c             |   4 +-
- drivers/video/fbdev/pmagb-b-fb.c             |   4 +-
- drivers/video/fbdev/pxa168fb.c               |   4 +-
- drivers/video/fbdev/pxafb.c                  |   4 +-
- drivers/video/fbdev/q40fb.c                  |   4 +-
- drivers/video/fbdev/s3c-fb.c                 |   4 +-
- drivers/video/fbdev/sh7760fb.c               |   4 +-
- drivers/video/fbdev/simplefb.c               |   4 +-
- drivers/video/fbdev/sstfb.c                  |   4 +-
- drivers/video/fbdev/sunxvr1000.c             |   4 +-
- drivers/video/fbdev/sunxvr2500.c             |   4 +-
- drivers/video/fbdev/uvesafb.c                |   4 +-
- drivers/video/fbdev/valkyriefb.c             |   4 +-
- drivers/video/fbdev/vesafb.c                 |   4 +-
- drivers/video/fbdev/xilinxfb.c               |   4 +-
- samples/Kconfig                              |   4 +-
- samples/vfio-mdev/mdpy-fb.c                  |   4 +-
- 53 files changed, 94 insertions(+), 286 deletions(-)
-
-
-base-commit: fba8a13ec9ae1a7175cc0dda7235b3d2df0f0f90
+diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
+index 2b1dd3700df6..2fcc29ec8252 100644
+--- a/drivers/video/fbdev/Kconfig
++++ b/drivers/video/fbdev/Kconfig
+@@ -362,9 +362,7 @@ config FB_CT65550
+ config FB_ASILIANT
+ 	bool "Asiliant (Chips) 69000 display support"
+ 	depends on (FB = y) && PCI
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
++	select FB_IO_HELPERS
+ 	select VIDEO_NOMODESET
+ 	help
+ 	  This is the frame buffer device driver for the Asiliant 69030 chipset
+diff --git a/drivers/video/fbdev/asiliantfb.c b/drivers/video/fbdev/asiliantfb.c
+index 29c232809d5e..da76d137d2a7 100644
+--- a/drivers/video/fbdev/asiliantfb.c
++++ b/drivers/video/fbdev/asiliantfb.c
+@@ -98,12 +98,10 @@ static int asiliantfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
+ 
+ static const struct fb_ops asiliantfb_ops = {
+ 	.owner		= THIS_MODULE,
++	FB_DEFAULT_IO_OPS,
+ 	.fb_check_var	= asiliantfb_check_var,
+ 	.fb_set_par	= asiliantfb_set_par,
+ 	.fb_setcolreg	= asiliantfb_setcolreg,
+-	.fb_fillrect	= cfb_fillrect,
+-	.fb_copyarea	= cfb_copyarea,
+-	.fb_imageblit	= cfb_imageblit,
+ };
+ 
+ /* Calculate the ratios for the dot clocks without using a single long long
 -- 
 2.41.0
 
