@@ -2,121 +2,61 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00DC9C04A94
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 11:23:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33E3FC001E0
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 11:52:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233249AbjHALXx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Aug 2023 07:23:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53844 "EHLO
+        id S234414AbjHALwf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Aug 2023 07:52:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46442 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233013AbjHALXg (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 07:23:36 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3086CEA;
-        Tue,  1 Aug 2023 04:22:52 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8026661541;
-        Tue,  1 Aug 2023 11:22:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABD8BC433C8;
-        Tue,  1 Aug 2023 11:22:48 +0000 (UTC)
-Message-ID: <ee03c6c9-4e6a-2732-0416-43fd5418c950@xs4all.nl>
-Date:   Tue, 1 Aug 2023 13:22:46 +0200
+        with ESMTP id S234416AbjHALwb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 07:52:31 -0400
+Received: from mail.cothiafon.pl (mail.cothiafon.pl [217.61.106.23])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42EF510FD
+        for <linux-omap@vger.kernel.org>; Tue,  1 Aug 2023 04:52:27 -0700 (PDT)
+Received: by mail.cothiafon.pl (Postfix, from userid 1002)
+        id 1F28F83C37; Mon, 31 Jul 2023 10:36:43 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=cothiafon.pl; s=mail;
+        t=1690792643; bh=dwoca0X6C9VXklO/zRgFQCPapTk5LFz4tKaENdvy6Po=;
+        h=Date:From:To:Subject:From;
+        b=GkxMGVL1Onyc8+nkxkIDOY+TDLthk8Dn8N4ZX39ZF9GwMoLJqsJT0Bkw8dn/97nPa
+         5fo2TjksuXqdoALACYxtNp9FiNNq/OBY8tnTmhsm+P4zbFdqSPfgDPFIpqHGXyt7kC
+         97mmPjkzkIlTf8VYgZg6z4tDGhYDBgs9ZSq9aaxNwWmp/+Hksr6o0bUhUDs3oItjR1
+         XcANzlCSUQcIynxQFYAh5inmFe9j06+EaTeL137KR3rUd26h61R39hMY94+jaJPBHc
+         Bq1zEvFqVVBSv6f+2qVCLZQ59ia9dG6C+/NMTK8p44ua3d/+3ppcN+WjePOq6rJZBR
+         XdxTLVAsVv6eA==
+Received: by mail.cothiafon.pl for <linux-omap@vger.kernel.org>; Mon, 31 Jul 2023 08:35:48 GMT
+Message-ID: <20230731095940-0.1.28.onp0.0.bgwto2rr5a@cothiafon.pl>
+Date:   Mon, 31 Jul 2023 08:35:48 GMT
+From:   =?UTF-8?Q? "Rados=C5=82aw_Grabowski" ?= 
+        <radoslaw.grabowski@cothiafon.pl>
+To:     <linux-omap@vger.kernel.org>
+Subject: W sprawie samochodu
+X-Mailer: mail.cothiafon.pl
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: [PATCH v2 01/47] media/vivid: Use fbdev I/O helpers
-Content-Language: en-US
-To:     Thomas Zimmermann <tzimmermann@suse.de>, deller@gmx.de,
-        javierm@redhat.com, sam@ravnborg.org
-Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20230801101541.900-1-tzimmermann@suse.de>
- <20230801101541.900-2-tzimmermann@suse.de>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <20230801101541.900-2-tzimmermann@suse.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 01/08/2023 12:13, Thomas Zimmermann wrote:
-> Set struct fb_ops and with FB_DEFAULT_IO_OPS, fbdev's initializer
-> for I/O memory. Sets the callbacks to the cfb_ and fb_io_ functions.
-> Select the correct modules with Kconfig's FB_IO_HELPERS token.
-> 
-> The macro and token set the currently selected values, so there is
-> no functional change.
-> 
-> v2:
-> 	* updated to use _IOMEM_ tokens
-> 
-> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-> Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-> Acked-by: Helge Deller <deller@gmx.de>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> ---
->  drivers/media/test-drivers/vivid/Kconfig     | 4 +---
->  drivers/media/test-drivers/vivid/vivid-osd.c | 4 +---
->  2 files changed, 2 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/test-drivers/vivid/Kconfig b/drivers/media/test-drivers/vivid/Kconfig
-> index 318799d317ba..5b08a5ad291e 100644
-> --- a/drivers/media/test-drivers/vivid/Kconfig
-> +++ b/drivers/media/test-drivers/vivid/Kconfig
-> @@ -3,11 +3,9 @@ config VIDEO_VIVID
->  	tristate "Virtual Video Test Driver"
->  	depends on VIDEO_DEV && !SPARC32 && !SPARC64 && FB
->  	depends on HAS_DMA
-> +	select FB_IOMEM_HELPERS
->  	select FONT_SUPPORT
->  	select FONT_8x16
-> -	select FB_CFB_FILLRECT
-> -	select FB_CFB_COPYAREA
-> -	select FB_CFB_IMAGEBLIT
->  	select VIDEOBUF2_VMALLOC
->  	select VIDEOBUF2_DMA_CONTIG
->  	select VIDEO_V4L2_TPG
-> diff --git a/drivers/media/test-drivers/vivid/vivid-osd.c b/drivers/media/test-drivers/vivid/vivid-osd.c
-> index 051f1805a16d..5c931b94a7b5 100644
-> --- a/drivers/media/test-drivers/vivid/vivid-osd.c
-> +++ b/drivers/media/test-drivers/vivid/vivid-osd.c
-> @@ -246,12 +246,10 @@ static int vivid_fb_blank(int blank_mode, struct fb_info *info)
->  
->  static const struct fb_ops vivid_fb_ops = {
->  	.owner = THIS_MODULE,
-> +	FB_DEFAULT_IOMEM_OPS,
+Dzie=C5=84 dobry,
 
-This macro also sets fb_read and fb_write ops here, in addition to the
-cfb_* ops, based on this patch:
+chcieliby=C5=9Bmy zapewni=C4=87 Pa=C5=84stwu kompleksowe rozwi=C4=85zania=
+, je=C5=9Bli chodzi o system monitoringu GPS.
 
-https://lore.kernel.org/all/20230729193157.15446-2-tzimmermann@suse.de/#Z2e.:20230729193157.15446-2-tzimmermann::40suse.de:1include:linux:fb.h
+Precyzyjne monitorowanie pojazd=C3=B3w na mapach cyfrowych, =C5=9Bledzeni=
+e ich parametr=C3=B3w eksploatacyjnych w czasie rzeczywistym oraz kontrol=
+a paliwa to kluczowe funkcjonalno=C5=9Bci naszego systemu.=20
 
-But those two ops were never set in this driver before.
+Organizowanie pracy pracownik=C3=B3w jest dzi=C4=99ki temu prostsze i bar=
+dziej efektywne, a oszcz=C4=99dno=C5=9Bci i optymalizacja w zakresie pono=
+szonych koszt=C3=B3w, maj=C4=85 dla ka=C5=BCdego przedsi=C4=99biorcy ogro=
+mne znaczenie.
 
-It's been ages since I last worked with this, so I can't tell whether that's
-good or bad, all I know is that it makes what appears to be a functional change.
+Dopasujemy nasz=C4=85 ofert=C4=99 do Pa=C5=84stwa oczekiwa=C5=84 i potrze=
+b organizacji. Czy mogliby=C5=9Bmy porozmawia=C4=87 o naszej propozycji?
 
-Can you explain a bit more? Am I missing something?
 
-Regards,
-
-	Hans
-
->  	.fb_check_var   = vivid_fb_check_var,
->  	.fb_set_par     = vivid_fb_set_par,
->  	.fb_setcolreg   = vivid_fb_setcolreg,
-> -	.fb_fillrect    = cfb_fillrect,
-> -	.fb_copyarea    = cfb_copyarea,
-> -	.fb_imageblit   = cfb_imageblit,
->  	.fb_cursor      = NULL,
->  	.fb_ioctl       = vivid_fb_ioctl,
->  	.fb_pan_display = vivid_fb_pan_display,
-
+Pozdrawiam
+Rados=C5=82aw Grabowski
