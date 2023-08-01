@@ -2,62 +2,63 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD14CC04FE1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A54FBC04FDF
 	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 10:17:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231669AbjHAKRi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Aug 2023 06:17:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38832 "EHLO
+        id S234163AbjHAKRh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Aug 2023 06:17:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233919AbjHAKQF (ORCPT
+        with ESMTP id S233924AbjHAKQF (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 06:16:05 -0400
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDE721705;
-        Tue,  1 Aug 2023 03:15:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2207B10CA;
+        Tue,  1 Aug 2023 03:15:51 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id B343121E3E;
-        Tue,  1 Aug 2023 10:15:51 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id E60DE21E2D;
+        Tue,  1 Aug 2023 10:15:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690884951; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690884949; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=6fHxsrSSOnzZ6rmCqV6erNFOq0Nu+NpWSjorwaxQhiU=;
-        b=ayunAfE5nWjvvZa1B3/sDMEdXBl4xlkhWH4DDN1F/1TDlNI2oE1aJWVgufp2Cds2z1DN7Z
-        Fpvv9WPvoh47ztM3c/t8EqPKloLE43uAVFZVjSTeBURa6lLGuPkBptvG3NLqcAkvJlPbXf
-        tkM8t8brJfPHa2BG5Edo+Zk33u04Nso=
+        bh=9kPVFB/FWCYmgOzFJO0/9icFAJgmXM6i+x0H1dAm3OY=;
+        b=CFTq+68z9hB2H8rnMrs9KkeV1hVtKLWmYi3JOQlj8QmDg2HcHq+B/0XUzSE4ZLQI1xYMoQ
+        +EHfTzukdT6VidVHQObf+6Qb5iqvkkDZH+MaWhcBSn0ylz/5g3ilwaRrH1oNCDAtA1J/TA
+        fmBcITOjtyV7CB4vpiFZgo5SEhfOv4g=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690884951;
+        s=susede2_ed25519; t=1690884949;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=6fHxsrSSOnzZ6rmCqV6erNFOq0Nu+NpWSjorwaxQhiU=;
-        b=8hTN1Cu5toixpn74MqzlmK8psT/7Ww22S75Xh8UAAnEKLzaiyVkx0DklIzeylAHfKHZ7fj
-        wmxWgxpskpU2jvBA==
+        bh=9kPVFB/FWCYmgOzFJO0/9icFAJgmXM6i+x0H1dAm3OY=;
+        b=Hs6BwvnOK3ekASev7S2vxeqVFZ41mfCN1LeFxVvqNqBBJg+6/1xxv8jdlqlaFPCq6skEDc
+        9yH00yLVA/y84SDw==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 78AE1139BD;
-        Tue,  1 Aug 2023 10:15:51 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id AB52E139BD;
+        Tue,  1 Aug 2023 10:15:49 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id SLyEHFfbyGQBXQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 01 Aug 2023 10:15:51 +0000
+        id oJntKFXbyGQBXQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 01 Aug 2023 10:15:49 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v2 18/47] fbdev/gxt4500: Use fbdev I/O helpers
-Date:   Tue,  1 Aug 2023 12:13:23 +0200
-Message-ID: <20230801101541.900-19-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
+        Timur Tabi <timur@kernel.org>
+Subject: [PATCH v2 11/47] fbdev/fsl-diu-fb: Use fbdev I/O helpers
+Date:   Tue,  1 Aug 2023 12:13:16 +0200
+Message-ID: <20230801101541.900-12-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230801101541.900-1-tzimmermann@suse.de>
 References: <20230801101541.900-1-tzimmermann@suse.de>
@@ -80,46 +81,47 @@ v2:
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Acked-by: Helge Deller <deller@gmx.de>
+Cc: Timur Tabi <timur@kernel.org>
 ---
- drivers/video/fbdev/Kconfig   | 4 +---
- drivers/video/fbdev/gxt4500.c | 4 +---
+ drivers/video/fbdev/Kconfig      | 4 +---
+ drivers/video/fbdev/fsl-diu-fb.c | 4 +---
  2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 8b20e03f188b..ee29f323c2b4 100644
+index fe62de330326..d225bd2d47a9 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -1752,9 +1752,7 @@ config FB_UDL
- config FB_IBM_GXT4500
- 	tristate "Framebuffer support for IBM GXT4000P/4500P/6000P/6500P adaptors"
- 	depends on FB
+@@ -1661,10 +1661,8 @@ config PXA3XX_GCU
+ config FB_FSL_DIU
+ 	tristate "Freescale DIU framebuffer support"
+ 	depends on FB && FSL_SOC
++	select FB_IOMEM_HELPERS
+ 	select FB_MODE_HELPERS
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
-+	select FB_IOMEM_HELPERS
- 	select VIDEO_NOMODESET
+ 	select PPC_LIB_RHEAP
  	help
- 	  Say Y here to enable support for the IBM GXT4000P/6000P and
-diff --git a/drivers/video/fbdev/gxt4500.c b/drivers/video/fbdev/gxt4500.c
-index 8d0976578ddf..15a82c6b609e 100644
---- a/drivers/video/fbdev/gxt4500.c
-+++ b/drivers/video/fbdev/gxt4500.c
-@@ -602,14 +602,12 @@ static const struct fb_fix_screeninfo gxt4500_fix = {
+ 	  Framebuffer driver for the Freescale SoC DIU
+diff --git a/drivers/video/fbdev/fsl-diu-fb.c b/drivers/video/fbdev/fsl-diu-fb.c
+index c62b48f27ba9..7fbd9f069ac2 100644
+--- a/drivers/video/fbdev/fsl-diu-fb.c
++++ b/drivers/video/fbdev/fsl-diu-fb.c
+@@ -1451,13 +1451,11 @@ static int fsl_diu_release(struct fb_info *info, int user)
  
- static const struct fb_ops gxt4500_ops = {
+ static const struct fb_ops fsl_diu_ops = {
  	.owner = THIS_MODULE,
 +	FB_DEFAULT_IOMEM_OPS,
- 	.fb_check_var = gxt4500_check_var,
- 	.fb_set_par = gxt4500_set_par,
- 	.fb_setcolreg = gxt4500_setcolreg,
- 	.fb_pan_display = gxt4500_pan_display,
- 	.fb_blank = gxt4500_blank,
+ 	.fb_check_var = fsl_diu_check_var,
+ 	.fb_set_par = fsl_diu_set_par,
+ 	.fb_setcolreg = fsl_diu_setcolreg,
+ 	.fb_pan_display = fsl_diu_pan_display,
 -	.fb_fillrect = cfb_fillrect,
 -	.fb_copyarea = cfb_copyarea,
 -	.fb_imageblit = cfb_imageblit,
- };
- 
- /* PCI functions */
+ 	.fb_ioctl = fsl_diu_ioctl,
+ 	.fb_open = fsl_diu_open,
+ 	.fb_release = fsl_diu_release,
 -- 
 2.41.0
 
