@@ -2,62 +2,63 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B73F2C07E8F
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 10:16:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4200C04A94
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 10:16:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234028AbjHAKQQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Aug 2023 06:16:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38758 "EHLO
+        id S234040AbjHAKQS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Aug 2023 06:16:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233941AbjHAKQH (ORCPT
+        with ESMTP id S231887AbjHAKQH (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 06:16:07 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0C6C1718;
-        Tue,  1 Aug 2023 03:15:54 -0700 (PDT)
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B371110FF;
+        Tue,  1 Aug 2023 03:15:53 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id CC2B021E48;
-        Tue,  1 Aug 2023 10:15:52 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id AAF8F1F8B9;
+        Tue,  1 Aug 2023 10:15:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690884952; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690884950; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=AHyxx6FRP5/LpOn4yOlMu31gUHrTEs3HvbYTqZacgUg=;
-        b=fHpOUrCWoFLZhiUGS76ri0g3mu1iHWjFqtCxi2WpdHZoMm2TnBMJ/r1wVuYAnIwt/EP0O1
-        ootfrq9kUZ0J/4CQA9vJSAJlLYDSPWg18kBqWsnY7ToHQbjK5xNNqdS5BQowE97Y4Szkgo
-        icen+x/JcpoItqNIdcVqlh0az0X+eUk=
+        bh=AeXkB15aZppSL9vacWZ+b+kLDjfaZAChZWyH6p+VqQo=;
+        b=YwWtFZx7I6xuINUyDoX2ug9OpiMCkafNyPUd7/wSVe6YDHR5zY2ayxiFOKCfpaby6i2sPM
+        mvaNAorKQnXHLM5GcQInFqI3ZCW++G4iTzlT5Dih2B239nsU8q7YAtWfGZLsdJssl0CNpM
+        kPgW3a56+9joH2My++1lZT6mDPZ1qq4=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690884952;
+        s=susede2_ed25519; t=1690884950;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=AHyxx6FRP5/LpOn4yOlMu31gUHrTEs3HvbYTqZacgUg=;
-        b=rMHFYXeXtmPND9cH/tHYF62FGTWdLkSIBDFPwfzdrJpMxK/ItN0NQhYcoABHqjX7dUXKHN
-        u5a9TyZuR9+6oRCA==
+        bh=AeXkB15aZppSL9vacWZ+b+kLDjfaZAChZWyH6p+VqQo=;
+        b=rFiyJ+CGpbsO3CyZwMvBlUHOEPEujUEy6jxmciOvYw0YwnLuTUfCYx+jh3Ti8zOV49qOQ+
+        5QZd3m4hAxPNY7Dw==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 94888139BD;
-        Tue,  1 Aug 2023 10:15:52 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 7194E139C8;
+        Tue,  1 Aug 2023 10:15:50 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id KFxdI1jbyGQBXQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 01 Aug 2023 10:15:52 +0000
+        id MMjiGlbbyGQBXQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 01 Aug 2023 10:15:50 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v2 22/47] fbdev/macfb: Use fbdev I/O helpers
-Date:   Tue,  1 Aug 2023 12:13:27 +0200
-Message-ID: <20230801101541.900-23-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
+        Andres Salomon <dilinger@queued.net>
+Subject: [PATCH v2 14/47] fbdev/geode/gxfb: Use fbdev I/O helpers
+Date:   Tue,  1 Aug 2023 12:13:19 +0200
+Message-ID: <20230801101541.900-15-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230801101541.900-1-tzimmermann@suse.de>
 References: <20230801101541.900-1-tzimmermann@suse.de>
@@ -80,42 +81,47 @@ v2:
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Acked-by: Helge Deller <deller@gmx.de>
+Cc: Andres Salomon <dilinger@queued.net>
 ---
- drivers/video/fbdev/Kconfig | 4 +---
- drivers/video/fbdev/macfb.c | 4 +---
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/video/fbdev/geode/Kconfig     | 4 +---
+ drivers/video/fbdev/geode/gxfb_core.c | 5 +----
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 231450ef449f..c7ee242985ed 100644
---- a/drivers/video/fbdev/Kconfig
-+++ b/drivers/video/fbdev/Kconfig
-@@ -407,9 +407,7 @@ config FB_STI
- config FB_MAC
- 	bool "Generic Macintosh display support"
- 	depends on (FB = y) && MAC
+diff --git a/drivers/video/fbdev/geode/Kconfig b/drivers/video/fbdev/geode/Kconfig
+index 51b1ec5319c4..957ef0756ced 100644
+--- a/drivers/video/fbdev/geode/Kconfig
++++ b/drivers/video/fbdev/geode/Kconfig
+@@ -29,9 +29,7 @@ config FB_GEODE_LX
+ config FB_GEODE_GX
+ 	tristate "AMD Geode GX framebuffer support"
+ 	depends on FB && FB_GEODE
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_HELPERS
- 	select FB_MACMODES
+ 	select VIDEO_NOMODESET
+ 	help
+ 	  Framebuffer driver for the display controller integrated into the
+diff --git a/drivers/video/fbdev/geode/gxfb_core.c b/drivers/video/fbdev/geode/gxfb_core.c
+index 4fb13790c528..af996634c1a9 100644
+--- a/drivers/video/fbdev/geode/gxfb_core.c
++++ b/drivers/video/fbdev/geode/gxfb_core.c
+@@ -268,14 +268,11 @@ static int gxfb_map_video_memory(struct fb_info *info, struct pci_dev *dev)
  
- config FB_HP300
-diff --git a/drivers/video/fbdev/macfb.c b/drivers/video/fbdev/macfb.c
-index 5ca208d992cc..887fffdccd24 100644
---- a/drivers/video/fbdev/macfb.c
-+++ b/drivers/video/fbdev/macfb.c
-@@ -498,10 +498,8 @@ static int macfb_setcolreg(unsigned regno, unsigned red, unsigned green,
- 
- static const struct fb_ops macfb_ops = {
+ static const struct fb_ops gxfb_ops = {
  	.owner		= THIS_MODULE,
 +	FB_DEFAULT_IOMEM_OPS,
- 	.fb_setcolreg	= macfb_setcolreg,
+ 	.fb_check_var	= gxfb_check_var,
+ 	.fb_set_par	= gxfb_set_par,
+ 	.fb_setcolreg	= gxfb_setcolreg,
+ 	.fb_blank       = gxfb_blank,
+-	/* No HW acceleration for now. */
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
 -	.fb_imageblit	= cfb_imageblit,
  };
  
- static void __init macfb_setup(char *options)
+ static struct fb_info *gxfb_init_fbinfo(struct device *dev)
 -- 
 2.41.0
 
