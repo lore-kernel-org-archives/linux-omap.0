@@ -2,62 +2,63 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8429C07E8A
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 10:17:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 904CDC001DF
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 10:17:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234171AbjHAKRm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Aug 2023 06:17:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38712 "EHLO
+        id S234172AbjHAKRo (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Aug 2023 06:17:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232062AbjHAKQF (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 06:16:05 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37EB910FD;
-        Tue,  1 Aug 2023 03:15:53 -0700 (PDT)
+        with ESMTP id S231536AbjHAKQE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 06:16:04 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21FEE10C8;
+        Tue,  1 Aug 2023 03:15:51 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 73A1221E39;
-        Tue,  1 Aug 2023 10:15:51 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 6D24521E34;
+        Tue,  1 Aug 2023 10:15:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690884951; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690884950; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=yWtULwfEMcR6yMY2kEKHoVS8R03ZvJmdgIAsZLqN0pE=;
-        b=deCk5GskVfIeD5OaAZJ9kkk9s3cC78jXe+6VMibph6nF6R/d1aakErCiplEOXOVryv5htY
-        ceQmvudvYlw9L7ugGPK7ZiaWuUlakKC+fWLNbz2QVgNUVXi/j8iyjmP5ghFjLoHBAjtuFQ
-        wmDqhQdfbfOQafcXBhFhSboZbzKXBjM=
+        bh=2etEUGCzeGiYzCbeSO7+AJfpWNJoSVAoDCAMu72NWNI=;
+        b=Rukeirz1YekWKPiU654QBfUdCpTPa0EX0A0JfDWdSrijGKeJ/4daoGQ37JJOD+3fQ9VnWg
+        k6wxqv8/7Bt1OJpgpvq7hiP8QgfmemUEqw6vdErkINkej7E2BqEvsUTPOL8dniIPjIcr9r
+        ZYyoJgPNGRjn8AGLhEKtkN8JSFQbj3M=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690884951;
+        s=susede2_ed25519; t=1690884950;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=yWtULwfEMcR6yMY2kEKHoVS8R03ZvJmdgIAsZLqN0pE=;
-        b=SC6MWQgAIPAaI9kramKCnVJ0KLwLuW4quIYN6U1QnoczDRBmZHZujNVOuSm/BG7Z1nQ1s2
-        vQujo1P8RA3vFXCg==
+        bh=2etEUGCzeGiYzCbeSO7+AJfpWNJoSVAoDCAMu72NWNI=;
+        b=H+omQ0CR8AmLuC0BVUYMkwVQBSEv5jhdTDVZYURFvffr8bGctewsqWfxlXJ1qG15b20CRh
+        zcTda4HGMcPKCnBA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 3BB29139BD;
-        Tue,  1 Aug 2023 10:15:51 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 33415139BD;
+        Tue,  1 Aug 2023 10:15:50 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id qCygDVfbyGQBXQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 01 Aug 2023 10:15:51 +0000
+        id eBywC1bbyGQBXQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 01 Aug 2023 10:15:50 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v2 17/47] fbdev/grvga: Use fbdev I/O helpers
-Date:   Tue,  1 Aug 2023 12:13:22 +0200
-Message-ID: <20230801101541.900-18-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
+        Andres Salomon <dilinger@queued.net>
+Subject: [PATCH v2 13/47] fbdev/geode/gx1fb: Use fbdev I/O helpers
+Date:   Tue,  1 Aug 2023 12:13:18 +0200
+Message-ID: <20230801101541.900-14-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230801101541.900-1-tzimmermann@suse.de>
 References: <20230801101541.900-1-tzimmermann@suse.de>
@@ -80,45 +81,47 @@ v2:
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Acked-by: Helge Deller <deller@gmx.de>
+Cc: Andres Salomon <dilinger@queued.net>
 ---
- drivers/video/fbdev/Kconfig | 4 +---
- drivers/video/fbdev/grvga.c | 4 +---
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/video/fbdev/geode/Kconfig      | 4 +---
+ drivers/video/fbdev/geode/gx1fb_core.c | 5 +----
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 7c1289a0c5fc..8b20e03f188b 100644
---- a/drivers/video/fbdev/Kconfig
-+++ b/drivers/video/fbdev/Kconfig
-@@ -64,9 +64,7 @@ config FB_MACMODES
- config FB_GRVGA
- 	tristate "Aeroflex Gaisler framebuffer support"
- 	depends on FB && SPARC
+diff --git a/drivers/video/fbdev/geode/Kconfig b/drivers/video/fbdev/geode/Kconfig
+index b184085a78c2..51b1ec5319c4 100644
+--- a/drivers/video/fbdev/geode/Kconfig
++++ b/drivers/video/fbdev/geode/Kconfig
+@@ -45,9 +45,7 @@ config FB_GEODE_GX
+ config FB_GEODE_GX1
+ 	tristate "AMD Geode GX1 framebuffer support"
+ 	depends on FB && FB_GEODE
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_HELPERS
+ 	select VIDEO_NOMODESET
  	help
- 	  This enables support for the SVGACTRL framebuffer in the GRLIB IP library from Aeroflex Gaisler.
+ 	  Framebuffer driver for the display controller integrated into the
+diff --git a/drivers/video/fbdev/geode/gx1fb_core.c b/drivers/video/fbdev/geode/gx1fb_core.c
+index ddec35e3bbeb..a1919c1934ac 100644
+--- a/drivers/video/fbdev/geode/gx1fb_core.c
++++ b/drivers/video/fbdev/geode/gx1fb_core.c
+@@ -255,14 +255,11 @@ static int parse_panel_option(struct fb_info *info)
  
-diff --git a/drivers/video/fbdev/grvga.c b/drivers/video/fbdev/grvga.c
-index 5fa07e40950a..6d917e06e5f3 100644
---- a/drivers/video/fbdev/grvga.c
-+++ b/drivers/video/fbdev/grvga.c
-@@ -252,13 +252,11 @@ static int grvga_pan_display(struct fb_var_screeninfo *var,
- 
- static const struct fb_ops grvga_ops = {
- 	.owner          = THIS_MODULE,
+ static const struct fb_ops gx1fb_ops = {
+ 	.owner		= THIS_MODULE,
 +	FB_DEFAULT_IOMEM_OPS,
- 	.fb_check_var   = grvga_check_var,
- 	.fb_set_par	= grvga_set_par,
- 	.fb_setcolreg   = grvga_setcolreg,
- 	.fb_pan_display = grvga_pan_display,
+ 	.fb_check_var	= gx1fb_check_var,
+ 	.fb_set_par	= gx1fb_set_par,
+ 	.fb_setcolreg	= gx1fb_setcolreg,
+ 	.fb_blank       = gx1fb_blank,
+-	/* No HW acceleration for now. */
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
--	.fb_imageblit	= cfb_imageblit
+-	.fb_imageblit	= cfb_imageblit,
  };
  
- static int grvga_parse_custom(char *options,
+ static struct fb_info *gx1fb_init_fbinfo(struct device *dev)
 -- 
 2.41.0
 
