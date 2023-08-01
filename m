@@ -2,46 +2,46 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 214BEC001E0
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 09:17:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D254C001DF
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 09:18:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232694AbjHAJR3 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Aug 2023 05:17:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42880 "EHLO
+        id S231294AbjHAJSE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Aug 2023 05:18:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231459AbjHAJRH (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 05:17:07 -0400
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 246472108;
-        Tue,  1 Aug 2023 02:16:08 -0700 (PDT)
+        with ESMTP id S232110AbjHAJR1 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 05:17:27 -0400
+Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8EDA1FE8;
+        Tue,  1 Aug 2023 02:16:27 -0700 (PDT)
 Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3719F9Io126275;
-        Tue, 1 Aug 2023 04:15:09 -0500
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3719FgIU066693;
+        Tue, 1 Aug 2023 04:15:42 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1690881309;
-        bh=smVydxMalxHgouncgyjQ283GOG2TDd6zuCo8jnW7iGs=;
+        s=ti-com-17Q1; t=1690881342;
+        bh=1cDlk5nQTkGkrYDGAtT1DqReE4dFrRfYsSqMaXOFOrQ=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=syV/ozPFnGXqIhSGjyL5tQLdt+tZoC806y73Xmaz2x6Xzg6Jueaz2z6QVTFBRcE7y
-         KmGkv1KlCemig+sZBbgG7RgRMbJ1mqfXZnhYtIT8te1/gzykLeuf3UwJhNSfmlMwDw
-         QOQ1Ci605Lob7VjuuzPp5LwNd8fJE2RNH7ld3n78=
-Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3719F9dp066635
+        b=V7eyo7zv5xmzapeFnpw+BvTWX+ccH7aihStTygQ7zvYyP4q+SNLEfabEcfctGV1TK
+         MVYOt+nzN+6NqT7eTNjszAqkfHF4Hh21OUZuFBhATsNWHArMWS2c8Y4i2ceMII8X8L
+         bB6kup+eCRvl5j+FipJFQF0rVl0SNme4XIeYHAEs=
+Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3719FgDe066944
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 1 Aug 2023 04:15:09 -0500
-Received: from DFLE105.ent.ti.com (10.64.6.26) by DFLE113.ent.ti.com
- (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 1 Aug 2023 04:15:42 -0500
+Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE115.ent.ti.com
+ (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 1
- Aug 2023 04:15:08 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
+ Aug 2023 04:15:42 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 1 Aug 2023 04:15:08 -0500
-Received: from lelv0854.itg.ti.com (lelv0854.itg.ti.com [10.181.64.140])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3719F8Qv038010;
-        Tue, 1 Aug 2023 04:15:08 -0500
+ Frontend Transport; Tue, 1 Aug 2023 04:15:42 -0500
+Received: from fllv0122.itg.ti.com (fllv0122.itg.ti.com [10.247.120.72])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3719FgRj038531;
+        Tue, 1 Aug 2023 04:15:42 -0500
 Received: from localhost (uda0501179.dhcp.ti.com [172.24.227.217])
-        by lelv0854.itg.ti.com (8.14.7/8.14.7) with ESMTP id 3719F7Qh019747;
-        Tue, 1 Aug 2023 04:15:08 -0500
+        by fllv0122.itg.ti.com (8.14.7/8.14.7) with ESMTP id 3719Ff8o016141;
+        Tue, 1 Aug 2023 04:15:41 -0500
 From:   MD Danish Anwar <danishanwar@ti.com>
 To:     Randy Dunlap <rdunlap@infradead.org>,
         Roger Quadros <rogerq@kernel.org>,
@@ -61,9 +61,9 @@ CC:     <nm@ti.com>, <srk@ti.com>, <linux-kernel@vger.kernel.org>,
         <devicetree@vger.kernel.org>, <netdev@vger.kernel.org>,
         <linux-omap@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH v13 05/10] dt-bindings: net: Add ICSSG Ethernet
-Date:   Tue, 1 Aug 2023 14:44:23 +0530
-Message-ID: <20230801091428.1359979-6-danishanwar@ti.com>
+Subject: [PATCH v13 10/10] net: ti: icssg-prueth: Add Power management support
+Date:   Tue, 1 Aug 2023 14:44:28 +0530
+Message-ID: <20230801091428.1359979-11-danishanwar@ti.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230801091428.1359979-1-danishanwar@ti.com>
 References: <20230801091428.1359979-1-danishanwar@ti.com>
@@ -75,208 +75,90 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add a YAML binding document for the ICSSG Programmable real time unit
-based Ethernet hardware. The ICSSG driver uses the PRU and PRUSS consumer
-APIs to interface the PRUs and load/run the firmware for supporting
-ethernet functionality.
+Add suspend / resume APIs to support power management in ICSSG ethernet
+driver.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Andrew Lunn <andrew@lunn.ch>
 Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
 ---
- .../bindings/net/ti,icssg-prueth.yaml         | 184 ++++++++++++++++++
- 1 file changed, 184 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
+ drivers/net/ethernet/ti/icssg/icssg_prueth.c | 57 ++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml b/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
-new file mode 100644
-index 000000000000..8ec30b3eb760
---- /dev/null
-+++ b/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
-@@ -0,0 +1,184 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/net/ti,icssg-prueth.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
+diff --git a/drivers/net/ethernet/ti/icssg/icssg_prueth.c b/drivers/net/ethernet/ti/icssg/icssg_prueth.c
+index 80721d82f6c5..47b941fb0198 100644
+--- a/drivers/net/ethernet/ti/icssg/icssg_prueth.c
++++ b/drivers/net/ethernet/ti/icssg/icssg_prueth.c
+@@ -1813,6 +1813,62 @@ static void prueth_remove(struct platform_device *pdev)
+ 		prueth_put_cores(prueth, ICSS_SLICE0);
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
++static int prueth_suspend(struct device *dev)
++{
++	struct prueth *prueth = dev_get_drvdata(dev);
++	struct net_device *ndev;
++	int i, ret;
 +
-+title: Texas Instruments ICSSG PRUSS Ethernet
++	for (i = 0; i < PRUETH_NUM_MACS; i++) {
++		ndev = prueth->registered_netdevs[i];
 +
-+maintainers:
-+  - Md Danish Anwar <danishanwar@ti.com>
++		if (!ndev)
++			continue;
 +
-+description:
-+  Ethernet based on the Programmable Real-Time Unit and Industrial
-+  Communication Subsystem.
++		if (netif_running(ndev)) {
++			netif_device_detach(ndev);
++			ret = emac_ndo_stop(ndev);
++			if (ret < 0) {
++				netdev_err(ndev, "failed to stop: %d", ret);
++				return ret;
++			}
++		}
++	}
 +
-+allOf:
-+  - $ref: /schemas/remoteproc/ti,pru-consumer.yaml#
++	return 0;
++}
 +
-+properties:
-+  compatible:
-+    enum:
-+      - ti,am654-icssg-prueth  # for AM65x SoC family
++static int prueth_resume(struct device *dev)
++{
++	struct prueth *prueth = dev_get_drvdata(dev);
++	struct net_device *ndev;
++	int i, ret;
 +
-+  sram:
-+    $ref: /schemas/types.yaml#/definitions/phandle
-+    description:
-+      phandle to MSMC SRAM node
++	for (i = 0; i < PRUETH_NUM_MACS; i++) {
++		ndev = prueth->registered_netdevs[i];
 +
-+  dmas:
-+    maxItems: 10
++		if (!ndev)
++			continue;
 +
-+  dma-names:
-+    items:
-+      - const: tx0-0
-+      - const: tx0-1
-+      - const: tx0-2
-+      - const: tx0-3
-+      - const: tx1-0
-+      - const: tx1-1
-+      - const: tx1-2
-+      - const: tx1-3
-+      - const: rx0
-+      - const: rx1
++		if (netif_running(ndev)) {
++			ret = emac_ndo_open(ndev);
++			if (ret < 0) {
++				netdev_err(ndev, "failed to start: %d", ret);
++				return ret;
++			}
++			netif_device_attach(ndev);
++		}
++	}
 +
-+  ti,mii-g-rt:
-+    $ref: /schemas/types.yaml#/definitions/phandle
-+    description:
-+      phandle to MII_G_RT module's syscon regmap.
++	return 0;
++}
++#endif /* CONFIG_PM_SLEEP */
 +
-+  ti,mii-rt:
-+    $ref: /schemas/types.yaml#/definitions/phandle
-+    description:
-+      phandle to MII_RT module's syscon regmap
++static const struct dev_pm_ops prueth_dev_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(prueth_suspend, prueth_resume)
++};
 +
-+  interrupts:
-+    maxItems: 2
-+    description:
-+      Interrupt specifiers to TX timestamp IRQ.
-+
-+  interrupt-names:
-+    items:
-+      - const: tx_ts0
-+      - const: tx_ts1
-+
-+  ethernet-ports:
-+    type: object
-+    additionalProperties: false
-+
-+    properties:
-+      '#address-cells':
-+        const: 1
-+      '#size-cells':
-+        const: 0
-+
-+    patternProperties:
-+      ^port@[0-1]$:
-+        type: object
-+        description: ICSSG PRUETH external ports
-+        $ref: ethernet-controller.yaml#
-+        unevaluatedProperties: false
-+
-+        properties:
-+          reg:
-+            items:
-+              - enum: [0, 1]
-+            description: ICSSG PRUETH port number
-+
-+          interrupts:
-+            maxItems: 1
-+
-+          ti,syscon-rgmii-delay:
-+            items:
-+              - items:
-+                  - description: phandle to system controller node
-+                  - description: The offset to ICSSG control register
-+            $ref: /schemas/types.yaml#/definitions/phandle-array
-+            description:
-+              phandle to system controller node and register offset
-+              to ICSSG control register for RGMII transmit delay
-+
-+        required:
-+          - reg
-+    anyOf:
-+      - required:
-+          - port@0
-+      - required:
-+          - port@1
-+
-+required:
-+  - compatible
-+  - sram
-+  - dmas
-+  - dma-names
-+  - ethernet-ports
-+  - ti,mii-g-rt
-+  - interrupts
-+  - interrupt-names
-+
-+unevaluatedProperties: false
-+
-+examples:
-+  - |
-+    /* Example k3-am654 base board SR2.0, dual-emac */
-+    pruss2_eth: ethernet {
-+        compatible = "ti,am654-icssg-prueth";
-+        pinctrl-names = "default";
-+        pinctrl-0 = <&icssg2_rgmii_pins_default>;
-+        sram = <&msmc_ram>;
-+
-+        ti,prus = <&pru2_0>, <&rtu2_0>, <&tx_pru2_0>,
-+                  <&pru2_1>, <&rtu2_1>, <&tx_pru2_1>;
-+        firmware-name = "ti-pruss/am65x-pru0-prueth-fw.elf",
-+                        "ti-pruss/am65x-rtu0-prueth-fw.elf",
-+                        "ti-pruss/am65x-txpru0-prueth-fw.elf",
-+                        "ti-pruss/am65x-pru1-prueth-fw.elf",
-+                        "ti-pruss/am65x-rtu1-prueth-fw.elf",
-+                        "ti-pruss/am65x-txpru1-prueth-fw.elf";
-+        ti,pruss-gp-mux-sel = <2>,      /* MII mode */
-+                              <2>,
-+                              <2>,
-+                              <2>,      /* MII mode */
-+                              <2>,
-+                              <2>;
-+        dmas = <&main_udmap 0xc300>, /* egress slice 0 */
-+               <&main_udmap 0xc301>, /* egress slice 0 */
-+               <&main_udmap 0xc302>, /* egress slice 0 */
-+               <&main_udmap 0xc303>, /* egress slice 0 */
-+               <&main_udmap 0xc304>, /* egress slice 1 */
-+               <&main_udmap 0xc305>, /* egress slice 1 */
-+               <&main_udmap 0xc306>, /* egress slice 1 */
-+               <&main_udmap 0xc307>, /* egress slice 1 */
-+               <&main_udmap 0x4300>, /* ingress slice 0 */
-+               <&main_udmap 0x4301>; /* ingress slice 1 */
-+        dma-names = "tx0-0", "tx0-1", "tx0-2", "tx0-3",
-+                    "tx1-0", "tx1-1", "tx1-2", "tx1-3",
-+                    "rx0", "rx1";
-+        ti,mii-g-rt = <&icssg2_mii_g_rt>;
-+        interrupt-parent = <&icssg2_intc>;
-+        interrupts = <24 0 2>, <25 1 3>;
-+        interrupt-names = "tx_ts0", "tx_ts1";
-+        ethernet-ports {
-+            #address-cells = <1>;
-+            #size-cells = <0>;
-+            pruss2_emac0: port@0 {
-+                reg = <0>;
-+                phy-handle = <&pruss2_eth0_phy>;
-+                phy-mode = "rgmii-id";
-+                interrupts-extended = <&icssg2_intc 24>;
-+                ti,syscon-rgmii-delay = <&scm_conf 0x4120>;
-+                /* Filled in by bootloader */
-+                local-mac-address = [00 00 00 00 00 00];
-+            };
-+
-+            pruss2_emac1: port@1 {
-+                reg = <1>;
-+                phy-handle = <&pruss2_eth1_phy>;
-+                phy-mode = "rgmii-id";
-+                interrupts-extended = <&icssg2_intc 25>;
-+                ti,syscon-rgmii-delay = <&scm_conf 0x4124>;
-+                /* Filled in by bootloader */
-+                local-mac-address = [00 00 00 00 00 00];
-+            };
-+        };
-+    };
+ static const struct prueth_pdata am654_icssg_pdata = {
+ 	.fdqring_mode = K3_RINGACC_RING_MODE_MESSAGE,
+ 	.quirk_10m_link_issue = 1,
+@@ -1830,6 +1886,7 @@ static struct platform_driver prueth_driver = {
+ 	.driver = {
+ 		.name = "icssg-prueth",
+ 		.of_match_table = prueth_dt_match,
++		.pm = &prueth_dev_pm_ops,
+ 	},
+ };
+ module_platform_driver(prueth_driver);
 -- 
 2.34.1
 
