@@ -2,63 +2,62 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4200C04A94
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 10:16:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B1BC04FE1
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 10:16:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234040AbjHAKQS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Aug 2023 06:16:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38670 "EHLO
+        id S234052AbjHAKQU (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Aug 2023 06:16:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231887AbjHAKQH (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 06:16:07 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B371110FF;
-        Tue,  1 Aug 2023 03:15:53 -0700 (PDT)
+        with ESMTP id S232903AbjHAKQI (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 06:16:08 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E30B173E;
+        Tue,  1 Aug 2023 03:15:56 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id AAF8F1F8B9;
-        Tue,  1 Aug 2023 10:15:50 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id C4FE121E4B;
+        Tue,  1 Aug 2023 10:15:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690884950; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690884953; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=AeXkB15aZppSL9vacWZ+b+kLDjfaZAChZWyH6p+VqQo=;
-        b=YwWtFZx7I6xuINUyDoX2ug9OpiMCkafNyPUd7/wSVe6YDHR5zY2ayxiFOKCfpaby6i2sPM
-        mvaNAorKQnXHLM5GcQInFqI3ZCW++G4iTzlT5Dih2B239nsU8q7YAtWfGZLsdJssl0CNpM
-        kPgW3a56+9joH2My++1lZT6mDPZ1qq4=
+        bh=MZVhZVPdNSn/bcGscoSWwed5RSIHDhMQPBwy9pSTOp0=;
+        b=DJVZtkJR3PnDWj0UYep8vMn/O+CNOgvCDtHfJIHnJi3nqEDTmVUBkzXSrpnvX29CYkT3kP
+        eiAGToVOdYsW/znmq4LfNh5RbxlmQwlt7Jag2ZPFfnXsKlegkjxLyp3hHPYnG9yt9Tm/bY
+        CNG+fpAZb3MOt0PF4hkjNXU5CrKiiWY=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690884950;
+        s=susede2_ed25519; t=1690884953;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=AeXkB15aZppSL9vacWZ+b+kLDjfaZAChZWyH6p+VqQo=;
-        b=rFiyJ+CGpbsO3CyZwMvBlUHOEPEujUEy6jxmciOvYw0YwnLuTUfCYx+jh3Ti8zOV49qOQ+
-        5QZd3m4hAxPNY7Dw==
+        bh=MZVhZVPdNSn/bcGscoSWwed5RSIHDhMQPBwy9pSTOp0=;
+        b=cRmkrUgLW10zqOxGEXWa0VUMsuU4W67ocFnvsgNkRCE1ZjalFAXimBIrjdufvhd4Y4hMzI
+        hnQqewa4podaCWBA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 7194E139C8;
-        Tue,  1 Aug 2023 10:15:50 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 8C5B9139BD;
+        Tue,  1 Aug 2023 10:15:53 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id MMjiGlbbyGQBXQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 01 Aug 2023 10:15:50 +0000
+        id iHdNIVnbyGQBXQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 01 Aug 2023 10:15:53 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
-        Andres Salomon <dilinger@queued.net>
-Subject: [PATCH v2 14/47] fbdev/geode/gxfb: Use fbdev I/O helpers
-Date:   Tue,  1 Aug 2023 12:13:19 +0200
-Message-ID: <20230801101541.900-15-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH v2 26/47] fbdev/mx3fb: Use fbdev I/O helpers
+Date:   Tue,  1 Aug 2023 12:13:31 +0200
+Message-ID: <20230801101541.900-27-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230801101541.900-1-tzimmermann@suse.de>
 References: <20230801101541.900-1-tzimmermann@suse.de>
@@ -81,47 +80,45 @@ v2:
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Acked-by: Helge Deller <deller@gmx.de>
-Cc: Andres Salomon <dilinger@queued.net>
 ---
- drivers/video/fbdev/geode/Kconfig     | 4 +---
- drivers/video/fbdev/geode/gxfb_core.c | 5 +----
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ drivers/video/fbdev/Kconfig | 4 +---
+ drivers/video/fbdev/mx3fb.c | 4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/video/fbdev/geode/Kconfig b/drivers/video/fbdev/geode/Kconfig
-index 51b1ec5319c4..957ef0756ced 100644
---- a/drivers/video/fbdev/geode/Kconfig
-+++ b/drivers/video/fbdev/geode/Kconfig
-@@ -29,9 +29,7 @@ config FB_GEODE_LX
- config FB_GEODE_GX
- 	tristate "AMD Geode GX framebuffer support"
- 	depends on FB && FB_GEODE
+diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
+index 557911ed4f86..74ec729cd5ef 100644
+--- a/drivers/video/fbdev/Kconfig
++++ b/drivers/video/fbdev/Kconfig
+@@ -1927,9 +1927,7 @@ config FB_MX3
+ 	tristate "MX3 Framebuffer support"
+ 	depends on FB && MX3_IPU
+ 	select BACKLIGHT_CLASS_DEVICE
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_HELPERS
- 	select VIDEO_NOMODESET
+ 	default y
  	help
- 	  Framebuffer driver for the display controller integrated into the
-diff --git a/drivers/video/fbdev/geode/gxfb_core.c b/drivers/video/fbdev/geode/gxfb_core.c
-index 4fb13790c528..af996634c1a9 100644
---- a/drivers/video/fbdev/geode/gxfb_core.c
-+++ b/drivers/video/fbdev/geode/gxfb_core.c
-@@ -268,14 +268,11 @@ static int gxfb_map_video_memory(struct fb_info *info, struct pci_dev *dev)
- 
- static const struct fb_ops gxfb_ops = {
- 	.owner		= THIS_MODULE,
+ 	  This is a framebuffer device for the i.MX31 LCD Controller. So
+diff --git a/drivers/video/fbdev/mx3fb.c b/drivers/video/fbdev/mx3fb.c
+index 3a053005d2b9..e6bafaba3460 100644
+--- a/drivers/video/fbdev/mx3fb.c
++++ b/drivers/video/fbdev/mx3fb.c
+@@ -1247,13 +1247,11 @@ static int mx3fb_pan_display(struct fb_var_screeninfo *var,
+  */
+ static const struct fb_ops mx3fb_ops = {
+ 	.owner = THIS_MODULE,
 +	FB_DEFAULT_IOMEM_OPS,
- 	.fb_check_var	= gxfb_check_var,
- 	.fb_set_par	= gxfb_set_par,
- 	.fb_setcolreg	= gxfb_setcolreg,
- 	.fb_blank       = gxfb_blank,
--	/* No HW acceleration for now. */
--	.fb_fillrect	= cfb_fillrect,
--	.fb_copyarea	= cfb_copyarea,
--	.fb_imageblit	= cfb_imageblit,
+ 	.fb_set_par = mx3fb_set_par,
+ 	.fb_check_var = mx3fb_check_var,
+ 	.fb_setcolreg = mx3fb_setcolreg,
+ 	.fb_pan_display = mx3fb_pan_display,
+-	.fb_fillrect = cfb_fillrect,
+-	.fb_copyarea = cfb_copyarea,
+-	.fb_imageblit = cfb_imageblit,
+ 	.fb_blank = mx3fb_blank,
  };
  
- static struct fb_info *gxfb_init_fbinfo(struct device *dev)
 -- 
 2.41.0
 
