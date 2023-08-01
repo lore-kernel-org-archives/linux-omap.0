@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 656E6C04FE0
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 10:16:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8E0AC07E8C
+	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 10:16:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233934AbjHAKQf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Aug 2023 06:16:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38728 "EHLO
+        id S234120AbjHAKQi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 1 Aug 2023 06:16:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230198AbjHAKQM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 06:16:12 -0400
+        with ESMTP id S234009AbjHAKQN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 06:16:13 -0400
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FBDC2108;
-        Tue,  1 Aug 2023 03:15:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB0F9F1;
+        Tue,  1 Aug 2023 03:16:00 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 17C5A21E4E;
-        Tue,  1 Aug 2023 10:15:55 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 4F63921E4F;
+        Tue,  1 Aug 2023 10:15:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1690884955; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1690884956; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=UFb+YWi3XTXrzAlK9tCrTjPpuPi2osBLCJgbqlmNpFI=;
-        b=jwUXiqoTj1d/mDYnvB9VCCeR+QMUljdIGFmnqrCs/qp2KcM+pVBFkWR7d4pf3zv2OtqSTU
-        pT/DntNBE35B7piNqpA1uA+NPZ6tPaccadv42R//cTSRry3zaiTlArUREnMSvApCrGg48O
-        MM0PM6YGMDqsdSlCp+QsfQG3ns/Pe1g=
+        bh=3cBDSedkQQxAkfgMxXZJSNiLgAojbVljCB58r6Rw0a0=;
+        b=gpEik5b/tIbPjMlleEAk448TXpIeE6CBiRRO6ltuVP69LUOku4dYg/q5UK0OcknQomF05m
+        YwjKCCYeEgqIG1jUd+qL/iY7cAgvjCn2omwrzp5mu7d8IZgYLKfTsT9d06qWozq83CXAB/
+        U6lvvUElpAYv2bMELS34zf/uAjnWGvg=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1690884955;
+        s=susede2_ed25519; t=1690884956;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=UFb+YWi3XTXrzAlK9tCrTjPpuPi2osBLCJgbqlmNpFI=;
-        b=OOyZaAr1GHgoAT1CwE4I4rDWZKCgY07/KIUsIch027yR/8ZcnMeSxv29Qp3oSzkvOWBPId
-        awmCE0wtnV+P4LAA==
+        bh=3cBDSedkQQxAkfgMxXZJSNiLgAojbVljCB58r6Rw0a0=;
+        b=H6GkRrXkCEcWyuMtwliYpcdoKSiZtNB3toD8VCFeBqXGFDflgmiF2VOI+OcqSEf5C7nVI3
+        2N5FgcnR+vuXyfCQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id D1408139C8;
-        Tue,  1 Aug 2023 10:15:54 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 178D4139BD;
+        Tue,  1 Aug 2023 10:15:56 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id WI4jMlrbyGQBXQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Tue, 01 Aug 2023 10:15:54 +0000
+        id 0LrZBFzbyGQBXQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Tue, 01 Aug 2023 10:15:56 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
@@ -55,9 +55,9 @@ Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
         kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v2 31/47] fbdev/pmag-aa-fb: Use fbdev I/O helpers
-Date:   Tue,  1 Aug 2023 12:13:36 +0200
-Message-ID: <20230801101541.900-32-tzimmermann@suse.de>
+Subject: [PATCH v2 36/47] fbdev/q40fb: Use fbdev I/O helpers
+Date:   Tue,  1 Aug 2023 12:13:41 +0200
+Message-ID: <20230801101541.900-37-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230801101541.900-1-tzimmermann@suse.de>
 References: <20230801101541.900-1-tzimmermann@suse.de>
@@ -81,41 +81,41 @@ Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Acked-by: Helge Deller <deller@gmx.de>
 ---
- drivers/video/fbdev/Kconfig      | 4 +---
- drivers/video/fbdev/pmag-aa-fb.c | 4 +---
+ drivers/video/fbdev/Kconfig | 4 +---
+ drivers/video/fbdev/q40fb.c | 4 +---
  2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 3e249e5188e9..0f416d384d03 100644
+index ccc6ee95e61b..4986586c63b0 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -1519,9 +1519,7 @@ config FB_HIT
- config FB_PMAG_AA
- 	tristate "PMAG-AA TURBOchannel framebuffer support"
- 	depends on FB && TC
+@@ -222,9 +222,7 @@ config FB_Q40
+ 	bool
+ 	depends on (FB = y) && Q40
+ 	default y
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_HELPERS
- 	help
- 	  Support for the PMAG-AA TURBOchannel framebuffer card (1280x1024x1)
- 	  used mainly in the MIPS-based DECstation series.
-diff --git a/drivers/video/fbdev/pmag-aa-fb.c b/drivers/video/fbdev/pmag-aa-fb.c
-index 7ee20db9ceb8..acfc8c70c410 100644
---- a/drivers/video/fbdev/pmag-aa-fb.c
-+++ b/drivers/video/fbdev/pmag-aa-fb.c
-@@ -149,10 +149,8 @@ static int aafb_blank(int blank, struct fb_info *info)
  
- static const struct fb_ops aafb_ops = {
+ config FB_AMIGA
+ 	tristate "Amiga native chipset support"
+diff --git a/drivers/video/fbdev/q40fb.c b/drivers/video/fbdev/q40fb.c
+index b180f0f6940e..1ff8fa176124 100644
+--- a/drivers/video/fbdev/q40fb.c
++++ b/drivers/video/fbdev/q40fb.c
+@@ -76,10 +76,8 @@ static int q40fb_setcolreg(unsigned regno, unsigned red, unsigned green,
+ 
+ static const struct fb_ops q40fb_ops = {
  	.owner		= THIS_MODULE,
 +	FB_DEFAULT_IOMEM_OPS,
- 	.fb_blank	= aafb_blank,
+ 	.fb_setcolreg	= q40fb_setcolreg,
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
 -	.fb_imageblit	= cfb_imageblit,
- 	.fb_cursor	= aafb_cursor,
  };
  
+ static int q40fb_probe(struct platform_device *dev)
 -- 
 2.41.0
 
