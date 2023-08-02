@@ -2,271 +2,152 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8297FC04FE0
-	for <linux-omap@archiver.kernel.org>; Tue,  1 Aug 2023 23:34:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40AEAC001DF
+	for <linux-omap@archiver.kernel.org>; Wed,  2 Aug 2023 07:35:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231217AbjHAXd6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 1 Aug 2023 19:33:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33586 "EHLO
+        id S232853AbjHBHf1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 2 Aug 2023 03:35:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39402 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229535AbjHAXd4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 1 Aug 2023 19:33:56 -0400
-Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2948A2698;
-        Tue,  1 Aug 2023 16:33:55 -0700 (PDT)
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 371NXhbq067039;
-        Tue, 1 Aug 2023 18:33:43 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1690932823;
-        bh=sILyjwJ4kKviuPssOCTV54iq8IzS1gyqYK+ns9VHI1E=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=NVfRwCjzx6dyhXuwI9IEuXjGDjabxMXex5bfSbn/1+eDEz5wXPOQV1D8F24+kR9/6
-         Y14MrXxfd9+9ZieWCDisVkU1VUWxzyXXwJUYUgCj3MeMkhEQsHzkXdZhZNrFjhnfd5
-         6AB0rHPjOUYj4hqU5/9t/hPt6aYE3Pn0WbAkU5zk=
-Received: from DFLE103.ent.ti.com (dfle103.ent.ti.com [10.64.6.24])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 371NXheL064870
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 1 Aug 2023 18:33:43 -0500
-Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE103.ent.ti.com
- (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 1
- Aug 2023 18:33:43 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE110.ent.ti.com
- (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 1 Aug 2023 18:33:43 -0500
-Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 371NXhS1018207;
-        Tue, 1 Aug 2023 18:33:43 -0500
-From:   Nishanth Menon <nm@ti.com>
-To:     Rob Herring <robh+dt@kernel.org>, Stephen Boyd <sboyd@kernel.org>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Viresh Kumar <viresh.kumar@linaro.org>
-CC:     Tony Lindgren <tony@atomide.com>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Vibhore Vardhan <vibhore@ti.com>, Dhruva Gole <d-gole@ti.com>,
-        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-pm@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 1/2] dt-bindings: opp: Convert ti-omap5-opp-supply to json schema
-Date:   Tue, 1 Aug 2023 18:33:40 -0500
-Message-ID: <20230801233341.1416552-2-nm@ti.com>
-X-Mailer: git-send-email 2.40.0
-In-Reply-To: <20230801233341.1416552-1-nm@ti.com>
-References: <20230801233341.1416552-1-nm@ti.com>
+        with ESMTP id S232804AbjHBHfV (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 2 Aug 2023 03:35:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1642F1BF6;
+        Wed,  2 Aug 2023 00:35:00 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 92E6F61841;
+        Wed,  2 Aug 2023 07:34:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99A9DC433C7;
+        Wed,  2 Aug 2023 07:34:56 +0000 (UTC)
+Message-ID: <364ea644-1b2c-472a-92da-9435f2795a89@xs4all.nl>
+Date:   Wed, 2 Aug 2023 09:34:55 +0200
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.12.0
+Subject: Re: [PATCH v2 01/47] media/vivid: Use fbdev I/O helpers
+Content-Language: en-US
+To:     Thomas Zimmermann <tzimmermann@suse.de>, deller@gmx.de,
+        javierm@redhat.com, sam@ravnborg.org
+Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
+        kvm@vger.kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <20230801101541.900-1-tzimmermann@suse.de>
+ <20230801101541.900-2-tzimmermann@suse.de>
+ <ee03c6c9-4e6a-2732-0416-43fd5418c950@xs4all.nl>
+ <0f2521b6-3d72-923c-df89-d94ca7f2fe52@suse.de>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <0f2521b6-3d72-923c-df89-d94ca7f2fe52@suse.de>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Rename ti-omap5-opp-supply to be bit more generic omap-opp-supply and
-convert the free text binding to json-schema.
+On 01/08/2023 18:54, Thomas Zimmermann wrote:
+> Hi
+> 
+> Am 01.08.23 um 13:22 schrieb Hans Verkuil:
+>> On 01/08/2023 12:13, Thomas Zimmermann wrote:
+>>> Set struct fb_ops and with FB_DEFAULT_IO_OPS, fbdev's initializer
+>>> for I/O memory. Sets the callbacks to the cfb_ and fb_io_ functions.
+>>> Select the correct modules with Kconfig's FB_IO_HELPERS token.
+>>>
+>>> The macro and token set the currently selected values, so there is
+>>> no functional change.
+>>>
+>>> v2:
+>>>     * updated to use _IOMEM_ tokens
+>>>
+>>> Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+>>> Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+>>> Acked-by: Helge Deller <deller@gmx.de>
+>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+>>> ---
+>>>   drivers/media/test-drivers/vivid/Kconfig     | 4 +---
+>>>   drivers/media/test-drivers/vivid/vivid-osd.c | 4 +---
+>>>   2 files changed, 2 insertions(+), 6 deletions(-)
+>>>
+>>> diff --git a/drivers/media/test-drivers/vivid/Kconfig b/drivers/media/test-drivers/vivid/Kconfig
+>>> index 318799d317ba..5b08a5ad291e 100644
+>>> --- a/drivers/media/test-drivers/vivid/Kconfig
+>>> +++ b/drivers/media/test-drivers/vivid/Kconfig
+>>> @@ -3,11 +3,9 @@ config VIDEO_VIVID
+>>>       tristate "Virtual Video Test Driver"
+>>>       depends on VIDEO_DEV && !SPARC32 && !SPARC64 && FB
+>>>       depends on HAS_DMA
+>>> +    select FB_IOMEM_HELPERS
+>>>       select FONT_SUPPORT
+>>>       select FONT_8x16
+>>> -    select FB_CFB_FILLRECT
+>>> -    select FB_CFB_COPYAREA
+>>> -    select FB_CFB_IMAGEBLIT
+>>>       select VIDEOBUF2_VMALLOC
+>>>       select VIDEOBUF2_DMA_CONTIG
+>>>       select VIDEO_V4L2_TPG
+>>> diff --git a/drivers/media/test-drivers/vivid/vivid-osd.c b/drivers/media/test-drivers/vivid/vivid-osd.c
+>>> index 051f1805a16d..5c931b94a7b5 100644
+>>> --- a/drivers/media/test-drivers/vivid/vivid-osd.c
+>>> +++ b/drivers/media/test-drivers/vivid/vivid-osd.c
+>>> @@ -246,12 +246,10 @@ static int vivid_fb_blank(int blank_mode, struct fb_info *info)
+>>>     static const struct fb_ops vivid_fb_ops = {
+>>>       .owner = THIS_MODULE,
+>>> +    FB_DEFAULT_IOMEM_OPS,
+>>
+>> This macro also sets fb_read and fb_write ops here, in addition to the
+>> cfb_* ops, based on this patch:
+>>
+>> https://lore.kernel.org/all/20230729193157.15446-2-tzimmermann@suse.de/#Z2e.:20230729193157.15446-2-tzimmermann::40suse.de:1include:linux:fb.h
+>>
+>> But those two ops were never set in this driver before.
+>>
+>> It's been ages since I last worked with this, so I can't tell whether that's
+>> good or bad, all I know is that it makes what appears to be a functional change.
+>>
+>> Can you explain a bit more? Am I missing something?
+> 
+> That change is intentional and welcome. If no fb_read/fb_write pointers are given fbdev uses them as their default. See
+> 
+> 
+> https://elixir.bootlin.com/linux/v6.5-rc1/source/drivers/video/fbdev/core/fbmem.c#L773
+> 
+> and below. Once all drivers set these pointers explicitly, we can drop the default and make the helpers optional and modular. For the drivers in this patchset there's no functional change.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+Ah, that explains it!
 
-Changes since V1:
-- Dropped "description" and various verbage fixups
-- Dropped un-used labels
-- Introduced value constraints (Thanks Rob for the hint in IRC) -
-  introduced it for absolute-max-voltage and the efuse tuples
-- Fixup $subject of the patch to indicate json schema rather than yaml.
+I wonder if it wouldn't be a good idea to include that information in the commit log.
 
-V1: https://lore.kernel.org/all/20230724153911.1376830-5-nm@ti.com/
+In any case, for this patch:
 
-Side note: cleanups in dt is picked up on Tony's tree:
-https://lore.kernel.org/all/20230731062551.GH5194@atomide.com/
+Reviewed-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
- .../bindings/opp/ti,omap-opp-supply.yaml      | 103 ++++++++++++++++++
- .../bindings/opp/ti-omap5-opp-supply.txt      |  63 -----------
- 2 files changed, 103 insertions(+), 63 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/opp/ti,omap-opp-supply.yaml
- delete mode 100644 Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt
+Regards,
 
-diff --git a/Documentation/devicetree/bindings/opp/ti,omap-opp-supply.yaml b/Documentation/devicetree/bindings/opp/ti,omap-opp-supply.yaml
-new file mode 100644
-index 000000000000..4db80e418829
---- /dev/null
-+++ b/Documentation/devicetree/bindings/opp/ti,omap-opp-supply.yaml
-@@ -0,0 +1,103 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/opp/ti,omap-opp-supply.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: Texas Instruments OMAP compatible OPP supply
-+
-+description:
-+  OMAP5, DRA7, and AM57 family of SoCs have Class0 AVS eFuse registers which
-+  contain data that can be used to adjust voltages programmed for some of their
-+  supplies for more efficient operation. This binding provides the information
-+  needed to read these values and use them to program the main regulator during
-+  an OPP transitions.
-+
-+  Also, some supplies may have an associated vbb-supply which is an Adaptive Body
-+  Bias regulator which much be transitioned in a specific sequence with regards
-+  to the vdd-supply and clk when making an OPP transition. By supplying two
-+  regulators to the device that will undergo OPP transitions we can make use
-+  of the multi regulator binding that is part of the OPP core described
-+  to describe both regulators needed by the platform.
-+
-+maintainers:
-+  - Nishanth Menon <nm@ti.com>
-+
-+properties:
-+  $nodename:
-+    pattern: '^opp-supply(@[0-9a-f]+)?$'
-+
-+  compatible:
-+    oneOf:
-+      - description: Basic OPP supply controlling VDD and VBB
-+        items:
-+          - const: ti,omap-opp-supply
-+      - description: OMAP5+ optimized voltages in efuse(Class 0) VDD along with
-+          VBB.
-+        items:
-+          - const: ti,omap5-opp-supply
-+      - description: OMAP5+ optimized voltages in efuse(class0) VDD but no VBB
-+        items:
-+          - const: ti,omap5-core-opp-supply
-+
-+  reg:
-+    maxItems: 1
-+
-+  ti,absolute-max-voltage-uv:
-+    $ref: /schemas/types.yaml#/definitions/uint32
-+    description: Absolute maximum voltage for the OPP supply in micro-volts.
-+    minimum: 750000
-+    maximum: 1500000
-+
-+  ti,efuse-settings:
-+    description: An array of u32 tuple items providing information about
-+      optimized efuse configuration.
-+    minItems: 1
-+    $ref: /schemas/types.yaml#/definitions/uint32-matrix
-+    items:
-+      items:
-+        -
-+          description: Reference voltage in micro-volts (OPP Voltage)
-+          minimum: 750000
-+          maximum: 1500000
-+          multipleOf: 10000
-+        -
-+          description: efuse offset where the optimized voltage is located
-+          multipleOf: 4
-+          maximum: 256
-+
-+required:
-+  - compatible
-+  - ti,absolute-max-voltage-uv
-+
-+allOf:
-+  - if:
-+      not:
-+        properties:
-+          compatible:
-+            contains:
-+              const: ti,omap-opp-supply
-+    then:
-+      required:
-+        - reg
-+        - ti,efuse-settings
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    opp-supply {
-+        compatible = "ti,omap-opp-supply";
-+        ti,absolute-max-voltage-uv = <1375000>;
-+    };
-+  - |
-+    opp-supply@4a003b20 {
-+        compatible = "ti,omap5-opp-supply";
-+        reg = <0x4a003b20 0x8>;
-+        ti,efuse-settings =
-+            /* uV   offset */
-+            <1060000 0x0>,
-+            <1160000 0x4>,
-+            <1210000 0x8>;
-+        ti,absolute-max-voltage-uv = <1500000>;
-+    };
-diff --git a/Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt b/Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt
-deleted file mode 100644
-index b70d326117cd..000000000000
---- a/Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt
-+++ /dev/null
-@@ -1,63 +0,0 @@
--Texas Instruments OMAP compatible OPP supply description
--
--OMAP5, DRA7, and AM57 family of SoCs have Class0 AVS eFuse registers which
--contain data that can be used to adjust voltages programmed for some of their
--supplies for more efficient operation. This binding provides the information
--needed to read these values and use them to program the main regulator during
--an OPP transitions.
--
--Also, some supplies may have an associated vbb-supply which is an Adaptive Body
--Bias regulator which much be transitioned in a specific sequence with regards
--to the vdd-supply and clk when making an OPP transition. By supplying two
--regulators to the device that will undergo OPP transitions we can make use
--of the multi regulator binding that is part of the OPP core described here [1]
--to describe both regulators needed by the platform.
--
--[1] Documentation/devicetree/bindings/opp/opp-v2.yaml
--
--Required Properties for Device Node:
--- vdd-supply: phandle to regulator controlling VDD supply
--- vbb-supply: phandle to regulator controlling Body Bias supply
--	      (Usually Adaptive Body Bias regulator)
--
--Required Properties for opp-supply node:
--- compatible: Should be one of:
--	"ti,omap-opp-supply" - basic OPP supply controlling VDD and VBB
--	"ti,omap5-opp-supply" - OMAP5+ optimized voltages in efuse(class0)VDD
--			    along with VBB
--	"ti,omap5-core-opp-supply" - OMAP5+ optimized voltages in efuse(class0) VDD
--			    but no VBB.
--- reg: Address and length of the efuse register set for the device (mandatory
--	only for "ti,omap5-opp-supply")
--- ti,efuse-settings: An array of u32 tuple items providing information about
--	optimized efuse configuration. Each item consists of the following:
--	volt: voltage in uV - reference voltage (OPP voltage)
--	efuse_offseet: efuse offset from reg where the optimized voltage is stored.
--- ti,absolute-max-voltage-uv: absolute maximum voltage for the OPP supply.
--
--Example:
--
--/* Device Node (CPU)  */
--cpus {
--	cpu0: cpu@0 {
--		device_type = "cpu";
--
--		...
--
--		vdd-supply = <&vcc>;
--		vbb-supply = <&abb_mpu>;
--	};
--};
--
--/* OMAP OPP Supply with Class0 registers */
--opp_supply_mpu: opp_supply@4a003b20 {
--	compatible = "ti,omap5-opp-supply";
--	reg = <0x4a003b20 0x8>;
--	ti,efuse-settings = <
--	/* uV   offset */
--	1060000 0x0
--	1160000 0x4
--	1210000 0x8
--	>;
--	ti,absolute-max-voltage-uv = <1500000>;
--};
--- 
-2.40.0
+	Hans
+
+> 
+> Best regards
+> Thomas
+> 
+>>
+>> Regards,
+>>
+>>     Hans
+>>
+>>>       .fb_check_var   = vivid_fb_check_var,
+>>>       .fb_set_par     = vivid_fb_set_par,
+>>>       .fb_setcolreg   = vivid_fb_setcolreg,
+>>> -    .fb_fillrect    = cfb_fillrect,
+>>> -    .fb_copyarea    = cfb_copyarea,
+>>> -    .fb_imageblit   = cfb_imageblit,
+>>>       .fb_cursor      = NULL,
+>>>       .fb_ioctl       = vivid_fb_ioctl,
+>>>       .fb_pan_display = vivid_fb_pan_display,
+>>
+> 
 
