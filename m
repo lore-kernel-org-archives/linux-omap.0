@@ -2,63 +2,62 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ED11C2FC06
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90215C2FC0F
 	for <linux-omap@archiver.kernel.org>; Thu,  3 Aug 2023 18:41:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234091AbjHCSlx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 3 Aug 2023 14:41:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57534 "EHLO
+        id S234399AbjHCSly (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 3 Aug 2023 14:41:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231326AbjHCSkq (ORCPT
+        with ESMTP id S233675AbjHCSkq (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Aug 2023 14:40:46 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDF392D4C;
-        Thu,  3 Aug 2023 11:40:43 -0700 (PDT)
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B7E430E2;
+        Thu,  3 Aug 2023 11:40:44 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id DF7252196E;
-        Thu,  3 Aug 2023 18:40:41 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 9DFE11F889;
+        Thu,  3 Aug 2023 18:40:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1691088041; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1691088042; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Td1/Qj2/pz3diy21E/DN1ypT6S8tpHvGa3amB9hoOp4=;
-        b=Ot03Cz4Q0j1qOKbhH2VakZPsGzwZRC7cslMTyg6flulssM6e4GP36VVHPDMyXt0BDRfE9O
-        LOajcOjp+fmpJb6Ijk1G1ZskJTodY9Mzo4lRj8vyVsVYtkzCFS6QI35j61cWMV+ARVARgz
-        r+Gp8CukWZ5MZoMpEUDEjJ554eoD634=
+        bh=Ry2/nBUDhrRQ+EDBfAq1PAsSM/zuLV/DyhHYrL8kfdQ=;
+        b=tL3PwbXQJU7d5qJy6SGpCL6Wl44VgivapeJFmDXBqPiHiE+vxMvKbyAJYLSlK3qdNKCk6k
+        1XyqJ/Sb/t4OcOM4crk/ME4jVRkJ+Mv6MCQLbcUKuSCSh5732UFyitblJX5NbsGtAI562B
+        YWMWiUTRd/8tHpg1BwGm2dMCK8NMhtM=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1691088041;
+        s=susede2_ed25519; t=1691088042;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Td1/Qj2/pz3diy21E/DN1ypT6S8tpHvGa3amB9hoOp4=;
-        b=MjMgjShhHUapkgGySafxSEQ2wM8Z6zqKs1qhZ/kCPx3BCoSKi0qPse82OXmlID+KjMrRan
-        dmlhqi641cS68NCA==
+        bh=Ry2/nBUDhrRQ+EDBfAq1PAsSM/zuLV/DyhHYrL8kfdQ=;
+        b=6iaHGVM5cP0kuHSfRHVEDIDw7F7qiDJul82wJ+YGoc4ZPuqgUX2GbSOiwNdQQA6XZx2o6P
+        z+hXM1detJEml+Ag==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id A2E641333C;
-        Thu,  3 Aug 2023 18:40:41 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 67625139BD;
+        Thu,  3 Aug 2023 18:40:42 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id oNbaJqn0y2TLGAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Thu, 03 Aug 2023 18:40:41 +0000
+        id eC5fGKr0y2TLGAAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Thu, 03 Aug 2023 18:40:42 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
-        Andres Salomon <dilinger@queued.net>
-Subject: [PATCH v3 15/47] fbdev/geode/lxfb: Use fbdev I/O helpers
-Date:   Thu,  3 Aug 2023 20:35:40 +0200
-Message-ID: <20230803184034.6456-16-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH v3 18/47] fbdev/gxt4500: Use fbdev I/O helpers
+Date:   Thu,  3 Aug 2023 20:35:43 +0200
+Message-ID: <20230803184034.6456-19-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230803184034.6456-1-tzimmermann@suse.de>
 References: <20230803184034.6456-1-tzimmermann@suse.de>
@@ -83,47 +82,46 @@ v2:
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Acked-by: Helge Deller <deller@gmx.de>
-Cc: Andres Salomon <dilinger@queued.net>
 ---
- drivers/video/fbdev/geode/Kconfig     | 4 +---
- drivers/video/fbdev/geode/lxfb_core.c | 5 +----
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ drivers/video/fbdev/Kconfig   | 4 +---
+ drivers/video/fbdev/gxt4500.c | 4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/video/fbdev/geode/Kconfig b/drivers/video/fbdev/geode/Kconfig
-index 957ef0756ced..9a49916e0492 100644
---- a/drivers/video/fbdev/geode/Kconfig
-+++ b/drivers/video/fbdev/geode/Kconfig
-@@ -13,9 +13,7 @@ config FB_GEODE
- config FB_GEODE_LX
- 	tristate "AMD Geode LX framebuffer support"
- 	depends on FB && FB_GEODE
+diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
+index 8b20e03f188b..ee29f323c2b4 100644
+--- a/drivers/video/fbdev/Kconfig
++++ b/drivers/video/fbdev/Kconfig
+@@ -1752,9 +1752,7 @@ config FB_UDL
+ config FB_IBM_GXT4500
+ 	tristate "Framebuffer support for IBM GXT4000P/4500P/6000P/6500P adaptors"
+ 	depends on FB
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_HELPERS
  	select VIDEO_NOMODESET
  	help
- 	  Framebuffer driver for the display controller integrated into the
-diff --git a/drivers/video/fbdev/geode/lxfb_core.c b/drivers/video/fbdev/geode/lxfb_core.c
-index b70b286f43e4..cad99f5b7fe8 100644
---- a/drivers/video/fbdev/geode/lxfb_core.c
-+++ b/drivers/video/fbdev/geode/lxfb_core.c
-@@ -392,14 +392,11 @@ static int lxfb_map_video_memory(struct fb_info *info, struct pci_dev *dev)
+ 	  Say Y here to enable support for the IBM GXT4000P/6000P and
+diff --git a/drivers/video/fbdev/gxt4500.c b/drivers/video/fbdev/gxt4500.c
+index 8d0976578ddf..15a82c6b609e 100644
+--- a/drivers/video/fbdev/gxt4500.c
++++ b/drivers/video/fbdev/gxt4500.c
+@@ -602,14 +602,12 @@ static const struct fb_fix_screeninfo gxt4500_fix = {
  
- static const struct fb_ops lxfb_ops = {
- 	.owner		= THIS_MODULE,
+ static const struct fb_ops gxt4500_ops = {
+ 	.owner = THIS_MODULE,
 +	FB_DEFAULT_IOMEM_OPS,
- 	.fb_check_var	= lxfb_check_var,
- 	.fb_set_par	= lxfb_set_par,
- 	.fb_setcolreg	= lxfb_setcolreg,
- 	.fb_blank       = lxfb_blank,
--	/* No HW acceleration for now. */
--	.fb_fillrect	= cfb_fillrect,
--	.fb_copyarea	= cfb_copyarea,
--	.fb_imageblit	= cfb_imageblit,
+ 	.fb_check_var = gxt4500_check_var,
+ 	.fb_set_par = gxt4500_set_par,
+ 	.fb_setcolreg = gxt4500_setcolreg,
+ 	.fb_pan_display = gxt4500_pan_display,
+ 	.fb_blank = gxt4500_blank,
+-	.fb_fillrect = cfb_fillrect,
+-	.fb_copyarea = cfb_copyarea,
+-	.fb_imageblit = cfb_imageblit,
  };
  
- static struct fb_info *lxfb_init_fbinfo(struct device *dev)
+ /* PCI functions */
 -- 
 2.41.0
 
