@@ -2,125 +2,131 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C3C6C07E8E
-	for <linux-omap@archiver.kernel.org>; Thu,  3 Aug 2023 18:41:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61470C001DB
+	for <linux-omap@archiver.kernel.org>; Thu,  3 Aug 2023 19:18:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234869AbjHCSl4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 3 Aug 2023 14:41:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57508 "EHLO
+        id S229846AbjHCTSg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 3 Aug 2023 15:18:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233516AbjHCSko (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Aug 2023 14:40:44 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FF872D5F;
-        Thu,  3 Aug 2023 11:40:41 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id C9A1521959;
-        Thu,  3 Aug 2023 18:40:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1691088039; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=UZra5aSxq5ftN18Dm98Mo92Tvqbh0xZkgd/Ms0opUeo=;
-        b=dCQsJRet/I7D3WJx3H2WeNxO48qFv7e7pAlo7FcqETRjvus5fIe16+wk1/E5kJLkzCKsQ5
-        rf2A5/EE+/9ot+94O9E0jYMLFaAnib6s5X/QpxWTnoeF1m1v0ggYuS4lKt/1uzrXazfNCx
-        YCYHqEkStpfudhcN4rfVq27jQ3MVYBQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1691088039;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=UZra5aSxq5ftN18Dm98Mo92Tvqbh0xZkgd/Ms0opUeo=;
-        b=DJTamc8YLRg+AfMEQtpflEfOyUVSeRQfAwsq9uwNqAYt6zRqV0rOmtyCHpEkTr8O86x/K0
-        Lqn/boaRhBZbBvCw==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 91F2F1333C;
-        Thu,  3 Aug 2023 18:40:39 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id 6BWoIqf0y2TLGAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Thu, 03 Aug 2023 18:40:39 +0000
-From:   Thomas Zimmermann <tzimmermann@suse.de>
-To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
-Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v3 07/47] fbdev/chipsfb: Use fbdev I/O helpers
-Date:   Thu,  3 Aug 2023 20:35:32 +0200
-Message-ID: <20230803184034.6456-8-tzimmermann@suse.de>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230803184034.6456-1-tzimmermann@suse.de>
-References: <20230803184034.6456-1-tzimmermann@suse.de>
+        with ESMTP id S229660AbjHCTSe (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Aug 2023 15:18:34 -0400
+Received: from mail-qk1-x72c.google.com (mail-qk1-x72c.google.com [IPv6:2607:f8b0:4864:20::72c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25831BA;
+        Thu,  3 Aug 2023 12:18:34 -0700 (PDT)
+Received: by mail-qk1-x72c.google.com with SMTP id af79cd13be357-76595a7b111so93771485a.2;
+        Thu, 03 Aug 2023 12:18:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1691090312; x=1691695112;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=httX/IIWnWA/Ifa1Mp/nqpXb9POjzliyFa03frntpBI=;
+        b=IQfjxzXztfBdSdGaCyL4vc1JtDh9brHapglrlZsCrz9QxnQWBKBhiZVfVmrq8aUwpv
+         JapAshvIJE82D2550ZYQo/eat3WjguPN4SiJdDff2gAEfPlCYxg3YxUDs2lVEstl27xa
+         pOl71oFzkpCFTGRhfYY0mt+gvBApHh/GtLHnjWQtFErMkYZTRqpJ1fF2+rLrlkgeAMVj
+         w7oFY/lWq2WXuGCN4u5U0/duT6YR6ja0/GirA37ANsGMmKuiWto+jSFSmNUvLpbdiPGs
+         szKATbeoTR2C87wE03oqLUAxFn7NAkKrsVVc53RAjXCIRP2uu4i5yOZwC1R47gptUSKy
+         gIkQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691090312; x=1691695112;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=httX/IIWnWA/Ifa1Mp/nqpXb9POjzliyFa03frntpBI=;
+        b=VaEyd6c9NTbUJyyP9YGmgyq8dMVoWWDof7umyBQxHLWp0x0b8INTcf/uiV+JDpaw1H
+         jdjr5vuTnXElzS/qtbAqxIfbtzKDKHEm8h8dNyuTPl6K+iTqaVbgymm8YHKxUh9xYKFj
+         WpRVyaj79kwsETNhOFX5fPY/mFctHNClibcwEyMkcHjY5d8HH4rUSRrVajzJB7FgnbSF
+         r7es4kBY0D40Qhb/Plcbct9FOMTpLQzu6TT50QyFGcceC09OFEfjjbFcjXRITqrrU9T8
+         ShFnbNeKPKU7CAWYwtKbiX7+rMICThYh9baT+zGZRQdGGqDrnE0YkArG18oLU3uf06vy
+         MQKA==
+X-Gm-Message-State: ABy/qLYJ0hJ9QvFCRP4j5ydHRjowYGjv4bc8gaZqxarYvnoF/KFmthdp
+        2cRmaLrpA978dWfFuWhn7hN+HyFp6dE=
+X-Google-Smtp-Source: APBJJlGOFSLyw0wK4w0M55a6DSb/pQawYuqJH8tWrvjJ4AfxnoIDs7Koq2wUvb/my/L2srb85j4JmQ==
+X-Received: by 2002:a05:6214:5141:b0:626:16ba:539f with SMTP id kh1-20020a056214514100b0062616ba539fmr16287234qvb.5.1691090312435;
+        Thu, 03 Aug 2023 12:18:32 -0700 (PDT)
+Received: from localhost.localdomain (pppoe-209-91-167-254.vianet.ca. [209.91.167.254])
+        by smtp.gmail.com with ESMTPSA id n20-20020a0ce494000000b0063762ab2f90sm108897qvl.83.2023.08.03.12.18.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 03 Aug 2023 12:18:31 -0700 (PDT)
+From:   Trevor Woerner <twoerner@gmail.com>
+To:     linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>
+Cc:     linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 1/4] arch/arm/configs/omap2plus_defconfig: drop removed options
+Date:   Thu,  3 Aug 2023 15:18:15 -0400
+Message-ID: <20230803191821.36793-2-twoerner@gmail.com>
+X-Mailer: git-send-email 2.41.0.327.gaa9166bcc0ba
+In-Reply-To: <20230803191821.36793-1-twoerner@gmail.com>
+References: <20230803191821.36793-1-twoerner@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Set struct fb_ops and with FB_DEFAULT_IOMEM_OPS, fbdev's initializer
-for I/O memory. Sets the callbacks to the cfb_ and fb_io_ functions.
-Select the correct modules with Kconfig's FB_IOMEM_HELPERS token.
+Drop CONFIG_NF_LOG_NETDEV as it was removed in commit 1510618e45cb
+("netfilter: nf_log_netdev: merge with nf_log_syslog").
 
-The macro and token set the currently selected values, so there is
-no functional change.
+Drop CONFIG_NFT_COUNTER as it was removed in commit 023223dfbfb3
+("netfilter: nf_tables: make counter support built-in").
 
-v3:
-	* use _IOMEM_ in commit message
-v2:
-	* updated to use _IOMEM_ tokens
+Drop CONFIG_NF_FLOW_TABLE_IPV6 and CONFIG_NF_FLOW_TABLE_IPV4 as they were
+removed in commit c42ba4290b21 ("netfilter: flowtable: remove ipv4/ipv6
+modules").
 
-Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-Acked-by: Helge Deller <deller@gmx.de>
+Drop CONFIG_NF_LOG_BRIDGE as it was removed in commit 77ccee96a674
+("netfilter: nf_log_bridge: merge with nf_log_syslog").
+
+Signed-off-by: Trevor Woerner <twoerner@gmail.com>
 ---
- drivers/video/fbdev/Kconfig   | 4 +---
- drivers/video/fbdev/chipsfb.c | 4 +---
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ arch/arm/configs/omap2plus_defconfig | 5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 1fa776cacb89..e5e5a499df8b 100644
---- a/drivers/video/fbdev/Kconfig
-+++ b/drivers/video/fbdev/Kconfig
-@@ -351,9 +351,7 @@ config FB_VALKYRIE
- config FB_CT65550
- 	bool "Chips 65550 display support"
- 	depends on (FB = y) && PPC32 && PCI
--	select FB_CFB_FILLRECT
--	select FB_CFB_COPYAREA
--	select FB_CFB_IMAGEBLIT
-+	select FB_IOMEM_HELPERS
- 	select VIDEO_NOMODESET
- 	help
- 	  This is the frame buffer device driver for the Chips & Technologies
-diff --git a/drivers/video/fbdev/chipsfb.c b/drivers/video/fbdev/chipsfb.c
-index d5f43454ccd7..b80711f13df8 100644
---- a/drivers/video/fbdev/chipsfb.c
-+++ b/drivers/video/fbdev/chipsfb.c
-@@ -82,13 +82,11 @@ static int chipsfb_blank(int blank, struct fb_info *info);
- 
- static const struct fb_ops chipsfb_ops = {
- 	.owner		= THIS_MODULE,
-+	FB_DEFAULT_IOMEM_OPS,
- 	.fb_check_var	= chipsfb_check_var,
- 	.fb_set_par	= chipsfb_set_par,
- 	.fb_setcolreg	= chipsfb_setcolreg,
- 	.fb_blank	= chipsfb_blank,
--	.fb_fillrect	= cfb_fillrect,
--	.fb_copyarea	= cfb_copyarea,
--	.fb_imageblit	= cfb_imageblit,
- };
- 
- static int chipsfb_check_var(struct fb_var_screeninfo *var,
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index b685018dcf54..a87d7d4001b9 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -78,7 +78,6 @@ CONFIG_IP_PNP_BOOTP=y
+ CONFIG_IP_PNP_RARP=y
+ CONFIG_NETFILTER=y
+ CONFIG_NF_CONNTRACK=m
+-CONFIG_NF_LOG_NETDEV=m
+ CONFIG_NF_CONNTRACK_ZONES=y
+ CONFIG_NF_CONNTRACK_EVENTS=y
+ CONFIG_NF_CONNTRACK_TIMEOUT=y
+@@ -92,7 +91,6 @@ CONFIG_NF_TABLES_INET=y
+ CONFIG_NF_TABLES_NETDEV=y
+ CONFIG_NFT_NUMGEN=m
+ CONFIG_NFT_CT=m
+-CONFIG_NFT_COUNTER=m
+ CONFIG_NFT_CONNLIMIT=m
+ CONFIG_NFT_LOG=m
+ CONFIG_NFT_LIMIT=m
+@@ -179,7 +177,6 @@ CONFIG_NETFILTER_XT_MATCH_TIME=m
+ CONFIG_NETFILTER_XT_MATCH_U32=m
+ CONFIG_NFT_DUP_IPV4=m
+ CONFIG_NFT_FIB_IPV4=m
+-CONFIG_NF_FLOW_TABLE_IPV4=m
+ CONFIG_IP_NF_IPTABLES=m
+ CONFIG_IP_NF_MATCH_AH=m
+ CONFIG_IP_NF_MATCH_ECN=m
+@@ -200,7 +197,6 @@ CONFIG_IP_NF_RAW=m
+ CONFIG_IP_NF_SECURITY=m
+ CONFIG_NFT_DUP_IPV6=m
+ CONFIG_NFT_FIB_IPV6=m
+-CONFIG_NF_FLOW_TABLE_IPV6=m
+ CONFIG_IP6_NF_IPTABLES=m
+ CONFIG_IP6_NF_MATCH_AH=m
+ CONFIG_IP6_NF_MATCH_EUI64=m
+@@ -225,7 +221,6 @@ CONFIG_IP6_NF_TARGET_NPT=m
+ CONFIG_NF_TABLES_BRIDGE=m
+ CONFIG_NFT_BRIDGE_META=m
+ CONFIG_NFT_BRIDGE_REJECT=m
+-CONFIG_NF_LOG_BRIDGE=m
+ CONFIG_BRIDGE=m
+ CONFIG_BRIDGE_VLAN_FILTERING=y
+ CONFIG_VLAN_8021Q=m
 -- 
-2.41.0
+2.41.0.327.gaa9166bcc0ba
 
