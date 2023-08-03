@@ -2,63 +2,62 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73E21C25B7C
-	for <linux-omap@archiver.kernel.org>; Thu,  3 Aug 2023 18:41:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3408C27C54
+	for <linux-omap@archiver.kernel.org>; Thu,  3 Aug 2023 18:41:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235124AbjHCSlH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 3 Aug 2023 14:41:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57778 "EHLO
+        id S234444AbjHCSk5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 3 Aug 2023 14:40:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234401AbjHCSk5 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Aug 2023 14:40:57 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3630359E;
-        Thu,  3 Aug 2023 11:40:50 -0700 (PDT)
+        with ESMTP id S234033AbjHCSkt (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Aug 2023 14:40:49 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 159722D70;
+        Thu,  3 Aug 2023 11:40:46 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 8F05A1F8AB;
-        Thu,  3 Aug 2023 18:40:49 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 62DC021976;
+        Thu,  3 Aug 2023 18:40:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1691088049; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1691088042; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=P0/TzlIvspwd0wnP36aBdJdkJ2T87dM9Ptd/GByClDo=;
-        b=cgt00w0RB1mJdS8GVoPWEHIHWlTJfEpKtx7fgmvjbp2Jy0ExLkw6BCfwibGOAKGwKnPWyY
-        Z19+Ph7E1BwRCbk+D0tLA8l6IxFAwJK6RDxVpjuSDKtz/ksHjqq4Dh7LLX1XaPACx28s6M
-        W40JDZR9839b4NA498pRzixrfmU5gh8=
+        bh=r2E2v77hNXXj45ySO3R5LK5LIJ7zVwT9EOwn+KwMDGs=;
+        b=pUsGqR9v9sQT/Ta4tBxAyD62c1T+bCCsd7bUANApsPSw1jg9BrvB9OuF8f+9ezt63XgMPa
+        /qtcpIVYiTmG5La66Y9jDRPgG8+GuSODXIpZP176ngvert7t1FwN8DjMly0vFqZdn5pBHT
+        SpXlEgkfLSJibh0HcEUls/3pxeWAe3Q=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1691088049;
+        s=susede2_ed25519; t=1691088042;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=P0/TzlIvspwd0wnP36aBdJdkJ2T87dM9Ptd/GByClDo=;
-        b=4nEDKZR4mB4gLahdjKlWuI0o9j+JAFEjYMzXTrHIXptrAK1z+P8NeGRMxjUMrem/O+GekO
-        mGsLq9YFVd01MSBQ==
+        bh=r2E2v77hNXXj45ySO3R5LK5LIJ7zVwT9EOwn+KwMDGs=;
+        b=UNrkZZNtjrzeBkiznnSSqv7GcDWvAxxp34EN04w5BUVVI02aLvOEIRzkIDtlGAOfXo9qwq
+        pZ1mwPlTnTDyYVDw==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 5565D1333C;
-        Thu,  3 Aug 2023 18:40:49 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 2D8681333C;
+        Thu,  3 Aug 2023 18:40:42 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id oFH6E7H0y2TLGAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Thu, 03 Aug 2023 18:40:49 +0000
+        id 8EUaCqr0y2TLGAAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Thu, 03 Aug 2023 18:40:42 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
-        Michal Simek <michal.simek@amd.com>
-Subject: [PATCH v3 46/47] fbdev/xilinxfb: Use fbdev I/O helpers
-Date:   Thu,  3 Aug 2023 20:36:11 +0200
-Message-ID: <20230803184034.6456-47-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH v3 17/47] fbdev/grvga: Use fbdev I/O helpers
+Date:   Thu,  3 Aug 2023 20:35:42 +0200
+Message-ID: <20230803184034.6456-18-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230803184034.6456-1-tzimmermann@suse.de>
 References: <20230803184034.6456-1-tzimmermann@suse.de>
@@ -83,44 +82,45 @@ v2:
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Acked-by: Helge Deller <deller@gmx.de>
-Cc: Michal Simek <michal.simek@amd.com>
 ---
- drivers/video/fbdev/Kconfig    | 4 +---
- drivers/video/fbdev/xilinxfb.c | 4 +---
+ drivers/video/fbdev/Kconfig | 4 +---
+ drivers/video/fbdev/grvga.c | 4 +---
  2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 29e59979b2bd..5d93ecc01f6a 100644
+index 7c1289a0c5fc..8b20e03f188b 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -1742,9 +1742,7 @@ config FB_PS3_DEFAULT_SIZE_M
- config FB_XILINX
- 	tristate "Xilinx frame buffer support"
- 	depends on FB && (MICROBLAZE || ARCH_ZYNQ || ARCH_ZYNQMP)
+@@ -64,9 +64,7 @@ config FB_MACMODES
+ config FB_GRVGA
+ 	tristate "Aeroflex Gaisler framebuffer support"
+ 	depends on FB && SPARC
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_HELPERS
  	help
- 	  Include support for the Xilinx ML300/ML403 reference design
- 	  framebuffer. ML300 carries a 640*480 LCD display on the board,
-diff --git a/drivers/video/fbdev/xilinxfb.c b/drivers/video/fbdev/xilinxfb.c
-index ee6c65902694..33d20910cb41 100644
---- a/drivers/video/fbdev/xilinxfb.c
-+++ b/drivers/video/fbdev/xilinxfb.c
-@@ -250,11 +250,9 @@ xilinx_fb_blank(int blank_mode, struct fb_info *fbi)
+ 	  This enables support for the SVGACTRL framebuffer in the GRLIB IP library from Aeroflex Gaisler.
  
- static const struct fb_ops xilinxfb_ops = {
- 	.owner			= THIS_MODULE,
+diff --git a/drivers/video/fbdev/grvga.c b/drivers/video/fbdev/grvga.c
+index 5fa07e40950a..6d917e06e5f3 100644
+--- a/drivers/video/fbdev/grvga.c
++++ b/drivers/video/fbdev/grvga.c
+@@ -252,13 +252,11 @@ static int grvga_pan_display(struct fb_var_screeninfo *var,
+ 
+ static const struct fb_ops grvga_ops = {
+ 	.owner          = THIS_MODULE,
 +	FB_DEFAULT_IOMEM_OPS,
- 	.fb_setcolreg		= xilinx_fb_setcolreg,
- 	.fb_blank		= xilinx_fb_blank,
--	.fb_fillrect		= cfb_fillrect,
--	.fb_copyarea		= cfb_copyarea,
--	.fb_imageblit		= cfb_imageblit,
+ 	.fb_check_var   = grvga_check_var,
+ 	.fb_set_par	= grvga_set_par,
+ 	.fb_setcolreg   = grvga_setcolreg,
+ 	.fb_pan_display = grvga_pan_display,
+-	.fb_fillrect	= cfb_fillrect,
+-	.fb_copyarea	= cfb_copyarea,
+-	.fb_imageblit	= cfb_imageblit
  };
  
- /* ---------------------------------------------------------------------
+ static int grvga_parse_custom(char *options,
 -- 
 2.41.0
 
