@@ -2,62 +2,63 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54C13C07E8C
-	for <linux-omap@archiver.kernel.org>; Thu,  3 Aug 2023 18:40:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85F8BC04FDF
+	for <linux-omap@archiver.kernel.org>; Thu,  3 Aug 2023 18:40:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233765AbjHCSkp (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 3 Aug 2023 14:40:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57506 "EHLO
+        id S233882AbjHCSkr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 3 Aug 2023 14:40:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233475AbjHCSko (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Aug 2023 14:40:44 -0400
+        with ESMTP id S233686AbjHCSkp (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 3 Aug 2023 14:40:45 -0400
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D3AD2D7E;
-        Thu,  3 Aug 2023 11:40:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9462C2D45;
+        Thu,  3 Aug 2023 11:40:42 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 8BA9321958;
-        Thu,  3 Aug 2023 18:40:39 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 4E1602195D;
+        Thu,  3 Aug 2023 18:40:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1691088039; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1691088040; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=DSPbuHhn46eXZikii/Fdzk1aULKoemiLjxK1winrGWA=;
-        b=VFlYadRSqMb35b3v8f/OLWxCfrWNJw948x5wDHn3bR0alvTlutS9DKJJ4Emup3vqJHRr+/
-        cE6X2rkl8CZd53+sNujNW3opUhu7YOPRkXUWmHZMPPK3Kwz81HssKHpVDXMo6R1V9HSp1E
-        AL2B3Hv9RSNEwwSUDTnTW1zmDKFxPoM=
+        bh=E5gaeSPXYzpUqpT5ZvH3cKoS/E/119/4LAxiCtAawqM=;
+        b=1lLoLS+9sTD2S2VavzbDsegBbZLIKOz1/Rn4C79SgvFAhWNxrEv5SUP5aGxCGHCmSxEeC+
+        vJm0erQcnAQHQr4L8Hu+fDF4k9Q3b/TdTbxPMQDhDdeKi1Hro7LRmrfYgxn3cFlKQf5YFc
+        K/nsc4JfexeAw8jU3U/7LGNbQFBeNrs=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1691088039;
+        s=susede2_ed25519; t=1691088040;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=DSPbuHhn46eXZikii/Fdzk1aULKoemiLjxK1winrGWA=;
-        b=W4wNfqLpUpGso+4dXJ7qWOdHWbh6ZFgiDSLnN893kS+tmlhDpYK8C1WbsCrAb4Z4DNf767
-        NNpTPVeYVw0bU5Cg==
+        bh=E5gaeSPXYzpUqpT5ZvH3cKoS/E/119/4LAxiCtAawqM=;
+        b=onVTOHikrIVwXJdAG4p2/IQ6vtY4+4JdLhiblrHM2pItjKkDur3PJryZwzxXmaU0wKTVBC
+        NKAMib9CQSs4uQAQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 554C51333C;
-        Thu,  3 Aug 2023 18:40:39 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 12E6B139BD;
+        Thu,  3 Aug 2023 18:40:40 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id mFIBFKf0y2TLGAAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Thu, 03 Aug 2023 18:40:39 +0000
+        id MAy7A6j0y2TLGAAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Thu, 03 Aug 2023 18:40:40 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org
 Cc:     linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-geode@lists.infradead.org, linux-omap@vger.kernel.org,
-        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH v3 06/47] fbdev/carminefb: Use fbdev I/O helpers
-Date:   Thu,  3 Aug 2023 20:35:31 +0200
-Message-ID: <20230803184034.6456-7-tzimmermann@suse.de>
+        kvm@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
+        Peter Jones <pjones@redhat.com>
+Subject: [PATCH v3 09/47] fbdev/efifb: Use fbdev I/O helpers
+Date:   Thu,  3 Aug 2023 20:35:34 +0200
+Message-ID: <20230803184034.6456-10-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230803184034.6456-1-tzimmermann@suse.de>
 References: <20230803184034.6456-1-tzimmermann@suse.de>
@@ -82,42 +83,44 @@ v2:
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Acked-by: Helge Deller <deller@gmx.de>
+Cc: Peter Jones <pjones@redhat.com>
 ---
- drivers/video/fbdev/Kconfig     | 4 +---
- drivers/video/fbdev/carminefb.c | 5 +----
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ drivers/video/fbdev/Kconfig | 4 +---
+ drivers/video/fbdev/efifb.c | 4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index ea24f8114ac7..1fa776cacb89 100644
+index e57588c144de..be7c99154d32 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -1449,9 +1449,7 @@ config FB_PM3
- config FB_CARMINE
- 	tristate "Fujitsu carmine frame buffer support"
- 	depends on FB && PCI
+@@ -486,9 +486,7 @@ config FB_EFI
+ 	depends on (FB = y) && !IA64 && EFI
+ 	select APERTURE_HELPERS
+ 	select DRM_PANEL_ORIENTATION_QUIRKS
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_HELPERS
- 	select VIDEO_NOMODESET
+ 	select SYSFB
  	help
- 	  This is the frame buffer device driver for the Fujitsu Carmine chip.
-diff --git a/drivers/video/fbdev/carminefb.c b/drivers/video/fbdev/carminefb.c
-index 33a03f4ae025..e56065cdba97 100644
---- a/drivers/video/fbdev/carminefb.c
-+++ b/drivers/video/fbdev/carminefb.c
-@@ -530,10 +530,7 @@ static int init_hardware(struct carmine_hw *hw)
+ 	  This is the EFI frame buffer device driver. If the firmware on
+diff --git a/drivers/video/fbdev/efifb.c b/drivers/video/fbdev/efifb.c
+index 3391c8e84210..f9b4ddd592ce 100644
+--- a/drivers/video/fbdev/efifb.c
++++ b/drivers/video/fbdev/efifb.c
+@@ -277,11 +277,9 @@ static void efifb_destroy(struct fb_info *info)
  
- static const struct fb_ops carminefb_ops = {
+ static const struct fb_ops efifb_ops = {
  	.owner		= THIS_MODULE,
++	FB_DEFAULT_IOMEM_OPS,
+ 	.fb_destroy	= efifb_destroy,
+ 	.fb_setcolreg	= efifb_setcolreg,
 -	.fb_fillrect	= cfb_fillrect,
 -	.fb_copyarea	= cfb_copyarea,
 -	.fb_imageblit	= cfb_imageblit,
--
-+	FB_DEFAULT_IOMEM_OPS,
- 	.fb_check_var	= carmine_check_var,
- 	.fb_set_par	= carmine_set_par,
- 	.fb_setcolreg	= carmine_setcolreg,
+ };
+ 
+ static int efifb_setup(char *options)
 -- 
 2.41.0
 
