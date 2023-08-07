@@ -2,154 +2,51 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD83AC00528
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Aug 2023 14:39:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 049D8C001B0
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Aug 2023 14:43:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232752AbjHGOja (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Aug 2023 10:39:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50210 "EHLO
+        id S232409AbjHGOn1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Aug 2023 10:43:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232968AbjHGOja (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Aug 2023 10:39:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BB0A10DC;
-        Mon,  7 Aug 2023 07:39:29 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EDA1161D5E;
-        Mon,  7 Aug 2023 14:39:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4259DC433C7;
-        Mon,  7 Aug 2023 14:39:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691419168;
-        bh=iQco7pxNtitwKp1HMGQSoYJsu9kvGpQLvoFE/amgGtQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=XyObQZUI96AhyQVk1KiJRgyc+06JUEN3JWAeVsYTu9Auesm40X6tyStZ2VEF+445D
-         5KX/jJW04r+pqmmph88HEwa86wtORSzzOEBkovvWzwc2P+FaascJwvkxYR4Yd7X5NE
-         Tm4ltGmdBLS8taEqA4MpDAsJaYX36De+cuoWCHHtL4rO/dLIG4kHIN5bo6OpzETDmG
-         rM/oA2YmtSNMYY33tqdQVF2urVWi2BSNbBaDJisp6dHsKXJdj52MtaPP4xJlL3S+2j
-         mRRFXkU8ZqvAWFqkgcpek2Wj6uiZozb65CJZu5sRRUe47EPnca5y8uiCMvypkot5VF
-         Ex5u6xGiWQzuA==
-Date:   Mon, 7 Aug 2023 15:39:22 +0100
-From:   Conor Dooley <conor@kernel.org>
-To:     MD Danish Anwar <danishanwar@ti.com>
-Cc:     Suman Anna <s-anna@ti.com>, Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        with ESMTP id S230003AbjHGOn0 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Aug 2023 10:43:26 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7700710F6;
+        Mon,  7 Aug 2023 07:43:25 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 9B208809D;
+        Mon,  7 Aug 2023 14:43:24 +0000 (UTC)
+Date:   Mon, 7 Aug 2023 17:43:23 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Dhruva Gole <d-gole@ti.com>
+Cc:     Linus Walleij <linus.walleij@linaro.org>,
         Rob Herring <robh+dt@kernel.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, vigneshr@ti.com, srk@ti.com,
-        nm@ti.com
-Subject: Re: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property
-Message-ID: <20230807-euphemism-trailing-ef4130dc7437@spud>
-References: <20230807110836.2612730-1-danishanwar@ti.com>
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Conor Dooley <conor+dt@kernel.org>, linux-gpio@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        Nishanth Menon <nm@ti.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>
+Subject: Re: [PATCH] dt-bindings: pinctrl: pinctrl-single: add am62x
+ compatible
+Message-ID: <20230807144323.GP14799@atomide.com>
+References: <20230803092311.604610-1-d-gole@ti.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="1jdWVwq42WtLkpBA"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230807110836.2612730-1-danishanwar@ti.com>
+In-Reply-To: <20230803092311.604610-1-d-gole@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+* Dhruva Gole <d-gole@ti.com> [230803 09:24]:
+> Add the am62x compatible property to add support for the new
+> wakeup enable and status bits positions
+> 
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Vignesh Raghavendra <vigneshr@ti.com>
+> CC: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Dhruva Gole <d-gole@ti.com>
 
---1jdWVwq42WtLkpBA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Aug 07, 2023 at 04:38:36PM +0530, MD Danish Anwar wrote:
-> Add interrupts and interrupt-names protperties for PRU and RTU cores.
->=20
-> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
-> ---
->  .../bindings/remoteproc/ti,pru-rproc.yaml     | 22 +++++++++++++++++++
->  1 file changed, 22 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.ya=
-ml b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
-> index cd55d80137f7..6970316943bb 100644
-> --- a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
-> +++ b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
-> @@ -66,6 +66,16 @@ properties:
->        Should contain the name of the default firmware image
->        file located on the firmware search path.
-> =20
-> +  interrupts:
-> +    maxItems: 1
-> +    description:
-> +      Interrupt specifiers enable the virtio/rpmsg communication between=
- MPU
-> +      and the PRU/RTU cores.
-> +
-> +  interrupt-names:
-> +    items:
-> +      - const: vring
-> +
->  if:
->    properties:
->      compatible:
-> @@ -171,6 +181,9 @@ examples:
->                <0x22400 0x100>;
->          reg-names =3D "iram", "control", "debug";
->          firmware-name =3D "am65x-pru0_0-fw";
-> +        interrupt-parent =3D <&icssg0_intc>;
-> +        interrupts =3D <16 2 2>;
-> +        interrupt-names =3D "vring";
->        };
-
-These examples would probably be more helpful if they used the
-appropriate defines, no?
-
-> =20
->        rtu0_0: rtu@4000 {
-> @@ -180,6 +193,9 @@ examples:
->                <0x23400 0x100>;
->          reg-names =3D "iram", "control", "debug";
->          firmware-name =3D "am65x-rtu0_0-fw";
-> +        interrupt-parent =3D <&icssg0_intc>;
-> +        interrupts =3D <20 4 4>;
-> +        interrupt-names =3D "vring";
->        };
-> =20
->        tx_pru0_0: txpru@a000 {
-> @@ -198,6 +214,9 @@ examples:
->                <0x24400 0x100>;
->          reg-names =3D "iram", "control", "debug";
->          firmware-name =3D "am65x-pru0_1-fw";
-> +        interrupt-parent =3D <&icssg0_intc>;
-> +        interrupts =3D <18 3 3>;
-> +        interrupt-names =3D "vring";
->        };
-> =20
->        rtu0_1: rtu@6000 {
-> @@ -207,6 +226,9 @@ examples:
->                <0x23c00 0x100>;
->          reg-names =3D "iram", "control", "debug";
->          firmware-name =3D "am65x-rtu0_1-fw";
-> +        interrupt-parent =3D <&icssg0_intc>;
-> +        interrupts =3D <22 5 5>;
-> +        interrupt-names =3D "vring";
->        };
-> =20
->        tx_pru0_1: txpru@c000 {
-> --=20
-> 2.34.1
->=20
-
---1jdWVwq42WtLkpBA
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCZNECFwAKCRB4tDGHoIJi
-0uAAAQCv+PBOP8/27AfSbERfPzfJ8qe0qOYDPQZg6GEo/lmsPAD+Nb/9LP9+9o+J
-8HIuSivmkOmx6egC3SyRduL0FiYz9gs=
-=IG6P
------END PGP SIGNATURE-----
-
---1jdWVwq42WtLkpBA--
+Reviewed-by: Tony Lindgren <tony@atomide.com>
