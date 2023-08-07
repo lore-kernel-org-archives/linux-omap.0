@@ -2,65 +2,68 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DE2EEB64DD
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Aug 2023 11:00:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F19C001DB
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Aug 2023 11:01:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231139AbjHGLAE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Aug 2023 07:00:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39424 "EHLO
+        id S231790AbjHGLBV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Aug 2023 07:01:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229870AbjHGLAD (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Aug 2023 07:00:03 -0400
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C9B010FA;
-        Mon,  7 Aug 2023 04:00:02 -0700 (PDT)
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 377AxPwc125087;
-        Mon, 7 Aug 2023 05:59:26 -0500
+        with ESMTP id S231784AbjHGLBS (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Aug 2023 07:01:18 -0400
+Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73E4E1721;
+        Mon,  7 Aug 2023 04:01:16 -0700 (PDT)
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 377B0sv8054566;
+        Mon, 7 Aug 2023 06:00:54 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691405966;
-        bh=zIb5NWlNzuRthnlBwvxMOdCwjv4fHZQSeTCCDRgx7uM=;
+        s=ti-com-17Q1; t=1691406054;
+        bh=ZPjBvlXzHvxA+tZyjo1EWAU6idpL4b02GPU7dEiciNc=;
         h=From:To:CC:Subject:Date;
-        b=s8MBzh2rSA9dpxeAtRKktVKLO49bCFZ1tSqvtdG+1Ih2PnFi+Q0RfgbUklRg6Yrt3
-         SKEYwgfAgvM1luMEtLH0B8uYA2nR9hLA0vJAOrPKG58Eow3cqyPgRjwdISltZAzX1Y
-         VrNb7tBFj+kaZWCmcUZC1zC2O6gKQqdnXwzS/hA4=
-Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 377AxPIl083418
+        b=JJfi7OJe4hTq6PPVdSKngRhg6A5ETI2B85fyTTkbpt325FLpe0oSWhri0dalRgyHa
+         y9A2NMUnKxIDm9fImSJF2ek8hpnxvIsW4TrZt4+xJENJitEoXpPyVwrjkZuVbjGfVo
+         MnA0m0aNQ555zY9DnMIa1PNDutcDKk7Qq7VxeINg=
+Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 377B0sZc074768
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 7 Aug 2023 05:59:25 -0500
-Received: from DLEE110.ent.ti.com (157.170.170.21) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 7 Aug 2023 06:00:54 -0500
+Received: from DFLE111.ent.ti.com (10.64.6.32) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 7
- Aug 2023 05:59:25 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE110.ent.ti.com
- (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
+ Aug 2023 06:00:54 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE111.ent.ti.com
+ (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Mon, 7 Aug 2023 05:59:25 -0500
+ Frontend Transport; Mon, 7 Aug 2023 06:00:54 -0500
 Received: from fllv0122.itg.ti.com (fllv0122.itg.ti.com [10.247.120.72])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 377AxPJf069815;
-        Mon, 7 Aug 2023 05:59:25 -0500
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 377B0shg031533;
+        Mon, 7 Aug 2023 06:00:54 -0500
 Received: from localhost (uda0501179.dhcp.ti.com [172.24.227.217])
-        by fllv0122.itg.ti.com (8.14.7/8.14.7) with ESMTP id 377AxOVj028026;
-        Mon, 7 Aug 2023 05:59:25 -0500
+        by fllv0122.itg.ti.com (8.14.7/8.14.7) with ESMTP id 377B0rUG028356;
+        Mon, 7 Aug 2023 06:00:54 -0500
 From:   MD Danish Anwar <danishanwar@ti.com>
-To:     <nm@ti.com>, <vigneshr@ti.com>
-CC:     Peng Fan <peng.fan@nxp.com>,
-        =?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <rafal@milecki.pl>,
-        =?UTF-8?q?N=C3=ADcolas=20F=2E=20R=2E=20A=2E=20Prado?= 
-        <nfraprado@collabora.com>,
-        Konrad Dybcio <konrad.dybcio@linaro.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Bjorn Andersson <quic_bjorande@quicinc.com>,
-        Will Deacon <will@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>, <srk@ti.com>,
-        <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-omap@vger.kernel.org>
-Subject: [PATCH v3] arm64: defconfig: Enable PRUSS as module
-Date:   Mon, 7 Aug 2023 16:29:19 +0530
-Message-ID: <20230807105919.2611138-1-danishanwar@ti.com>
+To:     Randy Dunlap <rdunlap@infradead.org>,
+        Roger Quadros <rogerq@kernel.org>,
+        Simon Horman <simon.horman@corigine.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Richard Cochran <richardcochran@gmail.com>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        MD Danish Anwar <danishanwar@ti.com>
+CC:     <nm@ti.com>, <srk@ti.com>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+Subject: [PATCH v2 0/5] Introduce IEP driver and packet timestamping support
+Date:   Mon, 7 Aug 2023 16:30:43 +0530
+Message-ID: <20230807110048.2611456-1-danishanwar@ti.com>
 X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -70,26 +73,60 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Enables PRUSS as kernel module for TI SoCs.
+This series introduces Industrial Ethernet Peripheral (IEP) driver to
+support timestamping of ethernet packets and thus support PTP and PPS
+for PRU ICSSG ethernet ports.
 
-Reviewed-by: Christian Gmeiner <christian.gmeiner@gmail.com>
-Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
----
- arch/arm64/configs/defconfig | 1 +
- 1 file changed, 1 insertion(+)
+This series also adds 10M full duplex support for ICSSG ethernet driver.
 
-diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
-index bf13d5c46578..0aecdf43a5d1 100644
---- a/arch/arm64/configs/defconfig
-+++ b/arch/arm64/configs/defconfig
-@@ -1339,6 +1339,7 @@ CONFIG_ARCH_TEGRA_186_SOC=y
- CONFIG_ARCH_TEGRA_194_SOC=y
- CONFIG_ARCH_TEGRA_234_SOC=y
- CONFIG_TI_SCI_PM_DOMAINS=y
-+CONFIG_TI_PRUSS=m
- CONFIG_ARM_IMX_BUS_DEVFREQ=y
- CONFIG_ARM_IMX8M_DDRC_DEVFREQ=m
- CONFIG_ARM_MEDIATEK_CCI_DEVFREQ=m
+There are two IEP instances. IEP0 is used for packet timestamping while IEP1
+is used for 10M full duplex support.
+
+This is v2 of the series [v1]. It addresses comments made on [v1].
+This series is based on linux-next(#next-20230807). 
+
+Changes from v1 to v2:
+*) Addressed Simon's comment to fix reverse xmas tree declaration. Some APIs
+   in patch 3 and 4 were not following reverse xmas tree variable declaration.
+   Fixed it in this version.
+*) Addressed Conor's comments and removed unsupported SoCs from compatible
+   comment in patch 1. 
+*) Addded patch 2 which was not part of v1. Patch 2, adds IEP node to dt
+   bindings for ICSSG.
+
+[v1] https://lore.kernel.org/all/20230803110153.3309577-1-danishanwar@ti.com/
+
+Thanks and Regards,
+Md Danish Anwar
+
+Grygorii Strashko (1):
+  net: ti: icssg-prueth: am65x SR2.0 add 10M full duplex support
+
+MD Danish Anwar (1):
+  dt-bindings: net: Add iep node in ICSSG driver dt binding
+
+Md Danish Anwar (1):
+  dt-bindings: net: Add ICSS IEP
+
+Roger Quadros (2):
+  net: ti: icss-iep: Add IEP driver
+  net: ti: icssg-prueth: add packet timestamping and ptp support
+
+ .../devicetree/bindings/net/ti,icss-iep.yaml  |  37 +
+ .../bindings/net/ti,icssg-prueth.yaml         |   7 +
+ drivers/net/ethernet/ti/Kconfig               |  12 +
+ drivers/net/ethernet/ti/Makefile              |   1 +
+ drivers/net/ethernet/ti/icssg/icss_iep.c      | 961 ++++++++++++++++++
+ drivers/net/ethernet/ti/icssg/icss_iep.h      |  41 +
+ drivers/net/ethernet/ti/icssg/icssg_config.c  |   6 +
+ drivers/net/ethernet/ti/icssg/icssg_ethtool.c |  21 +
+ drivers/net/ethernet/ti/icssg/icssg_prueth.c  | 433 +++++++-
+ drivers/net/ethernet/ti/icssg/icssg_prueth.h  |  28 +-
+ 10 files changed, 1540 insertions(+), 7 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/ti,icss-iep.yaml
+ create mode 100644 drivers/net/ethernet/ti/icssg/icss_iep.c
+ create mode 100644 drivers/net/ethernet/ti/icssg/icss_iep.h
+
 -- 
 2.34.1
 
