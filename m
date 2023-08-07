@@ -2,61 +2,82 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 752E0EB64DD
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Aug 2023 08:20:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD565C41513
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Aug 2023 10:59:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230394AbjHGIUH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Aug 2023 04:20:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54408 "EHLO
+        id S231351AbjHGK71 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Aug 2023 06:59:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39126 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229487AbjHGIUG (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Aug 2023 04:20:06 -0400
-X-Greylist: delayed 589 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 07 Aug 2023 01:20:04 PDT
-Received: from mail.wownow24.com (mail.wownow24.com [94.177.230.243])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFDE910EF
-        for <linux-omap@vger.kernel.org>; Mon,  7 Aug 2023 01:20:04 -0700 (PDT)
-Received: by mail.wownow24.com (Postfix, from userid 1001)
-        id 08AAC83080; Mon,  7 Aug 2023 09:10:48 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=wownow24.com; s=mail;
-        t=1691395849; bh=x9T7/X5dPfTlbNyLzlCZN4jD7cG5+UEf0V0g2YAP0IM=;
-        h=Date:From:To:Subject:From;
-        b=GUwnz6gd2k2JeNhkv/2VxVECJrMsfDIxljUiJDnKpbxh3TvZATLoImUcU9wkSQyQa
-         JGOyTjg4nHJDY3yXHqlfJcPvutEKqXF6+ialCh83wlV4KaxdHAcsfx2IVJK8e/ZXDn
-         oDrozerv2hMgdxt3xAsR8cr2KeYIPJJpREfZSQUHf5kk+Cnbj1codJo1SrZl3mrgMm
-         wEZQpp1EKP0GbozyHBUsN18J8TKE4r+83W+WM32/sLm/Plw7yLADSoTbIpigLM8sL1
-         8cEXmvmhHXSFDoG0fCBzTHEdiRmNo3PJCBT9AkyoHUE+u44RlFVrBuuMkMcgJ2oRmh
-         Z3XVFkLq6sh3g==
-Received: by mail.wownow24.com for <linux-omap@vger.kernel.org>; Mon,  7 Aug 2023 08:10:45 GMT
-Message-ID: <20230807074500-0.1.56.emha.0.aqe3540wjo@wownow24.com>
-Date:   Mon,  7 Aug 2023 08:10:45 GMT
-From:   "Kurt Birky" <kurt.birky@wownow24.com>
-To:     <linux-omap@vger.kernel.org>
-Subject: Free 60-Day Trial: Enhance Your Production Processes
-X-Mailer: mail.wownow24.com
+        with ESMTP id S229870AbjHGK70 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Aug 2023 06:59:26 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7A5EA10FA;
+        Mon,  7 Aug 2023 03:59:25 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 8EDEC809D;
+        Mon,  7 Aug 2023 10:59:24 +0000 (UTC)
+Date:   Mon, 7 Aug 2023 13:59:23 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Dhruva Gole <d-gole@ti.com>
+Cc:     Nishanth Menon <nm@ti.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org,
+        Vignesh Raghavendra <vigneshr@ti.com>
+Subject: Re: [PATCH] pinctrl: single: Add compatible for ti,am625-padconf
+Message-ID: <20230807105923.GO14799@atomide.com>
+References: <20230805045554.786092-1-d-gole@ti.com>
+ <20230805171508.schg4xquoa24klk5@october>
+ <20230807070724.GN14799@atomide.com>
+ <20230807080922.t35yvyvrknjcriyr@dhruva>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230807080922.t35yvyvrknjcriyr@dhruva>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi!
+* Dhruva Gole <d-gole@ti.com> [230807 08:09]:
+> On Aug 07, 2023 at 10:07:24 +0300, Tony Lindgren wrote:
+> > * Nishanth Menon <nm@ti.com> [230805 17:15]:
+> > > On 10:25-20230805, Dhruva Gole wrote:
+> > > > From: Tony Lindgren <tony@atomide.com>
+> > > > +static const struct pcs_soc_data pinctrl_single_am625 = {
+> > > > +	.flags = PCS_QUIRK_SHARED_IRQ | PCS_CONTEXT_LOSS_OFF,
+> > > > +	.irq_enable_mask = (1 << 29),   /* WKUP_EN */
+> > > > +	.irq_status_mask = (1 << 30),   /* WKUP_EVT */
+> > > > +};
+> > > > +
+> > > 
+> > > Why cant we set this in the k3-pinctrl.h and set it once?
+> 
+> Do you mean that I set 1 << 29 and 30 as sort of macros in the
+> k3-pinctrl.h file and then include it in pinctrl-single.c?
+> 
+> Are we okay to #include a header from arch/arm64/boot/dts/ti?
 
-We have created a tool for automatic data collection from production stat=
-ions that can improve your work and increase the efficiency of processes.
+Yes, but SoC specific defines needs to start with a SoC specific
+prefix as multiple files may be included for various SoCs.
 
-Quick to install and easy to use, the solution will provide you with valu=
-able data on performance indicators for the entire factory and individual=
- machines. The tool clearly indicates when the machine/line slows down, w=
-hat downtimes it has, and so you know when to react.
+> If I understand what Nishanth is saying correctly, are we expected to
+> set the wake_en bit on every single K3 SoC's every single padconf reg?
+> 
+> I am a little sceptical with this approach, because what is people
+> _don't_ want to wakeup from certain pads? What would be the right way to
+> disable wakeup on those pads then?
 
-You receive valuable knowledge about the production status and the reason=
-s for possible delays. Thanks to the ability to react immediately to emer=
-ging problems and symptoms, you increase your work efficiency by several =
-dozen percent.
+The wake_en only gets set when some driver does request_irq() on
+the wakeirq. No need to set them all.
 
-Do you want to test such a solution for free in your company?
+> Sure, I could take a look, but setting wake_en on all pads still
+> doesn't feel right to me.
 
+No need to set all wake_en pads, just checking that if request_irq()
+is done for some pin that does not have wake_en capability does not
+cause eternal interrupts if a reserved bit is high all the time :)
 
-Best regards
-Kurt Birky
+Regards,
+
+Tony
