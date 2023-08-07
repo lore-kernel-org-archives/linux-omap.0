@@ -2,60 +2,62 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C352EB64DD
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Aug 2023 11:09:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0EE9C41513
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Aug 2023 11:23:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231458AbjHGLJb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Aug 2023 07:09:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46626 "EHLO
+        id S232072AbjHGLXw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Aug 2023 07:23:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231552AbjHGLJa (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Aug 2023 07:09:30 -0400
-Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E8B1171B;
-        Mon,  7 Aug 2023 04:08:51 -0700 (PDT)
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 377B8hgN110698;
-        Mon, 7 Aug 2023 06:08:43 -0500
+        with ESMTP id S232494AbjHGLWo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Aug 2023 07:22:44 -0400
+Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F3982D5A;
+        Mon,  7 Aug 2023 04:20:16 -0700 (PDT)
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 377BJ9d0058689;
+        Mon, 7 Aug 2023 06:19:09 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691406523;
-        bh=/7Ens+j7LBBU6sXNeN8Uzz8ZjijeFBZTeoh8od1xgmE=;
-        h=From:To:CC:Subject:Date;
-        b=IyQAs0A4Yn+zZWUBv1tL8ynQVha+7tC5txT8q7EdvQObbLa4p94irK8sQK5r/Ctjf
-         1AkOw2xgNMamt1KEgVbdwAZAhHCznGl6REg5Oam2TWsOAYjFCkJnDAX9U6KQOqzuqL
-         sZJfiRSQEHQWN8rmYH4f1XCYpnjqPw8p6qPQquws=
-Received: from DFLE111.ent.ti.com (dfle111.ent.ti.com [10.64.6.32])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 377B8h4E027689
+        s=ti-com-17Q1; t=1691407149;
+        bh=BV3g7fLjiMPoiSXyPLfr/wcvQzdKuIHBY9Jx33K4WfI=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=H7cQmBJvmHBoxqqEyEfWGbwMl4vVVm+iDt3Ytf8vDlFNXj44EVBhPq5t4w7x1UE0l
+         sgv+iNw0SHNuPnrSMdcdZ/3xz12EHnJE+JK9EHikwnPhfbRR+FeMrG5YjAugC1uoHF
+         KJiEUMD22FGZgWRsXYwjTr9nOv/DBweP7f0a8BB0=
+Received: from DLEE112.ent.ti.com (dlee112.ent.ti.com [157.170.170.23])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 377BJ9tb086309
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 7 Aug 2023 06:08:43 -0500
-Received: from DFLE113.ent.ti.com (10.64.6.34) by DFLE111.ent.ti.com
- (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 7 Aug 2023 06:19:09 -0500
+Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 7
- Aug 2023 06:08:43 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE113.ent.ti.com
- (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
+ Aug 2023 06:19:08 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Mon, 7 Aug 2023 06:08:43 -0500
+ Frontend Transport; Mon, 7 Aug 2023 06:19:08 -0500
 Received: from fllv0122.itg.ti.com (fllv0122.itg.ti.com [10.247.120.72])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 377B8hKf041448;
-        Mon, 7 Aug 2023 06:08:43 -0500
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 377BJ8oh050005;
+        Mon, 7 Aug 2023 06:19:08 -0500
 Received: from localhost (uda0501179.dhcp.ti.com [172.24.227.217])
-        by fllv0122.itg.ti.com (8.14.7/8.14.7) with ESMTP id 377B8g8S029789;
-        Mon, 7 Aug 2023 06:08:42 -0500
+        by fllv0122.itg.ti.com (8.14.7/8.14.7) with ESMTP id 377BJ71A031616;
+        Mon, 7 Aug 2023 06:19:08 -0500
 From:   MD Danish Anwar <danishanwar@ti.com>
-To:     Suman Anna <s-anna@ti.com>, Conor Dooley <conor+dt@kernel.org>,
+To:     Conor Dooley <conor+dt@kernel.org>,
         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
         Rob Herring <robh+dt@kernel.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Bjorn Andersson <andersson@kernel.org>
-CC:     <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-remoteproc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>, <vigneshr@ti.com>,
-        <srk@ti.com>, <nm@ti.com>
-Subject: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property 
-Date:   Mon, 7 Aug 2023 16:38:36 +0530
-Message-ID: <20230807110836.2612730-1-danishanwar@ti.com>
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Nishanth Menon <nm@ti.com>
+CC:     Tero Kristo <kristo@kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <danishanwar@ti.com>, <srk@ti.com>
+Subject: [PATCH RFC 1/3] arm64: dts: ti: k3-am65-main: Add ICSSG IEP nodes
+Date:   Mon, 7 Aug 2023 16:48:53 +0530
+Message-ID: <20230807111855.2614761-2-danishanwar@ti.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230807111855.2614761-1-danishanwar@ti.com>
+References: <20230807111855.2614761-1-danishanwar@ti.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -64,74 +66,78 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add interrupts and interrupt-names protperties for PRU and RTU cores.
+The ICSSG IP on AM65x SoCs have two Industrial Ethernet Peripherals (IEPs)
+to manage/generate Industrial Ethernet functions such as time stamping.
+Each IEP sub-module is sourced from an internal clock mux that can be
+sourced from either of the IP instance's ICSSG_IEP_GCLK or ICSSG_ICLK.
+Add the IEP nodes for all the ICSSG instances.
 
 Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
 ---
- .../bindings/remoteproc/ti,pru-rproc.yaml     | 22 +++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ arch/arm64/boot/dts/ti/k3-am65-main.dtsi | 36 ++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
-index cd55d80137f7..6970316943bb 100644
---- a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
-+++ b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
-@@ -66,6 +66,16 @@ properties:
-       Should contain the name of the default firmware image
-       file located on the firmware search path.
+diff --git a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+index 3f8ff2589842..0265f5defbae 100644
+--- a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
++++ b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+@@ -1150,6 +1150,18 @@ icssg0_iepclk_mux: iepclk-mux@30 {
+ 			};
+ 		};
  
-+  interrupts:
-+    maxItems: 1
-+    description:
-+      Interrupt specifiers enable the virtio/rpmsg communication between MPU
-+      and the PRU/RTU cores.
++		icssg0_iep0: iep@2e000 {
++			compatible = "ti,am654-icss-iep";
++			reg = <0x2e000 0x1000>;
++			clocks = <&icssg0_iepclk_mux>;
++		};
 +
-+  interrupt-names:
-+    items:
-+      - const: vring
++		icssg0_iep1: iep@2f000 {
++			compatible = "ti,am654-icss-iep";
++			reg = <0x2f000 0x1000>;
++			clocks = <&icssg0_iepclk_mux>;
++		};
 +
- if:
-   properties:
-     compatible:
-@@ -171,6 +181,9 @@ examples:
-               <0x22400 0x100>;
-         reg-names = "iram", "control", "debug";
-         firmware-name = "am65x-pru0_0-fw";
-+        interrupt-parent = <&icssg0_intc>;
-+        interrupts = <16 2 2>;
-+        interrupt-names = "vring";
-       };
+ 		icssg0_mii_rt: mii-rt@32000 {
+ 			compatible = "ti,pruss-mii", "syscon";
+ 			reg = <0x32000 0x100>;
+@@ -1292,6 +1304,18 @@ icssg1_iepclk_mux: iepclk-mux@30 {
+ 			};
+ 		};
  
-       rtu0_0: rtu@4000 {
-@@ -180,6 +193,9 @@ examples:
-               <0x23400 0x100>;
-         reg-names = "iram", "control", "debug";
-         firmware-name = "am65x-rtu0_0-fw";
-+        interrupt-parent = <&icssg0_intc>;
-+        interrupts = <20 4 4>;
-+        interrupt-names = "vring";
-       };
++		icssg1_iep0: iep@2e000 {
++			compatible = "ti,am654-icss-iep";
++			reg = <0x2e000 0x1000>;
++			clocks = <&icssg1_iepclk_mux>;
++		};
++
++		icssg1_iep1: iep@2f000 {
++			compatible = "ti,am654-icss-iep";
++			reg = <0x2f000 0x1000>;
++			clocks = <&icssg1_iepclk_mux>;
++		};
++
+ 		icssg1_mii_rt: mii-rt@32000 {
+ 			compatible = "ti,pruss-mii", "syscon";
+ 			reg = <0x32000 0x100>;
+@@ -1434,6 +1458,18 @@ icssg2_iepclk_mux: iepclk-mux@30 {
+ 			};
+ 		};
  
-       tx_pru0_0: txpru@a000 {
-@@ -198,6 +214,9 @@ examples:
-               <0x24400 0x100>;
-         reg-names = "iram", "control", "debug";
-         firmware-name = "am65x-pru0_1-fw";
-+        interrupt-parent = <&icssg0_intc>;
-+        interrupts = <18 3 3>;
-+        interrupt-names = "vring";
-       };
- 
-       rtu0_1: rtu@6000 {
-@@ -207,6 +226,9 @@ examples:
-               <0x23c00 0x100>;
-         reg-names = "iram", "control", "debug";
-         firmware-name = "am65x-rtu0_1-fw";
-+        interrupt-parent = <&icssg0_intc>;
-+        interrupts = <22 5 5>;
-+        interrupt-names = "vring";
-       };
- 
-       tx_pru0_1: txpru@c000 {
++		icssg2_iep0: iep@2e000 {
++			compatible = "ti,am654-icss-iep";
++			reg = <0x2e000 0x1000>;
++			clocks = <&icssg2_iepclk_mux>;
++		};
++
++		icssg2_iep1: iep@2f000 {
++			compatible = "ti,am654-icss-iep";
++			reg = <0x2f000 0x1000>;
++			clocks = <&icssg2_iepclk_mux>;
++		};
++
+ 		icssg2_mii_rt: mii-rt@32000 {
+ 			compatible = "ti,pruss-mii", "syscon";
+ 			reg = <0x32000 0x100>;
 -- 
 2.34.1
 
