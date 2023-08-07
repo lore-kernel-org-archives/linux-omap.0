@@ -2,221 +2,103 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1772EC41513
-	for <linux-omap@archiver.kernel.org>; Mon,  7 Aug 2023 11:26:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92E17EB64DD
+	for <linux-omap@archiver.kernel.org>; Mon,  7 Aug 2023 12:09:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232657AbjHGL0y (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 7 Aug 2023 07:26:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35906 "EHLO
+        id S232838AbjHGMJF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 7 Aug 2023 08:09:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232686AbjHGL0l (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Aug 2023 07:26:41 -0400
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F14D830E1;
-        Mon,  7 Aug 2023 04:23:39 -0700 (PDT)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 377BJGfW130057;
-        Mon, 7 Aug 2023 06:19:16 -0500
+        with ESMTP id S232499AbjHGMJE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 7 Aug 2023 08:09:04 -0400
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD1D195;
+        Mon,  7 Aug 2023 05:09:03 -0700 (PDT)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 377C8TbD123376;
+        Mon, 7 Aug 2023 07:08:29 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691407156;
-        bh=Pialzk4xc8UGsA0M2InFr9yj7iGuJ1L6KF+ie/Whcb4=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=EciJOhIJgRU8QkYeNLI+q/d+Q7lIfGeNAEoo+I8Ux5zpZPr+plyX59A8vh9EpLt98
-         Av8GSUln30NXGxzi8ZIq0potpyzJCExCwCIxoo14yj27AjR1lE8Nk1uGSIGJ3I9frO
-         WWlroz670znP/qW1q+zMYy0spjqqd0U6HlwRDxU8=
-Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 377BJGGY086346
+        s=ti-com-17Q1; t=1691410109;
+        bh=HPfzbM7oNbyfW57kvap8c6blYiDjkmk5BN0fvHXFECw=;
+        h=Date:From:To:CC:Subject:References:In-Reply-To;
+        b=A5dm5TyfpNcSaFYrmeYYukWDkWE0w/hNz5mjBcZSjy2pCExIRdfYVGEPFKBbDpUCa
+         mYEZUCfJG/LQLqa9AH65PX5Grj4vWGwyd46B/wYbuzdFKcWjS45BuzyjPmcd8GtQ1D
+         dZYlYHh0ykPW0SejiLUIMFlJaJhbg8MD/JCAyIyg=
+Received: from DLEE106.ent.ti.com (dlee106.ent.ti.com [157.170.170.36])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 377C8Tsb110254
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 7 Aug 2023 06:19:16 -0500
-Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 7 Aug 2023 07:08:29 -0500
+Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE106.ent.ti.com
+ (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 7
- Aug 2023 06:19:15 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+ Aug 2023 07:08:28 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Mon, 7 Aug 2023 06:19:16 -0500
-Received: from lelv0854.itg.ti.com (lelv0854.itg.ti.com [10.181.64.140])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 377BJF94107064;
-        Mon, 7 Aug 2023 06:19:15 -0500
-Received: from localhost (uda0501179.dhcp.ti.com [172.24.227.217])
-        by lelv0854.itg.ti.com (8.14.7/8.14.7) with ESMTP id 377BJE69031099;
-        Mon, 7 Aug 2023 06:19:15 -0500
-From:   MD Danish Anwar <danishanwar@ti.com>
-To:     Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Nishanth Menon <nm@ti.com>
-CC:     Tero Kristo <kristo@kernel.org>, <linux-omap@vger.kernel.org>,
+ Frontend Transport; Mon, 7 Aug 2023 07:08:28 -0500
+Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 377C8SYt095933;
+        Mon, 7 Aug 2023 07:08:28 -0500
+Date:   Mon, 7 Aug 2023 07:08:28 -0500
+From:   Nishanth Menon <nm@ti.com>
+To:     MD Danish Anwar <danishanwar@ti.com>
+CC:     <vigneshr@ti.com>, Peng Fan <peng.fan@nxp.com>,
+        =?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <rafal@milecki.pl>,
+        =?utf-8?B?TsOtY29sYXMgRi4gUi4gQS4=?= Prado 
+        <nfraprado@collabora.com>,
+        Konrad Dybcio <konrad.dybcio@linaro.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Bjorn Andersson <quic_bjorande@quicinc.com>,
+        Will Deacon <will@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>, <srk@ti.com>,
+        <linux-kernel@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <danishanwar@ti.com>, <srk@ti.com>
-Subject: [PATCH RFC 2/3] arm64: dts: ti: k3-am65-main: Add PRU system events for virtio
-Date:   Mon, 7 Aug 2023 16:48:54 +0530
-Message-ID: <20230807111855.2614761-3-danishanwar@ti.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230807111855.2614761-1-danishanwar@ti.com>
-References: <20230807111855.2614761-1-danishanwar@ti.com>
+        <linux-omap@vger.kernel.org>
+Subject: Re: [PATCH v3] arm64: defconfig: Enable PRUSS as module
+Message-ID: <20230807120828.voznckdnhvnyzqnf@accurate>
+References: <20230807105919.2611138-1-danishanwar@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20230807105919.2611138-1-danishanwar@ti.com>
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Suman Anna <s-anna@ti.com>
+On 16:29-20230807, MD Danish Anwar wrote:
+> Enables PRUSS as kernel module for TI SoCs.
 
-A PRU system event "vring" has been added to each PRU and RTU
-node in each of the ICSSG0, ICSSG1 and ICSSG2 remote processor
-subsystems to enable the virtio/rpmsg communication between MPU
-and that PRU/RTU core. The additions are done in the base
-k3-am65-main.dtsi, and so are inherited by all the K3 AM65x
-boards.
 
-The PRU system events is the preferred approach over using TI
-mailboxes, as it eliminates an external peripheral access from
-the PRU/RTU-side, and keeps the interrupt generation internal to
-the ICSSG. The difference from MPU would be minimal in using one
-versus the other.
+You still have'nt addressed the review feedback from v1. what is
+PRUSS? What boards are using it?
 
-Mailboxes can still be used if desired, but currently there is
-no support on firmware-side for K3 SoCs to use mailboxes. Either
-approach would require that an appropriate firmware image is
-loaded/booted on the PRU.
+> 
+> Reviewed-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
+> ---
+>  arch/arm64/configs/defconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+> index bf13d5c46578..0aecdf43a5d1 100644
+> --- a/arch/arm64/configs/defconfig
+> +++ b/arch/arm64/configs/defconfig
+> @@ -1339,6 +1339,7 @@ CONFIG_ARCH_TEGRA_186_SOC=y
+>  CONFIG_ARCH_TEGRA_194_SOC=y
+>  CONFIG_ARCH_TEGRA_234_SOC=y
+>  CONFIG_TI_SCI_PM_DOMAINS=y
+> +CONFIG_TI_PRUSS=m
+>  CONFIG_ARM_IMX_BUS_DEVFREQ=y
+>  CONFIG_ARM_IMX8M_DDRC_DEVFREQ=m
+>  CONFIG_ARM_MEDIATEK_CCI_DEVFREQ=m
+> -- 
+> 2.34.1
+> 
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
----
- arch/arm64/boot/dts/ti/k3-am65-main.dtsi | 36 ++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
-
-diff --git a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
-index 0265f5defbae..10e69947019e 100644
---- a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
-+++ b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
-@@ -1198,6 +1198,9 @@ pru0_0: pru@34000 {
- 			      <0x22400 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-pru0_0-fw";
-+			interrupt-parent = <&icssg0_intc>;
-+			interrupts = <16 2 2>;
-+			interrupt-names = "vring";
- 		};
- 
- 		rtu0_0: rtu@4000 {
-@@ -1207,6 +1210,9 @@ rtu0_0: rtu@4000 {
- 			      <0x23400 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-rtu0_0-fw";
-+			interrupt-parent = <&icssg0_intc>;
-+			interrupts = <20 4 4>;
-+			interrupt-names = "vring";
- 		};
- 
- 		tx_pru0_0: txpru@a000 {
-@@ -1225,6 +1231,9 @@ pru0_1: pru@38000 {
- 			      <0x24400 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-pru0_1-fw";
-+			interrupt-parent = <&icssg0_intc>;
-+			interrupts = <18 3 3>;
-+			interrupt-names = "vring";
- 		};
- 
- 		rtu0_1: rtu@6000 {
-@@ -1234,6 +1243,9 @@ rtu0_1: rtu@6000 {
- 			      <0x23c00 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-rtu0_1-fw";
-+			interrupt-parent = <&icssg0_intc>;
-+			interrupts = <22 5 5>;
-+			interrupt-names = "vring";
- 		};
- 
- 		tx_pru0_1: txpru@c000 {
-@@ -1352,6 +1364,9 @@ pru1_0: pru@34000 {
- 			      <0x22400 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-pru1_0-fw";
-+			interrupt-parent = <&icssg1_intc>;
-+			interrupts = <16 2 2>;
-+			interrupt-names = "vring";
- 		};
- 
- 		rtu1_0: rtu@4000 {
-@@ -1361,6 +1376,9 @@ rtu1_0: rtu@4000 {
- 			      <0x23400 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-rtu1_0-fw";
-+			interrupt-parent = <&icssg1_intc>;
-+			interrupts = <20 4 4>;
-+			interrupt-names = "vring";
- 		};
- 
- 		tx_pru1_0: txpru@a000 {
-@@ -1379,6 +1397,9 @@ pru1_1: pru@38000 {
- 			      <0x24400 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-pru1_1-fw";
-+			interrupt-parent = <&icssg1_intc>;
-+			interrupts = <18 3 3>;
-+			interrupt-names = "vring";
- 		};
- 
- 		rtu1_1: rtu@6000 {
-@@ -1388,6 +1409,9 @@ rtu1_1: rtu@6000 {
- 			      <0x23c00 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-rtu1_1-fw";
-+			interrupt-parent = <&icssg1_intc>;
-+			interrupts = <22 5 5>;
-+			interrupt-names = "vring";
- 		};
- 
- 		tx_pru1_1: txpru@c000 {
-@@ -1506,6 +1530,9 @@ pru2_0: pru@34000 {
- 			      <0x22400 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-pru2_0-fw";
-+			interrupt-parent = <&icssg2_intc>;
-+			interrupts = <16 2 2>;
-+			interrupt-names = "vring";
- 		};
- 
- 		rtu2_0: rtu@4000 {
-@@ -1515,6 +1542,9 @@ rtu2_0: rtu@4000 {
- 			      <0x23400 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-rtu2_0-fw";
-+			interrupt-parent = <&icssg2_intc>;
-+			interrupts = <20 4 4>;
-+			interrupt-names = "vring";
- 		};
- 
- 		tx_pru2_0: txpru@a000 {
-@@ -1533,6 +1563,9 @@ pru2_1: pru@38000 {
- 			      <0x24400 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-pru2_1-fw";
-+			interrupt-parent = <&icssg2_intc>;
-+			interrupts = <18 3 3>;
-+			interrupt-names = "vring";
- 		};
- 
- 		rtu2_1: rtu@6000 {
-@@ -1542,6 +1575,9 @@ rtu2_1: rtu@6000 {
- 			      <0x23c00 0x100>;
- 			reg-names = "iram", "control", "debug";
- 			firmware-name = "am65x-rtu2_1-fw";
-+			interrupt-parent = <&icssg2_intc>;
-+			interrupts = <22 5 5>;
-+			interrupt-names = "vring";
- 		};
- 
- 		tx_pru2_1: txpru@c000 {
 -- 
-2.34.1
-
+Regards,
+Nishanth Menon
+Key (0xDDB5849D1736249D) / Fingerprint: F8A2 8693 54EB 8232 17A3  1A34 DDB5 849D 1736 249D
