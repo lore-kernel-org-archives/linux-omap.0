@@ -2,84 +2,107 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6525C001DB
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 18:32:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98026C001B0
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 18:36:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233297AbjHHScn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 14:32:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49720 "EHLO
+        id S232385AbjHHSgn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 14:36:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235920AbjHHSc2 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 14:32:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 435BF29548;
-        Tue,  8 Aug 2023 10:53:46 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CEE5862969;
-        Tue,  8 Aug 2023 17:53:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3198C433C7;
-        Tue,  8 Aug 2023 17:53:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691517225;
-        bh=52uuc7Z3oG44JhgCXUWkJJMkWiyyCz5MqyQlwm3ryjw=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=JiUdYj2WirrDHKt96EqhE6PM8xFosleaDS0TTqKtyCpJICVs9RXRrglRQlWQlQLh1
-         q2ORi0c4kMujJs2N2BQYB7e9VTJGYT9YFEoS5iTUcTyErESs4+d/fEtUr2/rzvvke1
-         mLterVBl54Q/FQG4l3DO5DLhrOeU4wJFnFhtUdio3tfmnAUudxSFJqdaSElOP7Yqnx
-         +ylNAScvNwsI/ZPDp/CtSx0B+xyok8xPr3Qmhbk7/M4VDqNqn99Mql4xas9hmxDbFp
-         YS17Q16WIxjh27MldGYFNgWunkgLHtrCEZDmu4Cfb9akbgOg72e1z1ZAmvLWX/KNsK
-         ykkro310otfyQ==
-Message-ID: <b34493f8-2b13-4582-9834-a1ebbe9ae836@kernel.org>
-Date:   Tue, 8 Aug 2023 19:53:39 +0200
+        with ESMTP id S229643AbjHHSgT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 14:36:19 -0400
+Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 789F43FD29
+        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 09:39:46 -0700 (PDT)
+Received: by mail-ej1-x62e.google.com with SMTP id a640c23a62f3a-99bcfe28909so809618566b.3
+        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 09:39:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1691512782; x=1692117582;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=qtIG2M/ca+5GsdX8n1RK00emvWGjV3tMf5tcX7VIHus=;
+        b=lw5oXgBN02fqPQOcrfWvDKiuXEtHO/tkIfZqSspcB0N54zQZuaKnjzZWm+rOoN6bpK
+         5Zlj3qwF2Fjp32swHwMm7T6y7zGh5IFzu9hAz6EKBIlqoPfbPnSHy2kcx7Qi44lum91w
+         6XkNZxG+9wqKp80CosobwF9D6BqP2TYzfQt/ENHLdn9bVkFzMT4EB/tU0eH8Wu7YPIY4
+         MVI8ORkDZYHXoEW/6cHpTNz9Mb0V2A1RZbyLMGl4uFTqDMM5sG34Grji26xVWXyrjpdj
+         XpwS4qdjSnXY6bT7x40JdFQERC9rp1fdIkUDypM2UkUlU0xytJBaOQ46cUzrj8C7Ms3G
+         Ac0Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691512782; x=1692117582;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=qtIG2M/ca+5GsdX8n1RK00emvWGjV3tMf5tcX7VIHus=;
+        b=J4ky4aUNGQaSWRZe1J2fG2FQDyrdD/qfuyjDJuDXKNiBtLegm7fq0IscoVS5zMeCru
+         XS+kbybr+SrkDLrmwpy6km4o+xJPJPAlJycZX2rBng3ViuhcAO1dWURznKEneMHoR7l6
+         ItE7exhqom04kzHqWi/QkhKV6ujFsmZ58Z0K18vC2TtR74y9Kzdjmkm56uvRXZEX9xET
+         w4RRLTEjE1p75dZuDrdbRxnvMqNWvaYKeaSuGoQFgBX9sXXXHKjqE5Ai/Q8urLPF+Uq8
+         2dxR5Cgoxu3dueAqaLmtA9J3lj/qf7hw6eYIpbXaky0Z5ZfP+NaJys8slcnTY3L38bHf
+         nR+w==
+X-Gm-Message-State: AOJu0YzltrJfiUC8JxnT5lmm5gkV2sht0Yp4mJ5kczr6gfToK0ZeDrVP
+        gOeS1b7mTIPFjiIWBvS0Vy+jCq9Ctx4hRRYVSDY=
+X-Google-Smtp-Source: AGHT+IGabpvcf+YfqqvSp128b6pb/ZcVi3xmONq1O6a4S0szO5ZdOqerklrUaTjPj2ZyYc9Tu1UkPA==
+X-Received: by 2002:a2e:6817:0:b0:2b5:8a21:5627 with SMTP id c23-20020a2e6817000000b002b58a215627mr9324746lja.51.1691502403287;
+        Tue, 08 Aug 2023 06:46:43 -0700 (PDT)
+Received: from [127.0.1.1] ([85.235.12.238])
+        by smtp.gmail.com with ESMTPSA id u23-20020a2e8557000000b002b93d66b82asm2284493ljj.112.2023.08.08.06.46.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 08 Aug 2023 06:46:42 -0700 (PDT)
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Tue, 08 Aug 2023 15:46:31 +0200
+Subject: [PATCH 04/11] regulator: rk808: Drop useless headers
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4] arm64: defconfig: Enable TI PRUSS
-Content-Language: en-US
-To:     MD Danish Anwar <danishanwar@ti.com>, nm@ti.com, vigneshr@ti.com
-Cc:     Peng Fan <peng.fan@nxp.com>,
-        =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <rafal@milecki.pl>,
-        =?UTF-8?B?TsOtY29sYXMgRi4gUi4gQS4gUHJhZG8=?= 
-        <nfraprado@collabora.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Bjorn Andersson <quic_bjorande@quicinc.com>,
-        Will Deacon <will@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>, srk@ti.com,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-omap@vger.kernel.org,
-        Christian Gmeiner <christian.gmeiner@gmail.com>
-References: <20230808130131.3081482-1-danishanwar@ti.com>
-From:   Konrad Dybcio <konradybcio@kernel.org>
-In-Reply-To: <20230808130131.3081482-1-danishanwar@ti.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20230808-descriptors-regulator-v1-4-939b5e84dd18@linaro.org>
+References: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
+In-Reply-To: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
+To:     Tony Lindgren <tony@atomide.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Matti Vaittinen <mazziesaccount@gmail.com>
+Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org,
+        Linus Walleij <linus.walleij@linaro.org>
+X-Mailer: b4 0.12.3
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 8.08.2023 15:01, MD Danish Anwar wrote:
-> The Programmable Realtime Unit - Industrial Communication Subsystem
-> (PRU-ICSS) known as PRUSS, is a low-latency microcontroller subsystem
-> used for industrial networking and other hard real-time functions in
-> the TI K3 SoCs such as AM654x, AM64x.
-> 
-> AM654x-EVM, AM64xx-EVM, and iot2050 use the PRUSS driver.
-> 
-> Reviewed-by: Christian Gmeiner <christian.gmeiner@gmail.com>
-> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
-> ---
-> Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
-> 
-> Changes from v3 to v4:
-> *) Rebased on the latest next-20230808 linux-next.
-> *) Modified commit-message to add details on PRUSS driver and the SoCs
->    supported. (address comments from v2 - Konard's and v3 - Nishanth's)
-Thanks a lot, sounds like it's a cool piece of hardware!
+The RK808 is already using the proper <linux/gpio/consumer.h>
+header and includes the legacy headers <linux/gpio.h> and
+<linux/of_gpio.h> for no reason, drop the includes.
 
-Reviewed-by: Konrad Dybcio <konradybcio@kernel.org>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/regulator/rk808-regulator.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-Konrad
+diff --git a/drivers/regulator/rk808-regulator.c b/drivers/regulator/rk808-regulator.c
+index 460525ed006c..e65339ef47ad 100644
+--- a/drivers/regulator/rk808-regulator.c
++++ b/drivers/regulator/rk808-regulator.c
+@@ -15,10 +15,8 @@
+  */
+ 
+ #include <linux/delay.h>
+-#include <linux/gpio.h>
+ #include <linux/module.h>
+ #include <linux/of_device.h>
+-#include <linux/of_gpio.h>
+ #include <linux/mfd/rk808.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/of_regulator.h>
+
+-- 
+2.34.1
+
