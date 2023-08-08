@@ -2,104 +2,122 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 109A1C001DE
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 16:50:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57952C001B0
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 17:00:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232911AbjHHQuE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 12:50:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40220 "EHLO
+        id S233924AbjHHRAy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 13:00:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37736 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233455AbjHHQs4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 12:48:56 -0400
-Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56F7D4AA87
-        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 08:57:18 -0700 (PDT)
-Received: by mail-lf1-x130.google.com with SMTP id 2adb3069b0e04-4fe10f0f4d1so9658547e87.0
-        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 08:57:18 -0700 (PDT)
+        with ESMTP id S232608AbjHHRAH (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 13:00:07 -0400
+Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21D7747E8
+        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 09:00:29 -0700 (PDT)
+Received: by mail-ej1-x630.google.com with SMTP id a640c23a62f3a-99357737980so849873866b.2
+        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 09:00:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1691510198; x=1692114998;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=G1Y4agTqAvpXPwjQ+6mnmjNw7Ui1CynMHOt3cuxZe6w=;
-        b=lCvSO/aU6RO53tMCyw5+mxJ/uxAe1C/Om080RvgOwKKUhVHYAiNDIc4VHX3d+jFOg0
-         n1C2hlhEz3nRKeaeOSlpaUtv+vDIw4SHe9VBRdK0G27Lr+OiBGJ2cb4syJlBK8TQx4D1
-         /M5OSvX8am2diMAGn7aDngV7ypo/R0x6GwRntXLORWXJlDEuIYuT+YyVajZqlNHECtoE
-         KN0tGWiiLXks19x8bzies6d6ocEtXgdRVRd2WFP7tt24IJmjFhdbzGDXJe3/bq3+nY2q
-         p7BJAMAzPlLdZs9BXm8xJL6015mPYlMha6xJeEAx52Xsuqog1st6vDnr836pW2OHw+5R
-         vZRA==
+        d=linaro.org; s=google; t=1691510399; x=1692115199;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=q6MY1hiBmbwXLoucjEj2Xi2SFMUgMZzIdibN/5/2L+I=;
+        b=aFySu5tLzj5pfn9DmIh/A2nWaZDusHC78TY6Evs8ZgdaijhStYTfW5KRQ+0M3KIseH
+         EGKgh0PNPz/00RqL+AOExsw9wlFWq6FaAE6IbVQggeAF4NTYrijqBaypfPVhyYeORzDW
+         TqgoUWyVwv3P6qvXxorj3oy47phkX+1GxsoDLd5wzwvnvFNaIES1CYE+qCIn0seEOWgc
+         oEnkzyC7hTDj3JK+XqvjjDLK1BCKwwzm8qdFDk/jah1AQ+7FEvvlz656Lq25uyIRhI9N
+         OVEKU28k4QVXVKJFmH6A7xhsQdH8X++mFymdXH6A5n5Woehc7PjEnL5ZjS3VZiPXcJM6
+         JAfA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691510198; x=1692114998;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=G1Y4agTqAvpXPwjQ+6mnmjNw7Ui1CynMHOt3cuxZe6w=;
-        b=LPIz/8+JkPM3ER2CyZy7HoE+lMqFw1W4ZwUBeOxhdGlLjzdpr3IYkoeN8NEfnlUWcl
-         H0DfJve9gz90Fa6K2dRJa8FCp+KELjoQRAkrYWeBmLYf3EyQ2ZsfTtkLoNmN3LnRLOY7
-         ndY01jvy6wGOIrQ490zsQeqt9RYWxa5ZrkjuPVBpg9KF50IKbKyRmr9tqa6CbdnX+q0y
-         8hKX+bzNPRhDaw23c8GZoUgWfJj4xWWtY4ENA4rRF4j5nybBG1/Cin3T4O+IlKU8E3zq
-         KZLxXN9G+/zHRgpwJWP1AbkY3v9TaKjyTzlXCoyPtEwOkuOuOHv9bcajd5QaZB0810VR
-         yuZA==
-X-Gm-Message-State: AOJu0Yw7HZw1P0oOAgGoshtCHz+wFYgTF5nfO7JevPqbAKal+YvxhTMW
-        wj1/D+XUXkcmc68+MN+DjNgEABK7gP47iF8N9gE=
-X-Google-Smtp-Source: AGHT+IE0omUPskRY/uk1H5XSLkdMB6vFjj8UCg/c58mkRX+yOkrTBA0j/8iJ1xj+dfPUVFqUwwFdrQ==
-X-Received: by 2002:a2e:990c:0:b0:2b6:ecdd:16cf with SMTP id v12-20020a2e990c000000b002b6ecdd16cfmr8260383lji.40.1691502401865;
-        Tue, 08 Aug 2023 06:46:41 -0700 (PDT)
-Received: from [127.0.1.1] ([85.235.12.238])
-        by smtp.gmail.com with ESMTPSA id u23-20020a2e8557000000b002b93d66b82asm2284493ljj.112.2023.08.08.06.46.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Aug 2023 06:46:41 -0700 (PDT)
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Tue, 08 Aug 2023 15:46:30 +0200
-Subject: [PATCH 03/11] regulator: rpi-panel-attiny: Drop useless header
+        d=1e100.net; s=20221208; t=1691510399; x=1692115199;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=q6MY1hiBmbwXLoucjEj2Xi2SFMUgMZzIdibN/5/2L+I=;
+        b=Kn8cA2WyEtkWyaaQTjLKEHw5M8sBo92bt6XcHEt7bvX3AFuVXOADOzp/CQf6wBvrsu
+         5fGRVSd9/tKmnbrCxsJmkTi7C0510dxfTIqLErxKzGcvSbiv7QJIiqmrRt5vwUiGhBIe
+         VxCGu5jMbdok2HqFv+QQYitod5aqGVFQgoWUIiNZP1K9XDMwCeZ1XKV8nCpqQxjM+RuG
+         XG621yT1PDO9TovI/Z7QogWyZJkkiSXI9l74lFsE2HLiLH7QH3bRkzbRzp8sXIcvo9PF
+         OmZXUCnhI9WhiPA6gRZvKZz3fUGa4e5LZDURsi3cE+/LvGTqpFquNZmPGMsJ+jIdfcAw
+         CcNw==
+X-Gm-Message-State: AOJu0YwP8AzJdaguyF7cEWpnYD7KTYNfBAiUJW6xmP7BLYdYTzKmujIp
+        tV2JBPvlhjgilx0ohah7Zn3DmqS4xq7VptKKUlk=
+X-Google-Smtp-Source: AGHT+IEFM3DwvG4gSvRW8WGApgoleljA2c2Cr/zQIjyrhjF0UV2hAUM2hKy+et7OFD1S77hBApF2qg==
+X-Received: by 2002:a17:906:54:b0:999:26d3:b815 with SMTP id 20-20020a170906005400b0099926d3b815mr13144104ejg.64.1691506434441;
+        Tue, 08 Aug 2023 07:53:54 -0700 (PDT)
+Received: from [192.168.1.20] ([178.197.222.113])
+        by smtp.gmail.com with ESMTPSA id rk22-20020a170907215600b00982a92a849asm6796311ejb.91.2023.08.08.07.53.52
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 08 Aug 2023 07:53:53 -0700 (PDT)
+Message-ID: <8e7cf088-e206-746d-0360-16479b1a33c3@linaro.org>
+Date:   Tue, 8 Aug 2023 16:53:51 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.14.0
+Subject: Re: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property
+Content-Language: en-US
+To:     Md Danish Anwar <a0501179@ti.com>, Conor Dooley <conor@kernel.org>,
+        MD Danish Anwar <danishanwar@ti.com>
+Cc:     Suman Anna <s-anna@ti.com>, Conor Dooley <conor+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mathieu Poirier <mathieu.poirier@linaro.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, vigneshr@ti.com, srk@ti.com,
+        nm@ti.com
+References: <20230807110836.2612730-1-danishanwar@ti.com>
+ <20230807-euphemism-trailing-ef4130dc7437@spud>
+ <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
+ <1ade44f5-b3d1-dcde-6819-9e944f3b115d@linaro.org>
+ <5ca41ad1-4f42-f71a-4b5f-f2b6def42cb1@ti.com>
+From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+In-Reply-To: <5ca41ad1-4f42-f71a-4b5f-f2b6def42cb1@ti.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230808-descriptors-regulator-v1-3-939b5e84dd18@linaro.org>
-References: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
-In-Reply-To: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
-To:     Tony Lindgren <tony@atomide.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Matti Vaittinen <mazziesaccount@gmail.com>
-Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org,
-        Linus Walleij <linus.walleij@linaro.org>
-X-Mailer: b4 0.12.3
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The RPI panel regulator driver includes the legacy header
-<linux/gpio.h> for no reason, this is a driver and <linux/gpio/driver.h>
-is already included. Drop the include.
+On 08/08/2023 12:57, Md Danish Anwar wrote:
+> On 08/08/23 3:48 pm, Krzysztof Kozlowski wrote:
+>> On 08/08/2023 11:44, Md Danish Anwar wrote:
+>>>>>    properties:
+>>>>>      compatible:
+>>>>> @@ -171,6 +181,9 @@ examples:
+>>>>>                <0x22400 0x100>;
+>>>>>          reg-names = "iram", "control", "debug";
+>>>>>          firmware-name = "am65x-pru0_0-fw";
+>>>>> +        interrupt-parent = <&icssg0_intc>;
+>>>>> +        interrupts = <16 2 2>;
+>>>>> +        interrupt-names = "vring";
+>>>>>        };
+>>>>
+>>>> These examples would probably be more helpful if they used the
+>>>> appropriate defines, no?
+>>>>
+>>>
+>>> PRUSS Interrupt controller doesn't have any appropriate defines. This doesn't
+>>> use GIC so defines from arm-gic.h can not be used here. These are specific to
+>>> PRUSS INTC.
+>>>
+>>> I think these example are OK. Please let me know if this is OK to you.
+>>
+>> But isn't "2" type of the interrupt?
+>>
+>> Best regards,
+>> Krzysztof
+>>
+> 
+> As per the description of interrupts property in ti,pruss-intc.yaml [1]
+> 
+> Cell 1 is PRU System event number, cell 2 is PRU channel and cell 3 is PRU
+> host_event (target). None of them is type of interrupt. So that's why they all
+> are hardcoded. I don't think we can use IRQ_TYPE macros here.
 
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
- drivers/regulator/rpi-panel-attiny-regulator.c | 1 -
- 1 file changed, 1 deletion(-)
+OK, thanks for clarifying this.
 
-diff --git a/drivers/regulator/rpi-panel-attiny-regulator.c b/drivers/regulator/rpi-panel-attiny-regulator.c
-index e9719a378a0b..949849baa7dc 100644
---- a/drivers/regulator/rpi-panel-attiny-regulator.c
-+++ b/drivers/regulator/rpi-panel-attiny-regulator.c
-@@ -7,7 +7,6 @@
- 
- #include <linux/backlight.h>
- #include <linux/err.h>
--#include <linux/gpio.h>
- #include <linux/gpio/driver.h>
- #include <linux/i2c.h>
- #include <linux/init.h>
-
--- 
-2.34.1
+Best regards,
+Krzysztof
 
