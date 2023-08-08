@@ -2,107 +2,142 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98026C001B0
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 18:36:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20197C04A94
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 18:44:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232385AbjHHSgn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 14:36:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34806 "EHLO
+        id S232584AbjHHSoj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 14:44:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229643AbjHHSgT (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 14:36:19 -0400
-Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 789F43FD29
-        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 09:39:46 -0700 (PDT)
-Received: by mail-ej1-x62e.google.com with SMTP id a640c23a62f3a-99bcfe28909so809618566b.3
-        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 09:39:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1691512782; x=1692117582;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=qtIG2M/ca+5GsdX8n1RK00emvWGjV3tMf5tcX7VIHus=;
-        b=lw5oXgBN02fqPQOcrfWvDKiuXEtHO/tkIfZqSspcB0N54zQZuaKnjzZWm+rOoN6bpK
-         5Zlj3qwF2Fjp32swHwMm7T6y7zGh5IFzu9hAz6EKBIlqoPfbPnSHy2kcx7Qi44lum91w
-         6XkNZxG+9wqKp80CosobwF9D6BqP2TYzfQt/ENHLdn9bVkFzMT4EB/tU0eH8Wu7YPIY4
-         MVI8ORkDZYHXoEW/6cHpTNz9Mb0V2A1RZbyLMGl4uFTqDMM5sG34Grji26xVWXyrjpdj
-         XpwS4qdjSnXY6bT7x40JdFQERC9rp1fdIkUDypM2UkUlU0xytJBaOQ46cUzrj8C7Ms3G
-         Ac0Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691512782; x=1692117582;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=qtIG2M/ca+5GsdX8n1RK00emvWGjV3tMf5tcX7VIHus=;
-        b=J4ky4aUNGQaSWRZe1J2fG2FQDyrdD/qfuyjDJuDXKNiBtLegm7fq0IscoVS5zMeCru
-         XS+kbybr+SrkDLrmwpy6km4o+xJPJPAlJycZX2rBng3ViuhcAO1dWURznKEneMHoR7l6
-         ItE7exhqom04kzHqWi/QkhKV6ujFsmZ58Z0K18vC2TtR74y9Kzdjmkm56uvRXZEX9xET
-         w4RRLTEjE1p75dZuDrdbRxnvMqNWvaYKeaSuGoQFgBX9sXXXHKjqE5Ai/Q8urLPF+Uq8
-         2dxR5Cgoxu3dueAqaLmtA9J3lj/qf7hw6eYIpbXaky0Z5ZfP+NaJys8slcnTY3L38bHf
-         nR+w==
-X-Gm-Message-State: AOJu0YzltrJfiUC8JxnT5lmm5gkV2sht0Yp4mJ5kczr6gfToK0ZeDrVP
-        gOeS1b7mTIPFjiIWBvS0Vy+jCq9Ctx4hRRYVSDY=
-X-Google-Smtp-Source: AGHT+IGabpvcf+YfqqvSp128b6pb/ZcVi3xmONq1O6a4S0szO5ZdOqerklrUaTjPj2ZyYc9Tu1UkPA==
-X-Received: by 2002:a2e:6817:0:b0:2b5:8a21:5627 with SMTP id c23-20020a2e6817000000b002b58a215627mr9324746lja.51.1691502403287;
-        Tue, 08 Aug 2023 06:46:43 -0700 (PDT)
-Received: from [127.0.1.1] ([85.235.12.238])
-        by smtp.gmail.com with ESMTPSA id u23-20020a2e8557000000b002b93d66b82asm2284493ljj.112.2023.08.08.06.46.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Aug 2023 06:46:42 -0700 (PDT)
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Tue, 08 Aug 2023 15:46:31 +0200
-Subject: [PATCH 04/11] regulator: rk808: Drop useless headers
+        with ESMTP id S233802AbjHHSoL (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 14:44:11 -0400
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4614A1558D;
+        Tue,  8 Aug 2023 09:40:13 -0700 (PDT)
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378CaIN5068834;
+        Tue, 8 Aug 2023 07:36:18 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1691498178;
+        bh=3hSAAtFdQ/105wifDbT6bIs+ir+qYDjjLCrmTGs7Z1o=;
+        h=Date:Subject:To:CC:References:From:In-Reply-To;
+        b=Rcx9vaEnILLhkC3B9hzEUK2foLJmPTNEvoEdk/LAOh0NbBxi2CEmd3/aZfQm4lZ2P
+         oNp5vJCWu1U+p3RYi/dimEbU9XzUQHneN/xSTw23IAmJek9lPNU1nR9+9kmDVu018Q
+         D3hbEXl0jNiqwu+CLWxUVJ+PWh0mTXGk3sboSAuk=
+Received: from DFLE110.ent.ti.com (dfle110.ent.ti.com [10.64.6.31])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378CaISm018836
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 8 Aug 2023 07:36:18 -0500
+Received: from DFLE111.ent.ti.com (10.64.6.32) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 8
+ Aug 2023 07:36:18 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE111.ent.ti.com
+ (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Tue, 8 Aug 2023 07:36:18 -0500
+Received: from [172.24.227.217] (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378CaC1W125832;
+        Tue, 8 Aug 2023 07:36:12 -0500
+Message-ID: <8bb5a1eb-3912-c418-88fe-b3d8870e7157@ti.com>
+Date:   Tue, 8 Aug 2023 18:06:11 +0530
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.0
+Subject: Re: [PATCH v2 0/5] Introduce IEP driver and packet timestamping
+ support
+Content-Language: en-US
+To:     Roger Quadros <rogerq@kernel.org>, Conor Dooley <conor@kernel.org>,
+        MD Danish Anwar <danishanwar@ti.com>
+CC:     Randy Dunlap <rdunlap@infradead.org>,
+        Simon Horman <simon.horman@corigine.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Richard Cochran <richardcochran@gmail.com>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        "David S. Miller" <davem@davemloft.net>, <nm@ti.com>, <srk@ti.com>,
+        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <netdev@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20230807110048.2611456-1-danishanwar@ti.com>
+ <20230808-unnerving-press-7b61f9c521dc@spud>
+ <1c8e5369-648e-98cb-cb14-08d700a38283@ti.com>
+ <529218f6-2871-79a2-42bb-8f7886ae12c3@kernel.org>
+From:   Md Danish Anwar <a0501179@ti.com>
+Organization: Texas Instruments
+In-Reply-To: <529218f6-2871-79a2-42bb-8f7886ae12c3@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230808-descriptors-regulator-v1-4-939b5e84dd18@linaro.org>
-References: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
-In-Reply-To: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
-To:     Tony Lindgren <tony@atomide.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Matti Vaittinen <mazziesaccount@gmail.com>
-Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org,
-        Linus Walleij <linus.walleij@linaro.org>
-X-Mailer: b4 0.12.3
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The RK808 is already using the proper <linux/gpio/consumer.h>
-header and includes the legacy headers <linux/gpio.h> and
-<linux/of_gpio.h> for no reason, drop the includes.
+On 08/08/23 5:52 pm, Roger Quadros wrote:
+> 
+> 
+> On 08/08/2023 15:18, Md Danish Anwar wrote:
+>> On 08/08/23 5:38 pm, Conor Dooley wrote:
+>>> On Mon, Aug 07, 2023 at 04:30:43PM +0530, MD Danish Anwar wrote:
+>>>> This series introduces Industrial Ethernet Peripheral (IEP) driver to
+>>>> support timestamping of ethernet packets and thus support PTP and PPS
+>>>> for PRU ICSSG ethernet ports.
+>>>>
+>>>> This series also adds 10M full duplex support for ICSSG ethernet driver.
+>>>>
+>>>> There are two IEP instances. IEP0 is used for packet timestamping while IEP1
+>>>> is used for 10M full duplex support.
+>>>>
+>>>> This is v2 of the series [v1]. It addresses comments made on [v1].
+>>>> This series is based on linux-next(#next-20230807). 
+>>>>
+>>>> Changes from v1 to v2:
+>>>> *) Addressed Simon's comment to fix reverse xmas tree declaration. Some APIs
+>>>>    in patch 3 and 4 were not following reverse xmas tree variable declaration.
+>>>>    Fixed it in this version.
+>>>> *) Addressed Conor's comments and removed unsupported SoCs from compatible
+>>>>    comment in patch 1. 
+>>>
+>>> I'm sorry I missed responding there before you sent v2, it was a bank
+>>> holiday yesterday. I'm curious why you removed them, rather than just
+>>> added them with a fallback to the ti,am654-icss-iep compatible, given
+>>> your comment that "the same compatible currently works for all these
+>>> 3 SoCs".
+>>
+>> I removed them as currently the driver is being upstreamed only for AM654x,
+>> once I start up-streaming the ICSSG driver for AM64 and any other SoC. I will
+>> add them here. If at that time we are still using same compatible, then I will
+>> modify the comment otherwise add new compatible.
+>>
+>> As of now, I don't see the need of adding other SoCs in iep binding as IEP
+>> driver up-streaming is only planned for AM654x as of now.
+> 
+> But, is there any difference in IEP hardware/driver for the other SoCs?
+> AFAIK the same IP is used on all SoCs.
+> 
+> If there is no hardware/code change then we don't need to introduce a new compatible.
+> The comment for all SoCs can already be there right from the start.
+> 
 
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
- drivers/regulator/rk808-regulator.c | 2 --
- 1 file changed, 2 deletions(-)
+There is no code change. The same compatible is used for other SoCs. Even if
+the code is same I was thinking to keep the compatible as below now
 
-diff --git a/drivers/regulator/rk808-regulator.c b/drivers/regulator/rk808-regulator.c
-index 460525ed006c..e65339ef47ad 100644
---- a/drivers/regulator/rk808-regulator.c
-+++ b/drivers/regulator/rk808-regulator.c
-@@ -15,10 +15,8 @@
-  */
- 
- #include <linux/delay.h>
--#include <linux/gpio.h>
- #include <linux/module.h>
- #include <linux/of_device.h>
--#include <linux/of_gpio.h>
- #include <linux/mfd/rk808.h>
- #include <linux/regulator/driver.h>
- #include <linux/regulator/of_regulator.h>
+- ti,am654-icss-iep   # for K3 AM65x SoCs
+
+and once other SoCs are introduced, I will just modify the comment,
+
+- ti,am654-icss-iep   # for K3 AM65x, AM64x SoCs
+
+But we can also keep the all SoCs in comment right from start as well. I am
+fine with both.
+
+Conor / Roger, Please let me know which approach should I go with in next revision?
 
 -- 
-2.34.1
-
+Thanks and Regards,
+Danish.
