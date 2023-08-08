@@ -2,137 +2,108 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 553F8C04FDF
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 19:22:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 354FCC001DB
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 19:33:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235854AbjHHTWf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 15:22:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60374 "EHLO
+        id S236444AbjHHTdD (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 15:33:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46580 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236184AbjHHTWA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 15:22:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EA1310E9C8;
-        Tue,  8 Aug 2023 09:45:43 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5E096624A6;
-        Tue,  8 Aug 2023 10:48:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3F57C433C8;
-        Tue,  8 Aug 2023 10:48:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691491687;
-        bh=g4Al6u/oxW9sOdVO40WZiYWYztfE/tWlGU1STUdbHRs=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=rsIaGXcA79+KRvi55vDwZcaycKr5Mc/tVkLjU9fnNOY0UZLyw4vPkks1ugyvNMdZv
-         srirx/T+v64qvDgrub2wSDxGiS/PYNi3uuTSQoz89p7MJQy3+2poNJRzUWKNVWRLpg
-         wQP0U7Mdof49bv8EQ0mxaWPbO00xd64PzEDXDyLSCKUw1N6Kwpdr+2B21tHFn1aTwp
-         E2oma7Au+eu76VP9dHf8q2a11dhwdmCzggYmbElo7c2WGOjSEHsYn3sM6kZdXQeANH
-         EvYNDPEwf6tVZEpntFzO6jB/RyIpiIdleHwr0hQTx3SD77GNmeoiHOgVaKiRK8405H
-         RaOFRZFBn8QcQ==
-Date:   Tue, 8 Aug 2023 11:48:02 +0100
-From:   Conor Dooley <conor@kernel.org>
-To:     Md Danish Anwar <a0501179@ti.com>
-Cc:     MD Danish Anwar <danishanwar@ti.com>, Suman Anna <s-anna@ti.com>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, vigneshr@ti.com, srk@ti.com,
-        nm@ti.com
-Subject: Re: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property
-Message-ID: <20230808-unwomanly-generic-67d20f0e51cd@spud>
-References: <20230807110836.2612730-1-danishanwar@ti.com>
- <20230807-euphemism-trailing-ef4130dc7437@spud>
- <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
+        with ESMTP id S236403AbjHHTcf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 15:32:35 -0400
+Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC124AB6B8;
+        Tue,  8 Aug 2023 12:04:42 -0700 (PDT)
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378AP5Xg049566;
+        Tue, 8 Aug 2023 05:25:05 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1691490305;
+        bh=wsH0cpHRqqTFMyRbmu2p89xDZgzCEPqmNhQL+OnduLo=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=iNjRil2TLKn19kG5FTr/PDfQOAbEnUBu1ljvS7NqSpw4QQe6iqkoEuTdo9eLxGfBz
+         GJZEsIkUNG2HB9/5c0nQ6wqxk60C0DT+ZQK51ldg3gVkHOOE6Ul9TiAkTGFIaESWEo
+         P9ayMlHT9PUdSjlx7Mcn0ncvZB1bO1kggWhTtC0s=
+Received: from DFLE107.ent.ti.com (dfle107.ent.ti.com [10.64.6.28])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378AP4Zb005467
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 8 Aug 2023 05:25:05 -0500
+Received: from DFLE114.ent.ti.com (10.64.6.35) by DFLE107.ent.ti.com
+ (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 8
+ Aug 2023 05:25:04 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE114.ent.ti.com
+ (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Tue, 8 Aug 2023 05:25:04 -0500
+Received: from dhruva.dhcp.ti.com (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378AO6oC022340;
+        Tue, 8 Aug 2023 05:25:02 -0500
+From:   Dhruva Gole <d-gole@ti.com>
+To:     Tony Lindgren <tony@atomide.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Conor Dooley <conor+dt@kernel.org>
+CC:     <linux-gpio@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>, Dhruva Gole <d-gole@ti.com>
+Subject: [PATCH 2/2] pinctrl: single: Add compatible for ti,am654-padconf
+Date:   Tue, 8 Aug 2023 15:52:08 +0530
+Message-ID: <20230808102207.130177-3-d-gole@ti.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230808102207.130177-1-d-gole@ti.com>
+References: <20230808102207.130177-1-d-gole@ti.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="RzfM45YTf9+4RvqO"
-Content-Disposition: inline
-In-Reply-To: <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
+Message-ID: <20230808102208.20zPd5D0W1VMXr9i4kbUZmQCUqBZwMVODkdco4MjaLI@z>
 
+From: Tony Lindgren <tony@atomide.com>
 
---RzfM45YTf9+4RvqO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Use the "ti,am654-padconf" compatible to enable the use of wake-up enable
+and event bits on K3 SOCs that support the daisychain feature
 
-On Tue, Aug 08, 2023 at 03:14:31PM +0530, Md Danish Anwar wrote:
-> Hi Conor,
->=20
-> On 07/08/23 8:09 pm, Conor Dooley wrote:
-> > On Mon, Aug 07, 2023 at 04:38:36PM +0530, MD Danish Anwar wrote:
-> >> Add interrupts and interrupt-names protperties for PRU and RTU cores.
-> >>
-> >> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
-> >> ---
-> >>  .../bindings/remoteproc/ti,pru-rproc.yaml     | 22 +++++++++++++++++++
-> >>  1 file changed, 22 insertions(+)
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc=
-=2Eyaml b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
-> >> index cd55d80137f7..6970316943bb 100644
-> >> --- a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
-> >> +++ b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
-> >> @@ -66,6 +66,16 @@ properties:
-> >>        Should contain the name of the default firmware image
-> >>        file located on the firmware search path.
-> >> =20
-> >> +  interrupts:
-> >> +    maxItems: 1
-> >> +    description:
-> >> +      Interrupt specifiers enable the virtio/rpmsg communication betw=
-een MPU
-> >> +      and the PRU/RTU cores.
-> >> +
-> >> +  interrupt-names:
-> >> +    items:
-> >> +      - const: vring
-> >> +
-> >>  if:
-> >>    properties:
-> >>      compatible:
-> >> @@ -171,6 +181,9 @@ examples:
-> >>                <0x22400 0x100>;
-> >>          reg-names =3D "iram", "control", "debug";
-> >>          firmware-name =3D "am65x-pru0_0-fw";
-> >> +        interrupt-parent =3D <&icssg0_intc>;
-> >> +        interrupts =3D <16 2 2>;
-> >> +        interrupt-names =3D "vring";
-> >>        };
-> >=20
-> > These examples would probably be more helpful if they used the
-> > appropriate defines, no?
-> >=20
->=20
-> PRUSS Interrupt controller doesn't have any appropriate defines. This doe=
-sn't
-> use GIC so defines from arm-gic.h can not be used here. These are specifi=
-c to
-> PRUSS INTC.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Dhruva Gole <d-gole@ti.com>
+---
 
-I was deliberately vague in case the gic stuff applied too, but my main
-question was about the standard defines used for interrupt types.
+The previous version of this patch was posted stand alone here:
+https://lore.kernel.org/all/20230805045554.786092-1-d-gole@ti.com/
 
-> I think these example are OK. Please let me know if this is OK to you.
+changelog: the compatible name has been changed in this series.
 
---RzfM45YTf9+4RvqO
-Content-Type: application/pgp-signature; name="signature.asc"
+ drivers/pinctrl/pinctrl-single.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
------BEGIN PGP SIGNATURE-----
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index f056923ecc98..92e495d13b9b 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1954,6 +1954,12 @@ static const struct pcs_soc_data pinctrl_single_am437x = {
+ 	.irq_status_mask = (1 << 30),   /* OMAP_WAKEUP_EVENT */
+ };
+ 
++static const struct pcs_soc_data pinctrl_single_am654 = {
++	.flags = PCS_QUIRK_SHARED_IRQ | PCS_CONTEXT_LOSS_OFF,
++	.irq_enable_mask = (1 << 29),   /* WKUP_EN */
++	.irq_status_mask = (1 << 30),   /* WKUP_EVT */
++};
++
+ static const struct pcs_soc_data pinctrl_single = {
+ };
+ 
+@@ -1962,6 +1968,7 @@ static const struct pcs_soc_data pinconf_single = {
+ };
+ 
+ static const struct of_device_id pcs_of_match[] = {
++	{ .compatible = "ti,am654-padconf", .data = &pinctrl_single_am654 },
+ 	{ .compatible = "ti,omap3-padconf", .data = &pinctrl_single_omap_wkup },
+ 	{ .compatible = "ti,omap4-padconf", .data = &pinctrl_single_omap_wkup },
+ 	{ .compatible = "ti,omap5-padconf", .data = &pinctrl_single_omap_wkup },
+-- 
+2.34.1
 
-iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCZNIdYgAKCRB4tDGHoIJi
-0sfFAQDUGTaUH2VxL1ST+sf18hKE5yCqpFEUkOJu+bgGPLkmuQD/XAUCs4HrdF2v
-1lu3PdJ0QSaQoDb36Qrpa6k3hHGvUQg=
-=l++a
------END PGP SIGNATURE-----
-
---RzfM45YTf9+4RvqO--
