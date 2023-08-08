@@ -2,94 +2,104 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EE48C04A6A
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 19:52:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2976C001B0
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 20:30:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230464AbjHHTwq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 15:52:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36534 "EHLO
+        id S234016AbjHHUaP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 16:30:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233314AbjHHTvm (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 15:51:42 -0400
-Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C17949C3;
-        Tue,  8 Aug 2023 09:58:11 -0700 (PDT)
+        with ESMTP id S232950AbjHHUaF (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 16:30:05 -0400
+Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFB328C26;
+        Tue,  8 Aug 2023 12:50:22 -0700 (PDT)
 Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378AOl3h042018;
-        Tue, 8 Aug 2023 05:24:47 -0500
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3785DDhV041250;
+        Tue, 8 Aug 2023 00:13:13 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691490287;
-        bh=On/A6IE/yzAzBME7Kc1ZCU6P273S61ERfKqfgq7acKU=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=UagzfyMHXtD+PK8e8jJe5TnN6UcbyJabyejrF33ShOdKWFOJki8urKhrf5oI+Clz3
-         NdKKvDivpSu+BiPzKEmzPL44LjZn0P37WF943ljFYnVcCvxYSCY1tMjw1HU9ZuGZxp
-         lROUGTfioc3bnnOEx64HfriPwobqTY9i1ppqfXgs=
-Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378AOlrj024779
+        s=ti-com-17Q1; t=1691471593;
+        bh=idXsfTNqRQLiOVJSZaBLKR1hyKNqp0FqZ6LHOlTsRFU=;
+        h=Date:Subject:To:CC:References:From:In-Reply-To;
+        b=x5Lx0wuGxLoYfS2kVn8nJFBoMrYBFnF+W8FA0S33V7gUquIj6emIM7VEJAHlfTtnP
+         GIZdTQKgogzFUcUZNKpc+QarYVahqmMLpkgzuGIOKxtqlJu6ow7kJIh1ioeo4/fIM0
+         n1Zzw4/9Cine02vOo6O/NlsOKDDSpZepfPH0xmxU=
+Received: from DLEE102.ent.ti.com (dlee102.ent.ti.com [157.170.170.32])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3785DDXQ094842
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Aug 2023 05:24:47 -0500
-Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 8 Aug 2023 00:13:13 -0500
+Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 8
- Aug 2023 05:24:47 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
+ Aug 2023 00:13:12 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 8 Aug 2023 05:24:47 -0500
-Received: from dhruva.dhcp.ti.com (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378AO6oB022340;
-        Tue, 8 Aug 2023 05:24:45 -0500
-From:   Dhruva Gole <d-gole@ti.com>
-To:     Tony Lindgren <tony@atomide.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Conor Dooley <conor+dt@kernel.org>
-CC:     <linux-gpio@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-omap@vger.kernel.org>, Dhruva Gole <d-gole@ti.com>
-Subject: [PATCH 1/2] dt-bindings: pinctrl: pinctrl-single: add ti,am654-padconf compatible
-Date:   Tue, 8 Aug 2023 15:52:07 +0530
-Message-ID: <20230808102207.130177-2-d-gole@ti.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230808102207.130177-1-d-gole@ti.com>
-References: <20230808102207.130177-1-d-gole@ti.com>
+ Frontend Transport; Tue, 8 Aug 2023 00:13:12 -0500
+Received: from [172.24.227.217] (ileaxei01-snat.itg.ti.com [10.180.69.5])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3785D5EM011348;
+        Tue, 8 Aug 2023 00:13:06 -0500
+Message-ID: <a0e2b828-36c9-326b-9247-863bb62b760f@ti.com>
+Date:   Tue, 8 Aug 2023 10:43:05 +0530
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.0
+Subject: Re: [PATCH v2 5/5] net: ti: icssg-prueth: am65x SR2.0 add 10M full
+ duplex support
+Content-Language: en-US
+To:     Andrew Lunn <andrew@lunn.ch>, MD Danish Anwar <danishanwar@ti.com>
+CC:     Randy Dunlap <rdunlap@infradead.org>,
+        Roger Quadros <rogerq@kernel.org>,
+        Simon Horman <simon.horman@corigine.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Richard Cochran <richardcochran@gmail.com>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        "David S. Miller" <davem@davemloft.net>, <nm@ti.com>, <srk@ti.com>,
+        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <netdev@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20230807110048.2611456-1-danishanwar@ti.com>
+ <20230807110048.2611456-6-danishanwar@ti.com>
+ <dd0e538a-9369-4682-8eda-753d7cb83fb1@lunn.ch>
+From:   Md Danish Anwar <a0501179@ti.com>
+Organization: Texas Instruments
+In-Reply-To: <dd0e538a-9369-4682-8eda-753d7cb83fb1@lunn.ch>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add the "ti,am654-padconf" compatible to support the new wakeup enable and
-status bits positions on K3 family SOCs that support the IO daisychain
-feature.
+On 07/08/23 7:55 pm, Andrew Lunn wrote:
+>> @@ -210,6 +210,9 @@ void icssg_config_ipg(struct prueth_emac *emac)
+>>  	case SPEED_100:
+>>  		icssg_mii_update_ipg(prueth->mii_rt, slice, MII_RT_TX_IPG_100M);
+>>  		break;
+>> +	case SPEED_10:
+>> +		icssg_mii_update_ipg(prueth->mii_rt, slice, MII_RT_TX_IPG_100M);
+>> +		break;
+> 
+> Since that looks like a typO, you might want to add a comment.
+> 
+>       Adnrew
 
-Signed-off-by: Dhruva Gole <d-gole@ti.com>
----
 
-Previously, this was posted here:
-https://lore.kernel.org/all/20230804050737.635186-1-d-gole@ti.com/
+Sure, Andrew. I'll add the below comment in 'case SPEED_10' so that it doesn't
+seem like a typo.
 
-However since then I have tweaked the commit message and also the name
-of compatible. Hence didn't pickup the Acked-by: Conor and Tony's R-by:
-https://lore.kernel.org/all/20230807144323.GP14799@atomide.com/
+	
+case SPEED_10:
+	/* IPG for 10M is same as 100M */
+	icssg_mii_update_ipg(prueth->mii_rt, slice, MII_RT_TX_IPG_100M);
+	break;
 
- Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-index b6b6bcd7074b..45a307d3ce16 100644
---- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-+++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-@@ -24,6 +24,7 @@ properties:
-       - items:
-           - enum:
-               - ti,am437-padconf
-+              - ti,am654-padconf
-               - ti,dra7-padconf
-               - ti,omap2420-padconf
-               - ti,omap2430-padconf
 -- 
-2.34.1
-
+Thanks and Regards,
+Danish.
