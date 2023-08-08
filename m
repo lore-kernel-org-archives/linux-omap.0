@@ -2,99 +2,127 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68BAFC001DE
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 16:23:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B027C001DE
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 16:25:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229492AbjHHQWg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 12:22:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38864 "EHLO
+        id S230438AbjHHQYn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 12:24:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232507AbjHHQUb (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 12:20:31 -0400
+        with ESMTP id S230450AbjHHQXG (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 12:23:06 -0400
 Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 557BB93D7;
-        Tue,  8 Aug 2023 08:49:05 -0700 (PDT)
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378Dn4Sc092506;
-        Tue, 8 Aug 2023 08:49:04 -0500
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70304A5C5;
+        Tue,  8 Aug 2023 08:49:37 -0700 (PDT)
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378Crmb0079989;
+        Tue, 8 Aug 2023 07:53:48 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691502544;
-        bh=/diXiEy5Rar3GP8DL1v0Kz97W27qEYMY8d8jEN9wuNI=;
-        h=Date:From:To:CC:Subject:References:In-Reply-To;
-        b=xQc13KDzs4rY/5Yh0KhwxXxbTGu21K+p5MPQfIpXeULdCoaHjZ3C7H+tWKqs+R0a/
-         mPYU2n776xTrRr9yuKjigGyTYSX2EeQK6t5eKP/GEMnTRBnX7fDvB3OHKaI15O1I7h
-         kAGsMc6e+6/GT6gmAtQpO08ULv0a/IqbxsVx8T3Y=
-Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378Dn4Jp003971
+        s=ti-com-17Q1; t=1691499228;
+        bh=Ro/GgzwhdHfAK9/N9xH4XxQOrPc8OUvp0lMlPy6GJjE=;
+        h=Date:Subject:To:CC:References:From:In-Reply-To;
+        b=RMf18YGhmgutHSzou1ClazOLIcYe/spDSK0taQNXKHlJkL/tTii0icalPTBzOhTrC
+         UZB1CTiOL8P0RQ5NSonkKH0suDjJxpi2p1VweX9FomLmuB5dNQ4P/QkHQ6QJwCk/zW
+         vX+tJ3JhOM6HrjPdiVsAhXLoXvIdhaUVXbFJQd3o=
+Received: from DLEE107.ent.ti.com (dlee107.ent.ti.com [157.170.170.37])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378Crm5o104927
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Aug 2023 08:49:04 -0500
-Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 8 Aug 2023 07:53:48 -0500
+Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE107.ent.ti.com
+ (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 8
- Aug 2023 08:49:04 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE100.ent.ti.com
- (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
+ Aug 2023 07:53:47 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 8 Aug 2023 08:49:03 -0500
-Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378Dn31e046024;
-        Tue, 8 Aug 2023 08:49:03 -0500
-Date:   Tue, 8 Aug 2023 08:49:03 -0500
-From:   Nishanth Menon <nm@ti.com>
-To:     Dhruva Gole <d-gole@ti.com>
-CC:     Tero Kristo <kristo@kernel.org>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        <linux-pm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-omap@vger.kernel.org>,
-        "Kevin Hilman" <khilman@baylibre.com>, Vignesh R <vigneshr@ti.com>,
-        Georgi Vlaev <g-vlaev@ti.com>
-Subject: Re: [PATCH V7 2/4] firmware: ti_sci: Add support for querying the
- firmware caps
-Message-ID: <20230808134903.vqrq7wxsgg5id4dj@crewmate>
-References: <20230804115037.754994-1-d-gole@ti.com>
- <20230804115037.754994-3-d-gole@ti.com>
+ Frontend Transport; Tue, 8 Aug 2023 07:53:47 -0500
+Received: from [172.24.227.217] (ileaxei01-snat.itg.ti.com [10.180.69.5])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378CrfOT010693;
+        Tue, 8 Aug 2023 07:53:42 -0500
+Message-ID: <264084f5-9c26-c777-2c4c-01d166b24a85@ti.com>
+Date:   Tue, 8 Aug 2023 18:23:41 +0530
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20230804115037.754994-3-d-gole@ti.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.0
+Subject: Re: [PATCH v2 2/5] dt-bindings: net: Add iep property in ICSSG dt
+ binding
+Content-Language: en-US
+To:     Roger Quadros <rogerq@kernel.org>,
+        MD Danish Anwar <danishanwar@ti.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Simon Horman <simon.horman@corigine.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Richard Cochran <richardcochran@gmail.com>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        "David S. Miller" <davem@davemloft.net>
+CC:     <nm@ti.com>, <srk@ti.com>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <20230807110048.2611456-1-danishanwar@ti.com>
+ <20230807110048.2611456-3-danishanwar@ti.com>
+ <e98f134a-a57a-3cbc-3cb1-378d6b411406@kernel.org>
+From:   Md Danish Anwar <a0501179@ti.com>
+Organization: Texas Instruments
+In-Reply-To: <e98f134a-a57a-3cbc-3cb1-378d6b411406@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 17:20-20230804, Dhruva Gole wrote:
-> From: Georgi Vlaev <g-vlaev@ti.com>
+On 08/08/23 4:12 pm, Roger Quadros wrote:
 > 
-[...]
+> 
+> On 07/08/2023 14:00, MD Danish Anwar wrote:
+>> Add iep node in ICSSG driver dt binding document.
+> 
+> s/iep/IEP here and in subject
+> s/dt/DT here and in subject
+> 
 
-> +	/*
-> +	 * fw_caps 1st bit is used to check Generic capability. Other than
-> +	 * that the 1:4 bits are used for various LPM capabilities.
-> +	 * The API is buggy on SYSFW 9.00 and below, on some devices.
-> +	 * Hence, to avoid any sort of bugs arising due to garbage values
-> +	 * Let's allow the fw_caps to be set to whatever the firmware
-> +	 * says only on devices listed under has_lpm. These devices should
-> +	 * have lpm features tested and implemented in the firmware
-> +	 * and only then should they be added to has_lpm struct.
-> +	 * Otherwise, set the value to 1 that is the default.
-> +	 */
-> +	if (fw_caps && soc_device_match(has_lpm))
-> +		*fw_caps = resp->fw_caps;
-> +	else
-> +		*fw_caps = resp->fw_caps & MSG_FLAG_CAPS_GENERIC;
+Sure Roger, will do this.
 
-Fix your firmware please. drop the has_lpm stuff.. that is what caps is
-for.
-
-As part of ti_sci_setup_ops you get info where you can check ABI version
-where this is valid and which is not, ti_sci_msg_cmd_query_fw_caps can
-be populated based on that check. That is the reason info is passed to
-setup_ops and why we have ABI IDs in the first place.
-
-[...]
+>>
+>> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml | 7 +++++++
+>>  1 file changed, 7 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml b/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
+>> index 8ec30b3eb760..36870238f92f 100644
+>> --- a/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
+>> +++ b/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
+>> @@ -52,6 +52,12 @@ properties:
+>>      description:
+>>        phandle to MII_RT module's syscon regmap
+>>  
+>> +  ti,iep:
+>> +    $ref: /schemas/types.yaml#/definitions/phandle-array
+>> +    maxItems: 2
+>> +    description:
+>> +      phandle to IEP (Industrial Ethernet Peripheral) for ICSSG driver
+>> +
+>>    interrupts:
+>>      maxItems: 2
+>>      description:
+>> @@ -155,6 +161,7 @@ examples:
+>>                      "tx1-0", "tx1-1", "tx1-2", "tx1-3",
+>>                      "rx0", "rx1";
+>>          ti,mii-g-rt = <&icssg2_mii_g_rt>;
+>> +        ti,iep = <&icssg2_iep0>, <&icssg2_iep1>;
+>>          interrupt-parent = <&icssg2_intc>;
+>>          interrupts = <24 0 2>, <25 1 3>;
+>>          interrupt-names = "tx_ts0", "tx_ts1";
+> 
 
 -- 
-Regards,
-Nishanth Menon
-Key (0xDDB5849D1736249D) / Fingerprint: F8A2 8693 54EB 8232 17A3  1A34 DDB5 849D 1736 249D
+Thanks and Regards,
+Danish.
