@@ -2,127 +2,104 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B027C001DE
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 16:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C25A0C001DE
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 16:25:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230438AbjHHQYn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 12:24:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43790 "EHLO
+        id S232517AbjHHQZa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 12:25:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230450AbjHHQXG (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 12:23:06 -0400
-Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70304A5C5;
-        Tue,  8 Aug 2023 08:49:37 -0700 (PDT)
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378Crmb0079989;
-        Tue, 8 Aug 2023 07:53:48 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691499228;
-        bh=Ro/GgzwhdHfAK9/N9xH4XxQOrPc8OUvp0lMlPy6GJjE=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=RMf18YGhmgutHSzou1ClazOLIcYe/spDSK0taQNXKHlJkL/tTii0icalPTBzOhTrC
-         UZB1CTiOL8P0RQ5NSonkKH0suDjJxpi2p1VweX9FomLmuB5dNQ4P/QkHQ6QJwCk/zW
-         vX+tJ3JhOM6HrjPdiVsAhXLoXvIdhaUVXbFJQd3o=
-Received: from DLEE107.ent.ti.com (dlee107.ent.ti.com [157.170.170.37])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378Crm5o104927
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Aug 2023 07:53:48 -0500
-Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE107.ent.ti.com
- (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 8
- Aug 2023 07:53:47 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 8 Aug 2023 07:53:47 -0500
-Received: from [172.24.227.217] (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378CrfOT010693;
-        Tue, 8 Aug 2023 07:53:42 -0500
-Message-ID: <264084f5-9c26-c777-2c4c-01d166b24a85@ti.com>
-Date:   Tue, 8 Aug 2023 18:23:41 +0530
+        with ESMTP id S232530AbjHHQYK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 12:24:10 -0400
+Received: from mail-ed1-x52c.google.com (mail-ed1-x52c.google.com [IPv6:2a00:1450:4864:20::52c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5DACAD01
+        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 08:49:55 -0700 (PDT)
+Received: by mail-ed1-x52c.google.com with SMTP id 4fb4d7f45d1cf-51cff235226so12327429a12.0
+        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 08:49:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1691509784; x=1692114584;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=qejuevXVg8c+kej4ztr9ux7GUIQQ5z+UOyvSNuEDXRw=;
+        b=l995gZ6iJunNHcHB2KJ36Yb/aSODX7hpyJo/rVrWMrL7hNAWyJfiDq5Yyw1mr0GVx8
+         FYk4CMdfziNELLsw0JUxcsrCuGvAEg36X+DR03/7+Fw5z79Y+YqvBJDTbpvUHqw7iaHP
+         +7SdGXNZ4mry6J8nak5nZCzePW4NvdTnKi4952xIjBC2BfiX5a5UGQ5Len+lV/wXfb9n
+         1BVXSWkIIhzo46s2xQhRH8/c9WTRL4CR2kOksaG9VOMpP7tAsglwXDGgBcwSacChOlPu
+         7UJGRCBLwboFa/NZGwHAeLXvJ2Dtnj6h1M6FCs5URfq3hE3d6acYcp6+De2UgyXueD9U
+         pzEw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691509784; x=1692114584;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=qejuevXVg8c+kej4ztr9ux7GUIQQ5z+UOyvSNuEDXRw=;
+        b=Qwsln/bS3DQmOFQHMFYAvFYen5h3n5kGCNYuRPi1Vf/qJw8vzT8YgehQmjgS80GEzq
+         sdkBEnz8Ch6FtrCECr3M+4UnyJAmCJIcUV0peRiiGgLe9ORO5gOAT1yYPNKHZPiLvsNB
+         fYRyBSZdiq+Rk7NFc5x6lIqyFNY8X3IzQQgL/e07pAcRGLdKygUiBXeVKauXyXc45Vu0
+         C4DEZy4BJPQwR9dDWKSTLfyaMssBaSdZwLVaO7kNP5EWZ5STb3NI1qK6r41gDeuqq8Bn
+         tETBEWz2/seiYteTqGKSHRtD5HX1PUgVBxAfXyKZnvxEIn5v4Apzr3tnXclHttkrJmm+
+         xUCQ==
+X-Gm-Message-State: AOJu0Yyx/TTGs996X5INnIpPzgWQPqAb1BtpnARwHJN9+jS9U3JJWrZj
+        i61L+qUHk8FHzCx7F2XLrwCZF67wNvvoqj0y62g=
+X-Google-Smtp-Source: AGHT+IFQaReEoylTuoBa3pq7fPTiDA0ZX2U+hTy0EvkesIRlzxiuW1TvGZ9HVbCDFIPha62GXZlwgw==
+X-Received: by 2002:a2e:9c89:0:b0:2b6:b7c3:bb89 with SMTP id x9-20020a2e9c89000000b002b6b7c3bb89mr3403498lji.18.1691502411764;
+        Tue, 08 Aug 2023 06:46:51 -0700 (PDT)
+Received: from [127.0.1.1] ([85.235.12.238])
+        by smtp.gmail.com with ESMTPSA id u23-20020a2e8557000000b002b93d66b82asm2284493ljj.112.2023.08.08.06.46.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 08 Aug 2023 06:46:51 -0700 (PDT)
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Tue, 08 Aug 2023 15:46:38 +0200
+Subject: [PATCH 11/11] regulator: bd71815: Drop useless header
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [PATCH v2 2/5] dt-bindings: net: Add iep property in ICSSG dt
- binding
-Content-Language: en-US
-To:     Roger Quadros <rogerq@kernel.org>,
-        MD Danish Anwar <danishanwar@ti.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Simon Horman <simon.horman@corigine.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Richard Cochran <richardcochran@gmail.com>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        "David S. Miller" <davem@davemloft.net>
-CC:     <nm@ti.com>, <srk@ti.com>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-References: <20230807110048.2611456-1-danishanwar@ti.com>
- <20230807110048.2611456-3-danishanwar@ti.com>
- <e98f134a-a57a-3cbc-3cb1-378d6b411406@kernel.org>
-From:   Md Danish Anwar <a0501179@ti.com>
-Organization: Texas Instruments
-In-Reply-To: <e98f134a-a57a-3cbc-3cb1-378d6b411406@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Message-Id: <20230808-descriptors-regulator-v1-11-939b5e84dd18@linaro.org>
+References: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
+In-Reply-To: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
+To:     Tony Lindgren <tony@atomide.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Matti Vaittinen <mazziesaccount@gmail.com>
+Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org,
+        Linus Walleij <linus.walleij@linaro.org>
+X-Mailer: b4 0.12.3
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 08/08/23 4:12 pm, Roger Quadros wrote:
-> 
-> 
-> On 07/08/2023 14:00, MD Danish Anwar wrote:
->> Add iep node in ICSSG driver dt binding document.
-> 
-> s/iep/IEP here and in subject
-> s/dt/DT here and in subject
-> 
+The bd71815 regulator driver includes the legacy header
+<linux/gpio.h> for no reason, it is already using the proper
+<linux/gpio/consumer.h> include. Drop the include.
 
-Sure Roger, will do this.
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/regulator/bd71815-regulator.c | 1 -
+ 1 file changed, 1 deletion(-)
 
->>
->> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
->> ---
->>  Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml | 7 +++++++
->>  1 file changed, 7 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml b/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
->> index 8ec30b3eb760..36870238f92f 100644
->> --- a/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
->> +++ b/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
->> @@ -52,6 +52,12 @@ properties:
->>      description:
->>        phandle to MII_RT module's syscon regmap
->>  
->> +  ti,iep:
->> +    $ref: /schemas/types.yaml#/definitions/phandle-array
->> +    maxItems: 2
->> +    description:
->> +      phandle to IEP (Industrial Ethernet Peripheral) for ICSSG driver
->> +
->>    interrupts:
->>      maxItems: 2
->>      description:
->> @@ -155,6 +161,7 @@ examples:
->>                      "tx1-0", "tx1-1", "tx1-2", "tx1-3",
->>                      "rx0", "rx1";
->>          ti,mii-g-rt = <&icssg2_mii_g_rt>;
->> +        ti,iep = <&icssg2_iep0>, <&icssg2_iep1>;
->>          interrupt-parent = <&icssg2_intc>;
->>          interrupts = <24 0 2>, <25 1 3>;
->>          interrupt-names = "tx_ts0", "tx_ts1";
-> 
+diff --git a/drivers/regulator/bd71815-regulator.c b/drivers/regulator/bd71815-regulator.c
+index 475b1e0110e7..26192d55a685 100644
+--- a/drivers/regulator/bd71815-regulator.c
++++ b/drivers/regulator/bd71815-regulator.c
+@@ -18,7 +18,6 @@
+ #include <linux/regulator/driver.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+-#include <linux/gpio.h>
+ #include <linux/mfd/rohm-generic.h>
+ #include <linux/mfd/rohm-bd71815.h>
+ #include <linux/regulator/of_regulator.h>
 
 -- 
-Thanks and Regards,
-Danish.
+2.34.1
+
