@@ -2,104 +2,137 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0C8AC04A6A
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 19:20:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 553F8C04FDF
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 19:22:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235086AbjHHTUF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 15:20:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53328 "EHLO
+        id S235854AbjHHTWf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 15:22:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236082AbjHHTTx (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 15:19:53 -0400
-Received: from mail-wm1-x331.google.com (mail-wm1-x331.google.com [IPv6:2a00:1450:4864:20::331])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B39A140134
-        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 09:43:04 -0700 (PDT)
-Received: by mail-wm1-x331.google.com with SMTP id 5b1f17b1804b1-3fbea14700bso50289795e9.3
-        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 09:43:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1691512981; x=1692117781;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=F0cDrJs50zXCjDACInHgYpsbmw7IC3CDn78nE0wDJEU=;
-        b=MoVU4ohKFIcnCW31aA/hEkV5NoHjrGz+pFsHTFr+eTPTYDx/59PL2D1Px+HlBTVpwn
-         69ZQQ+qsY7Sp4Hl2vy9qMLP8b/hm6KC0dJ2pI7Pfd2VUkANIGVlwSdDP3vRo6cecy+uy
-         Rlau3lrshQmkTSswPpYgk+SBN42MbsCxkXOcKKnPauYPa42A7en2+G1CGVxpODnpQmB1
-         weuztNSzjfzCBX01vR8whmd/qIioV/cZPKN3Y8dSBwJSfswWtJNcWY94pmmXfxHj2/0A
-         j4HUlSIc8107Mf0zB1NS/m2McbSxojRnPwxVE22zBXWh7syCmRF+PE+IaBWMSfPwlOck
-         40xA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691512981; x=1692117781;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=F0cDrJs50zXCjDACInHgYpsbmw7IC3CDn78nE0wDJEU=;
-        b=WjYTj2oggLamsme78zAKzQYIhRkXFzKXeDpuMIhgtzO2EoXqyzN2bamWXv5cT7lBj5
-         RK46O8j81qzi0bCBzaV96tgqqNJ+MrSaiOFWCcSXBL8EFVInS1MGjjhPoNCr3z4tBTih
-         TDrWpFLZd87aNNYwEKySThOmQzZC2iXs9MKEq5xO80qYCp33mI8OIbwRT1CHPtvdFuRW
-         lhORqAXEQtNb65benG8SXgMGeYRHh1r99VAdQcd2TXPNa5T7ivv1Evq9xTe9hWdiwEnK
-         Mt5NTCiXxNQJfjuO3oa9yttlJSK9DZLVzQddzgsbKy3laEqKZ5D2EHDNVyuoYCtsPEA8
-         9ktg==
-X-Gm-Message-State: AOJu0Yw79qfWdSUKvtSa7AmXi9WsFW9gOHyZ5+SxbPHa/XbrrR4Ue1X5
-        N/zC9xkA9YO/UEffhEVc46D4230ZknYs1cu0bn4=
-X-Google-Smtp-Source: AGHT+IHyCb1MAZ9guoP9QuCWqFrH2Mfihs7/gMTBRCoMInNTntAhiMDP4HfHYPGkmdal7HBOrio1hg==
-X-Received: by 2002:a2e:b708:0:b0:2b9:d074:1871 with SMTP id j8-20020a2eb708000000b002b9d0741871mr8655874ljo.45.1691502408584;
-        Tue, 08 Aug 2023 06:46:48 -0700 (PDT)
-Received: from [127.0.1.1] ([85.235.12.238])
-        by smtp.gmail.com with ESMTPSA id u23-20020a2e8557000000b002b93d66b82asm2284493ljj.112.2023.08.08.06.46.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Aug 2023 06:46:47 -0700 (PDT)
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Tue, 08 Aug 2023 15:46:35 +0200
-Subject: [PATCH 08/11] regulator: max20086: Drop useless header
+        with ESMTP id S236184AbjHHTWA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 15:22:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EA1310E9C8;
+        Tue,  8 Aug 2023 09:45:43 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5E096624A6;
+        Tue,  8 Aug 2023 10:48:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3F57C433C8;
+        Tue,  8 Aug 2023 10:48:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1691491687;
+        bh=g4Al6u/oxW9sOdVO40WZiYWYztfE/tWlGU1STUdbHRs=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=rsIaGXcA79+KRvi55vDwZcaycKr5Mc/tVkLjU9fnNOY0UZLyw4vPkks1ugyvNMdZv
+         srirx/T+v64qvDgrub2wSDxGiS/PYNi3uuTSQoz89p7MJQy3+2poNJRzUWKNVWRLpg
+         wQP0U7Mdof49bv8EQ0mxaWPbO00xd64PzEDXDyLSCKUw1N6Kwpdr+2B21tHFn1aTwp
+         E2oma7Au+eu76VP9dHf8q2a11dhwdmCzggYmbElo7c2WGOjSEHsYn3sM6kZdXQeANH
+         EvYNDPEwf6tVZEpntFzO6jB/RyIpiIdleHwr0hQTx3SD77GNmeoiHOgVaKiRK8405H
+         RaOFRZFBn8QcQ==
+Date:   Tue, 8 Aug 2023 11:48:02 +0100
+From:   Conor Dooley <conor@kernel.org>
+To:     Md Danish Anwar <a0501179@ti.com>
+Cc:     MD Danish Anwar <danishanwar@ti.com>, Suman Anna <s-anna@ti.com>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mathieu Poirier <mathieu.poirier@linaro.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, vigneshr@ti.com, srk@ti.com,
+        nm@ti.com
+Subject: Re: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property
+Message-ID: <20230808-unwomanly-generic-67d20f0e51cd@spud>
+References: <20230807110836.2612730-1-danishanwar@ti.com>
+ <20230807-euphemism-trailing-ef4130dc7437@spud>
+ <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230808-descriptors-regulator-v1-8-939b5e84dd18@linaro.org>
-References: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
-In-Reply-To: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
-To:     Tony Lindgren <tony@atomide.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Matti Vaittinen <mazziesaccount@gmail.com>
-Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org,
-        Linus Walleij <linus.walleij@linaro.org>
-X-Mailer: b4 0.12.3
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="RzfM45YTf9+4RvqO"
+Content-Disposition: inline
+In-Reply-To: <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The max20086 regulator driver includes the legacy header
-<linux/gpio.h> for no reason, it is already using the proper
-<linux/gpio/consumer.h> include. Drop the include.
 
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
- drivers/regulator/max20086-regulator.c | 1 -
- 1 file changed, 1 deletion(-)
+--RzfM45YTf9+4RvqO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/regulator/max20086-regulator.c b/drivers/regulator/max20086-regulator.c
-index fad31f5f435e..32f47b896fd1 100644
---- a/drivers/regulator/max20086-regulator.c
-+++ b/drivers/regulator/max20086-regulator.c
-@@ -6,7 +6,6 @@
- // Copyright (C) 2018 Avnet, Inc.
- 
- #include <linux/err.h>
--#include <linux/gpio.h>
- #include <linux/gpio/consumer.h>
- #include <linux/i2c.h>
- #include <linux/module.h>
+On Tue, Aug 08, 2023 at 03:14:31PM +0530, Md Danish Anwar wrote:
+> Hi Conor,
+>=20
+> On 07/08/23 8:09 pm, Conor Dooley wrote:
+> > On Mon, Aug 07, 2023 at 04:38:36PM +0530, MD Danish Anwar wrote:
+> >> Add interrupts and interrupt-names protperties for PRU and RTU cores.
+> >>
+> >> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
+> >> ---
+> >>  .../bindings/remoteproc/ti,pru-rproc.yaml     | 22 +++++++++++++++++++
+> >>  1 file changed, 22 insertions(+)
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc=
+=2Eyaml b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
+> >> index cd55d80137f7..6970316943bb 100644
+> >> --- a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
+> >> +++ b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
+> >> @@ -66,6 +66,16 @@ properties:
+> >>        Should contain the name of the default firmware image
+> >>        file located on the firmware search path.
+> >> =20
+> >> +  interrupts:
+> >> +    maxItems: 1
+> >> +    description:
+> >> +      Interrupt specifiers enable the virtio/rpmsg communication betw=
+een MPU
+> >> +      and the PRU/RTU cores.
+> >> +
+> >> +  interrupt-names:
+> >> +    items:
+> >> +      - const: vring
+> >> +
+> >>  if:
+> >>    properties:
+> >>      compatible:
+> >> @@ -171,6 +181,9 @@ examples:
+> >>                <0x22400 0x100>;
+> >>          reg-names =3D "iram", "control", "debug";
+> >>          firmware-name =3D "am65x-pru0_0-fw";
+> >> +        interrupt-parent =3D <&icssg0_intc>;
+> >> +        interrupts =3D <16 2 2>;
+> >> +        interrupt-names =3D "vring";
+> >>        };
+> >=20
+> > These examples would probably be more helpful if they used the
+> > appropriate defines, no?
+> >=20
+>=20
+> PRUSS Interrupt controller doesn't have any appropriate defines. This doe=
+sn't
+> use GIC so defines from arm-gic.h can not be used here. These are specifi=
+c to
+> PRUSS INTC.
 
--- 
-2.34.1
+I was deliberately vague in case the gic stuff applied too, but my main
+question was about the standard defines used for interrupt types.
 
+> I think these example are OK. Please let me know if this is OK to you.
+
+--RzfM45YTf9+4RvqO
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCZNIdYgAKCRB4tDGHoIJi
+0sfFAQDUGTaUH2VxL1ST+sf18hKE5yCqpFEUkOJu+bgGPLkmuQD/XAUCs4HrdF2v
+1lu3PdJ0QSaQoDb36Qrpa6k3hHGvUQg=
+=l++a
+-----END PGP SIGNATURE-----
+
+--RzfM45YTf9+4RvqO--
