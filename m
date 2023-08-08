@@ -2,139 +2,94 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D3AFC04A6A
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 19:42:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EE48C04A6A
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 19:52:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231521AbjHHTmb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 15:42:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45036 "EHLO
+        id S230464AbjHHTwq (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 15:52:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236765AbjHHTmK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 15:42:10 -0400
-Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A92C32AA6;
-        Tue,  8 Aug 2023 12:12:24 -0700 (PDT)
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378B0dhD122283;
-        Tue, 8 Aug 2023 06:00:39 -0500
+        with ESMTP id S233314AbjHHTvm (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 15:51:42 -0400
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C17949C3;
+        Tue,  8 Aug 2023 09:58:11 -0700 (PDT)
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378AOl3h042018;
+        Tue, 8 Aug 2023 05:24:47 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691492439;
-        bh=npvcQIk61iVMP4E04sdL7772lgYee0B0l8JQa9TMkAg=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=MEVYmDqvMP2ZABP2XQ7v6sJfRc3cFb4cd5F0KbyRB2tKHz4nsX2kt0ZF3/Xa9NHnR
-         k1iXT4+TyEW8Dl8fOr7Yg6+tBR1F1JWdXw8/Cc6lYqB4wNU+dE6O5CwUen/SzmruGx
-         rNiOG0q2hvBQCBvOjO4/WQ3as+M0xbT/leXoVHAQ=
-Received: from DFLE106.ent.ti.com (dfle106.ent.ti.com [10.64.6.27])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378B0d1v027222
+        s=ti-com-17Q1; t=1691490287;
+        bh=On/A6IE/yzAzBME7Kc1ZCU6P273S61ERfKqfgq7acKU=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=UagzfyMHXtD+PK8e8jJe5TnN6UcbyJabyejrF33ShOdKWFOJki8urKhrf5oI+Clz3
+         NdKKvDivpSu+BiPzKEmzPL44LjZn0P37WF943ljFYnVcCvxYSCY1tMjw1HU9ZuGZxp
+         lROUGTfioc3bnnOEx64HfriPwobqTY9i1ppqfXgs=
+Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
+        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378AOlrj024779
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Aug 2023 06:00:39 -0500
-Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE106.ent.ti.com
- (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 8 Aug 2023 05:24:47 -0500
+Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE105.ent.ti.com
+ (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 8
- Aug 2023 06:00:38 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DFLE100.ent.ti.com
- (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
+ Aug 2023 05:24:47 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE109.ent.ti.com
+ (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 8 Aug 2023 06:00:38 -0500
-Received: from [172.24.227.217] (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378B0XC9005497;
-        Tue, 8 Aug 2023 06:00:34 -0500
-Message-ID: <cd74e31f-8bc6-445b-9c33-51e53a439cd2@ti.com>
-Date:   Tue, 8 Aug 2023 16:30:32 +0530
+ Frontend Transport; Tue, 8 Aug 2023 05:24:47 -0500
+Received: from dhruva.dhcp.ti.com (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378AO6oB022340;
+        Tue, 8 Aug 2023 05:24:45 -0500
+From:   Dhruva Gole <d-gole@ti.com>
+To:     Tony Lindgren <tony@atomide.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Conor Dooley <conor+dt@kernel.org>
+CC:     <linux-gpio@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>, Dhruva Gole <d-gole@ti.com>
+Subject: [PATCH 1/2] dt-bindings: pinctrl: pinctrl-single: add ti,am654-padconf compatible
+Date:   Tue, 8 Aug 2023 15:52:07 +0530
+Message-ID: <20230808102207.130177-2-d-gole@ti.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230808102207.130177-1-d-gole@ti.com>
+References: <20230808102207.130177-1-d-gole@ti.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property
-Content-Language: en-US
-To:     Conor Dooley <conor@kernel.org>
-CC:     MD Danish Anwar <danishanwar@ti.com>, Suman Anna <s-anna@ti.com>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-remoteproc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>, <vigneshr@ti.com>,
-        <srk@ti.com>, <nm@ti.com>
-References: <20230807110836.2612730-1-danishanwar@ti.com>
- <20230807-euphemism-trailing-ef4130dc7437@spud>
- <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
- <20230808-unwomanly-generic-67d20f0e51cd@spud>
-From:   Md Danish Anwar <a0501179@ti.com>
-Organization: Texas Instruments
-In-Reply-To: <20230808-unwomanly-generic-67d20f0e51cd@spud>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 08/08/23 4:18 pm, Conor Dooley wrote:
-> On Tue, Aug 08, 2023 at 03:14:31PM +0530, Md Danish Anwar wrote:
->> Hi Conor,
->>
->> On 07/08/23 8:09 pm, Conor Dooley wrote:
->>> On Mon, Aug 07, 2023 at 04:38:36PM +0530, MD Danish Anwar wrote:
->>>> Add interrupts and interrupt-names protperties for PRU and RTU cores.
->>>>
->>>> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
->>>> ---
->>>>  .../bindings/remoteproc/ti,pru-rproc.yaml     | 22 +++++++++++++++++++
->>>>  1 file changed, 22 insertions(+)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
->>>> index cd55d80137f7..6970316943bb 100644
->>>> --- a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
->>>> +++ b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
->>>> @@ -66,6 +66,16 @@ properties:
->>>>        Should contain the name of the default firmware image
->>>>        file located on the firmware search path.
->>>>  
->>>> +  interrupts:
->>>> +    maxItems: 1
->>>> +    description:
->>>> +      Interrupt specifiers enable the virtio/rpmsg communication between MPU
->>>> +      and the PRU/RTU cores.
->>>> +
->>>> +  interrupt-names:
->>>> +    items:
->>>> +      - const: vring
->>>> +
->>>>  if:
->>>>    properties:
->>>>      compatible:
->>>> @@ -171,6 +181,9 @@ examples:
->>>>                <0x22400 0x100>;
->>>>          reg-names = "iram", "control", "debug";
->>>>          firmware-name = "am65x-pru0_0-fw";
->>>> +        interrupt-parent = <&icssg0_intc>;
->>>> +        interrupts = <16 2 2>;
->>>> +        interrupt-names = "vring";
->>>>        };
->>>
->>> These examples would probably be more helpful if they used the
->>> appropriate defines, no?
->>>
->>
->> PRUSS Interrupt controller doesn't have any appropriate defines. This doesn't
->> use GIC so defines from arm-gic.h can not be used here. These are specific to
->> PRUSS INTC.
-> 
-> I was deliberately vague in case the gic stuff applied too, but my main
-> question was about the standard defines used for interrupt types.
-> 
+Add the "ti,am654-padconf" compatible to support the new wakeup enable and
+status bits positions on K3 family SOCs that support the IO daisychain
+feature.
 
-There are no standard defines for these interrupt types. However I can create a
-new .h file defining all the three interrupt cells and their values for both
-PRU and RTU cores if you think that is required. Otherwise we can go with
-hardcoded values.
+Signed-off-by: Dhruva Gole <d-gole@ti.com>
+---
 
-Please let me know what you think should be done here.
+Previously, this was posted here:
+https://lore.kernel.org/all/20230804050737.635186-1-d-gole@ti.com/
 
->> I think these example are OK. Please let me know if this is OK to you.
+However since then I have tweaked the commit message and also the name
+of compatible. Hence didn't pickup the Acked-by: Conor and Tony's R-by:
+https://lore.kernel.org/all/20230807144323.GP14799@atomide.com/
 
+ Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+index b6b6bcd7074b..45a307d3ce16 100644
+--- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
++++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+@@ -24,6 +24,7 @@ properties:
+       - items:
+           - enum:
+               - ti,am437-padconf
++              - ti,am654-padconf
+               - ti,dra7-padconf
+               - ti,omap2420-padconf
+               - ti,omap2430-padconf
 -- 
-Thanks and Regards,
-Danish.
+2.34.1
+
