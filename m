@@ -2,104 +2,91 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2976C001B0
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 20:30:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C074C04A6A
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 20:32:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234016AbjHHUaP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:30:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38988 "EHLO
+        id S230033AbjHHUcZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 16:32:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37268 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232950AbjHHUaF (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 16:30:05 -0400
-Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFB328C26;
-        Tue,  8 Aug 2023 12:50:22 -0700 (PDT)
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3785DDhV041250;
-        Tue, 8 Aug 2023 00:13:13 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691471593;
-        bh=idXsfTNqRQLiOVJSZaBLKR1hyKNqp0FqZ6LHOlTsRFU=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=x5Lx0wuGxLoYfS2kVn8nJFBoMrYBFnF+W8FA0S33V7gUquIj6emIM7VEJAHlfTtnP
-         GIZdTQKgogzFUcUZNKpc+QarYVahqmMLpkgzuGIOKxtqlJu6ow7kJIh1ioeo4/fIM0
-         n1Zzw4/9Cine02vOo6O/NlsOKDDSpZepfPH0xmxU=
-Received: from DLEE102.ent.ti.com (dlee102.ent.ti.com [157.170.170.32])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3785DDXQ094842
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Aug 2023 00:13:13 -0500
-Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 8
- Aug 2023 00:13:12 -0500
-Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE111.ent.ti.com
- (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 8 Aug 2023 00:13:12 -0500
-Received: from [172.24.227.217] (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3785D5EM011348;
-        Tue, 8 Aug 2023 00:13:06 -0500
-Message-ID: <a0e2b828-36c9-326b-9247-863bb62b760f@ti.com>
-Date:   Tue, 8 Aug 2023 10:43:05 +0530
+        with ESMTP id S231134AbjHHUbo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 16:31:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 172064AA9A;
+        Tue,  8 Aug 2023 09:50:15 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9E1446259B;
+        Tue,  8 Aug 2023 14:22:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38757C433C8;
+        Tue,  8 Aug 2023 14:22:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1691504572;
+        bh=BoGZL15qINg92iX5GzpIYjPkRrdnPmg9jKUou+Jzouk=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=ta/lRXrtw7X135/22WFEcwjVzLrKE5yQB+5gr7xclahM8A9Lueh96MhshT1fVEA8b
+         bNRgDfCoOVe02L4toTo6oFg/cmFPOwr8V2T9MIUu7RoMDvOqdZ/0DjTDK42ClIXNQn
+         rrygqvHN9T4oZx0Kly93o9GAYfwITMRnQ+MS09+UlSg9/I7osHpOma/SgFUenCYOzC
+         A7IiZo+EdzWHW6AV8IVvppp98GQoI5WoIjnUi9E+VL/184Jwd40frtCo5eJtQOF3qs
+         1cU0Wk2ukrPW1rNLCjnf60SKUjUg6yiYlZa750yuW+PIEaI8vx4I6VlQrlfG3oZkln
+         BRCIdj0t21C3g==
+Date:   Tue, 8 Aug 2023 15:22:46 +0100
+From:   Mark Brown <broonie@kernel.org>
+To:     Linus Walleij <linus.walleij@linaro.org>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Matti Vaittinen <mazziesaccount@gmail.com>,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org
+Subject: Re: [PATCH 04/11] regulator: rk808: Drop useless headers
+Message-ID: <78af1ca5-12c9-4c12-a08d-6ce2df29ff60@sirena.org.uk>
+References: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
+ <20230808-descriptors-regulator-v1-4-939b5e84dd18@linaro.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [PATCH v2 5/5] net: ti: icssg-prueth: am65x SR2.0 add 10M full
- duplex support
-Content-Language: en-US
-To:     Andrew Lunn <andrew@lunn.ch>, MD Danish Anwar <danishanwar@ti.com>
-CC:     Randy Dunlap <rdunlap@infradead.org>,
-        Roger Quadros <rogerq@kernel.org>,
-        Simon Horman <simon.horman@corigine.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Richard Cochran <richardcochran@gmail.com>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        "David S. Miller" <davem@davemloft.net>, <nm@ti.com>, <srk@ti.com>,
-        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <netdev@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-References: <20230807110048.2611456-1-danishanwar@ti.com>
- <20230807110048.2611456-6-danishanwar@ti.com>
- <dd0e538a-9369-4682-8eda-753d7cb83fb1@lunn.ch>
-From:   Md Danish Anwar <a0501179@ti.com>
-Organization: Texas Instruments
-In-Reply-To: <dd0e538a-9369-4682-8eda-753d7cb83fb1@lunn.ch>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="02s0islE/xNt6q2j"
+Content-Disposition: inline
+In-Reply-To: <20230808-descriptors-regulator-v1-4-939b5e84dd18@linaro.org>
+X-Cookie: Beware of low-flying butterflies.
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 07/08/23 7:55 pm, Andrew Lunn wrote:
->> @@ -210,6 +210,9 @@ void icssg_config_ipg(struct prueth_emac *emac)
->>  	case SPEED_100:
->>  		icssg_mii_update_ipg(prueth->mii_rt, slice, MII_RT_TX_IPG_100M);
->>  		break;
->> +	case SPEED_10:
->> +		icssg_mii_update_ipg(prueth->mii_rt, slice, MII_RT_TX_IPG_100M);
->> +		break;
-> 
-> Since that looks like a typO, you might want to add a comment.
-> 
->       Adnrew
 
+--02s0islE/xNt6q2j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Sure, Andrew. I'll add the below comment in 'case SPEED_10' so that it doesn't
-seem like a typo.
+On Tue, Aug 08, 2023 at 03:46:31PM +0200, Linus Walleij wrote:
+> The RK808 is already using the proper <linux/gpio/consumer.h>
+> header and includes the legacy headers <linux/gpio.h> and
+> <linux/of_gpio.h> for no reason, drop the includes.
 
-	
-case SPEED_10:
-	/* IPG for 10M is same as 100M */
-	icssg_mii_update_ipg(prueth->mii_rt, slice, MII_RT_TX_IPG_100M);
-	break;
+This doesn't apply against current code, please check and resend.
 
+--02s0islE/xNt6q2j
+Content-Type: application/pgp-signature; name="signature.asc"
 
--- 
-Thanks and Regards,
-Danish.
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmTST7UACgkQJNaLcl1U
+h9BCWQf/f1t9dZeSv6IT+0vb+00EGsLxELQMnJFIxNYkecL+4eTfiotF+Xg5YzH/
+4dEUdEx4lsQOrH4mCYLm1ndKhwFLTCC1ElqJI4rmdvDeMePJXUCbndA/qz/pNOwc
+cpUUqlCBr5qhP35uksyfRyYkk9gclBGhbEQ4xva3IewZCq4UiL6FiW8zFw/MHbc5
+/LI9IdCzBPbgmI5cw3gf5D3u7dxkgz5BKKditUYJ5gE+3f9Jnk+g13cZY23idjzT
+wIWe+RH8yjoUdA8ahzLJtR47zZsNeas5mhLncA3jqFVD+XafqKzubgtqa9JNcWj2
+to9N+Oej2TNpi7y/5AuwJ6BCp+AzbQ==
+=1iIc
+-----END PGP SIGNATURE-----
+
+--02s0islE/xNt6q2j--
