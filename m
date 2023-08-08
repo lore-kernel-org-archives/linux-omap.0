@@ -2,47 +2,46 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0094C04A6A
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 17:01:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D95C04A6A
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 17:01:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233949AbjHHRBi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 13:01:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49674 "EHLO
+        id S234000AbjHHRBy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 13:01:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233709AbjHHRBA (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 13:01:00 -0400
+        with ESMTP id S232884AbjHHRBO (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 13:01:14 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0191D422A;
-        Tue,  8 Aug 2023 09:00:45 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 088F3869F;
+        Tue,  8 Aug 2023 09:00:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B34062526;
-        Tue,  8 Aug 2023 12:22:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAC44C433C8;
-        Tue,  8 Aug 2023 12:22:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 06CDF624B9;
+        Tue,  8 Aug 2023 11:14:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F348C433C8;
+        Tue,  8 Aug 2023 11:14:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691497376;
-        bh=dhLlrUwCQzvrRjQ5imxEgR6Ov8s1gSR9MYGmH4eHroU=;
+        s=k20201202; t=1691493253;
+        bh=sAm2uSemSdC7wo/jlRjYJ6TC3JrZAOV8ZIf3L52huEw=;
         h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=inb2pUnlNEEJgy4+g5toDu6y1uAJzpYq7fGl7Yj5xlru9xEmVuqqiIgunYaYHPZU+
-         mTXTJzGyG32X+d0k4NQAWhwxfMhLY4lxHSGNVN39C1cryrCRDtLExinq9sRWFreoU8
-         Z1fuCZaj5xrM3r+I1Rsr0kiR+PHPeFLJzGQMvnED75JEkphMueQJ2ZXogCRisv/bXU
-         BqtytwaE30LlME+Xoq4BDRh/wq/wydL5Y/MBr5khnGgZR9LjKxNr6xkNAgWcwTkb40
-         Fi6pxDrjA6iYVRzTgzuUdAQd7a6WHwNyuY9eobLIp1kI0QA38nvgyCCipraZrbqPNq
-         L34Q36eKS0Obg==
-Message-ID: <529218f6-2871-79a2-42bb-8f7886ae12c3@kernel.org>
-Date:   Tue, 8 Aug 2023 15:22:49 +0300
+        b=nD1Ge5TLwwUninYbo3LAr0Vwj7Jh+T8C+vA+AlwjT909+AnRdMBs5A9E14/i1xDmi
+         mkoQdDUr+CsBIKRIfuuwC7pAPoYSioeMVwRskQs5C9KTfV05UA1klPeC2/ruFXx+XK
+         JC13mY2VMGpVA2eqiAY9CBeyn3ogsoWVpTddmPrUukGffbW52RgbH5JvUamk2+82Ol
+         z2zUHPg/S4USpNKmU/oYiIDToCaStJ6pOYTYdkVvZcsnFxBV0BdHX/bZKjeyYRhC4v
+         CBchh0H89gKTASPRL7C6ZGBJPt6APzWNY0xBlZ9WIJWqPS+3jBsIxpPWpmaY4Y6E4v
+         AKeTNbvvGuw6A==
+Message-ID: <a333e70a-88ba-750d-34ce-6c8fa91e355b@kernel.org>
+Date:   Tue, 8 Aug 2023 14:14:06 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.14.0
-Subject: Re: [EXTERNAL] Re: [PATCH v2 0/5] Introduce IEP driver and packet
- timestamping support
+Subject: Re: [PATCH v2 5/5] net: ti: icssg-prueth: am65x SR2.0 add 10M full
+ duplex support
 Content-Language: en-US
-To:     Md Danish Anwar <a0501179@ti.com>, Conor Dooley <conor@kernel.org>,
-        MD Danish Anwar <danishanwar@ti.com>
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
+To:     MD Danish Anwar <danishanwar@ti.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
         Simon Horman <simon.horman@corigine.com>,
         Vignesh Raghavendra <vigneshr@ti.com>,
         Andrew Lunn <andrew@lunn.ch>,
@@ -53,15 +52,14 @@ Cc:     Randy Dunlap <rdunlap@infradead.org>,
         Paolo Abeni <pabeni@redhat.com>,
         Jakub Kicinski <kuba@kernel.org>,
         Eric Dumazet <edumazet@google.com>,
-        "David S. Miller" <davem@davemloft.net>, nm@ti.com, srk@ti.com,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        netdev@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
+        "David S. Miller" <davem@davemloft.net>
+Cc:     nm@ti.com, srk@ti.com, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, netdev@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 References: <20230807110048.2611456-1-danishanwar@ti.com>
- <20230808-unnerving-press-7b61f9c521dc@spud>
- <1c8e5369-648e-98cb-cb14-08d700a38283@ti.com>
+ <20230807110048.2611456-6-danishanwar@ti.com>
 From:   Roger Quadros <rogerq@kernel.org>
-In-Reply-To: <1c8e5369-648e-98cb-cb14-08d700a38283@ti.com>
+In-Reply-To: <20230807110048.2611456-6-danishanwar@ti.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
@@ -70,47 +68,162 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 
 
-On 08/08/2023 15:18, Md Danish Anwar wrote:
-> On 08/08/23 5:38 pm, Conor Dooley wrote:
->> On Mon, Aug 07, 2023 at 04:30:43PM +0530, MD Danish Anwar wrote:
->>> This series introduces Industrial Ethernet Peripheral (IEP) driver to
->>> support timestamping of ethernet packets and thus support PTP and PPS
->>> for PRU ICSSG ethernet ports.
->>>
->>> This series also adds 10M full duplex support for ICSSG ethernet driver.
->>>
->>> There are two IEP instances. IEP0 is used for packet timestamping while IEP1
->>> is used for 10M full duplex support.
->>>
->>> This is v2 of the series [v1]. It addresses comments made on [v1].
->>> This series is based on linux-next(#next-20230807). 
->>>
->>> Changes from v1 to v2:
->>> *) Addressed Simon's comment to fix reverse xmas tree declaration. Some APIs
->>>    in patch 3 and 4 were not following reverse xmas tree variable declaration.
->>>    Fixed it in this version.
->>> *) Addressed Conor's comments and removed unsupported SoCs from compatible
->>>    comment in patch 1. 
->>
->> I'm sorry I missed responding there before you sent v2, it was a bank
->> holiday yesterday. I'm curious why you removed them, rather than just
->> added them with a fallback to the ti,am654-icss-iep compatible, given
->> your comment that "the same compatible currently works for all these
->> 3 SoCs".
+On 07/08/2023 14:00, MD Danish Anwar wrote:
+> From: Grygorii Strashko <grygorii.strashko@ti.com>
 > 
-> I removed them as currently the driver is being upstreamed only for AM654x,
-> once I start up-streaming the ICSSG driver for AM64 and any other SoC. I will
-> add them here. If at that time we are still using same compatible, then I will
-> modify the comment otherwise add new compatible.
+> For AM65x SR2.0 it's required to enable IEP1 in raw 64bit mode which is
+> used by PRU FW to monitor the link and apply w/a for 10M link issue.
+> Note. No public errata available yet.
 > 
-> As of now, I don't see the need of adding other SoCs in iep binding as IEP
-> driver up-streaming is only planned for AM654x as of now.
+> Without this w/a the PRU FW will stuck if link state changes under TX
+> traffic pressure.
+> 
+> Hence, add support for 10M full duplex for AM65x SR2.0:
+>  - add new IEP API to enable IEP, but without PTP support
+>  - add pdata quirk_10m_link_issue to enable 10M link issue w/a.
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
+> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
+> ---
+>  drivers/net/ethernet/ti/icssg/icss_iep.c     | 26 ++++++++++++++++++++
+>  drivers/net/ethernet/ti/icssg/icss_iep.h     |  2 ++
+>  drivers/net/ethernet/ti/icssg/icssg_config.c |  6 +++++
+>  drivers/net/ethernet/ti/icssg/icssg_prueth.c | 17 +++++++++++--
+>  4 files changed, 49 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/icssg/icss_iep.c b/drivers/net/ethernet/ti/icssg/icss_iep.c
+> index 455c803dea36..527f17430f05 100644
+> --- a/drivers/net/ethernet/ti/icssg/icss_iep.c
+> +++ b/drivers/net/ethernet/ti/icssg/icss_iep.c
+> @@ -721,6 +721,32 @@ void icss_iep_put(struct icss_iep *iep)
+>  }
+>  EXPORT_SYMBOL_GPL(icss_iep_put);
+>  
+> +void icss_iep_init_fw(struct icss_iep *iep)
+> +{
+> +	/* start IEP for FW use in raw 64bit mode, no PTP support */
+> +	iep->clk_tick_time = iep->def_inc;
+> +	iep->cycle_time_ns = 0;
+> +	iep->ops = NULL;
+> +	iep->clockops_data = NULL;
+> +	icss_iep_set_default_inc(iep, iep->def_inc);
+> +	icss_iep_set_compensation_inc(iep, iep->def_inc);
+> +	icss_iep_set_compensation_count(iep, 0);
+> +	regmap_write(iep->map, ICSS_IEP_SYNC_PWIDTH_REG, iep->refclk_freq / 10); /* 100 ms pulse */
+> +	regmap_write(iep->map, ICSS_IEP_SYNC0_PERIOD_REG, 0);
+> +	if (iep->plat_data->flags & ICSS_IEP_SLOW_COMPEN_REG_SUPPORT)
+> +		icss_iep_set_slow_compensation_count(iep, 0);
+> +
+> +	icss_iep_enable(iep);
+> +	icss_iep_settime(iep, 0);
+> +}
+> +EXPORT_SYMBOL_GPL(icss_iep_init_fw);
+> +
+> +void icss_iep_exit_fw(struct icss_iep *iep)
+> +{
+> +	icss_iep_disable(iep);
+> +}
+> +EXPORT_SYMBOL_GPL(icss_iep_exit_fw);
+> +
+>  int icss_iep_init(struct icss_iep *iep, const struct icss_iep_clockops *clkops,
+>  		  void *clockops_data, u32 cycle_time_ns)
+>  {
+> diff --git a/drivers/net/ethernet/ti/icssg/icss_iep.h b/drivers/net/ethernet/ti/icssg/icss_iep.h
+> index 9c7f4d0a0916..803a4b714893 100644
+> --- a/drivers/net/ethernet/ti/icssg/icss_iep.h
+> +++ b/drivers/net/ethernet/ti/icssg/icss_iep.h
+> @@ -35,5 +35,7 @@ int icss_iep_exit(struct icss_iep *iep);
+>  int icss_iep_get_count_low(struct icss_iep *iep);
+>  int icss_iep_get_count_hi(struct icss_iep *iep);
+>  int icss_iep_get_ptp_clock_idx(struct icss_iep *iep);
+> +void icss_iep_init_fw(struct icss_iep *iep);
+> +void icss_iep_exit_fw(struct icss_iep *iep);
+>  
+>  #endif /* __NET_TI_ICSS_IEP_H */
+> diff --git a/drivers/net/ethernet/ti/icssg/icssg_config.c b/drivers/net/ethernet/ti/icssg/icssg_config.c
+> index ab648d3efe85..4c2b5d496670 100644
+> --- a/drivers/net/ethernet/ti/icssg/icssg_config.c
+> +++ b/drivers/net/ethernet/ti/icssg/icssg_config.c
+> @@ -210,6 +210,9 @@ void icssg_config_ipg(struct prueth_emac *emac)
+>  	case SPEED_100:
+>  		icssg_mii_update_ipg(prueth->mii_rt, slice, MII_RT_TX_IPG_100M);
+>  		break;
+> +	case SPEED_10:
+> +		icssg_mii_update_ipg(prueth->mii_rt, slice, MII_RT_TX_IPG_100M);
+> +		break;
+>  	default:
+>  		/* Other links speeds not supported */
+>  		netdev_err(emac->ndev, "Unsupported link speed\n");
+> @@ -440,6 +443,9 @@ void icssg_config_set_speed(struct prueth_emac *emac)
+>  	case SPEED_100:
+>  		fw_speed = FW_LINK_SPEED_100M;
+>  		break;
+> +	case SPEED_10:
+> +		fw_speed = FW_LINK_SPEED_10M;
+> +		break;
+>  	default:
+>  		/* Other links speeds not supported */
+>  		netdev_err(emac->ndev, "Unsupported link speed\n");
+> diff --git a/drivers/net/ethernet/ti/icssg/icssg_prueth.c b/drivers/net/ethernet/ti/icssg/icssg_prueth.c
+> index b82a718fd602..216918162960 100644
+> --- a/drivers/net/ethernet/ti/icssg/icssg_prueth.c
+> +++ b/drivers/net/ethernet/ti/icssg/icssg_prueth.c
+> @@ -1131,7 +1131,6 @@ static int emac_phy_connect(struct prueth_emac *emac)
+>  
+>  	/* remove unsupported modes */
+>  	phy_remove_link_mode(ndev->phydev, ETHTOOL_LINK_MODE_10baseT_Half_BIT);
+> -	phy_remove_link_mode(ndev->phydev, ETHTOOL_LINK_MODE_10baseT_Full_BIT);
+>  	phy_remove_link_mode(ndev->phydev, ETHTOOL_LINK_MODE_100baseT_Half_BIT);
+>  	phy_remove_link_mode(ndev->phydev, ETHTOOL_LINK_MODE_1000baseT_Half_BIT);
+>  	phy_remove_link_mode(ndev->phydev, ETHTOOL_LINK_MODE_Pause_BIT);
+> @@ -2081,13 +2080,20 @@ static int prueth_probe(struct platform_device *pdev)
+>  		goto free_pool;
+>  	}
+>  
+> +	if (prueth->pdata.quirk_10m_link_issue) {
+> +		/* Enable IEP1 for FW in 64bit mode as W/A for 10M FD link detect issue under TX
+> +		 * traffic.
+> +		 */
+> +		icss_iep_init_fw(prueth->iep1);
 
-But, is there any difference in IEP hardware/driver for the other SoCs?
-AFAIK the same IP is used on all SoCs.
+This is the only place where IEP1 is used.
+You should add all IEP1 related code in this patch.
 
-If there is no hardware/code change then we don't need to introduce a new compatible.
-The comment for all SoCs can already be there right from the start.
+> +	}
+> +
+>  	/* setup netdev interfaces */
+>  	if (eth0_node) {
+>  		ret = prueth_netdev_init(prueth, eth0_node);
+>  		if (ret) {
+>  			dev_err_probe(dev, ret, "netdev init %s failed\n",
+>  				      eth0_node->name);
+> -			goto netdev_exit;
+> +			goto exit_iep;
+>  		}
+>  		prueth->emac[PRUETH_MAC0]->iep = prueth->iep0;
+>  	}
+> @@ -2158,6 +2164,10 @@ static int prueth_probe(struct platform_device *pdev)
+>  		prueth_netdev_exit(prueth, eth_node);
+>  	}
+>  
+> +exit_iep:
+> +	if (prueth->pdata.quirk_10m_link_issue)
+> +		icss_iep_exit_fw(prueth->iep1);
+> +
+>  free_pool:
+>  	gen_pool_free(prueth->sram_pool,
+>  		      (unsigned long)prueth->msmcram.va, msmc_ram_size);
+> @@ -2203,6 +2213,9 @@ static void prueth_remove(struct platform_device *pdev)
+>  		prueth_netdev_exit(prueth, eth_node);
+>  	}
+>  
+> +	if (prueth->pdata.quirk_10m_link_issue)
+> +		icss_iep_exit_fw(prueth->iep1);
+> +
+>  	icss_iep_put(prueth->iep1);
+>  	icss_iep_put(prueth->iep0);
+>  
 
 -- 
 cheers,
