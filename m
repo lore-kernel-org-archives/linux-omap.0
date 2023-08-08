@@ -2,150 +2,111 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C900BC001DE
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 17:49:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70615C001B0
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 17:50:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235022AbjHHRts (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 13:49:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49032 "EHLO
+        id S234992AbjHHRuT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 13:50:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235033AbjHHRtN (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 13:49:13 -0400
+        with ESMTP id S232180AbjHHRtx (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 13:49:53 -0400
 Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7211C902F;
-        Tue,  8 Aug 2023 09:21:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2267A26E75;
+        Tue,  8 Aug 2023 09:22:09 -0700 (PDT)
 Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378CqvRG089729;
-        Tue, 8 Aug 2023 07:52:57 -0500
+        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378D1god092296;
+        Tue, 8 Aug 2023 08:01:42 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691499177;
-        bh=oAHyNjZ4qdC82k09nVl9fcw3dWGC9wMNtP2mYp5EnBg=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=x5loM3xAJZK3TdZ20gpQPf/jYzpWvShwUK+nxQQkjkwF3cZXx3TTHkTGMe+sKL0em
-         7DCRD3knWnpzokaCJWUsMUb36WE9s2mTAn7tGnYfwyTZtmJ/v9gpyXqImCoDYOlexw
-         uG2j6oEaq/4yvHIZQsW874lET6vHffvnFO5OU+dM=
-Received: from DFLE100.ent.ti.com (dfle100.ent.ti.com [10.64.6.21])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378Cqv1V084651
+        s=ti-com-17Q1; t=1691499702;
+        bh=R3zerq9nODVi0XA4kBDsD9dXj9JRrwEm+jQuwFr4OMU=;
+        h=From:To:CC:Subject:Date;
+        b=ol7xLBKPWOauOoiOAyflqQtRIH4WTX4CrPbhTZ4aRo4MDKLu/y/Q0jmkaQxTQd6F7
+         OJUAVZKXAPidQOKG+1Azkj+HJdBOQZ2PF11oDgINhgrh97b7/Y3/iNvWVvRPamfIkN
+         lmXCSPTraJEjlqrOzW5VHcxtSYHqEikyXdBz7zNw=
+Received: from DLEE112.ent.ti.com (dlee112.ent.ti.com [157.170.170.23])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378D1g6k089299
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 8 Aug 2023 07:52:57 -0500
-Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE100.ent.ti.com
- (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 8 Aug 2023 08:01:42 -0500
+Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 8
- Aug 2023 07:52:57 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE110.ent.ti.com
- (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
+ Aug 2023 08:01:41 -0500
+Received: from lelv0326.itg.ti.com (10.180.67.84) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 8 Aug 2023 07:52:57 -0500
-Received: from [172.24.227.217] (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378CqqbG121602;
-        Tue, 8 Aug 2023 07:52:53 -0500
-Message-ID: <27bdb861-64ff-b7ac-85cf-beaaaca2b704@ti.com>
-Date:   Tue, 8 Aug 2023 18:22:51 +0530
+ Frontend Transport; Tue, 8 Aug 2023 08:01:41 -0500
+Received: from lelv0854.itg.ti.com (lelv0854.itg.ti.com [10.181.64.140])
+        by lelv0326.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378D1fD8019028;
+        Tue, 8 Aug 2023 08:01:41 -0500
+Received: from localhost (uda0501179.dhcp.ti.com [172.24.227.217])
+        by lelv0854.itg.ti.com (8.14.7/8.14.7) with ESMTP id 378D1fDA012689;
+        Tue, 8 Aug 2023 08:01:41 -0500
+From:   MD Danish Anwar <danishanwar@ti.com>
+To:     <nm@ti.com>, <vigneshr@ti.com>
+CC:     Peng Fan <peng.fan@nxp.com>,
+        =?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <rafal@milecki.pl>,
+        =?UTF-8?q?N=C3=ADcolas=20F=2E=20R=2E=20A=2E=20Prado?= 
+        <nfraprado@collabora.com>,
+        Konrad Dybcio <konrad.dybcio@linaro.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Bjorn Andersson <quic_bjorande@quicinc.com>,
+        Will Deacon <will@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>, <srk@ti.com>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>, MD Danish Anwar <danishanwar@ti.com>,
+        Christian Gmeiner <christian.gmeiner@gmail.com>
+Subject: [PATCH v4] arm64: defconfig: Enable TI PRUSS
+Date:   Tue, 8 Aug 2023 18:31:31 +0530
+Message-ID: <20230808130131.3081482-1-danishanwar@ti.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property
-Content-Language: en-US
-To:     Conor Dooley <conor@kernel.org>
-CC:     MD Danish Anwar <danishanwar@ti.com>, Suman Anna <s-anna@ti.com>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-remoteproc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>, <vigneshr@ti.com>,
-        <srk@ti.com>, <nm@ti.com>
-References: <20230807110836.2612730-1-danishanwar@ti.com>
- <20230807-euphemism-trailing-ef4130dc7437@spud>
- <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
- <20230808-unwomanly-generic-67d20f0e51cd@spud>
- <cd74e31f-8bc6-445b-9c33-51e53a439cd2@ti.com>
- <20230808-bazooka-uncoated-a3401d94b063@spud>
-From:   Md Danish Anwar <a0501179@ti.com>
-Organization: Texas Instruments
-In-Reply-To: <20230808-bazooka-uncoated-a3401d94b063@spud>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 08/08/23 4:58 pm, Conor Dooley wrote:
-> On Tue, Aug 08, 2023 at 04:30:32PM +0530, Md Danish Anwar wrote:
->> On 08/08/23 4:18 pm, Conor Dooley wrote:
->>> On Tue, Aug 08, 2023 at 03:14:31PM +0530, Md Danish Anwar wrote:
->>>> On 07/08/23 8:09 pm, Conor Dooley wrote:
->>>>> On Mon, Aug 07, 2023 at 04:38:36PM +0530, MD Danish Anwar wrote:
->>>>>> Add interrupts and interrupt-names protperties for PRU and RTU cores.
->>>>>>
->>>>>> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
->>>>>> ---
->>>>>>  .../bindings/remoteproc/ti,pru-rproc.yaml     | 22 +++++++++++++++++++
->>>>>>  1 file changed, 22 insertions(+)
->>>>>>
->>>>>> diff --git a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
->>>>>> index cd55d80137f7..6970316943bb 100644
->>>>>> --- a/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
->>>>>> +++ b/Documentation/devicetree/bindings/remoteproc/ti,pru-rproc.yaml
->>>>>> @@ -66,6 +66,16 @@ properties:
->>>>>>        Should contain the name of the default firmware image
->>>>>>        file located on the firmware search path.
->>>>>>  
->>>>>> +  interrupts:
->>>>>> +    maxItems: 1
->>>>>> +    description:
->>>>>> +      Interrupt specifiers enable the virtio/rpmsg communication between MPU
->>>>>> +      and the PRU/RTU cores.
->>>>>> +
->>>>>> +  interrupt-names:
->>>>>> +    items:
->>>>>> +      - const: vring
->>>>>> +
->>>>>>  if:
->>>>>>    properties:
->>>>>>      compatible:
->>>>>> @@ -171,6 +181,9 @@ examples:
->>>>>>                <0x22400 0x100>;
->>>>>>          reg-names = "iram", "control", "debug";
->>>>>>          firmware-name = "am65x-pru0_0-fw";
->>>>>> +        interrupt-parent = <&icssg0_intc>;
->>>>>> +        interrupts = <16 2 2>;
->>>>>> +        interrupt-names = "vring";
->>>>>>        };
->>>>>
->>>>> These examples would probably be more helpful if they used the
->>>>> appropriate defines, no?
->>>>>
->>>>
->>>> PRUSS Interrupt controller doesn't have any appropriate defines. This doesn't
->>>> use GIC so defines from arm-gic.h can not be used here. These are specific to
->>>> PRUSS INTC.
->>>
->>> I was deliberately vague in case the gic stuff applied too, but my main
->>> question was about the standard defines used for interrupt types.
->>>
->>
->> There are no standard defines for these interrupt types. However I can create a
->> new .h file defining all the three interrupt cells and their values for both
->> PRU and RTU cores if you think that is required. Otherwise we can go with
->> hardcoded values.
->>
->> Please let me know what you think should be done here.
-> 
-> It'd be good to reference to the documentation for the cells, I don't
-> think adding a header is necessary here.
+The Programmable Realtime Unit - Industrial Communication Subsystem
+(PRU-ICSS) known as PRUSS, is a low-latency microcontroller subsystem
+used for industrial networking and other hard real-time functions in
+the TI K3 SoCs such as AM654x, AM64x.
 
-Sure. Then I would keep this as it is. the interrupt cell values will remain as
-it is. No change required here then. Please let me know if any other change is
-required in this patch.
+AM654x-EVM, AM64xx-EVM, and iot2050 use the PRUSS driver.
 
-> 
-> Thanks,
-> Conor.
+Reviewed-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
+---
+Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
 
+Changes from v3 to v4:
+*) Rebased on the latest next-20230808 linux-next.
+*) Modified commit-message to add details on PRUSS driver and the SoCs
+   supported. (address comments from v2 - Konard's and v3 - Nishanth's)
+
+v3: https://lore.kernel.org/all/20230807105919.2611138-1-danishanwar@ti.com/
+v2: https://lore.kernel.org/all/20230804061811.3999129-1-danishanwar@ti.com/
+v1: https://lore.kernel.org/all/20230419095051.3269777-1-danishanwar@ti.com/
+
+ arch/arm64/configs/defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index bf13d5c46578..0aecdf43a5d1 100644
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -1339,6 +1339,7 @@ CONFIG_ARCH_TEGRA_186_SOC=y
+ CONFIG_ARCH_TEGRA_194_SOC=y
+ CONFIG_ARCH_TEGRA_234_SOC=y
+ CONFIG_TI_SCI_PM_DOMAINS=y
++CONFIG_TI_PRUSS=m
+ CONFIG_ARM_IMX_BUS_DEVFREQ=y
+ CONFIG_ARM_IMX8M_DDRC_DEVFREQ=m
+ CONFIG_ARM_MEDIATEK_CCI_DEVFREQ=m
 -- 
-Thanks and Regards,
-Danish.
+2.34.1
+
