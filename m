@@ -2,106 +2,99 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C5ADC001DB
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 16:18:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68BAFC001DE
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 16:23:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232230AbjHHQRm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 12:17:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40754 "EHLO
+        id S229492AbjHHQWg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 12:22:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232256AbjHHQQJ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 12:16:09 -0400
-Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFA3830C6
-        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 08:48:09 -0700 (PDT)
-Received: by mail-lf1-x130.google.com with SMTP id 2adb3069b0e04-4fe0c566788so9088870e87.0
-        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 08:48:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1691509688; x=1692114488;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=UUWWJpKA/6zwXJWGtCMuvBG3TRDaWAJxATaidUtAgac=;
-        b=irw0Ka5Qdf3kSEy0MALqAovFfHj/Ms0Z8HD3sgK5u0MQwlmUZFQhiROwNTspFVw5w6
-         cuusOjKPFIgkexAPqrAWk5fFmrzlEPbnRl1Mh15AsaS0zMPyuSyMD0mkqBs2sBpN0BKj
-         SFkyGxJ0QXFgo++VUq0KML3n6bKQDxVsnFmLXTvG7GkI4GoKNgcR41uQREdjpdYk5+Rt
-         SQmEhUfwllza1hB+dnLz6hY7g6sIl5rjgjEsvRpZDXGC7WtX9oVO4LyEqY5nj/BH4b55
-         jiUYqTunJ495iT5dLC0/whCPCOWkCfYXcT0DxpooYSq7++UtGuT5pwPOW6641R5FIQEU
-         K4VA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691509688; x=1692114488;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=UUWWJpKA/6zwXJWGtCMuvBG3TRDaWAJxATaidUtAgac=;
-        b=WRE6y5tuEkpLv71+6vCxLYLcAj7M0oGrGDrTeV6VeIJA4c2mjzctCVTvD7svddyhFG
-         NiS7ARUNGwK3ZAvldP4XQHfhuY3qh+R7FYDaGgR0cbdJEGWn07+Y0qgCrWCC1nz6G746
-         SeAW6Mx34pN14a61976F+1VE9NWPwH3HxswSKkMoAIG6OlCGlDj/fM/I+TI8hP+yKVXN
-         z84DW01wYzcBjX11xrXZE3wLnvRKE8uWW2SWgthjoCtDEFWDfBdz1W8D7mTFl4nUmchR
-         QI82RLg8+BtwY0cf5g/4j2xH3ftv1Nxn/GYJPs8WyUawLPfErOseuKrLz5X0QujWjaHr
-         +cUg==
-X-Gm-Message-State: AOJu0YxcLQJNjwHxZJe17Npic6TLkh8b3MkTJKN0bcXhBOz2ofM1Pup9
-        BGDvVrvUGttSi4Erj4+lWyO+lZkxZQYR80dq0YQ=
-X-Google-Smtp-Source: AGHT+IESMg7JzrGFpGM30sigc77/m28bfDkUOPdPqGf70edI8KNzvVpGtPkhRGubKlKkdCSwOam6hg==
-X-Received: by 2002:adf:ef42:0:b0:314:54f0:df35 with SMTP id c2-20020adfef42000000b0031454f0df35mr8529088wrp.16.1691489895173;
-        Tue, 08 Aug 2023 03:18:15 -0700 (PDT)
-Received: from [192.168.1.20] ([178.197.222.113])
-        by smtp.gmail.com with ESMTPSA id k18-20020a5d5192000000b003143b7449ffsm13177574wrv.25.2023.08.08.03.18.13
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 08 Aug 2023 03:18:14 -0700 (PDT)
-Message-ID: <1ade44f5-b3d1-dcde-6819-9e944f3b115d@linaro.org>
-Date:   Tue, 8 Aug 2023 12:18:12 +0200
+        with ESMTP id S232507AbjHHQUb (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 12:20:31 -0400
+Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 557BB93D7;
+        Tue,  8 Aug 2023 08:49:05 -0700 (PDT)
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 378Dn4Sc092506;
+        Tue, 8 Aug 2023 08:49:04 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1691502544;
+        bh=/diXiEy5Rar3GP8DL1v0Kz97W27qEYMY8d8jEN9wuNI=;
+        h=Date:From:To:CC:Subject:References:In-Reply-To;
+        b=xQc13KDzs4rY/5Yh0KhwxXxbTGu21K+p5MPQfIpXeULdCoaHjZ3C7H+tWKqs+R0a/
+         mPYU2n776xTrRr9yuKjigGyTYSX2EeQK6t5eKP/GEMnTRBnX7fDvB3OHKaI15O1I7h
+         kAGsMc6e+6/GT6gmAtQpO08ULv0a/IqbxsVx8T3Y=
+Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 378Dn4Jp003971
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Tue, 8 Aug 2023 08:49:04 -0500
+Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE109.ent.ti.com
+ (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 8
+ Aug 2023 08:49:04 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE100.ent.ti.com
+ (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Tue, 8 Aug 2023 08:49:03 -0500
+Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 378Dn31e046024;
+        Tue, 8 Aug 2023 08:49:03 -0500
+Date:   Tue, 8 Aug 2023 08:49:03 -0500
+From:   Nishanth Menon <nm@ti.com>
+To:     Dhruva Gole <d-gole@ti.com>
+CC:     Tero Kristo <kristo@kernel.org>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        <linux-pm@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>,
+        "Kevin Hilman" <khilman@baylibre.com>, Vignesh R <vigneshr@ti.com>,
+        Georgi Vlaev <g-vlaev@ti.com>
+Subject: Re: [PATCH V7 2/4] firmware: ti_sci: Add support for querying the
+ firmware caps
+Message-ID: <20230808134903.vqrq7wxsgg5id4dj@crewmate>
+References: <20230804115037.754994-1-d-gole@ti.com>
+ <20230804115037.754994-3-d-gole@ti.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.14.0
-Subject: Re: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property
-Content-Language: en-US
-To:     Md Danish Anwar <a0501179@ti.com>, Conor Dooley <conor@kernel.org>,
-        MD Danish Anwar <danishanwar@ti.com>
-Cc:     Suman Anna <s-anna@ti.com>, Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, vigneshr@ti.com, srk@ti.com,
-        nm@ti.com
-References: <20230807110836.2612730-1-danishanwar@ti.com>
- <20230807-euphemism-trailing-ef4130dc7437@spud>
- <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20230804115037.754994-3-d-gole@ti.com>
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 08/08/2023 11:44, Md Danish Anwar wrote:
->>>    properties:
->>>      compatible:
->>> @@ -171,6 +181,9 @@ examples:
->>>                <0x22400 0x100>;
->>>          reg-names = "iram", "control", "debug";
->>>          firmware-name = "am65x-pru0_0-fw";
->>> +        interrupt-parent = <&icssg0_intc>;
->>> +        interrupts = <16 2 2>;
->>> +        interrupt-names = "vring";
->>>        };
->>
->> These examples would probably be more helpful if they used the
->> appropriate defines, no?
->>
+On 17:20-20230804, Dhruva Gole wrote:
+> From: Georgi Vlaev <g-vlaev@ti.com>
 > 
-> PRUSS Interrupt controller doesn't have any appropriate defines. This doesn't
-> use GIC so defines from arm-gic.h can not be used here. These are specific to
-> PRUSS INTC.
-> 
-> I think these example are OK. Please let me know if this is OK to you.
+[...]
 
-But isn't "2" type of the interrupt?
+> +	/*
+> +	 * fw_caps 1st bit is used to check Generic capability. Other than
+> +	 * that the 1:4 bits are used for various LPM capabilities.
+> +	 * The API is buggy on SYSFW 9.00 and below, on some devices.
+> +	 * Hence, to avoid any sort of bugs arising due to garbage values
+> +	 * Let's allow the fw_caps to be set to whatever the firmware
+> +	 * says only on devices listed under has_lpm. These devices should
+> +	 * have lpm features tested and implemented in the firmware
+> +	 * and only then should they be added to has_lpm struct.
+> +	 * Otherwise, set the value to 1 that is the default.
+> +	 */
+> +	if (fw_caps && soc_device_match(has_lpm))
+> +		*fw_caps = resp->fw_caps;
+> +	else
+> +		*fw_caps = resp->fw_caps & MSG_FLAG_CAPS_GENERIC;
 
-Best regards,
-Krzysztof
+Fix your firmware please. drop the has_lpm stuff.. that is what caps is
+for.
 
+As part of ti_sci_setup_ops you get info where you can check ABI version
+where this is valid and which is not, ti_sci_msg_cmd_query_fw_caps can
+be populated based on that check. That is the reason info is passed to
+setup_ops and why we have ABI IDs in the first place.
+
+[...]
+
+-- 
+Regards,
+Nishanth Menon
+Key (0xDDB5849D1736249D) / Fingerprint: F8A2 8693 54EB 8232 17A3  1A34 DDB5 849D 1736 249D
