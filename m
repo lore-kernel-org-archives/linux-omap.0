@@ -2,122 +2,116 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57952C001B0
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 17:00:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0094C04A6A
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 17:01:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233924AbjHHRAy (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 13:00:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37736 "EHLO
+        id S233949AbjHHRBi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 13:01:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232608AbjHHRAH (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 13:00:07 -0400
-Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21D7747E8
-        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 09:00:29 -0700 (PDT)
-Received: by mail-ej1-x630.google.com with SMTP id a640c23a62f3a-99357737980so849873866b.2
-        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 09:00:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1691510399; x=1692115199;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=q6MY1hiBmbwXLoucjEj2Xi2SFMUgMZzIdibN/5/2L+I=;
-        b=aFySu5tLzj5pfn9DmIh/A2nWaZDusHC78TY6Evs8ZgdaijhStYTfW5KRQ+0M3KIseH
-         EGKgh0PNPz/00RqL+AOExsw9wlFWq6FaAE6IbVQggeAF4NTYrijqBaypfPVhyYeORzDW
-         TqgoUWyVwv3P6qvXxorj3oy47phkX+1GxsoDLd5wzwvnvFNaIES1CYE+qCIn0seEOWgc
-         oEnkzyC7hTDj3JK+XqvjjDLK1BCKwwzm8qdFDk/jah1AQ+7FEvvlz656Lq25uyIRhI9N
-         OVEKU28k4QVXVKJFmH6A7xhsQdH8X++mFymdXH6A5n5Woehc7PjEnL5ZjS3VZiPXcJM6
-         JAfA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691510399; x=1692115199;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=q6MY1hiBmbwXLoucjEj2Xi2SFMUgMZzIdibN/5/2L+I=;
-        b=Kn8cA2WyEtkWyaaQTjLKEHw5M8sBo92bt6XcHEt7bvX3AFuVXOADOzp/CQf6wBvrsu
-         5fGRVSd9/tKmnbrCxsJmkTi7C0510dxfTIqLErxKzGcvSbiv7QJIiqmrRt5vwUiGhBIe
-         VxCGu5jMbdok2HqFv+QQYitod5aqGVFQgoWUIiNZP1K9XDMwCeZ1XKV8nCpqQxjM+RuG
-         XG621yT1PDO9TovI/Z7QogWyZJkkiSXI9l74lFsE2HLiLH7QH3bRkzbRzp8sXIcvo9PF
-         OmZXUCnhI9WhiPA6gRZvKZz3fUGa4e5LZDURsi3cE+/LvGTqpFquNZmPGMsJ+jIdfcAw
-         CcNw==
-X-Gm-Message-State: AOJu0YwP8AzJdaguyF7cEWpnYD7KTYNfBAiUJW6xmP7BLYdYTzKmujIp
-        tV2JBPvlhjgilx0ohah7Zn3DmqS4xq7VptKKUlk=
-X-Google-Smtp-Source: AGHT+IEFM3DwvG4gSvRW8WGApgoleljA2c2Cr/zQIjyrhjF0UV2hAUM2hKy+et7OFD1S77hBApF2qg==
-X-Received: by 2002:a17:906:54:b0:999:26d3:b815 with SMTP id 20-20020a170906005400b0099926d3b815mr13144104ejg.64.1691506434441;
-        Tue, 08 Aug 2023 07:53:54 -0700 (PDT)
-Received: from [192.168.1.20] ([178.197.222.113])
-        by smtp.gmail.com with ESMTPSA id rk22-20020a170907215600b00982a92a849asm6796311ejb.91.2023.08.08.07.53.52
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 08 Aug 2023 07:53:53 -0700 (PDT)
-Message-ID: <8e7cf088-e206-746d-0360-16479b1a33c3@linaro.org>
-Date:   Tue, 8 Aug 2023 16:53:51 +0200
+        with ESMTP id S233709AbjHHRBA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 13:01:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0191D422A;
+        Tue,  8 Aug 2023 09:00:45 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B34062526;
+        Tue,  8 Aug 2023 12:22:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAC44C433C8;
+        Tue,  8 Aug 2023 12:22:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1691497376;
+        bh=dhLlrUwCQzvrRjQ5imxEgR6Ov8s1gSR9MYGmH4eHroU=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=inb2pUnlNEEJgy4+g5toDu6y1uAJzpYq7fGl7Yj5xlru9xEmVuqqiIgunYaYHPZU+
+         mTXTJzGyG32X+d0k4NQAWhwxfMhLY4lxHSGNVN39C1cryrCRDtLExinq9sRWFreoU8
+         Z1fuCZaj5xrM3r+I1Rsr0kiR+PHPeFLJzGQMvnED75JEkphMueQJ2ZXogCRisv/bXU
+         BqtytwaE30LlME+Xoq4BDRh/wq/wydL5Y/MBr5khnGgZR9LjKxNr6xkNAgWcwTkb40
+         Fi6pxDrjA6iYVRzTgzuUdAQd7a6WHwNyuY9eobLIp1kI0QA38nvgyCCipraZrbqPNq
+         L34Q36eKS0Obg==
+Message-ID: <529218f6-2871-79a2-42bb-8f7886ae12c3@kernel.org>
+Date:   Tue, 8 Aug 2023 15:22:49 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.14.0
-Subject: Re: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property
+Subject: Re: [EXTERNAL] Re: [PATCH v2 0/5] Introduce IEP driver and packet
+ timestamping support
 Content-Language: en-US
 To:     Md Danish Anwar <a0501179@ti.com>, Conor Dooley <conor@kernel.org>,
         MD Danish Anwar <danishanwar@ti.com>
-Cc:     Suman Anna <s-anna@ti.com>, Conor Dooley <conor+dt@kernel.org>,
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        Simon Horman <simon.horman@corigine.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Richard Cochran <richardcochran@gmail.com>,
+        Conor Dooley <conor+dt@kernel.org>,
         Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
         Rob Herring <robh+dt@kernel.org>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Bjorn Andersson <andersson@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        "David S. Miller" <davem@davemloft.net>, nm@ti.com, srk@ti.com,
         linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, vigneshr@ti.com, srk@ti.com,
-        nm@ti.com
-References: <20230807110836.2612730-1-danishanwar@ti.com>
- <20230807-euphemism-trailing-ef4130dc7437@spud>
- <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
- <1ade44f5-b3d1-dcde-6819-9e944f3b115d@linaro.org>
- <5ca41ad1-4f42-f71a-4b5f-f2b6def42cb1@ti.com>
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <5ca41ad1-4f42-f71a-4b5f-f2b6def42cb1@ti.com>
+        netdev@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+References: <20230807110048.2611456-1-danishanwar@ti.com>
+ <20230808-unnerving-press-7b61f9c521dc@spud>
+ <1c8e5369-648e-98cb-cb14-08d700a38283@ti.com>
+From:   Roger Quadros <rogerq@kernel.org>
+In-Reply-To: <1c8e5369-648e-98cb-cb14-08d700a38283@ti.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 08/08/2023 12:57, Md Danish Anwar wrote:
-> On 08/08/23 3:48 pm, Krzysztof Kozlowski wrote:
->> On 08/08/2023 11:44, Md Danish Anwar wrote:
->>>>>    properties:
->>>>>      compatible:
->>>>> @@ -171,6 +181,9 @@ examples:
->>>>>                <0x22400 0x100>;
->>>>>          reg-names = "iram", "control", "debug";
->>>>>          firmware-name = "am65x-pru0_0-fw";
->>>>> +        interrupt-parent = <&icssg0_intc>;
->>>>> +        interrupts = <16 2 2>;
->>>>> +        interrupt-names = "vring";
->>>>>        };
->>>>
->>>> These examples would probably be more helpful if they used the
->>>> appropriate defines, no?
->>>>
+
+
+On 08/08/2023 15:18, Md Danish Anwar wrote:
+> On 08/08/23 5:38 pm, Conor Dooley wrote:
+>> On Mon, Aug 07, 2023 at 04:30:43PM +0530, MD Danish Anwar wrote:
+>>> This series introduces Industrial Ethernet Peripheral (IEP) driver to
+>>> support timestamping of ethernet packets and thus support PTP and PPS
+>>> for PRU ICSSG ethernet ports.
 >>>
->>> PRUSS Interrupt controller doesn't have any appropriate defines. This doesn't
->>> use GIC so defines from arm-gic.h can not be used here. These are specific to
->>> PRUSS INTC.
+>>> This series also adds 10M full duplex support for ICSSG ethernet driver.
 >>>
->>> I think these example are OK. Please let me know if this is OK to you.
+>>> There are two IEP instances. IEP0 is used for packet timestamping while IEP1
+>>> is used for 10M full duplex support.
+>>>
+>>> This is v2 of the series [v1]. It addresses comments made on [v1].
+>>> This series is based on linux-next(#next-20230807). 
+>>>
+>>> Changes from v1 to v2:
+>>> *) Addressed Simon's comment to fix reverse xmas tree declaration. Some APIs
+>>>    in patch 3 and 4 were not following reverse xmas tree variable declaration.
+>>>    Fixed it in this version.
+>>> *) Addressed Conor's comments and removed unsupported SoCs from compatible
+>>>    comment in patch 1. 
 >>
->> But isn't "2" type of the interrupt?
->>
->> Best regards,
->> Krzysztof
->>
+>> I'm sorry I missed responding there before you sent v2, it was a bank
+>> holiday yesterday. I'm curious why you removed them, rather than just
+>> added them with a fallback to the ti,am654-icss-iep compatible, given
+>> your comment that "the same compatible currently works for all these
+>> 3 SoCs".
 > 
-> As per the description of interrupts property in ti,pruss-intc.yaml [1]
+> I removed them as currently the driver is being upstreamed only for AM654x,
+> once I start up-streaming the ICSSG driver for AM64 and any other SoC. I will
+> add them here. If at that time we are still using same compatible, then I will
+> modify the comment otherwise add new compatible.
 > 
-> Cell 1 is PRU System event number, cell 2 is PRU channel and cell 3 is PRU
-> host_event (target). None of them is type of interrupt. So that's why they all
-> are hardcoded. I don't think we can use IRQ_TYPE macros here.
+> As of now, I don't see the need of adding other SoCs in iep binding as IEP
+> driver up-streaming is only planned for AM654x as of now.
 
-OK, thanks for clarifying this.
+But, is there any difference in IEP hardware/driver for the other SoCs?
+AFAIK the same IP is used on all SoCs.
 
-Best regards,
-Krzysztof
+If there is no hardware/code change then we don't need to introduce a new compatible.
+The comment for all SoCs can already be there right from the start.
 
+-- 
+cheers,
+-roger
