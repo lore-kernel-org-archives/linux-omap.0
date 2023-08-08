@@ -2,60 +2,60 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E60DDC001DB
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 15:44:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6C65C001DB
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 15:53:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230043AbjHHPoz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 11:44:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43432 "EHLO
+        id S230263AbjHHPxj (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 11:53:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230008AbjHHPn3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 11:43:29 -0400
-Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A7A9B4
-        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 08:36:26 -0700 (PDT)
-Received: by mail-wr1-x42e.google.com with SMTP id ffacd0b85a97d-317716a4622so4582161f8f.1
-        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 08:36:26 -0700 (PDT)
+        with ESMTP id S229728AbjHHPvz (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 11:51:55 -0400
+Received: from mail-lj1-x22f.google.com (mail-lj1-x22f.google.com [IPv6:2a00:1450:4864:20::22f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3059A5245
+        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 08:42:53 -0700 (PDT)
+Received: by mail-lj1-x22f.google.com with SMTP id 38308e7fff4ca-2b9e6cc93d8so93727371fa.0
+        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 08:42:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1691508983; x=1692113783;
+        d=linaro.org; s=google; t=1691509347; x=1692114147;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=NUr4rBKoQ5U9kNDxTC6J3Fd6dDx63tGiQB8aHXquZB0=;
-        b=PkGBvhndmfvUvYJYEGmfZ4l04y1JgAg5iB4vCCBh1VBFxWinGkNh2KVxnm9xtM3BBw
-         Kaows2b0Qt+lQbhsjYsP4nmReDBYnazRWwb3/6UNmgisTCkyIB/+bfoDu7uLxWe9EWd6
-         tY7tsBlHlT4DgiA8Cft7ZSJDQ2+e3uZsov73fEMT2ag9qvs0mG0RodkJI3nLxtjShAtK
-         CPFloh9EOeYhPWDZM+9gcE/gP5ET6dKXE5qgkbDGR9sPCUA3leVO+AK5GtWVSyXObfWO
-         3qWe06LVjrXoYRnHGwTso279CFq7CI9fwqapfy5+OnLms7KOITe3z/AV8vE/ruteAjZd
-         G5dg==
+        bh=mXrzYWYweDcdHrf5UFjLFPgu3A2nA2Ia2fp24TPU+2A=;
+        b=x7CyW3EJfbgD92/8gcRe+xdUuuN71wVQeAoNutNzZb8ro9vy5bztkc52Jh8guy8GU1
+         60lkYDzmxthscRr6uNpJ5H22sqpp9AHWNrYGhrpzpghzbwFZqW2JCPzzJGl5Di0vTAZV
+         ZTg2NK4c/rmpOmHdJoqoxdHMRBcADMHxrV1cbTMLcWyE9tQQ2oXCBGKrrplKB4+eJOuV
+         ok7XOME6WnenpYI3r0cGSK9kG/9GR6XxsaeIFNYbLUOuPVUgNiJha9HyS6CAM+wtOH0Z
+         Hzfy/aDKb1TFUY5orLuq0sZe/mLIUSceMmrIlY1M2OW2FGReqDOKYWi2AnYyamBRRCGz
+         HEaw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691508983; x=1692113783;
+        d=1e100.net; s=20221208; t=1691509347; x=1692114147;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=NUr4rBKoQ5U9kNDxTC6J3Fd6dDx63tGiQB8aHXquZB0=;
-        b=H7q/ShvYOkpsgR+XgKGegcBCuNiP89/z3jtBWPzKRXPMr6eov9iQFut4B2YU575huC
-         diDbt3aeEb0s3AdUiKNjEJyb4hy0zUso00JQOBtOC4jgSG9XKY7iis220e8XAV8pXpoO
-         LINCXwn5gyBRNhn9nzHhKrAxQKc1/AIx492fHaqRTMXMqxhtMUWST6xWW/3XlnNdBYIz
-         S4ux4u2O9GmObDl4IY9MnlPFSpYvDuRPLN9E1Y6pjvyeh3poCOpI4v7Nq7DyhsUnPOZC
-         Vwh8tEjtTbZgMEe0UC+o5MhvJIzpy/Jq57ig/Py6JrClj+XjyfTcO77JPJKr5EPO3a6n
-         AYEw==
-X-Gm-Message-State: AOJu0YwSCYzHJz3VZ4m0P7vmorIynYdyWvDif+oYZATa24UkpFFKQOvE
-        /sryanhDxv4hCJJbYivbqEWqpYpsUVZ7vVsS7ac=
-X-Google-Smtp-Source: AGHT+IGl6ac+w+vJLfJZuq8P35/Ynv+o1liAhoqzrNLA3A9/ISpnNwHIwbTBb6DgRgGMJoZAmBq78w==
-X-Received: by 2002:a2e:95cf:0:b0:2b6:a763:5d13 with SMTP id y15-20020a2e95cf000000b002b6a7635d13mr8927600ljh.27.1691502409667;
-        Tue, 08 Aug 2023 06:46:49 -0700 (PDT)
+        bh=mXrzYWYweDcdHrf5UFjLFPgu3A2nA2Ia2fp24TPU+2A=;
+        b=IeC7G9Yc9oqLF7vDF8/ISRacJfZ1LmRSZSsAaeLoXOu2IfBoY6xWqaGL+yI5Qikiw4
+         3CshcNFz9mZ9QJfe8APJQtsfENE+5O3lSjEkffRJQMDVWX5xFu1wC2WHTT2UD+Gku3aH
+         NYa1EXKb4mfdLLIh0vzysewHOwVKKpv5kVSih+KaOqEdsTBBX4OKOkvIstNX+dYEsXbg
+         bzc4Mpw5faZ/ZrI0/ZzZortve2S1TW8W3DrSNM61FzFQElaiyLL4m8xKo/aYMQ88qffH
+         uZYJdvMXFucIeVGgffoVnY3lZbjwafvCeU+WWsyGLotX1+6Gm5hUXtCR1X8DTyluz0vg
+         blMQ==
+X-Gm-Message-State: AOJu0YyRvuzD7bIOeImgOQkeFrIUQ3v0A1t788DktsqF6NpxuE2LDLYH
+        G1GnH0bCiPD9TMer3lzdZYImr2Jx3HI51u0aA+U=
+X-Google-Smtp-Source: AGHT+IEowhkuCmUF+r4Qwu7Ea/j6SLAKl0ohXdiWZmoM/iU49rY/8TQNDS4E142VCQ8PM8iR2Ecgeg==
+X-Received: by 2002:a2e:90c4:0:b0:2b9:615b:39a9 with SMTP id o4-20020a2e90c4000000b002b9615b39a9mr8639502ljg.52.1691502399150;
+        Tue, 08 Aug 2023 06:46:39 -0700 (PDT)
 Received: from [127.0.1.1] ([85.235.12.238])
-        by smtp.gmail.com with ESMTPSA id u23-20020a2e8557000000b002b93d66b82asm2284493ljj.112.2023.08.08.06.46.48
+        by smtp.gmail.com with ESMTPSA id u23-20020a2e8557000000b002b93d66b82asm2284493ljj.112.2023.08.08.06.46.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Aug 2023 06:46:49 -0700 (PDT)
+        Tue, 08 Aug 2023 06:46:38 -0700 (PDT)
 From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Tue, 08 Aug 2023 15:46:36 +0200
-Subject: [PATCH 09/11] regulator: lp8755: Drop useless header
+Date:   Tue, 08 Aug 2023 15:46:28 +0200
+Subject: [PATCH 01/11] regulator: tps65910: Drop useless header
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230808-descriptors-regulator-v1-9-939b5e84dd18@linaro.org>
+Message-Id: <20230808-descriptors-regulator-v1-1-939b5e84dd18@linaro.org>
 References: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
 In-Reply-To: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
 To:     Tony Lindgren <tony@atomide.com>,
@@ -78,26 +78,26 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The lp8755 includes the legacy header <linux/gpio.h> for no
+The TPS65910 includes the legacy header <linux/gpio.h> for no
 reason, drop the include.
 
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- drivers/regulator/lp8755.c | 1 -
+ drivers/regulator/tps65910-regulator.c | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/drivers/regulator/lp8755.c b/drivers/regulator/lp8755.c
-index 4bc310f972ed..8d01e18046f3 100644
---- a/drivers/regulator/lp8755.c
-+++ b/drivers/regulator/lp8755.c
-@@ -13,7 +13,6 @@
- #include <linux/err.h>
- #include <linux/irq.h>
- #include <linux/interrupt.h>
--#include <linux/gpio.h>
- #include <linux/regmap.h>
- #include <linux/uaccess.h>
+diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
+index 2a0965ba1570..3a3027e0b94e 100644
+--- a/drivers/regulator/tps65910-regulator.c
++++ b/drivers/regulator/tps65910-regulator.c
+@@ -17,7 +17,6 @@
  #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/slab.h>
+-#include <linux/gpio.h>
+ #include <linux/mfd/tps65910.h>
+ #include <linux/regulator/of_regulator.h>
+ 
 
 -- 
 2.34.1
