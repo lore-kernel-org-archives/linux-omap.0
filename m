@@ -2,103 +2,106 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E8D1C001DB
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 16:16:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C5ADC001DB
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 16:18:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232245AbjHHQQC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 12:16:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45170 "EHLO
+        id S232230AbjHHQRm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 12:17:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232258AbjHHQOY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 12:14:24 -0400
-Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04EA23C0A
-        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 08:40:48 -0700 (PDT)
-Received: by mail-ed1-x532.google.com with SMTP id 4fb4d7f45d1cf-51e28cac164so14373817a12.1
-        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 08:40:47 -0700 (PDT)
+        with ESMTP id S232256AbjHHQQJ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 12:16:09 -0400
+Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFA3830C6
+        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 08:48:09 -0700 (PDT)
+Received: by mail-lf1-x130.google.com with SMTP id 2adb3069b0e04-4fe0c566788so9088870e87.0
+        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 08:48:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1691509246; x=1692114046;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=bcDUBR/c5KhjxO4gQ1CxNRP1ojo3Pb8MjcUkheghccA=;
-        b=ccCxAht5HPtW7XEuCo0+4Dj7jEkeSiiFT01xP356t5o96jXKaMx/BghJHuvXDA1qCj
-         /ItgSbmtljLW5NgsrPiiyv29kiwN9sbPQx6hVugrDoqHgrR5cPl7tpOWugJrA+Y9XU5+
-         soiyyDcAEc+5mR/Jalcm6LHWtvAT13ctuoh4bB5Zj04lfNymM6VlNMVbiZxZTFFIMWXo
-         1Qtt8G3Np9i5VJ06Z6VRNc2m2+wT3LeR/p12d+BTTHmnJIakHqkEtYHfTqTCMioY6aRI
-         wXVBnMWYmjI7fedC6dewHTBEZJt5iiH3Dvu/udhyxWBl/gP7cNSOHkj3iAHNf1kyQaXC
-         qOAA==
+        d=linaro.org; s=google; t=1691509688; x=1692114488;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=UUWWJpKA/6zwXJWGtCMuvBG3TRDaWAJxATaidUtAgac=;
+        b=irw0Ka5Qdf3kSEy0MALqAovFfHj/Ms0Z8HD3sgK5u0MQwlmUZFQhiROwNTspFVw5w6
+         cuusOjKPFIgkexAPqrAWk5fFmrzlEPbnRl1Mh15AsaS0zMPyuSyMD0mkqBs2sBpN0BKj
+         SFkyGxJ0QXFgo++VUq0KML3n6bKQDxVsnFmLXTvG7GkI4GoKNgcR41uQREdjpdYk5+Rt
+         SQmEhUfwllza1hB+dnLz6hY7g6sIl5rjgjEsvRpZDXGC7WtX9oVO4LyEqY5nj/BH4b55
+         jiUYqTunJ495iT5dLC0/whCPCOWkCfYXcT0DxpooYSq7++UtGuT5pwPOW6641R5FIQEU
+         K4VA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691509246; x=1692114046;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=bcDUBR/c5KhjxO4gQ1CxNRP1ojo3Pb8MjcUkheghccA=;
-        b=Yhsbm/DJS3tnaqrO5dH4ymiPKiOLa0Ynrjfuciv1OSy5GCzHnyfb+SDC+8ecwsoipd
-         22wh3rU6gcmqzsObeGq7ma9G2PEl1sDF4EGOFUVCoINVcceTFx7R3LlGHA4e9Cv9S9dH
-         n8kSaX6tTFYOi7E/oYrYlNZ4VNucl/wySNz4HpW6gD4v0JnsCEidRpZI/kr1gF/GPmsN
-         rfS+N9teoXnVjZhFZEpMV/XlFtJF5IXB5dKiVVK+3mt+Xhv/W9gUd1/KD5ZYX+0+haSP
-         bpyFTbmKituJTVR/aA4yQE/T0xCwLzCNhu5dh5t+JMgyEhSfVAxPhNjMrGh/FrBHaLX0
-         cwqg==
-X-Gm-Message-State: AOJu0Yz9YRulH9S/xrZ9F3GGTuPnzoQxW0sTpxmRHRHYMhoA10ZTtRom
-        GhOniMpFUeRGwoEZ+oahrFZ8fGBFV0xcsBnLMbA=
-X-Google-Smtp-Source: AGHT+IFZRIPMWmSHgF0DTwYm5vWTgh/ZPFdc/lFtKvf3yaRIIaD/Q5hQaG6S670n+MjP6HDGCY+KnQ==
-X-Received: by 2002:a2e:9442:0:b0:2b6:d0c1:7cd0 with SMTP id o2-20020a2e9442000000b002b6d0c17cd0mr2966685ljh.22.1691502400352;
-        Tue, 08 Aug 2023 06:46:40 -0700 (PDT)
-Received: from [127.0.1.1] ([85.235.12.238])
-        by smtp.gmail.com with ESMTPSA id u23-20020a2e8557000000b002b93d66b82asm2284493ljj.112.2023.08.08.06.46.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Aug 2023 06:46:39 -0700 (PDT)
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Tue, 08 Aug 2023 15:46:29 +0200
-Subject: [PATCH 02/11] regulator: s2mpa01: Drop useless header
+        d=1e100.net; s=20221208; t=1691509688; x=1692114488;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=UUWWJpKA/6zwXJWGtCMuvBG3TRDaWAJxATaidUtAgac=;
+        b=WRE6y5tuEkpLv71+6vCxLYLcAj7M0oGrGDrTeV6VeIJA4c2mjzctCVTvD7svddyhFG
+         NiS7ARUNGwK3ZAvldP4XQHfhuY3qh+R7FYDaGgR0cbdJEGWn07+Y0qgCrWCC1nz6G746
+         SeAW6Mx34pN14a61976F+1VE9NWPwH3HxswSKkMoAIG6OlCGlDj/fM/I+TI8hP+yKVXN
+         z84DW01wYzcBjX11xrXZE3wLnvRKE8uWW2SWgthjoCtDEFWDfBdz1W8D7mTFl4nUmchR
+         QI82RLg8+BtwY0cf5g/4j2xH3ftv1Nxn/GYJPs8WyUawLPfErOseuKrLz5X0QujWjaHr
+         +cUg==
+X-Gm-Message-State: AOJu0YxcLQJNjwHxZJe17Npic6TLkh8b3MkTJKN0bcXhBOz2ofM1Pup9
+        BGDvVrvUGttSi4Erj4+lWyO+lZkxZQYR80dq0YQ=
+X-Google-Smtp-Source: AGHT+IESMg7JzrGFpGM30sigc77/m28bfDkUOPdPqGf70edI8KNzvVpGtPkhRGubKlKkdCSwOam6hg==
+X-Received: by 2002:adf:ef42:0:b0:314:54f0:df35 with SMTP id c2-20020adfef42000000b0031454f0df35mr8529088wrp.16.1691489895173;
+        Tue, 08 Aug 2023 03:18:15 -0700 (PDT)
+Received: from [192.168.1.20] ([178.197.222.113])
+        by smtp.gmail.com with ESMTPSA id k18-20020a5d5192000000b003143b7449ffsm13177574wrv.25.2023.08.08.03.18.13
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 08 Aug 2023 03:18:14 -0700 (PDT)
+Message-ID: <1ade44f5-b3d1-dcde-6819-9e944f3b115d@linaro.org>
+Date:   Tue, 8 Aug 2023 12:18:12 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.14.0
+Subject: Re: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property
+Content-Language: en-US
+To:     Md Danish Anwar <a0501179@ti.com>, Conor Dooley <conor@kernel.org>,
+        MD Danish Anwar <danishanwar@ti.com>
+Cc:     Suman Anna <s-anna@ti.com>, Conor Dooley <conor+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mathieu Poirier <mathieu.poirier@linaro.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, vigneshr@ti.com, srk@ti.com,
+        nm@ti.com
+References: <20230807110836.2612730-1-danishanwar@ti.com>
+ <20230807-euphemism-trailing-ef4130dc7437@spud>
+ <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
+From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+In-Reply-To: <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230808-descriptors-regulator-v1-2-939b5e84dd18@linaro.org>
-References: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
-In-Reply-To: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
-To:     Tony Lindgren <tony@atomide.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Matti Vaittinen <mazziesaccount@gmail.com>
-Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org,
-        Linus Walleij <linus.walleij@linaro.org>
-X-Mailer: b4 0.12.3
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The TPS65910 includes the legacy header <linux/gpio.h> for no
-reason, drop the include.
+On 08/08/2023 11:44, Md Danish Anwar wrote:
+>>>    properties:
+>>>      compatible:
+>>> @@ -171,6 +181,9 @@ examples:
+>>>                <0x22400 0x100>;
+>>>          reg-names = "iram", "control", "debug";
+>>>          firmware-name = "am65x-pru0_0-fw";
+>>> +        interrupt-parent = <&icssg0_intc>;
+>>> +        interrupts = <16 2 2>;
+>>> +        interrupt-names = "vring";
+>>>        };
+>>
+>> These examples would probably be more helpful if they used the
+>> appropriate defines, no?
+>>
+> 
+> PRUSS Interrupt controller doesn't have any appropriate defines. This doesn't
+> use GIC so defines from arm-gic.h can not be used here. These are specific to
+> PRUSS INTC.
+> 
+> I think these example are OK. Please let me know if this is OK to you.
 
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
- drivers/regulator/s2mpa01.c | 1 -
- 1 file changed, 1 deletion(-)
+But isn't "2" type of the interrupt?
 
-diff --git a/drivers/regulator/s2mpa01.c b/drivers/regulator/s2mpa01.c
-index b147ff6a16b1..c22fdde67f9c 100644
---- a/drivers/regulator/s2mpa01.c
-+++ b/drivers/regulator/s2mpa01.c
-@@ -5,7 +5,6 @@
- 
- #include <linux/bug.h>
- #include <linux/err.h>
--#include <linux/gpio.h>
- #include <linux/slab.h>
- #include <linux/module.h>
- #include <linux/of.h>
-
--- 
-2.34.1
+Best regards,
+Krzysztof
 
