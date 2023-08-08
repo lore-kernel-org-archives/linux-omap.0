@@ -2,110 +2,118 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CB88C001B0
-	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 18:44:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C9CDC04A6A
+	for <linux-omap@archiver.kernel.org>; Tue,  8 Aug 2023 19:08:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230353AbjHHSot (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 8 Aug 2023 14:44:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60528 "EHLO
+        id S231944AbjHHTIR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 8 Aug 2023 15:08:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230390AbjHHSoQ (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 14:44:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E6DF155BC;
-        Tue,  8 Aug 2023 09:40:49 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C7F78624A3;
-        Tue,  8 Aug 2023 10:42:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A410EC433C7;
-        Tue,  8 Aug 2023 10:42:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691491356;
-        bh=JGo7EBuRfvMkPe2azYS3kN7ld2w91JHGAUkojy0rktE=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=kS/Q6i3nQ9+WnKOSFTu7PB+OQVPot1K2wUD0sTEvdRrNj4jVLKU4NG5mGsGwk2VSY
-         UhUjaaUoswvJqZ/6VjJddcyrwNLSBfB2qmxYgFHInd1f1a4dKiHcyoYRUaq3ht1620
-         yk0aYI6UI+bxzZCd7NPIZVIaDk9UrXOQ0xzx51ZO7Kwn1n4Ui3PFnRWslmawb4ZlnD
-         6noMzGM+9rOUK1DtPdUAAsZ7JOlfDkdkIgapoyzNv3uO8KmpQ9bFArym8hwrLS6ynr
-         T7FFaP8Jg7BJUfNQNa3fc0TS5qoKowHVWTP7c+b1Hw6IEZXXI5F3mpL1x/H4Y4nP/e
-         KZXCcq5rUNuXQ==
-Message-ID: <e98f134a-a57a-3cbc-3cb1-378d6b411406@kernel.org>
-Date:   Tue, 8 Aug 2023 13:42:28 +0300
+        with ESMTP id S231887AbjHHTH4 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 8 Aug 2023 15:07:56 -0400
+Received: from mail-ej1-x636.google.com (mail-ej1-x636.google.com [IPv6:2a00:1450:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D229131C0B
+        for <linux-omap@vger.kernel.org>; Tue,  8 Aug 2023 09:30:00 -0700 (PDT)
+Received: by mail-ej1-x636.google.com with SMTP id a640c23a62f3a-99c47ef365cso871868166b.0
+        for <linux-omap@vger.kernel.org>; Tue, 08 Aug 2023 09:30:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1691512190; x=1692116990;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=d/kMxPLtuYtfsGSJG2tOdeZ1yEQcKsWU7BmPk/CzUa0=;
+        b=sqkrEWFT2RlrwU1npBxT9z8UfLJiU54drxShv+mlmRQDQAlXXPfGyXCbmE5g2rCeFW
+         +0XUwjiPzx50b6AjedD047e+Azswy3QBAjX5of8RjgKgBzAFrepu3Kug9igFwvXx3qPG
+         8LGoODZ88V0oHVUduHh1XG8lt0vlQcC/UhZni4ZZkIHJStsEgQm8ZNBZA4eqaQOCaKD1
+         W4cJf7Bvmvipk2HeqtxLp7YgovRDJk9A0RbO0YHcm2EdIrAAc1OTIpP4byu0wN5dMXih
+         ao85T5zLUQmofUFI5/mf8ypHwsS9AIUbuHJlUF+Qj671gtHhQhOFDecwr3dPuGR6TyVp
+         tm3A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691512190; x=1692116990;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=d/kMxPLtuYtfsGSJG2tOdeZ1yEQcKsWU7BmPk/CzUa0=;
+        b=B78U8O2uddfzjjd33o7dFogC07tceDMp0bZ2gRn1KvSE6uaYf/6xaFAP55FNur+pb3
+         f2joJISvyn9h3L5MYH+Q2aU2ytQYdhD2cpqH63qSMXp2L6AA+heCa7zl+AcYh3+9Tzv/
+         Auw1aCRexeE6sBuo1U24Fdvf0cBkJ6ltR+CKfdBdS2DlateBIXTcqd0YlMVTVhPjYP9j
+         X7sgFgnvzvrH6HhqJ/Ud70AMPEuhv/g02iYi0UXlpCox6fVhD36fhLnn3MX3ibdjM5hU
+         sHecnUDn1Y0jmucls3U8J/3oXuv8pr9C6mAFSr/EZiBK3YRgpyPQvDG38OnZupcvhgTy
+         3l2Q==
+X-Gm-Message-State: AOJu0YxzaPegVowMfWqIEkc7bTBa3JQArS8ZP7YsxuIm6cL2Gdi2QsiJ
+        G/g0fFRx9swrnShd7tEuPUsel7I/qNnj4BNpw0Q=
+X-Google-Smtp-Source: AGHT+IHWCMZNWUenzR2ow6DEw9qzbs1hN0zvPorE5eMO9zjCNiMy4ZjezjEMoOdrW0oJwauJJK4sjw==
+X-Received: by 2002:a2e:9e0c:0:b0:2b9:a6a1:f12 with SMTP id e12-20020a2e9e0c000000b002b9a6a10f12mr8506359ljk.43.1691502397847;
+        Tue, 08 Aug 2023 06:46:37 -0700 (PDT)
+Received: from [127.0.1.1] ([85.235.12.238])
+        by smtp.gmail.com with ESMTPSA id u23-20020a2e8557000000b002b93d66b82asm2284493ljj.112.2023.08.08.06.46.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 08 Aug 2023 06:46:36 -0700 (PDT)
+From:   Linus Walleij <linus.walleij@linaro.org>
+Subject: [PATCH 00/11] Regulator legacy GPIO header removal
+Date:   Tue, 08 Aug 2023 15:46:27 +0200
+Message-Id: <20230808-descriptors-regulator-v1-0-939b5e84dd18@linaro.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.14.0
-Subject: Re: [PATCH v2 2/5] dt-bindings: net: Add iep property in ICSSG dt
- binding
-Content-Language: en-US
-To:     MD Danish Anwar <danishanwar@ti.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Simon Horman <simon.horman@corigine.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Richard Cochran <richardcochran@gmail.com>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     nm@ti.com, srk@ti.com, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, netdev@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-References: <20230807110048.2611456-1-danishanwar@ti.com>
- <20230807110048.2611456-3-danishanwar@ti.com>
-From:   Roger Quadros <rogerq@kernel.org>
-In-Reply-To: <20230807110048.2611456-3-danishanwar@ti.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIADNH0mQC/3WNQQqDMBBFryKzbkqMtUpX3qO4iGaiA2Jkpg0tk
+ rs3Fbrsbt7n/zc7CDKhwK3YgTGSUFgzlKcCxtmuEypymcFoU+lWN8qhjEzbI7Aoxum52HyqCl1
+ jL8Y73RjI243R0+vw3vvMM0muvY83sfymP2P7xxhLpZXxvq4GfbVDbbuFVsvhHHiCPqX0AYvhI
+ ou7AAAA
+To:     Tony Lindgren <tony@atomide.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Matti Vaittinen <mazziesaccount@gmail.com>
+Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org,
+        Linus Walleij <linus.walleij@linaro.org>
+X-Mailer: b4 0.12.3
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+This removes some low hanging dangling <linux/gpio.h>
+includes.
 
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+---
+Linus Walleij (11):
+      regulator: tps65910: Drop useless header
+      regulator: s2mpa01: Drop useless header
+      regulator: rpi-panel-attiny: Drop useless header
+      regulator: rk808: Drop useless headers
+      regulator: rc5t583: Drop useless header
+      regulator: mt6311: Drop useless header
+      regulator: mcp16502: Drop useless header
+      regulator: max20086: Drop useless header
+      regulator: lp8755: Drop useless header
+      regulator: bd71828: Drop useless header
+      regulator: bd71815: Drop useless header
 
-On 07/08/2023 14:00, MD Danish Anwar wrote:
-> Add iep node in ICSSG driver dt binding document.
+ drivers/regulator/bd71815-regulator.c          | 1 -
+ drivers/regulator/bd71828-regulator.c          | 1 -
+ drivers/regulator/lp8755.c                     | 1 -
+ drivers/regulator/max20086-regulator.c         | 1 -
+ drivers/regulator/mcp16502.c                   | 1 -
+ drivers/regulator/mt6311-regulator.c           | 1 -
+ drivers/regulator/rc5t583-regulator.c          | 1 -
+ drivers/regulator/rk808-regulator.c            | 2 --
+ drivers/regulator/rpi-panel-attiny-regulator.c | 1 -
+ drivers/regulator/s2mpa01.c                    | 1 -
+ drivers/regulator/tps65910-regulator.c         | 1 -
+ 11 files changed, 12 deletions(-)
+---
+base-commit: 06c2afb862f9da8dc5efa4b6076a0e48c3fbaaa5
+change-id: 20230807-descriptors-regulator-3ed7a42fd072
 
-s/iep/IEP here and in subject
-s/dt/DT here and in subject
-
-> 
-> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
-> ---
->  Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml b/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
-> index 8ec30b3eb760..36870238f92f 100644
-> --- a/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
-> +++ b/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
-> @@ -52,6 +52,12 @@ properties:
->      description:
->        phandle to MII_RT module's syscon regmap
->  
-> +  ti,iep:
-> +    $ref: /schemas/types.yaml#/definitions/phandle-array
-> +    maxItems: 2
-> +    description:
-> +      phandle to IEP (Industrial Ethernet Peripheral) for ICSSG driver
-> +
->    interrupts:
->      maxItems: 2
->      description:
-> @@ -155,6 +161,7 @@ examples:
->                      "tx1-0", "tx1-1", "tx1-2", "tx1-3",
->                      "rx0", "rx1";
->          ti,mii-g-rt = <&icssg2_mii_g_rt>;
-> +        ti,iep = <&icssg2_iep0>, <&icssg2_iep1>;
->          interrupt-parent = <&icssg2_intc>;
->          interrupts = <24 0 2>, <25 1 3>;
->          interrupt-names = "tx_ts0", "tx_ts1";
-
+Best regards,
 -- 
-cheers,
--roger
+Linus Walleij <linus.walleij@linaro.org>
+
