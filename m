@@ -2,155 +2,120 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A75AC41513
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Aug 2023 11:41:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A13C001B0
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Aug 2023 11:49:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234222AbjHILlF (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 9 Aug 2023 07:41:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50760 "EHLO
+        id S232221AbjHILtZ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 9 Aug 2023 07:49:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234211AbjHILlF (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Aug 2023 07:41:05 -0400
+        with ESMTP id S229708AbjHILtY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Aug 2023 07:49:24 -0400
 Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B8C31FD8;
-        Wed,  9 Aug 2023 04:41:04 -0700 (PDT)
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 379Benwh101101;
-        Wed, 9 Aug 2023 06:40:49 -0500
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1436C10C;
+        Wed,  9 Aug 2023 04:49:24 -0700 (PDT)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 379BnDox102401;
+        Wed, 9 Aug 2023 06:49:13 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691581249;
-        bh=IcfxrqvirWDKYAPqgtc4d8QimB64D14Ogs3/JsEvkn8=;
+        s=ti-com-17Q1; t=1691581753;
+        bh=NHaMV8AQ458hXfrujPP7b8dUqu4ww4eGJkczmu6Nivg=;
         h=Date:From:To:CC:Subject:References:In-Reply-To;
-        b=s6enfKLcUHQjTsgGQTAhk/Ris2qRnbFNhgJVgDtSohaElaUUGh7bnuQl3/sdur6wX
-         AghNmriiM7FIeqaDSX+9HJD8l+s8r3f8uRbVHUAj/yydxyulHtUAewpVFsntBnbYDe
-         XKCBiDsgqNCJmm7fBiDoJtS83LZQlxlyNsI+C52M=
-Received: from DFLE103.ent.ti.com (dfle103.ent.ti.com [10.64.6.24])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 379Ben9w015415
+        b=G4Dq5pM+rVVvdmIHaDyd04wFiCgC/U7fP21ZTNxhToV8d+2vHDXSY/Twcr9/DiPMd
+         QRG+6FJVAEXajoyUYtW1eFwrxQOLBvBUVdsDMU3eXnE+Kq84Tn/bXwnjgjU2QOrIAO
+         UDEWJjb4khJ95kPOnKheDsFHfFJwNG495QO5mS58=
+Received: from DLEE103.ent.ti.com (dlee103.ent.ti.com [157.170.170.33])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 379BnDDL014024
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 9 Aug 2023 06:40:49 -0500
-Received: from DFLE102.ent.ti.com (10.64.6.23) by DFLE103.ent.ti.com
- (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+        Wed, 9 Aug 2023 06:49:13 -0500
+Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Wed, 9
- Aug 2023 06:40:48 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE102.ent.ti.com
- (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
+ Aug 2023 06:49:13 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE109.ent.ti.com
+ (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Wed, 9 Aug 2023 06:40:48 -0500
-Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 379Bem5c129327;
-        Wed, 9 Aug 2023 06:40:48 -0500
-Date:   Wed, 9 Aug 2023 06:40:48 -0500
+ Frontend Transport; Wed, 9 Aug 2023 06:49:13 -0500
+Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 379BnDAx013045;
+        Wed, 9 Aug 2023 06:49:13 -0500
+Date:   Wed, 9 Aug 2023 06:49:13 -0500
 From:   Nishanth Menon <nm@ti.com>
 To:     Dhruva Gole <d-gole@ti.com>
-CC:     Rob Herring <robh+dt@kernel.org>, Stephen Boyd <sboyd@kernel.org>,
+CC:     Tony Lindgren <tony@atomide.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
         Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Tony Lindgren <tony@atomide.com>,
-        =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Vibhore Vardhan <vibhore@ti.com>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-pm@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH V3 1/2] dt-bindings: opp: Convert ti-omap5-opp-supply to
- json schema
-Message-ID: <20230809114048.o3oadfytvxuxie7u@kobold>
-References: <20230809023045.1870410-1-nm@ti.com>
- <20230809023045.1870410-2-nm@ti.com>
- <20230809044825.top2xma5meklzosc@dhruva>
+        <linux-gpio@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Conor Dooley <conor.dooley@microchip.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>
+Subject: Re: [PATCH 0/2] pinctrl-single: introduce am654-padconf compatible
+Message-ID: <20230809114913.xr6cvz4h2zsobwou@kobold>
+References: <20230808102207.130177-1-d-gole@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20230809044825.top2xma5meklzosc@dhruva>
+In-Reply-To: <20230808102207.130177-1-d-gole@ti.com>
 User-Agent: NeoMutt/20171215
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 10:18-20230809, Dhruva Gole wrote:
-> On Aug 08, 2023 at 21:30:44 -0500, Nishanth Menon wrote:
-> > Rename ti-omap5-opp-supply to be bit more generic omap-opp-supply and
-> > convert the free text binding to json-schema.
-> > 
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
-> > ---
-> > Changes since V2:
-> > - None.
-> > 
-> > V2: https://lore.kernel.org/r/20230801233341.1416552-2-nm@ti.com
-> > V1: https://lore.kernel.org/all/20230724153911.1376830-5-nm@ti.com/
-> >  .../bindings/opp/ti,omap-opp-supply.yaml      | 103 ++++++++++++++++++
-> >  .../bindings/opp/ti-omap5-opp-supply.txt      |  63 -----------
-> >  2 files changed, 103 insertions(+), 63 deletions(-)
-> >  create mode 100644 Documentation/devicetree/bindings/opp/ti,omap-opp-supply.yaml
-> >  delete mode 100644 Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/opp/ti,omap-opp-supply.yaml b/Documentation/devicetree/bindings/opp/ti,omap-opp-supply.yaml
-> > new file mode 100644
-> > index 000000000000..4db80e418829
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/opp/ti,omap-opp-supply.yaml
-> > @@ -0,0 +1,103 @@
-> > +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-> > +%YAML 1.2
-> > +---
-> > +$id: http://devicetree.org/schemas/opp/ti,omap-opp-supply.yaml#
-> > +$schema: http://devicetree.org/meta-schemas/core.yaml#
-> > +
-> > +title: Texas Instruments OMAP compatible OPP supply
-> > +
-> > +description:
-> > +  OMAP5, DRA7, and AM57 family of SoCs have Class0 AVS eFuse registers which
-> > +  contain data that can be used to adjust voltages programmed for some of their
-> > +  supplies for more efficient operation. This binding provides the information
-> > +  needed to read these values and use them to program the main regulator during
-> > +  an OPP transitions.
-> > +
-> > +  Also, some supplies may have an associated vbb-supply which is an Adaptive Body
-> > +  Bias regulator which much be transitioned in a specific sequence with regards
+On 15:52-20230808, Dhruva Gole wrote:
+> The K3 family of SOCs use certain bits of the padconfig registers like
+> WKUP_EVT and WKUP_EN to enable daisychain wakeups.
 > 
-> s/much/must ?
+> For example, these bits are described in the AM654 TRM [0] under
+> "Table 5-517. Description Of The Pad Configuration Register Bits"
+> 
+> This series adds the DT binding changes for adding the compatible and
+> also the driver changes which make use of this compatible.
+> 
+> NOTE: Some K3 SoCs may have these bits marked as reserved which means
+> that they don't support IO daisychain. Such SOCs are not expected to use
+> this compatible.
+> 
+> The general expected usage is when the device is in a suspended state like Deep
+> Sleep or Suspend to RAM, and any IO activity on configured pads can
+> trigger a wakeup.
+> 
+> Link to complete series:
+> https://lore.kernel.org/all/20230808102207.130177-1-d-gole@ti.com
+> 
+> Base commit:
+> 71cd4fc492ec (tag: next-20230808, linux-next/master) Add linux-next specific files for 20230808
+> 
+> depends on:
+> https://lore.kernel.org/r/20230721082654.27036-1-tony@atomide.com
+> 
+> which has been picked up by Linus Walleij in his tree here:
+> https://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-pinctrl.git/commit/?h=devel&id=677a62482bd6e584f83d0342e78735e3cd449ba4
+> 
+> However, it hasn't reflected in -next yet so specifying the depends on
+> above.
 
-Thanks.
-> 
-> > +  to the vdd-supply and clk when making an OPP transition. By supplying two
-> > +  regulators to the device that will undergo OPP transitions we can make use
-> > +  of the multi regulator binding that is part of the OPP core described
-> 
-> Existing txt seems to have:
-> 
->  part of the OPP core described here [1]
-> 
-> Why get rid of the reference "[1]" here?
-> 
-> Going through Documentation/devicetree/bindings/opp/opp-v2.yaml didn't
-> tell me much about this multi regulator binding, I only see 1 example.
-> 
-> Please can you explain a bit more or make this line more clear?
-
-Example 4 in the referenced binding does explain that - consumer
-examples that are already documented does'nt make sense to be replicated
-here. I will add a reference to opp-v2.yaml binding along with a pointer
-to example 4.
+next-20230809 has it today - so just a day or two of sync.. no biggie.
 
 > 
-> > +  to describe both regulators needed by the platform.
-> > +
-> > +maintainers:
-> > +  - Nishanth Menon <nm@ti.com>
-> > +
-> > +properties:
-> > +  $nodename:
-> > +    pattern: '^opp-supply(@[0-9a-f]+)?$'
-> [...]
+> [0] https://www.ti.com/lit/pdf/spruid7
 > 
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Vignesh Raghavendra <vigneshr@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Conor Dooley <conor.dooley@microchip.com>
+> Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
 
-Thanks for the detailed review. Will repost a new rev in a few days if
-there are no further review comments.
+For the series:
 
-
--- 
+Reviewed-by: Nishanth Menon <nm@ti.com>
 
 Regards,
 Nishanth Menon
