@@ -2,60 +2,60 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9645AC04FE0
-	for <linux-omap@archiver.kernel.org>; Wed,  9 Aug 2023 19:25:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BB25C001E0
+	for <linux-omap@archiver.kernel.org>; Wed,  9 Aug 2023 19:25:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234016AbjHITZk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 9 Aug 2023 15:25:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41598 "EHLO
+        id S234047AbjHITZx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 9 Aug 2023 15:25:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233898AbjHITZY (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Aug 2023 15:25:24 -0400
-Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD3BC469E;
-        Wed,  9 Aug 2023 12:24:20 -0700 (PDT)
-Received: by mail-wm1-x329.google.com with SMTP id 5b1f17b1804b1-3fe5695b180so766935e9.2;
-        Wed, 09 Aug 2023 12:24:20 -0700 (PDT)
+        with ESMTP id S233979AbjHITZZ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 9 Aug 2023 15:25:25 -0400
+Received: from mail-wm1-x332.google.com (mail-wm1-x332.google.com [IPv6:2a00:1450:4864:20::332])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93E7F3C0B;
+        Wed,  9 Aug 2023 12:24:22 -0700 (PDT)
+Received: by mail-wm1-x332.google.com with SMTP id 5b1f17b1804b1-3fbea147034so981065e9.0;
+        Wed, 09 Aug 2023 12:24:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1691609059; x=1692213859;
+        d=gmail.com; s=20221208; t=1691609061; x=1692213861;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=NOt3f0g945aFYg2SZ1NDdkMZ84STg236RQcHRWkmfW4=;
-        b=DDxHxGri9oTwwqQwxsLMJqYtCmUXCLVfQoRKZz019EmDezDldAKtMoovGpHPw18Cij
-         kacubnX0HtFxd4gkNqKf8/U5wpskoEnAhPCz+QOzUbSU/JpdhiBDifGYzNKjgc8/ScQW
-         69XA5ko2MvMS7GvlH+7Kcrja2Rmvk+7uop7dqjsUHzuEaokiGltfvELY/ix+9eB31gnH
-         SQLapLpNtncXGyRFJ4Li/0QieX7e+oELRtK3ob01DFE1zO3cLpN2tqRgJEf4wUXmgNLi
-         PSRwaMso4L8hTrnxaY2qT+CIqT+St+erwxgFJYev+adnvNfe3v+OKarePCYEfLhs43I6
-         +zMw==
+        bh=pwigRAFAXBRS5qA8koF+a3Bv4bIxzklMHFE/MHDH5ok=;
+        b=eve8xWI6YnHpUf/J5yzVBAv9L32VRTQu2RRy55ESICy3heLY5wjsRCBsUTwOV3DU5S
+         RuCionFHq2S5hlamn5nk6ivk3p0gmVeJ+eCiq+Xqw7QaNzDlrYseRS9kV/CMGJj0NxFi
+         sbdZfU7tnEQJeXq10+Gdoo2VA/PqCsQcWRKfWM42VjSwhxIHTIIVYQPCmxnMpVB87b8Y
+         kCeVz9UkLYW5mE8Q6sDwY3Yarv0X9Nv6frMTlyQfQH0DwfK7d2c5WpiX3LFQyZGnWWOT
+         SZW4itQ8mKpbTItkwF2hiWAD3pjZF/Dl96mgbqt4oPYTJhFU++j3nNXv4pI9+OknbFwN
+         3JfA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691609059; x=1692213859;
+        d=1e100.net; s=20221208; t=1691609061; x=1692213861;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=NOt3f0g945aFYg2SZ1NDdkMZ84STg236RQcHRWkmfW4=;
-        b=Opl+kM8SS7/oagBVm9oF0fJlHVTMDm8JwMnFH/Q3FSLr9QlozSpfd402LtmytYY2fD
-         sFvncnYdRPk3p5OMgBGJyroXHKSI6PBkB3HRMv8J/D3pOs1eorGX2nvx1VSunq057Bau
-         PwxJRh/NHtd6Z0B4u1OVbPzeO7ubyoJ7qyVImEaSnef78FX/eHodAl6SPdthU6uKweo+
-         t8wMrfLu812R6BKcpzTrH0Zw9Uj9HhoEydItW6e3ap+LX9rBJNlC9/Hnv8db6ivWK1nP
-         +A6ehPTbZVEJZiSY/Cu5zpSKgzPIziW+qmcJSBaZI2baMgh/TnHGGEYX03s1IE2u6F/+
-         jq+Q==
-X-Gm-Message-State: AOJu0YzrjB/aor98j7sxabzOlvEcNIJDONU4MKznaSwmDHqIzMSXLqd3
-        mMbJqsUwy65NPVbuYc7sVoQ=
-X-Google-Smtp-Source: AGHT+IGYDpYRjob4tooKsa/vmj8iJrlfXsjhMGhyvtXGpMeKV4q7qO3jSQCFZ3uzukh96mh6T745DA==
-X-Received: by 2002:a05:600c:3641:b0:3fb:e189:3532 with SMTP id y1-20020a05600c364100b003fbe1893532mr63223wmq.20.1691609059385;
-        Wed, 09 Aug 2023 12:24:19 -0700 (PDT)
+        bh=pwigRAFAXBRS5qA8koF+a3Bv4bIxzklMHFE/MHDH5ok=;
+        b=iTCml0erA9YB7UZgHTupKSQHYt86tAM17z/9sgSIhZSzIfRuUD4pO/dpXToXEdr6XL
+         bDT+6Hh/7LrtSGDvWlaHdKw4p/faRt+V2025NwRxCYcs8FfmLXxz5Qe3XSHIcnjHuhVS
+         0rGkxnBCzhlaggWm0xKpvv3oEtbKLTRVDB0hBizuwg3QxNdBRM5D+ycmFOqMY+lp70AQ
+         sPa7dB5DLrb7q48uWirL+Nplipwer7A16oYolN2wyuEbwiVdRKuB0T43SNHg498OlteL
+         ct3j5ONnXBvFpC5k2T8SGHB5g+YAGS5UpIbCkX2eTrvs02+ok/D1eT5Rp1gc6Ox2N1Rc
+         ypmw==
+X-Gm-Message-State: AOJu0YxVmmPpHDPqJDNcLqOecG5WhZaVF6lcmys3mJjfWOQo53ZO1L02
+        /F6ie9dlUvTKGe72hTysNa4=
+X-Google-Smtp-Source: AGHT+IH4yai+QveqDBLSuuppf6HAOS+JBSMVsO4zEnvYLlgX2iVgvxEkWco9vicnXKSN1lV+MYcEdg==
+X-Received: by 2002:a1c:7c0b:0:b0:3fd:e86b:f095 with SMTP id x11-20020a1c7c0b000000b003fde86bf095mr44652wmc.13.1691609060920;
+        Wed, 09 Aug 2023 12:24:20 -0700 (PDT)
 Received: from [127.0.1.1] ([91.230.2.244])
-        by smtp.gmail.com with ESMTPSA id y9-20020a7bcd89000000b003fba6a0c881sm2776208wmj.43.2023.08.09.12.24.18
+        by smtp.gmail.com with ESMTPSA id y9-20020a7bcd89000000b003fba6a0c881sm2776208wmj.43.2023.08.09.12.24.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Aug 2023 12:24:19 -0700 (PDT)
+        Wed, 09 Aug 2023 12:24:20 -0700 (PDT)
 From:   Benjamin Bara <bbara93@gmail.com>
-Date:   Wed, 09 Aug 2023 21:24:06 +0200
-Subject: [PATCH v2 4/6] mfd: tps65219: Specify restart mode
+Date:   Wed, 09 Aug 2023 21:24:08 +0200
+Subject: [PATCH v2 6/6] regulator: pca9450: register restart handlers
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230809-pca9450-reboot-v2-4-b98b4f8139d5@skidata.com>
+Message-Id: <20230809-pca9450-reboot-v2-6-b98b4f8139d5@skidata.com>
 References: <20230809-pca9450-reboot-v2-0-b98b4f8139d5@skidata.com>
 In-Reply-To: <20230809-pca9450-reboot-v2-0-b98b4f8139d5@skidata.com>
 To:     Lee Jones <lee@kernel.org>,
@@ -77,51 +77,118 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Benjamin Bara <benjamin.bara@skidata.com>
 
-The current restart handler registration does not specify whether the
-restart is a cold or a warm one. Instead, cold ones are typically
-registered with a HIGH prio. Now, as do_kernel_restart() knows about the
-type, the priorization is implicitly done (cold restarts are executed
-first) and the reboot_mode kernel parameter (which is currently mostly
-ignored) can be respected.
+The PCA9450 supports both, a warm and a cold reset. Implement both and
+register the respective handlers.
 
+Acked-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Benjamin Bara <benjamin.bara@skidata.com>
 ---
-v2:
-- improve commit message
----
- drivers/mfd/tps65219.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ drivers/regulator/pca9450-regulator.c | 59 +++++++++++++++++++++++++++++++++++
+ include/linux/regulator/pca9450.h     |  7 +++++
+ 2 files changed, 66 insertions(+)
 
-diff --git a/drivers/mfd/tps65219.c b/drivers/mfd/tps65219.c
-index 0e0c42e4fdfc..85752b93256e 100644
---- a/drivers/mfd/tps65219.c
-+++ b/drivers/mfd/tps65219.c
-@@ -278,12 +278,21 @@ static int tps65219_probe(struct i2c_client *client)
- 		}
+diff --git a/drivers/regulator/pca9450-regulator.c b/drivers/regulator/pca9450-regulator.c
+index 2ab365d2749f..86903d677bf6 100644
+--- a/drivers/regulator/pca9450-regulator.c
++++ b/drivers/regulator/pca9450-regulator.c
+@@ -38,6 +38,11 @@ struct pca9450 {
+ 	int irq;
+ };
+ 
++static inline struct pca9450 *dev_to_pca9450(struct device *dev)
++{
++	return dev_get_drvdata(dev);
++}
++
+ static const struct regmap_range pca9450_status_range = {
+ 	.range_min = PCA9450_REG_INT1,
+ 	.range_max = PCA9450_REG_PWRON_STAT,
+@@ -219,6 +224,42 @@ static int pca9450_set_dvs_levels(struct device_node *np,
+ 	return ret;
+ }
+ 
++static int pca9450_cold_reset(struct pca9450 *pca9450)
++{
++	int ret;
++
++	ret = regmap_write(pca9450->regmap, PCA9450_REG_SWRST,
++			   SWRST_RESET_COLD_LDO12);
++	if (ret)
++		return ret;
++
++	/* t_RESTART is 250 ms. */
++	mdelay(500);
++	return -ETIME;
++}
++
++static int pca9450_warm_reset(struct pca9450 *pca9450)
++{
++	int ret;
++
++	ret = regmap_write(pca9450->regmap, PCA9450_REG_SWRST,
++			   SWRST_RESET_WARM);
++	if (ret)
++		return ret;
++
++	/* t_RESET is 20 ms. */
++	mdelay(50);
++	return -ETIME;
++}
++
++static int pca9450_restart_handler(struct sys_off_data *data)
++{
++	int (*handler)(struct pca9450 *) = data->cb_data;
++	struct pca9450 *pca9450 = dev_to_pca9450(data->dev);
++
++	return handler(pca9450);
++}
++
+ static const struct pca9450_regulator_desc pca9450a_regulators[] = {
+ 	{
+ 		.desc = {
+@@ -845,6 +886,24 @@ static int pca9450_i2c_probe(struct i2c_client *i2c)
+ 		return PTR_ERR(pca9450->sd_vsel_gpio);
  	}
  
--	ret = devm_register_restart_handler(tps->dev,
--					    tps65219_restart_handler,
--					    tps);
-+	ret = devm_register_cold_restart_handler(tps->dev,
-+						 tps65219_restart_handler,
-+						 tps);
- 
- 	if (ret) {
--		dev_err(tps->dev, "cannot register restart handler, %d\n", ret);
-+		dev_err(tps->dev, "cannot register cold restart handler, %d\n", ret);
++	ret = devm_register_cold_restart_handler(pca9450->dev,
++						 pca9450_restart_handler,
++						 pca9450_cold_reset);
++	if (ret) {
++		dev_err(&i2c->dev, "register cold restart handler failed: %d\n",
++			ret);
 +		return ret;
 +	}
 +
-+	ret = devm_register_warm_restart_handler(tps->dev,
-+						 tps65219_restart_handler,
-+						 tps);
-+
++	ret = devm_register_warm_restart_handler(pca9450->dev,
++						 pca9450_restart_handler,
++						 pca9450_warm_reset);
 +	if (ret) {
-+		dev_err(tps->dev, "cannot register warm restart handler, %d\n", ret);
- 		return ret;
- 	}
++		dev_err(&i2c->dev, "register warm restart handler failed: %d\n",
++			ret);
++		return ret;
++	}
++
+ 	dev_info(&i2c->dev, "%s probed.\n",
+ 		type == PCA9450_TYPE_PCA9450A ? "pca9450a" : "pca9450bc");
  
+diff --git a/include/linux/regulator/pca9450.h b/include/linux/regulator/pca9450.h
+index 505c908dbb81..a72fd4942d5f 100644
+--- a/include/linux/regulator/pca9450.h
++++ b/include/linux/regulator/pca9450.h
+@@ -93,6 +93,13 @@ enum {
+ 	PCA9450_MAX_REGISTER	    = 0x2F,
+ };
+ 
++/* PCA9450 SW_RST bits */
++#define SWRST_NOACTION			0x00
++#define SWRST_RESET_REGS		0x05
++#define SWRST_RESET_COLD_LDO12		0x14
++#define SWRST_RESET_WARM		0x35
++#define SWRST_RESET_COLD		0x64
++
+ /* PCA9450 BUCK ENMODE bits */
+ #define BUCK_ENMODE_OFF			0x00
+ #define BUCK_ENMODE_ONREQ		0x01
 
 -- 
 2.34.1
