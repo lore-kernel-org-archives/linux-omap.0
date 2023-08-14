@@ -2,172 +2,128 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31C9AC001B0
-	for <linux-omap@archiver.kernel.org>; Sat, 12 Aug 2023 20:45:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7715C04A6A
+	for <linux-omap@archiver.kernel.org>; Mon, 14 Aug 2023 05:14:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230477AbjHLUpP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 12 Aug 2023 16:45:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48664 "EHLO
+        id S232720AbjHNFO2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 14 Aug 2023 01:14:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230415AbjHLUpN (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 12 Aug 2023 16:45:13 -0400
+        with ESMTP id S233183AbjHNFOV (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 14 Aug 2023 01:14:21 -0400
 Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B6AE10F2;
-        Sat, 12 Aug 2023 13:45:16 -0700 (PDT)
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 37CKiwGw095270;
-        Sat, 12 Aug 2023 15:44:58 -0500
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F98FE5F;
+        Sun, 13 Aug 2023 22:14:19 -0700 (PDT)
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 37E5E41C078228;
+        Mon, 14 Aug 2023 00:14:04 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1691873098;
-        bh=KDMPwakXHnBm1lyuJMieItLxASOIXvE4C4DW6HKNztU=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=N2dGHaG0b7qGs71o83Dcd1oQhPZnCuFkpcq6a2wqH2mPQ92TZAUCqJeqBXJhyAQS+
-         n2IAGwjqFnvfzm6lqvcqj08fAUfu5pitI2o3zGBXhcUpkBP0NcXEmso2+M2AjQFO3P
-         prCoYumRq3So1Af0lry08atYCRxIqQf/lZRAuSsg=
-Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
-        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 37CKiwbk127046
+        s=ti-com-17Q1; t=1691990044;
+        bh=zgU1is/ey29ER1sZI03mQdYN+tGRD2RBHOYFCdNCr2I=;
+        h=Date:Subject:To:CC:References:From:In-Reply-To;
+        b=gKRirqPpgGaTQi8/d3ej9TvBfwXg4bbFtPJ+uXj9aT7I8ZhNSlQCoyLvXwGdC1/Os
+         5RY/VQI5MUQs0fsrMXD8ywHd0yRImfFJNHuESwAJxRunwsyJ/N1zqlB5+tRQcL9zWg
+         lXRytkKKJzt/nBShx9SU0tdvT7lVRIw0vgOc5etc=
+Received: from DLEE110.ent.ti.com (dlee110.ent.ti.com [157.170.170.21])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 37E5E4r4024156
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Sat, 12 Aug 2023 15:44:58 -0500
-Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE113.ent.ti.com
- (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Sat, 12
- Aug 2023 15:44:58 -0500
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE108.ent.ti.com
- (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+        Mon, 14 Aug 2023 00:14:04 -0500
+Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE110.ent.ti.com
+ (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 14
+ Aug 2023 00:14:03 -0500
+Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Sat, 12 Aug 2023 15:44:58 -0500
-Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 37CKivss067879;
-        Sat, 12 Aug 2023 15:44:58 -0500
-From:   Achal Verma <a-verma1@ti.com>
-To:     Vignesh Raghavendra <vigneshr@ti.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Krzysztof Wilczy_ski <kw@linux.com>,
-        Rob Herring <robh@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>
-CC:     <linux-omap@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, Achal Verma <a-verma1@ti.com>
-Subject: [PATCH 1/2] PCI: cadence: Advertise ARI Forwarding Supported
-Date:   Sun, 13 Aug 2023 02:14:54 +0530
-Message-ID: <20230812204455.479510-2-a-verma1@ti.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230812204455.479510-1-a-verma1@ti.com>
-References: <20230812204455.479510-1-a-verma1@ti.com>
+ Frontend Transport; Mon, 14 Aug 2023 00:14:03 -0500
+Received: from [172.24.227.217] (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 37E5DwQv038047;
+        Mon, 14 Aug 2023 00:13:59 -0500
+Message-ID: <ce22155c-31b9-3dd1-8336-275fa92c234d@ti.com>
+Date:   Mon, 14 Aug 2023 10:43:58 +0530
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.13.0
+Subject: Re: [PATCH] dt-bindings: remoteproc: pru: Add Interrupt property
+Content-Language: en-US
+To:     Conor Dooley <conor@kernel.org>
+CC:     MD Danish Anwar <danishanwar@ti.com>, Suman Anna <s-anna@ti.com>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mathieu Poirier <mathieu.poirier@linaro.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-remoteproc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>, <vigneshr@ti.com>,
+        <srk@ti.com>, <nm@ti.com>
+References: <20230807110836.2612730-1-danishanwar@ti.com>
+ <20230807-euphemism-trailing-ef4130dc7437@spud>
+ <910a4a98-712a-5517-5a5b-ffb962f83463@ti.com>
+ <20230808-unwomanly-generic-67d20f0e51cd@spud>
+ <cd74e31f-8bc6-445b-9c33-51e53a439cd2@ti.com>
+ <20230808-bazooka-uncoated-a3401d94b063@spud>
+ <e49fb304-bd5d-5013-815f-5933a2a170c4@ti.com>
+ <20230811-ladylike-snore-abba84731921@spud>
+From:   Md Danish Anwar <a0501179@ti.com>
+Organization: Texas Instruments
+In-Reply-To: <20230811-ladylike-snore-abba84731921@spud>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-J7 PCIe Root Complex has ARI Forwarding Support (advertised by
-PCI_EXP_DEVCAP2_ARI bit) which means support for forwarding of TLPs
-addressed to functions with function number greater than 7 but for some
-PCIe instances on J7, PCI_EXP_DEVCAP2_ARI bit is cleared which prevents
-accessing functions with function number > 7.
+On 11/08/23 8:51 pm, Conor Dooley wrote:
+> On Fri, Aug 11, 2023 at 04:48:28PM +0530, Md Danish Anwar wrote:
+> 
+>>>> There are no standard defines for these interrupt types. However I can create a
+>>>> new .h file defining all the three interrupt cells and their values for both
+>>>> PRU and RTU cores if you think that is required. Otherwise we can go with
+>>>> hardcoded values.
+>>>>
+>>>> Please let me know what you think should be done here.
+>>>
+>>> It'd be good to reference to the documentation for the cells, I don't
+>>> think adding a header is necessary here.
+>>>
+>>
+>> How should I reference to the documentation for the cells?
+>>
+>> Should I just add the details of cells in description of interrupt property here.
+>>
+>>   interrupts:
+>>     maxItems: 1
+>>     description:
+>>       Interrupt specifiers enable the virtio/rpmsg communication between MPU
+>>       and the PRU/RTU cores. The value of the interrupts should be the PRU
+>>       System event number [cell 1], PRU channel [cell 2] and PRU host_event
+>>       (target) [cell 3].
+>>
+>> Please let me know if this looks OK to you.
+> 
+> I was thinking there'd be an binding for the interrupt controller that
+> you could mentioned.
 
-Setting the PCI_EXP_DEVCAP2_ARI explicitly, resolves the issue.
+There is a binding for interrupt-controller [1] that I can mention. I tried using
 
-Signed-off-by: Achal Verma <a-verma1@ti.com>
----
- drivers/pci/controller/cadence/pci-j721e.c         |  4 ++++
- drivers/pci/controller/cadence/pcie-cadence-host.c |  7 +++++++
- drivers/pci/controller/cadence/pcie-cadence.h      | 12 ++++++++++++
- 3 files changed, 23 insertions(+)
+- $ref: /schemas/interrupt-controller/ti,pruss-intc.yaml#
 
-diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
-index 2c3b3af59271..7e94eb94f29c 100644
---- a/drivers/pci/controller/cadence/pci-j721e.c
-+++ b/drivers/pci/controller/cadence/pci-j721e.c
-@@ -73,6 +73,7 @@ struct j721e_pcie_data {
- 	unsigned int		quirk_disable_flr:1;
- 	u32			linkdown_irq_regfield;
- 	unsigned int		byte_access_allowed:1;
-+	unsigned int		set_afs_bit:1;
- };
- 
- static inline u32 j721e_pcie_user_readl(struct j721e_pcie *pcie, u32 offset)
-@@ -292,6 +293,7 @@ static const struct j721e_pcie_data j721e_pcie_rc_data = {
- 	.quirk_retrain_flag = true,
- 	.byte_access_allowed = false,
- 	.linkdown_irq_regfield = LINK_DOWN,
-+	.set_afs_bit = true,
- };
- 
- static const struct j721e_pcie_data j721e_pcie_ep_data = {
-@@ -304,6 +306,7 @@ static const struct j721e_pcie_data j7200_pcie_rc_data = {
- 	.quirk_detect_quiet_flag = true,
- 	.linkdown_irq_regfield = J7200_LINK_DOWN,
- 	.byte_access_allowed = true,
-+	.set_afs_bit = true,
- };
- 
- static const struct j721e_pcie_data j7200_pcie_ep_data = {
-@@ -393,6 +396,7 @@ static int j721e_pcie_probe(struct platform_device *pdev)
- 		rc = pci_host_bridge_priv(bridge);
- 		rc->quirk_retrain_flag = data->quirk_retrain_flag;
- 		rc->quirk_detect_quiet_flag = data->quirk_detect_quiet_flag;
-+		rc->set_afs_bit = data->set_afs_bit;
- 
- 		cdns_pcie = &rc->pcie;
- 		cdns_pcie->dev = dev;
-diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
-index 5b14f7ee3c79..fc696d94f7a2 100644
---- a/drivers/pci/controller/cadence/pcie-cadence-host.c
-+++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
-@@ -507,6 +507,7 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- 	struct cdns_pcie *pcie;
- 	struct resource *res;
- 	int ret;
-+	u32 pcie_cap2;
- 
- 	bridge = pci_host_bridge_from_priv(rc);
- 	if (!bridge)
-@@ -536,6 +537,12 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
- 	if (rc->quirk_detect_quiet_flag)
- 		cdns_pcie_detect_quiet_min_delay_set(&rc->pcie);
- 
-+	if (rc->set_afs_bit) {
-+		pcie_cap2 = cdns_pcie_rp_readl(pcie, CDNS_PCIE_RP_CAP_OFFSET + PCI_EXP_DEVCAP2);
-+		pcie_cap2 |= PCI_EXP_DEVCAP2_ARI;
-+		cdns_pcie_rp_writel(pcie, CDNS_PCIE_RP_CAP_OFFSET + PCI_EXP_DEVCAP2, pcie_cap2);
-+	}
-+
- 	cdns_pcie_host_enable_ptm_response(pcie);
- 
- 	ret = cdns_pcie_start_link(pcie);
-diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
-index 190786e47df9..7a5d05f3febc 100644
---- a/drivers/pci/controller/cadence/pcie-cadence.h
-+++ b/drivers/pci/controller/cadence/pcie-cadence.h
-@@ -329,6 +329,7 @@ struct cdns_pcie_rc {
- 	bool			avail_ib_bar[CDNS_PCIE_RP_MAX_IB];
- 	unsigned int		quirk_retrain_flag:1;
- 	unsigned int		quirk_detect_quiet_flag:1;
-+	unsigned int		set_afs_bit:1;
- };
- 
- /**
-@@ -457,6 +458,17 @@ static inline u16 cdns_pcie_rp_readw(struct cdns_pcie *pcie, u32 reg)
- 	return cdns_pcie_read_sz(addr, 0x2);
- }
- 
-+static inline void cdns_pcie_rp_writel(struct cdns_pcie *pcie,
-+				       u32 reg, u32 value)
-+{
-+	writel(value, pcie->reg_base + CDNS_PCIE_RP_BASE + reg);
-+}
-+
-+static inline u32 cdns_pcie_rp_readl(struct cdns_pcie *pcie, u32 reg)
-+{
-+	return readl(pcie->reg_base + CDNS_PCIE_RP_BASE + reg);
-+}
-+
- /* Endpoint Function register access */
- static inline void cdns_pcie_ep_fn_writeb(struct cdns_pcie *pcie, u8 fn,
- 					  u32 reg, u8 value)
+But it was throwing dt binding errors so I didn't add the ref.
+
+I will mention this file name in the description of the property like below,
+
+     description:
+       Interrupt specifiers enable the virtio/rpmsg communication between MPU
+       and the PRU/RTU cores. For the values of the interrupt cells please
+       refer to interrupt-controller/ti,pruss-intc.yaml schema.
+
+Please let me know if this looks OK to you.
+
+[1]
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/interrupt-controller/ti,pruss-intc.yaml
+
 -- 
-2.25.1
-
+Thanks and Regards,
+Danish.
