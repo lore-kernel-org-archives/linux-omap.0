@@ -2,67 +2,76 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5708AC0015E
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Aug 2023 05:50:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 527FFC41513
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Aug 2023 06:10:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234641AbjHOFuH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Aug 2023 01:50:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53652 "EHLO
+        id S234964AbjHOGJf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Aug 2023 02:09:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234861AbjHOFsD (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Aug 2023 01:48:03 -0400
+        with ESMTP id S235018AbjHOGIo (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Aug 2023 02:08:44 -0400
 Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 33A1E1FE2
-        for <linux-omap@vger.kernel.org>; Mon, 14 Aug 2023 22:39:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 323212694;
+        Mon, 14 Aug 2023 23:07:31 -0700 (PDT)
 Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id BE82D80E0;
-        Tue, 15 Aug 2023 05:39:49 +0000 (UTC)
-Date:   Tue, 15 Aug 2023 08:39:48 +0300
+        by muru.com (Postfix) with ESMTPS id 7A8A180E0;
+        Tue, 15 Aug 2023 06:07:30 +0000 (UTC)
+Date:   Tue, 15 Aug 2023 09:07:29 +0300
 From:   Tony Lindgren <tony@atomide.com>
-To:     kernel test robot <lkp@intel.com>
-Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-        linux-omap@vger.kernel.org, Dhruva Gole <d-gole@ti.com>,
-        Nishanth Menon <nm@ti.com>
-Subject: Re: [tmlind-omap:omap-for-v6.6/ti-sysc 3/5]
- drivers/bus/ti-sysc.c:3107:19: warning: cast to smaller integer type 'enum
- sysc_soc' from 'const void *'
-Message-ID: <20230815053948.GP11676@atomide.com>
-References: <202308150723.ziuGCdM3-lkp@intel.com>
+To:     Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc:     soc@kernel.org,
+        =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RESEND] ARM: multi_v7_defconfig: Enable TLV320AIC3x
+Message-ID: <20230815060729.GR11676@atomide.com>
+References: <20230731-arm-tlv320aic31xx-config-v1-1-013c8c321dad@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <202308150723.ziuGCdM3-lkp@intel.com>
+In-Reply-To: <20230731-arm-tlv320aic31xx-config-v1-1-013c8c321dad@kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* kernel test robot <lkp@intel.com> [230814 23:20]:
-> Hi Tony,
-> 
-> First bad commit (maybe != root cause):
-> 
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git omap-for-v6.6/ti-sysc
-> head:   40a4f49cd32dbc641c706215c1fa6c5bd051428c
-> commit: 063dc0622705623b3a70739b9f33d5ea019882e6 [3/5] bus: ti-sysc: Build driver for TI K3 SoCs
-> config: arm64-randconfig-r006-20230815 (https://download.01.org/0day-ci/archive/20230815/202308150723.ziuGCdM3-lkp@intel.com/config)
-> compiler: clang version 17.0.0 (https://github.com/llvm/llvm-project.git 4a5ac14ee968ff0ad5d2cc1ffa0299048db4c88a)
-> reproduce: (https://download.01.org/0day-ci/archive/20230815/202308150723.ziuGCdM3-lkp@intel.com/reproduce)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202308150723.ziuGCdM3-lkp@intel.com/
-> 
-> All warnings (new ones prefixed by >>):
-> 
-> >> drivers/bus/ti-sysc.c:3107:19: warning: cast to smaller integer type 'enum sysc_soc' from 'const void *' [-Wvoid-pointer-to-enum-cast]
->     3107 |                 sysc_soc->soc = (enum sysc_soc)match->data;
->          |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
->    1 warning generated.
+Hi,
 
-Thanks seems we need to do (enum sysc_soc)(unsigned long)match->data or just
-(unsigned long)match->data.
+* Mark Brown <broonie@kernel.org> [230731 11:53]:
+> A number of TI based platforms use TLV320AIC3x since it was their
+> standard audio CODEC for quite some time, including the Beagle X15.
+> Enable it multi_v7_defconfig to improve test coverage.
+> 
+> Signed-off-by: Mark Brown <broonie@kernel.org>
 
-Regards,
+Looks like this is still pending, I don't have any defconfig changes to queue,
+so I've added Arnd to Cc:
 
-Tony
+Reviewed-by: Tony Lindgren <tony@atomide.com>
+
+> ---
+>  arch/arm/configs/multi_v7_defconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
+> index f0800f806b5f..00e95220e08d 100644
+> --- a/arch/arm/configs/multi_v7_defconfig
+> +++ b/arch/arm/configs/multi_v7_defconfig
+> @@ -825,6 +825,7 @@ CONFIG_SND_SOC_SGTL5000=m
+>  CONFIG_SND_SOC_STI_SAS=m
+>  CONFIG_SND_SOC_TLV320AIC32X4=m
+>  CONFIG_SND_SOC_TLV320AIC32X4_I2C=m
+> +CONFIG_SND_SOC_TLV320AIC3X_I2C=m
+>  CONFIG_SND_SOC_WM8960=m
+>  CONFIG_SND_SOC_WM8962=m
+>  CONFIG_SND_SOC_WM8978=m
+> 
+> ---
+> base-commit: 06c2afb862f9da8dc5efa4b6076a0e48c3fbaaa5
+> change-id: 20230707-arm-tlv320aic31xx-config-f52a886647db
+> 
+> Best regards,
+> -- 
+> Mark Brown <broonie@kernel.org>
+> 
