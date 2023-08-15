@@ -2,22 +2,22 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3055BC0015E
-	for <linux-omap@archiver.kernel.org>; Tue, 15 Aug 2023 05:48:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5708AC0015E
+	for <linux-omap@archiver.kernel.org>; Tue, 15 Aug 2023 05:50:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234738AbjHOFr7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 15 Aug 2023 01:47:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36942 "EHLO
+        id S234641AbjHOFuH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 15 Aug 2023 01:50:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234918AbjHOFpt (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Aug 2023 01:45:49 -0400
+        with ESMTP id S234861AbjHOFsD (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 15 Aug 2023 01:48:03 -0400
 Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 64A6E1986
-        for <linux-omap@vger.kernel.org>; Mon, 14 Aug 2023 22:45:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 33A1E1FE2
+        for <linux-omap@vger.kernel.org>; Mon, 14 Aug 2023 22:39:50 -0700 (PDT)
 Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id B0E3E80E1;
-        Tue, 15 Aug 2023 05:45:29 +0000 (UTC)
-Date:   Tue, 15 Aug 2023 08:45:28 +0300
+        by muru.com (Postfix) with ESMTPS id BE82D80E0;
+        Tue, 15 Aug 2023 05:39:49 +0000 (UTC)
+Date:   Tue, 15 Aug 2023 08:39:48 +0300
 From:   Tony Lindgren <tony@atomide.com>
 To:     kernel test robot <lkp@intel.com>
 Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
@@ -26,47 +26,42 @@ Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
 Subject: Re: [tmlind-omap:omap-for-v6.6/ti-sysc 3/5]
  drivers/bus/ti-sysc.c:3107:19: warning: cast to smaller integer type 'enum
  sysc_soc' from 'const void *'
-Message-ID: <20230815054528.GQ11676@atomide.com>
+Message-ID: <20230815053948.GP11676@atomide.com>
 References: <202308150723.ziuGCdM3-lkp@intel.com>
- <20230815053948.GP11676@atomide.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230815053948.GP11676@atomide.com>
+In-Reply-To: <202308150723.ziuGCdM3-lkp@intel.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [230815 08:39]:
-> * kernel test robot <lkp@intel.com> [230814 23:20]:
-> > Hi Tony,
-> > 
-> > First bad commit (maybe != root cause):
-> > 
-> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git omap-for-v6.6/ti-sysc
-> > head:   40a4f49cd32dbc641c706215c1fa6c5bd051428c
-> > commit: 063dc0622705623b3a70739b9f33d5ea019882e6 [3/5] bus: ti-sysc: Build driver for TI K3 SoCs
-> > config: arm64-randconfig-r006-20230815 (https://download.01.org/0day-ci/archive/20230815/202308150723.ziuGCdM3-lkp@intel.com/config)
-> > compiler: clang version 17.0.0 (https://github.com/llvm/llvm-project.git 4a5ac14ee968ff0ad5d2cc1ffa0299048db4c88a)
-> > reproduce: (https://download.01.org/0day-ci/archive/20230815/202308150723.ziuGCdM3-lkp@intel.com/reproduce)
-> > 
-> > If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> > the same patch/commit), kindly add following tags
-> > | Reported-by: kernel test robot <lkp@intel.com>
-> > | Closes: https://lore.kernel.org/oe-kbuild-all/202308150723.ziuGCdM3-lkp@intel.com/
-> > 
-> > All warnings (new ones prefixed by >>):
-> > 
-> > >> drivers/bus/ti-sysc.c:3107:19: warning: cast to smaller integer type 'enum sysc_soc' from 'const void *' [-Wvoid-pointer-to-enum-cast]
-> >     3107 |                 sysc_soc->soc = (enum sysc_soc)match->data;
-> >          |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
-> >    1 warning generated.
+* kernel test robot <lkp@intel.com> [230814 23:20]:
+> Hi Tony,
 > 
-> Thanks seems we need to do (enum sysc_soc)(unsigned long)match->data or just
-> (unsigned long)match->data.
+> First bad commit (maybe != root cause):
+> 
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git omap-for-v6.6/ti-sysc
+> head:   40a4f49cd32dbc641c706215c1fa6c5bd051428c
+> commit: 063dc0622705623b3a70739b9f33d5ea019882e6 [3/5] bus: ti-sysc: Build driver for TI K3 SoCs
+> config: arm64-randconfig-r006-20230815 (https://download.01.org/0day-ci/archive/20230815/202308150723.ziuGCdM3-lkp@intel.com/config)
+> compiler: clang version 17.0.0 (https://github.com/llvm/llvm-project.git 4a5ac14ee968ff0ad5d2cc1ffa0299048db4c88a)
+> reproduce: (https://download.01.org/0day-ci/archive/20230815/202308150723.ziuGCdM3-lkp@intel.com/reproduce)
+> 
+> If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> the same patch/commit), kindly add following tags
+> | Reported-by: kernel test robot <lkp@intel.com>
+> | Closes: https://lore.kernel.org/oe-kbuild-all/202308150723.ziuGCdM3-lkp@intel.com/
+> 
+> All warnings (new ones prefixed by >>):
+> 
+> >> drivers/bus/ti-sysc.c:3107:19: warning: cast to smaller integer type 'enum sysc_soc' from 'const void *' [-Wvoid-pointer-to-enum-cast]
+>     3107 |                 sysc_soc->soc = (enum sysc_soc)match->data;
+>          |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+>    1 warning generated.
 
-Actually seems (enum sysc_soc)(uintptr_t)match->data is what is used in
-similar places based on git grep " = (enum " | grep ')('.
+Thanks seems we need to do (enum sysc_soc)(unsigned long)match->data or just
+(unsigned long)match->data.
 
 Regards,
 
