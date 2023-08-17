@@ -2,192 +2,242 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5F27C2FC18
-	for <linux-omap@archiver.kernel.org>; Thu, 17 Aug 2023 11:51:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFF81C2FC14
+	for <linux-omap@archiver.kernel.org>; Thu, 17 Aug 2023 12:09:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350468AbjHQLui (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 17 Aug 2023 07:50:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59566 "EHLO
+        id S1350590AbjHQMJB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 17 Aug 2023 08:09:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350569AbjHQLuf (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 17 Aug 2023 07:50:35 -0400
-Received: from mail-qt1-x82e.google.com (mail-qt1-x82e.google.com [IPv6:2607:f8b0:4864:20::82e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2832115;
-        Thu, 17 Aug 2023 04:50:24 -0700 (PDT)
-Received: by mail-qt1-x82e.google.com with SMTP id d75a77b69052e-40fee14093dso44631971cf.1;
-        Thu, 17 Aug 2023 04:50:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1692273023; x=1692877823;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=M9lCWWjQi5kUWQlvBUeWc9Nf3lu8DPVL2qmfP5rbSH8=;
-        b=B318olWAbT4vuUsbtKYjkoZiRsrsxPFHyrZi3TtEFEtKW9h3HQ8f6p1ZRi50SrnyCG
-         C+D/x4gkGvmid46CM4iXEfUFE/yZ3ytdCcH2N6gOXu9JZt+aFx2UTxLKt4xfP2VdVVI8
-         9KxUpxSEK/gl17voSaMvhohVkORyM75jnOhS6ZqlAdHN8jCbQ46aMLX6QNlopN9nlm5v
-         B8fDbFD99P3xAkGmWSEP5pwRciF8F/RY59tT57mvUlskrhHRrzWLLdIqcq1fp+i8Z3kO
-         U6rIOCAZeq4vLtZrsIy+OCSK5It0dkOBIEwEcUtjRUUjwn3n1IgunVaOVGRFTcGvBwEs
-         xkUw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692273023; x=1692877823;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=M9lCWWjQi5kUWQlvBUeWc9Nf3lu8DPVL2qmfP5rbSH8=;
-        b=H+UtAJUpCIt9K2/sFmoQV7/NREdGRPpsxaGvrNF6v/1z+QgjXIFlseOmO/qMwwAGUs
-         HWIPWtHxO39MkXLyadMSiB94pzJpXRqIj7etXpTy/ccajcjwMSzoomuH5Df1EN049+Ln
-         Q8mM++1Aa7AReWDSLXRqHC3ccCWNEFkJhcwi8E9vln1L4yCx1/iAockBU90la6OqxQcG
-         tBM+UW6R4PXYKh8VE/djR5cS6mr3c1ZHPTJ69yKhRPOIXoNkCvzfU+sTAAAN4dmF+O9z
-         bdEVKmaUWdcUb6X5eSB7VOuJKYKddbDtwFCEB4VTiQV7um75tbq0CgQBQl4FcKv5S8vW
-         0nfA==
-X-Gm-Message-State: AOJu0YxkDIOJjJwpotbfevcsgesRcke+brjkC0a6H2Y2Aek6iZ7Guq3w
-        s+p1v+bfn6Z0y2Q1JINvOZ3u6ZOG38s=
-X-Google-Smtp-Source: AGHT+IGwqjtGvtLsdAOqh0kLYJ3VIFiib/773UCebXn1X0RAhfGf45yDH3EG+elLFhKYLA0K3GB07Q==
-X-Received: by 2002:ac8:584d:0:b0:407:fb08:c44e with SMTP id h13-20020ac8584d000000b00407fb08c44emr4743578qth.5.1692273023167;
-        Thu, 17 Aug 2023 04:50:23 -0700 (PDT)
-Received: from localhost.localdomain (pppoe-209-91-167-254.vianet.ca. [209.91.167.254])
-        by smtp.gmail.com with ESMTPSA id h8-20020ac85148000000b0040ff387de83sm5142149qtn.45.2023.08.17.04.50.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Aug 2023 04:50:22 -0700 (PDT)
-From:   Trevor Woerner <twoerner@gmail.com>
-To:     linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
-        Tony Lindgren <tony@atomide.com>
-Cc:     linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-omap@vger.kernel.org
-Subject: [PATCH v3 1/4] arch/arm/configs/*_defconfig cleanup
-Date:   Thu, 17 Aug 2023 07:50:11 -0400
-Message-ID: <20230817115017.35663-2-twoerner@gmail.com>
-X-Mailer: git-send-email 2.41.0.327.gaa9166bcc0ba
-In-Reply-To: <20230817115017.35663-1-twoerner@gmail.com>
-References: <20230817115017.35663-1-twoerner@gmail.com>
+        with ESMTP id S1350666AbjHQMIl (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 17 Aug 2023 08:08:41 -0400
+Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E5C52D5A;
+        Thu, 17 Aug 2023 05:08:37 -0700 (PDT)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 37HC8Qpn081407;
+        Thu, 17 Aug 2023 07:08:26 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1692274106;
+        bh=DSsIDRJkKIqN2Zvfz06o3GqRZ4WbwzC5i/Q1XGuPtOU=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=Ry6rHyhNX6zvmmEumeuV/ydpwvgCMc1RAA9PPV95bRCrucMcvY/kPgilB5moHUbQ+
+         hdNyXwvRao4KNQxL0fxH9VNkZWFMvVXhYC+TD0Q8OilmgXuDCohiKqF3lPxhVtlM6z
+         YoLLdXHWt763jDvfj5xSQOqQ+9L+tFmYcCXJYKPQ=
+Received: from DLEE112.ent.ti.com (dlee112.ent.ti.com [157.170.170.23])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 37HC8Qc0106636
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 17 Aug 2023 07:08:26 -0500
+Received: from DLEE107.ent.ti.com (157.170.170.37) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 17
+ Aug 2023 07:08:25 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE107.ent.ti.com
+ (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Thu, 17 Aug 2023 07:08:25 -0500
+Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 37HC8OEf116518;
+        Thu, 17 Aug 2023 07:08:25 -0500
+From:   Achal Verma <a-verma1@ti.com>
+To:     Vignesh Raghavendra <vigneshr@ti.com>,
+        Tom Joseph <tjoseph@cadence.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Krzysztof Wilczy_ski <kw@linux.com>,
+        Rob Herring <robh@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>
+CC:     <linux-omap@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, Achal Verma <a-verma1@ti.com>
+Subject: [RFC PATCH 1/2] PCI: cadence: Add support to build pcie-cadence library as a kernel module
+Date:   Thu, 17 Aug 2023 17:38:22 +0530
+Message-ID: <20230817120823.1158766-2-a-verma1@ti.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230817120823.1158766-1-a-verma1@ti.com>
+References: <20230817120823.1158766-1-a-verma1@ti.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Drop CONFIG_NF_LOG_NETDEV as it was removed in commit 1510618e45cb
-("netfilter: nf_log_netdev: merge with nf_log_syslog").
+From: Kishon Vijay Abraham I <kishon@ti.com>
 
-Drop CONFIG_NFT_COUNTER as it was removed in commit 023223dfbfb3
-("netfilter: nf_tables: make counter support built-in").
+Cadence PCIe controller driver can be build as kernel built-in driver only,
+which is not required since its not required at boot time.
+Thus, this change adds support to build Cadence PCIe driver as kernel
+module.
 
-Drop CONFIG_NF_FLOW_TABLE_IPV6 and CONFIG_NF_FLOW_TABLE_IPV4 as they were
-removed in commit c42ba4290b21 ("netfilter: flowtable: remove ipv4/ipv6
-modules").
-
-Drop CONFIG_NF_LOG_BRIDGE as it was removed in commit 77ccee96a674
-("netfilter: nf_log_bridge: merge with nf_log_syslog").
-
-Drop CONFIG_IP_NF_TARGET_CLUSTERIP from any remaining arm defconfigs as it
-was removed in commit 9db5d918e2c0 ("netfilter: ip_tables: remove clusterip
-target").
-
-Drop CONFIG_USB_MUSB_AM35X as it was removed in commit 57f8e00d8a82 ("usb:
-musb: Drop old unused am35x glue layer").
-
-Drop CONFIG_NFT_OBJREF as it was removed in commit d037abc2414b
-("netfilter: nft_objref: make it builtin").
-
-Signed-off-by: Trevor Woerner <twoerner@gmail.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Achal Verma <a-verma1@ti.com>
 ---
- arch/arm/configs/keystone_defconfig  | 1 -
- arch/arm/configs/multi_v7_defconfig  | 1 -
- arch/arm/configs/omap2plus_defconfig | 8 --------
- 3 files changed, 10 deletions(-)
+ drivers/pci/controller/cadence/Kconfig             | 6 +++---
+ drivers/pci/controller/cadence/pcie-cadence-ep.c   | 4 ++++
+ drivers/pci/controller/cadence/pcie-cadence-host.c | 5 +++++
+ drivers/pci/controller/cadence/pcie-cadence.c      | 9 +++++++++
+ drivers/pci/controller/cadence/pcie-cadence.h      | 4 ++--
+ 5 files changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/configs/keystone_defconfig b/arch/arm/configs/keystone_defconfig
-index 1cb145633a91..61179b75cf1f 100644
---- a/arch/arm/configs/keystone_defconfig
-+++ b/arch/arm/configs/keystone_defconfig
-@@ -98,7 +98,6 @@ CONFIG_IP_NF_MATCH_TTL=y
- CONFIG_IP_NF_FILTER=y
- CONFIG_IP_NF_TARGET_REJECT=y
- CONFIG_IP_NF_MANGLE=y
--CONFIG_IP_NF_TARGET_CLUSTERIP=y
- CONFIG_IP_NF_TARGET_ECN=y
- CONFIG_IP_NF_TARGET_TTL=y
- CONFIG_IP_NF_RAW=y
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-index c7b2550d706c..497274c81ea2 100644
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -851,7 +851,6 @@ CONFIG_USB_MUSB_HDRC=m
- CONFIG_USB_MUSB_SUNXI=m
- CONFIG_USB_MUSB_TUSB6010=m
- CONFIG_USB_MUSB_OMAP2PLUS=m
--CONFIG_USB_MUSB_AM35X=m
- CONFIG_USB_MUSB_DSPS=m
- CONFIG_USB_MUSB_UX500=m
- CONFIG_USB_UX500_DMA=y
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index b685018dcf54..b2f0862f4bd9 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -78,7 +78,6 @@ CONFIG_IP_PNP_BOOTP=y
- CONFIG_IP_PNP_RARP=y
- CONFIG_NETFILTER=y
- CONFIG_NF_CONNTRACK=m
--CONFIG_NF_LOG_NETDEV=m
- CONFIG_NF_CONNTRACK_ZONES=y
- CONFIG_NF_CONNTRACK_EVENTS=y
- CONFIG_NF_CONNTRACK_TIMEOUT=y
-@@ -92,7 +91,6 @@ CONFIG_NF_TABLES_INET=y
- CONFIG_NF_TABLES_NETDEV=y
- CONFIG_NFT_NUMGEN=m
- CONFIG_NFT_CT=m
--CONFIG_NFT_COUNTER=m
- CONFIG_NFT_CONNLIMIT=m
- CONFIG_NFT_LOG=m
- CONFIG_NFT_LIMIT=m
-@@ -100,7 +98,6 @@ CONFIG_NFT_MASQ=m
- CONFIG_NFT_REDIR=m
- CONFIG_NFT_NAT=m
- CONFIG_NFT_TUNNEL=m
--CONFIG_NFT_OBJREF=m
- CONFIG_NFT_QUEUE=m
- CONFIG_NFT_QUOTA=m
- CONFIG_NFT_REJECT=m
-@@ -179,7 +176,6 @@ CONFIG_NETFILTER_XT_MATCH_TIME=m
- CONFIG_NETFILTER_XT_MATCH_U32=m
- CONFIG_NFT_DUP_IPV4=m
- CONFIG_NFT_FIB_IPV4=m
--CONFIG_NF_FLOW_TABLE_IPV4=m
- CONFIG_IP_NF_IPTABLES=m
- CONFIG_IP_NF_MATCH_AH=m
- CONFIG_IP_NF_MATCH_ECN=m
-@@ -193,14 +189,12 @@ CONFIG_IP_NF_TARGET_MASQUERADE=m
- CONFIG_IP_NF_TARGET_NETMAP=m
- CONFIG_IP_NF_TARGET_REDIRECT=m
- CONFIG_IP_NF_MANGLE=m
--CONFIG_IP_NF_TARGET_CLUSTERIP=m
- CONFIG_IP_NF_TARGET_ECN=m
- CONFIG_IP_NF_TARGET_TTL=m
- CONFIG_IP_NF_RAW=m
- CONFIG_IP_NF_SECURITY=m
- CONFIG_NFT_DUP_IPV6=m
- CONFIG_NFT_FIB_IPV6=m
--CONFIG_NF_FLOW_TABLE_IPV6=m
- CONFIG_IP6_NF_IPTABLES=m
- CONFIG_IP6_NF_MATCH_AH=m
- CONFIG_IP6_NF_MATCH_EUI64=m
-@@ -225,7 +219,6 @@ CONFIG_IP6_NF_TARGET_NPT=m
- CONFIG_NF_TABLES_BRIDGE=m
- CONFIG_NFT_BRIDGE_META=m
- CONFIG_NFT_BRIDGE_REJECT=m
--CONFIG_NF_LOG_BRIDGE=m
- CONFIG_BRIDGE=m
- CONFIG_BRIDGE_VLAN_FILTERING=y
- CONFIG_VLAN_8021Q=m
-@@ -560,7 +553,6 @@ CONFIG_USB_STORAGE=m
- CONFIG_USB_MUSB_HDRC=m
- CONFIG_USB_MUSB_TUSB6010=m
- CONFIG_USB_MUSB_OMAP2PLUS=m
--CONFIG_USB_MUSB_AM35X=m
- CONFIG_USB_MUSB_DSPS=m
- CONFIG_USB_INVENTRA_DMA=y
- CONFIG_USB_TI_CPPI41_DMA=y
+diff --git a/drivers/pci/controller/cadence/Kconfig b/drivers/pci/controller/cadence/Kconfig
+index 291d12711363..abc245dbedab 100644
+--- a/drivers/pci/controller/cadence/Kconfig
++++ b/drivers/pci/controller/cadence/Kconfig
+@@ -4,16 +4,16 @@ menu "Cadence-based PCIe controllers"
+ 	depends on PCI
+ 
+ config PCIE_CADENCE
+-	bool
++	tristate
+ 
+ config PCIE_CADENCE_HOST
+-	bool
++	tristate
+ 	depends on OF
+ 	select IRQ_DOMAIN
+ 	select PCIE_CADENCE
+ 
+ config PCIE_CADENCE_EP
+-	bool
++	tristate
+ 	depends on OF
+ 	depends on PCI_ENDPOINT
+ 	select PCIE_CADENCE
+diff --git a/drivers/pci/controller/cadence/pcie-cadence-ep.c b/drivers/pci/controller/cadence/pcie-cadence-ep.c
+index 8742b2f594fd..85f0741166b5 100644
+--- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
++++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
+@@ -5,6 +5,7 @@
+ 
+ #include <linux/delay.h>
+ #include <linux/kernel.h>
++#include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/pci-epc.h>
+ #include <linux/platform_device.h>
+@@ -753,3 +754,6 @@ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(cdns_pcie_ep_setup);
++
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
+index fc696d94f7a2..06f3e1de1de2 100644
+--- a/drivers/pci/controller/cadence/pcie-cadence-host.c
++++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
+@@ -5,6 +5,7 @@
+ 
+ #include <linux/delay.h>
+ #include <linux/kernel.h>
++#include <linux/module.h>
+ #include <linux/list_sort.h>
+ #include <linux/of_address.h>
+ #include <linux/of_pci.h>
+@@ -72,6 +73,7 @@ void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
+ 
+ 	return rc->cfg_base + (where & 0xfff);
+ }
++EXPORT_SYMBOL_GPL(cdns_pci_map_bus);
+ 
+ static struct pci_ops cdns_pcie_host_ops = {
+ 	.map_bus	= cdns_pci_map_bus,
+@@ -576,3 +578,6 @@ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(cdns_pcie_host_setup);
++
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/pci/controller/cadence/pcie-cadence.c b/drivers/pci/controller/cadence/pcie-cadence.c
+index 4251fac5e310..4d16f6f37d1c 100644
+--- a/drivers/pci/controller/cadence/pcie-cadence.c
++++ b/drivers/pci/controller/cadence/pcie-cadence.c
+@@ -5,6 +5,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/of.h>
++#include <linux/module.h>
+ 
+ #include "pcie-cadence.h"
+ 
+@@ -23,6 +24,7 @@ void cdns_pcie_detect_quiet_min_delay_set(struct cdns_pcie *pcie)
+ 
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_LTSSM_CONTROL_CAP, ltssm_control_cap);
+ }
++EXPORT_SYMBOL_GPL(cdns_pcie_detect_quiet_min_delay_set);
+ 
+ void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 busnr, u8 fn,
+ 				   u32 r, bool is_io,
+@@ -100,6 +102,7 @@ void cdns_pcie_set_outbound_region(struct cdns_pcie *pcie, u8 busnr, u8 fn,
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR0(r), addr0);
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR1(r), addr1);
+ }
++EXPORT_SYMBOL_GPL(cdns_pcie_set_outbound_region);
+ 
+ void cdns_pcie_set_outbound_region_for_normal_msg(struct cdns_pcie *pcie,
+ 						  u8 busnr, u8 fn,
+@@ -134,6 +137,7 @@ void cdns_pcie_set_outbound_region_for_normal_msg(struct cdns_pcie *pcie,
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR0(r), addr0);
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR1(r), addr1);
+ }
++EXPORT_SYMBOL_GPL(cdns_pcie_set_outbound_region_for_normal_msg);
+ 
+ void cdns_pcie_reset_outbound_region(struct cdns_pcie *pcie, u32 r)
+ {
+@@ -146,6 +150,7 @@ void cdns_pcie_reset_outbound_region(struct cdns_pcie *pcie, u32 r)
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR0(r), 0);
+ 	cdns_pcie_writel(pcie, CDNS_PCIE_AT_OB_REGION_CPU_ADDR1(r), 0);
+ }
++EXPORT_SYMBOL_GPL(cdns_pcie_reset_outbound_region);
+ 
+ void cdns_pcie_disable_phy(struct cdns_pcie *pcie)
+ {
+@@ -156,6 +161,7 @@ void cdns_pcie_disable_phy(struct cdns_pcie *pcie)
+ 		phy_exit(pcie->phy[i]);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(cdns_pcie_disable_phy);
+ 
+ int cdns_pcie_enable_phy(struct cdns_pcie *pcie)
+ {
+@@ -243,6 +249,7 @@ int cdns_pcie_init_phy(struct device *dev, struct cdns_pcie *pcie)
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(cdns_pcie_init_phy);
+ 
+ static int cdns_pcie_suspend_noirq(struct device *dev)
+ {
+@@ -271,3 +278,5 @@ const struct dev_pm_ops cdns_pcie_pm_ops = {
+ 	NOIRQ_SYSTEM_SLEEP_PM_OPS(cdns_pcie_suspend_noirq,
+ 				  cdns_pcie_resume_noirq)
+ };
++
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
+index adcab11e62cd..5aa0b1298b17 100644
+--- a/drivers/pci/controller/cadence/pcie-cadence.h
++++ b/drivers/pci/controller/cadence/pcie-cadence.h
+@@ -532,7 +532,7 @@ static inline bool cdns_pcie_link_up(struct cdns_pcie *pcie)
+ 	return true;
+ }
+ 
+-#ifdef CONFIG_PCIE_CADENCE_HOST
++#if IS_ENABLED(CONFIG_PCIE_CADENCE_HOST)
+ int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
+ void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
+ 			       int where);
+@@ -549,7 +549,7 @@ static inline void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int d
+ }
+ #endif
+ 
+-#ifdef CONFIG_PCIE_CADENCE_EP
++#if IS_ENABLED(CONFIG_PCIE_CADENCE_EP)
+ int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep);
+ #else
+ static inline int cdns_pcie_ep_setup(struct cdns_pcie_ep *ep)
 -- 
-2.41.0.327.gaa9166bcc0ba
+2.25.1
 
