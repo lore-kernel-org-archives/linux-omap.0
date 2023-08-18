@@ -2,53 +2,53 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1213C7EE24
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5E09C7EE2F
 	for <linux-omap@archiver.kernel.org>; Fri, 18 Aug 2023 15:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377987AbjHRPK5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Aug 2023 11:10:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49730 "EHLO
+        id S1377999AbjHRPK7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 18 Aug 2023 11:10:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1378004AbjHRPKu (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Aug 2023 11:10:50 -0400
-Received: from mail-qk1-x72c.google.com (mail-qk1-x72c.google.com [IPv6:2607:f8b0:4864:20::72c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95F8EE5F;
-        Fri, 18 Aug 2023 08:10:49 -0700 (PDT)
-Received: by mail-qk1-x72c.google.com with SMTP id af79cd13be357-76d86b5e37aso64554985a.0;
-        Fri, 18 Aug 2023 08:10:49 -0700 (PDT)
+        with ESMTP id S1378006AbjHRPKy (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Aug 2023 11:10:54 -0400
+Received: from mail-qk1-x72f.google.com (mail-qk1-x72f.google.com [IPv6:2607:f8b0:4864:20::72f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F96FE5F;
+        Fri, 18 Aug 2023 08:10:53 -0700 (PDT)
+Received: by mail-qk1-x72f.google.com with SMTP id af79cd13be357-76d84238f01so63882385a.2;
+        Fri, 18 Aug 2023 08:10:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1692371448; x=1692976248;
+        d=gmail.com; s=20221208; t=1692371452; x=1692976252;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=jM3ddTmL3QgnOlaA1OLoKs8b5V811de6dCp7PcXvnc4=;
-        b=Kf8VuA48yqIHJmmslvDJIZAzYPfqbSC0peyADZaBnH0G23UkWW2TL80/MCJevIk/71
-         ZMz0pkD2/paSkGGyeSLJapnmfNT3MWEeRU0MPFRwc71+OXtxGi4Bnl1kLv+p0co0lCPJ
-         /e94WyN7MfCDM6VmUft81FHsA9OTt3FLfDpbO0WC9jCSVZOvxn73Ume5TuYxU9Qn+oRg
-         T8snk4KPQ2QUBoxwUtZMPM5LJBbDvM8YeVc+nklnrNMlndJX4+5l5W3ReimP1PCFqOqN
-         inTbpFUaIVfV8/2NIEme+73eEEZG760e+0yWczU8ot0VJ87Ln14CAR/wgwhWL4+H8r2K
-         Gq1g==
+        bh=bArMg3pWRFuQXJwECjeBn7psgnBpJoxWz+Fn+NBhMDY=;
+        b=DzcHASW60vyltqv9kr0kQPHk4Bsak0E2AIysRxVCx3aRD35A5IkYnzmQHzbOj+HJXj
+         KmD6g5j0dnJ1BJbEcod2h+7nAiM0m6JHGjLk0VmGKyiDXilDuhEq5h/aUVHkUlu3W5WH
+         v1joelEJc8m0+G80T0XJ2HueUE0vXRkfv58CJYELMgQcUtjesI1v+9VH5Dxcc17FBcZC
+         P8CVixxzSK1JD//BKXl3dX46d3kdAZZdrj6gYbV9GhpnHLPRKd1Cge7XaR/TQSV1q2Re
+         Hrn3CbKpLWIWjVof3YKF8JtsCqr5xxzDdiFNBpInViwd1F/xPeNryE6gCU/3sfCaYvAz
+         ZXZg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692371448; x=1692976248;
+        d=1e100.net; s=20221208; t=1692371452; x=1692976252;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=jM3ddTmL3QgnOlaA1OLoKs8b5V811de6dCp7PcXvnc4=;
-        b=He6jPRLcfbSLhpPClBOV2AgiIBoRz1y4DLpNxa8x0m+oefjp4SZWcTS9GsAZQ1+K+s
-         cyeB5AKBo9FWyKxWfRmcKEE+j6x2fa62vF6ISwpjEUTLNbwz2u/PrPdPiyaCDuSI+etS
-         UuoF+KpcQAArGGAb/y6dvV4kszBIhYJC3RLKEWAXMuRbCz9WfKIunycNCQnkPui4gJba
-         FU5BB/rxvjveHjQ2cxeei4MIstogNlkxagVGzu6bhtlwPw29pHAAqVa180Z+iWpgrvAc
-         R6RMnFOqexe5BdvSgn+FFCRqphOaBsMCD84oZoxWFE36anmXjqW+V267e8pPrWCHR2mI
-         a8Tg==
-X-Gm-Message-State: AOJu0YyIjOnCIkfJJcgnIy6zZLt0g0/4gf+jMPQchgPcvAHeFqfaKbQM
-        vWTo2SkBraNAikrQpIn0alk=
-X-Google-Smtp-Source: AGHT+IEAPvRPfBm9icxZc+Ae6KxUSi+FYvDxMnFNr13qGWvRXxIDaFxMmFK2YsBVoDokUOAZ5wLVjA==
-X-Received: by 2002:a05:620a:2444:b0:767:2919:f38f with SMTP id h4-20020a05620a244400b007672919f38fmr3765198qkn.10.1692371448716;
-        Fri, 18 Aug 2023 08:10:48 -0700 (PDT)
+        bh=bArMg3pWRFuQXJwECjeBn7psgnBpJoxWz+Fn+NBhMDY=;
+        b=AuikQvqc2+3zoRTOLtodadZpzhC/zTHVmqAycSRh4x+lvdiF7Hp8ZazCHXzRIuyj5h
+         6cFcCurzru4xdKCISmTu7CBWDmAWgs7vgYJZfIzBn5nEqLfwmk7+zpTEBuaVXXK+IhXf
+         TaIJjqoiE3cWuSDP/daXKK+PjmcVz15iRWeDTqiEW9bMrXDY1gk3s1eLAod6SoHOdkl/
+         WtpIgb9jE0gh5zo97dJyBeSvkUsIidntTgZSgafwBcDbSfkFx5NUHZ4hH6nf0wnP0MlI
+         Ku76S6O9VikD+JLozoOiJcpnH2jms+RhODO+HhEzjYGsaGKQdoft6eMSzw6DI/4r7TEQ
+         vgFg==
+X-Gm-Message-State: AOJu0YxSXT51oEKF03JKASFWZfEXdLonzM9ZIzN5IOYtzR8vGMhtb73v
+        IFk2JgIElH7wnMWBFGTmW9yjp4R0ydE=
+X-Google-Smtp-Source: AGHT+IGPnn/O3RXYq3Iyv0ZiSRLwxYjzhBZfo8UAzn8PikmJGHGuqN/7pt5DAurYOTGcKs+ybHhTqw==
+X-Received: by 2002:a37:ad04:0:b0:76d:2764:f3b3 with SMTP id f4-20020a37ad04000000b0076d2764f3b3mr2916869qkm.56.1692371452681;
+        Fri, 18 Aug 2023 08:10:52 -0700 (PDT)
 Received: from localhost.localdomain (pppoe-209-91-167-254.vianet.ca. [209.91.167.254])
-        by smtp.gmail.com with ESMTPSA id w3-20020a05620a148300b0076cbcf8ad3bsm576239qkj.55.2023.08.18.08.10.47
+        by smtp.gmail.com with ESMTPSA id w3-20020a05620a148300b0076cbcf8ad3bsm576239qkj.55.2023.08.18.08.10.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 18 Aug 2023 08:10:47 -0700 (PDT)
+        Fri, 18 Aug 2023 08:10:51 -0700 (PDT)
 From:   Trevor Woerner <twoerner@gmail.com>
 To:     drew@beagleboard.org,
         =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
@@ -58,9 +58,9 @@ To:     drew@beagleboard.org,
         Conor Dooley <conor+dt@kernel.org>
 Cc:     linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: [PATCH v2 2/4] ARM: dts: am335x-pocketbeagle: remove dependency cycle
-Date:   Fri, 18 Aug 2023 11:10:35 -0400
-Message-ID: <20230818151039.40566-3-twoerner@gmail.com>
+Subject: [PATCH v2 4/4] ARM: dts: am335x-pocketbeagle: add missing GPIO mux
+Date:   Fri, 18 Aug 2023 11:10:37 -0400
+Message-ID: <20230818151039.40566-5-twoerner@gmail.com>
 X-Mailer: git-send-email 2.41.0.327.gaa9166bcc0ba
 In-Reply-To: <20230818151039.40566-1-twoerner@gmail.com>
 References: <20230818151039.40566-1-twoerner@gmail.com>
@@ -70,32 +70,35 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Remove the self-referenceing "pinctrl-0" entry inside the pinmux clause.
-This eliminates the set of boot messages (one for each referenced pin)
-similar to the following:
-
-        platform 44e10800.pinmux: Fixed dependency cycle(s) with /ocp/interconnect@44c00000/segment@200000/target-module@10000/scm@0/pinmux@800/pinmux_P2_17_gpio
+Add the default MODE setting of a GPIO pin that was missing from the device
+tree (i.e. P2.20/gpio2_00). This is to ensure the GPIO pins match the
+pocketbeagle wiring expectations.
 
 Signed-off-by: Trevor Woerner <twoerner@gmail.com>
 ---
- arch/arm/boot/dts/ti/omap/am335x-pocketbeagle.dts | 5 -----
- 1 file changed, 5 deletions(-)
+ arch/arm/boot/dts/ti/omap/am335x-pocketbeagle.dts | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/arch/arm/boot/dts/ti/omap/am335x-pocketbeagle.dts b/arch/arm/boot/dts/ti/omap/am335x-pocketbeagle.dts
-index 1c11245f6864..1e72b8382597 100644
+index fe4a1dbd8d88..051c8f04be21 100644
 --- a/arch/arm/boot/dts/ti/omap/am335x-pocketbeagle.dts
 +++ b/arch/arm/boot/dts/ti/omap/am335x-pocketbeagle.dts
-@@ -213,11 +213,6 @@ &am33xx_pinmux {
- 	compatible = "pinconf-single";
- 	pinctrl-names = "default";
+@@ -267,6 +267,16 @@ AM33XX_PADCONF(AM335X_PIN_GPMC_AD14, PIN_INPUT_PULLUP, MUX_MODE7)
+ 		pinctrl-single,bias-pulldown   = < 0x10  0x00  0x10  0x18>;
+ 	};
  
--	pinctrl-0 =   < &P2_03_gpio &P1_34_gpio &P2_19_gpio &P2_24_gpio
--			&P2_33_gpio &P2_22_gpio &P2_18_gpio &P2_10_gpio
--			&P2_06_gpio &P2_04_gpio &P2_02_gpio &P2_08_gpio
--			&P2_17_gpio >;
--
- 	/* P2_03 (ZCZ ball T10) gpio0_23 0x824 PIN 9 */
- 	P2_03_gpio: P2-03-gpio-pins {
++	/* P2_20 (ZCZ ball T13) gpio2_00 0x888 */
++	P2_20_gpio: P2-20-gpio-pins {
++		pinctrl-single,pins = <
++			AM33XX_PADCONF(AM335X_PIN_GPMC_CSN3, PIN_INPUT_PULLUP, MUX_MODE7)
++		>;
++		pinctrl-single,bias-pullup   =   < 0x10  0x10  0x00  0x18>;
++		pinctrl-single,bias-pulldown   = < 0x10  0x00  0x10  0x18>;
++	};
++
++
+ 	/* P2_10 (ZCZ ball R14) gpio1_20 0x850 PIN 20 */
+ 	P2_10_gpio: P2-10-gpio-pins {
  		pinctrl-single,pins = <
 -- 
 2.41.0.327.gaa9166bcc0ba
