@@ -2,25 +2,25 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53984C71155
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3213C71156
 	for <linux-omap@archiver.kernel.org>; Fri, 18 Aug 2023 09:31:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359123AbjHRJbE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Aug 2023 05:31:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53620 "EHLO
+        id S1359145AbjHRJbI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 18 Aug 2023 05:31:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359176AbjHRJao (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Aug 2023 05:30:44 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 143C53C25;
-        Fri, 18 Aug 2023 02:30:40 -0700 (PDT)
-Received: from kwepemi500012.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4RRxN2722lztSFq;
-        Fri, 18 Aug 2023 17:26:58 +0800 (CST)
+        with ESMTP id S1359126AbjHRJak (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Aug 2023 05:30:40 -0400
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D936E3A88;
+        Fri, 18 Aug 2023 02:30:36 -0700 (PDT)
+Received: from kwepemi500012.china.huawei.com (unknown [172.30.72.57])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4RRxNk0sV0zFqlR;
+        Fri, 18 Aug 2023 17:27:34 +0800 (CST)
 Received: from huawei.com (10.90.53.73) by kwepemi500012.china.huawei.com
  (7.221.188.12) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.31; Fri, 18 Aug
- 2023 17:30:37 +0800
+ 2023 17:30:33 +0800
 From:   Li Zetao <lizetao1@huawei.com>
 To:     <linus.walleij@linaro.org>, <brgl@bgdev.pl>, <andy@kernel.org>,
         <j-keerthy@ti.com>, <vz@mleia.com>, <thierry.reding@gmail.com>,
@@ -31,12 +31,10 @@ To:     <linus.walleij@linaro.org>, <brgl@bgdev.pl>, <andy@kernel.org>,
 CC:     <lizetao1@huawei.com>, <linux-gpio@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-pwm@vger.kernel.org>, <linux-omap@vger.kernel.org>
-Subject: [PATCH -next 07/11] gpio: mxc: Use helper function devm_clk_get_optional_enabled()
-Date:   Fri, 18 Aug 2023 17:30:14 +0800
-Message-ID: <20230818093018.1051434-8-lizetao1@huawei.com>
+Subject: [PATCH -next 00/11] gpio: Use devm_clk_get_*() helper function to simplify the drivers.
+Date:   Fri, 18 Aug 2023 17:30:07 +0800
+Message-ID: <20230818093018.1051434-1-lizetao1@huawei.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230818093018.1051434-1-lizetao1@huawei.com>
-References: <20230818093018.1051434-1-lizetao1@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -48,48 +46,43 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Since commit 7ef9651e9792 ("clk: Provide new devm_clk helpers for
-prepared and enabled clocks"), devm_clk_get_optional() and
-clk_prepare_enable() can now be replaced by
-devm_clk_get_optional_enabled() when the driver enables (and possibly
-prepares) the clocks for the whole lifetime of the device. Moreover,
-it is no longer necessary to unprepare and disable the clocks explicitly.
+Commit 7ef9651e9792 ("clk: Provide new devm_clk helpers for prepared
+and enabled clocks") provides a a series of new helper function for
+prepared and enabled clocks when a driver keeps a clock prepared
+(or enabled) during the whole lifetime of the driver. So where drivers
+get clocks and enable them immediately, it can be combined into a single
+function devm_clk_get_*(). Moreover, the unprepare and disable function
+has been registered to devm_clk_state, and before devm_clk_state is
+released, the clocks will be unprepareed and disable, so it is unnecessary
+to unprepare and disable clock explicitly when remove drivers or in the
+error handling path.
 
-Signed-off-by: Li Zetao <lizetao1@huawei.com>
----
- drivers/gpio/gpio-mxc.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+Li Zetao (11):
+  gpio: cadence: Use helper function devm_clk_get_enabled()
+  gpio: davinci: Use helper function devm_clk_get_enabled()
+  gpio: ftgpio010: Use helper function devm_clk_get_enabled()
+  gpio: lpc18xx: Use helper function devm_clk_get_enabled()
+  gpio: mb86s7x: Use helper function devm_clk_get_optional_enabled()
+  gpio: mvebu: Use helper function devm_clk_get_enabled()
+  gpio: mxc: Use helper function devm_clk_get_optional_enabled()
+  gpio: omap: Use helper function devm_clk_get_prepared()
+  gpio: stp-xway: Use helper function devm_clk_get_enabled()
+  gpio: xilinx: Use helper function devm_clk_get_optional_enabled()
+  gpio: zynq: Use helper function devm_clk_get_enabled()
 
-diff --git a/drivers/gpio/gpio-mxc.c b/drivers/gpio/gpio-mxc.c
-index 004c6ad7ce52..4cb455b2bdee 100644
---- a/drivers/gpio/gpio-mxc.c
-+++ b/drivers/gpio/gpio-mxc.c
-@@ -452,16 +452,10 @@ static int mxc_gpio_probe(struct platform_device *pdev)
- 		return port->irq;
- 
- 	/* the controller clock is optional */
--	port->clk = devm_clk_get_optional(&pdev->dev, NULL);
-+	port->clk = devm_clk_get_optional_enabled(&pdev->dev, NULL);
- 	if (IS_ERR(port->clk))
- 		return PTR_ERR(port->clk);
- 
--	err = clk_prepare_enable(port->clk);
--	if (err) {
--		dev_err(&pdev->dev, "Unable to enable clock.\n");
--		return err;
--	}
--
- 	if (of_device_is_compatible(np, "fsl,imx7d-gpio"))
- 		port->power_off = true;
- 
-@@ -535,7 +529,6 @@ static int mxc_gpio_probe(struct platform_device *pdev)
- out_bgio:
- 	pm_runtime_disable(&pdev->dev);
- 	pm_runtime_put_noidle(&pdev->dev);
--	clk_disable_unprepare(port->clk);
- 	dev_info(&pdev->dev, "%s failed with errno %d\n", __func__, err);
- 	return err;
- }
+ drivers/gpio/gpio-cadence.c   | 20 +++++---------------
+ drivers/gpio/gpio-davinci.c   | 13 ++-----------
+ drivers/gpio/gpio-ftgpio010.c | 29 +++++++----------------------
+ drivers/gpio/gpio-lpc18xx.c   | 14 +++-----------
+ drivers/gpio/gpio-mb86s7x.c   |  8 +-------
+ drivers/gpio/gpio-mvebu.c     |  4 +---
+ drivers/gpio/gpio-mxc.c       |  9 +--------
+ drivers/gpio/gpio-omap.c      |  8 +-------
+ drivers/gpio/gpio-stp-xway.c  | 10 ++--------
+ drivers/gpio/gpio-xilinx.c    | 14 +++-----------
+ drivers/gpio/gpio-zynq.c      | 13 +++----------
+ 11 files changed, 29 insertions(+), 113 deletions(-)
+
 -- 
 2.34.1
 
