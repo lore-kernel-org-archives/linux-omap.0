@@ -2,25 +2,25 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53A19C7EE2D
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Aug 2023 09:31:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EFBCC7EE31
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Aug 2023 09:31:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359172AbjHRJbL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S1359167AbjHRJbL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Fri, 18 Aug 2023 05:31:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53626 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359178AbjHRJao (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Aug 2023 05:30:44 -0400
+        with ESMTP id S1359165AbjHRJam (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Aug 2023 05:30:42 -0400
 Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 937843C27;
-        Fri, 18 Aug 2023 02:30:40 -0700 (PDT)
-Received: from kwepemi500012.china.huawei.com (unknown [172.30.72.53])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4RRxN33xm2ztS9J;
-        Fri, 18 Aug 2023 17:26:59 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF25F3C1D;
+        Fri, 18 Aug 2023 02:30:38 -0700 (PDT)
+Received: from kwepemi500012.china.huawei.com (unknown [172.30.72.56])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4RRxN15pglztSFW;
+        Fri, 18 Aug 2023 17:26:57 +0800 (CST)
 Received: from huawei.com (10.90.53.73) by kwepemi500012.china.huawei.com
  (7.221.188.12) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.31; Fri, 18 Aug
- 2023 17:30:37 +0800
+ 2023 17:30:35 +0800
 From:   Li Zetao <lizetao1@huawei.com>
 To:     <linus.walleij@linaro.org>, <brgl@bgdev.pl>, <andy@kernel.org>,
         <j-keerthy@ti.com>, <vz@mleia.com>, <thierry.reding@gmail.com>,
@@ -31,9 +31,9 @@ To:     <linus.walleij@linaro.org>, <brgl@bgdev.pl>, <andy@kernel.org>,
 CC:     <lizetao1@huawei.com>, <linux-gpio@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-pwm@vger.kernel.org>, <linux-omap@vger.kernel.org>
-Subject: [PATCH -next 08/11] gpio: omap: Use helper function devm_clk_get_prepared()
-Date:   Fri, 18 Aug 2023 17:30:15 +0800
-Message-ID: <20230818093018.1051434-9-lizetao1@huawei.com>
+Subject: [PATCH -next 05/11] gpio: mb86s7x: Use helper function devm_clk_get_optional_enabled()
+Date:   Fri, 18 Aug 2023 17:30:12 +0800
+Message-ID: <20230818093018.1051434-6-lizetao1@huawei.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230818093018.1051434-1-lizetao1@huawei.com>
 References: <20230818093018.1051434-1-lizetao1@huawei.com>
@@ -49,50 +49,50 @@ List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 Since commit 7ef9651e9792 ("clk: Provide new devm_clk helpers for
-prepared and enabled clocks"), devm_clk_get() and clk_prepare() can now be
-replaced by devm_clk_get_prepared() when the driver enables (and possibly
-prepares) the clocks for the whole lifetime of the device. Moreover, it is
-no longer necessary to unprepare and disable the clocks explicitly.
+prepared and enabled clocks"), devm_clk_get_optional() and
+clk_prepare_enable() can now be replaced by
+devm_clk_get_optional_enabled() when the driver enables (and possibly
+prepares) the clocks for the whole lifetime of the device. Moreover,
+it is no longer necessary to unprepare and disable the clocks explicitly.
 
 Signed-off-by: Li Zetao <lizetao1@huawei.com>
 ---
- drivers/gpio/gpio-omap.c | 8 +-------
+ drivers/gpio/gpio-mb86s7x.c | 8 +-------
  1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index a927680c66f8..c0131ee0f90c 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1450,13 +1450,11 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	}
+diff --git a/drivers/gpio/gpio-mb86s7x.c b/drivers/gpio/gpio-mb86s7x.c
+index ca7eb5e8bfaa..8f2abc914dfa 100644
+--- a/drivers/gpio/gpio-mb86s7x.c
++++ b/drivers/gpio/gpio-mb86s7x.c
+@@ -170,14 +170,10 @@ static int mb86s70_gpio_probe(struct platform_device *pdev)
+ 	if (IS_ERR(gchip->base))
+ 		return PTR_ERR(gchip->base);
  
- 	if (bank->dbck_flag) {
--		bank->dbck = devm_clk_get(dev, "dbclk");
-+		bank->dbck = devm_clk_get_prepared(dev, "dbclk");
- 		if (IS_ERR(bank->dbck)) {
- 			dev_err(dev,
- 				"Could not get gpio dbck. Disable debounce\n");
- 			bank->dbck_flag = false;
--		} else {
--			clk_prepare(bank->dbck);
- 		}
- 	}
+-	gchip->clk = devm_clk_get_optional(&pdev->dev, NULL);
++	gchip->clk = devm_clk_get_optional_enabled(&pdev->dev, NULL);
+ 	if (IS_ERR(gchip->clk))
+ 		return PTR_ERR(gchip->clk);
  
-@@ -1474,8 +1472,6 @@ static int omap_gpio_probe(struct platform_device *pdev)
+-	ret = clk_prepare_enable(gchip->clk);
+-	if (ret)
+-		return ret;
+-
+ 	spin_lock_init(&gchip->lock);
+ 
+ 	gchip->gc.direction_output = mb86s70_gpio_direction_output;
+@@ -196,7 +192,6 @@ static int mb86s70_gpio_probe(struct platform_device *pdev)
+ 	ret = gpiochip_add_data(&gchip->gc, gchip);
  	if (ret) {
- 		pm_runtime_put_sync(dev);
- 		pm_runtime_disable(dev);
--		if (bank->dbck_flag)
--			clk_unprepare(bank->dbck);
+ 		dev_err(&pdev->dev, "couldn't register gpio driver\n");
+-		clk_disable_unprepare(gchip->clk);
  		return ret;
  	}
  
-@@ -1496,8 +1492,6 @@ static int omap_gpio_remove(struct platform_device *pdev)
- 	cpu_pm_unregister_notifier(&bank->nb);
- 	gpiochip_remove(&bank->chip);
- 	pm_runtime_disable(&pdev->dev);
--	if (bank->dbck_flag)
--		clk_unprepare(bank->dbck);
+@@ -211,7 +206,6 @@ static int mb86s70_gpio_remove(struct platform_device *pdev)
+ 
+ 	acpi_gpiochip_free_interrupts(&gchip->gc);
+ 	gpiochip_remove(&gchip->gc);
+-	clk_disable_unprepare(gchip->clk);
  
  	return 0;
  }
