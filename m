@@ -2,25 +2,25 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41C85C7115D
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Aug 2023 09:31:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09AE9C7EE24
+	for <linux-omap@archiver.kernel.org>; Fri, 18 Aug 2023 09:31:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359126AbjHRJbJ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Aug 2023 05:31:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53550 "EHLO
+        id S1359158AbjHRJbK (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 18 Aug 2023 05:31:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359130AbjHRJal (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Aug 2023 05:30:41 -0400
+        with ESMTP id S1359166AbjHRJam (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Aug 2023 05:30:42 -0400
 Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D96583A8B;
-        Fri, 18 Aug 2023 02:30:36 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4656C3C21;
+        Fri, 18 Aug 2023 02:30:39 -0700 (PDT)
 Received: from kwepemi500012.china.huawei.com (unknown [172.30.72.55])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4RRxQZ5TzqzkXDM;
-        Fri, 18 Aug 2023 17:29:10 +0800 (CST)
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4RRxN22v5mztSDJ;
+        Fri, 18 Aug 2023 17:26:58 +0800 (CST)
 Received: from huawei.com (10.90.53.73) by kwepemi500012.china.huawei.com
  (7.221.188.12) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.31; Fri, 18 Aug
- 2023 17:30:33 +0800
+ 2023 17:30:36 +0800
 From:   Li Zetao <lizetao1@huawei.com>
 To:     <linus.walleij@linaro.org>, <brgl@bgdev.pl>, <andy@kernel.org>,
         <j-keerthy@ti.com>, <vz@mleia.com>, <thierry.reding@gmail.com>,
@@ -31,9 +31,9 @@ To:     <linus.walleij@linaro.org>, <brgl@bgdev.pl>, <andy@kernel.org>,
 CC:     <lizetao1@huawei.com>, <linux-gpio@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
         <linux-pwm@vger.kernel.org>, <linux-omap@vger.kernel.org>
-Subject: [PATCH -next 01/11] gpio: cadence: Use helper function devm_clk_get_enabled()
-Date:   Fri, 18 Aug 2023 17:30:08 +0800
-Message-ID: <20230818093018.1051434-2-lizetao1@huawei.com>
+Subject: [PATCH -next 06/11] gpio: mvebu: Use helper function devm_clk_get_enabled()
+Date:   Fri, 18 Aug 2023 17:30:13 +0800
+Message-ID: <20230818093018.1051434-7-lizetao1@huawei.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230818093018.1051434-1-lizetao1@huawei.com>
 References: <20230818093018.1051434-1-lizetao1@huawei.com>
@@ -57,71 +57,25 @@ explicitly.
 
 Signed-off-by: Li Zetao <lizetao1@huawei.com>
 ---
- drivers/gpio/gpio-cadence.c | 20 +++++---------------
- 1 file changed, 5 insertions(+), 15 deletions(-)
+ drivers/gpio/gpio-mvebu.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-cadence.c b/drivers/gpio/gpio-cadence.c
-index 3720b90cad10..a545baed9136 100644
---- a/drivers/gpio/gpio-cadence.c
-+++ b/drivers/gpio/gpio-cadence.c
-@@ -203,18 +203,12 @@ static int cdns_gpio_probe(struct platform_device *pdev)
- 	cgpio->gc.request = cdns_gpio_request;
- 	cgpio->gc.free = cdns_gpio_free;
- 
--	cgpio->pclk = devm_clk_get(&pdev->dev, NULL);
-+	cgpio->pclk = devm_clk_get_enabled(&pdev->dev, NULL);
- 	if (IS_ERR(cgpio->pclk)) {
- 		ret = PTR_ERR(cgpio->pclk);
- 		dev_err(&pdev->dev,
--			"Failed to retrieve peripheral clock, %d\n", ret);
--		goto err_revert_dir;
--	}
--
--	ret = clk_prepare_enable(cgpio->pclk);
--	if (ret) {
--		dev_err(&pdev->dev,
--			"Failed to enable the peripheral clock, %d\n", ret);
-+			"Failed to retrieve and enable peripheral clock, %d\n",
-+			ret);
- 		goto err_revert_dir;
+diff --git a/drivers/gpio/gpio-mvebu.c b/drivers/gpio/gpio-mvebu.c
+index 67497116ce27..e0c9b2976705 100644
+--- a/drivers/gpio/gpio-mvebu.c
++++ b/drivers/gpio/gpio-mvebu.c
+@@ -1163,10 +1163,8 @@ static int mvebu_gpio_probe(struct platform_device *pdev)
+ 		return id;
  	}
  
-@@ -234,7 +228,7 @@ static int cdns_gpio_probe(struct platform_device *pdev)
- 					     GFP_KERNEL);
- 		if (!girq->parents) {
- 			ret = -ENOMEM;
--			goto err_disable_clk;
-+			goto err_revert_dir;
- 		}
- 		girq->parents[0] = irq;
- 		girq->default_type = IRQ_TYPE_NONE;
-@@ -244,7 +238,7 @@ static int cdns_gpio_probe(struct platform_device *pdev)
- 	ret = devm_gpiochip_add_data(&pdev->dev, &cgpio->gc, cgpio);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "Could not register gpiochip, %d\n", ret);
--		goto err_disable_clk;
-+		goto err_revert_dir;
- 	}
+-	mvchip->clk = devm_clk_get(&pdev->dev, NULL);
+ 	/* Not all SoCs require a clock.*/
+-	if (!IS_ERR(mvchip->clk))
+-		clk_prepare_enable(mvchip->clk);
++	mvchip->clk = devm_clk_get_enabled(&pdev->dev, NULL);
  
- 	cgpio->bypass_orig = ioread32(cgpio->regs + CDNS_GPIO_BYPASS_MODE);
-@@ -259,9 +253,6 @@ static int cdns_gpio_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, cgpio);
- 	return 0;
- 
--err_disable_clk:
--	clk_disable_unprepare(cgpio->pclk);
--
- err_revert_dir:
- 	iowrite32(dir_prev, cgpio->regs + CDNS_GPIO_DIRECTION_MODE);
- 
-@@ -273,7 +264,6 @@ static int cdns_gpio_remove(struct platform_device *pdev)
- 	struct cdns_gpio_chip *cgpio = platform_get_drvdata(pdev);
- 
- 	iowrite32(cgpio->bypass_orig, cgpio->regs + CDNS_GPIO_BYPASS_MODE);
--	clk_disable_unprepare(cgpio->pclk);
- 
- 	return 0;
- }
+ 	mvchip->soc_variant = soc_variant;
+ 	mvchip->chip.label = dev_name(&pdev->dev);
 -- 
 2.34.1
 
