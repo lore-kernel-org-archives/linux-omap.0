@@ -2,126 +2,90 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25B11C77B7F
-	for <linux-omap@archiver.kernel.org>; Fri, 18 Aug 2023 16:13:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94223EE49A5
+	for <linux-omap@archiver.kernel.org>; Sat, 19 Aug 2023 13:43:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1378475AbjHRQMi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 18 Aug 2023 12:12:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44022 "EHLO
+        id S232793AbjHSNn5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 19 Aug 2023 09:43:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58402 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1378517AbjHRQMM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 18 Aug 2023 12:12:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D03C4213;
-        Fri, 18 Aug 2023 09:12:08 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DF2DA63283;
-        Fri, 18 Aug 2023 16:12:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45906C433C8;
-        Fri, 18 Aug 2023 16:12:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1692375127;
-        bh=nhXaS1ILNMTtOOyTp0Qc/n36yZYia81Kcw5EtjMJ4PU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=vRZSc8c0N5HHbodOqhOc1b10LJdMdUMqCK1yb4IEPu4RES6OMr5KZOu1uxQoucf7/
-         E8A4q9BpYY7kEIHJydRvQPP7EMx++kV1yq0GX/cfyS/uSD5rykdCTSrHpE27HxSL9d
-         58ZjD0VQoWiYSI29GfdA6lnY+TBe7zsXldvtnQUrSIjO3KNmKfQd1R/n4W93cVbKjR
-         Sw56cgOlmGgy2HRO1/JQMh7QCMxQX0pTXzoerlj4kqlxXIt3lfE3s944XoTd0EcaMs
-         fRWCBcm0Z4fY3AuaUIrENcHm7p69w24p4OlOhhDmU4717EAuvuT1oSq15WUEy4LjTT
-         YsyyyUeTQRrOA==
-Date:   Fri, 18 Aug 2023 17:12:01 +0100
-From:   Lee Jones <lee@kernel.org>
-To:     Benjamin Bara <bbara93@gmail.com>
-Cc:     Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Dmitry Osipenko <dmitry.osipenko@collabora.com>,
-        peng.fan@oss.nxp.com, rafael.j.wysocki@intel.com,
-        Jerome Neanne <jneanne@baylibre.com>,
-        linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-omap@vger.kernel.org,
-        Benjamin Bara <benjamin.bara@skidata.com>,
-        Thierry Reding <treding@nvidia.com>
-Subject: Re: [PATCH v2 0/6] regulator: pca9450: register restart handlers
-Message-ID: <20230818161201.GC986605@google.com>
-References: <20230809-pca9450-reboot-v2-0-b98b4f8139d5@skidata.com>
+        with ESMTP id S229436AbjHSNn4 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 19 Aug 2023 09:43:56 -0400
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E80AA8;
+        Sat, 19 Aug 2023 06:42:07 -0700 (PDT)
+Received: from p200300ccff2bce001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff2b:ce00:1a3d:a2ff:febf:d33a] helo=aktux)
+        by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <andreas@kemnade.info>)
+        id 1qXMDG-002nxv-Jd; Sat, 19 Aug 2023 15:41:58 +0200
+Received: from andi by aktux with local (Exim 4.96)
+        (envelope-from <andreas@kemnade.info>)
+        id 1qXMDG-001ueM-0y;
+        Sat, 19 Aug 2023 15:41:58 +0200
+From:   Andreas Kemnade <andreas@kemnade.info>
+To:     mturquette@baylibre.com, sboyd@kernel.org, robh+dt@kernel.org,
+        krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
+        bcousson@baylibre.com, tony@atomide.com, andreas@kemnade.info,
+        linux-clk@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: [PATCH 3/3] ARM: dts: omap4-embt2ws: enable 32K clock on WLAN
+Date:   Sat, 19 Aug 2023 15:41:47 +0200
+Message-Id: <20230819134147.456060-4-andreas@kemnade.info>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230819134147.456060-1-andreas@kemnade.info>
+References: <20230819134147.456060-1-andreas@kemnade.info>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230809-pca9450-reboot-v2-0-b98b4f8139d5@skidata.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, 09 Aug 2023, Benjamin Bara wrote:
+WLAN did only work if clock was left enabled by the original system,
+so make it fully enable the needed resources itself.
 
-> Hi!
-> 
-> This series implements two restart handler registrations for the pca9450
-> (6/6). As the pca9450 supports both, cold and warm resets, and there
-> exist at least one other PMIC implementation which also implements a
-> warm and a cold reset (tps65219), 1-5/6 should simplify/clarify the
-> distinction process between warm/soft and cold/hard resets/restarts.
-> Instead of deciding in the handler, this should be done during
-> registration. The series is a follow-up to Dmitry's feedback, regarding
-> checking the reboot_mode in the handler [1].
-> 
-> As the cold handler queue is executed before the warm handler queue
-> (when the reboot_mode is not changed/specified), cold handlers are
-> implicitly executed with a higher prio and therefore the default
-> registration can be used.
-> 
-> This series is based on linux-next and 6/6 depends on [2].
-> 
-> Thanks & best regards,
-> Benjamin
-> 
-> [1] https://lore.kernel.org/all/7eddaf8c-ab04-7670-fc45-15f0fce5eff2@collabora.com/
-> [2] https://lore.kernel.org/all/20230327-tegra-pmic-reboot-v7-3-18699d5dcd76@skidata.com/
-> 
-> ---
-> Changes in v2:
-> - rebase to next-20230809
-> - improve commit messages
-> - use helper (with implicit priority) instead of explicit priority
-> - fallback to warm handler if hard/cold requested but failed
-> - Link to v1: https://lore.kernel.org/r/20230727-pca9450-reboot-v1-0-c8edb27bf404@skidata.com
-> 
-> ---
-> Benjamin Bara (6):
->       kernel/reboot: distinguish between cold and warm
->       mfd: rk8xx: Specify restart mode
->       soc/tegra: pmc: Specify restart mode
->       mfd: tps65219: Specify restart mode
->       kernel/reboot: remove generic restart mode
->       regulator: pca9450: register restart handlers
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-What are they interdependencies between them all?
-
-Should they all be applied at once?
-
->  drivers/mfd/rk8xx-core.c              |  6 +--
->  drivers/mfd/tps65219.c                | 17 +++++--
->  drivers/regulator/pca9450-regulator.c | 59 ++++++++++++++++++++++++
->  drivers/soc/tegra/pmc.c               |  2 +-
->  include/linux/reboot.h                | 23 +++++++---
->  include/linux/regulator/pca9450.h     |  7 +++
->  kernel/reboot.c                       | 84 +++++++++++++++++++++++++++++------
->  7 files changed, 170 insertions(+), 28 deletions(-)
-> ---
-> base-commit: 21ef7b1e17d039053edaeaf41142423810572741
-> change-id: 20230724-pca9450-reboot-0b32218fc7a2
-> 
-> Best regards,
-> -- 
-> Benjamin Bara <benjamin.bara@skidata.com>
-> 
-
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+index ee86981b2e448..9ca540ef86265 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+@@ -69,6 +69,12 @@ unknown_supply: unknown-supply {
+ 		regulator-name = "unknown";
+ 	};
+ 
++	wl12xx_pwrseq: wl12xx-pwrseq {
++		compatible = "mmc-pwrseq-simple";
++		clocks = <&clk32kaudio>;
++		clock-names = "ext_clock";
++	};
++
+        /* regulator for wl12xx on sdio2 */
+ 	wl12xx_vmmc: wl12xx-vmmc {
+ 		pinctrl-names = "default";
+@@ -97,6 +103,11 @@ twl: pmic@48 {
+ 		interrupt-controller;
+ 		#interrupt-cells = <1>;
+ 
++		clk32kaudio: clk-32kaudio {
++			compatible = "ti,twl6032-clk32kaudio";
++			#clock-cells = <0>;
++		};
++
+ 		rtc {
+ 			compatible = "ti,twl4030-rtc";
+ 			interrupts = <11>;
+@@ -316,6 +327,7 @@ &mmc3 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&wl12xx_pins>;
+ 	vmmc-supply = <&wl12xx_vmmc>;
++	mmc-pwrseq = <&wl12xx_pwrseq>;
+ 	interrupts-extended = <&wakeupgen GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH
+ 			       &omap4_pmx_core 0x12e>;
+ 	non-removable;
 -- 
-Lee Jones [李琼斯]
+2.39.2
+
