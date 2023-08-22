@@ -2,125 +2,91 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EF19EE4996
-	for <linux-omap@archiver.kernel.org>; Tue, 22 Aug 2023 09:07:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29EA1EE4993
+	for <linux-omap@archiver.kernel.org>; Tue, 22 Aug 2023 09:27:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234193AbjHVJHR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 22 Aug 2023 05:07:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49152 "EHLO
+        id S234298AbjHVJ1t (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 22 Aug 2023 05:27:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234192AbjHVJHR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 22 Aug 2023 05:07:17 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80AFA189
-        for <linux-omap@vger.kernel.org>; Tue, 22 Aug 2023 02:06:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1692695193;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=zITVam9mib7MXNblWRDDnWwcdZNI0hXQ9sYLmaBnbrA=;
-        b=JyWTJ9Dz0p0ux2OZQZKRzphEH6HByHiZ3Ub+yiCufigxFwfw0je6DrRmXvd8DXaRA2bljb
-        Ku5DCTIyyMM/p1PPC7M5LyLjfy6Q6hWej2talwtGh4gRdvcPMJhRGpOocTEVHmkjwyPWFr
-        zcbSROCJGD9RpEeROX0lWBtYL9aPyHg=
-Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
- [209.85.208.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-227-NqhkzlFSMfynAemfj0DBvw-1; Tue, 22 Aug 2023 05:06:32 -0400
-X-MC-Unique: NqhkzlFSMfynAemfj0DBvw-1
-Received: by mail-ed1-f71.google.com with SMTP id 4fb4d7f45d1cf-523464082ffso576380a12.1
-        for <linux-omap@vger.kernel.org>; Tue, 22 Aug 2023 02:06:32 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692695191; x=1693299991;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=zITVam9mib7MXNblWRDDnWwcdZNI0hXQ9sYLmaBnbrA=;
-        b=iktXjePPMvciEitf/c7+6fOvpS5BM8C+3liC+g4q71pCsSxVuC2P1WBtqwsw3IJtjK
-         303FAF4CH9s4fPEeZoV2iHv8lMEklbnuxDn27ir16FfJhjXcSya5AXTSgS4gKRybN9pR
-         /TVWoPnhjVfTPbHbAh4NwVsKrZIqPD+Je/Fvh1d+RhtxIjINL7uXk3mwucBnJg8FF+4v
-         W5aJAfCwstE0p6GJDnoUIVpStYtDFkADKH3OvoRZKJBCeYJLNy0JnMLHw8O+4RnXULNY
-         XFu+lYwIGNsgbcliTjbh7Ww9i5pg6bpyW3X4bhzN+tu5LSXX7q88xhd6cZHys8makbec
-         Kf6A==
-X-Gm-Message-State: AOJu0YyYA7LPUXzfpMX2eShsRGyIbQuEB8STGRxnBnRQuPXjgODqadSu
-        AYeew2DvTXNaejmiQx1DE548VpFeqVLWJL0xVaHOa1Cc2Fkw82yBccuuXt7mZ+MQn/isgR7u+t5
-        YeqC+/RVa4z9oe1TDoljkbQ==
-X-Received: by 2002:a05:6402:1d4c:b0:51e:5dd8:fc59 with SMTP id dz12-20020a0564021d4c00b0051e5dd8fc59mr7217540edb.1.1692695191299;
-        Tue, 22 Aug 2023 02:06:31 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHfZmPyXgiJ/NkAWWGBQMgHJy5FIu7B+DH5lu1nGvadCAiFsyleJ/rv4GEtyfZ7KoxM594bRw==
-X-Received: by 2002:a05:6402:1d4c:b0:51e:5dd8:fc59 with SMTP id dz12-20020a0564021d4c00b0051e5dd8fc59mr7217526edb.1.1692695191035;
-        Tue, 22 Aug 2023 02:06:31 -0700 (PDT)
-Received: from gerbillo.redhat.com (146-241-241-4.dyn.eolo.it. [146.241.241.4])
-        by smtp.gmail.com with ESMTPSA id f4-20020a05640214c400b00528922bb53bsm675146edx.76.2023.08.22.02.06.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 22 Aug 2023 02:06:30 -0700 (PDT)
-Message-ID: <4e79fe7d5363e69ed116f440db162dcb41b54ecc.camel@redhat.com>
-Subject: Re: [PATCH v5 2/5] dt-bindings: net: Add IEP property in ICSSG DT
- binding
-From:   Paolo Abeni <pabeni@redhat.com>
-To:     MD Danish Anwar <danishanwar@ti.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Roger Quadros <rogerq@kernel.org>,
-        Simon Horman <simon.horman@corigine.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Richard Cochran <richardcochran@gmail.com>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     nm@ti.com, srk@ti.com, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, netdev@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Date:   Tue, 22 Aug 2023 11:06:28 +0200
-In-Reply-To: <20230817114527.1585631-3-danishanwar@ti.com>
-References: <20230817114527.1585631-1-danishanwar@ti.com>
-         <20230817114527.1585631-3-danishanwar@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
+        with ESMTP id S234283AbjHVJ1s (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 22 Aug 2023 05:27:48 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C0C43CC8;
+        Tue, 22 Aug 2023 02:27:46 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id A9F4980A6;
+        Tue, 22 Aug 2023 09:27:45 +0000 (UTC)
+Date:   Tue, 22 Aug 2023 12:27:44 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Julien Panis <jpanis@baylibre.com>
+Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        vigneshr@ti.com
+Subject: Re: [PATCH] bus: ti-sysc: Use fsleep() instead of usleep_range() in
+ sysc_reset()
+Message-ID: <20230822092744.GT11676@atomide.com>
+References: <20230821-fix-ti-sysc-reset-v1-1-5a0a5d8fae55@baylibre.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230821-fix-ti-sysc-reset-v1-1-5a0a5d8fae55@baylibre.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, 2023-08-17 at 17:15 +0530, MD Danish Anwar wrote:
-> Add IEP node in ICSSG driver DT binding document.
->=20
-> Reviewed-by: Conor Dooley <conor.dooley@microchip.com>
-> Signed-off-by: MD Danish Anwar <danishanwar@ti.com>
+* Julien Panis <jpanis@baylibre.com> [230821 14:24]:
+> The am335x-evm started producing boot errors because of subtle timing
+> changes:
+> 
+> Unhandled fault: external abort on non-linefetch (0x1008) at 0xf03c1010
+> ...
+> sysc_reset from sysc_probe+0xf60/0x1514
+> sysc_probe from platform_probe+0x5c/0xbc
+> ...
+> 
+> The fix consists in using the appropriate sleep function in sysc reset.
+> For flexible sleeping, fsleep is recommended. Here, sysc delay parameter
+> can take any value in [0 - 255] us range. As a result, fsleep() should
+> be used, calling udelay() for a sysc delay lower than 10 us.
+> 
+> Signed-off-by: Julien Panis <jpanis@baylibre.com>
+> Fixes: e709ed70d122 ("bus: ti-sysc: Fix missing reset delay handling")
 > ---
->  Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml | 7 +++++++
->  1 file changed, 7 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml b=
-/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
-> index 8ec30b3eb760..a736d1424ea4 100644
-> --- a/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
-> +++ b/Documentation/devicetree/bindings/net/ti,icssg-prueth.yaml
-> @@ -52,6 +52,12 @@ properties:
->      description:
->        phandle to MII_RT module's syscon regmap
-> =20
-> +  ti,iep:
-> +    $ref: /schemas/types.yaml#/definitions/phandle-array
-> +    maxItems: 2
-> +    description:
-> +      phandle to IEP (Industrial Ethernet Peripheral) for ICSSG driver
+> Fix boot errors for am335x-evm in sysc_reset(), by using fsleep() instead
+> of usleep_range() function. Thus, udelay() will be called if the configured
+> sysc delay is lower than 10 us (which is usually the case, since the value
+> set in the device tree is currently 2 us).
 
-It looks like the feedback given by Rob on v2:
+OK, interesting. Yeah I've only ever seen values of 2 us needed here.
 
-https://lore.kernel.org/all/20230821160120.GA1734560-robh@kernel.org/
+Regards,
 
-still applies here, I guess you need to address it.
+Tony
 
-Cheers,
-
-Paolo
-
---
-pw-bot: cr
-
+> ---
+>  drivers/bus/ti-sysc.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+> index 4cb23b9e06ea..59b8bdd9203e 100644
+> --- a/drivers/bus/ti-sysc.c
+> +++ b/drivers/bus/ti-sysc.c
+> @@ -2147,8 +2147,7 @@ static int sysc_reset(struct sysc *ddata)
+>  	}
+>  
+>  	if (ddata->cfg.srst_udelay)
+> -		usleep_range(ddata->cfg.srst_udelay,
+> -			     ddata->cfg.srst_udelay * 2);
+> +		fsleep(ddata->cfg.srst_udelay);
+>  
+>  	if (ddata->post_reset_quirk)
+>  		ddata->post_reset_quirk(ddata);
+> 
+> ---
+> base-commit: f7757129e3dea336c407551c98f50057c22bb266
+> change-id: 20230821-fix-ti-sysc-reset-5c164051345b
+> 
+> Best regards,
+> -- 
+> Julien Panis <jpanis@baylibre.com>
+> 
