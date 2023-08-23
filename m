@@ -2,61 +2,96 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04C3CEE49B1
-	for <linux-omap@archiver.kernel.org>; Wed, 23 Aug 2023 07:42:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39716EE4993
+	for <linux-omap@archiver.kernel.org>; Wed, 23 Aug 2023 09:00:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233507AbjHWHmC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 23 Aug 2023 03:42:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35050 "EHLO
+        id S231165AbjHWI7x (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 23 Aug 2023 04:59:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233345AbjHWHmB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 23 Aug 2023 03:42:01 -0400
-Received: from mail.bizcodes.pl (mail.bizcodes.pl [151.80.57.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A83A5E40
-        for <linux-omap@vger.kernel.org>; Wed, 23 Aug 2023 00:41:55 -0700 (PDT)
-Received: by mail.bizcodes.pl (Postfix, from userid 1002)
-        id 81FACA32FC; Wed, 23 Aug 2023 07:41:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=bizcodes.pl; s=mail;
-        t=1692776468; bh=5QPMt7jNntM5ZbstM20BWsHIeLbmRE8lVU4Iu89IleQ=;
-        h=Date:From:To:Subject:From;
-        b=DpWHAtM6k7+om2vXMowrKmEq4zh2KC3v2MdDTdl+jFzZmSM2STT7FUmrIMiR+w5gQ
-         3KezrbTa66qD68ebJw7RBbk1tu4ZrrwvU0DGrBll8NjwwxNeuTvwqdBR4npDm3jE60
-         rmBJ8jhScWIOWHR5J70sYEl3OMKIt64072x4xcq+mVS0O0gQZB7i7PkMsmI4Wtt/BO
-         j+QTi8Ojp9Rke8I4Rt78qy+/diLmkW/2JcCkbvO8MZRHWGPPoGP3Hr1rLfFZXArkUw
-         8nFdWct4izePft7U9n01u1mM60VGgXTiOTcNl8h5AEB10JMgcToYuaDo4pGngsWcjx
-         IR638Bn8tNX9Q==
-Received: by mail.bizcodes.pl for <linux-omap@vger.kernel.org>; Wed, 23 Aug 2023 07:41:06 GMT
-Message-ID: <20230823064500-0.1.b8.1cipj.0.2dxj2ugri6@bizcodes.pl>
-Date:   Wed, 23 Aug 2023 07:41:06 GMT
-From:   "Marcin Chruszcz" <marcin.chruszcz@bizcodes.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: Prezentacja
-X-Mailer: mail.bizcodes.pl
+        with ESMTP id S235201AbjHWI6D (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 23 Aug 2023 04:58:03 -0400
+Received: from mail-wm1-x336.google.com (mail-wm1-x336.google.com [IPv6:2a00:1450:4864:20::336])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5AF9199A;
+        Wed, 23 Aug 2023 01:54:46 -0700 (PDT)
+Received: by mail-wm1-x336.google.com with SMTP id 5b1f17b1804b1-3fbd33a57b6so50166345e9.2;
+        Wed, 23 Aug 2023 01:54:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1692780885; x=1693385685;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=7u0D1vKsgp+LzrkxafeIdw43ha9lu5raeDJAVDWxoo8=;
+        b=Z2yj4F8BQq9pyniw85upgEcGXlayZJKLK+004DFTVY2Vz9d0/0limFZk1jnqgu4JCN
+         Ga0oWg3ZVgAbJX7csPr/f3pfjZ8rfDoS9NwVaB7lSCcRDi4iFmyXUxxJXdvGkSERL/MN
+         kIz4BGrosZvFJcGpzZIaX0KpMEi6NPhq5/n7R6C/dY9knzV/24wWHe9EymDIuYkVe88J
+         DkSYRpFA9gAYutf9t9UryrFmx3h4PlsvhBpS6eOxfrpbzZ5GCEEFJgIUBlyOD90jJaSh
+         Fx4+I4GIF1mbs1ZkQNaw6UFTa2+KIXzWiwFZLpZFJTxakgEfUAUwiPHZZYdxDgPvWVfJ
+         r9gg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1692780885; x=1693385685;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=7u0D1vKsgp+LzrkxafeIdw43ha9lu5raeDJAVDWxoo8=;
+        b=CF/I8Bg2eNh0YadJslUtelnC9H3lh8VYoASY7qTMrRzAb8NXvgv2GdhfxmhGmC+pmy
+         KT62ZfXb6UDn6hWDfL3w6McedngFimhBKrBloJV9rWVnTU5IjQyPHlyJRWz5DE8ldGhG
+         +fr3l/fF3CjfwrsRYItezaTOISKD9oXqByIDL4HOhkVO/URFesKTW316u6Rg/kASUUHt
+         Tic156xlpxx9vPCteKZkflho0U8sNxxHSxQ2eM5p7Bq3ryvtkBNrJWma0sVA5Xz1wxbj
+         fpK9/l4ffQmABvo690yzI59rV3vdjEJw6p5hzorMRAL95x/+wziCVnALt7vg5z6LSh3S
+         FSig==
+X-Gm-Message-State: AOJu0YyO+OOfCUSKUr7VZFXczpDJaYs0fTOCNRTZcGaoXq+NRkIvdT7E
+        nGjYCtVqnzOEHpG3AhE158uqj2G++ogNWw==
+X-Google-Smtp-Source: AGHT+IFckMV0KrXEfSTJ1ulVw/BczcqOeoFhAmPSo5PmBS3fcUbgwtBwB1XAAK/hCvbIilAlZVkZkQ==
+X-Received: by 2002:a7b:c459:0:b0:3fe:16d3:7d60 with SMTP id l25-20020a7bc459000000b003fe16d37d60mr9280946wmi.9.1692780884696;
+        Wed, 23 Aug 2023 01:54:44 -0700 (PDT)
+Received: from gba-Precision-5530.kat.ac.za ([196.24.39.242])
+        by smtp.gmail.com with ESMTPSA id o10-20020a1c750a000000b003fed78b03b4sm16265420wmc.20.2023.08.23.01.54.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 23 Aug 2023 01:54:44 -0700 (PDT)
+From:   Grant B Adams <nemith592@gmail.com>
+Cc:     linux-omap@vger.kernel.org, tony@atomide.com,
+        Grant B Adams <nemith592@gmail.com>,
+        Sebastian Reichel <sre@kernel.org>, Bin Liu <b-liu@ti.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Subject: [PATCH v2 1/2] power: supply: Fix tps65217-charger vs vbus irq conflict
+Date:   Wed, 23 Aug 2023 10:54:29 +0200
+Message-Id: <20230823085430.6610-2-nemith592@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230823085430.6610-1-nemith592@gmail.com>
+References: <20230823085430.6610-1-nemith592@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry!
+Enabling the tps65217-charger driver/module causes an interrupt conflict
+with the vbus driver resulting in a probe failure.
+The conflict is resolved by changing both driver's threaded interrupt
+request function from IRQF_ONESHOT to IRQF_SHARED.
 
-Czy m=C3=B3g=C5=82bym przedstawi=C4=87 rozwi=C4=85zanie, kt=C3=B3re umo=C5=
-=BCliwia monitoring ka=C5=BCdego auta w czasie rzeczywistym w tym jego po=
-zycj=C4=99, zu=C5=BCycie paliwa i przebieg?
+Signed-off-by: Grant B Adams <nemith592@gmail.com>
+---
+ drivers/power/supply/tps65217_charger.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Dodatkowo nasze narz=C4=99dzie minimalizuje koszty utrzymania samochod=C3=
-=B3w, skraca czas przejazd=C3=B3w, a tak=C5=BCe tworzenie planu tras czy =
-dostaw.
+diff --git a/drivers/power/supply/tps65217_charger.c b/drivers/power/supply/tps65217_charger.c
+index a4bc9f2a10bc..6f68becdbfd0 100644
+--- a/drivers/power/supply/tps65217_charger.c
++++ b/drivers/power/supply/tps65217_charger.c
+@@ -238,7 +238,7 @@ static int tps65217_charger_probe(struct platform_device *pdev)
+ 	for (i = 0; i < NUM_CHARGER_IRQS; i++) {
+ 		ret = devm_request_threaded_irq(&pdev->dev, irq[i], NULL,
+ 						tps65217_charger_irq,
+-						IRQF_ONESHOT, "tps65217-charger",
++						IRQF_SHARED, "tps65217-charger",
+ 						charger);
+ 		if (ret) {
+ 			dev_err(charger->dev,
+-- 
+2.34.1
 
-Z naszej wiedzy i do=C5=9Bwiadczenia korzysta ju=C5=BC ponad 49 tys. Klie=
-nt=C3=B3w. Monitorujemy 809 000 pojazd=C3=B3w na ca=C5=82ym =C5=9Bwiecie,=
- co jest nasz=C4=85 najlepsz=C4=85 wizyt=C3=B3wk=C4=85.
-
-Bardzo prosz=C4=99 o e-maila zwrotnego, je=C5=9Bli mogliby=C5=9Bmy wsp=C3=
-=B3lnie om=C3=B3wi=C4=87 potencja=C5=82 wykorzystania takiego rozwi=C4=85=
-zania w Pa=C5=84stwa firmie.
-
-
-Pozdrawiam
-Marcin Chruszcz
