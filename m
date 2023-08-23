@@ -2,52 +2,53 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E528EE49AF
-	for <linux-omap@archiver.kernel.org>; Wed, 23 Aug 2023 09:00:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C08CEE49AE
+	for <linux-omap@archiver.kernel.org>; Wed, 23 Aug 2023 09:00:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234900AbjHWI75 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 23 Aug 2023 04:59:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41054 "EHLO
+        id S230458AbjHWJAC (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 23 Aug 2023 05:00:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235171AbjHWI5c (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 23 Aug 2023 04:57:32 -0400
-Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A290C198C;
-        Wed, 23 Aug 2023 01:54:40 -0700 (PDT)
-Received: by mail-wm1-x32b.google.com with SMTP id 5b1f17b1804b1-3fee87dd251so34416345e9.2;
-        Wed, 23 Aug 2023 01:54:40 -0700 (PDT)
+        with ESMTP id S235202AbjHWI6D (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 23 Aug 2023 04:58:03 -0400
+Received: from mail-lj1-x22f.google.com (mail-lj1-x22f.google.com [IPv6:2a00:1450:4864:20::22f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47C5419A6;
+        Wed, 23 Aug 2023 01:54:51 -0700 (PDT)
+Received: by mail-lj1-x22f.google.com with SMTP id 38308e7fff4ca-2bcbfb3705dso43281741fa.1;
+        Wed, 23 Aug 2023 01:54:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1692780878; x=1693385678;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=wvjzMcJTUxU+MK76vz7j+AFRrvVux4oY0Dj2+641l0Y=;
-        b=sERsmZoOkLdDWTnwUP2Kofx4VkusIJAGiuQoHYP50D/0DsKohHTvlO4VSN2VS0Pczn
-         gI1S7i/EaQ96eca9cJqsoNip9YQqvxC8szUj/PAOEn6bXa3md8qZ6rTGDmqBEX4qqIRR
-         dDaCJrH1w026ctOn+5M/yxS0ibx9j29ej4nHtVg7atsjj2E9Q+fS1kigtf+Z4jjl04G4
-         fh/R0RXCbbziKaBdGuhHrXGEZkZT3omKclCnDWeyIWUHTPxBeqlPkgoIl+wT82TLPdQ9
-         AkZQ4191uITaHZMGqJCCETJoF0uoN0ow6owW7EygfSIGbc3TlVtTOqtYN0zjIXNlSTfi
-         iSCQ==
+        d=gmail.com; s=20221208; t=1692780889; x=1693385689;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=wGWZmoxclOfYzjyLvlkmT9ZvCsngcDBgs2bkB2Nywss=;
+        b=Sy/NCDXkCZin/+NycWRiYEWKtdkDBzopVQ7kv139T3K7UCae5dMGr/U7va70x4eTcj
+         P9Xsm7TSMqdCWUZGc7HwsSW0awPLIFowu0ycYjeipsl1edYONGtcUrhYI+XEjuma9VPt
+         qYmFymGUKPrk0aDq8mMHH+QqY36SsQ0njUASXSogMg4ml0uLsWUoooS0x2hNPAftAuMk
+         QkuzVgJ1erhBAy6GKwoO5W4wNxTlCG1R9sXiO722rj50x+2OReu/SurONQSqkt/E5Tiu
+         QXK49viO/7VQLHGLMQFRTC+xe7jUI/NiA6lbiuKCH6IR+4Na+9WhTwfYh3OSMmpOgGCE
+         VUfA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692780878; x=1693385678;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=wvjzMcJTUxU+MK76vz7j+AFRrvVux4oY0Dj2+641l0Y=;
-        b=ZZNFHEJj2lXBzcyGpeGBem610oxa/TzNPtQXLymBeM9plvzibhxlcxKQZkga/KHrLJ
-         kyDvxPskW1pZDgzHKB7mOZLZz1NW9YUHedPqY+FO7pe20Lsl+V4KrGEkvnpVC8jTnfD8
-         uCYVZqUqHSWjcicTiX5T8rHHdliFYbmYAcGK6YIjg8/DSoUue+s7WkwH1jWKoDfI131G
-         yv+kLhQDyUHZWldG+TAg5bjd7KA9fqw1vw8JBLZbm7/wJpjLcQfUQuRZlTTbgcKzPM4l
-         B/6APTvONsEhQD2s/WYT3F2hqtAElOIJkwERTP9J+B1l+37sEIXB4Ivkb9JB2rsOOIOK
-         ZRyA==
-X-Gm-Message-State: AOJu0YzpKJlZJ3mYmqYMqd4pyBe8tP09ymQGJ22kt0wc4bO6eO7cq17r
-        YM4QzDOTwhQjHaULHQGuYixRYWpmsGhjyA==
-X-Google-Smtp-Source: AGHT+IGSqHZSd3AMmmQMokCafHKaqaeOt6ivAUAH16LjIYrCBQc0FrUQ77kSDtVWdQGNHPOi0ksgaA==
-X-Received: by 2002:a05:600c:286:b0:3ff:150:d898 with SMTP id 6-20020a05600c028600b003ff0150d898mr1118353wmk.21.1692780878201;
-        Wed, 23 Aug 2023 01:54:38 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1692780889; x=1693385689;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=wGWZmoxclOfYzjyLvlkmT9ZvCsngcDBgs2bkB2Nywss=;
+        b=dSQ6SKfkeiLD9TkxvkcDhwLHD+M7uUKTTL4SWG7PzQkoiQXIlY7B2rdAzyQVteWPqw
+         IcCIHPjrvpFAq2+dOlGy9axXy0yqPSP+mHLZGigjqKJPm7VDzCOxw/A1YjaaOvjGZh9d
+         WPBinhwIPGqNVJQ36GvmcVLQJzyKJE60MQeIx4r+K3IJdXxgJ0QqGTAhxRLvhuBhacW+
+         ITWwXdm4+2QKc/ptsfrAIU7rAlbhE4t9TW6mMzpLKytm8dFQaHQmvo5JfpJFCNVKyXL9
+         m7f8BhuiDQOKS5fkr4ndjvKiLFFRo2JRkPlUd/U2vXh80zulmcRASYpyT90P12DbQK1p
+         POHw==
+X-Gm-Message-State: AOJu0YyW+iSOv5KCh92LhbgIbu+hxyE/zesGzsK0e09Oh2pvT7sPEQnp
+        4A/xsorbtePcJV6qD3vIvxDsjCwBZsebgw==
+X-Google-Smtp-Source: AGHT+IHgk3D9e1v+N1TnoJ2cmm9pMqdjPPYyCQTyICyrvuzndJXyHdOsLy1+JBqbqy+9qU6WJyiT/Q==
+X-Received: by 2002:a2e:3c0e:0:b0:2b6:3651:f12f with SMTP id j14-20020a2e3c0e000000b002b63651f12fmr9533149lja.3.1692780889123;
+        Wed, 23 Aug 2023 01:54:49 -0700 (PDT)
 Received: from gba-Precision-5530.kat.ac.za ([196.24.39.242])
-        by smtp.gmail.com with ESMTPSA id o10-20020a1c750a000000b003fed78b03b4sm16265420wmc.20.2023.08.23.01.54.35
+        by smtp.gmail.com with ESMTPSA id o10-20020a1c750a000000b003fed78b03b4sm16265420wmc.20.2023.08.23.01.54.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Aug 2023 01:54:37 -0700 (PDT)
+        Wed, 23 Aug 2023 01:54:48 -0700 (PDT)
 From:   Grant B Adams <nemith592@gmail.com>
 Cc:     linux-omap@vger.kernel.org, tony@atomide.com,
         Grant B Adams <nemith592@gmail.com>,
@@ -55,10 +56,12 @@ Cc:     linux-omap@vger.kernel.org, tony@atomide.com,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-usb@vger.kernel.org
-Subject: [PATCH v2 0/2] Fix tps65217-charger vs vbus irq conflict
-Date:   Wed, 23 Aug 2023 10:54:28 +0200
-Message-Id: <20230823085430.6610-1-nemith592@gmail.com>
+Subject: [PATCH v2 2/2] usb: musb: dsps: Fix vbus vs tps65217-charger irq conflict
+Date:   Wed, 23 Aug 2023 10:54:30 +0200
+Message-Id: <20230823085430.6610-3-nemith592@gmail.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230823085430.6610-1-nemith592@gmail.com>
+References: <20230823085430.6610-1-nemith592@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 To:     unlisted-recipients:; (no To-header on input)
@@ -66,35 +69,29 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Both the tps65217-charger and vbus drivers are trying to allocate the same
-TPS65217 device interrupt line (TPS65217 is a TI power management IC) 
-which results in the following error and a probe failure:
-
-genirq: Flags mismatch irq 148. 00002000 (vbus) vs. 00000000 
-(tps65217-charger)
-
-For the Beaglebone Black's config the tps65217-charger driver is currently
-disabled and therefore no conflict. Based on comments from Robert C Nelson
-this driver has been disabled for a long time and he is uncertain on the
-reasons why it was disabled. With a battery connected to the BBB, I 
-re-enabled the tps65217-charger driver which resulted in the 
-abovementioned.
-
+Enabling the tps65217-charger driver/module causes an interrupt conflict
+with the vbus driver resulting in a probe failure.
 The conflict is resolved by changing both driver's threaded interrupt
 request function from IRQF_ONESHOT to IRQF_SHARED.
 
-Changes in v2:
-   Initial patches where emailed individually and not threaded. V2 patches 
-   sent as email thread. Feedback provided by gregkh@linuxfoundation.org
+Signed-off-by: Grant B Adams <nemith592@gmail.com>
+---
+ drivers/usb/musb/musb_dsps.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Grant B Adams (2):
-  power: supply: Fix tps65217-charger vs vbus irq conflict
-  usb: musb: dsps: Fix vbus vs tps65217-charger irq conflict
-
- drivers/power/supply/tps65217_charger.c | 2 +-
- drivers/usb/musb/musb_dsps.c            | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 9119b1d51370..cbb45de5a76f 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -851,7 +851,7 @@ static int dsps_setup_optional_vbus_irq(struct platform_device *pdev,
+ 
+ 	error = devm_request_threaded_irq(glue->dev, glue->vbus_irq,
+ 					  NULL, dsps_vbus_threaded_irq,
+-					  IRQF_ONESHOT,
++					  IRQF_SHARED,
+ 					  "vbus", glue);
+ 	if (error) {
+ 		glue->vbus_irq = 0;
 -- 
 2.34.1
 
