@@ -2,59 +2,60 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCBD6C71153
-	for <linux-omap@archiver.kernel.org>; Thu, 24 Aug 2023 06:52:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C075AC71145
+	for <linux-omap@archiver.kernel.org>; Thu, 24 Aug 2023 06:53:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236093AbjHXGwE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 24 Aug 2023 02:52:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56770 "EHLO
+        id S240233AbjHXGwh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 24 Aug 2023 02:52:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240078AbjHXGvB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 24 Aug 2023 02:51:01 -0400
-Received: from mail-ed1-x534.google.com (mail-ed1-x534.google.com [IPv6:2a00:1450:4864:20::534])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C0C31AD
-        for <linux-omap@vger.kernel.org>; Wed, 23 Aug 2023 23:50:59 -0700 (PDT)
-Received: by mail-ed1-x534.google.com with SMTP id 4fb4d7f45d1cf-523100882f2so7956614a12.2
-        for <linux-omap@vger.kernel.org>; Wed, 23 Aug 2023 23:50:58 -0700 (PDT)
+        with ESMTP id S240215AbjHXGwd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 24 Aug 2023 02:52:33 -0400
+Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FEFF101
+        for <linux-omap@vger.kernel.org>; Wed, 23 Aug 2023 23:52:31 -0700 (PDT)
+Received: by mail-ej1-x630.google.com with SMTP id a640c23a62f3a-99c0290f0a8so807556966b.1
+        for <linux-omap@vger.kernel.org>; Wed, 23 Aug 2023 23:52:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1692859857; x=1693464657;
+        d=linaro.org; s=google; t=1692859950; x=1693464750;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=BhmEfKLm2auvLzU1H0Y+LxP11/52EFLaIX+4lk/LSDc=;
-        b=uTd/E1u5tM2WP4N5gUw0ZdqO06dkIsLwIzV3VW59B30K7dsNk4+Wgsv/G/VNTusLV3
-         WzL44SI+wBc12C3TsBFHCT9z13n+cIfKa925OMquWlob3sVmkvhOiAdIl2bg5En25yAy
-         eizvtKqx7N0PElDsXtV19Yo93PqK3v9KfZI8y9korGVDqE0eOnSvcge7cjMBUgIXh0Ib
-         XByk9LhlJ1h/ipGeexkoz4snAwTBmFT+kTO8yEb51QProGbuHwkn19ElV7kSJVkwN5VR
-         dJlxE6xZ6H+WFjuMFM4S0e4uURIGa1rO+fleNSuxKtTzgz6qvzh/9mvfBG86R00HVwyw
-         F8XA==
+        bh=tec2kZ0UKM8W+HhApP5ewEurz9N6NjLpNOz2ZhRdTI0=;
+        b=y4ZL8J/hT/4lhwdW1JUK1rVUuPaCA6ziZUrBMqPLtCfiko/o1x47nAFofn/Sf2FQV3
+         a9VCbPYrOpgf+5G5PRLhYyUVkv2853dYRke2aAFL0kQayHW5iyUlBmZccAZKv5ZCuQYp
+         vPZ0N0daHWZ0InXx6Y53eIqCD41jxKMvz5b51jxcn+y5h0Ti9QCH3c0UEZyVpjJyySna
+         vQRs2DAQFEmQwOA2L8GViFdF+1khWa3P5r3FGjmFlQACnBhrNtRHw9W590aNoaaX+G1o
+         8HXxJfX3msHrqRJyILRE7S3ahy5TNH237lEO3Fvf1JWx67xJDML9yqD6yA2MgjVRXdN8
+         GjoA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692859857; x=1693464657;
+        d=1e100.net; s=20221208; t=1692859950; x=1693464750;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=BhmEfKLm2auvLzU1H0Y+LxP11/52EFLaIX+4lk/LSDc=;
-        b=bo2WgCyTnr6ghpWc+6skOjT2qQMpyn3tlNqnPAEHC/g6IuGsyHRhRFFkp/Sf2bKrTT
-         8YjfCIlfCn2n5F6CYcGd4S9OWZbv0dfhfCAFfTW6UlhbPXPk03ZBkhxePUyM9iN/D4kx
-         NWEDiZkzp4uocOvjV+tCqahN0lKTYfNY/zXBtUyr96EBE9r2wOtAvER8AEsoRsp8Nkr+
-         KTXbtOiFc78ilBsMjFkfgtq4KFnQ0T3Yorpzo+e7rGqGDlrQ23ScopPrdVSDjTKXQWAJ
-         YUOq22TKKxrhBv8ZOykmVj99Cc50IQOPEfMG12RK0s3oyr+FlxTr+nhnMSZBkLMDOnTc
-         bGoQ==
-X-Gm-Message-State: AOJu0YyMUhRBZtPx7IiPlgT/jOxQ8Hd1XxMab9AprIT/cxE+9D/5UqKw
-        J94MEQ6py36Js9Nl026kMOYrGA==
-X-Google-Smtp-Source: AGHT+IFKOvRo7+2xMvm/brGQ+qgng4Ksbl2gcHnXtNfV23t2a5eGx8+E9rqMZ5Gn8A/xmHc8/noUWg==
-X-Received: by 2002:a05:6402:505:b0:523:4922:c9c4 with SMTP id m5-20020a056402050500b005234922c9c4mr11878649edv.11.1692859857524;
-        Wed, 23 Aug 2023 23:50:57 -0700 (PDT)
+        bh=tec2kZ0UKM8W+HhApP5ewEurz9N6NjLpNOz2ZhRdTI0=;
+        b=PH2wocc+A//+2Q2d2Fe1x00iV7onHBddz6zVlJUkBKFCIG1hgdf+7OtwYT2J+fSZ01
+         42c0THOTNtCJsWf3+2wZ4fSW1L/6FiPhECpfnh1InQ0KKZge4o0X1KrMT1dxgsDKdp+6
+         B8hBPsC9YiVJHjFgiKgg7RKK44s+RY3zw6JcqVkkUw3IK4NxS8/V27WZf10J9pYW91c+
+         AnQ/QSPu6RYU6RvAbn8j7cMyprOHS64Lqc6s08B9PqHnpspoZjwFguEpY33LKFrVb8/y
+         0pwdIRqz5gI5Bys2ebVRQ1jMcOETO9rhrBMv9kKK+L4EMzJIOKwpDSKQtfr+eTqYlkZh
+         qanw==
+X-Gm-Message-State: AOJu0YxeVNj3QZ2WwjtGlanAcXE9mmtaP6GRBBiaTOZ4hst6U2ohoYaO
+        18bwLVAt3CuvBYNC7EPsdkuD3A==
+X-Google-Smtp-Source: AGHT+IF8mGk66KD1/hFdUuDrD7JYFjxRsc7Z6C/GO3AEZx1GBNE0jZUAwcxYLUKpOcCH3vti2NmJAA==
+X-Received: by 2002:a17:906:2219:b0:9a1:c3ae:b014 with SMTP id s25-20020a170906221900b009a1c3aeb014mr4417705ejs.20.1692859949947;
+        Wed, 23 Aug 2023 23:52:29 -0700 (PDT)
 Received: from [192.168.0.22] ([77.252.47.198])
-        by smtp.gmail.com with ESMTPSA id c22-20020aa7c756000000b00522572f323dsm10023230eds.16.2023.08.23.23.50.56
+        by smtp.gmail.com with ESMTPSA id p25-20020a17090628d900b0098963eb0c3dsm10564592ejd.26.2023.08.23.23.52.28
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 23 Aug 2023 23:50:57 -0700 (PDT)
-Message-ID: <3362bfaf-225b-0eb7-5219-9c2b365cafe5@linaro.org>
-Date:   Thu, 24 Aug 2023 08:50:55 +0200
+        Wed, 23 Aug 2023 23:52:29 -0700 (PDT)
+Message-ID: <97445129-3cb6-d0bb-b1f8-dea997408ac4@linaro.org>
+Date:   Thu, 24 Aug 2023 08:52:28 +0200
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.14.0
-Subject: Re: [EXTERNAL] Re: [PATCH v6 1/5] dt-bindings: net: Add ICSS IEP
+Subject: Re: [EXTERNAL] Re: [PATCH v6 2/5] dt-bindings: net: Add IEP property
+ in ICSSG
 Content-Language: en-US
 To:     Md Danish Anwar <a0501179@ti.com>,
         MD Danish Anwar <danishanwar@ti.com>,
@@ -75,54 +76,58 @@ Cc:     nm@ti.com, srk@ti.com, linux-kernel@vger.kernel.org,
         devicetree@vger.kernel.org, netdev@vger.kernel.org,
         linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 References: <20230823113254.292603-1-danishanwar@ti.com>
- <20230823113254.292603-2-danishanwar@ti.com>
- <d5a343c8-c384-6eea-94bf-e0c4f96e5fb0@linaro.org>
- <a91e7db9-e442-acff-befd-2fa63e209b0a@ti.com>
+ <20230823113254.292603-3-danishanwar@ti.com>
+ <1326776f-2592-f231-2056-a231729da50a@linaro.org>
+ <78d315b9-f8b1-0012-ceb9-5c3c5034c7dc@ti.com>
 From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <a91e7db9-e442-acff-befd-2fa63e209b0a@ti.com>
+In-Reply-To: <78d315b9-f8b1-0012-ceb9-5c3c5034c7dc@ti.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 24/08/2023 08:47, Md Danish Anwar wrote:
-> Hi Krzysztof,
-> 
-> On 24/08/23 12:13 pm, Krzysztof Kozlowski wrote:
+On 24/08/2023 08:51, Md Danish Anwar wrote:
+> On 24/08/23 12:15 pm, Krzysztof Kozlowski wrote:
 >> On 23/08/2023 13:32, MD Danish Anwar wrote:
->>> Add a DT binding document for the ICSS Industrial Ethernet Peripheral(IEP)
->>> hardware. IEP supports packet timestamping, PTP and PPS.
+>>> Add IEP property in ICSSG hardware DT binding document.
+>>> ICSSG uses IEP (Industrial Ethernet Peripheral) to support timestamping
+>>> of ethernet packets, PTP and PPS.
 >>>
 >>> Reviewed-by: Conor Dooley <conor.dooley@microchip.com>
 >>
->> Really? Where?
-> 
-> Conor gave his RB tag for patch 1 and 2 in v4
-> https://lore.kernel.org/all/20230814-quarters-cahoots-1fbd583baad9@spud/
-
-OK, My mistake, cover letter was not the place where I was looking for
-Conor's reviews...
-
+>> Where? Please provide link.
 >>
+> 
+> https://lore.kernel.org/all/20230814-quarters-cahoots-1fbd583baad9@spud/
+> 
 >>> Reviewed-by: Roger Quadros <rogerq@kernel.org>
 >>
->> Now you are making things up. Please stop faking tags.
+>> Where? Please provide link.
 > 
-> Roger provided his RB tag in v5 for all the patches
 > https://lore.kernel.org/all/5d077342-435f-2829-ba2a-cdf763b6b8e1@kernel.org/
+> 
 >>
 >>> Reviewed-by: Simon Horman <horms@kernel.org>
 >>
->> Where?
+>> Where? Please provide link.
+> 
+> https://lore.kernel.org/all/ZN9aSTUOT+SKESQS@vergenet.net/
+> 
+>>
+>> Otherwise all of them look like fake ways to sneak patches into the
+>> kernel. Our work here depends a lot on the trust. Trust once lost, is
+>> tricky to get back.
 >>
 > 
-> Simon gave his RB tag for all the patches of this series in v5
-> https://lore.kernel.org/all/ZN9aSTUOT+SKESQS@vergenet.net/
+> It's not fake. They provided they RB tags, after that while preparing next
+> revision I use b4 to get all the tags and apply to applicable patches. I know
+> trust is important and I won't do such things like faking tags. They gave their
+> tags in v4 and v5, you must have missed those probably.
+> 
 
-OK, I still question though reviewing own code.
-
-
+Yes, I missed that while searching. Sorry for the noise and questions.
+Thank you for providing the links.
 
 Best regards,
 Krzysztof
