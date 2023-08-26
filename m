@@ -2,150 +2,103 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95014C83F17
-	for <linux-omap@archiver.kernel.org>; Sat, 26 Aug 2023 08:23:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72925C83F19
+	for <linux-omap@archiver.kernel.org>; Sat, 26 Aug 2023 17:18:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229854AbjHZIWt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 26 Aug 2023 04:22:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35062 "EHLO
+        id S230317AbjHZRRa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 26 Aug 2023 13:17:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229666AbjHZIW2 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 26 Aug 2023 04:22:28 -0400
-Received: from relmlie6.idc.renesas.com (relmlor2.renesas.com [210.160.252.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9F4282121;
-        Sat, 26 Aug 2023 01:22:25 -0700 (PDT)
-X-IronPort-AV: E=Sophos;i="6.02,203,1688396400"; 
-   d="scan'208";a="177735134"
-Received: from unknown (HELO relmlir5.idc.renesas.com) ([10.200.68.151])
-  by relmlie6.idc.renesas.com with ESMTP; 26 Aug 2023 17:22:24 +0900
-Received: from localhost.localdomain (unknown [10.226.92.24])
-        by relmlir5.idc.renesas.com (Postfix) with ESMTP id 5A2BA4001B45;
-        Sat, 26 Aug 2023 17:22:22 +0900 (JST)
-From:   Biju Das <biju.das.jz@bp.renesas.com>
-To:     Tony Lindgren <tony@atomide.com>, Lee Jones <lee@kernel.org>
-Cc:     Biju Das <biju.das.jz@bp.renesas.com>, linux-omap@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Prabhakar Mahadev Lad <prabhakar.mahadev-lad.rj@bp.renesas.com>,
-        linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 1/2] mfd: palmas: Constify .data in OF table and {palmas,tps65917}_irq_chip
-Date:   Sat, 26 Aug 2023 09:22:16 +0100
-Message-Id: <20230826082217.41967-2-biju.das.jz@bp.renesas.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230826082217.41967-1-biju.das.jz@bp.renesas.com>
-References: <20230826082217.41967-1-biju.das.jz@bp.renesas.com>
+        with ESMTP id S230031AbjHZRRP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 26 Aug 2023 13:17:15 -0400
+Received: from gofer.mess.org (gofer.mess.org [88.97.38.141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3633E1BDB;
+        Sat, 26 Aug 2023 10:17:13 -0700 (PDT)
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id C134B1000D0; Sat, 26 Aug 2023 18:17:11 +0100 (BST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=mess.org; s=2020;
+        t=1693070231; bh=Lbm8wzOKC2M9GeSPbw06e8KPiOFgpvPECNpJXbRnIo4=;
+        h=From:To:Cc:Subject:Date:From;
+        b=j9u+3HNFtL/ansIVY+kJ3/2edhhGvGpGn6BYGnX27uq8OmsPe8Y19TZW7+NgLx6g5
+         9cdoJ+efWCPyt4YPyi2KRjsqxHa+lxtqIYlIlY+hX9KqLyzbwx1891j7C3pTynEs6J
+         H2ErMmFPJttjPT8iXlbCT4Mp/mKFedFttF86kgGsZSPXLqvAvTxY/rVG8aubFlDPqO
+         xVwicVAj5iHnWZnl6PnQcXNPjXRvf/WIZEnY7qVKLI6hFeAEov860KW3ZoXSnOFZTm
+         5+QuPlFkCALmT3AJOaaAcsKzZ655Djqrt4rs4JJ50f6ebSo2v6cJ1zqm1aCJZ8ku+x
+         oVqbnUtBMdh4Q==
+From:   Sean Young <sean@mess.org>
+To:     linux-media@vger.kernel.org
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>, linux-omap@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Subject: [PATCH v4 2/2] dt-bindings: media: remove nokia,n900-ir as pwm-ir-tx is compatible
+Date:   Sat, 26 Aug 2023 18:17:11 +0100
+Message-Id: <20230826171711.366710-1-sean@mess.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Constify .data in OF table and {palmas,tps65917}_irq_chip and replace
-the variable *features->features in struct palmas_driver_data and
-drop the {palmas,tps659038}_features variables and use their values
-directly in the named initialization.
+The generic pwm-ir-tx driver works for the Nokia n900, so nokia,n900-ir
+can be removed.
 
-While at it, drop the inner leading commas for OF match table.
-
-Signed-off-by: Biju Das <biju.das.jz@bp.renesas.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/mfd/palmas.c | 42 ++++++++++++++----------------------------
- 1 file changed, 14 insertions(+), 28 deletions(-)
+ .../bindings/leds/irled/pwm-ir-tx.yaml        |  5 ++++-
+ .../devicetree/bindings/media/nokia,n900-ir   | 20 -------------------
+ 2 files changed, 4 insertions(+), 21 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/media/nokia,n900-ir
 
-diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index 6e562bab62e4..71df70e1bd33 100644
---- a/drivers/mfd/palmas.c
-+++ b/drivers/mfd/palmas.c
-@@ -296,7 +296,7 @@ static const struct regmap_irq palmas_irqs[] = {
- 	},
- };
+diff --git a/Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.yaml b/Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.yaml
+index f2a6fa140f38..7526e3149f72 100644
+--- a/Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.yaml
++++ b/Documentation/devicetree/bindings/leds/irled/pwm-ir-tx.yaml
+@@ -15,7 +15,10 @@ description:
  
--static struct regmap_irq_chip palmas_irq_chip = {
-+static const struct regmap_irq_chip palmas_irq_chip = {
- 	.name = "palmas",
- 	.irqs = palmas_irqs,
- 	.num_irqs = ARRAY_SIZE(palmas_irqs),
-@@ -309,7 +309,7 @@ static struct regmap_irq_chip palmas_irq_chip = {
- 			PALMAS_INT1_MASK),
- };
+ properties:
+   compatible:
+-    const: pwm-ir-tx
++    oneOf:
++      - const: pwm-ir-tx
++      - const: nokia,n900-ir
++        deprecated: true
  
--static struct regmap_irq_chip tps65917_irq_chip = {
-+static const struct regmap_irq_chip tps65917_irq_chip = {
- 	.name = "tps65917",
- 	.irqs = tps65917_irqs,
- 	.num_irqs = ARRAY_SIZE(tps65917_irqs),
-@@ -463,42 +463,28 @@ static void palmas_power_off(void)
- 				__func__, ret);
- }
- 
--static unsigned int palmas_features = PALMAS_PMIC_FEATURE_SMPS10_BOOST;
--static unsigned int tps659038_features;
+   pwms:
+     maxItems: 1
+diff --git a/Documentation/devicetree/bindings/media/nokia,n900-ir b/Documentation/devicetree/bindings/media/nokia,n900-ir
+deleted file mode 100644
+index 13a18ce37dd1..000000000000
+--- a/Documentation/devicetree/bindings/media/nokia,n900-ir
++++ /dev/null
+@@ -1,20 +0,0 @@
+-Device-Tree bindings for LIRC TX driver for Nokia N900(RX51)
 -
- struct palmas_driver_data {
--	unsigned int *features;
--	struct regmap_irq_chip *irq_chip;
-+	unsigned int features;
-+	const struct regmap_irq_chip *irq_chip;
- };
- 
--static struct palmas_driver_data palmas_data = {
--	.features = &palmas_features,
-+static const struct palmas_driver_data palmas_data = {
-+	.features = PALMAS_PMIC_FEATURE_SMPS10_BOOST,
- 	.irq_chip = &palmas_irq_chip,
- };
- 
--static struct palmas_driver_data tps659038_data = {
--	.features = &tps659038_features,
-+static const struct palmas_driver_data tps659038_data = {
- 	.irq_chip = &palmas_irq_chip,
- };
- 
--static struct palmas_driver_data tps65917_data = {
--	.features = &tps659038_features,
-+static const struct palmas_driver_data tps65917_data = {
- 	.irq_chip = &tps65917_irq_chip,
- };
- 
- static const struct of_device_id of_palmas_match_tbl[] = {
--	{
--		.compatible = "ti,palmas",
--		.data = &palmas_data,
--	},
--	{
--		.compatible = "ti,tps659038",
--		.data = &tps659038_data,
--	},
--	{
--		.compatible = "ti,tps65917",
--		.data = &tps65917_data,
--	},
-+	{ .compatible = "ti,palmas", .data = &palmas_data },
-+	{ .compatible = "ti,tps659038", .data = &tps659038_data },
-+	{ .compatible = "ti,tps65917", .data = &tps65917_data },
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, of_palmas_match_tbl);
-@@ -507,7 +493,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
- {
- 	struct palmas *palmas;
- 	struct palmas_platform_data *pdata;
--	struct palmas_driver_data *driver_data;
-+	const struct palmas_driver_data *driver_data;
- 	struct device_node *node = i2c->dev.of_node;
- 	int ret = 0, i;
- 	unsigned int reg, addr;
-@@ -535,8 +521,8 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
- 	palmas->dev = &i2c->dev;
- 	palmas->irq = i2c->irq;
- 
--	driver_data = (struct palmas_driver_data *) device_get_match_data(&i2c->dev);
--	palmas->features = *driver_data->features;
-+	driver_data = device_get_match_data(&i2c->dev);
-+	palmas->features = driver_data->features;
- 
- 	for (i = 0; i < PALMAS_NUM_CLIENTS; i++) {
- 		if (i == 0)
+-Required properties:
+-	- compatible: should be "nokia,n900-ir".
+-	- pwms: specifies PWM used for IR signal transmission.
+-
+-Example node:
+-
+-	pwm9: dmtimer-pwm@9 {
+-		compatible = "ti,omap-dmtimer-pwm";
+-		ti,timers = <&timer9>;
+-		ti,clock-source = <0x00>; /* timer_sys_ck */
+-		#pwm-cells = <3>;
+-	};
+-
+-	ir: n900-ir {
+-		compatible = "nokia,n900-ir";
+-
+-		pwms = <&pwm9 0 26316 0>; /* 38000 Hz */
+-	};
 -- 
-2.25.1
+2.42.0
 
