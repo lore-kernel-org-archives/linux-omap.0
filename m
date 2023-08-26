@@ -2,108 +2,98 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57E77C3DA6F
-	for <linux-omap@archiver.kernel.org>; Thu, 24 Aug 2023 18:39:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39DA0C83F16
+	for <linux-omap@archiver.kernel.org>; Sat, 26 Aug 2023 08:23:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229989AbjHXSia (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 24 Aug 2023 14:38:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40000 "EHLO
+        id S229666AbjHZIWt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 26 Aug 2023 04:22:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35070 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243087AbjHXSiX (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 24 Aug 2023 14:38:23 -0400
-X-Greylist: delayed 320 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 24 Aug 2023 11:38:19 PDT
-Received: from office2.cesnet.cz (office2.cesnet.cz [IPv6:2001:718:ff05:10b::237])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9848419B0;
-        Thu, 24 Aug 2023 11:38:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cesnet.cz;
-        s=office2-2020; t=1692901973;
-        bh=FqBxkg0Usx4H3yO9c7I2yoVkevWm26on/RPV63zVcDc=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=BS1nLzG+SgW36sXAe5oCCqXacdg+ur7T2PFzx76XyTsPLRNK3esUZcBRs8qmZtnVi
-         CW4Su3x90HAO05eLfHhaWFE5Y8Hxf79IE89CaHtQcF+rlA0Alz3PKLpb4hSPgPPN2Y
-         2UIzEnr4Dp6tkAj7DYUHzZK4wIaCaqRgQ0u+d2q/imEt/puqxJ4QjoYmHLzdQkTsfK
-         dgRinCbzd95HjjbEs6negfG7KB700b4ysC+MpKUResW+qEBjP95kRooaFYIw2uEi5o
-         KbCfOs8PNeO8V6v1UXr8832fmspd48GuwzluVlAiLpSrlL2mEn0pwlYYfr1v4Ambut
-         RMhCiIxYYkahQ==
-Received: from localhost (tlha232.cesnet.cz [IPv6:2001:718:1:6::134:232])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by office2.cesnet.cz (Postfix) with ESMTPSA id 1E219118000E;
-        Thu, 24 Aug 2023 20:32:47 +0200 (CEST)
-From:   =?iso-8859-1?Q?Jan_Kundr=E1t?= <jan.kundrat@cesnet.cz>
-To:     Linus Walleij <linus.walleij@linaro.org>
-Cc:     Lee Jones <lee@kernel.org>, Pavel Machek <pavel@ucw.cz>,
-        <linux-leds@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Tony Lindgren <tony@atomide.com>,
-        Felipe Balbi <balbi@kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-gpio@vger.kernel.org>
-Subject: Re: [PATCH v2] leds: Mark GPIO LED trigger broken
-Date:   Thu, 24 Aug 2023 20:32:46 +0200
+        with ESMTP id S229764AbjHZIWa (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 26 Aug 2023 04:22:30 -0400
+Received: from relmlie6.idc.renesas.com (relmlor2.renesas.com [210.160.252.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2A4511BE6;
+        Sat, 26 Aug 2023 01:22:28 -0700 (PDT)
+X-IronPort-AV: E=Sophos;i="6.02,203,1688396400"; 
+   d="scan'208";a="177735137"
+Received: from unknown (HELO relmlir5.idc.renesas.com) ([10.200.68.151])
+  by relmlie6.idc.renesas.com with ESMTP; 26 Aug 2023 17:22:27 +0900
+Received: from localhost.localdomain (unknown [10.226.92.24])
+        by relmlir5.idc.renesas.com (Postfix) with ESMTP id 70AF440029B4;
+        Sat, 26 Aug 2023 17:22:25 +0900 (JST)
+From:   Biju Das <biju.das.jz@bp.renesas.com>
+To:     Tony Lindgren <tony@atomide.com>, Lee Jones <lee@kernel.org>
+Cc:     Biju Das <biju.das.jz@bp.renesas.com>, linux-omap@vger.kernel.org,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Prabhakar Mahadev Lad <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+        linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 2/2] mfd: palmas: Make similar OF and ID table
+Date:   Sat, 26 Aug 2023 09:22:17 +0100
+Message-Id: <20230826082217.41967-3-biju.das.jz@bp.renesas.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230826082217.41967-1-biju.das.jz@bp.renesas.com>
+References: <20230826082217.41967-1-biju.das.jz@bp.renesas.com>
 MIME-Version: 1.0
-Message-ID: <1d11e190-df52-4941-946e-209238dd3e99@cesnet.cz>
-In-Reply-To: <20230314210059.419159-1-linus.walleij@linaro.org>
-References: <20230314210059.419159-1-linus.walleij@linaro.org>
-Organization: CESNET
-User-Agent: Trojita/unstable-2022-08-22; Qt/5.15.9; wayland; Linux; 
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-> I want to know that this trigger has active users that
-> cannot live without it if we are to continue to support it.
+Make similar OF and ID table to extend support for ID match using
+i2c_match_data(). Currently it works only for OF match tables as the
+driver_data is wrong for ID match.
 
-We're using this feature. Our use case is a LED at the front panel which=20
-shows whether a signal is present at an input LC optical connector (DWDM=20
-network stuff). Here's how we're setting it up:
+Signed-off-by: Biju Das <biju.das.jz@bp.renesas.com>
+---
+ drivers/mfd/palmas.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-https://gerrit.cesnet.cz/plugins/gitiles/CzechLight/br2-external/+/6570b571bb=
-f3f53cf24ef2be3079bc282c445b9e/package/czechlight-clearfog-leds/init-leds-edf=
-a.sh
+diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+index 71df70e1bd33..9f614bbca007 100644
+--- a/drivers/mfd/palmas.c
++++ b/drivers/mfd/palmas.c
+@@ -489,6 +489,15 @@ static const struct of_device_id of_palmas_match_tbl[] = {
+ };
+ MODULE_DEVICE_TABLE(of, of_palmas_match_tbl);
+ 
++static const struct i2c_device_id palmas_i2c_id[] = {
++	{ "palmas", (kernel_ulong_t)&palmas_data },
++	{ "twl6035", (kernel_ulong_t)&palmas_data },
++	{ "twl6037", (kernel_ulong_t)&palmas_data },
++	{ "tps65913", (kernel_ulong_t)&palmas_data },
++	{ /* end */ }
++};
++MODULE_DEVICE_TABLE(i2c, palmas_i2c_id);
++
+ static int palmas_i2c_probe(struct i2c_client *i2c)
+ {
+ 	struct palmas *palmas;
+@@ -521,7 +530,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
+ 	palmas->dev = &i2c->dev;
+ 	palmas->irq = i2c->irq;
+ 
+-	driver_data = device_get_match_data(&i2c->dev);
++	driver_data = i2c_get_match_data(i2c);
+ 	palmas->features = driver_data->features;
+ 
+ 	for (i = 0; i < PALMAS_NUM_CLIENTS; i++) {
+@@ -698,15 +707,6 @@ static void palmas_i2c_remove(struct i2c_client *i2c)
+ 	}
+ }
+ 
+-static const struct i2c_device_id palmas_i2c_id[] = {
+-	{ "palmas", },
+-	{ "twl6035", },
+-	{ "twl6037", },
+-	{ "tps65913", },
+-	{ /* end */ }
+-};
+-MODULE_DEVICE_TABLE(i2c, palmas_i2c_id);
+-
+ static struct i2c_driver palmas_i2c_driver = {
+ 	.driver = {
+ 		   .name = "palmas",
+-- 
+2.25.1
 
-I understand that the GPIO numeric namespace is racy, but it's never been a=20=
-
-problem for us in the past 5 years since this script runs much later during=20=
-
-boot than any driver probing.
-
-> Option if this is really needed: I can develop a new trigger
-> that can associate GPIOs with LEDs as triggers using device
-> tree, which should also remove the use of userspace custom
-> scripts to achieve this and be much more trustworthy, if
-> someone with the Nokia n810 or a device with a similar need
-> is willing to test it.
-
-I'll be happy to test a patch like that.
-
-However, the GPIO in question on our board is connected to a MCP23S18, and=20=
-
-we have a pair of these. When used in this configuration (two chips at the=20=
-
-same SPI CS, differing by a chip-specific "HW address" on a HW level),=20
-there are some impedance mismatches because it's essentially two=20
-independent pinctrl instances on the same SPI address. This causes=20
-problems, e.g. the debugfs pinctrl instance won't be created for the second=20=
-
-chip because of a naming conflict. We also carry this out-of-tree patch to=20=
-
-make the GPIO labels work when set from DTS:
-
-https://patchwork.ozlabs.org/project/linux-gpio/patch/517dcdda21ea0b0df884bc6=
-adcba1dadb78b66b1.1551966077.git.jan.kundrat@cesnet.cz/
-
-(Feedback on how to solve that problem is welcome, btw.)
-
-Since I am not that much familiar with pinctrl/gpio stuff in kernel, I=20
-wanted to bring this up to make sure that your future trigger works even on=20=
-
-a setup like ours. Here's how it's used via DTS in case it's relevant:
-
-https://gerrit.cesnet.cz/plugins/gitiles/CzechLight/br2-external/+/6570b571bb=
-f3f53cf24ef2be3079bc282c445b9e/board/czechlight/clearfog/sdn-roadm-clearfog.d=
-tsi#151
-
-With kind regards,
-Jan
