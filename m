@@ -2,153 +2,63 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A7A2C83F2C
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:59:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1AE3CA0FF8
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:59:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231264AbjIEP7B (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 Sep 2023 11:59:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38762 "EHLO
+        id S231429AbjIEP7D (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 Sep 2023 11:59:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60560 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354455AbjIELsi (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 07:48:38 -0400
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D3AA1AE;
-        Tue,  5 Sep 2023 04:48:34 -0700 (PDT)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 385BmJWf067524;
-        Tue, 5 Sep 2023 06:48:19 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1693914499;
-        bh=wv46gSUbnd5T5QXTH0Mwp9tu+So1/AjM94GeHUDcTjM=;
-        h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=Kd8/VPT9fcuFT5JgaYi2xQgt5cpbiC78w1cUY3q48XLNBf3d7o/OPRtIeuBcb4C/R
-         K9FNJiD+JwqimTQQdC1jyoYYTxmQv61m6kNNZovef5KppsyqFyu5AP1ywqCVt51gOd
-         VWDJW6WIqPz7wkmBG0MRmy0NI8qvvngwAYXqYOVo=
-Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 385BmJ66054136
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 5 Sep 2023 06:48:19 -0500
-Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 5
- Sep 2023 06:48:19 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 5 Sep 2023 06:48:19 -0500
-Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 385BmI3E075471;
-        Tue, 5 Sep 2023 06:48:19 -0500
-From:   Achal Verma <a-verma1@ti.com>
-To:     Vignesh Raghavendra <vigneshr@ti.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Krzysztof Wilczy_ski <kw@linux.com>,
-        Rob Herring <robh@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Conor Dooley <conor+dt@kernel.org>
-CC:     <devicetree@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-pci@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, Achal Verma <a-verma1@ti.com>
-Subject: [RFC PATCH 1/2] dt-bindings: PCI: ti,j721e-pci-*: Add "ti,syscon-pcie-refclk-out" property
-Date:   Tue, 5 Sep 2023 17:18:15 +0530
-Message-ID: <20230905114816.2993628-2-a-verma1@ti.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230905114816.2993628-1-a-verma1@ti.com>
-References: <20230905114816.2993628-1-a-verma1@ti.com>
+        with ESMTP id S1354109AbjIEJj7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 05:39:59 -0400
+X-Greylist: delayed 4353 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 05 Sep 2023 02:39:56 PDT
+Received: from mail.equinoxrise.pl (mail.equinoxrise.pl [217.61.112.157])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5A351A8
+        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 02:39:56 -0700 (PDT)
+Received: by mail.equinoxrise.pl (Postfix, from userid 1002)
+        id A360F833E8; Mon,  4 Sep 2023 09:41:37 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=equinoxrise.pl;
+        s=mail; t=1693813334;
+        bh=v6OgBfK5dN7P5dQ0wCu59rOfZaiqziJeLNblJ8dOcGI=;
+        h=Date:From:To:Subject:From;
+        b=VRTi3tvjLywySHO8S5WiHAiaQPCYJJxC/mJ9PaOcEmN4jdUDXaSDW/fQym5N6i2Tc
+         LB86klV4NKWzsSQCGoOVVr0W64Y+ECk2fOa7C3Wprn9aF+5YZSch4CL6WcCf5+TQI4
+         wfRVptlBlPVid3Sa+S8d2a67IVceZVV3jG8hunfGaiEZd78/FKtZU9ml43CBsOfyJY
+         RoHxRlqkVHGMGCCmDc1BsD6XwobU9C3W+LIeDyvGfKJnT4EG0KDTLnq3YYaraKxmW2
+         d5zHlK0ZEb2IVQjaEUZDS7fudVChLY2nvi0Rq1TAmxa2JDzc8DpHgwsSqph56vkpWo
+         oRJVC916br5MQ==
+Received: by mail.equinoxrise.pl for <linux-omap@vger.kernel.org>; Mon,  4 Sep 2023 07:40:34 GMT
+Message-ID: <20230904084500-0.1.7.ro9.0.xlcqsaqcdq@equinoxrise.pl>
+Date:   Mon,  4 Sep 2023 07:40:34 GMT
+From:   "Mateusz Talaga" <mateusz.talaga@equinoxrise.pl>
+To:     <linux-omap@vger.kernel.org>
+Subject: Prezentacja
+X-Mailer: mail.equinoxrise.pl
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Added "ti,syscon-pcie-refclk-out" property to specify the ACSPCIE clock
-buffer register offset in SYSCON, which would be used to enable serdes
-reference clock output.
+Dzie=C5=84 dobry!
 
-Signed-off-by: Achal Verma <a-verma1@ti.com>
----
- .../bindings/pci/ti,j721e-pci-host.yaml       | 53 +++++++++++++++++++
- 1 file changed, 53 insertions(+)
+Czy m=C3=B3g=C5=82bym przedstawi=C4=87 rozwi=C4=85zanie, kt=C3=B3re umo=C5=
+=BCliwia monitoring ka=C5=BCdego auta w czasie rzeczywistym w tym jego po=
+zycj=C4=99, zu=C5=BCycie paliwa i przebieg?
 
-diff --git a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-index a2c5eaea57f5..27bdc52282c4 100644
---- a/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-+++ b/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml
-@@ -44,6 +44,18 @@ properties:
-           - description: pcie_ctrl register offset within SYSCON
-     description: Specifier for configuring PCIe mode and link speed.
- 
-+  ti,syscon-pcie-refclk-out:
-+    $ref: /schemas/types.yaml#/definitions/phandle-array
-+    items:
-+      - items:
-+          - description: Phandle to the SYSCON entry
-+          - description: lock2_kick0 register offset within SYSCON
-+          - description: lock2_kick1 register offset within SYSCON
-+          - description: acspcie_ctrl register offset within SYSCON
-+          - description: pcie_refclk_clksel register offset within SYSCON
-+          - description: clock source index to source ref clock
-+    description: Specifier for enabling ACSPCIe clock buffer for reference clock output.
-+
-   power-domains:
-     maxItems: 1
- 
-@@ -99,6 +111,7 @@ required:
-   - reg
-   - reg-names
-   - ti,syscon-pcie-ctrl
-+  - ti,syscon-pcie-refclk-out
-   - max-link-speed
-   - num-lanes
-   - power-domains
-@@ -153,3 +166,43 @@ examples:
-             dma-ranges = <0x02000000 0x0 0x0 0x0 0x0 0x10000 0x0>;
-         };
-     };
-+
-+  -
-+    #include <dt-bindings/mux/mux.h>
-+    #include <dt-bindings/mux/ti-serdes.h>
-+    #include <dt-bindings/phy/phy.h>
-+    #include <dt-bindings/phy/phy-ti.h>
-+
-+    bus {
-+        #address-cells = <2>;
-+        #size-cells = <2>;
-+
-+        pcie1_rc: pcie@2910000 {
-+                compatible = "ti,j784s4-pcie-host";
-+                reg = <0x00 0x02910000 0x00 0x1000>,
-+                      <0x00 0x02917000 0x00 0x400>,
-+                      <0x00 0x0d800000 0x00 0x00800000>,
-+                      <0x00 0x18000000 0x00 0x00001000>;
-+                reg-names = "intd_cfg", "user_cfg", "reg", "cfg";
-+                interrupt-names = "link_state";
-+                interrupts = <GIC_SPI 330 IRQ_TYPE_EDGE_RISING>;
-+                device_type = "pci";
-+                ti,syscon-pcie-ctrl = <&scm_conf 0x4074>;
-+                ti,syscon-pcie-refclk-out = <&scm_conf 0x9008 0x900c 0x18090 0x8074 0x1>;
-+                max-link-speed = <3>;
-+                num-lanes = <4>;
-+                power-domains = <&k3_pds 333 TI_SCI_PD_EXCLUSIVE>;
-+                clocks = <&k3_clks 333 0>;
-+                clock-names = "fck";
-+                #address-cells = <3>;
-+                #size-cells = <2>;
-+                bus-range = <0x0 0xff>;
-+                vendor-id = <0x104c>;
-+                device-id = <0xb013>;
-+                msi-map = <0x0 &gic_its 0x10000 0x10000>;
-+                dma-coherent;
-+                ranges = <0x01000000 0x0 0x18001000  0x00 0x18001000  0x0 0x0010000>,
-+                         <0x02000000 0x0 0x18011000  0x00 0x18011000  0x0 0x7fef000>;
-+                dma-ranges = <0x02000000 0x0 0x0 0x0 0x0 0x10000 0x0>;
-+        };
-+    };
--- 
-2.25.1
+Dodatkowo nasze narz=C4=99dzie minimalizuje koszty utrzymania samochod=C3=
+=B3w, skraca czas przejazd=C3=B3w, a tak=C5=BCe tworzenie planu tras czy =
+dostaw.
 
+Z naszej wiedzy i do=C5=9Bwiadczenia korzysta ju=C5=BC ponad 49 tys. Klie=
+nt=C3=B3w. Monitorujemy 809 000 pojazd=C3=B3w na ca=C5=82ym =C5=9Bwiecie,=
+ co jest nasz=C4=85 najlepsz=C4=85 wizyt=C3=B3wk=C4=85.
+
+Bardzo prosz=C4=99 o e-maila zwrotnego, je=C5=9Bli mogliby=C5=9Bmy wsp=C3=
+=B3lnie om=C3=B3wi=C4=87 potencja=C5=82 wykorzystania takiego rozwi=C4=85=
+zania w Pa=C5=84stwa firmie.
+
+
+Pozdrawiam
+Mateusz Talaga
