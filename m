@@ -2,175 +2,207 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B59BFCA0FE2
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDE64CA0FF3
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:59:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231717AbjIEP7L (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 Sep 2023 11:59:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34774 "EHLO
+        id S231765AbjIEP7N (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 Sep 2023 11:59:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354308AbjIEKkH (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 06:40:07 -0400
+        with ESMTP id S1354453AbjIELsh (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 07:48:37 -0400
 Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74313E8;
-        Tue,  5 Sep 2023 03:40:02 -0700 (PDT)
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 385AdcUM085354;
-        Tue, 5 Sep 2023 05:39:38 -0500
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5020B1AD;
+        Tue,  5 Sep 2023 04:48:32 -0700 (PDT)
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 385BmMkh103769;
+        Tue, 5 Sep 2023 06:48:22 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1693910378;
-        bh=IEGtvOplK8tYLUbkKdeIFl1pBYO1Ul1m2t260iBSZ4E=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=BG8uVS0SC/m8qYToFzh09jECI5Al6rMABO1abPcr8QSkUVo85kgmrYa2vxVV0XWN2
-         z8p8+XIC7NI1zAD+3iNeQQIiFBhPLT1bXmfSO/luEEs33qt/DpsGTdPGcgyRc5ZIO7
-         jH2icq6VCE1cZt2+qTbL+c54EYaDKY601re0pHY4=
-Received: from DFLE111.ent.ti.com (dfle111.ent.ti.com [10.64.6.32])
-        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 385Adc84012893
+        s=ti-com-17Q1; t=1693914502;
+        bh=/iPn0yREcHMFWliXICPndWnFxV56aW4OXQpn08OE5mY=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=DXB+AQ9akhiFeX9N1vc5Jl4qDySFY6M0rguw7ZRGEGgenpYHdwC5lj16fZxp9UiZ7
+         huSvmPmwCVU6rSIlJwIPPCCsbn4daZ9f2C5pMgddxzYSr5kYLljjjEyvCUZfLf0LiL
+         XVIRKmEs7D5g12taU7/8Hv7wMXS2+FaRU4T2x64s=
+Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 385BmMQE054158
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 5 Sep 2023 05:39:38 -0500
-Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE111.ent.ti.com
- (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+        Tue, 5 Sep 2023 06:48:22 -0500
+Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 5
- Sep 2023 05:39:38 -0500
-Received: from fllv0039.itg.ti.com (10.64.41.19) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
+ Sep 2023 06:48:20 -0500
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 5 Sep 2023 05:39:38 -0500
-Received: from [172.24.19.15] (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by fllv0039.itg.ti.com (8.15.2/8.15.2) with ESMTP id 385AdYIL014368;
-        Tue, 5 Sep 2023 05:39:35 -0500
-Message-ID: <ed9164d7-e2a2-1a63-3574-a305d8f8d3fc@ti.com>
-Date:   Tue, 5 Sep 2023 16:09:34 +0530
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.14.0
-Subject: Re: [EXTERNAL] Re: [RFC PATCH 2/2] PCI: j721e: Add support to build
- pci-j721e as a kernel module
-To:     Bjorn Helgaas <helgaas@kernel.org>
-CC:     Vignesh Raghavendra <vigneshr@ti.com>,
-        Tom Joseph <tjoseph@cadence.com>,
+ Frontend Transport; Tue, 5 Sep 2023 06:48:21 -0500
+Received: from localhost (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 385BmKNJ046722;
+        Tue, 5 Sep 2023 06:48:20 -0500
+From:   Achal Verma <a-verma1@ti.com>
+To:     Vignesh Raghavendra <vigneshr@ti.com>,
         Lorenzo Pieralisi <lpieralisi@kernel.org>,
         Krzysztof Wilczy_ski <kw@linux.com>,
         Rob Herring <robh@kernel.org>,
         Bjorn Helgaas <bhelgaas@google.com>,
-        <linux-omap@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Conor Dooley <conor+dt@kernel.org>
+CC:     <devicetree@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-pci@vger.kernel.org>,
         <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-References: <20230817170417.GA320486@bhelgaas>
-Content-Language: en-US
-From:   "Verma, Achal" <a-verma1@ti.com>
-In-Reply-To: <20230817170417.GA320486@bhelgaas>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+        <linux-kernel@vger.kernel.org>, Achal Verma <a-verma1@ti.com>
+Subject: [RFC PATCH 2/2] pci: j721e: Enable reference clock output from serdes
+Date:   Tue, 5 Sep 2023 17:18:16 +0530
+Message-ID: <20230905114816.2993628-3-a-verma1@ti.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20230905114816.2993628-1-a-verma1@ti.com>
+References: <20230905114816.2993628-1-a-verma1@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+PCIe1 in J7AHP EVM has EP side connector reference clock connection from
+serdes named SOC_SERDES0_REFCLK(PCIE_REFCLK_OUT) unlike PCIe0 which has
+reference clock connection from on-board serdes. To enable this reference
+clock out, ACSPCIE clock buffer pads have to be enabled.
 
+This change enables ACSPCIE clock buffer pads and select clock source for
+reference clock output.
 
-On 8/17/2023 10:34 PM, Bjorn Helgaas wrote:
-> On Thu, Aug 17, 2023 at 05:38:23PM +0530, Achal Verma wrote:
->> pci-j721e driver can be build as a in-built kernel driver only, which is
->> not required as it is not used during boot time in most cases.
->> This change add support to build pci-j721e as a kernel loadable module.
->>
->> J721e PCIe controller can work in both host mode and end-point mode.
->> In order to enable host mode driver and endpoint driver to be built
->> independently either as built-in or kernel module, the pcie-j721e.c driver
->> is refactored into following components:
->>
->> 1) pci-j721e-host.c: Driver used when PCIe controller has to be
->> initialized in host mode.
->>
->> 2) pci-j721e-ep.c: Driver used when PCIe controller has to be
->> initialized in endpoint mode.
->>
->> 3) pci-j721e.c: contains common code required in both modes.
-> 
-> Sounds like at least two commits (I'm not sure what the best order
-> would be):
-> 
->    1) Split into separate host mode and endpoint mode drivers
-> 
->    2) Make both drivers tristate
+Signed-off-by: Achal Verma <a-verma1@ti.com>
+---
+ .../pci/controller/cadence/pci-j721e-host.c   | 96 +++++++++++++++++++
+ 1 file changed, 96 insertions(+)
 
-So one patch for .c files and Makefile and other one for Kconfig.
-> 
-> It looks like you implement both module loading and removal.  Do we
-> now think removal of these modules is safe?  IIRC there used to be a
-> question related to irq_desc lifetimes, e.g., there's some discussion
-> here: https://lore.kernel.org/linux-pci/87k085xekg.wl-maz@kernel.org/
-> 
-> The ability to *load* drivers as modules is definitely useful.  The
-> ability to *remove* them is useful for developers but not really
-> useful for users.
-> 
-> But I guess j721e_pcie_remove() already exists, so maybe you're not
-> changing anything as far as irq_desc lifetimes
-I went through the email-thread you have shared.
-It looks like its related to the issue when pcie bridge driver also 
-working as a interrupt domain/controller for EP.
-In case of legacy interrupt support, its required that pcie host driver 
-free interrupt mapping before freeing the interrupt domain.
+diff --git a/drivers/pci/controller/cadence/pci-j721e-host.c b/drivers/pci/controller/cadence/pci-j721e-host.c
+index af47aa090159..106472920f68 100644
+--- a/drivers/pci/controller/cadence/pci-j721e-host.c
++++ b/drivers/pci/controller/cadence/pci-j721e-host.c
+@@ -10,10 +10,21 @@
+ #include <linux/gpio/consumer.h>
+ #include <linux/delay.h>
+ #include <linux/of_device.h>
++#include <linux/mfd/syscon.h>
++#include <linux/regmap.h>
+ 
+ #include "pcie-cadence.h"
+ #include "pci-j721e.h"
+ 
++#define CTRL_MMR_LOCK2_MASK		0xFFFFFFFF
++#define CTRL_MMR_LOCK2_KICK0_UNLOCK_VAL	0x68EF3490
++#define CTRL_MMR_LOCK2_KICK1_UNLOCK_VAL	0xD172BC5A
++#define CTRL_MMR_LOCK_KICK_LOCK_VAL	0xFFFFFFFF
++#define CTRL_MMR_ACSPCIE_PAD_MASK	0xFFFFFFFF
++#define CTRL_MMR_ACSPCIE_PAD_EN		0x01000000
++#define PCIE_REFCLK_CLKSEL_OUT_EN	BIT(8)
++#define PCIE_REFCLK_CLKSEL_MASK	GENMASK(1, 0)
++
+ static int cdns_ti_pcie_config_read(struct pci_bus *bus, unsigned int devfn,
+ 				    int where, int size, u32 *value)
+ {
+@@ -79,6 +90,84 @@ static const struct of_device_id of_j721e_pcie_host_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, of_j721e_pcie_host_match);
+ 
++static int j721e_enable_acspcie(struct j721e_pcie *pcie)
++{
++	struct device *dev = pcie->cdns_pcie->dev;
++	struct device_node *node = dev->of_node;
++	struct of_phandle_args args;
++	unsigned int lock2_kick0_offset, lock2_kick1_offset;
++	unsigned int acspcie_pad_offset, refclk_clksel_offset;
++	unsigned int refclk_clksel_source;
++	struct regmap *syscon;
++	u32 val = 0, mask = 0;
++	int ret;
++
++	/*
++	 * If property ti,syscon-pcie-refclk-out exists, believe PCIe connector
++	 * requires PCIe ref clock from Serdes, so enable ACSPCIE pads and mux
++	 * to source out PCIe ref clock else ref clock has to be supplied from
++	 * on-board clock generator.
++	 */
++	syscon = syscon_regmap_lookup_by_phandle(node, "ti,syscon-pcie-refclk-out");
++	if (IS_ERR(syscon))
++		return 0;
++
++	ret = of_parse_phandle_with_fixed_args(node, "ti,syscon-pcie-refclk-out", 5,
++						0, &args);
++	if (ret) {
++		dev_err(dev, "Failed to read ti,syscon-pcie-refclk-out property\n");
++		return ret;
++	}
++
++	lock2_kick0_offset = args.args[0];
++	lock2_kick1_offset = args.args[1];
++	acspcie_pad_offset = args.args[2];
++	refclk_clksel_offset = args.args[3];
++	refclk_clksel_source = args.args[4];
++
++	/* Un-lock Partition 2 : 8000h to 9FFFh */
++	mask = CTRL_MMR_LOCK2_MASK;
++	val = CTRL_MMR_LOCK2_KICK0_UNLOCK_VAL;
++	ret = regmap_update_bits(syscon, lock2_kick0_offset, mask, val);
++	if (ret)
++		goto err;
++
++	val = CTRL_MMR_LOCK2_KICK1_UNLOCK_VAL;
++	ret = regmap_update_bits(syscon, lock2_kick1_offset, mask, val);
++	if (ret)
++		goto err;
++
++	/* Enable ACSPCIe PADS  */
++	mask = CTRL_MMR_ACSPCIE_PAD_MASK;
++	val = CTRL_MMR_ACSPCIE_PAD_EN;
++	ret = regmap_update_bits(syscon, acspcie_pad_offset, mask, val);
++	if (ret)
++		goto err;
++
++	/* PCIE_REFCLKx_CLKSEL : EN + ref_clk_source */
++	mask = PCIE_REFCLK_CLKSEL_OUT_EN | PCIE_REFCLK_CLKSEL_MASK;
++	val = PCIE_REFCLK_CLKSEL_OUT_EN | refclk_clksel_source;
++	ret = regmap_update_bits(syscon, refclk_clksel_offset, mask, val);
++	if (ret)
++		goto err;
++
++	/* Re-lock Partition 2 : 8000h to 9FFFh */
++	mask = CTRL_MMR_LOCK_KICK_LOCK_VAL;
++	val = CTRL_MMR_LOCK_KICK_LOCK_VAL;
++	ret = regmap_update_bits(syscon, lock2_kick0_offset, mask, val);
++	if (ret)
++		goto err;
++
++	ret = regmap_update_bits(syscon, lock2_kick1_offset, mask, val);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_err(dev, "Failed to enable ref clock out\n");
++	return ret;
++}
++
+ static int j721e_pcie_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -121,6 +210,13 @@ static int j721e_pcie_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
++	/*
++	 * Enable ACSPCIe clock buffer to source out reference clock for EP
++	 */
++	ret = j721e_enable_acspcie(pcie);
++	if (ret < 0)
++		return ret;
++
+ 	pcie->perst_gpiod = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
+ 	if (IS_ERR(pcie->perst_gpiod)) {
+ 		ret = PTR_ERR(pcie->perst_gpiod);
+-- 
+2.25.1
 
-Note that current upstream implementation of pci-j721e doesn't support 
-interrupt domain, so issue doesn't applies here but its there in TI 
-kernel and I believe we are handling this in proper way by freeing the 
-mappings before.
-
-Also pci-j721e remove() was lacking some important clean-up functions 
-including pci_remove_root_bus() without which remove wasn't possible, so 
-added required calls and checked the correct sequence of calls.
-
-I have tested load/un-load multiple times on J784S4 EVM PCIe1 instance, 
-it worked fine but reload after load->un-load in case of j721e fails 
-leading to kernel hung, I suspect this as something to do with improper 
-(sequence) handling of refclk for endpoint (shutting down and then 
-powering up) as the only difference between these is that for J784S4 
-both host controller and EP side use shared ref-clk generated by pcie 
-phy while in j721e case host controller use pcie-phy clock while EP side 
-uses board generated ref-clock, so something to do with power and clock 
-off/on sequence.
-> 
-> Since you're splitting into new files, maybe this is an opportunity to
-> fix my naming mistake of suggesting a "pci-" prefix instead of
-> "pcie-"?
-> 
-> Bjorn
-> 
->>   config PCI_J721E_HOST
->> -	bool "TI J721E PCIe controller (host mode)"
->> +	tristate "TI J721E PCIe controller (host mode)"
->>   	depends on OF
->>   	select PCIE_CADENCE_HOST
->>   	select PCI_J721E
->> @@ -56,7 +56,7 @@ config PCI_J721E_HOST
->>   	  core.
->>   
->>   config PCI_J721E_EP
->> -	bool "TI J721E PCIe controller (endpoint mode)"
->> +	tristate "TI J721E PCIe controller (endpoint mode)"
->>   	depends on OF
->>   	depends on PCI_ENDPOINT
->>   	select PCIE_CADENCE_EP
-> 
->> +static struct platform_driver j721e_pcie_ep_driver = {
->> +	.probe  = j721e_pcie_probe,
->> +	.remove_new = j721e_pcie_remove,
->> +	.driver = {
->> +		.name	= "j721e-pcie-ep",
->> +		.of_match_table = of_j721e_pcie_ep_match,
->> +		.suppress_bind_attrs = true,
->> +	},
->> +};
-> 
->> +static struct platform_driver j721e_pcie_host_driver = {
->> +	.probe  = j721e_pcie_probe,
->> +	.remove_new = j721e_pcie_remove,
->> +	.driver = {
->> +		.name	= "j721e-pcie-host",
->> +		.of_match_table = of_j721e_pcie_host_match,
->> +		.suppress_bind_attrs = true,
->> +	},
->> +};
