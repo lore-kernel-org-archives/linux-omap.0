@@ -2,63 +2,63 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E52ECA0FFD
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:58:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38EF4CA0FF3
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:58:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230459AbjIEP6z (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 Sep 2023 11:58:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42410 "EHLO
+        id S231139AbjIEP66 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 Sep 2023 11:58:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354594AbjIEMug (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 08:50:36 -0400
-Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [85.215.255.82])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFD88C9
-        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 05:50:32 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1693918224; cv=none;
+        with ESMTP id S1354596AbjIEMuh (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 08:50:37 -0400
+Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [85.215.255.83])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EE3FDF
+        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 05:50:33 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1693918225; cv=none;
     d=strato.com; s=strato-dkim-0002;
-    b=IlkLxkSJLoDWPpvuQm95h8en90I+pQ6WwHdO2iJfQ1AqDFPucHuvBZc/pUvbmvugjG
-    VeKCj5w7xhFegdEZzLCMphieZ7tB9CNQ2rzeLF5Md844b62GBXCKXb/Sz33p0tpmsR8T
-    Lzn7Rgk4y5mol7a1Q1xEDULufZXXEqk7ogcWk50UcDyrh+/6lGsuhviQoCZ9u720qYlj
-    ou0uIaQC2WjompDqaGViuEAxMSfsEeW0yQkpGKIu1poPFKE4MWIMTv20c8F2zWk7IQ3O
-    LzKOlZVgvAY1Trm0kcPWHcjNUMCcDv+k3hxLUEHd5yEo77tW6ToEyz7gaaJujBedeSaX
-    un3Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918224;
+    b=gnAtcqaSnLnNewn37hFtNxhUlKvlEqrF0GxeXBrRfU3cc1VG3SuIC8Fq+1mu3YDJyE
+    IyA5e3CfCQh/ioX9UZIg8C5KAhI3CGWil3dhm3CimdAT82sdal2yohcOyOrFt3CUrX0X
+    dyMzfrV8KkH3J0O36IYpjXPeh7Qw5TNBeKvhFDCOQ9M26zspBJ1I2zAsvAIPR6kBPUqv
+    fwF54/gaXvJkQCgE04e2kIiJtCC4ScXizbkoekKCD0G9cQUDKsezv/fhX3UU5wMbyPu4
+    q7EcKSd8NbquBTx+vMVgd8hBXxS1hdQJzJSPnDdYRyV6YpbeDl6d/YFgQZSziV65U1la
+    PPYQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918225;
     s=strato-dkim-0002; d=strato.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=0xjo9zaxvNCLi7I93swS7ghP7W5bgPFcncd8+c+M7hA=;
-    b=VKWzPbAdTaEQvso+PZ0YgiqQkWYcnEUyuOBmeTxyWcC/Os3y00aDTpL58OyYQHahys
-    HbPXsVwlay06PIStYSbwMaWHNcuo0FWwew7zjdSqwK5yWCwfSO/cW35f9uSxurJFNO8d
-    664/kDtS9h33uQhqVc6FwuGLlQiuJoyGAZML39gAOyGYg/urExjBNh24chXCwQFdUBbx
-    1P8zD5nNtS6tfcb085ejy9MAlEYLYu2P41P63v4xf1uOyDimkUOvCdckrPFXKSKqrGDy
-    Olf2u7lXFTj/KK4yA83oDVHhPU/QVFCWxJUGDSm/stSNNASIkAIWYpVmh5xT6SZS2C+0
-    ez4Q==
+    bh=97jgT7ubO9fpCR8zFFXRO0momnaATvtViaPFm0jve0w=;
+    b=tVUp4f1jtaHE2lzYIJsW5jKLV5CA+Le5AbTZwZ9e1/uRBmgydlkL1HtGTTxYshdbWP
+    r7znGa/0Z5U3mtI9T3sXJtliKkIA38TF/bDCXl/yFOOz5+v9R6AyRBumYYFzGXd+Z8of
+    +43erfxUAydbQdAsfquFaHRhgMF+WGu4wzanS+a2sJpO5ZWrBTQNMW13JnUUZX160die
+    k4FbFJ36Qbildm7T6hC1MxxlJ6dsTjQ/v2HAGOvuRgNo8BsulQEQOZd+n/FI4njRQYFO
+    ohHlW//hPVGEI7gvBDfdzml6Jezv2Ckx5apRaw2TFBSa1HWP1b82SfB+NmnLQa9Uu87C
+    Ibbw==
 ARC-Authentication-Results: i=1; strato.com;
     arc=none;
     dkim=none
 X-RZG-CLASS-ID: mo02
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918224;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918225;
     s=strato-dkim-0002; d=goldelico.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=0xjo9zaxvNCLi7I93swS7ghP7W5bgPFcncd8+c+M7hA=;
-    b=ZC2ZuNHtO0DSvy0DfYv4H9LQP+lu3T/sv2e/1MCKFb2Eg5AXEk/Rw4p7s1Ep3ZdVYv
-    jO01hqlrMaVYmVF6c2qFTP2k0Tas6aHA5yUpKiJFEOO5q8KcWl0703L5CsHYr7QgP+jv
-    Yq7zpSWofdoT63M9olwErTxvG+9FATQKwE8eqLEO4gqs8rg1qrhe1UX7X/m/UvuvCE88
-    MGlKc1jRHeIzGPYLpfZs3u9TeWClffKb5MXJ/I1KS5oSnf94h8ccjLjGFGVDYxMdpFae
-    WOCDd6t3nKDG/sWQvbDFNdf4vKnz6nA+evWdINJL1AB8bazTUSotul34tqF9rV9ymiKJ
-    8L4g==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1693918224;
+    bh=97jgT7ubO9fpCR8zFFXRO0momnaATvtViaPFm0jve0w=;
+    b=Ds1cJMt4ahHcR2AZZ8lNdXWJXIs+gG5xv5EDi/Wvqdaa9R3KmmYd19cwRqfhGNsLbv
+    OcAGfM+3SwrPVPUwGMccMoPLVaViUTpvSKIU4fa9zg+JiG5BUV0QI5x6XMftmrlpnUQ/
+    ZXSChx+A7CaNu67LdNamx8fG+8LoAbHDNGeHlRjL8cTTptBZJKepmHifrkXiWUHdq+Rb
+    DN/Bp1ZHGSrS/hyk0+yEitv2j3nmYRUD13Fnqdw1XVylmjn8YQtxE3GnhdRZXW5qvn9E
+    DN9LKQYIt5HQD38nvyJgC84LWkzfyPAeSbJdYZW3XXTqdcMuOtT/00dIR1fOqTSmnhl4
+    56Zg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1693918225;
     s=strato-dkim-0003; d=goldelico.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=0xjo9zaxvNCLi7I93swS7ghP7W5bgPFcncd8+c+M7hA=;
-    b=/qkt+Q8XLeGv7rstyT6oaYVcy4x8gKEVlmj4K3OIxRiP3fGlUsZMLQDy53eEGtfS7J
-    VvHZ9dht2G2zylkQTQAg==
+    bh=97jgT7ubO9fpCR8zFFXRO0momnaATvtViaPFm0jve0w=;
+    b=deZKFfkkyK+dN4fnWvCS1Rd6+bs6kmP+MsT3Zz+578kuDwaCpKVxV05Finue49h+Jk
+    U3izE+XnnN9sVx/mF+Cg==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o1iTDUhfN4hi3qVZrW7J"
 Received: from localhost.localdomain
     by smtp.strato.de (RZmta 49.8.2 DYNA|AUTH)
-    with ESMTPSA id 04cbadz85CoOLbH
+    with ESMTPSA id 04cbadz85CoOLbK
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
         (Client did not present a certificate);
     Tue, 5 Sep 2023 14:50:24 +0200 (CEST)
@@ -70,9 +70,9 @@ To:     Tony Lindgren <tony@atomide.com>,
 Cc:     letux-kernel@openphoenux.org, kernel@pyra-handheld.com,
         linux-omap@vger.kernel.org,
         "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [RFC 2/6] ARM: DTS: omap5-l4-abe: add an aess (audio DSP of OMAP4 and OMAP5) child
-Date:   Tue,  5 Sep 2023 14:50:11 +0200
-Message-ID: <1a8d9c1e393ddd1968a0b197b469e45ff7711ab2.1693918214.git.hns@goldelico.com>
+Subject: [RFC 5/6] ARM: DTS: omap4-l4-abe: add an aess (audio DSP of OMAP4 and OMAP5) child
+Date:   Tue,  5 Sep 2023 14:50:14 +0200
+Message-ID: <535d7f940a97ec12f6551fd2ca8a9343d8ae3674.1693918215.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.42.0
 In-Reply-To: <cover.1693918214.git.hns@goldelico.com>
 References: <cover.1693918214.git.hns@goldelico.com>
@@ -89,13 +89,13 @@ Define ranges, register names, interrupts, dmas.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/ti/omap/omap5-l4-abe.dtsi | 71 +++++++++++++++++----
- 1 file changed, 57 insertions(+), 14 deletions(-)
+ arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi | 75 +++++++++++++++------
+ 1 file changed, 56 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap5-l4-abe.dtsi b/arch/arm/boot/dts/ti/omap/omap5-l4-abe.dtsi
-index 7d223f938d479..611c92e04fe7a 100644
---- a/arch/arm/boot/dts/ti/omap/omap5-l4-abe.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap5-l4-abe.dtsi
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi b/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi
+index a8d66240d17d5..7ca7b369b4e59 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi
++++ b/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi
 @@ -41,12 +41,14 @@ segment@0 {					/* 0x40100000 */
  			 <0x0003d000 0x0003d000 0x001000>,	/* ap 23 */
  			 <0x0003e000 0x0003e000 0x001000>,	/* ap 24 */
@@ -138,13 +138,18 @@ index 7d223f938d479..611c92e04fe7a 100644
  			 <0x490f1000 0x490f1000 0x001000>,	/* ap 32 */
  			 <0x490f2000 0x490f2000 0x001000>;	/* ap 33 */
  
-@@ -421,8 +425,47 @@ target-module@f1000 {			/* 0x401f1000, ap 32 20.0 */
+@@ -482,14 +486,47 @@ target-module@f1000 {			/* 0x401f1000, ap 32 20.0 */
  			clock-names = "fck";
  			#address-cells = <1>;
  			#size-cells = <1>;
 -			ranges = <0x0 0xf1000 0x1000>,
 -				 <0x490f1000 0x490f1000 0x1000>;
-+
+ 
+-			/*
+-			 * No child device binding or driver in mainline.
+-			 * See Android tree and related upstreaming efforts
+-			 * for the old driver.
+-			 */
 +			/* CHECKME: OMAP4 and OMAP5 may differ in memory sizes, here we define more than available... */
 +			ranges = <0 0xf1000 0x1000>, /* MPU private access */
 +				 <0x80000 0x80000 0x10000>, /* DMEM 64KiB - MPU */
