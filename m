@@ -2,155 +2,127 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3757CA1001
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 19:13:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E5F8CA100D
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 20:15:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242026AbjIETNE (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 Sep 2023 15:13:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60252 "EHLO
+        id S236899AbjIEUOl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 Sep 2023 16:14:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242505AbjIETM7 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 15:12:59 -0400
-Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 100381713
-        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 12:12:31 -0700 (PDT)
-Received: by mail-wm1-x333.google.com with SMTP id 5b1f17b1804b1-402c46c49f4so28333595e9.1
-        for <linux-omap@vger.kernel.org>; Tue, 05 Sep 2023 12:12:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693941095; x=1694545895; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Zm8uw+f5LvxPs16TrhkfvENCN1+QZz7s8rxXSoottC8=;
-        b=soSMoaaCEKQVj/pbdSu3xpN5qUdEoc2Yf4WOjJfoJzVdF/5pfDx5Vmp9fxvjD7hdsH
-         p0o0ayU+FqVXIdebFs6CscJgTL3QP74YCPbU9C7S6Dbmbju9uDo4QDIKJSDSJ9x/ZA4D
-         rDzFq0n9CoMaLZ5Q8GYpjC29FAAHpRJvspi4W1p2UZb8pJV4VApzS9J6WUE2kgPVY35R
-         GogZQ0VWwpclpaekIPACFt1Hupgmf22KzUEGsqcR1c+mXpKfoxeGSz+B3Fjkd8qsurb/
-         v5vYs6UFrDmUaMlgqOUsaEgyAQNr1E4Stj7fXd0ERxaSayf6n+0KfqCAGEjALkt42Yvd
-         nsag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693941095; x=1694545895;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Zm8uw+f5LvxPs16TrhkfvENCN1+QZz7s8rxXSoottC8=;
-        b=OALP85QL65YwVRfRZvHLJxbGNcxY4PbzA5O/nzvXjks9fq+yFJYkggVIUI0kGg5tyE
-         6VYgh9jTC/AEe5+ijGzt1pWs/c4YCOTBMzZQUpBfp/7l37gzUdiN4D1Qffn8+MHxAaBP
-         d2TKYlV10Jznr3CYn+vAPo2lvhWZQfEH7Ifyt0G1MHct5CmfGSJtk0iF++F0iPh8iDBF
-         9GXTFgbCQDvwOUT0MuEnC9ZQ32JsZfSwfZ1+KDbjIC0LMfvmVMftxu7MbvK5VqQ0u7EJ
-         5CRyKcwJCG0zNatxX2GQQbgiscfqZjswwhdOmSNS0DwSiKMXcRSdBpqLNJaLKU4kdi3M
-         Vr5Q==
-X-Gm-Message-State: AOJu0YyedXcuJ5H6GmWJRhGQ9wL2UOj+irGDiYZ/hFAaLjJ/Ex/RrBRo
-        cM9q/ZosSCMFvSVWPDRQrVJ6VN0qGBWo5YvxTwU=
-X-Google-Smtp-Source: AGHT+IFg7Vm2Cmqv15Sqv5calroUVFxizFJ5aDOZ0cNR6d+rt5FAt8Ucbl9e61HcahWOBMsw3jlYSQ==
-X-Received: by 2002:a7b:cb8a:0:b0:401:bf62:9456 with SMTP id m10-20020a7bcb8a000000b00401bf629456mr490236wmi.8.1693940006065;
-        Tue, 05 Sep 2023 11:53:26 -0700 (PDT)
-Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:7a54:5dbc:6d09:48b7])
-        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Sep 2023 11:53:25 -0700 (PDT)
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Bartosz Golaszewski <brgl@bgdev.pl>,
-        Dipen Patel <dipenp@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>
-Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: [PATCH 00/21] gpio: convert users to gpio_device_find() and remove gpiochip_find()
-Date:   Tue,  5 Sep 2023 20:52:48 +0200
-Message-Id: <20230905185309.131295-1-brgl@bgdev.pl>
-X-Mailer: git-send-email 2.39.2
-MIME-Version: 1.0
+        with ESMTP id S243741AbjIEUO1 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 16:14:27 -0400
+X-Greylist: delayed 327 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 05 Sep 2023 13:14:06 PDT
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 282591711;
+        Tue,  5 Sep 2023 13:14:06 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28D04C433D9;
+        Tue,  5 Sep 2023 18:08:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1693937337;
+        bh=VVC3ib3yzE5r+s4aYfv/gsIn3joMY0xc0kaVf9r7Pjo=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=Glp/DEi794B19AMkAOdIIUixhFhfqKy+S3zCb/RYTWw5CVfyaOr7GzrqrSqy5Q23T
+         gEMybJBxWZVovfCR+BIeD8IMVKlYaRw0omHeILDvJ8l4PNrz3bJG9vDv63rmvcNkXu
+         RQZ2vY5NCGYbUMj/pKIq0U+9ZEQph85omsAF1BMSo/9z7VsmiDr7MYp0au9wbndkz1
+         I0SaBQTjBzUk4k+rHLKT+ejWyvyjDlKRPB5gSu2YlvP/iQT+D/+bjKv72we8T6zw3b
+         9JyCyU9O/Of7wJvahxZPIR6oYIGCzR20UJcnZVuy5OqYIxLGzT3FgncoqpMQdPyZmF
+         gptmozQSDwfhQ==
+Received: (nullmailer pid 3699774 invoked by uid 1000);
+        Tue, 05 Sep 2023 18:08:55 -0000
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+From:   Rob Herring <robh@kernel.org>
+To:     Achal Verma <a-verma1@ti.com>
+Cc:     Vignesh Raghavendra <vigneshr@ti.com>,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-pci@vger.kernel.org,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Conor Dooley <conor+dt@kernel.org>, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Krzysztof Wilczy_ski <kw@linux.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>
+In-Reply-To: <20230905114816.2993628-2-a-verma1@ti.com>
+References: <20230905114816.2993628-1-a-verma1@ti.com>
+ <20230905114816.2993628-2-a-verma1@ti.com>
+Message-Id: <169393733505.3699703.7061210607519627009.robh@kernel.org>
+Subject: Re: [RFC PATCH 1/2] dt-bindings: PCI: ti,j721e-pci-*: Add
+ "ti,syscon-pcie-refclk-out" property
+Date:   Tue, 05 Sep 2023 13:08:55 -0500
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-The GPIO subsystem does not handle hot-unplug events very well. We have
-recently patched the user-space part of it so that at least a rouge user
-cannot crash the kernel but in-kernel users are still affected by a lot of
-issues: from incorrect locking or lack thereof to using structures that are
-private to GPIO drivers. Since almost all GPIO controllers can be unbound,
-not to mention that we have USB devices registering GPIO expanders as well as
-I2C-on-USB HID devices on which I2C GPIO expanders can live, various media
-gadgets etc., we really need to make GPIO hotplug/unplug friendly.
+On Tue, 05 Sep 2023 17:18:15 +0530, Achal Verma wrote:
+> Added "ti,syscon-pcie-refclk-out" property to specify the ACSPCIE clock
+> buffer register offset in SYSCON, which would be used to enable serdes
+> reference clock output.
+> 
+> Signed-off-by: Achal Verma <a-verma1@ti.com>
+> ---
+>  .../bindings/pci/ti,j721e-pci-host.yaml       | 53 +++++++++++++++++++
+>  1 file changed, 53 insertions(+)
+> 
 
-Before we can even get to fixing the locking, we need to address a serious
-abuse of the GPIO driver API - accessing struct gpio_chip by anyone who isn't
-the driver owning this object. This structure is owned by the GPIO provider
-and its lifetime is tied to that of that provider. It is destroyed when the
-device is unregistered and this may happen at any moment. struct gpio_device
-is the opaque, reference counted interface to struct gpio_chip (which is the
-low-level implementation) and all access should pass through it.
+My bot found errors running 'make DT_CHECKER_FLAGS=-m dt_binding_check'
+on your patch (DT_CHECKER_FLAGS is new in v5.13):
 
-The end-goal is to make all gpio_device manipulators check the existence of
-gdev->chip and then lock it for the duration of any of the calls using SRCU.
-Before we can get there, we need to first provide a set of functions that will
-replace any gpio_chip functions and convert all in-kernel users.
+yamllint warnings/errors:
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:171:6: [error] missing starting space in comment (comments)
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:172:6: [error] missing starting space in comment (comments)
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:173:6: [error] missing starting space in comment (comments)
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:174:6: [error] missing starting space in comment (comments)
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:177:10: [error] missing starting space in comment (comments)
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:178:10: [error] missing starting space in comment (comments)
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:180:9: [error] syntax error: expected <block end>, but found '<block mapping start>' (syntax)
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:197:18: [error] missing starting space in comment (comments)
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:198:18: [error] missing starting space in comment (comments)
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:199:17: [warning] wrong indentation: expected 8 but found 16 (indentation)
 
-This series starts the process by replacing gpiochip_find() with
-gpio_device_find(). This is in line with other device_find type interfaces and
-returns a reference to the GPIO device that is guaranteed to remain valid
-until it is put.
+dtschema/dtc warnings/errors:
+make[2]: *** Deleting file 'Documentation/devicetree/bindings/pci/ti,j721e-pci-host.example.dts'
+Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:180:9: expected <block end>, but found '<block mapping start>'
+make[2]: *** [Documentation/devicetree/bindings/Makefile:26: Documentation/devicetree/bindings/pci/ti,j721e-pci-host.example.dts] Error 1
+make[2]: *** Waiting for unfinished jobs....
+Traceback (most recent call last):
+  File "/usr/bin/yamllint", line 33, in <module>
+    sys.exit(load_entry_point('yamllint==1.29.0', 'console_scripts', 'yamllint')())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/yamllint/cli.py", line 228, in run
+    prob_level = show_problems(problems, file, args_format=args.format,
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/yamllint/cli.py", line 113, in show_problems
+    for problem in problems:
+  File "/usr/lib/python3/dist-packages/yamllint/linter.py", line 200, in _run
+    for problem in get_cosmetic_problems(buffer, conf, filepath):
+  File "/usr/lib/python3/dist-packages/yamllint/linter.py", line 137, in get_cosmetic_problems
+    for problem in rule.check(rule_conf,
+  File "/usr/lib/python3/dist-packages/yamllint/rules/indentation.py", line 583, in check
+    yield from _check(conf, token, prev, next, nextnext, context)
+  File "/usr/lib/python3/dist-packages/yamllint/rules/indentation.py", line 344, in _check
+    if expected < 0:
+       ^^^^^^^^^^^^
+TypeError: '<' not supported between instances of 'NoneType' and 'int'
+./Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml:180:9: expected <block end>, but found '<block mapping start>'
+/builds/robherring/dt-review-ci/linux/Documentation/devicetree/bindings/pci/ti,j721e-pci-host.yaml: ignoring, error parsing file
+make[1]: *** [/builds/robherring/dt-review-ci/linux/Makefile:1500: dt_binding_check] Error 2
+make: *** [Makefile:234: __sub-make] Error 2
 
-Note that this does not make everything correct just yet. Especially the
-GPIOLIB internal users release the reference returned by the lookup function
-after getting the descriptor of interest but before requesting it. This will
-eventually be addressed. This is not a regression either.
+doc reference errors (make refcheckdocs):
 
-First we add a bunch of new APIs that are needed to start replacing calls
-to gpiochip_find. We then use them first in external users and then locally in
-GPIOLIB core. Finally we remove gpiochip_find().
+See https://patchwork.ozlabs.org/project/devicetree-bindings/patch/20230905114816.2993628-2-a-verma1@ti.com
 
-Bartosz Golaszewski (21):
-  gpiolib: make gpio_device_get() and gpio_device_put() public
-  gpiolib: provide gpio_device_find()
-  gpiolib: provide gpio_device_find_by_label()
-  gpiolib: provide gpio_device_get_desc()
-  gpiolib: add support for scope-based management to gpio_device
-  gpiolib: provide gpiod_to_device()
-  gpiolib: provide gpio_device_get_base()
-  gpio: acpi: provide acpi_gpio_device_free_interrupts()
-  gpiolib: reluctantly provide gpio_device_get_chip()
-  gpiolib: replace find_chip_by_name() with gpio_device_find_by_label()
-  platform: x86: android-tablets: don't access GPIOLIB private members
-  hte: allow building modules with COMPILE_TEST enabled
-  hte: tegra194: improve the GPIO-related comment
-  hte: tegra194: don't access struct gpio_chip
-  arm: omap1: ams-delta: stop using gpiochip_find()
-  gpio: of: correct notifier return codes
-  gpio: of: replace gpiochip_find_* with gpio_device_find_*
-  gpio: acpi: replace gpiochip_find() with gpio_device_find()
-  gpio: swnode: replace gpiochip_find() with gpio_device_find_by_label()
-  gpio: sysfs: drop the mention of gpiochip_find() from sysfs code
-  gpiolib: remove gpiochip_find()
+The base for the series is generally the latest rc1. A different dependency
+should be noted in *this* patch.
 
- arch/arm/mach-omap1/board-ams-delta.c         |  36 ++--
- drivers/gpio/gpiolib-acpi.c                   |  37 +++-
- drivers/gpio/gpiolib-of.c                     |  48 ++---
- drivers/gpio/gpiolib-swnode.c                 |  29 ++-
- drivers/gpio/gpiolib-sysfs.c                  |   2 +-
- drivers/gpio/gpiolib.c                        | 203 +++++++++++++-----
- drivers/gpio/gpiolib.h                        |  10 -
- drivers/hte/Kconfig                           |   4 +-
- drivers/hte/hte-tegra194.c                    |  49 +++--
- .../platform/x86/x86-android-tablets/core.c   |  38 ++--
- include/linux/gpio/driver.h                   |  30 ++-
- 11 files changed, 316 insertions(+), 170 deletions(-)
+If you already ran 'make dt_binding_check' and didn't see the above
+error(s), then make sure 'yamllint' is installed and dt-schema is up to
+date:
 
--- 
-2.39.2
+pip3 install dtschema --upgrade
+
+Please check and re-submit after running the above command yourself. Note
+that DT_SCHEMA_FILES can be set to your schema file to speed up checking
+your schema. However, it must be unset to test all examples with your schema.
 
