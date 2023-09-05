@@ -2,111 +2,144 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C54ECA0FF7
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 18:51:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D81ECA0FFB
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 18:55:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238335AbjIESvg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 Sep 2023 14:51:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42618 "EHLO
+        id S240609AbjIESzW (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 Sep 2023 14:55:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233497AbjIESvf (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 14:51:35 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 793D6E59;
-        Tue,  5 Sep 2023 11:51:07 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 2FED8CE1271;
-        Tue,  5 Sep 2023 16:27:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F8B2C433C7;
-        Tue,  5 Sep 2023 16:27:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1693931261;
-        bh=6OD2DtqpQyrf+VYg+lhq13/Z18Z/KJYFIEncqN8AVJc=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=qWXXETCWpvfvJCm4x1IJ64Ctc18TlZM2MzkaMuhtTOpYRZUNxtRFeHm+6TwJgAssj
-         sHIY0UwfGW62Iej5s51hlDNGJ+tThvIAsA6pnpTrrHA262Z1hFNt07zg1UmpQmjdu+
-         SJS7ml6xMTQIXFLs0cDuVf5BKnp7MdkQE7u1TeMkSGSajp7m6JwRHrcIT76Nt6vjPq
-         SKfQ94A4wJ+hFrLL6WJnvHcjGNdClDfkRXC1KxjJylcvCTfpjNXbTHWSPVzPG/Er4W
-         99qNWA6OE0jKKenj6mt7WaQh9/7z54LsVJGuGuK1d3m9sw7o8Xs4RZv/PeKmgH+Jq4
-         F81l1aIe5db1A==
-Date:   Tue, 5 Sep 2023 11:27:39 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Achal Verma <a-verma1@ti.com>
-Cc:     Vignesh Raghavendra <vigneshr@ti.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Krzysztof Wilczy_ski <kw@linux.com>,
-        Rob Herring <robh@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Conor Dooley <conor+dt@kernel.org>, devicetree@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC PATCH 2/2] pci: j721e: Enable reference clock output from
- serdes
-Message-ID: <20230905162739.GA175146@bhelgaas>
+        with ESMTP id S239485AbjIESzH (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 14:55:07 -0400
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A32E1A6
+        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 11:54:42 -0700 (PDT)
+Received: by mail-wm1-x32d.google.com with SMTP id 5b1f17b1804b1-401d67434daso28615615e9.2
+        for <linux-omap@vger.kernel.org>; Tue, 05 Sep 2023 11:54:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940025; x=1694544825; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ENyvcqOYq6piL9aYNsmVNToV9MKgtDTkh/A8a81eQKQ=;
+        b=wLF/IwuEZaNRhh2E3/xt/nSiyTZHzQKlC4MNsG09JH9slQUQ9O2NsNImMGhv4h//g0
+         YEMxlsm1Bx38dkPllQT8ChSaEBCgv6hQ3kxzVexa6VZze2mt3pjwPpiouVhouaRqK4za
+         UiU22b89BycZDDkGpIHbKp0fbmkN7nYkmvStAL3mf8YIWItd69cNWUDxfxuIwaYHNWlH
+         dhmfNTZotkkwvKfeKefYi7C1X7LVrq3AeLJGYGexWOJ13dFmP5nSkT/F4TOx2KjRktDt
+         g8F+Q8HjEeQX3yUw388jirqsF1Ygy3icAQY8MNDFF7XNHXzD1XpusHnnqNW0fztRWcWE
+         77jA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1693940025; x=1694544825;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ENyvcqOYq6piL9aYNsmVNToV9MKgtDTkh/A8a81eQKQ=;
+        b=OBKSUfKNAdZw9z2YxR1zDwiKHnoH4/9rhrUKm+pB0hvorJne46+0CGC2Q1sW0Wy/QR
+         2JE/iBYTFw68NPXYjGCFL8aGCny40z1lO3sLX+VuAXL4ZPAfPEQDb2jD9PjYA7Jf/Mm7
+         W+4hwoh3+/0/Rr1mT7ih6+3Ewyhb4E3Gv2bk4l+y7RJKziOSdzp+Tjq7Vga7MUB2Bw6T
+         3M/z6RSuqVK0hYq9sLWud7RjgDt3WLlbTtZ1jhyHGPW4kshmdvfBcCPgenZBR30a6X0a
+         8ZltZfgcz+9HiS73OK3zy2w0yro6XkNNgCIAMMrB0MqmE38THl35qRSsXJeFz/vk+SeG
+         REyQ==
+X-Gm-Message-State: AOJu0YzL1Ax2cOMmgDJrdHRkVhT6QQLoMFtBcPkV3Zo8NMeO+Nrh3HyV
+        xn9aLbS2AKi4czSOtlyuhggwQA==
+X-Google-Smtp-Source: AGHT+IETzIspKoYp23peY3Mtm+8LIAaFcti4lea83HydZgiIlGoA8ysWTU5DS/F06PC8tJEHYtDSiA==
+X-Received: by 2002:a1c:7410:0:b0:401:d1a3:d7f7 with SMTP id p16-20020a1c7410000000b00401d1a3d7f7mr407237wmc.30.1693940025441;
+        Tue, 05 Sep 2023 11:53:45 -0700 (PDT)
+Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:7a54:5dbc:6d09:48b7])
+        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 05 Sep 2023 11:53:45 -0700 (PDT)
+From:   Bartosz Golaszewski <brgl@bgdev.pl>
+To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Dipen Patel <dipenp@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
+        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Subject: [PATCH 16/21] gpio: of: correct notifier return codes
+Date:   Tue,  5 Sep 2023 20:53:04 +0200
+Message-Id: <20230905185309.131295-17-brgl@bgdev.pl>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230905185309.131295-1-brgl@bgdev.pl>
+References: <20230905185309.131295-1-brgl@bgdev.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230905114816.2993628-3-a-verma1@ti.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Previous j721e subject line history is like this:
+From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-  c86f4bd6008e ("PCI: j721e: Convert to platform remove callback returning void")
-  053ca37c87af ("PCI: j721e: Initialize pcie->cdns_pcie before using it")
-  19e863828acf ("PCI: j721e: Drop redundant struct device *")
-  72de208f2bda ("PCI: j721e: Drop pointless of_device_get_match_data() cast")
-  496bb18483cc ("PCI: j721e: Fix j721e_pcie_probe() error path")
-  c8a375a8e15a ("PCI: j721e: Add PCIe support for AM64")
+According to the comments in linux/notifier.h, the code to return when a
+notifications is "not for us" is NOTIFY_DONE, not NOTIFY_OK.
 
-Match capitalization style, i.e., "PCI: " instead of "pci: "
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+---
+ drivers/gpio/gpiolib-of.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-On Tue, Sep 05, 2023 at 05:18:16PM +0530, Achal Verma wrote:
-> PCIe1 in J7AHP EVM has EP side connector reference clock connection from
-> serdes named SOC_SERDES0_REFCLK(PCIE_REFCLK_OUT) unlike PCIe0 which has
-> reference clock connection from on-board serdes. To enable this reference
-> clock out, ACSPCIE clock buffer pads have to be enabled.
-> 
-> This change enables ACSPCIE clock buffer pads and select clock source for
-> reference clock output.
+diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+index 531faabead0f..5515f32cf19b 100644
+--- a/drivers/gpio/gpiolib-of.c
++++ b/drivers/gpio/gpiolib-of.c
+@@ -834,14 +834,14 @@ static int of_gpio_notify(struct notifier_block *nb, unsigned long action,
+ 	switch (of_reconfig_get_state_change(action, arg)) {
+ 	case OF_RECONFIG_CHANGE_ADD:
+ 		if (!of_property_read_bool(rd->dn, "gpio-hog"))
+-			return NOTIFY_OK;	/* not for us */
++			return NOTIFY_DONE;	/* not for us */
+ 
+ 		if (of_node_test_and_set_flag(rd->dn, OF_POPULATED))
+-			return NOTIFY_OK;
++			return NOTIFY_DONE;
+ 
+ 		chip = of_find_gpiochip_by_node(rd->dn->parent);
+ 		if (chip == NULL)
+-			return NOTIFY_OK;	/* not for us */
++			return NOTIFY_DONE;	/* not for us */
+ 
+ 		ret = of_gpiochip_add_hog(chip, rd->dn);
+ 		if (ret < 0) {
+@@ -850,22 +850,22 @@ static int of_gpio_notify(struct notifier_block *nb, unsigned long action,
+ 			of_node_clear_flag(rd->dn, OF_POPULATED);
+ 			return notifier_from_errno(ret);
+ 		}
+-		break;
++		return NOTIFY_OK;
+ 
+ 	case OF_RECONFIG_CHANGE_REMOVE:
+ 		if (!of_node_check_flag(rd->dn, OF_POPULATED))
+-			return NOTIFY_OK;	/* already depopulated */
++			return NOTIFY_DONE;	/* already depopulated */
+ 
+ 		chip = of_find_gpiochip_by_node(rd->dn->parent);
+ 		if (chip == NULL)
+-			return NOTIFY_OK;	/* not for us */
++			return NOTIFY_DONE;	/* not for us */
+ 
+ 		of_gpiochip_remove_hog(chip, rd->dn);
+ 		of_node_clear_flag(rd->dn, OF_POPULATED);
+-		break;
++		return NOTIFY_OK;
+ 	}
+ 
+-	return NOTIFY_OK;
++	return NOTIFY_DONE;
+ }
+ 
+ struct notifier_block gpio_of_notifier = {
+-- 
+2.39.2
 
-s/This change enables/Enable/
-s/and select/and selects/
-
-> +static int j721e_enable_acspcie(struct j721e_pcie *pcie)
-> +{
-> +	struct device *dev = pcie->cdns_pcie->dev;
-> +	struct device_node *node = dev->of_node;
-> +	struct of_phandle_args args;
-> +	unsigned int lock2_kick0_offset, lock2_kick1_offset;
-> +	unsigned int acspcie_pad_offset, refclk_clksel_offset;
-> +	unsigned int refclk_clksel_source;
-> +	struct regmap *syscon;
-> +	u32 val = 0, mask = 0;
-
-Looks like these initializations are unnecessary?
-
-> +	syscon = syscon_regmap_lookup_by_phandle(node, "ti,syscon-pcie-refclk-out");
-
-Looks like this and the of_parse_phandle_with_fixed_args() below don't
-fit in 80 columns like the rest of the file.
-
-> +	ret = of_parse_phandle_with_fixed_args(node, "ti,syscon-pcie-refclk-out", 5,
-> +						0, &args);
-
-> +	/* Enable ACSPCIe PADS  */
-
-Spurious extra space at end of comment.
-
-> +	/*
-> +	 * Enable ACSPCIe clock buffer to source out reference clock for EP
-> +	 */
-
-Looks like it could be a single-line comment, e.g.,
-
-  /* Enable ACSPCIe clock buffer to source out reference clock for EP */
