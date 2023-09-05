@@ -2,63 +2,93 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1AE3CA0FF8
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:59:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9D06C83F2C
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:59:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231429AbjIEP7D (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 Sep 2023 11:59:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60560 "EHLO
+        id S231513AbjIEP7E convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 Sep 2023 11:59:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32876 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354109AbjIEJj7 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 05:39:59 -0400
-X-Greylist: delayed 4353 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 05 Sep 2023 02:39:56 PDT
-Received: from mail.equinoxrise.pl (mail.equinoxrise.pl [217.61.112.157])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5A351A8
-        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 02:39:56 -0700 (PDT)
-Received: by mail.equinoxrise.pl (Postfix, from userid 1002)
-        id A360F833E8; Mon,  4 Sep 2023 09:41:37 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=equinoxrise.pl;
-        s=mail; t=1693813334;
-        bh=v6OgBfK5dN7P5dQ0wCu59rOfZaiqziJeLNblJ8dOcGI=;
-        h=Date:From:To:Subject:From;
-        b=VRTi3tvjLywySHO8S5WiHAiaQPCYJJxC/mJ9PaOcEmN4jdUDXaSDW/fQym5N6i2Tc
-         LB86klV4NKWzsSQCGoOVVr0W64Y+ECk2fOa7C3Wprn9aF+5YZSch4CL6WcCf5+TQI4
-         wfRVptlBlPVid3Sa+S8d2a67IVceZVV3jG8hunfGaiEZd78/FKtZU9ml43CBsOfyJY
-         RoHxRlqkVHGMGCCmDc1BsD6XwobU9C3W+LIeDyvGfKJnT4EG0KDTLnq3YYaraKxmW2
-         d5zHlK0ZEb2IVQjaEUZDS7fudVChLY2nvi0Rq1TAmxa2JDzc8DpHgwsSqph56vkpWo
-         oRJVC916br5MQ==
-Received: by mail.equinoxrise.pl for <linux-omap@vger.kernel.org>; Mon,  4 Sep 2023 07:40:34 GMT
-Message-ID: <20230904084500-0.1.7.ro9.0.xlcqsaqcdq@equinoxrise.pl>
-Date:   Mon,  4 Sep 2023 07:40:34 GMT
-From:   "Mateusz Talaga" <mateusz.talaga@equinoxrise.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: Prezentacja
-X-Mailer: mail.equinoxrise.pl
+        with ESMTP id S1353459AbjIEGRp (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 02:17:45 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B07DEE6;
+        Mon,  4 Sep 2023 23:17:41 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id 070D380A3;
+        Tue,  5 Sep 2023 06:17:41 +0000 (UTC)
+Date:   Tue, 5 Sep 2023 09:17:39 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Bagas Sanjaya <bagasdotme@gmail.com>
+Cc:     Adam Ford <aford173@gmail.com>,
+        Linux OMAP <linux-omap@vger.kernel.org>,
+        Saravana Kannan <saravanak@google.com>,
+        Linux Stable <stable@vger.kernel.org>,
+        Linux Regressions <regressions@lists.linux.dev>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: 6.1.y Regression found on AM3517
+Message-ID: <20230905061739.GX11676@atomide.com>
+References: <CAHCN7xJjK=BaNHa=+OKzOmFtNRYKX_APTp5Zj3g-X_iQcpyK6g@mail.gmail.com>
+ <ZPZ2zTS9loj06u31@debian.me>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <ZPZ2zTS9loj06u31@debian.me>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry!
+* Bagas Sanjaya <bagasdotme@gmail.com> [230905 00:31]:
+> On Mon, Sep 04, 2023 at 11:37:46AM -0500, Adam Ford wrote:
+> > I have an AM3517-EVM board that I am trying to use the latest 6.1.y
+> > stable, currently 6.1.51.
+> > 
+> > With git bisect, I narrowed the regression between 6.1.15 and 6.1.16 to commit
+> > eaf9b5612a47 ("driver core: fw_devlink: Don't purge child fwnode's
+> > consumer links")
+> > 
+> > In the regression, 48002000.scm appears as not ready.  This affects a
+> > variety of dependent peripherals making them unavailable:
+> > 
+> > wl12xx_buf platform: supplier 48002000.scm not ready
+> > wl12xx_vmmc2 platform: supplier wl12xx_buf not ready
+> > 48050000.dss platform: supplier display@0 not ready
+> > 48064800.ehci platform: supplier hsusb1_phy not ready
+> > backlight platform: supplier 48002000.scm not ready
+> > display@0 platform: supplier backlight not ready
+> > dmtimer-pwm@11 platform: supplier 48002000.scm not ready
+> > hsusb1_phy platform: supplier 48002000.scm not ready
+> > gpio-leds platform: supplier 48002000.scm not ready
+> > 480b4000.mmc platform: supplier wl12xx_vmmc2 not ready
+> > 
+> > If I build 6.1.51 but I checkout drivers/base/core.c from commit
+> > 2455b81afe68 ("driver core: fw_devlink: Add DL_FLAG_CYCLE support to
+> > device links"),
+> > the regression is gone.
 
-Czy m=C3=B3g=C5=82bym przedstawi=C4=87 rozwi=C4=85zanie, kt=C3=B3re umo=C5=
-=BCliwia monitoring ka=C5=BCdego auta w czasie rzeczywistym w tym jego po=
-zycj=C4=99, zu=C5=BCycie paliwa i przebieg?
+Adam, maybe check if 6.1 stable series is missing something to be
+backported from this mailing list thread:
 
-Dodatkowo nasze narz=C4=99dzie minimalizuje koszty utrzymania samochod=C3=
-=B3w, skraca czas przejazd=C3=B3w, a tak=C5=BCe tworzenie planu tras czy =
-dostaw.
+https://lore.kernel.org/lkml/20230207014207.1678715-2-saravanak@google.com/
 
-Z naszej wiedzy i do=C5=9Bwiadczenia korzysta ju=C5=BC ponad 49 tys. Klie=
-nt=C3=B3w. Monitorujemy 809 000 pojazd=C3=B3w na ca=C5=82ym =C5=9Bwiecie,=
- co jest nasz=C4=85 najlepsz=C4=85 wizyt=C3=B3wk=C4=85.
+That email thread version seemed to work for me based on my reply in the
+thread. I recall issues with the earlier revisions but don't remember
+what fixed them.
 
-Bardzo prosz=C4=99 o e-maila zwrotnego, je=C5=9Bli mogliby=C5=9Bmy wsp=C3=
-=B3lnie om=C3=B3wi=C4=87 potencja=C5=82 wykorzystania takiego rozwi=C4=85=
-zania w Pa=C5=84stwa firmie.
+> > I checked the 6.5 kernel, and it appears fine, so I think there is a
+> > possible backport commit missing, and I was hoping Saravana or Tony
+> > might have a suggestion as to which one(s) I should try.  I don't know
+> > if this is found on other OMAP3 boards, but I wouldn't be surprised.
+> > 
+> 
+> Thanks for the regression report. I'm adding it to regzbot as stable-specific
+> entry:
+> 
+> #regzbot ^introduced: eaf9b5612a47f0
+> #regzbot title: keeping consumer links of child fwnode doesn't prepare AM3517-EVM suppliers
 
+Regards,
 
-Pozdrawiam
-Mateusz Talaga
+Tony
