@@ -2,118 +2,141 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57C5FCA0FFB
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:58:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F671CA0FE2
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:58:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230413AbjIEP6z (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 Sep 2023 11:58:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42418 "EHLO
+        id S230503AbjIEP65 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 Sep 2023 11:58:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354595AbjIEMug (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 08:50:36 -0400
-Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [85.215.255.81])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 571A6DD
-        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 05:50:32 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1693918224; cv=none;
-    d=strato.com; s=strato-dkim-0002;
-    b=qKaO0TKMhlmO/kC+VqmxKrwhPXrdbOA4Ovsrasypx5yS1aDGyHW8NhEAMb5bNCEzIy
-    2LIJUJZTKU+fXLh792BxFKZLZU++w9PP/j6+bDqsc+3rQCN9SUTtl2VeVwz0DG8LOzR0
-    97WkQNhXIi1Uiyj8cpX0ATAkJ1x1EAGpLpty03nhV20sunflvflUrQ5srUYdhcwU+QxF
-    dJaizBQSYm2Z8rX1GuDJnI4Xa81hCA3l0uPd6XCyUw3Pnf+RO0ZTC1rpy74JBGwtLy7P
-    PCzTxv3/VQ9MRuhMWsFjuneBq12oRwYA8K+cVknG7+oXVWwqFx020mplqyFsIFhMIUVV
-    hdWw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918224;
-    s=strato-dkim-0002; d=strato.com;
-    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
-    From:Subject:Sender;
-    bh=rBlPc9AzTsKnNPqbexirh7STUhddRw6xwzmeuauTMOA=;
-    b=ULRMdnQ1FDaTxFKShX0GPLM5hNKg1R0zVzFReWsfiA0X/BNztvQaq7t/+3h8Rx2hnE
-    r5sooR9ar11skfggGoMPgOpBFxlGpFcdhfoKoTeghXkxgnFnw/WjO1X+KoWqC2zNWPd8
-    X+pNlUUeHx4JZW8nD2i9r3L+sQ0vQzm8De8cE1/OV4UO/QBgRlzmt/i8AfqGOWiXnuLk
-    xyuKgMnT2HzyLNKVyGQFF8IwgbcfP4+XdWAuqxk570WbrAaazOKxCVMxjv8lB2wPQILx
-    DFQS9k8bi4lQW7THdPDnug/mGzcyj/kCUrmvWkf42fA29pdk+ANcYY0n8mWEOuA+tPID
-    mR3A==
-ARC-Authentication-Results: i=1; strato.com;
-    arc=none;
-    dkim=none
-X-RZG-CLASS-ID: mo02
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918224;
-    s=strato-dkim-0002; d=goldelico.com;
-    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
-    From:Subject:Sender;
-    bh=rBlPc9AzTsKnNPqbexirh7STUhddRw6xwzmeuauTMOA=;
-    b=JtgW+2RPgXCFiKQhycNVeV0rdjbO9cqR/bt13mkail6Wg1TKmiPVJpifF8pRcaiKGk
-    un89hcmbJx9UEObhEVKlNVTpNEedbctt8PFVCeEDVUtNXv4LYf4OCbHMzrWU4PNCaIOM
-    MAxcbNWiZ9PacnH40q4JWa0VrHZOUqgtsHo53IWVjDXZDSsIJ1HlN10jIpJbVGojWahU
-    czqjspir7AhDpXlpL2JXDW7TF6T0/2nUWT5W4o747WjAfO/E6IaUTUz6KtUQdXpWcNJ8
-    qiet4P3S3MAsAo3fWUMn1fVB4sqSOXlxYfYjm/Y0BW6OPVgnDvRBFrJkTVnyeuIqApRW
-    BPdw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1693918224;
-    s=strato-dkim-0003; d=goldelico.com;
-    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
-    From:Subject:Sender;
-    bh=rBlPc9AzTsKnNPqbexirh7STUhddRw6xwzmeuauTMOA=;
-    b=vGDdj9s2q/I68TP1Vm/DaFmxAV31913DaaXGBPu+cRhFczWFvG1Wgxc3r30sffglZ6
-    iMwleXXohXtPjr3o91Aw==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o1iTDUhfN4hi3qVZrW7J"
-Received: from localhost.localdomain
-    by smtp.strato.de (RZmta 49.8.2 DYNA|AUTH)
-    with ESMTPSA id 04cbadz85CoOLbJ
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
-        (Client did not present a certificate);
-    Tue, 5 Sep 2023 14:50:24 +0200 (CEST)
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-To:     Tony Lindgren <tony@atomide.com>,
-        Andreas Kemnade <andreas@kemnade.info>,
-        =?UTF-8?q?Patrik=20Dahlstr=C3=B6m?= <risca@dalakolonin.se>,
-        peter.ujfalusi@gmail.com
-Cc:     letux-kernel@openphoenux.org, kernel@pyra-handheld.com,
-        linux-omap@vger.kernel.org
-Subject: [RFC 4/6] ARM: DTS: omap4-l4-abe: Add McASP configuration
-Date:   Tue,  5 Sep 2023 14:50:13 +0200
-Message-ID: <6a4f04d5f977344b168d34029da4402cf37d8f68.1693918214.git.hns@goldelico.com>
-X-Mailer: git-send-email 2.42.0
-In-Reply-To: <cover.1693918214.git.hns@goldelico.com>
-References: <cover.1693918214.git.hns@goldelico.com>
+        with ESMTP id S1354150AbjIEJ5n (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 05:57:43 -0400
+Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 662051B4
+        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 02:57:39 -0700 (PDT)
+Received: by mail-lf1-x130.google.com with SMTP id 2adb3069b0e04-4fe15bfb1adso3844746e87.0
+        for <linux-omap@vger.kernel.org>; Tue, 05 Sep 2023 02:57:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1693907857; x=1694512657; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=AKHR62ul+UyAMBBLZNZLoFrH8efwjpri67YRyIEqGb8=;
+        b=ZM7D1UmPDfVFkSSO4UqZcDHdPUJVxtVWoKpFrg9rxoI0cQFhOlP0vjw7q3kBalQ/EZ
+         F6UCW83dzlPQN4XyfMOlpe4nFgqLsDbKfzhjP1CGGY+MyrIqXsLq9FMjBqsU4DDbRZnr
+         a9bmE4vOoB2APZkjtjBxV0+H35cYjQ9ZomvklF7I10LV6vRUA9OgYP2JDckETwzLeJep
+         rVSGqiVLgMxatcZ4zWEuBe5OI7Vhe+6Qv3attJa6sxREpOAfdh59Y5JRV3TnDn0f8XIQ
+         aY6Av2gK635lnE8nw43ojaYeQM7D3SEqhfH75kRNZuBkLy9IQoJPGg9+SAirYzM7EScr
+         mRbw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1693907857; x=1694512657;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=AKHR62ul+UyAMBBLZNZLoFrH8efwjpri67YRyIEqGb8=;
+        b=YNg7XZsRYKRjdGBWfU5uCqFJNQgKROX1/fd/uh+8rfJGk7p1p8uc8W/VKTYx2IgO+t
+         4jTm9T5QsOWAM+oC4CwEwB0jeuxP0shECuXpththrcaNJaS+LX6eiPUWHWatXYPuqAlK
+         AZesWAR0KQO5/hCmerrymvtpdc7pLrt1hVL5XtLs9zqrPTKHk0rRPlzMVsF83e5+2jjk
+         DiqkL+qhcNR/DZPz2U34JshoFTEYrfcdOwWYJaJEjRrUCjNfiMBGiS2Zcyi4vpqKD7IN
+         DOV/y87YRqntnvUfcOZEaqc1VhwFWLvzyTx+9O+vYiWWkup6jZ3yB+si7jVFBxaXN3t3
+         ORFg==
+X-Gm-Message-State: AOJu0YwbP/YSXK0v6sM5Yb9ypsrF11py2+CDnmYTtoSYUT2HyIqKkuM0
+        9rYDUwBtZFOgLH9LppSdfNHanA==
+X-Google-Smtp-Source: AGHT+IF/Krv9XoaHXmgTX6hA95PT3mrsyeECELy7hFWygISVfjLi7nO3m0A/foR0u3zSojYLTMDlFA==
+X-Received: by 2002:a19:8c09:0:b0:500:9d6c:913e with SMTP id o9-20020a198c09000000b005009d6c913emr7472258lfd.52.1693907857446;
+        Tue, 05 Sep 2023 02:57:37 -0700 (PDT)
+Received: from localhost ([102.36.222.112])
+        by smtp.gmail.com with ESMTPSA id o3-20020a5d4083000000b0031435731dfasm16913703wrp.35.2023.09.05.02.57.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 05 Sep 2023 02:57:37 -0700 (PDT)
+Date:   Tue, 5 Sep 2023 12:57:34 +0300
+From:   Dan Carpenter <dan.carpenter@linaro.org>
+To:     Ratheesh Kannoth <rkannoth@marvell.com>
+Cc:     netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, ast@kernel.org, daniel@iogearbox.net,
+        hawk@kernel.org, john.fastabend@gmail.com, jiawenwu@trustnetic.com,
+        mengyuanlou@net-swift.com, yang.lee@linux.alibaba.com,
+        error27@gmail.com, linyunsheng@huawei.com,
+        linux-hyperv@vger.kernel.org, kys@microsoft.com,
+        haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
+        longli@microsoft.com, shradhagupta@linux.microsoft.com,
+        linux-hwmon@vger.kernel.org, michael.chan@broadcom.com,
+        richardcochran@gmail.com, jdelvare@suse.com, linux@roeck-us.net,
+        yisen.zhuang@huawei.com, salil.mehta@huawei.com,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, nbd@nbd.name, john@phrozen.org,
+        sean.wang@mediatek.com, Mark-MC.Lee@mediatek.com,
+        lorenzo@kernel.org, matthias.bgg@gmail.com,
+        angelogioacchino.delregno@collabora.com, linux@armlinux.org.uk,
+        linux-rdma@vger.kernel.org, saeedm@nvidia.com, leon@kernel.org,
+        gerhard@engleder-embedded.com, maciej.fijalkowski@intel.com,
+        alexanderduyck@fb.com, wei.fang@nxp.com, shenwei.wang@nxp.com,
+        xiaoning.wang@nxp.com, linux-imx@nxp.com, lgirdwood@gmail.com,
+        broonie@kernel.org, jaswinder.singh@linaro.org,
+        ilias.apalodimas@linaro.org, UNGLinuxDriver@microchip.com,
+        horatiu.vultur@microchip.com, linux-omap@vger.kernel.org,
+        grygorii.strashko@ti.com, simon.horman@corigine.com,
+        vladimir.oltean@nxp.com, aleksander.lobakin@intel.com,
+        linux-stm32@st-md-mailman.stormreply.com,
+        alexandre.torgue@foss.st.com, joabreu@synopsys.com,
+        mcoquelin.stm32@gmail.com, p.zabel@pengutronix.de,
+        thomas.petazzoni@bootlin.com, mw@semihalf.com,
+        sgoutham@marvell.com, gakula@marvell.com, sbhatta@marvell.com,
+        hkelam@marvell.com, xen-devel@lists.xenproject.org,
+        jgross@suse.com, sstabellini@kernel.org,
+        oleksandr_tyshchenko@epam.com, linux-wireless@vger.kernel.org,
+        ryder.lee@mediatek.com, shayne.chen@mediatek.com, kvalo@kernel.org,
+        andrii@kernel.org, martin.lau@linux.dev, song@kernel.org,
+        yonghong.song@linux.dev, kpsingh@kernel.org, sdf@google.com,
+        haoluo@google.com, jolsa@kernel.org
+Subject: Re: [PATCH v1 net] page_pool: Cap queue size to 32k.
+Message-ID: <75bcd331-9a62-486f-a15f-6aebf4d1838b@kadam.mountain>
+References: <20230814060411.2401817-1-rkannoth@marvell.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230814060411.2401817-1-rkannoth@marvell.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-From: Peter Ujfalusi <peter.ujfalusi@gmail.com>
+On Mon, Aug 14, 2023 at 11:34:11AM +0530, Ratheesh Kannoth wrote:
+> Clamp to 32k instead of returning error.
 
-OMAP4 has a single McASP instance with single serializer and locked for DIT
-mode.
-To be able to enable the support the following fixes needed:
-- Add the DAT port ranges to the target module's ranges
-- SIDLE mode must be disabled as it is not working with McASP
- most likely module integration issue with McASP
+What is the motivation here?  What is the real world impact for the
+users?
 
-We can already fill in the op-mode and serial-dir  for McASP as it only
-supports this configuration, but keep the module disabled as there is no
-known device available where it is used.
+> 
+> Please find discussion at
+> https://lore.kernel.org/lkml/
+> CY4PR1801MB1911E15D518A77535F6E51E2D308A@CY4PR1801MB1911.
+> namprd18.prod.outlook.com/T/
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@gmail.com>
----
- arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Please don't break the URL up like this.  I think normally we would just
+write up a normal commit message and use the Link: tag.
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi b/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi
-index 7ae8b620515c5..a8d66240d17d5 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi
-@@ -192,8 +192,7 @@ target-module@28000 {			/* 0x40128000, ap 8 08.0 */
- 			      <0x28004 0x4>;
- 			reg-names = "rev", "sysc";
- 			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
--					<SYSC_IDLE_NO>,
--					<SYSC_IDLE_SMART>;
-+					<SYSC_IDLE_NO>;
- 			/* Domains (V, P, C): iva, abe_pwrdm, abe_clkdm */
- 			clocks = <&abe_clkctrl OMAP4_MCASP_CLKCTRL 0>;
- 			clock-names = "fck";
--- 
-2.42.0
+Fixes: ff7d6b27f894 ("page_pool: refurbish version of page_pool code")
+Link: https://lore.kernel.org/lkml/CY4PR1801MB1911E15D518A77535F6E51E2D308A@CY4PR1801MB1911.namprd18.prod.outlook.com/
+Signed-off-by:
+
+> @@ -171,9 +171,10 @@ static int page_pool_init(struct page_pool *pool,
+>  	if (pool->p.pool_size)
+>  		ring_qsize = pool->p.pool_size;
+>  
+> -	/* Sanity limit mem that can be pinned down */
+> +	/* Cap queue size to 32k */
+>  	if (ring_qsize > 32768)
+> -		return -E2BIG;
+> +		ring_qsize = 32768;
+> +
+>  
+>  	/* DMA direction is either DMA_FROM_DEVICE or DMA_BIDIRECTIONAL.
+
+Don't introduce a blank line here.  Checkpatch will complain if you
+have to blank lines in a row.  It won't complain about the patch but it
+will complain if you apply the patch and then re-run checkpatch -f on
+the file.  (I didn't test this but it's wrong either way. :P).
+
+regards,
+dan carpenter
 
