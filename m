@@ -2,137 +2,155 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E042CC83F3E
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 18:59:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20A61C83F3E
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 19:00:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235360AbjIES71 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 Sep 2023 14:59:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54950 "EHLO
+        id S239943AbjIETA1 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 Sep 2023 15:00:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43134 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235752AbjIES71 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 14:59:27 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11246E9;
-        Tue,  5 Sep 2023 11:59:00 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 30914B81109;
-        Tue,  5 Sep 2023 16:37:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2A1BC433C8;
-        Tue,  5 Sep 2023 16:37:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1693931835;
-        bh=w+oEgQVQbOnu49ifCvEgRbOLpeyCI0kFGG7aALURPuA=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=SZiKoDobJ73xtwVhTW8bCkYjbuMn9ns3UIbfSBhdrJqwrdxa51jFyXM0GxrDFaLiN
-         EfeDZrPGNkI8R2Nur6TKMtjCEftwLRB52jqbd/QaqyXgbdn737rQTKH4WoR32O7Yzv
-         xAV9RlpI4O9PUDK9mXC2DHekQQmUVgwbp9ED/RqlKr/kqrj93fwuLhDmVoCnncpX5O
-         rYL9ZElWgKxwTlORHQX3m6FPd4JqOWtnhNQVwVkxwm3weGED6PbbIILADm1OJgYYpr
-         2sBtUblLNWbYdn0Tkkn7L4W34dIZkzx2PkYNvZBtz5iOyvUAK6X/gP7aEVd1cC7DYe
-         tFmtkddPtPu0Q==
-Date:   Tue, 5 Sep 2023 11:37:13 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     "Verma, Achal" <a-verma1@ti.com>
-Cc:     Vignesh Raghavendra <vigneshr@ti.com>,
-        Tom Joseph <tjoseph@cadence.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Krzysztof Wilczy_ski <kw@linux.com>,
-        Rob Herring <robh@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [EXTERNAL] Re: [RFC PATCH 2/2] PCI: j721e: Add support to build
- pci-j721e as a kernel module
-Message-ID: <20230905163713.GA175472@bhelgaas>
+        with ESMTP id S240619AbjIETAP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 15:00:15 -0400
+Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A21931988
+        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 11:59:47 -0700 (PDT)
+Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-401187f8071so1120335e9.0
+        for <linux-omap@vger.kernel.org>; Tue, 05 Sep 2023 11:59:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940029; x=1694544829; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=5ZhpZtSP2svZAFrzaQvlM9FAg/vPyJ7DXBzIjcVtHYA=;
+        b=buT7UOYrpUdoU2SUwCrxJCh0ANOJPBxCPgsw4wlC8KBPfgZjsKX4MCSTMEwxECHbRf
+         NSQpjIyiXYow7q+P0qMYeSSjpw2wkMrUKKvTAwMEdBJDeuZEGDmgar+6oytaZmsbzSoL
+         4sEVCbL1avOWpPrDhy0fRh6rwA0WY5FtVl2PiJrMN4SLC7t4/gkmqwG5WjrfSnJ/aFpu
+         ttZvq9wjhyyu3eFQv8dFgyjIYWKOsb7sLWmSKWB0kVjzSZHzwJjLS3HXesFS9l07jo5Y
+         ZK+YqLcemIU66LN2/DTUwv94/C4ndjFOvsUEMmXrHN8uF2sz1hHQ9VgPG2E5b6LKbsC9
+         pTyg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1693940029; x=1694544829;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=5ZhpZtSP2svZAFrzaQvlM9FAg/vPyJ7DXBzIjcVtHYA=;
+        b=H6tYeOpE8t8Gxx9U/dsFQNqr9sJmkH1bHhD+EgJh1VDs2dY6dURBNFuVJjf7cN6G0X
+         pshGuIN477XokCIW9I33lkkG5FkDtb/Sx5IiWMIfLTeEwlMGqbVA2TImVUIS4Jb0Agy3
+         +naQ29uWS5vX8/FQSnp56Zlj/ztGcYogGclXX04xmFeNUHwbgrTSCVfQt+c9uUWAm5z2
+         UjorfuMqSgfH/EflQ3SHJg9IiA0k4VhplJuVVnS/eHZy9k/fkOW+Cv2OmZXNWW6fOYSW
+         ULZd69eWMqtIsAHDqayG0gGaYibxJkutu9v99Yadpay4F9GlV2WA+BFH/Et5cFyaIsg4
+         3uTQ==
+X-Gm-Message-State: AOJu0Yy/dtwvnzf2qcasxDUMZ5Uqt/TVEniq4Vq9Fqjs8MlpIhBxIN2l
+        pS5VSrhLXdLwnUGFrs7JVgo9kQ==
+X-Google-Smtp-Source: AGHT+IH6GCfGhH5bbknVyv1QFmzhhSWppXhliMEz+gshhPkUMADba7JqAHg0E1eXfiJxmPf9zlRrog==
+X-Received: by 2002:a05:600c:3d0d:b0:402:b8:d022 with SMTP id bh13-20020a05600c3d0d00b0040200b8d022mr609236wmb.16.1693940029130;
+        Tue, 05 Sep 2023 11:53:49 -0700 (PDT)
+Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:7a54:5dbc:6d09:48b7])
+        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 05 Sep 2023 11:53:48 -0700 (PDT)
+From:   Bartosz Golaszewski <brgl@bgdev.pl>
+To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bartosz Golaszewski <brgl@bgdev.pl>,
+        Dipen Patel <dipenp@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
+        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Subject: [PATCH 19/21] gpio: swnode: replace gpiochip_find() with gpio_device_find_by_label()
+Date:   Tue,  5 Sep 2023 20:53:07 +0200
+Message-Id: <20230905185309.131295-20-brgl@bgdev.pl>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230905185309.131295-1-brgl@bgdev.pl>
+References: <20230905185309.131295-1-brgl@bgdev.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ed9164d7-e2a2-1a63-3574-a305d8f8d3fc@ti.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, Sep 05, 2023 at 04:09:34PM +0530, Verma, Achal wrote:
-> On 8/17/2023 10:34 PM, Bjorn Helgaas wrote:
-> > On Thu, Aug 17, 2023 at 05:38:23PM +0530, Achal Verma wrote:
-> > > pci-j721e driver can be build as a in-built kernel driver only, which is
-> > > not required as it is not used during boot time in most cases.
-> > > This change add support to build pci-j721e as a kernel loadable module.
-> > > 
-> > > J721e PCIe controller can work in both host mode and end-point mode.
-> > > In order to enable host mode driver and endpoint driver to be built
-> > > independently either as built-in or kernel module, the pcie-j721e.c driver
-> > > is refactored into following components:
-> > > 
-> > > 1) pci-j721e-host.c: Driver used when PCIe controller has to be
-> > > initialized in host mode.
-> > > 
-> > > 2) pci-j721e-ep.c: Driver used when PCIe controller has to be
-> > > initialized in endpoint mode.
-> > > 
-> > > 3) pci-j721e.c: contains common code required in both modes.
-> > 
-> > Sounds like at least two commits (I'm not sure what the best order
-> > would be):
-> > 
-> >    1) Split into separate host mode and endpoint mode drivers
-> > 
-> >    2) Make both drivers tristate
-> 
-> So one patch for .c files and Makefile and other one for Kconfig.
+From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-Well, not exactly.  I think there are some .c file changes related to
-making the drivers tristate, e.g., adding .remove(), etc.  Those
-specific changes and the Kconfig change from bool to tristate should
-be in the same patch.
+We're porting all users of gpiochip_find() to using gpio_device_find().
+Update the swnode GPIO code.
 
-The split into two drivers should be basically a code rearrangement
-that doesn't add any new functionality.  That should be in a separate
-patch by itself.
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+---
+ drivers/gpio/gpiolib-swnode.c | 29 ++++++++++++-----------------
+ 1 file changed, 12 insertions(+), 17 deletions(-)
 
-> > It looks like you implement both module loading and removal.  Do we
-> > now think removal of these modules is safe?  IIRC there used to be a
-> > question related to irq_desc lifetimes, e.g., there's some discussion
-> > here: https://lore.kernel.org/linux-pci/87k085xekg.wl-maz@kernel.org/
-> > 
-> > The ability to *load* drivers as modules is definitely useful.  The
-> > ability to *remove* them is useful for developers but not really
-> > useful for users.
-> > 
-> > But I guess j721e_pcie_remove() already exists, so maybe you're not
-> > changing anything as far as irq_desc lifetimes
->
-> I went through the email-thread you have shared.
-> It looks like its related to the issue when pcie bridge driver also working
-> as a interrupt domain/controller for EP.
-> In case of legacy interrupt support, its required that pcie host driver free
-> interrupt mapping before freeing the interrupt domain.
-> 
-> Note that current upstream implementation of pci-j721e doesn't support
-> interrupt domain, so issue doesn't applies here but its there in TI kernel
-> and I believe we are handling this in proper way by freeing the mappings
-> before.
-> 
-> Also pci-j721e remove() was lacking some important clean-up functions
-> including pci_remove_root_bus() without which remove wasn't possible, so
-> added required calls and checked the correct sequence of calls.
+diff --git a/drivers/gpio/gpiolib-swnode.c b/drivers/gpio/gpiolib-swnode.c
+index b5a6eaf3729b..56c8519be538 100644
+--- a/drivers/gpio/gpiolib-swnode.c
++++ b/drivers/gpio/gpiolib-swnode.c
+@@ -31,31 +31,26 @@ static void swnode_format_propname(const char *con_id, char *propname,
+ 		strscpy(propname, "gpios", max_size);
+ }
+ 
+-static int swnode_gpiochip_match_name(struct gpio_chip *chip, void *data)
++static struct gpio_device *swnode_get_gpio_device(struct fwnode_handle *fwnode)
+ {
+-	return !strcmp(chip->label, data);
+-}
++	const struct software_node *gdev_node;
++	struct gpio_device *gdev;
+ 
+-static struct gpio_chip *swnode_get_chip(struct fwnode_handle *fwnode)
+-{
+-	const struct software_node *chip_node;
+-	struct gpio_chip *chip;
+-
+-	chip_node = to_software_node(fwnode);
+-	if (!chip_node || !chip_node->name)
++	gdev_node = to_software_node(fwnode);
++	if (!gdev_node || !gdev_node->name)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	chip = gpiochip_find((void *)chip_node->name, swnode_gpiochip_match_name);
+-	return chip ?: ERR_PTR(-EPROBE_DEFER);
++	gdev = gpio_device_find_by_label((void *)gdev_node->name);
++	return gdev ?: ERR_PTR(-EPROBE_DEFER);
+ }
+ 
+ struct gpio_desc *swnode_find_gpio(struct fwnode_handle *fwnode,
+ 				   const char *con_id, unsigned int idx,
+ 				   unsigned long *flags)
+ {
++	struct gpio_device *gdev __free(gpio_device_put) = NULL;
+ 	const struct software_node *swnode;
+ 	struct fwnode_reference_args args;
+-	struct gpio_chip *chip;
+ 	struct gpio_desc *desc;
+ 	char propname[32]; /* 32 is max size of property name */
+ 	int error;
+@@ -77,12 +72,12 @@ struct gpio_desc *swnode_find_gpio(struct fwnode_handle *fwnode,
+ 		return ERR_PTR(error);
+ 	}
+ 
+-	chip = swnode_get_chip(args.fwnode);
++	gdev = swnode_get_gpio_device(args.fwnode);
+ 	fwnode_handle_put(args.fwnode);
+-	if (IS_ERR(chip))
+-		return ERR_CAST(chip);
++	if (IS_ERR(gdev))
++		return ERR_CAST(gdev);
+ 
+-	desc = gpiochip_get_desc(chip, args.args[0]);
++	desc = gpiochip_get_desc(gdev->chip, args.args[0]);
+ 	*flags = args.args[1]; /* We expect native GPIO flags */
+ 
+ 	pr_debug("%s: parsed '%s' property of node '%pfwP[%d]' - status (%d)\n",
+-- 
+2.39.2
 
-These changes should be separate from the patch that splits into
-host/endpoint drivers.
-
-> I have tested load/un-load multiple times on J784S4 EVM PCIe1 instance, it
-> worked fine but reload after load->un-load in case of j721e fails leading to
-> kernel hung, I suspect this as something to do with improper (sequence)
-> handling of refclk for endpoint (shutting down and then powering up) as the
-> only difference between these is that for J784S4 both host controller and EP
-> side use shared ref-clk generated by pcie phy while in j721e case host
-> controller use pcie-phy clock while EP side uses board generated ref-clock,
-> so something to do with power and clock off/on sequence.
-
-We should not make module unload possible until reload is reliable.
-But in the meantime, we can certainly make it possible to build the
-drivers as modules and load them at runtime.
-
-Bjorn
