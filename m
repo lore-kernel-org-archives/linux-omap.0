@@ -2,122 +2,85 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0663FCA1001
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:58:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 120F3CA0FE2
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:59:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231199AbjIEP67 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 Sep 2023 11:58:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42964 "EHLO
+        id S231232AbjIEP7A (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 Sep 2023 11:59:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354592AbjIEMu3 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 08:50:29 -0400
-Received: from mo4-p01-ob.smtp.rzone.de (mo4-p01-ob.smtp.rzone.de [85.215.255.53])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AE53C9
-        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 05:50:26 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1693918223; cv=none;
-    d=strato.com; s=strato-dkim-0002;
-    b=Ga/yR7Y7U7/OXtmufeTBDGZpDsQJbdqBHakYMt4k2HZx/rxc67Am9953gQOtS77Rqt
-    9ohIS6/tPGhtbjGepnEvPZhn12C0SNsivoUO2EXpEtXTq353r+YCW/dLKWU1b1B4qLw2
-    vkSS8hKouyGvff3sazaIhD9KaiBMueEtzD8OBIudxZF0rfH4U6BFGv/woZ/E6rfSHiT8
-    7ft87B8WNSxhd1mtfd+gCS5qekiAqLYDj77fVriwe0+lmCBrc0WZE5fMtzJ4pEsSlULh
-    KRBoo537tLTdhg82+l2SM1OdnJbuBAxO1DadHb5Fwfd1/6oDhyHCG3SIhNdb4c3pucHe
-    oV5Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918223;
-    s=strato-dkim-0002; d=strato.com;
-    h=Message-ID:Date:Subject:Cc:To:From:Cc:Date:From:Subject:Sender;
-    bh=mnCUM3rkt4/FFO7ZsiP2k3wZjhDaTOgC6Yct3mvlDeA=;
-    b=f9UIaFX1Blwo3dHngjqV85gJFWy3SBi8lgPzrCTGvQikGp2wDlMo5DkxXkBX/TGJid
-    ws2CyQ1ahO7hzqXW34fWuzOrlPQ7DY479j0LAtuJu1ERHXmz7CZbTPtv30zN30CVlQrv
-    GqIGq/lCV4Hn9u/grYSEG/FdOvkimv/vpYmuW9H6xehVf+gBk9FbJwgwrTe6tUbmxtue
-    w2NgMfnpHIjPIifSb+rZfv22KrCFtEhlowU6cI66K7vUlwn2L0inCpM3QaCQowLp7iVp
-    ZX+GUNrx9kRCVpC9m4aGbNf21xFmGh1NGTQOjmscOosESDIM723cNFZC0Sqqs1ZVrXg/
-    ib5A==
-ARC-Authentication-Results: i=1; strato.com;
-    arc=none;
-    dkim=none
-X-RZG-CLASS-ID: mo01
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918223;
-    s=strato-dkim-0002; d=goldelico.com;
-    h=Message-ID:Date:Subject:Cc:To:From:Cc:Date:From:Subject:Sender;
-    bh=mnCUM3rkt4/FFO7ZsiP2k3wZjhDaTOgC6Yct3mvlDeA=;
-    b=tF6J2C5GPQY5vqfOk380f7psdJgbGQEqGEogc4mx5tEFhnLq4CKywwaQyldXIEj8Uz
-    Zy6d3Nj3BL4ZnKL5YgkRFxfJS7X69mU9DwOBMmeTp7h2frAmdYbDFIONZf2rqTrmIcEX
-    yWZzWDtq9M5iBiJzLqv8jUEV8PKD2pagZa1NxMoZTXA57gd9++YNp9/VdFcruMZ4A2t6
-    0oI6UQwPQWiJ7ygXc/g/hNCvie8OBCJwj7p4VfyKSKKRPX50uNgWyBMz7Rt5lD+uLBSQ
-    XwMACVk6R1B92ScZoGXoNVTVqSMB1+1vqIO746oXd1i2YTlCQlhN3wD5cBhS8MFkLtfA
-    R1yg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1693918223;
-    s=strato-dkim-0003; d=goldelico.com;
-    h=Message-ID:Date:Subject:Cc:To:From:Cc:Date:From:Subject:Sender;
-    bh=mnCUM3rkt4/FFO7ZsiP2k3wZjhDaTOgC6Yct3mvlDeA=;
-    b=VeFDtYZH9kfI54AMGJ4agJUbO128XySzdMrRIZAXjNAO30RCa27fHeihpVJauCyfsC
-    Rhv79WDSQ+OGmNp7cwAA==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o1iTDUhfN4hi3qVZrW7J"
-Received: from localhost.localdomain
-    by smtp.strato.de (RZmta 49.8.2 DYNA|AUTH)
-    with ESMTPSA id 04cbadz85CoNLbF
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
-        (Client did not present a certificate);
-    Tue, 5 Sep 2023 14:50:23 +0200 (CEST)
-From:   "H. Nikolaus Schaller" <hns@goldelico.com>
-To:     Tony Lindgren <tony@atomide.com>,
-        Andreas Kemnade <andreas@kemnade.info>,
-        =?UTF-8?q?Patrik=20Dahlstr=C3=B6m?= <risca@dalakolonin.se>,
-        peter.ujfalusi@gmail.com
-Cc:     letux-kernel@openphoenux.org, kernel@pyra-handheld.com,
-        linux-omap@vger.kernel.org,
-        "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [RFC 0/6] tentative additions to fix ABE/AESS device tree entries for OMAP4&5
-Date:   Tue,  5 Sep 2023 14:50:09 +0200
-Message-ID: <cover.1693918214.git.hns@goldelico.com>
-X-Mailer: git-send-email 2.42.0
+        with ESMTP id S1354848AbjIEPCr (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 11:02:47 -0400
+Received: from mail-pl1-x634.google.com (mail-pl1-x634.google.com [IPv6:2607:f8b0:4864:20::634])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E927D18D;
+        Tue,  5 Sep 2023 08:02:43 -0700 (PDT)
+Received: by mail-pl1-x634.google.com with SMTP id d9443c01a7336-1c1f7f7151fso13006985ad.1;
+        Tue, 05 Sep 2023 08:02:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1693926163; x=1694530963; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=NurAmI/o4Nt/FTksqJKmVIyAtt3h8f2QUxfQ9OayLBI=;
+        b=GIi1KQth8ZxKAYpus1z2bOG5wqr++/N5M9Nsk9HZCbL4Gxmiuf0m+KhHMnuM1elg5w
+         iQV/oQ21UYjVrP10ezCN8hUVncRwE9/0NgLvuscDOtytneLqj4Xj6PUE1Z+hIetGUtlA
+         16bVKnvr6fBha+GnGqrNxivUpIZWkXwuQJ+j+ie08YNDhSyKlR8stp0YDWefSt+Izn87
+         2ydZz3dbwjA36+Ml3C4BGfIut5mClMpGO0VR1IUiIbStCbs45ILmmyUirEiTs0bjAS/l
+         r7cFacwyt0PWHQc1gsKces3Ddte+K5kXTS5c8za9kTBUBW1AxrNVJTrObXvE0GdblZS1
+         scxw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1693926163; x=1694530963;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=NurAmI/o4Nt/FTksqJKmVIyAtt3h8f2QUxfQ9OayLBI=;
+        b=fGjyL01rePkHKhyGXrIhm1ypi2SbPPPrFnu+C022EdWP+GeHr8wRliX9F8z5iwh57i
+         oojnF5DxCY4KBo+lYsj+lte71Q38GAuW2l9mpnghRPj7jykgFnlckLIoqzaiSZQkrTQ5
+         TijvhNOgtEY4U6JW7q/26Mcc8157mL+d9GOZ4c/Q5GFR63O8VdAwq97U2aMFoEg2S5yq
+         mZxjXmT55SSV6yYX9o6s89KpCzrmZvuKi6yMqq5t+sno0KOK9VyGeXLuuI/pGQ9auvKj
+         j70UsQdrVmmzdqewdysXO/CFHMGbmcx+G32XyVlppzp33eWfzXoCKHNilrRm7nZEtsWe
+         Sv0g==
+X-Gm-Message-State: AOJu0YyvIO+9U0hMF9U/tge39xh/NPdtJZP6GFYuWX2fzQAKz6KVCaXC
+        BIzrnM4GHZIE2Ek/ghjm+VhgkyXNZGL4DR/WGTXY7ChBOfI=
+X-Google-Smtp-Source: AGHT+IGfE6p37dWMCRhNNFzvrFcn53nX6bxZBRLPS1JBPnx8zrNDJEBxkj1JJ9XsMTYzGQ6Gj4oevDz50W7zEqNuy8E=
+X-Received: by 2002:a17:90a:bb97:b0:268:2543:723 with SMTP id
+ v23-20020a17090abb9700b0026825430723mr10297064pjr.5.1693926162287; Tue, 05
+ Sep 2023 08:02:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="us-ascii"
+From:   Adam Ford <aford173@gmail.com>
+Date:   Tue, 5 Sep 2023 10:02:30 -0500
+Message-ID: <CAHCN7xLQH8cksj8OxpvqAF_7uk_Gn-5+ROd7MfUo75EL580+iw@mail.gmail.com>
+Subject: AM3517 Timer busy regression on 6.1.y branch
+To:     Linux-OMAP <linux-omap@vger.kernel.org>,
+        Tony Lindgren <tony@atomide.com>
+Cc:     stable <stable@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-RFC V1 2023-09-05 14:50:14:
-RFC: tentative additions to fix ABE/AESS device tree entries
+Tony et al
+,
+I am trying to run the 6.1.y branch on an AM3517-EVM.
 
-This is part of a bigger project to provide a modern driver for the
-OMAP4/5 Audio Engine (ABE/AE/AESS). The first step is to fix/add some
-device tree records so that this allows to do power and clock management
-by a driver and give the processor access to all interface registers
-and memory blocks.
+There are two GPT that throw an error:
 
-Main RFC question is if clock setup is correct. For example there is
-no connection to abe_giclk_div / ocp_abe_iclk / abe_iclk.
+ ti-sysc: probe of 48318000.target-module failed with error -16
+ ti-sysc: probe of 49032000.target-module failed with error -16
 
-Notes:
-- this may be extensible to DRA7xx
-- code is based on v6.5
-- there is no bindings document for ti,omap4-aess
+I did some minor investigation and found sysc_check_active_timer() is
+returning the busy condition.
 
-H. Nikolaus Schaller (4):
-  ARM: DTS: omap5-l4-abe: we do not need separate target-modules for
-    dmem, cmem, smem
-  ARM: DTS: omap5-l4-abe: add an aess (audio DSP of OMAP4 and OMAP5)
-    child
-  ARM: DTS: omap4-l4-abe: add an aess (audio DSP of OMAP4 and OMAP5)
-    child
-  ARM: DTS: omap4-panda-common: enable aess, add phandles for aess and
-    mcbsp1/2/3
+I tracked this back a bit further and found that if I revert commit
+a12315d6d270  ("bus: ti-sysc: Make omap3 gpt12 quirk handling SoC
+specific"), this error condition goes away.
 
-Marek Belisko (1):
-  ARM: DTS: omap5-board-common: enable aess, add phandles for aess and
-    mcbsp1/2/3
+It almost looks to me like sysc_check_active_timer is defaulting to
+-EBUSY when the SoC is not 3430, but the sysc_soc_match[] doesn't
+appear to match to AM3517.
 
-Peter Ujfalusi (1):
-  ARM: DTS: omap4-l4-abe: Add McASP configuration
+I think the proper solution is to treat the AM35* as 3430.  Do you
+agree with that approach?
 
- arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi   | 78 +++++++++++----
- .../boot/dts/ti/omap/omap4-panda-common.dtsi  | 22 ++++-
- .../boot/dts/ti/omap/omap5-board-common.dtsi  | 15 +++
- arch/arm/boot/dts/ti/omap/omap5-l4-abe.dtsi   | 98 +++++++++++--------
- 4 files changed, 149 insertions(+), 64 deletions(-)
+If so, I'll submit a patch with a fixes tag. I am also wondering how
+far back I should mark the fixes tag.
 
--- 
-2.42.0
-
+adam
