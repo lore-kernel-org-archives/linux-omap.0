@@ -2,66 +2,63 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38EF4CA0FF3
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:58:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0663FCA1001
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 15:58:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231139AbjIEP66 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 5 Sep 2023 11:58:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42420 "EHLO
+        id S231199AbjIEP67 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 5 Sep 2023 11:58:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354596AbjIEMuh (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 08:50:37 -0400
-Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [85.215.255.83])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EE3FDF
-        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 05:50:33 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1693918225; cv=none;
+        with ESMTP id S1354592AbjIEMu3 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 08:50:29 -0400
+Received: from mo4-p01-ob.smtp.rzone.de (mo4-p01-ob.smtp.rzone.de [85.215.255.53])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AE53C9
+        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 05:50:26 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1693918223; cv=none;
     d=strato.com; s=strato-dkim-0002;
-    b=gnAtcqaSnLnNewn37hFtNxhUlKvlEqrF0GxeXBrRfU3cc1VG3SuIC8Fq+1mu3YDJyE
-    IyA5e3CfCQh/ioX9UZIg8C5KAhI3CGWil3dhm3CimdAT82sdal2yohcOyOrFt3CUrX0X
-    dyMzfrV8KkH3J0O36IYpjXPeh7Qw5TNBeKvhFDCOQ9M26zspBJ1I2zAsvAIPR6kBPUqv
-    fwF54/gaXvJkQCgE04e2kIiJtCC4ScXizbkoekKCD0G9cQUDKsezv/fhX3UU5wMbyPu4
-    q7EcKSd8NbquBTx+vMVgd8hBXxS1hdQJzJSPnDdYRyV6YpbeDl6d/YFgQZSziV65U1la
-    PPYQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918225;
+    b=Ga/yR7Y7U7/OXtmufeTBDGZpDsQJbdqBHakYMt4k2HZx/rxc67Am9953gQOtS77Rqt
+    9ohIS6/tPGhtbjGepnEvPZhn12C0SNsivoUO2EXpEtXTq353r+YCW/dLKWU1b1B4qLw2
+    vkSS8hKouyGvff3sazaIhD9KaiBMueEtzD8OBIudxZF0rfH4U6BFGv/woZ/E6rfSHiT8
+    7ft87B8WNSxhd1mtfd+gCS5qekiAqLYDj77fVriwe0+lmCBrc0WZE5fMtzJ4pEsSlULh
+    KRBoo537tLTdhg82+l2SM1OdnJbuBAxO1DadHb5Fwfd1/6oDhyHCG3SIhNdb4c3pucHe
+    oV5Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918223;
     s=strato-dkim-0002; d=strato.com;
-    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
-    From:Subject:Sender;
-    bh=97jgT7ubO9fpCR8zFFXRO0momnaATvtViaPFm0jve0w=;
-    b=tVUp4f1jtaHE2lzYIJsW5jKLV5CA+Le5AbTZwZ9e1/uRBmgydlkL1HtGTTxYshdbWP
-    r7znGa/0Z5U3mtI9T3sXJtliKkIA38TF/bDCXl/yFOOz5+v9R6AyRBumYYFzGXd+Z8of
-    +43erfxUAydbQdAsfquFaHRhgMF+WGu4wzanS+a2sJpO5ZWrBTQNMW13JnUUZX160die
-    k4FbFJ36Qbildm7T6hC1MxxlJ6dsTjQ/v2HAGOvuRgNo8BsulQEQOZd+n/FI4njRQYFO
-    ohHlW//hPVGEI7gvBDfdzml6Jezv2Ckx5apRaw2TFBSa1HWP1b82SfB+NmnLQa9Uu87C
-    Ibbw==
+    h=Message-ID:Date:Subject:Cc:To:From:Cc:Date:From:Subject:Sender;
+    bh=mnCUM3rkt4/FFO7ZsiP2k3wZjhDaTOgC6Yct3mvlDeA=;
+    b=f9UIaFX1Blwo3dHngjqV85gJFWy3SBi8lgPzrCTGvQikGp2wDlMo5DkxXkBX/TGJid
+    ws2CyQ1ahO7hzqXW34fWuzOrlPQ7DY479j0LAtuJu1ERHXmz7CZbTPtv30zN30CVlQrv
+    GqIGq/lCV4Hn9u/grYSEG/FdOvkimv/vpYmuW9H6xehVf+gBk9FbJwgwrTe6tUbmxtue
+    w2NgMfnpHIjPIifSb+rZfv22KrCFtEhlowU6cI66K7vUlwn2L0inCpM3QaCQowLp7iVp
+    ZX+GUNrx9kRCVpC9m4aGbNf21xFmGh1NGTQOjmscOosESDIM723cNFZC0Sqqs1ZVrXg/
+    ib5A==
 ARC-Authentication-Results: i=1; strato.com;
     arc=none;
     dkim=none
-X-RZG-CLASS-ID: mo02
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918225;
+X-RZG-CLASS-ID: mo01
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1693918223;
     s=strato-dkim-0002; d=goldelico.com;
-    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
-    From:Subject:Sender;
-    bh=97jgT7ubO9fpCR8zFFXRO0momnaATvtViaPFm0jve0w=;
-    b=Ds1cJMt4ahHcR2AZZ8lNdXWJXIs+gG5xv5EDi/Wvqdaa9R3KmmYd19cwRqfhGNsLbv
-    OcAGfM+3SwrPVPUwGMccMoPLVaViUTpvSKIU4fa9zg+JiG5BUV0QI5x6XMftmrlpnUQ/
-    ZXSChx+A7CaNu67LdNamx8fG+8LoAbHDNGeHlRjL8cTTptBZJKepmHifrkXiWUHdq+Rb
-    DN/Bp1ZHGSrS/hyk0+yEitv2j3nmYRUD13Fnqdw1XVylmjn8YQtxE3GnhdRZXW5qvn9E
-    DN9LKQYIt5HQD38nvyJgC84LWkzfyPAeSbJdYZW3XXTqdcMuOtT/00dIR1fOqTSmnhl4
-    56Zg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1693918225;
+    h=Message-ID:Date:Subject:Cc:To:From:Cc:Date:From:Subject:Sender;
+    bh=mnCUM3rkt4/FFO7ZsiP2k3wZjhDaTOgC6Yct3mvlDeA=;
+    b=tF6J2C5GPQY5vqfOk380f7psdJgbGQEqGEogc4mx5tEFhnLq4CKywwaQyldXIEj8Uz
+    Zy6d3Nj3BL4ZnKL5YgkRFxfJS7X69mU9DwOBMmeTp7h2frAmdYbDFIONZf2rqTrmIcEX
+    yWZzWDtq9M5iBiJzLqv8jUEV8PKD2pagZa1NxMoZTXA57gd9++YNp9/VdFcruMZ4A2t6
+    0oI6UQwPQWiJ7ygXc/g/hNCvie8OBCJwj7p4VfyKSKKRPX50uNgWyBMz7Rt5lD+uLBSQ
+    XwMACVk6R1B92ScZoGXoNVTVqSMB1+1vqIO746oXd1i2YTlCQlhN3wD5cBhS8MFkLtfA
+    R1yg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1693918223;
     s=strato-dkim-0003; d=goldelico.com;
-    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
-    From:Subject:Sender;
-    bh=97jgT7ubO9fpCR8zFFXRO0momnaATvtViaPFm0jve0w=;
-    b=deZKFfkkyK+dN4fnWvCS1Rd6+bs6kmP+MsT3Zz+578kuDwaCpKVxV05Finue49h+Jk
-    U3izE+XnnN9sVx/mF+Cg==
+    h=Message-ID:Date:Subject:Cc:To:From:Cc:Date:From:Subject:Sender;
+    bh=mnCUM3rkt4/FFO7ZsiP2k3wZjhDaTOgC6Yct3mvlDeA=;
+    b=VeFDtYZH9kfI54AMGJ4agJUbO128XySzdMrRIZAXjNAO30RCa27fHeihpVJauCyfsC
+    Rhv79WDSQ+OGmNp7cwAA==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o1iTDUhfN4hi3qVZrW7J"
 Received: from localhost.localdomain
     by smtp.strato.de (RZmta 49.8.2 DYNA|AUTH)
-    with ESMTPSA id 04cbadz85CoOLbK
+    with ESMTPSA id 04cbadz85CoNLbF
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
         (Client did not present a certificate);
-    Tue, 5 Sep 2023 14:50:24 +0200 (CEST)
+    Tue, 5 Sep 2023 14:50:23 +0200 (CEST)
 From:   "H. Nikolaus Schaller" <hns@goldelico.com>
 To:     Tony Lindgren <tony@atomide.com>,
         Andreas Kemnade <andreas@kemnade.info>,
@@ -70,12 +67,10 @@ To:     Tony Lindgren <tony@atomide.com>,
 Cc:     letux-kernel@openphoenux.org, kernel@pyra-handheld.com,
         linux-omap@vger.kernel.org,
         "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [RFC 5/6] ARM: DTS: omap4-l4-abe: add an aess (audio DSP of OMAP4 and OMAP5) child
-Date:   Tue,  5 Sep 2023 14:50:14 +0200
-Message-ID: <535d7f940a97ec12f6551fd2ca8a9343d8ae3674.1693918215.git.hns@goldelico.com>
+Subject: [RFC 0/6] tentative additions to fix ABE/AESS device tree entries for OMAP4&5
+Date:   Tue,  5 Sep 2023 14:50:09 +0200
+Message-ID: <cover.1693918214.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.42.0
-In-Reply-To: <cover.1693918214.git.hns@goldelico.com>
-References: <cover.1693918214.git.hns@goldelico.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain; charset="us-ascii"
@@ -83,116 +78,46 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-make the aess module a child of the target-module.
+RFC V1 2023-09-05 14:50:14:
+RFC: tentative additions to fix ABE/AESS device tree entries
 
-Define ranges, register names, interrupts, dmas.
+This is part of a bigger project to provide a modern driver for the
+OMAP4/5 Audio Engine (ABE/AE/AESS). The first step is to fix/add some
+device tree records so that this allows to do power and clock management
+by a driver and give the processor access to all interface registers
+and memory blocks.
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi | 75 +++++++++++++++------
- 1 file changed, 56 insertions(+), 19 deletions(-)
+Main RFC question is if clock setup is correct. For example there is
+no connection to abe_giclk_div / ocp_abe_iclk / abe_iclk.
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi b/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi
-index a8d66240d17d5..7ca7b369b4e59 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi
-@@ -41,12 +41,14 @@ segment@0 {					/* 0x40100000 */
- 			 <0x0003d000 0x0003d000 0x001000>,	/* ap 23 */
- 			 <0x0003e000 0x0003e000 0x001000>,	/* ap 24 */
- 			 <0x0003f000 0x0003f000 0x001000>,	/* ap 25 */
--			 <0x00080000 0x00080000 0x010000>,	/* ap 26 */
--			 <0x00080000 0x00080000 0x001000>,	/* ap 27 */
--			 <0x000a0000 0x000a0000 0x010000>,	/* ap 28 */
--			 <0x000a0000 0x000a0000 0x001000>,	/* ap 29 */
--			 <0x000c0000 0x000c0000 0x010000>,	/* ap 30 */
--			 <0x000c0000 0x000c0000 0x001000>,	/* ap 31 */
-+			 <0x00080000 0x00080000 0x010000>,	/* dmem */
-+			 <0x00090000 0x00090000 0x001000>,	/* dmem */
-+			 <0x000a0000 0x000a0000 0x010000>,	/* cmem */
-+			 <0x000b0000 0x000b0000 0x001000>,	/* cmem */
-+			 <0x000c0000 0x000c0000 0x010000>,	/* smem */
-+			 <0x000d0000 0x000d0000 0x001000>,	/* smem */
-+			 <0x000e0000 0x000e0000 0x010000>,	/* pmem */
-+			 <0x000f0000 0x000f0000 0x001000>,	/* pmem */
- 			 <0x000f1000 0x000f1000 0x001000>,	/* ap 32 */
- 			 <0x000f2000 0x000f2000 0x001000>,	/* ap 33 */
- 
-@@ -77,12 +79,14 @@ segment@0 {					/* 0x40100000 */
- 			 <0x4903d000 0x4903d000 0x001000>,	/* ap 23 */
- 			 <0x4903e000 0x4903e000 0x001000>,	/* ap 24 */
- 			 <0x4903f000 0x4903f000 0x001000>,	/* ap 25 */
--			 <0x49080000 0x49080000 0x010000>,	/* ap 26 */
--			 <0x49080000 0x49080000 0x001000>,	/* ap 27 */
--			 <0x490a0000 0x490a0000 0x010000>,	/* ap 28 */
--			 <0x490a0000 0x490a0000 0x001000>,	/* ap 29 */
--			 <0x490c0000 0x490c0000 0x010000>,	/* ap 30 */
--			 <0x490c0000 0x490c0000 0x001000>,	/* ap 31 */
-+			 <0x49080000 0x49080000 0x010000>,	/* dmem */
-+			 <0x49090000 0x49090000 0x001000>,	/* dmem */
-+			 <0x490a0000 0x490a0000 0x010000>,	/* cmem */
-+			 <0x490b0000 0x490b0000 0x001000>,	/* cmem */
-+			 <0x490c0000 0x490c0000 0x010000>,	/* smem */
-+			 <0x490d0000 0x490d0000 0x001000>,	/* smem */
-+			 <0x490e0000 0x490e0000 0x010000>,	/* pmem */
-+			 <0x490f0000 0x490f0000 0x001000>,	/* pmem */
- 			 <0x490f1000 0x490f1000 0x001000>,	/* ap 32 */
- 			 <0x490f2000 0x490f2000 0x001000>;	/* ap 33 */
- 
-@@ -482,14 +486,47 @@ target-module@f1000 {			/* 0x401f1000, ap 32 20.0 */
- 			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
--			ranges = <0x0 0xf1000 0x1000>,
--				 <0x490f1000 0x490f1000 0x1000>;
- 
--			/*
--			 * No child device binding or driver in mainline.
--			 * See Android tree and related upstreaming efforts
--			 * for the old driver.
--			 */
-+			/* CHECKME: OMAP4 and OMAP5 may differ in memory sizes, here we define more than available... */
-+			ranges = <0 0xf1000 0x1000>, /* MPU private access */
-+				 <0x80000 0x80000 0x10000>, /* DMEM 64KiB - MPU */
-+				 <0xa0000 0xa0000 0x10000>, /* CMEM 6KiB - MPU */
-+				 <0xc0000 0xc0000 0x10000>, /* SMEM 64KiB - MPU */
-+				 <0xe0000 0xe0000 0x10000>, /* PMEM 8KiB - MPU */
-+				 <0x490f1000 0x490f1000 0x10000>, /* L3 Interconnect */
-+				 <0x49080000 0x49080000 0x10000>, /* DMEM 64KiB - L3 */
-+				 <0x490a0000 0x490a0000 0x10000>, /* CMEM 6KiB - L3 */
-+				 <0x490ce000 0x490c0000 0x10000>, /* SMEM 64KiB - L3 */
-+				 <0x490e0000 0x490e0000 0x10000>; /* PMEM 8KiB - L3 */
-+
-+			aess: aess {
-+				compatible = "ti,omap4-aess";
-+				status = "disabled";
-+				reg = <0 0xfff>, /* MPU private access */
-+				      <0x80000 0xffff>, /* DMEM - MPU */
-+				      <0xa0000 0xffff>, /* CMEM - MPU */
-+				      <0xc0000 0xffff>, /* SMEM - MPU */
-+				      <0xe0000 0xffff>, /* PMEM - MPU */
-+				      <0x490f1000 0xfff>, /* L3 Interconnect */
-+				      <0x49080000 0xffff>, /* DMEM - L3 */
-+				      <0x490a0000 0xffff>, /* CMEM - L3 */
-+				      <0x490ce000 0xffff>, /* SMEM - L3 */
-+				      <0x490e0000 0xffff>; /* PMEM - L3 */
-+				reg-names = "mpu", "dmem", "cmem", "smem", "pmem",
-+				      "dma", "dmem_dma", "cmem_dma", "smem_dma",
-+				      "pmem_dma";
-+				interrupts = <GIC_SPI 99 IRQ_TYPE_LEVEL_HIGH>;
-+				dmas = <&sdma 101>,
-+				      <&sdma 102>,
-+				      <&sdma 103>,
-+				      <&sdma 104>,
-+				      <&sdma 105>,
-+				      <&sdma 106>,
-+				      <&sdma 107>,
-+				      <&sdma 108>;
-+				dma-names = "fifo0", "fifo1", "fifo2", "fifo3", "fifo4",
-+				      "fifo5", "fifo6", "fifo7";
-+			};
- 		};
- 	};
- };
+Notes:
+- this may be extensible to DRA7xx
+- code is based on v6.5
+- there is no bindings document for ti,omap4-aess
+
+H. Nikolaus Schaller (4):
+  ARM: DTS: omap5-l4-abe: we do not need separate target-modules for
+    dmem, cmem, smem
+  ARM: DTS: omap5-l4-abe: add an aess (audio DSP of OMAP4 and OMAP5)
+    child
+  ARM: DTS: omap4-l4-abe: add an aess (audio DSP of OMAP4 and OMAP5)
+    child
+  ARM: DTS: omap4-panda-common: enable aess, add phandles for aess and
+    mcbsp1/2/3
+
+Marek Belisko (1):
+  ARM: DTS: omap5-board-common: enable aess, add phandles for aess and
+    mcbsp1/2/3
+
+Peter Ujfalusi (1):
+  ARM: DTS: omap4-l4-abe: Add McASP configuration
+
+ arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi   | 78 +++++++++++----
+ .../boot/dts/ti/omap/omap4-panda-common.dtsi  | 22 ++++-
+ .../boot/dts/ti/omap/omap5-board-common.dtsi  | 15 +++
+ arch/arm/boot/dts/ti/omap/omap5-l4-abe.dtsi   | 98 +++++++++++--------
+ 4 files changed, 149 insertions(+), 64 deletions(-)
+
 -- 
 2.42.0
 
