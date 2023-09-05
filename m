@@ -2,53 +2,53 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 907D5C83F3E
-	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 19:10:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C0F9CA1001
+	for <linux-omap@archiver.kernel.org>; Tue,  5 Sep 2023 19:10:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241880AbjIETK4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S239204AbjIETK4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Tue, 5 Sep 2023 15:10:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58902 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241842AbjIETKz (ORCPT
+        with ESMTP id S241830AbjIETKz (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Tue, 5 Sep 2023 15:10:55 -0400
-Received: from mail-lf1-x12a.google.com (mail-lf1-x12a.google.com [IPv6:2a00:1450:4864:20::12a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1947AC
-        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 12:10:29 -0700 (PDT)
-Received: by mail-lf1-x12a.google.com with SMTP id 2adb3069b0e04-5008d16cc36so4818451e87.2
-        for <linux-omap@vger.kernel.org>; Tue, 05 Sep 2023 12:10:29 -0700 (PDT)
+Received: from mail-ed1-x52c.google.com (mail-ed1-x52c.google.com [IPv6:2a00:1450:4864:20::52c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB4D510DE
+        for <linux-omap@vger.kernel.org>; Tue,  5 Sep 2023 12:10:27 -0700 (PDT)
+Received: by mail-ed1-x52c.google.com with SMTP id 4fb4d7f45d1cf-52683b68c2fso4074055a12.0
+        for <linux-omap@vger.kernel.org>; Tue, 05 Sep 2023 12:10:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940969; x=1694545769; darn=vger.kernel.org;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1693940967; x=1694545767; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=A2GE4FHHqs6bBZBv794WL9eWtt6b/gcHhoE6C2vLyfs=;
-        b=xJNijrTQXQDq54o2nk95IL8N+pOAnN5JyhtTjt+4l78Sq7WSzqXKMuCYaqWAnp4Lyn
-         6K+65AAaglGOek2RO5oL9db1WBxRXy3VPjkcQhl75t3aPHZDA9y4MI7WCRplv9rsyCqn
-         A9kivp+QQWVgMibwxP04y6bLX/QJq9TSgUAAiPki8BZejTfVyDmmg+5MMtCZDesfJS4x
-         lmJzOoC/2z+dSnrqb4Hay3ZSRffuSAHWklGrgiummWd6RImVC75PRHL7/G4IHzUAAgXH
-         TlABwdNMZPxj2NaYZXTijKDeaRhsvoC1NYWQqDrcmL/QhOms445gDddlAd5dWMgtfo4r
-         m0Xw==
+        bh=v8EoAIqFLJCxUpfLhsvBV4jgy9F1vQzmq/NZ2XWmhPM=;
+        b=aK6JgJIApyhH/Lymt3OexQU1ZUBEZC4yAf5+tQEtvBIXDE4O6zKd8Gkt4rmhK/ZGZ9
+         u3O+0Hk072I73pYoUTlQOFMi3Op3wb0y71CbyMSo0NgtDr28dsEbU4WtbtcShPAF+dCJ
+         KshA72YcLhtBA/siAEFFIXp5Bl7O4cOu2Wz9iGCiLw7geUZZPzYKjn23HCrxpT63cI7w
+         q+NREC810VV56n8OQU7cZpN3REKB0SJ3v5+ScXuf33BiaPdIz1pulM4jDbB06QQTIvKn
+         Tq3t7V9yVsLaYCslLQ5gX29OUPcIYbrcFNH7ialbTk8hs+GO25pYSBiDH46NOiNrKTxE
+         wIkg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693940969; x=1694545769;
+        d=1e100.net; s=20221208; t=1693940967; x=1694545767;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=A2GE4FHHqs6bBZBv794WL9eWtt6b/gcHhoE6C2vLyfs=;
-        b=htfqEfRG2mw9ngO+Fdpr9Gtk57U2mZtyT07BxWYjYpbHS9cHfzBHclExMso8LdNbQt
-         zUr2EEVgJTYQx+CDFy8oy6pRQ5k/YoosX5/WZj/k4+eaPM0WpjNl1mEHERqzrxuTQlur
-         +cbbhGJLHvnJoBqY0O/Gl+JVntA5uVxlvycjSaaJv4wp8JetEgfd/FyuCITpFT68aTyH
-         wrq8isaHsS5mAthKEg2C/805DbC/2G054VxtI3kZTCcvuoLLOZeAONBWt+7+BauaHa4S
-         mIkY6HVp1ytB2YspnT5C4KoT/c/UKqEnr1UW00DBBXBZ3bTsqDxgBRRIWxiOC026cfuL
-         MaGg==
-X-Gm-Message-State: AOJu0Yz6U45zs9nrRdJszDZtjU5bi2diGKvYNGyHvAYOxSyXcW3geemr
-        KrS3azpG6u2Js1JWeWio9kO+UWpgu8s1qANEclA=
-X-Google-Smtp-Source: AGHT+IEMv51XL5FvHHG3cRgXKYfBtpCzIaG0xueCnriuyRygrFNOOQC3x8IGQeLMqwqbAjFRM5ODiw==
-X-Received: by 2002:adf:ce8c:0:b0:31c:762b:ceb3 with SMTP id r12-20020adfce8c000000b0031c762bceb3mr489509wrn.48.1693940007276;
-        Tue, 05 Sep 2023 11:53:27 -0700 (PDT)
+        bh=v8EoAIqFLJCxUpfLhsvBV4jgy9F1vQzmq/NZ2XWmhPM=;
+        b=YgSs7BAoHElVzIVLp+6UMHYJSStpaZHydtoXmf61O6SCsPtikRMiCcpYoC/7GNqYMr
+         Np3QQezpaIcONNX0oyej/xtMEjSMUWhaBm/l6sCoRiNU+U89FtoNakM/SiqrgCQmbyqi
+         +GQ74eatgpA0BPh7WHolW2JK1GKuxccGGj4QF5iVIUn0M5fJsJW6O8K89rzxrocpynZv
+         N/nPlCvsKTOtUazzI1aedReo2Xw93C36ZMJEXRt8vzj4gs4e/KJilkaOX1unkeNmS0vK
+         tpdsWj5NW++0a53LT8104iinlt8Awl5yB5tA1Aj3p2z1GcYQ/lo6wsiSqz0jetSVqr0H
+         /kKg==
+X-Gm-Message-State: AOJu0YzptPQE7lmLddS1J6rn43Swx4SV30BI0vrP1pX8cEMljnrY+PfZ
+        I0Y6FwrnQtmqdp7xuuf+0NmiDRkPu54N+FvCyE0=
+X-Google-Smtp-Source: AGHT+IGdmweLsvxMkviAD6X4Rb7LNMdeCjqz2Ypd3y+SG6ZL6d4+T9L7pYZxfgxQTgv+RGIUJmtJEw==
+X-Received: by 2002:a05:600c:2809:b0:3fe:dcd0:2e10 with SMTP id m9-20020a05600c280900b003fedcd02e10mr472155wmb.17.1693940027944;
+        Tue, 05 Sep 2023 11:53:47 -0700 (PDT)
 Received: from brgl-uxlite.home ([2a01:cb1d:334:ac00:7a54:5dbc:6d09:48b7])
-        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.26
+        by smtp.gmail.com with ESMTPSA id 17-20020a05600c249100b003fbc30825fbsm17550010wms.39.2023.09.05.11.53.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Sep 2023 11:53:26 -0700 (PDT)
+        Tue, 05 Sep 2023 11:53:47 -0700 (PDT)
 From:   Bartosz Golaszewski <brgl@bgdev.pl>
 To:     Aaro Koskinen <aaro.koskinen@iki.fi>,
         Janusz Krzysztofik <jmkrzyszt@gmail.com>,
@@ -68,9 +68,9 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
         linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
         Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: [PATCH 01/21] gpiolib: make gpio_device_get() and gpio_device_put() public
-Date:   Tue,  5 Sep 2023 20:52:49 +0200
-Message-Id: <20230905185309.131295-2-brgl@bgdev.pl>
+Subject: [PATCH 18/21] gpio: acpi: replace gpiochip_find() with gpio_device_find()
+Date:   Tue,  5 Sep 2023 20:53:06 +0200
+Message-Id: <20230905185309.131295-19-brgl@bgdev.pl>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230905185309.131295-1-brgl@bgdev.pl>
 References: <20230905185309.131295-1-brgl@bgdev.pl>
@@ -82,88 +82,42 @@ X-Mailing-List: linux-omap@vger.kernel.org
 
 From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-In order to start migrating away from accessing struct gpio_chip by
-users other than their owners, let's first make the reference management
-functions for the opaque struct gpio_device public in the driver.h
-header.
+We're porting all users of gpiochip_find() to using gpio_device_find().
+Update the ACPI GPIO code.
 
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 ---
- drivers/gpio/gpiolib.c      | 24 ++++++++++++++++++++++++
- drivers/gpio/gpiolib.h      | 10 ----------
- include/linux/gpio/driver.h |  3 +++
- 3 files changed, 27 insertions(+), 10 deletions(-)
+ drivers/gpio/gpiolib-acpi.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index edffa0d2acaa..f84ad54d8dbd 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -1058,6 +1058,30 @@ static struct gpio_chip *find_chip_by_name(const char *name)
- 	return gpiochip_find((void *)name, gpiochip_match_name);
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 5633e39396bc..15d3350123d9 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -143,7 +143,7 @@ static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
+  */
+ static struct gpio_desc *acpi_get_gpiod(char *path, unsigned int pin)
+ {
+-	struct gpio_chip *chip;
++	struct gpio_device *gdev __free(gpio_device_put) = NULL;
+ 	acpi_handle handle;
+ 	acpi_status status;
+ 
+@@ -151,11 +151,11 @@ static struct gpio_desc *acpi_get_gpiod(char *path, unsigned int pin)
+ 	if (ACPI_FAILURE(status))
+ 		return ERR_PTR(-ENODEV);
+ 
+-	chip = gpiochip_find(handle, acpi_gpiochip_find);
+-	if (!chip)
++	gdev = gpio_device_find(handle, acpi_gpiochip_find);
++	if (!gdev)
+ 		return ERR_PTR(-EPROBE_DEFER);
+ 
+-	return gpiochip_get_desc(chip, pin);
++	return gpiochip_get_desc(gdev->chip, pin);
  }
  
-+/**
-+ * gpio_device_get() - Increase the reference count of this GPIO device
-+ * @gdev: GPIO device to increase the refcount for
-+ *
-+ * Returns:
-+ * Pointer to @gdev.
-+ */
-+struct gpio_device *gpio_device_get(struct gpio_device *gdev)
-+{
-+	return to_gpio_device(get_device(&gdev->dev));
-+}
-+EXPORT_SYMBOL_GPL(gpio_device_get);
-+
-+/**
-+ * gpio_device_put() - Decrease the reference count of this GPIO device and
-+ *                     possibly free all resources associated with it.
-+ * @gdev: GPIO device to decrease the reference count for
-+ */
-+void gpio_device_put(struct gpio_device *gdev)
-+{
-+	put_device(&gdev->dev);
-+}
-+EXPORT_SYMBOL_GPL(gpio_device_put);
-+
- #ifdef CONFIG_GPIOLIB_IRQCHIP
- 
- /*
-diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
-index 9bff5c2cf720..3ccacf3c1288 100644
---- a/drivers/gpio/gpiolib.h
-+++ b/drivers/gpio/gpiolib.h
-@@ -86,16 +86,6 @@ static inline struct gpio_device *to_gpio_device(struct device *dev)
- 	return container_of(dev, struct gpio_device, dev);
- }
- 
--static inline struct gpio_device *gpio_device_get(struct gpio_device *gdev)
--{
--	return to_gpio_device(get_device(&gdev->dev));
--}
--
--static inline void gpio_device_put(struct gpio_device *gdev)
--{
--	put_device(&gdev->dev);
--}
--
- /* gpio suffixes used for ACPI and device tree lookup */
- static __maybe_unused const char * const gpio_suffixes[] = { "gpios", "gpio" };
- 
-diff --git a/include/linux/gpio/driver.h b/include/linux/gpio/driver.h
-index 8f0859ba7065..a2060dc3344b 100644
---- a/include/linux/gpio/driver.h
-+++ b/include/linux/gpio/driver.h
-@@ -606,6 +606,9 @@ int devm_gpiochip_add_data_with_key(struct device *dev, struct gpio_chip *gc,
- struct gpio_chip *gpiochip_find(void *data,
- 				int (*match)(struct gpio_chip *gc, void *data));
- 
-+struct gpio_device *gpio_device_get(struct gpio_device *gdev);
-+void gpio_device_put(struct gpio_device *gdev);
-+
- bool gpiochip_line_is_irq(struct gpio_chip *gc, unsigned int offset);
- int gpiochip_reqres_irq(struct gpio_chip *gc, unsigned int offset);
- void gpiochip_relres_irq(struct gpio_chip *gc, unsigned int offset);
+ /**
 -- 
 2.39.2
 
