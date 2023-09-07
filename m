@@ -2,62 +2,107 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 033EFEC874F
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 17:48:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D6F7EC8742
+	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 17:55:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245498AbjIGRsI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 Sep 2023 13:48:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41774 "EHLO
+        id S237564AbjIGRze (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 Sep 2023 13:55:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245623AbjIGRr5 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 13:47:57 -0400
-Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B110DCDE;
-        Thu,  7 Sep 2023 10:47:37 -0700 (PDT)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3876MXZO013925;
-        Thu, 7 Sep 2023 01:22:33 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1694067753;
-        bh=dmHQ4+JHJoxXwyufU8OSB2/JsOl0PKV4+Zpva0/qYLw=;
-        h=Date:From:To:CC:Subject:References:In-Reply-To;
-        b=y1U8uCwqTTJp09BY0uELCL50LwCIqiIs2k9iIjvxtxUVmJHhRt3DqktSqq8lNKWQs
-         uPOp2Oe9y8q0Eor2JlpJOQeRwjjCw9W6Qwv1nW2wwwd/PMqTs5F28xImGKsvaYNC0R
-         UIDzuEJwDQiC7RbxjpvWaJoDdfFGBaWrmf7D4H2A=
-Received: from DLEE106.ent.ti.com (dlee106.ent.ti.com [157.170.170.36])
-        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3876MXYH107990
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 7 Sep 2023 01:22:33 -0500
-Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE106.ent.ti.com
- (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 7
- Sep 2023 01:22:33 -0500
-Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Thu, 7 Sep 2023 01:22:33 -0500
-Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
-        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3876MWfB122970;
-        Thu, 7 Sep 2023 01:22:32 -0500
-Date:   Thu, 7 Sep 2023 11:52:31 +0530
-From:   Dhruva Gole <d-gole@ti.com>
-To:     Tony Lindgren <tony@atomide.com>
-CC:     <linux-omap@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Keerthy <j-keerthy@ti.com>, Kevin Hilman <khilman@baylibre.com>,
-        Nishanth Menon <nm@ti.com>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>, <vibhore@ti.com>
-Subject: Re: [PATCH] bus: ti-sysc: Fix SYSC_QUIRK_SWSUP_SIDLE_ACT handling
- for uart wake-up
-Message-ID: <20230907062231.muwzvje726wlqnqw@dhruva.dhcp.ti.com>
-References: <20230907055441.19476-1-tony@atomide.com>
+        with ESMTP id S239463AbjIGRze (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 13:55:34 -0400
+Received: from mail-qt1-x82d.google.com (mail-qt1-x82d.google.com [IPv6:2607:f8b0:4864:20::82d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C29F191
+        for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 10:55:07 -0700 (PDT)
+Received: by mail-qt1-x82d.google.com with SMTP id d75a77b69052e-4121130e7afso8519701cf.2
+        for <linux-omap@vger.kernel.org>; Thu, 07 Sep 2023 10:55:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1694109301; x=1694714101; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=wBdELFiF0kNq2P4ovxPr1G/v1B3B5Z0Pa4x1EdUn7xY=;
+        b=Wn5uFrkHB3Cd3BnQviRbSAzuqmmdJGWuU1xnhPo2o1tx9uCc08WtTTcdegevvTpLRG
+         rwglsGf0qKbxtoNkmk2gTo7iSKLPElHTQ2uugc0FwKanOEwoRkKfCn5eHf4gF3hqPfsy
+         npfZgYagjH6+qqwk6uygnGlpoTAfpq9RSMU7pzjqYyVQDF9CFMymad9laCVg5X6xUYjt
+         aUPH9hKtbI/blGSrv0nMY8Ns1u5Yy7PcUmjSF2JkFm1XJE3P68aK5AC8ierFfOxu33Xa
+         qZj7Cp0/kBLpspGAyrpA8zcvQ4rfl3OrzFmy9qTALBXyNQIhpEBTlAVHHp2q4adZoH77
+         u2ow==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1694109301; x=1694714101;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=wBdELFiF0kNq2P4ovxPr1G/v1B3B5Z0Pa4x1EdUn7xY=;
+        b=obKlVPhiteaQR8s80a4xyAh5nZfY2zSFI1h88zXVX3i0whXiFbRN56MKHt7U9jJzOI
+         ZfdhyCebZbp8CgSqU8g35DQGLzY7/yQWUKQWGu0QE55rQ+L30ugdaj59TAGGNb6O3gks
+         hdDO6JfhCBOszkW6HVbxtRX4Hwz0tzKXj8G1Tt+EUPqItcytR7M8YNk8h1CcMADYehgg
+         s9NIhakoQBm/5eLpehF5JlqMO6HwrXMVemxSdETVLpFeS3qneZa70ZJOK5QO9kAvGJu3
+         sPpm4qpNbl/DJkkNyUAwFofvPpzsZLQ4IbDrwPz5HKu8rmIyHxFiIxk+0UGV5jcjzGhU
+         k10w==
+X-Gm-Message-State: AOJu0YwH7EYgIPFaYZe2oapiyjWFg2vPE11jXsJ1rQar80e9A/Myo0ot
+        iPNV9NLjAo+G5YkXNTsPbnl82ScnNUVXnJ1OGLdz3EA60AR0P1jSTt0=
+X-Google-Smtp-Source: AGHT+IGquAMmj4BV1IgcH+0hlmwrCPO8RvK5dDPIHBFPHMvw3mBi9yKQYdiyjPsOt1CRLSecOSiNHyNGSnbycipPFpA=
+X-Received: by 2002:a25:4057:0:b0:d7f:1ef3:66a9 with SMTP id
+ n84-20020a254057000000b00d7f1ef366a9mr10826771yba.15.1694071032928; Thu, 07
+ Sep 2023 00:17:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20230907055441.19476-1-tony@atomide.com>
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-8-brgl@bgdev.pl>
+In-Reply-To: <20230905185309.131295-8-brgl@bgdev.pl>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Thu, 7 Sep 2023 09:17:01 +0200
+Message-ID: <CACRpkdbdcPv1LHL2W-enKBJ2OARpduoOJkQ64oL6GSOfmmD3qQ@mail.gmail.com>
+Subject: Re: [PATCH 07/21] gpiolib: provide gpio_device_get_base()
+To:     Bartosz Golaszewski <brgl@bgdev.pl>
+Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Dipen Patel <dipenp@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
+        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
+On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl> =
+wrote:
 
+> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+>
+> Let's start adding getters for the opaque struct gpio_device. Start with
+> a function allowing to retrieve the base GPIO number.
+>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+
+I guess you have a solid usecase for drivers needing to do this
+crazy thing, because I suppose you feel as much as me that
+this should rather be gpiolib-internal and confined to
+drivers/gpio/gpiolib.h?
+
+If you add a valid reason for making this globally visible outside
+of drivers/[gpio|pinctrl] to the commit message I guess I can live
+with it because we need to think of the bigger picture:
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+
+It brings to mind the now confusing "base" inside of
+struct gpio_chip. We all know it should go away, but since it
+is never used during the lifetime of the gpio_chip - or SHOULD
+never be used - it should rather be an argument to
+[devm_]gpiochip_add_data( .... int base);...
+
+Maybe something we should add to our TODO file.
+
+Yours,
+Linus Walleij
