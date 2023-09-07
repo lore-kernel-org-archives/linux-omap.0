@@ -2,105 +2,92 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 311B7EC8738
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 16:08:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4ECFEC8743
+	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 16:24:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234066AbjIGQIm (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 Sep 2023 12:08:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39968 "EHLO
+        id S235240AbjIGQYS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 Sep 2023 12:24:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239108AbjIGQIB (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 12:08:01 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6C515211C;
-        Thu,  7 Sep 2023 09:01:04 -0700 (PDT)
-Received: from hillo.muru.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTP id 4B3F58050;
-        Thu,  7 Sep 2023 05:54:52 +0000 (UTC)
-From:   Tony Lindgren <tony@atomide.com>
-To:     linux-omap@vger.kernel.org
-Cc:     Dhruva Gole <d-gole@ti.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Keerthy <j-keerthy@ti.com>, Kevin Hilman <khilman@baylibre.com>,
-        Nishanth Menon <nm@ti.com>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH] bus: ti-sysc: Fix SYSC_QUIRK_SWSUP_SIDLE_ACT handling for uart wake-up
-Date:   Thu,  7 Sep 2023 08:54:41 +0300
-Message-ID: <20230907055441.19476-1-tony@atomide.com>
-X-Mailer: git-send-email 2.41.0
+        with ESMTP id S238035AbjIGQMO (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 12:12:14 -0400
+Received: from mail-yw1-x1129.google.com (mail-yw1-x1129.google.com [IPv6:2607:f8b0:4864:20::1129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5F3959C9
+        for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 09:09:16 -0700 (PDT)
+Received: by mail-yw1-x1129.google.com with SMTP id 00721157ae682-5922b96c5fcso11147187b3.0
+        for <linux-omap@vger.kernel.org>; Thu, 07 Sep 2023 09:09:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1694102858; x=1694707658; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=KDyS14lOc9gIdV8qqpJN7dVOi7FiXE2O1crBwgTrNhg=;
+        b=IEdmuhphSqgGlp2x+AuixQLt4D1isxZWO+g4YTCWHM1IjuOOGHkOZp3bZxqhms+4oI
+         bxcG1Pr7QWA30qGZxKamFXQDnZHrTtpmjDx4M2Cc5eepmtIVWEwgpLXqe19gbWDLu+UW
+         IrP8qhG7EhtaopncXFPqotGWsq55o3NiaFsowOLWsx2ox474/yJHYHVR/rI0AlEQpKa9
+         YWXb5tRU2xqvRbEA/s/Ye4jF30IBycf5kIebL8ZbWntV0B5A7yfYFD+KPFGctB0o/3/X
+         rONjy5deohFotz/6ni3lvpctxj/JrdCUornWzSKtQ05+w5EP30ZjQEHqxzRHHmhx8C66
+         BBdw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1694102858; x=1694707658;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=KDyS14lOc9gIdV8qqpJN7dVOi7FiXE2O1crBwgTrNhg=;
+        b=TDpuanb1yCycVE7ZRhijTrujATtwTpvRDcrv0cpOvBOTa9Fv3UjJcpeS1xdyLCSul8
+         8jlJJtjT6M6Oa7KCXIiH+wiVdXzDotmT/KxHz+iR8AcLX50urorWSPIHOQ/JI0IhHit+
+         Rb+MzctwTqKw30pHYTW9XPQwXsIxlxuSZHlJzo7C2eMj9KDJpEghKAKIjCqhqR9cxmew
+         LMLAqES4pTOVe9uZ3GXiosefbNw01buBE+8tLIbiGH+XfytItW1rIhvWkaAai8iWF5nK
+         RTXAGgh5qGJtHgGTvxnMpwcW6KHlufmyG57mArxo3AOJEBDvTRviEvrr6qFmaBg7rfNB
+         6Xug==
+X-Gm-Message-State: AOJu0YwuCyds63BDTI9J2akVaYeH78X2zB3pL1NascyOV6t/0w2Xth/H
+        GUjzl9cLePoBip4HAG+/VXJAYUcFXfBRX/RnOcDgU19WWEBHfjvX
+X-Google-Smtp-Source: AGHT+IGJ2fOJYbfgZwCYkGOqpBoV8zRdwms0YQyjwmM812KoO4CG3kmEhKK7s/PjKGQeVe41+y3pVjBhSp9/fdWja/U=
+X-Received: by 2002:a25:408a:0:b0:d06:49e9:a29c with SMTP id
+ n132-20020a25408a000000b00d0649e9a29cmr19754022yba.34.1694071374753; Thu, 07
+ Sep 2023 00:22:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-13-brgl@bgdev.pl>
+In-Reply-To: <20230905185309.131295-13-brgl@bgdev.pl>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Thu, 7 Sep 2023 09:22:43 +0200
+Message-ID: <CACRpkdYJhP5otaFXbn49sK_33GJMy85MszyD9rqoQT1-fqd9dA@mail.gmail.com>
+Subject: Re: [PATCH 12/21] hte: allow building modules with COMPILE_TEST enabled
+To:     Bartosz Golaszewski <brgl@bgdev.pl>
+Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Dipen Patel <dipenp@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
+        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The uarts should be tagged with SYSC_QUIRK_SWSUP_SIDLE instead of
-SYSC_QUIRK_SWSUP_SIDLE_ACT. The difference is that SYSC_QUIRK_SWSUP_SIDLE
-is used to force idle target modules rather than block idle during usage.
+On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl> =
+wrote:
 
-The SYSC_QUIRK_SWSUP_SIDLE_ACT should disable autoidle and wake-up when
-a target module is active, and configure autoidle and wake-up when a
-target module is inactive. We are missing configuring the target module
-on sysc_disable_module(), and missing toggling of the wake-up bit.
+> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+>
+> Allow building all HTE modules with COMPILE_TEST Kconfig option enabled.
+>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-Let's fix the issue to allow uart wake-up to work.
+This should be a separate patch should it not?
+Just send it separately to Dipen so he can merge it.
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-Fixes: fb685f1c190e ("bus: ti-sysc: Handle swsup idle mode quirks")
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/bus/ti-sysc.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -1097,6 +1097,11 @@ static int sysc_enable_module(struct device *dev)
- 	if (ddata->cfg.quirks & (SYSC_QUIRK_SWSUP_SIDLE |
- 				 SYSC_QUIRK_SWSUP_SIDLE_ACT)) {
- 		best_mode = SYSC_IDLE_NO;
-+
-+		/* Clear WAKEUP */
-+		if (regbits->enwkup_shift >= 0 &&
-+		    ddata->cfg.sysc_val & BIT(regbits->enwkup_shift))
-+			reg &= ~BIT(regbits->enwkup_shift);
- 	} else {
- 		best_mode = fls(ddata->cfg.sidlemodes) - 1;
- 		if (best_mode > SYSC_IDLE_MASK) {
-@@ -1224,6 +1229,13 @@ static int sysc_disable_module(struct device *dev)
- 		}
- 	}
- 
-+	if (ddata->cfg.quirks & SYSC_QUIRK_SWSUP_SIDLE_ACT) {
-+		/* Set WAKEUP */
-+		if (regbits->enwkup_shift >= 0 &&
-+		    ddata->cfg.sysc_val & BIT(regbits->enwkup_shift))
-+			reg |= BIT(regbits->enwkup_shift);
-+	}
-+
- 	reg &= ~(SYSC_IDLE_MASK << regbits->sidle_shift);
- 	reg |= best_mode << regbits->sidle_shift;
- 	if (regbits->autoidle_shift >= 0 &&
-@@ -1518,16 +1530,16 @@ struct sysc_revision_quirk {
- static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 	/* These drivers need to be fixed to not use pm_runtime_irq_safe() */
- 	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x00000046, 0xffffffff,
--		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_LEGACY_IDLE),
-+		   SYSC_QUIRK_SWSUP_SIDLE_ACT | SYSC_QUIRK_LEGACY_IDLE),
- 	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x00000052, 0xffffffff,
--		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_LEGACY_IDLE),
-+		   SYSC_QUIRK_SWSUP_SIDLE_ACT | SYSC_QUIRK_LEGACY_IDLE),
- 	/* Uarts on omap4 and later */
- 	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x50411e03, 0xffff00ff,
--		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_LEGACY_IDLE),
-+		   SYSC_QUIRK_SWSUP_SIDLE_ACT | SYSC_QUIRK_LEGACY_IDLE),
- 	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x47422e03, 0xffffffff,
--		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_LEGACY_IDLE),
-+		   SYSC_QUIRK_SWSUP_SIDLE_ACT | SYSC_QUIRK_LEGACY_IDLE),
- 	SYSC_QUIRK("uart", 0, 0x50, 0x54, 0x58, 0x47424e03, 0xffffffff,
--		   SYSC_QUIRK_SWSUP_SIDLE | SYSC_QUIRK_LEGACY_IDLE),
-+		   SYSC_QUIRK_SWSUP_SIDLE_ACT | SYSC_QUIRK_LEGACY_IDLE),
- 
- 	/* Quirks that need to be set based on the module address */
- 	SYSC_QUIRK("mcpdm", 0x40132000, 0, 0x10, -ENODEV, 0x50000800, 0xffffffff,
--- 
-2.41.0
+Yours,
+Linus Walleij
