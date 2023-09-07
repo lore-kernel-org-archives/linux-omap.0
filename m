@@ -2,96 +2,131 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5934CEC8742
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 17:07:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71C95EC8743
+	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 17:19:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240018AbjIGRHI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 Sep 2023 13:07:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46194 "EHLO
+        id S239643AbjIGRTR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 Sep 2023 13:19:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233702AbjIGRHI (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 13:07:08 -0400
-Received: from mail-ua1-x932.google.com (mail-ua1-x932.google.com [IPv6:2607:f8b0:4864:20::932])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 567511FC2
-        for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 10:06:41 -0700 (PDT)
-Received: by mail-ua1-x932.google.com with SMTP id a1e0cc1a2514c-79a10807b4fso470036241.2
-        for <linux-omap@vger.kernel.org>; Thu, 07 Sep 2023 10:06:41 -0700 (PDT)
+        with ESMTP id S233274AbjIGRTQ (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 13:19:16 -0400
+Received: from mail-oi1-x232.google.com (mail-oi1-x232.google.com [IPv6:2607:f8b0:4864:20::232])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1EDF10F6;
+        Thu,  7 Sep 2023 10:18:52 -0700 (PDT)
+Received: by mail-oi1-x232.google.com with SMTP id 5614622812f47-3a9f88b657eso776460b6e.3;
+        Thu, 07 Sep 2023 10:18:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1694106312; x=1694711112; darn=vger.kernel.org;
+        d=gmail.com; s=20221208; t=1694107066; x=1694711866; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=IXtSDuwLHBAGfIvJXN98Bc/TjY2BpOjtqu3XNPdnEAg=;
-        b=QgBwf4R/gEcVWkx9UKuXti7DdQ4Zr+D+FGQVzvQlhhqx7JpA2smWbablUcRT6Neh4x
-         9Hw9rDkcyb6gMdOgbEHlxjO0PlzDWe93xk7sfeSMudICYU8G0rLRYgUsY/Z9aJXgfmBZ
-         XZwGbGq+7wPWAam/Vzg3cKIGZ2HMCX2o8Qqjzdm/HxSFNqOLYz6mbnuJ4K529WzqEy0f
-         lHalPYW7Xf5y2xalNRL2ZAn6jGFtVjSxxzMtxzFFECG7+bywo/Tg3PLK8MNN3/rC+slz
-         6Sn/hZ5zDXjEFQPzKZgijk0rk8flenybB2J6gPzfssKK90OC6M51fWYtb4YBFDzKtbMn
-         TR+Q==
+        bh=TvxU3Tg/CrzSJAWHMozvHTDat1C3xfXUwj0L4NkG344=;
+        b=PWdnes7qxWc+/RWSL1aJmjOh5COh7DExcpzcRiLxd7dyVTEHqgZNhKHRSK+q3HIOr+
+         J6Bvj2ltOHs4gsOJRJQAheVbUpWx5s7rsmIUCpwrzOQa21Xh9+jWSh3KuKF/8tE7iJ97
+         7EsCe2C66iGStVy5T/uimuoNyGNYdj7BdrUf23Wjiy4ynOF3SOW+i6Jz/PFHMPg4Lp0m
+         OU+wxbc1H+f/msDe9s2QCoCyQp3r0KBJ0S0IkTGAwRIzTbq2QLKU3Xsumxvt5z1rh67s
+         jcgdXS6e96bHJQQddzOHDEnHdDjaAg5vQmghfcFejsBdqT1q4lbkDKvDcycUWy/Lres1
+         Fr3Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1694106312; x=1694711112;
+        d=1e100.net; s=20230601; t=1694107066; x=1694711866;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=IXtSDuwLHBAGfIvJXN98Bc/TjY2BpOjtqu3XNPdnEAg=;
-        b=ZshJby67lQpoK98GUii6I1N9Bvm8pcCTZX4+ZPM4ev0KMASQUgbBI8Bbxs6nqKQPrL
-         Ub4zZfYvhshqm/gfZFvfQpmv8xWA5V1Gec5ox+Kkj/Jfu/TJ61G7Biq2rN8nIjNCEviq
-         mLU0+diNyeC9T+1FSq3C8KdlzGEAkYIqHEEPFLJ+/Prg5ODw+KD1IwziflfXj97Of34I
-         8F5AJJJuK7XOgGQMj20ZqPdY8ZZgcbbw3LgcfoMmzoWC26SiYK0r7/GL3xnnuKQ/Ftlt
-         vizwXi7/jC2H9uwoorqosRFKc6pRM7VYviui3CdFibYdCtQ9enwXxcz5XfY2n6+NwfNC
-         IrAw==
-X-Gm-Message-State: AOJu0YxiLUtL0NZUI+RfURS5CzSFZEmYIBjm42t7TpyrRV+x20XSYcsx
-        u2ZuChJ1ezvE+ZJDgWfwKTHz0TMBP7gTHAw7Q47oyaRBYyrZVGWb6yU=
-X-Google-Smtp-Source: AGHT+IFBssMxe62b6gjC3N4aS6mxtu2dG9GSPKFawDHtfKqDxWyo3xiYEaVk7D6s0DhtiZ21qOVsU28YZ+Ws9GvtAJ0=
-X-Received: by 2002:a5b:791:0:b0:d1f:6886:854a with SMTP id
- b17-20020a5b0791000000b00d1f6886854amr17648637ybq.9.1694071162023; Thu, 07
- Sep 2023 00:19:22 -0700 (PDT)
+        bh=TvxU3Tg/CrzSJAWHMozvHTDat1C3xfXUwj0L4NkG344=;
+        b=hhhwR6zYYeMZPHJZksk04UhOkaUXFTC18jh7dZ1OFOc6G8X97BLDHPlVVYFNGdxblF
+         GrstNHU3uk8BrO5+hCKlEoPWObpkcuMY8yjcwP4h6KeuzqY+7L8gFljRKZxxfnLGlpJT
+         lcOmK7esT7YjCgZ9CdLUcReTC425IfqlfW/ww/SLtynyk7+IMRzzUWHjN8hs3fTIGeb+
+         CyI1LWywYRwpvzbv8mOvKPTohrrbUTSRKrbagJlOFpJ0fsQ65UdS6GDinNu1YR+6BGlb
+         9qP+7Obp+4ifz0WDR6Dg+BQ3K6kNItCjyxG6wQlCiKd3T9lwp6a3b6sIhjnajQfNwiEr
+         lFzw==
+X-Gm-Message-State: AOJu0YwpBm985GufegeZDQ74A802wpTmaIUph1gv9nK+fdtpkKNbMvb9
+        m926hrHZWZ3rLkj7TXGaiMRDtKft1ECtFexiNDEiWXXo
+X-Google-Smtp-Source: AGHT+IGhGyja7JD0MILhyMnfb4uAWq/A6tIDT6hRMJY+Vj2r/9PRBAmGOG8xJK+z2l778SBxTYGVV74yNZ5yITlb47c=
+X-Received: by 2002:a25:50c5:0:b0:d77:e0d4:5ef8 with SMTP id
+ e188-20020a2550c5000000b00d77e0d45ef8mr18796215ybb.54.1694091977388; Thu, 07
+ Sep 2023 06:06:17 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-10-brgl@bgdev.pl>
-In-Reply-To: <20230905185309.131295-10-brgl@bgdev.pl>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 7 Sep 2023 09:19:09 +0200
-Message-ID: <CACRpkdazRyhqHhH+Ock3U0wFRkd_U5QUTZmOeTFoXx-Pe_jCRw@mail.gmail.com>
-Subject: Re: [PATCH 09/21] gpiolib: reluctantly provide gpio_device_get_chip()
-To:     Bartosz Golaszewski <brgl@bgdev.pl>
-Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+References: <20230907010159.330555-1-aford173@gmail.com> <56334793-3d21-1f2c-2f5c-01ba2f306813@linaro.org>
+In-Reply-To: <56334793-3d21-1f2c-2f5c-01ba2f306813@linaro.org>
+From:   Adam Ford <aford173@gmail.com>
+Date:   Thu, 7 Sep 2023 08:06:05 -0500
+Message-ID: <CAHCN7x+c76w61BDO_xLrnrYGX7Vnb6tEifectbgo+g2_CT48rQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] arm:dts: am3517-evm: Fix LED3/4 pinmux
+To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Cc:     linux-omap@vger.kernel.org, aford@beaconembedded.com,
+        =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>,
         Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Dipen Patel <dipenp@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Conor Dooley <conor+dt@kernel.org>,
+        "Derald D. Woods" <woods.technical@gmail.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl> =
-wrote:
-
-> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+On Thu, Sep 7, 2023 at 1:11=E2=80=AFAM Krzysztof Kozlowski
+<krzysztof.kozlowski@linaro.org> wrote:
 >
-> The process of converting all unauthorized users of struct gpio_chip to
-> using dedicated struct gpio_device function will be long so in the
-> meantime we must provide a way of retrieving the pointer to struct
-> gpio_chip from a GPIO device.
+> On 07/09/2023 03:01, Adam Ford wrote:
+> > The pinmux for LED3 and LED4 are incorrectly attached to the
+> > omap3_pmx_core when they should be connected to the omap3_pmx_wkup
+> > pin mux.  This was likely masked by the fact that the bootloader
+> > used to do all the pinmuxing.
+> >
+> > Fixes: 0dbf99542caf ("ARM: dts: am3517-evm: Add User LEDs and Pushbutto=
+n")
+> > Signed-off-by: Adam Ford <aford173@gmail.com>
+> > ---
+> > This likely cannot apply to the original series, because the file has
+> > moved.  I can generate a separate patch for the pre-move device trees
+> > if necesssary.  The original location was:
+> >   arch/arm/boot/dts/am3517-evm.dts
+> >
+> > diff --git a/arch/arm/boot/dts/ti/omap/am3517-evm.dts b/arch/arm/boot/d=
+ts/ti/omap/am3517-evm.dts
+> > index af9df15274be..738189ddc8d5 100644
+> > --- a/arch/arm/boot/dts/ti/omap/am3517-evm.dts
+> > +++ b/arch/arm/boot/dts/ti/omap/am3517-evm.dts
+> > @@ -271,13 +271,6 @@ OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT_PULLUP | MUX_M=
+ODE0)  /* i2c3_sda */
+> >               >;
+> >       };
+> >
+> > -     leds_pins: leds-pins {
+> > -             pinctrl-single,pins =3D <
+> > -                     OMAP3_WKUP_IOPAD(0x2a24, PIN_OUTPUT_PULLUP | MUX_=
+MODE4) /* jtag_emu0.gpio_11 */
+> > -                     OMAP3_WKUP_IOPAD(0x2a26, PIN_OUTPUT_PULLUP | MUX_=
+MODE4) /* jtag_emu1.gpio_31 */
+> > -             >;
+> > -     };
+> > -
+> >       mmc1_pins: mmc1-pins {
+> >               pinctrl-single,pins =3D <
+> >                       OMAP3_CORE1_IOPAD(0x2144, PIN_INPUT_PULLUP | MUX_=
+MODE0) /* sdmmc1_clk.sdmmc1_clk */
+> > @@ -355,3 +348,12 @@ OMAP3430_CORE2_IOPAD(0x25e2, PIN_INPUT | MUX_MODE3=
+)      /* etk_d3.hsusb1_data7 */
+> >               >;
+> >       };
+> >  };
+> > +
+> > +&omap3_pmx_wkup {
+> > +     leds_pins: pinmux_leds_pins {
 >
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+> Come on... why moving it and changing the name to incorrect one? Isn't a
+> move cut-paste?
 
-Yeah, sigh. Maybe add a notice to drivers/gpio/TODO that this needs
-to happen long time.
+I applied a patch from an older branch, so I didn't notice the name
+convention changed.  Sorry about that.  I'll re-spin both patches with
+the pin-mux naming conventions fixed.
 
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
-
-Yours,
-Linus Walleij
+adam
+>
+> Best regards,
+> Krzysztof
+>
