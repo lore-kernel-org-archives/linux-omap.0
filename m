@@ -2,64 +2,100 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D85FEEC8758
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 19:47:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D889EC875F
+	for <linux-omap@archiver.kernel.org>; Fri,  8 Sep 2023 00:51:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231124AbjIGTrY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 Sep 2023 15:47:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56214 "EHLO
+        id S237515AbjIHAwA (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 Sep 2023 20:52:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229954AbjIGTrX (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 15:47:23 -0400
-X-Greylist: delayed 4199 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 07 Sep 2023 12:47:18 PDT
-Received: from mail.moosomin24.com (mail.moosomin24.com [217.61.112.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C92BCE9
-        for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 12:47:18 -0700 (PDT)
-Received: by mail.moosomin24.com (Postfix, from userid 1002)
-        id 299B1824D5; Thu,  7 Sep 2023 12:11:06 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=moosomin24.com;
-        s=mail; t=1694081470;
-        bh=sxkamsLepnJSy5ikFDKOiyq8RChcIfs44Djo0bti1MM=;
-        h=Date:From:To:Subject:From;
-        b=QI/A4gq1Uz/A2wMdShSaiGGpV0IpkXM2VCyoKaeBgfxFxwiit3HosSvgZLn3LUGr9
-         ZJg0jVt2ZeVM5ISW5YSgD/bs0KDGk+pzF92R6upP9gYD5LcDsumSygE5LziNv3jAAl
-         totQ4pbAbFaSdokfpDDUm/rNmFAcRqP+Ft1sPh2zDey+T3ZbAjO2PNE0YLPpzVbus7
-         icGD0h7Ok5wlMQgki0PVHHpLTJoLx003Olvqqc57MfO63jz1L+ojTFgqu+bFWjSg9p
-         99pByzSDC0kd65HXOF9lB1umNmdAWGxpPMbJyrr5rMBrXEcr/SN9ZhLT5Z2/bO2hft
-         c47Xxr0h0m71A==
-Received: by mail.moosomin24.com for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 10:10:58 GMT
-Message-ID: <20230907113853-0.1.26.2ols.0.co9nm2ilqn@moosomin24.com>
-Date:   Thu,  7 Sep 2023 10:10:58 GMT
-From:   "Philipp Raber" <philipp.raber@moosomin24.com>
-To:     <linux-omap@vger.kernel.org>
-Subject: Metalworking and welding
-X-Mailer: mail.moosomin24.com
+        with ESMTP id S229973AbjIHAv7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 20:51:59 -0400
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BADEE1BCD;
+        Thu,  7 Sep 2023 17:51:55 -0700 (PDT)
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3876MXZO013925;
+        Thu, 7 Sep 2023 01:22:33 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+        s=ti-com-17Q1; t=1694067753;
+        bh=dmHQ4+JHJoxXwyufU8OSB2/JsOl0PKV4+Zpva0/qYLw=;
+        h=Date:From:To:CC:Subject:References:In-Reply-To;
+        b=y1U8uCwqTTJp09BY0uELCL50LwCIqiIs2k9iIjvxtxUVmJHhRt3DqktSqq8lNKWQs
+         uPOp2Oe9y8q0Eor2JlpJOQeRwjjCw9W6Qwv1nW2wwwd/PMqTs5F28xImGKsvaYNC0R
+         UIDzuEJwDQiC7RbxjpvWaJoDdfFGBaWrmf7D4H2A=
+Received: from DLEE106.ent.ti.com (dlee106.ent.ti.com [157.170.170.36])
+        by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3876MXYH107990
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 7 Sep 2023 01:22:33 -0500
+Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE106.ent.ti.com
+ (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 7
+ Sep 2023 01:22:33 -0500
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DLEE114.ent.ti.com
+ (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Thu, 7 Sep 2023 01:22:33 -0500
+Received: from localhost (ileaxei01-snat.itg.ti.com [10.180.69.5])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3876MWfB122970;
+        Thu, 7 Sep 2023 01:22:32 -0500
+Date:   Thu, 7 Sep 2023 11:52:31 +0530
+From:   Dhruva Gole <d-gole@ti.com>
+To:     Tony Lindgren <tony@atomide.com>
+CC:     <linux-omap@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Keerthy <j-keerthy@ti.com>, Kevin Hilman <khilman@baylibre.com>,
+        Nishanth Menon <nm@ti.com>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>, <vibhore@ti.com>
+Subject: Re: [PATCH] bus: ti-sysc: Fix SYSC_QUIRK_SWSUP_SIDLE_ACT handling
+ for uart wake-up
+Message-ID: <20230907062231.muwzvje726wlqnqw@dhruva.dhcp.ti.com>
+References: <20230907055441.19476-1-tony@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20230907055441.19476-1-tony@atomide.com>
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
+Message-ID: <20230907062231.w8ll1zSM9F6VRZUp7t7kadRqRFChI4OvIupIjYaGA0Q@z>
 
-Good morning,
+On Sep 07, 2023 at 08:54:41 +0300, Tony Lindgren wrote:
+> The uarts should be tagged with SYSC_QUIRK_SWSUP_SIDLE instead of
+> SYSC_QUIRK_SWSUP_SIDLE_ACT. The difference is that SYSC_QUIRK_SWSUP_SIDLE
+> is used to force idle target modules rather than block idle during usage.
+> 
+> The SYSC_QUIRK_SWSUP_SIDLE_ACT should disable autoidle and wake-up when
+> a target module is active, and configure autoidle and wake-up when a
+> target module is inactive. We are missing configuring the target module
+> on sysc_disable_module(), and missing toggling of the wake-up bit.
+> 
+> Let's fix the issue to allow uart wake-up to work.
+> 
+> Fixes: fb685f1c190e ("bus: ti-sysc: Handle swsup idle mode quirks")
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/bus/ti-sysc.c | 22 +++++++++++++++++-----
+>  1 file changed, 17 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+> --- a/drivers/bus/ti-sysc.c
+> +++ b/drivers/bus/ti-sysc.c
 
-We specialize in serial production of metal elements.
+Thanks for the fix Tony,
+I have tested this on a TI SK-AM62x with deepsleep and am able to wakeup
+with keypress on the wake_uart.
 
-You do not have to resort to the services of subcontractors - we offer yo=
-u comprehensive services
-Support from design to production to transportation, which guarantees sho=
-rt delivery times orders and lower costs.
+For anyone else who wants to give this a shot, the required patches for
+deepsleep and DT related changes have been pushed to my branch on github
+[0].
 
-We have an extensive machine park and a large team of specialists, thanks=
- to which we can offer services such as laser sheet metal cutting, pipe a=
-nd profile bending, welding and powder coating.
+Hence,
+Tested-by: Dhruva Gole <d-gole@ti.com>
 
-The main area of our production is currently storage and transport trolle=
-ys. We produce transport pallets, scissor lifts, furniture elements, buil=
-ding formwork and much more.
+[0] https://github.com/DhruvaG2000/v-linux/commits/v6.5-rc7_wkuart
 
-If you have any need regarding this, please send me a message.
-
-
-Greetings
-Philipp Raber
+-- 
+Best regards,
+Dhruva Gole <d-gole@ti.com>
