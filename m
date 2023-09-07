@@ -2,124 +2,96 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D515EC8743
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 17:03:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5934CEC8742
+	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 17:07:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239764AbjIGRD7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 Sep 2023 13:03:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52190 "EHLO
+        id S240018AbjIGRHI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 Sep 2023 13:07:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239336AbjIGRDz (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 13:03:55 -0400
-Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67E23171C
-        for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 10:03:26 -0700 (PDT)
-Received: by mail-wr1-x42e.google.com with SMTP id ffacd0b85a97d-31f7400cb74so564763f8f.2
-        for <linux-omap@vger.kernel.org>; Thu, 07 Sep 2023 10:03:26 -0700 (PDT)
+        with ESMTP id S233702AbjIGRHI (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 13:07:08 -0400
+Received: from mail-ua1-x932.google.com (mail-ua1-x932.google.com [IPv6:2607:f8b0:4864:20::932])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 567511FC2
+        for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 10:06:41 -0700 (PDT)
+Received: by mail-ua1-x932.google.com with SMTP id a1e0cc1a2514c-79a10807b4fso470036241.2
+        for <linux-omap@vger.kernel.org>; Thu, 07 Sep 2023 10:06:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1694106142; x=1694710942; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=yT+j2pGsqz6g/7hkqeJl2HC5ajkztNJE87gRZrJmIGQ=;
-        b=w7NvA31ea9uPHY2/jOrmFgQyGgl2K9VSZNrV9Vm/IjrPLUcNAuxJiG62nVRcBdU7IL
-         a0Vqhmy0CWAoVGPkzEWsk12w8A7T2rIIov9gR/iaTFCXrFKtvRsjgwrjMo28q7t8kejY
-         wjggaLezIqJj19uXR0bflQr1g3VpnBhNjxn9UiqUv4PreRA13jVu1ysRWJDxwAl220Nl
-         ggB+5f6pIHy0FGtsHm39zrnfOag0B0ePuuNGB3sf6qPHlxuItoL9WPWrt2w5R5P7Lwzy
-         TL6e3x85qxSBxzltGkGwCAH8T/9Amg+3TSxpGs8q9OeYHeldXKZiaHJTpDbfC31UlRPo
-         pPYQ==
+        d=linaro.org; s=google; t=1694106312; x=1694711112; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=IXtSDuwLHBAGfIvJXN98Bc/TjY2BpOjtqu3XNPdnEAg=;
+        b=QgBwf4R/gEcVWkx9UKuXti7DdQ4Zr+D+FGQVzvQlhhqx7JpA2smWbablUcRT6Neh4x
+         9Hw9rDkcyb6gMdOgbEHlxjO0PlzDWe93xk7sfeSMudICYU8G0rLRYgUsY/Z9aJXgfmBZ
+         XZwGbGq+7wPWAam/Vzg3cKIGZ2HMCX2o8Qqjzdm/HxSFNqOLYz6mbnuJ4K529WzqEy0f
+         lHalPYW7Xf5y2xalNRL2ZAn6jGFtVjSxxzMtxzFFECG7+bywo/Tg3PLK8MNN3/rC+slz
+         6Sn/hZ5zDXjEFQPzKZgijk0rk8flenybB2J6gPzfssKK90OC6M51fWYtb4YBFDzKtbMn
+         TR+Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1694106142; x=1694710942;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=yT+j2pGsqz6g/7hkqeJl2HC5ajkztNJE87gRZrJmIGQ=;
-        b=Yk8UyUQy2qzrwkSWO8pR94YbhJ0/sIYCfcpAx3IqUGytSyTB9eldkjMcbNw9FdTCHh
-         b/jw0L5rbcb+sEIw1xyxg7qqvwxYXokMaIHeL5IRNMKOPn2YC3P3qvOlRGjT5KP6i77S
-         IZxU9gLv4RKQQqZ5ta4E1hZ2KVauMZkRaX3gAfhumYPTgMtyAfC4fWRm71M4Q75g2ytZ
-         uyKlTU5pRi9EncSmmw9ajD8SEDP9UdOChVd+VB55s/yUMAGVhJHM7cB4eJr/yDbSaIps
-         UHW2gYt7BzOzFFEXOMfESEzukavwcaqbBqQC1OO8HCJIxAg/ZYc81HYbcWGv5TVaytwF
-         ZtRg==
-X-Gm-Message-State: AOJu0YyaKZjhDgF3v/6slEoRyqrxvffG1QdE/Blals8JqUeyZbbxLK7O
-        kye2+gXiOqAL1EXaeZqffq+jZq3ryIJAlzJKiW0wlg==
-X-Google-Smtp-Source: AGHT+IGQFxHleCdB34IoNTOM/evfr23cCD6pBdZ/p+K+Fe4b+zXNzBASrpLUen6AG1Mok15vrJ6+qQ==
-X-Received: by 2002:aa7:df81:0:b0:523:2e0e:5462 with SMTP id b1-20020aa7df81000000b005232e0e5462mr3180834edy.42.1694067120706;
-        Wed, 06 Sep 2023 23:12:00 -0700 (PDT)
-Received: from [192.168.0.22] (77-252-46-238.static.ip.netia.com.pl. [77.252.46.238])
-        by smtp.gmail.com with ESMTPSA id a9-20020aa7d749000000b005257da6be23sm9413857eds.75.2023.09.06.23.11.59
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 06 Sep 2023 23:12:00 -0700 (PDT)
-Message-ID: <cb1eb99d-5fb6-d11e-1685-3e36b12ad65d@linaro.org>
-Date:   Thu, 7 Sep 2023 08:11:58 +0200
+        d=1e100.net; s=20221208; t=1694106312; x=1694711112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=IXtSDuwLHBAGfIvJXN98Bc/TjY2BpOjtqu3XNPdnEAg=;
+        b=ZshJby67lQpoK98GUii6I1N9Bvm8pcCTZX4+ZPM4ev0KMASQUgbBI8Bbxs6nqKQPrL
+         Ub4zZfYvhshqm/gfZFvfQpmv8xWA5V1Gec5ox+Kkj/Jfu/TJ61G7Biq2rN8nIjNCEviq
+         mLU0+diNyeC9T+1FSq3C8KdlzGEAkYIqHEEPFLJ+/Prg5ODw+KD1IwziflfXj97Of34I
+         8F5AJJJuK7XOgGQMj20ZqPdY8ZZgcbbw3LgcfoMmzoWC26SiYK0r7/GL3xnnuKQ/Ftlt
+         vizwXi7/jC2H9uwoorqosRFKc6pRM7VYviui3CdFibYdCtQ9enwXxcz5XfY2n6+NwfNC
+         IrAw==
+X-Gm-Message-State: AOJu0YxiLUtL0NZUI+RfURS5CzSFZEmYIBjm42t7TpyrRV+x20XSYcsx
+        u2ZuChJ1ezvE+ZJDgWfwKTHz0TMBP7gTHAw7Q47oyaRBYyrZVGWb6yU=
+X-Google-Smtp-Source: AGHT+IFBssMxe62b6gjC3N4aS6mxtu2dG9GSPKFawDHtfKqDxWyo3xiYEaVk7D6s0DhtiZ21qOVsU28YZ+Ws9GvtAJ0=
+X-Received: by 2002:a5b:791:0:b0:d1f:6886:854a with SMTP id
+ b17-20020a5b0791000000b00d1f6886854amr17648637ybq.9.1694071162023; Thu, 07
+ Sep 2023 00:19:22 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.15.0
-Subject: Re: [PATCH 2/2] arm: dts: am3517-evm: Enable Ethernet PHY Interrupt
-Content-Language: en-US
-To:     Adam Ford <aford173@gmail.com>, linux-omap@vger.kernel.org
-Cc:     aford@beaconembedded.com,
-        =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
+References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-10-brgl@bgdev.pl>
+In-Reply-To: <20230905185309.131295-10-brgl@bgdev.pl>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Thu, 7 Sep 2023 09:19:09 +0200
+Message-ID: <CACRpkdazRyhqHhH+Ock3U0wFRkd_U5QUTZmOeTFoXx-Pe_jCRw@mail.gmail.com>
+Subject: Re: [PATCH 09/21] gpiolib: reluctantly provide gpio_device_get_chip()
+To:     Bartosz Golaszewski <brgl@bgdev.pl>
+Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
         Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Conor Dooley <conor+dt@kernel.org>,
-        "Derald D. Woods" <woods.technical@gmail.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20230907010159.330555-1-aford173@gmail.com>
- <20230907010159.330555-2-aford173@gmail.com>
-From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <20230907010159.330555-2-aford173@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        Russell King <linux@armlinux.org.uk>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Dipen Patel <dipenp@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
+        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 07/09/2023 03:01, Adam Ford wrote:
-> The Ethernet PHY interrupt pin is routed to GPIO_58.  Create a
-> PHY node to configure this GPIO for the interrupt to avoid polling.
-> 
-> Signed-off-by: Adam Ford <aford173@gmail.com>
-> 
-> diff --git a/arch/arm/boot/dts/ti/omap/am3517-evm.dts b/arch/arm/boot/dts/ti/omap/am3517-evm.dts
-> index 738189ddc8d5..19869ef906a8 100644
-> --- a/arch/arm/boot/dts/ti/omap/am3517-evm.dts
-> +++ b/arch/arm/boot/dts/ti/omap/am3517-evm.dts
-> @@ -172,11 +172,24 @@ hsusb1_phy: hsusb1_phy {
->  &davinci_emac {
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&ethernet_pins>;
-> +	phy-mode = "rmii";
-> +	phy-handle = <&ethphy0>;
->  	status = "okay";
->  };
->  
->  &davinci_mdio {
-> +	#address-cells = <1>;
-> +	#size-cells = <0>;
->  	status = "okay";
-> +
-> +	ethphy0: ethernet-phy@0 {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&enet_phy_pins>;
-> +		compatible = "ethernet-phy-ieee802.3-c22";
-> +		reg = <0>;
-> +		interrupt-parent = <&gpio2>;
-> +		interrupts = <26 IRQ_TYPE_LEVEL_LOW>;	/* gpio_58 */
-> +	};
->  };
->  
->  &dss {
-> @@ -257,6 +270,12 @@ OMAP3_CORE1_IOPAD(0x2210, PIN_INPUT_PULLDOWN | MUX_MODE0) /* rmii_50mhz_clk */
->  		>;
->  	};
->  
-> +	enet_phy_pins: pinmux_ent_phy_pins {
+On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl> =
+wrote:
 
-Nope. This looks like pasted from some old downstream tree. Please
-rewrite downstream code to match upstream.
+> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+>
+> The process of converting all unauthorized users of struct gpio_chip to
+> using dedicated struct gpio_device function will be long so in the
+> meantime we must provide a way of retrieving the pointer to struct
+> gpio_chip from a GPIO device.
+>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
+Yeah, sigh. Maybe add a notice to drivers/gpio/TODO that this needs
+to happen long time.
 
-Best regards,
-Krzysztof
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
+Yours,
+Linus Walleij
