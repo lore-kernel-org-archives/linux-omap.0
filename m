@@ -2,57 +2,58 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4ECFEC8743
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 16:24:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FD9CEC873D
+	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 16:29:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235240AbjIGQYS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 Sep 2023 12:24:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46904 "EHLO
+        id S234783AbjIGQ3H (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 Sep 2023 12:29:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238035AbjIGQMO (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 12:12:14 -0400
-Received: from mail-yw1-x1129.google.com (mail-yw1-x1129.google.com [IPv6:2607:f8b0:4864:20::1129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5F3959C9
-        for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 09:09:16 -0700 (PDT)
-Received: by mail-yw1-x1129.google.com with SMTP id 00721157ae682-5922b96c5fcso11147187b3.0
-        for <linux-omap@vger.kernel.org>; Thu, 07 Sep 2023 09:09:16 -0700 (PDT)
+        with ESMTP id S240717AbjIGQ1x (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 12:27:53 -0400
+Received: from mail-yw1-x112d.google.com (mail-yw1-x112d.google.com [IPv6:2607:f8b0:4864:20::112d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6501EB186
+        for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 09:25:03 -0700 (PDT)
+Received: by mail-yw1-x112d.google.com with SMTP id 00721157ae682-5921a962adfso11809187b3.1
+        for <linux-omap@vger.kernel.org>; Thu, 07 Sep 2023 09:25:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1694102858; x=1694707658; darn=vger.kernel.org;
+        d=linaro.org; s=google; t=1694103828; x=1694708628; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=KDyS14lOc9gIdV8qqpJN7dVOi7FiXE2O1crBwgTrNhg=;
-        b=IEdmuhphSqgGlp2x+AuixQLt4D1isxZWO+g4YTCWHM1IjuOOGHkOZp3bZxqhms+4oI
-         bxcG1Pr7QWA30qGZxKamFXQDnZHrTtpmjDx4M2Cc5eepmtIVWEwgpLXqe19gbWDLu+UW
-         IrP8qhG7EhtaopncXFPqotGWsq55o3NiaFsowOLWsx2ox474/yJHYHVR/rI0AlEQpKa9
-         YWXb5tRU2xqvRbEA/s/Ye4jF30IBycf5kIebL8ZbWntV0B5A7yfYFD+KPFGctB0o/3/X
-         rONjy5deohFotz/6ni3lvpctxj/JrdCUornWzSKtQ05+w5EP30ZjQEHqxzRHHmhx8C66
-         BBdw==
+        bh=9Cz/9gzupE5TkNJMwQALq93+f7LW0hvWUSZEk1aMybo=;
+        b=aab3xmrLD3gqIPVU3eAIGSli9Tg3g9MNKqVvXxgWuG0MIqD1SG4nPvE1+L1ev2vlYI
+         nTKIS354eSnOqHsJxSh2ffhEnGNocJJVsFj9Fdxt/cUVV3g5cD+yW3Fj2NKw63kRLd/t
+         ZcbTo/nPsymJRcn0qyEyhb3+VBsqlGxCrL8ft0/OY9zDlu8md34fBP8/pkMepnJJGWps
+         geTt5/8maZbn3KUCuiG9d0cD/d3aij1I1uqeNSQ8JWiSws+obV79bSSJwFpR4nWI673/
+         NhCc16zV4bq4zpzexov//WJTyp/sah3/YOy3vpJskbm47d/LCrQRPZtRHB1cCvXHvFOJ
+         ktfQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1694102858; x=1694707658;
+        d=1e100.net; s=20221208; t=1694103828; x=1694708628;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=KDyS14lOc9gIdV8qqpJN7dVOi7FiXE2O1crBwgTrNhg=;
-        b=TDpuanb1yCycVE7ZRhijTrujATtwTpvRDcrv0cpOvBOTa9Fv3UjJcpeS1xdyLCSul8
-         8jlJJtjT6M6Oa7KCXIiH+wiVdXzDotmT/KxHz+iR8AcLX50urorWSPIHOQ/JI0IhHit+
-         Rb+MzctwTqKw30pHYTW9XPQwXsIxlxuSZHlJzo7C2eMj9KDJpEghKAKIjCqhqR9cxmew
-         LMLAqES4pTOVe9uZ3GXiosefbNw01buBE+8tLIbiGH+XfytItW1rIhvWkaAai8iWF5nK
-         RTXAGgh5qGJtHgGTvxnMpwcW6KHlufmyG57mArxo3AOJEBDvTRviEvrr6qFmaBg7rfNB
-         6Xug==
-X-Gm-Message-State: AOJu0YwuCyds63BDTI9J2akVaYeH78X2zB3pL1NascyOV6t/0w2Xth/H
-        GUjzl9cLePoBip4HAG+/VXJAYUcFXfBRX/RnOcDgU19WWEBHfjvX
-X-Google-Smtp-Source: AGHT+IGJ2fOJYbfgZwCYkGOqpBoV8zRdwms0YQyjwmM812KoO4CG3kmEhKK7s/PjKGQeVe41+y3pVjBhSp9/fdWja/U=
-X-Received: by 2002:a25:408a:0:b0:d06:49e9:a29c with SMTP id
- n132-20020a25408a000000b00d0649e9a29cmr19754022yba.34.1694071374753; Thu, 07
- Sep 2023 00:22:54 -0700 (PDT)
+        bh=9Cz/9gzupE5TkNJMwQALq93+f7LW0hvWUSZEk1aMybo=;
+        b=fmnqnfaAK9OHg3NTs71XXLqqh5iCuqZC3DliVq9Peq3ZFex6eeiB73jLe1vVMzejWZ
+         aHqT0iQ+MI3B78MsE3xZiDUHthf/k/+xr5GmXYxkIvtCTnsOzLJWdkrGU5G8QW2vvITs
+         4B+ncxIVVfhr2SxS/8RNfnVyr7CQBaFkSmKoVgODTbRKQTiEEs6qLK+SKuzDf1/WaeF9
+         yd+fm7zRssm9+esPTZ0NDosUxfLQyVkvW8y29Wh+qlN7s8mzBvQ/NULS5Jui1EHQMmwx
+         vzDajUR4N0VggAwWa9JABgGGb/xqnFZD1DdNOeAyO+VZPH0+BKre1+nEiKMUD/QtZ6wm
+         dVHg==
+X-Gm-Message-State: AOJu0YyaGCXPyfDfEjhx01KZ5m9bRn0xqF1M0gSGVqFwdrTWJm3lzZ6q
+        cNsttuozTNnxKW2REb12nKYyej0T6rtzZuiNg3QXeJhMysbRgMzf
+X-Google-Smtp-Source: AGHT+IHhmgzWKTsylHHZ2qSwdCSe8fG9sB+HCDYVng7dujabCyOchOSgbCuVeCZbRiidwPEiAF4MbYeMV3WMB/wKWxY=
+X-Received: by 2002:a25:40ce:0:b0:d7a:d628:f69d with SMTP id
+ n197-20020a2540ce000000b00d7ad628f69dmr19332220yba.32.1694070175534; Thu, 07
+ Sep 2023 00:02:55 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-13-brgl@bgdev.pl>
-In-Reply-To: <20230905185309.131295-13-brgl@bgdev.pl>
+References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-2-brgl@bgdev.pl>
+In-Reply-To: <20230905185309.131295-2-brgl@bgdev.pl>
 From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Thu, 7 Sep 2023 09:22:43 +0200
-Message-ID: <CACRpkdYJhP5otaFXbn49sK_33GJMy85MszyD9rqoQT1-fqd9dA@mail.gmail.com>
-Subject: Re: [PATCH 12/21] hte: allow building modules with COMPILE_TEST enabled
+Date:   Thu, 7 Sep 2023 09:02:44 +0200
+Message-ID: <CACRpkdbT25G+KSUOPjgo9BQmPy2_rgXULVM1fpZQDqE+Xcj80g@mail.gmail.com>
+Subject: Re: [PATCH 01/21] gpiolib: make gpio_device_get() and
+ gpio_device_put() public
 To:     Bartosz Golaszewski <brgl@bgdev.pl>
 Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
         Janusz Krzysztofik <jmkrzyszt@gmail.com>,
@@ -81,13 +82,14 @@ wrote:
 
 > From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 >
-> Allow building all HTE modules with COMPILE_TEST Kconfig option enabled.
+> In order to start migrating away from accessing struct gpio_chip by
+> users other than their owners, let's first make the reference management
+> functions for the opaque struct gpio_device public in the driver.h
+> header.
 >
 > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-This should be a separate patch should it not?
-Just send it separately to Dipen so he can merge it.
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
 Yours,
 Linus Walleij
