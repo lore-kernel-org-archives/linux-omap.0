@@ -2,105 +2,114 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87406EC874B
-	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 18:05:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1B2DEC874D
+	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 18:19:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234225AbjIGSFr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 7 Sep 2023 14:05:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38316 "EHLO
+        id S1343710AbjIGSTP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 7 Sep 2023 14:19:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44124 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243469AbjIGSFq (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 14:05:46 -0400
-Received: from mail-oa1-x30.google.com (mail-oa1-x30.google.com [IPv6:2001:4860:4864:20::30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 615CE2105
-        for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 11:05:21 -0700 (PDT)
-Received: by mail-oa1-x30.google.com with SMTP id 586e51a60fabf-1c504386370so873063fac.1
-        for <linux-omap@vger.kernel.org>; Thu, 07 Sep 2023 11:05:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1694109917; x=1694714717; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=RuYVBuRk1qSk/vysKkYAGZLoaF4hP5KwSrbdU9HLCHc=;
-        b=TyeU2Veeeh5aAdYXSthVL8+3lceCXfyi8bQY6ogpCZlOBkG2LFlsMW/Z0mBKS4O6zs
-         zZ73V2PrG7z4uRz41ZYDRgVhdJMqBWoY6lkHVBTHwCyjEcZmOps8mRbrWbNCufFw7F+5
-         o7KS9P1Irf21EA+iSqQn9nd4+bilfUUHp/TGaxz/AN0xgJFhe0viugC+UEctpbawiQW2
-         aCWyfDFMQkfda2hkBrNMIsbPzDZgS1v4bFeJSILVT22NaZdsFJAf7FKSqAWJZ65Fmmt5
-         yOB0oeNyvFgUaFRT7vLdO+kveplcZ4o/nQ0rMFpcVOoQgbFI/qI+aaf/u+lAJ4k5Qqjd
-         RYkQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694109917; x=1694714717;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=RuYVBuRk1qSk/vysKkYAGZLoaF4hP5KwSrbdU9HLCHc=;
-        b=ForDHY97sl3sU8goxV9YpnIWtsZ4RkyiiUdmeqP0OOKqRJ9vjmyLXk+Yeg51rLYbrO
-         3snN5xzPdRL+omijd+ItxG/sZ+lMLfsZJmeaW/YWwCoDAjl3aMnkri+IL3dOSIl57LJ6
-         S0sRrXmXIm7NAoX6kCs6IGNJ3KQ8MjiKVCpK3qgbjLziVhwIcODSFLrWMJmQ9XhyiLuG
-         8c8OXi6eBXdr2OpVQnGP4hsHTQDdleXSIyWrZAZY2q2NKBHt7JAN0E5hcqpOg+VdfdbM
-         MSUo/aHOnC1qJO/gaytMq15zq4mSe83fI3X1Y2BWc10rBEJC/FH+Gm+B8gJHv/QMAAYH
-         kBfg==
-X-Gm-Message-State: AOJu0Yx1moVkKODJ4g2cCBrQcUfT3SgH6KGQlzqjIreUTTeYP97a1Oqn
-        ctsjiZeZxpsUichyf/GX2XqjqJU73lLpEpzSnkksvNRakivFcyH0
-X-Google-Smtp-Source: AGHT+IFH+TTCwwws89F7SNPi0GGOZFWp/OkGv5hkCV0kl2J1CUqPAY/iOB9bwWhCU9n1g7MoTzaR/hVwP1cetSs2hGI=
-X-Received: by 2002:a67:ebd9:0:b0:44e:a3e9:68d1 with SMTP id
- y25-20020a67ebd9000000b0044ea3e968d1mr5642709vso.1.1694071890893; Thu, 07 Sep
- 2023 00:31:30 -0700 (PDT)
+        with ESMTP id S232978AbjIGSTP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 14:19:15 -0400
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 707EA1705;
+        Thu,  7 Sep 2023 11:18:59 -0700 (PDT)
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
+ id 567bb54194be6a4c; Thu, 7 Sep 2023 20:18:57 +0200
+Authentication-Results: v370.home.net.pl; spf=softfail (domain owner 
+   discourages use of this host) smtp.mailfrom=rjwysocki.net 
+   (client-ip=195.136.19.94; helo=[195.136.19.94]; 
+   envelope-from=rjw@rjwysocki.net; receiver=<UNKNOWN>)
+Received: from kreacher.localnet (unknown [195.136.19.94])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by v370.home.net.pl (Postfix) with ESMTPSA id D03936636D6;
+        Thu,  7 Sep 2023 20:18:56 +0200 (CEST)
+From:   "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To:     Linux PM <linux-pm@vger.kernel.org>
+Cc:     Linux ACPI <linux-acpi@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Zhang Rui <rui.zhang@intel.com>, linux-omap@vger.kernel.org,
+        Amit Kucheria <amitk@kernel.org>, Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v1] thermal: Constify the trip argument of the .get_trend() zone callback
+Date:   Thu, 07 Sep 2023 20:18:56 +0200
+Message-ID: <5709115.DvuYhMxLoT@kreacher>
 MIME-Version: 1.0
-References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-13-brgl@bgdev.pl>
- <CACRpkdYJhP5otaFXbn49sK_33GJMy85MszyD9rqoQT1-fqd9dA@mail.gmail.com>
-In-Reply-To: <CACRpkdYJhP5otaFXbn49sK_33GJMy85MszyD9rqoQT1-fqd9dA@mail.gmail.com>
-From:   Bartosz Golaszewski <brgl@bgdev.pl>
-Date:   Thu, 7 Sep 2023 09:31:19 +0200
-Message-ID: <CAMRc=MdXU_EiG4iYhHJd7faRPEQ21hXHhRpPAqTa-TiMiraZpw@mail.gmail.com>
-Subject: Re: [PATCH 12/21] hte: allow building modules with COMPILE_TEST enabled
-To:     Linus Walleij <linus.walleij@linaro.org>,
-        Dipen Patel <dipenp@nvidia.com>
-Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-CLIENT-IP: 195.136.19.94
+X-CLIENT-HOSTNAME: 195.136.19.94
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedviedrudehhedguddvfecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfjqffogffrnfdpggftiffpkfenuceurghilhhouhhtmecuudehtdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephffvvefufffkggfgtgesthfuredttddtjeenucfhrhhomhepfdftrghfrggvlhculfdrucghhihsohgtkhhifdcuoehrjhifsehrjhifhihsohgtkhhirdhnvghtqeenucggtffrrghtthgvrhhnpeffffffkefgheehffelteeiveeffeevhfelteejvddvieejjeelvdeiheeuveeuffenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopeelpdhrtghpthhtoheplhhinhhugidqphhmsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqrggtphhisehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrhhnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtohepuggrnhhivghlrdhlvgiitggrnhhosehlihhnrghrohdrohhrghdprhgtphht
+ thhopehsrhhinhhivhgrshdrphgrnhgurhhuvhgruggrsehlihhnuhigrdhinhhtvghlrdgtohhmpdhrtghpthhtoheprhhuihdriihhrghnghesihhnthgvlhdrtghomh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=9 Fuz1=9 Fuz2=9
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, Sep 7, 2023 at 9:22=E2=80=AFAM Linus Walleij <linus.walleij@linaro.=
-org> wrote:
->
-> On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl=
-> wrote:
->
-> > From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-> >
-> > Allow building all HTE modules with COMPILE_TEST Kconfig option enabled=
-.
-> >
-> > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
->
-> This should be a separate patch should it not?
-> Just send it separately to Dipen so he can merge it.
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
->
-> Yours,
-> Linus Walleij
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Dipen,
+Add 'const' to the definition of the 'trip' argument of the
+.get_trend() thermal zone callback to indicate that the trip point
+passed to it should not be modified by it and adjust the
+callback functions implementing it, thermal_get_trend() in the
+ACPI thermal driver and __ti_thermal_get_trend(), accordingly.
 
-Can you just pick this up and the other patch addressing a comment in
-a HTE driver separately? Would spare a resend to the list and I'd drop
-it from the series.
+No intentional functional impact.
 
-Bart
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/thermal.c                             |    2 +-
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c |    3 ++-
+ include/linux/thermal.h                            |    4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+Index: linux-pm/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+===================================================================
+--- linux-pm.orig/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ linux-pm/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -110,7 +110,8 @@ static inline int __ti_thermal_get_temp(
+ }
+ 
+ static int __ti_thermal_get_trend(struct thermal_zone_device *tz,
+-				  struct thermal_trip *trip, enum thermal_trend *trend)
++				  const struct thermal_trip *trip,
++				  enum thermal_trend *trend)
+ {
+ 	struct ti_thermal_data *data = thermal_zone_device_priv(tz);
+ 	struct ti_bandgap *bgp;
+Index: linux-pm/include/linux/thermal.h
+===================================================================
+--- linux-pm.orig/include/linux/thermal.h
++++ linux-pm/include/linux/thermal.h
+@@ -80,8 +80,8 @@ struct thermal_zone_device_ops {
+ 	int (*set_trip_hyst) (struct thermal_zone_device *, int, int);
+ 	int (*get_crit_temp) (struct thermal_zone_device *, int *);
+ 	int (*set_emul_temp) (struct thermal_zone_device *, int);
+-	int (*get_trend) (struct thermal_zone_device *, struct thermal_trip *,
+-			  enum thermal_trend *);
++	int (*get_trend) (struct thermal_zone_device *,
++			  const struct thermal_trip *, enum thermal_trend *);
+ 	void (*hot)(struct thermal_zone_device *);
+ 	void (*critical)(struct thermal_zone_device *);
+ };
+Index: linux-pm/drivers/acpi/thermal.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/thermal.c
++++ linux-pm/drivers/acpi/thermal.c
+@@ -531,7 +531,7 @@ static int thermal_get_temp(struct therm
+ }
+ 
+ static int thermal_get_trend(struct thermal_zone_device *thermal,
+-			     struct thermal_trip *trip,
++			     const struct thermal_trip *trip,
+ 			     enum thermal_trend *trend)
+ {
+ 	struct acpi_thermal *tz = thermal_zone_device_priv(thermal);
+
+
+
