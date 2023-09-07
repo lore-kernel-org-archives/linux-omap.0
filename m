@@ -2,108 +2,95 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E2BCEC873B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E603DEC8740
 	for <linux-omap@archiver.kernel.org>; Thu,  7 Sep 2023 15:28:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244800AbjIGP2D (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S232011AbjIGP2D (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Thu, 7 Sep 2023 11:28:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50234 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231864AbjIGPV7 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 11:21:59 -0400
-Received: from wout2-smtp.messagingengine.com (wout2-smtp.messagingengine.com [64.147.123.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F39EE1700;
-        Thu,  7 Sep 2023 08:21:26 -0700 (PDT)
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-        by mailout.west.internal (Postfix) with ESMTP id 4628B3200921;
-        Thu,  7 Sep 2023 06:11:47 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute5.internal (MEProxy); Thu, 07 Sep 2023 06:11:48 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kroah.com; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm1; t=1694081506; x=1694167906; bh=EZ
-        T6EnA3YabROgKZ7V+W9exHIuOjPiCl6NxOF1soN9U=; b=xAbnZGGnS26+dKZuFM
-        JJ9Q/LP83Fk2oA7vUHJgxjPuMktibog+u9gFMPqITJcZTLADYfgGjYfuyA+hIgpy
-        UZ0PJ7YnaKlDjpwHqZdZipYvLmuNtiyrdBEAjyaJjqU6pTabR7ItN36z3lwhpmXs
-        fvtiu0mTHRzZpFj+I45yd9bxVW5zKED/+1aCZxcyb3ZHIcAuoJ3tpNsPmKev+cCb
-        yNuoZy9vW1r0nXPmLM0PNfhWBwCiMRsfOKcdCT7P3LiIwHLYXW5Qa8awoYbQu9XA
-        fkpuw6HrCJhhvMXFhaZnWBSYl/eRazd8A2AkeBiJPfTx8oJgT1nYcQarGfpiUTzZ
-        3nlw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm1; t=1694081506; x=1694167906; bh=EZT6EnA3YabRO
-        gKZ7V+W9exHIuOjPiCl6NxOF1soN9U=; b=WeI7TMT0kmnj7BpJTHA+/mKJxHLnA
-        OabayLtZUBFxbF1MUNKkaCwqHQoIsSRelpkuxhRSXzyOmyOkbZ8tAGBCrZXRoqsp
-        KRsFDkq6APoFkXAfBI8tinW/iz8wqVUN8vjDX1Hs6wTDVnhvsZnfyiJH2IKjlZ9Z
-        7geKfsxeBgrXB2KI33HelMATDyF+Cr5EZw0yAZFypceWTzdzwMwDIA6HLjME71eM
-        qn3VBBhUJ0utdR6tOvutgpbDX2zNr8iWYdsHm5bw2usx2eP0EAZWHILjxaLoD9eA
-        YVFGeVbkzAuynBV9RfFqV3VVpEb68L2XQCiIWoFLw0PdKu2svW34JKQuQ==
-X-ME-Sender: <xms:4aH5ZHsHds3V0ipUOOV1zJyBPznKR_WsO-5nW6tiU9MGH5ewW08mPQ>
-    <xme:4aH5ZIfNU11SHBEaMmaEvGDQ-BGvbuv_sEUOiV6JICfG0dgR-EQeQkgvEBa5ppOk1
-    bvgIt-Fz2fu2A>
-X-ME-Received: <xmr:4aH5ZKwkKolW7ggAF7C6NgoEx-SDMCFAms8NDKFUIHhALKjqoIN4NsutmNc>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrudehhedgvdehucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepfffhvfevuffkfhggtggujgesthdtredttddtvdenucfhrhhomhepifhrvghg
-    ucfmjfcuoehgrhgvgheskhhrohgrhhdrtghomheqnecuggftrfgrthhtvghrnhepheegvd
-    evvdeljeeugfdtudduhfekledtiefhveejkeejuefhtdeufefhgfehkeetnecuvehluhhs
-    thgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepghhrvghgsehkrhhorg
-    hhrdgtohhm
-X-ME-Proxy: <xmx:4aH5ZGORV396Z-xwS_71WoNaFIqg28zD8p-KPpF8Fj8skpK8C00n0Q>
-    <xmx:4aH5ZH-dbwLMRZTS323_B-WH-sLWA7btzK0cRLr3vsZrnQMceLZ1yg>
-    <xmx:4aH5ZGXFACVuo9kvBS59nBceVR1ZW3XNUP31J6zjtjW-2JUIN5t1Qg>
-    <xmx:4qH5ZHxBMEYMGjScKU9TdoNo-gxPzpvdOYz_xoq1S84DA6O9teoiZg>
-Feedback-ID: i787e41f1:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 7 Sep 2023 06:11:45 -0400 (EDT)
-Date:   Thu, 7 Sep 2023 11:11:44 +0100
-From:   Greg KH <greg@kroah.com>
-To:     Adam Ford <aford173@gmail.com>
-Cc:     stable <stable@vger.kernel.org>, Tony Lindgren <tony@atomide.com>,
-        Linux-OMAP <linux-omap@vger.kernel.org>
-Subject: Re: of: property: Simplify of_link_to_phandle()
-Message-ID: <2023090715-charity-numerous-f6f0@gregkh>
-References: <CAHCN7x+GLhYyEMq0h0Sa3m9JMuZf0g7=FpT==uFOg=w7OQ=qUw@mail.gmail.com>
+        with ESMTP id S245122AbjIGP00 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 7 Sep 2023 11:26:26 -0400
+Received: from mail-ot1-x330.google.com (mail-ot1-x330.google.com [IPv6:2607:f8b0:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62334173B
+        for <linux-omap@vger.kernel.org>; Thu,  7 Sep 2023 08:26:02 -0700 (PDT)
+Received: by mail-ot1-x330.google.com with SMTP id 46e09a7af769-6c0bbbbad81so272473a34.3
+        for <linux-omap@vger.kernel.org>; Thu, 07 Sep 2023 08:26:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1694100348; x=1694705148; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9VX520/JAjo5YxFEs6vhZtWf0iQa736VrN0vgqzfoO4=;
+        b=FeB5RNLAsTisrNfwLpgTkmYw0oVxnxjPCkyP7+T2lF0qFFM8sbFtOk4U3FUBJ1thMK
+         qXrEY0YwRk7XmFB9JrYdAHc7s9WY4V3HblZYt2axA90c6h5+NO3vjyIAnVvBQky9rf1g
+         Jqhv6hSKJDbOU4NnVMNCMppBhqcwQeRAC5x8LwD/0v45Bh0t2qrojZj81grGxNwSia9q
+         1A7yyePbinbXmaW9zVlPhdZx0i6FWB6LkY7WOA4rXlloyMcpeDyRRIRl5+o7n+wEjzYW
+         n9EorDjpC2DUu3d+ZjXEZdsPOv23zC9JnOoJEduQRZc0SAGUyBvxf1sqvJnO7uKaIem/
+         Fg9A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1694100348; x=1694705148;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=9VX520/JAjo5YxFEs6vhZtWf0iQa736VrN0vgqzfoO4=;
+        b=Ir7JNeU+zQI2e2l20XxhNiX0F70US3NWBaqDUlUo5STA5ZVjMKEUObL5jn4RLCzaMH
+         JzDIZ0GdGeVMDXJoaGfi1KGKNUYJgFW0fiOUilt8UbZsD+JgLH61gzQaOTvf6J7IbW8E
+         WXYj/ctzs2Zz1Ok+xLUT+2KnKLXWfCwtd7+mqGzog4tX5Sv8Lj/7MIAkcWvRpYTGZmIJ
+         /nZoJ34MLOE40+rnbcLvJrt73L1CiLBSJo/y6b9kL1VSQLP5pYNI9uFkjw4cee2Ff0sD
+         k1zDz+Epq3738ff0j7X0yIJRzEExo1KMPFNqceb9PgBy7EaJW+B2jMLlcz8XyMFz80yp
+         dgQg==
+X-Gm-Message-State: AOJu0Yz7ORXVGsTfxeoiRNfwbIipFuZqaVGs/zsIC7ZRzQ+bmQcrQZnz
+        CJ0n0lGwihSwfztxV7MZeM9/iFkod8+k26lA9iDfbcaxppL4Ai9X
+X-Google-Smtp-Source: AGHT+IGsG5hJJbLxB8MJ18cSL64AbAsKmU8HUkb1gvXKq17Y/8ZLDXSkKoAPtcsGb/CfUJGklHIiazXnZYlmi1tiRYs=
+X-Received: by 2002:a25:d78a:0:b0:d78:47a:d76e with SMTP id
+ o132-20020a25d78a000000b00d78047ad76emr19559951ybg.49.1694072224500; Thu, 07
+ Sep 2023 00:37:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHCN7x+GLhYyEMq0h0Sa3m9JMuZf0g7=FpT==uFOg=w7OQ=qUw@mail.gmail.com>
+References: <20230905185309.131295-1-brgl@bgdev.pl> <20230905185309.131295-17-brgl@bgdev.pl>
+In-Reply-To: <20230905185309.131295-17-brgl@bgdev.pl>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Thu, 7 Sep 2023 09:36:53 +0200
+Message-ID: <CACRpkdap-AFmVFG_gtYeGuR5JFLgHQ6i7w6HRwKP4+pu=nd66A@mail.gmail.com>
+Subject: Re: [PATCH 16/21] gpio: of: correct notifier return codes
+To:     Bartosz Golaszewski <brgl@bgdev.pl>
+Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Dipen Patel <dipenp@nvidia.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Mark Gross <markgross@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
+        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, Sep 06, 2023 at 06:49:07PM -0500, Adam Ford wrote:
-> Stable Group,
-> 
-> Please apply commit 4a032827daa8 ("of: property: Simplify of_link_to_phandle()")
-> to the 6.1.y stable branch.  It was originally part of a series that
-> was only partially applied to 6.1.  Being partially applied left 6.1.y
-> in a state where a bunch of peripherals were deferred indefinitely on
-> the am3517-evm.
-> 
-> wl12xx_buf platform: supplier 48002000.scm not ready
-> wl12xx_vmmc2 platform: supplier wl12xx_buf not ready
-> 48050000.dss platform: supplier display@0 not ready
-> 48064800.ehci platform: supplier hsusb1_phy not ready
-> backlight platform: supplier 48002000.scm not ready
-> display@0 platform: supplier backlight not ready
-> dmtimer-pwm@11 platform: supplier 48002000.scm not ready
-> hsusb1_phy platform: supplier 48002000.scm not ready
-> gpio-leds platform: supplier 48002000.scm not ready
-> 480b4000.mmc platform: supplier wl12xx_vmmc2 not ready
-> 
-> With the above commit applied, it appears to address most of the
-> deferred peripherals.
-> 
-> Fixes: eaf9b5612a47 ("driver core: fw_devlink: Don't purge child
-> fwnode's consumer links")
-> Signed-off-by:  Adam Ford <aford173@gmail.com>
+On Tue, Sep 5, 2023 at 8:53=E2=80=AFPM Bartosz Golaszewski <brgl@bgdev.pl> =
+wrote:
 
-Now queued up, thanks.
+> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+>
+> According to the comments in linux/notifier.h, the code to return when a
+> notifications is "not for us" is NOTIFY_DONE, not NOTIFY_OK.
+>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-greg k-h
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+
+This should just be applied, right? If the notifiers already
+went upstream (sorry for my ignorance) then it should be
+a Fixes: even.
+
+Yours,
+Linus Walleij
