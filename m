@@ -2,83 +2,71 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD448CA0EC4
-	for <linux-omap@archiver.kernel.org>; Mon, 11 Sep 2023 21:29:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F6EFCA0EC6
+	for <linux-omap@archiver.kernel.org>; Mon, 11 Sep 2023 23:20:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345505AbjIKVVH (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 11 Sep 2023 17:21:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33020 "EHLO
+        id S233184AbjIKXUI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 11 Sep 2023 19:20:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237438AbjIKMuw (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 11 Sep 2023 08:50:52 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 40BA5CEB;
-        Mon, 11 Sep 2023 05:50:48 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 6F29580A2;
-        Mon, 11 Sep 2023 12:50:47 +0000 (UTC)
-Date:   Mon, 11 Sep 2023 15:50:46 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     Bartosz Golaszewski <brgl@bgdev.pl>
-Cc:     Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Russell King <linux@armlinux.org.uk>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Dipen Patel <dipenp@nvidia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Mark Gross <markgross@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-acpi@vger.kernel.org, timestamp@lists.linux.dev,
-        linux-tegra@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: Re: [RFT PATCH 15/21] arm: omap1: ams-delta: stop using
- gpiochip_find()
-Message-ID: <20230911125046.GA5285@atomide.com>
-References: <20230905185309.131295-1-brgl@bgdev.pl>
- <20230905185309.131295-16-brgl@bgdev.pl>
- <CACRpkdaVUPNYVjAi2XsNKVhwmtk2qpVp62Lke4xeDOwhhBXLtg@mail.gmail.com>
- <6555932.G0QQBjFxQf@dell>
- <CAMRc=Mfrk9q6fJyEAuxDXYPpbjVHeLJaTjHEcKiYHzrE3r+_7A@mail.gmail.com>
+        with ESMTP id S237471AbjIKWxW (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 11 Sep 2023 18:53:22 -0400
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 731325BA9;
+        Mon, 11 Sep 2023 15:15:07 -0700 (PDT)
+Received: from p200300ccff36fa001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff36:fa00:1a3d:a2ff:febf:d33a] helo=aktux)
+        by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <andreas@kemnade.info>)
+        id 1qfpAD-003crJ-R8; Tue, 12 Sep 2023 00:13:49 +0200
+Received: from andi by aktux with local (Exim 4.96)
+        (envelope-from <andreas@kemnade.info>)
+        id 1qfpAD-006ECk-1T;
+        Tue, 12 Sep 2023 00:13:49 +0200
+From:   Andreas Kemnade <andreas@kemnade.info>
+To:     dmitry.torokhov@gmail.com, robh+dt@kernel.org,
+        krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
+        lee@kernel.org, bcousson@baylibre.com, tony@atomide.com,
+        mturquette@baylibre.com, sboyd@kernel.org, andreas@kemnade.info,
+        linux-input@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Cc:     Conor Dooley <conor.dooley@microchip.com>
+Subject: [PATCH v3 2/5] dt-bindings: mfd: ti,twl: Add clock provider properties
+Date:   Tue, 12 Sep 2023 00:13:43 +0200
+Message-Id: <20230911221346.1484543-3-andreas@kemnade.info>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230911221346.1484543-1-andreas@kemnade.info>
+References: <20230911221346.1484543-1-andreas@kemnade.info>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMRc=Mfrk9q6fJyEAuxDXYPpbjVHeLJaTjHEcKiYHzrE3r+_7A@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* Bartosz Golaszewski <brgl@bgdev.pl> [230911 11:10]:
-> On Fri, Sep 8, 2023 at 8:07 PM Janusz Krzysztofik <jmkrzyszt@gmail.com> wrote:
-> >
-> > Dnia czwartek, 7 września 2023 09:31:01 CEST Linus Walleij pisze:
-> > > On Tue, Sep 5, 2023 at 8:53 PM Bartosz Golaszewski <brgl@bgdev.pl> wrote:
-> > >
-> > > > From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-> > > >
-> > > > gpiochip_find() is going away as it's not hot-unplug safe. This platform
-> > > > is not affected by any of the related problems as this GPIO controller
-> > > > cannot really go away but in order to finally remove this function, we
-> > > > need to convert it to using gpio_device_find() as well.
-> > > >
-> > > > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-> > >
-> > > I was cleaning this one just some merge cycle ago, now it
-> > > looks even better!
-> > > Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
-> >
-> > Acked-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-> >
-> 
-> Janusz,
-> 
-> Is it fine if I take it through the GPIO tree?
+Since these devices provide clock outputs, add the corresponding
+property.
 
-Works for me at least:
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
+---
+ Documentation/devicetree/bindings/mfd/ti,twl.yaml | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+diff --git a/Documentation/devicetree/bindings/mfd/ti,twl.yaml b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+index f125b254a4b93..c04d57ba22b49 100644
+--- a/Documentation/devicetree/bindings/mfd/ti,twl.yaml
++++ b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+@@ -37,6 +37,9 @@ properties:
+   "#interrupt-cells":
+     const: 1
+ 
++  "#clock-cells":
++    const: 1
++
+ additionalProperties: false
+ 
+ required:
+-- 
+2.39.2
+
