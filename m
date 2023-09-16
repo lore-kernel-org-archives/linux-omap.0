@@ -2,297 +2,151 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 068A3CD13D3
-	for <linux-omap@archiver.kernel.org>; Sat, 16 Sep 2023 10:06:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD0DECD37BE
+	for <linux-omap@archiver.kernel.org>; Sat, 16 Sep 2023 12:55:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239013AbjIPKF5 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 16 Sep 2023 06:05:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56468 "EHLO
+        id S232421AbjIPMvB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 16 Sep 2023 08:51:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238948AbjIPKFe (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 16 Sep 2023 06:05:34 -0400
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EF62CDA;
-        Sat, 16 Sep 2023 03:05:27 -0700 (PDT)
-Received: from p200300ccff1003001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff10:300:1a3d:a2ff:febf:d33a] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <andreas@kemnade.info>)
-        id 1qhSB0-003pjT-W4; Sat, 16 Sep 2023 12:05:22 +0200
-Received: from andi by aktux with local (Exim 4.96)
-        (envelope-from <andreas@kemnade.info>)
-        id 1qhSB0-006vKz-0r;
-        Sat, 16 Sep 2023 12:05:22 +0200
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     dmitry.torokhov@gmail.com, robh+dt@kernel.org,
-        krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
-        lee@kernel.org, bcousson@baylibre.com, tony@atomide.com,
-        mturquette@baylibre.com, sboyd@kernel.org, andreas@kemnade.info,
-        linux-input@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Subject: [PATCH v4 4/5] clk: twl: add clock driver for TWL6032
-Date:   Sat, 16 Sep 2023 12:05:14 +0200
-Message-Id: <20230916100515.1650336-5-andreas@kemnade.info>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230916100515.1650336-1-andreas@kemnade.info>
-References: <20230916100515.1650336-1-andreas@kemnade.info>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S231226AbjIPMut (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 16 Sep 2023 08:50:49 -0400
+Received: from mo4-p01-ob.smtp.rzone.de (mo4-p01-ob.smtp.rzone.de [81.169.146.165])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56E7C1AB
+        for <linux-omap@vger.kernel.org>; Sat, 16 Sep 2023 05:50:41 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1694868625; cv=none;
+    d=strato.com; s=strato-dkim-0002;
+    b=o5MOFDs3o3UEwlFDwmjNztUBwR9RUtixGxBfVoenquODhIcNgNf3Kuo29PDoxO2mD8
+    vc2dRVOZEuzj0uq6u9PmItU3Upb7ACtwISNFNrCLfEKFoVgdCQmj4he4igwgI/a9HwiE
+    Bhp79hwQcEC0AU9o5hznLQLcasDvRiWF/4LewUV90BTFAkGn2P4I/h2CD0Tg6NWS+hc6
+    /j0PD+ajS9nAEtQdCo669yNIM4QIiScOFFpp4/phWrewQfcQvhlPOHH2xPL1ygQDah5R
+    B6qTUg1+W9OV3Vkg6ARwyFXEOuQbI4AKBBcbG096ux56G1+IvdqoYhXYiLoRf0pRtzpw
+    3ucQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1694868625;
+    s=strato-dkim-0002; d=strato.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=/AAXy58L/sWU6ITVYngidAH9QYdMsJXYQ4py7+FutQ4=;
+    b=MV5z5cdfGY1OQZ9BKAr8LDEwCZvocCHZEh/WbQGM8g2HHVMgi+0+PAKk1ml11EQVcB
+    NeLMCLXxUBF+4/qMo3TiGo/jmHiUXwBD9eXGj3eQEg39Ztjs5+nOCD00pJNdhyFygBRh
+    wKhs5v6yk7G/kYi7wpv92Ldg/66PzkphF3//OtItvHqDt9Y1ZMoAkcoplfBBV7vOxdvS
+    xhLKqB5+ocFlRGBT5uMctf6M9t3P7KOBDXJVFydz98QBkZKx4DGGSGzshT9HGfw5icH6
+    0XtR5F+lFeWTYyBt2HhQzobP166FpdQ326v9E21Ruk6jLESFaX3cNE40jiLU1edMusA1
+    nDrg==
+ARC-Authentication-Results: i=1; strato.com;
+    arc=none;
+    dkim=none
+X-RZG-CLASS-ID: mo01
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1694868625;
+    s=strato-dkim-0002; d=goldelico.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=/AAXy58L/sWU6ITVYngidAH9QYdMsJXYQ4py7+FutQ4=;
+    b=mTP2O5O0jB3ZGYjSXJ9iHc+qpk1PW6BvmQ9+xL/u/2A+KHmQ+Zrqa5PgA/2Du8l2yf
+    /4eArdmsyYO/BJYrqdb8Binyz7nQDG5HjS6fr2aMkAjI6Cp1Lz8W+RupdggV+jRtKKlB
+    0fib3CQfWMO5CBUAowXjrym9HNeYrx6dIRGl0eHpntoQpMrq3r+nu3tasWX9nP62MMzJ
+    s1LC9K8p5Q347GUpJ6FFOPJwPp9oF2QpxeBxSBX3JC/CHPg4O0OngIQRNOXTyMZ6peRJ
+    uojR8OOr7UBX9q/piuWWqr168tOZ85MJIIOtXTVCQOx0HPV3bFBecNJuUSwI2yHueHM9
+    SRFA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1694868625;
+    s=strato-dkim-0003; d=goldelico.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=/AAXy58L/sWU6ITVYngidAH9QYdMsJXYQ4py7+FutQ4=;
+    b=cVOyXAlTBnidaQht9zOf1LPiq+rbQ9mZOQhLD4DgmquK28rbDDqKHU1O3LwNsdjfH5
+    AtP8Bk5+gUBjpNCMBwAg==
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMgPgp8VKxflSZ1P34KBj5Apz9PSN6LgsXcGZiDY="
+Received: from smtpclient.apple
+    by smtp.strato.de (RZmta 49.8.2 DYNA|AUTH)
+    with ESMTPSA id Y04dd7z8GCoOWOm
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
+        (Client did not present a certificate);
+    Sat, 16 Sep 2023 14:50:24 +0200 (CEST)
+Content-Type: text/plain;
+        charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3696.120.41.1.4\))
+Subject: Re: [PATCH] drm/omap: dsi: Fix deferred probe warnings
+From:   "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <9daacd2f-0dbf-dddc-9403-b802447896a2@ideasonboard.com>
+Date:   Sat, 16 Sep 2023 14:50:24 +0200
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>,
+        David Airlie <airlied@gmail.com>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <AB436C46-413A-4469-BA07-F3ED1CECF02F@goldelico.com>
+References: <20230412073954.20601-1-tony@atomide.com>
+ <9daacd2f-0dbf-dddc-9403-b802447896a2@ideasonboard.com>
+To:     Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
+        Tony Lindgren <tony@atomide.com>
+X-Mailer: Apple Mail (2.3696.120.41.1.4)
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The TWL6032 has some clock outputs which are controlled like
-fixed-voltage regulators, in some drivers for these chips
-found in the wild, just the regulator api is abused for controlling
-them, so simply use something similar to the regulator functions.
-Due to a lack of hardware available for testing, leave out the
-TWL6030-specific part of those functions.
+Hi Tomi and Tony,
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- drivers/clk/Kconfig   |   9 ++
- drivers/clk/Makefile  |   1 +
- drivers/clk/clk-twl.c | 197 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 207 insertions(+)
- create mode 100644 drivers/clk/clk-twl.c
+> Am 13.09.2023 um 13:59 schrieb Tomi Valkeinen =
+<tomi.valkeinen@ideasonboard.com>:
+>=20
+> On 12/04/2023 10:39, Tony Lindgren wrote:
+>> We may not have dsi->dsidev initialized during probe, and that can
+>> lead into various dsi related warnings as omap_dsi_host_detach() gets
+>> called with dsi->dsidev set to NULL.
+>> The warnings can be "Fixed dependency cycle(s)" followed by a
+>> WARNING: CPU: 0 PID: 787 at drivers/gpu/drm/omapdrm/dss/dsi.c:4414.
+>> Let's fix the warnings by checking for a valid dsi->dsidev.
+>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>> ---
+>>  drivers/gpu/drm/omapdrm/dss/dsi.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c =
+b/drivers/gpu/drm/omapdrm/dss/dsi.c
+>> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
+>> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+>> @@ -4411,7 +4411,7 @@ static int omap_dsi_host_detach(struct =
+mipi_dsi_host *host,
+>>  {
+>>  	struct dsi_data *dsi =3D host_to_omap(host);
+>>  -	if (WARN_ON(dsi->dsidev !=3D client))
+>> +	if (dsi->dsidev && WARN_ON(dsi->dsidev !=3D client))
+>>  		return -EINVAL;
+>>    	cancel_delayed_work_sync(&dsi->dsi_disable_work);
+>=20
+> Shouldn't this rather be
+>=20
+> if (!dsi->dsidev)
+> 	return 0;
+>=20
+> before the if (WARN_ON(dsi->dsidev !=3D client)) line?
 
-diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
-index c30099866174d..3944f081ebade 100644
---- a/drivers/clk/Kconfig
-+++ b/drivers/clk/Kconfig
-@@ -277,6 +277,15 @@ config COMMON_CLK_S2MPS11
- 	  clock. These multi-function devices have two (S2MPS14) or three
- 	  (S2MPS11, S5M8767) fixed-rate oscillators, clocked at 32KHz each.
- 
-+config CLK_TWL
-+	tristate "Clock driver for the TWL PMIC family"
-+	depends on TWL4030_CORE
-+	help
-+	  Enable support for controlling the clock resources on TWL family
-+	  PMICs. These devices have some 32K clock outputs which can be
-+	  controlled by software. For now, only the TWL6032 clocks are
-+	  supported.
+Yes you are right. We have a different variant in our Pyra kernel:
+
+What we currently have in our Pyra tree is: =
+https://git.goldelico.com/?p=3Dletux-kernel.git;a=3Dcommitdiff;h=3D5bf7bd6=
+4eec1eb924e794e8d6600919f0dae8c5a;hp=3D27a0cd6263194d1465e9c53293d35f8c8c9=
+88f9d
+
+        struct dsi_data *dsi =3D host_to_omap(host);
+=20
+-       if (WARN_ON(dsi->dsidev !=3D client))
++printk("%s\n", __func__);
 +
- config CLK_TWL6040
- 	tristate "External McPDM functional clock from twl6040"
- 	depends on TWL6040_CORE
-diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index 18969cbd4bb1e..86e46adcb619c 100644
---- a/drivers/clk/Makefile
-+++ b/drivers/clk/Makefile
-@@ -72,6 +72,7 @@ obj-$(CONFIG_COMMON_CLK_STM32H7)	+= clk-stm32h7.o
- obj-$(CONFIG_COMMON_CLK_STM32MP157)	+= clk-stm32mp1.o
- obj-$(CONFIG_COMMON_CLK_TPS68470)      += clk-tps68470.o
- obj-$(CONFIG_CLK_TWL6040)		+= clk-twl6040.o
-+obj-$(CONFIG_CLK_TWL)			+= clk-twl.o
- obj-$(CONFIG_ARCH_VT8500)		+= clk-vt8500.o
- obj-$(CONFIG_COMMON_CLK_RS9_PCIE)	+= clk-renesas-pcie.o
- obj-$(CONFIG_COMMON_CLK_SI521XX)	+= clk-si521xx.o
-diff --git a/drivers/clk/clk-twl.c b/drivers/clk/clk-twl.c
-new file mode 100644
-index 0000000000000..eab9d3c8ed8ae
---- /dev/null
-+++ b/drivers/clk/clk-twl.c
-@@ -0,0 +1,197 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Clock driver for twl device.
-+ *
-+ * inspired by the driver for the Palmas device
-+ */
-+
-+#include <linux/clk-provider.h>
-+#include <linux/mfd/twl.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+#define VREG_STATE              2
-+#define TWL6030_CFG_STATE_OFF   0x00
-+#define TWL6030_CFG_STATE_ON    0x01
-+#define TWL6030_CFG_STATE_MASK  0x03
-+
-+struct twl_clock_info {
-+	struct device *dev;
-+	u8 base;
-+	struct clk_hw hw;
-+};
-+
-+static inline int
-+twlclk_read(struct twl_clock_info *info, unsigned int slave_subgp,
-+	    unsigned int offset)
-+{
-+	u8 value;
-+	int status;
-+
-+	status = twl_i2c_read_u8(slave_subgp, &value,
-+				 info->base + offset);
-+	return (status < 0) ? status : value;
-+}
-+
-+static inline int
-+twlclk_write(struct twl_clock_info *info, unsigned int slave_subgp,
-+	     unsigned int offset, u8 value)
-+{
-+	return twl_i2c_write_u8(slave_subgp, value,
-+				info->base + offset);
-+}
-+
-+static inline struct twl_clock_info *to_twl_clks_info(struct clk_hw *hw)
-+{
-+	return container_of(hw, struct twl_clock_info, hw);
-+}
-+
-+static unsigned long twl_clks_recalc_rate(struct clk_hw *hw,
-+					  unsigned long parent_rate)
-+{
-+	return 32768;
-+}
-+
-+static int twl6032_clks_prepare(struct clk_hw *hw)
-+{
-+	struct twl_clock_info *cinfo = to_twl_clks_info(hw);
-+	int ret;
-+
-+	ret = twlclk_write(cinfo, TWL_MODULE_PM_RECEIVER, VREG_STATE,
-+			   TWL6030_CFG_STATE_ON);
-+	if (ret < 0)
-+		dev_err(cinfo->dev, "clk prepare failed\n");
-+
-+	return ret;
-+}
-+
-+static void twl6032_clks_unprepare(struct clk_hw *hw)
-+{
-+	struct twl_clock_info *cinfo = to_twl_clks_info(hw);
-+	int ret;
-+
-+	ret = twlclk_write(cinfo, TWL_MODULE_PM_RECEIVER, VREG_STATE,
-+			   TWL6030_CFG_STATE_OFF);
-+	if (ret < 0)
-+		dev_err(cinfo->dev, "clk unprepare failed\n");
-+}
-+
-+static int twl6032_clks_is_prepared(struct clk_hw *hw)
-+{
-+	struct twl_clock_info *cinfo = to_twl_clks_info(hw);
-+	int val;
-+
-+	val = twlclk_read(cinfo, TWL_MODULE_PM_RECEIVER, VREG_STATE);
-+	if (val < 0) {
-+		dev_err(cinfo->dev, "clk read failed\n");
-+		return val;
-+	}
-+
-+	val &= TWL6030_CFG_STATE_MASK;
-+
-+	return val == TWL6030_CFG_STATE_ON;
-+}
-+
-+static const struct clk_ops twl6032_clks_ops = {
-+	.prepare	= twl6032_clks_prepare,
-+	.unprepare	= twl6032_clks_unprepare,
-+	.is_prepared	= twl6032_clks_is_prepared,
-+	.recalc_rate	= twl_clks_recalc_rate,
-+};
-+
-+struct twl_clks_data {
-+	struct clk_init_data init;
-+	u8 base;
-+};
-+
-+static const struct twl_clks_data twl6032_clks[] = {
-+	{
-+		.init = {
-+			.name = "clk32kg",
-+			.ops = &twl6032_clks_ops,
-+			.flags = CLK_IGNORE_UNUSED,
-+		},
-+		.base = 0x8C,
-+	},
-+	{
-+		.init = {
-+			.name = "clk32kaudio",
-+			.ops = &twl6032_clks_ops,
-+			.flags = CLK_IGNORE_UNUSED,
-+		},
-+		.base = 0x8F,
-+	},
-+	{
-+		/* sentinel */
-+	}
-+};
-+
-+static int twl_clks_probe(struct platform_device *pdev)
-+{
-+	struct clk_hw_onecell_data *clk_data;
-+	const struct twl_clks_data *hw_data;
-+
-+	struct twl_clock_info *cinfo;
-+	int ret;
-+	int i;
-+	int count;
-+
-+	hw_data = twl6032_clks;
-+	for (count = 0; hw_data[count].init.name; count++)
-+		;
-+
-+	clk_data = devm_kzalloc(&pdev->dev,
-+				struct_size(clk_data, hws, count),
-+				GFP_KERNEL);
-+	if (!clk_data)
-+		return -ENOMEM;
-+
-+	clk_data->num = count;
-+	cinfo = devm_kcalloc(&pdev->dev, count, sizeof(*cinfo), GFP_KERNEL);
-+	if (!cinfo)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < count; i++) {
-+		cinfo[i].base = hw_data[i].base;
-+		cinfo[i].dev = &pdev->dev;
-+		cinfo[i].hw.init = &hw_data[i].init;
-+		ret = devm_clk_hw_register(&pdev->dev, &cinfo[i].hw);
-+		if (ret) {
-+			return dev_err_probe(&pdev->dev, ret,
-+					     "Fail to register clock %s\n",
-+					     hw_data[i].init.name);
-+		}
-+		clk_data->hws[i] = &cinfo[i].hw;
-+	}
-+
-+	ret = devm_of_clk_add_hw_provider(&pdev->dev,
-+					  of_clk_hw_onecell_get, clk_data);
-+	if (ret < 0)
-+		return dev_err_probe(&pdev->dev, ret,
-+				     "Fail to add clock driver\n");
-+
-+	return 0;
-+}
-+
-+static const struct platform_device_id twl_clks_id[] = {
-+	{
-+		.name = "twl6032-clk",
-+	}, {
-+		/* sentinel */
-+	}
-+};
-+MODULE_DEVICE_TABLE(platform, twl_clks_id);
-+
-+static struct platform_driver twl_clks_driver = {
-+	.driver = {
-+		.name = "twl-clk",
-+	},
-+	.probe = twl_clks_probe,
-+	.id_table = twl_clks_id,
-+};
-+
-+module_platform_driver(twl_clks_driver);
-+
-+MODULE_DESCRIPTION("Clock driver for TWL Series Devices");
-+MODULE_LICENSE("GPL");
--- 
-2.39.2
++       if (!dsi->dsidev || WARN_ON(dsi->dsidev !=3D client))
+                return -EINVAL;
+=20
+        cancel_delayed_work_sync(&dsi->dsi_disable_work);
+
+>=20
+> If dsi->dsidev is NULL, then attach hasn't been called, and we =
+shouldn't do anything in the detach callback either.
+>=20
+> With your change we'll end up doing all the work in the detach =
+callback, without ever doing their counterpart in the attach side.
+
+If useful, I can post above mentioned patch (without printk).
+
+BR and thanks,
+Nikolaus
 
