@@ -2,27 +2,27 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EF41C2BA1A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75460C2BA2B
 	for <linux-omap@archiver.kernel.org>; Sat, 16 Sep 2023 10:06:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239003AbjIPKF4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sat, 16 Sep 2023 06:05:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56418 "EHLO
+        id S239024AbjIPKF6 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 16 Sep 2023 06:05:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238377AbjIPKFd (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sat, 16 Sep 2023 06:05:33 -0400
+        with ESMTP id S238847AbjIPKFe (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 16 Sep 2023 06:05:34 -0400
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9E44CD4;
-        Sat, 16 Sep 2023 03:05:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68A84CDE;
+        Sat, 16 Sep 2023 03:05:28 -0700 (PDT)
 Received: from p200300ccff1003001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff10:300:1a3d:a2ff:febf:d33a] helo=aktux)
         by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <andreas@kemnade.info>)
-        id 1qhSAz-003pjC-BZ; Sat, 16 Sep 2023 12:05:20 +0200
+        id 1qhSB1-003pjl-Tb; Sat, 16 Sep 2023 12:05:23 +0200
 Received: from andi by aktux with local (Exim 4.96)
         (envelope-from <andreas@kemnade.info>)
-        id 1qhSAy-006vKp-21;
-        Sat, 16 Sep 2023 12:05:20 +0200
+        id 1qhSB1-006vL4-0d;
+        Sat, 16 Sep 2023 12:05:23 +0200
 From:   Andreas Kemnade <andreas@kemnade.info>
 To:     dmitry.torokhov@gmail.com, robh+dt@kernel.org,
         krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
@@ -31,10 +31,9 @@ To:     dmitry.torokhov@gmail.com, robh+dt@kernel.org,
         linux-input@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
         linux-clk@vger.kernel.org
-Cc:     Conor Dooley <conor.dooley@microchip.com>
-Subject: [PATCH v4 2/5] dt-bindings: mfd: ti,twl: Add clock provider properties
-Date:   Sat, 16 Sep 2023 12:05:12 +0200
-Message-Id: <20230916100515.1650336-3-andreas@kemnade.info>
+Subject: [PATCH v4 5/5] ARM: dts: omap4-embt2ws: enable 32K clock on WLAN
+Date:   Sat, 16 Sep 2023 12:05:15 +0200
+Message-Id: <20230916100515.1650336-6-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230916100515.1650336-1-andreas@kemnade.info>
 References: <20230916100515.1650336-1-andreas@kemnade.info>
@@ -44,29 +43,47 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Since these devices provide clock outputs, add the corresponding
-property.
+WLAN did only work if clock was left enabled by the original system,
+so make it fully enable the needed resources itself.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-Acked-by: Conor Dooley <conor.dooley@microchip.com>
 ---
- Documentation/devicetree/bindings/mfd/ti,twl.yaml | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/mfd/ti,twl.yaml b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-index f125b254a4b93..c04d57ba22b49 100644
---- a/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-+++ b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-@@ -37,6 +37,9 @@ properties:
-   "#interrupt-cells":
-     const: 1
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+index ee86981b2e448..9d2f2d8639496 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+@@ -69,6 +69,12 @@ unknown_supply: unknown-supply {
+ 		regulator-name = "unknown";
+ 	};
  
-+  "#clock-cells":
-+    const: 1
++	wl12xx_pwrseq: wl12xx-pwrseq {
++		compatible = "mmc-pwrseq-simple";
++		clocks = <&twl 1>;
++		clock-names = "ext_clock";
++	};
 +
- additionalProperties: false
- 
- required:
+        /* regulator for wl12xx on sdio2 */
+ 	wl12xx_vmmc: wl12xx-vmmc {
+ 		pinctrl-names = "default";
+@@ -92,6 +98,7 @@ &i2c1 {
+ 	twl: pmic@48 {
+ 		compatible = "ti,twl6032";
+ 		reg = <0x48>;
++		#clock-cells = <1>;
+ 		/* IRQ# = 7 */
+ 		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N cascaded to gic */
+ 		interrupt-controller;
+@@ -316,6 +323,7 @@ &mmc3 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&wl12xx_pins>;
+ 	vmmc-supply = <&wl12xx_vmmc>;
++	mmc-pwrseq = <&wl12xx_pwrseq>;
+ 	interrupts-extended = <&wakeupgen GIC_SPI 94 IRQ_TYPE_LEVEL_HIGH
+ 			       &omap4_pmx_core 0x12e>;
+ 	non-removable;
 -- 
 2.39.2
 
