@@ -2,100 +2,210 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48D6DC46CA1
-	for <linux-omap@archiver.kernel.org>; Mon, 18 Sep 2023 03:49:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AC1BCD13D2
+	for <linux-omap@archiver.kernel.org>; Mon, 18 Sep 2023 20:43:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230142AbjIRDss (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 17 Sep 2023 23:48:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57574 "EHLO
+        id S229478AbjIRUnO (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 18 Sep 2023 16:43:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230360AbjIRDs2 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 17 Sep 2023 23:48:28 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CAA5F10E;
-        Sun, 17 Sep 2023 20:48:21 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id C00A080BF;
-        Mon, 18 Sep 2023 03:48:20 +0000 (UTC)
-Date:   Mon, 18 Sep 2023 06:48:19 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc:     Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>,
-        David Airlie <airlied@gmail.com>
-Subject: Re: [PATCH] drm/omap: dsi: Fix deferred probe warnings
-Message-ID: <20230918034819.GO5285@atomide.com>
-References: <20230412073954.20601-1-tony@atomide.com>
- <9daacd2f-0dbf-dddc-9403-b802447896a2@ideasonboard.com>
- <AB436C46-413A-4469-BA07-F3ED1CECF02F@goldelico.com>
+        with ESMTP id S229632AbjIRUnN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 18 Sep 2023 16:43:13 -0400
+Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [IPv6:2a0a:edc0:2:b01:1d::104])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C15F9119
+        for <linux-omap@vger.kernel.org>; Mon, 18 Sep 2023 13:43:07 -0700 (PDT)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1qiL4y-0007TN-C4; Mon, 18 Sep 2023 22:42:48 +0200
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1qiL4x-007Ikd-Lh; Mon, 18 Sep 2023 22:42:47 +0200
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1qiL4x-002mqN-B3; Mon, 18 Sep 2023 22:42:47 +0200
+From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+To:     "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     Florian Fainelli <f.fainelli@gmail.com>,
+        Grygorii Strashko <grygorii.strashko@ti.com>,
+        Marc Kleine-Budde <mkl@pengutronix.de>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nathan Huckleberry <nhuck@google.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Bhupesh Sharma <bhupesh.sharma@linaro.org>,
+        Wei Fang <wei.fang@nxp.com>, Andrew Lunn <andrew@lunn.ch>,
+        Rob Herring <robh@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>, netdev@vger.kernel.org,
+        kernel@pengutronix.de, linux-omap@vger.kernel.org
+Subject: [PATCH net-next 49/54] net: ethernet: ti: Convert to platform remove callback returning void
+Date:   Mon, 18 Sep 2023 22:42:21 +0200
+Message-Id: <20230918204227.1316886-50-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.40.1
+In-Reply-To: <20230918204227.1316886-1-u.kleine-koenig@pengutronix.de>
+References: <20230918204227.1316886-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AB436C46-413A-4469-BA07-F3ED1CECF02F@goldelico.com>
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5112; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=GAzMPmTXiHRYGL72nZp+bTQHer1MdGrU4/9n6vQGbZE=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBlCLYbKcwv4juvlGF2GyxUT/eBKwQwSyvbq2/GL QtGUYa2R9GJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZQi2GwAKCRCPgPtYfRL+ ThBqB/0QH054ARQK0eHP4ODSndxB3JFel3Ybp97YrfdkNGp4IMU5XaW5dHQLtvLou2PfI2bGp07 oQVblhLa+cb79spIxftIXiqSKicm+zcliwW9cr6sZa5wYnVlPCj28prPcJs8d0wn6Q/J0VSVXFO B0RBY3vtt9aeK5yFdKJGt7Ka0SPBNJsKq5Rs9jRzZABH3UM3F1NoAAR4LE0/j4wQCDIMB8erkxG l/UNVpxjmo3zGYnavkPUO2ai6KDVb+bmtwk8jMA53w83jZp7hw5m7bSZOiK0ogWcEhpyJkiN7FI RvfeyQq7v4scquY3H4ikvZDR0/9+w1iAlHDCyuJCxPDxLQyv
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-* H. Nikolaus Schaller <hns@goldelico.com> [230916 12:50]:
-> Hi Tomi and Tony,
-> 
-> > Am 13.09.2023 um 13:59 schrieb Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>:
-> > 
-> > On 12/04/2023 10:39, Tony Lindgren wrote:
-> >> We may not have dsi->dsidev initialized during probe, and that can
-> >> lead into various dsi related warnings as omap_dsi_host_detach() gets
-> >> called with dsi->dsidev set to NULL.
-> >> The warnings can be "Fixed dependency cycle(s)" followed by a
-> >> WARNING: CPU: 0 PID: 787 at drivers/gpu/drm/omapdrm/dss/dsi.c:4414.
-> >> Let's fix the warnings by checking for a valid dsi->dsidev.
-> >> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> >> ---
-> >>  drivers/gpu/drm/omapdrm/dss/dsi.c | 2 +-
-> >>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-> >> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-> >> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-> >> @@ -4411,7 +4411,7 @@ static int omap_dsi_host_detach(struct mipi_dsi_host *host,
-> >>  {
-> >>  	struct dsi_data *dsi = host_to_omap(host);
-> >>  -	if (WARN_ON(dsi->dsidev != client))
-> >> +	if (dsi->dsidev && WARN_ON(dsi->dsidev != client))
-> >>  		return -EINVAL;
-> >>    	cancel_delayed_work_sync(&dsi->dsi_disable_work);
-> > 
-> > Shouldn't this rather be
-> > 
-> > if (!dsi->dsidev)
-> > 	return 0;
-> > 
-> > before the if (WARN_ON(dsi->dsidev != client)) line?
-> 
-> Yes you are right. We have a different variant in our Pyra kernel:
-> 
-> What we currently have in our Pyra tree is: https://git.goldelico.com/?p=letux-kernel.git;a=commitdiff;h=5bf7bd64eec1eb924e794e8d6600919f0dae8c5a;hp=27a0cd6263194d1465e9c53293d35f8c8c988f9d
-> 
->         struct dsi_data *dsi = host_to_omap(host);
->  
-> -       if (WARN_ON(dsi->dsidev != client))
-> +printk("%s\n", __func__);
-> +
-> +       if (!dsi->dsidev || WARN_ON(dsi->dsidev != client))
->                 return -EINVAL;
->  
->         cancel_delayed_work_sync(&dsi->dsi_disable_work);
-> 
-> > 
-> > If dsi->dsidev is NULL, then attach hasn't been called, and we shouldn't do anything in the detach callback either.
-> > 
-> > With your change we'll end up doing all the work in the detach callback, without ever doing their counterpart in the attach side.
-> 
-> If useful, I can post above mentioned patch (without printk).
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is ignored (apart
+from emitting a warning) and this typically results in resource leaks.
+To improve here there is a quest to make the remove callback return
+void. In the first step of this quest all drivers are converted to
+.remove_new() which already returns void. Eventually after all drivers
+are converted, .remove_new() is renamed to .remove().
 
-Sounds good to me.
+Trivially convert these drivers from always returning zero in the remove
+callback to the void returning variant.
 
-Thanks,
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+ drivers/net/ethernet/ti/cpmac.c        | 6 ++----
+ drivers/net/ethernet/ti/davinci_emac.c | 6 ++----
+ drivers/net/ethernet/ti/davinci_mdio.c | 6 ++----
+ drivers/net/ethernet/ti/netcp_core.c   | 5 ++---
+ 4 files changed, 8 insertions(+), 15 deletions(-)
 
-Tony
+diff --git a/drivers/net/ethernet/ti/cpmac.c b/drivers/net/ethernet/ti/cpmac.c
+index 80eeeb463c4f..bc9b5d18427d 100644
+--- a/drivers/net/ethernet/ti/cpmac.c
++++ b/drivers/net/ethernet/ti/cpmac.c
+@@ -1151,14 +1151,12 @@ static int cpmac_probe(struct platform_device *pdev)
+ 	return rc;
+ }
+ 
+-static int cpmac_remove(struct platform_device *pdev)
++static void cpmac_remove(struct platform_device *pdev)
+ {
+ 	struct net_device *dev = platform_get_drvdata(pdev);
+ 
+ 	unregister_netdev(dev);
+ 	free_netdev(dev);
+-
+-	return 0;
+ }
+ 
+ static struct platform_driver cpmac_driver = {
+@@ -1166,7 +1164,7 @@ static struct platform_driver cpmac_driver = {
+ 		.name 	= "cpmac",
+ 	},
+ 	.probe 	= cpmac_probe,
+-	.remove = cpmac_remove,
++	.remove_new = cpmac_remove,
+ };
+ 
+ int __init cpmac_init(void)
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index 2eb9d5a32588..5d756df133eb 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -2002,7 +2002,7 @@ static int davinci_emac_probe(struct platform_device *pdev)
+  * Called when removing the device driver. We disable clock usage and release
+  * the resources taken up by the driver and unregister network device
+  */
+-static int davinci_emac_remove(struct platform_device *pdev)
++static void davinci_emac_remove(struct platform_device *pdev)
+ {
+ 	struct net_device *ndev = platform_get_drvdata(pdev);
+ 	struct emac_priv *priv = netdev_priv(ndev);
+@@ -2022,8 +2022,6 @@ static int davinci_emac_remove(struct platform_device *pdev)
+ 	if (of_phy_is_fixed_link(np))
+ 		of_phy_deregister_fixed_link(np);
+ 	free_netdev(ndev);
+-
+-	return 0;
+ }
+ 
+ static int davinci_emac_suspend(struct device *dev)
+@@ -2076,7 +2074,7 @@ static struct platform_driver davinci_emac_driver = {
+ 		.of_match_table = davinci_emac_of_match,
+ 	},
+ 	.probe = davinci_emac_probe,
+-	.remove = davinci_emac_remove,
++	.remove_new = davinci_emac_remove,
+ };
+ 
+ /**
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index 89b6d23e9937..628c87dc1d28 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -673,7 +673,7 @@ static int davinci_mdio_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int davinci_mdio_remove(struct platform_device *pdev)
++static void davinci_mdio_remove(struct platform_device *pdev)
+ {
+ 	struct davinci_mdio_data *data = platform_get_drvdata(pdev);
+ 
+@@ -686,8 +686,6 @@ static int davinci_mdio_remove(struct platform_device *pdev)
+ 
+ 	pm_runtime_dont_use_autosuspend(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-
+-	return 0;
+ }
+ 
+ #ifdef CONFIG_PM
+@@ -766,7 +764,7 @@ static struct platform_driver davinci_mdio_driver = {
+ 		.of_match_table = of_match_ptr(davinci_mdio_of_mtable),
+ 	},
+ 	.probe = davinci_mdio_probe,
+-	.remove = davinci_mdio_remove,
++	.remove_new = davinci_mdio_remove,
+ };
+ 
+ static int __init davinci_mdio_init(void)
+diff --git a/drivers/net/ethernet/ti/netcp_core.c b/drivers/net/ethernet/ti/netcp_core.c
+index d829113c16ee..11b90e1da0c6 100644
+--- a/drivers/net/ethernet/ti/netcp_core.c
++++ b/drivers/net/ethernet/ti/netcp_core.c
+@@ -2228,7 +2228,7 @@ static int netcp_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int netcp_remove(struct platform_device *pdev)
++static void netcp_remove(struct platform_device *pdev)
+ {
+ 	struct netcp_device *netcp_device = platform_get_drvdata(pdev);
+ 	struct netcp_intf *netcp_intf, *netcp_tmp;
+@@ -2256,7 +2256,6 @@ static int netcp_remove(struct platform_device *pdev)
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 	platform_set_drvdata(pdev, NULL);
+-	return 0;
+ }
+ 
+ static const struct of_device_id of_match[] = {
+@@ -2271,7 +2270,7 @@ static struct platform_driver netcp_driver = {
+ 		.of_match_table	= of_match,
+ 	},
+ 	.probe = netcp_probe,
+-	.remove = netcp_remove,
++	.remove_new = netcp_remove,
+ };
+ module_platform_driver(netcp_driver);
+ 
+-- 
+2.40.1
+
