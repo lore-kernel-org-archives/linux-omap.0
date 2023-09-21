@@ -2,61 +2,65 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D6B8E7D0A5
-	for <linux-omap@archiver.kernel.org>; Thu, 21 Sep 2023 19:01:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F0EBE7D0A2
+	for <linux-omap@archiver.kernel.org>; Thu, 21 Sep 2023 20:32:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231135AbjIUTBg (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 21 Sep 2023 15:01:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42774 "EHLO
+        id S231240AbjIUUct (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 21 Sep 2023 16:32:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229495AbjIUTBL (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Sep 2023 15:01:11 -0400
-Received: from mail.bizcodes.pl (mail.bizcodes.pl [151.80.57.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E51A7B94F
-        for <linux-omap@vger.kernel.org>; Thu, 21 Sep 2023 10:36:59 -0700 (PDT)
-Received: by mail.bizcodes.pl (Postfix, from userid 1002)
-        id 27402A21D6; Thu, 21 Sep 2023 07:31:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=bizcodes.pl; s=mail;
-        t=1695281478; bh=5QPMt7jNntM5ZbstM20BWsHIeLbmRE8lVU4Iu89IleQ=;
-        h=Date:From:To:Subject:From;
-        b=jVGq0fzLgtjeYo1CM4hvXn21uW2UkXTA39RSd2ZCZ6VW8PbZSS6VwO/x0KkJqcSIx
-         b4hliYmO9+rESIPTwG+M2w2D/WJdk54WoyeTg/7B9XKyO1LlcSsdYG/ghXrdj24BYV
-         okS53z+4J0yrT1pcxg76ksDItfh4nx6Qpcd5J99kQwryCsTgVJKiZx1uTG3EIanTcI
-         svKTSPanIbTjHdR/jneRXi8COzqZ19bCZovN+9GK45rehklRiHw+VuqpkANZ68Adkc
-         3d2JKpR5XEw4Ng8Qwfruj9aUvT4yoMRsJTqk9eI2goRF0lwHXhWh8tbmE6DoMCUxUg
-         N+jSrM22qcsEw==
-Received: by mail.bizcodes.pl for <linux-omap@vger.kernel.org>; Thu, 21 Sep 2023 07:30:47 GMT
-Message-ID: <20230921064500-0.1.bu.1fx9k.0.q2c3mpoerr@bizcodes.pl>
-Date:   Thu, 21 Sep 2023 07:30:47 GMT
-From:   "Marcin Chruszcz" <marcin.chruszcz@bizcodes.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: Prezentacja
-X-Mailer: mail.bizcodes.pl
+        with ESMTP id S231549AbjIUUcc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 21 Sep 2023 16:32:32 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9EB268B4E4;
+        Thu, 21 Sep 2023 10:41:34 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id BA1328109;
+        Thu, 21 Sep 2023 12:16:27 +0000 (UTC)
+Date:   Thu, 21 Sep 2023 15:16:26 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@gmail.com>
+Cc:     Andreas Kemnade <andreas@kemnade.info>, bcousson@baylibre.com,
+        robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
+        conor+dt@kernel.org, lgirdwood@gmail.com, broonie@kernel.org,
+        perex@perex.cz, tiwai@suse.com, jarkko.nikula@bitmer.com,
+        dmitry.torokhov@gmail.com, linux-omap@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: Re: [PATCH 1/3] ASoC: ti: omap-mcbsp: Ignore errors for getting
+ fck_src
+Message-ID: <20230921121626.GT5285@atomide.com>
+References: <20230705190324.355282-1-andreas@kemnade.info>
+ <20230705190324.355282-2-andreas@kemnade.info>
+ <7d58d52d-2087-45af-b29e-2515b63ead13@gmail.com>
+ <20230920063353.GQ5285@atomide.com>
+ <dac768d2-2c66-4d6b-b3d3-d1ef69103c76@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <dac768d2-2c66-4d6b-b3d3-d1ef69103c76@gmail.com>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry!
+* Péter Ujfalusi <peter.ujfalusi@gmail.com> [230920 17:40]:
+> It is not the parent's fck, it is the PRCM clock which is selected as
+> the sourcee of the clock generator (CLKS) for BCLK/FSYNC. That is the
+> functional clock as well for the McBSP instance.
 
-Czy m=C3=B3g=C5=82bym przedstawi=C4=87 rozwi=C4=85zanie, kt=C3=B3re umo=C5=
-=BCliwia monitoring ka=C5=BCdego auta w czasie rzeczywistym w tym jego po=
-zycj=C4=99, zu=C5=BCycie paliwa i przebieg?
+Oh OK
 
-Dodatkowo nasze narz=C4=99dzie minimalizuje koszty utrzymania samochod=C3=
-=B3w, skraca czas przejazd=C3=B3w, a tak=C5=BCe tworzenie planu tras czy =
-dostaw.
+> Out of reset it is using the PRCM source which is fine in all current users.
+> I would do this fix or workaround in a different way: instead of
+> ignoring the error, avoid it in the first place. Do nothing if the
+> already selected clock is requested.
+> That would remove the error and will fail in case the reparenting is not
+> working -> boards will know this and might be able to do something about
+> it in a reasonable way.
+> 
+> How that sounds?
 
-Z naszej wiedzy i do=C5=9Bwiadczenia korzysta ju=C5=BC ponad 49 tys. Klie=
-nt=C3=B3w. Monitorujemy 809 000 pojazd=C3=B3w na ca=C5=82ym =C5=9Bwiecie,=
- co jest nasz=C4=85 najlepsz=C4=85 wizyt=C3=B3wk=C4=85.
+Sounds good to me :)
 
-Bardzo prosz=C4=99 o e-maila zwrotnego, je=C5=9Bli mogliby=C5=9Bmy wsp=C3=
-=B3lnie om=C3=B3wi=C4=87 potencja=C5=82 wykorzystania takiego rozwi=C4=85=
-zania w Pa=C5=84stwa firmie.
-
-
-Pozdrawiam
-Marcin Chruszcz
+Tony
