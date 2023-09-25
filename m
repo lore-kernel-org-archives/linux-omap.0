@@ -2,116 +2,128 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C240CE7A94
-	for <linux-omap@archiver.kernel.org>; Mon, 25 Sep 2023 12:28:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 665F2CE7A96
+	for <linux-omap@archiver.kernel.org>; Mon, 25 Sep 2023 13:22:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229877AbjIYM27 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 25 Sep 2023 08:28:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39894 "EHLO
+        id S231235AbjIYNWI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 25 Sep 2023 09:22:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231502AbjIYM26 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 25 Sep 2023 08:28:58 -0400
-Received: from mail-oo1-xc2b.google.com (mail-oo1-xc2b.google.com [IPv6:2607:f8b0:4864:20::c2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC659C0;
-        Mon, 25 Sep 2023 05:28:51 -0700 (PDT)
-Received: by mail-oo1-xc2b.google.com with SMTP id 006d021491bc7-57b8a0f320dso2472871eaf.1;
-        Mon, 25 Sep 2023 05:28:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1695644931; x=1696249731; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=AEMB+aMclhd1sl71SWaIAmlGGLDyHVrWoaX/gY8/R5c=;
-        b=V7KDck2LK6EjRLkng9gatYnO7JdSommgSsf4gkzKxtgvD0qU9Nz1AgNErTZ281S6V6
-         Ox3kO/gQttIKUWuUn3AV9S0/HmOuBb3qDRjQ5BLKzIY9pJNi1oddX65Y+B18M6M0dBPA
-         yXbo7i4s7LF/OFOkKDTMQzDTmbeQ9BOd4QZeu6yryn4rJ5ZBoJgrn4IQL17D36pm1Jt4
-         mpE/feuJ1tejwkdS0V7ARmiJpykH6y98THurnB1B0qUZWSuzn9zSkml6Kon69i4AHYI2
-         dOLj+9xHebAxFTyGjTrO+CtJNZI7/SvuClB5fH3MdHKtC6UAhS+3Gzvyd5YtJnIZXDji
-         b9LQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695644931; x=1696249731;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=AEMB+aMclhd1sl71SWaIAmlGGLDyHVrWoaX/gY8/R5c=;
-        b=YW1huWns4+34NhE8V18MWKrsgJcCIy0J6bgTIfRVyQKCz9BCjfrdSfbIEIdNFF2K4H
-         c1ztbXT1crHEIyp0OFJCkBBk8P+yYjhY5Okn5WSCxhwhquieaTa9pPc0SZhGjIsK+Ma8
-         hNj57tCz8j5KhoqZfCyiCs3H952I5GCzxdkvPu6EcxduOzfSOkIb+XBvqlxBpq+weqMQ
-         YCJhxbWfabkBuUBGOOyUXNTYZCliV6J/aj2bZvneoYmkhTLklI6g2bLtxGcCl98ZKEBz
-         bcE5PsrEa16zrR0PsFwYBJhCyqsxA21Yq50wdInm6UbqIiHU2/SDy8IPd78MxR7eJ5U5
-         i7EA==
-X-Gm-Message-State: AOJu0Yw2O3DZcSPYqOF3uUT8j44zI4HyoGFaR0fcJn7LeAQBTFmJ7s1r
-        JXlHssny3dr8SaUbPhmk6kgEGO0irH2ELMzkTKI=
-X-Google-Smtp-Source: AGHT+IGIn17QRT9sghZGFLapfE2B79F0bn2aZRTy/vN6Uwtkl2OMEt9VJArKEss1Aal2b/jP5XnS7vRIpVGaykVipLw=
-X-Received: by 2002:a4a:2a14:0:b0:576:8b77:59ee with SMTP id
- k20-20020a4a2a14000000b005768b7759eemr5823510oof.2.1695644931104; Mon, 25 Sep
- 2023 05:28:51 -0700 (PDT)
-MIME-Version: 1.0
+        with ESMTP id S230445AbjIYNWH (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 25 Sep 2023 09:22:07 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E735EA2;
+        Mon, 25 Sep 2023 06:22:00 -0700 (PDT)
+Received: from lhrpeml500005.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RvNl16n7cz6D9y0;
+        Mon, 25 Sep 2023 21:19:41 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.31; Mon, 25 Sep
+ 2023 14:21:58 +0100
+Date:   Mon, 25 Sep 2023 14:21:57 +0100
+From:   Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To:     Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+CC:     Andreas Kemnade <andreas@kemnade.info>, <jic23@kernel.org>,
+        <lars@metafoo.de>, <robh+dt@kernel.org>,
+        <krzysztof.kozlowski+dt@linaro.org>, <conor+dt@kernel.org>,
+        <bcousson@baylibre.com>, <tony@atomide.com>,
+        <jean-baptiste.maneyrol@tdk.com>, <chenhuiz@axis.com>,
+        <andy.shevchenko@gmail.com>, <linux-iio@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-omap@vger.kernel.org>
+Subject: Re: [PATCH 1/3] dt-bindings: iio: imu: mpu6050: Add level shifter
+Message-ID: <20230925142157.00000914@Huawei.com>
+In-Reply-To: <3b81a9a7-69a3-4fd6-875f-7a5170c5c872@linaro.org>
 References: <20230924222559.2038721-1-andreas@kemnade.info>
- <20230924222559.2038721-3-andreas@kemnade.info> <CAHp75VfvmED4ZsmrH4B6m9kGsH=68-zjQd5JMszb6UBTtbF0bw@mail.gmail.com>
- <20230925140415.00130082@aktux>
-In-Reply-To: <20230925140415.00130082@aktux>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Mon, 25 Sep 2023 15:28:15 +0300
-Message-ID: <CAHp75VeyCnDwCAf4pKVynQDXdqM9nURLFHKODkgF0c+BLCrQ7w@mail.gmail.com>
-Subject: Re: [PATCH 2/3] iio: imu: mpu6050: add level shifter flag
-To:     Andreas Kemnade <andreas@kemnade.info>
-Cc:     jic23@kernel.org, lars@metafoo.de, robh+dt@kernel.org,
-        krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
-        bcousson@baylibre.com, tony@atomide.com,
-        jean-baptiste.maneyrol@tdk.com, chenhuiz@axis.com,
-        linux-iio@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        <20230924222559.2038721-2-andreas@kemnade.info>
+        <6db5b758-2ae6-46fb-a699-d73a2b98b4c2@linaro.org>
+        <20230925112852.00007d34@Huawei.com>
+        <20230925130225.55fe6fd4@aktux>
+        <3b81a9a7-69a3-4fd6-875f-7a5170c5c872@linaro.org>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+MIME-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.227.76]
+X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Sep 25, 2023 at 3:04=E2=80=AFPM Andreas Kemnade <andreas@kemnade.in=
-fo> wrote:
-> On Mon, 25 Sep 2023 14:07:58 +0300
-> Andy Shevchenko <andy.shevchenko@gmail.com> wrote:
-> > On Mon, Sep 25, 2023 at 1:26=E2=80=AFAM Andreas Kemnade <andreas@kemnad=
-e.info> wrote:
-> > >
-> > > Some boards fail in magnetometer probe if flag is not set.
-> >
-> > Which flag? Can you elaborate a bit more?
-> >
-> well see $subj. The level shifter flag.
+On Mon, 25 Sep 2023 14:24:32 +0200
+Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org> wrote:
 
-Well. it is better to have the commit message being self-contained.
+> On 25/09/2023 13:02, Andreas Kemnade wrote:
+> > On Mon, 25 Sep 2023 11:28:52 +0100
+> > Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
+> >   
+> >> On Mon, 25 Sep 2023 08:54:08 +0200
+> >> Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org> wrote:
+> >>  
+> >>> On 25/09/2023 00:25, Andreas Kemnade wrote:    
+> >>>> Found in ancient platform data struct:
+> >>>> level_shifter: 0: VLogic, 1: VDD
+> >>>>
+> >>>> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> >>>> ---
+> >>>>  .../devicetree/bindings/iio/imu/invensense,mpu6050.yaml         | 2 ++
+> >>>>  1 file changed, 2 insertions(+)
+> >>>>
+> >>>> diff --git a/Documentation/devicetree/bindings/iio/imu/invensense,mpu6050.yaml b/Documentation/devicetree/bindings/iio/imu/invensense,mpu6050.yaml
+> >>>> index 1db6952ddca5e..6aae2272fa15c 100644
+> >>>> --- a/Documentation/devicetree/bindings/iio/imu/invensense,mpu6050.yaml
+> >>>> +++ b/Documentation/devicetree/bindings/iio/imu/invensense,mpu6050.yaml
+> >>>> @@ -48,6 +48,8 @@ properties:
+> >>>>  
+> >>>>    mount-matrix: true
+> >>>>  
+> >>>> +  invensense,level-shifter: true      
+> >>>
+> >>> It does not look like you tested the bindings, at least after quick
+> >>> look. Please run `make dt_binding_check` (see
+> >>> Documentation/devicetree/bindings/writing-schema.rst for instructions).
+> >>> Maybe you need to update your dtschema and yamllint.
+> >>>
+> >>> Best regards,
+> >>> Krzysztof
+> >>>
+> >>>     
+> >>
+> >> Also this one isn't obvious - give it a description in the binding doc.
+> >>
+> >> I'm not sure of the arguement for calling it level shift in general.
+> >>  
+> > I have no more descrption than the old source (see the citation from there)
+> > https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-9150-Register-Map.pdf  
+> 
+> I could not find any reference to level shift in this manual. To which
+> page and part do you refer?
+> 
+> > 
+> > does not list it. But that bit is needed to get things to work what also does the
+> > vendor kernel do.
+> > 
+> > What could be a better descrption?  
+> 
+> I don't know, but something reasonable to you should be put there.
 
-> > Does it deserve the Fixes tag?
-> >
-> As there are only certain boards affected, they would also have
-> to add the flag in dtb, I do not think it deservers a Fixes tag.
-> Even in the board I have here, there are basically two
-> mpu9150 connected per cable, only one of them needs the flag.
+The text you have in the commit log seems better than nothing.
+I suspect it's internally wiring VDD to VDDIO. Normally people just
+connect both power supplies to same supply if they want to do that,
+but maybe there was a chip variant that didn't have enough pins?
 
-OK.
+If you have the device, can you see it actually matches the packaging
+types in the manual?
 
-...
+Jonathan
 
-> > >         unsigned int val;
-> > >         int ret;
-> >
-> > > +       ret =3D regmap_update_bits(st->map, 0x1, 0x80,
-> > > +                                st->level_shifter ? 0x80 : 0);
-> >
-> > This is a bit cryptic, what does 1 stand for?
-> >
-> Well, I do not find anything in
-> https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-9150-Register-M=
-ap.pdf
-> I have just found a similar line in the ancient 3.0 vendor kernel. No sym=
-bolic
-> names there.
+> 
+> Best regards,
+> Krzysztof
+> 
+> 
 
-Okay, perhaps a comment on top to point out this ("the code based on
-v3.0 vendor kernel, the meaning is unknown").
-
---=20
-With Best Regards,
-Andy Shevchenko
