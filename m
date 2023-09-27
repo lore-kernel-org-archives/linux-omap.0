@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DB71E810AA
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3428EE810B5
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230031AbjI0Hru (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Sep 2023 03:47:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50670 "EHLO
+        id S230093AbjI0Hrx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Sep 2023 03:47:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50756 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230061AbjI0Hre (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:47:34 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B49B61BF;
-        Wed, 27 Sep 2023 00:47:32 -0700 (PDT)
+        with ESMTP id S230030AbjI0Hrf (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:47:35 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47628136;
+        Wed, 27 Sep 2023 00:47:33 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 30598218A2;
-        Wed, 27 Sep 2023 07:47:30 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id EAA911F8B3;
+        Wed, 27 Sep 2023 07:47:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1695800850; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1695800851; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=zoNkSP1xm6F8e8A1K7Rp8buTbSF05HOcVujnEuQjmXA=;
-        b=g3uV31Zq5cu/s+j+N17iTRI7prQaoiU42/M3es/U5vfZm3J8r9YpB70qiDLWSKf7dyTcO7
-        /gimMZzrguh2xuvMP5mIGJ6ZbgCj8DHYnZ1eU93p9+vCqbp2aGcnD9Q6luwSCa94zhuRI4
-        XzCXphj7wkaTcJxOaSx9ErcZQSiZAmo=
+        bh=kiAB9thNN4d00UsEjXVGtXWPtmT3/Z08ldzeOF5qv0g=;
+        b=b2+e6gOllobM4T8Sxt9uRNuvZShy4FeBfJ7SzxHBe4MBvIXj6vEIGsa04bKsGwkCJd9t7j
+        dEfps7cZV6IS2cOe+fWc729lZCLJ3TvJlxdU3fTdbHCQCP+dRK6w4Kax9A/JEAljZKrAaD
+        JrnJ+bitA4vhVMR8KmzAz4Me5KRwD3Q=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1695800850;
+        s=susede2_ed25519; t=1695800851;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=zoNkSP1xm6F8e8A1K7Rp8buTbSF05HOcVujnEuQjmXA=;
-        b=G2sOpLRe/EVgCAJJjss/r3CZV4J6LvipbEO6PHnwKCjNY/svTjrN0PKOz172NvGAN2sfve
-        ECQgYnvKZNNLsNCQ==
+        bh=kiAB9thNN4d00UsEjXVGtXWPtmT3/Z08ldzeOF5qv0g=;
+        b=Ywx6rc0PMREZmRo0xBYdiSX3MNQzkF1F9JK5XTMMEC12La5wDWPduKh5v3/fptc2u/m7KD
+        LAiVWnusIY2FBfDA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id E2A711338F;
-        Wed, 27 Sep 2023 07:47:29 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id B0AB31338F;
+        Wed, 27 Sep 2023 07:47:31 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id 2DJ4NhHeE2XvUQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:29 +0000
+        id OL1TKhPeE2XvUQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:31 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org, arnd@arndb.de,
         daniel@ffwll.ch
@@ -55,11 +55,10 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-nvidia@lists.surfsouth.com, linux-omap@vger.kernel.org,
         linux-parisc@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Maik Broemme <mbroemme@libmpq.org>
-Subject: [PATCH 21/46] fbdev/intelfb: Initialize fb_ops to fbdev I/O-memory helpers
-Date:   Wed, 27 Sep 2023 09:26:54 +0200
-Message-ID: <20230927074722.6197-22-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH 27/46] fbdev/pm3fb: Initialize fb_ops to fbdev I/O-memory helpers
+Date:   Wed, 27 Sep 2023 09:27:00 +0200
+Message-ID: <20230927074722.6197-28-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.42.0
 In-Reply-To: <20230927074722.6197-1-tzimmermann@suse.de>
 References: <20230927074722.6197-1-tzimmermann@suse.de>
@@ -83,51 +82,43 @@ This benefits systems that do not use these functions.
 No functional changes.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Maik Broemme <mbroemme@libmpq.org>
 ---
- drivers/video/fbdev/Kconfig              | 3 ++-
- drivers/video/fbdev/intelfb/intelfbdrv.c | 4 +++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/video/fbdev/Kconfig | 1 +
+ drivers/video/fbdev/pm3fb.c | 2 ++
+ 2 files changed, 3 insertions(+)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 46f761ffa13c9..c1bb885cee4c3 100644
+index ba5fc63691b16..afc1cf05a30f8 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -861,10 +861,11 @@ config FB_CARILLO_RANCH
- config FB_INTEL
- 	tristate "Intel 830M/845G/852GM/855GM/865G/915G/945G/945GM/965G/965GM support"
- 	depends on FB && PCI && X86 && AGP_INTEL && EXPERT
--	select FB_MODE_HELPERS
+@@ -1404,6 +1404,7 @@ config FB_PM3
  	select FB_CFB_FILLRECT
  	select FB_CFB_COPYAREA
  	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_FOPS
-+	select FB_MODE_HELPERS
- 	select BOOT_VESA_SUPPORT if FB_INTEL = y
  	select VIDEO_NOMODESET
- 	depends on !DRM_I915
-diff --git a/drivers/video/fbdev/intelfb/intelfbdrv.c b/drivers/video/fbdev/intelfb/intelfbdrv.c
-index 3d334f1719596..d29d80a16295e 100644
---- a/drivers/video/fbdev/intelfb/intelfbdrv.c
-+++ b/drivers/video/fbdev/intelfb/intelfbdrv.c
-@@ -198,6 +198,7 @@ static const struct fb_ops intel_fb_ops = {
- 	.owner =		THIS_MODULE,
- 	.fb_open =              intelfb_open,
- 	.fb_release =           intelfb_release,
+ 	help
+ 	  This is the frame buffer device driver for the 3DLabs Permedia3
+diff --git a/drivers/video/fbdev/pm3fb.c b/drivers/video/fbdev/pm3fb.c
+index 16577d0e41b1a..6e55e42514d63 100644
+--- a/drivers/video/fbdev/pm3fb.c
++++ b/drivers/video/fbdev/pm3fb.c
+@@ -1203,6 +1203,7 @@ static int pm3fb_blank(int blank_mode, struct fb_info *info)
+ 
+ static const struct fb_ops pm3fb_ops = {
+ 	.owner		= THIS_MODULE,
 +	__FB_DEFAULT_IOMEM_OPS_RDWR,
- 	.fb_check_var =         intelfb_check_var,
- 	.fb_set_par =           intelfb_set_par,
- 	.fb_setcolreg =		intelfb_setcolreg,
-@@ -208,7 +209,8 @@ static const struct fb_ops intel_fb_ops = {
- 	.fb_imageblit =         intelfb_imageblit,
- 	.fb_cursor =            intelfb_cursor,
- 	.fb_sync =              intelfb_sync,
--	.fb_ioctl =		intelfb_ioctl
-+	.fb_ioctl =		intelfb_ioctl,
+ 	.fb_check_var	= pm3fb_check_var,
+ 	.fb_set_par	= pm3fb_set_par,
+ 	.fb_setcolreg	= pm3fb_setcolreg,
+@@ -1213,6 +1214,7 @@ static const struct fb_ops pm3fb_ops = {
+ 	.fb_blank	= pm3fb_blank,
+ 	.fb_sync	= pm3fb_sync,
+ 	.fb_cursor	= pm3fb_cursor,
 +	__FB_DEFAULT_IOMEM_OPS_MMAP,
  };
  
- /* PCI driver module table */
+ /* ------------------------------------------------------------------------- */
 -- 
 2.42.0
 
