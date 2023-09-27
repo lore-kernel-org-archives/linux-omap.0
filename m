@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48E53E80AAF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC418E80AB2
 	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230048AbjI0Hrh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S230126AbjI0Hrh (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Wed, 27 Sep 2023 03:47:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50762 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230043AbjI0Hrb (ORCPT
+        with ESMTP id S230046AbjI0Hrb (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:47:31 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 491EA1A5;
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 496A919A;
         Wed, 27 Sep 2023 00:47:28 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 14B652187B;
-        Wed, 27 Sep 2023 07:47:25 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 4C7E21F8A4;
+        Wed, 27 Sep 2023 07:47:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1695800845; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1695800847; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=oY0i4UK34L7nr7xZ30uhUhEt/fgW7HZcMAw4vpL9y1w=;
-        b=NAQrwn0vOHOUeDtuz8duOP1q1KKGXBNIwG07Y8PXZFF8/eRGffAGwSX+2wprVd5qKIS2nl
-        tC3AyshRyocOz9YyWnCDPc/UznY2y1LGAWww2EaR2+DUSeHNa9fYbpNohnhZh9F1t7QoXs
-        6HShFT7l8mKFkOOGFsIncX4YANa7OCo=
+        bh=EZCIGadNzDcDDyy0uQKLnD2WXwhef9Wz5LBK3tYEh4M=;
+        b=dOmiyRBnPpCv26IzyWzGDVcaAnYAIT5mOmaHSyeHiY6KIYzYDOESDeX7DHtnXfQulmxZEs
+        cLrbo3GDra6TM1NbplPFFXWIYZar449Gej2FGgdeRLB+tK1cU72fwBa6M76sT4Ycnz6S6v
+        cYeaP1Dq9I/7G4PCf0ttIY9jPMTbwdQ=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1695800845;
+        s=susede2_ed25519; t=1695800847;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=oY0i4UK34L7nr7xZ30uhUhEt/fgW7HZcMAw4vpL9y1w=;
-        b=d4200Of02irElHR6+7mnD0qgX7ZRqn+zUs808jVnl3d30fb/rMv4QFpRj0NQgzfDXutwdf
-        ZNF9qbsmrxvWVRAg==
+        bh=EZCIGadNzDcDDyy0uQKLnD2WXwhef9Wz5LBK3tYEh4M=;
+        b=ezavfw3HpJxdIJYra69t9VdeNtvqMrPD4QfQFK47RF6nEgFJdtsYgvGSxTKXgbCXKy+aOU
+        Chf8ch2GgaO0CKBA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id D0C5C13A74;
-        Wed, 27 Sep 2023 07:47:24 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 173101338F;
+        Wed, 27 Sep 2023 07:47:27 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id MMQpMgzeE2XvUQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:24 +0000
+        id SCXFBA/eE2XvUQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:27 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org, arnd@arndb.de,
         daniel@ffwll.ch
@@ -56,9 +56,9 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-nvidia@lists.surfsouth.com, linux-omap@vger.kernel.org,
         linux-parisc@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 01/46] fbdev: Provide I/O-memory helpers as module
-Date:   Wed, 27 Sep 2023 09:26:34 +0200
-Message-ID: <20230927074722.6197-2-tzimmermann@suse.de>
+Subject: [PATCH 10/46] fbdev/cobalt-lcd: Initialize fb_ops to fbdev I/O-memory helpers
+Date:   Wed, 27 Sep 2023 09:26:43 +0200
+Message-ID: <20230927074722.6197-11-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.42.0
 In-Reply-To: <20230927074722.6197-1-tzimmermann@suse.de>
 References: <20230927074722.6197-1-tzimmermann@suse.de>
@@ -68,80 +68,51 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Provide helpers for accessing I/O memory in a helper module. The fbdev
-core uses these helpers, so select the module unconditionally for fbdev.
-Drivers will later be able to select the module individually and the
-helpers will become optional.
+Initialize the instance of struct fb_ops with fbdev initializer
+macros for framebuffers in I/O address space. Set the read/write,
+draw and mmap callbacks to the correct implementation and avoid
+implicit defaults. Also select the necessary I/O helpers in Kconfig.
+
+Fbdev drivers sometimes rely on the callbacks being NULL for a
+default implementation to be invoked; hence requiring the I/O
+helpers to be built in any case. Setting all callbacks in all
+drivers explicitly will allow to make the I/O helpers optional.
+This benefits systems that do not use these functions.
+
+No functional changes.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 ---
- drivers/video/fbdev/core/Kconfig      | 6 ++++++
- drivers/video/fbdev/core/Makefile     | 3 ++-
- drivers/video/fbdev/core/fb_io_fops.c | 3 +++
- 3 files changed, 11 insertions(+), 1 deletion(-)
+ drivers/video/fbdev/Kconfig        | 1 +
+ drivers/video/fbdev/cobalt_lcdfb.c | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/video/fbdev/core/Kconfig b/drivers/video/fbdev/core/Kconfig
-index 756c8603cf39b..7a3ed13bed708 100644
---- a/drivers/video/fbdev/core/Kconfig
-+++ b/drivers/video/fbdev/core/Kconfig
-@@ -4,6 +4,7 @@
- #
+diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
+index 06d20787da8b8..5f8ba796aa382 100644
+--- a/drivers/video/fbdev/Kconfig
++++ b/drivers/video/fbdev/Kconfig
+@@ -1752,6 +1752,7 @@ config FB_GOLDFISH
+ config FB_COBALT
+ 	tristate "Cobalt server LCD frame buffer support"
+ 	depends on FB && MIPS_COBALT
++	select FB_IOMEM_HELPERS
  
- config FB_CORE
-+	select FB_IOMEM_FOPS
- 	select VIDEO_CMDLINE
- 	tristate
+ config FB_SH7760
+ 	bool "SH7760/SH7763/SH7720/SH7721 LCDC support"
+diff --git a/drivers/video/fbdev/cobalt_lcdfb.c b/drivers/video/fbdev/cobalt_lcdfb.c
+index b94e7c97264cb..c2b8f894799ca 100644
+--- a/drivers/video/fbdev/cobalt_lcdfb.c
++++ b/drivers/video/fbdev/cobalt_lcdfb.c
+@@ -280,7 +280,9 @@ static const struct fb_ops cobalt_lcd_fbops = {
+ 	.fb_read	= cobalt_lcdfb_read,
+ 	.fb_write	= cobalt_lcdfb_write,
+ 	.fb_blank	= cobalt_lcdfb_blank,
++	__FB_DEFAULT_IOMEM_OPS_DRAW,
+ 	.fb_cursor	= cobalt_lcdfb_cursor,
++	__FB_DEFAULT_IOMEM_OPS_MMAP,
+ };
  
-@@ -144,12 +145,17 @@ config FB_DMAMEM_HELPERS
- 	select FB_SYS_FOPS
- 	select FB_SYS_IMAGEBLIT
- 
-+config FB_IOMEM_FOPS
-+	tristate
-+	depends on FB_CORE
-+
- config FB_IOMEM_HELPERS
- 	bool
- 	depends on FB_CORE
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_IMAGEBLIT
-+	select FB_IOMEM_FOPS
- 
- config FB_IOMEM_HELPERS_DEFERRED
- 	bool
-diff --git a/drivers/video/fbdev/core/Makefile b/drivers/video/fbdev/core/Makefile
-index 36d3156dc759c..c1d657601b2be 100644
---- a/drivers/video/fbdev/core/Makefile
-+++ b/drivers/video/fbdev/core/Makefile
-@@ -3,7 +3,7 @@ obj-$(CONFIG_FB_NOTIFY)           += fb_notify.o
- obj-$(CONFIG_FB_CORE)             += fb.o
- fb-y                              := fb_info.o \
-                                      fbmem.o fbcmap.o \
--                                     modedb.o fbcvt.o fb_cmdline.o fb_io_fops.o
-+                                     modedb.o fbcvt.o fb_cmdline.o
- ifdef CONFIG_FB
- fb-y                              += fb_backlight.o fbmon.o
- endif
-@@ -28,6 +28,7 @@ fb-$(CONFIG_LOGO)		  += fb_logo.o
- obj-$(CONFIG_FB_CFB_FILLRECT)  += cfbfillrect.o
- obj-$(CONFIG_FB_CFB_COPYAREA)  += cfbcopyarea.o
- obj-$(CONFIG_FB_CFB_IMAGEBLIT) += cfbimgblt.o
-+obj-$(CONFIG_FB_IOMEM_FOPS)    += fb_io_fops.o
- obj-$(CONFIG_FB_SYS_FILLRECT)  += sysfillrect.o
- obj-$(CONFIG_FB_SYS_COPYAREA)  += syscopyarea.o
- obj-$(CONFIG_FB_SYS_IMAGEBLIT) += sysimgblt.o
-diff --git a/drivers/video/fbdev/core/fb_io_fops.c b/drivers/video/fbdev/core/fb_io_fops.c
-index 5985e5e1b040c..871b829521af3 100644
---- a/drivers/video/fbdev/core/fb_io_fops.c
-+++ b/drivers/video/fbdev/core/fb_io_fops.c
-@@ -131,3 +131,6 @@ ssize_t fb_io_write(struct fb_info *info, const char __user *buf, size_t count,
- 	return (cnt) ? cnt : err;
- }
- EXPORT_SYMBOL(fb_io_write);
-+
-+MODULE_DESCRIPTION("Fbdev helpers for framebuffers in I/O memory");
-+MODULE_LICENSE("GPL");
+ static int cobalt_lcdfb_probe(struct platform_device *dev)
 -- 
 2.42.0
 
