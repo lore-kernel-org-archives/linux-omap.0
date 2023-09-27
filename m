@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C28BE80A9A
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2575DE7F145
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230080AbjI0Hrn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Sep 2023 03:47:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40436 "EHLO
+        id S230153AbjI0Hro (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Sep 2023 03:47:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230081AbjI0Hrb (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:47:31 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 495691B4;
-        Wed, 27 Sep 2023 00:47:28 -0700 (PDT)
+        with ESMTP id S230084AbjI0Hrc (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:47:32 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DD091A6;
+        Wed, 27 Sep 2023 00:47:30 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 1E6C01F899;
-        Wed, 27 Sep 2023 07:47:26 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 081362189F;
+        Wed, 27 Sep 2023 07:47:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1695800846; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1695800848; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=kMGAppkbpU6AOjIUHzHmiI1PKhKctgWqSXZgj+cIjHw=;
-        b=2YR2TxvY+AkquIHysYNlHEQF7icTPpCpdoyPEkaCpFLjKO5RqUzSbIA4JV0emxe/kDNmrs
-        aWcGR3cmG/UZRXsRb1yQHDYd2iN77FrynqDF6ioLcvmnioHq8uXwp4x6nzJE4HlJhpgWJ7
-        TcfjRnfnsYemwNa3L/0gLtUYmSv1YU0=
+        bh=2/IAJ+nflY6vv4Hj8yMEqhnvYxgG/i/teJeTcVUgps4=;
+        b=0ssOZia3Xz3ePzTXYq6vRGMryjR2ZOwQoYZY/etqsB60qP1EN9MIMOW9OiuzX+fuTww83C
+        4Jh2dzb9LN6N/Fr2Y2eBMGonVP+2WCq4EhZtGshM9oQPAfchBbwBRXp+V9zr8EaQCZQAPd
+        4t8N9Q+pWuENQ1+naHRg32/zUHoRDD0=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1695800846;
+        s=susede2_ed25519; t=1695800848;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=kMGAppkbpU6AOjIUHzHmiI1PKhKctgWqSXZgj+cIjHw=;
-        b=kQj2soV5myVqfXRSO6v9xYK4q1A0c5QW5Rs3YyX8Dj1BTkM/9eurNDnCarEwZm+cIyPWpn
-        gfywbGFYthBPooAw==
+        bh=2/IAJ+nflY6vv4Hj8yMEqhnvYxgG/i/teJeTcVUgps4=;
+        b=Xh3vOdRSXZdH2cgCaDmXtjcjE6q5Xkpqf1QrKXJA4ZM+nP9O7p2FHP0hcp49Qlkvcg6bwB
+        R4DiEpEDFRTT8oAA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id CE24013A74;
-        Wed, 27 Sep 2023 07:47:25 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id C530913A74;
+        Wed, 27 Sep 2023 07:47:27 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id eFV+MQ3eE2XvUQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:25 +0000
+        id +LlaLw/eE2XvUQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:27 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org, arnd@arndb.de,
         daniel@ffwll.ch
@@ -56,9 +56,9 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-nvidia@lists.surfsouth.com, linux-omap@vger.kernel.org,
         linux-parisc@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 05/46] fbdev/arkfb: Initialize fb_ops to fbdev I/O-memory helpers
-Date:   Wed, 27 Sep 2023 09:26:38 +0200
-Message-ID: <20230927074722.6197-6-tzimmermann@suse.de>
+Subject: [PATCH 13/46] fbdev/dnfb: Initialize fb_ops to fbdev I/O-memory helpers
+Date:   Wed, 27 Sep 2023 09:26:46 +0200
+Message-ID: <20230927074722.6197-14-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.42.0
 In-Reply-To: <20230927074722.6197-1-tzimmermann@suse.de>
 References: <20230927074722.6197-1-tzimmermann@suse.de>
@@ -84,41 +84,38 @@ No functional changes.
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 ---
  drivers/video/fbdev/Kconfig | 1 +
- drivers/video/fbdev/arkfb.c | 2 ++
+ drivers/video/fbdev/dnfb.c  | 2 ++
  2 files changed, 3 insertions(+)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index e24653109dea8..012680f24964b 100644
+index 5ad55bf2b18e6..0997c6cc3bcdb 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -1381,6 +1381,7 @@ config FB_ARK
+@@ -217,6 +217,7 @@ config FB_APOLLO
+ 	default y
  	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
  	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_FOPS
- 	select FB_TILEBLITTING
- 	select FB_SVGALIB
- 	select VGASTATE
-diff --git a/drivers/video/fbdev/arkfb.c b/drivers/video/fbdev/arkfb.c
-index 60a96fdb5dd8e..dca9c0325b3f0 100644
---- a/drivers/video/fbdev/arkfb.c
-+++ b/drivers/video/fbdev/arkfb.c
-@@ -924,6 +924,7 @@ static const struct fb_ops arkfb_ops = {
+ 
+ config FB_Q40
+ 	bool
+diff --git a/drivers/video/fbdev/dnfb.c b/drivers/video/fbdev/dnfb.c
+index 18405c402ec15..c4d24540d9efd 100644
+--- a/drivers/video/fbdev/dnfb.c
++++ b/drivers/video/fbdev/dnfb.c
+@@ -110,10 +110,12 @@ static void dnfb_copyarea(struct fb_info *info, const struct fb_copyarea *area);
+ 
+ static const struct fb_ops dn_fb_ops = {
  	.owner		= THIS_MODULE,
- 	.fb_open	= arkfb_open,
- 	.fb_release	= arkfb_release,
 +	__FB_DEFAULT_IOMEM_OPS_RDWR,
- 	.fb_check_var	= arkfb_check_var,
- 	.fb_set_par	= arkfb_set_par,
- 	.fb_setcolreg	= arkfb_setcolreg,
-@@ -932,6 +933,7 @@ static const struct fb_ops arkfb_ops = {
- 	.fb_fillrect	= arkfb_fillrect,
- 	.fb_copyarea	= cfb_copyarea,
- 	.fb_imageblit	= arkfb_imageblit,
+ 	.fb_blank	= dnfb_blank,
+ 	.fb_fillrect	= cfb_fillrect,
+ 	.fb_copyarea	= dnfb_copyarea,
+ 	.fb_imageblit	= cfb_imageblit,
 +	__FB_DEFAULT_IOMEM_OPS_MMAP,
- 	.fb_get_caps    = svga_get_caps,
  };
  
+ static const struct fb_var_screeninfo dnfb_var = {
 -- 
 2.42.0
 
