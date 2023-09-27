@@ -2,77 +2,61 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFC67E7F127
-	for <linux-omap@archiver.kernel.org>; Tue, 26 Sep 2023 20:42:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1C96E80A9A
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:42:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235740AbjIZUmX (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 26 Sep 2023 16:42:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35740 "EHLO
+        id S229458AbjI0Hmt (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Sep 2023 03:42:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39696 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232008AbjIZUmX (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 26 Sep 2023 16:42:23 -0400
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DA849F;
-        Tue, 26 Sep 2023 13:42:16 -0700 (PDT)
-Received: from p200300ccff2a5b001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:cc:ff2a:5b00:1a3d:a2ff:febf:d33a] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <andreas@kemnade.info>)
-        id 1qlEsl-004D7y-4C; Tue, 26 Sep 2023 22:42:10 +0200
-Received: from andi by aktux with local (Exim 4.96)
-        (envelope-from <andreas@kemnade.info>)
-        id 1qlEsk-008tas-1C;
-        Tue, 26 Sep 2023 22:42:10 +0200
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org,
-        krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc:     Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH] ARM: dts: omap4-embt2ws: Add Bluetooth
-Date:   Tue, 26 Sep 2023 22:42:04 +0200
-Message-Id: <20230926204204.2120316-1-andreas@kemnade.info>
-X-Mailer: git-send-email 2.39.2
+        with ESMTP id S230015AbjI0Hms (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:42:48 -0400
+Received: from mail.bizcodes.pl (mail.bizcodes.pl [151.80.57.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5E21BF
+        for <linux-omap@vger.kernel.org>; Wed, 27 Sep 2023 00:42:46 -0700 (PDT)
+Received: by mail.bizcodes.pl (Postfix, from userid 1002)
+        id A519CA399F; Wed, 27 Sep 2023 07:41:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=bizcodes.pl; s=mail;
+        t=1695800496; bh=5QPMt7jNntM5ZbstM20BWsHIeLbmRE8lVU4Iu89IleQ=;
+        h=Date:From:To:Subject:From;
+        b=QGyZI3hhn6Jbw+vuJg0WEy2iN5EolbItF7hodRlBnyT57LeX9Sscgng2CBsVl48lz
+         NRjqcciWEyWWEocGgv/7TzXv23F7Phx8maVjhlgXwmdtPJuBbtMrZNYcMrkYkFHAiw
+         D6hbq+J199IVYpj+dSR+OuAWMdLsf6G+lSniZh2b93yKv+apm5/w+JyRYRY+iOoIHq
+         WEZEP8rxLG6TGFT6ktL2K9/qVfOzHp19Phi3i3QKPSSMHyN4np8hSEjlzKTM5aVmV9
+         WDwib9ZUvbOQGYE2m0L4m+CYsFST3lvFQms9IQ/8qv68kgaeAySIeTVQ5XBU1oe/4i
+         vlAmNydKsFAYw==
+Received: by mail.bizcodes.pl for <linux-omap@vger.kernel.org>; Wed, 27 Sep 2023 07:41:02 GMT
+Message-ID: <20230927064500-0.1.by.1fx9k.0.v2e2hnd6ee@bizcodes.pl>
+Date:   Wed, 27 Sep 2023 07:41:02 GMT
+From:   "Marcin Chruszcz" <marcin.chruszcz@bizcodes.pl>
+To:     <linux-omap@vger.kernel.org>
+Subject: Prezentacja
+X-Mailer: mail.bizcodes.pl
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Since the required clock is now available, add bluetooth.
+Dzie=C5=84 dobry!
 
-Note: Firmware (bts file) from device vendor reroutes tx for some time
-during initialisation and later put it back, producing timeouts in
-bluetooth initialisation but ignoring that command leads to proper
-initialisation.
+Czy m=C3=B3g=C5=82bym przedstawi=C4=87 rozwi=C4=85zanie, kt=C3=B3re umo=C5=
+=BCliwia monitoring ka=C5=BCdego auta w czasie rzeczywistym w tym jego po=
+zycj=C4=99, zu=C5=BCycie paliwa i przebieg?
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
-Depends on: https://lore.kernel.org/linux-omap/20230916100515.1650336-6-andreas@kemnade.info/T/#u
- arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+Dodatkowo nasze narz=C4=99dzie minimalizuje koszty utrzymania samochod=C3=
+=B3w, skraca czas przejazd=C3=B3w, a tak=C5=BCe tworzenie planu tras czy =
+dostaw.
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-index 9d2f2d8639496..25b80385dc1f0 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-+++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-@@ -478,10 +478,12 @@ &uart2 {
- 	interrupts-extended = <&wakeupgen GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH
- 			       &omap4_pmx_core OMAP4_UART2_RX>;
- 
--	/*
--	 * BT + GPS in WL1283 in WG7500 requiring CLK32KAUDIO of pmic
--	 * which does not have a driver
--	 */
-+	bluetooth: tiwi {
-+		compatible = "ti,wl1283-st";
-+		enable-gpios = <&gpio1 25 GPIO_ACTIVE_HIGH>;	/* GPIO_25 */
-+		clocks = <&twl 1>;
-+		clock-names = "ext_clock";
-+	};
- };
- 
- &uart3 {
--- 
-2.39.2
+Z naszej wiedzy i do=C5=9Bwiadczenia korzysta ju=C5=BC ponad 49 tys. Klie=
+nt=C3=B3w. Monitorujemy 809 000 pojazd=C3=B3w na ca=C5=82ym =C5=9Bwiecie,=
+ co jest nasz=C4=85 najlepsz=C4=85 wizyt=C3=B3wk=C4=85.
 
+Bardzo prosz=C4=99 o e-maila zwrotnego, je=C5=9Bli mogliby=C5=9Bmy wsp=C3=
+=B3lnie om=C3=B3wi=C4=87 potencja=C5=82 wykorzystania takiego rozwi=C4=85=
+zania w Pa=C5=84stwa firmie.
+
+
+Pozdrawiam
+Marcin Chruszcz
