@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B6D2E810A0
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84DE8E810A3
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230135AbjI0Hrr (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Sep 2023 03:47:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50718 "EHLO
+        id S230064AbjI0Hrs (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Sep 2023 03:47:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230064AbjI0Hre (ORCPT
+        with ESMTP id S230093AbjI0Hre (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:47:34 -0400
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4BC0194;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B17FC1BE;
         Wed, 27 Sep 2023 00:47:32 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 336F2218A4;
-        Wed, 27 Sep 2023 07:47:31 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 19E64218A0;
+        Wed, 27 Sep 2023 07:47:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1695800851; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1695800849; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=PeQUJIWHKBBJ3jys9jjR4bGnZhwDb6jK0AnbAs8YGpk=;
-        b=yZkOcQObzqTpg0xhq9dzvYbujp/QwAFaI6MGVQqN2dGUAIS2mKhvY9D9qTGNDN7TqxCPCP
-        oDCgAr6sz60QliCOY6/4imoISZS4n666LuzJq/BVCApp128aixe0OLrVvAy35Ny1MZTJQn
-        7RA0QbVn1L4mGnAkDdH9vP7v4RmNz4E=
+        bh=a1cq3c/ruH7vpeaGLX2GQTQpwjLjGI8CdqEohsvmpzQ=;
+        b=eQZp9EKEeBcw2piskzwn/PKIA+8HFg221d7xem7srB/fHpesXl78CfNhvIe/8bEx+TTJQS
+        8AqmKkMVLVSyV5eHZyOzF48OyD++AIT5eBJwAjCvM1vLjgbZZ1sIPr6XkbjNhnkc3FKrrC
+        OEjQLXPWpuADLckK/B6YiT9PGUnHHdY=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1695800851;
+        s=susede2_ed25519; t=1695800849;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=PeQUJIWHKBBJ3jys9jjR4bGnZhwDb6jK0AnbAs8YGpk=;
-        b=TJrvxOxYcF4yr5U6G4xV3p21zcvJSi8u26plSvZZGhJIxrnXRzOT7CVicCbxHnUK6cOHyq
-        JBOJngSDyrVIagAQ==
+        bh=a1cq3c/ruH7vpeaGLX2GQTQpwjLjGI8CdqEohsvmpzQ=;
+        b=GzVUm9VcDLtSfmlMhD8lP0iqa7KhWqrUwJOQ1K57t2Ihr033n13EyRH6vLSQGYbvtEfrBV
+        4iTmaGiKN46rRlDA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id B346613A74;
-        Wed, 27 Sep 2023 07:47:30 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id CC7B913A74;
+        Wed, 27 Sep 2023 07:47:28 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id YLXsKhLeE2XvUQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:30 +0000
+        id SOz+MBDeE2XvUQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:28 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org, arnd@arndb.de,
         daniel@ffwll.ch
@@ -55,11 +55,10 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-nvidia@lists.surfsouth.com, linux-omap@vger.kernel.org,
         linux-parisc@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Antonino Daplas <adaplas@gmail.com>
-Subject: [PATCH 24/46] fbdev/nvidiafb: Initialize fb_ops to fbdev I/O-memory helpers
-Date:   Wed, 27 Sep 2023 09:26:57 +0200
-Message-ID: <20230927074722.6197-25-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH 17/46] fbdev/hitfb: Initialize fb_ops to fbdev I/O-memory helpers
+Date:   Wed, 27 Sep 2023 09:26:50 +0200
+Message-ID: <20230927074722.6197-18-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.42.0
 In-Reply-To: <20230927074722.6197-1-tzimmermann@suse.de>
 References: <20230927074722.6197-1-tzimmermann@suse.de>
@@ -83,48 +82,48 @@ This benefits systems that do not use these functions.
 No functional changes.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Antonino Daplas <adaplas@gmail.com>
 ---
- drivers/video/fbdev/Kconfig         | 2 +-
- drivers/video/fbdev/nvidia/nvidia.c | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/video/fbdev/Kconfig | 2 +-
+ drivers/video/fbdev/hitfb.c | 4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 6105a97a3cf9c..8b387d98f6b1e 100644
+index 0e0591fb32cae..6a5437ab3df30 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -689,10 +689,10 @@ config FB_NVIDIA
- 	tristate "nVidia Framebuffer Support"
- 	depends on FB && PCI
- 	select FB_BACKLIGHT if FB_NVIDIA_BACKLIGHT
--	select FB_MODE_HELPERS
+@@ -1490,8 +1490,8 @@ config FB_HIT
+ 	tristate "HD64461 Frame Buffer support"
+ 	depends on FB && HD64461
  	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
+-	select FB_CFB_COPYAREA
  	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_FOPS
- 	select BITREVERSE
- 	select VGASTATE
- 	select VIDEO_NOMODESET
-diff --git a/drivers/video/fbdev/nvidia/nvidia.c b/drivers/video/fbdev/nvidia/nvidia.c
-index 907c22408652b..8900f181f1952 100644
---- a/drivers/video/fbdev/nvidia/nvidia.c
-+++ b/drivers/video/fbdev/nvidia/nvidia.c
-@@ -1028,6 +1028,7 @@ static struct fb_ops nvidia_fb_ops = {
- 	.owner          = THIS_MODULE,
- 	.fb_open        = nvidiafb_open,
- 	.fb_release     = nvidiafb_release,
+ 	help
+ 	  This is the frame buffer device driver for the Hitachi HD64461 LCD
+ 	  frame buffer card.
+diff --git a/drivers/video/fbdev/hitfb.c b/drivers/video/fbdev/hitfb.c
+index 17715eaf06732..b64b74b76c71f 100644
+--- a/drivers/video/fbdev/hitfb.c
++++ b/drivers/video/fbdev/hitfb.c
+@@ -328,8 +328,9 @@ static int hitfb_set_par(struct fb_info *info)
+ 
+ static const struct fb_ops hitfb_ops = {
+ 	.owner		= THIS_MODULE,
 +	__FB_DEFAULT_IOMEM_OPS_RDWR,
- 	.fb_check_var   = nvidiafb_check_var,
- 	.fb_set_par     = nvidiafb_set_par,
- 	.fb_setcolreg   = nvidiafb_setcolreg,
-@@ -1038,6 +1039,7 @@ static struct fb_ops nvidia_fb_ops = {
- 	.fb_imageblit   = nvidiafb_imageblit,
- 	.fb_cursor      = nvidiafb_cursor,
- 	.fb_sync        = nvidiafb_sync,
+ 	.fb_check_var	= hitfb_check_var,
+-	.fb_set_par		= hitfb_set_par,
++	.fb_set_par	= hitfb_set_par,
+ 	.fb_setcolreg	= hitfb_setcolreg,
+ 	.fb_blank	= hitfb_blank,
+ 	.fb_sync	= hitfb_sync,
+@@ -337,6 +338,7 @@ static const struct fb_ops hitfb_ops = {
+ 	.fb_fillrect	= hitfb_fillrect,
+ 	.fb_copyarea	= hitfb_copyarea,
+ 	.fb_imageblit	= cfb_imageblit,
 +	__FB_DEFAULT_IOMEM_OPS_MMAP,
  };
  
- static int nvidiafb_suspend_late(struct device *dev, pm_message_t mesg)
+ static int hitfb_probe(struct platform_device *dev)
 -- 
 2.42.0
 
