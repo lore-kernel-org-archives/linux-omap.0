@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3428EE810B5
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE282E810B0
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230093AbjI0Hrx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Sep 2023 03:47:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50756 "EHLO
+        id S230154AbjI0Hrv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Sep 2023 03:47:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230030AbjI0Hrf (ORCPT
+        with ESMTP id S230076AbjI0Hrf (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:47:35 -0400
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47628136;
-        Wed, 27 Sep 2023 00:47:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E595DCC0;
+        Wed, 27 Sep 2023 00:47:32 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id EAA911F8B3;
-        Wed, 27 Sep 2023 07:47:31 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 9DEEE1F8AE;
+        Wed, 27 Sep 2023 07:47:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1695800851; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1695800849; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=kiAB9thNN4d00UsEjXVGtXWPtmT3/Z08ldzeOF5qv0g=;
-        b=b2+e6gOllobM4T8Sxt9uRNuvZShy4FeBfJ7SzxHBe4MBvIXj6vEIGsa04bKsGwkCJd9t7j
-        dEfps7cZV6IS2cOe+fWc729lZCLJ3TvJlxdU3fTdbHCQCP+dRK6w4Kax9A/JEAljZKrAaD
-        JrnJ+bitA4vhVMR8KmzAz4Me5KRwD3Q=
+        bh=NxBcd+igdUhtckrFZURNbcjN7GUux7BiTjx9FHmuYUo=;
+        b=ZYCyX7r0cwcVJuy0LbAIc3dfYn16daA1zWaYMDf/G4t2CitbNzwZSjg2O+E7Jk1gxr2qzF
+        j61FmDEDjHFlZteTtvA2GdD9T6mLWq3CDooI0sCXqRnEQ8qp8/mfaUc5jAWRpIo1VupUyg
+        CFQ41Hg7cBT2+rn9hywtOmYNPxoWVIU=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1695800851;
+        s=susede2_ed25519; t=1695800849;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=kiAB9thNN4d00UsEjXVGtXWPtmT3/Z08ldzeOF5qv0g=;
-        b=Ywx6rc0PMREZmRo0xBYdiSX3MNQzkF1F9JK5XTMMEC12La5wDWPduKh5v3/fptc2u/m7KD
-        LAiVWnusIY2FBfDA==
+        bh=NxBcd+igdUhtckrFZURNbcjN7GUux7BiTjx9FHmuYUo=;
+        b=GI97PDQXS1zxO7wDoQc0aZYPvGqpDwWWGJJGuAdaFAqpCGTlpvL0D9hPs6KhFpTL9jD0Ty
+        LWd4okG9vbbYHgCA==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id B0AB31338F;
-        Wed, 27 Sep 2023 07:47:31 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 62AB213A74;
+        Wed, 27 Sep 2023 07:47:29 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id OL1TKhPeE2XvUQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:31 +0000
+        id 0BtDFxHeE2XvUQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:29 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org, arnd@arndb.de,
         daniel@ffwll.ch
@@ -55,10 +55,11 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-arm-kernel@lists.infradead.org,
         linux-nvidia@lists.surfsouth.com, linux-omap@vger.kernel.org,
         linux-parisc@vger.kernel.org,
-        Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 27/46] fbdev/pm3fb: Initialize fb_ops to fbdev I/O-memory helpers
-Date:   Wed, 27 Sep 2023 09:27:00 +0200
-Message-ID: <20230927074722.6197-28-tzimmermann@suse.de>
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Antonino Daplas <adaplas@gmail.com>
+Subject: [PATCH 19/46] fbdev/i810fb: Initialize fb_ops to fbdev I/O-memory helpers
+Date:   Wed, 27 Sep 2023 09:26:52 +0200
+Message-ID: <20230927074722.6197-20-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.42.0
 In-Reply-To: <20230927074722.6197-1-tzimmermann@suse.de>
 References: <20230927074722.6197-1-tzimmermann@suse.de>
@@ -82,43 +83,48 @@ This benefits systems that do not use these functions.
 No functional changes.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Antonino Daplas <adaplas@gmail.com>
 ---
- drivers/video/fbdev/Kconfig | 1 +
- drivers/video/fbdev/pm3fb.c | 2 ++
- 2 files changed, 3 insertions(+)
+ drivers/video/fbdev/Kconfig          | 4 +---
+ drivers/video/fbdev/i810/i810_main.c | 2 ++
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index ba5fc63691b16..afc1cf05a30f8 100644
+index 3c28bff8a0770..e42439cfb1a1d 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -1404,6 +1404,7 @@ config FB_PM3
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
+@@ -793,10 +793,8 @@ config FB_I740
+ config FB_I810
+ 	tristate "Intel 810/815 support"
+ 	depends on FB && PCI && X86_32 && AGP_INTEL
 +	select FB_IOMEM_FOPS
+ 	select FB_MODE_HELPERS
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+ 	select VGASTATE
  	select VIDEO_NOMODESET
  	help
- 	  This is the frame buffer device driver for the 3DLabs Permedia3
-diff --git a/drivers/video/fbdev/pm3fb.c b/drivers/video/fbdev/pm3fb.c
-index 16577d0e41b1a..6e55e42514d63 100644
---- a/drivers/video/fbdev/pm3fb.c
-+++ b/drivers/video/fbdev/pm3fb.c
-@@ -1203,6 +1203,7 @@ static int pm3fb_blank(int blank_mode, struct fb_info *info)
- 
- static const struct fb_ops pm3fb_ops = {
- 	.owner		= THIS_MODULE,
+diff --git a/drivers/video/fbdev/i810/i810_main.c b/drivers/video/fbdev/i810/i810_main.c
+index f5511bb4fadca..d73a795fe1bef 100644
+--- a/drivers/video/fbdev/i810/i810_main.c
++++ b/drivers/video/fbdev/i810/i810_main.c
+@@ -1547,6 +1547,7 @@ static const struct fb_ops i810fb_ops = {
+ 	.owner =             THIS_MODULE,
+ 	.fb_open =           i810fb_open,
+ 	.fb_release =        i810fb_release,
 +	__FB_DEFAULT_IOMEM_OPS_RDWR,
- 	.fb_check_var	= pm3fb_check_var,
- 	.fb_set_par	= pm3fb_set_par,
- 	.fb_setcolreg	= pm3fb_setcolreg,
-@@ -1213,6 +1214,7 @@ static const struct fb_ops pm3fb_ops = {
- 	.fb_blank	= pm3fb_blank,
- 	.fb_sync	= pm3fb_sync,
- 	.fb_cursor	= pm3fb_cursor,
+ 	.fb_check_var =      i810fb_check_var,
+ 	.fb_set_par =        i810fb_set_par,
+ 	.fb_setcolreg =      i810fb_setcolreg,
+@@ -1557,6 +1558,7 @@ static const struct fb_ops i810fb_ops = {
+ 	.fb_imageblit =      i810fb_imageblit,
+ 	.fb_cursor =         i810fb_cursor,
+ 	.fb_sync =           i810fb_sync,
 +	__FB_DEFAULT_IOMEM_OPS_MMAP,
  };
  
- /* ------------------------------------------------------------------------- */
+ /***********************************************************************
 -- 
 2.42.0
 
