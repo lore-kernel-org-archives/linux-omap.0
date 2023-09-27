@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 454C6E810B8
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:48:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68584E810BC
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:48:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230128AbjI0HsL (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Sep 2023 03:48:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43792 "EHLO
+        id S230211AbjI0HsN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Sep 2023 03:48:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230131AbjI0Hri (ORCPT
+        with ESMTP id S230137AbjI0Hri (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:47:38 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4602819A;
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A32841B6;
         Wed, 27 Sep 2023 00:47:37 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id E2676218E1;
-        Wed, 27 Sep 2023 07:47:35 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 610E0218E2;
+        Wed, 27 Sep 2023 07:47:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1695800855; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1695800856; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=fKvyhxO3vYBUiYxk2DHFf/CeC37PJ0rshfwSbN/fEUY=;
-        b=XgEUXyZ10sPiu9/riRK8YAJfBU/c6H3wLEgVP9c6i7UwrL4dT2hWc4nk/MqBIkmZJ+9hzn
-        l5/V6CmhMCRG3BSpV/fP7WJ0itqB/EC5GWYV8xeL5Dl9zK+v+oY116Zd8nqpg6U5GC3YN5
-        oe9DL3lvqfOIFcUmxrwOS9FTjlIhYbw=
+        bh=p77V2UZWwLT++cVTks2OnLkM8fKDV/6QuEv6ixdom3c=;
+        b=G7YJ6ciw++CUKa7XEO/ObJ5URIXyVzbGp3naHDUspgn6DYICMIq5KLBK+Hyh2V2KuXY9eu
+        LusDjUZ8+0zbZSqsaqs5WfIQ0vT9EtVGcRoPUpnLhGM5d4Pgp662v+4ZgNPZEETYUdDVHO
+        /Oc+Y/LW2F8KH6lAK/qMz5PrZyAOCGo=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1695800855;
+        s=susede2_ed25519; t=1695800856;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=fKvyhxO3vYBUiYxk2DHFf/CeC37PJ0rshfwSbN/fEUY=;
-        b=tY/zdDM2hxaA5Pdt30qNCFSYYxwIcNyjHjUdFDDuxs7IHUkUlXvzTiXLUYgkWVQYnrvw23
-        QBM90FEG03pmejBA==
+        bh=p77V2UZWwLT++cVTks2OnLkM8fKDV/6QuEv6ixdom3c=;
+        b=ipxk+ExbZqu46ATH8JEvYiZqsrlu4l8wU2uLpbxqZkZqCTLw69ceOGhhRhJJNtJr+NEKdm
+        1rc3jTPdksaJO2Cw==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 9C34F1338F;
-        Wed, 27 Sep 2023 07:47:35 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 238E71338F;
+        Wed, 27 Sep 2023 07:47:36 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id gAglJRfeE2XvUQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:35 +0000
+        id mM/MBxjeE2XvUQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:36 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org, arnd@arndb.de,
         daniel@ffwll.ch
@@ -56,9 +56,9 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-nvidia@lists.surfsouth.com, linux-omap@vger.kernel.org,
         linux-parisc@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 42/46] fbdev/tridentfb: Initialize fb_ops to fbdev I/O-memory helpers
-Date:   Wed, 27 Sep 2023 09:27:15 +0200
-Message-ID: <20230927074722.6197-43-tzimmermann@suse.de>
+Subject: [PATCH 44/46] fbdev/vga16fb: Initialize fb_ops to fbdev I/O-memory helpers
+Date:   Wed, 27 Sep 2023 09:27:17 +0200
+Message-ID: <20230927074722.6197-45-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.42.0
 In-Reply-To: <20230927074722.6197-1-tzimmermann@suse.de>
 References: <20230927074722.6197-1-tzimmermann@suse.de>
@@ -83,42 +83,42 @@ No functional changes.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 ---
- drivers/video/fbdev/Kconfig     | 1 +
- drivers/video/fbdev/tridentfb.c | 2 ++
+ drivers/video/fbdev/Kconfig   | 1 +
+ drivers/video/fbdev/vga16fb.c | 2 ++
  2 files changed, 3 insertions(+)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index b5000b357a4ed..93c09a879dc5d 100644
+index 576a00c6a0f1b..021214ecd5e80 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -1375,6 +1375,7 @@ config FB_TRIDENT
+@@ -369,6 +369,7 @@ config FB_VGA16
+ 	select FB_CFB_FILLRECT
  	select FB_CFB_COPYAREA
  	select FB_CFB_IMAGEBLIT
- 	select FB_DDC
 +	select FB_IOMEM_FOPS
- 	select FB_MODE_HELPERS
- 	select VIDEO_NOMODESET
+ 	select VGASTATE
+ 	select FONT_8x16 if FRAMEBUFFER_CONSOLE
  	help
-diff --git a/drivers/video/fbdev/tridentfb.c b/drivers/video/fbdev/tridentfb.c
-index 1ba157530af2f..816d40b6f689c 100644
---- a/drivers/video/fbdev/tridentfb.c
-+++ b/drivers/video/fbdev/tridentfb.c
-@@ -1444,6 +1444,7 @@ static int tridentfb_blank(int blank_mode, struct fb_info *info)
- 
- static const struct fb_ops tridentfb_ops = {
- 	.owner = THIS_MODULE,
+diff --git a/drivers/video/fbdev/vga16fb.c b/drivers/video/fbdev/vga16fb.c
+index b43c874c199f6..ac21942d53110 100644
+--- a/drivers/video/fbdev/vga16fb.c
++++ b/drivers/video/fbdev/vga16fb.c
+@@ -1291,6 +1291,7 @@ static const struct fb_ops vga16fb_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.fb_open        = vga16fb_open,
+ 	.fb_release     = vga16fb_release,
 +	__FB_DEFAULT_IOMEM_OPS_RDWR,
- 	.fb_setcolreg = tridentfb_setcolreg,
- 	.fb_pan_display = tridentfb_pan_display,
- 	.fb_blank = tridentfb_blank,
-@@ -1453,6 +1454,7 @@ static const struct fb_ops tridentfb_ops = {
- 	.fb_copyarea = tridentfb_copyarea,
- 	.fb_imageblit = tridentfb_imageblit,
- 	.fb_sync = tridentfb_sync,
+ 	.fb_destroy	= vga16fb_destroy,
+ 	.fb_check_var	= vga16fb_check_var,
+ 	.fb_set_par	= vga16fb_set_par,
+@@ -1300,6 +1301,7 @@ static const struct fb_ops vga16fb_ops = {
+ 	.fb_fillrect	= vga16fb_fillrect,
+ 	.fb_copyarea	= vga16fb_copyarea,
+ 	.fb_imageblit	= vga16fb_imageblit,
 +	__FB_DEFAULT_IOMEM_OPS_MMAP,
  };
  
- static int trident_pci_probe(struct pci_dev *dev,
+ static int vga16fb_probe(struct platform_device *dev)
 -- 
 2.42.0
 
