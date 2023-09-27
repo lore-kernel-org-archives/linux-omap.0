@@ -2,52 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70395E810B3
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C705BE810B7
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230076AbjI0Hrw (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Sep 2023 03:47:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50684 "EHLO
+        id S230061AbjI0Hrx (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Sep 2023 03:47:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230097AbjI0Hrf (ORCPT
+        with ESMTP id S230100AbjI0Hrf (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:47:35 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E59C1CC1;
-        Wed, 27 Sep 2023 00:47:32 -0700 (PDT)
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0767FB3;
+        Wed, 27 Sep 2023 00:47:33 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id DD4AE1F8AF;
-        Wed, 27 Sep 2023 07:47:29 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id AD67C218B0;
+        Wed, 27 Sep 2023 07:47:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1695800849; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1695800851; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=uGBOmgCm4i8iNNFrQ7yI8VwSysTFgSUPvcyeUC+LxeA=;
-        b=lDSxxqCye8ayxBHSNjJZnlkzXBWKs26KBTprb9/jIn4Y+JhfELBX9XX5y1jLCFWLpZyhEt
-        occigyeQdaOZgubuz6u3fOmkNrDV7A2yYGr2zV1xeOBZoHVYprNU1Y1xCWoptjGnbyWDSi
-        pwP6XC71eqK5A5e7Ur4CcQq5KzeZwOY=
+        bh=4SawcUauzfSMzVc13G6P84v6QvX6h7SbS69ov5HniAc=;
+        b=gAeRtyWVTOp1CBjfO+yzCvNnS03xFhypMhwRWATg/qYmWfByITmZ/E0/r6rSTtB/M9dsyQ
+        N6aEmwnhkgn0PGF8RICWnqSudPgg8WlWaJ5CQo7UZ/MomkZgDLK09fwuaBaejaZtWr0Mcs
+        KQCVbGBiICKuScpbiHPlZXE7MTi9HS4=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1695800849;
+        s=susede2_ed25519; t=1695800851;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=uGBOmgCm4i8iNNFrQ7yI8VwSysTFgSUPvcyeUC+LxeA=;
-        b=AY8Vyi0VWvSJ3FCZJl7sHWE0blNllyYtMrE44IGN5YZ5rT2b0t84G5RLPouCwZnG9uO/O8
-        Op6U4K2Z31d19HCA==
+        bh=4SawcUauzfSMzVc13G6P84v6QvX6h7SbS69ov5HniAc=;
+        b=pd6a3JyV1GzWhf5ykqEfILrm/5OokWKiJ1VyDRNYSoHKaLNLJdbOuIdpWORRbNchITHgw6
+        UwfNjg4nlE3D0bAQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id A2D301338F;
-        Wed, 27 Sep 2023 07:47:29 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 7406E13A74;
+        Wed, 27 Sep 2023 07:47:31 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id MFrWJhHeE2XvUQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:29 +0000
+        id cOuIGxPeE2XvUQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:31 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org, arnd@arndb.de,
         daniel@ffwll.ch
@@ -56,9 +56,9 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-nvidia@lists.surfsouth.com, linux-omap@vger.kernel.org,
         linux-parisc@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 20/46] fbdev/imsttfb: Initialize fb_ops to fbdev I/O-memory helpers
-Date:   Wed, 27 Sep 2023 09:26:53 +0200
-Message-ID: <20230927074722.6197-21-tzimmermann@suse.de>
+Subject: [PATCH 26/46] fbdev/pm2fb: Initialize fb_ops to fbdev I/O-memory helpers
+Date:   Wed, 27 Sep 2023 09:26:59 +0200
+Message-ID: <20230927074722.6197-27-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.42.0
 In-Reply-To: <20230927074722.6197-1-tzimmermann@suse.de>
 References: <20230927074722.6197-1-tzimmermann@suse.de>
@@ -83,42 +83,42 @@ No functional changes.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 ---
- drivers/video/fbdev/Kconfig   | 1 +
- drivers/video/fbdev/imsttfb.c | 2 ++
+ drivers/video/fbdev/Kconfig | 1 +
+ drivers/video/fbdev/pm2fb.c | 2 ++
  2 files changed, 3 insertions(+)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index e42439cfb1a1d..46f761ffa13c9 100644
+index 8b387d98f6b1e..ba5fc63691b16 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -356,6 +356,7 @@ config FB_IMSTT
- 	bool "IMS Twin Turbo display support"
- 	depends on (FB = y) && PCI
+@@ -94,6 +94,7 @@ config FB_PM2
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
  	select FB_CFB_IMAGEBLIT
 +	select FB_IOMEM_FOPS
- 	select FB_MACMODES if PPC_PMAC
  	select VIDEO_NOMODESET
  	help
-diff --git a/drivers/video/fbdev/imsttfb.c b/drivers/video/fbdev/imsttfb.c
-index f4c8677488fb8..e7e03e920729d 100644
---- a/drivers/video/fbdev/imsttfb.c
-+++ b/drivers/video/fbdev/imsttfb.c
-@@ -1336,6 +1336,7 @@ static struct pci_driver imsttfb_pci_driver = {
+ 	  This is the frame buffer device driver for cards based on
+diff --git a/drivers/video/fbdev/pm2fb.c b/drivers/video/fbdev/pm2fb.c
+index 5a79a12efd8e3..f34429829b7d7 100644
+--- a/drivers/video/fbdev/pm2fb.c
++++ b/drivers/video/fbdev/pm2fb.c
+@@ -1492,6 +1492,7 @@ static int pm2fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
  
- static const struct fb_ops imsttfb_ops = {
- 	.owner 		= THIS_MODULE,
+ static const struct fb_ops pm2fb_ops = {
+ 	.owner		= THIS_MODULE,
 +	__FB_DEFAULT_IOMEM_OPS_RDWR,
- 	.fb_check_var	= imsttfb_check_var,
- 	.fb_set_par 	= imsttfb_set_par,
- 	.fb_setcolreg 	= imsttfb_setcolreg,
-@@ -1345,6 +1346,7 @@ static const struct fb_ops imsttfb_ops = {
- 	.fb_copyarea	= imsttfb_copyarea,
- 	.fb_imageblit	= cfb_imageblit,
- 	.fb_ioctl 	= imsttfb_ioctl,
+ 	.fb_check_var	= pm2fb_check_var,
+ 	.fb_set_par	= pm2fb_set_par,
+ 	.fb_setcolreg	= pm2fb_setcolreg,
+@@ -1502,6 +1503,7 @@ static const struct fb_ops pm2fb_ops = {
+ 	.fb_imageblit	= pm2fb_imageblit,
+ 	.fb_sync	= pm2fb_sync,
+ 	.fb_cursor	= pm2fb_cursor,
 +	__FB_DEFAULT_IOMEM_OPS_MMAP,
  };
  
- static int init_imstt(struct fb_info *info)
+ /*
 -- 
 2.42.0
 
