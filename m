@@ -2,48 +2,52 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA8F4E80AA8
-	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6F64E80AAA
+	for <linux-omap@archiver.kernel.org>; Wed, 27 Sep 2023 07:47:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230094AbjI0Hre (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 27 Sep 2023 03:47:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50734 "EHLO
+        id S230028AbjI0Hrf (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Wed, 27 Sep 2023 03:47:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50718 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230030AbjI0Hr3 (ORCPT
+        with ESMTP id S230075AbjI0Hr3 (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Wed, 27 Sep 2023 03:47:29 -0400
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5101A136;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0876F1B3;
         Wed, 27 Sep 2023 00:47:26 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id D86C221873;
-        Wed, 27 Sep 2023 07:47:24 +0000 (UTC)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 8F34721889;
+        Wed, 27 Sep 2023 07:47:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1695800844; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-        bh=60Z1BjKIJ4+wGz82oT0iRpCCahrgRXOSIFEA+P9XjPQ=;
-        b=Rtaz7SByafcrHUiZ6N4kbs5VxRG4isNa5QHvUiB0BBTSKedn2hPFSyJbU5cN1VZ2DCiTvn
-        mGBg0fj9hFIUvGHg6WrKSSgoxnpTPi6Pq/c1nfGwN2e0tq7SX6saMDz7z9jvz9w48HWhYS
-        BVLg/Cr8Hf6sv2uopQMtz8+zjGv7luA=
+        t=1695800845; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=hkgSI0ZcvWgWjpmsP9qRZT1z0fKYpTV15lW1nvyfYQA=;
+        b=cqV4PCm5AnTDKDyRbiVVTei+pwQQ6/+3Jv69ZichVib1i0h14Czt15qpcaJAbkQ5gMRmVc
+        PXtCV4F22Fccb1kpkO7YwF4pU1buW0JN6fshXTMQxX73rFz6WLenf38JfDWvLh8WfW9Qqr
+        gHwm8t4RmdEJ6YJcMO7hJOXti8W4u6s=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1695800844;
+        s=susede2_ed25519; t=1695800845;
         h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-        bh=60Z1BjKIJ4+wGz82oT0iRpCCahrgRXOSIFEA+P9XjPQ=;
-        b=h8sBohLiXB2A1LBrQ8cgdFElh7N9h1oKS0IjzzKoTyOOEyZsIkeSOnTLxr+64RBvDVzrxq
-        iA222wVIEFUO5EDw==
+         mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=hkgSI0ZcvWgWjpmsP9qRZT1z0fKYpTV15lW1nvyfYQA=;
+        b=LQNfRuERIfFkd1D5Y/2XZE+4ztziqNc2tVC1dsj5DYo/z/RZ0+f6FXMZQ5UuWjlFlny9s5
+        9350ipLCDrqJYSBg==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 8D0B11338F;
-        Wed, 27 Sep 2023 07:47:24 +0000 (UTC)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 5A89B13A74;
+        Wed, 27 Sep 2023 07:47:25 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id B5+NIQzeE2XvUQAAMHmgww
-        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:24 +0000
+        id eO5RFQ3eE2XvUQAAMHmgww
+        (envelope-from <tzimmermann@suse.de>); Wed, 27 Sep 2023 07:47:25 +0000
 From:   Thomas Zimmermann <tzimmermann@suse.de>
 To:     deller@gmx.de, javierm@redhat.com, sam@ravnborg.org, arnd@arndb.de,
         daniel@ffwll.ch
@@ -52,149 +56,72 @@ Cc:     linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
         linux-nvidia@lists.surfsouth.com, linux-omap@vger.kernel.org,
         linux-parisc@vger.kernel.org,
         Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 00/46] fbdev: Init fb_ops with helpers for I/O memory
-Date:   Wed, 27 Sep 2023 09:26:33 +0200
-Message-ID: <20230927074722.6197-1-tzimmermann@suse.de>
+Subject: [PATCH 03/46] fbdev/amba-clcd: Initialize fb_ops to fbdev I/O-memory helpers
+Date:   Wed, 27 Sep 2023 09:26:36 +0200
+Message-ID: <20230927074722.6197-4-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.42.0
+In-Reply-To: <20230927074722.6197-1-tzimmermann@suse.de>
+References: <20230927074722.6197-1-tzimmermann@suse.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Initialize struct fb_ops for drivers for hardware with framebuffers
-in I/O-memory ranges with the respective helper macros. Also select
-the appropriate Kconfig dependencies.
+Initialize the instance of struct fb_ops with fbdev initializer
+macros for framebuffers in I/O address space. Set the read/write,
+draw and mmap callbacks to the correct implementation and avoid
+implicit defaults. Also select the necessary I/O helpers in Kconfig.
 
-The patchset is part of a larger effort to modularize the fbdev core
-and make it more adaptable. Most of these drivers do not initialize
-the fb_read, fb_write and fb_mmap callbacks in fb_ops. By leaving the
-callback pointers to NULL, they rely on the fbdev core to invoke the
-I/O-memory helpers by default. This default makes it impossible to
-remove the I/O-memory helpers on systems that don't need them. Setting
-the pointers explicitly will allow for the removal of the default. If
-a callback in fb_ops is unset, the operation will then be unsupported.
+Fbdev drivers sometimes rely on the callbacks being NULL for a
+default implementation to be invoked; hence requiring the I/O
+helpers to be built in any case. Setting all callbacks in all
+drivers explicitly will allow to make the I/O helpers optional.
+This benefits systems that do not use these functions.
 
-Initializing struct fb_ops via helpers macros will also allow for a
-fine-grained setup, depending on Kconfig options. For example, it
-will be possible to leave out file I/O if FB_DEVICE has not been
-set.
+No functional changes.
 
-This patchset contains the majority of fbdev driver work. The updated
-drivers now initialize fb_ops with __FB_DEFAULT_IOMEM_OPS_RDWR,
-__FB_DEFAULT_IOMEM_OPS_DRAW and/or __FB_DEFAULT_IOMEM_OPS_MMAP if
-possible. Some drivers now use FB_DEFAULT_IOMEM_OPS, which sets all
-fields correctly. In Kconfig, each driver selects FB_IOMEM_FOPS to
-get the helpers for I/O memory. Drivers that use _RDWR, _DRAW and
-_MMAP unconditionally select FB_IOMEM_HELPERS, which selects the
-correct modules automatically.
+Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+---
+ drivers/video/fbdev/Kconfig     | 4 +---
+ drivers/video/fbdev/amba-clcd.c | 5 ++---
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-Thomas Zimmermann (46):
-  fbdev: Provide I/O-memory helpers as module
-  fbdev/68328fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/amba-clcd: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/amifb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/arkfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/atafb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/atyfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/au1100fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/cirrusfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/cobalt-lcd: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/controlfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/cyber2000fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/dnfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/ep93xx-fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/gbefb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/hgafb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/hitfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/hpfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/i810fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/imsttfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/intelfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/matroxfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/neofb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/nvidiafb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/omapfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/pm2fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/pm3fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/pvr2fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/radeon: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/rivafb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/s1d13xxxfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/s3fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/sa1100fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/savagefb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/sisfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/sm501fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/sm712fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/stifb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/sunxvr500: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/tdfxfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/tgafb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/tridentfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/vermilionfb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/vga16fb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/viafb: Initialize fb_ops to fbdev I/O-memory helpers
-  fbdev/vt8623fb: Initialize fb_ops to fbdev I/O-memory helpers
-
- drivers/video/fbdev/68328fb.c                 |  5 +-
- drivers/video/fbdev/Kconfig                   | 93 +++++++++++--------
- drivers/video/fbdev/amba-clcd.c               |  5 +-
- drivers/video/fbdev/amifb.c                   |  2 +
- drivers/video/fbdev/arkfb.c                   |  2 +
- drivers/video/fbdev/atafb.c                   |  2 +
- drivers/video/fbdev/aty/atyfb_base.c          |  3 +
- drivers/video/fbdev/aty/radeon_base.c         |  2 +
- drivers/video/fbdev/au1100fb.c                |  8 +-
- drivers/video/fbdev/cirrusfb.c                |  2 +
- drivers/video/fbdev/cobalt_lcdfb.c            |  2 +
- drivers/video/fbdev/controlfb.c               |  5 +-
- drivers/video/fbdev/core/Kconfig              |  6 ++
- drivers/video/fbdev/core/Makefile             |  3 +-
- drivers/video/fbdev/core/fb_io_fops.c         |  3 +
- drivers/video/fbdev/cyber2000fb.c             |  2 +
- drivers/video/fbdev/dnfb.c                    |  2 +
- drivers/video/fbdev/ep93xx-fb.c               |  5 +-
- drivers/video/fbdev/gbefb.c                   |  7 +-
- drivers/video/fbdev/hgafb.c                   |  2 +
- drivers/video/fbdev/hitfb.c                   |  4 +-
- drivers/video/fbdev/hpfb.c                    |  2 +
- drivers/video/fbdev/i810/i810_main.c          |  2 +
- drivers/video/fbdev/imsttfb.c                 |  2 +
- drivers/video/fbdev/intelfb/intelfbdrv.c      |  4 +-
- drivers/video/fbdev/matrox/matroxfb_base.c    |  2 +
- drivers/video/fbdev/matrox/matroxfb_crtc2.c   |  4 +-
- drivers/video/fbdev/neofb.c                   |  2 +
- drivers/video/fbdev/nvidia/nvidia.c           |  2 +
- drivers/video/fbdev/omap2/omapfb/Kconfig      |  4 +-
- .../video/fbdev/omap2/omapfb/omapfb-main.c    |  5 +-
- drivers/video/fbdev/pm2fb.c                   |  2 +
- drivers/video/fbdev/pm3fb.c                   |  2 +
- drivers/video/fbdev/pvr2fb.c                  | 14 +--
- drivers/video/fbdev/riva/fbdev.c              |  2 +
- drivers/video/fbdev/s1d13xxxfb.c              | 25 +++--
- drivers/video/fbdev/s3fb.c                    |  2 +
- drivers/video/fbdev/sa1100fb.c                |  5 +-
- drivers/video/fbdev/savage/savagefb_driver.c  |  6 +-
- drivers/video/fbdev/sis/sis_main.c            |  4 +-
- drivers/video/fbdev/sm501fb.c                 |  4 +
- drivers/video/fbdev/sm712fb.c                 |  1 +
- drivers/video/fbdev/stifb.c                   |  2 +
- drivers/video/fbdev/sunxvr500.c               |  2 +
- drivers/video/fbdev/tdfxfb.c                  |  6 +-
- drivers/video/fbdev/tgafb.c                   |  2 +
- drivers/video/fbdev/tridentfb.c               |  2 +
- drivers/video/fbdev/vermilion/vermilion.c     |  5 +-
- drivers/video/fbdev/vga16fb.c                 |  2 +
- drivers/video/fbdev/via/viafbdev.c            |  2 +
- drivers/video/fbdev/vt8623fb.c                |  2 +
- 51 files changed, 185 insertions(+), 101 deletions(-)
-
-
-base-commit: e1973de2c4516e9130157e538014e79c8aa57b41
-prerequisite-patch-id: 0aa359f6144c4015c140c8a6750be19099c676fb
-prerequisite-patch-id: c67e5d886a47b7d0266d81100837557fda34cb24
-prerequisite-patch-id: cbc453ee02fae02af22fbfdce56ab732c7a88c36
+diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
+index 94f578a44f275..d7b6e9885fe54 100644
+--- a/drivers/video/fbdev/Kconfig
++++ b/drivers/video/fbdev/Kconfig
+@@ -118,9 +118,7 @@ config FB_ARMCLCD
+ 	tristate "ARM PrimeCell PL110 support"
+ 	depends on ARM || ARM64 || COMPILE_TEST
+ 	depends on FB && ARM_AMBA && HAS_IOMEM
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
++	select FB_IOMEM_HELPERS
+ 	select FB_MODE_HELPERS if OF
+ 	select VIDEOMODE_HELPERS if OF
+ 	select BACKLIGHT_CLASS_DEVICE if OF
+diff --git a/drivers/video/fbdev/amba-clcd.c b/drivers/video/fbdev/amba-clcd.c
+index 24d89e6fb7805..0399db369e709 100644
+--- a/drivers/video/fbdev/amba-clcd.c
++++ b/drivers/video/fbdev/amba-clcd.c
+@@ -412,13 +412,12 @@ static int clcdfb_mmap(struct fb_info *info,
+ 
+ static const struct fb_ops clcdfb_ops = {
+ 	.owner		= THIS_MODULE,
++	__FB_DEFAULT_IOMEM_OPS_RDWR,
+ 	.fb_check_var	= clcdfb_check_var,
+ 	.fb_set_par	= clcdfb_set_par,
+ 	.fb_setcolreg	= clcdfb_setcolreg,
+ 	.fb_blank	= clcdfb_blank,
+-	.fb_fillrect	= cfb_fillrect,
+-	.fb_copyarea	= cfb_copyarea,
+-	.fb_imageblit	= cfb_imageblit,
++	__FB_DEFAULT_IOMEM_OPS_DRAW,
+ 	.fb_mmap	= clcdfb_mmap,
+ };
+ 
 -- 
 2.42.0
 
