@@ -2,61 +2,72 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B38BAE92708
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Oct 2023 15:10:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E415BE9271A
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Oct 2023 15:52:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229488AbjJEPKa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Thu, 5 Oct 2023 11:10:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35668 "EHLO
+        id S235203AbjJEPwV (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Oct 2023 11:52:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233524AbjJEPJl (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Oct 2023 11:09:41 -0400
-Received: from mail.bizcodes.pl (mail.bizcodes.pl [151.80.57.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCBA06094
-        for <linux-omap@vger.kernel.org>; Thu,  5 Oct 2023 07:42:16 -0700 (PDT)
-Received: by mail.bizcodes.pl (Postfix, from userid 1002)
-        id 4754CA3E67; Thu,  5 Oct 2023 07:35:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=bizcodes.pl; s=mail;
-        t=1696491319; bh=5QPMt7jNntM5ZbstM20BWsHIeLbmRE8lVU4Iu89IleQ=;
-        h=Date:From:To:Subject:From;
-        b=V8rt2d7tER7XDHpEDiWk6uB8qBsHyEHcyYHfNWG+i8EDpgsfrcMbc9bNlb9M/H2DY
-         w/8s0JCcQzJGFxz+ESB5iQOqF5TbDILrtiO4NSMEmLTmCgZJwN5zzXBce01ifzAEVX
-         k8s3D0M+xcy9zVQJ9B9gBWVn4xPmwa3gdOK+p1wHAAngsBiaswLb6PYoG13DqDXQqN
-         chmBroJcBXhQF8ByxZpNeq4dzKpdMXvcmno6mSTX8ZV61AR66z8EolTlDaZli7yRu8
-         Ov/bjDx0s+uUHI0ZiJhVxqQspF8B7eQmT2tXfOPFarVvV6IYCCJa6cf3RqezuXrDKV
-         LdIuOQMXixa8g==
-Received: by mail.bizcodes.pl for <linux-omap@vger.kernel.org>; Thu,  5 Oct 2023 07:35:09 GMT
-Message-ID: <20231005064500-0.1.c4.1fx9k.0.4em1y06qza@bizcodes.pl>
-Date:   Thu,  5 Oct 2023 07:35:09 GMT
-From:   "Marcin Chruszcz" <marcin.chruszcz@bizcodes.pl>
-To:     <linux-omap@vger.kernel.org>
-Subject: Prezentacja
-X-Mailer: mail.bizcodes.pl
+        with ESMTP id S234278AbjJEPvE (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Oct 2023 11:51:04 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C53826079B;
+        Thu,  5 Oct 2023 07:07:44 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 700E6C32790;
+        Thu,  5 Oct 2023 11:37:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1696505879;
+        bh=LOAxG0Jr81YYuWH9A6gH/itFYQmM7Ke3vuSJ0R6KdxE=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=jTUZKHsqapDRDpNErIirrcgRtUXDMt/GpYIuCVb48ZRw0tcIQwRxE5FOxVpdXAgzi
+         Y0indAMT0oUT+CsAbyRP/1I1HA8/aAN2S0B//2j+bN2e+n8e0EPVxzNECn5WnFOfwN
+         BvRF+WBJH/hDRFjUNWsfNfXTQZroBM1ERmdq4EP7gQYbBV0hvb0pBbErsKHGFp7uoQ
+         QqNbEPwmKe7KndRb5Erj5sO9K95GjgJzg00LE5sca5IgY6sajLg7MmPQwy+EMFRVI2
+         /ThvTt5fWCqEkEkRIyZ3J83uEy/sB8G9ObaQ7MqC9QieMiUQvIAvNNccB9hgIAqZTg
+         J8y3sDSOL5YPA==
+From:   Lee Jones <lee@kernel.org>
+To:     Lee Jones <lee@kernel.org>, Tony Lindgren <tony@atomide.com>,
+        Mark Brown <broonie@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20231001-mfd-ti-maple-v1-0-0657862de3f6@kernel.org>
+References: <20231001-mfd-ti-maple-v1-0-0657862de3f6@kernel.org>
+Subject: Re: [PATCH 0/7] mfd: ti: Convert to maple tree register cache
+Message-Id: <169650587815.706993.16199144308620450017.b4-ty@kernel.org>
+Date:   Thu, 05 Oct 2023 12:37:58 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-Mailer: b4 0.12.2
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Dzie=C5=84 dobry!
+On Sun, 01 Oct 2023 11:27:47 +0100, Mark Brown wrote:
+> The maple tree based register cache is based on a more modern data
+> structure and makes more current implementation decisions than the
+> rbtree cache, convert the TI drivers that use rbtree caches to use
+> maple tree instead.
+> 
+> 
 
-Czy m=C3=B3g=C5=82bym przedstawi=C4=87 rozwi=C4=85zanie, kt=C3=B3re umo=C5=
-=BCliwia monitoring ka=C5=BCdego auta w czasie rzeczywistym w tym jego po=
-zycj=C4=99, zu=C5=BCycie paliwa i przebieg?
+Applied, thanks!
 
-Dodatkowo nasze narz=C4=99dzie minimalizuje koszty utrzymania samochod=C3=
-=B3w, skraca czas przejazd=C3=B3w, a tak=C5=BCe tworzenie planu tras czy =
-dostaw.
+[1/7] mfd: tps65086: Convert to use maple tree register cache
+      commit: aa732bb3da329abc28b4eee89efd974acb5b8c36
+[2/7] mfd: tps65090: Convert to use maple tree register cache
+      commit: 21a3beab2dbf6c0f3fdc45a14dfffbe2d1c53e79
+[3/7] mfd: tps65128: Convert to use maple tree register cache
+      commit: d252f0f6c8df10559cca85bc8824e9b7c45c1c51
+[4/7] mfd: tps6586x: Convert to use maple tree register cache
+      commit: 0c16d3d6b758aca06c7c550cc43b8a0368525bba
+[5/7] mfd: tps65910: Convert to use maple tree register cache
+      commit: f77a3bcff35c1c8bccb347f2f7cf3e25af782984
+[6/7] mfd: tps65912: Convert to use maple tree register cache
+      commit: 6e554a744ff576223275fbedafccf9d88581b1fd
+[7/7] mfd: twl: Convert to use maple tree register cache
+      commit: 680d253c3ba0674b8da269e5c51e6caaa623cad5
 
-Z naszej wiedzy i do=C5=9Bwiadczenia korzysta ju=C5=BC ponad 49 tys. Klie=
-nt=C3=B3w. Monitorujemy 809 000 pojazd=C3=B3w na ca=C5=82ym =C5=9Bwiecie,=
- co jest nasz=C4=85 najlepsz=C4=85 wizyt=C3=B3wk=C4=85.
+--
+Lee Jones [李琼斯]
 
-Bardzo prosz=C4=99 o e-maila zwrotnego, je=C5=9Bli mogliby=C5=9Bmy wsp=C3=
-=B3lnie om=C3=B3wi=C4=87 potencja=C5=82 wykorzystania takiego rozwi=C4=85=
-zania w Pa=C5=84stwa firmie.
-
-
-Pozdrawiam
-Marcin Chruszcz
