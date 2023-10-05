@@ -2,126 +2,131 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADE2BE936F0
-	for <linux-omap@archiver.kernel.org>; Thu,  5 Oct 2023 00:04:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1080E92707
+	for <linux-omap@archiver.kernel.org>; Thu,  5 Oct 2023 14:19:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244091AbjJEAEP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 4 Oct 2023 20:04:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45438 "EHLO
+        id S232975AbjJEOTI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 5 Oct 2023 10:19:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243808AbjJEAEO (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 4 Oct 2023 20:04:14 -0400
-Received: from mail-io1-xd2d.google.com (mail-io1-xd2d.google.com [IPv6:2607:f8b0:4864:20::d2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1960CE;
-        Wed,  4 Oct 2023 17:04:10 -0700 (PDT)
-Received: by mail-io1-xd2d.google.com with SMTP id ca18e2360f4ac-7a2cc9ee64cso18396239f.1;
-        Wed, 04 Oct 2023 17:04:10 -0700 (PDT)
+        with ESMTP id S233305AbjJEOQi (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 5 Oct 2023 10:16:38 -0400
+Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CED9D9033
+        for <linux-omap@vger.kernel.org>; Thu,  5 Oct 2023 01:47:24 -0700 (PDT)
+Received: by mail-ed1-x530.google.com with SMTP id 4fb4d7f45d1cf-533df112914so1135617a12.0
+        for <linux-omap@vger.kernel.org>; Thu, 05 Oct 2023 01:47:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696464249; x=1697069049; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xHepvuDvDnHmuTSCWiPic5GpIEisZ00JylNY2qD1gZ4=;
-        b=kG64eVOqYT7srvclvU6HA1/qAmIpVFoufCQQ4hthYqUIjwVamwZiH1wSCb7pUP2Nab
-         4oui0/EqK/w74MOsJKvXhRF/4mFHdMMD+tkDT1tCwt4sgUvNJTs5tM5BGrOQWtgtlAJB
-         kHjKmM5HctGP1zKiaCpuXmtmTiLry+/jqzXtfouxkXl3+xo80IXcSs7aPPWoeThfQnNL
-         jyolHtWILxxUj93H6jGV8OibsFkX60pXKpIN5E4vyBsPH3jhTO+lkIVs2A2g1GFaD2pd
-         +X3i3WJ/oeTnGutY1aWSzKvu9mJQzcd4kbLzHTjz78vsXT5EX727Ziuvy7OFfyHQxJAd
-         0Vuw==
+        d=linaro.org; s=google; t=1696495643; x=1697100443; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from:references:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=hD29T/lNAZ/QXmGwMrZ1x3g2jDcpF7q49U192S8uJFo=;
+        b=lsQNuKsJVy+XPtiCITALaWpCvQLvvXHP4eQsqCypPyRDCyoG6BSmEemyAs7kdMhk/t
+         kt0B55GzYDKGLVIU85PPg5vohlfa1katKpoorrNuacg0FeNupK/MfNy6uWpPGytrhzp1
+         qrDMJSvGuk6+mHHk7xEMUOcMob7QCgsjXsLcB9CYTIUCEd2sV+18KhSwi3GLISnLhL0k
+         flHwr8KH48W3RD3vhwVQsAC4GbwHStBiUz5F0NW1gZEkX4DB+ik0KMIFGqTGNdJ764en
+         LAXemJU/FTNJV75eM3VrU3K5oYL0CDUgdeLW77wSsgSoO+a6cuQM5hhQFDHPaA1xssFJ
+         xoBg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696464249; x=1697069049;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=xHepvuDvDnHmuTSCWiPic5GpIEisZ00JylNY2qD1gZ4=;
-        b=c1DRW3xNrdwbz7HNlgQifPVZvKqp03ynRFC4J7jaLrtgHwz+TZGN/TNZ16juc4sqwE
-         2aNQkvhyrNwTSJRp8XMwQzFqDhnCTYOKs+h36OL5EhH/nAsLPJvBA7W7iHOuEiUZGSqb
-         YWMou+6bFPBEo2OYIdfAV3Pm7fG95WTPdEAwaYOG+BpUkPemZn/jNVz3BpH2a36U/FO2
-         XxfOwPsOxEUUdtcoEM0hjolcm4MI4llk2iJRmwDrnY46FazH+4fXIzVr0mhXQxxnaDph
-         hv3YWmZ9lSlfvKNEcArRLObT95bsqXR/RRVLlZowlj97BaI+qqZfXHKa1T99cSB46j/2
-         MTuA==
-X-Gm-Message-State: AOJu0Yy3FlIJUxf2/JAZFARrrhf1GIxlLqR6YaeaCGc1AYflRwIUbn2K
-        Q1X54w0mObXQtT79yeWFTGD1RUw2baZ2aw==
-X-Google-Smtp-Source: AGHT+IFO3eAUYPtMwyaWQxEAv8UyDyRrouwbdaXoULyX47Tx6bmZsg/kFcYqtUUPVyFzmKrOq/n2fA==
-X-Received: by 2002:a5e:8d10:0:b0:792:8c52:b3b8 with SMTP id m16-20020a5e8d10000000b007928c52b3b8mr3951032ioj.14.1696464249358;
-        Wed, 04 Oct 2023 17:04:09 -0700 (PDT)
-Received: from aford-System-Version.lan (c-75-72-166-104.hsd1.mn.comcast.net. [75.72.166.104])
-        by smtp.gmail.com with ESMTPSA id h3-20020a5ecb43000000b0079fdeed3ab6sm56895iok.40.2023.10.04.17.04.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Oct 2023 17:04:08 -0700 (PDT)
-From:   Adam Ford <aford173@gmail.com>
-To:     linux-omap@vger.kernel.org
-Cc:     aford@beaconembedded.com, Adam Ford <aford173@gmail.com>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Conor Dooley <conor+dt@kernel.org>,
-        "Derald D. Woods" <woods.technical@gmail.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH V3 2/2] arm: dts: am3517-evm: Enable Ethernet PHY Interrupt
-Date:   Wed,  4 Oct 2023 19:04:02 -0500
-Message-Id: <20231005000402.50879-2-aford173@gmail.com>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20231005000402.50879-1-aford173@gmail.com>
-References: <20231005000402.50879-1-aford173@gmail.com>
+        d=1e100.net; s=20230601; t=1696495643; x=1697100443;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from:references:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=hD29T/lNAZ/QXmGwMrZ1x3g2jDcpF7q49U192S8uJFo=;
+        b=DOx8owDofiIImN0raoumcj/JhEFKn9KgozprI4/RXXknpsu4rr0IDdieUtPvA49XW/
+         1nV2+ePyffXWzB5RQt3KEYoALObEq4WGHNPbnD8S7l8kCb0mTvKP413XK9m/xPUGhLxx
+         t27ye7e96Syp/GbELsE70heoi78Ium4s1sLu/+hlFDXXoLh0YoTez6kS51FNhuMsmzaI
+         GkzgnwOA4UbCoQV+h96q6a+VqV1nsvX63vlja1pRHA7ViRzkd3vKkfGtG9wicVzlAsVg
+         i+btqn/ct+N0YUTjGziVtrMYucrc3ci/bCFpUHwvpigZ8OGUCNtV64Hl6C2o1Mdt03Mb
+         sOlw==
+X-Gm-Message-State: AOJu0YyFqUqni3eOWXxFv59+aIbo5otRAaXnXbUq4lLGWe0/YZ5gqkTz
+        gu/8Z1M7QpPCfE+KsfKzq1b6wg==
+X-Google-Smtp-Source: AGHT+IHoI73LDoSrX3Gv9DQxUZNSzP3ZoUFcKOfRokgWvrTjGiN0gthxYBek7Z+baJjgCuDr2rd82A==
+X-Received: by 2002:a17:906:105e:b0:9ae:654d:5105 with SMTP id j30-20020a170906105e00b009ae654d5105mr4915001ejj.47.1696495642975;
+        Thu, 05 Oct 2023 01:47:22 -0700 (PDT)
+Received: from [192.168.1.197] (5-157-101-10.dyn.eolo.it. [5.157.101.10])
+        by smtp.gmail.com with ESMTPSA id a1-20020a1709064a4100b009b65a698c5csm815655ejv.57.2023.10.05.01.47.21
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 05 Oct 2023 01:47:22 -0700 (PDT)
+Message-ID: <6b4968d9-80d3-4a5a-b42e-3982825e45e9@linaro.org>
+Date:   Thu, 5 Oct 2023 10:47:21 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] ARM: dts: omap4-embt2ws: Add Bluetooth
+Content-Language: en-US
+To:     Andreas Kemnade <andreas@kemnade.info>, bcousson@baylibre.com,
+        tony@atomide.com, robh+dt@kernel.org,
+        krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20231004070309.2408745-1-andreas@kemnade.info>
+From:   Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Autocrypt: addr=krzysztof.kozlowski@linaro.org; keydata=
+ xsFNBFVDQq4BEAC6KeLOfFsAvFMBsrCrJ2bCalhPv5+KQF2PS2+iwZI8BpRZoV+Bd5kWvN79
+ cFgcqTTuNHjAvxtUG8pQgGTHAObYs6xeYJtjUH0ZX6ndJ33FJYf5V3yXqqjcZ30FgHzJCFUu
+ JMp7PSyMPzpUXfU12yfcRYVEMQrmplNZssmYhiTeVicuOOypWugZKVLGNm0IweVCaZ/DJDIH
+ gNbpvVwjcKYrx85m9cBVEBUGaQP6AT7qlVCkrf50v8bofSIyVa2xmubbAwwFA1oxoOusjPIE
+ J3iadrwpFvsZjF5uHAKS+7wHLoW9hVzOnLbX6ajk5Hf8Pb1m+VH/E8bPBNNYKkfTtypTDUCj
+ NYcd27tjnXfG+SDs/EXNUAIRefCyvaRG7oRYF3Ec+2RgQDRnmmjCjoQNbFrJvJkFHlPeHaeS
+ BosGY+XWKydnmsfY7SSnjAzLUGAFhLd/XDVpb1Een2XucPpKvt9ORF+48gy12FA5GduRLhQU
+ vK4tU7ojoem/G23PcowM1CwPurC8sAVsQb9KmwTGh7rVz3ks3w/zfGBy3+WmLg++C2Wct6nM
+ Pd8/6CBVjEWqD06/RjI2AnjIq5fSEH/BIfXXfC68nMp9BZoy3So4ZsbOlBmtAPvMYX6U8VwD
+ TNeBxJu5Ex0Izf1NV9CzC3nNaFUYOY8KfN01X5SExAoVTr09ewARAQABzTRLcnp5c3p0b2Yg
+ S296bG93c2tpIDxrcnp5c3p0b2Yua296bG93c2tpQGxpbmFyby5vcmc+wsGUBBMBCgA+FiEE
+ m9B+DgxR+NWWd7dUG5NDfTtBYpsFAmI+BxMCGwMFCRRfreEFCwkIBwIGFQoJCAsCBBYCAwEC
+ HgECF4AACgkQG5NDfTtBYptgbhAAjAGunRoOTduBeC7V6GGOQMYIT5n3OuDSzG1oZyM4kyvO
+ XeodvvYv49/ng473E8ZFhXfrre+c1olbr1A8pnz9vKVQs9JGVa6wwr/6ddH7/yvcaCQnHRPK
+ mnXyP2BViBlyDWQ71UC3N12YCoHE2cVmfrn4JeyK/gHCvcW3hUW4i5rMd5M5WZAeiJj3rvYh
+ v8WMKDJOtZFXxwaYGbvFJNDdvdTHc2x2fGaWwmXMJn2xs1ZyFAeHQvrp49mS6PBQZzcx0XL5
+ cU9ZjhzOZDn6Apv45/C/lUJvPc3lo/pr5cmlOvPq1AsP6/xRXsEFX/SdvdxJ8w9KtGaxdJuf
+ rpzLQ8Ht+H0lY2On1duYhmro8WglOypHy+TusYrDEry2qDNlc/bApQKtd9uqyDZ+rx8bGxyY
+ qBP6bvsQx5YACI4p8R0J43tSqWwJTP/R5oPRQW2O1Ye1DEcdeyzZfifrQz58aoZrVQq+innR
+ aDwu8qDB5UgmMQ7cjDSeAQABdghq7pqrA4P8lkA7qTG+aw8Z21OoAyZdUNm8NWJoQy8m4nUP
+ gmeeQPRc0vjp5JkYPgTqwf08cluqO6vQuYL2YmwVBIbO7cE7LNGkPDA3RYMu+zPY9UUi/ln5
+ dcKuEStFZ5eqVyqVoZ9eu3RTCGIXAHe1NcfcMT9HT0DPp3+ieTxFx6RjY3kYTGLOwU0EVUNc
+ NAEQAM2StBhJERQvgPcbCzjokShn0cRA4q2SvCOvOXD+0KapXMRFE+/PZeDyfv4dEKuCqeh0
+ hihSHlaxTzg3TcqUu54w2xYskG8Fq5tg3gm4kh1Gvh1LijIXX99ABA8eHxOGmLPRIBkXHqJY
+ oHtCvPc6sYKNM9xbp6I4yF56xVLmHGJ61KaWKf5KKWYgA9kfHufbja7qR0c6H79LIsiYqf92
+ H1HNq1WlQpu/fh4/XAAaV1axHFt/dY/2kU05tLMj8GjeQDz1fHas7augL4argt4e+jum3Nwt
+ yupodQBxncKAUbzwKcDrPqUFmfRbJ7ARw8491xQHZDsP82JRj4cOJX32sBg8nO2N5OsFJOcd
+ 5IE9v6qfllkZDAh1Rb1h6DFYq9dcdPAHl4zOj9EHq99/CpyccOh7SrtWDNFFknCmLpowhct9
+ 5ZnlavBrDbOV0W47gO33WkXMFI4il4y1+Bv89979rVYn8aBohEgET41SpyQz7fMkcaZU+ok/
+ +HYjC/qfDxT7tjKXqBQEscVODaFicsUkjheOD4BfWEcVUqa+XdUEciwG/SgNyxBZepj41oVq
+ FPSVE+Ni2tNrW/e16b8mgXNngHSnbsr6pAIXZH3qFW+4TKPMGZ2rZ6zITrMip+12jgw4mGjy
+ 5y06JZvA02rZT2k9aa7i9dUUFggaanI09jNGbRA/ABEBAAHCwXwEGAEKACYCGwwWIQSb0H4O
+ DFH41ZZ3t1Qbk0N9O0FimwUCYDzvagUJFF+UtgAKCRAbk0N9O0Fim9JzD/0auoGtUu4mgnna
+ oEEpQEOjgT7l9TVuO3Qa/SeH+E0m55y5Fjpp6ZToc481za3xAcxK/BtIX5Wn1mQ6+szfrJQ6
+ 59y2io437BeuWIRjQniSxHz1kgtFECiV30yHRgOoQlzUea7FgsnuWdstgfWi6LxstswEzxLZ
+ Sj1EqpXYZE4uLjh6dW292sO+j4LEqPYr53hyV4I2LPmptPE9Rb9yCTAbSUlzgjiyyjuXhcwM
+ qf3lzsm02y7Ooq+ERVKiJzlvLd9tSe4jRx6Z6LMXhB21fa5DGs/tHAcUF35hSJrvMJzPT/+u
+ /oVmYDFZkbLlqs2XpWaVCo2jv8+iHxZZ9FL7F6AHFzqEFdqGnJQqmEApiRqH6b4jRBOgJ+cY
+ qc+rJggwMQcJL9F+oDm3wX47nr6jIsEB5ZftdybIzpMZ5V9v45lUwmdnMrSzZVgC4jRGXzsU
+ EViBQt2CopXtHtYfPAO5nAkIvKSNp3jmGxZw4aTc5xoAZBLo0OV+Ezo71pg3AYvq0a3/oGRG
+ KQ06ztUMRrj8eVtpImjsWCd0bDWRaaR4vqhCHvAG9iWXZu4qh3ipie2Y0oSJygcZT7H3UZxq
+ fyYKiqEmRuqsvv6dcbblD8ZLkz1EVZL6djImH5zc5x8qpVxlA0A0i23v5QvN00m6G9NFF0Le
+ D2GYIS41Kv4Isx2dEFh+/Q==
+In-Reply-To: <20231004070309.2408745-1-andreas@kemnade.info>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-The Ethernet PHY interrupt pin is routed to GPIO_58.  Create a
-PHY node to configure this GPIO for the interrupt to avoid polling.
+On 04/10/2023 09:03, Andreas Kemnade wrote:
+> Since the required clock is now available, add bluetooth.
+> 
+> Note: Firmware (bts file) from device vendor reroutes tx for some time
+> during initialisation and later put it back, producing timeouts in
+> bluetooth initialisation but ignoring that command leads to proper
+> initialisation.
+> 
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
 
-Signed-off-by: Adam Ford <aford173@gmail.com>
----
-V3:  Fix issue where V2 wasn't properly properly commit-ammended, so V2 patch didn't properly generate
 
-V2:  Attempted (but failed) to fix ethernet-phy-pins naming
+Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 
-diff --git a/arch/arm/boot/dts/ti/omap/am3517-evm.dts b/arch/arm/boot/dts/ti/omap/am3517-evm.dts
-index 866f68c5b504..40f15da81043 100644
---- a/arch/arm/boot/dts/ti/omap/am3517-evm.dts
-+++ b/arch/arm/boot/dts/ti/omap/am3517-evm.dts
-@@ -172,11 +172,24 @@ hsusb1_phy: hsusb1_phy {
- &davinci_emac {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&ethernet_pins>;
-+	phy-mode = "rmii";
-+	phy-handle = <&ethphy0>;
- 	status = "okay";
- };
- 
- &davinci_mdio {
-+	#address-cells = <1>;
-+	#size-cells = <0>;
- 	status = "okay";
-+
-+	ethphy0: ethernet-phy@0 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&enet_phy_pins>;
-+		compatible = "ethernet-phy-ieee802.3-c22";
-+		reg = <0>;
-+		interrupt-parent = <&gpio2>;
-+		interrupts = <26 IRQ_TYPE_LEVEL_LOW>;	/* gpio_58 */
-+	};
- };
- 
- &dss {
-@@ -257,6 +270,12 @@ OMAP3_CORE1_IOPAD(0x2210, PIN_INPUT_PULLDOWN | MUX_MODE0) /* rmii_50mhz_clk */
- 		>;
- 	};
- 
-+	enet_phy_pins: ethernet-phy-pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x20bc, PIN_INPUT | MUX_MODE4)	/* gpmc_ncs7.gpio_57 */
-+		>;
-+	};
-+
- 	i2c2_pins: i2c2-pins {
- 		pinctrl-single,pins = <
- 			OMAP3_CORE1_IOPAD(0x21be, PIN_INPUT_PULLUP | MUX_MODE0)  /* i2c2_scl */
--- 
-2.40.1
+Best regards,
+Krzysztof
 
