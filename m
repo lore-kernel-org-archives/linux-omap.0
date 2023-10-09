@@ -2,148 +2,73 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53D5DE95A8E
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Oct 2023 09:24:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0769CE95A98
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Oct 2023 14:50:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345800AbjJIJX7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 Oct 2023 05:23:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38930 "EHLO
+        id S234568AbjJIOt7 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 9 Oct 2023 10:49:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345742AbjJIJXM (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Oct 2023 05:23:12 -0400
-Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [IPv6:2a0a:edc0:2:b01:1d::104])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69A8F125
-        for <linux-omap@vger.kernel.org>; Mon,  9 Oct 2023 02:23:04 -0700 (PDT)
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-        by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1qpmTE-0006sS-FJ; Mon, 09 Oct 2023 11:22:36 +0200
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-        by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1qpmTB-000NWK-WD; Mon, 09 Oct 2023 11:22:34 +0200
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
-        (envelope-from <ukl@pengutronix.de>)
-        id 1qpmTB-00C4om-Lw; Mon, 09 Oct 2023 11:22:33 +0200
-From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>
-To:     Linus Walleij <linus.walleij@linaro.org>
-Cc:     Tony Lindgren <tony@atomide.com>,
-        Haojian Zhuang <haojian.zhuang@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Yangtao Li <frank.li@vivo.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@foss.st.com>,
-        linux-stm32@st-md-mailman.stormreply.com,
-        Charles Keepax <ckeepax@opensource.cirrus.com>,
+        with ESMTP id S230326AbjJIOt7 (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Oct 2023 10:49:59 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B8C7B7;
+        Mon,  9 Oct 2023 07:49:57 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96DDAC433C7;
+        Mon,  9 Oct 2023 14:49:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1696862997;
+        bh=0dalE74v4lnBvJvSmP3JrLr6kKKhrnt8ulY17ktBunY=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=lkGL2QNf3tO/XWzRQ2GvFSyjzaIkfLIPk2DhuXpcQ9zcbaDBMqb4f579lSVRwSVh9
+         Ll0pN5BNa22w/Nabvbi9iv6T27Ll6UefSZJKdaq2qneI7BvLY4WkmYRB8/tqGxJIx2
+         prUmCl18aPQ223X1EfOGyNwcSYqy8MSQSApg3LOGzM4b2cIi0IjaVkIYyHkuFtc0UJ
+         eEFrtOFp6aGo3mc+28cyhI4CsE3WNxFlB2U5wPJCSe6mhSLlaoDHFkUC8yxTuL4d8J
+         bLnHzdKhMxLngJIBl72IbwCt2ktlXA9Uck1Rd1pJXPMgwqjlW/6vuzVWYxaQyANx8O
+         s/TKH4QpRe1/g==
+Date:   Mon, 9 Oct 2023 07:53:53 -0700
+From:   Bjorn Andersson <andersson@kernel.org>
+To:     Rob Herring <robh@kernel.org>
+Cc:     Charles Keepax <ckeepax@opensource.cirrus.com>,
         Richard Fitzgerald <rf@opensource.cirrus.com>,
-        alsa-devel@alsa-project.org, patches@opensource.cirrus.com,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Andy Shevchenko <andy@kernel.org>,
-        Basavaraj Natikar <Basavaraj.Natikar@amd.com>,
-        Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
-        Jesper Nilsson <jesper.nilsson@axis.com>,
-        Lars Persson <lars.persson@axis.com>,
-        linux-arm-kernel@axis.com, Heiko Stuebner <heiko@sntech.de>,
-        linux-rockchip@lists.infradead.org, Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <andersson@kernel.org>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        David Lechner <david@lechnology.com>,
+        Sekhar Nori <nsekhar@ti.com>, Andy Gross <agross@kernel.org>,
         Konrad Dybcio <konrad.dybcio@linaro.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Tomasz Figa <tomasz.figa@gmail.com>,
+        Chanwoo Choi <cw00.choi@samsung.com>,
+        Alim Akhtar <alim.akhtar@samsung.com>,
+        Tero Kristo <kristo@kernel.org>, patches@opensource.cirrus.com,
+        linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-msm@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 00/20] pinctrl: Convert to platform remove callback returning void
-Date:   Mon,  9 Oct 2023 10:38:36 +0200
-Message-Id: <20231009083856.222030-1-u.kleine-koenig@pengutronix.de>
-X-Mailer: git-send-email 2.40.1
+        linux-arm-kernel@lists.infradead.org,
+        linux-rockchip@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH] clk: Use device_get_match_data()
+Message-ID: <4dvxssedquxbq4hl6pnkju73n2iilzhaeuak5jgmamms7r33yw@eof45x7mt6co>
+References: <20231006213959.334439-1-robh@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3496; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=pt9OZIbEVRO7CYphejzNzNKVBdTQOuLMQfjMm/xdSsg=; b=owGbwMvMwMXY3/A7olbonx/jabUkhlTl3b98hd42/517xHB/gviiPU/9MqwUZ0mXf7uieqT57 e1Tr4s5OxmNWRgYuRhkxRRZ7BvXZFpVyUV2rv13GWYQKxPIFAYuTgGYiNF79n9mT5b+PJ2R+ikl wLMnduL/rK7Z79ojXnBnnL3QVfV6IeOf7r+yDxdeUQ/VNbcoUj9/TSL8bE71Y7sDqxerpXI6VEs /1P97Z0YuT218uWOkw/O0NY6abDVGc6fHL8n96l+lGaq7OrdAK4Ax5VjhrnRrd5OA6peWBvlTb3 AyXvpSMPXrLx65FXyMmsnHnqZ+uvjL8HBZBXOtsu7S3Jpkh9r2xaYef+NnftHqsljaMnF9yufEf 1E6pW1rZr69u0fZs2RLfUdYQdgLp/hzIZpzmerWsjlmfmDdx9Wlc7RYWop3kxrz7+18KXNuV655 FaFwVYNlX9ml35+UxAPLrx9fo8B+cpJOMQ9zsGQi0zFOAA==
-X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231006213959.334439-1-robh@kernel.org>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hello,
+On Fri, Oct 06, 2023 at 04:39:58PM -0500, Rob Herring wrote:
+> Use preferred device_get_match_data() instead of of_match_device() to
+> get the driver match data. With this, adjust the includes to explicitly
+> include the correct headers.
+> 
+> Signed-off-by: Rob Herring <robh@kernel.org>
 
-after three minor improvements/simplifications this series converts all
-platform_drivers below drivers/pinctrl to .remove_new().
+Nice, thanks for cleaning this up.
 
-See commit 5c5a7680e67b ("platform: Provide a remove callback that
-returns no value") for an extended explanation and the eventual goal.
+Reviewed-by: Bjorn Andersson <andersson@kernel.org>
 
-The only interdependencies in this series are the patches that touch a
-single driver (that is (1, 13), (2, 12), (3, 20)). As there are still
-quite a few drivers to convert, I'm happy about every patch that makes
-it in. So even if there is a merge conflict with one patch until you
-apply (or a different concern that doesn't apply to all patches), please
-apply the remainder of this series anyhow. I'll come back to the part
-that you (maybe) skipped at a later point.
-
-Best regards
-Uwe
-
-Uwe Kleine-König (20):
-  pinctrl: stmfx: Improve error message in .remove()'s error path
-  pinctrl: single: Drop if block with always false condition
-  pinctrl: ti: ti-iodelay: Drop if block with always false condition
-  pinctrl: cirrus: madera-core: Convert to platform remove callback
-    returning void
-  pinctrl: intel: cherryview: Convert to platform remove callback
-    returning void
-  pinctrl: intel: lynxpoint: Convert to platform remove callback
-    returning void
-  pinctrl: nomadik: abx500: Convert to platform remove callback
-    returning void
-  pinctrl: amd: Convert to platform remove callback returning void
-  pinctrl: artpec6: Convert to platform remove callback returning void
-  pinctrl: as3722: Convert to platform remove callback returning void
-  pinctrl: rockchip: Convert to platform remove callback returning void
-  pinctrl: single: Convert to platform remove callback returning void
-  pinctrl: stmfx: Convert to platform remove callback returning void
-  pinctrl: tb10x: Convert to platform remove callback returning void
-  pinctrl: qcom: spmi-gpio: Convert to platform remove callback
-    returning void
-  pinctrl: qcom: spmi-mpp: Convert to platform remove callback returning
-    void
-  pinctrl: qcom: ssbi-gpio: Convert to platform remove callback
-    returning void
-  pinctrl: qcom: ssbi-mpp: Convert to platform remove callback returning
-    void
-  pinctrl: renesas: rzn1: Convert to platform remove callback returning
-    void
-  pinctrl: ti: ti-iodelay: Convert to platform remove callback returning
-    void
-
- drivers/pinctrl/cirrus/pinctrl-madera-core.c |  6 ++----
- drivers/pinctrl/intel/pinctrl-cherryview.c   |  6 ++----
- drivers/pinctrl/intel/pinctrl-lynxpoint.c    |  5 ++---
- drivers/pinctrl/nomadik/pinctrl-abx500.c     |  5 ++---
- drivers/pinctrl/pinctrl-amd.c                |  6 ++----
- drivers/pinctrl/pinctrl-artpec6.c            |  6 ++----
- drivers/pinctrl/pinctrl-as3722.c             |  5 ++---
- drivers/pinctrl/pinctrl-rockchip.c           |  6 ++----
- drivers/pinctrl/pinctrl-single.c             |  9 ++-------
- drivers/pinctrl/pinctrl-stmfx.c              | 16 ++++++++++------
- drivers/pinctrl/pinctrl-tb10x.c              |  6 ++----
- drivers/pinctrl/qcom/pinctrl-spmi-gpio.c     |  5 ++---
- drivers/pinctrl/qcom/pinctrl-spmi-mpp.c      |  5 ++---
- drivers/pinctrl/qcom/pinctrl-ssbi-gpio.c     |  6 ++----
- drivers/pinctrl/qcom/pinctrl-ssbi-mpp.c      |  6 ++----
- drivers/pinctrl/renesas/pinctrl-rzn1.c       |  6 ++----
- drivers/pinctrl/ti/pinctrl-ti-iodelay.c      | 11 ++---------
- 17 files changed, 42 insertions(+), 73 deletions(-)
-
-
-base-commit: 0bb80ecc33a8fb5a682236443c1e740d5c917d1d
--- 
-2.40.1
-
+Regards,
+Bjorn
