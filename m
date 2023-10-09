@@ -2,92 +2,82 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FD6EE95A97
-	for <linux-omap@archiver.kernel.org>; Mon,  9 Oct 2023 08:32:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD87FE95A8E
+	for <linux-omap@archiver.kernel.org>; Mon,  9 Oct 2023 09:22:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234407AbjJIIcS (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 9 Oct 2023 04:32:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49826 "EHLO
+        id S1345826AbjJIJW4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 9 Oct 2023 05:22:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234378AbjJIIcR (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Oct 2023 04:32:17 -0400
-Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 671C4A3;
-        Mon,  9 Oct 2023 01:32:15 -0700 (PDT)
-Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-        by mx0b-001ae601.pphosted.com (8.17.1.22/8.17.1.22) with ESMTP id 3998Ns1d003054;
-        Mon, 9 Oct 2023 03:31:03 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=
-        date:from:to:cc:subject:message-id:references:mime-version
-        :content-type:in-reply-to; s=PODMain02222019; bh=4MULa8LIRZTV5cI
-        iahOJgFs1cV3PfMr3tjK0c8f3GSE=; b=H43PPY3zCVBdf0vPDwEGXiKLlM9HDYb
-        pV+PuJsdYW5fsV5FZNri3Oi2KHTBJf++lnEHX6h6VcYfVUvVtaCZMQQPBb7vw1l0
-        jQXamdETdZPKveOQxCtMKf5JPK7TwCJIDNMMYDeJvp1Cvfz5e0eb9yH6TJ2TWM/T
-        knltDk6ZBuzEdb9rCaJfTO3jyGj0mdwyMV+Fkqq68LpOKNFJLijQByj92atLVoti
-        x5aUALB3lTBscn0mDG5cJKawJBs9vL4P9lErVKxxPEVatNs2syXn3CqhGt2FIn26
-        juwEDXs28eGa4CuKTajeUsIVf/KKqCRqldYlvKOf2x6odatLP4HXvew==
-Received: from ediex02.ad.cirrus.com ([84.19.233.68])
-        by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 3tkhhah27e-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 09 Oct 2023 03:31:03 -0500 (CDT)
-Received: from ediex02.ad.cirrus.com (198.61.84.81) by ediex02.ad.cirrus.com
- (198.61.84.81) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1118.37; Mon, 9 Oct
- 2023 09:31:01 +0100
-Received: from ediswmail.ad.cirrus.com (198.61.86.93) by
- anon-ediex02.ad.cirrus.com (198.61.84.81) with Microsoft SMTP Server id
- 15.2.1118.37 via Frontend Transport; Mon, 9 Oct 2023 09:31:01 +0100
-Received: from ediswmail.ad.cirrus.com (ediswmail.ad.cirrus.com [198.61.86.93])
-        by ediswmail.ad.cirrus.com (Postfix) with ESMTP id BD1C811AC;
-        Mon,  9 Oct 2023 08:31:01 +0000 (UTC)
-Date:   Mon, 9 Oct 2023 08:31:01 +0000
-From:   Charles Keepax <ckeepax@opensource.cirrus.com>
-To:     Rob Herring <robh@kernel.org>
-CC:     Richard Fitzgerald <rf@opensource.cirrus.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        David Lechner <david@lechnology.com>,
-        Sekhar Nori <nsekhar@ti.com>, Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        Konrad Dybcio <konrad.dybcio@linaro.org>,
-        Heiko Stuebner <heiko@sntech.de>,
-        "Krzysztof Kozlowski" <krzysztof.kozlowski@linaro.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Tomasz Figa <tomasz.figa@gmail.com>,
-        Chanwoo Choi <cw00.choi@samsung.com>,
-        Alim Akhtar <alim.akhtar@samsung.com>,
-        Tero Kristo <kristo@kernel.org>,
-        <patches@opensource.cirrus.com>, <linux-clk@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-arm-msm@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-rockchip@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH] clk: Use device_get_match_data()
-Message-ID: <20231009083101.GS103419@ediswmail.ad.cirrus.com>
-References: <20231006213959.334439-1-robh@kernel.org>
+        with ESMTP id S1345773AbjJIJWn (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 9 Oct 2023 05:22:43 -0400
+Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [IPv6:2a0a:edc0:2:b01:1d::104])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76DEAA2
+        for <linux-omap@vger.kernel.org>; Mon,  9 Oct 2023 02:22:40 -0700 (PDT)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1qpmTC-0006sX-Q7; Mon, 09 Oct 2023 11:22:34 +0200
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1qpmTC-000NWQ-Cy; Mon, 09 Oct 2023 11:22:34 +0200
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1qpmTC-00C4ot-3k; Mon, 09 Oct 2023 11:22:34 +0200
+From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+To:     Linus Walleij <linus.walleij@linaro.org>
+Cc:     Tony Lindgren <tony@atomide.com>,
+        Haojian Zhuang <haojian.zhuang@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 02/20] pinctrl: single: Drop if block with always false condition
+Date:   Mon,  9 Oct 2023 10:38:38 +0200
+Message-Id: <20231009083856.222030-3-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.40.1
+In-Reply-To: <20231009083856.222030-1-u.kleine-koenig@pengutronix.de>
+References: <20231009083856.222030-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20231006213959.334439-1-robh@kernel.org>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-Proofpoint-ORIG-GUID: FlYp9zqwQvX4Bbg0m_XlIGcUY-KCFqlB
-X-Proofpoint-GUID: FlYp9zqwQvX4Bbg0m_XlIGcUY-KCFqlB
-X-Proofpoint-Spam-Reason: safe
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=844; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=YKE8P7L9V9D6eghladkosJamRCKd+b5UoH3TDoc6yRM=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBlI7wBrRbKaWaukJeLRndrn6pB3LKccfQJKwli0 16nUYkI9b6JATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZSO8AQAKCRCPgPtYfRL+ TtW7B/44yeQT6igw9tEP+D9fYA4PIKhJQgpUdOWoUs5fL0toneQALi3dmosp2c8vp33KXbG5Qgy 32gKGzf+3CTTwDt4cl8xQcZ70/Ohz/PcYkTUd7Gme7xu1aGLLK6+pkvaM3M52rKR34eRxypSYuy Ggkb4fFk0wsixK9fBpS3NiGHaMdNNUayaaHIBZJq86t8k95H9pAAQQwMds9td8bpVGZGGQuib89 TQUfrhk0wiNBGU4To6RwoELEpyMcGS5Pfa3TTeFMKp772k/RPGsfnCAUXWrc69WdEsJo+uASphm tAHS1lcCvheZbsA4qNTYqdhYXVk9XyCBDHT/GhiyL/tEioH4
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Fri, Oct 06, 2023 at 04:39:58PM -0500, Rob Herring wrote:
-> Use preferred device_get_match_data() instead of of_match_device() to
-> get the driver match data. With this, adjust the includes to explicitly
-> include the correct headers.
-> 
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> ---
+pcs_remove() is only called after pcs_probe() completed successfully. In
+this case platform_set_drvdata() was called with a non-NULL argument and
+so platform_get_drvdata() won't return NULL.
 
-For the Lochnagar bit:
+Simplify by removing the if block with the always false condition.
 
-Acked-by: Charles Keepax <ckeepax@opensource.cirrus.com> 
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+ drivers/pinctrl/pinctrl-single.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-Thanks,
-Charles
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 461a7c02d4a3..f6c02c8b934d 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1929,9 +1929,6 @@ static int pcs_remove(struct platform_device *pdev)
+ {
+ 	struct pcs_device *pcs = platform_get_drvdata(pdev);
+ 
+-	if (!pcs)
+-		return 0;
+-
+ 	pcs_free_resources(pcs);
+ 
+ 	return 0;
+-- 
+2.40.1
+
