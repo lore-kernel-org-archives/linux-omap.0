@@ -2,28 +2,29 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E8F3CD8CAD
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Oct 2023 17:35:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF334CD8CB0
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Oct 2023 17:35:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231501AbjJJRfP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Oct 2023 13:35:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45490 "EHLO
+        id S232266AbjJJRfQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Oct 2023 13:35:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232266AbjJJRfN (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Oct 2023 13:35:13 -0400
-Received: from mx.skole.hr (mx1.hosting.skole.hr [161.53.165.185])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46E8A9E
-        for <linux-omap@vger.kernel.org>; Tue, 10 Oct 2023 10:35:12 -0700 (PDT)
-Received: from mx1.hosting.skole.hr (localhost.localdomain [127.0.0.1])
-        by mx.skole.hr (mx.skole.hr) with ESMTP id 5320682EA1;
-        Tue, 10 Oct 2023 19:27:38 +0200 (CEST)
+        with ESMTP id S233870AbjJJRfP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Oct 2023 13:35:15 -0400
+Received: from mx.skole.hr (mx2.hosting.skole.hr [161.53.165.186])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11AC69E
+        for <linux-omap@vger.kernel.org>; Tue, 10 Oct 2023 10:35:13 -0700 (PDT)
+Received: from mx2.hosting.skole.hr (localhost.localdomain [127.0.0.1])
+        by mx.skole.hr (mx.skole.hr) with ESMTP id 5AB7B864B4;
+        Tue, 10 Oct 2023 19:27:43 +0200 (CEST)
 From:   =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>
-Date:   Tue, 10 Oct 2023 19:27:23 +0200
-Subject: [PATCH v6 6/9] dt-bindings: marvell: Document PXA1908 SoC
+Date:   Tue, 10 Oct 2023 19:27:26 +0200
+Subject: [PATCH v6 9/9] MAINTAINERS: add myself as Marvell PXA1908
+ maintainer
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20231010-pxa1908-lkml-v6-6-b2fe09240cf8@skole.hr>
+Message-Id: <20231010-pxa1908-lkml-v6-9-b2fe09240cf8@skole.hr>
 References: <20231010-pxa1908-lkml-v6-0-b2fe09240cf8@skole.hr>
 In-Reply-To: <20231010-pxa1908-lkml-v6-0-b2fe09240cf8@skole.hr>
 To:     Michael Turquette <mturquette@baylibre.com>,
@@ -44,54 +45,56 @@ Cc:     linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-hardening@vger.kernel.org,
-        =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+        =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>
 X-Mailer: b4 0.12.3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=890;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=908;
  i=duje.mihanovic@skole.hr; h=from:subject:message-id;
- bh=68SP0psZM8Sot29iAM52aLi+c+3JVnNIUMMY8bC0VIc=;
- b=owEBbQKS/ZANAwAIAZoRnrBCLZbhAcsmYgBlJYl5/48Y0TmCPPbEFgIneK51T/eCNkCvyK86B
- gTAaA4jwU2JAjMEAAEIAB0WIQRT351NnD/hEPs2LXiaEZ6wQi2W4QUCZSWJeQAKCRCaEZ6wQi2W
- 4Wa+D/9a0mMENJFyiUVJ2mxTCqyG6n/Y1qhtN6KQ97SBTexjRdOHT6VORNiElvA/ZjI/+0DmCOw
- Akt64PGdQ6e+8N8uYLqGEKXSyvAfaIl05hCG6pZ2e38xhohM2kdxpDfEsS/mpgu12Mfymubmxvw
- ELVEBLg2G5VD4T1vRGcnQBq89yS2FDOT62cH8FPB34yHdDYaysAqueSdkqQDP4o53nId0gI/2T/
- hsE5fvY0TZTFWounMLORKyuffLDc28gAo4Wfy5YhRQadCc1GQTP+lCx+76SpQlLDPBsti7YKbgZ
- KMHpQAm4w16nz/jmiTmW8LFqsM6F8dmvrXKIF9RZYMpYZ0Xkv68trKMkUULsmmuQEbSM9SYhxcH
- MYIuEh2IWIZf17zGmXCbErFfIefkBwGqYfKWukSYPRfJjH69kGKpOxKOXmWitTELMRzZZEEoNFP
- ThSqKvdX4wFSJ8vYy+EtVqD+5fpq8xE9vegwzZa9b0eUZLCMOj1KJUp96nhqBj71Ht+7DVR2jeR
- Gg/DNVlQiwana5fw6dP4SBcm3+Yb+9Emj6gCP9mPe8e1XYwpB8mFzRn0oB3qQ84kx5iQnJUVMpW
- HTsvzwBVI3mX1w8A0bFXPNZGbJAEbj4hFuO3SQ5xmyAePWA6KAdPP0UlQHpPaH49hjuyI+EI4bP
- xm0ogxAd8RCfvwA==
+ bh=DFkFmWpL42a9uWB0nGtydXY8FHW5qBEo4bLkmrXA9us=;
+ b=owEBbQKS/ZANAwAIAZoRnrBCLZbhAcsmYgBlJYl5WjZg8QhwIAcaDKEP/msa5uKIqJUNjcPss
+ i4vg/GKSJOJAjMEAAEIAB0WIQRT351NnD/hEPs2LXiaEZ6wQi2W4QUCZSWJeQAKCRCaEZ6wQi2W
+ 4VUKEACSbAQnaBn9klVqvXdvLM+kNm6pUAIIE/rRn5J4k7jpcW+wOLHoGTNjnXkgq7aW7L720yF
+ aHCrch53X5gfWk47u8QIU2r1SN+3L+Mq6Z6zG75CevWDxRlMu6nzVQyVEE57TsihLBvzxvury8c
+ lX28gLPUymfkl8u2fqJ9WF6/S9gUUYj5UuX3Pr/c37OEPC4TGJAI1PCc2gWsa/T0UVIim82vSEm
+ uwiLFD2dOXZdwK8xyscziKphAdYf4hl+jPXmg24bZIqpe507PSUW/XFOk9tC2k/5ypJvIP8mcT8
+ VtjiVVfI+RpAWw3VWJ51j1uy1S61PoreeG/qcxSR8DrYEZYpo+XOzGXEfw7beWf9+QJbR0zvexN
+ S1l5kYonPYq1AEg+DPb84mw6ceNF577y981dXr9B9MXEYrrUg4aQqGjDrE1FdufmDHI4SllfrEt
+ ZU8ZnCjzy84T+v+LPPuDHHfImEorL49fJagk7jTom2R/86PBlUT05wf0XGftC/o84gcJ9V/OgmF
+ 9ZneerNcwzowvRd1E58Fc8NI0TXaDJfoKAW8jzYc876A0vDRkvlhykO6hrBujwqMgWbtGMSJFFE
+ v1wGrv0sMcRmJdldPv1Rdv0duqPdLElUv1y9syDwZv25iIaIangQgQhKseh1qVWQdGGEIJt83+a
+ CsxeEqUHFfyEpOw==
 X-Developer-Key: i=duje.mihanovic@skole.hr; a=openpgp;
  fpr=53DF9D4D9C3FE110FB362D789A119EB0422D96E1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add dt binding for the Marvell PXA1908 SoC.
+Add myself as the maintainer for Marvell PXA1908 SoC support.
 
-Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 Signed-off-by: Duje Mihanović <duje.mihanovic@skole.hr>
 ---
- Documentation/devicetree/bindings/arm/mrvl/mrvl.yaml | 5 +++++
- 1 file changed, 5 insertions(+)
+ MAINTAINERS | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/arm/mrvl/mrvl.yaml b/Documentation/devicetree/bindings/arm/mrvl/mrvl.yaml
-index 4c43eaf3632e..f73bb8ec3a1a 100644
---- a/Documentation/devicetree/bindings/arm/mrvl/mrvl.yaml
-+++ b/Documentation/devicetree/bindings/arm/mrvl/mrvl.yaml
-@@ -35,6 +35,11 @@ properties:
-           - enum:
-               - dell,wyse-ariel
-           - const: marvell,mmp3
-+      - description: PXA1908 based boards
-+        items:
-+          - enum:
-+              - samsung,coreprimevelte
-+          - const: marvell,pxa1908
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 6c4cce45a09d..38c99e687976 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2312,6 +2312,15 @@ F:	drivers/irqchip/irq-mvebu-*
+ F:	drivers/pinctrl/mvebu/
+ F:	drivers/rtc/rtc-armada38x.c
  
- additionalProperties: true
- 
++ARM/Marvell PXA1908 SOC support
++M:	Duje Mihanović <duje.mihanovic@skole.hr>
++L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
++S:	Maintained
++T:	git https://gitlab.com/LegoLivesMatter/linux
++F:	arch/arm64/boot/dts/marvell/pxa1908*
++F:	drivers/clk/mmp/clk-of-pxa1908.c
++F:	include/dt-bindings/clock/marvell,pxa1908.h
++
+ ARM/Mediatek RTC DRIVER
+ M:	Eddie Huang <eddie.huang@mediatek.com>
+ M:	Sean Wang <sean.wang@mediatek.com>
 
 -- 
 2.42.0
