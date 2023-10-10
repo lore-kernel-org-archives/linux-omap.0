@@ -2,30 +2,29 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D74A0CD8CAD
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Oct 2023 17:35:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C49BCD8CAE
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Oct 2023 17:35:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233604AbjJJRfM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        id S232397AbjJJRfM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
         Tue, 10 Oct 2023 13:35:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45436 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231501AbjJJRfK (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Oct 2023 13:35:10 -0400
-X-Greylist: delayed 455 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 10 Oct 2023 10:35:09 PDT
+        with ESMTP id S232266AbjJJRfL (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Oct 2023 13:35:11 -0400
 Received: from mx.skole.hr (mx1.hosting.skole.hr [161.53.165.185])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 201BC97
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 219E89E
         for <linux-omap@vger.kernel.org>; Tue, 10 Oct 2023 10:35:09 -0700 (PDT)
 Received: from mx1.hosting.skole.hr (localhost.localdomain [127.0.0.1])
-        by mx.skole.hr (mx.skole.hr) with ESMTP id 3A92D8516B;
-        Tue, 10 Oct 2023 19:27:33 +0200 (CEST)
+        by mx.skole.hr (mx.skole.hr) with ESMTP id 4CBFA850ED;
+        Tue, 10 Oct 2023 19:27:40 +0200 (CEST)
 From:   =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>
-Date:   Tue, 10 Oct 2023 19:27:19 +0200
-Subject: [PATCH v6 2/9] dt-bindings: pinctrl: pinctrl-single: add
- marvell,pxa1908-padconf compatible
+Date:   Tue, 10 Oct 2023 19:27:24 +0200
+Subject: [PATCH v6 7/9] arm64: Kconfig.platforms: Add config for Marvell
+ PXA1908 platform
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20231010-pxa1908-lkml-v6-2-b2fe09240cf8@skole.hr>
+Message-Id: <20231010-pxa1908-lkml-v6-7-b2fe09240cf8@skole.hr>
 References: <20231010-pxa1908-lkml-v6-0-b2fe09240cf8@skole.hr>
 In-Reply-To: <20231010-pxa1908-lkml-v6-0-b2fe09240cf8@skole.hr>
 To:     Michael Turquette <mturquette@baylibre.com>,
@@ -48,50 +47,56 @@ Cc:     linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-hardening@vger.kernel.org,
         =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>
 X-Mailer: b4 0.12.3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=893;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=848;
  i=duje.mihanovic@skole.hr; h=from:subject:message-id;
- bh=JI4TCidJxHS1hYKjUsUHSsL9Lr+V30eDcrv5o/04yCQ=;
- b=owEBbQKS/ZANAwAIAZoRnrBCLZbhAcsmYgBlJYl45oeZvqQfEk0N/BcAkKiGhs0mjliAM4Azw
- jKWhTxEAv6JAjMEAAEIAB0WIQRT351NnD/hEPs2LXiaEZ6wQi2W4QUCZSWJeAAKCRCaEZ6wQi2W
- 4YA+D/9xaSSVr4qSeGjb6mIc60b38KFQ1QTppTfY6GhnmVY7EBrfbP+M7U5DElKvZpKzw9cf4fQ
- DbqxAAS1t37i4lXUgShpKgp83iSwpquchB5WB59ZvDfAbNSUUDix0tcVzC7zFmi66QPdrtxhGip
- N2lamX8fdTlqSPBvPAnXkZLa1TnwCkwLILaEeXHd6g57mSFBQSWqeJHxXSGVkDSiQ8vYMNMh8W8
- dNE+spmLJp+4/MowHWPtWg98epUaslMDTcB7JR/hZbEkyIyGUr7eIlUI/TVUqmX49fMJU82JeQl
- 6wFVlQ/KuEUUOeHutJ9PsCQZU7rL9MoBJRidM/zKPIOy2KeGneJ5qHEn96mGQCSWUlnx0L2yegQ
- GN+GVqdd3cuhLqR6dFcMKeS4EcpLJCE87Zbew+380BQhcFtdIhTT1MUUrBXi8ochBTyp4frAWPi
- 2YcAVQP0iLqpTm0+D6pF1PdoFMuZITz2c51xsXsu9v4Lu5cZ9hZURpFV2tHw/QbArENHQyhA89i
- P0Fq1/PuaJSAZ7UBBIkEj1SaoVVVD7zjhYt90ly/kI0KW84e/lhbBIMLvXoCiBskQElM0pIqkaI
- HGfCbBAcW+JAglnMUkXFPV5ZLDHMgJmyoIKm5XRy2khVW2ukvM6kBBJE2tghycui8AFfq3N268m
- ElIIvKPY4OYPc9w==
+ bh=EiZLJFEyV4LY8QGlZs87/IL+BtGJZigZwDQYelB5sZM=;
+ b=owEBbQKS/ZANAwAIAZoRnrBCLZbhAcsmYgBlJYl5YkBJAKI15Gq3bPrucFamNf+kLEuTFyZCq
+ z/81zE/LJCJAjMEAAEIAB0WIQRT351NnD/hEPs2LXiaEZ6wQi2W4QUCZSWJeQAKCRCaEZ6wQi2W
+ 4fw3EACNyIPYlpA85OQWxoEg5p+EtLTgIZ64HFQATn4CYgNc3agGXNrW8ybT5qWf4XPlhaZsYtV
+ N4Z3nHxv/Ua2IBP8nUSEZwiEiw0qWLBpabyzTFbyHI44Zmp2o8szyXyXX3YooWlCvTbpiPnO5Fw
+ HvxEXOj7o1cclaDknq6V+Fe1VOGkCZe3Hhzj9G+jnV37Z8ElNL7SjRcOTsNPSaS74BGU4hCyLwE
+ wv81kXviEIZdaY2L5P5RaDADGmPmV8xifLcxKs+PuYwtSZZpduRJhVl9vonlyalvGs+P1Ulpfwh
+ jR21MwBw0C1oYDpJes6ItaeVqWYVYCHMGSxNmkhVoamGsP+3LlUJzJAy58+sEhzuyzMq85DHXrK
+ xHHmcKE+e96fAGhIYZg8/d9fB+hAMx7VYBIcmN/t5eOT2V/nDEB05ndULJAsRL1PALensdybwZA
+ QUvB5QgSiZYcaREzEC3vmhcYXmPZkQSf1AFXjfUWtBYDW6aP6Gp3KsK21QXoKI++ScWIyiBmmqp
+ W4av0tuU5AfQ6z8+NbX3VZHDeiez7k2C8ZAUtDwxUx3K29ATs1haWUdTmzfw0nkO9mffsbkdPnD
+ gculrCRL9jQFQpRwMSP35/TCurQB3Nj8jgqMuWSPZ3Ovh8MSWeM2KePOM1S4XKGdwcDI2yXuydS
+ 8ZGLpC2q3mjwiiw==
 X-Developer-Key: i=duje.mihanovic@skole.hr; a=openpgp;
  fpr=53DF9D4D9C3FE110FB362D789A119EB0422D96E1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add the "marvell,pxa1908-padconf" compatible to allow migrating to a
-separate pinctrl driver later.
+Add ARCH_MMP configuration option for Marvell PXA1908 SoC.
 
 Signed-off-by: Duje Mihanović <duje.mihanovic@skole.hr>
 ---
- Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm64/Kconfig.platforms | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-index 45a307d3ce16..0f7e16a28990 100644
---- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-+++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-@@ -32,6 +32,10 @@ properties:
-               - ti,omap4-padconf
-               - ti,omap5-padconf
-           - const: pinctrl-single
-+      - items:
-+          - enum:
-+              - marvell,pxa1908-padconf
-+          - const: pinconf-single
+diff --git a/arch/arm64/Kconfig.platforms b/arch/arm64/Kconfig.platforms
+index 6069120199bb..b417cae42c84 100644
+--- a/arch/arm64/Kconfig.platforms
++++ b/arch/arm64/Kconfig.platforms
+@@ -89,6 +89,17 @@ config ARCH_BERLIN
+ 	help
+ 	  This enables support for Marvell Berlin SoC Family
  
-   reg:
-     maxItems: 1
++config ARCH_MMP
++	bool "Marvell MMP SoC Family"
++	select ARM_GIC
++	select ARM_ARCH_TIMER
++	select ARM_SMMU
++	select MMP_PDMA
++	select PINCTRL_SINGLE
++	help
++	  This enables support for Marvell MMP SoC family, currently
++	  supporting PXA1908 aka IAP140.
++
+ config ARCH_BITMAIN
+ 	bool "Bitmain SoC Platforms"
+ 	help
 
 -- 
 2.42.0
