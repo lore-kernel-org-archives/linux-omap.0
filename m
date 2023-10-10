@@ -2,89 +2,98 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8883CD80D4
-	for <linux-omap@archiver.kernel.org>; Tue, 10 Oct 2023 13:44:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D74A0CD8CAD
+	for <linux-omap@archiver.kernel.org>; Tue, 10 Oct 2023 17:35:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232377AbjJJNoR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Oct 2023 09:44:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33014 "EHLO
+        id S233604AbjJJRfM (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Oct 2023 13:35:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232710AbjJJNng (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Oct 2023 09:43:36 -0400
-Received: from mail-yw1-x112d.google.com (mail-yw1-x112d.google.com [IPv6:2607:f8b0:4864:20::112d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D8B2271F
-        for <linux-omap@vger.kernel.org>; Tue, 10 Oct 2023 06:41:24 -0700 (PDT)
-Received: by mail-yw1-x112d.google.com with SMTP id 00721157ae682-5a7c95b8d14so4738067b3.3
-        for <linux-omap@vger.kernel.org>; Tue, 10 Oct 2023 06:41:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1696945283; x=1697550083; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ueK8SG+a7FTCY6O4EvQZ3DF32rOrkudVS05yOM+rm8Q=;
-        b=pALrOtvUiukdglMyGsRr3uThX2dEh2snupInYNwlD2ewY0tTT6GLziyOUhO5/1Hrc6
-         tgsfPxT0bLxpEDNMH9EshqkjJ9VweTRXAryRym748OFx8h0B3AL+QrCmw+7I0O7CQU2K
-         isPz561MXCyShw1qOqdKMXZ1VkFz3j+lUFlbXJuKt8W6AAJYUAEMo/qjCkJv50/51AzR
-         TentqMIUEmo+biSZQUUd3E/EZs8u/MO0Y1hgOMQ89+RbFbyIDhuVIugeCidfI2Eblq+i
-         YPBICmDq0qqd8xzwU0vBnwxcNrguXMJuj/ruoGPhlDm0/5wC8xfZBkUL04F0nY1AdpuY
-         VE3w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696945283; x=1697550083;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ueK8SG+a7FTCY6O4EvQZ3DF32rOrkudVS05yOM+rm8Q=;
-        b=YDbUgdTvh+1M8StiQBq/BNxF9rTEJn7bnT1xsFKovsgkaWrZDs6ZP2jQ61795fE0zS
-         Humucp9u9YixbPaEn5RW8ma8yFrPzNUgdOautKP6pemz8I2pgCUiNl8VQh+jtmfdClWy
-         SGy//a3MGep2VsSi0TOaAiN/MnWlaPgqmlIWtLDoVFA+5EedjJm0NM2/aG3SUsJt05+b
-         Vlb1rO2T1Yw7lSR4IjWuQklJ5jqscRWGdLZ+zpAr7QJaC3M5e2RUSEcexnu2cuirmzxu
-         Vh/N06Zl4jePiQtx2E1TR83rl6FElF7ixMj/gsSAkaNVaCYTXfgbuPxNXVlyfAjgljW0
-         /h+A==
-X-Gm-Message-State: AOJu0Yxtbm7e6CPSdGBz6udhr8CL+xIlyyJzKV4KyaoD/10Vr+74xxlZ
-        tJS6oPMCgavpNmHNF+GlXk7GZLMYzWF1Ad9p9NTZ2w==
-X-Google-Smtp-Source: AGHT+IFeF565XnMjdeGlwpA7Qpbln3q9KjwdSHBRpi1ETaQ6I7jQT4GcmMxVkkfUJJiXKQ/CDEsXHIM5K+82riuMrBo=
-X-Received: by 2002:a81:a0d2:0:b0:59f:6cbf:8902 with SMTP id
- x201-20020a81a0d2000000b0059f6cbf8902mr18245533ywg.33.1696945283469; Tue, 10
- Oct 2023 06:41:23 -0700 (PDT)
+        with ESMTP id S231501AbjJJRfK (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Oct 2023 13:35:10 -0400
+X-Greylist: delayed 455 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 10 Oct 2023 10:35:09 PDT
+Received: from mx.skole.hr (mx1.hosting.skole.hr [161.53.165.185])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 201BC97
+        for <linux-omap@vger.kernel.org>; Tue, 10 Oct 2023 10:35:09 -0700 (PDT)
+Received: from mx1.hosting.skole.hr (localhost.localdomain [127.0.0.1])
+        by mx.skole.hr (mx.skole.hr) with ESMTP id 3A92D8516B;
+        Tue, 10 Oct 2023 19:27:33 +0200 (CEST)
+From:   =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>
+Date:   Tue, 10 Oct 2023 19:27:19 +0200
+Subject: [PATCH v6 2/9] dt-bindings: pinctrl: pinctrl-single: add
+ marvell,pxa1908-padconf compatible
 MIME-Version: 1.0
-References: <20231009083856.222030-1-u.kleine-koenig@pengutronix.de> <20231009083856.222030-13-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <20231009083856.222030-13-u.kleine-koenig@pengutronix.de>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Tue, 10 Oct 2023 15:41:12 +0200
-Message-ID: <CACRpkdaK=gk7oeg6U7dcE7oJ0KhM5_FSpGo8Zv_87Fc-nRkyWQ@mail.gmail.com>
-Subject: Re: [PATCH 12/20] pinctrl: single: Convert to platform remove
- callback returning void
-To:     =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>
-Cc:     Tony Lindgren <tony@atomide.com>,
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20231010-pxa1908-lkml-v6-2-b2fe09240cf8@skole.hr>
+References: <20231010-pxa1908-lkml-v6-0-b2fe09240cf8@skole.hr>
+In-Reply-To: <20231010-pxa1908-lkml-v6-0-b2fe09240cf8@skole.hr>
+To:     Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Tony Lindgren <tony@atomide.com>,
         Haojian Zhuang <haojian.zhuang@linaro.org>,
+        Lubomir Rintel <lkundrak@v3.sk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Tony Luck <tony.luck@intel.com>,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Cc:     linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        linux-hardening@vger.kernel.org,
+        =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>
+X-Mailer: b4 0.12.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=893;
+ i=duje.mihanovic@skole.hr; h=from:subject:message-id;
+ bh=JI4TCidJxHS1hYKjUsUHSsL9Lr+V30eDcrv5o/04yCQ=;
+ b=owEBbQKS/ZANAwAIAZoRnrBCLZbhAcsmYgBlJYl45oeZvqQfEk0N/BcAkKiGhs0mjliAM4Azw
+ jKWhTxEAv6JAjMEAAEIAB0WIQRT351NnD/hEPs2LXiaEZ6wQi2W4QUCZSWJeAAKCRCaEZ6wQi2W
+ 4YA+D/9xaSSVr4qSeGjb6mIc60b38KFQ1QTppTfY6GhnmVY7EBrfbP+M7U5DElKvZpKzw9cf4fQ
+ DbqxAAS1t37i4lXUgShpKgp83iSwpquchB5WB59ZvDfAbNSUUDix0tcVzC7zFmi66QPdrtxhGip
+ N2lamX8fdTlqSPBvPAnXkZLa1TnwCkwLILaEeXHd6g57mSFBQSWqeJHxXSGVkDSiQ8vYMNMh8W8
+ dNE+spmLJp+4/MowHWPtWg98epUaslMDTcB7JR/hZbEkyIyGUr7eIlUI/TVUqmX49fMJU82JeQl
+ 6wFVlQ/KuEUUOeHutJ9PsCQZU7rL9MoBJRidM/zKPIOy2KeGneJ5qHEn96mGQCSWUlnx0L2yegQ
+ GN+GVqdd3cuhLqR6dFcMKeS4EcpLJCE87Zbew+380BQhcFtdIhTT1MUUrBXi8ochBTyp4frAWPi
+ 2YcAVQP0iLqpTm0+D6pF1PdoFMuZITz2c51xsXsu9v4Lu5cZ9hZURpFV2tHw/QbArENHQyhA89i
+ P0Fq1/PuaJSAZ7UBBIkEj1SaoVVVD7zjhYt90ly/kI0KW84e/lhbBIMLvXoCiBskQElM0pIqkaI
+ HGfCbBAcW+JAglnMUkXFPV5ZLDHMgJmyoIKm5XRy2khVW2ukvM6kBBJE2tghycui8AFfq3N268m
+ ElIIvKPY4OYPc9w==
+X-Developer-Key: i=duje.mihanovic@skole.hr; a=openpgp;
+ fpr=53DF9D4D9C3FE110FB362D789A119EB0422D96E1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Oct 9, 2023 at 11:23=E2=80=AFAM Uwe Kleine-K=C3=B6nig
-<u.kleine-koenig@pengutronix.de> wrote:
+Add the "marvell,pxa1908-padconf" compatible to allow migrating to a
+separate pinctrl driver later.
 
-> The .remove() callback for a platform driver returns an int which makes
-> many driver authors wrongly assume it's possible to do error handling by
-> returning an error code. However the value returned is ignored (apart
-> from emitting a warning) and this typically results in resource leaks.
->
-> To improve here there is a quest to make the remove callback return
-> void. In the first step of this quest all drivers are converted to
-> .remove_new(), which already returns void. Eventually after all drivers
-> are converted, .remove_new() will be renamed to .remove().
->
-> Trivially convert this driver from always returning zero in the remove
-> callback to the void returning variant.
->
-> Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+Signed-off-by: Duje Mihanović <duje.mihanovic@skole.hr>
+---
+ Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Patch applied.
+diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+index 45a307d3ce16..0f7e16a28990 100644
+--- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
++++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+@@ -32,6 +32,10 @@ properties:
+               - ti,omap4-padconf
+               - ti,omap5-padconf
+           - const: pinctrl-single
++      - items:
++          - enum:
++              - marvell,pxa1908-padconf
++          - const: pinconf-single
+ 
+   reg:
+     maxItems: 1
 
-Yours,
-Linus Walleij
+-- 
+2.42.0
+
+
