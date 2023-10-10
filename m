@@ -2,29 +2,28 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2812CD8CB1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E8F3CD8CAD
 	for <linux-omap@archiver.kernel.org>; Tue, 10 Oct 2023 17:35:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233877AbjJJRfQ (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 10 Oct 2023 13:35:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45504 "EHLO
+        id S231501AbjJJRfP (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 10 Oct 2023 13:35:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233874AbjJJRfP (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Oct 2023 13:35:15 -0400
-Received: from mx.skole.hr (mx2.hosting.skole.hr [161.53.165.186])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1189E9D
-        for <linux-omap@vger.kernel.org>; Tue, 10 Oct 2023 10:35:13 -0700 (PDT)
-Received: from mx2.hosting.skole.hr (localhost.localdomain [127.0.0.1])
-        by mx.skole.hr (mx.skole.hr) with ESMTP id 248DB8649E;
-        Tue, 10 Oct 2023 19:27:35 +0200 (CEST)
+        with ESMTP id S232266AbjJJRfN (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 10 Oct 2023 13:35:13 -0400
+Received: from mx.skole.hr (mx1.hosting.skole.hr [161.53.165.185])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46E8A9E
+        for <linux-omap@vger.kernel.org>; Tue, 10 Oct 2023 10:35:12 -0700 (PDT)
+Received: from mx1.hosting.skole.hr (localhost.localdomain [127.0.0.1])
+        by mx.skole.hr (mx.skole.hr) with ESMTP id 5320682EA1;
+        Tue, 10 Oct 2023 19:27:38 +0200 (CEST)
 From:   =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>
-Date:   Tue, 10 Oct 2023 19:27:20 +0200
-Subject: [PATCH v6 3/9] pinctrl: single: add marvell,pxa1908-padconf
- compatible
+Date:   Tue, 10 Oct 2023 19:27:23 +0200
+Subject: [PATCH v6 6/9] dt-bindings: marvell: Document PXA1908 SoC
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20231010-pxa1908-lkml-v6-3-b2fe09240cf8@skole.hr>
+Message-Id: <20231010-pxa1908-lkml-v6-6-b2fe09240cf8@skole.hr>
 References: <20231010-pxa1908-lkml-v6-0-b2fe09240cf8@skole.hr>
 In-Reply-To: <20231010-pxa1908-lkml-v6-0-b2fe09240cf8@skole.hr>
 To:     Michael Turquette <mturquette@baylibre.com>,
@@ -45,49 +44,54 @@ Cc:     linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
         linux-hardening@vger.kernel.org,
-        =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>
+        =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 X-Mailer: b4 0.12.3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=886;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=890;
  i=duje.mihanovic@skole.hr; h=from:subject:message-id;
- bh=3vMvyouTrSlTTv/1BlonUdvoKpdtri2jxGZJNXRvhAY=;
- b=owEBbQKS/ZANAwAIAZoRnrBCLZbhAcsmYgBlJYl4IPBD5s9W1Aki+2HTBXYchq0X3HXueK7hZ
- XEncSo0sQKJAjMEAAEIAB0WIQRT351NnD/hEPs2LXiaEZ6wQi2W4QUCZSWJeAAKCRCaEZ6wQi2W
- 4ejND/9SfhMjd94nHShn3D3a0JzuOh8NOdbOOVLTbqzRwM51HCCDcc5p4el49XcQdw8H9bOpT0i
- BGHwGKmxsgAuQ0kGSJUk9HQCRqwPKh6XrLK8zh9LbSymQGJ/fy8a20Uf7AfIa++BXJvHLO8zZNn
- KQqI/oeQt3lX16ow8IR6zYIsxWieQ/Yug9TLcQtYp3VFQk0dI+9H7bbiEHBPsAwjWK9o7bigdRj
- hrKO1oA8TKhd2SlnaeLkYx2hDF3mWvFjZR6i6RWmkNBCXEIOTfbSBoT2mHta/+FfnDqfI6cgqcq
- ZU/e+zeS7wqDiMPwAK7xI+0JsOabwuBpC03UDhTyQHEgZrA8CiKkuq07qhKlcOEUkRcPlHXDpm+
- WKF4m90QR/1wrjj+OEUtQ3Pi/w4yfJOcvGydmXA8fE4dEIM6NNcz1pwppG1hpYZFysTcNzZVrvz
- fFXSnXiqpSAapA7cw+Ebm4A0WvaQnsBIFY8D21vzY+igXjYfEOociz4YjfoJYsIEVFixyfeRr4h
- RvOKp49MKSwlj6YfGSP193FV+l9AJkkLbMwOgCo4rRBq0R/cTIlpOkMh/0Trx1+w4nN2f1cwORD
- EbHvfTlerAM/omPkGr7EHHYp0VjPSa9GPCqmC/RELi1xZnPObajr5qimuuezMgv+8wgvWBolo8/
- V1dl/OAS6hv9OLw==
+ bh=68SP0psZM8Sot29iAM52aLi+c+3JVnNIUMMY8bC0VIc=;
+ b=owEBbQKS/ZANAwAIAZoRnrBCLZbhAcsmYgBlJYl5/48Y0TmCPPbEFgIneK51T/eCNkCvyK86B
+ gTAaA4jwU2JAjMEAAEIAB0WIQRT351NnD/hEPs2LXiaEZ6wQi2W4QUCZSWJeQAKCRCaEZ6wQi2W
+ 4Wa+D/9a0mMENJFyiUVJ2mxTCqyG6n/Y1qhtN6KQ97SBTexjRdOHT6VORNiElvA/ZjI/+0DmCOw
+ Akt64PGdQ6e+8N8uYLqGEKXSyvAfaIl05hCG6pZ2e38xhohM2kdxpDfEsS/mpgu12Mfymubmxvw
+ ELVEBLg2G5VD4T1vRGcnQBq89yS2FDOT62cH8FPB34yHdDYaysAqueSdkqQDP4o53nId0gI/2T/
+ hsE5fvY0TZTFWounMLORKyuffLDc28gAo4Wfy5YhRQadCc1GQTP+lCx+76SpQlLDPBsti7YKbgZ
+ KMHpQAm4w16nz/jmiTmW8LFqsM6F8dmvrXKIF9RZYMpYZ0Xkv68trKMkUULsmmuQEbSM9SYhxcH
+ MYIuEh2IWIZf17zGmXCbErFfIefkBwGqYfKWukSYPRfJjH69kGKpOxKOXmWitTELMRzZZEEoNFP
+ ThSqKvdX4wFSJ8vYy+EtVqD+5fpq8xE9vegwzZa9b0eUZLCMOj1KJUp96nhqBj71Ht+7DVR2jeR
+ Gg/DNVlQiwana5fw6dP4SBcm3+Yb+9Emj6gCP9mPe8e1XYwpB8mFzRn0oB3qQ84kx5iQnJUVMpW
+ HTsvzwBVI3mX1w8A0bFXPNZGbJAEbj4hFuO3SQ5xmyAePWA6KAdPP0UlQHpPaH49hjuyI+EI4bP
+ xm0ogxAd8RCfvwA==
 X-Developer-Key: i=duje.mihanovic@skole.hr; a=openpgp;
  fpr=53DF9D4D9C3FE110FB362D789A119EB0422D96E1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Add the "marvell,pxa1908-padconf" compatible to allow migrating to a
-separate pinctrl driver later.
+Add dt binding for the Marvell PXA1908 SoC.
 
+Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 Signed-off-by: Duje Mihanović <duje.mihanovic@skole.hr>
 ---
- drivers/pinctrl/pinctrl-single.c | 1 +
- 1 file changed, 1 insertion(+)
+ Documentation/devicetree/bindings/arm/mrvl/mrvl.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index 461a7c02d4a3..a36f750cfe9f 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1968,6 +1968,7 @@ static const struct pcs_soc_data pinconf_single = {
- };
+diff --git a/Documentation/devicetree/bindings/arm/mrvl/mrvl.yaml b/Documentation/devicetree/bindings/arm/mrvl/mrvl.yaml
+index 4c43eaf3632e..f73bb8ec3a1a 100644
+--- a/Documentation/devicetree/bindings/arm/mrvl/mrvl.yaml
++++ b/Documentation/devicetree/bindings/arm/mrvl/mrvl.yaml
+@@ -35,6 +35,11 @@ properties:
+           - enum:
+               - dell,wyse-ariel
+           - const: marvell,mmp3
++      - description: PXA1908 based boards
++        items:
++          - enum:
++              - samsung,coreprimevelte
++          - const: marvell,pxa1908
  
- static const struct of_device_id pcs_of_match[] = {
-+	{ .compatible = "marvell,pxa1908-padconf", .data = &pinconf_single },
- 	{ .compatible = "ti,am437-padconf", .data = &pinctrl_single_am437x },
- 	{ .compatible = "ti,am654-padconf", .data = &pinctrl_single_am654 },
- 	{ .compatible = "ti,dra7-padconf", .data = &pinctrl_single_dra7 },
+ additionalProperties: true
+ 
 
 -- 
 2.42.0
