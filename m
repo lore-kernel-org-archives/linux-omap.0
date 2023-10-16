@@ -2,90 +2,101 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0E67C41513
-	for <linux-omap@archiver.kernel.org>; Sun, 15 Oct 2023 21:48:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 819A3CDB474
+	for <linux-omap@archiver.kernel.org>; Mon, 16 Oct 2023 11:20:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229766AbjJOVse (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 15 Oct 2023 17:48:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56602 "EHLO
+        id S231442AbjJPLUB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 16 Oct 2023 07:20:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229500AbjJOVse (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 15 Oct 2023 17:48:34 -0400
-Received: from mail.andi.de1.cc (unknown [IPv6:2a02:c205:3004:2154::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D04E8C1;
-        Sun, 15 Oct 2023 14:48:31 -0700 (PDT)
-Received: from p5dc58b95.dip0.t-ipconnect.de ([93.197.139.149] helo=aktux)
-        by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <andreas@kemnade.info>)
-        id 1qs8y9-0052jb-1N; Sun, 15 Oct 2023 23:48:17 +0200
-Date:   Sun, 15 Oct 2023 23:48:15 +0200
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     Tony Lindgren <tony@atomide.com>
-Cc:     =?UTF-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@gmail.com>,
-        bcousson@baylibre.com, robh+dt@kernel.org,
-        krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
-        lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz,
-        tiwai@suse.com, jarkko.nikula@bitmer.com,
-        dmitry.torokhov@gmail.com, linux-omap@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        alsa-devel@alsa-project.org
-Subject: Re: [PATCH 1/3] ASoC: ti: omap-mcbsp: Ignore errors for getting
- fck_src
-Message-ID: <20231015234815.637f5c14@aktux>
-In-Reply-To: <20231007062518.GM34982@atomide.com>
-References: <20230705190324.355282-1-andreas@kemnade.info>
-        <20230705190324.355282-2-andreas@kemnade.info>
-        <7d58d52d-2087-45af-b29e-2515b63ead13@gmail.com>
-        <20230920063353.GQ5285@atomide.com>
-        <dac768d2-2c66-4d6b-b3d3-d1ef69103c76@gmail.com>
-        <20230921121626.GT5285@atomide.com>
-        <20231006102348.GK34982@atomide.com>
-        <20231006213003.0fbac87a@aktux>
-        <20231007062518.GM34982@atomide.com>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.37; x86_64-pc-linux-gnu)
+        with ESMTP id S232090AbjJPLUA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 16 Oct 2023 07:20:00 -0400
+Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29AB2D9
+        for <linux-omap@vger.kernel.org>; Mon, 16 Oct 2023 04:19:58 -0700 (PDT)
+Received: by mail-wm1-x32b.google.com with SMTP id 5b1f17b1804b1-405505b07dfso33475555e9.0
+        for <linux-omap@vger.kernel.org>; Mon, 16 Oct 2023 04:19:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1697455196; x=1698059996; darn=vger.kernel.org;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=A8KsGpPOOoWej+EABAJ7O0MnezxzJN0p6iOYP9JLBdQ=;
+        b=bsEAkxWY0dzw4kb9IARJlAMASvaxvEHrkDR1Cv7mzOkiEEKWZjplB5nQUpTsjP5tLo
+         D8wTUqty9LpDUOXUNPX3iT4cZ2uMT0Lq4LDSM5Ll4e79Cg7eGCLQPNCgtdglsyxFqAAk
+         Qn2Sdx+IIJBF8LsBEk5ltng9JGnt8XAiYLqa16SUOTSaYwX/4tf95RNM1USnuaz7CeUw
+         ENfWZOH11Uu6S9nGST6hoCE82Pc29C3QdlalUd9s2YbHzhIn9IAO2qUY9eBQL+wdSi7C
+         GjykIu4ItNhuHfnRPiC7qm4cX9oWlJ/g0igZHj10JaGnUQ3a+2E5EzZbEFjwQkWfbNeQ
+         Mu2w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1697455196; x=1698059996;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=A8KsGpPOOoWej+EABAJ7O0MnezxzJN0p6iOYP9JLBdQ=;
+        b=GHznVOGkOLhIyli61spcJwgli8jhHas+fjvWHkHxLR7I8sNIQV7s4qolNySaCjEtUB
+         mAEpsOelu0ekYnI4L/UzaGuZjewgTCaJrSp1qAqda4UBt60n5i69COXhj9Ye0ueVb8/y
+         pgta2LunyKsUOPP0sipB1sH13aseSYhMUCjX2OYWE5ONulkoama49EMNe1iUtvWJZ92C
+         AFPAEaOP6Xe9NRafDz3RNrAL0KAPpSCBJ0XuWHyO9QrlrsEJPrOqAmKA0G9wDxNuAO+F
+         IFdsUNq41wgzN3FGeINJDyiE4AJYH9eIoXqlCKgcaC1v1zZffA5BnTCsuccc2gjIJBH4
+         hG9Q==
+X-Gm-Message-State: AOJu0Yy+p0avT9z5a+hDqsN2tzfVla+BHHL5uCAqB+JWRtnSq5IjWCSw
+        7JKdn9TUVpjk9EhJefkFGIzvAQ==
+X-Google-Smtp-Source: AGHT+IEwsg3DmJum5HD3wiLEYwzwIlJS3Ala8HDGksmUXDObbnciWs0r3lFHIdZY4gQew0/dSIC84g==
+X-Received: by 2002:a05:600c:1552:b0:407:7def:382c with SMTP id f18-20020a05600c155200b004077def382cmr4012116wmg.13.1697455196603;
+        Mon, 16 Oct 2023 04:19:56 -0700 (PDT)
+Received: from localhost ([102.36.222.112])
+        by smtp.gmail.com with ESMTPSA id p11-20020a05600c358b00b004075d5664basm6983560wmq.8.2023.10.16.04.19.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 16 Oct 2023 04:19:56 -0700 (PDT)
+Date:   Mon, 16 Oct 2023 14:19:52 +0300
+From:   Dan Carpenter <dan.carpenter@linaro.org>
+To:     Helge Deller <deller@gmx.de>
+Cc:     Thomas Zimmermann <tzimmermann@suse.de>,
+        Sam Ravnborg <sam@ravnborg.org>,
+        Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= 
+        <u.kleine-koenig@pengutronix.de>, Yang Yang <yang.yang29@zte.com>,
+        Xu Panda <xu.panda@zte.com.cn>,
+        Lucy Mielke <mielkesteven@icloud.com>,
+        linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH] fbdev: omapfb: fix some error codes
+Message-ID: <843b063c-ee4a-4e17-add6-75e2cc82c2f4@moroto.mountain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Mailer: git-send-email haha only kidding
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi Tony,
+Return negative -ENXIO instead of positive ENXIO.
 
-On Sat, 7 Oct 2023 09:25:18 +0300
-Tony Lindgren <tony@atomide.com> wrote:
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+---
+No fixes tag because the caller doesn't check for errors.
 
-> * Andreas Kemnade <andreas@kemnade.info> [231006 19:30]:
-> > On Fri, 6 Oct 2023 13:23:48 +0300
-> > Tony Lindgren <tony@atomide.com> wrote:  
-> > > Here's what I think the regression fix for omap4 clocks would be, the
-> > > old main_clk is not the same as the module clock that we get by default.
-> > > If this looks OK I'll do a similar fix also for omap5.
-> > > 
-> > > Or is something else also needed?
-> > >   
-> > 
-> > hmm,
-> > audio output works, the waring is away, but something new is here:  
-> 
-> OK good to hear it works, I'll send out fixes for omap4 and 5, seems
-> the runtime PM warning is something different.
-> 
-> > omap-mcbsp 40124000.mcbsp: Runtime PM usage count underflow!
-> > # cat /sys/bus/platform/devices/40124000.mcbsp/power/runtime_status 
-> > active
-> > 
-> > even with no sound.  
-> 
-> I guess if the mcbsp instance is not used, runtime PM is enabled but
-> pm_runtime_resume_and_get() is never called by ASoC?
-> 
-> If so then the following might be a fix, not familiar with runtime PM
-> done by ASoC though and not sure if some kind of locking would be
-> needed here.
-> 
-just checked: that one fixes the regression. runtime suspends again.
+ drivers/video/fbdev/omap/omapfb_main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Regards,
-Andreas
+diff --git a/drivers/video/fbdev/omap/omapfb_main.c b/drivers/video/fbdev/omap/omapfb_main.c
+index f28cb90947a3..42c96f1cfc93 100644
+--- a/drivers/video/fbdev/omap/omapfb_main.c
++++ b/drivers/video/fbdev/omap/omapfb_main.c
+@@ -1645,13 +1645,13 @@ static int omapfb_do_probe(struct platform_device *pdev,
+ 	}
+ 	fbdev->int_irq = platform_get_irq(pdev, 0);
+ 	if (fbdev->int_irq < 0) {
+-		r = ENXIO;
++		r = -ENXIO;
+ 		goto cleanup;
+ 	}
+ 
+ 	fbdev->ext_irq = platform_get_irq(pdev, 1);
+ 	if (fbdev->ext_irq < 0) {
+-		r = ENXIO;
++		r = -ENXIO;
+ 		goto cleanup;
+ 	}
+ 
+-- 
+2.39.2
+
