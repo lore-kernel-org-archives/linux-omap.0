@@ -2,70 +2,54 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C93AC25B6C
-	for <linux-omap@archiver.kernel.org>; Tue, 24 Oct 2023 03:16:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90355C25B48
+	for <linux-omap@archiver.kernel.org>; Tue, 24 Oct 2023 08:06:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232213AbjJXDQ2 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 23 Oct 2023 23:16:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39252 "EHLO
+        id S232265AbjJXIGG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 24 Oct 2023 04:06:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33538 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231254AbjJXDQ2 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 23 Oct 2023 23:16:28 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFDDB10C2;
-        Mon, 23 Oct 2023 20:16:18 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35D32C433C8;
-        Tue, 24 Oct 2023 03:16:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1698117378;
-        bh=p1hhuvIPakueBhPkMTsnJZD7jEV0fRvqzqRBD6XqoAY=;
-        h=In-Reply-To:References:Subject:From:Cc:To:Date:From;
-        b=SE3dOp5CnQIijBCv2/Tuk2N4/tJy1tJRKwkt4QY2fAckQY3nvjFfuOk/rWdfS2hsa
-         4hYgfVdHEpLBPAL18XB/epo72m//06issvriq+/QVME8U9xbsJIlgDS2Ox/TNUMYYQ
-         OsTJigJIEFNtPRbfYFCJPIu3fPdVGqvF3ghSKKRZZQ28d3pDzWQFipgl1XzEoI+agd
-         OF5SGEipUz11F8M4oe/FTq+UHsEqJQzFNHe4edOCzzooKRCzIH9IzTi7TIMv/TBZVy
-         5DTp3R/X75YtHc6ds4iQixbF8azq9YERs0H6291L0+7ZfHv0al2AMscD9A8zgCp65R
-         QwRjPV6RdN/OA==
-Message-ID: <d5fb4c972273c5e18662e5d6914b04fe.sboyd@kernel.org>
-Content-Type: text/plain; charset="utf-8"
+        with ESMTP id S232448AbjJXIGG (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 24 Oct 2023 04:06:06 -0400
+Received: from mail.citycodes.pl (mail.citycodes.pl [158.255.215.195])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 869A2109
+        for <linux-omap@vger.kernel.org>; Tue, 24 Oct 2023 01:06:04 -0700 (PDT)
+Received: by mail.citycodes.pl (Postfix, from userid 1001)
+        id 5C6181F505; Tue, 24 Oct 2023 10:05:50 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=citycodes.pl; s=mail;
+        t=1698134763; bh=fClkhHu/p6gIm8tbpvFwCqGX3kXIMdqjiuDdSiYGEkk=;
+        h=Date:From:To:Subject:From;
+        b=K8XCkz6Ecnr1EZZ682NCpHScs4Lr0Yamn42InqPsZcYWYzaf9MiE3zbZtsqF7P5lw
+         jQZl2h36gXeX3q9MUcerS5qtsGAC94Zj1IzGuWNmhMreDnIXtbJOjkkPnDR6CwNG5F
+         /WODBIri5lvKHiOQyOQKR4KDrlfmFc7BdNPKxjJEhJm832C2oblRDS36zpsE9z73Eu
+         JdLp3oiMEz7gmZu9KTBj0goX8+/Lpt30ievmMOjHkSFkpy94PmB6VTMQoj/oYlTC7Q
+         NKi3Gy3ypc1bNM7OnXcLJMN7yFo3ehPpfcaOWBp+4qPc57Mm8oNWkhBgB5B00jmOMT
+         gYyF4jyUxgX1Q==
+Received: by mail.citycodes.pl for <linux-omap@vger.kernel.org>; Tue, 24 Oct 2023 08:05:40 GMT
+Message-ID: <20231024084500-0.1.8a.l7re.0.jr1w7v6hj9@citycodes.pl>
+Date:   Tue, 24 Oct 2023 08:05:40 GMT
+From:   "Kamil Lasek" <kamil.lasek@citycodes.pl>
+To:     <linux-omap@vger.kernel.org>
+Subject: Wycena paneli fotowoltaicznych
+X-Mailer: mail.citycodes.pl
 MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20231006213959.334439-1-robh@kernel.org>
-References: <20231006213959.334439-1-robh@kernel.org>
-Subject: Re: [PATCH] clk: Use device_get_match_data()
-From:   Stephen Boyd <sboyd@kernel.org>
-Cc:     patches@opensource.cirrus.com, linux-clk@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-rockchip@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
-To:     Alim Akhtar <alim.akhtar@samsung.com>,
-        Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        Chanwoo Choi <cw00.choi@samsung.com>,
-        Charles Keepax <ckeepax@opensource.cirrus.com>,
-        David Lechner <david@lechnology.com>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Konrad Dybcio <konrad.dybcio@linaro.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Richard Fitzgerald <rf@opensource.cirrus.com>,
-        Rob Herring <robh@kernel.org>, Sekhar Nori <nsekhar@ti.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Tero Kristo <kristo@kernel.org>,
-        Tomasz Figa <tomasz.figa@gmail.com>
-Date:   Mon, 23 Oct 2023 20:16:16 -0700
-User-Agent: alot/0.10
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Quoting Rob Herring (2023-10-06 14:39:58)
-> Use preferred device_get_match_data() instead of of_match_device() to
-> get the driver match data. With this, adjust the includes to explicitly
-> include the correct headers.
->=20
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> ---
+Dzie=C5=84 dobry,
 
-Applied to clk-next
+dostrzegam mo=C5=BCliwo=C5=9B=C4=87 wsp=C3=B3=C5=82pracy z Pa=C5=84stwa f=
+irm=C4=85.
+
+=C5=9Awiadczymy kompleksow=C4=85 obs=C5=82ug=C4=99 inwestycji w fotowolta=
+ik=C4=99, kt=C3=B3ra obni=C5=BCa koszty energii elektrycznej.
+
+Czy s=C4=85 Pa=C5=84stwo zainteresowani weryfikacj=C4=85 wst=C4=99pnych p=
+ropozycji?
+
+
+Pozdrawiam,
+Kamil Lasek
