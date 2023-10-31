@@ -2,27 +2,27 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1C24C4332F
-	for <linux-omap@archiver.kernel.org>; Tue, 31 Oct 2023 17:06:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3117FC4167D
+	for <linux-omap@archiver.kernel.org>; Tue, 31 Oct 2023 17:47:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236358AbjJaRGz (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 31 Oct 2023 13:06:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39386 "EHLO
+        id S1376435AbjJaRrT (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 31 Oct 2023 13:47:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57590 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235832AbjJaRGk (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 31 Oct 2023 13:06:40 -0400
+        with ESMTP id S1376395AbjJaRrT (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 31 Oct 2023 13:47:19 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 661261995;
-        Tue, 31 Oct 2023 10:05:11 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 709ADC433C8;
-        Tue, 31 Oct 2023 17:05:10 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 445D1B4;
+        Tue, 31 Oct 2023 10:47:16 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 575D6C433C8;
+        Tue, 31 Oct 2023 17:47:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1698771911;
-        bh=3a9ZA8dIv5my7lgePrwsRBIAt+wknQ7776IH4XTepxM=;
+        s=korg; t=1698774435;
+        bh=mzkYLKw++9kwZ4JCA90CK3PNLuy3nMbGy5UObs4nUXI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=KLORjv/EXDmkozQC2hihajjnVWU60Q9aYqWTbnwLVB58YBvlwAj/1V2C8+w9grPl+
-         VMB5VUNBZGhKwhngEWgWFpMt6AN7FbnmhLqy6Eg7gq/KM/oyLEQn7/llUl4rB2Aof6
-         hKArSwXRODkWqPStadsIsE4tiBEk/ZjFmsG3PjEg=
+        b=fWGabrB6a0Awt9kmMGGDNeflYTFY2EK6VHh0P8i3dD8AXtxlAnl8uYkW4aShqDOkl
+         ANkyLW7e9uDQ49CKKLttQMZd4/qh2rKndUGs40Vdks5SNIhTGdZZUY7QRgmumtYcUQ
+         Web7+daEVeWudwGf+/bz4yzVpbeRNdzcEoXSmWDg=
 From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To:     stable@vger.kernel.org
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -38,12 +38,12 @@ Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Janusz Krzysztofik <jmkrzyszt@gmail.com>,
         linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.1 30/86] ARM: OMAP: timer32K: fix all kernel-doc warnings
-Date:   Tue, 31 Oct 2023 18:00:55 +0100
-Message-ID: <20231031165919.553813754@linuxfoundation.org>
+Subject: [PATCH 6.5 045/112] ARM: OMAP: timer32K: fix all kernel-doc warnings
+Date:   Tue, 31 Oct 2023 18:00:46 +0100
+Message-ID: <20231031165902.728892368@linuxfoundation.org>
 X-Mailer: git-send-email 2.42.0
-In-Reply-To: <20231031165918.608547597@linuxfoundation.org>
-References: <20231031165918.608547597@linuxfoundation.org>
+In-Reply-To: <20231031165901.318222981@linuxfoundation.org>
+References: <20231031165901.318222981@linuxfoundation.org>
 User-Agent: quilt/0.67
 X-stable: review
 X-Patchwork-Hint: ignore
@@ -53,7 +53,7 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-6.1-stable review patch.  If anyone has any objections, please let me know.
+6.5-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
