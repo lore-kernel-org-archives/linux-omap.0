@@ -2,103 +2,112 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B870C4332F
-	for <linux-omap@archiver.kernel.org>; Tue, 31 Oct 2023 07:25:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB411C4332F
+	for <linux-omap@archiver.kernel.org>; Tue, 31 Oct 2023 09:16:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343692AbjJaHZI (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 31 Oct 2023 03:25:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56558 "EHLO
+        id S1343742AbjJaJQl (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 31 Oct 2023 05:16:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343680AbjJaHZF (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 31 Oct 2023 03:25:05 -0400
-Received: from mail-ej1-x62b.google.com (mail-ej1-x62b.google.com [IPv6:2a00:1450:4864:20::62b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 082348F
-        for <linux-omap@vger.kernel.org>; Tue, 31 Oct 2023 00:25:03 -0700 (PDT)
-Received: by mail-ej1-x62b.google.com with SMTP id a640c23a62f3a-99357737980so826517166b.2
-        for <linux-omap@vger.kernel.org>; Tue, 31 Oct 2023 00:25:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tuxon.dev; s=google; t=1698737101; x=1699341901; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Yjxq8E7gNPB9bFCXU5zCmu0wTmIMA9QI7im5HIAGob8=;
-        b=UDnBLsrtcgKp5mOUD4ecc0dAOd3RJlcwFDNGlrzk6roVkb4SMOz6fOy5llcqV8+LRs
-         QExgROkLruoMEOZKOtmazcUJazusLavMTqgr+/zjHi3qnuUQumzTQfs+e6+yvZZA6h/9
-         7EViawuiKBERIA9HiNSH1PnJm1h7fyWiCEpgujnGDAFOUzrpATVXgmmZN1I3truXWvVr
-         7JpIAKFTgZSotkShgvxpc6kKNfxm3UlgSgksDJJ4BJmiIdc4nFpzbtF4iaNrSfGmQ9u2
-         JeJI3bRdFktDsWtJ0u10BgVOLFkWRGh+3mqiIxI8BIBwCfTuXLRpOHRZjr/yhg1MLMLb
-         5c4Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1698737101; x=1699341901;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Yjxq8E7gNPB9bFCXU5zCmu0wTmIMA9QI7im5HIAGob8=;
-        b=hYHsXxiSW3RkR2GX4CRVJizeXX+l7RxmXFfdnImQJ9hIWwQ4XZIv9frAneU6NsXWnb
-         WfCB33GRU+dZiDruHcFmjjb3vDR23Hf2NaqWaW6zQHLA6q5fALD85T0mHxSQU92DntCH
-         LlkD1Y5326p8OfzMDa/leVdS8ZoQ+RQNP08sIui6T/nwMKB6rqqnFq72n8InQbDAbvwP
-         OhsDDm3pRvc4URqha9UlAoVDqKRytuc1XE4wRwiQ9pBUG0LrwCmnjQSrkLMAyuo1pxCK
-         7R4mFuC1ZTNh3RnEmw/hAiMXb8CxaotV7CHrru8Qa/mzOEQwMUSIQlgHvCQckvV5NH3a
-         +I1Q==
-X-Gm-Message-State: AOJu0YxIr0/aOnIQCzqpudpX7sSAmI4otGAU5TyVt49oBs4asdUWfpI+
-        LgN0aeqMIrtsrGPp5r4lRFTTKw==
-X-Google-Smtp-Source: AGHT+IGus17rAhpSQfGY8ZFCpaGrrZP3x/TVDAb5d+Mu4tTL5tpzmnsjSSEyrRdZtvyfw5pG3ZLGgQ==
-X-Received: by 2002:a17:907:3184:b0:9c5:844f:a7f4 with SMTP id xe4-20020a170907318400b009c5844fa7f4mr9965783ejb.35.1698737101232;
-        Tue, 31 Oct 2023 00:25:01 -0700 (PDT)
-Received: from [192.168.50.4] ([82.78.167.98])
-        by smtp.gmail.com with ESMTPSA id w3-20020a170906d20300b009b28ad521f4sm478828ejz.4.2023.10.31.00.25.00
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 31 Oct 2023 00:25:00 -0700 (PDT)
-Message-ID: <48467507-877c-4789-85a9-932b0e79ed79@tuxon.dev>
-Date:   Tue, 31 Oct 2023 09:24:59 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] ti: fix possible memory leak in
- _ti_omap4_clkctrl_setup()
-Content-Language: en-US
-To:     Hangyu Hua <hbh25y@gmail.com>, kristo@kernel.org,
-        mturquette@baylibre.com, sboyd@kernel.org, tony@atomide.com,
-        dario.binacchi@amarulasolutions.com, claudiu.beznea@microchip.com,
-        robh@kernel.org, andriy.shevchenko@linux.intel.com
-Cc:     linux-omap@vger.kernel.org, linux-clk@vger.kernel.org,
+        with ESMTP id S1343740AbjJaJQl (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Tue, 31 Oct 2023 05:16:41 -0400
+Received: from jabberwock.ucw.cz (jabberwock.ucw.cz [46.255.230.98])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BBD89F;
+        Tue, 31 Oct 2023 02:16:38 -0700 (PDT)
+Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
+        id 5CBFA1C006B; Tue, 31 Oct 2023 10:16:36 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ucw.cz; s=gen1;
+        t=1698743796;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Jn+Evfzcr75myizwywLoe/KMO2gJIGhQeoCHBpAkFXk=;
+        b=VV9lesz2cKbKq5VdigAlQcC45nA8q2Ij4Wf2JscnIKd0xePTYcbgEzu1SPZsHaT0fpVm68
+        +b8cxI2wl2rAv0Lav3nm+67AN3JmSWJHD8h+i+50e5R+O5eEPA7dvtifaBbUOwx89bFfpU
+        C40xSsaMcsEoz1iIWvajYfmeqo8kvpE=
+Date:   Tue, 31 Oct 2023 10:16:35 +0100
+From:   Pavel Machek <pavel@ucw.cz>
+To:     Andreas Kemnade <andreas@kemnade.info>
+Cc:     bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org,
+        krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org
-References: <20231027025057.11510-1-hbh25y@gmail.com>
-From:   claudiu beznea <claudiu.beznea@tuxon.dev>
-In-Reply-To: <20231027025057.11510-1-hbh25y@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH] ARM: dts: omap4: embt2ws: add LED
+Message-ID: <ZUDF8zuKdYp/k0ox@duo.ucw.cz>
+References: <20230819143109.471615-1-andreas@kemnade.info>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="F0bfpAw7xJvIBZth"
+Content-Disposition: inline
+In-Reply-To: <20230819143109.471615-1-andreas@kemnade.info>
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
 
+--F0bfpAw7xJvIBZth
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 27.10.2023 05:50, Hangyu Hua wrote:
-> kstrndup() and kstrdup_and_replace() in clkctrl_get_name() can perform
-> dynamic memory allocation. So clkctrl_name() needs to be freed when
+Hi!
 
-s/clkctrl_name()/clkctrl_name
+> Add LED since the driver is now available.
+>=20
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 
-> provider->clkdm_name is NULL.
-> 
-> Fixes: bd46cd0b802d ("clk: ti: clkctrl: check return value of kasprintf()")
-> Signed-off-by: Hangyu Hua <hbh25y@gmail.com>
-> ---
-> 
-> 	v2: fix commit info.
-> 
->  drivers/clk/ti/clkctrl.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-> index 607e34d8e289..cb4aa8a45bb2 100644
-> --- a/drivers/clk/ti/clkctrl.c
-> +++ b/drivers/clk/ti/clkctrl.c
-> @@ -591,6 +591,7 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
->  		provider->clkdm_name = kasprintf(GFP_KERNEL,
->  						 "%s_clkdm", clkctrl_name);
->  		if (!provider->clkdm_name) {
-> +			kfree(clkctrl_name);
->  			kfree(provider);
->  			return;
->  		}
+Is it one LED or three LEDs?
+
+If it is one, we should use multicolor...
+
+BR,
+										Pavel
+									=09
+> @@ -206,7 +207,31 @@ &i2c3 {
+> =20
+>  	clock-frequency =3D <100000>;
+> =20
+> -	/* TODO: BD2606MVV at 0x66 */
+> +	led-controller@66 {
+> +		compatible =3D "rohm,bd2606mvv";
+> +		reg =3D <0x66>;
+> +
+> +		#address-cells =3D <1>;
+> +		#size-cells =3D <0>;
+> +
+> +		led@0 {
+> +			reg =3D <0>;
+> +			color =3D <LED_COLOR_ID_GREEN>;
+> +			function =3D LED_FUNCTION_STATUS;
+> +		};
+> +
+> +		led@2 {
+> +			reg =3D <2>;
+> +			color =3D <LED_COLOR_ID_BLUE>;
+> +			function =3D LED_FUNCTION_STATUS;
+> +		};
+> +
+> +		led@4 {
+> +			reg =3D <4>;
+> +			color =3D <LED_COLOR_ID_RED>;
+> +			function =3D LED_FUNCTION_STATUS;
+> +		};
+> +	};
+>  };
+> =20
+>  &i2c4 {
+
+--=20
+People of Russia, stop Putin before his war on Ukraine escalates.
+
+--F0bfpAw7xJvIBZth
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCZUDF8wAKCRAw5/Bqldv6
+8mWnAKCiBU5Ff0xWIgBXzcW1R+AgdHju8gCgkai3U4j4/etK2ZP+ugVFix21tec=
+=yOLR
+-----END PGP SIGNATURE-----
+
+--F0bfpAw7xJvIBZth--
