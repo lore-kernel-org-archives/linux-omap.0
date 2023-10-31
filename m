@@ -2,99 +2,58 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6DF7C4167B
-	for <linux-omap@archiver.kernel.org>; Fri,  3 Nov 2023 17:51:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43E8BC4332F
+	for <linux-omap@archiver.kernel.org>; Sat,  4 Nov 2023 04:37:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231907AbjKCRvv (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 3 Nov 2023 13:51:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44256 "EHLO
+        id S230454AbjKDEhb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 4 Nov 2023 00:37:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58362 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229605AbjKCRvu (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 3 Nov 2023 13:51:50 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1B1A1D42;
-        Fri,  3 Nov 2023 10:51:47 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 77F962F4;
-        Fri,  3 Nov 2023 10:52:29 -0700 (PDT)
-Received: from [10.57.81.32] (unknown [10.57.81.32])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7D4DC3F738;
-        Fri,  3 Nov 2023 10:51:41 -0700 (PDT)
-Message-ID: <1cbc6def-8255-4a13-99b0-145d3f8ffcac@arm.com>
-Date:   Fri, 3 Nov 2023 17:51:39 +0000
+        with ESMTP id S230402AbjKDEha (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 4 Nov 2023 00:37:30 -0400
+X-Greylist: delayed 4256 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 03 Nov 2023 21:37:28 PDT
+Received: from mail.profitpathwaygo.com (mail.profitpathwaygo.com [141.94.21.238])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 583C5D47
+        for <linux-omap@vger.kernel.org>; Fri,  3 Nov 2023 21:37:28 -0700 (PDT)
+Received: by mail.profitpathwaygo.com (Postfix, from userid 1002)
+        id B34A753303; Tue, 31 Oct 2023 08:31:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=profitpathwaygo.com;
+        s=mail; t=1698741345;
+        bh=qp3Ofokho6Ql+WtI8ZPVilyHYhskXL7fod7u9CWs8W4=;
+        h=Date:From:To:Subject:From;
+        b=AM9c6IAZrp3ozJsVgzUBJ5jgz/sTlkTyn1Q/+hI4B3I7tsju01BMyptkRmmrEGj+a
+         YgnGlsEqiJswC+t75W9+5NxP8KdtFjKECgJW9WMa55ZlKjOnidhKlmuyQz3XUV70qs
+         /jZnDvM9Eq12lDzVd17PWFBC1pmv92pnEYLqox6quf/+wTCO7mNZmQS6lFp/ySOCAn
+         GvIWEjfZHZk8Z78aIZI85DHVKOV0bc5nG9zQjI3bS4gpgsrDyQeOQH5BP4ywDr16+w
+         4vu7fgPWVSO6cKOOLuQvqijqG8TgeriZrFmI2u0089QirEfXfT0VF+C93eBRlISfmu
+         hKEuxe7Y4f7uw==
+Received: by mail.profitpathwaygo.com for <linux-omap@vger.kernel.org>; Tue, 31 Oct 2023 08:30:48 GMT
+Message-ID: <20231031074500-0.1.2t.15ro1.0.11qc2hp7cr@profitpathwaygo.com>
+Date:   Tue, 31 Oct 2023 08:30:48 GMT
+From:   "Adam Charachuta" <adam.charachuta@profitpathwaygo.com>
+To:     <linux-omap@vger.kernel.org>
+Subject: =?UTF-8?Q?S=C5=82owa_kluczowe_do_wypozycjonowania_?=
+X-Mailer: mail.profitpathwaygo.com
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v7 08/10] arm64: Kconfig.platforms: Add config for Marvell
- PXA1908 platform
-Content-Language: en-GB
-To:     =?UTF-8?Q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Tony Lindgren <tony@atomide.com>,
-        Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>, Leo Yan <leoy@marvell.com>,
-        Zhangfei Gao <zhangfei.gao@marvell.com>,
-        Lubomir Rintel <lkundrak@v3.sk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Tony Luck <tony.luck@intel.com>,
-        "Guilherme G . Piccoli" <gpiccoli@igalia.com>
-Cc:     linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-hardening@vger.kernel.org,
-        phone-devel@vger.kernel.org, ~postmarketos/upstreaming@lists.sr.ht,
-        Karel Balej <balejk@matfyz.cz>
-References: <20231102152033.5511-1-duje.mihanovic@skole.hr>
- <20231102152033.5511-3-duje.mihanovic@skole.hr>
- <ffb08cc2-705a-468e-b6d2-9ce591c08ab4@arm.com> <2919185.e9J7NaK4W3@radijator>
-From:   Robin Murphy <robin.murphy@arm.com>
-In-Reply-To: <2919185.e9J7NaK4W3@radijator>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 2023-11-03 5:02 pm, Duje Mihanović wrote:
-> On Friday, November 3, 2023 4:34:54 PM CET Robin Murphy wrote:
->> On 2023-11-02 3:20 pm, Duje Mihanović wrote:
->>> +config ARCH_MMP
->>> +	bool "Marvell MMP SoC Family"
->>> +	select ARM_GIC
->>> +	select ARM_ARCH_TIMER
->>> +	select ARM_SMMU
->>
->> NAK, not only is selecting user-visible symbols generally frowned upon,
->> and ignoring their dependencies even worse, but for a multiplatform
->> kernel the user may well want this to be a module.
->>
->> If having the SMMU driver built-in is somehow fundamentally required for
->> this platform to boot, that would represent much bigger problems.
-> 
-> The SoC can boot without SMMU and PDMA, but not GIC, pinctrl or the arch
-> timer. I see that most other SoCs still select drivers and frameworks they
-> presumably need for booting, with the exceptions of ARCH_BITMAIN, ARCH_LG1K
-> and a couple others. Which of these two options should I go for?
+Dzie=C5=84 dobry,
 
-Well, you don't really need to select ARM_GIC or ARM_ARCH_TIMER here 
-either, since those are already selected by ARM64 itself. Keeping 
-PINCTRL_SINGLE is fair, although you should also select PINCTRL as its 
-dependency.
+zapozna=C5=82em si=C4=99 z Pa=C5=84stwa ofert=C4=85 i z przyjemno=C5=9Bci=
+=C4=85 przyznaj=C4=99, =C5=BCe przyci=C4=85ga uwag=C4=99 i zach=C4=99ca d=
+o dalszych rozm=C3=B3w.=20
 
-As an additional nit, the file seems to be primarily ordered by symbol 
-name, so it might be nice to slip ARCH_MMC in between ARCH_MESON and 
-ARCH_MVEBU.
+Pomy=C5=9Bla=C5=82em, =C5=BCe mo=C5=BCe m=C3=B3g=C5=82bym mie=C4=87 sw=C3=
+=B3j wk=C5=82ad w Pa=C5=84stwa rozw=C3=B3j i pom=C3=B3c dotrze=C4=87 z t=C4=
+=85 ofert=C4=85 do wi=C4=99kszego grona odbiorc=C3=B3w. Pozycjonuj=C4=99 =
+strony www, dzi=C4=99ki czemu generuj=C4=85 =C5=9Bwietny ruch w sieci.
 
-Cheers,
-Robin.
+Mo=C5=BCemy porozmawia=C4=87 w najbli=C5=BCszym czasie?
+
+
+Pozdrawiam serdecznie
+Adam Charachuta
