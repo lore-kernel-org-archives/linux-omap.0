@@ -2,95 +2,107 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73A6AC4167B
-	for <linux-omap@archiver.kernel.org>; Wed,  1 Nov 2023 02:30:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1DFCC0018C
+	for <linux-omap@archiver.kernel.org>; Thu,  2 Nov 2023 15:12:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233751AbjKACas (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 31 Oct 2023 22:30:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49378 "EHLO
+        id S1344598AbjKBPMR (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 2 Nov 2023 11:12:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233285AbjKACar (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Tue, 31 Oct 2023 22:30:47 -0400
-Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD3BFBD;
-        Tue, 31 Oct 2023 19:30:45 -0700 (PDT)
-Received: by mail-pl1-x642.google.com with SMTP id d9443c01a7336-1cc13149621so11834965ad.1;
-        Tue, 31 Oct 2023 19:30:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1698805845; x=1699410645; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=wJx1gCCJdYe6w1k0ztbhtZDsqbmsvBkB8hSiGVC++eQ=;
-        b=BQ2XJZAXQFn5HrJLnlG6w6f04L8jPKx3/jXVxtoN4qQS9vNJ166Ou0HZ+DrGkoLZYn
-         hFfydrYQr8sw2qAgbyx53IahM25DDwlAezzyycYZMz6Ml9VvnrHorwffpDk5jxwRgY35
-         blc4nL3RbcbFRFviexKVzedSnXX98HTYvfl/YsGcasDmfr5G43jqyzAIeXkXLk0QZ4xO
-         TpFJhe6StTAk3NI8DLETLJQXLMQdMiUIpVvE7Xuu3OpZXK3h1tnUoIvpKjqBGa+pvswy
-         /2ZRmiU/+++cixdPpd4A+EdubuZPQE+6oI9Z0h3ggE/ppXo5F+w6R4yjbNC5hOh5lBmf
-         JJWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1698805845; x=1699410645;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=wJx1gCCJdYe6w1k0ztbhtZDsqbmsvBkB8hSiGVC++eQ=;
-        b=Sd2Je+IqqjEZiTrl8HxTreYBO8+mbl0vBQ0IQibzSGaADY3Y39o7aJ37lBzizEFRUC
-         jyrpK0HEDdJZc7eePSYUEsBVMwW9dqdhMNJ1abRbXhHY0VFuwlAfnN09e679D1iztk62
-         XkPY+AaIzwpsIYG0NLFmuvp3DUr6ziQjWgcnYEeDEodzNcBRo/RU4felIZqrSf0ptVdL
-         LcrUnNRHbWTpx3AiWFiAr6g77ECY+rv6KDe0wBbZNvrKfYS56ZaoV1Uk52Z2M9/bjtl5
-         OMNb0K8p7aXQyaxpBoczkYz7FXRMZrhlb80i7HnM8uhG6G4M1rbeCdceEPEOdJPz85RC
-         G6HA==
-X-Gm-Message-State: AOJu0YyIi22FKUWPy2x0Y6JGfcd6iZ6R/vgr1YZy2TBTXfvhoDvdKzZp
-        K5Gl+8SGsYq2JrR3wbmX9dk=
-X-Google-Smtp-Source: AGHT+IF6VbUmw7ib/mBsZAQ0gg4BzyuZrjaSSFR7jiz1xHe2BNnC93S25te2VsButXn2Ux3Y49d34g==
-X-Received: by 2002:a17:902:d1c2:b0:1cc:277f:b4f6 with SMTP id g2-20020a170902d1c200b001cc277fb4f6mr12342647plb.6.1698805845113;
-        Tue, 31 Oct 2023 19:30:45 -0700 (PDT)
-Received: from [127.0.0.1] (059149129201.ctinets.com. [59.149.129.201])
-        by smtp.gmail.com with ESMTPSA id c5-20020a170902c1c500b001ca4c7bee0csm219700plc.232.2023.10.31.19.30.39
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 31 Oct 2023 19:30:44 -0700 (PDT)
-Message-ID: <1aec4977-05dd-49dd-ae59-f3fce8db70b7@gmail.com>
-Date:   Wed, 1 Nov 2023 10:30:36 +0800
+        with ESMTP id S230205AbjKBPMP (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 2 Nov 2023 11:12:15 -0400
+Received: from mx.skole.hr (mx2.hosting.skole.hr [161.53.165.186])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74531187;
+        Thu,  2 Nov 2023 08:12:06 -0700 (PDT)
+Received: from mx2.hosting.skole.hr (localhost.localdomain [127.0.0.1])
+        by mx.skole.hr (mx.skole.hr) with ESMTP id D0760848D4;
+        Thu,  2 Nov 2023 16:12:04 +0100 (CET)
+From:   =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>
+Date:   Thu, 02 Nov 2023 16:11:08 +0100
+Subject: [PATCH v7 02/10] dt-bindings: pinctrl: pinctrl-single: add
+ marvell,pxa1908-padconf compatible
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3] ti: fix possible memory leak in
- _ti_omap4_clkctrl_setup()
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     kristo@kernel.org, mturquette@baylibre.com, sboyd@kernel.org,
-        tony@atomide.com, claudiu.beznea@microchip.com, robh@kernel.org,
-        dario.binacchi@amarulasolutions.com, linux-omap@vger.kernel.org,
-        linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20231031103010.23792-1-hbh25y@gmail.com>
- <ZUDZ_tDvM7oUBfkq@smile.fi.intel.com>
-Content-Language: en-US
-From:   Hangyu Hua <hbh25y@gmail.com>
-In-Reply-To: <ZUDZ_tDvM7oUBfkq@smile.fi.intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
+Message-Id: <20231102-pxa1908-lkml-v7-2-cabb1a0cb52b@skole.hr>
+References: <20231102-pxa1908-lkml-v7-0-cabb1a0cb52b@skole.hr>
+In-Reply-To: <20231102-pxa1908-lkml-v7-0-cabb1a0cb52b@skole.hr>
+To:     Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Tony Lindgren <tony@atomide.com>,
+        =?utf-8?q?Duje_Mihanovi=C4=87?= <duje.mihanovic@skole.hr>,
+        Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, Leo Yan <leoy@marvell.com>,
+        Zhangfei Gao <zhangfei.gao@marvell.com>,
+        Lubomir Rintel <lkundrak@v3.sk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Tony Luck <tony.luck@intel.com>,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Cc:     linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-hardening@vger.kernel.org,
+        phone-devel@vger.kernel.org, ~postmarketos/upstreaming@lists.sr.ht,
+        Karel Balej <balejk@matfyz.cz>, Rob Herring <robh@kernel.org>
+X-Mailer: b4 0.12.4
+X-Developer-Signature: v=1; a=openpgp-sha256; l=937;
+ i=duje.mihanovic@skole.hr; h=from:subject:message-id;
+ bh=XB52xSkcW7DlpdxdsDrnjNPD7kW7z6MEd0cFXu6HRPY=;
+ b=owEBbQKS/ZANAwAIAZoRnrBCLZbhAcsmYgBlQ7w4s0X/U4LfTPm+d3uM/f8sVLN8kU+aEvTP7
+ Uln5kwWiPGJAjMEAAEIAB0WIQRT351NnD/hEPs2LXiaEZ6wQi2W4QUCZUO8OAAKCRCaEZ6wQi2W
+ 4UBOD/9XSrU6k/VpMh4t2ctpZgfmH9BIW4xIC/g7N2fLI3uAYchePaqWsjv/O2ZDBAQ9rKccpMf
+ wzidE0AvYkJQhr/G2EiiDVr4u7b00b2IorTUGkIOkmX8a4tyFI/+KJsaBIVNiBD24va6gZq5Ew2
+ PoQsztYvv1p2t9RHpS/d0ceDb2GZX0cNq9SeGcBGlR4NZ7EneBmUuTjb2iUL7cN4ovIKyYhGPgJ
+ scW07emNsENae6F/yqJbahnL2HXc4Gi3cDHL/iuNXLos0yzXILsXl7lvIEuhr9IXqhRtJYZ+H9v
+ pUWuO7mt8Xg2QgJAi+qX3ZUuUFkdzLgaGz/AOeCQzxJ6PhMcfWrp51ElmRCqUHZgM08ZZ/NLWF7
+ PQ1kbIhMN6rgewJvmdr1FfhcXSiUGsAXRdBqvk41wODAjtr0p6u9T7I9IzqrjI0+0t0Bt8XIHIj
+ 7/E8V/TrQ3mJDVAlrPSTeb30/si5QhEQRU7D0YPwnoHXi0EAS1V/VIdU76gUWYcLk3TE9OOQi95
+ ql5iEImrlQmY25Cxq0uR4GPzE4ya4pXjnkKF1ilnqmF0/5WlFTN3fXG0J0MN2qs+JZ8Z6cR1vjj
+ 0BaJVwy1z8PNobG552NcH0MKhZqvheNQDfRcCaalw1uYiB37dQxAFkiH49UP/xArkEF/aq6Ey/D
+ gGqZRowQytonoWA==
+X-Developer-Key: i=duje.mihanovic@skole.hr; a=openpgp;
+ fpr=53DF9D4D9C3FE110FB362D789A119EB0422D96E1
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 31/10/2023 18:42, Andy Shevchenko wrote:
-> On Tue, Oct 31, 2023 at 06:30:10PM +0800, Hangyu Hua wrote:
->> kstrndup() and kstrdup_and_replace() in clkctrl_get_name() can perform
->> dynamic memory allocation. So clkctrl_name needs to be freed when
->> provider->clkdm_name is NULL.
-> 
->> Fixes: bd46cd0b802d ("clk: ti: clkctrl: check return value of kasprintf()")
->> Signed-off-by: Hangyu Hua <hbh25y@gmail.com>
->> ---
->>
->> 	 v2 and v3: fix commit info.
-> 
-> I believe I gave you my Rb tag. It's your responsibility to care it on if you
-> send a new version. Otherwise, please tell what makes you think that tag should
-> not be here?
+Add the "marvell,pxa1908-padconf" compatible to allow migrating to a
+separate pinctrl driver later.
 
-Do you mean "Reviewed-by"? I checked the previous emails and 
-"lore.kernel.org" and didn’t find this tag in any related emails. I am 
-not sure what happened. Can you please resend it?
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Duje Mihanović <duje.mihanovic@skole.hr>
+---
+ Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Thanks,
-Hangyu
->  
+diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+index 45a307d3ce16..0f7e16a28990 100644
+--- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
++++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+@@ -32,6 +32,10 @@ properties:
+               - ti,omap4-padconf
+               - ti,omap5-padconf
+           - const: pinctrl-single
++      - items:
++          - enum:
++              - marvell,pxa1908-padconf
++          - const: pinconf-single
+ 
+   reg:
+     maxItems: 1
+
+-- 
+2.42.0
+
+
