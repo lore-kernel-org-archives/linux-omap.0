@@ -2,81 +2,100 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2984AC4167D
-	for <linux-omap@archiver.kernel.org>; Mon,  6 Nov 2023 11:28:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F050C4167D
+	for <linux-omap@archiver.kernel.org>; Mon,  6 Nov 2023 17:18:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230018AbjKFL2f (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Mon, 6 Nov 2023 06:28:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42764 "EHLO
+        id S230086AbjKFRSB (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 6 Nov 2023 12:18:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229974AbjKFL2e (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Mon, 6 Nov 2023 06:28:34 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6F998F;
-        Mon,  6 Nov 2023 03:28:31 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9DC8C433CC;
-        Mon,  6 Nov 2023 11:28:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1699270111;
-        bh=KHYMSuYzfCZFn7iKlZaFmc8xH2hKsNURN3exYOYIYF4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Uax+WBUGC+X1enzmvLmjGabeE12V0LXoYD77+J300r07tfDIRIziiqnd99eIcc2xe
-         4WBQZoJPBW/Tw3TswVDR6L5ZKf3bXfKbPHf+cpL8YlhGv0hKXLed8EYJxBi6OzKfPL
-         PKVUyjH1W4qz5PvcblJoPRSRhpNDG2rlwbmaLTo4=
-Date:   Mon, 6 Nov 2023 12:28:28 +0100
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Matthias Schiffer <matthias.schiffer@ew.tq-group.com>
-Cc:     Sasha Levin <sashal@kernel.org>, stable@vger.kernel.org,
-        Faiz Abbas <faiz_abbas@ti.com>,
-        =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux@ew.tq-group.com
-Subject: Re: [PATCH 5.4] Revert "ARM: dts: Move am33xx and am43xx mmc nodes
- to sdhci-omap driver"
-Message-ID: <2023110613-fringe-ended-5390@gregkh>
-References: <20231106095048.8396-1-matthias.schiffer@ew.tq-group.com>
+        with ESMTP id S229755AbjKFRSA (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 6 Nov 2023 12:18:00 -0500
+Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [IPv6:2a0a:edc0:2:b01:1d::104])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 175E1D67
+        for <linux-omap@vger.kernel.org>; Mon,  6 Nov 2023 09:17:55 -0800 (PST)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1r03EV-0005cj-Fh; Mon, 06 Nov 2023 18:17:51 +0100
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1r03EU-0075zL-Ut; Mon, 06 Nov 2023 18:17:50 +0100
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1r03EU-00DrJr-Lt; Mon, 06 Nov 2023 18:17:50 +0100
+From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+To:     Lee Jones <lee@kernel.org>
+Cc:     Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+        kernel@pengutronix.de
+Subject: [PATCH 18/18] mfd: twl4030-audio: Convert to platform remove callback returning void
+Date:   Mon,  6 Nov 2023 18:17:27 +0100
+Message-ID: <20231106171708.3892347-19-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.42.0.586.gbc5204569f7d.dirty
+In-Reply-To: <20231106171708.3892347-1-u.kleine-koenig@pengutronix.de>
+References: <20231106171708.3892347-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231106095048.8396-1-matthias.schiffer@ew.tq-group.com>
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1723; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=DEtnBZo9+Rw2avXE1cyu5z7dDDmV5UUxzQ8KgZxe55o=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBlSR+pBLGaD9pFfd1Eg7BbBRcTWakbniKn95iPB cQ9N7fsf4uJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZUkfqQAKCRCPgPtYfRL+ TqIrB/0SHvKqzVKnh6je6k72q2Ere8j6k/RP/tc/wnxiz8guoFyjgzkMEt7allXLZ9Ng2BYkE/b R+8YPLaY8wnR7RmGs8A00zRhUeHypVOSUipU4IA2eC7UXps+jMY8jKbpBzTnhSogXX9+eL5OQdP sC0OIr6gZZ7Zen57X7rU/hCu0s6Tx3SotsNQdQmbeswYISj1X3MBTknwK3lvOT99Ezy0cViMlq/ 7J7H/bsrWLvcMk0S/ZPceRrq8YtldT13q7YlzPNOFSLO4MDOsgsnr/4QANT+9lFmJwOMCr1Gq1U hJsYRo8VwMYqlNYenDh0gazSUsrzOf9wwiuP34wSymn/sgzt
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Mon, Nov 06, 2023 at 10:50:48AM +0100, Matthias Schiffer wrote:
-> This reverts commit d0c69c722ff16ce2481a5e0932c6d5b172109f21.
-> 
-> The reverted commit completely breaks MMC on the AM33xx/AM437x for
-> multiple reasons:
-> 
-> - The changed compatible strings ti,am335-sdhci and ti,am437-sdhci
->   aren't supported on Linux 5.4 at all, so no driver is found
-> - Even when additionally backporting the support for these compatible
->   strings in the sdhci-omap driver, I could not the the MMC interfaces
->   to work on our TQMa335x SoM - the interface would time out during card
->   initialization for both an eMMC and an SD card.
-> 
-> I did not investigate the cause of the timeouts further, and instead
-> just reverted the commit - switching to a different MMC driver in a stable
-> kernel seems like a rather risky change unless it's thoroughly tested,
-> which has obviously not happened in this case.
-> 
-> The reverted commit is also given as a Stable-dep-of commit 2eb502f496f7
-> ("ARM: dts: am33xx: Fix MMCHS0 dma properties"), however the conflict
-> resulting when only the one commit is reverted is trivial to resolve,
-> which leads to working MMC controllers again.
-> 
-> Signed-off-by: Matthias Schiffer <matthias.schiffer@ew.tq-group.com>
-> ---
-> 
-> I have not checked if other stable kernels exhibit the same breakage; it
-> might be a good idea to revert the change for all stable branches unless
-> it is proven that the sdhci-omap driver actually works.
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is ignored (apart
+from emitting a warning) and this typically results in resource leaks.
 
-This was only backported to 5.4.y, thanks for catching this, now queued
-up.
+To improve here there is a quest to make the remove callback return
+void. In the first step of this quest all drivers are converted to
+.remove_new(), which already returns void. Eventually after all drivers
+are converted, .remove_new() will be renamed to .remove().
 
-greg k-h
+Trivially convert this driver from always returning zero in the remove
+callback to the void returning variant.
+
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+ drivers/mfd/twl4030-audio.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
+index 88002f8941e5..d436ddf661da 100644
+--- a/drivers/mfd/twl4030-audio.c
++++ b/drivers/mfd/twl4030-audio.c
+@@ -258,12 +258,10 @@ static int twl4030_audio_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int twl4030_audio_remove(struct platform_device *pdev)
++static void twl4030_audio_remove(struct platform_device *pdev)
+ {
+ 	mfd_remove_devices(&pdev->dev);
+ 	twl4030_audio_dev = NULL;
+-
+-	return 0;
+ }
+ 
+ static const struct of_device_id twl4030_audio_of_match[] = {
+@@ -278,7 +276,7 @@ static struct platform_driver twl4030_audio_driver = {
+ 		.of_match_table = twl4030_audio_of_match,
+ 	},
+ 	.probe		= twl4030_audio_probe,
+-	.remove		= twl4030_audio_remove,
++	.remove_new	= twl4030_audio_remove,
+ };
+ 
+ module_platform_driver(twl4030_audio_driver);
+-- 
+2.42.0
+
