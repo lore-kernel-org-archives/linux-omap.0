@@ -2,160 +2,406 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7914BC41535
-	for <linux-omap@archiver.kernel.org>; Sun,  5 Nov 2023 18:16:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3913DC4332F
+	for <linux-omap@archiver.kernel.org>; Mon,  6 Nov 2023 09:51:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229475AbjKESQG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Sun, 5 Nov 2023 13:16:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46056 "EHLO
+        id S230079AbjKFJvn (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Mon, 6 Nov 2023 04:51:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229496AbjKESQG (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Sun, 5 Nov 2023 13:16:06 -0500
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.19])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE0B5BB;
-        Sun,  5 Nov 2023 10:16:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de; s=s31663417;
-        t=1699208155; x=1699812955; i=deller@gmx.de;
-        bh=OpuGHWHjo+z7zkLdJMq7rmnWSH4uTCXi2DFnckteg+E=;
-        h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:
-         In-Reply-To;
-        b=ouCgQEWl4OU3qITKJagJYZnXWjAAeDbYso6hjsB0ZGA23yEuYuwr9IPLXXY6kiJM
-         snDebPDCHf/2/7PD7+rJUdjL8pu+ZFWM8WnJaWABKYOv0sq8JT1Mv8L9E5yYZNu5A
-         m8LNA2D6dZrb5Do/nDusvlpyQE9WoGNtE3lwTICn5TnFjj3gf8xkw2srGHm5LYB3w
-         vYtH8gGESptlb345FLMx4U7XtISwT9VDPAwtpME9eJc27kF8v2cnMNQQk/8kE0OuW
-         V3h5Q2AXsSksY9u1waIsIIZol2GfeSay8XkRBXe/c8mOsSHj1ObZ49zphJL2+Z+PZ
-         Oyj0trW4X15wYLM6DQ==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.20.60] ([94.134.149.195]) by mail.gmx.net (mrgmx005
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1N3KTo-1rPNQf2XMQ-010LFf; Sun, 05
- Nov 2023 19:15:55 +0100
-Message-ID: <0c6dfd41-8ad9-4780-a327-c910d6214355@gmx.de>
-Date:   Sun, 5 Nov 2023 19:15:54 +0100
+        with ESMTP id S229478AbjKFJvm (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Mon, 6 Nov 2023 04:51:42 -0500
+Received: from mx1.tq-group.com (mx1.tq-group.com [93.104.207.81])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D09BDB;
+        Mon,  6 Nov 2023 01:51:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=tq-group.com; i=@tq-group.com; q=dns/txt; s=key1;
+  t=1699264298; x=1730800298;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=gjF0M2PpCgYk+/ZTgC61t7QmzFXN08axmI0slI2iSbQ=;
+  b=g51Jn2ilBU3yN4iPZ/b0FSeeW5cjRBsk6NlDxCVJNqTkiDGZ6F/0224A
+   trB8UUUz4r0BcqOgSy7yRLlYp/AgZRarfQ2JsXXrzLW9mFT76q7cNXATR
+   Xq1L/tlxY5GRsx5w5VfE0OsjtfcR59dLapGAFovIcSUib/juKwG/+dCRB
+   N76A+eqSLVz6A/3+Cl94G17uWfCES8nBubw3BF+lERZ10WYTwnBgCcXdB
+   cM5Q9/NS10pFnOcpKFa665Z7qCaj0366dtIjGx57W+TFoONgUl5u884nR
+   L7HhY4xm4WCBLevloY1e8Db+erOzo4pkuiCe0qV2WzT+kSxRfzJAAnm0e
+   Q==;
+X-IronPort-AV: E=Sophos;i="6.03,281,1694728800"; 
+   d="scan'208";a="33823082"
+Received: from vtuxmail01.tq-net.de ([10.115.0.20])
+  by mx1.tq-group.com with ESMTP; 06 Nov 2023 10:51:35 +0100
+Received: from localhost.localdomain (SCHIFFERM-M2.tq-net.de [10.121.49.20])
+        by vtuxmail01.tq-net.de (Postfix) with ESMTPA id 1C8DB28007F;
+        Mon,  6 Nov 2023 10:51:35 +0100 (CET)
+From:   Matthias Schiffer <matthias.schiffer@ew.tq-group.com>
+To:     Sasha Levin <sashal@kernel.org>, stable@vger.kernel.org
+Cc:     Faiz Abbas <faiz_abbas@ti.com>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux@ew.tq-group.com,
+        Matthias Schiffer <matthias.schiffer@ew.tq-group.com>
+Subject: [PATCH 5.4] Revert "ARM: dts: Move am33xx and am43xx mmc nodes to sdhci-omap driver"
+Date:   Mon,  6 Nov 2023 10:50:48 +0100
+Message-ID: <20231106095048.8396-1-matthias.schiffer@ew.tq-group.com>
+X-Mailer: git-send-email 2.42.0
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] fbdev: omapfb: Drop unused remove function
-Content-Language: en-US
-To:     =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc:     Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
-        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, kernel@pengutronix.de
-References: <20231103173557.3639484-2-u.kleine-koenig@pengutronix.de>
-From:   Helge Deller <deller@gmx.de>
-Autocrypt: addr=deller@gmx.de; keydata=
- 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
-In-Reply-To: <20231103173557.3639484-2-u.kleine-koenig@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:Tva4T/FttIwLqofolQVY7ZaEyS6uSg9AxEBPnxJrZKjJ2cUezVO
- 0ckQPyp1yfMJY7v/abSN+gmWgOJNsipjdK8sKaIEq5Sl9Hwbxn4xDpCGbQD/Z164RoOOPDf
- /34q+87OPf85ica9b6rLchmBG9vOhyB/ry+uAHlLD4R3jPk0YaaOSvSbWkLZEi0owGzeqpm
- jhQgArtnWYe0f4Guzw33A==
-UI-OutboundReport: notjunk:1;M01:P0:IlOivZGtjTo=;7SvbprnV9Vc+9+iowCdh8UM3hO3
- j3UhkwQa0UMK57JyNQ4SSwxKDZGoNk51gwvqWOw6nzan2URBOEFsmF7qagtJmHwGgIl4BM1A1
- Vo27cW+rQSWN43bOjZo6YgnDY2B2bVSzc0CgChT6UJBzJnVAijP3gEGr8532KmDHtJHpNWpaU
- Gz6CcvyEvsknfqA4KqHQxZPUi+hM/iCocoJL8mUzOJQMjz3vDSLM5+aFt0XadLzFrmjXxYB9y
- IebCOz4F4xU/ZdKQ0ew1p3zj7qgQQY3kDlfKO4EpWfdVxLk95Rpn7mTNbh2moxb9KaqWFbJcA
- s597kchLtfGpUosou5pp5MWSgdmzpy0409vh49CfbEi0t8MO08l6CDVQksWA1m4FsOAU4REW3
- wVC1BhKfYdyctWhdQG1npD3MBI2wcxi88fXnITcE24ERF8BzYq05I6o2g1TYwltEYkj2gh9MR
- w2H/12eD/5Cyov8rs3b5vkERkDcmUMa6GblgwfYQHyHhpFFLpRp5k6s7Vd64ShxRBNhQe7lPb
- hy8ZXxeKS3MAeiEPFWwuv0xl2HMnANKbhgu51bk8lSL/cNYUIz9HRKnVzJcuyQxwJcm6SQo0f
- HZNq5jw1pgFoIj2850wzHzX68mTlXj/QN/D9u6BCNMMvHLAIu9Y0KvxHsnx5rQxhJOJBkh4aW
- 1rjKTGqBpMHib5p1DfSpf3/RB8jGZyu9WwVYo/vr4cNhwao8h074mm8XbjvfDC91mRajWOFVY
- nCkTGQS5h+RzD0zDieJUAHfn6id3WJ4OMT4W/aKYbGWVSGseX+TIcUka1keC8eNaD9Xqa3h0G
- oFHkY62Q/mSDEe/R86gVH48kr91OLYfSK3Mv9iM1zjHQllC9Gp3Q+zsUwzt3eQdMR+xrcAOFm
- BjUK4JIFwgFMdqghJDewONrUFg5N7ydiPEbJFmHHxoiiV2of2pIx3EH8nZF8Z4scdb/rPZ4E3
- qNiZxR05BxVMcXmiyr2mdE/KIN4=
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 11/3/23 18:35, Uwe Kleine-K=C3=B6nig wrote:
-> OMAP2_VRFB is a bool, so the vrfb driver can never be compiled as a
-> module. With that __exit_p(vrfb_remove) always evaluates to NULL and
-> vrfb_remove() is unused.
->
-> If the driver was compilable as a module, it would fail to build because
-> the type of vrfb_remove() isn't compatible with struct
-> platform_driver::remove(). (The former returns void, the latter int.)
->
-> Fixes: aa1e49a3752f ("OMAPDSS: VRFB: add omap_vrfb_supported()")
-> Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+This reverts commit d0c69c722ff16ce2481a5e0932c6d5b172109f21.
 
-applied.
-Thanks!
-Helge
+The reverted commit completely breaks MMC on the AM33xx/AM437x for
+multiple reasons:
+
+- The changed compatible strings ti,am335-sdhci and ti,am437-sdhci
+  aren't supported on Linux 5.4 at all, so no driver is found
+- Even when additionally backporting the support for these compatible
+  strings in the sdhci-omap driver, I could not the the MMC interfaces
+  to work on our TQMa335x SoM - the interface would time out during card
+  initialization for both an eMMC and an SD card.
+
+I did not investigate the cause of the timeouts further, and instead
+just reverted the commit - switching to a different MMC driver in a stable
+kernel seems like a rather risky change unless it's thoroughly tested,
+which has obviously not happened in this case.
+
+The reverted commit is also given as a Stable-dep-of commit 2eb502f496f7
+("ARM: dts: am33xx: Fix MMCHS0 dma properties"), however the conflict
+resulting when only the one commit is reverted is trivial to resolve,
+which leads to working MMC controllers again.
+
+Signed-off-by: Matthias Schiffer <matthias.schiffer@ew.tq-group.com>
+---
+
+I have not checked if other stable kernels exhibit the same breakage; it
+might be a good idea to revert the change for all stable branches unless
+it is proven that the sdhci-omap driver actually works.
 
 
-> ---
->   drivers/video/fbdev/omap2/omapfb/vrfb.c | 9 +--------
->   1 file changed, 1 insertion(+), 8 deletions(-)
->
-> diff --git a/drivers/video/fbdev/omap2/omapfb/vrfb.c b/drivers/video/fbd=
-ev/omap2/omapfb/vrfb.c
-> index ee0dd4c6a646..568e6e1eca62 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/vrfb.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/vrfb.c
-> @@ -368,17 +368,10 @@ static int __init vrfb_probe(struct platform_devic=
-e *pdev)
->   	return 0;
->   }
->
-> -static void __exit vrfb_remove(struct platform_device *pdev)
-> -{
-> -	vrfb_loaded =3D false;
-> -}
-> -
->   static struct platform_driver vrfb_driver =3D {
->   	.driver.name	=3D "omapvrfb",
-> -	.remove		=3D __exit_p(vrfb_remove),
->   };
-> -
-> -module_platform_driver_probe(vrfb_driver, vrfb_probe);
-> +builtin_platform_driver_probe(vrfb_driver, vrfb_probe);
->
->   MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
->   MODULE_DESCRIPTION("OMAP VRFB");
->
-> base-commit: e27090b1413ff236ca1aec26d6b022149115de2c
+ arch/arm/boot/dts/am335x-baltos.dtsi              | 2 +-
+ arch/arm/boot/dts/am335x-boneblack-common.dtsi    | 1 -
+ arch/arm/boot/dts/am335x-boneblack-wireless.dts   | 1 +
+ arch/arm/boot/dts/am335x-boneblue.dts             | 1 +
+ arch/arm/boot/dts/am335x-bonegreen-wireless.dts   | 1 +
+ arch/arm/boot/dts/am335x-evm.dts                  | 3 ++-
+ arch/arm/boot/dts/am335x-evmsk.dts                | 2 +-
+ arch/arm/boot/dts/am335x-lxm.dts                  | 2 +-
+ arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi | 2 +-
+ arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts    | 2 +-
+ arch/arm/boot/dts/am335x-pepper.dts               | 4 ++--
+ arch/arm/boot/dts/am335x-phycore-som.dtsi         | 2 +-
+ arch/arm/boot/dts/am33xx-l4.dtsi                  | 6 ++++--
+ arch/arm/boot/dts/am33xx.dtsi                     | 3 +--
+ arch/arm/boot/dts/am4372.dtsi                     | 3 +--
+ arch/arm/boot/dts/am437x-cm-t43.dts               | 2 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts               | 4 ++--
+ arch/arm/boot/dts/am437x-l4.dtsi                  | 5 +++--
+ arch/arm/boot/dts/am437x-sk-evm.dts               | 2 +-
+ 19 files changed, 26 insertions(+), 22 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
+index ee84155844adb..ed235f263e293 100644
+--- a/arch/arm/boot/dts/am335x-baltos.dtsi
++++ b/arch/arm/boot/dts/am335x-baltos.dtsi
+@@ -381,7 +381,7 @@
+ &mmc2 {
+ 	status = "okay";
+ 	vmmc-supply = <&wl12xx_vmmc>;
+-	non-removable;
++	ti,non-removable;
+ 	bus-width = <4>;
+ 	cap-power-off-card;
+ 	pinctrl-names = "default";
+diff --git a/arch/arm/boot/dts/am335x-boneblack-common.dtsi b/arch/arm/boot/dts/am335x-boneblack-common.dtsi
+index dd932220a8bf7..91f93bc89716d 100644
+--- a/arch/arm/boot/dts/am335x-boneblack-common.dtsi
++++ b/arch/arm/boot/dts/am335x-boneblack-common.dtsi
+@@ -22,7 +22,6 @@
+ 	pinctrl-0 = <&emmc_pins>;
+ 	bus-width = <8>;
+ 	status = "okay";
+-	non-removable;
+ };
+ 
+ &am33xx_pinmux {
+diff --git a/arch/arm/boot/dts/am335x-boneblack-wireless.dts b/arch/arm/boot/dts/am335x-boneblack-wireless.dts
+index e07dd79795868..3124d94c0b3cc 100644
+--- a/arch/arm/boot/dts/am335x-boneblack-wireless.dts
++++ b/arch/arm/boot/dts/am335x-boneblack-wireless.dts
+@@ -75,6 +75,7 @@
+ 	bus-width = <4>;
+ 	non-removable;
+ 	cap-power-off-card;
++	ti,needs-special-hs-handling;
+ 	keep-power-in-suspend;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mmc3_pins &wl18xx_pins>;
+diff --git a/arch/arm/boot/dts/am335x-boneblue.dts b/arch/arm/boot/dts/am335x-boneblue.dts
+index 30b62de86b5b1..2f6652ef9a157 100644
+--- a/arch/arm/boot/dts/am335x-boneblue.dts
++++ b/arch/arm/boot/dts/am335x-boneblue.dts
+@@ -389,6 +389,7 @@
+ 	bus-width = <4>;
+ 	non-removable;
+ 	cap-power-off-card;
++	ti,needs-special-hs-handling;
+ 	keep-power-in-suspend;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mmc3_pins &wl18xx_pins>;
+diff --git a/arch/arm/boot/dts/am335x-bonegreen-wireless.dts b/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
+index 609c8db687ec6..4092cd193b8a6 100644
+--- a/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
++++ b/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
+@@ -75,6 +75,7 @@
+ 	bus-width = <4>;
+ 	non-removable;
+ 	cap-power-off-card;
++	ti,needs-special-hs-handling;
+ 	keep-power-in-suspend;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mmc3_pins &wl18xx_pins>;
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index af25b42e85f4d..a00145705c9be 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -782,7 +782,8 @@
+ 	bus-width = <4>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mmc3_pins &wlan_pins>;
+-	non-removable;
++	ti,non-removable;
++	ti,needs-special-hs-handling;
+ 	cap-power-off-card;
+ 	keep-power-in-suspend;
+ 
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 7805b0618a4fb..e28a5b82fdf30 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -700,7 +700,7 @@
+ &mmc2 {
+ 	status = "okay";
+ 	vmmc-supply = <&wl12xx_vmmc>;
+-	non-removable;
++	ti,non-removable;
+ 	bus-width = <4>;
+ 	cap-power-off-card;
+ 	keep-power-in-suspend;
+diff --git a/arch/arm/boot/dts/am335x-lxm.dts b/arch/arm/boot/dts/am335x-lxm.dts
+index c3bfd8ed5f884..a8005e975ea24 100644
+--- a/arch/arm/boot/dts/am335x-lxm.dts
++++ b/arch/arm/boot/dts/am335x-lxm.dts
+@@ -361,7 +361,7 @@
+ 	pinctrl-0 = <&emmc_pins>;
+ 	vmmc-supply = <&vmmcsd_fixed>;
+ 	bus-width = <8>;
+-	non-removable;
++	ti,non-removable;
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi b/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
+index 7749122dad71d..671d4a5da9c43 100644
+--- a/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
++++ b/arch/arm/boot/dts/am335x-moxa-uc-2100-common.dtsi
+@@ -176,7 +176,7 @@
+ 	vmmc-supply = <&vmmcsd_fixed>;
+ 	bus-width = <8>;
+ 	pinctrl-0 = <&mmc1_pins_default>;
+-	non-removable;
++	ti,non-removable;
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts b/arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts
+index 66a5c09ff388a..783d411f2cefe 100644
+--- a/arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts
++++ b/arch/arm/boot/dts/am335x-moxa-uc-8100-me-t.dts
+@@ -473,7 +473,7 @@
+ 	vmmc-supply = <&vmmcsd_fixed>;
+ 	bus-width = <8>;
+ 	pinctrl-0 = <&mmc2_pins_default>;
+-	non-removable;
++	ti,non-removable;
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
+index 03852eff2b3ce..e7764ecdf65f8 100644
+--- a/arch/arm/boot/dts/am335x-pepper.dts
++++ b/arch/arm/boot/dts/am335x-pepper.dts
+@@ -341,7 +341,7 @@
+ 	pinctrl-0 = <&emmc_pins>;
+ 	vmmc-supply = <&ldo3_reg>;
+ 	bus-width = <8>;
+-	non-removable;
++	ti,non-removable;
+ };
+ 
+ &mmc3 {
+@@ -351,7 +351,7 @@
+ 	pinctrl-0 = <&wireless_pins>;
+ 	vmmmc-supply = <&v3v3c_reg>;
+ 	bus-width = <4>;
+-	non-removable;
++	ti,non-removable;
+ 	dmas = <&edma_xbar 12 0 1
+ 		&edma_xbar 13 0 2>;
+ 	dma-names = "tx", "rx";
+diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+index 7e46b4c027094..3d0672b53d779 100644
+--- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
++++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
+@@ -69,7 +69,7 @@
+ 	pinctrl-0 = <&emmc_pins>;
+ 	vmmc-supply = <&vmmc_reg>;
+ 	bus-width = <8>;
+-	non-removable;
++	ti,non-removable;
+ 	status = "disabled";
+ };
+ 
+diff --git a/arch/arm/boot/dts/am33xx-l4.dtsi b/arch/arm/boot/dts/am33xx-l4.dtsi
+index cacd564b4d28b..8ec6c4500fd59 100644
+--- a/arch/arm/boot/dts/am33xx-l4.dtsi
++++ b/arch/arm/boot/dts/am33xx-l4.dtsi
+@@ -1333,8 +1333,10 @@
+ 			ranges = <0x0 0x60000 0x1000>;
+ 
+ 			mmc1: mmc@0 {
+-				compatible = "ti,am335-sdhci";
++				compatible = "ti,omap4-hsmmc";
++				ti,dual-volt;
+ 				ti,needs-special-reset;
++				ti,needs-special-hs-handling;
+ 				dmas = <&edma 24 0>, <&edma 25 0>;
+ 				dma-names = "tx", "rx";
+ 				interrupts = <64>;
+@@ -1824,7 +1826,7 @@
+ 			ranges = <0x0 0xd8000 0x1000>;
+ 
+ 			mmc2: mmc@0 {
+-				compatible = "ti,am335-sdhci";
++				compatible = "ti,omap4-hsmmc";
+ 				ti,needs-special-reset;
+ 				dmas = <&edma 2 0
+ 					&edma 3 0>;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index efe36f395bdd0..77fa7c0f21046 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -259,11 +259,10 @@
+ 			ranges = <0x0 0x47810000 0x1000>;
+ 
+ 			mmc3: mmc@0 {
+-				compatible = "ti,am335-sdhci";
++				compatible = "ti,omap4-hsmmc";
+ 				ti,needs-special-reset;
+ 				interrupts = <29>;
+ 				reg = <0x0 0x1000>;
+-				status = "disabled";
+ 			};
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index c5b67993743d6..14bbc438055fd 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -250,11 +250,10 @@
+ 			ranges = <0x0 0x47810000 0x1000>;
+ 
+ 			mmc3: mmc@0 {
+-				compatible = "ti,am437-sdhci";
++				compatible = "ti,omap4-hsmmc";
+ 				ti,needs-special-reset;
+ 				interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
+ 				reg = <0x0 0x1000>;
+-				status = "disabled";
+ 			};
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/am437x-cm-t43.dts b/arch/arm/boot/dts/am437x-cm-t43.dts
+index a6b4fca8626ac..063113a5da2d4 100644
+--- a/arch/arm/boot/dts/am437x-cm-t43.dts
++++ b/arch/arm/boot/dts/am437x-cm-t43.dts
+@@ -291,7 +291,7 @@
+ 	pinctrl-0 = <&emmc_pins>;
+ 	vmmc-supply = <&vmmc_3v3>;
+ 	bus-width = <8>;
+-	non-removable;
++	ti,non-removable;
+ };
+ 
+ &spi0 {
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 448853701d3d1..126965a34841e 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -872,7 +872,7 @@
+ 	pinctrl-names = "default", "sleep";
+ 	pinctrl-0 = <&emmc_pins_default>;
+ 	pinctrl-1 = <&emmc_pins_sleep>;
+-	non-removable;
++	ti,non-removable;
+ };
+ 
+ &mmc3 {
+@@ -889,7 +889,7 @@
+ 	pinctrl-1 = <&mmc3_pins_sleep>;
+ 	cap-power-off-card;
+ 	keep-power-in-suspend;
+-	non-removable;
++	ti,non-removable;
+ 
+ 	#address-cells = <1>;
+ 	#size-cells = <0>;
+diff --git a/arch/arm/boot/dts/am437x-l4.dtsi b/arch/arm/boot/dts/am437x-l4.dtsi
+index 8c9e7e723fc97..64fdd5079d49b 100644
+--- a/arch/arm/boot/dts/am437x-l4.dtsi
++++ b/arch/arm/boot/dts/am437x-l4.dtsi
+@@ -1104,8 +1104,9 @@
+ 			ranges = <0x0 0x60000 0x1000>;
+ 
+ 			mmc1: mmc@0 {
+-				compatible = "ti,am437-sdhci";
++				compatible = "ti,omap4-hsmmc";
+ 				reg = <0x0 0x1000>;
++				ti,dual-volt;
+ 				ti,needs-special-reset;
+ 				dmas = <&edma 24 0>,
+ 					<&edma 25 0>;
+@@ -1640,7 +1641,7 @@
+ 			ranges = <0x0 0xd8000 0x1000>;
+ 
+ 			mmc2: mmc@0 {
+-				compatible = "ti,am437-sdhci";
++				compatible = "ti,omap4-hsmmc";
+ 				reg = <0x0 0x1000>;
+ 				ti,needs-special-reset;
+ 				dmas = <&edma 2 0>,
+diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
+index 292153c6cb5d3..74eaa6a3b258c 100644
+--- a/arch/arm/boot/dts/am437x-sk-evm.dts
++++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+@@ -694,7 +694,7 @@
+ 	pinctrl-1 = <&mmc3_pins_sleep>;
+ 	cap-power-off-card;
+ 	keep-power-in-suspend;
+-	non-removable;
++	ti,non-removable;
+ 
+ 	#address-cells = <1>;
+ 	#size-cells = <0>;
+-- 
+TQ-Systems GmbH | Mühlstraße 2, Gut Delling | 82229 Seefeld, Germany
+Amtsgericht München, HRB 105018
+Geschäftsführer: Detlef Schneider, Rüdiger Stahl, Stefan Schneider
+https://www.tq-group.com/
 
