@@ -2,46 +2,45 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2063C070C3
-	for <linux-omap@archiver.kernel.org>; Tue,  7 Nov 2023 09:20:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A8E4C0018C
+	for <linux-omap@archiver.kernel.org>; Tue,  7 Nov 2023 09:20:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233839AbjKGJUi (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Tue, 7 Nov 2023 04:20:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36910 "EHLO
+        id S233854AbjKGJUk (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Tue, 7 Nov 2023 04:20:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233854AbjKGJUc (ORCPT
+        with ESMTP id S233858AbjKGJUc (ORCPT
         <rfc822;linux-omap@vger.kernel.org>); Tue, 7 Nov 2023 04:20:32 -0500
 Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [IPv6:2a0a:edc0:2:b01:1d::104])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56E27D73
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96B93D77
         for <linux-omap@vger.kernel.org>; Tue,  7 Nov 2023 01:20:29 -0800 (PST)
 Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
         by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.92)
         (envelope-from <ukl@pengutronix.de>)
-        id 1r0IG3-0000Pa-DK; Tue, 07 Nov 2023 10:20:27 +0100
+        id 1r0IG4-0000Ra-10; Tue, 07 Nov 2023 10:20:28 +0100
 Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
         by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <ukl@pengutronix.de>)
-        id 1r0IG2-007FmO-Vu; Tue, 07 Nov 2023 10:20:26 +0100
+        id 1r0IG3-007Fmb-KE; Tue, 07 Nov 2023 10:20:27 +0100
 Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
         (envelope-from <ukl@pengutronix.de>)
-        id 1r0IG2-00ENX2-Ms; Tue, 07 Nov 2023 10:20:26 +0100
+        id 1r0IG3-00ENXE-B8; Tue, 07 Nov 2023 10:20:27 +0100
 From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
         <u.kleine-koenig@pengutronix.de>
 To:     Helge Deller <deller@gmx.de>
-Cc:     Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
+Cc:     linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
         dri-devel@lists.freedesktop.org, kernel@pengutronix.de
-Subject: [PATCH 14/22] fb: omapfb/analog-tv: Convert to platform remove callback returning void
-Date:   Tue,  7 Nov 2023 10:17:55 +0100
-Message-ID: <20231107091740.3924258-15-u.kleine-koenig@pengutronix.de>
+Subject: [PATCH 17/22] fb: omapfb/dvi: Convert to platform remove callback returning void
+Date:   Tue,  7 Nov 2023 10:17:58 +0100
+Message-ID: <20231107091740.3924258-18-u.kleine-koenig@pengutronix.de>
 X-Mailer: git-send-email 2.42.0.586.gbc5204569f7d.dirty
 In-Reply-To: <20231107091740.3924258-1-u.kleine-koenig@pengutronix.de>
 References: <20231107091740.3924258-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2026; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=dB2WKH713zLP8NUARnGfLjCRIuWrBLPZZmrZZr0SFn0=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBlSgDEDREJ/PM5MOq54IEhGUjg/3af7FQx6t0i+ 0RzAScm84uJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZUoAxAAKCRCPgPtYfRL+ TgQVB/0VOx5/61K2bSaTayyX+M5DBql1gcFG5SmSftRim9kWoUgXaQN2kAawRjcIpUW6a4e+ugx OWelAbvuzoDGYP1IPNs+188MqNePjg0KqQ6zLbZ+1V/giL1oUZObf4o3cTNN2JpOMsa/Egy9EjC MI4ff/6tQAOsSLr2bchMFFqZNNlSRp+kxXBJ3cUDThk27gBA0Hf1kiSmDSZgjxx+cqlhgdKQmRh H4wiLdhKTslTVMWPy9nsl5dJG+I9k+X4RvKSq1Vpxme9cHL6JbHIjgFWLIqWUqbAUrsv8S1Y+0R dBYFZBBM+yL27K0BZJo9vDbha3+ahhXvtHdywkY1Te2ZYRd3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2017; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=c1MnPGwKhhAKjjbYpg7H+y0xhxS8YSPy0Wy96vB/zUg=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBlSgDI3sU6pmo4Z+/N//Id2YoyzTAjWRvVwU4mi ZrYHWZ51HGJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZUoAyAAKCRCPgPtYfRL+ Tp+kB/4zKjjErSxDfl8cJ1wPc1rJJVTVKfGOK0BBm9a8QftqxCFoEhKZLtqZIQvoHPK0ordwoLN IlPb1FI50YiHwO56hL3uLeNNPXVIO7EL2WOX8Wrbm/pEM/Ng1jM5hGnyqLglnMarOGa1ooRvFZ8 kcNjjxMvfla4YgM/LtnkIkUG9jbu8H/NnxmdfOR7lgUYIl2icHU9muuHd32ol2MofEn/O792Ko4 w8vUzKCK3PrTh5MqmizFjWzvlE1MBCdKi3Fmb0gmwlCNXlWLCGLkKHuur8WkxsnxrZ0/AZR5NIZ 5Y+Qt32gi2vcbSdyS1A+Dspud/ti62tUxH19RBXnodcH4LcE
 X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
@@ -67,40 +66,40 @@ callback to the void returning variant.
 
 Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 ---
- .../video/fbdev/omap2/omapfb/displays/connector-analog-tv.c | 6 ++----
+ drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c | 6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
-index 85fa58f48a81..c6786726a1af 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-analog-tv.c
-@@ -221,7 +221,7 @@ static int tvc_probe(struct platform_device *pdev)
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c b/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
+index 2a5824fe8ea0..0cc9294f89b4 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/connector-dvi.c
+@@ -303,7 +303,7 @@ static int dvic_probe(struct platform_device *pdev)
  	return r;
  }
  
--static int tvc_remove(struct platform_device *pdev)
-+static void tvc_remove(struct platform_device *pdev)
+-static int dvic_remove(struct platform_device *pdev)
++static void dvic_remove(struct platform_device *pdev)
  {
  	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
  	struct omap_dss_device *dssdev = &ddata->dssdev;
-@@ -233,8 +233,6 @@ static int tvc_remove(struct platform_device *pdev)
- 	tvc_disconnect(dssdev);
- 
+@@ -317,8 +317,6 @@ static int dvic_remove(struct platform_device *pdev)
  	omap_dss_put_device(in);
+ 
+ 	i2c_put_adapter(ddata->i2c_adapter);
 -
 -	return 0;
  }
  
- static const struct of_device_id tvc_of_match[] = {
-@@ -247,7 +245,7 @@ MODULE_DEVICE_TABLE(of, tvc_of_match);
+ static const struct of_device_id dvic_of_match[] = {
+@@ -330,7 +328,7 @@ MODULE_DEVICE_TABLE(of, dvic_of_match);
  
- static struct platform_driver tvc_connector_driver = {
- 	.probe	= tvc_probe,
--	.remove	= tvc_remove,
-+	.remove_new = tvc_remove,
+ static struct platform_driver dvi_connector_driver = {
+ 	.probe	= dvic_probe,
+-	.remove	= dvic_remove,
++	.remove_new = dvic_remove,
  	.driver	= {
- 		.name	= "connector-analog-tv",
- 		.of_match_table = tvc_of_match,
+ 		.name	= "connector-dvi",
+ 		.of_match_table = dvic_of_match,
 -- 
 2.42.0
 
