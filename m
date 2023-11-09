@@ -2,96 +2,104 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FA10C4332F
-	for <linux-omap@archiver.kernel.org>; Wed,  8 Nov 2023 21:45:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43D81C001B2
+	for <linux-omap@archiver.kernel.org>; Thu,  9 Nov 2023 20:29:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232155AbjKHVpa (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Wed, 8 Nov 2023 16:45:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48884 "EHLO
+        id S1345174AbjKIU3P (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Thu, 9 Nov 2023 15:29:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232146AbjKHVp1 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Wed, 8 Nov 2023 16:45:27 -0500
-Received: from mail-yw1-x1134.google.com (mail-yw1-x1134.google.com [IPv6:2607:f8b0:4864:20::1134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3ABCF2592
-        for <linux-omap@vger.kernel.org>; Wed,  8 Nov 2023 13:45:25 -0800 (PST)
-Received: by mail-yw1-x1134.google.com with SMTP id 00721157ae682-5afbdbf3a19so2237147b3.2
-        for <linux-omap@vger.kernel.org>; Wed, 08 Nov 2023 13:45:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1699479924; x=1700084724; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=uNZCsb+J0tCXIr/CtNET2AcsXu2SaYf1CY84TShlm6Q=;
-        b=GdXWk7r/Ww0irC7aIsHcw7wDikNbFo3tRY3z+MPolck9u3bmv9yN23/z52w3m3460W
-         RGIKDGXc6mHT+IlxrCECRrX729Zoxl0AOKSZ/qdy/dKS/QyiPw8If7/gOXI/N9CTJ6hd
-         o1wgAF+pHv8PA3b9FHohHi5b/mRMt3lCOOwPQNjPQaXf9sH9EKz2xlAQI55UGYRrb0Xg
-         PAJfT4PXMmh37cXNfYIA3v2Xq7RzphXqFnprFrnz8ZNCI51SBt27fMPB0aXwjWE15qYR
-         rrJGGjPYJDfQPbxHRAIoAzQ2Q7mZM+RHaETChVl2CmOmh5GWqqpoOKxwdq5OJGWjjude
-         RTPg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1699479924; x=1700084724;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=uNZCsb+J0tCXIr/CtNET2AcsXu2SaYf1CY84TShlm6Q=;
-        b=taIhpd/WdvAqBx0C2KYCtH5DdvUh4A7jus8SNSpnMzIan1e7Q1CwcJWlddEoKcxDOj
-         rGs1vO5sCfmJ2sLchqgrzfbxqhoL8Kr+G9wmssgrS/G6Hk0ZTUWJ8XAtLzaSjj1/w3GF
-         dvZbuZXxNbkiu09cj50NJPMlsIj2w2JaOJuiaHD1ldn40ZkQzyrUgHFMpeo7SdfJ8Q1C
-         FiuEols4AnUcTiD4KTorFphxR2XbYqXPCBaoSS83opfwKLFFENA3sHW2wJ46QIZnpt7G
-         cTH2huzmnctsmqBddFg8TKKIADoK2GWDfssb6UDAhETGv7wIeWp5JIoRiuV5P+rZk6qe
-         Jgvg==
-X-Gm-Message-State: AOJu0YxcAYNypoRu+eNi75PhWH4Kibl4TEeVI/GZYvMaZsKnqTfyZhqa
-        8Dwxr87Z8oyY3qSQdWMKL09tuuvKCzz82MfV9XDhrA==
-X-Google-Smtp-Source: AGHT+IFY9jFZdG7cvJAasqldeYVJV1lp20ykF6CM/T97HTYZUi8l1zfwxOIgQ7l5PF/miWNeoGVOLOXt0F0G6C0TYx8=
-X-Received: by 2002:a81:6cd6:0:b0:5a7:f002:4fe4 with SMTP id
- h205-20020a816cd6000000b005a7f0024fe4mr3127115ywc.23.1699479924475; Wed, 08
- Nov 2023 13:45:24 -0800 (PST)
+        with ESMTP id S1345183AbjKIU3N (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Thu, 9 Nov 2023 15:29:13 -0500
+Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [IPv6:2a0a:edc0:2:b01:1d::104])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BD3C44BF
+        for <linux-omap@vger.kernel.org>; Thu,  9 Nov 2023 12:29:11 -0800 (PST)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1r1BeF-00033N-OC; Thu, 09 Nov 2023 21:29:07 +0100
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1r1BeF-007rX7-Aa; Thu, 09 Nov 2023 21:29:07 +0100
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1r1BeF-00GGuD-1O; Thu, 09 Nov 2023 21:29:07 +0100
+From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+To:     Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>
+Cc:     linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kernel@pengutronix.de
+Subject: [PATCH 11/12] bus: ti-sysc: Convert to platform remove callback returning void
+Date:   Thu,  9 Nov 2023 21:28:41 +0100
+Message-ID: <20231109202830.4124591-12-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.42.0.586.gbc5204569f7d.dirty
+In-Reply-To: <20231109202830.4124591-1-u.kleine-koenig@pengutronix.de>
+References: <20231109202830.4124591-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-References: <20231108-fix-mips-nand-v1-0-5fc5586d04de@linaro.org>
- <20231108-fix-mips-nand-v1-2-5fc5586d04de@linaro.org> <20231108191125.GA2754195-robh@kernel.org>
-In-Reply-To: <20231108191125.GA2754195-robh@kernel.org>
-From:   Linus Walleij <linus.walleij@linaro.org>
-Date:   Wed, 8 Nov 2023 22:45:11 +0100
-Message-ID: <CACRpkdZx9icF7s5HoS2r40Wuj4sPbEZPiaPsD9GZ94J4LKY5+g@mail.gmail.com>
-Subject: Re: [PATCH 2/6] dt-bindings: mtd: Rewrite gpio-control-nand in schema
-To:     Rob Herring <robh@kernel.org>
-Cc:     Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Richard Weinberger <richard@nod.at>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Ben Dooks <ben.dooks@codethink.co.uk>,
-        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org,
-        devicetree@vger.kernel.org, linux-mips@vger.kernel.org,
-        Howard Harte <hharte@magicandroidapps.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1758; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=opTk4HTyURjB0GAHXubqOJ0QoyNNC03II0HWbr+XPDE=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBlTUD7++rpK6UFrsRtYltlQ1hWs00xrWDPQ+PR7 a0yuf2VwZCJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZU1A+wAKCRCPgPtYfRL+ TmE8B/4+R8UdQTyzVId2Y5KghT3jOlnVGcrlwPCYjGXUxBdn5orhi2SpN13OxnlaQcwfOTfyGhz wL9aJEod+w/fRiUVXvW9eDu90T9p9+0w8ZHpe0zV36adsT9hE6lqfyXDNmmOBCNxyia/LPIrfdZ D2jDnSXAHOLKKyXqLqvrVfTXneT4WFz0lkx/P5824KSHMfcZySPfqF+TAn8znuph3KrEc9aj2Tb SxX8sASUIE+NG2neTkASHaYKcsyL57R8lMOg2RC5UxCggM/6Jaq6gnrD4as3JpouexLwLjddOq8 N+GoHau3t/0hOzIVzVSYXhvvFpTzDtHIVlsSX+WgF7qfvSWj
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Wed, Nov 8, 2023 at 8:11=E2=80=AFPM Rob Herring <robh@kernel.org> wrote:
-> On Wed, Nov 08, 2023 at 03:33:50PM +0100, Linus Walleij wrote:
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is ignored (apart
+from emitting a warning) and this typically results in resource leaks.
 
-> > This creates a schema for GPIO controlled NAND. The txt
-> > schema was old and wrong.
-> >
-> > Mark the old way of passing GPIOs in a long array as
-> > deprecated and encourage per-pin GPIO assignments with
-> > the named nnn-gpios phandles.
->
-> We have 1 user upstream with only a single commit adding it in 2017.
-> This doesn't seem like something that's going to gain new users either.
-> Is it really worth modernizing this binding?
+To improve here there is a quest to make the remove callback return
+void. In the first step of this quest all drivers are converted to
+.remove_new(), which already returns void. Eventually after all drivers
+are converted, .remove_new() will be renamed to .remove().
 
-The whole ordeal was actually prompted by the emergence of a
-new user who wants to add a device tree for a new device.
-So I don't want to add new users for the old bindings.
+Trivially convert this driver from always returning zero in the remove
+callback to the void returning variant.
 
-Yours,
-Linus Walleij
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+ drivers/bus/ti-sysc.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+index d57bc066dce6..490841dbe0d8 100644
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -3387,7 +3387,7 @@ static int sysc_probe(struct platform_device *pdev)
+ 	return error;
+ }
+ 
+-static int sysc_remove(struct platform_device *pdev)
++static void sysc_remove(struct platform_device *pdev)
+ {
+ 	struct sysc *ddata = platform_get_drvdata(pdev);
+ 	int error;
+@@ -3412,8 +3412,6 @@ static int sysc_remove(struct platform_device *pdev)
+ 
+ unprepare:
+ 	sysc_unprepare(ddata);
+-
+-	return 0;
+ }
+ 
+ static const struct of_device_id sysc_match[] = {
+@@ -3439,7 +3437,7 @@ MODULE_DEVICE_TABLE(of, sysc_match);
+ 
+ static struct platform_driver sysc_driver = {
+ 	.probe		= sysc_probe,
+-	.remove		= sysc_remove,
++	.remove_new	= sysc_remove,
+ 	.driver         = {
+ 		.name   = "ti-sysc",
+ 		.of_match_table	= sysc_match,
+-- 
+2.42.0
+
