@@ -2,134 +2,83 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3554C4167D
-	for <linux-omap@archiver.kernel.org>; Fri, 10 Nov 2023 17:41:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F353CC04A95
+	for <linux-omap@archiver.kernel.org>; Fri, 10 Nov 2023 17:46:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235107AbjKJRly (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 10 Nov 2023 12:41:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46496 "EHLO
+        id S1345006AbjKJRqc (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 10 Nov 2023 12:46:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229871AbjKJRli (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Nov 2023 12:41:38 -0500
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B72F3D540;
-        Fri, 10 Nov 2023 08:21:52 -0800 (PST)
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3AAGLlns116980;
-        Fri, 10 Nov 2023 10:21:47 -0600
+        with ESMTP id S234995AbjKJRpg (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Nov 2023 12:45:36 -0500
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CE61A260;
+        Fri, 10 Nov 2023 00:42:34 -0800 (PST)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+        by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3AA8gVvC093208;
+        Fri, 10 Nov 2023 02:42:31 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1699633307;
-        bh=7UT7IE7MwQ52DU56ZEU9VxjnIavn9yIJBHhLeQX03f4=;
-        h=Date:Subject:To:CC:References:From:In-Reply-To;
-        b=mikYvPrevZMt7LrQaEi4I0KE65Q3004hPcDw13Qf9vwFA3dPQ4WJdI5PIp9E8JR2U
-         1aEZ/9wH25IAfWQ50GQtbZbzf3q4uhZVCk2+xA0doVGgSCKOW4y+TMboD7zD28/Vbb
-         5rWhll0H7LDY6eC923g/A/JzneoukFYlewnMEoB8=
-Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3AAGLlSl087796
+        s=ti-com-17Q1; t=1699605751;
+        bh=GDDIgQqEdMJ8Qp1iKhCS90P+3gCsxxxX61Dh7aFZiuI=;
+        h=From:To:CC:Subject:Date;
+        b=w3ddfsMw3c44I+40SFTi1b+37uTMgjT4C96YGDAZCwk/AMhMvUG9xj0Djtl7Z+3FH
+         F7WPyYI3MvILS+IunGo7vrcY8rePocXx0H2MZrLZlb2AW1kWZELVJU4A6qwvgqaY6o
+         hRf1LRtG5xOp3cx7+qvOIRP5wRwo5cuXUUhXZ0Hg=
+Received: from DFLE106.ent.ti.com (dfle106.ent.ti.com [10.64.6.27])
+        by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3AA8gVWQ038635
         (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 10 Nov 2023 10:21:47 -0600
-Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+        Fri, 10 Nov 2023 02:42:31 -0600
+Received: from DFLE104.ent.ti.com (10.64.6.25) by DFLE106.ent.ti.com
+ (10.64.6.27) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Fri, 10
- Nov 2023 10:21:47 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+ Nov 2023 02:42:30 -0600
+Received: from lelv0327.itg.ti.com (10.180.67.183) by DFLE104.ent.ti.com
+ (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Fri, 10 Nov 2023 10:21:47 -0600
-Received: from [10.249.135.225] (ileaxei01-snat2.itg.ti.com [10.180.69.6])
-        by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3AAGLiL3063419;
-        Fri, 10 Nov 2023 10:21:44 -0600
-Message-ID: <e96bd133-7bc7-b2ae-4d70-69f2ad5c9aff@ti.com>
-Date:   Fri, 10 Nov 2023 21:51:43 +0530
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.15.1
-Subject: Re: [PATCH] MAINTAINERS: net: Update reviewers for TI's Ethernet
- drivers
-Content-Language: en-US
-To:     Ravi Gunasekaran <r-gunasekaran@ti.com>,
-        Roger Quadros <rogerq@kernel.org>, <netdev@vger.kernel.org>
+ Frontend Transport; Fri, 10 Nov 2023 02:42:30 -0600
+Received: from uda0500640.dal.design.ti.com (ileaxei01-snat2.itg.ti.com [10.180.69.6])
+        by lelv0327.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3AA8gRt6097273;
+        Fri, 10 Nov 2023 02:42:28 -0600
+From:   Ravi Gunasekaran <r-gunasekaran@ti.com>
+To:     <netdev@vger.kernel.org>
 CC:     <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <s-vadapalli@ti.com>, <nm@ti.com>, <srk@ti.com>,
-        Md Danish Anwar <danishanwar@ti.com>
-References: <20231110084227.2616-1-r-gunasekaran@ti.com>
- <78cf6806-0bdc-4b81-8d96-51a6f8fb168c@kernel.org>
- <44f68604-b37d-56d9-6fc1-4c4cc503abd3@ti.com>
-From:   "Anwar, Md Danish" <a0501179@ti.com>
-In-Reply-To: <44f68604-b37d-56d9-6fc1-4c4cc503abd3@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+        <rogerq@kernel.org>, <r-gunasekaran@ti.com>
+Subject: [PATCH] MAINTAINERS: net: Update reviewers for TI's Ethernet drivers
+Date:   Fri, 10 Nov 2023 14:12:27 +0530
+Message-ID: <20231110084227.2616-1-r-gunasekaran@ti.com>
+X-Mailer: git-send-email 2.17.1
+MIME-Version: 1.0
+Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On 11/10/2023 3:08 PM, Ravi Gunasekaran wrote:
-> Roger,
-> 
-> On 11/10/23 2:21 PM, Roger Quadros wrote:
->> Hi Ravi,
->>
->> On 10/11/2023 10:42, Ravi Gunasekaran wrote:
->>> Grygorii is no longer associated with TI and messages addressed to
->>> him bounce.
->>>
->>> Add Siddharth and myself as reviewers.
->>>
->>> Signed-off-by: Ravi Gunasekaran <r-gunasekaran@ti.com>
->>> ---
->>>  MAINTAINERS | 3 ++-
->>>  1 file changed, 2 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/MAINTAINERS b/MAINTAINERS
->>> index 7b151710e8c5..bd52c33bca02 100644
->>> --- a/MAINTAINERS
->>> +++ b/MAINTAINERS
->>> @@ -21775,7 +21775,8 @@ F:	Documentation/devicetree/bindings/counter/ti-eqep.yaml
->>>  F:	drivers/counter/ti-eqep.c
->>>  
->>>  TI ETHERNET SWITCH DRIVER (CPSW)
->>> -R:	Grygorii Strashko <grygorii.strashko@ti.com>
->>> +R:	Siddharth Vadapalli <s-vadapalli@ti.com>
->>> +R:	Ravi Gunasekaran <r-gunasekaran@ti.com>
->>
->> Could you please add me as Reviewer as well. Thanks!
-> 
-> Thanks for volunteering to be a reviewer.
-> 
-> I posted a v2 adding you as a reviewer.
-> https://lore.kernel.org/all/20231110092749.3618-1-r-gunasekaran@ti.com/
-> 
->>
->>>  L:	linux-omap@vger.kernel.org
->>>  L:	netdev@vger.kernel.org
->>>  S:	Maintained
->>
->>> F:      drivers/net/ethernet/ti/cpsw*
->>> F:      drivers/net/ethernet/ti/davinci*
->>
->> What about am65-cpsw*?
->>
->> And drivers/net/ethernet/ti/icssg/*
-> 
-> I would prefer a separate entry for ICSSG. Will let Danish comment on this.
-> 
+Grygorii is no longer associated with TI and messages addressed to
+him bounce.
 
-Sure, I will share a separate patch for this. Roger, do you want me to
-add you as a reviewer in for ICSSG driver as well?
+Add Siddharth and myself as reviewers.
 
->>
->> I also see 
->>
->> OMAP GPIO DRIVER
->> M:      Grygorii Strashko <grygorii.strashko@ti.com>
->>
->> Maybe a separate patch to remove the invalid email-id?
->>
-> Yes, that's the plan. One of us from TI would be posting shortly.
-> 
-> 
+Signed-off-by: Ravi Gunasekaran <r-gunasekaran@ti.com>
+---
+ MAINTAINERS | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 7b151710e8c5..bd52c33bca02 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -21775,7 +21775,8 @@ F:	Documentation/devicetree/bindings/counter/ti-eqep.yaml
+ F:	drivers/counter/ti-eqep.c
+ 
+ TI ETHERNET SWITCH DRIVER (CPSW)
+-R:	Grygorii Strashko <grygorii.strashko@ti.com>
++R:	Siddharth Vadapalli <s-vadapalli@ti.com>
++R:	Ravi Gunasekaran <r-gunasekaran@ti.com>
+ L:	linux-omap@vger.kernel.org
+ L:	netdev@vger.kernel.org
+ S:	Maintained
 -- 
-Thanks and Regards,
-Md Danish Anwar
+2.17.1
+
