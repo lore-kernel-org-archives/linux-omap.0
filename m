@@ -2,128 +2,118 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21950C072A0
-	for <linux-omap@archiver.kernel.org>; Fri, 10 Nov 2023 19:46:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B008C4167B
+	for <linux-omap@archiver.kernel.org>; Sat, 11 Nov 2023 11:39:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345907AbjKJTqN (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 10 Nov 2023 14:46:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52924 "EHLO
+        id S230195AbjKKLjY (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 11 Nov 2023 06:39:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346675AbjKJTp4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 10 Nov 2023 14:45:56 -0500
-Received: from wout5-smtp.messagingengine.com (wout5-smtp.messagingengine.com [64.147.123.21])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED2D2768D;
-        Thu,  9 Nov 2023 22:32:43 -0800 (PST)
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-        by mailout.west.internal (Postfix) with ESMTP id 01E4B3200A68;
-        Fri, 10 Nov 2023 01:32:40 -0500 (EST)
-Received: from imap51 ([10.202.2.101])
-  by compute5.internal (MEProxy); Fri, 10 Nov 2023 01:32:43 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-transfer-encoding:content-type:content-type:date
-        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to; s=fm3; t=
-        1699597960; x=1699684360; bh=vpqlrKxX6mSBUJFrH57/cRKqR73F6veHo7/
-        WoW+1YPE=; b=gEE+MfXa/NACn9/dTW54Jhx+0xprgHek51JOAX1KpBGCYxNsgpf
-        wUe9213m5iv96CUcGrt22/DYYoHaji9XCKDOJm1a/IgZGvN8kNLjcoVH70/Few+Y
-        MEHveRKRG8zVdv2EWE9+inKAwE+V4af2prhBx87pN0hw3oH1Bvir6if2pWT3yiAW
-        dLMjJVjvRbsypVRxRzwl/+jjIdCTi+U/SznbtZoTHClfz/e0C979r24j20I0Qwsw
-        rwiYyj2PKoMTPkbBcq8s+SNqJyvezBEhkp1l72MJJ2+l4+xII1zJ8bc6+bZ3TK0Y
-        3cxzsdcViGrMOAupQgSBx6Qs1h0z+KNjQyg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:content-type:date:date:feedback-id:feedback-id
-        :from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
-        1699597960; x=1699684360; bh=vpqlrKxX6mSBUJFrH57/cRKqR73F6veHo7/
-        WoW+1YPE=; b=riSI7q9yFK52nLj5y2/FhQK7u42nxRuJyTWKkRdzvSVl6wC6mAw
-        xU9k/JxKtz/itp7hC/eSicq96jJ6Q2b3pEUSVR0mJ5Bsrc07D+/F761Dn8EpmxPb
-        O3PaQbuX3iVugyRWU4wFmunQu11KY3gC9L+VeYQuIoCMYmXD57BVvJQIDv1277x5
-        KsAaMHoM5yJbxPfN/BGPOE6XE+TNiO+g5BhisoIjTTx4l0aSWlptqSG8wPhFS5Y8
-        gvkGA4EuonjQXupHPabc1leSuKpV6oP1DoSdWWpq5WscZJ6p+MARCM7ADwmI4SlJ
-        9BWpyaQKSfoqQh1XyKMQvotw33YWIVKDMdQ==
-X-ME-Sender: <xms:hs5NZXUXOWXp3isMudOyVbUJomXV5TqgLfelZrQGQ4U3vopl8xTy2g>
-    <xme:hs5NZfk2NMKyF11VPQWcBiRov1ujMcAnYpIJ36mz_fHvaiAEcJwn7nFcYa1SQwGuq
-    epS4wRWIbyLoykxTz0>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedruddvvddgleegucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtgfesthhqredtreerjeenucfhrhhomhepfdet
-    rhhnugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrg
-    htthgvrhhnpeegfeejhedvledvffeijeeijeeivddvhfeliedvleevheejleetgedukedt
-    gfejveenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
-    grrhhnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:hs5NZTZ2iywI27swS8tz5PiX2BoWXHWfdfaq1uXcxdPMTedVJInxQA>
-    <xmx:hs5NZSVFQVZ_It6ReJCDW3YpFrBeITbMNopkTRsCgIUgs1b8MX3Ryw>
-    <xmx:hs5NZRlzSW6u_AI5qVkrDrL0JB-DAFqwGeLmGLGBXn-9e3QtzUIoyQ>
-    <xmx:iM5NZU5XlSlNHx-hJA-LY3kTEZ3cPwD-t-BglpUXGwb2yxO8KZTZVA>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 28EA2B60089; Fri, 10 Nov 2023 01:32:38 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-1108-g3a29173c6d-fm-20231031.005-g3a29173c
+        with ESMTP id S229972AbjKKLjY (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 11 Nov 2023 06:39:24 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 825173A9C;
+        Sat, 11 Nov 2023 03:39:21 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59854C433C7;
+        Sat, 11 Nov 2023 11:39:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1699702761;
+        bh=rTPhRXHcBu3FdnF5esG7WBKJ0Idng7F9RzrodK0bdSk=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=fWixJ4xzkM5iuRIeqOxmh8hZZoNu2GuNqAdD7KRNB1cCvDvGjyUZe/TMewqJGtPuB
+         eBgUD7cHlRFhd5JqBwwSOLW6sBipH5fr6+5nHGyKdoNKMzmVOvbBRmL/W8TkO9ygpp
+         +sfHhxlFVwRqzIPFthrU9HLS93/y/1Z5YTsJ+COUfLVLqQtVpq7Mu7Pk9pE1Fir5Ho
+         2DRS8hEEwlcdF88YHtZ3U/XrpvkgmlBWqPzeOpUpLFxr36Z3wRoVvTQ8JByWEl/Ow6
+         AsDqNaqDviV3LswdZooMJdd1W3rDftp/act6vMBVu/+eXuTxKu5rl9qCjU7/wfNtJl
+         aH88akbQpAz2A==
+Date:   Sat, 11 Nov 2023 11:39:17 +0000
+From:   Mark Brown <broonie@kernel.org>
+To:     Duje =?utf-8?Q?Mihanovi=C4=87?= <duje.mihanovic@skole.hr>
+Cc:     Robin Murphy <robin.murphy@arm.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>, Leo Yan <leoy@marvell.com>,
+        Zhangfei Gao <zhangfei.gao@marvell.com>,
+        Lubomir Rintel <lkundrak@v3.sk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Tony Luck <tony.luck@intel.com>,
+        "Guilherme G . Piccoli" <gpiccoli@igalia.com>,
+        linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-hardening@vger.kernel.org,
+        phone-devel@vger.kernel.org, ~postmarketos/upstreaming@lists.sr.ht,
+        Karel Balej <balejk@matfyz.cz>
+Subject: Re: [PATCH v7 06/10] ASoC: pxa: Suppress SSPA on ARM64
+Message-ID: <ZU9n5Y8DxZt4QYRO@finisterre.sirena.org.uk>
+References: <20231102152033.5511-1-duje.mihanovic@skole.hr>
+ <4855402.GXAFRqVoOG@radijator>
+ <ZUjG5tUrBvm6PDvB@finisterre.sirena.org.uk>
+ <1880732.tdWV9SEqCh@radijator>
 MIME-Version: 1.0
-Message-Id: <1e5e1008-707b-449a-9dbf-48324eb2b248@app.fastmail.com>
-In-Reply-To: <20231109202830.4124591-1-u.kleine-koenig@pengutronix.de>
-References: <20231109202830.4124591-1-u.kleine-koenig@pengutronix.de>
-Date:   Fri, 10 Nov 2023 07:32:01 +0100
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
-        "Jay Fang" <f.fangjian@huawei.com>,
-        "Rob Herring" <robh@kernel.org>,
-        "Jernej Skrabec" <jernej.skrabec@gmail.com>,
-        "Laurentiu Tudor" <laurentiu.tudor@nxp.com>,
-        "Tony Lindgren" <tony@atomide.com>,
-        "Sicelo A. Mhlongo" <absicsz@gmail.com>,
-        "Andy Gross" <agross@kernel.org>,
-        "Bjorn Andersson" <andersson@kernel.org>,
-        "Konrad Dybcio" <konrad.dybcio@linaro.org>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        "Liu Ying" <victor.liu@nxp.com>,
-        "Geert Uytterhoeven" <geert+renesas@glider.be>,
-        "Luis Chamberlain" <mcgrof@kernel.org>,
-        "Nick Alcock" <nick.alcock@oracle.com>,
-        "Chen-Yu Tsai" <wens@csie.org>,
-        "Samuel Holland" <samuel@sholland.org>,
-        "Hans de Goede" <hdegoede@redhat.com>,
-        "Yangtao Li" <frank.li@vivo.com>, "Yuan Can" <yuancan@huawei.com>,
-        "Thierry Reding" <thierry.reding@gmail.com>,
-        "Jon Hunter" <jonathanh@nvidia.com>
-Cc:     linux-kernel@vger.kernel.org,
-        "Pengutronix Kernel Team" <kernel@pengutronix.de>,
-        linux-arm-msm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-sunxi@lists.linux.dev,
-        linux-tegra@vger.kernel.org,
-        Linux-OMAP <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH 00/12] bus: Convert to platform remove callback returning void
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="NMCFkAyahKpkrrIE"
+Content-Disposition: inline
+In-Reply-To: <1880732.tdWV9SEqCh@radijator>
+X-Cookie: Slow day.  Practice crawling.
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-On Thu, Nov 9, 2023, at 21:28, Uwe Kleine-K=C3=B6nig wrote:
-> Hello,
->
-> this series converts all drivers below drivers/bus to struct
-> platform_driver::remove_new(). See commit 5c5a7680e67b ("platform:
-> Provide a remove callback that returns no value") for an extended
-> explanation and the eventual goal.
->
-> drivers/bus/fsl-mc was already addressed earlier with a separate
-> series[1].
->
-> All conversations are trivial, because all .remove() callbacks returned
-> zero unconditionally.
->
-> Some of the drivers touched here don't have a maintainer and there is =
-no
-> maintainer for all of drivers/bus. It would be great if someone could =
-pick up
-> the whole series, maybe Arnd might do that?
 
-Sure, please send a pull request to soc@kernel.org if there
-are no further comments.
+--NMCFkAyahKpkrrIE
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-      Arnd
+On Fri, Nov 10, 2023 at 08:28:56PM +0100, Duje Mihanovi=C4=87 wrote:
+> On Monday, November 6, 2023 11:58:46 AM CET Mark Brown wrote:
+> > On Fri, Nov 03, 2023 at 05:58:05PM +0100, Duje Mihanovi=C4=87 wrote:
+
+> > > this correctly, I would have to remove "select SND_ARM" from sound/so=
+c/
+> pxa/
+> > > Kconfig and optionally move the PXA2xx code out of sound/arm/ and into
+> > > sound/
+> > > soc/pxa/. Is this correct? If so, I'd also split that fix into a sepa=
+rate
+> > > series.
+
+> > There's the pxa-ac97 driver to consider...
+
+> Can you elaborate? As far as I can tell there are 2 drivers named pxa2xx-=
+ac97=20
+> in sound/{arm,soc/pxa} and neither one has any dependency on AACI.=20
+
+They do both share a lot of library code and the one in sound/arm has no
+dependency on ASoC so I don't understand why you're suggesting moving it
+to sound/soc.
+
+--NMCFkAyahKpkrrIE
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmVPZ+AACgkQJNaLcl1U
+h9BwEAf+OEf6qc1xLpzXXgYfgJtHBjpbdnuByW2eet0HjenII7+fsKy2Hh/cvZD+
+EQ4z1dzENCL67nkzK2YyQTegLduY02qVEIe4CYN18yU/g1SbwcDATwcVbWRoNS5S
+yXwGUsBY0Lahsyeuop+P+K4e7z2EDqo9UZyUJi/sUHC4VHzj/ZA+o66k62U/FPxO
+0WAdhTto7vXB4fmHB2zZEVNfihwp3YjFEId17tnp6DfHlldgQTd8Vs7LuANofRuK
+dx3t66n6gWek0MvGYPeCzBCHdTzN2P4iqTHxFRmLUARkA2txeM+uwahng+/XI4SZ
+rpaHK38Iu4+CzjK0b41iz68AEoAzLQ==
+=9Bkd
+-----END PGP SIGNATURE-----
+
+--NMCFkAyahKpkrrIE--
