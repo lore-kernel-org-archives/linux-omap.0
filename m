@@ -2,53 +2,51 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C87D7C5AD4C
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Nov 2023 09:17:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53067C072A2
+	for <linux-omap@archiver.kernel.org>; Fri, 17 Nov 2023 09:17:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234605AbjKQJRb (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Nov 2023 04:17:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40656 "EHLO
+        id S235036AbjKQJRd (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Fri, 17 Nov 2023 04:17:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229927AbjKQJRb (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Nov 2023 04:17:31 -0500
+        with ESMTP id S229927AbjKQJRd (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Nov 2023 04:17:33 -0500
 Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [IPv6:2a0a:edc0:2:b01:1d::104])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6552D4D
-        for <linux-omap@vger.kernel.org>; Fri, 17 Nov 2023 01:17:27 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 676F0D52
+        for <linux-omap@vger.kernel.org>; Fri, 17 Nov 2023 01:17:29 -0800 (PST)
 Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
         by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.92)
         (envelope-from <ukl@pengutronix.de>)
-        id 1r3uyP-0007gP-QB; Fri, 17 Nov 2023 10:17:13 +0100
+        id 1r3uyQ-0007h4-QU; Fri, 17 Nov 2023 10:17:14 +0100
 Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
         by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <ukl@pengutronix.de>)
-        id 1r3uyP-009e6A-CX; Fri, 17 Nov 2023 10:17:13 +0100
+        id 1r3uyQ-009e6N-5q; Fri, 17 Nov 2023 10:17:14 +0100
 Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
         (envelope-from <ukl@pengutronix.de>)
-        id 1r3uyP-002yJb-3L; Fri, 17 Nov 2023 10:17:13 +0100
+        id 1r3uyP-002yJr-Sc; Fri, 17 Nov 2023 10:17:13 +0100
 From:   =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
         <u.kleine-koenig@pengutronix.de>
 Cc:     Siddharth Vadapalli <s-vadapalli@ti.com>,
         Ravi Gunasekaran <r-gunasekaran@ti.com>,
         Roger Quadros <rogerq@kernel.org>,
-        Simon Horman <horms@kernel.org>,
+        Alexander Duyck <alexanderduyck@fb.com>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
         Yunsheng Lin <linyunsheng@huawei.com>,
-        Stanislav Fomichev <sdf@google.com>,
         Marek Majtyka <alardam@gmail.com>,
-        Rob Herring <robh@kernel.org>,
-        Mugunthan V N <mugunthanvnm@ti.com>,
-        linux-omap@vger.kernel.org, netdev@vger.kernel.org,
-        kernel@pengutronix.de
-Subject: [PATCH 2/7] net: ethernet: ti: cpsw: Don't error out in .remove()
-Date:   Fri, 17 Nov 2023 10:16:58 +0100
-Message-ID: <20231117091655.872426-3-u.kleine-koenig@pengutronix.de>
+        Rob Herring <robh@kernel.org>, linux-omap@vger.kernel.org,
+        netdev@vger.kernel.org, kernel@pengutronix.de
+Subject: [PATCH 6/7] net: ethernet: ti: cpsw-new: Convert to platform remove callback returning void
+Date:   Fri, 17 Nov 2023 10:17:02 +0100
+Message-ID: <20231117091655.872426-7-u.kleine-koenig@pengutronix.de>
 X-Mailer: git-send-email 2.42.0.586.gbc5204569f7d.dirty
 In-Reply-To: <20231117091655.872426-1-u.kleine-koenig@pengutronix.de>
 References: <20231117091655.872426-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1891; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=mRlxVGBjOW+sHBqJcFFxN2V+8op/8Ztc44BTgG2kkTc=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBlVy+JX7JX54FLhK+Ph4PRFjYhrozP75HV5r1Hh eI54zRdHrCJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZVcviQAKCRCPgPtYfRL+ TukvCAClEeHXl2S3JJqY2Bxwz4qdVHZrIaNBphbJm/tByatOnJypsqbGilBmtS8u4DOJ+9JdsST /40Lod7dQZ432LRW1PomY92egZ5iSekSFW+KE12uA1lhufDdNlc/fZNoHbnaa7t3v6cpV2n1OUc T1Qe5rWHW1XM5Ak6pT7CsxFKqZKX8mZykXfcqriVvKO8hgJjTLkybTWZQwMccbuPDy5oNYxK0Da ipSgmSTQ225CTGdMswUGhsAZjspi9R0T22vUikLBqY/vyxx6+fzrc+wV6xBfGYEETdRVNWJMQJo jgwiZUGJGJl6mMSy4Sh8UJAcq7Z04ffRmlWOK5XeEGrrK5ex
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1849; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=okHKw25VgeWUFYd2avv49A8Ij4U9Ek22DOHwr9QInRk=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBlVy+O5ufeBrybGQ4s7etDKUNLrzfUTroyU7BIJ Q4jDiTBQjmJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZVcvjgAKCRCPgPtYfRL+ TioUB/9Eq9iqGQQqxO6fiyfaAtVw3VnJaTfd8xxeA1755kDQYDpapiyDmxLZ7tXAoaN+/bhG70V hSHv5bbmTMhLHi4zsn/tv+OCjEQ8ZkrIhvCTMqOh3i6gQIjztb96NDuIKNFzL76OXr2yR+Rhbj7 3eCKKP9//kXnNod+6Pno1ZFwS/e2bzHBkHnZcZDQvxajTCbgBWwu6ZWGrISxu+h4+pXk/DO8/qM 2fiBCoQNxQPBgAY5bWygbAOay5YzzyvKPoGB+r5aYQNkey8mcF6S6GpEaBdB6iSV/ctJ0LlKB9L bM8EeF0L3xTLJh6efd6Bpksx7rSp8LBIODlG7tk91GvqZuNf
 X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
@@ -60,56 +58,54 @@ Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Returning early from .remove() with an error code still results in the
-driver unbinding the device. So the driver core ignores the returned error
-code and the resources that were not freed are never catched up. In
-combination with devm this also often results in use-after-free bugs.
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is ignored (apart
+from emitting a warning) and this typically results in resource leaks.
 
-If runtime resume fails, it's still important to free all resources, so
-don't return with an error code, but emit an error message and continue
-freeing acquired stuff.
+To improve here there is a quest to make the remove callback return
+void. In the first step of this quest all drivers are converted to
+.remove_new(), which already returns void. Eventually after all drivers
+are converted, .remove_new() will be renamed to .remove().
 
-This prepares changing cpsw_remove() to return void.
+Trivially convert this driver from always returning zero in the remove
+callback to the void returning variant.
 
-Fixes: 8a0b6dc958fd ("drivers: net: cpsw: fix wrong regs access in cpsw_remove")
 Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 ---
- drivers/net/ethernet/ti/cpsw.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/ti/cpsw_new.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index ca4d4548f85e..db5a2ba8a6d4 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1727,16 +1727,24 @@ static int cpsw_remove(struct platform_device *pdev)
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index a6ce409f563c..dae8d0203021 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -2037,7 +2037,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int cpsw_remove(struct platform_device *pdev)
++static void cpsw_remove(struct platform_device *pdev)
+ {
  	struct cpsw_common *cpsw = platform_get_drvdata(pdev);
- 	int i, ret;
- 
--	ret = pm_runtime_resume_and_get(&pdev->dev);
-+	ret = pm_runtime_get_sync(&pdev->dev);
- 	if (ret < 0)
--		return ret;
-+		/* There is no need to do something about that. The important
-+		 * thing is to not exit early, but do all cleanup that doesn't
-+		 * require register access.
-+		 */
-+		dev_err(&pdev->dev, "runtime resume failed (%pe)\n",
-+			ERR_PTR(ret));
- 
- 	for (i = 0; i < cpsw->data.slaves; i++)
- 		if (cpsw->slaves[i].ndev)
- 			unregister_netdev(cpsw->slaves[i].ndev);
- 
--	cpts_release(cpsw->cpts);
--	cpdma_ctlr_destroy(cpsw->dma);
-+	if (ret >= 0) {
-+		cpts_release(cpsw->cpts);
-+		cpdma_ctlr_destroy(cpsw->dma);
-+	}
-+
- 	cpsw_remove_dt(pdev);
+ 	int ret;
+@@ -2063,7 +2063,6 @@ static int cpsw_remove(struct platform_device *pdev)
+ 	cpsw_remove_dt(cpsw);
  	pm_runtime_put_sync(&pdev->dev);
  	pm_runtime_disable(&pdev->dev);
+-	return 0;
+ }
+ 
+ static int __maybe_unused cpsw_suspend(struct device *dev)
+@@ -2124,7 +2123,7 @@ static struct platform_driver cpsw_driver = {
+ 		.of_match_table = cpsw_of_mtable,
+ 	},
+ 	.probe = cpsw_probe,
+-	.remove = cpsw_remove,
++	.remove_new = cpsw_remove,
+ };
+ 
+ module_platform_driver(cpsw_driver);
 -- 
 2.42.0
 
