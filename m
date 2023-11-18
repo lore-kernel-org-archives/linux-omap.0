@@ -2,231 +2,136 @@ Return-Path: <linux-omap-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3987BC072A2
-	for <linux-omap@archiver.kernel.org>; Fri, 17 Nov 2023 12:08:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB4A8C54E76
+	for <linux-omap@archiver.kernel.org>; Sat, 18 Nov 2023 07:22:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230383AbjKQMI4 (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
-        Fri, 17 Nov 2023 07:08:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46672 "EHLO
+        id S229938AbjKRHWG (ORCPT <rfc822;linux-omap@archiver.kernel.org>);
+        Sat, 18 Nov 2023 02:22:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36574 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230379AbjKQMI4 (ORCPT
-        <rfc822;linux-omap@vger.kernel.org>); Fri, 17 Nov 2023 07:08:56 -0500
-Received: from mx1.tq-group.com (mx1.tq-group.com [93.104.207.81])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BC00BC;
-        Fri, 17 Nov 2023 04:08:51 -0800 (PST)
+        with ESMTP id S229702AbjKRHWF (ORCPT
+        <rfc822;linux-omap@vger.kernel.org>); Sat, 18 Nov 2023 02:22:05 -0500
+Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35873D75
+        for <linux-omap@vger.kernel.org>; Fri, 17 Nov 2023 23:22:01 -0800 (PST)
+Received: by mail-lf1-x12f.google.com with SMTP id 2adb3069b0e04-5099184f8a3so3974184e87.2
+        for <linux-omap@vger.kernel.org>; Fri, 17 Nov 2023 23:22:01 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=tq-group.com; i=@tq-group.com; q=dns/txt; s=key1;
-  t=1700222931; x=1731758931;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=npsjKK1E4mamKGL3cTGyWHJLzKqW6Cwvf80sD82f9kc=;
-  b=ZZac0NVqlt6WNqlxEDkI6i8mlNQSO4vBXhFBAX1kFTMkC3eMpbs/Ffn9
-   B7Omh+i5iaamx5p8MqTjb/SgufzBpo5mU2abJrLSS4hlkpoG0tp7HBW+P
-   92WcN+OObLFxVbZQPGqGJS8Lvh3jR/rfA64nTaMteMLB+tblJ2vrdntQg
-   IiXRM+RRn1W8WIJbF08bOcSE+X/TIR1wmKmGt3tbvrPIYo4iZsHpnarEL
-   8CrC79XoVR7A+qXiWNpBwe7iHs4CMsKqM2d7rtR0x3kON9DIQsgRqBl/H
-   tL5Pu2BbfhyH0o7nyswQW5pIfu02C7qTtC5Yg9Ae7m24NYQ8N1UwacOwq
-   w==;
-X-IronPort-AV: E=Sophos;i="6.04,206,1695679200"; 
-   d="scan'208";a="34042550"
-Received: from vtuxmail01.tq-net.de ([10.115.0.20])
-  by mx1.tq-group.com with ESMTP; 17 Nov 2023 13:08:49 +0100
-Received: from steina-w.localnet (steina-w.tq-net.de [10.123.53.18])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by vtuxmail01.tq-net.de (Postfix) with ESMTPSA id 2F5EC28007F;
-        Fri, 17 Nov 2023 13:08:49 +0100 (CET)
-From:   Alexander Stein <alexander.stein@ew.tq-group.com>
-To:     MyungJoo Ham <myungjoo.ham@samsung.com>,
-        Chanwoo Choi <cw00.choi@samsung.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
-        Tony Lindgren <tony@atomide.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>,
-        Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        Konrad Dybcio <konrad.dybcio@linaro.org>,
-        Heiko Stuebner <heiko@sntech.de>,
-        linux-mediatek@lists.infradead.org
-Cc:     Pengutronix Kernel Team <kernel@pengutronix.de>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-omap@vger.kernel.org, linux-mediatek@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org, linux-rockchip@lists.infradead.org,
-        Alexander Stein <alexander.stein@ew.tq-group.com>
-Subject: Re: [PATCH v4 2/6] ARM: dts: ti/omap: Replace deprecated extcon-usb-gpio id-gpio/vbus-gpio properties
-Date:   Fri, 17 Nov 2023 13:08:53 +0100
-Message-ID: <10373360.nUPlyArG6x@steina-w>
-Organization: TQ-Systems GmbH
-In-Reply-To: <20230724103914.1779027-3-alexander.stein@ew.tq-group.com>
-References: <20230724103914.1779027-1-alexander.stein@ew.tq-group.com> <20230724103914.1779027-3-alexander.stein@ew.tq-group.com>
+        d=linaro.org; s=google; t=1700292119; x=1700896919; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Ck4P2+ZKsmJo86GTwgisAYut3quxIggprqt+AHmxY3Q=;
+        b=BNPKoSNcWHUbvE8qoFNll6YHOBwiJfNFjaZkYG2ogJICcuj8dL/62UZhA4TVgpJWQO
+         4VI48CcBPuzK89sodsPR2BZ0O0IQ+ZtRLyNwMkSud6AYCWDh+0o3copqzNeNXoKoR82T
+         c5++YTDmHyWgp0faxJNH7jZUK7jC/h3VNhr2WRj9wdrv6FSPqGRRqTXBfF4YgfmlFAm4
+         LaEb87nzAeiCPiFzs9jXnzA6tOk63aaSOs/WEvVJGYi9kxPBrH3RfxvnropSz4RgY2hR
+         cf5Xy08uzdmnQqyZPJxgCHmarwUfrbTdY6pdQ/YyHNLKkYvXeXhYpy7Rt986JT9OqiO7
+         SSig==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1700292119; x=1700896919;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Ck4P2+ZKsmJo86GTwgisAYut3quxIggprqt+AHmxY3Q=;
+        b=U7Bv+PznYTD3+1dCDG/TxHcpf6OXO2u2mc+RX3U4ySiUuEtz/2PG2k4/5yleIwd46C
+         UoKPA7pa0fwXlknsLk9xrqPAA77bFhWHNn+oY5rW/7wCyJA2CRqH3I2H3y/Wg4MYzY5G
+         ZUbLGjE+b4dfRQzAlUs3y7TLET82Abd0QP1J4awvaFrfiwmHOtto7bhsNS3oKIK0UWRI
+         5oTY6dliYH9bQNwuDR0/pmRoH+6ptLRczR2CQ9v6ZMcfy/LzZS51wPaltRU632ulxo7O
+         is61VBBH3FBNOTslBqR9gV3u6+LkYuE8C7MrddHpPeO8quR41p7PyNQP3o3Y+9+VlwA2
+         hNtQ==
+X-Gm-Message-State: AOJu0YydPOD46NJg7F5i6NnUiGlZzvjpvzSdS7T5CIZTVaYI3p0ej3ek
+        NbasllOaMtECLJuRKR3uaJZjKmxx9pyap+BqjO7KIg==
+X-Google-Smtp-Source: AGHT+IGmCsPW2DtD/iX2I0p/vAioavmL3nUdlFm9LTuiQ8hEFhSVfZynWt3wCr0Ylq+E12kfdVP2MQpjE5tjjXdAwZI=
+X-Received: by 2002:a05:6512:23aa:b0:507:b15b:8b92 with SMTP id
+ c42-20020a05651223aa00b00507b15b8b92mr1551640lfv.59.1700292119299; Fri, 17
+ Nov 2023 23:21:59 -0800 (PST)
 MIME-Version: 1.0
+References: <20231117091655.872426-1-u.kleine-koenig@pengutronix.de> <20231117091655.872426-4-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <20231117091655.872426-4-u.kleine-koenig@pengutronix.de>
+From:   Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Date:   Sat, 18 Nov 2023 09:21:23 +0200
+Message-ID: <CAC_iWj+5MskeWaqa242zFsGRrgAxMGuVPHL6kYm1DUtH_jkDTg@mail.gmail.com>
+Subject: Re: [PATCH 3/7] net: ethernet: ti: cpsw-new: Don't error out in .remove()
+To:     =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>
+Cc:     Siddharth Vadapalli <s-vadapalli@ti.com>,
+        Ravi Gunasekaran <r-gunasekaran@ti.com>,
+        Roger Quadros <rogerq@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Marek Majtyka <alardam@gmail.com>,
+        Gerhard Engleder <gerhard@engleder-embedded.com>,
+        Rob Herring <robh@kernel.org>,
+        Yunsheng Lin <linyunsheng@huawei.com>,
+        linux-omap@vger.kernel.org, netdev@vger.kernel.org,
+        kernel@pengutronix.de
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
 Precedence: bulk
 List-ID: <linux-omap.vger.kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 
-Hi everybody,
-
-any feedback on this? Patch 3,4 and 6 have already been merged.
-
-Thanks
-Alexander
-
-Am Montag, 24. Juli 2023, 12:39:09 CET schrieb Alexander Stein:
-> Use id-gpios and vbus-gpios instead.
->=20
-> Signed-off-by: Alexander Stein <alexander.stein@ew.tq-group.com>
+On Fri, 17 Nov 2023 at 11:17, Uwe Kleine-K=C3=B6nig
+<u.kleine-koenig@pengutronix.de> wrote:
+>
+> Returning early from .remove() with an error code still results in the
+> driver unbinding the device. So the driver core ignores the returned erro=
+r
+> code and the resources that were not freed are never catched up. In
+> combination with devm this also often results in use-after-free bugs.
+>
+> If runtime resume fails, it's still important to free all resources, so
+> don't return with an error code, but emit an error message and continue
+> freeing acquired stuff.
+>
+> This prepares changing cpsw_remove() to return void.
+>
+> Fixes: ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based d=
+river part 1 - dual-emac")
+> Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
 > ---
->  arch/arm/boot/dts/ti/omap/am571x-idk.dts          | 4 ++--
->  arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts | 2 +-
->  arch/arm/boot/dts/ti/omap/am572x-idk-common.dtsi  | 4 ++--
->  arch/arm/boot/dts/ti/omap/dra7-evm-common.dtsi    | 4 ++--
->  arch/arm/boot/dts/ti/omap/dra71-evm.dts           | 4 ++--
->  arch/arm/boot/dts/ti/omap/dra72-evm-common.dtsi   | 4 ++--
->  arch/arm/boot/dts/ti/omap/dra76-evm.dts           | 4 ++--
->  7 files changed, 13 insertions(+), 13 deletions(-)
->=20
-> diff --git a/arch/arm/boot/dts/ti/omap/am571x-idk.dts
-> b/arch/arm/boot/dts/ti/omap/am571x-idk.dts index 48425020281a..322cf79d22=
-e9
-> 100644
-> --- a/arch/arm/boot/dts/ti/omap/am571x-idk.dts
-> +++ b/arch/arm/boot/dts/ti/omap/am571x-idk.dts
-> @@ -168,8 +168,8 @@ blue3-led {
->  };
->=20
->  &extcon_usb2 {
-> -	id-gpio =3D <&gpio5 7 GPIO_ACTIVE_HIGH>;
-> -	vbus-gpio =3D <&gpio7 22 GPIO_ACTIVE_HIGH>;
-> +	id-gpios =3D <&gpio5 7 GPIO_ACTIVE_HIGH>;
-> +	vbus-gpios =3D <&gpio7 22 GPIO_ACTIVE_HIGH>;
->  };
->=20
->  &sn65hvs882 {
-> diff --git a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-> b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts index
-> 149cfafb90bf..c5272302eb11 100644
-> --- a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-> +++ b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-> @@ -197,7 +197,7 @@ brcmf_pwrseq: brcmf_pwrseq {
->  	extcon_usb1: extcon_usb1 {
->  		compatible =3D "linux,extcon-usb-gpio";
->  		ti,enable-id-detection;
-> -		id-gpio =3D <&gpio3 13 GPIO_ACTIVE_HIGH>;
-> +		id-gpios =3D <&gpio3 13 GPIO_ACTIVE_HIGH>;
->  	};
->  };
->=20
-> diff --git a/arch/arm/boot/dts/ti/omap/am572x-idk-common.dtsi
-> b/arch/arm/boot/dts/ti/omap/am572x-idk-common.dtsi index
-> 1d66278c3a72..3fca84819dc0 100644
-> --- a/arch/arm/boot/dts/ti/omap/am572x-idk-common.dtsi
-> +++ b/arch/arm/boot/dts/ti/omap/am572x-idk-common.dtsi
-> @@ -169,8 +169,8 @@ blue3-led {
->  };
->=20
->  &extcon_usb2 {
-> -	id-gpio =3D <&gpio3 16 GPIO_ACTIVE_HIGH>;
-> -	vbus-gpio =3D <&gpio3 26 GPIO_ACTIVE_HIGH>;
-> +	id-gpios =3D <&gpio3 16 GPIO_ACTIVE_HIGH>;
-> +	vbus-gpios =3D <&gpio3 26 GPIO_ACTIVE_HIGH>;
->  };
->=20
->  &sn65hvs882 {
-> diff --git a/arch/arm/boot/dts/ti/omap/dra7-evm-common.dtsi
-> b/arch/arm/boot/dts/ti/omap/dra7-evm-common.dtsi index
-> 4cdffd6db740..ed5199d7acd8 100644
-> --- a/arch/arm/boot/dts/ti/omap/dra7-evm-common.dtsi
-> +++ b/arch/arm/boot/dts/ti/omap/dra7-evm-common.dtsi
-> @@ -15,12 +15,12 @@ chosen {
->=20
->  	extcon_usb1: extcon_usb1 {
->  		compatible =3D "linux,extcon-usb-gpio";
-> -		id-gpio =3D <&pcf_gpio_21 1 GPIO_ACTIVE_HIGH>;
-> +		id-gpios =3D <&pcf_gpio_21 1 GPIO_ACTIVE_HIGH>;
->  	};
->=20
->  	extcon_usb2: extcon_usb2 {
->  		compatible =3D "linux,extcon-usb-gpio";
-> -		id-gpio =3D <&pcf_gpio_21 2 GPIO_ACTIVE_HIGH>;
-> +		id-gpios =3D <&pcf_gpio_21 2 GPIO_ACTIVE_HIGH>;
->  	};
->=20
->  	sound0: sound0 {
-> diff --git a/arch/arm/boot/dts/ti/omap/dra71-evm.dts
-> b/arch/arm/boot/dts/ti/omap/dra71-evm.dts index a64364443031..f747ac56eb92
-> 100644
-> --- a/arch/arm/boot/dts/ti/omap/dra71-evm.dts
-> +++ b/arch/arm/boot/dts/ti/omap/dra71-evm.dts
-> @@ -293,11 +293,11 @@ &hdmi {
->  };
->=20
->  &extcon_usb1 {
-> -	vbus-gpio =3D <&pcf_lcd 14 GPIO_ACTIVE_HIGH>;
-> +	vbus-gpios =3D <&pcf_lcd 14 GPIO_ACTIVE_HIGH>;
->  };
->=20
->  &extcon_usb2 {
-> -	vbus-gpio =3D <&pcf_lcd 15 GPIO_ACTIVE_HIGH>;
-> +	vbus-gpios =3D <&pcf_lcd 15 GPIO_ACTIVE_HIGH>;
->  };
->=20
->  &ipu2 {
-> diff --git a/arch/arm/boot/dts/ti/omap/dra72-evm-common.dtsi
-> b/arch/arm/boot/dts/ti/omap/dra72-evm-common.dtsi index
-> 31ab0c60ca75..f8151c61488e 100644
-> --- a/arch/arm/boot/dts/ti/omap/dra72-evm-common.dtsi
-> +++ b/arch/arm/boot/dts/ti/omap/dra72-evm-common.dtsi
-> @@ -96,12 +96,12 @@ evm_3v3_sd: fixedregulator-sd {
->=20
->  	extcon_usb1: extcon_usb1 {
->  		compatible =3D "linux,extcon-usb-gpio";
-> -		id-gpio =3D <&pcf_gpio_21 1 GPIO_ACTIVE_HIGH>;
-> +		id-gpios =3D <&pcf_gpio_21 1 GPIO_ACTIVE_HIGH>;
->  	};
->=20
->  	extcon_usb2: extcon_usb2 {
->  		compatible =3D "linux,extcon-usb-gpio";
-> -		id-gpio =3D <&pcf_gpio_21 2 GPIO_ACTIVE_HIGH>;
-> +		id-gpios =3D <&pcf_gpio_21 2 GPIO_ACTIVE_HIGH>;
->  	};
->=20
->  	hdmi0: connector {
-> diff --git a/arch/arm/boot/dts/ti/omap/dra76-evm.dts
-> b/arch/arm/boot/dts/ti/omap/dra76-evm.dts index 57868ac60d29..cf9c3d35b049
-> 100644
-> --- a/arch/arm/boot/dts/ti/omap/dra76-evm.dts
-> +++ b/arch/arm/boot/dts/ti/omap/dra76-evm.dts
-> @@ -533,11 +533,11 @@ &pcie1_ep {
->  };
->=20
->  &extcon_usb1 {
-> -	vbus-gpio =3D <&pcf_lcd 14 GPIO_ACTIVE_HIGH>;
-> +	vbus-gpios =3D <&pcf_lcd 14 GPIO_ACTIVE_HIGH>;
->  };
->=20
->  &extcon_usb2 {
-> -	vbus-gpio =3D <&pcf_lcd 15 GPIO_ACTIVE_HIGH>;
-> +	vbus-gpios =3D <&pcf_lcd 15 GPIO_ACTIVE_HIGH>;
->  };
->=20
->  &m_can0 {
+>  drivers/net/ethernet/ti/cpsw_new.c | 16 ++++++++++++----
+>  1 file changed, 12 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti=
+/cpsw_new.c
+> index 0e4f526b1753..a6ce409f563c 100644
+> --- a/drivers/net/ethernet/ti/cpsw_new.c
+> +++ b/drivers/net/ethernet/ti/cpsw_new.c
+> @@ -2042,16 +2042,24 @@ static int cpsw_remove(struct platform_device *pd=
+ev)
+>         struct cpsw_common *cpsw =3D platform_get_drvdata(pdev);
+>         int ret;
+>
+> -       ret =3D pm_runtime_resume_and_get(&pdev->dev);
+> +       ret =3D pm_runtime_get_sync(&pdev->dev);
+>         if (ret < 0)
+> -               return ret;
+> +               /* There is no need to do something about that. The impor=
+tant
+> +                * thing is to not exit early, but do all cleanup that do=
+esn't
+> +                * requrie register access.
+> +                */
+> +               dev_err(&pdev->dev, "runtime resume failed (%pe)\n",
+> +                       ERR_PTR(ret));
+>
+>         cpsw_unregister_notifiers(cpsw);
+>         cpsw_unregister_devlink(cpsw);
+>         cpsw_unregister_ports(cpsw);
+>
+> -       cpts_release(cpsw->cpts);
+> -       cpdma_ctlr_destroy(cpsw->dma);
+> +       if (ret >=3D 0) {
+> +               cpts_release(cpsw->cpts);
+> +               cpdma_ctlr_destroy(cpsw->dma);
+> +       }
+> +
+>         cpsw_remove_dt(cpsw);
+>         pm_runtime_put_sync(&pdev->dev);
+>         pm_runtime_disable(&pdev->dev);
+> --
+> 2.42.0
+>
 
-
-=2D-=20
-TQ-Systems GmbH | M=FChlstra=DFe 2, Gut Delling | 82229 Seefeld, Germany
-Amtsgericht M=FCnchen, HRB 105018
-Gesch=E4ftsf=FChrer: Detlef Schneider, R=FCdiger Stahl, Stefan Schneider
-http://www.tq-group.com/
-
-
+Acked-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
