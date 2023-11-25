@@ -1,33 +1,34 @@
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4655A10E2;
-	Sat, 25 Nov 2023 01:29:55 -0800 (PST)
-Received: from p200301077700a9001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:107:7700:a900:1a3d:a2ff:febf:d33a] helo=aktux)
-	by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <andreas@kemnade.info>)
-	id 1r6oyx-006fpb-NJ; Sat, 25 Nov 2023 10:29:47 +0100
-Received: from andi by aktux with local (Exim 4.96)
-	(envelope-from <andreas@kemnade.info>)
-	id 1r6oyx-0004Ja-1W;
-	Sat, 25 Nov 2023 10:29:47 +0100
-From: Andreas Kemnade <andreas@kemnade.info>
-To: lee@kernel.org,
-	robh+dt@kernel.org,
-	krzysztof.kozlowski+dt@linaro.org,
-	conor+dt@kernel.org,
-	bcousson@baylibre.com,
-	tony@atomide.com,
-	andreas@kemnade.info,
-	devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: [PATCH 6/6] ARM: dts: omap: gta04: standardize system-power-controller
-Date: Sat, 25 Nov 2023 10:29:38 +0100
-Message-Id: <20231125092938.16535-7-andreas@kemnade.info>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20231125092938.16535-1-andreas@kemnade.info>
-References: <20231125092938.16535-1-andreas@kemnade.info>
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b="CiNetAUF"
+Received: from mail5.25mail.st (mail5.25mail.st [74.50.62.9])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5627210C1;
+	Sat, 25 Nov 2023 01:43:16 -0800 (PST)
+Received: from localhost (91-158-86-216.elisa-laajakaista.fi [91.158.86.216])
+	by mail5.25mail.st (Postfix) with ESMTPSA id 1A21760BB9;
+	Sat, 25 Nov 2023 09:42:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=atomide.com;
+	s=25mailst; t=1700905394;
+	bh=nu8DlRfSh19BEy3+xZ6QoXfOgj8GOAKGuiI6HaNBMnc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=CiNetAUFK2gMTMV2Jda2dgioegd8dKUhdRrSWCIHVAElR0cU3sAXszCQTXW4hA93L
+	 Cxx5Pp75A8g1/USIuxkI5D66GbKPVUarJ5e1E0e/O0awzDcmAb0UPVLFxIFMWyPm/J
+	 dPjuZhApzxyuKzlRr8JptKKIQPX4l8GDJxvXerNdEA7b9LEdfEwbEq9qiHgvh6Wv4K
+	 jMY2Cg7BecibRyiDTFc8mh2McRgXoY3QQabw5U01+v1HE+mc16XEAYbjzw+o/xVB96
+	 s3BwSYWQ4Axs03yArNorMiej+qRreEJP2PYpf5iSh0HuJW0DVcmZbc07UDg2ZZrQAJ
+	 43h+iumZMQS2g==
+From: Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+	Carl Philipp Klemm <philipp@uvos.xyz>,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	Merlijn Wajer <merlijn@wizzup.org>,
+	Pavel Machek <pavel@ucw.cz>,
+	Sebastian Reichel <sre@kernel.org>,
+	devicetree@vger.kernel.org
+Subject: [PATCH 1/4] dt-bindings: omap: Add Motorola mapphone mz609 and mz617 tablets
+Date: Sat, 25 Nov 2023 11:42:45 +0200
+Message-ID: <20231125094248.43537-1-tony@atomide.com>
+X-Mailer: git-send-email 2.42.1
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -36,36 +37,25 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Replace TI-specific property by generic one.
+Let's add compatibles for some xyboard tablets, these are similar to
+the mapphone devices already listed but with different peripherals.
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
-cannot be applied independently of the other ones, so maybe simply delay
-it.
+ Documentation/devicetree/bindings/arm/ti/omap.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
 
- arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi b/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi
-index 3661340009e7a..5001c4ea35658 100644
---- a/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi
-@@ -476,6 +476,7 @@ twl: twl@48 {
- 		reg = <0x48>;
- 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
- 		interrupt-parent = <&intc>;
-+		system-power-controller;
- 
- 		clocks = <&hfclk_26m>;
- 		clock-names = "fck";
-@@ -490,7 +491,6 @@ codec {
- 
- 		twl_power: power {
- 			compatible = "ti,twl4030-power-idle";
--			ti,system-power-controller;
- 		};
- 	};
- };
+diff --git a/Documentation/devicetree/bindings/arm/ti/omap.yaml b/Documentation/devicetree/bindings/arm/ti/omap.yaml
+--- a/Documentation/devicetree/bindings/arm/ti/omap.yaml
++++ b/Documentation/devicetree/bindings/arm/ti/omap.yaml
+@@ -134,6 +134,8 @@ properties:
+               - amazon,omap4-kc1        # Amazon Kindle Fire (first generation)
+               - motorola,droid4         # Motorola Droid 4 XT894
+               - motorola,droid-bionic   # Motorola Droid Bionic XT875
++              - motorola,xyboard-mz609
++              - motorola,xyboard-mz617
+               - ti,omap4-panda
+               - ti,omap4-sdp
+           - const: ti,omap4430
 -- 
-2.39.2
-
+2.42.1
