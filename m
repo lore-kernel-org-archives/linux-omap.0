@@ -1,84 +1,62 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E7F81EB58
-	for <linux-omap@vger.kernel.org>; Fri, 24 Nov 2023 11:48:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="QunT1pFA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA53FC433C7;
-	Fri, 24 Nov 2023 11:48:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1700826535;
-	bh=rONuqkzfv7OVMDICs020cWoikJlqQwNfR2bb2s/gAyY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QunT1pFAdaStG+bNcYI2Y9HFDdH8/p1toE1YBO4CQoK7s8CLGhXWWKhwhjyEfXDh6
-	 3AqD2VEK9ZZxLjMSCyJWoLa7w1l3ODJFxztSEPcIVCiYFiHEnc3/gL0EOV6841VxJ4
-	 13S5eQmEIBuGtgExhY75KmuiCXmp6yevzfu61xDw=
-Date: Fri, 24 Nov 2023 11:48:53 +0000
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Dhruva Gole <d-gole@ti.com>,
-	Keerthy <j-keerthy@ti.com>, Kevin Hilman <khilman@baylibre.com>,
-	Nishanth Menon <nm@ti.com>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] bus: ti-sysc: Flush posted write only after srst_udelay
-Message-ID: <2023112440-handiness-surely-6675@gregkh>
-References: <20231124104133.19100-1-tony@atomide.com>
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B95010D2;
+	Sat, 25 Nov 2023 01:29:53 -0800 (PST)
+Received: from p200301077700a9001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:107:7700:a900:1a3d:a2ff:febf:d33a] helo=aktux)
+	by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <andreas@kemnade.info>)
+	id 1r6oyt-006foa-Sy; Sat, 25 Nov 2023 10:29:43 +0100
+Received: from andi by aktux with local (Exim 4.96)
+	(envelope-from <andreas@kemnade.info>)
+	id 1r6oyt-0004JB-1w;
+	Sat, 25 Nov 2023 10:29:43 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: lee@kernel.org,
+	robh+dt@kernel.org,
+	krzysztof.kozlowski+dt@linaro.org,
+	conor+dt@kernel.org,
+	bcousson@baylibre.com,
+	tony@atomide.com,
+	andreas@kemnade.info,
+	devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: [PATCH 1/6] dt-bindings: mfd: ti,twl: Document system-power-controller
+Date: Sat, 25 Nov 2023 10:29:33 +0100
+Message-Id: <20231125092938.16535-2-andreas@kemnade.info>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20231125092938.16535-1-andreas@kemnade.info>
+References: <20231125092938.16535-1-andreas@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231124104133.19100-1-tony@atomide.com>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Nov 24, 2023 at 12:41:33PM +0200, Tony Lindgren wrote:
-> Commit 34539b442b3b ("bus: ti-sysc: Flush posted write on enable before
-> reset") caused a regression reproducable on omap4 duovero where the ISS
-> target module can produce interconnect errors on boot. Turns out the
-> registers are not accessible until after a delay for devices needing
-> a ti,sysc-delay-us value.
-> 
-> Let's fix this by flushing the posted write only after the reset delay.
-> We do flushing also for ti,sysc-delay-us using devices as that should
-> trigger an interconnect error if the delay is not properly configured.
-> 
-> Let's also add some comments while at it.
-> 
-> Fixes: 34539b442b3b ("bus: ti-sysc: Flush posted write on enable before reset")
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/bus/ti-sysc.c | 18 ++++++++++++++----
->  1 file changed, 14 insertions(+), 4 deletions(-)
+Add system-power-controller property because these chips
+can power off the device.
 
-Hi,
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ Documentation/devicetree/bindings/mfd/ti,twl.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
 
-This is the friendly patch-bot of Greg Kroah-Hartman.  You have sent him
-a patch that has triggered this response.  He used to manually respond
-to these common problems, but in order to save his sanity (he kept
-writing the same thing over and over, yet to different people), I was
-created.  Hopefully you will not take offence and will fix the problem
-in your patch and resubmit it so that it can be accepted into the Linux
-kernel tree.
+diff --git a/Documentation/devicetree/bindings/mfd/ti,twl.yaml b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+index c04d57ba22b49..52ed228fb1e7e 100644
+--- a/Documentation/devicetree/bindings/mfd/ti,twl.yaml
++++ b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+@@ -34,6 +34,8 @@ properties:
+ 
+   interrupt-controller: true
+ 
++  system-power-controller: true
++
+   "#interrupt-cells":
+     const: 1
+ 
+-- 
+2.39.2
 
-You are receiving this message because of the following common error(s)
-as indicated below:
-
-- You have marked a patch with a "Fixes:" tag for a commit that is in an
-  older released kernel, yet you do not have a cc: stable line in the
-  signed-off-by area at all, which means that the patch will not be
-  applied to any older kernel releases.  To properly fix this, please
-  follow the documented rules in the
-  Documentation/process/stable-kernel-rules.rst file for how to resolve
-  this.
-
-If you wish to discuss this problem further, or you have questions about
-how to resolve this issue, please feel free to respond to this email and
-Greg will reply once he has dug out from the pending patches received
-from other developers.
-
-thanks,
-
-greg k-h's patch email bot
