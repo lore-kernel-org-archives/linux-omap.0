@@ -1,16 +1,16 @@
 Authentication-Results: smtp.subspace.kernel.org; dkim=none
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F1CF10CA;
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B84B10C1;
 	Sat, 25 Nov 2023 01:29:53 -0800 (PST)
 Received: from p200301077700a9001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:107:7700:a900:1a3d:a2ff:febf:d33a] helo=aktux)
 	by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <andreas@kemnade.info>)
-	id 1r6oyt-006foW-2h; Sat, 25 Nov 2023 10:29:43 +0100
+	id 1r6oyv-006foz-DP; Sat, 25 Nov 2023 10:29:45 +0100
 Received: from andi by aktux with local (Exim 4.96)
 	(envelope-from <andreas@kemnade.info>)
-	id 1r6oys-0004J6-0r;
-	Sat, 25 Nov 2023 10:29:42 +0100
+	id 1r6oyv-0004JL-0V;
+	Sat, 25 Nov 2023 10:29:45 +0100
 From: Andreas Kemnade <andreas@kemnade.info>
 To: lee@kernel.org,
 	robh+dt@kernel.org,
@@ -22,10 +22,12 @@ To: lee@kernel.org,
 	devicetree@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org
-Subject: [PATCH 0/6] mfd: twl: system-power-controller
-Date: Sat, 25 Nov 2023 10:29:32 +0100
-Message-Id: <20231125092938.16535-1-andreas@kemnade.info>
+Subject: [PATCH 3/6] ARM: dts: omap-embt2ws: system-power-controller for bt200
+Date: Sat, 25 Nov 2023 10:29:35 +0100
+Message-Id: <20231125092938.16535-4-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20231125092938.16535-1-andreas@kemnade.info>
+References: <20231125092938.16535-1-andreas@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -34,29 +36,26 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add system-power-controller property in the bindings and
-the corresponding implementation and use it where
-appropriate.
-Not all cases are hit yet, there has probably to be a
-separate series after going through with a brush.
+Configure the TWL6032 as system power controller to let the device
+power off.
 
-Andreas Kemnade (6):
-  dt-bindings: mfd: ti,twl: Document system-power-controller
-  twl-core: add power off implementation for twl603x
-  ARM: dts: omap-embt2ws: system-power-controller for bt200
-  ARM: dts: omap4-panda-common: Enable powering off the device
-  mfd: twl4030-power: accept standard property for power controller
-  ARM: dts: omap: gta04: standardize system-power-controller
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 1 +
+ 1 file changed, 1 insertion(+)
 
- .../devicetree/bindings/mfd/ti,twl.yaml       |  2 ++
- arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi    |  2 +-
- .../boot/dts/ti/omap/omap4-epson-embt2ws.dts  |  1 +
- .../boot/dts/ti/omap/omap4-panda-common.dtsi  |  1 +
- drivers/mfd/twl-core.c                        | 34 +++++++++++++++++++
- drivers/mfd/twl4030-power.c                   |  3 ++
- include/linux/mfd/twl.h                       |  1 +
- 7 files changed, 43 insertions(+), 1 deletion(-)
-
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+index 4e267b259ebf0..bb2e9544723c3 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+@@ -215,6 +215,7 @@ twl: pmic@48 {
+ 		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N cascaded to gic */
+ 		interrupt-controller;
+ 		#interrupt-cells = <1>;
++		system-power-controller;
+ 
+ 		rtc {
+ 			compatible = "ti,twl4030-rtc";
 -- 
 2.39.2
 
