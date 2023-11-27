@@ -1,16 +1,16 @@
 Authentication-Results: smtp.subspace.kernel.org; dkim=none
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C05A4C18;
-	Mon, 27 Nov 2023 14:19:21 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B7204C28;
+	Mon, 27 Nov 2023 14:19:23 -0800 (PST)
 Received: from p200301077700a9001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:107:7700:a900:1a3d:a2ff:febf:d33a] helo=aktux)
 	by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <andreas@kemnade.info>)
-	id 1r7jwg-006mxz-G5; Mon, 27 Nov 2023 23:19:14 +0100
+	id 1r7jwi-006myd-D0; Mon, 27 Nov 2023 23:19:16 +0100
 Received: from andi by aktux with local (Exim 4.96)
 	(envelope-from <andreas@kemnade.info>)
-	id 1r7jwg-000kAS-0o;
-	Mon, 27 Nov 2023 23:19:14 +0100
+	id 1r7jwi-000kAr-0T;
+	Mon, 27 Nov 2023 23:19:16 +0100
 From: Andreas Kemnade <andreas@kemnade.info>
 To: lee@kernel.org,
 	robh+dt@kernel.org,
@@ -22,10 +22,9 @@ To: lee@kernel.org,
 	devicetree@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org
-Cc: Conor Dooley <conor.dooley@microchip.com>
-Subject: [PATCH v2 1/6] dt-bindings: mfd: ti,twl: Document system-power-controller
-Date: Mon, 27 Nov 2023 23:19:02 +0100
-Message-Id: <20231127221907.177442-2-andreas@kemnade.info>
+Subject: [PATCH v2 6/6] ARM: dts: omap: gta04: standardize system-power-controller
+Date: Mon, 27 Nov 2023 23:19:07 +0100
+Message-Id: <20231127221907.177442-7-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20231127221907.177442-1-andreas@kemnade.info>
 References: <20231127221907.177442-1-andreas@kemnade.info>
@@ -37,28 +36,36 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add system-power-controller property because these chips
-can power off the device.
+Replace TI-specific property by generic one.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-Acked-by: Conor Dooley <conor.dooley@microchip.com>
 ---
- Documentation/devicetree/bindings/mfd/ti,twl.yaml | 2 ++
- 1 file changed, 2 insertions(+)
+cannot be applied independently of the other ones, so maybe simply delay
+it.
 
-diff --git a/Documentation/devicetree/bindings/mfd/ti,twl.yaml b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-index c04d57ba22b49..52ed228fb1e7e 100644
---- a/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-+++ b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-@@ -34,6 +34,8 @@ properties:
+ arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi b/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi
+index 3661340009e7a..5001c4ea35658 100644
+--- a/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi
+@@ -476,6 +476,7 @@ twl: twl@48 {
+ 		reg = <0x48>;
+ 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+ 		interrupt-parent = <&intc>;
++		system-power-controller;
  
-   interrupt-controller: true
+ 		clocks = <&hfclk_26m>;
+ 		clock-names = "fck";
+@@ -490,7 +491,6 @@ codec {
  
-+  system-power-controller: true
-+
-   "#interrupt-cells":
-     const: 1
- 
+ 		twl_power: power {
+ 			compatible = "ti,twl4030-power-idle";
+-			ti,system-power-controller;
+ 		};
+ 	};
+ };
 -- 
 2.39.2
 
