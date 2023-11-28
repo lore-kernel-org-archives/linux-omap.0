@@ -1,74 +1,123 @@
 Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: from mail-ot1-f46.google.com (mail-ot1-f46.google.com [209.85.210.46])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 410E3112;
-	Tue, 28 Nov 2023 09:16:49 -0800 (PST)
-Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-6d81fc0ad6eso1815974a34.2;
-        Tue, 28 Nov 2023 09:16:49 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701191808; x=1701796608;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oSxaWECo+SoCPkPcgpg66jWsY5n75WOX6TEqToGLZ/Y=;
-        b=FU30CcjL2/BiQaBb35czzBVVXhVMh1frC3EybjFRtEEGgbxg/bOATSZtttOmy2ItBL
-         AhmvbGpvxBAZj6ZwZupH2JWHGqzKSk4wdRFZqIgUYq9+UoQjDitMGV6RWh+/kcd1GGbu
-         bAjA1rM9v8wwHDH/Ng7wfHgRkwZJ5OsZKMScT4XY9grBOabtZ8lgcBe2Rpuks1OK7zT6
-         zFJ4qiBXhiyCggle7WtSa+njAml4RjUwgoaMXnsEho8utGhvK54RL01HhYVdTM4Vrc/0
-         eemVGjZ4TKoboCHnyPrCYSQt47dZ3mL4LK/FMDU6XSmNWmO/sCaHMsNmD9uFmaAnNd4w
-         zaFA==
-X-Gm-Message-State: AOJu0YyRKe7RqAmOv/T9P/pENoYAWELNItVvtOWJjM/lrwldO64X8SiX
-	7oYZ3ECPRiCDx0KyfMLbS6bm9LQOMg==
-X-Google-Smtp-Source: AGHT+IHvVqecVFyyONprur+6eo+yl0fMCE2yoFPpWSNzy7UBUsQLpPgr1zOkPI5pjRd2ZjgqIXuGFA==
-X-Received: by 2002:a05:6830:16ca:b0:6d8:2843:8887 with SMTP id l10-20020a05683016ca00b006d828438887mr8076088otr.34.1701191808521;
-        Tue, 28 Nov 2023 09:16:48 -0800 (PST)
-Received: from herring.priv (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id m10-20020a9d644a000000b006d81ae3d8f6sm931210otl.56.2023.11.28.09.16.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 28 Nov 2023 09:16:47 -0800 (PST)
-Received: (nullmailer pid 3522278 invoked by uid 1000);
-	Tue, 28 Nov 2023 17:16:47 -0000
-Date: Tue, 28 Nov 2023 11:16:47 -0600
-From: Rob Herring <robh@kernel.org>
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: mturquette@baylibre.com, sboyd@kernel.org, krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org, kristo@kernel.org, linux-clk@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH] dt-bindings: clock: ti: Convert interface.txt to
- json-schema
-Message-ID: <20231128171647.GA3343123-robh@kernel.org>
-References: <20231127202359.145778-1-andreas@kemnade.info>
+Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [IPv6:2a0a:edc0:2:b01:1d::104])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E040310A
+	for <linux-omap@vger.kernel.org>; Tue, 28 Nov 2023 09:38:56 -0800 (PST)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+	(Exim 4.92)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1r822j-00064R-TZ; Tue, 28 Nov 2023 18:38:41 +0100
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1r822g-00CECi-GN; Tue, 28 Nov 2023 18:38:38 +0100
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1r822g-00AIhh-6n; Tue, 28 Nov 2023 18:38:38 +0100
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+To: Roger Quadros <rogerq@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: Siddharth Vadapalli <s-vadapalli@ti.com>,
+	Ravi Gunasekaran <r-gunasekaran@ti.com>,
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+	Stanislav Fomichev <sdf@google.com>,
+	Marek Majtyka <alardam@gmail.com>,
+	Simon Horman <horms@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Yunsheng Lin <linyunsheng@huawei.com>,
+	linux-omap@vger.kernel.org,
+	netdev@vger.kernel.org,
+	kernel@pengutronix.de
+Subject: [PATCH net-next v2 3/4] net: ethernet: ti: cpsw-new: Convert to platform remove callback returning void
+Date: Tue, 28 Nov 2023 18:38:27 +0100
+Message-ID: <20231128173823.867512-4-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.42.0.586.gbc5204569f7d.dirty
+In-Reply-To: <20231128173823.867512-1-u.kleine-koenig@pengutronix.de>
+References: <20231128173823.867512-1-u.kleine-koenig@pengutronix.de>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231127202359.145778-1-andreas@kemnade.info>
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2331; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=0WluJN1qBPA0owL1Rg+ZIRaCjcfxvLqaIsOTcVcTtsM=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBlZiWTKbBB/c3YoRuYx79+9DNd5c6/yLmHeLAvf H8lpS3sdEeJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZWYlkwAKCRCPgPtYfRL+ TizpCACtv8OLoaE3NfgcnbxFwezaage8NzjgKkVRUSHuN6KvZEExVBlth3G61Qjt4rExjwrCkGx 3njK7Pp4xq4A/qiu67ikVrnQlfdvEvkkAJ1RPjYjm7HfjKv4kmEW2hjKbK8GmIxTqyIOUlJTdON WOUxCGT8K8oumgdrqACvexJulv3Nz7TM/qMjYoQmABAPsW/L9tY41AbkLzOQUWMI6ySBo0Dn/Ew TVvGis3+I9X7lNVgzre8RGSvjz+QTQUDMkd9iMf4noLSchGzy9qDqPSaU1CpZnCjpNv0m3GAKDi 6GJ/W5KwX4kq/0XGv+SeO++XLBo/yyRdHYlLp2WesrnlxnPa
+X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 
-On Mon, Nov 27, 2023 at 09:23:59PM +0100, Andreas Kemnade wrote:
-> Convert the OMAP interface clock device tree binding to json-schema
-> and fix up reg property which is optional and taken from parent if
-> not specified.
-> Specify the creator of the original binding as a maintainer.
+The .remove() callback for a platform driver returns an int which makes
+many driver authors wrongly assume it's possible to do error handling by
+returning an error code. However the value returned is ignored (apart
+from emitting a warning) and this typically results in resource leaks.
 
-Great! This and other TI clocks are at the top of the list[1] of 
-occurrences of undocumented (by schemas) compatibles: 
+To improve here there is a quest to make the remove callback return
+void. In the first step of this quest all drivers are converted to
+.remove_new(), which already returns void. Eventually after all drivers
+are converted, .remove_new() will be renamed to .remove().
 
-   3763 ['ti,omap3-interface-clock']
-   3249 ['ti,divider-clock']
-   1764 ['ti,mux-clock']
-   1680 ['ti,gate-clock']
-   1522 ['ti,wait-gate-clock']
-   1459 ['ti,composite-clock']
-   1343 ['ti,composite-mux-clock']
-   1341 ['ti,clkctrl']
-   1296 ['fsl,imx6q-ssi', 'fsl,imx51-ssi']
-   1196 ['ti,composite-gate-clock']
-   1032 ['ti,clockdomain']
+Replace the error path returning a non-zero value by an error message
+and a comment that there is more to do. With that this patch results in
+no change of behaviour in this driver apart from improving the error
+message.
 
-Of course, that's largely due to OMAP being early clock adopter and 
-trying to do fine-grained clocks in DT.
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+---
+ drivers/net/ethernet/ti/cpsw_new.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-Rob
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index 0e4f526b1753..498c50c6d1a7 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -2037,14 +2037,20 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int cpsw_remove(struct platform_device *pdev)
++static void cpsw_remove(struct platform_device *pdev)
+ {
+ 	struct cpsw_common *cpsw = platform_get_drvdata(pdev);
+ 	int ret;
+ 
+ 	ret = pm_runtime_resume_and_get(&pdev->dev);
+-	if (ret < 0)
+-		return ret;
++	if (ret < 0) {
++		/* Note, if this error path is taken, we're leaking some
++		 * resources.
++		 */
++		dev_err(&pdev->dev, "Failed to resume device (%pe)\n",
++			ERR_PTR(ret));
++		return;
++	}
+ 
+ 	cpsw_unregister_notifiers(cpsw);
+ 	cpsw_unregister_devlink(cpsw);
+@@ -2055,7 +2061,6 @@ static int cpsw_remove(struct platform_device *pdev)
+ 	cpsw_remove_dt(cpsw);
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	return 0;
+ }
+ 
+ static int __maybe_unused cpsw_suspend(struct device *dev)
+@@ -2116,7 +2121,7 @@ static struct platform_driver cpsw_driver = {
+ 		.of_match_table = cpsw_of_mtable,
+ 	},
+ 	.probe = cpsw_probe,
+-	.remove = cpsw_remove,
++	.remove_new = cpsw_remove,
+ };
+ 
+ module_platform_driver(cpsw_driver);
+-- 
+2.42.0
 
-[1] https://gitlab.com/robherring/linux-dt/-/jobs/5620809910#L5618
