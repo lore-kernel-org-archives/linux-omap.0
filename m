@@ -1,26 +1,25 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="PlXSi2sB"
-Received: from relay9-d.mail.gandi.net (relay9-d.mail.gandi.net [217.70.183.199])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A279D1;
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="jW5PFFRF"
+Received: from relay9-d.mail.gandi.net (relay9-d.mail.gandi.net [IPv6:2001:4b98:dc4:8::229])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C989A92;
 	Tue, 28 Nov 2023 07:35:48 -0800 (PST)
-Received: by mail.gandi.net (Postfix) with ESMTPSA id 0C40AFF806;
-	Tue, 28 Nov 2023 15:35:47 +0000 (UTC)
+Received: by mail.gandi.net (Postfix) with ESMTPSA id 28365FF803;
+	Tue, 28 Nov 2023 15:35:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
-	t=1701185747;
+	t=1701185746;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=MO0oeiUpyqbOgvAxbqOeRIw/9jHxJtwd/pdok3s36o8=;
-	b=PlXSi2sBmzn0/PFbfGLe0lOa8p9Rp3u9AJp14hX9ZaxUcbYWXQHwR99gVR0d5OG+AnYAjJ
-	pU/wiqt725xhZd/WqjkZ++yokakY9tCVqgiWC1DPsd3tVpwdMNTdGzyY/FWVAb5EK1eSTV
-	tB0hnUuKJ0uz8LtoluRhvxjEKZDEEDMrZPJLNu3HfBVrWniDZpAOEn7V0MXVNEvH5Fv7iN
-	PfuifIj2dsySSzzpgK0n71RpQCZMK7UrhKTL1a4e7+x8hq+BFIxJbw3JZYX4qnJJB38+8g
-	so+dfnK8Dqt36J0fEkUoarRamwn3CQByBRkZ/8GlFyJYXjjXFtBO9qdJqUcQcg==
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=wheDqiE2a9OZr8JN6HhD16I1O5hsDNL5yX5S9DFZ7RQ=;
+	b=jW5PFFRFM3QHLzqGw2eP/vuhSY/2H2WnsX80le7uM3aFzdaPasOGKMZgaXRnRpg6HxF9KS
+	dPnktG+RUba8i95BML29r6+xhH9dY/rgmO7IINtPJsklbQgDHXKmN7VoQQEuA8j/fe+Qun
+	k18ByByEdOzlQSvn9h/HWKFQgYQdr3GZu/bAX/Ma/UHmffHAvdqOx3Ng5N00Lrgd1npuem
+	ZJoWIKv12Ep8Iqqb7Ob8Q8pUrvTKaoWWm0rm0344ox0KT3OnkjwNdY0kC4b7XVpbrgAH39
+	PUPjFOugk3XfkPz6GGUD7xSoe7vm4eUO+zKHdkbDnb7L41h/dv6TlJbu06YBbA==
 From: Thomas Richard <thomas.richard@bootlin.com>
-Date: Tue, 28 Nov 2023 16:34:59 +0100
-Subject: [PATCH 1/3] dt-bindings: pinctrl: pinctrl-single: add
- ti,j7200-padconf compatible
+Subject: [PATCH 0/3] pinctrl: pinctrl-single: fix suspend/resume on j7200
+Date: Tue, 28 Nov 2023 16:34:58 +0100
+Message-Id: <20231128-j7200-pinctrl-s2r-v1-0-704e7dc24460@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -29,9 +28,9 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20231128-j7200-pinctrl-s2r-v1-1-704e7dc24460@bootlin.com>
-References: <20231128-j7200-pinctrl-s2r-v1-0-704e7dc24460@bootlin.com>
-In-Reply-To: <20231128-j7200-pinctrl-s2r-v1-0-704e7dc24460@bootlin.com>
+X-B4-Tracking: v=1; b=H4sIAKIIZmUC/x3N0QrCMAyF4VcZuTbQRobWVxEv2iy6iNSRiAhj7
+ 77Wy+/Az1nBxVQcLsMKJl91fdeGeBiA51wfgjo1AwU6xkhnfJ4oBFy08sde6GSYRi6J45hyEmh
+ dyS5YLFeee9nZ58Xkrr//1fW2bTsVmSuPegAAAA==
 To: Linus Walleij <linus.walleij@linaro.org>, 
  Rob Herring <robh+dt@kernel.org>, 
  Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>, 
@@ -46,27 +45,31 @@ Cc: linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
 X-Mailer: b4 0.12.0
 X-GND-Sasl: thomas.richard@bootlin.com
 
-Add the "ti,j7200-padconf" compatible to support suspend to ram on
-j7200.
+On j7200, during suspend to ram the SoC is powered-off. So the pinctrl
+contexts are lost.
+The flag PCS_CONTEXT_LOSS_OFF shall be set to restore the pinctrl
+contexts.
+
+A new compatible (ti,j7200-padconf) was created to enable this flag only
+for j7200.
 
 Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
 ---
- Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml | 1 +
- 1 file changed, 1 insertion(+)
+Thomas Richard (3):
+      dt-bindings: pinctrl: pinctrl-single: add ti,j7200-padconf compatible
+      pinctrl: pinctrl-single: add ti,j7200-padconf compatible
+      arm64: dts: ti: k3-j7200: use ti,j7200-padconf compatible
 
-diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-index 45a307d3ce16..c11495524dd2 100644
---- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-+++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-@@ -31,6 +31,7 @@ properties:
-               - ti,omap3-padconf
-               - ti,omap4-padconf
-               - ti,omap5-padconf
-+              - ti,j7200-padconf
-           - const: pinctrl-single
- 
-   reg:
+ .../devicetree/bindings/pinctrl/pinctrl-single.yaml          |  1 +
+ arch/arm64/boot/dts/ti/k3-j7200-main.dtsi                    |  8 ++++----
+ arch/arm64/boot/dts/ti/k3-j7200-mcu-wakeup.dtsi              | 12 ++++++------
+ drivers/pinctrl/pinctrl-single.c                             |  5 +++++
+ 4 files changed, 16 insertions(+), 10 deletions(-)
+---
+base-commit: 2a20795e4274c0d94c14fcb8309f72699e404d99
+change-id: 20231128-j7200-pinctrl-s2r-95cb9c159a9e
 
+Best regards,
 -- 
-2.39.2
+Thomas Richard <thomas.richard@bootlin.com>
 
