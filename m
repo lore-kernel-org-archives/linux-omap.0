@@ -1,83 +1,72 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b="SfHUHZD8"
-Received: from mail5.25mail.st (mail5.25mail.st [74.50.62.9])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C7D41A5;
-	Tue, 28 Nov 2023 02:43:37 -0800 (PST)
-Received: from localhost (91-158-86-216.elisa-laajakaista.fi [91.158.86.216])
-	by mail5.25mail.st (Postfix) with ESMTPSA id A89946086E;
-	Tue, 28 Nov 2023 10:43:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=atomide.com;
-	s=25mailst; t=1701168216;
-	bh=o617uNhOvw3Vu+eRSs1W8/UqKPoU/B9IfoVIbQuRnCs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=SfHUHZD8Ii8XGRTnm9DAGobgeC1l8WZoBabIgGA4wyWEeDVkCp6jaK4/3tqggtzbs
-	 ffDZ2ja1ef6OXetd1WjT3kMh1eZQN8Rc7u//EG4n5Zo3v12/zRGt1nXPzQaZgZ5rNA
-	 0erJaEOVziSGN/z4c0Yk4gtDioSzqY7AZU12PwuTRdny4zCD6mJFxhU0ff2ewqupxz
-	 uXSFVS5+zn8BTnWhr3Gyj9L7iK4LShq52qf4UBlMCynbEOROexYPW2pmbhZBqGFQuL
-	 xk4oTauzv+/3IdzgXFytannM0KGZKwH+0HUdJMJE7j7zv2OAHdrJbQaCxkJUzjUeY9
-	 ehRM5MW3LndoA==
-Date: Tue, 28 Nov 2023 12:43:10 +0200
-From: Tony Lindgren <tony@atomide.com>
-To: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc: Andreas Kemnade <andreas@kemnade.info>, mturquette@baylibre.com,
-	sboyd@kernel.org, robh+dt@kernel.org,
-	krzysztof.kozlowski+dt@linaro.org, conor+dt@kernel.org,
-	kristo@kernel.org, linux-clk@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH] dt-bindings: clock: ti: Convert interface.txt to
- json-schema
-Message-ID: <20231128104310.GS5169@atomide.com>
-References: <20231127202359.145778-1-andreas@kemnade.info>
- <7a62ed8a-b0e3-4881-90d7-b8f5d38e482e@linaro.org>
- <20231128093241.707a4fa0@aktux>
- <7361082a-f271-4ef4-9dad-06ee7445c749@linaro.org>
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="PlXSi2sB"
+Received: from relay9-d.mail.gandi.net (relay9-d.mail.gandi.net [217.70.183.199])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A279D1;
+	Tue, 28 Nov 2023 07:35:48 -0800 (PST)
+Received: by mail.gandi.net (Postfix) with ESMTPSA id 0C40AFF806;
+	Tue, 28 Nov 2023 15:35:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
+	t=1701185747;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=MO0oeiUpyqbOgvAxbqOeRIw/9jHxJtwd/pdok3s36o8=;
+	b=PlXSi2sBmzn0/PFbfGLe0lOa8p9Rp3u9AJp14hX9ZaxUcbYWXQHwR99gVR0d5OG+AnYAjJ
+	pU/wiqt725xhZd/WqjkZ++yokakY9tCVqgiWC1DPsd3tVpwdMNTdGzyY/FWVAb5EK1eSTV
+	tB0hnUuKJ0uz8LtoluRhvxjEKZDEEDMrZPJLNu3HfBVrWniDZpAOEn7V0MXVNEvH5Fv7iN
+	PfuifIj2dsySSzzpgK0n71RpQCZMK7UrhKTL1a4e7+x8hq+BFIxJbw3JZYX4qnJJB38+8g
+	so+dfnK8Dqt36J0fEkUoarRamwn3CQByBRkZ/8GlFyJYXjjXFtBO9qdJqUcQcg==
+From: Thomas Richard <thomas.richard@bootlin.com>
+Date: Tue, 28 Nov 2023 16:34:59 +0100
+Subject: [PATCH 1/3] dt-bindings: pinctrl: pinctrl-single: add
+ ti,j7200-padconf compatible
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7361082a-f271-4ef4-9dad-06ee7445c749@linaro.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20231128-j7200-pinctrl-s2r-v1-1-704e7dc24460@bootlin.com>
+References: <20231128-j7200-pinctrl-s2r-v1-0-704e7dc24460@bootlin.com>
+In-Reply-To: <20231128-j7200-pinctrl-s2r-v1-0-704e7dc24460@bootlin.com>
+To: Linus Walleij <linus.walleij@linaro.org>, 
+ Rob Herring <robh+dt@kernel.org>, 
+ Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+ Haojian Zhuang <haojian.zhuang@linaro.org>, Nishanth Menon <nm@ti.com>, 
+ Vignesh Raghavendra <vigneshr@ti.com>, Tero Kristo <kristo@kernel.org>
+Cc: linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ linux-omap@vger.kernel.org, thomas.petazzoni@bootlin.com, 
+ gregory.clement@bootlin.com, theo.lebrun@bootlin.com, u-kumar1@ti.com, 
+ Thomas Richard <thomas.richard@bootlin.com>
+X-Mailer: b4 0.12.0
+X-GND-Sasl: thomas.richard@bootlin.com
 
-* Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org> [231128 08:41]:
-> On 28/11/2023 09:32, Andreas Kemnade wrote:
-> > On Tue, 28 Nov 2023 09:00:16 +0100
-> > Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org> wrote:
-> > 
-> >>> +required:
-> >>> +  - compatible
-> >>> +  - clocks
-> >>> +  - '#clock-cells'  
-> >>
-> >> reg is required. Device cannot take "reg" from parent, DTS does not work
-> >> like this.
-> > 
-> > Well, apparently they do... and I am just dealing with status quo and not
-> > how it should be.
-> > Look at commit 31fc1c63c2ae4a542e3c7ac572a10a59ece45c24
-> 
-> Who designed clock-controller binding with a device node per each clock?
-> This is ridiculous (although of course not your fault here)! Looking at
-> omap3xxx-clocks.dtsi - all its children should be just defined by the
-> driver, not by DTSI.
+Add the "ti,j7200-padconf" compatible to support suspend to ram on
+j7200.
 
-Earlier all the clocks were separate nodes, the ti,clksel binding made
-things a bit better by grouping the seprate clock nodes so we don't have
-multiple nodes with the same reg.. But yeah clksel instance clocks should
-be clock@6 with reg = <6> if the clock bits are at bit 6. That would be
-fairly easy to do if that helps, but in general I doubt anybody's going
-to spend much effort to fix the omap3 legacy clocks atthis point.
+Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
+---
+ Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml | 1 +
+ 1 file changed, 1 insertion(+)
 
-For omap4 and later, things are a bit better as they use the clkctrl clocks:
+diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+index 45a307d3ce16..c11495524dd2 100644
+--- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
++++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+@@ -31,6 +31,7 @@ properties:
+               - ti,omap3-padconf
+               - ti,omap4-padconf
+               - ti,omap5-padconf
++              - ti,j7200-padconf
+           - const: pinctrl-single
+ 
+   reg:
 
-Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+-- 
+2.39.2
 
-I don't think omap3 has any clkctrl clocks but if it does then that could
-be used.
-
-Regards,
-
-Tony
