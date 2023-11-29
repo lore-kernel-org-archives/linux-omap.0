@@ -1,54 +1,72 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b="DBRmCOu0"
-Received: from mail5.25mail.st (mail5.25mail.st [74.50.62.9])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E81210C8;
-	Wed, 29 Nov 2023 02:19:44 -0800 (PST)
-Received: from localhost (91-158-86-216.elisa-laajakaista.fi [91.158.86.216])
-	by mail5.25mail.st (Postfix) with ESMTPSA id 9FD92603F4;
-	Wed, 29 Nov 2023 10:19:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=atomide.com;
-	s=25mailst; t=1701253183;
-	bh=vmbye+7xTc5TAprv8bGCBpYs5zBBQ4aAAXZTaK7F9vE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DBRmCOu0DUrEn4TChU4oz1IFOZzm06cbvip6fGUF5tC+rzfjrlz4OXrApxJVGmZZv
-	 f5+mWJIjJ1knMo9A1y8fd9oC6dupwm1vbMEdNKMLnqT8q35G4bUOf9jqodxX53ljKP
-	 sXFkd5bfzPBqO9HettROaMgTKrRgeYgV/b93M8F300ujW9wXft+E3zDA7kKMwGDdKI
-	 03Jbpntz462NEJqXnZibC2puUH71cA0jZ1fG0mRV2xNK5Z5ix3jZCB8e+WGYx1VNji
-	 uRWP9JYMmEnjNUKcUYTUML+iT9t263OU63TXn8v9fAsTACflk4TAzQgV4UCIoo/ID1
-	 SCKrSZ2KrYQhA==
-Date: Wed, 29 Nov 2023 12:19:05 +0200
-From: Tony Lindgren <tony@atomide.com>
-To: Thomas Richard <thomas.richard@bootlin.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Haojian Zhuang <haojian.zhuang@linaro.org>,
-	Nishanth Menon <nm@ti.com>, Vignesh Raghavendra <vigneshr@ti.com>,
-	Tero Kristo <kristo@kernel.org>, linux-gpio@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	thomas.petazzoni@bootlin.com, gregory.clement@bootlin.com,
-	theo.lebrun@bootlin.com, u-kumar1@ti.com
-Subject: Re: [PATCH 3/3] arm64: dts: ti: k3-j7200: use ti,j7200-padconf
- compatible
-Message-ID: <20231129101905.GY5169@atomide.com>
-References: <20231128-j7200-pinctrl-s2r-v1-0-704e7dc24460@bootlin.com>
- <20231128-j7200-pinctrl-s2r-v1-3-704e7dc24460@bootlin.com>
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="iqK5PCgQ"
+Received: from relay4-d.mail.gandi.net (relay4-d.mail.gandi.net [IPv6:2001:4b98:dc4:8::224])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74304E1;
+	Wed, 29 Nov 2023 02:32:14 -0800 (PST)
+Received: by mail.gandi.net (Postfix) with ESMTPSA id A184FE0003;
+	Wed, 29 Nov 2023 10:32:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
+	t=1701253932;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=6AQWLTAi/kFH63piYrCOLoe9cLcpZEYdoGnno5qNn/0=;
+	b=iqK5PCgQPERsEeGyBLIVzQiwbgw6FnuNHNsyXxtLmbxTb+m18bbsx5EPx2JIb51kbmlPGZ
+	v0zSdbGydbfI6lHbknqW2yg1VOyPO4kK5vhu2fCTqXzTyvFriB62AHm2aeoycahLn73XWM
+	eDJFWUZ5QObQqmapvsRK155GziR5a5MHbG+jBadIg8f2rDIkWYoR4Qa8TVVf+T/Mya5+FZ
+	r2oHQrJ6ageQ+/iQfuSp1ZlKTfeIwXXJPwwkqnE33yPpJXfvztrGIhzsg0j2fL99rnkNuZ
+	lmgFW6jUxsdZ1G2FH1hotwp6wAKwfUyDuzAvdylrNFH4qvVBWov49awq/8OOiw==
+Message-ID: <9806d838-3eb8-406c-8ef9-f75ebe664078@bootlin.com>
+Date: Wed, 29 Nov 2023 11:32:11 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231128-j7200-pinctrl-s2r-v1-3-704e7dc24460@bootlin.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 3/3] arm64: dts: ti: k3-j7200: use ti,j7200-padconf
+ compatible
+Content-Language: en-US
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Rob Herring
+ <robh+dt@kernel.org>, Krzysztof Kozlowski
+ <krzysztof.kozlowski+dt@linaro.org>, Conor Dooley <conor+dt@kernel.org>,
+ Haojian Zhuang <haojian.zhuang@linaro.org>, Nishanth Menon <nm@ti.com>,
+ Vignesh Raghavendra <vigneshr@ti.com>, Tero Kristo <kristo@kernel.org>,
+ linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-omap@vger.kernel.org, thomas.petazzoni@bootlin.com,
+ gregory.clement@bootlin.com, theo.lebrun@bootlin.com, u-kumar1@ti.com
+References: <20231128-j7200-pinctrl-s2r-v1-0-704e7dc24460@bootlin.com>
+ <20231128-j7200-pinctrl-s2r-v1-3-704e7dc24460@bootlin.com>
+ <20231129101905.GY5169@atomide.com>
+From: Thomas Richard <thomas.richard@bootlin.com>
+In-Reply-To: <20231129101905.GY5169@atomide.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-GND-Sasl: thomas.richard@bootlin.com
 
-* Thomas Richard <thomas.richard@bootlin.com> [231128 15:35]:
-> For suspend to ram on j7200, use ti,j7200-padconf compatible to save and
-> restore pinctrl contexts.
+On 11/29/23 11:19, Tony Lindgren wrote:
+> * Thomas Richard <thomas.richard@bootlin.com> [231128 15:35]:
+>> For suspend to ram on j7200, use ti,j7200-padconf compatible to save and
+>> restore pinctrl contexts.
+> 
+> Hmm are the mcu registers lost too? Anyways presumably you looked at it:
 
-Hmm are the mcu registers lost too? Anyways presumably you looked at it:
+Hi Tony,
 
-Reviewed-by: Tony Lindgren <tony@atomide.com>
+Thanks for the review.
+Yes the mcu registers are lost too, as the SoC is fully powered-off.
+And I did the test to confirm.
+
+Regards,
+
+> 
+> Reviewed-by: Tony Lindgren <tony@atomide.com>
+-- 
+Thomas Richard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
