@@ -1,22 +1,22 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b="RWrBD8D4"
+	dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b="CwGaHDPb"
 Received: from mail5.25mail.st (mail5.25mail.st [74.50.62.9])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 152F21725;
-	Thu, 30 Nov 2023 23:02:27 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA64D1729;
+	Thu, 30 Nov 2023 23:06:10 -0800 (PST)
 Received: from localhost (91-158-86-216.elisa-laajakaista.fi [91.158.86.216])
-	by mail5.25mail.st (Postfix) with ESMTPSA id 9CAB36032E;
-	Fri,  1 Dec 2023 07:02:09 +0000 (UTC)
+	by mail5.25mail.st (Postfix) with ESMTPSA id 5494060476;
+	Fri,  1 Dec 2023 07:05:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=atomide.com;
-	s=25mailst; t=1701414146;
-	bh=T8JMiYZNsTJUoKXUtVyfyVWVbi2lERt92r3CrXZczEc=;
+	s=25mailst; t=1701414370;
+	bh=RXpbKQwq6L7Fxm/0BkFGv54CyvhTReyPPdkffpuvbsc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=RWrBD8D4Wn/H8eg46GPJijn8NrOiUogrLvyhwt6MGVWraVexd/b1Rz8d8Iv7AEHLp
-	 mJ4SJ/+1eiUrqDasiruVR/TQiaf3X0Szq7LC/xw9ymIX//JjAYCUPJddzqCqVdDDKl
-	 87YYbaZNzemSW0GfGTacF/JRXqLWEa23aW/SeU1TapuiwUDq1D4d5jjZJlEzav4GQz
-	 4cJ0Np27jEJCSVyHUbexC9vCa0QEaISeKNcl8yF3eOuZSRWIpzPuhL4Ltn4VbYLVpp
-	 eOHM90yiYKtYvsRq7/BOzkVhtfQRHTLDPQtF5/hjZp9bJcRhSxTosAyKWPVs3T/Zrh
-	 8HBVXwX9oSTgw==
-Date: Fri, 1 Dec 2023 09:02:07 +0200
+	b=CwGaHDPbV2JUMhJAKfc8j7Oy8P/WEbo+xFfr15UKt2im8yKC2LOjQMJCewDqx96jE
+	 aSpg2thl/1PEa9AAgZ3zAxGK7PamGvw8cf4LGwEvS9y8pz32Pq9V7R0r8b/JvY3onO
+	 hL6fD6K/kf1NYVkvcgzntGzcqcsGH7plpBC1P0chyvE6IuaS6seg05FMm1yy7U3xVh
+	 kDAIW+LTJ/xqEvT34t5Q3LW1enGtJuC1kx9Msk2qc+/27leT2CBwMKeLItMVLfNd4I
+	 gqu3P9kcEH/z9f6T+MXXZ+3O/pNw6AFdQf0lk+BbDJBF38evhqGzPSl6ZxZSrbOAHe
+	 5hLhE3He+9HYg==
+Date: Fri, 1 Dec 2023 09:05:51 +0200
 From: Tony Lindgren <tony@atomide.com>
 To: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Cc: Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>,
@@ -25,8 +25,9 @@ Cc: Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>,
 	linux-kernel@vger.kernel.org
 Subject: Re: [PATCH] arm: debug: reuse the config DEBUG_OMAP2UART{1,2} for
  OMAP{3,4,5}
-Message-ID: <20231201070207.GI5169@atomide.com>
+Message-ID: <20231201070551.GJ5169@atomide.com>
 References: <20231025112136.3445-1-lukas.bulwahn@gmail.com>
+ <20231201070207.GI5169@atomide.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -35,13 +36,18 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231025112136.3445-1-lukas.bulwahn@gmail.com>
+In-Reply-To: <20231201070207.GI5169@atomide.com>
 
-* Lukas Bulwahn <lukas.bulwahn@gmail.com> [231025 14:21]:
-> Simply reuse the config DEBUG_OMAP2UART{1,2}; there is no need to define
-> separate config symbols for OMAP{3,4,5}. So, just delete the dead
-> references to DEBUG_OMAP{3,4,5}UART{1,2}.
+* Tony Lindgren <tony@atomide.com> [231201 09:02]:
+> * Lukas Bulwahn <lukas.bulwahn@gmail.com> [231025 14:21]:
+> > Simply reuse the config DEBUG_OMAP2UART{1,2}; there is no need to define
+> > separate config symbols for OMAP{3,4,5}. So, just delete the dead
+> > references to DEBUG_OMAP{3,4,5}UART{1,2}.
+> 
+> Thanks applying into omap-for-v6.8/debug.
 
-Thanks applying into omap-for-v6.8/debug.
+It's been already applied by Arnd, no need to do anything :)
+
+Regards,
 
 Tony
