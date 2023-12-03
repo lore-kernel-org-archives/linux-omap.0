@@ -1,15 +1,15 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E321DA;
-	Sun,  3 Dec 2023 14:29:19 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B78A2D9;
+	Sun,  3 Dec 2023 14:29:18 -0800 (PST)
 Received: from p200301077700c3001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:107:7700:c300:1a3d:a2ff:febf:d33a] helo=aktux)
 	by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <andreas@kemnade.info>)
-	id 1r9uxZ-006zEC-Qp; Sun, 03 Dec 2023 23:29:09 +0100
+	id 1r9uxa-006zEH-Or; Sun, 03 Dec 2023 23:29:10 +0100
 Received: from andi by aktux with local (Exim 4.96)
 	(envelope-from <andreas@kemnade.info>)
-	id 1r9uxZ-001RY3-0w;
-	Sun, 03 Dec 2023 23:29:09 +0100
+	id 1r9uxa-001RZU-11;
+	Sun, 03 Dec 2023 23:29:10 +0100
 From: Andreas Kemnade <andreas@kemnade.info>
 To: lee@kernel.org,
 	robh+dt@kernel.org,
@@ -21,10 +21,9 @@ To: lee@kernel.org,
 	devicetree@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org
-Cc: Conor Dooley <conor.dooley@microchip.com>
-Subject: [PATCH v3 1/6] dt-bindings: mfd: ti,twl: Document system-power-controller
-Date: Sun,  3 Dec 2023 23:28:58 +0100
-Message-Id: <20231203222903.343711-2-andreas@kemnade.info>
+Subject: [PATCH v3 3/6] ARM: dts: omap-embt2ws: system-power-controller for bt200
+Date: Sun,  3 Dec 2023 23:29:00 +0100
+Message-Id: <20231203222903.343711-4-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20231203222903.343711-1-andreas@kemnade.info>
 References: <20231203222903.343711-1-andreas@kemnade.info>
@@ -36,28 +35,26 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add system-power-controller property because these chips
-can power off the device.
+Configure the TWL6032 as system power controller to let the device
+power off.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-Acked-by: Conor Dooley <conor.dooley@microchip.com>
 ---
- Documentation/devicetree/bindings/mfd/ti,twl.yaml | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/mfd/ti,twl.yaml b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-index c04d57ba22b49..52ed228fb1e7e 100644
---- a/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-+++ b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-@@ -34,6 +34,8 @@ properties:
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+index 4e267b259ebf0..bb2e9544723c3 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+@@ -215,6 +215,7 @@ twl: pmic@48 {
+ 		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N cascaded to gic */
+ 		interrupt-controller;
+ 		#interrupt-cells = <1>;
++		system-power-controller;
  
-   interrupt-controller: true
- 
-+  system-power-controller: true
-+
-   "#interrupt-cells":
-     const: 1
- 
+ 		rtc {
+ 			compatible = "ti,twl4030-rtc";
 -- 
 2.39.2
 
