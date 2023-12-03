@@ -1,15 +1,15 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7796D7;
-	Sun,  3 Dec 2023 14:29:18 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E321DA;
+	Sun,  3 Dec 2023 14:29:19 -0800 (PST)
 Received: from p200301077700c3001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:107:7700:c300:1a3d:a2ff:febf:d33a] helo=aktux)
 	by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <andreas@kemnade.info>)
-	id 1r9uxZ-006zEB-Qi; Sun, 03 Dec 2023 23:29:09 +0100
+	id 1r9uxZ-006zEC-Qp; Sun, 03 Dec 2023 23:29:09 +0100
 Received: from andi by aktux with local (Exim 4.96)
 	(envelope-from <andreas@kemnade.info>)
-	id 1r9uxY-001RXT-2W;
-	Sun, 03 Dec 2023 23:29:08 +0100
+	id 1r9uxZ-001RY3-0w;
+	Sun, 03 Dec 2023 23:29:09 +0100
 From: Andreas Kemnade <andreas@kemnade.info>
 To: lee@kernel.org,
 	robh+dt@kernel.org,
@@ -21,10 +21,13 @@ To: lee@kernel.org,
 	devicetree@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org
-Subject: [PATCH v3 0/6] mfd: twl: system-power-controller
-Date: Sun,  3 Dec 2023 23:28:57 +0100
-Message-Id: <20231203222903.343711-1-andreas@kemnade.info>
+Cc: Conor Dooley <conor.dooley@microchip.com>
+Subject: [PATCH v3 1/6] dt-bindings: mfd: ti,twl: Document system-power-controller
+Date: Sun,  3 Dec 2023 23:28:58 +0100
+Message-Id: <20231203222903.343711-2-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20231203222903.343711-1-andreas@kemnade.info>
+References: <20231203222903.343711-1-andreas@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -33,39 +36,28 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add system-power-controller property in the bindings and
-the corresponding implementation and use it where
-appropriate.
-Not all cases are hit yet, there has probably to be a
-separate series after going through with a brush.
+Add system-power-controller property because these chips
+can power off the device.
 
-Changes in v3:
-- twl-core: 
-   - remove repetitive verbose error messages
-   - placed constants at top part of function
-   - minor cleanups
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
+---
+ Documentation/devicetree/bindings/mfd/ti,twl.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Changes in v2:
-- add A-By
-- fix compiler warning
-
-Andreas Kemnade (6):
-  dt-bindings: mfd: ti,twl: Document system-power-controller
-  twl-core: add power off implementation for twl603x
-  ARM: dts: omap-embt2ws: system-power-controller for bt200
-  ARM: dts: omap4-panda-common: Enable powering off the device
-  mfd: twl4030-power: accept standard property for power controller
-  ARM: dts: omap: gta04: standardize system-power-controller
-
- .../devicetree/bindings/mfd/ti,twl.yaml       |  2 ++
- arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi    |  2 +-
- .../boot/dts/ti/omap/omap4-epson-embt2ws.dts  |  1 +
- .../boot/dts/ti/omap/omap4-panda-common.dtsi  |  1 +
- drivers/mfd/twl-core.c                        | 28 +++++++++++++++++++
- drivers/mfd/twl4030-power.c                   |  3 ++
- include/linux/mfd/twl.h                       |  1 +
- 7 files changed, 37 insertions(+), 1 deletion(-)
-
+diff --git a/Documentation/devicetree/bindings/mfd/ti,twl.yaml b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+index c04d57ba22b49..52ed228fb1e7e 100644
+--- a/Documentation/devicetree/bindings/mfd/ti,twl.yaml
++++ b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+@@ -34,6 +34,8 @@ properties:
+ 
+   interrupt-controller: true
+ 
++  system-power-controller: true
++
+   "#interrupt-cells":
+     const: 1
+ 
 -- 
 2.39.2
 
