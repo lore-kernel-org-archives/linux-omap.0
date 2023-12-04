@@ -1,33 +1,33 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="nicHGW+H"
-Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DBB4186;
-	Mon,  4 Dec 2023 10:23:46 -0800 (PST)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-	by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMtcF081650;
-	Mon, 4 Dec 2023 12:22:55 -0600
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="syULo6DI"
+Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9A1C188;
+	Mon,  4 Dec 2023 10:23:47 -0800 (PST)
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+	by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMmEF056511;
+	Mon, 4 Dec 2023 12:22:48 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1701714175;
-	bh=2nMLoHZjmVIC5bz7SNEGOj0N9pS9iZCge0lbcW6Gklw=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=nicHGW+H9t4cJbt/RUjRLWF3kKANxSB2OzqJwcg408u/ncoar5PtIHwrZbcNcBAgp
-	 rZON1WwHOIASSjNyPjLc3nS2+5JKaacb4odT6n41Rb1r7W2Qtd1DOkyclkqSRgGI0X
-	 Dub7DcdLjMjGxqAmWilvC4LHxUPkt/LJbTZbyNl8=
-Received: from DLEE112.ent.ti.com (dlee112.ent.ti.com [157.170.170.23])
-	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3B4IMt9i091851
+	s=ti-com-17Q1; t=1701714168;
+	bh=+UzfahhmDwBPCn7TWWajz5gUYl9JjiSSOpzMGjXxwzA=;
+	h=From:To:CC:Subject:Date;
+	b=syULo6DI3uaKA7PmxusECJJaNHtLh0LWj7cBqvHZLyr5oA7ej6Zi1pfTkGRZREXir
+	 IvUunMquSdI56ECGXuVQVIVV9tNQ1GkzrN5m96ZM8oLXKlHa52FXcnOqEYS6uTuaMN
+	 yAy7NX5FY23zAUFvLf0eft+Cp+cZ0QOJZhp+bnh0=
+Received: from DFLE102.ent.ti.com (dfle102.ent.ti.com [10.64.6.23])
+	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3B4IMmjx013404
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Mon, 4 Dec 2023 12:22:55 -0600
-Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+	Mon, 4 Dec 2023 12:22:48 -0600
+Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE102.ent.ti.com
+ (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 4
- Dec 2023 12:22:55 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+ Dec 2023 12:22:48 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Mon, 4 Dec 2023 12:22:55 -0600
+ Frontend Transport; Mon, 4 Dec 2023 12:22:48 -0600
 Received: from fllv0039.itg.ti.com (ileaxei01-snat.itg.ti.com [10.180.69.5])
-	by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMkxA042313;
-	Mon, 4 Dec 2023 12:22:54 -0600
+	by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMkx3042313;
+	Mon, 4 Dec 2023 12:22:46 -0600
 From: Andrew Davis <afd@ti.com>
 To: Frank Binns <frank.binns@imgtec.com>,
         Donald Robson
@@ -59,12 +59,10 @@ CC: <dri-devel@lists.freedesktop.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
         <linux-sunxi@lists.linux.dev>, <linux-omap@vger.kernel.org>,
         <linux-mips@vger.kernel.org>, Andrew Davis <afd@ti.com>
-Subject: [PATCH RFC 07/10] ARM: dts: DRA7xx: Add device tree entry for SGX GPU
-Date: Mon, 4 Dec 2023 12:22:42 -0600
-Message-ID: <20231204182245.33683-8-afd@ti.com>
+Subject: [PATCH RFC 00/10] Device tree support for Imagination Series5 GPU
+Date: Mon, 4 Dec 2023 12:22:35 -0600
+Message-ID: <20231204182245.33683-1-afd@ti.com>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20231204182245.33683-1-afd@ti.com>
-References: <20231204182245.33683-1-afd@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -75,38 +73,56 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 
-Add SGX GPU device entry to base DRA7x dtsi file.
+Hello all,
 
-Signed-off-by: Andrew Davis <afd@ti.com>
----
- arch/arm/boot/dts/ti/omap/dra7.dtsi | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+I know this has been tried before[0], but given the recent upstreaming of
+the Series6+ GPU bindings I figured it might be time to give the Series5
+bindings another try.
 
-diff --git a/arch/arm/boot/dts/ti/omap/dra7.dtsi b/arch/arm/boot/dts/ti/omap/dra7.dtsi
-index 6509c742fb58c..8527643cb69a8 100644
---- a/arch/arm/boot/dts/ti/omap/dra7.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/dra7.dtsi
-@@ -850,12 +850,19 @@ target-module@56000000 {
- 					<SYSC_IDLE_SMART>;
- 			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
- 					<SYSC_IDLE_NO>,
--					<SYSC_IDLE_SMART>;
-+					<SYSC_IDLE_SMART>,
-+					<SYSC_IDLE_SMART_WKUP>;
- 			clocks = <&gpu_clkctrl DRA7_GPU_CLKCTRL 0>;
- 			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0 0x56000000 0x2000000>;
-+
-+			gpu@0 {
-+				compatible = "ti,am5728-gpu", "img,powervr-sgx544";
-+				reg = <0x0 0x10000>; /* 64kB */
-+				interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
-+			};
- 		};
- 
- 		crossbar_mpu: crossbar@4a002a48 {
+While there is currently no mainline driver for these binding, there is an
+open source out-of-tree kernel-side driver available[1]. Having a stable
+and upstream binding for these devices allows us to describe this hardware
+in device tree.
+
+This is my vision for how these bindings should look, along with some
+example uses in several SoC DT files. The compatible names have been
+updated to match what was decided on for Series6+, but otherwise most
+is the same as we have been using in our vendor tree for many years.
+
+Thanks,
+Andrew
+
+Based on next-20231204.
+
+[0]: https://lkml.org/lkml/2020/4/24/1222
+[1]: https://github.com/openpvrsgx-devgroup
+
+Andrew Davis (10):
+  dt-bindings: gpu: Add PowerVR Series5 SGX GPUs
+  ARM: dts: omap3: Add device tree entry for SGX GPU
+  ARM: dts: omap4: Add device tree entry for SGX GPU
+  ARM: dts: omap5: Add device tree entry for SGX GPU
+  ARM: dts: AM33xx: Add device tree entry for SGX GPU
+  ARM: dts: AM437x: Add device tree entry for SGX GPU
+  ARM: dts: DRA7xx: Add device tree entry for SGX GPU
+  arm64: dts: ti: k3-am654-main: Add device tree entry for SGX GPU
+  ARM: dts: sun6i: Add device tree entry for SGX GPU
+  MIPS: DTS: jz4780: Add device tree entry for SGX GPU
+
+ .../devicetree/bindings/gpu/img,powervr.yaml  | 69 +++++++++++++++++--
+ arch/arm/boot/dts/allwinner/sun6i-a31.dtsi    |  9 +++
+ arch/arm/boot/dts/ti/omap/am33xx.dtsi         |  9 +--
+ arch/arm/boot/dts/ti/omap/am3517.dtsi         | 11 +--
+ arch/arm/boot/dts/ti/omap/am4372.dtsi         |  6 ++
+ arch/arm/boot/dts/ti/omap/dra7.dtsi           |  9 ++-
+ arch/arm/boot/dts/ti/omap/omap34xx.dtsi       | 11 +--
+ arch/arm/boot/dts/ti/omap/omap36xx.dtsi       |  9 +--
+ arch/arm/boot/dts/ti/omap/omap4.dtsi          |  9 +--
+ arch/arm/boot/dts/ti/omap/omap5.dtsi          |  9 +--
+ arch/arm64/boot/dts/ti/k3-am65-main.dtsi      |  7 ++
+ arch/mips/boot/dts/ingenic/jz4780.dtsi        | 11 +++
+ 12 files changed, 136 insertions(+), 33 deletions(-)
+
 -- 
 2.39.2
 
