@@ -1,33 +1,33 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="LhKWzbfY"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="kuzzg6SR"
 Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F192D107;
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 078F6109;
 	Mon,  4 Dec 2023 10:23:44 -0800 (PST)
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-	by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMvRR034905;
-	Mon, 4 Dec 2023 12:22:57 -0600
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+	by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMpnW034876;
+	Mon, 4 Dec 2023 12:22:51 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1701714177;
-	bh=K3M9sI7ldpwxKdZlqbzDASUN2Gy2vGqDMV0YI/zfTo4=;
+	s=ti-com-17Q1; t=1701714171;
+	bh=IvOnC4lLIEjNUz1mnrO+cPAxILKA9wZcK1lUrScpP9Q=;
 	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=LhKWzbfYWjT1F5hObqdlNp9OGRrOkOC1MZ1sOlO2q+qlHo2l7emzxdttOL2jUwO1S
-	 sFOHrBoe16idBQShEpvNqLN5L0FgOB2np1GTdGDHIqSSgva3PL4gTDy0qy70pLTf8q
-	 RBIwP5qok6UXXJhcKcikL+aesw/Kivgnh0XxyI7E=
-Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
-	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3B4IMv7q013602
+	b=kuzzg6SRkz1UCOEKwT1t8RTCkD03+x5RlxYjBylkT8naXoc8LUm+BymNl30IcW4RO
+	 LUMC5Thos8x3m/PzR5ywFElG7SBliQW/u/0Y3TgkmVKFFGvvg+XN3Pxr+xitmapvZv
+	 KyZQO7pSsFepfmGfxLLex+cR+i2/OKyKV+sgebQQ=
+Received: from DFLE109.ent.ti.com (dfle109.ent.ti.com [10.64.6.30])
+	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3B4IMpc4083407
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Mon, 4 Dec 2023 12:22:57 -0600
-Received: from DLEE100.ent.ti.com (157.170.170.30) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+	Mon, 4 Dec 2023 12:22:51 -0600
+Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE109.ent.ti.com
+ (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 4
- Dec 2023 12:22:57 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE100.ent.ti.com
- (157.170.170.30) with Microsoft SMTP Server (version=TLS1_2,
+ Dec 2023 12:22:50 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Mon, 4 Dec 2023 12:22:56 -0600
+ Frontend Transport; Mon, 4 Dec 2023 12:22:51 -0600
 Received: from fllv0039.itg.ti.com (ileaxei01-snat.itg.ti.com [10.180.69.5])
-	by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMkxC042313;
-	Mon, 4 Dec 2023 12:22:55 -0600
+	by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMkx6042313;
+	Mon, 4 Dec 2023 12:22:50 -0600
 From: Andrew Davis <afd@ti.com>
 To: Frank Binns <frank.binns@imgtec.com>,
         Donald Robson
@@ -59,9 +59,9 @@ CC: <dri-devel@lists.freedesktop.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
         <linux-sunxi@lists.linux.dev>, <linux-omap@vger.kernel.org>,
         <linux-mips@vger.kernel.org>, Andrew Davis <afd@ti.com>
-Subject: [PATCH RFC 09/10] ARM: dts: sun6i: Add device tree entry for SGX GPU
-Date: Mon, 4 Dec 2023 12:22:44 -0600
-Message-ID: <20231204182245.33683-10-afd@ti.com>
+Subject: [PATCH RFC 03/10] ARM: dts: omap4: Add device tree entry for SGX GPU
+Date: Mon, 4 Dec 2023 12:22:38 -0600
+Message-ID: <20231204182245.33683-4-afd@ti.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20231204182245.33683-1-afd@ti.com>
 References: <20231204182245.33683-1-afd@ti.com>
@@ -75,33 +75,33 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 
-Add SGX GPU device entry to base sun6i-a31 dtsi file.
+Add SGX GPU device entry to base OMAP4 dtsi file.
 
 Signed-off-by: Andrew Davis <afd@ti.com>
 ---
- arch/arm/boot/dts/allwinner/sun6i-a31.dtsi | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/boot/dts/ti/omap/omap4.dtsi | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/allwinner/sun6i-a31.dtsi b/arch/arm/boot/dts/allwinner/sun6i-a31.dtsi
-index 5cce4918f84c9..e6998783b89aa 100644
---- a/arch/arm/boot/dts/allwinner/sun6i-a31.dtsi
-+++ b/arch/arm/boot/dts/allwinner/sun6i-a31.dtsi
-@@ -962,6 +962,15 @@ mdio: mdio {
- 			};
+diff --git a/arch/arm/boot/dts/ti/omap/omap4.dtsi b/arch/arm/boot/dts/ti/omap/omap4.dtsi
+index 2bbff9032be3e..559b2bfe4ca7c 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4.dtsi
++++ b/arch/arm/boot/dts/ti/omap/omap4.dtsi
+@@ -501,10 +501,11 @@ sgx_module: target-module@56000000 {
+ 			#size-cells = <1>;
+ 			ranges = <0 0x56000000 0x2000000>;
+ 
+-			/*
+-			 * Closed source PowerVR driver, no child device
+-			 * binding or driver in mainline
+-			 */
++			gpu@0 {
++				compatible = "ti,omap4430-gpu", "img,powervr-sgx540";
++				reg = <0x0 0x2000000>; /* 32MB */
++				interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL_HIGH>;
++			};
  		};
  
-+		gpu: gpu@1c40000 {
-+			compatible = "allwinner,sun6i-a31-gpu", "img,powervr-sgx544";
-+			reg = <0x01c40000 0x10000>;
-+			interrupts = <GIC_SPI 97 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&ccu CLK_GPU_CORE>, <&ccu CLK_GPU_MEMORY>;
-+			clock-names = "core", "mem";
-+			status = "disabled";
-+		};
-+
- 		crypto: crypto-engine@1c15000 {
- 			compatible = "allwinner,sun6i-a31-crypto",
- 				     "allwinner,sun4i-a10-crypto";
+ 		/*
 -- 
 2.39.2
 
