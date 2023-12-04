@@ -1,33 +1,33 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="KhUbnOHc"
-Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8720127;
-	Mon,  4 Dec 2023 10:23:47 -0800 (PST)
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-	by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMnKD056516;
-	Mon, 4 Dec 2023 12:22:49 -0600
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="S2AZrqTC"
+Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C12CD134;
+	Mon,  4 Dec 2023 10:23:45 -0800 (PST)
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+	by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMuQL073821;
+	Mon, 4 Dec 2023 12:22:56 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1701714169;
-	bh=lrDUeYGbJDS+87ZbWhSZim9BrWk30vrJWUGBbVKqVQ4=;
+	s=ti-com-17Q1; t=1701714176;
+	bh=IqQKvAZuXA3yBQTpe1fHB5C8are6FN8yp0Pg90xwIuI=;
 	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=KhUbnOHcP9zXugWIMsIwYd24qc0k3K+eHTT7Fo8y68CWiqrMWapVWYkdhxZ5P2K1B
-	 nJ0Fj+o9O5MIq9f+iYcGBl/9fjc+AmYR762duYDF0XCU2WjWMWk/0UNBwVwzXYo/Df
-	 5e0+d/mEqiz5oNtd89F8PC8KaR+QCYj2qFPQYrz4=
-Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
-	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3B4IMniA013411
+	b=S2AZrqTCjO0HFh+CGsgOM8FZXaXjvfD4rsArKT+zuQDsB4bpPBHwm2zk00wag1PM0
+	 qDJOH+kleI7xZ3CBeyJxqHWOqzVQ2QIGGxCmUKjeXzMirNlBrWbmX2zZ7EqeYAToPi
+	 by7JK5O3s/x9oqRTiZDtXKjLOgfvNpAY4QowFilY=
+Received: from DLEE102.ent.ti.com (dlee102.ent.ti.com [157.170.170.32])
+	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3B4IMuwW083433
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Mon, 4 Dec 2023 12:22:49 -0600
-Received: from DFLE101.ent.ti.com (10.64.6.22) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
+	Mon, 4 Dec 2023 12:22:56 -0600
+Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 4
- Dec 2023 12:22:49 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DFLE101.ent.ti.com
- (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
+ Dec 2023 12:22:56 -0600
+Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE114.ent.ti.com
+ (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Mon, 4 Dec 2023 12:22:48 -0600
+ Frontend Transport; Mon, 4 Dec 2023 12:22:56 -0600
 Received: from fllv0039.itg.ti.com (ileaxei01-snat.itg.ti.com [10.180.69.5])
-	by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMkx4042313;
-	Mon, 4 Dec 2023 12:22:48 -0600
+	by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMkxB042313;
+	Mon, 4 Dec 2023 12:22:55 -0600
 From: Andrew Davis <afd@ti.com>
 To: Frank Binns <frank.binns@imgtec.com>,
         Donald Robson
@@ -59,9 +59,9 @@ CC: <dri-devel@lists.freedesktop.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
         <linux-sunxi@lists.linux.dev>, <linux-omap@vger.kernel.org>,
         <linux-mips@vger.kernel.org>, Andrew Davis <afd@ti.com>
-Subject: [PATCH RFC 01/10] dt-bindings: gpu: Add PowerVR Series5 SGX GPUs
-Date: Mon, 4 Dec 2023 12:22:36 -0600
-Message-ID: <20231204182245.33683-2-afd@ti.com>
+Subject: [PATCH RFC 08/10] arm64: dts: ti: k3-am654-main: Add device tree entry for SGX GPU
+Date: Mon, 4 Dec 2023 12:22:43 -0600
+Message-ID: <20231204182245.33683-9-afd@ti.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20231204182245.33683-1-afd@ti.com>
 References: <20231204182245.33683-1-afd@ti.com>
@@ -75,111 +75,31 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 
-The Imagination PowerVR Series5 "SGX" GPU is part of several SoCs from
-multiple vendors. Describe how the SGX GPU is integrated in these SoC,
-including register space and interrupts. Clocks, reset, and power domain
-information is SoC specific.
+Add SGX GPU device entry to base AM654 dtsi file.
 
 Signed-off-by: Andrew Davis <afd@ti.com>
 ---
- .../devicetree/bindings/gpu/img,powervr.yaml  | 69 +++++++++++++++++--
- 1 file changed, 63 insertions(+), 6 deletions(-)
+ arch/arm64/boot/dts/ti/k3-am65-main.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/gpu/img,powervr.yaml b/Documentation/devicetree/bindings/gpu/img,powervr.yaml
-index a13298f1a1827..9f036891dad0b 100644
---- a/Documentation/devicetree/bindings/gpu/img,powervr.yaml
-+++ b/Documentation/devicetree/bindings/gpu/img,powervr.yaml
-@@ -11,11 +11,33 @@ maintainers:
-   - Frank Binns <frank.binns@imgtec.com>
+diff --git a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+index 29048d6577cf6..d3431aca41026 100644
+--- a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
++++ b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+@@ -1044,6 +1044,13 @@ dss_ports: ports {
+ 		};
+ 	};
  
- properties:
-+  $nodename:
-+    pattern: '^gpu@[a-f0-9]+$'
++	gpu: gpu@7000000 {
++		compatible = "ti,am6548-gpu", "img,powervr-sgx544";
++		reg = <0x0 0x7000000 0x0 0x10000>;
++		interrupts = <GIC_SPI 162 IRQ_TYPE_LEVEL_HIGH>;
++		power-domains = <&k3_pds 65 TI_SCI_PD_EXCLUSIVE>;
++	};
 +
-   compatible:
--    items:
--      - enum:
--          - ti,am62-gpu
--      - const: img,img-axe # IMG AXE GPU model/revision is fully discoverable
-+    oneOf:
-+      - items:
-+          - enum:
-+              - ti,am62-gpu
-+          - const: img,img-axe # IMG AXE GPU model/revision is fully discoverable
-+      - items:
-+          - enum:
-+              - ti,omap3430-gpu # Rev 121
-+              - ti,omap3630-gpu # Rev 125
-+          - const: img,powervr-sgx530
-+      - items:
-+          - enum:
-+              - ingenic,jz4780-gpu # Rev 130
-+              - ti,omap4430-gpu # Rev 120
-+          - const: img,powervr-sgx540
-+      - items:
-+          - enum:
-+              - allwinner,sun6i-a31-gpu # MP2 Rev 115
-+              - ti,omap4470-gpu # MP1 Rev 112
-+              - ti,omap5432-gpu # MP2 Rev 105
-+              - ti,am5728-gpu # MP2 Rev 116
-+              - ti,am6548-gpu # MP1 Rev 117
-+          - const: img,powervr-sgx544
- 
-   reg:
-     maxItems: 1
-@@ -40,8 +62,6 @@ properties:
- required:
-   - compatible
-   - reg
--  - clocks
--  - clock-names
-   - interrupts
- 
- additionalProperties: false
-@@ -56,6 +76,43 @@ allOf:
-       properties:
-         clocks:
-           maxItems: 1
-+      required:
-+        - clocks
-+        - clock-names
-+  - if:
-+      properties:
-+        compatible:
-+          contains:
-+            const: ti,am654-sgx544
-+    then:
-+      properties:
-+        power-domains:
-+          minItems: 1
-+      required:
-+        - power-domains
-+  - if:
-+      properties:
-+        compatible:
-+          contains:
-+            const: allwinner,sun6i-a31-gpu
-+    then:
-+      properties:
-+        clocks:
-+          minItems: 2
-+        clock-names:
-+          minItems: 2
-+      required:
-+        - clocks
-+        - clock-names
-+  - if:
-+      properties:
-+        compatible:
-+          contains:
-+            const: ingenic,jz4780-gpu
-+    then:
-+      required:
-+        - clocks
-+        - clock-names
- 
- examples:
-   - |
+ 	ehrpwm0: pwm@3000000 {
+ 		compatible = "ti,am654-ehrpwm", "ti,am3352-ehrpwm";
+ 		#pwm-cells = <3>;
 -- 
 2.39.2
 
