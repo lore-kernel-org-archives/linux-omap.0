@@ -1,107 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="JjIN6bUj"
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCE8C129;
-	Mon,  4 Dec 2023 10:23:45 -0800 (PST)
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-	by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMqm7073793;
-	Mon, 4 Dec 2023 12:22:52 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1701714172;
-	bh=rD4bivD5C51EnE3KF9h6/z4d298ojSSuekhNSL43VNI=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=JjIN6bUjyGz8ba5M87aF5pYD7oabto4+Uffkom5SgiEP1Msaete0s9woDYVrmw6BF
-	 BK8jXKarxYKhlo7Ips3WX081tBioV1de64+/XS4IyPoZUG3L3csaSVbdwIf3MJbdZZ
-	 rxYC1NCDRrbshosI9q7YQ6jtXn5nM0ukLgD07h+c=
-Received: from DLEE111.ent.ti.com (dlee111.ent.ti.com [157.170.170.22])
-	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 3B4IMq5F091829
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Mon, 4 Dec 2023 12:22:52 -0600
-Received: from DLEE107.ent.ti.com (157.170.170.37) by DLEE111.ent.ti.com
- (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 4
- Dec 2023 12:22:52 -0600
-Received: from fllv0040.itg.ti.com (10.64.41.20) by DLEE107.ent.ti.com
- (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Mon, 4 Dec 2023 12:22:52 -0600
-Received: from fllv0039.itg.ti.com (ileaxei01-snat.itg.ti.com [10.180.69.5])
-	by fllv0040.itg.ti.com (8.15.2/8.15.2) with ESMTP id 3B4IMkx7042313;
-	Mon, 4 Dec 2023 12:22:51 -0600
-From: Andrew Davis <afd@ti.com>
-To: Frank Binns <frank.binns@imgtec.com>,
-        Donald Robson
-	<donald.robson@imgtec.com>,
-        Matt Coster <matt.coster@imgtec.com>,
-        "H .
- Nikolaus Schaller" <hns@goldelico.com>,
-        Adam Ford <aford173@gmail.com>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Maarten Lankhorst
-	<maarten.lankhorst@linux.intel.com>,
-        Maxime Ripard <mripard@kernel.org>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-        Conor Dooley
-	<conor+dt@kernel.org>, Chen-Yu Tsai <wens@csie.org>,
-        Jernej Skrabec
-	<jernej.skrabec@gmail.com>,
-        Samuel Holland <samuel@sholland.org>,
-        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-        Tony Lindgren
-	<tony@atomide.com>, Nishanth Menon <nm@ti.com>,
-        Vignesh Raghavendra
-	<vigneshr@ti.com>,
-        Tero Kristo <kristo@kernel.org>, Paul Cercueil
-	<paul@crapouillou.net>
-CC: <dri-devel@lists.freedesktop.org>, <devicetree@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-        <linux-sunxi@lists.linux.dev>, <linux-omap@vger.kernel.org>,
-        <linux-mips@vger.kernel.org>, Andrew Davis <afd@ti.com>
-Subject: [PATCH RFC 04/10] ARM: dts: omap5: Add device tree entry for SGX GPU
-Date: Mon, 4 Dec 2023 12:22:39 -0600
-Message-ID: <20231204182245.33683-5-afd@ti.com>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20231204182245.33683-1-afd@ti.com>
-References: <20231204182245.33683-1-afd@ti.com>
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [IPv6:2a02:c205:3004:2154::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0D4285;
+	Mon,  4 Dec 2023 14:27:34 -0800 (PST)
+Received: from p200301077700c3001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:107:7700:c300:1a3d:a2ff:febf:d33a] helo=aktux)
+	by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <andreas@kemnade.info>)
+	id 1rAHPS-0071Vx-0b; Mon, 04 Dec 2023 23:27:26 +0100
+Date: Mon, 4 Dec 2023 23:27:22 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Adam Ford <aford173@gmail.com>
+Cc: lee@kernel.org, robh+dt@kernel.org, krzysztof.kozlowski+dt@linaro.org,
+ conor+dt@kernel.org, bcousson@baylibre.com, tony@atomide.com,
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-omap@vger.kernel.org
+Subject: Re: [PATCH v3 6/6] ARM: dts: omap: gta04: standardize
+ system-power-controller
+Message-ID: <20231204232722.031f618c@aktux>
+In-Reply-To: <CAHCN7xKG6-vgnJ+mA8xt0aFK-jCBWOX-GkVmJGNERH43N0ikaw@mail.gmail.com>
+References: <20231203222903.343711-1-andreas@kemnade.info>
+	<20231203222903.343711-7-andreas@kemnade.info>
+	<CAHCN7xKG6-vgnJ+mA8xt0aFK-jCBWOX-GkVmJGNERH43N0ikaw@mail.gmail.com>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Add SGX GPU device entry to base OMAP5 dtsi file.
+On Sun, 3 Dec 2023 16:46:20 -0600
+Adam Ford <aford173@gmail.com> wrote:
 
-Signed-off-by: Andrew Davis <afd@ti.com>
----
- arch/arm/boot/dts/ti/omap/omap5.dtsi | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+> On Sun, Dec 3, 2023 at 4:29=E2=80=AFPM Andreas Kemnade <andreas@kemnade.i=
+nfo> wrote:
+> >
+> > Replace TI-specific property by generic one.
+> >
+> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> > ---
+> > cannot be applied independently of the other ones, so maybe simply delay
+> > it.
+> >
+> >  arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi b/arch/arm/boot=
+/dts/ti/omap/omap3-gta04.dtsi
+> > index 3661340009e7a..5001c4ea35658 100644
+> > --- a/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi
+> > +++ b/arch/arm/boot/dts/ti/omap/omap3-gta04.dtsi
+> > @@ -476,6 +476,7 @@ twl: twl@48 {
+> >                 reg =3D <0x48>;
+> >                 interrupts =3D <7>; /* SYS_NIRQ cascaded to intc */
+> >                 interrupt-parent =3D <&intc>;
+> > +               system-power-controller; =20
+>=20
+> Could this go into the twl4030.dtsi file so we don't have every omap3
+> board with this part duplicating this line?
+>=20
+Well, that is a board-specific issue, so I do not think it belongs there,
+although quite common to have the twl4030 as the system-power-controller.
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap5.dtsi b/arch/arm/boot/dts/ti/omap/omap5.dtsi
-index bac6fa8387936..6a66214ad0e2f 100644
---- a/arch/arm/boot/dts/ti/omap/omap5.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap5.dtsi
-@@ -453,10 +453,11 @@ target-module@56000000 {
- 			#size-cells = <1>;
- 			ranges = <0 0x56000000 0x2000000>;
- 
--			/*
--			 * Closed source PowerVR driver, no child device
--			 * binding or driver in mainline
--			 */
-+			gpu@0 {
-+				compatible = "ti,omap5432-gpu", "img,powervr-sgx544";
-+				reg = <0x0 0x2000000>; /* 32MB */
-+				interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL_HIGH>;
-+			};
- 		};
- 
- 		target-module@58000000 {
--- 
-2.39.2
-
+Regards,
+Andreas
