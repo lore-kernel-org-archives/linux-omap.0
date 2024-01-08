@@ -1,37 +1,37 @@
 Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF5B38DC3;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3C9247793;
 	Mon,  8 Jan 2024 18:33:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="KME0vviq"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="tIC3FO5N"
 Received: from lelv0265.itg.ti.com ([10.180.67.224])
-	by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 408IXDoB041796;
-	Mon, 8 Jan 2024 12:33:13 -0600
+	by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 408IX5ms041769;
+	Mon, 8 Jan 2024 12:33:05 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1704738794;
-	bh=K3M9sI7ldpwxKdZlqbzDASUN2Gy2vGqDMV0YI/zfTo4=;
+	s=ti-com-17Q1; t=1704738785;
+	bh=Gdhx6GMh4rVP3km5x1uoGL2Uoq7UqUUHtltyRBPwCl8=;
 	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=KME0vviqbdcwJlAQ8bWNbObioH1VBKu2jzYv6sic48MxvNnBTDeOtUlPIRWvdytmn
-	 0MOjzIFmD1VMrfQRNjSAJwSIcl7B9VHdiv9N+ZlY7wIa6dtrQqFYhOO+FxpDm0ZOru
-	 r0juZZMEEBEg4w89gXIoKG5h4Wicb02AOTBcTJkI=
-Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
-	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 408IXD7f022473
+	b=tIC3FO5NGBdpNDZlL287om+LGb2BYGIgBzpWR4Jj6OVKhN1b5dqIyLqSNRd3Asg27
+	 PYv3+qbzz6maBy2EnNEuv8N8WDCe6hqy8SionOywnJa55CZ2Gmu/CwUGPkD1dzCZ/v
+	 emN536JMSU2ovagvBOND/1UjP9UZWTchj78/WjV4=
+Received: from DFLE111.ent.ti.com (dfle111.ent.ti.com [10.64.6.32])
+	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 408IX5mU022175
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Mon, 8 Jan 2024 12:33:13 -0600
-Received: from DFLE102.ent.ti.com (10.64.6.23) by DFLE108.ent.ti.com
- (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+	Mon, 8 Jan 2024 12:33:05 -0600
+Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE111.ent.ti.com
+ (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 8
- Jan 2024 12:33:13 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE102.ent.ti.com
- (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
+ Jan 2024 12:33:05 -0600
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Mon, 8 Jan 2024 12:33:13 -0600
+ Frontend Transport; Mon, 8 Jan 2024 12:33:05 -0600
 Received: from lelvsmtp5.itg.ti.com ([10.249.40.136])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 408IX3hJ051691;
-	Mon, 8 Jan 2024 12:33:12 -0600
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 408IX3hA051691;
+	Mon, 8 Jan 2024 12:33:04 -0600
 From: Andrew Davis <afd@ti.com>
 To: Frank Binns <frank.binns@imgtec.com>,
         Donald Robson
@@ -63,9 +63,9 @@ CC: <dri-devel@lists.freedesktop.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
         <linux-sunxi@lists.linux.dev>, <linux-omap@vger.kernel.org>,
         <linux-mips@vger.kernel.org>, Andrew Davis <afd@ti.com>
-Subject: [PATCH RFC v2 10/11] ARM: dts: sun6i: Add device tree entry for SGX GPU
-Date: Mon, 8 Jan 2024 12:33:01 -0600
-Message-ID: <20240108183302.255055-11-afd@ti.com>
+Subject: [PATCH RFC v2 01/11] dt-bindings: gpu: Rename img,powervr to img,powervr-rogue
+Date: Mon, 8 Jan 2024 12:32:52 -0600
+Message-ID: <20240108183302.255055-2-afd@ti.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20240108183302.255055-1-afd@ti.com>
 References: <20240108183302.255055-1-afd@ti.com>
@@ -79,33 +79,46 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 
-Add SGX GPU device entry to base sun6i-a31 dtsi file.
-
 Signed-off-by: Andrew Davis <afd@ti.com>
 ---
- arch/arm/boot/dts/allwinner/sun6i-a31.dtsi | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ .../bindings/gpu/{img,powervr.yaml => img,powervr-rogue.yaml} | 4 ++--
+ MAINTAINERS                                                   | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+ rename Documentation/devicetree/bindings/gpu/{img,powervr.yaml => img,powervr-rogue.yaml} (91%)
 
-diff --git a/arch/arm/boot/dts/allwinner/sun6i-a31.dtsi b/arch/arm/boot/dts/allwinner/sun6i-a31.dtsi
-index 5cce4918f84c9..e6998783b89aa 100644
---- a/arch/arm/boot/dts/allwinner/sun6i-a31.dtsi
-+++ b/arch/arm/boot/dts/allwinner/sun6i-a31.dtsi
-@@ -962,6 +962,15 @@ mdio: mdio {
- 			};
- 		};
+diff --git a/Documentation/devicetree/bindings/gpu/img,powervr.yaml b/Documentation/devicetree/bindings/gpu/img,powervr-rogue.yaml
+similarity index 91%
+rename from Documentation/devicetree/bindings/gpu/img,powervr.yaml
+rename to Documentation/devicetree/bindings/gpu/img,powervr-rogue.yaml
+index a13298f1a1827..03a8308b41ae7 100644
+--- a/Documentation/devicetree/bindings/gpu/img,powervr.yaml
++++ b/Documentation/devicetree/bindings/gpu/img,powervr-rogue.yaml
+@@ -2,10 +2,10 @@
+ # Copyright (c) 2023 Imagination Technologies Ltd.
+ %YAML 1.2
+ ---
+-$id: http://devicetree.org/schemas/gpu/img,powervr.yaml#
++$id: http://devicetree.org/schemas/gpu/img,powervr-rogue.yaml#
+ $schema: http://devicetree.org/meta-schemas/core.yaml#
  
-+		gpu: gpu@1c40000 {
-+			compatible = "allwinner,sun6i-a31-gpu", "img,powervr-sgx544";
-+			reg = <0x01c40000 0x10000>;
-+			interrupts = <GIC_SPI 97 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&ccu CLK_GPU_CORE>, <&ccu CLK_GPU_MEMORY>;
-+			clock-names = "core", "mem";
-+			status = "disabled";
-+		};
-+
- 		crypto: crypto-engine@1c15000 {
- 			compatible = "allwinner,sun6i-a31-crypto",
- 				     "allwinner,sun4i-a10-crypto";
+-title: Imagination Technologies PowerVR and IMG GPU
++title: Imagination Technologies PowerVR Rogue and IMG GPUs
+ 
+ maintainers:
+   - Frank Binns <frank.binns@imgtec.com>
+diff --git a/MAINTAINERS b/MAINTAINERS
+index fa67e2624723f..5b205795da04e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10461,7 +10461,7 @@ M:	Donald Robson <donald.robson@imgtec.com>
+ M:	Matt Coster <matt.coster@imgtec.com>
+ S:	Supported
+ T:	git git://anongit.freedesktop.org/drm/drm-misc
+-F:	Documentation/devicetree/bindings/gpu/img,powervr.yaml
++F:	Documentation/devicetree/bindings/gpu/img,powervr-rogue.yaml
+ F:	Documentation/gpu/imagination/
+ F:	drivers/gpu/drm/imagination/
+ F:	include/uapi/drm/pvr_drm.h
 -- 
 2.39.2
 
