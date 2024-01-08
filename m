@@ -1,63 +1,109 @@
-Received: from mail-ot1-f49.google.com (mail-ot1-f49.google.com [209.85.210.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fllv0016.ext.ti.com (fllv0016.ext.ti.com [198.47.19.142])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C249E611F;
-	Sat,  6 Jan 2024 05:02:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-ot1-f49.google.com with SMTP id 46e09a7af769-6dc20b4595bso198617a34.0;
-        Fri, 05 Jan 2024 21:02:51 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1704517371; x=1705122171;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=cK8r7/aM3L9XGWvRGZnPsTvaAInBVrLl4heKm8vHNzI=;
-        b=YS0puHaFODOKXkObKOiStsMLaw57hNaLQZ0xw8zI3bruD0ap1YkD34FRGKS5MD2esZ
-         rU9yZEvXZxsbqGcgdAilSGr+69T/GVi+uDcEykLFKza29M/s28IZx1lsVmehUPBM/tTs
-         gj1A8L/cKXBj/NnD4kavAOeZUrnt+XuVhT1C7SIgAi93h+qL8LNGr9OU11bVT5UC1C1k
-         wXOxS2boDfWrituJuVI3hCvPwaXMEbdJvbJDDnSPj9EKGc/HdqXB21CsBjAQO37ZkQDN
-         tETNKjXE8pxLKDWnkT2etcYIcQwg8caHRN2FvNEPCppOpmSWXATUzBvy+7O7Vpo8foYR
-         Sc1g==
-X-Gm-Message-State: AOJu0Yw1xdtcyRXT8RhCqLMT3i6BoyCjKwkFhjAezLJYiEnA061ZN2wd
-	0VtLdbaZr5iNtS6AlXaIvSk=
-X-Google-Smtp-Source: AGHT+IGh4zH5m14dFcFkW/DJT9SQlTB83E+Xq0ErohPZJ1em1dUH8frKAoF1I8TghwO6vOchOVVyRw==
-X-Received: by 2002:a05:6359:7302:b0:175:78d3:1b44 with SMTP id ux2-20020a056359730200b0017578d31b44mr402339rwb.46.1704517370687;
-        Fri, 05 Jan 2024 21:02:50 -0800 (PST)
-Received: from localhost (fpd11144dd.ap.nuro.jp. [209.17.68.221])
-        by smtp.gmail.com with ESMTPSA id z21-20020a17090ab11500b0028d19ddb1afsm1089597pjq.33.2024.01.05.21.02.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 05 Jan 2024 21:02:49 -0800 (PST)
-Date: Sat, 6 Jan 2024 14:02:47 +0900
-From: Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>
-To: Peter Robinson <pbrobinson@gmail.com>
-Cc: Tom Joseph <tjoseph@cadence.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Rob Herring <robh@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
-	linux-pci@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2] PCI: cadence: Make TI J721E depend on ARCH_K3
-Message-ID: <20240106050247.GA1227754@rocinante>
-References: <20240104213910.1426843-1-pbrobinson@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95EAA208A0;
+	Mon,  8 Jan 2024 18:33:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="cgq1sizL"
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+	by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id 408IXDkP041791;
+	Mon, 8 Jan 2024 12:33:13 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+	s=ti-com-17Q1; t=1704738793;
+	bh=L0ZN/p9i33lJE43x/uNLzJJqV9lS8X7UChbk/Kn2v8E=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=cgq1sizLi9L9xNPqysc/V6wRjFq2Ehu0MQXUtGhthmuKMshRYvMvMy1XbPwLACBSF
+	 qL4+UxLfnTTHBiYE7W8guRr+kZJeNhg9JWSVSEo66xGuwUfLIcYaT6ZQ78F91cBGtd
+	 pubW+dut6Ug1hZSGqdH9g/lnv9kGlPVuJARFYDFA=
+Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
+	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 408IXDqp123990
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Mon, 8 Jan 2024 12:33:13 -0600
+Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE113.ent.ti.com
+ (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 8
+ Jan 2024 12:33:12 -0600
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Mon, 8 Jan 2024 12:33:12 -0600
+Received: from lelvsmtp5.itg.ti.com ([10.249.40.136])
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 408IX3hI051691;
+	Mon, 8 Jan 2024 12:33:11 -0600
+From: Andrew Davis <afd@ti.com>
+To: Frank Binns <frank.binns@imgtec.com>,
+        Donald Robson
+	<donald.robson@imgtec.com>,
+        Matt Coster <matt.coster@imgtec.com>,
+        "H .
+ Nikolaus Schaller" <hns@goldelico.com>,
+        Adam Ford <aford173@gmail.com>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Maarten Lankhorst
+	<maarten.lankhorst@linux.intel.com>,
+        Maxime Ripard <mripard@kernel.org>,
+        Thomas Zimmermann <tzimmermann@suse.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+        Conor Dooley
+	<conor+dt@kernel.org>, Chen-Yu Tsai <wens@csie.org>,
+        Jernej Skrabec
+	<jernej.skrabec@gmail.com>,
+        Samuel Holland <samuel@sholland.org>,
+        =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+        Tony Lindgren
+	<tony@atomide.com>, Nishanth Menon <nm@ti.com>,
+        Vignesh Raghavendra
+	<vigneshr@ti.com>,
+        Tero Kristo <kristo@kernel.org>, Paul Cercueil
+	<paul@crapouillou.net>
+CC: <dri-devel@lists.freedesktop.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+        <linux-sunxi@lists.linux.dev>, <linux-omap@vger.kernel.org>,
+        <linux-mips@vger.kernel.org>, Andrew Davis <afd@ti.com>
+Subject: [PATCH RFC v2 09/11] arm64: dts: ti: k3-am654-main: Add device tree entry for SGX GPU
+Date: Mon, 8 Jan 2024 12:33:00 -0600
+Message-ID: <20240108183302.255055-10-afd@ti.com>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20240108183302.255055-1-afd@ti.com>
+References: <20240108183302.255055-1-afd@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240104213910.1426843-1-pbrobinson@gmail.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 
-Hello,
+Add SGX GPU device entry to base AM654 dtsi file.
 
-> The J721E PCIe is hardware specific to TI SoC parts so add a dependency
-> on that so it's available for those SoC parts and for compile testing but
-> not necessarily everyone who enables the Cadence PCIe controller.
+Signed-off-by: Andrew Davis <afd@ti.com>
+---
+ arch/arm64/boot/dts/ti/k3-am65-main.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Applied to controller/cadence, thank you!
+diff --git a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+index fcea544656360..64b52c8dafc6c 100644
+--- a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
++++ b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+@@ -1050,6 +1050,13 @@ dss_ports: ports {
+ 		};
+ 	};
+ 
++	gpu: gpu@7000000 {
++		compatible = "ti,am6548-gpu", "img,powervr-sgx544";
++		reg = <0x0 0x7000000 0x0 0x10000>;
++		interrupts = <GIC_SPI 162 IRQ_TYPE_LEVEL_HIGH>;
++		power-domains = <&k3_pds 65 TI_SCI_PD_EXCLUSIVE>;
++	};
++
+ 	ehrpwm0: pwm@3000000 {
+ 		compatible = "ti,am654-ehrpwm", "ti,am3352-ehrpwm";
+ 		#pwm-cells = <3>;
+-- 
+2.39.2
 
-[1/1] PCI: j721e: Make TI J721E depend on ARCH_K3
-      https://git.kernel.org/pci/pci/c/177c9ac6ab3f
-
-	Krzysztof
