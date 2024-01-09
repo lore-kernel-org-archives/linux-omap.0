@@ -1,37 +1,37 @@
 Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 738963B293;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC5433C489;
 	Tue,  9 Jan 2024 17:20:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="LmE0wQiO"
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-	by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 409HJxbE123319;
-	Tue, 9 Jan 2024 11:19:59 -0600
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="d/40QSX7"
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+	by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 409HJqs5123259;
+	Tue, 9 Jan 2024 11:19:52 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1704820799;
-	bh=/A8F7GnR9icPmLdv2WR17zNBw67OAAXurt/PLePpvhA=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=LmE0wQiOpOW7/7f0TnqOukOxuxjo8rWFnW/2bfX9Z9XZ4qvHS7RfPBtTz01kTzRwp
-	 8t4LNsQV+OG5uugH7Ew/9gIrvju7lycZ21PbX6L7aPtsOFKA6bZXyki+KEjoY+GR2v
-	 FgA6NdnKB/BicxUA73RY2XLNzFkJOEdWxIu5+e+k=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 409HJxoF053360
+	s=ti-com-17Q1; t=1704820792;
+	bh=JmHxyYvbhopogZmbOSh1yC2/KcWNk5Dzy9yuj4SVodU=;
+	h=From:To:CC:Subject:Date;
+	b=d/40QSX74U9riThnHNSv6qTZEOEy0QdOgSlYbsGm10QbaPlVy+YsPtshDtS9Iy+Ku
+	 NZDrwsPSTqRZRZQYy94KJVh6gv0+XagBUtOlCsWjmyE/lTni8jfcXPVtWta5CjfUP0
+	 EdNsjIvfb4sUP8Hhu8Xu/gZkJM7U1WbRedgnhX4U=
+Received: from DFLE109.ent.ti.com (dfle109.ent.ti.com [10.64.6.30])
+	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 409HJqxO123393
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Tue, 9 Jan 2024 11:19:59 -0600
-Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+	Tue, 9 Jan 2024 11:19:52 -0600
+Received: from DFLE115.ent.ti.com (10.64.6.36) by DFLE109.ent.ti.com
+ (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 9
- Jan 2024 11:19:59 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+ Jan 2024 11:19:51 -0600
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 9 Jan 2024 11:19:59 -0600
+ Frontend Transport; Tue, 9 Jan 2024 11:19:52 -0600
 Received: from lelvsmtp5.itg.ti.com ([10.249.40.136])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 409HJouD089645;
-	Tue, 9 Jan 2024 11:19:58 -0600
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 409HJou5089645;
+	Tue, 9 Jan 2024 11:19:50 -0600
 From: Andrew Davis <afd@ti.com>
 To: Frank Binns <frank.binns@imgtec.com>,
         Matt Coster
@@ -62,12 +62,10 @@ CC: <dri-devel@lists.freedesktop.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
         <linux-sunxi@lists.linux.dev>, <linux-omap@vger.kernel.org>,
         <linux-mips@vger.kernel.org>, Andrew Davis <afd@ti.com>
-Subject: [PATCH 08/11] ARM: dts: DRA7xx: Add device tree entry for SGX GPU
-Date: Tue, 9 Jan 2024 11:19:47 -0600
-Message-ID: <20240109171950.31010-9-afd@ti.com>
+Subject: [PATCH 00/11] Device tree support for Imagination Series5 GPU
+Date: Tue, 9 Jan 2024 11:19:39 -0600
+Message-ID: <20240109171950.31010-1-afd@ti.com>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20240109171950.31010-1-afd@ti.com>
-References: <20240109171950.31010-1-afd@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -78,39 +76,76 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 
-Add SGX GPU device entry to base DRA7x dtsi file.
+Hello all,
 
-Signed-off-by: Andrew Davis <afd@ti.com>
-Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
----
- arch/arm/boot/dts/ti/omap/dra7.dtsi | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+I know this has been tried before[0], but given the recent upstreaming of
+the Series6+ GPU bindings I figured it might be time to give the Series5
+bindings another try.
 
-diff --git a/arch/arm/boot/dts/ti/omap/dra7.dtsi b/arch/arm/boot/dts/ti/omap/dra7.dtsi
-index 6509c742fb58c..8527643cb69a8 100644
---- a/arch/arm/boot/dts/ti/omap/dra7.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/dra7.dtsi
-@@ -850,12 +850,19 @@ target-module@56000000 {
- 					<SYSC_IDLE_SMART>;
- 			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
- 					<SYSC_IDLE_NO>,
--					<SYSC_IDLE_SMART>;
-+					<SYSC_IDLE_SMART>,
-+					<SYSC_IDLE_SMART_WKUP>;
- 			clocks = <&gpu_clkctrl DRA7_GPU_CLKCTRL 0>;
- 			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			ranges = <0 0x56000000 0x2000000>;
-+
-+			gpu@0 {
-+				compatible = "ti,am5728-gpu", "img,powervr-sgx544";
-+				reg = <0x0 0x10000>; /* 64kB */
-+				interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
-+			};
- 		};
- 
- 		crossbar_mpu: crossbar@4a002a48 {
+While there is currently no mainline driver for these binding, there is an
+open source out-of-tree kernel-side driver available[1]. Having a stable
+and upstream binding for these devices allows us to describe this hardware
+in device tree.
+
+This is my vision for how these bindings should look, along with some
+example uses in several SoC DT files. The compatible names have been
+updated to match what was decided on for Series6+, but otherwise most
+is the same as we have been using in our vendor tree for many years.
+
+Thanks,
+Andrew
+
+Based on next-20240109.
+
+[0]: https://lkml.org/lkml/2020/4/24/1222
+[1]: https://github.com/openpvrsgx-devgroup
+
+Changes for v1:
+ - Added commit message to patch #1
+ - Reworked Rogue binding title
+ - Add TI copyright to new binding doc
+ - Added default min/maxItems to clocks property
+ - Moved "additionalProperties" to end
+ - Flattened out allOf block logic
+ - Added extra SGX binding example
+ - Added Suggested/Reviewed tags
+
+Changes for RFC v2:
+ - Added patch to rename Rogue+ binding to img,powervr-rogue.yaml
+ - Locked all property item counts
+ - Removed nodename pattern check
+
+Andrew Davis (11):
+  dt-bindings: gpu: Rename img,powervr to img,powervr-rogue
+  dt-bindings: gpu: Add PowerVR Series5 SGX GPUs
+  ARM: dts: omap3: Add device tree entry for SGX GPU
+  ARM: dts: omap4: Add device tree entry for SGX GPU
+  ARM: dts: omap5: Add device tree entry for SGX GPU
+  ARM: dts: AM33xx: Add device tree entry for SGX GPU
+  ARM: dts: AM437x: Add device tree entry for SGX GPU
+  ARM: dts: DRA7xx: Add device tree entry for SGX GPU
+  arm64: dts: ti: k3-am654-main: Add device tree entry for SGX GPU
+  ARM: dts: sun6i: Add device tree entry for SGX GPU
+  MIPS: DTS: jz4780: Add device tree entry for SGX GPU
+
+ ...mg,powervr.yaml => img,powervr-rogue.yaml} |   4 +-
+ .../bindings/gpu/img,powervr-sgx.yaml         | 138 ++++++++++++++++++
+ MAINTAINERS                                   |   3 +-
+ arch/arm/boot/dts/allwinner/sun6i-a31.dtsi    |   9 ++
+ arch/arm/boot/dts/ti/omap/am33xx.dtsi         |   9 +-
+ arch/arm/boot/dts/ti/omap/am3517.dtsi         |  11 +-
+ arch/arm/boot/dts/ti/omap/am4372.dtsi         |   6 +
+ arch/arm/boot/dts/ti/omap/dra7.dtsi           |   9 +-
+ arch/arm/boot/dts/ti/omap/omap34xx.dtsi       |  11 +-
+ arch/arm/boot/dts/ti/omap/omap36xx.dtsi       |   9 +-
+ arch/arm/boot/dts/ti/omap/omap4.dtsi          |   9 +-
+ arch/arm/boot/dts/ti/omap/omap5.dtsi          |   9 +-
+ arch/arm64/boot/dts/ti/k3-am65-main.dtsi      |   7 +
+ arch/mips/boot/dts/ingenic/jz4780.dtsi        |  11 ++
+ 14 files changed, 215 insertions(+), 30 deletions(-)
+ rename Documentation/devicetree/bindings/gpu/{img,powervr.yaml => img,powervr-rogue.yaml} (91%)
+ create mode 100644 Documentation/devicetree/bindings/gpu/img,powervr-sgx.yaml
+
 -- 
 2.39.2
 
