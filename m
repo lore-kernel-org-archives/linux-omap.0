@@ -1,37 +1,37 @@
 Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1EC23D961;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28B733D962;
 	Tue,  9 Jan 2024 17:20:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="riVeoI1/"
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-	by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 409HK2pr107668;
-	Tue, 9 Jan 2024 11:20:02 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1704820802;
-	bh=+BZRfg6nhZdzKnCLNt4s2t//pdkbbIJbI/lXRcVy5sM=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=riVeoI1/RpAyKyKZcaIgSUn1HHddUBEuPjm6KhBLrsfiSfLspoYMcWEpPoJSjBNYV
-	 4KoqNATwmwiDjMi3OjtYMaQDbELo3Pzcq+EB8j+AaSjsbb91TTdhpnlPl3F1OBK/S1
-	 5EZTcOQFi6Ng71QMdmb9MWi1kKvElYimBNjXpeKc=
-Received: from DFLE111.ent.ti.com (dfle111.ent.ti.com [10.64.6.32])
-	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 409HK2p0127802
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Tue, 9 Jan 2024 11:20:02 -0600
-Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE111.ent.ti.com
- (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 9
- Jan 2024 11:20:01 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE103.ent.ti.com
- (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 9 Jan 2024 11:20:01 -0600
-Received: from lelvsmtp5.itg.ti.com ([10.249.40.136])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 409HJouG089645;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="euekyNZv"
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+	by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 409HK0Uq107633;
 	Tue, 9 Jan 2024 11:20:00 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+	s=ti-com-17Q1; t=1704820800;
+	bh=yVjuHQUM9faqobL4vMHbNxJbRKQ2si6luHTTyyhfnHs=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=euekyNZvWo26vBoQWeSE8LvaoqDTscGKaliXXedPv9BM9eHG6IyQnwnX2UVbEeJgg
+	 Njp7RLbhjkeS7kzaq5UqDpkAQXqQPbBm/gAWgaHHJuoVSzOPYHu9OUM/g1RhtqLUzh
+	 a4TjabfJsYM7NjvAcmhw3B8ljH1f6BbITybAaK8g=
+Received: from DLEE101.ent.ti.com (dlee101.ent.ti.com [157.170.170.31])
+	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 409HK0X5123473
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Tue, 9 Jan 2024 11:20:00 -0600
+Received: from DLEE106.ent.ti.com (157.170.170.36) by DLEE101.ent.ti.com
+ (157.170.170.31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 9
+ Jan 2024 11:19:59 -0600
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE106.ent.ti.com
+ (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Tue, 9 Jan 2024 11:20:00 -0600
+Received: from lelvsmtp5.itg.ti.com ([10.249.40.136])
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 409HJouE089645;
+	Tue, 9 Jan 2024 11:19:59 -0600
 From: Andrew Davis <afd@ti.com>
 To: Frank Binns <frank.binns@imgtec.com>,
         Matt Coster
@@ -62,9 +62,9 @@ CC: <dri-devel@lists.freedesktop.org>, <devicetree@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
         <linux-sunxi@lists.linux.dev>, <linux-omap@vger.kernel.org>,
         <linux-mips@vger.kernel.org>, Andrew Davis <afd@ti.com>
-Subject: [PATCH 11/11] MIPS: DTS: jz4780: Add device tree entry for SGX GPU
-Date: Tue, 9 Jan 2024 11:19:50 -0600
-Message-ID: <20240109171950.31010-12-afd@ti.com>
+Subject: [PATCH 09/11] arm64: dts: ti: k3-am654-main: Add device tree entry for SGX GPU
+Date: Tue, 9 Jan 2024 11:19:48 -0600
+Message-ID: <20240109171950.31010-10-afd@ti.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20240109171950.31010-1-afd@ti.com>
 References: <20240109171950.31010-1-afd@ti.com>
@@ -78,36 +78,32 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 
-Add SGX GPU device entry to base jz4780 dtsi file.
+Add SGX GPU device entry to base AM654 dtsi file.
 
 Signed-off-by: Andrew Davis <afd@ti.com>
 Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
 ---
- arch/mips/boot/dts/ingenic/jz4780.dtsi | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/arm64/boot/dts/ti/k3-am65-main.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/arch/mips/boot/dts/ingenic/jz4780.dtsi b/arch/mips/boot/dts/ingenic/jz4780.dtsi
-index 18affff85ce38..5ea6833f5e872 100644
---- a/arch/mips/boot/dts/ingenic/jz4780.dtsi
-+++ b/arch/mips/boot/dts/ingenic/jz4780.dtsi
-@@ -460,6 +460,17 @@ hdmi: hdmi@10180000 {
- 		status = "disabled";
+diff --git a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+index fcea544656360..64b52c8dafc6c 100644
+--- a/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
++++ b/arch/arm64/boot/dts/ti/k3-am65-main.dtsi
+@@ -1050,6 +1050,13 @@ dss_ports: ports {
+ 		};
  	};
  
-+	gpu: gpu@13040000 {
-+		compatible = "ingenic,jz4780-gpu", "img,powervr-sgx540";
-+		reg = <0x13040000 0x4000>;
-+
-+		clocks = <&cgu JZ4780_CLK_GPU>;
-+		clock-names = "core";
-+
-+		interrupt-parent = <&intc>;
-+		interrupts = <63>;
++	gpu: gpu@7000000 {
++		compatible = "ti,am6548-gpu", "img,powervr-sgx544";
++		reg = <0x0 0x7000000 0x0 0x10000>;
++		interrupts = <GIC_SPI 162 IRQ_TYPE_LEVEL_HIGH>;
++		power-domains = <&k3_pds 65 TI_SCI_PD_EXCLUSIVE>;
 +	};
 +
- 	lcdc0: lcdc0@13050000 {
- 		compatible = "ingenic,jz4780-lcd";
- 		reg = <0x13050000 0x1800>;
+ 	ehrpwm0: pwm@3000000 {
+ 		compatible = "ti,am654-ehrpwm", "ti,am3352-ehrpwm";
+ 		#pwm-cells = <3>;
 -- 
 2.39.2
 
