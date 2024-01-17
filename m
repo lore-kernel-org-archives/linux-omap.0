@@ -1,35 +1,36 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97A8E1385;
-	Wed, 17 Jan 2024 01:10:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 519D915BF;
+	Wed, 17 Jan 2024 01:10:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705453808; cv=none; b=tHXCaOW+1smJgRpwOQ7dQ65s3jqi1TJNYAbrcAHLaTQEtC2uTemi0/htcOZXQjPWP1lCUGLOxm4+T4/AIi0csVjdvKxTephLlL10WYTmYLSpwTXOyhxrfIT42OJ5j0zXcNKMigDNmhBBro2fmi67OgqTY7OISKn5bTmaYVy32eQ=
+	t=1705453808; cv=none; b=j9JGj7dCyH6ggmkfczQ6QkoWggSD79rytSBIkO+f7MZYHANLeSb8KpGm7draIVsGSe33N4GQzmSNPpnXlKzDWFDs1UfBleRZgrAlITxiiNhH37HE5VWIQjnIf877lJHvYRNaGO0bAdyUVkqBMrWKWM7lKZCa8oCBiiu/QAJ8/cQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1705453808; c=relaxed/simple;
-	bh=clZBqQ02r/6ZEfBAlGdIaFRLscyEwF/D28yNWD4RkBk=;
+	bh=bj1RQ/zuwjkWVOON+ntuZ6l/PDRcucLrnlepmOpz0fo=;
 	h=DKIM-Signature:Received:From:To:Cc:Subject:Date:Message-ID:
-	 X-Mailer:MIME-Version:Content-Type:Content-Transfer-Encoding; b=pDS7m/dTlaj+ctsRBbfHlJ6XAbAjX/ZAb7VdfdwxY0rrBfJI9872sMISELyQC0J8/iIAf5btygspt1bPDiUKgKHE+B5s5XDZcOxDH/nboRbwua82+vHDwb3325tgD28ZEeGCL6VXs9tHrWsvQGhEwWHnVnGkWDiEr2DsH+UNyE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=QRCPXq+3; arc=none smtp.client-ip=198.137.202.133
+	 X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding; b=USwirSS7F8wVTpUL+DU6FnjRWcjRkkf2ANJfCEqoBRgtsJ4VFf53m4j1KqXJvAwe+5DIfGMZAS1I945MsrOX1oBaCFiauBhJr6PUZ+N5inoDsoMT5lr5WF7xbwRKuAtAXTFIotY4bRw+f2gGU1ikoBQ9MvnJ2a9UeiRdg6sFk24=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=PE/UNjSU; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="QRCPXq+3"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="PE/UNjSU"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=clZBqQ02r/6ZEfBAlGdIaFRLscyEwF/D28yNWD4RkBk=; b=QRCPXq+30XTFBS/gSpMVTeuP5q
-	CFIjEAxMm5cxxyj5O0SEiH0nUtsFA4is6vFM0HhmQpNVPQ9FGtB1naC64TMSpVtqtiQiF4SHjdAfP
-	sfoBSXG+fwqDMXREceunvQOJoFxfU7WYCp5BlSV/ixqHQHCbPTxGyGkS4upohwYYqMWj9PK4pdx1k
-	VDXJtsesKqkNjILpC9xtH+Ts61yF6hLNlpvOPY93bFVYMqg9DRmtGjJ72yLCihfCkg7/WXzCB9pTf
-	f8g5aRRlcNydosy+y5SLM2pPk8DdJT8jkKjhZZWoKmrl9e4DTuUUKcvg/h5bJXjUJmAAlM6Isgq63
-	QEIxVEWQ==;
+	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
+	:Reply-To:Content-Type:Content-ID:Content-Description;
+	bh=XBmORscXXZHiW56NHRNnc5Yepc4GRt+FSu1EBqfjiI0=; b=PE/UNjSUdImk5gKFwXtQ1Kgtar
+	UJmcWG18mtE+xw+YxDpTozUguLwFIQea+UpLTrVPbjRCr03P+wHx1nYZx69jWLDMAoKlMVbmHfsYh
+	ZqdXECVaUChG0wMaR9AiLZHk+jko7XBn5tVjUJ+AD+0XM5YyZ4QJZi19oBi3FV/7Z7u0jH9tpG1BK
+	cMzN3z0h/YYSBBupAAKTG7AivxJsInI7LnyX4xN32S79dwdCNTUZsN4uMGA1kYBxig8BOhAXynwQN
+	o9GJbEcCjFVA0DIE3Qj0yMqdTwfdlUGyaObzhbXMdYcmb8mGbtDIoZlCuiUQvt24biEHiaqzlqHbV
+	cdM5/Ifg==;
 Received: from [50.53.46.231] (helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-	id 1rPuRR-00E6zu-1y;
-	Wed, 17 Jan 2024 01:10:05 +0000
+	id 1rPuRS-00E6zu-2R;
+	Wed, 17 Jan 2024 01:10:06 +0000
 From: Randy Dunlap <rdunlap@infradead.org>
 To: linux-kernel@vger.kernel.org
 Cc: Randy Dunlap <rdunlap@infradead.org>,
@@ -37,44 +38,47 @@ Cc: Randy Dunlap <rdunlap@infradead.org>,
 	linux-omap@vger.kernel.org,
 	Russell King <linux@armlinux.org.uk>,
 	linux-arm-kernel@lists.infradead.org,
-	patches@armlinux.org.uk,
-	Paul Walmsley <paul@pwsan.com>,
-	=?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-	Kevin Hilman <khilman@kernel.org>
-Subject: [PATCH 00/13] ARM: OMAP2+: fix a bunch of kernel-doc warnings
-Date: Tue, 16 Jan 2024 17:09:48 -0800
-Message-ID: <20240117011004.22669-1-rdunlap@infradead.org>
+	patches@armlinux.org.uk
+Subject: [PATCH 04/13] ARM: OMAP2+: cm33xx: use matching function name in kernel-doc
+Date: Tue, 16 Jan 2024 17:09:52 -0800
+Message-ID: <20240117011004.22669-5-rdunlap@infradead.org>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240117011004.22669-1-rdunlap@infradead.org>
+References: <20240117011004.22669-1-rdunlap@infradead.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Fix many kernel-doc warnings in arch/arm/mach-omap2/:
+Prevent a kernel-doc warning by using the correct function name in
+the kernel-doc comment:
 
- [PATCH 01/13] ARM: OMAP2+: am33xx-restart: fix function name in kernel-doc
- [PATCH 02/13] ARM: OMAP2+: clockdomain: fix kernel-doc warnings
- [PATCH 03/13] ARM: OMAP2+: clock: fix a function name in kernel-doc
- [PATCH 04/13] ARM: OMAP2+: cm33xx: use matching function name in kernel-doc
- [PATCH 05/13] ARM: OMAP2+: CMINST: use matching function name in kernel-doc
- [PATCH 06/13] ARM: OMAP2+: hwmod: remove misuse of kernel-doc
- [PATCH 07/13] ARM: OMAP2+: hwmod: fix kernel-doc warnings
- [PATCH 08/13] ARM: OMAP2+: pmic-cpcap: fix kernel-doc warnings
- [PATCH 09/13] ARM: OMAP2+: prm44xx: fix a kernel-doc warning
- [PATCH 10/13] ARM: OMAP2+: PRM: fix kernel-doc warnings
- [PATCH 11/13] ARM: OMAP2+: fix a kernel-doc warning
- [PATCH 12/13] ARM: OMAP2+: fix kernel-doc warnings
- [PATCH 13/13] ARM: OMAP2+: fix kernel-doc warnings
+cm33xx.c:366: warning: expecting prototype for am33xx_restore_save_context(). Prototype was for am33xx_clkdm_restore_context() instead
 
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: linux-arm-kernel@lists.infradead.org
 Cc: patches@armlinux.org.uk
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: "Benoît Cousson" <bcousson@baylibre.com>
-Cc: Kevin Hilman <khilman@kernel.org>
+---
+KernelVersion: 0dd3ee31125508cd67f7e717
+
+ arch/arm/mach-omap2/cm33xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -- a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+--- a/arch/arm/mach-omap2/cm33xx.c
++++ b/arch/arm/mach-omap2/cm33xx.c
+@@ -357,7 +357,7 @@ static int am33xx_clkdm_save_context(str
+ }
+ 
+ /**
+- * am33xx_restore_save_context - Restore the clockdomain transition context
++ * am33xx_clkdm_restore_context - Restore the clockdomain transition context
+  * @clkdm: The clockdomain pointer whose context needs to be restored
+  *
+  * Restore the clockdomain transition context.
