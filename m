@@ -1,47 +1,49 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 029B3138E;
-	Wed, 17 Jan 2024 01:10:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41F7F17D9;
+	Wed, 17 Jan 2024 01:10:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705453809; cv=none; b=GokiWLXH5WFmalUiV7s0039wSz7OF6CMqokJ3oY5hzLxYVCT6wNoFzqVyzmkjK9Iiii5I/lMJn5yJp+0K4tF9JVA3HIXkifpSPaXhItPwjZgsBsxCMe1Q2oHZe5v+MKy+UR7Ej0a8lVHNoRMO7umjnpq0GHuPa8NqhK9siydq5Q=
+	t=1705453809; cv=none; b=O8KsZhPzw69oVqzzWhJ5Dn0oRYwYs12iARQ6o6FFlSKUSc0JSHA54I6WKMMJP0Gz7mdtVx6oLILyuxLPQanNovBy5ouimp0xzMVksn85SajZi/ik7j4tad8/S7GEuvGaJy0xfC6F6NF6KPhJyv5Sv1LWxauQX6cywYLgKbkzFmQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1705453809; c=relaxed/simple;
-	bh=aM8ocPmHg0OMLJEWtIxrWWZhPAw14wJ+RT4fBx1Haho=;
+	bh=j6+RY7q13Y+Hd0Y8k8ykBta7KjT/Cne7jir5J+hsisM=;
 	h=DKIM-Signature:Received:From:To:Cc:Subject:Date:Message-ID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding; b=uZVdMK7JtTXuZHqtO6ZNcCtybP5a4c498LwvE1VaCzEvrYUT+BYzX111kSG+EIOIAsnRI1EY47yvIcOn6RIzAt92esHFp70oHgGt9t1GQ4FQOHQNziQLXHrgiLDtIPOVMsg+CWBFwNej+1404OY9D0ZUi16aJ9a88UQHYuR2ZrI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=zFi3WSi9; arc=none smtp.client-ip=198.137.202.133
+	 X-Mailer:In-Reply-To:References:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding; b=tkzPFCaj+JAHIlC+wRCJgxWnCdAtJqP0HCBphn+UII25JZPKe88OmVSHEH04lC2HBeLehAhB/8pxd0bz5CON/hdWvi4ZXa8i3X0/R7G+cqkILL6h4kK4pEtp3RqGC/sIgMCVGUh60JtNKIP8BoKEtKfUWJjD3JngZ4yDAe5hNfw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=a0Z2lvui; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="zFi3WSi9"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="a0Z2lvui"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
-	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=rcWb9ODcVk+PBPlVDZ/HAVR0kff6gEP/cAU5smz8ywA=; b=zFi3WSi96ypWdkqc2v0GH5xW7F
-	eZ/SaBqk+vsXK5QzVZhfENB+bbzBp7ZnUEXHr9Uc2UIA9umORYCJdj0mjZf75oxiLnSMLKMlVvjkr
-	VcbPST2oFBfJM9JSG63i7Vy1zdeVDlBCUPumK/YXswWSYKXYpE/+uqc3YFNQCZI1Vft4XidnPLKhg
-	/XXvCVKUC+iTEklTGnHWcSFdg2tOkHO7fCyRY9wYe9k6CTaxKRQPEFRLT/yAhmE9qkxmOTrf51E+/
-	7JfRIUB5X69Gx6xInfh/EqjPdzpblHcMv9GSqifPDr8D/LgUHCOUWHFPwg2UBpM/vyBGJh9kWZfqs
-	ge5aniGQ==;
+	Content-Type:MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:
+	To:From:Sender:Reply-To:Content-ID:Content-Description;
+	bh=sGF6uJaEvsCufyOMbTpUXxplWqfaxnjoJpE5oP5VF1w=; b=a0Z2lvuiJXK7spdORx6yo8UPiY
+	S6VfPLuqkrMN1Rmy13cKrcTA9DQzC1NzIR0UCgmxeBtvg04Bw4MDskW4H5ehtawyqAWki0S4gk357
+	eGBfayq7HlV+RdUjQLa+uPqpi3lGP/r4dG9ASjuNUC1COkKNFD9SWP2TFNO4DpUfiJC3jieNojyA/
+	1TQy4S2RfrhwEACzbiuoyESQf4Habeh2SVi8uXxVvZvam441loTEbTNEtKtx5nnkijVXQOkcVwVuD
+	zvXOVqKfeJAN57bGmg4Ag+ZSIXGGWe+h5Ms73zTTge0Rq0MUvk+cQ2ToEGfZ22h7pAraFqV5JKGPg
+	JVkVIdxg==;
 Received: from [50.53.46.231] (helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-	id 1rPuRS-00E6zu-1X;
-	Wed, 17 Jan 2024 01:10:06 +0000
+	id 1rPuRT-00E6zu-28;
+	Wed, 17 Jan 2024 01:10:07 +0000
 From: Randy Dunlap <rdunlap@infradead.org>
 To: linux-kernel@vger.kernel.org
 Cc: Randy Dunlap <rdunlap@infradead.org>,
+	Paul Walmsley <paul@pwsan.com>,
+	=?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
 	Tony Lindgren <tony@atomide.com>,
 	linux-omap@vger.kernel.org,
 	Russell King <linux@armlinux.org.uk>,
 	linux-arm-kernel@lists.infradead.org,
 	patches@armlinux.org.uk
-Subject: [PATCH 03/13] ARM: OMAP2+: clock: fix a function name in kernel-doc
-Date: Tue, 16 Jan 2024 17:09:51 -0800
-Message-ID: <20240117011004.22669-4-rdunlap@infradead.org>
+Subject: [PATCH 07/13] ARM: OMAP2+: hwmod: fix kernel-doc warnings
+Date: Tue, 16 Jan 2024 17:09:55 -0800
+Message-ID: <20240117011004.22669-8-rdunlap@infradead.org>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240117011004.22669-1-rdunlap@infradead.org>
 References: <20240117011004.22669-1-rdunlap@infradead.org>
@@ -51,14 +53,21 @@ List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Use the correct function name in a kernel-doc comment to prevent a
-kernel-doc warning:
+Use the correct function name in a kernel-doc comment.
+Use the correct function parameter names in kernel-doc comments.
+These changes prevent the following warnings:
 
-clkt2xxx_virt_prcm_set.c:173: warning: expecting prototype for omap2xxx_clkt_vps_check_bootloader_rate(). Prototype was for omap2xxx_clkt_vps_check_bootloader_rates() instead
+omap_hwmod.c:910: warning: expecting prototype for _init_opt_clk(). Prototype was for _init_opt_clks() instead
+omap_hwmod.c:2311: warning: Excess function parameter 'n' description in '_init'
+omap_hwmod.c:2510: warning: Excess function parameter 'n' description in '_setup'
+omap_hwmod.c:3387: warning: Excess function parameter 'clockdomain' description in 'omap_hwmod_allocate_module'
 
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: "Benoît Cousson" <bcousson@baylibre.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 Cc: Russell King <linux@armlinux.org.uk>
@@ -67,18 +76,47 @@ Cc: patches@armlinux.org.uk
 ---
 KernelVersion: 0dd3ee31125508cd67f7e717
 
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -162,7 +162,7 @@ static int omap2_select_table_rate(struc
+diff -- a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -900,7 +900,7 @@ static int _init_interface_clks(struct o
  }
  
  /**
-- * omap2xxx_clkt_vps_check_bootloader_rate - determine which of the rate
-+ * omap2xxx_clkt_vps_check_bootloader_rates - determine which of the rate
-  * table sets matches the current CORE DPLL hardware rate
+- * _init_opt_clk - get a struct clk * for the hwmod's optional clocks
++ * _init_opt_clks - get a struct clk * for the hwmod's optional clocks
+  * @oh: struct omap_hwmod *
   *
-  * Check the MPU rate set by bootloader.  Sets the 'curr_prcm_set'
+  * Called from _init_clocks().  Populates the @oh omap_hwmod_opt_clk
+@@ -2297,7 +2297,7 @@ static void __init parse_module_flags(st
+ /**
+  * _init - initialize internal data for the hwmod @oh
+  * @oh: struct omap_hwmod *
+- * @n: (unused)
++ * @data: (unused)
+  *
+  * Look up the clocks and the address space used by the MPU to access
+  * registers belonging to the hwmod @oh.  @oh must already be
+@@ -2493,7 +2493,7 @@ static void _setup_postsetup(struct omap
+ /**
+  * _setup - prepare IP block hardware for use
+  * @oh: struct omap_hwmod *
+- * @n: (unused, pass NULL)
++ * @data: (unused, pass NULL)
+  *
+  * Configure the IP block represented by @oh.  This may include
+  * enabling the IP block, resetting it, and placing it into a
+@@ -3367,8 +3367,9 @@ static int omap_hwmod_check_module(struc
+  * omap_hwmod_allocate_module - allocate new module
+  * @dev: struct device
+  * @oh: module
++ * @data: module data
+  * @sysc_fields: sysc register bits
+- * @clockdomain: clockdomain
++ * @clkdm: clockdomain
+  * @rev_offs: revision register offset
+  * @sysc_offs: sysconfig register offset
+  * @syss_offs: sysstatus register offset
