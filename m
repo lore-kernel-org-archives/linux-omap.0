@@ -1,48 +1,47 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1F464439;
-	Wed, 17 Jan 2024 01:10:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BBC579CC;
+	Wed, 17 Jan 2024 01:10:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705453810; cv=none; b=Oz4z4KgDA3Ul96S4C6j6tIPPJuZRhdGbo+w3QfTZk1DMRUK87mUrfeAmmdU0P3CDCoB41MHPBuoD2iOqVhg945faaZLjvuN7zaJxh7jhCQzeIPCqbSmR6XnitBFt5Q6dcKyqPklKfSzb0/DOOxsO6KZmOFk/iSGsJ3VkHWgFRac=
+	t=1705453811; cv=none; b=Z9LPnZwLxNyx2vIaAYfz7yA1UAdg3fdn0BroVP5Lk19H0l/tpP4k5r2ZYfabgj4sgDwZw+68Ykwx1jUMfvhkcnpK/TatEXjZLkhdCtcBC6RQd0NZ+HsIAuRkr0TYYwDiAOkrQIWscFWAdD0PqBQhwyA+2jGWLnhrPj5aaFJ+9CE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705453810; c=relaxed/simple;
-	bh=BL5aX056bFvjCHUcg1YEdagctUIsMeId5BQPF5YJ4yk=;
+	s=arc-20240116; t=1705453811; c=relaxed/simple;
+	bh=AyE3iZ0YIgSHRY471OTeVM9lvSe3brGHPKOEZ8HuzDQ=;
 	h=DKIM-Signature:Received:From:To:Cc:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding; b=inGGmQQkFqo9dI8L+TWk1EyHXDlsnd4YkNGWr5rxnjs34yVtmc1SsQwTBGWCLAQuezlmh+8+B9IIohvmiilSqfmHRi3iALn/LMsmdKy7MMa2YOpyc28Lr3izui8doGXyOcJ4+xiVN1ahlMmrh9HmjSvJ4dsAUtTXY0rNtKfez1M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Ub7fms35; arc=none smtp.client-ip=198.137.202.133
+	 Content-Transfer-Encoding; b=UwxdH2ak/PQ0W3NaKDGj+aGSAwAUGwqx1u+vlWjOakdJLSeBS2DwWDBTRqDNjTqsMpAtsXWOJkF+6XdB7RcdWEjqUQ1DHkiPeAoRyNgj2gZ0cU45RWmfo3p1N0DV+s9LRkMFA0DgEZsG7yzt/EOg0YF8UwOTdMJnm2EfPgCLo6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=gj+eFygw; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Ub7fms35"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="gj+eFygw"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=D/gE019ZmSvllJYQDA3FYN3rYxglmvvmTrq1Zs40Zjg=; b=Ub7fms35Rr/W6I8goOAVJ/n37j
-	93C1RMl31TxjlgXAzSRAoUug9b1v+9mpr93BhuQBPb5XZ+aEQQ3eSj8epa1n0d/lJt5aiy+DwIHgY
-	olICA6Z3j9WCx/36EY48o+bMg85VkHC7xnwNLrFaDRLaxDQbT+rf4PzzBK5cvtdT0F1m6+SzmFREt
-	lui6vzNfq8FC/3xrMbJhFUgG3SISwCtEtGl5yJI9H14+iZRu6c9SCWwRXqiESh3LJ7KDWrBJOV2Nr
-	sWKOsXCL1DQro1d+2jsVKfjFg3i1o4tylfEqH0LyJJ6eCKKTQfmPeGzbobPbLEHgDpPgzitt/rrW7
-	ahNq5Q7Q==;
+	bh=NgQzwLw26rL6c+tJaDaxoF79yF00tNswbdO97Qj1Pt4=; b=gj+eFygwxAJfFS8oVWkEF4mV4+
+	POxdvSkYyFjG/UQCXwN+mA1qDum/9TFHBgg/o0vKyPfIY+0IXK48UYijCRN0CaOH3LlWaUmQb+Cle
+	jDf7IoM0dkcbO5WqVgP2LB+uvSie83SP0M4jCR/i0SCCGDwQXnSlVvy6BZ8A0bGv1FMPVlfulbBAD
+	D9XAw+KzZ3pIr/I0k/MvEOijLUAJk8cHWuvKFtoIbo1JsJYG/qrdF0w96J0D1MGF/flXTIzpuCEAO
+	4wZW4inv0x8t+K9bQHhlRz2lkOiqDgnmQg1TKWtIa5U9zsS2FQHq00Ju94dfoZNh6M9lgsrpMrpBO
+	HDo2JWGg==;
 Received: from [50.53.46.231] (helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-	id 1rPuRU-00E6zu-0o;
+	id 1rPuRU-00E6zu-2g;
 	Wed, 17 Jan 2024 01:10:08 +0000
 From: Randy Dunlap <rdunlap@infradead.org>
 To: linux-kernel@vger.kernel.org
 Cc: Randy Dunlap <rdunlap@infradead.org>,
-	Paul Walmsley <paul@pwsan.com>,
 	Tony Lindgren <tony@atomide.com>,
 	linux-omap@vger.kernel.org,
 	Russell King <linux@armlinux.org.uk>,
 	linux-arm-kernel@lists.infradead.org,
 	patches@armlinux.org.uk
-Subject: [PATCH 09/13] ARM: OMAP2+: prm44xx: fix a kernel-doc warning
-Date: Tue, 16 Jan 2024 17:09:57 -0800
-Message-ID: <20240117011004.22669-10-rdunlap@infradead.org>
+Subject: [PATCH 11/13] ARM: OMAP2+: fix a kernel-doc warning
+Date: Tue, 16 Jan 2024 17:09:59 -0800
+Message-ID: <20240117011004.22669-12-rdunlap@infradead.org>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240117011004.22669-1-rdunlap@infradead.org>
 References: <20240117011004.22669-1-rdunlap@infradead.org>
@@ -57,10 +56,9 @@ Content-Transfer-Encoding: 8bit
 Use the correct function name in a kernel-doc comment to prevent a
 warning:
 
-prm44xx.c:421: warning: expecting prototype for omap44xx_prm_clear_context_lost_flags_old(). Prototype was for omap44xx_prm_clear_context_loss_flags_old() instead
+powerdomain.c:1171: warning: expecting prototype for pwrdm_save_context(). Prototype was for pwrdm_restore_context() instead
 
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 Cc: Russell King <linux@armlinux.org.uk>
@@ -69,18 +67,18 @@ Cc: patches@armlinux.org.uk
 ---
 KernelVersion: 0dd3ee31125508cd67f7e717
 
- arch/arm/mach-omap2/prm44xx.c |    2 +-
+ arch/arm/mach-omap2/powerdomain.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -- a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -407,7 +407,7 @@ static bool omap44xx_prm_was_any_context
+diff -- a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -1162,7 +1162,7 @@ static int pwrdm_save_context(struct pow
  }
  
  /**
-- * omap44xx_prm_clear_context_lost_flags_old - clear context loss flags
-+ * omap44xx_prm_clear_context_loss_flags_old - clear context loss flags
-  * @part: PRM partition ID (e.g., OMAP4430_PRM_PARTITION)
-  * @inst: PRM instance offset (e.g., OMAP4430_PRM_MPU_INST)
-  * @idx: CONTEXT register offset
+- * pwrdm_save_context - restore powerdomain registers
++ * pwrdm_restore_context - restore powerdomain registers
+  *
+  * Restore powerdomain control registers after a suspend or resume
+  * event.
