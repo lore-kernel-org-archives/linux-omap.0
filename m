@@ -1,80 +1,84 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2784C10A1D;
-	Tue, 16 Jan 2024 18:22:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FF761364;
+	Wed, 17 Jan 2024 01:10:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705429367; cv=none; b=lBC2Ee+6lHMUhuTH3JB7C2oVCceBLZcuUVTtCwh1exh0vjcSLgP0j3WZBwqGrM1vax3M0Ebbrnk10Q5MRkULH5t4dMTyz1sZMqrecwWT/oDTVgkpN+2pvXQWtRCnFBjBkhQXH1X0Ru00XoT4CbtHC1QzQOdVlZ0LWB8sCxx7QUc=
+	t=1705453808; cv=none; b=TI6c6S7vmxwPXwrr47u6K5BkedvLq2tHT9MtucWCETKLWib5C2IM7ooMASe1oJwsmR+7YehaLJbL/2DFod6DS+DiNd5Jg8AP5RdnM8+XZNz/0/rzMzP7fFncp4HKxxvYuzRRIgmiOHS7kHLT8295+v6b2wUME3xG2Y1Ykhwu34o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705429367; c=relaxed/simple;
-	bh=24yf9WQZM8mCzBoY4DhIxhCfHQZP8hu82jOqs15h0jg=;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To; b=RZco8vEJ7rZYjwc/s5veyZx0m7cpsjM5xWvDQx4fH8c64LLue1qy7ch8sMy/jglDMxewbUT766CTs8HySrsXxYQ8FgNPiYlNKwEqZGsC8wNtQZC9tyQ2mObE4jymNYBuO2sRkxEiP/TL/rEIOJb9eXH7VB8KRq1DIyDAzKljG6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CBatexrm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705453808; c=relaxed/simple;
+	bh=GDGvBeEuZedQmmdqzrb0IUiOWtmnnqmYPR6IwXtu+sA=;
+	h=DKIM-Signature:Received:From:To:Cc:Subject:Date:Message-ID:
+	 X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding; b=mYc7OZVmfkmOPs/9wTbs89kM0kosg3Oih1jdV/5W8RHgEcz9ewyvaqVzC5HcDDV2YAqXG4+/hcjO0/LnEl3y4raELfwAKdJVP57FBhL/bDXQVFIy0Q4wn7xo7rDnAHasP/rdX9reOdqBYuBaVZzWF6Y45g/jiqwX4f8NTEVBxd4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=skGViRzC; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CBatexrm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D20CC433F1;
-	Tue, 16 Jan 2024 18:22:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1705429366;
-	bh=24yf9WQZM8mCzBoY4DhIxhCfHQZP8hu82jOqs15h0jg=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:From;
-	b=CBatexrm9aBNAYXsNpveWnrw+Di773YudoVO/VDqgpP9FKlSYHdGeCs9ySe0HGtWK
-	 so2FLx7CeRayeJj9Z8kDp8bZqEEJxqHCJNS8c7tRBEMn8ySC/D9sH5IShv/Qo2Gila
-	 wWFRNUHVyYshYfyYmIKD3cxzN/7U7Wl9fvvywrJvdzChhTimASQuKCYIKy5nyIsOoN
-	 f/v4avvA0QcnowjCCBcL0oOvQHhzavvXAnirlz3cJXInydu6jFKaIIj/QeIkONkFoS
-	 KSS5MkeXX+d1acaZzpQ/8hWvCjtvGU+aU4P2i/MhH3Czdl1GJCYXt9uBuT7TSbAFul
-	 v2V7zez4Z1JzA==
-Date: Tue, 16 Jan 2024 12:22:44 -0600
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Thomas Richard <thomas.richard@bootlin.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@bgdev.pl>,
-	Andy Shevchenko <andy@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	Haojian Zhuang <haojian.zhuang@linaro.org>,
-	Vignesh R <vigneshr@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-	Andi Shyti <andi.shyti@kernel.org>, Peter Rosin <peda@axentia.se>,
-	Vinod Koul <vkoul@kernel.org>,
-	Kishon Vijay Abraham I <kishon@kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Joseph <tjoseph@cadence.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-	Rob Herring <robh@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-i2c@vger.kernel.org, linux-phy@lists.infradead.org,
-	linux-pci@vger.kernel.org, gregory.clement@bootlin.com,
-	theo.lebrun@bootlin.com, thomas.petazzoni@bootlin.com,
-	u-kumar1@ti.com
-Subject: Re: [PATCH 11/14] phy: cadence-torrent: add suspend and resume
- support
-Message-ID: <20240116182244.GA101245@bhelgaas>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="skGViRzC"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
+	:Reply-To:Content-Type:Content-ID:Content-Description;
+	bh=GzmUU8PGwflALYNKPwqoYlVViTOygYuZAItzHQWuVIE=; b=skGViRzCgYQcPm6bM40SdWTMuf
+	mSmz7kkMhigWCGztA73qw4c1aGpGx7m2/r5C3XBbtJX2xywSJ4ORAhjybQvCcwYmhjThrV5yEEcHH
+	hloChlU+LXEWBT41UwTIveT4MfHWYa3yPfs5P2bDQO4YQRpj5OVOncoW8TmTNFJAHb1Br0ZU83D83
+	O5t8iID1tmJCnkYLmmZpg8O6yNa9khNnNpy/9g4BfKr95FZtOV9zZ9V5LmOmiFxmmdccGXDk3A3qM
+	xtMx3MR3HRosv1nYGfkGH3fQUoWYmn0GHgnT3JW90ERp2qMlA2kYzdVLc/msD47oILkh9BEHoXajv
+	UDxxrS/A==;
+Received: from [50.53.46.231] (helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
+	id 1rPuRR-00E6zu-2w;
+	Wed, 17 Jan 2024 01:10:05 +0000
+From: Randy Dunlap <rdunlap@infradead.org>
+To: linux-kernel@vger.kernel.org
+Cc: Randy Dunlap <rdunlap@infradead.org>,
+	Tony Lindgren <tony@atomide.com>,
+	linux-omap@vger.kernel.org,
+	Russell King <linux@armlinux.org.uk>,
+	linux-arm-kernel@lists.infradead.org,
+	patches@armlinux.org.uk
+Subject: [PATCH 01/13] ARM: OMAP2+: am33xx-restart: fix function name in kernel-doc
+Date: Tue, 16 Jan 2024 17:09:49 -0800
+Message-ID: <20240117011004.22669-2-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240117011004.22669-1-rdunlap@infradead.org>
+References: <20240117011004.22669-1-rdunlap@infradead.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240102-j7200-pcie-s2r-v1-11-84e55da52400@bootlin.com>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jan 15, 2024 at 05:14:52PM +0100, Thomas Richard wrote:
-> Add suspend and resume support.
-> The alread_configured flag is cleared during suspend stage to force the
-> phy initialization during the resume stage.
+Use the correct name in kernel-doc notation to prevent a
+kernel-doc warning:
 
-s/alread_configured/already_configured/
+am33xx-restart.c:20: warning: expecting prototype for am3xx_restart(). Prototype was for am33xx_restart() instead
 
-Wrap to fill 75 columns.  Add a blank line if you intend two
-paragraphs.
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: patches@armlinux.org.uk
+---
+KernelVersion: 0dd3ee31125508cd67f7e717
 
-I don't know whether there's a strong convention in drivers/phy, but I
-see several commit logs that capitalize "PHY".  "Phy" is not a
-standard English word, so I think the capitalization makes it easier
-to read.
+ arch/arm/mach-omap2/am33xx-restart.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Bjorn
+diff -- a/arch/arm/mach-omap2/am33xx-restart.c b/arch/arm/mach-omap2/am33xx-restart.c
+--- a/arch/arm/mach-omap2/am33xx-restart.c
++++ b/arch/arm/mach-omap2/am33xx-restart.c
+@@ -9,7 +9,7 @@
+ #include "prm.h"
+ 
+ /**
+- * am3xx_restart - trigger a software restart of the SoC
++ * am33xx_restart - trigger a software restart of the SoC
+  * @mode: the "reboot mode", see arch/arm/kernel/{setup,process}.c
+  * @cmd: passed from the userspace program rebooting the system (if provided)
+  *
