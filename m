@@ -1,101 +1,122 @@
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90F83A8CE
-	for <linux-omap@vger.kernel.org>; Mon, 22 Jan 2024 11:20:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7593C3CF42;
+	Mon, 22 Jan 2024 13:18:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705922460; cv=none; b=Zzu/zdRNvF9GKcPrn566ASegMFHEjcXap4zGH1nzluie6dZt6SN+BsU7v8XtrqBiYJH9C5mYS0nVdh/tf6Klp0H2GgG8BMIygFcjxjs1oz+ZiSinKYDjh5nxT+oPWfFArQr6SmW6qhnya2WtLMnzuQ6A1ie8jhVKMWev9S6OieY=
+	t=1705929498; cv=none; b=QzDPOS+bO/aOWZYFH550k5isEX2Nw8jUFb4N+mAxI9gDvn7pkesZ8JBkSixNSjVKKXBJT4nR6VbhV055Pe3W8ZT21kJeCCuYwpzoapyQCOAbS7q44Gt2VyzQbCfGe4Klz/xJCb1Eu2kJcUfSE86XtmC2yBmX52WDkbp5P788hyQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705922460; c=relaxed/simple;
-	bh=me6p/OKvDglGBw9mvdYiyo+bS5a2wn8BwggaJ28XARw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cI29tzRs1dTNNxb9uG3KCdgwrcHOomr55Yoq1LfV7jjtLZuwmLn1V545G3a2qM1dJYNqEKNvzDPSucDMIVxjIFARUlZDkjcQ7ZwwchEO9cw4RgKrnTtbopVkLvw8IRN5kxC1zZkLlOw6FRAt547+PznwLiiU26JUV3KyycocGWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=smile.fr; spf=pass smtp.mailfrom=smile.fr; dkim=pass (2048-bit key) header.d=smile-fr.20230601.gappssmtp.com header.i=@smile-fr.20230601.gappssmtp.com header.b=LfbbG201; arc=none smtp.client-ip=209.85.128.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=smile.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smile.fr
+	s=arc-20240116; t=1705929498; c=relaxed/simple;
+	bh=8nLLKjq7oCgzDw9ZUQYrf7nyBzR8EtSEWOgsdOU6lQc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=XmNskOwsT2OLvfPAXNShnJZKFRC/vvteqLQoUhndsbqUW+FqJdScC30wpYeYN6Hp8fjv9jtMZTlJ/LYJA+QzLK/2bh2e+jjTdOZQT29sHl/uhKvNC1i21j+7BdnMYNSab7SkkkCsqov+k1KaQr+Co47aHtLK02iCIIeDRwfhkg0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BiXeXdC2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=smile-fr.20230601.gappssmtp.com header.i=@smile-fr.20230601.gappssmtp.com header.b="LfbbG201"
-Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-40e913e3f03so38909125e9.3
-        for <linux-omap@vger.kernel.org>; Mon, 22 Jan 2024 03:20:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=smile-fr.20230601.gappssmtp.com; s=20230601; t=1705922455; x=1706527255; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=jlqe1/+a0OpvnCfjOm9NQe3CEd+0psKx+OdGCZhqSIE=;
-        b=LfbbG201QJ1UyW31On2FZagYIfrkajQ9a4F2dK22yMOWK9lJ1mJhYR9JoypbFhVcbb
-         H+QiJS2PofxRzSLVg0m03JUb0dJHNRS0EVcVbp9geAHC7AUqD5JASYPEw7fyQQcapHGA
-         ms5eomunoplJ3CY3DfBqBCqYR7oAGoSg0/bGSh/325GxIj+cdti+Q5Gk73Tqs2+kAyla
-         JRMNNby3tjVAxPUwuAwG7+nzLUt4mUD5EbHcFNQ5dmfuNnzLnpJ+1/LDF248Y1c6amps
-         CvSle8UhIYiS/T7TfHhIwzGAIQEfd3uugj+tzpkVrYWVW09BNeekcUAJ2awEcwVIGA1k
-         OBRg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1705922455; x=1706527255;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=jlqe1/+a0OpvnCfjOm9NQe3CEd+0psKx+OdGCZhqSIE=;
-        b=s2miTWEZYVCwh14V38qzdBY5pj2K1vGQ2ee37DEt3lC+IA5l/dyybCeCd1lufif7Xs
-         cMgfz1yhJNu2lrPKSErG9t3hZ0BPIBHox2+N0VJ4Bx6PGDKrXH1TWXR/tuIOpUrcKsdz
-         QU9sr/zhfR2gy319nFS4WMTkGBKHtLPpxKspwfkTpTX0qCUNDLDOgmsi0qNWDshEUTMs
-         IBnllOLTYLI2r/1c842ZpgTROAzCyAwyr/TinZVDZE3RXTSQCd0/H1OUiDfkQrde53UK
-         IGj/VTsldETC0Jq7aqkYuFjsTmfMqbej78ObNsSfLbgjn0ZHnxCLu8O69d08jaxTPpPC
-         dBzA==
-X-Gm-Message-State: AOJu0YxBwL8G6EimSWquOECL9SoXPIP0AfRpSdCH9MiMRVu7+dMYg4GA
-	gIYDXeBjjuwvRhZE1xlxj2Rnj2Qfc25tuooxViZz2B/hsoUnCuYmYDbfBV36eBybqoKJaAqIakl
-	R
-X-Google-Smtp-Source: AGHT+IHvfkw2smn9cmfM1OhegGUtFLf/D7oCxwZ1nWibdK7qw3IxMx70WNUOJvwiLIg/QPSO+SNCwg==
-X-Received: by 2002:a05:600c:4506:b0:40e:b179:5806 with SMTP id t6-20020a05600c450600b0040eb1795806mr268817wmo.174.1705922455263;
-        Mon, 22 Jan 2024 03:20:55 -0800 (PST)
-Received: from P-NTS-Evian.home (2a01cb05945b7e009bdc688723a24f31.ipv6.abo.wanadoo.fr. [2a01:cb05:945b:7e00:9bdc:6887:23a2:4f31])
-        by smtp.gmail.com with ESMTPSA id w18-20020a05600c475200b0040d2d33312csm39204614wmo.2.2024.01.22.03.20.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 22 Jan 2024 03:20:55 -0800 (PST)
-From: Romain Naour <romain.naour@smile.fr>
-To: linux-omap@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Romain Naour <romain.naour@skf.com>
-Subject: [PATCH 1/3] arch/arm/boot/dts/dra7-l4.dtsi: add missing unit addresse
-Date: Mon, 22 Jan 2024 12:19:46 +0100
-Message-ID: <20240122111948.416444-1-romain.naour@smile.fr>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BiXeXdC2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39F57C433C7;
+	Mon, 22 Jan 2024 13:18:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1705929498;
+	bh=8nLLKjq7oCgzDw9ZUQYrf7nyBzR8EtSEWOgsdOU6lQc=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=BiXeXdC2+ZiP2FRLKDQwzYdq0y5ubv9vBTA0B0ikOHQas0ZfvD3KOcNNxTl19GbpK
+	 fPKUc5VSlnYIcQfjFZzYbjGYQ8n0JHPASQPSw8WutcXa7in05wIxdZZLBP3ZskEzEz
+	 41Vk2gpgNX+xaT6lHj60V1ffkx7NEeEh0O+zN799EoRwDygLV58J4BWdkHQ1MGfSvB
+	 fZXc4u8IwlCVXXrucG0Fmk8kbzJgNlJFItu6+EPHoDV7dRqP4ImMordg2WrQmFOoSH
+	 wBDpT2Izrb6HOtTSMoiDmawcf/QUOm7yeGiT12xIyxtMBJ48RAuc8ynfaFELMHhip0
+	 VB0kfR4U6A25Q==
+Message-ID: <e97a55a9-34ae-46a3-9646-9bf70f6976ff@kernel.org>
+Date: Mon, 22 Jan 2024 15:18:13 +0200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH V2] net: ethernet: ti: cpsw_new: enable mac_managed_pm to
+ fix mdio
+Content-Language: en-US
+To: Sinthu Raja <sinthu.raja@mistralsolutions.com>,
+ Denis Kirjanov <dkirjanov@suse.de>, Siddharth Vadapalli
+ <s-vadapalli@ti.com>, Ravi Gunasekaran <r-gunasekaran@ti.com>
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org,
+ Sinthu Raja <sinthu.raja@ti.com>
+References: <20240122093326.7618-1-sinthu.raja@ti.com>
+From: Roger Quadros <rogerq@kernel.org>
+In-Reply-To: <20240122093326.7618-1-sinthu.raja@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-From: Romain Naour <romain.naour@skf.com>
+Hi,
 
-phy_gmii_sel node have 'reg' so it must have unit address.
+On 22/01/2024 11:33, Sinthu Raja wrote:
+> From: Sinthu Raja <sinthu.raja@ti.com>
+> 
+> The below commit  introduced a WARN when phy state is not in the states:
+> PHY_HALTED, PHY_READY and PHY_UP.
+> commit 744d23c71af3 ("net: phy: Warn about incorrect mdio_bus_phy_resume() state")
+> 
+> When cpsw_new resumes, there have port in PHY_NOLINK state, so the below
+> warning comes out. Set mac_managed_pm be true to tell mdio that the phy
+> resume/suspend is managed by the mac, to fix the following warning:
+> 
+> WARNING: CPU: 0 PID: 965 at drivers/net/phy/phy_device.c:326 mdio_bus_phy_resume+0x140/0x144
+> CPU: 0 PID: 965 Comm: sh Tainted: G           O       6.1.46-g247b2535b2 #1
+> Hardware name: Generic AM33XX (Flattened Device Tree)
+>  unwind_backtrace from show_stack+0x18/0x1c
+>  show_stack from dump_stack_lvl+0x24/0x2c
+>  dump_stack_lvl from __warn+0x84/0x15c
+>  __warn from warn_slowpath_fmt+0x1a8/0x1c8
+>  warn_slowpath_fmt from mdio_bus_phy_resume+0x140/0x144
+>  mdio_bus_phy_resume from dpm_run_callback+0x3c/0x140
+>  dpm_run_callback from device_resume+0xb8/0x2b8
+>  device_resume from dpm_resume+0x144/0x314
+>  dpm_resume from dpm_resume_end+0x14/0x20
+>  dpm_resume_end from suspend_devices_and_enter+0xd0/0x924
+>  suspend_devices_and_enter from pm_suspend+0x2e0/0x33c
+>  pm_suspend from state_store+0x74/0xd0
+>  state_store from kernfs_fop_write_iter+0x104/0x1ec
+>  kernfs_fop_write_iter from vfs_write+0x1b8/0x358
+>  vfs_write from ksys_write+0x78/0xf8
+>  ksys_write from ret_fast_syscall+0x0/0x54
+> Exception stack(0xe094dfa8 to 0xe094dff0)
+> dfa0:                   00000004 005c3fb8 00000001 005c3fb8 00000004 00000001
+> dfc0: 00000004 005c3fb8 b6f6bba0 00000004 00000004 0059edb8 00000000 00000000
+> dfe0: 00000004 bed918f0 b6f09bd3 b6e89a66
+> 
+> Fixes: 744d23c71af3 ("net: phy: Warn about incorrect mdio_bus_phy_resume() state")
+> Signed-off-by: Sinthu Raja <sinthu.raja@ti.com>
+> ---
+> 
+> Changes in V2:
+> Address review comment
+> 	Add Fixes tag.
+> 
+> V1: https://patchwork.kernel.org/project/netdevbpf/patch/20240122083414.6246-1-sinthu.raja@ti.com/
+> 
+>  drivers/net/ethernet/ti/cpsw_new.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+> index 498c50c6d1a7..087dcb67505a 100644
+> --- a/drivers/net/ethernet/ti/cpsw_new.c
+> +++ b/drivers/net/ethernet/ti/cpsw_new.c
+> @@ -773,6 +773,9 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
+>  			slave->slave_num);
+>  		return;
+>  	}
+> +
+> +	phy->mac_managed_pm = true;
+> +
+>  	slave->phy = phy;
+>  
+>  	phy_attached_info(slave->phy);
 
-Fixes:
-Warning (unit_address_vs_reg): /ocp/interconnect@4a000000/segment@0/target-module@2000/scm@0/scm_conf@0/phy-gmii-sel: node has a reg or ranges property, but no unit name
+I believe this cpsw.c will also be affected by the same issue. Right?
+Also you will need to Cc: stable@vger.kernel.org # v6.0+
 
-Signed-off-by: Romain Naour <romain.naour@skf.com>
----
- arch/arm/boot/dts/ti/omap/dra7-l4.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi b/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
-index 5733e3a4ea8e..6e67d99832ac 100644
---- a/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
-@@ -80,7 +80,7 @@ pbias_mmc_reg: pbias_mmc_omap5 {
- 						};
- 					};
- 
--					phy_gmii_sel: phy-gmii-sel {
-+					phy_gmii_sel: phy-gmii-sel@554 {
- 						compatible = "ti,dra7xx-phy-gmii-sel";
- 						reg = <0x554 0x4>;
- 						#phy-cells = <1>;
 -- 
-2.43.0
-
+cheers,
+-roger
