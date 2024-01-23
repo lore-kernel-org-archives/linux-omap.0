@@ -1,88 +1,107 @@
-Received: from relay3-d.mail.gandi.net (relay3-d.mail.gandi.net [217.70.183.195])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C9CF56768;
-	Tue, 23 Jan 2024 08:20:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.183.195
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D732D57860
+	for <linux-omap@vger.kernel.org>; Tue, 23 Jan 2024 08:56:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705998023; cv=none; b=PQ2v7hChx0MYxd2bMyGgN+yRP8OgZeW6wTxo2QN6NE3Rd42yccQAGKF2ttlyK8JZBry+z6dPkHFYXmwhIY6xIq5msZRz99H5YqCLBAvTDfDoFei5QqpYeB00QCSXTKpBPOEuP4PUri58sROq0hYHS71046OsjS+WKh0ek/SdONg=
+	t=1706000173; cv=none; b=j5942mq0sIXvS3PatJ7+yZpLIoXhW5ixSTlYCDnCDmYaJjPa382iiI5n8MRnHNvrafhUJJXul0TlSHpdyByvNOvuqgOio4XtOeuSjvguTTw50GS+lklP61ASvbXuS/Z4cftR9PLdvldSujQH9JRo1/KnHVIL36TqC/jrYZihqTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705998023; c=relaxed/simple;
-	bh=8w+80Oj0dEeWrwkODQ7mQYpIvHywugtJ5h/IUiUyu0o=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WNpW4LbEsemrwmCilHdILlCqQWY+1CTyuq/wnN41oO8DwgZb78vUWVRJ0lkXWU0boPyWk4N5F8Ff5A4wKs7kvLhXNXaHH45Ttcv5/DYj2UJ43rwlL6E0vZovoKtvrQa0Q/NbK1ToZkviv00zYm00cLXqeq2KdxPORXiRx53Uz5E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=aBl1u3WK; arc=none smtp.client-ip=217.70.183.195
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1706000173; c=relaxed/simple;
+	bh=5mdtElKdVFQoFen50OHRyreRzKTFw2Cm0eLZ9H4kIfc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=SjiTiunzAAg3i3tcl7LAbLtan59OIxcrnCQ5YQ9PSa0QtxK6Z4qD9TOkclO+a5jtIcN+1Hnl6rffmGbNAQrHn2+i+pYnxvB99Q3nd0FQYZOIWOuGxkbHdENrqbnNdughsayd59g2Bwme3f/ZTzHEJzDmOW0F0B/k9Cr+Dr4UQlw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=smile.fr; spf=pass smtp.mailfrom=smile.fr; dkim=pass (2048-bit key) header.d=smile-fr.20230601.gappssmtp.com header.i=@smile-fr.20230601.gappssmtp.com header.b=V6EQi5y7; arc=none smtp.client-ip=209.85.128.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=smile.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smile.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="aBl1u3WK"
-Received: by mail.gandi.net (Postfix) with ESMTPSA id 48FE360005;
-	Tue, 23 Jan 2024 08:20:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
-	t=1705998012;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=hRb7TeIHk44yo6aUmwYhCI2i2ouU8zTc+wLvrMIpmr4=;
-	b=aBl1u3WK+HzKOi12YlfomEPiXE7oEjgKgdx9VA4kJ607Zqrod7ESeoT2g8JjsJyFYARVSn
-	8hqbBf0oCB1OO9XCYJ3b6msx1ODtd6kQ7Vay/Tdi6BA24BUi5FaTbbtBFHkTplj3lzkmZl
-	bfkxBc0hTEk1hKVRwHEWMpi11uw5zt683rJdppYxfmIKeTti0ptM74oGMWiRGnDs77h6Y/
-	kbZbcbW1GElFkmmQFze0Nrx4jgK01qfw99AtNBOnhPsRX/dUlhYpmcp6GJ9B8UcDZaBhSi
-	Gn0nD1t7Ef5dFHw/aG5RzE8T4P2ifgrIZMFb4h1Tx4a20+06K+UVKPoynRFrQg==
-Message-ID: <d005e3c5-08b3-4a4f-b1ed-e02bde82c2f9@bootlin.com>
-Date: Tue, 23 Jan 2024 09:20:08 +0100
+	dkim=pass (2048-bit key) header.d=smile-fr.20230601.gappssmtp.com header.i=@smile-fr.20230601.gappssmtp.com header.b="V6EQi5y7"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-40eb99a72dcso4027845e9.1
+        for <linux-omap@vger.kernel.org>; Tue, 23 Jan 2024 00:56:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=smile-fr.20230601.gappssmtp.com; s=20230601; t=1706000170; x=1706604970; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Amf8mEO4b8VyDyU6stduNSx5N7dkX1J86NVw9OgzZjw=;
+        b=V6EQi5y70VTw1hGVl9FeCYNVihd/qjvt2pLt4eq2qxPdZ3zLIWOVt65Fpgc3d1g1qC
+         /ZO6kLkdEpl8Qpx1NxIFv9tnmG3QByx4sfT4QsaRS4vDwf8eHL69e6vmylq1dDL/dfUf
+         +Nq/KiVej1n0RgoddB5Rl16qY7kJozY/UqJhKFXjXYSH2/p8MZRw0mV9ES8LGfxh412/
+         TT8zU/Lcxg1s0jtD/MwhG0T7LbvD4lIOvGqY4E6CjaaN0FLLXhQRSQbvSlhXNxEDe8/t
+         XShbe2c7yDN9WSFlVoEQyyYMmv8gJ9clnbQTYrojhU0x6PmvkQ5TC1/21XQJtP99Wfjx
+         xY+g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1706000170; x=1706604970;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Amf8mEO4b8VyDyU6stduNSx5N7dkX1J86NVw9OgzZjw=;
+        b=qit1Uk9rM+U+KXLa0ohpjy5zCMECHmkztF7ZmiByaYUg0ZBbvfaXE/Up/g7zk69sDH
+         w3FsaY9E+nMgfI5SGCmi1KzYN23OaUpTjU7aAov4WIwX61eGZrxu2bwwy9vKCHLdg8wh
+         SBBVQSyucOgaUMHaREaFELqGE+/YTutwPV012ZGaagn0kfxBAndL8DLAWltWdSE3bZUx
+         2kXEFxlqHZ2pZKc1XaVAh0E5zSJ879Bq40APVJ2IydJOiLvvcgtkDVOiL4Y7Vgbv9cih
+         gwzp2orw9MNjnHUibuBhx285bSqW8tddWGq6BAf273ZCKxglXC1k/maxpf4javZpimxn
+         JJJQ==
+X-Gm-Message-State: AOJu0YyRW9T8IBPmoyQRwvCPqfyYCv4K/610Nv/8zUb8Afvi0lHMD92F
+	FWXLl6LdQ/uvbre6Z1Rw2+6y0cDB3NDt8mrG2Lrx/62gtMqPSBT3K0TfvIzydyZHswiutGoDMQN
+	2
+X-Google-Smtp-Source: AGHT+IFi9fLpOwZ6Ck/kFCp8gKNbNlkiSjPvgGZDfpvFQPyEWiQZjc6duwvOMf9JwML7y+8T0KW3bw==
+X-Received: by 2002:a05:600c:3ba2:b0:40e:5f54:b909 with SMTP id n34-20020a05600c3ba200b0040e5f54b909mr318143wms.88.1706000170210;
+        Tue, 23 Jan 2024 00:56:10 -0800 (PST)
+Received: from P-NTS-Evian.home (2a01cb05945b7e009bdc688723a24f31.ipv6.abo.wanadoo.fr. [2a01:cb05:945b:7e00:9bdc:6887:23a2:4f31])
+        by smtp.gmail.com with ESMTPSA id t18-20020a05600c199200b0040e5951f199sm41404795wmq.34.2024.01.23.00.56.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 23 Jan 2024 00:56:10 -0800 (PST)
+From: Romain Naour <romain.naour@smile.fr>
+To: linux-omap@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Romain Naour <romain.naour@skf.com>
+Subject: [PATCH v2 2/3] ARM: dts: ti: omap: add missing sys_32k_ck unit address for dra7 SoC
+Date: Tue, 23 Jan 2024 09:55:50 +0100
+Message-ID: <20240123085551.733155-2-romain.naour@smile.fr>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240123085551.733155-1-romain.naour@smile.fr>
+References: <20240123085551.733155-1-romain.naour@smile.fr>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 05/14] phy: ti: phy-j721e-wiz: make wiz_clock_init
- callable multiple times
-Content-Language: en-US
-To: Vinod Koul <vkoul@kernel.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
- Bartosz Golaszewski <brgl@bgdev.pl>, Andy Shevchenko <andy@kernel.org>,
- Tony Lindgren <tony@atomide.com>, Haojian Zhuang
- <haojian.zhuang@linaro.org>, Vignesh R <vigneshr@ti.com>,
- Aaro Koskinen <aaro.koskinen@iki.fi>,
- Janusz Krzysztofik <jmkrzyszt@gmail.com>, Andi Shyti
- <andi.shyti@kernel.org>, Peter Rosin <peda@axentia.se>,
- Kishon Vijay Abraham I <kishon@kernel.org>,
- Philipp Zabel <p.zabel@pengutronix.de>, Tom Joseph <tjoseph@cadence.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>,
- =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>,
- Rob Herring <robh@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
- linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
- linux-i2c@vger.kernel.org, linux-phy@lists.infradead.org,
- linux-pci@vger.kernel.org, gregory.clement@bootlin.com,
- theo.lebrun@bootlin.com, thomas.petazzoni@bootlin.com, u-kumar1@ti.com
-References: <20240102-j7200-pcie-s2r-v1-0-84e55da52400@bootlin.com>
- <20240102-j7200-pcie-s2r-v1-5-84e55da52400@bootlin.com>
- <Za9oR8BpoufCRNIw@matsya>
-From: Thomas Richard <thomas.richard@bootlin.com>
-In-Reply-To: <Za9oR8BpoufCRNIw@matsya>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-GND-Sasl: thomas.richard@bootlin.com
+Content-Transfer-Encoding: 8bit
 
->>  
->> -	ret = wiz_clock_init(wiz, node);
->> +	ret = wiz_clock_init(wiz, node, true);
-> 
-> You are calling it one once? So what am I missing
+From: Romain Naour <romain.naour@skf.com>
 
-In patch 6/14, wiz_clock_init is called in resume_noirq callback:
+sys_32k_ck node have 'reg' so it must have unit address to fix dtc
+W=1 warnings:
 
-ret = wiz_clock_init(wiz, node, false);
+  Warning (unit_address_vs_reg): /ocp/interconnect@4a000000/segment@0/target-module@2000/scm@0/scm_conf@0/clocks/clock-sys-32k: node has a reg or ranges property, but no unit name
 
-Regards
+Signed-off-by: Romain Naour <romain.naour@skf.com>
+---
+v2: update commit log
+---
+ arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi b/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi
+index 04a7a6d1d529..06466d36caa9 100644
+--- a/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi
+@@ -1685,7 +1685,7 @@ ehrpwm2_tbclk: clock-ehrpwm2-tbclk-22@558 {
+ 		reg = <0x0558>;
+ 	};
+ 
+-	sys_32k_ck: clock-sys-32k {
++	sys_32k_ck: clock-sys-32k@6c4 {
+ 		#clock-cells = <0>;
+ 		compatible = "ti,mux-clock";
+ 		clock-output-names = "sys_32k_ck";
 -- 
-Thomas Richard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+2.43.0
 
