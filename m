@@ -1,95 +1,140 @@
-Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
+Received: from relay4-d.mail.gandi.net (relay4-d.mail.gandi.net [217.70.183.196])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A4506169F;
-	Tue, 23 Jan 2024 16:04:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.248
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A44877A702;
+	Wed, 24 Jan 2024 14:10:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.183.196
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706025865; cv=none; b=VKolAi7crAr6VNkDR7UZ0FzS2fQTTqnavlTMRiVn0Qxm7UJosXhsn7Hy73/qIxU4686VlXCyGQW90/rf9yPrz1IJ9SO8yJNBbYmWwHs0erpFjuBENnAKgEJqM2Y+XKoDYL8s0V6MLz0U0cuQtj0286PbT2U/mcF53N68y82z++k=
+	t=1706105410; cv=none; b=ubjMC6XowjslgqrV/mEkQgzlbyF6D7lMECUjwOyiSXOUOQdilbC+ElmZURgLOPB8kQDbO4mqdW/2emLgAH4ccoXhZh5LGAjYltGB3hGWlaIEpUIHVNyRvjM0LcrurDXPp/VrTxuLDn839igERv948eao9Q8qKQOtz2UOpTFvwNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706025865; c=relaxed/simple;
-	bh=SzcvmT0u+d+mOegkatFJAAaI6odzW0ax7/YjwwvrAw4=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Pbs0T5+6bs6vt7D581aPCbfC8H0wy3uoHjVUWj08mat5GlPY6WKf050yx09aDT77+Zi2NEoGp9NMrkHmT0zwr42vixwxHuvYfuFWsSQecetM+WQ/JhdJLHTH/iHpFt0OPvAbsPu6wKCCtOgw1poAgeOjbQWnU6QOG8TjU6iBQCU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=OI+YrjUv; arc=none smtp.client-ip=198.47.23.248
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	s=arc-20240116; t=1706105410; c=relaxed/simple;
+	bh=SMj/n/Z9fKpBrbi4uiZ+Ws8yfoCXVtmFG6mubuKu1dg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Y4DL00LSPFvb0zTxWmFabIqhpOC+ZrNY3a1m6d7YVmU2V16Ox/xzjg4hpSynJgjfu7zCgp3Y05fivMeLCYf6nB+6/1k8ROOfgPA6oeWo+buedwInnbKadPQFCuGmxqsSLRKnCXUgarh4/cLHhonXMUgXj1KEjZ0okGoraYfL24I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=LGo7sy9O; arc=none smtp.client-ip=217.70.183.196
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="OI+YrjUv"
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-	by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 40NG46U4043257;
-	Tue, 23 Jan 2024 10:04:06 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1706025846;
-	bh=7eJWi6eNYuFYPK/LARry4zNJsatwYYOpsn8tijlRXkA=;
-	h=From:To:CC:Subject:Date;
-	b=OI+YrjUv5WYUCDslzs6sXfbg6aDesNYlN7W5gsuI558QH9TjZ36o1AxDLEmDiwwY/
-	 JNp/A9iYpTxGv/KqH0ptAImVsLpZzo+1TN5WwRyX2fE2zDhNNsORzK02iQXaCZphlZ
-	 Wr2vpEb/XNvn6sXm+CfHcyLOuFhBaYXu2c4DPjJM=
-Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
-	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 40NG46j6087256
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Tue, 23 Jan 2024 10:04:06 -0600
-Received: from DLEE104.ent.ti.com (157.170.170.34) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 23
- Jan 2024 10:04:06 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE104.ent.ti.com
- (157.170.170.34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 23 Jan 2024 10:04:06 -0600
-Received: from lelvsmtp6.itg.ti.com ([10.249.42.149])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 40NG45hc078075;
-	Tue, 23 Jan 2024 10:04:05 -0600
-From: Andrew Davis <afd@ti.com>
-To: Bjorn Andersson <andersson@kernel.org>,
-        Baolin Wang
-	<baolin.wang@linux.alibaba.com>
-CC: <linux-omap@vger.kernel.org>, <linux-remoteproc@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, Andrew Davis <afd@ti.com>
-Subject: [PATCH 1/4] hwspinlock: omap: Remove unneeded check for OF node
-Date: Tue, 23 Jan 2024 10:04:02 -0600
-Message-ID: <20240123160405.360437-1-afd@ti.com>
-X-Mailer: git-send-email 2.39.2
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="LGo7sy9O"
+Received: by mail.gandi.net (Postfix) with ESMTPSA id 2172EE000D;
+	Wed, 24 Jan 2024 14:09:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
+	t=1706105400;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=BVQptg6pNr7/Hd/yjH+uKmnG36EBffMLdBd048tdJ9I=;
+	b=LGo7sy9O/BrvsaySKByqO5iuOVvbA23QuQBoQKjSjld/7OxJ68DOdIyHmXoc6Za9y19/cx
+	SYJq5ney0FY114kRsjbDJMLDAOJqtnwcE7LzQSxff7DK+1rpme72BZ8tdMxoLQvASEiU3X
+	Bqdu+yBpbUgaefIxu/lPTMz5LyOCW7pfnD3AI5qNFjDit4K0ygVr7yqSTtUTywmUbGe93/
+	du8qimW3Gc78PalZceT1G0i8OWbWMpRwuEajFsDqog7Qsc+Xl448imyv3IdFIOJCNdmAR1
+	s1b/TcjdAWcKm8M2IHdo9GurQtybPkNfjCexpdaXnoikr62v6/WBbwaWZQd5CQ==
+Message-ID: <830324ea-7fdb-4769-a1c7-08d59905ca4b@bootlin.com>
+Date: Wed, 24 Jan 2024 15:09:56 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 14/14] PCI: j721e: add suspend and resume support
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+ Bartosz Golaszewski <brgl@bgdev.pl>, Andy Shevchenko <andy@kernel.org>,
+ Tony Lindgren <tony@atomide.com>, Haojian Zhuang
+ <haojian.zhuang@linaro.org>, Vignesh R <vigneshr@ti.com>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Janusz Krzysztofik <jmkrzyszt@gmail.com>, Andi Shyti
+ <andi.shyti@kernel.org>, Peter Rosin <peda@axentia.se>,
+ Vinod Koul <vkoul@kernel.org>, Kishon Vijay Abraham I <kishon@kernel.org>,
+ Philipp Zabel <p.zabel@pengutronix.de>, Tom Joseph <tjoseph@cadence.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>,
+ =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>,
+ Rob Herring <robh@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+ linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+ linux-i2c@vger.kernel.org, linux-phy@lists.infradead.org,
+ linux-pci@vger.kernel.org, gregory.clement@bootlin.com,
+ theo.lebrun@bootlin.com, thomas.petazzoni@bootlin.com, u-kumar1@ti.com
+References: <20240102-j7200-pcie-s2r-v1-0-84e55da52400@bootlin.com>
+ <20240102-j7200-pcie-s2r-v1-14-84e55da52400@bootlin.com>
+ <CAHp75VfPQz4PWdzFUU_n+R=XohBjyXM0zsjD-bUD2jmb42ds8Q@mail.gmail.com>
+ <9cb47f37-bd98-4136-b844-33cf2be593df@bootlin.com>
+ <CAHp75Ve30T3t0_vHR7TUVVC_WN23dL_rp1k951Da6Re2DJQezw@mail.gmail.com>
+Content-Language: en-US
+From: Thomas Richard <thomas.richard@bootlin.com>
+In-Reply-To: <CAHp75Ve30T3t0_vHR7TUVVC_WN23dL_rp1k951Da6Re2DJQezw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+X-GND-Sasl: thomas.richard@bootlin.com
 
-We do not use the OF node anymore, nor does it matter how
-we got to probe, so remove the check for of_node.
+On 1/22/24 22:36, Andy Shevchenko wrote:
+> On Mon, Jan 22, 2024 at 5:30 PM Thomas Richard
+> <thomas.richard@bootlin.com> wrote:
+>> On 1/15/24 21:13, Andy Shevchenko wrote:
+>>> On Mon, Jan 15, 2024 at 6:16 PM Thomas Richard
+>>> <thomas.richard@bootlin.com> wrote:
+> 
+> ...
+> 
+>>>> +               if (pcie->reset_gpio)
+>>>
+>>> Dup, why?
+>>
+>> This pcie->reset_gpio corresponds to PERST# of PCIe endpoints.
+>> I assert it during suspend, because I have to deassert it (with a delay)
+>> during resume stage [1].
+> 
+> Ah, sorry for being unclear, I meant that gpiod_set_value*() already
+> has that check, you don't need it here.
 
-Signed-off-by: Andrew Davis <afd@ti.com>
----
- drivers/hwspinlock/omap_hwspinlock.c | 4 ----
- 1 file changed, 4 deletions(-)
+ok understood, check is useless.
 
-diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
-index a9fd9ca45f2a8..cca55143d24d4 100644
---- a/drivers/hwspinlock/omap_hwspinlock.c
-+++ b/drivers/hwspinlock/omap_hwspinlock.c
-@@ -74,7 +74,6 @@ static const struct hwspinlock_ops omap_hwspinlock_ops = {
- 
- static int omap_hwspinlock_probe(struct platform_device *pdev)
- {
--	struct device_node *node = pdev->dev.of_node;
- 	struct hwspinlock_device *bank;
- 	struct hwspinlock *hwlock;
- 	void __iomem *io_base;
-@@ -82,9 +81,6 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
- 	/* Only a single hwspinlock block device is supported */
- 	int base_id = 0;
- 
--	if (!node)
--		return -ENODEV;
--
- 	io_base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(io_base))
- 		return PTR_ERR(io_base);
+> 
+>>>> +                       gpiod_set_value_cansleep(pcie->reset_gpio, 0);
+> 
+> ...
+> 
+>>>> +               if (pcie->reset_gpio) {
+>>>> +                       usleep_range(100, 200);
+>>>
+>>> fsleep() ?
+>>> Btw, why is it needed here, perhaps a comment?
+>>
+>> The comment should be the same than in the probe [1].
+>> Should I copy it? Or should I just add a reference to the probe?
+>>
+>> [1]
+>> https://elixir.bootlin.com/linux/v6.8-rc1/source/drivers/pci/controller/cadence/pci-j721e.c#L535
+> 
+> Either way works for me.
+> 
+>>>> +                       gpiod_set_value_cansleep(pcie->reset_gpio, 1);
+>>>> +               }
+> 
+> ...
+> 
+>>>> +#define cdns_pcie_to_rc(p) container_of(p, struct cdns_pcie_rc, pcie)
+>>>
+>>> Is container_of.h included in this file?
+>>
+>> linux/container_of.h is included in linux/kernel.h.
+>> And linux/kernel.h is included in pcie-cadence.h
+>> (https://elixir.bootlin.com/linux/v6.8-rc1/source/drivers/pci/controller/cadence/pcie-cadence.h#L9).
+> 
+> Okay, so, try to clean up pcie-cadence.h so it won't use "proxy" headers.
+> There is an IWYU (include what you use) principle, please follow it.
+
+In fact, as cdns_pcie_to_rc is only used in pci-j721e.c, no need to have
+it in a header file.
+I prefer to move cdns_pcie_to_rc definition in pci-j721e.c.
+As I don't modify pcie-cadence.h, the cleanup to not use proxy headers
+is something that it can be done outside this series.
+
 -- 
-2.39.2
+Thomas Richard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
