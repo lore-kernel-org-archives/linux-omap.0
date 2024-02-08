@@ -1,55 +1,58 @@
 Received: from lelv0143.ext.ti.com (lelv0143.ext.ti.com [198.47.23.248])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FDBF2033E;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAE917EF16;
 	Thu,  8 Feb 2024 16:51:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.248
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707411084; cv=none; b=pVdloxg7W3vsk9k9l11G2WQYp6+6kYBoNqyTXzIpDYpfTxZKLzNfVOGmGIbkAIB1on/iWTqCJBd0L86i6oNq3LY5lE2xM3bOEsd/weK0FjtdJGLwgDewcAx0pp6QsnaX7DW5kscyTCfojkOwiCmU8nWevI8ism7kLlW6ceG5Pbs=
+	t=1707411084; cv=none; b=oe1y3spIXWknpdtkHwWifoI0fAdufHJdGdAk/Det7o4IBvDdb4AHTkBY/LoNMWvo4065phOE/sbDCf5cazKDZ48/RJ0Uo6MD/ghl8XCFsZKW67IGeP6cUwaGQsELXSMYoTLOCmjouOjGW0KeKJtQAmRDRYm3IxrvcjbIDC5r9Ik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1707411084; c=relaxed/simple;
-	bh=SzcvmT0u+d+mOegkatFJAAaI6odzW0ax7/YjwwvrAw4=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=hKpZAalIwsefhQCA+SkC/fCcL/jhrhD/MYvI1Z832j8dnej9Dt/iBeTUwcOAmhO2r8vLzezp8NGOzszNN9hHxWZgt4ecRI2/Qfm0uIJtlKQAqntNXt28c/HeuE4f9NmGCuo+O0o3IOSYKdi97dPU3Mr4kLRP5+6L6AjUFKMo5Ic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=xp6zcSk2; arc=none smtp.client-ip=198.47.23.248
+	bh=gjSKd6uTc8kBAKclYk3S89l34EyVOwSZa1YaZh1NZPA=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=HzbeScrRSExUH4EOt4hwqXKN+ozlqSSAjsYIg2PO9xnYHO8j77/KVClXFGMBksDEPUeW7nkynUwwN1mVoBGAT8Pe9M4ts3tk+sNqZ76RpQnPYXIz0k8Ae/M3QeE9CGqyf4oEPlqzWYBgVgfwcx1ZuXka9lDAQET9juXGmA+IJJ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=D0Jgklj4; arc=none smtp.client-ip=198.47.23.248
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="xp6zcSk2"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="D0Jgklj4"
 Received: from fllv0035.itg.ti.com ([10.64.41.0])
-	by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 418GpGIe012008;
-	Thu, 8 Feb 2024 10:51:16 -0600
+	by lelv0143.ext.ti.com (8.15.2/8.15.2) with ESMTP id 418GpHrd012029;
+	Thu, 8 Feb 2024 10:51:17 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1707411076;
-	bh=7eJWi6eNYuFYPK/LARry4zNJsatwYYOpsn8tijlRXkA=;
-	h=From:To:CC:Subject:Date;
-	b=xp6zcSk287TfpQJP+nHMwWIh4Bv6U2ezCzrOkuJ7UZOpTzq49YQtgDct55SFYcdsO
-	 0VbF8vVxkwcFbt3dPuYmsUh1YykJwLToTG+i5JoUFVxoVYm4fTQaLgV7WwaSHL6YGk
-	 uZO5asrzq/2jkriG7FMB7o1ELy8TG83XD5XL3s4E=
-Received: from DLEE112.ent.ti.com (dlee112.ent.ti.com [157.170.170.23])
-	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 418GpGfk041134
+	s=ti-com-17Q1; t=1707411077;
+	bh=xCGFMX89R1mGJW8/Y6A+fGzHuBoxs28i4x77PmX5znQ=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=D0Jgklj4yGloL1h3M4KVZTz9AMrS/ihpMI4+HTJcBfZt7CB76YcKrqZ7tQw3Dp5gY
+	 WxdGg47uWuZ0f2yI65vcmgTqYIMKqmcKoEalqvp5fi6aDllMvP/cj+LbvOZ9rIXAac
+	 u3RcOTtbnMCRvipPJVzEJam/0OIifgxU2+a7nNBs=
+Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
+	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 418GpHjQ041144
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 8 Feb 2024 10:51:16 -0600
-Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+	Thu, 8 Feb 2024 10:51:17 -0600
+Received: from DLEE110.ent.ti.com (157.170.170.21) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 8
- Feb 2024 10:51:16 -0600
-Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+ Feb 2024 10:51:17 -0600
+Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DLEE110.ent.ti.com
+ (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Thu, 8 Feb 2024 10:51:15 -0600
+ Frontend Transport; Thu, 8 Feb 2024 10:51:17 -0600
 Received: from lelvsmtp5.itg.ti.com ([10.249.42.149])
-	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 418GpFwC063394;
-	Thu, 8 Feb 2024 10:51:15 -0600
+	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 418GpFwF063394;
+	Thu, 8 Feb 2024 10:51:16 -0600
 From: Andrew Davis <afd@ti.com>
 To: Bjorn Andersson <andersson@kernel.org>,
         Baolin Wang
 	<baolin.wang@linux.alibaba.com>
 CC: <linux-omap@vger.kernel.org>, <linux-remoteproc@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, Andrew Davis <afd@ti.com>
-Subject: [PATCH v2 1/4] hwspinlock: omap: Remove unneeded check for OF node
-Date: Thu, 8 Feb 2024 10:51:11 -0600
-Message-ID: <20240208165114.63148-1-afd@ti.com>
+Subject: [PATCH v2 4/4] hwspinlock: omap: Use index to get hwspinlock pointer
+Date: Thu, 8 Feb 2024 10:51:14 -0600
+Message-ID: <20240208165114.63148-4-afd@ti.com>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20240208165114.63148-1-afd@ti.com>
+References: <20240208165114.63148-1-afd@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -60,36 +63,38 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 
-We do not use the OF node anymore, nor does it matter how
-we got to probe, so remove the check for of_node.
+For loops with multiple initializers and increments are hard to read
+and reason about, simplify this by using the looping index to index
+into the hwspinlock array.
 
 Signed-off-by: Andrew Davis <afd@ti.com>
 ---
- drivers/hwspinlock/omap_hwspinlock.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/hwspinlock/omap_hwspinlock.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
-index a9fd9ca45f2a8..cca55143d24d4 100644
+index fe73da80018b1..27b47b8623c09 100644
 --- a/drivers/hwspinlock/omap_hwspinlock.c
 +++ b/drivers/hwspinlock/omap_hwspinlock.c
-@@ -74,7 +74,6 @@ static const struct hwspinlock_ops omap_hwspinlock_ops = {
- 
+@@ -75,7 +75,6 @@ static const struct hwspinlock_ops omap_hwspinlock_ops = {
  static int omap_hwspinlock_probe(struct platform_device *pdev)
  {
--	struct device_node *node = pdev->dev.of_node;
  	struct hwspinlock_device *bank;
- 	struct hwspinlock *hwlock;
+-	struct hwspinlock *hwlock;
  	void __iomem *io_base;
-@@ -82,9 +81,6 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	int num_locks, i, ret;
  	/* Only a single hwspinlock block device is supported */
- 	int base_id = 0;
+@@ -117,8 +116,8 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	if (!bank)
+ 		return -ENOMEM;
  
--	if (!node)
--		return -ENODEV;
--
- 	io_base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(io_base))
- 		return PTR_ERR(io_base);
+-	for (i = 0, hwlock = &bank->lock[0]; i < num_locks; i++, hwlock++)
+-		hwlock->priv = io_base + LOCK_BASE_OFFSET + sizeof(u32) * i;
++	for (i = 0; i < num_locks; i++)
++		bank->lock[i].priv = io_base + LOCK_BASE_OFFSET + sizeof(u32) * i;
+ 
+ 	return devm_hwspin_lock_register(&pdev->dev, bank, &omap_hwspinlock_ops,
+ 						base_id, num_locks);
 -- 
 2.39.2
 
