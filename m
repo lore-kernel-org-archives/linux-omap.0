@@ -1,74 +1,35 @@
-Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C0896F090
-	for <linux-omap@vger.kernel.org>; Thu,  8 Feb 2024 10:51:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3808B6D1B1;
+	Thu,  8 Feb 2024 11:10:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707389515; cv=none; b=tqO1YffHEP4Dw+gt9PNLUcypGYV7QAgPLZ4iL+GbBq7OTScdoohiopJUEQWx1n7KwyHLQh7bd4XWEm78tNPaWvx9JcIHJWCzp9Xn3V14CLFoT0/hKPIwmZuj+Okn5LAd2RC4GGOUsjmOni+f2AP+UJQUqRv/L31yCWuUTyD7Rws=
+	t=1707390630; cv=none; b=B6m+IUji5yJmEgo+tHpNRxij3LJVgOatA8pq8lMMfum3XUJe96vHGH1xgHE8TUynV4yvPReftKBmQFv7py++8laFKQmKSqo1JPlo1xTl+MlUSht3LLNSEehgRnSXCXaDba99WaLf59cp9/tYBcaOlXdjmX271JSqat0Gq/T3yAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707389515; c=relaxed/simple;
-	bh=71NEIfK9lpPDXPxdcpoIc6Ua6mtEwo4nfytvBjt6Rls=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=VpZVSqUFjJIG8Np4S6nyXM6TwE1tFWksIsAJtxr9iAw8jWKb5SRDfrDYy+6WcpP7Jd/dib+8Pk35/MlnxjgQEKEtXa6UH1zsRIDHkUF1jYCoOgThRbzzXL+rhA3W6tlyuw7UurKFNe7mnJf1wA0AKS3eFDctginKN6ZTtjU30iQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=YejNj1Gm; arc=none smtp.client-ip=209.85.167.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	s=arc-20240116; t=1707390630; c=relaxed/simple;
+	bh=GLdEbc2UAtbAbTDq73Jc2aWiLnCE774GGgGxlB8M+Gs=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=U/gMEi7m5KYTspXPJvRMxsjyXHG2PRWOeCFnTDSI/C236lP5VnryHT9cls/9uhRdE7LPgaCCH3aQEls9CpYiwQupT+BwME1BMfSEb6aFah0gOqxFBjJIFC/lvsPQRmKmy6+whDtucG0ZbI80A9724B73a3vf7ucrU3Ghxj9zWVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MSUdiyV6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="YejNj1Gm"
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-511531f03f6so2189326e87.0
-        for <linux-omap@vger.kernel.org>; Thu, 08 Feb 2024 02:51:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1707389511; x=1707994311; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=t0MY0LFcMWq3dc0uCMNCLEb4yRGXUvt5u3xXKNiGtf0=;
-        b=YejNj1GmPdh5UY3fqZME90GyO09tKPvBPaXzdurFsGXFLKyDse1lUTnHkX7b6wUgNZ
-         ZhvOrx3UN+dbAd4jwoolpCBqFMGNFpAm1NaCyHxpurf5BuOqEWszZXDJSQbIzhP9A6lp
-         VFlyn4Yk9Pnv7lo/If+caurHTtvmH35NPwiTDBK4HRuJ34kNfWRZXArtZLeibFNh087x
-         rUGT/R3lyRh1tLn6NmNikNY7skCkpVBo7aTTnnQyPBteEnUvb9lPNmhGTHzVShXbq0Rv
-         nRjDyfmzZ1AYQljRrLe8QpLyC+R+T6vUHjk+Y3D7TichWHNuFn5HaLI1/5cc/W/KxHXm
-         ewIw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707389511; x=1707994311;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=t0MY0LFcMWq3dc0uCMNCLEb4yRGXUvt5u3xXKNiGtf0=;
-        b=biWgY/Xp5mX0pCYa7Ajy7iFxAyNGR7FZ93460lLkUe6C9gs0XmmljzbPf/c/1hEs62
-         GiQACZ7FkJXmzugwTIPvNpiTzPSrS7pApvoFN2TmOY/9pCt1b/0jgrZ26lu5cQVWoQWG
-         fMDQF0ePKTo9CcqeNMWGyrrowGFnn66d5OeKanzTmKWRALTbBUpue5rkJaPvqQQHbCfh
-         tB/AoPFop6TO4be5QdL+B883IrBCO085L+VqEmtM1Q67ZwUseYKnfQijn7RN8kXCjliD
-         FYJNAssevHLhtZTrnJVaM3bftzaQ9bNsEJswM3XFniQmP/tuA/+7AeiQNhh4vz9BPY7x
-         yqvA==
-X-Forwarded-Encrypted: i=1; AJvYcCUc7nYHIEI/6H896Qf8NNzE9nPGP3o67cjNS3LeLEdJLNGlBV9DdK0KeR6ivWNezp8NhkaCwYs/P5+Z6o19h0wR01dQrP1kHk/JbA==
-X-Gm-Message-State: AOJu0YxwsughxmPct3lr2tBE2//i7EN40E2hHn9YPQzeia+jQAL1r0Ph
-	0xptkzoWj0rhEp1gV2zPktHCQKr79+XZWDAhsAh80Tr2c2l03Z5QKiftS22LpTk=
-X-Google-Smtp-Source: AGHT+IEt3SoWw/qYKioysQ6bnIJH+WgEPguwMyk6R6vSEqrdZgvM+ax8WHd3rkmGmXbqXxqQsAltyQ==
-X-Received: by 2002:a05:6512:2389:b0:511:4bee:b1be with SMTP id c9-20020a056512238900b005114beeb1bemr7168190lfv.55.1707389510608;
-        Thu, 08 Feb 2024 02:51:50 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCUZxWXzwImTXAOswIaNW51vFaW2eYJE03i6k/5uvIgEeeIS3UmRwzPnffIgqHhffoEMLXx4y4zaICuMp+jpfknTtDahlO6X1old5OA2qp0ivbXXMtp3HXvkm4+Pdeoief1QhDisIykF0kBsikPogAMiLtVP6FgH2PRhv+spPa6CiiFUl3ujoDY3nbv2LDmNqRujXl3ISi0FScZ4K/Gy8ZFghvroFDr9/NHB9c75b/Cb2R3rvWQb1Lz8VN4S8EVL17/UM8KQk2qAR/BHKh59WGDyphtFy3J1lDLWPXnSofABCVKjs/S/YZbskTwBypgf8ht/S/Klgtzpru0No1JARMXEjPBMIRoT5GxdPEDr0UsyiPU=
-Received: from krzk-bin.. ([178.197.222.62])
-        by smtp.gmail.com with ESMTPSA id je3-20020a05600c1f8300b004101bdae3a0sm1247037wmb.38.2024.02.08.02.51.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 Feb 2024 02:51:50 -0800 (PST)
-From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Nishanth Menon <nm@ti.com>,
-	Vignesh Raghavendra <vigneshr@ti.com>,
-	Tero Kristo <kristo@kernel.org>,
-	linux-omap@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Subject: [PATCH 1/2] arm64: dts: ti: k3-am62p5-sk: minor whitespace cleanup
-Date: Thu,  8 Feb 2024 11:51:45 +0100
-Message-Id: <20240208105146.128645-1-krzysztof.kozlowski@linaro.org>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MSUdiyV6"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id CF830C43394;
+	Thu,  8 Feb 2024 11:10:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1707390629;
+	bh=GLdEbc2UAtbAbTDq73Jc2aWiLnCE774GGgGxlB8M+Gs=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=MSUdiyV6rycYGLgJEHJW82We/FWtEETejSRb+OI8WXJYAxakZBONAfsIg9bOiOlHW
+	 FXEnGjDAKy89mQoAhGaA1dJN5W8FcS8o3U52hbXypuZvffwKE7tphjYpkVQHv9OnJ9
+	 wjxrMYe2ENkXumOT/maSEv/RVk1U7Xjxvy8cJDy8pV1RKit07su/mUZDOPcXG30cEL
+	 iFHczGtE5JYmLA8jiFwcj3fNp14Bglj6x9CrzvoCG17Ih1tQamWqhjCLIzb/0R9kJv
+	 FcvNRAuMKgtUFSyuSp6j/OXb+rtNIztEFFSHbUqurYoaWJVjkAu+etO0VjYrMrURq/
+	 7He0JHoPHQ0fg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id AA9F9E2F2F0;
+	Thu,  8 Feb 2024 11:10:29 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -76,28 +37,43 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH V3 0/2] CPSW: enable mac_managed_pm to fix mdio
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <170739062969.21022.14406524530432111122.git-patchwork-notify@kernel.org>
+Date: Thu, 08 Feb 2024 11:10:29 +0000
+References: <20240206005928.15703-1-sinthu.raja@ti.com>
+In-Reply-To: <20240206005928.15703-1-sinthu.raja@ti.com>
+To: Sinthu Raja <sinthu.raja@mistralsolutions.com>
+Cc: dkirjanov@suse.de, s-vadapalli@ti.com, r-gunasekaran@ti.com,
+ rogerq@kernel.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org,
+ sinthu.raja@ti.com
 
-The DTS code coding style expects exactly one space before '{'
-character.
+Hello:
 
-Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
----
- arch/arm64/boot/dts/ti/k3-am62p5-sk.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This series was applied to netdev/net.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
 
-diff --git a/arch/arm64/boot/dts/ti/k3-am62p5-sk.dts b/arch/arm64/boot/dts/ti/k3-am62p5-sk.dts
-index 95a0146279b1..21aa40878cd1 100644
---- a/arch/arm64/boot/dts/ti/k3-am62p5-sk.dts
-+++ b/arch/arm64/boot/dts/ti/k3-am62p5-sk.dts
-@@ -494,7 +494,7 @@ &ospi0 {
- 	pinctrl-0 = <&ospi0_pins_default>;
- 	bootph-all;
- 
--	flash@0{
-+	flash@0 {
- 		compatible = "jedec,spi-nor";
- 		reg = <0x0>;
- 		spi-tx-bus-width = <8>;
+On Tue,  6 Feb 2024 06:29:26 +0530 you wrote:
+> From: Sinthu Raja <sinthu.raja@ti.com>
+> 
+> Hi All,
+> This patch fix the resume/suspend issue on CPSW interface.
+> 
+> Reference from the foloowing patchwork:
+> https://lore.kernel.org/netdev/20221014144729.1159257-2-shenwei.wang@nxp.com/T/
+> 
+> [...]
+
+Here is the summary with links:
+  - [V3,1/2] net: ethernet: ti: cpsw_new: enable mac_managed_pm to fix mdio
+    https://git.kernel.org/netdev/net/c/9def04e759ca
+  - [V3,2/2] net: ethernet: ti: cpsw: enable mac_managed_pm to fix mdio
+    https://git.kernel.org/netdev/net/c/bc4ce46b1e3d
+
+You are awesome, thank you!
 -- 
-2.34.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
