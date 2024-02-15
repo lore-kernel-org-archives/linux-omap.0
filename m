@@ -1,39 +1,39 @@
 Received: from relay1-d.mail.gandi.net (relay1-d.mail.gandi.net [217.70.183.193])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC846132497;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB5831754B;
 	Thu, 15 Feb 2024 15:18:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.183.193
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708010287; cv=none; b=nV2dkWjvijhGpgc6C4URyobNo718Q0YtJBStFZUdpxoI3e5kd5nd29pkjVdo9FUnvCLYgTjkcwP1oJK/vWRtOiRAOVD9FCbinIKJF25MI/XwuixnwrG7W1iZd1L51SzGQc0fbWD4HLArzqOa2vujH7UZIEQ92R3m3mAI0OHA5EI=
+	t=1708010288; cv=none; b=RLHBpKjE3NI54zlOGRE+EBUS1e9SmQkehHPuZIg2Epjmi4SfA7rcQ0gZ2vR7CMApMmUrBJ0RGV97xmpDqRkExTOlLoEgRKulcgA+AR0kAonXA4K3htLUSStF3hY3jLRqtW7ssvwjGHPd3xMib+hq2+KF4zOMzli1IpKuVg8y55E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708010287; c=relaxed/simple;
-	bh=aSTKbIbocmfQVktZDk7IuOcqfsqSduUZkf7ik6EjfoQ=;
+	s=arc-20240116; t=1708010288; c=relaxed/simple;
+	bh=qG7Aih/dlI+jjqynJ8CwK6KPV3f2CPLL/GBb4pkvOTw=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=qwyi7b8tjYgLuZ1Y9HhNSiPH5BDSeVML3HnhIuRG72/J8pZtDAR5Zx+Up5LVBxOcUyIrASYomUd3Cg13pnUT3lYC+C9Y3MfWXbN+RJh0vCAw83JMxl0JjIRDuUXhtlIZ4cX2ErrSU0arOhaXkbP+iia5TayJ+Jh0AASIWwXdAPs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=ZWbj4bpo; arc=none smtp.client-ip=217.70.183.193
+	 In-Reply-To:To:Cc; b=sKKKa3XFxKQMck5WMxQ1HM/7Z4/CisrWtOXStWk2ajISosiPSKxrbQpAAKA+Kcaa8VnwVIPp2gRFJzw9HmZx9M6XVTmx3TZBwr2xjAFgJAMarHcinuUWM7bh0TJDkVvpN8rhi7pIz2CZhlBEfJuUJTq+ySFXqLKvFWPRvEWltoY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=mTIdkXRM; arc=none smtp.client-ip=217.70.183.193
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="ZWbj4bpo"
-Received: by mail.gandi.net (Postfix) with ESMTPSA id D55AE240008;
-	Thu, 15 Feb 2024 15:18:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="mTIdkXRM"
+Received: by mail.gandi.net (Postfix) with ESMTPSA id 949FA240005;
+	Thu, 15 Feb 2024 15:17:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
-	t=1708010282;
+	t=1708010280;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=4i5VKICPkOcySB+v4EkO/Z1q1pJDA/ZgXOxMH2KXNho=;
-	b=ZWbj4bpo0gq4xsPTML+Apv3A4CRTQTTzJoyfT4HYx2zruymwJsoWfJVA13e4KRMtDPAhK+
-	CYCp73hrUA5wEGtsrs8ZmrZkHS3zDtVcyEV73Br3gjCoNp5H06Psz56lEIUgmWnaZrgltN
-	qkyqqXYAkmLfL7shCLK6jw9bym09GzbECAWhaWXX4KvdHXqnVYqAmbEjdIfCXP5Ghq91dY
-	SppJdi7Q+JU6MmUL4dTZzGws11jJ8shhPss0CuH4/Irt38bKfVLTdyeDwwNihKJ/gJWZ4i
-	um3prNd11HKpF1aeFum/P8wwhqEKM5Lnhcc/ZRenW/xjd9mtqKhKqzoXwkGaIw==
+	bh=hyF0yc35eBHz6J5ozV2PTcEtd5Ku7xNg8KIyrWR2Ppc=;
+	b=mTIdkXRMUnc1Ncw1CWpsPwNllIyE5RWLeNrhM1TegKqa7oqfvKO/Fb10XiXCzERmNJAm5a
+	DJRnqTUiopMwB+wrwWP3sLY6zMDgVKdm4t8K+sIb4rQILYECzSqDiy1a76l/mA/DuUKYEw
+	OmkRRFfjY+3POb7TaLbNucl8alqGWRLtBYswCxalNLkoAZdOB+kgcQv44HuMZkBZZ96lIP
+	gkIsc61gjI4l1hc1skr2UKj4en2dKzD1iuXh3gwbC/SjbTPR0NiIu0tgOlKRmK+tdCDWFy
+	6d/wPjybitM07zx/FEjIsX7BDsGLsyUtPIDxaEJR4joKe5HG/b9X73Wvq2kCjQ==
 From: Thomas Richard <thomas.richard@bootlin.com>
-Date: Thu, 15 Feb 2024 16:17:48 +0100
-Subject: [PATCH v3 03/18] pinctrl: pinctrl-single: move suspend()/resume()
- callbacks to noirq
+Date: Thu, 15 Feb 2024 16:17:46 +0100
+Subject: [PATCH v3 01/18] gpio: pca953x: move suspend()/resume() to
+ suspend_noirq()/resume_noirq()
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -42,7 +42,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240102-j7200-pcie-s2r-v3-3-5c2e4a3fac1f@bootlin.com>
+Message-Id: <20240102-j7200-pcie-s2r-v3-1-5c2e4a3fac1f@bootlin.com>
 References: <20240102-j7200-pcie-s2r-v3-0-5c2e4a3fac1f@bootlin.com>
 In-Reply-To: <20240102-j7200-pcie-s2r-v3-0-5c2e4a3fac1f@bootlin.com>
 To: Linus Walleij <linus.walleij@linaro.org>, 
@@ -63,87 +63,54 @@ Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-pci@vger.kernel.org, gregory.clement@bootlin.com, 
  theo.lebrun@bootlin.com, thomas.petazzoni@bootlin.com, u-kumar1@ti.com, 
  Thomas Richard <thomas.richard@bootlin.com>, 
+ Bartosz Golaszewski <bartosz.golaszewski@linaro.org>, 
  Andy Shevchenko <andy.shevchenko@gmail.com>
 X-Mailer: b4 0.12.0
 X-GND-Sasl: thomas.richard@bootlin.com
 
-The goal is to extend the active period of pinctrl.
-Some devices may need active pinctrl after suspend() and/or before
-resume().
-So move suspend()/resume() to suspend_noirq()/resume_noirq() in order to
-have active pinctrl until suspend_noirq() (included), and from
-resume_noirq() (included).
+Some IOs can be needed during suspend_noirq()/resume_noirq().
+So move suspend()/resume() to noirq.
 
-The deprecated API has been removed to use the new one (dev_pm_ops struct).
-
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Reviewed-by: Andi Shyti <andi.shyti@kernel.org>
+Acked-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
 ---
- drivers/pinctrl/pinctrl-single.c | 20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/gpio/gpio-pca953x.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index 02eabd28d46e..0dd4b0e11adf 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1625,7 +1625,6 @@ static int pcs_irq_init_chained_handler(struct pcs_device *pcs,
+diff --git a/drivers/gpio/gpio-pca953x.c b/drivers/gpio/gpio-pca953x.c
+index 00ffa168e405..6e495fc67a93 100644
+--- a/drivers/gpio/gpio-pca953x.c
++++ b/drivers/gpio/gpio-pca953x.c
+@@ -1234,7 +1234,7 @@ static void pca953x_save_context(struct pca953x_chip *chip)
+ 	regcache_cache_only(chip->regmap, true);
+ }
+ 
+-static int pca953x_suspend(struct device *dev)
++static int pca953x_suspend_noirq(struct device *dev)
+ {
+ 	struct pca953x_chip *chip = dev_get_drvdata(dev);
+ 
+@@ -1248,7 +1248,7 @@ static int pca953x_suspend(struct device *dev)
  	return 0;
  }
  
--#ifdef CONFIG_PM
- static int pcs_save_context(struct pcs_device *pcs)
+-static int pca953x_resume(struct device *dev)
++static int pca953x_resume_noirq(struct device *dev)
  {
- 	int i, mux_bytes;
-@@ -1690,10 +1689,9 @@ static void pcs_restore_context(struct pcs_device *pcs)
- 	}
+ 	struct pca953x_chip *chip = dev_get_drvdata(dev);
+ 	int ret;
+@@ -1268,7 +1268,8 @@ static int pca953x_resume(struct device *dev)
+ 	return ret;
  }
  
--static int pinctrl_single_suspend(struct platform_device *pdev,
--					pm_message_t state)
-+static int pinctrl_single_suspend_noirq(struct device *dev)
- {
--	struct pcs_device *pcs = platform_get_drvdata(pdev);
-+	struct pcs_device *pcs = dev_get_drvdata(dev);
+-static DEFINE_SIMPLE_DEV_PM_OPS(pca953x_pm_ops, pca953x_suspend, pca953x_resume);
++static DEFINE_NOIRQ_DEV_PM_OPS(pca953x_pm_ops,
++			       pca953x_suspend_noirq, pca953x_resume_noirq);
  
- 	if (pcs->flags & PCS_CONTEXT_LOSS_OFF) {
- 		int ret;
-@@ -1706,16 +1704,19 @@ static int pinctrl_single_suspend(struct platform_device *pdev,
- 	return pinctrl_force_sleep(pcs->pctl);
- }
- 
--static int pinctrl_single_resume(struct platform_device *pdev)
-+static int pinctrl_single_resume_noirq(struct device *dev)
- {
--	struct pcs_device *pcs = platform_get_drvdata(pdev);
-+	struct pcs_device *pcs = dev_get_drvdata(dev);
- 
- 	if (pcs->flags & PCS_CONTEXT_LOSS_OFF)
- 		pcs_restore_context(pcs);
- 
- 	return pinctrl_force_default(pcs->pctl);
- }
--#endif
-+
-+static DEFINE_NOIRQ_DEV_PM_OPS(pinctrl_single_pm_ops,
-+			       pinctrl_single_suspend_noirq,
-+			       pinctrl_single_resume_noirq);
- 
- /**
-  * pcs_quirk_missing_pinctrl_cells - handle legacy binding
-@@ -1978,11 +1979,8 @@ static struct platform_driver pcs_driver = {
- 	.driver = {
- 		.name		= DRIVER_NAME,
- 		.of_match_table	= pcs_of_match,
-+		.pm = pm_sleep_ptr(&pinctrl_single_pm_ops),
- 	},
--#ifdef CONFIG_PM
--	.suspend = pinctrl_single_suspend,
--	.resume = pinctrl_single_resume,
--#endif
- };
- 
- module_platform_driver(pcs_driver);
+ /* convenience to stop overlong match-table lines */
+ #define OF_653X(__nrgpio, __int) ((void *)(__nrgpio | PCAL653X_TYPE | __int))
 
 -- 
 2.39.2
