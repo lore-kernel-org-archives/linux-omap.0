@@ -1,42 +1,41 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 501711CD28;
-	Sat, 17 Feb 2024 08:20:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61E631D526;
+	Sat, 17 Feb 2024 08:20:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708158047; cv=none; b=I+9r1CRNoCYwIU1spbuB4oF29U69YtMzWK3upPvxuWKveM/IDam9yQi0Yy4XsIYKUvz8fxqqr3Wfmr4Xv/aIVLWOkbyp6NbI8yBrp7PT27T2xqIiA+d38qfdBESoyv8Z/L6WJhmOoknGFEUC9ktqtj+02daEI3syQttbo4DkKhE=
+	t=1708158049; cv=none; b=VAqPtnYtCZOL5XR9wonNXp6u0Eq5mDPh+Y4NYnCcKOVcl/uehFdqucLs16myrIDvmpF5kZUYdSh+6/zEyoWBvnBigGO1QAicN2jIGb0fTUDe6fnZ0chorEKH5crYYA7IuZMBPWK7UjVwYRr7kY1XTYwYtlnWf1FFp8f/1GURrCw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708158047; c=relaxed/simple;
-	bh=PAuqh5EVeV6fdrZQXgisgrEu31gqCwBh1o5uwtMpIls=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=QI/CKAO+4/Z5+Dp+XxBvktzUAbatlXSaBa8lXzuySRzRNFguqRC8iu4mBji4D0vP3EFk7oTYOlNTiXlQXsI98zDdlUvC7tTcmOANntecO4TsDqmEr5WFG6yQXkk+rWVmiYZVjmHqcXwy77f6tTZyiKmpe0+POW23dReBpCInn4k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=HFgKWKF3; arc=none smtp.client-ip=178.238.236.174
+	s=arc-20240116; t=1708158049; c=relaxed/simple;
+	bh=78DJpSgRADSQ8xQ51c9xtgYjH6BRPB5WjDqxTZCNphY=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=JoZlMenoTgWYwz6pb5WKyNLkGGtmPy0R4VDgK67nNI+zBq/CxMRH4l7HLQEvOVGb51wDOcEuG4fvbo4JQtkBPszNa8k1G4Z+fOBC5bh52T8cT+LIKvvOXyUyQsPbRl851njJwcv+lTrPqBNj6oWDw1Z2RyKhhYrQ4X+VrAutzeU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=hKR3/Yhk; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="HFgKWKF3"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="hKR3/Yhk"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=Content-Transfer-Encoding:MIME-Version:
-	References:In-Reply-To:Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:
-	Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=Y+sKDGaqS2L6Nx5yacVQMNpKJL6zl7yFpsfABK8t+go=; b=HFgKWKF3hO8LSHBZAi+30+DVGV
-	746TXBBVXztO3evsHoxXE328X4ITFEYgixAu2ZY4EvGxm+8Ip7Vj4rzhLlKs7ym+IYZOtfItnUhaW
-	4hW6LLXQUAHiVll94R1mSZeoUlm+k+mNOqerfQf3WHEshabahHLd1eNp385ZytKH1bh99LYHcUmt7
-	5gSc1pFLsz0TPXIHk+6IQ6NCenNI1lj9PA2ZpyBQ4B1eNpofMvsYKDusyrgOq3it9vwDzC5UAZtgR
-	F6xXSUF7+qqM0ktD4FCTVzsboNKb9tonRDbvfsF8+5QwpysIYYxzbjGntnab8ASZ8LpqGUpPzxBr4
-	RECTBKPg==;
+	Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=0H8yS7B9ijf/Bav3Ome14xQsniFW8pPuUVlXJhECckA=; b=hKR3/YhkMhJeF4jgVsEzADhqba
+	/ODX3nXaqmPdPftLmbKNy6ic/PS6oDqjxV0B3p0m9ixDBHbfDtseK77Xk3rovxVqo6kaiS6Lm8MU5
+	DH8BQ2BqRF3hX3ilbM3pk+3bJBk+gWXMh2sNt5gde9c65zkRueqHk4Uc//fvio7MBy/L3ys1Lt+Zo
+	KC8SmV3yUB8l7+3pYRK0dpftLXjs0gTi7NIxQqWf8N64igdju18WyV8AkpoB2ofo7wp4ph8jt66EM
+	YOl4IXyqLRdsSaIPxeaSPOx6QNio7FpAQKZBoOYjlBJ19QU7k8F7xcckL1uq9TUbSo+iheHgvG3kJ
+	4ejKNJ3Q==;
 Received: from p2003010777002c001a3da2fffebfd33a.dip0.t-ipconnect.de ([2003:107:7700:2c00:1a3d:a2ff:febf:d33a] helo=aktux)
 	by mail.andi.de1.cc with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <andreas@kemnade.info>)
-	id 1rbFw1-009WAQ-7k; Sat, 17 Feb 2024 09:20:33 +0100
+	id 1rbFvz-009WA0-GB; Sat, 17 Feb 2024 09:20:31 +0100
 Received: from andi by aktux with local (Exim 4.96)
 	(envelope-from <andreas@kemnade.info>)
-	id 1rbFw0-00Dabo-2I;
-	Sat, 17 Feb 2024 09:20:32 +0100
+	id 1rbFvy-00DabZ-0p;
+	Sat, 17 Feb 2024 09:20:30 +0100
 From: Andreas Kemnade <andreas@kemnade.info>
 To: lee@kernel.org,
 	robh+dt@kernel.org,
@@ -48,12 +47,10 @@ To: lee@kernel.org,
 	devicetree@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org
-Subject: [PATCH v4 3/5] ARM: dts: omap-embt2ws: system-power-controller for bt200
-Date: Sat, 17 Feb 2024 09:20:05 +0100
-Message-Id: <20240217082007.3238948-4-andreas@kemnade.info>
+Subject: [PATCH v4 0/5] mfd: twl: system-power-controller
+Date: Sat, 17 Feb 2024 09:20:02 +0100
+Message-Id: <20240217082007.3238948-1-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20240217082007.3238948-1-andreas@kemnade.info>
-References: <20240217082007.3238948-1-andreas@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -62,26 +59,42 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Configure the TWL6032 as system power controller to let the device
-power off.
+Add system-power-controller property in the bindings and
+the corresponding implementation and use it where
+appropriate.
+Not all cases are hit yet, there has probably to be a
+separate series after going through with a brush.
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 1 +
- 1 file changed, 1 insertion(+)
+Changes in v4:
+- fix spelling/grammar
+- drop twl4030 dts cleanup, it would need an IB
+  or be postponed till next release 
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-index 24f7d0285f799..339e52ba3614b 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-+++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-@@ -85,6 +85,7 @@ twl: pmic@48 {
- 		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N cascaded to gic */
- 		interrupt-controller;
- 		#interrupt-cells = <1>;
-+		system-power-controller;
- 
- 		rtc {
- 			compatible = "ti,twl4030-rtc";
+Changes in v3:
+- twl-core: 
+   - remove repetitive verbose error messages
+   - placed constants at top part of function
+   - minor cleanups
+
+Changes in v2:
+- add A-By
+- fix compiler warning
+
+Andreas Kemnade (5):
+  dt-bindings: mfd: ti,twl: Document system-power-controller
+  twl-core: add power off implementation for twl603x
+  ARM: dts: omap-embt2ws: system-power-controller for bt200
+  ARM: dts: omap4-panda-common: Enable powering off the device
+  mfd: twl4030-power: accept standard property for power controller
+
+ .../devicetree/bindings/mfd/ti,twl.yaml       |  2 ++
+ .../boot/dts/ti/omap/omap4-epson-embt2ws.dts  |  1 +
+ .../boot/dts/ti/omap/omap4-panda-common.dtsi  |  1 +
+ drivers/mfd/twl-core.c                        | 28 +++++++++++++++++++
+ drivers/mfd/twl4030-power.c                   |  3 ++
+ include/linux/mfd/twl.h                       |  1 +
+ 6 files changed, 36 insertions(+)
+
 -- 
 2.39.2
 
