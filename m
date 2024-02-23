@@ -1,55 +1,55 @@
 Received: from meesny.iki.fi (meesny.iki.fi [195.140.195.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AECB813DBA8;
-	Fri, 23 Feb 2024 18:15:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04FE2140362;
+	Fri, 23 Feb 2024 18:15:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=195.140.195.201
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708712114; cv=pass; b=L0nwGLNAfjia6oJARfy47b1O032y76M3GAuviuWUEDC3EYsfyTFSSPbB2AvJ3kJCM2XDA7fcpOlTYThqE628bx2upsBq1pF1PEkhADbfnjZnrtDIbFwUcgQF78+fa5UANG5XoSdIjpT3ypbDI8xz+6R8rXRjj4ffMkeY9HfLKao=
+	t=1708712114; cv=pass; b=Gj56JcjHcl/dH/JPIqJKBNfDi6PJYIlt0qvX96u2vOowKlFao9kolaf7joQyU+7aX3Tc2TuYsebCA1HCTa2kdJMxpAvwDLqU8ws3tuFvzjoyhn545fmKlCABnVvrOA8ESVPHdiIuDnma/kQBc6NV2HoumWQg/DedVjVCCAs9BHY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708712114; c=relaxed/simple;
-	bh=ohm1BuRwL5Vhi0zBQ+dOazp2gwS8tFvdQ1N8/JNAlQM=;
+	bh=9HRYRnXfj6+3p6mGWDv0/h3ASIdvtbtBeqAitQNheMg=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=YkPrZY4DyzBeuxAtqJEms3IeKe285vMqh8gj9TV5UZkLOEmRxbBPQWFF3a4zcZe0TUPjMFQR68xT7coJvD/uj0ZYNEQ54Rg56FcZa+JTG+K+WGzhPdW7eZftemHK5PwCCaxqcTfTdw1gDTxBqT+KTetCknIgDVnh5XWQaTt/HdQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b=NVso89HF; arc=pass smtp.client-ip=195.140.195.201
+	 MIME-Version; b=rOpeE0SgE38ADe68/xpY6s8d05RMEzb2Sd0rBuwgd9rsX1rT+Gp0+reSgrGEeDTLo/FGJYzoujKO+WlxzEHbVnzWgr7x9DFNWNGNBxBQi/jeMLFTCzTuajc5BnZdBBqpDAUDfKuuqdjnnjt6p1Q7H+XeJG2TdHiihOpi6wRPzik=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b=mhm9fG2I; arc=pass smtp.client-ip=195.140.195.201
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iki.fi
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b="NVso89HF"
+	dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b="mhm9fG2I"
 Received: from darkstar.musicnaut.iki.fi (85-76-119-15-nat.elisa-mobile.fi [85.76.119.15])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
 	(Authenticated sender: aaro.koskinen)
-	by meesny.iki.fi (Postfix) with ESMTPSA id 4ThJ8710n8zym3;
-	Fri, 23 Feb 2024 20:15:03 +0200 (EET)
+	by meesny.iki.fi (Postfix) with ESMTPSA id 4ThJ8847WBzyWT;
+	Fri, 23 Feb 2024 20:15:04 +0200 (EET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=meesny;
-	t=1708712103;
+	t=1708712104;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=vPdR1MvtktsAtCs1c7d+8gSeJSZYOv6Ob1/SOA8y6c8=;
-	b=NVso89HFhmYxAQTs6SzwUfF9oiJnzLMvhDcWeAq8/1YsZrY/lWKd+23RloAOtVKQ3C3+Wq
-	9hQ7zO4TunUfg0aCOUUoliZG/9D6U1GJx0n85sGaEvfMk4oL08xM3D1RD1JlO007vT7Dv1
-	/X00tZusMiT/U9lB+eJ2wGtnW7H4tII=
+	bh=TgHYKl8nENz0zRcm1GC7MSy4sfSrbhDj/i7Fo3D2m+c=;
+	b=mhm9fG2IuNW8DH94X2N/P0Dfw4dOPHGXvhIQIvqlTYTB3n6DNJ2BZ6GJc1w/J4RFSK8dxZ
+	insFDKCeh/xXIKd32/+0NgfGD3rmFRsuWf5IbaQU95/OoJMikA8eQxkhvvseI8WVOUZ/gm
+	ysYFG4OPoXU1nJFZm1loaTuMvUy8AgY=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
-	s=meesny; t=1708712103;
+	s=meesny; t=1708712104;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=vPdR1MvtktsAtCs1c7d+8gSeJSZYOv6Ob1/SOA8y6c8=;
-	b=NxEM0iCWG34hq/UmByTWBnyjN9+FrrdWG/dk52OZ2MH84BsanTbnc+/dfc8XEOAe3dgdP5
-	E2ZZmVLbDw/iiRcUaXu2nRrccum/7TVyDuGuKhv8nMkq/79OjlYNOfE49Q/JESNrehPTiQ
-	r25OJm18Wg+G87nnFdKRIlVH58cTxOE=
+	bh=TgHYKl8nENz0zRcm1GC7MSy4sfSrbhDj/i7Fo3D2m+c=;
+	b=rXrBNAPdjRL9OlYlelkn8jautSQcdYEGnyCYVe4R7fUn8UM3Z/jYlSTb1iKjkHOGEY1HVP
+	ACpSEdXR3nppDl4ewHFLZeRCt5b+NFlGHsdWI7dbWe9msMREVJGMwevbmDYXTMeZ7YbsF3
+	af5yBeOBKnkJjB8nlPH5ixGvGXjIxV0=
 ARC-Authentication-Results: i=1;
 	ORIGINATING;
 	auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
-ARC-Seal: i=1; s=meesny; d=iki.fi; t=1708712103; a=rsa-sha256; cv=none;
-	b=zQRsAG/vUV1GLeW6lWXAiLigaSokm2uQUwUZbI540AwmaKyNioiOuwgpEZKk3Jtf1Ksrha
-	2XB2IozW7ukcT9dCo4GrPO4JvLTRx/3cFFubn+5oV0qoXGCmRVcM+ThSIQ+qMMzIZ1n5PG
-	EBAdGUpK8X8FRxsJKrY/Y/YvNyZRzsQ=
+ARC-Seal: i=1; s=meesny; d=iki.fi; t=1708712104; a=rsa-sha256; cv=none;
+	b=Ahxz2dx8SaMjCL1c9kMHyJkveRGeC07+djb/HOFrcq+2oleDF+07QKYrEMVRA91jKEIc+C
+	5tXgL0Uj6wLWQE/UowfUD1vv2SzWPbebssh+/KriZ8Vkq+SQgmsrVYuv4ipxCTZblECFi2
+	mSgw0Mwbbq84+BrqH9lxaZgXAL94hFc=
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
 To: Tony Lindgren <tony@atomide.com>,
 	Ulf Hansson <ulf.hansson@linaro.org>,
@@ -57,9 +57,9 @@ To: Tony Lindgren <tony@atomide.com>,
 	linux-omap@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org,
 	Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH 1/5] ARM: OMAP: fix bogus MMC GPIO labels on Nokia N8x0
-Date: Fri, 23 Feb 2024 20:14:35 +0200
-Message-Id: <20240223181439.1099750-2-aaro.koskinen@iki.fi>
+Subject: [PATCH 3/5] MMC: OMAP: fix broken slot switch lookup
+Date: Fri, 23 Feb 2024 20:14:37 +0200
+Message-Id: <20240223181439.1099750-4-aaro.koskinen@iki.fi>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20240223181439.1099750-1-aaro.koskinen@iki.fi>
 References: <20240223181439.1099750-1-aaro.koskinen@iki.fi>
@@ -71,42 +71,47 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The GPIO bank width is 32 on OMAP2, so all labels are incorrect.
+The lookup is done before host->dev is initialized. It will always just
+fail silently, and the MMC behaviour is totally unpredictable as the switch
+is left in an undefined state. Fix that.
 
 Fixes: e519f0bb64ef ("ARM/mmc: Convert old mmci-omap to GPIO descriptors")
 Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- arch/arm/mach-omap2/board-n8x0.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/mmc/host/omap.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 31755a378c73..3e48f34016c1 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -144,8 +144,7 @@ static struct gpiod_lookup_table nokia8xx_mmc_gpio_table = {
- 	.dev_id = "mmci-omap.0",
- 	.table = {
- 		/* Slot switch, GPIO 96 */
--		GPIO_LOOKUP("gpio-80-111", 16,
--			    "switch", GPIO_ACTIVE_HIGH),
-+		GPIO_LOOKUP("gpio-96-127", 0, "switch", GPIO_ACTIVE_HIGH),
- 		{ }
- 	},
- };
-@@ -154,11 +153,9 @@ static struct gpiod_lookup_table nokia810_mmc_gpio_table = {
- 	.dev_id = "mmci-omap.0",
- 	.table = {
- 		/* Slot index 1, VSD power, GPIO 23 */
--		GPIO_LOOKUP_IDX("gpio-16-31", 7,
--				"vsd", 1, GPIO_ACTIVE_HIGH),
-+		GPIO_LOOKUP_IDX("gpio-0-31", 23, "vsd", 1, GPIO_ACTIVE_HIGH),
- 		/* Slot index 1, VIO power, GPIO 9 */
--		GPIO_LOOKUP_IDX("gpio-0-15", 9,
--				"vio", 1, GPIO_ACTIVE_HIGH),
-+		GPIO_LOOKUP_IDX("gpio-0-31", 9, "vio", 1, GPIO_ACTIVE_HIGH),
- 		{ }
- 	},
- };
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 9fb8995b43a1..aa40e1a9dc29 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1384,13 +1384,6 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 	if (IS_ERR(host->virt_base))
+ 		return PTR_ERR(host->virt_base);
+ 
+-	host->slot_switch = gpiod_get_optional(host->dev, "switch",
+-					       GPIOD_OUT_LOW);
+-	if (IS_ERR(host->slot_switch))
+-		return dev_err_probe(host->dev, PTR_ERR(host->slot_switch),
+-				     "error looking up slot switch GPIO\n");
+-
+-
+ 	INIT_WORK(&host->slot_release_work, mmc_omap_slot_release_work);
+ 	INIT_WORK(&host->send_stop_work, mmc_omap_send_stop_work);
+ 
+@@ -1409,6 +1402,12 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 	host->dev = &pdev->dev;
+ 	platform_set_drvdata(pdev, host);
+ 
++	host->slot_switch = gpiod_get_optional(host->dev, "switch",
++					       GPIOD_OUT_LOW);
++	if (IS_ERR(host->slot_switch))
++		return dev_err_probe(host->dev, PTR_ERR(host->slot_switch),
++				     "error looking up slot switch GPIO\n");
++
+ 	host->id = pdev->id;
+ 	host->irq = irq;
+ 	host->phys_base = res->start;
 -- 
 2.39.2
 
