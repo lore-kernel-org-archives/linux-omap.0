@@ -1,69 +1,147 @@
-Received: from mail5.25mail.st (mail5.25mail.st [74.50.62.9])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFE2B54F86;
-	Thu, 21 Mar 2024 09:56:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.50.62.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C8735731E;
+	Thu, 21 Mar 2024 11:09:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711014971; cv=none; b=SURQSUJaAj27zpfS6x7Uj8d06vhA5+pZmboSF51w3QVisrfhKEU6JCwG5LexKHzxqgC3SXzDVbSyqCaZN3DIkAAdAZqxRwND/X8qSfaeYDMizeGxuLuMGNmPiOg5Yx3d6T2OqRS8lB/yxnX7VV4gbojkRGBBNINSiRgYGu+2XhI=
+	t=1711019356; cv=none; b=Qd21sXDolnNkmyd5kxLloGJmeOnS6YmHEn4KPuGKFhpIlOxBOXS3OJWCngkguK042i3j+4O10ws2t9z2byrVX8CMj7KVpNC9ZCMTz9YFPkscibhVHi2N1VDna4+A5YGQzL+RrNewsUh7pEhvPtId3S8LkEzwKhVHLAWvy47Ktz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711014971; c=relaxed/simple;
-	bh=pSvdU/MZ9saRVEk8w8k5hDIPM1MJRChCwgl6CLKm1G8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PiHTYrK4pesOPJ/lzwmV1kqxWLF2ewgONsfHpKqPhwBxF9UaX219Q4hLqNraFUpLI7tUNLb/dtWQEWamIP3voeidqyPFxV4YPqjcDnyChtRF6xkcc9mQwQTeLpujLdsM1fDBPGmVLKD2F22ze+ZELLvfgUqF2X1fa/mVNDroYJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=atomide.com; spf=fail smtp.mailfrom=atomide.com; dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b=Gvx0gSPX; arc=none smtp.client-ip=74.50.62.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=atomide.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=atomide.com
+	s=arc-20240116; t=1711019356; c=relaxed/simple;
+	bh=JcYwKHfZIlb0nbaP16Hc4ovkmhVJHbn5ZMwI1T16S/o=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=C+YL+VAs44K+a7RP194R08du+uq6HR4tJN4HJxWICJYzWrG389ZsxnTYuWBOUNFnMaLWtiXzs00vVKBwvNB0UbCJu4usbL3UY5nnahDNkCVL8jVI/bnidi8lU1VN83z9qYErG+tEu7Lvw4iGo5PHULegM8fRygnWFxyJdGsHuxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JUYw31G2; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b="Gvx0gSPX"
-Received: from localhost (91-158-86-216.elisa-laajakaista.fi [91.158.86.216])
-	by mail5.25mail.st (Postfix) with ESMTPSA id D2FE76087C;
-	Thu, 21 Mar 2024 09:47:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=atomide.com;
-	s=25mailst; t=1711014477;
-	bh=pSvdU/MZ9saRVEk8w8k5hDIPM1MJRChCwgl6CLKm1G8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Gvx0gSPXA2JAMF2dCwiApkhctqozF/J1U2351bqGgCvg9UwXFBL6jXZc7t6abWAot
-	 bi1c39Hkpj81nlTFDmRR/m89XJM4N9wC92YY2LwsBqRp7DM1Jtvt7kkHMtgAvcACoX
-	 xv1PVGVz59CDWF7+6QCaJ2O7fIt8Fk8IG+Lk/BMLurfPM1MTUmIjTVtaWu/Y4+meZW
-	 yZ4BSmTo1Yw1IbJ+xAqg6BdxgLnCBpDUSmkNS690atTJ/drN4K66Y2xuffIIxd26Yz
-	 jcxk29sgQMiWdUiGDka4dsk1s0Yn59F+Bnpb9YimfM7FosyJHXdq5ASaEQgbnweCDA
-	 Vim3mH+MsEXwA==
-Date: Thu, 21 Mar 2024 11:47:41 +0200
-From: Tony Lindgren <tony@atomide.com>
-To: Romain Naour <romain.naour@smile.fr>
-Cc: linux-omap@vger.kernel.org, vigneshr@ti.com, adrian.hunter@intel.com,
-	ulf.hansson@linaro.org, linux-mmc@vger.kernel.org,
-	Romain Naour <romain.naour@skf.com>
-Subject: Re: [PATCH] mmc: sdhci-omap: re-tuning is needed after a pm
- transition to support emmc HS200 mode
-Message-ID: <20240321094741.GA5179@atomide.com>
-References: <20240315234444.816978-1-romain.naour@smile.fr>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JUYw31G2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1711019354; x=1742555354;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=JcYwKHfZIlb0nbaP16Hc4ovkmhVJHbn5ZMwI1T16S/o=;
+  b=JUYw31G27rVUOzXzYSus7MtJx7vIn2LOuTBsA5tHoAaHorn7POwVlYmd
+   IivGe9tDtDkW3lTznfHTnj0j8qCe2qnhwGPHwM1D+tG4sdcayYPoF9FCr
+   q7y8M66r8GGSi8k7dAlLXvXdT4fPROIjQOB8eOxRx9A4LNwdciLnzK/EH
+   IKoGwXv4H+wHNZ7PMek7NqltxHP4vK8/7tUXIe2AxQ7k09FTrQxas+a28
+   SXpVkBMeFDNXaUrvr2HHRw6FaJ2aqdBdpZm/1bbRKRHLh4S4zC3QOgVX2
+   agP9NqPIrgaUthxB6Egms0XIF9+032VuSX+5dLo/xRAiYjgOWSg1lcOAq
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11019"; a="6124968"
+X-IronPort-AV: E=Sophos;i="6.07,142,1708416000"; 
+   d="scan'208,217";a="6124968"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Mar 2024 04:09:03 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,142,1708416000"; 
+   d="scan'208,217";a="14450383"
+Received: from ahunter6-mobl1.ger.corp.intel.com (HELO [10.0.2.15]) ([10.251.210.179])
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Mar 2024 04:09:01 -0700
+Message-ID: <d506a7de-b1d6-4d41-8aae-cd0679126e0c@intel.com>
+Date: Thu, 21 Mar 2024 13:08:56 +0200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] mmc: sdhci-omap: re-tuning is needed after a pm
+ transition to support emmc HS200 mode
+To: Romain Naour <romain.naour@smile.fr>, linux-omap@vger.kernel.org
+Cc: vigneshr@ti.com, ulf.hansson@linaro.org, linux-mmc@vger.kernel.org,
+ tony@atomide.com, Romain Naour <romain.naour@skf.com>
+References: <20240315234444.816978-1-romain.naour@smile.fr>
+Content-Language: en-US
+From: Adrian Hunter <adrian.hunter@intel.com>
+Organization: Intel Finland Oy, Registered Address: PL 281, 00181 Helsinki,
+ Business Identity Code: 0357606 - 4, Domiciled in Helsinki
 In-Reply-To: <20240315234444.816978-1-romain.naour@smile.fr>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-* Romain Naour <romain.naour@smile.fr> [240316 01:44]:
+On 16/03/24 01:44, Romain Naour wrote:
 > From: Romain Naour <romain.naour@skf.com>
 > 
 > "PM runtime functions" has been added in sdhci-omap driver in 5.16
 > f433e8aac6b9 ("mmc: sdhci-omap: Implement PM runtime functions") along
 > with "card power off and enable aggressive PM" 3edf588e7fe0
+
+checkpatch expects "commit" before commit numbers i.e.
+
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit f433e8aac6b9 ("mmc: sdhci-omap: Implement PM runtime functions")'
+#9: 
+f433e8aac6b9 ("mmc: sdhci-omap: Implement PM runtime functions") along
+
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 3edf588e7fe0 ("mmc: sdhci-omap: Allow SDIO card power off and enable aggressive PM")'
+#10: 
+with "card power off and enable aggressive PM" 3edf588e7fe0
+
 > ("mmc: sdhci-omap: Allow SDIO card power off and enable aggressive PM").
 > 
 > Since then, the sdhci-omap driver doesn't work using mmc-hs200 mode
 > due to the tuning values being lost during a pm transition.
 > See the report on the linux-omap mailing list [1].
+> 
+> As for the sdhci_am654 driver, request a new tuning sequence before
+> suspend (sdhci_omap_runtime_suspend()), othwerwise the device will
 
-Looks good to me, sorry for the delay in replying. I though I already
-replied but had some issues with a bad sata ssd for a few days.
+othwerwise -> otherwise
 
-Anyways:
+> thigger cache flush errors:
 
-Reviewed-by: Tony Lindgren <tony@atomide.com>
+thigger -> trigger
+
+> 
+>   mmc1: cache flush error -110 (ETIMEDOUT)
+>   mmc1: error -110 doing aggressive suspend
+> 
+> followed by I/O errors produced by fdisk -l /dev/mmcblk1boot1:
+> 
+>   I/O error, dev mmcblk1boot0, sector 64384 op 0x0:(READ) flags 0x80700 phys_seg 1
+>   prio class 2
+>   I/O error, dev mmcblk1boot1, sector 64384 op 0x0:(READ) flags 0x80700 phys_seg 1
+>   prio class 2
+>   I/O error, dev mmcblk1boot1, sector 64384 op 0x0:(READ) flags 0x0 phys_seg 1
+>   prio class 2
+>   Buffer I/O error on dev mmcblk1boot1, logical block 8048, async page read
+>   I/O error, dev mmcblk1boot0, sector 64384 op 0x0:(READ) flags 0x0 phys_seg 1
+>   prio class 2
+>   Buffer I/O error on dev mmcblk1boot0, logical block 8048, async page read
+> 
+> Don't re-tune if auto retuning is supported in HW (when SDHCI_TUNING_MODE_3
+> is available).
+> 
+> [1] https://lore.kernel.org/all/2e5f1997-564c-44e4-b357-6343e0dae7ab@smile.fr
+> 
+> Fixes: f433e8aac6b9 ("mmc: sdhci-omap: Implement PM runtime functions")
+
+Cc stable?
+
+> Signed-off-by: Romain Naour <romain.naour@skf.com>
+
+Minor cosmetics, otherwise:
+
+Acked-by: Adrian Hunter <adrian.hunter@intel.com>
+
+> ---
+>  drivers/mmc/host/sdhci-omap.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
+> index e78faef67d7a..94076b095571 100644
+> --- a/drivers/mmc/host/sdhci-omap.c
+> +++ b/drivers/mmc/host/sdhci-omap.c
+> @@ -1439,6 +1439,9 @@ static int __maybe_unused sdhci_omap_runtime_suspend(struct device *dev)
+>  	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+>  	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
+>  
+> +	if (host->tuning_mode != SDHCI_TUNING_MODE_3)
+> +		mmc_retune_needed(host->mmc);
+> +
+>  	if (omap_host->con != -EINVAL)
+>  		sdhci_runtime_suspend_host(host);
+>  
+
