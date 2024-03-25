@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26DD059B52;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26E066EB52;
 	Mon, 25 Mar 2024 21:46:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711403171; cv=none; b=pf1Wjknr0u2XK8aMG+JBKqC6Xg8Po/OLZmPboS/dDnAVS/K2/V1nsJAyCVUKUfjnZVvprP1JLmBPgSrXmFk97gdPSpcXSLZlHOesSnRT45i7bzIPeg6RRwwtanY7DMN9rwexbMiQmHKJaPHft5P+flIKCAcgkgYN2YITOFUHeU8=
+	t=1711403171; cv=none; b=S6HZzqIuMgHaNQK57u6Xf8k6IL0IRRCnM295ez53pN7Eh8i900NVJ5kF3+ZZ3mezB7Rj/ZLvbIqMPq8RApq30DhkCvtnTdqPBJUjjRQ9yV8/TNiTrcUvV5KPPBoogIQ9t/Qr0zagdRmrYzA7yaKI+Fzfeaxyv5TOsF4Kn9QCWH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1711403171; c=relaxed/simple;
-	bh=E354mpbtl7kB5B4qPT1fMZPDLn9W0lVPSKhkrego21I=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=ZGZz1HdZN0lnc+Z0jw1wXuDQjS7AHtIXWhqByDZ4L+2Clfo3xcv7Uxg9UxES0wBNH8cvMC2CABW8o4xk+n2hBOxFkwp7e/mGPRxFMFssh65QCm2VANpuFm/xT1Zz0NO9hKeCdhV8WPgguVykQB3UA8OaOFQGw2Q1MLo0/epfb/E=
+	bh=UNtFXPbUwr6nmT6fS/0A1tgHczoulL3R3EQ8VVhZs1c=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=N3uZPh89orlBborXrmSEh09Jw0D17xH3LaGIn8+wFdBU4xOKiSzZm9cgM2KAmRALxMLvo1K8ykGsIdMvaNXKXopvwOab5q/UI4VNBcyXmslC7yHTLdcwfrunkGV9tb8rg3XAy8EI8cIBE+OxpnyLsCKIDznGLWX8wQL8Bb9qzLM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B3D0C433F1;
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92C61C43390;
 	Mon, 25 Mar 2024 21:46:10 +0000 (UTC)
 Received: by mercury (Postfix, from userid 1000)
-	id 9F6BA106074E; Mon, 25 Mar 2024 22:46:07 +0100 (CET)
+	id A476A1060BFF; Mon, 25 Mar 2024 22:46:07 +0100 (CET)
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCH 0/3] Convert MIPI HSI DT bindings to YAML
-Date: Mon, 25 Mar 2024 22:45:26 +0100
-Message-Id: <20240325-hsi-dt-binding-v1-0-88e8e97c3aae@collabora.com>
+Date: Mon, 25 Mar 2024 22:45:28 +0100
+Subject: [PATCH 2/3] dt-bindings: hsi: nokia-modem: convert to YAML
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -27,9 +27,9 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAHbwAWYC/x3MPQqAMAxA4atIZgP90Q5eRRyqiW2WKq2IIL27x
- fEb3nuhcBYuMHUvZL6lyJEadN/BFn0KjELNYJQZlDUjxiJIF66SSFJAP5Jzhi05paFFZ+Zdnn8
- 4L7V+ubWWK2AAAAA=
+Message-Id: <20240325-hsi-dt-binding-v1-2-88e8e97c3aae@collabora.com>
+References: <20240325-hsi-dt-binding-v1-0-88e8e97c3aae@collabora.com>
+In-Reply-To: <20240325-hsi-dt-binding-v1-0-88e8e97c3aae@collabora.com>
 To: Rob Herring <robh@kernel.org>, 
  Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>, 
  Conor Dooley <conor+dt@kernel.org>, Sebastian Reichel <sre@kernel.org>
@@ -37,61 +37,206 @@ Cc: Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org,
  linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, 
  Sebastian Reichel <sebastian.reichel@collabora.com>
 X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1417;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5194;
  i=sebastian.reichel@collabora.com; h=from:subject:message-id;
- bh=E354mpbtl7kB5B4qPT1fMZPDLn9W0lVPSKhkrego21I=;
- b=owEBbQKS/ZANAwAKAdju1/PIO/qaAcsmYgBmAfCYhr4JPtRZI9EAxNbkBGBIU58nfKmG25qAd
- z/QFgY6yr+JAjMEAAEKAB0WIQTvZg0HRj+Lcmp5VBPY7tfzyDv6mgUCZgHwmAAKCRDY7tfzyDv6
- mrb4D/44btPAOUN0pSUAJF4d7iQ2w4CbsYI8nS9gZ2sh3Ume3mFxrQ/HmQr252gorf8Ph0KJz1/
- erKejy7NjTZqn9Iw4gjRpo122m0NCUN0p28hmAijlWfjfsVbgdyEKPN3xUg55qBaspKAXYQsLtc
- p63IImKGOjwbiKWCBxopJJxm8N8VaMoM7zD8a0JKwnjq8IsG+sKPsvWN6YpZhOTQV0v1I1vcohP
- MobEiIO/DmjWaWLGtSvR1BdVxJ6LbnZoYqWcMq9Q9IbzV/orGTwavEskBFr7ipBzEjjOM6Mzhdz
- nkbVd4NcYAo4dHrFxjVLjv08TaVetrRYcfqwSLtUrXdL9iKSX5mXQ6890uL61ex0wyOG0+f+ebi
- Z5EkEuevbJrng3NXRry00rsJD3+DdmfV254QU3xAeMsQRZnKM2otfQXonTcvhi+h4wWq3XjJyq+
- d9n/1AiPnQWwRf9+APxY2jXNH9OQf8CT6JcgDa/3hRxkGxss1r6RD25zfyOr43pxUhGy2SWDLW4
- LQCmoTitq/BuZ5tMGEkdl3aLxDJoGodUjO3OepyVtfQ6CIapsIU9roUHlpSAhBqrHnOZy87Frhe
- JRKZ6bNGUbR8ziqb6xr6tZ5UYJK+GrOJRCl2LDlfE5XkFFKxPrTkfDUtTH1txQa6WqMdqhIr2Pj
- L/cyRLH6/5RK2gQ==
+ bh=UNtFXPbUwr6nmT6fS/0A1tgHczoulL3R3EQ8VVhZs1c=;
+ b=owEBbQKS/ZANAwAKAdju1/PIO/qaAcsmYgBmAfCeHUNBq71MARdrtLBzb4f2IpwiQwfxBVA4B
+ QAmrvkuMoeJAjMEAAEKAB0WIQTvZg0HRj+Lcmp5VBPY7tfzyDv6mgUCZgHwngAKCRDY7tfzyDv6
+ mubeD/9DdJ7uzTfqv6JHqDaVrIECGcN/3cvKT6h21yoy20F6RiZ4nYMH21p7G4R6PJdepW9nt1F
+ ibtKsKdtpPDS4kM8999LlWj/npqAKFVO5ZVJpSYR42hvyDtHyU3Ze3bWZq3hyC26sZWBe5mYY+I
+ 35fgdZ4vcDsAk9QoNB/gaeaWK4yMcVbO0tvdTIlW7kl96ykuG0tILt9C7xZML6V9Jmej848l7wz
+ 2z5QXr7oH1kpERnO9KK4rN+uHVvrSa3mqjGex5gTtA8tXrJRZLRXh1nlfb9cSJHR4XGwmbzDVY0
+ zfPH4jsOrf9sNV9lv3ZgzmiIpgz5Yd4Xe6nkMfqODRL6WqBkPJqx/KBbDw2I7opai9r0C/ZS0O2
+ 1/IqhmHUnyWkZ/JDmvmdbBiIJS7qaSLM+E2JWzrtavmDcC8kXnrZDqZTj/vAxXb53UzsYjGfoOo
+ ZcBQ5ScFjJMnpNYeqNKBL3ApH2M3B/BbEc9q3JBuV7W8dMc2vbKCJsuW2BVdP65Uw1BXyavO8GJ
+ JD+L9Lr+d4nBQCfd+Ptrf0gvih1XlwiGWNElKPIa0uc0aYNudZsybB+l7AFkqzh92r2FjNFw/+P
+ kT07cBMDLCw45zC8/NXYUMvZr2ZF8N+zjD62P0cuXR5Bdv+oHPhwIlYHSkwu2Yu9NYw5nhVdR4f
+ HU2f8giYDlv0+Yg==
 X-Developer-Key: i=sebastian.reichel@collabora.com; a=openpgp;
  fpr=EF660D07463F8B726A795413D8EED7F3C83BFA9A
 
-Hi,
+Convert the legacy txt binding to modern YAML.
+No semantic change.
 
-This converts all MIPI HSI subystem DT bindings to YAML.
-I ran the following tests:
-
-1. Check binding files
-   make -j$(nproc) dt_binding_check DT_SCHEMA_FILES=/hsi/
-2. Check OMAP3 and nokia-modem DT
-   make -j$(nproc) CHECK_DTBS=y ti/omap/omap3-n900.dtb ti/omap/omap3-n950.dtb ti/omap/omap3-n9.dtb
-3. Check OMAP4 DT (OMAP4 HSI is not used upstream, so one is enough)
-   make -j$(nproc) CHECK_DTBS=y ti/omap/omap4-droid4-xt894.dtb
-
-FWIW I noticed a lots of warnings for OMAP3 & OMAP4, but
-none related to HSI/SSI.
-
-Greetings,
-
--- Sebastian
-
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
-Sebastian Reichel (3):
-      dt-bindings: hsi: hsi-client: convert to YAML
-      dt-bindings: hsi: nokia-modem: convert to YAML
-      dt-bindings: hsi: omap-ssi: convert to YAML
+ .../devicetree/bindings/hsi/nokia-modem.txt        |  59 ------------
+ .../devicetree/bindings/hsi/nokia-modem.yaml       | 101 +++++++++++++++++++++
+ 2 files changed, 101 insertions(+), 59 deletions(-)
 
- .../devicetree/bindings/hsi/client-devices.txt     |  44 -----
- .../devicetree/bindings/hsi/hsi-client.yaml        |  84 +++++++++
- .../devicetree/bindings/hsi/nokia-modem.txt        |  59 -------
- .../devicetree/bindings/hsi/nokia-modem.yaml       | 101 +++++++++++
- Documentation/devicetree/bindings/hsi/omap-ssi.txt | 102 -----------
- .../devicetree/bindings/hsi/ti,omap-ssi.yaml       | 196 +++++++++++++++++++++
- 6 files changed, 381 insertions(+), 205 deletions(-)
----
-base-commit: 4cece764965020c22cff7665b18a012006359095
-change-id: 20240325-hsi-dt-binding-a5d662e3d601
+diff --git a/Documentation/devicetree/bindings/hsi/nokia-modem.txt b/Documentation/devicetree/bindings/hsi/nokia-modem.txt
+deleted file mode 100644
+index 53de1d9d0b95..000000000000
+--- a/Documentation/devicetree/bindings/hsi/nokia-modem.txt
++++ /dev/null
+@@ -1,59 +0,0 @@
+-Nokia modem client bindings
+-
+-The Nokia modem HSI client follows the common HSI client binding
+-and inherits all required properties. The following additional
+-properties are needed by the Nokia modem HSI client:
+-
+-Required properties:
+-- compatible:		Should be one of
+-      "nokia,n900-modem"
+-      "nokia,n950-modem"
+-      "nokia,n9-modem"
+-- hsi-channel-names:	Should contain the following strings
+-      "mcsaab-control"
+-      "speech-control"
+-      "speech-data"
+-      "mcsaab-data"
+-- gpios:		Should provide a GPIO handler for each GPIO listed in
+-                        gpio-names
+-- gpio-names:		Should contain the following strings
+-      "cmt_apeslpx" (for n900, n950, n9)
+-      "cmt_rst_rq"  (for n900, n950, n9)
+-      "cmt_en"      (for n900, n950, n9)
+-      "cmt_rst"     (for n900)
+-      "cmt_bsi"     (for n900)
+-- interrupts:		Should be IRQ handle for modem's reset indication
+-
+-Example:
+-
+-&ssi_port {
+-	modem: hsi-client {
+-		compatible = "nokia,n900-modem";
+-
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&modem_pins>;
+-
+-		hsi-channel-ids = <0>, <1>, <2>, <3>;
+-		hsi-channel-names = "mcsaab-control",
+-				    "speech-control",
+-				    "speech-data",
+-				    "mcsaab-data";
+-		hsi-speed-kbps = <55000>;
+-		hsi-mode = "frame";
+-		hsi-flow = "synchronized";
+-		hsi-arb-mode = "round-robin";
+-
+-		interrupts-extended = <&gpio3 8 IRQ_TYPE_EDGE_FALLING>; /* 72 */
+-
+-		gpios = <&gpio3  6 GPIO_ACTIVE_HIGH>, /* 70 */
+-			<&gpio3  9 GPIO_ACTIVE_HIGH>, /* 73 */
+-			<&gpio3 10 GPIO_ACTIVE_HIGH>, /* 74 */
+-			<&gpio3 11 GPIO_ACTIVE_HIGH>, /* 75 */
+-			<&gpio5 29 GPIO_ACTIVE_HIGH>; /* 157 */
+-		gpio-names = "cmt_apeslpx",
+-			     "cmt_rst_rq",
+-			     "cmt_en",
+-			     "cmt_rst",
+-			     "cmt_bsi";
+-	};
+-};
+diff --git a/Documentation/devicetree/bindings/hsi/nokia-modem.yaml b/Documentation/devicetree/bindings/hsi/nokia-modem.yaml
+new file mode 100644
+index 000000000000..c57cbcc7b722
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hsi/nokia-modem.yaml
+@@ -0,0 +1,101 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/hsi/nokia-modem.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: Nokia modem
++
++maintainers:
++  - Sebastian Reichel <sre@kernel.org>
++
++properties:
++  compatible:
++    enum:
++      - nokia,n900-modem
++      - nokia,n950-modem
++      - nokia,n9-modem
++
++  hsi-channel-names:
++    items:
++      - const: mcsaab-control
++      - const: speech-control
++      - const: speech-data
++      - const: mcsaab-data
++
++  interrupts:
++    items:
++      - description: modem reset indication
++
++  gpios:
++    minItems: 3
++    maxItems: 5
++
++  gpio-names:
++    items:
++      - const: cmt_apeslpx
++      - const: cmt_rst_rq
++      - const: cmt_en
++      - const: cmt_rst
++      - const: cmt_bsi
++    minItems: 3
++
++required:
++  - gpios
++  - gpio-names
++  - interrupts
++
++allOf:
++  - $ref: hsi-client.yaml#
++  - if:
++      properties:
++        compatible:
++          contains:
++            enum:
++              - nokia,n950-modem
++              - nokia,n9-modem
++    then:
++      properties:
++        gpios:
++          maxItems: 3
++        gpio-names:
++          maxItems: 3
++    else:
++      properties:
++        gpios:
++          minItems: 5
++        gpio-names:
++          minItems: 5
++
++unevaluatedProperties: false
++
++examples:
++  - |
++    #include <dt-bindings/gpio/gpio.h>
++    #include <dt-bindings/interrupt-controller/irq.h>
++    hsi-client {
++        compatible = "nokia,n900-modem";
++
++        hsi-channel-ids = <0>, <1>, <2>, <3>;
++        hsi-channel-names = "mcsaab-control",
++                            "speech-control",
++                            "speech-data",
++                            "mcsaab-data";
++        hsi-speed-kbps = <55000>;
++        hsi-mode = "frame";
++        hsi-flow = "synchronized";
++        hsi-arb-mode = "round-robin";
++
++        interrupts-extended = <&gpio3 8 IRQ_TYPE_EDGE_FALLING>;
++
++        gpios = <&gpio3  6 GPIO_ACTIVE_HIGH>,
++                <&gpio3  9 GPIO_ACTIVE_HIGH>,
++                <&gpio3 10 GPIO_ACTIVE_HIGH>,
++                <&gpio3 11 GPIO_ACTIVE_HIGH>,
++                <&gpio5 29 GPIO_ACTIVE_HIGH>;
++        gpio-names = "cmt_apeslpx",
++                     "cmt_rst_rq",
++                     "cmt_en",
++                     "cmt_rst",
++                     "cmt_bsi";
++    };
 
-Best regards,
 -- 
-Sebastian Reichel <sebastian.reichel@collabora.com>
+2.43.0
 
