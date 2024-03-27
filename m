@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A466D1514F5;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B29601514F7;
 	Wed, 27 Mar 2024 19:11:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711566710; cv=none; b=odAWV/dYGunwRq1fOgsi3u255pGoHCtjCIgID12WBS0BDvX/+kQP44pbbpdsgEToj2X/gLqKupqJpK9GxbuHoWWd5nivr8pNnQCnurx+8kRepBF0Ngrve9jeKwVQjw8tp1jEpEeTQMzbbR2Cf4WvYFxS6/gGpz0a1rnO35fCFcg=
+	t=1711566710; cv=none; b=YwB/v5aYVlquUEg1ymUM+H15KkObmfPdkYbavnWMZ/JTi4+hcZFJrznGCtWgyck8J4SCYR6EhE6ZpwSOIb96EGYAJFwJV7W3rLLJZ7oTrGFuEojFeXjkR212a3A8nNLWmJ+vEiq0ol2pyU3b8xz90+ATdyJdv+IhvP2fDKcNWpU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1711566710; c=relaxed/simple;
-	bh=4nUPryLtDGoo4If+YhVGo/DJxC63+p+eZWj9NhHwPaQ=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=V61JprHxEvL607aPd/aMRkqmmBY8gv52KE4zCqWDR+K2kKGSjhXxtzT9lDd5bb8VqyhuBTir+5DQquXxir0+rRXoxA6mMpStAZNs+JmGB9UQOQgmGNzXunAXRqubWQIfKzoXje+g4Iy5hx1zN8KAY7/Y3oh86ex7dRYpDntO2f0=
+	bh=QEypX0koF50hLwLiw3vI6BhqvWJKBNcpPHUeY0AUQ/8=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=RiN2X6QBC16SBd5Cx7QAb5zsqnsU90IgEbe5JjtEYdIk/8+zFdvzIsYvysPIURnYmL/gBPZfLfSAkn9JHhZDMTvXrL/Q61TlvMEiPMwRx5C5YJvcsniGDiBrLOt9nbYSr2KDZ0P/Vxphb3DFSge/IWGlw2/nccRX9T5/cYRe93Y=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24B9DC43394;
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34982C433C7;
 	Wed, 27 Mar 2024 19:11:50 +0000 (UTC)
 Received: by mercury (Postfix, from userid 1000)
-	id A8BC110608D9; Wed, 27 Mar 2024 20:11:47 +0100 (CET)
+	id AD5BB1060993; Wed, 27 Mar 2024 20:11:47 +0100 (CET)
 From: Sebastian Reichel <sebastian.reichel@collabora.com>
-Subject: [PATCH v2 0/7] Convert MIPI HSI DT bindings to YAML
-Date: Wed, 27 Mar 2024 20:11:31 +0100
-Message-Id: <20240327-hsi-dt-binding-v2-0-110fab4c32ae@collabora.com>
+Date: Wed, 27 Mar 2024 20:11:34 +0100
+Subject: [PATCH v2 3/7] dt-bindings: hsi: omap-ssi: convert to YAML
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -27,9 +27,9 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAGNvBGYC/3XMQQ6CMBCF4auQWTumFMHqynsYFkM70kmwNS0hG
- sLdrexd/i953wqZk3CGa7VC4kWyxFBCHyqwnsLIKK40aKVPqtEt+izoZhwkOAkjUuu6TnPjOlV
- DOb0SP+S9g/e+tJc8x/TZ/aX+rX+ppUaFxrDhy9k2RHyzcZpoiImONj6h37btC1U4FzOwAAAA
+Message-Id: <20240327-hsi-dt-binding-v2-3-110fab4c32ae@collabora.com>
+References: <20240327-hsi-dt-binding-v2-0-110fab4c32ae@collabora.com>
+In-Reply-To: <20240327-hsi-dt-binding-v2-0-110fab4c32ae@collabora.com>
 To: Rob Herring <robh@kernel.org>, 
  Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>, 
  Conor Dooley <conor+dt@kernel.org>, Sebastian Reichel <sre@kernel.org>
@@ -37,90 +37,331 @@ Cc: Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org,
  linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, 
  Sebastian Reichel <sebastian.reichel@collabora.com>
 X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3162;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=8354;
  i=sebastian.reichel@collabora.com; h=from:subject:message-id;
- bh=4nUPryLtDGoo4If+YhVGo/DJxC63+p+eZWj9NhHwPaQ=;
- b=owEBbQKS/ZANAwAKAdju1/PIO/qaAcsmYgBmBG9x/b+YytQSsGm+JuuxhwO8DgpUfrQ5+hgsY
- YLrQD0Jmz6JAjMEAAEKAB0WIQTvZg0HRj+Lcmp5VBPY7tfzyDv6mgUCZgRvcQAKCRDY7tfzyDv6
- mvwHD/0WN4FXiK/xWrK6kBd9G7xlLEBLmjOKAehn/7+CsJcEUjMoTbRBw0FdkpSIuc2BaztkO6K
- IAULcZtV6tKJFDHqkLVDARnvsKAW3517tbN9CCgjtCMZwZKocYTk1uFAyX7H9ZOjktoKRKJ0nPY
- 1TGy3iqYTHHE8c2la05Fec9FOiepQQ8tQ/8QfzD3aBYBh9F+37kafeNxnDedY5rMTyZUtO1Nh1H
- 5zf4EsIysQoSh0dmo39Wx4EdYsIrA5p80L8pCCKHBQZmmlxBrkhwJ7Ok4Ihqi3rD3MBVId51dil
- Amd6DekW0TFXuqr4dqBhZMarAjgMMFTrate6dmohF6cRL1PG+PTWVIE47bcJ0oBAR0id/ktExpR
- iQK2MHAtqHzVQbCbBAHnJ5a/V9R5Yxx0lIUAa9iRSUaIs/GoWkw49ChO+pGWjR2oLp09Bz1c19L
- j8dqqgpKbSqKwt4wSvHqN+zzL3sbAidSAlK9txw/qF5ZhqM+XN17Lvm0uGaswWuC8eqizGXtbyY
- LqVTb2x5cBkbjZrepRhXCVI8QkPzmK7bD7OxBrv5zeIczeRM52Vx7CziGkhuQ4GakNQaC7SsHeV
- 8NOL/O9SuF4oJXvCM3jtdoxLa9x+bRdfPB2m0C9uoEYmg8DLuwPVBlYjnAmM1otl+JQuoTvqJ43
- Lpjjyu0RzOMKh2g==
+ bh=QEypX0koF50hLwLiw3vI6BhqvWJKBNcpPHUeY0AUQ/8=;
+ b=owEBbQKS/ZANAwAKAdju1/PIO/qaAcsmYgBmBG9yaxeLOrJKcUkBJ9mYhbqP+EYCaLKDPcv20
+ Je3kFZMTfqJAjMEAAEKAB0WIQTvZg0HRj+Lcmp5VBPY7tfzyDv6mgUCZgRvcgAKCRDY7tfzyDv6
+ mnRjD/9JsnxIhUBlP7y7H5W0vxIBYCOv4cbIbjYh0QA+01RAPM6V9LHrT8/oCXLJBp8tCO0Hqia
+ Bx1zdBUfI5YrMncpsYk8cSW3k97fytOAHguRe5Omk4sQgVnorClyx3/HdXVNMXlCO3pZ3gciRBa
+ AumsUcZdR8dOU3FPytqRNyLTd+ODS8nAvRV4UEawo2fAwko28i/RHqxOGxcjYybFCWRa+gfHKFO
+ Evgke9ccDWbjMKax/eFyipzKyfiii8cfKLOVPKqPfrfHCR0+e9aUiIog2+0pC7y4Tm+elaGobxI
+ CkIx8iZr3hSQscAszbpBVAsUWGc2gNJU0rquZokm9MmZ14y9YLsa8lpYDm4qIcb+yVQufOHJ43M
+ hNskVe7/vMdwjuLj/eD3+wenlT66m2wHSN71mp7Sjdoib0gOWKwOYmmc+GvDeCETXMrC8n8kqGh
+ BD6jKNFofObQ8ooVy4aSiS++V4Cn0PsLD7Ek9m7sTmLcsqxxX5FJ3Bfx+L6L/j4gl2iy9AO5IyG
+ d7sIqJKX/2whA9XlLRSgjmk3zem+RELRSuKUR9J2gX4MMuhPoW2ObyyeEkLNpwQwJGBWqCOofnv
+ OrtgMv2XfQ02TOEpm7hE/cEikNrBrSFBgnrYfz27SPEY1fsCdd0eG2nOlz/DsTZDdVOBqcBBajl
+ RBo/Oa0rVSDXYIg==
 X-Developer-Key: i=sebastian.reichel@collabora.com; a=openpgp;
  fpr=EF660D07463F8B726A795413D8EED7F3C83BFA9A
 
-Hi,
+Convert the legacy txt binding to modern YAML.
+There are a couple of semantic changes:
+ - hsi-port@<addr> and ssi-port@<addr> node name
+   changed to port@<addr>
+ - ti,hwmods was marked as deprecated. This is supposed to go away
+   once OMAP3 gets the same treatment as OMAP4.
+ - changed ti,cawake-gpio to ti,cawake-gpios
+ - describe peripheral requirements for the port node
 
-This converts all MIPI HSI subystem DT bindings to YAML.
-I ran the following tests:
-
-1. Check binding files
-   make -j$(nproc) dt_binding_check DT_SCHEMA_FILES=/hsi/
-2. Check OMAP3 and nokia-modem DT
-   make -j$(nproc) CHECK_DTBS=y ti/omap/omap3-n900.dtb ti/omap/omap3-n950.dtb ti/omap/omap3-n9.dtb
-3. Check OMAP4 DT (OMAP4 HSI is not used upstream, so one is enough)
-   make -j$(nproc) CHECK_DTBS=y ti/omap/omap4-droid4-xt894.dtb
-
-FWIW I noticed a lots of warnings for OMAP3 & OMAP4, but
-none related to HSI/SSI.
-
-Greetings,
-
--- Sebastian
-
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 ---
-Changes in v2:
-- Link to v1: https://lore.kernel.org/r/20240325-hsi-dt-binding-v1-0-88e8e97c3aae@collabora.com
-- fixed, that "hsi-client" is not a generic node name
-- hsi-client.yaml needs to use oneOf instead of anyOf for the hsi-mode requirement
-- change nokia-modem.yaml to nokia,modem.yaml
-- add hsi-channel-ids constraints to nokia modem binding; I had to also add
-  $ref: /schemas/types.yaml#/definitions/uint32-array again, because otherwise
-  the tooling complained about the example DT having not enough IDs for
-  [[0], [1], [2], [3]]. It does properly inherit the hsi-client.yaml, though.
-  If I drop the constraints from the modem binding and change the generic binding
-  to require 5 IDs, the tooling does complain. So I think this is a bug in the DT
-  checking tool. For now readding the ref again seems to be a good enough workaround.
-- changed node name to "modem" for the nokia modem
-- renamed ti,ssi-cawake-gpio to ti,ssi-cawake-gpios
-- changed ssi-port@ & hsi-port@ to just port@
-- dropped blank line in omap-ssi binding
-- moved additionalProperties before the examples in omap-ssi binding
-- fixed indentation for the omaps-ssi example in the binding
-- added patches fixing up OMAP3 & OMAP4 DT files according to the latest changes
-
----
-Sebastian Reichel (7):
-      dt-bindings: hsi: hsi-client: convert to YAML
-      dt-bindings: hsi: nokia-modem: convert to YAML
-      dt-bindings: hsi: omap-ssi: convert to YAML
-      ARM: dts: omap4: fix hsi-port node name
-      ARM: dts: omap3: fix ssi-port node name
-      ARM: dts: omap3: fix ti,ssi-cawake-gpio property name
-      ARM: dts: omap3: use generic node name for hsi clients
-
- .../devicetree/bindings/hsi/client-devices.txt     |  44 -----
- .../devicetree/bindings/hsi/hsi-client.yaml        |  81 ++++++++++
- .../devicetree/bindings/hsi/nokia,modem.yaml       | 106 ++++++++++++
- .../devicetree/bindings/hsi/nokia-modem.txt        |  59 -------
  Documentation/devicetree/bindings/hsi/omap-ssi.txt | 102 ------------
  .../devicetree/bindings/hsi/ti,omap-ssi.yaml       | 177 +++++++++++++++++++++
- arch/arm/boot/dts/ti/omap/omap3-n900.dts           |   4 +-
- arch/arm/boot/dts/ti/omap/omap3-n950-n9.dtsi       |   4 +-
- arch/arm/boot/dts/ti/omap/omap3.dtsi               |   4 +-
- arch/arm/boot/dts/ti/omap/omap4-l4.dtsi            |   4 +-
- 10 files changed, 372 insertions(+), 213 deletions(-)
----
-base-commit: 4cece764965020c22cff7665b18a012006359095
-change-id: 20240325-hsi-dt-binding-a5d662e3d601
+ 2 files changed, 177 insertions(+), 102 deletions(-)
 
-Best regards,
+diff --git a/Documentation/devicetree/bindings/hsi/omap-ssi.txt b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
+deleted file mode 100644
+index 77a0c3c3036e..000000000000
+--- a/Documentation/devicetree/bindings/hsi/omap-ssi.txt
++++ /dev/null
+@@ -1,102 +0,0 @@
+-OMAP SSI controller bindings
+-
+-OMAP3's Synchronous Serial Interface (SSI) controller implements a
+-legacy variant of MIPI's High Speed Synchronous Serial Interface (HSI),
+-while the controller found inside OMAP4 is supposed to be fully compliant
+-with the HSI standard.
+-
+-Required properties:
+-- compatible:		Should include "ti,omap3-ssi" or "ti,omap4-hsi"
+-- reg-names:		Contains the values "sys" and "gdd" (in this order).
+-- reg:			Contains a matching register specifier for each entry
+-			in reg-names.
+-- interrupt-names:	Contains the value "gdd_mpu".
+-- interrupts: 		Contains matching interrupt information for each entry
+-			in interrupt-names.
+-- ranges:		Represents the bus address mapping between the main
+-			controller node and the child nodes below.
+-- clock-names:		Must include the following entries:
+-  "ssi_ssr_fck": The OMAP clock of that name
+-  "ssi_sst_fck": The OMAP clock of that name
+-  "ssi_ick": The OMAP clock of that name
+-- clocks:		Contains a matching clock specifier for each entry in
+-			clock-names.
+-- #address-cells:	Should be set to <1>
+-- #size-cells:		Should be set to <1>
+-
+-Each port is represented as a sub-node of the ti,omap3-ssi device.
+-
+-Required Port sub-node properties:
+-- compatible:		Should be set to the following value
+-			ti,omap3-ssi-port (applicable to OMAP34xx devices)
+-			ti,omap4-hsi-port (applicable to OMAP44xx devices)
+-- reg-names:		Contains the values "tx" and "rx" (in this order).
+-- reg:			Contains a matching register specifier for each entry
+-			in reg-names.
+-- interrupts:		Should contain interrupt specifiers for mpu interrupts
+-			0 and 1 (in this order).
+-- ti,ssi-cawake-gpio:	Defines which GPIO pin is used to signify CAWAKE
+-			events for the port. This is an optional board-specific
+-			property. If it's missing the port will not be
+-			enabled.
+-
+-Optional properties:
+-- ti,hwmods:		Shall contain TI interconnect module name if needed
+-			by the SoC
+-
+-Example for Nokia N900:
+-
+-ssi-controller@48058000 {
+-	compatible = "ti,omap3-ssi";
+-
+-	/* needed until hwmod is updated to use the compatible string */
+-	ti,hwmods = "ssi";
+-
+-	reg = <0x48058000 0x1000>,
+-	      <0x48059000 0x1000>;
+-	reg-names = "sys",
+-		    "gdd";
+-
+-	interrupts = <55>;
+-	interrupt-names = "gdd_mpu";
+-
+-	clocks = <&ssi_ssr_fck>,
+-		 <&ssi_sst_fck>,
+-		 <&ssi_ick>;
+-	clock-names = "ssi_ssr_fck",
+-		      "ssi_sst_fck",
+-		      "ssi_ick";
+-
+-	#address-cells = <1>;
+-	#size-cells = <1>;
+-	ranges;
+-
+-	ssi-port@4805a000 {
+-		compatible = "ti,omap3-ssi-port";
+-
+-		reg = <0x4805a000 0x800>,
+-		      <0x4805a800 0x800>;
+-		reg-names = "tx",
+-			    "rx";
+-
+-		interrupt-parent = <&intc>;
+-		interrupts = <67>,
+-			     <68>;
+-
+-		ti,ssi-cawake-gpio = <&gpio5 23 GPIO_ACTIVE_HIGH>; /* 151 */
+-	}
+-
+-	ssi-port@4805a000 {
+-		compatible = "ti,omap3-ssi-port";
+-
+-		reg = <0x4805b000 0x800>,
+-		      <0x4805b800 0x800>;
+-		reg-names = "tx",
+-			    "rx";
+-
+-		interrupt-parent = <&intc>;
+-		interrupts = <69>,
+-			     <70>;
+-
+-	}
+-}
+diff --git a/Documentation/devicetree/bindings/hsi/ti,omap-ssi.yaml b/Documentation/devicetree/bindings/hsi/ti,omap-ssi.yaml
+new file mode 100644
+index 000000000000..433e2b2c36ea
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hsi/ti,omap-ssi.yaml
+@@ -0,0 +1,177 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/hsi/ti,omap-ssi.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: SSI Controller on OMAP SoCs
++
++description:
++  OMAP3's Synchronous Serial Interface (SSI) controller implements a
++  legacy variant of MIPI's High Speed Synchronous Serial Interface (HSI),
++  while the controller found inside OMAP4 is supposed to be fully compliant
++  with the HSI standard.
++
++maintainers:
++  - Sebastian Reichel <sre@kernel.org>
++
++properties:
++  compatible:
++    enum:
++      - ti,omap3-ssi
++      - ti,omap4-hsi
++
++  reg:
++    items:
++      - description: registers for sys
++      - description: registers for gdd
++
++  reg-names:
++    items:
++      - const: sys
++      - const: gdd
++
++  ranges: true
++
++  "#address-cells":
++    const: 1
++
++  "#size-cells":
++    const: 1
++
++  clocks:
++    minItems: 1
++    maxItems: 3
++
++  clock-names:
++    minItems: 1
++    maxItems: 3
++
++  interrupts:
++    maxItems: 1
++
++  interrupt-names:
++    const: gdd_mpu
++
++  ti,hwmods:
++    const: ssi
++    deprecated: true
++
++patternProperties:
++  "port@[0-9a-f]+":
++    type: object
++    additionalProperties: false
++
++    properties:
++      compatible:
++        enum:
++          - ti,omap3-ssi-port
++          - ti,omap4-hsi-port
++
++      reg:
++        items:
++          - description: TX registers
++          - description: RX registers
++
++      reg-names:
++        items:
++          - const: tx
++          - const: rx
++
++      interrupts:
++        items:
++          - description: MPU interrupt 0
++          - description: MPU interrupt 1
++        minItems: 1
++
++      ti,ssi-cawake-gpios:
++        description: GPIO signifying CAWAKE events
++        maxItems: 1
++
++    patternProperties:
++      "^(modem|mcu)$":
++        type: object
++        $ref: /schemas/hsi/hsi-client.yaml#
++
++    required:
++      - compatible
++      - reg
++      - reg-names
++      - interrupts
++
++required:
++  - compatible
++  - reg
++  - reg-names
++  - ranges
++  - "#address-cells"
++  - "#size-cells"
++  - clocks
++  - clock-names
++  - interrupts
++  - interrupt-names
++
++allOf:
++  - if:
++      properties:
++        compatible:
++          contains:
++            const: ti,omap3-ssi
++    then:
++      properties:
++        clocks:
++          minItems: 3
++        clock-names:
++          items:
++            - const: ssi_ssr_fck
++            - const: ssi_sst_fck
++            - const: ssi_ick
++    else:
++      properties:
++        clocks:
++          maxItems: 1
++        clock-names:
++          items:
++            - const: hsi_fck
++
++additionalProperties: false
++
++examples:
++  - |
++    #include <dt-bindings/gpio/gpio.h>
++    ssi-controller@48058000 {
++        compatible = "ti,omap3-ssi";
++        reg = <0x48058000 0x1000>,
++              <0x48059000 0x1000>;
++        reg-names = "sys", "gdd";
++        ranges;
++        #address-cells = <1>;
++        #size-cells = <1>;
++        clocks = <&ssi_ssr_fck>,
++                 <&ssi_sst_fck>,
++                 <&ssi_ick>;
++        clock-names = "ssi_ssr_fck",
++                      "ssi_sst_fck",
++                      "ssi_ick";
++        interrupts = <55>;
++        interrupt-names = "gdd_mpu";
++
++        port@4805a000 {
++            compatible = "ti,omap3-ssi-port";
++            reg = <0x4805a000 0x800>,
++                  <0x4805a800 0x800>;
++            reg-names = "tx", "rx";
++            interrupt-parent = <&intc>;
++            interrupts = <67>, <68>;
++            ti,ssi-cawake-gpios = <&gpio5 23 GPIO_ACTIVE_HIGH>;
++        };
++
++        port@4805b000 {
++            compatible = "ti,omap3-ssi-port";
++            reg = <0x4805b000 0x800>,
++                  <0x4805b800 0x800>;
++            reg-names = "tx", "rx";
++            interrupt-parent = <&intc>;
++            interrupts = <69>, <70>;
++        };
++    };
+
 -- 
-Sebastian Reichel <sebastian.reichel@collabora.com>
+2.43.0
 
