@@ -1,26 +1,26 @@
 Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 473B2169382
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F234A169AC6
 	for <linux-omap@vger.kernel.org>; Mon,  1 Jul 2024 13:54:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719842064; cv=none; b=ank2F5bGa/oAhjpa5MNlMyHf9Z6bgEFv+UxtPlnOed9fNYLZVC+cm3FkiTQ5RFwQMIZ4DALYao8SY2fNSfxJvecAlpr3TrJxKkV/VUSOCcEyng0yBDV3puX8iaQNzs+kb90OTPFizp6K9nutv/7rbbzUVxqstIeqMMOILUuxpgU=
+	t=1719842065; cv=none; b=eLMN6ovlgg6l33ihrNoaQVHroBYITHmK2GXZUM6EIubx/3iRsZ0GjreTzhc7JOOaSEJvc4BJJaYYvWN/r6PdcrxrWBxAeKPXGEvnDFlRwJC07438/w3srjM/5xa7D62EF9TvRPGDPeqIgtguxz/D/uXU2dNj6S3KZD7rM+lBJbk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719842064; c=relaxed/simple;
-	bh=JIVhgNSL/W/L3u6sKue9yo8smnMnjBQqdTAHH2hC9XU=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=JLLacAsfobnolea5RDaefnCN6FEpm1CsHgRL0xgCZXUyYD3Q02Cau3RQI4bHZFrodKhyUYFZZTB8btbUnWlo5OF7PCRYYytgZ/FJ0kSC4Tst3xvgNp/eO55omC7BZAZbzvTsxcDrkAafPRGQDSt2qNCpi99v9hoYWt2utqVyeXo=
+	s=arc-20240116; t=1719842065; c=relaxed/simple;
+	bh=TdcrekuqxkdGfFue0q5KkkRmhv3vqXpjDTGgiciypM8=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=tOXv0tNBmvflnnWs6FPmrn3ce9vI+25DhMWR+4gsuxkBq6gOrOSoTS7u9LprdRotuqCO+IJw5dTslsYrC09bLBxBM09838shUoiMEZypaCjUosMlsa+YTdNSOz5pqCD84I3J9qT7cqvKjgjMxvd/mQeR4t0fna4tDzTuVLwzmSM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
 Received: from dude02.red.stw.pengutronix.de ([2a0a:edc0:0:1101:1d::28])
 	by metis.whiteo.stw.pengutronix.de with esmtp (Exim 4.92)
 	(envelope-from <m.felsch@pengutronix.de>)
-	id 1sOHTX-0001LY-Aa; Mon, 01 Jul 2024 15:53:47 +0200
+	id 1sOHTW-0001LY-Vb; Mon, 01 Jul 2024 15:53:46 +0200
 From: Marco Felsch <m.felsch@pengutronix.de>
-Date: Mon, 01 Jul 2024 15:53:42 +0200
-Subject: [PATCH 3/9] mtd: add support to handle EEPROM devices
+Subject: [PATCH 0/9] AT24 EEPROM MTD Support
+Date: Mon, 01 Jul 2024 15:53:39 +0200
+Message-Id: <20240701-b4-v6-10-topic-usbc-tcpci-v1-0-3fd5f4a193cc@pengutronix.de>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -29,9 +29,9 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240701-b4-v6-10-topic-usbc-tcpci-v1-3-3fd5f4a193cc@pengutronix.de>
-References: <20240701-b4-v6-10-topic-usbc-tcpci-v1-0-3fd5f4a193cc@pengutronix.de>
-In-Reply-To: <20240701-b4-v6-10-topic-usbc-tcpci-v1-0-3fd5f4a193cc@pengutronix.de>
+X-B4-Tracking: v=1; b=H4sIAOO0gmYC/x3MQQqEMAxG4atI1hNIpTjoVcTF9DeO2WhpVQTx7
+ haX3+K9i7Im00xddVHSw7KtS4H7VIT5t/yVbSymWmovX3EcPB8NO+FtjQbecwBviDCGD2gDoI1
+ 4Kn1MOtn5vvvhvh826v1ZawAAAA==
 To: Miquel Raynal <miquel.raynal@bootlin.com>, 
  Richard Weinberger <richard@nod.at>, Vignesh Raghavendra <vigneshr@ti.com>, 
  Arnd Bergmann <arnd@arndb.de>, 
@@ -70,100 +70,86 @@ X-SA-Exim-Mail-From: m.felsch@pengutronix.de
 X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
 X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 
-At the moment EEPROMs are covered by misc/driver/eeprom/* drivers. This
-commit prepares the MTD framework to handle EEPROM devices within the
-MTD layer.
+This series adds the intial support to handle EEPROMs via the MTD layer
+as well. This allow the user-space to have separate paritions since
+EEPROMs can become quite large nowadays.
 
-To keep the backward compatibility with the current misc drivers the
-master device must be exposed always. Furthermore the NVMEM device
-parent must be set to the I2C device instead of the MTD device and the
-name must be either the I2C device name or the name specified via the
-label.
+With this patchset applied EEPROMs can be accessed via:
+  - legacy 'eeprom' device
+  - nvmem device
+  - mtd device(s)
+
+The patchset targets only the AT24 (I2C) EEPROMs since I have no access
+to AT25 (SPI) EEPROMs nor to one of the other misc/eeprom/* devices.
+
+Note: I'm not familiar with Kconfig symbol migration so I don't know if
+the last patch is required at the moment. Please be notified that the
+list of recipients is quite large due to the defconfig changes.
+
+Regards,
+  Marco
 
 Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 ---
- drivers/mtd/mtdcore.c      | 32 +++++++++++++++++++++++++++++++-
- include/uapi/mtd/mtd-abi.h |  2 ++
- 2 files changed, 33 insertions(+), 1 deletion(-)
+Marco Felsch (9):
+      mtd: core: add nvmem_write support
+      mtd: add mtd_is_master helper
+      mtd: add support to handle EEPROM devices
+      mtd: devices: add AT24 eeprom support
+      ARM: defconfig: convert to MTD_EEPROM_AT24
+      powerpc: convert to MTD_EEPROM_AT24
+      MIPS: configs: convert to MTD_EEPROM_AT24
+      LoongArch: convert to MTD_EEPROM_AT24
+      eeprom: at24: remove deprecated Kconfig symbol
 
-diff --git a/drivers/mtd/mtdcore.c b/drivers/mtd/mtdcore.c
-index dcd97e59425e..e2a996ccd17e 100644
---- a/drivers/mtd/mtdcore.c
-+++ b/drivers/mtd/mtdcore.c
-@@ -149,6 +149,9 @@ static ssize_t mtd_type_show(struct device *dev,
- 	case MTD_ROM:
- 		type = "rom";
- 		break;
-+	case MTD_EEPROM:
-+		type = "eeprom";
-+		break;
- 	case MTD_NORFLASH:
- 		type = "nor";
- 		break;
-@@ -578,6 +581,33 @@ static int mtd_nvmem_add(struct mtd_info *mtd)
- 	config.ignore_wp = true;
- 	config.priv = mtd;
- 
-+	switch (mtd->type) {
-+	case MTD_EEPROM:
-+		config.type = NVMEM_TYPE_EEPROM;
-+		/*
-+		 * The master device must be backward compatible with the
-+		 * predecessor (misc/eeprom/at24.c) driver. Therefore we need to
-+		 * adapt the naming scheme.
-+		 *
-+		 * Initialize config.id to NVMEM_DEVID_AUTO even if the
-+		 * mtd->name is provided via an label as some platform can have
-+		 * multiple eeproms with same label and we can not register each
-+		 * of those with same label. Failing to register those eeproms
-+		 * trigger cascade failure on such platform.
-+		 */
-+		if (mtd_is_master(mtd)) {
-+			config.id = NVMEM_DEVID_AUTO;
-+			config.compat = true;
-+			config.name = mtd->name;
-+			config.dev = mtd->dev.parent;
-+			config.base_dev = mtd->dev.parent;
-+		}
-+		break;
-+	default:
-+		config.type = NVMEM_TYPE_UNKNOWN;
-+		break;
-+	}
-+
- 	mtd->nvmem = nvmem_register(&config);
- 	if (IS_ERR(mtd->nvmem)) {
- 		/* Just ignore if there is no NVMEM support in the kernel */
-@@ -1076,7 +1106,7 @@ int mtd_device_parse_register(struct mtd_info *mtd, const char * const *types,
- 	if (ret)
- 		goto out;
- 
--	if (IS_ENABLED(CONFIG_MTD_PARTITIONED_MASTER)) {
-+	if (IS_ENABLED(CONFIG_MTD_PARTITIONED_MASTER) || mtd->type == MTD_EEPROM) {
- 		ret = add_mtd_device(mtd);
- 		if (ret)
- 			goto out;
-diff --git a/include/uapi/mtd/mtd-abi.h b/include/uapi/mtd/mtd-abi.h
-index 714d55b49d2a..59bf43d58ddb 100644
---- a/include/uapi/mtd/mtd-abi.h
-+++ b/include/uapi/mtd/mtd-abi.h
-@@ -146,6 +146,7 @@ struct mtd_read_req {
- #define MTD_DATAFLASH		6
- #define MTD_UBIVOLUME		7
- #define MTD_MLCNANDFLASH	8	/* MLC NAND (including TLC) */
-+#define MTD_EEPROM		9
- 
- #define MTD_WRITEABLE		0x400	/* Device is writeable */
- #define MTD_BIT_WRITEABLE	0x800	/* Single bits can be flipped */
-@@ -159,6 +160,7 @@ struct mtd_read_req {
- #define MTD_CAP_NORFLASH	(MTD_WRITEABLE | MTD_BIT_WRITEABLE)
- #define MTD_CAP_NANDFLASH	(MTD_WRITEABLE)
- #define MTD_CAP_NVRAM		(MTD_WRITEABLE | MTD_BIT_WRITEABLE | MTD_NO_ERASE)
-+#define MTD_CAP_EEPROM		(MTD_WRITEABLE | MTD_BIT_WRITEABLE | MTD_NO_ERASE)
- 
- /* Obsolete ECC byte placement modes (used with obsolete MEMGETOOBSEL) */
- #define MTD_NANDECC_OFF		0	/* Switch off ECC (Not recommended) */
+ MAINTAINERS                                 |   2 +-
+ arch/arm/configs/aspeed_g4_defconfig        |   2 +-
+ arch/arm/configs/aspeed_g5_defconfig        |   2 +-
+ arch/arm/configs/at91_dt_defconfig          |   2 +-
+ arch/arm/configs/axm55xx_defconfig          |   2 +-
+ arch/arm/configs/davinci_all_defconfig      |   2 +-
+ arch/arm/configs/imx_v4_v5_defconfig        |   2 +-
+ arch/arm/configs/imx_v6_v7_defconfig        |   2 +-
+ arch/arm/configs/ixp4xx_defconfig           |   2 +-
+ arch/arm/configs/keystone_defconfig         |   2 +-
+ arch/arm/configs/lpc18xx_defconfig          |   2 +-
+ arch/arm/configs/lpc32xx_defconfig          |   2 +-
+ arch/arm/configs/multi_v5_defconfig         |   2 +-
+ arch/arm/configs/multi_v7_defconfig         |   2 +-
+ arch/arm/configs/mvebu_v5_defconfig         |   2 +-
+ arch/arm/configs/mvebu_v7_defconfig         |   2 +-
+ arch/arm/configs/mxs_defconfig              |   2 +-
+ arch/arm/configs/omap2plus_defconfig        |   2 +-
+ arch/arm/configs/pxa_defconfig              |   2 +-
+ arch/arm/configs/s3c6400_defconfig          |   2 +-
+ arch/arm/configs/sama5_defconfig            |   2 +-
+ arch/arm/configs/sama7_defconfig            |   2 +-
+ arch/arm/configs/shmobile_defconfig         |   2 +-
+ arch/arm/configs/socfpga_defconfig          |   2 +-
+ arch/arm/configs/tegra_defconfig            |   2 +-
+ arch/arm/configs/wpcm450_defconfig          |   2 +-
+ arch/loongarch/configs/loongson3_defconfig  |   2 +-
+ arch/mips/configs/cavium_octeon_defconfig   |   2 +-
+ arch/mips/configs/db1xxx_defconfig          |   2 +-
+ arch/powerpc/configs/44x/warp_defconfig     |   2 +-
+ arch/powerpc/configs/mpc512x_defconfig      |   2 +-
+ arch/powerpc/configs/mpc5200_defconfig      |   2 +-
+ arch/powerpc/configs/ppc6xx_defconfig       |   2 +-
+ arch/powerpc/configs/skiroot_defconfig      |   2 +-
+ drivers/misc/eeprom/Kconfig                 |  31 -------
+ drivers/misc/eeprom/Makefile                |   1 -
+ drivers/mtd/devices/Kconfig                 |  31 +++++++
+ drivers/mtd/devices/Makefile                |   1 +
+ drivers/{misc/eeprom => mtd/devices}/at24.c | 122 +++++++++++++++-------------
+ drivers/mtd/mtdcore.c                       |  49 ++++++++++-
+ include/linux/mtd/mtd.h                     |   5 ++
+ include/uapi/mtd/mtd-abi.h                  |   2 +
+ 42 files changed, 187 insertions(+), 123 deletions(-)
+---
+base-commit: 1613e604df0cd359cf2a7fbd9be7a0bcfacfabd0
+change-id: 20240701-b4-v6-10-topic-usbc-tcpci-c4bc9bcce604
 
+Best regards,
 -- 
-2.39.2
+Marco Felsch <m.felsch@pengutronix.de>
 
