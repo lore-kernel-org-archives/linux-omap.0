@@ -1,26 +1,26 @@
 Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F234A169AC6
-	for <linux-omap@vger.kernel.org>; Mon,  1 Jul 2024 13:54:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C09B169AD5
+	for <linux-omap@vger.kernel.org>; Mon,  1 Jul 2024 13:54:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719842065; cv=none; b=eLMN6ovlgg6l33ihrNoaQVHroBYITHmK2GXZUM6EIubx/3iRsZ0GjreTzhc7JOOaSEJvc4BJJaYYvWN/r6PdcrxrWBxAeKPXGEvnDFlRwJC07438/w3srjM/5xa7D62EF9TvRPGDPeqIgtguxz/D/uXU2dNj6S3KZD7rM+lBJbk=
+	t=1719842065; cv=none; b=BZqjtLQOXjhbNuN6C7ZITe6gb6OyneHc00OKlhIqAbYZETj3regRGhky/H91tUjacPosEW42TT9o2t77Wqyx2lOx5P7R8GnO/Eg7PBKop9cDyNidQRRCRIPqrbiHT42IuR933wryLk5dBXEdmDURT7JWIshILfGyX8IWPf6pais=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1719842065; c=relaxed/simple;
-	bh=TdcrekuqxkdGfFue0q5KkkRmhv3vqXpjDTGgiciypM8=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=tOXv0tNBmvflnnWs6FPmrn3ce9vI+25DhMWR+4gsuxkBq6gOrOSoTS7u9LprdRotuqCO+IJw5dTslsYrC09bLBxBM09838shUoiMEZypaCjUosMlsa+YTdNSOz5pqCD84I3J9qT7cqvKjgjMxvd/mQeR4t0fna4tDzTuVLwzmSM=
+	bh=mGAuCZgA2CcqrjhV6CHTOjJSYcLUjnH7A7J5jQMNJG0=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=licdapDHLzKYwG4/lWD74uHnpEWt8VgEgbuYxO/gJjMfuCbnvmOlR6x3Me0kQaRLqwgNjuiUzItEvw1SvR4IidsTOqUUau+78F9rr+TESnATdgSTR34AIbsgy7r8dSKhf/XgC6KRXzkV1EhljJQFtuhQ8SEIhCe/MdqcFjGMlPk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
 Received: from dude02.red.stw.pengutronix.de ([2a0a:edc0:0:1101:1d::28])
 	by metis.whiteo.stw.pengutronix.de with esmtp (Exim 4.92)
 	(envelope-from <m.felsch@pengutronix.de>)
-	id 1sOHTW-0001LY-Vb; Mon, 01 Jul 2024 15:53:46 +0200
+	id 1sOHTX-0001LY-6i; Mon, 01 Jul 2024 15:53:47 +0200
 From: Marco Felsch <m.felsch@pengutronix.de>
-Subject: [PATCH 0/9] AT24 EEPROM MTD Support
-Date: Mon, 01 Jul 2024 15:53:39 +0200
-Message-Id: <20240701-b4-v6-10-topic-usbc-tcpci-v1-0-3fd5f4a193cc@pengutronix.de>
+Date: Mon, 01 Jul 2024 15:53:41 +0200
+Subject: [PATCH 2/9] mtd: add mtd_is_master helper
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -29,9 +29,9 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAOO0gmYC/x3MQQqEMAxG4atI1hNIpTjoVcTF9DeO2WhpVQTx7
- haX3+K9i7Im00xddVHSw7KtS4H7VIT5t/yVbSymWmovX3EcPB8NO+FtjQbecwBviDCGD2gDoI1
- 4Kn1MOtn5vvvhvh826v1ZawAAAA==
+Message-Id: <20240701-b4-v6-10-topic-usbc-tcpci-v1-2-3fd5f4a193cc@pengutronix.de>
+References: <20240701-b4-v6-10-topic-usbc-tcpci-v1-0-3fd5f4a193cc@pengutronix.de>
+In-Reply-To: <20240701-b4-v6-10-topic-usbc-tcpci-v1-0-3fd5f4a193cc@pengutronix.de>
 To: Miquel Raynal <miquel.raynal@bootlin.com>, 
  Richard Weinberger <richard@nod.at>, Vignesh Raghavendra <vigneshr@ti.com>, 
  Arnd Bergmann <arnd@arndb.de>, 
@@ -70,86 +70,30 @@ X-SA-Exim-Mail-From: m.felsch@pengutronix.de
 X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
 X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 
-This series adds the intial support to handle EEPROMs via the MTD layer
-as well. This allow the user-space to have separate paritions since
-EEPROMs can become quite large nowadays.
-
-With this patchset applied EEPROMs can be accessed via:
-  - legacy 'eeprom' device
-  - nvmem device
-  - mtd device(s)
-
-The patchset targets only the AT24 (I2C) EEPROMs since I have no access
-to AT25 (SPI) EEPROMs nor to one of the other misc/eeprom/* devices.
-
-Note: I'm not familiar with Kconfig symbol migration so I don't know if
-the last patch is required at the moment. Please be notified that the
-list of recipients is quite large due to the defconfig changes.
-
-Regards,
-  Marco
+Provide a simple helper to make it easy to detect an master mtd device.
 
 Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 ---
-Marco Felsch (9):
-      mtd: core: add nvmem_write support
-      mtd: add mtd_is_master helper
-      mtd: add support to handle EEPROM devices
-      mtd: devices: add AT24 eeprom support
-      ARM: defconfig: convert to MTD_EEPROM_AT24
-      powerpc: convert to MTD_EEPROM_AT24
-      MIPS: configs: convert to MTD_EEPROM_AT24
-      LoongArch: convert to MTD_EEPROM_AT24
-      eeprom: at24: remove deprecated Kconfig symbol
+ include/linux/mtd/mtd.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
- MAINTAINERS                                 |   2 +-
- arch/arm/configs/aspeed_g4_defconfig        |   2 +-
- arch/arm/configs/aspeed_g5_defconfig        |   2 +-
- arch/arm/configs/at91_dt_defconfig          |   2 +-
- arch/arm/configs/axm55xx_defconfig          |   2 +-
- arch/arm/configs/davinci_all_defconfig      |   2 +-
- arch/arm/configs/imx_v4_v5_defconfig        |   2 +-
- arch/arm/configs/imx_v6_v7_defconfig        |   2 +-
- arch/arm/configs/ixp4xx_defconfig           |   2 +-
- arch/arm/configs/keystone_defconfig         |   2 +-
- arch/arm/configs/lpc18xx_defconfig          |   2 +-
- arch/arm/configs/lpc32xx_defconfig          |   2 +-
- arch/arm/configs/multi_v5_defconfig         |   2 +-
- arch/arm/configs/multi_v7_defconfig         |   2 +-
- arch/arm/configs/mvebu_v5_defconfig         |   2 +-
- arch/arm/configs/mvebu_v7_defconfig         |   2 +-
- arch/arm/configs/mxs_defconfig              |   2 +-
- arch/arm/configs/omap2plus_defconfig        |   2 +-
- arch/arm/configs/pxa_defconfig              |   2 +-
- arch/arm/configs/s3c6400_defconfig          |   2 +-
- arch/arm/configs/sama5_defconfig            |   2 +-
- arch/arm/configs/sama7_defconfig            |   2 +-
- arch/arm/configs/shmobile_defconfig         |   2 +-
- arch/arm/configs/socfpga_defconfig          |   2 +-
- arch/arm/configs/tegra_defconfig            |   2 +-
- arch/arm/configs/wpcm450_defconfig          |   2 +-
- arch/loongarch/configs/loongson3_defconfig  |   2 +-
- arch/mips/configs/cavium_octeon_defconfig   |   2 +-
- arch/mips/configs/db1xxx_defconfig          |   2 +-
- arch/powerpc/configs/44x/warp_defconfig     |   2 +-
- arch/powerpc/configs/mpc512x_defconfig      |   2 +-
- arch/powerpc/configs/mpc5200_defconfig      |   2 +-
- arch/powerpc/configs/ppc6xx_defconfig       |   2 +-
- arch/powerpc/configs/skiroot_defconfig      |   2 +-
- drivers/misc/eeprom/Kconfig                 |  31 -------
- drivers/misc/eeprom/Makefile                |   1 -
- drivers/mtd/devices/Kconfig                 |  31 +++++++
- drivers/mtd/devices/Makefile                |   1 +
- drivers/{misc/eeprom => mtd/devices}/at24.c | 122 +++++++++++++++-------------
- drivers/mtd/mtdcore.c                       |  49 ++++++++++-
- include/linux/mtd/mtd.h                     |   5 ++
- include/uapi/mtd/mtd-abi.h                  |   2 +
- 42 files changed, 187 insertions(+), 123 deletions(-)
----
-base-commit: 1613e604df0cd359cf2a7fbd9be7a0bcfacfabd0
-change-id: 20240701-b4-v6-10-topic-usbc-tcpci-c4bc9bcce604
+diff --git a/include/linux/mtd/mtd.h b/include/linux/mtd/mtd.h
+index 8d10d9d2e830..bf3fc2ea7230 100644
+--- a/include/linux/mtd/mtd.h
++++ b/include/linux/mtd/mtd.h
+@@ -408,6 +408,11 @@ static inline struct mtd_info *mtd_get_master(struct mtd_info *mtd)
+ 	return mtd;
+ }
+ 
++static inline bool mtd_is_master(struct mtd_info *mtd)
++{
++	return mtd->parent ? false : true;
++}
++
+ static inline u64 mtd_get_master_ofs(struct mtd_info *mtd, u64 ofs)
+ {
+ 	while (mtd->parent) {
 
-Best regards,
 -- 
-Marco Felsch <m.felsch@pengutronix.de>
+2.39.2
 
