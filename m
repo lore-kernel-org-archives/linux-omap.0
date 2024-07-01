@@ -1,433 +1,134 @@
-Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f172.google.com (mail-lj1-f172.google.com [209.85.208.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31DF016B3B7
-	for <linux-omap@vger.kernel.org>; Mon,  1 Jul 2024 13:54:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B073916D4FA;
+	Mon,  1 Jul 2024 16:14:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719842070; cv=none; b=ZJ+Ui0N1uRC7P6I0u2RBnlUugXRNk2R/aO+1x1Vj5hfva04VRWoa96jISQtBuY2PEYuFaeiogGwcJrplI27tVGoaE6vYjxw9h0BJfEQJiGvRNeO7R/P75QxfxOe4dEsZwE3v3e++AYo4QgWSMUuiJujZZkV/ks71gS1AXK1Yvss=
+	t=1719850452; cv=none; b=mNz+PFDfxUr9dypy4oz8O+PgyfHBXps/DY1B0UTLpyNp1JQ+i7+kcbKQ/UpY0GEEVlHV1PtPXGF0Gqdgl5Q2BbtAxlEoTfb1fCON1Khu0i0OaU8YTkx9njLAoTe2HFiuwJ77thrgbsyW7aobBZZGleW0P+UgZfLcVaItH6/fkvU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719842070; c=relaxed/simple;
-	bh=Z2drrYrm6GHYiOqKFnpoV6lcOtdXllZbXaThVmQb6J4=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=fW2spbiI8o9XIFmbyVPioIkhnvO90XIEBT+lFd87riXeDkcKQq/syU46wQuyIxDOKthXXPwtUL/SyaLU6K5SKhXtDNoYkkzmBHcvQ09t1d9AViFBRygW58doIUTnYDAlmjdznWQhm/w1AvaF0YUJsB+f+sr/qWdq/D9VHmxVaKc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
-Received: from dude02.red.stw.pengutronix.de ([2a0a:edc0:0:1101:1d::28])
-	by metis.whiteo.stw.pengutronix.de with esmtp (Exim 4.92)
-	(envelope-from <m.felsch@pengutronix.de>)
-	id 1sOHTX-0001LY-IF; Mon, 01 Jul 2024 15:53:47 +0200
-From: Marco Felsch <m.felsch@pengutronix.de>
-Date: Mon, 01 Jul 2024 15:53:44 +0200
-Subject: [PATCH 5/9] ARM: defconfig: convert to MTD_EEPROM_AT24
+	s=arc-20240116; t=1719850452; c=relaxed/simple;
+	bh=+AQ7sBFYdyhgp+x+WWlZYAcTpu3FvubStwSJ9uOtJNI=;
+	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=Y8eNWLZVsnjKYejV9vcSQLzA0Md+wTaZC8KTgMGi1d+46unJahBosacyZovikb8885aC69J00HGgRxYWFuHnP+jGnChJo5/PfSHY3RR7dWd0GcSnKXpL0bfbvyBZn4Af6mUTb18/3qQ/IdALtkrf74tf7pzWnFn8u+kMeXmMnls=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QIvqEQ1a; arc=none smtp.client-ip=209.85.208.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QIvqEQ1a"
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-2ebe6495aedso33616761fa.0;
+        Mon, 01 Jul 2024 09:14:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1719850449; x=1720455249; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-language:in-reply-to:mime-version
+         :user-agent:date:message-id:from:references:cc:to:subject:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=N9eJvY3noQUZfbyZhFkyxOik2OAqPtae0XwqIwzXsH8=;
+        b=QIvqEQ1acOGtKggqmvmdr7rehTqevl8Y3IGHCjxtHBRiVnu69KoGPnFgHZMpxru3DI
+         k6b2ouFBSCP+KnIU+T1pgtJRvSxY+pyt/dBw3yhHybSMKA9EgTNJ7kC0MsshEK5NdRUU
+         FeaTzhBxLz6RdlRbIUu7KwAuo63EOC94k5nncN98x9aO25pdTFxsDkTZCie9pCO28j/Y
+         Ikvh5LvHFSwbzQnYlAzHkUNSXua4hkDHM1JgvzZRe1QNHFT8d0cKBnqlPAmRWoGGLv3/
+         VXRCOCEZ8VX0BSM1hbN0hk6eDfA9hbMej+Xst3Xaq8rjzfMkyyCuqaBD9jx8rj9jz3VG
+         f2jg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1719850449; x=1720455249;
+        h=content-transfer-encoding:content-language:in-reply-to:mime-version
+         :user-agent:date:message-id:from:references:cc:to:subject
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=N9eJvY3noQUZfbyZhFkyxOik2OAqPtae0XwqIwzXsH8=;
+        b=KWCwqbVYlyk+WkCU0BAqGLHLBOPYALCUwTGTIcI1Q51wI4T41rucleM6FLurRNRYKE
+         xcGU3WF3EX2G5n1vBneVjZ0svw8yO+IwcjKWi5ytv13VitD0hCsZSZnayMd+FyIEjV68
+         2xvkdFKRaxsm1UgK4Ou/0Io5mdDsCOtpHmAEhbXg8wfalmDHAT9MqEQpLbWcry03dX+B
+         7k4KIkgrjwnpFTuG1aJlslvNJ1eiR7FPfqg0nJxPnmV88FBcUSswgAnCcHWqr2UDVRkn
+         YVEgXkgIcpDgfKVEDmTm8skMD13zCyyc5wBCz46pyrTTrXWiCyy6liQYDsC32D+CU+C8
+         t2YA==
+X-Forwarded-Encrypted: i=1; AJvYcCV85YK4fNTy/TH3n7w4/d0GQvZwS2Z2/JXfkiFCkCvzrEd4Mrqr9brGTaONhAyV33mrR/2kboQr5dWeQJ44XseJYYBsbh0y5E+ed+UAZVbqcqWC00P5SWLaVREYcSu2VlCn2Zg3qc3msa3rCWeiSso2Db5Ukz4/RlbGBBC8HHfhPatnUeTeWSiP1NURBSZ7VqK3uG3Kow4yDUWnqKB9v7Rdu0ZDJ2JFLRS6oy+h0M5SBSGdkVLZsiwf+XJ0il0OQfTEZ6eI6ck5NVR8iCx/xvHkMDDQNVH3M1B2rsU5Xg8t
+X-Gm-Message-State: AOJu0Yx0M9qR+Jhan8JyvZ0ILUw9fzumsgN3orRfENoL/AQ3+b5WNAlC
+	Gc0NwzhJdI1eR+J4RRTQ7dWlGW6imCSVHiz3VpCgfWejPaRN6AwE
+X-Google-Smtp-Source: AGHT+IHHz/OamA1Ukx5sIFBlK+L0AmnL9jrrDHysPJKMb3Xyg4pOUjtzhB1j4PXHUjwphZM6xFX6sw==
+X-Received: by 2002:a2e:8558:0:b0:2ec:5382:2703 with SMTP id 38308e7fff4ca-2ee5e6f6972mr34830361fa.53.1719850448585;
+        Mon, 01 Jul 2024 09:14:08 -0700 (PDT)
+Received: from [192.168.1.105] ([178.176.75.203])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-2ee516803aesm14192571fa.79.2024.07.01.09.14.05
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 01 Jul 2024 09:14:07 -0700 (PDT)
+Subject: Re: [PATCH 2/9] mtd: add mtd_is_master helper
+To: Marco Felsch <m.felsch@pengutronix.de>,
+ Miquel Raynal <miquel.raynal@bootlin.com>,
+ Richard Weinberger <richard@nod.at>, Vignesh Raghavendra <vigneshr@ti.com>,
+ Arnd Bergmann <arnd@arndb.de>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Bartosz Golaszewski <brgl@bgdev.pl>, Russell King <linux@armlinux.org.uk>,
+ Joel Stanley <joel@jms.id.au>, Andrew Jeffery <andrew@codeconstruct.com.au>,
+ Nicolas Ferre <nicolas.ferre@microchip.com>,
+ Alexandre Belloni <alexandre.belloni@bootlin.com>,
+ Claudiu Beznea <claudiu.beznea@tuxon.dev>, Shawn Guo <shawnguo@kernel.org>,
+ Sascha Hauer <s.hauer@pengutronix.de>,
+ Pengutronix Kernel Team <kernel@pengutronix.de>,
+ Fabio Estevam <festevam@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>,
+ Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@bootlin.com>,
+ Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+ Tony Lindgren <tony@atomide.com>,
+ Geert Uytterhoeven <geert+renesas@glider.be>,
+ Magnus Damm <magnus.damm@gmail.com>, Dinh Nguyen <dinguyen@kernel.org>,
+ Thierry Reding <thierry.reding@gmail.com>,
+ Jonathan Hunter <jonathanh@nvidia.com>,
+ =?UTF-8?Q?Jonathan_Neusch=c3=a4fer?= <j.neuschaefer@gmx.net>,
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>
+Cc: linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-aspeed@lists.ozlabs.org, imx@lists.linux.dev,
+ linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+ linux-tegra@vger.kernel.org, openbmc@lists.ozlabs.org,
+ linuxppc-dev@lists.ozlabs.org, linux-mips@vger.kernel.org,
+ loongarch@lists.linux.dev
+References: <20240701-b4-v6-10-topic-usbc-tcpci-v1-0-3fd5f4a193cc@pengutronix.de>
+ <20240701-b4-v6-10-topic-usbc-tcpci-v1-2-3fd5f4a193cc@pengutronix.de>
+From: Sergei Shtylyov <sergei.shtylyov@gmail.com>
+Message-ID: <b97bf565-bef5-fbc7-63c5-f174880ad9ab@gmail.com>
+Date: Mon, 1 Jul 2024 19:14:04 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <20240701-b4-v6-10-topic-usbc-tcpci-v1-2-3fd5f4a193cc@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240701-b4-v6-10-topic-usbc-tcpci-v1-5-3fd5f4a193cc@pengutronix.de>
-References: <20240701-b4-v6-10-topic-usbc-tcpci-v1-0-3fd5f4a193cc@pengutronix.de>
-In-Reply-To: <20240701-b4-v6-10-topic-usbc-tcpci-v1-0-3fd5f4a193cc@pengutronix.de>
-To: Miquel Raynal <miquel.raynal@bootlin.com>, 
- Richard Weinberger <richard@nod.at>, Vignesh Raghavendra <vigneshr@ti.com>, 
- Arnd Bergmann <arnd@arndb.de>, 
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- Bartosz Golaszewski <brgl@bgdev.pl>, Russell King <linux@armlinux.org.uk>, 
- Joel Stanley <joel@jms.id.au>, Andrew Jeffery <andrew@codeconstruct.com.au>, 
- Nicolas Ferre <nicolas.ferre@microchip.com>, 
- Alexandre Belloni <alexandre.belloni@bootlin.com>, 
- Claudiu Beznea <claudiu.beznea@tuxon.dev>, Shawn Guo <shawnguo@kernel.org>, 
- Sascha Hauer <s.hauer@pengutronix.de>, 
- Pengutronix Kernel Team <kernel@pengutronix.de>, 
- Fabio Estevam <festevam@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, 
- Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@bootlin.com>, 
- Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, 
- Tony Lindgren <tony@atomide.com>, 
- Geert Uytterhoeven <geert+renesas@glider.be>, 
- Magnus Damm <magnus.damm@gmail.com>, Dinh Nguyen <dinguyen@kernel.org>, 
- Thierry Reding <thierry.reding@gmail.com>, 
- Jonathan Hunter <jonathanh@nvidia.com>, 
- =?utf-8?q?Jonathan_Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>, 
- Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
- Christophe Leroy <christophe.leroy@csgroup.eu>, 
- "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>, 
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
- Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>
-Cc: linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, 
- linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- linux-aspeed@lists.ozlabs.org, imx@lists.linux.dev, 
- linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
- linux-tegra@vger.kernel.org, openbmc@lists.ozlabs.org, 
- linuxppc-dev@lists.ozlabs.org, linux-mips@vger.kernel.org, 
- loongarch@lists.linux.dev, Marco Felsch <m.felsch@pengutronix.de>
-X-Mailer: b4 0.15-dev
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:1101:1d::28
-X-SA-Exim-Mail-From: m.felsch@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-omap@vger.kernel.org
 
-The EEPROM_AT24 Kconfig symbol is marked as deprecated. Make use of the
-new Kconfig symbol to select the I2C EEPROM driver support.
+On 7/1/24 4:53 PM, Marco Felsch wrote:
 
-Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
----
- arch/arm/configs/aspeed_g4_defconfig   | 2 +-
- arch/arm/configs/aspeed_g5_defconfig   | 2 +-
- arch/arm/configs/at91_dt_defconfig     | 2 +-
- arch/arm/configs/axm55xx_defconfig     | 2 +-
- arch/arm/configs/davinci_all_defconfig | 2 +-
- arch/arm/configs/imx_v4_v5_defconfig   | 2 +-
- arch/arm/configs/imx_v6_v7_defconfig   | 2 +-
- arch/arm/configs/ixp4xx_defconfig      | 2 +-
- arch/arm/configs/keystone_defconfig    | 2 +-
- arch/arm/configs/lpc18xx_defconfig     | 2 +-
- arch/arm/configs/lpc32xx_defconfig     | 2 +-
- arch/arm/configs/multi_v5_defconfig    | 2 +-
- arch/arm/configs/multi_v7_defconfig    | 2 +-
- arch/arm/configs/mvebu_v5_defconfig    | 2 +-
- arch/arm/configs/mvebu_v7_defconfig    | 2 +-
- arch/arm/configs/mxs_defconfig         | 2 +-
- arch/arm/configs/omap2plus_defconfig   | 2 +-
- arch/arm/configs/pxa_defconfig         | 2 +-
- arch/arm/configs/s3c6400_defconfig     | 2 +-
- arch/arm/configs/sama5_defconfig       | 2 +-
- arch/arm/configs/sama7_defconfig       | 2 +-
- arch/arm/configs/shmobile_defconfig    | 2 +-
- arch/arm/configs/socfpga_defconfig     | 2 +-
- arch/arm/configs/tegra_defconfig       | 2 +-
- arch/arm/configs/wpcm450_defconfig     | 2 +-
- 25 files changed, 25 insertions(+), 25 deletions(-)
+> Provide a simple helper to make it easy to detect an master mtd device.
+> 
+> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> ---
+>  include/linux/mtd/mtd.h | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/include/linux/mtd/mtd.h b/include/linux/mtd/mtd.h
+> index 8d10d9d2e830..bf3fc2ea7230 100644
+> --- a/include/linux/mtd/mtd.h
+> +++ b/include/linux/mtd/mtd.h
+> @@ -408,6 +408,11 @@ static inline struct mtd_info *mtd_get_master(struct mtd_info *mtd)
+>  	return mtd;
+>  }
+>  
+> +static inline bool mtd_is_master(struct mtd_info *mtd)
+> +{
+> +	return mtd->parent ? false : true;
 
-diff --git a/arch/arm/configs/aspeed_g4_defconfig b/arch/arm/configs/aspeed_g4_defconfig
-index 28b724d59e7e..341f7ca4ff8c 100644
---- a/arch/arm/configs/aspeed_g4_defconfig
-+++ b/arch/arm/configs/aspeed_g4_defconfig
-@@ -68,7 +68,7 @@ CONFIG_MTD_UBI_FASTMAP=y
- CONFIG_MTD_UBI_BLOCK=y
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_BLK_DEV_NBD=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_NETDEVICES=y
- CONFIG_NETCONSOLE=y
- # CONFIG_NET_VENDOR_ALACRITECH is not set
-diff --git a/arch/arm/configs/aspeed_g5_defconfig b/arch/arm/configs/aspeed_g5_defconfig
-index 61cee1e7ebea..9c180658341f 100644
---- a/arch/arm/configs/aspeed_g5_defconfig
-+++ b/arch/arm/configs/aspeed_g5_defconfig
-@@ -82,7 +82,7 @@ CONFIG_BLK_DEV_LOOP=y
- CONFIG_BLK_DEV_NBD=y
- CONFIG_SMPRO_ERRMON=y
- CONFIG_SMPRO_MISC=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_EEPROM_AT25=y
- CONFIG_SCSI=y
- CONFIG_BLK_DEV_SD=y
-diff --git a/arch/arm/configs/at91_dt_defconfig b/arch/arm/configs/at91_dt_defconfig
-index 1d53aec4c836..fb40790fc730 100644
---- a/arch/arm/configs/at91_dt_defconfig
-+++ b/arch/arm/configs/at91_dt_defconfig
-@@ -60,7 +60,7 @@ CONFIG_BLK_DEV_RAM=y
- CONFIG_BLK_DEV_RAM_COUNT=4
- CONFIG_BLK_DEV_RAM_SIZE=8192
- CONFIG_ATMEL_SSC=y
--CONFIG_EEPROM_AT24=m
-+CONFIG_MTD_EEPROM_AT24=m
- CONFIG_SCSI=y
- CONFIG_BLK_DEV_SD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff --git a/arch/arm/configs/axm55xx_defconfig b/arch/arm/configs/axm55xx_defconfig
-index 516689dc6cf1..473404f468f9 100644
---- a/arch/arm/configs/axm55xx_defconfig
-+++ b/arch/arm/configs/axm55xx_defconfig
-@@ -89,7 +89,7 @@ CONFIG_MTD_M25P80=y
- CONFIG_PROC_DEVICETREE=y
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_BLK_DEV_RAM=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_EEPROM_AT25=y
- CONFIG_BLK_DEV_SD=y
- CONFIG_CHR_DEV_SG=y
-diff --git a/arch/arm/configs/davinci_all_defconfig b/arch/arm/configs/davinci_all_defconfig
-index 3474e475373a..46701916c82d 100644
---- a/arch/arm/configs/davinci_all_defconfig
-+++ b/arch/arm/configs/davinci_all_defconfig
-@@ -73,7 +73,7 @@ CONFIG_BLK_DEV_LOOP=m
- CONFIG_BLK_DEV_RAM=y
- CONFIG_BLK_DEV_RAM_COUNT=1
- CONFIG_BLK_DEV_RAM_SIZE=32768
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_BLK_DEV_SD=m
- CONFIG_ATA=m
- CONFIG_AHCI_DA850=m
-diff --git a/arch/arm/configs/imx_v4_v5_defconfig b/arch/arm/configs/imx_v4_v5_defconfig
-index 875c8cdbada7..685e685baa21 100644
---- a/arch/arm/configs/imx_v4_v5_defconfig
-+++ b/arch/arm/configs/imx_v4_v5_defconfig
-@@ -51,7 +51,7 @@ CONFIG_MTD_PHYSMAP=y
- CONFIG_MTD_RAW_NAND=y
- CONFIG_MTD_NAND_MXC=y
- CONFIG_MTD_UBI=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_EEPROM_AT25=y
- CONFIG_BLK_DEV_SD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index cf2480dce285..03d71abf587e 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -104,7 +104,7 @@ CONFIG_MTD_UBI_BLOCK=y
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_BLK_DEV_RAM=y
- CONFIG_BLK_DEV_RAM_SIZE=65536
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_EEPROM_AT25=y
- # CONFIG_SCSI_PROC_FS is not set
- CONFIG_BLK_DEV_SD=y
-diff --git a/arch/arm/configs/ixp4xx_defconfig b/arch/arm/configs/ixp4xx_defconfig
-index 3cb995b9616a..af36c0a7c8ae 100644
---- a/arch/arm/configs/ixp4xx_defconfig
-+++ b/arch/arm/configs/ixp4xx_defconfig
-@@ -98,7 +98,7 @@ CONFIG_MTD_RAW_NAND=m
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_BLK_DEV_RAM=y
- CONFIG_BLK_DEV_RAM_SIZE=8192
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- # CONFIG_EEPROM_LEGACY is not set
- # CONFIG_SCSI_PROC_FS is not set
- CONFIG_BLK_DEV_SD=y
-diff --git a/arch/arm/configs/keystone_defconfig b/arch/arm/configs/keystone_defconfig
-index c1291ca290b2..c8ea405f11ab 100644
---- a/arch/arm/configs/keystone_defconfig
-+++ b/arch/arm/configs/keystone_defconfig
-@@ -124,7 +124,7 @@ CONFIG_MTD_SPI_NOR=y
- CONFIG_MTD_UBI=y
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_SRAM=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_SCSI=y
- CONFIG_BLK_DEV_SD=y
- CONFIG_NETDEVICES=y
-diff --git a/arch/arm/configs/lpc18xx_defconfig b/arch/arm/configs/lpc18xx_defconfig
-index f55c231e0870..da6a41364a0d 100644
---- a/arch/arm/configs/lpc18xx_defconfig
-+++ b/arch/arm/configs/lpc18xx_defconfig
-@@ -53,7 +53,7 @@ CONFIG_MTD_SPI_NOR=y
- CONFIG_SPI_NXP_SPIFI=y
- CONFIG_BLK_DEV_RAM=y
- CONFIG_SRAM=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_SCSI=y
- CONFIG_BLK_DEV_SD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff --git a/arch/arm/configs/lpc32xx_defconfig b/arch/arm/configs/lpc32xx_defconfig
-index 98e267213b21..fdaa3cc28886 100644
---- a/arch/arm/configs/lpc32xx_defconfig
-+++ b/arch/arm/configs/lpc32xx_defconfig
-@@ -50,7 +50,7 @@ CONFIG_BLK_DEV_RAM=y
- CONFIG_BLK_DEV_RAM_COUNT=1
- CONFIG_BLK_DEV_RAM_SIZE=16384
- CONFIG_SRAM=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_EEPROM_AT25=y
- CONFIG_SCSI=y
- CONFIG_BLK_DEV_SD=y
-diff --git a/arch/arm/configs/multi_v5_defconfig b/arch/arm/configs/multi_v5_defconfig
-index 3f4ddcf49ec7..82d720538f11 100644
---- a/arch/arm/configs/multi_v5_defconfig
-+++ b/arch/arm/configs/multi_v5_defconfig
-@@ -86,7 +86,7 @@ CONFIG_MTD_UBI=y
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_VIRTIO_BLK=y
- CONFIG_ATMEL_SSC=m
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- # CONFIG_SCSI_PROC_FS is not set
- CONFIG_BLK_DEV_SD=y
- CONFIG_BLK_DEV_SR=m
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-index 86bf057ac366..c8e77d34ac10 100644
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -231,7 +231,7 @@ CONFIG_QCOM_FASTRPC=m
- CONFIG_APDS9802ALS=y
- CONFIG_ISL29003=y
- CONFIG_PCI_ENDPOINT_TEST=m
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_BLK_DEV_SD=y
- CONFIG_BLK_DEV_SR=y
- CONFIG_ATA=y
-diff --git a/arch/arm/configs/mvebu_v5_defconfig b/arch/arm/configs/mvebu_v5_defconfig
-index 2467afd32146..13039167401c 100644
---- a/arch/arm/configs/mvebu_v5_defconfig
-+++ b/arch/arm/configs/mvebu_v5_defconfig
-@@ -68,7 +68,7 @@ CONFIG_MTD_RAW_NAND=y
- CONFIG_MTD_NAND_ORION=y
- CONFIG_MTD_SPI_NOR=y
- CONFIG_BLK_DEV_LOOP=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- # CONFIG_SCSI_PROC_FS is not set
- CONFIG_BLK_DEV_SD=y
- CONFIG_BLK_DEV_SR=m
-diff --git a/arch/arm/configs/mvebu_v7_defconfig b/arch/arm/configs/mvebu_v7_defconfig
-index 2d2a4dc8f379..81fa4514457c 100644
---- a/arch/arm/configs/mvebu_v7_defconfig
-+++ b/arch/arm/configs/mvebu_v7_defconfig
-@@ -52,7 +52,7 @@ CONFIG_MTD_RAW_NAND=y
- CONFIG_MTD_NAND_MARVELL=y
- CONFIG_MTD_SPI_NOR=y
- CONFIG_MTD_UBI=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_BLK_DEV_SD=y
- CONFIG_ATA=y
- CONFIG_SATA_AHCI=y
-diff --git a/arch/arm/configs/mxs_defconfig b/arch/arm/configs/mxs_defconfig
-index 43bc1255a5db..6a71f5fc6a23 100644
---- a/arch/arm/configs/mxs_defconfig
-+++ b/arch/arm/configs/mxs_defconfig
-@@ -52,7 +52,7 @@ CONFIG_MTD_NAND_GPMI_NAND=y
- CONFIG_MTD_SPI_NOR=y
- CONFIG_MTD_UBI=y
- # CONFIG_BLK_DEV is not set
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_SCSI=y
- CONFIG_BLK_DEV_SD=y
- CONFIG_NETDEVICES=y
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 3a166c2f02bd..84e2ebcec41a 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -294,7 +294,7 @@ CONFIG_BLK_DEV_RAM_SIZE=16384
- CONFIG_SENSORS_TSL2550=m
- CONFIG_SRAM=y
- CONFIG_PCI_ENDPOINT_TEST=m
--CONFIG_EEPROM_AT24=m
-+CONFIG_MTD_EEPROM_AT24=m
- CONFIG_EEPROM_AT25=m
- CONFIG_BLK_DEV_SD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff --git a/arch/arm/configs/pxa_defconfig b/arch/arm/configs/pxa_defconfig
-index f2ca5c9131b5..a5361194977a 100644
---- a/arch/arm/configs/pxa_defconfig
-+++ b/arch/arm/configs/pxa_defconfig
-@@ -155,7 +155,7 @@ CONFIG_AD525X_DPOT_I2C=m
- CONFIG_ICS932S401=m
- CONFIG_APDS9802ALS=m
- CONFIG_ISL29003=m
--CONFIG_EEPROM_AT24=m
-+CONFIG_MTD_EEPROM_AT24=m
- CONFIG_SENSORS_LIS3_SPI=m
- CONFIG_SCSI=y
- CONFIG_BLK_DEV_SD=m
-diff --git a/arch/arm/configs/s3c6400_defconfig b/arch/arm/configs/s3c6400_defconfig
-index a37e6ac40825..3d36bcc337fc 100644
---- a/arch/arm/configs/s3c6400_defconfig
-+++ b/arch/arm/configs/s3c6400_defconfig
-@@ -14,7 +14,7 @@ CONFIG_MTD_RAW_NAND=y
- CONFIG_MTD_NAND_S3C2410=y
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_BLK_DEV_RAM=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_SERIAL_8250=y
- CONFIG_SERIAL_SAMSUNG=y
- CONFIG_SERIAL_SAMSUNG_CONSOLE=y
-diff --git a/arch/arm/configs/sama5_defconfig b/arch/arm/configs/sama5_defconfig
-index 9096a99b5abd..f92783f9515e 100644
---- a/arch/arm/configs/sama5_defconfig
-+++ b/arch/arm/configs/sama5_defconfig
-@@ -64,7 +64,7 @@ CONFIG_BLK_DEV_RAM=y
- CONFIG_BLK_DEV_RAM_COUNT=4
- CONFIG_BLK_DEV_RAM_SIZE=8192
- CONFIG_ATMEL_SSC=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_SCSI=y
- CONFIG_BLK_DEV_SD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff --git a/arch/arm/configs/sama7_defconfig b/arch/arm/configs/sama7_defconfig
-index 7fa5d251ced2..8998b9cb1fd1 100644
---- a/arch/arm/configs/sama7_defconfig
-+++ b/arch/arm/configs/sama7_defconfig
-@@ -95,7 +95,7 @@ CONFIG_BLK_DEV_LOOP=y
- CONFIG_BLK_DEV_RAM=y
- CONFIG_BLK_DEV_RAM_COUNT=1
- CONFIG_BLK_DEV_RAM_SIZE=8192
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_SCSI=y
- CONFIG_BLK_DEV_SD=y
- # CONFIG_BLK_DEV_BSG is not set
-diff --git a/arch/arm/configs/shmobile_defconfig b/arch/arm/configs/shmobile_defconfig
-index 56925adfe842..4a8360d7ae60 100644
---- a/arch/arm/configs/shmobile_defconfig
-+++ b/arch/arm/configs/shmobile_defconfig
-@@ -46,7 +46,7 @@ CONFIG_MTD_CFI_INTELEXT=y
- CONFIG_MTD_PHYSMAP=y
- CONFIG_MTD_PHYSMAP_OF=y
- CONFIG_MTD_SPI_NOR=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_BLK_DEV_SD=y
- CONFIG_ATA=y
- CONFIG_SATA_RCAR=y
-diff --git a/arch/arm/configs/socfpga_defconfig b/arch/arm/configs/socfpga_defconfig
-index e82c3866b810..3c847568fffa 100644
---- a/arch/arm/configs/socfpga_defconfig
-+++ b/arch/arm/configs/socfpga_defconfig
-@@ -53,7 +53,7 @@ CONFIG_BLK_DEV_RAM_COUNT=2
- CONFIG_BLK_DEV_RAM_SIZE=8192
- CONFIG_BLK_DEV_NVME=m
- CONFIG_SRAM=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_SCSI=y
- # CONFIG_SCSI_PROC_FS is not set
- CONFIG_BLK_DEV_SD=y
-diff --git a/arch/arm/configs/tegra_defconfig b/arch/arm/configs/tegra_defconfig
-index d2a094ad360c..c6eab1768591 100644
---- a/arch/arm/configs/tegra_defconfig
-+++ b/arch/arm/configs/tegra_defconfig
-@@ -85,7 +85,7 @@ CONFIG_AD525X_DPOT_I2C=y
- CONFIG_ICS932S401=y
- CONFIG_APDS9802ALS=y
- CONFIG_ISL29003=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_BLK_DEV_SD=y
- CONFIG_BLK_DEV_SR=y
- # CONFIG_BLK_DEV_BSG is not set
-diff --git a/arch/arm/configs/wpcm450_defconfig b/arch/arm/configs/wpcm450_defconfig
-index 45483deab034..c72257276067 100644
---- a/arch/arm/configs/wpcm450_defconfig
-+++ b/arch/arm/configs/wpcm450_defconfig
-@@ -50,7 +50,7 @@ CONFIG_MTD_UBI_FASTMAP=y
- CONFIG_MTD_UBI_BLOCK=y
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_SRAM=y
--CONFIG_EEPROM_AT24=y
-+CONFIG_MTD_EEPROM_AT24=y
- CONFIG_SCSI=y
- # CONFIG_SCSI_PROC_FS is not set
- # CONFIG_SCSI_LOWLEVEL is not set
+   Perhaps:
 
--- 
-2.39.2
+	return !mtd->parent;
 
+[...]
+
+MBR, Sergey
