@@ -1,60 +1,60 @@
-Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EA94144316;
-	Thu,  4 Jul 2024 17:23:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D01F144D0C;
+	Thu,  4 Jul 2024 17:24:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720113840; cv=none; b=vEYYhteMeSMx8dlZfM9RWz3ZgWjD8pydbH4EkzPR2ZEMyTXyVxL3bx3ihBGo865pGJgcRglExAlFvv8l0lUcYOT67plaU39Wy2o3xEgEL+CjGXLVD6i2+j74h8khpTHsCA89ONX4oc40a2DobtFUNFbM3u4RPExhZwo4ZzRNCm0=
+	t=1720113842; cv=none; b=GmAcpbaMS4gjIGnof2Y/8QicOGBiPbcGi+57RrCP07rjmeWnZIp+Ip4E2nLtbYGS6mToMmBEJ0oLAXKHbL9HRflc76aFd3MwhR+f5c+/p/aMSQ3GRWxsIxZ0UK0NrnbOHLZkuMovpzEYryjC4rVO1Akbd4c3LK4pNTYB3O19ZbI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720113840; c=relaxed/simple;
-	bh=/w2Mfm3b//ArFJq79ZTzz7Oj9gnwB0vEiff6gNtMX10=;
+	s=arc-20240116; t=1720113842; c=relaxed/simple;
+	bh=1DZ6ZNTYVH+qxDLzyvoRZYeRzU6/uB98HyF0NhspnHM=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=OWZIdq7c+8BnQssmPoaISZb0W1Pt8RRa9PuhJidvr/Yn8+a2DTWl8T3hD36LUbsNUx3dy2vW5HLmHoFn4lw8/vzAOmuGDlq9wYXFulTqhdWz6DdoUlZL+ji+7C3Jg2h7hE1aD7vQtCfVq+TEfcXkJ6LXhgLHWzMgGVBezRyJl7s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ssh+Ft80; arc=none smtp.client-ip=209.85.128.48
+	 In-Reply-To:To:Cc; b=d3xMT8DyBJrHnVftpheZ+yj5uFuNBV2uafHsDk3hlBnLQIOZYxfFtMRs4t15sF7jfYUEzFKOFdgns4sFpMuMXjbRZbmdGjE1/fB2ovAacMSdl5T+ce1FFGccMv/ZtBP14oM4u/wKBfaL4P90u0zbph0lHOHmXvBugcykFKuQZsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hCYyEp/g; arc=none smtp.client-ip=209.85.128.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ssh+Ft80"
-Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-424ad991cbbso6131265e9.0;
-        Thu, 04 Jul 2024 10:23:57 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hCYyEp/g"
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-424adaa6ceeso5231395e9.1;
+        Thu, 04 Jul 2024 10:24:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1720113836; x=1720718636; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1720113840; x=1720718640; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=NXvtbk3eJTlknQfO1g6XBXuGBlY9arYdCdhrUDB15Qk=;
-        b=Ssh+Ft80xdP8asmNrJHQyNPyNyz0VsABH6kQB/Fz6o65s6Ku0VUwlYnn5UlRllKhgz
-         ioEGafc5Zc5i3XY+7mDG1+9ReT8d092bCQ9zkYXukeAQuoJV+ngaPDD+K23PKdiScg9m
-         Zt82FEI6qODGv4zLlZKVKerpERFW0WYJVqspJpZaVyvoOuuBcSEx88FDfpjcmQn69CD3
-         bYEbyOBjhNNMksADLIETWENYLS3efQLvh6shkcLReCha6cvIDTnCLVMMZcSvTuLZcxx/
-         J3EJFnIMWaTPs6veahV+61A+VrBqd1T6EgArEnixd2r6zaW+b9B/1Y0i1A/1gDZMeLWN
-         V6VA==
+        bh=Qd0Z+TzoGuFE1UpjnOMV6kYTwv4UPS1xus6pH0CzaYg=;
+        b=hCYyEp/g/Z+HkR84dVwTq84uAhR8lTnLvF+Uf21kOstLXpAk5Rg469meIyjlha5NqW
+         dlBN3PzJQCdD5JYcVoc53f8J4ygYWHFB4/5PEqINkxaCXdKg8jU3zwtIHhEBp6/gCmk6
+         3AHxm3aaAFfQBpJfHzNQATIK3WDnrKzckCbILaEg4YeNOMAm61nwH/GNUmKlSER8vOaj
+         oTYJ2Arxk3tryPIdxROw2beV9Yirx1a8OuDYITwYD1e8wMyaiilxCsPADK8HNMYuWe2U
+         r7SkiJo792gDAONmxftn8ENUbYyIxFr8Cnpf31MpzVV9x296AFN6e7KDx7kBfPI4Aztr
+         ypkg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720113836; x=1720718636;
+        d=1e100.net; s=20230601; t=1720113840; x=1720718640;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=NXvtbk3eJTlknQfO1g6XBXuGBlY9arYdCdhrUDB15Qk=;
-        b=LQzDme47lVVPaaNQfWBBSGYxFXu/wFCWG0LVF6OYUVi4qxgQfexWk8hB9rOTphEClJ
-         Zf7hPAc5HQULzg6xMmb9pFdC0XgGJN4zNRkIIfMUUaG95rQxpS9M+rMCGI/37JdU+jK8
-         myj0rlKNQ6pdjblsbijR81W5HCK5v1nlDk2HLceH92bua7IIIKRYarIVhE/cXPitZ+7I
-         ppsiEuqsZssKWb1knJmv1YIQQzDEnABdOZhotl1g2lttxgk/AHEVXEAGy+Cz9lg8FeWs
-         74OmCnz34wS0mjUrbaFfJNJSnPa5SUbYcl0Wu80Q7drXuPA9UoOzoY6JVf5Qh/xWLneE
-         Tzig==
-X-Forwarded-Encrypted: i=1; AJvYcCW/RcoLFcZwyHFvsW1bf/KRIKZovRQeX3G0qVxjt4yoMQDaBk91vq1rsf41dZrXCRINkXohUnc0NLUMI6uD0P806q5Aq9Dbjb323fvvsUCNosi0slMUeb4YRkWYW0mrpghKfFuujrCi33olmIZ3
-X-Gm-Message-State: AOJu0Yy9SOi3ZOasrrWeDVgqHofElYwYQCV05KZUBMdkFDJQDZiLIZCI
-	zJe2Wx0Q7D4RSYTWe6c04AcCzc9Einv0JoY20bVy6BpB0C53ipol
-X-Google-Smtp-Source: AGHT+IEHdGR7aWDPHC48GX7xnpPP9zkZvU5WdgSCgIsyuE6VBDayBGzZuU+F5S67Yb5hOGQ04hSJvQ==
-X-Received: by 2002:a05:600c:4487:b0:425:6a12:bbe6 with SMTP id 5b1f17b1804b1-4264a36e4c2mr18864815e9.0.1720113836422;
-        Thu, 04 Jul 2024 10:23:56 -0700 (PDT)
+        bh=Qd0Z+TzoGuFE1UpjnOMV6kYTwv4UPS1xus6pH0CzaYg=;
+        b=ASVEh+Ys2TmccTnBCF6lgUJZZjuxreWYATlR0ZABVMBtHpY+UpzeymXOPF7eY2+VJJ
+         i73m8awQZUZKzrmepxR4vmuHEqhHW74ExNk76ySZjuuJ+dn1klq+O+tbkzumsqO0Anfm
+         A9bJzF/9mcxzTC4X4lvLRSG0fElLiPZ6lehcV/PJ56ILb/3gEnnXK9WDIA5Y8GGm/+I5
+         M8+fqxF7X1xJcdVg2Anbev02I72NozgoMoRu5dx9TDAEErL01/rkJJ4rBqvvu8Vuc/9l
+         K4Oz9lFVwKHbi/Xs7NfRhNqhMhk9AgxgiSffCMR5sNJd/JQ2JckbdrZuOX50bADbqj1v
+         P8vw==
+X-Forwarded-Encrypted: i=1; AJvYcCUVRkU8Btz4Q30ChIHhIKGFjU7LOXD6DH+QYAsdG8qPiPnj890z+y5G5flZM1s9thmv1lgBzfnOPkT6+5na6j0lzfxNyPCtHB+APaj8NBqPo5QrPz2Uh0bxE3gtjrQY78RbQgPVifO4BKhWl2FT
+X-Gm-Message-State: AOJu0YxG+70kP3J377LR5c0uhaDbdREx9Ys6UWAwmGnBRIyGjGmD7YQa
+	BQQgrmdeT+3hvQS365ghyxB3rx2XpER5939HkG8LPE/fTz6H37cK
+X-Google-Smtp-Source: AGHT+IGYWITQkdRhz4qv8j9cI3alOIpaga9mU5l0rkDSHKoFzkIRNkCv3e6d3tLaPXkedXobbHSgCg==
+X-Received: by 2002:a7b:cc90:0:b0:425:6510:d8ec with SMTP id 5b1f17b1804b1-4264a3dc1f4mr17296225e9.23.1720113839773;
+        Thu, 04 Jul 2024 10:23:59 -0700 (PDT)
 Received: from [127.0.1.1] (84-115-213-37.cable.dynamic.surfer.at. [84.115.213.37])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4264a1d6133sm32330965e9.13.2024.07.04.10.23.54
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4264a1d6133sm32330965e9.13.2024.07.04.10.23.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 04 Jul 2024 10:23:56 -0700 (PDT)
+        Thu, 04 Jul 2024 10:23:59 -0700 (PDT)
 From: Javier Carrasco <javier.carrasco.cruz@gmail.com>
-Date: Thu, 04 Jul 2024 19:23:27 +0200
-Subject: [PATCH v2 17/24] mfd: tps65218: Constify struct regmap_irq_chip
+Date: Thu, 04 Jul 2024 19:23:29 +0200
+Subject: [PATCH v2 19/24] mfd: tps65910: Constify struct regmap_irq_chip
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -63,7 +63,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240704-mfd-const-regmap_config-v2-17-0c8785b1331d@gmail.com>
+Message-Id: <20240704-mfd-const-regmap_config-v2-19-0c8785b1331d@gmail.com>
 References: <20240704-mfd-const-regmap_config-v2-0-0c8785b1331d@gmail.com>
 In-Reply-To: <20240704-mfd-const-regmap_config-v2-0-0c8785b1331d@gmail.com>
 To: Support Opensource <support.opensource@diasemi.com>, 
@@ -82,35 +82,56 @@ Cc: linux-kernel@vger.kernel.org, imx@lists.linux.dev,
  linux-omap@vger.kernel.org, 
  Javier Carrasco <javier.carrasco.cruz@gmail.com>
 X-Mailer: b4 0.14-dev
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1720113803; l=731;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1720113803; l=1513;
  i=javier.carrasco.cruz@gmail.com; s=20240312; h=from:subject:message-id;
- bh=/w2Mfm3b//ArFJq79ZTzz7Oj9gnwB0vEiff6gNtMX10=;
- b=OsGThnGbxB6eleQCVQo1EzO1iCBucxxKtKb0NyDYLCLfqfoWtpAvo5rwf5kwibFxTvZ76KrNS
- K6Bi2mbmKBuCws/nTLk7C5CrVqeEQofHOH/f1CcDiRMCWNEk5r5wRjb
+ bh=1DZ6ZNTYVH+qxDLzyvoRZYeRzU6/uB98HyF0NhspnHM=;
+ b=dPK+o8VSAHe74YFtYLhnBDMc4W755tD/h2MKv55jyOcgXfOx3RXMh2qTQTj258fzb6Genb0cq
+ ujDkD/Nm7osDku+mrsg06AsIyvM2N44JYz8j9yIOK+zo4qzqPunMjZP
 X-Developer-Key: i=javier.carrasco.cruz@gmail.com; a=ed25519;
  pk=lzSIvIzMz0JhJrzLXI0HAdPwsNPSSmEn6RbS+PTS9aQ=
 
-`tps65218_irq_chip` is not modified and can be declared as const to
-move its data to a read-only section.
+`tps65910_irq_chip` and `tps65911_irq_chip` are not modified and can be
+declared as const to move their data to a read-only section.
+
+The pointer used to reference those structs has also been converted to
+const.
 
 Signed-off-by: Javier Carrasco <javier.carrasco.cruz@gmail.com>
 ---
- drivers/mfd/tps65218.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mfd/tps65910.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-index 427a2b97f117..4f3e632f726f 100644
---- a/drivers/mfd/tps65218.c
-+++ b/drivers/mfd/tps65218.c
-@@ -186,7 +186,7 @@ static const struct regmap_irq tps65218_irqs[] = {
+diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
+index 8fb0384d5a8e..6a7b7a697fb7 100644
+--- a/drivers/mfd/tps65910.c
++++ b/drivers/mfd/tps65910.c
+@@ -197,7 +197,7 @@ static const struct regmap_irq tps65910_irqs[] = {
  	},
  };
  
--static struct regmap_irq_chip tps65218_irq_chip = {
-+static const struct regmap_irq_chip tps65218_irq_chip = {
- 	.name = "tps65218",
- 	.irqs = tps65218_irqs,
- 	.num_irqs = ARRAY_SIZE(tps65218_irqs),
+-static struct regmap_irq_chip tps65911_irq_chip = {
++static const struct regmap_irq_chip tps65911_irq_chip = {
+ 	.name = "tps65910",
+ 	.irqs = tps65911_irqs,
+ 	.num_irqs = ARRAY_SIZE(tps65911_irqs),
+@@ -208,7 +208,7 @@ static struct regmap_irq_chip tps65911_irq_chip = {
+ 	.ack_base = TPS65910_INT_STS,
+ };
+ 
+-static struct regmap_irq_chip tps65910_irq_chip = {
++static const struct regmap_irq_chip tps65910_irq_chip = {
+ 	.name = "tps65910",
+ 	.irqs = tps65910_irqs,
+ 	.num_irqs = ARRAY_SIZE(tps65910_irqs),
+@@ -223,7 +223,7 @@ static int tps65910_irq_init(struct tps65910 *tps65910, int irq,
+ 		    struct tps65910_platform_data *pdata)
+ {
+ 	int ret;
+-	static struct regmap_irq_chip *tps6591x_irqs_chip;
++	static const struct regmap_irq_chip *tps6591x_irqs_chip;
+ 
+ 	if (!irq) {
+ 		dev_warn(tps65910->dev, "No interrupt support, no core IRQ\n");
 
 -- 
 2.40.1
