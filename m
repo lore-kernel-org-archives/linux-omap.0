@@ -1,78 +1,78 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69E8E18C335;
-	Tue, 20 Aug 2024 09:35:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34A1C18C348;
+	Tue, 20 Aug 2024 09:35:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724146506; cv=none; b=dkjslEOtB7ajjDEsAOillUDUh2GxDnwAPXWa0KsXuz1BIMHJnXNpfRS0iWeD9OGBJqEFEIG51LpZKzV+aEQzn7+5zwJp+tMwOmi18yNJSJLc2n7iNwOonCmcbYCD/SjgObqObh1BySHpsiYaaspagG5ijya/9yJ31QeJdit6s3I=
+	t=1724146506; cv=none; b=UKRci/SLfukP1kyxp95NT7jAwTYPveEslHbZGVDcV95jqyt+pxXnow1wPdYmZLB+WVxpfzqzzgxTLtf192pusbbHkceawiJ7FH1yoMobPenO+0Wk/Ty04vTV6wuEWXuu+lbskRmZwXwIU8bxozN5TQ1XIJ9fUM6bTVckEcOErs8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1724146506; c=relaxed/simple;
-	bh=3t1KncPrzEQCETO5Dcpf/FWeTV1oUjF8e+F4DUCsZls=;
+	bh=I6H5qPfuHX3+llqg+7c+q1Vtpf9vbBr1YkjJcM2ahDw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qMNsnFef8DDtsw7UbYqcEWl0nCdcZA4ZYNulZGw1DRiWhgO41Gg8ij+glQGGiFFnmFRVpwDaEpvLOFxC2Ud6BUfh5+7OoEKwUBgBFotH3k4ZgEoEw39FFf4XU3/uKlqSTROnRZ/DUOEeWCf9END/dehkVKCOQyWKxi54hcZS550=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=tucuGKcX; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=BjGrD95e; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=tucuGKcX; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=BjGrD95e; arc=none smtp.client-ip=195.135.223.130
+	 MIME-Version; b=cU3Fc7SrOSIlCmUexcHYaV6Mo/wDr6meuhws4B97P2dEJZK7WriE4SwCaF2rCqnh22LhSWjfPqZxKJzuCQsYZ+sX8nSJ1yugFJ93ApzzcMnjopsOGyM/CkfJpQSMgrpLqTWczxiTA4oSlU5nSWDaCv3ro4Ku7IqoGXCe5YuCTxc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=0LFYL42A; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=1lt4Ib6M; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=0LFYL42A; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=1lt4Ib6M; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="tucuGKcX";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="BjGrD95e";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="tucuGKcX";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="BjGrD95e"
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="0LFYL42A";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="1lt4Ib6M";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="0LFYL42A";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="1lt4Ib6M"
 Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 9E8912253C;
-	Tue, 20 Aug 2024 09:35:02 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 81F691FFCB;
+	Tue, 20 Aug 2024 09:35:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1724146502; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1724146503; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Vc0oSdYwNPuT4YePHAttBkJ8X8lZEvKJKOd984+7yMM=;
-	b=tucuGKcX5yp6tfDMyqH97Y9EfM4+x04bSRtvhp4T8bfPQ82JH0wAmK4BZ61vuc1XuNleaU
-	WelL4QDBFMP2PuHgKrseyNXOVPMQrAaj9SXW/aWyWQLfjnkS6lNHP6do3fZBE03Mkg1h/D
-	psZemsG98g7iZwor6O0RV3A6LM1tyoU=
+	bh=51r7acza8wHc05J64PIX5ANoj2cb6ZBtIfWBALg7ASc=;
+	b=0LFYL42AwZL7KdMpoSzY9fYkah3lJjaRpu+xqAi5h3JR+xi1SoNDnOG3T5LPhzZWKUyeoG
+	e5RHUW5RDGYLZksTPLv2M+WG39OgxmU2r9660r5+WXoehg10SA686ScHVTjCpbglwqTyNY
+	Nj+79NK4OiILKZGpHuPnlcUlFgipBTw=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1724146502;
+	s=susede2_ed25519; t=1724146503;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Vc0oSdYwNPuT4YePHAttBkJ8X8lZEvKJKOd984+7yMM=;
-	b=BjGrD95e7NN1DR4VUsMyiR5Du7aoIIWU0CMrqEMgmvy4rpWjKa1pKPudPHJQzQm+EHz+td
-	fqr/P30HvMdzvbDw==
-Authentication-Results: smtp-out1.suse.de;
+	bh=51r7acza8wHc05J64PIX5ANoj2cb6ZBtIfWBALg7ASc=;
+	b=1lt4Ib6MgG7IhcFnRR851TWdCxIo6xsx8oNfjvO1/Ky/9XKB4NylESlLOBVmdfPk0IuEcg
+	VYZK6Km4sQWBy6Dg==
+Authentication-Results: smtp-out2.suse.de;
 	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1724146502; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1724146503; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Vc0oSdYwNPuT4YePHAttBkJ8X8lZEvKJKOd984+7yMM=;
-	b=tucuGKcX5yp6tfDMyqH97Y9EfM4+x04bSRtvhp4T8bfPQ82JH0wAmK4BZ61vuc1XuNleaU
-	WelL4QDBFMP2PuHgKrseyNXOVPMQrAaj9SXW/aWyWQLfjnkS6lNHP6do3fZBE03Mkg1h/D
-	psZemsG98g7iZwor6O0RV3A6LM1tyoU=
+	bh=51r7acza8wHc05J64PIX5ANoj2cb6ZBtIfWBALg7ASc=;
+	b=0LFYL42AwZL7KdMpoSzY9fYkah3lJjaRpu+xqAi5h3JR+xi1SoNDnOG3T5LPhzZWKUyeoG
+	e5RHUW5RDGYLZksTPLv2M+WG39OgxmU2r9660r5+WXoehg10SA686ScHVTjCpbglwqTyNY
+	Nj+79NK4OiILKZGpHuPnlcUlFgipBTw=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1724146502;
+	s=susede2_ed25519; t=1724146503;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Vc0oSdYwNPuT4YePHAttBkJ8X8lZEvKJKOd984+7yMM=;
-	b=BjGrD95e7NN1DR4VUsMyiR5Du7aoIIWU0CMrqEMgmvy4rpWjKa1pKPudPHJQzQm+EHz+td
-	fqr/P30HvMdzvbDw==
+	bh=51r7acza8wHc05J64PIX5ANoj2cb6ZBtIfWBALg7ASc=;
+	b=1lt4Ib6MgG7IhcFnRR851TWdCxIo6xsx8oNfjvO1/Ky/9XKB4NylESlLOBVmdfPk0IuEcg
+	VYZK6Km4sQWBy6Dg==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 38BC113AFE;
-	Tue, 20 Aug 2024 09:35:02 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 2218213AFE;
+	Tue, 20 Aug 2024 09:35:03 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id aFWaDEZjxGa3RAAAD6G6ig
-	(envelope-from <tzimmermann@suse.de>); Tue, 20 Aug 2024 09:35:02 +0000
+	id yNUjB0djxGa3RAAAD6G6ig
+	(envelope-from <tzimmermann@suse.de>); Tue, 20 Aug 2024 09:35:03 +0000
 From: Thomas Zimmermann <tzimmermann@suse.de>
 To: lee@kernel.org,
 	daniel.thompson@linaro.org,
@@ -90,9 +90,9 @@ Cc: dri-devel@lists.freedesktop.org,
 	linux-fbdev@vger.kernel.org,
 	linux-omap@vger.kernel.org,
 	Thomas Zimmermann <tzimmermann@suse.de>
-Subject: [PATCH 07/28] backlight: ili9320: Use lcd power constants
-Date: Tue, 20 Aug 2024 11:22:45 +0200
-Message-ID: <20240820093452.68270-8-tzimmermann@suse.de>
+Subject: [PATCH 09/28] backlight: jornada720_lcd: Use lcd power constants
+Date: Tue, 20 Aug 2024 11:22:47 +0200
+Message-ID: <20240820093452.68270-10-tzimmermann@suse.de>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <20240820093452.68270-1-tzimmermann@suse.de>
 References: <20240820093452.68270-1-tzimmermann@suse.de>
@@ -105,7 +105,7 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Spam-Level: 
 X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
+	BAYES_HAM(-3.00)[99.99%];
 	MID_CONTAINS_FROM(1.00)[];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
 	R_MISSING_CHARSET(0.50)[];
@@ -118,7 +118,7 @@ X-Spamd-Result: default: False [-2.80 / 50.00];
 	MIME_TRACE(0.00)[0:+];
 	TO_DN_SOME(0.00)[];
 	RCPT_COUNT_TWELVE(0.00)[16];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,imap1.dmz-prg2.suse.org:helo];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:mid];
 	FREEMAIL_TO(0.00)[kernel.org,linaro.org,gmail.com,gmx.de,linux-vserver.org,mail.ru,pengutronix.de];
 	RCVD_TLS_ALL(0.00)[];
 	RCVD_COUNT_TWO(0.00)[2];
@@ -136,83 +136,55 @@ in functionality.
 
 Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
 ---
- drivers/video/backlight/ili9320.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ drivers/video/backlight/jornada720_lcd.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/backlight/ili9320.c b/drivers/video/backlight/ili9320.c
-index 3e318d1891b6..2df96a882119 100644
---- a/drivers/video/backlight/ili9320.c
-+++ b/drivers/video/backlight/ili9320.c
-@@ -10,7 +10,6 @@
+diff --git a/drivers/video/backlight/jornada720_lcd.c b/drivers/video/backlight/jornada720_lcd.c
+index 73278f6ace64..31a52dee9060 100644
+--- a/drivers/video/backlight/jornada720_lcd.c
++++ b/drivers/video/backlight/jornada720_lcd.c
+@@ -6,7 +6,6 @@
+  */
  
- #include <linux/delay.h>
- #include <linux/err.h>
+ #include <linux/device.h>
 -#include <linux/fb.h>
- #include <linux/init.h>
+ #include <linux/io.h>
+ #include <linux/kernel.h>
  #include <linux/lcd.h>
- #include <linux/module.h>
-@@ -121,7 +120,7 @@ static inline int ili9320_power_off(struct ili9320 *lcd)
- 	return 0;
+@@ -24,14 +23,14 @@
+ 
+ static int jornada_lcd_get_power(struct lcd_device *ld)
+ {
+-	return PPSR & PPC_LDD2 ? FB_BLANK_UNBLANK : FB_BLANK_POWERDOWN;
++	return PPSR & PPC_LDD2 ? LCD_POWER_ON : LCD_POWER_OFF;
  }
  
--#define POWER_IS_ON(pwr)	((pwr) <= FB_BLANK_NORMAL)
-+#define POWER_IS_ON(pwr)	((pwr) <= LCD_POWER_REDUCED)
- 
- static int ili9320_power(struct ili9320 *lcd, int power)
- {
-@@ -223,7 +222,7 @@ int ili9320_probe_spi(struct spi_device *spi,
- 
- 	ili->dev = dev;
- 	ili->client = client;
--	ili->power = FB_BLANK_POWERDOWN;
-+	ili->power = LCD_POWER_OFF;
- 	ili->platdata = cfg;
- 
- 	spi_set_drvdata(spi, ili);
-@@ -241,7 +240,7 @@ int ili9320_probe_spi(struct spi_device *spi,
- 
- 	dev_info(dev, "initialising %s\n", client->name);
- 
--	ret = ili9320_power(ili, FB_BLANK_UNBLANK);
-+	ret = ili9320_power(ili, LCD_POWER_ON);
- 	if (ret != 0) {
- 		dev_err(dev, "failed to set lcd power state\n");
- 		return ret;
-@@ -253,7 +252,7 @@ EXPORT_SYMBOL_GPL(ili9320_probe_spi);
- 
- void ili9320_remove(struct ili9320 *ili)
- {
--	ili9320_power(ili, FB_BLANK_POWERDOWN);
-+	ili9320_power(ili, LCD_POWER_OFF);
- }
- EXPORT_SYMBOL_GPL(ili9320_remove);
- 
-@@ -262,7 +261,7 @@ int ili9320_suspend(struct ili9320 *lcd)
+ static int jornada_lcd_get_contrast(struct lcd_device *ld)
  {
  	int ret;
  
--	ret = ili9320_power(lcd, FB_BLANK_POWERDOWN);
-+	ret = ili9320_power(lcd, LCD_POWER_OFF);
+-	if (jornada_lcd_get_power(ld) != FB_BLANK_UNBLANK)
++	if (jornada_lcd_get_power(ld) != LCD_POWER_ON)
+ 		return 0;
  
- 	if (lcd->platdata->suspend == ILI9320_SUSPEND_DEEP) {
- 		ili9320_write(lcd, ILI9320_POWER1, lcd->power1 |
-@@ -282,7 +281,7 @@ int ili9320_resume(struct ili9320 *lcd)
- 	if (lcd->platdata->suspend == ILI9320_SUSPEND_DEEP)
- 		ili9320_write(lcd, ILI9320_POWER1, 0x00);
+ 	jornada_ssp_start();
+@@ -72,7 +71,7 @@ static int jornada_lcd_set_contrast(struct lcd_device *ld, int value)
  
--	return ili9320_power(lcd, FB_BLANK_UNBLANK);
-+	return ili9320_power(lcd, LCD_POWER_ON);
- }
- EXPORT_SYMBOL_GPL(ili9320_resume);
- #endif
-@@ -290,7 +289,7 @@ EXPORT_SYMBOL_GPL(ili9320_resume);
- /* Power down all displays on reboot, poweroff or halt */
- void ili9320_shutdown(struct ili9320 *lcd)
+ static int jornada_lcd_set_power(struct lcd_device *ld, int power)
  {
--	ili9320_power(lcd, FB_BLANK_POWERDOWN);
-+	ili9320_power(lcd, LCD_POWER_OFF);
- }
- EXPORT_SYMBOL_GPL(ili9320_shutdown);
+-	if (power != FB_BLANK_UNBLANK) {
++	if (power != LCD_POWER_ON) {
+ 		PPSR &= ~PPC_LDD2;
+ 		PPDR |= PPC_LDD2;
+ 	} else {
+@@ -107,7 +106,7 @@ static int jornada_lcd_probe(struct platform_device *pdev)
+ 
+ 	/* lets set our default values */
+ 	jornada_lcd_set_contrast(lcd_device, LCD_DEF_CONTRAST);
+-	jornada_lcd_set_power(lcd_device, FB_BLANK_UNBLANK);
++	jornada_lcd_set_power(lcd_device, LCD_POWER_ON);
+ 	/* give it some time to startup */
+ 	msleep(100);
  
 -- 
 2.46.0
