@@ -1,31 +1,31 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8D41183CCA;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8D99183CD5;
 	Mon, 30 Sep 2024 21:30:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727731823; cv=none; b=ipL+5NkSSM0ILCm3Gx4mFWwxBCvZVRsxY9lIr88TJK+pUSScceFjzmMkiIsxyq05RZ85ll6ega6EucSxOHyMTT/LVFdlFrAWB7u4sYI8lMgLt9CwixkBywxbz1S52aezHCPQB9o3Ooc0oMaXL56G+LCXq/EXpK/Hmf+mrpwb1Jc=
+	t=1727731823; cv=none; b=byGHrsjv1B1wYVlChHhvi40A4Fnyxh2ZQIhfhdn2rt47c5XUsk6pP6fWTNme8A7dV4laio+Q4oJMcwK5CZd5KZYseDwy7Aea08dL+wW+3Fb0s/2JZMBIT6fhQk1Yn3n8NtLY4R0QbUWd9qwYa+xF6zriQfA43FF/6w7skfgiwqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1727731823; c=relaxed/simple;
-	bh=FsI0oaWwmOVQ6KOvyJQIDOCm13MeMmw1B9HFTphSINE=;
+	bh=chJF96EQTYi+2IDiOsUwdarpqXGcEerFPEo55MbeF2g=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=mBQuhX6NTOy5zoLOpW8BmTd2Kvoy2gbQQSJAu1pfECW70t3Dpgn/jLW4GPYhGCGET9m3OCHASV2UjW+TJyRSJJ11tW6fgAwBw1YzzaQBDgevSo3G7hYFDJZrToqnDMMjtcGrhymOAqdORdHmWdDIu9qSF5q9qIX0x1Zee7C8DTM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=eJ4yDdfg; arc=none smtp.client-ip=178.238.236.174
+	 MIME-Version; b=Z9xl8ZfIdUQ1QJPibr6CtUCf8V3XTtEzHRC0cHDiaX/KbleBf72EZLXfv4tGTfUz16OAfW501K6aE3m+kyz4yqzMTGrE75jXgrtChsihZ0sCC9vc1AsxvXdjLuA3Upk1ul4xqvxaECXdpxEoLFOqO7lw6oyzgFk8hxH2LbwLq1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=1zyNN3mD; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="eJ4yDdfg"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="1zyNN3mD"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
 	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
 	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=H7Jvr+yx/BO6UymJrhRV33mZeBfutcKlKBCT4Q2jwxQ=; b=eJ4yDdfgE/qBw14YqJ8LXXCVU5
-	Z6sWW/3nnP30/TPZPBJk5RGJ12tcRUgKqnR5sUuClpfHegukysnpSO7VIqWl+JcA/mU6FsntFcdH9
-	BiuqXoZFJIqAXaOWZuRx9Ps2QbkOp03hPpfahXnSlNu5JOZQ5bvOP9BMx19fVNh07RxQkpjr5k9jY
-	+/Bg4hcceZm/Va0MMDNJC3ZyxQCqhzG6QtVLAK9NdXqa/jhIJornENUwWYYyPtjhJcr3zU+aCaZ4F
-	060oNi3o6/wELU8PyvFjilS2L8TDq2ySG6HIWkXEZQdJnZWEblYQ2TRW3pdFqoD6LKch/9LxSwyvI
-	MwJNXcrQ==;
+	bh=GpYfCdHY+59pQoYcWwzCJVXiybRiDrhJ8jLcZU5UCqY=; b=1zyNN3mDstmgiVkogZ9GaSMBUM
+	CJNbyPiMlKoUaMbTQW6OSOddFsYIKBOBvpTIIs30tZsnFndxPl7QErSIqJxD5HfLdxm8GXCkUDqso
+	Ax1mVlmlBFa2i/aZragMiz0+R974PtFE/4ZuAJvQOB/HMBohd8THhiljJwaCb00NNnVcu7HKT2tXn
+	OWi5vxkwfV4YCQWEryFlxCtpZuptWon/9EBjkrXKKr4NjSqd14ICmIxkqkcqbYxY0ku6GYMys9OaS
+	T3hN+ZAu2DJnrQRwX4uD8rznmOTNc/l9N1KCgGUV7pqywD3mUq5uqrL6jEfcSnfgO+xrLRBDf54Zo
+	p4w2c3GA==;
 From: Andreas Kemnade <andreas@kemnade.info>
 To: Conor Dooley <conor+dt@kernel.org>,
 	Krzysztof Kozlowski <krzk+dt@kernel.org>,
@@ -38,9 +38,9 @@ To: Conor Dooley <conor+dt@kernel.org>,
 	aaro.koskinen@iki.fi,
 	linux-omap@vger.kernel.org
 Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH 4/4] ARM: dts: omap: omap4-epson-embt2ws: add GPIO expander
-Date: Mon, 30 Sep 2024 23:30:08 +0200
-Message-Id: <20240930213008.159647-5-andreas@kemnade.info>
+Subject: [PATCH 1/4] ARM: dts: omap: omap4-epson-embt2ws: define GPIO regulators
+Date: Mon, 30 Sep 2024 23:30:05 +0200
+Message-Id: <20240930213008.159647-2-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20240930213008.159647-1-andreas@kemnade.info>
 References: <20240930213008.159647-1-andreas@kemnade.info>
@@ -52,37 +52,123 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Define the GPIO expander which controls at least some camera gpios.
+To properly have things running after cold boot, define
+GPIO regulators. Naming is based on board file.
+
+In the vendor kernel they are enabled in a function
+called bt2ws_dcdc_init() if the system is not booted just
+to charge the battery.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ .../boot/dts/ti/omap/omap4-epson-embt2ws.dts  | 73 +++++++++++++++++++
+ 1 file changed, 73 insertions(+)
 
 diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-index c8205ae89840..ecd727e65761 100644
+index 339e52ba3614..d6b0abba19f6 100644
 --- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
 +++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-@@ -291,6 +291,19 @@ &i2c2 {
+@@ -29,6 +29,42 @@ backlight-right {
+ 		power-supply = <&unknown_supply>;
+ 	};
  
- 	clock-frequency = <200000>;
- 
-+	/* is sometimes not available, research needed */
-+	gpio_head: gpio@20 {
-+		compatible = "ti,tca6408";
-+		reg = <0x20>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
++	cb_v18: cb-v18 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&cb_v18_pins>;
++		compatible = "regulator-fixed";
++		regulator-name = "cb_v18";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-always-on;
++		gpio = <&gpio1 28 GPIO_ACTIVE_HIGH>;
++		enable-active-high;
 +	};
 +
-+	/*
-+	 * camera chip at 0x3c, available if <&gpio_head 1> high
-+	 * and <&gpio_head 5> low
-+	 */
++	cb_v33: cb-v33 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&cb_v33_pins>;
++		compatible = "regulator-fixed";
++		regulator-name = "cb_v33";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-always-on;
++		gpio = <&gpio6 30 GPIO_ACTIVE_HIGH>;
++		enable-active-high;
++	};
 +
- 	/* at head/glasses */
- 	mpu9150h: imu@68 {
- 		compatible = "invensense,mpu9150";
++	cb-v50 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&cb_v50_pins>;
++		compatible = "regulator-fixed";
++		regulator-name = "cb_v50";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++		gpio = <&gpio6 31 GPIO_ACTIVE_HIGH>;
++		enable-active-high;
++	};
++
+ 	chosen {
+ 		stdout-path = &uart3;
+ 	};
+@@ -46,6 +82,19 @@ key-lock {
+ 		};
+ 	};
+ 
++	lb_v50: lb-v50 {
++		/* required for many things at the head (probably indirectly) */
++		pinctrl-names = "default";
++		pinctrl-0 = <&lb_v50_pins>;
++		compatible = "regulator-fixed";
++		regulator-name = "lb_v50";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-always-on;
++		gpio = <&gpio1 27 GPIO_ACTIVE_HIGH>;
++		enable-active-high;
++	};
++
+ 	unknown_supply: unknown-supply {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "unknown";
+@@ -336,6 +385,24 @@ OMAP4_IOPAD(0x1ca, PIN_OUTPUT | MUX_MODE3) /* gpio25 */
+ 		>;
+ 	};
+ 
++	cb_v18_pins: pinmux-cb-v18-pins {
++		pinctrl-single,pins = <
++			OMAP4_IOPAD(0x1d0, PIN_OUTPUT | MUX_MODE3) /* gpio28 */
++		>;
++	};
++
++	cb_v33_pins: pinmux-cb-v33-pins {
++		pinctrl-single,pins = <
++			OMAP4_IOPAD(0x1d2, PIN_OUTPUT | MUX_MODE3) /* gpio190 */
++		>;
++	};
++
++	cb_v50_pins: pinmux-cb-v50-pins {
++		pinctrl-single,pins = <
++			OMAP4_IOPAD(0x1d4, PIN_OUTPUT | MUX_MODE3) /* gpio191 */
++		>;
++	};
++
+ 	gpio_keys_pins: pinmux-gpio-key-pins {
+ 		pinctrl-single,pins = <
+ 			OMAP4_IOPAD(0x56, PIN_INPUT_PULLUP | MUX_MODE3) /* gpio35 */
+@@ -387,6 +454,12 @@ OMAP4_IOPAD(0x005c, PIN_OUTPUT | MUX_MODE1)
+ 		>;
+ 	};
+ 
++	lb_v50_pins: pinmux-lb-v50-pins {
++		pinctrl-single,pins = <
++			OMAP4_IOPAD(0x1ce, PIN_OUTPUT | MUX_MODE3) /* gpio27 */
++		>;
++	};
++
+ 	mcbsp2_pins: pinmux-mcbsp2-pins {
+ 		pinctrl-single,pins = <
+ 			OMAP4_IOPAD(0x0f6, PIN_INPUT | MUX_MODE0)       /* abe_mcbsp2_clkx */
 -- 
 2.39.5
 
