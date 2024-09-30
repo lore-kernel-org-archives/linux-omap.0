@@ -1,49 +1,49 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09D96190482;
-	Mon, 30 Sep 2024 15:54:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C35A150997;
+	Mon, 30 Sep 2024 21:30:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727711655; cv=none; b=IgWOptH+zTWn5Thfxs9/NmqMa/HxVJP/zoNrLckFyBE3d6MmXBnsAJ6LKrKxfbTm31OAIr3duWUVUtwIy65LStjLFHnLGEA21EkpPD9j7q9BLEJU13dj4e4coCVvCuoWGxoJd6CYmqonbISsDfQfvdCs6nwhKHzR8NklmVjZQUU=
+	t=1727731821; cv=none; b=nPkJOmEydLGYcjAzVdwVlArfDHwjQdNERr5dJG/214tl5DxQVRHnSWr/17rW4slUoAoBRVEc2gelISNl7Ys54SLLXH+UdOaEIyzsgXffd6wvmm0Q3CnxKRuYKIhSXNIQDGFAkXyFp2LI55E7gmwoKr0yh00m3tihf47vy85kyxY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727711655; c=relaxed/simple;
-	bh=m/7IdEkKhEPMkReOnZZ6V/CwrSu7O1tSM3NvBp9Z6y0=;
+	s=arc-20240116; t=1727731821; c=relaxed/simple;
+	bh=EJTETnOE6TbCVs5t6pDRYT702r7Gc54n+28Nn2vuWNA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=rLWekKTvcbpd7TI29zlHqLbBKS66v122YNTCVacFig/DeSoZmXrcaN1jOd9xR3/xplli//AZ+1EDp83D38RzYPd8ReKJ7M5l1NY3hclODiiVRo1GFmStevbFXS6eHVtpZQEIABuLLxBBVh4beQi/ymAhleMWtB0Rywzu3r/8PrI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=mqeUWXTj; arc=none smtp.client-ip=178.238.236.174
+	 MIME-Version; b=VhH59Q/WZBQMbdHiensiHAuO41yfYRqKV9wZ4Tn+UVQGmV8uQDi1BpQbIqrJzwuYm2s2yj0YpaR7NLggsYOQeW+uaaGihAOEpa+mnQkifUPNCKh+27b9KLbnmE4RGW5VftJkK6zuD2sGNhHsyagyI0u7upjvzH3vRiet/o6VPYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=U+AdBBPh; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="mqeUWXTj"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="U+AdBBPh"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
 	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
 	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=qME5dKJqS8ynkYI2n9iKU3mNmrn4EubnbBdaMwhZ954=; b=mqeUWXTj2z1FscmydKfbHCES6A
-	gh9hE1lZrfSvK9VmNYs0CLxSqVtIwvnq0bmUlqhcv1FDDFS3xNRHVFE4AXhEc0HenVhrp2AxxvUQj
-	OPS61UQYIWZaX2t9IwkFMweeusiggxQx41MUsVLpp7ytzdfOh21kQTaqOFoy2dr0T+HhYziGrwxKy
-	pL8XqGR8vm/CLyWFXEu2sFbCMK6TTNPJVGaenNSKWUJFtGlnnZtKVma9+minzUPQguMJjQP+AKMgM
-	x6lvF/GSdUVh5rcrwVv/csXSJJS+kSTXOP2F6jWI+D/+LNDhdgchVuy+aFYz5uGvRddyTgMIJW+Qo
-	N+ycGKTQ==;
+	bh=aNyYVkrcJo+A/3YRdv8grml7z7DmMHYukmGbkLpDXmc=; b=U+AdBBPhAUNj706Qrs8+Wt4AHx
+	XUDrOBlh1M8+LoJ+QM5UexKkwXnooaamrVMgNMxBfxgVx8ue0gtmuTqx/Fj6MBwoxvqF/OjpBJoQM
+	6xEm19DZtC3GpTT4JcNYAW1rFu7bGsru9BCMAQeeuyyS/fyWLI7dB5uHdHbbR58O/weZHq/9WNK53
+	ByOKVFORS8n8l2KsLbNMz8/M/X+IaaFlNa3rNSKfdgscEYD9ggYrTvW1VeP/8eeMKb60zr6G+Wz1r
+	l/14lt65t5+ugOVEhFGKIQYXo/MJUWtHYsIESXTUZPud+fruZDEjMmhy7R3hx0cn2hf5bEyCemY9h
+	1l5PDvRA==;
 From: Andreas Kemnade <andreas@kemnade.info>
-To: Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	linux-pm@vger.kernel.org,
-	Conor Dooley <conor+dt@kernel.org>,
-	tony@atomide.com,
+To: Conor Dooley <conor+dt@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
 	linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	Lee Jones <lee@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	khilman@baylibre.com,
 	devicetree@vger.kernel.org,
-	Sebastian Reichel <sre@kernel.org>,
-	Rob Herring <robh@kernel.org>
+	tony@atomide.com,
+	rogerq@kernel.org,
+	aaro.koskinen@iki.fi,
+	linux-omap@vger.kernel.org
 Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v2 2/3] dt-bindings: mfd: twl: add charger node also for TWL603x
-Date: Mon, 30 Sep 2024 17:54:03 +0200
-Message-Id: <20240930155404.1275702-3-andreas@kemnade.info>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20240930155404.1275702-1-andreas@kemnade.info>
-References: <20240930155404.1275702-1-andreas@kemnade.info>
+Subject: [PATCH 2/4] ARM: dts: omap: omap4-epson-embt2ws: wire up regulators
+Date: Mon, 30 Sep 2024 23:30:06 +0200
+Message-Id: <20240930213008.159647-3-andreas@kemnade.info>
+X-Mailer: git-send-email 2.39.5
+In-Reply-To: <20240930213008.159647-1-andreas@kemnade.info>
+References: <20240930213008.159647-1-andreas@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -52,60 +52,56 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Also the TWL603X devices have a charger, so allow to specify it here.
+Wire up the regulators where usage is plausible. Do not
+wire them if purpose/usage is unclear like 5V for
+many things requiring lower voltages.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- .../devicetree/bindings/mfd/ti,twl.yaml       | 22 +++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mfd/ti,twl.yaml b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-index e94b0fd7af0f8..488d419b211d1 100644
---- a/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-+++ b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
-@@ -105,6 +105,12 @@ allOf:
-             regulator-initial-mode: false
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+index d6b0abba19f6..cc1b6080bf95 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+@@ -20,13 +20,13 @@ memory@80000000 {
+ 	backlight-left {
+ 		compatible = "pwm-backlight";
+ 		pwms = <&twl_pwm 1 7812500>;
+-		power-supply = <&unknown_supply>;
++		power-supply = <&lb_v50>;
+ 	};
  
-       properties:
-+        charger:
-+          type: object
-+          additionalProperties: true
-+          properties:
-+            compatible:
-+              const: ti,twl6030-charger
-         gpadc:
-           type: object
-           properties:
-@@ -136,6 +142,14 @@ allOf:
-             regulator-initial-mode: false
+ 	backlight-right {
+ 		compatible = "pwm-backlight";
+ 		pwms = <&twl_pwm 0 7812500>;
+-		power-supply = <&unknown_supply>;
++		power-supply = <&lb_v50>;
+ 	};
  
-       properties:
-+        charger:
-+          type: object
-+          additionalProperties: true
-+          properties:
-+            compatible:
-+              items:
-+                - const: ti,twl6032-charger
-+                - const: ti,twl6030-charger
-         gpadc:
-           type: object
-           properties:
-@@ -222,6 +236,14 @@ examples:
-         interrupt-controller;
-         #interrupt-cells = <1>;
+ 	cb_v18: cb-v18 {
+@@ -95,11 +95,6 @@ lb_v50: lb-v50 {
+ 		enable-active-high;
+ 	};
  
-+        charger {
-+          compatible = "ti,twl6030-charger";
-+          interrupts = <2>, <5>;
-+          io-channels = <&gpadc 10>;
-+          io-channel-names = "vusb";
-+          monitored-battery = <&bat>;
-+        };
-+
-         gpadc {
-           compatible = "ti,twl6030-gpadc";
-           interrupts = <6>;
+-	unknown_supply: unknown-supply {
+-		compatible = "regulator-fixed";
+-		regulator-name = "unknown";
+-	};
+-
+ 	wl12xx_pwrseq: wl12xx-pwrseq {
+ 		compatible = "mmc-pwrseq-simple";
+ 		clocks = <&twl 1>;
+@@ -308,6 +303,8 @@ mpu9150: imu@68 {
+ 		pinctrl-0 = <&mpu9150_pins>;
+ 		interrupt-parent = <&gpio2>;
+ 		interrupt = <7 IRQ_TYPE_LEVEL_HIGH>;
++		vddio-supply = <&cb_v18>;
++		vdd-supply = <&cb_v33>;
+ 		invensense,level-shifter;
+ 	};
+ };
 -- 
-2.39.2
+2.39.5
 
