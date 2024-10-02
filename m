@@ -1,70 +1,63 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C342A1EBFFB;
-	Wed,  2 Oct 2024 11:07:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35B431CF5F9;
+	Wed,  2 Oct 2024 12:09:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727867259; cv=none; b=qAaKlrDewBJIeJAD97gEhnajxuYe03I+HVR1iith/OneQelfQu/j8+qkSDJhRpOPf3XvgLPZdC9vbDcazhpn+ZGcP2+7yGmU7Qgb1IukPAoxo7hqtCFO962LMOrnkr7NR/shTUYkPEGNBSgE5G2RyQi+/2ahnK0LUaigQ1PLogM=
+	t=1727870979; cv=none; b=MwBMaeMAIYMScSRjfKv009KCY63mPxrYu7mWwnI5309bIc8s2ZKGBcxb0sQB7ojw/dOP9wKRO9Q5w8ulFRMdd9/5uKzyMA407yGsiIoTcgAe5YKYxBDwNrIVehY2lMF+R1FhOuTBE/HlAb1bPm4+aTe8HsL7CKKsx7z/1USFIHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727867259; c=relaxed/simple;
-	bh=vB9vI6WRzdRxXmbdZXI9Iwk/JIrxAnatd2u6aYQNlCE=;
-	h=From:To:Cc:Subject:Date:Message-Id:Content-Type:MIME-Version; b=LXt1lsHiNwX1nF7M6jhaAxwqDpfxqFd2PNkpSXxYn86c/AK4WI2WpnIa6K7YfxlBQ2HGv2v0CB+JPqenUCuIGRyRPkBPrjfvrYk4bQmH+LHTRz06p6fNli4OBmUTZcIwHDuqo2A0lpGBggDgz6N7qPJHY2a6MTFOeQGQoqFePS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=LXCEtMkx; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1727870979; c=relaxed/simple;
+	bh=w4SNft/dQY4c6ZDGWsJp/nrY+/Ovr9HvxUA0XZRWHWM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=tjZwoWKPeSDYUmDMVB9nAKPGG8gnyKITQjKa4T5N/Tu1hEzWlG984HpXXpnjF3SuWceYmIoRfC702jIUiGV2dQMrN3nOpc7VGDOzjGbk9TFCoGmhRAIoKSFOTjWCrnDgIKifwLK6Yji8ykHu6kGFreamllRQ5tWNBnrNJCBpXSQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bcOFLvaP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="LXCEtMkx"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:From:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:In-Reply-To:References;
-	bh=j4JZqMGLjPIlJYiU7SXMyC/1ARZVOo0mx0L4xwVNZ9E=; b=LXCEtMkxFUmFHXHZW+9MJS/Z4O
-	fLAQ+iXjrA9oougpjYjO9nYj8wbG5B7kZR3pVbD0d39B//HPtTEPciV8hUjIoC37QZCXAM3n+L5/P
-	Eh+hlWlz8ed6VfWUSgfPbGfbxUFypZdarvvBzRewNOTJ56fuVFZYzzPhWIDsJLdPvnk2g3vjfXS5/
-	WvRt3tXA62UCl6RBuAT72z1yG/8xmdvnaI3npaWewUZtbeY93egu8qZwdNPjwsF1O4QioSlXRpKHF
-	It8ksHXvi+HWTgYD/PfQzOU0JYdDN/4XpPT5IRJapYeqEmZ5wjIdp1tPC6jrCiWcQ1bWBNSbPMa2S
-	ns4ZanQA==;
-From: Andreas Kemnade <andreas@kemnade.info>
-To: Stephen Boyd <sboyd@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Kevin Hilman <khilman@baylibre.com>,
-	linux-clk@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Lee Jones <lee@kernel.org>,
-	linux-omap@vger.kernel.org,
-	Roger Quadros <rogerq@kernel.org>,
-	Michael Turquette <mturquette@baylibre.com>
-Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v2 0/3] mfd: twl: Add clock for TWL6030
-Date: Wed,  2 Oct 2024 13:07:15 +0200
-Message-Id: <20241002110718.528337-1-andreas@kemnade.info>
-X-Mailer: git-send-email 2.39.5
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bcOFLvaP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96A33C4CECD;
+	Wed,  2 Oct 2024 12:09:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1727870978;
+	bh=w4SNft/dQY4c6ZDGWsJp/nrY+/Ovr9HvxUA0XZRWHWM=;
+	h=Date:Subject:To:References:From:In-Reply-To:From;
+	b=bcOFLvaPU7PEsAg0lWJEQrjtZsiVjv+aBRWN9+9ewicsMLb/0cU34aVROcD8Ccbur
+	 BlsIvq8VEPNlYzOejm7SpcZahkbnLN2b6fTz3TH5YbcO7ejNeFa9N98/PcsyDI/SmW
+	 OSZlAaj5Gtg9oPLOOzA4QGd4lX4XVpnfXd4aDNO/RO7mQmdxhtlOWKjKKRAJlcgvKF
+	 gx49EjLLUix1oCW2nOdUspjOw4YWaqU6MRu58kRWmxh9s6EwqYoa2sKpakPHmrxXG4
+	 rtN9fXJrlt0Crhtg+5NVYEME821KjRAtEnAlY3+H+xJOIwAUnU2S2nKOCZR6QXtYs3
+	 tDYHDMqEiTQ6g==
+Message-ID: <ca94341c-8fb0-42cf-b42d-bd53128f3433@kernel.org>
+Date: Wed, 2 Oct 2024 15:09:33 +0300
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 2/3] clk: twl: remove is_prepared
+To: Andreas Kemnade <andreas@kemnade.info>, Stephen Boyd <sboyd@kernel.org>,
+ Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Kevin Hilman <khilman@baylibre.com>, linux-clk@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Lee Jones <lee@kernel.org>,
+ linux-omap@vger.kernel.org, Michael Turquette <mturquette@baylibre.com>
+References: <20241002110718.528337-1-andreas@kemnade.info>
+ <20241002110718.528337-3-andreas@kemnade.info>
+Content-Language: en-US
+From: Roger Quadros <rogerq@kernel.org>
+In-Reply-To: <20241002110718.528337-3-andreas@kemnade.info>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Previously the clock support for only implemented for TWL6032 so add
-it also for the TWL6030. There are devices out there where especially
-WLAN only works if these clocks are enabled by some patched U-Boot.
-This allows to explicitly specify the clock requirements.
 
-Andreas Kemnade (3):
-  mfd: twl-core: Add a clock subdevice for the TWL6030
-  clk: twl: remove is_prepared
-  clk: twl: add TWL6030 support
 
- drivers/clk/Kconfig    |  2 +-
- drivers/clk/clk-twl.c  | 71 +++++++++++++++++++++++++-----------------
- drivers/mfd/twl-core.c | 32 +++++++++++++------
- 3 files changed, 65 insertions(+), 40 deletions(-)
+On 02/10/2024 14:07, Andreas Kemnade wrote:
+> Remave is_prepared to simplify adding of TWL6030 support.
 
--- 
-2.39.5
+Remave/Remove
 
+> The default implementation should be enough.
+> 
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+
+Reviewed-by: Roger Quadros <rogerq@kernel.org>
