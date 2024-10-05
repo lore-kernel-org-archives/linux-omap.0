@@ -1,97 +1,119 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28B6614C5AE;
-	Sat,  5 Oct 2024 12:47:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 298D21369BC;
+	Sat,  5 Oct 2024 18:57:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728132446; cv=none; b=OJaPrz8HgCcvqzTIKRjDFcfOtMNQTa8FHdp30GyGnQOvrQYKiV4FYEodrnbmdFXz0SQm2jTXEI7K0wnTD3k9IqCvtWFn4RMTBKmCNr541euYbKQG91bgHgtkzp43PhhublUt2n5EIX3T6afR/Il0DtISEdyhKQZIWM8APIfQPWc=
+	t=1728154643; cv=none; b=RbGQ9YzyqZSFwn7jBWMexoS/pujgKmdQ29w4y+N9yU5fPwNUCXi43+RyCVkIQ2FTiwY1Qsb+Nk6O1t3+cEWr/nZpeM5zEC1aRDryykUAHeunFlDGgx8qr6QQ/g1/EhKgv4+5RI0oHDrFMf63z55mpwbmtPNUZsa1B/E9/BLyUEw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728132446; c=relaxed/simple;
-	bh=Zfm5WdnxB5JQj8ViyWS1iuKc6KGaS55oRV/JIcQEN9g=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=WTBd9M8VLmczFmIDGbE7RG28tzW/UgDfo4hdlO6gUUeo0+PkROLxpIeWAQVACb1BLF9JlL7u1Xh8EEvkPHdpQ5DYUxK3tdNWN3EmrEbRkaWR3aGyhNraaWngs2qC0GalDdqhNPlC/ENznyNxPxMfOKAk0tcCs0IPgMiGOAlWm8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=QIrtBm0g; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1728154643; c=relaxed/simple;
+	bh=bUzrElpcmZy00FDHR/UrYDu1AHlhoN1235+oQw1lFjU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FqLBzSdMVzonFpop4W4Jqxr+NTRKpYqpiBtlNEQuR1CA2HgQRvXp6wJNLm94MV2D94zIvcy7rs+XRRz1TS6rtzyZ3OJs4PCZ0i31XTTgvEoQaoSrA+XTf/Q1hZI+325PBxnlqhvImmdRU4o9VGqYlyKm42Atz09eeDB/OyIr0QE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eNJ4Rw5E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="QIrtBm0g"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=n0WcT2lZw1h2vJag9n+5dAZkKzRqfsiI2Q87+Bz0eX4=; b=QIrtBm0gBkQe8TKaxTfmkVzp1U
-	yCDeBxk/KCJdx3UWdNOUfd88mJcmCLhfCg3BWPWd0122//WcsisUzDf3I5+27iG138nS1Ub95aoDe
-	Kd4UNHiO1lqy35n8n4bpQ+BMV7EMYqID3Cyk7GpybfYTwyJUeGtWynF3SNLa8x6pjcdGDF/DXjqgV
-	3c/unR1ksXLxhrDq8gwdY5+GvCeS8xlzeL5DVuXC0NQ4zQcPazzK2W3FI/P0PfWbDpXS3H0NcIdbD
-	AEy2rZ8qjyg2J4PRGpXNEH9Paq6OojsaUC9CzUF4SIBQng6Z3xfmWG9ckXBtfUlYh5ew3SToQEW6k
-	SIE0lGZg==;
-From: Andreas Kemnade <andreas@kemnade.info>
-To: Tony Lindgren <tony@atomide.com>,
-	Michael Turquette <mturquette@baylibre.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Lee Jones <lee@kernel.org>,
-	Roger Quadros <rogerq@kernel.org>,
-	linux-clk@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Kevin Hilman <khilman@baylibre.com>,
-	linux-omap@vger.kernel.org,
-	Stephen Boyd <sboyd@kernel.org>
-Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v3 2/3] clk: twl: remove is_prepared
-Date: Sat,  5 Oct 2024 14:47:05 +0200
-Message-Id: <20241005124706.601393-3-andreas@kemnade.info>
-X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20241005124706.601393-1-andreas@kemnade.info>
-References: <20241005124706.601393-1-andreas@kemnade.info>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eNJ4Rw5E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 765A1C4CEC2;
+	Sat,  5 Oct 2024 18:57:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1728154642;
+	bh=bUzrElpcmZy00FDHR/UrYDu1AHlhoN1235+oQw1lFjU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=eNJ4Rw5EnTkMqwFtWfHJ78gew7KNhf2tBTGben4UzqCy6C7DCci1zzmqLFT/1gF23
+	 lU1TRWSM2jC0D0WU3SvjtK+PRpE3ih2n7TKA5NUwiB0mochG2qvhtRCcWqPMf/mM5/
+	 FsULZsWYP5rdZe13rz4A7HPh3+XPfV2gSVqdipAQbBCqlovWv/BTNl4AE5zGmWMiS6
+	 OXBoKC7PX2glSS7f62COrifq8EbPZzZM+vPElmybVVcwXetsopcz0nPQDirQBnCCeu
+	 qak4k6wO/zXIJoUcNVIVq1bF5bXP6zXmR+kgXWd34TG5/kKx2MysCbx7Be9xWyaX/v
+	 6nzks70GS3aew==
+Date: Sat, 5 Oct 2024 13:57:21 -0500
+From: Rob Herring <robh@kernel.org>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Sebastian Reichel <sre@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, tony@atomide.com,
+	linux-kernel@vger.kernel.org, khilman@baylibre.com,
+	linux-pm@vger.kernel.org, linux-omap@vger.kernel.org,
+	Lee Jones <lee@kernel.org>, Conor Dooley <conor+dt@kernel.org>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v3 2/4] dt-bindings: mfd: twl: add charger node also for
+ TWL603x
+Message-ID: <20241005185721.GA524539-robh@kernel.org>
+References: <20241005060511.1334049-1-andreas@kemnade.info>
+ <20241005060511.1334049-3-andreas@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241005060511.1334049-3-andreas@kemnade.info>
 
-Remove is_prepared to simplify adding of TWL6030 support.
-The default implementation should be enough.
+On Sat, Oct 05, 2024 at 08:05:09AM +0200, Andreas Kemnade wrote:
+> Also the TWL603X devices have a charger, so allow to specify it here.
+> 
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
+>  .../devicetree/bindings/mfd/ti,twl.yaml       | 30 +++++++++++++++++--
+>  1 file changed, 28 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/mfd/ti,twl.yaml b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+> index e94b0fd7af0f8..e772d13adbfdc 100644
+> --- a/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+> +++ b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+> @@ -54,7 +54,7 @@ allOf:
+>            $ref: /schemas/iio/adc/ti,twl4030-madc.yaml
+>            unevaluatedProperties: false
+>  
+> -        bci:
+> +        charger:
+>            type: object
+>            $ref: /schemas/power/supply/twl4030-charger.yaml
+>            unevaluatedProperties: false
+> @@ -105,6 +105,11 @@ allOf:
+>              regulator-initial-mode: false
+>  
+>        properties:
+> +        charger:
+> +          type: object
+> +          properties:
+> +            compatible:
+> +              const: ti,twl6030-charger
+>          gpadc:
+>            type: object
+>            properties:
+> @@ -136,6 +141,13 @@ allOf:
+>              regulator-initial-mode: false
+>  
+>        properties:
+> +        charger:
+> +          type: object
+> +          properties:
+> +            compatible:
+> +              items:
+> +                - const: ti,twl6032-charger
+> +                - const: ti,twl6030-charger
+>          gpadc:
+>            type: object
+>            properties:
+> @@ -169,6 +181,12 @@ properties:
+>    "#clock-cells":
+>      const: 1
+>  
+> +  charger:
+> +    type: object
+> +    additionalProperties: true
+> +    properties:
+> +      compatible: true
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-Reviewed-by: Roger Quadros <rogerq@kernel.org>
----
- drivers/clk/clk-twl.c | 17 -----------------
- 1 file changed, 17 deletions(-)
+I think the behavior you're after is:
 
-diff --git a/drivers/clk/clk-twl.c b/drivers/clk/clk-twl.c
-index eab9d3c8ed8a..1d684b358401 100644
---- a/drivers/clk/clk-twl.c
-+++ b/drivers/clk/clk-twl.c
-@@ -77,26 +77,9 @@ static void twl6032_clks_unprepare(struct clk_hw *hw)
- 		dev_err(cinfo->dev, "clk unprepare failed\n");
- }
- 
--static int twl6032_clks_is_prepared(struct clk_hw *hw)
--{
--	struct twl_clock_info *cinfo = to_twl_clks_info(hw);
--	int val;
--
--	val = twlclk_read(cinfo, TWL_MODULE_PM_RECEIVER, VREG_STATE);
--	if (val < 0) {
--		dev_err(cinfo->dev, "clk read failed\n");
--		return val;
--	}
--
--	val &= TWL6030_CFG_STATE_MASK;
--
--	return val == TWL6030_CFG_STATE_ON;
--}
--
- static const struct clk_ops twl6032_clks_ops = {
- 	.prepare	= twl6032_clks_prepare,
- 	.unprepare	= twl6032_clks_unprepare,
--	.is_prepared	= twl6032_clks_is_prepared,
- 	.recalc_rate	= twl_clks_recalc_rate,
- };
- 
--- 
-2.39.5
+required:
+  - compatible
 
+Because what you have is true when compatible is not present.
+
+With that,
+
+Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
