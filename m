@@ -1,30 +1,31 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5946CEEC9;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85F8D1D88A1;
 	Mon,  7 Oct 2024 15:01:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728313286; cv=none; b=V1KxlwMpMUFapHP6IQIBR+wsn+PlITVXur4RHXWDjogfbslJPaOEkjlGMkTg0GUJdWvGnNYwYrIUuZvcxH1i75qK3CaCA5qL+3LaW+WnRKSJgCF/WtT33E9xegB42/kKELdZw3eFXOdYXswgtIl3n3fSJrrzTDjJgwlboVOECrI=
+	t=1728313287; cv=none; b=RJpfwgYrIbj213t/neGFLgHtaQwW/3TrwPZ3z2nystkhOAhsgbPzzso6C1UXLs7wy8LqyydKwd17ktnHAgn01PcV/+gs//3l5jov16CqVwxz7lQTxlmIz3eHyT/lYFQnMIXQcI93al0YvWqwU+53i9eP618YcyXAxDL1ID9bjN0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728313286; c=relaxed/simple;
-	bh=BKa7F3T+x64sPoI4NsSuGQmgQuhlv3xTq8e4wiyPwPM=;
-	h=From:To:Cc:Subject:Date:Message-Id:Content-Type:MIME-Version; b=pIp03UrWFNfRZG4lYaeF6w0GkKYWiGgH+361AXSc2+6xBH9lxwvOCDXxoYxo2EIeQN0BrYob+7VuWvkvp7GZow1cvZiEh5r06k6CRRVK2GqXh7AmfXUYE1YfGI85Gk+guS/egNqE17zReKu4E5qbalnyQnkyyWcD0tMycj9UjYs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=pic6vJBU; arc=none smtp.client-ip=178.238.236.174
+	s=arc-20240116; t=1728313287; c=relaxed/simple;
+	bh=XRTyy+tPAdS0rlyo7PshymE6DrNwoxuSwblawqWg3Mc=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=coDChT8o64bsjOBk1S/DRsqheLrngnNfEG1tc6F/hdkjkK4ljC43+QjyD9gCG2pJFRFdBAjgmqX46DcQ2orsXMEfweOEAqA9kh4YD4t0BsQe9pYI0/9/y2GMjdJDtDpgr2GhKaIwLgS5e0YO3b9yjLVC5YWiXqyZ1bHm+nF+5/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=0hPaywGJ; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="pic6vJBU"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="0hPaywGJ"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:From:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:In-Reply-To:References;
-	bh=QUlITJwzuI3QvM9dA75zgeo5pDN25LRgOLNySo/t9Ck=; b=pic6vJBUaSszZDso15VgkLtriZ
-	HvpF33lp+H3QAYZ3JUF0PWts6cG2YKQoDrsqJD5tpKvlsgsykhDocTJ0Dj/JVAsNjenu8CXIdKrk6
-	brab3iZHbxwW2QR8LcRGzpMSXZpx8o4BIFrblznVyyZrTiOeFLaRHAjkkdEx50wAHbO/c9J8BqsLE
-	KjhBsWb0dtwy3gmDnKeN6WYLKNyYKcQNzhbxS+7KgeblAZhwdtw6xmAzbm6Ap00GMOBvH95zLG+AU
-	BEWZ5lPKeHG4vue2GC6oeVJ8ek4WvgcxPW72oQRIghPJrCdWmfKUVDGAED8U03Hi3TSjruh9kxJfn
-	N4kbi9nA==;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID;
+	bh=ZkJJci2T+7+Q5Ziytd2IgxB/Sn5W+2mfU6Lqfqfi2uE=; b=0hPaywGJYGF3HRfQJw/itIsi7V
+	097RT3mzzR4I3dQw4TlFFWKagQEHS2qPW6TEbHguqo3OFSRULZdjQfMx1ft/OiZw0tDA+cQFtBCQG
+	mNJf9DyxZweTOhfNsd/UgSneVHVwwejDBFxIk1pkNs/ENNIp8BoiZoShl0GjhvVRV0XZaxudXDu09
+	kOSxlAL6kmR/rzbi1imDHpMNq9evk+X9AzFiEAxDKQtBNP1m1CQZ8dA2ltSMJExoxsOdgSZOZn0FZ
+	/ollpUeQw+/qV1hZHi/QhUpUrtUrLrf+HeSqXoON8WP+G4/NEqi/sYiCekdWdQWp2C1PAf1yqctSD
+	ukoVB0YQ==;
 From: Andreas Kemnade <andreas@kemnade.info>
 To: devicetree@vger.kernel.org,
 	Lee Jones <lee@kernel.org>,
@@ -38,11 +39,12 @@ To: devicetree@vger.kernel.org,
 	Krzysztof Kozlowski <krzk+dt@kernel.org>,
 	Sebastian Reichel <sre@kernel.org>
 Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v4 0/4] power: supply: twl6030/32 charger
-Date: Mon,  7 Oct 2024 17:01:16 +0200
-Message-Id: <20241007150120.1416698-1-andreas@kemnade.info>
+Subject: [PATCH v4 2/4] dt-bindings: mfd: twl: add charger node also for TWL603x
+Date: Mon,  7 Oct 2024 17:01:18 +0200
+Message-Id: <20241007150120.1416698-3-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.2
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <20241007150120.1416698-1-andreas@kemnade.info>
+References: <20241007150120.1416698-1-andreas@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -51,48 +53,92 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add basic support for the charger in the TWL6030/32. Supported is the USB
-path. AC path is not handled yet, also there is no entry yet
-in /sys/class/power_supply with type battery yet.
+Also the TWL603X devices have a charger, so allow to specify it here.
 
-Without this series, devices will happily drain battery when running
-on mainline.
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
+---
+ .../devicetree/bindings/mfd/ti,twl.yaml       | 32 +++++++++++++++++--
+ 1 file changed, 30 insertions(+), 2 deletions(-)
 
-Changes in v4:
-- require compatible in charger node
-
-Changes in v3:
-- define charger in toplevel
-- s/bci/charger for twl4030
-
-Changes in v2:
-- s/bci/charger in mfd schema
-- additionalProperties for charger node
-- extended example in mfd schema
-- no quotes for compatibles in charger schema
-- no example in charger schema
-- interrupt description in charger schema
-- replace device_is_compatible by driver data
-- clang compile fix
-- removed alias
-- style fixes
-
-Andreas Kemnade (4):
-  dt-bindings: power: supply: Add TI TWL603X charger
-  dt-bindings: mfd: twl: add charger node also for TWL603x
-  power: supply: initial support for TWL6030/32
-  ARM: dts: ti/omap: use standard node name for twl4030 charger
-
- .../devicetree/bindings/mfd/ti,twl.yaml       |  32 +-
- .../power/supply/ti,twl6030-charger.yaml      |  48 ++
- arch/arm/boot/dts/ti/omap/twl4030.dtsi        |   2 +-
- drivers/power/supply/Kconfig                  |  10 +
- drivers/power/supply/Makefile                 |   1 +
- drivers/power/supply/twl6030_charger.c        | 580 ++++++++++++++++++
- 6 files changed, 670 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/power/supply/ti,twl6030-charger.yaml
- create mode 100644 drivers/power/supply/twl6030_charger.c
-
+diff --git a/Documentation/devicetree/bindings/mfd/ti,twl.yaml b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+index e94b0fd7af0f8..f162ab60c09b5 100644
+--- a/Documentation/devicetree/bindings/mfd/ti,twl.yaml
++++ b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+@@ -54,7 +54,7 @@ allOf:
+           $ref: /schemas/iio/adc/ti,twl4030-madc.yaml
+           unevaluatedProperties: false
+ 
+-        bci:
++        charger:
+           type: object
+           $ref: /schemas/power/supply/twl4030-charger.yaml
+           unevaluatedProperties: false
+@@ -105,6 +105,11 @@ allOf:
+             regulator-initial-mode: false
+ 
+       properties:
++        charger:
++          type: object
++          properties:
++            compatible:
++              const: ti,twl6030-charger
+         gpadc:
+           type: object
+           properties:
+@@ -136,6 +141,13 @@ allOf:
+             regulator-initial-mode: false
+ 
+       properties:
++        charger:
++          type: object
++          properties:
++            compatible:
++              items:
++                - const: ti,twl6032-charger
++                - const: ti,twl6030-charger
+         gpadc:
+           type: object
+           properties:
+@@ -169,6 +181,14 @@ properties:
+   "#clock-cells":
+     const: 1
+ 
++  charger:
++    type: object
++    additionalProperties: true
++    properties:
++      compatible: true
++    required:
++      - compatible
++
+   rtc:
+     type: object
+     additionalProperties: false
+@@ -222,6 +242,14 @@ examples:
+         interrupt-controller;
+         #interrupt-cells = <1>;
+ 
++        charger {
++          compatible = "ti,twl6030-charger";
++          interrupts = <2>, <5>;
++          io-channels = <&gpadc 10>;
++          io-channel-names = "vusb";
++          monitored-battery = <&bat>;
++        };
++
+         gpadc {
+           compatible = "ti,twl6030-gpadc";
+           interrupts = <6>;
+@@ -259,7 +287,7 @@ examples:
+         interrupt-controller;
+         #interrupt-cells = <1>;
+ 
+-        bci {
++        charger {
+           compatible = "ti,twl4030-bci";
+           interrupts = <9>, <2>;
+           bci3v1-supply = <&vusb3v1>;
 -- 
 2.39.2
 
