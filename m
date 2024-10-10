@@ -1,82 +1,88 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EB3718FDBE;
-	Thu, 10 Oct 2024 12:13:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4F491C579E;
+	Thu, 10 Oct 2024 12:30:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728562404; cv=none; b=XKWY9Net2IIkrva54YpMGXeUrIBimfOpvvseGxuUG3ab9qvnHcTTJvB5sicTKmbsTIMmkcfWNC48CXo7H2chSwYxpzpgj8yOfrI1yN2L+mswzpD7SBFOAv2E0dpMx7yiaWK0M2B9VuidpON3XoRGEu1nN0gn1jjYUOd/8gwrsX8=
+	t=1728563408; cv=none; b=RW8CwotWG7sfcfacmNnFWDbjbwAfzssTqCStHvTO2Rvq3kLUyDhGJYOKep76esvI9yYCyvC5hVs0XBjYg36eRFLx25ZEz6xDkczpaEQTYeC8uH98/nTKnoXv019mE1y33g2eAj6L7iW+vhZcMeiQ5vB+RvlNPcXh/4o5obut+7w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728562404; c=relaxed/simple;
-	bh=Tc6A6TaGVOox3EIjIA4GenN9OJksko5HfFiGTMLyOdo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=b3EWJcW8/6VAjnQ2xRtSSEGqY0+iD4pVoTD5geAHpMO4VD4/7slDqo2QnlGpzQx4f5vSO5VW1NpQ9bAOuOdoXcm1T67FyE28gb1c6WnPcRG0+tF39b+8Hn62LEa6ny2wHq8MAptqZNDIl+eHQexdQPZ8sc5ZvWAJIIFbOd6liyc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m7c8xwrX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1728563408; c=relaxed/simple;
+	bh=LVhddGZweBSURqGzn9VZDRZri76N2rZDvfb48+vvFdw=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=ewoGZ9uJlCFtDEvUdg7/tZVs47zoXfcsoCW6NDXYihvBkO9Es/bABNR//sUC2YTFAkJSbbJJ2i6zN/JIQE2XuGwDohhiN446jLP6fHvFXg8xS6qCPZo9k03poF4zuAg0K6osmJ3KTW6U4GYmteaKiqKLGEg90NvqABhdkmVGVs4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=1JM2sSak; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m7c8xwrX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB7EAC4CEC5;
-	Thu, 10 Oct 2024 12:13:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1728562403;
-	bh=Tc6A6TaGVOox3EIjIA4GenN9OJksko5HfFiGTMLyOdo=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=m7c8xwrXmArRa9h19qkaCkYGSI8npxe+vBHX9lQ6hjifhqzIfoZHoslZO37k/RoRB
-	 Et8W25eMf/DBaRLn/L+uzMlfn5+sKCNgSHFsF8C2gAaZoSeLBN0pFinnjCpL8MDiJF
-	 SEf8A68mQAyeX2Z+ir5+a6/27Wx3tkkqlDt7thOB97ltIlfbI75Pez3NqxPfbutOId
-	 uSKy3bC/ytkc70c9kmizGrtgAhReol0YWNkeUnxPefSJdfbkdOP3tuCx81DOtNfjBj
-	 YJtGjJe5nmBk6oIngzBsDr51dflFEWpH5zPv3hRgvY0VOPI+6a4DJhccHPbRB0VHr+
-	 uQ9zQruF096wg==
-Message-ID: <9a99bf9e-ea1b-4fab-8b50-a2bd8a320579@kernel.org>
-Date: Thu, 10 Oct 2024 15:13:18 +0300
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="1JM2sSak"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID;
+	bh=u7NgFmqNWBbaPcWNB6etpacuZmDj/dTMj7FspcWJt7E=; b=1JM2sSakHC5JBJ9T1uMAVgQbEj
+	6cuToNE62GJJdIxy+PltPHENnoO0VvHgstayUfcwTlAFt327Qwu5aDN0PaoDkl0P2NhWl9vycgLPY
+	y2Pv138UeP86d7IiF430qiHjagUEB+3wSx+B1NlS2LxAUd7HFrmfjTu/y4WexpUqLE6T4x3J6PJKq
+	n3FHuRPN4t6yDD1biCFu1PdvdBmeRd11zBGgw4k2qp629h3Hyj2Tv+U8DwG214YDMU4jxsL243ESK
+	0Mr6+02Bz6hs7OTlAwUfclWkdgOnDmx0V1ulDiPy+Y4EmAD5Vcr4w5q1kVfIfoe9+4b7/1PajQB+A
+	JIOVcv7A==;
+From: Andreas Kemnade <andreas@kemnade.info>
+To: linux-kernel@vger.kernel.org,
+	Rob Herring <robh@kernel.org>,
+	rogerq@kernel.org,
+	linux-omap@vger.kernel.org,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	tony@atomide.com,
+	devicetree@vger.kernel.org,
+	khilman@baylibre.com,
+	Conor Dooley <conor+dt@kernel.org>,
+	aaro.koskinen@iki.fi
+Cc: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH v2 4/4] ARM: dts: omap: omap4-epson-embt2ws: add GPIO expander
+Date: Thu, 10 Oct 2024 14:29:57 +0200
+Message-Id: <20241010122957.85164-5-andreas@kemnade.info>
+X-Mailer: git-send-email 2.39.5
+In-Reply-To: <20241010122957.85164-1-andreas@kemnade.info>
+References: <20241010122957.85164-1-andreas@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v2 3/3] net: ethernet: ti: cpsw_ale: Remove
- unused accessor functions
-To: Simon Horman <horms@kernel.org>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Siddharth Vadapalli <s-vadapalli@ti.com>
-Cc: Nathan Chancellor <nathan@kernel.org>,
- Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling
- <morbo@google.com>, Justin Stitt <justinstitt@google.com>,
- Kalesh AP <kalesh-anakkur.purayil@broadcom.com>, netdev@vger.kernel.org,
- linux-omap@vger.kernel.org, llvm@lists.linux.dev
-References: <20241010-ti-warn-v2-0-9c8304af5544@kernel.org>
- <20241010-ti-warn-v2-3-9c8304af5544@kernel.org>
-Content-Language: en-US
-From: Roger Quadros <rogerq@kernel.org>
-In-Reply-To: <20241010-ti-warn-v2-3-9c8304af5544@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
+Define the GPIO expander which controls at least some camera gpios.
 
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-On 10/10/2024 14:04, Simon Horman wrote:
-> W=1 builds flag that some accessor functions for ALE fields are unused.
-> 
-> Address this by splitting up the macros used to define these
-> accessors to allow only those that are used to be declared.
-> 
-> The warnings are verbose, but for example, the mcast_state case is
-> flagged by clang-18 as:
-> 
-> .../cpsw_ale.c:220:1: warning: unused function 'cpsw_ale_get_mcast_state' [-Wunused-function]
->   220 | DEFINE_ALE_FIELD(mcast_state,           62,     2)
->       | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> .../cpsw_ale.c:145:19: note: expanded from macro 'DEFINE_ALE_FIELD'
->   145 | static inline int cpsw_ale_get_##name(u32 *ale_entry)                   \
->       |                   ^~~~~~~~~~~~~~~~~~~
-> <scratch space>:196:1: note: expanded from here
->   196 | cpsw_ale_get_mcast_state
->       | ^~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> Compile tested only.
-> No functional change intended.
-> 
-> Signed-off-by: Simon Horman <horms@kernel.org>
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+index 983a21d95db3..6bc8c0397c29 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+@@ -299,6 +299,19 @@ &i2c2 {
+ 
+ 	clock-frequency = <200000>;
+ 
++	/* is sometimes not available, research needed */
++	gpio_head: gpio@20 {
++		compatible = "ti,tca6408";
++		reg = <0x20>;
++		gpio-controller;
++		#gpio-cells = <2>;
++	};
++
++	/*
++	 * camera chip at 0x3c, available if <&gpio_head 1> high
++	 * and <&gpio_head 5> low
++	 */
++
+ 	/* at head/glasses */
+ 	mpu9150h: imu@68 {
+ 		compatible = "invensense,mpu9150";
+-- 
+2.39.5
 
-Reviewed-by: Roger Quadros <rogerq@kernel.org>
