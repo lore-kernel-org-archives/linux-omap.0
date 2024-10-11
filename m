@@ -1,45 +1,46 @@
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9D701C68AC;
-	Fri, 11 Oct 2024 17:34:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.141
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D07D01CC162;
+	Fri, 11 Oct 2024 17:34:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.249
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728668063; cv=none; b=RZrx23jv9qaBSPJkhHnhpoOgdn0wy/v0SRm1rc2fIXCEiHZDVTIhZOeqCXw0EuHyABl/Ro69F3o2YKllrInJ1firgH9XLWd4VNyXWIBeikrCj1cgjE3M2Yt7ae+IMzCfCgh2MXo2Epb7fn8oBIs9i33E7dV1Sw4FiPZqwQfPRAc=
+	t=1728668071; cv=none; b=LOMYbBjua2oeBJH9Zb0CacM4IYLkPq7Gdi02bEWPpTrxkWt+GU1EhNsSlZ8f96GDVKkE6ah10F87L8NeXPrfgKsy95Mu3n3MGMylDft75dLycuLL2QV/x+egs66exuwfD/Df5SHsB19zbasVjlO7HJ8I2o9gNM+zZ/oZ4/NF+Ro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728668063; c=relaxed/simple;
-	bh=HzrVIZl8RqgVZlKFjmQ6wI+xqTFoDz8yAlOYT/QWKl8=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=PQi8hxtq2EfAyD3YpyEq60oeub+LKRW5DABBNnrAoYDn9A1oGmvV7GikWx8r949KJIl1c5S3zVkiQL9RTdi1+uGsMoCrGqehr0Qog0ullaMEKJ3lpUODg1JDuw7wnHEun8iomiDoqym9TsQ2SQVYDj7j4RKkVDpyApcA/EF1qRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=LQsb1Fcf; arc=none smtp.client-ip=198.47.19.141
+	s=arc-20240116; t=1728668071; c=relaxed/simple;
+	bh=RD4ZzEKlLEOrBh+X6FZoe88FhDQaqwaAKOjexwStVes=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=YABwxusVNfvZJoZEeQorsU6mcy86o248i4CsJb0MA/xYddvf8u5kXh2UpRuA3qDsCU6TUnFtlyFNuqhnf8ECMQDmcj5gAwWopnkZ/oeJuRqpjZPRaFw+CaJmvKvj+lgbWBnpObS21v3W/YO8tXsMM3UMLwtrcWLEB9gA4N95rYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=EsO/1Ae/; arc=none smtp.client-ip=198.47.23.249
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="LQsb1Fcf"
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-	by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 49BHY5uX030160;
-	Fri, 11 Oct 2024 12:34:05 -0500
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="EsO/1Ae/"
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+	by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 49BHYEN5119920;
+	Fri, 11 Oct 2024 12:34:14 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1728668045;
-	bh=MH212cpsBrz27V6CekiJ3grsULY4GcITqBn4H8Ov+5M=;
-	h=From:To:CC:Subject:Date;
-	b=LQsb1FcfhirJWxnLymMhAVtB22myzuw9Al8IpDqNL5DqTCg0lNQytNaLTe3deNfRW
-	 4AY6Lyndw559EmSwEUKBAoRxkii3ksw3qhpE6x4K6uTayRdc/pRj8nclxOAzquRq8B
-	 DAqWlsqKfC4+M2gny6JYLrPzOg+j7TsejQpYqulA=
-Received: from DFLE105.ent.ti.com (dfle105.ent.ti.com [10.64.6.26])
-	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 49BHY5PT067551
+	s=ti-com-17Q1; t=1728668054;
+	bh=fQclw3tWB9Tra3qgUeR2LSHPwufmUQ2xfW5+5A6dE6c=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=EsO/1Ae/t0rZuHZkV9WNB6spDOoFFJ3T7oMYM/cjJdNc+LqlnsgFQ46JNNLWNITtS
+	 +wVU8FPCRk0c4LCTunSqzaoet0bEGyW8ZpsST8EFriw3PvEiGMVr6ZGrFPpGqjScan
+	 L7VDKrp0z6aK455F2ZAc9yy8pF7h1BDqp02VkszI=
+Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
+	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 49BHYEvt014740
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Fri, 11 Oct 2024 12:34:05 -0500
-Received: from DFLE111.ent.ti.com (10.64.6.32) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
+	Fri, 11 Oct 2024 12:34:14 -0500
+Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE114.ent.ti.com
+ (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Fri, 11
- Oct 2024 12:34:05 -0500
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE111.ent.ti.com
- (10.64.6.32) with Microsoft SMTP Server (version=TLS1_2,
+ Oct 2024 12:34:14 -0500
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Fri, 11 Oct 2024 12:34:05 -0500
+ Frontend Transport; Fri, 11 Oct 2024 12:34:14 -0500
 Received: from judy-hp.dhcp.ti.com (judy-hp.dhcp.ti.com [128.247.81.105])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 49BHY47C025973;
-	Fri, 11 Oct 2024 12:34:04 -0500
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 49BHY47E025973;
+	Fri, 11 Oct 2024 12:34:14 -0500
 From: Judith Mendez <jm@ti.com>
 To: Santosh Shilimkar <ssantosh@kernel.org>,
         Kevin Hilman
@@ -50,10 +51,12 @@ To: Santosh Shilimkar <ssantosh@kernel.org>,
 CC: <linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, Bin Liu <b-liu@ti.com>,
         <linux-serial@vger.kernel.org>, Judith Mendez <jm@ti.com>
-Subject: [PATCH RESEND 0/2] Misc OMAP GPIO/UART fixes
-Date: Fri, 11 Oct 2024 12:33:54 -0500
-Message-ID: <20241011173356.870883-1-jm@ti.com>
+Subject: [PATCH RESEND 2/2] serial: 8250: omap: Move pm_runtime_get_sync
+Date: Fri, 11 Oct 2024 12:33:56 -0500
+Message-ID: <20241011173356.870883-3-jm@ti.com>
 X-Mailer: git-send-email 2.47.0
+In-Reply-To: <20241011173356.870883-1-jm@ti.com>
+References: <20241011173356.870883-1-jm@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -64,34 +67,41 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-This patch series carries some miscellaneous
-OMAP driver fixes for GPIO and UART drivers.
+Currently in omap_8250_shutdown, the dma->rx_running
+flag is set to zero in omap_8250_rx_dma_flush. Next
+pm_runtime_get_sync is called, which is a runtime
+resume call stack which can re-set the flag. When the
+call omap_8250_shutdown returns, the flag is expected
+to be UN-SET, but this is not the case. This is causing
+issues the next time UART is re-opened and omap_8250_rx_dma
+is called. Fix by moving pm_runtime_get_sync before the
+omap_8250_rx_dma_flush.
 
-For GPIO, add gpio_enable and gpio_disable calls
-to gpio-omap which fixes an issue where if there
-is an irq storm, serial console is unresponsive.
+Signed-off-by: Bin Liu <b-liu@ti.com>
+Signed-off-by: Judith Mendez <jm@ti.com>
+---
+ drivers/tty/serial/8250/8250_omap.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-For UART, move pm_runtime_get_sync since the
-current order of omap_8250_rx_dma_flush and
-pm_runtime_get_sync calls are set in a way that
-when omap_8250_shutdown returns, dma->rx_running
-is set and this causes issues next time the UART
-is re-opened.
-
-Changes since v1:
-- Fix CC list
-- Drop Fixes tag
-
-Judith Mendez (2):
-  gpio: omap: Add omap_gpio_disable/enable_irq calls
-  serial: 8250: omap: Move pm_runtime_get_sync
-
- drivers/gpio/gpio-omap.c            | 29 +++++++++++++++++++++++++++++
- drivers/tty/serial/8250/8250_omap.c |  4 ++--
- 2 files changed, 31 insertions(+), 2 deletions(-)
-
-
-base-commit: f45840d172a06d07a1a408b38bdb0be9ab3fd8cb
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 88b58f44e4e9..0dd68bdbfbcf 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -776,12 +776,12 @@ static void omap_8250_shutdown(struct uart_port *port)
+ 	struct uart_8250_port *up = up_to_u8250p(port);
+ 	struct omap8250_priv *priv = port->private_data;
+ 
++	pm_runtime_get_sync(port->dev);
++
+ 	flush_work(&priv->qos_work);
+ 	if (up->dma)
+ 		omap_8250_rx_dma_flush(up);
+ 
+-	pm_runtime_get_sync(port->dev);
+-
+ 	serial_out(up, UART_OMAP_WER, 0);
+ 	if (priv->habit & UART_HAS_EFR2)
+ 		serial_out(up, UART_OMAP_EFR2, 0x0);
 -- 
 2.47.0
 
