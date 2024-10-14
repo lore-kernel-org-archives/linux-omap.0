@@ -1,31 +1,31 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE88A1B4F2B;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25BCD1B85CC;
 	Mon, 14 Oct 2024 16:11:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728922284; cv=none; b=q1dEfiWpbMZifbWcVb99jnLuI3qmzgGpYR6SKmg7zswncj2VN8SWUiMD2tqnB3RAUcsG3x5lT938qOsB3TtragBmzBp2mcNwzRijODez6/g4A6QU3tS5N3IXvjcXIJ6TlzPT0JCp8SkelTHDHdPL4Hzg6GVn19CBkCA8SViLk4g=
+	t=1728922284; cv=none; b=QF0ajp9C2lZXJgmEWs0tS893HwVJRTWF8j9iStxmI+zuGbhYDwt3hyuL+RPGkH7SqeBcWUGK9YWlu4ztQ3iLMsvYXELmw3qCO4U/Ku0/uszJSq0eKQN1pzmuKUh8KCYhBTCq6mIEhdMgF22ZY1mNvfNhGNHzEkR0Mr4Y4tfW9ZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1728922284; c=relaxed/simple;
-	bh=UcH6ZwQpDDpiAPLT6qRi38NHMPG4XswrW05ZPPtVgqI=;
+	bh=2fBJOboE/JI9WM4TrQ8J7aZUPU/zbgW8QH4456mF7jY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=WUEpoJaaScgL9hJZDDT1llQ/QkUXVeg80Zpc7Uifm86Qo+RgPdgXIhdesYCNFZoss++5nqx8n7m+sA5rgbG8DfsYS7sTnHnCDeawKhucwiuLr7gbSQ+b+9JQ8DFs4g/2WMhdjm2ku7HurP/KWh2PJdwTXrqScp5f9GWChrCjaqo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=F8EoOoGN; arc=none smtp.client-ip=178.238.236.174
+	 MIME-Version; b=aXvuA+t+ywh/1RjceomwsDDLPG+67z3urADo2ifjXRWMr0UJO6IRTP41Zc0Emweoz8MB9WxFP7Xx7FhIVZsGnJjfzbZ2opI8gJw8ZyERILMb41Pyk9HEoSlxqu2sV9ywLyrlQWUytYMN1kwsj7+b2T2sG7vid1cf4mUZEDSIPkA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=jQyI/jxv; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="F8EoOoGN"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="jQyI/jxv"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
 	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
 	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=spHaL3P3DN7KW+wQRhWKlP9ALzDUk/VvDg6u1f0Em0E=; b=F8EoOoGNRfRTrFI9vmuhf7b4U5
-	gPwQyC+1OTy/Imq90xVMyWvSxI0URoPPoquLcWotvvyk3YI9PdpqBtnUYAFKPb70eLgfKq3ysUzCm
-	dBmCVxFmZUS6ISnTzx6UULHlpQl1Ji8jiucaweNYU0nJgBYKR9KsUQyI+dnUrBobKn1KV6vgd+0eD
-	SToYQA/EQCdpndCp0JLFXu08lWxOHQDz/4hqCqToq21fXm2SKSr9RCmq7gXbFZH8PCH5IVfhVc2en
-	6RvCf9hzBM1uIv1Po1VFxcFvSvgegNm7H3lKXW+1Dw4o30dO2e/zagoLgkIx/9n0J4jg/ABwQV/G3
-	cWWcKT6g==;
+	bh=mvxm39y8UVieFr6rsN2IYPX9ES0GU7w0u7bdxJVOydI=; b=jQyI/jxvYOfsn0ca7OE43OJYbJ
+	JiqfAfZ4B79omcI2HQ7+OouPdwe3SYbIXeO5x6MjksL2bZXMCmdnTAmoj6aI7VeNeGjxvh8nBIRht
+	5lWy0fRWmYQ0P7sBZ5QQqdWvtYFzgR8S+Fy5l3CZWYI9mLi/w0i4NYP928fzWCxNb8tYNVc7kg9tV
+	P+V0JO2Z1Rv/VgbMSzfnmincITFT+ypvYSPM+Rd/cDXYMdEi29Xpzbq1Qt69uY57yy23SxCf2g0XD
+	f2LrRM+nh1paaCUkzk9CxSHkHSJhQJeyP9uK/zuKxJX8kpoevN71Wo7Ep0U1M2W6NHAtH3XR8MA7X
+	MJs6jNaA==;
 From: Andreas Kemnade <andreas@kemnade.info>
 To: Tony Lindgren <tony@atomide.com>,
 	linux-omap@vger.kernel.org,
@@ -38,9 +38,9 @@ To: Tony Lindgren <tony@atomide.com>,
 	Michael Turquette <mturquette@baylibre.com>,
 	Stephen Boyd <sboyd@kernel.org>
 Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v5 1/3] mfd: twl-core: Add a clock subdevice for the TWL6030
-Date: Mon, 14 Oct 2024 18:11:07 +0200
-Message-Id: <20241014161109.2222-2-andreas@kemnade.info>
+Subject: [PATCH v5 3/3] clk: twl: add TWL6030 support
+Date: Mon, 14 Oct 2024 18:11:09 +0200
+Message-Id: <20241014161109.2222-4-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20241014161109.2222-1-andreas@kemnade.info>
 References: <20241014161109.2222-1-andreas@kemnade.info>
@@ -52,61 +52,128 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Also the TWL6030 has some clocks, so add a subdevice for that.
+The TWL6030 has similar clocks, so add support for it. Take care of the
+resource grouping handling needed.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-Reviewed-by: Roger Quadros <rogerq@kernel.org>
 ---
- drivers/mfd/twl-core.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ drivers/clk/Kconfig   |  2 +-
+ drivers/clk/clk-twl.c | 52 +++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 44 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index c130ffef182f..f89eda4a17fe 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -711,6 +711,10 @@ static struct of_dev_auxdata twl_auxdata_lookup[] = {
- 	{ /* sentinel */ },
- };
+diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
+index 299bc678ed1b..82ec12f9b82c 100644
+--- a/drivers/clk/Kconfig
++++ b/drivers/clk/Kconfig
+@@ -291,7 +291,7 @@ config CLK_TWL
+ 	help
+ 	  Enable support for controlling the clock resources on TWL family
+ 	  PMICs. These devices have some 32K clock outputs which can be
+-	  controlled by software. For now, only the TWL6032 clocks are
++	  controlled by software. For now, the TWL6032 and TWL6030 clocks are
+ 	  supported.
  
-+static const struct mfd_cell twl6030_cells[] = {
-+	{ .name = "twl6030-clk" },
+ config CLK_TWL6040
+diff --git a/drivers/clk/clk-twl.c b/drivers/clk/clk-twl.c
+index 1d684b358401..20bc3bf8fd62 100644
+--- a/drivers/clk/clk-twl.c
++++ b/drivers/clk/clk-twl.c
+@@ -11,13 +11,29 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ 
+-#define VREG_STATE              2
++#define VREG_STATE		2
++#define VREG_GRP		0
+ #define TWL6030_CFG_STATE_OFF   0x00
+ #define TWL6030_CFG_STATE_ON    0x01
+ #define TWL6030_CFG_STATE_MASK  0x03
++#define TWL6030_CFG_STATE_GRP_SHIFT	5
++#define TWL6030_CFG_STATE_APP_SHIFT	2
++#define TWL6030_CFG_STATE_APP_MASK	(0x03 << TWL6030_CFG_STATE_APP_SHIFT)
++#define TWL6030_CFG_STATE_APP(v)	(((v) & TWL6030_CFG_STATE_APP_MASK) >>\
++						TWL6030_CFG_STATE_APP_SHIFT)
++#define P1_GRP BIT(0) /* processor power group */
++#define P2_GRP BIT(1)
++#define P3_GRP BIT(2)
++#define ALL_GRP (P1_GRP | P2_GRP | P3_GRP)
++
++enum twl_type {
++	TWL_TYPE_6030,
++	TWL_TYPE_6032,
 +};
-+
- static const struct mfd_cell twl6032_cells[] = {
- 	{ .name = "twl6032-clk" },
+ 
+ struct twl_clock_info {
+ 	struct device *dev;
++	enum twl_type type;
+ 	u8 base;
+ 	struct clk_hw hw;
  };
-@@ -861,17 +865,23 @@ twl_probe(struct i2c_client *client)
- 				 TWL4030_DCDC_GLOBAL_CFG);
+@@ -56,14 +72,21 @@ static unsigned long twl_clks_recalc_rate(struct clk_hw *hw,
+ static int twl6032_clks_prepare(struct clk_hw *hw)
+ {
+ 	struct twl_clock_info *cinfo = to_twl_clks_info(hw);
+-	int ret;
+ 
+-	ret = twlclk_write(cinfo, TWL_MODULE_PM_RECEIVER, VREG_STATE,
+-			   TWL6030_CFG_STATE_ON);
+-	if (ret < 0)
+-		dev_err(cinfo->dev, "clk prepare failed\n");
++	if (cinfo->type == TWL_TYPE_6030) {
++		int grp;
++
++		grp = twlclk_read(cinfo, TWL_MODULE_PM_RECEIVER, VREG_GRP);
++		if (grp < 0)
++			return grp;
+ 
+-	return ret;
++		return twlclk_write(cinfo, TWL_MODULE_PM_RECEIVER, VREG_STATE,
++				    grp << TWL6030_CFG_STATE_GRP_SHIFT |
++				    TWL6030_CFG_STATE_ON);
++	}
++
++	return twlclk_write(cinfo, TWL_MODULE_PM_RECEIVER, VREG_STATE,
++			    TWL6030_CFG_STATE_ON);
+ }
+ 
+ static void twl6032_clks_unprepare(struct clk_hw *hw)
+@@ -71,8 +94,14 @@ static void twl6032_clks_unprepare(struct clk_hw *hw)
+ 	struct twl_clock_info *cinfo = to_twl_clks_info(hw);
+ 	int ret;
+ 
+-	ret = twlclk_write(cinfo, TWL_MODULE_PM_RECEIVER, VREG_STATE,
+-			   TWL6030_CFG_STATE_OFF);
++	if (cinfo->type == TWL_TYPE_6030)
++		ret = twlclk_write(cinfo, TWL_MODULE_PM_RECEIVER, VREG_STATE,
++				   ALL_GRP << TWL6030_CFG_STATE_GRP_SHIFT |
++				   TWL6030_CFG_STATE_OFF);
++	else
++		ret = twlclk_write(cinfo, TWL_MODULE_PM_RECEIVER, VREG_STATE,
++				   TWL6030_CFG_STATE_OFF);
++
+ 	if (ret < 0)
+ 		dev_err(cinfo->dev, "clk unprepare failed\n");
+ }
+@@ -138,6 +167,7 @@ static int twl_clks_probe(struct platform_device *pdev)
+ 	for (i = 0; i < count; i++) {
+ 		cinfo[i].base = hw_data[i].base;
+ 		cinfo[i].dev = &pdev->dev;
++		cinfo[i].type = platform_get_device_id(pdev)->driver_data;
+ 		cinfo[i].hw.init = &hw_data[i].init;
+ 		ret = devm_clk_hw_register(&pdev->dev, &cinfo[i].hw);
+ 		if (ret) {
+@@ -159,7 +189,11 @@ static int twl_clks_probe(struct platform_device *pdev)
+ 
+ static const struct platform_device_id twl_clks_id[] = {
+ 	{
++		.name = "twl6030-clk",
++		.driver_data = TWL_TYPE_6030,
++	}, {
+ 		.name = "twl6032-clk",
++		.driver_data = TWL_TYPE_6032,
+ 	}, {
+ 		/* sentinel */
  	}
- 
--	if (id->driver_data == (TWL6030_CLASS | TWL6032_SUBCLASS)) {
--		status = devm_mfd_add_devices(&client->dev,
--					      PLATFORM_DEVID_NONE,
--					      twl6032_cells,
--					      ARRAY_SIZE(twl6032_cells),
--					      NULL, 0, NULL);
-+	if (twl_class_is_6030()) {
-+		const struct mfd_cell *cells;
-+		int num_cells;
-+
-+		if (id->driver_data & TWL6032_SUBCLASS) {
-+			cells = twl6032_cells;
-+			num_cells = ARRAY_SIZE(twl6032_cells);
-+		} else {
-+			cells = twl6030_cells;
-+			num_cells = ARRAY_SIZE(twl6030_cells);
-+		}
-+
-+		status = devm_mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE,
-+					      cells, num_cells, NULL, 0, NULL);
- 		if (status < 0)
- 			goto free;
--	}
- 
--	if (twl_class_is_6030()) {
- 		if (of_device_is_system_power_controller(node)) {
- 			if (!pm_power_off)
- 				pm_power_off = twl6030_power_off;
 -- 
 2.39.5
 
