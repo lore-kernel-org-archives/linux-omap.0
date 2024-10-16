@@ -1,31 +1,30 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FB151D1F5A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FB6A1D1F7B;
 	Wed, 16 Oct 2024 08:03:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729065807; cv=none; b=aYATSTSBtpYTqks2sjW5WBBa9FXjycGRdIZBKYatG5Bvi2aSWgNiOg4941+PAT397puC0fpWi1/tMNcmz+yWoRjcwpoTC15yxT5A6N60/9b6tAn+2BmLY6JG2kJpNpL/doSvQKzF6ZEvFqk/qclSak4EybVx5wXK554JMU654Qo=
+	t=1729065807; cv=none; b=tvDIvgAQ8N6SavcVz7wHx+JlOjuCW3lqqlUIYujTQ/wI/r+/bWDL8L+RMOE0Ae3WrH4ItZ52DkOLt7fJdArQFzDnF0yICSB41nENJkOnQsyMmrEIwGodfhixxalvUjDgKPb2S0hclMcJ40flB5Y7P9YXFKaQxyzM3OR5qgIKX58=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1729065807; c=relaxed/simple;
-	bh=avbkBuu+IeylLDazEvd0vZ3GdpIvrosWqQVh97Iqy/0=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=g5adLHmBKSgTVdBPd1CtKsiPyc2ZgmSr1QnrgMYyHpCTxr+THU5wstN8u2Lc9sP8qgXDO+1RE80iwcVddiR+4rAWx8g0uMkSgqNvhV4PS+jg+bJLy/LlZgIUeVCmT5n5d/X8oJjeAxmpdklTYwWzt2LZkrPT1Q6hdrCr5EtddN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=2yj2s5eS; arc=none smtp.client-ip=178.238.236.174
+	bh=1eBE8U39+8j137AwN33pMYfhhzaw9VZgdIiKVZwF988=;
+	h=From:To:Cc:Subject:Date:Message-Id:Content-Type:MIME-Version; b=XxViUjxt58qOqLrDDTIZWvqeUlCq8iYfPZFAR9S0tHm4sBqGojGetJz7atkPQ/y5CHsY1pafSPmzJteMjCQk3G9Z5xpfbidCYR5dnVzz23yWtWtoseVyMO/F9lj8Pk5E1MWh/WvA1csvJ6ikkPCYF1M8h4XJ9wjBzWPntlPSWdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=ViUJ/ZGW; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="2yj2s5eS"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="ViUJ/ZGW"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=PbKIZr1whktnbITD00APK/aUO0+aJL4weKLvHytG4m4=; b=2yj2s5eSe5s1p/PZqGvHq1Rkk7
-	/Dy8fN3tJYAWv1zf6CnLyxnO4z2R1uAXVzHNYZx8dbjDb9sYmNhtX245YkF4rCH50T66zA184dHjV
-	td2uUAkxQOecXydEwAnY9DaaW/mVSllKU5THjfAUngiE8cyTa1gLDsWYe5GCBI9r0z9eMUwx5nH8p
-	Z2db0WKncI448S8gfRYioNAoQxU3Hrdhp+gB+da/WH6ZuFAUQi/wMOK4G9qzJzCtsf3sOkDjr4RtS
-	so4MjSBauFFdbGr/dxTNMb6cZok+AoGQ/rSuwDkBx8eFaS7HsML8Rt5rk9/uSnATSPRf5HHCxSmIQ
-	i4Sa3fNQ==;
+	d=kemnade.info; s=20220719; h=Cc:From:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:In-Reply-To:References;
+	bh=c9rfrELr3kRzTw8yZu4HzqoH7y14nBKXVdFWDw/SolM=; b=ViUJ/ZGWKl2UB9Qk8ombMz0OHE
+	3u0VaMVhgjskeFwTVmisO1nbpWGjVx+p+uCIPMG9zTklCvTZXgC+xCJ7Q313H1vOyILsWICgs7g6h
+	1kYjsOfosZA+p9AoRXuaxAAMHlLIeAmdjeU2nsghWMVnueHAZyf6aoaykNRrbwG0sqnw9tDSPSJh8
+	LKU9RmjqObc8v0JYXz3BZ8qpuGFenSkMNWdDXClPK/eaJaGT3dgqMG2RrQ64rW9hWCtexvtGNGdWZ
+	D8LbKuWhTE6M+5Q7snp6VigiWaywvCAzL/+SgK11v5Oy9G6FgDShe4ai1Y8UvW/0SrdWp+J0pSrnH
+	HseQYJUA==;
 From: Andreas Kemnade <andreas@kemnade.info>
 To: khilman@baylibre.com,
 	linux-kernel@vger.kernel.org,
@@ -39,12 +38,11 @@ To: khilman@baylibre.com,
 	tony@atomide.com,
 	linux-omap@vger.kernel.org
 Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v5 3/3] ARM: dts: ti/omap: use standard node name for twl4030 charger
-Date: Wed, 16 Oct 2024 10:03:14 +0200
-Message-Id: <20241016080314.222674-4-andreas@kemnade.info>
+Subject: [PATCH v5 0/3] power: supply: twl6030/32 charger
+Date: Wed, 16 Oct 2024 10:03:11 +0200
+Message-Id: <20241016080314.222674-1-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20241016080314.222674-1-andreas@kemnade.info>
-References: <20241016080314.222674-1-andreas@kemnade.info>
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -53,26 +51,50 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Use the established node name for the charger.
+Add basic support for the charger in the TWL6030/32. Supported is the USB
+path. AC path is not handled yet, also there is no entry yet
+in /sys/class/power_supply with type battery yet.
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- arch/arm/boot/dts/ti/omap/twl4030.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Without this series, devices will happily drain battery when running
+on mainline.
 
-diff --git a/arch/arm/boot/dts/ti/omap/twl4030.dtsi b/arch/arm/boot/dts/ti/omap/twl4030.dtsi
-index a5d9c5738317a..07b9ca942e78d 100644
---- a/arch/arm/boot/dts/ti/omap/twl4030.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/twl4030.dtsi
-@@ -16,7 +16,7 @@ rtc {
- 		interrupts = <11>;
- 	};
- 
--	charger: bci {
-+	charger: charger {
- 		compatible = "ti,twl4030-bci";
- 		interrupts = <9>, <2>;
- 		bci3v1-supply = <&vusb3v1>;
+Changes in v5:
+- set fwnode
+- drop mfd patch as it is already applied
+
+Changes in v4:
+- require compatible in charger node
+
+Changes in v3:
+- define charger in toplevel
+- s/bci/charger for twl4030
+
+Changes in v2:
+- s/bci/charger in mfd schema
+- additionalProperties for charger node
+- extended example in mfd schema
+- no quotes for compatibles in charger schema
+- no example in charger schema
+- interrupt description in charger schema
+- replace device_is_compatible by driver data
+- clang compile fix
+- removed alias
+- style fixes
+
+Andreas Kemnade (3):
+  dt-bindings: power: supply: Add TI TWL603X charger
+  power: supply: initial support for TWL6030/32
+  ARM: dts: ti/omap: use standard node name for twl4030 charger
+
+ .../power/supply/ti,twl6030-charger.yaml      |  48 ++
+ arch/arm/boot/dts/ti/omap/twl4030.dtsi        |   2 +-
+ drivers/power/supply/Kconfig                  |  10 +
+ drivers/power/supply/Makefile                 |   1 +
+ drivers/power/supply/twl6030_charger.c        | 581 ++++++++++++++++++
+ 5 files changed, 641 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/power/supply/ti,twl6030-charger.yaml
+ create mode 100644 drivers/power/supply/twl6030_charger.c
+
 -- 
 2.39.2
 
