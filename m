@@ -1,62 +1,60 @@
-Received: from mail-lj1-f170.google.com (mail-lj1-f170.google.com [209.85.208.170])
+Received: from mail-lj1-f176.google.com (mail-lj1-f176.google.com [209.85.208.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20D2D1F8AD4
-	for <linux-omap@vger.kernel.org>; Tue,  3 Dec 2024 16:41:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CB771E3DD8
+	for <linux-omap@vger.kernel.org>; Tue,  3 Dec 2024 16:41:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733244112; cv=none; b=AGDZ9VypZqJRvIkE0FdqLtXU4DFk0ND7/gWT4xOT98oNx8ndoWslDV6bKpiVTXDcmPRvnyiqK++GLkITda52h/vvaB4a2wIk2QK4dXmIJ3taE0ZHpG/jQGXUbZ1bSQNkEEvsKfgZ4jEo7TlsoF3doDdX65e6wrgEMj7XBy3AIj0=
+	t=1733244112; cv=none; b=lcQ+XBLRDewtlvTCakqGprpxE6hsTFCbO+DlFZMV5pOoN1bLb7LjcyJHrGppsAxJ8a9gKuStoKy5hOOQH1BKlJlXyJBmIkeVscGgTrM9TIvZ+H74dKHkLV6FBgN/aohIfxPhhG7DJdPYS7JOU+LuYgDf3hechSjhcrNQnrOcSog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1733244112; c=relaxed/simple;
-	bh=79lvtbvvn5WeBGU2jOePEenHhsByMveWov7DNrhlJkI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FLEyg75a3uwu1wbpAQma0hUGEP4utq489MqOWESXV7MxPA63hJjh2dO0QAi0iyx/2RgMvmSR3+XwqZzRyYouyfuvK0Bk+viOGlwNLQBI2OAv89/awSyGUTg6jG+qJzXGF69jD15SjZYy2vSAXAXQn/NTiNehFegDNMvWHjuXtwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=dG8ZLu4m; arc=none smtp.client-ip=209.85.208.170
+	bh=mi8ZKLBkRBFPTJhG12a+AsfcEAOw95iD8h4NMdD5Mqc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qzi+NICphaGdk/aTbNOPNIhuUCXpFPkX7eQURMH6K/sWrFVGj3L4m7bBAkHBFNyRG8Qslirj8JWa1gp50cbFQbTou1aiaHHyuZbEYr45oAjQrp9JffWTgPbzxnKnpPRKLUJWi7NyN1oKSVDeLIpaRKGkdHtXmtiVgszppci9Utc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=p2/hedTi; arc=none smtp.client-ip=209.85.208.176
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bgdev.pl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="dG8ZLu4m"
-Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-2ffb0bbe9c8so67086841fa.0
-        for <linux-omap@vger.kernel.org>; Tue, 03 Dec 2024 08:41:50 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="p2/hedTi"
+Received: by mail-lj1-f176.google.com with SMTP id 38308e7fff4ca-2ffc80318c9so60388051fa.2
+        for <linux-omap@vger.kernel.org>; Tue, 03 Dec 2024 08:41:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1733244109; x=1733848909; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=E78siUumg37DyNEcnTfFgRjM1O430FWuRK5MEMvIBtg=;
-        b=dG8ZLu4mlAbl7q7lRFVpfPhuaUNxxUL6RZmeXxS36WjwAQkU0T2S8C5rxQX8uuV3eU
-         U4IlCSIVtrSZkmK+eurG1t7Yfmt0AqQGfgOQIygNpfgue0K9LUkVWEbNHSrmgaHMdEpi
-         6TXT9KZqhTJpeW9OIxRI28Bu1uFMkpG+3c+Y8QWVioIDmnYryMqFiuAbBHdzu8eJOG5E
-         Pq3GueN/iS0GC5slvsgxlHJI+Pzz2Qgkl0vkCHZMPZa76PbjBrNoRxkaf+zm62I81izO
-         mrJ1dsBk69P7wQitQyuJ/A/iuX62oP6nSS3nBKGqbtABMaFBXtHsc08HXF6D+L3I9swu
-         zSag==
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1733244108; x=1733848908; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=79YYTw4OLJH/nU0R7kGinztAGDupZuTEGxaRjZIufcY=;
+        b=p2/hedTi8rDsVJJskes+AiopOS0/VYtQ/i/AOwxPp15OZ4tHLSCotBBY6j5K+PMxxa
+         BPumUU1Ah+VfNIajsgwoUKR70qnLgkgbhMyNsiF3qgYB6JXCxzF4lFnDQ7M+5A7U2whI
+         nWmBhlcYqkXAw4XRmhGoRloFENx+LsdPapjHoyfzcGSe7xXgDUaUW048vCd4OCeFEWm9
+         WF08kkx/A8bDGsLjzXvLosM02sLLiA/wLYBP1/Xk5xmJUijt1ewfW9Shw3lSOsZXKzBJ
+         7Dt5TWbJhMQASkWzY3RV/bFgLNefN8LZdmfjoDJ5qu17GD4Oi6J6Cxe6Il0O7IjQFZsJ
+         9/tQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733244109; x=1733848909;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=E78siUumg37DyNEcnTfFgRjM1O430FWuRK5MEMvIBtg=;
-        b=tX21n5zAa1MelU7eOHvvErMJ1tudun2aCQbdh/Mf+OsmdC9EiJBbN0HlXoz4LLD7Vk
-         4F73Wy20s0pRQqCAxuocfykfNgE15o7xbxBl/eZjMEVyAzy46TidHpQfrWhYPs3d0Uts
-         UexMZcKPK3fEdjqCeLVppiGDjWLi8tCSer1WBwlRQjEByZw21PRGl7aVPItDUdj66Yrn
-         N/GWqc6ks6ZN/i+5HriacEEmgf7He1jZy5NgA0x7HRETJcyJAIEskaZvraHOcVwPISWV
-         Ra3qOxfmk0Hazy4NEWPq1SbunbGtHrBePT1nbeTq0vkya9nb+PWZZUE8ojwc/9NM70HN
-         5K9Q==
-X-Forwarded-Encrypted: i=1; AJvYcCUZsd4lCpGiNKe0NlNr906mdfVDzrR7MJiWEvpvKLGoNnDUlJ1epmKSe+reIQV5/BwR5FycoOZIGnkj@vger.kernel.org
-X-Gm-Message-State: AOJu0YwcSBwbWRBxC0R3tA3IFdOkUYmFIFARDTsVm0wI1lRPDewRmoXD
-	SFif8BehPggi6CTShlTBUKhDQ9bS5GXkz2JF8ginZmyowR8d9n8Hvm+uSzVBOZ4=
-X-Gm-Gg: ASbGncs7Hc1v04wwhuT8s2ho3knW6/St/2EoyBu92L92nSNa3PdG0UCMMHVIznuadl3
-	iOo/MYC1GBcf80w9KemPrt1qN3QS/C8ror2s9v+lbV4owRWtkCE5ZkSbRRwxkBrnBFWQJ4ShAzY
-	B2A9XU57LrWHV+tSTnoPpn+jXIQbInIcSB4jpLJ8jn7wsqfBayS9P2Rawqw2dK4Aa6kAHA978M2
-	61hExmwcu919Om5DJ70A6XMk3XB15SLolhKYFYScUKD1U+NOrhpdtBN1H1qbfOoWmE9xqFgTzos
-	ghBt3HEfrTZy9A==
-X-Google-Smtp-Source: AGHT+IFx8bRQqNDnslqD1KoTl7xzEuIl2AL3peCZQQRxuOaindczpYRpHJlgrK/K9HMSqBDkd6UiiQ==
-X-Received: by 2002:a2e:8e95:0:b0:300:1558:7db5 with SMTP id 38308e7fff4ca-30015587ffemr4110501fa.27.1733244109275;
-        Tue, 03 Dec 2024 08:41:49 -0800 (PST)
-Received: from brgl-uxlite.home (217.97.33.231.ipv4.supernova.orange.pl. [217.97.33.231])
-        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-3000b262f32sm2482161fa.4.2024.12.03.08.41.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        d=1e100.net; s=20230601; t=1733244108; x=1733848908;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=79YYTw4OLJH/nU0R7kGinztAGDupZuTEGxaRjZIufcY=;
+        b=BmHmtQuKu7u0/rQ5KBgQp3kgxqhZOIwreC6TLkUaL4NDx1+AGxVNDBQdi6j29B0SFg
+         Y2KgVjCnwXKe+87Usb4VZefVufpVgUnmfWle4zMA3SbqDbP/8Xhud3EInTHL8RqJkxtJ
+         CldsjdAfLjFKUgmyvcaPaQDMpdZTcxb5K7MBFx7OALJCaqMVOqLlusbnCV24f+zfVZu4
+         n6Sa7KueqV74OXvRGEZv1P6o4xVAX8+1UOedxwtqvLS2tizMheyq6LSTa9l5Cp/gb76S
+         kc+XEGl76XIDNqGmaS8blf010gjsuoUL8dHsDg2h5VNU/2VkJbVL4Pt9ddNXuY4nl9QE
+         C+ew==
+X-Forwarded-Encrypted: i=1; AJvYcCVwlp/mbMeERsjymGSTrtK7EotnVBV6doeMIgFAoQrbcmDNdcZumyP2KONu5pvWHZMx61sFzIba1eKu@vger.kernel.org
+X-Gm-Message-State: AOJu0YxZyiGepq138JYrEOjlF8p0DjjTxwii/HLEfryYIbvivi2pVpNB
+	vHdmZ6IBz+jd1paiH+6E6uV+8AmS9wRY0hdslrNYyIh6qNs3spDGKfRbnL8RKNg=
+X-Gm-Gg: ASbGncsR5w0Lo3PQ6Ej7rJGm3eeRszvi9ktJ6hOCC8aoxVOfZK+BCmdi+d+vz9EVlO/
+	tWkQigMDqNEfv78kJ3eH/7l3AmoiWGBlCZFsGh6gsTtWUQn3nhPN9n9Zhraqx27SPys6qRQtG1V
+	2sJZQ9FKyPFkdgFdD/ECWzCVbT4eRL4LKWXukhl3xAIKv/ZGyjSEACtMJnOXB9+hPKnnhMrSkMi
+	5en2Fz/pETttYk4OmLlruzhVOvrJLXsE2S4XV5/KM6CGHHWA/DhqJFb0kKbUB1L04AtAhnLouop
+	oVxxsNe6V4iy0Q==
+X-Google-Smtp-Source: AGHT+IESQkBNm3NGGmpXD3R9iAv+O3VG3UIwtvPMrzNoDzrMyo0u4WNNVUXmqMJ3+hGaEOr2LUgDGw==
+X-Received: by 2002:a05:651c:2210:b0:2fa:cdd1:4f16 with SMTP id 38308e7fff4ca-30009be4929mr19048471fa.14.1733244108166;
         Tue, 03 Dec 2024 08:41:48 -0800 (PST)
+Received: from brgl-uxlite.home (217.97.33.231.ipv4.supernova.orange.pl. [217.97.33.231])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-3000b262f32sm2482161fa.4.2024.12.03.08.41.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Dec 2024 08:41:47 -0800 (PST)
 From: Bartosz Golaszewski <brgl@bgdev.pl>
 To: Linus Walleij <linus.walleij@linaro.org>,
 	Bartosz Golaszewski <brgl@bgdev.pl>,
@@ -68,12 +66,10 @@ Cc: linux-gpio@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org,
 	Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Subject: [PATCH 2/2] gpio: omap: save two lines by using devm_clk_get_prepared()
-Date: Tue,  3 Dec 2024 17:41:43 +0100
-Message-ID: <20241203164143.29852-2-brgl@bgdev.pl>
+Subject: [PATCH 1/2] gpio: omap: allow building the module with COMPILE_TEST=y
+Date: Tue,  3 Dec 2024 17:41:42 +0100
+Message-ID: <20241203164143.29852-1-brgl@bgdev.pl>
 X-Mailer: git-send-email 2.45.2
-In-Reply-To: <20241203164143.29852-1-brgl@bgdev.pl>
-References: <20241203164143.29852-1-brgl@bgdev.pl>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -84,33 +80,27 @@ Content-Transfer-Encoding: 8bit
 
 From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-We can drop the else branch if we get the clock already prepared using
-the relevant helper.
+For better build coverage, allow building the gpio-omap driver with
+COMPILE_TEST Kconfig option enabled.
 
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 ---
- drivers/gpio/gpio-omap.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/gpio/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 54c4bfdccf568..57d299d5d0b16 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1449,13 +1449,11 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	}
- 
- 	if (bank->dbck_flag) {
--		bank->dbck = devm_clk_get(dev, "dbclk");
-+		bank->dbck = devm_clk_get_prepared(dev, "dbclk");
- 		if (IS_ERR(bank->dbck)) {
- 			dev_err(dev,
- 				"Could not get gpio dbck. Disable debounce\n");
- 			bank->dbck_flag = false;
--		} else {
--			clk_prepare(bank->dbck);
- 		}
- 	}
- 
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index 56fee58e281e7..fb923ccd79028 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -530,7 +530,7 @@ config GPIO_OCTEON
+ config GPIO_OMAP
+ 	tristate "TI OMAP GPIO support" if ARCH_OMAP2PLUS || COMPILE_TEST
+ 	default y if ARCH_OMAP
+-	depends on ARM
++	depends on ARM || COMPILE_TEST
+ 	select GENERIC_IRQ_CHIP
+ 	select GPIOLIB_IRQCHIP
+ 	help
 -- 
 2.45.2
 
