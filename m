@@ -1,58 +1,58 @@
-Received: from fllv0015.ext.ti.com (fllv0015.ext.ti.com [198.47.19.141])
+Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87FA41F9AAD;
-	Tue, 17 Dec 2024 20:46:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.141
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E948E38DFC;
+	Tue, 17 Dec 2024 20:48:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734468363; cv=none; b=ne7eOR0O3WpDGzHN0fP03c2/Qy0TN9tUbU+K3kQ6yuYKVB7k1YOq2Vrg/qfXZAeDD3g3rWFHD1YkgQx/sogenVcUCV36DMfd+tNnllqMeaPyL3jxjZ2LaI+TW75H7U6kozQ9DxbhkujRhRPVYskNGe643AbxouhN3g2d6G3xaSM=
+	t=1734468506; cv=none; b=ic2azifZtkYwxJvGFwxyL8dAPykt0Z6I1mfNEK2XQuyxUB4gCbbUQhcdLx/4p07giCHjJZjjbgST7/jaiCPlbRY6lgp5pWJzKN3YNwMuZBmAlmccWE2n1LhHghLWXuxWZAKYxZEFzfTJOYS0fZiHT9+A0rgToDrnqd0rZg7P3KU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734468363; c=relaxed/simple;
-	bh=YOI6h8XUIB/90wiMiXASh+OZXUQzf7Ce6dLej9RDjWM=;
+	s=arc-20240116; t=1734468506; c=relaxed/simple;
+	bh=RvecZItRt9cgNUXWJY0CJreW5TSuGU7XrM6+OtsJu+U=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=BwOF7eMlzr9Z2Yn7XPmSPBsfLO3pPxzxjIsIJlxF5Mizm9bJHU7PcxoRAVOBEhMT/8mw+fVBXxpZT02csEj40o+f+oHowan8m0hfleyd5QIDBCs4lnvUBkZg2j7TEYEVxmHQ6LuRz1cWzQ4yHja4eB2KQuP/KLuXG5k5f05+VLM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=rakZ/KAx; arc=none smtp.client-ip=198.47.19.141
+	 MIME-Version:Content-Type; b=kMYQopNaRUOzUc/BnQxNLO5EIz5UMqgdLkF2JOk/xESl2AqK1aBpg/b3ucktbomxZN5EvX5yiZdgt/dHYSwNPBFeYKHAX/tgTFapCG/5XUTiNQlklyVrhKsFMpnKOX5FVQQYBmKbnc3EbJ0BLp58lNlq5GyYL+l9eD00Y+AJH/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=Jq1mAI0L; arc=none smtp.client-ip=198.47.19.246
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="rakZ/KAx"
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-	by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id 4BHKjRJK038606;
-	Tue, 17 Dec 2024 14:45:27 -0600
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Jq1mAI0L"
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 4BHKlt3c055174
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
+	Tue, 17 Dec 2024 14:47:55 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1734468327;
-	bh=CIZma+nxV4y+meHOQX9kEBGIzHgsRLLP2aNuGZUN7Zs=;
+	s=ti-com-17Q1; t=1734468475;
+	bh=+ZLfGvP2ejJjjELBvkytBh6umveNlTawhbLmgbuiwZE=;
 	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=rakZ/KAxRJ2VJp9ROCGfJJpVW58vD7MUqL3szgHBVlbc9ya1+b6dBmjs2zV+Pt9Of
-	 3gTEFQRBGelJcjW0kJZ5xAfTuGnCzpJjv9taVcrtQe2GXlJ8TKjb497GSMFmz4tL+V
-	 bVLjUWAWzLMfcg2nbzxr+9QZQKe62PrCdqHb3FUE=
-Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
-	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 4BHKjR49020477
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Tue, 17 Dec 2024 14:45:27 -0600
-Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE115.ent.ti.com
- (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
+	b=Jq1mAI0L9jcjETd5OMlpbdJKaR5lz0IO/PH34Nuz46UpdOUIazGn8zWZfFN97NPFO
+	 m79pZ/2fgEi9KqzDN3JPo6qhfzbnsFaXcLJvcbqS2M7GnnZjUWhkccINg3/YSnfxsu
+	 z42QhhHGF5bUZnU4hZZcXL11vv50Ntki82kTXsIA=
+Received: from DFLE110.ent.ti.com (dfle110.ent.ti.com [10.64.6.31])
+	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BHKltZa012392;
+	Tue, 17 Dec 2024 14:47:55 -0600
+Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 17
- Dec 2024 14:45:26 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
+ Dec 2024 14:47:55 -0600
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE103.ent.ti.com
+ (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 17 Dec 2024 14:45:26 -0600
+ Frontend Transport; Tue, 17 Dec 2024 14:47:55 -0600
 Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.8])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BHKjQj2023682;
-	Tue, 17 Dec 2024 14:45:26 -0600
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BHKltv7025808;
+	Tue, 17 Dec 2024 14:47:55 -0600
 From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
-        <rogerq@kernel.org>, <tony@atomide.com>, <lgirdwood@gmail.com>,
-        <broonie@kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
+        <rogerq@kernel.org>, <tony@atomide.com>, <linus.walleij@linaro.org>,
+        <brgl@bgdev.pl>, <linux-omap@vger.kernel.org>,
+        <linux-gpio@vger.kernel.org>, <linux-kernel@vger.kernel.org>
 CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v1 2/4] regulator: tps65219: Update driver name
-Date: Tue, 17 Dec 2024 14:45:24 -0600
-Message-ID: <20241217204526.1010989-3-s-ramamoorthy@ti.com>
+Subject: [PATCH v1 1/1] gpio: tps65219: Use existing kernel gpio macros
+Date: Tue, 17 Dec 2024 14:47:55 -0600
+Message-ID: <20241217204755.1011731-2-s-ramamoorthy@ti.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20241217204526.1010989-1-s-ramamoorthy@ti.com>
-References: <20241217204526.1010989-1-s-ramamoorthy@ti.com>
+In-Reply-To: <20241217204755.1011731-1-s-ramamoorthy@ti.com>
+References: <20241217204755.1011731-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -63,27 +63,65 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-Follow the same naming convention in tps6594-regulator.c with
-tpsxxx-regulator instead of tpsxxx-pmic.
+Replace the user-defined macros with the equivalent kernel macros provided.
+
+The user-defined macros serve the same purpose as the common kernel macros.
+The user-defined macros rely on the inference that _IN corresponds to true
+and _OUT is false.
 
 Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 ---
- drivers/regulator/tps65219-regulator.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/gpio-tps65219.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
-index 14d843a99d0f..5decf69f327a 100644
---- a/drivers/regulator/tps65219-regulator.c
-+++ b/drivers/regulator/tps65219-regulator.c
-@@ -379,7 +379,7 @@ MODULE_DEVICE_TABLE(platform, tps65219_regulator_id_table);
+diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
+index cd1f17041f8c..526640c39a11 100644
+--- a/drivers/gpio/gpio-tps65219.c
++++ b/drivers/gpio/gpio-tps65219.c
+@@ -15,8 +15,6 @@
+ #define TPS65219_GPIO0_DIR_MASK		BIT(3)
+ #define TPS65219_GPIO0_OFFSET		2
+ #define TPS65219_GPIO0_IDX		0
+-#define TPS65219_GPIO_DIR_IN		1
+-#define TPS65219_GPIO_DIR_OUT		0
  
- static struct platform_driver tps65219_regulator_driver = {
- 	.driver = {
--		.name = "tps65219-pmic",
-+		.name = "tps65219-regulator",
- 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
- 	},
- 	.probe = tps65219_regulator_probe,
+ struct tps65219_gpio {
+ 	struct gpio_chip gpio_chip;
+@@ -61,7 +59,7 @@ static int tps65219_gpio_get(struct gpio_chip *gc, unsigned int offset)
+ 	 * status bit.
+ 	 */
+ 
+-	if (tps65219_gpio_get_direction(gc, offset) == TPS65219_GPIO_DIR_OUT)
++	if (tps65219_gpio_get_direction(gc, offset) == GPIO_LINE_DIRECTION_OUT)
+ 		return -ENOTSUPP;
+ 
+ 	return ret;
+@@ -124,10 +122,10 @@ static int tps65219_gpio_direction_input(struct gpio_chip *gc, unsigned int offs
+ 		return -ENOTSUPP;
+ 	}
+ 
+-	if (tps65219_gpio_get_direction(gc, offset) == TPS65219_GPIO_DIR_IN)
++	if (tps65219_gpio_get_direction(gc, offset) == GPIO_LINE_DIRECTION_IN)
+ 		return 0;
+ 
+-	return tps65219_gpio_change_direction(gc, offset, TPS65219_GPIO_DIR_IN);
++	return tps65219_gpio_change_direction(gc, offset, GPIO_LINE_DIRECTION_IN);
+ }
+ 
+ static int tps65219_gpio_direction_output(struct gpio_chip *gc, unsigned int offset, int value)
+@@ -136,10 +134,10 @@ static int tps65219_gpio_direction_output(struct gpio_chip *gc, unsigned int off
+ 	if (offset != TPS65219_GPIO0_IDX)
+ 		return 0;
+ 
+-	if (tps65219_gpio_get_direction(gc, offset) == TPS65219_GPIO_DIR_OUT)
++	if (tps65219_gpio_get_direction(gc, offset) == GPIO_LINE_DIRECTION_OUT)
+ 		return 0;
+ 
+-	return tps65219_gpio_change_direction(gc, offset, TPS65219_GPIO_DIR_OUT);
++	return tps65219_gpio_change_direction(gc, offset, GPIO_LINE_DIRECTION_OUT);
+ }
+ 
+ static const struct gpio_chip tps65219_template_chip = {
 -- 
 2.34.1
 
