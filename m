@@ -1,61 +1,86 @@
-Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
+Received: from lelvem-ot02.ext.ti.com (lelvem-ot02.ext.ti.com [198.47.23.235])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47389EAC6;
-	Tue, 17 Dec 2024 15:35:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5403C38DFC;
+	Tue, 17 Dec 2024 20:45:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.235
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734449738; cv=none; b=I0WEACB/w5PykSyEg2T7GGnhCDhnv7BsyBHIpRViLn9eqQnnpVcLHrqvpvRH6uBIX/aC2CPgjNJwnx93AYR1wDSZ/jqp4HU+O460QCjq2EOaQtGTsb7GmuFUJceJDuqkR5cL+gATRiRJHNarUGgAGqBg6cJ3d509AygxXaGLZ6w=
+	t=1734468346; cv=none; b=a7PQBsHNsV9sA44BWb79ncEo2K9QOO3p5GssQ1e2RoxSIGxadJHz4x2QFjzoqBU/HQMJ/LpZLJWkvDoNeS9FQST6v+prn/CJvQvfXhNU4NkJBsDN71/y7BZhKwPkSSZFy4jV3yk+Zn24Yht9ekMc2mZG3oNx6XDkYLezb9rz//Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734449738; c=relaxed/simple;
-	bh=1tdqeGsFmdHNAI6f39ONvPeEUyfkHgn6nA/KOeVxMgk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ByoPhBev7QxXUyJDgzmwv/5tEXTFoKMi/Vspv9XiTfQRaaaTxt4Kb6S3Mtx74OsMQITEgmXzFU0XC5gAq46dWdUKfiQbJ4HpwP9n552EZcq5FelOI/zz+CcNDYSVXdTV9pGy9mVBxnPUXw5AIIXXhHFwo0N0B5k/ErBDTD7CV4I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=ySobKkmo; arc=none smtp.client-ip=156.67.10.101
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
+	s=arc-20240116; t=1734468346; c=relaxed/simple;
+	bh=cNXRFtyTRJf7SaLbQYiA/Y3vgc+vWLsRr65qFvH17Fo=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=AMlWTzMha3YTJcLIonRskGdfejZFVRD/+RPp4Ggf/CPP6qFl7HZH9DWHlecKJNxB0tzHm3ly0fIuFvPoNeVFYEmoF+X8BmuaXaRToN/Pl60BY6MMM42uFmn9DENWKVOpUTSIHYFbo55GBW+0T98HiMSOLGEAV7ZRLtrplYi7ly4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=wAvMk859; arc=none smtp.client-ip=198.47.23.235
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="ySobKkmo"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
-	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
-	bh=3Va9FT6Zm8diLy1g5Ee5uh/4gUxg81QV8kpRvkYFt+c=; b=ySobKkmoZCRR0BpnTGZO/VuPHJ
-	5v53ql6euasM5l0zkRtn1g5DgoT+Mo/wbsppSCix11mYy2fA4pCLkb6G2fJKTHqQHLzMNt5u+C7hQ
-	iJ7zUZpdB8J5hc4zKhHWltlfamq/8QN4T41+cB23yrUWiRflVK95NMdS8SjOr9vGiurw=;
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
-	(envelope-from <andrew@lunn.ch>)
-	id 1tNZbj-000zWl-8C; Tue, 17 Dec 2024 16:35:35 +0100
-Date: Tue, 17 Dec 2024 16:35:35 +0100
-From: Andrew Lunn <andrew@lunn.ch>
-To: Da Shi Cao <dscao999@hotmail.com>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>,
-	"regressions@lists.linux.dev" <regressions@lists.linux.dev>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Subject: Re: TI Ethernet Driver TI_K3_AM65_CPSW_NUSS
-Message-ID: <417fd70e-e44d-4122-ae36-14e550e89a64@lunn.ch>
-References: <CY5PR10MB59880DDECD5D282B7665085B8C042@CY5PR10MB5988.namprd10.prod.outlook.com>
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="wAvMk859"
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 4BHKjRQe056652
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
+	Tue, 17 Dec 2024 14:45:27 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+	s=ti-com-17Q1; t=1734468327;
+	bh=n1ZMyHRLZgw0n68nTZPSThSj5mXsTB9oMwUSDIld2Q8=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=wAvMk859RFrGC3AGm+EmtC6bvm7llHmo7ojtJY3EjeHzc/R/Dzl1nQcwvQVXFKDq7
+	 oVaPXLsE9qeQ7jp3q9ez2jF3gM+CgQVsx/HsG+QEySb7MCXAtQi5noKvGMpLGVKxVQ
+	 BlRmI8HLdX2nix01+yiH1Lq1ZFMxqS8pBbhOWdVk=
+Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
+	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BHKjRYm011336;
+	Tue, 17 Dec 2024 14:45:27 -0600
+Received: from DFLE107.ent.ti.com (10.64.6.28) by DFLE113.ent.ti.com
+ (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 17
+ Dec 2024 14:45:26 -0600
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE107.ent.ti.com
+ (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Tue, 17 Dec 2024 14:45:26 -0600
+Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.8])
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BHKjQj3023682;
+	Tue, 17 Dec 2024 14:45:26 -0600
+From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
+        <rogerq@kernel.org>, <tony@atomide.com>, <lgirdwood@gmail.com>,
+        <broonie@kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+CC: <m-leonard@ti.com>, <praneeth@ti.com>
+Subject: [PATCH v1 3/4] regulator: tps65219: Remove MODULE_ALIAS
+Date: Tue, 17 Dec 2024 14:45:25 -0600
+Message-ID: <20241217204526.1010989-4-s-ramamoorthy@ti.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20241217204526.1010989-1-s-ramamoorthy@ti.com>
+References: <20241217204526.1010989-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CY5PR10MB59880DDECD5D282B7665085B8C042@CY5PR10MB5988.namprd10.prod.outlook.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-On Tue, Dec 17, 2024 at 01:40:12PM +0000, Da Shi Cao wrote:
-> The driver of TI K3 ethernet port depends on PAGE_POOL configuration option. There should be a select PAGE_POOL under it configuration.
+Remove MODULE_ALIAS because the same module alias is already generated by
+MODULE_DEVICE_TABLE.
 
-Please wrap the commit message to around 75 characters.
+Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+---
+ drivers/regulator/tps65219-regulator.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Please take a read of:
+diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
+index 5decf69f327a..f57a046f9dea 100644
+--- a/drivers/regulator/tps65219-regulator.c
++++ b/drivers/regulator/tps65219-regulator.c
+@@ -390,5 +390,4 @@ module_platform_driver(tps65219_regulator_driver);
+ 
+ MODULE_AUTHOR("Jerome Neanne <j-neanne@baylibre.com>");
+ MODULE_DESCRIPTION("TPS65219 voltage regulator driver");
+-MODULE_ALIAS("platform:tps65219-pmic");
+ MODULE_LICENSE("GPL");
+-- 
+2.34.1
 
-https://www.kernel.org/doc/html/latest/process/maintainer-netdev.html
-
-You need a Fixes: tag, please use the correct networking tree, etc.
-
-	Andrew
