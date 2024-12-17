@@ -1,46 +1,44 @@
 Received: from lelvem-ot02.ext.ti.com (lelvem-ot02.ext.ti.com [198.47.23.235])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61C641DA10C;
-	Tue, 17 Dec 2024 20:49:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBAC5150994;
+	Tue, 17 Dec 2024 20:49:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.235
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734468588; cv=none; b=U3/J+bvJgN9exru10xoelJZnvWudvENdZmKY+hJurB3/hjt2wXM4PLEU7MHd5GDJdIT9ePfOFB+fxHLFEgTeQY65wyt++gfEFuAdO5BvpovKXkw00v2PF4x1ESkhydSd7UFdm09cDZi/c2DjN32QdjH9IZ7eVqYCLhSNy2dPsyc=
+	t=1734468598; cv=none; b=YFXnbSAZa94twA2ttgR9nM25YYiLIoBixhIvoMqjOaN8eaxzVUCdpzR8OYKrABIHa9BSbniCKfvK8EajyL7PM+RAi0fkQQGbc9g40I9JsvSY/4cLheDo0vWkFjRNrfUSAuhJ+biSss9xXCACI3pdNCjmxOr4zHbf6O236bhycWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734468588; c=relaxed/simple;
-	bh=TBIAI0KbaZKKy12fWhjv4+5VlK7GSnTG6wl2N2kru0o=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=dtYWflPEtRpApaYHNNBJNBNWiMRAoH6SK3PmIF+T4zyFYJ7GU/L/6Y3tONW+g1pWYXl8a/VSYsRiLq8vj8/LdrOcWnmaqOeEbcbLv1e+h1etycBojFE7PRLvZYmUDjjqAOZP1ZF2LZgqAWGErXG1YHtn5AZAd7b+K7jbCxo6X20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=v6fofImU; arc=none smtp.client-ip=198.47.23.235
+	s=arc-20240116; t=1734468598; c=relaxed/simple;
+	bh=jqauervucs34xd7C5K8H/zMRDcEi/djQTC8N+PBrxUE=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=M3fH1gNBdZ7i0AKJpbdFVICHjQPFseFu839yoK05mqPdirNu0cxGnyJco42VKbV/0HvB/M8Yahu+D6+D+b6OQFvsruJhvGLxCjpIoC8N+e8+qQxy1sRbGTI98nX10wFT0DDAg/HlvnT3aAWUGa4GAxkeNLszzxvE0EHno4r/SmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=nxGTxmdg; arc=none smtp.client-ip=198.47.23.235
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="v6fofImU"
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 4BHKnZYS057062
-	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="nxGTxmdg"
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 4BHKnZ8B057058
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
 	Tue, 17 Dec 2024 14:49:35 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
 	s=ti-com-17Q1; t=1734468575;
-	bh=6hr+nb0eMhjzs66rKOS0CfHiJ25UR5bzMYAS5I+4flw=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=v6fofImU1P4xVPVr1YxGrrxTxm1ZMYThD79tbzH5zNTHPqBnX27XgUh/QQv2/7hCt
-	 z5t6563jSIBnOb1igNJqrxiJ8OjSPDPmPSyHCJC5zNJxSyFOWIZ588fTA0m+7FZ59v
-	 Upw6uFiy4nhO9BXiwFgDIG79p05CrO+ekxJBmJNA=
-Received: from DLEE110.ent.ti.com (dlee110.ent.ti.com [157.170.170.21])
-	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 4BHKnZrN022531
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+	bh=gQKVFosZiurw5gJT9GH9doLfY1bvEMH79fpOan7a8ew=;
+	h=From:To:CC:Subject:Date;
+	b=nxGTxmdg5Tp56D3XpKCVhgZassVCwfHo3c2LT/r92DM7qzurNoaIY5mroq5WvkAY3
+	 tXly/ghHkOb66l/ng2vqmZXp8N7/iRxcY/PyjbVUdCu0U7rfLyww0koXVIdcBC8FM/
+	 ulfJJzRS9j5VSOucwGEgGp98GXQnjTT//3x5XPIo=
+Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
+	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BHKnZAj013384;
 	Tue, 17 Dec 2024 14:49:35 -0600
-Received: from DLEE113.ent.ti.com (157.170.170.24) by DLEE110.ent.ti.com
- (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
+Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 17
  Dec 2024 14:49:35 -0600
-Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DLEE103.ent.ti.com
+ (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
  Frontend Transport; Tue, 17 Dec 2024 14:49:35 -0600
 Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.8])
-	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BHKnZID097729;
+	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BHKnZIB097729;
 	Tue, 17 Dec 2024 14:49:35 -0600
 From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
@@ -48,12 +46,10 @@ To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
         <brgl@bgdev.pl>, <linux-omap@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>
 CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v1 2/2] mfd: tps65219: Remove unused macros & add regmap.h
-Date: Tue, 17 Dec 2024 14:49:35 -0600
-Message-ID: <20241217204935.1012106-3-s-ramamoorthy@ti.com>
+Subject: [PATCH v1 0/2] TPS65219 MFD Driver Cleanup Series
+Date: Tue, 17 Dec 2024 14:49:33 -0600
+Message-ID: <20241217204935.1012106-1-s-ramamoorthy@ti.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20241217204935.1012106-1-s-ramamoorthy@ti.com>
-References: <20241217204935.1012106-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -64,34 +60,20 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-These macros are not used by the driver, and the structs are accounted
-for with the addition of the linux/regmap.h file.
+This series is in preparation to add 2 PMIC devices to the TPS65219 driver.
 
-Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
----
- include/linux/mfd/tps65219.h | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+The changes involve using existing helper macros and removing unused macros
+to simplify code. The intention is to remove unnecessary noise from the new
+PMIC device patches adding support to this driver.
 
-diff --git a/include/linux/mfd/tps65219.h b/include/linux/mfd/tps65219.h
-index e6826e34e2a6..546bceec7173 100644
---- a/include/linux/mfd/tps65219.h
-+++ b/include/linux/mfd/tps65219.h
-@@ -10,14 +10,9 @@
- 
- #include <linux/bitops.h>
- #include <linux/notifier.h>
-+#include <linux/regmap.h>
- #include <linux/regulator/driver.h>
- 
--struct regmap;
--struct regmap_irq_chip_data;
--
--#define TPS65219_1V35					1350000
--#define TPS65219_1V8					1800000
--
- /* TPS chip id list */
- #define TPS65219					0xF0
- 
+Shree Ramamoorthy (2):
+  mfd: tps65219: Use MFD_CELL macros
+  mfd: tps65219: Remove unused macros & add regmap.h
+
+ drivers/mfd/tps65219.c       | 15 ++++-----------
+ include/linux/mfd/tps65219.h |  7 +------
+ 2 files changed, 5 insertions(+), 17 deletions(-)
+
 -- 
 2.34.1
 
