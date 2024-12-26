@@ -1,47 +1,46 @@
-Received: from fllvem-ot03.ext.ti.com (fllvem-ot03.ext.ti.com [198.47.19.245])
+Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 335511BB6BA;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C402D199FAB;
 	Thu, 26 Dec 2024 21:54:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.245
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735250077; cv=none; b=uEIEeKSMnrqqU9hfP9uMRJxOyPdJSeSZy2c2WOiL68sdUfz312y+v3CRSlfNpNpWtL5AnJspVtlWcAnxxnaWXj/tdQpwqOokOnz6JiTHzEgjNup2yRvRqUKpqpX/9p4X/Mv85Xr17wLqFn7qWNd3UZ1S2OyhqHFJ2B2c6tW1I6c=
+	t=1735250078; cv=none; b=EX54+8Cy3y1/c6hXOX+D6xwO/y6ruJAtPt5WlN3pCwNvpxQwO+20du9MbYXMa+l3ERAO9XeuCok2lBDIBaY5sps7q4FUaZ3wv7T1iEN4H9fz7y8xZU57vylCeMT9WWlJb3nrWDerh/ES853QLO6cAwWEuYJ0SwiE/nPNi7uQ430=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735250077; c=relaxed/simple;
-	bh=LMbT72g0Lm8yY0svbpM8auHlena1BM9CPFehES51BhE=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Pz+npr/Tby+BmFxky4NoBLYZNOS7HBh91q1kIA3ZRJWJxkgXdvIu0tift0rhYTn3dTSqK0EmfgNWbTKgWOFe3PfiOx8aP/Jfx5RSxPe1pM9lXhuLG36lMKjy7cS2bScm4KQIGN+YGUxu9+hPk17R94CSjK5qCGtCxGczWn0yNd0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=vVcI4o6z; arc=none smtp.client-ip=198.47.19.245
+	s=arc-20240116; t=1735250078; c=relaxed/simple;
+	bh=XXTOyqgQKGGiOXB+i/ylWEun25a6mU7H68foh7KNDxk=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=DX9yzIkl30JGIZJcU1u89N1aIe4dLJqJ9RC8NeO6Mv8JSXBvzrECHXewqSFeg1IODtqZTWzLdXLAQlj6pUjEZ+glJx3Cbsca+kMwpNwCl0r05kQmU+WinKgU/+J5Nb7ZAx3IF7fcKZSOJwPjdNb0+AxYJ6/fLkEaKOSkebmEUf0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=oD58g4Rr; arc=none smtp.client-ip=198.47.19.246
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="vVcI4o6z"
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-	by fllvem-ot03.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 4BQLsFvp1011188
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="oD58g4Rr"
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 4BQLsDC11307628
 	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 26 Dec 2024 15:54:15 -0600
+	Thu, 26 Dec 2024 15:54:13 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1735250055;
-	bh=7CM3dPODe1VcHzLNi1hWAbzOCKw9bS7BzBzAW/PRgI0=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=vVcI4o6zs8Xtlh9SXy/a4+KtfDaLlQC8x7V6PjbNleHNmybdNj7fEfnZMIhINd0u8
-	 NP1/2ogkUEiYV7/94KsZsHUm/3UG5EGXBK203+CF+q+ja2YziWHC3c2vhxwBk0iovh
-	 F8GUA+FiDp7fCBMndB6ksKj7O9QI+scgJKGlIO7s=
-Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
-	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 4BQLsFHn102207
+	s=ti-com-17Q1; t=1735250053;
+	bh=SXV92mc0gQ4YJG65osFx3CNUHBVVPqPQX5zfywPS1/I=;
+	h=From:To:CC:Subject:Date;
+	b=oD58g4RrxPN+uIMxsyB0mYrUeIyrIuXTTU/gT+PivGH0NakY/T9Ywam2Kr7hK7voo
+	 QNptcN/dEKX6jTI9zdJdRAVcTEvjbEik+zdbeC/io26FU0q3xR7ocW0BuPDdR5dzEJ
+	 mwUe4oUrkJXBwijsIzOK8+nJl7357azkQ8qckalg=
+Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
+	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 4BQLsDvw013331
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 26 Dec 2024 15:54:15 -0600
-Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE108.ent.ti.com
- (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+	Thu, 26 Dec 2024 15:54:13 -0600
+Received: from DFLE102.ent.ti.com (10.64.6.23) by DFLE113.ent.ti.com
+ (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 26
- Dec 2024 15:54:15 -0600
-Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DFLE103.ent.ti.com
- (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+ Dec 2024 15:54:13 -0600
+Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DFLE102.ent.ti.com
+ (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Thu, 26 Dec 2024 15:54:15 -0600
+ Frontend Transport; Thu, 26 Dec 2024 15:54:13 -0600
 Received: from DMZ007XYY.dhcp.ti.com ([10.250.33.34])
-	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BQLsC9M052274;
-	Thu, 26 Dec 2024 15:54:14 -0600
+	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BQLsC9I052274;
+	Thu, 26 Dec 2024 15:54:12 -0600
 From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
         <krzk+dt@kernel.org>, <conor+dt@kernel.org>, <aaro.koskinen@iki.fi>,
@@ -50,12 +49,10 @@ To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
         <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <devicetree@vger.kernel.org>
 CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v1 4/7] regulator: tps65215: Update IRQ structs to include TPS65215
-Date: Thu, 26 Dec 2024 15:54:09 -0600
-Message-ID: <20241226215412.395822-5-s-ramamoorthy@ti.com>
+Subject: [PATCH v1 0/7] Add TI TPS65215 PMIC Regulator Support
+Date: Thu, 26 Dec 2024 15:54:05 -0600
+Message-ID: <20241226215412.395822-1-s-ramamoorthy@ti.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20241226215412.395822-1-s-ramamoorthy@ti.com>
-References: <20241226215412.395822-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -66,51 +63,47 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-Organize  _regulator_irq_type structs into common (applies to TPS65215 and
-TPS65219) and separate device-specific structs, if needed.
+Happy Holidays!
 
-Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
----
- drivers/regulator/tps65219-regulator.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+TPS65215 is a Power Management Integrated Circuit (PMIC) that has
+significant register map overlap with TPS65219. The series introduces
+TPS65215 and restructures the existing driver to support multiple devices.
 
-diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
-index 188a988e3bbe..2c49613400e1 100644
---- a/drivers/regulator/tps65219-regulator.c
-+++ b/drivers/regulator/tps65219-regulator.c
-@@ -36,6 +36,14 @@ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
- 	{ "LDO4_SCG", "LDO4", "short circuit to ground", REGULATOR_EVENT_REGULATION_OUT },
- 	{ "LDO4_OC", "LDO4", "overcurrent", REGULATOR_EVENT_OVER_CURRENT },
- 	{ "LDO4_UV", "LDO4", "undervoltage", REGULATOR_EVENT_UNDER_VOLTAGE },
-+	{ "LDO3_RV", "LDO3", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
-+	{ "LDO4_RV", "LDO4", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
-+	{ "LDO3_RV_SD", "LDO3", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
-+	{ "LDO4_RV_SD", "LDO4", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
-+};
-+
-+/*  All of TPS65215's irq types are the same as common_regulator_irq_types */
-+static struct tps65219_regulator_irq_type common_regulator_irq_types[] = {
- 	{ "LDO1_SCG", "LDO1", "short circuit to ground", REGULATOR_EVENT_REGULATION_OUT },
- 	{ "LDO1_OC", "LDO1", "overcurrent", REGULATOR_EVENT_OVER_CURRENT },
- 	{ "LDO1_UV", "LDO1", "undervoltage", REGULATOR_EVENT_UNDER_VOLTAGE },
-@@ -59,8 +67,6 @@ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
- 	{ "BUCK3_RV", "BUCK3", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "LDO1_RV", "LDO1", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "LDO2_RV", "LDO2", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
--	{ "LDO3_RV", "LDO3", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
--	{ "LDO4_RV", "LDO4", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "BUCK1_RV_SD", "BUCK1", "residual voltage on shutdown",
- 	 REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "BUCK2_RV_SD", "BUCK2", "residual voltage on shutdown",
-@@ -69,8 +75,6 @@ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
- 	 REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "LDO1_RV_SD", "LDO1", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "LDO2_RV_SD", "LDO2", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
--	{ "LDO3_RV_SD", "LDO3", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
--	{ "LDO4_RV_SD", "LDO4", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "SENSOR_3_WARM", "SENSOR3", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN},
- 	{ "SENSOR_2_WARM", "SENSOR2", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN },
- 	{ "SENSOR_1_WARM", "SENSOR1", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN },
+This follow-up series is dependent on the TPS65215 MFD Driver Series:
+Commit 30fafb69994a ("mfd: tps65215: Add support for TI TPS65215 PMIC")
+Commit 07c9c92bd47f ("mfd: tps65215: Remove regmap_read check")
+
+TPS65219 Cleanup Series:
+GPIO: https://lore.kernel.org/all/20241217204755.1011731-1-s-ramamoorthy@ti.com/
+MFD: https://lore.kernel.org/all/20241217204935.1012106-1-s-ramamoorthy@ti.com/
+Reg: https://lore.kernel.org/all/20241217204526.1010989-1-s-ramamoorthy@ti.com/
+
+- Both TPS65215 and TPS65219 have 3 Buck regulators.
+- TPS65215 has 2 LDOs, whereas TPS65219 has 4 LDOs.
+- TPS65215 and TPS65219's LDO1 are the same.
+- TPS65215's LDO2 maps to TPS65219's LDO3.
+- TPS65215 has 1 GPO, whereas TPS65219 has 2 GPOs.
+- The remaining features are the same.
+
+TPS65215 TRM: https://www.ti.com/lit/pdf/slvucw5/
+
+AM62L + TPS65215 Test Logs:
+https://gist.github.com/ramamoorthyhs/7560eca6110fafc77b51894fa2c0fd22
+
+Shree Ramamoorthy (7):
+  regulator: dt-bindings: Add TI TPS65215 PMIC bindings
+  regulator: tps65215: Update platform_device_id table
+  regulator: tps65215: Update function & struct names
+  regulator: tps65215: Update IRQ structs to include TPS65215
+  regulator: tps65215: Add chip_data struct for multi-PMIC support
+  regulator: tps65215: Define probe() helper functions
+  regulator: tps65215: Restructure probe() for multi-PMIC support
+
+ .../bindings/regulator/ti,tps65219.yaml       |   9 +-
+ drivers/regulator/Kconfig                     |   7 +-
+ drivers/regulator/tps65219-regulator.c        | 214 +++++++++++++-----
+ 3 files changed, 175 insertions(+), 55 deletions(-)
+
 -- 
 2.34.1
 
