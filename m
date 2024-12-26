@@ -1,55 +1,61 @@
-Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
+Received: from fllvem-ot03.ext.ti.com (fllvem-ot03.ext.ti.com [198.47.19.245])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E47CD19341F;
-	Thu, 26 Dec 2024 21:49:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B261D1684B0;
+	Thu, 26 Dec 2024 21:54:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.245
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735249790; cv=none; b=NpUVdvUNh5mR7/xii3RltQwqyjfFpuPJBACcDq+kktE/pg6Pc+9bB5J25uIhg2DY701i5Xckx+NMmX0Uh34cUUeWZVURnpAyt/JZS7Ki+CFKcTwZNUVQaK1sguFw2uAMoESTqwE6xA9OQfIxSCMKOooYn3ApdvNR57pZ9NqkdRI=
+	t=1735250067; cv=none; b=re3XEXF8ektqKVDmgeMnn/o0chdyOLJVp1i/kcbXswt6I6tfwd7tNpEjbzLcenqLFqSi54GcTw5LDbgNMfXfzR4bWUXiV4RMFf/xTZW8VLIrxyusUWkYtSYuL82/0nWh848QYzI812ycNekWhni7WxPAc637kzGPHhJUEasZnqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735249790; c=relaxed/simple;
-	bh=R7tJbZA/v8kwByakHdxu/pCSEm1yAV/roA0uOuVFQO0=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=q2lbNY+QRafF3E9gJxfcFHsWFp/6rpL1r/OxBaQA9d3n0vtHtHW0+2nooYeXZzyFuSuMKtPvgRjom/+I2Rz/kttygc9Dr0oXBF+MUmlS72SkK96nTIBBrsJhN28xOEp4a+EsrzP32ns+6pfgp4jFtEHD2vQJj0tlHvhtiTT4ZLw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=gZ3LSGwf; arc=none smtp.client-ip=198.47.19.246
+	s=arc-20240116; t=1735250067; c=relaxed/simple;
+	bh=e/zeyI5zExgJ4RHOIiaxDmE7CjOCbpA6opaTTFkX498=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=erc7GvVMpx4OesxufWtlHsn0pHM8Ul9c3KMN8O2uVYjszusTzX4rmHg73Vir69GNlI5APyZfbP6xIU3NYicUD9X3Pb+SUxoxdj0r6/ax0/iIK7tcV5Or2p6dvGDr2aMUwUIQCGh3kuIACCXBiUpF25ZgSegHzUKeTUml3kmt+zA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=gjY2IKjx; arc=none smtp.client-ip=198.47.19.245
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="gZ3LSGwf"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="gjY2IKjx"
 Received: from fllv0035.itg.ti.com ([10.64.41.0])
-	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 4BQLnN1g1307139
+	by fllvem-ot03.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 4BQLsEaj1011184
 	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 26 Dec 2024 15:49:23 -0600
+	Thu, 26 Dec 2024 15:54:14 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1735249763;
-	bh=fKLebGJK9NGUyMS2sm2RxUgo4PDZA5GDIhIQ+9mu388=;
-	h=From:To:CC:Subject:Date;
-	b=gZ3LSGwfbVxFXUEDNQLVUnvU6RLy4/Y/kPQUthoAjYvSDTTu0ide4Mh2fpEN0JG/O
-	 D5DIezFfd/IZ6gnLt6QPeUZ8SocWCMRWT1+Zws6esvE0ICHpKoHKQ1aS2sm/zdpZhy
-	 MhaCzCmCJTwyg3ojNK0KNt3f1ln6cSdyEih0JGys=
-Received: from DLEE109.ent.ti.com (dlee109.ent.ti.com [157.170.170.41])
-	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 4BQLnNOI071591
+	s=ti-com-17Q1; t=1735250055;
+	bh=3BKYHxvtIGTgGXg1b5n3N05S9acaujyMSu3tAxyFL3w=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=gjY2IKjx3mZkuHvklEYd5cKJ8urThCadf8JllzJwH9KyfbJ4TUqi8oLtvWxWpHldM
+	 iboXa345q6sOJZxZDBzP3XeJKlOF/ZE1ILRJ2u3Kljj6fTsc0JxdXR/BbWTrBaUIis
+	 Rg7+O8RvmZPwwjtP7tS7zW3r4D9sadEfGXyx8TA4=
+Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
+	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 4BQLsEqG074130
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 26 Dec 2024 15:49:23 -0600
-Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
+	Thu, 26 Dec 2024 15:54:14 -0600
+Received: from DLEE112.ent.ti.com (157.170.170.23) by DLEE115.ent.ti.com
+ (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 26
- Dec 2024 15:49:22 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+ Dec 2024 15:54:14 -0600
+Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DLEE112.ent.ti.com
+ (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Thu, 26 Dec 2024 15:49:22 -0600
+ Frontend Transport; Thu, 26 Dec 2024 15:54:14 -0600
 Received: from DMZ007XYY.dhcp.ti.com ([10.250.33.34])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BQLnMXn060782;
-	Thu, 26 Dec 2024 15:49:22 -0600
+	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BQLsC9K052274;
+	Thu, 26 Dec 2024 15:54:13 -0600
 From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
-        <rogerq@kernel.org>, <tony@atomide.com>, <lee@kernel.org>,
-        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
+        <krzk+dt@kernel.org>, <conor+dt@kernel.org>, <aaro.koskinen@iki.fi>,
+        <andreas@kemnade.info>, <khilman@baylibre.com>, <rogerq@kernel.org>,
+        <tony@atomide.com>, <jerome.neanne@baylibre.com>,
+        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>
 CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v1 0/2] Add TI TPS65215 PMIC MFD Support
-Date: Thu, 26 Dec 2024 15:49:20 -0600
-Message-ID: <20241226214922.374987-1-s-ramamoorthy@ti.com>
+Subject: [PATCH v1 2/7] regulator: tps65215: Update platform_device_id table
+Date: Thu, 26 Dec 2024 15:54:07 -0600
+Message-ID: <20241226215412.395822-3-s-ramamoorthy@ti.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20241226215412.395822-1-s-ramamoorthy@ti.com>
+References: <20241226215412.395822-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -60,40 +66,28 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-Happy Holidays!
+Add TI TPS65215 PMIC to the existing platform_device_id struct, so the
+regulator probe() can match which PMIC chip_data information.
 
-TPS65215 is a Power Management Integrated Circuit (PMIC) that has
-significant register map overlap with TPS65219. The series introduces
-TPS65215 and restructures the existing driver to support multiple devices.
+Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+---
+ drivers/regulator/tps65219-regulator.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-This follow-up series is dependent on:
-Commit 91462d209aaf ("regulator: dt-bindings: Add TI TPS65215 PMIC bindings")
-
-TPS65219 Cleanup Series:
-GPIO: https://lore.kernel.org/all/20241217204755.1011731-1-s-ramamoorthy@ti.com/
-MFD: https://lore.kernel.org/all/20241217204935.1012106-1-s-ramamoorthy@ti.com/
-Reg: https://lore.kernel.org/all/20241217204526.1010989-1-s-ramamoorthy@ti.com/
-
-- Both TPS65215 and TPS65219 have 3 Buck regulators.
-- TPS65215 has 2 LDOs, whereas TPS65219 has 4 LDOs.
-- TPS65215 and TPS65219's LDO1 are the same.
-- TPS65215's LDO2 maps to TPS65219's LDO3.
-- TPS65215 has 1 GPO, whereas TPS65219 has 2 GPOs.
-- The remaining features are the same.
-
-TPS65215 TRM: https://www.ti.com/lit/pdf/slvucw5/
-
-AM62L + TPS65215 Test Logs:
-https://gist.github.com/ramamoorthyhs/7560eca6110fafc77b51894fa2c0fd22
-
-Shree Ramamoorthy (2):
-  mfd: tps65215: Remove regmap_read check
-  mfd: tps65215: Add support for TI TPS65215 PMIC
-
- drivers/mfd/tps65219.c       | 157 ++++++++++++++++++++++++++++++++---
- include/linux/mfd/tps65219.h |  72 ++++++++++++++--
- 2 files changed, 210 insertions(+), 19 deletions(-)
-
+diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
+index aa65077f9d41..b8a178ae6b42 100644
+--- a/drivers/regulator/tps65219-regulator.c
++++ b/drivers/regulator/tps65219-regulator.c
+@@ -344,7 +344,8 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
+ }
+ 
+ static const struct platform_device_id tps65219_regulator_id_table[] = {
+-	{ "tps65219-regulator", },
++	{ "tps65219-regulator", TPS65219 },
++	{ "tps65215-regulator", TPS65215 },
+ 	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(platform, tps65219_regulator_id_table);
 -- 
 2.34.1
 
