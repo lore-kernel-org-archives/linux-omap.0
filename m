@@ -1,135 +1,81 @@
-Received: from lelvem-ot02.ext.ti.com (lelvem-ot02.ext.ti.com [198.47.23.235])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D5B11B6CF0;
-	Thu, 26 Dec 2024 21:59:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.235
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8B227080D;
+	Fri, 27 Dec 2024 17:46:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735250368; cv=none; b=fuhKMn24iB60o99P5usiRGhz2VqQtUlih9E8ddyI3acYy/X8k1TeYi1oTsNhvunr1nVSUJxQpKGYqhWYkZ9Lmnfn+3JncboOSFt+CIaf+d/ZxKIj7siO/bzazeSlZs0oB7Wm/kfOOZn+jDeGUnxbLXqyWgUxZ1f4WGlpfwLFHqs=
+	t=1735321562; cv=none; b=grQtDrw370vTiaopz2zf9mguS+j5eWD2XhAR8geb/msH3AM9jaaLR8t85YpJGNRYSvxElLSGBYZWn2vtnZCdnWrj9FssZ18VZDEnhXJLn8BIuYrKII2n7KtanqaPT8idVpCq9iGY32JiZKBdLSukmxhXe5GuMLX2hzYhTYfgLHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735250368; c=relaxed/simple;
-	bh=bKMRjcN57+i4wyTN5W1gxb5tcI3uybMBM/vVaoKh9Zw=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=kH0vcDzIIXVJ/7HiScpIJ00poc5b2FuafPrLmWUJSxSGjuy2p7Z8jOAUhaomWXxVMrQ3naSn2pDXkFBzD/K6vf1txwUHhj2eGWjtY85alhz0jBzLcFp6/UnA5ZZSrnJDkXoGQiJkXIVwyVXV4qw7ECNdktHQuxvK4A5yrBU9tuo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=Ztq8Jz3p; arc=none smtp.client-ip=198.47.23.235
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	s=arc-20240116; t=1735321562; c=relaxed/simple;
+	bh=BZgJZq9crfNdSQUwDInYAwlrinjpAZFkmmbL3dHquAI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=otZYSCaitGCGjFK+xY1XBZQ+GEdH0ZtoASLHggAI7T5qE0GO7+aKxpmsgxCLMUmhzF8+ajeqAln9rBqyRfG6scK/W6+ju/965IaYdejCcjF4gfjANrT2HRrbKb54ljc3ZQa6n3aVBtcQ1KffZMPzzkIikBz0p/lbcrjNjSpqNZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HfQvaPln; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Ztq8Jz3p"
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 4BQLx0Sf1345536
-	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 26 Dec 2024 15:59:00 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1735250340;
-	bh=1MNoezJqPf19Y8hIf7M/es2CKZ5JFTcqmyfczH0V8Qo=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=Ztq8Jz3pMpSeonxhxtHZYqIzCdiRBt09rpAxBk2XUqTIldi2GVSoBo5njxNCiZFNt
-	 QjTerWpfB18PmDNU0MvvLvjr1wa2sgyvB11DS8Xj1NpphFCr8etvimRAUbhe0j0Luw
-	 MC4afVAlBXX9KGK1oyksidi4czY+aqOtjRte6Esg=
-Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
-	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 4BQLx0cw076125
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 26 Dec 2024 15:59:00 -0600
-Received: from DLEE101.ent.ti.com (157.170.170.31) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 26
- Dec 2024 15:59:00 -0600
-Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DLEE101.ent.ti.com
- (157.170.170.31) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Thu, 26 Dec 2024 15:59:00 -0600
-Received: from DMZ007XYY.dhcp.ti.com ([10.250.33.34])
-	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 4BQLww5x056047;
-	Thu, 26 Dec 2024 15:58:59 -0600
-From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
-        <rogerq@kernel.org>, <tony@atomide.com>, <linus.walleij@linaro.org>,
-        <brgl@bgdev.pl>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>
-CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v1 2/3] gpio: tps65215: Update GPIO0_IDX macro prefix
-Date: Thu, 26 Dec 2024 15:58:57 -0600
-Message-ID: <20241226215858.397054-3-s-ramamoorthy@ti.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20241226215858.397054-1-s-ramamoorthy@ti.com>
-References: <20241226215858.397054-1-s-ramamoorthy@ti.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HfQvaPln"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36DE2C4CED0;
+	Fri, 27 Dec 2024 17:45:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1735321562;
+	bh=BZgJZq9crfNdSQUwDInYAwlrinjpAZFkmmbL3dHquAI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=HfQvaPln2tzZ28IzEdFWFVnOi8QmVoJiQH84XOiHeq9AjvmEeI9eXmt0eznaNUru0
+	 kHTPBD8FMZ9gE0KvEuikXtPaxlTCtfsAYwBY2p7hG9UL1SBKmYLGlfFLDUK0DOsKYT
+	 DZ9BOrEoidkyNaUvnlT+tcbewL7Mswh00sAgFWU4tP9CPb2Vi3MyRrAxeeoYXjBRCc
+	 Yq3zecR76cjtUexp7iEKMcZaLYa6NGaMna89jYCe0SDaLi/RQD2EVmK95H9/2KAeaZ
+	 3y69jaYDFPojUBkAsOOOX3JkDKYrAE9ujdySukHVkNiicXvg5pWexEpitfeHefoEYt
+	 mTANhjfSivEYA==
+Date: Fri, 27 Dec 2024 17:45:56 +0000
+From: Conor Dooley <conor@kernel.org>
+To: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+Cc: lgirdwood@gmail.com, broonie@kernel.org, robh@kernel.org,
+	krzk+dt@kernel.org, conor+dt@kernel.org, aaro.koskinen@iki.fi,
+	andreas@kemnade.info, khilman@baylibre.com, rogerq@kernel.org,
+	tony@atomide.com, jerome.neanne@baylibre.com,
+	linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org, m-leonard@ti.com, praneeth@ti.com
+Subject: Re: [PATCH v1 1/7] regulator: dt-bindings: Add TI TPS65215 PMIC
+ bindings
+Message-ID: <20241227-gratitude-clunky-7999fdeb2656@spud>
+References: <20241226215412.395822-1-s-ramamoorthy@ti.com>
+ <20241226215412.395822-2-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="WIsoAqEd3k145ye7"
+Content-Disposition: inline
+In-Reply-To: <20241226215412.395822-2-s-ramamoorthy@ti.com>
 
-Updating the macro name to TPS6521X_GPIO0_IDX is meant to indicate this
-macro applies to both PMIC devices.
 
-Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
----
- drivers/gpio/gpio-tps65219.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+--WIsoAqEd3k145ye7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
-index 8508c8f320d0..7adc1274d80e 100644
---- a/drivers/gpio/gpio-tps65219.c
-+++ b/drivers/gpio/gpio-tps65219.c
-@@ -14,7 +14,7 @@
- 
- #define TPS65219_GPIO0_DIR_MASK		BIT(3)
- #define TPS65219_GPIO0_OFFSET		2
--#define TPS65219_GPIO0_IDX		0
-+#define TPS6521X_GPIO0_IDX			0
- 
- struct tps65219_gpio {
- 	struct gpio_chip gpio_chip;
-@@ -26,7 +26,7 @@ static int tps65219_gpio_get_direction(struct gpio_chip *gc, unsigned int offset
- 	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
- 	int ret, val;
- 
--	if (offset != TPS65219_GPIO0_IDX)
-+	if (offset != TPS6521X_GPIO0_IDX)
- 		return GPIO_LINE_DIRECTION_OUT;
- 
- 	ret = regmap_read(gpio->tps->regmap, TPS65219_REG_MFP_1_CONFIG, &val);
-@@ -42,7 +42,7 @@ static int tps65219_gpio_get(struct gpio_chip *gc, unsigned int offset)
- 	struct device *dev = gpio->tps->dev;
- 	int ret, val;
- 
--	if (offset != TPS65219_GPIO0_IDX) {
-+	if (offset != TPS6521X_GPIO0_IDX) {
- 		dev_err(dev, "GPIO%d is output only, cannot get\n", offset);
- 		return -ENOTSUPP;
- 	}
-@@ -71,7 +71,7 @@ static void tps65219_gpio_set(struct gpio_chip *gc, unsigned int offset, int val
- 	struct device *dev = gpio->tps->dev;
- 	int v, mask, bit;
- 
--	bit = (offset == TPS65219_GPIO0_IDX) ? TPS65219_GPIO0_OFFSET : offset - 1;
-+	bit = (offset == TPS6521X_GPIO0_IDX) ? TPS65219_GPIO0_OFFSET : offset - 1;
- 
- 	mask = BIT(bit);
- 	v = value ? mask : 0;
-@@ -117,7 +117,7 @@ static int tps65219_gpio_direction_input(struct gpio_chip *gc, unsigned int offs
- 	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
- 	struct device *dev = gpio->tps->dev;
- 
--	if (offset != TPS65219_GPIO0_IDX) {
-+	if (offset != TPS6521X_GPIO0_IDX) {
- 		dev_err(dev, "GPIO%d is output only, cannot change to input\n", offset);
- 		return -ENOTSUPP;
- 	}
-@@ -131,7 +131,7 @@ static int tps65219_gpio_direction_input(struct gpio_chip *gc, unsigned int offs
- static int tps65219_gpio_direction_output(struct gpio_chip *gc, unsigned int offset, int value)
- {
- 	tps65219_gpio_set(gc, offset, value);
--	if (offset != TPS65219_GPIO0_IDX)
-+	if (offset != TPS6521X_GPIO0_IDX)
- 		return 0;
- 
- 	if (tps65219_gpio_get_direction(gc, offset) == GPIO_LINE_DIRECTION_OUT)
--- 
-2.34.1
+On Thu, Dec 26, 2024 at 03:54:06PM -0600, Shree Ramamoorthy wrote:
+> TPS65215 is a Power Management IC with 3 Buck regulators and 2 LDOs.
+>=20
+> TPS65215 has 2 LDOS and 1 GPO, whereas TPS65219 has 4 LDOs and 2 GPOs. The
+> remaining features for both devices are the same.
+>=20
+> Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
+
+--WIsoAqEd3k145ye7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCZ27n1AAKCRB4tDGHoIJi
+0lXLAP9iViZ404ojAwKUz/chhC1KlU76CmxQ93n/qX3P8pFZxAEA7Q0gF3SJbymJ
+E8YPWNZJBk7RyfZrBKZpt+cvoUnXAgg=
+=9RgM
+-----END PGP SIGNATURE-----
+
+--WIsoAqEd3k145ye7--
