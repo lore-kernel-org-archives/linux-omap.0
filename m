@@ -1,66 +1,72 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+Received: from mail-4018.proton.ch (mail-4018.proton.ch [185.70.40.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AA9B198E78;
-	Sun, 29 Dec 2024 23:01:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92D7D817;
+	Mon, 30 Dec 2024 05:29:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.40.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735513296; cv=none; b=WaWz/DuNA7E3Nn+bm8rsx7x8Un1aouz46oCFY9sV5wa6uwH9BcVeNJVoHRps0pRPQgvKXmGtaoGvq4C3ADbU/Hf4T6QQjmMri/7j1uHNJdV0j0E+uH0nCPZWBOo6ygRn8/GADhK5avyRJ1TaTt++F1ZVRHZUbuY0VSbMPUMcn5I=
+	t=1735536553; cv=none; b=P5j+3FedHYdjJ6ToVnK22TAYqe9jLgKMzn4zlsSFLJfQpo/TJLBzhLufyVvIDPmacR9I2Hhf+B3zWX8ct3SMWblzb6St3Nsy7uGNs/EJS1Tz1zir642J8De26T7IfelVmPHfWSufKWxAHk/49J8V4SZ6GYpGIEKKIQBIM0MQwDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735513296; c=relaxed/simple;
-	bh=Nhj2GmwvYn65dMam/9yrikFtqFAxoDrmk9BnqTDsaIk=;
-	h=From:To:Cc:Subject:Date:Message-Id:Content-Type:MIME-Version; b=RavpDuDGKrcbXGDwknFRUoOQuRxDdDL8VtMGtOEzOJBPY7NXNYHcTVp6Qs4yOY2gJJEvWNlCvMOapqADAp6bR+hLc8z4hzg97AP2dzKXPovX1rwJ4BRe3bpgLgPVSQSFVW72ngchmfTUbCk1G80jMKmGdv8/iOaVlyBIph0d19c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=xBAuF/Y2; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1735536553; c=relaxed/simple;
+	bh=z1tbn6LI4vl+YBo18LDIWQRtOtRiBFMCb910mSXG7cw=;
+	h=Date:To:From:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=dJ6889bJUWgE+3qrYl3kxKW10hs3p1UP+9ukzDAXN+J3Pa9U9jV/5wVqjEhoMya3YvQpa7rajKD7xTo95lEDcAHxs0GblfGQYYCsMmDZn7L5KytqVvUNL5D/yz7wom6zYynOX3Dwtn46Oev8FqZYqpzhTBSXb27n26OlEKt0CiU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ethancedwards.com; spf=pass smtp.mailfrom=ethancedwards.com; dkim=pass (2048-bit key) header.d=ethancedwards.com header.i=@ethancedwards.com header.b=Zz+OiCX2; arc=none smtp.client-ip=185.70.40.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ethancedwards.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ethancedwards.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="xBAuF/Y2"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:From:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:In-Reply-To:References;
-	bh=YpkmG2o+vRir8a6i/hmCa26gd2mliGG+wyeARxHvBOw=; b=xBAuF/Y2q9FhKxfDC4/ajLUSZ6
-	j41bgyQ+UzHb9InmHwdWNx2NJN8DBKlRKzie0PyatuZMyxCr1Kw7wjFJ24lwDhV6uaEo2VO66HC6c
-	SXCOyIttDvREWnVq0NzEDZKg5ctc/OVt9JuzhWL2jD1sdawk3hpfVjqs8nPYFAO9Ye7wTwSDrE356
-	NDaTa2QV7bpRdKTA9XVZYa0o/OVwGjc7OLIZAkeY7hMBcjkiQ2u7qYzWpmAgg2EsTsEB2t89n/mo2
-	8rVgJjUpTehJv+7UHxGcc5dEF/qkpo9XQHKmuXnvXpV+XPTwwy0dfIWlCK8Hp7FK8EwNNSKssa2l8
-	pD/iLOBw==;
-From: Andreas Kemnade <andreas@kemnade.info>
-To: Rob Herring <robh@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Roger Quadros <rogerq@kernel.org>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Kevin Hilman <khilman@baylibre.com>,
-	devicetree@vger.kernel.org,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Tony Lindgren <tony@atomide.com>
-Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH 0/2] ARM: dts: omap4: panda: TiWilink improvements
-Date: Mon, 30 Dec 2024 00:01:23 +0100
-Message-Id: <20241229230125.85787-1-andreas@kemnade.info>
-X-Mailer: git-send-email 2.39.5
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=ethancedwards.com header.i=@ethancedwards.com header.b="Zz+OiCX2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ethancedwards.com;
+	s=protonmail3; t=1735536542; x=1735795742;
+	bh=z1tbn6LI4vl+YBo18LDIWQRtOtRiBFMCb910mSXG7cw=;
+	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
+	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector:
+	 List-Unsubscribe:List-Unsubscribe-Post;
+	b=Zz+OiCX2Xx5bWEmeK5nnR0zJicm4mDJY2qP8WXWcGEm4CJRfBzyhIk5nUpHMlrAiy
+	 qACymolqPfeQ0oRmKFgNO83NaaKuLDi6eMm49luMd7Ox4WN3V97Rk7yuVqUHRQpWmu
+	 qFb0V3RTJsYHfyKb2yN4J6APE/odc9bHOO5O9r1JVwIvQH7m2Dp0p3e6e/gSL49dQZ
+	 qqgXjR0AB0Fg8UrxUnEBN+eYQ5gAtRPnI6ahDrEhIP7lJ22DASd65oZK7F7nCy00aV
+	 sPYOx3QD+SphcicQgA1RTvrwznPwidKQWxc1ech84w/SmBarlzbETAxM8Ug5JDu8yQ
+	 w2yS26kefmBZQ==
+Date: Mon, 30 Dec 2024 05:28:58 +0000
+To: kristo@kernel.org
+From: Ethan Carter Edwards <ethan@ethancedwards.com>
+Cc: mturquette@baylibre.com, sboyd@kernel.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org, kernel-hardening@lists.openwall.com
+Subject: [PATCH] clk: ti: use kcalloc() instead of kzalloc()
+Message-ID: <xfjn4wqrhukvi45dkgkbulamq3242eijn7567vxwaxznh4ebdr@waat7u3l2mhi>
+Feedback-ID: 28410670:user:proton
+X-Pm-Message-ID: b630a1367cff86984b54c694637490e109da7999
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Add proper definitions for 32k clock and enable bluetooth
-everywhere.
+Use 2-factor multiplication argument form kcalloc() instead
+of kzalloc().
 
-Andreas Kemnade (2):
-  ARM: dts: omap4: panda: fix resources needed for Panda
-  ARM: dts: omap4: panda: cleanup bluetooth
+Link: https://github.com/KSPP/linux/issues/162
 
- .../boot/dts/ti/omap/omap4-panda-common.dtsi  | 38 ++++++++++++++++++-
- arch/arm/boot/dts/ti/omap/omap4-panda-es.dts  | 32 ----------------
- 2 files changed, 36 insertions(+), 34 deletions(-)
+Signed-off-by: Ethan Carter Edwards <ethan@ethancedwards.com>
+---
+ drivers/clk/ti/mux.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-2.39.5
+diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+index 216d85d6aac6..f684fc306ecc 100644
+--- a/drivers/clk/ti/mux.c
++++ b/drivers/clk/ti/mux.c
+@@ -180,7 +180,7 @@ static void of_mux_clk_setup(struct device_node *node)
+ =09=09pr_err("mux-clock %pOFn must have parents\n", node);
+ =09=09return;
+ =09}
+-=09parent_names =3D kzalloc((sizeof(char *) * num_parents), GFP_KERNEL);
++=09parent_names =3D kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
+ =09if (!parent_names)
+ =09=09goto cleanup;
+=20
+--=20
+2.47.1
 
