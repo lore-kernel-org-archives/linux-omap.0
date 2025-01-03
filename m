@@ -1,46 +1,44 @@
-Received: from lelvem-ot01.ext.ti.com (lelvem-ot01.ext.ti.com [198.47.23.234])
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 630FC1C1F2C;
-	Fri,  3 Jan 2025 23:05:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.234
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8C251C5498;
+	Fri,  3 Jan 2025 23:05:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.249
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735945502; cv=none; b=emZqHyfuPdvziFFEVPTJOZHxcnexg7HTqkUpun5AWk1tWb4EuFiB5u02TLbTJYCsPHN8ErhtDz94ui7po6BFOv1QyalPmZnGtyKcrwRR3hi0O4FjyiNcg7C4VSlqsa6UgP+lipWGR5IIGXGE67mld1whqpei6LNbxoLXh/VjHJ8=
+	t=1735945505; cv=none; b=GMm5XOvXlCbOOkMWJ46xhfaXiyhJNiUfUCMkl+q9lDiU3rkFab4BQW/7xMvXmm0jHihTjNi1B9zaEBv787iJ9bsi53RNjquxOB2It/o7HxKhyIY26RxlnS+W51Px4Z/B4DzhPvsvsAfqb2L3wYPB9p7c5Vo5GgLz0L8VZ64uTXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735945502; c=relaxed/simple;
-	bh=crk9YSD6JLgW8DWqdn1agc3CIrtDrSEQsWJqg2CwvXA=;
+	s=arc-20240116; t=1735945505; c=relaxed/simple;
+	bh=fKglM1lGIST2Yy/b4W2+O6RKmVxMCm8B4hiU5R/uRNo=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Fd90siLW3Ec6VJID/QOQbhN5EW6op3c+eq9VYMmUkk/NIW4o/yEv3k73MPjysMTw7QugMKfbgGgWu3k9I5BruS0a10jc4aig2Bha2rPLopyitCZOAjL+UmSKbb5I6btfNcoLapp/Nf35qfgnfSB5IKRFURdK/MhIyOJUC7N415Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=Q9MU4D6t; arc=none smtp.client-ip=198.47.23.234
+	 MIME-Version:Content-Type; b=cqmbUy8yUzz/0JC0MTq0KynI8tFhxjbTK/h56A79KTqR6I5Nej2r9oiAbwTokoobOwgYlpGridrZ+HbgeT+UpdTcjvodWNL//nUopezHXjVXwzcXGsEDVxYUjnam8D3v9YgsYXA87/HPIPTV/KTzAS+qt4un0Cb867awKpq9Q84=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=KYgDX70p; arc=none smtp.client-ip=198.47.23.249
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Q9MU4D6t"
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-	by lelvem-ot01.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 503N4kDF2151768
-	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 3 Jan 2025 17:04:47 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1735945487;
-	bh=tyVaq5FW+yE9cNTa2GL68Z/lhulLCmxsZ+WGlM2wlBg=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=Q9MU4D6th+XBeetofwKXIqCsHCV9kzRAcjF8jueA5GQD5T1R0SI/dR5FbFm6BmMtQ
-	 30WNvtxmPuv8D/z9umkMxEtXnlCOfUtYJ+Upq5L3hkdD/HVFInQd9TKFKQtJ0JYxTH
-	 fF7DIyAsh8xngNh1JgJt5rOeJslugHPUNxGP4Qnc=
-Received: from DLEE114.ent.ti.com (dlee114.ent.ti.com [157.170.170.25])
-	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 503N4kq2014647
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="KYgDX70p"
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+	by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 503N4kTc080772;
 	Fri, 3 Jan 2025 17:04:46 -0600
-Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE114.ent.ti.com
- (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+	s=ti-com-17Q1; t=1735945486;
+	bh=L5XoQlnFaWOJMh2tSTz5T9Yv4gdxEW//9FpSLsJo0T4=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=KYgDX70pNU2d2+WNvBe7FXze9lffU7z3sGhEPuw5YNyRTDyBlZXiS1K5t65ukk7LQ
+	 28tTXMeYdl6eqxlkBU24ea/FL6quu/Y35uPCe1gN+sIzEOHYXNXh4x4DXVyhjSKfxm
+	 ZSa8Ucs+N5L+LbJxiSBIVcRPOdVHxf5xOBr0r1+E=
+Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
+	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTP id 503N4kxY067457;
+	Fri, 3 Jan 2025 17:04:46 -0600
+Received: from DFLE115.ent.ti.com (10.64.6.36) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Fri, 3
  Jan 2025 17:04:46 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
  Frontend Transport; Fri, 3 Jan 2025 17:04:46 -0600
 Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.228])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 503N4k0N121736;
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 503N4k0O121736;
 	Fri, 3 Jan 2025 17:04:46 -0600
 From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
@@ -50,9 +48,9 @@ To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
         <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <devicetree@vger.kernel.org>
 CC: <m-leonard@ti.com>, <praneeth@ti.com>, <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH v2 5/7] regulator: tps65215: Update platform_device_id table
-Date: Fri, 3 Jan 2025 17:04:44 -0600
-Message-ID: <20250103230446.197597-6-s-ramamoorthy@ti.com>
+Subject: [PATCH v2 6/7] regulator: tps65215: Define probe() helper functions
+Date: Fri, 3 Jan 2025 17:04:45 -0600
+Message-ID: <20250103230446.197597-7-s-ramamoorthy@ti.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20250103230446.197597-1-s-ramamoorthy@ti.com>
 References: <20250103230446.197597-1-s-ramamoorthy@ti.com>
@@ -66,28 +64,86 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-Add TI TPS65215 PMIC to the existing platform_device_id struct, so the
-regulator probe() can match which PMIC chip_data information.
+Factor register_regulators() and request_irqs() out into smaller functions.
+These 2 helper functions are used in the next restructure probe() patch to
+go through the common (overlapping) regulators and irqs first, then the
+device-specific structs identifed in the chip_data struct.
 
 Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 ---
- drivers/regulator/tps65219-regulator.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/regulator/tps65219-regulator.c | 59 ++++++++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
 
 diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
-index 30928f1f216f..6dc0829cf29a 100644
+index 6dc0829cf29a..31d76706bfc0 100644
 --- a/drivers/regulator/tps65219-regulator.c
 +++ b/drivers/regulator/tps65219-regulator.c
-@@ -404,7 +404,8 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
- }
- 
- static const struct platform_device_id tps65219_regulator_id_table[] = {
--	{ "tps65219-regulator", },
-+	{ "tps65215-regulator", TPS65215 },
-+	{ "tps65219-regulator", TPS65219 },
- 	{ /* sentinel */ }
+@@ -347,6 +347,65 @@ static struct tps65219_chip_data chip_info_table[] = {
+ 	},
  };
- MODULE_DEVICE_TABLE(platform, tps65219_regulator_id_table);
+ 
++static int tps65219_register_regulators(const struct regulator_desc *regulators,
++					struct tps65219 *tps,
++					struct device *dev,
++					struct regulator_config config,
++					unsigned int arr_size)
++{
++	int i;
++	struct regulator_dev *rdev;
++
++	config.driver_data = tps;
++	config.dev = tps->dev;
++	config.regmap = tps->regmap;
++
++	for (i = 0; i < arr_size; i++) {
++		rdev = devm_regulator_register(dev, &regulators[i],
++						&config);
++		if (IS_ERR(rdev))
++			return dev_err_probe(tps->dev, PTR_ERR(rdev),
++				"Failed to register %s regulator\n",
++				regulators[i].name);
++	}
++
++	return 0;
++}
++
++static int tps65219_request_irqs(struct tps65219_regulator_irq_type *irq_types,
++				 struct tps65219 *tps, struct platform_device *pdev,
++				 struct tps65219_regulator_irq_data *irq_data,
++				 unsigned int arr_size)
++{
++	int i;
++	int irq;
++	int error;
++	struct tps65219_regulator_irq_type *irq_type;
++
++	for (i = 0; i < arr_size; ++i) {
++		irq_type = &irq_types[i];
++
++		irq = platform_get_irq_byname(pdev, irq_type->irq_name);
++		if (irq < 0)
++			return -EINVAL;
++
++		irq_data[i].dev = tps->dev;
++		irq_data[i].type = irq_type;
++
++		error = devm_request_threaded_irq(tps->dev, irq, NULL,
++						  tps65219_regulator_irq_handler,
++						  IRQF_ONESHOT,
++						  irq_type->irq_name,
++						  &irq_data[i]);
++		if (error)
++			return dev_err_probe(tps->dev, error,
++				"Failed to request %s IRQ %d\n",
++				irq_type->irq_name, irq);
++	}
++
++	return 0;
++}
++
+ static int tps65219_regulator_probe(struct platform_device *pdev)
+ {
+ 	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
 -- 
 2.34.1
 
