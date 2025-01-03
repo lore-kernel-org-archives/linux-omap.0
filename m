@@ -1,148 +1,150 @@
-Received: from lelvem-ot02.ext.ti.com (lelvem-ot02.ext.ti.com [198.47.23.235])
+Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96AA31BEF89;
-	Fri,  3 Jan 2025 21:25:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.235
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6FB72E401;
+	Fri,  3 Jan 2025 22:54:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.249
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735939543; cv=none; b=UROPtVUQAJhdOPT8DW3KOdwyHx/dc2ajbaGabt976vi+JKBmzv3eW9+bm/R/afXXVHdgR5tEAlJKPW/Df3SWBt2J+YntQSl2R0IO29robDX1Wup0W5v1HsATjC1X+0kpVWp25TzfyCa0ocALrh7R/8X35TRBXwsAxAfgnHGuoH0=
+	t=1735944865; cv=none; b=QtlYx5LV6j6xFLzuAgZ+P40du0FPIVeSQK450BSvY/hS4l2IpWluzvUZwYcx0kQgYmwPSpyz++sRo6JIHQoJcnwv7LUw1b07AK22H2WqdMnFRYR/3EZLuEdJQJn8mJ8//mb4pQG7tQ9oOdS66p/oQIhj/LiMlAUE2fRMUv2Myns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735939543; c=relaxed/simple;
-	bh=4hL4JPIwOkhizFkkaEYRUjkV5LVZTiLgkT63bP1bSwE=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=o9k3/asoSHFdgsa6gHkX7Vl1SeRGOtDUgFl2qz8Wuhi802wBUh/vqVr8lVvchweEHqs0OAd36QqmfjS6LiMeZ5/yKCVozeAp8RHBmGC4yGaOEosIczo205phzCOMizVs8CuIDGLkHpD3/oQWtZ8aCWewpoKoz51k/+qG4AsA01s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=bP2nhUXm; arc=none smtp.client-ip=198.47.23.235
+	s=arc-20240116; t=1735944865; c=relaxed/simple;
+	bh=cla/HPYLsfl2z1Zg3daqfYOHVGEV9GJA2zhuacRsqQ4=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=vCcw9j8ijSuYz3iUCQyR/S2T763vacBKBos0QoyFqiFcPQIPfe2mpE5jOSKAk53l1av5EUBAfS40G3NQHPHm0a9zJBzC3VJJu8af1Inb0SbFtEGGAgNdJi1XfBlZ58DHEanLGojP5+W/oaHhp/yrvIG7q1TkSzP/frhjAA61EZ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=SeFUyJHi; arc=none smtp.client-ip=198.47.23.249
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="bP2nhUXm"
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 503LPSbt2448245
-	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
-	Fri, 3 Jan 2025 15:25:28 -0600
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="SeFUyJHi"
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+	by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 503Ms7Hn078932;
+	Fri, 3 Jan 2025 16:54:07 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1735939528;
-	bh=YZznWuB1FraRGFyZglxWAosBnpPgLA03XkIoE8efXcA=;
-	h=Date:From:To:CC:Subject:References:In-Reply-To;
-	b=bP2nhUXm4ZvP5A/Ogp+ULktqfTiKWvl5cIOouWNWOdTs31HFtamfdMWnbW5xvzxKc
-	 JYSygimS1kNkpVKx5+NFFi6nnDE9eDe8B0PSkBDrlVe5+pYSWltlCa3riTkqLwHENP
-	 3+Pq+YReZJ8KOxQzALnVPJtmMwxW6L51rWNaejDo=
-Received: from DLEE102.ent.ti.com (dlee102.ent.ti.com [157.170.170.32])
-	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTP id 503LPSL4011213;
-	Fri, 3 Jan 2025 15:25:28 -0600
-Received: from DLEE103.ent.ti.com (157.170.170.33) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
+	s=ti-com-17Q1; t=1735944847;
+	bh=P/njhejPc44HTljZBfzvhhj6hnO7YPM6bRtiVVpdc2g=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=SeFUyJHi2brY9SWiSuMBl77ztcMemTg56nJ8Kh+XrtC59C+1WcallbVSjjiril/Qs
+	 /1cfVzOJ6f/PR1IZOTD39TA+VtS0vA+m9FDAJItJ4hD+7mDKScMaiYBfkINz36/SCW
+	 akP8XEtg9hpM4Pohuz2UjP2OtvnTBcjk8fvwjsN0=
+Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
+	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 503Ms7ch008026
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Fri, 3 Jan 2025 16:54:07 -0600
+Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE113.ent.ti.com
+ (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Fri, 3
- Jan 2025 15:25:27 -0600
-Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DLEE103.ent.ti.com
- (157.170.170.33) with Microsoft SMTP Server (version=TLS1_2,
+ Jan 2025 16:54:07 -0600
+Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DFLE100.ent.ti.com
+ (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Fri, 3 Jan 2025 15:25:28 -0600
-Received: from localhost (uda0133052.dhcp.ti.com [128.247.81.232])
-	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 503LPStc016571;
-	Fri, 3 Jan 2025 15:25:28 -0600
-Date: Fri, 3 Jan 2025 15:25:28 -0600
-From: Nishanth Menon <nm@ti.com>
-To: Kevin Hilman <khilman@baylibre.com>
-CC: <devicetree@vger.kernel.org>, Romain Naour <romain.naour@smile.fr>,
-        <linux-arm-kernel@lists.infradead.org>, <linux-omap@vger.kernel.org>,
-        <conor+dt@kernel.org>, <krzk+dt@kernel.org>, <robh@kernel.org>,
-        <kristo@kernel.org>, <vigneshr@ti.com>,
-        Romain Naour <romain.naour@skf.com>, <afd@ti.com>,
-        <s-vadapalli@ti.com>
-Subject: Re: [PATCHv3 1/2] dt-bindings: mfd: syscon: Add
- ti,j721e-acspcie-proxy-ctrl compatible
-Message-ID: <20250103212528.enq4ur5afxhwzh7n@outdoors>
-References: <20241202143331.126800-1-romain.naour@smile.fr>
- <173344002250.407600.8303166891165540615.b4-ty@baylibre.com>
+ Frontend Transport; Fri, 3 Jan 2025 16:54:07 -0600
+Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.228])
+	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 503Ms7AO098981;
+	Fri, 3 Jan 2025 16:54:07 -0600
+From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
+        <rogerq@kernel.org>, <tony@atomide.com>, <linus.walleij@linaro.org>,
+        <brgl@bgdev.pl>, <linux-omap@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>
+CC: <m-leonard@ti.com>, <praneeth@ti.com>, <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH v2 3/3] gpio tps65215: Add support for varying gpio/offset values
+Date: Fri, 3 Jan 2025 16:54:07 -0600
+Message-ID: <20250103225407.196068-4-s-ramamoorthy@ti.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20250103225407.196068-1-s-ramamoorthy@ti.com>
+References: <20250103225407.196068-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <173344002250.407600.8303166891165540615.b4-ty@baylibre.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-On 15:07-20241205, Kevin Hilman wrote:
-> 
-> On Mon, 02 Dec 2024 15:33:30 +0100, Romain Naour wrote:
-> > The ACSPCIE_PROXY_CTRL registers within the CTRL_MMR space of TI's J721e
-> > SoC are used to drive the reference clock to the PCIe Endpoint device via
-> > the PAD IO Buffers. Add the compatible for allowing the PCIe driver to
-> > obtain the regmap for the ACSPCIE_CTRL register within the System
-> > Controller device-tree node in order to enable the PAD IO Buffers.
-> > 
-> > The Technical Reference Manual for J721e SoC with details of the
-> > ASCPCIE_CTRL registers is available at:
-> > https://www.ti.com/lit/zip/spruil1
-> > 
-> > [...]
-> 
-> Applied, thanks!
-> 
-> [1/2] dt-bindings: mfd: syscon: Add ti,j721e-acspcie-proxy-ctrl compatible
->       commit: d8efc0b428856137608ffcbb6994da6041c9fe2a
-> [2/2] arm64: dts: ti: k3-j721e-beagleboneai64: Enable ACSPCIE output for PCIe1
->       commit: 1d5e14a20dc60b440c60bec8489acfd45cdf7508
-> 
-> Best regards,
-> -- 
-> Kevin Hilman <khilman@baylibre.com>
-> 
-This will need a bit of fixup - See along the lines of the following.
-Additionally, we should be a bit careful about the dependency of dts
-mix up from two trees.
+Add device-specific structs to select the different PMIC .npgio and .offset
+values. With the chip_data struct values selected based on the match data,
+having a separate GPIO0_OFFSET macro is no longer needed.
 
-https://lore.kernel.org/all/20250103174524.28768-1-afd@ti.com/T/#m15dcfa786fc430d54cf96475afc10648372f8589
+Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+---
+ drivers/gpio/gpio-tps65219.c | 27 ++++++++++++++++++++++++---
+ 1 file changed, 24 insertions(+), 3 deletions(-)
 
-From Andrew Davis:
-
-diff --git a/Documentation/devicetree/bindings/soc/ti/ti,j721e-system-controller.yaml b/Documentation/devicetree/bindings/soc/ti/ti,j721e-system-controller.yaml
-index 378e9cc5fac2a..3323f3bc976e0 100644
---- a/Documentation/devicetree/bindings/soc/ti/ti,j721e-system-controller.yaml
-+++ b/Documentation/devicetree/bindings/soc/ti/ti,j721e-system-controller.yaml
-@@ -68,6 +68,12 @@ patternProperties:
-     description:
-       The node corresponding to SoC chip identification.
+diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
+index 70a4410c473a..14286dd5fdfb 100644
+--- a/drivers/gpio/gpio-tps65219.c
++++ b/drivers/gpio/gpio-tps65219.c
+@@ -13,7 +13,6 @@
+ #include <linux/regmap.h>
  
-+  "^aspcie-ctrl@[0-9a-f]+$":
-+    type: object
-+    $ref: /schemas/mfd/syscon.yaml#
-+    description:
-+      This is the ASPCIe control region.
-+
- required:
-   - compatible
-   - reg
-@@ -110,5 +116,10 @@ examples:
-             compatible = "ti,am654-chipid";
-             reg = <0x14 0x4>;
-         };
-+
-+        acspcie0_proxy_ctrl: aspcie-ctrl@18090 {
-+            compatible = "ti,j721e-acspcie-proxy-ctrl", "syscon";
-+            reg = <0x18090 0x4>;
-+        };
-     };
- ...
-diff --git a/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi b/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
-index 32a232a90100e..4b2101e90fb51 100644
---- a/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
-+++ b/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
-@@ -84,7 +84,7 @@ ehrpwm_tbclk: clock-controller@4140 {
-                        #clock-cells = <1>;
-                };
+ #define TPS65219_GPIO0_DIR_MASK		BIT(3)
+-#define TPS65219_GPIO0_OFFSET		2
+ #define TPS6521X_GPIO0_IDX			0
  
--               acspcie0_proxy_ctrl: syscon@18090 {
-+               acspcie0_proxy_ctrl: aspcie-ctrl@18090 {
-                        compatible = "ti,j721e-acspcie-proxy-ctrl", "syscon";
-                        reg = <0x18090 0x4>;
-                };
-
+ struct tps65219_gpio {
+@@ -21,6 +20,11 @@ struct tps65219_gpio {
+ 	struct tps65219 *tps;
+ };
+ 
++struct tps65219_chip_data {
++	int ngpio;
++	int offset;
++};
++
+ static int tps65219_gpio_get_direction(struct gpio_chip *gc, unsigned int offset)
+ {
+ 	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
+@@ -71,7 +75,7 @@ static void tps65219_gpio_set(struct gpio_chip *gc, unsigned int offset, int val
+ 	struct device *dev = gpio->tps->dev;
+ 	int v, mask, bit;
+ 
+-	bit = (offset == TPS6521X_GPIO0_IDX) ? TPS65219_GPIO0_OFFSET : offset - 1;
++	bit = (offset == TPS6521X_GPIO0_IDX) ? (gpio->gpio_chip.ngpio - 1) : offset - 1;
+ 
+ 	mask = BIT(bit);
+ 	v = value ? mask : 0;
+@@ -148,14 +152,29 @@ static const struct gpio_chip tps65219_template_chip = {
+ 	.get			= tps65219_gpio_get,
+ 	.set			= tps65219_gpio_set,
+ 	.base			= -1,
+-	.ngpio			= 3,
+ 	.can_sleep		= true,
+ };
+ 
++static const struct tps65219_chip_data chip_info_table[] = {
++	[TPS65215] = {
++		.ngpio = 2,
++		.offset = 1,
++	},
++	[TPS65219] = {
++		.ngpio = 3,
++		.offset = 2,
++	},
++};
++
+ static int tps65219_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
+ 	struct tps65219_gpio *gpio;
++	const struct tps65219_chip_data *pmic;
++
++	enum pmic_id chip = platform_get_device_id(pdev)->driver_data;
++
++	pmic = &chip_info_table[chip];
+ 
+ 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+ 	if (!gpio)
+@@ -164,6 +183,8 @@ static int tps65219_gpio_probe(struct platform_device *pdev)
+ 	gpio->tps = tps;
+ 	gpio->gpio_chip = tps65219_template_chip;
+ 	gpio->gpio_chip.label = dev_name(&pdev->dev);
++	gpio->gpio_chip.ngpio =  pmic->ngpio;
++	gpio->gpio_chip.offset = pmic->offset;
+ 	gpio->gpio_chip.parent = tps->dev;
+ 
+ 	return devm_gpiochip_add_data(&pdev->dev, &gpio->gpio_chip, gpio);
 -- 
-Regards,
-Nishanth Menon
-Key (0xDDB5849D1736249D) / Fingerprint: F8A2 8693 54EB 8232 17A3  1A34 DDB5 849D 1736 249D
+2.34.1
+
