@@ -1,58 +1,95 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00D701372;
-	Mon,  6 Jan 2025 23:45:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 982841E2842
+	for <linux-omap@vger.kernel.org>; Mon,  6 Jan 2025 23:45:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736207156; cv=none; b=oW237bTrLOOEt+PbxrrHQH69fH8RDgoKTVhZJf026lq+T80cGZA9urAhW8QA3DhFzdEGmh/xmJmngtB4mxknjWLJSawa/nFy7bDUMswVkvPwq4Q9gtVZ7919GUEwnFfrA5KkQsmDPDaxX4s8t0ce4xlgyRngSE9aauz8m8J9rpU=
+	t=1736207156; cv=none; b=UbPLmLUgL9uwm/nmYbGrSdf86vF6VB6AD12IiZ9k7ZXgGuxfJ1Ka1IRIsstlRxB9Ujn8UnCZBtwLm+CUFyv5EfK18dnVK7jT38mkYikVy8qPITtw8t/NMa2R9OnYj3oKpKhuziAG+T8bqt3+InJkVM8HVmXVEvqIk1Qm4ETYNRE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1736207156; c=relaxed/simple;
-	bh=1bAd2cg37bNOFIyYWD5gM17W2m0QLH7yiAYYwOUMmso=;
-	h=Message-ID:Content-Type:MIME-Version:In-Reply-To:References:
-	 Subject:From:To:Date; b=t3jtuuprhKzuJ1YseRYwAd0F6LbaRRq63kC+o32vCvNap22WdTBun0PmpXdT67zxyNf10CFOMQvnSAO4eppH1cHsXCXEWeOUx9kAE+EiLMf5LXJnCpAo0ypYmSrVM0Dg1TPFaLePrj/6IUq3z5gf2tKFfp/vvpXI6GXcEYny0+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=vQO0HjvW; arc=none smtp.client-ip=10.30.226.201
+	bh=g+3Sxr4wbiVgOL4m/NPcm/nr1EuA023ouaHNZp1AGd4=;
+	h=From:To:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=nIHq7Ml5uMGa9Lkp0IXVp0DY+81IOQx2Lk/j3+GWFbfCt16nAeiSLhldu8EaCSzg7/jleXIUd9eArqVbXWOs2QOaRlMp10Kq/RfEId2N3NU5dbdzsBgQPiPUSUOewjkrU3QZvr4ESFOLbi2OBSPoD9hf2rAu9/lnH6pmQyZriYs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=H7m6s3GD; arc=none smtp.client-ip=209.85.214.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="vQO0HjvW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8DA7C4CEE1;
-	Mon,  6 Jan 2025 23:45:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1736207155;
-	bh=1bAd2cg37bNOFIyYWD5gM17W2m0QLH7yiAYYwOUMmso=;
-	h=In-Reply-To:References:Subject:From:To:Date:From;
-	b=vQO0HjvW1tQuo3iHO4809aVyTFVkPeTuQF/ErUHEbiXLEEr42gZVaq2//wUy6Q+Aq
-	 mYwpYar1iO/LP/xhVWD9zXNLX+msLh2Nrb3GMx6CH1GJmOnPxCg7NtfHU0dm7VLI/c
-	 f9PXBHM05DYXhvN6jXmeN1wNTHlzNbMF2E4F2BqvxYsLHUOzLZa23E7BMnMiqtOeyf
-	 XolvOg1HzDOXXVcj8F3QFto9WM1fJwQb5Qvv0e0ty4dxFcL/pOWHFVqclClIcygWM5
-	 70urmB3UUn5wFtQkJJWefFXg+Qwa3EWIvgjGCYMIpcQxhihi4easlJI4/nvsjog652
-	 XQPSnq58IJM0w==
-Message-ID: <582660ce914f6585a9e17c10dda9aa85.sboyd@kernel.org>
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="H7m6s3GD"
+Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-216728b1836so196871985ad.0
+        for <linux-omap@vger.kernel.org>; Mon, 06 Jan 2025 15:45:54 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1736207153; x=1736811953; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:date:message-id:subject
+         :references:in-reply-to:to:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Ae7eX1VcrbWOal63x+hvMKIWCXRYTfaUhj7cSqAJrEg=;
+        b=H7m6s3GDPM/XGkTfjCy8Su0lYfkAxIuXV0UmY9py4/ANgto5oWeP7c6WEj9tkSFqqW
+         +qF0DQkRRNvUSGoWcRO9mLf42iP9BzjNyLMlSYBggAcljN8K8dSmIQjs9SgzaKUJU4R3
+         o/YrCWFM6sU+W1QUOtOkMCWIuyr4R89N1ZQX/puI8dL8VNf74EOboXLCyzXXjUbyM7lq
+         FAaVUIuQlw61KleLHXapK0EnqgpF6W577eHKMaV49cffeAp99sLvTi22npcKxZLivdym
+         ngRCMZpPSKfn7woEMoVX/RFACmTnVD5RhuYrVnrWL5UIiFzyXWt6DtOuNDYH/VTLAL5d
+         63vQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1736207153; x=1736811953;
+        h=content-transfer-encoding:mime-version:date:message-id:subject
+         :references:in-reply-to:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Ae7eX1VcrbWOal63x+hvMKIWCXRYTfaUhj7cSqAJrEg=;
+        b=p9W/BXaRCqssdaT5ULPN/1+HtlY9RQCRwaT56BqHactOOsWFO5Z0haGIe2FOGWiFSn
+         SHZXwdYUQzWHxG0bRyzjHZJTbp1m5M4yswGo26wH0Nt4oLvHo/dMFPj8u3GJS1t8IrkH
+         /BxEvvyQVASp7A5PNdr9NITtsKjC4YKMHHuyaJ8tkCemRbRyjSBMqg8b7ht2RMQ6GiIc
+         zHR7c1EQiq+8N88CNURZH36rUglIZf9vB/wHwHOWkGiQDk/cR6bHDey04SdksDVylYxO
+         clO7USo5SzC+judfbaiKLX0uisjDTYW/RT89t2XRpZsUiGgboOKUDy23iI1SDYpNcYr6
+         O2lw==
+X-Forwarded-Encrypted: i=1; AJvYcCWsJeiJLll2A17b4SLl472qcPpBxVm7kR9+Nd0lrDQWIjwv7Pv+f94qgooBWZuCNyjGlSspx3go4iXP@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz1CflfHyqUXsVoOUA/i7mkqSVvvTT60CJiGdPGWyiNCm+1FZbi
+	QqcZvzR3VS481no657S/8JDxY4DB6f5jE4z94hlquDD1xlkEid8nhz7efC6ZDG7FgHioJdcSIx3
+	+
+X-Gm-Gg: ASbGncs17lvV1EnNTHlEN9z51z33iFvd4H6tf1HsvYEbggjaPVzpoMi36DXGYP3sjgG
+	sCHWdUOJgcogQmARmKQqaiI/ExYz0oMJ2KxLudVT9dXjgnO7791MiWU3yvyHBi3Je/S+EGX+j+i
+	XHGf/dZitxht8LRzSL91Pus+y8MRaOCO/ctKAUyOJuoSfWOjMDC5E/DD3M6AxnH4SMmBlxlyh3Z
+	S+l0pKu7MIqrtqK1wz7SeHEkxBgOV4TfMgLaU2hUs4Zh3J6rmGyTWw=
+X-Google-Smtp-Source: AGHT+IEyj/CbdGiIw4oe//fTvu0d1C6QeCGfXb3QIrnjF1+e1FD5isTOw1FMoA0flm7N9cEayQ9rLA==
+X-Received: by 2002:a05:6a20:2d07:b0:1e1:b44f:cff1 with SMTP id adf61e73a8af0-1e5e07f9c06mr83863396637.33.1736207153545;
+        Mon, 06 Jan 2025 15:45:53 -0800 (PST)
+Received: from localhost ([97.126.182.119])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-72aad8fb9a8sm32211279b3a.157.2025.01.06.15.45.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 06 Jan 2025 15:45:52 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: aaro.koskinen@iki.fi, rogerq@kernel.org, tony@atomide.com, 
+ linux@armlinux.org.uk, linux-omap@vger.kernel.org, 
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+ Andreas Kemnade <andreas@kemnade.info>
+In-Reply-To: <20241229144459.9742-1-andreas@kemnade.info>
+References: <20241229144459.9742-1-andreas@kemnade.info>
+Subject: Re: [PATCH] ARM: omap2plus_defconfig: enable charger of TWL603X
+Message-Id: <173620715274.32831.12985016138338790659.b4-ty@baylibre.com>
+Date: Mon, 06 Jan 2025 15:45:52 -0800
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20250105170854.408875-2-andreas@kemnade.info>
-References: <20250105170854.408875-1-andreas@kemnade.info> <20250105170854.408875-2-andreas@kemnade.info>
-Subject: Re: [PATCH v2 1/2] dt-bindings: clock: ti: Convert gate.txt to json-schema
-From: Stephen Boyd <sboyd@kernel.org>
-To: Andreas Kemnade <andreas@kemnade.info>, Conor Dooley <conor+dt@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Michael Turquette <mturquette@baylibre.com>, Rob Herring <robh@kernel.org>, Tero Kristo <kristo@kernel.org>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Date: Mon, 06 Jan 2025 15:45:53 -0800
-User-Agent: alot/0.12.dev1+gaa8c22fdeedb
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-355e8
 
-Quoting Andreas Kemnade (2025-01-05 09:08:53)
-> Convert the OMAP gate clock device tree binding to json-schema.
-> Specify the creator of the original binding as a maintainer.
-> Choose GPL-only license because original binding was also GPL.
-> Clean up the examples during conversion to meet modern standards and
-> remove examples with no additional value.
-> Due to usage in code and existing devicetree binding, add the
-> ti,set-rate-parent property.
->=20
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
 
-Applied to clk-next
+On Sun, 29 Dec 2024 15:44:59 +0100, Andreas Kemnade wrote:
+> Enable the newly-added charger of TWL603X in the defconfig since it is
+> used by the Epson Moverio BT200.
+> 
+> 
+
+Applied, thanks!
+
+[1/1] ARM: omap2plus_defconfig: enable charger of TWL603X
+      commit: 643cc5ca01ce462f2e2856eda60400e9a7052bb9
+
+Best regards,
+-- 
+Kevin Hilman <khilman@baylibre.com>
+
