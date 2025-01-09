@@ -1,74 +1,47 @@
-Received: from delivery.antispam.mailspamprotection.com (delivery.antispam.mailspamprotection.com [185.56.87.12])
+Received: from mta-65-227.siemens.flowmailer.net (mta-65-227.siemens.flowmailer.net [185.136.65.227])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4467218C92F
-	for <linux-omap@vger.kernel.org>; Thu,  9 Jan 2025 18:23:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=185.56.87.12
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736447010; cv=pass; b=Rj5aGvBqX6lMpDBy1i1pK768YwUFjqlxk7swn9zetcx0XIsocW7gn6nTqRGW3FvffCYQarf256b8qQmHnPuXx1OhBAhTaQ0bc7Jw7iMSJQSws9Zb1+SXy/5kZh+i0yvGqdWYkYx5t51+Xfqlf7r3sFOfub/v00vEQNe6rVtI/1E=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736447010; c=relaxed/simple;
-	bh=JujTlisisTKj/lB3FvEubvMqpUIrnRDxA2GT8c2/36I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=theD1akWhXY3REr971ArAckjZY8/rLn5bWPo53JCcBll15PQMG6aUmf+NJyqivca9B/4yErGUqH49EUhNy33y8QluiUVGyLlwHbP7y2FtPNaYRvRrn5sRAl4y2S7bv9tVfQC+NCDkwdqnXmNL3UabZKTb4P6oLod3Qd5/HlUo+k=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=valla.it; spf=pass smtp.mailfrom=valla.it; dkim=pass (1024-bit key) header.d=valla.it header.i=@valla.it header.b=fNb80v/0; arc=pass smtp.client-ip=185.56.87.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=valla.it
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=valla.it
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41198204F84
+	for <linux-omap@vger.kernel.org>; Thu,  9 Jan 2025 21:43:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.136.65.227
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1736459038; cv=none; b=k7x5MV+lPjcxr6BB68T7YJci0xoXn4lddsJCUlxXBag7Q+rtnF37Fq/56zMOgUWs0zu1NFRqGSW8/fXB94BmaLDjsxEVxyYRwXWALJwAdaPZlNIHQ1U9+ImaTWuBHS7OvNRxzq9FvvamJxj7D9BlRjZOEzPNl38sRcXVThu4Z0c=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1736459038; c=relaxed/simple;
+	bh=PUtS4415at1bVZMOMPuBrjF3Irk089p14E+kYCzEQHs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hZt7DR/rjNmjp6G21I0p5raTSkED1l2B0bs6NSxj2HD0LI+boA1Oz+O+jis1/gvZqIRUKT1F2uHHlfo0LxmR/2NH6CwoXOA8hRqdHf93qjIJxvGZ/qVCi07mOGbgcxUFUV7dTDy645DAVldmOttCxmngofFGWvmM+4Q1aqdWijs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=siemens.com; spf=pass smtp.mailfrom=rts-flowmailer.siemens.com; dkim=pass (2048-bit key) header.d=siemens.com header.i=alexander.sverdlin@siemens.com header.b=tviYwSZI; arc=none smtp.client-ip=185.136.65.227
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=siemens.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rts-flowmailer.siemens.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=valla.it header.i=@valla.it header.b="fNb80v/0"
-ARC-Seal: i=1; cv=none; a=rsa-sha256; d=instance-europe-west4-75c7.prod.antispam.mailspamprotection.com; s=arckey; t=1736447008;
-	 b=ketfwJqYUtv9JbXhCwWGFqcrKCRGt1jfzbWkvZHe8GN9pINVuYlmfRzVGAUEJbGGjiP8xuYFIf
-	  E3JJWW/ybMRRmxgpDgjXlgtVV+bdoeRcwbqWiMDHyCRLsqW+YKv968eIwEgER8aLU9VcL7hlnT
-	  KsIwOpbI0mF+5SYxF3z0JXhuvXyA95vMGfpK8e3ymVlgFo5aK4OmVw4rVybRJtydcsIaY8nW3x
-	  1uVhKy/HrciX99wps/sQjR2X1meyvTAg6iqfj7q3cqG/igitNDTfbNATxKVChfFVqfQmNmEp6n
-	  XfJS7bGXroj2+zQ1++P2Uz5dgLCUTVY3Cq67Ua1fVrewGw==;
-ARC-Authentication-Results: i=1; instance-europe-west4-75c7.prod.antispam.mailspamprotection.com; smtp.remote-ip=35.214.173.214;
-	iprev=pass (214.173.214.35.bc.googleusercontent.com) smtp.remote-ip=35.214.173.214;
-	auth=pass (LOGIN) smtp.auth=esm19.siteground.biz;
-	dkim=pass header.d=valla.it header.s=default header.a=rsa-sha256;
-	arc=none
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed; d=instance-europe-west4-75c7.prod.antispam.mailspamprotection.com; s=arckey; t=1736447008;
-	bh=JujTlisisTKj/lB3FvEubvMqpUIrnRDxA2GT8c2/36I=;
-	h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:Cc:To:From:
-	  DKIM-Signature;
-	b=dP9r9L56dbQ9tMeJtGgh28ss/p07pven3kPDvz6g8WreAScgzvjU8EiHF56SuRlKFnevo+lKw5
-	  37kCxjfd32UfskEfCI+Djwl/DegHcRvcOIOSFIXOu9+DYlyPdNCXPfbAyBeBlnOU6M0eo/R5uP
-	  /qF31L8eSohNOo29I0DafZo3EkzsdyxEAUvU2PuACjzuJRTr20ZOViz396waYOAPkY2Mb67m6Q
-	  Cs8Lv0xodau14Snij354hSw7pv6EmACbDchkPj2BV8Z3zOUgphRtVfKGvJAZGpzlMjG8NnW4PT
-	  A3jtQZ/BLO6K7xy1JJl+Ss1yLebAq+3Yf2NWrP7kHvrXkg==;
-Received: from 214.173.214.35.bc.googleusercontent.com ([35.214.173.214] helo=esm19.siteground.biz)
-	by instance-europe-west4-75c7.prod.antispam.mailspamprotection.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.98)
-	(envelope-from <francesco@valla.it>)
-	id 1tVwiX-00000003szy-17A2
-	for linux-omap@vger.kernel.org;
-	Thu, 09 Jan 2025 17:53:18 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=valla.it;
-	s=default; h=Date:Subject:Cc:To:From:list-help:list-unsubscribe:
-	list-subscribe:list-post:list-owner:list-archive;
-	bh=wWu0+tM+DklUyr688J1cGKUK2jvQy1icRidsJVjMMsQ=; b=fNb80v/07B5aJK0R1fnlwPlkfL
-	FN67hDGL/yRbZajmZ/gEMwiZT+ObPRX7ix5L+1G2USW+ygPe2arT4mIbYlvnoItdTwwdFkFKfquHV
-	nc5LwonHoSwwW9BCf66l2AwRKINIdZ8Kw/+WThim1Ce7gfFYkuqnPhit08vIfBR1Q+Ok=;
-Received: from [87.11.41.26] (port=62454 helo=fedora.fritz.box)
-	by esm19.siteground.biz with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.98)
-	(envelope-from <francesco@valla.it>)
-	id 1tVwiJ-00000000G9C-3HFB;
-	Thu, 09 Jan 2025 17:52:59 +0000
-From: Francesco Valla <francesco@valla.it>
-To: Nishanth Menon <nm@ti.com>,
-	Vignesh Raghavendra <vigneshr@ti.com>,
-	Tero Kristo <kristo@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Tony Lindgren <tony@atomide.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
+	dkim=pass (2048-bit key) header.d=siemens.com header.i=alexander.sverdlin@siemens.com header.b="tviYwSZI"
+Received: by mta-65-227.siemens.flowmailer.net with ESMTPSA id 20250109214345f807471ab8a8c795ea
+        for <linux-omap@vger.kernel.org>;
+        Thu, 09 Jan 2025 22:43:45 +0100
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; s=fm1;
+ d=siemens.com; i=alexander.sverdlin@siemens.com;
+ h=Date:From:Subject:To:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding:Cc;
+ bh=fi4iuQ5f8HPWWG3cDnQw1vo80NGv7cxak5PbTsLHZQY=;
+ b=tviYwSZIKiqpBYowf3RnryqGvvNqs2cd/E3KGT7ES83TG9ZvCJnSKXiMrU3Vw8EwKLKkKe
+ 8I2hG1jZedVe59Wc7InvbXLrHDz4fSKEIvJKCzIxQUxCOiQkLOUtBqmsUsBBYPIbNjxZdmv7
+ XiFkjGOprq81oU4WbVHIvw6q2fhwaP+/RZ+aFWfhEUFeFIcbtlrV4kEbuLQM30L4Xw/1TueC
+ gAy6wT8HqNf0qcwIM9dOEF3gt7YTJgTcrO891IJPfQfTAIN3SaydLofEPGqxpcT+/HLc/sSO
+ TbJ5t90d+NerqfllC64BBXzvS5+127EOtx2Pn24Cz90zgwWzZ7Bf4a3w==;
+From: "A. Sverdlin" <alexander.sverdlin@siemens.com>
+To: Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Grygorii Strashko <grygorii.strashko@ti.com>,
+	Mugunthan V N <mugunthanvnm@ti.com>,
+	netdev@vger.kernel.org
+Cc: Alexander Sverdlin <alexander.sverdlin@siemens.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Siddharth Vadapalli <s-vadapalli@ti.com>,
 	Roger Quadros <rogerq@kernel.org>,
+	Chintan Vankar <c-vankar@ti.com>,
+	Sinthu Raja <sinthu.raja@ti.com>,
 	linux-omap@vger.kernel.org
-Subject: [PATCH] bus: ti-sysc: mark AM62 wkup_uart0 as non deferrable
-Date: Thu,  9 Jan 2025 18:52:12 +0100
-Message-ID: <20250109175211.113945-2-francesco@valla.it>
-X-Mailer: git-send-email 2.47.1
+Subject: [PATCH net-next] net: ethernet: ti: cpsw: fix the comment regarding VLAN-aware ALE
+Date: Thu,  9 Jan 2025 22:42:13 +0100
+Message-ID: <20250109214219.123767-1-alexander.sverdlin@siemens.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -76,59 +49,64 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - esm19.siteground.biz
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - valla.it
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-SGantispam-id: 0a575a9f272d99902191e47c5241aea8
-AntiSpam-DLS: false
-AntiSpam-DLSP: 
-AntiSpam-DLSRS: 
-AntiSpam-TS: 1.0
-Authentication-Results: instance-europe-west4-75c7.prod.antispam.mailspamprotection.com;
-	iprev=pass (214.173.214.35.bc.googleusercontent.com) smtp.remote-ip=35.214.173.214;
-	auth=pass (LOGIN) smtp.auth=esm19.siteground.biz;
-	dkim=pass header.d=valla.it header.s=default header.a=rsa-sha256;
-	arc=none
+X-Flowmailer-Platform: Siemens
+Feedback-ID: 519:519-456497:519-21489:flowmailer
 
-The ti-sysc driver implements a probe deferral logic to be sure to probe
-the parent interconnects before their children, postponing the probe of
-interconnects not marked as "early" instances until one of these is
-found.
+From: Alexander Sverdlin <alexander.sverdlin@siemens.com>
 
-Since the driver is alse used for the wkup_uart0 block found on the AM62
-SoC, but not for other devices on the same platform, this logic forces
-the probe for it to be artificially deferred 10 times and can lead to
-the device not being probed at all. The missed probe was seen on a
-BeaglePlay with the kernel configuration stripped to bare minimum and
-no module support.
+In all 3 cases (cpsw, cpsw-new, am65-cpsw) ALE is being configured in
+VLAN-aware mode, while the comment states the opposite. Seems to be a typo
+copy-pasted from one driver to another. Fix the commend which has been
+puzzling some people (including me) for at least a decade.
 
-Add the ranges for wkup_uart0 to the list of "early" interconnect
-instances, forcing the driver to skip the defer logic entirely for this
-device.
-
-Signed-off-by: Francesco Valla <francesco@valla.it>
+Link: https://lore.kernel.org/linux-arm-kernel/4699400.vD3TdgH1nR@localhost/
+Link: https://lore.kernel.org/netdev/0106ce78-c83f-4552-a234-1bf7a33f1ed1@kernel.org/
+Signed-off-by: Alexander Sverdlin <alexander.sverdlin@siemens.com>
 ---
- drivers/bus/ti-sysc.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/ethernet/ti/am65-cpsw-nuss.c | 2 +-
+ drivers/net/ethernet/ti/cpsw.c           | 2 +-
+ drivers/net/ethernet/ti/cpsw_new.c       | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index f67b927ae4ca..917b7168fbd0 100644
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -687,6 +687,8 @@ static struct resource early_bus_ranges[] = {
- 	{ .start = 0x4a300000, .end = 0x4a300000 + 0x30000,  },
- 	/* omap5 and dra7 l4_wkup without dra7 dcan segment */
- 	{ .start = 0x4ae00000, .end = 0x4ae00000 + 0x30000,  },
-+	/* am62 wkup_uart0 */
-+	{ .start = 0x2b300000, .end = 0x2b300000 + 0x100000, },
- };
+diff --git a/drivers/net/ethernet/ti/am65-cpsw-nuss.c b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
+index 5465bf872734..dcb6662b473d 100644
+--- a/drivers/net/ethernet/ti/am65-cpsw-nuss.c
++++ b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
+@@ -762,7 +762,7 @@ static int am65_cpsw_nuss_common_open(struct am65_cpsw_common *common)
+ 			     ALE_DEFAULT_THREAD_ID, 0);
+ 	cpsw_ale_control_set(common->ale, HOST_PORT_NUM,
+ 			     ALE_DEFAULT_THREAD_ENABLE, 1);
+-	/* switch to vlan unaware mode */
++	/* switch to vlan aware mode */
+ 	cpsw_ale_control_set(common->ale, HOST_PORT_NUM, ALE_VLAN_AWARE, 1);
+ 	cpsw_ale_control_set(common->ale, HOST_PORT_NUM,
+ 			     ALE_PORT_STATE, ALE_PORT_STATE_FORWARD);
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 1e290ee8edfd..0cb6fa6e5b7d 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -686,7 +686,7 @@ static void cpsw_init_host_port(struct cpsw_priv *priv)
+ 	soft_reset("cpsw", &cpsw->regs->soft_reset);
+ 	cpsw_ale_start(cpsw->ale);
  
- static atomic_t sysc_defer = ATOMIC_INIT(10);
+-	/* switch to vlan unaware mode */
++	/* switch to vlan aware mode */
+ 	cpsw_ale_control_set(cpsw->ale, HOST_PORT_NUM, ALE_VLAN_AWARE,
+ 			     CPSW_ALE_VLAN_AWARE);
+ 	control_reg = readl(&cpsw->regs->control);
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index be4d90c1cbe7..cec0a90659d9 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -554,7 +554,7 @@ static void cpsw_init_host_port(struct cpsw_priv *priv)
+ 	soft_reset("cpsw", &cpsw->regs->soft_reset);
+ 	cpsw_ale_start(cpsw->ale);
+ 
+-	/* switch to vlan unaware mode */
++	/* switch to vlan aware mode */
+ 	cpsw_ale_control_set(cpsw->ale, HOST_PORT_NUM, ALE_VLAN_AWARE,
+ 			     CPSW_ALE_VLAN_AWARE);
+ 	control_reg = readl(&cpsw->regs->control);
 -- 
 2.47.1
 
