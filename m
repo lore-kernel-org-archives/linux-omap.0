@@ -1,41 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B0B4F510;
-	Thu,  9 Jan 2025 17:07:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B9712B9BF;
+	Thu,  9 Jan 2025 18:21:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736442478; cv=none; b=NdDgz9Eab19sSwrzoEv0aiYsm/qhPEMakw31hW///K05+1RzBsmJJC5rzu3a+cuiyPCklAci0410yMDful2iTlwQhSWooGq9IaFVqFMSRER/1YiibCPG3Vh4K7fEydWgfMSB5+utuQuLcT+CTYnTHWSHJaKcqqVPINgo7e+WJc8=
+	t=1736446874; cv=none; b=MIWgERk5qT2+0z9NX1MK+p2fDpg3YjLGS2VPdRtjP0d8BDQ+ETfRysFjmhE+60R7vMSaPujZJSDd7SyBUsmQJYM5dTS+cXxstnPTjgw2KKtljBCLQ3+7bgGztrfO9hruC97IQDD2mhcw+kv2YdCjRgTR/ElE/jDD7736XBFvyZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736442478; c=relaxed/simple;
-	bh=Alqyd2iwsoCD0Oj/gAXfcn7AATkiQdOhl45eWdofVdk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cXp1um6USRyMvKsCbnsAiB5H/bhSVj0jum7C18Jpu1S9b2ZBCIGPbjDZZfbwz5jOtIc4ridSrBbjviYlCVp1xQM2RUFOQ5L3FASySVZ/C4+rQ5sx7u+0gxxWMKbo1RaS+IAhr0ZE+HrJFm8PWWQyFHKDz36h+6z4cCjyiS2aNc0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OhBtdoar; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736446874; c=relaxed/simple;
+	bh=74vfmPl4/CPMuD6JSl4s+poNW8XPfjw9x34Svsyx1yc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ksEzvRSeTqkW7Xld9mDPhu7un8J5hADrEYDBtux5ro38BQa85SytUQ2RQxmFMdAz0Im4bc4e/DWwpUXuMlQm7Rapx1uZXb1MgXo9NhIGwqe9X3EIQtLMkS1mYs4Z9VzSCXD57IUwPgMAz/IaOD4V7cI90zYCv7ehin6LKQX9bFU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JLweJH0I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OhBtdoar"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A485C4CED2;
-	Thu,  9 Jan 2025 17:07:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JLweJH0I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4D34C4CED2;
+	Thu,  9 Jan 2025 18:21:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1736442478;
-	bh=Alqyd2iwsoCD0Oj/gAXfcn7AATkiQdOhl45eWdofVdk=;
+	s=k20201202; t=1736446874;
+	bh=74vfmPl4/CPMuD6JSl4s+poNW8XPfjw9x34Svsyx1yc=;
 	h=From:To:Cc:Subject:Date:From;
-	b=OhBtdoarIfU5AQKrPGqRSFu4j96VjQyGT3lIFkJyvfbgVHGNlef3YThbc/rYz3lxL
-	 dUtN67k90W+Vl5SgSa0sUq654tijcNe5NdSMjNuleOorfQSdWI+p3y1Ch5yqaJClkJ
-	 /iZOcTJK6mcZ9UTckmRC6Q7sxIQu2dXlUY2srMPaD7jgyziWVHKCa8uWBya9bC+hAu
-	 FHcnWIbK0oGYMNdsQ9kjxP3tShIl8KeVr+ES5z/xphHYpqEGUjzDjH7W1Z2DH7/gTv
-	 gpx+rGDX4rMlQ4g1cLmMS1dHLE1TrG+N6w6NdVoB0z6YrWACQ4Hw6kvw0lMYHN0k4K
-	 CANNLw5uVAkLg==
+	b=JLweJH0I22DIV+h8PoupuPvT+XximIGV81wEqHkkksACDa4W9yGB4rtg5cNp/Mk/G
+	 lmJ0YuxaYkqbB7TxDybZN7G88Lqei4qhT9F4HnAeV+lr+VIefgVjOuUK5ezdRgFEU2
+	 B8uddoIWGjx9Z3u/56OJ/MR6UaJ1XFUZ0dCLMfKxyyJ4iPrDMMHivEPpK1btXPbLKQ
+	 PSIFuBywrFWFaU92qCeyN3iIGTzc24Y5kyJufpVCTmpvtuuw+z3sqOll8p5i6MHliR
+	 Q1TXHXaH4Q+33MOL8rwVVTNTZZat/FTTercdX+byOyG+l2aDLtI2lCxwVJkINg61wR
+	 mNs0VwJ3YiQFg==
 From: "Rob Herring (Arm)" <robh@kernel.org>
-To: Thinh Nguyen <Thinh.Nguyen@synopsys.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>
-Cc: linux-usb@vger.kernel.org,
-	linux-omap@vger.kernel.org,
+To: Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Krzysztof Kozlowski <krzk@kernel.org>
+Cc: linux-omap@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH] usb: dwc3: omap: Fix devm_regulator_get_optional() error handling
-Date: Thu,  9 Jan 2025 11:07:47 -0600
-Message-ID: <20250109170748.3852439-1-robh@kernel.org>
+Subject: [PATCH] memory: omap-gpmc: Use of_property_present() for non-boolean properties
+Date: Thu,  9 Jan 2025 12:21:10 -0600
+Message-ID: <20250109182110.3970894-1-robh@kernel.org>
 X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -45,35 +43,49 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Commit 533561a8aad5 ("usb: dwc3: omap: Use
-devm_regulator_get_optional()") assumed NULL was returned, but
-devm_regulator_get_optional() returns -ENODEV rather than NULL like
-other *_get_optional() functions.
+The use of of_property_read_bool() for non-boolean properties is
+deprecated in favor of of_property_present() when testing for property
+presence.
 
-Fixes: 533561a8aad5 ("usb: dwc3: omap: Use devm_regulator_get_optional()")
+While we're here, simplify the 2 checks into a single check as they
+only differ in printing "NAND" vs "OneNAND" in the warning.
+
 Signed-off-by: Rob Herring (Arm) <robh@kernel.org>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Possibly this check could just be removed altogether?
+---
+ drivers/memory/omap-gpmc.c | 16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 9b1d10ac33c1..fe74d11bb629 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -484,8 +484,11 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 		return PTR_ERR(base);
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index e2a75a52563f..329bad46065c 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -2226,21 +2226,11 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 		goto err;
+ 	}
  
- 	vbus_reg = devm_regulator_get_optional(dev, "vbus");
--	if (IS_ERR(vbus_reg))
--		return dev_err_probe(dev, PTR_ERR(vbus_reg), "vbus init failed\n");
-+	if (IS_ERR(vbus_reg)) {
-+		if (PTR_ERR(vbus_reg) != -ENODEV)
-+			return dev_err_probe(dev, PTR_ERR(vbus_reg), "vbus init failed\n");
-+		vbus_reg = NULL;
-+	}
- 
- 	omap->dev	= dev;
- 	omap->irq	= irq;
+-	if (of_node_name_eq(child, "nand")) {
++	if (of_node_name_eq(child, "nand") || of_node_name_eq(child, "onenand")) {
+ 		/* Warn about older DT blobs with no compatible property */
+-		if (!of_property_read_bool(child, "compatible")) {
++		if (!of_property_present(child, "compatible")) {
+ 			dev_warn(&pdev->dev,
+-				 "Incompatible NAND node: missing compatible");
+-			ret = -EINVAL;
+-			goto err;
+-		}
+-	}
+-
+-	if (of_node_name_eq(child, "onenand")) {
+-		/* Warn about older DT blobs with no compatible property */
+-		if (!of_property_read_bool(child, "compatible")) {
+-			dev_warn(&pdev->dev,
+-				 "Incompatible OneNAND node: missing compatible");
++				 "Incompatible '%pOFn' node: missing compatible", child);
+ 			ret = -EINVAL;
+ 			goto err;
+ 		}
 -- 
 2.45.2
 
