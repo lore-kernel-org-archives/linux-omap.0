@@ -1,45 +1,45 @@
-Received: from lelv0142.ext.ti.com (lelv0142.ext.ti.com [198.47.23.249])
+Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C15231D5173;
-	Mon, 13 Jan 2025 23:10:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.249
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 480591F9EDC;
+	Mon, 13 Jan 2025 23:10:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736809835; cv=none; b=L1Zb8nKexaojmV4XT5uVm1+gGJI3qrcnveOsBZxUG9f+g4zFXgj1hD5KOb386ey9v4YnluX9ODs91XsltDjqaTv4rPPKlU4tdVQqbONQodAPDZsW27zBlZBOD37eUkHiBqgrQ0reMjFRFra5Z63RV4+Gdl8VqWhiKYFCvazhuog=
+	t=1736809838; cv=none; b=NfZ0f3AKhxQ49rpW65wcWWB5qrJXo14kRptWWW4/V+sPBwn0qdWrwNcpJ5dKd6u7wvQj9UOu+gtyUTGfdIUPNQy4eitD6VtNvPpCUkpZL4qw9fz/gqZ4waHdRRk0UzK8jG/6DPtxBlY60uMBG9VbnjqPT6TENrac52KEX9XNTlw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736809835; c=relaxed/simple;
-	bh=Pov7nJtkOZ5HfHS1cXKZ7b9hFVEZJfFxkCeGliJPvJc=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=FmY0gy9hZAjLPXYAbUf/4w2ISvWMgf4KAYVNSIP2N4hn7hm3DYlZ6TDE59PPteWn/nHNVRDJhRMZPxgG7Z5w1p+GjyrH3ctMBuTDK+S1eFgGp096nBmTzMm/IcMOwY41wGw4g9hgDeqU3CF59mIyJ/afwuLpqPJ4vV52ZSY+e4w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=qOkMNfMx; arc=none smtp.client-ip=198.47.23.249
+	s=arc-20240116; t=1736809838; c=relaxed/simple;
+	bh=hqxdz3xMnfqi6DswrpfL1Son2ONYGQE5KL/6wdxyTP8=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Kcio0vJqgrpXWzEQamojEqJ5GhlonyvFR0p+wSuPbgHsS0hmjOSnDabBV2ZQmIZ4MHeEFErQjtd+bX/5m6IyxRIV6lQr0UWCvZABK/BBRDU7wM34YWe2FNVo7d8EAU3+BIf/q6z0n5F72S5CIfzZpB/gysq6budRZdPJbuPL5AY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=H2ncouGZ; arc=none smtp.client-ip=198.47.19.246
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="qOkMNfMx"
-Received: from lelv0265.itg.ti.com ([10.180.67.224])
-	by lelv0142.ext.ti.com (8.15.2/8.15.2) with ESMTP id 50DNAJEt110776;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="H2ncouGZ"
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 50DNAJNr3762057
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
 	Mon, 13 Jan 2025 17:10:19 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
 	s=ti-com-17Q1; t=1736809819;
-	bh=dD1VwGrNpd2NkN9mIIECzz6+iWCpvrOQszaRP4ix5i4=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=qOkMNfMxjmWuK6iUQj38Uo1hXehiPuHk/hle32RNw6mAGs/i29VFFFXIlvfRfLuol
-	 9n5lz96oz1cDzNQDEldP+R5sqDxNgidfHDlUDeHwRr8NmUASGmb4F8SpEA3eeMCmSF
-	 eN8r4OlrR2mOAOJBz46Lx5WMna71e0snnyUl3i6Q=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 50DNAJgH012954
+	bh=X2ibNLMuL9jD+RQ2YdfCDeZ0sh4YZKzO/lG3VEoyxeQ=;
+	h=From:To:CC:Subject:Date;
+	b=H2ncouGZ8WzkuNvOG+Iw9i20FpkLFDSeTR3i905sJlxXpemXv+nWa9TeECFOCmGk4
+	 lCycjL2OJSEmuKBNoAdM7ZPSeJXT3VHOIEv53NCngzOMfBwcxZ82Iaazdk+InKL1F/
+	 dCdCD/9/owvi0o0fEscUBtX+ae8PU1LYnhJerVHk=
+Received: from DLEE110.ent.ti.com (dlee110.ent.ti.com [157.170.170.21])
+	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 50DNAID5046951
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Mon, 13 Jan 2025 17:10:19 -0600
-Received: from DFLE101.ent.ti.com (10.64.6.22) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+	Mon, 13 Jan 2025 17:10:18 -0600
+Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE110.ent.ti.com
+ (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 13
  Jan 2025 17:10:18 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE101.ent.ti.com
- (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
  Frontend Transport; Mon, 13 Jan 2025 17:10:18 -0600
 Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.11])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 50DNAIM1067169;
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 50DNAILx067169;
 	Mon, 13 Jan 2025 17:10:18 -0600
 From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
@@ -49,12 +49,10 @@ To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
         <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         <devicetree@vger.kernel.org>
 CC: <m-leonard@ti.com>, <praneeth@ti.com>, <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH v3 2/4] regulator: dt-bindings: Add TI TPS65215 PMIC bindings
-Date: Mon, 13 Jan 2025 17:10:16 -0600
-Message-ID: <20250113231018.125426-3-s-ramamoorthy@ti.com>
+Subject: [PATCH v3 0/4] Add TI TPS65215 PMIC Regulator Support
+Date: Mon, 13 Jan 2025 17:10:14 -0600
+Message-ID: <20250113231018.125426-1-s-ramamoorthy@ti.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20250113231018.125426-1-s-ramamoorthy@ti.com>
-References: <20250113231018.125426-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -65,66 +63,66 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-TPS65215 is a Power Management IC with 3 Buck regulators and 2 LDOs.
+TPS65215 is a Power Management Integrated Circuit (PMIC) that has
+significant register map overlap with TPS65219. The series introduces
+TPS65215 and restructures the existing driver to support multiple devices.
 
-TPS65215 has 2 LDOS and 1 GPO, whereas TPS65219 has 4 LDOs and 2 GPOs. The
-remaining features for both devices are the same.
+This follow-up series is dependent on the TPS65215 MFD Driver Series:
+Commit 8206c20f4c82 ("mfd: tps65215: Add support for TI TPS65215 PMIC")
+Commit 0e0b7f00c111 ("mfd: tps65215: Remove regmap_read check")
 
-Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-Acked-by: Conor Dooley <conor.dooley@microchip.com>
+TPS65219 Cleanup Series:
+GPIO: https://lore.kernel.org/all/20241217204755.1011731-1-s-ramamoorthy@ti.com/
+MFD: https://lore.kernel.org/all/20241217204935.1012106-1-s-ramamoorthy@ti.com/
+Reg: https://lore.kernel.org/all/20241217204526.1010989-1-s-ramamoorthy@ti.com/
+
+- Both TPS65215 and TPS65219 have 3 Buck regulators.
+- TPS65215 has 2 LDOs, whereas TPS65219 has 4 LDOs.
+- TPS65215 and TPS65219's LDO1 are the same.
+- TPS65215's LDO2 maps to TPS65219's LDO3.
+- TPS65215 has 1 GPO, whereas TPS65219 has 2 GPOs.
+- The remaining features are the same.
+
+TPS65215 TRM: https://www.ti.com/lit/pdf/slvucw5/
+
+AM62L + TPS65215 Test Logs:
+https://gist.github.com/ramamoorthyhs/7560eca6110fafc77b51894fa2c0fd22
+
 ---
- .../bindings/regulator/ti,tps65219.yaml       | 21 ++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+Change Log:
+v2 -> v3:
+dt-bindings: 
+- Alphanumeric order for PMIC list
+- add allOf:if:then: which will disallow :false two LDOs and their supplies
 
-diff --git a/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml b/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
-index 78e64521d401..b0d47415bf83 100644
---- a/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
-+++ b/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
-@@ -4,7 +4,7 @@
- $id: http://devicetree.org/schemas/regulator/ti,tps65219.yaml#
- $schema: http://devicetree.org/meta-schemas/core.yaml#
- 
--title: TI tps65219 Power Management Integrated Circuit regulators
-+title: TI TPS65215/TPS65219 Power Management Integrated Circuits
- 
- maintainers:
-   - Jerome Neanne <jerome.neanne@baylibre.com>
-@@ -12,9 +12,16 @@ maintainers:
- description: |
-   Regulator nodes should be named to buck<number> and ldo<number>.
- 
-+  TI TPS65219 is a Power Management IC with 3 Buck regulators, 4 Low
-+  Drop-out Regulators (LDOs), 1 GPIO, 2 GPOs, and power-button.
-+
-+  TI TPS65215 is a derivative of TPS65219 with 3 Buck regulators, 2 Low
-+  Drop-out Regulators (LDOs), 1 GPIO, 1 GPO, and power-button.
-+
- properties:
-   compatible:
-     enum:
-+      - ti,tps65215
-       - ti,tps65219
- 
-   reg:
-@@ -90,6 +97,18 @@ required:
- 
- additionalProperties: false
- 
-+allOf:
-+  - if:
-+      properties:
-+        compatible:
-+          contains:
-+            const: ti,tps65215
-+    then:
-+      properties:
-+        regulators:
-+          patternProperties:
-+            "^ldo[3-4]$": false
-+
- examples:
-   - |
-     #include <dt-bindings/interrupt-controller/arm-gic.h>
+regulator.c:
+- Revert addition of 2 probe helper functions
+- Add empty tps65215_regulator_irq_types struct to minimize loops in probe
+- Consolidate patches to define and use func/structs in the same patches to
+  prevent build error due to no users of the defined functions
+- Apply reverse xmas tree style to variable defintions in functions
+- Remove unnecessary new lines & add new line after declarations
+
+v1 -> v2:
+- have any PMIC lists be in alpha-numeric order: TPS65215, then TPS65219
+- Add driver prefix to chip_data struct
+- Have probe() helper functions use dev_err_probe instead of dev_err() to 
+  log the error code in a human readable format & combined with return, it 
+  saves a few LoC since { } can be removed.
+- Add error handling of 'irq_data' in probe() as previously done.
+---
+
+Shree Ramamoorthy (4):
+  regulator: tps65215: Update struct names
+  regulator: dt-bindings: Add TI TPS65215 PMIC bindings
+  regulator: tps65215: Add support for TPS65215 regulator resources
+  regulator: tps65215: Add support for TPS65215 Regulator IRQs
+
+ .../bindings/regulator/ti,tps65219.yaml       |  21 +-
+ drivers/regulator/Kconfig                     |   7 +-
+ drivers/regulator/tps65219-regulator.c        | 188 +++++++++++++-----
+ 3 files changed, 165 insertions(+), 51 deletions(-)
+
 -- 
 2.43.0
 
