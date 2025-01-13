@@ -1,104 +1,151 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF18A189F20
-	for <linux-omap@vger.kernel.org>; Mon, 13 Jan 2025 18:08:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 469E61D5CCC;
+	Mon, 13 Jan 2025 22:55:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736791729; cv=none; b=Wd/Kog8CAMe5WVvAIb5bYE5SOO6fOrfWklgoepfaktKuJQwLwzytEDWbYgXT7vTa8/q6l2T9aPW/ipdIi/Vk4dR+WeACqPdS28l6JKWVVBwUZg+jke5/SMV2Mw5EDzXFtiSsHUcxVEELBD0D7F6P6fQT+7eCcUedEUsgtZrs/aU=
+	t=1736808951; cv=none; b=ntwhhEY2EZNVKk9UlxsAFMBG3dWVK7lMCQ9/SouChTZtsq673ws7gIH70BiU1FJ6erGUMuO+o11RGBIFVKNlh3F2ubL+6a+WtxDAefHcLPCNyPWaPzAtzb6YDpsjdPl5tHAUPZNd/MQzl6//HzJb0eTxXnlPFlv4+MdSevBhoiY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736791729; c=relaxed/simple;
-	bh=fjGnrnA+PJF3XUTyX0tLFDsfny9iP/CBBSsHZyVzpV0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Ccb/YzMz90lKHhkcqu6bjXeWpdtCb6jbosDD9tqI4Umgpc4lbpmC37TSt1cs6hl10jY89t8L4Nlrl8+emSfhyhgXoz7wkvMOJY17lComIesVeT9JSOQNdHQkg81+5EsXAzR/wJUIF0KKnKLGXE7qbqgQiUBKrTioGX7X8F18nbs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FcIfX37/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736808951; c=relaxed/simple;
+	bh=Fmb/nG+uD0XTG4I2Ot3fwepT/zZC/OX2GMKcSIhtlwQ=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=tOS0uu/ZFCpCV3d11P0mIAhVj7/lK61x6DOOQgu2Jlu3Qe7nsPpsu6F9mPOruNMQVuFfbl/m3mLtbT/YuKByD4F+Ng1DAJWtOV8hA6tkGf6O3DdiG++z1MOBBvITrtz3w2uKREWk7h17FZCoTYGBEJsPTJxSjuNH4ECKYR/6qQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=gHkHqXHr; arc=none smtp.client-ip=198.47.19.246
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FcIfX37/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 351CAC4CED6;
-	Mon, 13 Jan 2025 18:08:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1736791728;
-	bh=fjGnrnA+PJF3XUTyX0tLFDsfny9iP/CBBSsHZyVzpV0=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=FcIfX37/Onopt1lbvQfIy/DUix1JOl6bHWYb93Ec3aDDjmARJcqb+rX0nUsH5PVac
-	 ITECje3zkGppJqSvblCbLOZH1SYC8UlSu2bUt1c+594jsxjkUDrskG2LSQAXDe/TqP
-	 JIr0TZFVXfaxXfZh+WbfnGGqEXQXe6e4RugP45BSrGNLBPMOuTRs23P4ydr8eKKOrz
-	 Z6rLtqI81U0H7Uw7V6W69uzLHhG8meRPOttkIdJke9hF2PcDZtdHaOHaWdvVu/V+6u
-	 P3OMOUPUQBnFkxWZo3tQN7ZKTPKB7rrYNmYKF9Mdtg7FdfpNCiAYxN0NBO4TNqN18n
-	 jM0rQOoYdAPcw==
-Message-ID: <25491f79-323b-421f-8053-36d5655e5323@kernel.org>
-Date: Mon, 13 Jan 2025 20:08:43 +0200
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="gHkHqXHr"
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 50DMtVto3760652
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 13 Jan 2025 16:55:31 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+	s=ti-com-17Q1; t=1736808931;
+	bh=ojOuWESO9FkVlOtfgnqTVX+eAvMKTt16l2Utsyj+/EM=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=gHkHqXHropckwdylTndJLGnd6lh+ulVwgg7/kd6RPhre1cwbAp3hoFbskzh5aTTp4
+	 Jx3ObbXariSKS6+6nXw3KZJATPkHmtYIPPvkFW2iJ95xp/cL0yKc0AA7kMjvC43Q24
+	 yv5fmAeYOkUFDNT3Vlbz5CyhX0uouNSp5apfzXoo=
+Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
+	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 50DMtVJq037814
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Mon, 13 Jan 2025 16:55:31 -0600
+Received: from DLEE114.ent.ti.com (157.170.170.25) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Mon, 13
+ Jan 2025 16:55:30 -0600
+Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DLEE114.ent.ti.com
+ (157.170.170.25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Mon, 13 Jan 2025 16:55:30 -0600
+Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.11])
+	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 50DMtU57047817;
+	Mon, 13 Jan 2025 16:55:30 -0600
+From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
+        <rogerq@kernel.org>, <tony@atomide.com>, <linus.walleij@linaro.org>,
+        <brgl@bgdev.pl>, <linux-omap@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>
+CC: <m-leonard@ti.com>, <praneeth@ti.com>, <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH v3 3/3] gpio tps65215: Add support for varying gpio/offset values
+Date: Mon, 13 Jan 2025 16:55:30 -0600
+Message-ID: <20250113225530.124213-4-s-ramamoorthy@ti.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20250113225530.124213-1-s-ramamoorthy@ti.com>
+References: <20250113225530.124213-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] bus: ti-sysc: mark AM62 wkup_uart0 as non deferrable
-To: Francesco Valla <francesco@valla.it>, Nishanth Menon <nm@ti.com>,
- Vignesh Raghavendra <vigneshr@ti.com>, Tero Kristo <kristo@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>,
- Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
- <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- linux-omap@vger.kernel.org
-References: <20250109175211.113945-2-francesco@valla.it>
-Content-Language: en-US
-From: Roger Quadros <rogerq@kernel.org>
-In-Reply-To: <20250109175211.113945-2-francesco@valla.it>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
+Add device-specific structs to select the different PMIC .npgio and .offset
+values. With the chip_data struct values selected based on the match data,
+having a separate GPIO0_OFFSET macro is no longer needed.
 
+Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+---
+ drivers/gpio/gpio-tps65219.c | 28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
-On 09/01/2025 19:52, Francesco Valla wrote:
-> The ti-sysc driver implements a probe deferral logic to be sure to probe
-> the parent interconnects before their children, postponing the probe of
-> interconnects not marked as "early" instances until one of these is
-> found.
-> 
-> Since the driver is alse used for the wkup_uart0 block found on the AM62
-
-alse/also
-
-> SoC, but not for other devices on the same platform, this logic forces
-> the probe for it to be artificially deferred 10 times and can lead to
-> the device not being probed at all. The missed probe was seen on a
-> BeaglePlay with the kernel configuration stripped to bare minimum and
-> no module support.
-> 
-> Add the ranges for wkup_uart0 to the list of "early" interconnect
-> instances, forcing the driver to skip the defer logic entirely for this
-> device.
-> 
-> Signed-off-by: Francesco Valla <francesco@valla.it>
-> ---
->  drivers/bus/ti-sysc.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-> index f67b927ae4ca..917b7168fbd0 100644
-> --- a/drivers/bus/ti-sysc.c
-> +++ b/drivers/bus/ti-sysc.c
-> @@ -687,6 +687,8 @@ static struct resource early_bus_ranges[] = {
->  	{ .start = 0x4a300000, .end = 0x4a300000 + 0x30000,  },
->  	/* omap5 and dra7 l4_wkup without dra7 dcan segment */
->  	{ .start = 0x4ae00000, .end = 0x4ae00000 + 0x30000,  },
-> +	/* am62 wkup_uart0 */
-> +	{ .start = 0x2b300000, .end = 0x2b300000 + 0x100000, },
->  };
->  
->  static atomic_t sysc_defer = ATOMIC_INIT(10);
-
-While this is probably OK for now, we need to ensure that sysc_defer_non_critical()
-is not called for such devices that don't have an interconnect managed by
-the sysc driver (i.e. non OMAP based systems).
-
-Maybe this calls for a new compatible for AM62 sysc?
-
-Reviewed-by: Roger Quadros <rogerq@kernel.org>
-
+diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
+index 70a4410c473a..f2d8fd65d422 100644
+--- a/drivers/gpio/gpio-tps65219.c
++++ b/drivers/gpio/gpio-tps65219.c
+@@ -13,7 +13,6 @@
+ #include <linux/regmap.h>
+ 
+ #define TPS65219_GPIO0_DIR_MASK		BIT(3)
+-#define TPS65219_GPIO0_OFFSET		2
+ #define TPS6521X_GPIO0_IDX			0
+ 
+ struct tps65219_gpio {
+@@ -21,6 +20,11 @@ struct tps65219_gpio {
+ 	struct tps65219 *tps;
+ };
+ 
++struct tps65219_chip_data {
++	int ngpio;
++	int offset;
++};
++
+ static int tps65219_gpio_get_direction(struct gpio_chip *gc, unsigned int offset)
+ {
+ 	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
+@@ -71,7 +75,7 @@ static void tps65219_gpio_set(struct gpio_chip *gc, unsigned int offset, int val
+ 	struct device *dev = gpio->tps->dev;
+ 	int v, mask, bit;
+ 
+-	bit = (offset == TPS6521X_GPIO0_IDX) ? TPS65219_GPIO0_OFFSET : offset - 1;
++	bit = (offset == TPS6521X_GPIO0_IDX) ? (gpio->gpio_chip.offset - 1) : offset - 1;
+ 
+ 	mask = BIT(bit);
+ 	v = value ? mask : 0;
+@@ -148,14 +152,28 @@ static const struct gpio_chip tps65219_template_chip = {
+ 	.get			= tps65219_gpio_get,
+ 	.set			= tps65219_gpio_set,
+ 	.base			= -1,
+-	.ngpio			= 3,
+ 	.can_sleep		= true,
+ };
+ 
++static const struct tps65219_chip_data chip_info_table[] = {
++	[TPS65215] = {
++		.ngpio = 2,
++		.offset = 1,
++	},
++	[TPS65219] = {
++		.ngpio = 3,
++		.offset = 2,
++	},
++};
++
+ static int tps65219_gpio_probe(struct platform_device *pdev)
+ {
+-	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
+ 	struct tps65219_gpio *gpio;
++	const struct tps65219_chip_data *pmic;
++
++	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
++	enum pmic_id chip = platform_get_device_id(pdev)->driver_data;
++	pmic = &chip_info_table[chip];
+ 
+ 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+ 	if (!gpio)
+@@ -164,6 +182,8 @@ static int tps65219_gpio_probe(struct platform_device *pdev)
+ 	gpio->tps = tps;
+ 	gpio->gpio_chip = tps65219_template_chip;
+ 	gpio->gpio_chip.label = dev_name(&pdev->dev);
++	gpio->gpio_chip.ngpio =  pmic->ngpio;
++	gpio->gpio_chip.offset = pmic->offset;
+ 	gpio->gpio_chip.parent = tps->dev;
+ 
+ 	return devm_gpiochip_add_data(&pdev->dev, &gpio->gpio_chip, gpio);
 -- 
-cheers,
--roger
+2.43.0
 
