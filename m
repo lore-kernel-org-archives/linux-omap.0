@@ -1,164 +1,266 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEBA722CBEF
-	for <linux-omap@vger.kernel.org>; Thu, 16 Jan 2025 18:04:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFF561A8F95;
+	Thu, 16 Jan 2025 22:38:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737050664; cv=none; b=aHTW4xC4LeIwnLlpnqVwliFROSawkK4j/gqfl1bqQZg1K1+usFtF2uNIBbSa4EszTL1bYoVyWgq41UVPqqWhQHK0qm82hBarnX5IztxA5yQHe2VAoS+0ctWNLwTqN5wBzI4+QzlO88lFwBsWkqB5wE+A2yOzbANQ9ztCajZL09s=
+	t=1737067086; cv=none; b=ZXbENpgW1BI3TmlJTWqL+eiJg0B5+SmvJDy3uROjD25JVPN5YIQRhZidPS6V+oDGs6QZZ8u+ie2bZ4kD3RFpNrRucg7Ki8LEPmVbhXA1BgrVpgmSozrq1fXhsezu2t+IKRmhSoTVsolBOEd+ef5rzIpZ/K6XROyibkLp2gtHT3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737050664; c=relaxed/simple;
-	bh=f7JIBXc2nPHxlJl7igMbfuXIJ4HLspMfAWuq0iysxYA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=UT565J4Wb8zY7youSQ+yubP1zruQWKaAML4du/PosrwpRpNcejOjvVyKLz+8rRAhMuftAGegk1/YiELeawtPZIQEcTVxRh/HODtRcuXFKwDJ5l1Hbnvkxj0yqNWsKCoVqKoehO3k1Yvn7/lv1SPs9TBDrVmya79ncybdGha8qac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=f3wTgzYR; arc=none smtp.client-ip=209.85.214.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1737067086; c=relaxed/simple;
+	bh=ZMjrdFY9ggZnhBZBMu5MdaVWVdJ9ew+W31Lb6fN4OAI=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=fEX3zihZPN6oELFB4PwNM6P2Iyl9vpksGZMpuEkzlwFQM8qT+bWszNXWuH3UC12n1FpBr8l2Lac/h+5Oju0b/ruVqrbOpvsIuvOyc1FqZgmHhDmVH9YCwBIUK1WfRqNZpmnhSiXmxcOw2STy6qeyWBFWA+3grqoUUVJvuLxp5WA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=a+SPN4Iu; arc=none smtp.client-ip=198.47.19.246
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="f3wTgzYR"
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2163dc5155fso23068405ad.0
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jan 2025 10:04:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1737050661; x=1737655461; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=4Wd1oeWyHI9gXwuqG0xZ0ivGODmZaK+fUcpqdzaY6Nw=;
-        b=f3wTgzYRs9gEs97gVmBR/Ug7JodLB3FrL3OL7KJJh0mS3qNz+G0BKyApzQd+mIm2Lx
-         TSExq7YjX9X9xd0D32+6xRCBf2cuhCR6yHyQIZjixaFKnjhtjOrW105vx/viQ2ZFii89
-         oYJnrQaZMog2gBxOcBvmhuVJ8QKBfUxt0yQB4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1737050661; x=1737655461;
-        h=content-transfer-encoding:in-reply-to:autocrypt:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=4Wd1oeWyHI9gXwuqG0xZ0ivGODmZaK+fUcpqdzaY6Nw=;
-        b=dl+Be6WuwOPsnGjMZErjKxLHjiGW2C0ORFUYNaGqf/hGGlYcNlqFTXRgLwKgvk1ZYa
-         qlJZonz7W1PrIPI7vDjKs69/6yiP6wbaepD7pBYoUg/kKgtGJ1F+dAOjkK57W7x4vK+D
-         4hI+nH1UyxWhaD3641qrOi1HOwcvFijFivauP/hYx/xDo+CKUYb//qgjOw0bQ1JGCfvC
-         dae4elBctsANfBlNswaL1FYt/PafSEUPcXfU6qGxyosbnnhvdTEpVONfDIrc8JG7JBrq
-         E63CDY/V47tlmblVaQ4OJm159yJljmUz87CwAzOGKzI9uEhirY7T6RnHAhpOzomq7MSG
-         2mhQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXPscecASdVwYK+xQbVq1GUctQ2aw6VU+aEuU5GQKAa1NdxISSBV3RUOrBylRhYN0JFOa+luQF2gWF7@vger.kernel.org
-X-Gm-Message-State: AOJu0YzgwKv18iZVp2bhW/AGWz9sMotGvqClxzo6O3SdExuBjhaJeQeS
-	+XUxKIRZiQPYkfv52de/mhS5p0JTgkyKyw6t0732pmDRMnoh0iXp73E7TZJqhA==
-X-Gm-Gg: ASbGncs9Trrwhns0lxPUdPNA7z6oy8HBvqcVMhXeTYLrJlWSRRCcDvzDqVMRUjJD4EV
-	7T+gdynxzb1Xd2am7wjKbDqxBlQ/bUNqd4XrYUTq2WAEIJOWq6JLHQGbwuVdgbOxs4ih7Y+di3e
-	GWbSrM0W9fmHnSKkX/2fByDDn63J3ecM8senS22JiZB5vxIUES2yq+GjghPHpgKTx5w7/IZVu0K
-	6Vr+H7rk72vj7GekOvOqB1WS0O2kbxeGuxT3Xid2v/p7BnnTAFGAZYflzLPsDOJMyqsVMaCg5dF
-	x7AWg2klOZzGUkBzvJJB
-X-Google-Smtp-Source: AGHT+IHdMjYWYUPWi30MlBFs8sU8F6TlSjCCIdRcJHouC8fvOgy8yNmIwKVXpO733Awqz9ZjlbG2TQ==
-X-Received: by 2002:a17:903:1245:b0:21a:82b7:fea2 with SMTP id d9443c01a7336-21a83f592edmr479108815ad.15.1737050659554;
-        Thu, 16 Jan 2025 10:04:19 -0800 (PST)
-Received: from [10.67.48.245] ([192.19.223.252])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-21c2ceb9b3asm3086255ad.75.2025.01.16.10.04.15
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 16 Jan 2025 10:04:18 -0800 (PST)
-Message-ID: <967278a1-a2e9-44c3-90ee-ae9a57a54421@broadcom.com>
-Date: Thu, 16 Jan 2025 10:04:14 -0800
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="a+SPN4Iu"
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 50GMbe0p089777
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 16 Jan 2025 16:37:40 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+	s=ti-com-17Q1; t=1737067060;
+	bh=g42OVeH/+tQr2fDMCoCZ3xULtOJJzYiTOw9Ph3b5hKw=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=a+SPN4IuNe5//QsoLqOYc971uYCIXluhivXSsxdZD+RCvfJBFbvz2GZQ0I9zxIaFh
+	 D/AWOvnrouRUaJ1yYLeJgJB0ovQOhN46iaNgKWAmJcWvgOiAUsvdJIjEuylLFviFgo
+	 NIO1jVUAWren884aCqll+9j9jyPgSTrrKEwEkL5U=
+Received: from DLEE110.ent.ti.com (dlee110.ent.ti.com [157.170.170.21])
+	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 50GMbeCY088544
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Thu, 16 Jan 2025 16:37:40 -0600
+Received: from DLEE111.ent.ti.com (157.170.170.22) by DLEE110.ent.ti.com
+ (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 16
+ Jan 2025 16:37:40 -0600
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE111.ent.ti.com
+ (157.170.170.22) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Thu, 16 Jan 2025 16:37:40 -0600
+Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.11])
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 50GMbeYN030055;
+	Thu, 16 Jan 2025 16:37:40 -0600
+From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
+        <krzk+dt@kernel.org>, <conor+dt@kernel.org>, <aaro.koskinen@iki.fi>,
+        <andreas@kemnade.info>, <khilman@baylibre.com>, <rogerq@kernel.org>,
+        <tony@atomide.com>, <jerome.neanne@baylibre.com>,
+        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>
+CC: <m-leonard@ti.com>, <praneeth@ti.com>, <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH v1 2/2] regulator: tps65214: Add TI TPS65214 Regulator Support
+Date: Thu, 16 Jan 2025 16:37:40 -0600
+Message-ID: <20250116223740.429515-3-s-ramamoorthy@ti.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20250116223740.429515-1-s-ramamoorthy@ti.com>
+References: <20250116223740.429515-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 4/4] arm: defconfig: drop RT_GROUP_SCHED=y from
- bcm2835/tegra/omap2plus
-To: Celeste Liu <uwu@coelacanthus.name>,
- Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt
- <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>,
- Guo Ren <guoren@kernel.org>, Anup Patel <anup@brainfault.org>,
- Heinrich Schuchardt <heinrich.schuchardt@canonical.com>,
- Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
- Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Russell King <linux@armlinux.org.uk>,
- Broadcom internal kernel review list
- <bcm-kernel-feedback-list@broadcom.com>, Ray Jui <rjui@broadcom.com>,
- Scott Branden <sbranden@broadcom.com>, Tony Lindgren <tony@atomide.com>,
- Thierry Reding <thierry.reding@gmail.com>,
- Jonathan Hunter <jonathanh@nvidia.com>, Aaro Koskinen
- <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>,
- Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>, linux-riscv@lists.infradead.org,
- linux-kernel@vger.kernel.org, loongarch@lists.linux.dev,
- linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-rpi-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
- linux-tegra@vger.kernel.org, Stefan Wahren <wahrenst@gmx.net>,
- Thierry Reding <treding@nvidia.com>
-References: <20250115-fix-riscv-rt_group_sched-v4-0-607606fe73a5@coelacanthus.name>
- <20250115-fix-riscv-rt_group_sched-v4-4-607606fe73a5@coelacanthus.name>
-Content-Language: en-US
-From: Florian Fainelli <florian.fainelli@broadcom.com>
-Autocrypt: addr=florian.fainelli@broadcom.com; keydata=
- xsBNBFPAG8ABCAC3EO02urEwipgbUNJ1r6oI2Vr/+uE389lSEShN2PmL3MVnzhViSAtrYxeT
- M0Txqn1tOWoIc4QUl6Ggqf5KP6FoRkCrgMMTnUAINsINYXK+3OLe7HjP10h2jDRX4Ajs4Ghs
- JrZOBru6rH0YrgAhr6O5gG7NE1jhly+EsOa2MpwOiXO4DE/YKZGuVe6Bh87WqmILs9KvnNrQ
- PcycQnYKTVpqE95d4M824M5cuRB6D1GrYovCsjA9uxo22kPdOoQRAu5gBBn3AdtALFyQj9DQ
- KQuc39/i/Kt6XLZ/RsBc6qLs+p+JnEuPJngTSfWvzGjpx0nkwCMi4yBb+xk7Hki4kEslABEB
- AAHNMEZsb3JpYW4gRmFpbmVsbGkgPGZsb3JpYW4uZmFpbmVsbGlAYnJvYWRjb20uY29tPsLB
- IQQQAQgAywUCZWl41AUJI+Jo+hcKAAG/SMv+fS3xUQWa0NryPuoRGjsA3SAUAAAAAAAWAAFr
- ZXktdXNhZ2UtbWFza0BwZ3AuY29tjDAUgAAAAAAgAAdwcmVmZXJyZWQtZW1haWwtZW5jb2Rp
- bmdAcGdwLmNvbXBncG1pbWUICwkIBwMCAQoFF4AAAAAZGGxkYXA6Ly9rZXlzLmJyb2FkY29t
- Lm5ldAUbAwAAAAMWAgEFHgEAAAAEFQgJChYhBNXZKpfnkVze1+R8aIExtcQpvGagAAoJEIEx
- tcQpvGagWPEH/2l0DNr9QkTwJUxOoP9wgHfmVhqc0ZlDsBFv91I3BbhGKI5UATbipKNqG13Z
- TsBrJHcrnCqnTRS+8n9/myOF0ng2A4YT0EJnayzHugXm+hrkO5O9UEPJ8a+0553VqyoFhHqA
- zjxj8fUu1px5cbb4R9G4UAySqyeLLeqnYLCKb4+GklGSBGsLMYvLmIDNYlkhMdnnzsSUAS61
- WJYW6jjnzMwuKJ0ZHv7xZvSHyhIsFRiYiEs44kiYjbUUMcXor/uLEuTIazGrE3MahuGdjpT2
- IOjoMiTsbMc0yfhHp6G/2E769oDXMVxCCbMVpA+LUtVIQEA+8Zr6mX0Yk4nDS7OiBlvOwE0E
- U8AbwQEIAKxr71oqe+0+MYCc7WafWEcpQHFUwvYLcdBoOnmJPxDwDRpvU5LhqSPvk/yJdh9k
- 4xUDQu3rm1qIW2I9Puk5n/Jz/lZsqGw8T13DKyu8eMcvaA/irm9lX9El27DPHy/0qsxmxVmU
- pu9y9S+BmaMb2CM9IuyxMWEl9ruWFS2jAWh/R8CrdnL6+zLk60R7XGzmSJqF09vYNlJ6Bdbs
- MWDXkYWWP5Ub1ZJGNJQ4qT7g8IN0qXxzLQsmz6tbgLMEHYBGx80bBF8AkdThd6SLhreCN7Uh
- IR/5NXGqotAZao2xlDpJLuOMQtoH9WVNuuxQQZHVd8if+yp6yRJ5DAmIUt5CCPcAEQEAAcLB
- gQQYAQIBKwUCU8AbwgUbDAAAAMBdIAQZAQgABgUCU8AbwQAKCRCTYAaomC8PVQ0VCACWk3n+
- obFABEp5Rg6Qvspi9kWXcwCcfZV41OIYWhXMoc57ssjCand5noZi8bKg0bxw4qsg+9cNgZ3P
- N/DFWcNKcAT3Z2/4fTnJqdJS//YcEhlr8uGs+ZWFcqAPbteFCM4dGDRruo69IrHfyyQGx16s
- CcFlrN8vD066RKevFepb/ml7eYEdN5SRALyEdQMKeCSf3mectdoECEqdF/MWpfWIYQ1hEfdm
- C2Kztm+h3Nkt9ZQLqc3wsPJZmbD9T0c9Rphfypgw/SfTf2/CHoYVkKqwUIzI59itl5Lze+R5
- wDByhWHx2Ud2R7SudmT9XK1e0x7W7a5z11Q6vrzuED5nQvkhAAoJEIExtcQpvGagugcIAJd5
- EYe6KM6Y6RvI6TvHp+QgbU5dxvjqSiSvam0Ms3QrLidCtantcGT2Wz/2PlbZqkoJxMQc40rb
- fXa4xQSvJYj0GWpadrDJUvUu3LEsunDCxdWrmbmwGRKqZraV2oG7YEddmDqOe0Xm/NxeSobc
- MIlnaE6V0U8f5zNHB7Y46yJjjYT/Ds1TJo3pvwevDWPvv6rdBeV07D9s43frUS6xYd1uFxHC
- 7dZYWJjZmyUf5evr1W1gCgwLXG0PEi9n3qmz1lelQ8lSocmvxBKtMbX/OKhAfuP/iIwnTsww
- 95A2SaPiQZA51NywV8OFgsN0ITl2PlZ4Tp9hHERDe6nQCsNI/Us=
-In-Reply-To: <20250115-fix-riscv-rt_group_sched-v4-4-607606fe73a5@coelacanthus.name>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-On 1/14/25 12:41, Celeste Liu wrote:
-> Commit 673ce00c5d6c ("ARM: omap2plus_defconfig: Add support for distros
-> with systemd") said it's because of recommendation from systemd. But
-> systemd changed their recommendation later.[1]
-> 
-> For cgroup v1, if turned on, and there's any cgroup in the "cpu" hierarchy it
-> needs an RT budget assigned, otherwise the processes in it will not be able to
-> get RT at all. The problem with RT group scheduling is that it requires the
-> budget assigned but there's no way we could assign a default budget, since the
-> values to assign are both upper and lower time limits, are absolute, and need to
-> be sum up to < 1 for each individal cgroup. That means we cannot really come up
-> with values that would work by default in the general case.[2]
-> 
-> For cgroup v2, it's almost unusable as well. If it turned on, the cpu controller
-> can only be enabled when all RT processes are in the root cgroup. But it will
-> lose the benefits of cgroup v2 if all RT process were placed in the same cgroup.
-> 
-> Red Hat, Gentoo, Arch Linux and Debian all disable it. systemd also doesn't
-> support it.
-> 
-> [1]: https://github.com/systemd/systemd/commit/f4e74be1856b3ac058acbf1be321c31d5299f69f
-> [2]: https://bugzilla.redhat.com/show_bug.cgi?id=1229700
-> 
-> Tested-by: Stefan Wahren <wahrenst@gmx.net>
-> Acked-by: Kevin Hilman <khilman@baylibre.com>
-> Acked-by: Thierry Reding <treding@nvidia.com>
-> Signed-off-by: Celeste Liu <uwu@coelacanthus.name>
-> ---
->   arch/arm/configs/bcm2835_defconfig   | 1 -
+Add support for TPS65214 regulators (bucks and LDOs) to the TPS65219
+Regulator Driver as the TPS65214/TPS65214/TPS65219 PMIC devices have
+significant register map overlap. TPS65214 is a Power Management IC with 3
+Buck regulators (like TPS65215/TPS65219) and has 2 LDOs (like TPS65215).
 
-Acked-by: Florian Fainelli <florian.fainelli@broadcom.com> # 
-bcm2835_defconfig
+Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+---
+ drivers/regulator/Kconfig              |  9 +++-
+ drivers/regulator/tps65219-regulator.c | 73 ++++++++++++++++++++++----
+ 2 files changed, 69 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+index 6cd87443f9bb..3a694945739c 100644
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -1579,11 +1579,16 @@ config REGULATOR_TPS65219
+ 	tristate "TI TPS65219 Power regulators"
+ 	depends on MFD_TPS65219 && OF
+ 	help
+-	  This driver supports TPS65219 series and TPS65215 voltage regulator chips.
++	  This driver supports TPS65219, TPS65215, and TPS65214 voltage
++	  regulator chips.
+ 	  TPS65219 series of PMICs have 3 single phase BUCKs & 4 LDOs
+ 	  voltage regulators.
+ 	  TPS65215 PMIC has 3 single phase BUCKs & 2 LDOs.
+-	  Both PMICs support software based voltage control for different voltage domains.
++	  TPS65214 PMIC has 3 synchronous stepdown DC-DC converters & 2
++	  LDOs. One LDO supports a maximum output current of 300 mA and the
++	  other a maximum of 500 mA
++	  All 3 PMICs support software based voltage control for different
++	  voltage domains.
+ 
+ config REGULATOR_TPS6594
+ 	tristate "TI TPS6594 Power regulators"
+diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
+index 5f5a6f3c950b..241a7e841d35 100644
+--- a/drivers/regulator/tps65219-regulator.c
++++ b/drivers/regulator/tps65219-regulator.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ //
+-// Regulator driver for TPS65215/TPS65219 PMIC
++// TPS65214/TPS65215/TPS65219 PMIC Regulator Driver
+ //
+ // Copyright (C) 2022 BayLibre Incorporated - https://www.baylibre.com/
+ // Copyright (C) 2024 Texas Instruments Incorporated - https://www.ti.com/
+@@ -29,6 +29,11 @@ struct tps65219_regulator_irq_type {
+ 	unsigned long event;
+ };
+ 
++static struct tps65219_regulator_irq_type tps65215_regulator_irq_types[] = {
++	{ "SENSOR_3_WARM", "SENSOR3", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN},
++	{ "SENSOR_3_HOT", "SENSOR3", "hot temperature", REGULATOR_EVENT_OVER_TEMP},
++};
++
+ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
+ 	{ "LDO3_SCG", "LDO3", "short circuit to ground", REGULATOR_EVENT_REGULATION_OUT },
+ 	{ "LDO3_OC", "LDO3", "overcurrent", REGULATOR_EVENT_OVER_CURRENT },
+@@ -40,9 +45,11 @@ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
+ 	{ "LDO4_RV", "LDO4", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "LDO3_RV_SD", "LDO3", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "LDO4_RV_SD", "LDO4", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
++	{ "SENSOR_3_WARM", "SENSOR3", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN},
++	{ "SENSOR_3_HOT", "SENSOR3", "hot temperature", REGULATOR_EVENT_OVER_TEMP},
+ };
+ 
+-/*  All of TPS65215's irq types are the same as common_regulator_irq_types */
++/*  All of TPS65214's irq types are the same as common_regulator_irq_types */
+ static struct tps65219_regulator_irq_type common_regulator_irq_types[] = {
+ 	{ "LDO1_SCG", "LDO1", "short circuit to ground", REGULATOR_EVENT_REGULATION_OUT },
+ 	{ "LDO1_OC", "LDO1", "overcurrent", REGULATOR_EVENT_OVER_CURRENT },
+@@ -75,11 +82,9 @@ static struct tps65219_regulator_irq_type common_regulator_irq_types[] = {
+ 	 REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "LDO1_RV_SD", "LDO1", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "LDO2_RV_SD", "LDO2", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+-	{ "SENSOR_3_WARM", "SENSOR3", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN},
+ 	{ "SENSOR_2_WARM", "SENSOR2", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN },
+ 	{ "SENSOR_1_WARM", "SENSOR1", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN },
+ 	{ "SENSOR_0_WARM", "SENSOR0", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN },
+-	{ "SENSOR_3_HOT", "SENSOR3", "hot temperature", REGULATOR_EVENT_OVER_TEMP},
+ 	{ "SENSOR_2_HOT", "SENSOR2", "hot temperature", REGULATOR_EVENT_OVER_TEMP },
+ 	{ "SENSOR_1_HOT", "SENSOR1", "hot temperature", REGULATOR_EVENT_OVER_TEMP },
+ 	{ "SENSOR_0_HOT", "SENSOR0", "hot temperature", REGULATOR_EVENT_OVER_TEMP },
+@@ -133,6 +138,12 @@ static const struct linear_range ldo_1_range[] = {
+ 	REGULATOR_LINEAR_RANGE(3400000, 0x38, 0x3f, 0),
+ };
+ 
++static const struct linear_range tps65214_ldo_1_2_range[] = {
++	REGULATOR_LINEAR_RANGE(600000, 0x0, 0x2, 0),
++	REGULATOR_LINEAR_RANGE(650000, 0x3, 0x37, 50000),
++	REGULATOR_LINEAR_RANGE(3300000, 0x38, 0x3F, 0),
++};
++
+ static const struct linear_range tps65215_ldo_2_range[] = {
+ 	REGULATOR_LINEAR_RANGE(1200000, 0x0, 0xC, 50000),
+ 	REGULATOR_LINEAR_RANGE(3300000, 0x36, 0x3F, 0),
+@@ -251,6 +262,32 @@ static const struct regulator_desc common_regs[] = {
+ 			   TPS65219_REG_ENABLE_CTRL,
+ 			   TPS65219_ENABLE_BUCK3_EN_MASK, 0, 0, bucks_ranges,
+ 			   3, 0, 0, NULL, 0, 0),
++};
++
++static const struct regulator_desc tps65214_regs[] = {
++	// TPS65214's LDO3 pin maps to TPS65219's LDO3 pin
++	TPS65219_REGULATOR("LDO1", "ldo1", TPS65214_LDO_1,
++			   REGULATOR_VOLTAGE, ldos_3_4_ops, 64,
++			   TPS65214_REG_LDO1_VOUT,
++			   TPS65219_BUCKS_LDOS_VOUT_VSET_MASK,
++			   TPS65219_REG_ENABLE_CTRL,
++			   TPS65219_ENABLE_LDO3_EN_MASK, 0, 0, tps65214_ldo_1_2_range,
++			   3, 0, 0, NULL, 0, 0),
++	TPS65219_REGULATOR("LDO2", "ldo2", TPS65214_LDO_2,
++			   REGULATOR_VOLTAGE, ldos_3_4_ops, 64,
++			   TPS65214_REG_LDO2_VOUT,
++			   TPS65219_BUCKS_LDOS_VOUT_VSET_MASK,
++			   TPS65219_REG_ENABLE_CTRL,
++			   TPS65219_ENABLE_LDO2_EN_MASK, 0, 0, tps65214_ldo_1_2_range,
++			   3, 0, 0, NULL, 0, 0),
++};
++
++static const struct regulator_desc tps65215_regs[] = {
++	/*
++	 *  TPS65215's LDO1 is the same as TPS65219's LDO1. LDO1 is
++	 *  configurable as load switch and bypass-mode.
++	 *  TPS65215's LDO2 is the same as TPS65219's LDO3
++	 */
+ 	TPS65219_REGULATOR("LDO1", "ldo1", TPS65219_LDO_1,
+ 			   REGULATOR_VOLTAGE, ldos_1_2_ops, 64,
+ 			   TPS65219_REG_LDO1_VOUT,
+@@ -258,10 +295,6 @@ static const struct regulator_desc common_regs[] = {
+ 			   TPS65219_REG_ENABLE_CTRL,
+ 			   TPS65219_ENABLE_LDO1_EN_MASK, 0, 0, ldo_1_range,
+ 			   2, 0, 0, NULL, 0, TPS65219_LDOS_BYP_CONFIG_MASK),
+-};
+-
+-static const struct regulator_desc tps65215_regs[] = {
+-	// TPS65215's LDO2 is the same as TPS65219's LDO3
+ 	TPS65219_REGULATOR("LDO2", "ldo2", TPS65215_LDO_2,
+ 			   REGULATOR_VOLTAGE, ldos_3_4_ops, 64,
+ 			   TPS65215_REG_LDO2_VOUT,
+@@ -272,6 +305,13 @@ static const struct regulator_desc tps65215_regs[] = {
+ };
+ 
+ static const struct regulator_desc tps65219_regs[] = {
++	TPS65219_REGULATOR("LDO1", "ldo1", TPS65219_LDO_1,
++			   REGULATOR_VOLTAGE, ldos_1_2_ops, 64,
++			   TPS65219_REG_LDO1_VOUT,
++			   TPS65219_BUCKS_LDOS_VOUT_VSET_MASK,
++			   TPS65219_REG_ENABLE_CTRL,
++			   TPS65219_ENABLE_LDO1_EN_MASK, 0, 0, ldo_1_range,
++			   2, 0, 0, NULL, 0, TPS65219_LDOS_BYP_CONFIG_MASK),
+ 	TPS65219_REGULATOR("LDO2", "ldo2", TPS65219_LDO_2,
+ 			   REGULATOR_VOLTAGE, ldos_1_2_ops, 64,
+ 			   TPS65219_REG_LDO2_VOUT,
+@@ -326,13 +366,23 @@ struct tps65219_chip_data {
+ };
+ 
+ static struct tps65219_chip_data chip_info_table[] = {
++	[TPS65214] = {
++		.rdesc = tps65214_regs,
++		.rdesc_size = ARRAY_SIZE(tps65214_regs),
++		.common_rdesc = common_regs,
++		.common_rdesc_size = ARRAY_SIZE(common_regs),
++		.irq_types = NULL,
++		.dev_irq_size = 0,
++		.common_irq_types = common_regulator_irq_types,
++		.common_irq_size = ARRAY_SIZE(common_regulator_irq_types),
++	},
+ 	[TPS65215] = {
+ 		.rdesc = tps65215_regs,
+ 		.rdesc_size = ARRAY_SIZE(tps65215_regs),
+ 		.common_rdesc = common_regs,
+ 		.common_rdesc_size = ARRAY_SIZE(common_regs),
+-		.irq_types = NULL,
+-		.dev_irq_size = 0,
++		.irq_types = tps65215_regulator_irq_types,
++		.dev_irq_size = ARRAY_SIZE(tps65215_regulator_irq_types),
+ 		.common_irq_types = common_regulator_irq_types,
+ 		.common_irq_size = ARRAY_SIZE(common_regulator_irq_types),
+ 	},
+@@ -436,6 +486,7 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
+ }
+ 
+ static const struct platform_device_id tps65219_regulator_id_table[] = {
++	{ "tps65214-regulator", TPS65214 },
+ 	{ "tps65215-regulator", TPS65215 },
+ 	{ "tps65219-regulator", TPS65219 },
+ 	{ /* sentinel */ }
+@@ -454,5 +505,5 @@ static struct platform_driver tps65219_regulator_driver = {
+ module_platform_driver(tps65219_regulator_driver);
+ 
+ MODULE_AUTHOR("Jerome Neanne <j-neanne@baylibre.com>");
+-MODULE_DESCRIPTION("TPS65215/TPS65219 voltage regulator driver");
++MODULE_DESCRIPTION("TPS65214/TPS65215/TPS65219 Regulator driver");
+ MODULE_LICENSE("GPL");
 -- 
-Florian
+2.43.0
+
