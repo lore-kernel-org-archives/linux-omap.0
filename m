@@ -1,61 +1,59 @@
 Received: from lelvem-ot02.ext.ti.com (lelvem-ot02.ext.ti.com [198.47.23.235])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFB1322BACA;
-	Thu, 16 Jan 2025 22:38:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 621B81DAC81;
+	Thu, 16 Jan 2025 22:38:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.235
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737067096; cv=none; b=kSinnCxa2O+M+02mlgnTACY3twQ9p8qsKrpOzQr3WhTOecK7EPWM1uuZDrV61R1p7b3iGrr3lxxb/AkpDBu6SJwoqcQj5GKI2u22L2KQDtrM0iUYgTbGCVs2tohc7DwC/Gv8fZOJsNvdlclq0QaAn7uKjjdIxZvdUwCyYwrDb8Y=
+	t=1737067137; cv=none; b=ScvMVJrRva+/aTzkG9m/XN7l4LgDjVx8sPf6KS8PEJ2yCN1NBV3jUPgHfB0a3JnWZae9Mrbbi6Qa3EN2tZi7pGidq4X2SgDuFR6WLmNOWchaiBS8XS9cvAObSCuxVhaN/HDdBSqNoOIgCYbTdeRoJAnQCcF7ZGbAz0+6K2AN3F8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737067096; c=relaxed/simple;
-	bh=L5MmjyuvQRnFMwb4/Kyl8meWviNS3V8qYI+12W4U0pI=;
+	s=arc-20240116; t=1737067137; c=relaxed/simple;
+	bh=+IujE3cxCeU0fLF5a4tyykT1CiAKcFwbHzhdkuKMlrs=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Kgb5KvPKx3GVlT0jIQoYbEjIxkWkDkAE5xkeo8qs6nq8W3+m3dPIs3gYWx2EebyFmMyLZuL34Ei0UqKpPjqFfuTnLb8TRMaJLJIdVT/DWsH3XYfFJav3br4fpoFi6l8qC9hvMpaM4Mko0LEDCTYEMn+MSuRiCgYTqgFk7M6e9TA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=qCfS18SN; arc=none smtp.client-ip=198.47.23.235
+	 MIME-Version:Content-Type; b=sTzaFaas/qXnIRyKl4YqLml4ZZ1dVDLg46tegVpmyjNX8f4QY5lnf5g4tbG6LO+dcKKTjKTjKIMFaA+IMlEmuj0491N4rVw8ISraxSPO4pAyRGg2d0xB2Ugl4XuOsJQNgXVPTKLCbMjJbZCAkhDCjQOi5DEcgrX0DqchTY2lvQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=TTbSPYrp; arc=none smtp.client-ip=198.47.23.235
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="qCfS18SN"
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 50GMbe3V223928
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="TTbSPYrp"
+Received: from fllv0034.itg.ti.com ([10.64.40.246])
+	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 50GMceWD223977
 	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 16 Jan 2025 16:37:40 -0600
+	Thu, 16 Jan 2025 16:38:40 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1737067060;
-	bh=ZY997roUOTlXyxylbEMvp0F5Ad/fPy2pXpkn1UxtkRE=;
+	s=ti-com-17Q1; t=1737067120;
+	bh=GeXJ821fNC9BH95Vrlqxb5lfJurrOTDvgowcdMP1QFs=;
 	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=qCfS18SNk4oPc0rVPS5HYfedabIYy5TauPzftflIljFeUuSZkxc7riZ5Gs9b3bYuh
-	 /tELc5vRmgo8F4sdXDU03KhUok3X6ilBwp1nOHuohFxqco59rTRpsEN0QmCyGj9rBc
-	 3Dcb8DmoMf17ZoOj3bkaaEJiZvB9eR+RyZxeq8JI=
-Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
-	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 50GMbeHD049330
+	b=TTbSPYrpSNUxn56wLVPu+3Dj5DlBBpgubOD7EB2ArNiI0NwumIKondMdpNh9GfUbl
+	 IYv11ITf7XNL3S/3EHeoJEp7YzPue5zA6TvVrGiTUlY3rOVkRJaEfWd1Qr5fPf5Fog
+	 0LDffKfbNe3ghbNyBpQaPvQlPOH0HOpzhy7U8sTs=
+Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
+	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 50GMcevQ089601
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 16 Jan 2025 16:37:40 -0600
-Received: from DFLE109.ent.ti.com (10.64.6.30) by DFLE114.ent.ti.com
- (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
+	Thu, 16 Jan 2025 16:38:40 -0600
+Received: from DFLE108.ent.ti.com (10.64.6.29) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 16
- Jan 2025 16:37:40 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
+ Jan 2025 16:38:40 -0600
+Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Thu, 16 Jan 2025 16:37:40 -0600
+ Frontend Transport; Thu, 16 Jan 2025 16:38:40 -0600
 Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.11])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 50GMbeYM030055;
-	Thu, 16 Jan 2025 16:37:40 -0600
+	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 50GMcebS024854;
+	Thu, 16 Jan 2025 16:38:40 -0600
 From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
-        <krzk+dt@kernel.org>, <conor+dt@kernel.org>, <aaro.koskinen@iki.fi>,
-        <andreas@kemnade.info>, <khilman@baylibre.com>, <rogerq@kernel.org>,
-        <tony@atomide.com>, <jerome.neanne@baylibre.com>,
-        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <devicetree@vger.kernel.org>
+To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
+        <rogerq@kernel.org>, <tony@atomide.com>, <linus.walleij@linaro.org>,
+        <brgl@bgdev.pl>, <linux-omap@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>
 CC: <m-leonard@ti.com>, <praneeth@ti.com>, <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH v1 1/2] regulator: dt-bindings: Add TI TPS65214 PMIC bindings
-Date: Thu, 16 Jan 2025 16:37:39 -0600
-Message-ID: <20250116223740.429515-2-s-ramamoorthy@ti.com>
+Subject: [PATCH v1 1/1] gpio: tps65214: Add support for TI TPS65214 PMIC
+Date: Thu, 16 Jan 2025 16:38:40 -0600
+Message-ID: <20250116223840.430054-2-s-ramamoorthy@ti.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20250116223740.429515-1-s-ramamoorthy@ti.com>
-References: <20250116223740.429515-1-s-ramamoorthy@ti.com>
+In-Reply-To: <20250116223840.430054-1-s-ramamoorthy@ti.com>
+References: <20250116223840.430054-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -66,62 +64,53 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-- TPS65214 is a Power Management IC with 3 Buck regulators and 2 LDOs.
-- TPS65214 has 2 LDOS and 1 GPO, whereas TPS65219 has 4 LDOs and 2 GPOs.
-- TPS65214's LDO1 maps to TPS65219's LDO3.
-- A key difference between TPS65215 & TPS65214 are the LDO current and
-  voltage output ranges and the configurable options available.
-- The remaining features for both devices are the same.
+Add TPS65214 support to platform_id table and device-specific chip_data
+struct. Update descriptions to reflect the driver supports 3 PMICs:
+TPS65214, TPS65215, and TPS65219.
 
 Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 ---
- .../bindings/regulator/ti,tps65219.yaml          | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ drivers/gpio/gpio-tps65219.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml b/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
-index b0d47415bf83..b56e7f8fe88e 100644
---- a/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
-+++ b/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
-@@ -4,7 +4,7 @@
- $id: http://devicetree.org/schemas/regulator/ti,tps65219.yaml#
- $schema: http://devicetree.org/meta-schemas/core.yaml#
+diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
+index 6845f2920f3a..6b8d88ca3e8a 100644
+--- a/drivers/gpio/gpio-tps65219.c
++++ b/drivers/gpio/gpio-tps65219.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+- * GPIO driver for TI TPS65215/TPS65219 PMICs
++ * TI TPS65214/TPS65215/TPS65219 PMIC GPIO Driver
+  *
+  * Copyright (C) 2024 Texas Instruments Incorporated - http://www.ti.com/
+  */
+@@ -156,6 +156,10 @@ static const struct gpio_chip tps65219_template_chip = {
+ };
  
--title: TI TPS65215/TPS65219 Power Management Integrated Circuits
-+title: TI TPS65214/TPS65215/TPS65219 Power Management Integrated Circuit
+ static const struct tps65219_chip_data chip_info_table[] = {
++	[TPS65214] = {
++		.ngpio = 2,
++		.offset = 1,
++	},
+ 	[TPS65215] = {
+ 		.ngpio = 2,
+ 		.offset = 1,
+@@ -191,6 +195,7 @@ static int tps65219_gpio_probe(struct platform_device *pdev)
+ }
  
- maintainers:
-   - Jerome Neanne <jerome.neanne@baylibre.com>
-@@ -18,9 +18,13 @@ description: |
-   TI TPS65215 is a derivative of TPS65219 with 3 Buck regulators, 2 Low
-   Drop-out Regulators (LDOs), 1 GPIO, 1 GPO, and power-button.
+ static const struct platform_device_id tps6521x_gpio_id_table[] = {
++	{ "tps65214-gpio", TPS65214 },
+ 	{ "tps65215-gpio", TPS65215 },
+ 	{ "tps65219-gpio", TPS65219 },
+ 	{ }
+@@ -207,5 +212,5 @@ static struct platform_driver tps65219_gpio_driver = {
+ module_platform_driver(tps65219_gpio_driver);
  
-+  TI TPS65214 is a derivative of TPS65219 with 3 Buck regulators, 2 Low
-+  Drop-out Regulators (LDOs), 1 GPIO, 1 GPO, and power-button.
-+
- properties:
-   compatible:
-     enum:
-+      - ti,tps65214
-       - ti,tps65215
-       - ti,tps65219
- 
-@@ -98,6 +102,16 @@ required:
- additionalProperties: false
- 
- allOf:
-+  - if:
-+      properties:
-+        compatible:
-+          contains:
-+            const: ti,tps65214
-+    then:
-+      properties:
-+        regulators:
-+          patternProperties:
-+            "^ldo[3-4]$": false
-   - if:
-       properties:
-         compatible:
+ MODULE_AUTHOR("Jonathan Cormier <jcormier@criticallink.com>");
+-MODULE_DESCRIPTION("TPS65215/TPS65219 GPIO driver");
++MODULE_DESCRIPTION("TPS65214/TPS65215/TPS65219 GPIO driver");
+ MODULE_LICENSE("GPL");
 -- 
 2.43.0
 
