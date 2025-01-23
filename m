@@ -1,157 +1,247 @@
-Received: from smtp.smtpout.orange.fr (smtp-78.smtpout.orange.fr [80.12.242.78])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from server.wki.vra.mybluehostin.me (server.wki.vra.mybluehostin.me [162.240.238.73])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB8201BD01F;
-	Thu, 23 Jan 2025 07:25:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.12.242.78
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 980B220B21B;
+	Thu, 23 Jan 2025 07:26:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.240.238.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737617143; cv=none; b=YhVXMWmCtV5y5919bNX/jDuC1jdnYkypyxiG4xSakkYHYPg1dsZX84KwqyJVIRqf2YvKVqeB5RLB6OBu1JOoCS2fwk8w8HMIG0BxqwK1CCNpfuInlJPrRdmCVuW+UJZ5EcDSOC1Reo6tWmWWFXMuKuTf19PLvd8Xmtwt3lwoQKI=
+	t=1737617163; cv=none; b=Sa1SXKZuBr19moHJ/KqghYU5LukWZQWvSYi6dzDwGAO9ImKWan0vN+41mRqErzj0fDLN3OlKCa1+mEZ6fVstdp7Xf3C2akpGGeEg+Hau4IiUfGt+pBIg9RhgZNSK9fjyvdrb5rguo6BL//n5gO9WExx+WkVTPxwKjmHtWjJO7Bw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737617143; c=relaxed/simple;
-	bh=4Ybj/gzCNGADDvvknNkxFQvNmzXh/yVwMcxfNAtmbNw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=sSVrlQuXxo+hOLMqimYKjxLYl88Xjk9hqtx7/whAVH/duQo95wUDj+9goFdmLrOt8waN3eOQ3HQAlg9IEltpTNrFfNVcnlJKfc3OTLAGNGXZmU9ad4okFdZ1IzMztJ/7HOgNQ4b5GGiF/he+T9XotJzTFv/zhj9QSLY58HFZ0K0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr; spf=pass smtp.mailfrom=wanadoo.fr; dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b=RCJG0LZS; arc=none smtp.client-ip=80.12.242.78
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wanadoo.fr
+	s=arc-20240116; t=1737617163; c=relaxed/simple;
+	bh=+oTU2f7QVgMPnI5TDOFIx60vS3POz6R+KAMidl+5BuU=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
+	 MIME-Version:Content-Type; b=qqL4aHeBL7b/9b1XOm1HD1+/G3IMPe2FzuKbhHjb8d8s1Y3hFGJENgYcEvw0SZtvc87rrfwEAjS6o6f/26JvbwByUXa6lhhCK90eh5wLm6FZfGWwH4qAbXYULOrH8Js5iFup9zW6qW1+ZN+hkKeSebPW62dLbZHOkYU1w9dTR98=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=couthit.com; spf=pass smtp.mailfrom=couthit.com; dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b=sClbXXEv; arc=none smtp.client-ip=162.240.238.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=couthit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=couthit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b="RCJG0LZS"
-Received: from [192.168.1.37] ([90.11.132.44])
-	by smtp.orange.fr with ESMTPA
-	id arRhtWwm7puS4arRktmPw9; Thu, 23 Jan 2025 08:16:19 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
-	s=t20230301; t=1737616579;
-	bh=hcGfEedhE7m9EkCg6qCuIbrFQfNbCC4sY3ipNadpGYM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:From;
-	b=RCJG0LZST/c9iDLh1h2eAi6tSx/hpX4+/bh3htnH7e0khwHvVG9w0wmLaMSqWoIKp
-	 Dj5MuOopdZZPzFZYTVgeAZP4r2kEpipHdhLDaXRcWSFYkFdOQIpMyxwZRoAMy2ktAn
-	 Bje5JvwCdghoQ+Lc979DeoZ1Hp86EW8rXBWf9vsznO3tlugwsDRcD88SPPpHSLw/zo
-	 MElRrxYMfPZt3Mo6dn1oOk5onWSMY+Nzc/GUus2vqY28VyMd5DkisxlmxxqXjzLfQX
-	 J8Q+ovpUs4OrHzP4QjQjV3YjYnNw726t2qx+ebfn8P6xe+c0g4FSEXAqp/a/O9M0Wy
-	 97uvgBG44uDDQ==
-X-ME-Helo: [192.168.1.37]
-X-ME-Auth: bWFyaW9uLmphaWxsZXRAd2FuYWRvby5mcg==
-X-ME-Date: Thu, 23 Jan 2025 08:16:19 +0100
-X-ME-IP: 90.11.132.44
-Message-ID: <6ac6161b-373a-47ce-801d-9e4ff1ef258c@wanadoo.fr>
-Date: Thu, 23 Jan 2025 08:16:09 +0100
+	dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b="sClbXXEv"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=couthit.com
+	; s=default; h=Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:
+	References:In-Reply-To:Message-ID:Cc:To:From:Date:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=veVVuKJ87/rWDfKKk1AslmxtqJaSaNITyAxbJjSZqBs=; b=sClbXXEvBxiDWOPpHjgna2Gr/r
+	y7v1+u6od2V3kWR5Nd3lCCR2kHu5jhH6cUl4U9+h//cIsVEFI3Gyiba6S9Q82ZyoN4iwE2FIsqS3W
+	DsxNnFTErn3b2PRzsPP0aO1xORwztmfTzvrZan4K5x7E1Y0CAPiBY4UJljzuJNZUzVxXW7Rbb6pdR
+	zFlvVbaokqMzbs96DSwagskLz3Km6HfJXaGxuzfEcM2jKKTtiijosYTR6xjXZ6hlBV8jb4jL3W9SA
+	r7PzG6sPpqv/jKYGPQ3jXs3ARB9GfbCtT8gfF15l/jQ2WFZPzE5ki1LeF45zlZ870NkaxDng6OGoV
+	+UMB5CsA==;
+Received: from [122.175.9.182] (port=20914 helo=zimbra.couthit.local)
+	by server.wki.vra.mybluehostin.me with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96.2)
+	(envelope-from <basharath@couthit.com>)
+	id 1tarb9-0008NK-2D;
+	Thu, 23 Jan 2025 12:55:56 +0530
+Received: from zimbra.couthit.local (localhost [127.0.0.1])
+	by zimbra.couthit.local (Postfix) with ESMTPS id 81E7F1781A7D;
+	Thu, 23 Jan 2025 12:55:49 +0530 (IST)
+Received: from localhost (localhost [127.0.0.1])
+	by zimbra.couthit.local (Postfix) with ESMTP id 623C21782495;
+	Thu, 23 Jan 2025 12:55:49 +0530 (IST)
+Received: from zimbra.couthit.local ([127.0.0.1])
+	by localhost (zimbra.couthit.local [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id CgdwGL9ompX1; Thu, 23 Jan 2025 12:55:49 +0530 (IST)
+Received: from zimbra.couthit.local (zimbra.couthit.local [10.10.10.103])
+	by zimbra.couthit.local (Postfix) with ESMTP id 1E2E41781A7D;
+	Thu, 23 Jan 2025 12:55:49 +0530 (IST)
+Date: Thu, 23 Jan 2025 12:55:48 +0530 (IST)
+From: Basharath Hussain Khaja <basharath@couthit.com>
+To: Jason Xing <kerneljasonxing@gmail.com>
+Cc: basharath <basharath@couthit.com>, danishanwar <danishanwar@ti.com>, 
+	rogerq <rogerq@kernel.org>, andrew+netdev <andrew+netdev@lunn.ch>, 
+	davem <davem@davemloft.net>, edumazet <edumazet@google.com>, 
+	kuba <kuba@kernel.org>, pabeni <pabeni@redhat.com>, 
+	Rob Herring <robh@kernel.org>, krzk+dt <krzk+dt@kernel.org>, 
+	conor+dt <conor+dt@kernel.org>, nm <nm@ti.com>, 
+	ssantosh <ssantosh@kernel.org>, tony <tony@atomide.com>, 
+	richardcochran <richardcochran@gmail.com>, 
+	parvathi <parvathi@couthit.com>, schnelle <schnelle@linux.ibm.com>, 
+	rdunlap <rdunlap@infradead.org>, diogo ivo <diogo.ivo@siemens.com>, 
+	m-karicheri2 <m-karicheri2@ti.com>, horms <horms@kernel.org>, 
+	jacob e keller <jacob.e.keller@intel.com>, 
+	m-malladi <m-malladi@ti.com>, 
+	javier carrasco cruz <javier.carrasco.cruz@gmail.com>, 
+	afd <afd@ti.com>, s-anna <s-anna@ti.com>, 
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, 
+	netdev <netdev@vger.kernel.org>, 
+	devicetree <devicetree@vger.kernel.org>, 
+	linux-kernel <linux-kernel@vger.kernel.org>, 
+	linux-omap <linux-omap@vger.kernel.org>, 
+	pratheesh <pratheesh@ti.com>, prajith <prajith@ti.com>, 
+	vigneshr <vigneshr@ti.com>, praneeth <praneeth@ti.com>, 
+	srk <srk@ti.com>, rogerq <rogerq@ti.com>, 
+	krishna <krishna@couthit.com>, pmohan <pmohan@couthit.com>, 
+	mohan <mohan@couthit.com>
+Message-ID: <507763040.391350.1737617148913.JavaMail.zimbra@couthit.local>
+In-Reply-To: <CAL+tcoD6WuJH6yXaEGvuz_s3sROPXtEMeZw1hBNQvb6wnKKr-w@mail.gmail.com>
+References: <20250109105600.41297-1-basharath@couthit.com> <20250110055906.65086-7-basharath@couthit.com> <CAL+tcoD6WuJH6yXaEGvuz_s3sROPXtEMeZw1hBNQvb6wnKKr-w@mail.gmail.com>
+Subject: Re: [RFC PATCH 06/10] net: ti: prueth: Adds HW timestamping support
+ for PTP using PRU-ICSS IEP module
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 04/10] net: ti: prueth: Adds link detection, RX and TX
- support.
-To: Basharath Hussain Khaja <basharath@couthit.com>, danishanwar@ti.com,
- rogerq@kernel.org, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, robh@kernel.org,
- krzk+dt@kernel.org, conor+dt@kernel.org, nm@ti.com, ssantosh@kernel.org,
- tony@atomide.com, richardcochran@gmail.com, parvathi@couthit.com,
- schnelle@linux.ibm.com, rdunlap@infradead.org, diogo.ivo@siemens.com,
- m-karicheri2@ti.com, horms@kernel.org, jacob.e.keller@intel.com,
- m-malladi@ti.com, javier.carrasco.cruz@gmail.com, afd@ti.com, s-anna@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org,
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-omap@vger.kernel.org, pratheesh@ti.com, prajith@ti.com,
- vigneshr@ti.com, praneeth@ti.com, srk@ti.com, rogerq@ti.com,
- krishna@couthit.com, pmohan@couthit.com, mohan@couthit.com
-References: <20250109105600.41297-1-basharath@couthit.com>
- <20250109105600.41297-5-basharath@couthit.com>
-Content-Language: en-US, fr-FR
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-In-Reply-To: <20250109105600.41297-5-basharath@couthit.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+X-Mailer: Zimbra 8.8.15_GA_3968 (ZimbraWebClient - FF113 (Linux)/8.8.15_GA_3968)
+Thread-Topic: prueth: Adds HW timestamping support for PTP using PRU-ICSS IEP module
+Thread-Index: wTJ8No/eSvZZY8f30NQgDnaEMvdq2w==
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - server.wki.vra.mybluehostin.me
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - couthit.com
+X-Get-Message-Sender-Via: server.wki.vra.mybluehostin.me: authenticated_id: smtp@couthit.com
+X-Authenticated-Sender: server.wki.vra.mybluehostin.me: smtp@couthit.com
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
 
-Le 09/01/2025 à 11:55, Basharath Hussain Khaja a écrit :
-> From: Roger Quadros <rogerq@ti.com>
-> 
-> Changes corresponding to link configuration such as speed and duplexity.
-> IRQ and handler initializations are performed for packet reception.Firmware
-> receives the packet from the wire and stores it into OCMC queue. Next, it
-> notifies the CPU via interrupt. Upon receiving the interrupt CPU will
-> service the IRQ and packet will be processed by pushing the newly allocated
-> SKB to upper layers.
-> 
-> When the user application want to transmit a packet, it will invoke
-> sys_send() which will inturn invoke the PRUETH driver, then it will write
-> the packet into OCMC queues. PRU firmware will pick up the packet and
-> transmit it on to the wire.
+> On Fri, Jan 10, 2025 at 2:01=E2=80=AFPM Basharath Hussain Khaja
+> <basharath@couthit.com> wrote:
+>>
+>> From: Roger Quadros <rogerq@ti.com>
+>>
+>> PRU-ICSS IEP module, which is capable of timestamping RX and
+>> TX packets at HW level, is used for time synchronization by PTP4L.
+>>
+>> This change includes interaction between firmware and user space
+>> application (ptp4l) with required packet timestamps. The driver
+>> initializes the PRU firmware with appropriate mode and configuration
+>> flags. Firmware updates local registers with the flags set by driver
+>> and uses for further operation. RX SOF timestamp comes along with
+>> packet and firmware will rise interrupt with TX SOF timestamp after
+>> pushing the packet on to the wire.
+>>
+>> IEP driver is available in upstream and we are reusing for hardware
+>> configuration for ICSSM as well. On top of that we have extended it
+>> with the changes for AM57xx SoC.
+>>
+>> Extended ethtool for reading HW timestamping capability of the PRU
+>> interfaces.
+>>
+>> Currently ordinary clock (OC) configuration has been validated with
+>> Linux ptp4l.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Signed-off-by: Andrew F. Davis <afd@ti.com>
+>> Signed-off-by: Parvathi Pudi <parvathi@couthit.com>
+>> Signed-off-by: Basharath Hussain Khaja <basharath@couthit.com>
+>> ---
+>>  drivers/net/ethernet/ti/icssg/icss_iep.c      |  42 ++
+>>  drivers/net/ethernet/ti/icssm/icssm_ethtool.c |  26 +
+>>  drivers/net/ethernet/ti/icssm/icssm_prueth.c  | 443 +++++++++++++++++-
+>>  drivers/net/ethernet/ti/icssm/icssm_prueth.h  |  11 +
+>>  .../net/ethernet/ti/icssm/icssm_prueth_ptp.h  |  85 ++++
+>>  5 files changed, 605 insertions(+), 2 deletions(-)
+>>  create mode 100644 drivers/net/ethernet/ti/icssm/icssm_prueth_ptp.h
+>>
+>> diff --git a/drivers/net/ethernet/ti/icssg/icss_iep.c
+>> b/drivers/net/ethernet/ti/icssg/icss_iep.c
+>> index 768578c0d958..9a2ea13703d8 100644
+>> --- a/drivers/net/ethernet/ti/icssg/icss_iep.c
+>> +++ b/drivers/net/ethernet/ti/icssg/icss_iep.c
+>> @@ -937,11 +937,53 @@ static const struct icss_iep_plat_data
+>> am654_icss_iep_plat_data =3D {
+>>         .config =3D &am654_icss_iep_regmap_config,
+>>  };
+>>
+>> +static const struct icss_iep_plat_data am57xx_icss_iep_plat_data =3D {
+>> +       .flags =3D ICSS_IEP_64BIT_COUNTER_SUPPORT |
+>> +                ICSS_IEP_SLOW_COMPEN_REG_SUPPORT,
+>> +       .reg_offs =3D {
+>> +               [ICSS_IEP_GLOBAL_CFG_REG] =3D 0x00,
+>> +               [ICSS_IEP_COMPEN_REG] =3D 0x08,
+>> +               [ICSS_IEP_SLOW_COMPEN_REG] =3D 0x0C,
+>> +               [ICSS_IEP_COUNT_REG0] =3D 0x10,
+>> +               [ICSS_IEP_COUNT_REG1] =3D 0x14,
+>> +               [ICSS_IEP_CAPTURE_CFG_REG] =3D 0x18,
+>> +               [ICSS_IEP_CAPTURE_STAT_REG] =3D 0x1c,
+>> +
+>> +               [ICSS_IEP_CAP6_RISE_REG0] =3D 0x50,
+>> +               [ICSS_IEP_CAP6_RISE_REG1] =3D 0x54,
+>> +
+>> +               [ICSS_IEP_CAP7_RISE_REG0] =3D 0x60,
+>> +               [ICSS_IEP_CAP7_RISE_REG1] =3D 0x64,
+>> +
+>> +               [ICSS_IEP_CMP_CFG_REG] =3D 0x70,
+>> +               [ICSS_IEP_CMP_STAT_REG] =3D 0x74,
+>> +               [ICSS_IEP_CMP0_REG0] =3D 0x78,
+>> +               [ICSS_IEP_CMP0_REG1] =3D 0x7c,
+>> +               [ICSS_IEP_CMP1_REG0] =3D 0x80,
+>> +               [ICSS_IEP_CMP1_REG1] =3D 0x84,
+>> +
+>> +               [ICSS_IEP_CMP8_REG0] =3D 0xc0,
+>> +               [ICSS_IEP_CMP8_REG1] =3D 0xc4,
+>> +               [ICSS_IEP_SYNC_CTRL_REG] =3D 0x180,
+>> +               [ICSS_IEP_SYNC0_STAT_REG] =3D 0x188,
+>> +               [ICSS_IEP_SYNC1_STAT_REG] =3D 0x18c,
+>> +               [ICSS_IEP_SYNC_PWIDTH_REG] =3D 0x190,
+>> +               [ICSS_IEP_SYNC0_PERIOD_REG] =3D 0x194,
+>> +               [ICSS_IEP_SYNC1_DELAY_REG] =3D 0x198,
+>> +               [ICSS_IEP_SYNC_START_REG] =3D 0x19c,
+>> +       },
+>> +       .config =3D &am654_icss_iep_regmap_config,
+>> +};
+>> +
+>>  static const struct of_device_id icss_iep_of_match[] =3D {
+>>         {
+>>                 .compatible =3D "ti,am654-icss-iep",
+>>                 .data =3D &am654_icss_iep_plat_data,
+>>         },
+>> +       {
+>> +               .compatible =3D "ti,am5728-icss-iep",
+>> +               .data =3D &am57xx_icss_iep_plat_data,
+>> +       },
+>>         {},
+>>  };
+>>  MODULE_DEVICE_TABLE(of, icss_iep_of_match);
+>> diff --git a/drivers/net/ethernet/ti/icssm/icssm_ethtool.c
+>> b/drivers/net/ethernet/ti/icssm/icssm_ethtool.c
+>> index cce3276d5565..86d62d64dc4d 100644
+>> --- a/drivers/net/ethernet/ti/icssm/icssm_ethtool.c
+>> +++ b/drivers/net/ethernet/ti/icssm/icssm_ethtool.c
+>> @@ -7,6 +7,7 @@
+>>
+>>  #include <linux/if_bridge.h>
+>>  #include "icssm_prueth.h"
+>> +#include "../icssg/icss_iep.h"
+>>
+>>  #define PRUETH_MODULE_VERSION "0.2"
+>>  #define PRUETH_MODULE_DESCRIPTION "PRUSS Ethernet driver"
+>> @@ -189,12 +190,37 @@ static void icssm_emac_get_regs(struct net_device =
+*ndev,
+>>         regs->version =3D PRUETH_REG_DUMP_GET_VER(prueth);
+>>  }
+>>
+>> +static int icssm_emac_get_ts_info(struct net_device *ndev,
+>> +                                 struct kernel_ethtool_ts_info *info)
+>> +{
+>> +       struct prueth_emac *emac =3D netdev_priv(ndev);
+>> +
+>> +       if ((PRUETH_IS_EMAC(emac->prueth) && !emac->emac_ptp_tx_irq))
+>> +               return ethtool_op_get_ts_info(ndev, info);
+>> +
+>> +       info->so_timestamping =3D
+>> +               SOF_TIMESTAMPING_TX_HARDWARE |
+>> +               SOF_TIMESTAMPING_TX_SOFTWARE |
+>> +               SOF_TIMESTAMPING_RX_HARDWARE |
+>> +               SOF_TIMESTAMPING_RX_SOFTWARE |
+>> +               SOF_TIMESTAMPING_SOFTWARE |
+>> +               SOF_TIMESTAMPING_RAW_HARDWARE;
+>=20
+> In addtion to what Richard suggested, there is no need to re-mark the
+> following flags "SOF_TIMESTAMPING_RX_SOFTWARE" and
+> "SOF_TIMESTAMPING_SOFTWARE", please see __ethtool_get_ts_info().
+>=20
 
-Hi,
-a few nitpicks.
+Yes. This module always uses IEP HW timestamping both on RX side and TX sid=
+e=20
+for better precision. We will clean this in the next version.
 
-...
-
-> +static int icssm_prueth_tx_enqueue(struct prueth_emac *emac,
-> +				   struct sk_buff *skb,
-> +				   enum prueth_queue_id queue_id)
-> +{
-> +	struct prueth_queue_desc __iomem *queue_desc;
-> +	const struct prueth_queue_info *txqueue;
-> +	u16 bd_rd_ptr, bd_wr_ptr, update_wr_ptr;
-> +	struct net_device *ndev = emac->ndev;
-> +	unsigned int buffer_desc_count;
-> +	int free_blocks, update_block;
-> +	bool buffer_wrapped = false;
-> +	int write_block, read_block;
-> +	void *src_addr, *dst_addr;
-> +	int pkt_block_size;
-> +	void __iomem *dram;
-> +	int txport, pktlen;
-> +	u32 wr_buf_desc;
-> +	void *ocmc_ram;
-> +
-> +	dram = emac->prueth->mem[emac->dram].va;
-> +	if (eth_skb_pad(skb)) {
-> +		if (netif_msg_tx_err(emac) && net_ratelimit())
-> +			netdev_err(ndev, "packet pad failed");
-
-Missing trailing \n.
-
-> +		return -ENOMEM;
-> +	}
-> +
-> +	/* which port to tx: MII0 or MII1 */
-> +	txport = emac->tx_port_queue;
-
-...
-
-> +static int icssm_emac_request_irqs(struct prueth_emac *emac)
-> +{
-> +	struct net_device *ndev = emac->ndev;
-> +	int ret = 0;
-
-No need to init.
-
-> +
-> +	ret = request_threaded_irq(emac->rx_irq, NULL, icssm_emac_rx_thread,
-> +				   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
-> +				   ndev->name, ndev);
-> +	if (ret) {
-> +		netdev_err(ndev, "unable to request RX IRQ\n");
-> +		return ret;
-> +	}
-
-...
-
-> +static int icssm_emac_ndo_start_xmit(struct sk_buff *skb,
-> +				     struct net_device *ndev)
-> +{
-> +	struct prueth_emac *emac = netdev_priv(ndev);
-> +	int ret = 0;
-> +	u16 qid;
-> +
-> +	if (unlikely(!emac->link)) {
-> +		if (netif_msg_tx_err(emac) && net_ratelimit())
-> +			netdev_err(ndev, "No link to transmit");
-
-\n
-
-> +		goto fail_tx;
-> +	}
-> +
-> +	qid = icssm_prueth_get_tx_queue_id(emac->prueth, skb);...
-CJ
+Thanks & Best Regards,
+Basharath
