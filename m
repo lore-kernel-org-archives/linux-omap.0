@@ -1,54 +1,54 @@
 Received: from server.wki.vra.mybluehostin.me (server.wki.vra.mybluehostin.me [162.240.238.73])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35EA31C1F0C;
-	Thu, 23 Jan 2025 07:02:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 245C3201023;
+	Thu, 23 Jan 2025 07:24:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.240.238.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737615771; cv=none; b=HeFJL/6bSmc0RFyTqFM/F7OKbgUj7G4LKobr5q2CCQ6c7yo0PkXFq3b7iNd3d2KgMIW6sVQA5pE/RWlZCzPPaMgI7QlfdPgbLCTMHZ1cqxT8HcTlV7UOkGUcIeTIOUHtgQFia8iBtA7e3nauSo7oK1lSRHCjEXXSt43kgffpuns=
+	t=1737617047; cv=none; b=mVlYhfOVwkNe3gwB31X2urY7BNhE02d5UVGZFgNwkVf4TRZmus4D64RO2vLsNImUCJw5q62YpYFYxER8GRpQI5wlV+cvAuNop74C5HvI8+L4CX7K6EtIJn6weD26fCPj0QnhKbpavcyPruJNTbQhVXqbv5zEoc6Dz9Hm83lE9yI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737615771; c=relaxed/simple;
-	bh=d/rF3oBuFk8AvzTIo7WgOEPnwOzuvSM8/oiwsLO7IHU=;
+	s=arc-20240116; t=1737617047; c=relaxed/simple;
+	bh=xCPuFq9WgMU0Gb88D39hwJO9vnvo/r4SjtAfVQU0hXI=;
 	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 MIME-Version:Content-Type; b=aKKefqKn6z1LvqLjq72dKYjHK7ZDsVNy1ZWWE+4Lfu5KH3+1aiVmLPq6Nc5bf81hDWUbyifSv0bpGrk+l0hg1nytWBmWbHpKvSDdbMGg4NIekbDuXmPQBQL9ddp1u+LevK4rTiEMtybqSveBMuww7jAuqJW0w9uQjP/YnaixW7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=couthit.com; spf=pass smtp.mailfrom=couthit.com; dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b=ex+U+1wJ; arc=none smtp.client-ip=162.240.238.73
+	 MIME-Version:Content-Type; b=Ve+BhIWroCCm0aiQk3tseis5/ofXVLsV46htkZHRuRU5+8nDjgExX7GrCag9GumRC/YejRKW9cqIneIqqtWutloo7N7XClB74+4L3cN3Dxi+Wkvs8TUDcf0wmXg3+g3oox+flK07y/GbSt1YDkrhKh6FGX6sHrktfywS3HhpH7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=couthit.com; spf=pass smtp.mailfrom=couthit.com; dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b=SgsLdvtu; arc=none smtp.client-ip=162.240.238.73
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=couthit.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=couthit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b="ex+U+1wJ"
+	dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b="SgsLdvtu"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=couthit.com
 	; s=default; h=Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:
 	References:In-Reply-To:Message-ID:Cc:To:From:Date:Sender:Reply-To:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=6EWFkR8ZwsVB5EtOpQVLpbQnF99d1xPnEL8Z+nC+xqU=; b=ex+U+1wJtT2OCD1ASNGwka9QYY
-	xypVpmUOShTnyedBAXKZOdNmwKEwkEacLFN7f/TAQ+0OBzV+if8OLP6Mrp9awA7pwB3O1hyqYa+Ab
-	R7G9AGl8sjBGIKYVSRPim0M7DRpMmcEN99aZoYyzy4wdYibA5TYfjwhL8AaqgtcVeUGIthGMcUahK
-	QtxztYiyCRAi/iMSapMZxoznwdah+M917B9Z3uxv1vIlXaDsqtwTQfiFyXBAnaj2pmeqDVRigdrlm
-	dLfB4nG9A/K0Xkdpf6RVVd18J5DGXl9Q108c69M7VJvAIcRYbNtWAw3smTBQWquNhl0qZNtoiUgOH
-	G+tsRBxw==;
-Received: from [122.175.9.182] (port=19706 helo=zimbra.couthit.local)
+	bh=6m+k/1Y4Uh33GKZZUwcFzs8654vi6kkMP4rcv75Y0jk=; b=SgsLdvtu8BwBVCEyiJ85RcoLua
+	NZhur8SM+haQkGsciU1J4WN1sJ+WNSbnBO83FK77bJ7RZDm9YDlIM+9nYulAX0vlNpdSyID1jr40f
+	MHQZfH4gb/dyr94F0UgFytpvlduyUZD92ZWhC8BcQgRvXXjYDOc9P00CTKRfwgSv38HFzmEqXWsBl
+	xRMw/CbArUhCNMUGF0dQ+hTMlazeV7bfs0PZgM7Gi3KGU2WN1SDRI7J2uTPytLGKEftRgllgoA3Jd
+	b7fzLOFdY5hhYoyuzEc0XXJDHBK2XBRbcEznUWG9KVQDKE84Ts20xamB9hyTGosVHRs2qKO52iXmJ
+	QMK+BRHQ==;
+Received: from [122.175.9.182] (port=30001 helo=zimbra.couthit.local)
 	by server.wki.vra.mybluehostin.me with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.96.2)
 	(envelope-from <basharath@couthit.com>)
-	id 1tarEf-0007uX-2D;
-	Thu, 23 Jan 2025 12:32:42 +0530
+	id 1tarZG-0008Ks-1z;
+	Thu, 23 Jan 2025 12:53:59 +0530
 Received: from zimbra.couthit.local (localhost [127.0.0.1])
-	by zimbra.couthit.local (Postfix) with ESMTPS id D476F1781A7D;
-	Thu, 23 Jan 2025 12:32:29 +0530 (IST)
+	by zimbra.couthit.local (Postfix) with ESMTPS id 4D6711781A7D;
+	Thu, 23 Jan 2025 12:53:51 +0530 (IST)
 Received: from localhost (localhost [127.0.0.1])
-	by zimbra.couthit.local (Postfix) with ESMTP id B12FA1782495;
-	Thu, 23 Jan 2025 12:32:29 +0530 (IST)
+	by zimbra.couthit.local (Postfix) with ESMTP id 280411782495;
+	Thu, 23 Jan 2025 12:53:51 +0530 (IST)
 Received: from zimbra.couthit.local ([127.0.0.1])
 	by localhost (zimbra.couthit.local [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id 8r6jauI9kHCU; Thu, 23 Jan 2025 12:32:29 +0530 (IST)
+	with ESMTP id G6FJ-AEfZLuV; Thu, 23 Jan 2025 12:53:51 +0530 (IST)
 Received: from zimbra.couthit.local (zimbra.couthit.local [10.10.10.103])
-	by zimbra.couthit.local (Postfix) with ESMTP id 464731781A7D;
-	Thu, 23 Jan 2025 12:32:29 +0530 (IST)
-Date: Thu, 23 Jan 2025 12:32:29 +0530 (IST)
+	by zimbra.couthit.local (Postfix) with ESMTP id D07AB1781A7D;
+	Thu, 23 Jan 2025 12:53:50 +0530 (IST)
+Date: Thu, 23 Jan 2025 12:53:50 +0530 (IST)
 From: Basharath Hussain Khaja <basharath@couthit.com>
-To: Andrew Lunn <andrew@lunn.ch>
+To: richardcochran <richardcochran@gmail.com>
 Cc: basharath <basharath@couthit.com>, danishanwar <danishanwar@ti.com>, 
 	rogerq <rogerq@kernel.org>, andrew+netdev <andrew+netdev@lunn.ch>, 
 	davem <davem@davemloft.net>, edumazet <edumazet@google.com>, 
@@ -56,7 +56,6 @@ Cc: basharath <basharath@couthit.com>, danishanwar <danishanwar@ti.com>,
 	Rob Herring <robh@kernel.org>, krzk+dt <krzk+dt@kernel.org>, 
 	conor+dt <conor+dt@kernel.org>, nm <nm@ti.com>, 
 	ssantosh <ssantosh@kernel.org>, tony <tony@atomide.com>, 
-	richardcochran <richardcochran@gmail.com>, 
 	parvathi <parvathi@couthit.com>, schnelle <schnelle@linux.ibm.com>, 
 	rdunlap <rdunlap@infradead.org>, diogo ivo <diogo.ivo@siemens.com>, 
 	m-karicheri2 <m-karicheri2@ti.com>, horms <horms@kernel.org>, 
@@ -74,11 +73,11 @@ Cc: basharath <basharath@couthit.com>, danishanwar <danishanwar@ti.com>,
 	srk <srk@ti.com>, rogerq <rogerq@ti.com>, 
 	krishna <krishna@couthit.com>, pmohan <pmohan@couthit.com>, 
 	mohan <mohan@couthit.com>
-Message-ID: <951581664.391198.1737615749019.JavaMail.zimbra@couthit.local>
-In-Reply-To: <fce8d698-2ae2-460c-a288-3d70d61dbf9e@lunn.ch>
-References: <20250109105600.41297-1-basharath@couthit.com> <20250109105600.41297-5-basharath@couthit.com> <fce8d698-2ae2-460c-a288-3d70d61dbf9e@lunn.ch>
-Subject: Re: [RFC PATCH 04/10] net: ti: prueth: Adds link detection, RX and
- TX support.
+Message-ID: <717976963.391348.1737617030636.JavaMail.zimbra@couthit.local>
+In-Reply-To: <Z4KdxQMBXmkF37KI@hoboy.vegasvil.org>
+References: <20250109105600.41297-1-basharath@couthit.com> <20250110055906.65086-7-basharath@couthit.com> <Z4KdxQMBXmkF37KI@hoboy.vegasvil.org>
+Subject: Re: [RFC PATCH 06/10] net: ti: prueth: Adds HW timestamping support
+ for PTP using PRU-ICSS IEP module
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -88,8 +87,8 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 X-Mailer: Zimbra 8.8.15_GA_3968 (ZimbraWebClient - FF113 (Linux)/8.8.15_GA_3968)
-Thread-Topic: prueth: Adds link detection, RX and TX support.
-Thread-Index: BN38BmJZ1YvXDCRq7dlK/kmFcsDoFg==
+Thread-Topic: prueth: Adds HW timestamping support for PTP using PRU-ICSS IEP module
+Thread-Index: GveTHKWfgkR3edDiJqhjAdYwerPYPg==
 X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
 X-AntiAbuse: Primary Hostname - server.wki.vra.mybluehostin.me
 X-AntiAbuse: Original Domain - vger.kernel.org
@@ -101,72 +100,96 @@ X-Source:
 X-Source-Args: 
 X-Source-Dir: 
 
->> +/* update phy/port status information for firmware */
->> +static void icssm_emac_update_phystatus(struct prueth_emac *emac)
->> +{
->> +	struct prueth *prueth = emac->prueth;
->> +	u32 phy_speed, port_status = 0;
->> +	enum prueth_mem region;
->> +	u32 delay;
->> +
->> +	region = emac->dram;
->> +	phy_speed = emac->speed;
->> +	icssm_prueth_write_reg(prueth, region, PHY_SPEED_OFFSET, phy_speed);
->> +
->> +	if (phy_speed == SPEED_10)
->> +		delay = TX_CLK_DELAY_10M;
+> On Fri, Jan 10, 2025 at 11:29:02AM +0530, Basharath Hussain Khaja wrote:
 > 
-> How can speed to 10? You removed those link modes?
-> 
-
-We will clean it up in the next version.
-
->> +/**
->> + * icssm_emac_ndo_start_xmit - EMAC Transmit function
->> + * @skb: SKB pointer
->> + * @ndev: EMAC network adapter
->> + *
->> + * Called by the system to transmit a packet  - we queue the packet in
->> + * EMAC hardware transmit queue
->> + *
->> + * Return: success(NETDEV_TX_OK) or error code (typically out of desc's)
->> + */
->> +static int icssm_emac_ndo_start_xmit(struct sk_buff *skb,
->> +				     struct net_device *ndev)
+>> @@ -189,12 +190,37 @@ static void icssm_emac_get_regs(struct net_device *ndev,
+>>  	regs->version = PRUETH_REG_DUMP_GET_VER(prueth);
+>>  }
+>>  
+>> +static int icssm_emac_get_ts_info(struct net_device *ndev,
+>> +				  struct kernel_ethtool_ts_info *info)
 >> +{
 >> +	struct prueth_emac *emac = netdev_priv(ndev);
->> +	int ret = 0;
->> +	u16 qid;
 >> +
->> +	if (unlikely(!emac->link)) {
->> +		if (netif_msg_tx_err(emac) && net_ratelimit())
->> +			netdev_err(ndev, "No link to transmit");
->> +		goto fail_tx;
->> +	}
+>> +	if ((PRUETH_IS_EMAC(emac->prueth) && !emac->emac_ptp_tx_irq))
+>> +		return ethtool_op_get_ts_info(ndev, info);
+>> +
+>> +	info->so_timestamping =
+>> +		SOF_TIMESTAMPING_TX_HARDWARE |
+>> +		SOF_TIMESTAMPING_TX_SOFTWARE |
 > 
-> Do many other MAC drivers have this test?
+> The driver advertises software Transmit time stamping, but where is
+> the call to skb_tx_timestamp() ?
+> 
+> I didn't see it in Patch #4.
 > 
 
-This was an experimental safety check to avoid pushing anymore packets 
-into PRU buffers when link down occurred but upper layers are not notified
-yet. We will remove this check in the next version.
+Yes. This module always uses IEP HW time stamping for better precision. 
+We will clean this in the next version.
 
->> --- a/drivers/net/ethernet/ti/icssm/icssm_prueth.h
->> +++ b/drivers/net/ethernet/ti/icssm/icssm_prueth.h
->> @@ -17,6 +17,11 @@
+>> +		SOF_TIMESTAMPING_RX_HARDWARE |
+>> +		SOF_TIMESTAMPING_RX_SOFTWARE |
+>> +		SOF_TIMESTAMPING_SOFTWARE |
+>> +		SOF_TIMESTAMPING_RAW_HARDWARE;
+>> +
+>> +	info->phc_index = icss_iep_get_ptp_clock_idx(emac->prueth->iep);
+>> +	info->tx_types = BIT(HWTSTAMP_TX_OFF) | BIT(HWTSTAMP_TX_ON);
+>> +	info->rx_filters = BIT(HWTSTAMP_FILTER_NONE) |
+>> +				BIT(HWTSTAMP_FILTER_PTP_V2_EVENT);
+>> +
+>> +	return 0;
+>> +}
+> 
+>> @@ -442,6 +482,173 @@ static void icssm_emac_adjust_link(struct net_device
+>> *ndev)
+>>  	spin_unlock_irqrestore(&emac->lock, flags);
+>>  }
 >>  
->>  /* PRUSS local memory map */
->>  #define ICSS_LOCAL_SHARED_RAM	0x00010000
->> +#define EMAC_MAX_PKTLEN		(ETH_HLEN + VLAN_HLEN + ETH_DATA_LEN)
->> +/* Below macro is for 1528 Byte Frame support, to Allow even with
->> + * Redundancy tag
->> + */
->> +#define EMAC_MAX_FRM_SUPPORT (ETH_HLEN + VLAN_HLEN + ETH_DATA_LEN + 6)
+>> +static u8 icssm_prueth_ptp_ts_event_type(struct sk_buff *skb, u8 *ptp_msgtype)
+>> +{
+>> +	unsigned int ptp_class = ptp_classify_raw(skb);
+>> +	struct ptp_header *hdr;
+>> +	u8 msgtype, event_type;
+>> +
+>> +	if (ptp_class == PTP_CLASS_NONE)
+>> +		return PRUETH_PTP_TS_EVENTS;
+>> +
+>> +	hdr = ptp_parse_header(skb, ptp_class);
+>> +	if (!hdr)
+>> +		return PRUETH_PTP_TS_EVENTS;
+>> +
+>> +	msgtype = ptp_get_msgtype(hdr, ptp_class);
+>> +	/* Treat E2E Delay Req/Resp messages sane as P2P peer delay req/resp
 > 
-> This looks familiar....
+> s/sane/in the same way/
 > 
 
-We will use the MACRO instead of hard-coded value.
+This was a typo, We will address this in the next version. Firmware running in PRU 
+treats E2E Delay Req/Resp messages same as P2P peer delay req/resp.
+
+>> +	 * in driver here since firmware stores timestamps in the same memory
+>> +	 * location for either (since they cannot operate simultaneously
+>> +	 * anyway)
+>> +	 */
+>> +	switch (msgtype) {
+>> +	case PTP_MSGTYPE_SYNC:
+>> +		event_type = PRUETH_PTP_SYNC;
+>> +		break;
+>> +	case PTP_MSGTYPE_DELAY_REQ:
+>> +	case PTP_MSGTYPE_PDELAY_REQ:
+>> +		event_type = PRUETH_PTP_DLY_REQ;
+>> +		break;
+>> +	/* TODO: Check why PTP_MSGTYPE_DELAY_RESP needs timestamp
+>> +	 * and need for it.
+>> +	 */
+>> +	case 0x9:
+> 
+> Delay response messages are PTP "general" messages and not event
+> messages, and as such they do not require time stamps.
+> 
+currently firmware sends back timestamp even for E2E Delay_response message 
+though this is a general message. To service that txts request we added this
+here. We will revisit again and clean this in the subsequent versions.
 
 Thanks & Best Regards,
 Basharath
