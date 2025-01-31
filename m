@@ -1,46 +1,45 @@
-Received: from lelvem-ot01.ext.ti.com (lelvem-ot01.ext.ti.com [198.47.23.234])
+Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F0E11F471C;
-	Fri, 31 Jan 2025 22:12:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.234
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C80F1F3D5C;
+	Fri, 31 Jan 2025 22:12:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738361523; cv=none; b=uEkObFf4OOD8KI1dkeXPpePsgVZJduU3sjlDH4H9evXdQDVOexywyxMNAXRHOluQgFfhsXMmLnbCdoYSo85X9fvU7v4NhAyKhD9VTR3zFD5qyCSXzgYpMwtSgl9fuhzuakz/l569CUOKRQEsMkC15ePrx344K4d/PVKmM+9cpaw=
+	t=1738361524; cv=none; b=skRPx8uB2t4pUMkgMDJdxYa2GLHF0tOzGC/apogJxekDhpxRa67WMukEnR6h8sjIIG1LNCKmcwz465YAuwrvKIZrPC/y0afI4diMARRE0gB99z3QUOFo4ucH8WFOQsz/XrUy0coakylYFP4bNAxZxAI6uWbGKKIawKRVL0GEGTk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738361523; c=relaxed/simple;
-	bh=zt/mnfcWoNqNLuBEU24kRzrEBrIJBtEPoY2gFPHU8vw=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=fBa7t1eIFvDUquQeIT83T39h78zD1VvG9wEDDWXZrfeD5eX2iCa8MnbD5pLgaG3saiMdngclvmkWYJmmrDRwLfFRWZQCQL4eRmjEiC+EJxOp7m87DNcR/QH+TTXZZspERKkqhoeMMrqqxBeOH5yOagHHXcedfioZxbvy0owBwjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=odB4REUZ; arc=none smtp.client-ip=198.47.23.234
+	s=arc-20240116; t=1738361524; c=relaxed/simple;
+	bh=nN267+Nl/v36HAT6pwJ61c8ntubrkXuZuCrbvxI2KVQ=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=EnLqq4CikwvrImEgarCR9v6jSvBpGBouOpd/ontRJ+IgBm3+BE1gr9SJ9V4Og36ns0dZa8SxUaA9LNT1qavrECPJfngPmWfLV5dCJgne0vYND39V7y72vD9HiaGGRQ2yVE121XMUFiENwfjI83YMRhBPgcRxeSBe/AH9bl71UUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=r8dSGxD6; arc=none smtp.client-ip=198.47.19.246
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="odB4REUZ"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="r8dSGxD6"
 Received: from fllv0034.itg.ti.com ([10.64.40.246])
-	by lelvem-ot01.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 50VMBeqf2604904
+	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 50VMBeEe1737225
 	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
 	Fri, 31 Jan 2025 16:11:40 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
 	s=ti-com-17Q1; t=1738361500;
-	bh=hXw56Z5YLLIPIW8dezxA4mbWZsRhgIge+67UFRGbaQE=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=odB4REUZuCfeQe8l007Cl7EBmV14irK5OkVLoxkvqDUbSbezhBs5H+ileIEoRzsJg
-	 jXtoGTjHTpq3AhnYMZ5WazPjkkpIN0l7Befr65z2r8f1sx7TMqh8VUf+fsAHcoVtSv
-	 n19q9I7NYSire4wT03HScutw0uQjG9aZsvzym/yE=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 50VMBeci042911
+	bh=R0Qio1Qy7/x274RjkjjH1d0k8Vs44YIy7c1o8KieTqQ=;
+	h=From:To:CC:Subject:Date;
+	b=r8dSGxD6Gg7/AwRkwxeuG6eXfUsI9tJtDs+YjhJl3hSiTvB7VFcQsO1VqTW4RdaiV
+	 vHMADqE59SYWATZYZu0NKzz/40+zDslZgcBI6/dBQO6XCVO+gRVRkWn8zou2BrwyLh
+	 FCAM5EH3xKMQ0w9iuesXTVPnuRHw62Y6i5pwUSBg=
+Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
+	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 50VMBdJ6042908
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Fri, 31 Jan 2025 16:11:40 -0600
-Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+	Fri, 31 Jan 2025 16:11:39 -0600
+Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE113.ent.ti.com
+ (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Fri, 31
  Jan 2025 16:11:39 -0600
-Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DFLE110.ent.ti.com
- (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
+Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
  Frontend Transport; Fri, 31 Jan 2025 16:11:39 -0600
 Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.11])
-	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 50VMBd21111306;
+	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 50VMBd1w111306;
 	Fri, 31 Jan 2025 16:11:39 -0600
 From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
@@ -49,12 +48,10 @@ To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
         <tony@atomide.com>, <lee@kernel.org>, <linux-omap@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>
 CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v4 3/5] mfd: tps65219: Remove regmap_read check
-Date: Fri, 31 Jan 2025 16:11:37 -0600
-Message-ID: <20250131221139.342967-4-s-ramamoorthy@ti.com>
+Subject: [PATCH v4 0/5] Add TI TPS65214 & TPS65215 PMIC MFD Driver Support
+Date: Fri, 31 Jan 2025 16:11:34 -0600
+Message-ID: <20250131221139.342967-1-s-ramamoorthy@ti.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20250131221139.342967-1-s-ramamoorthy@ti.com>
-References: <20250131221139.342967-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -65,49 +62,60 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-The chipid macro/variable and regmap_read function call is not needed
-because the TPS65219_REG_TI_DEV_ID register value is not a consistent value
-across TPS65219 PMIC config versions. Reading from the DEV_ID register
-without a consistent value to compare it to isn't useful. There isn't a
-way to verify the match data ID is the same ID read from the DEV_ID device
-register. 0xF0 isn't a DEV_ID value consistent across TPS65219 NVM
-configurations.
+TPS65214 and TPS65215 are Power Management Integrated Circuits (PMICs) that
+have significant register map overlap with TPS65219 and each other. The 
+series introduces the 2 new PMICs and restructures the existing driver to 
+support multiple devices.
 
-For TPS65215, there is a consistent value in bits 5-0 of the DEV_ID
-register. However, there are other error checks in place within probe()
-that apply to both PMICs rather than keeping this isolated check for one
-PMIC.
+- TPS65214, TPS65215, and TPS65219 each have 3 Buck regulators
+- TPS65214 has 2 LDOS and 1 GPO, whereas TPS65219 has 4 LDOs and 2 GPOs.
+- TPS65214's LDO1 maps to TPS65219's LDO3.
+- A key difference between TPS65215 & TPS65214 are the LDO current and
+  voltage output ranges and the configurable options available.
+- TPS65215 has 2 LDOs, whereas TPS65219 has 4 LDOs.
+- TPS65215's LDO2 maps to TPS65219's LDO3.
+- TPS65215 has 1 GPO, whereas TPS65219 has 2 GPOs.
 
-Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+TPS65214 TRM: https://www.ti.com/lit/pdf/slvud30
+TPS65215 TRM: https://www.ti.com/lit/pdf/slvucw5/
+
+AM62L + TPS65214 Test Logs:
+https://gist.github.com/ramamoorthyhs/0793f7813332d94423ca1baee02f62c9
+AM62L + TPS65215 Test Logs:
+https://gist.github.com/ramamoorthyhs/7560eca6110fafc77b51894fa2c0fd22
+
 ---
- drivers/mfd/tps65219.c | 7 -------
- 1 file changed, 7 deletions(-)
+Change Log:
+v3 -> v4:
+- Update commit header to be "mfd: tps65219" since the driver name has not 
+  been changed from TPS65219.
+- Added dt-bindings patches to mfd series.
+- Combined TPS65214 & TPS65215 dt-binding and mfd patches into 1 series, 
+  since the series' share a dependency & these patches add more device support
+- Elimate the need for TPS65214 gpio patches by registering TPS65214 as 
+  "tps65215-gpio" from the MFD driver, since both have the same GPIO module
+- "Remove regmap_read" patch: Drop chip_id variable
+- move enum pmic_id struct from "remove regmap_read" patch to "Add support 
+  for TPS65215" patch.
+v2 -> v3:
+- Remove duplicated of_device_id table entries
+- Re-order mfd patches to clean up diff displayed
+v1 -> v2:
+- have any PMIC lists be in alpha-numeric order: TPS65215, then TPS65219
+- Add driver prefix to chip_data struct
+---
+Shree Ramamoorthy (5):
+  regulator: dt-bindings: Add TI TPS65215 PMIC bindings
+  regulator: dt-bindings: Add TI TPS65214 PMIC bindings
+  mfd: tps65219: Remove regmap_read check
+  mfd: tps65219: Add support for TI TPS65215 PMIC
+  mfd: tps65219: Add support for TI TPS65214 PMIC
 
-diff --git a/drivers/mfd/tps65219.c b/drivers/mfd/tps65219.c
-index 081c5a30b04a..4aca922658e3 100644
---- a/drivers/mfd/tps65219.c
-+++ b/drivers/mfd/tps65219.c
-@@ -221,7 +221,6 @@ static const struct regmap_irq_chip tps65219_irq_chip = {
- static int tps65219_probe(struct i2c_client *client)
- {
- 	struct tps65219 *tps;
--	unsigned int chipid;
- 	bool pwr_button;
- 	int ret;
- 
-@@ -246,12 +245,6 @@ static int tps65219_probe(struct i2c_client *client)
- 	if (ret)
- 		return ret;
- 
--	ret = regmap_read(tps->regmap, TPS65219_REG_TI_DEV_ID, &chipid);
--	if (ret) {
--		dev_err(tps->dev, "Failed to read device ID: %d\n", ret);
--		return ret;
--	}
--
- 	ret = devm_mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO,
- 				   tps65219_cells, ARRAY_SIZE(tps65219_cells),
- 				   NULL, 0, regmap_irq_get_domain(tps->irq_data));
+ .../bindings/regulator/ti,tps65219.yaml       |  35 ++-
+ drivers/mfd/tps65219.c                        | 279 +++++++++++++++++-
+ include/linux/mfd/tps65219.h                  | 136 ++++++++-
+ 3 files changed, 425 insertions(+), 25 deletions(-)
+
 -- 
 2.43.0
 
