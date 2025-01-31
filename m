@@ -1,166 +1,129 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C66516ABC6;
-	Fri, 31 Jan 2025 10:34:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AE801487E9;
+	Fri, 31 Jan 2025 22:11:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738319642; cv=none; b=cEYlE0K8uVVm4K6fU7mdiNjGVwqr44fnBT9wHB6LdBNCQKCyYWqoMiq11r3xRaHFQ0BlA5R1C6MB9uOMGhtk1VsvbgjPAO6YduoLAQUtKg1iuCZet6+0HOX2vE342rEKoV8iM95hnuGtuuNpWdSftAY9aA/EyyXf+DWvrapD0OU=
+	t=1738361518; cv=none; b=btuzS2oXsyQVG+DwmbB5SoBwt4d5f2g+H2qxgxZFrLJu9gZAEWEV+8BOOlv3lbWQ5rMI8bpjqMRJ5A1pT2RO48IC6YORNbHN5gBmJfr3QMoGn7y8OFVlVDafiuTEE1QgSAC1Y/a3p5q/E/yTZJbwwtaM6YlIj2obD6IDy7yEexY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738319642; c=relaxed/simple;
-	bh=507IordbBCY3IYNuq34NGFeKCmJd+B5w6IiJLC+fePs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fDTlfEvOUZ2sQo8zEwrZZHBf2pVhbGB11nh9tsgyksuf57g39VTw1QIRJYFxgDQCSN9nZiCi/4OPGC7x9aOTbWh04oSkJn4IgUWPrS5RCyueFuKKszS0TCfQZRoRJHBKuXR9vj+qc9ezoS8AfCuDCQ28drS4ftiUoCDsjE7bh7M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AJKwgYx4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738361518; c=relaxed/simple;
+	bh=Pov7nJtkOZ5HfHS1cXKZ7b9hFVEZJfFxkCeGliJPvJc=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=UP/gvYvK6RgmMdSZDA7VAAy8KcArN2QN5UmLImGQaDQ12ZaFWxpyArvHmiT11DvSc/oqR+QkdN64wO13AauYCy5PiioQ/Aj6dQzDpC4E0sfnN4EFlqE1mCkyd2kEXrzhLEOOQzcCCP7I00Ktbm+17vzwOkkSRRZV3zUNJBhI24I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=MXpBbSm8; arc=none smtp.client-ip=198.47.19.246
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AJKwgYx4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3B3EC4CED1;
-	Fri, 31 Jan 2025 10:33:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1738319641;
-	bh=507IordbBCY3IYNuq34NGFeKCmJd+B5w6IiJLC+fePs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=AJKwgYx4wGk4PbRGB4npZ2QBeZdqUHm9GDObPJLYwi4QVAeIiD/JUAEdJCA4jfVJX
-	 rUJtHR6NXauwiMPCI8XW39mtJWVtbqbHXrWIojC0Q9wyE6Ha2DVWQz1qoFjicDUSz0
-	 hxQIAv3AdOZAcrJShTqAxDvFYg4zExkFycMUDIy3KdBbHiTIwPuM4qfvswmshxj8dz
-	 MQHzCMpmponYQWuk6LezAa/Qlzp5c3quNX8bQml4td8phwAx9E4ghEJBsP5T6Kjc1J
-	 G9dXBO8Z8/Dak5ChT1OTFimS/bk21VAii6mJLZYx+xg9MbvJCPO9DGTYWtgX/cvHT/
-	 gmD2oalMNaqzA==
-Date: Fri, 31 Jan 2025 10:33:52 +0000
-From: Simon Horman <horms@kernel.org>
-To: Basharath Hussain Khaja <basharath@couthit.com>
-Cc: danishanwar@ti.com, rogerq@kernel.org, andrew+netdev@lunn.ch,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, robh@kernel.org, krzk+dt@kernel.org,
-	conor+dt@kernel.org, nm@ti.com, ssantosh@kernel.org,
-	tony@atomide.com, richardcochran@gmail.com, parvathi@couthit.com,
-	schnelle@linux.ibm.com, rdunlap@infradead.org,
-	diogo.ivo@siemens.com, m-karicheri2@ti.com,
-	jacob.e.keller@intel.com, m-malladi@ti.com,
-	javier.carrasco.cruz@gmail.com, afd@ti.com, s-anna@ti.com,
-	linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org, pratheesh@ti.com, prajith@ti.com,
-	vigneshr@ti.com, praneeth@ti.com, srk@ti.com, rogerq@ti.com,
-	krishna@couthit.com, pmohan@couthit.com, mohan@couthit.com
-Subject: Re: [RFC v2 PATCH 06/10] net: ti: prueth: Adds HW timestamping
- support for PTP using PRU-ICSS IEP module
-Message-ID: <20250131103352.GH24105@kernel.org>
-References: <20250124122353.1457174-1-basharath@couthit.com>
- <20250124134056.1459060-7-basharath@couthit.com>
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="MXpBbSm8"
+Received: from lelv0266.itg.ti.com ([10.180.67.225])
+	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 50VMBdms1737223
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
+	Fri, 31 Jan 2025 16:11:40 -0600
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+	s=ti-com-17Q1; t=1738361500;
+	bh=dD1VwGrNpd2NkN9mIIECzz6+iWCpvrOQszaRP4ix5i4=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=MXpBbSm8IgCNC9xhKFjfEo5Utn2halawxQqhERyFf8mCePgtLX/qd+cGaZiMsNL4e
+	 rz3nxPyZcQX+L+DIvv4ffdibdR61ADioqCNZl7xc/vEmT/4oCaLl1cizvow5+hDhUk
+	 4SSQVMbblTMjjAtZv9kaDQ2lf33o5MWhIeTvtkfk=
+Received: from DFLE108.ent.ti.com (dfle108.ent.ti.com [10.64.6.29])
+	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTP id 50VMBdMk125879;
+	Fri, 31 Jan 2025 16:11:39 -0600
+Received: from DFLE107.ent.ti.com (10.64.6.28) by DFLE108.ent.ti.com
+ (10.64.6.29) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Fri, 31
+ Jan 2025 16:11:39 -0600
+Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DFLE107.ent.ti.com
+ (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Fri, 31 Jan 2025 16:11:39 -0600
+Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.11])
+	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 50VMBd1x111306;
+	Fri, 31 Jan 2025 16:11:39 -0600
+From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
+        <krzk+dt@kernel.org>, <conor+dt@kernel.org>, <aaro.koskinen@iki.fi>,
+        <andreas@kemnade.info>, <khilman@baylibre.com>, <rogerq@kernel.org>,
+        <tony@atomide.com>, <lee@kernel.org>, <linux-omap@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>
+CC: <m-leonard@ti.com>, <praneeth@ti.com>
+Subject: [PATCH v4 1/5] regulator: dt-bindings: Add TI TPS65215 PMIC bindings
+Date: Fri, 31 Jan 2025 16:11:35 -0600
+Message-ID: <20250131221139.342967-2-s-ramamoorthy@ti.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20250131221139.342967-1-s-ramamoorthy@ti.com>
+References: <20250131221139.342967-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250124134056.1459060-7-basharath@couthit.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-On Fri, Jan 24, 2025 at 07:10:52PM +0530, Basharath Hussain Khaja wrote:
-> From: Roger Quadros <rogerq@ti.com>
-> 
-> PRU-ICSS IEP module, which is capable of timestamping RX and
-> TX packets at HW level, is used for time synchronization by PTP4L.
-> 
-> This change includes interaction between firmware and user space
-> application (ptp4l) with required packet timestamps. The driver
-> initializes the PRU firmware with appropriate mode and configuration
-> flags. Firmware updates local registers with the flags set by driver
-> and uses for further operation. RX SOF timestamp comes along with
-> packet and firmware will rise interrupt with TX SOF timestamp after
-> pushing the packet on to the wire.
-> 
-> IEP driver is available in upstream and we are reusing for hardware
-> configuration for ICSSM as well. On top of that we have extended it
-> with the changes for AM57xx SoC.
-> 
-> Extended ethtool for reading HW timestamping capability of the PRU
-> interfaces.
-> 
-> Currently ordinary clock (OC) configuration has been validated with
-> Linux ptp4l.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Andrew F. Davis <afd@ti.com>
-> Signed-off-by: Parvathi Pudi <parvathi@couthit.com>
-> Signed-off-by: Basharath Hussain Khaja <basharath@couthit.com>
+TPS65215 is a Power Management IC with 3 Buck regulators and 2 LDOs.
 
-...
+TPS65215 has 2 LDOS and 1 GPO, whereas TPS65219 has 4 LDOs and 2 GPOs. The
+remaining features for both devices are the same.
 
-> diff --git a/drivers/net/ethernet/ti/icssm/icssm_prueth.c b/drivers/net/ethernet/ti/icssm/icssm_prueth.c
+Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
+---
+ .../bindings/regulator/ti,tps65219.yaml       | 21 ++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-...
+diff --git a/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml b/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
+index 78e64521d401..b0d47415bf83 100644
+--- a/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
++++ b/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
+@@ -4,7 +4,7 @@
+ $id: http://devicetree.org/schemas/regulator/ti,tps65219.yaml#
+ $schema: http://devicetree.org/meta-schemas/core.yaml#
+ 
+-title: TI tps65219 Power Management Integrated Circuit regulators
++title: TI TPS65215/TPS65219 Power Management Integrated Circuits
+ 
+ maintainers:
+   - Jerome Neanne <jerome.neanne@baylibre.com>
+@@ -12,9 +12,16 @@ maintainers:
+ description: |
+   Regulator nodes should be named to buck<number> and ldo<number>.
+ 
++  TI TPS65219 is a Power Management IC with 3 Buck regulators, 4 Low
++  Drop-out Regulators (LDOs), 1 GPIO, 2 GPOs, and power-button.
++
++  TI TPS65215 is a derivative of TPS65219 with 3 Buck regulators, 2 Low
++  Drop-out Regulators (LDOs), 1 GPIO, 1 GPO, and power-button.
++
+ properties:
+   compatible:
+     enum:
++      - ti,tps65215
+       - ti,tps65219
+ 
+   reg:
+@@ -90,6 +97,18 @@ required:
+ 
+ additionalProperties: false
+ 
++allOf:
++  - if:
++      properties:
++        compatible:
++          contains:
++            const: ti,tps65215
++    then:
++      properties:
++        regulators:
++          patternProperties:
++            "^ldo[3-4]$": false
++
+ examples:
+   - |
+     #include <dt-bindings/interrupt-controller/arm-gic.h>
+-- 
+2.43.0
 
-> @@ -682,9 +899,22 @@ int icssm_emac_rx_packet(struct prueth_emac *emac, u16 *bd_rd_ptr,
->  		src_addr += actual_pkt_len;
->  	}
->  
-> +	if (pkt_info->timestamp) {
-> +		src_addr = (void *)roundup((uintptr_t)src_addr,
-> +					   ICSS_BLOCK_SIZE);
-
-Can PTR_ALIGN() be used here?
-
-> +		dst_addr = &ts;
-> +		memcpy(dst_addr, src_addr, sizeof(ts));
-> +	}
-> +
->  	if (!pkt_info->sv_frame) {
->  		skb_put(skb, actual_pkt_len);
->  
-> +		if (icssm_prueth_ptp_rx_ts_is_enabled(emac) &&
-> +		    pkt_info->timestamp) {
-> +			ssh = skb_hwtstamps(skb);
-> +			memset(ssh, 0, sizeof(*ssh));
-> +			ssh->hwtstamp = ns_to_ktime(ts);
-> +		}
->  		/* send packet up the stack */
->  		skb->protocol = eth_type_trans(skb, ndev);
->  		local_bh_disable();
-
-The code preceding the hunk below is:
-
-static int icssm_emac_request_irqs(struct prueth_emac *emac)
-{
-	struct net_device *ndev = emac->ndev;
-	int ret;
-
-	ret = request_threaded_irq(emac->rx_irq, NULL, icssm_emac_rx_thread,
-				   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
-				   ndev->name, ndev);
-	if (ret) {
-		netdev_err(ndev, "unable to request RX IRQ\n");
-		return ret;
-	}
-
-> @@ -855,9 +1085,64 @@ static int icssm_emac_request_irqs(struct prueth_emac *emac)
->  		return ret;
->  	}
->  
-> +	if (emac->emac_ptp_tx_irq) {
-> +		ret = request_threaded_irq(emac->emac_ptp_tx_irq,
-> +					   icssm_prueth_ptp_tx_irq_handle,
-> +					   icssm_prueth_ptp_tx_irq_work,
-> +					   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
-> +					   ndev->name, ndev);
-> +		if (ret) {
-> +			netdev_err(ndev, "unable to request PTP TX IRQ\n");
-> +			free_irq(emac->rx_irq, ndev);
-> +			free_irq(emac->tx_irq, ndev);
-
-This seems somewhat asymmetric. This function does request emac->rx_irq
-but not emac->tx_irq. So I don't think it is appropriate to free emac->tx_irq
-here.
-
-Also, I would suggest using a goto label for unwind here.
-
-> +		}
-> +	}
-> +
->  	return ret;
->  }
->  
-
-...
