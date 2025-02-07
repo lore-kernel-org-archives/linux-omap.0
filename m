@@ -1,123 +1,95 @@
-Received: from lelvem-ot01.ext.ti.com (lelvem-ot01.ext.ti.com [198.47.23.234])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f171.google.com (mail-lj1-f171.google.com [209.85.208.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B25FE18C03D;
-	Thu,  6 Feb 2025 17:38:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.234
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D1A81AE877
+	for <linux-omap@vger.kernel.org>; Fri,  7 Feb 2025 08:54:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738863484; cv=none; b=Dx/xZS+lZtvGEbqu6BJjYvcaPGTfC8TBQ6+IbF5IwlItcrF9jfygG/dJLR3JwSul22SG2Vt4AgqyHafsruJlzNKoXZL/dbXE2S2y1Jh9Q4BpJQebvyDHqn8Z1GfQ+ZaVMWJRmTxFj9GuXO/ujB5lDva94Gty/E0dj1Z2gpc7Smg=
+	t=1738918450; cv=none; b=ARiXDE311WxOxedXo66A6W7CofUbEU27MvFrt1tR2oQnN1sZsZYWA9dcvdG/pODCemJ5ACmfY4lL6O+6/dyJ/I1G2NnoV1ORTVy/NOOCVSIshTM8zvtSk735LUdcJefZ99WiX+oolTKI0j3N5pUVD4yj4hwDEaZfj6CGVPgptUU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738863484; c=relaxed/simple;
-	bh=tPfSmrDpunQu3eiZmacptJEJWHn0VJK/OxlF68AoqXo=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=esQNdLl52pk3j8uJNEnt7SL0wZGKe78PGUqhHkg4aFd4DxI97kYYkqwlBW8g9SnfnWI/hrZ1pHppN3om2UCClfwhgdGd8S8tixXWoy2/7GqdxEMCr4y3+1ojmF6xGJjrOl3PpgAG0EkFk4X8b2EZQg5f/2OxRi396tjnWrO0IKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=hk2IKZN6; arc=none smtp.client-ip=198.47.23.234
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	s=arc-20240116; t=1738918450; c=relaxed/simple;
+	bh=9YpRgDpXU7I7owpZmRmyzaYa/6nDtjaGWuZ2d3DUa7Q=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=fa1gwr6KJf8V5w1leeylfVAkF702izPEJ2rNTSI5DW/TiNxeXzCdAY1QNJLkvE4FiQsjdA/1UMxL27yMe36CTcoUDCeN+Oh1ySiRAZiIO+YE5Z9RNdIo1rhHbrvvn/ljpK5qph5Px9Or9I5ecmiA9u/vQEGXNvfv+umFPQvqaRU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=JxyHj+mR; arc=none smtp.client-ip=209.85.208.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bgdev.pl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="hk2IKZN6"
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-	by lelvem-ot01.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 516HbQ5V3669272
-	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
-	Thu, 6 Feb 2025 11:37:26 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1738863446;
-	bh=x15m93AblVbz0xCdBhH0P7Wxy7u1wg8ByFlIodaKRVA=;
-	h=From:To:CC:Subject:Date;
-	b=hk2IKZN6GXSpLupszh6NWLN/r9szHN0zZgr7nGQ97z/CUiNcWsHHjuVLgR4G1mv6W
-	 HgBiGj6j3qu6WoLcq+1eG0AHM5so9thQTa1BFyV6FBVxLV09UAEndkcWRTXuycGn+l
-	 ly4LwgDxcGl5Fd/3OaA4WmylrxokVEWIL6WRUo0s=
-Received: from DLEE112.ent.ti.com (dlee112.ent.ti.com [157.170.170.23])
-	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTP id 516HbQie015513;
-	Thu, 6 Feb 2025 11:37:26 -0600
-Received: from DLEE110.ent.ti.com (157.170.170.21) by DLEE112.ent.ti.com
- (157.170.170.23) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Thu, 6
- Feb 2025 11:37:25 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE110.ent.ti.com
- (157.170.170.21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Thu, 6 Feb 2025 11:37:25 -0600
-Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.251])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 516HbPCD015728;
-	Thu, 6 Feb 2025 11:37:25 -0600
-From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
-        <krzk+dt@kernel.org>, <conor+dt@kernel.org>, <aaro.koskinen@iki.fi>,
-        <andreas@kemnade.info>, <khilman@baylibre.com>, <rogerq@kernel.org>,
-        <tony@atomide.com>, <lee@kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>
-CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v5 0/5] Add TI TPS65214 & TPS65215 PMIC MFD Driver Support
-Date: Thu, 6 Feb 2025 11:37:20 -0600
-Message-ID: <20250206173725.386720-1-s-ramamoorthy@ti.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="JxyHj+mR"
+Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-3072f8dc069so18758091fa.3
+        for <linux-omap@vger.kernel.org>; Fri, 07 Feb 2025 00:54:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1738918447; x=1739523247; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9YpRgDpXU7I7owpZmRmyzaYa/6nDtjaGWuZ2d3DUa7Q=;
+        b=JxyHj+mRgzITlPG8rh+s9KeYHq9Kqq43I7VRIYkhrAm27BkxHjM1HgR6SWP11tP/nx
+         cjbu3Hz05x+FYTFMx5w6YUJ+W+rO1IP8FFil86UYwBQ+B00gAh1nYkNVItEzwtBG2FcA
+         NYyb+g9srRfxRkjkmhPjLFDTnAe1fpcI602FT5EdUafcv6IKLd2PxUgodqgP6i9ziP7w
+         jSUcilml/Zm4wTl368lti0134QsT6uOL53laFt3Mhim9UT3gxx1aN7ymc58mht7zqSCW
+         vQqQX9HOLdIsuAblTAERx405xttawK6cXLPUaku+w/karePkV3uc+69iMFK6YuK+hPFu
+         TOqg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1738918447; x=1739523247;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=9YpRgDpXU7I7owpZmRmyzaYa/6nDtjaGWuZ2d3DUa7Q=;
+        b=MOWvZiaWhivRpx8YS6mz3eudpHNvtB0U/oMogPeKDx6MvV8AlGtpW09bfXaWQ2TOOQ
+         ACC759eumoDxOzdIPLYauMdreY4/zsu5dmLwNU9elvoIAPDUQOv8MzZz6c44RW1xFrzk
+         8bbeFK+P6enJurlBavW2tFm3AphG40BHJUswBeNBgAVimfEufrekIQRnlAeLRUZY6LX9
+         2mnCzPKqb/Lk+XEFzUkP+4The6rTd/p+ftBVfAHFJH+w/Ql9V3I61oVxhC34kdDtVqbK
+         4R/X6ofCtG1HSJWoIXLvYX66bFhy6w9R0Pg17m7NPHDlQYZ9lfVXFNPf+uUbMOOF9EbC
+         YCgw==
+X-Forwarded-Encrypted: i=1; AJvYcCX2PkX+j06vCseLQvLvA79LarW3m/a+c/NKcmZQ/btjDlCNdRPLTGQUpTvpN3Ox86IRz2I7/75VE0i5@vger.kernel.org
+X-Gm-Message-State: AOJu0YzqZ5doXUatFvd9s7SsEDHnKJrZCz2wVY+cxqsUdqfgTE3FF9MU
+	1Br/c+3DyQcq2ZAo5kmdi03ChQiDWnTXujZjMatZZliToR8tDrKULXZ1kDiESxI2xBbj6BumddA
+	vZTH1VwiIh+yXN4Tq+ppsty+3ckal3c1liwEbdw==
+X-Gm-Gg: ASbGncs3HQUAMCN2k1Cd0xevXEjw8Xz1QF/U+rt+U6jvFqLfbGGIEvCsepaAkRJzEqf
+	fzZWELgNHCPZ5VkGMPmhDCzemxiWIUzK8JaubxXIvuu8UwDwGzSf4b9W5yOi9sSIzOQ/ANiH/EN
+	djYckJLh+oFIa5uT+IJ/P/sWcEMaY=
+X-Google-Smtp-Source: AGHT+IFsHFJNNKLdEXxQ9RmJCfueArNgIRv8RA8F15dLwBa+jex6lO4HgAmkMuAZ7uzNIjHQrLjlpHUd8vXUHrS8TPM=
+X-Received: by 2002:a2e:a58d:0:b0:300:33b1:f0cb with SMTP id
+ 38308e7fff4ca-307e57fd423mr7386291fa.13.1738918447302; Fri, 07 Feb 2025
+ 00:54:07 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
+References: <20250113225530.124213-1-s-ramamoorthy@ti.com>
+In-Reply-To: <20250113225530.124213-1-s-ramamoorthy@ti.com>
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Date: Fri, 7 Feb 2025 09:53:56 +0100
+X-Gm-Features: AWEUYZmOl7wUQPy_ROOuSzKSygvKItMb-rBgZEqVwt35XGP1BYQLd0FbfBe00Ew
+Message-ID: <CAMRc=Meqjy+cqfueM_dQE8uP32zS0ib41qE+OPPWFkhoVTGc2w@mail.gmail.com>
+Subject: Re: [PATCH v3 0/3] Add TI TPS65215 PMIC GPIO Support
+To: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+Cc: aaro.koskinen@iki.fi, andreas@kemnade.info, khilman@baylibre.com, 
+	rogerq@kernel.org, tony@atomide.com, linus.walleij@linaro.org, 
+	linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-gpio@vger.kernel.org, m-leonard@ti.com, praneeth@ti.com, 
+	christophe.jaillet@wanadoo.fr
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-TPS65214 and TPS65215 are Power Management Integrated Circuits (PMICs) that
-have significant register map overlap with TPS65219 and each other. The 
-series introduces the 2 new PMICs and restructures the existing driver to 
-support multiple devices.
+On Mon, Jan 13, 2025 at 11:55=E2=80=AFPM Shree Ramamoorthy <s-ramamoorthy@t=
+i.com> wrote:
+>
+> TPS65215 is a Power Management Integrated Circuit (PMIC) that has
+> significant register map overlap with TPS65219. The series introduces
+> TPS65215 and restructures the existing driver to support multiple devices=
+.
+>
+> This follow-up series is dependent on:
+> Commit f84464ec8190 ("regulator: dt-bindings: Add TI TPS65215 PMIC bindin=
+gs")
+> Commit 8206c20f4c82 ("mfd: tps65215: Add support for TI TPS65215 PMIC")
+> Commit 0e0b7f00c111 ("mfd: tps65215: Remove regmap_read check")
+>
 
-- TPS65214, TPS65215, and TPS65219 each have 3 Buck regulators
-- TPS65214 has 2 LDOS and 1 GPO, whereas TPS65219 has 4 LDOs and 2 GPOs.
-- TPS65214's LDO1 maps to TPS65219's LDO3.
-- A key difference between TPS65215 & TPS65214 are the LDO current and
-  voltage output ranges and the configurable options available.
-- TPS65215 has 2 LDOs, whereas TPS65219 has 4 LDOs.
-- TPS65215's LDO2 maps to TPS65219's LDO3.
-- TPS65215 has 1 GPO, whereas TPS65219 has 2 GPOs.
+Did these go into v6.14?
 
-TPS65214 TRM: https://www.ti.com/lit/pdf/slvud30
-TPS65215 TRM: https://www.ti.com/lit/pdf/slvucw5/
-
-AM62L + TPS65214 Test Logs:
-https://gist.github.com/ramamoorthyhs/0793f7813332d94423ca1baee02f62c9
-AM62L + TPS65215 Test Logs:
-https://gist.github.com/ramamoorthyhs/7560eca6110fafc77b51894fa2c0fd22
-
----
-Change Log:
-v4 -> v5:
-- TPS65214 dt-binding patch: Remove duplicated "then:", combine "if:" 
-  statements with enum.
-v3 -> v4:
-- Update commit header to be "mfd: tps65219" since the driver name has not 
-  been changed from TPS65219.
-- Added dt-bindings patches to mfd series.
-- Combined TPS65214 & TPS65215 dt-binding and mfd patches into 1 series, 
-  since the series' share a dependency & these patches add more device support
-- Elimate the need for TPS65214 gpio patches by registering TPS65214 as 
-  "tps65215-gpio" from the MFD driver, since both have the same GPIO module
-- "Remove regmap_read" patch: Drop chip_id variable
-- move enum pmic_id struct from "remove regmap_read" patch to "Add support 
-  for TPS65215" patch.
-v2 -> v3:
-- Remove duplicated of_device_id table entries
-- Re-order mfd patches to clean up diff displayed
-v1 -> v2:
-- have any PMIC lists be in alpha-numeric order: TPS65215, then TPS65219
-- Add driver prefix to chip_data struct
----
-Shree Ramamoorthy (5):
-  regulator: dt-bindings: Add TI TPS65215 PMIC bindings
-  regulator: dt-bindings: Add TI TPS65214 PMIC bindings
-  mfd: tps65219: Remove regmap_read check
-  mfd: tps65219: Add support for TI TPS65215 PMIC
-  mfd: tps65219: Add support for TI TPS65214 PMIC
-
- .../bindings/regulator/ti,tps65219.yaml       |  27 +-
- drivers/mfd/tps65219.c                        | 279 +++++++++++++++++-
- include/linux/mfd/tps65219.h                  | 136 ++++++++-
- 3 files changed, 417 insertions(+), 25 deletions(-)
-
--- 
-2.43.0
-
+Bart
