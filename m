@@ -1,257 +1,109 @@
-Received: from fllvem-ot03.ext.ti.com (fllvem-ot03.ext.ti.com [198.47.19.245])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 019BD263893;
-	Wed, 12 Feb 2025 19:11:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.245
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3C9A1FBC81;
+	Wed, 12 Feb 2025 20:43:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739387519; cv=none; b=T2YEBeWRd9USWvIxGi5W9jOOtsUgJSuAnsd1fPE8smWSk2K3LKpFtimeoMUVBRKtM4YbljvnkLox73NsBJcAy1KJ1ZnyyFTkXvWftjJbM8lTAE1YkmW//gyWIGjIUZz+N8BDPaDsRH9q1gzxMhVwiqEd098WpeH1Ef7Q8LaPT8g=
+	t=1739393033; cv=none; b=oVdqG0rFsm3iWw4e23kl/4QEoiLGxh1WPmAmwzmHAcDpJAzBuRXFGrLKxm92BC6olGVvjfQjGc9EJCZYBsMe9ua/oMeURjPYMlZ8ZX7QHQmRI2hD/3ffzqE+FjtJpi6LPGVoF4XVCh/5Lpon8+I6OvbkWmFcWoC5/NJpFz7bv9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739387519; c=relaxed/simple;
-	bh=M77Q5lJYMhl2FLc8g971kUJf6vvZF+CbqDQt0qZVSxo=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=bmyBEkPs98DADT9frvyfkObMkYCzHxiwf9f8TvkWSFMmeHX/w0HNrblglz0cimu632MkDPysE07M3cT/Y7bCA5qsaTHjoGFVVDXI8ipqKoWHnXYLehDOSOIGVmH4kHTOlpBlIYB3urrOPgqmsQ/q/Wa3+Zz0pqk5q1CVZuXgnwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=ojAyn0KH; arc=none smtp.client-ip=198.47.19.245
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	s=arc-20240116; t=1739393033; c=relaxed/simple;
+	bh=2Z2SgbECzYCEjtHn8nblF4n270WAOrT6/8nalVEvK1o=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=AFBVWbO5oqvh6wxrL1yVY2iVFy6i+FPPr0sQvGPmGI3HYHH3QP8dLqAMF3G43OGZ/YMPS74TQaSY8AVASfM+HYR4HgVs/ClxQscJaVz+EAX8qE2Z4QZzhH7RiqYklbaIHyIIoFgiCiRpiUdNdy5d77G3/jxeyvTxr+7vNXs8FU4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GmGG0t/C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="ojAyn0KH"
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-	by fllvem-ot03.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 51CJBUiN494406
-	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
-	Wed, 12 Feb 2025 13:11:30 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1739387490;
-	bh=ZeHVwuhZJosPASFtG0Fb++DZwgQi/rSiwgE/QMix1nI=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=ojAyn0KHhk4JhCvoGQsM86l1XGtxFzS8pPmV/S8sauBddy1Z7UqRb5GiGzIQVg9L4
-	 5NXpeQj7grDC5neYX7U/BGYKoUndgkeTFitPScgMQZHj9pIRnXtFXEbpjfChn6Bs8V
-	 +4F7isRHPou1tlcOLj/Arou+374YncKMh0cGlQYI=
-Received: from DLEE108.ent.ti.com (dlee108.ent.ti.com [157.170.170.38])
-	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTP id 51CJBUwZ056019;
-	Wed, 12 Feb 2025 13:11:30 -0600
-Received: from DLEE102.ent.ti.com (157.170.170.32) by DLEE108.ent.ti.com
- (157.170.170.38) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Wed, 12
- Feb 2025 13:11:30 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE102.ent.ti.com
- (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Wed, 12 Feb 2025 13:11:30 -0600
-Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.251])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 51CJBTMr089207;
-	Wed, 12 Feb 2025 13:11:30 -0600
-From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <aaro.koskinen@iki.fi>,
-        <andreas@kemnade.info>, <khilman@baylibre.com>, <rogerq@kernel.org>,
-        <tony@atomide.com>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v4 2/4] regulator: tps65219: Add support for TPS65215 regulator resources
-Date: Wed, 12 Feb 2025 13:11:27 -0600
-Message-ID: <20250212191129.467728-3-s-ramamoorthy@ti.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20250212191129.467728-1-s-ramamoorthy@ti.com>
-References: <20250212191129.467728-1-s-ramamoorthy@ti.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GmGG0t/C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44FD9C4CEDF;
+	Wed, 12 Feb 2025 20:43:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1739393032;
+	bh=2Z2SgbECzYCEjtHn8nblF4n270WAOrT6/8nalVEvK1o=;
+	h=Date:Subject:To:References:From:In-Reply-To:From;
+	b=GmGG0t/C/TeZc/1f4Fc9SnxnvzjfRQfclnWpNa4eB69lbSGfgdyglM9wuTCiwN1es
+	 iR7uXrrWXPawpds3vUFUlazbZ1DwyDfwsNwdXV+4ghUY7/CG9rnjU2BxNg+XYv4s74
+	 dyhkXvUOGlqy0PYCFmUn2eereM7Iac1GEL8SD0xCt6h+gFU7TitBRtIBDK+8tuFxel
+	 Yn+9H4nEKXTKIZyWI7jRzs8KD+8oFMVWrH09ldvAT+Sju/dulwcSgbqg/qcdD1/bve
+	 9/uLlB88Tb65eMpeIrrVT0PykRQMMgqODqIgstLieQeh4Ou463DMyhW0ZYe9l0QTkJ
+	 wto6WCCFfJGrw==
+Message-ID: <643d8b81-d551-4263-9443-089c157d2c8d@kernel.org>
+Date: Wed, 12 Feb 2025 21:43:46 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] ARM: dts: nxp: vf: Align GPIO hog name with bindings
+To: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+ Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>,
+ Pengutronix Kernel Team <kernel@pengutronix.de>,
+ Stefan Agner <stefan@agner.ch>, Rob Herring <robh@kernel.org>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+References: <20250115211659.194072-1-krzysztof.kozlowski@linaro.org>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ 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 fv0=
+In-Reply-To: <20250115211659.194072-1-krzysztof.kozlowski@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Isolate all changes involving TPS65215 regulator desc and range resources.
+On 15/01/2025 22:16, Krzysztof Kozlowski wrote:
+> Bindings expect GPIO hog names to end with 'hog' suffix, so correct it
+> to fix dtbs_check warning:
+> 
+>   vf610-zii-dev-rev-c.dtb: eth0_intrp: $nodename:0: 'eth0_intrp' does not match '^.+-hog(-[0-9]+)?$'
+> 
+> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+> ---
 
-- 'chipid' will identify which PMIC to support, and the corresponding
-  chip_data struct element to use in probe(). The chip_data struct is
-  helpful for any new PMICs added to this driver. The goal is to add future
-  PMIC info to necessary structs and minimize probe() function edits.
+Any comments on the patch? Shawn, can you apply it?
 
-- The probe() will now loop through common (overlapping) regulators first,
-  then device-specific structs identified in the chip_data struct.
-
-- Add TI TPS65215 PMIC to the existing platform_device_id struct, so the
-  regulator probe() can handle which PMIC chip_data information to use.
-
-Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
----
- drivers/regulator/Kconfig              |  7 ++-
- drivers/regulator/tps65219-regulator.c | 86 +++++++++++++++++++++-----
- 2 files changed, 75 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index 39297f7d8177..6cd87443f9bb 100644
---- a/drivers/regulator/Kconfig
-+++ b/drivers/regulator/Kconfig
-@@ -1579,10 +1579,11 @@ config REGULATOR_TPS65219
- 	tristate "TI TPS65219 Power regulators"
- 	depends on MFD_TPS65219 && OF
- 	help
--	  This driver supports TPS65219 voltage regulator chips.
-+	  This driver supports TPS65219 series and TPS65215 voltage regulator chips.
- 	  TPS65219 series of PMICs have 3 single phase BUCKs & 4 LDOs
--	  voltage regulators. It supports software based voltage control
--	  for different voltage domains.
-+	  voltage regulators.
-+	  TPS65215 PMIC has 3 single phase BUCKs & 2 LDOs.
-+	  Both PMICs support software based voltage control for different voltage domains.
- 
- config REGULATOR_TPS6594
- 	tristate "TI TPS6594 Power regulators"
-diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
-index 3c7c3a6d4c15..2542ac1453c9 100644
---- a/drivers/regulator/tps65219-regulator.c
-+++ b/drivers/regulator/tps65219-regulator.c
-@@ -1,10 +1,9 @@
- // SPDX-License-Identifier: GPL-2.0
- //
--// tps65219-regulator.c
--//
--// Regulator driver for TPS65219 PMIC
-+// Regulator driver for TPS65215/TPS65219 PMIC
- //
- // Copyright (C) 2022 BayLibre Incorporated - https://www.baylibre.com/
-+// Copyright (C) 2024 Texas Instruments Incorporated - https://www.ti.com/
- //
- // This implementation derived from tps65218 authored by
- // "J Keerthy <j-keerthy@ti.com>"
-@@ -130,6 +129,11 @@ static const struct linear_range ldo_1_range[] = {
- 	REGULATOR_LINEAR_RANGE(3400000, 0x38, 0x3f, 0),
- };
- 
-+static const struct linear_range tps65215_ldo_2_range[] = {
-+	REGULATOR_LINEAR_RANGE(1200000, 0x0, 0xC, 50000),
-+	REGULATOR_LINEAR_RANGE(3300000, 0x36, 0x3F, 0),
-+};
-+
- static const struct linear_range tps65219_ldo_2_range[] = {
- 	REGULATOR_LINEAR_RANGE(600000, 0x0, 0x37, 50000),
- 	REGULATOR_LINEAR_RANGE(3400000, 0x38, 0x3f, 0),
-@@ -221,7 +225,7 @@ static const struct regulator_ops ldos_3_4_ops = {
- 	.map_voltage		= regulator_map_voltage_linear_range,
- };
- 
--static const struct regulator_desc regulators[] = {
-+static const struct regulator_desc common_regs[] = {
- 	TPS65219_REGULATOR("BUCK1", "buck1", TPS65219_BUCK_1,
- 			   REGULATOR_VOLTAGE, bucks_ops, 64,
- 			   TPS65219_REG_BUCK1_VOUT,
-@@ -250,6 +254,20 @@ static const struct regulator_desc regulators[] = {
- 			   TPS65219_REG_ENABLE_CTRL,
- 			   TPS65219_ENABLE_LDO1_EN_MASK, 0, 0, ldo_1_range,
- 			   2, 0, 0, NULL, 0, TPS65219_LDOS_BYP_CONFIG_MASK),
-+};
-+
-+static const struct regulator_desc tps65215_regs[] = {
-+	// TPS65215's LDO2 is the same as TPS65219's LDO3
-+	TPS65219_REGULATOR("LDO2", "ldo2", TPS65215_LDO_2,
-+			   REGULATOR_VOLTAGE, ldos_3_4_ops, 64,
-+			   TPS65215_REG_LDO2_VOUT,
-+			   TPS65219_BUCKS_LDOS_VOUT_VSET_MASK,
-+			   TPS65219_REG_ENABLE_CTRL,
-+			   TPS65215_ENABLE_LDO2_EN_MASK, 0, 0, tps65215_ldo_2_range,
-+			   3, 0, 0, NULL, 0, 0),
-+};
-+
-+static const struct regulator_desc tps65219_regs[] = {
- 	TPS65219_REGULATOR("LDO2", "ldo2", TPS65219_LDO_2,
- 			   REGULATOR_VOLTAGE, ldos_1_2_ops, 64,
- 			   TPS65219_REG_LDO2_VOUT,
-@@ -292,28 +310,65 @@ static irqreturn_t tps65219_regulator_irq_handler(int irq, void *data)
- 	return IRQ_HANDLED;
- }
- 
-+struct tps65219_chip_data {
-+	size_t rdesc_size;
-+	size_t common_rdesc_size;
-+	const struct regulator_desc *rdesc;
-+	const struct regulator_desc *common_rdesc;
-+};
-+
-+static struct tps65219_chip_data chip_info_table[] = {
-+	[TPS65215] = {
-+		.rdesc = tps65215_regs,
-+		.rdesc_size = ARRAY_SIZE(tps65215_regs),
-+		.common_rdesc = common_regs,
-+		.common_rdesc_size = ARRAY_SIZE(common_regs),
-+	},
-+	[TPS65219] = {
-+		.rdesc = tps65219_regs,
-+		.rdesc_size = ARRAY_SIZE(tps65219_regs),
-+		.common_rdesc = common_regs,
-+		.common_rdesc_size = ARRAY_SIZE(common_regs),
-+	},
-+};
-+
- static int tps65219_regulator_probe(struct platform_device *pdev)
- {
--	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
-+	struct tps65219_regulator_irq_data *irq_data;
-+	struct tps65219_regulator_irq_type *irq_type;
-+
-+	struct tps65219_chip_data *pmic;
- 	struct regulator_dev *rdev;
--	struct regulator_config config = { };
--	int i;
- 	int error;
- 	int irq;
--	struct tps65219_regulator_irq_data *irq_data;
--	struct tps65219_regulator_irq_type *irq_type;
-+	int i;
-+
-+	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
-+	struct regulator_config config = { };
-+	enum pmic_id chip = platform_get_device_id(pdev)->driver_data;
-+
-+	pmic = &chip_info_table[chip];
- 
- 	config.dev = tps->dev;
- 	config.driver_data = tps;
- 	config.regmap = tps->regmap;
- 
--	for (i = 0; i < ARRAY_SIZE(regulators); i++) {
--		rdev = devm_regulator_register(&pdev->dev, &regulators[i],
-+	for (i = 0; i <  pmic->common_rdesc_size; i++) {
-+		rdev = devm_regulator_register(&pdev->dev, &pmic->common_rdesc[i],
-+					       &config);
-+		if (IS_ERR(rdev))
-+			return dev_err_probe(tps->dev, PTR_ERR(rdev),
-+					      "Failed to register %s regulator\n",
-+					      pmic->common_rdesc[i].name);
-+	}
-+
-+	for (i = 0; i <  pmic->rdesc_size; i++) {
-+		rdev = devm_regulator_register(&pdev->dev, &pmic->rdesc[i],
- 					       &config);
- 		if (IS_ERR(rdev))
- 			return dev_err_probe(tps->dev, PTR_ERR(rdev),
--					"Failed to register %s regulator\n",
--					regulators[i].name);
-+					     "Failed to register %s regulator\n",
-+					     pmic->rdesc[i].name);
- 	}
- 
- 	irq_data = devm_kmalloc(tps->dev,
-@@ -349,7 +404,8 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
- }
- 
- static const struct platform_device_id tps65219_regulator_id_table[] = {
--	{ "tps65219-regulator", },
-+	{ "tps65215-regulator", TPS65215 },
-+	{ "tps65219-regulator", TPS65219 },
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(platform, tps65219_regulator_id_table);
-@@ -366,5 +422,5 @@ static struct platform_driver tps65219_regulator_driver = {
- module_platform_driver(tps65219_regulator_driver);
- 
- MODULE_AUTHOR("Jerome Neanne <j-neanne@baylibre.com>");
--MODULE_DESCRIPTION("TPS65219 voltage regulator driver");
-+MODULE_DESCRIPTION("TPS65215/TPS65219 voltage regulator driver");
- MODULE_LICENSE("GPL");
--- 
-2.43.0
-
+Best regards,
+Krzysztof
