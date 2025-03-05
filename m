@@ -1,47 +1,47 @@
-Received: from lelvem-ot01.ext.ti.com (lelvem-ot01.ext.ti.com [198.47.23.234])
+Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63E8B2586EB;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4E352580FD;
 	Wed,  5 Mar 2025 21:04:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.234
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741208664; cv=none; b=g18TV8mQ6vXNRbag9kfibeM+cbdZfKko7VvqNQZh8Cyf5V3H/EuDZDZ3EHSxFSegIkqO0ozIIil3xMXYzCougx4CkD+B/DdnIOy4xUgg/PqY/DYV87X/tntp/a/NwTVmoekgi6sn6rpGfEVzQtDl7gR3KCrehTbKGsGjAoMzuF0=
+	t=1741208664; cv=none; b=UTmF0pXLUBWBkPVw5WIUv7857mdk6rF/NGCs6RRb8kJYMZ0VNBxYy7bZGii+xVnZEIRqmdM28mZUi10vGFem++ugNZGftrX5QuZqhMJv3G4JSME556LjJ3spQrrf2ZNP0+MOfRj3oziPcnWfSq9/iNpQ8vio/93h+uvNryvC434=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1741208664; c=relaxed/simple;
-	bh=VYBhLXwBJtgYYnddABcUpttFcdPZnBK2iXoErIu9xWY=;
+	bh=unCtyERGPCzZ4Xf00fErahLgkDSQ5+UzkgvJPV9YZTk=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OxNdR0MM37eYYzCSvg3Ft8263RyhRKyxgyFTBX5tXsTsrACRFpTTOBj1Fp90lKujieVGzq/CxLoEBGjrzsDErbyvFLWWbgDSRCHKSgwtLZ7gOur+4I9QqYq++gPmSrpxypgeQEewTY99fZ6GaM+F9hcAKKDUznyq+GBvtvOQFgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=hv49tSEQ; arc=none smtp.client-ip=198.47.23.234
+	 MIME-Version:Content-Type; b=YRlFyVCdRidlRbLXskNmCMdfu5GrL8E2DMCNiJ4+OSowqfyj9v+vCJCyWYx8cQ5BeFVmmp3dNdJosAjOz7KPU6G8aOJpr/k+rnIMgr8zm1NJfq6IQi7WlW+9Vi+J5pmZ6Rwq7r6OQmImX2k3inae4fagTWi/SaXD6imiGHwP+0M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=vRL5MZ22; arc=none smtp.client-ip=198.47.19.246
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="hv49tSEQ"
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="vRL5MZ22"
 Received: from fllv0035.itg.ti.com ([10.64.41.0])
-	by lelvem-ot01.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 525L3qeI3513449
+	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 525L3qoY3969705
 	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
 	Wed, 5 Mar 2025 15:03:52 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
 	s=ti-com-17Q1; t=1741208632;
-	bh=FH8+u45IFg7clQTneCie7pPyIWNKJ/iwpmiKdg3Wtdk=;
+	bh=0ZuHqCCY46wxVIvA9/lapUMMzIqpfK0CqZDyTofRUT0=;
 	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=hv49tSEQUw/Ar7xKnSPNADePovMB+SEE2tv9KLcWOzS8lJ97exepYtgbe7shNesok
-	 2sH5qZFm10h25tW6gUQq22pZau0CJNI5gyxuXTARJpjg2PqIdOcfcbC1HH/D+j0SB9
-	 A47IORhJxy16arGc3Q+genl/4blVv56yg4ESLU9k=
+	b=vRL5MZ22SEBezx5jK5TAyEbYQHyr2hssH+L7Xm2WizLUEk3Cmey3VBkU/MqR/GmVg
+	 /ewcmonoxcS1Gl6h14os+TFFDhE8GPs0qsvL39raaoNkyITzCSjcLNP7pFYOaJp1Qn
+	 P1vUQ8PfTYX+hwB4APIBxOOIhUE9PucA3vaWNBbU=
 Received: from DFLE110.ent.ti.com (dfle110.ent.ti.com [10.64.6.31])
-	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 525L3qvC034784
+	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 525L3qXL034787
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
 	Wed, 5 Mar 2025 15:03:52 -0600
-Received: from DFLE103.ent.ti.com (10.64.6.24) by DFLE110.ent.ti.com
+Received: from DFLE102.ent.ti.com (10.64.6.23) by DFLE110.ent.ti.com
  (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Wed, 5
  Mar 2025 15:03:52 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE103.ent.ti.com
- (10.64.6.24) with Microsoft SMTP Server (version=TLS1_2,
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE102.ent.ti.com
+ (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
  Frontend Transport; Wed, 5 Mar 2025 15:03:52 -0600
 Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.251])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 525L3peE125160;
-	Wed, 5 Mar 2025 15:03:51 -0600
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 525L3peI125160;
+	Wed, 5 Mar 2025 15:03:52 -0600
 From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
         <krzk+dt@kernel.org>, <conor+dt@kernel.org>, <aaro.koskinen@iki.fi>,
@@ -49,9 +49,9 @@ To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
         <tony@atomide.com>, <lee@kernel.org>, <linux-omap@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>
 CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v6 4/9] mfd: tps65219: Add support for TI TPS65215 PMIC
-Date: Wed, 5 Mar 2025 15:03:46 -0600
-Message-ID: <20250305210351.249811-5-s-ramamoorthy@ti.com>
+Subject: [PATCH v6 8/9] regulator: tps65219: Add support for TPS65215 Regulator IRQs
+Date: Wed, 5 Mar 2025 15:03:50 -0600
+Message-ID: <20250305210351.249811-9-s-ramamoorthy@ti.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20250305210351.249811-1-s-ramamoorthy@ti.com>
 References: <20250305210351.249811-1-s-ramamoorthy@ti.com>
@@ -65,457 +65,168 @@ Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-Use chip ID and chip_data struct to differentiate between devices in
-probe(). Add TPS65215 resource information. Update descriptions and
-copyright information to reflect the driver supports 2 PMIC devices.
+Isolate all changes involving regulator IRQ types:
+- Adding in TPS65215 resources
+- Organize what resources are common vs device-specific
+- How the chip_data uses these resource structs
+- Restructure the probe() for multi-PMIC support.
 
 Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
 ---
- drivers/mfd/tps65219.c       | 150 +++++++++++++++++++++++++++++++++--
- include/linux/mfd/tps65219.h |  71 +++++++++++++++--
- 2 files changed, 209 insertions(+), 12 deletions(-)
+ drivers/regulator/tps65219-regulator.c | 68 +++++++++++++++++++-------
+ 1 file changed, 50 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/mfd/tps65219.c b/drivers/mfd/tps65219.c
-index 4aca922658e3..d4788ebcb5c4 100644
---- a/drivers/mfd/tps65219.c
-+++ b/drivers/mfd/tps65219.c
-@@ -1,8 +1,9 @@
- // SPDX-License-Identifier: GPL-2.0
- //
--// Driver for TPS65219 Integrated Power Management Integrated Chips (PMIC)
-+// Driver for TPS65215/TPS65219 Power Management Integrated Chips (PMIC)
- //
- // Copyright (C) 2022 BayLibre Incorporated - https://www.baylibre.com/
-+// Copyright (C) 2024 Texas Instruments Incorporated - https://www.ti.com/
- 
- #include <linux/i2c.h>
- #include <linux/reboot.h>
-@@ -59,6 +60,46 @@ static const struct resource tps65219_pwrbutton_resources[] = {
- 	DEFINE_RES_IRQ_NAMED(TPS65219_INT_PB_RISING_EDGE_DETECT, "rising"),
+diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
+index 2542ac1453c9..5f5a6f3c950b 100644
+--- a/drivers/regulator/tps65219-regulator.c
++++ b/drivers/regulator/tps65219-regulator.c
+@@ -36,6 +36,14 @@ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
+ 	{ "LDO4_SCG", "LDO4", "short circuit to ground", REGULATOR_EVENT_REGULATION_OUT },
+ 	{ "LDO4_OC", "LDO4", "overcurrent", REGULATOR_EVENT_OVER_CURRENT },
+ 	{ "LDO4_UV", "LDO4", "undervoltage", REGULATOR_EVENT_UNDER_VOLTAGE },
++	{ "LDO3_RV", "LDO3", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
++	{ "LDO4_RV", "LDO4", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
++	{ "LDO3_RV_SD", "LDO3", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
++	{ "LDO4_RV_SD", "LDO4", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
++};
++
++/*  All of TPS65215's irq types are the same as common_regulator_irq_types */
++static struct tps65219_regulator_irq_type common_regulator_irq_types[] = {
+ 	{ "LDO1_SCG", "LDO1", "short circuit to ground", REGULATOR_EVENT_REGULATION_OUT },
+ 	{ "LDO1_OC", "LDO1", "overcurrent", REGULATOR_EVENT_OVER_CURRENT },
+ 	{ "LDO1_UV", "LDO1", "undervoltage", REGULATOR_EVENT_UNDER_VOLTAGE },
+@@ -59,8 +67,6 @@ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
+ 	{ "BUCK3_RV", "BUCK3", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "LDO1_RV", "LDO1", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "LDO2_RV", "LDO2", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+-	{ "LDO3_RV", "LDO3", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+-	{ "LDO4_RV", "LDO4", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "BUCK1_RV_SD", "BUCK1", "residual voltage on shutdown",
+ 	 REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "BUCK2_RV_SD", "BUCK2", "residual voltage on shutdown",
+@@ -69,8 +75,6 @@ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
+ 	 REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "LDO1_RV_SD", "LDO1", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "LDO2_RV_SD", "LDO2", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+-	{ "LDO3_RV_SD", "LDO3", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+-	{ "LDO4_RV_SD", "LDO4", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
+ 	{ "SENSOR_3_WARM", "SENSOR3", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN},
+ 	{ "SENSOR_2_WARM", "SENSOR2", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN },
+ 	{ "SENSOR_1_WARM", "SENSOR1", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN },
+@@ -264,7 +268,7 @@ static const struct regulator_desc tps65215_regs[] = {
+ 			   TPS65219_BUCKS_LDOS_VOUT_VSET_MASK,
+ 			   TPS65219_REG_ENABLE_CTRL,
+ 			   TPS65215_ENABLE_LDO2_EN_MASK, 0, 0, tps65215_ldo_2_range,
+-			   3, 0, 0, NULL, 0, 0),
++			   2, 0, 0, NULL, 0, 0),
  };
  
-+static const struct resource tps65215_regulator_resources[] = {
-+	DEFINE_RES_IRQ_NAMED(TPS65215_INT_LDO1_SCG, "LDO1_SCG"),
-+	DEFINE_RES_IRQ_NAMED(TPS65215_INT_LDO1_OC, "LDO1_OC"),
-+	DEFINE_RES_IRQ_NAMED(TPS65215_INT_LDO1_UV, "LDO1_UV"),
-+	DEFINE_RES_IRQ_NAMED(TPS65215_INT_LDO2_SCG, "LDO2_SCG"),
-+	DEFINE_RES_IRQ_NAMED(TPS65215_INT_LDO2_OC, "LDO2_OC"),
-+	DEFINE_RES_IRQ_NAMED(TPS65215_INT_LDO2_UV, "LDO2_UV"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK3_SCG, "BUCK3_SCG"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK3_OC, "BUCK3_OC"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK3_NEG_OC, "BUCK3_NEG_OC"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK3_UV, "BUCK3_UV"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK1_SCG, "BUCK1_SCG"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK1_OC, "BUCK1_OC"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK1_NEG_OC, "BUCK1_NEG_OC"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK1_UV, "BUCK1_UV"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK2_SCG, "BUCK2_SCG"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK2_OC, "BUCK2_OC"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK2_NEG_OC, "BUCK2_NEG_OC"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK2_UV, "BUCK2_UV"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK1_RV, "BUCK1_RV"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK2_RV, "BUCK2_RV"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK3_RV, "BUCK3_RV"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_LDO1_RV, "LDO1_RV"),
-+	DEFINE_RES_IRQ_NAMED(TPS65215_INT_LDO2_RV, "LDO2_RV"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK1_RV_SD, "BUCK1_RV_SD"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK2_RV_SD, "BUCK2_RV_SD"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_BUCK3_RV_SD, "BUCK3_RV_SD"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_LDO1_RV_SD, "LDO1_RV_SD"),
-+	DEFINE_RES_IRQ_NAMED(TPS65215_INT_LDO2_RV_SD, "LDO2_RV_SD"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_TIMEOUT, "TIMEOUT"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_SENSOR_3_WARM, "SENSOR_3_WARM"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_SENSOR_2_WARM, "SENSOR_2_WARM"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_SENSOR_1_WARM, "SENSOR_1_WARM"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_SENSOR_0_WARM, "SENSOR_0_WARM"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_SENSOR_3_HOT, "SENSOR_3_HOT"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_SENSOR_2_HOT, "SENSOR_2_HOT"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_SENSOR_1_HOT, "SENSOR_1_HOT"),
-+	DEFINE_RES_IRQ_NAMED(TPS65219_INT_SENSOR_0_HOT, "SENSOR_0_HOT"),
-+};
-+
- static const struct resource tps65219_regulator_resources[] = {
- 	DEFINE_RES_IRQ_NAMED(TPS65219_INT_LDO3_SCG, "LDO3_SCG"),
- 	DEFINE_RES_IRQ_NAMED(TPS65219_INT_LDO3_OC, "LDO3_OC"),
-@@ -109,6 +150,11 @@ static const struct resource tps65219_regulator_resources[] = {
- 	DEFINE_RES_IRQ_NAMED(TPS65219_INT_SENSOR_0_HOT, "SENSOR_0_HOT"),
+ static const struct regulator_desc tps65219_regs[] = {
+@@ -313,8 +317,12 @@ static irqreturn_t tps65219_regulator_irq_handler(int irq, void *data)
+ struct tps65219_chip_data {
+ 	size_t rdesc_size;
+ 	size_t common_rdesc_size;
++	size_t dev_irq_size;
++	size_t common_irq_size;
+ 	const struct regulator_desc *rdesc;
+ 	const struct regulator_desc *common_rdesc;
++	struct tps65219_regulator_irq_type *irq_types;
++	struct tps65219_regulator_irq_type *common_irq_types;
  };
  
-+static const struct mfd_cell tps65215_cells[] = {
-+	MFD_CELL_RES("tps65215-regulator", tps65215_regulator_resources),
-+	MFD_CELL_NAME("tps65215-gpio"),
-+};
-+
- static const struct mfd_cell tps65219_cells[] = {
- 	MFD_CELL_RES("tps65219-regulator", tps65219_regulator_resources),
- 	MFD_CELL_NAME("tps65219-gpio"),
-@@ -136,6 +182,8 @@ static unsigned int bit3_offsets[] = { TPS65219_REG_INT_BUCK_1_2_POS };	/* Buck
- static unsigned int bit4_offsets[] = { TPS65219_REG_INT_BUCK_3_POS };	/* Buck 3 */
- static unsigned int bit5_offsets[] = { TPS65219_REG_INT_LDO_1_2_POS };	/* LDO 1-2 */
- static unsigned int bit6_offsets[] = { TPS65219_REG_INT_LDO_3_4_POS };	/* LDO 3-4 */
-+static unsigned int tps65215_bit5_offsets[] = { TPS65215_REG_INT_LDO_1_POS };
-+static unsigned int tps65215_bit6_offsets[] = { TPS65215_REG_INT_LDO_2_POS };
- static unsigned int bit7_offsets[] = { TPS65219_REG_INT_PB_POS };	/* Power Button */
- 
- static struct regmap_irq_sub_irq_map tps65219_sub_irq_offsets[] = {
-@@ -149,9 +197,62 @@ static struct regmap_irq_sub_irq_map tps65219_sub_irq_offsets[] = {
- 	REGMAP_IRQ_MAIN_REG_OFFSET(bit7_offsets),
+ static struct tps65219_chip_data chip_info_table[] = {
+@@ -323,12 +331,20 @@ static struct tps65219_chip_data chip_info_table[] = {
+ 		.rdesc_size = ARRAY_SIZE(tps65215_regs),
+ 		.common_rdesc = common_regs,
+ 		.common_rdesc_size = ARRAY_SIZE(common_regs),
++		.irq_types = NULL,
++		.dev_irq_size = 0,
++		.common_irq_types = common_regulator_irq_types,
++		.common_irq_size = ARRAY_SIZE(common_regulator_irq_types),
+ 	},
+ 	[TPS65219] = {
+ 		.rdesc = tps65219_regs,
+ 		.rdesc_size = ARRAY_SIZE(tps65219_regs),
+ 		.common_rdesc = common_regs,
+ 		.common_rdesc_size = ARRAY_SIZE(common_regs),
++		.irq_types = tps65219_regulator_irq_types,
++		.dev_irq_size = ARRAY_SIZE(tps65219_regulator_irq_types),
++		.common_irq_types = common_regulator_irq_types,
++		.common_irq_size = ARRAY_SIZE(common_regulator_irq_types),
+ 	},
  };
  
-+static struct regmap_irq_sub_irq_map tps65215_sub_irq_offsets[] = {
-+	REGMAP_IRQ_MAIN_REG_OFFSET(bit0_offsets),
-+	REGMAP_IRQ_MAIN_REG_OFFSET(bit1_offsets),
-+	REGMAP_IRQ_MAIN_REG_OFFSET(bit2_offsets),
-+	REGMAP_IRQ_MAIN_REG_OFFSET(bit3_offsets),
-+	REGMAP_IRQ_MAIN_REG_OFFSET(bit4_offsets),
-+	REGMAP_IRQ_MAIN_REG_OFFSET(tps65215_bit5_offsets),
-+	REGMAP_IRQ_MAIN_REG_OFFSET(tps65215_bit6_offsets),
-+	REGMAP_IRQ_MAIN_REG_OFFSET(bit7_offsets),
-+};
-+
- #define TPS65219_REGMAP_IRQ_REG(int_name, register_position) \
- 	REGMAP_IRQ_REG(int_name, register_position, int_name##_MASK)
- 
-+static const struct regmap_irq tps65215_irqs[] = {
-+	TPS65219_REGMAP_IRQ_REG(TPS65215_INT_LDO1_SCG, TPS65215_REG_INT_LDO_1_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65215_INT_LDO1_OC, TPS65215_REG_INT_LDO_1_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65215_INT_LDO1_UV, TPS65215_REG_INT_LDO_1_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65215_INT_LDO2_SCG, TPS65215_REG_INT_LDO_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65215_INT_LDO2_OC, TPS65215_REG_INT_LDO_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65215_INT_LDO2_UV, TPS65215_REG_INT_LDO_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK3_SCG, TPS65219_REG_INT_BUCK_3_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK3_OC, TPS65219_REG_INT_BUCK_3_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK3_NEG_OC, TPS65219_REG_INT_BUCK_3_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK3_UV, TPS65219_REG_INT_BUCK_3_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK2_SCG, TPS65219_REG_INT_BUCK_1_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK2_OC, TPS65219_REG_INT_BUCK_1_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK2_NEG_OC, TPS65219_REG_INT_BUCK_1_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK2_UV, TPS65219_REG_INT_BUCK_1_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK1_SCG, TPS65219_REG_INT_BUCK_1_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK1_OC, TPS65219_REG_INT_BUCK_1_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK1_NEG_OC, TPS65219_REG_INT_BUCK_1_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK1_UV, TPS65219_REG_INT_BUCK_1_2_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_SENSOR_3_WARM, TPS65219_REG_INT_SYS_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_SENSOR_2_WARM, TPS65219_REG_INT_SYS_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_SENSOR_1_WARM, TPS65219_REG_INT_SYS_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_SENSOR_0_WARM, TPS65219_REG_INT_SYS_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_SENSOR_3_HOT, TPS65219_REG_INT_SYS_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_SENSOR_2_HOT, TPS65219_REG_INT_SYS_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_SENSOR_1_HOT, TPS65219_REG_INT_SYS_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_SENSOR_0_HOT, TPS65219_REG_INT_SYS_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK1_RV, TPS65219_REG_INT_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK2_RV, TPS65219_REG_INT_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK3_RV, TPS65219_REG_INT_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_LDO1_RV, TPS65219_REG_INT_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65215_INT_LDO2_RV, TPS65219_REG_INT_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK1_RV_SD, TPS65219_REG_INT_TO_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK2_RV_SD, TPS65219_REG_INT_TO_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_BUCK3_RV_SD, TPS65219_REG_INT_TO_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_LDO1_RV_SD, TPS65219_REG_INT_TO_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65215_INT_LDO2_RV_SD, TPS65219_REG_INT_TO_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_TIMEOUT, TPS65219_REG_INT_TO_RV_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_PB_FALLING_EDGE_DETECT, TPS65219_REG_INT_PB_POS),
-+	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_PB_RISING_EDGE_DETECT, TPS65219_REG_INT_PB_POS),
-+};
-+
- static const struct regmap_irq tps65219_irqs[] = {
- 	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_LDO3_SCG, TPS65219_REG_INT_LDO_3_4_POS),
- 	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_LDO3_OC, TPS65219_REG_INT_LDO_3_4_POS),
-@@ -204,6 +305,20 @@ static const struct regmap_irq tps65219_irqs[] = {
- 	TPS65219_REGMAP_IRQ_REG(TPS65219_INT_PB_RISING_EDGE_DETECT, TPS65219_REG_INT_PB_POS),
- };
- 
-+static const struct regmap_irq_chip tps65215_irq_chip = {
-+	.name = "tps65215_irq",
-+	.main_status = TPS65219_REG_INT_SOURCE,
-+	.num_main_regs = 1,
-+	.num_main_status_bits = 8,
-+	.irqs = tps65215_irqs,
-+	.num_irqs = ARRAY_SIZE(tps65215_irqs),
-+	.status_base = TPS65215_REG_INT_LDO_2,
-+	.ack_base = TPS65215_REG_INT_LDO_2,
-+	.clear_ack = 1,
-+	.num_regs = 8,
-+	.sub_reg_offsets = tps65215_sub_irq_offsets,
-+};
-+
- static const struct regmap_irq_chip tps65219_irq_chip = {
- 	.name = "tps65219_irq",
- 	.main_status = TPS65219_REG_INT_SOURCE,
-@@ -218,9 +333,29 @@ static const struct regmap_irq_chip tps65219_irq_chip = {
- 	.sub_reg_offsets = tps65219_sub_irq_offsets,
- };
- 
-+struct tps65219_chip_data {
-+	const struct regmap_irq_chip *irq_chip;
-+	const struct mfd_cell *cells;
-+	int n_cells;
-+};
-+
-+static struct tps65219_chip_data chip_info_table[] = {
-+	[TPS65215] = {
-+		.irq_chip = &tps65215_irq_chip,
-+		.cells = tps65215_cells,
-+		.n_cells = ARRAY_SIZE(tps65215_cells),
-+	},
-+	[TPS65219] = {
-+		.irq_chip = &tps65219_irq_chip,
-+		.cells = tps65219_cells,
-+		.n_cells = ARRAY_SIZE(tps65219_cells),
-+	},
-+};
-+
- static int tps65219_probe(struct i2c_client *client)
+@@ -336,7 +352,6 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
  {
- 	struct tps65219 *tps;
-+	struct tps65219_chip_data *pmic;
- 	bool pwr_button;
- 	int ret;
- 
-@@ -231,6 +366,8 @@ static int tps65219_probe(struct i2c_client *client)
- 	i2c_set_clientdata(client, tps);
- 
- 	tps->dev = &client->dev;
-+	tps->chip_id = (uintptr_t)i2c_get_match_data(client);
-+	pmic = &chip_info_table[tps->chip_id];
- 
- 	tps->regmap = devm_regmap_init_i2c(client, &tps65219_regmap_config);
- 	if (IS_ERR(tps->regmap)) {
-@@ -239,14 +376,14 @@ static int tps65219_probe(struct i2c_client *client)
- 		return ret;
+ 	struct tps65219_regulator_irq_data *irq_data;
+ 	struct tps65219_regulator_irq_type *irq_type;
+-
+ 	struct tps65219_chip_data *pmic;
+ 	struct regulator_dev *rdev;
+ 	int error;
+@@ -371,33 +386,50 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
+ 					     pmic->rdesc[i].name);
  	}
  
--	ret = devm_regmap_add_irq_chip(&client->dev, tps->regmap, client->irq,
--				       IRQF_ONESHOT, 0, &tps65219_irq_chip,
-+	ret = devm_regmap_add_irq_chip(tps->dev, tps->regmap, client->irq,
-+				       IRQF_ONESHOT, 0, pmic->irq_chip,
- 				       &tps->irq_data);
- 	if (ret)
- 		return ret;
+-	irq_data = devm_kmalloc(tps->dev,
+-				ARRAY_SIZE(tps65219_regulator_irq_types) *
+-				sizeof(struct tps65219_regulator_irq_data),
+-				GFP_KERNEL);
++	irq_data = devm_kmalloc(tps->dev, pmic->common_irq_size, GFP_KERNEL);
+ 	if (!irq_data)
+ 		return -ENOMEM;
  
- 	ret = devm_mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO,
--				   tps65219_cells, ARRAY_SIZE(tps65219_cells),
-+				   pmic->cells, pmic->n_cells,
- 				   NULL, 0, regmap_irq_get_domain(tps->irq_data));
- 	if (ret) {
- 		dev_err(tps->dev, "Failed to add child devices: %d\n", ret);
-@@ -284,7 +421,8 @@ static int tps65219_probe(struct i2c_client *client)
- }
+-	for (i = 0; i < ARRAY_SIZE(tps65219_regulator_irq_types); ++i) {
+-		irq_type = &tps65219_regulator_irq_types[i];
+-
++	for (i = 0; i < pmic->common_irq_size; ++i) {
++		irq_type = &pmic->common_irq_types[i];
+ 		irq = platform_get_irq_byname(pdev, irq_type->irq_name);
+ 		if (irq < 0)
+ 			return -EINVAL;
  
- static const struct of_device_id of_tps65219_match_table[] = {
--	{ .compatible = "ti,tps65219", },
-+	{ .compatible = "ti,tps65215", .data = (void *)TPS65215, },
-+	{ .compatible = "ti,tps65219", .data = (void *)TPS65219, },
- 	{}
- };
- MODULE_DEVICE_TABLE(of, of_tps65219_match_table);
-@@ -299,5 +437,5 @@ static struct i2c_driver tps65219_driver = {
- module_i2c_driver(tps65219_driver);
- 
- MODULE_AUTHOR("Jerome Neanne <jneanne@baylibre.com>");
--MODULE_DESCRIPTION("TPS65219 power management IC driver");
-+MODULE_DESCRIPTION("TPS65215/TPS65219 PMIC driver");
- MODULE_LICENSE("GPL");
-diff --git a/include/linux/mfd/tps65219.h b/include/linux/mfd/tps65219.h
-index 546bceec7173..6047f92b367f 100644
---- a/include/linux/mfd/tps65219.h
-+++ b/include/linux/mfd/tps65219.h
-@@ -1,8 +1,9 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- /*
-- * Functions to access TPS65219 Power Management IC.
-+ * Functions to access TPS65215/TPS65219 Power Management Integrated Chips
-  *
-  * Copyright (C) 2022 BayLibre Incorporated - https://www.baylibre.com/
-+ * Copyright (C) 2024 Texas Instruments Incorporated - https://www.ti.com/
-  */
- 
- #ifndef MFD_TPS65219_H
-@@ -13,8 +14,11 @@
- #include <linux/regmap.h>
- #include <linux/regulator/driver.h>
- 
--/* TPS chip id list */
--#define TPS65219					0xF0
-+/* Chip id list*/
-+enum pmic_id {
-+	TPS65215,
-+	TPS65219,
-+};
- 
- /* I2C ID for TPS65219 part */
- #define TPS65219_I2C_ID					0x24
-@@ -26,6 +30,7 @@
- #define TPS65219_REG_BUCKS_CONFIG			0x03
- #define TPS65219_REG_LDO4_VOUT				0x04
- #define TPS65219_REG_LDO3_VOUT				0x05
-+#define TPS65215_REG_LDO2_VOUT                          0x05
- #define TPS65219_REG_LDO2_VOUT				0x06
- #define TPS65219_REG_LDO1_VOUT				0x07
- #define TPS65219_REG_BUCK3_VOUT				0x8
-@@ -33,6 +38,7 @@
- #define TPS65219_REG_BUCK1_VOUT				0xA
- #define TPS65219_REG_LDO4_SEQUENCE_SLOT			0xB
- #define TPS65219_REG_LDO3_SEQUENCE_SLOT			0xC
-+#define TPS65215_REG_LDO2_SEQUENCE_SLOT                 0xC
- #define TPS65219_REG_LDO2_SEQUENCE_SLOT			0xD
- #define TPS65219_REG_LDO1_SEQUENCE_SLOT			0xE
- #define TPS65219_REG_BUCK3_SEQUENCE_SLOT		0xF
-@@ -67,9 +73,16 @@
- #define TPS65219_REG_DISCHARGE_CONFIG			0x2A
- /* main irq registers */
- #define TPS65219_REG_INT_SOURCE				0x2B
--/* 'sub irq' registers */
+ 		irq_data[i].dev = tps->dev;
+ 		irq_data[i].type = irq_type;
++		error = devm_request_threaded_irq(tps->dev, irq, NULL,
++						  tps65219_regulator_irq_handler,
++						  IRQF_ONESHOT,
++						  irq_type->irq_name,
++						  &irq_data[i]);
++		if (error)
++			return dev_err_probe(tps->dev, PTR_ERR(rdev),
++					     "Failed to request %s IRQ %d: %d\n",
++					     irq_type->irq_name, irq, error);
++	}
 +
-+/* TPS65219 'sub irq' registers */
- #define TPS65219_REG_INT_LDO_3_4			0x2C
- #define TPS65219_REG_INT_LDO_1_2			0x2D
-+
-+/* TPS65215 specific 'sub irq' registers */
-+#define TPS65215_REG_INT_LDO_2				0x2C
-+#define TPS65215_REG_INT_LDO_1				0x2D
-+
-+/* Common TPS65215 & TPS65219 'sub irq' registers */
- #define TPS65219_REG_INT_BUCK_3				0x2E
- #define TPS65219_REG_INT_BUCK_1_2			0x2F
- #define TPS65219_REG_INT_SYSTEM				0x30
-@@ -86,6 +99,9 @@
- #define TPS65219_REG_INT_TO_RV_POS			6
- #define TPS65219_REG_INT_PB_POS				7
++	irq_data = devm_kmalloc(tps->dev, pmic->dev_irq_size, GFP_KERNEL);
++	if (!irq_data)
++		return -ENOMEM;
  
-+#define TPS65215_REG_INT_LDO_2_POS			0
-+#define TPS65215_REG_INT_LDO_1_POS			1
++	for (i = 0; i < pmic->dev_irq_size; ++i) {
++		irq_type = &pmic->irq_types[i];
++		irq = platform_get_irq_byname(pdev, irq_type->irq_name);
++		if (irq < 0)
++			return -EINVAL;
 +
- #define TPS65219_REG_USER_NVM_CMD			0x34
- #define TPS65219_REG_POWER_UP_STATUS			0x35
- #define TPS65219_REG_SPARE_2				0x36
-@@ -107,6 +123,7 @@
- #define TPS65219_ENABLE_LDO1_EN_MASK			BIT(3)
- #define TPS65219_ENABLE_LDO2_EN_MASK			BIT(4)
- #define TPS65219_ENABLE_LDO3_EN_MASK			BIT(5)
-+#define TPS65215_ENABLE_LDO2_EN_MASK                    BIT(5)
- #define TPS65219_ENABLE_LDO4_EN_MASK			BIT(6)
- /* power ON-OFF sequence slot */
- #define TPS65219_BUCKS_LDOS_SEQUENCE_OFF_SLOT_MASK	GENMASK(3, 0)
-@@ -172,6 +189,13 @@
- #define TPS65219_INT_LDO2_SCG_MASK			BIT(3)
- #define TPS65219_INT_LDO2_OC_MASK			BIT(4)
- #define TPS65219_INT_LDO2_UV_MASK			BIT(5)
-+/* TPS65215 LDO1-2*/
-+#define TPS65215_INT_LDO1_SCG_MASK			BIT(0)
-+#define TPS65215_INT_LDO1_OC_MASK			BIT(1)
-+#define TPS65215_INT_LDO1_UV_MASK			BIT(2)
-+#define TPS65215_INT_LDO2_SCG_MASK			BIT(0)
-+#define TPS65215_INT_LDO2_OC_MASK			BIT(1)
-+#define TPS65215_INT_LDO2_UV_MASK			BIT(2)
- /* BUCK3 */
- #define TPS65219_INT_BUCK3_SCG_MASK			BIT(0)
- #define TPS65219_INT_BUCK3_OC_MASK			BIT(1)
-@@ -202,6 +226,7 @@
- #define TPS65219_INT_LDO1_RV_MASK			BIT(3)
- #define TPS65219_INT_LDO2_RV_MASK			BIT(4)
- #define TPS65219_INT_LDO3_RV_MASK			BIT(5)
-+#define TPS65215_INT_LDO2_RV_MASK			BIT(5)
- #define TPS65219_INT_LDO4_RV_MASK			BIT(6)
- /* Residual Voltage ShutDown */
- #define TPS65219_INT_BUCK1_RV_SD_MASK			BIT(0)
-@@ -210,6 +235,7 @@
- #define TPS65219_INT_LDO1_RV_SD_MASK			BIT(3)
- #define TPS65219_INT_LDO2_RV_SD_MASK			BIT(4)
- #define TPS65219_INT_LDO3_RV_SD_MASK			BIT(5)
-+#define TPS65215_INT_LDO2_RV_SD_MASK			BIT(5)
- #define TPS65219_INT_LDO4_RV_SD_MASK			BIT(6)
- #define TPS65219_INT_TIMEOUT_MASK			BIT(7)
- /* Power Button */
-@@ -235,6 +261,14 @@ enum {
- 	TPS65219_INT_LDO4_SCG,
- 	TPS65219_INT_LDO4_OC,
- 	TPS65219_INT_LDO4_UV,
-+	/* TPS65215 LDO1*/
-+	TPS65215_INT_LDO1_SCG,
-+	TPS65215_INT_LDO1_OC,
-+	TPS65215_INT_LDO1_UV,
-+	/* TPS65215 LDO2*/
-+	TPS65215_INT_LDO2_SCG,
-+	TPS65215_INT_LDO2_OC,
-+	TPS65215_INT_LDO2_UV,
- 	/* LDO1-2 */
- 	TPS65219_INT_LDO1_SCG,
- 	TPS65219_INT_LDO1_OC,
-@@ -271,6 +305,7 @@ enum {
- 	TPS65219_INT_BUCK3_RV,
- 	TPS65219_INT_LDO1_RV,
- 	TPS65219_INT_LDO2_RV,
-+	TPS65215_INT_LDO2_RV,
- 	TPS65219_INT_LDO3_RV,
- 	TPS65219_INT_LDO4_RV,
- 	/* Residual Voltage ShutDown */
-@@ -278,6 +313,7 @@ enum {
- 	TPS65219_INT_BUCK2_RV_SD,
- 	TPS65219_INT_BUCK3_RV_SD,
- 	TPS65219_INT_LDO1_RV_SD,
-+	TPS65215_INT_LDO2_RV_SD,
- 	TPS65219_INT_LDO2_RV_SD,
- 	TPS65219_INT_LDO3_RV_SD,
- 	TPS65219_INT_LDO4_RV_SD,
-@@ -287,6 +323,12 @@ enum {
- 	TPS65219_INT_PB_RISING_EDGE_DETECT,
- };
++		irq_data[i].dev = tps->dev;
++		irq_data[i].type = irq_type;
+ 		error = devm_request_threaded_irq(tps->dev, irq, NULL,
+ 						  tps65219_regulator_irq_handler,
+ 						  IRQF_ONESHOT,
+ 						  irq_type->irq_name,
+ 						  &irq_data[i]);
+-		if (error) {
+-			dev_err(tps->dev, "failed to request %s IRQ %d: %d\n",
+-				irq_type->irq_name, irq, error);
+-			return error;
+-		}
++		if (error)
++			return dev_err_probe(tps->dev, PTR_ERR(rdev),
++					     "Failed to request %s IRQ %d: %d\n",
++					     irq_type->irq_name, irq, error);
+ 	}
  
-+enum tps65215_regulator_id {
-+	/* DCDC's same as TPS65219 */
-+	/* LDO1 is the same as TPS65219 */
-+	TPS65215_LDO_2 = 4,
-+};
-+
- enum tps65219_regulator_id {
- 	/* DCDC's */
- 	TPS65219_BUCK_1,
-@@ -300,11 +342,26 @@ enum tps65219_regulator_id {
- };
- 
- /* Number of step-down converters available */
--#define TPS65219_NUM_DCDC		3
-+#define TPS6521X_NUM_BUCKS		3
- /* Number of LDO voltage regulators available */
- #define TPS65219_NUM_LDO		4
-+#define TPS65215_NUM_LDO		2
- /* Number of total regulators available */
--#define TPS65219_NUM_REGULATOR		(TPS65219_NUM_DCDC + TPS65219_NUM_LDO)
-+#define TPS65219_NUM_REGULATOR		(TPS6521X_NUM_BUCKS + TPS65219_NUM_LDO)
-+#define TPS65215_NUM_REGULATOR		(TPS6521X_NUM_BUCKS + TPS65215_NUM_LDO)
-+
-+/* Define the TPS65215 IRQ numbers */
-+enum tps65215_irqs {
-+	/* INT source registers */
-+	TPS65215_TO_RV_SD_SET_IRQ,
-+	TPS65215_RV_SET_IRQ,
-+	TPS65215_SYS_SET_IRQ,
-+	TPS65215_BUCK_1_2_SET_IRQ,
-+	TPS65215_BUCK_3_SET_IRQ,
-+	TPS65215_LDO_1_SET_IRQ,
-+	TPS65215_LDO_2_SET_IRQ,
-+	TPS65215_PB_SET_IRQ,
-+};
- 
- /* Define the TPS65219 IRQ numbers */
- enum tps65219_irqs {
-@@ -326,6 +383,7 @@ enum tps65219_irqs {
-  *
-  * @dev: MFD device
-  * @regmap: Regmap for accessing the device registers
-+ * @chip_id: Chip ID
-  * @irq_data: Regmap irq data used for the irq chip
-  * @nb: notifier block for the restart handler
-  */
-@@ -333,6 +391,7 @@ struct tps65219 {
- 	struct device *dev;
- 	struct regmap *regmap;
- 
-+	unsigned int chip_id;
- 	struct regmap_irq_chip_data *irq_data;
- 	struct notifier_block nb;
- };
+ 	return 0;
 -- 
 2.43.0
 
