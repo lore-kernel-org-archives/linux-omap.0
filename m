@@ -1,120 +1,118 @@
-Received: from lelvem-ot02.ext.ti.com (lelvem-ot02.ext.ti.com [198.47.23.235])
+Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41A84259C91;
-	Wed,  5 Mar 2025 21:04:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.235
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8545D1F8677;
+	Wed,  5 Mar 2025 21:09:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741208665; cv=none; b=bEbLGk7gh9Xo8RNCNDi7wiFso7OIHSNPJ+PP76HlBaMT9HJaCPFWymXWksUFpoF5nyTcdzjZxcd7ZumvhWw3Iae58zLMeMuoDf82CRbmunZfjff1Yb9gZ7yWcxkaY7Ly8YT5SCmdGipPyZUN6XOcBS7JvOc1BVu+L8UNmRKDQCM=
+	t=1741208984; cv=none; b=D8nGvSaKJCyb+xzq9tNWoOX0kHjLyMs8YOSrprA4LWtvRmu/p0Jr+Enw7uC07Tx4U8c9Wid4Q366p4It4zA2tf3DRIj6OeYkkQaav2Zt/AAPqGiw+ar+34/8/DxgNx1qhO/fkDWG+8V2ECpHKCHxhEZ72kxP44AVUmeNYDo70PE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741208665; c=relaxed/simple;
-	bh=6dkPapPme6JcWGT2PjEQAkag9b/xetjKSmTXStI/kYQ=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Qu1M3B4j6zgduVynl702T0/6N3Qwre4F5Q+JE2+vNFqYa3GSNs3AfjjbcrWSwUpwfJ0qc0lTF3d63YzjessGZiTimXp356lrGO/Ph//D7hVIv5pKBWkPVokgexisnEnQUXj+8ROd1PlvKAAADhzAWgHkxOuqqu1GB5AobIpObC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=VDilWztx; arc=none smtp.client-ip=198.47.23.235
+	s=arc-20240116; t=1741208984; c=relaxed/simple;
+	bh=CIOoh9WtQkI04ypA5tVH6nPf6xdhdtwwPiodz3WceXs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=o2/E5PC91YPN45su5inKEOftmBJLUR1UPS0xdyscNUO5zBmkRdhrLxxRzdeGkQcQtLsiFyJATYqXxEsTeJgs3JKZEayNHiOve7oLo6j/7po1csM/4nWpXZ9pJ4ntgesieq+iD3mYdAtFYI/lTzlPorwT5aV5FARs08FVJdd6G38=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=pao3sR1c; arc=none smtp.client-ip=198.47.19.246
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="VDilWztx"
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 525L3qCl4072769
-	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
-	Wed, 5 Mar 2025 15:03:52 -0600
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="pao3sR1c"
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 525L9EfE3970472
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 5 Mar 2025 15:09:14 -0600
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1741208632;
-	bh=oFRupbHx1nu6HAUV3dCbqKYyO3BA+MmYlKeEXMIlvCo=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=VDilWztxndd05yPjSpPkzOrzaJcmSVuxEA2XFXgvkLBwQ2ooO0t8Rx8194QCjc4cJ
-	 z638ii7dwt4X960FMeMTn6u/ASe9fR6FlsffFDz0xIUEkWjCVS9jIZMHT1b31XcxcQ
-	 vu8xMPUIUHLSpjBFPPRfLE3BaU9F9KIMX8z8Tc/w=
-Received: from DLEE113.ent.ti.com (dlee113.ent.ti.com [157.170.170.24])
-	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTP id 525L3qK2114075;
-	Wed, 5 Mar 2025 15:03:52 -0600
-Received: from DLEE105.ent.ti.com (157.170.170.35) by DLEE113.ent.ti.com
- (157.170.170.24) with Microsoft SMTP Server (version=TLS1_2,
+	s=ti-com-17Q1; t=1741208954;
+	bh=7CSdRozLrdWP+aapX+PEh2rvQZMTRVPuQI777U9QtZE=;
+	h=Date:Subject:To:CC:References:From:In-Reply-To;
+	b=pao3sR1c1YQq57SMzEOcBGrscT5RunKLT+nXQ60TviocfXCKRhOtr8u9f1usqDkms
+	 +KO51Y3c54Fpf5HVhnIDhdUYv53d9wJ3UMt3EvWswVUH9qrjZ7M/KgiGAACgd6qvVg
+	 K6B7C3Bf7msfOZP30Mo2dSlEsh/X48iTTMkPZ7Zo=
+Received: from DLEE115.ent.ti.com (dlee115.ent.ti.com [157.170.170.26])
+	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 525L9EXh037326
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Wed, 5 Mar 2025 15:09:14 -0600
+Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE115.ent.ti.com
+ (157.170.170.26) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Wed, 5
- Mar 2025 15:03:51 -0600
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE105.ent.ti.com
- (157.170.170.35) with Microsoft SMTP Server (version=TLS1_2,
+ Mar 2025 15:09:13 -0600
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DLEE109.ent.ti.com
+ (157.170.170.41) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Wed, 5 Mar 2025 15:03:52 -0600
-Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.251])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 525L3peC125160;
-	Wed, 5 Mar 2025 15:03:51 -0600
-From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <robh@kernel.org>,
-        <krzk+dt@kernel.org>, <conor+dt@kernel.org>, <aaro.koskinen@iki.fi>,
-        <andreas@kemnade.info>, <khilman@baylibre.com>, <rogerq@kernel.org>,
-        <tony@atomide.com>, <lee@kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>
-CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v6 2/9] regulator: dt-bindings: Add TI TPS65214 PMIC bindings
-Date: Wed, 5 Mar 2025 15:03:44 -0600
-Message-ID: <20250305210351.249811-3-s-ramamoorthy@ti.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20250305210351.249811-1-s-ramamoorthy@ti.com>
-References: <20250305210351.249811-1-s-ramamoorthy@ti.com>
+ Frontend Transport; Wed, 5 Mar 2025 15:09:13 -0600
+Received: from [128.247.29.251] (dmz007xyy.dhcp.ti.com [128.247.29.251])
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 525L9Dd2130862;
+	Wed, 5 Mar 2025 15:09:13 -0600
+Message-ID: <7f33b5c7-b1a7-4db9-9e19-e30cbb0066ab@ti.com>
+Date: Wed, 5 Mar 2025 15:09:13 -0600
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 0/5] Add TI TPS65214 & TPS65215 PMIC MFD Driver Support
+To: Lee Jones <lee@kernel.org>, <broonie@kernel.org>
+CC: <m-leonard@ti.com>, <praneeth@ti.com>, <conor+dt@kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <khilman@baylibre.com>, <rogerq@kernel.org>, <lgirdwood@gmail.com>,
+        <linux-omap@vger.kernel.org>, <robh@kernel.org>, <krzk+dt@kernel.org>,
+        <tony@atomide.com>, <andreas@kemnade.info>, <aaro.koskinen@iki.fi>
+References: <20250206173725.386720-1-s-ramamoorthy@ti.com>
+ <173928615760.2233464.12306998726512431222.b4-ty@kernel.org>
+Content-Language: en-US
+From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+Organization: PMIC
+In-Reply-To: <173928615760.2233464.12306998726512431222.b4-ty@kernel.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-- TPS65214 is a Power Management IC with 3 Buck regulators and 2 LDOs.
-- TPS65214 has 2 LDOS and 1 GPO, whereas TPS65219 has 4 LDOs and 2 GPOs.
-- TPS65214's LDO1 maps to TPS65219's LDO3.
-- A key difference between TPS65215 & TPS65214 are the LDO current and
-  voltage output ranges and the configurable options available.
-- The remaining features for both devices are the same.
+Hi Lee,
 
-Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
----
- .../devicetree/bindings/regulator/ti,tps65219.yaml     | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml b/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
-index b0d47415bf83..7c64e588a8b5 100644
---- a/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
-+++ b/Documentation/devicetree/bindings/regulator/ti,tps65219.yaml
-@@ -4,7 +4,7 @@
- $id: http://devicetree.org/schemas/regulator/ti,tps65219.yaml#
- $schema: http://devicetree.org/meta-schemas/core.yaml#
- 
--title: TI TPS65215/TPS65219 Power Management Integrated Circuits
-+title: TI TPS65214/TPS65215/TPS65219 Power Management Integrated Circuit
- 
- maintainers:
-   - Jerome Neanne <jerome.neanne@baylibre.com>
-@@ -18,9 +18,13 @@ description: |
-   TI TPS65215 is a derivative of TPS65219 with 3 Buck regulators, 2 Low
-   Drop-out Regulators (LDOs), 1 GPIO, 1 GPO, and power-button.
- 
-+  TI TPS65214 is a derivative of TPS65219 with 3 Buck regulators, 2 Low
-+  Drop-out Regulators (LDOs), 1 GPIO, 1 GPO, and power-button.
-+
- properties:
-   compatible:
-     enum:
-+      - ti,tps65214
-       - ti,tps65215
-       - ti,tps65219
- 
-@@ -102,7 +106,9 @@ allOf:
-       properties:
-         compatible:
-           contains:
--            const: ti,tps65215
-+            enum:
-+              - ti,tps65214
-+              - ti,tps65215
-     then:
-       properties:
-         regulators:
+On 2/11/25 9:02 AM, Lee Jones wrote:
+> On Thu, 06 Feb 2025 11:37:20 -0600, Shree Ramamoorthy wrote:
+>> TPS65214 and TPS65215 are Power Management Integrated Circuits (PMICs) that
+>> have significant register map overlap with TPS65219 and each other. The
+>> series introduces the 2 new PMICs and restructures the existing driver to
+>> support multiple devices.
+>>
+>> - TPS65214, TPS65215, and TPS65219 each have 3 Buck regulators
+>> - TPS65214 has 2 LDOS and 1 GPO, whereas TPS65219 has 4 LDOs and 2 GPOs.
+>> - TPS65214's LDO1 maps to TPS65219's LDO3.
+>> - A key difference between TPS65215 & TPS65214 are the LDO current and
+>>    voltage output ranges and the configurable options available.
+>> - TPS65215 has 2 LDOs, whereas TPS65219 has 4 LDOs.
+>> - TPS65215's LDO2 maps to TPS65219's LDO3.
+>> - TPS65215 has 1 GPO, whereas TPS65219 has 2 GPOs.
+>>
+>> [...]
+> Applied, thanks!
+>
+> [1/5] regulator: dt-bindings: Add TI TPS65215 PMIC bindings
+>        commit: 85e7aef57a9e057545017d55b02073e3c4756b2c
+> [2/5] regulator: dt-bindings: Add TI TPS65214 PMIC bindings
+>        commit: 34beb3c87cbb8747f521db5cf1b2a608833f3967
+> [3/5] mfd: tps65219: Remove regmap_read check
+>        commit: 5342c8a9e04fc05f485a3886605b803a5180bd64
+> [4/5] mfd: tps65219: Add support for TI TPS65215 PMIC
+>        commit: ebcbd21550853b16f307d7da8c846b862e138a98
+> [5/5] mfd: tps65219: Add support for TI TPS65214 PMIC
+>        commit: c9878d8d9ac2ecfadfa4fa3543730026c66ad843
+>
+> --
+> Lee Jones [李琼斯]
+
+Would you be able to remove this series from your branch & replace it with this v6 [0],
+so Mark Brown will be able to apply the dependent regulator series [1]? Thank you!
+
+[0] https://lore.kernel.org/all/20250305210351.249811-1-s-ramamoorthy@ti.com/
+
+[1] https://lore.kernel.org/all/131466cc-dc54-4251-82f7-5ec9e9c20f26@sirena.org.uk/
+
 -- 
-2.43.0
+Best,
+Shree Ramamoorthy
+PMIC Software Engineer
 
