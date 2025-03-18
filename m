@@ -1,63 +1,64 @@
-Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
+Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C25B1EB5D3
-	for <linux-omap@vger.kernel.org>; Tue, 18 Mar 2025 07:49:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003881C3BE2
+	for <linux-omap@vger.kernel.org>; Tue, 18 Mar 2025 07:55:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742284166; cv=none; b=DcaAmgPJzmzpKnwfWaqS9SNoCqxymENZotfw2Erh5DhsBPaR3zYM/Z0mEwdOO5iR+lSchyyJSB54s4Qq5h/aDZE/u7ZNhs8YjBuyKwrwj2jczDDgGATHJ+7h42rqDoFas5W+AAx9jg+iqcwGAlXKbnt3iS5zVbo4PwC2R51B6z0=
+	t=1742284556; cv=none; b=HsxLhWGkmkwsXk54G9H5kwT3aUUEwSm4Ivca2mQlZkFfpbIp/+9tNZHiPkzZjnSBggTGCgOGIVe/5mUgOOEFYD1+ATzEQNoyg4Iu1tT2b9hgklxCVEOfdcAmw/U7RMMcSFZSgmUwa95FFVLUQ/jximAZD3O1J1tHfzVZczRDGgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742284166; c=relaxed/simple;
-	bh=3esxDzO1vXxe0Pp8AngxqXrndMvDlKWTXyN6Qrtc1LE=;
+	s=arc-20240116; t=1742284556; c=relaxed/simple;
+	bh=YH3mHZeFCrz61x72RYvPvOWF7hSMF80HmqsH/8t9aJc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=m0T15tqCaKr6ZQW1hFbFcrr28cyfSqAt7ParCUlqSf1je+izZrUeP8ptM9gOQxjZNpxQV43BA/4Qft+/4bX8USaefART4BwpHi4g3SN3rvdTcsAz6khECq/Q9tnVoMU1sSMvXoq7tpgvIlV7lXtcNYTL1vqIBlEh4JvkNnaqXnM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=gHLMemDd; arc=none smtp.client-ip=209.85.214.178
+	 Content-Type:Content-Disposition:In-Reply-To; b=cR4C44e8kIoy5T3GLkk3qPL4987xLzmWpsx9+NgfeWt1ow3bUhNVJHhvY8MnpeiZkWZqRpU6BczH4TNC/BMY35UHOMi4iQOMDE8P8lTJQyomG7ApTV+qKeiGVf5u6rjD6Ie/0zxlRaYQbM5k3IVLy+AUHZVVtA0Nftz1FkIzjUE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=jVdD3nER; arc=none smtp.client-ip=209.85.214.170
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="gHLMemDd"
-Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-223fb0f619dso87259015ad.1
-        for <linux-omap@vger.kernel.org>; Tue, 18 Mar 2025 00:49:24 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="jVdD3nER"
+Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-223fd89d036so104699755ad.1
+        for <linux-omap@vger.kernel.org>; Tue, 18 Mar 2025 00:55:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1742284164; x=1742888964; darn=vger.kernel.org;
+        d=linaro.org; s=google; t=1742284553; x=1742889353; darn=vger.kernel.org;
         h=in-reply-to:content-transfer-encoding:content-disposition
          :mime-version:references:message-id:subject:cc:to:from:date:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=4gk6oJcdXjJrwsMImt/znJgOTOwkBmDOkZsDuxU3Rxs=;
-        b=gHLMemDdw6wvNEPLA0rw/ywI2g3U4wN00pFrPSqsddWtos6sABylGbL22MRuP2MXmR
-         ixVonI3BT84RjsjOSy4lkDa4Wr7CKlUROt86Sa22J/lQyDkUhMZvL4g4jyGv/F/v4S1e
-         B+0NL0IcZ89frjYKEMnLdzPmDldKDIuqZw74WPhYJnqVHMOziqOIo7f5dL3GL9NhEt4e
-         CK9DqZWtqperSYUE9Xq88cLKWBIU+3fk+CIqMcyxzCR4W6TM4zmAk4mn23KZ/1CQf2Ot
-         GW3qijhVh1EaaM0yea66Og6fiYnTjWBFvRC4qMlkQNYxMwst4E+6BSlW0n7NggyDC933
-         HA5g==
+        bh=r9prR8mhxrRYeIRCTSHgJGVKbuPXqgXqBU6nCp2r82U=;
+        b=jVdD3nERFYKsivbXIRY4aAksWoZtlSUL0Su/Huqoerv8JQO8muLeFO7QWvzGsiG9PQ
+         t/D1I1EoerT/icntRFu/QjIRFEEVnBLzii9qXlUxE5k4rourU5K7NykodwmqrX0vfOgZ
+         HdzJ5kba69YeVpVx0YG6qlMhbw70+VeQei50p6ufzOtsQnfpcGau+0mc6CIS80W98zNT
+         MpRIVgzx1TpzqDQkI0tKVCnj+fgetlYF6nXEoO31SBQXbrlfmIF0MAbISx+A3B/D7osn
+         sWvV2JyFs2UkKY/NITA9onYlNAjUuED7jguh5XgNCwA+qMwG0ZKn5GxrE87puSooTIdQ
+         RsxQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742284164; x=1742888964;
+        d=1e100.net; s=20230601; t=1742284553; x=1742889353;
         h=in-reply-to:content-transfer-encoding:content-disposition
          :mime-version:references:message-id:subject:cc:to:from:date
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=4gk6oJcdXjJrwsMImt/znJgOTOwkBmDOkZsDuxU3Rxs=;
-        b=GSNOmgyop16quzxOINqxfMqJ5P+kzm4NOrziL7+l0fjLuFMG8/z3OXUUZd3wYqfh81
-         LqGamnYuQpBfFqqVdbg2rdxEbCnt9TO0UAprVtEifSV/0SFDLashk2rh/enyP6m0ZwNY
-         O7zSSZ9nW3hpWhBxbbRtu5g11fYhAQ0OlikK01ypf2ZJCoE3q2f1wsov7Ev7whYjTTp9
-         bv+jZIq2I5x8ODb24b0qkoTcCxCbZJoOvw6AyJmUTadxw89wiRabxutjC6H/Fm3xoNtK
-         31bp2ocWOY/6Oui6arn9vT9uZE/YZJcqUPfXvsdqri1cWkI0UaA1dn+4ZVsacx6y4b9D
-         f/xA==
-X-Forwarded-Encrypted: i=1; AJvYcCXBWg7obJxdIqnDTNQjniKI0nzBN1FzOK83LESxRUnuartIyy7w7/Orqxjised7FiBzXdelWaY26z57@vger.kernel.org
-X-Gm-Message-State: AOJu0YyXI2uf5QHDK7nBat4DinOmyQIlwv7N3Vk1nqLh55wtPil54Xrf
-	BKlI/2XyFBQfwb2UOCCk0LR1hX6sPjiClZbZ9p2aAPWo7AGz5VgLQaBaJw2zJA==
-X-Gm-Gg: ASbGncuQzqiolYKm7Bcpc4WXoAKw4qS9ldO07iDsU5gfqpx+ZeXQQnY44Ox9sv3SPwM
-	QtdPr8RKNeCkYwGrTCv9mzi7OfIIb1PIKLq3TAtEe9CWFpIYYevfVjBvn9tjoPp9wfdybfXzKEp
-	p7E4D2SQbDSAxbUrAvgupxZ/LIsH3p+Hbci7B6xV+xV7ZTCDnMO/coIko/lD0mHM1ynsLsJ4v3Y
-	WrbC5MgL0fo1kh9d4IE82yOpnxXC5bb1XSWEseW1QwKa/LbHbhWz/KvMLl9ShMaodB0sfwru3Ho
-	Uh0hHAo08OEQG/Rg8wwGv8hVWJGX+CNYDYHK5eoWNxs5MTUQcWfi0g8q
-X-Google-Smtp-Source: AGHT+IH069HRnLK7GJqqbw6Dd1HNX+3REq1qkSJVtn6/nxb/rYTa5SmZP93qVfdUgG49SQLEkOhpBg==
-X-Received: by 2002:a05:6a00:9a7:b0:730:927c:d451 with SMTP id d2e1a72fcca58-7372246dacbmr21313065b3a.20.1742284163790;
-        Tue, 18 Mar 2025 00:49:23 -0700 (PDT)
+        bh=r9prR8mhxrRYeIRCTSHgJGVKbuPXqgXqBU6nCp2r82U=;
+        b=vIgTcjX+HZ1ff4w/xYh/8kPX0aOwZKhYZv3TlTz0oioPCMN+fhZdmuLF4n22bMd55a
+         j0IRcZzoMqdIB4p1XaDSy78nFZuf1UKavyuQBr54V4BZOjiM2tiwJF6cF+/KTKos7bdw
+         yLt3jqN0LE6evJkGb84YcK5eb8n/aekYtB1PMdEQLpOvfFUXQIL/dLlf8tASm6LztQl3
+         uF67yo3tgvO3slYcqpRmqu5mjfehq7j0b0UXracDlHpZyi8VpdmRKY5lLD3VG/PKXKFc
+         lMUAkBVHRWMCTmd9KckPPQrXMKm74DqCXgTO/nQFeJxztrhZkURUqy6wFdIfuiDjbLVZ
+         fvhA==
+X-Forwarded-Encrypted: i=1; AJvYcCUa81Th2W4M/ZarPDUgtr5NMGChSc9n+vU8veFypMmC7KMWBakp6Cr01djvhqTq8LAUe9//x93SVQmE@vger.kernel.org
+X-Gm-Message-State: AOJu0YylYw1VeGzzXa0702FmDyNgEGlPnol6wMpFp0nTHGpFLyMhRQed
+	OmVS+0run1hYsL1oRXoHs1ZkvEhnrpMutBZ936J5M/N9R1vSBABAnFi1Vw0QXqFcssorfesvab8
+	=
+X-Gm-Gg: ASbGncsIBL008GLd9w6XIIKvfJnQpGtVgP2OdOU06cB3ps0/iMD3nQgNihwb1joJ775
+	kAhxLVzRdnE8fCGj/syzWYswEMOA9eWC0sTSp7qzPik8IbHMxtn3e5d1SJas9Bnm1hqguQoles+
+	oLuMHRTQqLzX/t+FpO64Fmx3PVZZWKwI7LW+Y2vDCNPmYxN3srHRsxT07MkqOrNa8nS7GmwgaCR
+	JpQI7lm6rbiGfkXmNLB70falvd7naE3mVgGMAFS47fGniftVVE0VLA6WYVTqdPHsH2UkvMFTqBQ
+	vMOZoelMTcxWJ7J5fLOZuSn8ABkJZF/FNMAE6cHGvjNaRm7npewF1sqz
+X-Google-Smtp-Source: AGHT+IHvY4lPoL2TGzhuigZH+Kn+pFtPymew4CCPf5ZwyH3ja7q9rPR3A5fxW5YqDPXkRWgedvl1FQ==
+X-Received: by 2002:a17:902:d542:b0:216:6283:5a8c with SMTP id d9443c01a7336-225e0af9e3emr209693445ad.39.1742284553275;
+        Tue, 18 Mar 2025 00:55:53 -0700 (PDT)
 Received: from thinkpad ([120.56.195.170])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-73711559fbdsm9171304b3a.59.2025.03.18.00.49.19
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-225c6ba6d2csm87942515ad.125.2025.03.18.00.55.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Mar 2025 00:49:23 -0700 (PDT)
-Date: Tue, 18 Mar 2025 13:19:17 +0530
+        Tue, 18 Mar 2025 00:55:52 -0700 (PDT)
+Date: Tue, 18 Mar 2025 13:25:47 +0530
 From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
 To: Siddharth Vadapalli <s-vadapalli@ti.com>
 Cc: lpieralisi@kernel.org, kw@linux.com, robh@kernel.org,
@@ -67,13 +68,11 @@ Cc: lpieralisi@kernel.org, kw@linux.com, robh@kernel.org,
 	linux-pci@vger.kernel.org, linux-omap@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
 	srk@ti.com
-Subject: Re: [PATCH 1/4] PCI: cadence: Add support to build pcie-cadence
- library as a kernel module
-Message-ID: <20250318074917.inhspuuypxmaioqe@thinkpad>
+Subject: Re: [PATCH 2/4] PCI: cadence-host: Introduce cdns_pcie_host_disable
+ helper for cleanup
+Message-ID: <20250318075547.wyijae6pumogkl4e@thinkpad>
 References: <20250307103128.3287497-1-s-vadapalli@ti.com>
- <20250307103128.3287497-2-s-vadapalli@ti.com>
- <20250313174416.n3c4srf6hb2l3bvg@thinkpad>
- <20250314065444.fmvhyqmuefnm4mcq@uda0492258>
+ <20250307103128.3287497-3-s-vadapalli@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -83,84 +82,208 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250314065444.fmvhyqmuefnm4mcq@uda0492258>
+In-Reply-To: <20250307103128.3287497-3-s-vadapalli@ti.com>
 
-On Fri, Mar 14, 2025 at 12:24:44PM +0530, Siddharth Vadapalli wrote:
-> On Thu, Mar 13, 2025 at 11:14:16PM +0530, Manivannan Sadhasivam wrote:
+On Fri, Mar 07, 2025 at 04:01:26PM +0530, Siddharth Vadapalli wrote:
+> Introduce the helper function cdns_pcie_host_disable() which will undo
+> the configuration performed by cdns_pcie_host_setup(). Also, export it
+> for use by existing callers of cdns_pcie_host_setup(), thereby allowing
+> them to cleanup on their exit path.
 > 
-> Hello Mani,
-> 
-> > On Fri, Mar 07, 2025 at 04:01:25PM +0530, Siddharth Vadapalli wrote:
-> > > From: Kishon Vijay Abraham I <kishon@ti.com>
-> > > 
-> > > Currently, the Cadence PCIe controller driver can be built as a built-in
-> > > module only. Since PCIe functionality is not a necessity for booting, add
-> > > support to build the Cadence PCIe driver as a loadable module as well.
-> > > 
-> > > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> > > Signed-off-by: Siddharth Vadapalli <s-vadapalli@ti.com>
-> > 
-> > Reviewed-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-> > 
-> > > ---
-> > >  drivers/pci/controller/cadence/Kconfig             |  6 +++---
-> > >  drivers/pci/controller/cadence/pcie-cadence-ep.c   |  6 ++++++
-> > >  drivers/pci/controller/cadence/pcie-cadence-host.c |  9 +++++++++
-> > >  drivers/pci/controller/cadence/pcie-cadence.c      | 12 ++++++++++++
-> > >  drivers/pci/controller/cadence/pcie-cadence.h      |  4 ++--
-> > >  5 files changed, 32 insertions(+), 5 deletions(-)
-> > > 
-> > > diff --git a/drivers/pci/controller/cadence/Kconfig b/drivers/pci/controller/cadence/Kconfig
-> > > index 8a0044bb3989..82b58096eea0 100644
-> > > --- a/drivers/pci/controller/cadence/Kconfig
-> > > +++ b/drivers/pci/controller/cadence/Kconfig
-> > > @@ -4,16 +4,16 @@ menu "Cadence-based PCIe controllers"
-> > >  	depends on PCI
-> > >  
-> > >  config PCIE_CADENCE
-> > > -	bool
-> > > +	tristate
-> > >  
-> > >  config PCIE_CADENCE_HOST
-> > > -	bool
-> > > +	tristate
-> > >  	depends on OF
-> > >  	select IRQ_DOMAIN
-> > 
-> > Even though this was added earlier, looks like not needed.
-> 
-> Thank you for reviewing this patch.
-> 
-> drivers/pci/controller/cadence/Kconfig has the following:
-> ...
-> 	config PCIE_CADENCE_HOST
-> 		bool
-> 		depends on OF
-> 		select IRQ_DOMAIN
-> 		select PCIE_CADENCE
-> ...
-> 	config PCI_J721E_HOST
-> 		bool "TI J721E PCIe controller (host mode)"
-> 		depends on ARCH_K3 || COMPILE_TEST
-> 		depends on OF
-> 		select PCIE_CADENCE_HOST
-> 		select PCI_J721E
-> ...
-> So PCI_J721E_HOST selects PCIE_CADENCE_HOST which in turn selects
-> PCIE_CADENCE. As of now, none of these configs are enabled in
-> arm64-defconfig, and they also will not be accepted as built-in modules
-> as it will bloat the Linux Image for everyone. For that reason, they are
-> all being converted to loadable modules, and their configs will eventually
-> be enabled in arm64-defconfig as loadable modules.
-> 
-> Please let me know if I misunderstood your comment regarding the quoted
-> change not being required.
-> 
+> Signed-off-by: Siddharth Vadapalli <s-vadapalli@ti.com>
 
-Yes, you misunderstood indeed :) My earlier comment was about IRQ_DOMAIN symbol
-which looked like not needed at all.
+Reviewed-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
 
 - Mani
+
+> ---
+>  .../controller/cadence/pcie-cadence-host.c    | 104 ++++++++++++++++++
+>  drivers/pci/controller/cadence/pcie-cadence.h |   5 +
+>  2 files changed, 109 insertions(+)
+> 
+> diff --git a/drivers/pci/controller/cadence/pcie-cadence-host.c b/drivers/pci/controller/cadence/pcie-cadence-host.c
+> index 96055edeb099..741508738f88 100644
+> --- a/drivers/pci/controller/cadence/pcie-cadence-host.c
+> +++ b/drivers/pci/controller/cadence/pcie-cadence-host.c
+> @@ -152,6 +152,14 @@ static int cdns_pcie_retrain(struct cdns_pcie *pcie)
+>  	return ret;
+>  }
+>  
+> +static void cdns_pcie_host_disable_ptm_response(struct cdns_pcie *pcie)
+> +{
+> +	u32 val;
+> +
+> +	val = cdns_pcie_readl(pcie, CDNS_PCIE_LM_PTM_CTRL);
+> +	cdns_pcie_writel(pcie, CDNS_PCIE_LM_PTM_CTRL, val & ~CDNS_PCIE_LM_TPM_CTRL_PTMRSEN);
+> +}
+> +
+>  static void cdns_pcie_host_enable_ptm_response(struct cdns_pcie *pcie)
+>  {
+>  	u32 val;
+> @@ -177,6 +185,26 @@ static int cdns_pcie_host_start_link(struct cdns_pcie_rc *rc)
+>  	return ret;
+>  }
+>  
+> +static void cdns_pcie_host_deinit_root_port(struct cdns_pcie_rc *rc)
+> +{
+> +	struct cdns_pcie *pcie = &rc->pcie;
+> +	u32 value, ctrl;
+> +
+> +	cdns_pcie_rp_writew(pcie, PCI_CLASS_DEVICE, 0xffff);
+> +	cdns_pcie_rp_writeb(pcie, PCI_CLASS_PROG, 0xff);
+> +	cdns_pcie_rp_writeb(pcie, PCI_CLASS_REVISION, 0xff);
+> +	cdns_pcie_writel(pcie, CDNS_PCIE_LM_ID, 0xffffffff);
+> +	cdns_pcie_rp_writew(pcie, PCI_DEVICE_ID, 0xffff);
+> +	ctrl = CDNS_PCIE_LM_BAR_CFG_CTRL_DISABLED;
+> +	value = ~(CDNS_PCIE_LM_RC_BAR_CFG_BAR0_CTRL(ctrl) |
+> +		CDNS_PCIE_LM_RC_BAR_CFG_BAR1_CTRL(ctrl) |
+> +		CDNS_PCIE_LM_RC_BAR_CFG_PREFETCH_MEM_ENABLE |
+> +		CDNS_PCIE_LM_RC_BAR_CFG_PREFETCH_MEM_64BITS |
+> +		CDNS_PCIE_LM_RC_BAR_CFG_IO_ENABLE |
+> +		CDNS_PCIE_LM_RC_BAR_CFG_IO_32BITS);
+> +	cdns_pcie_writel(pcie, CDNS_PCIE_LM_RC_BAR_CFG, value);
+> +}
+> +
+>  static int cdns_pcie_host_init_root_port(struct cdns_pcie_rc *rc)
+>  {
+>  	struct cdns_pcie *pcie = &rc->pcie;
+> @@ -393,6 +421,32 @@ static int cdns_pcie_host_dma_ranges_cmp(void *priv, const struct list_head *a,
+>          return resource_size(entry2->res) - resource_size(entry1->res);
+>  }
+>  
+> +static void cdns_pcie_host_unmap_dma_ranges(struct cdns_pcie_rc *rc)
+> +{
+> +	struct cdns_pcie *pcie = &rc->pcie;
+> +	enum cdns_pcie_rp_bar bar;
+> +	u32 value;
+> +
+> +	/* Reset inbound configuration for all BARs which were being used */
+> +	for (bar = RP_BAR0; bar <= RP_NO_BAR; bar++) {
+> +		if (rc->avail_ib_bar[bar])
+> +			continue;
+> +
+> +		cdns_pcie_writel(pcie, CDNS_PCIE_AT_IB_RP_BAR_ADDR0(bar), 0);
+> +		cdns_pcie_writel(pcie, CDNS_PCIE_AT_IB_RP_BAR_ADDR1(bar), 0);
+> +
+> +		if (bar == RP_NO_BAR)
+> +			continue;
+> +
+> +		value = ~(LM_RC_BAR_CFG_CTRL_MEM_64BITS(bar) |
+> +			  LM_RC_BAR_CFG_CTRL_PREF_MEM_64BITS(bar) |
+> +			  LM_RC_BAR_CFG_CTRL_MEM_32BITS(bar) |
+> +			  LM_RC_BAR_CFG_CTRL_PREF_MEM_32BITS(bar) |
+> +			  LM_RC_BAR_CFG_APERTURE(bar, bar_aperture_mask[bar] + 2));
+> +		cdns_pcie_writel(pcie, CDNS_PCIE_LM_RC_BAR_CFG, value);
+> +	}
+> +}
+> +
+>  static int cdns_pcie_host_map_dma_ranges(struct cdns_pcie_rc *rc)
+>  {
+>  	struct cdns_pcie *pcie = &rc->pcie;
+> @@ -430,6 +484,29 @@ static int cdns_pcie_host_map_dma_ranges(struct cdns_pcie_rc *rc)
+>  	return 0;
+>  }
+>  
+> +static void cdns_pcie_host_deinit_address_translation(struct cdns_pcie_rc *rc)
+> +{
+> +	struct cdns_pcie *pcie = &rc->pcie;
+> +	struct pci_host_bridge *bridge = pci_host_bridge_from_priv(rc);
+> +	struct resource_entry *entry;
+> +	int r;
+> +
+> +	cdns_pcie_host_unmap_dma_ranges(rc);
+> +
+> +	/*
+> +	 * Reset outbound region 0 which was reserved for configuration space
+> +	 * accesses.
+> +	 */
+> +	cdns_pcie_reset_outbound_region(pcie, 0);
+> +
+> +	/* Reset rest of the outbound regions */
+> +	r = 1;
+> +	resource_list_for_each_entry(entry, &bridge->windows) {
+> +		cdns_pcie_reset_outbound_region(pcie, r);
+> +		r++;
+> +	}
+> +}
+> +
+>  static int cdns_pcie_host_init_address_translation(struct cdns_pcie_rc *rc)
+>  {
+>  	struct cdns_pcie *pcie = &rc->pcie;
+> @@ -487,6 +564,12 @@ static int cdns_pcie_host_init_address_translation(struct cdns_pcie_rc *rc)
+>  	return cdns_pcie_host_map_dma_ranges(rc);
+>  }
+>  
+> +static void cdns_pcie_host_deinit(struct cdns_pcie_rc *rc)
+> +{
+> +	cdns_pcie_host_deinit_address_translation(rc);
+> +	cdns_pcie_host_deinit_root_port(rc);
+> +}
+> +
+>  int cdns_pcie_host_init(struct cdns_pcie_rc *rc)
+>  {
+>  	int err;
+> @@ -499,6 +582,14 @@ int cdns_pcie_host_init(struct cdns_pcie_rc *rc)
+>  }
+>  EXPORT_SYMBOL_GPL(cdns_pcie_host_init);
+>  
+> +static void cdns_pcie_host_link_disable(struct cdns_pcie_rc *rc)
+> +{
+> +	struct cdns_pcie *pcie = &rc->pcie;
+> +
+> +	cdns_pcie_stop_link(pcie);
+> +	cdns_pcie_host_disable_ptm_response(pcie);
+> +}
+> +
+>  int cdns_pcie_host_link_setup(struct cdns_pcie_rc *rc)
+>  {
+>  	struct cdns_pcie *pcie = &rc->pcie;
+> @@ -524,6 +615,19 @@ int cdns_pcie_host_link_setup(struct cdns_pcie_rc *rc)
+>  }
+>  EXPORT_SYMBOL_GPL(cdns_pcie_host_link_setup);
+>  
+> +void cdns_pcie_host_disable(struct cdns_pcie_rc *rc)
+> +{
+> +	struct pci_host_bridge *bridge;
+> +
+> +	bridge = pci_host_bridge_from_priv(rc);
+> +	pci_stop_root_bus(bridge->bus);
+> +	pci_remove_root_bus(bridge->bus);
+> +
+> +	cdns_pcie_host_deinit(rc);
+> +	cdns_pcie_host_link_disable(rc);
+> +}
+> +EXPORT_SYMBOL_GPL(cdns_pcie_host_disable);
+> +
+>  int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+>  {
+>  	struct device *dev = rc->pcie.dev;
+> diff --git a/drivers/pci/controller/cadence/pcie-cadence.h b/drivers/pci/controller/cadence/pcie-cadence.h
+> index c671e25a481b..9068f140596a 100644
+> --- a/drivers/pci/controller/cadence/pcie-cadence.h
+> +++ b/drivers/pci/controller/cadence/pcie-cadence.h
+> @@ -523,6 +523,7 @@ static inline bool cdns_pcie_link_up(struct cdns_pcie *pcie)
+>  int cdns_pcie_host_link_setup(struct cdns_pcie_rc *rc);
+>  int cdns_pcie_host_init(struct cdns_pcie_rc *rc);
+>  int cdns_pcie_host_setup(struct cdns_pcie_rc *rc);
+> +void cdns_pcie_host_disable(struct cdns_pcie_rc *rc);
+>  void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
+>  			       int where);
+>  #else
+> @@ -541,6 +542,10 @@ static inline int cdns_pcie_host_setup(struct cdns_pcie_rc *rc)
+>  	return 0;
+>  }
+>  
+> +static inline void cdns_pcie_host_disable(struct cdns_pcie_rc *rc)
+> +{
+> +}
+> +
+>  static inline void __iomem *cdns_pci_map_bus(struct pci_bus *bus, unsigned int devfn,
+>  					     int where)
+>  {
+> -- 
+> 2.34.1
+> 
 
 -- 
 மணிவண்ணன் சதாசிவம்
