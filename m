@@ -1,117 +1,115 @@
-Received: from fllvem-ot03.ext.ti.com (fllvem-ot03.ext.ti.com [198.47.19.245])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C623920764C;
-	Tue, 18 Mar 2025 10:36:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.245
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33AEE20967A;
+	Tue, 18 Mar 2025 11:06:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742294216; cv=none; b=I8vsslW+Ky5/rtFeFgijOxsE/FWFKJ+GATY4Nf+Dy9DlpcesMW4imNUgBQkMR0Shq2BNyfNQ5CFVu7b546tw0rCCGp8pGxCuoufYfqfyF/P6E6eTbKr8jucldz4V4+LAh5bZF1TYPI1Cm+vekjwYpOW/MI6pRqQ4crTSkzlgNmY=
+	t=1742295965; cv=none; b=jgUYEmmapO+MiJmVXiC1GuCL1jhCgidIKaA2aEPq69jfBRhlniBa3R+BUpR8hYLxbJEE5bsETKDaAJmmGvkV+6o4zWtZgtH70dASh8jkg6LpiahWvUBV+KK+lSSEY0Lrzzwz1TpNDhzHInTMbPf9HZ83ZKYEGQHAIYmG3sTwZF0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742294216; c=relaxed/simple;
-	bh=AqHje4qRGs/w5vfLuPRZK7NGvT/F6W9r++HnxYkpuEc=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=b1FfAvvEIQ+HRLlVxK6K+ac9duArQyZaO+6wjGU3T6apyDVxfRQjxPQOBnts3LpUVTiJNEjU8WJt1xf3NxXZWPzIXKPvhphe31/Ev+vgTcAd24jVBE2Brf2ELEGNBuuM8fjcqwdYzqjSL2M+Dm/8KerXfDCPOYbzyDUia0tEvv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=BnSnSiYg; arc=none smtp.client-ip=198.47.19.245
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	s=arc-20240116; t=1742295965; c=relaxed/simple;
+	bh=+6eRMsycQCwnvUIb7YBuRBaRFSAMCS6WfElJU0fnob0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=CB87L5QwBXwc8MwdcalIaFr3wE9Hg0Xd7qiIxLtT1pLh8Gc3JsTTnWx5jSlM2V/XPLzXmuqELb3DVq151pUqpyN/nVq+4tOXLAiaj0S0f/eLcR+kJMFPFGg9RxhT4kfXiRHCrTFccVvnt3kaXxueYtYtF3C5PmcJY8Nl60X51ZQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FZYeGP3C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="BnSnSiYg"
-Received: from fllv0034.itg.ti.com ([10.64.40.246])
-	by fllvem-ot03.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 52IAaOR22567230
-	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 18 Mar 2025 05:36:24 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1742294184;
-	bh=Vp66K2kpByLgHwpxXhwISpg9i9+Q2Xci3v1ydQTFy8c=;
-	h=From:To:CC:Subject:Date;
-	b=BnSnSiYgGeCiKqen8f69slw6sp9OCVIkuCghPXVnJ0pMktDnlTQ/bVKJy4aaGUPN9
-	 SSiwBi7R4Z0QcjypykDVvGlsvcuxdmedGgq05Vmc78EPThQMSfWw7rxdy12hcmFA4x
-	 XlquzkiZtzNfFi/sh4S4hwQyCwZ0M2/NCTtH0TfI=
-Received: from DFLE115.ent.ti.com (dfle115.ent.ti.com [10.64.6.36])
-	by fllv0034.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 52IAaO30125968
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Tue, 18 Mar 2025 05:36:24 -0500
-Received: from DFLE105.ent.ti.com (10.64.6.26) by DFLE115.ent.ti.com
- (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 18
- Mar 2025 05:36:23 -0500
-Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DFLE105.ent.ti.com
- (10.64.6.26) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Tue, 18 Mar 2025 05:36:23 -0500
-Received: from localhost (jayesh-hp-z2-tower-g5-workstation.dhcp.ti.com [10.24.68.98])
-	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 52IAaM8v042159;
-	Tue, 18 Mar 2025 05:36:23 -0500
-From: Jayesh Choudhary <j-choudhary@ti.com>
-To: <vigneshr@ti.com>, <andi.shyti@kernel.org>, <robh@kernel.org>,
-        <krzk+dt@kernel.org>, <conor+dt@kernel.org>,
-        <linux-kernel@vger.kernel.org>
-CC: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
-        <rogerq@kernel.org>, <tony@atomide.com>, <jmkrzyszt@gmail.com>,
-        <linux-omap@vger.kernel.org>, <linux-i2c@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <j-choudhary@ti.com>
-Subject: [PATCH 0/2] Add support for setting MUX for I2C lines
-Date: Tue, 18 Mar 2025 16:06:20 +0530
-Message-ID: <20250318103622.29979-1-j-choudhary@ti.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FZYeGP3C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D9C8C4CEDD;
+	Tue, 18 Mar 2025 11:06:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1742295964;
+	bh=+6eRMsycQCwnvUIb7YBuRBaRFSAMCS6WfElJU0fnob0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=FZYeGP3ChLjFgxxPhXwyrzj+8hdudeUK9TYlMtJjGSLAVE9l7b23fy6AlOGY3cXco
+	 JxmfMzVCnaC8910yJDVJNyWc9cVokzjiSUhLJ9Nwbn3O0bxJNoUovv6P8rxYZkGqUW
+	 8vxI26ywb35jSaW/zqOold5OFSPC3VgWsJPF46QKs3hueJrNGXj/MHgxylHyWs/90j
+	 gcF0O9bB1CgoEohptMg4SEViZ5T3Sa50+WsOO+APy9ZU2ApxdGL0RC3xjifQ7u/F5s
+	 60UVEROqpuCVkYO1fQXx5oetwtG8O03iJJf3018VZ4xMcN/cI+pX2Ms/28vDZz3R1V
+	 2DKF4AiY4dA2A==
+Date: Tue, 18 Mar 2025 12:06:01 +0100
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: Paolo Abeni <pabeni@redhat.com>
+Cc: Marcin Wojtas <marcin.s.wojtas@gmail.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Jesper Dangaard Brouer <hawk@kernel.org>,
+	John Fastabend <john.fastabend@gmail.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Masahisa Kojima <kojima.masahisa@socionext.com>,
+	Sunil Goutham <sgoutham@marvell.com>,
+	Geetha sowjanya <gakula@marvell.com>,
+	Subbaraya Sundeep <sbhatta@marvell.com>,
+	hariprasad <hkelam@marvell.com>,
+	Bharat Bhushan <bbhushan2@marvell.com>,
+	Felix Fietkau <nbd@nbd.name>, Sean Wang <sean.wang@mediatek.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+	Siddharth Vadapalli <s-vadapalli@ti.com>,
+	Roger Quadros <rogerq@kernel.org>, netdev@vger.kernel.org,
+	bpf@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mediatek@lists.infradead.org, linux-hyperv@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH net-next 0/7] net: xdp: Add missing metadata support for
+ some xdp drvs
+Message-ID: <Z9lTmfyUsY3lqr1m@lore-desk>
+References: <20250311-mvneta-xdp-meta-v1-0-36cf1c99790e@kernel.org>
+ <6259af5f-f518-4f88-ada9-31c3425ce6ed@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="7FKbPnYNhz7Z7bep"
+Content-Disposition: inline
+In-Reply-To: <6259af5f-f518-4f88-ada9-31c3425ce6ed@redhat.com>
 
-These 2 patches add support for mux-controller for I2C lines as required
-in TI SoC J721S2 for main_i2c3 instance where the I2C lines after coming
-out of SoC are routed through a MUX which is controlled by WKUP_GPIO54:
 
-______                     MUX FOR I2C
-      | SOM_I2C3_SCL    __ FOR DATA AND CLK LANES
- S    |----------------|  |--------------+-------------+-----I2C3_SCL
- O    |----------------|__|------------+-|-----------+-|-----I2C3_SDA
- M    | SOM_I2C3_SDA    |              | |           | |
-______|                 |              | |           | |
-                        |              | |           | |
-                   WKUP_GPIO0_54     __|_|__       __|_|__
-                                    |       |     |       |
-                                    |       |     |       |
-                                    |_______|     |_______|
-                                     TCA6408       PCM3168
+--7FKbPnYNhz7Z7bep
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Setting GPIO hog for WKUP_GPIO54 is not enough as I2C and TCA6408 drivers
-probe before the GPIO is hogged and since the I2C lines are not actually
-high, I2C transactions for PCA953X driver fail which in turns result in
-deferred probe for other peripherals like audio. I2C recovers after this
-failed transaction but PCA953X is not probed again.
+> On 3/11/25 1:18 PM, Lorenzo Bianconi wrote:
+> > Introduce missing metadata support for some xdp drivers setting metadata
+> > size building the skb from xdp_buff.
+> > Please note most of the drivers are just compile tested.
+>=20
+> I'm sorry, but you should at very least report explicitly on per patch
+> basis which ones have been compile tested.
+>=20
+> Even better, please additionally document in each patch why/how the
+> current headroom is large enough.
 
-We get the following errors:
+ack, I will do in v2.
 
-[...]
+Regards,
+Lorenzo
 
-[    1.293131] pca953x 2-0020: supply vcc not found, using dummy regulator
-[    1.299971] pca953x 2-0020: using no AI
-[    1.318993] pca953x 2-0020: failed writing register: -121
-[    1.324599] pca953x 2-0020: probe with driver pca953x failed with error -121
+>=20
+> Thanks,
+>=20
+> Paolo
+>=20
 
-[...]
+--7FKbPnYNhz7Z7bep
+Content-Type: application/pgp-signature; name=signature.asc
 
-[   21.191584] i2c 2-0044: deferred probe pending: i2c: supplier 2-0020 not ready
-[   21.198855] platform sound: deferred probe pending: j721e-audio: devm_snd_soc_register_card() failed: -517
+-----BEGIN PGP SIGNATURE-----
 
-So add mux-control in I2C driver to defer the I2C probe till WKUP_GPIO54 is
-hogged to desired state and then continue with I2C probe.
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCZ9lTmQAKCRA6cBh0uS2t
+rDqfAQDOJNpxheA0LSnvOCTN+kPvwHBu5AGV2ArPeTAp70kJ3QD/apFRSAbfIcY1
+1f9jJDVDMRYLq6bmd+WcgF6DA0c7JwE=
+=n3M4
+-----END PGP SIGNATURE-----
 
-Jayesh Choudhary (2):
-  dt-bindings: i2c: omap: Add mux-states property
-  i2c: omap: Add support for setting mux
-
- .../devicetree/bindings/i2c/ti,omap4-i2c.yaml |  6 +++++
- drivers/i2c/busses/Kconfig                    |  1 +
- drivers/i2c/busses/i2c-omap.c                 | 22 +++++++++++++++++++
- 3 files changed, 29 insertions(+)
-
--- 
-2.34.1
-
+--7FKbPnYNhz7Z7bep--
