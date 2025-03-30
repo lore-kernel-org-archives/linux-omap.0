@@ -1,31 +1,31 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92527EEAA;
-	Sun, 30 Mar 2025 15:14:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC09B282F1;
+	Sun, 30 Mar 2025 15:14:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743347660; cv=none; b=eatAo6kkFr0DKaGyv6eOf6pjJ20HgLiS0tnxG6ARIMeyrJ6m7hzF5VpiWoyGoqthTonwCAzEU7a8k/fl46fG/XmXwUZKoSituGx6bjH8pnS5epT8e+yER2Jm+c4Bv4IhLY0zXsN2aVNt8hC0WIBop2Rw8C4Shurq8sRb5KLTi4Y=
+	t=1743347661; cv=none; b=oAc7qAIWIltSM3Deui7pbZC8hWc0K93mjf6/o9avsaMpDqPjlM0FQVLZurdANhVAiemJo9f6JokZTPtoCaBNhwSgSHYAMioepXWvMHx9ceKH2VdG6UM54Gg14ZwlLSiZvP+F/bz4zpbGYVHRD9JyKraVUegoozVLK7TpNiAZiMo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743347660; c=relaxed/simple;
-	bh=yeJKwrt9vrcPI3mzjTYdcKlmxtTQ72iJEWTX8ZNBTvc=;
+	s=arc-20240116; t=1743347661; c=relaxed/simple;
+	bh=gtpTeJAyVh2tCHrxmM65BdmvIiaLR2bSwUXFso9IaBo=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=JdHWBur58F+hgJ2m7f92k8UGV1KqKhm9OACkvmMLEJ80rb4B4Kf4Ue5hIgr6OGyI+fojCcGJot3u2NGa4OKVFwLj14obJ7yWp2fFzPyZ1Le3SG2TAOnQD9jLFPIOgnns2vZJrE+AgF9fifzeH74dkL6caEoSVx46VZzz7Z5T58g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=qhCPUQOG; arc=none smtp.client-ip=178.238.236.174
+	 MIME-Version; b=e9fgyIeNAKLnAVRSUekhP0HEtEwf0HZLmkUAQG/47rOvzYY8u7s6uKUzytpIqmNQ2P3rowuSfZcjpH0sBsT5l4pOXd4qG0+b6xIr42dS34fRPsHkp3iJDZD5LO5ZA4jSReXKHG9fF05fgN0iV4VWVesE8JamASldiP4MaXATupc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=gIFg83vV; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="qhCPUQOG"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="gIFg83vV"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
 	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
 	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=TR5+fLXi7IOwdIvLEzgdp2rQbubqDgd+JsvxWrBPQCw=; b=qhCPUQOG25BR/SLX5Z+6kTDeef
-	hNdqI+UBAmk9tucSHg+uipZIlzCRs5MGX/03ut2vhpgTM0uz4oQr6cQldIbgjQqrS5YKFCuFSrSzZ
-	fCEBxOSRbRYBThE7/VZSA3fvB20Spa1pPUR1M4ym1mefidJV1ZSWcVrZeB5MXUW5A+kIC/cME9Lp9
-	TEFppqCuH6xPKMV0mivDkWtEbSKBvDw83edY4fz8nMahC1EAaUv+Rqo0iHIwSQZ9VkrE/CkdiqVYJ
-	z54+vmCUvWnO3viRe52JfDoMQRJtNrDisWgHq6fLhr0E677y5pqIWHZ0GDYZbA9mz1uur9i0ognvF
-	97C2UFhw==;
+	bh=qxTT7T9dmsRD0amhjvl2ly2uQgh016it59V6DZc0Zz4=; b=gIFg83vV6qXVU6y5e6BJsAB3g4
+	eLt0botegGaW/dy09nlj5RNkIXE8CoO9tqbkqCHCdg2oTpbO0pxPW0P5sRty47VDdmiDZdb6RIA2l
+	me8OCX3P9TmQqqUaaj8BNvQ03u6NBJAd9FjSNvj655bxFT8iEn02WeaAuB2u9etKKQyttaSIpMIMS
+	5aabbvnHS7by3fgOptb3a8+M7FVbPtml+GLD259+Vc2NcMPU37VmM/YL+obMHj02meD0hMo8onjUv
+	Br8+rm6P4Qz2MNkUfiQ9Ui/8lB3BaESaD5A/ycjTbTUch/MDiIEYxCtjrWEHEGjMUsI+h8LaKs1I1
+	FyZWghWA==;
 From: Andreas Kemnade <andreas@kemnade.info>
 To: Rob Herring <robh@kernel.org>,
 	Kevin Hilman <khilman@baylibre.com>,
@@ -38,9 +38,9 @@ To: Rob Herring <robh@kernel.org>,
 	Tony Lindgren <tony@atomide.com>,
 	Krzysztof Kozlowski <krzk+dt@kernel.org>
 Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v2 1/2] ARM: dts: omap4: panda: fix resources needed for Panda
-Date: Sun, 30 Mar 2025 17:14:00 +0200
-Message-Id: <20250330151401.444956-2-andreas@kemnade.info>
+Subject: [PATCH v2 2/2] ARM: dts: omap4: panda: cleanup bluetooth
+Date: Sun, 30 Mar 2025 17:14:01 +0200
+Message-Id: <20250330151401.444956-3-andreas@kemnade.info>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20250330151401.444956-1-andreas@kemnade.info>
 References: <20250330151401.444956-1-andreas@kemnade.info>
@@ -52,48 +52,121 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The Pandaboard needs a 32k clock in the TWL6030 to be enabled
-to work. With some luck, it is enabled by some U-Boot fork.
-Do not rely on it and properly specify the requirement.
+Bluetooth is available on the other Panda board versions, too, so move
+stuff to common and specify the needed clock properly.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- arch/arm/boot/dts/ti/omap/omap4-panda-common.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ .../boot/dts/ti/omap/omap4-panda-common.dtsi  | 31 ++++++++++++++++--
+ arch/arm/boot/dts/ti/omap/omap4-panda-es.dts  | 32 -------------------
+ 2 files changed, 28 insertions(+), 35 deletions(-)
 
 diff --git a/arch/arm/boot/dts/ti/omap/omap4-panda-common.dtsi b/arch/arm/boot/dts/ti/omap/omap4-panda-common.dtsi
-index 97706d6296a6..c860b590142a 100644
+index c860b590142a..05c871d31d7b 100644
 --- a/arch/arm/boot/dts/ti/omap/omap4-panda-common.dtsi
 +++ b/arch/arm/boot/dts/ti/omap/omap4-panda-common.dtsi
-@@ -130,6 +130,12 @@ hsusb1_phy: hsusb1_phy {
- 		clock-frequency = <19200000>;
+@@ -367,10 +367,8 @@ OMAP4_IOPAD(0x130, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_sda */
+ 	 */
+ 	wl12xx_gpio: wl12xx-gpio-pins {
+ 		pinctrl-single,pins = <
+-			OMAP4_IOPAD(0x066, PIN_OUTPUT | MUX_MODE3)		/* gpmc_a19.gpio_43 */
+-			OMAP4_IOPAD(0x06c, PIN_OUTPUT | MUX_MODE3)		/* gpmc_a22.gpio_46 */
++			OMAP4_IOPAD(0x066, PIN_OUTPUT | MUX_MODE3)		/* gpmc_a19.gpio_43 - WLAN_EN */
+ 			OMAP4_IOPAD(0x070, PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpmc_a24.gpio_48 */
+-			OMAP4_IOPAD(0x072, PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpmc_a25.gpio_49 */
+ 		>;
  	};
  
-+	wl12xx_pwrseq: wl12xx-pwrseq {
-+		compatible = "mmc-pwrseq-simple";
+@@ -393,6 +391,22 @@ button_pins: button-pins {
+ 			OMAP4_IOPAD(0x114, PIN_INPUT_PULLUP | MUX_MODE3)	/* gpio_121 */
+ 		>;
+ 	};
++
++	bt_pins: bt-pins {
++		pinctrl-single,pins = <
++			OMAP4_IOPAD(0x06c, PIN_OUTPUT | MUX_MODE3)	  /* gpmc_a22.gpio_46 - BTEN */
++			OMAP4_IOPAD(0x072, PIN_OUTPUT_PULLUP | MUX_MODE3) /* gpmc_a25.gpio_49 - BTWAKEUP */
++		>;
++	};
++
++	uart2_pins: uart2-pins {
++		pinctrl-single,pins = <
++			OMAP4_IOPAD(0x118, PIN_INPUT_PULLUP | MUX_MODE0)  /* uart2_cts.uart2_cts - HCI */
++			OMAP4_IOPAD(0x11a, PIN_OUTPUT | MUX_MODE0)	  /* uart2_rts.uart2_rts */
++			OMAP4_IOPAD(0x11c, PIN_INPUT_PULLUP | MUX_MODE0)  /* uart2_rx.uart2_rx */
++			OMAP4_IOPAD(0x11e, PIN_OUTPUT | MUX_MODE0)	  /* uart2_tx.uart2_tx */
++		>;
++	};
+ };
+ 
+ &omap4_pmx_wkup {
+@@ -531,8 +545,19 @@ &twl_usb_comparator {
+ };
+ 
+ &uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart2_pins>;
+ 	interrupts-extended = <&wakeupgen GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH
+ 			       &omap4_pmx_core OMAP4_UART2_RX>;
++
++	bluetooth {
++		compatible = "ti,wl1271-st";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bt_pins>;
++		enable-gpios = <&gpio2 14 GPIO_ACTIVE_HIGH>;	/* GPIO_46 */
 +		clocks = <&twl 0>;
 +		clock-names = "ext_clock";
 +	};
-+
- 	/* regulator for wl12xx on sdio5 */
- 	wl12xx_vmmc: wl12xx_vmmc {
- 		pinctrl-names = "default";
-@@ -408,6 +414,7 @@ twl: twl@48 {
- 		reg = <0x48>;
- 		/* IRQ# = 7 */
- 		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N cascaded to gic */
-+		#clock-cells = <1>;
- 		system-power-controller;
+ };
+ 
+ &uart3 {
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-panda-es.dts b/arch/arm/boot/dts/ti/omap/omap4-panda-es.dts
+index fe7b156d10ed..a933fe560834 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-panda-es.dts
+@@ -49,22 +49,6 @@ button_pins: button-pins {
+ 			OMAP4_IOPAD(0x0fc, PIN_INPUT_PULLUP | MUX_MODE3) /* gpio_113 */
+ 		>;
  	};
+-
+-	bt_pins: bt-pins {
+-		pinctrl-single,pins = <
+-			OMAP4_IOPAD(0x06c, PIN_OUTPUT | MUX_MODE3)		/* gpmc_a22.gpio_46 - BTEN */
+-			OMAP4_IOPAD(0x072, PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpmc_a25.gpio_49 - BTWAKEUP */
+-		>;
+-	};
+-
+-	uart2_pins: uart2-pins {
+-		pinctrl-single,pins = <
+-			OMAP4_IOPAD(0x118, PIN_INPUT_PULLUP | MUX_MODE0)	/* uart2_cts.uart2_cts - HCI */
+-			OMAP4_IOPAD(0x11a, PIN_OUTPUT | MUX_MODE0)		/* uart2_rts.uart2_rts */
+-			OMAP4_IOPAD(0x11c, PIN_INPUT_PULLUP | MUX_MODE0)	/* uart2_rx.uart2_rx */
+-			OMAP4_IOPAD(0x11e, PIN_OUTPUT | MUX_MODE0)		/* uart2_tx.uart2_tx */
+-		>;
+-	};
+ };
  
-@@ -488,6 +495,7 @@ &mmc5 {
- 	non-removable;
- 	bus-width = <4>;
- 	cap-power-off-card;
-+	mmc-pwrseq = <&wl12xx_pwrseq>;
- 
- 	#address-cells = <1>;
- 	#size-cells = <0>;
+ &led_wkgpio_pins {
+@@ -96,19 +80,3 @@ buttonS2 {
+ &gpio1_target {
+ 	 ti,no-reset-on-init;
+ };
+-
+-&wl12xx_gpio {
+-	pinctrl-single,pins = <
+-		OMAP4_IOPAD(0x066, PIN_OUTPUT | MUX_MODE3)		/* gpmc_a19.gpio_43 */
+-		OMAP4_IOPAD(0x070, PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpmc_a24.gpio_48 */
+-	>;
+-};
+-
+-&uart2 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&uart2_pins &bt_pins>;
+-	bluetooth: tiwi {
+-		compatible = "ti,wl1271-st";
+-		enable-gpios = <&gpio2 14 GPIO_ACTIVE_HIGH>;	/* GPIO_46 */
+-	};
+-};
 -- 
 2.39.5
 
