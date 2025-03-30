@@ -1,59 +1,55 @@
-Received: from lelvem-ot02.ext.ti.com (lelvem-ot02.ext.ti.com [198.47.23.235])
+Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B82C274C08;
-	Sun, 30 Mar 2025 08:59:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.235
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B85A314F117
+	for <linux-omap@vger.kernel.org>; Sun, 30 Mar 2025 12:14:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.117.254.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743325150; cv=none; b=T1j7hFTAkGWknU8pD3qkr3UyvB35b5rRAMyoZAX4mXw7mF8KtCPUZ7Hs1KzgHPvM+yNELC2Q9icSk3Ib73fjFr/+zC7VXWyR3r7ac/5UU3jUkXkhVV+I/RJqaReYZRUwPDH57Lvm1ewlNvbj9vIxEq3lyDE5XPZa7izi1ftrEfQ=
+	t=1743336860; cv=none; b=THuk8ra9Weypfv3PHOm3ACyx0SiYcmSvPPDfEKLs26ZKi56c9xccjUlAeqdiUHSgREPxxnGDAPHb871SAVntv7WdFTIKUSBJtmjBNvNiCyaM4qUOv0+1w+HFaqZyJez+I4bFZ36YoS9tziBxucUGdcx1/SRTz+5q+OPNdM+Y1Xg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743325150; c=relaxed/simple;
-	bh=/km/b3RP7+meUdGujK5Cfjr3gVbfpj8Ix+nZ0yoaw80=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=opyOBPoIBA8DBalkPnAKssJsTG/XPXi/dE138ZVavArP9WynyzwF0IQorKR7KBwoBC36SJ9WH3FFvxlSoMIWvJmNLFVy+jD737gNU0Hhc4PD9PZBycMD0M6OM6eiyhH6+ml36QiJtYoK8aFFo0iiEBjV6NUuaw4ODWF0XRjhqQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=CR6AnNXx; arc=none smtp.client-ip=198.47.23.235
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	s=arc-20240116; t=1743336860; c=relaxed/simple;
+	bh=ctuZ+NNnUO/ZMdUUYMIQYarAEHDOulCK90vRC8Ygtek=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YVUjBai+4Jpm8XLTZyyvxYLGoRNFSdR7bwj7ci+FMLdNuCJGG1hGh7iFHf4seyGyKgTgeEb2cNol39z3QHK+0RsfcSa/CcqMv3gH9DWNg+4FkAyWPVXrSca4C5+IanHIMe0wIOIoR9i859uT4vZM/tkaVzFXIbMSN0Z9eYQBcxw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=PCNNhs+p; arc=none smtp.client-ip=194.117.254.33
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="CR6AnNXx"
-Received: from lelv0266.itg.ti.com ([10.180.67.225])
-	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 52U8dKo53063341
-	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
-	Sun, 30 Mar 2025 03:39:20 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1743323960;
-	bh=zVyzdrsq8rwcKEYT3slz18YJ/cFCFrZ4CWV2JbLOQZg=;
-	h=From:To:CC:Subject:Date;
-	b=CR6AnNXxBE8XeAGt6nNrC2LOTQwIlN7yitDmLdEDpYT3rVcHLm8OfbVxDMLNPVtTK
-	 ia1Fp6Jx7t9dFfDjNOQKRHiKYHaP4KM8FJQPdN0JSpi94znarBoF+CqZ82eZkGCCYI
-	 qm/hyf4JSBQjIAlLbWmElYreWFpu2mr/RwR5gg+g=
-Received: from DFLE100.ent.ti.com (dfle100.ent.ti.com [10.64.6.21])
-	by lelv0266.itg.ti.com (8.15.2/8.15.2) with ESMTP id 52U8dKrW118394;
-	Sun, 30 Mar 2025 03:39:20 -0500
-Received: from DFLE100.ent.ti.com (10.64.6.21) by DFLE100.ent.ti.com
- (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Sun, 30
- Mar 2025 03:39:19 -0500
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE100.ent.ti.com
- (10.64.6.21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Sun, 30 Mar 2025 03:39:19 -0500
-Received: from uda0492258.dhcp.ti.com (uda0492258.dhcp.ti.com [10.24.72.113])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 52U8dE4g015769;
-	Sun, 30 Mar 2025 03:39:15 -0500
-From: Siddharth Vadapalli <s-vadapalli@ti.com>
-To: <lpieralisi@kernel.org>, <kw@linux.com>,
-        <manivannan.sadhasivam@linaro.org>, <robh@kernel.org>,
-        <bhelgaas@google.com>, <vigneshr@ti.com>, <kishon@kernel.org>,
-        <18255117159@163.com>, <cassel@kernel.org>,
-        <wojciech.jasko-EXT@continental-corporation.com>,
-        <thomas.richard@bootlin.com>, <bwawrzyn@cisco.com>
-CC: <linux-pci@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-        <srk@ti.com>, <s-vadapalli@ti.com>
-Subject: [PATCH v2 0/4] Loadable Module support for PCIe Cadence and J721E
-Date: Sun, 30 Mar 2025 14:09:10 +0530
-Message-ID: <20250330083914.529222-1-s-vadapalli@ti.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="PCNNhs+p"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	sang-engineering.com; h=from:to:cc:subject:date:message-id
+	:mime-version:content-transfer-encoding; s=k1; bh=akAZcCXApKmwr9
+	fL0Nee5K8HyD7g2IZvIQTiXZJTi2A=; b=PCNNhs+pernjiTV4Rzfbu6uVHuFdqP
+	K5HUKrHhpGf2jjok2afE8zgj2nFb2VNSJ7+uYsGQvXx5et+J+ecyFIpy13zmZ3d+
+	+twwoqwFFD1kl4XJXgVzRRwGFlljf7HO/aWMS2d+PeWEvwbR7ogYYGv8cqrynwW9
+	Ihmp5tT+kT/HIzFUqfbTNXO5cBe5IXR4qfkCD0tphtOt/J8ZDGdLCEOOG+42asfv
+	gYJHUoor4EF4IGNdHUmfdMx0CC14tw2EjRkcqxlO9D7QMnTc4JABBT39WwxnKwT0
+	10Md+hgP77Mh0hy3fcjlaRPZKnT0kgPIv25VK8PpQClp8VTKA6skeVnQ==
+Received: (qmail 855621 invoked from network); 30 Mar 2025 14:14:09 +0200
+Received: by mail.zeus03.de with UTF8SMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 30 Mar 2025 14:14:09 +0200
+X-UD-Smtp-Session: l3s3148p1@ouCSPY4xTjBtKjBa
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+	Alexey Charkov <alchark@gmail.com>,
+	Andrew Lunn <andrew@lunn.ch>,
+	Conor Dooley <conor+dt@kernel.org>,
+	devicetree@vger.kernel.org,
+	Gregory Clement <gregory.clement@bootlin.com>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Krzysztof Kozlowski <krzk@kernel.org>,
+	linux-omap@vger.kernel.org,
+	Piotr Wojtaszczyk <piotr.wojtaszczyk@timesys.com>,
+	Rob Herring <robh@kernel.org>,
+	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+	Shiraz Hashim <shiraz.linux.kernel@gmail.com>,
+	soc@lists.linux.dev,
+	Tony Lindgren <tony@atomide.com>,
+	Viresh Kumar <vireshk@kernel.org>,
+	Vladimir Zapolskiy <vz@mleia.com>
+Subject: [PATCH 0/5] ARM: dts: fix faulty ohci/ehci node names
+Date: Sun, 30 Mar 2025 14:13:23 +0200
+Message-ID: <20250330121326.9069-7-wsa+renesas@sang-engineering.com>
+X-Mailer: git-send-email 2.47.2
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -61,69 +57,48 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-Hello,
+After I fixed this for the at91-boards I was interested in, I let the
+scripts run for the other boards, too, of course. Here is the outcome.
+49 less dtbs_check errors. Build bots were happy. No dependencies, I
+suggest sub-trees apply them on their own. Thanks!
 
-This series enables support to build the PCIe Cadence Controller drivers
-and the PCI J721E Application/Wrapper/Glue driver as Loadable Kernel
-Modules. The motivation for this series is that PCIe is not a necessity
-for booting the SoC, due to which it doesn't have to be a built-in
-module. Additionally, the defconfig doesn't enable the PCIe Cadence
-Controller drivers and the PCI J721E driver, due to which PCIe is not
-supported by default. Enabling the configs as of now (i.e. without this
-series) will result in built-in drivers i.e. a bloated Linux Image for
-everyone who doesn't have the PCIe Controller. Therefore, with this
-series, after enabling support for building the drivers as loadable
-modules, the driver configs can be enabled in the defconfig to build
-the drivers as loadable modules, thereby enabling PCIe.
+Happy hacking,
 
-Series is based on linux-next tagged next-20250328.
+   Wolfram
 
-Series has been tested by loading and unloading the PCI J721E driver
-when operating in the Root-Complex mode on J700-EVM with an NVMe SSD
-connected to the PCIe Connector. "hdparm" based reads of the NVMe SSD
-have been performed to validate functionality before and after a module
-unload-load sequence using modprobe. Additionally, the module unload
-was performed while running "hdparm" in the background. No crash was
-seen and reloading the module enumerated the NVMe SSD and "hdparm" could
-be re-run successfully.
+Wolfram Sang (5):
+  ARM: dts: marvell: fix faulty ohci/ehci node names
+  ARM: dts: nxp: lpc: fix faulty ohci/ehci node names
+  ARM: dts: st: fix faulty ohci/ehci node names
+  ARM: dts: ti: omap: fix faulty ohci/ehci node names
+  ARM: dts: vt8500: fix faulty ohci/ehci node names
 
-v1 of this series is at:
-https://lore.kernel.org/r/20250307103128.3287497-1-s-vadapalli@ti.com/
-Changes since v1:
-- Collected "Reviewed-by" tags from:
-  Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-  for the first two patches in this series.
-- Based on feedback from Mani on the third patch of the v1 series at:
-  https://lore.kernel.org/r/20250318080304.jsmrxqil6pn74nzh@thinkpad/
-  pci_epc_deinit_notify() has been included in cdns_pcie_ep_disable().
-- Based on feedback from Thomas on the fourth patch of the v1 series at:
-  https://lore.kernel.org/r/88b3ecbe-32b6-4310-afb9-da19a2d0506a@bootlin.com/
-  the "check" for a non-NULL "pcie-refclk" in j721e_pcie_remove() has been
-  dropped.
-
-Regards,
-Siddharth.
-
-Kishon Vijay Abraham I (1):
-  PCI: cadence: Add support to build pcie-cadence library as a kernel
-    module
-
-Siddharth Vadapalli (3):
-  PCI: cadence-host: Introduce cdns_pcie_host_disable helper for cleanup
-  PCI: cadence-ep: Introduce cdns_pcie_ep_disable helper for cleanup
-  PCI: j721e: Add support to build as a loadable module
-
- drivers/pci/controller/cadence/Kconfig        |  12 +-
- drivers/pci/controller/cadence/pci-j721e.c    |  33 ++++-
- .../pci/controller/cadence/pcie-cadence-ep.c  |  17 +++
- .../controller/cadence/pcie-cadence-host.c    | 113 ++++++++++++++++++
- drivers/pci/controller/cadence/pcie-cadence.c |  12 ++
- drivers/pci/controller/cadence/pcie-cadence.h |  14 ++-
- 6 files changed, 192 insertions(+), 9 deletions(-)
+ arch/arm/boot/dts/marvell/kirkwood-db.dtsi             | 2 +-
+ arch/arm/boot/dts/marvell/kirkwood-dir665.dts          | 2 +-
+ arch/arm/boot/dts/marvell/kirkwood-mv88f6281gtw-ge.dts | 2 +-
+ arch/arm/boot/dts/marvell/kirkwood.dtsi                | 2 +-
+ arch/arm/boot/dts/marvell/orion5x.dtsi                 | 4 ++--
+ arch/arm/boot/dts/nxp/lpc/lpc32xx.dtsi                 | 2 +-
+ arch/arm/boot/dts/st/spear1310-evb.dts                 | 8 ++++----
+ arch/arm/boot/dts/st/spear1340-evb.dts                 | 8 ++++----
+ arch/arm/boot/dts/st/spear13xx.dtsi                    | 8 ++++----
+ arch/arm/boot/dts/st/spear300-evb.dts                  | 6 +++---
+ arch/arm/boot/dts/st/spear310-evb.dts                  | 6 +++---
+ arch/arm/boot/dts/st/spear320-evb.dts                  | 6 +++---
+ arch/arm/boot/dts/st/spear320-hmi.dts                  | 6 +++---
+ arch/arm/boot/dts/st/spear3xx.dtsi                     | 6 +++---
+ arch/arm/boot/dts/st/spear600.dtsi                     | 8 ++++----
+ arch/arm/boot/dts/ti/omap/omap3.dtsi                   | 4 ++--
+ arch/arm/boot/dts/ti/omap/omap4-l4.dtsi                | 4 ++--
+ arch/arm/boot/dts/ti/omap/omap5-l4.dtsi                | 4 ++--
+ arch/arm/boot/dts/vt8500/vt8500.dtsi                   | 2 +-
+ arch/arm/boot/dts/vt8500/wm8505.dtsi                   | 2 +-
+ arch/arm/boot/dts/vt8500/wm8650.dtsi                   | 2 +-
+ arch/arm/boot/dts/vt8500/wm8750.dtsi                   | 2 +-
+ arch/arm/boot/dts/vt8500/wm8850.dtsi                   | 2 +-
+ 23 files changed, 49 insertions(+), 49 deletions(-)
 
 -- 
-2.34.1
+2.47.2
 
