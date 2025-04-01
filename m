@@ -1,87 +1,91 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+Received: from mail5.25mail.st (mail5.25mail.st [74.50.62.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80F3E211713;
-	Mon, 31 Mar 2025 14:45:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 944C12E3398;
+	Tue,  1 Apr 2025 03:58:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.50.62.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743432312; cv=none; b=BgjTJVmI0WVeS2JRdFqnllOfdx0XT4Myo5ut6UOaOJCKBaxKuwZzNxl9av3d4LUIKx8R7qVORe+VBgQBW4yBmOmM5og29t3mLwulm5XczdpitEambQVRVE5XT0CaW9OzcggussbxBlRn8iFzHVKuQtRVWk5Iy24mMnZd/QVfwTg=
+	t=1743479884; cv=none; b=YPNkWfsBDeWtYPtGOoxtJsJuFu2un5n87lhsd0uAk5QFS1BHyCasLnviCLQSWMSshzFq5+Iw+lp5AgWfrhXaA+Ho1v+CI45Fz/Q/EElNgwi9xZqk7lnleq51cw4YEtYrQ2CWxnLHweQhq44nqGMvySMQwLNJOspq1LNPAnRxdOc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743432312; c=relaxed/simple;
-	bh=YApsrKM8DyFkh+XvownztzgAayZLg8pnNtfiw6TlSIE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=rOlX74INrzr6Wg2TsDG7SxkoiWOa78AEO6It0DG2CDgQ1FqegMoKAqigVpseoj29vKCvZQ0XljCtAsv5ZEVjpUZfcDfcBSow7+qQlSfKyJiygOTJ7FrRUXof/N6bO/fFzukRc0t2Qy7dOkXKaxcVTdEDJI0d09jqdN/vQ95uINg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=8FmvORjO; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1743479884; c=relaxed/simple;
+	bh=N4flpkYP/Za3/civSejaZvQGaHmDOPJeQQV2Y68IlpA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=RrEy54F2mgQ0JTZGT2E8m4yuaOrZ+gQdTXw1Q6bBYQsixiXgQSutVl0f5999UDYWLwUkOSaCHrL9YDuJowbcFzdHod6bzy9Vfy6Z7QbFFJpkcKXgCTHQAuthuF9e3MoiicdaIFowfVHow++AzRZfxCh+dzmPqczpKeeH9ytihh0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=atomide.com; spf=fail smtp.mailfrom=atomide.com; dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b=DmoOT0ky; arc=none smtp.client-ip=74.50.62.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=atomide.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=atomide.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="8FmvORjO"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:From:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:In-Reply-To:References;
-	bh=iL+CVdfL8Afw85HRQfP4vuDu9KQwd7yFTXpR+xQAW8s=; b=8FmvORjOMjHdHCznVGwfqsi4af
-	xnmXRzdYYwkyWsjiB7DUbcQLh4JprvuVtfYq/toqsNUQGYaTICQJoNnvC8+GVshryeBFFEsGsDIUy
-	S0cjFktfQUnin2WswLFdVIk5019BV6bVMj4sop00x/0Mikn7kydLgeY1ljAMt1UMjVfcI7VAuVcCU
-	6701R3StJdsev1ywyFhrvAcN3ITrfCBNagtm2MqJ8Cex1CjbR4wOFEuRwdm0BuIls/5ov2BkTIXJ/
-	89v1UB68yrc8O5iGpUz+6rA11ALRGU5F6Iz7zrQSs3F7r1Hvw9DhMLs+v/MtniJESJ/zJNDgQr6un
-	Tf91RIEw==;
-From: Andreas Kemnade <andreas@kemnade.info>
-To: khilman@kernel.org,
-	aaro.koskinen@iki.fi,
-	andreas@kemnade.info,
-	rogerq@kernel.org,
-	tony@atomide.com,
-	linux@armlinux.org.uk,
-	linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	sre@kernel.org
-Cc: stable@vger.kernel.org
-Subject: [PATCH] ARM: omap: pmic-cpcap: do not mess around without CPCAP or OMAP4
-Date: Mon, 31 Mar 2025 16:44:39 +0200
-Message-Id: <20250331144439.769697-1-andreas@kemnade.info>
-X-Mailer: git-send-email 2.39.5
+	dkim=pass (2048-bit key) header.d=atomide.com header.i=@atomide.com header.b="DmoOT0ky"
+Received: from localhost (91-158-86-216.elisa-laajakaista.fi [91.158.86.216])
+	by mail5.25mail.st (Postfix) with ESMTPSA id C5750604F7;
+	Tue,  1 Apr 2025 03:57:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=atomide.com;
+	s=25mailst; t=1743479881;
+	bh=N4flpkYP/Za3/civSejaZvQGaHmDOPJeQQV2Y68IlpA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=DmoOT0ky1u9eyvTg1YhrribKaumYt8CKzHuuyKegEXX+HPaaqELpzW/DXTm5FYdWg
+	 3OYXsZYKWCq11s3Tshhp5npT6O6V9U77vKSYSwl93yN4fSftOakPJDO1C7X0rSBpkO
+	 c35rAv/8AoePcjw8s+4yBmjFUTj+qBbXKLg84HNl/LxH9pRJLJ4wAC+Z5W9huBNnPF
+	 jloplKJkYtDQ3f2LqVppq7lgbLDoi8CLv44QPlCewqXG2SuaODNpAfVdVZZEDi1VaF
+	 ti6OfyYyu/T40qjIxlqq6n7LOQNUtJMFuZ1/l+NAlUcj0/sver1mIoegjAT20iqfUf
+	 28kOmtKhVXLBw==
+Date: Tue, 1 Apr 2025 06:57:45 +0300
+From: Tony Lindgren <tony@atomide.com>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: "A. Sverdlin" <alexander.sverdlin@siemens.com>,
+	linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Revert "bus: ti-sysc: Probe for l4_wkup and l4_cfg
+ interconnect devices first"
+Message-ID: <20250401035745.GG4957@atomide.com>
+References: <20250313094708.1003092-1-alexander.sverdlin@siemens.com>
+ <20250331110017.2b0aa9ae@akair>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250331110017.2b0aa9ae@akair>
 
-The late init call just writes to omap4 registers as soon as
-CONFIG_MFD_CPCAP is enabled without checking whether the
-cpcap driver is actually there or the SoC is indeed an
-OMAP4.
-Rather do these things only with the right device combination.
+* Andreas Kemnade <andreas@kemnade.info> [250331 09:00]:
+> Am Thu, 13 Mar 2025 10:47:06 +0100
+> schrieb "A. Sverdlin" <alexander.sverdlin@siemens.com>:
+> 
+> > From: Alexander Sverdlin <alexander.sverdlin@siemens.com>
+> > 
+> > This reverts commit 4700a00755fb5a4bb5109128297d6fd2d1272ee6.
+> > 
+> > It brakes target-module@2b300050 ("ti,sysc-omap2") probe on AM62x in a case
+> > when minimally-configured system tries to network-boot:
+> > 
+> > [    6.888776] probe of 2b300050.target-module returned 517 after 258 usecs
+> > [   17.129637] probe of 2b300050.target-module returned 517 after 708 usecs
+> > [   17.137397] platform 2b300050.target-module: deferred probe pending: (reason unknown)
+> > [   26.878471] Waiting up to 100 more seconds for network.
+> > 
+> > Arbitrary 10 deferrals is really not a solution to any problem.
+> > Stable mmc enumeration can be achiever by filling /aliases node properly
+> > (4700a00755fb commit's rationale).
 
-Fixes booting the BT200 with said configuration enabled and non-factory
-X-Loader and probably also some surprising behavior on other devices.
+Would be nice to update the description to make it clear it breaks in all
+cases if there are not enough devices.
 
-Fixes: c145649bf262 ("ARM: OMAP2+: Configure voltage controller for cpcap to low-speed")
-CC: <stable@vger.kernel.org>
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- arch/arm/mach-omap2/pmic-cpcap.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+> > After revert:
+> > 
+> > [    9.006816] IP-Config: Complete:
+> > [    9.010058]      device=lan0, ...
+> > 
+> > Signed-off-by: Alexander Sverdlin <alexander.sverdlin@siemens.com>
+> 
+> No regressions seen on GTA04, Pandaboard and BT200.
+> So
+> 
+> Tested-by: Andreas Kemnade <andreas@kemnade.info> # GTA04, Panda, BT200
 
-diff --git a/arch/arm/mach-omap2/pmic-cpcap.c b/arch/arm/mach-omap2/pmic-cpcap.c
-index 4f31e61c0c90..9f9a20274db8 100644
---- a/arch/arm/mach-omap2/pmic-cpcap.c
-+++ b/arch/arm/mach-omap2/pmic-cpcap.c
-@@ -264,7 +264,11 @@ int __init omap4_cpcap_init(void)
- 
- static int __init cpcap_late_init(void)
- {
--	omap4_vc_set_pmic_signaling(PWRDM_POWER_RET);
-+	if (!of_find_compatible_node(NULL, NULL, "motorola,cpcap"))
-+		return 0;
-+
-+	if (soc_is_omap443x() || soc_is_omap446x() || soc_is_omap447x())
-+		omap4_vc_set_pmic_signaling(PWRDM_POWER_RET);
- 
- 	return 0;
- }
--- 
-2.39.5
+Good to hear, best that you or Kevin pick this up:
 
+Reviewed-by: Tony Lindgren <tony@atomide.com>
