@@ -1,231 +1,142 @@
-Received: from fllvem-ot04.ext.ti.com (fllvem-ot04.ext.ti.com [198.47.19.246])
+Received: from lelvem-ot02.ext.ti.com (lelvem-ot02.ext.ti.com [198.47.23.235])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27184225409;
-	Fri, 25 Apr 2025 20:58:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.246
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AC4D21E086;
+	Fri, 25 Apr 2025 22:47:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.235
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745614685; cv=none; b=tC8H3O/RYibwfBvyLMdTTl7EGaTl29LfF/IrU95Fp3JLJa2nbNXKnsyJLZlTLdk0KMpti9i1kBeRKE8Hg64gY7LTK0ljZYXKsTRmvKhpWqt0H0Y4LRVXvP1D+tlImSIczCk6XmAsT2KiXt0D4vc5D8uKVrXjF0Q/c0JamKPZlLw=
+	t=1745621251; cv=none; b=SyKpqygdafcKGHl3zg1giEJBP/Xz7lrUC4h0vCoLYz9tCQBhR/d0oFaJzoD4xCe81kL73v6GcR/liv6RUAO+qNfiqV0J9M697n/klHRwueJeh+ndxZ0Dv/ntRpVzGKcZNiAweP2ThzPmqIBCPxGfycxxera6I+g4YhkswN42cmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745614685; c=relaxed/simple;
-	bh=unCtyERGPCzZ4Xf00fErahLgkDSQ5+UzkgvJPV9YZTk=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IgkcZN8xAyPwXbvmLILj4chikqrltLbb80Sg+iJ/XchvNGf5oFKpO1+hwlD6LOhoLxQoUxTjJQ6jY+g28Ey9iIsAGupUrtwraEkcslr7vYWI995TvgiVoCKQWJ2ypV29sAnNVedpJ9Iq3p8/e0CkMV2fZSPQc1QqoleJmvCEhmU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=C49D6d5Y; arc=none smtp.client-ip=198.47.19.246
+	s=arc-20240116; t=1745621251; c=relaxed/simple;
+	bh=iCPckNGlCDJnBU6/bcQd7B/IgIqbFWGF9SGWYCj64uo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=i+L0Z+L1pL/pzOdYcR4rRoE0kGab+CaJsR4u+1qT8UjaUUzVilMqhsodhOYzyXmUqo7xMqWk1Z8vFttiRhrSmToMCvFoJDmxOpcQ59aWiOh2EPzXLfjcnljeTUAEaex4UJxbyyNTVSlDelRAMvEZFw7ETfD8U+uhIGcyPxHhqyo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=Y0MRYNjx; arc=none smtp.client-ip=198.47.23.235
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="C49D6d5Y"
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-	by fllvem-ot04.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 53PKvbmT2884187
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Y0MRYNjx"
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 53PMlAVC3038686
 	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 25 Apr 2025 15:57:37 -0500
+	Fri, 25 Apr 2025 17:47:10 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1745614657;
-	bh=0ZuHqCCY46wxVIvA9/lapUMMzIqpfK0CqZDyTofRUT0=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References;
-	b=C49D6d5YdIErCeY7VDnCh6pkEDVFejG3DcknTP8bSSKq612wXeO0BL7tclsFBt7zK
-	 G3Ulo0bUA+0HRlc83Kp9bqsmzF0hbEzB3/nBBq5Ud4ex/vkwhT9CUyADw3ke8P2EyA
-	 knk1YKLt+MUOzdJ3kSGjeUQNBHSancOpOhy/Aat0=
+	s=ti-com-17Q1; t=1745621230;
+	bh=jjueoLTU8LQ1im3N7LQcZlHwiqmLoT++rzhGz/8/1ls=;
+	h=Date:Subject:To:CC:References:From:In-Reply-To;
+	b=Y0MRYNjxr0LJ8hjuhLyWkWKwNLmdd82ZuU/DkaQXJWQO7w1gt4INJiJhsllFAk4RD
+	 1h3dM2/4I9vN42RXrAA8tEE8V4GPl+XWL6F9VqS3WUVzpoFNufqkM46oSGfsqJUxpu
+	 Sq0GSir8RxjibCyIlU65guZjNx0xUDuPJixwhUNg=
 Received: from DFLE114.ent.ti.com (dfle114.ent.ti.com [10.64.6.35])
-	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 53PKvbZr110301
+	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 53PMlA0t007073
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Fri, 25 Apr 2025 15:57:37 -0500
-Received: from DFLE104.ent.ti.com (10.64.6.25) by DFLE114.ent.ti.com
+	Fri, 25 Apr 2025 17:47:10 -0500
+Received: from DFLE112.ent.ti.com (10.64.6.33) by DFLE114.ent.ti.com
  (10.64.6.35) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Fri, 25
- Apr 2025 15:57:36 -0500
-Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE104.ent.ti.com
- (10.64.6.25) with Microsoft SMTP Server (version=TLS1_2,
+ Apr 2025 17:47:10 -0500
+Received: from lelvsmtp6.itg.ti.com (10.180.75.249) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
- Frontend Transport; Fri, 25 Apr 2025 15:57:36 -0500
-Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.251])
-	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 53PKvabM078933;
-	Fri, 25 Apr 2025 15:57:36 -0500
-From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-To: <lgirdwood@gmail.com>, <broonie@kernel.org>, <aaro.koskinen@iki.fi>,
-        <andreas@kemnade.info>, <khilman@baylibre.com>, <rogerq@kernel.org>,
-        <tony@atomide.com>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-CC: <m-leonard@ti.com>, <praneeth@ti.com>
-Subject: [PATCH v7 3/4] regulator: tps65219: Add support for TPS65215 Regulator IRQs
-Date: Fri, 25 Apr 2025 15:57:35 -0500
-Message-ID: <20250425205736.76433-4-s-ramamoorthy@ti.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20250425205736.76433-1-s-ramamoorthy@ti.com>
-References: <20250425205736.76433-1-s-ramamoorthy@ti.com>
+ Frontend Transport; Fri, 25 Apr 2025 17:47:10 -0500
+Received: from [10.249.42.149] ([10.249.42.149])
+	by lelvsmtp6.itg.ti.com (8.15.2/8.15.2) with ESMTP id 53PMl91c073339;
+	Fri, 25 Apr 2025 17:47:09 -0500
+Message-ID: <313daa6d-c108-44d6-94b7-3b1005e2081c@ti.com>
+Date: Fri, 25 Apr 2025 17:47:09 -0500
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 1/3] gpio: tps65219: Add TPS65215 to platform_device_id
+ table
+To: Shree Ramamoorthy <s-ramamoorthy@ti.com>, <aaro.koskinen@iki.fi>,
+        <andreas@kemnade.info>, <khilman@baylibre.com>, <rogerq@kernel.org>,
+        <tony@atomide.com>, <linus.walleij@linaro.org>, <brgl@bgdev.pl>,
+        <linux-omap@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-gpio@vger.kernel.org>
+CC: <m-leonard@ti.com>, <praneeth@ti.com>
+References: <20250425203315.71497-1-s-ramamoorthy@ti.com>
+ <20250425203315.71497-2-s-ramamoorthy@ti.com>
+Content-Language: en-US
+From: Andrew Davis <afd@ti.com>
+In-Reply-To: <20250425203315.71497-2-s-ramamoorthy@ti.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-Isolate all changes involving regulator IRQ types:
-- Adding in TPS65215 resources
-- Organize what resources are common vs device-specific
-- How the chip_data uses these resource structs
-- Restructure the probe() for multi-PMIC support.
+On 4/25/25 3:33 PM, Shree Ramamoorthy wrote:
+> Add platform_device_id struct and use the platform_get_device_id() output
+> to match which PMIC device is in use. With new name options, the gpio_chip
+> .label field is now assigned to the platform_device name match.
+> 
+> Remove MODULE_ALIAS since it is now generated by MODULE_DEVICE_TABLE.
+> 
+> Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+> ---
+>   drivers/gpio/gpio-tps65219.c | 17 ++++++++++++-----
+>   1 file changed, 12 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
+> index 526640c39a11..996f8deaf03d 100644
+> --- a/drivers/gpio/gpio-tps65219.c
+> +++ b/drivers/gpio/gpio-tps65219.c
+> @@ -1,8 +1,8 @@
+>   // SPDX-License-Identifier: GPL-2.0
+>   /*
+> - * GPIO driver for TI TPS65219 PMICs
+> + * GPIO driver for TI TPS65215/TPS65219 PMICs
+>    *
+> - * Copyright (C) 2022 Texas Instruments Incorporated - http://www.ti.com/
+> + * Copyright (C) 2024 Texas Instruments Incorporated - http://www.ti.com/
+>    */
+>   
+>   #include <linux/bits.h>
+> @@ -141,7 +141,6 @@ static int tps65219_gpio_direction_output(struct gpio_chip *gc, unsigned int off
+>   }
+>   
+>   static const struct gpio_chip tps65219_template_chip = {
+> -	.label			= "tps65219-gpio",
+>   	.owner			= THIS_MODULE,
+>   	.get_direction		= tps65219_gpio_get_direction,
+>   	.direction_input	= tps65219_gpio_direction_input,
+> @@ -164,20 +163,28 @@ static int tps65219_gpio_probe(struct platform_device *pdev)
+>   
+>   	gpio->tps = tps;
+>   	gpio->gpio_chip = tps65219_template_chip;
+> +	gpio->gpio_chip.label = dev_name(&pdev->dev);
+>   	gpio->gpio_chip.parent = tps->dev;
+>   
+>   	return devm_gpiochip_add_data(&pdev->dev, &gpio->gpio_chip, gpio);
+>   }
+>   
+> +static const struct platform_device_id tps6521x_gpio_id_table[] = {
+> +	{ "tps65215-gpio", TPS65215 },
 
-Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
----
- drivers/regulator/tps65219-regulator.c | 68 +++++++++++++++++++-------
- 1 file changed, 50 insertions(+), 18 deletions(-)
+I would have added this TPS65215 item to this table in patch [3/3]
+where it is first used, but that's nitpicking,
 
-diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
-index 2542ac1453c9..5f5a6f3c950b 100644
---- a/drivers/regulator/tps65219-regulator.c
-+++ b/drivers/regulator/tps65219-regulator.c
-@@ -36,6 +36,14 @@ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
- 	{ "LDO4_SCG", "LDO4", "short circuit to ground", REGULATOR_EVENT_REGULATION_OUT },
- 	{ "LDO4_OC", "LDO4", "overcurrent", REGULATOR_EVENT_OVER_CURRENT },
- 	{ "LDO4_UV", "LDO4", "undervoltage", REGULATOR_EVENT_UNDER_VOLTAGE },
-+	{ "LDO3_RV", "LDO3", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
-+	{ "LDO4_RV", "LDO4", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
-+	{ "LDO3_RV_SD", "LDO3", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
-+	{ "LDO4_RV_SD", "LDO4", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
-+};
-+
-+/*  All of TPS65215's irq types are the same as common_regulator_irq_types */
-+static struct tps65219_regulator_irq_type common_regulator_irq_types[] = {
- 	{ "LDO1_SCG", "LDO1", "short circuit to ground", REGULATOR_EVENT_REGULATION_OUT },
- 	{ "LDO1_OC", "LDO1", "overcurrent", REGULATOR_EVENT_OVER_CURRENT },
- 	{ "LDO1_UV", "LDO1", "undervoltage", REGULATOR_EVENT_UNDER_VOLTAGE },
-@@ -59,8 +67,6 @@ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
- 	{ "BUCK3_RV", "BUCK3", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "LDO1_RV", "LDO1", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "LDO2_RV", "LDO2", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
--	{ "LDO3_RV", "LDO3", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
--	{ "LDO4_RV", "LDO4", "residual voltage", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "BUCK1_RV_SD", "BUCK1", "residual voltage on shutdown",
- 	 REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "BUCK2_RV_SD", "BUCK2", "residual voltage on shutdown",
-@@ -69,8 +75,6 @@ static struct tps65219_regulator_irq_type tps65219_regulator_irq_types[] = {
- 	 REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "LDO1_RV_SD", "LDO1", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "LDO2_RV_SD", "LDO2", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
--	{ "LDO3_RV_SD", "LDO3", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
--	{ "LDO4_RV_SD", "LDO4", "residual voltage on shutdown", REGULATOR_EVENT_OVER_VOLTAGE_WARN },
- 	{ "SENSOR_3_WARM", "SENSOR3", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN},
- 	{ "SENSOR_2_WARM", "SENSOR2", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN },
- 	{ "SENSOR_1_WARM", "SENSOR1", "warm temperature", REGULATOR_EVENT_OVER_TEMP_WARN },
-@@ -264,7 +268,7 @@ static const struct regulator_desc tps65215_regs[] = {
- 			   TPS65219_BUCKS_LDOS_VOUT_VSET_MASK,
- 			   TPS65219_REG_ENABLE_CTRL,
- 			   TPS65215_ENABLE_LDO2_EN_MASK, 0, 0, tps65215_ldo_2_range,
--			   3, 0, 0, NULL, 0, 0),
-+			   2, 0, 0, NULL, 0, 0),
- };
- 
- static const struct regulator_desc tps65219_regs[] = {
-@@ -313,8 +317,12 @@ static irqreturn_t tps65219_regulator_irq_handler(int irq, void *data)
- struct tps65219_chip_data {
- 	size_t rdesc_size;
- 	size_t common_rdesc_size;
-+	size_t dev_irq_size;
-+	size_t common_irq_size;
- 	const struct regulator_desc *rdesc;
- 	const struct regulator_desc *common_rdesc;
-+	struct tps65219_regulator_irq_type *irq_types;
-+	struct tps65219_regulator_irq_type *common_irq_types;
- };
- 
- static struct tps65219_chip_data chip_info_table[] = {
-@@ -323,12 +331,20 @@ static struct tps65219_chip_data chip_info_table[] = {
- 		.rdesc_size = ARRAY_SIZE(tps65215_regs),
- 		.common_rdesc = common_regs,
- 		.common_rdesc_size = ARRAY_SIZE(common_regs),
-+		.irq_types = NULL,
-+		.dev_irq_size = 0,
-+		.common_irq_types = common_regulator_irq_types,
-+		.common_irq_size = ARRAY_SIZE(common_regulator_irq_types),
- 	},
- 	[TPS65219] = {
- 		.rdesc = tps65219_regs,
- 		.rdesc_size = ARRAY_SIZE(tps65219_regs),
- 		.common_rdesc = common_regs,
- 		.common_rdesc_size = ARRAY_SIZE(common_regs),
-+		.irq_types = tps65219_regulator_irq_types,
-+		.dev_irq_size = ARRAY_SIZE(tps65219_regulator_irq_types),
-+		.common_irq_types = common_regulator_irq_types,
-+		.common_irq_size = ARRAY_SIZE(common_regulator_irq_types),
- 	},
- };
- 
-@@ -336,7 +352,6 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
- {
- 	struct tps65219_regulator_irq_data *irq_data;
- 	struct tps65219_regulator_irq_type *irq_type;
--
- 	struct tps65219_chip_data *pmic;
- 	struct regulator_dev *rdev;
- 	int error;
-@@ -371,33 +386,50 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
- 					     pmic->rdesc[i].name);
- 	}
- 
--	irq_data = devm_kmalloc(tps->dev,
--				ARRAY_SIZE(tps65219_regulator_irq_types) *
--				sizeof(struct tps65219_regulator_irq_data),
--				GFP_KERNEL);
-+	irq_data = devm_kmalloc(tps->dev, pmic->common_irq_size, GFP_KERNEL);
- 	if (!irq_data)
- 		return -ENOMEM;
- 
--	for (i = 0; i < ARRAY_SIZE(tps65219_regulator_irq_types); ++i) {
--		irq_type = &tps65219_regulator_irq_types[i];
--
-+	for (i = 0; i < pmic->common_irq_size; ++i) {
-+		irq_type = &pmic->common_irq_types[i];
- 		irq = platform_get_irq_byname(pdev, irq_type->irq_name);
- 		if (irq < 0)
- 			return -EINVAL;
- 
- 		irq_data[i].dev = tps->dev;
- 		irq_data[i].type = irq_type;
-+		error = devm_request_threaded_irq(tps->dev, irq, NULL,
-+						  tps65219_regulator_irq_handler,
-+						  IRQF_ONESHOT,
-+						  irq_type->irq_name,
-+						  &irq_data[i]);
-+		if (error)
-+			return dev_err_probe(tps->dev, PTR_ERR(rdev),
-+					     "Failed to request %s IRQ %d: %d\n",
-+					     irq_type->irq_name, irq, error);
-+	}
-+
-+	irq_data = devm_kmalloc(tps->dev, pmic->dev_irq_size, GFP_KERNEL);
-+	if (!irq_data)
-+		return -ENOMEM;
- 
-+	for (i = 0; i < pmic->dev_irq_size; ++i) {
-+		irq_type = &pmic->irq_types[i];
-+		irq = platform_get_irq_byname(pdev, irq_type->irq_name);
-+		if (irq < 0)
-+			return -EINVAL;
-+
-+		irq_data[i].dev = tps->dev;
-+		irq_data[i].type = irq_type;
- 		error = devm_request_threaded_irq(tps->dev, irq, NULL,
- 						  tps65219_regulator_irq_handler,
- 						  IRQF_ONESHOT,
- 						  irq_type->irq_name,
- 						  &irq_data[i]);
--		if (error) {
--			dev_err(tps->dev, "failed to request %s IRQ %d: %d\n",
--				irq_type->irq_name, irq, error);
--			return error;
--		}
-+		if (error)
-+			return dev_err_probe(tps->dev, PTR_ERR(rdev),
-+					     "Failed to request %s IRQ %d: %d\n",
-+					     irq_type->irq_name, irq, error);
- 	}
- 
- 	return 0;
--- 
-2.43.0
+Reviewed-by: Andrew Davis <afd@ti.com>
 
+> +	{ "tps65219-gpio", TPS65219 },
+> +	{ /* sentinel */ }
+> +};
+> +MODULE_DEVICE_TABLE(platform, tps6521x_gpio_id_table);
+> +
+>   static struct platform_driver tps65219_gpio_driver = {
+>   	.driver = {
+>   		.name = "tps65219-gpio",
+>   	},
+>   	.probe = tps65219_gpio_probe,
+> +	.id_table = tps6521x_gpio_id_table,
+>   };
+>   module_platform_driver(tps65219_gpio_driver);
+>   
+> -MODULE_ALIAS("platform:tps65219-gpio");
+>   MODULE_AUTHOR("Jonathan Cormier <jcormier@criticallink.com>");
+> -MODULE_DESCRIPTION("TPS65219 GPIO driver");
+> +MODULE_DESCRIPTION("TPS65215/TPS65219 GPIO driver");
+>   MODULE_LICENSE("GPL");
