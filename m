@@ -1,106 +1,152 @@
-Received: from mail-yw1-f177.google.com (mail-yw1-f177.google.com [209.85.128.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fllvem-ot03.ext.ti.com (fllvem-ot03.ext.ti.com [198.47.19.245])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A531202C2A
-	for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2025 10:04:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5D15186E20;
+	Fri, 25 Apr 2025 20:33:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.245
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745489087; cv=none; b=awiHxpIjetmTeFvbUcyuq7WqXvKJGJHub9eCY7Zh7RF15RHiN9Elj98jow5/6XPuSr6Dp7+z1IK4VSclHgyqSyKVcfrC3fCc60QIBdfofbCwvvYCJQzrgtORREAA6vyc0E5mH594sfQTzyI6xzw9YUvcyCSbZq28DrR30UsO0KM=
+	t=1745613227; cv=none; b=pRbaeQy9FLzbJKFFXuF/59FWlER4Phfzl3Wz9PIA5gYc384zvxY3MpAsCDXurDO+CTvTt011aTyOU58QWTshT5q66fWbKZJHvyBvzdzNpNQPW9kM0IZ7bJ3A8Fp0kJeKL3tI98skdu87EOkm05F7yZBCExq+Hcg+b+reQyyKxCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745489087; c=relaxed/simple;
-	bh=zRK3bbAG3gBasDkhsvYPox8gR9dNStS01VlvA2H/3aE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=TiPLrsbXzOao5EAFcBYj0ACDGmJDM+Pz5cVLHw4OifJtrcf1MQr8eAnAgJw/tJUh5MFmWIeopUS7oLUZkTIjsKtvyXHKGzgmR5iozZ4Zg/7LbpjkHP5O6ZaOOs7mMsEuSUQLa5qsdgP8VGr8zd2iU1puwNQ9xC+I6FGuPo/S4nQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=jyWjnrK8; arc=none smtp.client-ip=209.85.128.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	s=arc-20240116; t=1745613227; c=relaxed/simple;
+	bh=a2fd/ouzR5gQ0KPu5a9x2xFjwchY9cXrpbjCfSslLlQ=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=QXt8thz+JFkcsTnq86WR5M/CJfEyCvOowvtYqBT/d8JUIohYrxvJ2sDn7G8f7l+Mlgspcs9a5j2muKnNMxACuYZQJV1rFHtgqnWxyXo0KaRbw3sIhq8CXvcg5H0Q8xAOdDNgaQCkWHanIqv8U5Xi5xRK+zAHsD/RwhJ1xLdWxKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=aPSGwDaP; arc=none smtp.client-ip=198.47.19.245
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="jyWjnrK8"
-Received: by mail-yw1-f177.google.com with SMTP id 00721157ae682-7080dd5fe92so7589887b3.3
-        for <linux-omap@vger.kernel.org>; Thu, 24 Apr 2025 03:04:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1745489085; x=1746093885; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=gAhE2hvzxTYkRTXNnlbXymQxLrf75SVoPXCltrmDJvs=;
-        b=jyWjnrK8S8PiyEAcESmahfm+w6OCZcpQdVgbpZ02IHoQOgrxPs5mgtYf1eblYueZyK
-         b5xjCtnjwt/OXlHfWCuOoRpyGivSHscHfZLyMfWqBQGNjUnJbNDY9PFl1kRGU/40x90e
-         ZGnH/uFx3mu6Stq4kO21OpRIsx37E+gwfWgYw0wBlFDtNG3TjWiEswpWJMzWAsSZqdwa
-         E9L+P9Z7hMTyFOJzP9i9Q6W+C6sUJA6o6ORXsqeBV4l30TXVuTOGNGUFhNwFizGGKFxX
-         iLtaGP55Bbr/LQplqZ7eVYePACRFpTmPSedoDrGUWuyy9i4CddavUyupnQkMK8fk0kPq
-         k9Zg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745489085; x=1746093885;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=gAhE2hvzxTYkRTXNnlbXymQxLrf75SVoPXCltrmDJvs=;
-        b=dzGCuboVnRG56qBM/oRv2XkJjMIpUG8slMfuvgJlb1WbrK9K0Q6mBlP3r56BRL2rQD
-         40yMkHaXeAdZp0Fi2l40lwIS+f8CHcrh/B7AnmWVRVqSYbdZ0SsrKiBDrfgatLO442Hk
-         HPbqaacdBXIzoKyjwkj0r9w4dU3KYh7B2zGiwe87t7lkyYiOLRShKG3s+bFMVmPFCMBF
-         JEfiDZc4YyvKfNPrn1swpOVde+LMZEUDMmDKOZRBqaESoBRqu3UrO+XdjnnhfGog7NPo
-         FVpUJ1K8SMM0szHgIMullNRQVNStO0O6IC7nlOOQRQD8VVaZUI/uJ6zqipEufqku89qV
-         cLHA==
-X-Forwarded-Encrypted: i=1; AJvYcCUeh+Y7imyM8Vw2TIY3HLpTitFPk/cxjoKcu+VUMI990KjQn3esTn7bZ5srKDf9FjfYYsvUf8+btzB4@vger.kernel.org
-X-Gm-Message-State: AOJu0YxlAJiAsFkua5XX7JATje9JDbIgQ+Vuh0A0AbhnthxmbaiV54ZR
-	trdIh9z3hQZGs0WhKsZOywC4Sx6Tpbf462KIQDbiY0wFpw4cusjmg2jXpNUcFYZ5FpOA2Jnlq/k
-	45ptszCvIDBqGVVQFK+AVHDbhzVMM9wcAoOXNTA==
-X-Gm-Gg: ASbGncsVycCh6f2n3UPborp1n5QVsYjVxWk9DOW52l4ZBDolwpY/um2UIqfiK+AVm3X
-	RlbKL9lFSy2iXVAS6PDaP9WhCi/fyFNToLUJUoeNELa1JFr6Kh85zv0DI1tzg8TOygUTausXo1h
-	a46L4c7jxQf8Jl06RMyxYiYF1bbsAvJyeJsA==
-X-Google-Smtp-Source: AGHT+IHRN80V1KALg8QZOLapRyt4m3FJEY1PBgmKaeRU8QtTlcQsNpNO06R02rhYUFQKcspficc8vQEmJKzZwiZz8/c=
-X-Received: by 2002:a05:690c:ed6:b0:703:c3ed:1f61 with SMTP id
- 00721157ae682-7083ec82f04mr27461187b3.20.1745489085089; Thu, 24 Apr 2025
- 03:04:45 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="aPSGwDaP"
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+	by fllvem-ot03.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 53PKXG9x2267843
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 25 Apr 2025 15:33:16 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+	s=ti-com-17Q1; t=1745613196;
+	bh=WVKldgf/yjRpef/BpS7lZTdEVRLPxQjIE5A/hLeZScY=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=aPSGwDaPDCxkNvpn9lNszcBI0RzOODuGG3NuErDopzuDIWlGCBYYDrPvBxF1eSUF2
+	 CQxgOxbalTGpRFvdGSnV7BuBQxPkjCFUmEHDrPGBZcq9S5KpaukxKbcSnGio3kqJhk
+	 emQHcnHBg7XF04KQguSfTzAhvnv75xKSPaXbhKNw=
+Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
+	by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 53PKXGHD019855
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Fri, 25 Apr 2025 15:33:16 -0500
+Received: from DFLE115.ent.ti.com (10.64.6.36) by DFLE112.ent.ti.com
+ (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Fri, 25
+ Apr 2025 15:33:15 -0500
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE115.ent.ti.com
+ (10.64.6.36) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Fri, 25 Apr 2025 15:33:15 -0500
+Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.251])
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 53PKXFbY054212;
+	Fri, 25 Apr 2025 15:33:15 -0500
+From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
+        <rogerq@kernel.org>, <tony@atomide.com>, <linus.walleij@linaro.org>,
+        <brgl@bgdev.pl>, <linux-omap@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>
+CC: <m-leonard@ti.com>, <praneeth@ti.com>
+Subject: [PATCH v4 3/3] gpio: tps65219: Add support for varying gpio/offset values
+Date: Fri, 25 Apr 2025 15:33:15 -0500
+Message-ID: <20250425203315.71497-4-s-ramamoorthy@ti.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20250425203315.71497-1-s-ramamoorthy@ti.com>
+References: <20250425203315.71497-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250318230042.3138542-1-sbellary@baylibre.com> <7h34efy1yb.fsf@baylibre.com>
-In-Reply-To: <7h34efy1yb.fsf@baylibre.com>
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Date: Thu, 24 Apr 2025 12:04:08 +0200
-X-Gm-Features: ATxdqUENVboYpckvehllaXvPNTBLeweZdKshsm3F8BsEr2O9Rx9nnzm5gOhifiU
-Message-ID: <CAPDyKFrM7Qn2YtQKY+vCHP32Z_Ly-ECt=SU9EGojFu1ShktUpQ@mail.gmail.com>
-Subject: Re: [PATCH 0/4] PM: TI: AM335x: PM STANDBY fixes
-To: Sukrut Bellary <sbellary@baylibre.com>, Kevin Hilman <khilman@baylibre.com>
-Cc: Russell King <linux@armlinux.org.uk>, Rob Herring <robh@kernel.org>, 
-	Tony Lindgren <tony@atomide.com>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Nishanth Menon <nm@ti.com>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Roger Quadros <rogerq@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Santosh Shilimkar <ssantosh@kernel.org>, Bajjuri Praneeth <praneeth@ti.com>, 
-	Raghavendra Vignesh <vigneshr@ti.com>, Bin Liu <b-liu@ti.com>, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-pm@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-On Fri, 11 Apr 2025 at 02:30, Kevin Hilman <khilman@baylibre.com> wrote:
->
-> Sukrut Bellary <sbellary@baylibre.com> writes:
->
-> > This patch series fixes the Power management issues on TI's am335x soc.
-> >
-> > on AM335x, the wakeup doesn't work in the case of STANDBY.
->
-> This series is specifically targetted at the AM335x EVM (which I don't
-> have to test), so I'd appreciate getting any test reports for this
-> before I queue it up.
->
-> For AM335x, I currently only have the ICEv2 and Beaglebone Black,
-> neithor of which support suspend resume with RTC wake AFAICT.  If they
-> do, please enlighten me. :)
->
-> I was able to do a basic boot test on the 2 boards I have with this
-> series applied on top of v6.15-rc1 and basic boot still works, but I was
-> not able to test the PM path that's being changed here, so any tests on
-> AM3 platforms that actually use this path are appreciated.
->
-> Kevin
+Add device-specific structs to select the different PMIC .npgio and .offset
+values. With the chip_data struct values selected based on the match data,
+having a separate GPIO0_OFFSET macro is no longer needed.
 
-Is the pmdomain patch(3) ready to be applied here? Please let me know
-if you want me to pick it up.
+Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+---
+ drivers/gpio/gpio-tps65219.c | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
-Kind regards
-Uffe
+diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
+index a5a9dfdb214c..c971deac8619 100644
+--- a/drivers/gpio/gpio-tps65219.c
++++ b/drivers/gpio/gpio-tps65219.c
+@@ -13,7 +13,6 @@
+ #include <linux/regmap.h>
+ 
+ #define TPS65219_GPIO0_DIR_MASK		BIT(3)
+-#define TPS65219_GPIO0_OFFSET		2
+ #define TPS6521X_GPIO0_IDX			0
+ 
+ struct tps65219_gpio {
+@@ -21,6 +20,11 @@ struct tps65219_gpio {
+ 	struct tps65219 *tps;
+ };
+ 
++struct tps65219_chip_data {
++	int ngpio;
++	int offset;
++};
++
+ static int tps65219_gpio_get_direction(struct gpio_chip *gc, unsigned int offset)
+ {
+ 	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
+@@ -71,7 +75,7 @@ static void tps65219_gpio_set(struct gpio_chip *gc, unsigned int offset, int val
+ 	struct device *dev = gpio->tps->dev;
+ 	int v, mask, bit;
+ 
+-	bit = (offset == TPS6521X_GPIO0_IDX) ? TPS65219_GPIO0_OFFSET : offset - 1;
++	bit = (offset == TPS6521X_GPIO0_IDX) ? (gpio->gpio_chip.offset - 1) : offset - 1;
+ 
+ 	mask = BIT(bit);
+ 	v = value ? mask : 0;
+@@ -148,14 +152,29 @@ static const struct gpio_chip tps65219_template_chip = {
+ 	.get			= tps65219_gpio_get,
+ 	.set			= tps65219_gpio_set,
+ 	.base			= -1,
+-	.ngpio			= 3,
+ 	.can_sleep		= true,
+ };
+ 
++static const struct tps65219_chip_data chip_info_table[] = {
++	[TPS65215] = {
++		.ngpio = 2,
++		.offset = 1,
++	},
++	[TPS65219] = {
++		.ngpio = 3,
++		.offset = 2,
++	},
++};
++
+ static int tps65219_gpio_probe(struct platform_device *pdev)
+ {
+-	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
+ 	struct tps65219_gpio *gpio;
++	const struct tps65219_chip_data *pmic;
++
++	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
++	enum pmic_id chip = platform_get_device_id(pdev)->driver_data;
++
++	pmic = &chip_info_table[chip];
+ 
+ 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+ 	if (!gpio)
+@@ -164,6 +183,8 @@ static int tps65219_gpio_probe(struct platform_device *pdev)
+ 	gpio->tps = tps;
+ 	gpio->gpio_chip = tps65219_template_chip;
+ 	gpio->gpio_chip.label = dev_name(&pdev->dev);
++	gpio->gpio_chip.ngpio =  pmic->ngpio;
++	gpio->gpio_chip.offset = pmic->offset;
+ 	gpio->gpio_chip.parent = tps->dev;
+ 
+ 	return devm_gpiochip_add_data(&pdev->dev, &gpio->gpio_chip, gpio);
+-- 
+2.43.0
+
