@@ -1,101 +1,112 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A791A1FF5EA;
-	Sun, 27 Apr 2025 05:27:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C186218C03F
+	for <linux-omap@vger.kernel.org>; Sun, 27 Apr 2025 16:26:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745731667; cv=none; b=UhbeIYAPGODej6l1iT9tZjZTcQpfDUZbkswAREHcBf4AwN9pfqqz3GCCU0PHfjRSCaCd7bXU04Bh/cJrMivGoBNbBkyywIH3roywtEj13LyQiuvaEnJMwBzGTjRVv4E7TeGZGf8AUc5FZAZwUNfGwEgj0owZYeYecDI9ngfLMw0=
+	t=1745771220; cv=none; b=p765Xb44uGOBmEWmn1ayO31LCTvTp7pk9M5y48kKAfGk0A4mwfSyerGi1fBNHHmQU8h9VbIBa6On1v1s8iqvER7hoG++a0OIKOMUq77a4hOTQVUREy2NBOpLQ+c8wkixfr/pAvCoQDia8yeEw99ol4BQLb4guryrQGJAPdPQB3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745731667; c=relaxed/simple;
-	bh=CN5cORl45Pm7GGozDnA8fgjxJb9dGeiTgZrk/Bg3kWw=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=GzD+JS9x8Zvk72gBkBMOCKzI6mUgLlGAourHTFMl5tII96lOjNh0BhLd+bCNsOoiE4tFcHrEN8knjnGzMg5SKc7dYE7z/Jvvqr2ztIEzXgsH7USddVojFGVFy3F2uxJ9YYXLvyHY4f3nBeAXBEHBQx09HKjxZnRS2mQIFOFLUFg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=kLybqRWD; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1745771220; c=relaxed/simple;
+	bh=gK/GSzH9Orq/qWZ7kN2L7Q4nJaH1G+CWqxeLvWpcZrE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=W7QNvZgi0Wv5avpckATE0j+Zu4AM4MBD89B3K8ODAiYytPJNp6hmwFSnI8pgMdH4Ywk8RrJ3DLbJDdqsmXFH4e4cN6Djj9I/HNrqtOlBSWZlYUZI6h5EVYUp4yrsDj7Ew4/jpdPpT3IRiMYDhu5eo5GmAqd4YSKBeTqMFcr3swA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=MBssuu5r; arc=none smtp.client-ip=209.85.214.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="kLybqRWD"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=TFI6xwIhNpUpAdLw227pae0Xtnqh797v9lwYBKCrCRk=; b=kLybqRWDLb5NMYqdRQRLQG6g2S
-	0bNUYTc/EruEkbSs6W+LTUtGYMjuuS8pe+QfQNw7TenZA782lfCVeplFVeBRC1dFxdlT1Jstm+Po2
-	SX5No1tVIZnSD13SJMEgAzRgFHnlJbIweadaV0BBiX7p0IHVf3312gPQid/ohD0vn+ZXhRAYD77jp
-	IzT180ABcons5TnznglMJeGA5yejPwGdwdd2DhgYtIHwOOcN79qnigttByBlDasWXbYgGRGOgj/SA
-	MHKaHqnRJNQGlLw1RC41QpIbAYgfNYw7NKbjVrgbk1fIwLgCyPX5qfXk/rUMdP6v/TxSRDohK104Z
-	UtQyBNzQ==;
-From: Andreas Kemnade <andreas@kemnade.info>
-To: Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	devicetree@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	Tony Lindgren <tony@atomide.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Kevin Hilman <khilman@baylibre.com>,
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="MBssuu5r"
+Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-224019ad9edso58398065ad.1
+        for <linux-omap@vger.kernel.org>; Sun, 27 Apr 2025 09:26:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1745771218; x=1746376018; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8Hm8ymC3WlboH6v1puutB+PkeMUv87jriOcmD+BHZJ8=;
+        b=MBssuu5rB7t+EueylX10Mtl9cHUpep+Xdb/9vLuPPNUWCsojFUGU5EpyCxxGsDiez1
+         jv3hKq6oK5u9OFUoUNPYbVw4gmBB8Zp7IeMOSAU/M9EDTcKlGU0SxDiX/xMzcmlyKjrQ
+         0DIIXzuaGhIhqlaXilJ8lgA0ThpWvNWlfPWq492IbcFbMskIgGaFdsb5Ka7qc+gNhqwO
+         pLGq74xVKnMAttc2j6JR9mjvZn+CocP4UIsMJgpnafYtn/3APB9iDBi+1FkEfT+6Hydd
+         P0fUv4TqRwCSlHZW6HjDR5sgzvopsCqEWrT+QhSyb11Ta7GTNH3NQaCvWCAjfWG3RkvA
+         A1DA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1745771218; x=1746376018;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=8Hm8ymC3WlboH6v1puutB+PkeMUv87jriOcmD+BHZJ8=;
+        b=iiRRek2xgrRceHK1dhJk+JXxrmD/YEFPnyguCBNwLT5HJsavrJB2TRvtnGvoVRDO3O
+         pjUScfsHtijCn8Xw2A6/nrRi46yzcPhuA5jS9aw3xmayGWTRl6XX54pfQQB7gk+1YxW8
+         eGG25ehqXHI3aP8w0v9F1LgKmzpbidWlWgn7loqhWqkJuPccZGoHOQywME7iQlG/Jitq
+         i8RYkrvUACh3nwm5AJ93Abg3aw0/JvCjT6iFI8f6wIGdxe4YVHiXy+kHo6yr+OpbCPYd
+         4Gcceus3RsnFjumkl2Z98IZqGiHvT1g2aSeMhpAlQlAKUNN84Zqk5CGNriTMZElgbaMM
+         cgRw==
+X-Forwarded-Encrypted: i=1; AJvYcCVIckituEJ8sN1/cDJ/PrxjOHN4ecVbPmh8qD0oqDkp5kC14ceiskyCVbeyfH7fVf0EbzI53X+zSH3b@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywj7T8z9nh3k8QEMUie0PmmthNzxof28+wgLjdeQuOK2cMQS0bD
+	Csq9OdUWng5qYyNlggSJ+7X7K7f5mbvML8VJSLNugqUhftJ4TRI3dHa4x118lg==
+X-Gm-Gg: ASbGncs2gv2lujsX1slQ718MOYnAGs+BFAE4iojvoaMvaryqfr8mCk/cnhgcrkC3jRH
+	HINhsKtR7++b4xJVD6rUnSeMuxY8Bb3N/IcqC2Iyi9mNJRu/CpjH2rSTpOqU53PJhjyWbJdIgu6
+	pgTPrDDXoTlmiYfpI4ZSD5t+maIkACg5seS5uFpM0iLLlmq6aBQccqMglMlLvJcDjBRVWNjnSyN
+	H2EISylVYbNCkc7sgU4ixqVySuHonUzJB0EzYrINuMNq8uAqzA51M7n9tjtcmvnIq6keBzLHruM
+	j54uaxz63tBDUKokc08M11n9Nn2IO1LOkesCx5uvmNCAo4pksUp7
+X-Google-Smtp-Source: AGHT+IGewTBDql+2+UdyTbCLzjXJegcsr5fvdoDv6DORAwSGJR8R6yqyunL8uBX+TIfarA0AmXkmwQ==
+X-Received: by 2002:a17:902:ccca:b0:220:f795:5f14 with SMTP id d9443c01a7336-22dbf5f0b82mr130834365ad.27.1745771218030;
+        Sun, 27 Apr 2025 09:26:58 -0700 (PDT)
+Received: from thinkpad.. ([120.60.52.11])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22db5216adbsm65705855ad.234.2025.04.27.09.26.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 27 Apr 2025 09:26:57 -0700 (PDT)
+From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	=?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Vignesh Raghavendra <vigneshr@ti.com>,
+	Arnd Bergmann <arnd@kernel.org>
+Cc: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>,
+	Arnd Bergmann <arnd@arndb.de>,
 	Rob Herring <robh@kernel.org>,
+	Siddharth Vadapalli <s-vadapalli@ti.com>,
+	Kishon Vijay Abraham I <kishon@kernel.org>,
+	Thomas Richard <thomas.richard@bootlin.com>,
+	=?UTF-8?q?Th=C3=A9o=20Lebrun?= <theo.lebrun@bootlin.com>,
+	Sergio Paracuellos <sergio.paracuellos@gmail.com>,
+	linux-pci@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Conor Dooley <conor+dt@kernel.org>
-Cc: Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v3 1/2] ARM: dts: omap4: panda: fix resources needed for Wifi
-Date: Sun, 27 Apr 2025 07:27:34 +0200
-Message-Id: <20250427052735.88133-2-andreas@kemnade.info>
-X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20250427052735.88133-1-andreas@kemnade.info>
-References: <20250427052735.88133-1-andreas@kemnade.info>
+	linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] pci: j721e: fix host/endpoint dependencies
+Date: Sun, 27 Apr 2025 21:56:46 +0530
+Message-ID: <174577118328.83097.3904673051712701084.b4-ty@linaro.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20250423162523.2060405-1-arnd@kernel.org>
+References: <20250423162523.2060405-1-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 
-The Pandaboard needs a 32k clock in the TWL6030 to be enabled
-for Wifi to work.
-With some luck, it is enabled by some U-Boot fork.
-Do not rely on it and properly specify the requirement.
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-Reviewed-by: Roger Quadros <rogerq@kernel.org>
----
- arch/arm/boot/dts/ti/omap/omap4-panda-common.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+On Wed, 23 Apr 2025 18:25:16 +0200, Arnd Bergmann wrote:
+> The j721e driver has a single platform driver that can be built-in or
+> a loadable module, but it calls two separate backend drivers depending
+> on whether it is a host or endpoint.
+> 
+> If the two modes are not the same, we can end up with a situation where
+> the built-in pci-j721e driver tries to call the modular host or endpoint
+> driver, which causes a link failure:
+> 
+> [...]
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-panda-common.dtsi b/arch/arm/boot/dts/ti/omap/omap4-panda-common.dtsi
-index 97706d6296a6..c860b590142a 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap4-panda-common.dtsi
-@@ -130,6 +130,12 @@ hsusb1_phy: hsusb1_phy {
- 		clock-frequency = <19200000>;
- 	};
- 
-+	wl12xx_pwrseq: wl12xx-pwrseq {
-+		compatible = "mmc-pwrseq-simple";
-+		clocks = <&twl 0>;
-+		clock-names = "ext_clock";
-+	};
-+
- 	/* regulator for wl12xx on sdio5 */
- 	wl12xx_vmmc: wl12xx_vmmc {
- 		pinctrl-names = "default";
-@@ -408,6 +414,7 @@ twl: twl@48 {
- 		reg = <0x48>;
- 		/* IRQ# = 7 */
- 		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N cascaded to gic */
-+		#clock-cells = <1>;
- 		system-power-controller;
- 	};
- 
-@@ -488,6 +495,7 @@ &mmc5 {
- 	non-removable;
- 	bus-width = <4>;
- 	cap-power-off-card;
-+	mmc-pwrseq = <&wl12xx_pwrseq>;
- 
- 	#address-cells = <1>;
- 	#size-cells = <0>;
+Applied, thanks!
+
+[1/1] pci: j721e: fix host/endpoint dependencies
+      commit: 10aae64c2fb5148409cc9beba7f849a79fe82f17
+
+Best regards,
 -- 
-2.39.5
-
+Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
