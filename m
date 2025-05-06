@@ -1,136 +1,126 @@
-Received: from unicorn.mansr.com (unicorn.mansr.com [81.2.72.234])
+Received: from lelvem-ot01.ext.ti.com (lelvem-ot01.ext.ti.com [198.47.23.234])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B4E427B4F8;
-	Tue,  6 May 2025 15:08:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=81.2.72.234
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BEAD182D0;
+	Tue,  6 May 2025 20:02:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.234
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746544084; cv=none; b=EmZ2PCaHTZ7/ip8oCIWsvro7CZaMRs66q9T/RA/I5TNKm3UtbB/m1aaXs33USmnRVNVd27c5mnkBTwvvcA2vshRmXHcDa0+5pFbR6hkPzSA2zslyz4ZglMut60tPQaTdH/MOhdhPixPgGC+rK8vba74SRkKjybP9o7vIoBceHEI=
+	t=1746561740; cv=none; b=tFbZgznhpbgS1G2v/1oUdFCTyFCpeOylcoS32Oxfhc1svzanzbd5QlaNsxPzsxoBxO+9hiIiozk91lgfMkaIeXRQA9bWMxTC+1Dj0hpyYjsL5J7XuS9pFhIKzXDCdagWAn8wbA4Jyjd9EJ05ODjA1Rgqaj3WvIIOLfWdiKRCyNQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746544084; c=relaxed/simple;
-	bh=V0Qnd7XGUYL4VJVx/NNGZxOFnfryDun38SvbJqd1K94=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hpiGaqOFBDs+ZeOWPUPhlBoXHDXb70UXCqorDjf2WbPjEOvh/HFJw+JTTSygQWUpBfq/LurdU+Bva/MalnNGLV3uKvkpp7acx2L7KYp2HkarodMV7b9TBf8ubHz37V6MfsvXLI9MDPgQPY/vG4utzak3zdTr2oLI6vZZT7/G+PA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mansr.com; spf=pass smtp.mailfrom=mansr.com; arc=none smtp.client-ip=81.2.72.234
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mansr.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mansr.com
-Received: from raven.mansr.com (raven.mansr.com [IPv6:2001:8b0:ca0d:1::3])
-	by unicorn.mansr.com (Postfix) with ESMTPS id 6213715380;
-	Tue, 06 May 2025 16:07:55 +0100 (BST)
-Received: by raven.mansr.com (Postfix, from userid 51770)
-	id 4BAE821A3DA; Tue, 06 May 2025 16:07:55 +0100 (BST)
-From: Mans Rullgard <mans@mansr.com>
-To: jirislaby@kernel.org
-Cc: gregkh@linuxfoundation.org,
-	linux-kernel@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH v2 1/2] tty: serial: 8250_omap: fix tx with dma
-Date: Tue,  6 May 2025 16:07:29 +0100
-Message-ID: <20250506150748.3162-1-mans@mansr.com>
-X-Mailer: git-send-email 2.49.0
+	s=arc-20240116; t=1746561740; c=relaxed/simple;
+	bh=VFpsjQswqN7WRkOQQiXqntDWdIecEJS9KiXG5Wv2OtM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=tOBYqu+peP9OdbsrHomgdwr6m1UouGFTLCqCLpoBfr//3xp4jeI+776dBBTTjav8DOtc8ZBUkb/xNy7CpHEbnWk9jMJdpRoqzGTSlolDbRJSsaNFZaVzXSg2DXXO184xuQi90ynQJGB+whawV6+MOJkfitOdqbCoQnG/gaSwM2s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=Q0M2fJwz; arc=none smtp.client-ip=198.47.23.234
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="Q0M2fJwz"
+Received: from fllv0035.itg.ti.com ([10.64.41.0])
+	by lelvem-ot01.ext.ti.com (8.15.2/8.15.2) with ESMTPS id 546K1g5v609667
+	(version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 6 May 2025 15:01:42 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+	s=ti-com-17Q1; t=1746561702;
+	bh=W42cyLUdol+oUsgXG96Kh1xhxA3DvcRncFoVbahX4AI=;
+	h=Date:Subject:To:CC:References:From:In-Reply-To;
+	b=Q0M2fJwzd5R5U8NnigZDb+vyIv7sTySh9pvRo9zOOPOrY+RD2VCW+uYI7OhS/cLfN
+	 mgonkL2aoWgrOu14yE5+uitN7t+6zFK1TrMJy01vLJgCSLngNSuSgJkfUQIeQ2TjbI
+	 7NdvDzYzQw+bvbmE7FZP8yLrToeByKM9ZT30el2o=
+Received: from DFLE101.ent.ti.com (dfle101.ent.ti.com [10.64.6.22])
+	by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id 546K1gpr110583
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Tue, 6 May 2025 15:01:42 -0500
+Received: from DFLE101.ent.ti.com (10.64.6.22) by DFLE101.ent.ti.com
+ (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23; Tue, 6
+ May 2025 15:01:41 -0500
+Received: from lelvsmtp5.itg.ti.com (10.180.75.250) by DFLE101.ent.ti.com
+ (10.64.6.22) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.23 via
+ Frontend Transport; Tue, 6 May 2025 15:01:41 -0500
+Received: from [128.247.81.105] (judy-hp.dhcp.ti.com [128.247.81.105])
+	by lelvsmtp5.itg.ti.com (8.15.2/8.15.2) with ESMTP id 546K1fPh040642;
+	Tue, 6 May 2025 15:01:41 -0500
+Message-ID: <4e014361-65ec-4b6e-839d-bfeb995262c6@ti.com>
+Date: Tue, 6 May 2025 15:01:41 -0500
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/4] PM: TI: AM335x: PM STANDBY fixes
+To: Sukrut Bellary <sbellary@baylibre.com>,
+        Kevin Hilman
+	<khilman@baylibre.com>, Nishanth Menon <nm@ti.com>,
+        Ulf Hansson
+	<ulf.hansson@linaro.org>
+CC: Aaro Koskinen <aaro.koskinen@iki.fi>,
+        Andreas Kemnade
+	<andreas@kemnade.info>,
+        Roger Quadros <rogerq@kernel.org>, Conor Dooley
+	<conor+dt@kernel.org>,
+        Santosh Shilimkar <ssantosh@kernel.org>,
+        Bajjuri
+ Praneeth <praneeth@ti.com>,
+        Raghavendra Vignesh <vigneshr@ti.com>, Bin Liu
+	<b-liu@ti.com>,
+        <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+        <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-pm@vger.kernel.org>, Russell King
+	<linux@armlinux.org.uk>,
+        Rob Herring <robh@kernel.org>, Tony Lindgren
+	<tony@atomide.com>,
+        Krzysztof Kozlowski <krzk+dt@kernel.org>
+References: <20250318230042.3138542-1-sbellary@baylibre.com>
+Content-Language: en-US
+From: Judith Mendez <jm@ti.com>
+In-Reply-To: <20250318230042.3138542-1-sbellary@baylibre.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-Commit 1788cf6a91d9 ("tty: serial: switch from circ_buf to kfifo")
-introduced an error in the TX DMA handling for 8250_omap.
+Hello Sukrut, Keven, Ulf,
 
-When the OMAP_DMA_TX_KICK flag is set, one byte is pulled from the
-kfifo and emitted directly in order to start the DMA.  This is done
-without updating DMA tx_size which leads to uart_xmit_advance() called
-in the DMA complete callback advancing the kfifo by one too much.
+On 3/18/25 6:00 PM, Sukrut Bellary wrote:
+> This patch series fixes the Power management issues on TI's am335x soc.
+> 
+> on AM335x, the wakeup doesn't work in the case of STANDBY.
+> 
+> 1. Since CM3 PM FW [1](ti-v4.1.y) doesn't enable l4ls clockdomain upon
+> wakeup, it fails to wakeup the MPU.
+> To fix this, don't turn off the l4ls clk domain in the STANDBY transition
+> in MPU.
+> 
+> 2. Also Per AM335x TRM [2](section 8.1.4.3 Power mode), in case of STANDBY,
+> PER domain should be ON. So fix PER power domain handling for
+> standby. l4ls is a part of the PER domain.
+> 
+> Since we are not turning off the l4ls clockdomain on STANDBY in MPU,
+> PER power domain would remain ON. But still, explicitly handle this
+> to be in sync with the STANDBY requirement.
+> 
+> 3. On am335x evm[1], UART0 - (UART1-HW) has a wakeup capability.
+> Set the wakeup-source property in DT for AM335x.
+> 
+> 4. Enable PM configs for AM335x.
+> 
+> [1] https://git.ti.com/cgit/processor-firmware/ti-amx3-cm3-pm-firmware/
+> [2] https://www.ti.com/lit/ug/spruh73q/spruh73q.pdf
+> [3] https://www.ti.com/tool/TMDXEVM3358
+> 
+> Test log:
+> https://gist.github.com/sukrutb/bdbfd1220fe8578a9decf87d0bac6796
+> 
 
-In practice, transmitting N bytes has been seen to result in the last
-N-1 bytes being sent repeatedly.
+Thanks for the patches, Sukrut.
 
-This change fixes the problem by moving all of the dma setup after
-the OMAP_DMA_TX_KICK handling and using kfifo_len() instead of the
-dma size for the 4-byte cutoff check. This slightly changes the
-behaviour at buffer wraparound, but it still transmits the correct
-bytes somehow. At the point kfifo_dma_out_prepare_mapped is called,
-at least one byte is guaranteed to be in the fifo, so checking the
-return value is not necessary.
+I was able to test this series on am335x EVM, baseline being rc5 next
+branch: https://gist.github.com/jmenti/cda1675b5fc5844b6f065376e98026f5
 
-Fixes: 1788cf6a91d9 ("tty: serial: switch from circ_buf to kfifo")
-Cc: stable@vger.kernel.org
-Signed-off-by: Mans Rullgard <mans@mansr.com>
----
-v2: split patch in two
----
- drivers/tty/serial/8250/8250_omap.c | 24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+Tested-by: Judith Mendez <jm@ti.com>
 
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-index f1aee915bc02..180466e09605 100644
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -1173,16 +1173,6 @@ static int omap_8250_tx_dma(struct uart_8250_port *p)
- 		return 0;
- 	}
- 
--	sg_init_table(&sg, 1);
--	ret = kfifo_dma_out_prepare_mapped(&tport->xmit_fifo, &sg, 1,
--					   UART_XMIT_SIZE, dma->tx_addr);
--	if (ret != 1) {
--		serial8250_clear_THRI(p);
--		return 0;
--	}
--
--	dma->tx_size = sg_dma_len(&sg);
--
- 	if (priv->habit & OMAP_DMA_TX_KICK) {
- 		unsigned char c;
- 		u8 tx_lvl;
-@@ -1207,7 +1197,7 @@ static int omap_8250_tx_dma(struct uart_8250_port *p)
- 			ret = -EBUSY;
- 			goto err;
- 		}
--		if (dma->tx_size < 4) {
-+		if (kfifo_len(&tport->xmit_fifo) < 4) {
- 			ret = -EINVAL;
- 			goto err;
- 		}
-@@ -1216,11 +1206,12 @@ static int omap_8250_tx_dma(struct uart_8250_port *p)
- 			goto err;
- 		}
- 		skip_byte = c;
--		/* now we need to recompute due to kfifo_get */
--		kfifo_dma_out_prepare_mapped(&tport->xmit_fifo, &sg, 1,
--				UART_XMIT_SIZE, dma->tx_addr);
- 	}
- 
-+	sg_init_table(&sg, 1);
-+	kfifo_dma_out_prepare_mapped(&tport->xmit_fifo, &sg, 1,
-+				     UART_XMIT_SIZE, dma->tx_addr);
-+
- 	desc = dmaengine_prep_slave_sg(dma->txchan, &sg, 1, DMA_MEM_TO_DEV,
- 			DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
- 	if (!desc) {
-@@ -1228,6 +1219,7 @@ static int omap_8250_tx_dma(struct uart_8250_port *p)
- 		goto err;
- 	}
- 
-+	dma->tx_size = sg_dma_len(&sg);
- 	dma->tx_running = 1;
- 
- 	desc->callback = omap_8250_dma_tx_complete;
-@@ -1248,8 +1240,10 @@ static int omap_8250_tx_dma(struct uart_8250_port *p)
- err:
- 	dma->tx_err = 1;
- out_skip:
--	if (skip_byte >= 0)
-+	if (skip_byte >= 0) {
- 		serial_out(p, UART_TX, skip_byte);
-+		p->port.icount.tx++;
-+	}
- 	return ret;
- }
- 
--- 
-2.49.0
-
+regards,
+~ Judith
