@@ -1,114 +1,95 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3907A1F17E8;
-	Mon,  9 Jun 2025 17:04:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 658872206B3;
+	Mon,  9 Jun 2025 20:08:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749488647; cv=none; b=kYrK/VSTZ1oXM5K6duX9pcN+ZIrSEhLROht7duEQtyvFH/CBvoMs50nxyK9Es51VsVulYYjmPc1wAnmWEddUqqjHIYbwtvwaA7bmXzPkcY//AbZl8SNmbNqV0hZh/FJJJ+iGZ8YtShbatErdEbC7eFg2k0aRfrikHs8Rvg+43Do=
+	t=1749499705; cv=none; b=Ga7YcZ7FVATLHNu0rodegvOBx6/HEhvsOHnTBp0ft711bA/yRsXTwNjEc1yZlC9SBz2tvXKiKuYVaQooIf+EJ5/N1gu2Kf8oOAMkPrg5qvkOthiazCtvZiGJiMa5FblT+059UiEzFFUY6eywQBsjoE9Oy4bSyOsufUKhHfsh3v0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749488647; c=relaxed/simple;
-	bh=f5pI2UHN8+s/yMkJm1kl6R65sHaQKYgNclTmzYcp7R8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=njfxhENIay4yPFfblDNlLt3njUOMIF8hYRqK02LBMJb2s8Ns0EfnHTgi49dAApDbrn4FNu3+cn8XHmatoddF0X0NzUc2e4V3UjiGlVQsJq4+P6gGi4Q8/fpxw5UekUcAjkQOSICV6jZ5w20JIrZqIexmi82cQv4Ey6joHqc+Uo0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=vOnLQMgX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749499705; c=relaxed/simple;
+	bh=bISZ39T7g33UOVTUn90Qhg8Z3LoOJf8gq665Zv3e/UE=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=KUCZGee9OmUc7GGManPQDttgB/O/44p+DcAgo/7JhkUCL5/dzmn2Hx+VFV5cZftWsYP3iqeTIjfGe61FsDMVxF7GeooQmjRhIvAyWxOXM/BWO1bAZpsDqasrXmNwnWGB4Dr/1NwZ6M9Px89lBX8/+So+RLJ9l9fK99M1GHZTVZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=sX454X3b; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="vOnLQMgX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86C22C4CEEB;
-	Mon,  9 Jun 2025 17:04:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1749488646;
-	bh=f5pI2UHN8+s/yMkJm1kl6R65sHaQKYgNclTmzYcp7R8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=vOnLQMgXQN4VEY/z4Gsg7QRW4+a43c6FGy8VCK0sA6v4OwSUsAEThu37LBnmXqU6y
-	 fae0aKwZKa96gUSQniCjV78+h2V2buKgNgMcdyyHAQ6GyBybRrkoNUH5mwGG3/DFDW
-	 WHoACyq73Zkbu8AyARmOZwJJNGX5ExnfnDsHlQ3Gok5dtY6jaZGCCI0o53oHmBunto
-	 svG/RpBcoGbONHc2n767orlFR61W67kNWZu6P8FPkvSIt5BHJ74dnFrRHVeMpH/esK
-	 wo8SHEnSevvPpyB7+E1ayPkrXs8hRiET8W/ZAgmWIE1l2lC5Z6285LGcmLvOh8C6ki
-	 Th7CXfhA5dflw==
-Date: Mon, 9 Jun 2025 18:04:01 +0100
-From: Conor Dooley <conor@kernel.org>
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="sX454X3b"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID;
+	bh=Ye5wQq/17F3f3Ad7df566VpkbCoCxX5baHaNJBzH+k8=; b=sX454X3bGLYVmDpUq9WP/jZM9w
+	vyuwNPHZ0rObBf78uOjcS0m9EHGJe2PL6UsbQgQXW2bqOUVTOXVX5QCnRXwikjEcUH7ci17fFTfYq
+	hkvc8KyIxlzBkcVKq+uWr7f1zOiu7rpIz7Iqze4x0snHkD48+WMgmWgv36Zrw+AnW41tviibuWzJ4
+	MsBQ7vIfB8YtK4aWc4hX9Uhth4oNidMlEZwLO6ywkijr6hPb2XN8d7R6EBBUwiUfezCjM8rwoMfGG
+	xViMHFrLJaJfgXPjCAhOzckKCfZ4J+WGh0mKAndOJDtTaPVdHF8a9uZQHET5shOTJ3Zj4rdnnBXa9
+	p/glL+SA==;
+Date: Mon, 9 Jun 2025 22:08:09 +0200
+From: Andreas Kemnade <andreas@kemnade.info>
 To: Kory Maincent <kory.maincent@bootlin.com>
 Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Russell King <linux@armlinux.org.uk>,
-	Bajjuri Praneeth <praneeth@ti.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-	linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2 4/5] arm: dts: omap: Add support for BeagleBone Green
- Eco board
-Message-ID: <20250609-helpful-immodest-0f195cdbcbf2@spud>
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
+ <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, Russell King
+ <linux@armlinux.org.uk>, Bajjuri Praneeth <praneeth@ti.com>, Liam Girdwood
+ <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Thomas Petazzoni
+ <thomas.petazzoni@bootlin.com>, linux-omap@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2 1/5] arm: dts: omap: Remove incorrect compatible
+ strings from device trees
+Message-ID: <20250609220809.3a488972@akair>
+In-Reply-To: <20250609-bbg-v2-1-5278026b7498@bootlin.com>
 References: <20250609-bbg-v2-0-5278026b7498@bootlin.com>
- <20250609-bbg-v2-4-5278026b7498@bootlin.com>
+	<20250609-bbg-v2-1-5278026b7498@bootlin.com>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="qN2c0PWcJTDqDL56"
-Content-Disposition: inline
-In-Reply-To: <20250609-bbg-v2-4-5278026b7498@bootlin.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+Am Mon, 09 Jun 2025 17:43:51 +0200
+schrieb Kory Maincent <kory.maincent@bootlin.com>:
 
---qN2c0PWcJTDqDL56
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Several device trees incorrectly included ti,am335x-bone-black or
+> ti,am335x-bone in their compatible lists without including the
+> corresponding bone-black-common or bone-common device tree files.
+> Remove these incompatible strings to fix the inconsistency.
+> 
+thanks for cleaning up some mess.
 
-On Mon, Jun 09, 2025 at 05:43:54PM +0200, Kory Maincent wrote:
-> SeeedStudio BeagleBone Green Eco (BBGE) is a clone of the BeagleBone Green
-> (BBG). It has minor differences from the BBG, such as a different PMIC,
-> a different Ethernet PHY, and a larger eMMC.
->=20
 > Signed-off-by: Kory Maincent <kory.maincent@bootlin.com>
 > ---
->=20
-> Changes in v2:
-> - Used generic pmic node name.
-> - Add regulator prefix to fixed regulator node name.
-> - Add the compatible to omap.yaml binding
+> 
+> Change in v2:
+> - New patch
 > ---
->  Documentation/devicetree/bindings/arm/ti/omap.yaml |   1 +
->  arch/arm/boot/dts/ti/omap/Makefile                 |   1 +
->  arch/arm/boot/dts/ti/omap/am335x-bonegreen-eco.dts | 170 +++++++++++++++=
-++++++
->  3 files changed, 172 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/arm/ti/omap.yaml b/Documen=
-tation/devicetree/bindings/arm/ti/omap.yaml
-> index c43fa4f4af81..774c13157caa 100644
-> --- a/Documentation/devicetree/bindings/arm/ti/omap.yaml
-> +++ b/Documentation/devicetree/bindings/arm/ti/omap.yaml
-> @@ -145,6 +145,7 @@ properties:
->        - description: TI bone green variants based on TI AM335
->          items:
->            - enum:
-> +              - ti,am335x-bone-green-eco
->                - ti,am335x-bone-green-wireless
->            - const: ti,am335x-bone-green
->            - const: ti,am335x-bone
+>  arch/arm/boot/dts/ti/omap/am335x-bonegreen-wireless.dts | 2 +-
+>  arch/arm/boot/dts/ti/omap/am335x-bonegreen.dts          | 2 +-
+>  arch/arm/boot/dts/ti/omap/am335x-osd3358-sm-red.dts     | 2 +-
+>  arch/arm/boot/dts/ti/omap/am335x-pocketbeagle.dts       | 2 +-
+>  arch/arm/boot/dts/ti/omap/am335x-shc.dts                | 2 +-
+>  5 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/ti/omap/am335x-bonegreen-wireless.dts b/arch/arm/boot/dts/ti/omap/am335x-bonegreen-wireless.dts
+> index a4f5b5262645..fb88eebb8c5d 100644
+> --- a/arch/arm/boot/dts/ti/omap/am335x-bonegreen-wireless.dts
+> +++ b/arch/arm/boot/dts/ti/omap/am335x-bonegreen-wireless.dts
+> @@ -11,7 +11,7 @@
+>  
+>  / {
+>  	model = "TI AM335x BeagleBone Green Wireless";
+> -	compatible = "ti,am335x-bone-green-wireless", "ti,am335x-bone-green", "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
+> +	compatible = "ti,am335x-bone-green-wireless", "ti,am335x-bone", "ti,am33xx";
+>  
+this looks like too much cleanup, also according your omap.yaml stuff,
+ti,am335x-bone-green should still be included.
 
-Why is this hunk here?
-
---qN2c0PWcJTDqDL56
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCaEcUAQAKCRB4tDGHoIJi
-0nHcAQDmm/vSthV7u0cRPShkiyiEYLhnJ1c/e0XLct8fqEWuHQD5ATthst+Gc7KE
-2683y1k2eOiCjIvKEVH6KWfQEL79XQI=
-=5ZBs
------END PGP SIGNATURE-----
-
---qN2c0PWcJTDqDL56--
+Regards,
+Andreas
