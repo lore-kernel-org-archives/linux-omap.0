@@ -1,38 +1,39 @@
 Received: from relay16.mail.gandi.net (relay16.mail.gandi.net [217.70.178.236])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5128521CA00;
-	Tue, 17 Jun 2025 11:59:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 760C72E06C5;
+	Tue, 17 Jun 2025 11:59:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.178.236
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750161582; cv=none; b=bHxhP9Q1u4yT/0AQ1pncZdXlGVOmIx6Jj3cTDsnScJNSW9IqKzMjNThoV102NfPwtDKiFmZ6aZ5JKKygU8bYO/daLPq+y6sgCmws54VKyKv7eKVA9b7OTuT/f7NeC8D9naej+jFr+NCB6Jg7ml++PrRfIWzpCIc4KwS5I+Rj8vQ=
+	t=1750161582; cv=none; b=PnGclWnGvEm9NOorrypD7k6tOKNLb+Zp36M1vBBduzEfWNFSK/tS7AcqAd1yIvBXWKBq50WowR7sLeR8vkEkqh5aLaaKy7iMlyhxynSICtd1j/4xODVqthM0HNytr5HNAd2/rKi51NMyKihaKjNPmiCtSMTigi0kzo0sQYVvd/Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1750161582; c=relaxed/simple;
-	bh=xdCDFsY7fHfgyuBIW40huzR//1ytnbFa21uQW+dNB+4=;
+	bh=4H6c+X2qoJgSP5fbF+I7rBIdV6qfLGv1nTF4n/Vd8zU=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=UgHnjndwX6RK/cvSmuIBzZeUD53b0XjlyTpL0AKgFmpbY+w5yw3mCTy5rpcO0F4pBou5xXzjbc49tcRBzqHd4qtHVTRCiOZYHWoK3YO8WBrbExIuyV4spXyYKA6eEQgQCTXJJH6Mi8B8zPEROMJkQxLW6ni9okZahIOPMZwq75I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=hV6yDhjN; arc=none smtp.client-ip=217.70.178.236
+	 In-Reply-To:To:Cc; b=pfPrUMK02BcphUbOpjvbUANVs0gVuCo34Ne+CzDVghjpO3JL2F0TQWrDp68/SsG/xarue6/UYMK/aohw1Ka/RZ9QiLcOxZhi3i3Mnc2RrsuPd2dcB5rG2Jnn2qzJcUWpklgtOurzaFOEGVds4EHF0Fe4zOo2OhEkVX3dgTs8dZw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=mY9dJUqc; arc=none smtp.client-ip=217.70.178.236
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="hV6yDhjN"
-Received: by mail.gandi.net (Postfix) with ESMTPSA id 63C124496F;
-	Tue, 17 Jun 2025 11:59:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="mY9dJUqc"
+Received: by mail.gandi.net (Postfix) with ESMTPSA id AEFC84389E;
+	Tue, 17 Jun 2025 11:59:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=gm1;
-	t=1750161578;
+	t=1750161572;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=v1FemFSObCbEVYAn/hTqf4EyYMN6hadEZQLG7F20BzM=;
-	b=hV6yDhjN47cBm+vlpvD744/WiF5RJaCe5vlW+hmxyGf6LFu/pK0yU0ALkLNEQFWcKuBl7M
-	Cp53v5+VKYvqp1jhCobXLccgkFOMUF9MXR0FXwo1sC6dwnJD+L+O08dcxgVrRmey0G7Tba
-	lRYXXQJVmSge2VYWqa+jlEi24nlI0Zm9410zhMXNbMVlneRhi2CjfTKRk3elD42NhrhK1r
-	hJ3YOnCbi5DJcRlotZ02HeCU8p7utl3yuO7/9GZ8t39tILa30rnspSMW7ltvCBVTJgWqNn
-	jLdG53Keoiw7k2nUgnyYzQ5y8s3zQwJ0paTA0vkaZLX7a26PNbcT8DJ+QR9Nmw==
+	bh=lhfjLOpPcT6PTGeIpVH242ZZv4ym47po7gNPqcAoryU=;
+	b=mY9dJUqc7JNAtL87rmqWSKxk7Ies8jOqBcGbru0oezsTNqR6YywT/hujs4QWEG8p1/jLng
+	g+QwWJkdBGz7FB4hZ5ZqWrPn4gYnCkg1kSZjs0z0lvSbnxSryc5xJI07Jwbi7kfrjeAaM7
+	hhuZ+G2T3rYTgrUrMG31QDf12Wh51+CD+Zvysp6tvUA6eMECHG9ZlW7hfP1d8tpn6nfrbg
+	qUPket0XECEFhY7Giu5trnHy/r430EizMvxB3kxvUGNE/qHWVd7kxPp9BaiYJ7wmtPPd5n
+	NnUTpGqZD56FUxMclWaqbgYH+YCvZm6aqGC43iN7XdeSyX4iHKwBBh1L6TfRSw==
 From: Kory Maincent <kory.maincent@bootlin.com>
-Date: Tue, 17 Jun 2025 13:59:29 +0200
-Subject: [PATCH v4 6/7] arm: omap2plus_defconfig: Enable TPS65219 regulator
+Date: Tue, 17 Jun 2025 13:59:24 +0200
+Subject: [PATCH v4 1/7] dt-bindings: omap: Add missing AM33xx compatible
+ strings
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -41,7 +42,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250617-bbg-v4-6-827cbd606db6@bootlin.com>
+Message-Id: <20250617-bbg-v4-1-827cbd606db6@bootlin.com>
 References: <20250617-bbg-v4-0-827cbd606db6@bootlin.com>
 In-Reply-To: <20250617-bbg-v4-0-827cbd606db6@bootlin.com>
 To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
@@ -61,46 +62,67 @@ Cc: Jason Kridner <jkridner@gmail.com>, Andrew Davis <afd@ti.com>,
 X-Mailer: b4 0.15-dev-8cb71
 X-GND-State: clean
 X-GND-Score: -100
-X-GND-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtddvgdduvdcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfitefpfffkpdcuggftfghnshhusghstghrihgsvgenuceurghilhhouhhtmecufedtudenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephfffufggtgfgkfhfjgfvvefosehtjeertdertdejnecuhfhrohhmpefmohhrhicuofgrihhntggvnhhtuceokhhorhihrdhmrghinhgtvghnthessghoohhtlhhinhdrtghomheqnecuggftrfgrthhtvghrnhepvefgvdfgkeetgfefgfegkedugffghfdtffeftdeuteehjedtvdelvddvleehtdevnecukfhppeeltddrkeelrdduieefrdduvdejnecuvehluhhsthgvrhfuihiivgepudenucfrrghrrghmpehinhgvthepledtrdekledrudeifedruddvjedphhgvlhhopegluddvjedrtddruddrudgnpdhmrghilhhfrhhomhepkhhorhihrdhmrghinhgtvghnthessghoohhtlhhinhdrtghomhdpnhgspghrtghpthhtohepvddvpdhrtghpthhtoheprghnughrvggrsheskhgvmhhnrgguvgdrihhnfhhopdhrtghpthhtohepthhhohhmrghsrdhpvghtrgiiiihonhhisegsohhothhlihhnrdgtohhmpdhrtghpthhtoheplhhinhhugidqohhmrghpsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosghhsehkvghrnhgvlhdrohhrghdprhgtphhtthhopegsrhhoohhnihgvsehkvghrnhgvlhdrohhrghdprhgtp
+X-GND-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtddvgdduvdcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfitefpfffkpdcuggftfghnshhusghstghrihgsvgenuceurghilhhouhhtmecufedtudenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhephfffufggtgfgkfhfjgfvvefosehtjeertdertdejnecuhfhrohhmpefmohhrhicuofgrihhntggvnhhtuceokhhorhihrdhmrghinhgtvghnthessghoohhtlhhinhdrtghomheqnecuggftrfgrthhtvghrnhepvefgvdfgkeetgfefgfegkedugffghfdtffeftdeuteehjedtvdelvddvleehtdevnecukfhppeeltddrkeelrdduieefrdduvdejnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepledtrdekledrudeifedruddvjedphhgvlhhopegluddvjedrtddruddrudgnpdhmrghilhhfrhhomhepkhhorhihrdhmrghinhgtvghnthessghoohhtlhhinhdrtghomhdpnhgspghrtghpthhtohepvddvpdhrtghpthhtoheprghnughrvggrsheskhgvmhhnrgguvgdrihhnfhhopdhrtghpthhtohepthhhohhmrghsrdhpvghtrgiiiihonhhisegsohhothhlihhnrdgtohhmpdhrtghpthhtoheplhhinhhugidqohhmrghpsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheprhhosghhsehkvghrnhgvlhdrohhrghdprhgtphhtthhopegsrhhoohhnihgvsehkvghrnhgvlhdrohhrghdprhgtp
  hhtthhopehjkhhrihgunhgvrhesghhmrghilhdrtghomhdprhgtphhtthhopehtohhnhiesrghtohhmihguvgdrtghomhdprhgtphhtthhopehkohhrhidrmhgrihhntggvnhhtsegsohhothhlihhnrdgtohhm
 
-Enable the TPS65219 regulator in the defconfig, as the TPS65214
-variant is used by the newly introduced BeagleBoard Green Eco board.
+Add several compatible strings that were missing from the binding
+documentation for AM33xx-based boards. Update vendor prefix from
+"ti" to "beagle" for BeagleBone to match actual hardware vendors.
 
-Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
+Reviewed-by: Andrew Davis <afd@ti.com>
 Signed-off-by: Kory Maincent <kory.maincent@bootlin.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 3 +++
- 1 file changed, 3 insertions(+)
+Change in v4:
+- Rename ti,am335x-shc to bosch,am335x-shc
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 9f9780c8e62a..2ad669f7b202 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -385,6 +385,7 @@ CONFIG_TOUCHSCREEN_TSC2007=m
- CONFIG_INPUT_MISC=y
- CONFIG_INPUT_CPCAP_PWRBUTTON=m
- CONFIG_INPUT_TPS65218_PWRBUTTON=m
-+CONFIG_INPUT_TPS65219_PWRBUTTON=m
- CONFIG_INPUT_TWL4030_PWRBUTTON=m
- CONFIG_INPUT_UINPUT=m
- CONFIG_INPUT_PALMAS_PWRBUTTON=m
-@@ -454,6 +455,7 @@ CONFIG_MFD_TPS65217=y
- CONFIG_MFD_TI_LP873X=y
- CONFIG_MFD_TI_LP87565=y
- CONFIG_MFD_TPS65218=y
-+CONFIG_MFD_TPS65219=y
- CONFIG_MFD_TPS65910=y
- CONFIG_TWL6040_CORE=y
- CONFIG_REGULATOR_CPCAP=y
-@@ -470,6 +472,7 @@ CONFIG_REGULATOR_TPS65023=y
- CONFIG_REGULATOR_TPS6507X=y
- CONFIG_REGULATOR_TPS65217=y
- CONFIG_REGULATOR_TPS65218=y
-+CONFIG_REGULATOR_TPS65219=y
- CONFIG_REGULATOR_TPS65910=y
- CONFIG_REGULATOR_TWL4030=y
- CONFIG_RC_CORE=m
+Change in v3:
+- Change vendor prefix from ti to beagle
+- Remove BeagleBone board variant description.
+
+Change in v2:
+- New patch
+---
+ Documentation/devicetree/bindings/arm/ti/omap.yaml | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/arm/ti/omap.yaml b/Documentation/devicetree/bindings/arm/ti/omap.yaml
+index 3603edd7361d..7e0d5d376d57 100644
+--- a/Documentation/devicetree/bindings/arm/ti/omap.yaml
++++ b/Documentation/devicetree/bindings/arm/ti/omap.yaml
+@@ -104,12 +104,32 @@ properties:
+       - description: TI AM33 based platform
+         items:
+           - enum:
++              - beagle,am335x-bone
++              - beagle,am335x-bone-black
++              - beagle,am335x-bone-black-wireless
++              - beagle,am335x-bone-blue
++              - beagle,am335x-pocketbeagle
++              - bosch,am335x-guardian
++              - bosch,am335x-shc
+               - compulab,cm-t335
++              - grinn,am335x-chiliboard
++              - grinn,am335x-chilisom
++              - gumstix,am335x-pepper
++              - isee,am335x-base0033
++              - moxa,uc-2101
+               - moxa,uc-8100-me-t
++              - myir,myc-am335x
++              - myir,myd-am335x
+               - novatech,am335x-lxm
+-              - ti,am335x-bone
++              - oct,osd3358-sm-refdesign
++              - sancloud,am335x-boneenhanced
++              - seeed,am335x-bone-green
++              - seeed,am335x-bone-green-wireless
++              - tcl,am335x-sl50
+               - ti,am335x-evm
++              - ti,am335x-evmsk
+               - ti,am3359-icev2
++              - vscom,onrisc
+           - const: ti,am33xx
+ 
+       - description: Compulab board variants based on TI AM33
 
 -- 
 2.43.0
