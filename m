@@ -1,192 +1,168 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from lelvem-ot01.ext.ti.com (lelvem-ot01.ext.ti.com [198.47.23.234])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBC9F23816C;
-	Wed,  2 Jul 2025 09:58:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A48542F50B4;
+	Wed,  2 Jul 2025 16:49:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.234
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751450318; cv=none; b=rvj7JB1YJBp49RF0a2pAoCmSsj/N4LPN8xmXKv9WCgEFzS9XYz5KNrQv8zyXci6qsVpmHUarVfndexxe4XEIY5uK1/fJqvXfivG7cO33xFwj9VkM/PY7ivIBoxEGUJL30ds3wdJQXwLCiCzGsMDwrFJDYAxzSY2RxPKn9185fCg=
+	t=1751474999; cv=none; b=s/88saz41yzMDy1NfM3yzQicD09tR58IXqZYsz8gV9CZVCYBHZy1eFM7GR/5lBCeioj4qDT+sMc8XmO5sgOeBIAMfDHcmXU6aftYNyV3NbS0lBgwtc0qeMKPJR1ixl5W2WvqQo7imqblzF7X6fZ3+tEwyjADNdUF9HaHDGaKuMI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751450318; c=relaxed/simple;
-	bh=ac1WHXY9uU6sg9VG9LlQUm/TQKiiff0h5oFc/3+SBzY=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=D1o5FWMQg66xzNOBz0Px8/T9GIoyqwDXuFCMmW5HS6VoLme9tUfqt3x1dgIbpPhF8tmangdHgyES6Uy87w/C6qLLiPxAGGH+qPbWonAXVjZZHDXxu3EaHHbHBQWvZ9y8345y/6hx5JBHjjecvQAPWEgegBbZn1OrLDzc98PQgxQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4bXFdQ6LTjz6L55h;
-	Wed,  2 Jul 2025 17:55:38 +0800 (CST)
-Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id B5DAB1404FD;
-	Wed,  2 Jul 2025 17:58:31 +0800 (CST)
-Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
- (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Wed, 2 Jul
- 2025 11:58:28 +0200
-Date: Wed, 2 Jul 2025 10:58:26 +0100
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To: Uwe =?ISO-8859-1?Q?Kleine-K=F6nig?= <ukleinek@kernel.org>
-CC: Jonathan Cameron <jic23@kernel.org>, Waqar Hameed <waqar.hameed@axis.com>,
-	Vignesh Raghavendra <vigneshr@ti.com>, "Julien Panis" <jpanis@baylibre.com>,
-	William Breathitt Gray <wbg@kernel.org>, "Linus Walleij"
-	<linus.walleij@linaro.org>, Bartosz Golaszewski <brgl@bgdev.pl>, Peter Rosin
-	<peda@axentia.se>, David Lechner <dlechner@baylibre.com>, Nuno
- =?ISO-8859-1?Q?S=E1?= <nuno.sa@analog.com>, Andy Shevchenko
-	<andy@kernel.org>, Cosmin Tanislav <cosmin.tanislav@analog.com>, "Lars-Peter
- Clausen" <lars@metafoo.de>, Michael Hennerich <Michael.Hennerich@analog.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>, AngeloGioacchino Del Regno
-	<angelogioacchino.delregno@collabora.com>, Matteo Martelli
-	<matteomartelli3@gmail.com>, Heiko Stuebner <heiko@sntech.de>, Francesco
- Dolcini <francesco@dolcini.it>, =?ISO-8859-1?Q?Jo=E3o?= Paulo
- =?ISO-8859-1?Q?Gon=E7alves?= <jpaulo.silvagoncalves@gmail.com>, Hugo
- Villeneuve <hvilleneuve@dimonoff.com>, Subhajit Ghosh
-	<subhajit.ghosh@tweaklogic.com>, Mudit Sharma <muditsharma.info@gmail.com>,
-	Gerald Loacker <gerald.loacker@wolfvision.net>, Song Qiang
-	<songqiang1304521@gmail.com>, Crt Mori <cmo@melexis.com>, Dmitry Torokhov
-	<dmitry.torokhov@gmail.com>, Ulf Hansson <ulf.hansson@linaro.org>, Karol
- Gugala <kgugala@antmicro.com>, Mateusz Holenko <mholenko@antmicro.com>,
-	Gabriel Somlo <gsomlo@gmail.com>, Joel Stanley <joel@jms.id.au>, Claudiu
- Manoil <claudiu.manoil@nxp.com>, Vladimir Oltean <vladimir.oltean@nxp.com>,
-	Wei Fang <wei.fang@nxp.com>, Clark Wang <xiaoning.wang@nxp.com>, Andrew Lunn
-	<andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric
- Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
-	<pabeni@redhat.com>, Vinod Koul <vkoul@kernel.org>, Kishon Vijay Abraham I
-	<kishon@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Alim Akhtar
-	<alim.akhtar@samsung.com>, Sebastian Reichel <sre@kernel.org>, "Neil
- Armstrong" <neil.armstrong@linaro.org>, Kevin Hilman <khilman@baylibre.com>,
-	Jerome Brunet <jbrunet@baylibre.com>, Martin Blumenstingl
-	<martin.blumenstingl@googlemail.com>, Han Xu <han.xu@nxp.com>, Haibo Chen
-	<haibo.chen@nxp.com>, Yogesh Gaur <yogeshgaur.83@gmail.com>, Mark Brown
-	<broonie@kernel.org>, Avri Altman <avri.altman@wdc.com>, Bart Van Assche
-	<bvanassche@acm.org>, "James E.J. Bottomley"
-	<James.Bottomley@hansenpartnership.com>, "Martin K. Petersen"
-	<martin.petersen@oracle.com>, Souradeep Chowdhury
-	<quic_schowdhu@quicinc.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Liam Girdwood <lgirdwood@gmail.com>, "Peter Ujfalusi"
-	<peter.ujfalusi@linux.intel.com>, Bard Liao
-	<yung-chuan.liao@linux.intel.com>, Ranjani Sridharan
-	<ranjani.sridharan@linux.intel.com>, Daniel Baluta <daniel.baluta@nxp.com>,
-	Kai Vehmanen <kai.vehmanen@linux.intel.com>, Pierre-Louis Bossart
-	<pierre-louis.bossart@linux.dev>, Jaroslav Kysela <perex@perex.cz>, "Takashi
- Iwai" <tiwai@suse.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer
-	<s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>, <kernel@axis.com>,
-	<linux-iio@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
-	<linux-i2c@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-mediatek@lists.infradead.org>, <linux-rockchip@lists.infradead.org>,
-	<linux-input@vger.kernel.org>, <linux-mmc@vger.kernel.org>,
-	<imx@lists.linux.dev>, <netdev@vger.kernel.org>,
-	<linux-phy@lists.infradead.org>, <linux-samsung-soc@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, <linux-pwm@vger.kernel.org>,
-	<linux-amlogic@lists.infradead.org>, <linux-spi@vger.kernel.org>,
-	<linux-scsi@vger.kernel.org>, <linux-arm-msm@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <sound-open-firmware@alsa-project.org>,
-	<linux-sound@vger.kernel.org>, "Joe Perches" <joe@perches.com>, Andy
- Whitcroft <apw@canonical.com>, "Dwaipayan Ray" <dwaipayanray1@gmail.com>,
-	Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: Re: [PATCH] Remove error prints for devm_add_action_or_reset()
-Message-ID: <20250702105826.0000315e@huawei.com>
-In-Reply-To: <jeajjewfbg5qo736imozpghnpxln2pux74aegtqsi57qsbpug2@opndel6zc3m3>
-References: <pnd7c0s6ji2.fsf@axis.com>
-	<ylr7cuxldwb24ccenen4khtyddzq3owgzzfblbohkdxb7p7eeo@qpuddn6wrz3x>
-	<20250701185519.1410e831@jic23-huawei>
-	<jeajjewfbg5qo736imozpghnpxln2pux74aegtqsi57qsbpug2@opndel6zc3m3>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.42; x86_64-w64-mingw32)
+	s=arc-20240116; t=1751474999; c=relaxed/simple;
+	bh=Hh/4tWWTDXvZ8GsDxvsEMlv9qEMhw4hDFi2Gr2kYNwA=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=CTMgeX3XWxpLZ+9VXQn/rBCW+7MmBvrCJLEn2sJduYn1xln5e0X37zuyWEjrQ9ClY0KSgejI4NanPklRZo5rIC5j63tOLmmEClbfKgs8EJUjGOhHIWxmFuE5HoVOV0FwDQroymKpKSYR5rIrMdr4CGer4Ci8IDPHve59aWD4quA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=QhDuSF9w; arc=none smtp.client-ip=198.47.23.234
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="QhDuSF9w"
+Received: from fllvem-sh04.itg.ti.com ([10.64.41.54])
+	by lelvem-ot01.ext.ti.com (8.15.2/8.15.2) with ESMTP id 562GnRZ53292728;
+	Wed, 2 Jul 2025 11:49:27 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
+	s=ti-com-17Q1; t=1751474967;
+	bh=Lutp9KfC58W6Br8Zye34zSE8rie3h5J1OHlUnj/vYxE=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References;
+	b=QhDuSF9wOD3wbINzyf7LIdazZrN5c+m6sGSe6TvMY/YC+PFFyNqJj7Q1ga0R7ly2o
+	 uhmCRMPFszW+SmsK/7advkPj0QVRvA6CRaj5S2bq9PYgdaczojuP6b5p2G0RklTYqx
+	 ufq2S2pnOtTbOk2W0xLZ6yHyS0Ucp1N3f+KvQOnc=
+Received: from DFLE113.ent.ti.com (dfle113.ent.ti.com [10.64.6.34])
+	by fllvem-sh04.itg.ti.com (8.18.1/8.18.1) with ESMTPS id 562GnRX94092324
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-SHA256 bits=128 verify=FAIL);
+	Wed, 2 Jul 2025 11:49:27 -0500
+Received: from DFLE110.ent.ti.com (10.64.6.31) by DFLE113.ent.ti.com
+ (10.64.6.34) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.55; Wed, 2
+ Jul 2025 11:49:27 -0500
+Received: from lelvem-mr05.itg.ti.com (10.180.75.9) by DFLE110.ent.ti.com
+ (10.64.6.31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.55 via
+ Frontend Transport; Wed, 2 Jul 2025 11:49:27 -0500
+Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.251])
+	by lelvem-mr05.itg.ti.com (8.18.1/8.18.1) with ESMTP id 562GnQ5M3771376;
+	Wed, 2 Jul 2025 11:49:26 -0500
+From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
+        <rogerq@kernel.org>, <tony@atomide.com>, <linus.walleij@linaro.org>,
+        <brgl@bgdev.pl>, <linux-omap@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>
+CC: <m-leonard@ti.com>, <praneeth@ti.com>, <jcormier@criticallink.com>
+Subject: [PATCH v5 1/2] gpio: tps65219: Update _IDX & _OFFSET macro prefix
+Date: Wed, 2 Jul 2025 11:49:25 -0500
+Message-ID: <20250702164926.2990958-2-s-ramamoorthy@ti.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20250702164926.2990958-1-s-ramamoorthy@ti.com>
+References: <20250702164926.2990958-1-s-ramamoorthy@ti.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: quoted-printable
-X-ClientProxiedBy: lhrpeml100003.china.huawei.com (7.191.160.210) To
- frapeml500008.china.huawei.com (7.182.85.71)
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-On Wed, 2 Jul 2025 08:54:48 +0200
-Uwe Kleine-K=F6nig <ukleinek@kernel.org> wrote:
+TPS65215 and TPS65219 are overlapping PMIC devices. While their regulator
+features differe, the GPIO features are the same. In the TPS65219 MFD
+driver, the 2 PMICs share the same "tps65219-gpio" compatible string to
+limit support for TPS65215 in this GPIO driver to comments.
 
-> Hello Jonathan,
->=20
-> On Tue, Jul 01, 2025 at 06:55:19PM +0100, Jonathan Cameron wrote:
-> > On Tue, 1 Jul 2025 19:44:17 +0200
-> > Uwe Kleine-K=F6nig <ukleinek@kernel.org> wrote:
-> >  =20
-> > > On Tue, Jul 01, 2025 at 05:03:33PM +0200, Waqar Hameed wrote: =20
-> > > >  drivers/pwm/pwm-meson.c                          | 3 +--   =20
-> > >=20
-> > > Looking at this driver I tried the following: =20
-> >=20
-> > I'm not sure what we actually want here.
-> >=20
-> > My thought when suggesting removing instances of this
-> > particular combination wasn't saving on code size, but rather just
-> > general removal of pointless code that was getting cut and
-> > paste into new drivers and wasting a tiny bit of review bandwidth.
-> > I'd consider it bad practice to have patterns like
-> >=20
-> > void *something =3D kmalloc();
-> > if  (!something)
-> > 	return dev_err_probe(dev, -ENOMEM, ..);
-> >=20
-> > and my assumption was people would take a similar view with
-> > devm_add_action_or_reset().
-> >
-> > It is a bit nuanced to have some cases where we think prints
-> > are reasonable and others where they aren't so I get your
-> > point about consistency. =20
->=20
-> The problem I see is that there are two classes of functions: a) Those
-> that require an error message and b) those that don't. Class b) consists
-> of the functions that can only return success or -ENOMEM and the
-> functions that emit an error message themselves. (And another problem I
-> see is that for the latter the error message is usually non-optimal
-> because the function doesn't know the all details of the request. See my
-> reply to Andy for more details about that rant.)
->=20
-> IMHO what takes away the review bandwidth is that the reviewer has to
-> check which class the failing function is part of. If this effort
-> results in more driver authors not adding an error message after
-> devm_add_action_or_reset() that's nice, but in two months I have
-> forgotten the details of this discussion and I have to recheck if
-> devm_add_action_or_reset() is part of a) or b) and so the burden is
-> still on me.
+The TPS6521X_GPIO0_IDX and TPS6521X_GPIO0_OFFSET macro name prefixes are
+updated to indicate these macros apply to both PMICs.
 
-Maybe this is a job for checkpatch, at least for the common cases.
+Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+Reviewed-by: Roger Quadros <rogerq@kernel.org>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/gpio/gpio-tps65219.c | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-There is already a check for kmalloc etc.
-https://elixir.bootlin.com/linux/v6.16-rc4/source/scripts/checkpatch.pl#L64=
-42
-
-+CC Joe (who wrote the allocation functions test years ago) and other check=
-patch
-folk.
-
-
->=20
-> So to give my answer on your question "What do we actually want here?":
-> Please let us get rid of the need to care for a) or b).
->=20
-> > The code size reduction is nice so I'd not be against it as an extra
-> > if the reduction across a kernel builds is significant and enough
-> > people want to keep these non printing prints. =20
->=20
-> To complete implementing my wish all API functions would need to stop to
-> emit an error message. Unfortunately that isn't without downsides
-> because the result is that there are more error strings and so the
-> kernel size is increased. So you have to weight if you prefer individual
-> error messages and easier review/maintenance at the cost of a bigger
-> binary size and more dev_err_probe() calls in drivers eating vertical
-> space in your editor.
->=20
-> I know on which side I am, but I bet we won't find agreement about that
-> in the kernel community ...
-
-
->=20
-> Best regards
-> Uwe
->=20
+diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
+index 526640c39a11..3c762103babc 100644
+--- a/drivers/gpio/gpio-tps65219.c
++++ b/drivers/gpio/gpio-tps65219.c
+@@ -1,8 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+- * GPIO driver for TI TPS65219 PMICs
++ * GPIO driver for TI TPS65215/TPS65219 PMICs
+  *
+- * Copyright (C) 2022 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2025 Texas Instruments Incorporated - http://www.ti.com/
+  */
+ 
+ #include <linux/bits.h>
+@@ -13,8 +13,15 @@
+ #include <linux/regmap.h>
+ 
+ #define TPS65219_GPIO0_DIR_MASK		BIT(3)
+-#define TPS65219_GPIO0_OFFSET		2
+-#define TPS65219_GPIO0_IDX		0
++#define TPS6521X_GPIO0_OFFSET		2
++#define TPS6521X_GPIO0_IDX		0
++
++/*
++ * TPS65215 & TPS65219 GPIO mapping
++ * Linux gpio offset 0 -> GPIO (pin16) -> bit_offset 2
++ * Linux gpio offset 1 -> GPO1 (pin8 ) -> bit_offset 0
++ * Linux gpio offset 2 -> GPO2 (pin17) -> bit_offset 1
++ */
+ 
+ struct tps65219_gpio {
+ 	struct gpio_chip gpio_chip;
+@@ -26,7 +33,7 @@ static int tps65219_gpio_get_direction(struct gpio_chip *gc, unsigned int offset
+ 	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
+ 	int ret, val;
+ 
+-	if (offset != TPS65219_GPIO0_IDX)
++	if (offset != TPS6521X_GPIO0_IDX)
+ 		return GPIO_LINE_DIRECTION_OUT;
+ 
+ 	ret = regmap_read(gpio->tps->regmap, TPS65219_REG_MFP_1_CONFIG, &val);
+@@ -42,7 +49,7 @@ static int tps65219_gpio_get(struct gpio_chip *gc, unsigned int offset)
+ 	struct device *dev = gpio->tps->dev;
+ 	int ret, val;
+ 
+-	if (offset != TPS65219_GPIO0_IDX) {
++	if (offset != TPS6521X_GPIO0_IDX) {
+ 		dev_err(dev, "GPIO%d is output only, cannot get\n", offset);
+ 		return -ENOTSUPP;
+ 	}
+@@ -71,7 +78,7 @@ static void tps65219_gpio_set(struct gpio_chip *gc, unsigned int offset, int val
+ 	struct device *dev = gpio->tps->dev;
+ 	int v, mask, bit;
+ 
+-	bit = (offset == TPS65219_GPIO0_IDX) ? TPS65219_GPIO0_OFFSET : offset - 1;
++	bit = (offset == TPS6521X_GPIO0_IDX) ? TPS6521X_GPIO0_OFFSET : offset - 1;
+ 
+ 	mask = BIT(bit);
+ 	v = value ? mask : 0;
+@@ -117,7 +124,7 @@ static int tps65219_gpio_direction_input(struct gpio_chip *gc, unsigned int offs
+ 	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
+ 	struct device *dev = gpio->tps->dev;
+ 
+-	if (offset != TPS65219_GPIO0_IDX) {
++	if (offset != TPS6521X_GPIO0_IDX) {
+ 		dev_err(dev, "GPIO%d is output only, cannot change to input\n", offset);
+ 		return -ENOTSUPP;
+ 	}
+@@ -131,7 +138,7 @@ static int tps65219_gpio_direction_input(struct gpio_chip *gc, unsigned int offs
+ static int tps65219_gpio_direction_output(struct gpio_chip *gc, unsigned int offset, int value)
+ {
+ 	tps65219_gpio_set(gc, offset, value);
+-	if (offset != TPS65219_GPIO0_IDX)
++	if (offset != TPS6521X_GPIO0_IDX)
+ 		return 0;
+ 
+ 	if (tps65219_gpio_get_direction(gc, offset) == GPIO_LINE_DIRECTION_OUT)
+@@ -179,5 +186,5 @@ module_platform_driver(tps65219_gpio_driver);
+ 
+ MODULE_ALIAS("platform:tps65219-gpio");
+ MODULE_AUTHOR("Jonathan Cormier <jcormier@criticallink.com>");
+-MODULE_DESCRIPTION("TPS65219 GPIO driver");
++MODULE_DESCRIPTION("TPS65215/TPS65219 GPIO driver");
+ MODULE_LICENSE("GPL");
+-- 
+2.43.0
 
