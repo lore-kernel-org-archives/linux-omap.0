@@ -1,120 +1,231 @@
-Received: from fllvem-ot03.ext.ti.com (fllvem-ot03.ext.ti.com [198.47.19.245])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC1A02F5301;
-	Wed,  2 Jul 2025 16:49:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.19.245
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FB852F50B2;
+	Wed,  2 Jul 2025 17:31:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751475001; cv=none; b=B+wGr2RYP7WxRlPAmn1jVbgh7r8+d4UxrN6IPidmfdBrNBjA8LFZVCMlLjN7EVG2mu0/IedNaUo9tw+SEimo5jWEFCJ3uZe9dkFPVABzjfD5kAf94JiilDGg13gCrP9l6azdfXYWN670WWUYINm5XDA3XsCH77ULNfQ5mTKR9oU=
+	t=1751477484; cv=none; b=h/tkRHVoqbwPqc58nIrrh6BXBNEZrS+68kL/9+VLSHzi+6TfN85wUmyfDR+4/Hnj9ObegTLYTmCxH+YIesJMXdFIT50sq1nW1Lvygm6elOH3d6UosZ2Is7gjxxidT1MvnMsvS+xN1NbxrD6YDpJ/mvtHRoYYSKa60GzmwoSIL5c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751475001; c=relaxed/simple;
-	bh=KCfJ8jhu0SYLV1nBNl7a47jC35wRMQQG4JlHQemj4Ng=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=S9KJWu7C8dWZz9k+wb9GYRGX0fGKLIBrDC+mh4p/+ugTP82qqNPg4TAWUwR1P0yyr8EEWtt8mqkL/+jIRCuTulW0v/PLNYF5RrgR2qm15i3dds1H/8PQ9Vg5FeBGZnytyepEjbPSKF+wtEu4HUkwc+ecpouXtRHk6vhmDRodm0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=OFVq1j/s; arc=none smtp.client-ip=198.47.19.245
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	s=arc-20240116; t=1751477484; c=relaxed/simple;
+	bh=G+orHAF8XOTCINVvtBezAeB2WIZ6YVp5CgWCAcP9hLk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=uF6QGLsRFl5R13s+rzlLAaDlo2aOtN8jg3EOD/QDcyp27Izdpskc+r+nJvs54udysv+t8xuaIVkTXC3bL3oPYB0P2P6U8b3zngGtSWxwv8e8UuQ+lZdJrcvom7mRrRYV9+wdYyfpPpXIfPbgRRkoSzM0JWn8eyDRmzS/kFy6cy0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Clj8hYgu; arc=none smtp.client-ip=209.85.128.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="OFVq1j/s"
-Received: from lelvem-sh02.itg.ti.com ([10.180.78.226])
-	by fllvem-ot03.ext.ti.com (8.15.2/8.15.2) with ESMTP id 562GnRN93653967;
-	Wed, 2 Jul 2025 11:49:27 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1751474967;
-	bh=6voHMaTmzsAIVMby00VUz7wlumfn8xCD0RgkHw8QEaI=;
-	h=From:To:CC:Subject:Date;
-	b=OFVq1j/sM7qelaK5FCuaF0wsJv7WRSCDDhBFbit++l6tzMzGyv8xdP3t8h48JHJlU
-	 8Rm9kyIWquyPb25FXpSPM9+PSEMvDcvN2I+RIEtMsORo2vlNvVYv+c+UosYGLdiRBu
-	 B4uRQkTsObvqq1pd9Ruhr1iM1TRwOf0su49z4KPE=
-Received: from DFLE112.ent.ti.com (dfle112.ent.ti.com [10.64.6.33])
-	by lelvem-sh02.itg.ti.com (8.18.1/8.18.1) with ESMTPS id 562GnRZo1020814
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-SHA256 bits=128 verify=FAIL);
-	Wed, 2 Jul 2025 11:49:27 -0500
-Received: from DFLE102.ent.ti.com (10.64.6.23) by DFLE112.ent.ti.com
- (10.64.6.33) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.55; Wed, 2
- Jul 2025 11:49:27 -0500
-Received: from lelvem-mr05.itg.ti.com (10.180.75.9) by DFLE102.ent.ti.com
- (10.64.6.23) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.55 via
- Frontend Transport; Wed, 2 Jul 2025 11:49:26 -0500
-Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.251])
-	by lelvem-mr05.itg.ti.com (8.18.1/8.18.1) with ESMTP id 562GnQ5L3771376;
-	Wed, 2 Jul 2025 11:49:26 -0500
-From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
-        <rogerq@kernel.org>, <tony@atomide.com>, <linus.walleij@linaro.org>,
-        <brgl@bgdev.pl>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>
-CC: <m-leonard@ti.com>, <praneeth@ti.com>, <jcormier@criticallink.com>
-Subject: [PATCH v5 0/2] Add TI TPS65214 PMIC GPIO Support
-Date: Wed, 2 Jul 2025 11:49:24 -0500
-Message-ID: <20250702164926.2990958-1-s-ramamoorthy@ti.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Clj8hYgu"
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-4538bc52a8dso49250535e9.2;
+        Wed, 02 Jul 2025 10:31:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1751477481; x=1752082281; darn=vger.kernel.org;
+        h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=asF3D2ihOKbd8HNb0tatN9FktDeMCIWfujlxMxgR2Jc=;
+        b=Clj8hYguhUclxeJJ7l/bvzhhEl7o6ktP3A1TZfckAxUerydG9/4c6rjam0DBsxmRiN
+         8cozz+6a9DRnKHAXVsWFhqOi1FF/5EpHic7wBahe8gQ3Sz3aBfwaUh3R7x4h04J3GR40
+         6EfJxDj7BCTtoApGXLHNsFEUL58hSOWfGbhGaBZJWvOOMYLnCI5MuxsgVN1Xu7KJ0iWi
+         bdiVFMfYkFv4Fh6RW0nhi4rqh60jDAhBoUJIx+ZUSHTR+NyiwCGN42HPLZSjyxM2t70M
+         Gg3J7+FgCuNNAW22PzFVh+CxBUPpWLEd7WUGZtgJ1Nud05YV7I+we/OZ1ew/5Uoj+8BS
+         gFSQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1751477481; x=1752082281;
+        h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=asF3D2ihOKbd8HNb0tatN9FktDeMCIWfujlxMxgR2Jc=;
+        b=d7OrW6cT0vCmcmiFHb4PCupiS20e++aOhbv6oDPjdnsvOTgBVJKeeFLmtYhA/rPwW9
+         eQO+uSfDS0h80KZuqwl85qYwQFErspMwvphFNAnC8IaXcyA9pGoDYuexASPbpka3ShqK
+         7I/4WURs5Madb/uXxA198w/U+RBij4UsvUiCoof7Erp2zGJfCvy98mhrTqYIQ1cd95gW
+         lf4SSMAzRzRBxyK7f3bUFSTNYkWWTeWYJ9Orkcm9bOHMPEHSi1g6kDJ/NP60D50uyroj
+         DX91AQDOkhqTvZrCcIG4G0ENLGTSXoqyvaF0g96VE0lPz3YBWsluKR3SZVW+ph+i23eF
+         3IHg==
+X-Forwarded-Encrypted: i=1; AJvYcCV1kjiqy+oMySqjIXmGVTN3tmchhc5YJ2v4hR7RQlpsLGXN0LRQ3Qcq+D3ULdnLKL15w3Hv8cHNroYgv2c=@vger.kernel.org, AJvYcCVfizXybdxFtuANcVwJH4Ksu7+bN3Y19gkMOm6MJlzIntPzI7VbMAyxI2geZw9587nLJtgXREp/yW/zuA==@vger.kernel.org, AJvYcCWyY3pNhwMzbeex6SQ2K2bhIG6tZY5kyYCQ07fqZ7o9EJ91hDs8Wle0xp/EgfDpIo2eAVcLT5QgbnuYB1etCaPMbNg=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwIc+1jBZtzJp/94b6ZCa3qUzSzeTRDJzYlapktzOT98GzaKSck
+	IruZ9f9D5N27yxNpa9lOi6di3oT1ybftTytWhtSdOrhbYw3kju6laLrc
+X-Gm-Gg: ASbGnctDBF/QXKOjl/o+L7Y17KCZJF0uQkXxCCAqn55lOc46Ia9Wreko+z2Sd6jne3+
+	Xn8Jd1qWUR5tHJwpsAiCGax9qbleqwqJlJi7Wt48/sbi1yyiezJKwkppIU13t+CGYJ8ITA0hS4k
+	KNE2KZTizVa0UYwAcQMKRHLOcNF/pYn/ttxD9n5t0JZf4oll420SBRSpN4mdpL7hzqqdLp9taFj
+	PGnbiMvtEHf4rQZiyAKQCU/1AbsN7tb7pS4DpKdZza6r26RTHDAkBKwfH41XvH16bxlql+bAPrE
+	sC4VU1MH0+djClLaLZ5h5WdcPl/Zr4XuTRGuOBPGAg6mVO4YFPYi0giC+Vn/zofGI3Vrh0zOY+/
+	0xG/L0BtsTtlYwT5C4dbrV34MTuvf4DnywEM1zR9vfOLBMg0VyKRO
+X-Google-Smtp-Source: AGHT+IEy0lczmqisRYiq55PfynlMUAy8/Mwfp/b6dz/a8xMr1aLb26ndDyLOvjuXrp6A/iZDlNiYZg==
+X-Received: by 2002:a05:600c:4745:b0:445:49e:796b with SMTP id 5b1f17b1804b1-454a9cc478dmr6992135e9.17.1751477481011;
+        Wed, 02 Jul 2025 10:31:21 -0700 (PDT)
+Received: from dell.localnet (2a01-114f-400e-9dc0-0000-0000-0000-0540.ea.ipv6.supernova.orange.pl. [2a01:114f:400e:9dc0::540])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a892e52ca4sm16687615f8f.58.2025.07.02.10.31.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 02 Jul 2025 10:31:20 -0700 (PDT)
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+To: Linus Walleij <linus.walleij@linaro.org>,
+ Bartosz Golaszewski <brgl@bgdev.pl>, Lee Jones <lee@kernel.org>,
+ Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>,
+ Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>,
+ Alim Akhtar <alim.akhtar@samsung.com>, Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+ patches@opensource.cirrus.com, linux-samsung-soc@vger.kernel.org,
+ Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+Subject:
+ Re: [PATCH RFT v2 4/6] ARM: omap1: ams-delta: use generic device properties
+ for gpio-mmio
+Date: Wed, 02 Jul 2025 19:31:18 +0200
+Message-ID: <12693741.O9o76ZdvQC@dell>
+In-Reply-To: <20250701-gpio-mmio-pdata-v2-4-ebf34d273497@linaro.org>
+References:
+ <20250701-gpio-mmio-pdata-v2-0-ebf34d273497@linaro.org>
+ <20250701-gpio-mmio-pdata-v2-4-ebf34d273497@linaro.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
+Content-Type: multipart/signed; boundary="nextPart5899106.DvuYhMxLoT";
+ micalg="pgp-sha512"; protocol="application/pgp-signature"
 
-The related MFD series was integrated in mainline during 6.15 cycle [0].
+--nextPart5899106.DvuYhMxLoT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"; protected-headers="v1"
+From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Date: Wed, 02 Jul 2025 19:31:18 +0200
+Message-ID: <12693741.O9o76ZdvQC@dell>
+In-Reply-To: <20250701-gpio-mmio-pdata-v2-4-ebf34d273497@linaro.org>
+MIME-Version: 1.0
 
-TPS65214 is a Power Management Integrated Circuit (PMIC) that has 
-significant register map overlap with TPS65219. The series introduces
-TPS65214 and restructures the existing driver to support multiple devices.
+On Tuesday, 1 July 2025 13:49:38 CEST Bartosz Golaszewski wrote:
+> From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
+> 
+> The two latch GPIO devices in ams-delta are registered with struct
+> bgpio_pdata passed as platform_data to the gpio-mmio driver. We want to
+> remove the bgpio_pdata from the kernel and the gpio-mmio driver is now
+> also able to get the relevant values from the software node. Set up
+> device properties and switch to using platform_device_info to register
+> the devices as platform_add_devices() doesn't allow us to pass device
+> properties to the driver model.
+> 
+> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-TPS65215's GPIO specs are the same as TPS65219, so the "tps65219-gpio"
-compatible string is assigned to two devices in the TPS65219 MFD driver.
-No additional support is required in the GPIO driver for TPS65215.
+Acked-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 
-- TPS65214 has 1 GPIO & 1 GPO, whereas TPS65219/TPS65215 both have 1 GPIO &
-  2 GPOs.
-- TPS65214' GPIO direction can be changed with register GENERAL_CONFIG and 
-  bit GPIO_CONFIG during device operation.
-- TPS65219's MULTI_DEVICE_ENABLE bit in register MFP_1_CFG maps to
-  TPS65214's GPIO_VSEL_CONFIG bit.
+> ---
+>  arch/arm/mach-omap1/board-ams-delta.c | 42 +++++++++++++++++------------------
+>  1 file changed, 20 insertions(+), 22 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+> index 0daf6c5b5c1cbcfd5bd15203cad119d39aa95f19..16392720296cd224732450c85419c35bbab506f6 100644
+> --- a/arch/arm/mach-omap1/board-ams-delta.c
+> +++ b/arch/arm/mach-omap1/board-ams-delta.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/mtd/nand-gpio.h>
+>  #include <linux/mtd/partitions.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/property.h>
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/regulator/fixed.h>
+>  #include <linux/regulator/machine.h>
+> @@ -175,20 +176,18 @@ static struct resource latch1_resources[] = {
+>  
+>  #define LATCH1_LABEL	"latch1"
+>  
+> -static struct bgpio_pdata latch1_pdata = {
+> -	.label	= LATCH1_LABEL,
+> -	.base	= -1,
+> -	.ngpio	= LATCH1_NGPIO,
+> +static const struct property_entry latch1_gpio_props[] = {
+> +	PROPERTY_ENTRY_STRING("label", LATCH1_LABEL),
+> +	PROPERTY_ENTRY_U32("ngpios", LATCH1_NGPIO),
+> +	{ }
+>  };
+>  
+> -static struct platform_device latch1_gpio_device = {
+> +static const struct platform_device_info latch1_gpio_devinfo = {
+>  	.name		= "basic-mmio-gpio",
+>  	.id		= 0,
+> -	.resource	= latch1_resources,
+> -	.num_resources	= ARRAY_SIZE(latch1_resources),
+> -	.dev		= {
+> -		.platform_data	= &latch1_pdata,
+> -	},
+> +	.res		= latch1_resources,
+> +	.num_res	= ARRAY_SIZE(latch1_resources),
+> +	.properties	= latch1_gpio_props,
+>  };
+>  
+>  #define LATCH1_PIN_LED_CAMERA		0
+> @@ -213,20 +212,18 @@ static struct resource latch2_resources[] = {
+>  
+>  #define LATCH2_LABEL	"latch2"
+>  
+> -static struct bgpio_pdata latch2_pdata = {
+> -	.label	= LATCH2_LABEL,
+> -	.base	= -1,
+> -	.ngpio	= LATCH2_NGPIO,
+> +static const struct property_entry latch2_gpio_props[] = {
+> +	PROPERTY_ENTRY_STRING("label", LATCH2_LABEL),
+> +	PROPERTY_ENTRY_U32("ngpios", LATCH2_NGPIO),
+> +	{ }
+>  };
+>  
+> -static struct platform_device latch2_gpio_device = {
+> +static struct platform_device_info latch2_gpio_devinfo = {
+>  	.name		= "basic-mmio-gpio",
+>  	.id		= 1,
+> -	.resource	= latch2_resources,
+> -	.num_resources	= ARRAY_SIZE(latch2_resources),
+> -	.dev		= {
+> -		.platform_data	= &latch2_pdata,
+> -	},
+> +	.res		= latch2_resources,
+> +	.num_res	= ARRAY_SIZE(latch2_resources),
+> +	.properties	= latch2_gpio_props,
+>  };
+>  
+>  #define LATCH2_PIN_LCD_VBLEN		0
+> @@ -542,8 +539,6 @@ static struct gpiod_lookup_table keybrd_pwr_gpio_table = {
+>  };
+>  
+>  static struct platform_device *ams_delta_devices[] __initdata = {
+> -	&latch1_gpio_device,
+> -	&latch2_gpio_device,
+>  	&ams_delta_kp_device,
+>  	&ams_delta_audio_device,
+>  	&ams_delta_serio_device,
+> @@ -697,6 +692,9 @@ static void __init ams_delta_init(void)
+>  	omap1_usb_init(&ams_delta_usb_config);
+>  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
+>  
+> +	platform_device_register_full(&latch1_gpio_devinfo);
+> +	platform_device_register_full(&latch2_gpio_devinfo);
+> +
+>  	/*
+>  	 * As soon as regulator consumers have been registered, assign their
+>  	 * dev_names to consumer supply entries of respective regulators.
+> 
+> 
 
-TPS65214 Datasheet: https://www.ti.com/lit/gpn/TPS65214
-TPS65214 TRM: https://www.ti.com/lit/pdf/slvud30
-TPS65215 TRM: https://www.ti.com/lit/pdf/slvucw5/
 
-Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-Tested-by: Jonathan Cormier <jcormier@criticallink.com>
----
-Change Log:
-v4 -> v5:
-- Consolidate from 3 to 2 patches
-- Add specific TPS65215 info to Patch 1 comments + commit message
-- Remove chip_data struct
-- Add separate dev-specific template_chip structs
-- Add dev-specific change_direction functions + assignment in probe
-- Add PMIC GPIO mapping explanation in comments for future users
-- Add TPS65214 GPIO0 direction mask macro
-- Rename _GPIO0_OFFSET in patch 1, in addition to _IDX macro
-- Update cover letter + add TPS65214 datasheet link
-v3 -> v4:
-- Update cover letter
-- Rebase for 6.16 cycle
-v2 -> v3:
-- Correct gpio_chip.ngpio line to use .offset field
-- Remove unnecessary newlines
-v1 -> v2:
-- have any PMIC lists be in alpha-numeric order: TPS65215, then TPS65219
-- remove comma after terminator
-- Add driver prefix to chip_data struct
----
-[0]: https://lore.kernel.org/all/173928615760.2233464.12306998726512431222.b4-ty@kernel.org/
+--nextPart5899106.DvuYhMxLoT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
-Shree Ramamoorthy (2):
-  gpio: tps65219: Update _IDX & _OFFSET macro prefix
-  gpio: tps65219: Add support for TI TPS65214 PMIC
+-----BEGIN PGP SIGNATURE-----
 
- drivers/gpio/gpio-tps65219.c | 116 ++++++++++++++++++++++++++++++-----
- 1 file changed, 102 insertions(+), 14 deletions(-)
+iQEzBAABCgAdFiEEnyr6IsGnTYAeAkHJ2WqSnltsjBoFAmhlbOYACgkQ2WqSnlts
+jBqrFAf8Dn8vIXOgPM71DorIvYxA2dblFx/ioM03kGPEIyBdo9u5oreR8gnbeJ0M
+6nL5gblHZVjt8w24qn5cS+Y2CE1hERe9+2H27nbeBUt8jR1i+oH6lMNWTxEqcARB
+a6t639w3mfDggBfB6ylR/Figq2vACpInNkOMATa0czpIlHks8j/hg4we3HM7ikv/
+i8+Yq5lBagufNyl4T2qtAMyR7TLvYommOqsIDJgXd5WwknQSs8doQtQUKjPh9+DF
+MBYbY8jYcv6s9LeaUAjbRCXriJm6ja36+fayWHxmrHXdOZyXYxFfrUp3y9JrEZZO
+ej3300qSjoZkFgKR/vnA4rJxJP6m6w==
+=taj6
+-----END PGP SIGNATURE-----
 
--- 
-2.43.0
+--nextPart5899106.DvuYhMxLoT--
+
+
 
