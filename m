@@ -1,128 +1,149 @@
-Received: from lelvem-ot02.ext.ti.com (lelvem-ot02.ext.ti.com [198.47.23.235])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp.smtpout.orange.fr (smtp-81.smtpout.orange.fr [80.12.242.81])
+	(using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 466132F237D;
-	Thu,  3 Jul 2025 18:08:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.47.23.235
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABA5B2F2347;
+	Thu,  3 Jul 2025 19:15:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.12.242.81
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751566101; cv=none; b=Z0F7kkUeL1G8kUqMHyrBLB0LaY6o+KvyHaN1bDU6dgXNT4ytvpykKKiNu3XcwRcPefyTVgVlTDvCx6aTNT90JeprVbqAGacwhnjvlgAkOiluYXU4yGE/hIlFBl/y19dNg7jxT1HQztYIL0LSnyfWInQRtpwflUeeXMUX9lNOq7c=
+	t=1751570108; cv=none; b=QldXQG7cldBSChFgfuAeetA+kf7vRvJdERXYCrt82PGfi6G3m6bBoTawXRaj1PjSwOBV1ckBI4PYPQas7XR3U2aOVQrWOsnMctEiULi/MvBu85dGfOWMQb4159573j2ILo7svh/xykTG93xjb5yS1D7tDSgylfKym9DF5h5kw7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751566101; c=relaxed/simple;
-	bh=OGdQzz0Ql7Ced8soI21jKDTpXtYlMHaow49D34sd8S4=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=oUyCIvuDbmtMrLrABhGyrGil6jITkOYaOyGjINF3vn58BW3kD0LkQ9okuaDwh59yRQKitIog6G8g8WbM4OnRZSWQWHel/Wj7K1/3vk4kxJSwXZw8CwYM2uU6VaGvjW3CrinOB183TFPLI+cYgiMN49CeBGvvQsq0lh9AZtJieQ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=JtWKo/3q; arc=none smtp.client-ip=198.47.23.235
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	s=arc-20240116; t=1751570108; c=relaxed/simple;
+	bh=quFgesJQX765rdt1fi6yptGzSszZVEQ2BE38W+7Yywk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=LRdQT+Uwt9HSPGLGyRq/V+XuhewYQyCrABRGuwpUHDj02S/uYb0+DnvEuAsaOm5gsOjOVSJE4LVkoFxBFrUGWunKxVGd/fdAl4ObF4sVrBKjsdNMPObss1KoE1n/E2XWpFiNGVtH0gtf2r9N6ugVRr1rYuxFbh1ecFqo/47ble4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr; spf=pass smtp.mailfrom=wanadoo.fr; dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b=aLJoApOJ; arc=none smtp.client-ip=80.12.242.81
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wanadoo.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="JtWKo/3q"
-Received: from lelvem-sh02.itg.ti.com ([10.180.78.226])
-	by lelvem-ot02.ext.ti.com (8.15.2/8.15.2) with ESMTP id 563I7qkB092672;
-	Thu, 3 Jul 2025 13:07:52 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-	s=ti-com-17Q1; t=1751566072;
-	bh=O2q8sDna3QeoqtlHA/NutH3i3qaVWfP8mztO9wauG8M=;
-	h=From:To:CC:Subject:Date;
-	b=JtWKo/3qLW2dnzCjCS044N5znnDw7uW4mziW4x6xpeDgeVUnYLmcK0a1pfj1uoljY
-	 NRdTCcArlv7LZWoIeCa6SeFh4RR2AbuHqwJvPb/hgn6oJDweoM05cQjf5ZyeUVNH2W
-	 PhA8PDgUlMk0nKD4G/fC1sb/AO8903Uksa+U3hh4=
-Received: from DFLE109.ent.ti.com (dfle109.ent.ti.com [10.64.6.30])
-	by lelvem-sh02.itg.ti.com (8.18.1/8.18.1) with ESMTPS id 563I7qZ72065814
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-SHA256 bits=128 verify=FAIL);
-	Thu, 3 Jul 2025 13:07:52 -0500
-Received: from DFLE107.ent.ti.com (10.64.6.28) by DFLE109.ent.ti.com
- (10.64.6.30) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.55; Thu, 3
- Jul 2025 13:07:51 -0500
-Received: from lelvem-mr05.itg.ti.com (10.180.75.9) by DFLE107.ent.ti.com
- (10.64.6.28) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2507.55 via
- Frontend Transport; Thu, 3 Jul 2025 13:07:51 -0500
-Received: from DMZ007XYY.dhcp.ti.com (dmz007xyy.dhcp.ti.com [128.247.29.251])
-	by lelvem-mr05.itg.ti.com (8.18.1/8.18.1) with ESMTP id 563I7pSc1546973;
-	Thu, 3 Jul 2025 13:07:51 -0500
-From: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-To: <aaro.koskinen@iki.fi>, <andreas@kemnade.info>, <khilman@baylibre.com>,
-        <rogerq@kernel.org>, <tony@atomide.com>, <linus.walleij@linaro.org>,
-        <brgl@bgdev.pl>, <linux-omap@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>
-CC: <m-leonard@ti.com>, <praneeth@ti.com>, <jcormier@criticallink.com>
-Subject: [PATCH v6 0/2] Add TI TPS65214 PMIC GPIO Support
-Date: Thu, 3 Jul 2025 13:07:49 -0500
-Message-ID: <20250703180751.168755-1-s-ramamoorthy@ti.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b="aLJoApOJ"
+Received: from [IPV6:2a01:cb10:785:b00:8347:f260:7456:7662]
+ ([IPv6:2a01:cb10:785:b00:8347:f260:7456:7662])
+	by smtp.orange.fr with ESMTPA
+	id XPFcu2Q1bTY5mXPFcuUi59; Thu, 03 Jul 2025 21:05:42 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
+	s=t20230301; t=1751569542;
+	bh=T8p3xjVqVI/tRIrpOi6EWSLUaRRZHSg1oPB+NKQ4tT4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:From;
+	b=aLJoApOJfC6omuYxSn1+vmUuNYrypDQEEoM3f0OWfzxsEmISQXjGij2N/4M/lTk0Q
+	 ao6hbI0J8bKuSOPE5uugku/f2A0kkYpCKLoNGs9h16IQP5nBFrpM5JiICj3cG3cvM1
+	 iDf1ayrJfEl2uUf1nXDei44tw2J6mN6znK1izNLqzvQ5qv9arDZT9ot7GMWHHRqwlf
+	 CuxtpEc9CLimno2lpDsfnfnmpqjJDnpkDyFZZdaP4iApk+DDjJUEfmBRr6b7MY0zEc
+	 iONE+jOJ8VKAE2RmDD7OfcXl1MzjwS81N5R0M3ARiXTypkO0hIHFG0Y9jGvMEmaRap
+	 XrC8SDkAA+u6g==
+X-ME-Helo: [IPV6:2a01:cb10:785:b00:8347:f260:7456:7662]
+X-ME-Auth: bWFyaW9uLmphaWxsZXRAd2FuYWRvby5mcg==
+X-ME-Date: Thu, 03 Jul 2025 21:05:42 +0200
+X-ME-IP: 2a01:cb10:785:b00:8347:f260:7456:7662
+Message-ID: <780d9307-4c47-4772-b527-bfd94486b931@wanadoo.fr>
+Date: Thu, 3 Jul 2025 21:05:40 +0200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 2/2] gpio: tps65219: Add support for TI TPS65214 PMIC
+To: Shree Ramamoorthy <s-ramamoorthy@ti.com>, aaro.koskinen@iki.fi,
+ andreas@kemnade.info, khilman@baylibre.com, rogerq@kernel.org,
+ tony@atomide.com, linus.walleij@linaro.org, brgl@bgdev.pl,
+ linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-gpio@vger.kernel.org
+Cc: m-leonard@ti.com, praneeth@ti.com, jcormier@criticallink.com
+References: <20250703180751.168755-1-s-ramamoorthy@ti.com>
+ <20250703180751.168755-3-s-ramamoorthy@ti.com>
+Content-Language: en-US, fr-FR
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+In-Reply-To: <20250703180751.168755-3-s-ramamoorthy@ti.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
 
-The related MFD series was integrated in mainline during 6.15 cycle [0].
+Le 03/07/2025 à 20:07, Shree Ramamoorthy a écrit :
+> Add support for the TI TPS65214 PMIC with the addition of an id_table,
+> separate TPS65214 template_chip, and device-specific _change_direction
+> functions.
+> 
+> - Use platform_get_device_id() to assign dev-specific information.
+> - Use different change_direction() functions since TPS65214's GPIO
+>    configuration bits are changeable during device operation through bit
+>    GPIO_CONFIG in GENERAL_CONFIG register.
+> - Remove MODULE_ALIAS since it is now generated by MODULE_DEVICE_TABLE.
+> 
+> Reviewed-by: Jonathan Cormier <jcormier@criticallink.com>
+> Tested-by: Jonathan Cormier <jcormier@criticallink.com>
+> Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
+> ---
 
-TPS65214 is a Power Management Integrated Circuit (PMIC) that has 
-significant register map overlap with TPS65219. The series introduces
-TPS65214 and restructures the existing driver to support multiple devices.
+...
 
-TPS65215's GPIO specs are the same as TPS65219, so the "tps65219-gpio"
-compatible string is assigned to two devices in the TPS65219 MFD driver.
-No additional support is required in the GPIO driver for TPS65215.
+> +static int tps65214_gpio_change_direction(struct gpio_chip *gc, unsigned int offset,
+> +					  unsigned int direction)
+> +{
+> +	struct tps65219_gpio *gpio = gpiochip_get_data(gc);
+> +	struct device *dev = gpio->tps->dev;
+> +	int val, ret;
+> +
+> +	/* Verified if GPIO or GPO in parent function
 
-- TPS65214 has 1 GPIO & 1 GPO, whereas TPS65219/TPS65215 both have 1 GPIO &
-  2 GPOs.
-- TPS65214' GPIO direction can be changed with register GENERAL_CONFIG and 
-  bit GPIO_CONFIG during device operation.
-- TPS65219's MULTI_DEVICE_ENABLE bit in register MFP_1_CFG maps to
-  TPS65214's GPIO_VSEL_CONFIG bit.
+Nitpick: should the /* be on a separate line?
 
-TPS65214 Datasheet: https://www.ti.com/lit/gpn/TPS65214
-TPS65214 TRM: https://www.ti.com/lit/pdf/slvud30
-TPS65215 TRM: https://www.ti.com/lit/pdf/slvucw5/
+> +	 * Masked value: 0 = GPIO, 1 = VSEL
+> +	 */
+> +	ret = regmap_read(gpio->tps->regmap, TPS65219_REG_MFP_1_CONFIG, &val);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = !!(val & BIT(TPS65219_GPIO0_DIR_MASK));
+> +	if (ret)
+> +		dev_err(dev, "GPIO%d configured as VSEL, not GPIO\n", offset);
+> +
+> +	ret = regmap_update_bits(gpio->tps->regmap, TPS65219_REG_GENERAL_CONFIG,
+> +				 TPS65214_GPIO0_DIR_MASK, direction);
+> +	if (ret)
+> +		dev_err(dev,
+> +			"Fail to change direction to %u for GPIO%d.\n",
 
-Tested on Jon Cormier's AM62x platform with TPS65219.
-GPIO offsets remained consistent and functional.
+Nitpick: keep it on the previous line?
 
-Signed-off-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-Tested-by: Jonathan Cormier <jcormier@criticallink.com>
----
-Change Log:
-v5 -> v6:
-- Add Jon Cormier Reviewed-by and Tested-by tags
-- Add test info from Jon C. to cover letter
-- Change copyright to include 2022 & 2025
-- Use set_rv() variant instead of deprecated set()
-v4 -> v5:
-- Consolidate from 3 to 2 patches
-- Add specific TPS65215 info to Patch 1 comments + commit message
-- Remove chip_data struct
-- Add separate dev-specific template_chip structs
-- Add dev-specific change_direction functions + assignment in probe
-- Add PMIC GPIO mapping explanation in comments for future users
-- Add TPS65214 GPIO0 direction mask macro
-- Rename _GPIO0_OFFSET in patch 1, in addition to _IDX macro
-- Update cover letter + add TPS65214 datasheet link
-v3 -> v4:
-- Update cover letter
-- Rebase for 6.16 cycle
-v2 -> v3:
-- Correct gpio_chip.ngpio line to use .offset field
-- Remove unnecessary newlines
-v1 -> v2:
-- have any PMIC lists be in alpha-numeric order: TPS65215, then TPS65219
-- remove comma after terminator
-- Add driver prefix to chip_data struct
----
-[0]: https://lore.kernel.org/all/173928615760.2233464.12306998726512431222.b4-ty@kernel.org/
+> +			direction, offset);
+> +
+> +	return ret;
+> +}
 
-Shree Ramamoorthy (2):
-  gpio: tps65219: Update _IDX & _OFFSET macro prefix
-  gpio: tps65219: Add support for TI TPS65214 PMIC
+...
 
- drivers/gpio/gpio-tps65219.c | 118 ++++++++++++++++++++++++++++++-----
- 1 file changed, 103 insertions(+), 15 deletions(-)
+> +static const struct gpio_chip tps65214_template_chip = {
+> +	.label			= "tps65214-gpio",
+> +	.owner			= THIS_MODULE,
+> +	.get_direction		= tps65214_gpio_get_direction,
+> +	.direction_input	= tps65219_gpio_direction_input,
+> +	.direction_output	= tps65219_gpio_direction_output,
+> +	.get			= tps65219_gpio_get,
+> +	.set_rv			= tps65219_gpio_set,
+> +	.base			= -1,
+> +	.ngpio			= 2,
+> +	.can_sleep		= true,
+> +};
+> +
+>   static const struct gpio_chip tps65219_template_chip = {
+>   	.label			= "tps65219-gpio",
+>   	.owner			= THIS_MODULE,
+> @@ -154,7 +218,7 @@ static const struct gpio_chip tps65219_template_chip = {
+>   	.direction_input	= tps65219_gpio_direction_input,
+>   	.direction_output	= tps65219_gpio_direction_output,
+>   	.get			= tps65219_gpio_get,
+> -	.set			= tps65219_gpio_set,
+> +	.set_rv			= tps65219_gpio_set,
 
--- 
-2.43.0
+Is this correct? Does it even compile?
+tps65219_gpio_set() returns void and .set_rv() expects a return value.
 
+(same for tps65214_template_chip above)
+
+>   	.base			= -1,
+>   	.ngpio			= 3,
+>   	.can_sleep		= true,
+
+...
+
+CJ
