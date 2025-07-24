@@ -1,67 +1,66 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com [209.85.221.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF9F9288C08
-	for <linux-omap@vger.kernel.org>; Thu, 24 Jul 2025 09:24:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB0B428982B
+	for <linux-omap@vger.kernel.org>; Thu, 24 Jul 2025 09:24:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753349097; cv=none; b=LAVYrDi3YinwKNRs++GdaRyDEs/rWzepY77IIcts7Mhh4TOSsXpkxYKpnb7nsWIH3C8OJneAC3wxQqIu4l1OSIKAbfz/h5GuCppjeACwgVjIjeWmpTKUXgNXaqa8duuxo0k6gE5Rs7Y0GeLWPpHOOV9o3H4gt3DhJJdL5GcfMc8=
+	t=1753349099; cv=none; b=NRT0C77vhhnvcjYOrzNi9GiqkNkvXMXAUkFMqvBbBS+4FdgYIuNrzC+vTeTp095yosD3H9hx0EFvQCZFcsiC1TEnK2Nw7gDwh4qJXlwbxpP+D7QRnkL0YZuTusTlPNOtGFYAUmcT6vbezlqncoo7eCDC6kqTSp3R1IDpJEnCRNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753349097; c=relaxed/simple;
-	bh=ZO1T9QN1h+Wgwad+qSu78n1uErb90oMrPBIjzdSmsuw=;
+	s=arc-20240116; t=1753349099; c=relaxed/simple;
+	bh=o/GDReFc2l9+kmEYcm38SG7LKI7RET0TZbpaNrfM9Bw=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=mIk3/TbcZJDc0gTJ7XLv9IWIvHPAgp6zR3OQxYz9TgLif0fNf3tO2QlzXG0fK/ftC/nouuaghKN9fyZmXBPs5h/QjtJovQwAeI4QrxjX1KPkydrDOtwHQn123RB53MOP/RFlRJXTc0Li/5djZyOJlbT0X8tJkI2SNOPYHCBOYxU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=v6utmDc2; arc=none smtp.client-ip=209.85.128.53
+	 In-Reply-To:To:Cc; b=ugX9O/YSKvw7ADQ3reaxyb3jkomEv5IlTW63iJFB2b0xlDSXa8HrYg0T/oipGNFqLEtwCywZBLv697p4GQAmNOyWOK8D54+lMU+A8KQOcTxisNRBUy+Fvh7EdTeLdWCd0YFMKeUKefX1HuwfJMeQPcOy7+ut12jSI6EQiEwF1HM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl; spf=none smtp.mailfrom=bgdev.pl; dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b=X8pazkVM; arc=none smtp.client-ip=209.85.221.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=bgdev.pl
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bgdev.pl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="v6utmDc2"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-4560d176f97so7991205e9.0
-        for <linux-omap@vger.kernel.org>; Thu, 24 Jul 2025 02:24:53 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bgdev-pl.20230601.gappssmtp.com header.i=@bgdev-pl.20230601.gappssmtp.com header.b="X8pazkVM"
+Received: by mail-wr1-f53.google.com with SMTP id ffacd0b85a97d-3a503d9ef59so474066f8f.3
+        for <linux-omap@vger.kernel.org>; Thu, 24 Jul 2025 02:24:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1753349091; x=1753953891; darn=vger.kernel.org;
+        d=bgdev-pl.20230601.gappssmtp.com; s=20230601; t=1753349094; x=1753953894; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=/MsMdfp1xLANBZ9zZyNzSawqjnpLS694AVKVdRY29N0=;
-        b=v6utmDc2IzcH3wmXx5kXNnAc2iq7MaxTM1R85Fz/zC8bMoF3tGq1w3Mnxjn2z1BNoo
-         Cxs1E5HXVy4EWRb61wOXqz1vi4j7mK3y7dJzKEj9DxVSXfA99+A1+SntP/aDM8kSF1Z/
-         atY0p3Q45DUafuDwn0HGWli+iGW5m6e0ASDwrP7/upao4913GuolFXkuplLoi0lYu63u
-         iccuiDnee42I1WZRWnsrV6jIJhKt94Q6UZEO6XV7XaP8bV2BG3DEmnkBpPlnLFnb2peU
-         KbRTfFUOuji1eNCXAjgmFdGrbJ8SldszA75sRsL/Quv+6KiOKRffAHZSen0i0GxN53no
-         wctQ==
+        bh=r5jy7FMB17gdI668HN3JzGKzFglxpgJCNGVffipaOyw=;
+        b=X8pazkVMx166KSnXjNj1q6P9VnkH/9UcuA7EAv0SW9tUfJurlYycS9Bpi3BBMugYrF
+         YHSSJ8ibeuAPZ061BzaT3dUUsBNOGVXdyvMBUT9t9EFuMAUhT5uxc+qX73TzUvqzKJQa
+         lCz4902RzzGW+b3WRqv40iRYDFoDqiM/hm6Ykv121nFT+iRftll3DN7SfXo9a+OpV0Iy
+         ub2MctLabGb9jQBXI+I6OL8qvZpJGky7mN0LtlRTmLL5zGnRqbK2y190c3LyX+FS2kLg
+         wfB17y2wrNmNpIBGVxECPaGv/5lvgLRkKGQNj4WGYR2L2mc0m7O8P4VuzZTni4cBREOy
+         1fYw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1753349091; x=1753953891;
+        d=1e100.net; s=20230601; t=1753349094; x=1753953894;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=/MsMdfp1xLANBZ9zZyNzSawqjnpLS694AVKVdRY29N0=;
-        b=ew3GCb6jiyVp0Jj4XuTf48GCJq9mI7yJeHw2dZMLrubuULf1qABDesNRrVgkASaLiS
-         zhXeklI9cWDNJ/KAzsMfqiQjm7N7Hg5k2vDcg25kaL8TskZINFnKuM1S9F9X8y0M7P9H
-         pLKLxaQ0+UEZ+QpxDt6djenbw/i9op0fHm6CD2pOXSFuXwnA1SUU281+gB1ETndJr5js
-         SzKsk9Egw6rEq7Dmvf6yOgf2YwXWOD89IFvaoFgZhAIcoF2Z8ok4tbjw31qxMsrl9Ezj
-         JTBgkl/FikcZuhihK0QRLqb9rtX61uQMkCrhIErEi2Vz4A26FsOi7bZQHkKYCogPoHU/
-         oRig==
-X-Forwarded-Encrypted: i=1; AJvYcCUUPtbTqGmgg5qqa/WIux3PJk6sqQNjQasfrc3b1puqYlkBdXLcgQovr7NqMCkZZvsUr1//4eUdFc39@vger.kernel.org
-X-Gm-Message-State: AOJu0YyjFoZoRwe0EPS+9ST6D0lN7EuSMcdGMAuLpPE7OqD+zC2qO0KC
-	6wQzPOGTuolxk73RAW4BjLPLDtN+KTtj42pV0NB8fTkFVBirQG7HF6sKxNfeu47EQfg=
-X-Gm-Gg: ASbGncu5T09CML9ZdoSnfaLTdiEWSy9spANyeiBJuh4+HaoIKi9UHdNtkcjRcFwODVX
-	b9Zbd601zvd/b+Vk6JqOWapim13e3GIkMi0Zex4JSF7p6qEiFIQ/cBZmw5oLmM+yOwRhqByiubV
-	/QiNcOYzMpFHp5LfnsUyt4FTtIsGDMr1qXJNCnUzT8/Z3xZPlx8om7u4OElkPh+lKgZaQ7bmE8x
-	miCkxZVZpkUVHqjBjKmuAKFzy+qQwYVQFyz2Q7nOftVEEmdbWRCpAai0DMMSTcDyJBkmZPwIq25
-	BWMLM+DgcMNFzGVpCCaWhEGst6Dx543PWBds4xEMM0iF6HeaokdsN7b/umj39tO6GaOdaBYWIQW
-	OwygqJ6aX6oUTnqbu
-X-Google-Smtp-Source: AGHT+IHqZ4KWF33bsWYC2NW13yLlFkOEfEwZMRqVsz0fuagNkHT/q0mO1E6+Gg7Jfa3lxSFmodfKew==
-X-Received: by 2002:a05:600c:35ca:b0:453:81a:2f3f with SMTP id 5b1f17b1804b1-45868d4f48bmr61519195e9.30.1753349090293;
-        Thu, 24 Jul 2025 02:24:50 -0700 (PDT)
+        bh=r5jy7FMB17gdI668HN3JzGKzFglxpgJCNGVffipaOyw=;
+        b=SFd8CL1HJUgQ9Rt8k+Ynb6jeVarvyRnJpBwKFshZVEwGEbC+CBazSc0KIbsmKFrrsl
+         eDybeel0oriOZlhrdUxJhJrxg1hF2vkc6zEfG7Q7yh3ivwmSnjikxnv8HOmKjH2EIrxF
+         TdRPVLT+c0I+Vk9lqfXxBYYsl/D1KtzbRmxTqH0cH3iiCVglcdptDj0AABVxHeygkxJF
+         Vsd3dQe6xuP30hlX96Mz3W07WSbLbek3Bmkl3zwRODsOGs/u4m9PpWp7YT1Cw0sdiW/N
+         HabWgPx2l9QTJfq1e1JPDAX4kqFGgld9bN4+f5aohi9+zgPWRxd3fu77hZgxUr9M37YV
+         uzow==
+X-Forwarded-Encrypted: i=1; AJvYcCVBSbXo978hUVE0M5hOVa+3jyZUf82EKHUErjAovgnvHjI7ZZ+V5EP6QNVC+b0GmSs7XPBAO/Dt5oN+@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywfgwsdr9B/s3p4eop5KxnHto+wJ6BsqRyp7OMDL3THtC0iNnxy
+	Kc9p/e3KRwFZj64fySACT7Vi9ZaHDz5J8QTrlzCBg0GTj19G1ItPPyuYvmLFKEbTQSQ=
+X-Gm-Gg: ASbGncsNfLZuKfv9djhceLSHXbO9DM90+/PkyAReZNG3xMkjDZm51+JeIAgTfJDj2qz
+	LT7/eJP5M8UxN/ZWKTZLS+KnuwvAHbwhEI8V+UbrZdT5FW/r/96rNOdd3q5fF1b3N7c32KFU6ov
+	wBfqrlML5HFxnwq55zxsaw5BQrEfIFW+U20oNkqjoBf9g9VYlOUa/bu366p1LG7WEoKGVMourFh
+	rHK54wJGbnRmiUXGfhxKyZHXFNBckiQxocPr9rG1Pld/bmQN+KUd0/qXGSc6Ko6URwnJgLN9nst
+	da3pJwwIzc8yX7S+SM2+sHrJGD3XJTNDWcxPkyJjGD1MxCkM7fKSkZPyVwa+tC244APc1ohDHUv
+	TzxsLQwXfGPlnpdr/
+X-Google-Smtp-Source: AGHT+IGhJyfvevuUxn7Mrz2g9JStwnKUJxidvVF1fFEfB5OFiSESNaULbrUyB//k2IPHfmXTYRwMsA==
+X-Received: by 2002:a05:6000:381:b0:3b6:1174:a963 with SMTP id ffacd0b85a97d-3b768ef9875mr4641790f8f.25.1753349093605;
+        Thu, 24 Jul 2025 02:24:53 -0700 (PDT)
 Received: from [127.0.1.1] ([2a01:cb1d:dc:7e00:f44c:20db:7ada:b556])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3b76fc72548sm1600833f8f.30.2025.07.24.02.24.48
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3b76fc72548sm1600833f8f.30.2025.07.24.02.24.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 24 Jul 2025 02:24:49 -0700 (PDT)
+        Thu, 24 Jul 2025 02:24:53 -0700 (PDT)
 From: Bartosz Golaszewski <brgl@bgdev.pl>
-Date: Thu, 24 Jul 2025 11:24:35 +0200
-Subject: [PATCH v3 07/15] pinctrl: keembay: release allocated memory in
- detach path
+Date: Thu, 24 Jul 2025 11:24:37 +0200
+Subject: [PATCH v3 09/15] pinctrl: constify pinmux_generic_get_function()
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -70,7 +69,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250724-pinctrl-gpio-pinfuncs-v3-7-af4db9302de4@linaro.org>
+Message-Id: <20250724-pinctrl-gpio-pinfuncs-v3-9-af4db9302de4@linaro.org>
 References: <20250724-pinctrl-gpio-pinfuncs-v3-0-af4db9302de4@linaro.org>
 In-Reply-To: <20250724-pinctrl-gpio-pinfuncs-v3-0-af4db9302de4@linaro.org>
 To: Linus Walleij <linus.walleij@linaro.org>, 
@@ -102,65 +101,229 @@ Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
  Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1780;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=9514;
  i=bartosz.golaszewski@linaro.org; h=from:subject:message-id;
- bh=LKTpseRfAo7ye04iddOGWjUFjvvauRYDbdYlMpOMyLY=;
- b=owEBbQKS/ZANAwAKARGnLqAUcddyAcsmYgBogfvSbjubxQ38F8ud5iCpNZ72Jm7IAoCj4lWgs
- 6LniCl93ieJAjMEAAEKAB0WIQQWnetsC8PEYBPSx58Rpy6gFHHXcgUCaIH70gAKCRARpy6gFHHX
- ch2CEADZjtdeLp35/fl14l9PQNJfmIbBfcUfYvyfA8t1LHfkmxLnRbErjq5eCVle+l5pe5R1BIn
- +X7gAAsSmm4v45lpL1ifrTXzAR7JcqsNbP0LtwqYSS4T7QPIPf7CtoZVhbHNjtKwLxhGF3P2JUT
- AdjounHFm3XKuKN29lK8QJ+FG0/OLUKPNc9HitRMm3XzO2nU8ilJ70+JnwJQZflutclz3OSvBxw
- WqkTLsIrsAiQB2n5Qpl5NDbIKMakIsw2cCfwyDfVPgUM9DTEbj8g9OjCakwq20up2vaVR2NwSvC
- ZUtq3k8Y6wWhqFR27KGwVPwfv8HIaqFEGGne/Tgpdz9o2yYU43x2jurLX0I7211S+r4oMERgXum
- fFMpJLG5QrteGGsb5MWK59iQtPyEgVfHlIaQ3KQbLi/DdqbqrMSorxafyVr+zb0dThp5gxoicfu
- h117nhV3u3ekRyFApUHBpQfA+qfmNBltfqn+M40vyVVFXVOa2tESEAtfwLmSloO/dbveOYt8RLI
- Bj1dwxB84ZzCL2A3uU8R8UZwWHLaGeHi7RG+LKGo5qu/P+loVUEwBcx+DPiWi1wI2VU1bscLdUr
- 2Q5DBSjVjYTXTfG4AJcen4wRUeC4rTi2BsDO70f2fHyhfmt1IEfYz/A322grH6bledRd46/o8vI
- JGEI+5r6wD3CF8Q==
+ bh=yj2Q1L9K6NJejTGGHJrC2G9OmfqlDfNvhlOKP1yyE00=;
+ b=owEBbQKS/ZANAwAKARGnLqAUcddyAcsmYgBogfvTsC7nn58PRvz4VUiW5tswdqoIPkDAp4Ori
+ PIKeY75H1yJAjMEAAEKAB0WIQQWnetsC8PEYBPSx58Rpy6gFHHXcgUCaIH70wAKCRARpy6gFHHX
+ cqvhEACyUjForSjjcAir5Ga8pMJHaD+7dEFbCseHcndvNXKJFmjmLJwjrLZbY/IiZ9SkwNi2QVY
+ QX1DT2gKNoREOw+v+55IGlaX/uDRHLCGFXzMGwRicTnLxyvBLSqzhxBplo6jVwizCMDnlH1joUp
+ vVd3eVgKQoscn+KB6xsPUFD+cT/+ZEqYXHUZvKEtG8jZgSdrSMT91l9n1JoxHX9w93AZnjAyj4U
+ c3JgSbb1P/+L4h50rrig3zmLFMuvDgXWbwN8bgua/tT1Fojdbhv6DLRMs+2+Xsh5uDaWsf54ckX
+ BXuKlGwYB1Mm1Y+PJfbS8IZ3MvHm0MQ+ciVXy48c5hwFeVbSm5f5VZ3KHyRlpRpiRd0S5A1AH7I
+ eTYhQ0NsV3VvSjcSCM7iTzQdtd8Kv2/hfk/S8iIgFo2s5Q76fQGl6/nQQL9u5fQwsCXb4zui3JB
+ XeigQaDtbVia+4rGkM41xjg3IB7o0XF46XGvhiFfHKh68AOqUKz+PdJmcuFzVkBZ9Hrxtiu+rg2
+ xjPZfIE0UOG4vBZ6JHVeqJbZuW2ENd6YQXrhzFrS4MD8dX6er0MvpO48YClyfwZAgIwTkZNtF9J
+ HFNlX6eeYWQk7oA3J1TDHuQFde6bAAA3TiO+T1CatSI1aXHtcXalFkIO79zwR99pbtJHjXUhiag
+ ThmPSwGCDv5hptw==
 X-Developer-Key: i=bartosz.golaszewski@linaro.org; a=openpgp;
  fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
 
 From: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 
-Unlike all the other allocations in this driver, the memory for storing
-the pin function descriptions allocated with kcalloc() and later resized
-with krealloc() is never freed. Use devres like elsewhere to handle
-that.
-
-Note: the logic in this module is pretty convoluted and could probably
-use some revisiting, we should probably be able to calculate the exact
-amount of memory needed in advance or even skip the allocation
-alltogether and just add each function to the radix tree separately.
+With all users of struct function_desc limited to only accessing it using
+the dedicated function and never modifying it, we can now constify the
+return value of pinmux_generic_get_function() treewide.
 
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
 ---
- drivers/pinctrl/pinctrl-keembay.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/pinctrl/freescale/pinctrl-imx.c   | 2 +-
+ drivers/pinctrl/mediatek/pinctrl-airoha.c | 2 +-
+ drivers/pinctrl/mediatek/pinctrl-moore.c  | 2 +-
+ drivers/pinctrl/pinctrl-equilibrium.c     | 2 +-
+ drivers/pinctrl/pinctrl-ingenic.c         | 2 +-
+ drivers/pinctrl/pinctrl-keembay.c         | 2 +-
+ drivers/pinctrl/pinctrl-single.c          | 4 ++--
+ drivers/pinctrl/pinmux.c                  | 4 ++--
+ drivers/pinctrl/pinmux.h                  | 4 ++--
+ drivers/pinctrl/renesas/pinctrl-rza1.c    | 2 +-
+ drivers/pinctrl/renesas/pinctrl-rza2.c    | 2 +-
+ drivers/pinctrl/renesas/pinctrl-rzg2l.c   | 2 +-
+ drivers/pinctrl/renesas/pinctrl-rzv2m.c   | 2 +-
+ 13 files changed, 16 insertions(+), 16 deletions(-)
 
+diff --git a/drivers/pinctrl/freescale/pinctrl-imx.c b/drivers/pinctrl/freescale/pinctrl-imx.c
+index d5d42c9ad5fe9dcf7c25ad393688e714b02db678..9ed84479a5b43871861f46fe1326f1dfadc7f63c 100644
+--- a/drivers/pinctrl/freescale/pinctrl-imx.c
++++ b/drivers/pinctrl/freescale/pinctrl-imx.c
+@@ -245,7 +245,7 @@ static int imx_pmx_set(struct pinctrl_dev *pctldev, unsigned selector,
+ {
+ 	struct imx_pinctrl *ipctl = pinctrl_dev_get_drvdata(pctldev);
+ 	const struct imx_pinctrl_soc_info *info = ipctl->info;
+-	struct function_desc *func;
++	const struct function_desc *func;
+ 	struct group_desc *grp;
+ 	struct imx_pin *pin;
+ 	unsigned int npins;
+diff --git a/drivers/pinctrl/mediatek/pinctrl-airoha.c b/drivers/pinctrl/mediatek/pinctrl-airoha.c
+index aa71e02b661c992c117418af910ae157c4f75fff..9a95577439a1b50607427756a713c8122c7c4af1 100644
+--- a/drivers/pinctrl/mediatek/pinctrl-airoha.c
++++ b/drivers/pinctrl/mediatek/pinctrl-airoha.c
+@@ -2446,7 +2446,7 @@ static int airoha_pinmux_set_mux(struct pinctrl_dev *pctrl_dev,
+ {
+ 	struct airoha_pinctrl *pinctrl = pinctrl_dev_get_drvdata(pctrl_dev);
+ 	const struct airoha_pinctrl_func *func;
+-	struct function_desc *desc;
++	const struct function_desc *desc;
+ 	struct group_desc *grp;
+ 	int i;
+ 
+diff --git a/drivers/pinctrl/mediatek/pinctrl-moore.c b/drivers/pinctrl/mediatek/pinctrl-moore.c
+index 68710dab2aa3ff649bb0cf579122ecaa0c257fdf..ec0005246c19a156079807acddc93bcb767d1222 100644
+--- a/drivers/pinctrl/mediatek/pinctrl-moore.c
++++ b/drivers/pinctrl/mediatek/pinctrl-moore.c
+@@ -43,7 +43,7 @@ static int mtk_pinmux_set_mux(struct pinctrl_dev *pctldev,
+ 			      unsigned int selector, unsigned int group)
+ {
+ 	struct mtk_pinctrl *hw = pinctrl_dev_get_drvdata(pctldev);
+-	struct function_desc *func;
++	const struct function_desc *func;
+ 	struct group_desc *grp;
+ 	int i, err;
+ 
+diff --git a/drivers/pinctrl/pinctrl-equilibrium.c b/drivers/pinctrl/pinctrl-equilibrium.c
+index fce804d42e7d7f9233b2da0fb26e482170629424..18f0da58c96d4f0fad6535fd88e69fc8acf96a94 100644
+--- a/drivers/pinctrl/pinctrl-equilibrium.c
++++ b/drivers/pinctrl/pinctrl-equilibrium.c
+@@ -319,7 +319,7 @@ static int eqbr_pinmux_set_mux(struct pinctrl_dev *pctldev,
+ 			       unsigned int selector, unsigned int group)
+ {
+ 	struct eqbr_pinctrl_drv_data *pctl = pinctrl_dev_get_drvdata(pctldev);
+-	struct function_desc *func;
++	const struct function_desc *func;
+ 	struct group_desc *grp;
+ 	unsigned int *pinmux;
+ 	int i;
+diff --git a/drivers/pinctrl/pinctrl-ingenic.c b/drivers/pinctrl/pinctrl-ingenic.c
+index 0ee8554c5446c4167c9b0e6b9397a2507ca57419..f89f8ec06ac63227930a38dbc80f00333cc15b48 100644
+--- a/drivers/pinctrl/pinctrl-ingenic.c
++++ b/drivers/pinctrl/pinctrl-ingenic.c
+@@ -4000,7 +4000,7 @@ static int ingenic_pinmux_set_mux(struct pinctrl_dev *pctldev,
+ 		unsigned int selector, unsigned int group)
+ {
+ 	struct ingenic_pinctrl *jzpc = pinctrl_dev_get_drvdata(pctldev);
+-	struct function_desc *func;
++	const struct function_desc *func;
+ 	struct group_desc *grp;
+ 	unsigned int i;
+ 	uintptr_t mode;
 diff --git a/drivers/pinctrl/pinctrl-keembay.c b/drivers/pinctrl/pinctrl-keembay.c
-index 30e641571cfe5396075cb28febd2d0776326365d..b4c7b3ef79e0a34111f46f23adfee4c269e5be6e 100644
+index 060d64ff3d9f01ecd3374935af66b55c38f60d67..87d081226f45467d9c92cc9e8ea63d41fd2f0fcb 100644
 --- a/drivers/pinctrl/pinctrl-keembay.c
 +++ b/drivers/pinctrl/pinctrl-keembay.c
-@@ -1603,7 +1603,8 @@ static int keembay_build_functions(struct keembay_pinctrl *kpc)
- 	 * being part of 8 (hw maximum) globally unique muxes.
- 	 */
- 	kpc->nfuncs = 0;
--	keembay_funcs = kcalloc(kpc->npins * 8, sizeof(*keembay_funcs), GFP_KERNEL);
-+	keembay_funcs = devm_kcalloc(kpc->dev, kpc->npins * 8,
-+				     sizeof(*keembay_funcs), GFP_KERNEL);
- 	if (!keembay_funcs)
- 		return -ENOMEM;
+@@ -935,7 +935,7 @@ static int keembay_set_mux(struct pinctrl_dev *pctldev, unsigned int fun_sel,
+ 			   unsigned int grp_sel)
+ {
+ 	struct keembay_pinctrl *kpc = pinctrl_dev_get_drvdata(pctldev);
+-	struct function_desc *func;
++	const struct function_desc *func;
+ 	struct group_desc *grp;
+ 	unsigned int val;
+ 	u8 pin_mode;
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 5cda6201b60f53e62f3f50b8641ec894106111e0..c9adf5fcb1c76445d4812de449edf09878771a46 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -336,7 +336,7 @@ static int pcs_get_function(struct pinctrl_dev *pctldev, unsigned pin,
+ 	struct pcs_device *pcs = pinctrl_dev_get_drvdata(pctldev);
+ 	struct pin_desc *pdesc = pin_desc_get(pctldev, pin);
+ 	const struct pinctrl_setting_mux *setting;
+-	struct function_desc *function;
++	const struct function_desc *function;
+ 	unsigned fselector;
  
-@@ -1634,7 +1635,8 @@ static int keembay_build_functions(struct keembay_pinctrl *kpc)
- 	}
+ 	/* If pin is not described in DTS & enabled, mux_setting is NULL. */
+@@ -360,7 +360,7 @@ static int pcs_set_mux(struct pinctrl_dev *pctldev, unsigned fselector,
+ 	unsigned group)
+ {
+ 	struct pcs_device *pcs;
+-	struct function_desc *function;
++	const struct function_desc *function;
+ 	struct pcs_function *func;
+ 	int i;
  
- 	/* Reallocate memory based on actual number of functions */
--	new_funcs = krealloc(keembay_funcs, kpc->nfuncs * sizeof(*new_funcs), GFP_KERNEL);
-+	new_funcs = devm_krealloc(kpc->dev, keembay_funcs,
-+				  kpc->nfuncs * sizeof(*new_funcs), GFP_KERNEL);
- 	if (!new_funcs) {
- 		kfree(keembay_funcs);
- 		return -ENOMEM;
+diff --git a/drivers/pinctrl/pinmux.c b/drivers/pinctrl/pinmux.c
+index 79814758a084570adea0ea1a3151d186f65d1d1f..62bd4aa53b2b22cb09eacfb05398205f2fe391b9 100644
+--- a/drivers/pinctrl/pinmux.c
++++ b/drivers/pinctrl/pinmux.c
+@@ -847,8 +847,8 @@ EXPORT_SYMBOL_GPL(pinmux_generic_get_function_groups);
+  * @pctldev: pin controller device
+  * @selector: function number
+  */
+-struct function_desc *pinmux_generic_get_function(struct pinctrl_dev *pctldev,
+-						  unsigned int selector)
++const struct function_desc *
++pinmux_generic_get_function(struct pinctrl_dev *pctldev, unsigned int selector)
+ {
+ 	struct function_desc *function;
+ 
+diff --git a/drivers/pinctrl/pinmux.h b/drivers/pinctrl/pinmux.h
+index bdb5be1a636ead9695410824b5557937c5baa89a..549ab10f7afbda32fadf4ad151401180bed2064f 100644
+--- a/drivers/pinctrl/pinmux.h
++++ b/drivers/pinctrl/pinmux.h
+@@ -152,8 +152,8 @@ int pinmux_generic_get_function_groups(struct pinctrl_dev *pctldev,
+ 				       const char * const **groups,
+ 				       unsigned int * const ngroups);
+ 
+-struct function_desc *pinmux_generic_get_function(struct pinctrl_dev *pctldev,
+-						  unsigned int selector);
++const struct function_desc *
++pinmux_generic_get_function(struct pinctrl_dev *pctldev, unsigned int selector);
+ 
+ int pinmux_generic_add_function(struct pinctrl_dev *pctldev,
+ 				const char *name,
+diff --git a/drivers/pinctrl/renesas/pinctrl-rza1.c b/drivers/pinctrl/renesas/pinctrl-rza1.c
+index 3d8492c917104afbf15c8f697ba4afabafa3a5cf..26826c8b5441b1a056900fdfc1d68c0c5cd3e6ba 100644
+--- a/drivers/pinctrl/renesas/pinctrl-rza1.c
++++ b/drivers/pinctrl/renesas/pinctrl-rza1.c
+@@ -1120,7 +1120,7 @@ static int rza1_set_mux(struct pinctrl_dev *pctldev, unsigned int selector,
+ {
+ 	struct rza1_pinctrl *rza1_pctl = pinctrl_dev_get_drvdata(pctldev);
+ 	struct rza1_mux_conf *mux_confs;
+-	struct function_desc *func;
++	const struct function_desc *func;
+ 	struct group_desc *grp;
+ 	int i;
+ 
+diff --git a/drivers/pinctrl/renesas/pinctrl-rza2.c b/drivers/pinctrl/renesas/pinctrl-rza2.c
+index 7a0b268d3eb91a42911f372e66805291344f8750..7e9eff522204413c83779932cd702edc02ec2686 100644
+--- a/drivers/pinctrl/renesas/pinctrl-rza2.c
++++ b/drivers/pinctrl/renesas/pinctrl-rza2.c
+@@ -442,7 +442,7 @@ static int rza2_set_mux(struct pinctrl_dev *pctldev, unsigned int selector,
+ 			unsigned int group)
+ {
+ 	struct rza2_pinctrl_priv *priv = pinctrl_dev_get_drvdata(pctldev);
+-	struct function_desc *func;
++	const struct function_desc *func;
+ 	unsigned int i, *psel_val;
+ 	struct group_desc *grp;
+ 
+diff --git a/drivers/pinctrl/renesas/pinctrl-rzg2l.c b/drivers/pinctrl/renesas/pinctrl-rzg2l.c
+index 2a10ae0bf5bdd97c10ff4fe4b890a70744a97578..76d4ce78d0dece3bb95779d60f235ce85df25403 100644
+--- a/drivers/pinctrl/renesas/pinctrl-rzg2l.c
++++ b/drivers/pinctrl/renesas/pinctrl-rzg2l.c
+@@ -549,7 +549,7 @@ static int rzg2l_pinctrl_set_mux(struct pinctrl_dev *pctldev,
+ {
+ 	struct rzg2l_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
+ 	const struct rzg2l_hwcfg *hwcfg = pctrl->data->hwcfg;
+-	struct function_desc *func;
++	const struct function_desc *func;
+ 	unsigned int i, *psel_val;
+ 	struct group_desc *group;
+ 	const unsigned int *pins;
+diff --git a/drivers/pinctrl/renesas/pinctrl-rzv2m.c b/drivers/pinctrl/renesas/pinctrl-rzv2m.c
+index a17b68b4c466e2ca91cb26a713a088e309d5e167..a60cdf8f3eef6e3f14e3fe19e7d57515d6b455fa 100644
+--- a/drivers/pinctrl/renesas/pinctrl-rzv2m.c
++++ b/drivers/pinctrl/renesas/pinctrl-rzv2m.c
+@@ -162,7 +162,7 @@ static int rzv2m_pinctrl_set_mux(struct pinctrl_dev *pctldev,
+ 				 unsigned int group_selector)
+ {
+ 	struct rzv2m_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
+-	struct function_desc *func;
++	const struct function_desc *func;
+ 	unsigned int i, *psel_val;
+ 	struct group_desc *group;
+ 	const unsigned int *pins;
 
 -- 
 2.48.1
