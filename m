@@ -1,99 +1,111 @@
-Received: from mail-lj1-f180.google.com (mail-lj1-f180.google.com [209.85.208.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.bues.ch (bues.ch [116.203.120.240])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 699F032A3E2;
-	Wed, 20 Aug 2025 16:56:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD0C833A004;
+	Wed, 20 Aug 2025 17:19:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=116.203.120.240
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755709008; cv=none; b=mtSMENAQr9fNzS3ioFzlmjsmZOv1UxjktLEIT+ldNZNCVUWrtagQDYJLxaYIEWjWqkh5/kTbA+DmUxzQnUl+AyT7AAVQcmPbQJKF3BytTOLNS6U/jn/LgDiEjzvCfdi3wxxH5Wog70S21ilIEkCsSFoYl1ycGGw3q2YahZehUeY=
+	t=1755710400; cv=none; b=dcMnNUdeqYrGOSj0WQE1jEfSggAhWZEh7avYs/DDR/aLZTI6aArouxcPQYNcv+e37hvFhTzM8sYn3iIq8c8fkJZsL3AOsfEfJ5HzrLqv16qjMAPYP/neO5IPM4XW8Qxsrq6nmoGDpEN6LHdMlvkZ5EAlaImWoStHFeIp0ul3FUo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755709008; c=relaxed/simple;
-	bh=b1CQxA7NTMpHYXWDwB/GYYkioNL06ElZqxeWZtrZ6v0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=UYTlFChANgJwANf/vA1l1+A/n5C9WEDI9zz9ev/oUJdQADIw7Qhhv/WETNK4Em3Y590/3RuU7zjBV4P3kFtwqtcRJNmkUBK9FoCDs1EVeDn+hfTeLEnKiTlmRG7JTyNuYwyIC9auTN07AzBw8rBgtI5idO+kezIdmHJsjNudyGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UzXlOZgL; arc=none smtp.client-ip=209.85.208.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1755710400; c=relaxed/simple;
+	bh=p174+Eh9XAmNMgbrKhEkVjmTUSlXzZKuRgobxcqkPrM=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=YB8xy9muhMMyhguOsa9WPbrpz8GxkLbUEqfYGaegQKTlagcW/QeaR3EK55cNq2g9w9MkOlxfgFGbytI0I1lVFoZ/wQDhSWz87hr9WQFAmEZZMLzd5cCDIzzrnTu3TIlG00+G1kFsZ8fyOgOgvD1qRm7r+1oFxX/PYVHQk0kakRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=bues.ch; spf=pass smtp.mailfrom=bues.ch; dkim=pass (2048-bit key) header.d=bues.ch header.i=@bues.ch header.b=mrPkyzU6; arc=none smtp.client-ip=116.203.120.240
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=bues.ch
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bues.ch
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UzXlOZgL"
-Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-333f8f9ace5so865611fa.1;
-        Wed, 20 Aug 2025 09:56:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1755709003; x=1756313803; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=b1CQxA7NTMpHYXWDwB/GYYkioNL06ElZqxeWZtrZ6v0=;
-        b=UzXlOZgL+DLb+h/ssrjvxWqaM89FHrLKexTPO/9F7bS1rSG2xIS7mD7X3zkIVR3n86
-         n+xbISquZLU77GJKp7+EndM7QWWdQv00F7St6fFPe2gfpKTys9wdoXZJasbkECL9SoQV
-         YLcTnZNBjUsACWViYVeGE4TGuXwNWyZ0ieWvWli7uint683zEuusE+cb/7Fl112QKrgv
-         xIn11oEf4Ht8uj72CbKad/E/f7CRDNsuNLP67MRE5KwAU88DouOO6obq30UOas8sNc5w
-         O4mmLd+eADSkB6p8DdVw/rX26XCcwnOFVTf643LKPBToDXaoTAf7oliH/IxIhwIp1l5y
-         98aQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755709003; x=1756313803;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=b1CQxA7NTMpHYXWDwB/GYYkioNL06ElZqxeWZtrZ6v0=;
-        b=B6dXIYoqMrgTVIxD9GvItO5igz9DSg4HoCzfbeIYLDkt+RRw5bx+Bp2obHsXVyBpPE
-         wH6goXNwSHXiCQE/48imMTdtHBkMocO6aDopA89t2jIDqsbRPMFugwRFZ+ADW28wG2Xp
-         f/kO4cxrXHutnBxixZDkq2bb3/GQiUbXD7/byjibRS+WzqR4QdvlEXxPxAqSCdCDTuW9
-         DaNJshhNGscGLbOaBm8PudxNTbSUDfXEWLaWdtyYTFpffEE4Sv/TLGijJVW6+APb7iFP
-         OYLLA7PxgybUXpONHWO0jizNz/gQJ94onp/FeIjUvvlJA+FV7Onugu738LI93v4RqHtn
-         TJaA==
-X-Forwarded-Encrypted: i=1; AJvYcCViix4osRC8HQIMGL8XS+aMg69EAbvoOBpBBwSYKAVYavvs1muw44BlFozIDja+wQ7TlCZiHOdKThSB@vger.kernel.org, AJvYcCXhcOcOgqdEUSjOU6DEf0BlZNCj0Gs7rortNAY+N4lw6x9x7nqEjqdwpyL0CLgD2ioUdC6FCyZVVO3Mwg==@vger.kernel.org, AJvYcCXzZ5ul4bEngCO5gcB8yEcSO4jYiuVQyeJZG8fExT7KL+CoaIRsjQDFcxZ3K/EJU111ZDbzjhsQi4UiTRir@vger.kernel.org
-X-Gm-Message-State: AOJu0YzYtA7824i8RrzrxBOy2DyAdDdUXMlQDWbxqz0WAmsw8cZrMV4x
-	A0Y9Xq2RfB6XReEBUlf7+4GAmo9dLpY0pcXuwHPHXeZWGf5ZC6P4+9g3I6yE0d9AcZr1lHjcARX
-	zEjSKkrpd2kfRoRMY9XcwDyjzXoSWD5A=
-X-Gm-Gg: ASbGncsElzCPHpx2YWGlNi+LbpMo6N2zF+0SwSSIVo3RHLJoNCZbLIkGJUtNxi5V9EJ
-	X+T4+i3b6tAMSCNE1qJRAbGZhZ6Zi2nRFE4ZXqFYpRByodKHe49YIHKk3yXA1TqxFrZnRNc2Jyx
-	bID8Rvf26M7YDnCnTabyF5gkkvvZe/Tqvn9czTiZubNccE1AiFGNqBh2mvyP8DPoKjDG0nOxBNq
-	1+EurnsgA==
-X-Google-Smtp-Source: AGHT+IFordkwi+zhqh14qMBLsS0rCZnAYtiWQK4SHByXpqr16/xqAHI6fvghj4M6wGzn1kjHGF8rYjLwee+S/KYPvX0=
-X-Received: by 2002:a2e:b888:0:b0:334:d4b:49b4 with SMTP id
- 38308e7fff4ca-3353be411c0mr11491871fa.29.1755709003200; Wed, 20 Aug 2025
- 09:56:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bues.ch header.i=@bues.ch header.b="mrPkyzU6"
+Date: Wed, 20 Aug 2025 19:10:39 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bues.ch; s=main;
+	t=1755709872;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=p174+Eh9XAmNMgbrKhEkVjmTUSlXzZKuRgobxcqkPrM=;
+	b=mrPkyzU62ByK8uGx1mNmesSR4xO/mcSPHp+Ec1VriviCTHS/wznJ/a/bV11/qGjRXBQuOU
+	oOnH9rvX3kWmtZ6BNdyzUGy3egwRmAusoVZAVXi08/ozv69KG6awsERlmG3FT1w79mRNxL
+	Uz7KHmrxvBWopIYFA3nXKp6MR5PnTG70ZBxxs6kCGRBk0kKBCMjQdmofo84DHWv2aSuk/g
+	PmqzrvxzEEq92c2qNpr3vAHDjcaLs5nhyqONUIDbvTf/YttA2LDKWrmsuHpj/G23EUxvqG
+	KngrJ0cICVWqvjyDjhYHZH7iYAaWmHycHAcRnZxkdF0JKrDAi8nu4XMBwjiA0w==
+From: Michael =?UTF-8?B?QsO8c2No?= <mb@bues.ch>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Jisheng Zhang <jszhang@kernel.org>, Doug Berger <opendmb@gmail.com>,
+ Florian Fainelli <florian.fainelli@broadcom.com>, Linus Walleij
+ <linus.walleij@linaro.org>, Bartosz Golaszewski <brgl@bgdev.pl>, Michael
+ Buesch <m@bues.ch>, Hoan Tran <hoan@os.amperecomputing.com>, Andy
+ Shevchenko <andy@kernel.org>, Daniel Palmer <daniel@thingy.jp>, Romain
+ Perier <romain.perier@gmail.com>, Grygorii Strashko
+ <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin
+ Hilman <khilman@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>,
+ Kunihiko Hayashi <hayashi.kunihiko@socionext.com>, Masami Hiramatsu
+ <mhiramat@kernel.org>, Shubhrajyoti Datta <shubhrajyoti.datta@amd.com>,
+ Srinivas Neeli <srinivas.neeli@amd.com>, Michal Simek
+ <michal.simek@amd.com>, Broadcom internal kernel review list
+ <bcm-kernel-feedback-list@broadcom.com>, linux-gpio@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linux-omap@vger.kernel.org, linux@ew.tq-group.com
+Subject: Re: [PATCH 01/16] gpio: dwapb: Use modern PM macros
+Message-ID: <20250820191039.4f8af41e@barney>
+In-Reply-To: <CAHp75VfxSBPzvohrW4tywd4VS0r1_mp8WLvdKcN_yn=zNS49HQ@mail.gmail.com>
+References: <20250820154037.22228-1-jszhang@kernel.org>
+ <20250820154037.22228-2-jszhang@kernel.org>
+ <CAHp75VfxSBPzvohrW4tywd4VS0r1_mp8WLvdKcN_yn=zNS49HQ@mail.gmail.com>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.50; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250820154037.22228-1-jszhang@kernel.org> <20250820154037.22228-8-jszhang@kernel.org>
-In-Reply-To: <20250820154037.22228-8-jszhang@kernel.org>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Wed, 20 Aug 2025 19:56:06 +0300
-X-Gm-Features: Ac12FXwH4g6oMn14HY8Y29rYZvc4OR3qKCO04rOR5qjEf-HjYlk-qdZaKMvaQ74
-Message-ID: <CAHp75Vdh6MQzEZi1aLf+7J7evSwd76ANKDk6WahWzEcLq1Ew4Q@mail.gmail.com>
-Subject: Re: [PATCH 07/16] gpio: ml-ioh: Use modern PM macros
-To: Jisheng Zhang <jszhang@kernel.org>
-Cc: Doug Berger <opendmb@gmail.com>, Florian Fainelli <florian.fainelli@broadcom.com>, 
-	Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <brgl@bgdev.pl>, Michael Buesch <m@bues.ch>, 
-	Hoan Tran <hoan@os.amperecomputing.com>, Andy Shevchenko <andy@kernel.org>, 
-	Daniel Palmer <daniel@thingy.jp>, Romain Perier <romain.perier@gmail.com>, 
-	Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, 
-	Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>, 
-	Kunihiko Hayashi <hayashi.kunihiko@socionext.com>, Masami Hiramatsu <mhiramat@kernel.org>, 
-	Shubhrajyoti Datta <shubhrajyoti.datta@amd.com>, Srinivas Neeli <srinivas.neeli@amd.com>, 
-	Michal Simek <michal.simek@amd.com>, 
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, linux-gpio@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	linux-omap@vger.kernel.org, linux@ew.tq-group.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; boundary="Sig_/pS1KmHMT0VTPklKxJ+M/HG5";
+ protocol="application/pgp-signature"; micalg=pgp-sha512
+
+--Sig_/pS1KmHMT0VTPklKxJ+M/HG5
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 20, 2025 at 6:59=E2=80=AFPM Jisheng Zhang <jszhang@kernel.org> =
-wrote:
->
-> Use the modern PM macros for the suspend and resume functions to be
-> automatically dropped by the compiler when CONFIG_PM or
-> CONFIG_PM_SLEEP are disabled, without having to use __maybe_unused
+On Wed, 20 Aug 2025 19:54:44 +0300
+Andy Shevchenko <andy.shevchenko@gmail.com> wrote:
 
-Acked-by: Andy Shevchenko <andy@kernel.org>
-in case Bart wants to take it inside the whole series.
-Otherwise I can take it via my tree.
+> > The dwapb_context structure is always embedded into struct
+> > dwapb_gpio_port to simplify code. Sure this brings a tiny 36 bytes
+> > data overhead for !CONFIG_PM_SLEP. =20
+>=20
+> I don't think it's a good approach to add a lot of data for peanuts in
+> case of PM_SLEEP=3Dn.
+
+It wastes 36 bytes in case of PM=3Dn.
+
+The driver currently allocates the struct with kzalloc and stores a pointer=
+ to it
+in case of PM=3Dy.
+So this probably has an overhead in the same order of magnitude (pointer +
+malloc overhead/alignment/fragmentation) in case of PM=3Dy now.
 
 --=20
-With Best Regards,
-Andy Shevchenko
+Michael B=C3=BCsch
+https://bues.ch/
+
+--Sig_/pS1KmHMT0VTPklKxJ+M/HG5
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEihRzkKVZOnT2ipsS9TK+HZCNiw4FAmimAY8ACgkQ9TK+HZCN
+iw5cNA/+NLyRCzoK1ETToeOTHdwwyQkiTbuBe6ELJDz1Fuk4Ao88nbQmFeISRwE5
+M4E1ojqTn1YTeerWFS0t/IPH/6bJk23TeOMNYmweblgBCiLVQ96UmN6iw0PaRnj7
+dJtLy/5/gKIHC6n5dw+Qo5cWsr+CvLJ3gwZF001XjGyEPBTjSLTQJmFgeJTb8mmg
+M96uB22AtpG727LqVenvf5VgeSIL+E9Pau0TdBA/xhxwTEDZZQpIYVL8blqYTUxQ
+FKcUOHINC2sPFIXTklyj/lkKMoveTjYXBMur3RSSm4k03jND2tQYBVGPFFFsi9A2
+jSw8fEkkY0OMvLJesxiJWWvzrowG0IGR09Ii0vzTFSyRru5kYoXbKDFUzfn1ii4E
+s6dd8RE/PrDEnI/vX8LrdxW3EzjcbBfu+6JrevevbI4ixLOQHA+usaUm15mQfDtH
+V3iPr1DsMwR0dbryYcjn9AUlxLDuWZEm8d2z92OrPLZG/Ta+ypGRo2GC71hlpUGk
+rxxsncdj+3drXfuVyX5n0WUVUMAY5qSr/qP8qHQPEdUwibkaOInrXIYf9SMvxdvD
+zIT0fPrtfuqynuWHyWW+peELaoj9Y+dimLZUmVv5DXOrfNnYCCbIGpxGNfHVtZqn
+oijZv6EsPyAZbHcR90Z2g9TxbrMT/lrn4JR5CZbBgZLQI+25TsA=
+=Dkpw
+-----END PGP SIGNATURE-----
+
+--Sig_/pS1KmHMT0VTPklKxJ+M/HG5--
