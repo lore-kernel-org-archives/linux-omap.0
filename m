@@ -1,47 +1,35 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D7E1393DF4;
-	Sun, 24 Aug 2025 08:06:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AEF314B953;
+	Sun, 24 Aug 2025 22:08:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756022791; cv=none; b=C7uUn8bRUk1qrkdlF3re6numJAj6ZkR/EHEMMirLMxPeuQVHa+EiY/ccBQYLunrkGzoOIevJnhDtWsk9UtPtAE6ThmblehagVrzv/TyuzgobWJx9Br1BQSn8TYLCf0KKZNQJT3TOMKJZRskNM5SMsthseUYS7PicsNJ/11Sd4sI=
+	t=1756073286; cv=none; b=W+QwGf9Bu4e9B4hTMDShJSoEZvyobhNoGYbqZ4l2O3aPJEXNLUM1oTWHygME7xMePqDjnSeRLNCSiAhtjvUOukhrQeoUZTBbhS1xvGCtscLfAhUoip+j5Atizg3W0IcCh4pLLHupRLRepS8kFQG6f8TkV8sGASu6WlhmVraxm54=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756022791; c=relaxed/simple;
-	bh=w4ru9Ckeny+k2OjrihK96QUfV39aJCsiSbwXD6qXk2U=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=reVVe281bdpCDOmMc1TjT+2AY9Zy5kjYniGCl1owiB8RfCxA8ytS26ZwY7XcMlopc3BlLj7BbmLx/pIPG3tQQT7vg9aLE7J2nG6uFW9Jzl4/V/+kN0i3nNUVWLbqJYl0WPWCBIW+7YsamJt4jy1lof5LIikjwhekkbyk0yMI318=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UyfkA1IK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756073286; c=relaxed/simple;
+	bh=JmWguJqBi+J6UCLRUwSlxPGfZwJVr4FPhT5TyB6Vwek=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=axHEIC1Qov21yU282GEECXPfb1ywISArKB4LAFt3ZMZENlRZjRXoy8WiI6V+LKEtXOVqYjI+zC3h9RMleTqOmsACVDZ2bcoUl+gSSRhUCOE9TK0h5uX46V+i0aMwphMAb4vDtrt2wdEHVdK6ntgCRtMlqZyy21gNqBbzZ7wETnQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=T7qrSz04; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UyfkA1IK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DA5EC4CEEB;
-	Sun, 24 Aug 2025 08:06:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1756022790;
-	bh=w4ru9Ckeny+k2OjrihK96QUfV39aJCsiSbwXD6qXk2U=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=UyfkA1IKeCe9nFAgJASvzDeTSQFFLMdxvtPdE8lQ1fz3KMF+esfxzvs8S3EwwpZxb
-	 WvjPWhOqVKeIqHIQg5zQOH14aZEtGuPir9JdDmcroHYz0p+/2/1EubhwTxXI0eG/vC
-	 3H8oY5C8XRqM6EXic9ENiY8jRJOjU97vKNGuS/mtBfwZieFQURoxnU/pds5S5bDmtx
-	 6Hwq72VKOy/JuQjWA4mXoAiXGVK71DMYFkXziIfrgyZJzreuo0WO6pLrZeN+TCP9XO
-	 06WSlnAswM2HRZdGVJxuzUJvbj7X2tckTZVomTGKMTdJJBFPGliuEbgEbByEeOqQqx
-	 hfTnaEfuTNfPQ==
-From: William Breathitt Gray <wbg@kernel.org>
-To: Vignesh Raghavendra <vigneshr@ti.com>,
-	Julien Panis <jpanis@baylibre.com>,
-	Andrew Davis <afd@ti.com>,
-	Waqar Hameed <waqar.hameed@axis.com>
-Cc: William Breathitt Gray <wbg@kernel.org>,
-	kernel@axis.com,
-	linux-iio@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3] counter: ti-ecap-capture: Use devm_pm_runtime_enable()
-Date: Sun, 24 Aug 2025 17:06:24 +0900
-Message-ID: <175602272525.419332.11059830322724662200.b4-ty@kernel.org>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <pnda54bjmij.a.out@axis.com>
-References: <pnda54bjmij.a.out@axis.com>
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="T7qrSz04"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=Cc:In-Reply-To:References:From:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID;
+	bh=rKO4zT7vzvCx/0bG5tGPhwMZqbrVhZfe+6sJ40iyBsk=; b=T7qrSz04Htqmiu9gSRkvVIl3e0
+	GCPQkpB+1w8TcIqtdH1u0X48Q4qr56Jhc2rl/CGGaeZ7Y/sn0rNAyg/Ywak0Guwg2jNeTK32C+0j1
+	/8mJtiqsS7pYDHzxaqWbuTFdn34HW+a7vsJRqcDS2ran9ReQKw8sg9JCgdadTrKUFp14grr28F9FD
+	eloVf0LXcaO9cbb6UnXmf98pnYHAJlIObSH9oTfQUMYbBptjGWHpzi7iw59TxizLatuhfShnc6m4r
+	C5UA5nv5FFz8mITcvGf38Gkg57NQVyEbzhZSnP15JdE9y2WkP4X+YZXbVcKo8lMLcMbR/VeYEpQJp
+	Y/aasPNQ==;
+From: Andreas Kemnade <andreas@kemnade.info>
+Date: Mon, 25 Aug 2025 00:07:28 +0200
+Subject: [PATCH RFC 1/3] dt-bindings: input: elan: Introduce Elan eKTP1059
+ Touchpad
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -49,31 +37,87 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=946; i=wbg@kernel.org; h=from:subject:message-id; bh=Oqx4fBtYiwXvpqHbSIke+fECeLWTZ3+Nr3xoytI/CSE=; b=kA0DAAoWtUhWyr4SIysByyZiAGiqx9mhyE/1dwH1I9QweXj8488yUDTwsGBGpFOJaECpOkrLZ Yh1BAAWCgAdFiEEjTfN3eDSJSj46J+2tUhWyr4SIysFAmiqx9kACgkQtUhWyr4SIyvPBQEA9CzZ o0AVGOpr+VaN7a9hvQ4A1cv8H6OIidC4hho9lJwA/iBy4A7sW/siQEDyGMQ5q/OTo03I9DQ+hUG zkxseHSAO
-X-Developer-Key: i=wbg@kernel.org; a=openpgp; fpr=8D37CDDDE0D22528F8E89FB6B54856CABE12232B
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
+Message-Id: <20250825-ektp-submit-v1-1-1dd476c1277b@kemnade.info>
+References: <20250825-ektp-submit-v1-0-1dd476c1277b@kemnade.info>
+In-Reply-To: <20250825-ektp-submit-v1-0-1dd476c1277b@kemnade.info>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Henrik Rydberg <rydberg@bitmath.org>, 
+ Tony Lindgren <tony@atomide.com>, hns@goldelico.com
+Cc: linux-input@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
+ Andreas Kemnade <andreas@kemnade.info>
+X-Mailer: b4 0.15-dev-50721
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1548; i=andreas@kemnade.info;
+ h=from:subject:message-id; bh=JmWguJqBi+J6UCLRUwSlxPGfZwJVr4FPhT5TyB6Vwek=;
+ b=owGbwMvMwCEm/rzkS6lq2x3G02pJDBmrey3CC78Xuk9bP4HrXvInHbuvt2XZT33eeVTiacDfr
+ jnSkw6VdJSyMIhxMMiKKbL8slZw+6TyLDd4aoQ9zBxWJpAhDFycAjCRBGWG/3E3alfqR8u+ONu6
+ LMwn+md8kf1NwfCcAy/OasxSL2x9PIvhf65gdO+Evp4/qRfnZTno3nn05uyPSXVnJF5kcOnxzZ1
+ mwgYA
+X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
+ fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
+The Elan eKTP1059 Touchpad is seen in the Epson Moverio BT-200
+attached via SPI. Add a binding for this chip. Little is known.
 
-On Thu, 07 Aug 2025 15:21:08 +0200, Waqar Hameed wrote:
-> There is no need to register a manual `devm` action for
-> `pm_runtime_disable()` when `devm_pm_runtime_enable()` exists. It does
-> the same thing (but also calls `pm_runtime_dont_use_autosuspend()`,
-> which should be fine here).
-> 
-> Moreover, when `devm_add_action_or_reset()` fails, it is due to a failed
-> memory allocation and will thus return `-ENOMEM`. `dev_err_probe()`
-> doesn't do anything when error is `-ENOMEM`. Therefore, the call to
-> `dev_err_probe()` is useless. Note that `devm_pm_runtime_enable()` has a
-> tail call to `devm_add_action_or_reset()` and thus returns that value.
-> Therefore, replace `dev_err_probe()` with the returning value.
-> 
-> [...]
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ .../devicetree/bindings/input/elan,ektp1059.yaml   | 45 ++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
-Applied, thanks!
+diff --git a/Documentation/devicetree/bindings/input/elan,ektp1059.yaml b/Documentation/devicetree/bindings/input/elan,ektp1059.yaml
+new file mode 100644
+index 000000000000..a10256a271e0
+--- /dev/null
++++ b/Documentation/devicetree/bindings/input/elan,ektp1059.yaml
+@@ -0,0 +1,45 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/input/elan,ektp1059.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: Elantech SPI Touchpad
++
++maintainers:
++  - Andreas Kemnade <andreas@kemnade.info>
++
++allOf:
++  - $ref: touchscreen/touchscreen.yaml#
++
++properties:
++  compatible:
++    const: elan,ektp1059
++
++  reg:
++    maxItems: 1
++
++  interrupts:
++    maxItems: 1
++
++required:
++  - compatible
++  - reg
++  - interrupts
++
++additionalProperties: false
++
++examples:
++  - |
++    #include <dt-bindings/interrupt-controller/irq.h>
++    spi {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        touchpad@0 {
++            compatible = "elan,ektp1059";
++            reg = <0x0>;
++            interrupt-parent = <&gpio4>;
++            interrupts = <0x0 IRQ_TYPE_LEVEL_LOW>;
++        };
++    };
 
-[1/1] counter: ti-ecap-capture: Use devm_pm_runtime_enable()
-      commit: 51548c36b37d0e84bd43a5f20bcbc36f70e61c5a
-
-Best regards,
 -- 
-William Breathitt Gray <wbg@kernel.org>
+2.39.5
+
