@@ -1,43 +1,44 @@
 Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16A412D7BF;
-	Wed, 27 Aug 2025 05:01:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8139C26E71C;
+	Wed, 27 Aug 2025 05:06:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756270925; cv=none; b=clzOfoJ7jtadz6uCYuAsWyEkE0TqmNu/RB8pVNF7dQQ6TqbuYOjjJxj21zA4egnZOg6ygzAn+I+/vBSC3RuoHkXtKYxd6xBONUpo6UaeBwEY8nXMkB+qqGiuOZDPegcMHVOe1gbWGcn+2LHaun90Z8+HZGOKNmxeb+HWnR5IHzE=
+	t=1756271223; cv=none; b=XgzwzV20w73oe8vLtgCIuWdcT/FinPDo/mPsytS6WYzGmVXSGQRA+B9LKbh/p6D8wCsUokSh8FaVVA1YF0FO1igZYyDY83BZLayX5BTCOjH6CbbfakbZ77G0vpa0NkbC3DPUQdhJo3I7iLJXzTHUfmZJodqpvl5AEjOD3D1+plA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756270925; c=relaxed/simple;
+	s=arc-20240116; t=1756271223; c=relaxed/simple;
 	bh=JI7aOfvbtpkrYD3QrqSIAxy6G2P6kcd830fbhdrC4vM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=eZdqmLpSy7B0KiFN/Pz3eVL5S6Agrz+sjXT3rjdJC1gLDGCNuKhLaveXvcqQXBjjt/9uaQ00ya9KQSFn/Wbedbue1w6Q4ewyUnmjrpDDPx1R76t0UpikpkVq+BVhkWsyKl1wDmgpMk8t7WU575DJLvZZkWMxxeXyCyEDNxqKTLM=
+	 MIME-Version; b=Y3wSNsQa8SeA3K1UEFhJTN40Kqf7hS3jZJ4P2Chd0kFX+24ukCEZbcGQbSQuA0bB7rBO6Sri6Z+B1/0z4rtlvwhUWztNvowJq739Z/bmru86tbs6srpBMWWRejD0u7bM4Ao21YWv+OpqIc1wiUr3d/bbPbRvNG5hPtHNdv+DsY4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: f35a7542830211f0b29709d653e92f7d-20250827
+X-UUID: a657db4e830311f0b29709d653e92f7d-20250827
+X-CID-CACHE: Type:Local,Time:202508271301+08,HitQuantity:1
 X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.45,REQID:f450acc9-5e41-4f07-b72d-89f0f284ee93,IP:0,U
+X-CID-O-INFO: VERSION:1.1.45,REQID:bc547704-46f6-4537-bcbe-586d6e61cfdb,IP:0,U
 	RL:0,TC:0,Content:-25,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTIO
 	N:release,TS:-25
-X-CID-META: VersionHash:6493067,CLOUDID:7ef16cb1b0f5c94da2d4ef951972d460,BulkI
+X-CID-META: VersionHash:6493067,CLOUDID:7871a2c7ca51f2bc02737c897857e02d,BulkI
 	D:nil,BulkQuantity:0,Recheck:0,SF:81|82|102|850,TC:nil,Content:0|50,EDM:-3
 	,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,AV
 	:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
 X-CID-BVR: 0
 X-CID-BAS: 0,_,0,_
 X-CID-FACTOR: TF_CID_SPAM_SNR
-X-UUID: f35a7542830211f0b29709d653e92f7d-20250827
+X-UUID: a657db4e830311f0b29709d653e92f7d-20250827
 Received: from mail.kylinos.cn [(10.44.16.175)] by mailgw.kylinos.cn
 	(envelope-from <zhangzihuan@kylinos.cn>)
 	(Generic MTA)
-	with ESMTP id 1248728101; Wed, 27 Aug 2025 13:01:54 +0800
+	with ESMTP id 2029553132; Wed, 27 Aug 2025 13:06:54 +0800
 Received: from mail.kylinos.cn (localhost [127.0.0.1])
-	by mail.kylinos.cn (NSMail) with SMTP id B6D48E008FAA;
-	Wed, 27 Aug 2025 10:34:49 +0800 (CST)
-X-ns-mid: postfix-68AE6EC9-204746223
+	by mail.kylinos.cn (NSMail) with SMTP id A2772E008FB5;
+	Wed, 27 Aug 2025 11:51:18 +0800 (CST)
+X-ns-mid: postfix-68AE80B6-481635499
 Received: from localhost.localdomain (unknown [172.25.120.24])
-	by mail.kylinos.cn (NSMail) with ESMTPA id ECEDDE008FAC;
-	Wed, 27 Aug 2025 10:34:43 +0800 (CST)
+	by mail.kylinos.cn (NSMail) with ESMTPA id 49687E008FB2;
+	Wed, 27 Aug 2025 11:51:01 +0800 (CST)
 From: Zihuan Zhang <zhangzihuan@kylinos.cn>
 To: "Rafael J . wysocki" <rafael@kernel.org>,
 	Viresh Kumar <viresh.kumar@linaro.org>,
@@ -105,8 +106,8 @@ Cc: zhenglifeng <zhenglifeng1@huawei.com>,
 	linux-kernel@vger.kernel.org,
 	Zihuan Zhang <zhangzihuan@kylinos.cn>
 Subject: [PATCH v2 15/18] powercap: dtpm_cpu: Use __free(put_cpufreq_policy) for policy reference
-Date: Wed, 27 Aug 2025 10:31:59 +0800
-Message-Id: <20250827023202.10310-16-zhangzihuan@kylinos.cn>
+Date: Wed, 27 Aug 2025 11:50:56 +0800
+Message-Id: <20250827035056.353772-1-zhangzihuan@kylinos.cn>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20250827023202.10310-1-zhangzihuan@kylinos.cn>
 References: <20250827023202.10310-1-zhangzihuan@kylinos.cn>
