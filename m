@@ -1,42 +1,43 @@
 Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12F2715B0EC;
-	Wed,  3 Sep 2025 13:18:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D09072E8B8A;
+	Wed,  3 Sep 2025 13:18:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756905492; cv=none; b=N//YMjcRhN0KsDRZBzPCP2KdiZwl1hi8X1NG/jX7uJPtidpQq2skwfVUmVLHFkTKOxEjCsF71pqqlEtJ6kZOqN00vuBUo2eX3dEDcKejJI9nRUkR5j/xwgUn0yCFaPvlByXqFD34LbIonbssk57fJMWWK38JhZ6ELILeks+v+HI=
+	t=1756905495; cv=none; b=WFEbm37pllJIIz/su1MIKffV7JhSRgNMf//Evhc+mvyvFy+6YDoFVRzpy2X9wNACvuvWf8bVmA/TyzXmLSuHLW0SQuA87NyWSUOAQJTHbUqSyJHRQckcHBEk+OKqG3TvnYFv4tH49hCDojls6fq4Dc878T/pMj1cQJgwCZ7T6lU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756905492; c=relaxed/simple;
-	bh=aUpHyIkA6IRKScoX6aepW5QYg+CYo5eKLwuIId41vTs=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=jY8O7yHzLvChAvPOcRzQXsA6LGPDyehzlzYhI2ajkMY212QNG/YIxFUnqpEqSLtM7j0xqKj77OW0X6dLTzhwJX+BsRtb4o8AVHjkB6gOH46pebqoqYOM4O0fXMVqGyEq+BuE3OL1i/FZ+qR2r3f0Yq/hyPDL2IyxFRTueTU/pSQ=
+	s=arc-20240116; t=1756905495; c=relaxed/simple;
+	bh=MaEpS/kQ0iq8I+mSuZFPEXaBH8HV11drax5+pE3OzRU=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=OMuNjBa8DjXSg2L0e1lRxi4XWJU43pSd12+6xPR1k9RULYALghZ3iXCinLD33R9YCsLPbyQYmCiB0fUscP73eXFrpezwDze8B3fcZhu2fX3yJJ4k/Ri448UV2kh2RJiQ+fXZJ66zkSWvz4dHPBNYq61tXEUwUAwadXMiw71Qjrg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 6680d70888c811f0b29709d653e92f7d-20250903
+X-UUID: 6b6c578888c811f0b29709d653e92f7d-20250903
 X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.45,REQID:d056df0d-9490-46b5-b02b-45f4d6409240,IP:0,U
-	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
-	release,TS:0
-X-CID-META: VersionHash:6493067,CLOUDID:b3d8cc48d38f17ba8c0258a26b8c30c8,BulkI
-	D:nil,BulkQuantity:0,Recheck:0,SF:102|850,TC:nil,Content:0|50,EDM:-3,IP:ni
-	l,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,AV:0,LES
-	:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
+X-CID-O-INFO: VERSION:1.1.45,REQID:cc21363a-8291-4a3e-bd39-a186506d2f70,IP:0,U
+	RL:0,TC:0,Content:-5,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION
+	:release,TS:-5
+X-CID-META: VersionHash:6493067,CLOUDID:63c205d422a11131bd200bea55a50c60,BulkI
+	D:nil,BulkQuantity:0,Recheck:0,SF:81|82|102|850,TC:nil,Content:0|50,EDM:-3
+	,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,AV
+	:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
 X-CID-BVR: 0
 X-CID-BAS: 0,_,0,_
 X-CID-FACTOR: TF_CID_SPAM_SNR
-X-UUID: 6680d70888c811f0b29709d653e92f7d-20250903
+X-UUID: 6b6c578888c811f0b29709d653e92f7d-20250903
 Received: from mail.kylinos.cn [(10.44.16.175)] by mailgw.kylinos.cn
 	(envelope-from <zhangzihuan@kylinos.cn>)
 	(Generic MTA)
-	with ESMTP id 431355095; Wed, 03 Sep 2025 21:17:54 +0800
+	with ESMTP id 487574624; Wed, 03 Sep 2025 21:18:02 +0800
 Received: from mail.kylinos.cn (localhost [127.0.0.1])
-	by mail.kylinos.cn (NSMail) with SMTP id DD192E008FA4;
-	Wed,  3 Sep 2025 21:17:53 +0800 (CST)
-X-ns-mid: postfix-68B84000-2111002
+	by mail.kylinos.cn (NSMail) with SMTP id 1A8C2E008FA2;
+	Wed,  3 Sep 2025 21:18:02 +0800 (CST)
+X-ns-mid: postfix-68B84009-9033994
 Received: from localhost.localdomain (unknown [172.25.120.24])
-	by mail.kylinos.cn (NSMail) with ESMTPA id 86984E008FA2;
-	Wed,  3 Sep 2025 21:17:43 +0800 (CST)
+	by mail.kylinos.cn (NSMail) with ESMTPA id 57859E008FA4;
+	Wed,  3 Sep 2025 21:17:58 +0800 (CST)
 From: Zihuan Zhang <zhangzihuan@kylinos.cn>
 To: "Rafael J . wysocki" <rafael@kernel.org>,
 	Viresh Kumar <viresh.kumar@linaro.org>,
@@ -85,10 +86,12 @@ Cc: Ben Horgan <ben.horgan@arm.com>,
 	linux-omap@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Zihuan Zhang <zhangzihuan@kylinos.cn>
-Subject: [PATCH v4 00/10] cpufreq: use __free() for all cpufreq_cpu_get() references
-Date: Wed,  3 Sep 2025 21:17:23 +0800
-Message-Id: <20250903131733.57637-1-zhangzihuan@kylinos.cn>
+Subject: [PATCH v4 02/10] ACPI: processor: thermal: Use scope-based cleanup helper
+Date: Wed,  3 Sep 2025 21:17:25 +0800
+Message-Id: <20250903131733.57637-3-zhangzihuan@kylinos.cn>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20250903131733.57637-1-zhangzihuan@kylinos.cn>
+References: <20250903131733.57637-1-zhangzihuan@kylinos.cn>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -97,67 +100,91 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 
-This patchset converts all remaining cpufreq users to rely on the
-__free(put_cpufreq_policy) annotation for policy references, instead of
-calling cpufreq_cpu_put() manually.
+Replace the manual cpufreq_cpu_put() with __free(put_cpufreq_policy)
+annotation for policy references. This reduces the risk of reference
+counting mistakes and aligns the code with the latest kernel style.
 
-Motivation:
-- Reduce the chance of reference counting mistakes
-- Make the code more consistent with the latest kernel style
-- behavior remains the same, but reference counting is now safer=20
-  and easier to maintain.
+No functional change intended.
 
-The changes are split into 12 patches as they touch different subsystems
-and are maintained by different people. There is no functional change.
+Signed-off-by: Zihuan Zhang <zhangzihuan@kylinos.cn>
+---
+ drivers/acpi/processor_thermal.c | 37 ++++++++++++++++++--------------
+ 1 file changed, 21 insertions(+), 16 deletions(-)
 
-V4:
- - Fix compile error in topology.c
- - drop 2 patches
- - Move code into a function in processor_thermal.c
- - Move code into a function in intel_pstate.c
- - Move policy declare in dtpm_cpu.c
- - Fix compile error in imx_thermal.c
- - Fix compile error in ti-thermal-common.c
- - Fix compile error in energy_model.c
-
-V3:
- - drop patch 'KVM: x86: Use __free(put_cpufreq_policy) for policy refere=
-nce'
- - removed 5 patches which has been applied
- - Consolidate CPUFreq policy assignments and allocations into one line,
-   suggested by Ben Horgan
- - Change cpu_has_cpufreq() return type to bool, following Rafael's sugge=
-stion
- - Change the title to 'Use scope-based cleanup helper'
-
-V2:
- - Fix compile error in powernv-cpufreq.c
- - Split patch to separate logical changes
-
-Zihuan Zhang (10):
-  arm64: topology: Use scope-based cleanup helper
-  ACPI: processor: thermal: Use scope-based cleanup helper
-  cpufreq: intel_pstate: Use scope-based cleanup helper
-  cpufreq: powernv: Use scope-based cleanup helper
-  PM / devfreq: Use scope-based cleanup helper
-  drm/i915: Use scope-based cleanup helper
-  powercap: dtpm_cpu: Use scope-based cleanup helper
-  thermal: imx: Use scope-based cleanup helper
-  thermal/drivers/ti-soc-thermal: Use scope-based cleanup helper
-  PM: EM: Use scope-based cleanup helper
-
- arch/arm64/kernel/topology.c                  |  9 ++---
- drivers/acpi/processor_thermal.c              | 37 +++++++++++--------
- drivers/cpufreq/intel_pstate.c                | 19 ++++++----
- drivers/cpufreq/powernv-cpufreq.c             | 11 +++---
- drivers/devfreq/governor_passive.c            | 25 +++++-------
- drivers/gpu/drm/i915/gt/intel_llc.c           |  4 +-
- drivers/powercap/dtpm_cpu.c                   | 30 ++++++---------
- drivers/thermal/imx_thermal.c                 | 14 +++----
- .../ti-soc-thermal/ti-thermal-common.c        | 13 ++-----
- kernel/power/energy_model.c                   |  7 +---
- 10 files changed, 73 insertions(+), 96 deletions(-)
-
+diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_th=
+ermal.c
+index 1219adb11ab9..5043f17d27b7 100644
+--- a/drivers/acpi/processor_thermal.c
++++ b/drivers/acpi/processor_thermal.c
+@@ -62,19 +62,14 @@ static int phys_package_first_cpu(int cpu)
+ 	return 0;
+ }
+=20
+-static int cpu_has_cpufreq(unsigned int cpu)
++static bool cpu_has_cpufreq(unsigned int cpu)
+ {
+-	struct cpufreq_policy *policy;
++	struct cpufreq_policy *policy __free(put_cpufreq_policy) =3D cpufreq_cp=
+u_get(cpu);
+=20
+ 	if (!acpi_processor_cpufreq_init)
+ 		return 0;
+=20
+-	policy =3D cpufreq_cpu_get(cpu);
+-	if (policy) {
+-		cpufreq_cpu_put(policy);
+-		return 1;
+-	}
+-	return 0;
++	return !!policy;
+ }
+=20
+ static int cpufreq_get_max_state(unsigned int cpu)
+@@ -93,9 +88,23 @@ static int cpufreq_get_cur_state(unsigned int cpu)
+ 	return reduction_step(cpu);
+ }
+=20
++static long long cpufreq_get_max_freq(unsigned int cpu)
++{
++	long long max_freq;
++	struct cpufreq_policy *policy __free(put_cpufreq_policy) =3D
++		cpufreq_cpu_get(cpu);
++
++	if (!policy)
++		return -EINVAL;
++
++	max_freq =3D (policy->cpuinfo.max_freq *
++		(100 - reduction_step(cpu) * cpufreq_thermal_reduction_pctg)) / 100;
++
++	return max_freq;
++}
++
+ static int cpufreq_set_cur_state(unsigned int cpu, int state)
+ {
+-	struct cpufreq_policy *policy;
+ 	struct acpi_processor *pr;
+ 	unsigned long max_freq;
+ 	int i, ret;
+@@ -120,14 +129,10 @@ static int cpufreq_set_cur_state(unsigned int cpu, =
+int state)
+ 		if (unlikely(!freq_qos_request_active(&pr->thermal_req)))
+ 			continue;
+=20
+-		policy =3D cpufreq_cpu_get(i);
+-		if (!policy)
+-			return -EINVAL;
+-
+-		max_freq =3D (policy->cpuinfo.max_freq *
+-			    (100 - reduction_step(i) * cpufreq_thermal_reduction_pctg)) / 100=
+;
++		max_freq =3D cpufreq_get_max_freq(cpu);
+=20
+-		cpufreq_cpu_put(policy);
++		if (max_freq =3D=3D -EINVAL)
++			return -EINVAL;
+=20
+ 		ret =3D freq_qos_update_request(&pr->thermal_req, max_freq);
+ 		if (ret < 0) {
 --=20
 2.25.1
 
