@@ -1,43 +1,43 @@
 Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5466F302759;
-	Wed,  3 Sep 2025 13:18:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 717A12FF64B;
+	Wed,  3 Sep 2025 13:18:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756905505; cv=none; b=NFBxxklfGdwo5m9hrqXfdWdC0ndx/ZRPOE9EPIg8LMi78UMPeEsjCPBGUZ7pTWU3ybBcBF3gYc8LBkCv+pUnIAtujecQ08HlG7vNbWLokJEBfisEjACLvXFQjpbxqHvWkRKTdRLfc057NIGFqeoRldxGP9uYatHE7qsT/eqF67A=
+	t=1756905514; cv=none; b=dDE4RGYZH3R288ktMIIKE2NicLHgJBnkWzsbeHh+ipMiY2QrfYuZjV7ixq6kAarF1PCwZmL5nFuhhX6DHuyOZ744moCoQFC8G/eft6g4oCibpTWnwdCs9ftYdLXMfx/23TlsV6jTI/Yns/UAKwtjj2II8E8cY6ZVztKAQtWnukU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756905505; c=relaxed/simple;
-	bh=nL9uXlexQDC6CbrMTnH0B+Ysx+pDvLQ1rB8sOE0bEcY=;
+	s=arc-20240116; t=1756905514; c=relaxed/simple;
+	bh=SOEaaZpmJn7sGF2g0MQZ6wZ+Z37bA8pyb8CmHglSgm0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=f5pcrIlG/qrY02AjaLk8SzlP/SsiFwM++gmHc0MsBC/FzjepYbDnnm2Q/scy4tvJx3jPvqtGzthL6TE47UfF9NB1UxeStiFubMATDeWTr4tvvaGiMsJnLkfbcq3k2pt3LtyaNhtXX/UIm8072XGgz6IFdEcphEJg0+KsRpZYVFI=
+	 MIME-Version; b=obpB/GlqlsksIDJ+YvmXKk/jPYi/GydZrmKW8OJ2MS82UcMrKX+P5vx+BPuwgljzaCRRHQ2MkaNGoGmKKt0msLSkfg68dSfX9lN2I/sF0tYTBte8lKDiPZWnP/dTkrzpgXMGodAQKct7MGYhKctdO2XNLJ8ls86Q6dmcf8QFtJc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 749e0a6888c811f0b29709d653e92f7d-20250903
+X-UUID: 7923175488c811f0b29709d653e92f7d-20250903
 X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.45,REQID:592335fb-43af-471c-81cf-7d21aa6b3165,IP:0,U
+X-CID-O-INFO: VERSION:1.1.45,REQID:404860c2-a1e1-4a57-af4d-479ddd31998b,IP:0,U
 	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
 	release,TS:0
-X-CID-META: VersionHash:6493067,CLOUDID:4fe2850b774750f8430f4353e4afc535,BulkI
+X-CID-META: VersionHash:6493067,CLOUDID:8ae0b0763886d87a9cf94141ec49b745,BulkI
 	D:nil,BulkQuantity:0,Recheck:0,SF:81|82|102|850,TC:nil,Content:0|50,EDM:-3
 	,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,AV
 	:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
 X-CID-BVR: 0
 X-CID-BAS: 0,_,0,_
 X-CID-FACTOR: TF_CID_SPAM_SNR
-X-UUID: 749e0a6888c811f0b29709d653e92f7d-20250903
+X-UUID: 7923175488c811f0b29709d653e92f7d-20250903
 Received: from mail.kylinos.cn [(10.44.16.175)] by mailgw.kylinos.cn
 	(envelope-from <zhangzihuan@kylinos.cn>)
 	(Generic MTA)
-	with ESMTP id 1123542880; Wed, 03 Sep 2025 21:18:17 +0800
+	with ESMTP id 1572167497; Wed, 03 Sep 2025 21:18:25 +0800
 Received: from mail.kylinos.cn (localhost [127.0.0.1])
-	by mail.kylinos.cn (NSMail) with SMTP id 990A1E008FA2;
-	Wed,  3 Sep 2025 21:18:17 +0800 (CST)
-X-ns-mid: postfix-68B84019-866748
+	by mail.kylinos.cn (NSMail) with SMTP id 328D9E008FA2;
+	Wed,  3 Sep 2025 21:18:25 +0800 (CST)
+X-ns-mid: postfix-68B84021-1150110
 Received: from localhost.localdomain (unknown [172.25.120.24])
-	by mail.kylinos.cn (NSMail) with ESMTPA id 854FDE008FA3;
-	Wed,  3 Sep 2025 21:18:13 +0800 (CST)
+	by mail.kylinos.cn (NSMail) with ESMTPA id 717CBE008FA3;
+	Wed,  3 Sep 2025 21:18:21 +0800 (CST)
 From: Zihuan Zhang <zhangzihuan@kylinos.cn>
 To: "Rafael J . wysocki" <rafael@kernel.org>,
 	Viresh Kumar <viresh.kumar@linaro.org>,
@@ -86,9 +86,9 @@ Cc: Ben Horgan <ben.horgan@arm.com>,
 	linux-omap@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Zihuan Zhang <zhangzihuan@kylinos.cn>
-Subject: [PATCH v4 06/10] drm/i915: Use scope-based cleanup helper
-Date: Wed,  3 Sep 2025 21:17:29 +0800
-Message-Id: <20250903131733.57637-7-zhangzihuan@kylinos.cn>
+Subject: [PATCH v4 08/10] thermal: imx: Use scope-based cleanup helper
+Date: Wed,  3 Sep 2025 21:17:31 +0800
+Message-Id: <20250903131733.57637-9-zhangzihuan@kylinos.cn>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20250903131733.57637-1-zhangzihuan@kylinos.cn>
 References: <20250903131733.57637-1-zhangzihuan@kylinos.cn>
@@ -108,31 +108,63 @@ No functional change intended.
 
 Signed-off-by: Zihuan Zhang <zhangzihuan@kylinos.cn>
 ---
- drivers/gpu/drm/i915/gt/intel_llc.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/thermal/imx_thermal.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/gt/intel_llc.c b/drivers/gpu/drm/i915/g=
-t/intel_llc.c
-index 1d19c073ba2e..f15e4c0fa54b 100644
---- a/drivers/gpu/drm/i915/gt/intel_llc.c
-+++ b/drivers/gpu/drm/i915/gt/intel_llc.c
-@@ -29,13 +29,11 @@ static struct intel_gt *llc_to_gt(struct intel_llc *l=
-lc)
-=20
- static unsigned int cpu_max_MHz(void)
+diff --git a/drivers/thermal/imx_thermal.c b/drivers/thermal/imx_thermal.=
+c
+index 38c993d1bcb3..cd1d9d419275 100644
+--- a/drivers/thermal/imx_thermal.c
++++ b/drivers/thermal/imx_thermal.c
+@@ -201,7 +201,6 @@ static struct thermal_soc_data thermal_imx7d_data =3D=
  {
+=20
+ struct imx_thermal_data {
+ 	struct device *dev;
 -	struct cpufreq_policy *policy;
+ 	struct thermal_zone_device *tz;
+ 	struct thermal_cooling_device *cdev;
+ 	struct regmap *tempmon;
+@@ -541,22 +540,20 @@ MODULE_DEVICE_TABLE(of, of_imx_thermal_match);
+ static int imx_thermal_register_legacy_cooling(struct imx_thermal_data *=
+data)
+ {
+ 	struct device_node *np;
 +	struct cpufreq_policy *policy __free(put_cpufreq_policy) =3D cpufreq_cp=
 u_get(0);
- 	unsigned int max_khz;
+ 	int ret =3D 0;
 =20
--	policy =3D cpufreq_cpu_get(0);
- 	if (policy) {
- 		max_khz =3D policy->cpuinfo.max_freq;
--		cpufreq_cpu_put(policy);
- 	} else {
- 		/*
- 		 * Default to measured freq if none found, PCU will ensure we
+-	data->policy =3D cpufreq_cpu_get(0);
+-	if (!data->policy) {
++	if (!policy) {
+ 		pr_debug("%s: CPUFreq policy not found\n", __func__);
+ 		return -EPROBE_DEFER;
+ 	}
+=20
+-	np =3D of_get_cpu_node(data->policy->cpu, NULL);
++	np =3D of_get_cpu_node(policy->cpu, NULL);
+=20
+ 	if (!np || !of_property_present(np, "#cooling-cells")) {
+-		data->cdev =3D cpufreq_cooling_register(data->policy);
+-		if (IS_ERR(data->cdev)) {
++		data->cdev =3D cpufreq_cooling_register(policy);
++		if (IS_ERR(data->cdev))
+ 			ret =3D PTR_ERR(data->cdev);
+-			cpufreq_cpu_put(data->policy);
+-		}
+ 	}
+=20
+ 	of_node_put(np);
+@@ -567,7 +564,6 @@ static int imx_thermal_register_legacy_cooling(struct=
+ imx_thermal_data *data)
+ static void imx_thermal_unregister_legacy_cooling(struct imx_thermal_dat=
+a *data)
+ {
+ 	cpufreq_cooling_unregister(data->cdev);
+-	cpufreq_cpu_put(data->policy);
+ }
+=20
+ #else
 --=20
 2.25.1
 
