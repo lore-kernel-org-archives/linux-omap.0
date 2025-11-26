@@ -1,41 +1,41 @@
-Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54C9F30FF34
-	for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2025 17:36:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E11E63115A6;
+	Wed, 26 Nov 2025 17:36:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764178616; cv=none; b=koLTZM8DysOt4NAfCB6LiMVHFID703mNwMUgV7fv0LWcmLVmeeq9acWOAsTwnOfMUCapOeuL/oplIw/fgZlN1bQlOeXsLdhzf+JRgnavLlE+cILiF0JUV2CDMnKS4hdhDnJYT5SuNPnGEETbQBhOmv08vM3pcS7smYRN6XL/OEY=
+	t=1764178619; cv=none; b=hWHAcNlM1hOvTc5ykdBNSN1Ds7WbLAARfRxSSOto8sHbAcUgYnkMAij42rwey5NamKC809MgL9df9U8Cg9aEWSMkeNM1cQdsRk6UN82JqkUxUM8MFrHMVvcbNIr80N7SkoC1rQlX+/dxXZsKm/AIs9+UCzHiNKhOZu6BmUvhLc4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764178616; c=relaxed/simple;
-	bh=SuNb1a5ivmk/dAWtFvpshxiAAt73xG4KpXye/Z5LdFo=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=KS3LxoolESCJZ7WOetbH4RAkMrLEo7T9KP+zKD9NT4UgYIzmp7XQ/NlxeEjOY6bH22u/lC+1pD2SMEeWWjDrm9INkDK54HsR21wQYMBz7pyQZgCmmJFPtYTKlgjQwsXo853k9hKVm28W4EkDraj6ut5Ik8IakCZm821h99FE2Iw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=PhkSyYww; arc=none smtp.client-ip=185.246.85.4
+	s=arc-20240116; t=1764178619; c=relaxed/simple;
+	bh=pd0fwM8OpssesecVe5jYsKCLeoyXlOaIEtG7sseqEuY=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=N5nqemjWYlmAUSM7xlVUVnGFvnVHWNzOnE0rV0XgCcYOvyYPeRvBlslF9eHTCINZVN7RD/B1bCoGF5B+p6kcILBLGO1fDyn2J+wv3EVnyB/hLknNUIrfL+Xb+MPp+nBhLH9Zm/RuHS9tylBbiBNhB3WwbeSXlpm4Sgeha5VZlJY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=oAhKwQJb; arc=none smtp.client-ip=185.246.84.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="PhkSyYww"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="oAhKwQJb"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id D5B094E418DB;
-	Wed, 26 Nov 2025 17:36:46 +0000 (UTC)
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 270AF1A1D86;
+	Wed, 26 Nov 2025 17:36:55 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id A50D560721;
-	Wed, 26 Nov 2025 17:36:46 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 5B67A102F1D8D;
-	Wed, 26 Nov 2025 18:36:38 +0100 (CET)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id EE4BB60721;
+	Wed, 26 Nov 2025 17:36:54 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 484F2102F1D8D;
+	Wed, 26 Nov 2025 18:36:51 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1764178605; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding; bh=zFZ6kGeHeLZM9HVH30FgdiT3F0hPdtYLxyJtGV/89KA=;
-	b=PhkSyYwwwVzNX9HFnIrE0j0EJKkw4WvjPWIzre6oNKlUCAH9A3ZzgjI1eDMMIb4RmqBmxE
-	SHnXV504VW4nzNTy95G6yA9LKWJO93g8ERbr1KBrrzKx5ctLr8VCG3HGnXut/cj3mmZ96i
-	RwCz6wIMQX10e4A2Zv5l6CC7sXh31vT5qTuv06VfGmG/yFsf+JdAAUoraoOTjrzoBsDYQj
-	LMhhj00xVPInK1SF2AAAJiCn6KJhnfzjbrWGc2I8g5PJpJ3tCrWAjL0MWcTRziW/9Bh3WP
-	LnJpo/Cx/SSOAJHIRGCXTTSEX9OZQfMdKSGK57thek7lPcTNlLuTaPMZy0cmFA==
+	t=1764178613; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=i06U48V1QlfdC71Az6GT0AOQaJkHqXg7US8ufDzb8no=;
+	b=oAhKwQJbXv1B8OIDDEkR/Pl5h1rjaKwT0MbKkEtkULn2G/7yxDc7yOGnNLXZN3Xs7Fptjq
+	tunuXn4gCrA3lX64/cG3BjB9z6L/rklyyo1Bo7QcJMUAhDyqV2HQqA8dz9XtvMR+2Wx33m
+	lgeiU788HZYm8Q7XQUkwg7jeMlWbx2g313bGuC/el00k3X4ZsC2n/k/Wx1pVTcaqlcEzRQ
+	N38WyJ94yc4AslbZJ/D2TKdVLQcY/jBmcofuhVhsqQ16xARbMkwdKNAJpl6SiSFeXE8YGA
+	gdSKgIeSjfoQE0xBo1Aly43VYA8Jg5PdaYzQcdayRqmGTHVItN/VHwqX/2n2qg==
 From: "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>
-Subject: [PATCH 00/21] Clean and update tilcdc driver to support
- DRM_BRIDGE_ATTACH_NO_CONNECTOR
-Date: Wed, 26 Nov 2025 18:35:42 +0100
-Message-Id: <20251126-feature_tilcdc-v1-0-49b9ef2e3aa0@bootlin.com>
+Date: Wed, 26 Nov 2025 18:35:45 +0100
+Subject: [PATCH 03/21] drm/tilcdc: Remove simulate_vesa_sync flag
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -43,11 +43,10 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIAG46J2kC/x3MQQqAIBBA0avErBNUrLCrRETpWANRoRaBePek5
- Vv8nyCgJwzQVwk8PhToPApEXYHZ5mNFRrYYJJeN4EIxh3O8PU6RdmMN67SxSmPbLU5DiS6Pjt5
- /OIw5f92TcylgAAAA
-X-Change-ID: 20251014-feature_tilcdc-79cd49e67bf9
+Content-Transfer-Encoding: 7bit
+Message-Id: <20251126-feature_tilcdc-v1-3-49b9ef2e3aa0@bootlin.com>
+References: <20251126-feature_tilcdc-v1-0-49b9ef2e3aa0@bootlin.com>
+In-Reply-To: <20251126-feature_tilcdc-v1-0-49b9ef2e3aa0@bootlin.com>
 To: Jyri Sarha <jyri.sarha@iki.fi>, 
  Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, 
  Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
@@ -72,87 +71,106 @@ Cc: Markus Schneider-Pargmann <msp@baylibre.com>,
 X-Mailer: b4 0.14.3
 X-Last-TLS-Session-Version: TLSv1.3
 
-The starting point for this work was adding support for the HDMI cape:
-https://www.seeedstudio.com/Seeed-Studio-BeagleBone-Green-HDMI-Cape.html
-This will be sent in a later series.
+The tilcdc hardware does not generate VESA-compliant sync signals. It
+aligns the vertical sync (VS) on the second edge of the horizontal sync
+(HS) instead of the first edge. To compensate for this hardware
+behavior, the driver applies a timing adjustment in mode_fixup().
 
-Initially, Miguel proposed modifying the ite-it66121 bridge to support
-the legacy behavior without the DRM_BRIDGE_ATTACH_NO_CONNECTOR flag:
-https://lore.kernel.org/lkml/20250909-it66121-fix-v1-1-bc79ca83df17@bootlin.com/
-This patch was NAK'd as we don't want to add more legacy code. Maxime
-requested that the tilcdc driver be updated to use
-DRM_BRIDGE_ATTACH_NO_CONNECTOR instead.
+Previously, this adjustment was conditional based on the simulate_vesa_sync
+flag, which was only set when using external encoders. This appears
+problematic because:
 
-While working on this update, I discovered that the tilcdc driver
-contained significant amounts of legacy code that needed cleaning.
-Since this driver was developed alongside the tda998x driver for
-several AM335x boards, the tda998x driver also required cleanup and
-support for the DRM_BRIDGE_ATTACH_NO_CONNECTOR flag.
+1. The timing adjustment seems needed for the hardware behavior regardless
+   of whether an external encoder is used
+2. The external encoder infrastructure is driver-specific and being
+   removed due to design issues
+3. Boards using tilcdc without bridges (e.g., am335x-evm, am335x-evmsk)
+   may not be getting the necessary timing adjustments
 
-This series is based on the tilcdc fix sent to mainline:
-https://lore.kernel.org/lkml/20251125090546.137193-1-kory.maincent@bootlin.com/
-
-Patch 1-7: Convert tilcdc binding to YAML and remove the ti,tilcdc,panel
-	   sub-binding and driver
-Patch 8-16: Clean up tilcdc driver
-Patch 17-19: Clean up tda998x driver
-Patch 20: Add DRM_BRIDGE_ATTACH_NO_CONNECTOR support to tda998x
-Patch 21: Add DRM_BRIDGE_ATTACH_NO_CONNECTOR support to tilcdc
+Remove the simulate_vesa_sync flag and apply the VESA sync timing
+adjustment unconditionally, ensuring consistent behavior across all
+configurations. While it's unclear if the previous conditional behavior
+was causing actual issues, the unconditional adjustment better reflects
+the hardware's characteristics.
 
 Signed-off-by: Kory Maincent (TI.com) <kory.maincent@bootlin.com>
 ---
-Kory Maincent (TI.com) (21):
-      dt-bindings: display: tilcdc: Convert to DT schema
-      dt-bindings: display: tilcdc: Add fifo-threshold property
-      drm/tilcdc: Remove simulate_vesa_sync flag
-      drm/tilcdc: Add support for DRM bus flags and simplify panel config
-      ARM: dts: omap: Bind panel to panel-dpi instead of ti,tilcdc,panel driver
-      dt-bindings: display: tilcdc: Remove panel binding
-      drm/tilcdc: Remove tilcdc panel driver
-      drm/tilcdc: Remove component framework support
-      drm/tilcdc: Remove tilcdc_panel_info structure
-      drm/tilcdc: Remove redundant #endif/#ifdef in debugfs code
-      drm/tilcdc: Remove unused encoder and connector tracking arrays
-      drm/tilcdc: Rename external_encoder and external_connector to encoder and connector
-      drm/tilcdc: Rename tilcdc_external to tilcdc_encoder
-      drm/tilcdc: Remove the useless module list support
-      drm/tilcdc: Modernize driver initialization and cleanup paths
-      drm/tilcdc: Remove the use of drm_device private_data
-      drm/bridge: tda998x: Remove component support
-      drm/bridge: tda998x: Move tda998x_create/destroy into probe and remove
-      drm/bridge: tda998x: Remove useless tda998x_connector_destroy wrapper
-      drm/bridge: tda998x: Add support for DRM_BRIDGE_ATTACH_NO_CONNECTOR
-      drm/tilcdc: Add support for DRM_BRIDGE_ATTACH_NO_CONNECTOR
 
- .../devicetree/bindings/display/tilcdc/panel.txt   |  66 ---
- .../devicetree/bindings/display/tilcdc/tilcdc.txt  |  82 ----
- .../devicetree/bindings/display/tilcdc/tilcdc.yaml | 103 +++++
- arch/arm/boot/dts/ti/davinci/da850-evm.dts         |  26 +-
- arch/arm/boot/dts/ti/omap/am335x-guardian.dts      |  25 +-
- arch/arm/boot/dts/ti/omap/am335x-pdu001.dts        |  21 +-
- arch/arm/boot/dts/ti/omap/am335x-pepper.dts        |  22 +-
- arch/arm/boot/dts/ti/omap/am335x-sbc-t335.dts      |  25 +-
- arch/arm/boot/dts/ti/omap/am335x-sl50.dts          |  25 +-
- drivers/gpu/drm/bridge/tda998x_drv.c               | 251 ++++++------
- drivers/gpu/drm/tilcdc/Makefile                    |   3 +-
- drivers/gpu/drm/tilcdc/tilcdc_crtc.c               | 117 ++----
- drivers/gpu/drm/tilcdc/tilcdc_drv.c                | 456 +++++++--------------
- drivers/gpu/drm/tilcdc/tilcdc_drv.h                |  88 +---
- drivers/gpu/drm/tilcdc/tilcdc_encoder.c            |  93 +++++
- .../tilcdc/{tilcdc_external.h => tilcdc_encoder.h} |   5 +-
- drivers/gpu/drm/tilcdc/tilcdc_external.c           | 179 --------
- drivers/gpu/drm/tilcdc/tilcdc_panel.c              | 408 ------------------
- drivers/gpu/drm/tilcdc/tilcdc_panel.h              |  15 -
- drivers/gpu/drm/tilcdc/tilcdc_plane.c              |   2 +-
- drivers/gpu/drm/tilcdc/tilcdc_regs.h               |   8 +-
- 21 files changed, 589 insertions(+), 1431 deletions(-)
+Only few board currently use tilcdc not associated to a bridge like the
+am335x_evm or the am335x-evmsk.
 ---
-base-commit: 670bacfc7579bdd79a3069cfb5ab60a6a7923003
-change-id: 20251014-feature_tilcdc-79cd49e67bf9
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c     | 16 ----------------
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h      |  2 --
+ drivers/gpu/drm/tilcdc/tilcdc_external.c |  1 -
+ 3 files changed, 19 deletions(-)
 
-Best regards,
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+index 52c95131af5af..b06b1453db2dd 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+@@ -47,9 +47,6 @@ struct tilcdc_crtc {
+ 
+ 	struct drm_framebuffer *next_fb;
+ 
+-	/* Only set if an external encoder is connected */
+-	bool simulate_vesa_sync;
+-
+ 	int sync_lost_count;
+ 	bool frame_intact;
+ 	struct work_struct recover_work;
+@@ -642,11 +639,6 @@ static bool tilcdc_crtc_mode_fixup(struct drm_crtc *crtc,
+ 		const struct drm_display_mode *mode,
+ 		struct drm_display_mode *adjusted_mode)
+ {
+-	struct tilcdc_crtc *tilcdc_crtc = to_tilcdc_crtc(crtc);
+-
+-	if (!tilcdc_crtc->simulate_vesa_sync)
+-		return true;
+-
+ 	/*
+ 	 * tilcdc does not generate VESA-compliant sync but aligns
+ 	 * VS on the second edge of HS instead of first edge.
+@@ -866,14 +858,6 @@ void tilcdc_crtc_set_panel_info(struct drm_crtc *crtc,
+ 	tilcdc_crtc->info = info;
+ }
+ 
+-void tilcdc_crtc_set_simulate_vesa_sync(struct drm_crtc *crtc,
+-					bool simulate_vesa_sync)
+-{
+-	struct tilcdc_crtc *tilcdc_crtc = to_tilcdc_crtc(crtc);
+-
+-	tilcdc_crtc->simulate_vesa_sync = simulate_vesa_sync;
+-}
+-
+ void tilcdc_crtc_update_clk(struct drm_crtc *crtc)
+ {
+ 	struct drm_device *dev = crtc->dev;
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.h b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+index 58b276f82a669..3aba3a1155ba0 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.h
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+@@ -160,8 +160,6 @@ irqreturn_t tilcdc_crtc_irq(struct drm_crtc *crtc);
+ void tilcdc_crtc_update_clk(struct drm_crtc *crtc);
+ void tilcdc_crtc_set_panel_info(struct drm_crtc *crtc,
+ 		const struct tilcdc_panel_info *info);
+-void tilcdc_crtc_set_simulate_vesa_sync(struct drm_crtc *crtc,
+-					bool simulate_vesa_sync);
+ void tilcdc_crtc_shutdown(struct drm_crtc *crtc);
+ void tilcdc_crtc_destroy(struct drm_crtc *crtc);
+ int tilcdc_crtc_update_fb(struct drm_crtc *crtc,
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_external.c b/drivers/gpu/drm/tilcdc/tilcdc_external.c
+index 3b86d002ef62e..da755a411d9ff 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_external.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_external.c
+@@ -80,7 +80,6 @@ int tilcdc_add_component_encoder(struct drm_device *ddev)
+ 		return -ENODEV;
+ 
+ 	/* Only tda998x is supported at the moment. */
+-	tilcdc_crtc_set_simulate_vesa_sync(priv->crtc, true);
+ 	tilcdc_crtc_set_panel_info(priv->crtc, &panel_info_tda998x);
+ 
+ 	return 0;
+
 -- 
-Köry Maincent, Bootlin
-Embedded Linux and kernel engineering
-https://bootlin.com
+2.43.0
 
