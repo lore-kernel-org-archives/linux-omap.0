@@ -1,42 +1,41 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45C2B34026B;
-	Wed, 26 Nov 2025 17:36:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54C9F30FF34
+	for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2025 17:36:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764178616; cv=none; b=ifxsO8UwYQkLGvGWnhprk2FwASWXnjMnkNHgpltwzeeIPuBI5eO0CQyy2vLfaukA6YF1yby2Fh0UlAkCa9OAm4AHPi236DKo/cOkVHcpI6LnHTtGkpp0QclL4jgdhogla//QcedlZQALZ/ZZ1TTFMnD7v9owIXuagpffak8oneU=
+	t=1764178616; cv=none; b=koLTZM8DysOt4NAfCB6LiMVHFID703mNwMUgV7fv0LWcmLVmeeq9acWOAsTwnOfMUCapOeuL/oplIw/fgZlN1bQlOeXsLdhzf+JRgnavLlE+cILiF0JUV2CDMnKS4hdhDnJYT5SuNPnGEETbQBhOmv08vM3pcS7smYRN6XL/OEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1764178616; c=relaxed/simple;
-	bh=35hEHjwEAu2u+NrlDnWa+uc4uMBasamSA3A1Kisq66o=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=ZYxX1dvX3exf1T59+ShD1/XACNPlpFxEqy/yEDbnv+de5EUH1+yD4TIHjiPupBjgGJsAmmOauoEtpXQyB5UfwsIBZYcMBykAilJaTwd9FVIOyVyVMy1aKBtug5eiYpUJT1c+4XUos0Tf/do3o9aD3M7OiEtU5mR/FQ0LxUv6fLQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=dbOe6nvT; arc=none smtp.client-ip=185.246.84.56
+	bh=SuNb1a5ivmk/dAWtFvpshxiAAt73xG4KpXye/Z5LdFo=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=KS3LxoolESCJZ7WOetbH4RAkMrLEo7T9KP+zKD9NT4UgYIzmp7XQ/NlxeEjOY6bH22u/lC+1pD2SMEeWWjDrm9INkDK54HsR21wQYMBz7pyQZgCmmJFPtYTKlgjQwsXo853k9hKVm28W4EkDraj6ut5Ik8IakCZm821h99FE2Iw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=PhkSyYww; arc=none smtp.client-ip=185.246.85.4
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="dbOe6nvT"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="PhkSyYww"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 653271A1D87;
-	Wed, 26 Nov 2025 17:36:52 +0000 (UTC)
+	by smtpout-03.galae.net (Postfix) with ESMTPS id D5B094E418DB;
+	Wed, 26 Nov 2025 17:36:46 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 37ED460721;
-	Wed, 26 Nov 2025 17:36:52 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id C1501102F2334;
-	Wed, 26 Nov 2025 18:36:48 +0100 (CET)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id A50D560721;
+	Wed, 26 Nov 2025 17:36:46 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 5B67A102F1D8D;
+	Wed, 26 Nov 2025 18:36:38 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1764178610; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=8TfK+4PegTpbC0dzvRLmi5aNfYCQa5XXLe69RiPnQcY=;
-	b=dbOe6nvTTRT3KyxTM0HZMVyjYxjsxEVyjrBR2sL0RV3JL/toUrH7apvFsou7CQSCyf+bVf
-	Asoyscn89JIcI5txhm/zJ1Iu4GjPsKjKSIzB3sPyuWDxGYEbl2OWN2U91hd1+Xay2Lp+oY
-	b3ZHwEyv9bzLzRGdcBj/3z7deDxy3PhUlKtAljDKtLoloZSrnf+C2LOgCnEAAAj2PIjGIE
-	Mr9xnaDiR+swuF8PCQjwYvH5aUXC/gqV+NNzndsSGaPlZeJ/lIKYeI+Ei+tKoHo7l35nvL
-	JALtExV+DFvkXaKBhRCoHlKl58B0+MLKkD7dhY8x9/fqK9C+I2D67PinkipMiA==
+	t=1764178605; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=zFZ6kGeHeLZM9HVH30FgdiT3F0hPdtYLxyJtGV/89KA=;
+	b=PhkSyYwwwVzNX9HFnIrE0j0EJKkw4WvjPWIzre6oNKlUCAH9A3ZzgjI1eDMMIb4RmqBmxE
+	SHnXV504VW4nzNTy95G6yA9LKWJO93g8ERbr1KBrrzKx5ctLr8VCG3HGnXut/cj3mmZ96i
+	RwCz6wIMQX10e4A2Zv5l6CC7sXh31vT5qTuv06VfGmG/yFsf+JdAAUoraoOTjrzoBsDYQj
+	LMhhj00xVPInK1SF2AAAJiCn6KJhnfzjbrWGc2I8g5PJpJ3tCrWAjL0MWcTRziW/9Bh3WP
+	LnJpo/Cx/SSOAJHIRGCXTTSEX9OZQfMdKSGK57thek7lPcTNlLuTaPMZy0cmFA==
 From: "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>
-Date: Wed, 26 Nov 2025 18:35:44 +0100
-Subject: [PATCH 02/21] dt-bindings: display: tilcdc: Add fifo-threshold
- property
+Subject: [PATCH 00/21] Clean and update tilcdc driver to support
+ DRM_BRIDGE_ATTACH_NO_CONNECTOR
+Date: Wed, 26 Nov 2025 18:35:42 +0100
+Message-Id: <20251126-feature_tilcdc-v1-0-49b9ef2e3aa0@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -44,10 +43,11 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20251126-feature_tilcdc-v1-2-49b9ef2e3aa0@bootlin.com>
-References: <20251126-feature_tilcdc-v1-0-49b9ef2e3aa0@bootlin.com>
-In-Reply-To: <20251126-feature_tilcdc-v1-0-49b9ef2e3aa0@bootlin.com>
+Content-Transfer-Encoding: 8bit
+X-B4-Tracking: v=1; b=H4sIAG46J2kC/x3MQQqAIBBA0avErBNUrLCrRETpWANRoRaBePek5
+ Vv8nyCgJwzQVwk8PhToPApEXYHZ5mNFRrYYJJeN4EIxh3O8PU6RdmMN67SxSmPbLU5DiS6Pjt5
+ /OIw5f92TcylgAAAA
+X-Change-ID: 20251014-feature_tilcdc-79cd49e67bf9
 To: Jyri Sarha <jyri.sarha@iki.fi>, 
  Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, 
  Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
@@ -72,46 +72,87 @@ Cc: Markus Schneider-Pargmann <msp@baylibre.com>,
 X-Mailer: b4 0.14.3
 X-Last-TLS-Session-Version: TLSv1.3
 
-Add the fifo-threshold property to control the DMA FIFO threshold level,
-which specifies the number of words that must be loaded before the DMA
-FIFO becomes ready.
+The starting point for this work was adding support for the HDMI cape:
+https://www.seeedstudio.com/Seeed-Studio-BeagleBone-Green-HDMI-Cape.html
+This will be sent in a later series.
 
-This property is needed to support the da850-evm board configuration
-which requires a non-default FIFO threshold value. Currently, this value
-is specified through the deprecated ti,tilcdc,panel binding. Adding this
-property to the tilcdc binding allows for proper configuration while
-migrating away from the non-standard panel binding.
+Initially, Miguel proposed modifying the ite-it66121 bridge to support
+the legacy behavior without the DRM_BRIDGE_ATTACH_NO_CONNECTOR flag:
+https://lore.kernel.org/lkml/20250909-it66121-fix-v1-1-bc79ca83df17@bootlin.com/
+This patch was NAK'd as we don't want to add more legacy code. Maxime
+requested that the tilcdc driver be updated to use
+DRM_BRIDGE_ATTACH_NO_CONNECTOR instead.
 
-The default value is 8 words, with valid values being powers of 2 from
-8 to 512.
+While working on this update, I discovered that the tilcdc driver
+contained significant amounts of legacy code that needed cleaning.
+Since this driver was developed alongside the tda998x driver for
+several AM335x boards, the tda998x driver also required cleanup and
+support for the DRM_BRIDGE_ATTACH_NO_CONNECTOR flag.
 
-Related commit: 55da73fa7a68c ("ARM: dts: davinci: da850-evm: Increase
-fifo threshold")
+This series is based on the tilcdc fix sent to mainline:
+https://lore.kernel.org/lkml/20251125090546.137193-1-kory.maincent@bootlin.com/
+
+Patch 1-7: Convert tilcdc binding to YAML and remove the ti,tilcdc,panel
+	   sub-binding and driver
+Patch 8-16: Clean up tilcdc driver
+Patch 17-19: Clean up tda998x driver
+Patch 20: Add DRM_BRIDGE_ATTACH_NO_CONNECTOR support to tda998x
+Patch 21: Add DRM_BRIDGE_ATTACH_NO_CONNECTOR support to tilcdc
 
 Signed-off-by: Kory Maincent (TI.com) <kory.maincent@bootlin.com>
 ---
- Documentation/devicetree/bindings/display/tilcdc/tilcdc.yaml | 7 +++++++
- 1 file changed, 7 insertions(+)
+Kory Maincent (TI.com) (21):
+      dt-bindings: display: tilcdc: Convert to DT schema
+      dt-bindings: display: tilcdc: Add fifo-threshold property
+      drm/tilcdc: Remove simulate_vesa_sync flag
+      drm/tilcdc: Add support for DRM bus flags and simplify panel config
+      ARM: dts: omap: Bind panel to panel-dpi instead of ti,tilcdc,panel driver
+      dt-bindings: display: tilcdc: Remove panel binding
+      drm/tilcdc: Remove tilcdc panel driver
+      drm/tilcdc: Remove component framework support
+      drm/tilcdc: Remove tilcdc_panel_info structure
+      drm/tilcdc: Remove redundant #endif/#ifdef in debugfs code
+      drm/tilcdc: Remove unused encoder and connector tracking arrays
+      drm/tilcdc: Rename external_encoder and external_connector to encoder and connector
+      drm/tilcdc: Rename tilcdc_external to tilcdc_encoder
+      drm/tilcdc: Remove the useless module list support
+      drm/tilcdc: Modernize driver initialization and cleanup paths
+      drm/tilcdc: Remove the use of drm_device private_data
+      drm/bridge: tda998x: Remove component support
+      drm/bridge: tda998x: Move tda998x_create/destroy into probe and remove
+      drm/bridge: tda998x: Remove useless tda998x_connector_destroy wrapper
+      drm/bridge: tda998x: Add support for DRM_BRIDGE_ATTACH_NO_CONNECTOR
+      drm/tilcdc: Add support for DRM_BRIDGE_ATTACH_NO_CONNECTOR
 
-diff --git a/Documentation/devicetree/bindings/display/tilcdc/tilcdc.yaml b/Documentation/devicetree/bindings/display/tilcdc/tilcdc.yaml
-index 34ac1fd04d5c6..bf6d506e25e17 100644
---- a/Documentation/devicetree/bindings/display/tilcdc/tilcdc.yaml
-+++ b/Documentation/devicetree/bindings/display/tilcdc/tilcdc.yaml
-@@ -46,6 +46,13 @@ properties:
-       The maximum pixel clock that can be supported by the lcd controller
-       in KHz.
- 
-+  fifo-threshold:
-+    $ref: /schemas/types.yaml#/definitions/uint32
-+    enum: [8, 16, 32, 64, 128, 256, 512]
-+    description:
-+      Number of words loaded before the DMA fifo becomes ready. The default
-+      value is 8.
-+
-   blue-and-red-wiring:
-     enum: [straight, crossed]
-     description:
+ .../devicetree/bindings/display/tilcdc/panel.txt   |  66 ---
+ .../devicetree/bindings/display/tilcdc/tilcdc.txt  |  82 ----
+ .../devicetree/bindings/display/tilcdc/tilcdc.yaml | 103 +++++
+ arch/arm/boot/dts/ti/davinci/da850-evm.dts         |  26 +-
+ arch/arm/boot/dts/ti/omap/am335x-guardian.dts      |  25 +-
+ arch/arm/boot/dts/ti/omap/am335x-pdu001.dts        |  21 +-
+ arch/arm/boot/dts/ti/omap/am335x-pepper.dts        |  22 +-
+ arch/arm/boot/dts/ti/omap/am335x-sbc-t335.dts      |  25 +-
+ arch/arm/boot/dts/ti/omap/am335x-sl50.dts          |  25 +-
+ drivers/gpu/drm/bridge/tda998x_drv.c               | 251 ++++++------
+ drivers/gpu/drm/tilcdc/Makefile                    |   3 +-
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c               | 117 ++----
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c                | 456 +++++++--------------
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h                |  88 +---
+ drivers/gpu/drm/tilcdc/tilcdc_encoder.c            |  93 +++++
+ .../tilcdc/{tilcdc_external.h => tilcdc_encoder.h} |   5 +-
+ drivers/gpu/drm/tilcdc/tilcdc_external.c           | 179 --------
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c              | 408 ------------------
+ drivers/gpu/drm/tilcdc/tilcdc_panel.h              |  15 -
+ drivers/gpu/drm/tilcdc/tilcdc_plane.c              |   2 +-
+ drivers/gpu/drm/tilcdc/tilcdc_regs.h               |   8 +-
+ 21 files changed, 589 insertions(+), 1431 deletions(-)
+---
+base-commit: 670bacfc7579bdd79a3069cfb5ab60a6a7923003
+change-id: 20251014-feature_tilcdc-79cd49e67bf9
 
+Best regards,
 -- 
-2.43.0
+Köry Maincent, Bootlin
+Embedded Linux and kernel engineering
+https://bootlin.com
 
