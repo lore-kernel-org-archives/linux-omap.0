@@ -1,30 +1,30 @@
 Received: from TWMBX01.aspeed.com (mail.aspeedtech.com [211.20.114.72])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FBEB10E3;
-	Mon, 22 Dec 2025 12:05:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A96A1DE8AF;
+	Mon, 22 Dec 2025 12:09:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=211.20.114.72
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766405143; cv=none; b=B7h2NaN5ze1pNhCNIaSNII3pASpzWnEF0o/SjtCImMQjoVeWSpmluyyjcv2I2dwAUWStCXKTHcsQH/dmzp7/qzkz0cYXDNKxms7nuaPvfThMAY+ugGrLvR28acDCpO3ANjTHAoa/eb+iFcjMay47BoFM/Glxuh2YzdoPmlMR8ZY=
+	t=1766405381; cv=none; b=qVarsB78xop7/tvzdCeeUU0hBPN1u8leE2MLo/Za1R1/r7i1N/9b8J345fihd0Vf6a4FdzmLhj/JRd4qM2vUml63Ib7MTexAulueOKSFLstXrcVo9Hx3Nyy0bf7WBnxK+xuRV4tQWoe+dSIdFDtrkezUurC8rjuVwPTuPHJJX3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766405143; c=relaxed/simple;
-	bh=1vs5PnqoRJopA2dwgDUvGNiB2XTPfNa8BYVIucjFDdw=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:References:
-	 In-Reply-To:To:CC; b=K15pYhhYiNTj1KxM/A042khK8rkn61X0dyuPCkpYCPUWee/E6baNhnkIyxxTQWNXLa005hOIyrPkkG/oo7gwISKuu6biSgU8Qf4NRsy7OviMpGbJMaHZuwyPxahywWFYPdPolHvm6H8xN1lKsBbi/HGSbyYhapGxQ0X+DERKjak=
+	s=arc-20240116; t=1766405381; c=relaxed/simple;
+	bh=MxAUc30lY0ZVTV1TxW0DLWInUg2EQAPZTWnhohxQjyk=;
+	h=From:Subject:Date:Message-ID:MIME-Version:Content-Type:To:CC; b=nzMZiqDZBAePQznbxM/shEFWMX3RKdZKAJvsmkA9Oxnq314wuz8fQeshKJqiu59axTIql1p6MosdqMs/bV1kKsMOwcawD/MzCUqm2uGbgTyBild0ARKF5iwl/IkedQOttQOrnRBacnXeZifs8CKXXdDeWRY0IOcJMjQwKoC+gS4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=aspeedtech.com; spf=pass smtp.mailfrom=aspeedtech.com; arc=none smtp.client-ip=211.20.114.72
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=aspeedtech.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=aspeedtech.com
 Received: from TWMBX01.aspeed.com (192.168.0.62) by TWMBX01.aspeed.com
  (192.168.0.62) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1748.10; Mon, 22 Dec
- 2025 20:04:30 +0800
+ 2025 20:04:29 +0800
 Received: from [127.0.1.1] (192.168.10.13) by TWMBX01.aspeed.com
  (192.168.0.62) with Microsoft SMTP Server id 15.2.1748.10 via Frontend
- Transport; Mon, 22 Dec 2025 20:04:30 +0800
+ Transport; Mon, 22 Dec 2025 20:04:29 +0800
 From: Billy Tsai <billy_tsai@aspeedtech.com>
-Date: Mon, 22 Dec 2025 20:04:28 +0800
-Subject: [PATCH 3/3] pinctrl: single: unify pinconf offset mapping with
- pinmux
+Subject: [PATCH 0/3] pinctrl: single: bit-per-mux DT flexibility, probe
+ robustness, and consistent pinconf offsets
+Date: Mon, 22 Dec 2025 20:04:25 +0800
+Message-ID: <20251222-upstream_pinctrl_single-v1-0-e4aaa4eeb936@aspeedtech.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -33,9 +33,10 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <20251222-upstream_pinctrl_single-v1-3-e4aaa4eeb936@aspeedtech.com>
-References: <20251222-upstream_pinctrl_single-v1-0-e4aaa4eeb936@aspeedtech.com>
-In-Reply-To: <20251222-upstream_pinctrl_single-v1-0-e4aaa4eeb936@aspeedtech.com>
+X-B4-Tracking: v=1; b=H4sIAMkzSWkC/x3MQQqDMBBG4avIrBtoBgrGq0gRq390wMYwo1IQ7
+ 97g8lu8d5JBBUZNdZLiEJM1FfhHRcPcpwlOxmLiJ788M7s926bov12WNGy6dCZpWuBCQD1GH8G
+ fQKXOiii/+9y+r+sPwiYqu2kAAAA=
+X-Change-ID: 20251222-upstream_pinctrl_single-99e8df1fe2b9
 To: Tony Lindgren <tony@atomide.com>, Haojian Zhuang
 	<haojian.zhuang@linaro.org>, Linus Walleij <linusw@kernel.org>
 CC: <linux-arm-kernel@lists.infradead.org>, <linux-omap@vger.kernel.org>,
@@ -43,48 +44,42 @@ CC: <linux-arm-kernel@lists.infradead.org>, <linux-omap@vger.kernel.org>,
 	<andrew@codeconstruct.com.au>, <BMC-SW@aspeedtech.com>, Billy Tsai
 	<billy_tsai@aspeedtech.com>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1766405069; l=1379;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1766405069; l=1471;
  i=billy_tsai@aspeedtech.com; s=20251118; h=from:subject:message-id;
- bh=1vs5PnqoRJopA2dwgDUvGNiB2XTPfNa8BYVIucjFDdw=;
- b=KPPJme3U6fkIHn1FtT3kd0ih6nuPj9XAYNVxDGeebdVJtoiz39Ypx6Fzt78wYNSm94fzGkf3v
- V1Cj+XpbGsODELMs4OPPSxgBvlLairl/eNgDFxv1bvycjWzTWyMGQvB
+ bh=MxAUc30lY0ZVTV1TxW0DLWInUg2EQAPZTWnhohxQjyk=;
+ b=ihkcVXvoKMMsN5sgT9VKTh+61Jy1UWM8XbsOLhVUip3f5ih3MdjCw2Qc6mlRaJdapSGOkunAX
+ 4HGYFNmwjWYDbGb/si/04AZt0GRDg44y0zEuf6i7odgjr7us7gRNOeK
 X-Developer-Key: i=billy_tsai@aspeedtech.com; a=ed25519;
  pk=/A8qvgZ6CPfnwKgT6/+k+nvXOkN477MshEGJvVdzeeQ=
 
-Use the same register offset calculation for pinconf as pinmux to
-properly handle bit-per-mux configurations. Ensures consistent and
-correct offset mapping for pin configuration operations.
+This series updates pinctrl-single to behave more predictably on
+bit-per-mux platforms by making its DT interface more flexible, its probe
+path more tolerant of pre-reserved resources, and its pin configuration
+register addressing consistent with pinmux.
+It extends the driver to accept a per-pin <pin_index func_sel> style
+description for bit-per-mux users while keeping the existing
+pinctrl-single,bits binding as the preferred input when available. It also
+relaxes probe failure when the I/O memory region cannot be reserved
+exclusively, allowing initialization to proceed with a warning on systems
+where that region is already reserved. Finally, it aligns pinconf register
+offset computation with the pinmux logic so that both muxing and pin
+configuration access the same register offsets, avoiding incorrect pinconf
+operations on bit-per-mux configurations.
 
 Signed-off-by: Billy Tsai <billy_tsai@aspeedtech.com>
 ---
- drivers/pinctrl/pinctrl-single.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Billy Tsai (3):
+      pinctrl: single: add per-pin binding support for bit-per-mux
+      pinctrl: single: Allow probe to continue if mem region busy
+      pinctrl: single: unify pinconf offset mapping with pinmux
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index e65ae737b4c5..aaf830315c5d 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -505,7 +505,8 @@ static int pcs_pinconf_get(struct pinctrl_dev *pctldev,
- 			continue;
- 		}
- 
--		offset = pin * (pcs->width / BITS_PER_BYTE);
-+		/* Use the same offset mapping as pinmux (handles bit-per-mux) */
-+		offset = pcs_pin_reg_offset_get(pcs, pin);
- 		data = pcs->read(pcs->base + offset) & func->conf[i].mask;
- 		switch (func->conf[i].param) {
- 		/* 4 parameters */
-@@ -573,7 +574,8 @@ static int pcs_pinconf_set(struct pinctrl_dev *pctldev,
- 			if (param != func->conf[i].param)
- 				continue;
- 
--			offset = pin * (pcs->width / BITS_PER_BYTE);
-+			/* Use the same offset mapping as pinmux (handles bit-per-mux) */
-+			offset = pcs_pin_reg_offset_get(pcs, pin);
- 			data = pcs->read(pcs->base + offset);
- 			arg = pinconf_to_config_argument(configs[j]);
- 			switch (param) {
+ drivers/pinctrl/pinctrl-single.c | 150 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 110 insertions(+), 40 deletions(-)
+---
+base-commit: dd9b004b7ff3289fb7bae35130c0a5c0537266af
+change-id: 20251222-upstream_pinctrl_single-99e8df1fe2b9
 
+Best regards,
 -- 
-2.34.1
+Billy Tsai <billy_tsai@aspeedtech.com>
 
