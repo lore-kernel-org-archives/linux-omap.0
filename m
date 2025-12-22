@@ -1,104 +1,90 @@
-Received: from mail-vs1-f42.google.com (mail-vs1-f42.google.com [209.85.217.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from TWMBX01.aspeed.com (mail.aspeedtech.com [211.20.114.72])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA02B30E0F5
-	for <linux-omap@vger.kernel.org>; Mon, 22 Dec 2025 11:07:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FBEB10E3;
+	Mon, 22 Dec 2025 12:05:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=211.20.114.72
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766401641; cv=none; b=gon/OuUC5P7jYwVL70isGTFPSa6vdYEax6J9KG9iNgBO550UHwzsZW7v6abPqVuI9a8yN58W4s9GjrUPYzwkBp53Yyjn17OLswRMfP1NcLWBL2RVRd+O7rFbpPO6cgBD9rzOXGAaLIiQTVPOhVxDTC9L51QhJHtE51QFqOHzSXs=
+	t=1766405143; cv=none; b=B7h2NaN5ze1pNhCNIaSNII3pASpzWnEF0o/SjtCImMQjoVeWSpmluyyjcv2I2dwAUWStCXKTHcsQH/dmzp7/qzkz0cYXDNKxms7nuaPvfThMAY+ugGrLvR28acDCpO3ANjTHAoa/eb+iFcjMay47BoFM/Glxuh2YzdoPmlMR8ZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766401641; c=relaxed/simple;
-	bh=hQz8inePYy4z7kE2ZTh8btcX7ZL/LHM5S3zx3idHlV0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=pi/GIiCQ5IgsjZdCneP3FGWKKez5SL9OqqeXhd/FGEtN+ogOeL5hVzb+t6e0KhzOcC/DtXfHyb6hYbcbtMEVq+GKBwRgwbJsw3VwMzSnCLpZYh8QgQ4jWDF78SWuPWtW11xNBrGN0LotlwO6R5uMXSZC6jHsWQWLFLjMfYPY/9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.217.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-vs1-f42.google.com with SMTP id ada2fe7eead31-5dbde7f4341so3774069137.1
-        for <linux-omap@vger.kernel.org>; Mon, 22 Dec 2025 03:07:19 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766401639; x=1767006439;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=iVlS5J1HzuVScBDeCBX0VxoypelfY5sXHRtDOTQInFQ=;
-        b=VO8FDTRHoW09GkWK/e+FF92TgEXB4t8OIYqEvph4wSXZcKbVi+ThgQoc7t8+EGc7UQ
-         RagxO64BPSidYlClzZtLVyGFFll5dM++3ghXPA+UJVimkfk9zTvbLf4KUchAGlWkX9ro
-         wyP1syrdzE3vF0pebP25k1h+oQvHcJI0jmQneAW7zWmvm1EKT459cQZh2LglRVl+Tsf5
-         oyxdxgTkwohh3KQHzfKlMjtTwpOoDxCXGdS9kcVFXloU5KhXgoCw5uPqK8AWKdwjroln
-         5sTRQejXe8PeAlf1gyHVxHHhiFsJuIJliNCZjVWq3rwd9Tx053qnOGrKsACcrcWN/qS2
-         CehQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVfYx2Ll0S1MQtCs40YxSFz4fnpbeAItBe+teV1QhIWYfoMZZLrk1HKRFvLG8KyLIgxuYsfdHHrPFng@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx6ibofZwG0iX96PBSBng2qk5ODbK4NNom2pFN8AbN+HQWwS3+f
-	JHUSDtH3NGkB+4dUK9v5FHVoRir67PC/RUs3ymqTk5aDO4Wsd/0YtXPnQOR5lN+h
-X-Gm-Gg: AY/fxX62+ZCeP+bGZdJLojK+Wtb+jLljfnEccTfXGuJ7N3gOnzkE2L1MopRnbo+8aSt
-	msAnwtHhH5Z84iwnrnCNYWGPDVBHNhCMcznqCsE9vGi63kG3hEu1OmVKz/koSBqQOhpMljUcyr7
-	HrqjaOQ3+Ise2QXnJ25I7RXvOmbp7DvSJZz56uXhksnlErKpsOfL/aXHxnQdLm94yoPtrTTKvQQ
-	Uk6vY8Jg1F/P4Lctbyg0V/W/1l4m/m9fGqchQ9hdfe3TxFmobHI+oLr5O9QJ5ZN+R/4VhZp0Xu6
-	C1wD4XcVEyvk1CU104PIP0jZ81GThlIss+pPBiWWTa0JOb32XeyfhMsfGfq4FOuFyzciklfwYhk
-	OPfHTg4BLWWEJQXdSr3/6QmMuu3h02Y2Kt28U5Bqb9FW3EGx906cJUwLCFnzJgDX1CvRbkcW36B
-	T+P2hZxpNovQ0Npts6D6eiyWNTZQ7vGgcQmoV6iZK1G69Wdtmz
-X-Google-Smtp-Source: AGHT+IEinh/dOIzbNkgqc/APuOp26UdKMAdInSUuZdDjqdaahxbsV0gEkrNsHzyYRAgl/+4gXrRqtQ==
-X-Received: by 2002:a05:6102:c0c:b0:5dd:a08e:5bac with SMTP id ada2fe7eead31-5eb023b4d14mr5447458137.6.1766401638693;
-        Mon, 22 Dec 2025 03:07:18 -0800 (PST)
-Received: from mail-ua1-f43.google.com (mail-ua1-f43.google.com. [209.85.222.43])
-        by smtp.gmail.com with ESMTPSA id a1e0cc1a2514c-94341796a4dsm2857345241.12.2025.12.22.03.07.18
-        for <linux-omap@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 22 Dec 2025 03:07:18 -0800 (PST)
-Received: by mail-ua1-f43.google.com with SMTP id a1e0cc1a2514c-93f5910b06cso2373041241.0
-        for <linux-omap@vger.kernel.org>; Mon, 22 Dec 2025 03:07:18 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCVE40dcof0LHecDgi37N0WsWN+BAsaFwkhh6nqeSElLe7xoZJVD/Yssw7X7jHuKB9C3C+gkUHkO4/uk@vger.kernel.org
-X-Received: by 2002:a05:6122:6790:b0:559:7faf:a276 with SMTP id
- 71dfb90a1353d-5614f7ae2d0mr3069797e0c.7.1766401194470; Mon, 22 Dec 2025
- 02:59:54 -0800 (PST)
+	s=arc-20240116; t=1766405143; c=relaxed/simple;
+	bh=1vs5PnqoRJopA2dwgDUvGNiB2XTPfNa8BYVIucjFDdw=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:References:
+	 In-Reply-To:To:CC; b=K15pYhhYiNTj1KxM/A042khK8rkn61X0dyuPCkpYCPUWee/E6baNhnkIyxxTQWNXLa005hOIyrPkkG/oo7gwISKuu6biSgU8Qf4NRsy7OviMpGbJMaHZuwyPxahywWFYPdPolHvm6H8xN1lKsBbi/HGSbyYhapGxQ0X+DERKjak=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=aspeedtech.com; spf=pass smtp.mailfrom=aspeedtech.com; arc=none smtp.client-ip=211.20.114.72
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=aspeedtech.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=aspeedtech.com
+Received: from TWMBX01.aspeed.com (192.168.0.62) by TWMBX01.aspeed.com
+ (192.168.0.62) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1748.10; Mon, 22 Dec
+ 2025 20:04:30 +0800
+Received: from [127.0.1.1] (192.168.10.13) by TWMBX01.aspeed.com
+ (192.168.0.62) with Microsoft SMTP Server id 15.2.1748.10 via Frontend
+ Transport; Mon, 22 Dec 2025 20:04:30 +0800
+From: Billy Tsai <billy_tsai@aspeedtech.com>
+Date: Mon, 22 Dec 2025 20:04:28 +0800
+Subject: [PATCH 3/3] pinctrl: single: unify pinconf offset mapping with
+ pinmux
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251210-rz-sdio-mux-v3-0-ca628db56d60@solid-run.com> <20251210-rz-sdio-mux-v3-1-ca628db56d60@solid-run.com>
-In-Reply-To: <20251210-rz-sdio-mux-v3-1-ca628db56d60@solid-run.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 22 Dec 2025 11:59:43 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdVqSPQ_rCY1mPxyAw1=WwK2VX9bxMKQQuVEe75u5hTvsg@mail.gmail.com>
-X-Gm-Features: AQt7F2qvtAFJTZWBdh_71wFZZJPHL2v6ti7TTVpa1qQd7XzzszUS-LtvxMifYms
-Message-ID: <CAMuHMdVqSPQ_rCY1mPxyAw1=WwK2VX9bxMKQQuVEe75u5hTvsg@mail.gmail.com>
-Subject: Re: [PATCH v3 1/6] phy: can-transceiver: rename temporary helper
- function to avoid conflict
-To: Josua Mayer <josua@solid-run.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Magnus Damm <magnus.damm@gmail.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, 
-	Marc Kleine-Budde <mkl@pengutronix.de>, Vincent Mailhol <mailhol@kernel.org>, Vinod Koul <vkoul@kernel.org>, 
-	Kishon Vijay Abraham I <kishon@kernel.org>, Peter Rosin <peda@axentia.se>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
-	Tony Lindgren <tony@atomide.com>, Vignesh R <vigneshr@ti.com>, 
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Andi Shyti <andi.shyti@kernel.org>, 
-	Mikhail Anikin <mikhail.anikin@solid-run.com>, Yazan Shhady <yazan.shhady@solid-run.com>, 
-	Jon Nettleton <jon@solid-run.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
-	linux-can@vger.kernel.org, linux-phy@lists.infradead.org, 
-	linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <20251222-upstream_pinctrl_single-v1-3-e4aaa4eeb936@aspeedtech.com>
+References: <20251222-upstream_pinctrl_single-v1-0-e4aaa4eeb936@aspeedtech.com>
+In-Reply-To: <20251222-upstream_pinctrl_single-v1-0-e4aaa4eeb936@aspeedtech.com>
+To: Tony Lindgren <tony@atomide.com>, Haojian Zhuang
+	<haojian.zhuang@linaro.org>, Linus Walleij <linusw@kernel.org>
+CC: <linux-arm-kernel@lists.infradead.org>, <linux-omap@vger.kernel.org>,
+	<linux-gpio@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<andrew@codeconstruct.com.au>, <BMC-SW@aspeedtech.com>, Billy Tsai
+	<billy_tsai@aspeedtech.com>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1766405069; l=1379;
+ i=billy_tsai@aspeedtech.com; s=20251118; h=from:subject:message-id;
+ bh=1vs5PnqoRJopA2dwgDUvGNiB2XTPfNa8BYVIucjFDdw=;
+ b=KPPJme3U6fkIHn1FtT3kd0ih6nuPj9XAYNVxDGeebdVJtoiz39Ypx6Fzt78wYNSm94fzGkf3v
+ V1Cj+XpbGsODELMs4OPPSxgBvlLairl/eNgDFxv1bvycjWzTWyMGQvB
+X-Developer-Key: i=billy_tsai@aspeedtech.com; a=ed25519;
+ pk=/A8qvgZ6CPfnwKgT6/+k+nvXOkN477MshEGJvVdzeeQ=
 
-On Wed, 10 Dec 2025 at 18:39, Josua Mayer <josua@solid-run.com> wrote:
-> Rename the temporary devm_mux_state_get_optional function to avoid
-> conflict with upcoming implementation in multiplexer subsystem.
->
-> Signed-off-by: Josua Mayer <josua@solid-run.com>
+Use the same register offset calculation for pinconf as pinmux to
+properly handle bit-per-mux configurations. Ensures consistent and
+correct offset mapping for pin configuration operations.
 
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Signed-off-by: Billy Tsai <billy_tsai@aspeedtech.com>
+---
+ drivers/pinctrl/pinctrl-single.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Gr{oetje,eeting}s,
-
-                        Geert
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index e65ae737b4c5..aaf830315c5d 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -505,7 +505,8 @@ static int pcs_pinconf_get(struct pinctrl_dev *pctldev,
+ 			continue;
+ 		}
+ 
+-		offset = pin * (pcs->width / BITS_PER_BYTE);
++		/* Use the same offset mapping as pinmux (handles bit-per-mux) */
++		offset = pcs_pin_reg_offset_get(pcs, pin);
+ 		data = pcs->read(pcs->base + offset) & func->conf[i].mask;
+ 		switch (func->conf[i].param) {
+ 		/* 4 parameters */
+@@ -573,7 +574,8 @@ static int pcs_pinconf_set(struct pinctrl_dev *pctldev,
+ 			if (param != func->conf[i].param)
+ 				continue;
+ 
+-			offset = pin * (pcs->width / BITS_PER_BYTE);
++			/* Use the same offset mapping as pinmux (handles bit-per-mux) */
++			offset = pcs_pin_reg_offset_get(pcs, pin);
+ 			data = pcs->read(pcs->base + offset);
+ 			arg = pinconf_to_config_argument(configs[j]);
+ 			switch (param) {
 
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+2.34.1
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
