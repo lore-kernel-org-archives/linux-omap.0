@@ -1,314 +1,148 @@
-Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
+Received: from server.couthit.com (server.couthit.com [162.240.164.96])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8CA5285C89;
-	Mon,  5 Jan 2026 16:22:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C2F01F4CB3;
+	Mon,  5 Jan 2026 16:26:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.240.164.96
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767630157; cv=none; b=dkksun5M2Jyol5l9ICIevNuHbKUr4gf8RCHIcS+jDgqzS+qCoKrdnJDPTEyugQ0F+D6HkBJq7iHsAc95WjIq8VYC0yiaTMKHQ2mWVBUHA6M385HJ7t0UzxCC8E8TGOPxjz9O4cY/cu/zxTx0pMr3qKI5pECfk46vZte8piQNUsM=
+	t=1767630417; cv=none; b=eroHT4t9EV1xApDg8w3XRHg0dU4BtKB8fKnGsu/WP/3y0znkiaRVEG8GVXpSxOaYscZQLWOFOkVJ8RkwF22S5/VoDrUO2DaNBKZ/5j8+eSFRlcN72qGhQOKbfboXf95hhtL3G33V9aLTjYRFdbQft8sMNoL3+Xs7Z1XCnPAdQyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767630157; c=relaxed/simple;
-	bh=AxcR+Fylwqh1PgJgCyR6seeSRnJV5hh0ert8Q7FFt7M=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mFyG46WmNZcezWyPDOZBAf3sp0PAsPVyRnMO5PkN4rsCQdGMn/+C6SPmeN1Qa9XHd0FkIfDG5AnWO+aLG6uEx81G0dVCuP6QcB9l16GK19vqz+4EH+TJrY9ybXImskoE8r1LkRkrFrAIU9rqyhDCb/TutFqW/VL+P0Wjsh3jLSA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=wfyASmZY; arc=none smtp.client-ip=185.246.85.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1767630417; c=relaxed/simple;
+	bh=5Wc9sInLDKoQ8ZQovSeuGk9hGRb7jTE2yi9yCvC/awg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OyFQV4+72vP65pg9Q03tNkoWmPdRhVDLYyo7x3HMcXlGNyEwCh1Wo1h8EeiPvDbFIYsjyJCY4OzM3f5e5eoKE+vFqvyDfVRP9WHHNtxY6BKZCCXQfZbBllQkbrW5mLTz2x9ZeSWImWcHhoUjif3luYrTtu0tgJkgAYaJMFqXk5E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=couthit.com; spf=pass smtp.mailfrom=couthit.com; dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b=FTSl9nhG; arc=none smtp.client-ip=162.240.164.96
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=couthit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=couthit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="wfyASmZY"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id 2BEC64E41F7F;
-	Mon,  5 Jan 2026 16:22:33 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id F102A60726;
-	Mon,  5 Jan 2026 16:22:32 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 362D1103C8581;
-	Mon,  5 Jan 2026 17:22:22 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1767630151; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=MASj0+5F+BhI0O8zz8NrhU8cFe/vl+IgpIDneI/8zCU=;
-	b=wfyASmZYAXZDOEI9ogI1szLZusLvXiw3hq/bBEIuPMHGAjW+PCHy4rELj73K3KzyrFrPZO
-	TEDzqz/Jr0x2JkdZiTTpfWBWBg0MGxmkkTPmKMe3FN+aQpm7fIf1Ak/W1lkcc2AhEY412W
-	dI9HvO5+bzTPhEB/eVPG48ldJ+aYfLHrdN1e2Le4vOqajsUib3r4MaJXsa3t0RYt0yOF9k
-	N73Cb6I252QKdqNZ/QkqD2c5Yk/imngKg/nIoGC8nsKA1bNlLZgkrC9UXjwo3HVf0rGzxS
-	wHPP0PRX/alh9zs6FQdYIus8qT+KGVSoOk1unbSanDxfmERwOeLe0yu8SM3Lfw==
-Date: Mon, 5 Jan 2026 17:22:20 +0100
-From: Herve Codina <herve.codina@bootlin.com>
-To: "Luca Ceresoli" <luca.ceresoli@bootlin.com> (by way of Kory Maincent
- <kory.maincent@bootlin.com>)
-Cc: "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>, "Jyri Sarha"
- <jyri.sarha@iki.fi>, "Tomi Valkeinen" <tomi.valkeinen@ideasonboard.com>,
- "Maarten Lankhorst" <maarten.lankhorst@linux.intel.com>, "Maxime Ripard"
- <mripard@kernel.org>, "Thomas Zimmermann" <tzimmermann@suse.de>, "David
- Airlie" <airlied@gmail.com>, "Simona Vetter" <simona@ffwll.ch>, "Rob
- Herring" <robh@kernel.org>, "Krzysztof Kozlowski" <krzk+dt@kernel.org>,
- "Conor Dooley" <conor+dt@kernel.org>, "Russell King"
- <linux@armlinux.org.uk>, "Bartosz Golaszewski" <brgl@bgdev.pl>, "Tony
- Lindgren" <tony@atomide.com>, "Andrzej Hajda" <andrzej.hajda@intel.com>,
- "Neil Armstrong" <neil.armstrong@linaro.org>, "Robert Foss"
- <rfoss@kernel.org>, "Laurent Pinchart" <Laurent.pinchart@ideasonboard.com>,
- "Jonas Karlman" <jonas@kwiboo.se>, "Jernej Skrabec"
- <jernej.skrabec@gmail.com>, "Markus Schneider-Pargmann" <msp@baylibre.com>,
- "Bajjuri Praneeth" <praneeth@ti.com>, "Louis Chauvet"
- <louis.chauvet@bootlin.com>, "Thomas Petazzoni"
- <thomas.petazzoni@bootlin.com>, "Miguel Gazquez"
- <miguel.gazquez@bootlin.com>, <dri-devel@lists.freedesktop.org>,
- <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
- <linux-arm-kernel@lists.infradead.org>, <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH v2 05/20] drm/tilcdc: Convert legacy panel binding via
- DT overlay at boot time
-Message-ID: <20260105172220.2d2edd28@bootlin.com>
-In-Reply-To: <DF0K5UFX46JA.OH85T6IPC5MW@bootlin.com>
-References: <20251211-feature_tilcdc-v2-0-f48bac3cd33e@bootlin.com>
-	<20251211-feature_tilcdc-v2-5-f48bac3cd33e@bootlin.com>
-	<DF0K5UFX46JA.OH85T6IPC5MW@bootlin.com>
-Organization: Bootlin
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; x86_64-redhat-linux-gnu)
+	dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b="FTSl9nhG"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=couthit.com
+	; s=default; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject
+	:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=0m/ogoMH86peXHoclOtU2pOxK+47SyNwKWpbIlyEMO4=; b=FTSl9nhGlqB9Aal6Bdz+gSerX6
+	4S6dsus+CfM0AsQde8QzUPMUVwSxVn1yZlwdTcwcjeblGzFQZut0ubdUupSrPt7++pj0JzfOyVYz0
+	DCwLDqSObO7NYva5JsN7z+rabXOjxkfOs8u+qslwc++2NfGbogkK9nxWWORs6W+3rDfkTlHa14oDI
+	3xe1ZtZRbu3hjBLzGBKjDC5xgP0lmvANWCAIZ4i84RuPzWVjb1buVqBuePObP+suNypeyxSTYh6X8
+	SovTkLh1qD/JS28Fdy6EUnxBljlFF2tFpwYE/elOcuk+BvnRnJffk8DvgoqgQlMKTfX9ZkCKytg+M
+	CqdxwOyw==;
+Received: from [122.175.9.182] (port=19826 helo=cypher.couthit.local)
+	by server.couthit.com with esmtpa (Exim 4.98.1)
+	(envelope-from <parvathi@couthit.com>)
+	id 1vcnPw-0000000F4as-1bUm;
+	Mon, 05 Jan 2026 11:26:52 -0500
+From: Parvathi Pudi <parvathi@couthit.com>
+To: nm@ti.com,
+	vigneshr@ti.com,
+	afd@ti.com,
+	khilman@baylibre.com,
+	rogerq@kernel.org,
+	tony@atomide.com,
+	robh@kernel.org,
+	krzk+dt@kernel.org,
+	conor+dt@kernel.org,
+	richardcochran@gmail.com,
+	aaro.koskinen@iki.fi,
+	andreas@kemnade.info
+Cc: andrew@lunn.ch,
+	linux-omap@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	danishanwar@ti.com,
+	pratheesh@ti.com,
+	j-rameshbabu@ti.com,
+	praneeth@ti.com,
+	srk@ti.com,
+	rogerq@ti.com,
+	krishna@couthit.com,
+	mohan@couthit.com,
+	pmohan@couthit.com,
+	basharath@couthit.com,
+	parvathi@couthit.com
+Subject: [PATCH v4 0/2] Add support for ICSSM Ethernet on AM57x, AM437x, and AM335x
+Date: Mon,  5 Jan 2026 21:51:18 +0530
+Message-ID: <20260105162546.1809714-1-parvathi@couthit.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - server.couthit.com
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - couthit.com
+X-Get-Message-Sender-Via: server.couthit.com: authenticated_id: parvathi@couthit.com
+X-Authenticated-Sender: server.couthit.com: parvathi@couthit.com
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
 
-Hi Luca, Kory,
+Hi,
 
-On Wed, 17 Dec 2025 15:23:26 +0100
-"Luca Ceresoli" <luca.ceresoli@bootlin.com> (by way of Kory Maincent <kory.maincent@bootlin.com>) wrote:
+This series adds support for ICSSM Ethernet on Texas Instruments AM57x,
+AM437x and AM335x platforms.
 
-> Hi,
-> 
-> Cc: Hervé, can you review the DT overlay aspects?
+The AM57x and AM437x IDKs support two PRU-ICSS instances, each consisting
+of two PRU cores, with each PRU-ICSS instance capable of handling two
+Ethernet ports. For the AM57x platforms, the PRU-ICSS2 node has been added
+to the am57xx-idk-common.dtsi, while for the AM437x platform, the PRU-ICSS1
+node has been added to the am437x-idk-evm.dts.
 
-Yes sure.
+The AM335x ICE features a single PRU-ICSS instance. A new device tree overlay
+source file, am335x-icev2-prueth-overlay.dtso, has been introduced to define the
+PRU-ICSS node for the AM335x platform.
 
-Here is my global review.
+This is v4 of the patch series [v1]. It has no changes from [v3].
+This series is based on the latest next-20260105 linux-next.
 
-Depending on the discussion on things I have spotted, I will go deeper in
-patch details.
+Changes from v3 to v4 :
 
-...
+*) No code changes were made, only the version was updated.
+*) Rebased the series on latest linux-next.
 
-> > +
-> > +static void __init
-> > +tilcdc_panel_update_prop(struct device_node *node, char *name,
-> > +			 void *val, int length)
-> > +{
-> > +	struct property *prop;
-> > +
-> > +	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
-> > +	if (!prop)
-> > +		return;
-> > +
-> > +	prop->name = kstrdup(name, GFP_KERNEL);
-> > +	prop->length = length;
-> > +	prop->value = kmemdup(val, length, GFP_KERNEL);
-> > +	of_update_property(node, prop);
+Changes from v2 to v3 :
 
-I would use OF changesets to perform the modification.
+*) Addressed Andrew Davis's comment by placing PRUETH nodes in a new overlay file
+am335x-icev2-prueth-overlay.dtso.
+*) Rebased the series on latest linux-next.
 
-OF changesets are kind of atomic. You first prepare all modifications in a
-changeset and then you apply the changeset.
-If something goes wrong, the changeset is removed.
+Changes from v1 to v2 :
 
-Also, if something goes wrong during the changeset preparation, you can abort
-without any modification on the live device-tree.
+*) Addressed Andrew Lunn's comment on patch 1 of the series.
+*) Addressed MD Danish Anwar comment on patch 1 of the series.
+*) Rebased the series on latest linux-next.
 
-> > +}
-> > +
-> > +static int __init tilcdc_panel_copy_props(struct device_node *old_panel,
-> > +					  struct device_node *new_panel)
-> > +{
-> > +	struct device_node *child, *old_timing, *new_timing, *panel_info;
-> > +	u32 invert_pxl_clk = 0, sync_edge = 0;
-> > +	struct property *prop;
-> > +
-> > +	/* Copy all panel properties to the new panel node */
-> > +	for_each_property_of_node(old_panel, prop) {
-> > +		if (!strncmp(prop->name, "compatible", sizeof("compatible")))
-> > +			continue;
-> > +
-> > +		tilcdc_panel_update_prop(new_panel, prop->name,
-> > +					 prop->value, prop->length);
-> > +	}
-> > +
-> > +	child = of_get_child_by_name(old_panel, "display-timings");  
-> 
-> There's some housekeeping code in this function to ensure you put all the
-> device_node refs. It would be simpler and less error prone to use a cleanup
-> action. E.g.:
-> 
-> -	struct device_node *child, *old_timing, *new_timing, *panel_info;
-> 
-> -	child = of_get_child_by_name(old_panel, "display-timings");
-> +	struct device_node *child __free(device_node) = of_get_child_by_name(old_panel, "display-timings");
-> 
-> > +	if (!child)
-> > +		return -EINVAL;
-> > +
-> > +	/* The default display timing is the one specified as native-mode.
-> > +	 * If no native-mode is specified then the first node is assumed
-> > +	 * to be the native mode.
-> > +	 */
-> > +	old_timing = of_parse_phandle(child, "native-mode", 0);
-> > +	if (!old_timing) {
-> > +		old_timing = of_get_next_child(child, NULL);
-> > +		if (!old_timing) {
-> > +			of_node_put(child);
-> > +			return -EINVAL;
-> > +		}
-> > +	}
-> > +	of_node_put(child);
-> > +
-> > +	new_timing = of_get_child_by_name(new_panel, "panel-timing");
-> > +	if (!new_timing)
-> > +		return -EINVAL;
+[v1] https://lore.kernel.org/all/20251013125401.1435486-1-parvathi@couthit.com/
+[v2] https://lore.kernel.org/all/20251103124820.1679167-1-parvathi@couthit.com/
+[v3] https://lore.kernel.org/all/20251217130715.1327138-1-parvathi@couthit.com/
 
-Here, for instance, you have already modified your live tree and you abort the
-operation. Your live tree is somewhat corrupted.
+Thanks and Regards,
+Parvathi.
 
-> > +
-> > +	/* Copy all panel timing property to the new panel node */
-> > +	for_each_property_of_node(old_timing, prop)
-> > +		tilcdc_panel_update_prop(new_timing, prop->name,
-> > +					 prop->value, prop->length);
-> > +
-> > +	panel_info = of_get_child_by_name(old_panel, "panel-info");
-> > +	if (!panel_info)
-> > +		return -EINVAL;  
-> 
-> tilcdc_panel_update_prop() has previously done various allocations which
-> will not be freed if you return here. You shoudl probably do all the
-> of_get_*() at the top, and if they all succeed start copying data along
-> with with the needed allocations.
-> 
-> > +	/* Looked only for these two parameter as all the other are always
-> > +	 * set to default and not related to common DRM properties.
-> > +	 */
-> > +	of_property_read_u32(panel_info, "invert-pxl-clk", &invert_pxl_clk);
-> > +	of_property_read_u32(panel_info, "sync-edge", &sync_edge);
-> > +
-> > +	if (!invert_pxl_clk)
-> > +		tilcdc_panel_update_prop(new_timing, "pixelclk-active",
-> > +					 &(int){1}, sizeof(int));
-> > +
-> > +	if (!sync_edge)
-> > +		tilcdc_panel_update_prop(new_timing, "syncclk-active",
-> > +					 &(int){1}, sizeof(int));
-> > +
-> > +	of_node_put(panel_info);
-> > +	of_node_put(old_timing);
-> > +	of_node_put(new_timing);
-> > +	return 0;
-> > +}
-> > +
-> > +static const struct of_device_id tilcdc_panel_of_match[] __initconst = {
-> > +	{ .compatible = "ti,tilcdc,panel", },
-> > +	{},
-> > +};
-> > +
-> > +static const struct of_device_id tilcdc_of_match[] __initconst = {
-> > +	{ .compatible = "ti,am33xx-tilcdc", },
-> > +	{ .compatible = "ti,da850-tilcdc", },
-> > +	{},
-> > +};
-> > +
-> > +static int __init tilcdc_panel_legacy_init(void)
-> > +{
-> > +	struct device_node *panel, *lcdc, *new_panel;
-> > +	void *dtbo_start;
-> > +	u32 dtbo_size;
-> > +	int ovcs_id;
-> > +	int ret;
-> > +
-> > +	lcdc = of_find_matching_node(NULL, tilcdc_of_match);
-> > +	panel = of_find_matching_node(NULL, tilcdc_panel_of_match);
-> > +
-> > +	if (!of_device_is_available(panel) ||
-> > +	    !of_device_is_available(lcdc)) {
-> > +		ret = -ENODEV;
-> > +		goto out;
-> > +	}
-> > +
-> > +	dtbo_start = __dtbo_tilcdc_panel_legacy_begin;
-> > +	dtbo_size = __dtbo_tilcdc_panel_legacy_end -
-> > +		    __dtbo_tilcdc_panel_legacy_begin;
-> > +
-> > +	ret = of_overlay_fdt_apply(dtbo_start, dtbo_size, &ovcs_id, NULL);
-> > +	if (ret)
-> > +		goto out;
+Roger Quadros (2):
+  arm: dts: ti: Adds device tree nodes for PRU Cores, IEP and eCAP
+    modules of PRU-ICSS2 Instance.
+  arm: dts: ti: Adds support for AM335x and AM437x
 
-As soon as the overlay is applied, the driver handling the panel-dti node
-can be probed.
+ arch/arm/boot/dts/ti/omap/Makefile            |   5 +
+ .../ti/omap/am335x-icev2-prueth-overlay.dtso  | 190 ++++++++++++++++++
+ arch/arm/boot/dts/ti/omap/am33xx-l4.dtsi      |  11 +
+ arch/arm/boot/dts/ti/omap/am4372.dtsi         |  11 +
+ arch/arm/boot/dts/ti/omap/am437x-idk-evm.dts  | 137 ++++++++++++-
+ arch/arm/boot/dts/ti/omap/am57-pruss.dtsi     |  11 +
+ arch/arm/boot/dts/ti/omap/am571x-idk.dts      |   8 +-
+ arch/arm/boot/dts/ti/omap/am572x-idk.dts      |  10 +-
+ arch/arm/boot/dts/ti/omap/am574x-idk.dts      |  10 +-
+ .../boot/dts/ti/omap/am57xx-idk-common.dtsi   |  61 ++++++
+ 10 files changed, 444 insertions(+), 10 deletions(-)
+ create mode 100644 arch/arm/boot/dts/ti/omap/am335x-icev2-prueth-overlay.dtso
 
-Modifying some properties after applying the overlay could be not seen by the
-driver.
+-- 
+2.43.0
 
-> > +
-> > +	new_panel = of_find_node_by_name(NULL, "panel-dpi");
-> > +	if (!new_panel) {
-> > +		ret = -ENODEV;
-> > +		goto overlay_remove;
-> > +	}
-> > +
-> > +	ret = tilcdc_panel_copy_props(panel, new_panel);
-> > +	if (ret)
-> > +		goto overlay_remove;
-> > +
-> > +	/* Remove compatible property to avoid any driver compatible match */
-> > +	of_remove_property(panel, of_find_property(panel, "compatible",
-> > +						   NULL));
-> > +overlay_remove:
-> > +	of_overlay_remove(&ovcs_id);  
-> 
-> Is it correct to remove the overlay here? Won't it remove what you have
-> just added?
-
-Agreed, the overlay should not be removed here.
-
-> 
-> > +out:
-> > +	of_node_put(new_panel);
-> > +	of_node_put(panel);
-> > +	of_node_put(lcdc);  
-> 
-> Here too you can use cleanup actions, even though the current code is
-> slightly simpler than tilcdc_panel_copy_props as far as of_node_put() is
-> concerned.
-> 
-> > +	return ret;
-> > +}
-> > +
-> > +subsys_initcall(tilcdc_panel_legacy_init);
-
-IMHO, the call to tilcdc_panel_legacy_init() will be too late.
-
-subsys initcalls are called after arch initcalls.
-
-During arch initcalls, of_platform_populate_init() is called
-https://elixir.bootlin.com/linux/v6.19-rc3/source/drivers/of/platform.c#L599
-
-The root node is populated and handled by the platform bus.
-
-Later at subsys initcall, the tilcdc_panel_legacy_init() function is called.
-This function starts by applying the overlay and so a new node (panel-dpi)
-is added at the root node.
-
-This trigger an OF_RECONFIG_CHANGE_ADD event handled by the platform bus.
-https://elixir.bootlin.com/linux/v6.19-rc3/source/drivers/of/platform.c#L731
-
-If the "panel-dpi" compatible driver is available, its probe() is called but
-the panel-dpi DT node is not fully correct. Indeed, tilcdc_panel_copy_props()
-has not be called yet.
-
-Also, the legacy compatible string is removed after the of_platform_populate_init()
-call. The legacy driver could have been already probed.
-
-Of course, please correct me if I have misunderstood something.
-
-Best regards,
-Hervé
