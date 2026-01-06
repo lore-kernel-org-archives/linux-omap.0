@@ -1,135 +1,197 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76BCA3563DC;
-	Tue,  6 Jan 2026 17:29:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98A463043CD
+	for <linux-omap@vger.kernel.org>; Tue,  6 Jan 2026 17:43:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767720601; cv=none; b=MX/5zX6Eaq/PHx1GuaQ9Kf/xgcVnRMX/6dde9F4HG+KJ+lZV4fQoHZHWyP255ZpCJ1aVFvnd8RsUq+8EXpJaqfljEs4qKV/H4JqaABi/thPNXG1p+prVq/4MFMf2y2FMefzsMaCfj8cl00b1vjJ+Nb96Nd6jJX8QvF8fgKjiOqo=
+	t=1767721404; cv=none; b=nbNc9E3V71lBpNlO80Pa8KG4jxFGgqPEt7VnUrEt8WaCISu590LQAKeiuvipHMUsqZfOeEAMgVh7IPqa7y2oVyukWfRFNwDfvzZ887P6dGEWs3wjo15+1IZZCgo60nB6yyA+5b0zQa6c54BUND++5fRNCQLEnLNY3Y/I8rs6eKA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767720601; c=relaxed/simple;
-	bh=u4uuqTQUdVSQFR40CmbeuCd7YWPpLNXfQChgviT0EYY=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IkHibpavluvs3R4vE1/yfNjsS+/L2YpngdCzMzV3sSVxOzYQhSrDzJDuZi8UgFel8CJMriPlpzmtIWDvXl1Su5SS3rz0+v/LTfOR2VyARVWk+TYHNfNq3ma7UmWF+yDuFw1fWnh8q3NEMzdAkzZDP137nK6IVrxicI1RPFTFNMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=Rk0jrZL2; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1767721404; c=relaxed/simple;
+	bh=pkc/3FbnSRiYfLotqXlNBQMs9NKxwUN3haOJGCuzTu8=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=XFHiLFlmVjwEN6KavmKCkI6BLwfs6suH7L3qkgib6rqC6rNv2yHiRFhbzMkmPCKQGPGH0KqH43a1pI9IkvRze+gZdFbTH2Sdll4i8WJSw2jvOFhKzBLRKDcJHJJH6v1fLikSjR8iRLlecFupLvLDBHrC8I4BVZ87UeU2XWz31DM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=SjLtBEZT; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="Rk0jrZL2"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=c3xQQo7dlQe+3ToJZk0WtJfo6q7i6BfPDImOGw/1mAY=; b=Rk0jrZL2JDiHAt8AM6gbN5vLDJ
-	Q4407EBHUY56ExWkUEpmOVlHodGmpbUzQXxFu7XbiA0Kc7l6RDi9erVOuvSJTMkh1sZ+oaHlEqJJC
-	q1ExTI3DGyPI9X1o5xF1Fy3jdD+wCSbR3hMLVWYxDMsJixdVx7y2R7xqeGzOYAM6s+1lb5lSfPKgQ
-	Y7J1Tz+V4vXgzLH+IcPohDNqL2IPxrypuPQN3Fx4rSwz64KpQkckHNz3+u9FReveAwILFDfwvWWBt
-	ZjZBmHubVtk0AhJgSrLLk4gL0mafptijqfN4P0iXEU6lOVCBOzD73clayjDcTUZHQ1BFjs7YehWFs
-	yMchuuwg==;
-Date: Tue, 6 Jan 2026 18:29:46 +0100
-From: Andreas Kemnade <andreas@kemnade.info>
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Haotian Zhang <vulab@iscas.ac.cn>, Kevin Hilman <khilman@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, linux-omap@vger.kernel.org,
- linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] omap-cpufreq: Fix regulator resource leak in probe()
-Message-ID: <20260106182946.1c54d769@kemnade.info>
-In-Reply-To: <pjmwnxp6wae3bbmzmzys4r5szw6ywxphi4qtmpmg7jsqadc5fm@fvozoujr4mi5>
-References: <20251215030327.1771-1-vulab@iscas.ac.cn>
-	<20260105101412.0ac7baa7@kemnade.info>
-	<pjmwnxp6wae3bbmzmzys4r5szw6ywxphi4qtmpmg7jsqadc5fm@fvozoujr4mi5>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="SjLtBEZT"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id D0D891A26A6;
+	Tue,  6 Jan 2026 17:43:18 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 9CFC160739;
+	Tue,  6 Jan 2026 17:43:18 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 9DD3A103C81A7;
+	Tue,  6 Jan 2026 18:43:07 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1767721396; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=kLqSTVzvhTVRG4lWNvpKEN50rxP50IjnuD1ETy7eXSQ=;
+	b=SjLtBEZTy4fTHk7397dU3Qzb6DSsjhjQXC8Tq89jUf+sjDL/aRLuTcioBrIXBei7HxG9EY
+	ep8sNudYtfI+HYM33zkHt8KrvcsVwBWfe07ApP7aYtCnpzmFbrcJqgrxQVx0K1oUEG1Zdb
+	I1YjFyBr0lKUY19QnnmpA/AMF8Rnv90iWeMfNo2jUvgpL/E4d2YVtevoZJBbqT1lLdoQgE
+	wvHdKUgJmZcVrg6olUJPQxjRKU/5I3t6OF1il0Te70y8TU/XF2/rUfDyAXC+LJXgKvTju1
+	kwI6yV3jjGDx3VbpcvWnv8ePyqwllEndfVolKT/xDslWmFeuqfz63ULJiJ9T1g==
+From: "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>
+Subject: [PATCH v3 00/22] Clean and update tilcdc driver to support
+ DRM_BRIDGE_ATTACH_NO_CONNECTOR
+Date: Tue, 06 Jan 2026 18:42:16 +0100
+Message-Id: <20260106-feature_tilcdc-v3-0-9bad0f742164@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-B4-Tracking: v=1; b=H4sIAHhJXWkC/2XMSwrCMBSF4a2UjI3kZWscuQ8RyePGBrSRJAald
+ O+mdSDq8D9wvhEliB4S2jUjilB88mGowVcNMr0azoC9rY0YYRtKqMAOVL5HOGV/MdbgThorJLS
+ ddhLV0y2C848FPBxr9z7lEJ+LX+i8vinK2l+qUEywkFqCY8CVInsdQr74YW3CFc1YYR+AUfoHs
+ Ao4sdXKcGM5h29gmqYXiU9Ryu8AAAA=
+X-Change-ID: 20251014-feature_tilcdc-79cd49e67bf9
+To: Jyri Sarha <jyri.sarha@iki.fi>, 
+ Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+ David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Russell King <linux@armlinux.org.uk>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, Tony Lindgren <tony@atomide.com>, 
+ Andrzej Hajda <andrzej.hajda@intel.com>, 
+ Neil Armstrong <neil.armstrong@linaro.org>, Robert Foss <rfoss@kernel.org>, 
+ Laurent Pinchart <Laurent.pinchart@ideasonboard.com>, 
+ Jonas Karlman <jonas@kwiboo.se>, Jernej Skrabec <jernej.skrabec@gmail.com>
+Cc: Markus Schneider-Pargmann <msp@baylibre.com>, 
+ Bajjuri Praneeth <praneeth@ti.com>, 
+ Luca Ceresoli <luca.ceresoli@bootlin.com>, 
+ Louis Chauvet <louis.chauvet@bootlin.com>, 
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
+ Miguel Gazquez <miguel.gazquez@bootlin.com>, 
+ Herve Codina <herve.codina@bootlin.com>, dri-devel@lists.freedesktop.org, 
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
+ "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>, 
+ Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+X-Mailer: b4 0.14.3
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Tue, 6 Jan 2026 10:20:55 +0530
-Viresh Kumar <viresh.kumar@linaro.org> wrote:
+The starting point for this work was adding support for the HDMI cape:
+https://www.seeedstudio.com/Seeed-Studio-BeagleBone-Green-HDMI-Cape.html
+This will be sent in a later series.
 
-> On 05-01-26, 10:14, Andreas Kemnade wrote:
-> > On Mon, 15 Dec 2025 11:03:27 +0800
-> > Haotian Zhang <vulab@iscas.ac.cn> wrote:
-> >   
-> > > The current omap_cpufreq_probe() uses regulator_get() to obtain the MPU
-> > > regulator but does not release it in omap_cpufreq_remove() or when
-> > > cpufreq_register_driver() fails, leading to a potential resource leak.
-> > > 
-> > > Use devm_regulator_get() instead of regulator_get() so that the regulator
-> > > resource is automatically released.
-> > > 
-> > > Fixes: 53dfe8a884e6 ("cpufreq: OMAP: scale voltage along with frequency")
-> > > Signed-off-by: Haotian Zhang <vulab@iscas.ac.cn>
-> > > ---
-> > >  drivers/cpufreq/omap-cpufreq.c | 3 +--
-> > >  1 file changed, 1 insertion(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
-> > > index bbb01d93b54b..f83f85996b36 100644
-> > > --- a/drivers/cpufreq/omap-cpufreq.c
-> > > +++ b/drivers/cpufreq/omap-cpufreq.c
-> > > @@ -157,7 +157,7 @@ static int omap_cpufreq_probe(struct platform_device *pdev)
-> > >  		return -EINVAL;
-> > >  	}
-> > >  
-> > > -	mpu_reg = regulator_get(mpu_dev, "vcc");
-> > > +	mpu_reg = devm_regulator_get(mpu_dev, "vcc");
-> > >  	if (IS_ERR(mpu_reg)) {
-> > >  		pr_warn("%s: unable to get MPU regulator\n", __func__);
-> > >  		mpu_reg = NULL;
-> > > @@ -169,7 +169,6 @@ static int omap_cpufreq_probe(struct platform_device *pdev)
-> > >  		if (regulator_get_voltage(mpu_reg) < 0) {
-> > >  			pr_warn("%s: physical regulator not present for MPU\n",
-> > >  				__func__);
-> > > -			regulator_put(mpu_reg);  
-> > 
-> > so it it not useable and could be released which is not done anymare 
-> > with your patch. It is not an error path here.  
-> 
-> Right. Perhaps devm_regulator_put() here would be good enough.
-> 
-ok, didn't expect such a function, so that should be the cleanest approach.
+Initially, Miguel proposed modifying the ite-it66121 bridge to support
+the legacy behavior without the DRM_BRIDGE_ATTACH_NO_CONNECTOR flag:
+https://lore.kernel.org/lkml/20250909-it66121-fix-v1-1-bc79ca83df17@bootlin.com/
+This patch was NAK'd as we don't want to add more legacy code. Maxime
+requested that the tilcdc driver be updated to use
+DRM_BRIDGE_ATTACH_NO_CONNECTOR instead.
 
-> > >  			mpu_reg = NULL;  
-> > 
-> > And this should happen after removal, too. I feel some discomfort with
-> > variables pointing to freed ressources. So I think rather add
-> > the regulator_put and the = NULL to the remove function.  
-> 
-> I don't see a reason why this extra step should be performed after the driver is
-> removed. `mpu_reg` can't be used after that.
-> 
-hmm, it is performed when the device is removed/unbound, which does not necessarily
-mean the driver is removed. But that does not prevent trouble if something
-is still trying to access stuff here after driver removal. So it is not really
-helpful.
+While working on this update, I discovered that the tilcdc driver
+contained significant amounts of legacy code that needed cleaning.
+Since this driver was developed alongside the tda998x driver for
+several AM335x boards, the tda998x driver also required cleanup and
+support for the DRM_BRIDGE_ATTACH_NO_CONNECTOR flag.
 
-Hmm, how does a device gets bound to this driver?
+A new tilcdc_panel_legacy driver replaces the old tilcdc_panel driver.
+It modifies the devicetree at boot time to properly bind the tilcdc driver
+with the standard panel-simple driver.
 
-Lets gets back to this very basic question. I am usually using CPUFREQ_DT.
-Are there any signs of usage of this driver?
+This series is based on the tilcdc fix sent to mainline:
+https://lore.kernel.org/lkml/20251125090546.137193-1-kory.maincent@bootlin.com/
 
-omap2plus_defconfig creates in .config
-#
-# CPU frequency scaling drivers
-#
-CONFIG_CPUFREQ_DT=m
-# CONFIG_CPUFREQ_VIRT is not set
-CONFIG_CPUFREQ_DT_PLATDEV=y
-# CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
-CONFIG_ARM_TI_CPUFREQ=y
-# end of CPU Frequency scaling
+This series has been tested on:
+- BeagleBone Black (tilcdc + tda998x bridge)
+- BeagleBone Black with LCD cape (tilcdc + ti,tilcdc,panel binding)
+- BeagleBone Green Eco with HDMI cape (tilcdc + it66121 bridge)
 
-So this thing is not used. Everything with omap2plus uses devicetree,
-so probably no user at all for it. So I think we can deorbit the whole
-thing.
+The following mainline devicetrees still use ti,tilcdc,panel binding.
+I believe this series maintains compatibility, but I cannot test without
+hardware:
+- da850-evm.dts
+- am335x-guardian.dts
+- am335x-pdu001.dts
+- am335x-pepper.dts
+- am335x-sbc-t335.dts
+- am335x-sl50.dts
 
-But the fix is good for stable. So I would propose to add this
-fix (to let it propagate to stable) and deorbit this driver.
+Patches 1-2: Convert tilcdc binding to YAML and set the ti,tilcdc,panel
+	     sub-binding as legacy.
+Patches 3-6: Replace tilcdc_panel driver to the new tilcdc_panel_legacy
+	     driver which is tweaking the devicetree at boot time.
+Patches 7-17: Clean up tilcdc driver.
+Patches 18-20: Clean up tda998x driver.
+Patch 21: Add DRM_BRIDGE_ATTACH_NO_CONNECTOR support for tda998x driver.
+Patch 22: Add DRM_BRIDGE_ATTACH_NO_CONNECTOR support for tilcdc driver.
 
-Regards,
-Andreas
+Changes in v3:
+- Split patch 13 and patch 14 into two for better readability and git
+  history clarity.
+- Update patch 5 to use OF changeset and __free() macro. Made also few
+  small improvements as requested by Luca.
+- Rename binding file to ti,am33xx-tilcdc.yaml, use generic node name and
+  drop unused label.
+- Link to v2: https://lore.kernel.org/r/20251211-feature_tilcdc-v2-0-f48bac3cd33e@bootlin.com
+
+Changes in v2:
+- Remove patch 2 that add fifo-threshold property. Use FIFO threshold
+  value from SoC id instead.
+- Remove the part that breaks DTB compatibility.
+- Add tilcdc_panel_legacy to modify the devicetree at boot time to properly
+  bind the tilcdc driver with the standard panel-simple driver.
+- Link to v1: https://lore.kernel.org/r/20251126-feature_tilcdc-v1-0-49b9ef2e3aa0@bootlin.com
+
+Signed-off-by: Kory Maincent (TI.com) <kory.maincent@bootlin.com>
+---
+Kory Maincent (TI.com) (22):
+      dt-bindings: display: tilcdc: Convert to DT schema
+      dt-bindings: display: tilcdc: Mark panel binding as deprecated
+      drm/tilcdc: Remove simulate_vesa_sync flag
+      drm/tilcdc: Add support for DRM bus flags and simplify panel config
+      drm/tilcdc: Convert legacy panel binding via DT overlay at boot time
+      drm/tilcdc: Remove tilcdc panel driver
+      drm/tilcdc: Remove component framework support
+      drm/tilcdc: Remove tilcdc_panel_info structure
+      drm/tilcdc: Remove redundant #endif/#ifdef in debugfs code
+      drm/tilcdc: Remove unused encoder and connector tracking arrays
+      drm/tilcdc: Rename external_encoder and external_connector to encoder and connector
+      drm/tilcdc: Rename tilcdc_external to tilcdc_encoder
+      drm/tilcdc: Remove the useless module list support
+      drm/tilcdc: Use drm_module_platform_driver() helper
+      drm/tilcdc: Move tilcdc_init/fini closer to probe/remove
+      drm/tilcdc: Modernize driver initialization and cleanup paths
+      drm/tilcdc: Remove the use of drm_device private_data
+      drm/bridge: tda998x: Remove component support
+      drm/bridge: tda998x: Move tda998x_create/destroy into probe and remove
+      drm/bridge: tda998x: Remove useless tda998x_connector_destroy wrapper
+      drm/bridge: tda998x: Add support for DRM_BRIDGE_ATTACH_NO_CONNECTOR
+      drm/tilcdc: Add support for DRM_BRIDGE_ATTACH_NO_CONNECTOR
+
+ .../devicetree/bindings/display/tilcdc/panel.txt   |   1 +
+ .../bindings/display/tilcdc/ti,am33xx-tilcdc.yaml  | 100 +++++
+ .../devicetree/bindings/display/tilcdc/tilcdc.txt  |  82 ----
+ drivers/gpu/drm/bridge/tda998x_drv.c               | 251 +++++------
+ drivers/gpu/drm/tilcdc/Kconfig                     |  16 +
+ drivers/gpu/drm/tilcdc/Makefile                    |   5 +-
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c               | 117 ++---
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c                | 479 ++++++++-------------
+ drivers/gpu/drm/tilcdc/tilcdc_drv.h                |  88 +---
+ drivers/gpu/drm/tilcdc/tilcdc_encoder.c            |  91 ++++
+ .../tilcdc/{tilcdc_external.h => tilcdc_encoder.h} |   5 +-
+ drivers/gpu/drm/tilcdc/tilcdc_external.c           | 179 --------
+ drivers/gpu/drm/tilcdc/tilcdc_panel.c              | 408 ------------------
+ drivers/gpu/drm/tilcdc/tilcdc_panel.h              |  15 -
+ drivers/gpu/drm/tilcdc/tilcdc_panel_legacy.c       | 185 ++++++++
+ drivers/gpu/drm/tilcdc/tilcdc_panel_legacy.dtso    |  29 ++
+ drivers/gpu/drm/tilcdc/tilcdc_plane.c              |   2 +-
+ drivers/gpu/drm/tilcdc/tilcdc_regs.h               |   8 +-
+ 18 files changed, 768 insertions(+), 1293 deletions(-)
+---
+base-commit: 3617933603dd15db33ae9a0200734480682025b8
+change-id: 20251014-feature_tilcdc-79cd49e67bf9
+
+Best regards,
+-- 
+Köry Maincent, Bootlin
+Embedded Linux and kernel engineering
+https://bootlin.com
+
