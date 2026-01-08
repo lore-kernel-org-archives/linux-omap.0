@@ -1,104 +1,93 @@
-Received: from codeconstruct.com.au (pi.codeconstruct.com.au [203.29.241.158])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E88828B4FE;
-	Wed,  7 Jan 2026 23:44:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.29.241.158
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D2335F8BA;
+	Thu,  8 Jan 2026 08:26:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767829470; cv=none; b=Y7iVVaLIuVxFSyLrb8bvuQIrxTdCe+UmjlxNbQuTuko6rQZh9ATt1COycnF/Bi1iY9PccIgGbta4cU1lHyJslXma3/9A+8Tkbn7BjcI7Ie3y/ZAcFFCIAEgZIDom1w4dHZAl7TcWbcZQARhMwTznQzVQ82pfhq6fkHorH+nzLmY=
+	t=1767860816; cv=none; b=madnIzT4SIpD492+vKpzbVcGSI4gMDlcKCl60ZMAkX650oVp4tNlyA54+OHsrm1L2tCFZ9POOVsVdJp7hBp34kS0T/dTXwSks70McQcQ41TZ62YQ5lEWqSaOJ3L44QneoouGqnwrCpg0FgWljsPdwE0MFaw7VRqfhk+T0vFpxLI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767829470; c=relaxed/simple;
-	bh=oEpYS0+p12KjtD1xjYH6uX4JLkjrqmw8h27UjRsu9RI=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=rtXC6qQ4UdtyS5knD+TrYArrYaSnLK2h2C194+OAF9Z9t/DPr4GtE3jlXXoeiq+SCDLcaojwj3DNvqbuvYSEh3w21/63VbBWmDlACaLGOI82tihWmOGJvlwGjRtn6afWun/C3+R4SSPBVdhXv+AEEiwdShuCOZWJdKbtt9qWm30=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codeconstruct.com.au; spf=pass smtp.mailfrom=codeconstruct.com.au; dkim=pass (2048-bit key) header.d=codeconstruct.com.au header.i=@codeconstruct.com.au header.b=M4uB9ZZP; arc=none smtp.client-ip=203.29.241.158
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codeconstruct.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=codeconstruct.com.au
+	s=arc-20240116; t=1767860816; c=relaxed/simple;
+	bh=rdEwDabUWU2buJZW2ZyuGq8H/bqEDCqdfFLn0U7j3MQ=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=M7Rs4D1DzZ3HjJh1V6QCffhTndvayQ2fi2tDOv8UlRMkWIsF6T0HaGEd64TxnFx8iylHLfwqRBjsqIUibg8sLkKxUhZnrv5xAnJwCQnoJR31BZ01LxDxW+mW/lg0BJEfrn5HHcLObjCJGYp1A/akTPCvBcrivWuelYnc+IaFFWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=q6I7B6Ww; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=codeconstruct.com.au header.i=@codeconstruct.com.au header.b="M4uB9ZZP"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=codeconstruct.com.au; s=2022a; t=1767829460;
-	bh=vvbUvshcKay+5SyzipSpDu2A7P68B5vbaeosqp5G+WQ=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=M4uB9ZZPVsPXY6riJWKTZi9afSO24SmdJ5MMFaOwN3rouRWR5waBAj2H4hjNLawRM
-	 ZJzz7xC13YYt7/R065LFCDhNv7Vp07k8CK0xHfTgbenYVw3gDPCCHlKw/QzXzX4MgT
-	 tolqAxGati8jljrqUv5Y8lBIUc6yr/q7JeoeTB6282y47EHXOdU5QpmdI3RMbUFfpg
-	 /1GiryloDRy6NI38fkGfFuQGc1PQvVg9MrRZOdZQ2iQCjN048LDo+eDLS/kfAIfi1D
-	 ngkxKedmntRuoWPybC08mbY7EAn+gdJbyVzihucVkEZ1cZ4L9jlZKsTmatsnhFaeD9
-	 QKzVOIbpc0Wdw==
-Received: from [192.168.68.115] (unknown [180.150.112.60])
-	by mail.codeconstruct.com.au (Postfix) with ESMTPSA id 65D5479F8C;
-	Thu,  8 Jan 2026 07:44:18 +0800 (AWST)
-Message-ID: <245bb0d1cfc1dee91baaab7c1fd73bc264586a0d.camel@codeconstruct.com.au>
-Subject: Re: [PATCH 0/3] pinctrl: single: bit-per-mux DT flexibility, probe
- robustness, and consistent pinconf offsets
-From: Andrew Jeffery <andrew@codeconstruct.com.au>
-To: Billy Tsai <billy_tsai@aspeedtech.com>, Tony Lindgren
- <tony@atomide.com>,  Haojian Zhuang <haojian.zhuang@linaro.org>, Linus
- Walleij <linusw@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
- BMC-SW@aspeedtech.com
-Date: Thu, 08 Jan 2026 10:14:17 +1030
-In-Reply-To: <20251222-upstream_pinctrl_single-v1-0-e4aaa4eeb936@aspeedtech.com>
-References: 
-	<20251222-upstream_pinctrl_single-v1-0-e4aaa4eeb936@aspeedtech.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2-0+deb13u1 
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="q6I7B6Ww"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=Cc:From:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:In-Reply-To:References;
+	bh=5K1mb25vjRxs8M3KsS9XWxb/bhwtw9aw+OSOppGStAA=; b=q6I7B6Wwl9z6fZUZGi1VlaFmtY
+	8+bNul5jJ3uLqMD/0Lv8u3VOQ12fcrZ4GGmFqOT09at/6IJEkaWaI4ClOi2zu3qDjf5l7yTmByISv
+	qVv0S4jfiMICHgmtfFVc0gW931kzSYbOxxwQ6RqM3gvf5HLSJIcfmewUxiBljQbkaVr7usHslBDGd
+	sSBGmT/Yvtp+S5MDbZ8styy9zmL0MZN0Vwqp1buehMx3hQbBWd+/5xQhMJ+o8szzbGncGTsc2pHOY
+	cPGEkte6H+7lBwUJxrP9m8F43vQcMSfxTvYwvPmhlOvbUQEQjhkiTbubZ0pyJZ/XNTD940vPCa9YP
+	BfCVuiXQ==;
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH 0/2] cpufreq: omap: remove driver
+Date: Thu, 08 Jan 2026 09:26:11 +0100
+Message-Id: <20260108-omap-cpufreq-removal-v1-0-8fe42f130f48@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIACRqX2kC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIzMDQwML3fzcxALd5ILStKLUQt2i1Nz8ssQcXVMzQ9M0E4PU1GRLMyWg1oK
+ i1LTMCrCx0bG1tQC2ALhCZgAAAA==
+X-Change-ID: 20260108-omap-cpufreq-removal-5615f40eec96
+To: "Rafael J. Wysocki" <rafael@kernel.org>, 
+ Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, 
+ Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+ linux-omap@vger.kernel.org
+X-Mailer: b4 0.15-dev-a6db3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1081; i=andreas@kemnade.info;
+ h=from:subject:message-id; bh=rdEwDabUWU2buJZW2ZyuGq8H/bqEDCqdfFLn0U7j3MQ=;
+ b=owGbwMvMwCUm/rzkS6lq2x3G02pJDJnxWabXM/qvMBprV+ZqHJpwwCA1v3dS5r2yucuWvtcQK
+ pDbq2/XUcrCIMbFICumyPLLWsHtk8qz3OCpEfYwc1iZQIYwcHEKwETkFjEyNG/pVAyTUhNXjHWt
+ N9zl2643feHyCU9Y7z8J+B/aLfYxm+G/M8fq0hV/Tmly12m83x3p9Hyx9oHzsgpH2beWfdjUaHC
+ GFQA=
+X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
+ fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-Hi Billy,
+The driver is not useable since 10 years, and the affected
+platforms have alternative drivers, so remove it.
 
-On Mon, 2025-12-22 at 20:04 +0800, Billy Tsai wrote:
-> This series updates pinctrl-single to behave more predictably on
-> bit-per-mux platforms by making its DT interface more flexible, its probe
-> path more tolerant of pre-reserved resources, and its pin configuration
-> register addressing consistent with pinmux.
+To: Rafael J. Wysocki <rafael@kernel.org>
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Andreas Kemnade <andreas@kemnade.info>
+Cc: Kevin Hilman <khilman@baylibre.com>
+Cc: Roger Quadros <rogerq@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Can you provide some more context here? For instance, this is motivated
-by the AST2700 - can you talk a bit more about why its design needs
-these changes?
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+Andreas Kemnade (2):
+      cpufreq: omap: remove driver
+      MAINTAINERS: remove omap-cpufreq
 
-> It extends the driver to accept a per-pin <pin_index func_sel> style
-> description for bit-per-mux users while keeping the existing
-> pinctrl-single,bits binding as the preferred input when available. It als=
-o
-> relaxes probe failure when the I/O memory region cannot be reserved
-> exclusively, allowing initialization to proceed with a warning on systems
-> where that region is already reserved.
->=20
+ MAINTAINERS                    |   1 -
+ drivers/cpufreq/Kconfig.arm    |   5 --
+ drivers/cpufreq/Makefile       |   1 -
+ drivers/cpufreq/omap-cpufreq.c | 195 -----------------------------------------
+ 4 files changed, 202 deletions(-)
+---
+base-commit: 9ace4753a5202b02191d54e9fdf7f9e3d02b85eb
+change-id: 20260108-omap-cpufreq-removal-5615f40eec96
 
-Can you unpack what's going on here in the context of the target soc?
+Best regards,
+--  
+Andreas Kemnade <andreas@kemnade.info>
 
-Andrew
-
->  Finally, it aligns pinconf register
-> offset computation with the pinmux logic so that both muxing and pin
-> configuration access the same register offsets, avoiding incorrect pincon=
-f
-> operations on bit-per-mux configurations.
->=20
-> Signed-off-by: Billy Tsai <billy_tsai@aspeedtech.com>
-> ---
-> Billy Tsai (3):
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 pinctrl: single: add per-pin binding suppo=
-rt for bit-per-mux
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 pinctrl: single: Allow probe to continue i=
-f mem region busy
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 pinctrl: single: unify pinconf offset mapp=
-ing with pinmux
->=20
-> =C2=A0drivers/pinctrl/pinctrl-single.c | 150 ++++++++++++++++++++++++++++=
------------
-> =C2=A01 file changed, 110 insertions(+), 40 deletions(-)
-> ---
-> base-commit: dd9b004b7ff3289fb7bae35130c0a5c0537266af
-> change-id: 20251222-upstream_pinctrl_single-99e8df1fe2b9
->=20
-> Best regards,
