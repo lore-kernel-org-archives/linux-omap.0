@@ -1,62 +1,62 @@
-Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
+Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D6EA23EAB7
-	for <linux-omap@vger.kernel.org>; Mon, 19 Jan 2026 03:30:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8775299959
+	for <linux-omap@vger.kernel.org>; Mon, 19 Jan 2026 03:30:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768793451; cv=none; b=omSTx0zUle0YPGiFq3MCSJ3wY2/+FMzKPt03Xeg+rS7zRCafC60gR9F1+7souuUfUQaXdgJqGTyhfRRWI6b0LIz81SZHtMs18zbIv1bRxsMF/KtN/hMw0jUiehqCKe0/s7o4avl3RePFvdtYiMDiOztusQGdFc+u497A/4W5Cyc=
+	t=1768793452; cv=none; b=JX9vlv9+Qc347e545LEr1tNqwpdXsE79d378tiWwqys77AqTszNouI36+jSbGBLzrz8H+E1puXBjDvPXBRasvn9pC1SEgWrjmc4r72dGX3UXOEabUc1lwmGE6ue+CrOJ+gTaoJg6nAHzexGzAfTZLI2AtZSSWayViRHEeadEcGE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768793451; c=relaxed/simple;
-	bh=QtehmTlxVE2ImMqTMUlN+wssHL5rLi9pMI7VHV6x+J0=;
+	s=arc-20240116; t=1768793452; c=relaxed/simple;
+	bh=5HxovrdF1LsVk8dy4niAUAipDGB4bXXvyb7MpvuxIec=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eLDsnx7N6btaZGeMpLu7u+Cg4XFcqsL1DylnrtkNzY4P5sFQp5GdsSnRhznpipMe6Mkl05kNEG9pxPYF7ZFcytHgyH2/z4aGXomfUr3zHXdzzVXc9WmEF2uk8fGx6m3cEjteKH8aTAmDlzmkK6sRCO0QfKRTdo8VXKRbJZrKZaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=N0ivzO53; arc=none smtp.client-ip=209.85.219.54
+	 MIME-Version; b=BlzSTxzOPZP/Tm+1HyueJ/Fy0CumaxkiCbCRz4tEPA/5C5Ok4OfgnLsq96wWuEIt5QoH/RUBBgDhcGxyaYPGgP8NXv/40Isxt9HiW8HXATW6ah+2Wn+peYTEkMKbmbnegdoBTYFj4Q2WjfH+nbJDkccnDJz3IiVIUy/1WWvy8rw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gnRch5G3; arc=none smtp.client-ip=209.85.222.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N0ivzO53"
-Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-8888546d570so54006706d6.2
-        for <linux-omap@vger.kernel.org>; Sun, 18 Jan 2026 19:30:48 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gnRch5G3"
+Received: by mail-qk1-f180.google.com with SMTP id af79cd13be357-8c6a7638f42so449970185a.2
+        for <linux-omap@vger.kernel.org>; Sun, 18 Jan 2026 19:30:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768793447; x=1769398247; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1768793450; x=1769398250; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=0Hq1Jil93LKWD5SqiddgyBykMfT43TbOI7JPjGrETyE=;
-        b=N0ivzO53nkFxHh3yaSkbLQjkCtKfFOof09VTSNOigXmKAr6xgRNE2linhP6dP/rIaS
-         e1A1S2wwPCmkRpj78eoI5Awt47QjbDK74xig07J6iGnGAGrhV1MN3b21qTv2e6WfOaFB
-         F6TODsoql6wPQFTmlt76QpS8Iky19GWZiJ+8n8RjPrFqJAjdwW5mn3kJBf3mefFENAC5
-         +Edsbc/BhFeiqS3XimIs48iy8m/p/DzEyPnRDdUy2lREVnu0vXI0qE4bkoS2ZjyvV2hk
-         buulq28P6VcJtn6Lj3oUk5O64dEskSuz7BH4rHpYFWqw5fxiaT4Z3+abwPrS3u/BDM2v
-         Dpzg==
+        bh=/NkSp3Qp2ev5DvLNgpn6PFK/BAYbn/itTgc2RCCe8u8=;
+        b=gnRch5G3HvvQvowU7nsX/AwgITvYYUlgysrpu6cCbXTz7Yrd0qtlLBeYbCcZO7v9Ae
+         /RLAp68QHxroPX2PU+md/EBJuINMseyBsaHkmgE2r+FGy3HwH7kjqH1BysaEKtqdDe3g
+         oy2hBxe4mDgadgelw3HobIebwAujqQAORDdd73caf64W1+6zPTAgmXRVo0j8ZwYtNUJr
+         ZLw7CoAPjVKzZ08RgP4Ov8qWFHMCBcWl9ejirE8Aa+WkgdtCIf0efJiXha+InN4QVmyV
+         LX0wSxQsAxBldcI6WAiC+SY7vW1AOT0qzolDRP2B/0tzI02/BsJWHcw7dXeNLzgQi9Wy
+         THhw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768793447; x=1769398247;
+        d=1e100.net; s=20230601; t=1768793450; x=1769398250;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=0Hq1Jil93LKWD5SqiddgyBykMfT43TbOI7JPjGrETyE=;
-        b=bLvf58pRtkl/1bse6SpusTfjJJhE8gWzHXnhB9Mr6jw+qbIkPhllYD+lC1997b+s0I
-         90GAhgjJF/cgvPWksevkTiDGImXx2oacdWk3UDFMEHG7VEsrRNL4IUSdXmMK49+/fd2f
-         Kmm6EKrFTIKYKotnz69UzJcUh2EDi5oMmgzeEuPoeAy1HEjn9hEvjbsAyLzJFcFmQsmv
-         J3U2nX/dmGgmb5RSIw882rWweAnxKS6Ejzc8pHqooNObTaMQ4hL7bgN75CoNbDJj09Ei
-         cT1fBx43H0ez1224+hZCrkaxlKISRqUkXRE7mXHDZDFbJQ2WPN0NnnicsBn+rgdcDNqH
-         LaXQ==
-X-Gm-Message-State: AOJu0Yxz+HBvJUNtniQr0rfRwkxUZ18EH1bBNcW1Khzt9ZK/XvTbC9rE
-	oeO8GD5qBdXx965mF3x7WWd8ZQO/y3EE2JMKJ/qYaPNIGr+LiQmaZquF
-X-Gm-Gg: AY/fxX5xxjwX3/L7+vdf5Rq8+KgJ/T0xi94uHUxPGevdRjQZIkM8N6M2B+kobrezBy/
-	njSl25oDfQURIKI2Qb5kWNZBva031JEqTXPnqedpn7y8NBTxi+caTzLGHmURErOSSYkm4C/msx3
-	zD05fr7umxigabw28JOKr+KqyGarCw6TfWI60KuNYslYp19SXDmD41GqqoW64sZdedTGxBim2vI
-	YnPWrrBjU2REXQNvvhBP59IPcAHQuH/G5av7UwqgpxVxAS6pfoC9PCeJVBhQSfrggxYcbaKuzCZ
-	yxTNwJeRIGl+lzA5cqmTCBvoH5ktKC/Db037t7eVC9ZkPy4mmMB7ustvsRUX5U2n8uP0UktyhYK
-	kdb2V6TT+hk4g0Z7pvyLuq0hh3uabTzK1QyiyJjZbgSCKhtjdbByoIuUZ1FyK7jcrF8DMrzfbxS
-	R/oPmFdAngjUYWPN4SqAtuF+np58rNaezd2BmGkxO04Y6kQSPGfdlWAsxzfZ0UeP3C/bs=
-X-Received: by 2002:a0c:e008:0:b0:894:565c:98bf with SMTP id 6a1803df08f44-894565c9997mr6435226d6.13.1768793446858;
-        Sun, 18 Jan 2026 19:30:46 -0800 (PST)
+        bh=/NkSp3Qp2ev5DvLNgpn6PFK/BAYbn/itTgc2RCCe8u8=;
+        b=PY0vLZzG4M95sddlrY8mxowBgqr8/H+wdBAnVX5q7tasSIsOfO5qZl2bT6NU5V/1Ik
+         3JZioUfiZ+jhShmhlkmHw0aoPY2a7HahCvV6w8H2u3+Nusss9fpsFNsOZ810H6/L+3U9
+         Vrk9hEImDNeoud85X+vKTG/ExEDYCSbFwxMFB90qSBrBVmQWseMnEVJEY+iNvLguUF4d
+         PF4hTiTj5jM44XbofFTbQ+fwCyuVZHuoaVQpwb6pPDx4ZT9nQ9hif20L5PGrKJprSbof
+         gv/EfA7o0mk61c23pEuHuW2leK9gyp88JrAwY6Xz8kQ8Xz7eBl9NJIYnRo1K/PphE23J
+         Th7Q==
+X-Gm-Message-State: AOJu0Yx4JE4PTlsr77LTF08TmJf3mGO0co30JHtqDjb15bcpWpzuUzMt
+	bf7TMda8GlJ0ZZxyAKuRivMqCeSmdZ9G7oBislngWOjZ2nONYDbAOzP1
+X-Gm-Gg: AY/fxX5cqPRNrYem7mEzkki7ckvnpqGiofHNn5ANPI1C2l2Vgf3q+OB4uhbjn4CwuOC
+	5Y+LemJ6BV+qm6nQp190RZxemJY1KO7BLwal3D0U8UqUBxnGdw2u0tVkj53sEhX6fkew5YgpjsG
+	b6oZ2vtlhZ7W4hNlFtqcyJcsXMWw/zwf5EvIM2hvJtqash8dxwu2qINMWpcNX3RgHcNg7Ib6bOB
+	LuflxYXsfMgzb3vOeueFjAq9yyeUNwuMG1jzcSw1eXqhRhkI9+VuO0Q0ohN5n3RZ8ESg4U/s3Em
+	Aeit8OC+gElh2i70zdiVUH712SVJsYHA/HiQcPBefNRRDl6gNLGw2pR4S6VDT8nTZTrG7RrDUhD
+	+mqIn9siC9OY8ViyidrGDPSh7PJcDaJMuum1AFvjbWXfsfSgWTlQYOuF/cl6rbCsJC/qssAYPBT
+	WzEcZFwqIxzsa/l5uW8sxr2Wcr7Gj8z2Vxh2GqhgTIoDD0LCAKQOQ/iND16SMeAKZXwl8=
+X-Received: by 2002:a05:620a:4729:b0:8b2:e8b5:1ea3 with SMTP id af79cd13be357-8c6a68ec4edmr1367928485a.28.1768793449722;
+        Sun, 18 Jan 2026 19:30:49 -0800 (PST)
 Received: from mighty.localdomain (nat-130-245-192-1.resnet.stonybrook.edu. [130.245.192.1])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c6a71ab20dsm724706885a.5.2026.01.18.19.30.45
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c6a71ab20dsm724706885a.5.2026.01.18.19.30.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 18 Jan 2026 19:30:46 -0800 (PST)
+        Sun, 18 Jan 2026 19:30:49 -0800 (PST)
 From: Mithil Bavishi <bavishimithil@gmail.com>
 To: aaro.koskinen@iki.fi,
 	andreas@kemnade.info,
@@ -84,11 +84,10 @@ Cc: linux-omap@vger.kernel.org,
 	devicetree@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	dri-devel@lists.freedesktop.org,
-	linux-hardening@vger.kernel.org,
-	Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Subject: [PATCH v4 03/10] dt-bindings: display: bridge: lvds-codec: add doestek,dtc34lm85am
-Date: Sun, 18 Jan 2026 22:30:28 -0500
-Message-ID: <20260119033035.57538-5-bavishimithil@gmail.com>
+	linux-hardening@vger.kernel.org
+Subject: [PATCH v4 05/10] dt-bindings: display: panel-lvds: Add compatible for Samsung LTN101AL03 Panel
+Date: Sun, 18 Jan 2026 22:30:30 -0500
+Message-ID: <20260119033035.57538-7-bavishimithil@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260119033035.57538-1-bavishimithil@gmail.com>
 References: <20260119033035.57538-1-bavishimithil@gmail.com>
@@ -100,27 +99,27 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add compatible strings for the Doestek DTC34LM85AM Flat Panel Display
-Transmitter
+The LTN101AL03 is a 10.1 inch 800x1280, 24 bit, VESA Compatible, TFT
+display panel
 
 Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
-Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 ---
- Documentation/devicetree/bindings/display/bridge/lvds-codec.yaml | 1 +
- 1 file changed, 1 insertion(+)
+ Documentation/devicetree/bindings/display/panel/panel-lvds.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/display/bridge/lvds-codec.yaml b/Documentation/devicetree/bindings/display/bridge/lvds-codec.yaml
-index 4f7d3e9cf..3ad01645c 100644
---- a/Documentation/devicetree/bindings/display/bridge/lvds-codec.yaml
-+++ b/Documentation/devicetree/bindings/display/bridge/lvds-codec.yaml
-@@ -33,6 +33,7 @@ properties:
-     oneOf:
-       - items:
-           - enum:
-+              - doestek,dtc34lm85am # For the Doestek DTC34LM85AM Flat Panel Display (FPD) Transmitter
-               - ti,ds90c185   # For the TI DS90C185 FPD-Link Serializer
-               - ti,ds90c187   # For the TI DS90C187 FPD-Link Serializer
-               - ti,sn75lvds83 # For the TI SN75LVDS83 FlatLink transmitter
+diff --git a/Documentation/devicetree/bindings/display/panel/panel-lvds.yaml b/Documentation/devicetree/bindings/display/panel/panel-lvds.yaml
+index 68c16c1ae..b31c67bab 100644
+--- a/Documentation/devicetree/bindings/display/panel/panel-lvds.yaml
++++ b/Documentation/devicetree/bindings/display/panel/panel-lvds.yaml
+@@ -60,6 +60,8 @@ properties:
+           - jenson,bl-jt60050-01a
+           # Samsung LTN070NL01 7.0" WSVGA (1024x600) TFT LCD LVDS panel
+           - samsung,ltn070nl01
++          # Samsung LTN101AL03 10.1" WXGA (800x1280) TFT LCD LVDS panel
++          - samsung,ltn101al03
+           - tbs,a711-panel
+           # Winstar WF70A8SYJHLNGA 7" WSVGA (1024x600) color TFT LCD LVDS panel
+           - winstar,wf70a8syjhlnga
 -- 
 2.43.0
 
