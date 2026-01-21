@@ -1,120 +1,116 @@
-Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53F1F2D2397
-	for <linux-omap@vger.kernel.org>; Wed, 21 Jan 2026 14:14:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DC203C008E;
+	Wed, 21 Jan 2026 14:49:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769004853; cv=none; b=B5LCVv8DndkpfCLLpRieeMYkLkaHs5wfBA9pLRjTMyh2VLhrPXZtc9cwzL22l57zklhgpzij3/9sFxeZFLGipI25a7VvZ6vv0l5druuQeQQRsMmIRFOMRLYNiKx3oXUUFUI36Em+QC/+KC5mIqrXNJ9iWUdr9WbDKfdQ+1PNm4o=
+	t=1769006992; cv=none; b=LO8rMUnWuUtSSwti7Jb6OeONWhxgax1Wfs0ebJEJ9GFpx+s/8BcBaMCFQJVenzA45Ng2f+mCDSYF1vAmcXgwzCc04f42/OAc+R4IPvXV3NUPwrr2/qO8wpOxKeVJPsKEoOHJwIh2y+eKOe6cWvO1Is/+V3AlE1sBL2e+p8X+jM8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769004853; c=relaxed/simple;
-	bh=Y/7M5txzQgTaQBXJXuGNgcHSTitWaotNSQWTwgoi/P8=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=HUauktmN6Uhbzpxcy1A4gKas4YekVT6rNgQJedDd5f6mqMOU9/IMDZqvSydx0/L6uPwRNmGAPB7jqDqbQEo47Oos+T76xiVMNgw1JtBteo9F0kXIJMj1JRG3FTTXTWI7acTKhExPOd3wGRE0/vvQQ3zbhKMB0XiwHur2UHFm+IE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=CbFfAUW2; arc=none smtp.client-ip=185.246.85.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1769006992; c=relaxed/simple;
+	bh=6LTNJOg2E8MaKxl1xCHKvy5jwJaoAeaRCG+agnK2yY8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cauelZZt9Vxe1N2S6Ngyk56pN9PUC6O0OCtowIEN6zgP/vOXI8oNZsxdZ/QzD6kNXzZ833v6wdV4kJw/KXwh0koG6fEuZiHefFTFyu/7KzILCAWI6+VsehDWB1hU+nN6mzoBf8GZ9xTVVl+64wdkseFVeS647XzAvsJOW59p6sE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QBATCApT; arc=none smtp.client-ip=198.175.65.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="CbFfAUW2"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id 865D44E421C5;
-	Wed, 21 Jan 2026 14:14:09 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 557D86070A;
-	Wed, 21 Jan 2026 14:14:09 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 5D14E119B152E;
-	Wed, 21 Jan 2026 15:13:57 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1769004847; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=jJAdXppBbAOIvtuneW6gr8WXXxU/lyeSburTzUqxCrI=;
-	b=CbFfAUW26FQeqLMmADKrfn042P8OpRUkcoMywRGcVRQIj4RPFkNsJqohbnCTLqUNRPcShc
-	xrAByGcR11i0cK/s3YHc5Id0v+RBcxzTg/Rt7noXa6pfUp47lVbD0Y73jbQPiBOw/LATgm
-	xQe8+jFuvMqKhOWM9jw1aPohA9PcK3peRIsp4DawVDHQPorffVc0ZkOxet4OUwPBy1JVUw
-	wwnSB9YHi5LBBUEgClaqJyJxhQuaJF15p+qRbGoXGchAJ7DfIcHdZWJMZWQHsYBbX8a/j+
-	jZW5pEi7kHlrdkhP5aWWSwbBod6XxTP32pLCM25qscz8Pee2tDeokCbEFsSaBg==
-Date: Wed, 21 Jan 2026 15:13:56 +0100
-From: Herve Codina <herve.codina@bootlin.com>
-To: "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>
-Cc: Jyri Sarha <jyri.sarha@iki.fi>, Tomi Valkeinen
- <tomi.valkeinen@ideasonboard.com>, Maarten Lankhorst
- <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>,
- Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>,
- Simona Vetter <simona@ffwll.ch>, Rob Herring <robh@kernel.org>, Krzysztof
- Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Russell
- King <linux@armlinux.org.uk>, Bartosz Golaszewski <brgl@bgdev.pl>, Tony
- Lindgren <tony@atomide.com>, Andrzej Hajda <andrzej.hajda@intel.com>, Neil
- Armstrong <neil.armstrong@linaro.org>, Robert Foss <rfoss@kernel.org>,
- Laurent Pinchart <Laurent.pinchart@ideasonboard.com>, Jonas Karlman
- <jonas@kwiboo.se>, Jernej Skrabec <jernej.skrabec@gmail.com>, Markus
- Schneider-Pargmann <msp@baylibre.com>, Bajjuri Praneeth <praneeth@ti.com>,
- Luca Ceresoli <luca.ceresoli@bootlin.com>, Louis Chauvet
- <louis.chauvet@bootlin.com>, Thomas Petazzoni
- <thomas.petazzoni@bootlin.com>, Miguel Gazquez
- <miguel.gazquez@bootlin.com>, dri-devel@lists.freedesktop.org,
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v4 05/25] drm/tilcdc: Convert legacy panel binding via
- DT overlay at boot time
-Message-ID: <20260121151356.14d88273@bootlin.com>
-In-Reply-To: <20260116-feature_tilcdc-v4-5-2c1c22143087@bootlin.com>
-References: <20260116-feature_tilcdc-v4-0-2c1c22143087@bootlin.com>
-	<20260116-feature_tilcdc-v4-5-2c1c22143087@bootlin.com>
-Organization: Bootlin
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; x86_64-redhat-linux-gnu)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QBATCApT"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1769006991; x=1800542991;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=6LTNJOg2E8MaKxl1xCHKvy5jwJaoAeaRCG+agnK2yY8=;
+  b=QBATCApTNclQtfCtM8qF18hoPqgLFjfIIFA223ORHq+oq9IdRg7CvTlj
+   3Q8QEIkva4enhUdsOa6C/2Y2OsWLZRvc5StxdQIY89g79oyjWjJXf22Jt
+   naZUCxEeLYte9Y/tHAyFEdy/KJcHvftCRe2C+RfO98JSkYK2E/O/TJeRC
+   LzJX1MSUKwuP9dOFmC++NoJvL1cLk1janrALa4b5gEULV57GwlCovzGPD
+   LDqGBmYaO2h70Gp7FRQ+H93MXsnBKZbp6wt0fAZX55tWfSD82YyaErerR
+   LPs196vcVYskgL4yuaiEBaTpU4g6hgwiZUteVs1gAzk9+n0VhZ0zBQ/OL
+   A==;
+X-CSE-ConnectionGUID: xcqdNcMiS+69pLtcRktYbg==
+X-CSE-MsgGUID: ZApQ79opR9+ZNqLaD6kxRA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11678"; a="74087018"
+X-IronPort-AV: E=Sophos;i="6.21,242,1763452800"; 
+   d="scan'208";a="74087018"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jan 2026 06:49:48 -0800
+X-CSE-ConnectionGUID: n3tKdQlJR0Kh2goUKtuKHg==
+X-CSE-MsgGUID: FgiU5irsRD68qf9iNbOS1g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,242,1763452800"; 
+   d="scan'208";a="229432837"
+Received: from lkp-server01.sh.intel.com (HELO 765f4a05e27f) ([10.239.97.150])
+  by fmviesa002.fm.intel.com with ESMTP; 21 Jan 2026 06:49:41 -0800
+Received: from kbuild by 765f4a05e27f with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1viZWc-00000000RJx-31ND;
+	Wed, 21 Jan 2026 14:49:38 +0000
+Date: Wed, 21 Jan 2026 22:49:09 +0800
+From: kernel test robot <lkp@intel.com>
+To: Josua Mayer <josua@solid-run.com>,
+	Marc Kleine-Budde <mkl@pengutronix.de>,
+	Vincent Mailhol <mailhol@kernel.org>, Vinod Koul <vkoul@kernel.org>,
+	Neil Armstrong <neil.armstrong@linaro.org>,
+	Peter Rosin <peda@axentia.se>, Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Vignesh R <vigneshr@ti.com>, Andi Shyti <andi.shyti@kernel.org>,
+	Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Wolfram Sang <wsa-dev@sang-engineering.com>
+Cc: oe-kbuild-all@lists.linux.dev,
+	Yazan Shhady <yazan.shhady@solid-run.com>,
+	Jon Nettleton <jon@solid-run.com>,
+	Mikhail Anikin <mikhail.anikin@solid-run.com>,
+	linux-can@vger.kernel.org, linux-phy@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-i2c@vger.kernel.org, linux-mmc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 2/7] mux: Add helper functions for getting optional
+ and selected mux-state
+Message-ID: <202601212215.qNGA0wVh-lkp@intel.com>
+References: <20260121-rz-sdio-mux-v6-2-38aa39527928@solid-run.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260121-rz-sdio-mux-v6-2-38aa39527928@solid-run.com>
 
-Hi Kory,
+Hi Josua,
 
-On Fri, 16 Jan 2026 18:02:05 +0100
-"Kory Maincent (TI.com)" <kory.maincent@bootlin.com> wrote:
+kernel test robot noticed the following build warnings:
 
-> To maintain backward compatibility while removing the deprecated
-> tilcdc_panel driver, add a tilcdc_panel_legacy subdriver that converts
-> the legacy "ti,tilcdc,panel" devicetree binding to the standard
-> panel-dpi binding at early boot.
-> 
-> The conversion uses an embedded device tree overlay that is applied and
-> modified during subsys_initcall. The process:
-> 
-> - Apply embedded overlay to create a tilcdc-panel-dpi node with
->   port/endpoint connections to the LCDC
-> - Copy all properties from the legacy panel node to the new
->   tilcdc-panel-dpi node
-> - Copy display-timings from the legacy panel
-> - Convert legacy panel-info properties (invert-pxl-clk, sync-edge) to
->   standard display timing properties (pixelclk-active, syncclk-active)
-> - Disable the legacy panel by removing its compatible property to
->   prevent the deprecated driver from binding
-> 
-> The result is a standard tilcdc-panel-dpi node with proper endpoints and
-> timing properties, allowing the DRM panel infrastructure to work with
-> legacy devicetrees without modification.
-> 
-> Other legacy panel-info properties are not migrated as they consistently
-> use default values across all mainline devicetrees and can be hardcoded
-> in the tilcdc driver.
-> 
-> This feature is optional via CONFIG_DRM_TILCDC_PANEL_LEGACY and should
-> only be enabled for systems with legacy devicetrees containing
-> "ti,tilcdc,panel" nodes.
-> 
-> Suggested-by: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-> Link: https://lore.kernel.org/all/1d9a9269-bfda-4d43-938b-2df6b82b9369@ideasonboard.com/
-> Signed-off-by: Kory Maincent (TI.com) <kory.maincent@bootlin.com>
-> ---
+[auto build test WARNING on 8f0b4cce4481fb22653697cced8d0d04027cb1e8]
 
-Looks good to me.
+url:    https://github.com/intel-lab-lkp/linux/commits/Josua-Mayer/phy-can-transceiver-rename-temporary-helper-function-to-avoid-conflict/20260121-173607
+base:   8f0b4cce4481fb22653697cced8d0d04027cb1e8
+patch link:    https://lore.kernel.org/r/20260121-rz-sdio-mux-v6-2-38aa39527928%40solid-run.com
+patch subject: [PATCH v6 2/7] mux: Add helper functions for getting optional and selected mux-state
+config: i386-randconfig-001-20260121 (https://download.01.org/0day-ci/archive/20260121/202601212215.qNGA0wVh-lkp@intel.com/config)
+compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260121/202601212215.qNGA0wVh-lkp@intel.com/reproduce)
 
-Reviewed-by: Herve Codina <herve.codina@bootlin.com>
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202601212215.qNGA0wVh-lkp@intel.com/
 
-Best regards,
-Hervé
+All warnings (new ones prefixed by >>):
+
+>> Warning: drivers/mux/core.c:56 struct member 'mstate' not described in 'devm_mux_state_state'
+>> Warning: drivers/mux/core.c:56 struct member 'mstate' not described in 'devm_mux_state_state'
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
