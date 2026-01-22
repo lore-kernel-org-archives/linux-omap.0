@@ -1,67 +1,66 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ECD7366071
-	for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2026 17:54:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4616D34B1B6
+	for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2026 17:54:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769104481; cv=none; b=tglnk25oe5+IgESEXBjpVaQQ7tPdws3fZuxKEo/MJcLVkqzGEOM1mrQaZ3cScifHfZPmYVVIrm/RAjASM80zgq+b0cx9YnEhx/OvPKis9F9skr1PtCX05doLVcG7kQQDjx5+W5vavnmK93uwBBOqKGN2wkdTU+vpdEqf8K2p60g=
+	t=1769104482; cv=none; b=NnANh/Qqa+krbFD64ofJlEKAU3XpW6538HvkrROZuwOq28MkkccHW+kUoBOamjpyTDEqkrTfavr3Js1ZturIzaFqCPE17Me9aqCJaom7kM3p/TfZSTR81MpgTbcBLTiBbTC0ohlX12Lc6A84CePKWEY7IO9p13vxNUMjgbN5MMw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769104481; c=relaxed/simple;
-	bh=0crRmPwSiMEOVOi28jVt9hbp1foFHnuqbD2Zs4kEBXA=;
+	s=arc-20240116; t=1769104482; c=relaxed/simple;
+	bh=n7boxvUn3Yk1HQ2wGXunhG0eYxqe8LzA2OtLvcsbp2I=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=hgl68bbnpxnInwVbSI/WX8QhYw0jRnHWP90cNPIAWvptt3Q5HeHb6JUVRW5yHA5RbXPBGbyNlc/0GM7+QkW1vBDMMk/7Ahuz+FWpfD+ZfK0l64nxBSmIEgiRV0S0nTJ8Zt92hTI9ZCXtrM7o8CCvdt/labcYdLYeYZ6c+YTmtqc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=B6SbVQ+k; arc=none smtp.client-ip=209.85.214.180
+	 In-Reply-To:To:Cc; b=IcxauIzcYLgwwoM909L8QvzEQJqP1jM3PpyilTg9KzvL7LtcrTqVAo4pGQsCYXAQuNDdsKTWkTlTj7goiviV1CWocKWvz5pSP/LN/JzauYwu1wLY4t0rklwAZxcASPxau17FPtQUn7tI7iE31FDAykQ7/kpwAmKhcjSMpCN18Ug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Qn7KaNm8; arc=none smtp.client-ip=209.85.214.181
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="B6SbVQ+k"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2a09d981507so8810005ad.1
-        for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2026 09:54:31 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Qn7KaNm8"
+Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-29f102b013fso10315005ad.2
+        for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2026 09:54:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769104467; x=1769709267; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1769104472; x=1769709272; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=PcWylPv8TJyXsVhSrUUC23A8HhbSPg4cc6ltX4FBb+c=;
-        b=B6SbVQ+kdpCkVJSdX3CI2LKDrP0so+a4UxoSQiTx9fWnizFXHgFOWfH+HLePWx39ax
-         qRehUHtGl4E1o1QJAPNilAvRYFxbqF2Xfoe+nfFeFMJZEgAtdQjqEtKDgeZ37bFkKo9D
-         TUo5yKDjDZjarBM1TqnBeO+6PBpc7Hk/3p0h7hHGDplNHVPWMKfsiwgiCzyVo9qEwAdi
-         v8slS2wVcMvSbhQ6AArFla0YYF6c/cJ2GvPvRUKrbmAEPPuaEfh15FRZo+BoeDUGi9mT
-         Sxz8YfAvxj4GFrVhsdEIElbA7a7REv/OtTI5QaJx6JsUZ5t89mt7ewS9hpzRPf5lRTZy
-         1PIQ==
+        bh=Hr9aR0CWSK1c9Om5bLkEGlAjVnpQPsFLIXPSY4tyYVs=;
+        b=Qn7KaNm8VIZXlIYcsDtG7rOZ6AE2R997Tg7CtlwNtDFTBz1TpWkSiTGUev/YqyEVYL
+         7VmpFHB4bjGG68pgeNVfByeBk95gAyoqhfZ0Zy4BrTjF+jjfRP6XGTDYo+V4/NOdpDIn
+         eZCjYE1ZsWayd8B4udRT+Ls7xQwhnkqltq2vs7jN7X06CYy+lSKWhIj/CNBtigX2+7E+
+         QuSKERsNbOgHkgETFe1NymhJm8uTBt0W0zNwUL/4OgGC2yOIokES8fBqA4YkMG1vm72i
+         oQdyc2YHkK6I8D2UK/na7vyZFECu6cC1u8JIIwKuwPEPjGdfkuTw/S9jLzSyh+BGdtmm
+         Gizg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769104467; x=1769709267;
+        d=1e100.net; s=20230601; t=1769104472; x=1769709272;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=PcWylPv8TJyXsVhSrUUC23A8HhbSPg4cc6ltX4FBb+c=;
-        b=tGqI06pPlWoF0yfiOtkK5p5FVq0TnJRUljOugvSROhRGg1ubTTukiNpkfKNjVTI42M
-         hFyBaFdnN4hWvCJEa0C3dSvoyVFsuv77xuIw7YFoNahZrZXMMJzqMgOct+TQbqdvq/kl
-         5yXc2pyHtq7U7rAfpeFutXW9ea/l3vFwdC6U0TswvziuFN3yNSbFFcGIXmdLAjFLARAJ
-         2BWkoB7GlOR4yj3t/Ddq61F0kd7aCrA+9IygOs+GFdMDKD6iwboOzSUz5QMek8aqR0b3
-         gRMuOnqmbK8+uLuAiTvbEAlIuVcYo0rhjbSOP+q3mnftSAGs0x751wtgO9aAolUsix+B
-         wySw==
-X-Forwarded-Encrypted: i=1; AJvYcCX1acrJxNcIb0bTlavyz/Q42XlQf14f4O27Gwo/az6lGkMZsIhZUGQAMDoFJD0iCBPEjJ+QkAfEeRf9@vger.kernel.org
-X-Gm-Message-State: AOJu0YzIqP4A+CbumQ0OlCQpKqkVw22mY6OM/iPVOHJLT4qb28FOGDAv
-	pf73+ag0ak+/hWKlTAG8PFo/Ez+Kb5ub5U+rBj9Uv4zJ1wLTuIyshbmn
-X-Gm-Gg: AZuq6aIerbo6OeeB3MWJ+aPpWtMvN8C6Cj9SSk57Tnk2DaToZLhTyOkD5yIIqX2IKK8
-	ULZa+G3egmYXv8nYlKjeEdMlogtGPCVeJlrDPKcx6wBoE/dyfGaoGRG0ZXNPkcJMzJR9CZyNpFO
-	ZcIihFqhNQuQjZOzv/IO2G2TBsCVUHK4ZeJlUJ5RUuA7+ZTCqe0WfVjljiSeht/6Iunh+2ENvmr
-	tN51lr7rnqguFmJgI1INZdfugvQqhbB5Eedj8lTl4l4QcmQnYmFuHv4Ol22Ah9ypuZru4Adj2Py
-	irksNaR7Luim9Jbu0H0jkkPekOPI5nHiolaOLs7CCTQm8rhHqYu8BQTdrhXSVFLGibofN2yBtSr
-	l0y/POOR7WLjrndXGWLfAycckuEJ1dtBT5hylRS6QUA6nBWcYBJtcSKy/VrcBtArUT982Re3VF7
-	RAaRWXvQyZc0qaNcmxthB9M+hn3hmozNobhQ==
-X-Received: by 2002:a17:902:f641:b0:295:28a4:f0c6 with SMTP id d9443c01a7336-2a7fe41e16emr2855545ad.0.1769104467221;
-        Thu, 22 Jan 2026 09:54:27 -0800 (PST)
+        bh=Hr9aR0CWSK1c9Om5bLkEGlAjVnpQPsFLIXPSY4tyYVs=;
+        b=cfggvimPwuAFNpyG6MfW2azZbFqXCTMa8GwPE66LiinRhAeVyqBF7QcXsLSUu/F4DJ
+         9J2NTYceEVXesidavuRt0VcL99b7aGYuSC2HbcrT+vJ5QZJvpXkgD413nQMevEcJaskQ
+         lApXBUQr+M7LG3s3QFcwnJzHm/SM6xqQCVOnj3GJ+LhtykaZpQcCwHcyQgJqQDg5Zs5K
+         AHa9qXrpjHNTKJIoglQQRjhoRYO7jSWWbgb/UkBRX6NKfUrqwLoZYmQYGrMmmOHKa/KG
+         ldCzD+7L6rXQBjUsO95yz3LaCxTKjP0ewlenUoczUKlPWVmYfVXYt+tl2YWe7lawCeYC
+         LtVQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWozWxRDrWGNFgQ+1x6EGFCnrlQUQ8/2cn0xixUYFqZzZqk8+5M5moaxTMa5D10tXqx8xmQKcyzFL6Q@vger.kernel.org
+X-Gm-Message-State: AOJu0YzE+XBWZIx0OpB8oBfMHfeFEmvJ4FJVrFZfAS00GxT546rF2LO0
+	JdLd91BVwHald0MWAnDxWzSj/XOC4Gj8D4hihvsU5/Obd4juGBrMr/Dd
+X-Gm-Gg: AZuq6aJvvCs+iacO9Zr2jm489CqYZgTWVlhLNj/TKtUZP4MBO1Vt1xIvcMLBOCH2QHh
+	QlEUMNIVTkGVXBKpjK0lzKCJe1TX9DE7FTNSAcAwqX2fXD0dWX5susfQJs4XmZkhQKdJjDtwfDL
+	zEQTA6fCTCVbURPEcaF//nVTwjnA+3Ah/GxZoXc2Ta8EVUo1nQBTTtL7LNBBBxbYYgUbJkEbUd8
+	hdrlwnLg/7uvLu9f8x6uMLiEeF/xXSYf2wAPOHixzf9Jjpob6n6ziueZ3oXjPt+1XSWXMaJk+M/
+	rsDPlQyL+++tPYxqBPx4dBKtdJyR5TblaH2s1CGwvjO4a6Y91tFDpxZbeEZ5PZKX6PRy5HvuZL/
+	YjKrfJ5gFaYcluvR112yqmidHieXkDetl2Za25R/+D5/lR7OBybenVtTyEX2hs4+T+Ckp9EAtge
+	H0C8ZEzozQ97UZEAlQQyohW3HLmONXXDKvPt9FcYVICCc6
+X-Received: by 2002:a17:902:f652:b0:2a3:1b33:ae11 with SMTP id d9443c01a7336-2a7fe75705fmr1806385ad.53.1769104471890;
+        Thu, 22 Jan 2026 09:54:31 -0800 (PST)
 Received: from Black-Pearl.localdomain ([115.99.251.203])
-        by smtp.googlemail.com with ESMTPSA id d9443c01a7336-2a7190eee4fsm187745195ad.42.2026.01.22.09.54.22
+        by smtp.googlemail.com with ESMTPSA id d9443c01a7336-2a7190eee4fsm187745195ad.42.2026.01.22.09.54.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Jan 2026 09:54:26 -0800 (PST)
+        Thu, 22 Jan 2026 09:54:31 -0800 (PST)
 From: Charan Pedumuru <charan.pedumuru@gmail.com>
-Date: Thu, 22 Jan 2026 17:52:57 +0000
-Subject: [PATCH v3 1/3] arm: dts: ti: omap: align node patterns with
- established convention
+Date: Thu, 22 Jan 2026 17:52:58 +0000
+Subject: [PATCH v3 2/3] dt-bindings: phy: ti,phy-usb3: convert to DT schema
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -70,7 +69,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260122-ti-phy-v3-1-751619729433@gmail.com>
+Message-Id: <20260122-ti-phy-v3-2-751619729433@gmail.com>
 References: <20260122-ti-phy-v3-0-751619729433@gmail.com>
 In-Reply-To: <20260122-ti-phy-v3-0-751619729433@gmail.com>
 To: Vinod Koul <vkoul@kernel.org>, 
@@ -87,70 +86,157 @@ Cc: linux-phy@lists.infradead.org, devicetree@vger.kernel.org,
  Charan Pedumuru <charan.pedumuru@gmail.com>
 X-Mailer: b4 0.14.3
 
-Update OMAP DTS node patterns to match established conventions.
+Convert TI PIPE3 PHY binding to DT schema.
+Changes during conversion:
+- Define a new pattern 'pcie-phy' to match nodes defined in DT.
+- Drop obsolete "id" property from the schema.
 
 Signed-off-by: Charan Pedumuru <charan.pedumuru@gmail.com>
 ---
- arch/arm/boot/dts/ti/omap/dra7-l4.dtsi  | 4 ++--
- arch/arm/boot/dts/ti/omap/omap4-l4.dtsi | 4 ++--
- arch/arm/boot/dts/ti/omap/omap5-l4.dtsi | 2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ .../devicetree/bindings/phy/ti,phy-usb3.yaml       | 135 +++++++++++++++++++++
+ 1 file changed, 135 insertions(+)
 
-diff --git a/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi b/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
-index c9282f57ffa5..ed206eb84d02 100644
---- a/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
-@@ -328,7 +328,7 @@ ocp2scp@0 {
- 				ranges = <0 0 0x8000>;
- 				reg = <0x0 0x20>;
- 
--				pcie1_phy: pciephy@4000 {
-+				pcie1_phy: pcie-phy@4000 {
- 					compatible = "ti,phy-pipe3-pcie";
- 					reg = <0x4000 0x80>, /* phy_rx */
- 					      <0x4400 0x64>; /* phy_tx */
-@@ -348,7 +348,7 @@ pcie1_phy: pciephy@4000 {
- 					#phy-cells = <0>;
- 				};
- 
--				pcie2_phy: pciephy@5000 {
-+				pcie2_phy: pcie-phy@5000 {
- 					compatible = "ti,phy-pipe3-pcie";
- 					reg = <0x5000 0x80>, /* phy_rx */
- 					      <0x5400 0x64>; /* phy_tx */
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi b/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-index 4ee53dfb71b4..d8b16cbe6c35 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-@@ -72,13 +72,13 @@ scm_conf: scm_conf@0 {
- 					#size-cells = <1>;
- 				};
- 
--				omap_control_usb2phy: control-phy@300 {
-+				omap_control_usb2phy: phy@300 {
- 					compatible = "ti,control-phy-usb2";
- 					reg = <0x300 0x4>;
- 					reg-names = "power";
- 				};
- 
--				omap_control_usbotg: control-phy@33c {
-+				omap_control_usbotg: phy@33c {
- 					compatible = "ti,control-phy-otghs";
- 					reg = <0x33c 0x4>;
- 					reg-names = "otghs_control";
-diff --git a/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi b/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi
-index 9f6100c7c34d..5c94db589dd1 100644
---- a/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi
-@@ -472,7 +472,7 @@ usb2_phy: usb2phy@4000 {
- 				#phy-cells = <0>;
- 			};
- 
--			usb3_phy: usb3phy@4400 {
-+			usb3_phy: usb3-phy@4400 {
- 				compatible = "ti,omap-usb3";
- 				reg = <0x4400 0x80>,
- 				<0x4800 0x64>,
+diff --git a/Documentation/devicetree/bindings/phy/ti,phy-usb3.yaml b/Documentation/devicetree/bindings/phy/ti,phy-usb3.yaml
+new file mode 100644
+index 000000000000..605f12f0f79a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/phy/ti,phy-usb3.yaml
+@@ -0,0 +1,135 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/phy/ti,phy-usb3.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: TI PIPE3 PHY Module
++
++maintainers:
++  - Roger Quadros <rogerq@ti.com>
++
++description:
++  The TI PIPE3 PHY is a high-speed SerDes (Serializer/Deserializer)
++  transceiver integrated in OMAP5, DRA7xx/AM57xx, and similar SoCs.
++  It supports multiple protocols (USB3, SATA, PCIe) using the PIPE3
++  interface standard, which defines a common physical layer for
++  high-speed serial interfaces.
++
++properties:
++  $nodename:
++    pattern: "^(pcie-phy|usb3-phy|phy)@[0-9a-f]+$"
++
++  compatible:
++    enum:
++      - ti,omap-usb3
++      - ti,phy-pipe3-pcie
++      - ti,phy-pipe3-sata
++      - ti,phy-usb3
++
++  reg:
++    minItems: 2
++    maxItems: 3
++
++  reg-names:
++    minItems: 2
++    items:
++      - const: phy_rx
++      - const: phy_tx
++      - const: pll_ctrl
++
++  "#phy-cells":
++    const: 0
++
++  clocks:
++    minItems: 2
++    maxItems: 7
++
++  clock-names:
++    minItems: 2
++    maxItems: 7
++    items:
++      enum: [wkupclk, sysclk, refclk, dpll_ref,
++             dpll_ref_m2, phy-div, div-clk]
++
++  syscon-phy-power:
++    $ref: /schemas/types.yaml#/definitions/phandle-array
++    items:
++      items:
++        - description: Phandle to the system control module
++        - description: Register offset controlling PHY power
++
++  syscon-pllreset:
++    $ref: /schemas/types.yaml#/definitions/phandle-array
++    items:
++      items:
++        - description: Phandle to the system control module
++        - description: Register offset of CTRL_CORE_SMA_SW_0
++
++  syscon-pcs:
++    $ref: /schemas/types.yaml#/definitions/phandle-array
++    items:
++      items:
++        - description: Phandle to the system control module
++        - description: Register offset for PCS delay programming
++
++  ctrl-module:
++    $ref: /schemas/types.yaml#/definitions/phandle
++    description:
++      Phandle of control module for PHY power on.
++    deprecated: true
++
++allOf:
++  - if:
++      properties:
++        compatible:
++          contains:
++            const: ti,phy-pipe3-sata
++    then:
++      properties:
++        syscon-pllreset: true
++    else:
++      properties:
++        syscon-pllreset: false
++
++required:
++  - reg
++  - compatible
++  - reg-names
++  - "#phy-cells"
++  - clocks
++  - clock-names
++
++unevaluatedProperties: false
++
++examples:
++  - |
++    /* TI PIPE3 USB3 PHY */
++    usb3-phy@4a084400 {
++        compatible = "ti,phy-usb3";
++        reg = <0x4a084400 0x80>,
++              <0x4a084800 0x64>,
++              <0x4a084c00 0x40>;
++        reg-names = "phy_rx", "phy_tx", "pll_ctrl";
++        #phy-cells = <0>;
++        clocks = <&usb_phy_cm_clk32k>,
++                 <&sys_clkin>,
++                 <&usb_otg_ss_refclk960m>;
++        clock-names = "wkupclk", "sysclk", "refclk";
++        ctrl-module = <&omap_control_usb>;
++    };
++
++  - |
++    /* TI PIPE3 SATA PHY */
++    phy@4a096000 {
++        compatible = "ti,phy-pipe3-sata";
++        reg = <0x4A096000 0x80>,  /* phy_rx */
++              <0x4A096400 0x64>,  /* phy_tx */
++              <0x4A096800 0x40>;  /* pll_ctrl */
++        reg-names = "phy_rx", "phy_tx", "pll_ctrl";
++        clocks = <&sys_clkin1>, <&sata_ref_clk>;
++        clock-names = "sysclk", "refclk";
++        syscon-pllreset = <&scm_conf 0x3fc>;
++        #phy-cells = <0>;
++    };
++...
 
 -- 
 2.52.0
