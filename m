@@ -1,66 +1,65 @@
-Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
+Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D5A83806DE
-	for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2026 18:39:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64F893815D2
+	for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2026 18:40:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769107195; cv=none; b=UXMHoYuQ3yR7uas4ME55uwt46xWtnfQR8SlW/GThfOdSCj8LaxYKy5BHZhMBqREm95jGWjvrEEShlNXVrBMOTpsQoIE/pxHAumrYESyaQ2Mj5eU/CKio8Ejl9IlRV0S9okKzj71tS7Jo/3tpnEUVWuJCHUnbOMlpABp7JkSUUWY=
+	t=1769107252; cv=none; b=QOAt+SWJ8g7gPF98C59oHH/Qb/0bYmyYeYXpT7htkLqIgDMjXm/e7g8XPUIQoGAcLzIS9A+RLVeFibQZDStY5aPApG1kXRH0LeAJNSiTFj5r2PKYWeAU9jkNI6eLVIZqRbeyUooANMp+nhSWlYB/98ETOj4Q2fm/OcUkgl5ACyM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769107195; c=relaxed/simple;
-	bh=C/LJc0P7pSCX6HhTs7JO0p5h6mPdfW06ySxpR5N1kJg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ZXeQqsBJ5XCWRIyWYRTOYVzooio9fSaJsFEtbdt/7v4qclHRJS1jF2jEa6f1jJ3h5QUgH63VY7OT2SjOGeMuSimBOMeqVZopXxd7EACqJT0LiaidIPuInRIvGg/BXFXv03rHFf3s1aseN/MP0O5lZilt+3HYloh20gDl4jd+gMg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=kUnpBenE; arc=none smtp.client-ip=209.85.215.176
+	s=arc-20240116; t=1769107252; c=relaxed/simple;
+	bh=+bey99AjgyNTqzkxXlw+Qjdw77mPPw1bmRZ8ASYrE0E=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=pWlHvqHGiRlV0lP9xsDQcKDD0vs41wM4gSVvBC8m8moMzomeHDDvUR4hl1vp6XtCzKJcVYVGWsdn/tEYxT4VEDDHLOa5B2TCQXzd90fymhKhff/fumzOKLal50AjeCSqOLVxu7bepigabM9U954f7BtT+Uu+wDXE6Qwjlq3n9Zo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=es2UPx5o; arc=none smtp.client-ip=209.85.214.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="kUnpBenE"
-Received: by mail-pg1-f176.google.com with SMTP id 41be03b00d2f7-c613a0ca52dso684710a12.3
-        for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2026 10:39:45 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="es2UPx5o"
+Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-29f2676bb21so13093925ad.0
+        for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2026 10:40:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1769107185; x=1769711985; darn=vger.kernel.org;
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1769107244; x=1769712044; darn=vger.kernel.org;
         h=mime-version:message-id:date:subject:cc:to:from:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=eU9nAAzm7tuhsde9kPZ3jwJ1ZSEJF+Z3udZWl8Q5Jwg=;
-        b=kUnpBenEH5TQ36u+pSvuvpXAVcuEcrTWj0UINWK4fZyET5redO28mSQ7XxGV/JDIU5
-         T2aQ4pJUqctMla8A3Z8UEV3nizVwcveKf+RZzKTSNN/qtgiP+WB/72OXQm7R0ZbKpXJE
-         xYJkmBNtNjegHgIOP2JW7LF7ckEjGYJQLM9IOc975umQL62FzM/kkJeJN2cI2RrfwtPO
-         Sp68SpbUEtNXuSgCONv73QofIzSvExxCXtDw8KhbPhgIFKhkG6jKTz5w3FPlimgSso/j
-         U6AP2wS+XlYEBYwkP6+NaiWMYzsR4RK54c1sUZN6NXcDuUM3Iom6dIt7L0EHxAyo/U8c
-         6DIA==
+        bh=Kh3llz159zOHhYjpa3DZZY1B3AUjD9TXdEvBojqy5mg=;
+        b=es2UPx5ohQX8GM28TZzXq0bm/2Yfd52nRBQRqqqhp6jh9Hl9rMdLPBn9femJkNrpHn
+         zYgdTBfpC5/sIIYxhtZ3YsGwZC4wrXuRcxVi6bOlY8Xy3BsuQa5H8h65ghTF2RsDUdKR
+         U/Pz1Mf9ZjAXywLZ6P1jrXJDsJd/oVnJBFUjdRDngSFM+UV+3I3XgpuuYTTniztkPwjV
+         oBY70JOopNlk9wX48L7ZYIg8DRUez4O2frpsLFnG0K8L5yLIaXa0f7bIbhU32hit3dpr
+         Wnd08s08NQGRHBW9+LSDSqygARpk1J1lgf/O1luclykYFQyyBAeBoGGFm3MRzB54lK96
+         q8nw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769107185; x=1769711985;
+        d=1e100.net; s=20230601; t=1769107244; x=1769712044;
         h=mime-version:message-id:date:subject:cc:to:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=eU9nAAzm7tuhsde9kPZ3jwJ1ZSEJF+Z3udZWl8Q5Jwg=;
-        b=JA2uAhM+4ZremG1ZvYDqcBhQYX8XSKl2bGVbnMENsoxuu2xWTRvbPRrThFaFa9psMI
-         Q0xYBpY3TY8Ry5wjs6vZjunzMYZrMhLqbmq89Z098fZ+Y4rwnnAfc7+swsMb0dSkkQ+I
-         RH5wTn0BzROW+k7ONsV5XBSnt5cu6tpFzs7b6B8Ysh+VMDDx3CtLHYFTbwU1ZdC9GFzj
-         VFKfs2MRWRb/ymIaDlwNpooXQc7YfSVh1727QMu40G+8t+as37ZwZRnR9iGkl3+w311A
-         vFUCBU06QwX0C+4yhcNGw8MKSZG50I/QTb6BLLNACIxbwMGeBoIeOebQ9KPg3s9K//4J
-         pbkA==
-X-Gm-Message-State: AOJu0Yzh1K78pT09S5QUlsnNnb+lchgAe3uaf7zT2YIIBS0ge+UJB7ac
-	U+x4OPNY2hifZgWvYNLV9ioQVjjPgxqYHYq+ENxGINbZkO7TRs5viLjWXYgHk1DLyV8a2cs48JK
-	UZ2FAqsU=
-X-Gm-Gg: AZuq6aIdgU7D3Fk4P9Q53cRvE6rw1smMUYG5ZRZq6/UNARy2+owo0SgYCX3aXMZrMxm
-	atqJ34bnv4v24naYRInYpE8jnnlqezt+ElfMZ4i3GWd6XWaLypQOwOXzWhLdcCDKp94s29R11aS
-	6KwSE9IB1onL3IJrwmsqI3lYNOjfSkDMfKJ8/awCOfkMLk/LJdTPmnmgQvGhcPvMwZ7u564GXhT
-	tWOwmtRnoWJvLwlJroY1kflUrI7a0hyN1Dw9ewrF4M7xOB8LsNiQpP7Cbs+STE5DegMsbnavCSh
-	NoqTzkh7V4hXM9VkByHYvuPDaSDqLHZ50oHZ2zeHikdhQx/0n5bCN8j56KD2+mtiKKzKBMd/ryJ
-	98UOi/Hm8F+IprFsk/EJBktY74dlTaWddeiiHM7FEXHVheBpx88O/RdqsILjdZv7ljCBhyxxeMj
-	WNEAnu/2FOo9q43NduOA0=
-X-Received: by 2002:a05:6a20:7485:b0:366:14ac:e1f0 with SMTP id adf61e73a8af0-38e6f83ae57mr387123637.66.1769107184746;
-        Thu, 22 Jan 2026 10:39:44 -0800 (PST)
+        bh=Kh3llz159zOHhYjpa3DZZY1B3AUjD9TXdEvBojqy5mg=;
+        b=R09oLtv5iIchRRsqgb1d1A9BCRTMC7gy35TmQHAA8fMEThpCqbjPI8/S00qERxllR9
+         am1QDgE75+S7oHMOtNL1O0Y8xtt4WCygjuJeBUUtt2YrxO+M/+P+9wfMuQ5T0E9K/NaD
+         5Gnjdn+mojM9J32IRWsnzp2C034yytNVM9qi6OPna9BrKk8GenK2kSc1CVe0rPeQ1trD
+         unw2xpEEHhUxlnPDQxFTpm6ckKxB/lLLOcoPG/ibUB72TIgSl0bMM/d8MgyAzo5LYq1J
+         VLcBmpDvNuioHZVWylgQTBw90CJWmSORoozWlmHBvttbl5fdWoVxE5VuhKqErqqHhxmY
+         dkKQ==
+X-Gm-Message-State: AOJu0YyvZli1O+oEGmzOBrN0P8fWp3wFjrcUBFHqHK5IDZmyW9rq1znj
+	g+ECegjpwxIcfuzA3dBe2vQWzSKn+TgURNeMYv8nLhUUhJtX0yq/oiPKhmqbjDKTrtE=
+X-Gm-Gg: AZuq6aKr6KOb+iFpCnYP1+e0eq+z0Re8yIpRrR0KFxadK5Ta6kgXedMSv3GnK9mLeNV
+	kMqaK1oUFi/3zg36l5aD7yd0wXFIo164F43CrOIK0toHT1o/Xxle2iozH29v7DcBETn1x4sHvmh
+	j/ZxmGd5iOH3DagZrw/eqxlJvtuckBhr50/N/R3jI3Q/rHcr//1RwFZppG+vN1cRA44t+tlbiqA
+	mO7R0+UbL6kQTFTW5xDPiGpHe1C0kFEYhSpKb+J59NafD05wR8rubTQOQfSsQvc5IUBxHrJLtYA
+	WvG/PaOkuvs+B874Ro9ogL4vLWUVns9qV82ZXXfDH8sujgBqgcG3Ao8swNdcL2C7YvSgmi+rTkL
+	LnGfCCinrhcwxi0okfMTZeRWJbhQPAgoJvgUo5xH34I7uD0gmG6G9EyDk5nO8j++crN2pQb6h1K
+	EcOItkTWMp
+X-Received: by 2002:a17:902:e851:b0:29f:1bf:642a with SMTP id d9443c01a7336-2a7fe43ee93mr2949225ad.12.1769107243616;
+        Thu, 22 Jan 2026 10:40:43 -0800 (PST)
 Received: from localhost ([71.212.200.220])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c635a3f2ddcsm41909a12.17.2026.01.22.10.39.43
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a7b03945c7sm52280935ad.102.2026.01.22.10.40.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Jan 2026 10:39:43 -0800 (PST)
+        Thu, 22 Jan 2026 10:40:43 -0800 (PST)
 From: Kevin Hilman <khilman@baylibre.com>
 To: soc@lists.linux.dev
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [GIT PULL] ARM: dts: OMAP updates for v6.20
-Date: Thu, 22 Jan 2026 10:39:43 -0800
-Message-ID: <7h7bt97aq8.fsf@baylibre.com>
+Subject: [GIT PULL] ARM: omap: soc updates for v6.20
+Date: Thu, 22 Jan 2026 10:40:42 -0800
+Message-ID: <7h343x7aol.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -75,51 +74,22 @@ The following changes since commit 8f0b4cce4481fb22653697cced8d0d04027cb1e8:
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap.git tags/omap-for-v6.20/dt-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap.git tags/omap-for-v6.20/soc-signed
 
-for you to fetch changes up to 76f88d2edd9f21acad7be8422069403118708455:
+for you to fetch changes up to dc717e24deb4e626f4ad4896dd722815ef32311a:
 
-  ARM: dts: omap: dra7: Remove bogus #syscon-cells property (2026-01-05 12:11:31 -0800)
-
-----------------------------------------------------------------
-ARM: dts: OMAP updates for v6.20
+  ARM: omap1: drop unused Kconfig symbol (2026-01-05 12:11:02 -0800)
 
 ----------------------------------------------------------------
-Alexander Stein (1):
-      ARM: dts: tps65910: Add gpio & interrupt properties
+ARM: omap: soc updates for v6.20
 
-Andreas Kemnade (2):
-      ARM: dts: ti/omap: omap4-epson-embt2ws: add powerbutton
-      ARM: dts: ti/omap: omap*: fix watchdog node names
+----------------------------------------------------------------
+Randy Dunlap (1):
+      ARM: omap1: drop unused Kconfig symbol
 
-Kory Maincent (TI.com) (1):
-      ARM: dts: Drop am335x-base0033 devicetree
+Wentao Liang (1):
+      ARM: omap2: Fix reference count leaks in omap_control_init()
 
-Rob Herring (Arm) (1):
-      ARM: dts: ti: Drop unused .dtsi
-
-Vladimir Zapolskiy (1):
-      ARM: dts: omap: dra7: Remove bogus #syscon-cells property
-
-Yegor Yefremov (1):
-      ARM: dts: omap: enable panic-indicator option
-
- arch/arm/boot/dts/ti/omap/Makefile                |   1 -
- arch/arm/boot/dts/ti/omap/am335x-baltos-leds.dtsi |   1 +
- arch/arm/boot/dts/ti/omap/am335x-base0033.dts     |  92 -----------------------------------------------------------------------------
- arch/arm/boot/dts/ti/omap/am3703.dtsi             |  14 ------------
- arch/arm/boot/dts/ti/omap/am3715.dtsi             |  10 ---------
- arch/arm/boot/dts/ti/omap/dra7-l4.dtsi            |   1 -
- arch/arm/boot/dts/ti/omap/omap2430.dtsi           |   2 +-
- arch/arm/boot/dts/ti/omap/omap3.dtsi              |   2 +-
- arch/arm/boot/dts/ti/omap/omap3430es1-clocks.dtsi | 237 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts |   5 +++++
- arch/arm/boot/dts/ti/omap/omap4-l4-abe.dtsi       |   2 +-
- arch/arm/boot/dts/ti/omap/omap4-l4.dtsi           |   2 +-
- arch/arm/boot/dts/ti/omap/omap5-l4.dtsi           |   2 +-
- arch/arm/boot/dts/tps65910.dtsi                   |   4 ++++
- 14 files changed, 15 insertions(+), 360 deletions(-)
- delete mode 100644 arch/arm/boot/dts/ti/omap/am335x-base0033.dts
- delete mode 100644 arch/arm/boot/dts/ti/omap/am3703.dtsi
- delete mode 100644 arch/arm/boot/dts/ti/omap/am3715.dtsi
- delete mode 100644 arch/arm/boot/dts/ti/omap/omap3430es1-clocks.dtsi
+ arch/arm/mach-omap1/Kconfig   |  1 -
+ arch/arm/mach-omap2/control.c | 14 ++++++++++----
+ 2 files changed, 10 insertions(+), 5 deletions(-)
