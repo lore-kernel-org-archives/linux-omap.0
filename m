@@ -1,292 +1,206 @@
-Received: from TYVP286CU001.outbound.protection.outlook.com (mail-japaneastazon11021075.outbound.protection.outlook.com [52.101.125.75])
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C039334C1C;
-	Thu, 22 Jan 2026 14:29:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.125.75
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769092149; cv=fail; b=ClnRouXD5ALExJ4bjvptjDSYeWLiB5/5NC499TTMES6bgdGE7VpvDfb+7IWTsYdVMaec2Cwh51Ga/kPSHD0IXWI3Nif+Rm/ZQbxFTHRT+a/LW15Rf6/ASH1UB+eTg7AtfMdPhxl4DwZndzz0uy893o6ZFzISRXodDvOAMWKkbXM=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769092149; c=relaxed/simple;
-	bh=RowIM3b+fHgW1D2FU7k97DsSx0axmKNB/5p4e5ilzas=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=aUDqCPv1J2+G4TXgq/yXMEUIpQEjX8TpUgEPRKTD5ZQuvVVnw3s7eKYJmF5Op5bWNX7JSqjisC9JeD9hhiyZZNvA5qwzHzMNkoQ9eefyShYhbWZIiQ6slglTsW5EeCJcx0Vb/WaYZNtTmlEVVSm40OqBrmEgllqhFQNZJVe1eJo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=valinux.co.jp; spf=pass smtp.mailfrom=valinux.co.jp; dkim=pass (1024-bit key) header.d=valinux.co.jp header.i=@valinux.co.jp header.b=alpxUyaM; arc=fail smtp.client-ip=52.101.125.75
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=valinux.co.jp
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=valinux.co.jp
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAF79277CAB;
+	Thu, 22 Jan 2026 14:48:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769093334; cv=none; b=G6wDEaOfMb0wYmzOf9iNZjs2+cujD20utFtLkzjEeYNQKXMZ70AYCFTthLIsF09kqEw5ZN3pYucZoGH906siYTLeFzuVMbbx3WPMyXiq1uzLtz0DpLmYuaWl78q918zE+U0QdQ5Y06lDQ+wlkk3kRll3EUtRxwftP8ag1/FVNJY=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769093334; c=relaxed/simple;
+	bh=YSdtxrIMSR0i5WHapdq/b+WnTiO9CQYVWg/ss95pIzw=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=TNBQu1jnf4T8AsyPuF2SR5SJn24ECv6KA0W7Fc9dXfZ1yOglVYV9YWXpY0OS2hBrwOT642tmI++xMlGJR/EqttqUd3NZZi2NJ0cIx++r7YXgB1Npk8AvBdj/+yIY104L6W2RYEFX2Mbl5ukt3LkaB2SzDdoflWOOMH7orkSaeD8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=n6CtIly1; arc=none smtp.client-ip=185.246.85.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=valinux.co.jp header.i=@valinux.co.jp header.b="alpxUyaM"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=B6QasVriUnNVW9xxi+wNikCk0iLAqVo4ZBnJKIjKC14MfsCOe1NUu7x/X7pvzysKUP5i2g4ORFdIELGp0612bLF4hq1fMGgEl6M2uVCoKR3HGgwiXStV4Ex9YayCdo798UQrZXnk8FPfZNPzOn3ScXoFODmgRaQFL0VZ+QZRhfH7+5iR02ZJ221sCfgenbA76rqRnnDiEq44+Go5Y8ebzPVoUQFKsTDQBvt+vLaFiqpqCBFUEac/5Nb/B7bNtMxx9WJAWAFAgKCANguFxEg+wOjtb4J5nwJjYyqw1XpN9x0RxVkoRs8oA0UUzKlCnuCJ+TEYrRH4WpRAqXHBenLNOA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GcWOTR9grXcO++MlMUTXwjrQaKHmN3B5qcWWN3Nx6IM=;
- b=kItZxTpJwxFOALPDWYUCJkCFCyZb1LdfcmAKDb85RZnYMEYT86Ux++UKDv3y/BYCOfxiF6slGY5uFt5qriChB1osPkBBV/bJxNis/FKp2m+m7Erim6Ma5154dMzmJHv3PkUSJ8ZRCOQhVw42LUTM5BnfwwvmQxTHJqiDhAOxJaywH3jQ+SVrCG+hHo6DC5VxGqcAJCoVYxYkKST5uoH1V6v7pqnjzItghIG7K1R5K2ReVQ7ZJ0ufjXRo6tiS4veK2y9OqFrDKhSeQflgGiiKasUiJkhYe7rf82PDBobmLUzvlb2FdpTo8QK0hA0Rf3Yk2CnTyfpmpP+eZKd0hISKLg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=valinux.co.jp; dmarc=pass action=none
- header.from=valinux.co.jp; dkim=pass header.d=valinux.co.jp; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=valinux.co.jp;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GcWOTR9grXcO++MlMUTXwjrQaKHmN3B5qcWWN3Nx6IM=;
- b=alpxUyaMB8vG5LDgVP4yHxlK9hABO+djvfJMcoImomv1/d/NcgFH4I6qxHHkhqYhOo8XOJOB6yrm45jwiZgmLkgFfsfaqUUSZOpuEeECbYrinj0Zop7ixgt/uAtdt0x16qcTBYt0gWxx6MM/eqgy7OUQQUK/53EFe4jiXLSC0Jo=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=valinux.co.jp;
-Received: from TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM (2603:1096:405:38f::10)
- by TYCP286MB3203.JPNP286.PROD.OUTLOOK.COM (2603:1096:400:2c1::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9542.9; Thu, 22 Jan
- 2026 14:29:04 +0000
-Received: from TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
- ([fe80::2305:327c:28ec:9b32]) by TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
- ([fe80::2305:327c:28ec:9b32%5]) with mapi id 15.20.9542.009; Thu, 22 Jan 2026
- 14:29:04 +0000
-Date: Thu, 22 Jan 2026 23:29:02 +0900
-From: Koichiro Den <den@valinux.co.jp>
-To: Niklas Cassel <cassel@kernel.org>
-Cc: jingoohan1@gmail.com, mani@kernel.org, lpieralisi@kernel.org, 
-	kwilczynski@kernel.org, robh@kernel.org, bhelgaas@google.com, vigneshr@ti.com, 
-	s-vadapalli@ti.com, hongxing.zhu@nxp.com, l.stach@pengutronix.de, 
-	shawnguo@kernel.org, s.hauer@pengutronix.de, kernel@pengutronix.de, 
-	festevam@gmail.com, minghuan.Lian@nxp.com, mingkai.hu@nxp.com, roy.zang@nxp.com, 
-	jesper.nilsson@axis.com, heiko@sntech.de, srikanth.thokala@intel.com, 
-	marek.vasut+renesas@gmail.com, yoshihiro.shimoda.uh@renesas.com, geert+renesas@glider.be, 
-	magnus.damm@gmail.com, christian.bruel@foss.st.com, mcoquelin.stm32@gmail.com, 
-	alexandre.torgue@foss.st.com, thierry.reding@gmail.com, jonathanh@nvidia.com, 
-	hayashi.kunihiko@socionext.com, mhiramat@kernel.org, kishon@kernel.org, jirislaby@kernel.org, 
-	rongqianfeng@vivo.com, 18255117159@163.com, shawn.lin@rock-chips.com, 
-	nicolas.frattaroli@collabora.com, linux.amoon@gmail.com, vidyas@nvidia.com, Frank.Li@nxp.com, 
-	linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-kernel@vger.kernel.org, imx@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
-	linux-arm-kernel@axis.com, linux-rockchip@lists.infradead.org, 
-	linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
-	linux-stm32@st-md-mailman.stormreply.com, linux-tegra@vger.kernel.org
-Subject: Re: [PATCH v9 4/5] PCI: dwc: ep: Support BAR subrange inbound
- mapping via Address Match Mode iATU
-Message-ID: <s6bnqkbuugi7oio7ybekdbk3dokpbe2bui2wjltdwajxix2app@wosgmhrfsriv>
-References: <20260122084909.2390865-1-den@valinux.co.jp>
- <20260122084909.2390865-5-den@valinux.co.jp>
- <aXHsd7-WWAGyhy_w@ryzen>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aXHsd7-WWAGyhy_w@ryzen>
-X-ClientProxiedBy: TYCPR01CA0077.jpnprd01.prod.outlook.com
- (2603:1096:405:3::17) To TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
- (2603:1096:405:38f::10)
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="n6CtIly1"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-03.galae.net (Postfix) with ESMTPS id E7D084E421F2;
+	Thu, 22 Jan 2026 14:48:49 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id AFB01606B6;
+	Thu, 22 Jan 2026 14:48:49 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 4717D119B80D3;
+	Thu, 22 Jan 2026 15:48:41 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1769093328; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=j08CZYreWkoiN+l1Th5hMC9vcpfI9DQRPaNd9bd6GEg=;
+	b=n6CtIly1fP5j1hMNuel0x4IJ8soH2Y27mG0LvBri9txYrMg8cZER1vYfcL9yJtxNrKMBg+
+	rhXDMCJe+gffQTTjPsRnAH7GqnCpy+BTRhK4TmLM0H+MioItDgnC/qM8EWsQkjvIqHBxI0
+	lz950Po5n0+lcL1n2z1iy3FS3INpMLlJ0IJbO0YhH4dXKoWEZMSQZNhWNaDdSDtSy8Ll4c
+	foHOGs+RryPdVSdBNpvFEfNqQPMPM8AUk25pQs+GJVPhH8b/mLgSdHbneG40g9D018R6gX
+	MR0icGk6lg1P12qn75OSgYLvo+G9C5LZCF1f/YdytVkqUFWXkVUi94cv/tXShQ==
+Date: Thu, 22 Jan 2026 15:48:40 +0100
+From: Kory Maincent <kory.maincent@bootlin.com>
+To: "Luca Ceresoli" <luca.ceresoli@bootlin.com>
+Cc: "Jyri Sarha" <jyri.sarha@iki.fi>, "Tomi Valkeinen"
+ <tomi.valkeinen@ideasonboard.com>, "Maarten Lankhorst"
+ <maarten.lankhorst@linux.intel.com>, "Maxime Ripard" <mripard@kernel.org>,
+ "Thomas Zimmermann" <tzimmermann@suse.de>, "David Airlie"
+ <airlied@gmail.com>, "Simona Vetter" <simona@ffwll.ch>, "Rob Herring"
+ <robh@kernel.org>, "Krzysztof Kozlowski" <krzk+dt@kernel.org>, "Conor
+ Dooley" <conor+dt@kernel.org>, "Russell King" <linux@armlinux.org.uk>,
+ "Bartosz Golaszewski" <brgl@bgdev.pl>, "Tony Lindgren" <tony@atomide.com>,
+ "Andrzej Hajda" <andrzej.hajda@intel.com>, "Neil Armstrong"
+ <neil.armstrong@linaro.org>, "Robert Foss" <rfoss@kernel.org>, "Laurent
+ Pinchart" <Laurent.pinchart@ideasonboard.com>, "Jonas Karlman"
+ <jonas@kwiboo.se>, "Jernej Skrabec" <jernej.skrabec@gmail.com>, "Markus
+ Schneider-Pargmann" <msp@baylibre.com>, "Bajjuri Praneeth"
+ <praneeth@ti.com>, "Louis Chauvet" <louis.chauvet@bootlin.com>, "Thomas
+ Petazzoni" <thomas.petazzoni@bootlin.com>, "Miguel Gazquez"
+ <miguel.gazquez@bootlin.com>, "Herve Codina" <herve.codina@bootlin.com>,
+ <dri-devel@lists.freedesktop.org>, <devicetree@vger.kernel.org>,
+ <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+ <linux-omap@vger.kernel.org>
+Subject: Re: [PATCH v4 18/25] drm/tilcdc: Convert to DRM managed resources
+Message-ID: <20260122154840.5185671a@kmaincent-XPS-13-7390>
+In-Reply-To: <DFSVOBV5UY37.3HTQHOJT3A40N@bootlin.com>
+References: <20260116-feature_tilcdc-v4-0-2c1c22143087@bootlin.com>
+	<20260116-feature_tilcdc-v4-18-2c1c22143087@bootlin.com>
+	<DFSVOBV5UY37.3HTQHOJT3A40N@bootlin.com>
+Organization: bootlin
+X-Mailer: Claws Mail 4.2.0 (GTK 3.24.41; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: TY7P286MB7722:EE_|TYCP286MB3203:EE_
-X-MS-Office365-Filtering-Correlation-Id: c3d2329b-83ce-4137-174e-08de59c29806
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|10070799003|366016|1800799024|376014|7416014|27256017;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?W62h6TVqgGXpoHCcKl7FlrvXA3gJJrbN6QVcg+8n6BsRQlRdOvRZ2VwiefAl?=
- =?us-ascii?Q?FPvua6Oxqb77JDh8aT4U+EsNxG0SDWMvL0vTlf6QlQEeXaVu98Ow3d6drTHs?=
- =?us-ascii?Q?YYLoLSnIRzoKVze/pQDZm6NdhszZ8BBO0TPPi6K9lhdW2sRT+wHVmbZvutrE?=
- =?us-ascii?Q?YnbEwGLBjofuqVSQKvK7rA4iGsaNpMmZOHYDMwduRfX6VPIkYHHU0t/u6oaJ?=
- =?us-ascii?Q?jE99EiYzLqNm2R4XSTSXZv/iNTBg7Y8dtFBq1Zn7Ckp0gZQOEeIWhzMInuoS?=
- =?us-ascii?Q?uSqbVPl/CYLg9Qd7wa1UV9D7/Gc0xixVo4cUGEh40TBo+A5ANOrQkpeGVjND?=
- =?us-ascii?Q?j8MPimMtEpp2eMJBa6KycNDEvCWeIACm78aUlf9XNIc2DWPtHzfAFAAx2gpB?=
- =?us-ascii?Q?t52hLqd33Ewuq60vxKgmAMIjTF/0E65x/cFfm76zR+tBywkJE2X+pjZayxpA?=
- =?us-ascii?Q?ZrDByOh71piT9Xn8K8J6+8u6lB1F5dblYr8062qUH2jY9vD8bfTgvBNmMcvc?=
- =?us-ascii?Q?jTqc4pfq/6yiZNl9hhgEZi5QeinEjtemGd3eGq/7JcNiDPtVKqThE0nWZLou?=
- =?us-ascii?Q?8wBhi0hrwn5NNXQGxuiec9BFuFW6IEGTTCvN3m7wZpFM5vYwf0lmE+0jvo/8?=
- =?us-ascii?Q?JVP5dmkCQsbMylCpypDDea1zpnZWJ0McYzWRgGDRHPYVsVASHhYlS0U5nu7C?=
- =?us-ascii?Q?RxjNDdD5QLqRVfAkTwQ3UoNtEY9l8+A5Golhp11NLZBkZ9GxlkLJGbLyGtHW?=
- =?us-ascii?Q?gRGpmIrtR3BGs0J3y6Z8ESrTNBOLm+2jWIb9rRI/qqRAp4eJWDf9o3JgFu7U?=
- =?us-ascii?Q?wRf2GLwW65jbCvfN3IHOnN729YHmY+6ejL5xxiBQIMBJCutGkjUs0HnXZkPa?=
- =?us-ascii?Q?6ivQfLYB1+cMqdFofjcdKvNtsEJt5OVRqE7mg25tMcIg4V4jq/5rCPDyJEzz?=
- =?us-ascii?Q?h19EsbNtFA7ed+hADVnNu6LMqAZzxBtM9WoBYTZE+VzcrE1aJ2N3NtuxPdCU?=
- =?us-ascii?Q?zXiw/Cot6u7rQl2HT7bCLGrbvwiBONjG8Q58FVmS35eraBcS405zXAvq8+vL?=
- =?us-ascii?Q?24eReI7u2TDwcHgNnbis8y+zTfSbjt1fOYMITep8zv8RLbtqfosKfkaTDMsr?=
- =?us-ascii?Q?Yji4jiyrJLrA4dfZBOCRItXgr9Lzk0yQiU9C5MvikWFCt3+7TYth2nFgdVpw?=
- =?us-ascii?Q?7GtzaLr2sG/851FWu8iRC+2VrDW7UBVnk8c2IB6T+/839lHP90bYh8yRL9Uh?=
- =?us-ascii?Q?tRuUPSOA1WPGerpnc29USQ5DXmxp+cW4d8sBFhGG4t6UTQjnvdkqkAsoHJc7?=
- =?us-ascii?Q?j6FKA6qBdk82La+tE2uxUj8QbWGlnV0z16P+WFBcVPhmPqMKpJrJ6V/oc+bc?=
- =?us-ascii?Q?6UXCQyfLrTytyOrmA/3KdHdI5CAH15WOf8n2vz00CY5rLpzf8FaDjCfJFai2?=
- =?us-ascii?Q?cl3CkcMg1gQZh5kAB6aXAGqZyYVSzxk4gGziiakNKUryIW8qK10L+7ansgrS?=
- =?us-ascii?Q?SVOB5Iytfvxc80b6BFbWG5urIFJawvP8yxwhfi86seyAnGtnvZjwkwbgyh8o?=
- =?us-ascii?Q?h628IExQ/gauiTZ/+O7Y3xAzaXO8b8ZE7Ebxphp5hg/iPTBoHV/l/4xWOCKd?=
- =?us-ascii?Q?dWS2mCFXZjFzu3Q70yUx3iw=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(10070799003)(366016)(1800799024)(376014)(7416014)(27256017);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?FN+kTGVO0fJwFeaGZiKd5L7OQxqbcslOkGIyOpDcrwPWCEhI/oLnUGwoEamf?=
- =?us-ascii?Q?RmuwXXUkh+i0LvMK1B92mlzpS9c8jFyzUbEub1MhSNW9hn9s4B+AesG84gnE?=
- =?us-ascii?Q?RqOPJeSj7uf/CzUlN2VEBi6s3+694sSq6+zjuQNj0r5SQ/y8EtfKRWITlJMd?=
- =?us-ascii?Q?VprrUGZsYrs+LCvIvyx851B49gcj5jGGLRpprdBOtgc6vUE2VNJ7rSRPHZF5?=
- =?us-ascii?Q?RyILBMSaPeydz/hpJh9//YtW9nTQQE4Sd2PwB6l3v1XNxdIGBoorL6y9lMWG?=
- =?us-ascii?Q?9MJhFA0+qpvgaLRm2Du+GSszbCAWxTfNuSt6YCLdo+n1FO6PpEtpnTCdtP31?=
- =?us-ascii?Q?VNPIDRlllIhpYUhdDRcym0b6zScoUIczIX3ift6Mtwu97Min+DL4rnO/1pet?=
- =?us-ascii?Q?uUYcCAk25aYPjjWGt4nOYMt8UoJ61zvBSj7MZbT2D8O0i5gxgIDuOvlbODVG?=
- =?us-ascii?Q?M3z/FetA+rOuh10vIIy3Fnnapib//LyqMGRSl0fBqiVdkMRh74GGoKMbdiqp?=
- =?us-ascii?Q?ijRD2LsWUnpUtDMdRGA+/0MyedLMiTQLmuU9eU02oXYk2FWbwZBF4fW3uzke?=
- =?us-ascii?Q?D9+aiPOH4jqty5mN4PlfKxAHKnlzULVpVCCEfe6TlvZo8+bzV3OpgWdos/vs?=
- =?us-ascii?Q?fyoMmf/cd05x5AKaleW36Fs5C72tHTmU5qq1Tf5roHWWdCXNMqPXXJxYMB7Z?=
- =?us-ascii?Q?6FwvDLW4TZ5hBPWsDNfNPv8uxfrubeUYFESjknCmUNg4TiKjHpycAVx0w3zu?=
- =?us-ascii?Q?mRMxkvF6zh63KB67G3S/08Rij4BCcNpSy9Ok7HWqjAjMym2eCK8JS+LRicLY?=
- =?us-ascii?Q?b7W2hmFSnb8YMVETesKBWO2Atjfq/67wuKdrT7pnhV3kFh7VGihsDTQRh9ck?=
- =?us-ascii?Q?fBOo/W8iVLgr6OE0utrIyheic5gl1IiG2FJLxX7kK7xHC6kuuG8IgUm60pn2?=
- =?us-ascii?Q?tCEsSSV/XNYBARUNiDGeriNhV2OSvg6tNvIBRYDaFBCvssW4DiXJVZKaKKo3?=
- =?us-ascii?Q?d/DHfvLgQLcIo0htdTMUUjKEQkNdVwedPwe6NAFbTkuW7UII7u+xcprPSpfZ?=
- =?us-ascii?Q?jOTE5vu0i2BNpdsxssn5D3qc1JYWd9FK5nEa17XoWqir5eZRg9PR7HpZ0uK1?=
- =?us-ascii?Q?8WiZHpyn4rhLTa4zVzzhtBb3xUq+/Br+0td10/pj828H2MtNF+trVmP3lghX?=
- =?us-ascii?Q?2Akf1T2sNyT/fBX82I1Jpb7V7/zYTP7IRLwMZXS6SvwMUCRMhVZQzWZQks7L?=
- =?us-ascii?Q?SONe7x0JjsXJXylTcVnd7ci5X8R0+w4IKxL2cuIkEQdUE7Dm+G9bFaSYciSX?=
- =?us-ascii?Q?bV8KlPOCSqcSEiuJnNZ21FNKhogOLDwWTjW6Ql5LbPNmG2KBd/8eeTKYokUK?=
- =?us-ascii?Q?kV69qejAhwZS6KVpXdfUSeNU6dYZGt7zWN9kHwk5+oFy8erxy93ZaGWWQM+3?=
- =?us-ascii?Q?fBidFBsBIqUNsZd+bGOKetYw46e4eb3mfUwZzkRGeS+67tcxS4Sc31JATGu2?=
- =?us-ascii?Q?/vI+E2IKkOPIjQaahgf/fiDgmBHgsb4rtYXEqdBCGHjtP6B8m8q0GFHbhFEM?=
- =?us-ascii?Q?zv9GwZTYxA9vKFDvDAKHQfTCVgGVVBbqeknwlTOpUuR54+Q4x7xxIZg13ONC?=
- =?us-ascii?Q?OKdL9zxFW4DZP2ST0ORpjZFaRoAn+Krk0W7grYvd5Yi+C4ThA5GADTAip5fs?=
- =?us-ascii?Q?5ANq+6M/bYwMWPsXWcOnPRwpBFwwd1DalUcbsJU3CaPsGBLLEPLDZSt15rOu?=
- =?us-ascii?Q?Gah3pu0tW4i21us+e0EgfKkv3JZDRXLcpezjB5UrUwRLtpzOvpcu?=
-X-OriginatorOrg: valinux.co.jp
-X-MS-Exchange-CrossTenant-Network-Message-Id: c3d2329b-83ce-4137-174e-08de59c29806
-X-MS-Exchange-CrossTenant-AuthSource: TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jan 2026 14:29:04.2837
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 7a57bee8-f73d-4c5f-a4f7-d72c91c8c111
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Q6TiSe/Up9g8J91Wq2g7UF4+gw6IM9klaaGfXXbn0zIy33Alh6LOfQctMgmEsToh3bPjcrz0+N9n+RjdbAlY6g==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYCP286MB3203
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Thu, Jan 22, 2026 at 10:23:03AM +0100, Niklas Cassel wrote:
-> On Thu, Jan 22, 2026 at 05:49:08PM +0900, Koichiro Den wrote:
-> > Extend dw_pcie_ep_set_bar() to support inbound mappings for BAR
-> > subranges using Address Match Mode IB iATU when pci_epf_bar.num_submap
-> > is non-zero.
-> > 
-> > Rename the existing BAR-match helper into dw_pcie_ep_ib_atu_bar() and
-> > introduce dw_pcie_ep_ib_atu_addr() for Address Match Mode. When
-> > num_submap is non-zero, read the assigned BAR base address and program
-> > one inbound iATU window per subrange. Validate the submap array before
-> > programming:
-> > - each subrange is aligned to pci->region_align
-> > - subranges cover the whole BAR (no gaps and no overlaps)
-> > - subranges are sorted in ascending order by offset
-> > 
-> > Track Address Match Mode mappings and tear them down on clear_bar() and
-> > on set_bar() error paths to avoid leaving half-programmed state or
-> > untranslated BAR holes.
-> > 
-> > Advertise this capability by extending the common feature bit
-> > initializer macro (DWC_EPC_COMMON_FEATURES).
-> > 
-> > This enables multiple inbound windows within a single BAR, which is
-> > useful on platforms where usable BARs are scarce but EPFs need multiple
-> > inbound regions.
-> > 
-> > Reviewed-by: Frank Li <Frank.Li@nxp.com>
-> > Signed-off-by: Koichiro Den <den@valinux.co.jp>
+On Mon, 19 Jan 2026 22:19:26 +0100
+"Luca Ceresoli" <luca.ceresoli@bootlin.com> wrote:
+
+> On Fri Jan 16, 2026 at 6:02 PM CET, Kory Maincent (TI.com) wrote:
+> > Convert the tilcdc driver to use DRM managed resources (drmm_* APIs)
+> > to eliminate resource lifetime issues, particularly in probe deferral
+> > scenarios.
+> >
+> > This conversion addresses potential use-after-free bugs by ensuring
+> > proper cleanup ordering through the DRM managed resource framework.
+> > The changes include:
+> > - Replace drm_crtc_init_with_planes() with drmm_crtc_alloc_with_planes()
+> > - Replace drm_universal_plane_init() with drmm_universal_plane_alloc()
+> > - Replace drm_simple_encoder_init() with drmm_simple_encoder_alloc()
+> > - Remove manual cleanup in tilcdc_crtc_destroy() and error paths
+> > - Remove drm_encoder_cleanup() from encoder error handling paths
+> > - Use drmm_add_action_or_reset() for remaining cleanup operations
+> >
+> > This approach is recommended by the DRM subsystem for improved resource
+> > lifetime management and is particularly important for drivers that may
+> > experience probe deferral.
+> >
+> > Signed-off-by: Kory Maincent (TI.com) <kory.maincent@bootlin.com>
 > > ---
-> 
-> 
-> > @@ -331,6 +503,13 @@ static int dw_pcie_ep_set_bar(struct pci_epc *epc, u8 func_no, u8 vfunc_no,
-> >  		    ep->epf_bar[bar]->flags != flags)
-> >  			return -EINVAL;
-> >  
-> > +		/*
-> > +		 * When dynamically changing a BAR, tear down any existing
-> > +		 * mappings before re-programming.
-> > +		 */
-> > +		if (ep->epf_bar[bar]->num_submap || epf_bar->num_submap)
-> > +			dw_pcie_ep_clear_ib_maps(ep, bar);
+> >
+> > Change in v4:
+> > - Newt patch. =20
+>=20
+> Why? Adding patches along the way does not help getting your series merged
+> timely. If there's a good reason for adding a new patch, please mention it
+> here.
+
+Thanks for your review.
+
+Sorry for that. The reason is that I faced a null pointer dereference koops=
+ if
+for example the panel module is not installed. Then the
+drm_of_find_panel_or_bridge() function return eprobe defer and something go=
+es
+wrong with the DRM resources. Using DRM managed resources solves it.
+I will mention it for the v5.
+
+> > +	tilcdc_crtc =3D drmm_crtc_alloc_with_planes(dev, struct tilcdc_crtc,
+> > base,
+> > +						  &primary->base,
+> > +						  NULL,
+> > +						  &tilcdc_crtc_funcs,
+> > +						  "tilcdc crtc");
+> > +	if (IS_ERR(tilcdc_crtc)) {
+> > +		dev_err(dev->dev, "Failed to init CRTC: %pe\n",
+> > tilcdc_crtc);
+> > +		return PTR_ERR(tilcdc_crtc);
+> > +	}
 > > +
-> >  		/*
-> >  		 * When dynamically changing a BAR, skip writing the BAR reg, as
-> >  		 * that would clear the BAR's PCI address assigned by the host.
-> > @@ -369,8 +548,12 @@ static int dw_pcie_ep_set_bar(struct pci_epc *epc, u8 func_no, u8 vfunc_no,
-> >  	else
-> >  		type = PCIE_ATU_TYPE_IO;
-> >  
-> > -	ret = dw_pcie_ep_inbound_atu(ep, func_no, type, epf_bar->phys_addr, bar,
-> > -				     size);
-> > +	if (epf_bar->num_submap)
-> > +		ret = dw_pcie_ep_ib_atu_addr(ep, func_no, type, epf_bar);
-> > +	else
-> > +		ret = dw_pcie_ep_ib_atu_bar(ep, func_no, type,
-> > +					    epf_bar->phys_addr, bar, size);
-> 
-> If someone calls set_bar() with a submap, without having called set_bar() first
-> without a submap, we will still call dw_pcie_ep_ib_atu_addr() here.
-> 
-> To make sure that dw_pcie_ep_ib_atu_addr() cannot be called without already
-> having a BAR configured, to we perhaps want something like:
+> > +	tilcdc_crtc->primary =3D primary; =20
+>=20
+> (*) see below
+>=20
+> >
+> >  	init_completion(&tilcdc_crtc->palette_loaded);
+> >  	tilcdc_crtc->palette_base =3D dmam_alloc_coherent(dev->dev,
+> > @@ -978,10 +992,6 @@ int tilcdc_crtc_create(struct drm_device *dev)
+> >
+> >  	crtc =3D &tilcdc_crtc->base;
+> >
+> > -	ret =3D tilcdc_plane_init(dev, &tilcdc_crtc->primary);
+> > -	if (ret < 0)
+> > -		goto fail;
+> > -
+> >  	mutex_init(&tilcdc_crtc->enable_lock);
+> >
+> >  	init_waitqueue_head(&tilcdc_crtc->frame_done_wq);
+> > @@ -989,20 +999,12 @@ int tilcdc_crtc_create(struct drm_device *dev)
+> >  	spin_lock_init(&tilcdc_crtc->irq_lock);
+> >  	INIT_WORK(&tilcdc_crtc->recover_work, tilcdc_crtc_recover_work);
+> >
+> > -	ret =3D drm_crtc_init_with_planes(dev, crtc,
+> > -					&tilcdc_crtc->primary,
+> > -					NULL,
+> > -					&tilcdc_crtc_funcs,
+> > -					"tilcdc crtc");
+> > -	if (ret < 0)
+> > -		goto fail;
+> > -
+> >  	drm_crtc_helper_add(crtc, &tilcdc_crtc_helper_funcs);
+> >
+> > +	ret =3D drmm_add_action_or_reset(dev, tilcdc_crtc_destroy, priv);
+> > +	if (ret)
+> > +		return ret; =20
+>=20
+> Not related to your patch, but if the dmam_alloc_coherent() (not visible =
+in
+> the diff) fails, tilcdc_crtc_destroy() won't be called. Is this intended?
+> At first sight this drmm_add_action_or_reset() should be moved at (*), ju=
+st
+> after the allocation.
 
-Thanks for the review.
-Isn't the existing guard in dw_pcie_ep_ib_atu_addr sufficient?
+You are totally right.
 
-        [...]
-        base = dw_pcie_ep_read_bar_assigned(ep, func_no, bar, epf_bar->flags);
-        if (!base) {
-                dev_err(dev,
-                        "BAR%u not assigned, cannot set up sub-range mappings\n",
-                        bar);
-                return -EINVAL;
-        }
+> However being not related to your patch I'd leave this for another series
+> anyway, to avoid making this series a moving target.
 
-Koichiro
+I think it is related to this patch.
+Before this patch there was no need for cleanup as the only action before t=
+he
+dmam_alloc_coherent() was a devm_kzalloc().
+Now the plane and the crtc are initialize before the dmam_alloc_coherent() =
+so
+the cleanup need to happen if it fails an error.
 
-> 
-> diff --git a/drivers/pci/controller/dwc/pcie-designware-ep.c b/drivers/pci/controller/dwc/pcie-designware-ep.c
-> index 0567552b784c..fe26b7f7b212 100644
-> --- a/drivers/pci/controller/dwc/pcie-designware-ep.c
-> +++ b/drivers/pci/controller/dwc/pcie-designware-ep.c
-> @@ -487,6 +487,9 @@ static int dw_pcie_ep_set_bar(struct pci_epc *epc, u8 func_no, u8 vfunc_no,
->         if ((flags & PCI_BASE_ADDRESS_MEM_TYPE_64) && (bar & 1))
->                 return -EINVAL;
->  
-> +       if (!ep->epf_bar[bar] && epf_bar->num_submap)
-> +               return -EINVAL;
-> +
->         /*
->          * Certain EPF drivers dynamically change the physical address of a BAR
->          * (i.e. they call set_bar() twice, without ever calling clear_bar(), as
-> 
-> 
-> or
-> 
-> 
-> diff --git a/drivers/pci/controller/dwc/pcie-designware-ep.c b/drivers/pci/controller/dwc/pcie-designware-ep.c
-> index 0567552b784c..8aeaa6fe53f9 100644
-> --- a/drivers/pci/controller/dwc/pcie-designware-ep.c
-> +++ b/drivers/pci/controller/dwc/pcie-designware-ep.c
-> @@ -475,6 +475,7 @@ static int dw_pcie_ep_set_bar(struct pci_epc *epc, u8 func_no, u8 vfunc_no,
->         struct dw_pcie_ep *ep = epc_get_drvdata(epc);
->         struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
->         enum pci_barno bar = epf_bar->barno;
-> +       bool use_addr_match_mode = false;
->         size_t size = epf_bar->size;
->         enum pci_epc_bar_type bar_type;
->         int flags = epf_bar->flags;
-> @@ -510,6 +511,9 @@ static int dw_pcie_ep_set_bar(struct pci_epc *epc, u8 func_no, u8 vfunc_no,
->                 if (ep->epf_bar[bar]->num_submap || epf_bar->num_submap)
->                         dw_pcie_ep_clear_ib_maps(ep, bar);
->  
-> +               if (epf_bar->num_submap)
-> +                       use_addr_match_mode = true;
-> +
->                 /*
->                  * When dynamically changing a BAR, skip writing the BAR reg, as
->                  * that would clear the BAR's PCI address assigned by the host.
-> @@ -548,7 +552,7 @@ static int dw_pcie_ep_set_bar(struct pci_epc *epc, u8 func_no, u8 vfunc_no,
->         else
->                 type = PCIE_ATU_TYPE_IO;
->  
-> -       if (epf_bar->num_submap)
-> +       if (use_addr_match_mode)
->                 ret = dw_pcie_ep_ib_atu_addr(ep, func_no, type, epf_bar);
->         else
->                 ret = dw_pcie_ep_ib_atu_bar(ep, func_no, type,
+> I find this patch hard to read and I think because it is converting
+> multiple things at once. Splitting it in small steps would have been nice,
+> even thought I'm not 100% sure it would have been doable.
+
+Yes, it brought more error when not converting the whole to DRM Managed
+resources in one go.
+
+>=20
+> Nevertheless it looks correct, so:
+>=20
+> Reviewed-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+
+Thanks, but I will remove it due to the small change.=20
+Or maybe it is ok for you if I keep it with only the move of
+drmm_add_action_or_reset().
+
+Regards.
+--=20
+K=C3=B6ry Maincent, Bootlin
+Embedded Linux and kernel engineering
+https://bootlin.com
