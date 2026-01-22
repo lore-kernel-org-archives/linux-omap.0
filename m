@@ -1,92 +1,170 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1B1631D38A;
-	Wed, 21 Jan 2026 16:26:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 630093A7F40
+	for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2026 03:16:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769012820; cv=none; b=dBcoPZPNsbUTghBfOQtvD+TDgIWU403vzKuHad3pNthH7cytgMbBWC2pFDOPKAHQSTAU2FBh8QjQxkni3lBtaO3iLdufpfKlnp9/mcJ6vT833Ti/WrBdorORenZfgrZkw31xYn4ZqaIwUgbMSg55L4kAudFk5+1IpTAGVV4XK5A=
+	t=1769051813; cv=none; b=QrZ1ht2tEWvBqIVTrEfUwjic7JhYc0yx81z3VfQMtdgREZJ0GH4VoDpXmSMWraSbtWDqRd1RX7eslDI8eUZAXH0ptEkV/1RIYRWA+ciAEpJDZEqaKpjZmNdLnoLFqkiW4HJ+11D4g7PTpo8tMHFhfPqdCd7BRu66Q+b7lsxVFP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769012820; c=relaxed/simple;
-	bh=lPZEsy/R0TWCo+vIlgpfWmuSY9TFELbqcAynRk1xTZo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PkbFRLLNXoyixgo6IXQV8qElN+ZtxHBOml5QrABc9kUhpJ9+uBe9IKuD0804WDcWMYK4rO7/KObGJKdrCcCPgemOwBGMGso1myo/KZXqPo2gUNj/u67iAHxY/KupVCX21dkJFoQ58hrmejNvBcHUZwhwbVhqBnEQL06IipwFipw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IsFrn/Vb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769051813; c=relaxed/simple;
+	bh=fB4qFDnLcEuztYyiCjd+RjPOd463HVI1jnS3oHKE1Nk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=aMEqKLVeLrj5JoiJtqQHDi4aUw5jtzDbfsn6Yf70fNRE0u1zsTN7Zhkj49KWETBKlYhBUD82n0GkrWXY2wVt1NqrymOFdwP3oGHA5cou5KtByWFp8dMJZLVIOh38qg+vM+cMzTxOUgU4OJLSQsH0cAV2fhWiIChbkZL2gvEfBew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FdCwq7/R; arc=none smtp.client-ip=209.85.214.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IsFrn/Vb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D8E6C4CEF1;
-	Wed, 21 Jan 2026 16:26:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769012819;
-	bh=lPZEsy/R0TWCo+vIlgpfWmuSY9TFELbqcAynRk1xTZo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=IsFrn/VbHO2nn92pkkVJI9MKbIShiRgObfWNxeoMuMY+8XBh2y+wDDQsdNzWVry82
-	 pWMVvCoVGogcldv/4L1GEJRo/AXz1nBicDA2MTn/0okJXiwa8CH3MgioTm5gzWxfUI
-	 DhlkxGVAIWiA4jOr9n9byYIbxMTNvNLb5Xl/zmRF6qunSR22dc5mV+37bE8qj5ycCu
-	 lK7cflSEbi5K6kpPA8AsyTLg4EugTJttbzxTjhOr29wXeDiSaczR6Q5Eeq5X2IAmW4
-	 SQ4eGP0mWY6iHkWNZNeayWoezRc0dbzO3GOv9tmy6Y25Gl+wFtbH7nmLEh2GCkHIzG
-	 HVNGVVzKrzpqg==
-Date: Wed, 21 Jan 2026 10:26:58 -0600
-From: "Rob Herring (Arm)" <robh@kernel.org>
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: linux-omap@vger.kernel.org, Andrzej Hajda <andrzej.hajda@intel.com>,
-	devicetree@vger.kernel.org,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Russell King <linux@armlinux.org.uk>,
-	Jonas Karlman <jonas@kwiboo.se>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Robert Foss <rfoss@kernel.org>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	linux-renesas-soc@vger.kernel.org, dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH] dt-bindings: display: bridge: nxp,tda998x: Add missing
- clocks
-Message-ID: <176901278536.3411449.15766842466714764313.robh@kernel.org>
-References: <2b66577296583a6787f770f0eb13c42a6b50768b.1768233569.git.geert+renesas@glider.be>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FdCwq7/R"
+Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-2a743050256so2954055ad.3
+        for <linux-omap@vger.kernel.org>; Wed, 21 Jan 2026 19:16:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1769051805; x=1769656605; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=GfgKMmP8DcncE4pa4cHunaIBJ+0sSublRL5+ZWYWWN8=;
+        b=FdCwq7/RVhb1nKkgHtTfqVNu6f75/PSCpOZhnuLXN+VdHp+97TwU2QEVf0Jt7vU6p2
+         dbPSLA80XIZFnlnhZRcu3nhdLRuU4Y+bR1vbaCRmviTxonYTheur6sfcPClFsRBBHYMC
+         46vgDzPpjLhzUg0IQRFxFJBbeA73pDCZ4SqyoJEA0nscJW27Y3TwBn6wfY2+f7sAu+P4
+         /fRqJAUm864gjZGpVjN9l3mqm0A5NzZYZTcZMxkJzeiJOHaPWdc2AwqQDkFordHRw0ey
+         TLoGiWvskM7655ssXohM9N+ghgW1oXL4SCFAGO7K5tDLmJooZR81gcyJmqRZ3jCWEa5R
+         MYoQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769051805; x=1769656605;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=GfgKMmP8DcncE4pa4cHunaIBJ+0sSublRL5+ZWYWWN8=;
+        b=cuur3lQ+0HeDYalXnyXp3qFmJ8bLdAjHeEf3ZrYhX0qQnfzQff0+R2FEenbHSIKp10
+         thYpWshMQlPC09ZGLalAp0ZB0I60VmT/fK4cC//XLtWkroJ/FMnsMMZfgCMNP9sRNtlX
+         e1opFU9aT9qwq0wTpGvPqwxXPMegh7Okrjdk0YTcbv8E4Y8D0IJP2t9VZf6SUo34XFT+
+         Btz3A01WhtuJIIDYoVgs4P7Kn/2A9o4+bj/ufS0r+ifofVZfSIeJzJlxoDOk2tbLFtnY
+         ccqaGuaX55YM4995nr7ZTNXcKhbZK3wcOvv/Z9ImHU80bQnF6JEWVyLDDdn42HPPovfK
+         Pj7A==
+X-Forwarded-Encrypted: i=1; AJvYcCUX4xN5MBAlGTpRd2SjMRgbPXQKYiBg6+aG4sky9IVaRl7TMtIfjhKndDcpzAQWQG50ej7OpnwbexAS@vger.kernel.org
+X-Gm-Message-State: AOJu0YyqHYv7FqL/Wkxvwwsq8qkrFcJNmZIPMYrlxFwMn5DYigB2t7CR
+	AxeZxtfR5beFAq8klVAAv9/1SutUuZUe5APbyeZZ+nHhlSgQ+oE6QZBx
+X-Gm-Gg: AZuq6aJ/UHMtCUq8dlsuAUZwy1brMWvgJVdUs0Rh292nkjjVGXdodXKYE0OpE8oaBS9
+	jPSaA6tjK8peyvC3ucK2j8DcSaRUmEcwK2EpLBkl/zhn+SeG3j+DNSDs8WMio+r2ESOC/SQ6jxS
+	5UwNdYUuCqiz9jQOpuwJRHynBi8e6352wTjrF8/ERqOqTzyqtWpn5aP7ohfcitcP7NeXU8Hh+t5
+	OlGvHFAWCc46kyJDQku6BSF7U7kb9pRYjVfc4mBomIVmsAwADCYNMeb4zxAz8X4b8uKLONxhwaq
+	mJgZBdMBhVWhMbKY763dme/3iyJRUl79VGM0A2Ui0IYELQCPcMMNqVFs+7QAan3IcHxmQcVyvz6
+	nFBMvYLjZuu+vx8kZr4cNWJaoRj/xYTusMldRQ4XzubOwOlp61oJgnO/ZrUNHvf6l6SVusCueXt
+	B+++DBIZrXUdwHPPIN1bfLgS13ZQoFkH5gH2iLwQEm0PM=
+X-Received: by 2002:a17:902:cf41:b0:29e:fd60:2cf9 with SMTP id d9443c01a7336-2a76b169703mr73811165ad.54.1769051804927;
+        Wed, 21 Jan 2026 19:16:44 -0800 (PST)
+Received: from cmpatel-home.hsd1.or.comcast.net ([2601:1c0:5780:9200:5396:967a:93dd:83bd])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2a719412d38sm155966625ad.87.2026.01.21.19.16.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 21 Jan 2026 19:16:44 -0800 (PST)
+From: Chintan Patel <chintanlike@gmail.com>
+To: linux-fbdev@vger.kernel.org,
+	linux-staging@lists.linux.dev,
+	linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	tzimmermann@suse.de,
+	andy@kernel.org,
+	deller@gmx.de,
+	gregkh@linuxfoundation.org,
+	Chintan Patel <chintanlike@gmail.com>,
+	kernel test robot <lkp@intel.com>,
+	Andy Shevchenko <andriy.shevchenko@intel.com>
+Subject: [PATCH v8 1/2] staging: fbtft: Fix build failure when CONFIG_FB_DEVICE=n
+Date: Wed, 21 Jan 2026 19:16:34 -0800
+Message-ID: <20260122031635.11414-1-chintanlike@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2b66577296583a6787f770f0eb13c42a6b50768b.1768233569.git.geert+renesas@glider.be>
+Content-Transfer-Encoding: 8bit
 
+When CONFIG_FB_DEVICE is disabled, struct fb_info does
+not provide a valid dev pointer. Direct dereferences of
+fb_info->dev therefore result in build failures.
 
-On Mon, 12 Jan 2026 17:02:40 +0100, Geert Uytterhoeven wrote:
-> Some TDA998x variants (e.g. TDA19988) have an OSC_IN pin, to connect
-> an external oscillator circuit or clock source.
-> 
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> ---
-> This fixes "make dtbs_check":
-> 
->     arch/arm64/boot/dts/renesas/r8a774c0-ek874-mipi-2.1.dtb: tda19988@70 (nxp,tda998x): Unevaluated properties are not allowed ('clocks' was unexpected)
-> 	    from schema $id: http://devicetree.org/schemas/display/bridge/nxp,tda998x.yaml
->     arch/arm64/boot/dts/renesas/r8a774c0-cat874.dtb: tda19988@70 (nxp,tda998x): Unevaluated properties are not allowed ('clocks' was unexpected)
-> 	    from schema $id: http://devicetree.org/schemas/display/bridge/nxp,tda998x.yaml
->     arch/arm64/boot/dts/renesas/r8a774c0-ek874.dtb: tda19988@70 (nxp,tda998x): Unevaluated properties are not allowed ('clocks' was unexpected)
-> 	    from schema $id: http://devicetree.org/schemas/display/bridge/nxp,tda998x.yaml
->     arch/arm64/boot/dts/renesas/r8a774c0-ek874-idk-2121wr.dtb: tda19988@70 (nxp,tda998x): Unevaluated properties are not allowed ('clocks' was unexpected)
-> 	    from schema $id: http://devicetree.org/schemas/display/bridge/nxp,tda998x.yaml
-> 
-> This patch can be considered v3 of "[PATCH v2 2/3] [RFC] arm64: dts:
-> renesas: cat874: Drop bogus clocks property"[1], as the pin is actually
-> connected to a clock source on that board.  On BeagleBone Black, it is
-> also connected to a clock source, but not described in DT.
-> 
-> The linux driver does not use this clock directly, but I suspect[2] the
-> use of this pin is controlled through the AP_ENA register value, as
-> specified in the second cell of the the audio-ports property.
-> 
-> [1] https://lore.kernel.org/97b949cddd7e30e9c05873800330dccd3483b12b.1663165552.git.geert+renesas@glider.be
-> [2] I do not have access to the programming manual.
-> ---
->  .../devicetree/bindings/display/bridge/nxp,tda998x.yaml        | 3 +++
->  1 file changed, 3 insertions(+)
-> 
+Fix this by avoiding direct accesses to fb_info->dev and
+switching the affected debug logging to framebuffer helpers
+that do not rely on a device pointer.
 
-Applied, thanks!
+This fixes the following build failure reported by the
+kernel test robot.
+
+Fixes: a06d03f9f238 ("staging: fbtft: Make FB_DEVICE dependency optional")
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202601110740.Y9XK5HtN-lkp@intel.com
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+Signed-off-by: Chintan Patel <chintanlike@gmail.com>
+
+---
+Changes in v8:
+- Add Reviewed-by tag from Andy Shevchenko.
+
+Changes in v7:
+- Split logging cleanups into a separate patch
+- Limit this patch to the CONFIG_FB_DEVICE=n build fix only
+
+Changes in v6:
+- Switch debug/info logging to fb_dbg() and fb_info()(suggested by Thomas Zimmermann)
+- Drop dev_of_fbinfo() usage in favor of framebuffer helpers that implicitly
+  handle the debug/info context.
+- Drop __func__ usage per review feedback(suggested by greg k-h)
+- Add Fixes tag for a06d03f9f238 ("staging: fbtft: Make FB_DEVICE dependency optional")
+  (suggested by Andy Shevchenko)
+
+Changes in v5:
+- Initial attempt to replace info->dev accesses using
+  dev_of_fbinfo() helper
+
+ drivers/staging/fbtft/fbtft-core.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/staging/fbtft/fbtft-core.c b/drivers/staging/fbtft/fbtft-core.c
+index 8a5ccc8ae0a1..1b3b62950205 100644
+--- a/drivers/staging/fbtft/fbtft-core.c
++++ b/drivers/staging/fbtft/fbtft-core.c
+@@ -365,9 +365,9 @@ static int fbtft_fb_setcolreg(unsigned int regno, unsigned int red,
+ 	unsigned int val;
+ 	int ret = 1;
+ 
+-	dev_dbg(info->dev,
+-		"%s(regno=%u, red=0x%X, green=0x%X, blue=0x%X, trans=0x%X)\n",
+-		__func__, regno, red, green, blue, transp);
++	fb_dbg(info,
++	       "regno=%u, red=0x%X, green=0x%X, blue=0x%X, trans=0x%X\n",
++	       regno, red, green, blue, transp);
+ 
+ 	switch (info->fix.visual) {
+ 	case FB_VISUAL_TRUECOLOR:
+@@ -391,8 +391,7 @@ static int fbtft_fb_blank(int blank, struct fb_info *info)
+ 	struct fbtft_par *par = info->par;
+ 	int ret = -EINVAL;
+ 
+-	dev_dbg(info->dev, "%s(blank=%d)\n",
+-		__func__, blank);
++	fb_dbg(info, "blank=%d\n", blank);
+ 
+ 	if (!par->fbtftops.blank)
+ 		return ret;
+@@ -793,11 +792,11 @@ int fbtft_register_framebuffer(struct fb_info *fb_info)
+ 	if (spi)
+ 		sprintf(text2, ", spi%d.%d at %d MHz", spi->controller->bus_num,
+ 			spi_get_chipselect(spi, 0), spi->max_speed_hz / 1000000);
+-	dev_info(fb_info->dev,
+-		 "%s frame buffer, %dx%d, %d KiB video memory%s, fps=%lu%s\n",
+-		 fb_info->fix.id, fb_info->var.xres, fb_info->var.yres,
+-		 fb_info->fix.smem_len >> 10, text1,
+-		 HZ / fb_info->fbdefio->delay, text2);
++	fb_info(fb_info,
++		"%s frame buffer, %dx%d, %d KiB video memory%s, fps=%lu%s\n",
++		fb_info->fix.id, fb_info->var.xres, fb_info->var.yres,
++		fb_info->fix.smem_len >> 10, text1,
++		HZ / fb_info->fbdefio->delay, text2);
+ 
+ 	/* Turn on backlight if available */
+ 	if (fb_info->bl_dev) {
+-- 
+2.43.0
 
