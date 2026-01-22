@@ -1,125 +1,126 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E70842F0C6A;
-	Thu, 22 Jan 2026 15:03:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88298357A29;
+	Thu, 22 Jan 2026 16:59:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769094202; cv=none; b=bqqTpU6xzbU3zqI+OSWG7D7e7w6sfCGVrHslB7IzwPn+W4aVrFEhGxNznp+4yhlQdZ7VnVWJmvcoF7s6LKzehXldhdTI0mmAsmMbmhBY1wq317pbOfeKApLz6Xk7kMMTqWetcDgppCzJVHl5xeXe0vC3wH8SW7mobq1WY7wf6b0=
+	t=1769101162; cv=none; b=GoGyk6Q7P3doZhoCvzLekpVxjn+jfRyZH4GK70MSfGNFCwqOgInrwLifpTq8993ytI/N7e3iJjWqiHqlQ9obOBtj19rpARUpIXVUJkIT++mnWTezaLB/InzevbkJLJVhEVDlhJQ5DXtIiLoJsZOyVlLj/VAo/3MjiUK0FxyQqfo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769094202; c=relaxed/simple;
-	bh=L3LXWOEw30hR/WGWej9pBIBlonvnC2+4uM+luFxj4VQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ZQxbRjxePDPg8uGTottPqQPEBgSbO8cTWjmY//34aJBFZpLvfrqKYxUkWWujfa+vNWCIr5OTRB+eWLMKSZ72wnyXB7MgWObW6RG73d+Dgn/2J0mQGJb1yUYpe01xO3F/Gc8kHMaTkUpL+67LKEj0i7LYFQogfjFwpDkJJYkh4zM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=bT6zFJXH; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1769101162; c=relaxed/simple;
+	bh=J5VqdBfB3qJLKokwNzHgugj/xR5O2h1qw7xFVlfjZa4=;
+	h=Date:From:To:CC:Subject:In-Reply-To:References:Message-ID:
+	 MIME-Version:Content-Type; b=kdVv66cO9V25zknpSrBPGzvo/bTFhjspeHbx0Xr4Uvgz8dqhdjBf2UtAmW9Nc7k9YPGZvQz57y1WD84lME4Of3Jzm1Burw08Dv8ISPf4trnAzlucasSRIpFqbVUoKS8PBfExv7Dg/2pQhGvv7FO4HCds2IBqe2HdQg2tDzgH1Os=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WK8Qdiy+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="bT6zFJXH"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 6F7711A2AB5;
-	Thu, 22 Jan 2026 15:03:19 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 37575606B6;
-	Thu, 22 Jan 2026 15:03:19 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 47242119B82C7;
-	Thu, 22 Jan 2026 16:03:12 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1769094197; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=cNoOeyLdRbrJPSI/I28lkpAsBvsGiM1vvz72sBr9geA=;
-	b=bT6zFJXHZg4b/0Yur0HKyDxB7YVrRbw3CMxP+5Ir+R40QcBKAyqf+FJzlDonCEznoyVNhA
-	CCIHPkx+8/4GfsBmOyxq6hpQXyXd70tOyjrkZ1mWoKbBcueernf7T74/w7ABXAppVSQiJW
-	gDaaxcO7w2GjB17wCIKYfJ9NoXRjJZZRzjuDGxH5yMy0DAUsRJc3+mgmkPcPsf2LgQ9S45
-	H0XQkUyNrcZeWp/BK1JoD1rGYKDTSlEW4BU1MHdTqjT6VF1rtFC/yC6cD8knyTdXTEnCjH
-	i3JPQ0RGKBnqI0NzKNB/ifdENXRodl2vEY9kS+4LCNKTKV66j0jey1UVBH9f2Q==
-Date: Thu, 22 Jan 2026 16:03:11 +0100
-From: Kory Maincent <kory.maincent@bootlin.com>
-To: Maxime Ripard <mripard@kernel.org>
-Cc: Luca Ceresoli <luca.ceresoli@bootlin.com>, Jyri Sarha
- <jyri.sarha@iki.fi>, Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Thomas Zimmermann
- <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, Simona Vetter
- <simona@ffwll.ch>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski
- <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Russell King
- <linux@armlinux.org.uk>, Bartosz Golaszewski <brgl@bgdev.pl>, Tony Lindgren
- <tony@atomide.com>, Andrzej Hajda <andrzej.hajda@intel.com>, Neil Armstrong
- <neil.armstrong@linaro.org>, Robert Foss <rfoss@kernel.org>, Laurent
- Pinchart <Laurent.pinchart@ideasonboard.com>, Jonas Karlman
- <jonas@kwiboo.se>, Jernej Skrabec <jernej.skrabec@gmail.com>, Markus
- Schneider-Pargmann <msp@baylibre.com>, Bajjuri Praneeth <praneeth@ti.com>,
- Louis Chauvet <louis.chauvet@bootlin.com>, Thomas Petazzoni
- <thomas.petazzoni@bootlin.com>, Miguel Gazquez
- <miguel.gazquez@bootlin.com>, Herve Codina <herve.codina@bootlin.com>,
- dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-omap@vger.kernel.org
-Subject: Re: [PATCH v4 20/25] drm/tilcdc: Use devm_drm_of_get_bridge()
- helper
-Message-ID: <20260122160311.658cc219@kmaincent-XPS-13-7390>
-In-Reply-To: <20260122-camouflaged-cat-of-sorcery-7af8cf@houat>
-References: <20260116-feature_tilcdc-v4-0-2c1c22143087@bootlin.com>
-	<20260116-feature_tilcdc-v4-20-2c1c22143087@bootlin.com>
-	<DFSVNE16870S.ABQUMH9BWMDY@bootlin.com>
-	<20260122-camouflaged-cat-of-sorcery-7af8cf@houat>
-Organization: bootlin
-X-Mailer: Claws Mail 4.2.0 (GTK 3.24.41; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WK8Qdiy+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2E2BC116D0;
+	Thu, 22 Jan 2026 16:59:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1769101161;
+	bh=J5VqdBfB3qJLKokwNzHgugj/xR5O2h1qw7xFVlfjZa4=;
+	h=Date:From:To:CC:Subject:In-Reply-To:References:From;
+	b=WK8Qdiy+OYob7AaCGw51BnlD5QnCxxjuxB5EckU4dxg2pceWfpf2hxcKJkAGzgwFv
+	 OYvOTfFdeWLftjTHM3KIMbaNG3YhhMm3cp18/6v/6az/gI/YGsh+WTX1ANIJxUNjYh
+	 cl/mjuaSdgT3rWYuCgUTf6UHnlg/1tRcJrYbOBdEOp6sNTpKOEKcgzWV5UUBmJd0NX
+	 F4SohSFUcSgon4U5tz/wv89xMjr8qloLQOeEn/d6QBDjT0SbWdWqo9mkOmFYG0Sf7l
+	 MKr9b6ddz/dSiwuBXDx4us3AZ2sp9epXfvMoT66uX2n8zu/GB8+2jbN0aSSOs+eDIg
+	 xXk9RSb1r82KA==
+Date: Thu, 22 Jan 2026 17:59:18 +0100
+From: Niklas Cassel <cassel@kernel.org>
+To: Koichiro Den <den@valinux.co.jp>
+CC: jingoohan1@gmail.com, mani@kernel.org, lpieralisi@kernel.org,
+ kwilczynski@kernel.org, robh@kernel.org, bhelgaas@google.com,
+ vigneshr@ti.com, s-vadapalli@ti.com, hongxing.zhu@nxp.com,
+ l.stach@pengutronix.de, shawnguo@kernel.org, s.hauer@pengutronix.de,
+ kernel@pengutronix.de, festevam@gmail.com, minghuan.Lian@nxp.com,
+ mingkai.hu@nxp.com, roy.zang@nxp.com, jesper.nilsson@axis.com,
+ heiko@sntech.de, srikanth.thokala@intel.com, marek.vasut+renesas@gmail.com,
+ yoshihiro.shimoda.uh@renesas.com, geert+renesas@glider.be,
+ magnus.damm@gmail.com, christian.bruel@foss.st.com,
+ mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com,
+ thierry.reding@gmail.com, jonathanh@nvidia.com,
+ hayashi.kunihiko@socionext.com, mhiramat@kernel.org, kishon@kernel.org,
+ jirislaby@kernel.org, rongqianfeng@vivo.com, 18255117159@163.com,
+ shawn.lin@rock-chips.com, nicolas.frattaroli@collabora.com,
+ linux.amoon@gmail.com, vidyas@nvidia.com, Frank.Li@nxp.com,
+ linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ imx@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
+ linux-arm-kernel@axis.com, linux-rockchip@lists.infradead.org,
+ linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+ linux-stm32@st-md-mailman.stormreply.com, linux-tegra@vger.kernel.org
+Subject: =?US-ASCII?Q?Re=3A_=5BPATCH_v9_4/5=5D_PCI=3A_dwc=3A_ep=3A_Support_BAR_sub?=
+ =?US-ASCII?Q?range_inbound_mapping_via_Address_Match_Mode_iATU?=
+User-Agent: Thunderbird for Android
+In-Reply-To: <s6bnqkbuugi7oio7ybekdbk3dokpbe2bui2wjltdwajxix2app@wosgmhrfsriv>
+References: <20260122084909.2390865-1-den@valinux.co.jp> <20260122084909.2390865-5-den@valinux.co.jp> <aXHsd7-WWAGyhy_w@ryzen> <s6bnqkbuugi7oio7ybekdbk3dokpbe2bui2wjltdwajxix2app@wosgmhrfsriv>
+Message-ID: <19D609EC-F850-4B43-A83C-0B8C70E641B5@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+ charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-X-Last-TLS-Session-Version: TLSv1.3
 
-On Thu, 22 Jan 2026 15:03:21 +0100
-Maxime Ripard <mripard@kernel.org> wrote:
+On 22 January 2026 15:29:02 CET, Koichiro Den <den@valinux=2Eco=2Ejp> wrote=
+:
+>
+>> To make sure that dw_pcie_ep_ib_atu_addr() cannot be called without alr=
+eady
+>> having a BAR configured, to we perhaps want something like:
+>
+>Thanks for the review=2E
+>Isn't the existing guard in dw_pcie_ep_ib_atu_addr sufficient?
+>
+>        [=2E=2E=2E]
+>        base =3D dw_pcie_ep_read_bar_assigned(ep, func_no, bar, epf_bar->=
+flags);
+>        if (!base) {
+>                dev_err(dev,
+>                        "BAR%u not assigned, cannot set up sub-range mapp=
+ings\n",
+>                        bar);
+>                return -EINVAL;
+>        }
+>
 
-> Hi,
->=20
-> On Mon, Jan 19, 2026 at 10:18:12PM +0100, Luca Ceresoli wrote:
-> > Maxime, I'd appreciate your opinion about the topic below.
-> >=20
-> > > -	int ret;
-> > >
-> > > -	ret =3D drm_of_find_panel_or_bridge(ddev->dev->of_node, 0, 0,
-> > > -					  &panel, &bridge);
-> > > -	if (ret =3D=3D -ENODEV)
-> > > +	bridge =3D devm_drm_of_get_bridge(ddev->dev, ddev->dev->of_node,
-> > > 0, 0);
-> > > +	if (PTR_ERR(bridge) =3D=3D -ENODEV) =20
-> >=20
-> > This patch is technically OK in the sense that the code before and after
-> > would be equivalent. However if it were me I would not do this change. =
-The
-> > reason is that both drm_of_find_panel_or_bridge() and *_of_get_bridge()=
- are
-> > problematic when introducing drm_bridge hotplug, which is the long-term
-> > goal I am working for, but *_of_get_bridge() is more problematic than
-> > drm_of_find_panel_or_bridge().
-> >=20
-> > These functions are still there and not deprecated because there is
-> > currently no better replacement (and drm_bridge hotplug is not yet
-> > supported because of this and other things still to be done). To have a
-> > replacement, the panel_bridge lifetime needs to be reworked first and
-> > that's not going to happen overnight. So, all in all, if this patch is =
-not
-> > crucial to your series I'd consider dropping it. But if it is important=
- I'm
-> > fine with applying it, it won't make a huge difference. =20
->=20
-> Eh. I'm fine either way. I understand what you're saying, but this patch
-> doesn't introduce any *new* problem while it cleans up the driver, so I
-> guess we could merge it still. And further clean it up with what you
-> were suggesting later on.
+Well, for a driver that does not call dw_pcie_ep_reset_bar() in their =2Ei=
+nit() to disable all BARs that are enabled in the controller by default, th=
+e host side will assign an PCI address even if no EPF has called set_bar() =
+on that BAR=2E
 
-As you want. I will then keep the patch. If anyone has reasons why these
-patch should not be merged, speak now or forever hold your peace! ^^
+See e=2Eg=2E
+https://git=2Ekernel=2Eorg/pub/scm/linux/kernel/git/pci/pci=2Egit/commit/d=
+rivers/pci/controller/dwc/pcie-tegra194=2Ec?h=3Dcontroller/dwc&id=3D42f9c66=
+a6d0cc45758dab77233c5460e1cf003df
 
-Regards,
---=20
-K=C3=B6ry Maincent, Bootlin
-Embedded Linux and kernel engineering
-https://bootlin.com
+There might be other EPC drivers that don't disable all BARs in their =2Ei=
+nit(), so I would say that simply checking if the BAR has an address is not=
+ sufficient to guarantee that an EPF driver has called set_bar()=2E
+
+
+I think the safest option is my second suggestion because then we know tha=
+t we will only call
+dw_pcie_ep_ib_atu_addr()
+
+When:
+
+1) If ep->epf_bar[bar] is set:
+https://github=2Ecom/torvalds/linux/blob/v6=2E19-rc6/drivers/pci/controlle=
+r/dwc/pcie-designware-ep=2Ec#L363
+
+
+2) All the other requirements to dynamically update a BAR is also met:
+
+https://github=2Ecom/torvalds/linux/blob/v6=2E19-rc6/drivers/pci/controlle=
+r/dwc/pcie-designware-ep=2Ec#L368-L370
+
+
+
+Kind regards,
+Niklas
+
