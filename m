@@ -1,141 +1,253 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 971132E54DE;
-	Fri, 23 Jan 2026 08:51:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AFD43090CD
+	for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2026 11:09:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769158292; cv=none; b=cyoMO9zVzQSXkybhoabL5k3HM20uldq1YKqaf82claNMR4t6L5ALNfE7BBLUWQE+yUPICK5w53S6Q8fzMto5P6UQZJ+hxuMu3J2ASp2HkSS3b/mSH80KS3xNdQRl4oqd4Ug+goUZhcGo1oinVkfKdm7tB7XydlFly4VNxiDARl4=
+	t=1769166574; cv=none; b=CeZACM3SmrU7TquF1k0qjvEJdZCoSic5MRuIHgbf0D/kli7vvo7ytZP2X4oAqOty26dHeSLOMOPKgYFBuavzDlC+sZqR73Ust69xdFLcE1n2NIL5gKzQl6ICTf6UCGxoBW9HwiXcGmZxMfecimQGlIK0wyQ1Y4R+zara9+m05w4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769158292; c=relaxed/simple;
-	bh=uHLu75YU3d5LFuDqYhNdrTluLj4QmEkgMjijx82wFVo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cAIToSmVChxu6b6IOpDtjudx+XvTjpG+LQ04rj/lCRmdiH+wzal94Lodzx9kvf+y5HgyF30wD/VnqXCNw0lYAxsw/JMMylEbY5VhovvZwmTFH1WGx6QzD1k/tn4F1J55WtfDAThQEb21RuARgqq0/YKmga7DWzoTM9oKeTdU/5U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P2x/rDF+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769166574; c=relaxed/simple;
+	bh=4iDgbCPDX6zetLw0sIoTMixX1OU29nvoRAcbnlpMyp8=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=uOPIzQdvIFRMsmg1ND2qLTOF8jB2YFLh7rdjvg2Jjg2kiUc/QzXlzPHPaxp0xcN8LVANHSpfzNsQx6huArxWK+lP/YVyFvi664cit8pr/2l2aqB+ZBejA9PAP+GooZiVtWWyxE9Ym097T/gxgDhf/rmO8gBeywyp9D7bpyjmQCA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UHKKuGrR; arc=none smtp.client-ip=209.85.219.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P2x/rDF+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F06FC4CEF1;
-	Fri, 23 Jan 2026 08:51:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769158292;
-	bh=uHLu75YU3d5LFuDqYhNdrTluLj4QmEkgMjijx82wFVo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=P2x/rDF+V1S8nsKTuKOnD9QTwc41mF+XW6CEW4Lczf+0Sd6Nq5HQYPZljIkT06Qsr
-	 wIpsWwJl7SNWJGjLv6Eul2oOhcXM+uSeslFw7p/fqlD351FGaNP7tTEeORpdakVZ2x
-	 TqvkKLgYvEcqDaF0pIhEqdOwsfBiNwfz73XPMMzNpH57FqZjOmS6Ef5yIk1U5pEv3/
-	 sDhbSopJR642hfZEnALQcni3Jw5qQtapD3e7lk65oHsqDb0Bur+Ix0+UDcHnBGwPU1
-	 //bi+O56i4qSkHisywxprWy1WySWG064VdIew5tpiaTSmeiHZoS4N3KNcwNWuzGqID
-	 JclBA/sfEIjRQ==
-Date: Fri, 23 Jan 2026 09:51:19 +0100
-From: Niklas Cassel <cassel@kernel.org>
-To: Koichiro Den <den@valinux.co.jp>
-Cc: jingoohan1@gmail.com, mani@kernel.org, lpieralisi@kernel.org,
-	kwilczynski@kernel.org, robh@kernel.org, bhelgaas@google.com,
-	vigneshr@ti.com, s-vadapalli@ti.com, hongxing.zhu@nxp.com,
-	l.stach@pengutronix.de, shawnguo@kernel.org, s.hauer@pengutronix.de,
-	kernel@pengutronix.de, festevam@gmail.com, minghuan.Lian@nxp.com,
-	mingkai.hu@nxp.com, roy.zang@nxp.com, jesper.nilsson@axis.com,
-	heiko@sntech.de, srikanth.thokala@intel.com,
-	marek.vasut+renesas@gmail.com, yoshihiro.shimoda.uh@renesas.com,
-	geert+renesas@glider.be, magnus.damm@gmail.com,
-	christian.bruel@foss.st.com, mcoquelin.stm32@gmail.com,
-	alexandre.torgue@foss.st.com, thierry.reding@gmail.com,
-	jonathanh@nvidia.com, hayashi.kunihiko@socionext.com,
-	mhiramat@kernel.org, kishon@kernel.org, jirislaby@kernel.org,
-	rongqianfeng@vivo.com, 18255117159@163.com,
-	shawn.lin@rock-chips.com, nicolas.frattaroli@collabora.com,
-	linux.amoon@gmail.com, vidyas@nvidia.com, Frank.Li@nxp.com,
-	linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	imx@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
-	linux-arm-kernel@axis.com, linux-rockchip@lists.infradead.org,
-	linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-tegra@vger.kernel.org
-Subject: Re: [PATCH v9 4/5] PCI: dwc: ep: Support BAR subrange inbound
- mapping via Address Match Mode iATU
-Message-ID: <aXM2hwCrziK2I8OL@ryzen>
-References: <20260122084909.2390865-1-den@valinux.co.jp>
- <20260122084909.2390865-5-den@valinux.co.jp>
- <aXHsd7-WWAGyhy_w@ryzen>
- <s6bnqkbuugi7oio7ybekdbk3dokpbe2bui2wjltdwajxix2app@wosgmhrfsriv>
- <19D609EC-F850-4B43-A83C-0B8C70E641B5@kernel.org>
- <l7wknbayighcczjkqfwhbaqrepjtbgxxstgkntoqvnrs7dnm6g@wvmy67ky37pv>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UHKKuGrR"
+Received: by mail-qv1-f42.google.com with SMTP id 6a1803df08f44-894774491deso37043556d6.2
+        for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2026 03:09:32 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1769166571; x=1769771371; darn=vger.kernel.org;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=0/pAK6MrrOiwwDQc0GBrsxIdwLQE0979ZY3mHhzgGcY=;
+        b=UHKKuGrRBDJYfX0sG/9bxETcd5SZb8WQwP+7HWlx1nIw2UoE23VKeMOvwdQBhRBINE
+         q3YKvVduVJeoHK7pjMmHofRUmMxheAwfCnvyhDkW8qixjat0eO+2EF9EvawjQhoHwpQA
+         uMJeLJismzXFR5MdJLaLGUAi/POQzt1rMNvV9UeJe94BWQDUF5JFeltvobw4DRRMVA8q
+         BvNqu2HZe9CqzmIukR61UfP90vAo0sRHnEh62nBUPhtSAn8n4yey2WpbwbcjIYe3buRx
+         SaHG2BX6vn3n1Ifw26p2gMly7GBRlk6UTn1vL2bfj3Dy2atpYFB9nLb/6RraBHRT3znP
+         mLpg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769166571; x=1769771371;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=0/pAK6MrrOiwwDQc0GBrsxIdwLQE0979ZY3mHhzgGcY=;
+        b=wZLajyApoWSJPnruSm/hVgTxmJhKU3ScrFmyoorRr8S2tTa63FrTd05YEVSVdLtPi2
+         +4FYu76konwtjHewLeddW+ahkuhJ1OuoCj1zpyfuqbp3WzvPoesKVMx0podPctda6uX6
+         i4XKmfW8yq7S5fJooe+yTAYlsP4whVmS1tl0VMEC9kK/OuEWpWj26liKyjdyz4TjPKIH
+         YKse/mv3ZGSV0oQ43owErshOCDulN1n0Xm+HWNlA3VMufrvhhnjpAkA7yWtdWqEv0Tx9
+         8Rl6LismHIRwN+FDyG43cFBkSFSZzV0ErV2h7HsnpskkaN195zeEe7825IhW6S7iqen3
+         DZcQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUIqqWqss9DS+KisDNk0+ZGI/vn2fZUsEjS8YmyAkWocbpJGv7b+2NqjPFAbP0f+oYPL+2p+RM2Gl4J@vger.kernel.org
+X-Gm-Message-State: AOJu0YwURml+0lL+IE5MpBmz1LYYt0Iq6jsY0vsDbAfXQa/wDaP7iQlc
+	XdsVwh6OXS19KPlbLxt+VnM/7WB2jGgDV2/39ga5h2t8uLkwKKZfrH9r/eSG81w9lw0=
+X-Gm-Gg: AZuq6aIMFCf9W1+9imXDWixIktPxxe6KsQErpR1BdsajDtEj4Oww+6944QsDTFZRZb4
+	/m7AjkBqlL6G4NA0Cphh5sZ+Q9NY2x7rfw98A37CKU6JKqab1xGERdY8TLFrsTNyG6/jq0lyqiv
+	rBr0seQXSdH6ieXOnz7IFknAwsmx5rZyoQ0PglWZoPT7P0Xlw8aVkseXwzyB/2POLpJzSZf3zmf
+	lwtf/I9UCb8Wb5H6YgQglB0JbX1fi2U834vBkNUpILI5Wo+dl+nnRDA54xWLiiWc7pkuZ1S4FFE
+	Ww8ldYoJTREREh2bs+uXCsWfhZbxqYvLOVbnEDW4ctyGhHuAYSCmbYSnpaQ/G759GcDsspdNIk9
+	EdmSVkN/8ZDtAJBbmuUNlg5hHw2LoryiY5x4e+V0+RnvGOXutq6MMxtOkJ2rs4kw8eHfpBr0H7C
+	hCcKQyLOe9wDaFmEIlvv/2
+X-Received: by 2002:a05:6214:2628:b0:894:610c:3a22 with SMTP id 6a1803df08f44-89490177e74mr36606866d6.20.1769166571210;
+        Fri, 23 Jan 2026 03:09:31 -0800 (PST)
+Received: from localhost.localdomain ([128.224.253.2])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-502f7f72d8bsm14348801cf.22.2026.01.23.03.09.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 23 Jan 2026 03:09:30 -0800 (PST)
+From: Kevin Hao <haokexin@gmail.com>
+Date: Fri, 23 Jan 2026 19:09:07 +0800
+Subject: [PATCH net] net: cpsw_new: Execute ndo_set_rx_mode callback in a
+ work queue
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <l7wknbayighcczjkqfwhbaqrepjtbgxxstgkntoqvnrs7dnm6g@wvmy67ky37pv>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260123-bbb-v1-1-176b0b71834d@gmail.com>
+X-B4-Tracking: v=1; b=H4sIANJWc2kC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIzMDQyNj3aSkJN2UZGMzc9M0M3PDFAMloMqCotS0zAqwKdFKeaklSrG1tQB
+ t+L7sWgAAAA==
+X-Change-ID: 20260123-bbb-dc3675f671d0
+To: netdev@vger.kernel.org
+Cc: Kevin Hao <haokexin@gmail.com>, stable@vger.kernel.org, 
+ Siddharth Vadapalli <s-vadapalli@ti.com>, Roger Quadros <rogerq@kernel.org>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Kuniyuki Iwashima <kuniyu@google.com>, linux-omap@vger.kernel.org
+X-Mailer: b4 0.14.2
 
-On Fri, Jan 23, 2026 at 10:16:21AM +0900, Koichiro Den wrote:
-> >
-> > There might be other EPC drivers that don't disable all BARs in their .init(), so I would say that simply checking if the BAR has an address is not sufficient to guarantee that an EPF driver has called set_bar().
-> >
->
-> Even if an EPC driver does not reset the BAR in their .init() and some
-> default translation is left exposed, wouldn't it be safe as long as
-> dw_pcie_ep_ib_atu_addr() succeeds in programming inbound mappings for the
-> entire BAR?
+Commit 1767bb2d47b7 ("ipv6: mcast: Don't hold RTNL for
+IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP") removed the RTNL lock for
+IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP operations. However, this
+change triggered the following call trace on my BeagleBone Black board:
+  WARNING: net/8021q/vlan_core.c:236 at vlan_for_each+0x120/0x124, CPU#0: rpcbind/496
+  RTNL: assertion failed at net/8021q/vlan_core.c (236)
+  Modules linked in:
+  CPU: 0 UID: 997 PID: 496 Comm: rpcbind Not tainted 6.19.0-rc6-next-20260122-yocto-standard+ #8 PREEMPT
+  Hardware name: Generic AM33XX (Flattened Device Tree)
+  Call trace:
+   unwind_backtrace from show_stack+0x28/0x2c
+   show_stack from dump_stack_lvl+0x30/0x38
+   dump_stack_lvl from __warn+0xb8/0x11c
+   __warn from warn_slowpath_fmt+0x130/0x194
+   warn_slowpath_fmt from vlan_for_each+0x120/0x124
+   vlan_for_each from cpsw_add_mc_addr+0x54/0xd8
+   cpsw_add_mc_addr from __hw_addr_ref_sync_dev+0xc4/0xec
+   __hw_addr_ref_sync_dev from __dev_mc_add+0x78/0x88
+   __dev_mc_add from igmp6_group_added+0x84/0xec
+   igmp6_group_added from __ipv6_dev_mc_inc+0x1fc/0x2f0
+   __ipv6_dev_mc_inc from __ipv6_sock_mc_join+0x124/0x1b4
+   __ipv6_sock_mc_join from do_ipv6_setsockopt+0x84c/0x1168
+   do_ipv6_setsockopt from ipv6_setsockopt+0x88/0xc8
+   ipv6_setsockopt from do_sock_setsockopt+0xe8/0x19c
+   do_sock_setsockopt from __sys_setsockopt+0x84/0xac
+   __sys_setsockopt from ret_fast_syscall+0x0/0x5
 
-For e.g. on RK3588, the default HW configuration of the DWC controller has
-all 5 BARs as enabled, with a size of 1 GB.
+This trace occurs because vlan_for_each() is called within
+cpsw_ndo_set_rx_mode(), which expects the RTNL lock to be held.
+Since modifying vlan_for_each() to operate without the RTNL lock is not
+straightforward, and because ndo_set_rx_mode() is invoked both with and
+without the RTNL lock across different code paths, simply adding
+rtnl_lock() in cpsw_ndo_set_rx_mode() is not a viable solution.
 
-There is no inbound address translation for these BARs by default.
+To resolve this issue, we opt to execute the actual processing within
+a work queue, following the approach used by the icssg-prueth driver.
 
-So for it to be safe, the size of the set_bar() call would have to
-match the current size of the BAR, but how should the EPF driver know
-that when it has not called set_bar() yet?
+Fixes: 1767bb2d47b7 ("ipv6: mcast: Don't hold RTNL for IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP.")
+Signed-off-by: Kevin Hao <haokexin@gmail.com>
+Cc: stable@vger.kernel.org
+---
+Please note that the cpsw driver also has the same issue. If this resolution
+is acceptable, I will create another patch to fix the issue in cpsw.
 
-dw_pcie_ep_read_bar_assigned() does not return the current size of the
-BAR. So you can't verify that the set_bar() call has the same size as
-the BARs "default size".
+Cc: Siddharth Vadapalli <s-vadapalli@ti.com>
+Cc: Roger Quadros <rogerq@kernel.org>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Kuniyuki Iwashima <kuniyu@google.com>
+Cc: linux-omap@vger.kernel.org
+---
+ drivers/net/ethernet/ti/cpsw_new.c  | 29 +++++++++++++++++++++++++++--
+ drivers/net/ethernet/ti/cpsw_priv.h |  2 ++
+ 2 files changed, 29 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index ab88d4c02cbde76207f89cf433e2b383dcde6a83..786d64a952643927ad80d2effbb171dd87f91160 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -248,15 +248,20 @@ static int cpsw_purge_all_mc(struct net_device *ndev, const u8 *addr, int num)
+ 	return 0;
+ }
+ 
+-static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
++static void cpsw_ndo_set_rx_mode_work(struct work_struct *work)
+ {
+-	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_priv *priv = container_of(work, struct cpsw_priv, rx_mode_work);
+ 	struct cpsw_common *cpsw = priv->cpsw;
++	struct net_device *ndev = priv->ndev;
+ 
++	rtnl_lock();
++	netif_addr_lock_bh(ndev);
+ 	if (ndev->flags & IFF_PROMISC) {
+ 		/* Enable promiscuous mode */
+ 		cpsw_set_promiscious(ndev, true);
+ 		cpsw_ale_set_allmulti(cpsw->ale, IFF_ALLMULTI, priv->emac_port);
++		netif_addr_unlock_bh(ndev);
++		rtnl_unlock();
+ 		return;
+ 	}
+ 
+@@ -270,6 +275,16 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
+ 	/* add/remove mcast address either for real netdev or for vlan */
+ 	__hw_addr_ref_sync_dev(&ndev->mc, ndev, cpsw_add_mc_addr,
+ 			       cpsw_del_mc_addr);
++	netif_addr_unlock_bh(ndev);
++	rtnl_unlock();
++}
++
++static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
++{
++	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_common *cpsw = priv->cpsw;
++
++	queue_work(cpsw->cmd_wq, &priv->rx_mode_work);
+ }
+ 
+ static unsigned int cpsw_rxbuf_total_len(unsigned int len)
+@@ -1398,6 +1413,7 @@ static int cpsw_create_ports(struct cpsw_common *cpsw)
+ 		priv->msg_enable = netif_msg_init(debug_level, CPSW_DEBUG);
+ 		priv->emac_port = i + 1;
+ 		priv->tx_packet_min = CPSW_MIN_PACKET_SIZE;
++		INIT_WORK(&priv->rx_mode_work, cpsw_ndo_set_rx_mode_work);
+ 
+ 		if (is_valid_ether_addr(slave_data->mac_addr)) {
+ 			ether_addr_copy(priv->mac_addr, slave_data->mac_addr);
+@@ -1976,6 +1992,13 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	}
+ 	cpsw_split_res(cpsw);
+ 
++	cpsw->cmd_wq = create_singlethread_workqueue("cpsw_cmd_wq");
++	if (!cpsw->cmd_wq) {
++		dev_err(dev, "error initializing workqueue\n");
++		ret = -ENOMEM;
++		goto clean_cpts;
++	}
++
+ 	/* setup netdevs */
+ 	ret = cpsw_create_ports(cpsw);
+ 	if (ret)
+@@ -2042,6 +2065,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ clean_unregister_notifiers:
+ 	cpsw_unregister_notifiers(cpsw);
+ clean_unregister_netdev:
++	destroy_workqueue(cpsw->cmd_wq);
+ 	cpsw_unregister_ports(cpsw);
+ clean_cpts:
+ 	cpts_release(cpsw->cpts);
+@@ -2068,6 +2092,7 @@ static void cpsw_remove(struct platform_device *pdev)
+ 		return;
+ 	}
+ 
++	destroy_workqueue(cpsw->cmd_wq);
+ 	cpsw_unregister_notifiers(cpsw);
+ 	cpsw_unregister_devlink(cpsw);
+ 	cpsw_unregister_ports(cpsw);
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
+index 91add8925e235c6cf5542fde11f3383b9234c872..8cdf4bff198fcc05436ff381a7e4326b3e3c27b1 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.h
++++ b/drivers/net/ethernet/ti/cpsw_priv.h
+@@ -362,6 +362,7 @@ struct cpsw_common {
+ 	struct net_device *hw_bridge_dev;
+ 	bool ale_bypass;
+ 	u8 base_mac[ETH_ALEN];
++	struct workqueue_struct *cmd_wq;
+ };
+ 
+ struct cpsw_ale_ratelimit {
+@@ -391,6 +392,7 @@ struct cpsw_priv {
+ 	u32 tx_packet_min;
+ 	struct cpsw_ale_ratelimit ale_bc_ratelimit;
+ 	struct cpsw_ale_ratelimit ale_mc_ratelimit;
++	struct work_struct rx_mode_work;
+ };
+ 
+ #define ndev_to_cpsw(ndev) (((struct cpsw_priv *)netdev_priv(ndev))->cpsw)
 
->
-> That said, such usage apparently contradicts the documented usage (1st
-> set_bar with no submap, then with submap) described in the docs and commit
-> messages in this series, and allowing it would make things unnecessarily
-> complicated. So I agree that adding such a safeguard is the right approach.
->
-> >
-> > I think the safest option is my second suggestion because then we know that we will only call
-> > dw_pcie_ep_ib_atu_addr()
-> >
-> > When:
-> >
-> > 1) If ep->epf_bar[bar] is set:
-> > https://github.com/torvalds/linux/blob/v6.19-rc6/drivers/pci/controller/dwc/pcie-designware-ep.c#L363
-> >
-> >
-> > 2) All the other requirements to dynamically update a BAR is also met:
-> >
-> > https://github.com/torvalds/linux/blob/v6.19-rc6/drivers/pci/controller/dwc/pcie-designware-ep.c#L368-L370
-> >
->
-> That makes sense, and it ensures that the behavior always accords with the
-> docs and commit messages in this series.
+---
+base-commit: a0c666c25aeefd16f4b088c6549a6fb6b65a8a1d
+change-id: 20260123-bbb-dc3675f671d0
 
-I think it makes most sense to put the "use_addr_translation = true"
+Best regards,
+-- 
+Kevin Hao <haokexin@gmail.com>
 
-after the check:
-
-		/*
-		 * We can only dynamically change a BAR if the new BAR size and
-		 * BAR flags do not differ from the existing configuration.
-		 */
-		if (ep->epf_bar[bar]->barno != bar ||
-		    ep->epf_bar[bar]->size != size ||
-		    ep->epf_bar[bar]->flags != flags)
-			return -EINVAL;
-
-
-So we know that dw_pcie_ep_ib_atu_addr() is only called when the size is the
-same.
-
-
-Kind regards,
-Niklas
