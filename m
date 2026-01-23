@@ -1,283 +1,140 @@
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6495429E0E6
-	for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2026 13:12:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE4D38DD3;
+	Fri, 23 Jan 2026 13:36:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769173954; cv=none; b=UkxKcxOn9MQWO0IE65PNNOAg9Sf9crI4Nyt5PWR6TpE/iroemDQKq7kEe8QI5ptgcPlz3bkB0qJow/hFOJVZG8nPVueS4huq0l/nxMUklvZNg/CVrmMeG7CfBQ6FSMqJ6mTNaSxmoQcOU2BV0TdRr5GEFwp1L+iJuwgub520qEY=
+	t=1769175391; cv=none; b=C6xIX/SKH/unxmu8IvU8lCOs0A7kKEuZQlWd1FCMM26zT1+Sod7CoiuqvDk7Jea8O+5KdmLNBYvFLXI10IsANclreL/RW23ukCCNg5Q9LK2CprkhirkWe5wjF/ZtHPWbBqKZ4A7wdsPMxCt6wgXuPPvt1JuQimO/Ik1Fx85cTFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769173954; c=relaxed/simple;
-	bh=K7zJHUtjvCk9zW085TQhbAKQFbA9gj4GZtqhhwIr24Q=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=pAYCgSLovlDir5731BpAMSW09j/HtQ/xNzfzb29jhNGTkeQ3T2fr4iJC0eTjHOts9VK+JI/mixYluOJfcKyiris8Sv7ifXsdcrPFn0Rqh2NtxP/AoKA5HpIdA9TCNX++GOEU89/wkzIoLvVsDw2hh0CKOFT+2z2Fcez6keDw/ok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LxFthOpw; arc=none smtp.client-ip=209.85.216.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1769175391; c=relaxed/simple;
+	bh=uhsda+CucBOaR/Zt91EPvftxu2dEouhHw7HKe7tHy3w=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Vi3EvjEdoJW+Xw53P4DUd++0RZR8JmX5+2gSwx9NkJmOZ21CDZv/1g+d3AIXdS15zuFBTdVC4eP5BJwP6Df3x8KeZ7ogCkmtIKIN2yjwujD2r8CKEYceNoyJq1czxoGWf537aI+6TE/y+R/Atqd8xYmADmExAwdirvej/pKFkRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=u0iv38m3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LxFthOpw"
-Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-35338b3dd31so1032602a91.2
-        for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2026 05:12:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769173952; x=1769778752; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=3F6Q0KrzJx/PydalRZY11/eFAiNA4NIIjUoKpRMvjGE=;
-        b=LxFthOpwTxsx5FcuiBZx5ZNLdkoxzWp9RVMhE0yfEU+QAa5R4WXssdqvKsdLFwOvtW
-         /8HLPAYA0vbx+r0p9J9rccki/i69DfHOiv2AD9PAjvhWbyto70kOIaigfd/1NyVvudy3
-         p9G935UHM1NDgqs4Hq/k5O16bOLfaQrPAyMu1QEcWyGBDF3NTP6tcmFu6/6koGr2pxgw
-         rPNqbrJAUmriIc8pzy85+bQMBJCU+jo7AQD5ri6QryRodcGFVCfpZoWN4lFJn6EhExf7
-         OUqTPxfO6fLSnzv4wcLSASEDExHpPvXrDeAQWiQFiw5hPus7qhoeyqhVsEPqTzF9HilO
-         YslQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769173952; x=1769778752;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=3F6Q0KrzJx/PydalRZY11/eFAiNA4NIIjUoKpRMvjGE=;
-        b=qjN64FWNjhN60gw/fvnZtoKmUZPy/pCEqhkHRPlj3vJC0gfA9WnlDGwIlB98OFnBe0
-         fbw6xDei7MBDX1hKxUyDj2beXHTeePJAtP7bwPZ9D75qZ7c0wqEAhEWjiQb7sr4S57E2
-         loj7vmKdum6xYFVbztiwp/hT2WU7YFzdCALXFmNqmzsjHJ2FrWZWNvAqM3mhP4NIacYQ
-         qsOQgxhcKotMzd/nAkQRIPL7bylUatrJq8UunrkdQm2gfMBXMqn5gB3/PEl4GCiMnImp
-         mlA7QMZeUA00PjxSCsZkkxI2jrZppdtA+RnY1CX7EkElwOJ765xaluiG8kSYcYdvYvep
-         bWAw==
-X-Forwarded-Encrypted: i=1; AJvYcCVWLWnD4QF6vReuGFtnxEw0eCzJPd5JYIamLFXNnaNGema4dtLELA8QqhFQocpfgQ+bcVDnJCFLbfKs@vger.kernel.org
-X-Gm-Message-State: AOJu0YysrEFAICd84uCndA0ihhgkuSlpVRneLF7fsAh3fxDlzjcEqOJd
-	Or4YHFNKvqYqKUhl21kUYxZtDPgxsoajP4ykqsiU1EOxntD5TaSjl85k
-X-Gm-Gg: AZuq6aI1TSr5XQL5jTsAW5lhA+Os/ACU2yCKh7SRQTzbyCh2XClwNlHlYs9DuJlhkiu
-	V0ooGg8aRa5cKXLQgAB7JQ83LHytMRawaT4B7wjW4967GsBBCSY90TNokI6CXh0jhGzgtwbcblo
-	UpUCmBSAZhj5OOYXFzOj1mhIQrXApm5sBe/CI0Xvybd/CGrj3yNAVwDGjKyfDJT8gLulvVXbpit
-	m55+rZeRAGckvFEGMTAMHahh+Ozr6cDwULb+n/oA0IVktbMvC9iB5ICPi3/8Z/x5Q2YVggPGe5u
-	11684Ev8wvPnNk1hEwvMEYQmTh+AojYm5sAMorNCk3Tx9cx1MbCNbNWyKRuVkF++sZW7MQbelBj
-	PwXqBgIcosgd9bAnVgcrUPkc+81zMP/ZgUZ5i/xXGM507j79aZT8jVmLnoKtUqWTE1HBs78aeeT
-	J6DjtNApAGk2FAsX6EAHxGdYa4OzSxzbqciGY=
-X-Received: by 2002:a17:90b:2cc3:b0:340:54a1:d6fe with SMTP id 98e67ed59e1d1-353676fbaf3mr2327414a91.15.1769173951647;
-        Fri, 23 Jan 2026 05:12:31 -0800 (PST)
-Received: from [192.168.1.7] ([115.99.251.203])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35335205bb5sm5183483a91.1.2026.01.23.05.12.27
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 23 Jan 2026 05:12:31 -0800 (PST)
-Message-ID: <7b922a72-f17b-492f-ae04-a97a75738d4d@gmail.com>
-Date: Fri, 23 Jan 2026 18:42:24 +0530
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="u0iv38m3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B29DFC4CEF1;
+	Fri, 23 Jan 2026 13:36:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1769175391;
+	bh=uhsda+CucBOaR/Zt91EPvftxu2dEouhHw7HKe7tHy3w=;
+	h=From:To:Cc:Subject:Date:From;
+	b=u0iv38m3kFUKEwKyI28S8Nku3NfDBEhXUPyBRS83+HWfZNY4cBQHARiqlk0VjzUWW
+	 oncQFosuvvhbe6Upp2gclgr5bi+W/RkBCnFuO9YNjJmcxI8CSTxJ9fciM6hN7ZPo+r
+	 sLQ0CPjHRDSiv5hbZVLImE38gqq0KpYEsSxuAMSqISDwMbeqgsasVNaVQ4pXFfiGkz
+	 Qv9JOUv1xRF86Rw0koEEDwy307+c5dH/iiDsAyLHWjaoT3jfqeWXsbezlREb81fCgE
+	 vgg2x/TcTKcTcRgCOyqxszsNH+iC21cw2blSza4dGwxKYOMid0F3c2o7/cUt/Djopo
+	 5Dyc+z21Uqh0g==
+From: Danilo Krummrich <dakr@kernel.org>
+To: gregkh@linuxfoundation.org,
+	rafael@kernel.org,
+	broonie@kernel.org,
+	will@kernel.org,
+	grygorii.strashko@ti.com,
+	ssantosh@kernel.org,
+	khilman@kernel.org,
+	linusw@kernel.org,
+	brgl@kernel.org
+Cc: driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-gpio@vger.kernel.org,
+	Danilo Krummrich <dakr@kernel.org>
+Subject: [PATCH] gpio: omap: do not register driver in probe()
+Date: Fri, 23 Jan 2026 14:31:56 +0100
+Message-ID: <20260123133614.72586-1-dakr@kernel.org>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 2/3] dt-bindings: phy: ti,phy-usb3: convert to DT
- schema
-To: Rob Herring <robh@kernel.org>
-Cc: Vinod Koul <vkoul@kernel.org>, Neil Armstrong
- <neil.armstrong@linaro.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>,
- Kishon Vijay Abraham I <kishon@kernel.org>,
- Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
- <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
- Roger Quadros <rogerq@ti.com>, linux-phy@lists.infradead.org,
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-omap@vger.kernel.org
-References: <20260122-ti-phy-v3-0-751619729433@gmail.com>
- <20260122-ti-phy-v3-2-751619729433@gmail.com>
- <20260122233309.GA3730160-robh@kernel.org>
-Content-Language: en-US
-From: Charan Pedumuru <charan.pedumuru@gmail.com>
-In-Reply-To: <20260122233309.GA3730160-robh@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
+Commit 11a78b794496 ("ARM: OMAP: MPUIO wake updates") registers the
+omap_mpuio_driver from omap_mpuio_init(), which is called from
+omap_gpio_probe().
 
+However, it neither makes sense to register drivers from probe()
+callbacks of other drivers, nor does the driver core allow registering
+drivers with a device lock already being held.
 
-On 23-01-2026 05:03, Rob Herring wrote:
-> On Thu, Jan 22, 2026 at 05:52:58PM +0000, Charan Pedumuru wrote:
->> Convert TI PIPE3 PHY binding to DT schema.
->> Changes during conversion:
->> - Define a new pattern 'pcie-phy' to match nodes defined in DT.
->> - Drop obsolete "id" property from the schema.
->>
->> Signed-off-by: Charan Pedumuru <charan.pedumuru@gmail.com>
->> ---
->>  .../devicetree/bindings/phy/ti,phy-usb3.yaml       | 135 +++++++++++++++++++++
->>  1 file changed, 135 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/phy/ti,phy-usb3.yaml b/Documentation/devicetree/bindings/phy/ti,phy-usb3.yaml
->> new file mode 100644
->> index 000000000000..605f12f0f79a
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/phy/ti,phy-usb3.yaml
->> @@ -0,0 +1,135 @@
->> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
->> +%YAML 1.2
->> +---
->> +$id: http://devicetree.org/schemas/phy/ti,phy-usb3.yaml#
->> +$schema: http://devicetree.org/meta-schemas/core.yaml#
->> +
->> +title: TI PIPE3 PHY Module
->> +
->> +maintainers:
->> +  - Roger Quadros <rogerq@ti.com>
->> +
->> +description:
->> +  The TI PIPE3 PHY is a high-speed SerDes (Serializer/Deserializer)
->> +  transceiver integrated in OMAP5, DRA7xx/AM57xx, and similar SoCs.
->> +  It supports multiple protocols (USB3, SATA, PCIe) using the PIPE3
->> +  interface standard, which defines a common physical layer for
->> +  high-speed serial interfaces.
->> +
->> +properties:
->> +  $nodename:
->> +    pattern: "^(pcie-phy|usb3-phy|phy)@[0-9a-f]+$"
->> +
->> +  compatible:
->> +    enum:
->> +      - ti,omap-usb3
->> +      - ti,phy-pipe3-pcie
->> +      - ti,phy-pipe3-sata
->> +      - ti,phy-usb3
->> +
->> +  reg:
->> +    minItems: 2
->> +    maxItems: 3
->> +
->> +  reg-names:
->> +    minItems: 2
->> +    items:
->> +      - const: phy_rx
->> +      - const: phy_tx
->> +      - const: pll_ctrl
->> +
->> +  "#phy-cells":
->> +    const: 0
->> +
->> +  clocks:
->> +    minItems: 2
->> +    maxItems: 7
->> +
->> +  clock-names:
->> +    minItems: 2
->> +    maxItems: 7
->> +    items:
->> +      enum: [wkupclk, sysclk, refclk, dpll_ref,
->> +             dpll_ref_m2, phy-div, div-clk]
->> +
->> +  syscon-phy-power:
->> +    $ref: /schemas/types.yaml#/definitions/phandle-array
->> +    items:
->> +      items:
->> +        - description: Phandle to the system control module
->> +        - description: Register offset controlling PHY power
-> 
-> This allows N entries of 2 cells each. You need either:
-> 
-> items:
->   - items:
->       - description: ...
->       - description: ...
-> 
-> (the hyphen is important!)
-> 
-> Or:
-> 
-> maxItems: 1
-> items:
->   items:
->     - description: ...
->     - description: ...
+The latter was revealed by commit dc23806a7c47 ("driver core: enforce
+device_lock for driver_match_device()") leading to a potential deadlock
+condition described in [1].
 
-Okay, I will use the above format in the next revision.
+Additionally, the omap_mpuio_driver is never unregistered from the
+driver core, even if the module is unloaded.
 
-> 
->> +
->> +  syscon-pllreset:
->> +    $ref: /schemas/types.yaml#/definitions/phandle-array
->> +    items:
->> +      items:
->> +        - description: Phandle to the system control module
->> +        - description: Register offset of CTRL_CORE_SMA_SW_0
->> +
->> +  syscon-pcs:
->> +    $ref: /schemas/types.yaml#/definitions/phandle-array
->> +    items:
->> +      items:
->> +        - description: Phandle to the system control module
->> +        - description: Register offset for PCS delay programming
->> +
->> +  ctrl-module:
->> +    $ref: /schemas/types.yaml#/definitions/phandle
->> +    description:
->> +      Phandle of control module for PHY power on.
->> +    deprecated: true
->> +
->> +allOf:
->> +  - if:
->> +      properties:
->> +        compatible:
->> +          contains:
->> +            const: ti,phy-pipe3-sata
->> +    then:
->> +      properties:
->> +        syscon-pllreset: true
->> +    else:
->> +      properties:
->> +        syscon-pllreset: false
->> +
->> +required:
->> +  - reg
->> +  - compatible
->> +  - reg-names
->> +  - "#phy-cells"
->> +  - clocks
->> +  - clock-names
->> +
->> +unevaluatedProperties: false
->> +
->> +examples:
->> +  - |
->> +    /* TI PIPE3 USB3 PHY */
->> +    usb3-phy@4a084400 {
->> +        compatible = "ti,phy-usb3";
->> +        reg = <0x4a084400 0x80>,
->> +              <0x4a084800 0x64>,
->> +              <0x4a084c00 0x40>;
->> +        reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->> +        #phy-cells = <0>;
->> +        clocks = <&usb_phy_cm_clk32k>,
->> +                 <&sys_clkin>,
->> +                 <&usb_otg_ss_refclk960m>;
->> +        clock-names = "wkupclk", "sysclk", "refclk";
->> +        ctrl-module = <&omap_control_usb>;
->> +    };
->> +
->> +  - |
->> +    /* TI PIPE3 SATA PHY */
->> +    phy@4a096000 {
->> +        compatible = "ti,phy-pipe3-sata";
->> +        reg = <0x4A096000 0x80>,  /* phy_rx */
->> +              <0x4A096400 0x64>,  /* phy_tx */
->> +              <0x4A096800 0x40>;  /* pll_ctrl */
-> 
-> Use lowercase hex.
+Hence, register the omap_mpuio_driver from the module initcall and
+unregister it in module_exit().
 
-Sure.
+Link: https://lore.kernel.org/lkml/DFU7CEPUSG9A.1KKGVW4HIPMSH@kernel.org/ [1]
+Fixes: dc23806a7c47 ("driver core: enforce device_lock for driver_match_device()")
+Fixes: 11a78b794496 ("ARM: OMAP: MPUIO wake updates")
+Signed-off-by: Danilo Krummrich <dakr@kernel.org>
+---
+In addition to this fix, the omap_mpuio_device (struct platform_device) should
+not be declared as global static, especially when their backing memory can
+become invalue due to the module being unloaded. Devices are reference counted
+and should be allocated dynamically. This needs a separate fix.
 
-> 
->> +        reg-names = "phy_rx", "phy_tx", "pll_ctrl";
->> +        clocks = <&sys_clkin1>, <&sata_ref_clk>;
->> +        clock-names = "sysclk", "refclk";
->> +        syscon-pllreset = <&scm_conf 0x3fc>;
->> +        #phy-cells = <0>;
->> +    };
->> +...
->>
->> -- 
->> 2.52.0
->>
+Besides that, the whole construct seems a bit questionable and I'm not exactly
+sure what should be achieved by registering the *same* static device everytime
+probe() is called for the omap_gpio_driver.
 
+However, for the purpose of avoiding the described potential deadlock in
+combination with commit dc23806a7c47 ("driver core: enforce device_lock for
+driver_match_device()"), this patch only addresses the driver registration
+issue.
+---
+ drivers/gpio/gpio-omap.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index e136e81794df..8db71a2db9ff 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -800,9 +800,7 @@ static struct platform_device omap_mpuio_device = {
+ static inline void omap_mpuio_init(struct gpio_bank *bank)
+ {
+ 	platform_set_drvdata(&omap_mpuio_device, bank);
+-
+-	if (platform_driver_register(&omap_mpuio_driver) == 0)
+-		(void) platform_device_register(&omap_mpuio_device);
++	(void)platform_device_register(&omap_mpuio_device);
+ }
+ 
+ /*---------------------------------------------------------------------*/
+@@ -1575,13 +1573,24 @@ static struct platform_driver omap_gpio_driver = {
+  */
+ static int __init omap_gpio_drv_reg(void)
+ {
+-	return platform_driver_register(&omap_gpio_driver);
++	int ret;
++
++	ret = platform_driver_register(&omap_mpuio_driver);
++	if (ret)
++		return ret;
++
++	ret = platform_driver_register(&omap_gpio_driver);
++	if (ret)
++		platform_driver_unregister(&omap_mpuio_driver);
++
++	return ret;
+ }
+ postcore_initcall(omap_gpio_drv_reg);
+ 
+ static void __exit omap_gpio_exit(void)
+ {
+ 	platform_driver_unregister(&omap_gpio_driver);
++	platform_driver_unregister(&omap_mpuio_driver);
+ }
+ module_exit(omap_gpio_exit);
+ 
+
+base-commit: ed1ac3c977dd6b119405fa36dd41f7151bd5b4de
 -- 
-Best Regards,
-Charan.
+2.52.0
 
