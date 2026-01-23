@@ -1,140 +1,59 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE4D38DD3;
-	Fri, 23 Jan 2026 13:36:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C68F41D5ABA;
+	Fri, 23 Jan 2026 13:44:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769175391; cv=none; b=C6xIX/SKH/unxmu8IvU8lCOs0A7kKEuZQlWd1FCMM26zT1+Sod7CoiuqvDk7Jea8O+5KdmLNBYvFLXI10IsANclreL/RW23ukCCNg5Q9LK2CprkhirkWe5wjF/ZtHPWbBqKZ4A7wdsPMxCt6wgXuPPvt1JuQimO/Ik1Fx85cTFc=
+	t=1769175850; cv=none; b=Yk70AF/OCHO8Bw/bF3mWvjJQs/pYrH94/DpzbKNqGDfRYP6gFNxwI/xF78sKpw2ZUlroNToNwDNUJWMrPohmN92xI5W0HWMLAe/W8eVXle0krQK7LV8fV51DSTma3kU/GwMBRDJqjr0ucUdOsJZwg3Ckh6Fwvjg7X+6599ZyX/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769175391; c=relaxed/simple;
-	bh=uhsda+CucBOaR/Zt91EPvftxu2dEouhHw7HKe7tHy3w=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Vi3EvjEdoJW+Xw53P4DUd++0RZR8JmX5+2gSwx9NkJmOZ21CDZv/1g+d3AIXdS15zuFBTdVC4eP5BJwP6Df3x8KeZ7ogCkmtIKIN2yjwujD2r8CKEYceNoyJq1czxoGWf537aI+6TE/y+R/Atqd8xYmADmExAwdirvej/pKFkRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=u0iv38m3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769175850; c=relaxed/simple;
+	bh=rXE/aBYuAX4Ta/Z3d+WN3DtmhafTuRThZ/pBZ6ZyjEA=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Subject:Cc:To:From:
+	 References:In-Reply-To; b=PuWGMhlVFk4bRYcQaTqQZf8qH/Lg56/oPnwuiUJEp8PVZ2HD8CtuG9Tvd3QNR+60v6JXIYtzEnKP951iQMP7sLR9DEpWTWjn5AQQ2bJ5Ip1bHUHBIx5pYjoaq2vfPPDFhG8OjxhEqwlpW8RFxXEWHeMp9+qQZUcWi2fFgxyVxuo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Gau9yVXu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="u0iv38m3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B29DFC4CEF1;
-	Fri, 23 Jan 2026 13:36:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Gau9yVXu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9631BC4CEF1;
+	Fri, 23 Jan 2026 13:44:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769175391;
-	bh=uhsda+CucBOaR/Zt91EPvftxu2dEouhHw7HKe7tHy3w=;
-	h=From:To:Cc:Subject:Date:From;
-	b=u0iv38m3kFUKEwKyI28S8Nku3NfDBEhXUPyBRS83+HWfZNY4cBQHARiqlk0VjzUWW
-	 oncQFosuvvhbe6Upp2gclgr5bi+W/RkBCnFuO9YNjJmcxI8CSTxJ9fciM6hN7ZPo+r
-	 sLQ0CPjHRDSiv5hbZVLImE38gqq0KpYEsSxuAMSqISDwMbeqgsasVNaVQ4pXFfiGkz
-	 Qv9JOUv1xRF86Rw0koEEDwy307+c5dH/iiDsAyLHWjaoT3jfqeWXsbezlREb81fCgE
-	 vgg2x/TcTKcTcRgCOyqxszsNH+iC21cw2blSza4dGwxKYOMid0F3c2o7/cUt/Djopo
-	 5Dyc+z21Uqh0g==
-From: Danilo Krummrich <dakr@kernel.org>
-To: gregkh@linuxfoundation.org,
-	rafael@kernel.org,
-	broonie@kernel.org,
-	will@kernel.org,
-	grygorii.strashko@ti.com,
-	ssantosh@kernel.org,
-	khilman@kernel.org,
-	linusw@kernel.org,
-	brgl@kernel.org
-Cc: driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
-	Danilo Krummrich <dakr@kernel.org>
-Subject: [PATCH] gpio: omap: do not register driver in probe()
-Date: Fri, 23 Jan 2026 14:31:56 +0100
-Message-ID: <20260123133614.72586-1-dakr@kernel.org>
-X-Mailer: git-send-email 2.52.0
+	s=k20201202; t=1769175850;
+	bh=rXE/aBYuAX4Ta/Z3d+WN3DtmhafTuRThZ/pBZ6ZyjEA=;
+	h=Date:Subject:Cc:To:From:References:In-Reply-To:From;
+	b=Gau9yVXuwFDUImqj5a2QJ7z+JtFUyD6X7NfiOt99DFJJl0x0ubV1+fw3c+UY0k8IU
+	 3iUTUJdPc/YPaXMucggSVbccInyjw0T4WxjdaANHetMEcrVDkl3AWnoU0K292vYerr
+	 vMsodfk4EwpHtGH6Shc2m0yIGa7eX5F3+v0QbZi69MBpiLa+Jh8NSqlXJRUFeRQhd6
+	 CxgkxBOUuqFuajhblWIz9X8k0CDQrV/yoC/JHElL73vthR0umgKDWpdBD/ZSH7hZqX
+	 yxYDXQPn9WfAYaKIfPChOEzGct46UmFq5KJFFPiQn6ULtKfshT5pUn46hcwdsl8wKC
+	 f7VJaFaksDPHg==
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Fri, 23 Jan 2026 14:44:06 +0100
+Message-Id: <DFW0HVK6AF0G.TW6R157R8O27@kernel.org>
+Subject: Re: [PATCH] gpio: omap: do not register driver in probe()
+Cc: <driver-core@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
+ <linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>, "Danilo
+ Krummrich" <dakr@kernel.org>
+To: <gregkh@linuxfoundation.org>, <rafael@kernel.org>, <broonie@kernel.org>,
+ <will@kernel.org>, <grygorii.strashko@ti.com>, <ssantosh@kernel.org>,
+ <khilman@kernel.org>, <linusw@kernel.org>, <brgl@kernel.org>
+From: "Danilo Krummrich" <dakr@kernel.org>
+References: <20260123133614.72586-1-dakr@kernel.org>
+In-Reply-To: <20260123133614.72586-1-dakr@kernel.org>
 
-Commit 11a78b794496 ("ARM: OMAP: MPUIO wake updates") registers the
-omap_mpuio_driver from omap_mpuio_init(), which is called from
-omap_gpio_probe().
+On Fri Jan 23, 2026 at 2:31 PM CET, Danilo Krummrich wrote:
+> However, for the purpose of avoiding the described potential deadlock in
+> combination with commit dc23806a7c47 ("driver core: enforce device_lock f=
+or
+> driver_match_device()"), this patch only addresses the driver registratio=
+n
+> issue.
 
-However, it neither makes sense to register drivers from probe()
-callbacks of other drivers, nor does the driver core allow registering
-drivers with a device lock already being held.
-
-The latter was revealed by commit dc23806a7c47 ("driver core: enforce
-device_lock for driver_match_device()") leading to a potential deadlock
-condition described in [1].
-
-Additionally, the omap_mpuio_driver is never unregistered from the
-driver core, even if the module is unloaded.
-
-Hence, register the omap_mpuio_driver from the module initcall and
-unregister it in module_exit().
-
-Link: https://lore.kernel.org/lkml/DFU7CEPUSG9A.1KKGVW4HIPMSH@kernel.org/ [1]
-Fixes: dc23806a7c47 ("driver core: enforce device_lock for driver_match_device()")
-Fixes: 11a78b794496 ("ARM: OMAP: MPUIO wake updates")
-Signed-off-by: Danilo Krummrich <dakr@kernel.org>
----
-In addition to this fix, the omap_mpuio_device (struct platform_device) should
-not be declared as global static, especially when their backing memory can
-become invalue due to the module being unloaded. Devices are reference counted
-and should be allocated dynamically. This needs a separate fix.
-
-Besides that, the whole construct seems a bit questionable and I'm not exactly
-sure what should be achieved by registering the *same* static device everytime
-probe() is called for the omap_gpio_driver.
-
-However, for the purpose of avoiding the described potential deadlock in
-combination with commit dc23806a7c47 ("driver core: enforce device_lock for
-driver_match_device()"), this patch only addresses the driver registration
-issue.
----
- drivers/gpio/gpio-omap.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index e136e81794df..8db71a2db9ff 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -800,9 +800,7 @@ static struct platform_device omap_mpuio_device = {
- static inline void omap_mpuio_init(struct gpio_bank *bank)
- {
- 	platform_set_drvdata(&omap_mpuio_device, bank);
--
--	if (platform_driver_register(&omap_mpuio_driver) == 0)
--		(void) platform_device_register(&omap_mpuio_device);
-+	(void)platform_device_register(&omap_mpuio_device);
- }
- 
- /*---------------------------------------------------------------------*/
-@@ -1575,13 +1573,24 @@ static struct platform_driver omap_gpio_driver = {
-  */
- static int __init omap_gpio_drv_reg(void)
- {
--	return platform_driver_register(&omap_gpio_driver);
-+	int ret;
-+
-+	ret = platform_driver_register(&omap_mpuio_driver);
-+	if (ret)
-+		return ret;
-+
-+	ret = platform_driver_register(&omap_gpio_driver);
-+	if (ret)
-+		platform_driver_unregister(&omap_mpuio_driver);
-+
-+	return ret;
- }
- postcore_initcall(omap_gpio_drv_reg);
- 
- static void __exit omap_gpio_exit(void)
- {
- 	platform_driver_unregister(&omap_gpio_driver);
-+	platform_driver_unregister(&omap_mpuio_driver);
- }
- module_exit(omap_gpio_exit);
- 
-
-base-commit: ed1ac3c977dd6b119405fa36dd41f7151bd5b4de
--- 
-2.52.0
-
+I.e. unless there are any concerns, I'd like to take this one through the
+driver-core tree.
