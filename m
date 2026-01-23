@@ -1,41 +1,41 @@
 Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01A5C33A713;
-	Fri, 23 Jan 2026 16:13:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80E92326951;
+	Fri, 23 Jan 2026 16:13:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769184827; cv=none; b=D35aOw8hpNMbyrMsSag6/laphsUdpfdgsmkWgYovosLKsww81RwdtekPl9/QZBA5Q9kWSvDtPCGP2Zq8SiShZ1G7+ORyVOLjfet8dvMLCmSEw2qnFc0Yz759LbfWEvVEcdvxv51nhYIOLo98ALqzunmEPWe+S9OA73XlvAxTimE=
+	t=1769184832; cv=none; b=f5/aL21s5UcQSDixUu65jCzh3OOQDNEqPMpN5mw2+hj7BJ1HD3hjrYOqjiUwRaXQyLIUJCZYY1+qk4klgOttPsi/5QmwPgadxcRrnq4UL/6UNZHds/p9tEglLv10wUxtW5oR1U0EVr0V30bUcmHVgECXL+GOjD1B9X5/aEAqY6Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769184827; c=relaxed/simple;
-	bh=HYWg+i9nVutthHgrYsisg/kOoj2oui3PeuCa9uR2feU=;
+	s=arc-20240116; t=1769184832; c=relaxed/simple;
+	bh=0Dz7WYB/xo76JBC2J/NRCmjCPmag6QximCXoAjrF93Q=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Aflmaj+6KGVF4kZEo1Zzd0QGcgAbGulUlIth5fgqTb5w3rufkv6bBpbWQ42E/xCk88BK1j2Bv9+7PUKO9zPTNT3qgwmEBigUXPNzyOcSp2HHjv55dmiQhKqggUT3olGelRBjxmwx7tC/hz4Hx94KEGOUpADCUc7Nw5UhgcrTEck=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=TaOM18VG; arc=none smtp.client-ip=185.246.85.4
+	 In-Reply-To:To:Cc; b=WrolX4BkzJU1doA3HHm7sP5l8/N3a0n9GONrjnpA+jJvtOKhYuYPfKOyfZ10rif15WmXU5OZlaQUSVHykBsOmbXBFgPpMpUwiLF0tHiH7K3w0IHkAMtz4hjbUoISMRqOEYALD/pFUhJkYBG9jNqlMZO6SzenBSx3ECybLT3ApoY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=1kWLeA3w; arc=none smtp.client-ip=185.246.85.4
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="TaOM18VG"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="1kWLeA3w"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id AC9634E42225;
-	Fri, 23 Jan 2026 16:13:43 +0000 (UTC)
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 590164E42222;
+	Fri, 23 Jan 2026 16:13:46 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 7F3A66070A;
-	Fri, 23 Jan 2026 16:13:43 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 4EA9C119A87D8;
-	Fri, 23 Jan 2026 17:13:39 +0100 (CET)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 2D42B6070A;
+	Fri, 23 Jan 2026 16:13:46 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 72451119A87DD;
+	Fri, 23 Jan 2026 17:13:42 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1769184822; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	t=1769184824; h=from:subject:date:message-id:to:cc:mime-version:content-type:
 	 content-transfer-encoding:in-reply-to:references;
-	bh=KWkTccmCT3nJgrNSLZ1R/jzxD1Y0UvqRHyoXQxdCfEk=;
-	b=TaOM18VGmxTiCUeR/4iMknDf61aN4LVb5MlgCerGYbrjEx75KjIRTpr4yKSyGpD6K1gV3z
-	A1qZHsbcApq1LvfTQS2BL0JTMrs4ipv5LPXczRP13nCDp004KEX51k+53d3/3cCw4+WzJ0
-	IeSZZ3iMofLug0XWuRSC5+jgpxP8Gk5N4oN6S9owAH2wgQdyTE7yFQ7r8xFRaRc8pkbzbn
-	EJyZp/x5m7xnYbc5KCaRDH8o5BMFu6Jry7e0oC8CBNrzjDrewoVtJ+CvdLfMroRz+2yPRl
-	ybb1M5mRTwIDE5By9MPVY38CIu7+8CPOtT25nk87hM0IZZAWKcWnqllICd2TRw==
+	bh=YHbKPaDVZD9oIsFLb8cqetcEgclBnBCWZdurRGChSkw=;
+	b=1kWLeA3wkhRHAa49z7tr6TvHUWMjOb7YiYss45br2qDTJiihGY3XM6gt9+Jr7x9jNeTLXk
+	mK+6YZ4gleeCQQhH7HBTeG9Unl3N43Jzw2wH6ThLq+rROOnDRniLzJJJofv6bJgQtc5a51
+	AWM8lWkIqfEiNQwAGZh64i/uNxjHrvN2sPPUT3cJBt7BgVmZ+rSGlmKRAIaz3Gbwmk1eY5
+	pk/GtkzexYBmt3KwkY4JY/p4EBAi0pfzn0swo5wOSEilMp+ZPiLItPYg9nOtJ8Q+M60EBB
+	hLWZasrnZ/BhM5zsOijaKBenESm9Ud1EjVGt9FmCR4botoYt6og1x7EAzSDc7Q==
 From: "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>
-Date: Fri, 23 Jan 2026 17:12:38 +0100
-Subject: [PATCH v5 20/25] drm/tilcdc: Use devm_drm_of_get_bridge() helper
+Date: Fri, 23 Jan 2026 17:12:39 +0100
+Subject: [PATCH v5 21/25] drm/bridge: tda998x: Remove component support
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -44,7 +44,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260123-feature_tilcdc-v5-20-5a44d2aa3f6f@bootlin.com>
+Message-Id: <20260123-feature_tilcdc-v5-21-5a44d2aa3f6f@bootlin.com>
 References: <20260123-feature_tilcdc-v5-0-5a44d2aa3f6f@bootlin.com>
 In-Reply-To: <20260123-feature_tilcdc-v5-0-5a44d2aa3f6f@bootlin.com>
 To: Jyri Sarha <jyri.sarha@iki.fi>, 
@@ -72,61 +72,115 @@ Cc: Markus Schneider-Pargmann <msp@baylibre.com>,
 X-Mailer: b4 0.15-dev-47773
 X-Last-TLS-Session-Version: TLSv1.3
 
-Replace drm_of_find_panel_or_bridge() with the newer
-devm_drm_of_get_bridge() helper which simplifies the code by:
-- Automatically handling both panel and bridge cases internally
-- Managing the panel-to-bridge conversion when needed
-- Using devres for resource management, eliminating manual cleanup
+The tilcdc driver no longer uses the component framework to bind the
+tda998x bridge driver. The component bind/unbind operations and the
+encoder initialization code are now dead code and can be safely removed.
 
-This removes the need for explicit panel-to-bridge conversion via
-devm_drm_panel_bridge_add_typed() and the associated error handling path.
-
+Reviewed-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
 Signed-off-by: Kory Maincent (TI.com) <kory.maincent@bootlin.com>
 ---
+ drivers/gpu/drm/bridge/tda998x_drv.c | 69 +-----------------------------------
+ 1 file changed, 1 insertion(+), 68 deletions(-)
 
-Change in v4:
-- New patch
----
- drivers/gpu/drm/tilcdc/tilcdc_encoder.c | 18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_encoder.c b/drivers/gpu/drm/tilcdc/tilcdc_encoder.c
-index a34a10337f6a8..546fe7e6ee815 100644
---- a/drivers/gpu/drm/tilcdc/tilcdc_encoder.c
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_encoder.c
-@@ -55,15 +55,12 @@ int tilcdc_encoder_create(struct drm_device *ddev)
- 	struct tilcdc_drm_private *priv = ddev_to_tilcdc_priv(ddev);
- 	struct tilcdc_encoder *encoder;
- 	struct drm_bridge *bridge;
--	struct drm_panel *panel;
+diff --git a/drivers/gpu/drm/bridge/tda998x_drv.c b/drivers/gpu/drm/bridge/tda998x_drv.c
+index e636459d91857..865285ba2bd8c 100644
+--- a/drivers/gpu/drm/bridge/tda998x_drv.c
++++ b/drivers/gpu/drm/bridge/tda998x_drv.c
+@@ -4,7 +4,6 @@
+  * Author: Rob Clark <robdclark@gmail.com>
+  */
+ 
+-#include <linux/component.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/hdmi.h>
+ #include <linux/i2c.h>
+@@ -1963,85 +1962,19 @@ static int tda998x_create(struct device *dev)
+ 	return ret;
+ }
+ 
+-/* DRM encoder functions */
+-
+-static int tda998x_encoder_init(struct device *dev, struct drm_device *drm)
+-{
+-	struct tda998x_priv *priv = dev_get_drvdata(dev);
+-	u32 crtcs = 0;
 -	int ret;
- 
--	ret = drm_of_find_panel_or_bridge(ddev->dev->of_node, 0, 0,
--					  &panel, &bridge);
--	if (ret == -ENODEV)
-+	bridge = devm_drm_of_get_bridge(ddev->dev, ddev->dev->of_node, 0, 0);
-+	if (PTR_ERR(bridge) == -ENODEV)
- 		return 0;
--	else if (ret)
--		return ret;
-+	else if (IS_ERR(bridge))
-+		return PTR_ERR(bridge);
- 
- 	encoder = drmm_simple_encoder_alloc(ddev, struct tilcdc_encoder,
- 					    base, DRM_MODE_ENCODER_NONE);
-@@ -73,12 +70,5 @@ int tilcdc_encoder_create(struct drm_device *ddev)
- 	}
- 	priv->encoder = encoder;
- 
--	if (panel) {
--		bridge = devm_drm_panel_bridge_add_typed(ddev->dev, panel,
--							 DRM_MODE_CONNECTOR_DPI);
--		if (IS_ERR(bridge))
--			return PTR_ERR(bridge);
+-
+-	if (dev->of_node)
+-		crtcs = drm_of_find_possible_crtcs(drm, dev->of_node);
+-
+-	/* If no CRTCs were found, fall back to our old behaviour */
+-	if (crtcs == 0) {
+-		dev_warn(dev, "Falling back to first CRTC\n");
+-		crtcs = 1 << 0;
 -	}
 -
- 	return tilcdc_attach_bridge(ddev, bridge);
+-	priv->encoder.possible_crtcs = crtcs;
+-
+-	ret = drm_simple_encoder_init(drm, &priv->encoder,
+-				      DRM_MODE_ENCODER_TMDS);
+-	if (ret)
+-		goto err_encoder;
+-
+-	ret = drm_bridge_attach(&priv->encoder, &priv->bridge, NULL, 0);
+-	if (ret)
+-		goto err_bridge;
+-
+-	return 0;
+-
+-err_bridge:
+-	drm_encoder_cleanup(&priv->encoder);
+-err_encoder:
+-	return ret;
+-}
+-
+-static int tda998x_bind(struct device *dev, struct device *master, void *data)
+-{
+-	struct drm_device *drm = data;
+-
+-	return tda998x_encoder_init(dev, drm);
+-}
+-
+-static void tda998x_unbind(struct device *dev, struct device *master,
+-			   void *data)
+-{
+-	struct tda998x_priv *priv = dev_get_drvdata(dev);
+-
+-	drm_encoder_cleanup(&priv->encoder);
+-}
+-
+-static const struct component_ops tda998x_ops = {
+-	.bind = tda998x_bind,
+-	.unbind = tda998x_unbind,
+-};
+-
+ static int
+ tda998x_probe(struct i2c_client *client)
+ {
+-	int ret;
+-
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+ 		dev_warn(&client->dev, "adapter does not support I2C\n");
+ 		return -EIO;
+ 	}
+ 
+-	ret = tda998x_create(&client->dev);
+-	if (ret)
+-		return ret;
+-
+-	ret = component_add(&client->dev, &tda998x_ops);
+-	if (ret)
+-		tda998x_destroy(&client->dev);
+-	return ret;
++	return tda998x_create(&client->dev);
  }
+ 
+ static void tda998x_remove(struct i2c_client *client)
+ {
+-	component_del(&client->dev, &tda998x_ops);
+ 	tda998x_destroy(&client->dev);
+ }
+ 
 
 -- 
 2.43.0
