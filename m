@@ -1,112 +1,146 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BE102E8DFD;
-	Fri, 23 Jan 2026 15:23:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB2632D7DD4
+	for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2026 15:39:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769181813; cv=none; b=qFxi8NwOuLPYQX1bDGduObUv4RUOZlu4i1eo6U6fojSOMDRxMYY8iBzLtltnjF5H/EwQ7gOAP8PAsgYnwYUY927uaNGUxWdRtS6jaaSN1+tzr9fYMGth9XaJQLnNV5RSCH75fqB+HJPnZjwaUYKGRhoNyTmdbubG3RwodylvlcM=
+	t=1769182766; cv=none; b=Uc7eNyqVTQw/UtjyKo7LwyxqhsrtTAUb9MJrcJhJNHs41y1+xRVIXB1kfw50oaavcjAu55R/Mh/BZSJSFBgjTH1Xrk4mwyhwcDlhvGkb4KfAE4mft4z4ZHM/OcjdZJozdJJ8642sTOFS/PVeNCXt5Bd0oXccDOkmtmY2uAghqCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769181813; c=relaxed/simple;
-	bh=0eJHB/NW+Njfdnl0UGtavS5LEpA5japm1g6BMCj9IWQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NXfmoeaPm4e6d7wNLdB6ztpaTR+HoNs42eZNpItA8+uExBGju1T/IXNgMdaAJuXPmiLRDNyToFD5cfJb+ySkmzE2ib1bNKt35rVvDzDf/TZxGtGKgwQf7hhKrqJG3dlP5+0xlvULCQ40dwABMpPyRaUdbmHsFyRrjnzKoefkaok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=r2o/lwJG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769182766; c=relaxed/simple;
+	bh=TaWr/LrmzAvRMdQNjiFtDzTvQFMrR1wI9b5D5QJZUhI=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=qTadWG36fSUkdgmaV/h09lqU6a7KlWAS9NLnnFBdaAQJdH11k1gTOpDIuigXIcqBxtNd7Seudj8JXZUKlH6+4xHp3vPKxda8sWpOXvjQ81po2r/dy9ouhYwCFC+E7woAuvmJGaYpXsESeF5GSCHbZLCadIsyVlBk4CTe1pchGZc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ieT9eYqk; arc=none smtp.client-ip=209.85.214.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="r2o/lwJG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AD45C4CEF1;
-	Fri, 23 Jan 2026 15:23:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1769181813;
-	bh=0eJHB/NW+Njfdnl0UGtavS5LEpA5japm1g6BMCj9IWQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=r2o/lwJGDK75/rWVzTOoz/6NjQm91Er7KDEh87lqtJGEKNK0ijxycIO50NJiVBWR8
-	 UJaEVx8ov0afcfl89TKRwd5mYMwUyvNh8zPd7rfnw6MlcQnKzEiFzzZGFIN/u5f0/8
-	 iYf5V2hpvUmFeq4/+OucSQSH8DRuB6/rtWt9e6pY=
-Date: Fri, 23 Jan 2026 16:23:29 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Danilo Krummrich <dakr@kernel.org>
-Cc: rafael@kernel.org, broonie@kernel.org, will@kernel.org,
-	grygorii.strashko@ti.com, ssantosh@kernel.org, khilman@kernel.org,
-	linusw@kernel.org, brgl@kernel.org, driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-gpio@vger.kernel.org
-Subject: Re: [PATCH] gpio: omap: do not register driver in probe()
-Message-ID: <2026012302-nutmeg-grandly-1a09@gregkh>
-References: <20260123133614.72586-1-dakr@kernel.org>
- <DFW0SC4QG4W8.C7BRHX02W3IK@kernel.org>
- <2026012354-stinging-lapdog-2a54@gregkh>
- <DFW1DQTKRQS0.YXYIGV3FF6TK@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ieT9eYqk"
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-2a79ded11a2so14617595ad.3
+        for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2026 07:39:23 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1769182763; x=1769787563; darn=vger.kernel.org;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=AN7Bijlws3Yf4aNS4iNAiLjf2TZ2e4vGXijmqIVGBpI=;
+        b=ieT9eYqkDZYxsZ9N/D8v+/DZ6AXVBS9lLms4gt7c6atOzDIKuoW1c+/Jdx5SV4JLUa
+         A75htOz6XQISBCiED7oipZ0QTFNZV7rgPJitYq0jmDH7wXMZea1pno3iFXLL4OtakGW9
+         nAlZhDYdrb2S0TLBaWdzA1RNtY/l0AdC9N6CiqLEW5QprpJgQ7dYkunc9RdUwPVtovgp
+         MGD+1XogCnFFkSGkw8bn79XMmAmNs+bcVdYD6OmwtvB8WatnLd93fVKxjNbPzMqetzLg
+         SlTldqQSw3WACfCRZE2awRl3zCsqyTbo0sD7en3z0ltUfiA37gLSFwYvylmTEg1ziBct
+         qYNg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769182763; x=1769787563;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=AN7Bijlws3Yf4aNS4iNAiLjf2TZ2e4vGXijmqIVGBpI=;
+        b=OGrxr+I0Fe82+xdNVT/8p8Wp9fzbm5YPN0nwkBwjTKJpo6AkH3luwM+pfZ3qJ+nzI9
+         7K6lj5w/gcSdpehkkrsdgFq821iHmTWsBhCW7vs+/c2LZ4JeGC+ILb5d7d1j5P1fl432
+         T8W17hcbTLnzvUPoPu6HpKAjzGnH3ALW3iqhHwVaaxFLbdK8RG9RdC1TGcy0wnYxB74N
+         yoloNQphJwBdKWal0ymFgea7MzeU5FX0sTA09+2R2BLyGj4yW6BfJMcTRiHrKauguoPB
+         ICAYls86YW+192HSTFVHZRy1WmT5nN2b3uzMNOo0VxV1WzXd3O+XzCHLOgJ0OQywxHr8
+         1kig==
+X-Forwarded-Encrypted: i=1; AJvYcCVGaD6nKI3i33KRlmRaLjOsw5wRNyb3XmcdNPRS1FKVlWv6LbMUWnlWGQA075gXBxGt+uxAxZnE9gJb@vger.kernel.org
+X-Gm-Message-State: AOJu0YxvpsJkEYMgmHwAHBSFNZd8WCrbn+VHG4LwtXm6M+F1Usl8bk6z
+	PTZ+3B8e8AUfPUp7VXONoRW0aLISgaxJ3imOvr3xInme6ucQP+7qXS5q
+X-Gm-Gg: AZuq6aI1RDa2thxW6VPxujjZS7bKifpDnuNc7zmjO6tdnLiFa9sFUxriG6mO813Qahc
+	01lk0HUAvh6Ia/mnJ+KNSEZq0Jrf1YMheV/AlRhswc9HfQ9l+Jb7+deU3dJjMntypq60tR6P0kZ
+	b51W4EckuJc+Qvea8qt776775g4ITi3u0u2Mw1x4QkKWFcwH4x8UqxFkwA7xt/8fvf0vRjvb/BI
+	lOyeyw8pzkQkcMdJUqXUpyL7Fl9XvztXwAR31Lts8J+B51ycQ2wmml0db1/XEwWJ3HHPczceaNe
+	Ec6SQQry2klJt4km5l/QOi+6L0hyHhJL2trTfVKXRzrP9V5w01Bzq82M/Bj+yC9LCNv2N4oELMI
+	IKpxjUDKHAfv6WdZ+9o52g/i4FP65AjixANAiikzYBeIpKOoXBI7pQ/xRzyX1c8osRu42zFMcjP
+	FMtxw8P2x70kTwcoLEJUCHreJef4PyUKprrg==
+X-Received: by 2002:a17:902:e5c5:b0:2a0:b461:c883 with SMTP id d9443c01a7336-2a7fe747425mr32040215ad.45.1769182762932;
+        Fri, 23 Jan 2026 07:39:22 -0800 (PST)
+Received: from Black-Pearl.localdomain ([115.99.251.203])
+        by smtp.googlemail.com with ESMTPSA id d9443c01a7336-2a802f9769esm23732205ad.60.2026.01.23.07.39.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 23 Jan 2026 07:39:22 -0800 (PST)
+From: Charan Pedumuru <charan.pedumuru@gmail.com>
+Subject: [PATCH v4 0/3] dt-bindings: phy: Convert TI OMAP control and PIPE3
+ PHY to DT schema
+Date: Fri, 23 Jan 2026 15:39:01 +0000
+Message-Id: <20260123-ti-phy-v4-0-b557e2c46e6f@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <DFW1DQTKRQS0.YXYIGV3FF6TK@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIABWWc2kC/12NzQqDMBAGX0Vybkp2Y4z21PcoPWhMNFB/SCRUx
+ HdvFCq2x/nYmV2I185qT27JQpwO1tuhj5BeEqLasm80tXVkggwFIAc6WTq2MxV5VRWa58qogsT
+ j0Wlj33vo8YzcWj8Nbt67AbZ1S2QMGP8mAlCgueJGaFRVnfF705X2dVVDR7ZEwLMmDw0poyVoh
+ TJlYIz51/hJQzw0HjUpIINCYpHyn2/run4AG9J8JgoBAAA=
+X-Change-ID: 20251231-ti-phy-58bb9e38cfc9
+To: Vinod Koul <vkoul@kernel.org>, 
+ Neil Armstrong <neil.armstrong@linaro.org>, Rob Herring <robh@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, 
+ Kishon Vijay Abraham I <kishon@kernel.org>, 
+ Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+ Roger Quadros <rogerq@ti.com>
+Cc: linux-phy@lists.infradead.org, devicetree@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
+ Charan Pedumuru <charan.pedumuru@gmail.com>
+X-Mailer: b4 0.14.3
 
-On Fri, Jan 23, 2026 at 03:25:43PM +0100, Danilo Krummrich wrote:
-> On Fri Jan 23, 2026 at 3:19 PM CET, Greg KH wrote:
-> > On Fri, Jan 23, 2026 at 02:57:45PM +0100, Danilo Krummrich wrote:
-> >> On Fri Jan 23, 2026 at 2:31 PM CET, Danilo Krummrich wrote:
-> >> > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> >> > index e136e81794df..8db71a2db9ff 100644
-> >> > --- a/drivers/gpio/gpio-omap.c
-> >> > +++ b/drivers/gpio/gpio-omap.c
-> >> > @@ -800,9 +800,7 @@ static struct platform_device omap_mpuio_device = {
-> >> >  static inline void omap_mpuio_init(struct gpio_bank *bank)
-> >> >  {
-> >> >  	platform_set_drvdata(&omap_mpuio_device, bank);
-> >> > -
-> >> > -	if (platform_driver_register(&omap_mpuio_driver) == 0)
-> >> > -		(void) platform_device_register(&omap_mpuio_device);
-> >> > +	(void)platform_device_register(&omap_mpuio_device);
-> >> >  }
-> >> 
-> >> On a second look, it recognize that this did abuse the fact that
-> >> platform_driver_register() fails when attempting to register a driver multiple
-> >> times to avoid registering the same static device multiple times.
-> >> 
-> >> So, I guess this has to be changed to:
-> >> 
-> >> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> >> index 8db71a2db9ff..3e1ac34994fb 100644
-> >> --- a/drivers/gpio/gpio-omap.c
-> >> +++ b/drivers/gpio/gpio-omap.c
-> >> @@ -799,8 +799,13 @@ static struct platform_device omap_mpuio_device = {
-> >> 
-> >>  static inline void omap_mpuio_init(struct gpio_bank *bank)
-> >>  {
-> >> +       static bool registered = false;
-> >> +
-> >>         platform_set_drvdata(&omap_mpuio_device, bank);
-> >> -       (void)platform_device_register(&omap_mpuio_device);
-> >> +       if (!registered) {
-> >> +               (void)platform_device_register(&omap_mpuio_device);
-> >> +               registered = true;
-> >> +       }
-> >>  }
-> >
-> > But there are no platform resources for this at all, shouldn't this be a
-> > faux device instead?
-> 
-> Probably, but that's for another patch, since this one may potentially be
-> backported beyond the existence of the faux bus.
-> 
-> > That being said, ignoring the return value of platform_device_register()
-> > is probably not something we want to keep around.
-> 
-> Yes, as mentioned below the commit message, there are a couple of things that
-> need to be followed up on here.
-> 
-> With this patch I only intend to fix the deadlock condition and otherwise keep
-> all the existing semantics as it is.
-> 
-> I.e. maybe it is intentional and this driver should not abort probing if this
-> can't be registered for some reason.
+This series converts the old text-based DeviceTree bindings for TI OMAP
+Control PHY and TI PIPE3 PHY to modern JSON-schema (YAML) format.
 
-Ok, fair enough, fixing this immediate bug is good enough for me.
+Signed-off-by: Charan Pedumuru <charan.pedumuru@gmail.com>
+---
+Changes in v4:
+- ti,phy-usb3: Limit phandle arrays for optional properties to one entry.
+- ti,phy-usb3: Use lowercase hex for reg values in examples.
+- Link to v3: https://lore.kernel.org/r/20260122-ti-phy-v3-0-751619729433@gmail.com
 
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Changes in v3:
+- Change maintainer to "Roger Quadros" for both YAML files.
+- dts: Split node pattern updates into a separate patch and align node
+  naming with standard conventions.
+- ti,phy-usb3: Update node pattern to follow standard conventions.
+- ti,phy-usb3: Refine the reg-names property and add constraints for
+  optional phandle-array properties.
+- ti,phy-usb3: Redefine "syscon-pllreset" dependency on the compatible
+  "ti,phy-pipe3-sata" in a correct format.
+- ti,control-phy-otghs: Update node pattern and adjust maxItems for reg
+  and reg-names.
+- ti,control-phy-otghs: Fix the conditional handling for the
+  ti,control-phy-pcie compatible.
+- Link to v2: https://lore.kernel.org/r/20260107-ti-phy-v2-0-a1ec27401fff@gmail.com
+
+Changes in v2:
+- ti,control-phy-otghs: Update commit message to reflect the latest
+  binding changes.
+- ti,phy-usb3: Drop the obsolete "id" property from the schema.
+- Both bindings: Update maintainers list, modify node pattern and improve
+  node descriptions for clarity.
+- ti,phy-usb3: Introduce new YAML schema with properly defined optional
+  properties for the PIPE3 PHY.
+- Link to v1: https://lore.kernel.org/r/20260103-ti-phy-v1-1-8c3f5e2cbd63@gmail.com
+
+---
+Charan Pedumuru (3):
+      arm: dts: ti: omap: align node patterns with established convention
+      dt-bindings: phy: ti,phy-usb3: convert to DT schema
+      dt-bindings: phy: ti,control-phy-otghs: convert to DT schema
+
+ .../bindings/phy/ti,control-phy-otghs.yaml         |  99 +++++++++++++++
+ .../devicetree/bindings/phy/ti,phy-usb3.yaml       | 138 +++++++++++++++++++++
+ Documentation/devicetree/bindings/phy/ti-phy.txt   |  98 ---------------
+ arch/arm/boot/dts/ti/omap/dra7-l4.dtsi             |   4 +-
+ arch/arm/boot/dts/ti/omap/omap4-l4.dtsi            |   4 +-
+ arch/arm/boot/dts/ti/omap/omap5-l4.dtsi            |   2 +-
+ 6 files changed, 242 insertions(+), 103 deletions(-)
+---
+base-commit: cc3aa43b44bdb43dfbac0fcb51c56594a11338a8
+change-id: 20251231-ti-phy-58bb9e38cfc9
+
+Best regards,
+-- 
+Charan Pedumuru <charan.pedumuru@gmail.com>
+
