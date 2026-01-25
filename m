@@ -1,241 +1,276 @@
-Received: from OS0P286CU011.outbound.protection.outlook.com (mail-japanwestazon11020114.outbound.protection.outlook.com [52.101.228.114])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9A21314D0B;
-	Sat, 24 Jan 2026 14:50:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.228.114
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769266232; cv=fail; b=TkVJFhAknXZQbOGuHGrnaY+vv6Oery7a0XjS9dHqfxN8Xdvme9zIhTdmZj3l6ox2lvO5Gba+jj2MwYYHxfPj1HanyWRRKlhPV7yRqgs3L2ejH09qBEyAAScR/tSfXQzrs6P8iVh1t8guv374MFidRznhxjjyNE73RcaV/WhlHmQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769266232; c=relaxed/simple;
-	bh=sussW5u4SZhCIEk/qmkz2rNLo1gsXnrnHuSC68IQ9J4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=E2McH360g6d6RfGkLLKJj1QNw4hagEXBr9tS4TTys5zgAYjY5Qv+SmIVmsZ+puvMKQYJ+sybtX0gGr/ss/jy11XkpNVQYEDPQ8jgfm0zG+uGGBFE20Lvn0mF1rea3IVb6QauakyX3FGB5vTlQFitbRPjm6CqSK460giH7m27jRo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=valinux.co.jp; spf=pass smtp.mailfrom=valinux.co.jp; dkim=pass (1024-bit key) header.d=valinux.co.jp header.i=@valinux.co.jp header.b=r19aWuLI; arc=fail smtp.client-ip=52.101.228.114
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=valinux.co.jp
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=valinux.co.jp
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81B8A19D065
+	for <linux-omap@vger.kernel.org>; Sun, 25 Jan 2026 01:56:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.179
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769306163; cv=none; b=Eh9QTzBvXBa7UasoJ/5/X/9R13Nxi8SZyLK1LOvRPUfWQjpE78Jf5inPrZQ65kzN/oIoQufnKeUgpCLktsq5ck+zxmfk6OOjJpiQ4iGNvolFlhpPQW07PhAwWlXGpN12DF0GbPEHA4MUQE5sDPmWcEGnGWfQO2b2gEQrWytpL88=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769306163; c=relaxed/simple;
+	bh=czHtok8kdM+NFjQous0qO1iQS3e10Dwr/nFSfUrsxbs=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=UmR9Zyu9Q7KmK3qYcpM2Y01VPuMGzNgYOElKUCldrzqhbAxJT5vLzi+1keKNFz87LXpf+omArac1eOP28gLkRAPbFKpnxl5glTvrYOzFkA0gvO3/nJh1mbv3dEt1ZPROdAeS8h+we22tsdA/kACFgHx65yFOkOS+b1y6Aa6idRA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Cl3EsP2s; arc=none smtp.client-ip=209.85.160.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=valinux.co.jp header.i=@valinux.co.jp header.b="r19aWuLI"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=KsN8TxlnU69cD/aqhHAeQye35/ZXLhael4e5Ep78TyGFKx13HhEX0nh8e4xAPr0xfO0jOjReqpDsk8H35bRcmL3KJx3cxaO1CWZsMNZYHtx9CwgAFiJujLbcE8f1V9+sm+TcWo9zCNtuansu8TDM0uFOd7hZHZzXyut8nLXD56x1zI2DvjK9RxciPHfzhangtEdzuN5rnokntqiC+egYuHV8hG0uihGkYd9Olx/1cEVXoa7Jw6wSLILzefIrUuSnVfr2ClH1ITF63UZLOUEWlaewX1b9rh/nzAWS+zl+z2o5NATyTKdE/92gRw53BT0TBN2gZ6r81GuNg5i4J+43Ww==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=uqv5b0rVdZWl6jWcBfaeDRjqb8MGukLgkiwYCtOwdTg=;
- b=DjLGqhwwgRcRfqNaDbvSymLnt8f1mBgYFUCQ+P9lAfgV0O/5Pt4y3W5Irn7rH1TNR1/DEDBGbOc1OOXpTWRhbw6sesv3OhGZ+Rij2Fv5IOwPoDaMF8TG5pNxXvfKtKbw4LyHzinzNtvuWC2FLr6xgBpJDk8Kz3Z1J6HCFthCwaJ0SVGg2p5bDkyaEDcFCxy0/Y/4AgHuvr8fbe2sC6QT9joyLrdkJSyYepUiawKuR9SU8s5uHti6pSrrM1w78NbbCR3jnjWgkkCSnmURD62g5vXtyNrWvTkHQyIbPAY26h1oWgukd3TULw1jruX9y/I7w7JDBRpxdRAkfVAbLDNSNw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=valinux.co.jp; dmarc=pass action=none
- header.from=valinux.co.jp; dkim=pass header.d=valinux.co.jp; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=valinux.co.jp;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=uqv5b0rVdZWl6jWcBfaeDRjqb8MGukLgkiwYCtOwdTg=;
- b=r19aWuLIzV/tn7R3YG2/357ivXX0mFbenCWDi3j88ckgStKVpelWcZfpydlg+RGgY+vnJjhD+XIQluTgeTdubQtWRSD9NNdrYo6tO8wS4/IFqXlhpnvTjoLgn7OiqCai+iNDKsWpbPUrawp29mIhFut40Jkn1N+0U+ijKGuXwCo=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=valinux.co.jp;
-Received: from TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM (2603:1096:405:38f::10)
- by TYYP286MB4692.JPNP286.PROD.OUTLOOK.COM (2603:1096:405:19c::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9542.11; Sat, 24 Jan
- 2026 14:50:23 +0000
-Received: from TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
- ([fe80::2305:327c:28ec:9b32]) by TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
- ([fe80::2305:327c:28ec:9b32%5]) with mapi id 15.20.9542.010; Sat, 24 Jan 2026
- 14:50:23 +0000
-From: Koichiro Den <den@valinux.co.jp>
-To: jingoohan1@gmail.com,
-	mani@kernel.org,
-	lpieralisi@kernel.org,
-	kwilczynski@kernel.org,
-	robh@kernel.org,
-	bhelgaas@google.com,
-	cassel@kernel.org,
-	Frank.Li@nxp.com
-Cc: vigneshr@ti.com,
-	s-vadapalli@ti.com,
-	hongxing.zhu@nxp.com,
-	l.stach@pengutronix.de,
-	shawnguo@kernel.org,
-	s.hauer@pengutronix.de,
-	kernel@pengutronix.de,
-	festevam@gmail.com,
-	minghuan.Lian@nxp.com,
-	mingkai.hu@nxp.com,
-	roy.zang@nxp.com,
-	jesper.nilsson@axis.com,
-	heiko@sntech.de,
-	srikanth.thokala@intel.com,
-	marek.vasut+renesas@gmail.com,
-	yoshihiro.shimoda.uh@renesas.com,
-	geert+renesas@glider.be,
-	magnus.damm@gmail.com,
-	christian.bruel@foss.st.com,
-	mcoquelin.stm32@gmail.com,
-	alexandre.torgue@foss.st.com,
-	thierry.reding@gmail.com,
-	jonathanh@nvidia.com,
-	hayashi.kunihiko@socionext.com,
-	mhiramat@kernel.org,
-	kishon@kernel.org,
-	jirislaby@kernel.org,
-	rongqianfeng@vivo.com,
-	18255117159@163.com,
-	shawn.lin@rock-chips.com,
-	nicolas.frattaroli@collabora.com,
-	linux.amoon@gmail.com,
-	vidyas@nvidia.com,
-	shuah@kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	imx@lists.linux.dev,
-	linuxppc-dev@lists.ozlabs.org,
-	linux-arm-kernel@axis.com,
-	linux-rockchip@lists.infradead.org,
-	linux-arm-msm@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-tegra@vger.kernel.org,
-	linux-kselftest@vger.kernel.org
-Subject: [PATCH v10 8/8] selftests: pci_endpoint: Add BAR subrange mapping test case
-Date: Sat, 24 Jan 2026 23:50:12 +0900
-Message-ID: <20260124145012.2794108-9-den@valinux.co.jp>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260124145012.2794108-1-den@valinux.co.jp>
-References: <20260124145012.2794108-1-den@valinux.co.jp>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: TY4P286CA0025.JPNP286.PROD.OUTLOOK.COM
- (2603:1096:405:2b0::7) To TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
- (2603:1096:405:38f::10)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Cl3EsP2s"
+Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-5029fb0b977so33752201cf.0
+        for <linux-omap@vger.kernel.org>; Sat, 24 Jan 2026 17:56:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1769306159; x=1769910959; darn=vger.kernel.org;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=B8JTWJ4sRGrlm2gY6MCzSC7MNQIM/QuydTD6Wv2h6Os=;
+        b=Cl3EsP2s1wXyPSSP/G+QUsKMs2NoPzM8R1hqDzGDqX+LcP6feXEdPrN4W76UZWRAP0
+         sxeHhIZx+hHd192F8jAj1Jky4S7OjYX4kNLtxZhuazulHzUv1qtBXqwvxB3yIut63FkV
+         lswMAi5nBPq0fDpxA6Tq7cte1I2g3Yjj/1GVexcaD4bDswrXWES4uWgWZ1/vwdWMJFut
+         bkO6gUlsaihRSHG1vR0A70OyJMuwdpkk1sgcclKHNW1Jt4SgT8CFiQ4e1VNjTwDjx+vB
+         Z46oL+ASi2EEa9sYexg8QrLocc638worFkPTwtlt0n6BaiSLy8nMT6i/7yNm3Qg18eNP
+         rsLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769306159; x=1769910959;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=B8JTWJ4sRGrlm2gY6MCzSC7MNQIM/QuydTD6Wv2h6Os=;
+        b=BnSg4wBMRIJ4yQ3sLRqpUTMAfxwntknV7RO4Myzcar8ZMwBS4LBPr5LLPrGty3+KNn
+         UW3hXyeEGA5vuMrW+3OOmSE5rBpkX6BKxLgJPziF/96Hjc1chBk8+u2PzU7Zx+UPSfuk
+         zLuSzAnrqR5faHwOkMzmx21fz8RqpWJZCj2qFaf9mqaA+VqVjuND+u3xMUzhIDpgGMag
+         fQ+tyIVeB8njbwz2Q0bv5fzaGAo5BUZh0vPkNURnFwjw+m9orzsLHtL6S0zql6ZMMVLX
+         XVFq+Msny5yUZ78qu5ewcnXa6TvTX5BTQJusWt202wBdHs3x5UzIfF+QluCzSedbZwad
+         z8sg==
+X-Forwarded-Encrypted: i=1; AJvYcCXO9tbrRdCxA3Su8sDziWfOYFzrdc8Z53260FSsWNXfo7VCph29Wt4fluZnPthcLknaNpb8fjoEMVkS@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx5v3C6He/AFrZ6EITX2O8nWw1JzPtaL0vsWm/JaLAzhz50pnwr
+	h9+6G8TNe5s+9ffF92yzyCRN4tlkKB3pghHzo1FP2T4oJFttaSIUWlYz
+X-Gm-Gg: AZuq6aI+pE7q7itUBB8hc6yvRDnR3FNsKlMYMGE7MEwmBYNxVHOAw1PZGI64xu0YgwP
+	TlHdk9B/yQamyxLY+qHiCdyHTpvOt59SIABOQx+mhD2DBK9NmWyGVNDBBoCBcANTuU0NGQuVWNr
+	yttEcILgOZI3vfPQCsAHwjWrNygmMQOnkGILGpRLO9c9/0ikIEdhBc3TOkw7kGL2pAGKLxuneRF
+	pRcUiO95lpVS46NEJWHiauhaeKH4fh0yGAHHlUHtFyZuh0xxn8DwMwbBok7K4YUMWRNucZ0UR30
+	X2LyH3+vyTfSZNQPDCdHLpdWL3LqhWdSRxB1QonmwPzw2DlKvf4bf4EtK2DjW+hUtxOjcRsi2Z2
+	+ip5S8psVgdFQXsETKuwzfbN+J6F9PYnw7I/mqLRDVzJQ9211mPzhpjbH8gpjxR1nI1+3ClpxnL
+	Rj8Mwa6LKMTxK79lyz0niK
+X-Received: by 2002:a05:622a:315:b0:501:3d11:18cb with SMTP id d75a77b69052e-50314ceaa37mr5122341cf.73.1769306159399;
+        Sat, 24 Jan 2026 17:55:59 -0800 (PST)
+Received: from localhost.localdomain ([128.224.253.2])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8949193cdc1sm49035636d6.47.2026.01.24.17.55.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 24 Jan 2026 17:55:59 -0800 (PST)
+From: Kevin Hao <haokexin@gmail.com>
+Date: Sun, 25 Jan 2026 09:55:33 +0800
+Subject: [PATCH net v2] net: cpsw_new: Execute ndo_set_rx_mode callback in
+ a work queue
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: TY7P286MB7722:EE_|TYYP286MB4692:EE_
-X-MS-Office365-Filtering-Correlation-Id: 0e4416be-1f8d-4d82-b0f2-08de5b57e710
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|7416014|1800799024|10070799003|366016;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?D/9mAJI4CnQC5Gq25UmNk5YJBIodjoH9QEpSGpABl159m2FfHi+2aE8mdp11?=
- =?us-ascii?Q?hiqMA1Z8MkBq6VH5QkcBbd3+B0s0UgUkY9qM4P8cwEeZyJHabTV0XLia4/EY?=
- =?us-ascii?Q?ORR4u06IEX1Nom298JTVL+zzn5VjdoZQgokH3UGGED6+LmPTCkSuf+NTEHXg?=
- =?us-ascii?Q?VTKKyt1t1roU93HfLsCQ9pbRaNvDum4ppD3S/s4qcXnU3nz7ugs90lcNdyrU?=
- =?us-ascii?Q?S0JjRvq7wq6G6PBuVUg+8Xi0oiStwK1DciGIdiNZO9TD2+Oe0zM/jxEl/nxH?=
- =?us-ascii?Q?gZMhlBc9NV1mxH9Cb/+2T7QQFyGNaK22W6sFT+TUezXrj5xzohH08tHO1Zpt?=
- =?us-ascii?Q?Iyw9RG9QtjzowCc9+xzUx85LcjWz1e6RYcb3iKdkgd/91ywDigkyP9b4O98/?=
- =?us-ascii?Q?1A03F7sB3JZ/yIuwtWOvZZLKlml4VXsc3mHXFv1z7unckXxUQ29vGjmLIOUO?=
- =?us-ascii?Q?5V0meYTiX/sDe7KqFRxPa9G6qhBzAETj+5H2hkgDI4/uaqnv6smw9djoyXei?=
- =?us-ascii?Q?bfkcj/yHJT/YRRFqGm7E6UN9wUOfa8ehOAkC+7voihI3c0GQ92YTT8ifByUa?=
- =?us-ascii?Q?Vkx+P4Gafa6MyCxnJybvj0NI7A1CNAeVafLtSTs4nYIdTQ7JFxs0OKlQmczj?=
- =?us-ascii?Q?Kb9lfs/aoXnluhequ/iqKhc8ubxxsMd1VHEz0QaElEKPni+rRO+654LEOl7P?=
- =?us-ascii?Q?7C2MGQJyAdF8jaKPq58oCjdIn8tfK83xGYo2VrXWrvCRQ/xtGcP3EnHDbNLS?=
- =?us-ascii?Q?+rGsveKBuO4hL4sp0BwQjOEx8AOBu0McNuPAx7rKT7kOOcFzFari9ZMs6M0h?=
- =?us-ascii?Q?7dzl/KQ1J5tFKD6fD1j22fyeKYy7rBikOfiON65B4Yq5k9fQuYJIF1guOwKd?=
- =?us-ascii?Q?kc3FQcQ9wIve0vhANTxIPeW2mIa/Jktj2ZZuu8/OoDaumdR453JqHQyOUZ0r?=
- =?us-ascii?Q?3JOb+tD+HZ6/oTDqSvdT5QLYcqG1seo16a1ZP9UY4V7ocjUWYtf8H1pJVykr?=
- =?us-ascii?Q?3pENXTuLeH5hwvFXos8O5qKqY8ppKCwMSlAOuQasABFswtZXz2hDVuqf3TIY?=
- =?us-ascii?Q?eGYJB5CRvan22uTXjeIc+aoCfjtXTYbCPnUPGGEtP7JRVJdJ1d28zqUeKpZ2?=
- =?us-ascii?Q?F1joYa5ScI7cmC1Vul4AXDH+oX0wnLEN/O67ZRpQwVOWfK4Bczo9+Rwc45Qq?=
- =?us-ascii?Q?KIyNY5JCIgh69cqbLVREsF0hdcfS8cNLtsOXb4zF6oIQICG3xSh+0/0tMtM2?=
- =?us-ascii?Q?yaENM06P/sgvfI25G4r91QhHg8iW9k9FeMuSTKOPv6JrZZyh8z+X7wRoiwAh?=
- =?us-ascii?Q?HOuA29YZs+7o1bXg9EKomonpggie4+Tm5nA4KyDCbl/XEt3gtpsS9fIbSddz?=
- =?us-ascii?Q?AI5WjSfxNDhyWBUxn+p1IbKxvmmd90T/4+c5f9UlYstgfF9Bgk8RyOeOJ/2M?=
- =?us-ascii?Q?wdKm0L/tbtuRpurSUNEaend0oLLprjInHNHSZh+cP/sHYBZitIqCtbMLOz+R?=
- =?us-ascii?Q?ccRgz8e0ZMNFBrRqI67fNlteyAp5xi9GD0IG+1kWeuvs3UisaUjqy02PaS2v?=
- =?us-ascii?Q?me+QvZddGVKerLn8aGM=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(10070799003)(366016);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?I0TsZzlqHD5XzEP07kVA8GU3hqisVAKu7xeA6H7JdpSPhKe1VBlobH82vjmQ?=
- =?us-ascii?Q?9vdwl3iYyyAG3+R9vWW9YXcBeM6d1Tu1jakM4w6IhdvSedUTjH8sC800eKwq?=
- =?us-ascii?Q?o9TMvbSxXweQrESI6UAdK2G891qTYABRN8nfeH3rkAKMLsa31p/qooVvi29B?=
- =?us-ascii?Q?ouVsEByyU2ehHADKnASbCbDQIywPqj3KU0fKP9n7uGaR5m2fLnEi7Q/5ZwpB?=
- =?us-ascii?Q?6Ip4gNrOYiBE4kA3bSQ+VIn0l8KQYI9s4h/XY9iAu/bc/KkVvrFAGxo7VJ7j?=
- =?us-ascii?Q?r+Ovgfw0g+E5mpwCE7ZzsOK8ByG6QL96TxtJwvD78//esonZYNrhuGVtbHmP?=
- =?us-ascii?Q?HbMmeCiy9/ZYVzPHXmoJCoZS4gbaVyQx7XF22QbC02vCNVUiQzR9kTEMaLKj?=
- =?us-ascii?Q?2zBg9pGNDuFLZvoWQ+IFCc9fCVDFPD9oCECkpQEpmhQKKrBtost8LXWe/yWU?=
- =?us-ascii?Q?isNG28MfI28RyhP2/SyuZLlBeV+XJByQCcEcT3qxiYOI25zcAeFX2YSuXBQz?=
- =?us-ascii?Q?ByMzbuNMcNgEEZgWr4MLev5P2ba77YX95vxYLtGB13qb7D12XLUg+iaIvP77?=
- =?us-ascii?Q?Xx4eCl0E2/bjzIyCYU+vQZs07JEypisoQZ+/mtcEEYUVm57BzKvG0WT4GO1g?=
- =?us-ascii?Q?TQ55A8UO7BmeVyAmcDmHFbs15/Lm5st14UhyOrcCoFfyP/lLgY6VTZ8Evk0P?=
- =?us-ascii?Q?WLlXtPuZIaVP3G3ZAaFrwogESZn11ckrkSE1O+PVTkZ0suThcDKlWnUFJ/tM?=
- =?us-ascii?Q?gA/xWH+1Mz5xSrbvi6PZmzxf91L3MkQ89pN9tp7FRZy4TgqB0LTebtVWkLE3?=
- =?us-ascii?Q?uW+r+VMqVZ22hQy1dEiue8t7Hdn1Lt6nrLVt9YfUJsCpYApi+zulAoa+++LI?=
- =?us-ascii?Q?f0ueRa52z2aIWOigHJ1H9nY2qSQWDJz2FzhwUiEHBGUFybga1VUlGWOPpevt?=
- =?us-ascii?Q?hjToF7pLLOBEM1eCavSxTQjqkdT2KhG4BZHVwTXLYxbrS9c7vN3RU0hoFVHa?=
- =?us-ascii?Q?UyT+zPZ3kSJtCXLUJV0munK+kjFHZALo9upI4gX7ZhZb3PcM5XweNLgCldv2?=
- =?us-ascii?Q?CQkW1VFel4gIVoHpW7v1xZ4ZS461mCyaLWc2MLQbrbC8yubaW5pK3HyrmJql?=
- =?us-ascii?Q?xRSHoPF+awtSmKaApmVjVCjrJK6VjV7W77a2zX19W25y8vZTTFQTS9tAjT6C?=
- =?us-ascii?Q?/1hn3mGFnzzLpkFrtAZW7w75WdyZwOSv5ibWWJg2U8tIx6MNaHfjFmxJ+jHo?=
- =?us-ascii?Q?gOSWFZIi8tFSh7YJfh2WM2d4YMPDrzsZQzhXV/+HbxNh9XIJ0TtHPUrdOrCK?=
- =?us-ascii?Q?NXfyMnR3cvqiRVlhwHHnuKOb26PQbTBi19aNDw2SwTu9Jq7k8XJD8RB5wdDs?=
- =?us-ascii?Q?mj+qGQlTNOVNpycij0GPocCuKb+JABQCHWqcgg4iqYIYHHn/+UVnXNAeyPyb?=
- =?us-ascii?Q?tyw0cXTeCqfNX4C7gqsA0mRWdfhwUY8jir6WdNiNjVSI9Cg6fAy+Myx0iJNY?=
- =?us-ascii?Q?aCaXZvWrgJTCR9HthT+zLFZgVfQp0cFoR4S+cjvyXSR3YHO3RKvUvC5Kd9Dr?=
- =?us-ascii?Q?ukonoUlP1CleXrxKwGt3qcrQ9TeCEUoHCdIXNcZYR3W9VP9/HWWizMRHADZ+?=
- =?us-ascii?Q?+wvTb2I5QTvNZqnCCUcuoKiGXP16SWye/WcfwKiakmS9ywENNeJcTUoD4EuS?=
- =?us-ascii?Q?ZDuDqqkjUkW558lcPvU10C0dxTJmWeWOByqqi0XtkhY4tvCbBNAsTheTJKV7?=
- =?us-ascii?Q?kPGlhs1ioGZ1fDhOIp6SXgosZsI7z2u6RkZiIiJjEUfs7LhPDan8?=
-X-OriginatorOrg: valinux.co.jp
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0e4416be-1f8d-4d82-b0f2-08de5b57e710
-X-MS-Exchange-CrossTenant-AuthSource: TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jan 2026 14:50:23.0544
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 7a57bee8-f73d-4c5f-a4f7-d72c91c8c111
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 3zOcbRiPmWjcKICTMDKjpSACieen+aDvYfGA0/5VcbJl+deWnrGdEvlmGrulOdMUCj4oFxcJduM4TfpD6LF4SA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYYP286MB4692
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260125-bbb-v2-1-1547ffabc9d3@gmail.com>
+X-B4-Tracking: v=1; b=H4sIABR4dWkC/1WMyw7CIBREf6W5azE8FIwr/8N0UeC2vYkFAw3RN
+ Py7hJ2Z1ZmZnAMyJsIM9+GAhIUyxdBAngZw6xQWZOQbg+RScyEVs9Yy75Q211kb4Tm05zvhTJ9
+ ueULAHcZWrpT3mL7dXESf/iRFsBajLbdG3NTFP5ZtotfZxQ3GWusPN60RDJsAAAA=
+X-Change-ID: 20260123-bbb-dc3675f671d0
+To: netdev@vger.kernel.org
+Cc: Kevin Hao <haokexin@gmail.com>, stable@vger.kernel.org, 
+ Siddharth Vadapalli <s-vadapalli@ti.com>, Roger Quadros <rogerq@kernel.org>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Vladimir Oltean <vladimir.oltean@nxp.com>, 
+ Kuniyuki Iwashima <kuniyu@google.com>, linux-omap@vger.kernel.org
+X-Mailer: b4 0.14.2
 
-Add BAR_SUBRANGE_TEST to the pci_endpoint kselftest suite.
+Commit 1767bb2d47b7 ("ipv6: mcast: Don't hold RTNL for
+IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP.") removed the RTNL lock for
+IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP operations. However, this
+change triggered the following call trace on my BeagleBone Black board:
+  WARNING: net/8021q/vlan_core.c:236 at vlan_for_each+0x120/0x124, CPU#0: rpcbind/496
+  RTNL: assertion failed at net/8021q/vlan_core.c (236)
+  Modules linked in:
+  CPU: 0 UID: 997 PID: 496 Comm: rpcbind Not tainted 6.19.0-rc6-next-20260122-yocto-standard+ #8 PREEMPT
+  Hardware name: Generic AM33XX (Flattened Device Tree)
+  Call trace:
+   unwind_backtrace from show_stack+0x28/0x2c
+   show_stack from dump_stack_lvl+0x30/0x38
+   dump_stack_lvl from __warn+0xb8/0x11c
+   __warn from warn_slowpath_fmt+0x130/0x194
+   warn_slowpath_fmt from vlan_for_each+0x120/0x124
+   vlan_for_each from cpsw_add_mc_addr+0x54/0xd8
+   cpsw_add_mc_addr from __hw_addr_ref_sync_dev+0xc4/0xec
+   __hw_addr_ref_sync_dev from __dev_mc_add+0x78/0x88
+   __dev_mc_add from igmp6_group_added+0x84/0xec
+   igmp6_group_added from __ipv6_dev_mc_inc+0x1fc/0x2f0
+   __ipv6_dev_mc_inc from __ipv6_sock_mc_join+0x124/0x1b4
+   __ipv6_sock_mc_join from do_ipv6_setsockopt+0x84c/0x1168
+   do_ipv6_setsockopt from ipv6_setsockopt+0x88/0xc8
+   ipv6_setsockopt from do_sock_setsockopt+0xe8/0x19c
+   do_sock_setsockopt from __sys_setsockopt+0x84/0xac
+   __sys_setsockopt from ret_fast_syscall+0x0/0x5
 
-The test uses the PCITEST_BAR_SUBRANGE ioctl and will skip when the
-chosen BAR is disabled (-ENODATA), when the endpoint/controller does not
-support subrange mapping (-EOPNOTSUPP), or when the BAR is reserved for
-the test register space (-EBUSY).
+This trace occurs because vlan_for_each() is called within
+cpsw_ndo_set_rx_mode(), which expects the RTNL lock to be held.
+Since modifying vlan_for_each() to operate without the RTNL lock is not
+straightforward, and because ndo_set_rx_mode() is invoked both with and
+without the RTNL lock across different code paths, simply adding
+rtnl_lock() in cpsw_ndo_set_rx_mode() is not a viable solution.
 
-Signed-off-by: Koichiro Den <den@valinux.co.jp>
+To resolve this issue, we opt to execute the actual processing within
+a work queue, following the approach used by the icssg-prueth driver.
+
+Fixes: 1767bb2d47b7 ("ipv6: mcast: Don't hold RTNL for IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP.")
+Signed-off-by: Kevin Hao <haokexin@gmail.com>
+Cc: stable@vger.kernel.org
 ---
- .../selftests/pci_endpoint/pci_endpoint_test.c  | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+Changes in v2:
+- Addresses the issue identified in the AI review [1]:
+  - Adds a netif_running() check in cpsw_ndo_set_rx_mode_work()
+  - Cancels the rx_mode_work in cpsw_ndo_stop()
 
-diff --git a/tools/testing/selftests/pci_endpoint/pci_endpoint_test.c b/tools/testing/selftests/pci_endpoint/pci_endpoint_test.c
-index 23aac6f97061..eecb776c33af 100644
---- a/tools/testing/selftests/pci_endpoint/pci_endpoint_test.c
-+++ b/tools/testing/selftests/pci_endpoint/pci_endpoint_test.c
-@@ -70,6 +70,23 @@ TEST_F(pci_ep_bar, BAR_TEST)
- 	EXPECT_FALSE(ret) TH_LOG("Test failed for BAR%d", variant->barno);
+- Link to v1: https://lore.kernel.org/r/20260123-bbb-v1-1-176b0b71834d@gmail.com
+
+[1] https://netdev-ai.bots.linux.dev/ai-review.html?id=bd885e1e-1aed-4755-ad60-7150737ad0f5
+---
+Please note that the cpsw driver also has the same issue. If this resolution
+is acceptable, I will create another patch to fix the issue in cpsw.
+
+Cc: Siddharth Vadapalli <s-vadapalli@ti.com>
+Cc: Roger Quadros <rogerq@kernel.org>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Vladimir Oltean <vladimir.oltean@nxp.com>
+Cc: Kuniyuki Iwashima <kuniyu@google.com>
+Cc: linux-omap@vger.kernel.org
+---
+ drivers/net/ethernet/ti/cpsw_new.c  | 34 ++++++++++++++++++++++++++++++++--
+ drivers/net/ethernet/ti/cpsw_priv.h |  2 ++
+ 2 files changed, 34 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index ab88d4c02cbde76207f89cf433e2b383dcde6a83..a631df9691e06fef563da6276f8ee9358c4cf911 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -248,15 +248,23 @@ static int cpsw_purge_all_mc(struct net_device *ndev, const u8 *addr, int num)
+ 	return 0;
  }
  
-+TEST_F(pci_ep_bar, BAR_SUBRANGE_TEST)
-+{
-+	int ret;
+-static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
++static void cpsw_ndo_set_rx_mode_work(struct work_struct *work)
+ {
+-	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_priv *priv = container_of(work, struct cpsw_priv, rx_mode_work);
+ 	struct cpsw_common *cpsw = priv->cpsw;
++	struct net_device *ndev = priv->ndev;
+ 
++	if (!netif_running(ndev))
++		return;
 +
-+	pci_ep_ioctl(PCITEST_SET_IRQTYPE, PCITEST_IRQ_TYPE_AUTO);
-+	ASSERT_EQ(0, ret) TH_LOG("Can't set AUTO IRQ type");
-+
-+	pci_ep_ioctl(PCITEST_BAR_SUBRANGE, variant->barno);
-+	if (ret == -ENODATA)
-+		SKIP(return, "BAR is disabled");
-+	if (ret == -EBUSY)
-+		SKIP(return, "BAR is test register space");
-+	if (ret == -EOPNOTSUPP)
-+		SKIP(return, "Subrange map is not supported");
-+	EXPECT_FALSE(ret) TH_LOG("Test failed for BAR%d", variant->barno);
++	rtnl_lock();
++	netif_addr_lock_bh(ndev);
+ 	if (ndev->flags & IFF_PROMISC) {
+ 		/* Enable promiscuous mode */
+ 		cpsw_set_promiscious(ndev, true);
+ 		cpsw_ale_set_allmulti(cpsw->ale, IFF_ALLMULTI, priv->emac_port);
++		netif_addr_unlock_bh(ndev);
++		rtnl_unlock();
+ 		return;
+ 	}
+ 
+@@ -270,6 +278,16 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
+ 	/* add/remove mcast address either for real netdev or for vlan */
+ 	__hw_addr_ref_sync_dev(&ndev->mc, ndev, cpsw_add_mc_addr,
+ 			       cpsw_del_mc_addr);
++	netif_addr_unlock_bh(ndev);
++	rtnl_unlock();
 +}
 +
- FIXTURE(pci_ep_basic)
- {
- 	int fd;
++static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
++{
++	struct cpsw_priv *priv = netdev_priv(ndev);
++	struct cpsw_common *cpsw = priv->cpsw;
++
++	queue_work(cpsw->cmd_wq, &priv->rx_mode_work);
+ }
+ 
+ static unsigned int cpsw_rxbuf_total_len(unsigned int len)
+@@ -813,6 +831,8 @@ static int cpsw_ndo_stop(struct net_device *ndev)
+ 
+ 	__hw_addr_ref_unsync_dev(&ndev->mc, ndev, cpsw_purge_all_mc);
+ 
++	cancel_work_sync(&priv->rx_mode_work);
++
+ 	if (cpsw->usage_count <= 1) {
+ 		napi_disable(&cpsw->napi_rx);
+ 		napi_disable(&cpsw->napi_tx);
+@@ -1398,6 +1418,7 @@ static int cpsw_create_ports(struct cpsw_common *cpsw)
+ 		priv->msg_enable = netif_msg_init(debug_level, CPSW_DEBUG);
+ 		priv->emac_port = i + 1;
+ 		priv->tx_packet_min = CPSW_MIN_PACKET_SIZE;
++		INIT_WORK(&priv->rx_mode_work, cpsw_ndo_set_rx_mode_work);
+ 
+ 		if (is_valid_ether_addr(slave_data->mac_addr)) {
+ 			ether_addr_copy(priv->mac_addr, slave_data->mac_addr);
+@@ -1976,6 +1997,13 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	}
+ 	cpsw_split_res(cpsw);
+ 
++	cpsw->cmd_wq = create_singlethread_workqueue("cpsw_cmd_wq");
++	if (!cpsw->cmd_wq) {
++		dev_err(dev, "error initializing workqueue\n");
++		ret = -ENOMEM;
++		goto clean_cpts;
++	}
++
+ 	/* setup netdevs */
+ 	ret = cpsw_create_ports(cpsw);
+ 	if (ret)
+@@ -2042,6 +2070,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ clean_unregister_notifiers:
+ 	cpsw_unregister_notifiers(cpsw);
+ clean_unregister_netdev:
++	destroy_workqueue(cpsw->cmd_wq);
+ 	cpsw_unregister_ports(cpsw);
+ clean_cpts:
+ 	cpts_release(cpsw->cpts);
+@@ -2068,6 +2097,7 @@ static void cpsw_remove(struct platform_device *pdev)
+ 		return;
+ 	}
+ 
++	destroy_workqueue(cpsw->cmd_wq);
+ 	cpsw_unregister_notifiers(cpsw);
+ 	cpsw_unregister_devlink(cpsw);
+ 	cpsw_unregister_ports(cpsw);
+diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
+index 91add8925e235c6cf5542fde11f3383b9234c872..8cdf4bff198fcc05436ff381a7e4326b3e3c27b1 100644
+--- a/drivers/net/ethernet/ti/cpsw_priv.h
++++ b/drivers/net/ethernet/ti/cpsw_priv.h
+@@ -362,6 +362,7 @@ struct cpsw_common {
+ 	struct net_device *hw_bridge_dev;
+ 	bool ale_bypass;
+ 	u8 base_mac[ETH_ALEN];
++	struct workqueue_struct *cmd_wq;
+ };
+ 
+ struct cpsw_ale_ratelimit {
+@@ -391,6 +392,7 @@ struct cpsw_priv {
+ 	u32 tx_packet_min;
+ 	struct cpsw_ale_ratelimit ale_bc_ratelimit;
+ 	struct cpsw_ale_ratelimit ale_mc_ratelimit;
++	struct work_struct rx_mode_work;
+ };
+ 
+ #define ndev_to_cpsw(ndev) (((struct cpsw_priv *)netdev_priv(ndev))->cpsw)
+
+---
+base-commit: ca3a02fda4da8e2c1cb6baee5d72352e9e2cfaea
+change-id: 20260123-bbb-dc3675f671d0
+
+Best regards,
 -- 
-2.51.0
+Kevin Hao <haokexin@gmail.com>
 
