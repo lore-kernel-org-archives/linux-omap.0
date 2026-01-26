@@ -1,98 +1,87 @@
-Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6077330D26
-	for <linux-omap@vger.kernel.org>; Mon, 26 Jan 2026 10:29:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.117.254.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 989641DED57;
+	Mon, 26 Jan 2026 11:35:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769423375; cv=none; b=j53vVHdLSp76pDG1gzk5g6wRFZwf7ihDqD+xDKFY6/brPpByfpzkV0qlu2x8sMR0M63+adgU4bnxuLYUYaCz1Z7D+gF75/cIjvCVDON5mEwV/E/xy1YjTzvGoGM6181uAwOo4UmDllSlA8wWDvQbZkG/hawISpWDHcUvXNbyAkU=
+	t=1769427356; cv=none; b=fhGqRRRr75A8ctCgkO7//GGkpRozPjOWawe34UWjqk6oEtGQtuUWc+IhIO11tSt1ROfuNCwk0dXEqmozhic/hKYG5B2LqaKrwodrpegYhA2mPg2XB8V+SDZb6YANZVpm5wRTIc7G9jpdRjGRC/kL0mStyNipem2cB11rRMEKzGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769423375; c=relaxed/simple;
-	bh=Jh9DbPdyhqX1cvGDcyHJMZub+1uUsIMf6B/WAv++Rbo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=b38HJeE/D/euWUWBZKLBfGy2lDY5u37H9z9POJg+mzMmUiacrQNdyn50QZ5AsiyOpd5C9WhN2A2xyQa2MPCWNE0EtB/8/+2GIpQjAOMqqjN1HmzrtPTW28F172/7Co9Kz6v8poy9RPfDaZ6PqbkOj0qMjhTAuD+VXfxBpeJQCRY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=jHX8+Wl7; arc=none smtp.client-ip=194.117.254.33
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
+	s=arc-20240116; t=1769427356; c=relaxed/simple;
+	bh=NbGMqsjy4HZ45I0jRcU5fEucTTFIYZ76bCkcIOp5DfE=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Subject:Cc:To:From:
+	 References:In-Reply-To; b=DAop91xYH5Uo4XL4WVVj4og+b0z6tcscD8cYKXrleNNGZoFq4jwb/uYVHs/0WlC/s7p2mlxcDs7HU4kkXgh99N07XpYSPh2u2g+cGsFq2+86yGE9rl1gTiQO3pqDeflwqvICBi6yycrJhvi5TahbGC4wUNzPt82/t8FfXcR/SFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HIMNZ7F6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="jHX8+Wl7"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	sang-engineering.com; h=date:from:to:cc:subject:message-id
-	:references:mime-version:content-type:in-reply-to; s=k1; bh=F2bF
-	S/uMFLgtEVC0YCnMXZC86wb3SDlDFVJk5gHDbHs=; b=jHX8+Wl7CjOEdsajEoyd
-	YLJSni1KMKFnTnF6HUkKy4i7hdARKm53juZzr7ZafJR47rtHoNyWJaaKdHJ/2sso
-	LqYQH5W3d0RaRaQ8Q8J1G9u4nNTashMNVexC1gLUhUwVMKjdwdx0vBnOcNj2BbqO
-	OzdLxlpS3qYwey2EMbughKgdVpyf2lbwjuTyiOgPikJmtfRlj0LYKeoBgjXrSvoV
-	mlK/IzdLZzcuzrQK6IypnN/vpPwAKgfyOgmhmg2cICJBgE71R+rc1lx8MlV6l5v8
-	F39Y7wqyE8Wvnw4+qlOC0DvLTWsXo+ZALNH34HFE5YzYV8NWVP6e4yVnRLb2de1H
-	6g==
-Received: (qmail 2710669 invoked from network); 26 Jan 2026 11:29:27 +0100
-Received: by mail.zeus03.de with UTF8SMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 26 Jan 2026 11:29:27 +0100
-X-UD-Smtp-Session: l3s3148p1@tFg7+0dJFMUujnvz
-Date: Mon, 26 Jan 2026 11:29:26 +0100
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Andy Shevchenko <andy@kernel.org>,
-	Antonio Borneo <antonio.borneo@foss.st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Bjorn Andersson <andersson@kernel.org>,
-	Boqun Feng <boqun.feng@gmail.com>, Chen-Yu Tsai <wens@kernel.org>,
-	Chunyan Zhang <zhang.lyra@gmail.com>,
-	Danilo Krummrich <dakr@kernel.org>,
-	David Lechner <dlechner@baylibre.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Dybcio <konradybcio@kernel.org>, Lee Jones <lee@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-gpio@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-remoteproc@vger.kernel.org, linux-spi@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-sunxi@lists.linux.dev, Mark Brown <broonie@kernel.org>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Nuno =?utf-8?B?U8Oh?= <nuno.sa@analog.com>,
-	Orson Zhai <orsonzhai@gmail.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Samuel Holland <samuel@sholland.org>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Srinivas Kandagatla <srini@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>, Waiman Long <longman@redhat.com>,
-	Wilken Gottwalt <wilken.gottwalt@posteo.net>,
-	Will Deacon <will@kernel.org>
-Subject: Re: [RFC PATCH 0/4] hwspinlock: refactor headers into public
- provider/consumer pair
-Message-ID: <aXdCBu6kzdw1NWay@ninjato>
-References: <20260125184654.17843-6-wsa+renesas@sang-engineering.com>
- <aXc7DxsqiCGdfzxi@smile.fi.intel.com>
- <aXc-Zxw05XQLb1Dy@ninjato>
- <aXdAB2bLTy6u8G8c@smile.fi.intel.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HIMNZ7F6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A336EC116C6;
+	Mon, 26 Jan 2026 11:35:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1769427356;
+	bh=NbGMqsjy4HZ45I0jRcU5fEucTTFIYZ76bCkcIOp5DfE=;
+	h=Date:Subject:Cc:To:From:References:In-Reply-To:From;
+	b=HIMNZ7F6JaT8MzkjsKdKneVCUyFH72L2/obkiO55FDAz3c9qhFDmFGRmGEKTRQvMJ
+	 yZAW6O2h2mkQ5W3MJDn6s9X/K0mVDSSfhrk9NtyMUNmAgmHkNzjhm7avcpd82ehUBl
+	 CZmfZYfSoSy6qsTbeLZXbyvC8D/NBWtKgCA3YYxNMXcYN+3VyxVeNcqX+bb4hzvAOG
+	 7UQJV83wILYlF+BfsHIRhJujnFxKnXXjorZGkNIENIrPQmanYOGhqESwr29TDYCnWM
+	 yfg3FW1EVnfTNnkPdmuOn4j0p8CiPhc+rqa1+8i+sxyKSeok0qIxeRuIV6tuL0nGAa
+	 Q7bhNw3tK3Zpg==
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aXdAB2bLTy6u8G8c@smile.fi.intel.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 26 Jan 2026 12:35:51 +0100
+Message-Id: <DFYHNBNEFFNC.3V8T0ZGKEDYSJ@kernel.org>
+Subject: Re: [PATCH] gpio: omap: do not register driver in probe()
+Cc: <gregkh@linuxfoundation.org>, <rafael@kernel.org>, <broonie@kernel.org>,
+ <will@kernel.org>, <grygorii.strashko@ti.com>, <ssantosh@kernel.org>,
+ <khilman@kernel.org>, <linusw@kernel.org>, <driver-core@lists.linux.dev>,
+ <linux-kernel@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+ <linux-gpio@vger.kernel.org>
+To: "Bartosz Golaszewski" <brgl@kernel.org>
+From: "Danilo Krummrich" <dakr@kernel.org>
+References: <20260123133614.72586-1-dakr@kernel.org>
+ <DFW0HVK6AF0G.TW6R157R8O27@kernel.org>
+ <CAMRc=MctBqEcoDOG6BGtd=ri-c9X9awnfrojtYRVPQfp8EfGdQ@mail.gmail.com>
+In-Reply-To: <CAMRc=MctBqEcoDOG6BGtd=ri-c9X9awnfrojtYRVPQfp8EfGdQ@mail.gmail.com>
 
+On Mon Jan 26, 2026 at 10:06 AM CET, Bartosz Golaszewski wrote:
+> On Fri, Jan 23, 2026 at 2:44=E2=80=AFPM Danilo Krummrich <dakr@kernel.org=
+> wrote:
+>>
+>> On Fri Jan 23, 2026 at 2:31 PM CET, Danilo Krummrich wrote:
+>> > However, for the purpose of avoiding the described potential deadlock =
+in
+>> > combination with commit dc23806a7c47 ("driver core: enforce device_loc=
+k for
+>> > driver_match_device()"), this patch only addresses the driver registra=
+tion
+>> > issue.
+>>
+>> I.e. unless there are any concerns, I'd like to take this one through th=
+e
+>> driver-core tree.
+>
+> It looks good to me, but it's a GPIO driver, this can go together with
+> GPIO fixes for v6.19-rc8 as usual.
 
-> > Providers need it, especially the 'priv' member. Consumers won't see it.
-> 
-> But can't we make it opaque?
-> 
-> We may have getters and setters for the priv member...
+Commit [1] reveals the issue and was originally scheduled for a driver-core
+fixes PR, so it made sense for this patch to go together with [1]. However,=
+ I
+told Linus [2] that I will hold back [1] for now and send it with the -rc1 =
+PR to
+give it some more time in linux-next.
 
-I think we could do that.
+So, if you can take this patch for -rc8, that'd be great.
 
-Two drivers use the bank member, but only for the device
-(lock->bank->dev). That can probably be refactored away, I'd guess.
+Thanks,
+Danilo
 
+[1] dc23806a7c47 ("driver core: enforce device_lock for driver_match_device=
+()")
+[2] https://lore.kernel.org/driver-core/DFWVL46MM928.V9LOBRWI8BLZ@kernel.or=
+g/
