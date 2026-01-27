@@ -1,65 +1,97 @@
-Received: from mail-qv1-f45.google.com (mail-qv1-f45.google.com [209.85.219.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C19AF28371
-	for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2026 08:02:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E70D332904
+	for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2026 09:09:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769500944; cv=none; b=KhGydHQC/NMBgbdhW0YC/DF0StR5PFYhkn0/jpyCwpdrPZ9JwDNl+Tg+0oJI6sXCONUh0+ZHzlK9vC4CfHevR2oAQuw3lhxFUgHjBZIPwjdILSUaJCN/WJxU+VMYhawxojQ9D3AVn/vk4svVhkyk6+eQQayU8AmweHHVMRxeSNw=
+	t=1769504970; cv=none; b=eVvhRID8pc1rgp9WY/Ymoyi0fBTGkIHJU7/Uz3i6fsUoyRZkpNJf8bd3/27i0RFlovDgSLiqWFPjW/EaqVwe2t0tO2YyryH9aeH9ni1Sz4tkDda0RlVsY3L+UCy9sVUmvdQi+huiH3cPq6qjgiXZhnIbELPV/ylJcZMsITOaGU8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769500944; c=relaxed/simple;
-	bh=HsScYRN8C7XxHBUEFBrWlntzO0aUNoi24rZlNL0zzJY=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=uPfShCJ7GIOryt+5Syjq3XmgRpXnGjM2vy2vJSoR3H7Hpife+VEEcT3eFkexzHi/gQwUSUUSWZCtH+OvjJN7pMkhXFA1p+Qr9tnmRlKOpxvbNnsVXfpmaeP62VrSFVe4azYpCgdAE1nIQXPnDhD3f25Gc06aOLwUnqjMVsqmrks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ftjCPuRA; arc=none smtp.client-ip=209.85.219.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1769504970; c=relaxed/simple;
+	bh=fngx/NCf+/N+HScEHfbKqwGhEzf/fUg4MNQWFqsEczE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=YWsLCfUlvDmSKzzvWVhV3LlUj5+mbSkp96K8Sma0DrS2DaB8nO/qs4vn0zcPaOEt6qCL1WkyNG1i07a6HbkdzjcKPMsDN8iatj/bhzBT/HW/D7q3okbnBlU80ngpW/dzgrQfkzRsJscu1De2d9+IaDoC5gS7dLnJoHA+uWxrAEQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=T7To+Ioj; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=Zx53euiU; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ftjCPuRA"
-Received: by mail-qv1-f45.google.com with SMTP id 6a1803df08f44-88a35a00506so100065836d6.2
-        for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2026 00:02:21 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="T7To+Ioj";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="Zx53euiU"
+Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 60R4UE82496030
+	for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2026 09:09:27 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	Vvlvwl1QyFdXJth2eYeA5TIEczP4LPciKUZRTZ+rabE=; b=T7To+IojkhBG8ZEO
+	HE6Qoqu0XRQsxt4ddkt51TOn+acN4BA44nEUEqpNUbFCc87saL2AofL3nRqLj8i1
+	aQ3BmwQmlgIBzljkIa/CoHWIzFxuccXrGRpx+F7Dvr7F+jaLMbDg/J2eDOJaHnQ/
+	iUSjECYtYgkTcXIdFMbU5V6rfQgDZVZGacNh99aPERt07liTUKVZMFNu11Yt4qOO
+	srx+CkvrZD6t5L542M/t4zGVzbP6AoDpPMkuVzXKeZUhHy/WgGY3S7nkTZeGbkun
+	AmZ/uoXLtmLbExIwQNxlNEm9ghMZ5q3HwcOaCjj1bhlprMi9z7ZOjUmGfO8GT1UQ
+	/ChUvw==
+Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com [209.85.222.200])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4bxf3bj30d-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2026 09:09:27 +0000 (GMT)
+Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-8c52fd47227so950831285a.2
+        for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2026 01:09:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769500941; x=1770105741; darn=vger.kernel.org;
-        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
-         :date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=gYyhxoUylHHW2V1XitCAxiaLRC0fKk6AB8sFPEBn1tg=;
-        b=ftjCPuRASxqKhEO7UMP2+uPIt8YnIGUwgt1pOhe7PzDckVoDQh83qK3EmZEnPbUiWR
-         pBhqU2hVJQzxC/ER7DVvuhYahNdMtj/PUsg+8yj9WAeOAutbmKyJsvyXZJmEvNOZsMk2
-         633oNNlfpBkyYGQc9vPbfHREYRqciRjDRXzun8hBs/GWDn8t4ToFJEkJvog/4pPm+537
-         NDPmolSJfAh0QquKiT3SAYcaPMJFhbmGJLO4YCdcni9YHFrIMViILs8Z8Dv9pVZRsQvS
-         CP4vdpQ1KdrxZB8oYVDHgOA+5nLV/Y0tW+MGvWoN/mlJyAOCx8z8FdCpq1vYNaXGHLlt
-         EJ9Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769500941; x=1770105741;
-        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
-         :date:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=oss.qualcomm.com; s=google; t=1769504966; x=1770109766; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=gYyhxoUylHHW2V1XitCAxiaLRC0fKk6AB8sFPEBn1tg=;
-        b=qZhn28kuheaDULTavQ94HZXCGKlNZFDW+hWttzQbiicR7dIOHMFRG5IYeSskYtcrUz
-         K4yH9oZeK4cvmRzvwKYsTDKOc7wyv7HzZH/onDWydD4zSZdpm2zG+F8rFj1oBRmSMv/k
-         Dk2/f9E/KWW3J0yxXMViDEey9X3IPSl19P+CSOwNghbYt2Oi5LbwpkxVDR2yah+W32OZ
-         KWqU80MSfiao5msRcKZikR6ya7zvRM9fIUeq6VTPznBXAWnszmBmROenmmgJIH/lSgVp
-         ndUkqrFAmDe1Lmx7HGId5jXKw1mRxL4BhELr+LHp5GoFkcKtvJlAiUyuKgWG1NJrYPeY
-         mtfQ==
-X-Forwarded-Encrypted: i=1; AJvYcCW0dT5jGDd2C+tCLuM+s1v/8zB9MXw6yCBhlXYQGoiZHMmi8Rp4bwl0MGNQ6rna9IwYkm/bk/79Sbwn@vger.kernel.org
-X-Gm-Message-State: AOJu0YyluvTV/lIc9kYk/5rl6MVJr1XwblYDAwN65cBaWPZ4Gw1ywjMw
-	ARYUFU5srep0TsFDywYB2HRgob9TRC6Wlcqxoa2Mf+eGfn+lP40ZK9V/
-X-Gm-Gg: AZuq6aL3ffKhw0HPsI3FmYQ3knfL0IxCpS+31dUiis+jM8Y7Yenu/GS+JVifdhB5AzR
-	uAqaq6Xw10MRw/KCxBz/xht60zpOsVnCU6KZlQ6cn4lMtZUoKNPdxey3aLS3lho1qaftkHiVkKl
-	M7UKh9kb9PozoDHv4MrjxjUWk2PMWDUs4eTQItkpJqH/nl/uDWwhkBK/lXE7NcSpz0bqOY9Rzoy
-	d1EtH+CihNppGyVuC8mGHlL+EmziOtvJf4GT0LbZTMJbM6do34wTEf8FSNhbfBY1M34mkSpv+ve
-	R/TmCB04XpwkAA25fhezCWLa+pCTJMaOeG5wyQk28263kIAZM3QBNkVm/24RM0kmHuDdIo6jmwf
-	TPRpwxKFkbJPGTKvfe3MMMuZTOZyysVWODCNkh85ome5ck54WmEjwQ906T5pQfiBawHwoqpBvVh
-	5EzSEsxfQ/byCKciIX8O4h
-X-Received: by 2002:a05:622a:1453:b0:4ff:c144:a45 with SMTP id d75a77b69052e-5032f76dc5fmr8401861cf.1.1769500940541;
-        Tue, 27 Jan 2026 00:02:20 -0800 (PST)
-Received: from localhost.localdomain ([128.224.253.2])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-894aeb0ce21sm68244016d6.52.2026.01.27.00.02.16
+        bh=Vvlvwl1QyFdXJth2eYeA5TIEczP4LPciKUZRTZ+rabE=;
+        b=Zx53euiUHvdDTpXi1Chm50fLYF5YfpHv+HyUZMU9qBr29WrFjCRVgeeKXWgPYh9RR3
+         PT/+2I1IpU2wCoHG8bW2ku7af1HO1B6nbwB6P6SnmPIjhuukhCgV8k1HHAH18oMpaWS/
+         clsht0b07Bp7fi8spnoDbSiXJH8P5loJGKZkUj4bnB4x+KZ+/AjwEscqL2ig0xozjHTN
+         QoZ0LdXyGYZDXPr22hIp+9svMp4koE4JDcMC2dMQtOKgCPtjhXsAlq0Ya0eNRRX/oXVb
+         mAf6kVl3eRnoTWxwF/UCYZBon9Ipnoem/2ytg5C/sOcw9H4jEXGWqgKjagLZHp7aYZWG
+         n9SQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769504966; x=1770109766;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Vvlvwl1QyFdXJth2eYeA5TIEczP4LPciKUZRTZ+rabE=;
+        b=AemblC/T7Egx/7wPq6knH9EbO2Hu2ATHRVNwIPqwdMlsO5/SrpNdntjQTNPI8NODui
+         sQxEzLqg/vnxtfEsyFt/uVMW3DA3wAy7+n36BvStXjkPyMJBrvbJ/oSOR+N7u6Mp4v3b
+         8g3m+iSLYdT0kkyqiJ2Pm8ENOgTO6RTjtXgMGd9s1V5Wh9p8JKmbhVbPyyryShdmPFsE
+         CnjDJK0JlT8VaSVNyrc72099dVaMITsMMBAillviFwB9KtFcy+o7OMr1J5lWqGLZ1I2h
+         2wtbe3yc4fznQyslpkyKglxw4A2ucw7TUSUg6G+IRXF2OoA7z7OnXQEnIEjPqqhvm6po
+         p5EA==
+X-Forwarded-Encrypted: i=1; AJvYcCXnpMwDGVWxsato9P2DR2SF4lHA440Ib9S5it5kaw3Losfpn+M2i9BNW+fxhy3Lsbb62XV5uI6ah5nJ@vger.kernel.org
+X-Gm-Message-State: AOJu0YwsVRohdp55KNj4MsTya3HFG9Z83L7MpBxIt669tikjbONqX5jv
+	NANLeC5TIDx4w921dGMINldW+YPJV2A5n/N/2m2AnzvXRgoehDrmznB22hdkg7s1uQhMDvIPE/D
+	x507SbWrMuSVg8QSnBaD3Byk8gMaVGdhQFM3JQPswZYBqILzBjLRqjgqanK803Ppb
+X-Gm-Gg: AZuq6aLSXz2HS5OoH+4obWKKyx/nvAlZ61Xfec8g2oIIqqSZKExuSA0axtxj94gZZE4
+	zrr87EM5kTQvgpN8yyJD2Wgfa9gvm9xGg+iOKnl0NUDv4mnZalmDQGMZHtvtmWdniVqEOqnz//Y
+	pbZXVAuJygQnRvojTyV1OLvn7ntvPE+YKhpN0J2fJsg/e52lJeZtrmCFSgIHSE8FZ9XIIcgqH3B
+	LigycxO2StgNBGSfnttUJT7bMVJVldMDbU46GD3F4V1AGZ3ESUk9JPozEGbj95uz4nJLpyag1AK
+	Te8f2tedfskq/T3ihHEcosTb/EqxlwcCXC3oq25V/S75XU+SZVuX7Sh+2RLwi973t6+D59SnruI
+	bjMz2CEh90rB0lojWuq+kTjMcnz7GSTzXV5MXKQ==
+X-Received: by 2002:a05:620a:46a9:b0:8b2:e827:14bc with SMTP id af79cd13be357-8c70b8e5f77mr100446185a.56.1769504966118;
+        Tue, 27 Jan 2026 01:09:26 -0800 (PST)
+X-Received: by 2002:a05:620a:46a9:b0:8b2:e827:14bc with SMTP id af79cd13be357-8c70b8e5f77mr100444185a.56.1769504965631;
+        Tue, 27 Jan 2026 01:09:25 -0800 (PST)
+Received: from brgl-qcom.home ([2a01:cb1d:dc:7e00:262e:d32a:e347:8b74])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4804db7b434sm128163345e9.4.2026.01.27.01.09.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 Jan 2026 00:02:20 -0800 (PST)
-From: Kevin Hao <haokexin@gmail.com>
-Date: Tue, 27 Jan 2026 16:02:07 +0800
-Subject: [PATCH net v3] net: cpsw_new: Execute ndo_set_rx_mode callback in
- a work queue
+        Tue, 27 Jan 2026 01:09:25 -0800 (PST)
+From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+To: gregkh@linuxfoundation.org, rafael@kernel.org, broonie@kernel.org,
+        will@kernel.org, grygorii.strashko@ti.com, ssantosh@kernel.org,
+        khilman@kernel.org, linusw@kernel.org, brgl@kernel.org,
+        Danilo Krummrich <dakr@kernel.org>
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+        driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
+Subject: Re: [PATCH] gpio: omap: do not register driver in probe()
+Date: Tue, 27 Jan 2026 10:09:16 +0100
+Message-ID: <176950495232.13307.15142034347404555496.b4-ty@oss.qualcomm.com>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260123133614.72586-1-dakr@kernel.org>
+References: <20260123133614.72586-1-dakr@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -67,212 +99,48 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260127-bbb-v3-1-5e71f340c1e9@gmail.com>
-X-B4-Tracking: v=1; b=H4sIAP5weGkC/1WMyw6CMBBFf4XM2po+oFVX/odxQV8wiVDTkkZD+
- Hdr3WDu6t6Zc1ZILqJLcGlWiC5jwjCXIg4NmLGfB0fQlg6cckkZF0RrTawRUnVeKmYplM9ndB5
- f1XKD2S1wL+OIaQnxXc2Z1dOfJDNSoqSmWrGTaO11mHp8HE2YKp/5nul+DP8yXau877U5W7Fnt
- m37ALL94w3PAAAA
-X-Change-ID: 20260123-bbb-dc3675f671d0
-To: netdev@vger.kernel.org
-Cc: Kevin Hao <haokexin@gmail.com>, stable@vger.kernel.org, 
- Siddharth Vadapalli <s-vadapalli@ti.com>, Roger Quadros <rogerq@kernel.org>, 
- Andrew Lunn <andrew+netdev@lunn.ch>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Vladimir Oltean <vladimir.oltean@nxp.com>, 
- Kuniyuki Iwashima <kuniyu@google.com>, linux-omap@vger.kernel.org
-X-Mailer: b4 0.14.2
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-ORIG-GUID: 3oWoDlGszlVV5q1_z0VtC9SHgf92fERw
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMTI3MDA3NCBTYWx0ZWRfX407VlgXNK9ZA
+ PKQC51o3q9PMdaDJNqJCgaYaQcpKA/bPxDkfZE3P73p2MUibMd3J2PSNtjGVWtbx5pU6yys6/CB
+ chd3jv7FvPo4/oGLzL7Q7YJz4XTpG9y3wmroF5enirdyg3UU8xw/9wTXotu2eZUPh6eiZelKtaK
+ dOTn6JVJtVh3wahOkdQafr9QW4DUHFTOXE3IZJBzO57DvRh3ak7RYTHQBlN7s3zVfYdEDSh4+Y+
+ XCEZgqBBXLCpt/ePyZh9EJoMc/5ZTfNGNQ7OjdihjUpB6nPJfxxUwefAPjoT9inFlf6piM3ApVg
+ c2XaloFYLNggeKe8pdBUm6lHKhdiGa6NFON4S6Uj/9QRx8ctjHKIevUWtyEBNSFPTpzca1TCclP
+ pYSOAlcL/WRvxEJaPzpwaHn9TR7qvjREbU6ZxBAJX1OVfGQqW/HQXlbDmYDZes5mPBUoIHObkY+
+ U2qpK3dhHJgJ7YMkrFg==
+X-Proofpoint-GUID: 3oWoDlGszlVV5q1_z0VtC9SHgf92fERw
+X-Authority-Analysis: v=2.4 cv=AOFXvqQI c=1 sm=1 tr=0 ts=697880c7 cx=c_pps
+ a=hnmNkyzTK/kJ09Xio7VxxA==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+ a=vUbySO9Y5rIA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=EUspDBNiAAAA:8 a=StneJEbOKPblmvvYeVQA:9 a=QEXdDO2ut3YA:10
+ a=PEH46H7Ffwr30OY-TuGO:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.20,FMLib:17.12.100.49
+ definitions=2026-01-27_01,2026-01-26_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ clxscore=1015 suspectscore=0 phishscore=0 adultscore=0 priorityscore=1501
+ lowpriorityscore=0 bulkscore=0 spamscore=0 impostorscore=0 malwarescore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2601150000 definitions=main-2601270074
 
-Commit 1767bb2d47b7 ("ipv6: mcast: Don't hold RTNL for
-IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP.") removed the RTNL lock for
-IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP operations. However, this
-change triggered the following call trace on my BeagleBone Black board:
-  WARNING: net/8021q/vlan_core.c:236 at vlan_for_each+0x120/0x124, CPU#0: rpcbind/496
-  RTNL: assertion failed at net/8021q/vlan_core.c (236)
-  Modules linked in:
-  CPU: 0 UID: 997 PID: 496 Comm: rpcbind Not tainted 6.19.0-rc6-next-20260122-yocto-standard+ #8 PREEMPT
-  Hardware name: Generic AM33XX (Flattened Device Tree)
-  Call trace:
-   unwind_backtrace from show_stack+0x28/0x2c
-   show_stack from dump_stack_lvl+0x30/0x38
-   dump_stack_lvl from __warn+0xb8/0x11c
-   __warn from warn_slowpath_fmt+0x130/0x194
-   warn_slowpath_fmt from vlan_for_each+0x120/0x124
-   vlan_for_each from cpsw_add_mc_addr+0x54/0xd8
-   cpsw_add_mc_addr from __hw_addr_ref_sync_dev+0xc4/0xec
-   __hw_addr_ref_sync_dev from __dev_mc_add+0x78/0x88
-   __dev_mc_add from igmp6_group_added+0x84/0xec
-   igmp6_group_added from __ipv6_dev_mc_inc+0x1fc/0x2f0
-   __ipv6_dev_mc_inc from __ipv6_sock_mc_join+0x124/0x1b4
-   __ipv6_sock_mc_join from do_ipv6_setsockopt+0x84c/0x1168
-   do_ipv6_setsockopt from ipv6_setsockopt+0x88/0xc8
-   ipv6_setsockopt from do_sock_setsockopt+0xe8/0x19c
-   do_sock_setsockopt from __sys_setsockopt+0x84/0xac
-   __sys_setsockopt from ret_fast_syscall+0x0/0x5
 
-This trace occurs because vlan_for_each() is called within
-cpsw_ndo_set_rx_mode(), which expects the RTNL lock to be held.
-Since modifying vlan_for_each() to operate without the RTNL lock is not
-straightforward, and because ndo_set_rx_mode() is invoked both with and
-without the RTNL lock across different code paths, simply adding
-rtnl_lock() in cpsw_ndo_set_rx_mode() is not a viable solution.
+On Fri, 23 Jan 2026 14:31:56 +0100, Danilo Krummrich wrote:
+> Commit 11a78b794496 ("ARM: OMAP: MPUIO wake updates") registers the
+> omap_mpuio_driver from omap_mpuio_init(), which is called from
+> omap_gpio_probe().
+> 
+> However, it neither makes sense to register drivers from probe()
+> callbacks of other drivers, nor does the driver core allow registering
+> drivers with a device lock already being held.
+> 
+> [...]
 
-To resolve this issue, we opt to execute the actual processing within
-a work queue, following the approach used by the icssg-prueth driver.
+Applied, thanks!
 
-Fixes: 1767bb2d47b7 ("ipv6: mcast: Don't hold RTNL for IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP.")
-Signed-off-by: Kevin Hao <haokexin@gmail.com>
-Cc: stable@vger.kernel.org
----
-Changes in v3:
-- Resolve the deadlock issue identified in the AI review [2]
-  by moving the netif_running() check under the RTNL lock and removing the
-  cancel_work_sync() call in cpsw_ndo_stop().
-
-- Link to v2: https://lore.kernel.org/r/20260125-bbb-v2-1-1547ffabc9d3@gmail.com
-
-Changes in v2:
-- Addresses the issue identified in the AI review [1]:
-  - Adds a netif_running() check in cpsw_ndo_set_rx_mode_work()
-  - Cancels the rx_mode_work in cpsw_ndo_stop()
-
-- Link to v1: https://lore.kernel.org/r/20260123-bbb-v1-1-176b0b71834d@gmail.com
-
-[1] https://netdev-ai.bots.linux.dev/ai-review.html?id=bd885e1e-1aed-4755-ad60-7150737ad0f5
-[2] https://netdev-ai.bots.linux.dev/ai-review.html?id=c9fc3cf8-a06c-4cb8-b26b-910e775951a0
----
-Please note that the cpsw driver also has the same issue. If this resolution
-is acceptable, I will create another patch to fix the issue in cpsw.
-
-Cc: Siddharth Vadapalli <s-vadapalli@ti.com>
-Cc: Roger Quadros <rogerq@kernel.org>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Vladimir Oltean <vladimir.oltean@nxp.com>
-Cc: Kuniyuki Iwashima <kuniyu@google.com>
-Cc: linux-omap@vger.kernel.org
----
- drivers/net/ethernet/ti/cpsw_new.c  | 34 ++++++++++++++++++++++++++++++++--
- drivers/net/ethernet/ti/cpsw_priv.h |  2 ++
- 2 files changed, 34 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
-index ab88d4c02cbde76207f89cf433e2b383dcde6a83..838615c9a5ec3c9226c2aff6325ecda13ba9729f 100644
---- a/drivers/net/ethernet/ti/cpsw_new.c
-+++ b/drivers/net/ethernet/ti/cpsw_new.c
-@@ -248,15 +248,25 @@ static int cpsw_purge_all_mc(struct net_device *ndev, const u8 *addr, int num)
- 	return 0;
- }
- 
--static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
-+static void cpsw_ndo_set_rx_mode_work(struct work_struct *work)
- {
--	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpsw_priv *priv = container_of(work, struct cpsw_priv, rx_mode_work);
- 	struct cpsw_common *cpsw = priv->cpsw;
-+	struct net_device *ndev = priv->ndev;
- 
-+	rtnl_lock();
-+	if (!netif_running(ndev)) {
-+		rtnl_unlock();
-+		return;
-+	}
-+
-+	netif_addr_lock_bh(ndev);
- 	if (ndev->flags & IFF_PROMISC) {
- 		/* Enable promiscuous mode */
- 		cpsw_set_promiscious(ndev, true);
- 		cpsw_ale_set_allmulti(cpsw->ale, IFF_ALLMULTI, priv->emac_port);
-+		netif_addr_unlock_bh(ndev);
-+		rtnl_unlock();
- 		return;
- 	}
- 
-@@ -270,6 +280,16 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
- 	/* add/remove mcast address either for real netdev or for vlan */
- 	__hw_addr_ref_sync_dev(&ndev->mc, ndev, cpsw_add_mc_addr,
- 			       cpsw_del_mc_addr);
-+	netif_addr_unlock_bh(ndev);
-+	rtnl_unlock();
-+}
-+
-+static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
-+{
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpsw_common *cpsw = priv->cpsw;
-+
-+	queue_work(cpsw->cmd_wq, &priv->rx_mode_work);
- }
- 
- static unsigned int cpsw_rxbuf_total_len(unsigned int len)
-@@ -1398,6 +1418,7 @@ static int cpsw_create_ports(struct cpsw_common *cpsw)
- 		priv->msg_enable = netif_msg_init(debug_level, CPSW_DEBUG);
- 		priv->emac_port = i + 1;
- 		priv->tx_packet_min = CPSW_MIN_PACKET_SIZE;
-+		INIT_WORK(&priv->rx_mode_work, cpsw_ndo_set_rx_mode_work);
- 
- 		if (is_valid_ether_addr(slave_data->mac_addr)) {
- 			ether_addr_copy(priv->mac_addr, slave_data->mac_addr);
-@@ -1976,6 +1997,13 @@ static int cpsw_probe(struct platform_device *pdev)
- 	}
- 	cpsw_split_res(cpsw);
- 
-+	cpsw->cmd_wq = create_singlethread_workqueue("cpsw_cmd_wq");
-+	if (!cpsw->cmd_wq) {
-+		dev_err(dev, "error initializing workqueue\n");
-+		ret = -ENOMEM;
-+		goto clean_cpts;
-+	}
-+
- 	/* setup netdevs */
- 	ret = cpsw_create_ports(cpsw);
- 	if (ret)
-@@ -2042,6 +2070,7 @@ static int cpsw_probe(struct platform_device *pdev)
- clean_unregister_notifiers:
- 	cpsw_unregister_notifiers(cpsw);
- clean_unregister_netdev:
-+	destroy_workqueue(cpsw->cmd_wq);
- 	cpsw_unregister_ports(cpsw);
- clean_cpts:
- 	cpts_release(cpsw->cpts);
-@@ -2068,6 +2097,7 @@ static void cpsw_remove(struct platform_device *pdev)
- 		return;
- 	}
- 
-+	destroy_workqueue(cpsw->cmd_wq);
- 	cpsw_unregister_notifiers(cpsw);
- 	cpsw_unregister_devlink(cpsw);
- 	cpsw_unregister_ports(cpsw);
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
-index 91add8925e235c6cf5542fde11f3383b9234c872..8cdf4bff198fcc05436ff381a7e4326b3e3c27b1 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.h
-+++ b/drivers/net/ethernet/ti/cpsw_priv.h
-@@ -362,6 +362,7 @@ struct cpsw_common {
- 	struct net_device *hw_bridge_dev;
- 	bool ale_bypass;
- 	u8 base_mac[ETH_ALEN];
-+	struct workqueue_struct *cmd_wq;
- };
- 
- struct cpsw_ale_ratelimit {
-@@ -391,6 +392,7 @@ struct cpsw_priv {
- 	u32 tx_packet_min;
- 	struct cpsw_ale_ratelimit ale_bc_ratelimit;
- 	struct cpsw_ale_ratelimit ale_mc_ratelimit;
-+	struct work_struct rx_mode_work;
- };
- 
- #define ndev_to_cpsw(ndev) (((struct cpsw_priv *)netdev_priv(ndev))->cpsw)
-
----
-base-commit: 615aad0f61e0c7a898184a394dc895c610100d4f
-change-id: 20260123-bbb-dc3675f671d0
+[1/1] gpio: omap: do not register driver in probe()
+      commit: 3cb53b083fa665ec14c52962f50b9c1df48cf87b
 
 Best regards,
 -- 
-Kevin Hao <haokexin@gmail.com>
-
+Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
