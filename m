@@ -1,262 +1,264 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-lj1-f182.google.com (mail-lj1-f182.google.com [209.85.208.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEDAF37F735
-	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2026 08:36:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769675781; cv=none; b=O2UKrh9TLIYIOx7SCpcEtoG9esJBETn3OCH/gotZB/VmcK1090lGzEEt2wNwMZpjeKGEJOqUslsoPny/c4QXrOTP+K8jsy5WphEtXukmtStM8NuLAlMyf0XYfWnB/RinAEsJWc3lkHlbu8oCpZ51Vs5VCPK3mqlCgqe23AT4nyQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769675781; c=relaxed/simple;
-	bh=hjS4wGqHJxTE/IUU65IzABH7Wj1y99FvGUsSSQMBrFM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=uP9B3LoyjOoxsxbshcQXP9xnSYpUnhC0XLbAljzBBz++IxuZxH3QQPZ/2hskhFULrW9Jy1X8LP7kbvRD1cEr9IZU0GwtITddfL3Es+m2/yfQakbhW8CKRgc3rQqAvAT0e7CqUEDXT9GbvdgehFhr6AV5AJO+M67ivbnrZSO6z18=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=CKBj7h7/; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=zqMvb+Z7; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Tb6BMQk9; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=49pcOwHJ; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BEDB3358D6
+	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2026 16:06:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.182
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769702811; cv=pass; b=dGxzNX0QK4MUpNVOgDv6UJ9G6vNSQkcs/JEt6FH4THEznaKUJOrLb2zyJ4ZGHouf0aSQIGj0tDFimu9wT8Y26c4STyduPGkMwYcortN28usGXdOKQevd8frZnqI7B0kRxy2Gs/lQk1d/3BI3y+t2UlYpK+al6o/Ea1YReuJt/3w=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769702811; c=relaxed/simple;
+	bh=07694nkibp+Ukt/3oCjWp5i0EIYQ4hrhXlidSnaNpN4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=V4E+iRifq35fcuJQwlCB34h4myA3TiCAi4tq/Iw1aSfmw2qkoYGNuuEGKeM+NN4Udp0O+2D6nvsKiWdoS43ZRIyMhocrVb4kffCfFDwV97XDDXdkqfwQa6/C9SLrvCHeAIc64l+LZ8NR0nkxGc2UHfy+HeEnGc3d7x8Z7zM8smE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=DXCleRDE; arc=pass smtp.client-ip=209.85.208.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="CKBj7h7/";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="zqMvb+Z7";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Tb6BMQk9";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="49pcOwHJ"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id D98355BCDC;
-	Thu, 29 Jan 2026 08:36:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1769675768; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=WQAc5T7zApr4eCsZOkLI7RX6tGsSY1oM0/JdDUvrtdQ=;
-	b=CKBj7h7/hDPTUCxJGlPCl2+C5MyeZAUssqOt+zDUjH9WqToSjetMNtm+uPYKQGYeA1eMpX
-	S416khMDeh3e8LDivYqH+pVpCJ/m6inub3gPXAgzHnh61ChpyVuzKnJQLt1SGwrsstKqiW
-	nObP2GzSxY/FinviN1if6N59uGFLIXk=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1769675768;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=WQAc5T7zApr4eCsZOkLI7RX6tGsSY1oM0/JdDUvrtdQ=;
-	b=zqMvb+Z7p05Zy9EdbQV1yftYyrDt/VeVZ/bn6kdPR/VfbkRSZme0oRgR/Ok14JAEy7Wnxp
-	grI5wzf4fqCqoyCA==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=Tb6BMQk9;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=49pcOwHJ
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1769675767; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=WQAc5T7zApr4eCsZOkLI7RX6tGsSY1oM0/JdDUvrtdQ=;
-	b=Tb6BMQk9rD6tUH0WSy5kEIr6e0tquG5xkFxSkBmWDgSeoni+DJZ1PylNkIec8eGf+b8Hvx
-	Y8ln+Il6EX4bI8j4WbdPZKlexh454D4DI8I275XwhAq0STIR8mGpRCfwRzwPJsBQyT3fyM
-	CVSbEYtVprqPQRye9qC2dSlD1GkEQmI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1769675767;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=WQAc5T7zApr4eCsZOkLI7RX6tGsSY1oM0/JdDUvrtdQ=;
-	b=49pcOwHJeGqVt6cd2huJXtsU1P4b96MZeA1gcuQut66+Re8AkX0nU8oYN3OR3PcrgpZoxG
-	gcjGI9Ym78x8xuAw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 84E093EA61;
-	Thu, 29 Jan 2026 08:36:07 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id G83rHvcbe2nkaQAAD6G6ig
-	(envelope-from <tzimmermann@suse.de>); Thu, 29 Jan 2026 08:36:07 +0000
-Message-ID: <bfc6a338-de9e-404e-839f-245ff21b2968@suse.de>
-Date: Thu, 29 Jan 2026 09:36:06 +0100
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="DXCleRDE"
+Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-382fd8aaa6eso9581661fa.1
+        for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2026 08:06:49 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1769702807; cv=none;
+        d=google.com; s=arc-20240605;
+        b=OZht+70nwnm1S9r5Q2rGaxOpU0yLpMR23HfbdU4LRNxgNQhNrB+eZBJagJ9Dce7Dz5
+         WhZSVoNeH6zZOG7e2LV8EQ1bP97b6dstB99tA86/YY7AIr8kFuFvTFNQJY+yfr9ky5qJ
+         99aqNvRRbRVIEybLq4E2au2j0Q9lZQ3lYJkriQOptb0WieB54Q+Td9I19vzFyDoLTJxc
+         +H1F559AL+yyQOkWdkr7I5CA8u6u6aeJHN7rhG5zDg4Pucs7E+otFWNy5V/GHh8l3p2z
+         /8/KrYdHUELMFQT3/5ZFtw/zQGEkXqvTB4R6tTHtxSnJq6aCkb5a1I7RU4wiDrcLYeDn
+         aq8w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=sjBE9CcEx3FGX02UcUqw+G+HOHlTgyZhIWMhdAQnoXg=;
+        fh=uf/XNXbquv4WebwGB+SJBxcFq8nqOM7kzAzRnJjOv7A=;
+        b=hJoQCdRcxSjlgV9tzgV3kEGl0uqgBYGhEMfABevIWx36ec1gBQpKGktzeKGwrkhCS4
+         4sOyfTlqFcHrPbKA+j79Tf6KUIepNN7PzyH3EoccZFu9iTtEcjgs0qYaDW6ZD5JuXKFd
+         +j3lHJJw+wOgcuuSyt/Tnbf4as/CCI1IyZesjRwsiHhH126GmI1ud4B+ugzB1i+dcmSD
+         i8lCFc/RqNa5bAYdlFPuhxaoSJuFujIp72KrsRmidbHySDRjU+tCowru4fY+8BU/AmRd
+         lxZBI4A7XYynvwvNkVYbnP92romnyNgRpExQ1A9wKZCF9PJulkobKHV/SRHtwB58EB2R
+         wL0A==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1769702807; x=1770307607; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=sjBE9CcEx3FGX02UcUqw+G+HOHlTgyZhIWMhdAQnoXg=;
+        b=DXCleRDExChl/h8Dg365AhW/r2JRAOHymIXupLWJFbwgmikGA4eODDcSKgC+rsAUw8
+         Gbtqv3xam1Iq2YgyRShLO6ZY+gE7W1cb5FSqCtwdFbAFpfZ20B5S5hBZ0c5QfL/Y3kp3
+         0fkeMTyY4dpHbo68v70VVRELvZymtLFJBdr7P83S9290IfRJ6mvImZdqKzYo+DOYNRmM
+         GRRF70fAKQBP5txyVS77t55eFa3cu8f7N8k6hKVThxV31rX3xacnejRqFHLA+NyG464d
+         jCbjC3xPS0kQM2aoDQNfidex/DN41SePdLmegi0BMnL9PuGWZirC8TW/c64TVnhi0LnV
+         9fFg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769702807; x=1770307607;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=sjBE9CcEx3FGX02UcUqw+G+HOHlTgyZhIWMhdAQnoXg=;
+        b=oXkfcIFDXKWqAjf3qAFLkwkfCnKAWCXxAGyPz8RStwkx0+7V61TQCnlMleWFfkWgt9
+         v/aZE4mLKRcNGWHO4EgxoK+90z432+FjiGQyiOEorempxsjYRsR5Jfnc2kq0C/Wfg2sP
+         DtPtV3Ddpj6KRhOS5+C8D4F6lXjlu2IDntffwnUavGTCWQtP7UlaWB09m/stIU4oqT7W
+         wEJTU7IXiZD8q/t7zoT/8vUjZWk8bKZUgpKw65hePvZKWhch7F440kCSRyxpYNJYOFiC
+         DDq96JWYfnqbHhNcgcmG8nRJVKKG1zfAkQ8Zfg+H5qVtRhdt9S0Sm6FKfuTCR5eEj6GC
+         Dy0A==
+X-Forwarded-Encrypted: i=1; AJvYcCWNQQkKdOOl5ppccQbfW3qOHGnfwmaUVMMW0xs4BmmkuUchkI17d2pA5cr8uHwqCGOYD6pgOPePmeLJ@vger.kernel.org
+X-Gm-Message-State: AOJu0Yycv+Ttv1h8GnFAN0bNlIIC/Rkk0cWfyu/Q30TJRFtr0Yu5TW5H
+	cS9rQLed479PmmFguuKdpbIOCA1tATimevm+zhU8c0Cz4opl6bGwusty42IPzscnTMbVuV2/gOh
+	+makSr4sM4kqbAXg2SY+SEECaVNI//i+GaOkitMcPdA==
+X-Gm-Gg: AZuq6aJcsOQEKmsxYHJk3cHnZG7U5Tt6gauxQGywQlBzPhJIBW1v0wMZXsOQ9sS4ajJ
+	yj13TZSCqIAr2j8TXIQ7O+19/k7Yi5N36sswkbcIucZiqmt2zKl8f96RBf9D/zRq/XDpROeHhWM
+	6KmfLEJ6HbidBXGCGAxbITvI+zZS9aapPPGROxXuw+Xou4KApaya1vNzd2PCYbiGs451tHZ9f4A
+	BaRGGdMIvAxXMlWt3wx0dtF2Nui9iy/ICy4QxTSO0io/qD2AOTvI2V59DoJUVz7by0udoNP
+X-Received: by 2002:a05:6512:234e:b0:59d:d799:b7a0 with SMTP id
+ 2adb3069b0e04-59e040299admr4006653e87.36.1769702806877; Thu, 29 Jan 2026
+ 08:06:46 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v8 1/2] staging: fbtft: Fix build failure when
- CONFIG_FB_DEVICE=n
-To: Chintan Patel <chintanlike@gmail.com>, linux-fbdev@vger.kernel.org,
- linux-staging@lists.linux.dev, linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
- andy@kernel.org, deller@gmx.de, gregkh@linuxfoundation.org,
- kernel test robot <lkp@intel.com>,
- Andy Shevchenko <andriy.shevchenko@intel.com>
-References: <20260122031635.11414-1-chintanlike@gmail.com>
-Content-Language: en-US
-From: Thomas Zimmermann <tzimmermann@suse.de>
-Autocrypt: addr=tzimmermann@suse.de; keydata=
- xsBNBFs50uABCADEHPidWt974CaxBVbrIBwqcq/WURinJ3+2WlIrKWspiP83vfZKaXhFYsdg
- XH47fDVbPPj+d6tQrw5lPQCyqjwrCPYnq3WlIBnGPJ4/jreTL6V+qfKRDlGLWFjZcsrPJGE0
- BeB5BbqP5erN1qylK9i3gPoQjXGhpBpQYwRrEyQyjuvk+Ev0K1Jc5tVDeJAuau3TGNgah4Yc
- hdHm3bkPjz9EErV85RwvImQ1dptvx6s7xzwXTgGAsaYZsL8WCwDaTuqFa1d1jjlaxg6+tZsB
- 9GluwvIhSezPgnEmimZDkGnZRRSFiGP8yjqTjjWuf0bSj5rUnTGiyLyRZRNGcXmu6hjlABEB
- AAHNJ1Rob21hcyBaaW1tZXJtYW5uIDx0emltbWVybWFubkBzdXNlLmRlPsLAjgQTAQgAOAIb
- AwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgBYhBHIX+6yM6c9jRKFo5WgNwR1TC3ojBQJftODH
- AAoJEGgNwR1TC3ojx1wH/0hKGWugiqDgLNXLRD/4TfHBEKmxIrmfu9Z5t7vwUKfwhFL6hqvo
- lXPJJKQpQ2z8+X2vZm/slsLn7J1yjrOsoJhKABDi+3QWWSGkaGwRJAdPVVyJMfJRNNNIKwVb
- U6B1BkX2XDKDGffF4TxlOpSQzdtNI/9gleOoUA8+jy8knnDYzjBNOZqLG2FuTdicBXblz0Mf
- vg41gd9kCwYXDnD91rJU8tzylXv03E75NCaTxTM+FBXPmsAVYQ4GYhhgFt8S2UWMoaaABLDe
- 7l5FdnLdDEcbmd8uLU2CaG4W2cLrUaI4jz2XbkcPQkqTQ3EB67hYkjiEE6Zy3ggOitiQGcqp
- j//OwE0EWznS4AEIAMYmP4M/V+T5RY5at/g7rUdNsLhWv1APYrh9RQefODYHrNRHUE9eosYb
- T6XMryR9hT8XlGOYRwKWwiQBoWSDiTMo/Xi29jUnn4BXfI2px2DTXwc22LKtLAgTRjP+qbU6
- 3Y0xnQN29UGDbYgyyK51DW3H0If2a3JNsheAAK+Xc9baj0LGIc8T9uiEWHBnCH+RdhgATnWW
- GKdDegUR5BkDfDg5O/FISymJBHx2Dyoklv5g4BzkgqTqwmaYzsl8UxZKvbaxq0zbehDda8lv
- hFXodNFMAgTLJlLuDYOGLK2AwbrS3Sp0AEbkpdJBb44qVlGm5bApZouHeJ/+n+7r12+lqdsA
- EQEAAcLAdgQYAQgAIAIbDBYhBHIX+6yM6c9jRKFo5WgNwR1TC3ojBQJftOH6AAoJEGgNwR1T
- C3ojVSkIALpAPkIJPQoURPb1VWjh34l0HlglmYHvZszJWTXYwavHR8+k6Baa6H7ufXNQtThR
- yIxJrQLW6rV5lm7TjhffEhxVCn37+cg0zZ3j7zIsSS0rx/aMwi6VhFJA5hfn3T0TtrijKP4A
- SAQO9xD1Zk9/61JWk8OysuIh7MXkl0fxbRKWE93XeQBhIJHQfnc+YBLprdnxR446Sh8Wn/2D
- Ya8cavuWf2zrB6cZurs048xe0UbSW5AOSo4V9M0jzYI4nZqTmPxYyXbm30Kvmz0rYVRaitYJ
- 4kyYYMhuULvrJDMjZRvaNe52tkKAvMevcGdt38H4KSVXAylqyQOW5zvPc4/sq9c=
-In-Reply-To: <20260122031635.11414-1-chintanlike@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FREEMAIL_TO(0.00)[gmail.com,vger.kernel.org,lists.linux.dev];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	TO_DN_SOME(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com,gmx.de];
-	FREEMAIL_CC(0.00)[vger.kernel.org,lists.freedesktop.org,kernel.org,gmx.de,linuxfoundation.org,intel.com];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	RCPT_COUNT_SEVEN(0.00)[11];
-	DKIM_TRACE(0.00)[suse.de:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,intel.com:email,suse.com:url,suse.de:dkim,suse.de:mid]
-X-Spam-Flag: NO
-X-Spam-Score: -4.51
-X-Rspamd-Queue-Id: D98355BCDC
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spam-Level: 
+References: <20260128-rz-sdio-mux-v7-0-92ebb6da0df8@solid-run.com> <20260128-rz-sdio-mux-v7-2-92ebb6da0df8@solid-run.com>
+In-Reply-To: <20260128-rz-sdio-mux-v7-2-92ebb6da0df8@solid-run.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Date: Thu, 29 Jan 2026 17:06:10 +0100
+X-Gm-Features: AZwV_QhXWgEPoSG5cEeDEK7X9sYP3SyTXeMqEgA9rOrQCY9Is43DwQw7rMGTcAc
+Message-ID: <CAPDyKFrBuL+747QUJJUejtcvjm0V7Lt=vHwjvcMdCt_h4=sFwg@mail.gmail.com>
+Subject: Re: [PATCH v7 2/7] mux: Add helper functions for getting optional and
+ selected mux-state
+To: Josua Mayer <josua@solid-run.com>
+Cc: Marc Kleine-Budde <mkl@pengutronix.de>, Vincent Mailhol <mailhol@kernel.org>, 
+	Vinod Koul <vkoul@kernel.org>, Neil Armstrong <neil.armstrong@linaro.org>, 
+	Peter Rosin <peda@axentia.se>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vignesh R <vigneshr@ti.com>, 
+	Andi Shyti <andi.shyti@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, 
+	Yazan Shhady <yazan.shhady@solid-run.com>, Jon Nettleton <jon@solid-run.com>, 
+	Mikhail Anikin <mikhail.anikin@solid-run.com>, linux-can@vger.kernel.org, 
+	linux-phy@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, 
+	linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Hi,
-
-we've seen reports about this bug from linux-next.
-
-Did anyone merge this series?
-
-Best regards
-Thomas
-
-Am 22.01.26 um 04:16 schrieb Chintan Patel:
-> When CONFIG_FB_DEVICE is disabled, struct fb_info does
-> not provide a valid dev pointer. Direct dereferences of
-> fb_info->dev therefore result in build failures.
+On Wed, 28 Jan 2026 at 15:46, Josua Mayer <josua@solid-run.com> wrote:
 >
-> Fix this by avoiding direct accesses to fb_info->dev and
-> switching the affected debug logging to framebuffer helpers
-> that do not rely on a device pointer.
+> In-tree phy-can-transceiver driver has already implemented a local
+> version of devm_mux_state_get_optional.
 >
-> This fixes the following build failure reported by the
-> kernel test robot.
+> The omap-i2c driver gets and selects an optional mux in its probe
+> function without using any helper.
 >
-> Fixes: a06d03f9f238 ("staging: fbtft: Make FB_DEVICE dependency optional")
-> Reported-by: kernel test robot <lkp@intel.com>
-> Closes: https://lore.kernel.org/oe-kbuild-all/202601110740.Y9XK5HtN-lkp@intel.com
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
-> Signed-off-by: Chintan Patel <chintanlike@gmail.com>
+> Add new helper functions covering both aforementioned use-cases:
 >
+> - mux_control_get_optional:
+>   Get a mux-control if specified in dt, return NULL otherwise.
+> - devm_mux_state_get_optional:
+>   Get a mux-state if specified in dt, return NULL otherwise.
+> - devm_mux_state_get_selected:
+>   Get and select a mux-state specified in dt, return error otherwise.
+> - devm_mux_state_get_optional_selected:
+>   Get and select a mux-state if specified in dt, return error or NULL.
+>
+> Existing mux_get helper function is changed to take an extra argument
+> indicating whether the mux is optional.
+> In this case no error is printed, and NULL returned in case of ENOENT.
+>
+> Calling code is adapted to handle NULL return case, and to pass optional
+> argument as required.
+>
+> To support automatic deselect for _selected helper, a new structure is
+> created storing an exit pointer similar to clock core which is called on
+> release.
+>
+> To facilitate code sharing between optional/mandatory/selected helpers,
+> a new internal helper function is added to handle quiet (optional) and
+> verbose (mandatory) errors, as well as storing the correct callback for
+> devm release: __devm_mux_state_get
+>
+> Due to this structure devm_mux_state_get_*_selected can no longer print
+> a useful error message when select fails. Instead callers should print
+> errors where needed.
+>
+> Commit e153fdea9db04 ("phy: can-transceiver: Re-instate "mux-states"
+> property presence check") noted that "mux_get() always prints an error
+> message in case of an error, including when the property is not present,
+> confusing the user."
+>
+> The first error message covers the case that a mux name is not matched
+> in dt. The second error message is based on of_parse_phandle_with_args
+> return value.
+>
+> In optional case no error is printed and NULL is returned.
+> This ensures that the new helper functions will not confuse the user
+> either.
+>
+> With the addition of optional helper functions it became clear that
+> drivers should compile and link even if CONFIG_MULTIPLEXER was not enabled.
+> Add stubs for all symbols exported by mux core.
+>
+> Signed-off-by: Josua Mayer <josua@solid-run.com>
 > ---
-> Changes in v8:
-> - Add Reviewed-by tag from Andy Shevchenko.
+>  drivers/mux/core.c           | 178 ++++++++++++++++++++++++++++++++++++-------
+>  include/linux/mux/consumer.h | 108 +++++++++++++++++++++++++-
+>  2 files changed, 253 insertions(+), 33 deletions(-)
 >
-> Changes in v7:
-> - Split logging cleanups into a separate patch
-> - Limit this patch to the CONFIG_FB_DEVICE=n build fix only
->
-> Changes in v6:
-> - Switch debug/info logging to fb_dbg() and fb_info()(suggested by Thomas Zimmermann)
-> - Drop dev_of_fbinfo() usage in favor of framebuffer helpers that implicitly
->    handle the debug/info context.
-> - Drop __func__ usage per review feedback(suggested by greg k-h)
-> - Add Fixes tag for a06d03f9f238 ("staging: fbtft: Make FB_DEVICE dependency optional")
->    (suggested by Andy Shevchenko)
->
-> Changes in v5:
-> - Initial attempt to replace info->dev accesses using
->    dev_of_fbinfo() helper
->
->   drivers/staging/fbtft/fbtft-core.c | 19 +++++++++----------
->   1 file changed, 9 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/staging/fbtft/fbtft-core.c b/drivers/staging/fbtft/fbtft-core.c
-> index 8a5ccc8ae0a1..1b3b62950205 100644
-> --- a/drivers/staging/fbtft/fbtft-core.c
-> +++ b/drivers/staging/fbtft/fbtft-core.c
-> @@ -365,9 +365,9 @@ static int fbtft_fb_setcolreg(unsigned int regno, unsigned int red,
->   	unsigned int val;
->   	int ret = 1;
->   
-> -	dev_dbg(info->dev,
-> -		"%s(regno=%u, red=0x%X, green=0x%X, blue=0x%X, trans=0x%X)\n",
-> -		__func__, regno, red, green, blue, transp);
-> +	fb_dbg(info,
-> +	       "regno=%u, red=0x%X, green=0x%X, blue=0x%X, trans=0x%X\n",
-> +	       regno, red, green, blue, transp);
->   
->   	switch (info->fix.visual) {
->   	case FB_VISUAL_TRUECOLOR:
-> @@ -391,8 +391,7 @@ static int fbtft_fb_blank(int blank, struct fb_info *info)
->   	struct fbtft_par *par = info->par;
->   	int ret = -EINVAL;
->   
-> -	dev_dbg(info->dev, "%s(blank=%d)\n",
-> -		__func__, blank);
-> +	fb_dbg(info, "blank=%d\n", blank);
->   
->   	if (!par->fbtftops.blank)
->   		return ret;
-> @@ -793,11 +792,11 @@ int fbtft_register_framebuffer(struct fb_info *fb_info)
->   	if (spi)
->   		sprintf(text2, ", spi%d.%d at %d MHz", spi->controller->bus_num,
->   			spi_get_chipselect(spi, 0), spi->max_speed_hz / 1000000);
-> -	dev_info(fb_info->dev,
-> -		 "%s frame buffer, %dx%d, %d KiB video memory%s, fps=%lu%s\n",
-> -		 fb_info->fix.id, fb_info->var.xres, fb_info->var.yres,
-> -		 fb_info->fix.smem_len >> 10, text1,
-> -		 HZ / fb_info->fbdefio->delay, text2);
-> +	fb_info(fb_info,
-> +		"%s frame buffer, %dx%d, %d KiB video memory%s, fps=%lu%s\n",
-> +		fb_info->fix.id, fb_info->var.xres, fb_info->var.yres,
-> +		fb_info->fix.smem_len >> 10, text1,
-> +		HZ / fb_info->fbdefio->delay, text2);
->   
->   	/* Turn on backlight if available */
->   	if (fb_info->bl_dev) {
+> diff --git a/drivers/mux/core.c b/drivers/mux/core.c
+> index a3840fe0995f..b01ec126caaf 100644
+> --- a/drivers/mux/core.c
+> +++ b/drivers/mux/core.c
 
--- 
---
-Thomas Zimmermann
-Graphics Driver Developer
-SUSE Software Solutions Germany GmbH
-Frankenstr. 146, 90461 Nürnberg, Germany, www.suse.com
-GF: Jochen Jaser, Andrew McDonald, Werner Knoblich, (HRB 36809, AG Nürnberg)
+[...]
 
+>  static void devm_mux_state_release(struct device *dev, void *res)
+>  {
+> -       struct mux_state *mstate = *(struct mux_state **)res;
+> +       struct devm_mux_state_state *devm_state = res;
+>
+> -       mux_state_put(mstate);
+> +       if (devm_state->exit)
+> +               devm_state->exit(devm_state->mstate);
+> +
+> +       mux_state_put(devm_state->mstate);
+>  }
+>
+>  /**
+> - * devm_mux_state_get() - Get the mux-state for a device, with resource
+> - *                       management.
+> - * @dev: The device that needs a mux-control.
+> - * @mux_name: The name identifying the mux-control.
+> + * __devm_mux_state_get() - Get the optional mux-state for a device,
+> + *                         with resource management.
+> + * @dev: The device that needs a mux-state.
+> + * @mux_name: The name identifying the mux-state.
+> + * @optional: Whether to return NULL and silence errors when mux doesn't exist.
+> + * @init: Optional function pointer for mux-state object initialisation.
+> + * @exit: Optional function pointer for mux-state object cleanup on release.
+>   *
+>   * Return: Pointer to the mux-state, or an ERR_PTR with a negative errno.
+>   */
+> -struct mux_state *devm_mux_state_get(struct device *dev,
+> -                                    const char *mux_name)
+> +static struct mux_state *__devm_mux_state_get(struct device *dev, const char *mux_name,
+> +                                             bool optional,
+> +                                             int (*init)(struct mux_state *mstate),
+> +                                             int (*exit)(struct mux_state *mstate))
+>  {
+> -       struct mux_state **ptr, *mstate;
+> +       struct devm_mux_state_state *devm_state;
+> +       struct mux_state *mstate;
+> +       int ret;
+>
+> -       ptr = devres_alloc(devm_mux_state_release, sizeof(*ptr), GFP_KERNEL);
+> -       if (!ptr)
+> +       devm_state = devres_alloc(devm_mux_state_release, sizeof(*devm_state), GFP_KERNEL);
+> +       if (!devm_state)
+>                 return ERR_PTR(-ENOMEM);
+>
+> -       mstate = mux_state_get(dev, mux_name);
+> -       if (IS_ERR(mstate)) {
+> -               devres_free(ptr);
+> -               return mstate;
+> +       mstate = mux_state_get(dev, mux_name, optional);
+> +       if (IS_ERR_OR_NULL(mstate)) {
+> +               ret = PTR_ERR(mstate);
 
+Should this be PTR_ERR_OR_ZERO?
+
+> +               goto err_mux_state_get;
+>         }
+>
+> -       *ptr = mstate;
+> -       devres_add(dev, ptr);
+> +       if (init) {
+> +               ret = init(mstate);
+> +               if (ret)
+> +                       goto err_mux_state_init;
+> +       }
+> +
+> +       devm_state->mstate = mstate;
+> +       devm_state->exit = exit;
+> +       devres_add(dev, devm_state);
+>
+>         return mstate;
+> +
+> +err_mux_state_init:
+> +       mux_state_put(mstate);
+> +err_mux_state_get:
+> +       devres_free(devm_state);
+> +       return ERR_PTR(ret);
+
+If PTR_ERR_OR_ZERO is used above as I suggested, ret may be 0 here.
+
+Then it is probably clearer to add a check if (!ret) and return NULL
+explicitly for that case, I think.
+
+[...]
+
+Kind regards
+Uffe
