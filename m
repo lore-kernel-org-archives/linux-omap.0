@@ -1,63 +1,63 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
+Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com [209.85.167.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A94C137AA92
-	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2026 07:27:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B8C1379971
+	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2026 07:33:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769671641; cv=none; b=kX6Mr32yn6+uwdUdMSbgu7reQ09t4/1TdNFa+6ML1QD0UWWEbb5c6bQFeUbgAYDSh9nAt2XqOn8SZ7IiWmALKXo8n23qKfHmC9oaqqUjjpsOWwATSvEluT3ALyeBQ4t/PKi1cauhEqOFxDoMr7T2LigKQYhTsC86S1O6GNtci0k=
+	t=1769671981; cv=none; b=hjzyXvh6nekP4/31g6b9RzTB1za17ntlzCHR2rFKIC/y6cxcXSDpmUDzxkcLA4kegU3qMvWcPTI4WCSd+YM4mtMNw+0fS3fnogCJyHRqVWNMarjTBr3kil7Iv+hhVoWn3/t3CZ5Vc28Xx80ycqOKF1aCpIXN0RQJed9W1Uvg/GA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769671641; c=relaxed/simple;
-	bh=KAvlbY0yYL9PaaTueRuO9yIwL2QGgENhM1iet7MXCjM=;
+	s=arc-20240116; t=1769671981; c=relaxed/simple;
+	bh=pi1fLBggw2w5nq+ku9XGxrPVz6Xc+gXO0i/5XkcUNq8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=q/zdjG1A6vlznJPwxny9O4ZYgrbJ3UTIVgo3Qxz0a3Ox26vrVoUCW4jepOC8PPG9GarAPcSnMTlrSrkoNuyYUQHkn6YpqxKHLGnDcdhDy7z38vBu0Qi0mNZIedZHyIPziAwXQ+e3cTED+DzktPUMzMtHUkHqhzsswjHFaIaA+J4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iv+RbB/A; arc=none smtp.client-ip=209.85.210.181
+	 MIME-Version; b=T9tWHs9Fb8u+qslP7Y95Mcpii2eWqFWZgmNmG0Wy0sy5otSxiRq10ixGgzBvKJ56jzkKOBkZjVNR3MrFn91LncKLFLflj4YXTd/eiyHa7qmPqid6TuEFlsSMrPKlvK02a9hSot+JvvpBaFxX1pAf50VQs13LqlVtA4JnelcXGeM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Y+z+lwkH; arc=none smtp.client-ip=209.85.167.169
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iv+RbB/A"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-8231061d234so593171b3a.1
-        for <linux-omap@vger.kernel.org>; Wed, 28 Jan 2026 23:27:19 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Y+z+lwkH"
+Received: by mail-oi1-f169.google.com with SMTP id 5614622812f47-45f171cb842so456331b6e.1
+        for <linux-omap@vger.kernel.org>; Wed, 28 Jan 2026 23:33:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769671639; x=1770276439; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1769671979; x=1770276779; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=MfQfBaf9AAlms3smQ5+Ri25UHHgHjEr008f22TiaTqo=;
-        b=iv+RbB/AVo4r9hsgwmf6XZNmRTyq4mBXnSzV77mkbWwLQGCbm9aTgDm5UshX5Wo+bu
-         45T6xqxv69XS5wCzEOUdtHUpWSBhJh2PD6JwYKngnK0BhgJgeMDBH3kUyGr/yKTXNC0X
-         CGrOako6aHkaAHervzkIVAGuE3g8MaVpI/iQccbVGpIFaq6O5nwTvXw07WltGeu1kynw
-         yGQrVUz3ogFWSR4lhax7ftMsvjkuCpDz55aM7ouOGM59e+pC419CChNCRIpr/6mjAX3j
-         Ynv0HMlfTWSlTiNK0R3gRBkpicguIS2hDSabGyfzgdiNv+vFiHDRWkk1CIdZoqm4CTHy
-         iXuA==
+        bh=Gnop4z34aVye00gIQguUoewYT5lM9SytbUgSGtePF4w=;
+        b=Y+z+lwkHxsUlLPK0LMIsmTDXlLVUtvD1h8BQ4X1pyfKzjnf04D4TMLpa6+L/8nP6xC
+         7gLrlinxNkkq3+DmBTOoGvxAXdf4vk6J52UdgCE7Fc8uwSmE2te4sCu/mSZSLu94BpqO
+         zfJhhSsRs8v6w3MoyYTlmslL4osBlX5OwmdcgTf19ubc4Fb0xYH0hKj5pYI/fCVOafDe
+         XwhfO9KtO1EGfU2Sbpi+JvEdZjCDJTghHr5COkC83sufslBUcqcuICjSHxFOIbEtUAMH
+         2h0OKmdb1vASrNd+T56FvLjproWt/QGj9CBDHPYEcBSefQ2dnXbDwgyjGBFCLPLr2v4t
+         ma0g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769671639; x=1770276439;
+        d=1e100.net; s=20230601; t=1769671979; x=1770276779;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=MfQfBaf9AAlms3smQ5+Ri25UHHgHjEr008f22TiaTqo=;
-        b=hT10pNDFzeAOEvyugjpUjw8mB6QygO+OOYk1ayt6519SZy3xBwnfZh5cVeQrbnAVlH
-         W7XlHjcMoFfIOlZ/kB86UuluwfdzSc4+qWH45iuO1kdjSXrKPaRlAn7r67H4PoZl0cPh
-         XUG9Ne3hK12hgMs32GJ5a2IDc95bqVJjxbJlMLeUoJgeMY64gSwbx1w4J4ahUci0GBfq
-         CBP78F9NRcueiJOn1lpA7qQswJVn8/QYXYdfFCspQ7jGOg18lnizkuJqtiZ7nw9ebyos
-         oFjdqjNYsjJxXWuQtKjaUnSSnZAfmLoYsE2cxNc8LwECMxXam/fKmkQKWd3WgEKMjJk/
-         5N9w==
-X-Forwarded-Encrypted: i=1; AJvYcCUjY/O+gFbH7rBT+VgWNQweroc185XONWXUDj0EsHV25gpxwSt5/IR8IMiC+NBfZUtdzIKl57YOVa/e@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz5erW0Sj8sKpocjVeQsxEdCDwZ/3uHBV1n86X/tKAlaHxYwISa
-	oiw06YwnBiP4yvV336rOPmBYll4YjoHV/kFEuroJHrB4bn4qwhwLXcfiQI88q3/2
-X-Gm-Gg: AZuq6aIU3r0zveXiLEMVPY9Pg6JxW9eEIwXnpvzc7CAwG9wKjbkK3+EEIPJcQHVTuIM
-	Fi4I43cL58qqr4hoefG1MVpl27QKnN2rAZJxRnEpqPT0BAXG//0v9WuVrfkn7OsjqCiOkOYJtZe
-	VvC0dbUp0v7MqUWqf42PhrMNkMVAHAK1LUeImm/1IZBM0YZ20ZaCzt3ZvyxY0savh3uWUJPw7sG
-	yWVod58257mNHQnmL4ZWkRr5Enur/Dwo0+ijDSvGZyNpnqQEWVMrANt4B6tHx9x0S7xGkzJGyRU
-	Xwupg7Yj9pXI68jVdEVC8ZjzdzBXSTSYajgtLop1SEstJhUQvdmpjp7LK/V031kZijhbMdQJTVb
-	jGnSRvMU2NnyIgtMTBD58i0xexPGHnLGZGyRY3YQ1mmhfIawnC9DF1sGXX6vQvIjn5/+pOtxLhh
-	q3G2X6Px0Kebd6EupJc+qL0rPpKk4SjPVhrcOhJxbxu+KitQ1AXeVnpkswE64zCjL62JbMT0o=
-X-Received: by 2002:a05:6214:202d:b0:7f5:eda2:a54b with SMTP id 6a1803df08f44-894cc95cd40mr119052776d6.62.1769665662516;
-        Wed, 28 Jan 2026 21:47:42 -0800 (PST)
+        bh=Gnop4z34aVye00gIQguUoewYT5lM9SytbUgSGtePF4w=;
+        b=uBZFnobaWGPr3IIJbJrUZjkKubYgR6AvXMC3AWlwngG6w4v7k2E4B0WP1UL0z33Kol
+         cn9QRN3x9i2x/rPN83mUFNs9DBR5Z7nhoxCF2Ho8QbKdLgyGg8VxtzIzbkaD99z8Mixr
+         oOVvPMwKr6UMOPscRNUIQ1lN/+pa+0izq0XfHuYCT81VxUWNZgxNso/7hDOPU6rI/T9x
+         Fzl/wc4Os1uLwNFkpeiYO/oE2h1Kh5A37PdQKIwfNqTnrdjhiBviGJv/Tr1oTDRV7SL2
+         6a58xmIuU3LoX9noIaOYZysR2lf5h3YUINBHY3xWIBGeJPgGzXaGzfhdEenU8yyDMLEu
+         Jx1g==
+X-Forwarded-Encrypted: i=1; AJvYcCV2w42IeHsgBFEEmTVWIbdfL/80j5EAAl/RvCklwal63Xr85h9tbKVrqCE+SyI3gylA2BzndpF32uN8@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxu65o1PFYcdguQPOJnss/LDYI/Yb5zlZ4EfF+mKdkcVH0GYvJ7
+	x/Z2jZgT4mFMbHhCucEvgnVKtas43tcUytMqEjWfRY6sqLaUWzfiE0QYsqBnC54J
+X-Gm-Gg: AZuq6aJ4+c2WGASjc4N+Vf8fHA4fCEuYJo3HA2wojQNhtbH36fHwvXAvqVyWBUSf4p8
+	T/c7cotBJSnOWMs3zFTZXFlOtB4b4sE4LI/lzg96665mK8hveMSITtnlVVDvb6h1ab4cLIkEgoK
+	7mSBDGSq0e8Ia9F2UCYO1s1aCr3SiSOC/2QBDbgE3WABOVt/MLxz+StMuxoCtbg2dKyppCuHtGU
+	/X2cP/WDj0X4JZ9DzRoG2nekGlY3AuhjwGKUIc3d1d2/0bCAeQiATv9sUpEoTkXZ6qnKj8GcKHW
+	ANDrKtwK01JSjIRC2e63IU3eshSc8MqHQtQIMWfrPK9X2GCn6AtQgVmIN/8B4qOuTyFrzCHehWi
+	64G1M7fSfsHhslc2iI/cPdJuEQPu+MxzpQz5bF2embpClBnBxEffqp7SiZbWhiDOd2+xrdwbHep
+	zxCJGGQD+UBnTTaE2S32BTqrsjaoOjhL/vIp8zLUKaycu8p1hSeIYSVYg/ExwVqAMPONfDGgQ=
+X-Received: by 2002:a05:620a:1997:b0:8c6:a5ae:e9cc with SMTP id af79cd13be357-8c728acf291mr254438385a.14.1769665665773;
+        Wed, 28 Jan 2026 21:47:45 -0800 (PST)
 Received: from mighty.stonybrook.edu (nat-130-245-192-1.resnet.stonybrook.edu. [130.245.192.1])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-894d36dd1cfsm30903216d6.25.2026.01.28.21.47.41
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-894d36dd1cfsm30903216d6.25.2026.01.28.21.47.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Jan 2026 21:47:42 -0800 (PST)
+        Wed, 28 Jan 2026 21:47:45 -0800 (PST)
 From: Mithil Bavishi <bavishimithil@gmail.com>
 To: aaro.koskinen@iki.fi,
 	airlied@gmail.com,
@@ -85,10 +85,11 @@ To: aaro.koskinen@iki.fi,
 Cc: devicetree@vger.kernel.org,
 	dri-devel@lists.freedesktop.org,
 	linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: [PATCH v5 1/8] ARM: dts: twl6032: Add DTS file for TWL6032 PMIC
-Date: Thu, 29 Jan 2026 00:47:02 -0500
-Message-ID: <20260129054709.3878-2-bavishimithil@gmail.com>
+	linux-omap@vger.kernel.org,
+	Krzysztof Kozlowski <krzk@kernel.org>
+Subject: [PATCH v5 2/8] dt-bindings: vendor-prefixes: Add Doestek
+Date: Thu, 29 Jan 2026 00:47:03 -0500
+Message-ID: <20260129054709.3878-3-bavishimithil@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260129054709.3878-1-bavishimithil@gmail.com>
 References: <20260129054709.3878-1-bavishimithil@gmail.com>
@@ -100,116 +101,28 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a dedicated DTS file for the TWL6032 PMIC (Phoenix Lite). Already
-has driver support with TWL6030 (Phoenix) since both of them are so
-similar, some nodes can be reused from TWL6030 as well
-
-This can be included in the board files like twl6030
-Example:
-...
-&i2c1 {
-    twl: twl@48 {
-        reg = <0x48>;
-        interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
-        interrupt-controller;
-        interrupt-parent = <&gic>;
-    };
-};
-
-/include/ "twl6032.dtsi"
-...
-
-Used in devices like samsung-espresso, amazon-jem, epson-embt2ws etc
+Add vendor prefix for Doestek Co., Ltd.
+Link: http://www.doestek.co.kr/
 
 Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
+Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- arch/arm/boot/dts/ti/omap/twl6032.dtsi | 77 ++++++++++++++++++++++++++
- 1 file changed, 77 insertions(+)
- create mode 100644 arch/arm/boot/dts/ti/omap/twl6032.dtsi
+ Documentation/devicetree/bindings/vendor-prefixes.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/ti/omap/twl6032.dtsi b/arch/arm/boot/dts/ti/omap/twl6032.dtsi
-new file mode 100644
-index 000000000..d599a2ca6
---- /dev/null
-+++ b/arch/arm/boot/dts/ti/omap/twl6032.dtsi
-@@ -0,0 +1,77 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Integrated Power Management Chip
-+ * https://www.ti.com/lit/ds/symlink/twl6032.pdf
-+ */
-+
-+&twl {
-+	compatible = "ti,twl6032";
-+	interrupt-controller;
-+	#interrupt-cells = <1>;
-+
-+	rtc {
-+		compatible = "ti,twl4030-rtc";
-+		interrupts = <11>;
-+	};
-+
-+	vio: regulator-vio {
-+		compatible = "ti,twl6032-vio";
-+	};
-+
-+	ldo1: regulator-ldo1 {
-+		compatible = "ti,twl6032-ldo1";
-+	};
-+
-+	ldo2: regulator-ldo2 {
-+		compatible = "ti,twl6032-ldo2";
-+	};
-+
-+	ldo3: regulator-ldo3 {
-+		compatible = "ti,twl6032-ldo3";
-+	};
-+
-+	ldo4: regulator-ldo4 {
-+		compatible = "ti,twl6032-ldo4";
-+	};
-+
-+	ldo5: regulator-ldo5 {
-+		compatible = "ti,twl6032-ldo5";
-+	};
-+
-+	ldo6: regulator-ldo6 {
-+		compatible = "ti,twl6032-ldo6";
-+	};
-+
-+	ldoln: regulator-ldoln {
-+		compatible = "ti,twl6032-ldoln";
-+	};
-+
-+	ldousb: regulator-ldousb {
-+		compatible = "ti,twl6032-ldousb";
-+	};
-+
-+	smps4: regulator-smps4 {
-+		compatible = "ti,twl6032-smps4";
-+	};
-+
-+	gpadc: gpadc {
-+		compatible = "ti,twl6032-gpadc";
-+		interrupts = <3>;
-+		#io-channel-cells = <1>;
-+	};
-+
-+	twl_usb_comparator: usb-comparator {
-+		compatible = "ti,twl6030-usb";
-+		interrupts = <4>, <10>;
-+	};
-+
-+	twl_pwm: pwm {
-+		compatible = "ti,twl6030-pwm";
-+		#pwm-cells = <2>;
-+	};
-+
-+	twl_pwmled: pwmled {
-+		compatible = "ti,twl6030-pwmled";
-+		#pwm-cells = <2>;
-+	};
-+};
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.yaml b/Documentation/devicetree/bindings/vendor-prefixes.yaml
+index c7591b2ae..70a195fc6 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.yaml
++++ b/Documentation/devicetree/bindings/vendor-prefixes.yaml
+@@ -437,6 +437,8 @@ patternProperties:
+     description: D-Link Corporation
+   "^dmo,.*":
+     description: Data Modul AG
++  "^doestek,.*":
++    description: Doestek Co., Ltd.
+   "^domintech,.*":
+     description: Domintech Co., Ltd.
+   "^dongwoon,.*":
 -- 
 2.43.0
 
