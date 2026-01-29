@@ -1,63 +1,63 @@
-Received: from mail-qv1-f49.google.com (mail-qv1-f49.google.com [209.85.219.49])
+Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90FE301460
-	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2026 05:47:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0C46306D26
+	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2026 05:47:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769665678; cv=none; b=qWvMZnBWwBNREy2c21yZG4CYLfOsKPa7CM1uhu/qImKWyJV0NU4pOc9MAnDssuAIyvwIcVT7D7lXTit1CimUu6ZWpFq3quAw4qWpOWOC3JFf9pvi3O3sjweVIRRhj4udwv+y7NMJIu+rN4B+fbqz6OjECd+wFBwSTTHsI/cPtX4=
+	t=1769665680; cv=none; b=qQgsaKPZZYyWmcdtw0DHwXD0q2i8mZBb7wk5UFXydxt9qyyaT9XAeiD8G8qwazGMBJlMFhDZqlDjy/5KiWroDLtLZj6c0QmV163I9X8AOL1XsmqBGT/AUD+Sy4caHdbdcrRyZGSI0mWqb+6WP887QtokIMdXjjGj3gRX8NC17Yo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769665678; c=relaxed/simple;
-	bh=trpX+5UlMTYq/zyHhxfWvjqST/R/uh9a912a+PSUHVc=;
+	s=arc-20240116; t=1769665680; c=relaxed/simple;
+	bh=S2kYng34pyN/wX/EOplOpxbzEXHZ5N9BsJv+d0hNUBU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=NlrTJzc8qYEcS7X6ODKJlvHdiu0IyRSVlTkj9smO1m7p3sZJsot2Z92dxYzGOWJanZXiepyhXycUb9KlI0seXbsL9hz6hXs7g2vnswNcq9QuOhCgln8IxQfQNxaNQLXmKh9sx+9MVPAdi1/HlyXr7/9Ak+yojLhvAo969yF9pxA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=c+kYTNqg; arc=none smtp.client-ip=209.85.219.49
+	 MIME-Version; b=NtpJlMGOL5yU8S0U8VF2m80jGhB+MUHL26kELd4bfzJWaeMJZvpci+vQKsizGLjRk/oiI2B4GLeH+yDcbaevz+bFDJazLuUPC6jJVTySGwHdCpH36e/PypnqFgaHesblWcLkPosCPHpF7GLCcvsQJdWwYFGE5QFJE+68WMbGixA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CxTk63RJ; arc=none smtp.client-ip=209.85.222.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="c+kYTNqg"
-Received: by mail-qv1-f49.google.com with SMTP id 6a1803df08f44-89478e429afso5739126d6.1
-        for <linux-omap@vger.kernel.org>; Wed, 28 Jan 2026 21:47:56 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CxTk63RJ"
+Received: by mail-qk1-f180.google.com with SMTP id af79cd13be357-8c531473fdcso78791885a.3
+        for <linux-omap@vger.kernel.org>; Wed, 28 Jan 2026 21:47:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769665676; x=1770270476; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1769665678; x=1770270478; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=oNC2r/k4VYyNvAPrupzATpkdJnOwaq0ecIMgKhToJ2I=;
-        b=c+kYTNqga6swhpMIqY8wSD54APXKrGvW6MesLlHFj+Uw4ihagAYOlrDC0rcak2XLxh
-         HoJIkjcxQSXlHYtfEaaYs/GQZ9xiJpoiQ1Dxc3YItIYACIJLiKuCOPCvfYWNCa3a9OtM
-         nFWiC6L/oO7aXYlWKzfjqxpZRdRdeud7cfhzW3u/NZQ5GwJkEOM+X2mN380FN29uO1tV
-         E++37W9SOHh3rhTyJBecGzB/OLj7LK6KnbBVW+19NXnTQm8UDghp99zoENMa/7SyDHpV
-         InTJus8NC6T6GQlUroVDeQnj9UEoNDITxLY79Yv4/KWRgI6Zg8RC7AQWH5mRzFckVKeB
-         gcCQ==
+        bh=dfxr03p7S9Rer87uRm31FU2g8xU+t3fSe3azXAHj5IA=;
+        b=CxTk63RJwNexj1dlTJJXZUv7rOLhJW3woKuFvpHRNnWFOIw6iy+CDK1vV7S0or4C1L
+         KXZV3EtNqWc5B43XJXB3uiVfLbR8/c7lHjphJN8rTSW1FNA4raV5tmRpHtKqeY1G5ibe
+         4uNZ8CIoHZhm9OWbFGV5Pj8AXXhxvSxZvdpyf/OApCgfbypRJWnk0E4ndCbA2fTQWa54
+         VtlcDNbY/oBANKtEFstyDjd4716JOSw/4dLqdwiFzzeysfEpT8GjhLQc/1v+YFuf/ntl
+         PYtqB9d9E74uYwG8RlrQVTWC+4TDJ2cmnv42/0uCWW8wZHWucBrp3jPcXvXjQzmK4i6S
+         r5eg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769665676; x=1770270476;
+        d=1e100.net; s=20230601; t=1769665678; x=1770270478;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=oNC2r/k4VYyNvAPrupzATpkdJnOwaq0ecIMgKhToJ2I=;
-        b=ce1aFaJL8Kyy7qKixdGk4nO1/37o1mM7biDWgHh2dWA9B7dBilW65ghA2k+2ZFlwbb
-         oQZDTF0UP769cEN6IJpE2xwQlHkMu67HNEjnknjBnREXb0a0yf4+kr3rH6G86o+4mzrt
-         /ZbcnTByrG+q1M7MoJUukmFR9NpKTnrNPIixiUVS3GG2zxf37aKy/GGn5i9uyEm0ENUl
-         9nWkn7Ojom9hmYnjSbacnasAHUSfO8609ZlxQR4f6hWYc0qfDVkruEcIK6lcGEQyOaDv
-         cTlnRjUdf4mSRCutZegGi3mmHmzkTBW/i+aFAlilKZpYRaKJkaqMfWqEu+Q2iDUzd4zX
-         UQkw==
-X-Forwarded-Encrypted: i=1; AJvYcCXz2cEQdawdbmyOyH3M/mmZ8z2ozc1TKdFYcRNZEud5zvB+oVHmMAxlWMB3CMwCXWQ+7AxSugRS3hsp@vger.kernel.org
-X-Gm-Message-State: AOJu0YxepVbB3t8/qe7G8ktRCvSPDxs7p6xdsdPV6MMVm5BKJbstTE9a
-	MhuBWFauYXnWdz/AxKFn8jCx6xPmyff+HqwGNFliT3O6wrN+hbXelKk8
-X-Gm-Gg: AZuq6aIyI+oyR7MaZ2AnPO80vVsugjU1+nV8fNKpVp8y/rUu6lu0wxYcSRbzqvl6Msa
-	db0WIb6bGwAh3mh9lhBECpsc+eTNgeBvVkKdGeIqtVrmQf7O6BORZUQe48QQ5wi9sbOPOVu74gp
-	7KBqV06NZK9K3/f7/dUoorJvPaPrLaMbqIKjznQK/F8gu2kh5khjqqQeG3JrEwL1vBuIsH12Vav
-	qgLwl4yxgOVgloT74QFb7JKdicuf0duU9jicVK6j48RDfyh71Gu6l00OVUDw37ajtjP1csTew5H
-	naJ9+Ox9So/sRSoih5GFCpUc+XnvIoqwBz+6z2Ac8gkDrwDhGfBw5igL5ckqxrsmqo3i/9d/O97
-	W3yzxtjmz837NDR0OGpMNYExcOTH9HYwZr7M6aBy3e+u0eP6Lc/GO+y1TnvoGvWBSjZxRhjuBUV
-	oZiVgLGIak43pLhxAp1quIfvc64f9mdWNoyc78btWObSJhN2d/X6QYdKhbS9xPy+vM2qeYWRk=
-X-Received: by 2002:ad4:5ce9:0:b0:894:6494:ab63 with SMTP id 6a1803df08f44-894cc7cecb9mr104550696d6.4.1769665675887;
-        Wed, 28 Jan 2026 21:47:55 -0800 (PST)
+        bh=dfxr03p7S9Rer87uRm31FU2g8xU+t3fSe3azXAHj5IA=;
+        b=BGpTAg9HmZh8IdnGcxHA3wRhgJwO3TLiKiAH2nM5gpplhwbGVE02iNB562C+bz5J4r
+         dbQjkqn/QzuYXU1S5rFlMbUd1szysNw7uZuyxQWGC5KSLww1BhhzFb5tltrLO6h4rMWR
+         8Faal3vdMMaAM1qO1c3io/zpBV6MnTZuZtVHxKLzjwQ2RM/5SwQ4YnVz5CzFfQoD+1/4
+         f59NGxn/tA0t7UZBC7yuRMkqYZHwegC5jzEfM+g4Z5lI7UjrBtkbiNznYR06HmFZq8n4
+         m+ZBjpmAAVTdLm/+W66q5YcQLhXeu4gCLn0TcILIbdB55iXYTNoP4cIpb9tajIv2SQhC
+         SuIA==
+X-Forwarded-Encrypted: i=1; AJvYcCUPIQ90c9e4DuZd/4CE9pvhXPHmYUNlO1w0tepf+uzjqDSeaO28gKpqddFvM/dgmpdRMURUIiPJ3+aX@vger.kernel.org
+X-Gm-Message-State: AOJu0YxIrdhryRlD5M93AASxaa4gVZWvscGLZWKL7PXu2QoPYtXGSc2o
+	by9eIPfzkWG/6uaalfldQ/JDniRrWMbVzajMXYqy+txUFeXZ+cugkDHS
+X-Gm-Gg: AZuq6aLaQU/wCZzTEuP6SDt69gfKe8EPajkOlauSd6uK8dpRJIt03dnFbJrVC0+Sszb
+	zQshaZQ8YSunobAHKYiFeyoHwXxRCDCJgtRKXow/Y64Zq5eveTQ6V127y8v6E//N35c6k5em3iP
+	fHrmTP1do6dquCgQFS04Y6c08IRECt1vJTZXNHqmDDPxzA43ZI8SbRPz5rXZfr1sYuUXf9zDY+f
+	giuc5uUIw8saHxAFlUAyZLujBXHIDAEQ+Zv9d3vGqiSCDFQAgYBm30tAKI92WWuBvQExXi3ixFW
+	ci5jUY7pimRXtz7Vf5QZEq1xzW5FrQqxd7BkQlBMncHB5rrwfSC8eFCgm8hvaIigKrJF3IykBct
+	suuv2oG55zPKrxD505ivpcpzIAD87AIO6AnVZAiJVn0cxyWMa+sfS4XF6fX8CjdIgZJXdHYl5q0
+	ZfFxmMd86KAJQvonHvsH7yP4A9suvrT/lWx6zXexbdyP7343Sdk1lIYU5rUtTVXHTKcuWy8ho=
+X-Received: by 2002:a05:620a:5d9a:b0:8c7:155a:6d03 with SMTP id af79cd13be357-8c7155a71b6mr401340185a.58.1769665677768;
+        Wed, 28 Jan 2026 21:47:57 -0800 (PST)
 Received: from mighty.stonybrook.edu (nat-130-245-192-1.resnet.stonybrook.edu. [130.245.192.1])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-894d36dd1cfsm30903216d6.25.2026.01.28.21.47.54
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-894d36dd1cfsm30903216d6.25.2026.01.28.21.47.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Jan 2026 21:47:55 -0800 (PST)
+        Wed, 28 Jan 2026 21:47:57 -0800 (PST)
 From: Mithil Bavishi <bavishimithil@gmail.com>
 To: aaro.koskinen@iki.fi,
 	airlied@gmail.com,
@@ -85,11 +85,10 @@ To: aaro.koskinen@iki.fi,
 Cc: devicetree@vger.kernel.org,
 	dri-devel@lists.freedesktop.org,
 	linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-Subject: [PATCH v5 6/8] dt-bindings: omap: Add Samsung Galaxy Tab 2 7.0 and 10.1
-Date: Thu, 29 Jan 2026 00:47:07 -0500
-Message-ID: <20260129054709.3878-7-bavishimithil@gmail.com>
+	linux-omap@vger.kernel.org
+Subject: [PATCH v5 7/8] ARM: dts: ti: omap: samsung-espresso7: Add initial support for Galaxy Tab 2 7.0
+Date: Thu, 29 Jan 2026 00:47:08 -0500
+Message-ID: <20260129054709.3878-8-bavishimithil@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260129054709.3878-1-bavishimithil@gmail.com>
 References: <20260129054709.3878-1-bavishimithil@gmail.com>
@@ -101,28 +100,103 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add samsung-espresso7 codename for the 7 inch variant
-Add samsung-espresso10 codename for the 10 inch variant
+Create a device tree for the 7 inch variants (P3100, P3110, P3113)
 
 Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
-Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
 ---
- Documentation/devicetree/bindings/arm/ti/omap.yaml | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/ti/omap/Makefile            |  1 +
+ .../dts/ti/omap/omap4-samsung-espresso7.dts   | 70 +++++++++++++++++++
+ 2 files changed, 71 insertions(+)
+ create mode 100644 arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts
 
-diff --git a/Documentation/devicetree/bindings/arm/ti/omap.yaml b/Documentation/devicetree/bindings/arm/ti/omap.yaml
-index 14f1b9d8f..f694dcbf2 100644
---- a/Documentation/devicetree/bindings/arm/ti/omap.yaml
-+++ b/Documentation/devicetree/bindings/arm/ti/omap.yaml
-@@ -144,6 +144,8 @@ properties:
-               - motorola,droid-bionic   # Motorola Droid Bionic XT875
-               - motorola,xyboard-mz609
-               - motorola,xyboard-mz617
-+              - samsung,espresso7
-+              - samsung,espresso10
-               - ti,omap4-panda
-               - ti,omap4-sdp
-           - const: ti,omap4430
+diff --git a/arch/arm/boot/dts/ti/omap/Makefile b/arch/arm/boot/dts/ti/omap/Makefile
+index 14e500846..d24f13efd 100644
+--- a/arch/arm/boot/dts/ti/omap/Makefile
++++ b/arch/arm/boot/dts/ti/omap/Makefile
+@@ -80,6 +80,7 @@ dtb-$(CONFIG_ARCH_OMAP4) += \
+ 	omap4-sdp-es23plus.dtb \
+ 	omap4-var-dvk-om44.dtb \
+ 	omap4-var-stk-om44.dtb \
++	omap4-samsung-espresso7.dtb \
+ 	omap4-xyboard-mz609.dtb \
+ 	omap4-xyboard-mz617.dtb
+ dtb-$(CONFIG_SOC_AM33XX) += \
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts b/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts
+new file mode 100644
+index 000000000..cae37ff06
+--- /dev/null
++++ b/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts
+@@ -0,0 +1,70 @@
++// SPDX-License-Identifier: (GPL-2.0 OR MIT)
++/dts-v1/;
++
++#include "omap4-samsung-espresso-common.dtsi"
++
++/ {
++	model = "Samsung Galaxy Tab 2 (7 inch)";
++	compatible = "samsung,espresso7", "ti,omap4430", "ti,omap4";
++
++	backlight: backlight {
++		compatible = "pwm-backlight";
++		pinctrl-names = "default";
++		pinctrl-0 = <&backlight_pins>;
++		pwms = <&pwm10 0 1200 0>;
++		power-supply = <&reg_lcd>;
++		enable-gpios = <&gpio3 31 GPIO_ACTIVE_HIGH>;
++		brightness-levels = <0 4 8 16 32 64 128 255>;
++		default-brightness-level = <2>;
++	};
++
++	panel {
++		compatible = "samsung,ltn070nl01", "panel-lvds";
++		power-supply = <&reg_lcd>;
++		width-mm = <154>;
++		height-mm = <90>;
++		data-mapping = "vesa-24";
++		backlight = <&backlight>;
++
++		panel-timing {
++			clock-frequency = <47255554>;
++
++			hback-porch = <210>;
++			hactive = <1024>;
++			hfront-porch = <186>;
++			hsync-len = <50>;
++
++			vback-porch = <11>;
++			vactive = <600>;
++			vfront-porch = <24>;
++			vsync-len = <10>;
++
++			hsync-active = <0>;
++			vsync-active = <0>;
++			de-active = <1>;
++			pixelclk-active = <1>;
++			syncclk-active = <0>;
++		};
++
++		port {
++			panel_in: endpoint {
++				remote-endpoint = <&bridge_out>;
++			};
++		};
++	};
++};
++
++&i2c3 {
++	touchscreen@48 {
++		compatible = "melfas,mms136";
++		reg = <0x48>;
++		interrupt-parent = <&gpio2>;
++		interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
++		touchscreen-size-x = <1024>;
++		touchscreen-size-y = <600>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&touch_pins>;
++		avdd-supply = <&reg_touch_ldo_en>;
++		vdd-supply = <&ldo6>;
++	};
++};
 -- 
 2.43.0
 
