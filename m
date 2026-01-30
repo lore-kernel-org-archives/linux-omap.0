@@ -1,265 +1,176 @@
-Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mout.web.de (mout.web.de [212.227.17.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CB9E36CDF1
-	for <linux-omap@vger.kernel.org>; Fri, 30 Jan 2026 05:34:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD45E24A069;
+	Fri, 30 Jan 2026 09:36:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769751260; cv=none; b=WrKNIpAAlofelLGwcxv4ziNvbjk3ZNrDEFAH0yZEVCHg3GwTS463FLs5HPa3WRDXvs62UWjHhARtca1Cv6d0sqlSqtq+2iv94u9czQuk+ox1Z4qqaz2vM5KLmnRncgopN0aoj19c7IxDQFiu0oQOBIVyJC+UZ4rUYR8TX/O6adw=
+	t=1769765789; cv=none; b=eT10JYKHTntA3Em9JHDQYxQSOe8LwG0kkatApAcH1C/cJe3Cqa32q/LtgXj3H/tdfeyg1Dvq17W5Cubt/bX0vibYg/19IPyOc+VmLEUP2OSZX0g+NYV+TWLD6pGjKynlyuG6lCCC1eL/6Fxr492N1iV+4p61Db52xyV7iYILEbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769751260; c=relaxed/simple;
-	bh=0h7xP6A49Jgeo/0GDXqLFRTApRe+v4rNX4sEgCnoL5M=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=Pe9+MtfKUb34Gh42xJAdN0/FEUZcCtk/xa91Gljmr+18orm9bPReXgloQXN4KPmG+YS05raMEUpMDnoaxHn1W5c9mFybPRvgqsbnyia5iyIUgeMm2I+3OrCAZ5pX1fCY9qE+aFNJXCT03VO0wW106qTStOYyrY9l0IBZWxA1dDc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DmtKyMmh; arc=none smtp.client-ip=209.85.222.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1769765789; c=relaxed/simple;
+	bh=lLSyEwmFVtRHCKQ8jELaRipYlc/Wucrwy63TfX/w0Wo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NK3NWTl+whL0NHT6ynJk6rVlTU3j1pEbFqVv02oJnFdrJUaf3AVvGrcK6kYvz+muciuaxbLXSikQkOlEuqi6Jm7RbCPIHeMrEenYTK8dtgIYEtejZSTBNqGz4ruiwnJI3qObYZ4At5vXDUQQ1fxUFIq3z2N1afIT9c1d3dBqmCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=dannybaumann@web.de header.b=Ik9lNLJx; arc=none smtp.client-ip=212.227.17.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DmtKyMmh"
-Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-8c530866cf0so175483985a.1
-        for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2026 21:34:19 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769751258; x=1770356058; darn=vger.kernel.org;
-        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
-         :date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=UKpVoG4fkiASguZlTDW91/9jV9J6kBfvakyqskZ0dmo=;
-        b=DmtKyMmhD0F6RW5pebHUNE+KewYZhUOVILAlykZGiHaD/rB0LujTG6wr/87Rxn0riD
-         Fcx/18UGC7b/ElxVBp8YC2hSO6PLgEEdUvw9u+OytAY86MuR5I2W/eQ8yH5OwvDyr2GM
-         A1gUyb76DtxzwiFPq56fu51PqZvYxaUP/u80TTS4GHqpu4um4KoM4LfVDtYReKqdvv7f
-         lfU3YHfZNyybf7tqgI6F1sV9pjrDeFP3YGUvBV567Kas6oG0M0HjBZmToAE7GaGlqD4V
-         zy8N5eDoE4h82jML2uyI1tmMXw+HvuzBJFVpOc3crSvZcE69lcq6Zv+0u8/6US9S9eKJ
-         bd1A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769751258; x=1770356058;
-        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
-         :date:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=UKpVoG4fkiASguZlTDW91/9jV9J6kBfvakyqskZ0dmo=;
-        b=CfFOxe2ns0Bv/v1s9cyEFxXq7RibEzjuKEI6DGV6xa1ef0ql7L+Jt809u3zxPqeIAh
-         bqmOVy8fEw89RPswkbxRZ+H7eKEP54jKFDRi9GYfFpsX91Z2w4GuZDQf8OPwzVrjsVv4
-         MgkdUC+6VF57EuvFoJLYRM4D1M8Ot6soZ00413RUv2ZVB/tncz2cT2dgxf0QALgAsc7E
-         NCfV9EnCbjAVwASRZEtdoKxZ9yIvyyJwC6G1CyU18VluvLFBe/DAYSdPB2hXsCBLsq0n
-         hBZgwH40fksYN1TpkcI/qZmOQxYJbBrRG02yESrl8N8bVMiOXeNcUciY3uA4KmLWmfTi
-         0ZcQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWGqpTq5YHDK7UPuymVOmU2C8P7U4j1P6Sxz0QP/I87epF6YYlKP/8izplAuaMufOr0LZ90/pgdPedL@vger.kernel.org
-X-Gm-Message-State: AOJu0YymARt33iu73fkxF7ntdj5N02S3gx+tsBW6tzYCMeU9kdAycAN1
-	rkMB3KDVm5JpEriOdYx6rk9URAxEP3PIVmYgcPW1LjYVYw7bPMuLYOdP
-X-Gm-Gg: AZuq6aL9o9Z0i6f4F3h54QqlCnZSbZckgpsJT1n0DK7YhH30o1MtGXEmBRSoiEOdiea
-	LfBZogi7pqFdJHtidmsSmFczKmIwYcQPYcuXGnW5eSq5c6FftXYcc3bNQh4AzbMGLg6BPi21Cr/
-	n65sTiI+hDesdMyHl4Zi58gZX9+pgQZ7g2bJdvWaOh+50O659vAaCiCBnMlZaWdR3LrWd137O2p
-	W3WFCb8H+FoTKfTKEoW+gSYcbiXCjvRtVzTq0E02VcHypYUbG53WJhSLn4kcRhOIrFKRpWxeRR3
-	jADMSp44fPstDP2xAHoOvjKrxQ5zcfcJJ3XjKE+uk7QL+pNp2sdru7YS6HoOQ8jYiRmghWgcR9n
-	vi2mA+8XYmiJ8CJCAB44XEyKabMKoA+dDMZsqtfPwhuLy1RdYaNRLmEva+eV9QaVExWwUke5jjo
-	GoTrZBydcESKVzBwoBUPZO
-X-Received: by 2002:a05:620a:4542:b0:8c6:b14e:655d with SMTP id af79cd13be357-8c9eb30e4a9mr249559585a.74.1769751257701;
-        Thu, 29 Jan 2026 21:34:17 -0800 (PST)
-Received: from localhost.localdomain ([128.224.253.2])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c711d2847asm551232885a.34.2026.01.29.21.34.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Jan 2026 21:34:17 -0800 (PST)
-From: Kevin Hao <haokexin@gmail.com>
-Date: Fri, 30 Jan 2026 13:34:07 +0800
-Subject: [PATCH net v4] net: cpsw_new: Execute ndo_set_rx_mode callback in
- a work queue
+	dkim=pass (2048-bit key) header.d=web.de header.i=dannybaumann@web.de header.b="Ik9lNLJx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
+	s=s29768273; t=1769765775; x=1770370575; i=dannybaumann@web.de;
+	bh=auA2jkuJ2FrtKsTghN97H7aAOrc0KWQEM6dpYXsdwxU=;
+	h=X-UI-Sender-Class:From:To:Cc:Subject:Date:Message-ID:
+	 MIME-Version:Content-Transfer-Encoding:cc:
+	 content-transfer-encoding:content-type:date:from:message-id:
+	 mime-version:reply-to:subject:to;
+	b=Ik9lNLJxq2o517YVEBh1ajslFs3eNmzODATLyJG6ZnYADo9B7iz7Olzm0TZNjBLU
+	 a9UxNQDb9/9//uJkqlxs9YCj6CZkqzgXWebcFL0fQZUZRxO3LrKuWtO3pdWpV1hGy
+	 GnCv7nEEPCh1IKmzVej2mHYvSU9DQ9uZMBn0qQXzfEnMp8b9tzZdQcfotaAg4KiHG
+	 +EW0pZeiRFuuVmyWVdW5f66eYZQZYdcJbpjiLmqMybKOgHbPEc0u2/ZR74VLiKJij
+	 2SGuq+Iz0AlyCOnGHUyoYQHqmksZPQ8/lfX0bCyxg4rC6QIsS1RvtySm0CY4Xysiy
+	 S+QrhYVLlwGEagQ4Mg==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from rechenknecht.fritz.box ([79.229.128.233]) by smtp.web.de
+ (mrweb105 [213.165.67.124]) with ESMTPSA (Nemesis) id
+ 1N8n08-1vpcng40fe-00xBHk; Fri, 30 Jan 2026 10:36:15 +0100
+From: Danny Baumann <dannybaumann@web.de>
+To: devicetree@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	aaro.koskinen@iki.fi,
+	andreas@kemnade.info,
+	khilman@baylibre.com,
+	rogerq@kernel.org,
+	tony@atomide.com
+Cc: Danny Baumann <danny.baumann@legrand.com>,
+	stable@vger.kernel.org
+Subject: [PATCH] ARM: dts: ti/omap: dra7: Fix PCIe PHY divided clock generation
+Date: Fri, 30 Jan 2026 10:35:50 +0100
+Message-ID: <20260130093550.751250-1-dannybaumann@web.de>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260130-bbb-v4-1-2bd000a15c34@gmail.com>
-X-B4-Tracking: v=1; b=H4sIAM5CfGkC/13MTQ7CIBAF4Ks0rMXwj7ryHsZFgaElsa2Bhmia3
- l2km2pm9WbmewtKEAMkdGkWFCGHFKaxBHFokO3bsQMcXMmIEaYIZRwbY7CzXGnplaaOoPL5jOD
- Dq7bc0AgzupdlH9I8xXdtzrSefkoyxWW0MsRoeuLCXbuhDY+jnYbqM9sbuRn2NVJo71tjz47/G
- 743ejO8GAmaei6IpXDem3VdP/xw/1UDAQAA
-X-Change-ID: 20260123-bbb-dc3675f671d0
-To: netdev@vger.kernel.org
-Cc: Kevin Hao <haokexin@gmail.com>, stable@vger.kernel.org, 
- Siddharth Vadapalli <s-vadapalli@ti.com>, Roger Quadros <rogerq@kernel.org>, 
- Andrew Lunn <andrew+netdev@lunn.ch>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Vladimir Oltean <vladimir.oltean@nxp.com>, 
- Kuniyuki Iwashima <kuniyu@google.com>, linux-omap@vger.kernel.org
-X-Mailer: b4 0.14.2
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:PDfIIdNGTGffgpGG4vkeR0AMCKXU6zK5BtU98EOcs5Y5vhx0gVp
+ 2YJCs0Y+gbNrbLcCTxODfoc5sWUcwcVjy+VIeXWAkJM1W/c7ady1flDa3/DGXTQRlGEN1nh
+ def5OmUTeyeQFMUp70NoN/I+Ztd3SGjDLREGCvKqBTm8/CR/RxGD5NrF9r2QzgJpZ+tRS5s
+ uDJwu+kfrq6Mw5UfpNLYA==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:efoC8JVfYXI=;2Ns6iq2CzJQqdcsUlbqWBmjI/tD
+ Nz+udnlJSzWa2CkBw0ynTP32prrgXYwRm2aQJA1WScuMUx5r9rraWGXfun0xi2JRjT2QbJVHa
+ gDC23DkTt1To8U/eqrqQW9bZvBxd/Rs2cK35AtZGXoqqQRMIb2looMIvqSEB+iaEjw2Q7j9Ji
+ fSZq7DDb3AIUtIAQq8BiUeNolZp8KAgSqrDE24v8R0/DDZ/hQeCMzOB1gYrbeQL7fVv0QXBzu
+ NKIXZ2Gf6r5IKPvOYfxoWwH0JHnJRlQ+A2Q9UdvbB5eo/gnFFEVBGM6lcT3t58eZo4jjueFce
+ O/Ls2zEWsPG9d2gXpTkXo3fByOIrxM9rjfx2mOjGEYIyRWiVmTiOwIQn7zRv+iJr4uWbO+xJP
+ wuDUixSLYCY+nfxrF8RyHMtTbNQO9ZUg3ICA1diQ8ZoqPoOUZvCmEZv3FUGURmTrncdAYD078
+ qZLhb+PxcdzyM/wtZKa+oFbDhARxtxQn5AVblzVZiFmkFKuwJWEdfm1zfz5ZlVtfDkTu3/6TY
+ okBhs8l1SBQv5j9sQUngZhLHw11+sDUiSvUZDMtMM9qnMTRlVAB6RJ6mlw93dlMviHEhon+1z
+ IRPN/G2YZbFvlSIeQtr8fnDmaT23r3vT2Dv9UuyVv9vqQz8hY52Uj8OGdpAEcVpwvHMK32aTW
+ 9myaKxKONjQfS60xVD2Qu9pAl3FT27IkPxKXUc1VeWe+RUQYY+uf7HiNAVMyJ5p4tdlZrR8Dg
+ sJr9ApnZNVGtI3cqLTtdrgcHyAOrQ7nBHiZH4drVRR7qLYqV/bG62KIZ7DT0KiQ0bqCNp4P+s
+ IZ+XXBed66MdrLVtUAJjZ0/S4HQuxPOGKyHxdMWK+fzGTqXnMeJGg1D/aimsImGqXlEnHZkUY
+ 5cYGcCtzai91r1u/upMBYvETccWzSIACE7XQ2t//jaTGk4mJTmQdcYhPPHTsIN+WJdc3KH5R8
+ kRxs1KvV08tV6ySTmxMcUtm1oytZcBxDkEVZLPrYOD2ZiBI1bwNdlmxwO/4+SVfxwuem5woxv
+ hD8J2OGYV7X/bV9hjIFuHQ91xBhiaEwOfQc8SDZggQNZXmTmsVh/AE9PkMT9al/TtC/Ggs/0K
+ aW0wE6QjZNVzJKZ6u8MQy1oZLeBatkxK65Tou2ItCSwGD7RcIYbKnOAsEkAhBjrLXycI7iiXf
+ 5uxbgAcMyKq8FgsSezsU8YCXBtDKQwgzQvVqtGx0z1LnDhDTuYRkuUZDltEi3vVHaB0k71/n+
+ QkOr09elXfjdsfkCiIjtNkBdn5e3WfdOsJaoj1lp3Pip8SiQ3QN6HGR0n5FvawyZFbF0W39eW
+ koLoxr4v9aAAX4IOV8y3Mw1PUKGmQjc4nLcz0TpXXAEZLGaC/s2gmGGGvjw+UjJvixLpEUGlp
+ wD8sdPkU2qUY5goaPGEcsrL+NC+mZRgYzEpKsjlmrevdviNm1qvG1xnxriuoWjL/fUSEwlmwd
+ XV9oas5Ph4eehEmOCLIu6QP/7It8cMrA5M29q2dz+H7t+eabvXBE9EzYNuigMaCQgWlNf734s
+ siheaVGlMnOh6qScjkQo6VVIZv2PDHPvBL+6xWLZwV0+kOfjYP3ehYt3nXAXQv/fGK/b1kOwX
+ rYavjD047QD3h4BvKRKOM1JjFC4nIJePwXdvFrpEz3fYXK24pineH84ENR6U2nG7pAiu1D/5z
+ X00RU8v1vSgBwhQSKkLDs/V0HfavTEFyop1j6T/RSwDfSOb4MrSUCSqN2sYbTV7Pyp3bU8DUQ
+ V48xOOU2P3D2sXTu1AqU6q6gvTzt49+l382oE/8P+7K0DxfgcDsIZPu+AOGbDB4C3O8GJoKgV
+ rqpGf6XFGMRI1Q5Q9mk9opncj6QLvC3mfRKmhiYeRdXxTDIUXcvMhNwt14Lf+dH/9jFPFN/dl
+ KxA9LGtqoNZM0F54uQkSeEnmXBrJwauBZI5u1RXBJkA+28eZQc0kpOA+HzUPwpF+C7qvlnv/N
+ IoI9i6CdwqnzQxfDTn79UFV2hgZtCxhSqltnhjix0fK99k/F4mVpar15OYUaD1FLIXe4RtfwB
+ mHyYlTjjI1pB+DRK90PPzrseg0QxPgbFfVVfEc7EqhtG1asrkeYboh9lSK5F8a3DR6KMU1aOe
+ SBjOsRoNK2Wy1jH6xGheDujtrGCxN4kgBv9bVsuGfZ4vrl+4zYwWhX7F0CpZ8EujR4cKGO1iZ
+ Z5s/bxRENphN8tC2pIzkfsN3idITcZeNAZqQoq9w9hIZM+FrHQopoumTLGiNj9ZuWStP84hdE
+ 1Piz9DHcCkGCYLj/1v00+TkxRe5K13RDYYtMHM1NCiFufABz7WN9G3yoFgQWajPTyJOyPxa7D
+ j4LAZFufTKTsTzPGdye9Db5YbO9Sq3AO4k3VbLJqnnmFRC6x8vlxa8ydR2I+vrKlOMSYC38XK
+ ITTUchOtGMhC3vNkEozNdRGZG82MNQCGEpM+5iM7sJ6mgdWoDs08fI5NzhRNVqGJ4A2C1ZuV0
+ 9kbhu2C5y8xwYhgLNbvQ0Ja3tcNySYvVHSgYzqePFvDXWkdG4gic44b1qlgYIZPmTU04f5pMb
+ rlgE9OHBV7Hvyn1zi2FDsgEbVLrk1WOfHUt6f7ni8Bi7kBQ0i0HFVftD9Ippu1EjheAPDs6/g
+ hQvgXR8vYzppet3+ZTH4NoenFX7SujlMBGaFeys/YkvwqSvVZD6wW3M6pxU/6sBi8B/5iAJyD
+ RPAIUNST7kRvCnyiD58Gms679oxpk7CebbWlJgoNBJstlZF/bL0qaJoSjMYzlm5YJhzmCCgvh
+ SD4IMbh9xZFagTG43xqsh+BqQQ4mTvTPzBcGl3CC0II/UeX7zSCBPJeHtMAV9f0Ur/2nkNAZ5
+ vGiYG5FBOd7qlLqti9g0kTRLYZwddu/dLY7lkj5EhOIiMkk8CEDMMkT/LysfmjGxJP/nVKk2k
+ pFpgtElXS+TRVYY0wqGxD23AJMBL8tGK5QeY09eBFkttsPmBX2K6gTDL3USrNGLAB7smeHSTY
+ PNWfc2QmazxIeTJPES4HozF5+kiEgCw5XOC0ht+0prpReb3yYZ8OBNeOwtp1psh50ZlBgqHQ+
+ zzMPeP8Eo4PnFePiijvZcioZPEJqh34JU/mEoCnC9rj3A9CFNQIH8TxgRU37r2LVy5En644rL
+ CwtGaUFgbPZH72+I/xessDAxjFwVDgdNz/+aXkLujgXLprFBNw5u/KfRQmk5We/zjG0KQUHkp
+ b7Q7/4wqahAlCgpBWxxH4BZVqeXC/W4KRghw0UfQoDWr5J7A8EQpfmkmE6qTIE7uHowag5iCE
+ qesgSGSDj2NHHzML65lbpXxIc6t2N+hR5m4/NYKk4RwuObe5dwCLuEoSr/FPCm4Z5UKb+FcLQ
+ UVDujzulx937106w2nENF71YQSvu9r4gpx3dS4UxBXeLlJ8EO0kgPFPRewjG4VNbzhwCT/uC/
+ xnwtb5rLq6gNhAJnAxdSAVrviYGzbc6/nVLcbz6Q3RGtDFghTjRFMpE8DQjNtYzdZI3rSGxxJ
+ wzswC3X11QggbzrDqE0hEMSW6koEV8NyCT9Lzh8+Z2YsA1jmHPjDKnJ5AxXApQYS6DqnAinT/
+ PIdKT5fxXFU/b0LkGmidl9wyTltEpBB7VG8cYFJtWKhrTyOKGX7DjV1fMHbCYX8cSZZv3ZvQx
+ 96NoaamMJAiDKTluM/P2nCxgRyl1dsOXIka3esaJtM64NP7KvPKt+MY6MUy8n7EB/lsH3+wGa
+ eEm5P9KvXRFOWHOezBR4bbfy4n+GIipbbH5MfCptwaE+6pzEBGycN52RswJw2VhafwZvG5Y+K
+ co5JQNgOrVCwPo9Q7e0KzU8CwIWiGPPilx8DrwlRQtaPB7MEFeo2ZYhNakAWfyYZxyqZeGekI
+ oOtr/1LWkpo14BoNUF5TTT1+L5es+tS+BPmy6InMolNG5nETDLQY3eZ2fdgcfaG0jMmBNw9C8
+ uAkgloRZb6GvvSxwY+5Kvhe6Oz19H8Dkr84tpMa8DJbu9TNK2ukP+JjVT/D9ZpYoo1XokubQ9
+ IqK6uzuolfxNn2/SDsDYQPylwZ0Jd4iDWNFOT47gNG82OlNbjYnTI89jInnKtQHPcRA/JQRlz
+ nRBGA+CFKn/S8d+oLVx/wmZGYisVdrPSqKlh++P4eWP0dwDuz9VrVm4qYJmXfo08fYnVeCcr2
+ K/htW4sLtx8JewiPL0IFcm7cqowYZMMGEUcwludnXHpgnUtTwv3895f5PzGNQXicYwI5OVZLV
+ 8mtRk0Q1zfozlOEB7cYmDHFk9FL8mY4l7F4dTdCa96bsz0R3QV8EJqrFPlFUjmBDgUNU2uNGS
+ MeBi1smAIRlnaX+ZplGNR47ESPgVoWufcuWW2HdQyh178Zbgs5QI0LyRFCn0fYenw5IWjFmUZ
+ nOi4xebtnc5GFKwftETijWj+MGr+kGgvwGKvMik8PkbgTYu0zoaUnDIWxB8Gv0jqh12+wUtK6
+ MWU2U4mkQCrl43BN+ZA8AAJOJwHrycL+gkH3IHgpDe6LsAMQdo9P6j7SmjXI2bAd+H/XVjli3
+ +pxpNtZrNoFpRe54CKIJSyjCgnJQPw3iPPt0Yl91leSlHN78EKJyqXC4iWOatwFGK7dvBSUPV
+ UYnMpMaGRp1OC5fhfMu3rA5GDq3PJ+HtxKBMqQY5zyuB+bNempUO6VVE3ESRDoSM6b1ladvI1
+ rpskczM8Ge7WWcpz7Au1BflIGc5fnojzGL2yf/WbOWQI2fQAUNc3HofNEDlQ2Rw9GYhVcYCXZ
+ wOIr8k5JyabusWzgyrbYgqEfqWNphMxlPJmjhdtE58oLWzQ2UtL7HcWiYfGDqnbmz9F0T1feH
+ r4JwjENMdgRErdps+V3VA8Uyer9gbnbXM1krcIdpOKQqOemg8UPPDiSZQlZZV2DTlw2FW6CR5
+ G+p2sh125pEItw4su/MtgOukfIGqTYB+om+eKRWutdMXlykdiWAiTK9H5Skp/ZmuuuzETAl0H
+ OVgDhjjXFAnjc/EN4II7mVeCh2GUbfWfR8WUDBhtEMuvGG7U+hORn3MVv3rDZlOU8dFlgzzeo
+ WU368pWMsjBxTtizQR9dCeE9oK/hLxySpHQIBzsKExCLPB13e/UlQSlc0Kh7MtOSQfDSEOXYl
+ akw9xsFGfEmTLSRZ6GwkSwG2Bb1ZSxqNAJUx81CsfYxVQGvx5SUOHTH+ARtPKCAixhdKTLc1K
+ 2/BOhtKKQYQqxlIhZqVTF15jIIeCg6o4YDG0/rjvfbQ9FU3evtSq74WWX9/q0+QZUuOdyBsjn
+ +gsJUSCSD3lE3e0JZzRCX3PF6FX/EKLX9vBWE14QdIFg0BSGhQQ==
 
-Commit 1767bb2d47b7 ("ipv6: mcast: Don't hold RTNL for
-IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP.") removed the RTNL lock for
-IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP operations. However, this
-change triggered the following call trace on my BeagleBone Black board:
-  WARNING: net/8021q/vlan_core.c:236 at vlan_for_each+0x120/0x124, CPU#0: rpcbind/496
-  RTNL: assertion failed at net/8021q/vlan_core.c (236)
-  Modules linked in:
-  CPU: 0 UID: 997 PID: 496 Comm: rpcbind Not tainted 6.19.0-rc6-next-20260122-yocto-standard+ #8 PREEMPT
-  Hardware name: Generic AM33XX (Flattened Device Tree)
-  Call trace:
-   unwind_backtrace from show_stack+0x28/0x2c
-   show_stack from dump_stack_lvl+0x30/0x38
-   dump_stack_lvl from __warn+0xb8/0x11c
-   __warn from warn_slowpath_fmt+0x130/0x194
-   warn_slowpath_fmt from vlan_for_each+0x120/0x124
-   vlan_for_each from cpsw_add_mc_addr+0x54/0xd8
-   cpsw_add_mc_addr from __hw_addr_ref_sync_dev+0xc4/0xec
-   __hw_addr_ref_sync_dev from __dev_mc_add+0x78/0x88
-   __dev_mc_add from igmp6_group_added+0x84/0xec
-   igmp6_group_added from __ipv6_dev_mc_inc+0x1fc/0x2f0
-   __ipv6_dev_mc_inc from __ipv6_sock_mc_join+0x124/0x1b4
-   __ipv6_sock_mc_join from do_ipv6_setsockopt+0x84c/0x1168
-   do_ipv6_setsockopt from ipv6_setsockopt+0x88/0xc8
-   ipv6_setsockopt from do_sock_setsockopt+0xe8/0x19c
-   do_sock_setsockopt from __sys_setsockopt+0x84/0xac
-   __sys_setsockopt from ret_fast_syscall+0x0/0x5
+From: Danny Baumann <danny.baumann@legrand.com>
 
-This trace occurs because vlan_for_each() is called within
-cpsw_ndo_set_rx_mode(), which expects the RTNL lock to be held.
-Since modifying vlan_for_each() to operate without the RTNL lock is not
-straightforward, and because ndo_set_rx_mode() is invoked both with and
-without the RTNL lock across different code paths, simply adding
-rtnl_lock() in cpsw_ndo_set_rx_mode() is not a viable solution.
+Commit d0bdd8bb7f35a2b4434a3ef665f9cfc3aba886c7 ("ARM: dts: ti/omap:
+dra7: fix redundant clock divider definition") removed the ti,dividers
+property in favor of the ti,max-div property. That particular divider is
+'backwards', though (0 =3D 'divide by 2', 1 =3D 'do not divide, see AM574x
+TRM, table 3-846 on page 939), so the removal of that property inverted
+the driver behavior.
+Restore previous behavior by restoring the ti,dividers property and fix
+the redundancy by removing the ti,max-div property instead.
 
-To resolve this issue, we opt to execute the actual processing within
-a work queue, following the approach used by the icssg-prueth driver.
+Fixes: d0bdd8bb7f35 ("ARM: dts: ti/omap: dra7: fix redundant clock divider=
+ definition")
+Cc: Andreas Kemnade <andreas@kemnade.info>
+Cc: Kevin Hilman <khilman@baylibre.com>
+Cc: stable@vger.kernel.org # 6.13+
+Signed-off-by: Danny Baumann <danny.baumann@legrand.com>
+=2D--
+ arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Fixes: 1767bb2d47b7 ("ipv6: mcast: Don't hold RTNL for IPV6_ADD_MEMBERSHIP and MCAST_JOIN_GROUP.")
-Signed-off-by: Kevin Hao <haokexin@gmail.com>
-Cc: stable@vger.kernel.org
----
-Changes in v4:
-- Using schedule_work() instead of creating a dedicated workqueue.
-
-- Link to v3: https://lore.kernel.org/r/20260127-bbb-v3-1-5e71f340c1e9@gmail.com
-
-Changes in v3:
-- Resolve the deadlock issue identified in the AI review [2]
-  by moving the netif_running() check under the RTNL lock and removing the
-  cancel_work_sync() call in cpsw_ndo_stop().
-
-- Link to v2: https://lore.kernel.org/r/20260125-bbb-v2-1-1547ffabc9d3@gmail.com
-
-Changes in v2:
-- Addresses the issue identified in the AI review [1]:
-  - Adds a netif_running() check in cpsw_ndo_set_rx_mode_work()
-  - Cancels the rx_mode_work in cpsw_ndo_stop()
-
-- Link to v1: https://lore.kernel.org/r/20260123-bbb-v1-1-176b0b71834d@gmail.com
-
-[1] https://netdev-ai.bots.linux.dev/ai-review.html?id=bd885e1e-1aed-4755-ad60-7150737ad0f5
-[2] https://netdev-ai.bots.linux.dev/ai-review.html?id=c9fc3cf8-a06c-4cb8-b26b-910e775951a0
----
-Please note that the cpsw driver also has the same issue. If this resolution
-is acceptable, I will create another patch to fix the issue in cpsw.
-
-Cc: Siddharth Vadapalli <s-vadapalli@ti.com>
-Cc: Roger Quadros <rogerq@kernel.org>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Vladimir Oltean <vladimir.oltean@nxp.com>
-Cc: Kuniyuki Iwashima <kuniyu@google.com>
-Cc: linux-omap@vger.kernel.org
----
- drivers/net/ethernet/ti/cpsw_new.c  | 33 +++++++++++++++++++++++++++++----
- drivers/net/ethernet/ti/cpsw_priv.h |  1 +
- 2 files changed, 30 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
-index ab88d4c02cbde76207f89cf433e2b383dcde6a83..744657cad0927da21232969d07c15e68f44811e3 100644
---- a/drivers/net/ethernet/ti/cpsw_new.c
-+++ b/drivers/net/ethernet/ti/cpsw_new.c
-@@ -248,15 +248,25 @@ static int cpsw_purge_all_mc(struct net_device *ndev, const u8 *addr, int num)
- 	return 0;
- }
- 
--static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
-+static void cpsw_ndo_set_rx_mode_work(struct work_struct *work)
- {
--	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpsw_priv *priv = container_of(work, struct cpsw_priv, rx_mode_work);
- 	struct cpsw_common *cpsw = priv->cpsw;
-+	struct net_device *ndev = priv->ndev;
- 
-+	rtnl_lock();
-+	if (!netif_running(ndev)) {
-+		rtnl_unlock();
-+		return;
-+	}
-+
-+	netif_addr_lock_bh(ndev);
- 	if (ndev->flags & IFF_PROMISC) {
- 		/* Enable promiscuous mode */
- 		cpsw_set_promiscious(ndev, true);
- 		cpsw_ale_set_allmulti(cpsw->ale, IFF_ALLMULTI, priv->emac_port);
-+		netif_addr_unlock_bh(ndev);
-+		rtnl_unlock();
- 		return;
- 	}
- 
-@@ -270,6 +280,15 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
- 	/* add/remove mcast address either for real netdev or for vlan */
- 	__hw_addr_ref_sync_dev(&ndev->mc, ndev, cpsw_add_mc_addr,
- 			       cpsw_del_mc_addr);
-+	netif_addr_unlock_bh(ndev);
-+	rtnl_unlock();
-+}
-+
-+static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
-+{
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+
-+	schedule_work(&priv->rx_mode_work);
- }
- 
- static unsigned int cpsw_rxbuf_total_len(unsigned int len)
-@@ -1398,6 +1417,7 @@ static int cpsw_create_ports(struct cpsw_common *cpsw)
- 		priv->msg_enable = netif_msg_init(debug_level, CPSW_DEBUG);
- 		priv->emac_port = i + 1;
- 		priv->tx_packet_min = CPSW_MIN_PACKET_SIZE;
-+		INIT_WORK(&priv->rx_mode_work, cpsw_ndo_set_rx_mode_work);
- 
- 		if (is_valid_ether_addr(slave_data->mac_addr)) {
- 			ether_addr_copy(priv->mac_addr, slave_data->mac_addr);
-@@ -1447,13 +1467,18 @@ static int cpsw_create_ports(struct cpsw_common *cpsw)
- 
- static void cpsw_unregister_ports(struct cpsw_common *cpsw)
- {
-+	struct net_device *ndev;
-+	struct cpsw_priv *priv;
- 	int i = 0;
- 
- 	for (i = 0; i < cpsw->data.slaves; i++) {
--		if (!cpsw->slaves[i].ndev)
-+		ndev = cpsw->slaves[i].ndev;
-+		if (!ndev)
- 			continue;
- 
--		unregister_netdev(cpsw->slaves[i].ndev);
-+		priv = netdev_priv(ndev);
-+		disable_work_sync(&priv->rx_mode_work);
-+		unregister_netdev(ndev);
- 	}
- }
- 
-diff --git a/drivers/net/ethernet/ti/cpsw_priv.h b/drivers/net/ethernet/ti/cpsw_priv.h
-index 91add8925e235c6cf5542fde11f3383b9234c872..acb6181c5c9e1bf6ed46a7fd14ce422efc0b724e 100644
---- a/drivers/net/ethernet/ti/cpsw_priv.h
-+++ b/drivers/net/ethernet/ti/cpsw_priv.h
-@@ -391,6 +391,7 @@ struct cpsw_priv {
- 	u32 tx_packet_min;
- 	struct cpsw_ale_ratelimit ale_bc_ratelimit;
- 	struct cpsw_ale_ratelimit ale_mc_ratelimit;
-+	struct work_struct rx_mode_work;
- };
- 
- #define ndev_to_cpsw(ndev) (((struct cpsw_priv *)netdev_priv(ndev))->cpsw)
-
----
-base-commit: 33a647c659ffa5bdb94abc345c8c86768ff96215
-change-id: 20260123-bbb-dc3675f671d0
-
-Best regards,
--- 
-Kevin Hao <haokexin@gmail.com>
+diff --git a/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi b/arch/arm/boot/=
+dts/ti/omap/dra7xx-clocks.dtsi
+index 0de16ee262cf..615a8fb47776 100644
+=2D-- a/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi
+@@ -1376,8 +1376,8 @@ optfclk_pciephy_div: clock-optfclk-pciephy-div-8@4a0=
+0821c {
+ 		clocks =3D <&apll_pcie_ck>;
+ 		#clock-cells =3D <0>;
+ 		reg =3D <0x021c>;
++		ti,dividers =3D <2>, <1>;
+ 		ti,bit-shift =3D <8>;
+-		ti,max-div =3D <2>;
+ 	};
+=20
+ 	apll_pcie_clkvcoldo: clock-apll-pcie-clkvcoldo {
+=2D-=20
+2.52.0
 
