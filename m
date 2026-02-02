@@ -1,206 +1,86 @@
-Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F1EC29408
-	for <linux-omap@vger.kernel.org>; Sun,  1 Feb 2026 01:15:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A21A354AE2;
+	Mon,  2 Feb 2026 08:25:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769908521; cv=none; b=go2/pyYq1imCyVhvpsSY227EnP+OLWG6IDCqtIuyxVOKctFYRPIvreXld8PaB9eAxPnWHm0R2a+uqOMcmfE3ALTDsFu2VhogMnj7+X5yDZtsncFkgCqLDeQGcbeWvxUrQHfxKTdIbyyjMYMqOBM91pZhjMAsf4hybO57eJoutrY=
+	t=1770020761; cv=none; b=mo62YPqqVtFWaz717mkI4yn3J3VP7WHRBTYpyJA4iGPDmsy0+OMr6iNTCaR2JkE+N3xktpP3GSNjoUxSO6s5XhCC/hVZqPNUulIMhcBSkyLkrNWG293D8aLq1SUzyex0ndmK7L8bwxm60eaY/NBGkkowbI95wyvxBz9qM1Sjb20=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769908521; c=relaxed/simple;
-	bh=95ouaZ23Vhl2t+iYu6rYXs9qTxKPHcqylEIKC50PuIs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TGdbqKb4tztP7jSV9f4Z7OElOPaszYMxVT9EzrhqDSqD7+lnvZNZqxvH1Yz2doRIDzewxIktiV8GZhZKAeox3ylG5975DSXZpLZrw8Wwqx5sNaume7Jm2JZwwmfek/7N9nGRwZBrDlkJVzGcvTbUVPxZ33tzXdZCNTXQ+ALiCLE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BD3REvSD; arc=none smtp.client-ip=209.85.222.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1770020761; c=relaxed/simple;
+	bh=phCEsAISm1EXcNibuPfrZAjaH8jQm5Bi33x10pdIXaE=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ktC5vaIjLnM8QJkLOUDDGVkc5/DVMKrWw0W5mcBlAdyo+vr1dEGBxDlZwPLqAzhMdH2yVehxRsOEbSXATf3FUgejk88FQNMMNG4YxQQdvIPD9PaoU3yhfyB5WYA/0Px3a6wxFYXoy7jlhm5f7xaEGovlrwZlB/AOjaWtGzvUjHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=BFdEKFnL; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BD3REvSD"
-Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-8c52f15c5b3so333181585a.3
-        for <linux-omap@vger.kernel.org>; Sat, 31 Jan 2026 17:15:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769908519; x=1770513319; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZJm1H3CZ3seZ1f2WLe4nYJDs1xC8Xdq/DSJguIofri0=;
-        b=BD3REvSDHeQoHZqlgssSQaDryNcl5lwnZJHG7bKAOrwqNb3f/t2zD+Ln/nd/eyP72q
-         FHXMAZ2FIvAFvlp5vILlot30wy/uSDrMS4VZrz1jlscxG4DxjFw0YVTZ2EP3kDYk04kp
-         S6t7JFyCgZ/3PB1aU1XRG5elY+pW3HdFHDL2mbfTpULbK+8KE5qpAsgK0cyJEu+AHGbr
-         Y2IQPH1eedhndtjfablHYGjJDq6rIY5+B68F02m8QisSJirE2KujnGNdBmOm8uFJa34P
-         dYdLfrxO4lsMpUyNhfjXYGNegGA+NUBIjSbOl7fV0fzmM/gRVSMkCmygf+qjzaVfsOqU
-         JvFA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769908519; x=1770513319;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ZJm1H3CZ3seZ1f2WLe4nYJDs1xC8Xdq/DSJguIofri0=;
-        b=HOYwxDrrgvOhgvKZvXjBiEVmy/sSvIlFdAbF13/i2SULpU+MfZC6hwMAMmZMLCLmI6
-         hNBATJu1bgYl12Gsmwh3+KbdX3ER5I73p3cQVOo3bBoYHKMeUs1na2uaiYnwyivixwYd
-         I6xV0Va4rMRpfEY1wBM5pIVUZ/Usp2kM8YoEDs5V9t0sJYIjNhJLoBdlWxORezCHWPRU
-         /cZohqDn8vzfuaQlZZxtRjDYlFXvsk+F5cibPGQ3wqwdTqFtfnWWAossD0rVb1WNGB1f
-         o9irS99aRTd/0UaP2QLju4rv4Vl3pf0Xr0E7P/cwuTxsqw7//mNBfxJFiwPRTmK0hZz5
-         Op2A==
-X-Forwarded-Encrypted: i=1; AJvYcCW3Z+s8u/qiSIMz3dxRokqH9fHjppnpxqPJfSEwMR3hYUbTex9JRL8nlYvXzafmyZiPyuJJIAIUTNaA@vger.kernel.org
-X-Gm-Message-State: AOJu0YzzDBWX9U8nk/H3L3RU+vMIJHfFOrh21aq7r7NDyn/afIUUiXEs
-	E+f493OktREaWZjRMV2hIMKsFF937IMbkIErjw7NlLswGekHPyYonz+A
-X-Gm-Gg: AZuq6aJO4cmpXpac8e+bq1g4Ot/bC8fJ2GHmqvAEIFUpPk/hm986YFX+wBWRNHr1TTQ
-	EiCKT8xNAN4mAQQySE7pZ50MVfA1R7THuHII00/mGWskBBGOt6IfdAz+/AxO0Jbl3pstVF2RfC6
-	pfHdm7Kkx6rdarurLPzMYHKrFlvCPFopQ2epklULVzWNe8ahIme7KbCBVZefU6MR6qDhYhQACLd
-	18je56hKaPL91LgMXjus73qx65pTibX8/0hIWINrAhBoPUMnlt+F+dyPyZ8Vm4kNpuZY13QUu3F
-	n5AkNO+ufp0PxtXPjMMNiC3/+stxB9O4Y8aIkNW4dRdYq3o3jpcA3LdgJKY7G5DBxw3Z21v8eFo
-	7wEm1UxgQ3ArcLU9jQcZw584uh8qfELV9I4nE6a0VbKTn7iQzB9At3EL2icwtPfbW2gt0ztMNNk
-	A5QgrASH0=
-X-Received: by 2002:a05:620a:3704:b0:8c3:87eb:f with SMTP id af79cd13be357-8c9eb2f95b4mr1018046085a.53.1769908519059;
-        Sat, 31 Jan 2026 17:15:19 -0800 (PST)
-Received: from pek-khao-d3 ([128.224.253.2])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c711b7c670sm903220085a.6.2026.01.31.17.15.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 31 Jan 2026 17:15:18 -0800 (PST)
-Date: Sun, 1 Feb 2026 09:15:10 +0800
-From: Kevin Hao <haokexin@gmail.com>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: netdev@vger.kernel.org, stable@vger.kernel.org,
-	Siddharth Vadapalli <s-vadapalli@ti.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
-	Vladimir Oltean <vladimir.oltean@nxp.com>,
-	Kuniyuki Iwashima <kuniyu@google.com>, linux-omap@vger.kernel.org
-Subject: Re: [PATCH net v4] net: cpsw_new: Execute ndo_set_rx_mode callback
- in a work queue
-Message-ID: <aX6pHiB0tk6xvrCX@pek-khao-d3>
-References: <20260130-bbb-v4-1-2bd000a15c34@gmail.com>
- <20260131124120.744bd931@kernel.org>
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="BFdEKFnL"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID;
+	bh=U/gycSIOgTGnUjvcUt1gVzgzrqctuqnK7adcurWVRKo=; b=BFdEKFnLsQ7B9xXiQ64Kv6nXPx
+	EYyNmEZY3tuigNX8cPmLRVVRBkhuY8yzUm0i81JbNWq7KjNcyUCCqvX1PGdw0uaWFr8bejJmIAdRk
+	jsrhU1ydfOLrSqak/N+rvFhuAUbpRCYaOIaLSIPa0v+PQOpBsyEznHqdf0px+8mqe/VlG+oyC2rRw
+	E2RM4OpET+F4I1dNAQxlwPzjjgdG1ojaAFFXxe/+aD7H3H4JJ3fowEZ+lGWO5n95MlEic8HEydcGg
+	a6DetxO4kV3ha9mTdUx+f6xHAhPJwsf6pnNUECcT3/brpwAW/ASL6v6aCT5J3e3Oivls/NLnPEsZH
+	J56SmypQ==;
+Date: Mon, 2 Feb 2026 09:04:08 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Mithil Bavishi <bavishimithil@gmail.com>
+Cc: aaro.koskinen@iki.fi, airlied@gmail.com, conor+dt@kernel.org,
+ jernej.skrabec@gmail.com, jonas@kwiboo.se, khilman@baylibre.com,
+ krzk+dt@kernel.org, laurent.pinchart@ideasonboard.com,
+ maarten.lankhorst@linux.intel.com, mripard@kernel.org,
+ neil.armstrong@linaro.org, prabhakar.mahadev-lad.rj@bp.renesas.com,
+ jesszhan0024@gmail.com, rfoss@kernel.org, robh@kernel.org,
+ rogerq@kernel.org, simona@ffwll.ch, thierry.reding@gmail.com,
+ tony@atomide.com, tzimmermann@suse.de, andrzej.hajda@intel.com,
+ devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v5 5/8] ARM: dts: ti: omap: espresso-common: Add common
+ device tree for Samsung Galaxy Tab 2 series
+Message-ID: <20260202090408.4c3757cb@kemnade.info>
+In-Reply-To: <20260129054709.3878-6-bavishimithil@gmail.com>
+References: <20260129054709.3878-1-bavishimithil@gmail.com>
+	<20260129054709.3878-6-bavishimithil@gmail.com>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="/7d4g+wwdxZxeLY6"
-Content-Disposition: inline
-In-Reply-To: <20260131124120.744bd931@kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Thu, 29 Jan 2026 00:47:06 -0500
+Mithil Bavishi <bavishimithil@gmail.com> wrote:
 
---/7d4g+wwdxZxeLY6
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Create common device tree for Samsung Espresso series devices
+> 
+> Let's create a common tree for all the variants first, later we can
+> device specific trees based on their screen sizes
+> 
+> Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
+> ---
+[...]
+> +			OMAP4_IOPAD(0x0c0, WAKEUP_EN | PIN_INPUT | MUX_MODE3)
 
-On Sat, Jan 31, 2026 at 12:41:20PM -0800, Jakub Kicinski wrote:
-> On Fri, 30 Jan 2026 13:34:07 +0800 Kevin Hao wrote:
-> > --- a/drivers/net/ethernet/ti/cpsw_new.c
-> > +++ b/drivers/net/ethernet/ti/cpsw_new.c
->=20
-> What's your plan for fixing drivers/net/ethernet/ti/cpsw.c ?
-> My preference would be to post both of the fixes at once,
+We had the discussion. This should be done via pinctrl irq if possible instead of
+specifying WAKEUP_EN here, You had some trouble to understand how it can be done,
+and we agreed to add the wakeup functionality as a follow-up concentrating just
+on that detail and for now just remove WAKEUP_EN.
+[...]
+> +		mount-matrix =	"-1", "0", "0",
+> +				"0", "1", "0",
+> +				"0", "0", "1";
+> +		};
+> +
+still this strange matrix. This is no rotation matrix. Determinant is -1.
+Something is strange here, so also the idea in our earlier discussion was to
+also postpone it and maybe separately discuss it with iio.
 
-Sure, I will include the fix for cpsw.c in the next version.
-
-> I think this version is quite close, just a couple of nit picks
-> below..
->=20
-> > @@ -248,15 +248,25 @@ static int cpsw_purge_all_mc(struct net_device *n=
-dev, const u8 *addr, int num)
-> >  	return 0;
-> >  }
-> > =20
-> > -static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
-> > +static void cpsw_ndo_set_rx_mode_work(struct work_struct *work)
-> >  {
-> > -	struct cpsw_priv *priv =3D netdev_priv(ndev);
-> > +	struct cpsw_priv *priv =3D container_of(work, struct cpsw_priv, rx_mo=
-de_work);
-> >  	struct cpsw_common *cpsw =3D priv->cpsw;
-> > +	struct net_device *ndev =3D priv->ndev;
-> > =20
-> > +	rtnl_lock();
-> > +	if (!netif_running(ndev)) {
-> > +		rtnl_unlock();
-> > +		return;
->=20
-> since the "undo" logic is getting complex you should use a goto.
-> Replace the unlock and the return; here with:
->=20
-> 		goto unlock_rtnl;
->=20
-> > +	}
-> > +
-> > +	netif_addr_lock_bh(ndev);
-> >  	if (ndev->flags & IFF_PROMISC) {
-> >  		/* Enable promiscuous mode */
-> >  		cpsw_set_promiscious(ndev, true);
-> >  		cpsw_ale_set_allmulti(cpsw->ale, IFF_ALLMULTI, priv->emac_port);
-> > +		netif_addr_unlock_bh(ndev);
-> > +		rtnl_unlock();
->=20
->=20
-> 		goto unlock_addr;
->=20
-> >  		return;
-> >  	}
-> > =20
-> > @@ -270,6 +280,15 @@ static void cpsw_ndo_set_rx_mode(struct net_device=
- *ndev)
-> >  	/* add/remove mcast address either for real netdev or for vlan */
-> >  	__hw_addr_ref_sync_dev(&ndev->mc, ndev, cpsw_add_mc_addr,
-> >  			       cpsw_del_mc_addr);
->=20
-> And place a labels here:
->=20
-> unlock_addr:
->=20
-> > +	netif_addr_unlock_bh(ndev);
->=20
-> unlock_rtnl:
-
-Will do. Thanks.
-
->=20
-> > +	rtnl_unlock();
-> > +}
->=20
-> >  	for (i =3D 0; i < cpsw->data.slaves; i++) {
-> > -		if (!cpsw->slaves[i].ndev)
-> > +		ndev =3D cpsw->slaves[i].ndev;
-> > +		if (!ndev)
-> >  			continue;
-> > =20
-> > -		unregister_netdev(cpsw->slaves[i].ndev);
-> > +		priv =3D netdev_priv(ndev);
-> > +		disable_work_sync(&priv->rx_mode_work);
-> > +		unregister_netdev(ndev);
->=20
-> I understand that this is safe but I think that more logical ordering
-> would be to shut things down _after_ object is unregistered.
-
-I'm a bit confused=E2=80=94are you suggesting that we move disable_work_syn=
-c() after
-unregister_netdev()? If that's the case, the scheduled cpsw_ndo_set_rx_mode=
-_work()
-could potentially run after the network device has been unregistered, leadi=
-ng to
-a use-after-free issue. Or am I misunderstanding something here?
-
-Thanks,
-Kevin
-
---/7d4g+wwdxZxeLY6
-Content-Type: application/pgp-signature; name=signature.asc
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCgAdFiEEHc6qFoLCZqgJD98Zk1jtMN6usXEFAml+qR0ACgkQk1jtMN6u
-sXFiMQgAgXhM+XjfpOGaw/OgbkrwPRvaJ2E9diBBKdfT5GneZ2xQLqoX5yrDbn69
-x9ywnY0WcVrrZPBnlDb6+gylB3kexPm1bkKoXVCLZgMfmjTgMUn5ZgW2AJFeF0Jo
-6e749TYfvlP+sK1fT8vK3ljM853Sgne9GoyWjnSwM4UMX86DGXiOaoA9/t4S2Ik5
-BeiuMisqwUHhk5wmGUWdKNWrCcrCuWXEHfVVE6yeHwiRv1VBPqrBQr0w/ct+VSay
-+Afvrd3fiQsVSG2NL9hOg3ri/QChk0HEjPlUTA6/5k7Qyy8CWzKxM1R3V6I5I3oB
-8ohHti4FG6auchSaoIGJp+RStRu+cg==
-=ackL
------END PGP SIGNATURE-----
-
---/7d4g+wwdxZxeLY6--
+Regards,
+Andreas
