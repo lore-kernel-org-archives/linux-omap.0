@@ -1,120 +1,143 @@
-Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
+Received: from mail-qk1-f174.google.com (mail-qk1-f174.google.com [209.85.222.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EA8C21D3D6
-	for <linux-omap@vger.kernel.org>; Tue,  3 Feb 2026 01:18:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90DDC2F39B1
+	for <linux-omap@vger.kernel.org>; Tue,  3 Feb 2026 02:19:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770081520; cv=none; b=O1sj/5lZdu6toG9gOWUZv90BVaMLEi7GPpOYs29nO3IXc0DEUK82gqNHgwdYhBthpTDM0MSezjTvU5yvmC2A//TCGqwxj8fzmVkDR62kpsAle3Me0gt1wUwHt/Jyw7UJlpmy5zYONypHKnmCFmDWBifxjgqLWNELG9h+nIiKsdE=
+	t=1770085146; cv=none; b=pZC8I4QSF93z9t5RYITseh/Ex2io60qmZI7vL3ZAgASwfV3O6EL/Q9S11MLq+R/jmrzg6vWSXLUYIzs9OjyFfDFiTALF08IV26kjj+5ooJAWKtCZKI99UU0O5Hg0Koa6IhBEo8ljiN0km8fPLama6OsTT6oIWmpMUNCxrR4uW70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770081520; c=relaxed/simple;
-	bh=AWut4A5EvZmuf8e29UygC5BAvfCGnf/3txOaKO7qA4s=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LuRjfBVQ/LSfyOhPv7ZyeqDDX0ywE/YLzaeukTKQOLl1PtNyFSeRrpeUSJbka7HPc5IZFNi2soW4F2cHT6G18ZTzDcqFUft6avqjKhohLjVlIE5BLFuKhgz1hn79u8N493glO6RPV3h9d0QxNq1nwjscmoFd5ZVaM4jJGCTlUgM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BcsWNEvi; arc=none smtp.client-ip=209.85.219.52
+	s=arc-20240116; t=1770085146; c=relaxed/simple;
+	bh=A9J9Vbw3cZWxxdrLeN0e2dFSVHQM1IePSv58Izf3rdY=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=jVVSJq4bi2gH3tcMKaUahHmQR+Oy7z40EPR1VJRsEwnv7vf8wMEPP/58m0cYHG8Ck0ehygkO9pXLZpfiz3TbkZqFfEls40M60CAAHMrcdoCCIYmyuEynYPRsAm0r+uvkjkSPe02bu5ulIe9riuLB/UcpGW53waz2N0mI4Fk+tQs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TAtVnUHe; arc=none smtp.client-ip=209.85.222.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BcsWNEvi"
-Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-88ffcb14e11so70602056d6.0
-        for <linux-omap@vger.kernel.org>; Mon, 02 Feb 2026 17:18:39 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TAtVnUHe"
+Received: by mail-qk1-f174.google.com with SMTP id af79cd13be357-8c6d76b9145so548074085a.2
+        for <linux-omap@vger.kernel.org>; Mon, 02 Feb 2026 18:19:04 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770081518; x=1770686318; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=AWut4A5EvZmuf8e29UygC5BAvfCGnf/3txOaKO7qA4s=;
-        b=BcsWNEvi8C4q4HxG/jdJRH5qkECUdovypl0yj1sm+OMHm3plkD3BXVD6WDxo/TOrw/
-         5LAX1Cyh1VTzMMBZqbZmVak8cmTtvpxckaoq/mOFVateKUdZXY9OGGnN+g0uX3GXqtJw
-         3qj7WkDecUH5R4/QYlb7tKn55uJBYfL/1ye3t5FGchmgnpxookoX3aOAdBfC5GZ8hRz2
-         850sdt6ksKwttYmMLdrBENCneXbhzbQUgtAOwh0R1HkXlxPP71KKjKbThlEyqEwvr0Dp
-         KDb4+yYraUp91J472JmlL1p4HVWPCQ3g0NPLf4RnaexUWc2iEak3jX4ISd6l2H/6mf2H
-         Klew==
+        d=gmail.com; s=20230601; t=1770085143; x=1770689943; darn=vger.kernel.org;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=5vRFnWyzTvIVC5B3GNzk5VoRZ+dqVfddbc1ZSFOhpp0=;
+        b=TAtVnUHeAuJVwei9ER/yWl66HCzMRfupuvKyWEkU2vnP+ifJ7KnQFFsBVcfJqCQWA3
+         WcQJfn0mBq0wNhRjr1FA3EclDsSrTNn7u+jyziADkbHsYWHNclHhNpn8qair6U0mEEY8
+         RHZsWORjrehGV11jMlFXmQ0QYd7AoJWAM/0nUCy4wslpzRman3iRiOCsRjr6M7YLQ0W1
+         X9v1FS5+4q/Me+GOb6Hxh0kgJGTk6dehfjFjpBcTN4y0DltTCxpFtsZKgKHcB/yO5iF/
+         u0p5pALfO2S4CAGmtmJfXbzlMhuBisG7Lw6STSzVRFrr8BSpkOvNwrHhaijW80PWdREp
+         6+HQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770081518; x=1770686318;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=AWut4A5EvZmuf8e29UygC5BAvfCGnf/3txOaKO7qA4s=;
-        b=ASDc/hbT2hUy4oE7UiyFQ2eRfZnhK1bJXKA+cN/hl1R2jzyGGg6LBkm/+zUgBXRzKl
-         4+W1MEYTdGNOYIaYnwktm7PPDXr8+yokHS76PrBpR51s23X1TJsiC+k2RTEEMdOYmMvI
-         nbVZZCEhq27E7Ce5ait3J3fOphxj16UwAHjLPYOnIe2ZC3WyRDXxKgkw3exOhMGK3r9s
-         1Cbd/Kjm2Jq6XGGXAccdx8N0xOrt+aomL1H5xXWhrs+Ug4DmTxOzQ7ZCY+pWSBvpVzeU
-         TEw1Yc/v+kqM4t9BAQJNZt36oDKMkH1kXHP+dqzOsEFGWo7bNf0Wo19+dX7WeUuJKe+Z
-         bO6A==
-X-Forwarded-Encrypted: i=1; AJvYcCU94WkM9E3VDm1HCvJVObo1MUcjeBTouFYR4VQ8nnXnRr0PvAlDLCgAvS9faND7/g3dWaQqsQtVgjZU@vger.kernel.org
-X-Gm-Message-State: AOJu0YxrorvFwWttHc/3Dsy5X/e9lM9CyHT7nCRCRlPGKl9aS7ZqF7I4
-	Dh4zGhb7YxZgMbioL09NsQvqtBpj2gkHqoxicAsxSqFPs0+YF85820lz
-X-Gm-Gg: AZuq6aL0q6KgdSunUEJv4+i2AOwYPWR/LV+zBzHpCJ8kutFSrRd+V+Un8SaFEyKi/fo
-	QP2tRGY1jNT+GpL5cMwon5ufZIJJKsTWeDtrI4GyNKE+eE8hpGZrnF7XpIg3HeLc2iF0DDF32gS
-	n3pBrt+VzYz/Ax5frhe7fSKVTI8AMn2jY5q20zt4pCVDYTKcmq+uDgBWVKev/6mcni2yNJ/42Um
-	9Woz17rr38k5KyI+ksCpnJtmba6pl5pVCuCoFa9WUScegFFIApKfnuDa4ua2F45PBX05mr8Iy+J
-	YBDascatHFD+4C6ulpzVuhPySt2ExMJWxBIl6GxZOKT5a55+QoivjsY2XE5xVmKiMFzbzmAvrK4
-	xdz7+j7B2eGQKX5rPA4DHQyZgdiMR2HeQ89BBFG85C8hXr8v3ltQGmrhbzQKgapG+U4Cda2DR58
-	+eSFLyGjM=
-X-Received: by 2002:ad4:5ba2:0:b0:892:6f12:608d with SMTP id 6a1803df08f44-894ea0974e8mr209720416d6.57.1770081518206;
-        Mon, 02 Feb 2026 17:18:38 -0800 (PST)
-Received: from pek-khao-d3 ([128.224.253.2])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c711b7c789sm1347330885a.7.2026.02.02.17.18.33
+        d=1e100.net; s=20230601; t=1770085143; x=1770689943;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=5vRFnWyzTvIVC5B3GNzk5VoRZ+dqVfddbc1ZSFOhpp0=;
+        b=bWX91t9PJkY/ZvaaYI+p9HC3UOvtgROpYEZSuaYpViTu29rdxJM9aPB6uMs3G05isX
+         /kQ38fvpia4TVtL8ydFyuKAeMzuwIIuNMuKZCCrQ9tRHTUTVb2g4fvIY86lnQT18hEZR
+         m30ZF0euESOLynWza4HKJsG0bBHBU2KNbCCuYiU6ly7AZAO0kY3t9HUIPQc+MYfTEex+
+         LidSymY/Re5P2BaOS/R/U333TQhKolhuScpZajULzVPsG8pGv9TJ8dAbrCB6Tr6Nlr+R
+         jJUJHjHmcsyNrTxWRFpiv/GoM0EIiXpJEpJI2g3YGRKjKAbyVAIhGFtV2HgJwbmK3Mh+
+         D2/w==
+X-Forwarded-Encrypted: i=1; AJvYcCXlCjyNqOhtCxM+roQBr7WXmkH0Hmi9jI/cyEE9BX3+YZPK1TiUe9FPaSfZPhFE5oGM9iH8w2grNqDV@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw2n8jGebjyNa0NTYscgItVfw0T1pqDiF14ES3Np+r4WridRP4H
+	XL2lv7becv2UQbXC0p/WGkFw6Tez9ZsW1NmZ/Y/S2hFn06+akqU8bi3F
+X-Gm-Gg: AZuq6aIDcYC8JJjXoG4e6oH41NAZedJ/JVEKbZkh6/1zawOslz/g1R74NjQWsgtcGcb
+	auX+iWM85TSp2Hah8xjN8AnkjNCrXO6vpF/fJzY5l2do6pK5QowA9UU1gSV8s/Yh2BAY0D4D4mY
+	WR+tT8fFn0HEoDci6/GIAZvngdN1IKXJmCjr7cEB0wWJdst4WfHwHDIz91A9NT4ctuy5fBDCooy
+	NSOCdySAmff8AQdlb0rAAO3n2/f0Nc9ZsfbDTPRgDcLA6dMVwbQO304vmNnxQCw3M50IzNi/ew0
+	AgTKuWAqBF5S2MtoAy1ROO8/InzQtOjFF4HDlJIHsJuCmwgycPaQAKffDoo813hFek7dXWS++PZ
+	R/mUWCAwhZTJj87EU4ZP0YYKujOlxJOsrXfE314gYLlAQRcGaxxKDc8/i5ImFF006HJTMZxdFTG
+	dojulbk8Y6686ig7bYdCvY
+X-Received: by 2002:a05:620a:472b:b0:8b2:db27:425e with SMTP id af79cd13be357-8c9eb309af1mr1776216485a.50.1770085143102;
+        Mon, 02 Feb 2026 18:19:03 -0800 (PST)
+Received: from localhost.localdomain ([128.224.253.2])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8c711d5c34asm1337199885a.50.2026.02.02.18.18.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 02 Feb 2026 17:18:37 -0800 (PST)
-Date: Tue, 3 Feb 2026 09:18:31 +0800
+        Mon, 02 Feb 2026 18:19:02 -0800 (PST)
 From: Kevin Hao <haokexin@gmail.com>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: netdev@vger.kernel.org, stable@vger.kernel.org,
-	Siddharth Vadapalli <s-vadapalli@ti.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
-	Vladimir Oltean <vladimir.oltean@nxp.com>,
-	Kuniyuki Iwashima <kuniyu@google.com>, linux-omap@vger.kernel.org
-Subject: Re: [PATCH net v4] net: cpsw_new: Execute ndo_set_rx_mode callback
- in a work queue
-Message-ID: <aYFM528IM43_fXwP@pek-khao-d3>
-References: <20260130-bbb-v4-1-2bd000a15c34@gmail.com>
- <20260131124120.744bd931@kernel.org>
- <aX6pHiB0tk6xvrCX@pek-khao-d3>
- <20260202161918.54be9315@kernel.org>
+Subject: [PATCH net v5 0/2] net: cpsw: Execute ndo_set_rx_mode callback in
+ a work queue
+Date: Tue, 03 Feb 2026 10:18:29 +0800
+Message-Id: <20260203-bbb-v5-0-ea0ea217a85c@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="evuoqMsTIgoryhj6"
-Content-Disposition: inline
-In-Reply-To: <20260202161918.54be9315@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAPVagWkC/13MTQ6CMBAF4KuQrq2ZdloqrryHcdFfaCJgCiEaw
+ t2tsEEyqzcz35vJ4FP0A7kWM0l+ikPsuxzkqSC20V3taXQ5Ew68BMaRGmOos1gqGUrFHJD8+Uo
+ +xPfaciedH8kjL5s4jH36rM0TW09/JROjeVRpwCh2QeFudavj82z7dvUT3xu5Gf4zUqgQtLGVw
+ 6PBvVGbwWykVyygAMt8dTRiZxA2I7LhxgGAZtKi2JtlWb5HelIaNwEAAA==
+X-Change-ID: 20260123-bbb-dc3675f671d0
+To: netdev@vger.kernel.org
+Cc: Kevin Hao <haokexin@gmail.com>, stable@vger.kernel.org, 
+ Siddharth Vadapalli <s-vadapalli@ti.com>, Roger Quadros <rogerq@kernel.org>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Vladimir Oltean <vladimir.oltean@nxp.com>, 
+ Kuniyuki Iwashima <kuniyu@google.com>, linux-omap@vger.kernel.org
+X-Mailer: b4 0.14.2
 
-
---evuoqMsTIgoryhj6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Feb 02, 2026 at 04:19:18PM -0800, Jakub Kicinski wrote:
-> Unregistered device is not freed yet. The netdev is only freed after
-> .remove routine returns. Passing unregistered netdev to netif_running()
-> is safe and will return false.
-
-Thank you for the clarification, Jakub. I will move the disable_work_sync() call
-to after unregister_netdev().
+These two patches resolve an RTNL assertion call trace issue in both the legacy
+and new cpsw drivers.
 
 Thanks,
 Kevin
 
---evuoqMsTIgoryhj6
-Content-Type: application/pgp-signature; name=signature.asc
+---
+Changes in v5:
+- Apply the same fix to the legacy cpsw driver as well.
 
------BEGIN PGP SIGNATURE-----
+- Use goto label in cpsw_ndo_set_rx_mode_work() for the undo path as
+  suggested by Jakub.
 
-iQEzBAEBCgAdFiEEHc6qFoLCZqgJD98Zk1jtMN6usXEFAmmBTOcACgkQk1jtMN6u
-sXE5SAgAsRYktD91exFTnCzTnSMkl2UAj6TGHGQCuhocha2Imq4TEFNe2b1XLHjL
-SPzZa6eCURAWHejBF596fz6WepH2a4RZKOj6DWudDj3QAAZA2gmGVSgDdVysjgC0
-B+Ov/P2avXJWTKSrfTu7ZRNTuG1dfRHQ+x4cDfHHG5mRWxGIfafTYeRh/k7Zxt5T
-lTuwy6+dECR1xM/H22hLhjxeLDUhIbXs1jrUgMLgJBG+ZTQWHAfnIRTF7iAbb0MG
-T2y3955RkOSDMSVqjdn+56i2Algxme8f95Nl1iYgBz99DPaNIYTKsVxLj2ofET/K
-oHnc/ESoacxGy9ssYMrpokOI7zH2EQ==
-=Rrs5
------END PGP SIGNATURE-----
+- Move the disable_work_sync() call to after unregister_netdev() as
+  suggested by Jakub.
 
---evuoqMsTIgoryhj6--
+- Link to v4: https://lore.kernel.org/r/20260130-bbb-v4-1-2bd000a15c34@gmail.com
+
+Changes in v4:
+- Using schedule_work() instead of creating a dedicated workqueue.
+
+- Link to v3: https://lore.kernel.org/r/20260127-bbb-v3-1-5e71f340c1e9@gmail.com
+
+Changes in v3:
+- Resolve the deadlock issue identified in the AI review [2]
+  by moving the netif_running() check under the RTNL lock and removing the
+  cancel_work_sync() call in cpsw_ndo_stop().
+
+- Link to v2: https://lore.kernel.org/r/20260125-bbb-v2-1-1547ffabc9d3@gmail.com
+
+Changes in v2:
+- Addresses the issue identified in the AI review [1]:
+  - Adds a netif_running() check in cpsw_ndo_set_rx_mode_work()
+  - Cancels the rx_mode_work in cpsw_ndo_stop()
+
+- Link to v1: https://lore.kernel.org/r/20260123-bbb-v1-1-176b0b71834d@gmail.com
+
+[1] https://netdev-ai.bots.linux.dev/ai-review.html?id=bd885e1e-1aed-4755-ad60-7150737ad0f5
+[2] https://netdev-ai.bots.linux.dev/ai-review.html?id=c9fc3cf8-a06c-4cb8-b26b-910e775951a0
+
+---
+Kevin Hao (2):
+      net: cpsw_new: Execute ndo_set_rx_mode callback in a work queue
+      net: cpsw: Execute ndo_set_rx_mode callback in a work queue
+
+ drivers/net/ethernet/ti/cpsw.c      | 41 +++++++++++++++++++++++++++++++------
+ drivers/net/ethernet/ti/cpsw_new.c  | 34 +++++++++++++++++++++++++-----
+ drivers/net/ethernet/ti/cpsw_priv.h |  1 +
+ 3 files changed, 65 insertions(+), 11 deletions(-)
+---
+base-commit: 193579fe01389bc21aff0051d13f24e8ea95b47d
+change-id: 20260123-bbb-dc3675f671d0
+
+Best regards,
+-- 
+Kevin Hao <haokexin@gmail.com>
+
