@@ -1,97 +1,35 @@
-Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 053461548C
-	for <linux-omap@vger.kernel.org>; Wed,  4 Feb 2026 00:09:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DAC21917FB;
+	Wed,  4 Feb 2026 03:50:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770163798; cv=none; b=HecAGGcKg0JywdCMP4oaiRveFa3bGjtI52OtBS3lH9eWO5aOzH+9vrBdEnKBh6tva3ClJ3nfnQeD/H+0sv8SmKOOhvWhh/dGBG6GhYYF2KDSpP9zwB6Rp3VPlKquk1v6pbQML0m9N1VWQlNBRkeZkzTU8q2QPnfqkCm/rZElSg0=
+	t=1770177012; cv=none; b=Zdg28yhqPJjNJeclPRWojV/c1K9718mc27MmeDgOK3J+1vBZrt0888WdQABQPxxgB/+VYvJVcaYJ77y02hk1q7PQjm5F/qg5abA8agcccr1PsqM4NOki0layJUtOuN7Dp0nfqPX6fXbIBtSnK8HEwCI3x+/E1gRtKPI3tc4v21U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770163798; c=relaxed/simple;
-	bh=r7f2YJ7miQLMROmcW15Cnr/tWaxkZgZRaVrAYVnvYQ8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bWVvEZr9ldqLyUUm1eh/3Gp5b44ycGIJrP8gVBSOXXoWE2O/AOYUpc9VrAq+CeAbKfBBlPwhNPSt945JbuHRDmssOjrD2SbkZyaXWoIzf8wDrvEXp+kiUFCjqi498hOqXAUJPQqgjXkRx+J1CFst+WVQ2wu10o/D2+BeDlvZ588=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=L6KBxrWq; arc=none smtp.client-ip=209.85.222.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1770177012; c=relaxed/simple;
+	bh=F881s/HcZPPA3MDOn35fKUDgS/Sq6HTcN1aWKD6ueSw=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=ebQMeBIH6eZvFM37teqM65y/KqSOxdleZ3/8st0CYCXmF2Z7Gn2Qc0nWLxU8vc/sPeI6fleX6hiaAxsAj3+VsGG8ax1GwxtpeM8kpTl57/PCEQ0k04aYgkztpJb7R7vsOiuTxQlPuUu3zMCyA7DEFyZVTLzoby888xPRWzw26tU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hS+MUSTk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="L6KBxrWq"
-Received: by mail-qk1-f180.google.com with SMTP id af79cd13be357-8c70ce93afaso667080085a.0
-        for <linux-omap@vger.kernel.org>; Tue, 03 Feb 2026 16:09:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770163796; x=1770768596; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=r7f2YJ7miQLMROmcW15Cnr/tWaxkZgZRaVrAYVnvYQ8=;
-        b=L6KBxrWqNg6VdrFH3oLMOwDA8MmO3ZQTDo0FU9Zfr82iiqbsMOxzTmNZ1097aQX7Q6
-         4iTLX+VwwrNSeUPC1RFQf/fyguwW9oKEjp1q8QT8greEpF2LsLbtVWasobBDHHFkztvS
-         ZXlfV6pL9Am7ALKG11L3BGTykyE975ygDjZ7yDN4vAiuLWmVlnGPpgmZ36WRKK//TUKu
-         seGbanMvDbuagTdh+lxvfjMbTUDhmlFgBno/cT4qQIH9gulUQnefUfTOYuob1IN2PqWG
-         2jNFry3udIrGYOUQOj8HfJh/6uhnjzACciAAxnJ9HzjuALnF24LVqUE2c/+xjTlvNknb
-         PfEQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770163796; x=1770768596;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=r7f2YJ7miQLMROmcW15Cnr/tWaxkZgZRaVrAYVnvYQ8=;
-        b=kxqz+TOzFInuUVXmyanEcxwsdbVtkm5RSZpgHnq3oJlwlJzQylFTJr1+r/7GT6cWNy
-         lWzZQVFhCPd/i3yF6ijmAAXRGH/2hNEunO2p3nVID1Bi4L3zyLyLDsl6zHXKNidKCb1v
-         0aoHKsokWzGJHjWBbGO2DP6PtnfsI0vibu4icrWDutqOfO4bxSZTHYtNPxaHDbx2Hh2k
-         bcx2ape72lBJEmjYw0wvLt6stzzvP5Go5rwkJMIzC6zRvhsHsf8n3VZKXE2gpLkE2hbk
-         ntcRO+sGprSppoHGXFY6US/VQjyLXawRMYxTchLmbpQkTklmrO2LlchvoRkxMyL5Gq3y
-         ZbJA==
-X-Forwarded-Encrypted: i=1; AJvYcCU+oq2+pwdEVGAuOqYlfPBXiZvM9UPT8KMosW09+tBahhEpALRvcWkJ1RIkkmGzPM1NxZtkVk3vGxJB@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz15KYAdr4OHyKO+GFVQCN9mHjK/koBYmLMZFORcM3eskbHtPPZ
-	M/ezBSKIy9wLR5nIAyrvZnCpBAZBwYIwNZHRS0lkT/nUxtL3aIwKNRFD
-X-Gm-Gg: AZuq6aLMd2LBUM7hMzOw0UYrsjOYRbgsURc2VZ8jx18IsuAu2izwJKOpbIL0ClHZz3v
-	M7NZkvoFSYrBZea6Ers337zLvUvJh2cu8W9GFLW9Ss8sk0G2cjuS80D0uforeV81YfuQD/19uwQ
-	UUqCDSm0s+KgKKySytcP+p3/ngOyPCjjULpA0VGxhpr5mi7HspKdlbaHedO86qL/K5b7/wmTtFe
-	MGu+eHl2/qtGWwi21HO0ddcky9M1m5BmrNrEp47HU7jGeNtpqnsfMsaXpcg6y5T9lGL/UIBCzAP
-	28Q3AMNt/zfzeSUg+wggslOR3mxPo7rcN8PEDYFBhLZCA68iCfP7YwpGAXVILFl2bpkg02phZUq
-	60xXIZHfXLL2DoxK6uEaqgxk6FjdGntBj/STe4AFNyVar9d2LoHE/lDWI2dDROHEhqzAeQz8y/W
-	Fdj7WQ9DlAoC/7wpja0UakdV7eg/qIuX0S3f1Q2jgkIF1RpUjOmdfrtT+4PQ7GV/Cw8jfJ+m4=
-X-Received: by 2002:a05:620a:4084:b0:8c6:a82e:16ba with SMTP id af79cd13be357-8ca2fa94d53mr165063385a.84.1770163795867;
-        Tue, 03 Feb 2026 16:09:55 -0800 (PST)
-Received: from mighty.stonybrook.edu (nat-130-245-192-1.resnet.stonybrook.edu. [130.245.192.1])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8ca2fd5382csm70897485a.50.2026.02.03.16.09.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Feb 2026 16:09:55 -0800 (PST)
-From: Mithil Bavishi <bavishimithil@gmail.com>
-To: andreas@kemnade.info
-Cc: aaro.koskinen@iki.fi,
-	airlied@gmail.com,
-	andrzej.hajda@intel.com,
-	bavishimithil@gmail.com,
-	conor+dt@kernel.org,
-	devicetree@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	jernej.skrabec@gmail.com,
-	jesszhan0024@gmail.com,
-	jonas@kwiboo.se,
-	khilman@baylibre.com,
-	krzk+dt@kernel.org,
-	laurent.pinchart@ideasonboard.com,
-	linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	maarten.lankhorst@linux.intel.com,
-	mripard@kernel.org,
-	neil.armstrong@linaro.org,
-	prabhakar.mahadev-lad.rj@bp.renesas.com,
-	rfoss@kernel.org,
-	robh@kernel.org,
-	rogerq@kernel.org,
-	simona@ffwll.ch,
-	thierry.reding@gmail.com,
-	tony@atomide.com,
-	tzimmermann@suse.de
-Subject: Re: [PATCH v5 5/8] ARM: dts: ti: omap: espresso-common: Add common device tree for Samsung Galaxy Tab 2 series
-Date: Tue,  3 Feb 2026 19:09:53 -0500
-Message-ID: <20260204000953.299628-1-bavishimithil@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260202090408.4c3757cb@kemnade.info>
-References: <20260202090408.4c3757cb@kemnade.info>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hS+MUSTk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A697C116C6;
+	Wed,  4 Feb 2026 03:50:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770177012;
+	bh=F881s/HcZPPA3MDOn35fKUDgS/Sq6HTcN1aWKD6ueSw=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=hS+MUSTk4xBRDZekGN9tEtQ3DibVoZAYvmLFzZHwAsZUfqIm8bzDB1UZNbuS34QRt
+	 VD2MPEb0Y+l83eBPS0gq6arX9P2gyFzMGIbR6sCiIjV0Uz9b+y5jQeM/fsDAbdw8Gb
+	 fVoEhHBgfzgzxcT09xAUzqSradFasVus9om/sPOcr2NPk7HkRUQmSvXBDN8NKIS+6y
+	 W0VPsnX/woWEmVFJA/C0Tz6ZthnLznKXagunRgHHitHyrJx5qlCApfx+7k9lG6B4CZ
+	 J7EhgINFX85XeK6R2ViIP/RtucsGDtpNTHxAu8f9ntk4yJUmQp5COCvx6VXHYqoHe1
+	 6XLe/UNkYImYg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 90E5E3808200;
+	Wed,  4 Feb 2026 03:50:09 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -99,20 +37,44 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v5 0/2] net: cpsw: Execute ndo_set_rx_mode callback in
+ a work queue
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177017700837.2171580.14465132231115373061.git-patchwork-notify@kernel.org>
+Date: Wed, 04 Feb 2026 03:50:08 +0000
+References: <20260203-bbb-v5-0-ea0ea217a85c@gmail.com>
+In-Reply-To: <20260203-bbb-v5-0-ea0ea217a85c@gmail.com>
+To: Kevin Hao <haokexin@gmail.com>
+Cc: netdev@vger.kernel.org, stable@vger.kernel.org, s-vadapalli@ti.com,
+ rogerq@kernel.org, andrew+netdev@lunn.ch, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+ vladimir.oltean@nxp.com, kuniyu@google.com, linux-omap@vger.kernel.org
 
-> We had the discussion. This should be done via pinctrl irq if possible instead of
-> specifying WAKEUP_EN here, You had some trouble to understand how it can be done,
-> and we agreed to add the wakeup functionality as a follow-up concentrating just
-> on that detail and for now just remove WAKEUP_EN.
+Hello:
 
-Alright, I misunderstood as keeping it and chaning it next time. I'll
-remove it.
+This series was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-> still this strange matrix. This is no rotation matrix. Determinant is -1.
-> Something is strange here, so also the idea in our earlier discussion was to
-> also postpone it and maybe separately discuss it with iio.
+On Tue, 03 Feb 2026 10:18:29 +0800 you wrote:
+> These two patches resolve an RTNL assertion call trace issue in both the legacy
+> and new cpsw drivers.
+> 
+> Thanks,
+> Kevin
+> 
+> 
+> [...]
 
-Similarly, will remove it for v6.
+Here is the summary with links:
+  - [net,v5,1/2] net: cpsw_new: Execute ndo_set_rx_mode callback in a work queue
+    https://git.kernel.org/netdev/net/c/c0b5dc73a38f
+  - [net,v5,2/2] net: cpsw: Execute ndo_set_rx_mode callback in a work queue
+    https://git.kernel.org/netdev/net/c/0b8c878d1173
 
-Best,
-Mithil
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
