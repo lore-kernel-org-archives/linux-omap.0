@@ -1,111 +1,95 @@
-Received: from mail-vs1-f52.google.com (mail-vs1-f52.google.com [209.85.217.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95B5B126C03
-	for <linux-omap@vger.kernel.org>; Mon,  9 Feb 2026 08:15:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0304364032
+	for <linux-omap@vger.kernel.org>; Mon,  9 Feb 2026 09:50:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770624939; cv=none; b=dlhqhsp69tRu3DEbhNSGG4pTT903OzYZRTZ7oOFx6GjhgeQU+LKbkEWmjWOvC48ChNMca1lWrwiAm4P6aL0OQt20Q6YkPbFdnZ1l2YStoHq6rYwUWMHPPH4hl3xnKN6NapsdPsIOe95tjp3gBUeNDSsYKTcbNJWi7rqzp0IBP8I=
+	t=1770630659; cv=none; b=oPLxkBmnAPD1ZYWEifcJBNTgyuWY/bSoIp49Gf5vUkutxD0eh0qlF3DRhXN2TNb4drUmwDWlV9d31qzW5o7nHA0hYMdaXJf7tlKIKY/vrexn7HO5WEjlw9dT/DVh5eDKQCDrPlpUF7DpbIuIwbmw+k1RKKUYV1z0x8spmfPSzQg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770624939; c=relaxed/simple;
-	bh=/zYgLPOAHXK4/exWmt8hOWg3cIDWG24Bmk4iX8O5iZw=;
+	s=arc-20240116; t=1770630659; c=relaxed/simple;
+	bh=xCi6ubXgKmasEcdXHAMMG5PC/CNlxGY7PcTKXlTNTI8=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=LjKfwXOCYA3vOWi1/5KDCrf4Xv0tLltWCVqD1iPFxa/yBD+Qr9LUsYdhkGLyw1+PIMs6dbpNz02BwfW/umtsa3LNOHRtTk0BzNWC352WodnXQQ2V0dSGrxDwI3Ahb6pExdjeBoZq6/swkmLtXlZaUbPyjmmhjRROUWDeyW04Vac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.217.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-vs1-f52.google.com with SMTP id ada2fe7eead31-5fa26e497abso1848651137.3
-        for <linux-omap@vger.kernel.org>; Mon, 09 Feb 2026 00:15:39 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770624938; x=1771229738;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=2bAsoauLtymOFaOmBSRU1sXzH6MyMCHQePcHPtAadtM=;
-        b=BEZ/Y4tBMERpxrqdu4WydZcgbzoF1KY7czg//AScLdts9CNeA/Etw04b4YNgBI0uuK
-         fsHBCS8y/OW85VQLS4wZqlGl/jadA214UV/szDXe+Dl9X0MCJIImUUHsBAgVC7mxTgZX
-         YNxU+f+PEMLvalYqVpPYyFIgKfjHqgjwYhKFhZkyWx/4Pnt3249VcXr1d8gVA1NMLyh1
-         XxcR/YOz4pTCdkzGO8GaYDAYr9k3SQDOZDl/MWYiEnCGjZz68lPdPz8Av62nZUxn/SuJ
-         vwnK+e/o5JBPhjvcNNXDcdq2M6pqEi2JYo2ejlIfECVYwyR7oUtHFIvWZvSVcMOXgEBF
-         Rr1A==
-X-Forwarded-Encrypted: i=1; AJvYcCVtOHYifZTROX6Eh9ReHHDlVgwEW5X0XUnKhAIBi/oLg3Fn1X7+Mk61V9K61mPK7Lju51aN/dvG0X6p@vger.kernel.org
-X-Gm-Message-State: AOJu0YzQapk2mjdIf9yBjFT7Gp26YyNIqbXm9IE6iag6z5SHmM/E7Ycw
-	Lj7eGh9zS3nKn/PCVraTbLcAuWJ7G9+OxAl3SqeYOdpr3kZTVYFrOxBMhnCkJbrM
-X-Gm-Gg: AZuq6aJBDBeH3np4wJolSWQst4Mp1F9KREqLeU7x6YF/t0utjTCJtkul2b0ciMU2Q/A
-	6lbGiHRVj6+NyBp0Hd0cUtc8elIJTpHaor+2spB3DfrZqZ/s+7Q1CG4D9mnE0PzfGgx6opeZG8X
-	s1FyX49G6Pl2QY9tb6yLGOo37fYSMfigIhRb2js57qtkB7dHNgWeRXnDp9QoipoUc5TxMRaoOw/
-	y+7lkRa6l7pVBaWVYb07U1YHIh3zX3yiO3MhjkrlmqGC9kVW4Q58m7aMZrtpd1QrHVS58EXeG9V
-	3ev8XKKp2k+/LnFsW0GDn+22Voz/cgKILLV/74VxJp71OFixTi8jsov5ybkRHd6H/+Qq9Bf1Lju
-	1b10OAmj9xmwP5fq+/K0Xg1RKf3JcAkQDIU3T0ZX4CRPo3IPFaQT9liS0q60BA2ltPI8W4NV45S
-	L0ahO/GB5c2W8hvM3FpSLfZk5JhW/ylSCgOFEOatPk+P5+kAmQ
-X-Received: by 2002:a05:6102:3a0c:b0:5ef:49d0:5862 with SMTP id ada2fe7eead31-5fae8c44410mr3011874137.34.1770624938526;
-        Mon, 09 Feb 2026 00:15:38 -0800 (PST)
-Received: from mail-ua1-f44.google.com (mail-ua1-f44.google.com. [209.85.222.44])
-        by smtp.gmail.com with ESMTPSA id a1e0cc1a2514c-949014a724csm3023397241.2.2026.02.09.00.15.37
-        for <linux-omap@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 09 Feb 2026 00:15:37 -0800 (PST)
-Received: by mail-ua1-f44.google.com with SMTP id a1e0cc1a2514c-94aaa5d3bfcso1163085241.3
-        for <linux-omap@vger.kernel.org>; Mon, 09 Feb 2026 00:15:37 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCUBNOsSh3kNKEGO9YGV1YlSHikOd4q1rICBTMoiU0Dr56zcjkogjeX5bE3e72z5YYTGNZ8kplvH3Rii@vger.kernel.org
-X-Received: by 2002:a05:6102:5092:b0:5f5:3c96:983f with SMTP id
- ada2fe7eead31-5fae8a3ad9cmr3362584137.1.1770624619183; Mon, 09 Feb 2026
- 00:10:19 -0800 (PST)
+	 To:Cc:Content-Type; b=JxSn3cgB0rRJaAoTLfdjKq+0xOBOxOImFPygDBxU7Q5IWVeNnSImHbfA3eLfQDkm0zCDgVNmwNDC/75oykIEBDIXWiPUq2XKej1NA1x8VzU2Hx0lsopUH+GVwtgKzEs2aUGZK8a9+UekJqnCz3aeUNU3g/+HRtFpII013JXbXCo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AklN6AE5; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AklN6AE5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 720FEC19425
+	for <linux-omap@vger.kernel.org>; Mon,  9 Feb 2026 09:50:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770630659;
+	bh=xCi6ubXgKmasEcdXHAMMG5PC/CNlxGY7PcTKXlTNTI8=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=AklN6AE5thhQ9moJMbKv4ABgOBvrKniCX6UalMGworhvE40cE7NdHfuiKmLNRIuba
+	 m7paA4/qSxD2NRAAhCKiKown6BbsAhhuPvhpoNB+yPmitQq+LeWqeJ9NqWgZbnFAON
+	 9UH4Sscm9ZheOH1sgGhSMAIB2Dy+I+Wq/Ji41l1xfcvbh7dVZcFTRgIjHhC8wEY5y5
+	 FnzTZW6qkTbxQwPNApe4rDFDnWM88elaL1C3pGbBeYF0A32sk/hn36gkD4o03qS/4G
+	 lhJ4Ec477OMdUwjTXfklT1qoI8DPfWuMAuKPCE56gPQxc3G9xNWVmaof3Loo+x9FbH
+	 IrBoz6N+LNd3w==
+Received: by mail-yx1-f51.google.com with SMTP id 956f58d0204a3-64ad019bbd4so2204987d50.0
+        for <linux-omap@vger.kernel.org>; Mon, 09 Feb 2026 01:50:59 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCW3voMurzxszjgzoblqSMsqlYPXvcUdjm7JJlhPW208mdLgBFPP7ffySpz6j/JfjJZV2rm7KXzwbCG8@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw7bdjjjo0VKvjPqIbs9NFnd6VpvNP+1HzGXAqgXcqTaaLsrvz+
+	pptjVy4OO70IGontnyKc0TK78dJIWEZHu/sPRtanmHiL6J+bg+gNG1/MS52Dkc/rXlMrS/o7jVK
+	tR6NkR7jTNcxYe4C91XVyLB92uKv6Q+o=
+X-Received: by 2002:a05:690e:140d:b0:64a:dafd:2d49 with SMTP id
+ 956f58d0204a3-64adafd302bmr4654383d50.47.1770630658832; Mon, 09 Feb 2026
+ 01:50:58 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260208-rz-sdio-mux-v9-0-9a3be13c1280@solid-run.com> <20260208-rz-sdio-mux-v9-3-9a3be13c1280@solid-run.com>
-In-Reply-To: <20260208-rz-sdio-mux-v9-3-9a3be13c1280@solid-run.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 9 Feb 2026 09:10:07 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdV2a7uvtrJpSprU3YbgFSTmtKkMi+Z6j0m9-4vVXWK4=A@mail.gmail.com>
-X-Gm-Features: AZwV_QhXlEX6D1abbrehjsrn3uf8WxyCcirF_ZvMoX3URB-GFlRdZjQEEn6kewA
-Message-ID: <CAMuHMdV2a7uvtrJpSprU3YbgFSTmtKkMi+Z6j0m9-4vVXWK4=A@mail.gmail.com>
-Subject: Re: [PATCH v9 3/7] mux: add help text for MULTIPLEXER config option
-To: Josua Mayer <josua@solid-run.com>
-Cc: Marc Kleine-Budde <mkl@pengutronix.de>, Vincent Mailhol <mailhol@kernel.org>, 
-	Vinod Koul <vkoul@kernel.org>, Neil Armstrong <neil.armstrong@linaro.org>, 
-	Peter Rosin <peda@axentia.se>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vignesh R <vigneshr@ti.com>, 
-	Andi Shyti <andi.shyti@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, 
-	Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
-	Wolfram Sang <wsa+renesas@sang-engineering.com>, 
-	Yazan Shhady <yazan.shhady@solid-run.com>, Jon Nettleton <jon@solid-run.com>, 
-	Mikhail Anikin <mikhail.anikin@solid-run.com>, linux-can@vger.kernel.org, 
-	linux-phy@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, 
-	linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-renesas-soc@vger.kernel.org
+References: <20260123-upstream_pinctrl_single-v2-0-40f8063cc5a2@aspeedtech.com>
+ <CAD++jL=OXJdJZpjbo0_C03vcgPe5btum-J0uifvSJkMaUWG-=w@mail.gmail.com>
+ <OSQPR06MB725257E71F0B7F7F1013263D8B98A@OSQPR06MB7252.apcprd06.prod.outlook.com>
+ <20260206042215.GA5376@atomide.com> <OSQPR06MB7252ADEF2CB075BC40AD7DB68B66A@OSQPR06MB7252.apcprd06.prod.outlook.com>
+ <CAD++jLm2a1-G7QQBb+u68DH_RT6kc4=vpqZWQcirvWrcRjw+5Q@mail.gmail.com>
+ <OSQPR06MB7252D5BCD40BDF2A91FF41438B66A@OSQPR06MB7252.apcprd06.prod.outlook.com>
+ <CAD++jLkqpRrcgQ2JvbHJY3NQ=KHi8T91aOg2KvAmkVAXAEzH-A@mail.gmail.com> <OSQPR06MB72520084144325D548E36AD78B65A@OSQPR06MB7252.apcprd06.prod.outlook.com>
+In-Reply-To: <OSQPR06MB72520084144325D548E36AD78B65A@OSQPR06MB7252.apcprd06.prod.outlook.com>
+From: Linus Walleij <linusw@kernel.org>
+Date: Mon, 9 Feb 2026 10:50:47 +0100
+X-Gmail-Original-Message-ID: <CAD++jLkB26XNAosUdD2BigLw+=Hd6+VBsmv0fHawQ25e8rQhrQ@mail.gmail.com>
+X-Gm-Features: AZwV_QgbghYPe4WNXN5NblKdatayN1hvGLYaSa9NTwtL-Nk8oW-Brvg1nLBjte8
+Message-ID: <CAD++jLkB26XNAosUdD2BigLw+=Hd6+VBsmv0fHawQ25e8rQhrQ@mail.gmail.com>
+Subject: Re: [PATCH v2 0/3] pinctrl: single: bit-per-mux DT flexibility, probe
+ robustness, and consistent pinconf offsets
+To: Billy Tsai <billy_tsai@aspeedtech.com>
+Cc: Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, 
+	"linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, 
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, 
+	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"andrew@codeconstruct.com.au" <andrew@codeconstruct.com.au>, BMC-SW <BMC-SW@aspeedtech.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Josua,
+On Mon, Feb 9, 2026 at 3:25=E2=80=AFAM Billy Tsai <billy_tsai@aspeedtech.co=
+m> wrote:
 
-On Sun, 8 Feb 2026 at 16:39, Josua Mayer <josua@solid-run.com> wrote:
-> Add prompt and help text for CONFIG_MULTIPLEXER to allow enabling this
-> option thorugh the kernel configuration without explicit "select" driver
-> dependencies.
->
-> Select it by default when COMPILE_TEST is set for better coverage.
+> To make sure I align with your expectations:
+> 1) Would you prefer the new driver to be fully standalone (using the
+>    GENERIC_PIN* helpers + syscon/regmap-mmio), rather than trying to
+>    refactor/export helpers from pinctrl-single?
 
-Merely enabling COMPILE_TEST must not enable additional functionality.
+Yes. Conor improved these helpers so now it should be possible
+to use these to do a very simple and slim driver for what you
+want to do.
 
-> Signed-off-by: Josua Mayer <josua@solid-run.com>
+>    Action item: Introduce a new pinctrl-single-bit.c driver and DT
+>    binding, which can also cover the existing bit-per-mux logic currently
+>    in pinctrl-single.c.
 
-Nacked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Sounds about right.
 
-Gr{oetje,eeting}s,
+> 2) For the syscon/regmap hookup, is it acceptable to add a syscon phandle
+>    property in DT (e.g. "syscon =3D <&scu>;") for the new driver to obtai=
+n
+>    the regmap, or do you prefer a different binding/property name?
 
-                        Geert
+This works for me.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Yours,
+Linus Walleij
