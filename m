@@ -1,123 +1,158 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28EFC3815CE;
-	Mon,  9 Feb 2026 16:14:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770653640; cv=none; b=VCtLf1iXro1nHrQbYcs8pJiz7qKN9duvcnoP0eMtF58sCasfYwDDZTvgVSUAXseOxdZjyQboYAfE+cfhDMfeZRsYZEBaEVfyQuOPpHOPJLym8dzvS5CXKQ2Pw1eSeUpIJNVRW/kFEjnRnkFSgL1XuxHFZ4OQPAnCZbMqCzRh+5E=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770653640; c=relaxed/simple;
-	bh=LOJcn+SmxysmVh2uPMIzBp5pbzxzu9seMnrYNsHRBSg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oyEdr1shpiAKsjhQeOAJ+lSkRQ+N9YWlzC0urKftPwpN095HYyT1X2bkIDTgWbgPWHwPBqnu11JPWDWFl5nL01qxOzhr3/nvp1/9RaSnDB6Ns0vToDQMaCQXaeK1GPUKEp/mqy8KjkOgvyUjLjKfvRFOCh9lxgQVSe5eybm7YWg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eUZjPza7; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 729A43859C3
+	for <linux-omap@vger.kernel.org>; Mon,  9 Feb 2026 16:49:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770655747; cv=pass; b=FGZIqk80fe7Doj9zfM28385seNIDsYv5t+64MToCxFOsOU3w7DS/JHUYbYG4d4Z0Hp3tCpwg5lxDFaT1UEJ0nE4Ou24EirQGVdFeSie3hMTWz0K1SSGkwpHquh0GcdpjumiX+EBvrRFip1v4rARIBE2i8bo1yE3sTiBa3rPCytk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770655747; c=relaxed/simple;
+	bh=e972ACE1KBb81KyEkGcx+64PEjeQZgX4SBpIgZiZ/gI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=SC9jicYuA3cjaJPjraW+Q6S1beFPiji8CKVYNzofEjTznsprxQav27NxR5s4lulyo+thUIX+0j1lkJveM0+knDIuXRcXcfuNDU1ZqQEVrqXCPxLnsz63dVuOAac/Qv14hzkAYQcCvDRAtPa0/2SU2SwSnxaNASCdikRv5ngaJTo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=fp6d+grA; arc=pass smtp.client-ip=209.85.167.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eUZjPza7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 632F9C16AAE;
-	Mon,  9 Feb 2026 16:13:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770653640;
-	bh=LOJcn+SmxysmVh2uPMIzBp5pbzxzu9seMnrYNsHRBSg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=eUZjPza7FPFYtADnlPyrvUQeLkRIftNqUBdxCxWsmcAxTSEC7h1y3EogopI2EN5yo
-	 OHmOM4kRW0mWYsaSBWeGG94SFkrQlwoy9ERbFTMTpJ0Io+NbOKNgJNMpqw5vPFTiY6
-	 qwp352Vg3bCuD/ikfLM+KvmjcmjKBagsBMSXIrGiWJHNZaw4RYV4gPr0yrtQYiRF+s
-	 XbzUgmmGAWxnPB125eA5XmC+pOpdmCHQCX7Td/XoBgVqmJ4gjH0csPg+S7wNLwyOwO
-	 QrRRMXCGGZHPIJ2qZsnFaSW8sWMnKrw3L0+d4bXLpB3/vn47IMQEV+DuyQG5OfBMsM
-	 AqPkD6R2UBZ+g==
-Date: Mon, 9 Feb 2026 10:13:54 -0600
-From: Bjorn Andersson <andersson@kernel.org>
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Andy Shevchenko <andriy.shevchenko@intel.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, linux-renesas-soc@vger.kernel.org, 
-	Alexandre Torgue <alexandre.torgue@foss.st.com>, Andy Shevchenko <andy@kernel.org>, 
-	Antonio Borneo <antonio.borneo@foss.st.com>, Arnd Bergmann <arnd@arndb.de>, Boqun Feng <boqun.feng@gmail.com>, 
-	Chen-Yu Tsai <wens@kernel.org>, Chunyan Zhang <zhang.lyra@gmail.com>, 
-	Danilo Krummrich <dakr@kernel.org>, David Lechner <dlechner@baylibre.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, 
-	Jernej Skrabec <jernej.skrabec@gmail.com>, Jonathan Cameron <jic23@kernel.org>, 
-	Jonathan Corbet <corbet@lwn.net>, Konrad Dybcio <konradybcio@kernel.org>, 
-	Lee Jones <lee@kernel.org>, Linus Walleij <linusw@kernel.org>, 
-	linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, 
-	linux-remoteproc@vger.kernel.org, linux-spi@vger.kernel.org, 
-	linux-stm32@st-md-mailman.stormreply.com, linux-sunxi@lists.linux.dev, Mark Brown <broonie@kernel.org>, 
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>, Nuno =?utf-8?B?U8Oh?= <nuno.sa@analog.com>, 
-	Orson Zhai <orsonzhai@gmail.com>, Peter Zijlstra <peterz@infradead.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Samuel Holland <samuel@sholland.org>, 
-	Shuah Khan <skhan@linuxfoundation.org>, Srinivas Kandagatla <srini@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Waiman Long <longman@redhat.com>, 
-	Wilken Gottwalt <wilken.gottwalt@posteo.net>, Will Deacon <will@kernel.org>
-Subject: Re: [RFC PATCH 0/4] hwspinlock: refactor headers into public
- provider/consumer pair
-Message-ID: <yl4bbbev7lgrmnqys2izkolo5egzg24faukvqar5eh26q5ra7p@42rcegfpqqt6>
-References: <20260125184654.17843-6-wsa+renesas@sang-engineering.com>
- <aXc7DxsqiCGdfzxi@smile.fi.intel.com>
- <aXc-Zxw05XQLb1Dy@ninjato>
- <aXdAB2bLTy6u8G8c@smile.fi.intel.com>
- <aXdCBu6kzdw1NWay@ninjato>
- <aXikZ5wc6bvgRqF6@ninjato>
- <aYnBrN0JRCf9-UjB@ninjato>
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="fp6d+grA"
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-59de6abf324so3848940e87.3
+        for <linux-omap@vger.kernel.org>; Mon, 09 Feb 2026 08:49:07 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1770655746; cv=none;
+        d=google.com; s=arc-20240605;
+        b=gI6+M+XjvLuIRmKRJEtEJfxCdeJxTHosMHU3SMxgp2bUpRWkZLvwsivjtOIJ0bu+JR
+         M7COAskqkKnaGVEM3Q3cFBjFhiVh4FJ42qe3Q+xBXPpZMBbicbFDhbp53vaubc1WplOF
+         oLQOQkLtJM94bFDtJJOEuF5BBe72WoiD7dqqXjF7a6lkKDPzL7+3VNthtWSoTB1UKWMf
+         iu2fHjAs/hBppHir1HKq6ZNZkX1pfKLv3Iz9CPBA1+Rd/jO9+76guEKPkFXyudMRQHnj
+         xCIJLDAqnkGLPQKPJ90si3SalVfa8FrlcGny2AdjZg+kgwA+0zp/GxWzFbeFfe97R1iy
+         x4aA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=e972ACE1KBb81KyEkGcx+64PEjeQZgX4SBpIgZiZ/gI=;
+        fh=7qtJ6b16yaFuCf8kPRh8bP9IhTVU0dXa6a6OR5E9FWM=;
+        b=af9aOlUC7+EAE+FuwyxxpTsKcSq4bGiX/4FMgDyRWAl2KrcAq0+6kxs/YTYgUv/X4l
+         TCUhEdiH7noYH71EKJB+lhvcxFXNBGcRBr0rPagsbW54RGAmP8hub+2eZTHjJySCT14s
+         4UcwzBfeahTu/LQ8VoWzH01Wr82xuduFUvBhlogDNx8pw7Ijez3+vWClOHx9MwaSYSDl
+         G7ldqJk9cfc6EET6sJsmV6qHvFLKaDD9hbpiVtp/PgRD2ZwkQ8dqbria7hbC8KbZAcyO
+         XW+CaAPjup63DXKT/SWi9wWoQGtKdd4ZIvVdDXn+Sz3ep7bqk5saRRUnES2pF0TI9HYw
+         GyYQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1770655746; x=1771260546; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=e972ACE1KBb81KyEkGcx+64PEjeQZgX4SBpIgZiZ/gI=;
+        b=fp6d+grAQEAUXI+9d4iDRz+MxzAqT7bV0sjxYFmSEfcykDarYrVxvozFsS6xn3NPla
+         D13NVlYbrEpOUt6Fgfw2Hhg3EAQ3P5LztjmtSeVMKZrgLHpSEnBh+X4vcA0FiEvHsT4b
+         GIt0L89iAoauEaCRY72qO76frNlCS72jtKXqSvbAwhd9hb6M+l/INDa9QADMeJCi6DSE
+         jF1LrxcY7EBHBSDAkxKjszvskMnKrUpJEnuIV5xRQFSWPDNxQrrEP584vq2KsYwO+0jd
+         3VDN+ewqwdYGbI6WqCFwWWsiHiH+9P2+ynsnm6YSFrvoYtKKWSJ0RwMSdbwVhRzTqyVA
+         2MfQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770655746; x=1771260546;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=e972ACE1KBb81KyEkGcx+64PEjeQZgX4SBpIgZiZ/gI=;
+        b=aQ0TXOZCmIgwIU4hGvKMdp4aZFiUnNDPrEQV8LqGeISxzoHC+jSfPpc/qU2PcYbSht
+         lUZnfN4sYaQl3RG7aTKktNApdc0IhbVMrxpf3yDJhbTu66ha2FDX0vx4kdfNYhaYukvo
+         b6CeNw6mZMHF2SjTMDYdNaXav+4vvaOaekx524XfU22Y7GBxu4glO1yFG91HwbEXMy3I
+         E2FrnpMWNkUWsM6LeDxBLuAdGUASn07g2UjbxQp2xOaMWf5FLzBUz+kSOUUL+R8ATLtr
+         /FF/dbKcZxF1LRTAe1bTXmcJO25fw5Y/s/qJ/xL+d/MBE3q6ngoQyolUs7nFoVStVLTV
+         rlcA==
+X-Forwarded-Encrypted: i=1; AJvYcCWhpzp6Qd4LYS0GNT/d4MGdjqb4N7IiWkAZidWfTBQiMAlyO49XwP6DFxMipsXzVHtF0YhQWI1SuvtX@vger.kernel.org
+X-Gm-Message-State: AOJu0YxDwzdXwLR5D/k2EILPNbc6DDnMM4bsfYbwvGDuZefpGrYN0651
+	dwALZpDK6VRLaquujyGCiJYiDtMDm0R2OZnJQe/wdhZoTasO1HZgm3Rp3nuwkhzLRUoWFyLzVOa
+	r2hM/tTzxAP5R8Bq6BULXlUKm7dH/Ha8p2S2Fbj4hTQ==
+X-Gm-Gg: AZuq6aInBHdBBYPWqJO9A5t1GZUJEgG/ZWQL048lNI0w2xCn/7Y+KrRO74uZ0ZnEp4q
+	TE37NNANayyCI6FWn0V49anoM+Hg3RSALQhoXRb/KaSL8/CtRfafanNGY5Ef6tOP+DBYnq2VaHt
+	Y9Sq4nPkc17aUvKmjjqP51NnW0/y7N5fCS3+imi5fFkfEDfTGmzHlySNAZRJJ7SAwg2wij6thtQ
+	FPgqUdDrcWVxsB8XKwQmZhj/PuXQ6jSJTdq6EDya+DJYrbVOOG4Ub7H17UmYXFks1MybzT7D5u1
+	e7a5F4z+mEmxpz78xGv/QSbBXNYH
+X-Received: by 2002:a05:6512:3c86:b0:59d:e589:c977 with SMTP id
+ 2adb3069b0e04-59e4515c13cmr3221840e87.26.1770655745469; Mon, 09 Feb 2026
+ 08:49:05 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aYnBrN0JRCf9-UjB@ninjato>
+References: <20260208-rz-sdio-mux-v9-0-9a3be13c1280@solid-run.com>
+ <CAPDyKFpbpcg3ei51hEcG5FzJL7tK44PdBcMbxfOdON7ozxP2Xg@mail.gmail.com>
+ <9f49bf4d-48ab-cb8e-db39-3f573d20bcff@axentia.se> <CAPDyKFo2Zm2LKP6=m=fJEbo1a2ZpBn10EGaucFS7zGfGJV_6tg@mail.gmail.com>
+ <793644d5-4d4f-8ee5-7fcc-369536801683@axentia.se>
+In-Reply-To: <793644d5-4d4f-8ee5-7fcc-369536801683@axentia.se>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Date: Mon, 9 Feb 2026 17:48:29 +0100
+X-Gm-Features: AZwV_QiQvQ7mrYQqbOHRiTV98ZgKaltKf6NrojsLO3GMYCFwqcEgvdtufeaSCsk
+Message-ID: <CAPDyKFqCveBs-_VcWCm8OCegbpwnW3=0iGa2e5KUNmSy3TMA+A@mail.gmail.com>
+Subject: Re: [PATCH v9 0/7] mmc: host: renesas_sdhi_core: support configuring
+ an optional sdio mux
+To: Peter Rosin <peda@axentia.se>
+Cc: Josua Mayer <josua@solid-run.com>, Marc Kleine-Budde <mkl@pengutronix.de>, 
+	Vincent Mailhol <mailhol@kernel.org>, Vinod Koul <vkoul@kernel.org>, 
+	Neil Armstrong <neil.armstrong@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vignesh R <vigneshr@ti.com>, 
+	Andi Shyti <andi.shyti@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, 
+	Yazan Shhady <yazan.shhady@solid-run.com>, Jon Nettleton <jon@solid-run.com>, 
+	Mikhail Anikin <mikhail.anikin@solid-run.com>, linux-can@vger.kernel.org, 
+	linux-phy@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, 
+	linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Feb 09, 2026 at 12:14:52PM +0100, Wolfram Sang wrote:
-> Hi Bjorn, Baolin Wang,
-> 
-> > > > > Providers need it, especially the 'priv' member. Consumers won't see it.
-> > > > 
-> > > > But can't we make it opaque?
-> > > > 
-> > > > We may have getters and setters for the priv member...
-> > > 
-> > > I think we could do that.
-> > > 
-> > > Two drivers use the bank member, but only for the device
-> > > (lock->bank->dev). That can probably be refactored away, I'd guess.
-> > 
-> > I am willing to develop this series in the above direction. Before
-> > though, I'd like to know from hwspinlock maintainers if they agree to
-> > this refactoring in general.
-> 
-> Moving maintainers from CC to To ;) Do you, in general, approve this
-> change to the headers?
+On Mon, 9 Feb 2026 at 14:50, Peter Rosin <peda@axentia.se> wrote:
+>
+> Hi!
+>
+> 2026-02-09 at 14:39, Ulf Hansson wrote:
+> > On Mon, 9 Feb 2026 at 14:16, Peter Rosin <peda@axentia.se> wrote:
+> >>
+> >> 2026-02-09 at 10:57, Ulf Hansson wrote:
+> >>> I have already applied for v8 and it's going to be in my pull-request
+> >>> for v7.0 in a few hours.
+> >>>
+> >>> Please send incremental fixes on top instead of a new version of the
+> >>> series, then I can pick them as fixes for v7.0.
+> >>
+> >> Hi!
+> >>
+> >> Sorry for being late with this, but as the mux maintainer I'm not
+> >> fond of
+> >>
+> >> 028ec00381f5 ("mux: add help text for MULTIPLEXER config option"
+> >>
+> >> and would not like to see it in rc1. Can you prevent that some way?
+> >
+> > Sorry, but my pull-request and branch was already prepared.
+> >
+> > Please send an incremental patch on top then I can pick it up as a fix
+> > for 7.0-rc1. Unless you want to manage this yourself via your tree.
+>
+> That unfortunate. The patch series has not yet made it to the next
+> tree since it has not seen any updates the last few days. What testing
+> has these patches received?
 
-Certainly, I don't think we should force unnatural slicing of drivers
-across the source tree.
+The patches didn't make it to next, for some reason. I queued them up
+last week on the 4th Feb, definitely a bit of a stretch to pick them,
+I admit that, but I trust Josua to help with any kind of problem to
+show up.
 
-> I think it is more modern and e.g. the mailbox subsystem has a similar
-> structure, a header for the client and a header for the controller.
+In regards to additional tests and reviews, lots of people have been
+helping out with this and we have also received patchbot reports that
+Josua fixed too, along the road. Moreover, the first version of the
+series was posted already in November last year.
 
-gpio, regulators, resets to name a few more.
+As I said, let's fix any of the problems on top, it should be that hard, right?
 
-> And do you also prefer an opaque 'priv' member?
-> 
-
-'priv' is already opaque, so I presume you're asking if we can make
-struct hwspinlock internal to hwspinlock_core.c?
-
-I can see the allure of making hwspinlock::lock internal to the core,
-but (luckily) I don't see it to be a matter of just slapping some OOP it
-and call it solved. It would have to come with a new model for how we
-create the hwspinlock in the first place - as this is currently
-allocated as a whole by the provider driver.
-
-I've always found the current model unergonomic, resolving this part
-might very well have the side effect that Andy is looking for (and I'd
-welcome that).
-
-Regards,
-Bjorn
-
-> Happy hacking,
-> 
->    Wolfram
-> 
+Kind regards
+Uffe
