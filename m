@@ -1,148 +1,147 @@
-Received: from codeconstruct.com.au (pi.codeconstruct.com.au [203.29.241.158])
+Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48FE71DF748;
-	Wed, 11 Feb 2026 01:48:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.29.241.158
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88C4B1552FD
+	for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2026 08:47:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770774540; cv=none; b=GmC+sls6a25RuvjWX930uDuIknV0l/C8zMRoMup9vpGlm29/kjtdXGqzc6eUwFp6hnCLpGUT+Bv4phpeUG+1dJnb2upm+zekiNvyMBHDVeAObPOGEnqlBAv7XD5zVfHfCmWNn3p3DAehG5DaBjCHcCeUnwH/3Gyb+xDcAOEQEMQ=
+	t=1770799646; cv=none; b=h/3jCd7PzQe0VBjJKJoyrJRBBmfIVMyrc+1eTATEZ3jgrFNu7WiryR6WLxcPFEup/bsLEoqIcs4IR6TRl77JcsS5FA4tUHgI/GGCq5O8tzGr5n+A2Px/7+XwzsCPOMWNzoDPBI/uJJev0WwoXpCRX572jh83HHESHx1+TQX7FKU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770774540; c=relaxed/simple;
-	bh=EakT1hLowwtmKPzAINUoQ/hf7LzQVPrsfk76ZwhNbgw=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=hKQVhaIAFOiISNmTBf2H7xPwbT+aBvPsCFv+04dgtOK+OO+BQtzN2QJHHMhuKPdMljpjYyWrT2W+ZciLolpWn2e+Dvds0w8xTHnZ5V59JMMVz46tkSiEDAGd7F0DYrYt8ngtagXJVRxP74BwsamOm1rZxE6/bnwVU+j8viPpj9U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codeconstruct.com.au; spf=pass smtp.mailfrom=codeconstruct.com.au; dkim=pass (2048-bit key) header.d=codeconstruct.com.au header.i=@codeconstruct.com.au header.b=j2aso4Ro; arc=none smtp.client-ip=203.29.241.158
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codeconstruct.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=codeconstruct.com.au
+	s=arc-20240116; t=1770799646; c=relaxed/simple;
+	bh=EgeL/H9dQ4I0eGiFwPSkoBQAWlE4jEDs9uTTmRa/WKg=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=gD4uMxefbgFSXn+PQSndjpeda6WWJBXuhB6GwHo0k/SmFhUdfspy3zXtxi2GQCDe/2Lnm+OvPcxhZPxeDtdwhp2AA+H+gh0SNNMpUZWA0XC5bqznzGM8n6zlQ1+T9Psz2O0kqxgnSxCdszOmiR4eVvdgw14TigxeQs18/18dKig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=gc0koEG5; arc=none smtp.client-ip=185.171.202.116
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=codeconstruct.com.au header.i=@codeconstruct.com.au header.b="j2aso4Ro"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=codeconstruct.com.au; s=2022a; t=1770774535;
-	bh=EakT1hLowwtmKPzAINUoQ/hf7LzQVPrsfk76ZwhNbgw=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=j2aso4RoraIWSto2koPfLCJtWXbahxGOS4F92RyaOGH+78Q8Q9iIZ/eUuvTp27cwz
-	 SXvrqpP9nSmfrOmTGeATd/1wAYIwQvsIZFajhF7jfm0Kgh4M0HCrBs0ndy+GINfUCx
-	 xRPl4KwOJ0Zm7YQZOn34RsRkKdxWo4QH3BxhM2nvpfOg8bvm9QHprtvgy1serdTxng
-	 +aXDiqbUrJfbEz9rqIpQ8lqGgBruyDHeFYJn68/nSjvvg/OV4jzL3dyO45qrSM58yu
-	 J2l8WGLBGkO349u/X+M8/a62r6cVK2mPWHQfGYyN/SPJ6l3W1g0IySz4rpDjqVH4f4
-	 bbWnqCOBWwlcg==
-Received: from [192.168.68.117] (unknown [180.150.112.60])
-	by mail.codeconstruct.com.au (Postfix) with ESMTPSA id 7CA69603B4;
-	Wed, 11 Feb 2026 09:48:53 +0800 (AWST)
-Message-ID: <15b7c7cd97cc974605ffd79125d641ba159587f5.camel@codeconstruct.com.au>
-Subject: Re: [PATCH v2 0/3] pinctrl: single: bit-per-mux DT flexibility,
- probe robustness, and consistent pinconf offsets
-From: Andrew Jeffery <andrew@codeconstruct.com.au>
-To: Billy Tsai <billy_tsai@aspeedtech.com>, Tony Lindgren
- <tony@atomide.com>,  Linus Walleij <linusw@kernel.org>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, 
- "linux-arm-kernel@lists.infradead.org"
-	 <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org"
-	 <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org"
-	 <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org"
-	 <linux-kernel@vger.kernel.org>, BMC-SW <BMC-SW@aspeedtech.com>
-Date: Wed, 11 Feb 2026 12:18:53 +1030
-In-Reply-To: <OSQPR06MB72526DA818EACDE2931BA0168B62A@OSQPR06MB7252.apcprd06.prod.outlook.com>
-References: 
-	<20260123-upstream_pinctrl_single-v2-0-40f8063cc5a2@aspeedtech.com>
-	 <CAD++jL=OXJdJZpjbo0_C03vcgPe5btum-J0uifvSJkMaUWG-=w@mail.gmail.com>
-	 <OSQPR06MB725257E71F0B7F7F1013263D8B98A@OSQPR06MB7252.apcprd06.prod.outlook.com>
-	 <20260206042215.GA5376@atomide.com>
-	 <OSQPR06MB7252ADEF2CB075BC40AD7DB68B66A@OSQPR06MB7252.apcprd06.prod.outlook.com>
-	 <CAD++jLm2a1-G7QQBb+u68DH_RT6kc4=vpqZWQcirvWrcRjw+5Q@mail.gmail.com>
-	 <OSQPR06MB7252D5BCD40BDF2A91FF41438B66A@OSQPR06MB7252.apcprd06.prod.outlook.com>
-	 <CAD++jLkqpRrcgQ2JvbHJY3NQ=KHi8T91aOg2KvAmkVAXAEzH-A@mail.gmail.com>
-	 <OSQPR06MB72520084144325D548E36AD78B65A@OSQPR06MB7252.apcprd06.prod.outlook.com>
-	 <CAD++jLkB26XNAosUdD2BigLw+=Hd6+VBsmv0fHawQ25e8rQhrQ@mail.gmail.com>
-	 <20260209144250.GC5376@atomide.com>
-	 <OSQPR06MB72526DA818EACDE2931BA0168B62A@OSQPR06MB7252.apcprd06.prod.outlook.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2-0+deb13u1 
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="gc0koEG5"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-04.galae.net (Postfix) with ESMTPS id 7F656C653F4;
+	Wed, 11 Feb 2026 08:47:30 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id BB367606BE;
+	Wed, 11 Feb 2026 08:47:21 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 21F7B11948BAF;
+	Wed, 11 Feb 2026 09:47:09 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1770799640; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=tbYZJPtzfNeGa4KqfQcB7C9ai7mWnC80SXxCFDp2yBE=;
+	b=gc0koEG5d4I+4+aKeG0lyb0aKeJGcOJn57j88++ThKOX92rUt7VF+mraTBEGGzkA0yfFft
+	LYxOd154SeIqbQf84wbKvMqQsBBxcxQ7BSru9O/QNmowaRLBdj1iXD+Bqo9G1cwnYVQb2F
+	3nU2S1CZg1vRB6CWYTWmHXSfc7xuuwZQzqQ519IBxPwAa/A6A1kIIokPI34dm+DGeYdVvq
+	liq7NStumVbuS+enU3kolkGxbFLlrQgcVNq1dJMpuTH/Ri6CXiFz/6lPdWQKoF9PvpUgHH
+	dnPC0d6sSdtHTq9k3hJ5OlGwrKajBX6y6wHhnB/3CD5HqFFfjbhIUuDvBkEpyA==
+From: Luca Ceresoli <luca.ceresoli@bootlin.com>
+To: Jyri Sarha <jyri.sarha@iki.fi>, 
+ Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+ David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Russell King <linux@armlinux.org.uk>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, Tony Lindgren <tony@atomide.com>, 
+ Andrzej Hajda <andrzej.hajda@intel.com>, 
+ Neil Armstrong <neil.armstrong@linaro.org>, Robert Foss <rfoss@kernel.org>, 
+ Laurent Pinchart <Laurent.pinchart@ideasonboard.com>, 
+ Jonas Karlman <jonas@kwiboo.se>, Jernej Skrabec <jernej.skrabec@gmail.com>, 
+ "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>
+Cc: Markus Schneider-Pargmann <msp@baylibre.com>, 
+ Bajjuri Praneeth <praneeth@ti.com>, 
+ Louis Chauvet <louis.chauvet@bootlin.com>, 
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
+ Miguel Gazquez <miguel.gazquez@bootlin.com>, 
+ Herve Codina <herve.codina@bootlin.com>, dri-devel@lists.freedesktop.org, 
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
+ Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+In-Reply-To: <20260123-feature_tilcdc-v5-0-5a44d2aa3f6f@bootlin.com>
+References: <20260123-feature_tilcdc-v5-0-5a44d2aa3f6f@bootlin.com>
+Subject: Re: [PATCH v5 00/25] Clean and update tilcdc driver to support
+ DRM_BRIDGE_ATTACH_NO_CONNECTOR
+Message-Id: <177079962986.1196687.11987437266199565774.b4-ty@bootlin.com>
+Date: Wed, 11 Feb 2026 09:47:09 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.14.3
+X-Last-TLS-Session-Version: TLSv1.3
 
-Hi Billy,
 
-On Tue, 2026-02-10 at 06:28 +0000, Billy Tsai wrote:
-> > * Linus Walleij <linusw@kernel.org> [260209 09:51]:
-> > > On Mon, Feb 9, 2026 at 3:25=E2=80=AFAM Billy Tsai <billy_tsai@aspeedt=
-ech.com> wrote:
-> > >=20
-> > > > To make sure I align with your expectations:
-> > > > 1) Would you prefer the new driver to be fully standalone (using th=
-e
-> > > > =C2=A0=C2=A0 GENERIC_PIN* helpers + syscon/regmap-mmio), rather tha=
-n trying to
-> > > > =C2=A0=C2=A0 refactor/export helpers from pinctrl-single?
-> > >=20
-> > > Yes. Conor improved these helpers so now it should be possible
-> > > to use these to do a very simple and slim driver for what you
-> > > want to do.
-> > >=20
-> > > > =C2=A0=C2=A0 Action item: Introduce a new pinctrl-single-bit.c driv=
-er and DT
-> > > > =C2=A0=C2=A0 binding, which can also cover the existing bit-per-mux=
- logic currently
-> > > > =C2=A0=C2=A0 in pinctrl-single.c.
-> > >=20
-> > > Sounds about right.
-> > >=20
-> > > > 2) For the syscon/regmap hookup, is it acceptable to add a syscon p=
-handle
-> > > > =C2=A0=C2=A0 property in DT (e.g. "syscon =3D <&scu>;") for the new=
- driver to obtain
-> > > > =C2=A0=C2=A0 the regmap, or do you prefer a different binding/prope=
-rty name?
-> > >=20
-> > > This works for me.
->=20
-> > Great, sounds good to me too!
->=20
-> Hi Tony & Linus,
->=20
-> Thanks again for the earlier guidance =E2=80=94 that was very helpful.
->=20
-> I wanted to double-check one remaining detail around the syscon/regmap
-> hookup. As discussed before, using an explicit syscon phandle on the
-> pinctrl node (e.g. syscon =3D <&scu>) is fine from my side, and I
-> understand that approach is acceptable.
->=20
-> Andrew also pointed out that, for AST2700/SoC0, the SCU is moving towards
-> an auxiliary-bus based model, where subfunctions such as pinctrl are
-> instantiated as auxiliary devices by the SCU driver itself, with the
-> pinctrl node appearing as a subnode of the SCU binding. In that setup,
-> the pinctrl driver would obtain the regmap from its parent device rather
-> than via an explicit DT phandle, similar to what is discussed here:
-> =C2=A0 https://lore.kernel.org/all/459f84c56a5010910ecbf8b445c092674f0606=
-91.camel@codeconstruct.com.au/
->=20
-> Before proceeding, I wanted to confirm whether this auxbus-based approach
-> for the new pinctrl-single-bit driver would also be acceptable from your
-> perspective, given that it avoids introducing a generalized DT-based
-> syscon hookup up front and aligns with the SoC0 direction.
+On Fri, 23 Jan 2026 17:12:18 +0100, Kory Maincent (TI.com) wrote:
+> The starting point for this work was adding support for the HDMI cape:
+> https://www.seeedstudio.com/Seeed-Studio-BeagleBone-Green-HDMI-Cape.html
+> This will be sent in a later series.
+> 
+> Initially, Miguel proposed modifying the ite-it66121 bridge to support
+> the legacy behavior without the DRM_BRIDGE_ATTACH_NO_CONNECTOR flag:
+> https://lore.kernel.org/lkml/20250909-it66121-fix-v1-1-bc79ca83df17@bootlin.com/
+> This patch was NAK'd as we don't want to add more legacy code. Maxime
+> requested that the tilcdc driver be updated to use
+> DRM_BRIDGE_ATTACH_NO_CONNECTOR instead.
+> 
+> [...]
 
-While how we describe the hardware in the devicetree is important, the
-impact on the driver is ultimately some glue code. I think the thing to
-prioritise right now is the design, implementation and testing of the
-bit-per-mux functionality, less so how we get the driver bound to the
-device and retrieve the syscon.
+Applied, thanks!
 
-The proposal I made in the message you linked is a bit speculative at
-the moment. It needs buy-in from the DT maintainers as it proposes some
-rework of what's already in-place. That needs thought, but perhaps it
-can come a bit later. For now you could write a proof-of-concept
-implementation of the glue code for testing purposes (which we may
-replace once we resolve the binding discussion).
+[01/25] dt-bindings: display: tilcdc: Convert to DT schema
+        commit: e88bb45cf742177a18d63d306be345a294b4c1db
+[02/25] dt-bindings: display: tilcdc: Mark panel binding as deprecated
+        commit: bc3f1e36d12969060c9068b9c7c14407f869270e
+[03/25] drm/tilcdc: Remove simulate_vesa_sync flag
+        commit: 332146d21d1d4211520957458973f4316a6c2fa7
+[04/25] drm/tilcdc: Add support for DRM bus flags and simplify panel config
+        commit: ca062af436593d66ce2afa4cd00a4cb2fb775755
+[05/25] drm/tilcdc: Convert legacy panel binding via DT overlay at boot time
+        commit: 0ff223d991477fa4677dcb0f1fb00065847e2212
+[06/25] drm/tilcdc: Remove tilcdc panel driver
+        commit: 8f1e1ab9c794a6efa7ab2b076405b4984319efec
+[07/25] drm/tilcdc: Remove component framework support
+        commit: b8c3fd741f02b79dceb0489dec49692d447015f9
+[08/25] drm/tilcdc: Remove tilcdc_panel_info structure
+        commit: 1184e7785d0fafd3b111b0eaf1caeaeec32ba88d
+[09/25] drm/tilcdc: Remove redundant #endif/#ifdef in debugfs code
+        commit: da4837fb7513db5da6be7fd32e8d8efe8bff673b
+[10/25] drm/tilcdc: Remove unused encoder and connector tracking arrays
+        commit: e9946e3a869406ed743f64c9fdf8fb5c6af739ba
+[11/25] drm/tilcdc: Rename external_encoder and external_connector to encoder and connector
+        commit: 9a49c20f3360699439035e0d8543292e4b028f04
+[12/25] drm/tilcdc: Rename tilcdc_external to tilcdc_encoder
+        commit: cb18dbb74f46bd0aa612aaae144dd191c548739c
+[13/25] drm/tilcdc: Remove the useless module list support
+        commit: 8fcc0eb34d79d2733ce617073a4c52b42ffeb00f
+[14/25] drm/tilcdc: Use drm_module_platform_driver() helper
+        commit: 87e66f60f63a746094134bc3e0ffdb6bd87afcb1
+[15/25] drm/tilcdc: Move tilcdc_init/fini closer to probe/remove
+        commit: e41591e7474920187be7af0404ec9ed63b5f4614
+[16/25] drm/tilcdc: Modernize driver initialization and cleanup paths
+        commit: 3301302060da8c2034e5e10dc231023ec98051fb
+[17/25] drm/tilcdc: Remove the use of drm_device private_data
+        commit: 968fefee98d80bedbf1765e48201746880bf7277
+[18/25] drm/tilcdc: Convert to DRM managed resources
+        commit: 323401c9a166ea5faa300778f3ca336c01d8835a
+[19/25] drm/tilcdc: Convert to drm_device-based logging helpers
+        commit: 2c6f1b1fa78acd5f3bd80e3519b6b23907ea9c2f
+[20/25] drm/tilcdc: Use devm_drm_of_get_bridge() helper
+        commit: 1b47ea9fddcf89e4b65045d233bc5a2ee7775df7
+[21/25] drm/bridge: tda998x: Remove component support
+        commit: d700fd0ff100f4c301dafeb6b944c7229d0adda7
+[22/25] drm/bridge: tda998x: Move tda998x_create/destroy into probe and remove
+        commit: 22b88deb83af2b94f0441075e5528d16d5dcf5b2
+[23/25] drm/bridge: tda998x: Remove useless tda998x_connector_destroy wrapper
+        commit: 8ab51f56fd711cd9aa3960916cb0cc4bbc978eb5
+[24/25] drm/bridge: tda998x: Add support for DRM_BRIDGE_ATTACH_NO_CONNECTOR
+        commit: c76a8be4feecebbb39095e3c012b67e0f939543d
+[25/25] drm/tilcdc: Add support for DRM_BRIDGE_ATTACH_NO_CONNECTOR
+        commit: 400a84e1f7a3681ef24d58d49b5d07e81c14f4e9
 
-Andrew
+Best regards,
+-- 
+Luca Ceresoli <luca.ceresoli@bootlin.com>
 
-PS: However, regarding the syscon property itself, it's probably worth
-paying attention to the "=E2=80=9Csyscon=E2=80=9D is not a generic property=
-" note in
-https://docs.kernel.org/devicetree/bindings/writing-bindings.html#typical-c=
-ases-and-caveats
