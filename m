@@ -1,67 +1,93 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74B9622127E
-	for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2026 13:19:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D27C233F38C
+	for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2026 16:32:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770815975; cv=none; b=DO2Q4JM/VLvgCFggmTtRgNl62JFHHswQeiwGqpgRcF8WIQ7eYvrllqsVZnZ38c1jiJfOWYAnSeaRoyrpCVaUkQh+aaDzfkH7IKVpfMhb1qstJ8hasV/KbjfGYWLYfRE6CQbAKq+k4a0ikoPQE/SBTGrwhXQfw4oUjDHJk64FQVk=
+	t=1770827544; cv=none; b=k/c2pC9En4RVOw03NgRUBtidCIfqFgTXTtG74wnj3k1ZEdzohB9T+48m+EQ6j3HabcqMiquGBNyDON7Ivdyg5x6Zs5/wJffL8G3Uc0d7hrJWJ0sLbEgEOld/3eeT3dY418XWl+Z2CaoRbCN2lvjROlVjr3srB3P9w94Hk5G4FTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770815975; c=relaxed/simple;
-	bh=pEWU38l5Vz50R5z6wyDS7+8ixxHxST12htbs23d8t2Y=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NxdxgucYS+B+ISPU5IrIR02UdqyOpHGSMbDYyZve3WGiZVEU+NVcc45PxHrBmOlJeiWEX3TRxD5PmmunyH1eWkBZtP/Ib+ObiRXRyaykeGqjGFSF6s1mFEB5Dm+FseGgY0mYRavogwqVD1OkV8vuQQLCn8oHGKtM29fEbc20ePA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DigU6Isd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770827544; c=relaxed/simple;
+	bh=UfYFQzw9DizcfbI8UKrSjkCRJhieWEEOgyJ4SZyP2T0=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=HefHlc1EkcrUKJe4/Z8N+vt4PQd9wvFsVwgerngg1PR+ADq7zzJoeD1V67QOXLiBuQu6n3Iq8ZyialroEAlIsDvEdWu+qaPg2RtQZtvSTcoxvE3NPz53gADcTfIgwXjtEMzbMQeEYsA6OmlXSla4B7qgVdAIO0hxjVXeIQyPDTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S/bNigMy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DigU6Isd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17A0FC2BC87
-	for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2026 13:19:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S/bNigMy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20033C4AF0B;
+	Wed, 11 Feb 2026 16:32:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770815975;
-	bh=pEWU38l5Vz50R5z6wyDS7+8ixxHxST12htbs23d8t2Y=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=DigU6IsdqAF5P0vrUTunXSwLLmnbLmEKtYuRBE/AHIZl09QREOjf1921Lw9PN1TDp
-	 /QF8wgAwovulPbvlaWwFu7MbeoQ7FH5p3yiGyHjRzKGUJVAERGaPfNu8mJpg7B/aA0
-	 Gc/dEMy0SnDRTYHnhHVdM+Zi2ZWoy6N7O30VlRJ7zAFar796igBR8IFFB7EEnjnLJh
-	 56XBW2YWoC9T9hO/VTHHBiMGXHkaDlhO42hnXs9AX6n7rR5+utHBe4msq3QYHpvFYr
-	 x3bhelwTB7P6TFDraUksfxeCmQj04DwrLxGKOZffTU6QAc0SzQofvDUShJAZ6OnsQj
-	 Ui90asQbXjbFg==
-Received: by mail-lj1-f176.google.com with SMTP id 38308e7fff4ca-38709eaf012so3258111fa.0
-        for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2026 05:19:35 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCWrpZVB4ftJi87oOMbw6Lu+EYoGArO9LYGFbLEnU2UuTouNgIxcySTwQrn/27ye5m+aeZ1lWVk5RTwh@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz7QGfohv3YsPMAPrV4ixZsPjZdLag666/Pp6LBpBh0NLcQf649
-	cxgdGqdFGTDBQ84f0bxiv0V/Gwgzt4EkvLXcz1JF0s1WcaAJ5R4DmrSBPJ8xwuFkvmUo9TmaIrk
-	EnqR+oEBoFAsBU9RK3UBkaG+gLMJmFi/1uPMRVZSFUA==
-X-Received: by 2002:a05:651c:4185:b0:37b:9e27:89f with SMTP id
- 38308e7fff4ca-386b5144cbbmr48730171fa.37.1770815973681; Wed, 11 Feb 2026
- 05:19:33 -0800 (PST)
+	s=k20201202; t=1770827544;
+	bh=UfYFQzw9DizcfbI8UKrSjkCRJhieWEEOgyJ4SZyP2T0=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
+	b=S/bNigMyu2iHQT1xmPSL1Ve8BuSCqCHVgygJX4vATi4CZvzQGbzYfmaPYbG7nc1FC
+	 6wFSVby6yNrbScmQc+MBaF9w2K/lPqKAeOrSlHuT01xGUHmnQEdBPLhl7Vfk+kKfiL
+	 ljbr7gZkjv+Qq0Relds2bfCXHUdsVDymHdjjJFA+G3jQjsxkCzVmfKTozfomy/hSiC
+	 5p4DBggLkOTg3n0KkeeZJvvvoYUWaopaS510xkmTa0244iQiw9Ix4lUlX+jLW0Wh1h
+	 sCxhoU0YTKugEgHMQ9qRPgGIPSuOeap0JFcZoTCGZYaV3btBKxTNet6X7brTeiJxof
+	 LDb362ewehG9w==
+Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
+	by mailfauth.phl.internal (Postfix) with ESMTP id 0D873F40068;
+	Wed, 11 Feb 2026 11:32:23 -0500 (EST)
+Received: from phl-imap-02 ([10.202.2.81])
+  by phl-compute-04.internal (MEProxy); Wed, 11 Feb 2026 11:32:23 -0500
+X-ME-Sender: <xms:Fq-MaRo16QXgUMCriSisFkAv3XAHq6k42Zu8W0FlpXBtoHzfDbuLew>
+    <xme:Fq-MaefLh2XgGgDwiX4g049pSO82U6L78kIPzhisBoGb4DQ79Y7Dkhl1biTSSm2dk
+    Y5-N1cFbltak_o1HmML9YAwCTVbVmiLXtxfOaxHYOoeeb0wFRjJ1g>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddvtdeftdegucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddtnecuhfhrohhmpedftehrnhgu
+    uceuvghrghhmrghnnhdfuceorghrnhgusehkvghrnhgvlhdrohhrgheqnecuggftrfgrth
+    htvghrnhepjeejffetteefteekieejudeguedvgfeffeeitdduieekgeegfeekhfduhfel
+    hfevnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
+    hrnhguodhmvghsmhhtphgruhhthhhpvghrshhonhgrlhhithihqdduvdekhedujedtvdeg
+    qddvkeejtddtvdeigedqrghrnhgupeepkhgvrhhnvghlrdhorhhgsegrrhhnuggsrdguvg
+    dpnhgspghrtghpthhtohepuddupdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehl
+    ihhnuhigsegrrhhmlhhinhhugidrohhrghdruhhkpdhrtghpthhtohepthhonhihsegrth
+    homhhiuggvrdgtohhmpdhrtghpthhtohepughmihhtrhihrdhtohhrohhkhhhovhesghhm
+    rghilhdrtghomhdprhgtphhtthhopehjmhhkrhiihihsiihtsehgmhgrihhlrdgtohhmpd
+    hrtghpthhtoheprggrrhhordhkohhskhhinhgvnhesihhkihdrfhhipdhrtghpthhtohep
+    sghrghhlsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehhrghnshhgsehkvghrnhgvlh
+    drohhrghdprhgtphhtthhopehlihhnuhigqdgrrhhmqdhkvghrnhgvlheslhhishhtshdr
+    ihhnfhhrrgguvggrugdrohhrghdprhgtphhtthhopegsrghrthhoshiirdhgohhlrghsii
+    gvfihskhhisehoshhsrdhquhgrlhgtohhmmhdrtghomh
+X-ME-Proxy: <xmx:Fq-MaWhZObjCIHQbqjkDMsVOzq99p7RF3KwnZuT3zLVo_N-oZUX5dw>
+    <xmx:Fq-MafJSnb3sKne5HvwMxdWaOguH57HCdonGqBU4xF_XnQGr2hYfVQ>
+    <xmx:Fq-MadnKMjH8KHpIGOUfEpKZJTNJn3ac73bjuYykG_9RfDP0NG4tvQ>
+    <xmx:Fq-MafPSVRX-o06ho0W-hsHiPJT3oAYbkZUPXmXhb9dp6t9pnOo8JA>
+    <xmx:F6-Maf5EBeBZKj1ozTd2eOuD0sF5ZudExoifaYVc9kme0IsOaBfmcPNU>
+Feedback-ID: i36794607:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id D6A92700065; Wed, 11 Feb 2026 11:32:22 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260211131350.126966-1-bartosz.golaszewski@oss.qualcomm.com>
+X-ThreadId: AEuu_v-AJ7hw
+Date: Wed, 11 Feb 2026 17:31:52 +0100
+From: "Arnd Bergmann" <arnd@kernel.org>
+To: "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>,
+ "Aaro Koskinen" <aaro.koskinen@iki.fi>,
+ "Janusz Krzysztofik" <jmkrzyszt@gmail.com>,
+ "Tony Lindgren" <tony@atomide.com>, "Russell King" <linux@armlinux.org.uk>,
+ "Dmitry Torokhov" <dmitry.torokhov@gmail.com>,
+ "Hans de Goede" <hansg@kernel.org>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ "Bartosz Golaszewski" <brgl@kernel.org>
+Message-Id: <213b82de-fee8-4ebf-a8ee-d8ca783ce403@app.fastmail.com>
 In-Reply-To: <20260211131350.126966-1-bartosz.golaszewski@oss.qualcomm.com>
-From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Wed, 11 Feb 2026 14:19:20 +0100
-X-Gmail-Original-Message-ID: <CAMRc=McWjUrm-EBFZJO=K1TNQ4c3QMPQNESAg9v1RqoVexAaZg@mail.gmail.com>
-X-Gm-Features: AZwV_QhSQMg4-Uk9ADIBVghl8ldlT9h2oSgD3Nzqu9hAZs_M8IMSHSh_b3wnJ0g
-Message-ID: <CAMRc=McWjUrm-EBFZJO=K1TNQ4c3QMPQNESAg9v1RqoVexAaZg@mail.gmail.com>
-Subject: Re: [RFT PATCH v2] ARM: omap1: enable real software node lookup of
- GPIOs on Nokia 770
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, 
-	Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, 
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Arnd Bergmann <arnd@kernel.org>, 
-	Hans de Goede <hansg@kernel.org>, linux-omap@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+References: <20260211131350.126966-1-bartosz.golaszewski@oss.qualcomm.com>
+Subject: Re: [RFT PATCH v2] ARM: omap1: enable real software node lookup of GPIOs on
+ Nokia 770
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-On Wed, Feb 11, 2026 at 2:14=E2=80=AFPM Bartosz Golaszewski
-<bartosz.golaszewski@oss.qualcomm.com> wrote:
->
+On Wed, Feb 11, 2026, at 14:13, Bartosz Golaszewski wrote:
 > Currently the board file for Nokia 770 creates dummy software nodes not
 > attached in any way to the actual GPIO controller devices and uses the
 > fact that GPIOLIB matching swnode's name to the GPIO chip's label during
@@ -74,28 +100,35 @@ On Wed, Feb 11, 2026 at 2:14=E2=80=AFPM Bartosz Golaszewski
 >
 > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 > ---
-> Changes in v2:
-> - fix build with CONFIG_I2C_CBUS_GPIO
-> - only export the two symbols that are actually required by the nokia
->   board file
->
-> @@ -225,9 +206,9 @@ static inline void nokia770_mmc_init(void)
->  #if IS_ENABLED(CONFIG_I2C_CBUS_GPIO)
->
->  static const struct software_node_ref_args nokia770_cbus_gpio_refs[] =3D=
- {
-> -       SOFTWARE_NODE_REFERENCE(&nokia770_mpuio_gpiochip_node, 9, 0),
-> -       SOFTWARE_NODE_REFERENCE(&nokia770_mpuio_gpiochip_node, 10, 0),
-> -       SOFTWARE_NODE_REFERENCE(&nokia770_mpuio_gpiochip_node, 11, 0),
-> +       SOFTWARE_NODE_REFERENCE(omap16xx_mpu_gpio_swnode, 9, 0),
-> +       SOFTWARE_NODE_REFERENCE(omap16xx_mpu_gpio_swnode, 10, 0),
-> +       SOFTWARE_NODE_REFERENCE(omap16xx_mpu_gpio_swnode, 11, 0),
->  };
->
 
-I'm sorry, this is still wrong but it builds, so I didn't notice. It
-should be `&omap16xx_mpu_gpio_swnode`.
+I don't see mistakes here, and I don't want to throw a wrench in
+this patch, but I wonder if there is a way to take this one step further:
 
-Will send v3 tomorrow.
+> @@ -244,6 +263,14 @@ static int __init omap16xx_gpio_init(void)
+>  		iounmap(base);
+> 
+>  		platform_device_register(omap16xx_gpio_dev[i]);
+> +
+> +		ret = device_add_software_node(&omap16xx_gpio_dev[i]->dev,
+> +					       omap16xx_gpio_swnodes[i]);
+> +
+> +		if (ret) {
+> +			dev_err(&pdev->dev, "Failed to add software node.\n");
+> +			return ret;
+> +		}
 
-Bartosz
+I was planning to go through the remaining 'static struct platform_device'
+definitions in arch/arm/ after the planned board file removal and
+try to convert these to 'platform_device_info' or similar, using
+platform_device_register_full(). Since that function already contains
+code to dynamically allocate the software_node, I had hoped that
+a lot of this would just go away.
+
+However, I see that your patch creates pointers to those software_node
+instances, so  think that would become a bit harder, but I have not
+actually tried it.
+
+Do you know if there is a good way to do this without using static
+platform devices?
+
+     Arnd
