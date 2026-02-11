@@ -1,147 +1,153 @@
-Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88C4B1552FD
-	for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2026 08:47:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 393AA352F88
+	for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2026 09:10:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770799646; cv=none; b=h/3jCd7PzQe0VBjJKJoyrJRBBmfIVMyrc+1eTATEZ3jgrFNu7WiryR6WLxcPFEup/bsLEoqIcs4IR6TRl77JcsS5FA4tUHgI/GGCq5O8tzGr5n+A2Px/7+XwzsCPOMWNzoDPBI/uJJev0WwoXpCRX572jh83HHESHx1+TQX7FKU=
+	t=1770801054; cv=none; b=WCJ/L5jNqLnAY8SOF6BTI4GeGZ0EY3Q0eEfjFdmRZAmrSInWRkKsz47jWnD4lxBfWLtOt7qcO0XjwtCpys1rz2MsRB1xJGvTTS4SAp/G9zPm8XhvQeD6aUSRqzfGSqP3qdVbHdBcAJD4gtL3akfnNMK+gAAlAazYtU9uAZI0QZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770799646; c=relaxed/simple;
-	bh=EgeL/H9dQ4I0eGiFwPSkoBQAWlE4jEDs9uTTmRa/WKg=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=gD4uMxefbgFSXn+PQSndjpeda6WWJBXuhB6GwHo0k/SmFhUdfspy3zXtxi2GQCDe/2Lnm+OvPcxhZPxeDtdwhp2AA+H+gh0SNNMpUZWA0XC5bqznzGM8n6zlQ1+T9Psz2O0kqxgnSxCdszOmiR4eVvdgw14TigxeQs18/18dKig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=gc0koEG5; arc=none smtp.client-ip=185.171.202.116
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1770801054; c=relaxed/simple;
+	bh=KacShDOWNOlO5H/VRA3buaVoCqG7ZDsYgx4xGNdyX8Y=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ENwrvZqpSfWPYriRljo0Bz2oMK7Tg5J9ezZer9muDgUZqxxzrj1QitEsLeYNfo+0z8PlhFp4uRU/E2v04xXHTJpb4ySadwpJBMcphI2O13Ze8T+3LTxtxiaC6WVX+GOvQyUtgw3dx6gF04WpdqiV7oYpnjus3ELroNxf5gaPUpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=AW/aXM4h; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=I7zpdHyL; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="gc0koEG5"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-04.galae.net (Postfix) with ESMTPS id 7F656C653F4;
-	Wed, 11 Feb 2026 08:47:30 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id BB367606BE;
-	Wed, 11 Feb 2026 08:47:21 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 21F7B11948BAF;
-	Wed, 11 Feb 2026 09:47:09 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1770799640; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=tbYZJPtzfNeGa4KqfQcB7C9ai7mWnC80SXxCFDp2yBE=;
-	b=gc0koEG5d4I+4+aKeG0lyb0aKeJGcOJn57j88++ThKOX92rUt7VF+mraTBEGGzkA0yfFft
-	LYxOd154SeIqbQf84wbKvMqQsBBxcxQ7BSru9O/QNmowaRLBdj1iXD+Bqo9G1cwnYVQb2F
-	3nU2S1CZg1vRB6CWYTWmHXSfc7xuuwZQzqQ519IBxPwAa/A6A1kIIokPI34dm+DGeYdVvq
-	liq7NStumVbuS+enU3kolkGxbFLlrQgcVNq1dJMpuTH/Ri6CXiFz/6lPdWQKoF9PvpUgHH
-	dnPC0d6sSdtHTq9k3hJ5OlGwrKajBX6y6wHhnB/3CD5HqFFfjbhIUuDvBkEpyA==
-From: Luca Ceresoli <luca.ceresoli@bootlin.com>
-To: Jyri Sarha <jyri.sarha@iki.fi>, 
- Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, 
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
- Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
- David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, Russell King <linux@armlinux.org.uk>, 
- Bartosz Golaszewski <brgl@bgdev.pl>, Tony Lindgren <tony@atomide.com>, 
- Andrzej Hajda <andrzej.hajda@intel.com>, 
- Neil Armstrong <neil.armstrong@linaro.org>, Robert Foss <rfoss@kernel.org>, 
- Laurent Pinchart <Laurent.pinchart@ideasonboard.com>, 
- Jonas Karlman <jonas@kwiboo.se>, Jernej Skrabec <jernej.skrabec@gmail.com>, 
- "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>
-Cc: Markus Schneider-Pargmann <msp@baylibre.com>, 
- Bajjuri Praneeth <praneeth@ti.com>, 
- Louis Chauvet <louis.chauvet@bootlin.com>, 
- Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
- Miguel Gazquez <miguel.gazquez@bootlin.com>, 
- Herve Codina <herve.codina@bootlin.com>, dri-devel@lists.freedesktop.org, 
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
- Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-In-Reply-To: <20260123-feature_tilcdc-v5-0-5a44d2aa3f6f@bootlin.com>
-References: <20260123-feature_tilcdc-v5-0-5a44d2aa3f6f@bootlin.com>
-Subject: Re: [PATCH v5 00/25] Clean and update tilcdc driver to support
- DRM_BRIDGE_ATTACH_NO_CONNECTOR
-Message-Id: <177079962986.1196687.11987437266199565774.b4-ty@bootlin.com>
-Date: Wed, 11 Feb 2026 09:47:09 +0100
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AW/aXM4h";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="I7zpdHyL"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1770801052;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=S4wey9chVGopV4Q+iboK1zGvtP+HzRe8m12rmTHLNaI=;
+	b=AW/aXM4hRW+KnB/u5HjIKfEEuuFojBOpaLpRLer1Jd56wOopiqvr5+iUBc823CiNZALzbT
+	mNJp84TA956eWxIMRg6YuGzXofatuFX0x33C7nNBwnX2V7nzc9VKTPn94oF03/EkCyGKso
+	//Sh7svK9oznC9GxZg1HMYO/el2PmaE=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-645-GEN0wCyXNbqwzcRHSo4WFg-1; Wed, 11 Feb 2026 04:10:51 -0500
+X-MC-Unique: GEN0wCyXNbqwzcRHSo4WFg-1
+X-Mimecast-MFC-AGG-ID: GEN0wCyXNbqwzcRHSo4WFg_1770801049
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-435db8ebc98so1512805f8f.0
+        for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2026 01:10:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1770801049; x=1771405849; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=S4wey9chVGopV4Q+iboK1zGvtP+HzRe8m12rmTHLNaI=;
+        b=I7zpdHyLB1ttY6xQNXvkTw+5i9XTYhhAtvFxbTtTSfGaSku9hFzLA3VwG6Zakcw0E8
+         13HpcNnTSIG9+F2lSaXRTMj7KixEMDQwg3Mc9sTz/aNS+zVAOEmmggh6Q8N0wh8m16Ig
+         3H+FTUACCXeukH5U8bxcpRp8g02uS13qKwCm3xmj5KQEN+STjRdH3Way7b/c/Hb6ERFo
+         6wenZecQPjEGobsWEGKVN3Nq8MzJjVcUB2R94CqwO/bSbKnxa480ejOWkE9mwjXwIfPZ
+         Bc7/QzFrxK+KCxLrbxFyp1UeZ7gmmk2Dw6trFbah2T9NrKUDZbFCsOEsG2hjMN+OM9xO
+         oAHA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770801049; x=1771405849;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=S4wey9chVGopV4Q+iboK1zGvtP+HzRe8m12rmTHLNaI=;
+        b=T3ijZYzjssihcDN/nTIUU2lZ/NcB5Bsp1Z4vK01y3WVglv5vECyqpeOTORleiz0lyW
+         JJ0X9amXRV3ipP7iU+4f+Uc+ttF7r3ol73v/dQPkjI8uHGDmjGLabMwwZmz17S3Q9Gm5
+         CVQkhuG9WJQMOLuE+KO182NSXJ/+Ii3KuvmpXWtgIMYGlwZU+5Ybh5Bt8g0EZ6m49eHH
+         eSTUBeWdbPHIaD8qoAO43ISVX9Ev9tVsQEc8KvYnVNGFz9L0DAsoBkLiKS0//5FFx5QW
+         JAyGDeGY26E/nKRisuTC2pDC+cRJ99kEOJVAJLF/GVLTgwwwShZN6tw5ZzZdBlPfs9Ja
+         hTdA==
+X-Forwarded-Encrypted: i=1; AJvYcCUBHuelLANvZKIqzxcLSQNXPpaXSnWcBwy0YNXROt3q6LaA4SbeEPf7j9UEHDuph//XGRP68Jjrph4L@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx3Qb9WYI0ydw+lDiQN4EzpLCo5QCLHRfhUZWwtahLe29+nVZEr
+	mVvO+GMwhbAzG+2vOnNO2J2SUgvMdvDlRYo7G1A/ckd0Wm85kKkVikFRiAKc3icJqflejfgvVcb
+	hxlUX+c5zpb3mfccL9ueT6/xzr3HfQrjfOJuTtSYvhr08yhfINvj2L8+b1JNSX94=
+X-Gm-Gg: AZuq6aK0oe1VgZof2mvSQLzXR/vM69b83tNaVYL40rbPcw7+XS3KyWJn9Mf/gGbeH6m
+	KJynYQDIXCZA30KwpkEEfgi79k6WAn78uazh6q+fpuWIQ75XamdqlHKNsIkNzcGhjt391f/q+xL
+	LIuPOOiDX3QRmj8ri66gN1+nHGqRKIigjNQV+Pvl54P3cxIznrwhy6CCXLjASxFl/c8YR/uPKjS
+	DUEzQtysECj5EMjhU528uB2cskFSH+W6v01hFSuQo9kmRigKsLdtJ/glvQ1hsgEWLRwB7QTAVOt
+	l3cTQGIbXOCFH5lELhVL8fmFWj+I0rtnDK5gtxPfc6q6Swx/wBHdRYEhKOuZ8+zMSo+q5hG9UlK
+	MgJhZcdEnUsOPP2bcTeEKxmm1+A==
+X-Received: by 2002:a05:6000:2890:b0:437:6b73:ffa9 with SMTP id ffacd0b85a97d-4376b74046amr18910065f8f.5.1770801048716;
+        Wed, 11 Feb 2026 01:10:48 -0800 (PST)
+X-Received: by 2002:a05:6000:2890:b0:437:6b73:ffa9 with SMTP id ffacd0b85a97d-4376b74046amr18910004f8f.5.1770801048244;
+        Wed, 11 Feb 2026 01:10:48 -0800 (PST)
+Received: from [192.168.88.32] ([212.105.155.220])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43783dfda66sm3414895f8f.22.2026.02.11.01.10.46
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 11 Feb 2026 01:10:47 -0800 (PST)
+Message-ID: <76522b83-682b-4cba-bdb4-d4a922a49973@redhat.com>
+Date: Wed, 11 Feb 2026 10:10:46 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next] net: ethernet: ti: davinci_emac: remove member
+ phy_id from struct emac_platform_data
+To: Heiner Kallweit <hkallweit1@gmail.com>,
+ Linus Walleij <linus.walleij@linaro.org>, Eric Dumazet
+ <edumazet@google.com>, David Miller <davem@davemloft.net>,
+ Andrew Lunn <andrew+netdev@lunn.ch>, Simon Horman <horms@kernel.org>,
+ Siddharth Vadapalli <s-vadapalli@ti.com>, Roger Quadros <rogerq@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+ linux-omap@vger.kernel.org
+References: <5bc19909-0fc7-485c-a573-4819eeea5b5d@gmail.com>
+Content-Language: en-US
+From: Paolo Abeni <pabeni@redhat.com>
+In-Reply-To: <5bc19909-0fc7-485c-a573-4819eeea5b5d@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.14.3
-X-Last-TLS-Session-Version: TLSv1.3
 
 
-On Fri, 23 Jan 2026 17:12:18 +0100, Kory Maincent (TI.com) wrote:
-> The starting point for this work was adding support for the HDMI cape:
-> https://www.seeedstudio.com/Seeed-Studio-BeagleBone-Green-HDMI-Cape.html
-> This will be sent in a later series.
+
+On 2/6/26 10:53 PM, Heiner Kallweit wrote:
+> b4aed01de486 ("ARM: davinci: Delete DM646x board files") removed the
+> last user of member phy_id. So let's remove phy_id.
 > 
-> Initially, Miguel proposed modifying the ite-it66121 bridge to support
-> the legacy behavior without the DRM_BRIDGE_ATTACH_NO_CONNECTOR flag:
-> https://lore.kernel.org/lkml/20250909-it66121-fix-v1-1-bc79ca83df17@bootlin.com/
-> This patch was NAK'd as we don't want to add more legacy code. Maxime
-> requested that the tilcdc driver be updated to use
-> DRM_BRIDGE_ATTACH_NO_CONNECTOR instead.
+> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+> ---
+>  drivers/net/ethernet/ti/davinci_emac.c | 24 ++++++++++--------------
+>  include/linux/davinci_emac.h           |  9 ---------
+>  2 files changed, 10 insertions(+), 23 deletions(-)
 > 
-> [...]
+> diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+> index ed8116fb05e..df51441a2b8 100644
+> --- a/drivers/net/ethernet/ti/davinci_emac.c
+> +++ b/drivers/net/ethernet/ti/davinci_emac.c
+> @@ -329,7 +329,6 @@ struct emac_priv {
+>  	u32 mac_hash2;
+>  	u32 multicast_hash_cnt[EMAC_NUM_MULTICAST_BITS];
+>  	u32 rx_addr_type;
+> -	const char *phy_id;
+>  	struct device_node *phy_node;
+>  	spinlock_t lock;
+>  	/*platform specific members*/
+> @@ -1418,6 +1417,7 @@ static int emac_dev_open(struct net_device *ndev)
+>  	struct emac_priv *priv = netdev_priv(ndev);
+>  	struct phy_device *phydev = NULL;
+>  	struct device *phy = NULL;
+> +	const char *phy_id = NULL;
+>  
+>  	ret = pm_runtime_resume_and_get(&priv->pdev->dev);
+>  	if (ret < 0) {
+> @@ -1502,8 +1502,8 @@ static int emac_dev_open(struct net_device *ndev)
+>  		}
+>  	}
+>  
+> -	/* use the first phy on the bus if pdata did not give us a phy id */
+> -	if (!phydev && !priv->phy_id) {
+> +	/* use the first phy on the bus */
+> +	if (!phydev) {
 
-Applied, thanks!
+AFAICS emac_dev_open() is invoked also on resume, and priv->phy_id could
+be not NULL at that point, the new code could lead to a different
+behavior. I think it's worthy to at least mention it in the commit message.
 
-[01/25] dt-bindings: display: tilcdc: Convert to DT schema
-        commit: e88bb45cf742177a18d63d306be345a294b4c1db
-[02/25] dt-bindings: display: tilcdc: Mark panel binding as deprecated
-        commit: bc3f1e36d12969060c9068b9c7c14407f869270e
-[03/25] drm/tilcdc: Remove simulate_vesa_sync flag
-        commit: 332146d21d1d4211520957458973f4316a6c2fa7
-[04/25] drm/tilcdc: Add support for DRM bus flags and simplify panel config
-        commit: ca062af436593d66ce2afa4cd00a4cb2fb775755
-[05/25] drm/tilcdc: Convert legacy panel binding via DT overlay at boot time
-        commit: 0ff223d991477fa4677dcb0f1fb00065847e2212
-[06/25] drm/tilcdc: Remove tilcdc panel driver
-        commit: 8f1e1ab9c794a6efa7ab2b076405b4984319efec
-[07/25] drm/tilcdc: Remove component framework support
-        commit: b8c3fd741f02b79dceb0489dec49692d447015f9
-[08/25] drm/tilcdc: Remove tilcdc_panel_info structure
-        commit: 1184e7785d0fafd3b111b0eaf1caeaeec32ba88d
-[09/25] drm/tilcdc: Remove redundant #endif/#ifdef in debugfs code
-        commit: da4837fb7513db5da6be7fd32e8d8efe8bff673b
-[10/25] drm/tilcdc: Remove unused encoder and connector tracking arrays
-        commit: e9946e3a869406ed743f64c9fdf8fb5c6af739ba
-[11/25] drm/tilcdc: Rename external_encoder and external_connector to encoder and connector
-        commit: 9a49c20f3360699439035e0d8543292e4b028f04
-[12/25] drm/tilcdc: Rename tilcdc_external to tilcdc_encoder
-        commit: cb18dbb74f46bd0aa612aaae144dd191c548739c
-[13/25] drm/tilcdc: Remove the useless module list support
-        commit: 8fcc0eb34d79d2733ce617073a4c52b42ffeb00f
-[14/25] drm/tilcdc: Use drm_module_platform_driver() helper
-        commit: 87e66f60f63a746094134bc3e0ffdb6bd87afcb1
-[15/25] drm/tilcdc: Move tilcdc_init/fini closer to probe/remove
-        commit: e41591e7474920187be7af0404ec9ed63b5f4614
-[16/25] drm/tilcdc: Modernize driver initialization and cleanup paths
-        commit: 3301302060da8c2034e5e10dc231023ec98051fb
-[17/25] drm/tilcdc: Remove the use of drm_device private_data
-        commit: 968fefee98d80bedbf1765e48201746880bf7277
-[18/25] drm/tilcdc: Convert to DRM managed resources
-        commit: 323401c9a166ea5faa300778f3ca336c01d8835a
-[19/25] drm/tilcdc: Convert to drm_device-based logging helpers
-        commit: 2c6f1b1fa78acd5f3bd80e3519b6b23907ea9c2f
-[20/25] drm/tilcdc: Use devm_drm_of_get_bridge() helper
-        commit: 1b47ea9fddcf89e4b65045d233bc5a2ee7775df7
-[21/25] drm/bridge: tda998x: Remove component support
-        commit: d700fd0ff100f4c301dafeb6b944c7229d0adda7
-[22/25] drm/bridge: tda998x: Move tda998x_create/destroy into probe and remove
-        commit: 22b88deb83af2b94f0441075e5528d16d5dcf5b2
-[23/25] drm/bridge: tda998x: Remove useless tda998x_connector_destroy wrapper
-        commit: 8ab51f56fd711cd9aa3960916cb0cc4bbc978eb5
-[24/25] drm/bridge: tda998x: Add support for DRM_BRIDGE_ATTACH_NO_CONNECTOR
-        commit: c76a8be4feecebbb39095e3c012b67e0f939543d
-[25/25] drm/tilcdc: Add support for DRM_BRIDGE_ATTACH_NO_CONNECTOR
-        commit: 400a84e1f7a3681ef24d58d49b5d07e81c14f4e9
-
-Best regards,
--- 
-Luca Ceresoli <luca.ceresoli@bootlin.com>
+/P
 
