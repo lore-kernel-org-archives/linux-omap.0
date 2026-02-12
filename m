@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FF7B1F4174;
-	Thu, 12 Feb 2026 15:40:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD554E573;
+	Thu, 12 Feb 2026 15:42:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770910821; cv=none; b=nBjXrQIsGMCnTH2iwhQMHJlimWJyA1nZ9pjUYmlvpm34vG9M7axqHrJKeKE4AzTx4wN8BlqrklhACY4oczYQ5Vfg7x2Sp3mJq83wKPFMFnAc0Xglzhc91t691L65PzpCl0rW2Q6pG+YzVk8fMQdoplbiJ12v3EQRyXQGhf8Kxgc=
+	t=1770910938; cv=none; b=KcUvprTF8igSgGHifAyCivzorZUCyoaiMgJpYlLE7+pcSjVHWmFdX/8ZgMFyNrB/EoU4KAYVt+RwEQJ6lxPNi/BB3E9M/cu/UQol56ofgUql8LItBIqRbs/YRwllV1Psiix/82TwbiLhYsXStoWgIR3Bc9dL6KqFoHeNfdj3k3k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770910821; c=relaxed/simple;
-	bh=NTco/kPWu55YLeIqPcq43kzrY4AuicCJ5cyuAeTIvuI=;
+	s=arc-20240116; t=1770910938; c=relaxed/simple;
+	bh=bSi5CHEhH4PGPzVWKmIcnWr34ofLTq8JlxdhamPaFvM=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=W0pXxesauFyHBqK+0b6m52WZb/3iQW8xZMhDrdGRXMeO3k/PrpKjPv6YbJQ6IgnvopApQcXINjAgdvLMd1FnKmoy0OVCSDSS7lbGT3yayNuj8wtkUyP5mmw7FTD/49X554ibfAkTHscf2R1nypdLlKjNALI75UwGBpvAywgYDsw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OS8LzFH9; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:Content-Type; b=EOBIx3k8Xwjlf+g/18mvVN4tsVPLgoapk4mYp6JZ+DEjyZgjDXSuxXWGauwteVCOwzmg9mjFmn/D78MaGYFlRF5JWBQT38t9OuzsS4Awk+sAEsGEHuAiz2+Nu1qEFpm3qv+lb0Ht9dOOP7wD/44f27+xYZw9VCIOsGoTtYGaOp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z4LXr7MK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OS8LzFH9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 651F3C4CEF7;
-	Thu, 12 Feb 2026 15:40:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z4LXr7MK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04F44C4CEF7;
+	Thu, 12 Feb 2026 15:42:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770910820;
-	bh=NTco/kPWu55YLeIqPcq43kzrY4AuicCJ5cyuAeTIvuI=;
+	s=k20201202; t=1770910938;
+	bh=bSi5CHEhH4PGPzVWKmIcnWr34ofLTq8JlxdhamPaFvM=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=OS8LzFH9JBFCiVG84P5G/4QroKij0LJJ2QlsgtUrabn05GDecJ/2taaOSXbcFfqOB
-	 LM6kmjAZL5VaCQ+hcJO2pqE0Ve4em8hWuCMiDaWDm8Rlgc1NQbphnT3ic5VZVbtnjY
-	 HuzCWYCBWt7iBiJvj4ltipZ5P4xyQVMt2MW/MtlVbiS/RNBNtLgteQWWciv7vPVWzT
-	 J6vS6oacuq41XNsc0zWM3kiyqHYXD8my8927m3mncW/Dzt7yGHjK+DQCD+ZtKc/3in
-	 NdrQ1Nu9XebwCEr38DF88zTmaiVUaOvLnP6xGu/03V3i2cq3y+W1rLhg5BQIoDFthh
-	 MtV7nPj6dU45A==
-Message-ID: <d786d817-e97d-4270-a3be-4778730df35e@kernel.org>
-Date: Thu, 12 Feb 2026 16:40:14 +0100
+	b=Z4LXr7MKEf8WXwuYLLuHmQOtEzIvwN9mupeTM8M0cwog5O6pBxyKN9VTJqtyJ5kb4
+	 TMBzUncfcedEXdcufdEhtnOFb5Kann6VCvn8dSYws5zjkc1POk+Ark9VyeXln6cAd5
+	 EYOniL7TfpblkplA3/mP6uBr2Wdf0y0O7CurTpYD4I7zT8TYIo522mei6wCjj0vmZv
+	 lIaYcPcLZP6viKmRNiwPq+6kpgv6jKG9zA47Z84LQPGcrI+UV1W959q16FbzoEAscI
+	 pvyEej4x6N2MvM1ZdtuY/4YGswAjA9A601qpHXGpEl4gZzewOHxcBV+6pKH2zvZcwP
+	 p5Jy18LpJ/LJw==
+Message-ID: <bfe9f164-ac90-4647-b194-2f9b2fef2901@kernel.org>
+Date: Thu, 12 Feb 2026 16:42:12 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -35,7 +35,7 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 4/5] ARM: multi_v7_defconfig: Enable ITE IT66121 driver
+Subject: Re: [PATCH 1/5] ARM: dts: ti: Enable overlays for all DTB files
 To: "Kory Maincent (TI)" <kory.maincent@bootlin.com>,
  Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
  <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
@@ -51,7 +51,7 @@ Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
  Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
  Louis Chauvet <louis.chauvet@bootlin.com>
 References: <20260212-feature_bbge-v1-0-29014a212f35@bootlin.com>
- <20260212-feature_bbge-v1-4-29014a212f35@bootlin.com>
+ <20260212-feature_bbge-v1-1-29014a212f35@bootlin.com>
 From: Krzysztof Kozlowski <krzk@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=krzk@kernel.org; keydata=
@@ -97,16 +97,24 @@ Autocrypt: addr=krzk@kernel.org; keydata=
  jWt87ecuHlpL3uuQ0ZZNWqHgZoQLXoqC2ZV5KrtKWb/jyiFX/sxSrodALf0zf+tfHv0FZWT2
  zHjUqd0t4njD/UOsuIMOQn4Ig0SdivYPfZukb5cdasKJukG1NOpbW7yRNivaCnfZz6dTawXw
  XRIV/KDsHQiyVxKvN73bThKhONkcX2LWuD928tAR6XMM2G5ovxLe09vuOzzfTWQDsm++9UKF a/A=
-In-Reply-To: <20260212-feature_bbge-v1-4-29014a212f35@bootlin.com>
+In-Reply-To: <20260212-feature_bbge-v1-1-29014a212f35@bootlin.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 12/02/2026 16:26, Kory Maincent (TI) wrote:
-> Enable the ITE IT66121 HDMI bridge driver to support HDMI output on
-> the BeagleBone Green with the Seeed Studio HDMI cape.
+> Allow overlays to be applied to any DTB. This adds around ~40% to the
+> total size of the DTB files on average.
+> 
+> Signed-off-by: Kory Maincent (TI) <kory.maincent@bootlin.com>
+> --
+> 
+> Enable overlays for all dtb similarly to what has been done for arch64
+> TI boards, but we could only enable overlays for Beagle Bone and
+> variant boards if required.
 
-This is not one option per patch. All three patches should be squashed,
-because are logically one change.
+You mixed changelog with commit with invalid separator thus there is no
+final SoB.
+
 
 Best regards,
 Krzysztof
