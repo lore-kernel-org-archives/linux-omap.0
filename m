@@ -1,103 +1,104 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D114A34EF07
-	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2026 11:46:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F66421B9E2;
+	Thu, 12 Feb 2026 15:27:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770896770; cv=none; b=gK+lLM3nco70LP9+x1rryaCJ2aZ/qn+ZW20MNMdOSQeCY6tY2MPnRxbZcOlNUnQRlgs6oRmfyc8XkEtb//MC/5ZTO0sdUkBVli5Le37OIl8eZkneT88vPvyXb2njszLNEM5PHQ6NMyaYHv+LWig2mgkPO2s98ACHvbUrv6TdSu8=
+	t=1770910071; cv=none; b=P3Fy17NPz+7RJY2fBl4/c85dHGE5bKHwtlwJPfBnmcDw81YQmuDQ+24s7Mtc2x0zxfNJIqVyqBQG+recdQljgbl33oCNbvgLjrkNfoj5cvlwNQKexbCXfSYyhW/bCdvkfkl+jqLAmv7xvve9GVSAAbgTPUNNJ86nRs2O+bAE6Eg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770896770; c=relaxed/simple;
-	bh=8WINLAJJI9VoTtHGFrwUftgykkBdJtFx8Ya85T07T6w=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=cejddltq5NP+QBHf+Y+7zo85YdKS6DwEScI1Jc3J9ry4ic9wW7oxg2CxXeOGyAlH8gCjITdYDtg/PBmDkbPtQn+STckweSGyRtLzFBk8TTfJ0GlUt25pFF7Uqw4i+4hw8KaYNrapwKl1KDDLSq/UUysqCSdeTjYfNd+Uxs3zVpM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Sbt2b0SW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770910071; c=relaxed/simple;
+	bh=1DzUWPOgjLvu5fGldGym/cmrtxG/LTiARhhTrxb40ac=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=rWalQesOuMxmNCE6L2Q++iCUOeLIBrUwYVELF0iRSTOMnu+GlOx/Vsb5mqEvnV6Ot6L6ADp1JoY6zAQsa1FgKiizf4cLNzGiaAIWCJBV9kkW7uzFiuBxziThkbn7F3wR9PhuB7yBuxiOkGzFlmPZHdLPJI/kMmwW/Tdu2vHTaN8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=ty5AZIWr; arc=none smtp.client-ip=185.246.85.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Sbt2b0SW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD56AC16AAE;
-	Thu, 12 Feb 2026 11:46:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770896770;
-	bh=8WINLAJJI9VoTtHGFrwUftgykkBdJtFx8Ya85T07T6w=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
-	b=Sbt2b0SWn0UiyMqYJp9YdsiF7Ouy83n3y6ndv+Vnd2U3444g6uqpnbOqHzx1cTd9D
-	 UD3tmzWSrxn4jw8XUI7LAufJXPfLBt+90s3pk2a8xzllSLpOqVxC6eDmXkAvkwjbrJ
-	 PrwBj/r+BqJhDL5hY3bjFkUz0blfUlKGakzAmcEdkjp19720QXxqnTMIia1ab2s0sz
-	 SlPpknD/PMA4Xj05i9Wl69Bl8epl/6hA5o5m2CX2fnUXdqW5VCZBFYrB3H2ZyzsQln
-	 /WGZVqRNqJjveiQFJloF4YAH+Wsu0bTy/3f3Ukv1mGecvAk+ZJz5BUaeHT5+OJRQLJ
-	 TQ1cpTy3BmPZA==
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfauth.phl.internal (Postfix) with ESMTP id BBA3DF40068;
-	Thu, 12 Feb 2026 06:46:08 -0500 (EST)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-04.internal (MEProxy); Thu, 12 Feb 2026 06:46:08 -0500
-X-ME-Sender: <xms:gL2NaYqTyxKpvFb8gXYn2alSRGFN54TN6xyNe9HE4-3erLF6AGMpjQ>
-    <xme:gL2NaZehAnL5YtAUlEaDPaqCAalYHuNl2lnvZR2Bvnt3GiWPOf0claxb65xIt0ayB
-    6Xux6ixqf1wTdJSCZV8xQ5M6C-Pt40eJ0HlwHtJrtXUeo8ExlzYHW0>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddvtdehfedtucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddtnecuhfhrohhmpedftehrnhgu
-    uceuvghrghhmrghnnhdfuceorghrnhgusehkvghrnhgvlhdrohhrgheqnecuggftrfgrth
-    htvghrnhepjeejffetteefteekieejudeguedvgfeffeeitdduieekgeegfeekhfduhfel
-    hfevnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhguodhmvghsmhhtphgruhhthhhpvghrshhonhgrlhhithihqdduvdekhedujedtvdeg
-    qddvkeejtddtvdeigedqrghrnhgupeepkhgvrhhnvghlrdhorhhgsegrrhhnuggsrdguvg
-    dpnhgspghrtghpthhtohepuddupdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehl
-    ihhnuhigsegrrhhmlhhinhhugidrohhrghdruhhkpdhrtghpthhtohepthhonhihsegrth
-    homhhiuggvrdgtohhmpdhrtghpthhtohepughmihhtrhihrdhtohhrohhkhhhovhesghhm
-    rghilhdrtghomhdprhgtphhtthhopehjmhhkrhiihihsiihtsehgmhgrihhlrdgtohhmpd
-    hrtghpthhtoheprggrrhhordhkohhskhhinhgvnhesihhkihdrfhhipdhrtghpthhtohep
-    sghrghhlsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehhrghnshhgsehkvghrnhgvlh
-    drohhrghdprhgtphhtthhopehlihhnuhigqdgrrhhmqdhkvghrnhgvlheslhhishhtshdr
-    ihhnfhhrrgguvggrugdrohhrghdprhgtphhtthhopegsrghrthhoshiirdhgohhlrghsii
-    gvfihskhhisehoshhsrdhquhgrlhgtohhmmhdrtghomh
-X-ME-Proxy: <xmx:gL2NaVgiRYOB8ylcQ8A4k5wKnMwQtM9UBDPibj90OYPmlhpBF-wk9g>
-    <xmx:gL2NaSKBaSUGJCu4ubCUMaXZVgY0zyaWoKn1UeUEC9WQtUnsbbvJGA>
-    <xmx:gL2NaUmV4Qj_VciXcXgcuWiWmEeeMPk3CD2ZdXZwqL-cBv8l4l57Zg>
-    <xmx:gL2NaaOk4rOB_1MNPHfJP6Vg6iv35exiaGZBJUASrwzuRsa4xkNODw>
-    <xmx:gL2Nae6sntTubZlnIrDJoUqad_sdYgIImseR3BS3x3yhDq2ZWbRKc1QR>
-Feedback-ID: i36794607:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id A058E700069; Thu, 12 Feb 2026 06:46:08 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="ty5AZIWr"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 256164E40CE3;
+	Thu, 12 Feb 2026 15:27:46 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id E52B1606CA;
+	Thu, 12 Feb 2026 15:27:45 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 5B93211971B05;
+	Thu, 12 Feb 2026 16:26:49 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1770910061; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=dHvyyUWufcDUYZZiGp+OreXyUiQERICvMqjauxJsIBk=;
+	b=ty5AZIWryFiAUKJgZh1PETyZ8lFIYeqVUbpKQhtDJxPHr/JwgpMbPPcB53R8n/K6KZjwS8
+	ninJ9z0cWJeqAbqDof4AO4YOPwe0yeRvKZ+PQTxU1Wc779c1SKTSiJhR8NlyR16UIBEaWK
+	N39q7624FEF6agoGTyQX3WqUBvVxdyNzfE7zMAcj8OP0aflhhotMdegJRUJgV2h253MOin
+	ZX3QJ2jdjnnYV1iMM2fvrEgG+VMIXHgieid02uwD6urvC++cY19tvgoZKjuIt6/IlE7bQ5
+	wFJ4RK99iQG8I2xmpHibRFgW64xPwInIqSxdg2tSX9Hy+OY81cs88Y0R9tyEIw==
+From: "Kory Maincent (TI)" <kory.maincent@bootlin.com>
+Subject: [PATCH 0/5] Add support for Seeed Studio BeagleBone HDMI cape
+ overlay
+Date: Thu, 12 Feb 2026 16:26:14 +0100
+Message-Id: <20260212-feature_bbge-v1-0-29014a212f35@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: Aj2XlnqiSkhV
-Date: Thu, 12 Feb 2026 12:45:48 +0100
-From: "Arnd Bergmann" <arnd@kernel.org>
-To: "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>,
- "Aaro Koskinen" <aaro.koskinen@iki.fi>,
- "Janusz Krzysztofik" <jmkrzyszt@gmail.com>,
- "Tony Lindgren" <tony@atomide.com>, "Russell King" <linux@armlinux.org.uk>,
- "Dmitry Torokhov" <dmitry.torokhov@gmail.com>,
- "Hans de Goede" <hansg@kernel.org>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
- "Bartosz Golaszewski" <brgl@kernel.org>
-Message-Id: <2fb42d16-887a-4564-8e50-c9d6db564c4e@app.fastmail.com>
-In-Reply-To: <20260212112508.73500-1-bartosz.golaszewski@oss.qualcomm.com>
-References: <20260212112508.73500-1-bartosz.golaszewski@oss.qualcomm.com>
-Subject: Re: [RFT PATCH v3] ARM: omap1: enable real software node lookup of GPIOs on
- Nokia 770
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-B4-Tracking: v=1; b=H4sIABbxjWkC/x2MWwqAIBAAryL7XaAbPa8SEZlr7Y+FVgTi3ZM+h
+ 2EmQiDPFGAQETw9HPhwGVQhYN0Xt1HJJjOgxEaiwtLSct2eZq2z6yvsWqmRjK0hJ6cny++/G6e
+ UPjBq33NeAAAA
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Russell King <linux@armlinux.org.uk>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
+ linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ dri-devel@lists.freedesktop.org, Luca Ceresoli <luca.ceresoli@bootlin.com>, 
+ Bajjuri Praneeth <praneeth@ti.com>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+ Louis Chauvet <louis.chauvet@bootlin.com>, 
+ "Kory Maincent (TI)" <kory.maincent@bootlin.com>
+X-Mailer: b4 0.14-dev-d4707
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Thu, Feb 12, 2026, at 12:25, Bartosz Golaszewski wrote:
-> Currently the board file for Nokia 770 creates dummy software nodes not
-> attached in any way to the actual GPIO controller devices and uses the
-> fact that GPIOLIB matching swnode's name to the GPIO chip's label during
-> software node lookup. This behavior is wrong and we want to remove it.
-> To that end, we need to first convert all existing users to creating
-> actual fwnode links.
->
-> Create real software nodes for GPIO controllers on OMAP16xx and
-> reference them from the software nodes in the nokia board file.
->
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Add devicetree overlay for the Seeed Studio BeagleBone HDMI cape, which
+provides HDMI output via an ITE IT66121 HDMI bridge and audio support
+through McASP.
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+https://www.seeedstudio.com/Seeed-Studio-BeagleBoner-Green-HDMI-Cape.html
+
+This overlay requires the recent tilcdc cleanup patch series that was merged
+to drm-misc-next to function properly:
+https://lore.kernel.org/lkml/20260123-feature_tilcdc-v5-0-5a44d2aa3f6f@bootlin.com/
+
+With this DRM tree dependency I don't know if this series should land in
+DRM tree or in OMAP tree.
+
+Signed-off-by: Kory Maincent (TI) <kory.maincent@bootlin.com>
+---
+Kory Maincent (TI) (5):
+      ARM: dts: ti: Enable overlays for all DTB files
+      ARM: multi_v7_defconfig: Enable TILCDC DRM driver
+      ARM: omap2plus_defconfig: Enable ITE IT66121 driver
+      ARM: multi_v7_defconfig: Enable ITE IT66121 driver
+      ARM: dts: am335x: Add Seeed Studio BeagleBone HDMI cape overlay
+
+ arch/arm/boot/dts/ti/omap/Makefile                 |   8 ++
+ .../boot/dts/ti/omap/am335x-bone-hdmi-00a0.dtso    | 157 +++++++++++++++++++++
+ arch/arm/configs/multi_v7_defconfig                |   2 +
+ arch/arm/configs/omap2plus_defconfig               |   1 +
+ 4 files changed, 168 insertions(+)
+---
+base-commit: 40c1ccc1a3b86259e455a9a5082d5c8e0f944d62
+change-id: 20260212-feature_bbge-932870b2edf5
+
+Best regards,
+-- 
+Köry Maincent, Bootlin
+Embedded Linux and kernel engineering
+https://bootlin.com
+
