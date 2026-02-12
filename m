@@ -1,129 +1,154 @@
-Received: from mail-vk1-f180.google.com (mail-vk1-f180.google.com [209.85.221.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [85.215.255.83])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 160F635E557
-	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2026 16:58:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.180
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770915520; cv=none; b=sEEv5eS98ATaDl9hfQW7Km2z11ncSB6CblLhVdbz+65m0dO7VU28VAVEdkYIneUBdPrSdkB22qcBH81sIOTHJCak/pp4UM6jyLBWHoKIsSkK65BaUXLjeIVggb0Q8ZBDQVhpadoGatgP60Vn3owqNhjugqr/A7dcfOvZKvmY9D4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770915520; c=relaxed/simple;
-	bh=FavnLYuCSZbZEB88+6M4JKOu7/zHNtiz8QGLBab5uI0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=agPPgQ0jWr4ONkWXQMKL81PKF472oEq8ztVl2UcVb+gTlgrB7erBshAmO9O6J5N9KLTJQNHiLjbGqo02NP9nxFty45ydYDrjm/fWFwm5Z4oCeebz3PH9NLBxd1JNDnwaJOi8gyQTufuF50WwMhJtsHlESUl8E7EYq9wzcTBb+jQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.221.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-vk1-f180.google.com with SMTP id 71dfb90a1353d-567417610ddso48579e0c.2
-        for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2026 08:58:38 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770915518; x=1771520318;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=om3cuNbQzAgOvOQckRciuNr9O8eg7IAaHrWKXJVxB8U=;
-        b=baGZv6zoxQebs9U1OaJmHVYmiKIh6DfX8iRoQiRfNncKqU8Ym0iIA1yY4oBmQMvjsR
-         vc/7LzBNMiSLYzKLnNfmov1mm8ahqs45ck4Ptt2dSoFt+NARoEkp+dc2kV5T0FeEcd1i
-         nhb/gNzCdgKKeEECDWXeYpUwh3leK/oGhVa17ezvfO64tkqTW/+AxqfnSPD0/i9im63N
-         MtriIKqRaAf9aQcq7P5S+6VfQF0E+vQ9/3dgPMGtvtmivvt9unEQETagPbo6Ybg6uVUW
-         Rgws2vYXfiL7c4Lu+y7DCeT6ZGSCkQjUa0O8sCeJgRJFUNth9xAdyIQLWZzWkLPryszj
-         o96A==
-X-Forwarded-Encrypted: i=1; AJvYcCXuHSki96HO6fv7ktuVIcFBJprdIdcAZwnfd9Z8l26nqYMYl0af3WHeOZ8pVuk2VjU0Z/dhMQVskgWO@vger.kernel.org
-X-Gm-Message-State: AOJu0YxVfW5tGDcIIFPkDy8z1eIR+zSu/Xkrb/MMALfMrjbECL6yG8Bo
-	jawBS9v6ny5zZDRFc6TNXtdPIpbd7CN2AsaVuPnbqPO89jJLLUiTq7eRQUd3nSfN
-X-Gm-Gg: AZuq6aKUjrTg3AGhQIGEL6LwMfdbHGy/NhOm/9Gre4EkRq+9u43J3BmJoc/fE2UZ4SM
-	JMZj2+Pmjbo4c874ZVvFfVTazV/sn/qQgAJgG33Bi3C0tT9beeAACXoWKJGc7TjqYEoRqH3o07H
-	07ALrvhP59RhJKvLS3057DjHO3VfKdsapwnQKgRwlAHkr3/QtSVYauekgTvqWIeVdD3FcfFZhvj
-	bzoZIGIMHej1abfJl581skIg32E1W0KkoQUzdT1fwBX+8LPXZBB5CSzkIZpDnjCRw8WzOX9lD0n
-	tr38sPoldinCygwfu3wFop3j6DA+PRTYDMiCi29T+OyetnFxhkI7c2iC4nMseWFYxl10vcdWjkL
-	9uFjwmfc+cf/am5GFCz6gZT8m605mqeeqWBFYfH1fA7P+fQ9zOpPK2zsXd+ej/hxr1LOvxkw+Ha
-	eGf1XqjX7N6YDXGct88ew4Xh4GRhg/c9CJcGiBmebKYDXkOZrg2Y5DyR7Lorwa
-X-Received: by 2002:a05:6122:414e:b0:566:38f4:4753 with SMTP id 71dfb90a1353d-5675b7e3180mr863415e0c.18.1770915517858;
-        Thu, 12 Feb 2026 08:58:37 -0800 (PST)
-Received: from mail-vs1-f47.google.com (mail-vs1-f47.google.com. [209.85.217.47])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5674c2429c9sm1908026e0c.16.2026.02.12.08.58.37
-        for <linux-omap@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 12 Feb 2026 08:58:37 -0800 (PST)
-Received: by mail-vs1-f47.google.com with SMTP id ada2fe7eead31-5fe086fb0baso30064137.3
-        for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2026 08:58:37 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCUzt09t4gNp6zWJpPI0D8UoUcDoLzNOvzdqobWTXQGnkNzgsO2PiXEpRYTLJ2GQNoD4PPUd0ENNsNTo@vger.kernel.org
-X-Received: by 2002:a05:6102:3051:b0:5fd:f8d6:e5d7 with SMTP id
- ada2fe7eead31-5fe003fb1fcmr1021759137.11.1770915199593; Thu, 12 Feb 2026
- 08:53:19 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 007C22066F7;
+	Thu, 12 Feb 2026 17:08:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.83
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770916087; cv=pass; b=fdxHNyoEDgUViqLnouQkG1xioCgQJN+dSvHA4/xA6/HuLM37E0xOVtO46e48OwZD1Y5GPk0Vf6xElXTrajyhQie61Hszkkz3iZU4PN3gh0qLibi1kqmDodh3DUl5iY3DHv5AGZV/cLENHgx45BzmZwkCiH9NuK6P6Mry3pC4lvE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770916087; c=relaxed/simple;
+	bh=0yygrALMAexS1ThG2pkH1/33OpHfYKVBFq93Wki2PeE=;
+	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Message-Id:References:To; b=LGjRw2ZiK6jnhVxftP5sz71rIRJuPt6HVSlT201N1RSKSJDSxYoTUVgy4a7UKVoP0Gdw2bI27HqOmBuLu9Q+nQjaVcv2MYxnYL2v84uLZuI9LCDH8re97yCss+SsCwQCmS9F5lmhS9n2FSF5VdUHpgN1o5mIk7KyA2MTdwnp+KM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=Q+SGIMNJ; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=dLzVYS5O; arc=pass smtp.client-ip=85.215.255.83
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="Q+SGIMNJ";
+	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="dLzVYS5O"
+ARC-Seal: i=1; a=rsa-sha256; t=1770915367; cv=none;
+    d=strato.com; s=strato-dkim-0002;
+    b=poCROlE1R2t+M26nxG1K274+nRYYyfGaASX8bvQ+zYvGlMsEMj0hvUuGNMjmoFyrxm
+    bpDSmrE+NK2r91Uw+Um78FYnUaw6pp2xuhaHLIgIwn3odZ1MCaSkIOKLK7Uiav+RjeDb
+    83o9wI0kFjAfo3yVUG9hAnS0LzyWJuORJ8ri23zo8DiU0EYm9nvH06IQDB8s5Mq/o4p+
+    T1k12EjLlE4uwtPEa83yYW8MhgCsVHD/75mv92o5i9iLVuNBJkrIlPVlYVkuUJLA9qVe
+    Y9W4hcaKpT7xwLqMIXb37mRcym7YvGk5F7JzfO6rUja3f6Zsl2jWZNKgaDb9XGufsV2w
+    Vc0A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1770915367;
+    s=strato-dkim-0002; d=strato.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=0yygrALMAexS1ThG2pkH1/33OpHfYKVBFq93Wki2PeE=;
+    b=GmvKvR335RvOhJgii9GAqusO/RhcYfYwllNWmD2yGW4M2tIvsYy3JtCpo+hYezasUU
+    z3nsuHppkKelmYc3vE2NVubIUT4MHCsaoczvnTMPYrJFvuty1xQfEqkYDMaL22Qkd73C
+    kzk2iYrBTkWOxZd7MPBWYwMClsZMGioHufr/bESKYzvu/wKReY9k+fbk3H5PeGTZ5P/S
+    16nIRDQKy+lR88s7WwZUD8kaWmrB7FRl0WSi362tqDDZrtWNH774J4gCSO49UFwTUgWO
+    5wdKBZPYpIAxd9yazjyGl8wRf1awHSTiF8V2G4V3NvtKBjV3RJTHf7FSfR9VeZ6wTpjA
+    vMJQ==
+ARC-Authentication-Results: i=1; strato.com;
+    arc=none;
+    dkim=none
+X-RZG-CLASS-ID: mo02
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1770915367;
+    s=strato-dkim-0002; d=goldelico.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=0yygrALMAexS1ThG2pkH1/33OpHfYKVBFq93Wki2PeE=;
+    b=Q+SGIMNJxYOwdPT2X7Ms+1pAua7HzFP1bBGtwGwmkPaQBgLC9EaTnM225LZNBNvEYB
+    C7VhpwqgMsfj6eVz+prFYc8BF/3HVLVxWQ3KmopF03wkU7/t1zukslJ8QW8r9olovbKN
+    9m2KNOoxU9GchM/6XlndjZe7HICOf8NTZS2XDLYCvwyDKDD/wqFnXTKd4DS8uAL1UYWm
+    /Rs4LanrBmuM/IUz5v9UyXMhDyz6caqXczO/aHj1fQnPncZtQXib5jLxKqQ5nhdUwaxc
+    O6yYHedjB26xGlPKgejaaoXn2fI+TWr2EL15A5R9BplcWJgkUqk73h7l92xrXLkYUgJl
+    SVlg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1770915367;
+    s=strato-dkim-0003; d=goldelico.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=0yygrALMAexS1ThG2pkH1/33OpHfYKVBFq93Wki2PeE=;
+    b=dLzVYS5OhKK1EI1lcwu2KJP1oH/9uvPkIz/pupltRiH6NHQNMRybkt4pN3f7nBCPCQ
+    SpkVZgHbSRFfLXTByXBg==
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o12DNOsPj0lFzL1yfzkZ"
+Received: from smtpclient.apple
+    by smtp.strato.de (RZmta 55.0.1 DYNA|AUTH)
+    with ESMTPSA id Q3a36b21CGu3RSn
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
+	(Client did not present a certificate);
+    Thu, 12 Feb 2026 17:56:03 +0100 (CET)
+Content-Type: text/plain;
+	charset=us-ascii
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20260208-rz-sdio-mux-v9-0-9a3be13c1280@solid-run.com>
- <20260208-rz-sdio-mux-v9-1-9a3be13c1280@solid-run.com> <20260212164823.mbeycqwzsy2dfq6e@skbuf>
-In-Reply-To: <20260212164823.mbeycqwzsy2dfq6e@skbuf>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 12 Feb 2026 17:53:08 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdVOqovkugmCnR4FOfk8VkQyN_dmyKFzbsOSN0mPKQedeQ@mail.gmail.com>
-X-Gm-Features: AZwV_Qjd18dp3H6_yOLJUoqzfa3vu8ojTLTUkfH0N1bdOdZMnHdC-jkEvP2Togs
-Message-ID: <CAMuHMdVOqovkugmCnR4FOfk8VkQyN_dmyKFzbsOSN0mPKQedeQ@mail.gmail.com>
-Subject: Re: [PATCH v9 1/7] phy: can-transceiver: rename temporary helper
- function to avoid conflict
-To: Vladimir Oltean <olteanv@gmail.com>
-Cc: Josua Mayer <josua@solid-run.com>, Marc Kleine-Budde <mkl@pengutronix.de>, 
-	Vincent Mailhol <mailhol@kernel.org>, Vinod Koul <vkoul@kernel.org>, 
-	Neil Armstrong <neil.armstrong@linaro.org>, Peter Rosin <peda@axentia.se>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
-	Tony Lindgren <tony@atomide.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vignesh R <vigneshr@ti.com>, 
-	Andi Shyti <andi.shyti@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, 
-	Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
-	Wolfram Sang <wsa+renesas@sang-engineering.com>, 
-	Yazan Shhady <yazan.shhady@solid-run.com>, Jon Nettleton <jon@solid-run.com>, 
-	Mikhail Anikin <mikhail.anikin@solid-run.com>, linux-can@vger.kernel.org, 
-	linux-phy@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, 
-	linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-renesas-soc@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.4\))
+Subject: Re: [PATCH 1/5] ARM: dts: ti: Enable overlays for all DTB files
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <20260212174718.7daccb70@kemnade.info>
+Date: Thu, 12 Feb 2026 17:55:43 +0100
+Cc: "Kory Maincent (TI)" <kory.maincent@bootlin.com>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>,
+ Tony Lindgren <tony@atomide.com>,
+ Rob Herring <robh@kernel.org>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>,
+ Russell King <linux@armlinux.org.uk>,
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+ linux-omap@vger.kernel.org,
+ devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org,
+ dri-devel@lists.freedesktop.org,
+ Luca Ceresoli <luca.ceresoli@bootlin.com>,
+ Bajjuri Praneeth <praneeth@ti.com>,
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+ Maxime Ripard <mripard@kernel.org>,
+ Thomas Zimmermann <tzimmermann@suse.de>,
+ Louis Chauvet <louis.chauvet@bootlin.com>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <719BF710-26DF-49AB-A016-D2306F0389E2@goldelico.com>
+References: <20260212-feature_bbge-v1-0-29014a212f35@bootlin.com>
+ <20260212-feature_bbge-v1-1-29014a212f35@bootlin.com>
+ <B3366A17-641F-4E02-A5D4-978F525E0A96@goldelico.com>
+ <20260212174718.7daccb70@kemnade.info>
+To: Andreas Kemnade <andreas@kemnade.info>
+X-Mailer: Apple Mail (2.3826.700.81.1.4)
 
-Hi Vladimir,
 
-On Thu, 12 Feb 2026 at 17:48, Vladimir Oltean <olteanv@gmail.com> wrote:
-> On Sun, Feb 08, 2026 at 05:38:56PM +0200, Josua Mayer wrote:
-> > Rename the temporary devm_mux_state_get_optional function to avoid
-> > conflict with upcoming implementation in multiplexer subsystem.
-> >
-> > Acked-by: Vinod Koul <vkoul@kernel.org>
-> > Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> > Reviewed-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> > Signed-off-by: Josua Mayer <josua@solid-run.com>
->
-> In the future, when you have a series with cross-tree dependencies,
-> please try to think of it as individual mini-series for each tree's
-> 'next' branch, and specify clearly that you need stable tags (to be
-> pulled into other trees). Telling maintainers what is your expected
-> merge strategy helps avoid making mistakes.
->
-> For example, if you did that in this set, you wouldn't have missed the
-> fact that in linux-phy/next, phy-can-transceiver is _not_ the only
-> occurrence of devm_mux_state_get_optional(). There's another one in
-> drivers/phy/renesas/phy-rcar-gen3-usb2.c, and that should be also
-> handled in order for trees to not enter inconsistent states.
 
-To his defense, the one in drivers/phy/renesas/phy-rcar-gen3-usb2.c
-is a recent addition.
+> Am 12.02.2026 um 17:47 schrieb Andreas Kemnade <andreas@kemnade.info>:
+>=20
+> On Thu, 12 Feb 2026 16:49:43 +0100
+> "H. Nikolaus Schaller" <hns@goldelico.com> wrote:
+>=20
+>>> Am 12.02.2026 um 16:26 schrieb Kory Maincent (TI) =
+<kory.maincent@bootlin.com>:
+>>>=20
+>>> Allow overlays to be applied to any DTB. This adds around ~40% to =
+the
+>>> total size of the DTB files on average. =20
+>>=20
+>> Is this unconditionally enabled or can it be turned off by some =
+CONFIG? We have
+>> our own defconfig so I would not worry if if is enabled in =
+omap2plus_defconfig
+>> and disabled in ours.
+>>=20
+>> We have several devices where the boot loader can't handle overlays =
+(never touch
+>> a working boot-loader :) So this seems to only contribute to build =
+and load time
+>> without benefit.
+>>=20
+> As long as you do not add overlays, the bootloader does not care. I =
+would
+> like to simply carry around the 1-bit mmc overlay for one broken =
+board.
+> That would help me. So I think there is a benefit but nobody forces
+> you to use it.
 
-So this is yet another case of "convert all current users" (i.e. those
-present in the typical subsystem base, typically *-rc1), with new
-users popping up in -next in parallel, which happens all the time...
+Well, it does not force to use the really good feature, but it forces to =
+add
+~40% more file size and some more compile time, if I understand it =
+correctly.
 
-Gr{oetje,eeting}s,
+This makes me think that it should be an option to turn it off =
+completely (and
+not just ignore it by the boot loader).
 
-                        Geert
+BR,
+Nikolaus
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
