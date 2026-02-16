@@ -1,118 +1,153 @@
-Received: from mail-vk1-f176.google.com (mail-vk1-f176.google.com [209.85.221.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5857C1F03DE
-	for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2026 10:01:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69791318EC5
+	for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2026 15:12:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771236105; cv=none; b=iJ6+QK+iFSBW7nRFufQVkGz+kcE7bWU58uv0r3hZFT+NwdoB7RkNp2v521Fqv9tJmPAQNk5Mm37wHVy+NmF0mYtfXA3v6NOX3mZSwF+GCjxAOaUlBq6GcmCaVgXHxhraQvW65O4dagsJJpkp5/45BTf3YlcVf0piWGa3LsNAqb8=
+	t=1771254730; cv=none; b=RuMwU8Fx2irtvbkaYF03KT99Lo+e05h4rcc7GYpU7pH5ISAeQy4yMjEs53w0Z/6BzcaIylE/FUhaFGO/LvaLnqMD5l/YUNcS7lqXAcWyg9niUf/Eu9s/aiAxGKqR0YYLIqll/nXO/T310/WvznUl6MXak61uF+Q0qKlQIkl6GrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771236105; c=relaxed/simple;
-	bh=qIHY7cCiEnGtwkY7aFFwE/mZ8uiiY18ecDxBJTYhSwg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MkkIE0JfUh11qQafdpDaCz8/VbywMBkXU5YVk7KxMHkQm194crV/BaGvuNQRhu5JhR72slrl8T0fUK+jNzBb8naDzijemp5tLc6vzFZyi2qZo3guGl/Uh/hO20TQPaC+28mY3z+T232b1WRxvUfwz1pS7Lxtt+m4Lhck0Mxlklg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.221.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-vk1-f176.google.com with SMTP id 71dfb90a1353d-5665171836cso3799609e0c.2
-        for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2026 02:01:44 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771236103; x=1771840903;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=8QwpdPffhWm62Ds9NyNo/SaQsJWiUgFomKDnAW7WiSg=;
-        b=h1/xbFssjJ7zIW0VFGMDuRCmA9HMFOKGUExmb3mJ7+JTsxQ0gUfzwol+zvWyhBbB9v
-         grs4SQGCPBz4j2ThgANaAWnQcl102eROrfNqtbuQqnyc2dhujhv5VU+6/c24KWgSqve8
-         ijOVA6FN+pn6kYo+JUh++XTWqZRO4n40VDN6fbxaxXg7kAdhZYPVGORrhVD0DDuwAUJG
-         JG094m6IYdYq55O33SduwahgxlzZ/JpPcFSE4avAIRzyOmHZ6Whjb849RBiXMJGYWHhx
-         P/b3wJSHQizxfMSKaaYdRg5BCbqV7yJGj5Eh1XqhDwqnhSssuTQCPAGA1TYQyNpqUcxb
-         lJjw==
-X-Forwarded-Encrypted: i=1; AJvYcCVz39HGMv8ssulFMHzTHFlRVFDSS5I5jKZnsmLMRV0ggbr0CkPTOQxN58TnTtco8s4BPVnbjhWlGlRG@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx5ZFketx+ob+TuglCu3r2pJ4WclhJfQci1xbTJFOghygFyjTIj
-	RxMXKIE8Leo2l4z3DdCis8v05e/rp1eNe8gsJLa4dAh0ZWv9fRcyA5vaZm0wrxWK
-X-Gm-Gg: AZuq6aKp6IRbSuIH4nYVxmyKbEzMCxNheyayrnJR2HhgZMb7LqgEYNuV9ICzARhl+Xc
-	h25/5LVdJ9rlXe38R+E4X7D4DQXYf3wk6zBG4ts0qS2wBeTcwzturiQpNsV7ftJaEGv7K6cgIiw
-	LylA/PSxVwpYK7Oz7xdtL0Wv7Y3PDbXa8K1YUe5cHREf5gKSm0y1l44JnxcVqPk99JHa22H6OQ4
-	RaKFiOVfB8LPCM4+WG8SGXOLDXj0xH7C5H+l5PTfLDeHQZOuYqb3Ddf2loN1SYxCROD3Lwr/Ihs
-	PDZeo6lozkDAgeYs9ywCA7Cfkx91gnGPgmcqe4h6vl019lGDMmTmqcmUq+H9ypldkArHsJtwsq8
-	n2HsQ+x8syVMIYjhpXLbmioH2ULkWivRu9hT1N4mpN49OJ+N6lyTW0+CDP1oBoQJ8Ow5CuJfmiT
-	hOMTyvz+XU/36BEkNyT8V65kkriDOnpziBHtqdey11dpe5gC4jZGmmsTHRx0Uh
-X-Received: by 2002:a05:6122:4d84:b0:567:44f0:b076 with SMTP id 71dfb90a1353d-5676aa23c8cmr3087917e0c.11.1771236103188;
-        Mon, 16 Feb 2026 02:01:43 -0800 (PST)
-Received: from mail-ua1-f44.google.com (mail-ua1-f44.google.com. [209.85.222.44])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5674bff0922sm7259318e0c.6.2026.02.16.02.01.40
-        for <linux-omap@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 16 Feb 2026 02:01:41 -0800 (PST)
-Received: by mail-ua1-f44.google.com with SMTP id a1e0cc1a2514c-948c3ce4d35so1758701241.2
-        for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2026 02:01:40 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCX9z3s/InGJzUlnpyEtbCaUoFqkkz3BoSZMxJFwEfU0vCJ5p3Mm2N5mdjGpBU+6RYAb2QeqvDu6SM/5@vger.kernel.org
-X-Received: by 2002:a05:6102:cd1:b0:5fd:f145:b88a with SMTP id
- ada2fe7eead31-5fe1afcd3b7mr3584435137.40.1771236100546; Mon, 16 Feb 2026
- 02:01:40 -0800 (PST)
+	s=arc-20240116; t=1771254730; c=relaxed/simple;
+	bh=QWQwNC0VfMDFDTBO7+8mAooqAtHfTngoNqggBXt0Pbw=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=EK9FbFTY48f5rlk6mmx6s6WqIZ0gY5RXzMv536C/L/5rWopEA9mlzgi4UXgINKgRPXg3QcXAYCOOPQbLTtzLA5DLvZTz2CIsVKHVdRincTAuM1ER40wpvN+XjTL6BlGlPqPjXj5bzP3R0nyMUJkjpeZXFAI/SAK4/anE7UAmF7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=cn4ubqFa; arc=none smtp.client-ip=185.171.202.116
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="cn4ubqFa"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-04.galae.net (Postfix) with ESMTPS id 6CF70C1786A;
+	Mon, 16 Feb 2026 15:12:15 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 31968606CF;
+	Mon, 16 Feb 2026 15:12:04 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id A3B971036916C;
+	Mon, 16 Feb 2026 16:11:57 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1771254723; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=C+tdW27UyjmL/YGLro3NutiDN/boatLgbGvmemeFrI0=;
+	b=cn4ubqFaLEFHWMpwCSy3F3VvF6VhBECXclViZUVpjom+GQxzPQrgq3/AP5iFCGxdHZ3kB9
+	HZHqFZGQJxmTnr8OubiiV4u3PV4XaWsp/LqBtHiG0e1VEeNG0RfnnYo+5POrXo9V8z0bUT
+	Yq8h0oY0/RE+RCWOlttRISGSnGT1n4cmAGQe1RUvUCe+W1UhgytI1lan3kG70I4/BSEIlK
+	oWsq+/M9Z7RkauVggRyasxxxIhjKIBalk4lMzj8DA3AWV75lb48jM8TssSXnnr4YGHkphY
+	lUPEQC4Y9vFmCNTvT3LanyKgFf8v6iBmE7TYE6XoEKVSWTzjc8Zf/CQest6V/w==
+Date: Mon, 16 Feb 2026 16:11:55 +0100
+From: Kory Maincent <kory.maincent@bootlin.com>
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: Andreas Kemnade <andreas@kemnade.info>, "H. Nikolaus Schaller"
+ <hns@goldelico.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
+ <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
+ <tony@atomide.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski
+ <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Russell King
+ <linux@armlinux.org.uk>, Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+ linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ dri-devel@lists.freedesktop.org, Luca Ceresoli <luca.ceresoli@bootlin.com>,
+ Bajjuri Praneeth <praneeth@ti.com>, Maarten Lankhorst
+ <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>,
+ Thomas Zimmermann <tzimmermann@suse.de>, Louis Chauvet
+ <louis.chauvet@bootlin.com>
+Subject: Re: [PATCH 1/5] ARM: dts: ti: Enable overlays for all DTB files
+Message-ID: <20260216161155.09fae580@kmaincent-XPS-13-7390>
+In-Reply-To: <CAOCHtYicmeSzH5Q2_qTwAZw3s+__JRwUrXvz01+KCsJJHAznUw@mail.gmail.com>
+References: <20260212-feature_bbge-v1-0-29014a212f35@bootlin.com>
+	<20260212-feature_bbge-v1-1-29014a212f35@bootlin.com>
+	<B3366A17-641F-4E02-A5D4-978F525E0A96@goldelico.com>
+	<20260212174718.7daccb70@kemnade.info>
+	<719BF710-26DF-49AB-A016-D2306F0389E2@goldelico.com>
+	<20260212231907.6120a2e2@kemnade.info>
+	<CAOCHtYicmeSzH5Q2_qTwAZw3s+__JRwUrXvz01+KCsJJHAznUw@mail.gmail.com>
+Organization: bootlin
+X-Mailer: Claws Mail 4.2.0 (GTK 3.24.41; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260208-rz-sdio-mux-v9-0-9a3be13c1280@solid-run.com>
- <20260208-rz-sdio-mux-v9-1-9a3be13c1280@solid-run.com> <20260212164823.mbeycqwzsy2dfq6e@skbuf>
- <CAMuHMdVOqovkugmCnR4FOfk8VkQyN_dmyKFzbsOSN0mPKQedeQ@mail.gmail.com>
- <f9ede0d3-6a37-449c-b62b-a5c761ece097@solid-run.com> <20260216092914.kmvl7aep7dantcsd@skbuf>
-In-Reply-To: <20260216092914.kmvl7aep7dantcsd@skbuf>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 16 Feb 2026 11:01:29 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdUH4W9W2uNknr41AgVQfO7inwZP6BfuMatyEUvJtf+Ueg@mail.gmail.com>
-X-Gm-Features: AaiRm50a7dRj7dLKtMGILEQb14-VkaVzM5nFFHi-S8Lj08OYuJXTfF9bVPV6HRk
-Message-ID: <CAMuHMdUH4W9W2uNknr41AgVQfO7inwZP6BfuMatyEUvJtf+Ueg@mail.gmail.com>
-Subject: Re: [PATCH v9 1/7] phy: can-transceiver: rename temporary helper
- function to avoid conflict
-To: Vladimir Oltean <olteanv@gmail.com>
-Cc: Josua Mayer <josua@solid-run.com>, Marc Kleine-Budde <mkl@pengutronix.de>, 
-	Vincent Mailhol <mailhol@kernel.org>, Vinod Koul <vkoul@kernel.org>, 
-	Neil Armstrong <neil.armstrong@linaro.org>, Peter Rosin <peda@axentia.se>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
-	Tony Lindgren <tony@atomide.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vignesh R <vigneshr@ti.com>, 
-	Andi Shyti <andi.shyti@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, 
-	Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
-	Wolfram Sang <wsa+renesas@sang-engineering.com>, 
-	Yazan Shhady <yazan.shhady@solid-run.com>, Jon Nettleton <jon@solid-run.com>, 
-	Mikhail Anikin <mikhail.anikin@solid-run.com>, 
-	"linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, 
-	"linux-phy@lists.infradead.org" <linux-phy@lists.infradead.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, 
-	"linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, 
-	"linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, 
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, 
-	"linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Last-TLS-Session-Version: TLSv1.3
 
-Hi Vladimir,
+On Thu, 12 Feb 2026 21:16:05 -0600
+Robert Nelson <robertcnelson@gmail.com> wrote:
 
-On Mon, 16 Feb 2026 at 10:29, Vladimir Oltean <olteanv@gmail.com> wrote:
-> Then there is the fact that local definitions of devm_mux_state_get_optional()
-> keep popping up, possibly in unrelated trees (not the case here). This seems
-> to be a bad practice which should be discouraged during review if caught.
+> On Thu, Feb 12, 2026 at 4:19=E2=80=AFPM Andreas Kemnade <andreas@kemnade.=
+info> wrote:
+> >
+> > On Thu, 12 Feb 2026 17:55:43 +0100
+> > "H. Nikolaus Schaller" <hns@goldelico.com> wrote:
+> > =20
+> > > > Am 12.02.2026 um 17:47 schrieb Andreas Kemnade <andreas@kemnade.inf=
+o>:
+> > > >
+> > > > On Thu, 12 Feb 2026 16:49:43 +0100
+> > > > "H. Nikolaus Schaller" <hns@goldelico.com> wrote:
+> > > > =20
+> > > >>> Am 12.02.2026 um 16:26 schrieb Kory Maincent (TI)
+> > > >>> <kory.maincent@bootlin.com>:
+> > > >>>
+> > > >>> Allow overlays to be applied to any DTB. This adds around ~40% to=
+ the
+> > > >>> total size of the DTB files on average. =20
+> > > >>
+> > > >> Is this unconditionally enabled or can it be turned off by some
+> > > >> CONFIG? We have our own defconfig so I would not worry if if is
+> > > >> enabled in omap2plus_defconfig and disabled in ours.
+> > > >>
+> > > >> We have several devices where the boot loader can't handle overlays
+> > > >> (never touch a working boot-loader :) So this seems to only contri=
+bute
+> > > >> to build and load time without benefit.
+> > > >> =20
+> > > > As long as you do not add overlays, the bootloader does not care. I
+> > > > would like to simply carry around the 1-bit mmc overlay for one bro=
+ken
+> > > > board. That would help me. So I think there is a benefit but nobody
+> > > > forces you to use it. =20
+> > >
+> > > Well, it does not force to use the really good feature, but it forces=
+ to
+> > > add ~40% more file size and some more compile time, if I understand it
+> > > correctly.=20
+> > Compile time, hardly measurable even if you just do make dtbs.
+> >
+> > Size on disk:
+> > a) if it lives around in a /boot partitions with kernels and initrams i=
+n it,
+> >    then we are around 1% more space needed.
+> >
+> > b) if it has separate partitions maybe on some mtd: Looking around: GTA=
+04
+> >    has quite some headroom left. Usage is still <50% even with symbols
+> >    enabled.
+> >
+> > But on the other no one else seems to enable that besides for devices w=
+ith
+> > open expansion boards carrying "hats". So overall, should we really be =
+the
+> > exception? =20
+>=20
+> Do we want to maybe transition like TI did for k3?
+>=20
+> Start with board specific DTC_FLAGS flags for specific boards:
+>=20
+> and then just enabling overlays by default :
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit=
+/arch/arm64/boot/dts/ti/Makefile?id=3Dbca4146b1f66dbca07591bfd6ad695c699b5a=
+093
+>=20
+> If we do board-specific, all the "Beagle" related items can be auto
+> enabled `-@`..
 
-This was done on purpose, to (1) avoid having to make too many changes
-to the file when a common helper would be introduced later, and (2) make
-it easy to find all locations where a future common helper could be used.
+Yes, I will move on to this solution for now to avoid too many complaints a=
+bout
+the devicetree size increases.
 
-The alternative is to use a completely different name (which is thus harder
-to find), and having to fix up all the users of that name too.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Regards,
+--=20
+K=C3=B6ry Maincent, Bootlin
+Embedded Linux and kernel engineering
+https://bootlin.com
