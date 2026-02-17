@@ -1,121 +1,140 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [81.169.146.168])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A32A227707;
-	Tue, 17 Feb 2026 08:20:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771316400; cv=none; b=j0gWbbXaG1whgJ/3DJtk68AbepwIMQxqQxRS5vIZF7oz7Jgo5GcWucEWLuz6/iXTriCNYDji5G5I0NNHVruVl01OuSnNhIP9IEyuiQGRLKeYJ2U2JtaMc0EQ2lHuJ91hFbsH/PTrXQQwsfBoztbVsTL/5VdxuTi4oQgrdT8LUls=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771316400; c=relaxed/simple;
-	bh=PaWM6ACSEcUTk311qDrsXm+IDxxZbEZEAj8v3XvZ2t0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=hmHKssiwFSBveI0axtNnZ0rkQZT4NM8SbhCw2CHgGPHBVbmJqZbaMRQ/CchzGVy2SV9Ot874sPfB2cj0FWl5HLr/2OfyTS/BeBsuN5b2PFb2m7AOfzEHU36Hi7V+ai7sQqTBKoZ+PKuMoR6+3hnUsrC8p3EjSxPaC5zV6OolY08=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=psxFgtjR; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0AF22E22B5;
+	Tue, 17 Feb 2026 09:04:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=81.169.146.168
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1771319069; cv=pass; b=UUmaQYBvQmaEPcs4jPYdMU7UkO/u2LhwvJJiFUcki9IzsC+wszNmmERjbsOoJIpuKaLZ1xb+KEms6YlfGOpS6ZW9hp9rEUJIMteMXM0beUkD5LcuFeiNqjvSlH8kA0qcFqwnhUgFQmSuuJOBclm/8m4NDzU0b57SYThYUlmOr0A=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1771319069; c=relaxed/simple;
+	bh=g3Lh3x5eN1+MwtWPxLGVQJB3/EkXY4ib2jrNj8kojNw=;
+	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Message-Id:References:To; b=Sa2uJxkDe2m5QGoixVI2JC06p4KCXYvR4shd7FzZQo7AwC4J14L+V0/7cjOmaLGhFDQM/ZDl2pUU6WPzhqW4l9skCBEvIiI1Vo7XhvzxIRrE/4iD5IZN4v69cJPcHS+OxfOjI6PJBgMupqCpCAWw0cI5bN/qC30pOjAdtrXqejw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=ospiU61I; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=kQ+nSb1N; arc=pass smtp.client-ip=81.169.146.168
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="psxFgtjR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4623C4CEF7;
-	Tue, 17 Feb 2026 08:19:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771316400;
-	bh=PaWM6ACSEcUTk311qDrsXm+IDxxZbEZEAj8v3XvZ2t0=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=psxFgtjRcNZUZGwJdGJFaHNekx9O1ikJNEE8r/aQfLO1x0Rd22OkdEXcCzW6osehf
-	 8i5IxG9vhfmjJDZk3iXAEiGOZ2JRVE5WDT8D0UwqvyawBLF77pmN4OwwJLyZu1LmjV
-	 BcQKlEdFUlO9I0v1B76BLNnxJEL3T3GdQViLEAB6kCK4LJ+Unyun67Qrr1uVPu4z8J
-	 Ak3xLzp0qmK6CyTJDljnjZ0GDETIWY+80zhNd94mgbupAt297ARE+chbwSVoU9miU5
-	 Le1u8gWn29uD0tf1G1TzSbLKfK/Fgjvm9QeA8CQVXVu08iC8apP0loFgU7MXy2v2P8
-	 l9Q91kMuj+qcw==
-Message-ID: <f134b6b7-1d98-478c-b476-8c3849c21942@kernel.org>
-Date: Tue, 17 Feb 2026 09:19:53 +0100
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="ospiU61I";
+	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="kQ+nSb1N"
+ARC-Seal: i=1; a=rsa-sha256; t=1771318696; cv=none;
+    d=strato.com; s=strato-dkim-0002;
+    b=N5NKF5qAWVzJW+9JMfXCXbw2ItDwUYZWhfe7AU+TWofdBR4juLd4ArujgyYBtXMzNz
+    UGOdeyRsoPTrWD0gqHdSAgdGQJ+5fiFogrgUBbrvOJFsD83wHCUEyDLTb19a39lrxSQC
+    JFiE/pTxgQjKwxsAODL4rqv1U5+cGu4F1pZmrqxXPD2mPvlPup0SLI5umwi43HdEt0x5
+    vF6APsjpehu525hHh7ylNtvhRcbEEQPQ7q4q0B9IzbWCZ/GLGxuWFKD60wGuukKuy8Aw
+    p0sU02zt1ReA9lmmZgjzJdyPWoMnXvPVAHf8HnaZ6i4RujGP95+z64lQECQ+Kih01g/x
+    pFzQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1771318696;
+    s=strato-dkim-0002; d=strato.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=g3Lh3x5eN1+MwtWPxLGVQJB3/EkXY4ib2jrNj8kojNw=;
+    b=QH+d/vpdbYmj9NK8PdjOhn+YiZ/9uEcQLREq0zZYXnfaWrGkFqEj2sAEWgs3QDMOuR
+    zafahhwt3Xj/RIHUaagdkrSGzqx1wWNM7lO8cRt69uhu8TuCKMdRy1wtcT+9TRuhitYN
+    OZMmxfLfmnVmlDdkQ/7OI8eqrbLgpZUt4PoOIou879y38ln8Vsa+bbgiyNeJB6oJS8bX
+    VgKn7VB47Wb1bSYtgDpnths4v94RMLIeGjQEEb5v9K3KiDEgFh3qki26OSYdz9fZowxF
+    uZ6DgvWj6n0biJHANTcxH1w4CGS0tJT5Y4ilI1NgUwfgbLAGuZLcD9qtx1tpqYDvahSz
+    AEVg==
+ARC-Authentication-Results: i=1; strato.com;
+    arc=none;
+    dkim=none
+X-RZG-CLASS-ID: mo02
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1771318696;
+    s=strato-dkim-0002; d=goldelico.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=g3Lh3x5eN1+MwtWPxLGVQJB3/EkXY4ib2jrNj8kojNw=;
+    b=ospiU61IeMuOvrYdBQ8qog14QOBf7+miFN95tjWj/dkts49K4qfjMKxiEEf+o6ntWl
+    5zaYbNCej2WNzNX7Z1nt5QxglEnFt5lkuqm5c0nIiPwzJ+qS2cDMLKINNHLKdNJ6pFM5
+    dGOLaYWHGeUk4D18bna2dud8J4ipcC1dgONJ3bp4kUm1xKN/VgjEHTb/9768FjpdK6qv
+    zJnTaNUER4yBEi3ujslmN0VW5bB2jO+1hAeALgtFeupTdwi/7U3on13Vd9siIjp3yo7F
+    Xa56YbfhvYXJH99uZWECkWw30WNAzRVTBNF0b4jSgCtBY4eg4rykA7uV3ver6LUl61al
+    zJZg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1771318696;
+    s=strato-dkim-0003; d=goldelico.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=g3Lh3x5eN1+MwtWPxLGVQJB3/EkXY4ib2jrNj8kojNw=;
+    b=kQ+nSb1NwmDiy76JK9jHniF2lNp/mbBDQQr+pP4XCihUEW3zVMwDH/Hk/vqTzzYn+I
+    6IdIOOrDd7FiYy16vcBA==
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o12DNOsPj0lFzL1yeD0Z"
+Received: from smtpclient.apple
+    by smtp.strato.de (RZmta 55.0.1 DYNA|AUTH)
+    with ESMTPSA id Q3a36b21H8wE9wS
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
+	(Client did not present a certificate);
+    Tue, 17 Feb 2026 09:58:14 +0100 (CET)
+Content-Type: text/plain;
+	charset=us-ascii
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 2/3] ARM: multi_v7_defconfig: omap2plus_defconfig:
- Enable ITE IT66121 driver
-To: "Kory Maincent (TI)" <kory.maincent@bootlin.com>,
- Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
- <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>, Russell King <linux@armlinux.org.uk>
-Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
- linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- dri-devel@lists.freedesktop.org, Luca Ceresoli <luca.ceresoli@bootlin.com>,
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.4\))
+Subject: Re: [PATCH 1/5] ARM: dts: ti: Enable overlays for all DTB files
+From: H. Nikolaus Schaller <hns@goldelico.com>
+In-Reply-To: <20260216161155.09fae580@kmaincent-XPS-13-7390>
+Date: Tue, 17 Feb 2026 09:58:04 +0100
+Cc: Robert Nelson <robertcnelson@gmail.com>,
+ Andreas Kemnade <andreas@kemnade.info>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>,
+ Tony Lindgren <tony@atomide.com>,
+ Rob Herring <robh@kernel.org>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>,
+ Russell King <linux@armlinux.org.uk>,
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+ linux-omap@vger.kernel.org,
+ devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org,
+ dri-devel@lists.freedesktop.org,
+ Luca Ceresoli <luca.ceresoli@bootlin.com>,
  Bajjuri Praneeth <praneeth@ti.com>,
  Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
- Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
+ Maxime Ripard <mripard@kernel.org>,
+ Thomas Zimmermann <tzimmermann@suse.de>,
  Louis Chauvet <louis.chauvet@bootlin.com>
-References: <20260216-feature_bbge-v2-0-22805cfdbf62@bootlin.com>
- <20260216-feature_bbge-v2-2-22805cfdbf62@bootlin.com>
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=krzk@kernel.org; keydata=
- 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 a/A=
-In-Reply-To: <20260216-feature_bbge-v2-2-22805cfdbf62@bootlin.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <0EE0658D-56A7-480C-BF71-6B2EB81DC41C@goldelico.com>
+References: <20260212-feature_bbge-v1-0-29014a212f35@bootlin.com>
+ <20260212-feature_bbge-v1-1-29014a212f35@bootlin.com>
+ <B3366A17-641F-4E02-A5D4-978F525E0A96@goldelico.com>
+ <20260212174718.7daccb70@kemnade.info>
+ <719BF710-26DF-49AB-A016-D2306F0389E2@goldelico.com>
+ <20260212231907.6120a2e2@kemnade.info>
+ <CAOCHtYicmeSzH5Q2_qTwAZw3s+__JRwUrXvz01+KCsJJHAznUw@mail.gmail.com>
+ <20260216161155.09fae580@kmaincent-XPS-13-7390>
+To: Kory Maincent <kory.maincent@bootlin.com>
+X-Mailer: Apple Mail (2.3826.700.81.1.4)
 
-On 16/02/2026 17:55, Kory Maincent (TI) wrote:
-> Enable the ITE IT66121 HDMI bridge driver to support HDMI output on
-> the BeagleBone Green with the Seeed Studio HDMI cape.
-> 
-> Enable CONFIG_DRM_TILCDC as a module on multi_v7_defconfig to provide
-> display support for TI AM335x-based SoCs in this kernel configuration.
-> 
-> Signed-off-by: Kory Maincent (TI) <kory.maincent@bootlin.com>
-> ---
-> 
-> Changes in v2:
-> - Squash defconfig changes in one patch.
+Hi Kory,
 
-Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+> Am 16.02.2026 um 16:11 schrieb Kory Maincent =
+<kory.maincent@bootlin.com>:
+>=20
+>>>>>=20
+>>>>>>> Am 12.02.2026 um 16:26 schrieb Kory Maincent (TI)
+>>>>>>> <kory.maincent@bootlin.com>:
+>>>>>>>=20
+>>>>>>> Allow overlays to be applied to any DTB. This adds around ~40% =
+to the
+>>>>>>> total size of the DTB files on average. =20
+>=20
+> Yes, I will move on to this solution for now to avoid too many =
+complaints about
+> the devicetree size increases.
 
-Best regards,
-Krzysztof
+I have done some experimentation with this patch (on top of v6.19 and =
+our private defconfig)
+but could not find any DTB size increase.
+
+Does it require another patch or CONFIG change?
+
+BR,
+Nikolaus
+
