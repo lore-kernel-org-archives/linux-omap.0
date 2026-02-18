@@ -1,216 +1,140 @@
-Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [81.169.146.168])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7468D30DD2C;
-	Wed, 18 Feb 2026 07:28:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=81.169.146.168
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771399723; cv=pass; b=K3Y0Og/rZxzXBHZkMWfEJ85qVMJ44YR0GUmu+p61RTzIuuwnX0qh1wwWfnBgNzchnu6KInR6o53CeGpUkhcd7YIiv2tC79+BZ+ET+MWzHITeQNpME8pWOiqPQrWkSluFcWfjfZF6E9BTaQ1vTw4qAmzFco7Q3vdA7katm2cY65Q=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771399723; c=relaxed/simple;
-	bh=szPjih8StXjtpoWpw5AU4Nh/8ZKCaGLIvtLe3Q7WVpM=;
-	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=oUGBYLYhQUuGluN4NucTSKw8c2NeNKvEU74YU+IO9WPc0VW5TyfBlluQjBsNBRl+QFzdFVGu1mQmHYeNy8kdwsERz0AuLgAs/+VmhoTGAGeztS90tsxn1SCLhvGhpP1kUewxjaAxekcH1FUWu72/8KJ8kfQeLKIjvsDqwjJlPnM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=dPiOy1kD; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=8Y33m6qL; arc=pass smtp.client-ip=81.169.146.168
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 104B7318BA6
+	for <linux-omap@vger.kernel.org>; Wed, 18 Feb 2026 20:39:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1771447182; cv=none; b=kQEgLpfJ1dVgy6ZnZhzyA99KbmDhZH9w4qDDZq5nEfOSKIGbg252CQah/bBHVB3dAAYrXCDe1bL9RGZkNOVO1t2R+N3ScvE/RqeuHFBUHfDO2Y6LaG3DG8IQIoHq+wSe5AfrtZo4JEGrDv+r873YtRxmSd3OLATsnWaUKrSHpRI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1771447182; c=relaxed/simple;
+	bh=IZOe9Agq5alFuZFtw7BiAeMypRr0qgvFrTQVAA2QJGg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=YJhtLimDtgwg1ragUyQ4Uy3zqWEWCXGxy6Hcud0Hq/X/7yw8Ym7NdAwl51/GDpAOgxs3LVJiyvgkOQ0U0+0GB93hRlC6MLbrhlDwSeNF2ixMbdC9cfx7ttOCWDWb/BTzyIGiIwrbUUXZj8FnU+Bkd4et4pEr4T1ngO+qZaxy26U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smile.fr; spf=pass smtp.mailfrom=smile.fr; dkim=pass (1024-bit key) header.d=smile.fr header.i=@smile.fr header.b=N4az98+k; arc=none smtp.client-ip=209.85.128.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smile.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smile.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="dPiOy1kD";
-	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="8Y33m6qL"
-ARC-Seal: i=1; a=rsa-sha256; t=1771399700; cv=none;
-    d=strato.com; s=strato-dkim-0002;
-    b=qlQTB35yqRaleZiARsUXNGgfLr7+6uDXK627aisjzVBk65OfF/HxSYKGa/Wd/7PJwT
-    ib0nsaIeENa4U+SGqw249cJXec8IWHzPSSThrcdJfmJfXRs6Q+lGkxpM/Cytx4h2Mkcn
-    BW2jWSHvq55tupo2t6dis8xVONLXQ9D3xidvoUebDImyN3S+6pw/pvztK9eI1URCAFIk
-    73XMbpZHXYGAU4oL9eAYe8ynvRkfM2KXDWdlGpKFsGJoSSKczKLdejP1sd05kwi5zQn2
-    BVNv0jGcKg4h8ksN+CityhpEwCDMkiPW1XG7ux8xJW9h8OZl/7eLhqqMkCKBbvQuc8qH
-    XErA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1771399700;
-    s=strato-dkim-0002; d=strato.com;
-    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
-    From:Subject:Sender;
-    bh=u86cw3tjl8hdVmS71Xuy45XeU5ZCNXcT6zOzax89Suw=;
-    b=DCZKBR2FOOyS0qYuvpebUxS35GpI1uXZ8fAsmCY6FKUIltMb1YKwH3RwnNa0vh/egA
-    oZmZJ8XIRXOVsZh9PrDR1mZHUscb1Jtshe4Up7jDYGyRLTVLGt/0ySv5FtpNGUX3k/Lb
-    W75PWf7qHlkX7LDw+wefO1GDyNxXI/0XO22Gv4yUVlB7DtaUxD0s9LbbqYtG5er+6n17
-    6vt+m7LsvK5iKblK7G1hHOGwV6P6pl/rPNMjeRHTBOxAfs8g2HDkDAcNThnT7RyO/2WF
-    EUKP4vRz3C0JIm+Nkc3ojZ4yTnQpMO173sdX3wY7IblVyUrijE2R+Bs6VsPkMF1ntp0E
-    QZ7A==
-ARC-Authentication-Results: i=1; strato.com;
-    arc=none;
-    dkim=none
-X-RZG-CLASS-ID: mo02
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1771399700;
-    s=strato-dkim-0002; d=goldelico.com;
-    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
-    From:Subject:Sender;
-    bh=u86cw3tjl8hdVmS71Xuy45XeU5ZCNXcT6zOzax89Suw=;
-    b=dPiOy1kD3OJQLdZeDi/510rxp3uOjpwjlhbgAP4+BRwPGHumfotxrJ8P2W5AdNUgJd
-    9Xua+Loxfvp7/XbVPMF3DzbR0iNRT7y+RQ+q22kD5FLLzr1AuW++UPQSYuVv2nMbeMwX
-    tijWmkFKDlswd0ABYEfuN4W9uzgtapfCyJcP77pBVovvUhgSFhzmaXpJPu2vPJWRISSX
-    TLn0vmlxGPXtJgRDlhOl/g3Kj7sv/P4eJs6fJj4/6NeTXu+xJ6tf/T7kSR4sGus99J5J
-    WoJQRYXKRmudbzlmursTwTCsEe5Ek2aEWLFxJznDpTX9VyNI/w8czSqTuKqmvRRSf0LI
-    ZjRg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1771399700;
-    s=strato-dkim-0003; d=goldelico.com;
-    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
-    From:Subject:Sender;
-    bh=u86cw3tjl8hdVmS71Xuy45XeU5ZCNXcT6zOzax89Suw=;
-    b=8Y33m6qLBiNtqtrUtnJK+4LKyYvRmzP/2O5N0XA5jzP5BRRcwbAvs0E220qraSoWH9
-    398tRVTxaXqSWk4DQSBQ==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o12DNOsPj0lFzL1yeDAZ"
-Received: from smtpclient.apple
-    by smtp.strato.de (RZmta 55.0.1 DYNA|AUTH)
-    with ESMTPSA id Q3a36b21I7SHJkR
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-	(Client did not present a certificate);
-    Wed, 18 Feb 2026 08:28:17 +0100 (CET)
-Content-Type: text/plain;
-	charset=us-ascii
+	dkim=pass (1024-bit key) header.d=smile.fr header.i=@smile.fr header.b="N4az98+k"
+Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-48375f10628so1748935e9.1
+        for <linux-omap@vger.kernel.org>; Wed, 18 Feb 2026 12:39:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=smile.fr; s=google; t=1771447179; x=1772051979; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=hLWHawfUnZuiQ3TDhSdC1bL32uOxcaH5z4XCL/rXWbU=;
+        b=N4az98+kxrdCsihwFNEkhNcyK9Y2wCxB9Egd5mGJxyF5jkeLVx4ih4+WCjHGCQdtq7
+         ElKWEZUJvbpTujjhESL3kmKryiWsFUGLv/4WUvWyF/gQlTfPsbanaJMttOMfXGNQIXTa
+         85t4Z5uov6C3XeiLhkWADcMOwUdrFKkDXmAIc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1771447179; x=1772051979;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=hLWHawfUnZuiQ3TDhSdC1bL32uOxcaH5z4XCL/rXWbU=;
+        b=MMo5cIWWLucT7xwzbn+F663W6Q9tNlUOQ+r0KZWEIHGc1m+pKYALHPz+TUZOK6hD5N
+         P+QQ1TVI2Cb/zPiv96eQfkQyAC549bJl9QAYUmzlTsv7Jnb7VKvyMN7tIb2uqt2V/Taj
+         D9Zg7cCTJ8VFAlY1pOhPO+yzMVGgTOm0UPRgr/sI7wwIl6yXRXdl69HbFTWw/2WOqx7n
+         6aTyHif+WYNbXh3QEV0bOz1jn9hfcXuyZXBuSBCFl5afgMcj6k+cXlEsGCLVG9LUcM9/
+         BZAgumC8Lk0Zt8U63U/kWnZDCpmUy0rSFRPZxvhwpH2loxBvLnUVHOOgI/MdaVNQhuy2
+         6hcA==
+X-Forwarded-Encrypted: i=1; AJvYcCXvLQ5as4hYp+i5qkZOh+Jjd7s9vMXtOkuRxXs7jtSsa1B04v4ixNEX9TqHestugeqpuiH3N1vEE7fm@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz6dOO7V0t7lK96wFCSrHxi+IJpYIynIZCIXJJBv1TQBkym0G5M
+	FRex5l1VkYnArChnZHOcGkZtYBWcY+0KxjrFZ5bcrrWdviT17qSgOXz0a2SuN+SIOQw=
+X-Gm-Gg: AZuq6aKADARZTPfgAX8muAxFXAw1Gvqh0v4kSlQlATm8YnoyTg5NGki5revwAY2kezG
+	q7awGNaGA+WjmOQx71zRfHqcbMEp82d6H3eDLPc1AJPEgwCTLK/n1HmIY97wHZwicEKqbgxpFoj
+	UVEt2ZRjBP+mxjPKEc1RYMmtJ+wFNLvH3F94VN+UcgJne/AWNkbI31Pk5A7QSatPh6gOFyrF/cy
+	J+xJVCiK/OgFIL8H6oLSwSEs3IInpPr6RLytGtt+1Y/SJljUFb32i9AwBhvB+mh0Mi3t0KRWQHT
+	75p0Bua56XmODwo7MXp39ddhna1UZSu8VqAJUPLO4IhiUP3bDMfEOLja1c4+LsGiHLpKhUFlnn2
+	SDRNTAwJ2FCojzDEVi5umC3pJfaXgQLYbn1HTr5PC4HRJ4JCaUecFJ0enj1eiexxb/hcJ3uh2Eh
+	ilx6Bbop55BD1XNziKAyLs+gevqgvW27VYa9P/lUNaXzRAKtGmt27Da3oD0esSRbPZv1cOzTtjL
+	gsFuG38rbVcpO87s8bvG29fFHJJRiLvPaXu
+X-Received: by 2002:a05:600c:6091:b0:477:df7:b020 with SMTP id 5b1f17b1804b1-4839e661d1bmr6597615e9.18.1771447179348;
+        Wed, 18 Feb 2026 12:39:39 -0800 (PST)
+Received: from P-NTS-Evian.home (2a01cb0594a2a2002ad9827a59cb148a.ipv6.abo.wanadoo.fr. [2a01:cb05:94a2:a200:2ad9:827a:59cb:148a])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4835dd0e327sm620432895e9.14.2026.02.18.12.39.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 18 Feb 2026 12:39:38 -0800 (PST)
+From: Romain Naour <romain.naour@smile.fr>
+To: devicetree@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-omap@vger.kernel.org
+Cc: conor+dt@kernel.org,
+	krzk+dt@kernel.org,
+	robh@kernel.org,
+	kristo@kernel.org,
+	vigneshr@ti.com,
+	nm@ti.com,
+	Romain Naour <romain.naour@smile.fr>,
+	stable@vger.kernel.org
+Subject: [PATCH] arm64: dts: ti: k3-j721e-main: Update delay select values for MMC1/2 subsystems
+Date: Wed, 18 Feb 2026 21:38:23 +0100
+Message-ID: <20260218203823.1825554-1-romain.naour@smile.fr>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.4\))
-Subject: Re: [PATCH 1/5] ARM: dts: ti: Enable overlays for all DTB files
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <20260217103638.30149f16@kmaincent-XPS-13-7390>
-Date: Wed, 18 Feb 2026 08:28:06 +0100
-Cc: Robert Nelson <robertcnelson@gmail.com>,
- Andreas Kemnade <andreas@kemnade.info>,
- Aaro Koskinen <aaro.koskinen@iki.fi>,
- Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>,
- Tony Lindgren <tony@atomide.com>,
- Rob Herring <robh@kernel.org>,
- Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>,
- Russell King <linux@armlinux.org.uk>,
- Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
- linux-omap@vger.kernel.org,
- devicetree@vger.kernel.org,
- linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org,
- dri-devel@lists.freedesktop.org,
- Luca Ceresoli <luca.ceresoli@bootlin.com>,
- Bajjuri Praneeth <praneeth@ti.com>,
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
- Maxime Ripard <mripard@kernel.org>,
- Thomas Zimmermann <tzimmermann@suse.de>,
- Louis Chauvet <louis.chauvet@bootlin.com>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <FDFC6C9E-710B-4723-A453-5CAE25CBBC1B@goldelico.com>
-References: <20260212-feature_bbge-v1-0-29014a212f35@bootlin.com>
- <20260212-feature_bbge-v1-1-29014a212f35@bootlin.com>
- <B3366A17-641F-4E02-A5D4-978F525E0A96@goldelico.com>
- <20260212174718.7daccb70@kemnade.info>
- <719BF710-26DF-49AB-A016-D2306F0389E2@goldelico.com>
- <20260212231907.6120a2e2@kemnade.info>
- <CAOCHtYicmeSzH5Q2_qTwAZw3s+__JRwUrXvz01+KCsJJHAznUw@mail.gmail.com>
- <20260216161155.09fae580@kmaincent-XPS-13-7390>
- <0EE0658D-56A7-480C-BF71-6B2EB81DC41C@goldelico.com>
- <20260217103638.30149f16@kmaincent-XPS-13-7390>
-To: Kory Maincent <kory.maincent@bootlin.com>
-X-Mailer: Apple Mail (2.3826.700.81.1.4)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Hi Kory,
+The previous SPRSP36J datasheet recommends to set ti,otap-del-sel-sd-hs
+value to 0 for MMC1 and MMC2 interfaces. These values were updated in
+kernel 6.5. As a result we have some occasional regression with ultra
+high speed DDR50 SDXC cards while mounting the rootfs:
 
-> Am 17.02.2026 um 10:36 schrieb Kory Maincent =
-<kory.maincent@bootlin.com>:
->=20
-> On Tue, 17 Feb 2026 09:58:04 +0100
-> H. Nikolaus Schaller <hns@goldelico.com> wrote:
->=20
->> Hi Kory,
->>=20
->>> Am 16.02.2026 um 16:11 schrieb Kory Maincent =
-<kory.maincent@bootlin.com>:
->>>=20
->>>>>>>=20
->>>>>>>>> Am 12.02.2026 um 16:26 schrieb Kory Maincent (TI)
->>>>>>>>> <kory.maincent@bootlin.com>:
->>>>>>>>>=20
->>>>>>>>> Allow overlays to be applied to any DTB. This adds around ~40% =
-to the
->>>>>>>>> total size of the DTB files on average.   =20
->>>=20
->>> Yes, I will move on to this solution for now to avoid too many =
-complaints
->>> about the devicetree size increases. =20
->>=20
->> I have done some experimentation with this patch (on top of v6.19 and =
-our
->> private defconfig) but could not find any DTB size increase.
->>=20
->> Does it require another patch or CONFIG change?
->=20
-> No, but maybe you had already the "DTC_FLAGS=3D-@" option enabled =
-while building
-> you image.
-> This options add the "__symbols__" node listing the symbols to the =
-built
-> devicetree:
-> $ fdtdump arch/arm/boot/dts/ti/omap/am335x-bonegreen-eco.dtb =
-2>/dev/null | grep symbols
+  mmc1: error -110 whilst initialising SD card
 
-Yes, indeed there is a __symbols__ node in all .dtb I have checked.
+A similar issue may occur with u-boot after a reboot while
+initialising the SD card:
 
-With make V=3D1 (on v6.19.0 + some local extensions) I see
+  mmc_init: -110, time 67
 
-./scripts/dtc/dtc -o arch/arm/boot/dts/ti/omap/am335x-bonegreen.dtb -b 0 =
--iarch/arm/boot/dts/ti/omap/ -i./scripts/dtc/include-prefixes =
--Wno-interrupt_provider --symbol -Wno-unique_unit_address =
--Wno-unit_address_vs_reg -Wno-avoid_unnecessary_addr_size =
--Wno-alias_paths -Wno-graph_child_address -Wno-simple_bus_reg   =
--Wno-unique_unit_address -Wno-unit_address_vs_reg =
--Wno-avoid_unnecessary_addr_size -Wno-alias_paths =
--Wno-graph_child_address -Wno-interrupt_map -Wno-simple_bus_reg   -d =
-arch/arm/boot/dts/ti/omap/.am335x-bonegreen.dtb.d.dtc.tmp =
-arch/arm/boot/dts/ti/omap/.am335x-bonegreen.dtb.dts.tmp
+Update the delay values for legacy and high speed modes, based on
+the latest revised datasheet SPRSP36K released in April 2024 [1].
 
-So --symbol is already included, even without your patch.
+  (MMC1/2 - SD/SDIO Interface): Updated/Changed the
+  "OTAPDLYENA, DELAY ENABLE" and "OTAPDLYSEL, DELAY VALUE" for the
+  Default Speed and High Speed modes from "0x0" to "0x1"
 
-With your patch I see:
+[1] Table 6-86. MMC1/2 DLL Delay Mapping for All Timing Modes, in
+https://www.ti.com/lit/ds/symlink/tda4vm.pdf,
+(SPRSP36K – SEPTEMBER 2021 – REVISED APRIL 2024)
 
-./scripts/dtc/dtc -o arch/arm/boot/dts/ti/omap/am335x-bonegreen.dtb -b 0 =
--iarch/arm/boot/dts/ti/omap/ -i./scripts/dtc/include-prefixes -@ =
--Wno-interrupt_provider --symbol -Wno-unique_unit_address =
--Wno-unit_address_vs_reg -Wno-avoid_unnecessary_addr_size =
--Wno-alias_paths -Wno-graph_child_address -Wno-simple_bus_reg   =
--Wno-unique_unit_address -Wno-unit_address_vs_reg =
--Wno-avoid_unnecessary_addr_size -Wno-alias_paths =
--Wno-graph_child_address -Wno-interrupt_map -Wno-simple_bus_reg   -d =
-arch/arm/boot/dts/ti/omap/.am335x-bonegreen.dtb.d.dtc.tmp =
-arch/arm/boot/dts/ti/omap/.am335x-bonegreen.dtb.dts.tmp
+Cc: stable@vger.kernel.org # 6.5+
+Fixes: af398252d68e ("arm64: dts: ti: k3-j721e-main: Update delay select values for MMC subsystems")
+Signed-off-by: Romain Naour <romain.naour@smile.fr>
+---
+ arch/arm64/boot/dts/ti/k3-j721e-main.dtsi | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Here we have -@ and --symbol (synonyms for dtc).
-
-Well, I finally could trace it down to a malicious infection of our =
-LetuxOS tree
-by some ODROID kernel patch to scripts/Makefile.lib (0ac84640f12c). That =
-patch
-globally modifies the DTC_FLAGS mechanism and permanently adds --symbol =
-instead of adding
--@ in the arch/board specific Makefile like you propose here.
-
-So now I know why I didn't see any increase in size (because it was =
-never reduced).
-
-With removing this I now get 67179 bytes as default for =
-am335x-bonegreen.dtb.
-And with your patch I get (back) to 94260 bytes so I can confirm a 40.3% =
-increase.
-
-Please proceed as planned (I don't think it necessarily has to be =
-limited to
-motherboards with an expansion card system, although that would be a =
-good
-indication of its usefulness), and thank you for bringing our local =
-issue
-to my attention.
-
-BR and thanks,
-Nikolaus
-
+diff --git a/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi b/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
+index d5fd30a01032..418e6010ef1f 100644
+--- a/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
++++ b/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
+@@ -1643,8 +1643,8 @@ main_sdhci1: mmc@4fb0000 {
+ 		clocks = <&k3_clks 92 5>, <&k3_clks 92 0>;
+ 		assigned-clocks = <&k3_clks 92 0>;
+ 		assigned-clock-parents = <&k3_clks 92 1>;
+-		ti,otap-del-sel-legacy = <0x0>;
+-		ti,otap-del-sel-sd-hs = <0x0>;
++		ti,otap-del-sel-legacy = <0x1>;
++		ti,otap-del-sel-sd-hs = <0x1>;
+ 		ti,otap-del-sel-sdr12 = <0xf>;
+ 		ti,otap-del-sel-sdr25 = <0xf>;
+ 		ti,otap-del-sel-sdr50 = <0xc>;
+@@ -1671,8 +1671,8 @@ main_sdhci2: mmc@4f98000 {
+ 		clocks = <&k3_clks 93 5>, <&k3_clks 93 0>;
+ 		assigned-clocks = <&k3_clks 93 0>;
+ 		assigned-clock-parents = <&k3_clks 93 1>;
+-		ti,otap-del-sel-legacy = <0x0>;
+-		ti,otap-del-sel-sd-hs = <0x0>;
++		ti,otap-del-sel-legacy = <0x1>;
++		ti,otap-del-sel-sd-hs = <0x1>;
+ 		ti,otap-del-sel-sdr12 = <0xf>;
+ 		ti,otap-del-sel-sdr25 = <0xf>;
+ 		ti,otap-del-sel-sdr50 = <0xc>;
+-- 
+2.52.0
 
