@@ -1,64 +1,64 @@
-Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
+Received: from mail-qk1-f178.google.com (mail-qk1-f178.google.com [209.85.222.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 655403254B1
-	for <linux-omap@vger.kernel.org>; Thu, 19 Feb 2026 21:04:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3E8D32695A
+	for <linux-omap@vger.kernel.org>; Thu, 19 Feb 2026 21:04:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771535066; cv=none; b=p1u0pqx6Xpi3tZnCq2Cu4KfJFarbq8lvbyj/E5dBOlMzX7S+5HwZtxXchYK3//VVx2VemDQ3u1eIZYWcWOky9eXElLgfaMSHVMTP8MGuCyT6ObOxkYPNLACRZhzR2rryXfXHlV3p10V5DUp/yjvg+BSS37yQ58azOUYXFyGZaFI=
+	t=1771535067; cv=none; b=OBrmoVC7S69PPA+4DGXvqQLQ4+Xf4usvnE5cQvcDd5vtPNHVJhAlm+tbSbAFilMMyEuyGBNUSvwvxp7TMZNssRecqFAO5AtAwVfIUxFQHVfuINJhvNPfymIsX2VvPIiCYDX4qJ3a3YdodtYEmCfUIDsudedoA6nL0yqo27EtGPg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771535066; c=relaxed/simple;
-	bh=pi1fLBggw2w5nq+ku9XGxrPVz6Xc+gXO0i/5XkcUNq8=;
+	s=arc-20240116; t=1771535067; c=relaxed/simple;
+	bh=QtehmTlxVE2ImMqTMUlN+wssHL5rLi9pMI7VHV6x+J0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LbZSdy4h04lK3868XX235sv1GA5e+pmyeAD8mZxdz8VBm6aG9Igk1aTf30YMvQ3TfuvpSYKa0XAgtJDul9fAljgV0N8SWBl4AJknWpSXcwUfD/CNZ6fhxG/9FNnHrYbe8Twv+AyBi4OSHZLDOvrp5zFkeYbe12dAsDd4YXEoR9U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Q/lXx4U5; arc=none smtp.client-ip=209.85.160.179
+	 MIME-Version; b=CkKLhwP5OsrxOAtNss3Hceyzrp60S4yTPfIqujQdqHsO+HPBnP/QWta/S8tLTcgKP4aopyDjoYmYBYkYfWKAEESpkgyE4sAcGX6USfyOrzPstKfm9OZIJ66ihjOK5SUKtPSk6NCvAO7a27VrNLNW+MbKh1Q2o3yt8biRJ2qP9RM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NsNzkL+m; arc=none smtp.client-ip=209.85.222.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Q/lXx4U5"
-Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-506aa685d62so7570451cf.0
-        for <linux-omap@vger.kernel.org>; Thu, 19 Feb 2026 13:04:23 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NsNzkL+m"
+Received: by mail-qk1-f178.google.com with SMTP id af79cd13be357-8cb3e0093e3so137365685a.0
+        for <linux-omap@vger.kernel.org>; Thu, 19 Feb 2026 13:04:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1771535062; x=1772139862; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1771535065; x=1772139865; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Gnop4z34aVye00gIQguUoewYT5lM9SytbUgSGtePF4w=;
-        b=Q/lXx4U5Jm0EPamJb0hescTCYgC8eMtNhM3GnPwyJrtBObkBbWwD7WfCuY2as90OYm
-         HqghXxuHPxfvXJJIpgA95CHrAYkXvVOSfIjiQOc4NDbR9JFJz0JvwExxwFHtvr4MLDw7
-         r6JS8qIErG12I0+jGWzZnlyXhwUOX1p4yd2SexLRn+OVcY9Z2nDgDfAhY17FK+A9kQBx
-         iIRHTIoGg+tpSJJiMwZhH1KRzY34lBJo/ugphsMeIf4PQ8BWuqOzKsA/O0UH2TsMT8th
-         hXYW1YBW9qcQR+EfmiyRdDct4DWVk7Gt+kwZV+Dk/Ws/NgS23TZHy1vWnsrcn4Tv81Jh
-         fN3Q==
+        bh=0Hq1Jil93LKWD5SqiddgyBykMfT43TbOI7JPjGrETyE=;
+        b=NsNzkL+mkKIug3+K4wHB5sTZBSr4Cz7Xew/VM1A/rD2k4GnJhAPaZZI6wvUDp15IwO
+         7/Pcx2hXlUvHXLPNZXPtB+hzZAjvapQVVgO+RvThji9VcoMtFd3TdEVnfXxu6cGnxuQD
+         DYAHFmOzgXuwlzDpZic6tGTY7Nz4pIi746b7fSfbIWISCRT6I3eKF1ARhReQVTzTqhwz
+         vbqXNv6EZrCKAJoMw4pl/RkqcayBrVB/WQzIcdsuwl0AO73HVbXJhbz1Od6NOH/gqBCi
+         /Fil17M4OOF3Y/+a4+sUFRtn0nM9uXBVBn4Rql6YYO8mw9hNhO6fVoz1Tvr9A9B/OHcB
+         blNA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771535062; x=1772139862;
+        d=1e100.net; s=20230601; t=1771535065; x=1772139865;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=Gnop4z34aVye00gIQguUoewYT5lM9SytbUgSGtePF4w=;
-        b=UhVRqflitgJu1pbUXUC5fkar2sQt/VNrd9mwYBX/sOEE/Ps0HNzyoNok2J5CJHm8Oy
-         2L23PbuS9MsMw0tLVzuuDaAQFELf/DFyGc/T9XLSnUWrb8wp4cMTTyZzfQR9zRFPAJ6C
-         KnjMEzBF7M00pcY0xbNHj3UTVqLpFor6y7ywwRx+ZStdPOQhfwBtof+DLj4pQcIN3kVW
-         nYc0NdnpHS17CKBhtXASfh7uqLO4zFL+LtPPHYF/ShYQQmeZEe5kunVlwOBF1GKoKIiA
-         BjPpgyRKB5/B71i7brmdSCN4dMr2MxO+QIzjcBT0soiOXMNxpQ1J3CQ/vxCLRxCiLFk2
-         VDfg==
-X-Forwarded-Encrypted: i=1; AJvYcCVHo1tc/MsJX/gSJr1DtOu5RWUSLJ/6T1EFIflOHDWDTUFxla+sJXT9RTSBUZDRvnvODGXhAqbTWfEd@vger.kernel.org
-X-Gm-Message-State: AOJu0YxHW6UT1t3DkNmCdI2rlOJR+USEl9KsoSXeUlt61P2FLzEAX8la
-	8vXzvF1M4obr09SKqJeEv6qD5Hdy8zjaknoZWe42x74OCwQ/ZzAsWnXi
-X-Gm-Gg: AZuq6aKOsxLY2USBOAn34ScQcIKsKre2uc31xfBk/cjvbQ6k1hwTJIv2PSccNYYezyO
-	zch/tuyhgYpZlQ7nxxAsmvekxt4LH2QYCnljuRd1zL3wYYCUpA8x+EiB00OgqndtVdvOmgbtpqe
-	xGjdGpcd56qNymhC1iMTxXhZlRwFk0YOuEWMZ4p9Wz84yIpIcs9Q+tvD/zSrVXoM/0j782HDM8t
-	fugX3kF+K5+MDB1HBomgZEGReIR/t9nwPwLC37/MHCOjHEdQfFk7CVXKTFMrOuVd91HFIeXStKd
-	QactYHHUJmLhMgMwMrRsz6DvrRUXzxLbwBHno3qbCR5uN4zFifuZQjGjPgvArZCysJ2YvIj+8DE
-	xosvgTk90FodNV7GZGFB5cddLRlTntQDdUp18xJWgpKbILcqTZVRHSD5ELd4L+0007tvNO6bscf
-	Hmm+cojEVu7ekIzHmjsGPlQxU2nj9W1cf63GO1noQ82mJfw5TmO16zVN4T9ddQb1xe77lmQmIj0
-	WBbTh6G7XE=
-X-Received: by 2002:ac8:7d55:0:b0:502:9e5b:2d83 with SMTP id d75a77b69052e-506e9264731mr79699451cf.75.1771535062155;
-        Thu, 19 Feb 2026 13:04:22 -0800 (PST)
+        bh=0Hq1Jil93LKWD5SqiddgyBykMfT43TbOI7JPjGrETyE=;
+        b=KltpJf4mze0vmOPJUWDPS5T5d3sb/TaO1krnlPmYY1ErVrWE/0bv7p2Ludgm+8f+wq
+         aEqlO2m4JZkySvTUf+95bi2PUKBtRaQOZx7BEig45QcZpiHf+HiJEEq0rhNEtFcCwX6V
+         QfonpENJ8Qz0zM/IPjzN/DaOxWc7yU7/AuVVwao0hOqkNVY0XWVn7GfMN3jl2DZ4uwE9
+         3PrpR5qfYqkwcrhHU3yRAlGuo+NpmpqWEReAuPmsqtr6ucFvZr3JMhhKUOcy2FNF5M0w
+         blLOol3yF2llN9FzGoeAM2ohks6ND9PcarpZS31x5Ecb6/RxnoDcXwxa1Ucb/lUs3aVS
+         v8AQ==
+X-Forwarded-Encrypted: i=1; AJvYcCV2mIDAPmknxdMhvzbhLgVMf64nhFnfRW4f4PiIDmqU4o8cNWhbwZ+xxHTEzQJPHKu4C7FcUUZI4brD@vger.kernel.org
+X-Gm-Message-State: AOJu0YzLKdRg+16WnzJNxMidwzqHWfMrGGAFsiK3+73I4cfyYAtTZtfU
+	DTT85so5ruK4EyGxX/PpzysXVrZ7P5jWlsHfpMSq7+nHTdx9RvwPQ5JOcKX5n0H4
+X-Gm-Gg: AZuq6aJroaedC76D4GXlQjNFJNCXwAm6mhxUABhUvTsz9Nwfc6SkoO7XwQPWHTYgWI+
+	FXuonK1Wuz6NOV4BmbjTSqS8L/vtW12bCc9JdNnJ1PFT//CtCX4g76FTifJCC085+4zAGMl/736
+	j+IsBww4a0SxuxT6AEXWuB2G/sr8GSvO0FUiMJFp2YFp2WX//uH1JwL+aK9yI/99VWDAk/UsWe1
+	SpUhoHxbKyUclXGtmTYIAmv+q66FtGCnwvStc5GifI1sd2v6a98wU4ZPMlloATPyNUsHOt40plJ
+	EVF/ca5aeds6staGhB7vvjr6p2dQh+s1fsA64eyAsOmF6C3Z7MywtVoPd/GFEJ4fRMVOrw48Kut
+	hs89xNhnfLFKxJHTHIzyMnq/ShlVp4/BAi1Xy97Tfxg5OhBcppvx1aXkbwgmy9MA50j5c2ytdre
+	3Zf/H+2CssU97F9FauLDdGLYH5UaQfOHRiR876v8K1nqsuvPiRJnaXM+kYLvkcCFWIzAljOp/X9
+	9LjCqGUIkQ=
+X-Received: by 2002:a05:622a:19aa:b0:4f4:c7c0:bd15 with SMTP id d75a77b69052e-506a82613f6mr301054061cf.12.1771535064428;
+        Thu, 19 Feb 2026 13:04:24 -0800 (PST)
 Received: from mighty.stonybrook.edu (nat-130-245-192-1.resnet.stonybrook.edu. [130.245.192.1])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-506b275d59fsm153971511cf.32.2026.02.19.13.04.20
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-506b275d59fsm153971511cf.32.2026.02.19.13.04.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 19 Feb 2026 13:04:21 -0800 (PST)
+        Thu, 19 Feb 2026 13:04:24 -0800 (PST)
 From: Mithil Bavishi <bavishimithil@gmail.com>
 To: aaro.koskinen@iki.fi,
 	airlied@gmail.com,
@@ -87,10 +87,10 @@ Cc: devicetree@vger.kernel.org,
 	dri-devel@lists.freedesktop.org,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org,
-	Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH v6 2/8] dt-bindings: vendor-prefixes: Add Doestek
-Date: Thu, 19 Feb 2026 16:04:01 -0500
-Message-ID: <20260219210408.5451-3-bavishimithil@gmail.com>
+	Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Subject: [PATCH v6 3/8] dt-bindings: display: bridge: lvds-codec: add doestek,dtc34lm85am
+Date: Thu, 19 Feb 2026 16:04:02 -0500
+Message-ID: <20260219210408.5451-4-bavishimithil@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260219210408.5451-1-bavishimithil@gmail.com>
 References: <20260219210408.5451-1-bavishimithil@gmail.com>
@@ -102,28 +102,27 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add vendor prefix for Doestek Co., Ltd.
-Link: http://www.doestek.co.kr/
+Add compatible strings for the Doestek DTC34LM85AM Flat Panel Display
+Transmitter
 
 Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
-Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 ---
- Documentation/devicetree/bindings/vendor-prefixes.yaml | 2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/devicetree/bindings/display/bridge/lvds-codec.yaml | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.yaml b/Documentation/devicetree/bindings/vendor-prefixes.yaml
-index c7591b2ae..70a195fc6 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.yaml
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.yaml
-@@ -437,6 +437,8 @@ patternProperties:
-     description: D-Link Corporation
-   "^dmo,.*":
-     description: Data Modul AG
-+  "^doestek,.*":
-+    description: Doestek Co., Ltd.
-   "^domintech,.*":
-     description: Domintech Co., Ltd.
-   "^dongwoon,.*":
+diff --git a/Documentation/devicetree/bindings/display/bridge/lvds-codec.yaml b/Documentation/devicetree/bindings/display/bridge/lvds-codec.yaml
+index 4f7d3e9cf..3ad01645c 100644
+--- a/Documentation/devicetree/bindings/display/bridge/lvds-codec.yaml
++++ b/Documentation/devicetree/bindings/display/bridge/lvds-codec.yaml
+@@ -33,6 +33,7 @@ properties:
+     oneOf:
+       - items:
+           - enum:
++              - doestek,dtc34lm85am # For the Doestek DTC34LM85AM Flat Panel Display (FPD) Transmitter
+               - ti,ds90c185   # For the TI DS90C185 FPD-Link Serializer
+               - ti,ds90c187   # For the TI DS90C187 FPD-Link Serializer
+               - ti,sn75lvds83 # For the TI SN75LVDS83 FlatLink transmitter
 -- 
 2.43.0
 
