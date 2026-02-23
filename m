@@ -1,64 +1,64 @@
-Received: from mail-vk1-f181.google.com (mail-vk1-f181.google.com [209.85.221.181])
+Received: from mail-ot1-f45.google.com (mail-ot1-f45.google.com [209.85.210.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66D26285068
-	for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 15:28:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 075BB208D0
+	for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 15:38:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771860496; cv=none; b=erICGE5x05T0nLqSqGWMKFQM3xis+VZE+31tEDeKJDpanB45/1U028CrHtjgOvVxMkDsOw8MJsjbOXd51tLHC/K7Wp6SLOEuo9/pBLO+llzkRFOSoYowdTDTlHU/mLb0Xe20UHmu0SDch4Tp/5VF2OvCOGtMTeAs0WtXagjRDpo=
+	t=1771861134; cv=none; b=k9DEXC+ZYEmkIkgZ0qDvkdZA+9v49IwIeyAKabqBbwJA9S7OxikSaU3GeHej3ghj7F85gk8BaKctrbcG/fs1EJxmAFAUtJvwJu24v8hBiApMZp3MF8enWzueCm45xMdAKwPpm/z+0oMRIb6Mz740fokL/v8OEuGvQv8FYBMpaiY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771860496; c=relaxed/simple;
-	bh=pi1fLBggw2w5nq+ku9XGxrPVz6Xc+gXO0i/5XkcUNq8=;
+	s=arc-20240116; t=1771861134; c=relaxed/simple;
+	bh=KAvlbY0yYL9PaaTueRuO9yIwL2QGgENhM1iet7MXCjM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=H88ekp/LbZ/uYyzxUdvZvhcFDtKEnsw2JmE/i4+/VcuXOZYApFcjDH/EILGxtrwiz6oIyRGzsUHR2qr9qLKsTE/77RPyjAOZqjLYaWjDLsBUt10r3QSuXLF/5fGEtpiBklH2Rda6wnDvu6TU7gtON2d0GEJqUDTt3+g0/gXlvR8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XmYlYiKw; arc=none smtp.client-ip=209.85.221.181
+	 MIME-Version; b=Fdhy7P8HX76SSzXyJALh+m/LrlmRIoi94pyufOEUg51CRj0YScE0+Pw2I8AGTNvCOqJE7EEiAFTOOiC7dzl+pAZBNNaOAAKGmnT+blieOZxdirnPMH+RCR8e0TH1Y4y3F8mX+fUD5iviHVdp63lGXbQcD9sZbqSjGG3hZBfuVqQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ez53YNsv; arc=none smtp.client-ip=209.85.210.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XmYlYiKw"
-Received: by mail-vk1-f181.google.com with SMTP id 71dfb90a1353d-56739adfa1aso3261904e0c.0
-        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 07:28:15 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ez53YNsv"
+Received: by mail-ot1-f45.google.com with SMTP id 46e09a7af769-7d4bc6a8021so3349892a34.3
+        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 07:38:52 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1771860494; x=1772465294; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1771861132; x=1772465932; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Gnop4z34aVye00gIQguUoewYT5lM9SytbUgSGtePF4w=;
-        b=XmYlYiKwqEZhy5etSnweumjQO0iakUj8t5rt4XS6Fb3wWGEqWsEEAtzFAyEwLgz/5v
-         wEKMU8QKslD+ajZ6w4ocAK6cJIicsGQ23ca0rjiOO5mPpRKwO6/Y88yI4eS7Pxna0gmw
-         8cnSuU1SK4maTMRf09SCMYwhhI47zniO42BRbwjatXHX4OQpW0H7pdSlDwZxvxze3pzp
-         vc/4tV4XmXPj/lzZqa1vpc57Di/DuZHblzTTJ9i7uOMThBz2QsiCDVKWS/jETmbS3ni6
-         PWVzDqxPLc0H6LB1Nou597pyfostyzCXn84FUF7v1sudPXuEYo3fRjlYFGRA35rjJFSM
-         7TGA==
+        bh=MfQfBaf9AAlms3smQ5+Ri25UHHgHjEr008f22TiaTqo=;
+        b=ez53YNsvNq1F2YSeFLA0ksRJJZzvvDzQXCpIjNn+qEIlGC65tOE/hSGVUrFT6YFw3m
+         bE9YiyGpAfqTmgoiBz1js5CNaF2gcWUSFgCwZoGC2iKVY1BfC3ziL2lLP8vWjPzcg5nT
+         gAE3lNLlgo4FBXnLTTVZvC+PAgY4XI+qo8cqDK4pQumHaAiRLrxiHRjMPJDn6qmE1EWb
+         iO1JLzcDax2xjHWd3lYMGrT3NknG38Vyy2I68pA9eGQsRBtr23IvGo0QC8H7Sjo66Uq8
+         iSvXyWpaevD6Z7AhEecYfNZEU+kVLndvZvSEi/HWzFxJqV9oSaOlFPtjZrLWuPzqWO2+
+         nZLg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771860494; x=1772465294;
+        d=1e100.net; s=20230601; t=1771861132; x=1772465932;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=Gnop4z34aVye00gIQguUoewYT5lM9SytbUgSGtePF4w=;
-        b=PUD0uUY1p8XNSNQga4F94PwzganmEPdbotEVnGhDYCqe63nG2MMBjhQvRIwxwUb2BZ
-         7YZT/slmYd0PtLK0f2CEp+NwZDBMociqSXYz0MGEEK0WpSkR+EuSKvxkICM3zPUt81Me
-         IE7iMCJgpmpzNkwwC/MFJmcqX6CUQ0ga/+/b285+EGHh0PrLx6mhtOlcSj05nr/FiOki
-         ldOtmlIKppqwAm08lno/FKxGtwSB7QkFXNfq3iJWTFXbam4HVQq5YUdXrrHl1mQqeyRr
-         +KXgeOGQJr3RqYVSSIXN0KyQpHnvM5vCf5MX1BAzLHODaE8Z/RFgcnwzVzxddbtoP3Zb
-         yfVg==
-X-Forwarded-Encrypted: i=1; AJvYcCWk5uuOjZHCQGpuB6PweeE2JLO1qU9tcUj89/9DOsaTKUSrNxXWbedgkQDl2WwUvoXGqDrIJKYqSLkR@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz+OzNP5EzlL9rZ3M+hxmHRNy2GES0Og1Ym8jvQitTfe7V7jHcy
-	iSD5gL47bJYJ67wWxPAQb8mi87H1ii4WgMSx/aPOg1WT6f4ovrRLArC/EWQJbZZH
-X-Gm-Gg: AZuq6aLpemLtJIfqNr/KHZfZbTPckbZOkloKsbdfzFK6Ywbo0X2yLMXvxB1C2P0D24O
-	fYk7wPBrPl4Ihtmfo8nLsKV9UKzB8xBEOpej/b4xXV9xk2MFD0TkHHEQaUxxey7J2qzxzo4zJkT
-	/94cmUyYm345ZrQGB3BQQxa7D+w40HorANzB4eH+LxsNMlC6EF0y33iZHJAjkABzrm1U4gqyB5C
-	42EWLaM4QwRLmkKDrPEMs2EYVrssbTWRF3otl0y26YG9YFew+vZ6Vm7v9Y7rHQk4BTKKDBLSj9H
-	PTUml0P3jhU/+BKcCJjBoFelLX10w6LllEbj2mZpOIqGC+07I9X9val0oMTnbQZhkBb3fD4hro8
-	YhXbfD9mFEQARb5z6PPksDLzZW/CYT2r/S4AwKpPV8GEuPhIoW7ztVFoSfJCQdOl/laDQOn7ARQ
-	wFL4R/z77SIq4ZG4z/lF2HfhyDhocXu6kKR24L4XJ/ZxVsmKmsBJVzF+iqP5ykpulZgxoP9as3r
-	/libSekVQ8=
-X-Received: by 2002:a05:622a:249:b0:501:45c5:935e with SMTP id d75a77b69052e-5070bb81b0fmr101683041cf.7.1771854588482;
-        Mon, 23 Feb 2026 05:49:48 -0800 (PST)
+        bh=MfQfBaf9AAlms3smQ5+Ri25UHHgHjEr008f22TiaTqo=;
+        b=rCUATd7P/nx/1G6yJk9UgUpp0JVw7ENkTuhL1KbV0MEzglYl3bVgp9RhQlepmI/N7n
+         iSdeqW8rJNHv6xYneu3dmBV8Fsm+rKO0dVj53yLZYb/+qwYQE1Z6t2V1c6H2icsOT9OB
+         2sHIGTiosAs4qT26GeiTj46CQq8qYRJoPw3MNumbZNHYJ0sESLpBE0je94kbtn0yz42v
+         MaHTVKW1p/UYXtFmsubdwz/ArQmz8YlAOOH2g6MQpb5w8JWu3kBZB6oA+PiyjCYqINJN
+         i8DRv78MfTd5P2AbES2tWlNRQbqGwSKzwRdVKSHlT/bw9tX0veXFaqLoC+PQBPjss8ID
+         +law==
+X-Forwarded-Encrypted: i=1; AJvYcCXLc/KweatRCS1asdIR88DAJqIR+mp0GFaIVnA4E3z2hnz/Bkn1OvJbmMIypXz3ghFRs6sMIaegrzYk@vger.kernel.org
+X-Gm-Message-State: AOJu0YwKzdbuxhg+pl23Wlj/SRRlwz6fobFVow/PpddXzEPSL1FfHAZ5
+	ikgmG/4cp40sRx+knoZqngBDdxrlxTuZI/pwIeA3Uj/qmJEDK/oCHYzD+S3Vv6eg
+X-Gm-Gg: AZuq6aLaDlr/kkrCKpMasdIX9nDNyA8sHT9WW/XLVBVcc7o/zSc9jrqrj29ATNRPXPm
+	5/b1UQ++dTeYy8ULcQu7M4M8zrPakMwU5nkLPgWKpBTR3z85zGcDpgQOti0sB8yhdsWWeVD1nLe
+	Nx6YU5BGvaHtCKU7ddjlZ/rvvzC0r/tF6vyQWSO04zCcw1oayD/Orq1iYE4WX8EeXcx+rtR9HSn
+	1u6ZYVUxLq1zMsbhPkFXhOJBzweRBBVKbS2PkQ1eBxJMWcqWqWuxB/k/xRBiIP2S6XtqHvYzB4a
+	6+bYF1dvxoxqJxSdyuWL7TDgyG+y54ECU9sNErnWXoeyjmAforCQlurzL8gjUyfXXK9UX8mnENK
+	W+KNdUgrLu7HDGyyEeQ5x+4NMtxbLKvUcxsmn67tcV4i3x9OTXin5IwJzHCx+1KJAQUeBTRdAVE
+	plm+j97sYdhtOXJ9cAl3BG9dpN1hbVZmOrmENuaHa1QNjUExeNbTRF+RWHbxcm/6MlYX7KgSATJ
+	Uqu2S/5zP0=
+X-Received: by 2002:a05:6214:1c49:b0:896:fea0:cd05 with SMTP id 6a1803df08f44-89979c84074mr137002196d6.16.1771854586510;
+        Mon, 23 Feb 2026 05:49:46 -0800 (PST)
 Received: from mighty.stonybrook.edu (nat-130-245-192-1.resnet.stonybrook.edu. [130.245.192.1])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8997e62f453sm67954716d6.36.2026.02.23.05.49.47
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8997e62f453sm67954716d6.36.2026.02.23.05.49.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Feb 2026 05:49:48 -0800 (PST)
+        Mon, 23 Feb 2026 05:49:46 -0800 (PST)
 From: Mithil Bavishi <bavishimithil@gmail.com>
 To: aaro.koskinen@iki.fi,
 	airlied@gmail.com,
@@ -86,11 +86,10 @@ To: aaro.koskinen@iki.fi,
 Cc: devicetree@vger.kernel.org,
 	dri-devel@lists.freedesktop.org,
 	linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH v8 2/8] dt-bindings: vendor-prefixes: Add Doestek
-Date: Mon, 23 Feb 2026 08:49:34 -0500
-Message-ID: <20260223134941.427-3-bavishimithil@gmail.com>
+	linux-omap@vger.kernel.org
+Subject: [PATCH v8 1/8] ARM: dts: twl6032: Add DTS file for TWL6032 PMIC
+Date: Mon, 23 Feb 2026 08:49:33 -0500
+Message-ID: <20260223134941.427-2-bavishimithil@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260223134941.427-1-bavishimithil@gmail.com>
 References: <20260223134941.427-1-bavishimithil@gmail.com>
@@ -102,28 +101,116 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add vendor prefix for Doestek Co., Ltd.
-Link: http://www.doestek.co.kr/
+Add a dedicated DTS file for the TWL6032 PMIC (Phoenix Lite). Already
+has driver support with TWL6030 (Phoenix) since both of them are so
+similar, some nodes can be reused from TWL6030 as well
+
+This can be included in the board files like twl6030
+Example:
+...
+&i2c1 {
+    twl: twl@48 {
+        reg = <0x48>;
+        interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
+        interrupt-controller;
+        interrupt-parent = <&gic>;
+    };
+};
+
+/include/ "twl6032.dtsi"
+...
+
+Used in devices like samsung-espresso, amazon-jem, epson-embt2ws etc
 
 Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
-Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
 ---
- Documentation/devicetree/bindings/vendor-prefixes.yaml | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/ti/omap/twl6032.dtsi | 77 ++++++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
+ create mode 100644 arch/arm/boot/dts/ti/omap/twl6032.dtsi
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.yaml b/Documentation/devicetree/bindings/vendor-prefixes.yaml
-index c7591b2ae..70a195fc6 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.yaml
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.yaml
-@@ -437,6 +437,8 @@ patternProperties:
-     description: D-Link Corporation
-   "^dmo,.*":
-     description: Data Modul AG
-+  "^doestek,.*":
-+    description: Doestek Co., Ltd.
-   "^domintech,.*":
-     description: Domintech Co., Ltd.
-   "^dongwoon,.*":
+diff --git a/arch/arm/boot/dts/ti/omap/twl6032.dtsi b/arch/arm/boot/dts/ti/omap/twl6032.dtsi
+new file mode 100644
+index 000000000..d599a2ca6
+--- /dev/null
++++ b/arch/arm/boot/dts/ti/omap/twl6032.dtsi
+@@ -0,0 +1,77 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Integrated Power Management Chip
++ * https://www.ti.com/lit/ds/symlink/twl6032.pdf
++ */
++
++&twl {
++	compatible = "ti,twl6032";
++	interrupt-controller;
++	#interrupt-cells = <1>;
++
++	rtc {
++		compatible = "ti,twl4030-rtc";
++		interrupts = <11>;
++	};
++
++	vio: regulator-vio {
++		compatible = "ti,twl6032-vio";
++	};
++
++	ldo1: regulator-ldo1 {
++		compatible = "ti,twl6032-ldo1";
++	};
++
++	ldo2: regulator-ldo2 {
++		compatible = "ti,twl6032-ldo2";
++	};
++
++	ldo3: regulator-ldo3 {
++		compatible = "ti,twl6032-ldo3";
++	};
++
++	ldo4: regulator-ldo4 {
++		compatible = "ti,twl6032-ldo4";
++	};
++
++	ldo5: regulator-ldo5 {
++		compatible = "ti,twl6032-ldo5";
++	};
++
++	ldo6: regulator-ldo6 {
++		compatible = "ti,twl6032-ldo6";
++	};
++
++	ldoln: regulator-ldoln {
++		compatible = "ti,twl6032-ldoln";
++	};
++
++	ldousb: regulator-ldousb {
++		compatible = "ti,twl6032-ldousb";
++	};
++
++	smps4: regulator-smps4 {
++		compatible = "ti,twl6032-smps4";
++	};
++
++	gpadc: gpadc {
++		compatible = "ti,twl6032-gpadc";
++		interrupts = <3>;
++		#io-channel-cells = <1>;
++	};
++
++	twl_usb_comparator: usb-comparator {
++		compatible = "ti,twl6030-usb";
++		interrupts = <4>, <10>;
++	};
++
++	twl_pwm: pwm {
++		compatible = "ti,twl6030-pwm";
++		#pwm-cells = <2>;
++	};
++
++	twl_pwmled: pwmled {
++		compatible = "ti,twl6030-pwmled";
++		#pwm-cells = <2>;
++	};
++};
 -- 
 2.43.0
 
