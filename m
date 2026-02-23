@@ -1,152 +1,201 @@
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+Received: from mail-lf1-f47.google.com (mail-lf1-f47.google.com [209.85.167.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F2D2365A05
-	for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 13:12:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771852348; cv=none; b=PDVJJlveBtUmpF0eTuIFDVCSdtEeL7NGX/hzs8disQXGXDfEi4CEFmfgTl3/OvwKl2bZzcycD4sNbeT8y2CFBi1xklnq1h8OrS2sBZDEzMQhNfcsB3NodkSB4VGpCkqna8Lqf9yQkgd30OSeuhXt5CB/i2HcEO3jLWVUmD4xLJI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771852348; c=relaxed/simple;
-	bh=UelqCIooRDzXzu6GGwJNPnHTqntDSLz5KWUuE06LKeg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PPQHfxAIqEkI9fDwC6wpY2vSp9OujpRF7UzwHKA1FBzoCeu0bHZJhpSy0JREP3vIJszCkbq698hwmzA9AgBBnr6Obvq8rz8JT6myFuOkHSRezD3eZ3towcaO8kcpz2q/S+HEdDglQewS4eSccAnzN10zgN8ZY0+DAqIHUyT7mNo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KiUbJoDg; arc=none smtp.client-ip=209.85.128.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54AFB21CC51
+	for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 13:44:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1771854287; cv=pass; b=bL6/fHEjE/Hvh5+2HHVT17T9+cqPRuobwKFmHM3buO/y99IsWgbJSn7YWIAfhNqes9FLuP1vjmvd3p1RIpNxUScxz1u8BpFw8RjqFmqugS6kGG86bzcyt5r1LTMWY0L2agGP21FXjAbYeRKTNN9PXC+upaEINa1Ayb7Cbo72BFA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1771854287; c=relaxed/simple;
+	bh=sR1JFSsAon01OtvSAsV6/RGrd106y8rHwXlJpuS8MH0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=EPj4CUG6qg2GjhD21clmtGicp13AI29R1edd25WSTiacOHF+ZOek69AAPEMknKsIcAcraKevTtrV4Nz4u1PHEFAhEVfVipvtrzB/yEK9iBEngiIf5A+0nDwxJuz6jnRD/v8IWggEMyEY5M6x0bCbNbBbeKLQ7ZKA3A3PjNb2oqQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=Mn6By/yF; arc=pass smtp.client-ip=209.85.167.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KiUbJoDg"
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-4830b67aa6bso6148095e9.0
-        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 05:12:26 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Mn6By/yF"
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-59e4989dacdso4476977e87.1
+        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 05:44:46 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1771854285; cv=none;
+        d=google.com; s=arc-20240605;
+        b=Tw8vISLNWOIJblmOb3y0ojadODukAWJZFi5iiNZgzEBf3sPzP0E1QIUrPMMnrdwB3f
+         2bLoBuZ68suODaFREtelIi7RWS9VSV8kNNe2oi1YFobiHDAvnzyu2SjDs3DI7Gm0F3qL
+         uwP+mOhfEKGNIv6zrXJnH5D8oxnNOOmjqQvALg38hv6bSKTfQwkfUOvWG5sDPu6ftA0e
+         RU87m2q5eMTokkzi6BYnW9WN8OqmA2M/PNzLxEgFVY6f6pzCvqcvtFfFvIXYrVWAYe/i
+         glKX/zitOh6VRbdCNF+oUQioSbxd2QmCmwGFeTxjbt5EtaGRGxa1zprMEpwmDfrc02l4
+         qgqw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=Fhetx7uwtFJRgRkUexEhKn5KeWaKODjWdb8CIbVt7HA=;
+        fh=sunT+QxPo/Biqmz6SAb5j/Hw5SKV0meXWmBFlq+9km0=;
+        b=G+EXlzhg2F8M3FFCxtaAwhGmXg5jwv/n4DijXtqR8285DXUehV5N993rlEIjbErxLl
+         HRs19oPcK3KqU1EyqzRSkvzrOMAlPHPq4feMgYyXNOXy54Q0mHGWeU02YDZLxKVnGm/R
+         wHTULkeDRLOs+80aJSd9bWJbTNRco4A2/eSyNPwanutd/NA5IslfTJs57y2QtswUWYHS
+         NawRup2b0rjs5OOm7N0LUIlzfARV4hjbrISRpJYWimIPmQKCjSztanyWSLHO5Z7Bhhia
+         8T4j3nH5gz9FFS3XshcWYLY4JaFxcKte1qLj7jcpe7//dQbwbTKv3ClaC4Db7AcjPi48
+         CROQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1771852345; x=1772457145; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=zTyRvgzsFp6gxgHmcwTyuSKYelY9uTSe0Y6njaYUk74=;
-        b=KiUbJoDgAy5LHc/Z2unOl01huhD5gypy7MemonxqkLwMvl5jhri2dAM2kzsUScb6SO
-         IKJVD6jHk9CtP6lQ+2JZTULcLpZKpnQQrQIATfWmVsEiTIOqs3jnbt3fGn7KMTIJ7bTQ
-         5+aajvXt7Gtj6g4ma1DpaJ7XJYrXY+NUJ6CAmQ2SM9I82zn+TQVbKjjOJ0vwARM/EiD7
-         0zlzLr1fkNQNbGNTaP/3kJbje1Ei1nNFEthcixKlKiR6ia+kk5xsStM2NuB33L2vjEps
-         tB6EyBDJEdpTGs0MUxQ/sMBwShV6HGmwxVMxqtxR5bYJ9cJK8DDEJbDnM1ufpG41NXyh
-         MPZg==
+        d=linaro.org; s=google; t=1771854285; x=1772459085; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=Fhetx7uwtFJRgRkUexEhKn5KeWaKODjWdb8CIbVt7HA=;
+        b=Mn6By/yFk66UzcpBhl82x6Y1icrzzwKx9TUqEq3avBMnSHH/WPGJyCzaC3X+5e5n2K
+         7bDTmcVGAZib/lFAPpQS4zMhkeXu1HrYYx1cv3XLXC2baXFEJz0XfoQAvyESmb3L+kov
+         m8dOcBWKh0Nd9Dk0z+OBiGcWj3EDk5E/1l49nKJqzfTmM0RsHFeSxMB2oY8IyO5gUP3i
+         9tFtVAJdHs0MvdjgqSktkuXY9C5WkZah8ldRFmKDb+zeQaNPVhQ1wVnpYdTyKVqJFi0z
+         k0hdwI1KdLLql/L472glJMnAZ1CMcfcaaKq/2ndxHwGkyetsnWfyB5b+Zi5aQxebeWze
+         YszA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771852345; x=1772457145;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=zTyRvgzsFp6gxgHmcwTyuSKYelY9uTSe0Y6njaYUk74=;
-        b=Y20MhzArPtNEcVCfzlsiO6WTnXZE87Yww2jcw05fwGYoE7vse4qaS2HiYotnugPSJp
-         rJMuRj0jizy3iD6UKmnPIy1XLYovjv3zDtqdaS1oCMyiwH6HSNV94XlINS7d3H+fUVYV
-         8vMhq3hq3+OIodvqpxVY+lXDtxllOp9KBS/Q7lBreSpZPwM5wujZlS5ux6HVlg6WioEA
-         ZAU7Jkh+Iqpk+0DsTeOAqdxdx7oFlv0w6qDcQpxxwHIXnilRg7qX145417CaGDYD88kc
-         5i4DDdwCVU2J3cuzI8Nm4Uk9c6nDrM3iQYIWsKEodRUWxe5zooy1qBv1niMQekTdc6x7
-         O/Tg==
-X-Forwarded-Encrypted: i=1; AJvYcCW8Rb5eCsSY47AugjZK7WATqigecJClT3UIm1+AR5na/DAGLYKtGXH5m7HjEPTEyZu2rOMIKrcx850/@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx4etUkWL0AQc31NtDlSP9yYA3U+77FxRwa6dged8iWCjUlcm1f
-	9NS4J5tLxa7B8E03xbu7ZxHgFAX7qVCybGaxlSvAgqnaaJgF4L4b8gx/
-X-Gm-Gg: AZuq6aLJsl4dTPKrMXT9CRUARQfQxqK54YtZPkvjAeI00UOGf5hxZrhMqFmEQvqFbgr
-	FVlLJq8br6VOPc7S3P0qie6lbPmoMof0S0xVGADJsYQx3I/PcqmK3khrglV97GkM2RhnCPEyVHM
-	FLT0At/7B5NzUAfH8oPwVuJ/7ajAhayxlKnOTrXxNKSAPnhDY7SNsFEtOEkjudSatRkJVIoOubF
-	tkpl1QYGJZkFYe8XtHvvNfxEeJtc77wjZjzee2UDmw4fYN7fyxvzGDE59uI5UNhTlkSES5OGGJA
-	oPt7Em4F/2cCvzS8M1r6pePswIwEimEt2D4dlkDCWor5SN6U+lLjSKUSP+aehSjN5Xaf0UjTFWB
-	gv3l8qSjQKrZ+yH6UFCSalLXntODYOtOD9REWF69NGZCyHJBCnxsNY3EcwJujaQYcpGrHE7qnSb
-	WDOS14vX5V7pa+tOk=
-X-Received: by 2002:a05:600c:1d04:b0:47d:6f12:de57 with SMTP id 5b1f17b1804b1-483a95e2493mr74965915e9.4.1771852344731;
-        Mon, 23 Feb 2026 05:12:24 -0800 (PST)
-Received: from skbuf ([2a02:2f04:d809:4b00:a289:4e95:a726:c01d])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-483a9b75e51sm195718605e9.5.2026.02.23.05.12.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Feb 2026 05:12:23 -0800 (PST)
-Date: Mon, 23 Feb 2026 15:12:20 +0200
-From: Vladimir Oltean <olteanv@gmail.com>
-To: Josua Mayer <josua@solid-run.com>
-Cc: Andreas Kemnade <andreas@kemnade.info>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Marc Kleine-Budde <mkl@pengutronix.de>,
-	Vincent Mailhol <mailhol@kernel.org>, Vinod Koul <vkoul@kernel.org>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Peter Rosin <peda@axentia.se>, Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-	Vignesh R <vigneshr@ti.com>, Andi Shyti <andi.shyti@kernel.org>,
-	Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Wolfram Sang <wsa+renesas@sang-engineering.com>,
-	Yazan Shhady <yazan.shhady@solid-run.com>,
-	Jon Nettleton <jon@solid-run.com>,
-	Mikhail Anikin <mikhail.anikin@solid-run.com>,
-	"linux-can@vger.kernel.org" <linux-can@vger.kernel.org>,
-	"linux-phy@lists.infradead.org" <linux-phy@lists.infradead.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
-	"linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH v9 1/7] phy: can-transceiver: rename temporary helper
- function to avoid conflict
-Message-ID: <20260223131220.evt33bzga5lafwzw@skbuf>
-References: <20260208-rz-sdio-mux-v9-0-9a3be13c1280@solid-run.com>
- <20260208-rz-sdio-mux-v9-1-9a3be13c1280@solid-run.com>
- <20260212164823.mbeycqwzsy2dfq6e@skbuf>
- <CAMuHMdVOqovkugmCnR4FOfk8VkQyN_dmyKFzbsOSN0mPKQedeQ@mail.gmail.com>
- <f9ede0d3-6a37-449c-b62b-a5c761ece097@solid-run.com>
- <20260216092914.kmvl7aep7dantcsd@skbuf>
- <20260216162406.0121dd91@kemnade.info>
- <203a36fb-6ac9-41f6-80ce-b137b9db4ad1@solid-run.com>
+        d=1e100.net; s=20230601; t=1771854285; x=1772459085;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Fhetx7uwtFJRgRkUexEhKn5KeWaKODjWdb8CIbVt7HA=;
+        b=uwxZyjZy9C2KchVHhsNSI96gH43DFopGU965Dj9ooPLEGsOxBWndEe5vQV0UWFbf3H
+         6A5dQ+d5bdR0ydhRJsNGVf2faEP3RzG+nZXZ/YQzkOR37a9ZI/aE0aLdbAu3qGDvsZt7
+         GBXQhDFBiHj4ENmy+BiriSIXU6oMwFDXxKAQpu6bBjSxkXY//e80ube85nmT5TQrb1po
+         csQnN2jwN0huZfO1J0UPebJQEgR4+0AMUXu0Bb1kGyQKmyOf5wn4mfQrlLsq3J3CGPER
+         d7N0KmoajOHSqAyK77ymRl4qPxKps4f5A08vNfkXvsVXlG0p/N07XD2ntg0QpMZwn8Ax
+         5Vaw==
+X-Forwarded-Encrypted: i=1; AJvYcCW+GVFiI+nUKGtlJJu/fc7StHboSdGwX2LBO2TlmsI/JWA062tIIPk/7AIBDGbOZBYxQi7WczELoGsZ@vger.kernel.org
+X-Gm-Message-State: AOJu0YxrhdvwsqaSU2b5HaihNs9hmZu80okI6VTewfFowj3aMGcfWApP
+	bb5Fk5qPaocOI6ejHDZkUChrwih9njWt7zlwGSsU1g70y2XtcPawmeoOXzSWawSlALfqQf5BiYA
+	RxTQbHQA85ORdLvW6AYqE84+sy8HtXUSebR5/j3mjVw==
+X-Gm-Gg: AZuq6aKrwv0dFxPnEV90l7ZFb7JZoWdA/QCocRhSyY7fWaXo44yI+jU7PpR3aobJofg
+	gW55IRwojZfMljgBuPs0vq48lPfqcu8oVa9I71KOPb2SVnGSewpc0GqOBYA+ttke5/22d1Dswpf
+	aPiqN7JsX8I532J28ag/fOkBOvi4iZnDoYFhCjuTNRGHbt23YGoqMytUOKsPWRNTGImwDFiTaMw
+	hzvuT1aEpE20+ANfw66dp5kFZwehpZnP5/iCIQVX5yVOrYwti32JU3XcwaopTlgxYmfMzyC6/sC
+	GesICGzJ
+X-Received: by 2002:a05:6512:318f:b0:59e:63b7:585e with SMTP id
+ 2adb3069b0e04-5a0ed99f1fcmr2755602e87.36.1771854284344; Mon, 23 Feb 2026
+ 05:44:44 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+References: <20260208-rz-sdio-mux-v9-0-9a3be13c1280@solid-run.com>
+ <20260208-rz-sdio-mux-v9-1-9a3be13c1280@solid-run.com> <20260212164823.mbeycqwzsy2dfq6e@skbuf>
+ <CAMuHMdVOqovkugmCnR4FOfk8VkQyN_dmyKFzbsOSN0mPKQedeQ@mail.gmail.com>
+ <f9ede0d3-6a37-449c-b62b-a5c761ece097@solid-run.com> <20260216092914.kmvl7aep7dantcsd@skbuf>
+ <20260216162406.0121dd91@kemnade.info> <203a36fb-6ac9-41f6-80ce-b137b9db4ad1@solid-run.com>
 In-Reply-To: <203a36fb-6ac9-41f6-80ce-b137b9db4ad1@solid-run.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Date: Mon, 23 Feb 2026 14:44:07 +0100
+X-Gm-Features: AaiRm53IT_Xzv6_ZjZsPbjTua3wzc0_3fH4fOJcUrcKMz5LLxYEEUcMyBCE8pyI
+Message-ID: <CAPDyKFrtTaJ5fqqbGrE_K6SAdTZYUfp-BycGjtWs4SabwBysKA@mail.gmail.com>
+Subject: Re: [PATCH v9 1/7] phy: can-transceiver: rename temporary helper
+ function to avoid conflict
+To: Josua Mayer <josua@solid-run.com>
+Cc: Andreas Kemnade <andreas@kemnade.info>, Vladimir Oltean <olteanv@gmail.com>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Marc Kleine-Budde <mkl@pengutronix.de>, 
+	Vincent Mailhol <mailhol@kernel.org>, Vinod Koul <vkoul@kernel.org>, 
+	Neil Armstrong <neil.armstrong@linaro.org>, Peter Rosin <peda@axentia.se>, 
+	Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, 
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vignesh R <vigneshr@ti.com>, 
+	Andi Shyti <andi.shyti@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, 
+	Yazan Shhady <yazan.shhady@solid-run.com>, Jon Nettleton <jon@solid-run.com>, 
+	Mikhail Anikin <mikhail.anikin@solid-run.com>, 
+	"linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, 
+	"linux-phy@lists.infradead.org" <linux-phy@lists.infradead.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, 
+	"linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, 
+	"linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, 
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, 
+	"linux-renesas-soc@vger.kernel.org" <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Feb 23, 2026 at 12:43:48PM +0000, Josua Mayer wrote:
+On Mon, 23 Feb 2026 at 13:44, Josua Mayer <josua@solid-run.com> wrote:
+>
+> Am 16.02.26 um 16:24 schrieb Andreas Kemnade:
+> > On Mon, 16 Feb 2026 11:29:14 +0200
+> > Vladimir Oltean <olteanv@gmail.com> wrote:
+> >
+> >> Hi Josua,
+> >>
+> >> On Mon, Feb 16, 2026 at 08:19:27AM +0000, Josua Mayer wrote:
+> >>>>> In the future, when you have a series with cross-tree dependencies,
+> >>>>> please try to think of it as individual mini-series for each tree's
+> >>>>> 'next' branch, and specify clearly that you need stable tags (to be
+> >>>>> pulled into other trees).
+> >>> I don't really understand how I could split my series up to avoid this
+> >>> issue.
+> >>>
+> >>> Due to the fact that one (and now two) drivers implemented local
+> >>> mux helpers, to undo that an atomic change must be made tree-wide.
+> >>>
+> >>> Meanwhile it must be avoided that while the mux core helpers are being
+> >>> tested / reviewed, that any tree adds another driver-local mux helper
+> >>> like appears to have happened here.
+> >>>
+> >>> Note that my patch-set did go to linux-phy@lists.infradead.org list, too.
+> >>>
+> >>> The second challenge for this series was that mux framework is being
+> >>> enabled only by drivers Kconfig "select" - and not possible by menuconfig.
+> >>> This is e.g. responsible for being unable to test =m build with arm64
+> >>> defconfig - and lead to it only being detected through kernel robot
+> >>> x86_64 allmodconfig.
+> >> To avoid this, a combination of developer due diligence + maintainer due
+> >> diligence is probably required.
+> >>
+> >> From linux-phy perspective, there will be some automated build testing
+> >> (which did not exist at the time of your submission). This would have
+> >> caught the 'hidden' devm_mux_state_get_optional() call present only in
+> >> linux-phy/next, when testing patch 2/7.
+> Excellent!
+> >>
+> >> But, to work, the build automation needs to be able to apply the entire
+> >> patch set on linux-phy/next. So expect some pushback if it doesn't
+> >> (hence the recommendation to send a mini-series to linux-phy first, and
+> >> request a stable tag).
 > It would help immensely if there was a way to get the patches renaming
 > driver-local conflicting helper-functions very early, before anything else.
-> 
+>
 > Would this sort of patch be acceptable in linux-next now, so it can make
 > it into v7.0-rc1?
-> 
+>
 > If not then that mini-patchset would be the first one I shall submit after
 > v7.0-rc1 is released.
-
-v7.0-rc1 was already tagged as commit 6de23f81a5e08be8fbf5e8d7e9febc72a5b5f27f.
-
-Additionally, patches are not accepted directly *in* linux-next. They
-are accepted in subsystem trees (linux-phy, mmc, etc) which are then
-integrated all together in linux-next.
-
-> 
+>
 > Then I can treat the actual implementation of the devm_mux_* helpers
 > as a second standalone patch-set.
-> 
+>
 > And finally patching all drivers with local helpers to use the new global ones
 > can be patch-set number 3.
-> 
+>
 > Any opinions on this?
+>
+> > I do not think that is at all the duty of the patch submitter. I think as
+> > long as every dependencies and side effects are documented, it is IMHO up to the
+> > maintainers to decide how it can be merged best. They know best whether there
+> > is any danger of conflicts in their working tree because that is an area
+> > where people are working on. Especially this patchset is around for months.
+> >
+> >  In MFD where it is
+> > more common practice to have cross-subsystem patchsets, once acks from
+> > everyone are there, MFD Maintainer creates an immutable branch with a tag.
+> > The maintainers of the affected subsystems pull it in.
+> This seems like an option, if I can get the patch-set (or a partial one) ready early in the cycle.
 
-From linux-phy perspective, I think in this particular case the following
-would help:
-- submit the patches at the beginning of the development cycle (i.e.
-  now) while the subsystem trees didn't diverge too much
-- submit the patch series *in full* (to get build testing of the later
-  devm_mux_state_get_optional() introduction too, even if that is not
-  for linux-phy)
-- keep all patches pertaining to linux-phy (the mini-patchset) together
-  and close to the beginning of the series, so they can be picked
-  without other dependencies
-- be clear in the cover letter if you require a stable tag for the
-  linux-phy patches to be picked in other trees. You seem to be in the
-  best position to be aware of all dependencies.
+I agree with this approach as it should provide less churns for all of
+us. Especially since the changes to the consumer drivers here are few
+and trivial.
 
-I don't know what is the exact status with the MULTIPLEXER SUBSYSTEM
-which is marked as Odd Fixes and doesn't have appear to have a subsystem
-tree. I have no recommendation there.
+I am willing to help with hosting the immutable branch (unless someone
+else wants of course). Once all acks have been received for the
+series, I can set it up. Then other subsystem maintainers can pull it
+in if there is a need to avoid conflicts/build-errors.
+
+Kind regards
+Uffe
