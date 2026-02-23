@@ -1,73 +1,58 @@
-Received: from mail-oo1-f49.google.com (mail-oo1-f49.google.com [209.85.161.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6151F27FD51
-	for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 14:17:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79024352C29
+	for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 14:43:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771856228; cv=none; b=OM5cxY2LZd+Xth9eHylxhUnKYNcvXkiwhigVLlmTo8sJEtdCBajecmINCGiPbMioliwQ0KuF0BgLrvV+xYNwinGgzNyh7XHSEyQR/Jag/RjTChFKAwSqqzjMYCpubqZNw/XNFJtNCkF4wfbpLu9x1Nw78eJqiLPcV8RSW1c8R3A=
+	t=1771857828; cv=none; b=aSwFroiLtKM5CBkDiJYCfvB9Ej0XbFnJj9YYmDNRznl4W7AfoHaAYE2VABns14hlif9jOcJz6JdaLPy7VyDpY0qT/vZQlHryIwiidyc2Ud1krGXA0SX2CTrzUODABKexfUzF3iFWL+DCiXK7yRLtQVXNWyEwvbo7mhxldJM2vj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771856228; c=relaxed/simple;
-	bh=BPlCyTz8G/El4l0BA0OckJ22InPEejXQZx1TWREEqyA=;
+	s=arc-20240116; t=1771857828; c=relaxed/simple;
+	bh=xpkGtbKSLkOC6t0Nfnp/Fk4IE5J7TBULp81UPGnND4k=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=m9woX/lsJlH0/4+voTbcYY+/xhalysHPBidOSXVXArjCGE7ctgTgdGQswM3qfM4+8WVeld+uYvUeun6g6v11mnftc7Qyk4To/HROmoCulzc41cOQKO9xixEnV/AhsS5atyX0wFOkRR5Q6ZE2OubvVybROmuDBvCLCS/z5fk7vmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.161.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-oo1-f49.google.com with SMTP id 006d021491bc7-662f5c5507cso3047959eaf.3
-        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 06:17:07 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771856226; x=1772461026;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=nLzVdK8lDfgaTPyV9xNjlD/1kxno0u/2SblofGNbVRQ=;
-        b=qY23/Xv6TXwWYbKQTh97sI/t5fdlA10HlrFVZ7Q5KSO+jWGxC7/rC3SdfFUM7nmS3O
-         WfXsXbKtaGsGw2mks18hQapiSrS/nUGW5sfzMdvlEFc039K6XRIW+HSyi8+fYu+BJBY6
-         3Ptv6bVZKaCO2kNltsNa4oYyJLsgd0iWUXsDrU//BAKRGOrG7HYYxyWHfS80Kayl9bwV
-         fJaWXAFu5R+QVLwp2y7PvQnRi//vLdHshhEps7WAzWy4+4vhdH3uT0dvHbZyEeOJvvDr
-         tX6t7lIHSBF/3F0HpJzzQaMXEByakzI8PbIpeDYxXsfowLm+OAzPqbiibHZX11cCnGKD
-         QXvA==
-X-Forwarded-Encrypted: i=1; AJvYcCUGAwEliCqOQOd4IHYmBfHWfWHjx6LnwfXNPMnOL+9UAmu/gwmVndm0yr+7Wvs0C5JWu/aWB1gsq1/n@vger.kernel.org
-X-Gm-Message-State: AOJu0YyXh9DjTzvLn65c/il4lGdGym20z88ITJTHwlNrel2RpCLmNowk
-	ALPeQ8VXygl2Vs4nL5lMCJL9ZQEAf/g9LsV6zYStSn7is102Wg5UKBNPoqCHmTV3
-X-Gm-Gg: AZuq6aKbgXZfK6agyJiGvob+2yY/5p4n+dAWR2bZSWKvIrKhpUN88rJbo/MBzhQpKI0
-	2O3lOOGsM6Y73C0SXr9KWp55nhtD1dQt3Ii4zwmSX35WD6tI63T7HaDq8kuoxv/CYYaYyLf3yJS
-	h663+cxFzbsuGQP0n4gCkt/vu68TjLdiLY5viEwnPQNCo4jNn4vcOwg5RPqkhvZU7x42b0jS24p
-	6s0wc8mNFC2vFUhxZFMAzgdzkNxvb91LLJ9p8jCMQwcdLUYWjRNataAXrw82omzJ4W3oESOL+Lh
-	I6rSRYXVa2JV9IIqyim4doD5MmpzMZza7qD1Dth5NII3uUdop01mTV+MAi/pQF4fOK+4s7kHd/T
-	9cF/rhd4pirWvJfCz//kbe4TOP/etFuIMDrA1aE1+WB+tqoJdfN/FzNUeBPnxscb27DXc1VYHtR
-	r7hHqnD5qxb9+q6U1xCYkdlZH0PtYtzORd2yhkVLtz59UWF6kfkoBGyGIKvQD6
-X-Received: by 2002:a05:6820:151c:b0:66e:7439:76ee with SMTP id 006d021491bc7-679c4621578mr4464498eaf.75.1771856226307;
-        Mon, 23 Feb 2026 06:17:06 -0800 (PST)
-Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com. [209.85.210.42])
-        by smtp.gmail.com with ESMTPSA id 006d021491bc7-679c564489fsm6364628eaf.4.2026.02.23.06.17.05
-        for <linux-omap@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 23 Feb 2026 06:17:05 -0800 (PST)
-Received: by mail-ot1-f42.google.com with SMTP id 46e09a7af769-7d18f80b5c2so3732686a34.3
-        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 06:17:05 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCWESbbkAktMP+rGXKmOTFhHUky+uWE0N6cbiKdHrdOeW3ZEZ2P0bkIM+kRIer81cE0/nnUqLiLL3Bmb@vger.kernel.org
-X-Received: by 2002:a05:6102:38ce:b0:5ef:a346:a020 with SMTP id
- ada2fe7eead31-5feb2f081dbmr2742454137.17.1771855750377; Mon, 23 Feb 2026
- 06:09:10 -0800 (PST)
+	 To:Cc:Content-Type; b=e/Hb34OqbUSiG041eDBlY8lU9VxNhwp5fF7pso6eudu7EDy021qHKdCF5COVkQieSHvFTxnIv1mH25SryzTOEqR6xTPEkHWFzh6UwWEnmrATQha4IlcDyCJ9FZ71CishQgLb7L3KS5O2lrUJOhRY20o3EM3EZCtrlgASSXoVVts=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J7ff+Act; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J7ff+Act"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CECFC2BCB8
+	for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 14:43:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1771857828;
+	bh=xpkGtbKSLkOC6t0Nfnp/Fk4IE5J7TBULp81UPGnND4k=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=J7ff+Act5RERmU121WIEVnKOXCD8S3xo3pSxIT80oSKQhfQx3hjGnEgfiYUs5K6gf
+	 2NpWspeLIYloxnRgUr03xhxXRgwcAKggY48oCzdo140Ce6pKgosiLI8gPx58TeKi0T
+	 brQy26KjzL/ea7ltyLHEw2sdansi0UCTljMIsuydVrVltmV0IOYfjDIIRpiW+lPIW3
+	 PjCk9FuZkkuTjt8t9L4kWW+ypaPuzcXCYJ+UQrf6qf9LrsgPCte9SNphQ0Wy95KmtW
+	 wx8uih0ddoSmCnyNH0GZdlH/C+M2xCV/fe5vw45L+p1tYOwv0f6eK7xatmwecxacNq
+	 DlNBBfajDkKDQ==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-59e63b427aaso4622508e87.2
+        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2026 06:43:48 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCVy7Isf5BkALWweU5W9rV/HaKDjfsEWYJLPc92qfC9ExsuabaFQOMGH9DwkOyFd2bOL1lPxKSwoGyWF@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzp8y4Fykg8koLILaPnIeoAsaKJPHmYjtofRRtFs+niA2yIH0Pr
+	TinUsEtEkDSoxCrnrxIGBYlShVfFIkAHr4tmHsmeLmJfBXEMC5RQRbWMdvCCsPFq2k+reDAmD6y
+	QOrZxr9fccJ5gwCro9mi9OFdBByHRAVVcw5swyxvsZA==
+X-Received: by 2002:a05:6512:3a96:b0:59f:6ec7:fa6 with SMTP id
+ 2adb3069b0e04-5a0ed9b2a30mr2997072e87.35.1771857826355; Mon, 23 Feb 2026
+ 06:43:46 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260223-i2c-adap-dev-config-v2-0-d78db0a6fcf7@oss.qualcomm.com>
-In-Reply-To: <20260223-i2c-adap-dev-config-v2-0-d78db0a6fcf7@oss.qualcomm.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 23 Feb 2026 15:08:59 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdWJCc-UeaJLM4dpDN=toDvteXFvOFpTm5AbvNoKf3rTqA@mail.gmail.com>
-X-Gm-Features: AaiRm50V2ONm2B9njU7ZJRcOuR4Nb8zI5Hsqj9aPxNU6M55eyuOZ1HhwjvL4ass
-Message-ID: <CAMuHMdWJCc-UeaJLM4dpDN=toDvteXFvOFpTm5AbvNoKf3rTqA@mail.gmail.com>
+References: <20260223-i2c-adap-dev-config-v2-0-d78db0a6fcf7@oss.qualcomm.com> <CAMuHMdWJCc-UeaJLM4dpDN=toDvteXFvOFpTm5AbvNoKf3rTqA@mail.gmail.com>
+In-Reply-To: <CAMuHMdWJCc-UeaJLM4dpDN=toDvteXFvOFpTm5AbvNoKf3rTqA@mail.gmail.com>
+From: Bartosz Golaszewski <brgl@kernel.org>
+Date: Mon, 23 Feb 2026 15:43:32 +0100
+X-Gmail-Original-Message-ID: <CAMRc=Me57wj7=BJ_nJZP9BV5-ZhebbFAS+DcZ=ifGxMyo=S2kA@mail.gmail.com>
+X-Gm-Features: AaiRm52wJXWjyETw7SJc1Vpbds6l0EdwJaHmK-itcIl4J2BcM6sfQPM4owz6q88
+Message-ID: <CAMRc=Me57wj7=BJ_nJZP9BV5-ZhebbFAS+DcZ=ifGxMyo=S2kA@mail.gmail.com>
 Subject: Re: [PATCH v2 00/12] i2c: configure parent device and OF node through
  the adapter struct
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>, 
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, 
 	Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com>, 
 	Viken Dadhaniya <viken.dadhaniya@oss.qualcomm.com>, Andi Shyti <andi.shyti@kernel.org>, 
 	Florian Fainelli <florian.fainelli@broadcom.com>, Ray Jui <rjui@broadcom.com>, 
@@ -80,29 +65,27 @@ Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
 	Patrice Chotard <patrice.chotard@foss.st.com>, Shawn Guo <shawnguo@kernel.org>, 
 	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
 	Fabio Estevam <festevam@gmail.com>, Linus Walleij <linusw@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
-	Bartosz Golaszewski <brgl@kernel.org>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, 
 	linux-renesas-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
 	imx@lists.linux.dev, linux-rpi-kernel@lists.infradead.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Bartosz,
+On Mon, Feb 23, 2026 at 3:15=E2=80=AFPM Geert Uytterhoeven <geert@linux-m68=
+k.org> wrote:
+>
+> Hi Bartosz,
+>
+> On Mon, 23 Feb 2026 at 10:06, Bartosz Golaszewski
+> <bartosz.golaszewski@oss.qualcomm.com> wrote:
+> > Changes in v2:
+> > - fix a NULL-pointer dereference in gpio-rcar (Geert)
+>                                       ^^^^
+> I guess that is bound to happen when a GPIO maintainer touches
+> the I2C subsystem? ;-)
+>
 
-On Mon, 23 Feb 2026 at 10:06, Bartosz Golaszewski
-<bartosz.golaszewski@oss.qualcomm.com> wrote:
-> Changes in v2:
-> - fix a NULL-pointer dereference in gpio-rcar (Geert)
-                                      ^^^^
-I guess that is bound to happen when a GPIO maintainer touches
-the I2C subsystem? ;-)
+That or caffeine had not hit the system yet. :)
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Bartosz
