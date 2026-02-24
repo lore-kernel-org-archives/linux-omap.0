@@ -1,77 +1,135 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [81.169.146.168])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC12836829F
-	for <linux-omap@vger.kernel.org>; Tue, 24 Feb 2026 08:47:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771922850; cv=none; b=d3mQPvuCPwQXB5Xgh6QGLdEeD4ErtsMOG1hYYpUargwNVFwaVQyka6fYZGTKzVMmMYNwNkS/gzfYVhV5vJ54UpTx2rNVuRWaS9LgEH8zry74wlSlfxcFsYpR7jLfu4vM4DBaGJ8cQfQ6kTG2LSelgzwcB/zM0wWhCHi504zMlhU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771922850; c=relaxed/simple;
-	bh=i3q7I3HDbIZE2ViLYMXs13uKtcpqu5vabX2yCdjCgLA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ZUHHDK02pnYCt1x1d7JtbjIA+R/Oy5GXCUIiUvG0lKrcNN62pNlD1M/PVVV/1aDlKxFvLBmfAcwkN9vnDICK7vBtbMyibDZkCGrXmhzbZ2HEp8eCxRMM9t5VvuCt5pRinJw7s9syGdLrPvfjMdRqWq3ldTkTd0+HT1FH5aO4020=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iYiAZt1i; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EB5B24C692;
+	Tue, 24 Feb 2026 09:00:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=81.169.146.168
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1771923651; cv=pass; b=aVmpihBIMkaiREnIVa9Wnv6mV9OlSTmsVj2at1uVcN4UvbDd7fYfevZWUGd5HkC3LV1VpZxstSLfgcrRHLrZ4f+uUkRZW4uhPfx4ftVUrXi+YIF0FUqhPREtXctH9iKexBJy0CmI3pO2vULzd3E+lmPJL+7yezWC9TMMiwuo2+g=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1771923651; c=relaxed/simple;
+	bh=KT066q5xWJRud5NE33MICsEIixK1+hWqdcUsGN8Sm2U=;
+	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Message-Id:References:To; b=ckaf6snhwtJOu//mCTO8HKnNOx+1JPBgpr9vDihBy8Ui60eeoFEM58/shEXn2EKaP7a7H2aXrSr3vZp8nScb9azaBvwZgcu8E8Etq2M1CcUolwwbNPcfFs5/njlCh9o80S4l2yA5LN64p/BAcQdwnwZgVJruHyUhBNXDzI+meT0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=gdrt9Wk8; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=KbuykeOt; arc=pass smtp.client-ip=81.169.146.168
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iYiAZt1i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35F20C2BC86
-	for <linux-omap@vger.kernel.org>; Tue, 24 Feb 2026 08:47:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1771922850;
-	bh=i3q7I3HDbIZE2ViLYMXs13uKtcpqu5vabX2yCdjCgLA=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=iYiAZt1id1XT0Nc/u2cnzyYF1vFxlrrnblR4MexnicOGKbXsUmmW9KRaC7pnzJoe3
-	 n9pVlQRnZfK1cRZ5q7IdsvA7RgA8QqJ+Vwe4ve2T8wlGtOyZ/H8ipozSExf7n/Cvzt
-	 KxjobDZg/mFMEqS3/USm071G43KZOdQY9+rPhtQpVHxnQn7VAUNSGtM4jtMrBJW/f4
-	 fwZGYYT0eLUzh1NZ1BWZsvEkPUZlVcubUz08mPsAZ1BIS7KC+K7pXFfp6PsKujbQb2
-	 hlCA5BF3BZkB8EbhBll//X+vtF4ZeRpEmeCY3wjPFXnF0QoFfrxY+wbVfbkb8CMkxe
-	 Hi4Pr3r3Adgkw==
-Received: by mail-yw1-f177.google.com with SMTP id 00721157ae682-797d6f934e2so51238627b3.0
-        for <linux-omap@vger.kernel.org>; Tue, 24 Feb 2026 00:47:30 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCXvAILnGKARangIPw6WB9IQg8I5HUebTx1YDd4lwgNOzth9rkYU8Ryoz45PJa2yFwH9nzuImXucjDLu@vger.kernel.org
-X-Gm-Message-State: AOJu0YyCk5SqwVZGHonxK+zf9n22IKlDyS4GqtXVoabE7GIZcv4syHc5
-	RH8tuOnQ7ZzQRyxSgzn4gkqkhwv/tySL8Nve1nSWIE9NifB9t22jf0YpZ7Qeh3DStmn8M0lGTgE
-	oSFXSvmJrXZRhNPNMD2uuxZfrnConJWI=
-X-Received: by 2002:a05:690c:4b85:b0:794:7210:61dc with SMTP id
- 00721157ae682-79829190d22mr81325537b3.66.1771922849602; Tue, 24 Feb 2026
- 00:47:29 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="gdrt9Wk8";
+	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="KbuykeOt"
+ARC-Seal: i=1; a=rsa-sha256; t=1771922921; cv=none;
+    d=strato.com; s=strato-dkim-0002;
+    b=nB4zpHckCKF+jvQUIH2KbU++0kkby2JO+eouCgWYw/Lp6V0WyY04utvaXvw74gNta9
+    RyGbza9+kj8+m9hLU6yuCqG1e6HepWGavWcQTqHERHc8sTP3CBI+PCSVsXIdzufLqw2R
+    Wy0PHwIyiPcV+0mxJUJDaTn8pUFI/gR/mcng6qkWQxGcHmr6ulyfloohugmI7FKoFy5g
+    uRIoif5l9Fj6PmjbZww1qZmN19Wyz71W6dMYgRnZKlbbxWKiIbaUXuhRD7cZRswdz1KL
+    qbhDh76ByI3O4B62osp+Nruhm/4mwRcg1BOZoT3CUDNgQvvwT95DP8REi/Rcpaiw/MCZ
+    2hRA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1771922921;
+    s=strato-dkim-0002; d=strato.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=KT066q5xWJRud5NE33MICsEIixK1+hWqdcUsGN8Sm2U=;
+    b=XQEXUYd6cOSg9volYbkjoRhSArPLQwdO+3u5qRXGXTwABCX/S7MTmkrUgP012fkXrV
+    lVMqYfdoVBdTI9HPADLk2xrSBzD7WUBgwK+YBS+JymBp0aNUh+HPfdFY4Fq1tz2IeqyY
+    wFVfPT7v8QEOUQoykLos8qghxhPUzYYhgVgvgLrz+mfHiOebmWqIyxONTSraaQIfsZbH
+    WyPfl21MQf4BjwuF+q08th9ObNkmodwX5v6QvWoASuqUqYR4nHLSy2bIfzxy+PpY3Rhx
+    XLhfTAXEg8xQ2yIT7xKGZ1kG5QdOa8t++z76hvt5OBSVZrDbBF7tS8OWDk9WVAR3KOSl
+    dX9g==
+ARC-Authentication-Results: i=1; strato.com;
+    arc=none;
+    dkim=none
+X-RZG-CLASS-ID: mo02
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1771922921;
+    s=strato-dkim-0002; d=goldelico.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=KT066q5xWJRud5NE33MICsEIixK1+hWqdcUsGN8Sm2U=;
+    b=gdrt9Wk8i8jy/pHO/nqFVkQ80z57DZzB4fa8eXRMvGm1aJ6Tfv3vfa3QgqmvOI5dkm
+    zEJXby/H2g1Xta+6sy2TrjZj7dxEuWhyAIvLs3WZA1vIPopqyEzt0GmP4geA9WHVNmRt
+    nArwpwTNIKpnzU+9EaBgJog0LGRfkTEMlL6clisGGJMWpDce2od7YIFw6/Y/k7jQlEhF
+    MM2OQQ2HQut0dJOCcuM1NvPjnjpVmCNVY1f6xjxxta+P24BYEvG4cOkxGmEQig64kJl7
+    ySRHOTqFrjw8447MQ+pFLITm18rwMLaPSLuL6vrPv6VMHXmg6XA/9SEiv3E7SQoI9MXn
+    1Qyw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1771922921;
+    s=strato-dkim-0003; d=goldelico.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=KT066q5xWJRud5NE33MICsEIixK1+hWqdcUsGN8Sm2U=;
+    b=KbuykeOt2fsEPrtUrX7B2OzjM2SgwS91oCkzZHCFXMk7RApbxm/sMK6U5MZr1qK7Cv
+    1kkPEUZBwG/Gai3sGmAw==
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9o12DNOsPj0lFzL1yeT0Z"
+Received: from smtpclient.apple
+    by smtp.strato.de (RZmta 55.0.1 DYNA|AUTH)
+    with ESMTPSA id Q3a36b21O8mdY1h
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
+	(Client did not present a certificate);
+    Tue, 24 Feb 2026 09:48:39 +0100 (CET)
+Content-Type: text/plain;
+	charset=us-ascii
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20260212-am62l-padconf-v1-1-0bb6f066fabd@ti.com>
-In-Reply-To: <20260212-am62l-padconf-v1-1-0bb6f066fabd@ti.com>
-From: Linus Walleij <linusw@kernel.org>
-Date: Tue, 24 Feb 2026 09:47:18 +0100
-X-Gmail-Original-Message-ID: <CAD++jLnY5Dar4qvBcSiUBgPaDR94b4-ONtuZEaO75Uv5=6foKg@mail.gmail.com>
-X-Gm-Features: AaiRm53pigVbE7s4jmjKR7_vFmD2hgbe0l7bXfTTEFLsTkiHi2nSHctBg71UP-c
-Message-ID: <CAD++jLnY5Dar4qvBcSiUBgPaDR94b4-ONtuZEaO75Uv5=6foKg@mail.gmail.com>
-Subject: Re: [PATCH] pinctrl: pinctrl-single: add ti,am62l-padconf compatible string
-To: Kendall Willis <k-willis@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, bb@ti.com, 
-	vishalm@ti.com, d-gole@ti.com, vigneshr@ti.com, sebin.francis@ti.com, 
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.4\))
+Subject: Re: [PATCH v4 2/2] arm: dts: ti: Adds support for AM335x and AM437x
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <20260105162546.1809714-3-parvathi@couthit.com>
+Date: Tue, 24 Feb 2026 09:48:29 +0100
+Cc: nm@ti.com,
+ vigneshr@ti.com,
+ afd@ti.com,
+ khilman@baylibre.com,
+ rogerq@kernel.org,
+ tony@atomide.com,
+ robh@kernel.org,
+ krzk+dt@kernel.org,
+ conor+dt@kernel.org,
+ richardcochran@gmail.com,
+ aaro.koskinen@iki.fi,
+ andreas@kemnade.info,
+ andrew@lunn.ch,
+ linux-omap@vger.kernel.org,
+ devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org,
+ netdev@vger.kernel.org,
+ danishanwar@ti.com,
+ pratheesh@ti.com,
+ j-rameshbabu@ti.com,
+ praneeth@ti.com,
+ srk@ti.com,
+ rogerq@ti.com,
+ krishna@couthit.com,
+ mohan@couthit.com,
+ pmohan@couthit.com,
+ basharath@couthit.com,
+ Murali Karicheri <m-karicheri2@ti.com>
 Content-Transfer-Encoding: quoted-printable
+Message-Id: <B3077F98-CC5C-4093-8319-CF45EECEAE4D@goldelico.com>
+References: <20260105162546.1809714-1-parvathi@couthit.com>
+ <20260105162546.1809714-3-parvathi@couthit.com>
+To: Parvathi Pudi <parvathi@couthit.com>
+X-Mailer: Apple Mail (2.3826.700.81.1.4)
 
-On Thu, Feb 12, 2026 at 10:38=E2=80=AFPM Kendall Willis <k-willis@ti.com> w=
-rote:
+Hi,
 
-> From: Vignesh Raghavendra <vigneshr@ti.com>
->
-> Add "ti,am62l-padconf" compatible string for the AM62L SoC, which
-> requires register configurations to be restored during system resume
-> after suspend to RAM (RTC only + DDR mode). This reuses the j7200
-> configuration which includes the PCS_CONTEXT_LOSS_OFF flag needed for
-> proper restoration.
->
-> Signed-off-by: Vignesh Raghavendra <vigneshr@ti.com>
-> Signed-off-by: Kendall Willis <k-willis@ti.com>
+> Am 05.01.2026 um 17:21 schrieb Parvathi Pudi <parvathi@couthit.com>:
+>=20
+> From: Roger Quadros <rogerq@ti.com>
+>=20
+> PRU-ICSS instance consists of two PRU cores along with various
+> peripherals such as the Interrupt Controller (PRU_INTC), the =
+Industrial
+> Ethernet Peripheral(IEP), the Real Time Media Independent Interface
+> controller (MII_RT), and the Enhanced Capture (eCAP) event module.
+>=20
 
-Patch applied!
+I am just wondering about the subject of this patch.
 
-Yours,
-Linus Walleij
+It reads as if general AM335x and AM437x support is introduced for the =
+first time.
+IMHO it should tell which subsystem/improvement is added.
+
+BR and thanks,
+Nikolaus
