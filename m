@@ -1,197 +1,153 @@
-Received: from mail-lf1-f41.google.com (mail-lf1-f41.google.com [209.85.167.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 679DB3ACF1E
-	for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2026 12:25:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772022339; cv=pass; b=eBO+3hMNWJqC29aIYh0x8hdeg+fpO8gkc7SDxdIEq9/OKzmcwYmZwC585oYFp+XPHEPYdUV0bLKocBgjsHd7pHJ9CkmBREXpe479dZTC1QYTpU2E/N5AUF0qBiM0oJeIUCqTbZ+Vbh4VlAzcezL69mxSJf6WnJlxlH9oEbAnBnQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772022339; c=relaxed/simple;
-	bh=jXjctxlX2mOd4kESSuh+dmt6ufaPRbeKlSyIRNOCp10=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QeijLKXl0yO5L1qcL5fej8/Yfn2lw2FjkffNl0iAejtaQblMygr9gVMZeGSMkFXoecMmO5eoEjehx/OfAVfeijg1enjUoUkz5MwjAFgRW4yRGk6INdvinmoA3/DKwJBi8R+LWLdoSrg34bUEM3+uoMXj/w8BkzeOS4C07ZxVppw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=sDSkUWOS; arc=pass smtp.client-ip=209.85.167.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F60B274B3B;
+	Wed, 25 Feb 2026 17:03:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1772039033; cv=none; b=DOf+92TNjOe7oSLUuEL1uRcBBoq6b3yOwf4DOjyC7X05Eij6yBSwVuQWPcziOOJQe2FaaeLuKcxmZCTXZ8GttYKAsJ/dHePlB8KGf+ukHRymECBNMmbq21HfaRjc753Q3nThqpmLZeDvJ2VzCb68CH5i/AzQsMTtH2IGNt26HPo=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1772039033; c=relaxed/simple;
+	bh=dHsr+tHFlCnPRl24N4jA2w27y8fJLi3JtyQervzLoTQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uQpwtsWkrSMiJx7UEZ7rMvMKVpHwkJKSqM1i11jsWDcWzZFqEujZHx9UExFCQrWnmYq/ScMwrQ7/d5sIxDt/J11yAJj39yludIDwBZaI98sQ9s9tvd4U6cGJEm9u6B3XOMFaxWpC1NTXFhesfRa8YWJFEps29L3LZBdpDV4OyG8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XD1ozh1S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="sDSkUWOS"
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-59e5eaa491cso8350604e87.0
-        for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2026 04:25:37 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1772022336; cv=none;
-        d=google.com; s=arc-20240605;
-        b=kjw0kKEHbEGKwxiJNyH/vTAuazRnIk1iyDQ3cOjpnHdLMXB+czyht+pNGw2NT/O7Mn
-         nEWoLUpsgZjm4bRYBUc0l+eKZ8hA1ewW0MQnnOT4tjsiYW5pZqXyTWIVUt/NhXt/1nPo
-         nlKTkwpr60hOnDH0eizR13s+Y+aaMX2qhK7DeHzaM9z9q+/fmXXNycYzUXpcmXf6CNpQ
-         0/oFUZifTc0LgaJbP/9sfBpcGlFYfxB0+4wbGeVwkY841QPAFtmc0pVi7tCDQ1Ti4GOE
-         w/tbOoKdns7W43EkbvCycc349dOqqxcIQLe50+VrK8MC1c5v4JiQhsgPzFWMuhQdfd1t
-         pQWA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=ySl6ydztfTvafF7H4MeeeCO8Ou666oUNAgwfiGo+Y6c=;
-        fh=s21mFcLeD5mDPIq8JdqKoPPfC9jlJ3tA+ywclKuTVWg=;
-        b=EUIOiA0E1kEJ0kJBCkt3eipMuCvnupNFu4EOU6Vd+yqkClAURqVWwNzr2Aun72sqdV
-         PIXQTe5BFut3uOqHrXKdYrT4+D9vU+WfyrvlFtDzAyvU0/3LjgFuF9F9AQXes5bVUfOY
-         rLF/qT3zPaCJgOPEReCOJYFgJmrDyYvLSKL3SxnFMX75ymv98jLodf2YzLbmrPNwKXey
-         IiubyXDL4k0ssFJEDIDvuJQiSRVLzXhv3sh+g/j34YA25Ao0SF9T4PApLJ4JxbCV27oy
-         OKFH9Quz9IR5/qBLzTC8laQq9us7k98e1X0xuUH7dheRevWGOu/9KODQ7t/86WBClzN5
-         4Mxg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1772022336; x=1772627136; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=ySl6ydztfTvafF7H4MeeeCO8Ou666oUNAgwfiGo+Y6c=;
-        b=sDSkUWOSKvxKxjfBRCLCeRWRlaT6myxGf91d+cFmFgdZeVpuujfiENdVsDX7udA6j9
-         pq1oYL0Z44XH1uBM1U0j5o6vT/g0VHsuPW7VKOlAh3vAFVAvv4LSR+zBB1m/xA4aZuQP
-         i5b4HPUHtjrCPeOGTsRUIZ53UfjBprittrXK7qS+s2NnOcfPo7honzsfS27MXC/InZGi
-         RL8Qld4kNmEEetpOF6OzFZMCoqxqAhGutWICH0o8TsfxY/Nn5QlMLG1KV2qjgaR2HxkK
-         675I+ZHxJ5EURxmjfCPiXQ6IFhuz/eZzLTmEdkYhokM8Xaw40D5sfnIjoz4pNhP09wFU
-         Qwdw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772022336; x=1772627136;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ySl6ydztfTvafF7H4MeeeCO8Ou666oUNAgwfiGo+Y6c=;
-        b=K/4Tn9m94uvKu4DkN0wTEUkjqRjhC3Kkd2vYOgOCNaxWjgZ0oNL1RxMqZFZJSSXeFT
-         nuQ9Bp/czBfMRwJgJdl/OBeWIZesYiduukgIQNKUzVAg8qZfMS/C+tP4SbOIHEjfkXHH
-         MUcAmJB0N7ZSfNYwYQ48BwCkIw2hCIGkC86H9BURbzWvQqNINFM6UI7VDcpwffmSauOx
-         yDKVXUPGUEWxQ4TKX8I46t9y3iTZsIYTCPAUdqpbyWoRbxohsMS9D6LbONpQwzNc9BG6
-         DkvDsjsfkvPLp2+ETG9siE/1nMhim4h/vraIOQHjmPCcswzv+sb8oq5cz5nBfUEA4sgp
-         sHZw==
-X-Forwarded-Encrypted: i=1; AJvYcCUu1mz+iJNlxppNQxOqD5BaxR6CNiDiLbHG5FQbxZlTR5DwOr3GHcAheHgq5S/HWWNl/ksuXxWSzkox@vger.kernel.org
-X-Gm-Message-State: AOJu0YxYVA++jjpm2ayKDnBm/1nfFEJR44oy19uf0ga9La/MTx9A9V3x
-	81cOY4KqPFI7Tb/LGKo6MHMqYbGypLQlSdyevxWGPHQmeoCSk8XlwZq6/qRgx6m4CTS347+3j+i
-	13BjW0UCNpeRtgD1ccv4UWzg2SVs+Ozb3BqyfbMj8Mw==
-X-Gm-Gg: ATEYQzyxqLmoGWRE5wYcgCo7S4znyQ4Cm0UY8u8c3yMKoj5Fo3ZxgRFIN23AN/2s3wl
-	KbyHJog1pBP47uPkCnOrjyzH5kOAvwS2PwLQZNE1M+PdwLi0gd1maR2sJYrgg9R7u4R+nUMJUfk
-	3KRtEodHVZN7q5znae88+XmmnnGGQUSVzLKmFzFaWZiBTSLfNr+zv2iV6RMGem86dJYsmXfsOGb
-	mwjPGnI8t1TMIii34ORS/vg+88824cf45Vc8EZBAe33yxj2ecSdvfSSmB7/cSMyg0lqWnKFpDnj
-	BzQ7GWZR
-X-Received: by 2002:a05:6512:32c7:b0:59f:8e98:5dc4 with SMTP id
- 2adb3069b0e04-5a0ed8a5ef7mr5479022e87.23.1772022335501; Wed, 25 Feb 2026
- 04:25:35 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XD1ozh1S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A24FBC116D0;
+	Wed, 25 Feb 2026 17:03:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772039033;
+	bh=dHsr+tHFlCnPRl24N4jA2w27y8fJLi3JtyQervzLoTQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=XD1ozh1SBNkGjQqCe22FFfFv2+gNvPm+I1u1m6ZhzTUDqGpLTv2Fu/wbGHD02fBVU
+	 XkGSy7vfsi+9gp45XYK/2MWbz2etIJ3aW9cGxmnam+HNf8z2+fKZZ4Hg9JNPDy5uVo
+	 JZ9vqgsKdRVcR25jm3QOkTrCPkI9hWJJM7XsXuHn+jgBRHqMHwwM/7qr3DfGocYGQH
+	 +U3BcG/S1rHQFbyzH87U+PYRVhhEGLykjSr8HQP3gB3P2XN1LKuVukI9YFIf8qR4jF
+	 5+TJYcjly/VB9//ZEWQQaFRsDdUNfXknBSm4FMQa7BYhhKYVEGeb4rEo0LrJY+cYjc
+	 LpH7w9lZea3SA==
+From: Niklas Cassel <cassel@kernel.org>
+To: Manivannan Sadhasivam <mani@kernel.org>,
+	=?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
+	Kishon Vijay Abraham I <kishon@kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Vignesh Raghavendra <vigneshr@ti.com>,
+	Siddharth Vadapalli <s-vadapalli@ti.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Richard Zhu <hongxing.zhu@nxp.com>,
+	Lucas Stach <l.stach@pengutronix.de>,
+	Frank Li <Frank.Li@nxp.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Minghuan Lian <minghuan.Lian@nxp.com>,
+	Mingkai Hu <mingkai.hu@nxp.com>,
+	Roy Zang <roy.zang@nxp.com>,
+	Jesper Nilsson <jesper.nilsson@axis.com>,
+	Jingoo Han <jingoohan1@gmail.com>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Srikanth Thokala <srikanth.thokala@intel.com>,
+	Marek Vasut <marek.vasut+renesas@gmail.com>,
+	Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Christian Bruel <christian.bruel@foss.st.com>,
+	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+	Alexandre Torgue <alexandre.torgue@foss.st.com>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Jonathan Hunter <jonathanh@nvidia.com>,
+	Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Shuah Khan <shuah@kernel.org>
+Cc: Manikanta Maddireddy <mmaddireddy@nvidia.com>,
+	Koichiro Den <den@valinux.co.jp>,
+	Damien Le Moal <dlemoal@kernel.org>,
+	Niklas Cassel <cassel@kernel.org>,
+	linux-pci@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	imx@lists.linux.dev,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-arm-kernel@axis.com,
+	linux-rockchip@lists.infradead.org,
+	linux-arm-msm@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org,
+	linux-stm32@st-md-mailman.stormreply.com,
+	linux-tegra@vger.kernel.org,
+	linux-kselftest@vger.kernel.org
+Subject: [PATCH v2 0/9] PCI: endpoint: Differentiate between disabled and reserved BARs
+Date: Wed, 25 Feb 2026 18:03:23 +0100
+Message-ID: <20260225170324.4033466-11-cassel@kernel.org>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260225-rz-sdio-mux-v10-0-1ee44f2ea112@solid-run.com> <20260225-rz-sdio-mux-v10-8-1ee44f2ea112@solid-run.com>
-In-Reply-To: <20260225-rz-sdio-mux-v10-8-1ee44f2ea112@solid-run.com>
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Date: Wed, 25 Feb 2026 13:24:59 +0100
-X-Gm-Features: AaiRm51lt-nfdrgge9ulVu4LPr2JQVPo_YLU5CXuzn9PVqh2A9E2AaS4fZriRp8
-Message-ID: <CAPDyKFoDZr33tQXofsZzPrJbZM=3VhpeeOk1GqvRA1UK=LO5Ww@mail.gmail.com>
-Subject: Re: [PATCH v10 8/9] mux: add prompt and help text to
- CONFIG_MULTIPLEXER making it visible
-To: Josua Mayer <josua@solid-run.com>
-Cc: Marc Kleine-Budde <mkl@pengutronix.de>, Vincent Mailhol <mailhol@kernel.org>, 
-	Vinod Koul <vkoul@kernel.org>, Neil Armstrong <neil.armstrong@linaro.org>, 
-	Peter Rosin <peda@axentia.se>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vignesh R <vigneshr@ti.com>, 
-	Andi Shyti <andi.shyti@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
-	Wolfram Sang <wsa+renesas@sang-engineering.com>, 
-	Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, 
-	Yazan Shhady <yazan.shhady@solid-run.com>, Jon Nettleton <jon@solid-run.com>, 
-	Vladimir Oltean <olteanv@gmail.com>, Mikhail Anikin <mikhail.anikin@solid-run.com>, 
-	linux-can@vger.kernel.org, linux-phy@lists.infradead.org, 
-	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
-	linux-i2c@vger.kernel.org, linux-mmc@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2520; i=cassel@kernel.org; h=from:subject; bh=dHsr+tHFlCnPRl24N4jA2w27y8fJLi3JtyQervzLoTQ=; b=owGbwMvMwCV2MsVw8cxjvkWMp9WSGDLna8dsbxV8dXNj3bUlHarWmRVfz39m+h2yu0tNyOvyR u3tYde8OkpZGMS4GGTFFFl8f7jsL+52n3Jc8Y4NzBxWJpAhDFycAjCRlpkM/xSbLh6yCFXUrWnR 0Tsc9j7zY5+nwJY/i2tKpgqqhDyxmMvwv8g/WuGMyGxLHe6jOaotEnufVLNGPAhjSJpx4oKM2/8 sfgA=
+X-Developer-Key: i=cassel@kernel.org; a=openpgp; fpr=5ADE635C0E631CBBD5BE065A352FE6582ED9B5DA
+Content-Transfer-Encoding: 8bit
 
-On Wed, 25 Feb 2026 at 12:35, Josua Mayer <josua@solid-run.com> wrote:
->
-> The multiplexer subsystem was initially designed only for use by drivers
-> that require muxes, and did in particular not consider optional muxes or
-> to compile as a module.
->
-> Over time several drivers have added a "select MULTIPLEXER" dependency,
-> some of which require a mux and some consider it optional. v7.0-rc1
-> shows 15 such occurrences in Kconfig files, in a variety of subsystems.
->
-> Further some drivers such as gpio-mux are useful on their own (e.g.
-> through device-tree idle-state property), but can not currently be
-> selected through menuconfig unless another driver selecting MULTIPLEXER
-> symbol was enabled first.
->
-> The natural step forward to allow enabling mux core and drivers would be
-> adding prompt and help text to the existing symbol.
->
-> This violates the general kbuild advice to avoid selecting visible
-> symbols.
->
-> Alternatively addition of a wrapper symbol MUX_CORE was considered,
-> which in turn would "select MULTIPLEXER". This however creates new
-> issues and confusion as MULTIPLEXER and MUX_CORE need to share the same
-> state, i.e. MUX_CORE in menuconfig must not be set to m while
-> MULTIPLEXER was selected builtin. Further confusion occurs with Kconfig
-> "depends on" relationships that could reference either MUX_CORE or
-> MULTIPLEXER.
->
-> It is common across the tree for subsystem symbols to be both visible
-> and selected, e.g. I2C & SPI. In the same spirit multiplexer needs to
-> ignore this particular kbuild rule.
->
-> Add prompt and help text to the existing MULTIPLEXER symbol, making it
-> visible in (menu)config without breaking existing "select MULTIPLEXER"
-> occurrences in the tree.
->
-> Select it by default when COMPILE_TEST is set for better coverage.
->
-> Signed-off-by: Josua Mayer <josua@solid-run.com>
-> ---
->  drivers/mux/Kconfig | 9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/mux/Kconfig b/drivers/mux/Kconfig
-> index c68132e38138..4f7c6bb86fc6 100644
-> --- a/drivers/mux/Kconfig
-> +++ b/drivers/mux/Kconfig
-> @@ -4,7 +4,14 @@
->  #
->
->  config MULTIPLEXER
-> -       tristate
-> +       tristate "Generic Multiplexer Support"
-> +       default m if COMPILE_TEST
+Hello all,
 
-Allowing the core being a module makes things/code a bit unnecessarily
-complicated, I think.
+This series was originally written in response to the patch series from
+Manikanta Maddireddy that was posted here:
+https://lore.kernel.org/linux-pci/291dab65-3fa6-4fc8-90a2-4ad608ca015c@nvidia.com/T/#t
 
-Similar to other subsystems (like regulators/clk/etc), the core is a
-bool and the menu below it for its provider drivers depends on it to
-be configurable, allowing them to be tristate.
-
-> +       help
-> +         This framework is designed to abstract multiplexer handling for
-> +         devices via various GPIO-, MMIO/Regmap or specific multiplexer
-> +         controller chips.
-> +
-> +         If unsure, say no.
->
-
-continuing from the above comment, this would instead be:
-
-if MULTIPLEXER
-
-menu "Multiplexer drivers"
+Manikanta has reviewed V1 and will send a small series on top of this one.
 
 
->  menu "Multiplexer drivers"
->         depends on MULTIPLEXER
->
-> --
-> 2.43.0
->
+Changes since v1:
+-Rebased on latest pci/endpoint branch
+-Picked up tags
+-Fixed review comments from Frank and Manikanta (thank you)
+-Simplified function bar_is_reserved()
 
-Kind regards
-Uffe
+Link to v1:
+https://lore.kernel.org/linux-pci/20260217212707.2450423-11-cassel@kernel.org/
+
+
+Koichiro Den (2):
+  PCI: endpoint: Describe reserved subregions within BARs
+  PCI: dw-rockchip: Describe RK3588 BAR4 DMA ctrl window
+
+Niklas Cassel (7):
+  PCI: endpoint: Introduce pci_epc_bar_type BAR_64BIT_UPPER
+  PCI: endpoint: Introduce pci_epc_bar_type BAR_DISABLED
+  PCI: dwc: Replace certain BAR_RESERVED with BAR_DISABLED in glue
+    drivers
+  PCI: dwc: Disable BARs in common code instead of in each glue driver
+  PCI: endpoint: pci-epf-test: Advertise reserved BARs
+  misc: pci_endpoint_test: Give reserved BARs a distinct error code
+  selftests: pci_endpoint: Skip reserved BARs
+
+ drivers/misc/pci_endpoint_test.c              | 21 ++++++++-
+ drivers/pci/controller/dwc/pci-dra7xx.c       |  4 --
+ drivers/pci/controller/dwc/pci-imx6.c         | 22 +++------
+ drivers/pci/controller/dwc/pci-keystone.c     | 12 +++++
+ .../pci/controller/dwc/pci-layerscape-ep.c    |  8 +---
+ drivers/pci/controller/dwc/pcie-artpec6.c     |  4 --
+ .../pci/controller/dwc/pcie-designware-ep.c   | 24 ++++++++++
+ .../pci/controller/dwc/pcie-designware-plat.c | 10 -----
+ drivers/pci/controller/dwc/pcie-dw-rockchip.c | 19 +++++---
+ drivers/pci/controller/dwc/pcie-keembay.c     |  6 +--
+ drivers/pci/controller/dwc/pcie-qcom-ep.c     | 14 +-----
+ drivers/pci/controller/dwc/pcie-rcar-gen4.c   | 16 ++-----
+ drivers/pci/controller/dwc/pcie-stm32-ep.c    | 10 -----
+ drivers/pci/controller/dwc/pcie-tegra194.c    | 20 +++------
+ drivers/pci/controller/dwc/pcie-uniphier-ep.c | 24 +++-------
+ drivers/pci/controller/pcie-rcar-ep.c         |  6 +--
+ drivers/pci/endpoint/functions/pci-epf-test.c | 24 ++++++++++
+ drivers/pci/endpoint/pci-epc-core.c           |  6 ++-
+ include/linux/pci-epc.h                       | 45 +++++++++++++++++--
+ .../pci_endpoint/pci_endpoint_test.c          |  4 ++
+ 20 files changed, 174 insertions(+), 125 deletions(-)
+
+
+base-commit: 8eaff52fc101c1f6b3215db93bba02c815155806
+-- 
+2.53.0
+
