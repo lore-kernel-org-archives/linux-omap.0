@@ -1,238 +1,165 @@
-Received: from AM0PR83CU005.outbound.protection.outlook.com (mail-westeuropeazon11020085.outbound.protection.outlook.com [52.101.69.85])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vk1-f177.google.com (mail-vk1-f177.google.com [209.85.221.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1514395D93;
-	Wed, 25 Feb 2026 11:35:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.69.85
-ARC-Seal:i=3; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772019317; cv=fail; b=LsfOS3VrgQxdnM6BDnw85uZW05KTs7hBjVTchfr520eR4pL28ewZ2F3+uXQO9fqv0CmFN8XjYVElDDaqLraIjwdVaPIbFYO9WQenWQ+mR3M5CjNYA7OqEeWWrJhEa2qfrjm83o9HonAV5L3V1KmryqPgWzeaHTO9OUjnkCzlX0o=
-ARC-Message-Signature:i=3; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772019317; c=relaxed/simple;
-	bh=y/GNtmWP7acS7RvvI1tniqZBi6eMdSa1hTUwqx1PoPY=;
-	h=From:Date:Subject:Content-Type:Message-Id:References:In-Reply-To:
-	 To:Cc:MIME-Version; b=sVhmitpvrAfSobjbRFr7H9l1NZiyjzXE9eUASCycqT5eQRNVjcpBeH6G5QzkINw/4QmdZMm5VIa9DW7PDZh/mP6vH4es/Zg7+Qtr/6A3FPYfWPToRMd7foq6FGfoOU2GJK/tUocqZ+YboB4gUB7SJWly8lnJV8VsieiZgdtHHkw=
-ARC-Authentication-Results:i=3; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=solid-run.com; spf=pass smtp.mailfrom=solid-run.com; dkim=pass (1024-bit key) header.d=solidrn.onmicrosoft.com header.i=@solidrn.onmicrosoft.com header.b=JubgvtEO; dkim=pass (1024-bit key) header.d=solidrn.onmicrosoft.com header.i=@solidrn.onmicrosoft.com header.b=JubgvtEO; arc=fail smtp.client-ip=52.101.69.85
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=solid-run.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=solid-run.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=solidrn.onmicrosoft.com header.i=@solidrn.onmicrosoft.com header.b="JubgvtEO";
-	dkim=pass (1024-bit key) header.d=solidrn.onmicrosoft.com header.i=@solidrn.onmicrosoft.com header.b="JubgvtEO"
-ARC-Seal: i=2; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=pass;
- b=kGIus/F3dXdrCe6a88yxSTyXZvh//qUsaTq5KV1IvLctDk8Gf1sdYJiGHCQQGmBWq/ZCkrsORF9xmKu8y7gVUKdBglnmp1G+mk0lCz9eISlv4TnJ/psHuxepvECUIWy3V6QU8ESWB2l7oONL+W6X6zOxFJNCFNcPs5FLFUFNrA598z0Oex3YKGnAzjzMzko9w9+EXRl9DmNpWrPqubmH5ozGE1QzCv2vUmw4fmunjCvPHd4nq+PdFn0C3DkYZkIRTegr7anVv7n2SsYxJb4nHCpJv1NPTpqDWvkjCSpPk3KELc2Mh7Gnu4tuWQ7UyDMw2F7TPRxbzd8zDsN0jwKb3A==
-ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oLIKsliEswjaPXbuicMEHAX/h82aBprjjx1Bq7A/fXk=;
- b=Mh4CQufNrhow9MwrJMHW9/yp2JEvFGlst27sFg78EjE61t+e6gIHwFacxoB21SKJlW+Yqs2IVXXHMFYa9guA36RGLnqKleWQ3No+YjNu4sKJLwVQGAjPF57WNGTuGG9r05D4PnANz8nVRnMhinjUX6uIcJearFmmae0iykd95HsCpiAL8+CaE7i7iiy+mbZ6jyBYMp1t7STpiz0/U+3oEtQ3M9kxQSLkzO47By5Hn9W9ZNC87rgKfQLmiDZMqk3TisrzU34wI4lMjBLqRR3W70PIvOkFMATs730Jz/zvsDt3zEM7bUa1gD01pzhJXxkVz6rQeyoiq5/4iwn/q9nSTw==
-ARC-Authentication-Results: i=2; mx.microsoft.com 1; spf=softfail (sender ip
- is 52.17.62.50) smtp.rcpttodomain=atomide.com smtp.mailfrom=solid-run.com;
- dmarc=fail (p=none sp=none pct=100) action=none header.from=solid-run.com;
- dkim=pass (signature was verified) header.d=solidrn.onmicrosoft.com; arc=pass
- (0 oda=1 ltdi=1 spf=[1,1,smtp.mailfrom=solid-run.com]
- dkim=[1,1,header.d=solid-run.com] dmarc=[1,1,header.from=solid-run.com])
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=solidrn.onmicrosoft.com; s=selector1-solidrn-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oLIKsliEswjaPXbuicMEHAX/h82aBprjjx1Bq7A/fXk=;
- b=JubgvtEOIqNS0OBYkGuMxeU93bwG5T6S+IDaVVHElcLcuUd0fTlgumOAYU+JfPyWIWzJMcONyB4nuwFGHLvhbJl5R5aALcX1++6Fsr6XDsbD8rg/lOrGg9lIVZK5GJwADg9KQHBpFGR7VFypnWEkWmuiaA91pp2pCFeIXVcMPdY=
-Received: from CWLP123CA0098.GBRP123.PROD.OUTLOOK.COM (2603:10a6:401:5f::14)
- by PAXPR04MB8490.eurprd04.prod.outlook.com (2603:10a6:102:1de::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9632.14; Wed, 25 Feb
- 2026 11:35:07 +0000
-Received: from AM2PEPF0001C717.eurprd05.prod.outlook.com
- (2603:10a6:401:5f:cafe::ac) by CWLP123CA0098.outlook.office365.com
- (2603:10a6:401:5f::14) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9632.24 via Frontend Transport; Wed,
- 25 Feb 2026 11:35:00 +0000
-X-MS-Exchange-Authentication-Results: spf=softfail (sender IP is 52.17.62.50)
- smtp.mailfrom=solid-run.com; dkim=pass (signature was verified)
- header.d=solidrn.onmicrosoft.com;dmarc=fail action=none
- header.from=solid-run.com;
-Received-SPF: SoftFail (protection.outlook.com: domain of transitioning
- solid-run.com discourages use of 52.17.62.50 as permitted sender)
-Received: from eu-dlp.cloud-sec-av.com (52.17.62.50) by
- AM2PEPF0001C717.mail.protection.outlook.com (10.167.16.187) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9632.12
- via Frontend Transport; Wed, 25 Feb 2026 11:35:01 +0000
-Received: from emails-549506-12-mt-prod-cp-eu-2.checkpointcloudsec.com (ip-10-20-5-66.eu-west-1.compute.internal [10.20.5.66])
-	by mta-outgoing-dlp-862-mt-prod-cp-eu-2.checkpointcloudsec.com (Postfix) with ESMTPS id 4675F805BB;
-	Wed, 25 Feb 2026 11:35:01 +0000 (UTC)
-X-Mailbox-Line: From b'josua@solid-run.com' Wed Feb 25 11:34:52 2026
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=jSob57uBfVcA5MGN3tbSiEl10bsJnICaPjNnUj+u8MgGwVPaR4GGCHgk43ebgUcPZ6XN4s4Ux8Wkr48+p0DuimEBaDs5mD52CKUBHo5RrerWVvtVaeHLtJn5UO0VQrR4S4sBDUfqiolrRWUdw1buZjhwH75UqdVNw7kBRoAMq9Tpl4Tr4QvRYRp2vw97d1cDVUiBvmA8+Nunvyq8bWSsFV2hWlcrqwdwWcbEjRD9+HWCKv8JKPSUVOcJZVjhYTpkVpvet6lASRoOYXYq/MYfoIvGtO4Hebc2ewgo8mnfBnheDDv1qRwyF3s4UhxzEdeLZGlf85h4FCnNaFWTEu3INw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oLIKsliEswjaPXbuicMEHAX/h82aBprjjx1Bq7A/fXk=;
- b=PlzZCAjdBERnJX63Y46FSnF5VD7zkgW5omOYXYEX4ryo79Z62NYRxmv+hPRW3iuURTkRSHlhRteTtIl9x3DqFkKrML4UqMxu+Y4uXweaJpPTRLzzhvNf5+kszAVlgl9+ls05jjaIF/6qX6iNPm6d3yi6MkOqBAXx6yJXQIecAkl21r1k8x7VRlG/yfQGnZuTviv6Jw5QdRsXLiahxDt2hEyvtkHR2EQBpnb3Cyj2iQyuPwbyJZ+WH+S+rFWLJs/jVP3cYLeQHGVe/S6uGDjTLg6uxrYQN7sd8eWAsx6tymNsa6sBovCAGsJEUwlyl8W6m5SXqUb1zqF2vcQq/lr9Ow==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=solid-run.com; dmarc=pass action=none
- header.from=solid-run.com; dkim=pass header.d=solid-run.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=solidrn.onmicrosoft.com; s=selector1-solidrn-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oLIKsliEswjaPXbuicMEHAX/h82aBprjjx1Bq7A/fXk=;
- b=JubgvtEOIqNS0OBYkGuMxeU93bwG5T6S+IDaVVHElcLcuUd0fTlgumOAYU+JfPyWIWzJMcONyB4nuwFGHLvhbJl5R5aALcX1++6Fsr6XDsbD8rg/lOrGg9lIVZK5GJwADg9KQHBpFGR7VFypnWEkWmuiaA91pp2pCFeIXVcMPdY=
-Authentication-Results-Original: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=solid-run.com;
-Received: from PAXPR04MB8749.eurprd04.prod.outlook.com (2603:10a6:102:21f::22)
- by AM8PR04MB7827.eurprd04.prod.outlook.com (2603:10a6:20b:247::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9654.11; Wed, 25 Feb
- 2026 11:34:49 +0000
-Received: from PAXPR04MB8749.eurprd04.prod.outlook.com
- ([fe80::d782:fbb2:be9a:43f1]) by PAXPR04MB8749.eurprd04.prod.outlook.com
- ([fe80::d782:fbb2:be9a:43f1%3]) with mapi id 15.20.9632.017; Wed, 25 Feb 2026
- 11:34:49 +0000
-From: Josua Mayer <josua@solid-run.com>
-Date: Wed, 25 Feb 2026 13:34:23 +0200
-Subject: [PATCH v10 9/9] mmc: host: renesas_sdhi_core: support selecting an
- optional mux
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260225-rz-sdio-mux-v10-9-1ee44f2ea112@solid-run.com>
-References: <20260225-rz-sdio-mux-v10-0-1ee44f2ea112@solid-run.com>
-In-Reply-To: <20260225-rz-sdio-mux-v10-0-1ee44f2ea112@solid-run.com>
-To: Marc Kleine-Budde <mkl@pengutronix.de>, 
- Vincent Mailhol <mailhol@kernel.org>, Vinod Koul <vkoul@kernel.org>, 
- Neil Armstrong <neil.armstrong@linaro.org>, Peter Rosin <peda@axentia.se>, 
- Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vignesh R <vigneshr@ti.com>, 
- Andi Shyti <andi.shyti@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, 
- Geert Uytterhoeven <geert+renesas@glider.be>, 
- Magnus Damm <magnus.damm@gmail.com>, 
- Wolfram Sang <wsa+renesas@sang-engineering.com>, 
- Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
-Cc: Yazan Shhady <yazan.shhady@solid-run.com>, 
- Jon Nettleton <jon@solid-run.com>, Vladimir Oltean <olteanv@gmail.com>, 
- Mikhail Anikin <mikhail.anikin@solid-run.com>, linux-can@vger.kernel.org, 
- linux-phy@lists.infradead.org, linux-kernel@vger.kernel.org, 
- linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, 
- linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-renesas-soc@vger.kernel.org, Josua Mayer <josua@solid-run.com>
-X-Mailer: b4 0.14.3
-X-ClientProxiedBy: TL0P290CA0012.ISRP290.PROD.OUTLOOK.COM
- (2603:1096:950:5::12) To PAXPR04MB8749.eurprd04.prod.outlook.com
- (2603:10a6:102:21f::22)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18225221F24
+	for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2026 12:08:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.177
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1772021293; cv=none; b=VHtFlegCTMKICewm6ImUl91FFiSQUAoL5ccaVN/1gQEMHWIMoLF5EKcJi5lCK+7O93SzbEyoHnP56RBF7jvpxx+ACbL/3UyCQLHxCUWSRUyYnfzQLr1FzIaxIMH+A/0o1ZldUh/QM2Ar6L1oM3yBIg+/04zadDImgtqZTn1S/k4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1772021293; c=relaxed/simple;
+	bh=b7bATi+E9HIWEWXTAIwNa4451ABKjWAafWaU1v8UUAA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=rrpyl4+DKE0Q/qW0sBU4TD5UXYIXUR13OwHRw+ibsBNDORgjh8IxvzglIJEisAmk5R+kf+O0cVqrPsnN9BVA643XF6qGERU6KPtbNOY12iX4Yj/NDuld1tL8Zh0avucW0g8CM8Vj7kpP3QkP5YCLmkqRca4Wt/CARUhg1tTniWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.221.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-vk1-f177.google.com with SMTP id 71dfb90a1353d-5637886c92aso3165128e0c.0
+        for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2026 04:08:10 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1772021290; x=1772626090;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=+TQ9plTAtoqFGycuAV6Q4VO2kslCQXeQ3NGwgtKeiuo=;
+        b=QYdahLOQc9OZI38sEA/JPNmrKiwldUjDtqDjxHY0VCMpu2jfDwHyclmsobGm6Y8/IT
+         u+3BUGNU14csioNH3rVEbiibpJ9bWy63Uj4iDbJ09m5DIhHq7F/BbLhQcQsKKeqxzAmv
+         h6fmfDuwR8GwSsazcfQVXczRytZKQXuE7CYm5NTWmGFZRluzE7sfgjtL5ebbyIYjZx85
+         SxZMC2B0bJPEj8Gxqj+8dvrYC//3COLjy9byBbDtJzquPcSi9zkOaY8XNMIcwPK6oxcM
+         zS/ML9Ssy8K0l1EKuwmfVvpL9A/GhMpe8S/pr3S6pWbXGb+EFpvkg+LEMK7BmAVJdy4y
+         rG0w==
+X-Forwarded-Encrypted: i=1; AJvYcCXSdSD+O/IFZWhr14EWmP9/7ub51nVSQuzBEvHRIWFAzJ70vCa4EKi0aLYJ6V8bFuVVgS3Z8CDchPSg@vger.kernel.org
+X-Gm-Message-State: AOJu0YyLV2cTFPFthpRCGVho7p7OZsDo7Fy384tbIMYwSCOaxmKXB5AY
+	tlb8BmxITok0kx/CI0RVCxE7sA9C0tnl1rtoMByguOnzg0WYaSCwvDCEQK0hb5T3
+X-Gm-Gg: ATEYQzxywJrgBGlezpgFuDwTRjpRRTLawiwl3yeFrcyO1GtKHYfp01ybhiGRtpNbEd6
+	qGgcuOjq6kpDr8Qvw/2EfZ90KN2jDZrafMqyI6lOssq9IpEqYB/Eghiu8uGR8mCT5Hu5v/MZ24g
+	7pryZa5aHZZoWj4YN6m9aLmfGquuGXmnw0CjvZwE5a/5v3o0hpxTelRK4Iu6lEh1zkw8Ja9Dd/c
+	Tsz8EIr+tSDCarrjv30UZzwEKv2Sxy4Scb/VpnXnc+WXX8wE5WDCVpa2xIKGK6rxN48qBYx/EUJ
+	gZn24hw/0b3xNMu0qb1BB3W8gNL5G6oMmT1NWoi1LjW34UjBvkj6gA+OnOg19S5IjXKtqWd94l2
+	H0RQyd4rAtE7ngpe8XtPqYMz+JHtOvCrYvtJ523HwvlI+ujI36fQFrCRy9ok+QLsjBhEFUhS3f4
+	PdZCTVWkFvz64a53y3jpggCrZoQLoxobWwQrYGtGei4BC9wPbt6e67Xp0SV+ct5l9a
+X-Received: by 2002:a05:6122:1c04:b0:55b:10d7:51a5 with SMTP id 71dfb90a1353d-56a8bc5731fmr120089e0c.10.1772021290082;
+        Wed, 25 Feb 2026 04:08:10 -0800 (PST)
+Received: from mail-vk1-f176.google.com (mail-vk1-f176.google.com. [209.85.221.176])
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-56a7eb67241sm2866498e0c.9.2026.02.25.04.08.09
+        for <linux-omap@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 25 Feb 2026 04:08:10 -0800 (PST)
+Received: by mail-vk1-f176.google.com with SMTP id 71dfb90a1353d-56a857578a8so140817e0c.3
+        for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2026 04:08:09 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCVDmIZ37+wE7+NesUfrfaPP0SdIlSmhKI5JLew2iePsJC1cR8ffVxeaQ5rM0RooQBHqOKB63svoeWDW@vger.kernel.org
+X-Received: by 2002:a05:6122:8c27:b0:563:702b:e2a7 with SMTP id
+ 71dfb90a1353d-56a8bcb7a04mr108622e0c.19.1772021289726; Wed, 25 Feb 2026
+ 04:08:09 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-TrafficTypeDiagnostic:
-	PAXPR04MB8749:EE_|AM8PR04MB7827:EE_|AM2PEPF0001C717:EE_|PAXPR04MB8490:EE_
-X-MS-Office365-Filtering-Correlation-Id: 992ab04c-1c1f-4528-cf02-08de7461e9cc
-X-CLOUD-SEC-AV-Info: solidrun,office365_emails,sent,inline
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam-Untrusted:
- BCL:0;ARA:13230040|376014|7416014|52116014|366016|1800799024|921020|38350700014;
-X-Microsoft-Antispam-Message-Info-Original:
- tJZXaBob87NVZmBomP7BR2M2uImIJoW2X7h+xift+vAq1XLpUKEXtCnpglvhO8TUy0EbMiJHi7U0/kF+OhEC4NJOCuhPv0NCDn9R2HUOAg6aIB1O6bV1D2ZgsEniS0bHyTC0PTk0RUHPnF/4Z+SjwN+fiTPXgBasGIaXUQXg7ABD/nkSnwfdXI3CretMQpJ35ygtgXaYeVevmPQuTtSOvD9s8QwOyKvKXdlUeB/VkSF3WFxo0CWjkBnRArEiP70aWQ84uvpXdX73SzQM/lS6AcEaUpAdl2zwevvr3MtE9aQbKGH9IxqbDYYjLT+SNDkH33LrHGxMxU3qmpSc57GaHc8KrUltTGnCXanxZvaWkj/gnVA7KVU5BO6vRkwjLjQHrNkNbIp24w2z7S0b7sAMrWE70KLM4RxravQe99MhktbkaQ3Y2eLqSwPjSRNPxHPwboIdV5xp57GoUHhKX2nWtKw9x60GNCBgbvNF/6LOS9dd8xFu/VMvGncovlnMM/FyBQo0yP/9OlhPFVN6Meyn+GmdPOHAB6Wi29K+C8sxPtqsBxCmkiT4/vn1KTSr3iAW6uCZJGVRrtuFJe7y/cDfi8FZhplI4qT9IVoc+OKY6/HFyb0wW7W1cgJiHSzt2tg8gEwvV4bL1Zk5X/ss9lXW1S1NUka5u23Gz4Y5kRwUkqluFr9ZfmELnS+36MaFlhV55QE+yjy4CfOkxjDRlZkKKCMUzN+1wdikFCBvkcXJB6xp2oNUjCpXo3gC2z3f/90sNGcSW17YpRJHmmMTTeWB9Od4JEuGV/8jkawbEqTWGr1o3zUfmqRLTZvJ4zT9hGHs
-X-Forefront-Antispam-Report-Untrusted:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PAXPR04MB8749.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(52116014)(366016)(1800799024)(921020)(38350700014);DIR:OUT;SFP:1102;
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM8PR04MB7827
-X-CLOUD-SEC-AV-INT-Relay: sent<mta-outgoing-dlp-mt-prod-cp-eu-2.checkpointcloudsec.com>
-X-CLOUD-SEC-AV-UUID: 16eef51c97e9406d908ff8b7e22fd110:solidrun,office365_emails,sent,inline:c1cd8ff72a3c708341fd9de96626bab6
-X-EOPAttributedMessage: 0
-X-MS-Exchange-Transport-CrossTenantHeadersStripped:
- AM2PEPF0001C717.eurprd05.prod.outlook.com
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id-Prvs:
-	ecfb2888-33d1-47e7-e3ea-08de7461e296
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|1800799024|36860700013|82310400026|35042699022|14060799003|921020;
-X-Microsoft-Antispam-Message-Info:
-	8kAmf7erB05MN2ZsTNxCnSHPDKq+EtVotOrp76DSgUanPyMEfXcyVkljvz/jFxA5DIMP3VTeeigzeLIlViQU9dc0GQsJrMiNKd3U733eFJK2SEeTN4VSi0gBNKVpu4b2tmCDaQdcjEeOSNGYLrdZpJVQx9jVHRx0sWHJC9TwaVNTp6q8P9o/+DaHLLZ3UwAzcVlju2WTD4xo1b5023lofQzmtYdAD3ZzNt8W5CjKUzsz24H1i1msqLOZ1sfZNepkH54VA8SXyLm+FX17VH4p6MhjbhQFxm77vV3nE6vhgCKVUy/D3IGulLFK2UJsCUAkkoPgFc9OS//BZMcg+8MqGMr8fyU5a8oJ2OKpg4nt8LXn/NINqMLjjIGGef5+L2psqjomchsYcW/aI5P1tgeM06859uJmjZ/H/tUw2ydjNzEiejPajT0M0YBbb18vNznU4yzQRgH3QQ6+C8fHcgp5q25hOjo5T6K7xEi0PZilgnqRvrX2X6cYqw/345faKOfUypKUL3HveY8q91nVOL6aK4W1V9et2RPc0SfixQc17Js8WJkGnQBU6cKdcUKmM1VFt1HBn8qTszNr46BYwlFDmzGuilPU2/ypmq0XR8/E5o+w0WZqhe7tXFInQOTdHbimyM0jbcRswhv4RjhL0smyR6Dp7pcbdplOKk2Jb01KZg9gi8vTp2RzkSIK3ynInOQRGuS8A0dHShHXwC31ejYYt0D1H6nUIeDGn5Ggpsm0KRTW1aSUu5kwPGhh46NZkIKc6Q7bbgCUxBoSo/o//uuKUlk4DhsfvtzzoTFVNYZuCweWAJqo/StHebX4v0RDmY+7RNM1/2BY8UryBUO1JhL4F8WukkCBcXz6Dwt19ZM69as=
-X-Forefront-Antispam-Report:
-	CIP:52.17.62.50;CTRY:IE;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:eu-dlp.cloud-sec-av.com;PTR:eu-dlp.cloud-sec-av.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(36860700013)(82310400026)(35042699022)(14060799003)(921020);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	VfhasNDQAgIwgqY50ibNkAc0BOmyhef87k7ByFqZsFSSpfVBYiQpYqNFu41y4E+1cVgvaNJPzzv2YQvVH/ClXgJzsXCo2s4sA/DcPSSW4mL7jato5AD27i1q2oyFyS3MktA2QRXMK4ALv7KKi1qTVAI0ZdRbGMO0LDqTYrIHI8Epe6DoOMaPi/Z88fO5SlwXJzQ6IY9yfhi34HrRZN26pN36Vaco2joBzb3N0wK7iWeDHCOI5iuJHUEfo8s8u1IymDkHYZImqhUJeLhl0nEd7kXLDRXsUFyw9j9aKfeQQz322sbI7m2hDt1PUFF0uQ6AUgT3KAYSB7YQWiESYLARkru2VRKr+JxKH6UwBZCpiwWsnrTEPXbER44Nv2GfBvICxsHECniBCsJBFqRS+Wqt5hUozu0pfR2JB0FYgssTDT5SxbbFXjXup1ZLl586uUSE
-X-OriginatorOrg: solid-run.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Feb 2026 11:35:01.5357
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 992ab04c-1c1f-4528-cf02-08de7461e9cc
-X-MS-Exchange-CrossTenant-Id: a4a8aaf3-fd27-4e27-add2-604707ce5b82
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=a4a8aaf3-fd27-4e27-add2-604707ce5b82;Ip=[52.17.62.50];Helo=[eu-dlp.cloud-sec-av.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	AM2PEPF0001C717.eurprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PAXPR04MB8490
+References: <20260225-rz-sdio-mux-v10-0-1ee44f2ea112@solid-run.com> <20260225-rz-sdio-mux-v10-8-1ee44f2ea112@solid-run.com>
+In-Reply-To: <20260225-rz-sdio-mux-v10-8-1ee44f2ea112@solid-run.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 25 Feb 2026 13:07:57 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdUSU8Y9gj5qJ7qNE1UVhp7=HTjAxEsL6uZXPXFgwTd+7Q@mail.gmail.com>
+X-Gm-Features: AaiRm538QW2lNPSmHsPdoAK0GxPwumP2I07aJZ0lsRKIlDak2p-vOeVkZ133ww0
+Message-ID: <CAMuHMdUSU8Y9gj5qJ7qNE1UVhp7=HTjAxEsL6uZXPXFgwTd+7Q@mail.gmail.com>
+Subject: Re: [PATCH v10 8/9] mux: add prompt and help text to
+ CONFIG_MULTIPLEXER making it visible
+To: Josua Mayer <josua@solid-run.com>
+Cc: Marc Kleine-Budde <mkl@pengutronix.de>, Vincent Mailhol <mailhol@kernel.org>, 
+	Vinod Koul <vkoul@kernel.org>, Neil Armstrong <neil.armstrong@linaro.org>, 
+	Peter Rosin <peda@axentia.se>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Vignesh R <vigneshr@ti.com>, 
+	Andi Shyti <andi.shyti@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, 
+	Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
+	Wolfram Sang <wsa+renesas@sang-engineering.com>, 
+	Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, 
+	Yazan Shhady <yazan.shhady@solid-run.com>, Jon Nettleton <jon@solid-run.com>, 
+	Vladimir Oltean <olteanv@gmail.com>, Mikhail Anikin <mikhail.anikin@solid-run.com>, 
+	linux-can@vger.kernel.org, linux-phy@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
+	linux-i2c@vger.kernel.org, linux-mmc@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Some hardware designs route data or control signals through a mux to
-support multiple devices on a single sdhi controller.
+Hi Josua,
 
-In particular SolidRun RZ/G2L/G2LC/V2L System on Module use a mux for
-switching between soldered eMMC and an optional microSD on a carrier
-board, e.g. for development or provisioning.
+On Wed, 25 Feb 2026 at 12:35, Josua Mayer <josua@solid-run.com> wrote:
+> The multiplexer subsystem was initially designed only for use by drivers
+> that require muxes, and did in particular not consider optional muxes or
+> to compile as a module.
+>
+> Over time several drivers have added a "select MULTIPLEXER" dependency,
+> some of which require a mux and some consider it optional. v7.0-rc1
+> shows 15 such occurrences in Kconfig files, in a variety of subsystems.
+>
+> Further some drivers such as gpio-mux are useful on their own (e.g.
+> through device-tree idle-state property), but can not currently be
+> selected through menuconfig unless another driver selecting MULTIPLEXER
+> symbol was enabled first.
+>
+> The natural step forward to allow enabling mux core and drivers would be
+> adding prompt and help text to the existing symbol.
+>
+> This violates the general kbuild advice to avoid selecting visible
+> symbols.
+>
+> Alternatively addition of a wrapper symbol MUX_CORE was considered,
+> which in turn would "select MULTIPLEXER". This however creates new
+> issues and confusion as MULTIPLEXER and MUX_CORE need to share the same
+> state, i.e. MUX_CORE in menuconfig must not be set to m while
+> MULTIPLEXER was selected builtin. Further confusion occurs with Kconfig
+> "depends on" relationships that could reference either MUX_CORE or
+> MULTIPLEXER.
+>
+> It is common across the tree for subsystem symbols to be both visible
+> and selected, e.g. I2C & SPI. In the same spirit multiplexer needs to
+> ignore this particular kbuild rule.
+>
+> Add prompt and help text to the existing MULTIPLEXER symbol, making it
+> visible in (menu)config without breaking existing "select MULTIPLEXER"
+> occurrences in the tree.
+>
+> Select it by default when COMPILE_TEST is set for better coverage.
+>
+> Signed-off-by: Josua Mayer <josua@solid-run.com>
 
-SD/SDIO/eMMC are not well suited for runtime switching between different
-cards, however boot-time selection is possible and useful - in
-particular considering dt overlays.
+Thanks for your patch!
 
-Add support for an optional SD/SDIO/eMMC mux defined in dt, and select
-it during probe.
+> --- a/drivers/mux/Kconfig
+> +++ b/drivers/mux/Kconfig
+> @@ -4,7 +4,14 @@
+>  #
+>
+>  config MULTIPLEXER
+> -       tristate
+> +       tristate "Generic Multiplexer Support"
+> +       default m if COMPILE_TEST
 
-Similar functionality already exists in other places, e.g. i2c-omap.
+Please drop this line.  Merely enabling COMPILE_TEST should not
+enable extra functionality.
 
-Signed-off-by: Josua Mayer <josua@solid-run.com>
----
- drivers/mmc/host/Kconfig             | 1 +
- drivers/mmc/host/renesas_sdhi_core.c | 6 ++++++
- 2 files changed, 7 insertions(+)
+> +       help
+> +         This framework is designed to abstract multiplexer handling for
+> +         devices via various GPIO-, MMIO/Regmap or specific multiplexer
+> +         controller chips.
+> +
+> +         If unsure, say no.
+>
+>  menu "Multiplexer drivers"
+>         depends on MULTIPLEXER
 
-diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-index 6d79cc9a79e2..40046981d240 100644
---- a/drivers/mmc/host/Kconfig
-+++ b/drivers/mmc/host/Kconfig
-@@ -705,6 +705,7 @@ config MMC_TMIO_CORE
- 
- config MMC_SDHI
- 	tristate "Renesas SDHI SD/SDIO controller support"
-+	depends on MULTIPLEXER || !MULTIPLEXER
- 	depends on SUPERH || ARCH_RENESAS || COMPILE_TEST
- 	depends on (RESET_CONTROLLER && REGULATOR) || !OF
- 	select MMC_TMIO_CORE
-diff --git a/drivers/mmc/host/renesas_sdhi_core.c b/drivers/mmc/host/renesas_sdhi_core.c
-index 2a310a145785..f9ec78d699f4 100644
---- a/drivers/mmc/host/renesas_sdhi_core.c
-+++ b/drivers/mmc/host/renesas_sdhi_core.c
-@@ -26,6 +26,7 @@
- #include <linux/mmc/mmc.h>
- #include <linux/mmc/slot-gpio.h>
- #include <linux/module.h>
-+#include <linux/mux/consumer.h>
- #include <linux/pinctrl/consumer.h>
- #include <linux/pinctrl/pinctrl-state.h>
- #include <linux/platform_data/tmio.h>
-@@ -1062,6 +1063,7 @@ int renesas_sdhi_probe(struct platform_device *pdev,
- 	struct regulator_dev *rdev;
- 	struct renesas_sdhi_dma *dma_priv;
- 	struct device *dev = &pdev->dev;
-+	struct mux_state *mux_state;
- 	struct tmio_mmc_host *host;
- 	struct renesas_sdhi *priv;
- 	int num_irqs, irq, ret, i;
-@@ -1116,6 +1118,10 @@ int renesas_sdhi_probe(struct platform_device *pdev,
- 						"state_uhs");
- 	}
- 
-+	mux_state = devm_mux_state_get_optional_selected(&pdev->dev, NULL);
-+	if (IS_ERR(mux_state))
-+		return PTR_ERR(mux_state);
-+
- 	host = tmio_mmc_host_alloc(pdev, mmc_data);
- 	if (IS_ERR(host))
- 		return PTR_ERR(host);
+Gr{oetje,eeting}s,
+
+                        Geert
 
 -- 
-2.43.0
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
