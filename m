@@ -1,158 +1,138 @@
-Received: from mx-relay97-hz1.antispameurope.com (mx-relay97-hz1.antispameurope.com [94.100.132.94])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7504C3A1E72
-	for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2026 10:26:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=94.100.132.94
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772101566; cv=pass; b=ODMrJ2fkavWL+BdCQQIMx+FVo9SpQIALzOpr5NoHRM8xfKbGMzg/T4wccyeRKKoSZGcSRjM3+/LjBKV6GpSDkAdLFpD3zGx95R7FdCJDPYw6OmLyIZOVRhqYrODQqtiCYL7PzBQZhQoDI6j+wWdzdpx7KhZ4UNmTtkbHj8D7D0E=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772101566; c=relaxed/simple;
-	bh=moyssVlWpwqjaiSMGtPZUV/767qmOniG50xtLgGUBcU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=p8nKinYUXAUpUO/MOPLrejecw4B4xWZAkLeIZavAdIQP3fEpwJmIQZpwSCcUpFRLrYtiguvt/Na/Cc9/4gYdMoiTC0unVfdV88zLZHXa6y8PS+081QcN6wnXxyETyQgIDQoiibS5D7QDacH3qXdsQWd+ajXbIyXnGff4bz5Dn78=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ew.tq-group.com; spf=pass smtp.mailfrom=ew.tq-group.com; dkim=pass (2048-bit key) header.d=ew.tq-group.com header.i=@ew.tq-group.com header.b=s9D6EB+w; arc=pass smtp.client-ip=94.100.132.94
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ew.tq-group.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ew.tq-group.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84C423921DC;
+	Thu, 26 Feb 2026 10:42:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1772102551; cv=none; b=CL8mESPzEFxwx2TCao2n1e12aF8OzwVyfRSXFwQHD/KajOzOeNz5JYpvvusIXxe80fDrmWQLhHfMAdGOCyJpxod0NrTyJOudGiD4bi+CwFDNVWfAS0hHdJ/ggnRv+8hs4gtKpX39yeWbBliFXLXC4MgIF/RiugbaJS1JSSHrYrY=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1772102551; c=relaxed/simple;
+	bh=OKy7nclkviSMICidfVtGkZ3pjryDFYtzVtqfIg5iqgQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=C4FsMUbquaQW++dUu/zYCF203pPo6baGTxcWAE8qF3K9VloMb0bjQBMl/B9wgxkw26Qh7yGseFnzHHk8Row1mq0zrWqtSYxz7E/ukB0Yp9Q8YGC+TY8uqS5G7s287ATdQIITb35/R1wFlexT0qHL4Fj0X6KUF3sSWU2DWSzOArc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JeAwqzQB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ew.tq-group.com header.i=@ew.tq-group.com header.b="s9D6EB+w"
-ARC-Authentication-Results: i=1; mx-gate97-hz1.hornetsecurity.com 1; spf=pass
- reason=mailfrom (ip=94.100.132.6, headerfrom=ew.tq-group.com)
- smtp.mailfrom=ew.tq-group.com
- smtp.helo=hmail-p-smtp01-out04-hz1.hornetsecurity.com; dmarc=pass
- header.from=ew.tq-group.com orig.disposition=pass
-ARC-Message-Signature: a=rsa-sha256;
- bh=kUn9csnyj4e4zd3fT0P+1ubmMOmYC1BISsEuxDwjNs4=; c=relaxed/relaxed;
- d=hornetsecurity.com; h=from:to:date:subject:mime-version:; i=1; s=hse1;
- t=1772101486;
- b=YRCLRdGUFVlysvRDr9c/NTwz3Q/VRNjS+eqwB4TxXoD5FC/Omehq3EiLMatLIsj2dzuj91BF
- x2WS/aOFzntWC+J7XX1knqyoPxgNjF7RMwGEHkTudDKQS4m4wy4y3Eujy5cEol4JwTIN+U2DYXi
- JUs/mAJe+Ieb7epP7eccaSYBNItleDvADK5FMJDJvP7ruh9fpEP2Btf3Ewavlwj4JIJvQ9ox7XF
- JOtNU5yR63oShS8cVYe3/78XFFIxsd9W6WG2etZf7jRnUOWOPFym0QG/fU/8w23hhWpVeifyNNE
- K0MA2+1NYNJCz0Ezjpy8N33x3wWhb2imxmug/faljiYTg==
-ARC-Seal: a=rsa-sha256; cv=none; d=hornetsecurity.com; i=1; s=hse1;
- t=1772101486;
- b=dSER9FZi0z4DvlrNXA6iS61d3RLkBRuHakPUy1X+d2YbTY3aZxDFQOsKSfK71WiP4gT0JqDG
- I8Y8tse7P7C2xDhg9bt05OqDGPByZjrsp9SMebYPPusEuQQHFyb0M1ypGp0eNFlgpdAw0oJ/kJj
- GYt7riuh6UvH6qp3eqpjV0FzxBAVNHFsEpqYEs5uP2Hp3IjxVptZ3MAHGEOso0j/QlduXlOyJwm
- RJ83eb5TiH26dA989vNabDKcHvQT2F7GvNPHLQveOhFjLPq+gr/B791tDznnNzhEg2GVdYVwTl3
- nIc/bOdUiXCInIpd3zY/TdnXS2cPnIwSkW1gl+zk+OLUw==
-Received: from he-nlb01-hz1.hornetsecurity.com ([94.100.132.6]) by mx-relay97-hz1.antispameurope.com;
- Thu, 26 Feb 2026 11:24:46 +0100
-Received: from steina-w.localnet (host-82-135-125-110.customer.m-online.net [82.135.125.110])
-	(Authenticated sender: alexander.stein@ew.tq-group.com)
-	by hmail-p-smtp01-out04-hz1.hornetsecurity.com (Postfix) with ESMTPSA id E9B992205B2;
-	Thu, 26 Feb 2026 11:24:27 +0100 (CET)
-From: Alexander Stein <alexander.stein@ew.tq-group.com>
-To: Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
- Pengutronix Kernel Team <kernel@pengutronix.de>,
- Fabio Estevam <festevam@gmail.com>, Rob Herring <robh@kernel.org>,
- Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>,
- Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>,
- Tony Lindgren <tony@atomide.com>, linux@ew.tq-group.com, imx@lists.linux.dev,
- linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
- Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-Cc: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>,
- markus.niebel@tq-group.com, matthias.schiffer@tq-group.com
-Subject: Re: [PATCH] ARM: MAINTAINERS: TQ: Orphan TQ Systems boards
-Date: Thu, 26 Feb 2026 11:24:27 +0100
-Message-ID: <2403960.ElGaqSPkdT@steina-w>
-Organization: TQ-Systems GmbH
-In-Reply-To: <20260225171135.122955-2-krzysztof.kozlowski@oss.qualcomm.com>
-References: <20260225171135.122955-2-krzysztof.kozlowski@oss.qualcomm.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JeAwqzQB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27F8BC116C6;
+	Thu, 26 Feb 2026 10:42:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772102551;
+	bh=OKy7nclkviSMICidfVtGkZ3pjryDFYtzVtqfIg5iqgQ=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=JeAwqzQBcO5rvkp9Unrdrywsh89XEnzLWDg218RzHCPDwvXDeLtcCw8XXhJ8Ynflz
+	 WqjGLq/VXfOsjcqIqulo8GWSM6YlQhQZD2vHrtGjhjbxT5YwzAi8qYWVhU0in1HtFt
+	 /LXE9wbomO2izB//vI3eyeuUSxPAGYFW6RMO/mm+miM5arhBz3l7eag/euezJBV5uC
+	 TYGG2MWRgVGf/5pGbqKawvx8CVBDOVKWYA30GIoNZaudG57OqoMUuALffYEWNl5gZq
+	 D1eCWVTvqHFvR4tIFM//z1FktCvwUfmzIcAkFQD8vYwh7IGHOrnzUaHUTSkt6/cUMD
+	 9iRJy7BdUAcUA==
+Message-ID: <34e4a027-e1fd-4cfd-bcdf-f896d78934aa@kernel.org>
+Date: Thu, 26 Feb 2026 11:42:25 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
-X-cloud-security-sender:alexander.stein@ew.tq-group.com
-X-cloud-security-recipient:linux-omap@vger.kernel.org
-X-cloud-security-crypt: load encryption module
-X-cloud-security-Mailarchiv: E-Mail archived for: alexander.stein@ew.tq-group.com
-X-cloud-security-Mailarchivtype:outbound
-X-cloud-security-Virusscan:CLEAN
-X-cloud-security-disclaimer: This E-Mail was scanned by E-Mailservice on mx-relay97-hz1.antispameurope.com with 4fM6yN64Qkz27lDm
-X-cloud-security-connect: he-nlb01-hz1.hornetsecurity.com[94.100.132.6], TLS=1, IP=94.100.132.6
-X-cloud-security-Digest:5f8ca20172c337f721ff1e894cd67a83
-X-cloud-security:scantime:1.864
-DKIM-Signature: a=rsa-sha256;
- bh=kUn9csnyj4e4zd3fT0P+1ubmMOmYC1BISsEuxDwjNs4=; c=relaxed/relaxed;
- d=ew.tq-group.com;
- h=content-type:mime-version:subject:from:to:message-id:date; s=hse1;
- t=1772101485; v=1;
- b=s9D6EB+wRTlcMQ7FSltDZApbPq45csJKeYVapFtPZMsPhwfvZQxH0Mc3C4GzHLNAJ/bS9ogr
- ZLpptdEMRogvIZHbfrUBR2Hc/By5rQheQmUdC7ix9ertDOAX6YBYcKVEHRk+gQTtjx7t8BSk70V
- /33cBEOALKLgsCAey7+xnVvLFQH6wzUfOGGgyXAngbpvBvx5Rz/WOGH8uhCmdvAknd3h8kZH8k/
- aXbZJVQ9X2CCtCVkItBXNsV7IXFyWI0DJxxqtbs7eSFrQ5JNVe4Sj4hkdSrB9U55NQdQCvOH8XS
- e6LqfGXJt832se3Rcy/0Dj0WwgJfYxvxVF8nqgSq1t8TQ==
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] ARM: MAINTAINERS: TQ: Orphan TQ Systems boards
+To: Alexander Stein <alexander.stein@ew.tq-group.com>,
+ Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
+ Pengutronix Kernel Team <kernel@pengutronix.de>,
+ Fabio Estevam <festevam@gmail.com>, Rob Herring <robh@kernel.org>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ linux@ew.tq-group.com, imx@lists.linux.dev,
+ linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+ Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Cc: markus.niebel@tq-group.com, matthias.schiffer@tq-group.com
+References: <20260225171135.122955-2-krzysztof.kozlowski@oss.qualcomm.com>
+ <2403960.ElGaqSPkdT@steina-w>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ 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 a/A=
+In-Reply-To: <2403960.ElGaqSPkdT@steina-w>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Hi Krzysztof,
+On 26/02/2026 11:24, Alexander Stein wrote:
+> Hi Krzysztof,
+> 
+> Am Mittwoch, 25. Februar 2026, 18:11:36 CET schrieb Krzysztof Kozlowski:
+>> Emails to all TQ maintainers bounce for a month or longer, because their
+>> systems decided to block smtp.kernel.org.  This is nothing which can be
+>> fixed by Linux Foundation IT staff, but aggresive and irresponsible
+>> email provider.
+>>
+>> There were no answers from linux@ew.tq-group.com or anyone else in TQ
+>> Systems after my inquiries about this problem, thus assume the mainline
+>> efforts are abandoned.
+>>
+>>   <Markus.Niebel@tq-group.com>: host mx01.hornetsecurity.com[94.100.132.8] said:
+>>     554 5.5.4 Your IP address 172.105.4.254 has a bad reputation.
+>>
+>>   <matthias.schiffer@tq-group.com>: host mx01.hornetsecurity.com[94.100.132.8]
+>>     said: 554 5.5.4 Your IP address 172.105.4.254 has a bad reputation.
+>>
+>>   <alexander.stein@ew.tq-group.com>: host mx01.hornetsecurity.com[94.100.132.8]
+>>     said: 554 5.5.4 Your IP address 172.105.4.254 has a bad reputation.
+>>
+>> Cc: markus.niebel@tq-group.com
+>> Cc: matthias.schiffer@tq-group.com
+>> Cc: alexander.stein@ew.tq-group.com
+>> Cc: linux@ew.tq-group.com
+>> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+> 
+> Thanks for rising this up and sorry for the delay of my response.
+> We are still in the process of resolving the mail filter issues.
 
-Am Mittwoch, 25. Februar 2026, 18:11:36 CET schrieb Krzysztof Kozlowski:
-> Emails to all TQ maintainers bounce for a month or longer, because their
-> systems decided to block smtp.kernel.org.  This is nothing which can be
-> fixed by Linux Foundation IT staff, but aggresive and irresponsible
-> email provider.
->=20
-> There were no answers from linux@ew.tq-group.com or anyone else in TQ
-> Systems after my inquiries about this problem, thus assume the mainline
-> efforts are abandoned.
->=20
->   <Markus.Niebel@tq-group.com>: host mx01.hornetsecurity.com[94.100.132.8=
-] said:
->     554 5.5.4 Your IP address 172.105.4.254 has a bad reputation.
->=20
->   <matthias.schiffer@tq-group.com>: host mx01.hornetsecurity.com[94.100.1=
-32.8]
->     said: 554 5.5.4 Your IP address 172.105.4.254 has a bad reputation.
->=20
->   <alexander.stein@ew.tq-group.com>: host mx01.hornetsecurity.com[94.100.=
-132.8]
->     said: 554 5.5.4 Your IP address 172.105.4.254 has a bad reputation.
->=20
-> Cc: markus.niebel@tq-group.com
-> Cc: matthias.schiffer@tq-group.com
-> Cc: alexander.stein@ew.tq-group.com
-> Cc: linux@ew.tq-group.com
-> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-
-Thanks for rising this up and sorry for the delay of my response.
-We are still in the process of resolving the mail filter issues.
-
-NACK for the patch though. Our mainline efforts are not abandoned and
-we still support our hardware.
+Sure. It was enough to respond to me "we are working on it". Which also
+would confirm that you actually received my email and it was not blocked
+by spam (although I used Google based provider for that).
 
 Best regards,
-Alexander
-
-> ---
->  MAINTAINERS | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index faa914a5f34d..f446fb30cf6c 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -26781,7 +26781,7 @@ F:	drivers/hwmon/pmbus/tps546d24.c
-> =20
->  TQ SYSTEMS BOARD & DRIVER SUPPORT
->  L:	linux@ew.tq-group.com
-> -S:	Supported
-> +S:	Orphan
->  W:	https://www.tq-group.com/en/products/tq-embedded/
->  F:	arch/arm/boot/dts/nxp/imx/*mba*.dts*
->  F:	arch/arm/boot/dts/nxp/imx/*tqma*.dts*
->=20
-
-
-=2D-=20
-TQ-Systems GmbH | M=FChlstra=DFe 2, Gut Delling | 82229 Seefeld, Germany
-Amtsgericht M=FCnchen, HRB 105018
-Gesch=E4ftsf=FChrer: Detlef Schneider, R=FCdiger Stahl, Stefan Schneider
-http://www.tq-group.com/
-
-
+Krzysztof
