@@ -1,54 +1,66 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ED2742B735;
-	Thu, 26 Feb 2026 19:54:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79FA746AF20
+	for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2026 20:24:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.117.254.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772135661; cv=none; b=BQnbO9muxRAKUS0bX0TOZ1ebK0O5I4cHGLfiSOKjpQp6VOAzRdtUmFImxLkvMHGgFBlFg8a7sN4zf++Ra6HHxjCWI2TxS0WLwhNxnUDKCCDsqIRV8DvcZln2hVSUTZshZsM3OB3fKDqM1FrHxWLkJuFhBielMdJAqj/9X6z8uSE=
+	t=1772137446; cv=none; b=VWT0eYoUGa4Ib+w+qEeEdtHqpEGtZp0rSn4BiXbd4kmE6Kac6MdC/ir2KZ8O0F8zZQhBccAQ4twIk2Y+1k2wA0qWEHtQIVwv2+LZV/zFLOVVDJfWB0IeDdSaZZdiDAPano4wt+nbDX6vpn176u/mnMCH4jaO80S6H/5qCJkQ15A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772135661; c=relaxed/simple;
-	bh=ra19xZQ3U6KCpnqoVkJJ26X+RkV6l54AxB3o5a/KUT4=;
+	s=arc-20240116; t=1772137446; c=relaxed/simple;
+	bh=7cIptIAtCy+YKmfm48wrDxQzATrxEhpTKqY9xKxhVPw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KIJ8rxqFHCfGtsr3GQVv7ndv3l+YKddcl9B88CTTupnorGxpVGqIM/szPiumJjAj3l9YrAfZ5S9IiJoNOC4r1VgirZK2xhk2mArreGJEiqgBPC3RUv+OpYqBW2iZtLTkRnKqB2ad5S2M4wgaByeH4xqUBg6Y7Ant5t+de82ToQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RH0k25i0; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=UhhzofSPAsFhfQjJb+pV1pcm2KLGjiXP+LRri2FSELCvsYsAphhntY3OQ51HibJ9iHzoIblEzesN8+846rBDjcuFMM02lu9uzSMEhEkeVZzSPWiCpAKTSVBGBQU2SPKTURP+PhcEEyOayVCSg/f6UJpjPMtIIn2U2DwFr5VVyU8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=ArwLD00N; arc=none smtp.client-ip=194.117.254.33
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RH0k25i0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E70BBC116C6;
-	Thu, 26 Feb 2026 19:54:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772135660;
-	bh=ra19xZQ3U6KCpnqoVkJJ26X+RkV6l54AxB3o5a/KUT4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=RH0k25i05AyewiHg+mLoRLkocZqu1CBJgC0LIpVRtwWr98r5m1qlfIj1yrWxqxJ7i
-	 D8yrK3WqKNx0xTAiugcdYzxZNjQ4YVn3diFg4jLh9pHf/nekt6Dvhuy/QasfNp7NPd
-	 QJbXCi2HnvFWCJujt2lyUvFLIscz68PcFCjuu3sVgf8tN90f9dJkGowGIaHLG+GDIq
-	 UUlIT2HVRuXfHYptcuopoGnlIjflhPxPOK6azzYCSbZHfI1NvOAysdc7TSe80bMYvh
-	 BxS+u16/ITHxY4ufmvLVnRyBwuXebdPZFLm49lbKFn2dZPo/dIbBLaj4wedYbIVALc
-	 SNwDRqKtOhKOA==
-Date: Thu, 26 Feb 2026 19:54:14 +0000
-From: Simon Horman <horms@kernel.org>
-To: Chintan Vankar <c-vankar@ti.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>,
-	Richard Cochran <richardcochran@gmail.com>,
-	Stefan Wiehler <stefan.wiehler@nokia.com>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@kernel.org>,
-	Vishnu Singh <v-singh1@ti.com>,
-	Vignesh Raghavendra <vigneshr@ti.com>,
-	Matthias Schiffer <matthias.schiffer@ew.tq-group.com>,
-	Vadim Fedorenko <vadim.fedorenko@linux.dev>,
-	Nishanth Menon <nm@ti.com>, Michael Walle <mwalle@kernel.org>,
+	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="ArwLD00N"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	sang-engineering.com; h=date:from:to:cc:subject:message-id
+	:references:mime-version:content-type:in-reply-to; s=k1; bh=P103
+	FCGrnxs/xWkEVMA9wfCrrwGUD1RHdk9OgkWjkw4=; b=ArwLD00NgpD8GB6F3smK
+	N81VP79SFKd4S2KXc7kXA8DG2HqiKcVJFAE84wiZkLVbYc0dcDn7xVrrqOstsWmm
+	7Soa2GzK0V7rlrV345mLTHVvK9YqnQjwG8WTaHRhEhp5Lj26sWW7ILiQSNNSg0Lk
+	6xVBe+6iePHwSS6IMD4VazRh8aWVu/Jlk7ukQYVSFWIflH3BUhp3GEp+Sxk2fnii
+	ObczMWhgDQeaLFMLAlD8cApZLoPT+tppLZb/0yLahD4PGixDzB3JaKRupzLSPzpI
+	dzo/jA0JGrDU8Ch20uk3ospXBOmwShwf7nY7+Zwqqvg+YlA/gOPAl+aqZgJfkyfm
+	pw==
+Received: (qmail 1210022 invoked from network); 26 Feb 2026 21:24:01 +0100
+Received: by mail.zeus03.de with UTF8SMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 26 Feb 2026 21:24:01 +0100
+X-UD-Smtp-Session: l3s3148p1@u1Kn5r9L+OUujnuU
+Date: Thu, 26 Feb 2026 21:24:00 +0100
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com>,
+	Viken Dadhaniya <viken.dadhaniya@oss.qualcomm.com>,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Florian Fainelli <florian.fainelli@broadcom.com>,
+	Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>,
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
+	Vignesh R <vigneshr@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
 	Roger Quadros <rogerq@kernel.org>,
-	Siddharth Vadapalli <s-vadapalli@ti.com>,
-	Paolo Abeni <pabeni@redhat.com>, Jakub Kicinski <kuba@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andrew Lunn <andrew+netdev@lunn.ch>, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH net v2] net: ethernet: ti: am65-cpsw-nuss/cpsw-ale: Fix
- multicast entry handling in ALE table
-Message-ID: <aaCk5pDO-xGf4W4A@horms.kernel.org>
-References: <20260224181359.2055322-1-c-vankar@ti.com>
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Patrice Chotard <patrice.chotard@foss.st.com>,
+	Shawn Guo <shawnguo@kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Linus Walleij <linusw@kernel.org>, Frank Li <Frank.Li@nxp.com>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+	linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev,
+	linux-rpi-kernel@lists.infradead.org
+Subject: Re: [PATCH v2 00/12] i2c: configure parent device and OF node
+ through the adapter struct
+Message-ID: <aaCr4CeJFGaRMWRU@ninjato>
+References: <20260223-i2c-adap-dev-config-v2-0-d78db0a6fcf7@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -57,33 +69,35 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260224181359.2055322-1-c-vankar@ti.com>
+In-Reply-To: <20260223-i2c-adap-dev-config-v2-0-d78db0a6fcf7@oss.qualcomm.com>
 
-On Tue, Feb 24, 2026 at 11:43:59PM +0530, Chintan Vankar wrote:
-> In the current implementation, flushing multicast entries in MAC mode
-> incorrectly deletes entries for all ports instead of only the target port,
-> disrupting multicast traffic on other ports. The cause is adding multicast
-> entries by setting only host port bit, and not setting the MAC port bits.
+On Mon, Feb 23, 2026 at 10:05:46AM +0100, Bartosz Golaszewski wrote:
+> It's been another year of discussing the object life-time problems at
+> conferences. I2C is one of the offenders and its problems are more
+> complex than those of some other subsystems. It seems the revocable[1]
+> API may make its way into the kernel this year but even with it in
+> place, I2C won't be able to use it as there's currently nothing to
+> *revoke*. The struct device is embedded within the i2c_adapter struct
+> whose lifetime is tied to the provider device being bound to its driver.
 > 
-> Fix this by setting the MAC port's bit in the port mask while adding the
-> multicast entry. Also fix the flush logic to preserve the host port bit
-> during removal of MAC port and free ALE entries when mask contains only
-> host port.
+> Fixing this won't be fast and easy but nothing's going to happen if we
+> don't start chipping away at it. The ultimate goal in order to be able
+> to use an SRCU-based solution (revocable or otherwise) is to convert the
+> embedded struct device in struct i2c_adapter into an __rcu pointer that
+> can be *revoked*. To that end we need to hide all dereferences of
+> adap->dev in drivers.
 > 
-> Fixes: 5c50a856d550 ("drivers: net: ethernet: cpsw: add multicast address to ALE table")
-> Signed-off-by: Chintan Vankar <c-vankar@ti.com>
-> ---
+> This series addresses the usage of adap->dev in probe() callbacks where
+> drivers assign the parent device address and the associated OF-node
+> directly to the struct device embedded in i2c_adapter. We extend the
+> latter struct to accept the parent struct device and of_node directly
+> and make it assign it to its internal struct device inside
+> i2c_register_adapter(). For now just 12 patches but I'll keep on doing it
+> if these get accepted. Once these get upstream for v6.20/7.0, we'll be
+> able to also start converting i2c drivers outside of drivers/i2c/.
 > 
-> This patch is based on commit 'd4f687fbbce4' of origin/main branch of
-> Linux net repo.
-> 
-> Link to v1:
-> https://lore.kernel.org/r/20260205070951.3170631-1-c-vankar@ti.com/
-> 
-> Changes from v1 to v2:
-> - Squashed two patches into one as a fix of the older implementation.
-> - Added "Fixes" tag in the commit.
+> Link: https://lore.kernel.org/all/20251106152330.11733-1-tzungbi@kernel.org/
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+Also applied (and squashed) to for-current. Tags are retained BTW.
 
-...
