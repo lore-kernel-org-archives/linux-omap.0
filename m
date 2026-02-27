@@ -1,81 +1,68 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail.auroraos.dev (unknown [95.181.193.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FB413ED119;
-	Fri, 27 Feb 2026 13:53:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 246E238551C;
+	Fri, 27 Feb 2026 20:15:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.181.193.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772200411; cv=none; b=IjplE94TXo8UfGtfOCnNMgii9byIbAp9jFfdLOGL/biLU88YEr7kdBK5HJRe4FhjEa1Pdqm+InBehLWCSNgtMiqGHBgfxARo3KilWFvg+mztpkrAjHpPVTBT8cHuLiffAQIDF2/m+t5isKTY1KehANQKxJMA3at7dPx4k/P+KqE=
+	t=1772223362; cv=none; b=hz/VFzpSG2Dsgg0spzI6PywhTCIKiAf4PAMKHIOFWatSS8dbDadMlafQNT1KcBzciXMDK/2P4STmyr1loqMOzrDlQiK3KPKms3cNQXUJDdjLqdBgFpbpnOlcXSsB1S8apQq8V05dakQfG5ZGA7OoBhCzdTtMUa7Ua4N0Wx1Atyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772200411; c=relaxed/simple;
-	bh=OEiG8PtsAcNj3iSgUeQH9gudbFsg7HvzC504Tgpxe1Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=S4BuKCPdaH72VxxptnnUs1tw/MWTeSK7VjNmObqpC0oz4x7B/XAt8uZsTiq0abbpwNeYvN7oXuI5ijpIF1srRy2T+0z7ZUjx23cuNmbCTgQiOj7zQzy7AJP7vtwsNpNHBf+LnwMvVh5RXxNYJ799gfTconmnZ4mAT3LlEWxvHLM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bxyj8CgR; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bxyj8CgR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13B09C19423;
-	Fri, 27 Feb 2026 13:53:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772200410;
-	bh=OEiG8PtsAcNj3iSgUeQH9gudbFsg7HvzC504Tgpxe1Y=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=bxyj8CgRrbgTz0fh0fwxVTc+jbab8F7/YJO3eG6YqxZ92Q7lOe112jE5HDG4wgnep
-	 qeFM+ooNc1D1BLxVQLhvhY38HQHYjAoq8EpPQelfZo4qi+ivf1kGzyk618d92z+qxE
-	 6SJSvOV8H7Osy4FD1E5kM0Lkraggd+BhrwWyW1krHQN64Eyz6TOHZEGodWpGksA6vR
-	 riIQIaSctAjoipxAVQKd3t/VF/gbdMOX08D9/+6LuY3dvhkxkcwVQL1sWjpyAlhRgU
-	 lVygDsaXjb4aJ1I7XNdh5tu1UtOzU/HbwKIoCvJBsRPB+TB9mgjXQsJhWtPc8txOg5
-	 C/JcZ/NcwDkiQ==
-Date: Fri, 27 Feb 2026 19:23:27 +0530
-From: Vinod Koul <vkoul@kernel.org>
-To: Josua Mayer <josua@solid-run.com>
-Cc: Marc Kleine-Budde <mkl@pengutronix.de>,
-	Vincent Mailhol <mailhol@kernel.org>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Peter Rosin <peda@axentia.se>, Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-	Vignesh R <vigneshr@ti.com>, Andi Shyti <andi.shyti@kernel.org>,
-	Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Wolfram Sang <wsa+renesas@sang-engineering.com>,
-	Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>,
-	Yazan Shhady <yazan.shhady@solid-run.com>,
-	Jon Nettleton <jon@solid-run.com>,
-	Vladimir Oltean <olteanv@gmail.com>,
-	Mikhail Anikin <mikhail.anikin@solid-run.com>,
-	linux-can@vger.kernel.org, linux-phy@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-i2c@vger.kernel.org, linux-mmc@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v11 5/9] phy: renesas: rcar-gen3-usb2: drop helper
- getting optional mux-state
-Message-ID: <aaGh1y_j_oQcUKtB@vaman>
-References: <20260226-rz-sdio-mux-v11-0-c2a350f9bbd3@solid-run.com>
- <20260226-rz-sdio-mux-v11-5-c2a350f9bbd3@solid-run.com>
+	s=arc-20240116; t=1772223362; c=relaxed/simple;
+	bh=EHJ9XQ04srkNeONNe7ib67kFaOrFrBC+JF4zaQrbBFM=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=azjRPxGbkvamPePm9jOAc+rNEPTDG1Nqlz5fW24rUEOE2ojgE2dxI6rLwTj/Jq+ctl7g021QGiN/wwMwPr6lHXK3dq+XPIJS9nef0XoRwiK/Kg88xKCzhay/CO9KgfrGtJT8gsUf7VCHI6fRkwxYZV/nPlLQxuZP7xW9l8aBWf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=auroraos.dev; spf=pass smtp.mailfrom=auroraos.dev; arc=none smtp.client-ip=95.181.193.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=auroraos.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=auroraos.dev
+Received: from wasted (213.87.156.129) by exch16.corp.auroraos.dev
+ (10.189.209.38) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1847.3; Fri, 27 Feb
+ 2026 23:15:47 +0300
+From: Sergey Shtylyov <s.shtylyov@auroraos.dev>
+To: Tony Lindgren <tony@atomide.com>, Haojian Zhuang
+	<haojian.zhuang@linaro.org>, Linus Walleij <linusw@kernel.org>,
+	<linux-omap@vger.kernel.org>, <linux-gpio@vger.kernel.org>
+CC: Sergey Shtylyov <s.shtylyov@auroraos.dev>,
+	<linux-arm-kernel@lists.infradead.org>
+Subject: [PATCH] pinctrl: single: drop useless assignment in pcs_irq_set()
+Date: Fri, 27 Feb 2026 23:15:14 +0300
+Message-ID: <20260227201515.22577-1-s.shtylyov@auroraos.dev>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260226-rz-sdio-mux-v11-5-c2a350f9bbd3@solid-run.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: exch16.corp.auroraos.dev (10.189.209.38) To
+ exch16.corp.auroraos.dev (10.189.209.38)
 
-On 26-02-26, 15:21, Josua Mayer wrote:
-> Multiplexer subsystem has now added helpers for getting managed optional
-> mux-state.
-> 
-> Switch to the new devm_mux_state_get_optional_selected helper.
+In pcs_irq_set(), the 2nd pcs->read() call is only done to flush a posted
+write -- the actually read value is ignored.  Drop the useless assignment.
 
-Acked-by: Vinod Koul <vkoul@kernel.org>
+Found by Linux Verification Center (linuxtesting.org) with the Svace static
+analysis tool.
 
+Signed-off-by: Sergey Shtylyov <s.shtylyov@auroraos.dev>
+---
+The patch is against the for-next branch of Linus W.'s linux-pinctrl.git repo.
 
+ drivers/pinctrl/pinctrl-single.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index 288c9c9bce9a..d50122c694b9 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1423,7 +1423,7 @@ static inline void pcs_irq_set(struct pcs_soc_data *pcs_soc,
+ 		pcs->write(mask, pcswi->reg);
+ 
+ 		/* flush posted write */
+-		mask = pcs->read(pcswi->reg);
++		pcs->read(pcswi->reg);
+ 		raw_spin_unlock(&pcs->lock);
+ 	}
+ 
 -- 
-~Vinod
+2.53.0
