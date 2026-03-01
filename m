@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FB861CD2C;
-	Sun,  1 Mar 2026 01:36:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2ED92C0F84;
+	Sun,  1 Mar 2026 01:40:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772329014; cv=none; b=g1/rd9ZPzNlDs8sahl8m9YWGGeGzD/GSbsLYjcN8JRZU7+4UlnYEKWzqFGukMuFx2bc7QQmTJwrUV41DUaqQAXigSi+knoKjYtzJLtp1o+FZf+ouV9v387l1YBWjwZ1xdAf6hIPiZKXJ8XPRK6/r81/wcFDt40XkhVvuT3iYdxM=
+	t=1772329244; cv=none; b=GhWquWoPjxSKq8B4Ujom6DpQnb7NsyEf+tAalG4R6zg14oSGJW3C66iScVkhCNoTyjGwP0NYF9vOZ046x0YNK6cGb9D3ruEUtHeVoJwom56+HwNFKuCh8i29MmgRIfxTNucezJaHBbixMNUDBqDA3lPzO3sX9eGyoyPEdrkE98o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772329014; c=relaxed/simple;
-	bh=51Q3/qQ4aMZBIGmtmdKfJoBNAVKij27ZlN6PiXoe6mE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LUQJXMNsTElSf/QX2aNWpQeDLtPHiKYJqa8SN0q9zwlLv8CpRnSy/iIbZPg4ZBoqUds43U6uYwdspQZu4aV6pu9+Y6JWMoFMjiI8zdWSqRE9ZXBwWIaTqM6BcRrGz+PY9HClMWQoCpO4ePdRQiQlA9W60jOg2+rSYarvNMFqdHg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TJHKAoOv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772329244; c=relaxed/simple;
+	bh=Yk8Zd39igslmpOStdArbcHQ8B7Ztcxhcwzfwg0hqdQk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HQp0ISE8IUtyNdFRIVum0/DcvlcXB20WEQ4u9Fk8VHWtocMW8MbyKIhp3HFRm78GDW45eqhH+DzuwKb0vmhh5byMpm77OJt6Kz04gBEyJEm+Z8qwTm8TzyiDNB5KUc1zmJbai43QYeFj2eNgfAGx5ucpZ1+oZ49MszOJ6/92suU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Iw+RsRxT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TJHKAoOv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 763DDC19425;
-	Sun,  1 Mar 2026 01:36:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Iw+RsRxT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18BF7C19424;
+	Sun,  1 Mar 2026 01:40:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772329014;
-	bh=51Q3/qQ4aMZBIGmtmdKfJoBNAVKij27ZlN6PiXoe6mE=;
+	s=k20201202; t=1772329244;
+	bh=Yk8Zd39igslmpOStdArbcHQ8B7Ztcxhcwzfwg0hqdQk=;
 	h=From:To:Cc:Subject:Date:From;
-	b=TJHKAoOv4VReav8AXLkM0CIt98LAK/eNhe9vV+0C1yH4y7GAMsVUVEyg/Z53VJTyR
-	 p3MDcUJXeznm4MEy+wh/1MxY/ptwOkufH9fGmpFPqODH3AEULalUfzn/xy3GOqbZXY
-	 qDlJ/2giEQDosQrJclO9B1C2S9LH3RVQplAOsIt2Hyy13LK2eOh0GTnfl/JwpEwwrO
-	 3XEy2BWkpsgJLQZRmgkVjm3SLfmaJE4d4Ls+gitS1cw/qV0uWo5EcmvcyBR5+1TE6F
-	 kxU3h8wrldioORLInZV4wvZcGEInVuNPYfamiIGEMzjTJyRKC4mlE06o7JAdkJG4SU
-	 QeIqTiyMRN3YQ==
+	b=Iw+RsRxTuU7vi0MDQtyV/sBiE51YDYJCvMTtszjw4pdSvDkR4xEYIVZrRjJgyAUfi
+	 UQXYrCbRape4lwlJjA0Jdm+2eEbnqgUNky67DjK6RHi/K7I/GRFyAubWCC6zAIVqca
+	 Dfg0Sb6pPID9ows3JQ2qCm7KDOLx/QaOTw56unUopHLYsvbkFYgX24wt4NJfQkWmpc
+	 /WpxYwa5A7rcfZKJQaUDE7/p90M6Pi08cakXJHaU8p1L1ydtnks7WJL03PDBq1fJdk
+	 BIo3pAPMj/ZTMELFzLHCiq1lcGJgOXf0HsVHTPcl6hKNZHKylEQSwTLkgx8Sb7B9Za
+	 auzglf3afNZUA==
 From: Sasha Levin <sashal@kernel.org>
 To: stable@vger.kernel.org,
-	haokexin@gmail.com
-Cc: Alexander Sverdlin <alexander.sverdlin@gmail.com>,
-	Jakub Kicinski <kuba@kernel.org>,
+	vulab@iscas.ac.cn
+Cc: Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
 	linux-omap@vger.kernel.org,
-	netdev@vger.kernel.org
-Subject: FAILED: Patch "net: cpsw_new: Fix potential unregister of netdev that has not been registered yet" failed to apply to 6.6-stable tree
-Date: Sat, 28 Feb 2026 20:36:52 -0500
-Message-ID: <20260301013652.1696967-1-sashal@kernel.org>
+	linux-arm-kernel@lists.infradead.org
+Subject: FAILED: Patch "ARM: omap2: Fix reference count leaks in omap_control_init()" failed to apply to 6.1-stable tree
+Date: Sat, 28 Feb 2026 20:40:42 -0500
+Message-ID: <20260301014043.1702067-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -46,7 +46,7 @@ X-Patchwork-Hint: ignore
 X-stable: review
 Content-Transfer-Encoding: 8bit
 
-The patch below does not apply to the 6.6-stable tree.
+The patch below does not apply to the 6.1-stable tree.
 If someone wants it applied there, or to any other stable or longterm
 tree, then please email the backport, including the original git commit
 id to <stable@vger.kernel.org>.
@@ -56,51 +56,77 @@ Sasha
 
 ------------------ original commit in Linus's tree ------------------
 
-From 9d724b34fbe13b71865ad0906a4be97571f19cf5 Mon Sep 17 00:00:00 2001
-From: Kevin Hao <haokexin@gmail.com>
-Date: Thu, 5 Feb 2026 10:47:03 +0800
-Subject: [PATCH] net: cpsw_new: Fix potential unregister of netdev that has
- not been registered yet
+From 93a04ab480c8bbcb7d9004be139c538c8a0c1bc8 Mon Sep 17 00:00:00 2001
+From: Wentao Liang <vulab@iscas.ac.cn>
+Date: Wed, 17 Dec 2025 14:21:22 +0000
+Subject: [PATCH] ARM: omap2: Fix reference count leaks in omap_control_init()
 
-If an error occurs during register_netdev() for the first MAC in
-cpsw_register_ports(), even though cpsw->slaves[0].ndev is set to NULL,
-cpsw->slaves[1].ndev would remain unchanged. This could later cause
-cpsw_unregister_ports() to attempt unregistering the second MAC.
-To address this, add a check for ndev->reg_state before calling
-unregister_netdev(). With this change, setting cpsw->slaves[i].ndev
-to NULL becomes unnecessary and can be removed accordingly.
+The of_get_child_by_name() function increments the reference count
+of child nodes, causing multiple reference leaks in omap_control_init():
 
-Fixes: ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based driver part 1 - dual-emac")
-Signed-off-by: Kevin Hao <haokexin@gmail.com>
+1. scm_conf node never released in normal/error paths
+2. clocks node leak when checking existence
+3. Missing scm_conf release before np in error paths
+
+Fix these leaks by adding proper of_node_put() calls and separate error
+handling.
+
+Fixes: e5b635742e98 ("ARM: OMAP2+: control: add syscon support for register accesses")
 Cc: stable@vger.kernel.org
-Reviewed-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-Link: https://patch.msgid.link/20260205-cpsw-error-path-v1-2-6e58bae6b299@gmail.com
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
+Link: https://patch.msgid.link/20251217142122.1861292-1-vulab@iscas.ac.cn
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 ---
- drivers/net/ethernet/ti/cpsw_new.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/arm/mach-omap2/control.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
-index b9fc31eb06134..7f42f58a4b031 100644
---- a/drivers/net/ethernet/ti/cpsw_new.c
-+++ b/drivers/net/ethernet/ti/cpsw_new.c
-@@ -1472,7 +1472,7 @@ static void cpsw_unregister_ports(struct cpsw_common *cpsw)
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 79860b23030de..eb6fc7c61b6e0 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -732,7 +732,7 @@ int __init omap2_control_base_init(void)
+  */
+ int __init omap_control_init(void)
+ {
+-	struct device_node *np, *scm_conf;
++	struct device_node *np, *scm_conf, *clocks_node;
+ 	const struct of_device_id *match;
+ 	const struct omap_prcm_init_data *data;
+ 	int ret;
+@@ -753,16 +753,19 @@ int __init omap_control_init(void)
  
- 	for (i = 0; i < cpsw->data.slaves; i++) {
- 		ndev = cpsw->slaves[i].ndev;
--		if (!ndev)
-+		if (!ndev || ndev->reg_state != NETREG_REGISTERED)
- 			continue;
+ 			if (IS_ERR(syscon)) {
+ 				ret = PTR_ERR(syscon);
+-				goto of_node_put;
++				goto err_put_scm_conf;
+ 			}
  
- 		priv = netdev_priv(ndev);
-@@ -1494,7 +1494,6 @@ static int cpsw_register_ports(struct cpsw_common *cpsw)
- 		if (ret) {
- 			dev_err(cpsw->dev,
- 				"cpsw: err registering net device%d\n", i);
--			cpsw->slaves[i].ndev = NULL;
- 			break;
- 		}
- 	}
+-			if (of_get_child_by_name(scm_conf, "clocks")) {
++			clocks_node = of_get_child_by_name(scm_conf, "clocks");
++			if (clocks_node) {
++				of_node_put(clocks_node);
+ 				ret = omap2_clk_provider_init(scm_conf,
+ 							      data->index,
+ 							      syscon, NULL);
+ 				if (ret)
+-					goto of_node_put;
++					goto err_put_scm_conf;
+ 			}
++			of_node_put(scm_conf);
+ 		} else {
+ 			/* No scm_conf found, direct access */
+ 			ret = omap2_clk_provider_init(np, data->index, NULL,
+@@ -780,6 +783,9 @@ int __init omap_control_init(void)
+ 
+ 	return 0;
+ 
++err_put_scm_conf:
++	if (scm_conf)
++		of_node_put(scm_conf);
+ of_node_put:
+ 	of_node_put(np);
+ 	return ret;
 -- 
 2.51.0
 
