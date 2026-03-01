@@ -1,40 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 101F718E02A;
-	Sun,  1 Mar 2026 01:19:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED58E2749C1;
+	Sun,  1 Mar 2026 01:21:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772327965; cv=none; b=echyNi1C+car+8vTdXWGD59UbqIACTFVmg5Bm+Y2cL03Rpyf8zLgkwhCC5dD7RzqY8FccqR2DmO4pujRpl1XBuh1eTdDEVkrClXrY1rPJFQYcM8xQgOrSTP8sImLv0fNJkIjWdhKnh4yX6FWB6oi1tC6qDbIDv6+Lh/FUSy3cQg=
+	t=1772328088; cv=none; b=iuaExAK4nnPjYNRjzIj3p3Ze89PhnhjPbfic1wckbcvLKp5Qa6kvWOzbosQPCclstHFOM8sNBMzqdJwlCkPLUvOemLHaNuN/pHe6rlrwgVtM5VarJNOEhEQYCcqcIfuAPqsXjqeoygKqCwlQPHSXm/3TnLjP7Cf1eoKqicBOESA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772327965; c=relaxed/simple;
-	bh=S/Aak4m6ZxYDgDAG2cPMbe3IX7TZmOu0+52KR8O0TdE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QSplqUpL27VG6EWFPjviHnQEspwK3b57S08Kfdp93fxb7L45jNNgIs2E0TUZnc389x+39b68Ufvz+Df2lNZHcqT7gALPgDl02jU+HwwP9TKNFTqGv+aR3PUbCGjhCVpHRKFTf1W+zebit0G+qYukIC4sTxp6uiCE8xOXpuPDQ94=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=d1pdJsTR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772328088; c=relaxed/simple;
+	bh=7jmpjCigquPdyWW4HUmzCGZIlkMhHpQ/ZZIdZBrCyiY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bhgaLQf9J+XZ+HGvJEXLyRYZvNUt9K4Q5q6NhCZVAum8Aw/PtVQrtLfxsW/W0HfIP3+ZE/6aU50B/fG1sp29DMkCVvsgma0hlbTU0NnW6DQY3SOtlhEpSkf3ccx+y0fGb/5l1FDcvne9sSwcDVe5mvEcZx6EYy3QKTpaT2HA+JQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QS44EVlM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="d1pdJsTR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46E9AC19421;
-	Sun,  1 Mar 2026 01:19:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QS44EVlM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B03EC19425;
+	Sun,  1 Mar 2026 01:21:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772327964;
-	bh=S/Aak4m6ZxYDgDAG2cPMbe3IX7TZmOu0+52KR8O0TdE=;
+	s=k20201202; t=1772328087;
+	bh=7jmpjCigquPdyWW4HUmzCGZIlkMhHpQ/ZZIdZBrCyiY=;
 	h=From:To:Cc:Subject:Date:From;
-	b=d1pdJsTRBuDL4Zr6ImQ5CD+YYt0RE8scNhdN+Atb+dwfP2zsjBLI5ipcWxLLAL0AT
-	 MTC+dF+60vsmxLp0ucPeH9PxcgSWcToFx2g9kjQhiMJ7P52kN1ckuCuv758YvnbKaX
-	 KHrcwQkkFm7ua8DKTBDE5hBg5Z3tMONUPBAj92dbOtkG++MKapyPXdCqi0mCel6YiG
-	 eB+TZBwkLO59DxDsotH+vKSffGv2aEujIlh4eTPVJRMVwZKMWdCtYHsqolblxJ9OwL
-	 uw3IeP8kWUb1Fcbq5Qu/NJKL1E4bkGyiK19X02GapdEdrO7q3ovNVnmlSaXxhoVNez
-	 t56U6RSd4pc+A==
+	b=QS44EVlMStg1rNkMbOoMOtwMw5bAJaiPRlv4ourn0EdngyOZg6lYissv+JMbmtv3r
+	 R/AJc1w8eLWuaYlxmW1BV2oG6eKXyaxlj2bG7EBP2r983raZnEOTtOXpNdbWh9ARqN
+	 2I5s5M02lPGXKPFA4mZkN2OC6qS0MyiFtG8QWMdHwCj4Rtcpth1TPFrVVghTe8HnF3
+	 LcrGF0wf6ivXYlkMWCoUS6MnX8diEgTm2hGs1mzgG6o0do75khaXIRJk43KLaDc4co
+	 1FO8TA13qaVTf0l2v4SBBrXScKoLGn+EPgjUsNPffh6n9G5gWzVHX5/XdDK4WDtDcv
+	 STlc91ZCFPj8w==
 From: Sasha Levin <sashal@kernel.org>
 To: stable@vger.kernel.org,
-	vulab@iscas.ac.cn
-Cc: Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	linux-arm-kernel@lists.infradead.org,
+	johan@kernel.org
+Cc: Kevin Hilman <khilman@baylibre.com>,
 	linux-omap@vger.kernel.org
-Subject: FAILED: Patch "ARM: omap2: Fix reference count leaks in omap_control_init()" failed to apply to 6.12-stable tree
-Date: Sat, 28 Feb 2026 20:19:22 -0500
-Message-ID: <20260301011923.1674404-1-sashal@kernel.org>
+Subject: FAILED: Patch "bus: omap-ocp2scp: fix OF populate on driver rebind" failed to apply to 6.12-stable tree
+Date: Sat, 28 Feb 2026 20:21:25 -0500
+Message-ID: <20260301012126.1677346-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -56,77 +54,66 @@ Sasha
 
 ------------------ original commit in Linus's tree ------------------
 
-From 93a04ab480c8bbcb7d9004be139c538c8a0c1bc8 Mon Sep 17 00:00:00 2001
-From: Wentao Liang <vulab@iscas.ac.cn>
-Date: Wed, 17 Dec 2025 14:21:22 +0000
-Subject: [PATCH] ARM: omap2: Fix reference count leaks in omap_control_init()
+From 5eb63e9bb65d88abde647ced50fe6ad40c11de1a Mon Sep 17 00:00:00 2001
+From: Johan Hovold <johan@kernel.org>
+Date: Fri, 19 Dec 2025 12:01:19 +0100
+Subject: [PATCH] bus: omap-ocp2scp: fix OF populate on driver rebind
 
-The of_get_child_by_name() function increments the reference count
-of child nodes, causing multiple reference leaks in omap_control_init():
+Since commit c6e126de43e7 ("of: Keep track of populated platform
+devices") child devices will not be created by of_platform_populate()
+if the devices had previously been deregistered individually so that the
+OF_POPULATED flag is still set in the corresponding OF nodes.
 
-1. scm_conf node never released in normal/error paths
-2. clocks node leak when checking existence
-3. Missing scm_conf release before np in error paths
+Switch to using of_platform_depopulate() instead of open coding so that
+the child devices are created if the driver is rebound.
 
-Fix these leaks by adding proper of_node_put() calls and separate error
-handling.
-
-Fixes: e5b635742e98 ("ARM: OMAP2+: control: add syscon support for register accesses")
-Cc: stable@vger.kernel.org
-Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
-Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
-Link: https://patch.msgid.link/20251217142122.1861292-1-vulab@iscas.ac.cn
+Fixes: c6e126de43e7 ("of: Keep track of populated platform devices")
+Cc: stable@vger.kernel.org      # 3.16
+Signed-off-by: Johan Hovold <johan@kernel.org>
+Link: https://patch.msgid.link/20251219110119.23507-1-johan@kernel.org
 Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 ---
- arch/arm/mach-omap2/control.c | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/bus/omap-ocp2scp.c | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 79860b23030de..eb6fc7c61b6e0 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -732,7 +732,7 @@ int __init omap2_control_base_init(void)
-  */
- int __init omap_control_init(void)
+diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
+index e4dfda7b3b102..eee5ad191ea9c 100644
+--- a/drivers/bus/omap-ocp2scp.c
++++ b/drivers/bus/omap-ocp2scp.c
+@@ -17,15 +17,6 @@
+ #define OCP2SCP_TIMING 0x18
+ #define SYNC2_MASK 0xf
+ 
+-static int ocp2scp_remove_devices(struct device *dev, void *c)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-
+-	platform_device_unregister(pdev);
+-
+-	return 0;
+-}
+-
+ static int omap_ocp2scp_probe(struct platform_device *pdev)
  {
--	struct device_node *np, *scm_conf;
-+	struct device_node *np, *scm_conf, *clocks_node;
- 	const struct of_device_id *match;
- 	const struct omap_prcm_init_data *data;
  	int ret;
-@@ -753,16 +753,19 @@ int __init omap_control_init(void)
+@@ -79,7 +70,7 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
+ 	pm_runtime_disable(&pdev->dev);
  
- 			if (IS_ERR(syscon)) {
- 				ret = PTR_ERR(syscon);
--				goto of_node_put;
-+				goto err_put_scm_conf;
- 			}
+ err0:
+-	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
++	of_platform_depopulate(&pdev->dev);
  
--			if (of_get_child_by_name(scm_conf, "clocks")) {
-+			clocks_node = of_get_child_by_name(scm_conf, "clocks");
-+			if (clocks_node) {
-+				of_node_put(clocks_node);
- 				ret = omap2_clk_provider_init(scm_conf,
- 							      data->index,
- 							      syscon, NULL);
- 				if (ret)
--					goto of_node_put;
-+					goto err_put_scm_conf;
- 			}
-+			of_node_put(scm_conf);
- 		} else {
- 			/* No scm_conf found, direct access */
- 			ret = omap2_clk_provider_init(np, data->index, NULL,
-@@ -780,6 +783,9 @@ int __init omap_control_init(void)
- 
- 	return 0;
- 
-+err_put_scm_conf:
-+	if (scm_conf)
-+		of_node_put(scm_conf);
- of_node_put:
- 	of_node_put(np);
  	return ret;
+ }
+@@ -87,7 +78,7 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
+ static void omap_ocp2scp_remove(struct platform_device *pdev)
+ {
+ 	pm_runtime_disable(&pdev->dev);
+-	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
++	of_platform_depopulate(&pdev->dev);
+ }
+ 
+ #ifdef CONFIG_OF
 -- 
 2.51.0
 
