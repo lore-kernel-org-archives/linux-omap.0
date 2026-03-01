@@ -1,39 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F32DD26FA6F;
-	Sun,  1 Mar 2026 01:43:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F6062820A9;
+	Sun,  1 Mar 2026 01:45:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772329399; cv=none; b=OCv5fgqZCw9m03btPz8xbDTO8I5WYeBm2r3l04H1VtRZhAFlVI14+Rp6IegWQ2viftLwFVCbVb6IIaXLtIAcEucU79bo5TQd8GppBY4oNHT5YGhynAX1HWrWPXsLhMFdcJhwRmEEII9S0QewL1PQu5DEkfZponP58BCdiWX5QZo=
+	t=1772329533; cv=none; b=CXGHo9JzvRynxIWe1bVhCwDkXrqSuM7aGw5JUyxsHy+iNVN9c10CIdbXHgg156Aj0RbMYvAC7O0OcX1UQfilzcx3RJy0Lj75kW93xnG4runBhZsa1Rzrlnq5gZGP+AGfJagtIwfjuARQOj8KnVFAnSp37MaVeI5Aiai+E2NVc48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772329399; c=relaxed/simple;
-	bh=3NyLcyenT7hXafUxUSYG7InSKNrpnG6mAN39Y30vksE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=C7uCBlq+SvJdnynsvZ69BguBi2wHSOKK/tZJ9O3U0aEHk6CfJQKI22ojk7ZxKv5Ucptb5UANoLgML+BuJaeI6vkX1llaEIjr/jlAKLXLQCqt0akRk07guvIgAZGaYp3193MbCjrCZrt+j0CXRYo7lGvPXjqtPbduNBShQkwZjwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c71p/zOm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772329533; c=relaxed/simple;
+	bh=XxxnmD4ZUnaY5xLeGNIsWsqKYPzQSHmmwxxOobW8kCY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lRhlVCiXovTa0GLsaAA1WJUCTUXm/P3+qm7AGraWVg0kgpRD2BueUeYTCoqNf5dejse3NVM3/GWuFFtdO0uHrMgdOs1k7XPjM0YT6caJitK8PcvFKvVPqR+u8NFmSiQ9AE0KUi0M8HIFcvM7UYwcXyNqvG16XbdJVKTckM0W1Jw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eUOEu3jO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c71p/zOm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2454C19425;
-	Sun,  1 Mar 2026 01:43:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eUOEu3jO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF84FC19421;
+	Sun,  1 Mar 2026 01:45:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772329398;
-	bh=3NyLcyenT7hXafUxUSYG7InSKNrpnG6mAN39Y30vksE=;
+	s=k20201202; t=1772329533;
+	bh=XxxnmD4ZUnaY5xLeGNIsWsqKYPzQSHmmwxxOobW8kCY=;
 	h=From:To:Cc:Subject:Date:From;
-	b=c71p/zOmGVj5FajyzxEgodiYRigmIsaOUhFepVMl6+zVEKTYdB8Nkzx1SLSMQBRAm
-	 GvKsbl4CS+0XhaLVmJWdYaWU4tSR/2ALWuMtZJXEkL4C8DQchh2DJbMpe+TdDMlWR0
-	 11WI+fRuKDIEWbsgwJxwtp5kFfLiCFSX0P1Ph9+LTXE4bP8aiYDYuBh4CvpSDdIAtZ
-	 A25/uWpFePCANOu0T0kZdECxnUUDJ0GBRnDUdIomekPEln6Jme/dEW4UqlDndhAj0e
-	 l9L81AiSez3ywB0WW5ATf+lwhPbuClzLLyy81qZ0h+R1aiNNj3naFRAQ4sYy7wNXKO
-	 DB8DBNoYj+ztA==
+	b=eUOEu3jO0PtWc2DlQZMA8PGzwrMRnL7/yQC64fegnoUfJifzub0PlcJrCMz7FebSu
+	 sx3q+D5whHX0m3zZFT1fis9f7qyMAogH80y4oaSZ9WjQF6s1ms2piHtlvA9QSJLOpO
+	 adWgcPcj+DG3NJbfkezPrU+ozkDbC+RzLPobwpBJLWeFYG6ANTh/0bagfMaIpnQxSz
+	 Rk25plY3qJuHD8oZrtO7KYSM4mPKE5G7ZXp5NYuojaSsLvYlKb9j3Dyna/Reliiihh
+	 62sxx+z1KrGfiqgtUdsLpoIj581hvsKxOYNl0z2edDDMHKrrY+Eb7wqrJ7kkdpdYyK
+	 dhszfLB1+yHEg==
 From: Sasha Levin <sashal@kernel.org>
 To: stable@vger.kernel.org,
-	johan@kernel.org
-Cc: Andreas Kemnade <andreas@kemnade.info>,
-	Lee Jones <lee@kernel.org>,
-	linux-omap@vger.kernel.org
-Subject: FAILED: Patch "mfd: omap-usb-host: Fix OF populate on driver rebind" failed to apply to 6.1-stable tree
-Date: Sat, 28 Feb 2026 20:43:16 -0500
-Message-ID: <20260301014316.1705341-1-sashal@kernel.org>
+	haokexin@gmail.com
+Cc: Alexander Sverdlin <alexander.sverdlin@gmail.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	linux-omap@vger.kernel.org,
+	netdev@vger.kernel.org
+Subject: FAILED: Patch "net: cpsw_new: Fix potential unregister of netdev that has not been registered yet" failed to apply to 6.1-stable tree
+Date: Sat, 28 Feb 2026 20:45:31 -0500
+Message-ID: <20260301014531.1708150-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -55,46 +56,51 @@ Sasha
 
 ------------------ original commit in Linus's tree ------------------
 
-From 24804ba508a3e240501c521685a1c4eb9f574f8e Mon Sep 17 00:00:00 2001
-From: Johan Hovold <johan@kernel.org>
-Date: Fri, 19 Dec 2025 12:07:14 +0100
-Subject: [PATCH] mfd: omap-usb-host: Fix OF populate on driver rebind
+From 9d724b34fbe13b71865ad0906a4be97571f19cf5 Mon Sep 17 00:00:00 2001
+From: Kevin Hao <haokexin@gmail.com>
+Date: Thu, 5 Feb 2026 10:47:03 +0800
+Subject: [PATCH] net: cpsw_new: Fix potential unregister of netdev that has
+ not been registered yet
 
-Since commit c6e126de43e7 ("of: Keep track of populated platform
-devices") child devices will not be created by of_platform_populate()
-if the devices had previously been deregistered individually so that the
-OF_POPULATED flag is still set in the corresponding OF nodes.
+If an error occurs during register_netdev() for the first MAC in
+cpsw_register_ports(), even though cpsw->slaves[0].ndev is set to NULL,
+cpsw->slaves[1].ndev would remain unchanged. This could later cause
+cpsw_unregister_ports() to attempt unregistering the second MAC.
+To address this, add a check for ndev->reg_state before calling
+unregister_netdev(). With this change, setting cpsw->slaves[i].ndev
+to NULL becomes unnecessary and can be removed accordingly.
 
-Switch to using of_platform_depopulate() instead of open coding so that
-the child devices are created if the driver is rebound.
-
-Fixes: c6e126de43e7 ("of: Keep track of populated platform devices")
-Cc: stable@vger.kernel.org	# 3.16
-Signed-off-by: Johan Hovold <johan@kernel.org>
-Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
-Link: https://patch.msgid.link/20251219110714.23919-1-johan@kernel.org
-Signed-off-by: Lee Jones <lee@kernel.org>
+Fixes: ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based driver part 1 - dual-emac")
+Signed-off-by: Kevin Hao <haokexin@gmail.com>
+Cc: stable@vger.kernel.org
+Reviewed-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+Link: https://patch.msgid.link/20260205-cpsw-error-path-v1-2-6e58bae6b299@gmail.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 ---
- drivers/mfd/omap-usb-host.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/ti/cpsw_new.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index a77b6fc790f2e..4d29a6e2ed87a 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -819,8 +819,10 @@ static void usbhs_omap_remove(struct platform_device *pdev)
- {
- 	pm_runtime_disable(&pdev->dev);
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index b9fc31eb06134..7f42f58a4b031 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -1472,7 +1472,7 @@ static void cpsw_unregister_ports(struct cpsw_common *cpsw)
  
--	/* remove children */
--	device_for_each_child(&pdev->dev, NULL, usbhs_omap_remove_child);
-+	if (pdev->dev.of_node)
-+		of_platform_depopulate(&pdev->dev);
-+	else
-+		device_for_each_child(&pdev->dev, NULL, usbhs_omap_remove_child);
- }
+ 	for (i = 0; i < cpsw->data.slaves; i++) {
+ 		ndev = cpsw->slaves[i].ndev;
+-		if (!ndev)
++		if (!ndev || ndev->reg_state != NETREG_REGISTERED)
+ 			continue;
  
- static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
+ 		priv = netdev_priv(ndev);
+@@ -1494,7 +1494,6 @@ static int cpsw_register_ports(struct cpsw_common *cpsw)
+ 		if (ret) {
+ 			dev_err(cpsw->dev,
+ 				"cpsw: err registering net device%d\n", i);
+-			cpsw->slaves[i].ndev = NULL;
+ 			break;
+ 		}
+ 	}
 -- 
 2.51.0
 
