@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F275A2820A9;
-	Sun,  1 Mar 2026 01:45:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88C6026ED35;
+	Sun,  1 Mar 2026 01:49:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772329536; cv=none; b=pQSxrmfzV34JmP4teuyDgY4/WHBQOWBpdd4t2H6ivssM4joRuohcN/Ly9Iygd9Zt4SR3aqS7y9tEuB7eLsVI5AVQ552tZC9vI8Y8Ni6eFRQKDeaTk0b7X3p0R1CxhV3GAMsFHtHJSMDHu0kb59hYrg762ffC3NxcHteyfT9+qzc=
+	t=1772329753; cv=none; b=iZxAPsIr/zbR1JZvmjv4a4iOC//eHV0yAXN/XgF0f56J7UcD/IYbcQfZmjRP9wUS1qbvfAjzcsecmLUYnGn00PjI3Gcg5S04m0botLA2hHwdv2f/S39Xb+R12YxKf6wJ4WsBsb5IYIB8rpa2un+UTah0WwxdtmOdR+Byc4f/fc0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772329536; c=relaxed/simple;
-	bh=lrE/g+c59BFKYoq7uC03dOsCIgAQOCcNtClDQV162+c=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HmF5lzbYcnXwYv524Md+q6Tuf2tfFWcYRU4K5bHxD4GcwQDjXU57UuJHyy/JJb+bR1h8oP0VQzrJAmqPjhXOxCTB7wX24q4IDERvZTRKRVyNsF2fk+jQnZrjaUDUwa7Q1pbgKAND6UWAc83FTHqMlsSP5tDrLQvuGLIriCUa9lc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hyhij3y4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772329753; c=relaxed/simple;
+	bh=CCF7epNiBWyi3laEiYZE1aJQoOPheUe/tCIgJtAtEZI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Fp6mpaoi09abWb9Nh0b5j/VQyt1Sevv60UUj8vLnepeO4gx7YxMWJ8rJSVhKdBHIfEA6amPaCTECT+C3QzsRNNvf1r3Q5BwidrYZlmjEsikZ/xA+We5QISZtCQYsc/ROewRNv2F78KuKB10XtGLHJl+A0I+n/p/YazScb+RhRMY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Inll682a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hyhij3y4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38239C19421;
-	Sun,  1 Mar 2026 01:45:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Inll682a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AC60C19424;
+	Sun,  1 Mar 2026 01:49:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772329535;
-	bh=lrE/g+c59BFKYoq7uC03dOsCIgAQOCcNtClDQV162+c=;
+	s=k20201202; t=1772329753;
+	bh=CCF7epNiBWyi3laEiYZE1aJQoOPheUe/tCIgJtAtEZI=;
 	h=From:To:Cc:Subject:Date:From;
-	b=hyhij3y4XzWeibBb/V/p2LYOQKv0aPpBkhM8GBMfrMzBx9VPwCgc1nNdEXf4pGyvg
-	 ruZXX2kHWkc5eT4CSGKLSY6LBxr1lfnzNzCTheP+xNb937FMsiBj1T4yIuvX374r5x
-	 5hP3Icwm+q1Q9oO5S56Ej2QPs46fmx/hg+hgIQ4Pp4kw52uffOqRYKhxeakWwHXLpp
-	 anYp70Aq9KDL5pRP/iclV3jOjPGeQ6Z+wG8o+Jp+w0zIsQnupS9TMNUpEGBHjUplbx
-	 +NkdYhF27nJuLldurcpDdcQ/xAXZfSccT1alVDHGfqUP6npRGu2a7J+Cbu9AizaIo2
-	 KlnhIlUE2EelA==
+	b=Inll682aN5nH0BBM0jwcIXYGOovjQotBrOKU01055nr3jMyRJtJLrAFocLUDpbZLS
+	 LW/1pCEVQcurFBcalar/WkQOzHGpYUP6BysShZP5nngxxW4qhkowle0Ps3IIpJg3Zn
+	 O7360cndNk97+L2ox1DzbLjsEhAkqsMDQ7O1VqOL8nmafqvyQCrslLsi45JWdvCnP/
+	 fz25CaxbLSJu7Mo2sQ4MRvZbCczVYAL8TVN9G3vAku9RZLBOhNQCsf56uZ3TryKlTK
+	 7zzLTCd6BDccdihN8Fn5dfz0W4bHce+b5q52TX4vtlXk+p92IXLr5I2DsjiYWyW/kO
+	 YnNJRezaJ+jYQ==
 From: Sasha Levin <sashal@kernel.org>
 To: stable@vger.kernel.org,
-	haokexin@gmail.com
-Cc: Alexander Sverdlin <alexander.sverdlin@gmail.com>,
-	Jakub Kicinski <kuba@kernel.org>,
+	vulab@iscas.ac.cn
+Cc: Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
 	linux-omap@vger.kernel.org,
-	netdev@vger.kernel.org
-Subject: FAILED: Patch "net: cpsw_new: Fix unnecessary netdev unregistration in cpsw_probe() error path" failed to apply to 6.1-stable tree
-Date: Sat, 28 Feb 2026 20:45:33 -0500
-Message-ID: <20260301014534.1708199-1-sashal@kernel.org>
+	linux-arm-kernel@lists.infradead.org
+Subject: FAILED: Patch "ARM: omap2: Fix reference count leaks in omap_control_init()" failed to apply to 5.15-stable tree
+Date: Sat, 28 Feb 2026 20:49:11 -0500
+Message-ID: <20260301014911.1713583-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -46,7 +46,7 @@ X-Patchwork-Hint: ignore
 X-stable: review
 Content-Transfer-Encoding: 8bit
 
-The patch below does not apply to the 6.1-stable tree.
+The patch below does not apply to the 5.15-stable tree.
 If someone wants it applied there, or to any other stable or longterm
 tree, then please email the backport, including the original git commit
 id to <stable@vger.kernel.org>.
@@ -56,87 +56,77 @@ Sasha
 
 ------------------ original commit in Linus's tree ------------------
 
-From 62db84b7efa63b78aed9fdbdae90f198771be94c Mon Sep 17 00:00:00 2001
-From: Kevin Hao <haokexin@gmail.com>
-Date: Thu, 5 Feb 2026 10:47:02 +0800
-Subject: [PATCH] net: cpsw_new: Fix unnecessary netdev unregistration in
- cpsw_probe() error path
+From 93a04ab480c8bbcb7d9004be139c538c8a0c1bc8 Mon Sep 17 00:00:00 2001
+From: Wentao Liang <vulab@iscas.ac.cn>
+Date: Wed, 17 Dec 2025 14:21:22 +0000
+Subject: [PATCH] ARM: omap2: Fix reference count leaks in omap_control_init()
 
-The current error handling in cpsw_probe() has two issues:
-- cpsw_unregister_ports() may be called before cpsw_register_ports() has
-  been executed.
+The of_get_child_by_name() function increments the reference count
+of child nodes, causing multiple reference leaks in omap_control_init():
 
-- cpsw_unregister_ports() is already invoked within cpsw_register_ports()
-  in case of a register_netdev() failure, but the error path would call
-  it again.
+1. scm_conf node never released in normal/error paths
+2. clocks node leak when checking existence
+3. Missing scm_conf release before np in error paths
 
-Fixes: ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based driver part 1 - dual-emac")
-Signed-off-by: Kevin Hao <haokexin@gmail.com>
+Fix these leaks by adding proper of_node_put() calls and separate error
+handling.
+
+Fixes: e5b635742e98 ("ARM: OMAP2+: control: add syscon support for register accesses")
 Cc: stable@vger.kernel.org
-Reviewed-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-Link: https://patch.msgid.link/20260205-cpsw-error-path-v1-1-6e58bae6b299@gmail.com
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
+Link: https://patch.msgid.link/20251217142122.1861292-1-vulab@iscas.ac.cn
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 ---
- drivers/net/ethernet/ti/cpsw_new.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/control.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
-index 21af0a10626aa..b9fc31eb06134 100644
---- a/drivers/net/ethernet/ti/cpsw_new.c
-+++ b/drivers/net/ethernet/ti/cpsw_new.c
-@@ -2003,7 +2003,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	/* setup netdevs */
- 	ret = cpsw_create_ports(cpsw);
- 	if (ret)
--		goto clean_unregister_netdev;
-+		goto clean_cpts;
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 79860b23030de..eb6fc7c61b6e0 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -732,7 +732,7 @@ int __init omap2_control_base_init(void)
+  */
+ int __init omap_control_init(void)
+ {
+-	struct device_node *np, *scm_conf;
++	struct device_node *np, *scm_conf, *clocks_node;
+ 	const struct of_device_id *match;
+ 	const struct omap_prcm_init_data *data;
+ 	int ret;
+@@ -753,16 +753,19 @@ int __init omap_control_init(void)
  
- 	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
- 	 * MISC IRQs which are always kept disabled with this driver so
-@@ -2017,14 +2017,14 @@ static int cpsw_probe(struct platform_device *pdev)
- 			       0, dev_name(dev), cpsw);
- 	if (ret < 0) {
- 		dev_err(dev, "error attaching irq (%d)\n", ret);
--		goto clean_unregister_netdev;
-+		goto clean_cpts;
- 	}
+ 			if (IS_ERR(syscon)) {
+ 				ret = PTR_ERR(syscon);
+-				goto of_node_put;
++				goto err_put_scm_conf;
+ 			}
  
- 	ret = devm_request_irq(dev, cpsw->irqs_table[1], cpsw_tx_interrupt,
- 			       0, dev_name(dev), cpsw);
- 	if (ret < 0) {
- 		dev_err(dev, "error attaching irq (%d)\n", ret);
--		goto clean_unregister_netdev;
-+		goto clean_cpts;
- 	}
+-			if (of_get_child_by_name(scm_conf, "clocks")) {
++			clocks_node = of_get_child_by_name(scm_conf, "clocks");
++			if (clocks_node) {
++				of_node_put(clocks_node);
+ 				ret = omap2_clk_provider_init(scm_conf,
+ 							      data->index,
+ 							      syscon, NULL);
+ 				if (ret)
+-					goto of_node_put;
++					goto err_put_scm_conf;
+ 			}
++			of_node_put(scm_conf);
+ 		} else {
+ 			/* No scm_conf found, direct access */
+ 			ret = omap2_clk_provider_init(np, data->index, NULL,
+@@ -780,6 +783,9 @@ int __init omap_control_init(void)
  
- 	if (!cpsw->cpts)
-@@ -2034,7 +2034,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 			       0, dev_name(&pdev->dev), cpsw);
- 	if (ret < 0) {
- 		dev_err(dev, "error attaching misc irq (%d)\n", ret);
--		goto clean_unregister_netdev;
-+		goto clean_cpts;
- 	}
+ 	return 0;
  
- 	/* Enable misc CPTS evnt_pend IRQ */
-@@ -2043,7 +2043,7 @@ static int cpsw_probe(struct platform_device *pdev)
- skip_cpts:
- 	ret = cpsw_register_notifiers(cpsw);
- 	if (ret)
--		goto clean_unregister_netdev;
-+		goto clean_cpts;
- 
- 	ret = cpsw_register_devlink(cpsw);
- 	if (ret)
-@@ -2065,8 +2065,6 @@ static int cpsw_probe(struct platform_device *pdev)
- 
- clean_unregister_notifiers:
- 	cpsw_unregister_notifiers(cpsw);
--clean_unregister_netdev:
--	cpsw_unregister_ports(cpsw);
- clean_cpts:
- 	cpts_release(cpsw->cpts);
- 	cpdma_ctlr_destroy(cpsw->dma);
++err_put_scm_conf:
++	if (scm_conf)
++		of_node_put(scm_conf);
+ of_node_put:
+ 	of_node_put(np);
+ 	return ret;
 -- 
 2.51.0
 
