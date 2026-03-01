@@ -1,38 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29C061DED49;
-	Sun,  1 Mar 2026 02:00:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97F82190664;
+	Sun,  1 Mar 2026 02:01:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772330424; cv=none; b=qUQWpWLXFqbXilT13aBqmsy4e24GlsBiwcT7xzi3H1J61FjGPnAMBZoBD+Dz7RkWt00QWGrBz3Fkcd1sURH5DOfWURKZRoqTG4EUCVSB7wek8Z+zPWiGFWcxJbjHZ3ZFhyhyksIi5AJFBkDMM9UTlXw0NrVi5pNFaGXfSyMaLtA=
+	t=1772330502; cv=none; b=c+SW9aPQnFbjLw4umxaYXpi4hgtmUIR/oUvva/VIwEwTtVukQ/9ZYp/aEYqxuUDp3DXBLAatTZSVdISP3zay1gm5TssZKnY9T4bHS4WSr7MA/U8nez0PDExpoqvcXfR2GZquwtySUWn8Q8Y0D6/YBwaHwsB0L1fOT3f+Tb8y5t8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772330424; c=relaxed/simple;
-	bh=5ak1kYvLq31uXeMlutj0OxpL3pH8wMdcKaC694wxvsU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ht8ycOnZXD1i/po+Lz4OuhEY4WU1Z+ZjI/l+nFoXMEJ0pwlz8kfWGL0N65vYaR6bsNQ4nJFc9QYCdzFMWn9aYKO8Y9xt6mzR5H8T6YwrnJmZp+OedVnmIL3tQ+egpwpb/KrCy6UHgkYup4ISZ26EmzOCAc2mK1yBdVwBl0Keh0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pqep/V05; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772330502; c=relaxed/simple;
+	bh=2m5onBhn9eqSmDwMa32YrYK0vBGQc7R6OUCZK7fSNiQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VGBPRAR8IHubqDttkkFX5BsZFW93a6YLkZXNNsZbks7MYkwIYx2BoNzwU/Z/etsaRfG9FHI0IYKICeH3fl28q0KUCoxDFx9K9LuLsnqURV89fgVmEzJzpQnETOGhEDLLMyAdMfkcOK08RTPa+VUXMl1HKxRXB8K5PUrE3yRGYgU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JKxYWgQ1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pqep/V05"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AB4EC19421;
-	Sun,  1 Mar 2026 02:00:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JKxYWgQ1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E09C3C19421;
+	Sun,  1 Mar 2026 02:01:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772330424;
-	bh=5ak1kYvLq31uXeMlutj0OxpL3pH8wMdcKaC694wxvsU=;
+	s=k20201202; t=1772330502;
+	bh=2m5onBhn9eqSmDwMa32YrYK0vBGQc7R6OUCZK7fSNiQ=;
 	h=From:To:Cc:Subject:Date:From;
-	b=pqep/V05s0a7G1n54sd57KdTKXrLOEg3VzMf8AjEVz073OJSCBzgHKD3DkK1qmg4B
-	 WylRIZ7BwZ05R31Nd/9p8ZvlAF9wz6c/BE12orXqsPpjjPVOjFJPPpwV3Sid4o5HFS
-	 hs95oK0lLvL7PrvuT3vFMijOq9Id8zhMUIQbwiWvDODvSJWdY+AOP7HnWRepcral0g
-	 0MKfo3qliyGNepztFGNe8XG3uI8KfOLex8X05IeDOZWsBjD/OQ8xsVUSTsTYvt1i3X
-	 pu/WQYpynS9+4z909TMmqwQzMoeKfwEL7vWVExhEfC2Rxu40hXnKhB5TgjRaYpgm3t
-	 dYOrKWG4YLh7w==
+	b=JKxYWgQ10SOzplKdboGWdrogLa73saRL6prAbzI5pUd9gdG9SkL26iepI4dnJR6mr
+	 qDz/f0oQeIUmds3kZgjKZiqu5DSFSYHsH7gSlmuY9AKoiJnzaITvKUvqDdktwkioTd
+	 1KBojJiOv8k9ZBRw65V8er3u815Mf0b4JdN5Km8z3b1S89DcV7PQqxE8IqpS/PgSP+
+	 8/L9a1VlqsIGW8YRfZqcUqZYD3ZlLoZQDRP11cPZsmS5vlvXzoiixi43nlbHXGAMYs
+	 ee7QfJeCxsEeru5+rjEsgA8Qwdwo91SQ0K5YgjlYCMQ58KxNvNyYMPrWrqm9aQi2XK
+	 fO+JFhOuGPlmg==
 From: Sasha Levin <sashal@kernel.org>
 To: stable@vger.kernel.org,
 	johan@kernel.org
-Cc: Kevin Hilman <khilman@baylibre.com>,
+Cc: Andreas Kemnade <andreas@kemnade.info>,
+	Lee Jones <lee@kernel.org>,
 	linux-omap@vger.kernel.org
-Subject: FAILED: Patch "bus: omap-ocp2scp: fix OF populate on driver rebind" failed to apply to 5.10-stable tree
-Date: Sat, 28 Feb 2026 21:00:22 -0500
-Message-ID: <20260301020022.1726432-1-sashal@kernel.org>
+Subject: FAILED: Patch "mfd: omap-usb-host: Fix OF populate on driver rebind" failed to apply to 5.10-stable tree
+Date: Sat, 28 Feb 2026 21:01:40 -0500
+Message-ID: <20260301020140.1729046-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -54,10 +55,10 @@ Sasha
 
 ------------------ original commit in Linus's tree ------------------
 
-From 5eb63e9bb65d88abde647ced50fe6ad40c11de1a Mon Sep 17 00:00:00 2001
+From 24804ba508a3e240501c521685a1c4eb9f574f8e Mon Sep 17 00:00:00 2001
 From: Johan Hovold <johan@kernel.org>
-Date: Fri, 19 Dec 2025 12:01:19 +0100
-Subject: [PATCH] bus: omap-ocp2scp: fix OF populate on driver rebind
+Date: Fri, 19 Dec 2025 12:07:14 +0100
+Subject: [PATCH] mfd: omap-usb-host: Fix OF populate on driver rebind
 
 Since commit c6e126de43e7 ("of: Keep track of populated platform
 devices") child devices will not be created by of_platform_populate()
@@ -68,52 +69,32 @@ Switch to using of_platform_depopulate() instead of open coding so that
 the child devices are created if the driver is rebound.
 
 Fixes: c6e126de43e7 ("of: Keep track of populated platform devices")
-Cc: stable@vger.kernel.org      # 3.16
+Cc: stable@vger.kernel.org	# 3.16
 Signed-off-by: Johan Hovold <johan@kernel.org>
-Link: https://patch.msgid.link/20251219110119.23507-1-johan@kernel.org
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
+Link: https://patch.msgid.link/20251219110714.23919-1-johan@kernel.org
+Signed-off-by: Lee Jones <lee@kernel.org>
 ---
- drivers/bus/omap-ocp2scp.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/mfd/omap-usb-host.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
-index e4dfda7b3b102..eee5ad191ea9c 100644
---- a/drivers/bus/omap-ocp2scp.c
-+++ b/drivers/bus/omap-ocp2scp.c
-@@ -17,15 +17,6 @@
- #define OCP2SCP_TIMING 0x18
- #define SYNC2_MASK 0xf
- 
--static int ocp2scp_remove_devices(struct device *dev, void *c)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--
--	platform_device_unregister(pdev);
--
--	return 0;
--}
--
- static int omap_ocp2scp_probe(struct platform_device *pdev)
- {
- 	int ret;
-@@ -79,7 +70,7 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
- 	pm_runtime_disable(&pdev->dev);
- 
- err0:
--	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-+	of_platform_depopulate(&pdev->dev);
- 
- 	return ret;
- }
-@@ -87,7 +78,7 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
- static void omap_ocp2scp_remove(struct platform_device *pdev)
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index a77b6fc790f2e..4d29a6e2ed87a 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -819,8 +819,10 @@ static void usbhs_omap_remove(struct platform_device *pdev)
  {
  	pm_runtime_disable(&pdev->dev);
--	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-+	of_platform_depopulate(&pdev->dev);
+ 
+-	/* remove children */
+-	device_for_each_child(&pdev->dev, NULL, usbhs_omap_remove_child);
++	if (pdev->dev.of_node)
++		of_platform_depopulate(&pdev->dev);
++	else
++		device_for_each_child(&pdev->dev, NULL, usbhs_omap_remove_child);
  }
  
- #ifdef CONFIG_OF
+ static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
 -- 
 2.51.0
 
