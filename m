@@ -1,30 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F6062820A9;
-	Sun,  1 Mar 2026 01:45:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F275A2820A9;
+	Sun,  1 Mar 2026 01:45:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772329533; cv=none; b=CXGHo9JzvRynxIWe1bVhCwDkXrqSuM7aGw5JUyxsHy+iNVN9c10CIdbXHgg156Aj0RbMYvAC7O0OcX1UQfilzcx3RJy0Lj75kW93xnG4runBhZsa1Rzrlnq5gZGP+AGfJagtIwfjuARQOj8KnVFAnSp37MaVeI5Aiai+E2NVc48=
+	t=1772329536; cv=none; b=pQSxrmfzV34JmP4teuyDgY4/WHBQOWBpdd4t2H6ivssM4joRuohcN/Ly9Iygd9Zt4SR3aqS7y9tEuB7eLsVI5AVQ552tZC9vI8Y8Ni6eFRQKDeaTk0b7X3p0R1CxhV3GAMsFHtHJSMDHu0kb59hYrg762ffC3NxcHteyfT9+qzc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772329533; c=relaxed/simple;
-	bh=XxxnmD4ZUnaY5xLeGNIsWsqKYPzQSHmmwxxOobW8kCY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lRhlVCiXovTa0GLsaAA1WJUCTUXm/P3+qm7AGraWVg0kgpRD2BueUeYTCoqNf5dejse3NVM3/GWuFFtdO0uHrMgdOs1k7XPjM0YT6caJitK8PcvFKvVPqR+u8NFmSiQ9AE0KUi0M8HIFcvM7UYwcXyNqvG16XbdJVKTckM0W1Jw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eUOEu3jO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772329536; c=relaxed/simple;
+	bh=lrE/g+c59BFKYoq7uC03dOsCIgAQOCcNtClDQV162+c=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HmF5lzbYcnXwYv524Md+q6Tuf2tfFWcYRU4K5bHxD4GcwQDjXU57UuJHyy/JJb+bR1h8oP0VQzrJAmqPjhXOxCTB7wX24q4IDERvZTRKRVyNsF2fk+jQnZrjaUDUwa7Q1pbgKAND6UWAc83FTHqMlsSP5tDrLQvuGLIriCUa9lc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hyhij3y4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eUOEu3jO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF84FC19421;
-	Sun,  1 Mar 2026 01:45:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hyhij3y4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38239C19421;
+	Sun,  1 Mar 2026 01:45:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772329533;
-	bh=XxxnmD4ZUnaY5xLeGNIsWsqKYPzQSHmmwxxOobW8kCY=;
+	s=k20201202; t=1772329535;
+	bh=lrE/g+c59BFKYoq7uC03dOsCIgAQOCcNtClDQV162+c=;
 	h=From:To:Cc:Subject:Date:From;
-	b=eUOEu3jO0PtWc2DlQZMA8PGzwrMRnL7/yQC64fegnoUfJifzub0PlcJrCMz7FebSu
-	 sx3q+D5whHX0m3zZFT1fis9f7qyMAogH80y4oaSZ9WjQF6s1ms2piHtlvA9QSJLOpO
-	 adWgcPcj+DG3NJbfkezPrU+ozkDbC+RzLPobwpBJLWeFYG6ANTh/0bagfMaIpnQxSz
-	 Rk25plY3qJuHD8oZrtO7KYSM4mPKE5G7ZXp5NYuojaSsLvYlKb9j3Dyna/Reliiihh
-	 62sxx+z1KrGfiqgtUdsLpoIj581hvsKxOYNl0z2edDDMHKrrY+Eb7wqrJ7kkdpdYyK
-	 dhszfLB1+yHEg==
+	b=hyhij3y4XzWeibBb/V/p2LYOQKv0aPpBkhM8GBMfrMzBx9VPwCgc1nNdEXf4pGyvg
+	 ruZXX2kHWkc5eT4CSGKLSY6LBxr1lfnzNzCTheP+xNb937FMsiBj1T4yIuvX374r5x
+	 5hP3Icwm+q1Q9oO5S56Ej2QPs46fmx/hg+hgIQ4Pp4kw52uffOqRYKhxeakWwHXLpp
+	 anYp70Aq9KDL5pRP/iclV3jOjPGeQ6Z+wG8o+Jp+w0zIsQnupS9TMNUpEGBHjUplbx
+	 +NkdYhF27nJuLldurcpDdcQ/xAXZfSccT1alVDHGfqUP6npRGu2a7J+Cbu9AizaIo2
+	 KlnhIlUE2EelA==
 From: Sasha Levin <sashal@kernel.org>
 To: stable@vger.kernel.org,
 	haokexin@gmail.com
@@ -32,9 +32,9 @@ Cc: Alexander Sverdlin <alexander.sverdlin@gmail.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	linux-omap@vger.kernel.org,
 	netdev@vger.kernel.org
-Subject: FAILED: Patch "net: cpsw_new: Fix potential unregister of netdev that has not been registered yet" failed to apply to 6.1-stable tree
-Date: Sat, 28 Feb 2026 20:45:31 -0500
-Message-ID: <20260301014531.1708150-1-sashal@kernel.org>
+Subject: FAILED: Patch "net: cpsw_new: Fix unnecessary netdev unregistration in cpsw_probe() error path" failed to apply to 6.1-stable tree
+Date: Sat, 28 Feb 2026 20:45:33 -0500
+Message-ID: <20260301014534.1708199-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -56,51 +56,87 @@ Sasha
 
 ------------------ original commit in Linus's tree ------------------
 
-From 9d724b34fbe13b71865ad0906a4be97571f19cf5 Mon Sep 17 00:00:00 2001
+From 62db84b7efa63b78aed9fdbdae90f198771be94c Mon Sep 17 00:00:00 2001
 From: Kevin Hao <haokexin@gmail.com>
-Date: Thu, 5 Feb 2026 10:47:03 +0800
-Subject: [PATCH] net: cpsw_new: Fix potential unregister of netdev that has
- not been registered yet
+Date: Thu, 5 Feb 2026 10:47:02 +0800
+Subject: [PATCH] net: cpsw_new: Fix unnecessary netdev unregistration in
+ cpsw_probe() error path
 
-If an error occurs during register_netdev() for the first MAC in
-cpsw_register_ports(), even though cpsw->slaves[0].ndev is set to NULL,
-cpsw->slaves[1].ndev would remain unchanged. This could later cause
-cpsw_unregister_ports() to attempt unregistering the second MAC.
-To address this, add a check for ndev->reg_state before calling
-unregister_netdev(). With this change, setting cpsw->slaves[i].ndev
-to NULL becomes unnecessary and can be removed accordingly.
+The current error handling in cpsw_probe() has two issues:
+- cpsw_unregister_ports() may be called before cpsw_register_ports() has
+  been executed.
+
+- cpsw_unregister_ports() is already invoked within cpsw_register_ports()
+  in case of a register_netdev() failure, but the error path would call
+  it again.
 
 Fixes: ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based driver part 1 - dual-emac")
 Signed-off-by: Kevin Hao <haokexin@gmail.com>
 Cc: stable@vger.kernel.org
 Reviewed-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-Link: https://patch.msgid.link/20260205-cpsw-error-path-v1-2-6e58bae6b299@gmail.com
+Link: https://patch.msgid.link/20260205-cpsw-error-path-v1-1-6e58bae6b299@gmail.com
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 ---
- drivers/net/ethernet/ti/cpsw_new.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/ethernet/ti/cpsw_new.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
-index b9fc31eb06134..7f42f58a4b031 100644
+index 21af0a10626aa..b9fc31eb06134 100644
 --- a/drivers/net/ethernet/ti/cpsw_new.c
 +++ b/drivers/net/ethernet/ti/cpsw_new.c
-@@ -1472,7 +1472,7 @@ static void cpsw_unregister_ports(struct cpsw_common *cpsw)
+@@ -2003,7 +2003,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	/* setup netdevs */
+ 	ret = cpsw_create_ports(cpsw);
+ 	if (ret)
+-		goto clean_unregister_netdev;
++		goto clean_cpts;
  
- 	for (i = 0; i < cpsw->data.slaves; i++) {
- 		ndev = cpsw->slaves[i].ndev;
--		if (!ndev)
-+		if (!ndev || ndev->reg_state != NETREG_REGISTERED)
- 			continue;
- 
- 		priv = netdev_priv(ndev);
-@@ -1494,7 +1494,6 @@ static int cpsw_register_ports(struct cpsw_common *cpsw)
- 		if (ret) {
- 			dev_err(cpsw->dev,
- 				"cpsw: err registering net device%d\n", i);
--			cpsw->slaves[i].ndev = NULL;
- 			break;
- 		}
+ 	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
+ 	 * MISC IRQs which are always kept disabled with this driver so
+@@ -2017,14 +2017,14 @@ static int cpsw_probe(struct platform_device *pdev)
+ 			       0, dev_name(dev), cpsw);
+ 	if (ret < 0) {
+ 		dev_err(dev, "error attaching irq (%d)\n", ret);
+-		goto clean_unregister_netdev;
++		goto clean_cpts;
  	}
+ 
+ 	ret = devm_request_irq(dev, cpsw->irqs_table[1], cpsw_tx_interrupt,
+ 			       0, dev_name(dev), cpsw);
+ 	if (ret < 0) {
+ 		dev_err(dev, "error attaching irq (%d)\n", ret);
+-		goto clean_unregister_netdev;
++		goto clean_cpts;
+ 	}
+ 
+ 	if (!cpsw->cpts)
+@@ -2034,7 +2034,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 			       0, dev_name(&pdev->dev), cpsw);
+ 	if (ret < 0) {
+ 		dev_err(dev, "error attaching misc irq (%d)\n", ret);
+-		goto clean_unregister_netdev;
++		goto clean_cpts;
+ 	}
+ 
+ 	/* Enable misc CPTS evnt_pend IRQ */
+@@ -2043,7 +2043,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ skip_cpts:
+ 	ret = cpsw_register_notifiers(cpsw);
+ 	if (ret)
+-		goto clean_unregister_netdev;
++		goto clean_cpts;
+ 
+ 	ret = cpsw_register_devlink(cpsw);
+ 	if (ret)
+@@ -2065,8 +2065,6 @@ static int cpsw_probe(struct platform_device *pdev)
+ 
+ clean_unregister_notifiers:
+ 	cpsw_unregister_notifiers(cpsw);
+-clean_unregister_netdev:
+-	cpsw_unregister_ports(cpsw);
+ clean_cpts:
+ 	cpts_release(cpsw->cpts);
+ 	cpdma_ctlr_destroy(cpsw->dma);
 -- 
 2.51.0
 
