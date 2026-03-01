@@ -1,39 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 756B32882D6;
-	Sun,  1 Mar 2026 01:34:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 644561CD2C;
+	Sun,  1 Mar 2026 01:36:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772328862; cv=none; b=srQNSc49Q4DmahDsjC34Uqe+ledh2iH32horuqX2e1qL32IMcnhLs7DgVvQpKAlTDv+PXJ+AFB0/bzyfYJT8e80c6dYXxKQljvSf0+0F5rPLixEe+mMpbgcC6rNZs4MctBJjx/INwXXvByXR3ojUGzFsstXqQXF9cJG6Atyuy5k=
+	t=1772329009; cv=none; b=f99bS3Zrf8ehQjvvLkQvOKjTsZ4aJVe5csqTZQRM0D6Xl3cyl2EDPA6Gjo2IS65d+ome/k7uLi7MlLS0z5vKzxWbhUk69bOy1mE3USbNlBwM7Evwcwy8UrZf70LHeLNw5LeVr7ZSKGcbc7yWvsBRNdc0ThhCr6F8peX1/lfj0UQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772328862; c=relaxed/simple;
-	bh=n2PTJ53uLgQNFe3B/9BBiJ37WSZJQx7ZUSFP2gloRqI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=twSJbxH7aN7eb4qG4sLBkM0jv9TP6V0v5yagFZmfaBCQcUH0KzyCnWJ7X+ra0b1HyH/UrpBNBpYpOUKSXdzeBiz73Ty7LJ2eXX9QrnL5Y/a58b7hafGPMGTQczwVRezdvbB1RfuQU9Vm6CffRgQ6EGsi90HjliyNkOyj2qoscnQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AeN4nlyU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772329009; c=relaxed/simple;
+	bh=5EjnYxd/w+opfXpnAg3URS1vovrcncDPGiCMwDsEUSw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iDe5wFDPvzIgKgolNpFGgNToZyzyA2m9LzzJqXbh35swO/rZn+rqKDwQNM5UI5WpASbRy3fjeQkK2qb24BkxIi+6MOKaFiFSBIDGRN/MmptUrf5jQEQr4pbSd2HLRzeNnzkbXYSNnsp7z0TBoCIevrW9A1SHbYxe7r0L2dllk04=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KRCtyx+n; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AeN4nlyU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2F7CC19425;
-	Sun,  1 Mar 2026 01:34:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KRCtyx+n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94A7EC19421;
+	Sun,  1 Mar 2026 01:36:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772328862;
-	bh=n2PTJ53uLgQNFe3B/9BBiJ37WSZJQx7ZUSFP2gloRqI=;
+	s=k20201202; t=1772329009;
+	bh=5EjnYxd/w+opfXpnAg3URS1vovrcncDPGiCMwDsEUSw=;
 	h=From:To:Cc:Subject:Date:From;
-	b=AeN4nlyUavmr6PBDc60MMzTnAu2xDXNcF1kXeoBDEV8jTgAHG2/pzM1LGUnjTDaig
-	 62LgeILZo3br1rs0H1h2Au6AN8asB49teyMijQS3Y0jP83nu1kt0kB3iuawSbRAR6Z
-	 U4eNPRBN7ojOt4ReWX/dcwMCSAO0bLHVcQ0E/LjpqpSqtKAVlcHUIn2XsZFoQPeg4H
-	 AOPIFai1pQWDCmpLd4uJWw+vWiGl/tWvkDeh9LW+95h72cR75la3REhxAL4aPaJS+l
-	 Piev4R4wU7ZZ1HlHzrYu+utDxVURXJtEU8f2+dquj/dqq3qgSSyccA/koTyKnMcTWX
-	 RHnQLNTFx1YMg==
+	b=KRCtyx+nKjZ/5zQjSg0g4i4/ruy7ZYnyhbuvnJp4UMcG1/+yjB1WcMIcZBQgP/IXe
+	 YdwufK0j4M+aj82RacQ6tihxxnbvZ7veEgeKriw8bO+9bxQjLVz47BWsjCmGuF9Pmj
+	 9OhDbH1HannZPM+EdjTv/Ii+o6QLadQVLFps7ORkF/cdOjpNa2C+20bDXCvDfugZ3k
+	 LCPJSAoPw3ZxW9YrjPMsGlwN3dzQEzpqqDIayDyZAsaYhb0z3OYw82v0wNsrscXNOd
+	 AXbrSvDtsc43MiOzOpf13oo8xyiw4tiZ2JHAbxA1Nxd0Pnq7vObLm0wcvl2A+c0hew
+	 p+rlTensMh0/w==
 From: Sasha Levin <sashal@kernel.org>
 To: stable@vger.kernel.org,
-	johan@kernel.org
-Cc: Andreas Kemnade <andreas@kemnade.info>,
-	Lee Jones <lee@kernel.org>,
-	linux-omap@vger.kernel.org
-Subject: FAILED: Patch "mfd: omap-usb-host: Fix OF populate on driver rebind" failed to apply to 6.6-stable tree
-Date: Sat, 28 Feb 2026 20:34:20 -0500
-Message-ID: <20260301013420.1693800-1-sashal@kernel.org>
+	haokexin@gmail.com
+Cc: Alexander Sverdlin <alexander.sverdlin@gmail.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	linux-omap@vger.kernel.org,
+	netdev@vger.kernel.org
+Subject: FAILED: Patch "net: cpsw_new: Fix unnecessary netdev unregistration in cpsw_probe() error path" failed to apply to 6.6-stable tree
+Date: Sat, 28 Feb 2026 20:36:47 -0500
+Message-ID: <20260301013647.1696839-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -55,46 +56,87 @@ Sasha
 
 ------------------ original commit in Linus's tree ------------------
 
-From 24804ba508a3e240501c521685a1c4eb9f574f8e Mon Sep 17 00:00:00 2001
-From: Johan Hovold <johan@kernel.org>
-Date: Fri, 19 Dec 2025 12:07:14 +0100
-Subject: [PATCH] mfd: omap-usb-host: Fix OF populate on driver rebind
+From 62db84b7efa63b78aed9fdbdae90f198771be94c Mon Sep 17 00:00:00 2001
+From: Kevin Hao <haokexin@gmail.com>
+Date: Thu, 5 Feb 2026 10:47:02 +0800
+Subject: [PATCH] net: cpsw_new: Fix unnecessary netdev unregistration in
+ cpsw_probe() error path
 
-Since commit c6e126de43e7 ("of: Keep track of populated platform
-devices") child devices will not be created by of_platform_populate()
-if the devices had previously been deregistered individually so that the
-OF_POPULATED flag is still set in the corresponding OF nodes.
+The current error handling in cpsw_probe() has two issues:
+- cpsw_unregister_ports() may be called before cpsw_register_ports() has
+  been executed.
 
-Switch to using of_platform_depopulate() instead of open coding so that
-the child devices are created if the driver is rebound.
+- cpsw_unregister_ports() is already invoked within cpsw_register_ports()
+  in case of a register_netdev() failure, but the error path would call
+  it again.
 
-Fixes: c6e126de43e7 ("of: Keep track of populated platform devices")
-Cc: stable@vger.kernel.org	# 3.16
-Signed-off-by: Johan Hovold <johan@kernel.org>
-Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
-Link: https://patch.msgid.link/20251219110714.23919-1-johan@kernel.org
-Signed-off-by: Lee Jones <lee@kernel.org>
+Fixes: ed3525eda4c4 ("net: ethernet: ti: introduce cpsw switchdev based driver part 1 - dual-emac")
+Signed-off-by: Kevin Hao <haokexin@gmail.com>
+Cc: stable@vger.kernel.org
+Reviewed-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+Link: https://patch.msgid.link/20260205-cpsw-error-path-v1-1-6e58bae6b299@gmail.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 ---
- drivers/mfd/omap-usb-host.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/ti/cpsw_new.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index a77b6fc790f2e..4d29a6e2ed87a 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -819,8 +819,10 @@ static void usbhs_omap_remove(struct platform_device *pdev)
- {
- 	pm_runtime_disable(&pdev->dev);
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index 21af0a10626aa..b9fc31eb06134 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -2003,7 +2003,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	/* setup netdevs */
+ 	ret = cpsw_create_ports(cpsw);
+ 	if (ret)
+-		goto clean_unregister_netdev;
++		goto clean_cpts;
  
--	/* remove children */
--	device_for_each_child(&pdev->dev, NULL, usbhs_omap_remove_child);
-+	if (pdev->dev.of_node)
-+		of_platform_depopulate(&pdev->dev);
-+	else
-+		device_for_each_child(&pdev->dev, NULL, usbhs_omap_remove_child);
- }
+ 	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
+ 	 * MISC IRQs which are always kept disabled with this driver so
+@@ -2017,14 +2017,14 @@ static int cpsw_probe(struct platform_device *pdev)
+ 			       0, dev_name(dev), cpsw);
+ 	if (ret < 0) {
+ 		dev_err(dev, "error attaching irq (%d)\n", ret);
+-		goto clean_unregister_netdev;
++		goto clean_cpts;
+ 	}
  
- static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
+ 	ret = devm_request_irq(dev, cpsw->irqs_table[1], cpsw_tx_interrupt,
+ 			       0, dev_name(dev), cpsw);
+ 	if (ret < 0) {
+ 		dev_err(dev, "error attaching irq (%d)\n", ret);
+-		goto clean_unregister_netdev;
++		goto clean_cpts;
+ 	}
+ 
+ 	if (!cpsw->cpts)
+@@ -2034,7 +2034,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 			       0, dev_name(&pdev->dev), cpsw);
+ 	if (ret < 0) {
+ 		dev_err(dev, "error attaching misc irq (%d)\n", ret);
+-		goto clean_unregister_netdev;
++		goto clean_cpts;
+ 	}
+ 
+ 	/* Enable misc CPTS evnt_pend IRQ */
+@@ -2043,7 +2043,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ skip_cpts:
+ 	ret = cpsw_register_notifiers(cpsw);
+ 	if (ret)
+-		goto clean_unregister_netdev;
++		goto clean_cpts;
+ 
+ 	ret = cpsw_register_devlink(cpsw);
+ 	if (ret)
+@@ -2065,8 +2065,6 @@ static int cpsw_probe(struct platform_device *pdev)
+ 
+ clean_unregister_notifiers:
+ 	cpsw_unregister_notifiers(cpsw);
+-clean_unregister_netdev:
+-	cpsw_unregister_ports(cpsw);
+ clean_cpts:
+ 	cpts_release(cpsw->cpts);
+ 	cpdma_ctlr_destroy(cpsw->dma);
 -- 
 2.51.0
 
