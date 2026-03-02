@@ -1,36 +1,35 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DFB141B351;
-	Mon,  2 Mar 2026 16:14:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A048421A0E;
+	Mon,  2 Mar 2026 16:59:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772468058; cv=none; b=ZwY7GBRwcxBOjVT5rSlo9Fv34Ao4AAugTOGjy0+fxUQ6fDA7PUtf35a/uyjPMJX+YhtHFs3JdvR9v2KCqN1hq7cs8H7NB4fpWUDYvlPDQYJw6JQsO3O7wDooRwFOu2qu2QNe//ndsuVu4LX7TcsZVG33EYI50XuGNhTuM7jjauI=
+	t=1772470747; cv=none; b=tIoQ5J1HL/9yNBQw7I8MUhbJIvvOtzTCO4swen61W+PX4TfxogGRlDW8zqng9nGVgjco+KcqZ1/+i0s/y5Vpd+GUBzZ1KxyvlVGZV7FMTqtwH15hoIM+ndBEtphfLGZJy2Tw+SPpCWKvCY2fl5oN3b/kx3kYSNa420RdfjfDZ/o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772468058; c=relaxed/simple;
-	bh=0Dly/K1fpHf6jNYWK8kzIVX3YYjOqRl73kYdjmbt2Tk=;
+	s=arc-20240116; t=1772470747; c=relaxed/simple;
+	bh=uiJ0RBXKk0XUNumW6onkF1ex71/gnR+cuyox1cQnjB8=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=kczBrBv4ejruAtRTaTAmkaqaZqun9XHIuT7pNbPntXvbZim6MrI7NBxKQ4sbWJq505hrqDyg/+OFUbUFb0uaproKYdffrfquIvwMe8FfhDZ9saydoEmhLzyjAQvFyVTzggrKLcOaW9bNElNlvjf/GTSwr+P//6kFVAghWXr0TaE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=OW7jSdks; arc=none smtp.client-ip=178.238.236.174
+	 MIME-Version:Content-Type; b=kapkFZ/CLVGCyoeCgcek2AQ8c+LkA4OEpELxiKpm3/x9TS1x0rMNAahi/o6mEQxnpRPUxXLN2GD8LPoynbb7nRYHPqgzgDuOQVWKkvwKBw7ZUvO0ucFCBE8pqZfyQaLGSWHLEs70y6Bw24HkhhaKToorWZ62e/BA2Jvh/UvfQp4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=rxv8OHCQ; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="OW7jSdks"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="rxv8OHCQ"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
 	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
 	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=twQe7m5x4QDzYF5myGO1qmalh+JuN/K7HsbfYxfx4IQ=; b=OW7jSdksduYz+IKSvOLDkKN61z
-	3stPn86I1Zpe3QM5ckzmWFy9QKdsLUm1afvc7mqa9jqSrsSe/HF2/UDMZ62nQEWps7ipDbyFKPiVR
-	B+i33nquzzN1C2mXfxh21wa5Gu4aAS/qpyikokftCREziVEfX/TnqygdkoVhF04Dhv6A+qn5OvTkU
-	vIA0BdP9CNGr3KG2rGgl7NeB6ktSCXuuxxCtOOKSwVx2SsE3wwuLUMj0qMAMS2pyIhfk68kfDoOFQ
-	1iFMM+u2zIw2O5oxhtUVW/Ql/PbtbqWjgYRdj0qwgQyK8kB0uCv7WxaiKTVaGvQN0LxGpEg200Mnx
-	Qv/VMSDA==;
-Date: Mon, 2 Mar 2026 17:14:07 +0100
+	bh=odYzrck29LAOJzj3S/U8ypRmw6yfV/uqVpybrs/IoRA=; b=rxv8OHCQZ75qUbOT2J8Uqae4Cn
+	Tcxwz4Fgv2EAMSeyQ5hvYhpWiQaVOAO8C6vdgGkzlUjxgyeKTZnUNfm5swOOKFk0FSh1hHf+HM2QV
+	BRissMDMOifQuTjY/fGMOMWjwej36iXTM24Y0Y/L2o5WpNhnT8en1La2uBemc4wldttOyS/96DvUk
+	QIABMgTR5flvk9rfyt8Ux8JoukeMKLo5SpIu09A0+mvAkR6oZNxZ4mWnBK4dPCKyH27Prf02VZojL
+	s1bsVLX4m4E2Fb9by8VKwi9z61LtGqhmgV5DhMulCCukdkERSenZq/HtOA8Zr5EVh0GnORv06+WG+
+	kuFgM5IA==;
+Date: Mon, 2 Mar 2026 17:56:40 +0100
 From: Andreas Kemnade <andreas@kemnade.info>
 To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: Kalle Niemi <kaleposti@gmail.com>, Wolfram Sang
- <wsa+renesas@sang-engineering.com>, Bartosz Golaszewski
+Cc: Kalle Niemi <kaleposti@gmail.com>, Bartosz Golaszewski
  <bartosz.golaszewski@oss.qualcomm.com>, Mukesh Kumar Savaliya
  <mukesh.savaliya@oss.qualcomm.com>, Viken Dadhaniya
  <viken.dadhaniya@oss.qualcomm.com>, Andi Shyti <andi.shyti@kernel.org>,
@@ -49,14 +48,14 @@ Cc: Kalle Niemi <kaleposti@gmail.com>, Wolfram Sang
  linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
  linux-renesas-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
  imx@lists.linux.dev, linux-rpi-kernel@lists.infradead.org, Matti Vaittinen
- <mazziesaccount@gmail.com>
+ <mazziesaccount@gmail.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>
 Subject: Re: [PATCH v2 01/12] i2c: allow setting the parent device and OF
  node through the adapter struct
-Message-ID: <20260302171407.5afe3b12@kemnade.info>
-In-Reply-To: <CAMRc=Mcg7_MAGA2_Ue7etOHvLOxpRs7aOBHxRM3AdAHyscFxDw@mail.gmail.com>
+Message-ID: <20260302175640.1020393d@kemnade.info>
+In-Reply-To: <20260302165928.0e85b93c@kemnade.info>
 References: <EDF3FB58-4747-442E-8463-6F1C6E568962@gmail.com>
-	<20260302160923.53abf2ea@kemnade.info>
-	<CAMRc=Mcg7_MAGA2_Ue7etOHvLOxpRs7aOBHxRM3AdAHyscFxDw@mail.gmail.com>
+	<CAMRc=Mc1+GX52A56kBLD0XytvL=E7kpjLDiqNkR=fici4-qUnw@mail.gmail.com>
+	<20260302165928.0e85b93c@kemnade.info>
 X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -67,43 +66,42 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2 Mar 2026 16:42:58 +0100
-Bartosz Golaszewski <brgl@kernel.org> wrote:
+On Mon, 2 Mar 2026 16:59:28 +0100
+Andreas Kemnade <andreas@kemnade.info> wrote:
 
-> On Mon, Mar 2, 2026 at 4:11=E2=80=AFPM Andreas Kemnade <andreas@kemnade.i=
-nfo> wrote:
-> >
-> > On Mon, 2 Mar 2026 12:38:27 +0200
-> > Kalle Niemi <kaleposti@gmail.com> wrote:
-> > =20
-> > > =EF=BB=BFOn 3/2/26 10:55, Bartosz Golaszewski wrote: =20
-> > > > On Mon, Mar 2, 2026 at 8:47=E2=80=AFAM Kalle Niemi <kaleposti@gmail=
-.com> wrote: =20
-> > > >> On 2/23/26 11:05, Bartosz Golaszewski wrote: =20
-> > > >>> In order to stop i2c bus drivers from dereferencing the struct de=
-vice
-> > > >>> embedded in struct i2c_adapter, let's allow configuring the parent
-> > > >>> device and OF-node of the adapter directly through dedicated fiel=
-ds.
-> > > >>> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualc=
-omm.com>
-> > > >>> --- =20
-> > > >> Hello,
-> > > >> Automated driver test system bisected this commit to be the first =
-bad
-> > > >> commit, linux-next next-20260227 was tested. Failed tests include =
-driver
-> > > >> tests for ROHM PMIC and accelerometers, which are connected to
-> > > >> BeagleBone Black.
-> > > >> The failed driver tests all fail to first i2cget and the tests stop
-> > > >> there: "Could not open file '/dev/i2c-2' or 'dev/i2c/2': No such f=
-ile or
-> > > >> directory". =20
-> > > > Wolfram: well, now it would actually be useful to know which commit
-> > > > exactly is the culprit so maybe splitting the changes is not a bad
-> > > > idea after all.
-> > > > Kalle: which i2c bus driver fails here? Any errors in kernel log?
-> > > > Bart =20
+> On Mon, 2 Mar 2026 03:08:24 -0800
+> Bartosz Golaszewski <brgl@kernel.org> wrote:
+>=20
+> > On Mon, 2 Mar 2026 11:38:27 +0100, Kalle Niemi <kaleposti@gmail.com> sa=
+id: =20
+> > > On 3/2/26 10:55, Bartosz Golaszewski wrote:   =20
+> > >> On Mon, Mar 2, 2026 at 8:47=E2=80=AFAM Kalle Niemi <kaleposti@gmail.=
+com> wrote:   =20
+> > >>> On 2/23/26 11:05, Bartosz Golaszewski wrote:   =20
+> > >>>> In order to stop i2c bus drivers from dereferencing the struct dev=
+ice
+> > >>>> embedded in struct i2c_adapter, let's allow configuring the parent
+> > >>>> device and OF-node of the adapter directly through dedicated field=
+s.
+> > >>>> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualco=
+mm.com>
+> > >>>> ---   =20
+> > >>> Hello,
+> > >>> Automated driver test system bisected this commit to be the first b=
+ad
+> > >>> commit, linux-next next-20260227 was tested. Failed tests include d=
+river
+> > >>> tests for ROHM PMIC and accelerometers, which are connected to
+> > >>> BeagleBone Black.
+> > >>> The failed driver tests all fail to first i2cget and the tests stop
+> > >>> there: "Could not open file '/dev/i2c-2' or 'dev/i2c/2': No such fi=
+le or
+> > >>> directory".   =20
+> > >> Wolfram: well, now it would actually be useful to know which commit
+> > >> exactly is the culprit so maybe splitting the changes is not a bad
+> > >> idea after all.
+> > >> Kalle: which i2c bus driver fails here? Any errors in kernel log?
+> > >> Bart   =20
 > > >
 > > > Hello Bart,
 > > >
@@ -111,42 +109,84 @@ ile or
  log. I got two failures without the dmesg available (this is bugged test s=
 equence, and not a kernel crash), but those got the same stdout message "Co=
 uld not open file ...." as all others.
-> > > =20
-> > Probably I am using the same host driver
-> >
-> > tested on OMAP3 DM3730, result: i2c drivers get bound to their devices,
-> > no obvious trouble. But controllers are registered with high indexes.
-> >
-> > localhost:~# i2cdetect -l
-> > i2c-3   i2c             OMAP I2C adapter                        I2C ada=
-pter
-> > i2c-4   i2c             OMAP I2C adapter                        I2C ada=
-pter
-> > i2c-5   i2c             OMAP I2C adapter                        I2C ada=
-pter
-> > localhost:~# uname -a
-> > Linux localhost 7.0.0-rc1-next-20260227 #27 SMP Mon Mar  2 11:56:27 CET=
- 2026 armv7l Linux
-> >
-> > Regards,
-> > Andreas =20
+> > >
+> > > -Kalle
+> > >   =20
+> >=20
+> > I meant what driver are you using but I suppose it's i2c-omap.
+> >=20
+> > Can you try the following change and let me know if it fixes the issue?
+> >=20
+> > diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+> > index dd8cec9b04c6..01656f82d2c6 100644
+> > --- a/drivers/i2c/i2c-core-base.c
+> > +++ b/drivers/i2c/i2c-core-base.c
+> > @@ -1548,6 +1548,11 @@ static int i2c_register_adapter(struct i2c_adapt=
+er *adap)
+> >  	if (adap->timeout =3D=3D 0)
+> >  		adap->timeout =3D HZ;
+> >=20
+> > +	if (!adap->dev.parent)
+> > +		adap->dev.parent =3D adap->parent;
+> > +	if (!adap->dev.of_node)
+> > +		adap->dev.of_node =3D adap->of_node;
+> > +
+> >  	/* register soft irqs for Host Notify */
+> >  	res =3D i2c_setup_host_notify_irq_domain(adap);
+> >  	if (res) {
+> > @@ -1561,11 +1566,6 @@ static int i2c_register_adapter(struct i2c_adapt=
+er *adap)
+> >  	adap->dev.type =3D &i2c_adapter_type;
+> >  	device_initialize(&adap->dev);
+> >=20
+> > -	if (!adap->dev.parent)
+> > -		adap->dev.parent =3D adap->parent;
+> > -	if (!adap->dev.of_node)
+> > -		adap->dev.of_node =3D adap->of_node;
+> > -
+> >  	/*
+> >  	 * This adapter can be used as a parent immediately after device_add(=
+),
+> >  	 * setup runtime-pm (especially ignore-children) before hand.
+> >  =20
+> No changes here. Devices probe, bus indexes are still shifted.
+> If I take that into account, i2cget still works.
 >=20
-> Hi! Does the change I posted earlier in this thread help?
+> But I think there is no defined order anyways. So if
+> I would add e.g. usb device provoding i2c busses early than
+> omap-i2c for some odd reason, things were messed anyways.
 >=20
-It does *not* as written earlier.
-
-Just for comparison, with the offending patch reverted, it
-looks like this:
-
-localhost:~# i2cdetect -l
-i2c-0	i2c       	OMAP I2C adapter                	I2C adapter
-i2c-1	i2c       	OMAP I2C adapter                	I2C adapter
-i2c-2	i2c       	OMAP I2C adapter                	I2C adapter
+> On the other hand, just having numbers skipped seems to be odd.
+>=20
+ok, looked around further,
+We have aliases, so numbers should be static
 
 
-So as long only kernel drivers are used and matched via devicetree compatib=
-le
-nothing seems to care about the change of bus numbers.
+i2c_add_adapter calls i2c_register_adapter() as the
+last thing, but needs to determine the number earlier.
 
-Regards,
-Andreas
+This seems to help:
+
+diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
+index dd8cec9b04c6..e22d784202b8 100644
+--- a/drivers/i2c/i2c-core-base.c
++++ b/drivers/i2c/i2c-core-base.c
+@@ -1657,10 +1657,9 @@ static int __i2c_add_numbered_adapter(struct i2c_ada=
+pter *adap)
+  */
+ int i2c_add_adapter(struct i2c_adapter *adapter)
+ {
+-	struct device *dev =3D &adapter->dev;
+ 	int id;
+=20
+-	id =3D of_alias_get_id(dev->of_node, "i2c");
++	id =3D of_alias_get_id(adapter->of_node, "i2c");
+ 	if (id >=3D 0) {
+ 		adapter->nr =3D id;
+ 		return __i2c_add_numbered_adapter(adapter);
+
+> Regards,
+> Andreas
+>=20
+>=20
+
