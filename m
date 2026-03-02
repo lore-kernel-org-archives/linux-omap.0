@@ -1,85 +1,107 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 366173321A1
-	for <linux-omap@vger.kernel.org>; Mon,  2 Mar 2026 08:32:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31BB238CFE9
+	for <linux-omap@vger.kernel.org>; Mon,  2 Mar 2026 08:55:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772440352; cv=none; b=e+SYe2iZZNkqlLOh06XyGBF0XOFfCfC1Sew6tehGEhouq2oBYLrPVqMWw7RxFK/2sNDOela694MCL75ualmoC5DD2UG6cVF+Pxf9yqDV209jJEDWN9cGly4nSYb5vbVI/H+fXwgHySwpj6sYMT9E6sJCDUJQ3wq+aSdZUn8i2TI=
+	t=1772441718; cv=none; b=UvpdQvWs/g/himqU2g7EVW7g/Ym9RFOP9oMDOAjdRKJ9ac6NF6ElBcmQxRa7EYGIkzfQRwz6nga4u2ySXYqbjjDBYRvXgoEJrcYJ/MTXcW/ZPTk63mJZ5+YMgAeBXTma8r4aqWMycutU0IJ5bWtSaUK8xW9PpDwncXJKyPUsRNs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772440352; c=relaxed/simple;
-	bh=K9PttO+DsOQ4IfjyBkw4K8QMocRbbjrmHypk7fmZKMw=;
+	s=arc-20240116; t=1772441718; c=relaxed/simple;
+	bh=Wr4tlDRl6oPSAmOvngxm+4SQmIJt0rroCHEQsJvSNW8=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=TfcKulDlvnWFAMHU+XiZ8mExFaV/kuymgW4z0pgbF5tqmkCUm2LO2tH2QZr8fqVJgoRFJMPwS7fqDHLo+DZD921fKqRR4DCUoKI6qmdnRO0KBv4baFVBDlrqWKpNDsmGXYIhAp+0xkw5haEHCGbSX8LMtQf0ubwVGRVPyPW+sNM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PQe61Ug3; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=uYDYYwCtusK8zDxfhKv+EGkalTGNZvtLXrlKmJG5ngtHkBUQFkyl3q9iT7B1SZ8OB0S4WGwOWtS/Dbxlunp15ijplg8C8fjwH0SjX4v5Fg3jIQ8v8cVEF4O6lOqgnu8RopgHW2T6ZHqgoHribDNfw/JcFaPRDB6RiS165UOr55Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g7IHob1+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PQe61Ug3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D803CC2BCB1
-	for <linux-omap@vger.kernel.org>; Mon,  2 Mar 2026 08:32:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g7IHob1+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04EE6C19423
+	for <linux-omap@vger.kernel.org>; Mon,  2 Mar 2026 08:55:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772440351;
-	bh=K9PttO+DsOQ4IfjyBkw4K8QMocRbbjrmHypk7fmZKMw=;
+	s=k20201202; t=1772441718;
+	bh=Wr4tlDRl6oPSAmOvngxm+4SQmIJt0rroCHEQsJvSNW8=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=PQe61Ug3ZavnRImXrsLH+1Fikmeed951TWdXfXunIEoh8CM5bsgR8Ikul2AZVVNGg
-	 Tgu/v20AeRVpbmCYH+7PXAajkVIFTlNMT0WbwTGsrfxDRTzcbmCBNtqaHo3miIDbGs
-	 ZJlPjbOHIiujLYbuEbqT3LvSUB/wrBqDCMaI1dabt6+TIObnR6bM/bLykm+/jChrwf
-	 jE7gbAMAdayceL0erzoUwToMU0e0l4w7J+p+OcpnDFqma4KhUZZ7TxmR4HxcZsng97
-	 xqYcVbHjMkAE/44rO9dSDf8+XVTmDV7oxIvbwusOw5HET08Tzg+ORs95zDNt397GW3
-	 aee0n/C6d9izQ==
-Received: by mail-dl1-f49.google.com with SMTP id a92af1059eb24-12732e6a123so4873676c88.1
-        for <linux-omap@vger.kernel.org>; Mon, 02 Mar 2026 00:32:31 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCW1NtTUTnaafFswWm8PbpkzVfTMgwklxXx2O7wm96yfLbPfxFlegw/YNgskNGeIqajD93edOaLi1t5p@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy4Q6a+0pLcitvjfshmA5IMIFajMkvi/864R1hyG+EPliBR9Vvu
-	YQmPDK5wYR2YxlGiwUkDOMWkGTdT9t2W5GhPp+KxmGXO0WdM+ImD0VDF1FL9vFRgthEBvsKJmCP
-	OZPcVONgnClj1aD1226Wt3ip09Bfi52lWhCJdf7vovg==
-X-Received: by 2002:a05:7022:ea48:20b0:127:9c17:985a with SMTP id
- a92af1059eb24-1279c1798bfmr1713176c88.5.1772440351223; Mon, 02 Mar 2026
- 00:32:31 -0800 (PST)
+	b=g7IHob1+IzRdb3Ba3Pk+09VevGbac/nukyJetgEzow3LvsVGBRr2GWZSYzAVyEixs
+	 ac3l2GXU1eUawjled3yUp4PoNyyrlKE57fpscvbPswRQwrhTPAPRpAHsdX9bF8uk50
+	 21jJn2KzvJeyTiJuTXVv0hiYE2z8fXJETbsxslXwRsYLOGz/2Kro8o6YYy/sT/iMd3
+	 h4C3bDJyZ2i2tuFP1LXYD5Zl4yd82hXh/zrKP2aaXT/oXnZlK7bHcDDayF8+uL3oRV
+	 pftYGsXRPj1AcBS5eQH/dOGu/3O0/AgCbdo2akwVvBTGmS61EOEj/hBvmS2wOH80Y/
+	 rAnN69Swn4ukg==
+Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-3870dec27f4so2869261fa.1
+        for <linux-omap@vger.kernel.org>; Mon, 02 Mar 2026 00:55:17 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCUM40LqQwzyD7g3J4I8gl3d2pcb+GbHr0JVFokQwpWoIOcUylPxEL6PSATI+NggQ7kxhGC5C6/Rak6N@vger.kernel.org
+X-Gm-Message-State: AOJu0YwpZGcX+RdnwzX9EvRFplLfZpJTawv4YadgJ+6bGw+3gF1JqIae
+	P7N/L3ilf+zrc7iCmvbh/a5B/h4dobM36orjfNwj+1eIR7BkD0YWRuvsdzcQc+eqRM1kId552op
+	1rDklN9yqJLgO7LGf8Ylhaqfce/ArB5jU8r8XWuD9GQ==
+X-Received: by 2002:a2e:b018:0:b0:37f:d9ba:747 with SMTP id
+ 38308e7fff4ca-389f1d73cecmr65334241fa.5.1772441715946; Mon, 02 Mar 2026
+ 00:55:15 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260212112508.73500-1-bartosz.golaszewski@oss.qualcomm.com> <2fb42d16-887a-4564-8e50-c9d6db564c4e@app.fastmail.com>
-In-Reply-To: <2fb42d16-887a-4564-8e50-c9d6db564c4e@app.fastmail.com>
+References: <20260223-i2c-adap-dev-config-v2-0-d78db0a6fcf7@oss.qualcomm.com>
+ <20260223-i2c-adap-dev-config-v2-1-d78db0a6fcf7@oss.qualcomm.com> <ac23aec1-6dce-4dd5-8990-9fad40998478@gmail.com>
+In-Reply-To: <ac23aec1-6dce-4dd5-8990-9fad40998478@gmail.com>
 From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Mon, 2 Mar 2026 09:32:15 +0100
-X-Gmail-Original-Message-ID: <CAMRc=McYj-D8XL_wnmTEucMrwCy1-xr7h0XYrL68soMVHL1SRA@mail.gmail.com>
-X-Gm-Features: AaiRm51iq8ZjzU7QM8JcGyVZhGJ_5IzqG8SaybThwCwM5_ZyOCcQpJBUfsUFGw0
-Message-ID: <CAMRc=McYj-D8XL_wnmTEucMrwCy1-xr7h0XYrL68soMVHL1SRA@mail.gmail.com>
-Subject: Re: [RFT PATCH v3] ARM: omap1: enable real software node lookup of
- GPIOs on Nokia 770
-To: Arnd Bergmann <arnd@kernel.org>
+Date: Mon, 2 Mar 2026 09:55:04 +0100
+X-Gmail-Original-Message-ID: <CAMRc=Mf7vQYosm7ViZRg31EdPipfuD=wboMtEneGDCXc20tweQ@mail.gmail.com>
+X-Gm-Features: AaiRm53-Jiy54KH5rFLuIQyxPw_sYDt2pmqB7mKXc8_Bgm_qwPjbm9X-evfdjaM
+Message-ID: <CAMRc=Mf7vQYosm7ViZRg31EdPipfuD=wboMtEneGDCXc20tweQ@mail.gmail.com>
+Subject: Re: [PATCH v2 01/12] i2c: allow setting the parent device and OF node
+ through the adapter struct
+To: Kalle Niemi <kaleposti@gmail.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>
 Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
+	Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com>, 
+	Viken Dadhaniya <viken.dadhaniya@oss.qualcomm.com>, Andi Shyti <andi.shyti@kernel.org>, 
+	Florian Fainelli <florian.fainelli@broadcom.com>, Ray Jui <rjui@broadcom.com>, 
+	Scott Branden <sbranden@broadcom.com>, 
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Vignesh R <vigneshr@ti.com>, 
 	Aaro Koskinen <aaro.koskinen@iki.fi>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, 
-	Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, 
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hans de Goede <hansg@kernel.org>, 
-	Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, 
-	linux-kernel@vger.kernel.org
+	Tony Lindgren <tony@atomide.com>, Andreas Kemnade <andreas@kemnade.info>, 
+	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
+	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
+	Patrice Chotard <patrice.chotard@foss.st.com>, Shawn Guo <shawnguo@kernel.org>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Linus Walleij <linusw@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
+	linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, 
+	linux-renesas-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	imx@lists.linux.dev, linux-rpi-kernel@lists.infradead.org, 
+	Matti Vaittinen <mazziesaccount@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Feb 12, 2026 at 12:46=E2=80=AFPM Arnd Bergmann <arnd@kernel.org> wr=
+On Mon, Mar 2, 2026 at 8:47=E2=80=AFAM Kalle Niemi <kaleposti@gmail.com> wr=
 ote:
 >
-> On Thu, Feb 12, 2026, at 12:25, Bartosz Golaszewski wrote:
-> > Currently the board file for Nokia 770 creates dummy software nodes not
-> > attached in any way to the actual GPIO controller devices and uses the
-> > fact that GPIOLIB matching swnode's name to the GPIO chip's label durin=
-g
-> > software node lookup. This behavior is wrong and we want to remove it.
-> > To that end, we need to first convert all existing users to creating
-> > actual fwnode links.
-> >
-> > Create real software nodes for GPIO controllers on OMAP16xx and
-> > reference them from the software nodes in the nokia board file.
+> On 2/23/26 11:05, Bartosz Golaszewski wrote:
+> > In order to stop i2c bus drivers from dereferencing the struct device
+> > embedded in struct i2c_adapter, let's allow configuring the parent
+> > device and OF-node of the adapter directly through dedicated fields.
 > >
 > > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.co=
 m>
+> > ---
+> >
 >
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
+> Hello,
+>
+> Automated driver test system bisected this commit to be the first bad
+> commit, linux-next next-20260227 was tested. Failed tests include driver
+> tests for ROHM PMIC and accelerometers, which are connected to
+> BeagleBone Black.
+>
+> The failed driver tests all fail to first i2cget and the tests stop
+> there: "Could not open file '/dev/i2c-2' or 'dev/i2c/2': No such file or
+> directory".
+>
 
-Aaro, Janusz: Can you please pick it up for v7.1?
+Wolfram: well, now it would actually be useful to know which commit
+exactly is the culprit so maybe splitting the changes is not a bad
+idea after all.
+
+Kalle: which i2c bus driver fails here? Any errors in kernel log?
 
 Bart
