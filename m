@@ -1,32 +1,32 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D8FA337689;
-	Mon,  2 Mar 2026 19:53:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D53C2BE057;
+	Mon,  2 Mar 2026 19:58:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772481195; cv=none; b=RGqk1PNPW7vd8t6EA9m3S7Dtf45aWSLgpfMZFyZxjMyCoDFz+v4X2FdPMHognv97ngDe3ORyHWI4MgILwHfUm/iRMaYu/33lvkLYDW3ClysLBzzcZ5guuql52glR8hTcilsy+EwrZY+7uPPopci2+lOQ8UIMQsvTA/nG2HGgCMQ=
+	t=1772481525; cv=none; b=qxW+a/VTtl//xbSANlKDtcT7zYkqqySJ4221M0Bdi0H4YBYZowdQ/T3bB/+jnDrpxLYgMIdXereEvPdu8z5tJVUg49IjUiRi4BPv+8jK1SGP+JHVyraSNSbEI3R7KzK7YMEpkOk+4wFsjA3LH0gQg/Bm3aE9Xti6zT0HSqgvtPc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772481195; c=relaxed/simple;
-	bh=JbA6ZdAMxxT/+BR1ZeasXN/bm0VqhCHZ8vKcRnpk2JI=;
+	s=arc-20240116; t=1772481525; c=relaxed/simple;
+	bh=ibZ9MV9EEnwpYZtBCfhTUTAgvHhjhWkZAMO8DGteMow=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=U1OTgOGFYq+NLSJje/3iEF5AnN85NdYJ1EwpBWw08BO4DO0CZbjZSLilaAnU9aWJrJP38F3D5lX6SoGGLECvRmmqXApa2FGRRVzYoNaL7eo7uzNqHGhvuRglIiDFJnUOjBAgFbVxk+uDNjdCoTLqnV3OZdNaqpnUn+6kTjBOJno=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=fgjwneqS; arc=none smtp.client-ip=178.238.236.174
+	 MIME-Version:Content-Type; b=IsfUR7zJ6aXy2NdNtCPE1cuKcVRny7smihqgLAd08vfBZLXq/LmXF3uJ+cyMZTYzx41jYzgi9oFeawZ8ktaFXyjIbALo2mjOR8DL/J+ieHiGC+kdzDfdfz6KoO6sgFxUu1whgad3UM6+xYrEKFWfJj9Y63BxPtu/je3P35GjXHc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=O0FWWqU3; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="fgjwneqS"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="O0FWWqU3"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
 	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
 	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=7zjPjCKQJoi6jurmXp6AwDyOS1X/gpBHDLrt2aPQjbI=; b=fgjwneqSWDTw3bZTiE3SmFLXqB
-	mMMv4iti+59YdBzAA2GN/OcHm58KcPUFlYc6VTCOX5E9YZDPtkGanZr9FtN6//xTx4/xEn8s2zapE
-	QpiN5IHUNeHX8kCYj+CCB+qELwkKwwAFAfRvHjFSv0uGtx42Eqv+OjS9oA5wEHRVfpf7T0byGz3hn
-	Uagexl4u+aSwHZLEFNLzQd55UixnznvP8Kgsf8J0APRWaPDFwOViWq56YYUbVw9Lbo8RXSYYxyKxn
-	mjpvaxkdwdIv2jOvhR3jydvoeePONF3oVP9lo6BxmnN/LTXRTbhoOU7DKOlsL2U/LFNpO11vKE/9B
-	PT5XLWiQ==;
-Date: Mon, 2 Mar 2026 20:52:44 +0100
+	bh=YY178crJaRnUypIvjrB+crFieYO0nYPbiVYpEpanLbg=; b=O0FWWqU3+f7Ezt+TT3Xd3Mos1P
+	dEbKQJ4+6ZtMErPh7+1+CAEK/slrjWqp1yAva1b1iPwn5prLblE2m2MaDOII4cP2zcJi5Nof9slna
+	PvqoKf+UfV8WsxMw1OOpHgRNLHgYzNBZid52qU6WMvMIq+mPLCSFybA+SkSYvtwN6DkORgwSnLo62
+	qVCHUM/REu3xziTabNjc6hEghEnhqx+ZbNjRT5ExQ+UZMvm/8FIea6gfpCg4jClphH8dZUyjfAWNa
+	PSuOCBCSjFTSeW98tHiQ2+av9c8ew67BacwknD1Os97C1g8yNOMyezb6h2ozxlqadi9LNhQv676V+
+	l+zDJItQ==;
+Date: Mon, 2 Mar 2026 20:58:31 +0100
 From: Andreas Kemnade <andreas@kemnade.info>
 To: Mithil Bavishi <bavishimithil@gmail.com>
 Cc: aaro.koskinen@iki.fi, airlied@gmail.com, conor+dt@kernel.org,
@@ -39,12 +39,12 @@ Cc: aaro.koskinen@iki.fi, airlied@gmail.com, conor+dt@kernel.org,
  tony@atomide.com, tzimmermann@suse.de, andrzej.hajda@intel.com,
  devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
  linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v8 8/8] ARM: dts: ti: omap: samsung-espresso10: Add
- initial support for Galaxy Tab 2 10.1
-Message-ID: <20260302205244.111fa4d5@kemnade.info>
-In-Reply-To: <20260223134941.427-9-bavishimithil@gmail.com>
+Subject: Re: [PATCH v8 5/8] ARM: dts: ti: omap: espresso-common: Add common
+ device tree for Samsung Galaxy Tab 2 series
+Message-ID: <20260302205831.5a54b142@kemnade.info>
+In-Reply-To: <20260223134941.427-6-bavishimithil@gmail.com>
 References: <20260223134941.427-1-bavishimithil@gmail.com>
-	<20260223134941.427-9-bavishimithil@gmail.com>
+	<20260223134941.427-6-bavishimithil@gmail.com>
 X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -55,73 +55,30 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Mon, 23 Feb 2026 08:49:40 -0500
+On Mon, 23 Feb 2026 08:49:37 -0500
 Mithil Bavishi <bavishimithil@gmail.com> wrote:
 
-> Create a device tree for the 10 inch variants (P5100, P5110, P5113)
+> Create common device tree for Samsung Espresso series devices
+> 
+> Create a shared device tree for all variants first.
+> Device-specific trees will be added later based on screen size.
 > 
 > Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
-> ---
->  arch/arm/boot/dts/ti/omap/Makefile            |   1 +
->  .../dts/ti/omap/omap4-samsung-espresso10.dts  | 104 ++++++++++++++++++
->  2 files changed, 105 insertions(+)
->  create mode 100644 arch/arm/boot/dts/ti/omap/omap4-samsung-espresso10.dts
-> 
-> diff --git a/arch/arm/boot/dts/ti/omap/Makefile b/arch/arm/boot/dts/ti/omap/Makefile
-> index d24f13efd..140ac39b3 100644
-> --- a/arch/arm/boot/dts/ti/omap/Makefile
-> +++ b/arch/arm/boot/dts/ti/omap/Makefile
-> @@ -81,6 +81,7 @@ dtb-$(CONFIG_ARCH_OMAP4) += \
->  	omap4-var-dvk-om44.dtb \
->  	omap4-var-stk-om44.dtb \
->  	omap4-samsung-espresso7.dtb \
-> +	omap4-samsung-espresso10.dtb \
->  	omap4-xyboard-mz609.dtb \
->  	omap4-xyboard-mz617.dtb
->  dtb-$(CONFIG_SOC_AM33XX) += \
-> diff --git a/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso10.dts b/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso10.dts
-> new file mode 100644
-> index 000000000..5c00d67ac
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso10.dts
-> @@ -0,0 +1,104 @@
+
+
+
 [...]
+> +&omap4_pmx_wkup {
+> +	gpio_keys: gpio-keys-pins {
+> +		pinctrl-single,pins = <
+> +			OMAP4_IOPAD(0x046, PIN_INPUT | MUX_MODE3)
+> +			/* sim_cd.gpio_wk3 - EXT_WAKEUP */
+> +			OMAP4_IOPAD(0x056, | PIN_INPUT | MUX_MODE3)
+> +			/* fref_clk3_req.gpio_wk30 - VOL_UP */
+> +			OMAP4_IOPAD(0x05C, | PIN_INPUT | MUX_MODE3)
 
-> +&i2c3 {
-> +	touchscreen@20 {
-> +		compatible = "syna,rmi4-i2c";
-> +		reg = <0x20>;
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		interrupt-parent = <&gpio2>;
-> +		interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
-> +
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&touch_pins>;
-> +
-> +		//avdd-supply = <&reg_touch_ldo_en>;
-> +		vdd-supply = <&ldo6>;
-> +
-> +		syna,reset-delay-ms = <200>;
-> +		syna,startup-delay-ms = <200>;
-> +
-> +		touchscreen-size-x = <1280>;
-> +		touchscreen-size-y = <800>;
-> +
-duplicated,
-
-> +		rmi4-f01@1 {
-> +			reg = <0x01>;
-> +			syna,nosleep-mode = <1>;
-> +		};
-> +
-> +		rmi4-f11@11 {
-> +			reg = <0x11>;
-> +			touchscreen-size-x = <1280>;
-> +			touchscreen-size-y = <800>;
-it is needed and accepted only here.
-
+syntax error. stray | in these two lines. even for small cosmetic
+changes, at the very least build it.
 
 Regards,
 Andreas
