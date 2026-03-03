@@ -1,64 +1,64 @@
-Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
+Received: from mail-qk1-f169.google.com (mail-qk1-f169.google.com [209.85.222.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E5AD3822B6
-	for <linux-omap@vger.kernel.org>; Tue,  3 Mar 2026 20:30:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00C6E35F160
+	for <linux-omap@vger.kernel.org>; Tue,  3 Mar 2026 20:30:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772569839; cv=none; b=mnRanVQ7rVpYp/NL4WmtejKrs6VCMwa9iGdmhhe8kDz4bKHdt2cxRNlzHJZdDZxsnBOyKE0ef+3dDV7//iy1nxspUoTKFTrJtDTSBIr24JUag3yCIqhYXLDdf1+JU18lqI0r4GgDbKa68Zh0xcp3e8k9VS2tdTADeZ4lUmKCT6U=
+	t=1772569841; cv=none; b=akjBt55usCEVSQ2qCm68TnOumj2X6Skq0/nHDA9H2BYNJqrCgxP8Q+OyEUV0mloQ0dCj2cf8Vsok/NiPHJ6jNB+62CGscuxMEVvrB9bWd1dD514XhNctBbeHIKE/0hzpn99bOhVELKQMuOuTkn6yZb8+qIX36QhX1X7a47rFVX0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772569839; c=relaxed/simple;
-	bh=AhuQW/sja1TVOGATbFPD/JRpdwlyMBIiOL6BmbgYjAg=;
+	s=arc-20240116; t=1772569841; c=relaxed/simple;
+	bh=pocmGKWkkKsOAaHqrDffBq8KuvMtZRSl1Ehwcy1nFxY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=IETVIs66gJYx2701BRMyYiMZ2PViTxHfq465+BnpebbH/QoKZRzS/V6AFo1JiE44YYNNYAwLefDKhO3rFuxJS7ZhqmSaUxrRm4wr5d8JcQ0bR88rbnT24YyA+Ssaau+e19MjP3oTtu+e/hW2jvU2v7qZkMtzPsoib6Gs6863bRs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DFFmE3Sd; arc=none smtp.client-ip=209.85.222.173
+	 MIME-Version; b=sK1wCBnNyHS0/sNaDaeQYshq84tWxjRJAiO6GF4pc9WobuE3MMeYZghGrtZPRqSupd1KBOdeHRgD6uo8opWNaRLqzjFPcNWjSrrepmHpJIHcKR9NRBW1d0DL+KdEQNWuvbs8WsJ2Wsm1rOZdWxC/3l/nws2oGMUZCZ6OOSNm4aA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DXGvJ1nP; arc=none smtp.client-ip=209.85.222.169
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DFFmE3Sd"
-Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-8cbb6d5f780so616850585a.1
-        for <linux-omap@vger.kernel.org>; Tue, 03 Mar 2026 12:30:36 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DXGvJ1nP"
+Received: by mail-qk1-f169.google.com with SMTP id af79cd13be357-8cb3825b0fbso584823985a.0
+        for <linux-omap@vger.kernel.org>; Tue, 03 Mar 2026 12:30:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1772569835; x=1773174635; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1772569839; x=1773174639; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Mi9r8yPzefryuLY25dXhKFkSGyVxbkYR/TDKdSXRVlg=;
-        b=DFFmE3SdRRGIpaKytNJkHn+DnxVLACiAsXdM9oW/xE25GhB/NK2ratDp+sgCDj6GDm
-         ESNMkQUsbKTqcWTzRxVU68HdxkR2ObArwQqzSyVGN47Mz65WvDVcDIShjfvEjnTiJM5A
-         d75FRrhnSMvUeaPXvqJ+lKrQNjvSvd5cNPFI5DES2jeI0nEaDacl5xGZLVpwtmEuoQTx
-         wO7Y2XuNJjKRnyZU0nOe8/kUGJ+sbjdvLTtfuSjWSdjdWmIRI2aOe8eC1vPO+8EtlWmn
-         vik/iqbYtYBXEIRh8OYT5J/1qpVxCIpZBhAWhR0kC8Fy4Htln2sjrsaGCqL7WKOI5XAm
-         FWPw==
+        bh=S0aFuZEcswfY1n9DtzJQKfDnbrUdcO+CQnvBKx4RAuE=;
+        b=DXGvJ1nPoLr3IqN8iGdneUDsHTaQJiTAXvJXt52TqqvLinbWcRubFwPT6VXF0eAhol
+         yy2B9BVKMe9kpAM7cxjE+RWjo6NnlZTY83HOd0YeinwiUyS2KqthaV98KoFONaJGAx12
+         vavw301kzxtqRt7VkDQPlbHcIycGa9m2Wc8/5iA/Hz8eQ2rA9Ixcc1VkarNWimOk/N0h
+         lkS/7es4J4yCc5nsoeDbmy7dV/owbTq8cHlzpb5MBpBIazmdlhB69osYxllyjhCk5vwc
+         446ERimpMcXh/gHcGxDWZTAMKFaDHIfOsRVJ1yHZ6RS3nv62Q2Xutujx9PrPRFOw+zNT
+         22Vg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772569835; x=1773174635;
+        d=1e100.net; s=20230601; t=1772569839; x=1773174639;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=Mi9r8yPzefryuLY25dXhKFkSGyVxbkYR/TDKdSXRVlg=;
-        b=QGxB2XwIBbmFYi8RT+vmEK8pAe6fGty0j7QaVd0H4okCyvC4oqSoNbidDMp6Qia9f4
-         QK6bw5y2BenhJhrOmtK9On+i87MZZxpJxHc5pXcqv2cFfBOHi9lHSYhBCG6GKjxoPrJw
-         BR5CAAQEj1z3CgXOB7EOdFuz6X2HDld5/y+jt4ik2Mgun4wsuWWR1NEQtY5Gj9XGXBCi
-         1S3HVAn8EB+Rx5B0eRnJGzULBkGFzMEsHJ15GczgN0F8biAUw1wPAyi9ALJfHddYugeO
-         QeQKVbl+P65Hr/c4ASlmxTgR18/mjjENEt19Kl5GhbD8yoRgme1FFaYTv7PCW4pSCmJf
-         i6Yg==
-X-Forwarded-Encrypted: i=1; AJvYcCVstVBlGRvZczpNgnRB7XVzs+ASQX3gcKOKCEv01YjuYbq1uThDYo/tqra/t2Uyj5JhYQRuchqrIgml@vger.kernel.org
-X-Gm-Message-State: AOJu0YxRMBnmh97hMxnbCMgZvIu8cCzok8UWimcD9Gl87/FB5I6Ujn8h
-	beufJa/+5vbn9ZFcYz3uhJSe9p9a7lT8bxTqC3/DTZFByqLXe9H7RU0l
-X-Gm-Gg: ATEYQzyRDs/c7q5kUUHvGPEZj9sbi52wXrE81jrtnWEzvn/qCOViinaPYm5DJKt/Fw0
-	agRhF9FziS4hvjJKzhFYQ4fZjfFbTrLiFmXdKnxKN60rxvxeHjvE26NxdpissdCeyQCWBOOMpeG
-	NvopORCCXiz+71o9ao4TFEcQGHvBFZZGxFJqbGYWQUIiNcLemaCDJIQxr30hr3PmeUyAl8KITxN
-	Renj1+muYph6NJ9u1/CKUY2/AowbPe1T/6kRqqNeLfiDlIUMCYACWQ1jDN33SjxejEDH8DIlMOH
-	+iYcFLJogKEzDfGuipFHP6NTpW2A/PnpwInCQf5a2gnAKWCq0mNjM8swSih1ibqqr4Vj8kIMnlj
-	zaxMK5SFRkpF7bAwkX+FsWMMEVkq6Vi7/b1ST8f8LDLRYHsZus3P+GGoIKMnRX1vpN49hCDynP8
-	BSYk1VdihBkcJKSEsHOIgeuuYYO/4p7hjS5cOxkvPDUnqK/EutTvEth5wWDLAjXsHnRV21UHG3U
-	Xc4Di3kRXU=
-X-Received: by 2002:a05:620a:4891:b0:8cb:b0f1:cf29 with SMTP id af79cd13be357-8cbc8df2e0dmr2103101585a.37.1772569835076;
-        Tue, 03 Mar 2026 12:30:35 -0800 (PST)
+        bh=S0aFuZEcswfY1n9DtzJQKfDnbrUdcO+CQnvBKx4RAuE=;
+        b=JO709KzM+Y+/bdwgxZV3eabZGIwb6ZK3kLsQ5dUtUyP+FBzPvb1yvTKPqBhUT7S92h
+         gKyQlJQFutqd4+JUKAP6YAqI8eSIoddMi66D3buD8oYbffUhlSBqcnYxWAOpdeC16rK7
+         l+pzgnEpFnugEspbbmxdwr9Ex3hVGUfLB/hPKYPZ25hf1wUEmz8u3MiXeEhpqCOafVGF
+         p848Aoe2eu1IFUtOnymjZFYRwdJ6MTQc5H0V+XFhg+Vjs6F9ntGqwSergW7QXlhSGCd7
+         aytfNW9L3H18T0iiK2kfwH57nhtGtZjTEzJhYa2JF5c1/Xb8Kh2Q7SIyYx6yVSv/k0LO
+         MydA==
+X-Forwarded-Encrypted: i=1; AJvYcCX9GoM4MiofK9geHzjx9Oma4SWfN4T4tpG7mCJTglN6oAF994tH9hO8RIZlg++P/p0uhNuAGirYqYg3@vger.kernel.org
+X-Gm-Message-State: AOJu0YznjrM7Tp76I0OXs3Fq2+HyR+JY9PFgrMx+pdFkwMZgBssHcygz
+	WfgZ4FLwwXo5UPLCAAOg2TYWRKoJNO5SGIjltlR6Ol3tPO6kxy0urbkU3f4hP95Z
+X-Gm-Gg: ATEYQzwz2g+Umk5lUqiBGRAMhxHnYSykrXzYMwW4pcGXHRwOFfrOj+I4TXdiXgUHLeF
+	1ltdOabFiVWcTkbR9DFEDlerhdrjDt21+8cMs9IhKzXHIYmAar7mJUl6ddUM4NrL3xO3Uuki3WR
+	O/HtsmYReeFBmJCJM/wNf5eELD213C4sddGsfGk/5jW/RegkxXfPfMNa/7JKEt4K0KAQa0WnuaQ
+	5us0sj5AecxUbQLE5qLUotLGI0cMx72H8cKkqVsYBEHY5EZqs3PohhX1GoY6nRKFHwDmSluKTD8
+	HmwMW/Ueo1m+ck0RPXyHo4gqAlaMq3O9Sh/Ul5M5ERLujr9BPfNNmQ5arDUmUiGuql5JpPHdjFU
+	B+AElifOFq60XMt74l/yS4HDg7430FIesIEHvpA+w2Vy+2Z4Ji/U9qSI2nxJXZqCR9FXIJUhMQV
+	kPl/OjhAAnX5IJQDhCH1VRGKdMACn2g+5L4jUxmosXrkuKBGUoQnF5AQYerhFVRQBzof7HninQr
+	om6Ad0nhXk=
+X-Received: by 2002:a05:620a:1aa2:b0:8c5:2ce6:db1 with SMTP id af79cd13be357-8cbc8d67d4dmr2185912885a.3.1772569838816;
+        Tue, 03 Mar 2026 12:30:38 -0800 (PST)
 Received: from mighty.stonybrook.edu (nat-130-245-192-1.resnet.stonybrook.edu. [130.245.192.1])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8cbbf564c27sm1465032085a.0.2026.03.03.12.30.33
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8cbbf564c27sm1465032085a.0.2026.03.03.12.30.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Mar 2026 12:30:34 -0800 (PST)
+        Tue, 03 Mar 2026 12:30:38 -0800 (PST)
 From: Mithil Bavishi <bavishimithil@gmail.com>
 To: aaro.koskinen@iki.fi,
 	airlied@gmail.com,
@@ -87,9 +87,9 @@ Cc: devicetree@vger.kernel.org,
 	dri-devel@lists.freedesktop.org,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org
-Subject: [PATCH v9 5/8] ARM: dts: ti: omap: espresso-common: Add common device tree for Samsung Galaxy Tab 2 series
-Date: Tue,  3 Mar 2026 15:30:14 -0500
-Message-ID: <20260303203017.511-6-bavishimithil@gmail.com>
+Subject: [PATCH v9 7/8] ARM: dts: ti: omap: samsung-espresso7: Add initial support for Galaxy Tab 2 7.0
+Date: Tue,  3 Mar 2026 15:30:16 -0500
+Message-ID: <20260303203017.511-8-bavishimithil@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260303203017.511-1-bavishimithil@gmail.com>
 References: <20260303203017.511-1-bavishimithil@gmail.com>
@@ -101,765 +101,101 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Create common device tree for Samsung Espresso series devices
-
-Create a shared device tree for all variants first.
-Device-specific trees will be added later based on screen size.
+Create a device tree for the 7 inch variants (P3100, P3110, P3113)
 
 Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
 ---
- .../omap/omap4-samsung-espresso-common.dtsi   | 744 ++++++++++++++++++
- 1 file changed, 744 insertions(+)
- create mode 100644 arch/arm/boot/dts/ti/omap/omap4-samsung-espresso-common.dtsi
+ arch/arm/boot/dts/ti/omap/Makefile            |  1 +
+ .../dts/ti/omap/omap4-samsung-espresso7.dts   | 70 +++++++++++++++++++
+ 2 files changed, 71 insertions(+)
+ create mode 100644 arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso-common.dtsi b/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso-common.dtsi
+diff --git a/arch/arm/boot/dts/ti/omap/Makefile b/arch/arm/boot/dts/ti/omap/Makefile
+index 3f54b515c..1fd426204 100644
+--- a/arch/arm/boot/dts/ti/omap/Makefile
++++ b/arch/arm/boot/dts/ti/omap/Makefile
+@@ -80,6 +80,7 @@ dtb-$(CONFIG_ARCH_OMAP4) += \
+ 	omap4-sdp-es23plus.dtb \
+ 	omap4-var-dvk-om44.dtb \
+ 	omap4-var-stk-om44.dtb \
++	omap4-samsung-espresso7.dtb \
+ 	omap4-xyboard-mz609.dtb \
+ 	omap4-xyboard-mz617.dtb
+ dtb-$(CONFIG_SOC_AM33XX) += \
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts b/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts
 new file mode 100644
-index 000000000..06651072f
+index 000000000..cae37ff06
 --- /dev/null
-+++ b/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso-common.dtsi
-@@ -0,0 +1,744 @@
++++ b/arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts
+@@ -0,0 +1,70 @@
 +// SPDX-License-Identifier: (GPL-2.0 OR MIT)
 +/dts-v1/;
-+#include "dt-bindings/gpio/gpio.h"
-+#include <dt-bindings/interrupt-controller/irq.h>
-+#include <dt-bindings/input/input.h>
-+#include "omap443x.dtsi"
++
++#include "omap4-samsung-espresso-common.dtsi"
 +
 +/ {
-+	memory@80000000 {
-+		device_type = "memory";
-+		reg = <0x80000000 0x40000000>; /* 1 GB */
-+	};
++	model = "Samsung Galaxy Tab 2 (7 inch)";
++	compatible = "samsung,espresso7", "ti,omap4430", "ti,omap4";
 +
-+	reserved-memory {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+
-+		continuous_splash: framebuffer@bef00000{
-+			reg = <0xbef00000 (1024 * 600 * 4)>;
-+			no-map;
-+		};
-+	};
-+
-+	chosen {
-+		stdout-path = &uart3;
-+		#address-cells = <1>;
-+	};
-+
-+	i2c-gpio5 {
-+		compatible = "i2c-gpio";
++	backlight: backlight {
++		compatible = "pwm-backlight";
 +		pinctrl-names = "default";
-+		pinctrl-0 = <&i2c5_pins>;
-+		sda-gpios = <&gpio4 2 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
-+		scl-gpios = <&gpio4 3 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
-+		i2c-gpio,delay-us = <10>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		/* TODO: SMB136 Charger for 7" variant at 0x4d */
-+	};
-+
-+	i2c-gpio6 {
-+		compatible = "i2c-gpio";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&i2c6_pins>;
-+		sda-gpios = <&gpio3 2 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
-+		scl-gpios = <&gpio3 1 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
-+		i2c-gpio,delay-us = <10>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		/* TODO: STMPE811 ADC at 0x41 */
-+	};
-+
-+	i2c-gpio7 {
-+		compatible = "i2c-gpio";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&i2c7_pins>;
-+		sda-gpios = <&gpio2 30 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
-+		scl-gpios = <&gpio2 29 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
-+		i2c-gpio,delay-us = <3>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		fuel-gauge@36 {
-+			compatible = "maxim,max17042";
-+			reg = <0x36>;
-+			pinctrl-0 = <&fuel_alert_irq>;
-+			pinctrl-names = "default";
-+			interrupt-parent = <&gpio2>;
-+			interrupts = <12 IRQ_TYPE_LEVEL_LOW>;
-+			maxim,rsns-microohm = <10000>;
-+			maxim,over-heat-temp = <500>;
-+			maxim,dead-volt = <2500>;
-+			maxim,over-volt = <4300>;
-+		};
-+	};
-+
-+	reg_espresso_wlan: regulator-espresso-wlan {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&wlanen_gpio>;
-+		compatible = "regulator-fixed";
-+		regulator-name = "espresso_wlan";
-+		regulator-max-microvolt = <2000000>;
-+		regulator-min-microvolt = <2000000>;
-+		gpio = <&gpio4 8 GPIO_ACTIVE_HIGH>; /* GPIO_104 */
-+		startup-delay-us = <70000>;
-+		regulator-always-on;
-+		enable-active-high;
-+	};
-+
-+	wlan_pwrseq: wlan-pwrseq {
-+		compatible = "mmc-pwrseq-simple";
-+		clocks = <&twl 0>;
-+		clock-names = "ext_clock";
-+	};
-+
-+	reg_espresso_internal: regulator-espresso-internal {
-+		compatible = "regulator-fixed";
-+		regulator-name = "eMMC_LDO";
-+		regulator-max-microvolt = <1800000>;
-+		regulator-min-microvolt = <1800000>;
-+		gpios = <&gpio2 21 GPIO_ACTIVE_HIGH>; /* GPIO_63 */
-+		startup-delay-us = <100000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+		enable-active-high;
-+	};
-+
-+	reg_espresso_external: regulator-espresso-external {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vmmc1";
-+		regulator-max-microvolt = <2800000>;
-+		regulator-min-microvolt = <2800000>;
-+		gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>; /* GPIO_34 */
-+		enable-active-high;
-+	};
-+
-+	reg_touch_ldo_en: regulator-touch-ldo-en  {
-+		compatible = "regulator-fixed";
-+		regulator-name = "touch_ldo_en";
-+		regulator-max-microvolt = <2800000>;
-+		regulator-min-microvolt = <2800000>;
-+		gpios = <&gpio2 22 GPIO_ACTIVE_HIGH>; /* GPIO_54 */
-+		regulator-always-on;
-+		enable-active-high;
-+	};
-+
-+	gpio-keys {
-+		compatible = "gpio-keys";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&gpio_keys>;
-+
-+		key-power {
-+			label = "power";
-+
-+			gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>; /* GPIO_wk3 */
-+			linux,code = <KEY_POWER>;
-+			wakeup-source;
-+		};
-+
-+		button-volup {
-+			linux,code = <KEY_VOLUMEUP>;
-+			label = "volume_up"; /* GPIO_wk30 */
-+			gpios = <&gpio1 30 GPIO_ACTIVE_LOW>;
-+		};
-+
-+		button-voldown {
-+			linux,code = <KEY_VOLUMEDOWN>;
-+			label = "volume_down"; /* GPIO_wk8 */
-+			gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
-+		};
-+	};
-+
-+	reg_lcd: regulator-lcd	{
-+		compatible = "regulator-fixed";
-+		regulator-name = "lcd_en";
-+		gpios = <&gpio5 7 GPIO_ACTIVE_HIGH>; /* GPIO_135 */
-+		regulator-max-microvolt = <3300000>;
-+		regulator-min-microvolt = <3300000>;
-+		enable-active-high;
-+		regulator-boot-on;
-+	};
-+
-+	pwm10: pwm-10 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pwm10_default>;
-+		compatible = "ti,omap-dmtimer-pwm";
-+		#pwm-cells = <3>;
-+		ti,timers = <&timer10>;
-+		ti,clock-source = <0x00>;
-+	};
-+
-+	lvds-encoder {
-+		compatible = "doestek,dtc34lm85am", "lvds-encoder";
-+		powerdown-gpios = <&gpio5 8 GPIO_ACTIVE_LOW>; /* GPIO_136 */
++		pinctrl-0 = <&backlight_pins>;
++		pwms = <&pwm10 0 1200 0>;
 +		power-supply = <&reg_lcd>;
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
++		enable-gpios = <&gpio3 31 GPIO_ACTIVE_HIGH>;
++		brightness-levels = <0 4 8 16 32 64 128 255>;
++		default-brightness-level = <2>;
++	};
 +
-+			port@0 {
-+				reg = <0>;
-+				bridge_in: endpoint {
-+					remote-endpoint = <&dpi_out>;
-+				};
-+			};
++	panel {
++		compatible = "samsung,ltn070nl01", "panel-lvds";
++		power-supply = <&reg_lcd>;
++		width-mm = <154>;
++		height-mm = <90>;
++		data-mapping = "vesa-24";
++		backlight = <&backlight>;
 +
-+			port@1 {
-+				reg = <1>;
-+				bridge_out: endpoint {
-+					remote-endpoint = <&panel_in>;
-+				};
++		panel-timing {
++			clock-frequency = <47255554>;
++
++			hback-porch = <210>;
++			hactive = <1024>;
++			hfront-porch = <186>;
++			hsync-len = <50>;
++
++			vback-porch = <11>;
++			vactive = <600>;
++			vfront-porch = <24>;
++			vsync-len = <10>;
++
++			hsync-active = <0>;
++			vsync-active = <0>;
++			de-active = <1>;
++			pixelclk-active = <1>;
++			syncclk-active = <0>;
++		};
++
++		port {
++			panel_in: endpoint {
++				remote-endpoint = <&bridge_out>;
 +			};
 +		};
 +	};
-+
-+	vibrator {
-+		compatible = "gpio-vibrator";
-+		enable-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>; /* GPIO_38 */
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&vibrator_default>;
-+	};
-+
-+	gp2a_shunt: current-sense-shunt {
-+		compatible = "current-sense-shunt";
-+		io-channels = <&gpadc 4>;
-+		shunt-resistor-micro-ohms = <24000000>; /* 24 ohms */
-+		#io-channel-cells = <0>;
-+	};
-+
-+	led-ir {
-+		compatible = "gpio-ir-tx";
-+		gpios = <&gpio2 27 GPIO_ACTIVE_HIGH>; /* GPIO_59 */
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&ledir_pins>;
-+	};
-+};
-+
-+&omap4_pmx_wkup {
-+	gpio_keys: gpio-keys-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x046, PIN_INPUT | MUX_MODE3)
-+			/* sim_cd.gpio_wk3 - EXT_WAKEUP */
-+			OMAP4_IOPAD(0x056, PIN_INPUT | MUX_MODE3)
-+			/* fref_clk3_req.gpio_wk30 - VOL_UP */
-+			OMAP4_IOPAD(0x05C, PIN_INPUT | MUX_MODE3)
-+			/* fref_clk4_out.gpio_wk8 - VOL_DN */
-+		>;
-+	};
-+};
-+
-+&omap4_pmx_core {
-+	backlight_pins: pinmux-backlight-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0X0D8, PIN_OUTPUT | PIN_OFF_OUTPUT_LOW | MUX_MODE3)
-+			/* usbb1_ulpitll_dat7.gpio_95 - LED_BACKLIGHT_RESET */
-+		>;
-+	};
-+
-+	bluetooth_pins: pinmux-bluetooth-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x094, PIN_OUTPUT | MUX_MODE3)
-+			/* gpmc_ncs6.gpio_103 - BT_EN */
-+			OMAP4_IOPAD(0x0be, PIN_OUTPUT | MUX_MODE3)
-+			/* cam_strobe.gpio_82 - BT_nRST */
-+			OMAP4_IOPAD(0x0c0, PIN_INPUT | MUX_MODE3)
-+			/* cam_globalreset.gpio_83 - BT_HOST_WAKE */
-+			OMAP4_IOPAD(0x0d4, PIN_OUTPUT | MUX_MODE3)
-+			/* usbb1_ulpitll_dat5.gpio_93 - BT_WAKE */
-+		>;
-+	};
-+
-+	dss_dpi_pins: pinmux-dss-dpi-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x162, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data23 */
-+			OMAP4_IOPAD(0x164, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data22 */
-+			OMAP4_IOPAD(0x166, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data21 */
-+			OMAP4_IOPAD(0x168, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data20 */
-+			OMAP4_IOPAD(0x16a, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data19 */
-+			OMAP4_IOPAD(0x16c, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data18 */
-+			OMAP4_IOPAD(0x16e, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data15 */
-+			OMAP4_IOPAD(0x170, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data14 */
-+			OMAP4_IOPAD(0x172, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data13 */
-+			OMAP4_IOPAD(0x174, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data12 */
-+			OMAP4_IOPAD(0x176, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data11 */
-+			OMAP4_IOPAD(0x1b4, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data10 */
-+			OMAP4_IOPAD(0x1b6, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data9 */
-+			OMAP4_IOPAD(0x1b8, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data16 */
-+			OMAP4_IOPAD(0x1ba, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data17 */
-+			OMAP4_IOPAD(0x1bc, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_hsync */
-+			OMAP4_IOPAD(0x1be, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_pclk */
-+			OMAP4_IOPAD(0x1c0, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_vsync */
-+			OMAP4_IOPAD(0x1c2, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_de */
-+			OMAP4_IOPAD(0x1c4, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data8 */
-+			OMAP4_IOPAD(0x1c6, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data7 */
-+			OMAP4_IOPAD(0x1c8, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data6 */
-+			OMAP4_IOPAD(0x1ca, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data5 */
-+			OMAP4_IOPAD(0x1cc, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data4 */
-+			OMAP4_IOPAD(0x1ce, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data3 */
-+
-+			OMAP4_IOPAD(0x1d0, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data2 */
-+			OMAP4_IOPAD(0x1d2, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data1 */
-+			OMAP4_IOPAD(0x1d4, PIN_OFF_OUTPUT_LOW | MUX_MODE5)
-+			/* dispc2_data0 */
-+		>;
-+	};
-+
-+	fuel_alert_irq: pinmux-fuel-alert-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x068, PIN_INPUT_PULLUP | MUX_MODE3)
-+			/* gpmc_a20.gpio_44 */
-+		>;
-+	};
-+
-+	i2c1_pins: pinmux-i2c1-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x122, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* i2c1_scl */
-+			OMAP4_IOPAD(0x124, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* i2c1_sda */
-+		>;
-+	};
-+
-+	i2c2_pins: pinmux-i2c2-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x126, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* i2c2_scl */
-+			OMAP4_IOPAD(0x128, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* i2c2_sda */
-+		>;
-+	};
-+
-+	i2c3_pins: pinmux-i2c3-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x12a, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* i2c3_scl */
-+			OMAP4_IOPAD(0x12c, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* i2c3_sda */
-+		>;
-+	};
-+
-+	i2c4_pins: pinmux-i2c4-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x12e, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* i2c4_scl */
-+			OMAP4_IOPAD(0x130, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* i2c4_sda */
-+		>;
-+	};
-+
-+	i2c5_pins: pinmux-i2c5-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x0de, PIN_INPUT_PULLUP | MUX_MODE3)
-+			/* usbc1_icusb_dp.gpio_98 */
-+			OMAP4_IOPAD(0x0e0, PIN_INPUT_PULLUP | MUX_MODE3)
-+			/* usbc1_icusb_dm.gpio_99 */
-+		>;
-+	};
-+
-+	i2c6_pins: pinmux-i2c6-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x09c, PIN_INPUT_PULLUP | MUX_MODE3)
-+			/* hdmi_ddc_scl.gpio_65 */
-+			OMAP4_IOPAD(0x09e, PIN_INPUT_PULLUP | MUX_MODE3)
-+			/* hdmi_ddc_sda.gpio_66 */
-+		>;
-+	};
-+
-+	i2c7_pins: pinmux-i2c7-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x08a, PIN_INPUT_PULLUP | MUX_MODE3)
-+			/* gpmc_wait0.gpio_61 */
-+			OMAP4_IOPAD(0x08c, PIN_INPUT_PULLUP | MUX_MODE3)
-+			/* gpmc_wait1.gpio_62 */
-+		>;
-+	};
-+
-+	ledir_pins: pimux-ledir-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x086, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			/* gpmc_nbe0_cle.gpio_59 */
-+			OMAP4_IOPAD(0x156, PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			/* mcspi4_simo.gpio_152 */
-+		>;
-+	};
-+
-+	lvds_pins: pinmux-lvds-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0X136, PIN_OUTPUT | MUX_MODE3)
-+			/* mcspi1_simo.gpio_136 - LVDS_nSHDN */
-+		>;
-+	};
-+
-+	mmc1_pins: pinmux-mmc1-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x0e2, PIN_INPUT_PULLDOWN | MUX_MODE0)
-+			/* sdmmc1_clk */
-+			OMAP4_IOPAD(0x0e4, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* sdmcc1_cmd */
-+			OMAP4_IOPAD(0x0e6, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* sdmcc1_dat0 */
-+			OMAP4_IOPAD(0x0e8, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* sdmmc1_dat1 */
-+			OMAP4_IOPAD(0x0ea, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* sdmmc1_dat2 */
-+			OMAP4_IOPAD(0x0ec, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* sdmmc1_dat3 */
-+		>;
-+	};
-+
-+	mmc2_pins: pinmux-mmc2-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x040, PIN_INPUT_PULLUP | MUX_MODE1)
-+			/* sdmmc2_dat0 */
-+			OMAP4_IOPAD(0x042, PIN_INPUT_PULLUP | MUX_MODE1)
-+			/* sdmmc2_dat1 */
-+			OMAP4_IOPAD(0x044, PIN_INPUT_PULLUP | MUX_MODE1)
-+			/* sdmmc2_dat2 */
-+			OMAP4_IOPAD(0x046, PIN_INPUT_PULLUP | MUX_MODE1)
-+			/* sdmmc2_dat3 */
-+			OMAP4_IOPAD(0x048, PIN_INPUT_PULLUP | MUX_MODE1)
-+			/* sdmmc2_dat4 */
-+			OMAP4_IOPAD(0x04a, PIN_INPUT_PULLUP | MUX_MODE1)
-+			/* sdmmc2_dat5 */
-+			OMAP4_IOPAD(0x04c, PIN_INPUT_PULLUP | MUX_MODE1)
-+			/* sdmmc2_dat6 */
-+			OMAP4_IOPAD(0x04e, PIN_INPUT_PULLUP | MUX_MODE1)
-+			/* sdmmc2_dat7 */
-+			OMAP4_IOPAD(0x082, PIN_INPUT_PULLUP | MUX_MODE1)
-+			/* sdmmc2_clk */
-+			OMAP4_IOPAD(0x084, PIN_INPUT_PULLUP | MUX_MODE1)
-+			/* sdmmc2_cmd */
-+		>;
-+	};
-+
-+	mmc5_pins: pinmux-mmc5-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x148, PIN_INPUT_PULLDOWN | MUX_MODE0)
-+			/* sdmmc5_clk.sdmmc5_clk */
-+			OMAP4_IOPAD(0x14a, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* sdmmc5_cmd.sdmmc5_cmd */
-+			OMAP4_IOPAD(0x14c, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* sdmmc5_dat0.sdmmc5_dat0 */
-+			OMAP4_IOPAD(0x14e, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* sdmmc5_dat1.sdmmc5_dat1 */
-+			OMAP4_IOPAD(0x150, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* sdmmc5_dat2.sdmmc5_dat2 */
-+			OMAP4_IOPAD(0x152, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* sdmmc5_dat3.sdmmc5_dat3 */
-+		>;
-+	};
-+
-+	pwm10_default: pinmux-pwm10-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0X0D6, PIN_OUTPUT | PIN_OFF_OUTPUT_LOW | MUX_MODE1)
-+			/* usbb1_ulpitll_dat6.dmtimer10_pwm_evt - LED_BACKLIGHT_PWM */
-+		>;
-+	};
-+
-+	touch_pins: pinmux-touch-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x06c, PIN_INPUT | MUX_MODE3)
-+			/* gpmc_a22.gpio_46 - TSP_INT */
-+		>;
-+	};
-+
-+	uart2_pins: pinmux-uart2-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x118, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* uart2_cts.uart2_cts */
-+			OMAP4_IOPAD(0x11a, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* uart2_rts.uart2_rts */
-+			OMAP4_IOPAD(0x11c, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* uart2_rx.uart2_rx */
-+			OMAP4_IOPAD(0x11e, PIN_INPUT_PULLUP | MUX_MODE0)
-+			/* uart2_tx.uart2_tx */
-+		>;
-+	};
-+
-+	uart3_pins: pinmux-uart3-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x144, PIN_INPUT | MUX_MODE0)
-+			/* uart3_rx_irrx */
-+			OMAP4_IOPAD(0x146, PIN_OUTPUT | MUX_MODE0)
-+			/* uart3_tx_irtx */
-+		>;
-+	};
-+
-+	vibrator_default: pinmux-vibrator-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x05c, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+			/* gpmc_ad14.gpio_38 - MOTOR_EN */
-+		>;
-+	};
-+
-+	wlanen_gpio: pinmux-wlanen-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x096, PIN_OUTPUT | MUX_MODE3)
-+			/* gpmc_ncs7.gpio_104 */
-+		>;
-+	};
-+
-+	wlan_host_wake: pinmux-wlan-host-wake-pins {
-+		pinctrl-single,pins = <
-+			OMAP4_IOPAD(0x0bc, PIN_INPUT | MUX_MODE3)
-+			/* cam_shutter.gpio_81 - WLAN_HOST_WAKE */
-+		>;
-+	};
-+};
-+
-+&uart3 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart3_pins>;
-+
-+	interrupts-extended = <&wakeupgen GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH
-+				   &omap4_pmx_core OMAP4_UART3_RX>;
-+};
-+
-+&i2c1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c1_pins>;
-+
-+	clock-frequency = <400000>;
-+
-+	twl: pmic@48 {
-+		reg = <0x48>;
-+		#clock-cells = <1>;
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <
-+			&twl6030_pins
-+			&twl6030_wkup_pins
-+		>;
-+
-+		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
-+		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>; /* IRQ_SYS_1N cascaded to gic */
-+		interrupt-parent = <&gic>;
-+		system-power-controller;
-+	};
-+};
-+
-+#include "twl6032.dtsi"
-+#include "twl6030_omap4.dtsi"
-+
-+&ldo1 {
-+	regulator-min-microvolt = <2800000>;
-+	regulator-max-microvolt = <2800000>;
-+	regulator-always-on;
-+	regulator-state-mem {
-+		regulator-off-in-suspend;
-+	};
-+};
-+
-+&ldo3 {
-+	regulator-min-microvolt = <3300000>;
-+	regulator-max-microvolt = <3300000>;
-+	regulator-always-on;
-+	regulator-state-mem {
-+		regulator-off-in-suspend;
-+	};
-+};
-+
-+&ldo4 {
-+	regulator-min-microvolt = <2800000>;
-+	regulator-max-microvolt = <2800000>;
-+	regulator-always-on;
-+};
-+
-+&ldo5 {
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+	regulator-always-on;
-+};
-+
-+&ldo6 {
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+	regulator-always-on;
-+	regulator-state-mem {
-+		regulator-off-in-suspend;
-+	};
-+};
-+
-+&smps4 {
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+	regulator-always-on;
-+};
-+
-+&ldousb {
-+	regulator-min-microvolt = <3300000>;
-+	regulator-max-microvolt = <3300000>;
-+	regulator-always-on;
-+};
-+
-+&i2c2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c2_pins>;
 +};
 +
 +&i2c3 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c3_pins>;
-+};
-+
-+&i2c4 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c4_pins>;
-+
-+	accelerometer@18 {
-+		compatible = "bosch,bma254";
-+		reg = <0x18>;
-+		vdd-supply = <&ldo4>;
-+		vddio-supply = <&ldo5>;
-+		interrupt-parent = <&gpio4>;
-+		interrupts = <25 (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_EDGE_RISING)>,
-+			<26 (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_EDGE_RISING)>;
-+	};
-+
-+	magnetometer@2e {
-+		compatible = "yamaha,yas530";
-+		reg = <0x2e>;
-+		vdd-supply = <&ldo4>;
-+		iovdd-supply = <&ldo5>;
-+		reset-gpios = <&gpio5 29 GPIO_ACTIVE_LOW>;
-+		interrupts = <&gpio6 10 IRQ_TYPE_EDGE_RISING>;
-+	};
-+
-+	light-sensor@44 {
-+		compatible = "sharp,gp2ap002a00f";
-+		reg = <0x44>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
-+		vdd-supply = <&ldo4>;
-+		vio-supply = <&ldo4>;
-+		io-channels = <&gp2a_shunt>;
-+		io-channel-names = "alsout";
-+		sharp,proximity-far-hysteresis = /bits/ 8 <0x40>;
-+		sharp,proximity-close-hysteresis = /bits/ 8 <0x20>;
-+	};
-+};
-+
-+&dss {
-+	status = "okay";
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&dss_dpi_pins>;
-+
-+	port {
-+		dpi_out: endpoint {
-+			remote-endpoint = <&bridge_in>;
-+			data-lines = <24>;
-+		};
-+	};
-+};
-+
-+&twl_usb_comparator {
-+	usb-supply = <&ldousb>;
-+};
-+
-+&usb_otg_hs {
-+	interface-type = <1>;
-+	mode = <3>;
-+	power = <50>;
-+};
-+
-+&mmc1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins>;
-+
-+	vmmc-supply = <&reg_espresso_external>;
-+	bus-width = <4>;
-+};
-+
-+&mmc2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc2_pins>;
-+
-+	vmmc-supply = <&reg_espresso_internal>;
-+	ti,non-removable;
-+	bus-width = <8>;
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-+
-+&mmc4 {
-+	status = "disabled";
-+};
-+
-+&mmc5 {
-+	status = "okay";
-+
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	non-removable;
-+	bus-width = <4>;
-+	vmmc-supply = <&reg_espresso_wlan>;
-+	mmc-pwrseq = <&wlan_pwrseq>;
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc5_pins>;
-+
-+	brcmf: wifi@1 {
-+		compatible = "brcm,bcm4330-fmac", "brcm,bcm4329-fmac";
-+		reg = <1>;
-+
-+		interrupt-parent = <&gpio3>;
-+		interrupts = <17 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupt-names = "host-wake";
++	touchscreen@48 {
++		compatible = "melfas,mms136";
++		reg = <0x48>;
++		interrupt-parent = <&gpio2>;
++		interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
++		touchscreen-size-x = <1024>;
++		touchscreen-size-y = <600>;
 +		pinctrl-names = "default";
-+		pinctrl-0 = <&wlan_host_wake>;
-+	};
-+};
-+
-+&uart2 {
-+	interrupts-extended = <&wakeupgen GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH
-+				&omap4_pmx_core OMAP4_UART2_RX>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart2_pins>;
-+	bluetooth {
-+		compatible = "brcm,bcm4330-bt";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&bluetooth_pins>;
-+		shutdown-gpios = <&gpio4 7 GPIO_ACTIVE_HIGH>;
-+		reset-gpios = <&gpio3 18 GPIO_ACTIVE_LOW>;
-+		device-wakeup-gpios = <&gpio3 29 GPIO_ACTIVE_HIGH>;
-+		interrupt-parent = <&gpio3>;
-+		interrupts = <19 IRQ_TYPE_EDGE_FALLING>;
-+		interrupt-names = "host-wakeup";
++		pinctrl-0 = <&touch_pins>;
++		avdd-supply = <&reg_touch_ldo_en>;
++		vdd-supply = <&ldo6>;
 +	};
 +};
 -- 
