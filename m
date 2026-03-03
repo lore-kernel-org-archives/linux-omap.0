@@ -1,62 +1,64 @@
-Received: from mail-qk1-f174.google.com (mail-qk1-f174.google.com [209.85.222.174])
+Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45BC41DF75A
-	for <linux-omap@vger.kernel.org>; Tue,  3 Mar 2026 20:30:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29305361DA1
+	for <linux-omap@vger.kernel.org>; Tue,  3 Mar 2026 20:30:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772569827; cv=none; b=d28W6aqdlcp60D2QKAnzLv4s9cuB6/05I/21eWPh1kd5DkUYtxUJgeuZYB/cCz4iRPw5uF/JeY3Q7B6AOnuolLgit9W2mfFTQ9Mh+vWGoX43zRv0hhP3WtU0GjBY2Wx+5no7owfMm+4OMdH2s8CbTYL6abL/CCLuFrtrhSGknY8=
+	t=1772569829; cv=none; b=lQTm/7hgjQyS8H5Rlyzqi09H9GL001Da9Q1jFEnuohvS9BxvCKncVnnNFgLKwQqPOQ2L+errZMFrFMrh7OG3dyCEPMIFzIXXpgKjmAiaQsjCH7CzZ1tbgOg4OiT7xIf8m0T9yib1uwaCSyTD+0awA61fxrx2eCqtsTv3Awckd4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772569827; c=relaxed/simple;
-	bh=nHiuIbDROmtvh9nozT7ptkItgTF5ym9bQo4UDPhFaEM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=blsMQVZtFo4YwrVFTiRJo0SHm/CZZuHTF/p1vDw9kdt6Y1BVdlv4V8avl1a5auPFFChmINdA3FlLa488hHISOrQowUZriaFY4kBuU4/PYiMbn1uQwx30aU5RAkz5HmBzG6WO51l4+js4nTGwbB3rpil5tziV418ab95HZbwhG/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RwIXmlMj; arc=none smtp.client-ip=209.85.222.174
+	s=arc-20240116; t=1772569829; c=relaxed/simple;
+	bh=KAvlbY0yYL9PaaTueRuO9yIwL2QGgENhM1iet7MXCjM=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=uovP09JtXDqeL6ALZFUDA1JKrHagfWTZMdk5r0k3L8KU2jJG9yxrgOFb6KrwiuhdMAWnO48kPj7EbK/oBMugfRxlC6Jh8Yjc3cAw6/43qNNcrcmdNrYyanOfSOMJKrxdW4Hd/msapZ+sC86zPO87cxSFjMcJEnrHaIyYMLPwjgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nsMugjWX; arc=none smtp.client-ip=209.85.222.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RwIXmlMj"
-Received: by mail-qk1-f174.google.com with SMTP id af79cd13be357-8cb3dfb3461so608842885a.3
-        for <linux-omap@vger.kernel.org>; Tue, 03 Mar 2026 12:30:26 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nsMugjWX"
+Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-8cb3e22435fso577125885a.1
+        for <linux-omap@vger.kernel.org>; Tue, 03 Mar 2026 12:30:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1772569825; x=1773174625; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=th+RyWrkXmCwE35QEKh1O6v7tT5++z/rbMX9nQqTjtk=;
-        b=RwIXmlMjNG/EBm5pcLpVQlO+Qcfs5zvo+V335sd36sBLQvlq1qQ2Kiq1yTcnjrjAYG
-         UfwCj4lERLemj/L3sfzvtAz6IFav2ORWU9Dxp6x8Ejow4cVKmCmy5l3RZVAXZQf64eN7
-         gp1ElBOpyOMnseVQZ7ftvtqQnJvnv34cx0giBMo97lbmFUIuDnBVKOAQ1ymKDnJfx9KV
-         bONKWR/iStk1blnN8k4TDYFK9GESSD3hg8Y+rhd4js5e3btf+AJ3NVP7qQRi+5cHnMbl
-         GTYPYl9SVArCCsPtpvPJdJaQqJpuvWMBNPA0BtwfznEFVC+Z6qwnXWtj6KaowycxOrp1
-         +U+g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772569825; x=1773174625;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1772569827; x=1773174627; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=th+RyWrkXmCwE35QEKh1O6v7tT5++z/rbMX9nQqTjtk=;
-        b=VkuMsb5P6Eq2DvkOEp4W2rnA2KvN4p3NAhgrEhc+/mBW0Xt4wCmd1CK0WICE+Jf+hO
-         WKPsAYPXu7y4ffPGf8Y/FecUTmClRTg8AQbYml4gIuES3vRrYOxoA68P3ivACHNJW2gn
-         4bEhqv26zq37Biu2Ud9HZNMr0e2wg/TSmqrMnqG+Ty1GzzkUCV3AMPL99NohfwEq7o9J
-         GFyPp/8xCSwqC2o0VVjy4o5qV2oB2wAghvDMWvjqmVZlAt1WWBY5SI/oFh0pP22/Zj52
-         TkHMTYErSvX8iZa262h5VyrgqOFHRXjSKrzK4m4I1LrA4PnhRwv4fS51xAlYrV8jAlYp
-         yxFA==
-X-Forwarded-Encrypted: i=1; AJvYcCV0iYpAltTQnLP4ae7KYSPsC5g8fxZo2m6No0UoFlo17Nk+9o2oARADShmUeRdTBF0EdImIULoVxHxM@vger.kernel.org
-X-Gm-Message-State: AOJu0YzMZi8zhu4X3JGqohwP0vy3EnRnRFIVTND7NMIyWULAG37+I6Td
-	s+x11rEXhWdA0m+SGhP9bXwgoXxSYtBHwGr4HcGbB5Ro3mIbnPNgPlID
-X-Gm-Gg: ATEYQzxwbj80d8qRZr99EmeMuhsew6GzQKLxEHwSm8DOijlCPNXOgfMn5RuuCVpt/bM
-	4YwlgiugnZ9fl79yqeyN98ynBb486dsXVZ6VsBGlTTpfn2BFW4eJBX5W/+P4/oeKU7aEnb49w1j
-	7NDCPe8DbWLpqcBdRpAVuFawVjYu9pZ9sZ1h3JJuufdkWY9UJgk+OdneMGwt2f8KkWgxZaJA1qw
-	fy6aA9PekYCKVf4kMMy2wGRhBdmVj4wK7tH9GmLb0Z9Xn0kLia1pMlcEZfTmSA/I6fovCNT1eU1
-	cpFID9+bbJYVoW82DPWzKaPV7EOmfW0fiNvGnRW9Ik2j3jyh0/5eyNZCPqnT/NRX6DwXkkGoptk
-	xYPUtmX2dKStqrfVeJLY12OeLMHYL8NruJX+3ydZjLV//rmZ6hTiymW8n27rxuS7X1bB1Y0x5sp
-	nV1+a+IvWbVuieKMod9avflqb7AdifXQ90ZD+LSemgNU17SSR2QawbXYEjq5Q8ji1uBHqjVjMGD
-	hFt5o8Rwwc=
-X-Received: by 2002:a05:620a:318f:b0:8cb:66dc:9fcd with SMTP id af79cd13be357-8cbc8e0f8c5mr1873153085a.56.1772569824958;
-        Tue, 03 Mar 2026 12:30:24 -0800 (PST)
+        bh=MfQfBaf9AAlms3smQ5+Ri25UHHgHjEr008f22TiaTqo=;
+        b=nsMugjWXJJeXW8KaA7wQtHGvd1qQaYhLcv3g1UgU0vlV9v02eXpCP4Dx55U0GJFKWY
+         bWwGjunI0qhBv7qV8qV/shiYuz3Vkzj0SiYv/Of3cw7hibCboKnggvxEMYqT2e3V42c9
+         Pzbt84m+o49EjjksEM02mLedRjhyA/0M48GHV9Tbp7cINEj/jprE4jKtNdeJ7xpq5T7P
+         mBaFvjlQBQc0GywqE5tMFHHeQx6/+LqwfLP63qdFbtQq4sBTmNywMOpiwNzE/Tfvr7C0
+         FU8er4TPkFnCdLLzEzKNQ3ON4votFwflb4o4ifJ3pCrq4UUtkdgNwvCjo+E7IY47yHTg
+         uQFA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1772569827; x=1773174627;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=MfQfBaf9AAlms3smQ5+Ri25UHHgHjEr008f22TiaTqo=;
+        b=SGVL3fmi8H5cqCUj1Yx9Ss0D+rN7o88VJcNKKtOSiuBG8TZF0YTuoBFSmttQ6JCFHy
+         4zgtNFOH8T2JfnKZK1acReInQlPy9fOn940QH2ZFeIGGbfJsf+l4EcGr/SGPlhGWc/nd
+         nZpPf7nI4I2mNVdFRg5vjNSIPwndOkED9wyvVxLBadYEJ+aJlISczLHgOq8OwTQ82D43
+         0N26YO7h0wxR1oZBrpS/gBZ5JpoWp7lqWPCHIk98pMYXuyGBlmw9T3KYTXr1uHD+M9EZ
+         Hba5O2iQF/ElTFmwnTYgyMn62wyz2u+xVui7ldRERRXW9jgMLAUJ0lEE/yZTksAIZ54Y
+         a/aQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWv6OVgvzImlBlvwx0sCUel8M72O6E02Np7dPmvNtslemHMkSf2RhcDt2pEVTM7rUm7wF+ou4ZiGn6l@vger.kernel.org
+X-Gm-Message-State: AOJu0YyozOYZBlzX+BKWAbqrh8sYgnRCR+fQI5PsgreR2zMGnyF0hx0+
+	pd1xelfcCme52Sx1M3a38XD1G9220/ZbXpMLgRkWZdCyuEBRYVTSm0EV
+X-Gm-Gg: ATEYQzyOmQAxmUyjnJ4WbTKe+L1NmE+Imes//FkNSkvfdQd6enP7BWn/GH/k0ufZTU5
+	w6WUvXpOb5W6dxDeqHex1tgxIP89yxuFyfREo4EElslJLlUqhutujtIG2nhQGvgMZgo1GMXqAmg
+	/6WaJ0dhdOsTnhIV1VtLoLIkq3D/KsgTNJDdab4SHbOvfKKrNqM0DG1y0uWhX+QSii/+ajIIulK
+	3IAonuunr5YmZ9S8yc+/P9NYdLIxmctM2mxZmwcFE1l1fubkwinvierHAEoM63nQt0Eiwaghv01
+	X1eZlUVo8gGIMgUTpX8CFrOmNViBOGNp0Ci4VV0XmwjDd3fhVDk21FBNPcNJj2RZg/M5xXEWXKT
+	GHDiJQUt0n33WL/EvHphu9e/5fkKsNoqRdoFwku5Ru8AmMZ04JXu0s72ht2ZL5KSxelUQWuLn1h
+	4Y4nvuWMRR738VP3tKb1h81zJm3Wr7J+MEC4Dmp0HayqozbrtsikRqebYCbko+zptnwdzBP1aCn
+	Cpu4G8DeIJNt/dpe+h4rA==
+X-Received: by 2002:a05:620a:1a9b:b0:8c9:eee0:dbb7 with SMTP id af79cd13be357-8cd509c3187mr382434085a.23.1772569826932;
+        Tue, 03 Mar 2026 12:30:26 -0800 (PST)
 Received: from mighty.stonybrook.edu (nat-130-245-192-1.resnet.stonybrook.edu. [130.245.192.1])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8cbbf564c27sm1465032085a.0.2026.03.03.12.30.23
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8cbbf564c27sm1465032085a.0.2026.03.03.12.30.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Mar 2026 12:30:24 -0800 (PST)
+        Tue, 03 Mar 2026 12:30:26 -0800 (PST)
 From: Mithil Bavishi <bavishimithil@gmail.com>
 To: aaro.koskinen@iki.fi,
 	airlied@gmail.com,
@@ -85,10 +87,12 @@ Cc: devicetree@vger.kernel.org,
 	dri-devel@lists.freedesktop.org,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org
-Subject: [PATCH v9 0/8] Initial support for Samsung Galaxy Tab 2 series
-Date: Tue,  3 Mar 2026 15:30:09 -0500
-Message-ID: <20260303203017.511-1-bavishimithil@gmail.com>
+Subject: [PATCH v9 1/8] ARM: dts: twl6032: Add DTS file for TWL6032 PMIC
+Date: Tue,  3 Mar 2026 15:30:10 -0500
+Message-ID: <20260303203017.511-2-bavishimithil@gmail.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260303203017.511-1-bavishimithil@gmail.com>
+References: <20260303203017.511-1-bavishimithil@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -97,99 +101,116 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This series adds initial support for the Samsung Galaxy Tab 2
-(samsung-espresso7/10) series of devices. It adds support for 6 variants
-(P3100, P3110, P3113, P5100, P5110, P5113). Downstream categorised them
-based on 3G and WiFi, but since they use different panel, touch
-controllers, batteries, I decided to categorise them based on screen
-size as espresso7 and espresso10.
+Add a dedicated DTS file for the TWL6032 PMIC (Phoenix Lite). Already
+has driver support with TWL6030 (Phoenix) since both of them are so
+similar, some nodes can be reused from TWL6030 as well
 
-It adds basic functionality for both the models including panel, drm,
-sdcard, touchscreen, mmc, wifi, bluetooth, keys, battery, fuel gauge,
-pmic, sensors.
+This can be included in the board files like twl6030
+Example:
+...
+&i2c1 {
+    twl: twl@48 {
+        reg = <0x48>;
+        interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
+        interrupt-controller;
+        interrupt-parent = <&gic>;
+    };
+};
+
+/include/ "twl6032.dtsi"
+...
+
+Used in devices like samsung-espresso, amazon-jem, epson-embt2ws etc
 
 Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
 ---
-Changes in v9
-- Removed stray |
-- Rebased on latest commit
-- Removed duplicate touchscreen parameters
-- Link to v8: https://lore.kernel.org/linux-omap/20260223134941.427-1-bavishimithil@gmail.com/
-Changes in v8
-- Remove WAKEUP_EN from omap4_pmx_wkup
-- Link to v7: https://lore.kernel.org/linux-omap/20260223055113.1288-1-bavishimithil@gmail.com/ 
-Changes in v7
-- Removed prox_irq
-- Changed commit message
-- Link to v6: https://lore.kernel.org/linux-omap/20260219210408.5451-1-bavishimithil@gmail.com/
-Changes in v6
-- Remove references to WAKEUP_EN (drivers dont support interrupts-extended)
-- Remove gp2a_irq, it was for bh1721fvc not gp2a
-- Remove mount-matrix
-- Link to v5: https://lore.kernel.org/linux-omap/20260129054709.3878-1-bavishimithil@gmail.com/
-Changes in v5
-- Commit message length < 75
-- Squash commits
-- Link to v4: https://lore.kernel.org/linux-omap/20260119033035.57538-1-bavishimithil@gmail.com/
-Changes in v4
-- Fixed syntax in doestek vendor
-- Changed - to _ in node names
-- Removed address/size-cells in chosen
-- Added pinmux for i2c-gpio5,6,7, irled
-- Allow sdcard to poweroff (reg_espresso_external)
-- Changed power to key-power
-- Order alphabetically in omap4_pmx_wkup and omap4_pmx_core
-- Use generic node names
-- Added TODO for future nodes
-- Fix touchscreen values in espresso7 and espresso10
-- Add dts to Makefile
-- Commit message length under 75
-- Link to v3: https://lore.kernel.org/linux-omap/20241108200440.7562-1-bavishimithil@gmail.com/
-Changes in v3
-- Use device tree from the correct branch
-- Fix commit subjects to matching the subsystem
-- Add Doestek vendor
-- Add compatible for LVDS encoder
-- Add compatibles for 7 and 10 inch panels
-- Clean up device tree using "make CHECK_DTBS=y"
-- Link to v2: https://lore.kernel.org/all/20241030211215.347710-1-bavishimithil@gmail.com/
-Changes in v2
-- Fix node names in common dtsi to have - instead of _
-- Removed import for twl6030.dtsi
-- Edited dts to completely use twl6032 nodes
-- Fixed typo ldosb -> ldousb
-- Link to v1: https://lore.kernel.org/all/20241030194136.297648-1-bavishimithil@gmail.com/
---
-
-Mithil Bavishi (8):
-  ARM: dts: twl6032: Add DTS file for TWL6032 PMIC
-  dt-bindings: vendor-prefixes: Add Doestek
-  dt-bindings: display: bridge: lvds-codec: add doestek,dtc34lm85am
-  dt-bindings: display: panel-lvds: Add compatibles for Samsung
-    LTN070NL01 and LTN101AL03 panels
-  ARM: dts: ti: omap: espresso-common: Add common device tree for
-    Samsung Galaxy Tab 2 series
-  dt-bindings: omap: Add Samsung Galaxy Tab 2 7.0 and 10.1
-  ARM: dts: ti: omap: samsung-espresso7: Add initial support for Galaxy
-    Tab 2 7.0
-  ARM: dts: ti: omap: samsung-espresso10: Add initial support for Galaxy
-    Tab 2 10.1
-
- .../devicetree/bindings/arm/ti/omap.yaml      |   2 +
- .../bindings/display/bridge/lvds-codec.yaml   |   1 +
- .../bindings/display/panel/panel-lvds.yaml    |   4 +
- .../devicetree/bindings/vendor-prefixes.yaml  |   2 +
- arch/arm/boot/dts/ti/omap/Makefile            |   2 +
- .../omap/omap4-samsung-espresso-common.dtsi   | 744 ++++++++++++++++++
- .../dts/ti/omap/omap4-samsung-espresso10.dts  | 101 +++
- .../dts/ti/omap/omap4-samsung-espresso7.dts   |  70 ++
- arch/arm/boot/dts/ti/omap/twl6032.dtsi        |  77 ++
- 9 files changed, 1003 insertions(+)
- create mode 100644 arch/arm/boot/dts/ti/omap/omap4-samsung-espresso-common.dtsi
- create mode 100644 arch/arm/boot/dts/ti/omap/omap4-samsung-espresso10.dts
- create mode 100644 arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts
+ arch/arm/boot/dts/ti/omap/twl6032.dtsi | 77 ++++++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
  create mode 100644 arch/arm/boot/dts/ti/omap/twl6032.dtsi
 
+diff --git a/arch/arm/boot/dts/ti/omap/twl6032.dtsi b/arch/arm/boot/dts/ti/omap/twl6032.dtsi
+new file mode 100644
+index 000000000..d599a2ca6
+--- /dev/null
++++ b/arch/arm/boot/dts/ti/omap/twl6032.dtsi
+@@ -0,0 +1,77 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Integrated Power Management Chip
++ * https://www.ti.com/lit/ds/symlink/twl6032.pdf
++ */
++
++&twl {
++	compatible = "ti,twl6032";
++	interrupt-controller;
++	#interrupt-cells = <1>;
++
++	rtc {
++		compatible = "ti,twl4030-rtc";
++		interrupts = <11>;
++	};
++
++	vio: regulator-vio {
++		compatible = "ti,twl6032-vio";
++	};
++
++	ldo1: regulator-ldo1 {
++		compatible = "ti,twl6032-ldo1";
++	};
++
++	ldo2: regulator-ldo2 {
++		compatible = "ti,twl6032-ldo2";
++	};
++
++	ldo3: regulator-ldo3 {
++		compatible = "ti,twl6032-ldo3";
++	};
++
++	ldo4: regulator-ldo4 {
++		compatible = "ti,twl6032-ldo4";
++	};
++
++	ldo5: regulator-ldo5 {
++		compatible = "ti,twl6032-ldo5";
++	};
++
++	ldo6: regulator-ldo6 {
++		compatible = "ti,twl6032-ldo6";
++	};
++
++	ldoln: regulator-ldoln {
++		compatible = "ti,twl6032-ldoln";
++	};
++
++	ldousb: regulator-ldousb {
++		compatible = "ti,twl6032-ldousb";
++	};
++
++	smps4: regulator-smps4 {
++		compatible = "ti,twl6032-smps4";
++	};
++
++	gpadc: gpadc {
++		compatible = "ti,twl6032-gpadc";
++		interrupts = <3>;
++		#io-channel-cells = <1>;
++	};
++
++	twl_usb_comparator: usb-comparator {
++		compatible = "ti,twl6030-usb";
++		interrupts = <4>, <10>;
++	};
++
++	twl_pwm: pwm {
++		compatible = "ti,twl6030-pwm";
++		#pwm-cells = <2>;
++	};
++
++	twl_pwmled: pwmled {
++		compatible = "ti,twl6030-pwmled";
++		#pwm-cells = <2>;
++	};
++};
 -- 
 2.43.0
 
