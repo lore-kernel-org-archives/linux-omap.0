@@ -1,32 +1,32 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20D9838C2CA;
-	Tue,  3 Mar 2026 21:02:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40308381B11;
+	Tue,  3 Mar 2026 21:06:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772571767; cv=none; b=LhdWYlFLQCyoLV75wnA5IKLJVqxa376dG8e5YY7HHagXWpQUiINkdPUo7VvHHJNho6ARlzXj2k3cZdo1aR3g6nYNpmdKOLZMXm09l+GfdDEOxlohIMkU3vrfgUJmts1fwHXDrydSMCRvD8EnqO5NhfOFNUQH8qZczjv4knqyIpg=
+	t=1772572004; cv=none; b=XrwCL35O4xVG1/wTnC3BiBt1JkVc5UlBMGeQMDI/P7aeMH3jKHZ3JTH6gOe1f9DQLNT+drCXpPztIz2B/Dru7N46zUd0aR+ucTATeXXsbejNszaUJFHy0gN3CUEWFH6EuT0Kdwynfnx6Yv9uba5Z3nsfh/nr45QaDfcTJEci3uc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772571767; c=relaxed/simple;
-	bh=NpZUI/br3ccdKNxtJ2S2wXd5/HamnqwRJi5GSZmoDlM=;
+	s=arc-20240116; t=1772572004; c=relaxed/simple;
+	bh=kYnWUgRL3sTYg4/l/wC6tnaEcVUKqac2pESHIb9CdGo=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=VsrN2yU1eWHYfKTWWPlM1dECNEGh5TYSRVdCqbeHtf/ixtbHun46LXZeK3wNtLr55YjQyPvp82yiUW1hB9Efftfn6Wq/3EMCLcrJhGJM3ukBwbUlF5WdTaJci7Gf95HH29iJ2FxzW6SgzpZwa8hIJdT1PKM6RsnjxQHOsSB7jso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=3US9Fp1q; arc=none smtp.client-ip=178.238.236.174
+	 MIME-Version:Content-Type; b=tXxAWh/qFeeMivm5eb7S/WM5vYAEHi5UIq3QkBV52cQ6uuCGNsg+3V2QNF2gUFUsijEraDe2w1/e1UDEOiijAhI6kCav9N7GyRDSprujhDx3iP1QVkdoufgKEei8uPWCqhDELcnxwb/fVxfLT4/HGXtLqPOT7oRaNDiF2gdQFVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=q1IDxgym; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="3US9Fp1q"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="q1IDxgym"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
 	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
 	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=aO5loOc82Hx9Yhy0HSwylKT9He+BRGzIrwcyvaXEBGI=; b=3US9Fp1qGqe5V2g1Usgm2YyM3N
-	/wj84tZdJZyh2mJf6BqBf1Wp0s2GZ5MputUQmzRegilg7rZw4xPYDDm4S+wclPqa8B4w/GW07MEfS
-	jq+e9LhMCmrOi4tp4KX+DORAbR3q9mv5cRI3Btxl7CQWRUyMn51a9VbYuFsHn01rrEhFvuA1jrvCj
-	n3CRCfCut/gBClxu63fnhywJ/sBo4FqclLf4cHIac3ZvF1/C0FozueH24gkmHdAVWhHRTYMWX9TOl
-	GHA1o0SNzPe8OD+3q+tpYRU4QJwJwCN0hWNxjJrqXeR0GzMNFwR+RZq+iW8M41EIScHWAA9pOYYlE
-	1s8e5ijg==;
-Date: Tue, 3 Mar 2026 22:02:25 +0100
+	bh=LDFG9DPYIpvq9oiYO0M+siA6D36LqBTmO1v0hsaPuVU=; b=q1IDxgym3dWjzVWJCUhTXFjh9u
+	NU038r4jUjfinDodFMdzy2Svc72Lx2hlT6p6Wue+OLdItaPEHbyoz1VLZaeQap+JEUdVg9FYcgA3v
+	sdVSTRu0llV2G/bl/70Io19bfZ5My0o3PWBsL/Te7PiqMyvwVvWhpxpECGcw+xXzUwGvTDfFbqBSK
+	JPS55TXvKRsoPlm+W4MYcELMx/DBo9jE57kPAHe/qtUry/uChcpsImbWFeer1QZjAjO6+VnPBSURu
+	A6CAHfKvW1anJETwgIRxqRZPfuds5N2LFIH4qzI677Sla2zLZM97A37it6grFtrLiPFktYA1c02YP
+	vjg3EFCg==;
+Date: Tue, 3 Mar 2026 22:06:33 +0100
 From: Andreas Kemnade <andreas@kemnade.info>
 To: Mithil Bavishi <bavishimithil@gmail.com>
 Cc: aaro.koskinen@iki.fi, airlied@gmail.com, conor+dt@kernel.org,
@@ -39,11 +39,12 @@ Cc: aaro.koskinen@iki.fi, airlied@gmail.com, conor+dt@kernel.org,
  tony@atomide.com, tzimmermann@suse.de, andrzej.hajda@intel.com,
  devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
  linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v9 1/8] ARM: dts: twl6032: Add DTS file for TWL6032 PMIC
-Message-ID: <20260303220225.085ab093@kemnade.info>
-In-Reply-To: <20260303203017.511-2-bavishimithil@gmail.com>
+Subject: Re: [PATCH v9 5/8] ARM: dts: ti: omap: espresso-common: Add common
+ device tree for Samsung Galaxy Tab 2 series
+Message-ID: <20260303220633.72619664@kemnade.info>
+In-Reply-To: <20260303203017.511-6-bavishimithil@gmail.com>
 References: <20260303203017.511-1-bavishimithil@gmail.com>
-	<20260303203017.511-2-bavishimithil@gmail.com>
+	<20260303203017.511-6-bavishimithil@gmail.com>
 X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -54,34 +55,15 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Tue,  3 Mar 2026 15:30:10 -0500
+On Tue,  3 Mar 2026 15:30:14 -0500
 Mithil Bavishi <bavishimithil@gmail.com> wrote:
 
-> Add a dedicated DTS file for the TWL6032 PMIC (Phoenix Lite). Already
-> has driver support with TWL6030 (Phoenix) since both of them are so
-> similar, some nodes can be reused from TWL6030 as well
+> Create common device tree for Samsung Espresso series devices
 > 
-> This can be included in the board files like twl6030
-> Example:
-> ...
-> &i2c1 {
->     twl: twl@48 {
->         reg = <0x48>;
->         interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
->         interrupt-controller;
->         interrupt-parent = <&gic>;
->     };
-> };
-> 
-> /include/ "twl6032.dtsi"
-> ...
-> 
-> Used in devices like samsung-espresso, amazon-jem, epson-embt2ws etc
+> Create a shared device tree for all variants first.
+> Device-specific trees will be added later based on screen size.
 > 
 > Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
 
-
-The best answer no that design antipattern in the twl driver
-implementation. So
-
 Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
+
