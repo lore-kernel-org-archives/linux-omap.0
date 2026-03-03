@@ -1,60 +1,94 @@
-Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f174.google.com (mail-qk1-f174.google.com [209.85.222.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5265397FB8
-	for <linux-omap@vger.kernel.org>; Tue,  3 Mar 2026 19:32:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.117.254.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45BC41DF75A
+	for <linux-omap@vger.kernel.org>; Tue,  3 Mar 2026 20:30:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772566325; cv=none; b=agNn8YMoY6ePWC0KAzv0rI7viLmwj43+r5rtx1kqB5W2X3bTUwF+KBa6TzjQ/1iN0QC3qoSBeKBg8tg5/JQ90fHG9naueN0wFYy3GizrseF3BYWdPk6x6EnvbBIF3eMFRkMkNM9qPTE2AqcsNrjQT62kCj2dbvsExy3cyjwkFrs=
+	t=1772569827; cv=none; b=d28W6aqdlcp60D2QKAnzLv4s9cuB6/05I/21eWPh1kd5DkUYtxUJgeuZYB/cCz4iRPw5uF/JeY3Q7B6AOnuolLgit9W2mfFTQ9Mh+vWGoX43zRv0hhP3WtU0GjBY2Wx+5no7owfMm+4OMdH2s8CbTYL6abL/CCLuFrtrhSGknY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772566325; c=relaxed/simple;
-	bh=CMEMA/jUchVe1HBb8fOTDUiDC+B6BR4ggGFWb5lwEgY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=M4D2R04+aV1gfHDP1NKQ7ymMcp1YqesmlN8ZCoPZ43BmxMDbR1+ACFdAKS4K+ZPgqGkkq8UYJx+qFWdyYtYEtA11yoedw4mu+hTMXRmb55/cJp2eiINHcQHJANKwDgkOMteKbWuR7hTI4JnIkXZJS6AfNOGrK2XPUd0ZvWyr+Dk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=ZHoHeDLa; arc=none smtp.client-ip=194.117.254.33
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
+	s=arc-20240116; t=1772569827; c=relaxed/simple;
+	bh=nHiuIbDROmtvh9nozT7ptkItgTF5ym9bQo4UDPhFaEM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=blsMQVZtFo4YwrVFTiRJo0SHm/CZZuHTF/p1vDw9kdt6Y1BVdlv4V8avl1a5auPFFChmINdA3FlLa488hHISOrQowUZriaFY4kBuU4/PYiMbn1uQwx30aU5RAkz5HmBzG6WO51l4+js4nTGwbB3rpil5tziV418ab95HZbwhG/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RwIXmlMj; arc=none smtp.client-ip=209.85.222.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="ZHoHeDLa"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	sang-engineering.com; h=from:to:cc:subject:date:message-id
-	:in-reply-to:references:mime-version:content-transfer-encoding;
-	 s=k1; bh=eZSTpzKDUIc2vRfE3Wkr3hk5q7loVov9yTUGLtbVCIE=; b=ZHoHeD
-	LaNFIEPzgUNb7jPaYhPLxLZ8z3Kv3IHmL6E2nMPE6gfl4RoSUobYEcEfGy6GErxW
-	JG/bm6oMWHGbGwfXxsKJdcqlWutQwccwhGo1Dulman9zT0wbNt66ofswJrVs6Eki
-	pGqiNnEVGAakMhcKcRZ9aqDq2Y42Q6tCNqeSHIKpjgZHpM2B7J7p2MpAgYqGTe6F
-	hGnuGZEARs2R+sjsO1xy/BqzRfiILXhNpdR80+YWDKFRZLdGaSlvlknPe5iO2zBL
-	UsiBiMCkD0U3wh3ka4U4+LWb2cK1+lXEm5H8sjLcnqYYU0cZ9TgHj9rapvlrERdC
-	1ozFnV2lzVFyygCw==
-Received: (qmail 430845 invoked from network); 3 Mar 2026 20:31:41 +0100
-Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 3 Mar 2026 20:31:41 +0100
-X-UD-Smtp-Session: l3s3148p1@Y364wCNMTqgujnu+
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-renesas-soc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	Wolfram Sang <wsa+renesas@sang-engineering.com>,
-	Bjorn Andersson <andersson@kernel.org>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Orson Zhai <orsonzhai@gmail.com>,
-	Chunyan Zhang <zhang.lyra@gmail.com>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Wilken Gottwalt <wilken.gottwalt@posteo.net>,
-	Chen-Yu Tsai <wens@kernel.org>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Samuel Holland <samuel@sholland.org>,
-	linux-remoteproc@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-arm-msm@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-arm-kernel@lists.infradead.org,
-	linux-sunxi@lists.linux.dev
-Subject: [PATCH v3 14/15] hwspinlock: refactor provider.h from public header
-Date: Tue,  3 Mar 2026 20:26:06 +0100
-Message-ID: <20260303192600.7224-31-wsa+renesas@sang-engineering.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260303192600.7224-17-wsa+renesas@sang-engineering.com>
-References: <20260303192600.7224-17-wsa+renesas@sang-engineering.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RwIXmlMj"
+Received: by mail-qk1-f174.google.com with SMTP id af79cd13be357-8cb3dfb3461so608842885a.3
+        for <linux-omap@vger.kernel.org>; Tue, 03 Mar 2026 12:30:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1772569825; x=1773174625; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=th+RyWrkXmCwE35QEKh1O6v7tT5++z/rbMX9nQqTjtk=;
+        b=RwIXmlMjNG/EBm5pcLpVQlO+Qcfs5zvo+V335sd36sBLQvlq1qQ2Kiq1yTcnjrjAYG
+         UfwCj4lERLemj/L3sfzvtAz6IFav2ORWU9Dxp6x8Ejow4cVKmCmy5l3RZVAXZQf64eN7
+         gp1ElBOpyOMnseVQZ7ftvtqQnJvnv34cx0giBMo97lbmFUIuDnBVKOAQ1ymKDnJfx9KV
+         bONKWR/iStk1blnN8k4TDYFK9GESSD3hg8Y+rhd4js5e3btf+AJ3NVP7qQRi+5cHnMbl
+         GTYPYl9SVArCCsPtpvPJdJaQqJpuvWMBNPA0BtwfznEFVC+Z6qwnXWtj6KaowycxOrp1
+         +U+g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1772569825; x=1773174625;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=th+RyWrkXmCwE35QEKh1O6v7tT5++z/rbMX9nQqTjtk=;
+        b=VkuMsb5P6Eq2DvkOEp4W2rnA2KvN4p3NAhgrEhc+/mBW0Xt4wCmd1CK0WICE+Jf+hO
+         WKPsAYPXu7y4ffPGf8Y/FecUTmClRTg8AQbYml4gIuES3vRrYOxoA68P3ivACHNJW2gn
+         4bEhqv26zq37Biu2Ud9HZNMr0e2wg/TSmqrMnqG+Ty1GzzkUCV3AMPL99NohfwEq7o9J
+         GFyPp/8xCSwqC2o0VVjy4o5qV2oB2wAghvDMWvjqmVZlAt1WWBY5SI/oFh0pP22/Zj52
+         TkHMTYErSvX8iZa262h5VyrgqOFHRXjSKrzK4m4I1LrA4PnhRwv4fS51xAlYrV8jAlYp
+         yxFA==
+X-Forwarded-Encrypted: i=1; AJvYcCV0iYpAltTQnLP4ae7KYSPsC5g8fxZo2m6No0UoFlo17Nk+9o2oARADShmUeRdTBF0EdImIULoVxHxM@vger.kernel.org
+X-Gm-Message-State: AOJu0YzMZi8zhu4X3JGqohwP0vy3EnRnRFIVTND7NMIyWULAG37+I6Td
+	s+x11rEXhWdA0m+SGhP9bXwgoXxSYtBHwGr4HcGbB5Ro3mIbnPNgPlID
+X-Gm-Gg: ATEYQzxwbj80d8qRZr99EmeMuhsew6GzQKLxEHwSm8DOijlCPNXOgfMn5RuuCVpt/bM
+	4YwlgiugnZ9fl79yqeyN98ynBb486dsXVZ6VsBGlTTpfn2BFW4eJBX5W/+P4/oeKU7aEnb49w1j
+	7NDCPe8DbWLpqcBdRpAVuFawVjYu9pZ9sZ1h3JJuufdkWY9UJgk+OdneMGwt2f8KkWgxZaJA1qw
+	fy6aA9PekYCKVf4kMMy2wGRhBdmVj4wK7tH9GmLb0Z9Xn0kLia1pMlcEZfTmSA/I6fovCNT1eU1
+	cpFID9+bbJYVoW82DPWzKaPV7EOmfW0fiNvGnRW9Ik2j3jyh0/5eyNZCPqnT/NRX6DwXkkGoptk
+	xYPUtmX2dKStqrfVeJLY12OeLMHYL8NruJX+3ydZjLV//rmZ6hTiymW8n27rxuS7X1bB1Y0x5sp
+	nV1+a+IvWbVuieKMod9avflqb7AdifXQ90ZD+LSemgNU17SSR2QawbXYEjq5Q8ji1uBHqjVjMGD
+	hFt5o8Rwwc=
+X-Received: by 2002:a05:620a:318f:b0:8cb:66dc:9fcd with SMTP id af79cd13be357-8cbc8e0f8c5mr1873153085a.56.1772569824958;
+        Tue, 03 Mar 2026 12:30:24 -0800 (PST)
+Received: from mighty.stonybrook.edu (nat-130-245-192-1.resnet.stonybrook.edu. [130.245.192.1])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8cbbf564c27sm1465032085a.0.2026.03.03.12.30.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Mar 2026 12:30:24 -0800 (PST)
+From: Mithil Bavishi <bavishimithil@gmail.com>
+To: aaro.koskinen@iki.fi,
+	airlied@gmail.com,
+	andreas@kemnade.info,
+	conor+dt@kernel.org,
+	jernej.skrabec@gmail.com,
+	jonas@kwiboo.se,
+	khilman@baylibre.com,
+	krzk+dt@kernel.org,
+	laurent.pinchart@ideasonboard.com,
+	maarten.lankhorst@linux.intel.com,
+	mripard@kernel.org,
+	neil.armstrong@linaro.org,
+	prabhakar.mahadev-lad.rj@bp.renesas.com,
+	jesszhan0024@gmail.com,
+	rfoss@kernel.org,
+	robh@kernel.org,
+	rogerq@kernel.org,
+	simona@ffwll.ch,
+	thierry.reding@gmail.com,
+	tony@atomide.com,
+	tzimmermann@suse.de,
+	andrzej.hajda@intel.com,
+	bavishimithil@gmail.com
+Cc: devicetree@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-kernel@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: [PATCH v9 0/8] Initial support for Samsung Galaxy Tab 2 series
+Date: Tue,  3 Mar 2026 15:30:09 -0500
+Message-ID: <20260303203017.511-1-bavishimithil@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -63,249 +97,99 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Factor out the entries only needed for providers from the generic public
-header. This allows for a clean separation between providers and
-consumers. All providers are in the hwspinlock subsystem currently and
-are trivially converted here as well.
+This series adds initial support for the Samsung Galaxy Tab 2
+(samsung-espresso7/10) series of devices. It adds support for 6 variants
+(P3100, P3110, P3113, P5100, P5110, P5113). Downstream categorised them
+based on 3G and WiFi, but since they use different panel, touch
+controllers, batteries, I decided to categorise them based on screen
+size as espresso7 and espresso10.
 
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+It adds basic functionality for both the models including panel, drm,
+sdcard, touchscreen, mmc, wifi, bluetooth, keys, battery, fuel gauge,
+pmic, sensors.
+
+Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
 ---
- MAINTAINERS                           |  1 +
- drivers/hwspinlock/hwspinlock_core.c  |  1 +
- drivers/hwspinlock/omap_hwspinlock.c  |  2 +-
- drivers/hwspinlock/qcom_hwspinlock.c  |  2 +-
- drivers/hwspinlock/sprd_hwspinlock.c  |  2 +-
- drivers/hwspinlock/stm32_hwspinlock.c |  2 +-
- drivers/hwspinlock/sun6i_hwspinlock.c |  2 +-
- include/linux/hwspinlock.h            | 44 --------------------
- include/linux/hwspinlock/provider.h   | 60 +++++++++++++++++++++++++++
- 9 files changed, 67 insertions(+), 49 deletions(-)
- create mode 100644 include/linux/hwspinlock/provider.h
+Changes in v9
+- Removed stray |
+- Rebased on latest commit
+- Removed duplicate touchscreen parameters
+- Link to v8: https://lore.kernel.org/linux-omap/20260223134941.427-1-bavishimithil@gmail.com/
+Changes in v8
+- Remove WAKEUP_EN from omap4_pmx_wkup
+- Link to v7: https://lore.kernel.org/linux-omap/20260223055113.1288-1-bavishimithil@gmail.com/ 
+Changes in v7
+- Removed prox_irq
+- Changed commit message
+- Link to v6: https://lore.kernel.org/linux-omap/20260219210408.5451-1-bavishimithil@gmail.com/
+Changes in v6
+- Remove references to WAKEUP_EN (drivers dont support interrupts-extended)
+- Remove gp2a_irq, it was for bh1721fvc not gp2a
+- Remove mount-matrix
+- Link to v5: https://lore.kernel.org/linux-omap/20260129054709.3878-1-bavishimithil@gmail.com/
+Changes in v5
+- Commit message length < 75
+- Squash commits
+- Link to v4: https://lore.kernel.org/linux-omap/20260119033035.57538-1-bavishimithil@gmail.com/
+Changes in v4
+- Fixed syntax in doestek vendor
+- Changed - to _ in node names
+- Removed address/size-cells in chosen
+- Added pinmux for i2c-gpio5,6,7, irled
+- Allow sdcard to poweroff (reg_espresso_external)
+- Changed power to key-power
+- Order alphabetically in omap4_pmx_wkup and omap4_pmx_core
+- Use generic node names
+- Added TODO for future nodes
+- Fix touchscreen values in espresso7 and espresso10
+- Add dts to Makefile
+- Commit message length under 75
+- Link to v3: https://lore.kernel.org/linux-omap/20241108200440.7562-1-bavishimithil@gmail.com/
+Changes in v3
+- Use device tree from the correct branch
+- Fix commit subjects to matching the subsystem
+- Add Doestek vendor
+- Add compatible for LVDS encoder
+- Add compatibles for 7 and 10 inch panels
+- Clean up device tree using "make CHECK_DTBS=y"
+- Link to v2: https://lore.kernel.org/all/20241030211215.347710-1-bavishimithil@gmail.com/
+Changes in v2
+- Fix node names in common dtsi to have - instead of _
+- Removed import for twl6030.dtsi
+- Edited dts to completely use twl6032 nodes
+- Fixed typo ldosb -> ldousb
+- Link to v1: https://lore.kernel.org/all/20241030194136.297648-1-bavishimithil@gmail.com/
+--
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b4cb7a63e800..4e95cbb48dd8 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -11215,6 +11215,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/andersson/remoteproc.git hw
- F:	Documentation/devicetree/bindings/hwlock/
- F:	Documentation/locking/hwspinlock.rst
- F:	drivers/hwspinlock/
-+F:	include/linux/hwspinlock/
- F:	include/linux/hwspinlock.h
- 
- HARDWARE TRACING FACILITIES
-diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
-index adf6fefb382f..6c8a03deb00c 100644
---- a/drivers/hwspinlock/hwspinlock_core.c
-+++ b/drivers/hwspinlock/hwspinlock_core.c
-@@ -13,6 +13,7 @@
- #include <linux/device.h>
- #include <linux/err.h>
- #include <linux/hwspinlock.h>
-+#include <linux/hwspinlock/provider.h>
- #include <linux/jiffies.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
-index 96fdc35ef642..338ae9fa89f0 100644
---- a/drivers/hwspinlock/omap_hwspinlock.c
-+++ b/drivers/hwspinlock/omap_hwspinlock.c
-@@ -19,7 +19,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
--#include <linux/hwspinlock.h>
-+#include <linux/hwspinlock/provider.h>
- #include <linux/of.h>
- #include <linux/platform_device.h>
- 
-diff --git a/drivers/hwspinlock/qcom_hwspinlock.c b/drivers/hwspinlock/qcom_hwspinlock.c
-index 22cc6f9003df..7fdbb1e58b29 100644
---- a/drivers/hwspinlock/qcom_hwspinlock.c
-+++ b/drivers/hwspinlock/qcom_hwspinlock.c
-@@ -4,7 +4,7 @@
-  * Copyright (c) 2015, Sony Mobile Communications AB
-  */
- 
--#include <linux/hwspinlock.h>
-+#include <linux/hwspinlock/provider.h>
- #include <linux/io.h>
- #include <linux/kernel.h>
- #include <linux/mfd/syscon.h>
-diff --git a/drivers/hwspinlock/sprd_hwspinlock.c b/drivers/hwspinlock/sprd_hwspinlock.c
-index d2aa4714e2ea..f6014b314432 100644
---- a/drivers/hwspinlock/sprd_hwspinlock.c
-+++ b/drivers/hwspinlock/sprd_hwspinlock.c
-@@ -7,7 +7,7 @@
- #include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/device.h>
--#include <linux/hwspinlock.h>
-+#include <linux/hwspinlock/provider.h>
- #include <linux/io.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-diff --git a/drivers/hwspinlock/stm32_hwspinlock.c b/drivers/hwspinlock/stm32_hwspinlock.c
-index 08762cd96cee..a22ebabe1921 100644
---- a/drivers/hwspinlock/stm32_hwspinlock.c
-+++ b/drivers/hwspinlock/stm32_hwspinlock.c
-@@ -6,7 +6,7 @@
- 
- #include <linux/clk.h>
- #include <linux/delay.h>
--#include <linux/hwspinlock.h>
-+#include <linux/hwspinlock/provider.h>
- #include <linux/io.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-diff --git a/drivers/hwspinlock/sun6i_hwspinlock.c b/drivers/hwspinlock/sun6i_hwspinlock.c
-index 5c6d20eb24b5..4dab91800745 100644
---- a/drivers/hwspinlock/sun6i_hwspinlock.c
-+++ b/drivers/hwspinlock/sun6i_hwspinlock.c
-@@ -7,7 +7,7 @@
- #include <linux/clk.h>
- #include <linux/debugfs.h>
- #include <linux/errno.h>
--#include <linux/hwspinlock.h>
-+#include <linux/hwspinlock/provider.h>
- #include <linux/io.h>
- #include <linux/module.h>
- #include <linux/of.h>
-diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
-index 4f5b6932712e..4fe1c8831cd1 100644
---- a/include/linux/hwspinlock.h
-+++ b/include/linux/hwspinlock.h
-@@ -27,34 +27,6 @@ struct hwspinlock_ops;
- 
- #ifdef CONFIG_HWSPINLOCK
- 
--/**
-- * struct hwspinlock_ops - platform-specific hwspinlock handlers
-- *
-- * @trylock:	make a single attempt to take the lock. returns 0 on
-- *		failure and true on success. may _not_ sleep.
-- * @unlock:	release the lock. always succeed. may _not_ sleep.
-- * @bust:	optional, platform-specific bust handler, called by hwspinlock
-- *		core to bust a specific lock.
-- * @relax:	optional, platform-specific relax handler, called by hwspinlock
-- *		core while spinning on a lock, between two successive
-- *		invocations of @trylock. may _not_ sleep.
-- * @init_priv:	optional, callback used when registering the hwspinlock device.
-- *		Its return value will be used to fill the per-lock 'priv' data.
-- */
--struct hwspinlock_ops {
--	int (*trylock)(struct hwspinlock *lock);
--	void (*unlock)(struct hwspinlock *lock);
--	int (*bust)(struct hwspinlock *lock, unsigned int id);
--	void (*relax)(struct hwspinlock *lock);
--	void *(*init_priv)(int local_id, void *init_data);
--};
--
--void *hwspin_lock_get_priv(struct hwspinlock *hwlock);
--struct device *hwspin_lock_get_dev(struct hwspinlock *hwlock);
--int hwlock_to_id(struct hwspinlock *hwlock);
--struct hwspinlock_device *hwspin_lock_register(struct device *dev, const struct hwspinlock_ops *ops,
--					       int base_id, int num_locks, void *init_data);
--int hwspin_lock_unregister(struct hwspinlock_device *bank);
- struct hwspinlock *hwspin_lock_request_specific(unsigned int id);
- int hwspin_lock_free(struct hwspinlock *hwlock);
- int of_hwspin_lock_get_id(struct device_node *np, int index);
-@@ -67,18 +39,6 @@ int hwspin_lock_bust(struct hwspinlock *hwlock, unsigned int id);
- int devm_hwspin_lock_free(struct device *dev, struct hwspinlock *hwlock);
- struct hwspinlock *devm_hwspin_lock_request_specific(struct device *dev,
- 						     unsigned int id);
--int devm_hwspin_lock_unregister(struct device *dev,
--				struct hwspinlock_device *bank);
--struct hwspinlock_device *devm_hwspin_lock_register(struct device *dev, const struct hwspinlock_ops *ops,
--						    int base_id, int num_locks, void *init_data);
--
--static inline int devm_hwspin_lock_register_errno(struct device *dev,
--						  const struct hwspinlock_ops *ops,
--						  int base_id, int num_locks, void *init_data)
--{
--	return PTR_ERR_OR_ZERO(devm_hwspin_lock_register(dev, ops, base_id, num_locks, init_data));
--}
--
- #else /* !CONFIG_HWSPINLOCK */
- 
- /*
-@@ -87,10 +47,6 @@ static inline int devm_hwspin_lock_register_errno(struct device *dev,
-  * code path get compiled away. This way, if CONFIG_HWSPINLOCK is not
-  * required on a given setup, users will still work.
-  *
-- * The only exception is hwspin_lock_register/hwspin_lock_unregister, with which
-- * we _do_ want users to fail (no point in registering hwspinlock instances if
-- * the framework is not available).
-- *
-  * Note: ERR_PTR(-ENODEV) will still be considered a success for NULL-checking
-  * users. Others, which care, can still check this with IS_ERR.
-  */
-diff --git a/include/linux/hwspinlock/provider.h b/include/linux/hwspinlock/provider.h
-new file mode 100644
-index 000000000000..73c7b0cb6735
---- /dev/null
-+++ b/include/linux/hwspinlock/provider.h
-@@ -0,0 +1,60 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Hardware spinlock public header for providers
-+ *
-+ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com
-+ * Copyright (C) 2026 Sang Engineering
-+ * Copyright (C) 2026 Renesas Solutions Corp.
-+ */
-+
-+#ifndef __LINUX_HWSPINLOCK_PROVIDER_H
-+#define __LINUX_HWSPINLOCK_PROVIDER_H
-+
-+#include <linux/err.h>
-+
-+struct device;
-+struct hwspinlock;
-+struct hwspinlock_device;
-+
-+/**
-+ * struct hwspinlock_ops - platform-specific hwspinlock handlers
-+ *
-+ * @trylock:	make a single attempt to take the lock. returns 0 on
-+ *		failure and true on success. may _not_ sleep.
-+ * @unlock:	release the lock. always succeed. may _not_ sleep.
-+ * @bust:	optional, platform-specific bust handler, called by hwspinlock
-+ *		core to bust a specific lock.
-+ * @relax:	optional, platform-specific relax handler, called by hwspinlock
-+ *		core while spinning on a lock, between two successive
-+ *		invocations of @trylock. may _not_ sleep.
-+ * @init_priv:	optional, callback used when registering the hwspinlock device.
-+ *		Its return value will be used to fill the per-lock 'priv' data.
-+ */
-+struct hwspinlock_ops {
-+	int (*trylock)(struct hwspinlock *lock);
-+	void (*unlock)(struct hwspinlock *lock);
-+	int (*bust)(struct hwspinlock *lock, unsigned int id);
-+	void (*relax)(struct hwspinlock *lock);
-+	void *(*init_priv)(int local_id, void *init_data);
-+};
-+
-+void *hwspin_lock_get_priv(struct hwspinlock *hwlock);
-+struct device *hwspin_lock_get_dev(struct hwspinlock *hwlock);
-+int hwlock_to_id(struct hwspinlock *hwlock);
-+struct hwspinlock_device *hwspin_lock_register(struct device *dev, const struct hwspinlock_ops *ops,
-+					       int base_id, int num_locks, void *init_data);
-+int hwspin_lock_unregister(struct hwspinlock_device *bank);
-+
-+struct hwspinlock_device *devm_hwspin_lock_register(struct device *dev, const struct hwspinlock_ops *ops,
-+						    int base_id, int num_locks, void *init_data);
-+int devm_hwspin_lock_unregister(struct device *dev,
-+				struct hwspinlock_device *bank);
-+
-+static inline int devm_hwspin_lock_register_errno(struct device *dev,
-+						  const struct hwspinlock_ops *ops,
-+						  int base_id, int num_locks, void *init_data)
-+{
-+	return PTR_ERR_OR_ZERO(devm_hwspin_lock_register(dev, ops, base_id, num_locks, init_data));
-+}
-+
-+#endif /* __LINUX_HWSPINLOCK_PROVIDER_H */
+Mithil Bavishi (8):
+  ARM: dts: twl6032: Add DTS file for TWL6032 PMIC
+  dt-bindings: vendor-prefixes: Add Doestek
+  dt-bindings: display: bridge: lvds-codec: add doestek,dtc34lm85am
+  dt-bindings: display: panel-lvds: Add compatibles for Samsung
+    LTN070NL01 and LTN101AL03 panels
+  ARM: dts: ti: omap: espresso-common: Add common device tree for
+    Samsung Galaxy Tab 2 series
+  dt-bindings: omap: Add Samsung Galaxy Tab 2 7.0 and 10.1
+  ARM: dts: ti: omap: samsung-espresso7: Add initial support for Galaxy
+    Tab 2 7.0
+  ARM: dts: ti: omap: samsung-espresso10: Add initial support for Galaxy
+    Tab 2 10.1
+
+ .../devicetree/bindings/arm/ti/omap.yaml      |   2 +
+ .../bindings/display/bridge/lvds-codec.yaml   |   1 +
+ .../bindings/display/panel/panel-lvds.yaml    |   4 +
+ .../devicetree/bindings/vendor-prefixes.yaml  |   2 +
+ arch/arm/boot/dts/ti/omap/Makefile            |   2 +
+ .../omap/omap4-samsung-espresso-common.dtsi   | 744 ++++++++++++++++++
+ .../dts/ti/omap/omap4-samsung-espresso10.dts  | 101 +++
+ .../dts/ti/omap/omap4-samsung-espresso7.dts   |  70 ++
+ arch/arm/boot/dts/ti/omap/twl6032.dtsi        |  77 ++
+ 9 files changed, 1003 insertions(+)
+ create mode 100644 arch/arm/boot/dts/ti/omap/omap4-samsung-espresso-common.dtsi
+ create mode 100644 arch/arm/boot/dts/ti/omap/omap4-samsung-espresso10.dts
+ create mode 100644 arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts
+ create mode 100644 arch/arm/boot/dts/ti/omap/twl6032.dtsi
+
 -- 
-2.51.0
+2.43.0
 
