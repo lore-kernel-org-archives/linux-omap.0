@@ -1,231 +1,80 @@
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9929037EFFB
-	for <linux-omap@vger.kernel.org>; Thu,  5 Mar 2026 09:52:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18D863909B4
+	for <linux-omap@vger.kernel.org>; Thu,  5 Mar 2026 12:58:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772704322; cv=none; b=rrI6gWMhlZcPHGVwL7hwJ6xm6T3h47yYwS/n9q2ZRx+ErlcIHQRhzNPlGHKoUU/oRndXabQfQFUBU8DAVrnngfLkCsXAlea48BKXPeUUtXqAWcijYSEo+dHiZK3GMqqZF7hBJrOKJiSvr6ppP/m6D685fBdCY3BOT5av8wiv7WA=
+	t=1772715523; cv=none; b=uYq4dHFL1vdb5+E3iYyDjFM1nHlCROoIwepiLXfDyVUko/H3zo6UpcM0o6mcVS0XHXOqJCKc9b+mZf7PMMjlBeCfNpYjvBglg6/CmxcgDUgiKD3SqPVI2mf4ZCZ29iQSaO6rtB8W5m1r5TudZtR7wvNIAS7E/LvrG7ZultA8+ds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772704322; c=relaxed/simple;
-	bh=HHxKSnrx8QF12IYAV4N9qkzXGUbUGiRNZBd69B8GJus=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=TQf31SKf3mlLXHveGRmBKa44I5NlAFQE9keoEShEH8pof7g9jJBn2WQxXYNXV0As96/7M2vBgtxZt/3FLBtMufpCNOzfbAa2zLBg8zchncbEPyEL7P81VZdbjYh+dkzYBzHTTR/bVHifd6j4XopOdsP1fBn1T655/iyqoLbjrT8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=am21ufQP; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=HWHBddrk; arc=none smtp.client-ip=205.220.168.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1772715523; c=relaxed/simple;
+	bh=5are5agdAPBNhp9zXXwfI62i9NhVAzVx4EzODqm4TGU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=YL4BwnxKMvsXmmJW3qRoXiVK4JrI0Cqfkm0R7UqU8+RD87nJq7/3+KROwW4zLvp6vWHoD/Ybm0g1e30mgQ3ZPp0V76A/7+OgUlpZwHxI3iggBqrQ2MNkfm6d8BWbNjIosEV/GGZH9RBm2dcWFgrZmDyEVNebZx3ELS5mD28ESUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dV+iriVY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="am21ufQP";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="HWHBddrk"
-Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6259Baj23604191
-	for <linux-omap@vger.kernel.org>; Thu, 5 Mar 2026 09:52:01 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	CHD0ZvMybN/f9h6/Y0JvrxV1/0Bjsr+YtXr5TqQuVw0=; b=am21ufQPh0hu2PwZ
-	4Wg+bv86mBQiRBwf/Ej1najcNbnmrAMFcJkEeRUX1AOkHd+pe+guARxGfTpJHLAG
-	fiRzI4lzaQHdYJx/E4RXfKcRp4ecSfTMwgzfUd9eVpVhXAHYIom9ldftEMRt8Xya
-	wv6XDGDhdRoPmAYzPk3Tk7UanyNku573qvtwxshE9vwfiL2uuX3bMgJDYwsvCYpw
-	ctroLjqDJaPmvisffJAyN7d1hhdvljE92rZt5I9YMMhhGy1YjM2hqz6tZhCJPtaE
-	jDc/7PeUHEDGk+QhLJu7TzyJDRlf+nq6ZM5BHMfOXaUenIbBoRETNMP6heP8THWM
-	9ayEOA==
-Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com [209.85.222.200])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4cps0warhj-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2026 09:52:00 +0000 (GMT)
-Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-8cb390a0c4eso4957940585a.1
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2026 01:52:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1772704320; x=1773309120; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=CHD0ZvMybN/f9h6/Y0JvrxV1/0Bjsr+YtXr5TqQuVw0=;
-        b=HWHBddrkO2hA9iLfqsYrmwUa3DFYkl34890wOKLTVnvhyafby4cU6gz9TZUft8g6bA
-         RdhhO1DYtvIMaJ75GpIWcniRQxf3/pMIafL/rsUbZqVs/8nGuroKzuGu3TkEcESJVJ58
-         3S6D39Z32rP+23gqtueB3iWpLtt5P+un3SAIP6A73iyYy66/0t1NfZA03znWgm1t9zdV
-         h/eOwsumf0kHusG5fX26EZGu1JPP6OVV/myzqDjQ5EyxnD9tDUbO/EFRNzB6xOhHQsmb
-         iGSDDAI4D74nKjz+ZlEQEJ8SPL/n9edCHdL5PwNTYXbbWHrg2oEMTl+agvF0Ddh8XH+h
-         7fFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772704320; x=1773309120;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=CHD0ZvMybN/f9h6/Y0JvrxV1/0Bjsr+YtXr5TqQuVw0=;
-        b=cT/uDdg5iGXEp9GRI2PJOib0ENW49cVuMRuhZ4hsjQWd5C71j5OjTCsQkawK/t5StK
-         HKTqsbDmA+KRp5bjvf+fT+diV0QGwSAQ01tiqBgS+y1UHbF/9ZrdJy2IDSW6bhT6Qnjn
-         ZOO9CGA5eLaUBBBeNDh6Na6c+XfjADr9jH1/XJcC98wnuZtutQev3+KWyepbJsbdDBpG
-         aPySQByFwDZuJXwfyLshNLGRmGkNPl1iro15nqdmEcXP0kpGPPxmLW+c5SiI3YuNwoWe
-         PQ0GeVngah9BR9oqLLthEQ5YlcHu27hoQJqcwgtT6r35Rx0ZMhjHj9SFjGXgu6b7PlXU
-         GYvA==
-X-Forwarded-Encrypted: i=1; AJvYcCVal0q7IfIzX4smrnh2nLr8gf2kDDjwH9/6WJ0XIs3IQlDNNExAPYLxWaYy4cry+tK2OXh8GuhJb0Fi@vger.kernel.org
-X-Gm-Message-State: AOJu0YzrI7fnWAvJwnK7uxAUF8qo63bpV82QE2LauQhnyMM/2EjGiADK
-	kcNCFMQYQWhgJtlfjGzAMvtVYM5o5JtgjFy79uBMuicHR2ydENOy2+a5ZO4d4lu2B1WFTX7FIXZ
-	KA/mLvD47hF6RYmhSbYNRmRGLA3TJ31HYE4V/Nl3gGZWc8oSGzslzEHfD5pFQSp78
-X-Gm-Gg: ATEYQzx7s3h+qRBG90Mz3R8Z5l28YdYyZQopLUripQxDyPKUOuAbcA8JsA9l4YDvwI2
-	VONe6Gl0Ue7JK63RAu5Z96oGtvj7Po9tITTfmDuX+x6PFv2ZR06sh3ZlYbH4fQC0CuOCt56ZTgO
-	ehV8yIkGYjZ6y63xJy0D9oU4Z5Dz9Cz26j9mMPnWd7nd9KLVdCC1SBX4dl45avHx4NtXUnVv5hW
-	5n+7I1AuvUpgfIoIaAEWTrOlOzrQN7hzgxHgAUXSoTEYfEUqJUL4rWxB6nXhA6W+Mg7wyXSnYiF
-	RA4BMfhoqfAAhTXVTXoVBd2S9pMvpuNUu4ewHz/RWxl9XLzoRRmSVHgEo5iydHXENnsU8C5ut1q
-	PGWHcjWoI0Ft8Axpwkl9NWLpHrIZ3jRdBgyWJw0rKd1avF0myAXO9
-X-Received: by 2002:a05:620a:29d1:b0:8cb:72b2:2a15 with SMTP id af79cd13be357-8cd5af12a64mr588825185a.33.1772704319991;
-        Thu, 05 Mar 2026 01:51:59 -0800 (PST)
-X-Received: by 2002:a05:620a:29d1:b0:8cb:72b2:2a15 with SMTP id af79cd13be357-8cd5af12a64mr588823785a.33.1772704319561;
-        Thu, 05 Mar 2026 01:51:59 -0800 (PST)
-Received: from brgl-qcom.local ([2a01:cb1d:dc:7e00:8314:9d33:34c1:88ef])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4851ad1656bsm35598215e9.24.2026.03.05.01.51.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Mar 2026 01:51:58 -0800 (PST)
-From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Date: Thu, 05 Mar 2026 10:51:31 +0100
-Subject: [PATCH 6/6] gpio: sim: allow to define the active-low setting of a
- simulated hog
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dV+iriVY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3994C2BCB7
+	for <linux-omap@vger.kernel.org>; Thu,  5 Mar 2026 12:58:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772715522;
+	bh=5are5agdAPBNhp9zXXwfI62i9NhVAzVx4EzODqm4TGU=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=dV+iriVYRSVkaLwZWL3RYxUVzrSC8aD09FYxF5jNKwSm5Q1YyPTJsFvSzgCigsGzx
+	 HTMHgHkuc6N4hI6dLH2FrL4N6624GGkh2DzGuYN82jY6oeYT+0ZZnShusqFd4BG/Kg
+	 B1JkTJG72xoKJ5V5FpMaG3Mde4MvfUWAe6CEvDOvdpIy1wzvO2zDb4SjHoqi08W4+n
+	 btTVRpbcLf83Ku7WUyELXiwkcystoAPidj7LlhvuXaGCjIxxaUHfn6lHoq+76cQZRJ
+	 8fJ63KdmGO1rwKGTsIhQpXPFjeeJEKbzRjR4F1fnBj4tMXrZ/dSOKAtgx8OzbOSDqF
+	 t6okvHWVh3vLQ==
+Received: by mail-yw1-f179.google.com with SMTP id 00721157ae682-798374d0f44so120735407b3.0
+        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2026 04:58:42 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCUCKhEdqMkUirSRqF7dL/zsxGtrBFEdu29dciS3shYfuc6ClGAlEMPwJdxonbUMInScZZC2v1ulMdI0@vger.kernel.org
+X-Gm-Message-State: AOJu0YyDBSR1UyUPzWI18pM4gVbaOMtgV3iwMZyDHTEgMC7cLQss4t0L
+	1exM6Nm32brXRqJKheI61Kv8Y++E+0r9JbUDLK2HwYrvAwoTqOsV3jnjLKN8yCmTGkF8NaIaTDw
+	Ru7LImDAaDzaU0xMDP6pvWAChIHeR4kA=
+X-Received: by 2002:a53:e19e:0:b0:64a:e56f:49fc with SMTP id
+ 956f58d0204a3-64d07111ed8mr1184395d50.20.1772715522083; Thu, 05 Mar 2026
+ 04:58:42 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260305-gpio-hog-fwnode-v1-6-97d7df6bbd17@oss.qualcomm.com>
-References: <20260305-gpio-hog-fwnode-v1-0-97d7df6bbd17@oss.qualcomm.com>
-In-Reply-To: <20260305-gpio-hog-fwnode-v1-0-97d7df6bbd17@oss.qualcomm.com>
-To: Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Mika Westerberg <westeri@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Shuah Khan <skhan@linuxfoundation.org>
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-omap@vger.kernel.org, linux-doc@vger.kernel.org, brgl@kernel.org,
-        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2203;
- i=bartosz.golaszewski@oss.qualcomm.com; h=from:subject:message-id;
- bh=HHxKSnrx8QF12IYAV4N9qkzXGUbUGiRNZBd69B8GJus=;
- b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBpqVItGibV7CIxkL+FQcAk1MH5WBNN2KFBq4i2N
- nNYJebj6OOJAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCaalSLQAKCRAFnS7L/zaE
- w1gjD/9X6GlKnqvOTIly4upROqqQSVnKHqiA8DysHPSXiS5iN3krsYiZb4kjSRWtLDsjs6N9RSH
- 66v14HXZDcxmd97WQE2xt0cqBYYxE3LKHrw0901xDk1HzAcPxeoAOB8j6tOQbGN9N8U+frKyruq
- 6hRZNl6N4C4w60ZvrFbVT5KD0dJ7aynBsLgIFaB5v6bDK2uf993Pelr/fAVd3Wc64YtUUuM4Y4K
- Y82r8lGxsfD/t+wvUxxPu8GAkqGTuAEww+g+sGNR4F15yFwGTD1UXWmMiAaupBwB9D2XDTj5rxA
- 9d3GBcO/NXSX38ro2o6SlgMT5ZpZvXsAU28+rVB81JrKYavQn+u2B5Njj20vpXVHbOipFk1ZxpV
- PDxU0lZD9uOcaGv45XumkJVu52UROm9GhPYlfQE4y/NIIFChQ6YHwcxXR/NbR1VBn0EbHOL1+77
- 6eVE1ytqDcMd3kvU4aqZdvBMlL48SGz8x1c9rCnwAjcB1SYvzwMaOfWkXKgqsF0H9mC0CXJl77V
- EHGvjr8+nTeytrqVFiD9cQcB0f7L1rHDcJnztVNxu8uQYh68/3EUw0frZec8ZpGW67RQnC4JW5W
- uTN0EOg0HQSGwnKfd5gzUOVdVaYJxnZ+ykuxZ144n8Bbx474aE5atdX5Hn81viTWRb7pBy8dDwu
- t4r0f46Ohl1gLZg==
-X-Developer-Key: i=bartosz.golaszewski@oss.qualcomm.com; a=openpgp;
- fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
-X-Proofpoint-GUID: shnLsDqxBFwltXUVdbyxT2Okn7l10riu
-X-Authority-Analysis: v=2.4 cv=BNK+bVQG c=1 sm=1 tr=0 ts=69a95240 cx=c_pps
- a=hnmNkyzTK/kJ09Xio7VxxA==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
- a=Yq5XynenixoA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=eoimf2acIAo5FJnRuUoq:22 a=EUspDBNiAAAA:8
- a=Z_vE--IGminT9Q5MwdQA:9 a=QEXdDO2ut3YA:10 a=PEH46H7Ffwr30OY-TuGO:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMzA1MDA3OSBTYWx0ZWRfXwlt8C3YVbWCf
- 7LvqYH7iGsFQDD2lgJXIQceEkyKcjCiNuyWLJrBsxaYncPSWt9KKQw6R++a48JA5Z9DyfNJri0w
- NSQlZ2EycuswOBcpIViRw6f7wE7FYwki0naD+n9lUxkFX9hW/vfnKICpCD68KavaShELZdZgtG2
- 4fe0YwJp9qgI80P118Wn7UlQVSYY8Z51MpBXxwJHwfvZ1j5+ax+OHXyvvgOSZvKICq5i9X1Af7Z
- EycSjZ6xkwTkmRTe2dgEpj8l5klycF2ee6tHRVW3YK43aJeVHENiLdA/FxJGrmM6bahkbVfC+zW
- VfCtGGO3o4CymRKW2UZ2f7276fT74Cfv20+/twLbwm3FUpd6yR9O/aDIVaYVCvpeJI14zSMXgE5
- gHwDBsJSrAhRJK5Reyu51FNXojfgCpekTpKxNW9Zu6nvsqtDlsZnyjWBE3yyQBcQmSB9Ih1S7TG
- Nza4XDAOXeO3ajMS9fg==
-X-Proofpoint-ORIG-GUID: shnLsDqxBFwltXUVdbyxT2Okn7l10riu
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-03-05_02,2026-03-04_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- phishscore=0 malwarescore=0 spamscore=0 clxscore=1015 impostorscore=0
- adultscore=0 bulkscore=0 lowpriorityscore=0 suspectscore=0 priorityscore=1501
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2602130000 definitions=main-2603050079
+References: <20260305-gpio-hog-fwnode-v1-0-97d7df6bbd17@oss.qualcomm.com> <20260305-gpio-hog-fwnode-v1-1-97d7df6bbd17@oss.qualcomm.com>
+In-Reply-To: <20260305-gpio-hog-fwnode-v1-1-97d7df6bbd17@oss.qualcomm.com>
+From: Linus Walleij <linusw@kernel.org>
+Date: Thu, 5 Mar 2026 13:58:30 +0100
+X-Gmail-Original-Message-ID: <CAD++jL=Zog5wPPiDDBp=mv1nhCgjOZkuG8NtZjvzfhc0KK5Z7Q@mail.gmail.com>
+X-Gm-Features: AaiRm52DhevPDbjjg-MMnWaC2zgG9VailzGdf5hJANa7pRgxzk-RHGIdAAju58g
+Message-ID: <CAD++jL=Zog5wPPiDDBp=mv1nhCgjOZkuG8NtZjvzfhc0KK5Z7Q@mail.gmail.com>
+Subject: Re: [PATCH 1/6] gpio: of: clear OF_POPULATED on hog nodes in remove path
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Bartosz Golaszewski <brgl@kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, 
+	Frank Rowand <frowand.list@gmail.com>, Mika Westerberg <westeri@kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, 
+	Russell King <linux@armlinux.org.uk>, Jonathan Corbet <corbet@lwn.net>, 
+	Shuah Khan <skhan@linuxfoundation.org>, linux-gpio@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
+	linux-doc@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Add a new configfs attribute to the hog group allowing to configure the
-active-low lookup flag for hogged lines.
+On Thu, Mar 5, 2026 at 10:51=E2=80=AFAM Bartosz Golaszewski
+<bartosz.golaszewski@oss.qualcomm.com> wrote:
 
-Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
----
- drivers/gpio/gpio-sim.c | 40 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
+> The previously set OF_POPULATED flag should be cleared on the hog nodes
+> when removing the chip.
+>
+> Cc: stable@vger.kernel.org
+> Fixes: 63636d956c455 ("gpio: of: Add DT overlay support for GPIO hogs")
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 
-diff --git a/drivers/gpio/gpio-sim.c b/drivers/gpio/gpio-sim.c
-index 51bcbdd91b4b027b7a340971a11cce5280ca1295..f32674230237eb08bbf8dd1337a79b5d0aa13259 100644
---- a/drivers/gpio/gpio-sim.c
-+++ b/drivers/gpio/gpio-sim.c
-@@ -654,6 +654,7 @@ struct gpio_sim_hog {
- 
- 	char *name;
- 	int dir;
-+	bool active_low;
- };
- 
- static struct gpio_sim_hog *to_gpio_sim_hog(struct config_item *item)
-@@ -836,7 +837,7 @@ static int gpio_sim_bank_add_hogs(struct gpio_sim_bank *bank)
- 		hog = line->hog;
- 
- 		gpios[0] = line->offset;
--		gpios[1] = 0;
-+		gpios[1] = hog->active_low ? 1 : 0;
- 
- 		memset(properties, 0, sizeof(properties));
- 
-@@ -1315,9 +1316,46 @@ gpio_sim_hog_config_direction_store(struct config_item *item,
- 
- CONFIGFS_ATTR(gpio_sim_hog_config_, direction);
- 
-+static ssize_t gpio_sim_hog_config_active_low_show(struct config_item *item,
-+						   char *page)
-+{
-+	struct gpio_sim_hog *hog = to_gpio_sim_hog(item);
-+	struct gpio_sim_device *dev = gpio_sim_hog_get_device(hog);
-+
-+	guard(mutex)(&dev->lock);
-+
-+	return sprintf(page, "%c\n", hog->active_low ? '1' : '0');
-+}
-+
-+static ssize_t
-+gpio_sim_hog_config_active_low_store(struct config_item *item,
-+				     const char *page, size_t count)
-+{
-+	struct gpio_sim_hog *hog = to_gpio_sim_hog(item);
-+	struct gpio_sim_device *dev = gpio_sim_hog_get_device(hog);
-+	bool active_low;
-+	int ret;
-+
-+	guard(mutex)(&dev->lock);
-+
-+	if (gpio_sim_device_is_live(dev))
-+		return -EBUSY;
-+
-+	ret = kstrtobool(page, &active_low);
-+	if (ret)
-+		return ret;
-+
-+	hog->active_low = active_low;
-+
-+	return count;
-+}
-+
-+CONFIGFS_ATTR(gpio_sim_hog_config_, active_low);
-+
- static struct configfs_attribute *gpio_sim_hog_config_attrs[] = {
- 	&gpio_sim_hog_config_attr_name,
- 	&gpio_sim_hog_config_attr_direction,
-+	&gpio_sim_hog_config_attr_active_low,
- 	NULL
- };
- 
+I have no idea how OF_POPULATED is supposed to be used
+so I just trust you on this one:
+Acked-by: Linus Walleij <linusw@kernel.org>
 
--- 
-2.47.3
-
+Yours,
+Linus Walleij
