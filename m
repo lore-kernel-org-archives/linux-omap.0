@@ -1,85 +1,76 @@
-Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 603143002A9
-	for <linux-omap@vger.kernel.org>; Fri,  6 Mar 2026 01:07:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B79133043DD
+	for <linux-omap@vger.kernel.org>; Fri,  6 Mar 2026 01:07:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772759246; cv=none; b=n9pDpiMBx4kYEjMys366nJ9wEOQJjlvEJPzY4V63ofKyvlmr06NyyayXPjjbGAyW0BsGoxRV7C9P97VWVvltjQirlAV5wbkl6guZCzry/tZxDwElIxXVj/tiKrJkkyHBltM0fAq0hn+g+rlDvE9hJrZCJ0MNkLN4EGJ7OpAptzo=
+	t=1772759247; cv=none; b=SYB92dONvSXwTJFov7s+VyreAwfMQXb9pY8HMKIT2aXZb/zkt6T58LHUXcb2iXBXNzSn+l2R6WBh/OVbh2TZ/2v+xrSb8a8g9VXd1kw6znpEA3y8jrLMjCiP/viCS9VPwwCXpZbspoVxqc9kDIcrECvSzorSw0irjgNiSJT5G0g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772759246; c=relaxed/simple;
-	bh=AwYvrtyXn5t42Evv8Q1//vnY4MBFvm88APyJ6xccnHo=;
+	s=arc-20240116; t=1772759247; c=relaxed/simple;
+	bh=3a8iGszPay1RUN0vwkRfUPEAflMRx9VM0K3ydtmavxg=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=uPx7ZjeZGymgBCpWR9m1A0nncHcBhA3kZaxQ6DcaKsoiFLDOO5yFdvUQYtALutrzZhKuXXePtspVBauGx7b5AhTGwpNwpohSlLVzogkeFIQPH2md5H6ALis/qg1tVkw7QKuTWq7mK9hWwj/Gwf8wdyG83W8PfDAi9++4ie4JgQo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=jL55B+fZ; arc=none smtp.client-ip=209.85.214.181
+	 MIME-Version:Content-Type; b=eu/IRCr7n+rI/E8/SQ9C+7xONI5pTnGGucaREVSyix9Vd3fw1snrtANCHbolk2OgF0Zsu31jpXrS80ixLnzGnBuwVp1EzXCVen5zN3zjpWkNcEU/J2X3pzfMZwHKKMgarOz9FQuov+dxGoqGmBTG9SXwS+6kNjI04Xo/OpaiQ7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=nS3/9lha; arc=none smtp.client-ip=209.85.214.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="jL55B+fZ"
-Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-2ab232cc803so40880565ad.3
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2026 17:07:25 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="nS3/9lha"
+Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2ae4e538abdso48006815ad.3
+        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2026 17:07:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1772759245; x=1773364045; darn=vger.kernel.org;
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1772759246; x=1773364046; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:date:message-id:subject
          :references:in-reply-to:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Tt65nlyH2+056MIjJR2mDSU6Xjc3S4OPgUVzwFjh2sg=;
-        b=jL55B+fZc2lG37UlJqcJtZufUmygMSpRm2szwruI8WrIayPHEC6NZLqtNnKk8/0XYO
-         ib21yl0RgijVRF2QnFQlyakj2JQ7lyIIA9Wz3bQFIivCYx65W5NI4XBx4ChmQIZeGtkM
-         5nEtFjf4w2x6FMIVEkf+SuqDCOihht+8Lm2h+rKDVj+7TO5X6WJV0iRYuUniAAxiTH8E
-         PVD8uumZAx/0Bio7hf6AzA5FXAwrhOJbiwEy02YfhS7b6YcFv5m2Ag/CPzOpyC8HWKyL
-         AJCGOlBhqEGNFnsCAtEGiMn+vPFSGmE5+kF3OOKtRDSodeTUIN7PFSLyYPztz2C04R7B
-         M/Ng==
+        bh=xldhKdSLExnwUIprLhiJ31YKhBCjitGVus1su/uXCG0=;
+        b=nS3/9lhacfUPPQqy3OEjD2GyL9vmhjjC9nKwsFSuuLwYjVllJj28GaGXJO0fdNveNS
+         SL3ivUIULG0wXLEx37Inqgzc8iz1UDSHUmQD2LQrnoEwiQ9rTG9uCVZ+igBOlpjGKt6N
+         /3YQruhyD07SGKXotwUKMaJKOWR1TDWPtLxdCze0QF3t6LJs7JN8Rcj0rgzhIgMw5SHd
+         Y4tBxH9Kz6dn31p6j/FeA5dN9EEtSKLfVv6hfXvMTbw/terqcrl6Gv7jE85De1cnk7ZG
+         enHm/yGIfQMBOW/L6UMDX1btSLTSPHArojofjYLBxGv1V/ETgcJQvIg00VLsPfiZ8abo
+         Xzqg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772759245; x=1773364045;
+        d=1e100.net; s=20230601; t=1772759246; x=1773364046;
         h=content-transfer-encoding:mime-version:date:message-id:subject
          :references:in-reply-to:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=Tt65nlyH2+056MIjJR2mDSU6Xjc3S4OPgUVzwFjh2sg=;
-        b=oJyisy1rY0uk46O2WjjGgOB4gMhLHewRzBu0l3jNapY9Bnkpm3EU85vM1HTmCeR2m9
-         l8Uev4qT1ARwbCgUnxDkZrmq6VDLarDkYdzhP2KLRSqQb85LKXM/hlFtAx7yIPRuvqgB
-         lPL/1+sBqg8AqUO78RRhWHHZf/0PxGryl57bAK1ssS05fyPFzgnU0+BMoHXh1QzjREdx
-         YqBHTZ9sAABKm2NT+KyN3l4SvLrSlLqvRcCZ43NTQgIMM6fZtOp8LfXKZdL4WLEk8t4k
-         d48H6+5ZD6BMad2rq4e74i9dokTz/VntkWnWw1Wj8boDHiM1OskaYGS0/OCOsuE9Noby
-         N+Sw==
-X-Forwarded-Encrypted: i=1; AJvYcCXeLQEfCUYuXCPWvBaC0TFjaulgemhJaPLPiymtqH6IiefiN8Kxm7ikFNe1jKEg850u7YmfX0ev3An0@vger.kernel.org
-X-Gm-Message-State: AOJu0YyKvWrnPZsHWTgdZQOYfKn5X2Vzr7IOQYQxVZTWxsyn8zsq8nLT
-	ifWAu24zilPseWEDRUxx0QnLskgELsXTPYn6VaXMKQjdiGWhOh+u8LNiu6Gs+gBwOKQ=
-X-Gm-Gg: ATEYQzzZuVwPPNrx62CbeL+g7ZSKVJ2eTBNxe5M7+qQaBl10Xm6EmMTOBQcQ5m8Go2H
-	HpPkn1J8ypP6P0UQmBlAOdw6kn4ZyXw4KN6LPDSPoDz9jR02UDWlzOSFrqp/ZvAiJWcTYUaVk3H
-	LeA0BTULYdK0cQnbSu1Apu09QhlikXjI50HpAUSqp0GyLTVUZ0/3YXJH3bmQ4DOeFduP0l8Y+3w
-	eOiZHPJeSEJfAsNxtbNcbgwdnkVb6STV19jfjRc3cNq49p0RfwNpLkn3bKr8LQOYDzbs6Y/xOAf
-	K0gLc4PpjswM7OENElK6GdQ8DHCKr1V+LBORutD+Q2XdqGtGlFUOGch53TN6xGZUyABLRBPaWWK
-	22CAiSK+XhxNgctyRU0X96trYPV3GF5e93fj86f0jQ7q0NQNzSUR5+In9bexcJhcCpW4dGxzWU7
-	CECHRoq56Ake03DPMBIA0S
-X-Received: by 2002:a17:902:e80b:b0:2ae:54b2:27d1 with SMTP id d9443c01a7336-2ae82467157mr4766475ad.44.1772759244771;
-        Thu, 05 Mar 2026 17:07:24 -0800 (PST)
+        bh=xldhKdSLExnwUIprLhiJ31YKhBCjitGVus1su/uXCG0=;
+        b=dC6BwgZKIi6UIpK8d1Bad6/N1RLn1bFpH2HdTyeSEczddWG5K6GlFWQDm+ILHmCUhE
+         HUutjH8vxdLcpSuyqviwF7e/p98OPBb8Cuy6Hm3enYZopqTq16PnmZLs0RfhRdlTe4Qw
+         hqb0qSiCJ/oY9h3FfeWxFlu1n0vZU/B/ocDHuvDG91o9dAN3mAzIi22da8g8evYuNaE/
+         FPEc3eB4/6vwBANuqSa/KI/P7HVeMdMsion839kvcTdJgUhL/jXjIyjLHiAd79XNdblS
+         TDVa/AHlAFIm9qcpQgsL30eePjPWItY7336ETXAGFxtaHcohMlZGG6G9INKICG4e5ZTL
+         v3nQ==
+X-Gm-Message-State: AOJu0Yyi6WRUGMQgDmpPjlWeNR1byOmqFL/5V4RUki6bK5MnGlqzcAUZ
+	GFqAWSvHWGMTcCOcm6wydVWPkj2JMq2aPtZIVH9XNyn/c7ODTab5yW/Ov+OHZ8kNIWdX8tyApxX
+	zrMt42Rk=
+X-Gm-Gg: ATEYQzyXzknjXjaLfmKrTJJr300pIVcFWa7DRjDjeSHhhkqFgl4j2eZ1WsrDX9DN73R
+	VYNJFhxAIdL+d9YuCocFOgOoqeaDUBePi5X2cejHIyn8nyoedsgVUa9/CXXp20oqT+V7ARAF2vC
+	fa0hKK5l6DKvZ3DXIGsZ3/aE2aHNXL3rWpS4mAhKFcNIup+qKS+INoq1V2b/9kb5Tqii50OpnR/
+	CxvgxUgGJ7m9U9WNEurnHHvah/e836s5+Z67PP2r7wDEGwIBZm+QNLKabxNAB+Ap2fd1xu+nbgw
+	eojlSLLI28HlAkl6W2CsnJGu14nS3JZFniEffK2tOQHYr6RgSQhl9NfLaZajCtqWB7Di12m7VEl
+	Vss4eeEfDD4wUpOP9b6w+FMd+fXhMzQMlNdVjN57cSfu67xxR13evm2MNkQBtHJoZvy1E6Q/Stw
+	vd+yKLTbPM4T2OJoSKtgfG
+X-Received: by 2002:a17:903:19e5:b0:2ae:61bb:425c with SMTP id d9443c01a7336-2ae8242cfa9mr4937905ad.35.1772759246050;
+        Thu, 05 Mar 2026 17:07:26 -0800 (PST)
 Received: from localhost ([71.212.200.220])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ae45e07626sm172535595ad.39.2026.03.05.17.07.23
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ae45e07626sm172536085ad.39.2026.03.05.17.07.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Mar 2026 17:07:24 -0800 (PST)
+        Thu, 05 Mar 2026 17:07:25 -0800 (PST)
 From: Kevin Hilman <khilman@baylibre.com>
 To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
  Andreas Kemnade <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, 
- Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
- Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, Russell King <linux@armlinux.org.uk>, 
- "Kory Maincent (TI)" <kory.maincent@bootlin.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
- linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- dri-devel@lists.freedesktop.org, Luca Ceresoli <luca.ceresoli@bootlin.com>, 
- Bajjuri Praneeth <praneeth@ti.com>, 
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
- Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
- Louis Chauvet <louis.chauvet@bootlin.com>
-In-Reply-To: <20260216-feature_bbge-v2-1-22805cfdbf62@bootlin.com>
-References: <20260216-feature_bbge-v2-1-22805cfdbf62@bootlin.com>
-Subject: Re: [PATCH v2 1/3] ARM: dts: ti: Enable overlays for am335x
- BeagleBoard devicetrees
-Message-Id: <177275924369.1445909.1029086854461649971.b4-ty@baylibre.com>
-Date: Thu, 05 Mar 2026 17:07:23 -0800
+ Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, 
+ Thorsten Blum <thorsten.blum@linux.dev>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ linux-kernel@vger.kernel.org
+In-Reply-To: <20260224144552.585272-1-thorsten.blum@linux.dev>
+References: <20260224144552.585272-1-thorsten.blum@linux.dev>
+Subject: Re: [PATCH RESEND] ARM: omap2: Replace scnprintf with strscpy in
+ omap3_cpuinfo
+Message-Id: <177275924495.1445909.15705115426095519350.b4-ty@baylibre.com>
+Date: Thu, 05 Mar 2026 17:07:24 -0800
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -91,16 +82,15 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-47773
 
 
-On Mon, 16 Feb 2026 17:55:52 +0100, Kory Maincent (TI) wrote:
-> Allow overlays to be applied to am335x BeagleBoard boards. This adds
-> around ~40% to the total size of the DTB files on average.
+On Tue, 24 Feb 2026 15:45:51 +0100, Thorsten Blum wrote:
+> Replace scnprintf("%s", ...) with the faster and more direct strscpy().
 > 
 > 
 
 Applied, thanks!
 
-[1/3] ARM: dts: ti: Enable overlays for am335x BeagleBoard devicetrees
-      commit: 18161bb01ede109fed41c66efa2624a4c27377f7
+[1/1] ARM: omap2: Replace scnprintf with strscpy in omap3_cpuinfo
+      commit: 5156a8d92cebb531c320c7cec7e527e40232b922
 
 Best regards,
 -- 
