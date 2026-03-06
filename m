@@ -1,35 +1,35 @@
 Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 279BE363C76
-	for <linux-omap@vger.kernel.org>; Fri,  6 Mar 2026 15:33:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C79D33E5EC9
+	for <linux-omap@vger.kernel.org>; Fri,  6 Mar 2026 15:33:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.117.254.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772811196; cv=none; b=SnHfJjUU5WeW/dQjKGBThVGpV4kiqgFV1ohbohzpRr50f+OdWuk8s2NAuEQPaxcB9XvXRHWAfj7qXsnmTLqsUS2eJx7UM1H/gWn7tjTm6zqeHeLWe13mRYYT37baPMz5Cvli/TpxsCYj4UTkS7EKTeyP2Vzhtjs7wCQXoXbq8RQ=
+	t=1772811225; cv=none; b=OmxzHwGw42lwkNxZ0mtjFvNeMjzVS8mx8HT/AKBgTVX96ljDPgKIIZH5ylr/gtlsh4sjCQtnXanEQVNFXKG9zzo6+xJFNt92Mg2YEjrPmxlU2dxkrSGKpciaaiRD0N4nmSKO4S7iF1+pxSrkKJIvpDH80lERG5h/Aok9r38Ap+E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772811196; c=relaxed/simple;
-	bh=bcSBsjGgici2Ik1sG34jJQmzUF8m5cQXx4XEbIzOjHk=;
+	s=arc-20240116; t=1772811225; c=relaxed/simple;
+	bh=NOPbRrbjpQ8Fe20m190BRndmWKRH5k1dxekpIJ87UZg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QecjKXXvkU0EKLdyo4wEA+JVkj8dtrZanIJ+Q8ywjQvLGEvOAf1qgZBX/lEuW1xBFgW74kyvdW2hL9wWbT8FXL4ltvp/2Jo8hKn4xpwgL2Oo+5M323Px8k6TJ5clQt/BKn/pQ9ZNk1YHrqBXmdzspt4hENn69oNLeGK26P5dje0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=gXFLd6m4; arc=none smtp.client-ip=194.117.254.33
+	 Content-Type:Content-Disposition:In-Reply-To; b=RSpeGb2L+a/JNA1d/O0NZkr4gB0M0Gp5JNrbMfQk/y6Ro8ZaDn/TGlWf66OyZarbPmZoiElyC/2I3L/VBYPU68/vhPDe+D8LbIR6CWV9Nf7Vt5h/e6YEYoZrFVECGJnJM/4Dlw0RubsTp5NrMaD4662xehCfpnq0wMg6aDNniBA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=Hbxka07x; arc=none smtp.client-ip=194.117.254.33
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="gXFLd6m4"
+	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="Hbxka07x"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	sang-engineering.com; h=date:from:to:cc:subject:message-id
-	:references:mime-version:content-type:in-reply-to; s=k1; bh=s1cu
-	QDsG6Zp0lohUD8JZqduywcTu0nS0IvyfvMb/LrU=; b=gXFLd6m4lL00z1Xt4Zqf
-	qJZEngkn4txbzsE9YboB6vNiiLHq9kK4Yy6DbDaVV7ej2b9clDQsNuaGoL+G4u+s
-	tMuFLvCFIAswE4xSzAlhfZCsz94+szcxvXqlsBSuMLgZw3zmSvg5cIKGvJHMoPjf
-	TiIdwj3SrpOY5Ep9KUFN+wnRqZyAlTCUHY/MBe2kBw8WUX5C3phbY0SbLWygO/Y+
-	ihkeA/mhE1DjVSONYL9+tWnUI0BICh/0jfJPaYusZTIGdJPyx6YXZIbr4lKkXXCG
-	FiLUo0Daj33caZU8BTifdOi+7jARPrtwbF4QWP0wfIieF67Utbenrk7UnrgDj/iG
-	yQ==
-Received: (qmail 1689643 invoked from network); 6 Mar 2026 16:33:12 +0100
-Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 6 Mar 2026 16:33:12 +0100
-X-UD-Smtp-Session: l3s3148p1@lHNXxVxMMN4gAwDPXzF+ANZpdrMKUeLI
-Date: Fri, 6 Mar 2026 16:33:11 +0100
+	:references:mime-version:content-type:in-reply-to; s=k1; bh=KBd6
+	sAoIvc/ReQGblbOAHX8AXDUJz9fRBaxG9r07VOs=; b=Hbxka07xb59E95jigF6r
+	YNwjNCepu5JnygW4H7r0FYklcn7864U1OYPO8kHihdpMNZpNpFH/D4MMU8jdIUmK
+	WTwECChK7cUTnffvbwPhP6t4NZVoNC9ZiCWtP99aniFMO93VFlSbWWtC0ppzDDe6
+	UjfpVbScXGeJ96x/jPbv+byHe/naA91rOtIbyOeIjAGaMfoEaaA1pxS0Sws78Uef
+	xrv67lTd/HW7HtSeBQhIOabOmS+2522zKIpukLY8x1FELzkp692Ddu6p5OAqJl7h
+	NWqLqsBTWSfwpv9y5oTlaOirx44bT9cZ97PkE4pF4fDouilIGgQxLSoFgR1eaqHG
+	Gg==
+Received: (qmail 1689921 invoked from network); 6 Mar 2026 16:33:39 +0100
+Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 6 Mar 2026 16:33:39 +0100
+X-UD-Smtp-Session: l3s3148p1@mqj8xlxMOIQgAwDPXzF+ANZpdrMKUeLI
+Date: Fri, 6 Mar 2026 16:33:39 +0100
 From: Wolfram Sang <wsa+renesas@sang-engineering.com>
 To: Josua Mayer <josua@solid-run.com>
 Cc: Marc Kleine-Budde <mkl@pengutronix.de>,
@@ -55,11 +55,11 @@ Cc: Marc Kleine-Budde <mkl@pengutronix.de>,
 	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
 	linux-i2c@vger.kernel.org, linux-mmc@vger.kernel.org,
 	devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v11 5/9] phy: renesas: rcar-gen3-usb2: drop helper
- getting optional mux-state
-Message-ID: <aarzt_BsQlwFI8Zb@shikoro>
+Subject: Re: [PATCH v11 9/9] mmc: host: renesas_sdhi_core: support selecting
+ an optional mux
+Message-ID: <aarz0wSQG527Eofx@shikoro>
 References: <20260226-rz-sdio-mux-v11-0-c2a350f9bbd3@solid-run.com>
- <20260226-rz-sdio-mux-v11-5-c2a350f9bbd3@solid-run.com>
+ <20260226-rz-sdio-mux-v11-9-c2a350f9bbd3@solid-run.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -68,17 +68,27 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260226-rz-sdio-mux-v11-5-c2a350f9bbd3@solid-run.com>
+In-Reply-To: <20260226-rz-sdio-mux-v11-9-c2a350f9bbd3@solid-run.com>
 
-On Thu, Feb 26, 2026 at 03:21:13PM +0200, Josua Mayer wrote:
-> Multiplexer subsystem has now added helpers for getting managed optional
-> mux-state.
+On Thu, Feb 26, 2026 at 03:21:17PM +0200, Josua Mayer wrote:
+> Some hardware designs route data or control signals through a mux to
+> support multiple devices on a single sdhi controller.
 > 
-> Switch to the new devm_mux_state_get_optional_selected helper.
+> In particular SolidRun RZ/G2L/G2LC/V2L System on Module use a mux for
+> switching between soldered eMMC and an optional microSD on a carrier
+> board, e.g. for development or provisioning.
 > 
-> This change is only compile-tested.
+> SD/SDIO/eMMC are not well suited for runtime switching between different
+> cards, however boot-time selection is possible and useful - in
+> particular considering dt overlays.
+> 
+> Add support for an optional SD/SDIO/eMMC mux defined in dt, and select
+> it during probe.
+> 
+> Similar functionality already exists in other places, e.g. i2c-omap.
 > 
 > Signed-off-by: Josua Mayer <josua@solid-run.com>
 
 Reviewed-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
