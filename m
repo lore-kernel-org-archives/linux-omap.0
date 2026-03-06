@@ -1,148 +1,195 @@
-Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E06082E1EFC
-	for <linux-omap@vger.kernel.org>; Fri,  6 Mar 2026 00:45:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BCA82F12D4;
+	Fri,  6 Mar 2026 01:06:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772757903; cv=none; b=eYK7ry56UlAlrySgC/9cWUOnA4mYzf2/S4iurzwdgBxCSWYMaQzrBLxUKxitV8rW8jgmBpXXzXHp0wry/W7Dcj33WjCIOfhoB2AAytLDte35SUIfruuYXz75vv2oQdO1Y8BUURSHsaUhWudbLItSFDy2kfsXpJqofptc1oqRIUw=
+	t=1772759201; cv=none; b=aMygMXvZQnesNc/EoxIFe1+1KtMlPJmzi/QfudwRpt8b4rWUXLDGy1Hbz+tBw/BsJvLKwBLa63Nq/tM2CWRaVje/EvRZWEHVtOYIKHp4zZIOvSR1sjMXIkk+GhEGC8yBlHeCa1uSr/q25nz5heAoXruf2HfMmAzXQ7r++TSUaVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772757903; c=relaxed/simple;
-	bh=G9zzbkUUMAkORAuT7yKEFCmmFIF56otd76cutMRNMYQ=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=mJCjUBlVOaDEwRDAGd61kMkj1mbFVusvhS/GxLw1vn8f3Jm1qOmEIMonQdXlgXCKbBiO+a9NE9gGt5QgNXsEdGj31+eOI5ngh9EutSFIJPkzOZ7rTrPI4S2QUlIRuRhe4gtDRucII0qqHSWu3Mt5tDZp5p3kTMJW9x5CgnlkTVE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=kernel.org; spf=pass smtp.mailfrom=baylibre.com; arc=none smtp.client-ip=209.85.214.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=kernel.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
-Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2ae3a2f6007so42820475ad.2
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2026 16:45:00 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772757900; x=1773362700;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=XBIID2C3tYCLC3ROIp9HZ27Vwpuc9s7YKBLnBBIirXY=;
-        b=vo9TNLhIdTGamjI5saM8JiwWJzQFMnhYbogCSqJdtVm0v8jhENbrxmteYpZB5NY8DA
-         ODpKDn7jw+e95/cHhUesE/WKBv+2BBFFFxVN1F+z1JNrS5wVzAE9C9bCiSfCGR3aF/VK
-         kZe/sKHto7rr2RCWaFkhDvkyTmTgt6H1cFYNSgHBUpaG73YYTcijxCocgbTIxPHMjc4d
-         Oa/pTro/yVMkUpKCpTCz1awSO/7aGBbJUf6csC60z9bqqHSkbalQvEsXfzpOhTdrSLto
-         UGzeTFiiGhM5EnBlUJKCK9QIo4Z5uvN7hxGUG/yEI1oKi6v5uqhydFBbWAgIThwtmROz
-         GIAQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUJG95+Wjv20/n3pmvdE4mMCIeTd+XET+9gEEPf+DD4ccmx57IMqIn49NlsNZlmGfUTYNVlfy0xz5oZ@vger.kernel.org
-X-Gm-Message-State: AOJu0YwY9ZqRZGJKdJPWw9W9I24CtSGdw3tGZEUlbA2XuMpsI1vwHT29
-	XyAyc8tuReUPStCLq8dGowMdk0CbEwhU9BvZmV98EJJLeVkMBlDneyiyj/T5lLu6Cxtmrktk9c1
-	ylvmtgIA=
-X-Gm-Gg: ATEYQzzY61vJwvnEWsC8YXJGnOF9Jvyb3aQXt1YnwSaH/qYwHyu95g3pAvMUvjX5nlH
-	o3htPXYeOVwXaxcNSRs+92/BgyQ48SrQudpzYgRaPbH6v1LibluE2Ya3WFHze1yUXXyD2il6aFR
-	32/V4oUaE3MjU9z1FzE52crOSUuirjLYFP+mQCtrtfuTO3oeYg89liIdjOBpiJ0e6AU3CrxMLCU
-	mYs2DqXNC6lYmpFeTHjW0bVMawo6LwJqWH3GCdosKQ2s24qBrnWDhR29hN9CaIKfhfoTjRZzyHw
-	hqlKPvtDmZIVNaLyrRAKUaTK8Fw2sFcLF0J/zsFQ6+HLqYYjcUJ2cv63bQfWJDTGCGent6bG8Q1
-	y5zCEwHpCPkEEFfNspzY5OsbApjf9k8C4dVdnXy7cFI/5DGIaQmh7iHROh6qEiXV1KAp30GZCEt
-	JpkuccEzDMvEHlAx4g8CYr
-X-Received: by 2002:a17:903:18d:b0:2ae:5eee:7a5 with SMTP id d9443c01a7336-2ae8241df4emr3858265ad.12.1772757900350;
-        Thu, 05 Mar 2026 16:45:00 -0800 (PST)
-Received: from localhost ([71.212.200.220])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ae4651e409sm180143885ad.44.2026.03.05.16.44.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Mar 2026 16:44:59 -0800 (PST)
-From: Kevin Hilman <khilman@kernel.org>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Linus
- Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, Geert
- Uytterhoeven <geert+renesas@glider.be>, Frank Rowand
- <frowand.list@gmail.com>, Mika Westerberg <westeri@kernel.org>, Andy
- Shevchenko <andriy.shevchenko@linux.intel.com>, Aaro Koskinen
- <aaro.koskinen@iki.fi>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony
- Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>,
- Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-omap@vger.kernel.org, linux-doc@vger.kernel.org, brgl@kernel.org,
- Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: Re: [PATCH 4/6] ARM: omap1: ams-delta: convert GPIO hogs to using
- firmware nodes
-In-Reply-To: <20260305-gpio-hog-fwnode-v1-4-97d7df6bbd17@oss.qualcomm.com>
-References: <20260305-gpio-hog-fwnode-v1-0-97d7df6bbd17@oss.qualcomm.com>
- <20260305-gpio-hog-fwnode-v1-4-97d7df6bbd17@oss.qualcomm.com>
-Date: Thu, 05 Mar 2026 16:44:59 -0800
-Message-ID: <7hy0k5okfo.fsf@baylibre.com>
+	s=arc-20240116; t=1772759201; c=relaxed/simple;
+	bh=/3UzXOX7nYsk0ycjPDcHwDC51rQGido5I13QEdeIfH8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Dc/R/XyZs0RgpTuTty2KXC14aVgn3rdg5fI0hiLv0pbN0BXmSad0G1ggF45mfht1/WromIVv1ueCwj5c3X6kRq0LxjVtMOIMGKQkCvaIlqnp0chkSBYHUwW7VLFGbN5vPvocdX+hqhemZim15axfQUdjFVdAoFZEDKzama/J2X0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XWUrdSQi; arc=none smtp.client-ip=192.198.163.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XWUrdSQi"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1772759201; x=1804295201;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=/3UzXOX7nYsk0ycjPDcHwDC51rQGido5I13QEdeIfH8=;
+  b=XWUrdSQiVf11AJe0g1236y/1ZSCpdG+E5pbZucqeUg56FPbrEvRcBvGX
+   Vges25oan8P8p4la9iHY3wlrzTZX/uJzH/nKrVl/+I7oqNm5HhdbuPVee
+   U4XYy8ptpdrV0by9ztjYpA7HXU+DISs6bjKRWJd9dL6Q09VUUCpeDTpnQ
+   bbGAVNJ/HveRpJx9hp/TB8xnajH+wB6pujGIPJ5bdwyEOK5YH4yBSrwct
+   VHiMmYOrl4Rc2Tvzmc0hxQ9bR+9917V4mQBvgXiR33B2WvtRAv96Kgsh1
+   araXI4w0JVEEeBpnxfopYMPabqtRE3d/3V06ITEQ9F3q5YePQ51yTaQBS
+   Q==;
+X-CSE-ConnectionGUID: ftmJPMyZQzqmYY/8rYLIhw==
+X-CSE-MsgGUID: B6/Qz+/ITZCB+TAaJYYNZw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11720"; a="73779493"
+X-IronPort-AV: E=Sophos;i="6.23,104,1770624000"; 
+   d="scan'208";a="73779493"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Mar 2026 17:06:40 -0800
+X-CSE-ConnectionGUID: Fb6imYfYRdyyNHiSGLSlLg==
+X-CSE-MsgGUID: fmZ26AOZSoCSufqFWdsyZA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,104,1770624000"; 
+   d="scan'208";a="218805096"
+Received: from lkp-server01.sh.intel.com (HELO 058beb05654c) ([10.239.97.150])
+  by orviesa009.jf.intel.com with ESMTP; 05 Mar 2026 17:06:34 -0800
+Received: from kbuild by 058beb05654c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1vyJe9-0000000009N-2EjF;
+	Fri, 06 Mar 2026 01:06:29 +0000
+Date: Fri, 6 Mar 2026 09:06:24 +0800
+From: kernel test robot <lkp@intel.com>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Mika Westerberg <westeri@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-omap@vger.kernel.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH 2/6] gpio: move hogs into GPIO core
+Message-ID: <202603060850.dUlmPBav-lkp@intel.com>
+References: <20260305-gpio-hog-fwnode-v1-2-97d7df6bbd17@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260305-gpio-hog-fwnode-v1-2-97d7df6bbd17@oss.qualcomm.com>
 
-Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com> writes:
+Hi Bartosz,
 
-> Setup a software node hierarchy for the latch2 GPIO controller defining
-> the required hog and stop using legacy machine hog API.
->
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+kernel test robot noticed the following build warnings:
 
-Acked-by: Kevin Hilman <khilman@baylibre.com>
+[auto build test WARNING on c025f6cf4209e1542ec2afebe49f42bbaf1a5c7b]
 
-> ---
->  arch/arm/mach-omap1/board-ams-delta.c | 32 +++++++++++++++++++++++++++-----
->  1 file changed, 27 insertions(+), 5 deletions(-)
->
-> diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-> index 16392720296cd224732450c85419c35bbab506f6..1bec4fa0bd5e8bfc58103d1f24b22176707fd26f 100644
-> --- a/arch/arm/mach-omap1/board-ams-delta.c
-> +++ b/arch/arm/mach-omap1/board-ams-delta.c
-> @@ -556,10 +556,30 @@ static struct gpiod_lookup_table *ams_delta_gpio_tables[] __initdata = {
->  	&ams_delta_nand_gpio_table,
->  };
->  
-> -static struct gpiod_hog ams_delta_gpio_hogs[] = {
-> -	GPIO_HOG(LATCH2_LABEL, LATCH2_PIN_KEYBRD_DATAOUT, "keybrd_dataout",
-> -		 GPIO_ACTIVE_HIGH, GPIOD_OUT_LOW),
-> -	{},
-> +static const struct software_node latch2_gpio_swnode = {
-> +	.name = LATCH2_LABEL,
-> +};
-> +
-> +static const u32 latch2_hog_gpios[] = { LATCH2_PIN_KEYBRD_DATAOUT, 0 };
-> +
-> +static const struct property_entry latch2_gpio_hog_props[] = {
-> +	PROPERTY_ENTRY_BOOL("gpio-hog"),
-> +	PROPERTY_ENTRY_U32_ARRAY("gpios", latch2_hog_gpios),
-> +	PROPERTY_ENTRY_STRING("line-name", "keybrd_dataout"),
-> +	PROPERTY_ENTRY_BOOL("output-low"),
-> +	{ }
-> +};
-> +
-> +static const struct software_node latch2_gpio_hog_swnode = {
-> +	.parent = &latch2_gpio_swnode,
-> +	.name = "latch2-hog",
-> +	.properties = latch2_gpio_hog_props,
-> +};
-> +
-> +static const struct software_node *const latch2_gpio_swnodes[] = {
-> +	&latch2_gpio_swnode,
-> +	&latch2_gpio_hog_swnode,
-> +	NULL
->  };
->  
->  static struct plat_serial8250_port ams_delta_modem_ports[];
-> @@ -684,7 +704,6 @@ static void __init ams_delta_init(void)
->  
->  	omap_gpio_deps_init();
->  	ams_delta_latch2_init();
-> -	gpiod_add_hogs(ams_delta_gpio_hogs);
->  
->  	omap_serial_init();
->  	omap_register_i2c_bus(1, 100, NULL, 0);
-> @@ -693,6 +712,9 @@ static void __init ams_delta_init(void)
->  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
->  
->  	platform_device_register_full(&latch1_gpio_devinfo);
-> +
-> +	software_node_register_node_group(latch2_gpio_swnodes);
-> +	latch2_gpio_devinfo.fwnode = software_node_fwnode(&latch2_gpio_swnode);
->  	platform_device_register_full(&latch2_gpio_devinfo);
->  
->  	/*
->
-> -- 
-> 2.47.3
+url:    https://github.com/intel-lab-lkp/linux/commits/Bartosz-Golaszewski/gpio-of-clear-OF_POPULATED-on-hog-nodes-in-remove-path/20260305-175735
+base:   c025f6cf4209e1542ec2afebe49f42bbaf1a5c7b
+patch link:    https://lore.kernel.org/r/20260305-gpio-hog-fwnode-v1-2-97d7df6bbd17%40oss.qualcomm.com
+patch subject: [PATCH 2/6] gpio: move hogs into GPIO core
+config: loongarch-allnoconfig (https://download.01.org/0day-ci/archive/20260306/202603060850.dUlmPBav-lkp@intel.com/config)
+compiler: clang version 23.0.0git (https://github.com/llvm/llvm-project c32caeec8158d634bb71ab8911a6031248b9fc47)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260306/202603060850.dUlmPBav-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202603060850.dUlmPBav-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+>> drivers/gpio/gpiolib.c:981:10: warning: variable 'ret' is uninitialized when used here [-Wuninitialized]
+     981 |                 return ret;
+         |                        ^~~
+   drivers/gpio/gpiolib.c:971:9: note: initialize the variable 'ret' to silence this warning
+     971 |         int ret, argc;
+         |                ^
+         |                 = 0
+   1 warning generated.
+
+
+vim +/ret +981 drivers/gpio/gpiolib.c
+
+   962	
+   963	int gpiochip_add_hog(struct gpio_chip *gc, struct fwnode_handle *fwnode)
+   964	{
+   965		struct fwnode_handle *gc_node = dev_fwnode(&gc->gpiodev->dev);
+   966		struct of_phandle_args gpiospec;
+   967		enum gpiod_flags dflags;
+   968		struct gpio_desc *desc;
+   969		unsigned long lflags;
+   970		const char *name;
+   971		int ret, argc;
+   972		u32 gpios[3]; /* We support up to three-cell bindings. */
+   973		u32 cells;
+   974	
+   975		lflags = GPIO_LOOKUP_FLAGS_DEFAULT;
+   976		dflags = GPIOD_ASIS;
+   977		name = NULL;
+   978	
+   979		argc = fwnode_property_count_u32(fwnode, "gpios");
+   980		if (argc < 0)
+ > 981			return ret;
+   982		if (argc > 3)
+   983			return -EINVAL;
+   984	
+   985		ret = fwnode_property_read_u32_array(fwnode, "gpios", gpios, argc);
+   986		if (ret < 0)
+   987			return ret;
+   988	
+   989		if (is_of_node(fwnode)) {
+   990			/*
+   991			 * OF-nodes need some additional special handling for
+   992			 * translating of devicetree flags.
+   993			 */
+   994			ret = fwnode_property_read_u32(gc_node, "#gpio-cells", &cells);
+   995			if (ret)
+   996				return ret;
+   997			if (cells && argc != cells)
+   998				return -EINVAL;
+   999	
+  1000			memset(&gpiospec, 0, sizeof(gpiospec));
+  1001			gpiospec.np = to_of_node(fwnode);
+  1002			gpiospec.args_count = argc;
+  1003			memcpy(&gpiospec.args, gpios, argc * sizeof(u32));
+  1004	
+  1005			ret = of_gpiochip_get_lflags(gc, &gpiospec, &lflags);
+  1006			if (ret)
+  1007				return ret;
+  1008		} else {
+  1009			/*
+  1010			 * GPIO_ACTIVE_LOW is currently the only lookup flag
+  1011			 * supported for non-OF firmware nodes.
+  1012			 */
+  1013			if (gpios[1])
+  1014				lflags |= GPIO_ACTIVE_LOW;
+  1015		}
+  1016	
+  1017		if (fwnode_property_present(fwnode, "input"))
+  1018			dflags |= GPIOD_IN;
+  1019		else if (fwnode_property_present(fwnode, "output-low"))
+  1020			dflags |= GPIOD_OUT_LOW;
+  1021		else if (fwnode_property_present(fwnode, "output-high"))
+  1022			dflags |= GPIOD_OUT_HIGH;
+  1023		else
+  1024			return -EINVAL;
+  1025	
+  1026		fwnode_property_read_string(fwnode, "line-name", &name);
+  1027	
+  1028		desc = gpiochip_get_desc(gc, gpios[0]);
+  1029		if (IS_ERR(desc))
+  1030			return PTR_ERR(desc);
+  1031	
+  1032		ret = gpiod_hog(desc, name, lflags, dflags);
+  1033		if (ret)
+  1034			return ret;
+  1035	
+  1036		return 0;
+  1037	}
+  1038	
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
