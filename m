@@ -1,102 +1,197 @@
-Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
+Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C632309EFA
-	for <linux-omap@vger.kernel.org>; Fri,  6 Mar 2026 01:07:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772759248; cv=none; b=pZqVPRVYhYGt/DVNsDszBWLSQM7i0IBrqKbxIcimBLUOhMORQQjKgAQkR93C+z5JmPhTxExT6ECUISgYw0TJjOwITu7swMlHoZgrQoeDKjvJV3MGyzRuYSm9IU0WhIHlv8MemZgIJ+d+8dkya+GhDICJGXMfU0y1TFDgW7FNr0o=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772759248; c=relaxed/simple;
-	bh=2T1EIpwo21Mjm8tHmMvrEddLMLczOQ3KM4OkkTq4KNQ=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=mzBanPX6vLVljFHRjYBAY3Ji5AtdHWT6DcbnGlQ/cIX5bEaeSkLiGUCPPuGAwvfo01mpFZW/adoKghqWESkSNNLZEsTAGFgkA3cObfCh6NfWXiIEz4u0TXT2wf7w1ETwl4qoFGfBPOR56DwBVHFFEkAT21P1mfM9xtjo7YGVCmg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=UWio2W4h; arc=none smtp.client-ip=209.85.214.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8387C328B7F
+	for <linux-omap@vger.kernel.org>; Fri,  6 Mar 2026 04:15:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.45
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1772770517; cv=pass; b=bV+Dy0263z2we1aqf/9cJD4PLwCPcrIUCV/qXLtPnOJUK6VxGcF85bnEA839J3NZssM9v/teVI2URKlhqpbPgItRl8lBRank/fMQNuIlY/7WAqif5K8XpWyrWG9ZfrC/em57LDBf13RlH+q2WR5acSKOJizit1oYebsNAotVEZg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1772770517; c=relaxed/simple;
+	bh=nFIzFCEGdHvUoDkDKio798vd3KSOQ+BKfInvObQxhB0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=FooNf9ZsvBXdUyYI0dUxUk1HwpdOfgVeCpdnJSkNZYMI7fkyybcKLX32hWXsq5++3P9CLntKRTLyYYpyIDh4BvLN1p3Q23ce7XzGhuWouVhVIpwrOsg5Zn1sF7p3he5alzkBr2Py6XTKxLhcVRt1ffTaL8ODnwn0jNJWk+JEII4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JuQ4LlqK; arc=pass smtp.client-ip=209.85.218.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="UWio2W4h"
-Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-2ae50a33ff8so39716885ad.3
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2026 17:07:27 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JuQ4LlqK"
+Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-b941d924534so91705766b.3
+        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2026 20:15:12 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1772770510; cv=none;
+        d=google.com; s=arc-20240605;
+        b=FDsW/erl3Tv/fYBQ8SSR4NkYCyy/G8EsV2s0xo99LjykLsWqrih5q31XN/jAnysAo4
+         MCVN0zKl9UB22qe3Lavfsm0AQIPk2TMfmSd1BjHpDRE07YZszPrEU9nh5oQEDV3SqSgV
+         YPYFd4LZPRy6wXZoZ0S+iKvkMPPERXM9Z/jANQycJZZBX8BUGcdJiL/gFb+kAPHxfbso
+         pA+KlCdjybWK4EyQueyBIFmhTKpOEPTeDRGfG+cXGVXRo8PiYdTgrWVzVo1k+Xm1Bjig
+         lewGeiQT8xWXcDHtalIvRjIDQ7dRij3ffzff5jcX6VaVJxqA12BBUD7T3VuEC/t4amuH
+         NABA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=caYlw5uZFtDTjdpuJpoLZkB8qzJjrGN/QTXEgHQCJYY=;
+        fh=jZP655kSx7SCXLA2+IXu5Td81EbKqK/Dpk5jmc+lbmg=;
+        b=TPCjj+4gllos+e5n530FCdM3JxcRpldO3RrcpyXlRmtHPIbarouWtgZP94npeE2EP7
+         WmPnzse9hfmUTwzAHmPFhfXzXDa0/Ez7sgbVnHnuu0e9C3t+hTMpWEwPtXpYSpdfqO4m
+         oYu99bXdJvN3rrpryd4qwDy04H62qhF0OfnEpvGQ4hVMqBnjyO8a0l6a6KwD1Smxahjy
+         iwz+FWIwAvZTZenggQVkeU1DFABXagpezENOu/aYzngHXVjC7s9AN+++zHek4xuUiRAY
+         8eoHO+/BPqJOjagqC8KWBhu8GNV8u+gxuxMjCEY8MUQXGv3mwq2DezMWFpzBrW3/IOFB
+         6Ncg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1772759247; x=1773364047; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wX8DXSun8vyFDP8tcIZqLzghP41cUIRKTQztSXvRddU=;
-        b=UWio2W4h2oSKbY85zpadzqT89GpzVrMnIYTK5TD1d9Pt+gYEuIv+Aj+pynyCHfMeVU
-         /Q0tggz9sCn7zkdfc2G+9eiNyB6P+okcLtxay547Riiw9sxDeDV4b5HK90COcpwJpYgR
-         Ktc4jyJdp0q8r+kGKX5kqA8UzwJQy0dvZDlx/ACOtnGYJn+En/FueCYVei7LmchkgDTh
-         KZzwPMkKEInUrSMOFHp6UUDcU+9Ls5jdl0QVBeGPwM579V+sr4UdXgTKIBtaFDOmT2yl
-         SLZ9G3+zXNlnMnL+HL4o5m0yaLByxPh5tzfqw9TO9OHJ4268+oLMl95/cwaOoH04aDQV
-         4nQA==
+        d=gmail.com; s=20230601; t=1772770510; x=1773375310; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=caYlw5uZFtDTjdpuJpoLZkB8qzJjrGN/QTXEgHQCJYY=;
+        b=JuQ4LlqKe2uZcIT/kABI6GSC7b7JlJX0AZeWvKQeJVhKDtckoPQr5Td+YZWWzTMb4h
+         nFgshoPtGycmuLuGPGLDJ2ovrA3Tfo8HjD1Ebkd3RPgLibjIVYo3nYNBSBFUDsdcmZqs
+         9mihTwD9YwD6MQCiaxJn9BHpsClO/pJR27TRcRn4MbXAi7uigzte9NdrLWDyWl+m/6SE
+         D6xdF+22cGQwghpTK4JeBUnGXMV2zkOMJzakkGTQfDO8Fei6yCPCfK8CFraWWesjFDyJ
+         T8g59HWhFCLeHNlgXt43enDZiBLyaWUVh0kyx4K22hVBpW1QpDSIcvh/e800Qlj2x5X8
+         g7sA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772759247; x=1773364047;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=wX8DXSun8vyFDP8tcIZqLzghP41cUIRKTQztSXvRddU=;
-        b=eR5Rs4xAsSGvTX4GDyjZ68oQbXiYjohmhquUPGhLnM9/J35mORHM0Oj7cFefru4WUM
-         nFJruSYAujbCogb4vS+jXuHly+qBo30x8FmDgVd6Zs2M+Kg5u9LWUj71axzw7jMCqIoU
-         GGtGcA3J1kDT5+0o8JTGs2tMhqcyI6KmKNeWw78jRFQdKTxXDWBC7Q3QCo9DPN6yu5AQ
-         Sa4vikNinxjFyNyINlFUV68/0WQiKtmszijSzE3wi/8jcogufTD81ZywhjSdECxvk2c/
-         cnZlS36J0tLyyv6E7+coctBNTpx95a2YeRpB3KPQprVsHfQZ5ceNdZwqIO2wXQEgMbZP
-         r0WQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWlIpHiHGcfl7pJLhTpYq90L+XMT5GGhKjySxt3Ub9AyPmVeI5/rGtYeMcwBn+qjNj5IBZS+v5pKUp7@vger.kernel.org
-X-Gm-Message-State: AOJu0YxkbNeGUu38o2xolTuBA7k8TNxE2ETy839iiwhfOKCKDbnmNxI+
-	l0jGxwC+C+kSZfQXmzZ65LoKGeOzpvM/h9k69WhiF+u4+30M83qnxnraGVuPkbOnE/0=
-X-Gm-Gg: ATEYQzyjgTUu/b2ESPpJgKnXdhwU8vVRi0Kn4vFQgbAzE8i4w4VBQVVQCZ6Ozac8Fsq
-	LJlYru0he1/+pk/k2LzX3BGM6SmN3RBWmADBb5+winSuPh2Qa2uD549SFsiZ7kRweNFYhZf34MY
-	iIx8xmXB4fDL3EpzazH44SQU2SLKbTEzN8OS/SHiyu12Ej5Wa5zqwVXwSRVO+vcS+qCRy4xZmis
-	1uIh+zX7WL/eLx0M4fdCcTUZP/Wu31CsHFErm4bXkDvBjXc5O90sBgb9uzmBKJ1jrd4Y5dxMmBb
-	Y8L53TFkFjDNwNWmEHr7uk3f7okn7h5lpPyzrE59cQogpOQe1fzHvPeovT/Q7vpbgiLwU9TOOqQ
-	S1BBbBL1Ul1XAXv5Mf1GCTUlG4Tf9DIOIyGrsiP16y+fqYkBMjiyJQaXKVgJ3kcLMHcLh94zv2m
-	nYvIyooGe4/ERDnC3Oe6eogIUClol+yg8=
-X-Received: by 2002:a17:903:1b2c:b0:2ae:46b9:c653 with SMTP id d9443c01a7336-2ae82431855mr5201065ad.33.1772759247109;
-        Thu, 05 Mar 2026 17:07:27 -0800 (PST)
-Received: from localhost ([71.212.200.220])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2adfb5db596sm247377735ad.35.2026.03.05.17.07.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Mar 2026 17:07:26 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: linux-kernel@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>
-Cc: Nishanth Menon <nm@ti.com>, linux-pm@vger.kernel.org, 
- Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, 
- linux-omap@vger.kernel.org, Andreas Kemnade <andreas@kemnade.info>, 
- Roger Quadros <rogerq@kernel.org>
-In-Reply-To: <20260226051309.556228-1-rdunlap@infradead.org>
-References: <20260226051309.556228-1-rdunlap@infradead.org>
-Subject: Re: [PATCH] ARM: omap: fix all kernel-doc warnings
-Message-Id: <177275924620.1445909.6503148696411079106.b4-ty@baylibre.com>
-Date: Thu, 05 Mar 2026 17:07:26 -0800
+        d=1e100.net; s=20230601; t=1772770510; x=1773375310;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=caYlw5uZFtDTjdpuJpoLZkB8qzJjrGN/QTXEgHQCJYY=;
+        b=jTHpM4YViajXBtPkCyIBSHSQtMJ+Yf2PpNoDLS0YJMJqNxl6qeZSyAJz2d90fqNVNE
+         lS4fSoD9QBz+mDIkWl+CqVXi3LwMoGzysVyFvXcxtKs9milD8TOk5Qlq0uEsS8q44cWm
+         WeiDRJV5ssiPdiEsXPZ6igCyeh3gElKmFeob0wLGtbKYVvD8X/uULZ4f+kAQqpKTzJTj
+         BQLxotBEibRc9UnY4yZ5no7qzdC04LMdtg794XRLIYPsqwEOTbwQ1b0b5yZKtYTBqQoX
+         cGRlV9W345lyIcX4A/PUOVknzunkoLgpS8C9LhShCwldK/J6P43Uz5i01JElYHQqbd0l
+         i/XQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVXhEXn2dlYr21oU7lZ+NWrHfSz/rl7nuvFl8qrY2Oa6EI8HbWrxTs2yXXAnuuYQ2MseYyPlpEggc42@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywt6ASZ9qGxQFXEkQjKPu1rfG6Zd56iqDgdykCDQO+7kws0c0XN
+	cD6IGi+ytLEl9NlUnoFyWHlXZpMCWpz1gyCTcC0GLBpg9opOJw2g56+OR0gSEUNxdN8LpV9Dg//
+	M45M/Qj/E9LObO4HiB+DnbxZ5GsirOLE=
+X-Gm-Gg: ATEYQzzH6sJ2Ci7wfZifLbzlnmnAIacQqFb0GHOTOpKYr8K+dZXVeqb5K1yqgCrJD2E
+	h/gN3H/esA/Qwgkgxvx8dFL85MQfUMF2JDzLoPWmSJ/EUyOGZmmdiUFSiJPyh2O8J6X/fkYn90k
+	xaB1p2ptJcAsctUrcyamXQltyfQjSPMCtuVzIneksf+/X4YZc4+GEvx1WBov+LJagPBTHp6vbKZ
+	yd5d92nR5xlOrIcK1ScoqcM9YV2wkbqdJJyeT02zvzjdF7N6ZmWzllW4v6Jju4/LIHM9xI9McBS
+	5Y8whg==
+X-Received: by 2002:a17:907:6d02:b0:b93:6bfe:d556 with SMTP id
+ a640c23a62f3a-b942db8682dmr33539966b.7.1772770510037; Thu, 05 Mar 2026
+ 20:15:10 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-47773
+References: <20260304140329.7089-1-linux.amoon@gmail.com> <MA5PR01MB125008C876FC8461A80514DE8FE7DA@MA5PR01MB12500.INDPRD01.PROD.OUTLOOK.COM>
+In-Reply-To: <MA5PR01MB125008C876FC8461A80514DE8FE7DA@MA5PR01MB12500.INDPRD01.PROD.OUTLOOK.COM>
+From: Anand Moon <linux.amoon@gmail.com>
+Date: Fri, 6 Mar 2026 09:44:53 +0530
+X-Gm-Features: AaiRm51D8WbPwjbtXZGUsnsbSyyBH4WmUaM2xaSBTKwsUjOwhQr-zWi1-hyOtG4
+Message-ID: <CANAwSgQ8eKV4jyxGeva_2aT98sPW=44Q9J5PxMgJ-bs3XdwrkA@mail.gmail.com>
+Subject: Re: [RFC v1 00/18] PCI: Enable async probe by default
+To: Chen Wang <unicorn_wang@outlook.com>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>, Siddharth Vadapalli <s-vadapalli@ti.com>, 
+	Lorenzo Pieralisi <lpieralisi@kernel.org>, =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kwilczynski@kernel.org>, 
+	Manivannan Sadhasivam <mani@kernel.org>, Rob Herring <robh@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, 
+	Jingoo Han <jingoohan1@gmail.com>, Krzysztof Kozlowski <krzk@kernel.org>, 
+	Alim Akhtar <alim.akhtar@samsung.com>, Minghuan Lian <minghuan.Lian@nxp.com>, 
+	Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, Yue Wang <yue.wang@amlogic.com>, 
+	Neil Armstrong <neil.armstrong@linaro.org>, Kevin Hilman <khilman@baylibre.com>, 
+	Jerome Brunet <jbrunet@baylibre.com>, 
+	Martin Blumenstingl <martin.blumenstingl@googlemail.com>, Jonathan Chocron <jonnyc@amazon.com>, 
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>, Jesper Nilsson <jesper.nilsson@axis.com>, 
+	Paul Walmsley <pjw@kernel.org>, Greentime Hu <greentime.hu@sifive.com>, 
+	Samuel Holland <samuel.holland@sifive.com>, Chuanhua Lei <lchuanhua@maxlinear.com>, 
+	Srikanth Thokala <srikanth.thokala@intel.com>, Xiaowei Song <songxiaowei@hisilicon.com>, 
+	Binghui Wang <wangbinghui@hisilicon.com>, Inochi Amaoto <inochiama@gmail.com>, 
+	Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, 
+	Kunihiko Hayashi <hayashi.kunihiko@socionext.com>, Masami Hiramatsu <mhiramat@kernel.org>, 
+	Nobuhiro Iwamatsu <nobuhiro.iwamatsu.x90@mail.toshiba>, Niklas Cassel <cassel@kernel.org>, 
+	"Jiri Slaby (SUSE)" <jirislaby@kernel.org>, Qianfeng Rong <rongqianfeng@vivo.com>, 
+	Koichiro Den <den@valinux.co.jp>, Hans Zhang <18255117159@163.com>, 
+	Sai Krishna Musham <sai.krishna.musham@amd.com>, 
+	Thippeswamy Havalige <thippeswamy.havalige@amd.com>, Vidya Sagar <vidyas@nvidia.com>, 
+	"open list:PCI DRIVER FOR TI DRA7XX/J721E" <linux-omap@vger.kernel.org>, 
+	"open list:PCI DRIVER FOR TI DRA7XX/J721E" <linux-pci@vger.kernel.org>, 
+	"moderated list:PCI DRIVER FOR TI DRA7XX/J721E" <linux-arm-kernel@lists.infradead.org>, 
+	open list <linux-kernel@vger.kernel.org>, 
+	"open list:PCI DRIVER FOR SAMSUNG EXYNOS" <linux-samsung-soc@vger.kernel.org>, 
+	"open list:PCI DRIVER FOR FREESCALE LAYERSCAPE" <linuxppc-dev@lists.ozlabs.org>, 
+	"open list:PCI DRIVER FOR FREESCALE LAYERSCAPE" <imx@lists.linux.dev>, 
+	"open list:PCIE DRIVER FOR AMLOGIC MESON" <linux-amlogic@lists.infradead.org>, 
+	"open list:PCIE DRIVER FOR AXIS ARTPEC" <linux-arm-kernel@axis.com>, 
+	"open list:SOPHGO DEVICETREES and DRIVERS" <sophgo@lists.linux.dev>, 
+	"open list:TEGRA ARCHITECTURE SUPPORT" <linux-tegra@vger.kernel.org>, 
+	"open list:SIFIVE DRIVERS:Keyword:fu [57] 40" <linux-riscv@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 
+Hi Chen,
 
-On Wed, 25 Feb 2026 21:13:09 -0800, Randy Dunlap wrote:
-> Use the correct struct member names to avoid kernel-doc warnings:
-> 
-> Warning: include/linux/platform_data/voltage-omap.h:27 struct member
->  'volt_nominal' not described in 'omap_volt_data'
-> Warning: include/linux/platform_data/voltage-omap.h:27 struct member
->  'vp_errgain' not described in 'omap_volt_data'
-> 
-> [...]
-
-Applied, thanks!
-
-[1/1] ARM: omap: fix all kernel-doc warnings
-      commit: de70eef32e10883fe74f6df635c616785b24b867
-
-Best regards,
--- 
-Kevin Hilman <khilman@baylibre.com>
-
+On Thu, 5 Mar 2026 at 05:57, Chen Wang <unicorn_wang@outlook.com> wrote:
+>
+> Hello Anand,
+>
+> On 3/4/2026 9:51 PM, Anand Moon wrote:
+> > Following recent asynchronous probing updates to the Rockchip PCIe
+> > controller, this change enables default async probe functionality for
+> > all DesignWare Core (DWC) based controllers to optimize boot times [0].
+> >
+> > [0] https://lore.kernel.org/all/20260226101032.1042-1-linux.amoon@gmail.com/
+> >
+> > This PROBE_PREFER_ASYNCHRONOUS flag help to parallelize device initialization.
+> >
+> > Thanks
+> > -Anand
+> >
+> > Anand Moon (18):
+> >    PCI: al: Allow asynchronous probing for background link training
+> >    PCI: amd-mdb: Allow asynchronous probing for background link training
+> >    PCI: armada8x: Allow asynchronous probing for background link training
+> >    PCI: artpec6: Allow asynchronous probing for background link training
+> >    PCI: bt1: Allow asynchronous probing for background link training
+> >    PCI: dra7xx: Allow asynchronous probing for background link training
+> >    PCI: exynos: Allow asynchronous probing for background link training
+> >    PCI: fu740: Allow asynchronous probing for background link training
+> >    PCI: intel-gw: Allow asynchronous probing for background link training
+> >    PCI: keystone: Allow asynchronous probing for background link training
+> >    PCI: keembay: Allow asynchronous probing for background link training
+> >    PCI: kirin: Allow asynchronous probing for background link training
+> >    PCI: layerscape: Allow asynchronous probing for background link
+> >      training
+> >    PCI: meson: Allow asynchronous probing for background link training
+> >    PCI: sophgo: Allow asynchronous probing for background link training
+> >    PCI: tegra194: Allow asynchronous probing for background link training
+> >    PCI: uniphier: Allow asynchronous probing for background link training
+> >    PCI: visconti: Allow asynchronous probing for background link training
+> >
+> >   drivers/pci/controller/dwc/pci-dra7xx.c     | 1 +
+> >   drivers/pci/controller/dwc/pci-exynos.c     | 1 +
+> >   drivers/pci/controller/dwc/pci-keystone.c   | 1 +
+> >   drivers/pci/controller/dwc/pci-layerscape.c | 1 +
+> >   drivers/pci/controller/dwc/pci-meson.c      | 1 +
+> >   drivers/pci/controller/dwc/pcie-al.c        | 1 +
+> >   drivers/pci/controller/dwc/pcie-amd-mdb.c   | 1 +
+> >   drivers/pci/controller/dwc/pcie-armada8k.c  | 1 +
+> >   drivers/pci/controller/dwc/pcie-artpec6.c   | 1 +
+> >   drivers/pci/controller/dwc/pcie-bt1.c       | 1 +
+> >   drivers/pci/controller/dwc/pcie-fu740.c     | 7 ++++---
+> >   drivers/pci/controller/dwc/pcie-intel-gw.c  | 1 +
+> >   drivers/pci/controller/dwc/pcie-keembay.c   | 1 +
+> >   drivers/pci/controller/dwc/pcie-kirin.c     | 1 +
+> >   drivers/pci/controller/dwc/pcie-sophgo.c    | 1 +
+> >   drivers/pci/controller/dwc/pcie-tegra194.c  | 1 +
+> >   drivers/pci/controller/dwc/pcie-uniphier.c  | 1 +
+> >   drivers/pci/controller/dwc/pcie-visconti.c  | 1 +
+> >   18 files changed, 21 insertions(+), 3 deletions(-)
+> >
+> >
+> > base-commit: 0031c06807cfa8aa51a759ff8aa09e1aa48149af
+>
+> Suggest you indicate in the title of the cover letter for the next patch
+> that this patchset is only related to dwc.
+>
+Thanks, If I get positive feedback I will append dwc in the $subject.
+> Thanks,
+>
+> Chen
+>
+Thanks
+-Anand
