@@ -1,100 +1,83 @@
-Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D15840759B;
-	Tue, 10 Mar 2026 09:01:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ABE343DA51
+	for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2026 09:33:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773133296; cv=none; b=OpoWwKjeiUaavHopmwnujFnGoZ6NJBQCZ65Cmj9eSr414aYVvhN26xw9f+oVeUzXA5IKrrJBVOebrSzF/3sD784dOTfiK2hJ8j38qJC/P4A9jRpCZIAJUHSgGVEbY6MtDeW3LxlpJJP8Q0+CBQ2nM9ZR54Cu5BSuwPImp6lb3oE=
+	t=1773135193; cv=none; b=LYu8QYxtsbuc+IS1kHny9cRCb7DR6SIOcrV6fQfbCyYXGYh1oIk/fxIsMMhlBKMaihU9V+/Rw+Uxzqj/d9NXycZtiyaRL+8vQGv60qeOY1qGt9h7f3BzLpw9u4YtfT548284Lq/HYgo4aA5+tzZH99AeimUJQfjrc7scrntv2Mo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773133296; c=relaxed/simple;
-	bh=+ZtddYTfxK4iy32tnlSe9dFpGEJUP8yEVRuq3mkv7P8=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=UC1s7osRpT1nuXQ2eC3K2hnPdLwBdSkTpq62wbmRJrnjaCmsgsZKJWyKHn9o/QBLXm0h0bSbEQ+c79b3dJEjgWz2fj+BtRTzZgDCxzC1CN9AhGlEI2mc8+bRd364wNz982EROBE6cD8MOOGkvN4jNXsr3zC5fALh61oXYUbfZK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from localhost (unknown [124.16.138.129])
-	by APP-05 (Coremail) with SMTP id zQCowACHGw_i3a9pWDQLCg--.28450S2;
-	Tue, 10 Mar 2026 17:01:22 +0800 (CST)
-From: Chen Ni <nichen@iscas.ac.cn>
-To: linux-fbdev@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Cc: deller@gmx.de,
-	tglx@kernel.org,
-	mingo@kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Chen Ni <nichen@iscas.ac.cn>
-Subject: [PATCH] video: fbdev: omapfb: Add missing error check for clk_get()
-Date: Tue, 10 Mar 2026 16:56:25 +0800
-Message-Id: <20260310085625.2648545-1-nichen@iscas.ac.cn>
-X-Mailer: git-send-email 2.25.1
+	s=arc-20240116; t=1773135193; c=relaxed/simple;
+	bh=iJrlNVsjh6+70Ec05z6rXG0svXgiagQ0oIi5LjzykKg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=DunNhkBcxprETLUNah6QW8kwP3ba/PGiyJ/sLgqBnC+yDhWAOIuXHbTlbRvpklTIxZzti9vnECe7RXEJqz/pIINvPVT8j+W7R22NlHVPxOLYPnJ4/Cvnhf2KXYwilbSgzALRlgKlcefSaSoH7SobivyAMYpD/Ro5uAT0Fwxibbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mY3Ca3/H; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mY3Ca3/H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECD89C2BCC4
+	for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2026 09:33:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773135193;
+	bh=iJrlNVsjh6+70Ec05z6rXG0svXgiagQ0oIi5LjzykKg=;
+	h=References:In-Reply-To:Reply-To:From:Date:Subject:To:Cc:From;
+	b=mY3Ca3/HEqRL1B0J9UDvEJsmn7P7e25xmxrk6/AjzBbbZnYWbAL1l2mRGg0Hu2E/C
+	 o1ZOdicwGfe/YyLu0nB1GZApWdL+Kc0aKRHeOjyjRC9y1GdP7kNe5TMdLNvp5hnGj0
+	 DXu5vC4qWM6T6nUb1k+q6VPiD8Kn4g/7Mcm5Lv6U3anSCEwICiGf3Qst6C3wsl2pkm
+	 BFGiiOOaaVND/P/IoZ8KVVez8URAYrTO5u0YI8eWR2aHRFvpFJUYfoVyFFsYgHUiGk
+	 FljTkyWz5rhYUpZCJUZK9EDqP+TC6oCqVNMj/VZkQ9gvQhW74dLRDg4evWaPDd9gtj
+	 Uy+bWPerEqlLw==
+Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-38a2f196cbaso53606021fa.1
+        for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2026 02:33:12 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXubBFJMPj+RabVm9D8+BfUesl8xHe1g/sDqZEi9CkAStpwus+dJ8c5MWZO8XIP1Hu6JQuKbMhhGL8U@vger.kernel.org
+X-Gm-Message-State: AOJu0YyMnbUSTZHZAbzJCC9eWX/X/QrMk6/tlGhuLunJy5Fay/iW4gQu
+	V51zAMqF/8N86Bc3oEoahxVrvzgrw5IykCCR7NE3uoqlS6hhLVs++gQ3Etx2LYzsD6wKMSa7quR
+	oBCUOH10vaXFE3YG1pQCfA2JBjla/2Jw=
+X-Received: by 2002:a2e:bd82:0:b0:387:20:bdbc with SMTP id 38308e7fff4ca-38a40d61d78mr46199441fa.12.1773135191017;
+ Tue, 10 Mar 2026 02:33:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zQCowACHGw_i3a9pWDQLCg--.28450S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7WFWUXr4kCw13Xr1DArW5ZFb_yoW8GF1DpF
-	4UJayFy3y7JFWvya1DGr4qqFyUK3W0yFWfuryvkwnYgF4Yvr4DWryxGFyUXF1fA3yfA3W2
-	qryjya1ktFya9aDanT9S1TB71UUUUUDqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9m14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
-	6F4UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
-	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
-	jxv20xvE14v26r106r15McIj6I8E87Iv67AKxVW8JVWxJwAm72CE4IkC6x0Yz7v_Jr0_Gr
-	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxkF7I0En4kS14v26r12
-	6r1DMxkIecxEwVAFwVW8uwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8Jw
-	CFI7km07C267AKxVWUXVWUAwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v2
-	6r106r1rMI8E67AF67kF1VAFwI0_JF0_Jw1lIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67
-	AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k26cxKx2IY
-	s7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr
-	0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x0JU3b1nUUUUU=
-X-CM-SenderInfo: xqlfxv3q6l2u1dvotugofq/
+References: <20260310075539.11701-1-wsa+renesas@sang-engineering.com> <20260310075539.11701-4-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20260310075539.11701-4-wsa+renesas@sang-engineering.com>
+Reply-To: wens@kernel.org
+From: Chen-Yu Tsai <wens@kernel.org>
+Date: Tue, 10 Mar 2026 17:32:56 +0800
+X-Gmail-Original-Message-ID: <CAGb2v65gV+2xZDO7h9Dsx=iOHX6Jt_JyHTOeWRYaEMuC+jR1FA@mail.gmail.com>
+X-Gm-Features: AaiRm51CffgMBtgWhMZCUpMdeeAdI463XBf8sQip2RO0V2c7exzECk92c7gy0OY
+Message-ID: <CAGb2v65gV+2xZDO7h9Dsx=iOHX6Jt_JyHTOeWRYaEMuC+jR1FA@mail.gmail.com>
+Subject: Re: [PATCH v4 03/15] hwspinlock: add helpers to retrieve core data
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Bjorn Andersson <andersson@kernel.org>, Baolin Wang <baolin.wang@linux.alibaba.com>, 
+	Orson Zhai <orsonzhai@gmail.com>, Chunyan Zhang <zhang.lyra@gmail.com>, 
+	Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre Torgue <alexandre.torgue@foss.st.com>, 
+	Wilken Gottwalt <wilken.gottwalt@posteo.net>, Jernej Skrabec <jernej.skrabec@gmail.com>, 
+	Samuel Holland <samuel@sholland.org>, linux-remoteproc@vger.kernel.org, 
+	linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org, 
+	linux-stm32@st-md-mailman.stormreply.com, 
+	linux-arm-kernel@lists.infradead.org, linux-sunxi@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The hwa742_init() function did not check the return value of clk_get().
-This could lead to dereferencing an error pointer in subsequent clock
-operations, potentially causing a kernel crash.
+On Tue, Mar 10, 2026 at 3:56=E2=80=AFPM Wolfram Sang
+<wsa+renesas@sang-engineering.com> wrote:
+>
+> This is a first step to hide internal core structs from hwspinlock
+> providers. It adds helper functions to retrieve the data needed by them.
+> Because all users are only within the hwspinlock subsystem and the
+> change there is trivial, conversion is included in this patch as well.
+>
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> ---
+>  drivers/hwspinlock/hwspinlock_core.c  | 12 ++++++++++++
+>  drivers/hwspinlock/omap_hwspinlock.c  |  4 ++--
+>  drivers/hwspinlock/qcom_hwspinlock.c  | 11 ++++++-----
+>  drivers/hwspinlock/sprd_hwspinlock.c  |  6 +++---
+>  drivers/hwspinlock/stm32_hwspinlock.c |  4 ++--
 
-Fix this by adding a missing error check and ensuring proper clock
-resource cleanup on failure and driver removal.
+>  drivers/hwspinlock/sun6i_hwspinlock.c |  4 ++--
 
-Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
----
- drivers/video/fbdev/omap/hwa742.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/video/fbdev/omap/hwa742.c b/drivers/video/fbdev/omap/hwa742.c
-index 64e76e1f5388..68a677f824e9 100644
---- a/drivers/video/fbdev/omap/hwa742.c
-+++ b/drivers/video/fbdev/omap/hwa742.c
-@@ -950,6 +950,8 @@ static int hwa742_init(struct omapfb_device *fbdev, int ext_mode,
- 	omapfb_conf = dev_get_platdata(fbdev->dev);
- 
- 	hwa742.sys_ck = clk_get(NULL, "hwa_sys_ck");
-+	if (IS_ERR(hwa742.sys_ck))
-+		return PTR_ERR(hwa742.sys_ck);
- 
- 	spin_lock_init(&hwa742.req_lock);
- 
-@@ -1028,6 +1030,7 @@ static int hwa742_init(struct omapfb_device *fbdev, int ext_mode,
- err2:
- 	hwa742.int_ctrl->cleanup();
- err1:
-+	clk_put(hwa742.sys_ck);
- 	return r;
- }
- 
-@@ -1037,6 +1040,7 @@ static void hwa742_cleanup(void)
- 	hwa742.extif->cleanup();
- 	hwa742.int_ctrl->cleanup();
- 	clk_disable_unprepare(hwa742.sys_ck);
-+	clk_put(hwa742.sys_ck);
- }
- 
- struct lcd_ctrl hwa742_ctrl = {
--- 
-2.25.1
-
+Acked-by: Chen-Yu Tsai <wens@kernel.org> # sun6i
