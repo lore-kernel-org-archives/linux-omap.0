@@ -1,39 +1,38 @@
-Received: from mail.avm.de (mail.avm.de [212.42.244.119])
+Received: from mail.avm.de (mail.avm.de [212.42.244.120])
 	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A6C248B395;
-	Tue, 10 Mar 2026 11:55:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.42.244.119
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 973D54949E5;
+	Tue, 10 Mar 2026 11:55:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.42.244.120
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773143760; cv=none; b=mtV8xVtsfJBazV913lvDLQV9d4v9ggQ8qO84zSnjPlASkDzN+E2/COXg/QG+m8uZrwTd0qfZDUYI5qbQqeFK1G02hA/7iSxxHN7P4AlWyWYewjTzLGVGJYit11cUZxJptEBClAcV7ssvBmAc/1EnP6h9s3gmAJd1/PlwR4P8KbE=
+	t=1773143763; cv=none; b=jVPcZkjmYCLzoQ90DRsMxkCNuGuZCdzg4wr9Jyr2zSsBBdETR2TibQbr9LcKG4cH71kAk8ZmqnOa6fKAX1eXsYXX2wzF7j8iqjvIXDgTtolDkDtDfFa9qbtI6vFXBQMoINhSjNPumxxcL27ba62D+HT7YFMG2uv7lwpWU0RULiY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773143760; c=relaxed/simple;
-	bh=uPgyjK+s+NGMdE+cG5MPshRhc7ZZgUWwr7PoRjCZSpk=;
+	s=arc-20240116; t=1773143763; c=relaxed/simple;
+	bh=xZ7JyJZFZn3iuOZoe5h922zZ5R4/JN/dDbwKPDTDpVg=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=oCDQXW9FNuBeAWWJ7wlqO93J0/thsCJEgo1/khRcCJzVIgsUsm+WFTXs2g8Oe7vfOYfB0xnJAtBMGPjEx2PhZDC51RniwB6sUTyZofcvnPurxNPxJte0Q1zB5y/5aa+j7rJoijCyQV4xCigyHJTXYcYxaFkO/eizOeiJaSQQsf0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=avm.de; spf=pass smtp.mailfrom=avm.de; dkim=pass (1024-bit key) header.d=avm.de header.i=@avm.de header.b=EmfqFdXE; arc=none smtp.client-ip=212.42.244.119
+	 In-Reply-To:To:Cc; b=mr/ujoPyuLtqBQ8Sl646WIfi+sym3EtajGvRbmfTtUxGyrDMgQ8e6/uwIUXFuCBymozKwuIJl40eGltS089ttW909bd5Eb+7qx5ohtN/AQG2LD8/u3scmAk96G16CavxFccwagLyNGWso7cPzo5vwDhX9uRdQt9S0ArCQCGYtPM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=avm.de; spf=pass smtp.mailfrom=avm.de; dkim=pass (1024-bit key) header.d=avm.de header.i=@avm.de header.b=DinAmxq0; arc=none smtp.client-ip=212.42.244.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=avm.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=avm.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=avm.de header.i=@avm.de header.b="EmfqFdXE"
+	dkim=pass (1024-bit key) header.d=avm.de header.i=@avm.de header.b="DinAmxq0"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=avm.de; s=mail;
-	t=1773143725; bh=uPgyjK+s+NGMdE+cG5MPshRhc7ZZgUWwr7PoRjCZSpk=;
+	t=1773143726; bh=xZ7JyJZFZn3iuOZoe5h922zZ5R4/JN/dDbwKPDTDpVg=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=EmfqFdXEdiCWqgoXgX8BLevw6sTpNgfg8llLMS9eEaTKVg51Kp8K29SjBZVEdIV/s
-	 M7bvI3BPyHpPb6vMRi2BheqpUIfCWQ/6jm+gYuX79PpwCNDjLncHrcFsaokOkzLrgm
-	 dBKJjX9bdtP/6DkQEVr2DPx5QPmWYl9+WXcAxUUE=
-Received: from [2001:bf0:244:244::71] (helo=mail.avm.de)
+	b=DinAmxq0LdEBHgGBL7yN+mThFn/2Jhu9YOuH2jhyjRCQP7wX2xayjWDIl59Rrb4CK
+	 4PIJ1T+7hTwTj8CuijTOHG0Dr5+uZ6nhOuL9PA+MuH5Ju5mtqzXJbLzXEHHZ0RMdiv
+	 vPLvy7MaYVqTlmV0GJrDdkzJ4sI8MLKN5uuQ6tUg=
+Received: from [212.42.244.71] (helo=mail.avm.de)
 	by mail.avm.de with ESMTP (eXpurgate 4.55.2)
 	(envelope-from <phahn-oss@avm.de>)
-	id 69b006ad-2367-7f0000032729-7f0000019d9a-1
-	for <multiple-recipients>; Tue, 10 Mar 2026 12:55:25 +0100
-Received: from mail-auth.avm.de (dovecot-mx-01.avm.de [IPv6:2001:bf0:244:244::71])
+	id 69b006ac-b734-7f0000032729-7f000001c02e-1
+	for <multiple-recipients>; Tue, 10 Mar 2026 12:55:24 +0100
+Received: from mail-auth.avm.de (dovecot-mx-01.avm.de [212.42.244.71])
 	by mail.avm.de (Postfix) with ESMTPS;
-	Tue, 10 Mar 2026 12:55:25 +0100 (CET)
+	Tue, 10 Mar 2026 12:55:24 +0100 (CET)
 From: Philipp Hahn <phahn-oss@avm.de>
-Date: Tue, 10 Mar 2026 12:48:55 +0100
-Subject: [PATCH 29/61] net/sctp: Prefer IS_ERR_OR_NULL over manual NULL
- check
+Date: Tue, 10 Mar 2026 12:48:50 +0100
+Subject: [PATCH 24/61] net/9p: Prefer IS_ERR_OR_NULL over manual NULL check
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -42,7 +41,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260310-b4-is_err_or_null-v1-29-bd63b656022d@avm.de>
+Message-Id: <20260310-b4-is_err_or_null-v1-24-bd63b656022d@avm.de>
 References: <20260310-b4-is_err_or_null-v1-0-bd63b656022d@avm.de>
 In-Reply-To: <20260310-b4-is_err_or_null-v1-0-bd63b656022d@avm.de>
 To: amd-gfx@lists.freedesktop.org, apparmor@lists.ubuntu.com, 
@@ -72,24 +71,27 @@ To: amd-gfx@lists.freedesktop.org, apparmor@lists.ubuntu.com,
  sched-ext@lists.linux.dev, target-devel@vger.kernel.org, 
  tipc-discussion@lists.sourceforge.net, v9fs@lists.linux.dev, 
  Philipp Hahn <phahn-oss@avm.de>
-Cc: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>, 
- Xin Long <lucien.xin@gmail.com>, "David S. Miller" <davem@davemloft.net>, 
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1169; i=phahn-oss@avm.de;
- h=from:subject:message-id; bh=uPgyjK+s+NGMdE+cG5MPshRhc7ZZgUWwr7PoRjCZSpk=;
- b=owEBbQGS/pANAwAKATQtBlPRrKzbAcsmYgBpsAY4baP8me9X19X7pKru5bhCt+OcLVsbTz9gw
- 3EXL2x+9HiJATMEAAEKAB0WIQQ5bPBtrWDUcDQCppg0LQZT0ays2wUCabAGOAAKCRA0LQZT0ays
- 20eCB/9R10a8QtWnOE8FDIK68et8w+x4vBIl7DAH3ljWsVvEsJtllIM7WoriXoMKcy69weBfdTt
- udsIaDDf3FpSbi6d23LNVWvY7/j8StHi4Mb7YRTkDtjVuH7qFkxhMIEkO0P72RZbdjNmUsWZOT+
- 4yfdZZ4sqiFeE73LKQ05t8sm9/1XHgZKcnk5I6ebEYNeQeVfoiugFSvaTmWSBPUItBis/2y3N1h
- 19AfztgUerK/fadW7Y/vZ3pDRpIi5ZAslPLWaCgGa6B5OoDoVAvOz5XPc/Ut45LGyZkJYA2qiTr
- TmaKunQohnKINyK0THlxz9DBNJM47y+p9em5r+zCNMTJFQSn
+Cc: Eric Van Hensbergen <ericvh@kernel.org>, 
+ Latchesar Ionkov <lucho@ionkov.net>, 
+ Dominique Martinet <asmadeus@codewreck.org>, 
+ Christian Schoenebeck <linux_oss@crudebyte.com>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2017; i=phahn-oss@avm.de;
+ h=from:subject:message-id; bh=xZ7JyJZFZn3iuOZoe5h922zZ5R4/JN/dDbwKPDTDpVg=;
+ b=owEBbQGS/pANAwAKATQtBlPRrKzbAcsmYgBpsAYnEtzR553dJZWqu5r4IUgVMywPaNyCn2Kl0
+ rArZNDCQ6GJATMEAAEKAB0WIQQ5bPBtrWDUcDQCppg0LQZT0ays2wUCabAGJwAKCRA0LQZT0ays
+ 22Q3B/0WDcaxg22CSV3J2yK2YCh66cZH85KFq38ggbwHyd5a8WjqQnka33Kdtc08oHARsU9ozqE
+ P4ub42oqVPDyOyAfaW0nuVYHNlcCbmh/bxnwLHvjz7DvZynqqfi+81IpwDPL+nf3OHCqA45W3el
+ wXFHM9DZ2DjwYG4MfnrZOmjwML1Qt1LKYUAR5WbU3bIh/t6NofmRATpZci0AEY2ACgSBKNBZ+xC
+ yT5B0+MsE+np/c9UPC/BM2BZX3AZEATfPCVPaM5j6SGQ910wEhLc3aOja8ish65RkJANbgaQX9X
+ HjK5HDFDjBbvCnKAA71XMeOX3I4/FbTzAL7Ez+9Tosk9xWKL
 X-Developer-Key: i=phahn-oss@avm.de; a=openpgp;
  fpr=58AF7C2E007CDBE62C59E078F50EFDCF8AD04B1A
-X-purgate-ID: 149429::1773143725-73CEFE1F-39E0F1CD/0/0
+X-purgate-ID: 149429::1773143724-D2DE8A3D-E8744539/0/0
 X-purgate-type: clean
-X-purgate-size: 1171
+X-purgate-size: 2019
 X-purgate-Ad: Categorized by eleven eXpurgate (R) https://www.eleven.de
 X-purgate: This mail is considered clean (visit https://www.eleven.de for further information)
 X-purgate: clean
@@ -99,34 +101,62 @@ check.
 
 Change generated with coccinelle.
 
-To: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-To: Xin Long <lucien.xin@gmail.com>
+To: Eric Van Hensbergen <ericvh@kernel.org>
+To: Latchesar Ionkov <lucho@ionkov.net>
+To: Dominique Martinet <asmadeus@codewreck.org>
+To: Christian Schoenebeck <linux_oss@crudebyte.com>
 To: "David S. Miller" <davem@davemloft.net>
 To: Eric Dumazet <edumazet@google.com>
 To: Jakub Kicinski <kuba@kernel.org>
 To: Paolo Abeni <pabeni@redhat.com>
 To: Simon Horman <horms@kernel.org>
-Cc: linux-sctp@vger.kernel.org
+Cc: v9fs@lists.linux.dev
 Cc: netdev@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 Signed-off-by: Philipp Hahn <phahn-oss@avm.de>
 ---
- net/sctp/socket.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/9p/client.h | 2 +-
+ net/9p/trans_rdma.c     | 8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/sctp/socket.c b/net/sctp/socket.c
-index 05fb00c9c33576d1e18ee31c34974d8b76efa768..a0596c94be4ad6afae6be13adb3bce17140264e9 100644
---- a/net/sctp/socket.c
-+++ b/net/sctp/socket.c
-@@ -5349,7 +5349,7 @@ struct sctp_transport *sctp_transport_get_idx(struct net *net,
- 	if (!pos)
- 		return SEQ_START_TOKEN;
+diff --git a/include/net/9p/client.h b/include/net/9p/client.h
+index 838a94218b593f3fb19e6827c472753380193461..4bde6bd716f323c819745e64c7aac0dea7beb72f 100644
+--- a/include/net/9p/client.h
++++ b/include/net/9p/client.h
+@@ -364,7 +364,7 @@ static inline struct p9_fid *p9_fid_get(struct p9_fid *fid)
  
--	while ((t = sctp_transport_get_next(net, iter)) && !IS_ERR(t)) {
-+	while (!IS_ERR_OR_NULL((t = sctp_transport_get_next(net, iter)))) {
- 		if (!--pos)
- 			break;
- 		sctp_transport_put(t);
+ static inline int p9_fid_put(struct p9_fid *fid)
+ {
+-	if (!fid || IS_ERR(fid))
++	if (IS_ERR_OR_NULL(fid))
+ 		return 0;
+ 
+ 	if (tracepoint_enabled(9p_fid_ref))
+diff --git a/net/9p/trans_rdma.c b/net/9p/trans_rdma.c
+index aa5bd74d333f3b5e6fd1e4344d26bc0201ff7f7f..60461344b536bcb6e94112aace75a88b6a99ad86 100644
+--- a/net/9p/trans_rdma.c
++++ b/net/9p/trans_rdma.c
+@@ -252,16 +252,16 @@ static void rdma_destroy_trans(struct p9_trans_rdma *rdma)
+ 	if (!rdma)
+ 		return;
+ 
+-	if (rdma->qp && !IS_ERR(rdma->qp))
++	if (!IS_ERR_OR_NULL(rdma->qp))
+ 		ib_destroy_qp(rdma->qp);
+ 
+-	if (rdma->pd && !IS_ERR(rdma->pd))
++	if (!IS_ERR_OR_NULL(rdma->pd))
+ 		ib_dealloc_pd(rdma->pd);
+ 
+-	if (rdma->cq && !IS_ERR(rdma->cq))
++	if (!IS_ERR_OR_NULL(rdma->cq))
+ 		ib_free_cq(rdma->cq);
+ 
+-	if (rdma->cm_id && !IS_ERR(rdma->cm_id))
++	if (!IS_ERR_OR_NULL(rdma->cm_id))
+ 		rdma_destroy_id(rdma->cm_id);
+ 
+ 	kfree(rdma);
 
 -- 
 2.43.0
