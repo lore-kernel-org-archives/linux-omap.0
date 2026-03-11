@@ -1,107 +1,93 @@
-Received: from smtpbgbr2.qq.com (smtpbgbr2.qq.com [54.207.22.56])
+Received: from relay.hostedemail.com (smtprelay0013.hostedemail.com [216.40.44.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A8B578F2E
-	for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2026 13:33:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.207.22.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58E73282F0B;
+	Wed, 11 Mar 2026 14:03:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773236031; cv=none; b=pyTf79OaSO8+32EOFl/wNiWbd4Ylu7IxZOkw74sLrIkyYGOHYBdn5EZkjuABVbKUwtoXTNURLS/Nbfb8fozD3PedQKvhx81+BInxjsvHnxI+MEdxtZapfTj7aQEmEsh87I0Zmt3GNzUQuMsP8gkXKtI2PodK3usQCHQkeJNKzTs=
+	t=1773237825; cv=none; b=YfeuVXpJaWRmredF+fd+cRX8/fGPonUHt/7I6khwDJcnF020k4gzDFfYRoRK5VVx7mDV9yHvFD4a8TuMfGfXdn70X1rgnHTILZ8lpYu7p5WNP9SolfeNkL3uFQjAFcys1XgnQvyrNQifbM+V4eF/5WLiA3aFFzhXl6lfVUPNVdE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773236031; c=relaxed/simple;
-	bh=B4NIglO/lx1teYb8TZ8+TTENSIMUN8QR54hyfxWWeC4=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=rCs8p6LqG0fINhUO12QvTnE9DqqbgbjKsCHyHdVrkGwU9yeQMxAeDZA079xzb74WfwGwDF1nE1vPxgqMI6gF5BleA5hM1/cPImmBBInd6TXIwx5eoklzY45l0i8B+PV89gbGZYvYC61eJZyHduru5576GdYqIgWy+QBkDJgWJmo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn; spf=pass smtp.mailfrom=smail.nju.edu.cn; dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b=qGz2mXHf; arc=none smtp.client-ip=54.207.22.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smail.nju.edu.cn
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.b="qGz2mXHf"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=smail.nju.edu.cn;
-	s=iohv2404; t=1773236013;
-	bh=eq+jiJE3L+qD9tVcR7L8+fk9OVfhD1zsRs9oq1I81DQ=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version;
-	b=qGz2mXHfRozi2WmnP5xwvrPQH+gA+W2HSUIxh+tVAs4repfFiB5HKgtz2VYbieJh9
-	 zAwDjUESO0vmQKjcFk+cKKsIszEqusxWFHhWRG/NaS2gXVtZ7+F/ilw3ZmUjZ3LmlC
-	 8OZbVKsUMWmabVfTsEJBlAhcYZrgZI+IixaHC8T4=
-X-QQ-mid: esmtpsz16t1773236011td26fbfdc
-X-QQ-Originating-IP: GXu6FjxMjZqALR1Rygn7Y7SuqKENS4hIwl3oRuLu2sk=
-Received: from localhost.localdomain ( [116.172.93.199])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Wed, 11 Mar 2026 21:33:28 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 14291803047286140553
-EX-QQ-RecipientCnt: 12
-From: Kexin Sun <kexinsun@smail.nju.edu.cn>
-To: aaro.koskinen@iki.fi,
-	andreas@kemnade.info,
-	khilman@baylibre.com,
-	rogerq@kernel.org,
-	tony@atomide.com,
-	linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	julia.lawall@inria.fr,
-	xutong.ma@inria.fr,
-	yunbolyu@smu.edu.sg,
-	ratnadiraw@smu.edu.sg,
-	Kexin Sun <kexinsun@smail.nju.edu.cn>
-Subject: [PATCH] bus: ti-sysc: update outdated comment
-Date: Wed, 11 Mar 2026 21:33:25 +0800
-Message-Id: <20260311133325.631-1-kexinsun@smail.nju.edu.cn>
-X-Mailer: git-send-email 2.25.1
+	s=arc-20240116; t=1773237825; c=relaxed/simple;
+	bh=Co6af1PDO/5BNnOq+gUEX5fdYaHwA4r9elfY/kzPOJ0=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=uiJTIUuIlryWbuaxmhTCXv8ixFVpguQMxGNFPjmazsgavTuPnGEl38YL1iU8isiV7frdlvwg83drL2m1s1a39knxy59wChf+oE3JJd7ZLSqLD2u+/gPHmZAHYVLNJG11mv1wjZdNeLn4cPqr8vi7JajcONdd+QBoLOikye2vx9w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=goodmis.org; spf=pass smtp.mailfrom=goodmis.org; arc=none smtp.client-ip=216.40.44.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=goodmis.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goodmis.org
+Received: from omf20.hostedemail.com (a10.router.float.18 [10.200.18.1])
+	by unirelay02.hostedemail.com (Postfix) with ESMTP id 4324D139CEA;
+	Wed, 11 Mar 2026 14:03:38 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: rostedt@goodmis.org) by omf20.hostedemail.com (Postfix) with ESMTPA id 0CF3220025;
+	Wed, 11 Mar 2026 14:03:20 +0000 (UTC)
+Date: Wed, 11 Mar 2026 10:03:32 -0400
+From: Steven Rostedt <rostedt@goodmis.org>
+To: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Philipp Hahn <phahn-oss@avm.de>, amd-gfx@lists.freedesktop.org,
+ apparmor@lists.ubuntu.com, bpf@vger.kernel.org, ceph-devel@vger.kernel.org,
+ cocci@inria.fr, dm-devel@lists.linux.dev, dri-devel@lists.freedesktop.org,
+ gfs2@lists.linux.dev, intel-gfx@lists.freedesktop.org,
+ intel-wired-lan@lists.osuosl.org, iommu@lists.linux.dev,
+ kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-block@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+ linux-btrfs@vger.kernel.org, linux-cifs@vger.kernel.org,
+ linux-clk@vger.kernel.org, linux-erofs@lists.ozlabs.org,
+ linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-gpio@vger.kernel.org, linux-hyperv@vger.kernel.org,
+ linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+ linux-mips@vger.kernel.org, linux-mm@kvack.org,
+ linux-modules@vger.kernel.org, linux-mtd@lists.infradead.org,
+ linux-nfs@vger.kernel.org, linux-omap@vger.kernel.org,
+ linux-phy@lists.infradead.org, linux-pm@vger.kernel.org,
+ linux-rockchip@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-sctp@vger.kernel.org,
+ linux-security-module@vger.kernel.org, linux-sh@vger.kernel.org,
+ linux-sound@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com,
+ linux-trace-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
+ linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+ ntfs3@lists.linux.dev, samba-technical@lists.samba.org,
+ sched-ext@lists.linux.dev, target-devel@vger.kernel.org,
+ tipc-discussion@lists.sourceforge.net, v9fs@lists.linux.dev, Mathieu
+ Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: Re: [PATCH 15/61] trace: Prefer IS_ERR_OR_NULL over manual NULL
+ check
+Message-ID: <20260311100332.6a2ce4b1@gandalf.local.home>
+In-Reply-To: <20260311141332.b611237d36b61b2409e66cb3@kernel.org>
+References: <20260310-b4-is_err_or_null-v1-0-bd63b656022d@avm.de>
+	<20260310-b4-is_err_or_null-v1-15-bd63b656022d@avm.de>
+	<20260310100750.303af303@gandalf.local.home>
+	<20260311141332.b611237d36b61b2409e66cb3@kernel.org>
+X-Mailer: Claws Mail 3.20.0git84 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: esmtpsz:smail.nju.edu.cn:qybglogicsvrgz:qybglogicsvrgz5b-0
-X-QQ-XMAILINFO: NsZBc+7DoEMQy/Dp9W+1pCWjfJQ2mVLQysKF/NICSp/i8+TtrYmPusc4
-	/xiy9Ap4aNnQbNmOZOIgZEQ237K5EvdyZLYEp7d6LBfFP2OspH2xzY4nCxEJ8xyhSjMsTdZ
-	O6Wv/nKh+ynhF2RrDTTnAzBR9idikOxyTy2TmSsoT/ErKncfyBjKbNPW3OHAppahY8xJ+RK
-	z4AXagaQSOIGWXW1p6F62VrKEqterxC1tp0YNm3A2lwNEyl5tsNh6W7O3Cv1JVzxWNCzOiq
-	I9cM10gHKSkMwlu+XF3Ggm1I/TQQR5u28B20WvHSgiPDzFEgGx3ZYXRHn7sylrjteaXZQMP
-	X8wsjcYbrL7BZ8tELiUr/caOGfHfUYRj8n3cRw79aQTgOvFppi9cwOGYBi1lLToPKZ0cdt4
-	ngJGkfzsKroHQA2ZMn/38ahndhWYl2sNrkFpSMcPM5+VTi2kNBjeAHvJXPNmwZ5FxEpafY3
-	GsKIHyg7YEfQes6oGVoNAASIZmt/ZdjlaXydv3BzJQ0X/ji+eeFEmXP9dH4NPL3hleAPkt4
-	hRFRh4OSbjjIiAORigQSXpFnR+W7DmeFd7epfKHKXTb+J+wt6Uw4gC0uvEr/6u9CXh3xypm
-	v6KuAuB+xMLvGXBmqvN5ltMapVMoTYVGnJ0CyQnwN/iXDeQBJ7ck/2D1rFdXzeRv8dMDoHL
-	j6sunpuwVLtMZ5MnON2n/ztykjb5YPNy3B8C3Nlq4DB7A5J8zXT7OzzndDcuudl9bUejdnO
-	mdsFS9decbfupgpdsGaen2ZwQd0WG48gDA/Z/W6NMr5feY6xemHyZi/59JzluVttcJMDX2s
-	rKL2PurWwjNGiV96YOqgZfWYPjroCl6L0qHIB92LobJq4LkCLihZ3CboSNwl7qibrCTis6n
-	WVXLfI9ICmmDEymQkgyI60zZkF5qvR0flmzEk3y10EPGHNbNyQNJI1r2hgDpRnUXuKu/8k+
-	BmFRM05MfYVcvYiAyrTvfTHGAecvsPTtlpEIcWHDlv4FJssCCMGcha45WXx9FzRECfxxFiI
-	1N3R4eUIq179Z+NbuJGBD/aj6Dpj3qv1IfnnUG8Y+uCBxIj4qlZnhHVtTJzbV8G0p/Q+BmN
-	9x84Uxoo8wdYvB1cWr4AkHKicQVRdbRZ+X6yiReoRRNtUnXSFIxhTE55TTBi84LXQ==
-X-QQ-XMRINFO: MSVp+SPm3vtSI1QTLgDHQqIV1w2oNKDqfg==
-X-QQ-RECHKSPAM: 0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Queue-Id: 0CF3220025
+X-Stat-Signature: ff8ct3tumfmuryqygkfkcm78w16u4scc
+X-Rspamd-Server: rspamout03
+X-Session-Marker: 726F737465647440676F6F646D69732E6F7267
+X-Session-ID: U2FsdGVkX1+skqrXXDxm4il2tsYmj25H0/GTzSRdMUI=
+X-HE-Tag: 1773237800-364001
+X-HE-Meta: U2FsdGVkX1+aU4mY7bFvO8lRauP/vgjT20dobHa0QHVROVhTP6xZNvlHFy+HnthX7C3DUw86Ksayk8kipkioUde1pGRJffeDzlmGTmiRQAtxOhSsM3gHnZJQZGdgNXBABYZdeE7OsMEvCI5Ff4ZQbbyu3yXHRyZXg5AHof/AO0vcusmeqjpCWWhtLLOcuZIY7+tOVjT7VktVnLaFPp1jjRLc3JQ2sJ4jp/SiL4aHgDK/k//b9d34oAYT+AlJT32Fm0BFv3eObF3U3OAnj7CnGXu0MyQ+0edSgYKqKIiOybnUsF1fYSODF4X+zk3bqwV4HOqJnRMkZevrGktYEsiiqb8/qNY0d6MZ
 
-clkdev_alloc() was removed by commit 5617c9125bb6 ("clkdev: remove
-unused clkdev_alloc() interfaces"). Update the comment accordingly.
+On Wed, 11 Mar 2026 14:13:32 +0900
+Masami Hiramatsu (Google) <mhiramat@kernel.org> wrote:
 
-Assisted-by: unnamed:deepseek-v3.2 coccinelle
-Signed-off-by: Kexin Sun <kexinsun@smail.nju.edu.cn>
----
- drivers/bus/ti-sysc.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+> Hmm, now IS_ERR_OR_NULL() is an inline function, so it is safe.
+> But if you want to use IS_ERR_OR_NULL() here, it will be better something like
+> 
+> node = rhashtable_walk_next(&iter);
+> while (!IS_ERR_OR_NULL(node)) {
+> 	fprobe_remove_node_in_module(mod, node, &alist);
+> 	node = rhashtable_walk_next(&iter);
+> }
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index a5b9507de37c..e3a5241d3186 100644
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -350,9 +350,8 @@ static int sysc_add_named_clock_from_child(struct sysc *ddata,
- 		return PTR_ERR(clock);
- 
- 	/*
--	 * Use clkdev_add() instead of clkdev_alloc() to avoid the MAX_DEV_ID
--	 * limit for clk_get(). If cl ever needs to be freed, it should be done
--	 * with clkdev_drop().
-+	 * Use clkdev_add() to avoid the MAX_DEV_ID limit for clk_get().
-+	 * If cl ever needs to be freed, it should be done with clkdev_drop().
- 	 */
- 	cl = kzalloc_obj(*cl);
- 	if (!cl)
--- 
-2.25.1
+But now you need to have a duplicate code in order to acquire "node"
 
+I think the patch just makes the code worse.
+
+-- Steve
