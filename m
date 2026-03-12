@@ -1,122 +1,120 @@
-Received: from mail-wm1-f44.google.com (mail-wm1-f44.google.com [209.85.128.44])
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37535365A03
-	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2026 14:17:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.44
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773325039; cv=none; b=HXiiifW5Gwy4U+FHDw3HIOkjYwDCSipp9LYNX52dl7EXSntxQ+TSb5Y0JXcSGXt146fs8IYHgEFiLcaGnbJtWL6x82VxBTqPKVKWP57QwwYnw6CYRyzNb496ybSgeVFTJtdLIx9JYc5Xf0mkLVaZQ8PPv4XYhil01jxX5uyZHeA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773325039; c=relaxed/simple;
-	bh=SARy8VEzsEDdpJbYNnKTnv8sN+N/AGYzaEfpN1XAaEk=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=Eqqw6nyyQHwNTazfDeAUlzVv/z23M8t++pb5N7o/nhihYqbDcrIbarBfebQW8jr6tPAG+lWJ8EtoohhtSKn8vI6jDC+4rtr+m0yqNcQxEzPKqXvWB1P7Gu+Vp/ks5ro12eZ8ALOf2jITRO+c/PT/pMC3SwO1epWL8C2QqeT8KvM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=IEQCmaNJ; arc=none smtp.client-ip=209.85.128.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24175364EBF
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2026 14:31:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.49
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773325886; cv=pass; b=gKlPOFCgpd2fsRM6oabIgXUUHFqWlQPHuenIbUp68NtjKZ907Ptt86Qcpx2irKz4QAq5No/r5JlFbqTmg5Kw/DQpIWAcDM+48o/a96rX+FekQ4JovAfzl4LrUnG2bQ1k9f+f9egt+Q5ZKWO8kFho6fKjvVQ4VcCIgL1NMRDZR5I=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773325886; c=relaxed/simple;
+	bh=O5wzUHBR+3e64aFZg08UiCLbrD6OQHF1JiFe9rzU+xI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Nfm10dK4BY7HPVsc0LwYi/VkXNAsJWsryQAHjEDLS6C4IviL1wB3SIhchyCbDqLWgVibdEZQYfYWMr80FzwXrMKI+Mi/FxQgMGOkOM1kqLEJrTNmjdQb9MQYZUhERZgUAFw5p2IPg/T7EEPGQzPFDHENBM0MRgZ0r7xwzFEY4NM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=wKrOOuO1; arc=pass smtp.client-ip=209.85.128.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="IEQCmaNJ"
-Received: by mail-wm1-f44.google.com with SMTP id 5b1f17b1804b1-48334ee0aeaso10038205e9.1
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2026 07:17:16 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="wKrOOuO1"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-48538c5956bso11151635e9.0
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2026 07:31:24 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1773325883; cv=none;
+        d=google.com; s=arc-20240605;
+        b=SwUibjmiWnxG35ZffDnHPWqF2NHE4s5/oKQDYBV/vF7KQ61RIEmiU7txB3crAvsl8r
+         /40eI6t1BUIWOyesyJ4J/gvMFGM+8PD9ksFR+kPg+PuYxDaUpdsJot1xVI58Pqbq8mAs
+         NEwrSJHPlMkWcAMaCTJBq7hDEV5bXBLmSG2MOmE5Ntdi4DxM/5FzsGMEylUzviInXzta
+         5cXnJoE1goLs2+FWBVAVNEeYZvMVA4t5m0nusS2pCopteAuLibbb/gir9ZTJFNs9xmux
+         uZH+NHlfnSiWhaxb84RnD2QHruaegSpN6kRkXsse4zLaj6fDBmCdD5nqjCY4g0+CYkqx
+         SpWw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=O5wzUHBR+3e64aFZg08UiCLbrD6OQHF1JiFe9rzU+xI=;
+        fh=DAwXgAFSQUUf8vdPInnwPPU1QJMkXcQAEne2MB3F9WU=;
+        b=cGfLHeYVwNa5mJc67/JEopVnx9CgVhAD29hh48XLUzR4OSL8VICRghBxmVgDbGhbe0
+         zHH3+9JHFe6ig8r1z/PROpJX7L5JuQaXBf7Hwj4UITnQr2NOHngvwl8pAVg3ckBW8wzC
+         bC2IHW6poe+edstkwfmwWq3R4SA1RCH9ysI2xg421O7belDzT2Fm9a0ojVOeGuGHBcCC
+         SWKc0EjUpGS4Q02Z02hUx1omFdAM5vq/g7Dt1EVKkFuACylPxLLNb+EplcVO4Z3Z9ITs
+         jn5/27zcMSvGEVye93BPEg+sRipD3FDjve7Ikfl7SPvCkO6vA/KYXpBE1RCP2Riz501R
+         yZMA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1773325035; x=1773929835; darn=vger.kernel.org;
-        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
-         :date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Xr82Hs2jDNHg3VJOi+/ZysrSfr6DqCub9a4ab2Pxz4I=;
-        b=IEQCmaNJ7dNln0Y/hR0XH2ivzF9DOdNz+9iB1NAJtD+MKWUu5XP9FSGPuNNF13XGCU
-         QgQ5NDJ3xWnPMLOt9aaYmpCyoCFexo1ttVJqyfOW88y0IGzdKMksZbr9rtrl2sC5/85e
-         P7WW3h5j3nT5KeIu13mjF+jl+mbv37sULnwvLBcl4Vf6IeYd/mEH5E6ltmMtxqkpxUG8
-         yDnVYuSm24YmLbB0mIUVSHt6NIyb/HFi9UQE6g6XUzkE1uUNcUjuPpcdCuYPxShRovHp
-         vXxWhMQtk2c6tNdayUYsC2p/hd3IXmFrqysz8F4QF/42VKnH4+2BVh7HDlXivC3D80ws
-         3abQ==
+        d=linaro.org; s=google; t=1773325883; x=1773930683; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=O5wzUHBR+3e64aFZg08UiCLbrD6OQHF1JiFe9rzU+xI=;
+        b=wKrOOuO1mG55INSNJPYkYuHSsUGO+pAgNx6NLMzQnEoLCqDeGmQ6YWEIE0YOqT60Yk
+         HgqpJK9QUhHsQb6ZonNG8NYzAI4n5/nbw04MkMogArpM0RP8oj/0Ar2hylK32lZ93Q31
+         U1Qp7Zf0zXoDPeszQh3YrgQowP7d77FgggYutXh/OqtmTJ0WmsObrq1LYbp/0NJZfKD+
+         u9MvqVvMSJnHyG4LaiBg9ULrQxJlgyMHzjRS1iczjGjsmcMCOuEbUuJnNu7Sz19WRQPt
+         3xbCZsPjcOcal48OaMbAHCCfbZvn2+rNFy47uQyV8R8lJLAiV3cpmZVkUqV/rraJOvjA
+         ucBw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773325035; x=1773929835;
-        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
-         :date:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20230601; t=1773325883; x=1773930683;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Xr82Hs2jDNHg3VJOi+/ZysrSfr6DqCub9a4ab2Pxz4I=;
-        b=qn65x+yGcpu549LXRVN3mf5moGdQVB4SDxAKGPNuuZj0kHNOv63tRbvqdzukdz0MK2
-         88SdwEuAfGJrseUi9CZApQ31XolDgDuDgXbe2C4zL6loX0mOQESY9v0Xtrouft5rqEFM
-         qzdfYXKTanXGlUAwKwCHdrcU/RzBSWHbS68eA9KNLMBlietr/2BrA3v0oYHHC/lO83qz
-         Ryuwiz4uCq8K5KcBIqv6GaioMp4gMDlgN0Kn8STphSiFXPCPe4g+IlmMygFjWRM9kuMe
-         8iV1DSZzYMTjVB+6NH97JM1TaP5oVr3+A4LAXI4wuz+FIW/cMSF/mzau5mVisrpmxP4q
-         5OBA==
-X-Gm-Message-State: AOJu0YwFsPqHaQFCIVyN7c1UNBRuHHsqfl4C2DORn1TG0CKRNVkknqr3
-	tdDV42Ka44RCtEz27yeEY4JT5IlUIK0OJEWLfPxI3FZ8lLs/Z7oVi9r/50IhRH4Tehk=
-X-Gm-Gg: ATEYQzxtAL5l5nqzU+FcFd6rnbyrUn7vojP6eh+nvIyJ76LybIeTrWovWWq8wZT3OYs
-	u4rme81rNf4UaAkhCid4QTjkiKOqUo5sy+bgqcC+3FKWNca4nMgSBRBLUe6JcTetUQHIEhWI2qN
-	viVfOKm27DejIV9rZX5p5JCSpJxM0elmvqE9l+WoW5VNjnMG8H0xWvLDx1EqeTwNIQKgHzg5dQr
-	sNtRUFnRa62RiQMO0y9Rs78kAoLk/3zOsfIE+0k6oDBWZopp5ZLD2/Y9gB7UylGQSHTMv7RFVih
-	AoIyApAns1r242Fkig5hNN+gU2kKUEPrXWOCc1pA44gZNnEuZE5UDdcYt2QzX7rVNo/xmLGVvTV
-	GgPki0Qpf82d53dRS1tJBUvcW6Jr9HoWXajTTF2v59aGs1OzOQjlIe1R7eLwUax5yMf7vT15CpB
-	mclRWL9ZYeqUFdI65BI/wE44VlTFOPuLlj2wVyzp6nquDpQ14U1ss=
-X-Received: by 2002:a05:600c:4512:b0:483:64b4:79da with SMTP id 5b1f17b1804b1-4854b124e7dmr108714785e9.26.1773325035381;
-        Thu, 12 Mar 2026 07:17:15 -0700 (PDT)
-Received: from artemis2.elfringham.co.uk ([2a0a:ef40:eeb:3801:59ff:f478:8b7c:4ecd])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-439fe19ad9asm9407142f8f.7.2026.03.12.07.17.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Mar 2026 07:17:14 -0700 (PDT)
-From: Andrew Goodbody <andrew.goodbody@linaro.org>
-Date: Thu, 12 Mar 2026 14:16:57 +0000
-Subject: [PATCH] ARM: dts: omap: dm816x: Correct pinctrl register
+        bh=O5wzUHBR+3e64aFZg08UiCLbrD6OQHF1JiFe9rzU+xI=;
+        b=TwNrHQsDaah9FaWoThZTXvWH+iXpGK7boMR2DWa5sdD04x2kT2WS7iV3XahdoixNbz
+         ncM+1piVxgUrjSZdehWFNmZrFhPy18vSRJEBfQ2uj9aFqAsvk+sgQKOgERl0aEZXUDHh
+         9BQ+2GCVETuuRmNTaul7cV/wTjab3v5U4EPJeTbIYGSf8Ce2PhdKZoB0oxJATY5FBnhQ
+         hO93Kv4RWqsa8+eMcKDnq1PeJBQ9k3NN3on32ze5+dyJzjM6e1R2O3OM0DWp2A7hefmK
+         O1Bum8n8fQ/oXms07Km6vB6qvDQGiyRI6/+mAF5juOjrnlAnfl8DX5pdPL06PlOkiQUe
+         k1mA==
+X-Forwarded-Encrypted: i=1; AJvYcCX+j0EzfC/i8Ef2bdju5Tp6U4dVXr6ho//XSbg7MHRBj4F7wREgw1qJY8rLKAGKc5A3/byn2MwqVUjK@vger.kernel.org
+X-Gm-Message-State: AOJu0YxL75OXNrwi1IDk6Lw1Gsdl1tfEfrNwgdpoGp+XNemDwteOwvQl
+	TTTVUbuUBdfDcIe0YT9gkGwfy5sND5w6oDf0Ll/iOKFsVFadvoeM0Xf+l8qEwJCWKqUA+PzeYI3
+	UHCR6G37fKK845LI3zrzjfQn3uOnVUPC0XR+PJYtzSQ==
+X-Gm-Gg: ATEYQzxT7Hut04xElDR16CuEUpwRFliji+FZ7TQf+My3vNeOKqzidF34TzOCDRWWFu5
+	v+TXonh7jgrOmn4S9H4La+30wC5MgYXnucqU96rqyhlSAsjps8acu/we6IPvRklfB3qTwUsx9gK
+	XiY5t7I01uN+L4GZZwA08AYwnIc096kP6MyEHHpNecuiXCosL7oFaoTa24ZPvGsykENwBLIc8nl
+	hJXdCEvRUscxvabYbDH70/dvUxHxZjMKlPvCUY+xG6E5NwYmLLHsXQARqgvsuBNgOS0YzS/rwA3
+	amSbw6oREQ==
+X-Received: by 2002:a05:600c:699b:b0:485:3b4a:f707 with SMTP id
+ 5b1f17b1804b1-4854f58ab9dmr57263335e9.10.1773325883251; Thu, 12 Mar 2026
+ 07:31:23 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
-X-B4-Tracking: v=1; b=H4sIANjKsmkC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
- vPSU3UzU4B8JSMDIzMDY0Mj3ZRcC0OziviUEt3EpFQLC4s0Y3OjVGMloPqCotS0zAqwWdGxtbU
- Azv3dUFsAAAA=
-X-Change-ID: 20260312-dm816x_dt-abe888f372e3
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-kernel@vger.kernel.org, 
- Christopher Obbard <christopher.obbard@linaro.org>, 
- Andrew Goodbody <andrew.goodbody@linaro.org>
-X-Mailer: b4 0.14.2
+References: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
+In-Reply-To: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
+From: Christopher Obbard <christopher.obbard@linaro.org>
+Date: Thu, 12 Mar 2026 14:31:11 +0000
+X-Gm-Features: AaiRm50OisYRLOPDejDC5cFdFmSwOUMKBVpwbng_4BfDEKjcXerkyFxKATsAcAE
+Message-ID: <CACr-zFD6jiDJH4i6m0fdEimT84ZPJYi-=ENUzAsavqE9gkpQxQ@mail.gmail.com>
+Subject: Re: [PATCH] ARM: dts: omap: dm816x: Correct pinctrl register
+To: Andrew Goodbody <andrew.goodbody@linaro.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
+	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
+	Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, linux-omap@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-The delcaration in the pinmux device for the pinctrl registers is not
-correct. These registers are actually 32 bits wide, not 16. Also the
-mask for functional bits is also wrong. Functional bits are 0-4, not
-0-3. So the mask needs to changed to 0x1f.
+Hi Andrew,
 
-This information is taken from the TMS320DM816x DaVinci
-Digital Media Processors Technical Reference Manual.
-SPRUGX8C March 2015
+On Thu, 12 Mar 2026 at 14:17, Andrew Goodbody
+<andrew.goodbody@linaro.org> wrote:
+>
+> The delcaration in the pinmux device for the pinctrl registers is not
+> correct. These registers are actually 32 bits wide, not 16. Also the
+> mask for functional bits is also wrong. Functional bits are 0-4, not
+> 0-3. So the mask needs to changed to 0x1f.
+>
+> This information is taken from the TMS320DM816x DaVinci
+> Digital Media Processors Technical Reference Manual.
+> SPRUGX8C March 2015
+>
+> Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
 
-Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
----
- arch/arm/boot/dts/ti/omap/dm816x.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Reviewed-by: Christopher Obbard <christopher.obbard@linaro.org>
+Tested-by: Christopher Obbard <christopher.obbard@linaro.org>
 
-diff --git a/arch/arm/boot/dts/ti/omap/dm816x.dtsi b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-index 407d7bc5b13a364548087dd5fb2659286bbd8537..a1e0e904e0f05cd725e71da70bffbde2dd2b2e38 100644
---- a/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-@@ -94,8 +94,8 @@ dm816x_pinmux: pinmux@800 {
- 				#address-cells = <1>;
- 				#size-cells = <0>;
- 				#pinctrl-cells = <1>;
--				pinctrl-single,register-width = <16>;
--				pinctrl-single,function-mask = <0xf>;
-+				pinctrl-single,register-width = <32>;
-+				pinctrl-single,function-mask = <0x1f>;
- 			};
- 
- 			/* Device Configuration Registers */
 
----
-base-commit: f90aadf1c67c8b4969d1e5e6d4fd7227adb6e4d7
-change-id: 20260312-dm816x_dt-abe888f372e3
+Cheers!
 
-Best regards,
--- 
-Andrew Goodbody <andrew.goodbody@linaro.org>
-
+Chris
