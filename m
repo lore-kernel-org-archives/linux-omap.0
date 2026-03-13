@@ -1,135 +1,106 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pg1-f170.google.com (mail-pg1-f170.google.com [209.85.215.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 652C6310620
-	for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2026 00:59:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA563214812
+	for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2026 00:59:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773363559; cv=none; b=jzm/uxRiXCzHs0oNvhk+cabjRPflkPFMu1HQquk1KKK+rrdHGEEPv8yJp0nPgsCPyhu6WzDh08Mmob/zxQOUZx5ZqYrqaawHRbZTgN12ywBA9qhfMxQfzcPQvcym77UiXOOLXf65NDs9suE5H0KoB5RZGulRrHK4M0YcTHbEf2A=
+	t=1773363577; cv=none; b=I994M53xH/3ofamJaB6D+Y7IjfvubyBPb7cqu7TeCA/RGtKwXlJ+KrulGqahxQiIkxxqkxqEYby4YLOFncDy6OO2coXMo/xADaa78x1lXSUC9lUbv1C29jaAJC+IebKMa5ilSdi1HhcWEiZERf+tMU2NB/nHkImJZtCMsgVGGDw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773363559; c=relaxed/simple;
-	bh=N56zY6ERDiOsmUWj1ibbj5vfyDtADAWSqqKHL42yXrQ=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=bnJBy+h4RqTPGxNAiVLHD6JCXvElM2sE+pWKYxJCAZp2392HTS8krLo2EaVkcAVQPAdse9mgmIubs97QTuXx+gvp7wlCljBK1Giio8GLFwSDKyXbryFk/cbDPtyEAI1dD6O8Vr00Au5ca49g1SClQfNIVsDSBxDKDZAlP41f8vk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=Y6JwNC3i; arc=none smtp.client-ip=209.85.214.180
+	s=arc-20240116; t=1773363577; c=relaxed/simple;
+	bh=chhWq4uAe4OrP14p1imZ695PtBBTM9X4vzfnax+6qeE=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=at7cy7YayoWybPtRPtKn9GPAaSzNN6VisT0FasG/qylYWEvacdXJm8zNsIwsRQhtyU1AX0WuKFrbfSNwAYp4xriUqAzWkr+HfysOD7+7NlnU2leCzPwUSFSuym5b4clEHqGdkYPxoV3dwHphkyRpZSGu2ZsFdaLJ8EUyQEonAC0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=WtppX4aw; arc=none smtp.client-ip=209.85.215.170
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="Y6JwNC3i"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2ab46931cf1so20639295ad.0
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2026 17:59:17 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="WtppX4aw"
+Received: by mail-pg1-f170.google.com with SMTP id 41be03b00d2f7-c739561f0d3so1001521a12.3
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2026 17:59:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1773363557; x=1773968357; darn=vger.kernel.org;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Cy9kXTv2NCvP2HAY6FejDEYYtBGZPXJx11C/O+hbqz8=;
-        b=Y6JwNC3i4h2a+xUspaGAvbblEkgjWhUi1oTTNnqTLfcOrbWWmbaIxHWZzPxARxGqes
-         Iw791pN2q3PlQpJ3X0PmVepuXJhCTsDCl3BEGhlAQAr917C5JZdIyeBNNDz3ljvnVVks
-         9dyDaFCgwSI+gWr+9EPD1hcOrxnW0iGz3c0rYl8HWp1qvJYO84BeM34+Cdw51RjeJf27
-         SinJrYFDlLbMwkJsb/xt0/4CNuG3HkPP5F3LPv+B4jIZfLz3VIGylr8RCX1b/z1JvCag
-         5qYFa9iAvJ0xHxmS9nEg6b83ZgIsTPOtPg39IbG0FfMT3TYbygy6eyMB8PGZ4J6qYQnX
-         gtqw==
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1773363576; x=1773968376; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:date:message-id:subject
+         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Q6o6ff7eVbfuDrJqEdyLStBhlwqEmt2Z90eYP9YlVxs=;
+        b=WtppX4awIp9j466rzQUPVHO+eY5HUMfhNKjfqAtm3yXLyK4cWW7V7DCvqHyIBzBLKc
+         9G8t3+iAM3q3pLCGzkUWODlQvMxvatvY3L01U9WP2eza3PV197TqUAWWi9hSsD6GyaGY
+         9Krafu3W4tzj2pVoDfyLJXXGdbtZpdLgOqtyZAFa+bj+iYRCNQPUX/ymipInc2uy1PHO
+         y6YfOkNZUaZiJaXfSjhUYQF8nbKi6MjPK6Olf0QqO3Ii1zUZM2DkvvGrcSf821JlzydQ
+         HuDa5aM10w6Ks1444/XEOOohYxhR7cEGd6+8kmhrvyWElW6J0EmASXYSB3UH8g62+6q9
+         dCCA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773363557; x=1773968357;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Cy9kXTv2NCvP2HAY6FejDEYYtBGZPXJx11C/O+hbqz8=;
-        b=GWhCYENDKOf7qfgycjeDj93VnDxgtGaS7v5o55g49zxdSvq98JGIbQQSQ1WSm6IQI5
-         WYp8T9trcSIAE8L5hsuZpBnOpcxpHMPQcxBx5B7INzlc48Y1/8U9d5l8eO+pZrUdYnpD
-         9DSue7uhe2slRf2t4q9HiiwWV44Ymt9CkB0hpsQ4N+IZkvJJxtF9MQ7Jt+drf4Goqeet
-         wzXm096t+MKiGqZYJBzsc0ZE9yL64EM0BtJ8z7L9YQunorssabf+xVWQnYjTE1uHINlF
-         gWFfYdd32euairE6dMWfqy91n5HM3lfh51MvkFnl2zDv38A1sbO6XJeRXUy4N7J/+F05
-         /i6Q==
-X-Forwarded-Encrypted: i=1; AJvYcCXugllvTkbcsRsaHvv3f1pHNpJhnUjdkpulfe5Lj9a1N3ape/3ZIhtu6PIp0voi2qa8bv0QkkdpfVsN@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw8SEj2negdMe3zGEg3hRASiUW8e6YqU13AjvgdUKyBkIQRtGJh
-	u1WjaEHMRMnhOj1SSxkon8eiRzuIhifzrL/iAyEQOMwk8v5a/apjeY13hp6l6PX8HjQ=
-X-Gm-Gg: ATEYQzyFQ9Rt7Ta3gJ+IVDhq+avvgodto3/EeHDdbP51d7M3d91EaQLrv2UGcHmk6Hf
-	JVF1NDyLYw2GCyMNJphWbraVo3s/+4mn89h1/sFf37rDaN3ZrGpthJW88BAqSHLLwKLEYdkVzMF
-	6FcTTNA/FlyiKAL/irARQkiIkSTm2Akc07TaMgY/YQXrb+4QIJZlIQIPYZnYgj8KZ+CkkHLiPZD
-	bU1slBqWW6MzKlH5TiIO4ro5V0eMDavJcC0YUrAZ5e45V60QTU2ZuSMpX+2gbGxhLxwnhHXpp2J
-	muEPKyHRQQSVMcpk9U2Wq15Z51ctC9fTIL9Fon6AqDdfcS+xtA0n5TPGv+o/VH0SAAAZzZUPQIn
-	9WlYCkANCc0SruAc6gMbzdBL65YKfH8GnUAjSWujZrW6OGz3kNx6UpsM8xK5RF21OHmamnxcAyc
-	Tnj4v6u1zP3z/n7CIw9Do=
-X-Received: by 2002:a17:903:120a:b0:2ae:47d7:e101 with SMTP id d9443c01a7336-2aeca4cada8mr12610675ad.1.1773363556830;
-        Thu, 12 Mar 2026 17:59:16 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1773363576; x=1773968376;
+        h=content-transfer-encoding:mime-version:date:message-id:subject
+         :references:in-reply-to:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Q6o6ff7eVbfuDrJqEdyLStBhlwqEmt2Z90eYP9YlVxs=;
+        b=NnKPbsyxBJV8UcLa4vkWsMs4C5G12OrFIRDoo/m2vFEgyAcSnrH84g3GnB25iO6+Z9
+         ly5CeaZMYBeCSoRSNa8IFqidqgNMZ57AzI9S/msdU9JopKslgQAiU/UAM2IBSh+0vUm8
+         p2/wpzZAG7pbUaYSFYNK1RAMze4/gAmIdtnhLk8v41voLa2CMqbN9VSctlQaSBz9GaMq
+         P0GOYv99fTMm+iro4zDhewikDOZ+UsLvH/zWN/31sakUf8MRI5SovJ1dUjbGGIR1REi7
+         yN7T56bqUFQvc2peTMV0n15j5PI2ddp2EXqp3Qb2SHTOl1YHf/809aqYe1SAOPPMUjWt
+         TrSg==
+X-Gm-Message-State: AOJu0Yx3qOc7mKIAZgPTLcaXeTusDOyACbEkEIGFAnJA0N9WngvVBobF
+	BlfJjPiIDL+CiOpVL/NnwhHEdfn87tNa/sTVzkHjt87TPTn/44CUWQpHO4wMVngkqQ0=
+X-Gm-Gg: ATEYQzxFDKmSBiwNWn/hwCbGMqCe3zLxgHyhY5qMplCmyQpeZ3hRK4JujrzVYXeprl/
+	yNJIVnOoKzNTeUSHcIpLGo2Oj0Wrc6jDPHSQfbWiAF7rSDSfr27TzCWRlbmDq2Z5TPjdVNivJsl
+	87tnmSa53Vr2L3WEr2TZw4wNohL7VDYQXx6ryZe2afsazkm6/gs7zmnxZ9MWq5hrjTJ7jb88TKW
+	NBRiY2gYowxgA/KmpJfuvm39bWDP4kdhlq80M2alJTSNNl1iXEdh4DS5kb+rcJqhQrQe5EzjNz/
+	I1AIjDzB8N/79x826psGdVFznrGN6lzl0JXk9MR33yqx+NqV7uqscs+ZS3bZ4A/xJhyh03OOMkX
+	D4Rs5Pbjlg7hDJDTwqQVg+I0nL9m7ZLDeuECqP4G7oZo8sEMrteCCI/OKxdyPISFEEYP0HON3xB
+	fggqx96qu7HVQ75kcgaQI=
+X-Received: by 2002:a05:6a21:1fc4:b0:398:a864:2bdb with SMTP id adf61e73a8af0-398ec9f0a10mr1109335637.1.1773363576079;
+        Thu, 12 Mar 2026 17:59:36 -0700 (PDT)
 Received: from localhost ([97.126.187.42])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2aece56cb7fsm3034135ad.6.2026.03.12.17.59.15
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c73eb998e42sm206862a12.12.2026.03.12.17.59.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Mar 2026 17:59:16 -0700 (PDT)
+        Thu, 12 Mar 2026 17:59:35 -0700 (PDT)
 From: Kevin Hilman <khilman@baylibre.com>
-To: Parvathi Pudi <parvathi@couthit.com>, nm@ti.com, vigneshr@ti.com,
- afd@ti.com, rogerq@kernel.org, tony@atomide.com, robh@kernel.org,
- krzk+dt@kernel.org, conor+dt@kernel.org, richardcochran@gmail.com,
- aaro.koskinen@iki.fi, andreas@kemnade.info
-Cc: andrew@lunn.ch, linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
- linux-kernel@vger.kernel.org, netdev@vger.kernel.org, danishanwar@ti.com,
- pratheesh@ti.com, j-rameshbabu@ti.com, praneeth@ti.com, srk@ti.com,
- rogerq@ti.com, m-malladi@ti.com, krishna@couthit.com, mohan@couthit.com,
- pmohan@couthit.com, basharath@couthit.com, parvathi@couthit.com, Murali
- Karicheri <m-karicheri2@ti.com>
-Subject: Re: [PATCH v5 3/3] arm: dts: ti: Add device tree support for
- PRU-ICSS on AM335x
-In-Reply-To: <20260307122641.738450-4-parvathi@couthit.com>
-References: <20260307122641.738450-1-parvathi@couthit.com>
- <20260307122641.738450-4-parvathi@couthit.com>
-Date: Thu, 12 Mar 2026 17:59:15 -0700
-Message-ID: <7ho6ks1r4s.fsf@baylibre.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, 
+ Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, 
+ Andrew Goodbody <andrew.goodbody@linaro.org>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, 
+ Christopher Obbard <christopher.obbard@linaro.org>
+In-Reply-To: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
+References: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
+Subject: Re: [PATCH] ARM: dts: omap: dm816x: Correct pinctrl register
+Message-Id: <177336357525.480825.4683516533835453139.b4-ty@baylibre.com>
+Date: Thu, 12 Mar 2026 17:59:35 -0700
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev
 
-Parvathi Pudi <parvathi@couthit.com> writes:
 
-> From: Roger Quadros <rogerq@ti.com>
->
-> The TI Sitara AM335x ICE-V2 consists of single PRU-ICSS instance,
-> This patch adds the new device tree overlay file in-order to enable
-> PRU-ICSS instance, along with makefile changes.
->
-> PRU-ICSS instance consists of two PRU cores along with various
-> peripherals such as the Interrupt Controller (PRU_INTC), the Industrial
-> Ethernet Peripheral(IEP), the Real Time Media Independent Interface
-> controller (MII_RT), and the Enhanced Capture (eCAP) event module.
->
-> am33xx-l4.dtsi - Adds IEP and eCAP peripheral as child nodes
-> of the PRUSS subsystem node.
->
-> am335x-icev2-prueth.dtso - Adds PRU-ICSS instance node along with PRU
-> eth port information and corresponding port configuration. It includes
-> interrupt mapping for packet reception, HW timestamp collection, and PRU
-> Ethernet ports in MII mode,
->
-> GPIO configuration, boot strapping along with delay configuration for
-> individual PRU Ethernet port and other required nodes.
->
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Andrew F. Davis <afd@ti.com>
-> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
-> Signed-off-by: Basharath Hussain Khaja <basharath@couthit.com>
-> Signed-off-by: Parvathi Pudi <parvathi@couthit.com>
+On Thu, 12 Mar 2026 14:16:57 +0000, Andrew Goodbody wrote:
+> The delcaration in the pinmux device for the pinctrl registers is not
+> correct. These registers are actually 32 bits wide, not 16. Also the
+> mask for functional bits is also wrong. Functional bits are 0-4, not
+> 0-3. So the mask needs to changed to 0x1f.
+> 
+> This information is taken from the TMS320DM816x DaVinci
+> Digital Media Processors Technical Reference Manual.
+> SPRUGX8C March 2015
+> 
+> [...]
 
-[...]
+Applied, thanks!
 
-> +/*
-> + * Disable CPSW switch node and
-> + * MDIO configuration to prevent
-> + * conflict with PRU-ICSS
-> + */
-> +&mac_sw {
-> +        status = "disable";
-> +};
-> +
-> +&davinci_mdio_sw {
-> +        status = "disable";
-> +};
+[1/1] ARM: dts: omap: dm816x: Correct pinctrl register
+      (no commit info)
 
-I think you need s/disable/disabled/?  (note the trailing 'd').  Without
-that, I don't think you're disabling these nodes, so I'm curious how it
-is not conflicting with the PRU-ICSS.
+Best regards,
+-- 
+Kevin Hilman <khilman@baylibre.com>
 
-Kevin
