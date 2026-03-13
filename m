@@ -1,174 +1,173 @@
-Received: from OSPPR02CU001.outbound.protection.outlook.com (mail-norwayeastazon11013035.outbound.protection.outlook.com [40.107.159.35])
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 734822E093E;
-	Fri, 13 Mar 2026 15:59:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.159.35
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773417583; cv=fail; b=oVi2w3y/iUmhvzh8h5Y+Cff9bHhUJOsTJF0WSxJslHzpoNpYbNS+jZ77TZNiolcjimXJ/fU5hNMv1eTae8bJ5/UsSbb3J9cO+xxza1vitsoxisqL8Xqvq86kiXogVSghUM9R1KTX8+mNyyMq2DTGzxpruIQgQLUD9WWhM9bPQ0s=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773417583; c=relaxed/simple;
-	bh=TlcahFzEnWiwmMQ0Xk4y3N8StEKBKOgmeht1mjDKBbM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=Q8iEfMqcvUM4Q3hDBKB2bbdtat8Mhkbh7TPFAChWiAg0bOraXhkdSqFcnJ5zHQDMkSTipnj0zUElwlBtGG2SXvffNT7Os0dn8uPMvYwj/09a+qUFeTlvYBCwLzPNKy108VHpt1DRkuV2czGwNvo8rzE+ou2sHTY7tWERL4KG5VM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foss.st.com; spf=pass smtp.mailfrom=foss.st.com; dkim=pass (2048-bit key) header.d=foss.st.com header.i=@foss.st.com header.b=gpKJdbeR; arc=fail smtp.client-ip=40.107.159.35
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foss.st.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=foss.st.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B923C3CBE67;
+	Fri, 13 Mar 2026 16:56:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.5
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773421010; cv=none; b=MIlgiPYZQnAllq6aSBskCpvz0Sj6CxMSxDULLKnmxzoEP2xF85fefiSWnquxI+yECRT06lAcCZ2B8NW+nuA/fq4gxxxwY56dLUfG117Cr0ZY/M1b5+pCU5qASWJBDy0pDVzkm5rVqdHYyujCsbRMFouJ/EndlJRTocrrmdH47go=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773421010; c=relaxed/simple;
+	bh=D8t9qvxgpZ++Yo3oPbHQfrf9aK/b9K0vIff2MtOGlN0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=p2SE3krEORjNq40AWVG0hQ/u60H+PlQOrG6NfV2fV1BiDNmVFThmUD8UXFsHCuWgQln/p2gzicpiBU6NslGZLWr4eCPl64naX4JVfYSlLnmri5VSODm535tAgUWPJAILD2mcFLjrLoekFUF1kdJlnfaRTByhopWB1fIQo4xhdPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=ilnG01lu; arc=none smtp.client-ip=220.197.31.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=foss.st.com header.i=@foss.st.com header.b="gpKJdbeR"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Kb2x55vBrTYcc2Z8cQkLBP2JBxckso1Vd/XKmsxuEs9jS60Pwz+HUIyrioi9EiozhaToGXZPSFA3/LexDzG2FTKZ4rSj24unlNpb9ChtpXz7GrCBagBTQpnOSSKWJEml/VIRPZScPr8qkghc+K6GoUd3qwYGvc0hyqXZ9yPKk3SbMnuj0DccHkrrHgqC35z2EuGU0uibNJXpIJivS7XVHVA9NsKLXj+ivglYoMxF9QzAqOGeC7cBHcIHXDDtVpIDD5u3qXWEgLE4iN29Oh6elDQS8xnENRhkemxVvlR8ztk9RyccAGI7lsm7nX8ZEzZdanm5HFLBBdEv5kdabb3g/w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=fR2dh5GSPHSR2HP3TQPobfR4vXyawiK37BD3N2AYz60=;
- b=Rb/qXHaRRy6G3izSZRn9qcIZj4KnSpVJDsvdmlA5oH5MllcISK9IMxBsek6LUGF8HcL1gSFHaxO9THhp3xJAzJDf1LKdTzpit+Yz3odec5XmqOoZP+2eGqThz+9hm1Fn3Vut+FEO30r8TwO6SvE5J81QSC96tSSBDe/CUFsBRriB0oYcosDgLXGhtvM0kQvUZ8zED6yyPfbLyEad4zE/elFTH9SL3Es5NWER8NjZ41IVh3vixAi/oPkHuEFRtG+LDy8jpfW3hXu39YPIn27a8o9JoEJOdnyAET7dXVMBho9J+2mYdHzyAPxhrE0smMLq2+yNog+t3uuv6+dC9JyOdw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 164.130.1.59) smtp.rcpttodomain=valinux.co.jp smtp.mailfrom=foss.st.com;
- dmarc=fail (p=none sp=none pct=100) action=none header.from=foss.st.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=foss.st.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=fR2dh5GSPHSR2HP3TQPobfR4vXyawiK37BD3N2AYz60=;
- b=gpKJdbeRfkT4L2/Wj8/QU3w6hl73nu1DQsr30U+niIAI+lWJzghnjO9wRZfm0QHyk8xqLnYA5w73dVx3ub3bGbTGvf8iJrLT2tc5Pd5NN54bm9cmwErIrHgdxt1yvfcMhaMC5ax8gOMcgo3OojElHxj0/YAUro83gSZSqVcxXg22dZohLVWLbf07EMOQURQcyXewaUKm9mDS2H2pRXrV+N4nmN0kxT+ualyFWldTyv/Rt6if2nfbDmYGxyswbHja0jI/UNAD4nD8AD+RBFwQoTGNbrfoW4UgNmpoIbCjAkYveGi2eyNg5wJMRNNdqcwQYS6E6DEhUbXtSS0ckMnoRg==
-Received: from DU2PR04CA0283.eurprd04.prod.outlook.com (2603:10a6:10:28c::18)
- by AS1PR10MB5529.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:20b:474::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9700.16; Fri, 13 Mar
- 2026 15:59:35 +0000
-Received: from DB1PEPF000509E9.eurprd03.prod.outlook.com
- (2603:10a6:10:28c:cafe::89) by DU2PR04CA0283.outlook.office365.com
- (2603:10a6:10:28c::18) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9678.26 via Frontend Transport; Fri,
- 13 Mar 2026 15:59:35 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 164.130.1.59)
- smtp.mailfrom=foss.st.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=foss.st.com;
-Received-SPF: Fail (protection.outlook.com: domain of foss.st.com does not
- designate 164.130.1.59 as permitted sender) receiver=protection.outlook.com;
- client-ip=164.130.1.59; helo=smtpO365.st.com;
-Received: from smtpO365.st.com (164.130.1.59) by
- DB1PEPF000509E9.mail.protection.outlook.com (10.167.242.59) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9678.18 via Frontend Transport; Fri, 13 Mar 2026 15:59:34 +0000
-Received: from STKDAG1NODE2.st.com (10.75.128.133) by smtpo365.st.com
- (10.250.44.71) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.29; Fri, 13 Mar
- 2026 17:02:05 +0100
-Received: from [10.130.77.120] (10.130.77.120) by STKDAG1NODE2.st.com
- (10.75.128.133) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.29; Fri, 13 Mar
- 2026 16:59:32 +0100
-Message-ID: <b2b03ebe-9482-4a13-b22f-7b44da096eed@foss.st.com>
-Date: Fri, 13 Mar 2026 16:59:26 +0100
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="ilnG01lu"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=Ok
+	Jydil17J/bKKSpOmhf5pXuHazCRZk9UtAzqTsen3Q=; b=ilnG01luwp4pP7OtqS
+	TeutnXAU6Ie9XpK9O0LxT8hJVpPwJeTyCsUp07tSOFcvHSSbbTrwFIMmG4J1wpqE
+	bbPVjL2lOpuHzhAYmvO8SowPA/HrN3pCfsAcwjQ4cZkJ95DZfFr6jHHolzwk/W2q
+	RSKrp86ldpZmjMP11D7JsY9RU=
+Received: from zhb.. (unknown [])
+	by gzga-smtp-mtada-g0-4 (Coremail) with SMTP id _____wAX2JV7QbRpTApJAw--.54345S2;
+	Sat, 14 Mar 2026 00:55:24 +0800 (CST)
+From: Hans Zhang <18255117159@163.com>
+To: lpieralisi@kernel.org,
+	jingoohan1@gmail.com,
+	mani@kernel.org,
+	kwilczynski@kernel.org,
+	bhelgaas@google.com,
+	helgaas@kernel.org,
+	florian.fainelli@broadcom.com,
+	jim2101024@gmail.com
+Cc: robh@kernel.org,
+	ilpo.jarvinen@linux.intel.com,
+	linux-arm-msm@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-renesas-soc@vger.kernel.org,
+	claudiu.beznea.uj@bp.renesas.com,
+	linux-mediatek@lists.infradead.org,
+	linux-tegra@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	bcm-kernel-feedback-list@broadcom.com,
+	linux-pci@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	shawn.lin@rock-chips.com,
+	Hans Zhang <18255117159@163.com>
+Subject: [PATCH v9 0/5] PCI: of: Remove max-link-speed generation validation
+Date: Sat, 14 Mar 2026 00:55:17 +0800
+Message-Id: <20260313165522.123518-1-18255117159@163.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v10 3/8] PCI: dwc: Advertise dynamic inbound mapping
- support
-To: Koichiro Den <den@valinux.co.jp>, <jingoohan1@gmail.com>,
-	<mani@kernel.org>, <lpieralisi@kernel.org>, <kwilczynski@kernel.org>,
-	<robh@kernel.org>, <bhelgaas@google.com>, <cassel@kernel.org>,
-	<Frank.Li@nxp.com>
-CC: <vigneshr@ti.com>, <s-vadapalli@ti.com>, <hongxing.zhu@nxp.com>,
-	<l.stach@pengutronix.de>, <shawnguo@kernel.org>, <s.hauer@pengutronix.de>,
-	<kernel@pengutronix.de>, <festevam@gmail.com>, <minghuan.Lian@nxp.com>,
-	<mingkai.hu@nxp.com>, <roy.zang@nxp.com>, <jesper.nilsson@axis.com>,
-	<heiko@sntech.de>, <srikanth.thokala@intel.com>,
-	<marek.vasut+renesas@gmail.com>, <yoshihiro.shimoda.uh@renesas.com>,
-	<geert+renesas@glider.be>, <magnus.damm@gmail.com>,
-	<mcoquelin.stm32@gmail.com>, <alexandre.torgue@foss.st.com>,
-	<thierry.reding@gmail.com>, <jonathanh@nvidia.com>,
-	<hayashi.kunihiko@socionext.com>, <mhiramat@kernel.org>, <kishon@kernel.org>,
-	<jirislaby@kernel.org>, <rongqianfeng@vivo.com>, <18255117159@163.com>,
-	<shawn.lin@rock-chips.com>, <nicolas.frattaroli@collabora.com>,
-	<linux.amoon@gmail.com>, <vidyas@nvidia.com>, <shuah@kernel.org>,
-	<linux-omap@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>,
-	<imx@lists.linux.dev>, <linuxppc-dev@lists.ozlabs.org>,
-	<linux-arm-kernel@axis.com>, <linux-rockchip@lists.infradead.org>,
-	<linux-arm-msm@vger.kernel.org>, <linux-renesas-soc@vger.kernel.org>,
-	<linux-stm32@st-md-mailman.stormreply.com>, <linux-tegra@vger.kernel.org>,
-	<linux-kselftest@vger.kernel.org>
-References: <20260124145012.2794108-1-den@valinux.co.jp>
- <20260124145012.2794108-4-den@valinux.co.jp>
-Content-Language: en-US
-From: Christian Bruel <christian.bruel@foss.st.com>
-In-Reply-To: <20260124145012.2794108-4-den@valinux.co.jp>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: STKCAS1NODE1.st.com (10.75.128.134) To STKDAG1NODE2.st.com
- (10.75.128.133)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DB1PEPF000509E9:EE_|AS1PR10MB5529:EE_
-X-MS-Office365-Filtering-Correlation-Id: c8426537-1976-4da1-02e9-08de811985b6
-X-LD-Processed: 75e027c9-20d5-47d5-b82f-77d7cd041e8f,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
- BCL:0;ARA:13230040|36860700016|7416014|376014|1800799024|82310400026|18002099003|56012099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
- fw2s3TSC4OSqWB3QSZGwaozOdRgLbvywUwgpMs4/8C8noz+YqHSBbIk0xvKn7FDYLV+/7rDpQPaRj9mzp/+5nJ0M9+irRlN9HlqIru0wjxOnhfi6/ng0fcD8MvhuxAZZfmxZzFpSFBeD6l5Rx1BZkcI8OH9IdD9oDZhMMMvdH4qkEcGONUeos7qhxS3Pm7kwMFRQdKMRcM28FG2Z3/VsESf0e0S09FAC5R38EEulZdO1A61DWBIUVj8Cj04xOUt70Ef2QqO/Qn3oSFbE33Fsbnt4WTQ5LkFUXXgt1XsfmLvRlkJ4d2BJIi8m5+DGPIHXOLoreyYVBonUVAJZrCV0c8Mimg+DEcf+9MbjF+kYSDl+jJHk89xcmRqCIeNrWIL7rLa0D/ZSEg8XkYuVKb6HILjktp9tlmiSbmB7P1cM9xfKT17m1ic37wqI2Eli4+D1DP8L2kzev01LbIYZtQEjjrMTBQ3X2f4QI21IbuPJHqlNQG0XL8Kv5l7iBhnRTr4onyJGIHwywo7Ts/Jmol+61A27irVIgQh17r+VqUUm+m0SRPuJWebSl+M7zIJe7D3+scKVXZfwRFnnjqqKE7Yw+plGOSSmrJ7SAQ1W9gTt3PDuG9evFIHKoKdBw59C1RlTchruEKoycqPPHOzxs1eBFwySto1fw2QUtDwa1y+bb/NRjGA7SoVs4ShNzCXr7sCT4fk6W3zE1aqGvA9gYhp25kINGwoBqrZ/T9MJmEloAtYKAZ7XbE3bGsveIqZ9Aa4HmBTUMNKPW3UE3YuAv4Sr+Q==
-X-Forefront-Antispam-Report:
- CIP:164.130.1.59;CTRY:IT;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:smtpO365.st.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(7416014)(376014)(1800799024)(82310400026)(18002099003)(56012099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
- TCChnitx4bv7GwJxbg2co3WJ1o0/vLzxAZ+5RWjFIj9Fi+VADGhjsGJ8wL+BXhF1Zrkfc0QVyUOEBn8OA5F4CCvXUHAKGFytDzYgfkRNaN7iU3nri9WaRnkWiYG4TZkJBSvx6t7jztw1cf+6kRsBEzZpkyYJRIPemkL7AlQB7JAYkE4vHJrh2bEdLblFDJH3kSxG+1ZdZi58LWTr/dTK8/itfj80yDV1a2wC0A1cwrcJDEzA8d3VAEe34YJC72HjHXmR8HJxwSIzQH6B/wDLVd3aR4ysgjJhz2IYU3+hNZnPzulF70Pg16pKF24YPXqVKQjBsW1PVDVHMAo566SBkUq0TdloOvBfCohZEC+nNo9T078fY3EinexDbWyG8KB4AdAxERHYJnRYYL6UIhCOwolidheRqRKmVrImhRtFNz7BNGkiMTAbob3djDiIXc53
-X-OriginatorOrg: foss.st.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Mar 2026 15:59:34.9843
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c8426537-1976-4da1-02e9-08de811985b6
-X-MS-Exchange-CrossTenant-Id: 75e027c9-20d5-47d5-b82f-77d7cd041e8f
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=75e027c9-20d5-47d5-b82f-77d7cd041e8f;Ip=[164.130.1.59];Helo=[smtpO365.st.com]
-X-MS-Exchange-CrossTenant-AuthSource: DB1PEPF000509E9.eurprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AS1PR10MB5529
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wAX2JV7QbRpTApJAw--.54345S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxAw1kuw17CF4kAF4DCFyfZwb_yoWrtr1fpa
+	y2qFWFyF1xtF4ava17J3WUuFyYg3ZxAFWjkryfWw17ZFnxCF13XFySgF4FvF9rKrZF9r12
+	q3W2q3W7KFyjyaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pi2-esUUUUU=
+X-CM-SenderInfo: rpryjkyvrrlimvzbiqqrwthudrp/xtbCxB32mmm0QX3JqwAA32
 
-Hello,
+Hi,
 
-While testing after this series, I encountered regressions on the 
-STM32MP2, which I am unsure how to fix. The failures depend on the order 
-in which the tests are run.
+This series moves the validation from the common OF function to the
+individual PCIe controller drivers.  To protect against out-of-bounds
+accesses to the pcie_link_speed[] array, we first introduce a helper
+function pcie_get_link_speed() that safely returns the speed value
+(or PCI_SPEED_UNKNOWN) for a given generation number.
 
-The STM32 ATU has 4 inbound entries. After enumeration, the first 4 ATU 
-entries are allocated within ib_window_map.
+Then all direct uses of pcie_link_speed[] as an array are converted to
+use the new helper, ensuring that even if an invalid generation number
+reaches those code paths, no out-of-bounds access occurs.
 
-On the first run of ./pci_endpoint_test -v BAR3(for example), 
-SUBRRANGE_SETUP calls dw_pcie_ep_ib_atu_addr(), which frees only one ATU 
-entry (BAR3), because we were in the bar_to_atu case, for the first 
-submap but fails to allocate the second submap. So the test FAILs.
+For several drivers that read the "max-link-speed" property
+(pci-j721e, brcmstb, mediatek-gen3, rzg3s-host), we add an explicit
+validation step: if the value is missing, out of range, or unsupported
+by the hardware, a safe default is used (usually Gen2). Other drivers
+(mainly DesignWare glue drivers) rely on the helper to safely handle
+invalid values, but do not yet include fallback logic or warnings.
 
-On the second run with a different BAR, SUBRRANGE_SETUP test calls 
-dw_pcie_ep_ib_atu_addr() again, freeing the required ATU entry (BAR1) 
-and successfully using the second ATU entry (3), which was left 
-unallocated by the first test. then now the test PASSes
+Finally, the range check is removed from of_pci_get_max_link_speed(),
+so that future PCIe generations can be supported without modifying
+drivers/pci/of.c.
 
-Therefore, the first invocation of ./pci_endpoint_test on any BAR always 
-fails. Other invocations are fine because the first one has left the 
-missing necessary ATU entry free. Whatever initial BAR number is used
+---
+Changes for v9:
+- Modify the parameter passed to pcie_get_link_speed to unsigned int. If the DT
+  configuration specifies max-link-speed = -1, the obtained max_link_speed will
+  be 0xff. Therefore, it will be greater than the length of the array pcie_link_speed.
+  Thus, the condition speed <= 0 is removed. (For patch 0001. Shawn)
+- Modify the commit message for patch 0005. (Shawn)
 
-I am unsure how to fix this. Always freeing all BARs before calling 
-set_bar() in the epf-test seems overkill, but safe.
-I am also considering modifying dw_pcie_ep_clear_ib_maps() to clear N 
-num_submap entries even if ib_atu_indexes was not used yet, since only 
-the full BAR is used during the first invocation from bar_to_atu. But 
-the question is which ATU entry to select ? BAR+1 ?. This seems empirical.
+Changes for v8:
+https://patchwork.kernel.org/project/linux-pci/cover/20260312163652.113228-1-18255117159@163.com/
 
-I am not bothered by test failures due to an insufficient number of BARs 
-(this is already the case for BAR5,6), but the fact that the failures 
-depend on the test order is frustrating and show a regression.
+- Expand series from 2 to 5 patches to introduce pcie_get_link_speed() helper
+  and split validation into per-driver changes.
+- Add pcie_get_link_speed() helper for safe pcie_link_speed[] array access (Bjorn)
+- Move max-link-speed validation from DWC core to individual drivers; add explicit
+  fallback logic only for pci-j721e, brcmstb, mediatek-gen3, rzg3s-host.
+- Convert all remaining direct pcie_link_speed[] accesses to use the new helper.
+- Update commit messages to reflect the new design.
 
-But I'm not satisfied with either of the 2 possible fixes mentioned above.
+Changes for v7:
+https://patchwork.kernel.org/project/linux-pci/cover/20260308142629.75392-1-18255117159@163.com/
 
-Do you have any other thought ?
+- Add validation in dw_pcie_get_link_speed() (Bjorn)
+- Modify it so that two patches constitute one series.
 
-thank you
+Changes for v6:
+https://patchwork.kernel.org/project/linux-pci/patch/20251218132036.308094-1-18255117159@163.com/
 
-Christian
+- It'd be good to return the actual errno as of_property_read_u32() can return
+  -EINVAL, -ENODATA and -EOVERFLOW. (Mani)
+
+Changes for v5:
+https://patchwork.kernel.org/project/linux-pci/patch/20251218125909.305300-1-18255117159@163.com/
+
+- Delete the check for speed. (Mani)
+
+Changes for v4:
+https://patchwork.kernel.org/project/linux-pci/patch/20251105134701.182795-1-18255117159@163.com/
+
+- Add pcie_max_supported_link_speed.(Ilpo)
+
+Changes for v3:
+https://patchwork.kernel.org/project/linux-pci/patch/20251101164132.14145-1-18255117159@163.com/
+
+- Modify the commit message.
+- Add Reviewed-by tag.
+
+Changes for v2:
+https://patchwork.kernel.org/project/linux-pci/cover/20250529021026.475861-1-18255117159@163.com/
+- The following files have been deleted:
+  Documentation/devicetree/bindings/pci/pci.txt
+
+  Update to this file again:
+  dtschema/schemas/pci/pci-bus-common.yaml
+---
+
+Hans Zhang (5):
+  PCI: Add pcie_get_link_speed() helper for safe array access
+  PCI: dwc: Use pcie_get_link_speed() and validate max-link-speed
+  PCI: j721e: Validate max-link-speed from DT
+  PCI: controller: Validate max-link-speed
+  PCI: of: Remove max-link-speed generation validation
+
+ drivers/pci/controller/cadence/pci-j721e.c       |  3 ++-
+ .../pci/controller/dwc/pcie-designware-host.c    |  2 +-
+ drivers/pci/controller/dwc/pcie-designware.c     |  2 +-
+ drivers/pci/controller/dwc/pcie-qcom-common.c    |  2 +-
+ drivers/pci/controller/dwc/pcie-qcom-ep.c        |  4 ++--
+ drivers/pci/controller/dwc/pcie-qcom.c           |  6 +++---
+ drivers/pci/controller/dwc/pcie-tegra194.c       |  2 +-
+ drivers/pci/controller/pcie-brcmstb.c            |  5 +++--
+ drivers/pci/controller/pcie-mediatek-gen3.c      |  2 +-
+ drivers/pci/controller/pcie-rzg3s-host.c         |  2 +-
+ drivers/pci/of.c                                 | 16 ++++++++--------
+ drivers/pci/pci.h                                |  2 ++
+ drivers/pci/probe.c                              | 16 ++++++++++++++++
+ 13 files changed, 42 insertions(+), 22 deletions(-)
+
+
+base-commit: 80234b5ab240f52fa45d201e899e207b9265ef91
+-- 
+2.34.1
+
