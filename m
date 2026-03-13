@@ -1,106 +1,129 @@
-Received: from lithops.sigma-star.at (mailout.nod.at [116.203.167.152])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45EED3AC0E2;
-	Thu, 12 Mar 2026 19:33:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=116.203.167.152
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F11A24676D
+	for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2026 00:17:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773344034; cv=none; b=j33607n42e689OLFpqcE53xFh+mXzT0DHyFuURweRJDCnHcwW3FtYJuTwAwE7ZtTqn92an8BownNrtmHLhnnlR6hLvKAuI+SoVXShgoz/FNRyMB49rWOhUxMnrt0E5LHZZe0uYfRusDdVxUM+4AJvAJQujoLYUQ8fY7Cwp76ZKA=
+	t=1773361046; cv=none; b=JKbsxCe5le001xj3FzcECprWQ1KROPeNNs0quHX/64F5FU4bh2/02WKrwvWszDBbAim9ffTXoWR/+FeIE4YXNlfppl9l7cf68i/+fVtyLIs9licynwHspxPyQO/MVODNT7mwtVb8YPakUnU4QZPChpu5F4K8WDqw49KTe6ey3uo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773344034; c=relaxed/simple;
-	bh=VQ4I1//oujMg/wMbvtHZ1fNg62i5rEhIWcPKRohhj4U=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 MIME-Version:Content-Type; b=ddy2a7nze40y2XOq6AzX5P+yK/YAMZEsZCu4is1ZBhMnJKS9vFgMZWqpirXNxVgz6pZsokw/214XhfsoPaQlvyfIqpgQ2GBgjj20XFkl4eJeH0Ugf3RmPz5wDBJf3rAKd+aMd7liJ/M4aSZTOFN9EXdHYYjti5z0jySqd1deAiM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nod.at; spf=fail smtp.mailfrom=nod.at; arc=none smtp.client-ip=116.203.167.152
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nod.at
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nod.at
-Received: from localhost (localhost [127.0.0.1])
-	by lithops.sigma-star.at (Postfix) with ESMTP id 4DE582C14A8;
-	Thu, 12 Mar 2026 20:33:44 +0100 (CET)
-Received: from lithops.sigma-star.at ([127.0.0.1])
-	by localhost (lithops.sigma-star.at [127.0.0.1]) (amavisd-new, port 10032)
-	with ESMTP id yCwNT8mwVvHB; Thu, 12 Mar 2026 20:33:43 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by lithops.sigma-star.at (Postfix) with ESMTP id 8A34D2C14AA;
-	Thu, 12 Mar 2026 20:33:43 +0100 (CET)
-Received: from lithops.sigma-star.at ([127.0.0.1])
-	by localhost (lithops.sigma-star.at [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id 3HN7guaAFMsE; Thu, 12 Mar 2026 20:33:43 +0100 (CET)
-Received: from lithops.sigma-star.at (lithops.sigma-star.at [195.201.40.130])
-	by lithops.sigma-star.at (Postfix) with ESMTP id ABF4A2C14A6;
-	Thu, 12 Mar 2026 20:33:42 +0100 (CET)
-Date: Thu, 12 Mar 2026 20:33:42 +0100 (CET)
-From: Richard Weinberger <richard@nod.at>
-To: Philipp Hahn <phahn-oss@avm.de>
-Cc: amd-gfx <amd-gfx@lists.freedesktop.org>, 
-	apparmor <apparmor@lists.ubuntu.com>, bpf <bpf@vger.kernel.org>, 
-	ceph-devel <ceph-devel@vger.kernel.org>, cocci <cocci@inria.fr>, 
-	dm-devel@lists.linux.dev, 
-	DRI mailing list <dri-devel@lists.freedesktop.org>, 
-	gfs2 <gfs2@lists.linux.dev>, 
-	intel-gfx <intel-gfx@lists.freedesktop.org>, 
-	intel-wired-lan@lists.osuosl.org, iommu@lists.linux.dev, 
-	kvm@vger.kernel.org, 
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, 
-	linux-block <linux-block@vger.kernel.org>, 
-	linux-bluetooth@vger.kernel.org, 
-	linux-btrfs <linux-btrfs@vger.kernel.org>, 
-	linux-cifs <linux-cifs@vger.kernel.org>, linux-clk@vger.kernel.org, 
-	linux-erofs <linux-erofs@lists.ozlabs.org>, 
-	linux-ext4 <linux-ext4@vger.kernel.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	linux-gpio@vger.kernel.org, 
-	linux-hyperv <linux-hyperv@vger.kernel.org>, 
-	linux-input@vger.kernel.org, 
-	linux-kernel <linux-kernel@vger.kernel.org>, 
-	linux-leds@vger.kernel.org, 
-	linux-media <linux-media@vger.kernel.org>, 
-	linux-mips <linux-mips@vger.kernel.org>, 
-	linux-mm <linux-mm@kvack.org>, linux-modules@vger.kernel.org, 
-	linux-mtd <linux-mtd@lists.infradead.org>, 
-	linux-nfs <linux-nfs@vger.kernel.org>, 
-	linux-omap <linux-omap@vger.kernel.org>, 
-	linux-phy@lists.infradead.org, linux-pm <linux-pm@vger.kernel.org>, 
-	linux-rockchip <linux-rockchip@lists.infradead.org>, 
-	linux-s390 <linux-s390@vger.kernel.org>, 
-	linux-scsi <linux-scsi@vger.kernel.org>, linux-sctp@vger.kernel.org, 
-	LSM <linux-security-module@vger.kernel.org>, 
-	linux-sh <linux-sh@vger.kernel.org>, 
-	linux-sound <linux-sound@vger.kernel.org>, 
-	linux-stm32 <linux-stm32@st-md-mailman.stormreply.com>, 
-	linux-trace-kernel <linux-trace-kernel@vger.kernel.org>, 
-	linux-usb@vger.kernel.org, 
-	linux-wireless <linux-wireless@vger.kernel.org>, 
-	netdev <netdev@vger.kernel.org>, ntfs3 <ntfs3@lists.linux.dev>, 
-	samba-technical <samba-technical@lists.samba.org>, 
-	sched-ext@lists.linux.dev, target-devel@vger.kernel.org, 
-	tipc-discussion@lists.sourceforge.net, v9fs <v9fs@lists.linux.dev>, 
-	Miquel Raynal <miquel.raynal@bootlin.com>, 
-	Vignesh Raghavendra <vigneshr@ti.com>
-Message-ID: <1584421372.26258.1773344022512.JavaMail.zimbra@nod.at>
-In-Reply-To: <20260310-b4-is_err_or_null-v1-48-bd63b656022d@avm.de>
-References: <20260310-b4-is_err_or_null-v1-0-bd63b656022d@avm.de> <20260310-b4-is_err_or_null-v1-48-bd63b656022d@avm.de>
-Subject: Re: [PATCH 48/61] mtd: Prefer IS_ERR_OR_NULL over manual NULL check
+	s=arc-20240116; t=1773361046; c=relaxed/simple;
+	bh=sBDJiycTYdIuQYP8aXJgcHXx7wyBEVeAIRSLsbiJbcY=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=ozOVaxW99/l2zrs498zaTpawHYxZvOoWTer35q3mJKwzLejoqXNodNLfZFgzrg3xRBSXeJwa1iSQWR+9PxH2h8jv1D7sTtAZShU3hfGJkYU0c677eM3OdPFJsArWVOUwyDRvkMPCL9PxQmsrD+rRaZWJEVnJzrT7hR6eW036rEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=Sr1xJkyR; arc=none smtp.client-ip=209.85.216.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="Sr1xJkyR"
+Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-35a1cc6e478so607564a91.0
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2026 17:17:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1773361043; x=1773965843; darn=vger.kernel.org;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=cyKlpEvu/Gz33z23N2eapbn1Hxc35CxSf0FmojMpCCA=;
+        b=Sr1xJkyRUpTM2mE4LmrkDULYojX1NkeDB5HO/UvhCW1bu+5Rq++dnWRUT9CYqhmQ11
+         x/ycV4BlHEkvYlTTChTph86r3OFk6g+feEef4CeQTcKlGFxp0arov/9jsGvq0LZFfk4F
+         WH4bi5fyvr6dlpwVfcN/cRWn/j8IsbjF9YYYAlq3TnPHbtCtj6aFynltMlHSbOMXSaZh
+         ClzrVxqqSYhPGYEWT/MHZpB5IDDFCYbfmRLpODYd5CKo1rLqaRkMeNPyR2Iir9fdxgpl
+         dOB6w8hlk3Eee1osHKgElbUQjF+jX8151kHYdRTClkN60XsLxQIdA1sc1HpCGsvf5eJx
+         Okeg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773361043; x=1773965843;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=cyKlpEvu/Gz33z23N2eapbn1Hxc35CxSf0FmojMpCCA=;
+        b=Mgj3xlS/dz8vAHvhn/bgKW2q7bGoHeTeamEcwcx34OZUeugdiFo/4beDjbDn8TIwjW
+         P0PeCpTue93LVEuEAb3D3Ubs0FOYsijaURptZsjRklntMXKRBdlTrouMekHz30gkyrvW
+         QlbtlR0iikJbrCHab6RnpCkYhOKuaKRunQWTOBmao8cslVO4VvY9GYeHP1NT5EPViwRc
+         0Gp13rj0koSYVQzz18j7l+KYoRcnwI6mdVNf3D9kb9eP348pokjlayqmlc+ZyEcblxEx
+         ZzSVCN0tijZZxw/UUqJwBUqMvXy9acmtK2s/691zkDjauaVXcvfbXNKlh2x7znFvHxAu
+         +tpA==
+X-Gm-Message-State: AOJu0YzGuJ23Xiu9fVMyW++9e0LhbYiyZ5sDAjoJSRoqiWjEOk6fTqQH
+	bqJHDXHpX3LgZjdYknMyyi9MvZUO6t8qEr9vQSk7HpM/kaYxfC4w9JSbVdPrQmyYoFs=
+X-Gm-Gg: ATEYQzx6tvzMoRHLy4s7u85KME21wrrx3cQHKB7uSOHZtQbh7GeT1yy8/MM6RcQuBsN
+	3TB5w0djJiZxCOzbgD6P+T9xVCjN/r7UcfwEyIPdzgyVJDk7kn2ojQEOr1pebMYqFWsh+N8teaS
+	LDlo71+lSPCSO1LnMqamse0IMpAPuI59Ik3FhBxSfJgSbmrt/qar7I4k4+UEfp4o61Cldz+IrOW
+	FIPRuVS1oc4JnzhktjoGwl7YQxKtKNyHU9oTC63ZkWkIX07j0V2S0gAoKIUBFTQlmBgH/A27vRT
+	WDbGThfPTF1t3WM42eNClrVMiBKDUO9lagaMuJnwYkfhf0iyc330YjFuI2ecwoqe9SFUnxTjMEa
+	KoN06DlpOSorfZcDZW93fnYBToDnEwal6vDeimje7OjzPkcXbuhe3AjTz3ZMZwRPJgD5oVfVh4j
+	X+HkGVLvGdXMbp4KHP8iu6bdwIMVyhtg==
+X-Received: by 2002:a17:90b:3b87:b0:32e:a8b7:e9c with SMTP id 98e67ed59e1d1-35a22082de9mr1145911a91.29.1773361042647;
+        Thu, 12 Mar 2026 17:17:22 -0700 (PDT)
+Received: from localhost ([97.126.187.42])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35a22cb532fsm312631a91.1.2026.03.12.17.17.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 12 Mar 2026 17:17:22 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Andrew Goodbody <andrew.goodbody@linaro.org>, Aaro Koskinen
+ <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, Roger
+ Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring
+ <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Christopher Obbard
+ <christopher.obbard@linaro.org>, Andrew Goodbody
+ <andrew.goodbody@linaro.org>
+Subject: Re: [PATCH] ARM: dts: omap: dm816x: Correct pinctrl register
+In-Reply-To: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
+References: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
+Date: Thu, 12 Mar 2026 17:17:21 -0700
+Message-ID: <7htsuk1t2m.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-Mailer: Zimbra 8.8.12_GA_3807 (ZimbraWebClient - FF148 (Linux)/8.8.12_GA_3809)
-Thread-Topic: Prefer IS_ERR_OR_NULL over manual NULL check
-Thread-Index: 0l8CyewQmrWlgaG6N3QgQFfukutRbA==
+Content-Type: text/plain
 
------ Urspr=C3=BCngliche Mail -----
-> Von: "Philipp Hahn" <phahn-oss@avm.de>
-> -=09if (gpiomtd->nwp && !IS_ERR(gpiomtd->nwp))
-> +=09if (!IS_ERR_OR_NULL(gpiomtd->nwp))
+Andrew Goodbody <andrew.goodbody@linaro.org> writes:
 
-No, please don't.
+> The delcaration in the pinmux device for the pinctrl registers is not
 
-This makes reading the code not easier.
+minor nit: s/delcaration/declaration/, but no need to respin.  I'll fix
+up when applying.
 
-Thanks,
-//richard
+> correct. These registers are actually 32 bits wide, not 16. Also the
+> mask for functional bits is also wrong. Functional bits are 0-4, not
+> 0-3. So the mask needs to changed to 0x1f.
+>
+> This information is taken from the TMS320DM816x DaVinci
+> Digital Media Processors Technical Reference Manual.
+> SPRUGX8C March 2015
+>
+> Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
+
+good catch!  Thank you for the fix.
+
+Kevin
+
+> ---
+>  arch/arm/boot/dts/ti/omap/dm816x.dtsi | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/ti/omap/dm816x.dtsi b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
+> index 407d7bc5b13a364548087dd5fb2659286bbd8537..a1e0e904e0f05cd725e71da70bffbde2dd2b2e38 100644
+> --- a/arch/arm/boot/dts/ti/omap/dm816x.dtsi
+> +++ b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
+> @@ -94,8 +94,8 @@ dm816x_pinmux: pinmux@800 {
+>  				#address-cells = <1>;
+>  				#size-cells = <0>;
+>  				#pinctrl-cells = <1>;
+> -				pinctrl-single,register-width = <16>;
+> -				pinctrl-single,function-mask = <0xf>;
+> +				pinctrl-single,register-width = <32>;
+> +				pinctrl-single,function-mask = <0x1f>;
+>  			};
+>  
+>  			/* Device Configuration Registers */
+>
+> ---
+> base-commit: f90aadf1c67c8b4969d1e5e6d4fd7227adb6e4d7
+> change-id: 20260312-dm816x_dt-abe888f372e3
+>
+> Best regards,
+> -- 
+> Andrew Goodbody <andrew.goodbody@linaro.org>
