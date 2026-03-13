@@ -1,76 +1,80 @@
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F11A24676D
-	for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2026 00:17:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 652C6310620
+	for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2026 00:59:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773361046; cv=none; b=JKbsxCe5le001xj3FzcECprWQ1KROPeNNs0quHX/64F5FU4bh2/02WKrwvWszDBbAim9ffTXoWR/+FeIE4YXNlfppl9l7cf68i/+fVtyLIs9licynwHspxPyQO/MVODNT7mwtVb8YPakUnU4QZPChpu5F4K8WDqw49KTe6ey3uo=
+	t=1773363559; cv=none; b=jzm/uxRiXCzHs0oNvhk+cabjRPflkPFMu1HQquk1KKK+rrdHGEEPv8yJp0nPgsCPyhu6WzDh08Mmob/zxQOUZx5ZqYrqaawHRbZTgN12ywBA9qhfMxQfzcPQvcym77UiXOOLXf65NDs9suE5H0KoB5RZGulRrHK4M0YcTHbEf2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773361046; c=relaxed/simple;
-	bh=sBDJiycTYdIuQYP8aXJgcHXx7wyBEVeAIRSLsbiJbcY=;
+	s=arc-20240116; t=1773363559; c=relaxed/simple;
+	bh=N56zY6ERDiOsmUWj1ibbj5vfyDtADAWSqqKHL42yXrQ=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=ozOVaxW99/l2zrs498zaTpawHYxZvOoWTer35q3mJKwzLejoqXNodNLfZFgzrg3xRBSXeJwa1iSQWR+9PxH2h8jv1D7sTtAZShU3hfGJkYU0c677eM3OdPFJsArWVOUwyDRvkMPCL9PxQmsrD+rRaZWJEVnJzrT7hR6eW036rEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=Sr1xJkyR; arc=none smtp.client-ip=209.85.216.50
+	 MIME-Version:Content-Type; b=bnJBy+h4RqTPGxNAiVLHD6JCXvElM2sE+pWKYxJCAZp2392HTS8krLo2EaVkcAVQPAdse9mgmIubs97QTuXx+gvp7wlCljBK1Giio8GLFwSDKyXbryFk/cbDPtyEAI1dD6O8Vr00Au5ca49g1SClQfNIVsDSBxDKDZAlP41f8vk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=Y6JwNC3i; arc=none smtp.client-ip=209.85.214.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="Sr1xJkyR"
-Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-35a1cc6e478so607564a91.0
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2026 17:17:23 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="Y6JwNC3i"
+Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2ab46931cf1so20639295ad.0
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2026 17:59:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1773361043; x=1773965843; darn=vger.kernel.org;
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1773363557; x=1773968357; darn=vger.kernel.org;
         h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
          :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=cyKlpEvu/Gz33z23N2eapbn1Hxc35CxSf0FmojMpCCA=;
-        b=Sr1xJkyRUpTM2mE4LmrkDULYojX1NkeDB5HO/UvhCW1bu+5Rq++dnWRUT9CYqhmQ11
-         x/ycV4BlHEkvYlTTChTph86r3OFk6g+feEef4CeQTcKlGFxp0arov/9jsGvq0LZFfk4F
-         WH4bi5fyvr6dlpwVfcN/cRWn/j8IsbjF9YYYAlq3TnPHbtCtj6aFynltMlHSbOMXSaZh
-         ClzrVxqqSYhPGYEWT/MHZpB5IDDFCYbfmRLpODYd5CKo1rLqaRkMeNPyR2Iir9fdxgpl
-         dOB6w8hlk3Eee1osHKgElbUQjF+jX8151kHYdRTClkN60XsLxQIdA1sc1HpCGsvf5eJx
-         Okeg==
+        bh=Cy9kXTv2NCvP2HAY6FejDEYYtBGZPXJx11C/O+hbqz8=;
+        b=Y6JwNC3i4h2a+xUspaGAvbblEkgjWhUi1oTTNnqTLfcOrbWWmbaIxHWZzPxARxGqes
+         Iw791pN2q3PlQpJ3X0PmVepuXJhCTsDCl3BEGhlAQAr917C5JZdIyeBNNDz3ljvnVVks
+         9dyDaFCgwSI+gWr+9EPD1hcOrxnW0iGz3c0rYl8HWp1qvJYO84BeM34+Cdw51RjeJf27
+         SinJrYFDlLbMwkJsb/xt0/4CNuG3HkPP5F3LPv+B4jIZfLz3VIGylr8RCX1b/z1JvCag
+         5qYFa9iAvJ0xHxmS9nEg6b83ZgIsTPOtPg39IbG0FfMT3TYbygy6eyMB8PGZ4J6qYQnX
+         gtqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773361043; x=1773965843;
+        d=1e100.net; s=20251104; t=1773363557; x=1773968357;
         h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
          :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=cyKlpEvu/Gz33z23N2eapbn1Hxc35CxSf0FmojMpCCA=;
-        b=Mgj3xlS/dz8vAHvhn/bgKW2q7bGoHeTeamEcwcx34OZUeugdiFo/4beDjbDn8TIwjW
-         P0PeCpTue93LVEuEAb3D3Ubs0FOYsijaURptZsjRklntMXKRBdlTrouMekHz30gkyrvW
-         QlbtlR0iikJbrCHab6RnpCkYhOKuaKRunQWTOBmao8cslVO4VvY9GYeHP1NT5EPViwRc
-         0Gp13rj0koSYVQzz18j7l+KYoRcnwI6mdVNf3D9kb9eP348pokjlayqmlc+ZyEcblxEx
-         ZzSVCN0tijZZxw/UUqJwBUqMvXy9acmtK2s/691zkDjauaVXcvfbXNKlh2x7znFvHxAu
-         +tpA==
-X-Gm-Message-State: AOJu0YzGuJ23Xiu9fVMyW++9e0LhbYiyZ5sDAjoJSRoqiWjEOk6fTqQH
-	bqJHDXHpX3LgZjdYknMyyi9MvZUO6t8qEr9vQSk7HpM/kaYxfC4w9JSbVdPrQmyYoFs=
-X-Gm-Gg: ATEYQzx6tvzMoRHLy4s7u85KME21wrrx3cQHKB7uSOHZtQbh7GeT1yy8/MM6RcQuBsN
-	3TB5w0djJiZxCOzbgD6P+T9xVCjN/r7UcfwEyIPdzgyVJDk7kn2ojQEOr1pebMYqFWsh+N8teaS
-	LDlo71+lSPCSO1LnMqamse0IMpAPuI59Ik3FhBxSfJgSbmrt/qar7I4k4+UEfp4o61Cldz+IrOW
-	FIPRuVS1oc4JnzhktjoGwl7YQxKtKNyHU9oTC63ZkWkIX07j0V2S0gAoKIUBFTQlmBgH/A27vRT
-	WDbGThfPTF1t3WM42eNClrVMiBKDUO9lagaMuJnwYkfhf0iyc330YjFuI2ecwoqe9SFUnxTjMEa
-	KoN06DlpOSorfZcDZW93fnYBToDnEwal6vDeimje7OjzPkcXbuhe3AjTz3ZMZwRPJgD5oVfVh4j
-	X+HkGVLvGdXMbp4KHP8iu6bdwIMVyhtg==
-X-Received: by 2002:a17:90b:3b87:b0:32e:a8b7:e9c with SMTP id 98e67ed59e1d1-35a22082de9mr1145911a91.29.1773361042647;
-        Thu, 12 Mar 2026 17:17:22 -0700 (PDT)
+        bh=Cy9kXTv2NCvP2HAY6FejDEYYtBGZPXJx11C/O+hbqz8=;
+        b=GWhCYENDKOf7qfgycjeDj93VnDxgtGaS7v5o55g49zxdSvq98JGIbQQSQ1WSm6IQI5
+         WYp8T9trcSIAE8L5hsuZpBnOpcxpHMPQcxBx5B7INzlc48Y1/8U9d5l8eO+pZrUdYnpD
+         9DSue7uhe2slRf2t4q9HiiwWV44Ymt9CkB0hpsQ4N+IZkvJJxtF9MQ7Jt+drf4Goqeet
+         wzXm096t+MKiGqZYJBzsc0ZE9yL64EM0BtJ8z7L9YQunorssabf+xVWQnYjTE1uHINlF
+         gWFfYdd32euairE6dMWfqy91n5HM3lfh51MvkFnl2zDv38A1sbO6XJeRXUy4N7J/+F05
+         /i6Q==
+X-Forwarded-Encrypted: i=1; AJvYcCXugllvTkbcsRsaHvv3f1pHNpJhnUjdkpulfe5Lj9a1N3ape/3ZIhtu6PIp0voi2qa8bv0QkkdpfVsN@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw8SEj2negdMe3zGEg3hRASiUW8e6YqU13AjvgdUKyBkIQRtGJh
+	u1WjaEHMRMnhOj1SSxkon8eiRzuIhifzrL/iAyEQOMwk8v5a/apjeY13hp6l6PX8HjQ=
+X-Gm-Gg: ATEYQzyFQ9Rt7Ta3gJ+IVDhq+avvgodto3/EeHDdbP51d7M3d91EaQLrv2UGcHmk6Hf
+	JVF1NDyLYw2GCyMNJphWbraVo3s/+4mn89h1/sFf37rDaN3ZrGpthJW88BAqSHLLwKLEYdkVzMF
+	6FcTTNA/FlyiKAL/irARQkiIkSTm2Akc07TaMgY/YQXrb+4QIJZlIQIPYZnYgj8KZ+CkkHLiPZD
+	bU1slBqWW6MzKlH5TiIO4ro5V0eMDavJcC0YUrAZ5e45V60QTU2ZuSMpX+2gbGxhLxwnhHXpp2J
+	muEPKyHRQQSVMcpk9U2Wq15Z51ctC9fTIL9Fon6AqDdfcS+xtA0n5TPGv+o/VH0SAAAZzZUPQIn
+	9WlYCkANCc0SruAc6gMbzdBL65YKfH8GnUAjSWujZrW6OGz3kNx6UpsM8xK5RF21OHmamnxcAyc
+	Tnj4v6u1zP3z/n7CIw9Do=
+X-Received: by 2002:a17:903:120a:b0:2ae:47d7:e101 with SMTP id d9443c01a7336-2aeca4cada8mr12610675ad.1.1773363556830;
+        Thu, 12 Mar 2026 17:59:16 -0700 (PDT)
 Received: from localhost ([97.126.187.42])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35a22cb532fsm312631a91.1.2026.03.12.17.17.21
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2aece56cb7fsm3034135ad.6.2026.03.12.17.59.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Mar 2026 17:17:22 -0700 (PDT)
+        Thu, 12 Mar 2026 17:59:16 -0700 (PDT)
 From: Kevin Hilman <khilman@baylibre.com>
-To: Andrew Goodbody <andrew.goodbody@linaro.org>, Aaro Koskinen
- <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, Roger
- Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring
- <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
- <conor+dt@kernel.org>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
- linux-kernel@vger.kernel.org, Christopher Obbard
- <christopher.obbard@linaro.org>, Andrew Goodbody
- <andrew.goodbody@linaro.org>
-Subject: Re: [PATCH] ARM: dts: omap: dm816x: Correct pinctrl register
-In-Reply-To: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
-References: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
-Date: Thu, 12 Mar 2026 17:17:21 -0700
-Message-ID: <7htsuk1t2m.fsf@baylibre.com>
+To: Parvathi Pudi <parvathi@couthit.com>, nm@ti.com, vigneshr@ti.com,
+ afd@ti.com, rogerq@kernel.org, tony@atomide.com, robh@kernel.org,
+ krzk+dt@kernel.org, conor+dt@kernel.org, richardcochran@gmail.com,
+ aaro.koskinen@iki.fi, andreas@kemnade.info
+Cc: andrew@lunn.ch, linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org, danishanwar@ti.com,
+ pratheesh@ti.com, j-rameshbabu@ti.com, praneeth@ti.com, srk@ti.com,
+ rogerq@ti.com, m-malladi@ti.com, krishna@couthit.com, mohan@couthit.com,
+ pmohan@couthit.com, basharath@couthit.com, parvathi@couthit.com, Murali
+ Karicheri <m-karicheri2@ti.com>
+Subject: Re: [PATCH v5 3/3] arm: dts: ti: Add device tree support for
+ PRU-ICSS on AM335x
+In-Reply-To: <20260307122641.738450-4-parvathi@couthit.com>
+References: <20260307122641.738450-1-parvathi@couthit.com>
+ <20260307122641.738450-4-parvathi@couthit.com>
+Date: Thu, 12 Mar 2026 17:59:15 -0700
+Message-ID: <7ho6ks1r4s.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -79,51 +83,53 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain
 
-Andrew Goodbody <andrew.goodbody@linaro.org> writes:
+Parvathi Pudi <parvathi@couthit.com> writes:
 
-> The delcaration in the pinmux device for the pinctrl registers is not
-
-minor nit: s/delcaration/declaration/, but no need to respin.  I'll fix
-up when applying.
-
-> correct. These registers are actually 32 bits wide, not 16. Also the
-> mask for functional bits is also wrong. Functional bits are 0-4, not
-> 0-3. So the mask needs to changed to 0x1f.
+> From: Roger Quadros <rogerq@ti.com>
 >
-> This information is taken from the TMS320DM816x DaVinci
-> Digital Media Processors Technical Reference Manual.
-> SPRUGX8C March 2015
+> The TI Sitara AM335x ICE-V2 consists of single PRU-ICSS instance,
+> This patch adds the new device tree overlay file in-order to enable
+> PRU-ICSS instance, along with makefile changes.
 >
-> Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
+> PRU-ICSS instance consists of two PRU cores along with various
+> peripherals such as the Interrupt Controller (PRU_INTC), the Industrial
+> Ethernet Peripheral(IEP), the Real Time Media Independent Interface
+> controller (MII_RT), and the Enhanced Capture (eCAP) event module.
+>
+> am33xx-l4.dtsi - Adds IEP and eCAP peripheral as child nodes
+> of the PRUSS subsystem node.
+>
+> am335x-icev2-prueth.dtso - Adds PRU-ICSS instance node along with PRU
+> eth port information and corresponding port configuration. It includes
+> interrupt mapping for packet reception, HW timestamp collection, and PRU
+> Ethernet ports in MII mode,
+>
+> GPIO configuration, boot strapping along with delay configuration for
+> individual PRU Ethernet port and other required nodes.
+>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Andrew F. Davis <afd@ti.com>
+> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+> Signed-off-by: Basharath Hussain Khaja <basharath@couthit.com>
+> Signed-off-by: Parvathi Pudi <parvathi@couthit.com>
 
-good catch!  Thank you for the fix.
+[...]
+
+> +/*
+> + * Disable CPSW switch node and
+> + * MDIO configuration to prevent
+> + * conflict with PRU-ICSS
+> + */
+> +&mac_sw {
+> +        status = "disable";
+> +};
+> +
+> +&davinci_mdio_sw {
+> +        status = "disable";
+> +};
+
+I think you need s/disable/disabled/?  (note the trailing 'd').  Without
+that, I don't think you're disabling these nodes, so I'm curious how it
+is not conflicting with the PRU-ICSS.
 
 Kevin
-
-> ---
->  arch/arm/boot/dts/ti/omap/dm816x.dtsi | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/ti/omap/dm816x.dtsi b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-> index 407d7bc5b13a364548087dd5fb2659286bbd8537..a1e0e904e0f05cd725e71da70bffbde2dd2b2e38 100644
-> --- a/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-> +++ b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-> @@ -94,8 +94,8 @@ dm816x_pinmux: pinmux@800 {
->  				#address-cells = <1>;
->  				#size-cells = <0>;
->  				#pinctrl-cells = <1>;
-> -				pinctrl-single,register-width = <16>;
-> -				pinctrl-single,function-mask = <0xf>;
-> +				pinctrl-single,register-width = <32>;
-> +				pinctrl-single,function-mask = <0x1f>;
->  			};
->  
->  			/* Device Configuration Registers */
->
-> ---
-> base-commit: f90aadf1c67c8b4969d1e5e6d4fd7227adb6e4d7
-> change-id: 20260312-dm816x_dt-abe888f372e3
->
-> Best regards,
-> -- 
-> Andrew Goodbody <andrew.goodbody@linaro.org>
