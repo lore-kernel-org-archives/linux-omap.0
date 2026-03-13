@@ -1,97 +1,114 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.4])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0A9F3CB2D6;
-	Fri, 13 Mar 2026 16:57:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8B753537D0;
+	Fri, 13 Mar 2026 18:18:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773421029; cv=none; b=N9BM/7Ryk+VD9aIs69H6CTJPN1L9n71skFbzNI1tmUA+9BTVmgxEfC8Ms2i4eo47fz6syJlcNL3u+TbTEhaCjrp1JRzWhV3Q9HzxtPIPzoF8UvaAkZfqwMuyJ4B06zkB4wT/Sv75V6FmqGrW7yPWTYfFTCJ/FCw87qLZhgz/eCA=
+	t=1773425939; cv=none; b=u2eRhWdZ3ljPwVyhhIzLNbd6MrCCzMlsHM0RrIFBaCyuKJKTNSutS1lUDYiHjS9Kfc3UbZ8O1+0QoELj6t2SdkELV8urmUAaid5ne/w6kyAREdmVEXRn2BpVXQEhBZKD82q7e9IrwyQVlEf4SLP763SJ20tzXSeFIEHl5uQ3p4g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773421029; c=relaxed/simple;
-	bh=LaDMrP+pcd/JXJQNPKeJRt91RMSc2WISQEFS4Meu+2s=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Xkr3Lsb9mpx5fpT0CkajgSmBIWZu5TaRClj4JaTGkayauiwMUYVBAVdcXfGva5z9MEGCbKUNYy8byYW/urrFc/mAM7kBYyjY5APNIF4s1kLsb8ytt1jQX4P5iwDo+hRV2A+Inp5RFqAZacuQllE0Bb9tSYHPaFIxth0tCvuggvI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=n0zuwsdN; arc=none smtp.client-ip=220.197.31.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1773425939; c=relaxed/simple;
+	bh=2NXO+yF+55T7F+hpfAb0nuG4E5nybIth2x/Lfeit0v0=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=XdwrgaZZAJv4G6I2UYoHtplsnchdY864Qi/qvJk+Xqy+XDc4jRVhZloSebu+7pIWdk1cSgcI6A4W80mmNYDf2T47G4VdFANHSMLbCOn4Yf0mcZ9nprQJpDyw3AV55v3l/uRPUJh6/jwUAqjKgtgvcIRDDlihMozx6u9HKWkkcnk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WkuBmUY5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="n0zuwsdN"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=jq
-	SuO3F12+BG9vDtSc8L1vzzspX/dhmwJJslZsHS+5w=; b=n0zuwsdNS0gS17QGuF
-	pXTmwopfCpJ8kBSb5N88HeJgmtmFZvZAnII+cqt0DOza14sHfaLdvpzkHzRkQo2T
-	XJHHJeWpoCPt9gFP3ON1hFls3+xe0tbEdUBgiI5oYe+sdRNKkwY2IWJ5GWVk2THK
-	IhNHb25YDUWgP+ZvqO5ewpr2Q=
-Received: from zhb.. (unknown [])
-	by gzga-smtp-mtada-g0-4 (Coremail) with SMTP id _____wAX2JV7QbRpTApJAw--.54345S5;
-	Sat, 14 Mar 2026 00:55:28 +0800 (CST)
-From: Hans Zhang <18255117159@163.com>
-To: lpieralisi@kernel.org,
-	jingoohan1@gmail.com,
-	mani@kernel.org,
-	kwilczynski@kernel.org,
-	bhelgaas@google.com,
-	helgaas@kernel.org,
-	florian.fainelli@broadcom.com,
-	jim2101024@gmail.com
-Cc: robh@kernel.org,
-	ilpo.jarvinen@linux.intel.com,
-	linux-arm-msm@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WkuBmUY5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49944C19421;
+	Fri, 13 Mar 2026 18:18:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773425939;
+	bh=2NXO+yF+55T7F+hpfAb0nuG4E5nybIth2x/Lfeit0v0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=WkuBmUY5zECY4w8HigOp4c5Dc0Y7y2nfHD6yuEYwFaBxRHSoHOnEVTjF7hkT0eQkA
+	 AFvQ0/U9ShmNbMyzF+0wQhrhDsQwyNxKjC32q2tl+0EsRInNZqjgNxUjA0SajeBrn6
+	 kHFj31oHvk4O5GY8i8NmF5RD6dgQrjiCuW1ZNS0TlFAoxlpUagAwvkYpFuqyVtZphY
+	 QVlHtHnRkgjRr9/4FntuZCDQbU9JYgsYDVeDARhaRlMuvQRsZqk8X1fkK1i1jrac4k
+	 8sYPWv4uyylodoV2LcLxP/nDTVvuq2bcgK0cxCWY0hcOSstFpl3VMDzH3SGAkgADCP
+	 f+nDIUI0cgl7Q==
+Date: Fri, 13 Mar 2026 13:18:58 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Christian Bruel <christian.bruel@foss.st.com>
+Cc: Koichiro Den <den@valinux.co.jp>, jingoohan1@gmail.com, mani@kernel.org,
+	lpieralisi@kernel.org, kwilczynski@kernel.org, robh@kernel.org,
+	bhelgaas@google.com, cassel@kernel.org, Frank.Li@nxp.com,
+	vigneshr@ti.com, s-vadapalli@ti.com, hongxing.zhu@nxp.com,
+	l.stach@pengutronix.de, shawnguo@kernel.org, s.hauer@pengutronix.de,
+	kernel@pengutronix.de, festevam@gmail.com, minghuan.Lian@nxp.com,
+	mingkai.hu@nxp.com, roy.zang@nxp.com, jesper.nilsson@axis.com,
+	heiko@sntech.de, srikanth.thokala@intel.com,
+	marek.vasut+renesas@gmail.com, yoshihiro.shimoda.uh@renesas.com,
+	geert+renesas@glider.be, magnus.damm@gmail.com,
+	mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com,
+	thierry.reding@gmail.com, jonathanh@nvidia.com,
+	hayashi.kunihiko@socionext.com, mhiramat@kernel.org,
+	kishon@kernel.org, jirislaby@kernel.org, rongqianfeng@vivo.com,
+	18255117159@163.com, shawn.lin@rock-chips.com,
+	nicolas.frattaroli@collabora.com, linux.amoon@gmail.com,
+	vidyas@nvidia.com, shuah@kernel.org, linux-omap@vger.kernel.org,
+	linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, imx@lists.linux.dev,
+	linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com,
+	linux-rockchip@lists.infradead.org, linux-arm-msm@vger.kernel.org,
 	linux-renesas-soc@vger.kernel.org,
-	claudiu.beznea.uj@bp.renesas.com,
-	linux-mediatek@lists.infradead.org,
-	linux-tegra@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	bcm-kernel-feedback-list@broadcom.com,
-	linux-pci@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	shawn.lin@rock-chips.com,
-	Hans Zhang <18255117159@163.com>
-Subject: [PATCH v9 3/5] PCI: j721e: Validate max-link-speed from DT
-Date: Sat, 14 Mar 2026 00:55:20 +0800
-Message-Id: <20260313165522.123518-4-18255117159@163.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260313165522.123518-1-18255117159@163.com>
-References: <20260313165522.123518-1-18255117159@163.com>
+	linux-stm32@st-md-mailman.stormreply.com,
+	linux-tegra@vger.kernel.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH v10 3/8] PCI: dwc: Advertise dynamic inbound mapping
+ support
+Message-ID: <20260313181858.GA1427542@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wAX2JV7QbRpTApJAw--.54345S5
-X-Coremail-Antispam: 1Uf129KBjvdXoW7JF4rZw1ftr4xWFyxGF1DGFg_yoWDXFXE9F
-	1UXFWrAr4Uuryakr1YyryayF95A34Uuw18Wa4rtF4fAFyxWay5ZrnxAFWUWa97u3W7JF17
-	JFyDKFn5J3ZFkjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7xRNDGYtUUUUU==
-X-CM-SenderInfo: rpryjkyvrrlimvzbiqqrwthudrp/xtbCxAD3m2m0QYDJ6wAA3W
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b2b03ebe-9482-4a13-b22f-7b44da096eed@foss.st.com>
 
-Use the new pcie_get_link_speed() helper to validate the value read from
-the "max-link-speed" DT property.  If the value is missing or invalid,
-fall back to Gen2 (speed = 2).  This prepares for the removal of the
-range check in of_pci_get_max_link_speed().
+On Fri, Mar 13, 2026 at 04:59:26PM +0100, Christian Bruel wrote:
+> Hello,
+> 
+> While testing after this series, I encountered regressions on the STM32MP2,
+> which I am unsure how to fix. The failures depend on the order in which the
+> tests are run.
 
-Signed-off-by: Hans Zhang <18255117159@163.com>
----
- drivers/pci/controller/cadence/pci-j721e.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+c0f1506f6354 ("PCI: dwc: Advertise dynamic inbound mapping support")
+appeared in v7.0-rc1, so apparently we added a regression in v7.0?  Do
+we need to revert this?
 
-diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
-index 6f2501479c70..bfdfe98d5aba 100644
---- a/drivers/pci/controller/cadence/pci-j721e.c
-+++ b/drivers/pci/controller/cadence/pci-j721e.c
-@@ -202,7 +202,8 @@ static int j721e_pcie_set_link_speed(struct j721e_pcie *pcie,
- 	int ret;
- 
- 	link_speed = of_pci_get_max_link_speed(np);
--	if (link_speed < 2)
-+	if ((link_speed < 2) ||
-+	    (pcie_get_link_speed(link_speed) == PCI_SPEED_UNKNOWN))
- 		link_speed = 2;
- 
- 	val = link_speed - 1;
--- 
-2.34.1
-
+> The STM32 ATU has 4 inbound entries. After enumeration, the first 4 ATU
+> entries are allocated within ib_window_map.
+> 
+> On the first run of ./pci_endpoint_test -v BAR3(for example),
+> SUBRRANGE_SETUP calls dw_pcie_ep_ib_atu_addr(), which frees only one ATU
+> entry (BAR3), because we were in the bar_to_atu case, for the first submap
+> but fails to allocate the second submap. So the test FAILs.
+> 
+> On the second run with a different BAR, SUBRRANGE_SETUP test calls
+> dw_pcie_ep_ib_atu_addr() again, freeing the required ATU entry (BAR1) and
+> successfully using the second ATU entry (3), which was left unallocated by
+> the first test. then now the test PASSes
+> 
+> Therefore, the first invocation of ./pci_endpoint_test on any BAR always
+> fails. Other invocations are fine because the first one has left the missing
+> necessary ATU entry free. Whatever initial BAR number is used
+> 
+> I am unsure how to fix this. Always freeing all BARs before calling
+> set_bar() in the epf-test seems overkill, but safe.
+> I am also considering modifying dw_pcie_ep_clear_ib_maps() to clear N
+> num_submap entries even if ib_atu_indexes was not used yet, since only the
+> full BAR is used during the first invocation from bar_to_atu. But the
+> question is which ATU entry to select ? BAR+1 ?. This seems empirical.
+> 
+> I am not bothered by test failures due to an insufficient number of BARs
+> (this is already the case for BAR5,6), but the fact that the failures depend
+> on the test order is frustrating and show a regression.
+> 
+> But I'm not satisfied with either of the 2 possible fixes mentioned above.
+> 
+> Do you have any other thought ?
+> 
+> thank you
+> 
+> Christian
