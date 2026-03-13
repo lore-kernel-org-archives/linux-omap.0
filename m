@@ -1,106 +1,121 @@
-Received: from mail-pg1-f170.google.com (mail-pg1-f170.google.com [209.85.215.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail-m3270.qiye.163.com (mail-m3270.qiye.163.com [220.197.32.70])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA563214812
-	for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2026 00:59:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93B87364943;
+	Fri, 13 Mar 2026 07:10:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.32.70
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773363577; cv=none; b=I994M53xH/3ofamJaB6D+Y7IjfvubyBPb7cqu7TeCA/RGtKwXlJ+KrulGqahxQiIkxxqkxqEYby4YLOFncDy6OO2coXMo/xADaa78x1lXSUC9lUbv1C29jaAJC+IebKMa5ilSdi1HhcWEiZERf+tMU2NB/nHkImJZtCMsgVGGDw=
+	t=1773385828; cv=none; b=SGGUX79B9vUyb89zEDdM+JAoWsgPwP5GnBgsN7/AoncoMWluw84MnBg1GM9hJxLz3RrGF+FUh5qUKxBecz9Cy8nd34ZRR6z2L1psIcW3gaaXr/T2P5efHNUEphDGrqiCJut2/QbRLcSVO57bYYyBKO8WGHZ6mfOuxuJ8pGPCIEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773363577; c=relaxed/simple;
-	bh=chhWq4uAe4OrP14p1imZ695PtBBTM9X4vzfnax+6qeE=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=at7cy7YayoWybPtRPtKn9GPAaSzNN6VisT0FasG/qylYWEvacdXJm8zNsIwsRQhtyU1AX0WuKFrbfSNwAYp4xriUqAzWkr+HfysOD7+7NlnU2leCzPwUSFSuym5b4clEHqGdkYPxoV3dwHphkyRpZSGu2ZsFdaLJ8EUyQEonAC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=WtppX4aw; arc=none smtp.client-ip=209.85.215.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	s=arc-20240116; t=1773385828; c=relaxed/simple;
+	bh=FzhcRqA7yckGocPIkjx5upnX4gCmTMBT6vfh5S1xWxs=;
+	h=Cc:Subject:To:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=EMFwGuMlklhFhC8tVsijGS2I9FqKXys4Je6+0UYyUdlY1qe3ZQtao4DO93tEgYyr8j27a75SBHRSIF2kcELspVBnELuVS7wO7NgULo5SMxdgvTWq4jraB1yTNoEs0kBpc0AvgktqzpXqSwiLV2agzv0f1Qey8t9OOJdPitu98tU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rock-chips.com; spf=pass smtp.mailfrom=rock-chips.com; dkim=pass (1024-bit key) header.d=rock-chips.com header.i=@rock-chips.com header.b=JzZpZOrh; arc=none smtp.client-ip=220.197.32.70
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rock-chips.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rock-chips.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="WtppX4aw"
-Received: by mail-pg1-f170.google.com with SMTP id 41be03b00d2f7-c739561f0d3so1001521a12.3
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2026 17:59:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1773363576; x=1773968376; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Q6o6ff7eVbfuDrJqEdyLStBhlwqEmt2Z90eYP9YlVxs=;
-        b=WtppX4awIp9j466rzQUPVHO+eY5HUMfhNKjfqAtm3yXLyK4cWW7V7DCvqHyIBzBLKc
-         9G8t3+iAM3q3pLCGzkUWODlQvMxvatvY3L01U9WP2eza3PV197TqUAWWi9hSsD6GyaGY
-         9Krafu3W4tzj2pVoDfyLJXXGdbtZpdLgOqtyZAFa+bj+iYRCNQPUX/ymipInc2uy1PHO
-         y6YfOkNZUaZiJaXfSjhUYQF8nbKi6MjPK6Olf0QqO3Ii1zUZM2DkvvGrcSf821JlzydQ
-         HuDa5aM10w6Ks1444/XEOOohYxhR7cEGd6+8kmhrvyWElW6J0EmASXYSB3UH8g62+6q9
-         dCCA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773363576; x=1773968376;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=Q6o6ff7eVbfuDrJqEdyLStBhlwqEmt2Z90eYP9YlVxs=;
-        b=NnKPbsyxBJV8UcLa4vkWsMs4C5G12OrFIRDoo/m2vFEgyAcSnrH84g3GnB25iO6+Z9
-         ly5CeaZMYBeCSoRSNa8IFqidqgNMZ57AzI9S/msdU9JopKslgQAiU/UAM2IBSh+0vUm8
-         p2/wpzZAG7pbUaYSFYNK1RAMze4/gAmIdtnhLk8v41voLa2CMqbN9VSctlQaSBz9GaMq
-         P0GOYv99fTMm+iro4zDhewikDOZ+UsLvH/zWN/31sakUf8MRI5SovJ1dUjbGGIR1REi7
-         yN7T56bqUFQvc2peTMV0n15j5PI2ddp2EXqp3Qb2SHTOl1YHf/809aqYe1SAOPPMUjWt
-         TrSg==
-X-Gm-Message-State: AOJu0Yx3qOc7mKIAZgPTLcaXeTusDOyACbEkEIGFAnJA0N9WngvVBobF
-	BlfJjPiIDL+CiOpVL/NnwhHEdfn87tNa/sTVzkHjt87TPTn/44CUWQpHO4wMVngkqQ0=
-X-Gm-Gg: ATEYQzxFDKmSBiwNWn/hwCbGMqCe3zLxgHyhY5qMplCmyQpeZ3hRK4JujrzVYXeprl/
-	yNJIVnOoKzNTeUSHcIpLGo2Oj0Wrc6jDPHSQfbWiAF7rSDSfr27TzCWRlbmDq2Z5TPjdVNivJsl
-	87tnmSa53Vr2L3WEr2TZw4wNohL7VDYQXx6ryZe2afsazkm6/gs7zmnxZ9MWq5hrjTJ7jb88TKW
-	NBRiY2gYowxgA/KmpJfuvm39bWDP4kdhlq80M2alJTSNNl1iXEdh4DS5kb+rcJqhQrQe5EzjNz/
-	I1AIjDzB8N/79x826psGdVFznrGN6lzl0JXk9MR33yqx+NqV7uqscs+ZS3bZ4A/xJhyh03OOMkX
-	D4Rs5Pbjlg7hDJDTwqQVg+I0nL9m7ZLDeuECqP4G7oZo8sEMrteCCI/OKxdyPISFEEYP0HON3xB
-	fggqx96qu7HVQ75kcgaQI=
-X-Received: by 2002:a05:6a21:1fc4:b0:398:a864:2bdb with SMTP id adf61e73a8af0-398ec9f0a10mr1109335637.1.1773363576079;
-        Thu, 12 Mar 2026 17:59:36 -0700 (PDT)
-Received: from localhost ([97.126.187.42])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c73eb998e42sm206862a12.12.2026.03.12.17.59.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Mar 2026 17:59:35 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, 
- Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
- Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, 
- Andrew Goodbody <andrew.goodbody@linaro.org>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-kernel@vger.kernel.org, 
- Christopher Obbard <christopher.obbard@linaro.org>
-In-Reply-To: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
-References: <20260312-dm816x_dt-v1-1-ed3370b20799@linaro.org>
-Subject: Re: [PATCH] ARM: dts: omap: dm816x: Correct pinctrl register
-Message-Id: <177336357525.480825.4683516533835453139.b4-ty@baylibre.com>
-Date: Thu, 12 Mar 2026 17:59:35 -0700
+	dkim=pass (1024-bit key) header.d=rock-chips.com header.i=@rock-chips.com header.b="JzZpZOrh"
+Received: from [192.168.61.151] (unknown [110.83.51.2])
+	by smtp.qiye.163.com (Hmail) with ESMTP id 36d232d0a;
+	Fri, 13 Mar 2026 15:05:00 +0800 (GMT+08:00)
+Cc: shawn.lin@rock-chips.com, robh@kernel.org, ilpo.jarvinen@linux.intel.com,
+ linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-renesas-soc@vger.kernel.org, claudiu.beznea.uj@bp.renesas.com,
+ linux-mediatek@lists.infradead.org, linux-tegra@vger.kernel.org,
+ linux-omap@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com,
+ linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v8 5/5] PCI: of: Remove max-link-speed generation
+ validation
+To: Hans Zhang <18255117159@163.com>, lpieralisi@kernel.org,
+ jingoohan1@gmail.com, mani@kernel.org, kwilczynski@kernel.org,
+ bhelgaas@google.com, helgaas@kernel.org, florian.fainelli@broadcom.com,
+ jim2101024@gmail.com
+References: <20260312163652.113228-1-18255117159@163.com>
+ <20260312163652.113228-6-18255117159@163.com>
+From: Shawn Lin <shawn.lin@rock-chips.com>
+Message-ID: <44e74dff-c321-7cfe-e304-a21644ac7787@rock-chips.com>
+Date: Fri, 13 Mar 2026 15:04:59 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev
+In-Reply-To: <20260312163652.113228-6-18255117159@163.com>
+Content-Type: text/plain; charset=gbk; format=flowed
+Content-Transfer-Encoding: 8bit
+X-HM-Tid: 0a9ce603472b09cckunm7514b9b4e3126
+X-HM-MType: 1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFITzdXWS1ZQUlXWQ8JGhUIEh9ZQVlCQ0IZVkpPSxpIGhgZSUtLS1YVFAkWGhdVEwETFh
+	oSFyQUDg9ZV1kYEgtZQVlKSktVQ0hVTkpVSVlXWRYaDxIVHRRZQVlPS0hVSktJT09PSFVKS0tVSk
+	JLS1kG
+DKIM-Signature: a=rsa-sha256;
+	b=JzZpZOrhxa/p+OxsGMsQFBDF5BmwYT/jD9es/4d2sYQDihM0+OEkYVO2RfHRWGr/vm5MJ0hubEDkQvQa38A1Dfuf1ZAa/0pUGvHKzllpRUYyZ1dmGteisUVSGQW/Qo2e8A0b7YOZgSX9+IObi8GJtscky6tOipCyAPIfkGeTA28=; s=default; c=relaxed/relaxed; d=rock-chips.com; v=1;
+	bh=f3xm6U44fEGSntAWOFNv+gR52dvtb+FgLKg5beQSpUM=;
+	h=date:mime-version:subject:message-id:from;
 
+Hi Hans
 
-On Thu, 12 Mar 2026 14:16:57 +0000, Andrew Goodbody wrote:
-> The delcaration in the pinmux device for the pinctrl registers is not
-> correct. These registers are actually 32 bits wide, not 16. Also the
-> mask for functional bits is also wrong. Functional bits are 0-4, not
-> 0-3. So the mask needs to changed to 0x1f.
+在 2026/03/13 星期五 0:36, Hans Zhang 写道:
+> The of_pci_get_max_link_speed() function currently validates the
+> "max-link-speed" DT property to be in the range 1..4 (Gen1..Gen4).
+> This imposes a maintenance burden because each new PCIe generation
+> would require updating this validation.
 > 
-> This information is taken from the TMS320DM816x DaVinci
-> Digital Media Processors Technical Reference Manual.
-> SPRUGX8C March 2015
+> Remove the range check so the function returns the raw property value
+> (or a negative error code if the property is missing or malformed).
+> Callers must now validate the returned speed against the range they
+> support. A subsequent patch adds such validation to the DWC driver,
+> which is the primary user of this function.
 > 
-> [...]
+> Removing the validation from this common function allows future PCIe
+> generations to be supported without modifying drivers/pci/of.c.
+> 
+> Signed-off-by: Hans Zhang <18255117159@163.com>
+> ---
+>   drivers/pci/of.c | 12 +++++++-----
+>   1 file changed, 7 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/pci/of.c b/drivers/pci/of.c
+> index 9f8eb5df279e..fbb779a94202 100644
+> --- a/drivers/pci/of.c
+> +++ b/drivers/pci/of.c
+> @@ -875,8 +875,9 @@ EXPORT_SYMBOL_GPL(of_pci_supply_present);
+>    * of_pci_get_max_link_speed - Find the maximum link speed of the given device node.
+>    * @node: Device tree node with the maximum link speed information.
+>    *
+> - * This function will try to find the limitation of link speed by finding
+> - * a property called "max-link-speed" of the given device node.
+> + * This function will try to read the "max-link-speed" property of the given
+> + * device tree node. It does NOT validate the value of the property (e.g.,
+> + * range checks for PCIe generations).
+>    *
+>    * Return:
+>    * * > 0	- On success, a maximum link speed.
 
-Applied, thanks!
+Thanks for the patch. However, after applying it, I noticed this part
+still seems off. There is a detailed comment in the file saying this
+function checks if the max-link-speed is invalid, just a few lines below
+your change. Could you please take another look at that comment and
+adjust them?
 
-[1/1] ARM: dts: omap: dm816x: Correct pinctrl register
-      (no commit info)
-
-Best regards,
--- 
-Kevin Hilman <khilman@baylibre.com>
-
+> @@ -889,10 +890,11 @@ EXPORT_SYMBOL_GPL(of_pci_supply_present);
+>   int of_pci_get_max_link_speed(struct device_node *node)
+>   {
+>   	u32 max_link_speed;
+> +	int ret;
+>   
+> -	if (of_property_read_u32(node, "max-link-speed", &max_link_speed) ||
+> -	    max_link_speed == 0 || max_link_speed > 4)
+> -		return -EINVAL;
+> +	ret = of_property_read_u32(node, "max-link-speed", &max_link_speed);
+> +	if (ret)
+> +		return ret;
+>   
+>   	return max_link_speed;
+>   }
+> 
