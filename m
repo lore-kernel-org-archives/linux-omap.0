@@ -1,252 +1,143 @@
-Received: from TYVP286CU001.outbound.protection.outlook.com (mail-japaneastazon11021141.outbound.protection.outlook.com [52.101.125.141])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A11426059D;
-	Sat, 14 Mar 2026 04:33:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.125.141
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773462802; cv=fail; b=AZB7CEFRY9io04b8WmgptA87cf3858LqQxGHnMGwJuGC9bedyiuWB42y9M7vlh61kXEnVa7zFqEgrszepqNiu87mUSsEsY3yfeIxurbvZlSSbJV/rzm6dd/GqIBrbQRbA7EgRb4ODZZlzSb88vHMoWRjHmQM96XbfBHZdADIAo4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773462802; c=relaxed/simple;
-	bh=ndh5O1OQu31sIRBaL8vq7fgfGi4OqxoFZ7lxcMVrWjw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=NFUkpeX0J5raDbnKqqhxFiwwvdSQ2Ee+gL+Wy482aCrFEdARP9WyRNg6VFSeeCLWZsXzOIf7fbvB5KCPETY23+gksyjBJo/aPvlVvJ6o0TXyw/0JfUlbIJSbNOqSkKVJzDAKaEruvbSMM7J3AXCC2ylVGWaXWa5jxQfczhbKPe4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=valinux.co.jp; spf=pass smtp.mailfrom=valinux.co.jp; dkim=pass (1024-bit key) header.d=valinux.co.jp header.i=@valinux.co.jp header.b=iXdgjwwa; arc=fail smtp.client-ip=52.101.125.141
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=valinux.co.jp
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=valinux.co.jp
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72A972B9BA;
+	Sun, 15 Mar 2026 16:38:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773592705; cv=none; b=EOS0JoSO64qvDMxhTdmbrhB8PpLJgqmI/ww6SIiVC2brXtI2or3hrO9QGF4DI3VtDm4VHAPiz5gRtgGeuMBNamRB7cKTpgvFIOzz75Ojz5stm2EA/OWcWW3hUhhZdtwK7HCsZmxVm/1UofPih+L1kHOdl7rMu+stcWXTG1mRLlQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773592705; c=relaxed/simple;
+	bh=WrNeMYsAA03DHVECs98FC7knzVMNjLmWyKvwlzN4Krw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pHBmT8NL4pQcHhjEgl4wif5HRLz1rz23MlvfmD2CyOsax86i3au41AN+3WAcgkz/QzCkwAWXAktLTbyf3na7CePt0jcjXeLxILJ3+ucdZvt3pwfPl2vMrcEOUkk5fH7cYyLam550l6b5kLGqkRv9RdYF8KZ0a+dz8Pipu32RQ7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ODlndx/l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=valinux.co.jp header.i=@valinux.co.jp header.b="iXdgjwwa"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=lbGy4t/XKTq7k9GazfZnjB2a0UTQy4Mh2N0jfTEBLpnEUQ4af/qSMlNfsu+t61poW7GFWe9lLfOVGmIpOnfvpkE7wJhRX3qWqRetgQyeXLbmR6oj6FqhtoSmM6kPtWZ7viOnM+YkrfAhlt8OwnPU2JyYWfE9EfVXv5VBtTeXo6fIQolDWdIRW58fPnRkIM+g18IA6IO59ZRAjPqN0XUVlTATpl5fR0q0LlD1p3R0BGXdCV1xENT+k5/eg9kymxU0AYJbZhyOkJLW779a0zzWU1SHtpIigv/S2y6PNfyFMjPcdQA7sA/Hcb6J5NV4vEBQ661gDNfbD8vaau3/HuiVcQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Lt6l5l5f8bedU3Nd+YRqBu7yp+ZT/u5xRLV9E/MiwpY=;
- b=zJyV0BBwkU0kp71ooCUeDTAIyZ7/3sG4ygnopVSsT0FgsZL8niSlldjQlKN/8V276Jog8V6n3f1qVaqEnBa/rAF58hx9U+TjMUtV6Juz3/Rc1WdNJkxPOXhZ1Ghj2MEcCbQ1OJmiw7dMYomnrNdGyazTI/VgbKZrahocS7cpJuWH7+D4VBdSQJ31VOY1l7tw+qTA6asAdWIPZiYHqL5zFCYSJiepsbA0VCQTQufdWOYD30N6WUanXCCOZSjnAb/NxTZtMsf7sEe7aoTavtCZO8+T07VQqB9QYCYoVnyErf4Z9Ec7b99n0h9WYkwxpCI3g608KrC29TunBWBemugyPQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=valinux.co.jp; dmarc=pass action=none
- header.from=valinux.co.jp; dkim=pass header.d=valinux.co.jp; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=valinux.co.jp;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Lt6l5l5f8bedU3Nd+YRqBu7yp+ZT/u5xRLV9E/MiwpY=;
- b=iXdgjwwaQxYgiw7B8FmgKaVrug7Qn+C5ZL/r7BTbeHM4LXA0LvjCwWT3saegToCRnIaLIrqDJHF987FKgvIDbK3iI+IzZswhxEAaQj2Oh8jeVXeLTXjwtFtILhV8xNyVzFK7aOfZFTeZp6jw/m4acRyX+tns5j+UTq15C8sRlPU=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=valinux.co.jp;
-Received: from TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM (2603:1096:405:38f::10)
- by TYRP286MB5686.JPNP286.PROD.OUTLOOK.COM (2603:1096:405:2d8::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9700.17; Sat, 14 Mar
- 2026 04:33:17 +0000
-Received: from TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
- ([fe80::2305:327c:28ec:9b32]) by TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
- ([fe80::2305:327c:28ec:9b32%5]) with mapi id 15.20.9700.015; Sat, 14 Mar 2026
- 04:33:16 +0000
-Date: Sat, 14 Mar 2026 13:33:14 +0900
-From: Koichiro Den <den@valinux.co.jp>
-To: Christian Bruel <christian.bruel@foss.st.com>
-Cc: jingoohan1@gmail.com, mani@kernel.org, lpieralisi@kernel.org, 
-	kwilczynski@kernel.org, robh@kernel.org, bhelgaas@google.com, cassel@kernel.org, 
-	Frank.Li@nxp.com, vigneshr@ti.com, s-vadapalli@ti.com, hongxing.zhu@nxp.com, 
-	l.stach@pengutronix.de, shawnguo@kernel.org, s.hauer@pengutronix.de, 
-	kernel@pengutronix.de, festevam@gmail.com, minghuan.Lian@nxp.com, mingkai.hu@nxp.com, 
-	roy.zang@nxp.com, jesper.nilsson@axis.com, heiko@sntech.de, 
-	srikanth.thokala@intel.com, marek.vasut+renesas@gmail.com, yoshihiro.shimoda.uh@renesas.com, 
-	geert+renesas@glider.be, magnus.damm@gmail.com, mcoquelin.stm32@gmail.com, 
-	alexandre.torgue@foss.st.com, thierry.reding@gmail.com, jonathanh@nvidia.com, 
-	hayashi.kunihiko@socionext.com, mhiramat@kernel.org, kishon@kernel.org, jirislaby@kernel.org, 
-	rongqianfeng@vivo.com, 18255117159@163.com, shawn.lin@rock-chips.com, 
-	nicolas.frattaroli@collabora.com, linux.amoon@gmail.com, vidyas@nvidia.com, shuah@kernel.org, 
-	linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-kernel@vger.kernel.org, imx@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ODlndx/l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A308C4CEF7;
+	Sun, 15 Mar 2026 16:38:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773592705;
+	bh=WrNeMYsAA03DHVECs98FC7knzVMNjLmWyKvwlzN4Krw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ODlndx/l2BTSbPjRspV9GLT7+5T3/4XNm1uJzTAR5k+bHedYGFbm7JcgrzbAMgwWW
+	 h3t+0iwi22VFwi/vk45Kz2w9HYLdExgXOq8xBGIQKNkp/kZKGRqwYWpyQfSimyVgB7
+	 WrKPZMlYKJl6FxwhgiR9lK+Hi0KC8ofixzUzYoWcVFS2xLl6FqTtVBCdp6trj9wHFZ
+	 G1cjoMWJmWsNxRMB0F4r6FJFjTbPCymS+hka/0zDBbmt7PBcrnAvIG9To3of5IcfVp
+	 JWhdazvUhIMZ2QhFYQA0dxWVuzXyQyBnyelMGJ1ME9cZe/XmLRTuJJVXnFz+VDnPI7
+	 1D2bXfJj7EFFg==
+Date: Sun, 15 Mar 2026 22:08:06 +0530
+From: Manivannan Sadhasivam <mani@kernel.org>
+To: Niklas Cassel <cassel@kernel.org>
+Cc: Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>, 
+	Kishon Vijay Abraham I <kishon@kernel.org>, Arnd Bergmann <arnd@arndb.de>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vignesh Raghavendra <vigneshr@ti.com>, 
+	Siddharth Vadapalli <s-vadapalli@ti.com>, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
+	Rob Herring <robh@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, 
+	Richard Zhu <hongxing.zhu@nxp.com>, Lucas Stach <l.stach@pengutronix.de>, 
+	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>, 
+	Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, 
+	Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, 
+	Jesper Nilsson <jesper.nilsson@axis.com>, Jingoo Han <jingoohan1@gmail.com>, 
+	Heiko Stuebner <heiko@sntech.de>, Srikanth Thokala <srikanth.thokala@intel.com>, 
+	Marek Vasut <marek.vasut+renesas@gmail.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, 
+	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
+	Christian Bruel <christian.bruel@foss.st.com>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, 
+	Alexandre Torgue <alexandre.torgue@foss.st.com>, Thierry Reding <thierry.reding@gmail.com>, 
+	Jonathan Hunter <jonathanh@nvidia.com>, Kunihiko Hayashi <hayashi.kunihiko@socionext.com>, 
+	Masami Hiramatsu <mhiramat@kernel.org>, Shuah Khan <shuah@kernel.org>, 
+	Manikanta Maddireddy <mmaddireddy@nvidia.com>, Koichiro Den <den@valinux.co.jp>, 
+	Damien Le Moal <dlemoal@kernel.org>, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
 	linux-arm-kernel@axis.com, linux-rockchip@lists.infradead.org, 
 	linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
 	linux-stm32@st-md-mailman.stormreply.com, linux-tegra@vger.kernel.org, linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH v10 3/8] PCI: dwc: Advertise dynamic inbound mapping
- support
-Message-ID: <tkfhaovpmaoodo35attvmbnpukcqgmwyrxmfgiwjy2dga65cgl@hmj4mx2n44ki>
-References: <20260124145012.2794108-1-den@valinux.co.jp>
- <20260124145012.2794108-4-den@valinux.co.jp>
- <b2b03ebe-9482-4a13-b22f-7b44da096eed@foss.st.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b2b03ebe-9482-4a13-b22f-7b44da096eed@foss.st.com>
-X-ClientProxiedBy: TYCPR01CA0060.jpnprd01.prod.outlook.com
- (2603:1096:405:2::24) To TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
- (2603:1096:405:38f::10)
+Subject: Re: [PATCH v4 00/10] PCI: endpoint: Differentiate between disabled
+ and reserved BARs
+Message-ID: <skfqxnugt4t7eidfny5ojczq3wpu4u5yjfd6wdk3ikjmbgru7t@63nfqvrl5mvs>
+References: <20260312130229.2282001-12-cassel@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: TY7P286MB7722:EE_|TYRP286MB5686:EE_
-X-MS-Office365-Filtering-Correlation-Id: 117befd6-b300-496f-07bb-08de8182cf76
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|7416014|10070799003|366016|22082099003|56012099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	wBhPz6v9XhyEg9APV0PbwPu0Hgog0VsuiwLQJvjWIFZlkmy8jdUpH5CoaX9ALIQWZQXrtAC47Wh8LS4OJ2a8JF6nGjMATddFqdiq+fDLHGSaKqTvUPd7JKHZlzeH8Vg//PP6vsDDGYxB/AWBpChjrgmO/GAWXKu9mP2a+TyHN3eDRrYWkjHLq3oXJzhL4thb967G77n7++B9R4per46UL0XvGamr/eAH+R6/guzguriIkZ6Yyl4/ktJunClecqm0Z+fz16/lRL5CplTjNGeqg7svT6ujYgNrsYNr1lyb95Rz1QN6vYCbFss8Fe+m2IlPtCJ9tcdEq1WeghmFLUzA34Q30WU9UQH2W7EAJyDvV0exZa66EsQGX7axEDdDh3WacfnwgM/Y9ZR9PtclRZ+Ytv/UdGjJ852H7Ba3MLqjuvug0rmmch33d6wFbT4b61C3b2C9vPaDW/4FesgPK5163asmjLBBBrm5PPD7i6wq3suz3EyMWiowiaoTHAL5S9RQlwKDtF2xIbe+EqvXUMbuh7ibKhG/QQdkgDSWRRA9O89hQ6QqHKp7nl0M2smNZOYJW4dT03NK7hMcmd9Uv6fS3rdCFwbUS0mOlK06Jq7953rmgenkxm4jwTkyo0HzstCIRzM91UnFw5orba0oQeGfJxULRLhhAtABfPNdTXtpylpnEUkzPIVuw+T4Uxh0tJVYu3geme6lbDkvuFU9h0s64KgyEi+vyJk/Z03fFE40QxY=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(10070799003)(366016)(22082099003)(56012099003)(18002099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?GYzknUcMI1HL8nkg4o4Wlt4IQY6UJoMR3ZeGWhwbR97UwKpkRmnc35ILuvK2?=
- =?us-ascii?Q?jDVuYk3cxfeemXG7VNgwtGUljrEkd/IV6v/cZusdAEuUQb59l74/gCTmhvhZ?=
- =?us-ascii?Q?SAf+bxVoORnBPLNB5NLM0/rxIqfxi4wgxX2zr4yJdlEjsYlr5oQmMeL5DhVq?=
- =?us-ascii?Q?pLMoNgX7kJO6geo+h12+AFTM2/XgUXEqNN6gNS2Qk1LbxDhRJaiD1lmCEOwT?=
- =?us-ascii?Q?FjZwvBJTF76md6CsIrfqNyTh81L0LdXpwpMwSoxQry/yR+jks9iWq8xtDFc9?=
- =?us-ascii?Q?/aBjX1E5t+Sy0+k1/OLXU2xF68UusQypd8kjUSIRdCbBcM6GaTcKzDVwWxuW?=
- =?us-ascii?Q?R/+eRhr6ttPBzXj4ORmOqNaf3YapI+zXnlF/NE7M0x5brkK+9uq6L/PBGx+6?=
- =?us-ascii?Q?3xEhJS+LOwUdiPIAqz6nJZGQ0PeMP6vEtA2wtUP1cBqoPMwWysVk4Hg6yRFh?=
- =?us-ascii?Q?/Wa1KRS6oGrBpptqM/w/u5ZImTh/RBRWFRyK0fKrfMKbvTnHhhiv3maKROib?=
- =?us-ascii?Q?h7b1/8J+1/8DERi3y9J+VKMtrpqUN/YSKCOXjwSlxJg59pvNTB2UE30BXerU?=
- =?us-ascii?Q?vdGSzPHts0J5P6u54HJrlWAG6Feitk3tmfoiFSLM73/A1Xv0CViF2R4yzKcQ?=
- =?us-ascii?Q?Y234+aOiR+bIQRp+7ina23iFvboweqP4ZyWJK/dRiQe7CODHz42e/4mD+K5F?=
- =?us-ascii?Q?Dk9t8+nuNmRGHTtLvq0iNjCDHhM27Higj79NoP4pjU0UOhk0Sx6tc+LgfIIq?=
- =?us-ascii?Q?Jfi6B8yo1d+4dEy8DSgpyhYCrXAozKLlx0O2DMASUXzQmKHbD8FlDaSykBld?=
- =?us-ascii?Q?SJKGutO+CW9HoV0P4lUx/vbIyKcz6Mlztt7TUC885mTtKoNC9CFCUt+z3IYk?=
- =?us-ascii?Q?q2kQhmVpto89s6iFApN3WbVTQDZeeoXHdoawUa7//pFDMyM3dje4XteB9bqd?=
- =?us-ascii?Q?Baf+WeI+AnFdzqK2OLlt6YcET9uSgmizfzbo/jzQG1Z1HGrnOL+blWzEt5rC?=
- =?us-ascii?Q?1JnZjGRfPGaE+MqoR654SSgsBS2D3qn2KU+wao9pELNze+8eXLMyHGl55hzu?=
- =?us-ascii?Q?NNZP+/dpcgiSaLQb35ndfeReVUHDmWz5uoFPsKe+EhGhCMsxFYE8F/h0Ipim?=
- =?us-ascii?Q?MJgobvmUCmRT/cIUb4VhyonBMLZh72UQtVLSpayhQX2FQuV3aP+n4r6lpEBn?=
- =?us-ascii?Q?/762MVCcWTje/Su5w+4rnDa/DalMI9Bs7xoL+dVr3APoskwsV4PrZKPZEBfk?=
- =?us-ascii?Q?LRjWqTb+xQcF2icLlLzEkrnNlqV8F1nNPt7MBSKPZEq8Y1A52z1zuZ8TmihA?=
- =?us-ascii?Q?7+mvurcQgIEyj4c1lmFRDE44vs5nUL68ZoatZYQhJ2nrqU+V2dq9EEOx9Rpl?=
- =?us-ascii?Q?pi5qq2dJV7Oa/L0F8apFSgREVgMF9h289MfmcFzS5AgG/CjA6TMVJ7J66Y0c?=
- =?us-ascii?Q?Yq9nLgrc2IozKbJv7sdC3Qh9VW6dFID9rRDIT3VhkuH909b/CJYlIR6vHT9L?=
- =?us-ascii?Q?q5fh0dQcGD+bE03zy2kNqy8dJULbLIQS5aiW+MvRap8gQZlNfmsQvt7hRX4M?=
- =?us-ascii?Q?v9C/zafN5OB51nEp7JVWpAqlow1PqnNf24BHeqFpmMO4QWitItEfCgpCbVEH?=
- =?us-ascii?Q?wZTMTrEi9g35PBI3p/eIGQcZvn1gjeaeeTtpaxENHzGPebrUlxdBdMzuldOB?=
- =?us-ascii?Q?5qmbuKgoMUDdYbGIzUEGaN4RP/HbnQFmizrd72QlNGogqga2GsJ7M1SeqSHG?=
- =?us-ascii?Q?6OqcOqjGtA5nfgipPeoeQDat8oox5VlCxItWhJVcMiU/8ouUFB7F?=
-X-OriginatorOrg: valinux.co.jp
-X-MS-Exchange-CrossTenant-Network-Message-Id: 117befd6-b300-496f-07bb-08de8182cf76
-X-MS-Exchange-CrossTenant-AuthSource: TY7P286MB7722.JPNP286.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Mar 2026 04:33:16.0321
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 7a57bee8-f73d-4c5f-a4f7-d72c91c8c111
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: qvIGl8wXaSAv8XF8Qn9pSc8/wVRucu58oFrKdRQsToXRou08snlwVJto8KmYMOjOpLKl0oEkyGJgGFgQSi+siw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYRP286MB5686
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260312130229.2282001-12-cassel@kernel.org>
 
-On Fri, Mar 13, 2026 at 04:59:26PM +0100, Christian Bruel wrote:
-> Hello,
+On Thu, Mar 12, 2026 at 02:02:28PM +0100, Niklas Cassel wrote:
+> Hello all,
 > 
-> While testing after this series, I encountered regressions on the STM32MP2,
-> which I am unsure how to fix. The failures depend on the order in which the
-> tests are run.
+> This series was originally written in response to the patch series from
+> Manikanta Maddireddy that was posted here:
+> https://lore.kernel.org/linux-pci/291dab65-3fa6-4fc8-90a2-4ad608ca015c@nvidia.com/T/#t
 > 
-> The STM32 ATU has 4 inbound entries. After enumeration, the first 4 ATU
-> entries are allocated within ib_window_map.
+> Manikanta has reviewed this series and will send a small series on top of
+> this one.
 > 
-> On the first run of ./pci_endpoint_test -v BAR3(for example),
-> SUBRRANGE_SETUP calls dw_pcie_ep_ib_atu_addr(), which frees only one ATU
-> entry (BAR3), because we were in the bar_to_atu case, for the first submap
-> but fails to allocate the second submap. So the test FAILs.
-> 
-> On the second run with a different BAR, SUBRRANGE_SETUP test calls
-> dw_pcie_ep_ib_atu_addr() again, freeing the required ATU entry (BAR1) and
-> successfully using the second ATU entry (3), which was left unallocated by
-> the first test. then now the test PASSes
-> 
-> Therefore, the first invocation of ./pci_endpoint_test on any BAR always
-> fails. Other invocations are fine because the first one has left the missing
-> necessary ATU entry free. Whatever initial BAR number is used
-> 
-> I am unsure how to fix this. Always freeing all BARs before calling
-> set_bar() in the epf-test seems overkill, but safe.
-> I am also considering modifying dw_pcie_ep_clear_ib_maps() to clear N
-> num_submap entries even if ib_atu_indexes was not used yet, since only the
-> full BAR is used during the first invocation from bar_to_atu. But the
-> question is which ATU entry to select ? BAR+1 ?. This seems empirical.
-> 
-> I am not bothered by test failures due to an insufficient number of BARs
-> (this is already the case for BAR5,6), but the fact that the failures depend
-> on the test order is frustrating and show a regression.
-> 
-> But I'm not satisfied with either of the 2 possible fixes mentioned above.
-> 
-> Do you have any other thought ?
 
-Hi Christian,
+Applied to pci/endpoint, thanks!
 
-Thanks for the report/analysis and sorry for the inconvenience.
-
-If I understand it correctly, I think pci_epf_test_bar_subrange_setup() should
-simply roll back to the original BAR mapping when subrange setup fails.
-
-In other words, if there are not enough free inbound regions for the subrange
-test, the test should fail consistently and without leaving any side effect
-behind. At the moment, it seems the failed setup leaves the BAR in a different
-state (i.e. cleared), which then affects subsequent runs. That looks like a bug
-in pci_epf_test_bar_subrange_setup().
-
-If I understood the problem correctly, would something like the patch below
-address it? My expectation is that the subrange mapping test would then fail
-consistently on platforms that do not have enough free IB iATU regions.
-
-[---8<---]
-From 039548c87a5c7a038ac562272447c4620a4c1ad2 Mon Sep 17 00:00:00 2001
-From: Koichiro Den <den@valinux.co.jp>
-Date: Sat, 14 Mar 2026 12:58:04 +0900
-Subject: [PATCH] PCI: endpoint: pci-epf-test: Roll back BAR mapping when
- subrange setup fails
-
-When the BAR subrange mapping test on DWC-based platforms fails due to
-insufficient free inbound iATU regions,
-pci_epf_test_bar_subrange_setup() returns an error (-ENOSPC) but does
-not restore the original BAR mapping. This causes subsequent test runs
-become confusing, since the failure leaves a room for the next subrange
-mapping test to pass.
-
-Fix this by restoring the original BAR mapping when preparation of the
-subrange mapping fails.
-
-Fixes: 6c5e6101423b ("PCI: endpoint: pci-epf-test: Add BAR subrange mapping test support")
-Reported-by: Christian Bruel <christian.bruel@foss.st.com>
-Signed-off-by: Koichiro Den <den@valinux.co.jp>
----
- drivers/pci/endpoint/functions/pci-epf-test.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
-index 582938b7b4f1..0e5958088b8f 100644
---- a/drivers/pci/endpoint/functions/pci-epf-test.c
-+++ b/drivers/pci/endpoint/functions/pci-epf-test.c
-@@ -891,12 +891,15 @@ static void pci_epf_test_bar_subrange_setup(struct pci_epf_test *epf_test,
-
-        ret = pci_epc_set_bar(epc, epf->func_no, epf->vfunc_no, bar);
-        if (ret) {
-                dev_err(&epf->dev, "pci_epc_set_bar() failed: %d\n", ret);
-                bar->submap = old_submap;
-                bar->num_submap = old_nsub;
-+               if (pci_epc_set_bar(epc, epf->func_no, epf->vfunc_no, bar))
-+                       dev_warn(&epf->dev, "failed to roll back\n");
-+
-                kfree(submap);
-                goto err;
-        }
-        kfree(old_submap);
-
-        /*
---
-2.51.0
-
-[---8<---]
-
-I'd appreciate it if you could test this. Or, if I'm still missing the point of
-your report, please let me know.
-
-Best regards,
-Koichiro
+- Mani
 
 > 
-> thank you
+> Changes since v3:
+> -Modified patch 1 to simply drop BAR_RESERVED for a BAR following an
+>  only_64bit BAR (Manivannan).
+> -Added a patch from Manikanta, to make his follow-up series smaller,
+>  since this series touches the same lines anyway.
 > 
-> Christian
+> Link to v3:
+> https://lore.kernel.org/linux-pci/20260302095913.48155-11-cassel@kernel.org/
+> 
+> 
+> Koichiro Den (2):
+>   PCI: endpoint: Describe reserved subregions within BARs
+>   PCI: dw-rockchip: Describe RK3588 BAR4 DMA ctrl window
+> 
+> Manikanta Maddireddy (1):
+>   PCI: endpoint: Allow only_64bit on BAR_RESERVED
+> 
+> Niklas Cassel (7):
+>   PCI: endpoint: Do not mark the BAR succeeding a 64-bit BAR as
+>     BAR_RESERVED
+>   PCI: endpoint: Introduce pci_epc_bar_type BAR_DISABLED
+>   PCI: dwc: Replace certain BAR_RESERVED with BAR_DISABLED in glue
+>     drivers
+>   PCI: dwc: Disable BARs in common code instead of in each glue driver
+>   PCI: endpoint: pci-epf-test: Advertise reserved BARs
+>   misc: pci_endpoint_test: Give reserved BARs a distinct error code
+>   selftests: pci_endpoint: Skip reserved BARs
+> 
+>  drivers/misc/pci_endpoint_test.c              | 21 ++++++++-
+>  drivers/pci/controller/dwc/pci-dra7xx.c       |  4 --
+>  drivers/pci/controller/dwc/pci-imx6.c         | 22 +++------
+>  drivers/pci/controller/dwc/pci-keystone.c     | 12 +++++
+>  .../pci/controller/dwc/pci-layerscape-ep.c    |  6 ---
+>  drivers/pci/controller/dwc/pcie-artpec6.c     |  4 --
+>  .../pci/controller/dwc/pcie-designware-ep.c   | 24 ++++++++++
+>  .../pci/controller/dwc/pcie-designware-plat.c | 10 ----
+>  drivers/pci/controller/dwc/pcie-dw-rockchip.c | 23 ++++++----
+>  drivers/pci/controller/dwc/pcie-keembay.c     |  3 --
+>  drivers/pci/controller/dwc/pcie-qcom-ep.c     | 12 -----
+>  drivers/pci/controller/dwc/pcie-rcar-gen4.c   | 16 ++-----
+>  drivers/pci/controller/dwc/pcie-stm32-ep.c    | 10 ----
+>  drivers/pci/controller/dwc/pcie-tegra194.c    | 19 ++------
+>  drivers/pci/controller/dwc/pcie-uniphier-ep.c | 19 +-------
+>  drivers/pci/controller/pcie-rcar-ep.c         |  3 --
+>  drivers/pci/endpoint/functions/pci-epf-test.c | 24 ++++++++++
+>  drivers/pci/endpoint/pci-epc-core.c           |  5 +-
+>  include/linux/pci-epc.h                       | 46 +++++++++++++++----
+>  .../pci_endpoint/pci_endpoint_test.c          |  4 ++
+>  20 files changed, 154 insertions(+), 133 deletions(-)
+> 
+> 
+> base-commit: 0b74f7d72399d4c4422ed3d68ef28b3612f71e74
+> -- 
+> 2.53.0
+> 
+
+-- 
+மணிவண்ணன் சதாசிவம்
