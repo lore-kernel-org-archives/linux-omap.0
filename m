@@ -1,143 +1,102 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72A972B9BA;
-	Sun, 15 Mar 2026 16:38:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44B6A23EA83
+	for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2026 08:50:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773592705; cv=none; b=EOS0JoSO64qvDMxhTdmbrhB8PpLJgqmI/ww6SIiVC2brXtI2or3hrO9QGF4DI3VtDm4VHAPiz5gRtgGeuMBNamRB7cKTpgvFIOzz75Ojz5stm2EA/OWcWW3hUhhZdtwK7HCsZmxVm/1UofPih+L1kHOdl7rMu+stcWXTG1mRLlQ=
+	t=1773651017; cv=none; b=mGJJ2o6HK/Wo5jkT16DATaQ2MFCwc2qG6rHHiiCYkJlqjVz+Wyyzgo6fdEMbI9Zpbx98osVz/nTR6IcO6H97/KgmjkSdQeuSiY1scGKv9nE4ieB1Ox4xU0ax2+bpKkKk1+RJIGyv5Ci6+IgvMwEYqzfFBfvAmhvqxc0wuSEsnG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773592705; c=relaxed/simple;
-	bh=WrNeMYsAA03DHVECs98FC7knzVMNjLmWyKvwlzN4Krw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pHBmT8NL4pQcHhjEgl4wif5HRLz1rz23MlvfmD2CyOsax86i3au41AN+3WAcgkz/QzCkwAWXAktLTbyf3na7CePt0jcjXeLxILJ3+ucdZvt3pwfPl2vMrcEOUkk5fH7cYyLam550l6b5kLGqkRv9RdYF8KZ0a+dz8Pipu32RQ7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ODlndx/l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773651017; c=relaxed/simple;
+	bh=qDc+ENwbAbe68zpCCEGtW6OQg3kQWQQDNZqXFv5hQBU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=HUj5Ff2sWOV5KEEV6Ze1p5bgUxuKCHQ6sB6AwXbT8z3dqdKUC7DP3LbMFMLeAPRzNAzaTYsT0zsJjcePGHFVjvTAITqiuwGWzEXO9URChlnzR9DrkXeSDEnEmW/e4bcw3HOTA7Zn4M8tYGb/BthIO2c+b8pcTsARQbZQm8YA2bU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MuWUq8FX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ODlndx/l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A308C4CEF7;
-	Sun, 15 Mar 2026 16:38:09 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MuWUq8FX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8BADC19425
+	for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2026 08:50:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773592705;
-	bh=WrNeMYsAA03DHVECs98FC7knzVMNjLmWyKvwlzN4Krw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ODlndx/l2BTSbPjRspV9GLT7+5T3/4XNm1uJzTAR5k+bHedYGFbm7JcgrzbAMgwWW
-	 h3t+0iwi22VFwi/vk45Kz2w9HYLdExgXOq8xBGIQKNkp/kZKGRqwYWpyQfSimyVgB7
-	 WrKPZMlYKJl6FxwhgiR9lK+Hi0KC8ofixzUzYoWcVFS2xLl6FqTtVBCdp6trj9wHFZ
-	 G1cjoMWJmWsNxRMB0F4r6FJFjTbPCymS+hka/0zDBbmt7PBcrnAvIG9To3of5IcfVp
-	 JWhdazvUhIMZ2QhFYQA0dxWVuzXyQyBnyelMGJ1ME9cZe/XmLRTuJJVXnFz+VDnPI7
-	 1D2bXfJj7EFFg==
-Date: Sun, 15 Mar 2026 22:08:06 +0530
-From: Manivannan Sadhasivam <mani@kernel.org>
-To: Niklas Cassel <cassel@kernel.org>
-Cc: Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>, 
-	Kishon Vijay Abraham I <kishon@kernel.org>, Arnd Bergmann <arnd@arndb.de>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vignesh Raghavendra <vigneshr@ti.com>, 
-	Siddharth Vadapalli <s-vadapalli@ti.com>, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
-	Rob Herring <robh@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, 
-	Richard Zhu <hongxing.zhu@nxp.com>, Lucas Stach <l.stach@pengutronix.de>, 
-	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>, 
-	Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, 
-	Minghuan Lian <minghuan.Lian@nxp.com>, Mingkai Hu <mingkai.hu@nxp.com>, Roy Zang <roy.zang@nxp.com>, 
-	Jesper Nilsson <jesper.nilsson@axis.com>, Jingoo Han <jingoohan1@gmail.com>, 
-	Heiko Stuebner <heiko@sntech.de>, Srikanth Thokala <srikanth.thokala@intel.com>, 
-	Marek Vasut <marek.vasut+renesas@gmail.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, 
-	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
-	Christian Bruel <christian.bruel@foss.st.com>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, 
-	Alexandre Torgue <alexandre.torgue@foss.st.com>, Thierry Reding <thierry.reding@gmail.com>, 
-	Jonathan Hunter <jonathanh@nvidia.com>, Kunihiko Hayashi <hayashi.kunihiko@socionext.com>, 
-	Masami Hiramatsu <mhiramat@kernel.org>, Shuah Khan <shuah@kernel.org>, 
-	Manikanta Maddireddy <mmaddireddy@nvidia.com>, Koichiro Den <den@valinux.co.jp>, 
-	Damien Le Moal <dlemoal@kernel.org>, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev, linuxppc-dev@lists.ozlabs.org, 
-	linux-arm-kernel@axis.com, linux-rockchip@lists.infradead.org, 
-	linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
-	linux-stm32@st-md-mailman.stormreply.com, linux-tegra@vger.kernel.org, linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH v4 00/10] PCI: endpoint: Differentiate between disabled
- and reserved BARs
-Message-ID: <skfqxnugt4t7eidfny5ojczq3wpu4u5yjfd6wdk3ikjmbgru7t@63nfqvrl5mvs>
-References: <20260312130229.2282001-12-cassel@kernel.org>
+	s=k20201202; t=1773651016;
+	bh=qDc+ENwbAbe68zpCCEGtW6OQg3kQWQQDNZqXFv5hQBU=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=MuWUq8FXxLPxY+XteU3IOmSq1UxFDXSFpJrNueU8I8tkoX8d2dlk45YN3u8Ib/Ku0
+	 0SIFPD7ID28VM1pjzEeICw4mYJ9t85lfe5j68IL/6WP2Ub5OarkTzK7ik22yysPqcm
+	 tzpcavDyjZKHcrgITfYq1CWYa6lMIqL6i+WUqNJPZ7HeprFBsETgprO7ah7AJsoz4g
+	 AWhwqXcIGtHlSVNd2ccXdsHGPc+sACARDNud4gQNiG9VINmTlHdSTe0Hagx1BGaIum
+	 f9r06ymov1cpmh7dzPPhiJ0TLtVu+2Z62YCUihSmafn+QHuIYDcmTDnzn0+Jf3fiRc
+	 Tj54pz+mtKpbQ==
+Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5a13323ba85so4970160e87.3
+        for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2026 01:50:16 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCV93BtoZ1loCj/mYfhhqtLiabaU/1vbSFq/aUaOVlNd+E394Ycyhc0RKumHiHe2PV/bHessfIjyoqIf@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx1diXyreTaCsnjNimrDy6cSP7kj93yl69pT426+RpH8VACmBRS
+	C6HnzCCvNCiAjvEkjRxbPE/Po682tgAPWr/NsGuOUyGgOgfj0gxGUXQWBp4d2lpZESrmWIDvgAm
+	TJ6/V2BwmkoFYQhh7utzIS1gLLXP0Z1vpC52PzFtAuQ==
+X-Received: by 2002:a05:6512:800c:10b0:59e:50e7:1260 with SMTP id
+ 2adb3069b0e04-5a16270ee83mr2968213e87.13.1773651015617; Mon, 16 Mar 2026
+ 01:50:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260312130229.2282001-12-cassel@kernel.org>
+References: <20260212112508.73500-1-bartosz.golaszewski@oss.qualcomm.com>
+ <2fb42d16-887a-4564-8e50-c9d6db564c4e@app.fastmail.com> <CAMRc=McYj-D8XL_wnmTEucMrwCy1-xr7h0XYrL68soMVHL1SRA@mail.gmail.com>
+ <7h1phxpzml.fsf@baylibre.com>
+In-Reply-To: <7h1phxpzml.fsf@baylibre.com>
+From: Bartosz Golaszewski <brgl@kernel.org>
+Date: Mon, 16 Mar 2026 09:50:04 +0100
+X-Gmail-Original-Message-ID: <CAMRc=McosSU39SERKtjmhJdTv2cPi44PG=bYqAcfQLDX4QB0Tg@mail.gmail.com>
+X-Gm-Features: AaiRm53z1DOvTtNKXCy1fIu4lbFzIVIPbz40ntl-1EmbNnUOhCRTC9Gz1o8LFWs
+Message-ID: <CAMRc=McosSU39SERKtjmhJdTv2cPi44PG=bYqAcfQLDX4QB0Tg@mail.gmail.com>
+Subject: Re: [RFT PATCH v3] ARM: omap1: enable real software node lookup of
+ GPIOs on Nokia 770
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, Janusz Krzysztofik <jmkrzyszt@gmail.com>
+Cc: Arnd Bergmann <arnd@kernel.org>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Tony Lindgren <tony@atomide.com>, 
+	Russell King <linux@armlinux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
+	Hans de Goede <hansg@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, 
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Kevin Hilman <khilman@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 12, 2026 at 02:02:28PM +0100, Niklas Cassel wrote:
-> Hello all,
-> 
-> This series was originally written in response to the patch series from
-> Manikanta Maddireddy that was posted here:
-> https://lore.kernel.org/linux-pci/291dab65-3fa6-4fc8-90a2-4ad608ca015c@nvidia.com/T/#t
-> 
-> Manikanta has reviewed this series and will send a small series on top of
-> this one.
-> 
+On Fri, Mar 6, 2026 at 1:31=E2=80=AFAM Kevin Hilman <khilman@kernel.org> wr=
+ote:
+>
+> Bartosz Golaszewski <brgl@kernel.org> writes:
+>
+> > On Thu, Feb 12, 2026 at 12:46=E2=80=AFPM Arnd Bergmann <arnd@kernel.org=
+> wrote:
+> >>
+> >> On Thu, Feb 12, 2026, at 12:25, Bartosz Golaszewski wrote:
+> >> > Currently the board file for Nokia 770 creates dummy software nodes =
+not
+> >> > attached in any way to the actual GPIO controller devices and uses t=
+he
+> >> > fact that GPIOLIB matching swnode's name to the GPIO chip's label du=
+ring
+> >> > software node lookup. This behavior is wrong and we want to remove i=
+t.
+> >> > To that end, we need to first convert all existing users to creating
+> >> > actual fwnode links.
+> >> >
+> >> > Create real software nodes for GPIO controllers on OMAP16xx and
+> >> > reference them from the software nodes in the nokia board file.
+> >> >
+> >> > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm=
+.com>
+> >>
+> >> Acked-by: Arnd Bergmann <arnd@arndb.de>
+> >
+> > Aaro, Janusz: Can you please pick it up for v7.1?
+>
+> I can take this via the OMAP tree once I have confirmation from
+> Aaro/Janusz that they've tested.
+>
+> Kevin
 
-Applied to pci/endpoint, thanks!
+Gentle ping.
 
-- Mani
-
-> 
-> Changes since v3:
-> -Modified patch 1 to simply drop BAR_RESERVED for a BAR following an
->  only_64bit BAR (Manivannan).
-> -Added a patch from Manikanta, to make his follow-up series smaller,
->  since this series touches the same lines anyway.
-> 
-> Link to v3:
-> https://lore.kernel.org/linux-pci/20260302095913.48155-11-cassel@kernel.org/
-> 
-> 
-> Koichiro Den (2):
->   PCI: endpoint: Describe reserved subregions within BARs
->   PCI: dw-rockchip: Describe RK3588 BAR4 DMA ctrl window
-> 
-> Manikanta Maddireddy (1):
->   PCI: endpoint: Allow only_64bit on BAR_RESERVED
-> 
-> Niklas Cassel (7):
->   PCI: endpoint: Do not mark the BAR succeeding a 64-bit BAR as
->     BAR_RESERVED
->   PCI: endpoint: Introduce pci_epc_bar_type BAR_DISABLED
->   PCI: dwc: Replace certain BAR_RESERVED with BAR_DISABLED in glue
->     drivers
->   PCI: dwc: Disable BARs in common code instead of in each glue driver
->   PCI: endpoint: pci-epf-test: Advertise reserved BARs
->   misc: pci_endpoint_test: Give reserved BARs a distinct error code
->   selftests: pci_endpoint: Skip reserved BARs
-> 
->  drivers/misc/pci_endpoint_test.c              | 21 ++++++++-
->  drivers/pci/controller/dwc/pci-dra7xx.c       |  4 --
->  drivers/pci/controller/dwc/pci-imx6.c         | 22 +++------
->  drivers/pci/controller/dwc/pci-keystone.c     | 12 +++++
->  .../pci/controller/dwc/pci-layerscape-ep.c    |  6 ---
->  drivers/pci/controller/dwc/pcie-artpec6.c     |  4 --
->  .../pci/controller/dwc/pcie-designware-ep.c   | 24 ++++++++++
->  .../pci/controller/dwc/pcie-designware-plat.c | 10 ----
->  drivers/pci/controller/dwc/pcie-dw-rockchip.c | 23 ++++++----
->  drivers/pci/controller/dwc/pcie-keembay.c     |  3 --
->  drivers/pci/controller/dwc/pcie-qcom-ep.c     | 12 -----
->  drivers/pci/controller/dwc/pcie-rcar-gen4.c   | 16 ++-----
->  drivers/pci/controller/dwc/pcie-stm32-ep.c    | 10 ----
->  drivers/pci/controller/dwc/pcie-tegra194.c    | 19 ++------
->  drivers/pci/controller/dwc/pcie-uniphier-ep.c | 19 +-------
->  drivers/pci/controller/pcie-rcar-ep.c         |  3 --
->  drivers/pci/endpoint/functions/pci-epf-test.c | 24 ++++++++++
->  drivers/pci/endpoint/pci-epc-core.c           |  5 +-
->  include/linux/pci-epc.h                       | 46 +++++++++++++++----
->  .../pci_endpoint/pci_endpoint_test.c          |  4 ++
->  20 files changed, 154 insertions(+), 133 deletions(-)
-> 
-> 
-> base-commit: 0b74f7d72399d4c4422ed3d68ef28b3612f71e74
-> -- 
-> 2.53.0
-> 
-
--- 
-மணிவண்ணன் சதாசிவம்
+Bart
