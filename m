@@ -1,144 +1,167 @@
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+Received: from mail-pg1-f179.google.com (mail-pg1-f179.google.com [209.85.215.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACCDB33A708
-	for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2026 17:41:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC7713D34AA
+	for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2026 18:13:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773682872; cv=none; b=bsoBfCWC8Rw8s1QAWZ/oaDCV62ldKnIgd6RQfrSBGSCDHOiSIrfCbn6Nvd9UlxjUuKLq6YzmxkNWQUGpDbWv08b41uqu2CWO5yRAaMNGHVbZrH1gKSMcq/xZoC+WjYdsEyLdh7ax4ptiWD7O/bgLg89+i8c2/0J/MQyxYRpeqOo=
+	t=1773684816; cv=none; b=cchAtQA8m8ow45bQw2S3xf3nv52+PV83Iwtqx6NwHEbLnlbJ+JIWTOJqbbCWo3x7Kw3EGIp6+uu+STkprBbF+horgVUkqhFfCFXvFRb699zNv/QJbJlGJagGDeghW57JWc92xcfz2GODn4kfsyHGCiPujDXryEfs/7Mjkkcxqzc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773682872; c=relaxed/simple;
-	bh=jtNqYoU+2H2cM7UyoKExEBfiqQZsN1aAAmOPkoFbFyg=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=i8q7yA/fLJy0Z8rLuvqyhl7pVezOE71Np6Jy+VExL2q4C2+S6/7VKvh9emo6em60I4USJ2rncIPU3InfaiWXfOXpzLERzWGpEMtG+u+jpeLJpEN/Xr3Bk3lDNI794TKAM2H1XUS5LErYSCnLM6jn30hyPlIoAvBGXWaEN4X4mr8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kVO8RWdh; arc=none smtp.client-ip=209.85.128.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1773684816; c=relaxed/simple;
+	bh=xJhMoZNqr+EHjdBUv6t14tIBHJ2MlKnKgZGrDXGR260=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=t7Wa/AX9gb3Z4bG1FWvgkSOvD1BxcODPdnaZtjnUiOWhh/WIxnX+1+3wNHvm0qWCbSTNuWr8R7oIO1DwU0YNLRAUThRjNra7xnC0q+vFZqQKKjEMj9adE5OQdlAD592rzIkXzEAD9pPtfvySvR1//EDV5NdSe6rQmB6cFMWldYc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=a5rz4F7/; arc=none smtp.client-ip=209.85.215.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kVO8RWdh"
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4852a9c6309so39799845e9.0
-        for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2026 10:41:11 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="a5rz4F7/"
+Received: by mail-pg1-f179.google.com with SMTP id 41be03b00d2f7-c739e680bebso1591529a12.1
+        for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2026 11:13:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773682870; x=1774287670; darn=vger.kernel.org;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=jtNqYoU+2H2cM7UyoKExEBfiqQZsN1aAAmOPkoFbFyg=;
-        b=kVO8RWdhz3LUyZfrWpDIw0iUV0Uj/H9h1TubGlwb2SETsEZND9tNQos2hxDqOfChoJ
-         2l7vmGNjuz3GaRItqgwo9e9GEmL5T2Hlnc0IKscP2XDpdR6J/5vId//u3vYsxm6NHP8z
-         56mOQBOD7B5vcZOjiwPFl8/HGBM5Dzxs/1cy+j7lDL+7uexTJ0XfII4m8pMcjDlntuDf
-         oaPYsRhu5jlKSGKcp0zzJYuidXRZODI0E91RW7CmvLrBmnbbOFdA18DwSV6wpVLgRduf
-         zNR1BBm2m4tGjI7ikofDgcE/reXQPdgDEeYkUI/694ASTUJztygF/AY8QRzlkBCRdpuR
-         vqKQ==
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1773684814; x=1774289614; darn=vger.kernel.org;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=6I630kcGdJmHLQvgv2ucM+rk0u+MBt6XpMILrvY8Gco=;
+        b=a5rz4F7/PIq5VoPeuJr7+Y2B1gH2TPWLfJJYg2OnJMJUiRdcIuf4QvJSK6AnFFYIyA
+         kDlAQke4I7guGFiBOIBg2AtC0aFC41RPGIeqiaikJAowEAcmII0mcc80kUAy3q1+ONh2
+         G7a9tEcDZjdM4Fllm88bAx31ihMqsRr+sErfpHhfltzj7sfeeHTJLHvckufLbmxwLguz
+         kHUILezoTbEFcVO31e+ZHgN1aQxeIP7pr1p7xwyBvOR0kAPrz6c8UlZb4sNw77FcUy04
+         CY4X6qDSPN+ro6Fo0oHiQulDhZ/b+mB0QjWIpPxrTDkTLA3iTJS/wQ4oaevjugviTfxq
+         vKJA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773682870; x=1774287670;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=jtNqYoU+2H2cM7UyoKExEBfiqQZsN1aAAmOPkoFbFyg=;
-        b=e4gAImWdbBHAaIjNHTD9fn1yBDDgLF/2F2rqWdDmDDtMG75wzElYfUaYoWSXPbYblX
-         g6+E2sVf4Aq2A4bDUwq1ISozU3ZNWABN8n2jwvZq7FshDy6jtilMSqgRjdLenXcF10A2
-         vKt8aqEEnbm/pIjkjqH/Ul4Sox/XgJ1eHNc7h3obqAg5LpDtixu5/9eHez1MIknVHy93
-         LR9yt8YtH4+OXdNUzazch7C0p2JObQn862aoo8IoCni8IXRHblPZl9rfcp3YuNwvo5Nk
-         bnMtI0EHeumUHSlkRUpcNvcepi//+1CEkW/6SyN4kc28J+epYeW30W35w/10351VGPzk
-         OTmQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUJu4TF3rNgKo7vVbwKpxZLdL2dCswkRPDpcmihW1vahips75IRMsf2z8d4GiTD3Nd52pzDdVs+6Yol@vger.kernel.org
-X-Gm-Message-State: AOJu0YwdWApKh8OBnsTUMpUSmyprSKhYdT1u7S0c4AlP+Cr7QiVzTv/d
-	D+33nhivbrkrbFy5tn5b6Q3SEjIHSgKLYS9A27QIHsRePL5Kl2wWQqBM
-X-Gm-Gg: ATEYQzx/TT9UXI6toLQqTgwL3FeMHjHL7fGNjIu8Yf5S1Z18+YonNyaVUB+gsuQQE4/
-	xHOUAInM/4VIIRr9B9FGiLCdFZ9MnnBYm9ztYcMmkv1pUIB0ZrexfAFYlrYVnnPR7/iJngn7876
-	8Su8hSyy4Yy1MwnkdanTn2bhfVJdZavGYpMmk4deMEscG+cIDXQM9ttX/mzeBxssPauq2A8nVbt
-	kc2hv2iFwbX6WyUfzPgQDJRcikdaT6ztLrKjUTwtZZ3hcWPhdl34lNr0blOdzb1iuXBznO/pYOD
-	51L1NTgBfT4QT7k57j5f0RFw9pzWEbKTeRcOlXtCDd6eZKMx1hMhATq9HpzzeTvY1PbxQdVwZEd
-	m3HziVXcnB7EMiEQpoIsG/btRUVc092AnxlNP4onieRuJWqw1NGizTBMtgMDdtgm8xR63+8FCwH
-	FcmEF00CR5EATMRh4Brt2oWqnBeGE+EAc0NkPbO8bXUN7u6vzWVz+gpLUuZ0cuQrFOU20N4U5l7
-	90YOSg=
-X-Received: by 2002:a05:600c:c0d1:20b0:485:3abe:ab86 with SMTP id 5b1f17b1804b1-485570ce1cfmr171983085e9.4.1773682869870;
-        Mon, 16 Mar 2026 10:41:09 -0700 (PDT)
-Received: from 0.1.2.1.2.0.a.2.dynamic.cust.swisscom.net ([2a02:1210:8642:2b00:82ee:73ff:feb8:99e3])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4856e850634sm14960175e9.0.2026.03.16.10.41.08
+        d=1e100.net; s=20251104; t=1773684814; x=1774289614;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=6I630kcGdJmHLQvgv2ucM+rk0u+MBt6XpMILrvY8Gco=;
+        b=YRyFAnUsgecGjpdJ234fh6I9pEE2zvJOahdYBA6TvH6ueysCMJKwoW8dfG9qLxcUKs
+         5g6ExUrRRO4N9xHcMzlfNcXFLVyH+Ewx6RO0K/Q3IIJKMv49bnszzdotp8gCpMv98L4M
+         QYgZppCivVxtc22PL4LYYmUkO6B38hwUutJFxokH6nMLpzAepay6yQUeCgEiW6o/eKch
+         bCXiwJ0JIj8pndwuMJ8sXbFZjIpfZvK/RDleWrSuJ0D6emiJAtTiyPcFU0p4aw/A6dXc
+         e6A6KTO3FF1DiDLERL4hbxwwT2sQyQKjg9QiTYl8RyB68OtHmlur0H95/hpEyiTo3Ldh
+         V+8w==
+X-Forwarded-Encrypted: i=1; AJvYcCXJKCUuA8DKpy43DVUUCWIf3tW6aOIt63bBIKI6KVzRBcprpqeMhB2Hq1W7ZlBRrZFWJAOTv9JQDkUd@vger.kernel.org
+X-Gm-Message-State: AOJu0YxesdpNdBCfm/0JvO10octDpq/xIlZzM4MSDIW+4SRyZXKQOz3e
+	x4EP4FZc3gYSGhCKLsovZdWcrgs4YNppM6a5ePl6Sr6ztl7BRaQOEPoLBZTA+aGE9xo=
+X-Gm-Gg: ATEYQzyrvMuoGadCxbW2sEy2pEI+acr5Z3PVGPElsVSiVPBMKfK9KhDOZrpx/rkJ8xJ
+	lfCU7voPcA/xaPF18yWrm48cEJF+o1plalETc3Dl9DvRgk6ULkhzAoXJfhvabWRSE9nNaX2Bh4k
+	i0w9H80eFWBhzV5m5X9k4Hsc3RBjUTDpEb0U1gjUqT3bNkAGXF2CV9I10aOrPShxSmrUdzH18yx
+	yIeOc1U2IeRk3t4ArTszNIAt88aacQKzStgcZd7MHekLitv3JFH3WceDOe7LILmPsmKzvYjbPnr
+	rhUFrgrK4oq6jPH5wXAHdDAbWiF6GFziP2/W3TX3ZyPbd45M7plUDmqXxJXyeMljU2tnbwYvKNR
+	F+793PgNO//1pBNevfMTREiFmYhwFtLyfGK1Mk0PR5dnumvZ/5iPB3WE8Ri1cZtUiTFR6hMhDVt
+	wPN0lbtgsF6fW0JjXqW/E=
+X-Received: by 2002:a17:903:22cb:b0:2ae:5a70:477e with SMTP id d9443c01a7336-2b06365b4dbmr4321155ad.12.1773684814193;
+        Mon, 16 Mar 2026 11:13:34 -0700 (PDT)
+Received: from localhost ([97.126.187.42])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2aece7ee3basm151378665ad.43.2026.03.16.11.13.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Mar 2026 10:41:09 -0700 (PDT)
-Message-ID: <50002e822278e6474dfd1ea37f22aad1c27003cd.camel@gmail.com>
-Subject: Re: tps65219/am62p kernel oops
-From: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-To: Shree Ramamoorthy <s-ramamoorthy@ti.com>, Francesco Dolcini
-	 <francesco@dolcini.it>
-Cc: Andreas Kemnade <andreas@kemnade.info>, Jerome Neanne
- <jneanne@baylibre.com>,  Nishanth Menon	 <nm@ti.com>, Vignesh Raghavendra
- <vigneshr@ti.com>, linux-omap@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Date: Mon, 16 Mar 2026 18:41:31 +0100
-In-Reply-To: <d6de7066-a802-41fc-bb10-2f5d248743db@ti.com>
-References: <aBDSTxALaOc-PD7X@gaggiata.pivistrello.it>
-	 <20250429185240.6a7644bf@akair> <20250430080109.GA65078@francesco-nb>
-	 <aBH5s7p2RxLGjTQD@gaggiata.pivistrello.it>
-	 <23eeda43-a938-4c15-aee3-b1b9df217ff8@ti.com>
-	 <20251209134343.GA238880@francesco-nb>
-	 <d6de7066-a802-41fc-bb10-2f5d248743db@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.58.2 
+        Mon, 16 Mar 2026 11:13:33 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Parvathi Pudi <parvathi@couthit.com>
+Cc: Parvathi Pudi <parvathi@couthit.com>, nm <nm@ti.com>, Vignesh
+ Raghavendra <vigneshr@ti.com>, afd <afd@ti.com>, rogerq
+ <rogerq@kernel.org>, tony <tony@atomide.com>, robh <robh@kernel.org>,
+ krzk+dt <krzk+dt@kernel.org>, conor+dt <conor+dt@kernel.org>,
+ richardcochran <richardcochran@gmail.com>, aaro koskinen
+ <aaro.koskinen@iki.fi>, andreas <andreas@kemnade.info>, Andrew Lunn
+ <andrew@lunn.ch>, linux-omap <linux-omap@vger.kernel.org>, devicetree
+ <devicetree@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>,
+ netdev <netdev@vger.kernel.org>, danishanwar <danishanwar@ti.com>,
+ pratheesh <pratheesh@ti.com>, j-rameshbabu <j-rameshbabu@ti.com>, praneeth
+ <praneeth@ti.com>, srk <srk@ti.com>, rogerq <rogerq@ti.com>, m-malladi
+ <m-malladi@ti.com>, krishna <krishna@couthit.com>, mohan
+ <mohan@couthit.com>, pmohan <pmohan@couthit.com>, basharath
+ <basharath@couthit.com>, Murali Karicheri <m-karicheri2@ti.com>
+Subject: Re: [PATCH v5 3/3] arm: dts: ti: Add device tree support for
+ PRU-ICSS on AM335x
+In-Reply-To: <91797572.667989.1773662409130.JavaMail.zimbra@couthit.local>
+References: <20260307122641.738450-1-parvathi@couthit.com>
+ <20260307122641.738450-4-parvathi@couthit.com>
+ <7ho6ks1r4s.fsf@baylibre.com>
+ <91797572.667989.1773662409130.JavaMail.zimbra@couthit.local>
+Date: Mon, 16 Mar 2026 11:13:33 -0700
+Message-ID: <7hcy131w36.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain
 
-Hi Shree,
+Parvathi Pudi <parvathi@couthit.com> writes:
 
-On Tue, 2025-12-09 at 12:16 -0600, Shree Ramamoorthy wrote:
-> > > > > > > while working on adding support in mainline for a new board b=
-ased on TI
-> > > > > > > AM62P SoC I noticed the following Kernel Oops.
-> > > > > > >=20
-> > > > > > > This oops was reproduced running current Linux
-> > > > > > > master, 6.15.0-rc4+, ca91b9500108d4cf083a635c2e11c884d5dd20ea=
-, but I was able
-> > > > > > > to reproduce the same with 6.14.4.
-> > > > > > >=20
-> > > > > > [...]
-> > > > > > > [=C2=A0 +0.000022] Call trace:
-> > > > > > > [=C2=A0 +0.000011]=C2=A0 regulator_notifier_call_chain+0x20/0=
-xa4 (P)
-> > > > > > > [=C2=A0 +0.000018]=C2=A0 tps65219_regulator_irq_handler+0x34/=
-0x80
-> > > > > > wild guessing: maybe because irqdata->rdev is not initalized in
-> > > > > > _probe()? At least I do not see where it would be initialized.
-> > > > > your wild guess seems correct, I'll send a proper patch with your
-> > > > > suggested-by after doing a couple of more tests, thanks.
-> > > > so, the bug is clear, however the fix is not an obvious one liner a=
-s I was
-> > > > wishing.
-> > > >=20
-> > > > we would need to add a link from each of the interrupts to the spec=
-ific
-> > > > regulator. as of now such a connection is not existing in the code.
-> > > I'll try out implementing and testing the solution, but will get to i=
-t early next week. Will email with any updates!
-> > What's the status on this? Were you able to do any progress or work on
-> > it?
-> >=20
-> > Thanks
-> > Francesco
->=20
-> Thanks for following up on this, the task got lost on my end. My apologie=
-s!
-> The original line deleted `irq_data[i].rdev =3D rdev;` was never replaced=
-.
-> The correct code should be re-implementing a version of the tps65219_get_=
-rdev_by_name() function that was removed in commit 64a6b57
-> & add in irq_data.rdev =3D rdev;` where the other irq_data fields are bei=
-ng assigned within _probe.
->=20
-> Is there anything missing with this solution?
+> Hi,
+>
+>> Parvathi Pudi <parvathi@couthit.com> writes:
+>> 
+>>> From: Roger Quadros <rogerq@ti.com>
+>>>
+>>> The TI Sitara AM335x ICE-V2 consists of single PRU-ICSS instance,
+>>> This patch adds the new device tree overlay file in-order to enable
+>>> PRU-ICSS instance, along with makefile changes.
+>>>
+>>> PRU-ICSS instance consists of two PRU cores along with various
+>>> peripherals such as the Interrupt Controller (PRU_INTC), the Industrial
+>>> Ethernet Peripheral(IEP), the Real Time Media Independent Interface
+>>> controller (MII_RT), and the Enhanced Capture (eCAP) event module.
+>>>
+>>> am33xx-l4.dtsi - Adds IEP and eCAP peripheral as child nodes
+>>> of the PRUSS subsystem node.
+>>>
+>>> am335x-icev2-prueth.dtso - Adds PRU-ICSS instance node along with PRU
+>>> eth port information and corresponding port configuration. It includes
+>>> interrupt mapping for packet reception, HW timestamp collection, and PRU
+>>> Ethernet ports in MII mode,
+>>>
+>>> GPIO configuration, boot strapping along with delay configuration for
+>>> individual PRU Ethernet port and other required nodes.
+>>>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> Signed-off-by: Andrew F. Davis <afd@ti.com>
+>>> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+>>> Signed-off-by: Basharath Hussain Khaja <basharath@couthit.com>
+>>> Signed-off-by: Parvathi Pudi <parvathi@couthit.com>
+>> 
+>> [...]
+>> 
+>>> +/*
+>>> + * Disable CPSW switch node and
+>>> + * MDIO configuration to prevent
+>>> + * conflict with PRU-ICSS
+>>> + */
+>>> +&mac_sw {
+>>> +        status = "disable";
+>>> +};
+>>> +
+>>> +&davinci_mdio_sw {
+>>> +        status = "disable";
+>>> +};
+>> 
+>> I think you need s/disable/disabled/?  (note the trailing 'd').  Without
+>> that, I don't think you're disabling these nodes, so I'm curious how it
+>> is not conflicting with the PRU-ICSS.
+>> 
+>> Kevin
+>
+> Thank you for pointing out this typo.
+>
+> We checked the kernel code as to why this did not create any issue in our
+> testing.  We found that the device availability check goes through
+> of_device_is_available(), which only treats "ok" or "okay" as enabled.
+> Anything else is effectively treated as not enabled.
+>
+> So even though "disable" isn't the usual DT value, it still prevents the
+> node from being probed since it doesn't match "ok"/"okay".
 
-Thanks for looking into this issue!
+Yes, but since your node is in an overlay, if a previous .dts[i] had set
+this to "ok", then your overlay would not disable it, which would not be
+expected behavior.
 
-I would be happy to test your patch, but cannot find it.
-Have you published it in the meanwhile?
+> We will update the value to "disabled" in the next version, since that is
+> the standard.
 
-Regards,
---=20
-Alexander Sverdlin.
+Thanks.
+
+Kevin
