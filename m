@@ -1,101 +1,114 @@
-Received: from mail-pg1-f179.google.com (mail-pg1-f179.google.com [209.85.215.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC7713D34AA
-	for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2026 18:13:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA88B3DA5D9;
+	Mon, 16 Mar 2026 18:52:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773684816; cv=none; b=cchAtQA8m8ow45bQw2S3xf3nv52+PV83Iwtqx6NwHEbLnlbJ+JIWTOJqbbCWo3x7Kw3EGIp6+uu+STkprBbF+horgVUkqhFfCFXvFRb699zNv/QJbJlGJagGDeghW57JWc92xcfz2GODn4kfsyHGCiPujDXryEfs/7Mjkkcxqzc=
+	t=1773687164; cv=none; b=i8NrMSSpeufRibsDTqFFZEQqXliIpIIYjpCsYv/H+unvIBZfvTmv6B2cQUzdccNBZuowByj5ld1XfUiUe0z0+oXO90XvpfHNzHcM8/mIbeorPyKtFf3S0PwHf8AgDOUBxoYEuRJyxcXvXgd4QWqgAk1sk4GvblY75pdqdl2ckPQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773684816; c=relaxed/simple;
-	bh=xJhMoZNqr+EHjdBUv6t14tIBHJ2MlKnKgZGrDXGR260=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=t7Wa/AX9gb3Z4bG1FWvgkSOvD1BxcODPdnaZtjnUiOWhh/WIxnX+1+3wNHvm0qWCbSTNuWr8R7oIO1DwU0YNLRAUThRjNra7xnC0q+vFZqQKKjEMj9adE5OQdlAD592rzIkXzEAD9pPtfvySvR1//EDV5NdSe6rQmB6cFMWldYc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=a5rz4F7/; arc=none smtp.client-ip=209.85.215.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	s=arc-20240116; t=1773687164; c=relaxed/simple;
+	bh=KX/ElHW2NVnmxewJnwZxA85/Oodw4mPDntSMLYXwv64=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=c84MMGVOcTarh4z3i4/9zl49torDaVCKG0p9oHssjQqi//m3wf33V6VACMTu6ntKbmLqjIUYaCan2sk2Lq+OImh9OqWb8WbnFNDEjDZd6m7SDpJYsogHzkmcFjGM/4NrzgVeZ5phlA/B+aIKBXYyC3ULt+PLl3u+XSpy8nSCwYw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IV2jeEmG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="a5rz4F7/"
-Received: by mail-pg1-f179.google.com with SMTP id 41be03b00d2f7-c739e680bebso1591529a12.1
-        for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2026 11:13:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1773684814; x=1774289614; darn=vger.kernel.org;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=6I630kcGdJmHLQvgv2ucM+rk0u+MBt6XpMILrvY8Gco=;
-        b=a5rz4F7/PIq5VoPeuJr7+Y2B1gH2TPWLfJJYg2OnJMJUiRdcIuf4QvJSK6AnFFYIyA
-         kDlAQke4I7guGFiBOIBg2AtC0aFC41RPGIeqiaikJAowEAcmII0mcc80kUAy3q1+ONh2
-         G7a9tEcDZjdM4Fllm88bAx31ihMqsRr+sErfpHhfltzj7sfeeHTJLHvckufLbmxwLguz
-         kHUILezoTbEFcVO31e+ZHgN1aQxeIP7pr1p7xwyBvOR0kAPrz6c8UlZb4sNw77FcUy04
-         CY4X6qDSPN+ro6Fo0oHiQulDhZ/b+mB0QjWIpPxrTDkTLA3iTJS/wQ4oaevjugviTfxq
-         vKJA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773684814; x=1774289614;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=6I630kcGdJmHLQvgv2ucM+rk0u+MBt6XpMILrvY8Gco=;
-        b=YRyFAnUsgecGjpdJ234fh6I9pEE2zvJOahdYBA6TvH6ueysCMJKwoW8dfG9qLxcUKs
-         5g6ExUrRRO4N9xHcMzlfNcXFLVyH+Ewx6RO0K/Q3IIJKMv49bnszzdotp8gCpMv98L4M
-         QYgZppCivVxtc22PL4LYYmUkO6B38hwUutJFxokH6nMLpzAepay6yQUeCgEiW6o/eKch
-         bCXiwJ0JIj8pndwuMJ8sXbFZjIpfZvK/RDleWrSuJ0D6emiJAtTiyPcFU0p4aw/A6dXc
-         e6A6KTO3FF1DiDLERL4hbxwwT2sQyQKjg9QiTYl8RyB68OtHmlur0H95/hpEyiTo3Ldh
-         V+8w==
-X-Forwarded-Encrypted: i=1; AJvYcCXJKCUuA8DKpy43DVUUCWIf3tW6aOIt63bBIKI6KVzRBcprpqeMhB2Hq1W7ZlBRrZFWJAOTv9JQDkUd@vger.kernel.org
-X-Gm-Message-State: AOJu0YxesdpNdBCfm/0JvO10octDpq/xIlZzM4MSDIW+4SRyZXKQOz3e
-	x4EP4FZc3gYSGhCKLsovZdWcrgs4YNppM6a5ePl6Sr6ztl7BRaQOEPoLBZTA+aGE9xo=
-X-Gm-Gg: ATEYQzyrvMuoGadCxbW2sEy2pEI+acr5Z3PVGPElsVSiVPBMKfK9KhDOZrpx/rkJ8xJ
-	lfCU7voPcA/xaPF18yWrm48cEJF+o1plalETc3Dl9DvRgk6ULkhzAoXJfhvabWRSE9nNaX2Bh4k
-	i0w9H80eFWBhzV5m5X9k4Hsc3RBjUTDpEb0U1gjUqT3bNkAGXF2CV9I10aOrPShxSmrUdzH18yx
-	yIeOc1U2IeRk3t4ArTszNIAt88aacQKzStgcZd7MHekLitv3JFH3WceDOe7LILmPsmKzvYjbPnr
-	rhUFrgrK4oq6jPH5wXAHdDAbWiF6GFziP2/W3TX3ZyPbd45M7plUDmqXxJXyeMljU2tnbwYvKNR
-	F+793PgNO//1pBNevfMTREiFmYhwFtLyfGK1Mk0PR5dnumvZ/5iPB3WE8Ri1cZtUiTFR6hMhDVt
-	wPN0lbtgsF6fW0JjXqW/E=
-X-Received: by 2002:a17:903:22cb:b0:2ae:5a70:477e with SMTP id d9443c01a7336-2b06365b4dbmr4321155ad.12.1773684814193;
-        Mon, 16 Mar 2026 11:13:34 -0700 (PDT)
-Received: from localhost ([97.126.187.42])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2aece7ee3basm151378665ad.43.2026.03.16.11.13.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Mar 2026 11:13:33 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Parvathi Pudi <parvathi@couthit.com>
-Cc: Parvathi Pudi <parvathi@couthit.com>, nm <nm@ti.com>, Vignesh
- Raghavendra <vigneshr@ti.com>, afd <afd@ti.com>, rogerq
- <rogerq@kernel.org>, tony <tony@atomide.com>, robh <robh@kernel.org>,
- krzk+dt <krzk+dt@kernel.org>, conor+dt <conor+dt@kernel.org>,
- richardcochran <richardcochran@gmail.com>, aaro koskinen
- <aaro.koskinen@iki.fi>, andreas <andreas@kemnade.info>, Andrew Lunn
- <andrew@lunn.ch>, linux-omap <linux-omap@vger.kernel.org>, devicetree
- <devicetree@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>,
- netdev <netdev@vger.kernel.org>, danishanwar <danishanwar@ti.com>,
- pratheesh <pratheesh@ti.com>, j-rameshbabu <j-rameshbabu@ti.com>, praneeth
- <praneeth@ti.com>, srk <srk@ti.com>, rogerq <rogerq@ti.com>, m-malladi
- <m-malladi@ti.com>, krishna <krishna@couthit.com>, mohan
- <mohan@couthit.com>, pmohan <pmohan@couthit.com>, basharath
- <basharath@couthit.com>, Murali Karicheri <m-karicheri2@ti.com>
-Subject: Re: [PATCH v5 3/3] arm: dts: ti: Add device tree support for
- PRU-ICSS on AM335x
-In-Reply-To: <91797572.667989.1773662409130.JavaMail.zimbra@couthit.local>
-References: <20260307122641.738450-1-parvathi@couthit.com>
- <20260307122641.738450-4-parvathi@couthit.com>
- <7ho6ks1r4s.fsf@baylibre.com>
- <91797572.667989.1773662409130.JavaMail.zimbra@couthit.local>
-Date: Mon, 16 Mar 2026 11:13:33 -0700
-Message-ID: <7hcy131w36.fsf@baylibre.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IV2jeEmG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DF05C19421;
+	Mon, 16 Mar 2026 18:52:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773687164;
+	bh=KX/ElHW2NVnmxewJnwZxA85/Oodw4mPDntSMLYXwv64=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=IV2jeEmG7kKevDW2JHVvNUI5TtUV+Eej8klDzmn6zOa0IVB0gzweG+SeIH8pc+wmH
+	 edu4CofnesZyl8vYHk5P4xynFuVfbyFoznynGVrJnqjjOy5fyu6RMFZmsP9AsUBVGv
+	 Io0dF+PHkETjjX5QaBytZ10tsmJsFar+N5XHwO0NTHkHvK/CV+HAUKN7b2LBLj3+LL
+	 54h+ovGZowocyrZcpTu7mVrhHF7E0eqJTzwm1LDy+9eQ4H84NidIQsugqHsBcuvXDC
+	 JCtpCFqfp9tkOzA73EmSPgRLnvdTMK1VRqAvwSj7j7IqB+P9dtPyzMs6ThNT6QmQaU
+	 TdeLNZ9MSoktA==
+Message-ID: <ee2ec279-ee5d-4d6d-b6ff-35187e3f03e6@kernel.org>
+Date: Mon, 16 Mar 2026 19:52:35 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v5 3/3] arm: dts: ti: Add device tree support for PRU-ICSS
+ on AM335x
+To: Parvathi Pudi <parvathi@couthit.com>, Kevin Hilman <khilman@baylibre.com>
+Cc: nm <nm@ti.com>, Vignesh Raghavendra <vigneshr@ti.com>, afd <afd@ti.com>,
+ rogerq <rogerq@kernel.org>, tony <tony@atomide.com>, robh <robh@kernel.org>,
+ krzk+dt <krzk+dt@kernel.org>, conor+dt <conor+dt@kernel.org>,
+ richardcochran <richardcochran@gmail.com>,
+ aaro koskinen <aaro.koskinen@iki.fi>, andreas <andreas@kemnade.info>,
+ Andrew Lunn <andrew@lunn.ch>, linux-omap <linux-omap@vger.kernel.org>,
+ devicetree <devicetree@vger.kernel.org>,
+ linux-kernel <linux-kernel@vger.kernel.org>, netdev
+ <netdev@vger.kernel.org>, danishanwar <danishanwar@ti.com>,
+ pratheesh <pratheesh@ti.com>, j-rameshbabu <j-rameshbabu@ti.com>,
+ praneeth <praneeth@ti.com>, srk <srk@ti.com>, rogerq <rogerq@ti.com>,
+ m-malladi <m-malladi@ti.com>, krishna <krishna@couthit.com>,
+ mohan <mohan@couthit.com>, pmohan <pmohan@couthit.com>,
+ basharath <basharath@couthit.com>, Murali Karicheri <m-karicheri2@ti.com>
+References: <20260307122641.738450-1-parvathi@couthit.com>
+ <20260307122641.738450-4-parvathi@couthit.com> <7ho6ks1r4s.fsf@baylibre.com>
+ <91797572.667989.1773662409130.JavaMail.zimbra@couthit.local>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ xsFNBFVDQq4BEAC6KeLOfFsAvFMBsrCrJ2bCalhPv5+KQF2PS2+iwZI8BpRZoV+Bd5kWvN79
+ cFgcqTTuNHjAvxtUG8pQgGTHAObYs6xeYJtjUH0ZX6ndJ33FJYf5V3yXqqjcZ30FgHzJCFUu
+ JMp7PSyMPzpUXfU12yfcRYVEMQrmplNZssmYhiTeVicuOOypWugZKVLGNm0IweVCaZ/DJDIH
+ gNbpvVwjcKYrx85m9cBVEBUGaQP6AT7qlVCkrf50v8bofSIyVa2xmubbAwwFA1oxoOusjPIE
+ J3iadrwpFvsZjF5uHAKS+7wHLoW9hVzOnLbX6ajk5Hf8Pb1m+VH/E8bPBNNYKkfTtypTDUCj
+ NYcd27tjnXfG+SDs/EXNUAIRefCyvaRG7oRYF3Ec+2RgQDRnmmjCjoQNbFrJvJkFHlPeHaeS
+ BosGY+XWKydnmsfY7SSnjAzLUGAFhLd/XDVpb1Een2XucPpKvt9ORF+48gy12FA5GduRLhQU
+ vK4tU7ojoem/G23PcowM1CwPurC8sAVsQb9KmwTGh7rVz3ks3w/zfGBy3+WmLg++C2Wct6nM
+ Pd8/6CBVjEWqD06/RjI2AnjIq5fSEH/BIfXXfC68nMp9BZoy3So4ZsbOlBmtAPvMYX6U8VwD
+ TNeBxJu5Ex0Izf1NV9CzC3nNaFUYOY8KfN01X5SExAoVTr09ewARAQABzSVLcnp5c3p0b2Yg
+ S296bG93c2tpIDxrcnprQGtlcm5lbC5vcmc+wsGVBBMBCgA/AhsDBgsJCAcDAgYVCAIJCgsE
+ FgIDAQIeAQIXgBYhBJvQfg4MUfjVlne3VBuTQ307QWKbBQJoF1BKBQkWlnSaAAoJEBuTQ307
+ QWKbHukP/3t4tRp/bvDnxJfmNdNVn0gv9ep3L39IntPalBFwRKytqeQkzAju0whYWg+R/rwp
+ +r2I1Fzwt7+PTjsnMFlh1AZxGDmP5MFkzVsMnfX1lGiXhYSOMP97XL6R1QSXxaWOpGNCDaUl
+ ajorB0lJDcC0q3xAdwzRConxYVhlgmTrRiD8oLlSCD5baEAt5Zw17UTNDnDGmZQKR0fqLpWy
+ 786Lm5OScb7DjEgcA2PRm17st4UQ1kF0rQHokVaotxRM74PPDB8bCsunlghJl1DRK9s1aSuN
+ hL1Pv9VD8b4dFNvCo7b4hfAANPU67W40AaaGZ3UAfmw+1MYyo4QuAZGKzaP2ukbdCD/DYnqi
+ tJy88XqWtyb4UQWKNoQqGKzlYXdKsldYqrLHGoMvj1UN9XcRtXHST/IaLn72o7j7/h/Ac5EL
+ 8lSUVIG4TYn59NyxxAXa07Wi6zjVL1U11fTnFmE29ALYQEXKBI3KUO1A3p4sQWzU7uRmbuxn
+ naUmm8RbpMcOfa9JjlXCLmQ5IP7Rr5tYZUCkZz08LIfF8UMXwH7OOEX87Y++EkAB+pzKZNNd
+ hwoXulTAgjSy+OiaLtuCys9VdXLZ3Zy314azaCU3BoWgaMV0eAW/+gprWMXQM1lrlzvwlD/k
+ whyy9wGf0AEPpLssLVt9VVxNjo6BIkt6d1pMg6mHsUEVzsFNBFVDXDQBEADNkrQYSREUL4D3
+ Gws46JEoZ9HEQOKtkrwjrzlw/tCmqVzERRPvz2Xg8n7+HRCrgqnodIYoUh5WsU84N03KlLue
+ MNsWLJBvBaubYN4JuJIdRr4dS4oyF1/fQAQPHh8Thpiz0SAZFx6iWKB7Qrz3OrGCjTPcW6ei
+ OMheesVS5hxietSmlin+SilmIAPZHx7n242u6kdHOh+/SyLImKn/dh9RzatVpUKbv34eP1wA
+ GldWsRxbf3WP9pFNObSzI/Bo3kA89Xx2rO2roC+Gq4LeHvo7ptzcLcrqaHUAcZ3CgFG88CnA
+ 6z6lBZn0WyewEcPOPdcUB2Q7D/NiUY+HDiV99rAYPJztjeTrBSTnHeSBPb+qn5ZZGQwIdUW9
+ YegxWKvXXHTwB5eMzo/RB6vffwqcnHDoe0q7VgzRRZJwpi6aMIXLfeWZ5Wrwaw2zldFuO4Dt
+ 91pFzBSOIpeMtfgb/Pfe/a1WJ/GgaIRIBE+NUqckM+3zJHGmVPqJP/h2Iwv6nw8U+7Yyl6gU
+ BLHFTg2hYnLFJI4Xjg+AX1hHFVKmvl3VBHIsBv0oDcsQWXqY+NaFahT0lRPjYtrTa1v3tem/
+ JoFzZ4B0p27K+qQCF2R96hVvuEyjzBmdq2esyE6zIqftdo4MOJho8uctOiWbwNNq2U9pPWmu
+ 4vXVFBYIGmpyNPYzRm0QPwARAQABwsF8BBgBCgAmAhsMFiEEm9B+DgxR+NWWd7dUG5NDfTtB
+ YpsFAmgXUF8FCRaWWyoACgkQG5NDfTtBYptO0w//dlXJs5/42hAXKsk+PDg3wyEFb4NpyA1v
+ qmx7SfAzk9Hf6lWwU1O6AbqNMbh6PjEwadKUk1m04S7EjdQLsj/MBSgoQtCT3MDmWUUtHZd5
+ RYIPnPq3WVB47GtuO6/u375tsxhtf7vt95QSYJwCB+ZUgo4T+FV4hquZ4AsRkbgavtIzQisg
+ Dgv76tnEv3YHV8Jn9mi/Bu0FURF+5kpdMfgo1sq6RXNQ//TVf8yFgRtTUdXxW/qHjlYURrm2
+ H4kutobVEIxiyu6m05q3e9eZB/TaMMNVORx+1kM3j7f0rwtEYUFzY1ygQfpcMDPl7pRYoJjB
+ dSsm0ZuzDaCwaxg2t8hqQJBzJCezTOIkjHUsWAK+tEbU4Z4SnNpCyM3fBqsgYdJxjyC/tWVT
+ AQ18NRLtPw7tK1rdcwCl0GFQHwSwk5pDpz1NH40e6lU+NcXSeiqkDDRkHlftKPV/dV+lQXiu
+ jWt87ecuHlpL3uuQ0ZZNWqHgZoQLXoqC2ZV5KrtKWb/jyiFX/sxSrodALf0zf+tfHv0FZWT2
+ zHjUqd0t4njD/UOsuIMOQn4Ig0SdivYPfZukb5cdasKJukG1NOpbW7yRNivaCnfZz6dTawXw
+ XRIV/KDsHQiyVxKvN73bThKhONkcX2LWuD928tAR6XMM2G5ovxLe09vuOzzfTWQDsm++9UKF a/A=
+In-Reply-To: <91797572.667989.1773662409130.JavaMail.zimbra@couthit.local>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Parvathi Pudi <parvathi@couthit.com> writes:
-
+On 16/03/2026 13:00, Parvathi Pudi wrote:
 > Hi,
->
+> 
 >> Parvathi Pudi <parvathi@couthit.com> writes:
->> 
+>>
 >>> From: Roger Quadros <rogerq@ti.com>
 >>>
 >>> The TI Sitara AM335x ICE-V2 consists of single PRU-ICSS instance,
@@ -123,9 +136,9 @@ Parvathi Pudi <parvathi@couthit.com> writes:
 >>> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
 >>> Signed-off-by: Basharath Hussain Khaja <basharath@couthit.com>
 >>> Signed-off-by: Parvathi Pudi <parvathi@couthit.com>
->> 
+>>
 >> [...]
->> 
+>>
 >>> +/*
 >>> + * Disable CPSW switch node and
 >>> + * MDIO configuration to prevent
@@ -138,30 +151,26 @@ Parvathi Pudi <parvathi@couthit.com> writes:
 >>> +&davinci_mdio_sw {
 >>> +        status = "disable";
 >>> +};
->> 
+>>
 >> I think you need s/disable/disabled/?  (note the trailing 'd').  Without
 >> that, I don't think you're disabling these nodes, so I'm curious how it
 >> is not conflicting with the PRU-ICSS.
->> 
+>>
 >> Kevin
->
+> 
 > Thank you for pointing out this typo.
->
+> 
 > We checked the kernel code as to why this did not create any issue in our
 > testing.  We found that the device availability check goes through
 > of_device_is_available(), which only treats "ok" or "okay" as enabled.
 > Anything else is effectively treated as not enabled.
->
+> 
 > So even though "disable" isn't the usual DT value, it still prevents the
 > node from being probed since it doesn't match "ok"/"okay".
 
-Yes, but since your node is in an overlay, if a previous .dts[i] had set
-this to "ok", then your overlay would not disable it, which would not be
-expected behavior.
 
-> We will update the value to "disabled" in the next version, since that is
-> the standard.
+The question is whether you build tested your code (so dtbs_check). And
+if not, why?
 
-Thanks.
-
-Kevin
+Best regards,
+Krzysztof
