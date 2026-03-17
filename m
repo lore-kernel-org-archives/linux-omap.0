@@ -1,202 +1,185 @@
-Received: from mail-lf1-f45.google.com (mail-lf1-f45.google.com [209.85.167.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D819535C180
-	for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2026 09:30:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98E5E3AA507;
+	Tue, 17 Mar 2026 11:28:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773739822; cv=none; b=YZ7ha2smDO1fRHpuu4XykKLx0L2GWdQwALEaIOpY+2Edd2Hblh2mQQ0ZsE0NEfGAK0ESIxMTx/Ic717aSq2Y73n/b/hm0VeXLhP359KBeFODTZ/uqZzk9mHHYE45knaCHApJVPUOx20dRYKHiWNfMsnIt3Sc4ns+Xmv1EWmL6Kg=
+	t=1773746907; cv=none; b=GXrRJ3oy7B15QgwhMt6WGGRTLSwWgy2mjucf+4oPzKGbKi+1U7mFFaooSKK8iq57JS2NXOk89XvyWUoJIIZ9Z93tl+lAa8zK+mdzPE276kzsjrjxQCG0t/mfpuIl5Un6sUDNeGLXV1/DdQ0yr+23pyo+BVy0cJt7MjiWoQ7gVao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773739822; c=relaxed/simple;
-	bh=n9yV0EKW0ePeyskDVcCg/LnzxUaGeegIs/HWjeZnKec=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZF4wG6rTHZQCPgdmXgF4Mbw4jRRSC+J9QJOnEKKs8D2DSQlA4ctkXDoejCPdee3ERzmqTXQONrkhFFvjSJh/4aFCGoEXWV8G/Z+P5I0de3egfB9RdvGE2ThptNKQwJhZQCCdLE3fmS5rl8PjffJy7FmydyKZpqdPtg8dV/XFB6U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=IW4rO2Pk; arc=none smtp.client-ip=209.85.167.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	s=arc-20240116; t=1773746907; c=relaxed/simple;
+	bh=P4yW063VV47SeXm+tGH5KqP4Bsamp7Vs0r8UFNcQ2hk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=u1WBYO1v7+7QdcNfQxhmUsZ3hTYooB2FUf6Hd5mODYDXoa+aP1ZBs8ppO/jy13UIjzBqe+TwLiGUrVWE9//rBKBVTXa7P77IIJIa+WEU/dszElgz5nu+JEwfuTk57xdMmt9oFPWCa9KGhDtZh76M9UMjhGvltLFwp/Zm49UZzzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=a8y+VDO0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="IW4rO2Pk"
-Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5a126c8aab9so7540577e87.0
-        for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2026 02:30:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1773739818; x=1774344618; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=x1Y0fq+nOdX5B9Zlv9rWb/FlWGr7tCSJEoVxQK36Zz4=;
-        b=IW4rO2PkNtgphTIcWlL8DIP6D3aL7IKTyxWbQas2ydbJrfk0aiB9VU9w++L0i5DDex
-         pZkOdYH9HpAHjOWiy6me+EDVYIJynnXCOyx9DvcWvJtOArvI2w1oOopeGlqCKbX5M1WV
-         9Ehn/DfClD19/xyAgS4xTUPxULD4czvm3eGsDorAejH4P0McO9tElTn7ezp2MFkhcMal
-         AruVwCkrGQTuSbyKgP5Z3qmlONEDVqCaHUYN6VVPNJmhmN0gAObTB9HhxeqdZfkZhpIF
-         dnj3Y8oOXYsx5+vzjczOQYDWImffQqL4155OkwsR7mDDOpJIoS40b4gEUPQHZp+atrUm
-         +6Qg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773739818; x=1774344618;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=x1Y0fq+nOdX5B9Zlv9rWb/FlWGr7tCSJEoVxQK36Zz4=;
-        b=DdUy0hhFBVyHygZ3BR5Q/Lko3Yt7uunoucwe3Nw89fDonGdzu97kLI7f+EcwPCzVv7
-         7w7mzycmMHeWDwGgQycOn3qIEqH18I5HQs4AAIDWx8e6yL5M2iQ0Xml8aLZ4tnWyHhVe
-         XgiKONH8tjT5POamGWZ60Jkbm08glmginAdsPLgB/XYGyACr1EI59rHtZ9wje46nhLvo
-         a8EoDS8FuZgRAdhgasF/At0wk6XWjPTza2Ye2h9Pvuex1ewK+zMxr39mw6P94AZQvQ1p
-         CrFhBCi65QAXKPdDjVpJ4kGaThm73hMw+NIce0FbIDZnlPnBRRj7Ch2l4YI2KoA87l8e
-         Cryg==
-X-Forwarded-Encrypted: i=1; AJvYcCV6ZM3KB1aEUZT0Pzur0sHtyNyJLz/HlrOHESmbxTIkZJRvCDiGFvlGkfUujDWoK3VouOYk1a9WcPrK@vger.kernel.org
-X-Gm-Message-State: AOJu0YxX3ZrV6tPZeXzT+A0lOj1x33JOhEX9Hdix0ftIU6VRMZHRzTd3
-	wrFLrZL4yHrtnxcDpgeuiCHzx8wzQ63GXdWFrw6o53LZ0FORkaGJU8L3Pid/eVZ/wQo=
-X-Gm-Gg: ATEYQzwPImaLxlJc75edQbvV3XG8GFe7udIIff2KN4FPDkNM5B3LwKAcTxMguZ8N+ih
-	12oD0vkBvxJIJRNudfCAoqgSC/7iMdiFWsoTn80Kjr9Mnjifkg/kzsMRKgSgFR3AEVr3dfI6R9T
-	EYF3jXpAstfaHHtEoCP3SylUAFmSfcHwJBkCMXN/L11Cq8gWQnP6aksFNGjiSe0vWvehnK2c/Gp
-	0QKUvVgTpS/DivCGvEFF+huLRXw/eHpG2NeiDYWLa6VrvnBPBYXFuO9CF67ceHTfZObhUaARghI
-	tGtqJhwVXKTmpLhPLhKhheOl36iytyC9D0YjnV8wzIUR7D7fDWKuzxSIznckZ+yRRl5+SUQ6R9u
-	iJYV4KftPgEDeFgZXIAgvztl5gwIUpbUfMT2Bs6JCG3dCMRBwjFrf7Tf5dYtrEQuzHUCXiwoOSI
-	x69CKplJtypt12t7Yk6LV39yLjBS6vXl7Sy/jKyVi2L6qGSi9JIoq7ftVc
-X-Received: by 2002:a05:6512:31d6:b0:5a1:3e11:2963 with SMTP id 2adb3069b0e04-5a162b13fe6mr5199056e87.39.1773739817876;
-        Tue, 17 Mar 2026 02:30:17 -0700 (PDT)
-Received: from nuoska (87-100-249-247.bb.dnainternet.fi. [87.100.249.247])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5a15602e713sm3977671e87.32.2026.03.17.02.30.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Mar 2026 02:30:17 -0700 (PDT)
-Date: Tue, 17 Mar 2026 11:30:14 +0200
-From: Mikko Rapeli <mikko.rapeli@linaro.org>
-To: "Vincent Mailhol (Arm)" <mailhol@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>,
-	Richard Henderson <richard.henderson@linaro.org>,
-	Matt Turner <mattst88@gmail.com>,
-	Magnus Lindholm <linmag7@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Rich Felker <dalias@libc.org>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Clark Williams <clrkwllms@kernel.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Krzysztof Kozlowski <krzk@kernel.org>,
-	Alim Akhtar <alim.akhtar@samsung.com>, Frank Li <Frank.Li@nxp.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>,
-	Vladimir Zapolskiy <vz@mleia.com>,
-	Piotr Wojtaszczyk <piotr.wojtaszczyk@timesys.com>,
-	Liviu Dudau <liviu.dudau@arm.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
-	Gregory CLEMENT <gregory.clement@bootlin.com>,
-	=?iso-8859-1?Q?Th=E9o?= Lebrun <theo.lebrun@bootlin.com>,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	Helge Deller <deller@gmx.de>,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-	Jonathan =?iso-8859-1?Q?Neusch=E4fer?= <j.neuschaefer@gmx.net>,
-	Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Arnd Bergmann <arnd@arndb.de>, Heiko Stuebner <heiko@sntech.de>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	Mark Brown <broonie@kernel.org>, Eric Biggers <ebiggers@kernel.org>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Sricharan Ramabadhran <quic_srichara@quicinc.com>,
-	Bjorn Andersson <andersson@kernel.org>,
-	Michael Walle <mwalle@kernel.org>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Srinivas Kandagatla <srinivas.kandagatla@oss.qualcomm.com>,
-	"Rob Herring (Arm)" <robh@kernel.org>,
-	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Anna Schumaker <anna.schumaker@oracle.com>,
-	Alexandre Gonzalo <alexandre.gonzalo@arm.com>,
-	linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-omap@vger.kernel.org, loongarch@lists.linux.dev,
-	linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-	linux-sh@vger.kernel.org, linux-rt-devel@lists.linux.dev,
-	linux-samsung-soc@vger.kernel.org, imx@lists.linux.dev,
-	linux-renesas-soc@vger.kernel.org, linux-parisc@vger.kernel.org,
-	openbmc@lists.ozlabs.org
-Subject: Re: [PATCH 1/9] scripts: kconfig: merge_config.sh: use POSIX '=' in
- test
-Message-ID: <abkfJsyQSbW-VjxD@nuoska>
-References: <20260317-arm_defconf_cleanup-v1-0-8eecb7fdd24d@kernel.org>
- <20260317-arm_defconf_cleanup-v1-1-8eecb7fdd24d@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="a8y+VDO0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1FC6C19425;
+	Tue, 17 Mar 2026 11:28:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773746907;
+	bh=P4yW063VV47SeXm+tGH5KqP4Bsamp7Vs0r8UFNcQ2hk=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=a8y+VDO0Xgfr+lNQvyfY1xPuBKQrwVKzn+uW1LOWDl6SKD2cf/wPkwMVBct13/PEf
+	 NjtztpRZ0OvapQpUah3oS8DgsfxoD9ExU3Oyn/tCb/1nrrZulmcxhhtuGOnVMJGXFC
+	 DhLvUWnNlS1C6Dhu5vi73BGYhEiANrZuCLdAOOBCvbO+gRR1Okk7P8txt5gnVQUvM9
+	 XXSKbFIOgOKIjhaCsMR/7mp7MIjGFXCSn+6UrpKW/Pv70PvzlY6F1OGe4hnRY3xpO2
+	 EtkPG0mT7eRk81EMbFApmG9taYShtvE9KOLYMCSaqrpHZ2hnw9yqTWjULbYgggUZlF
+	 VywYxCJGj5P3g==
+Message-ID: <febd0f7e-59f3-4ba4-8706-53c7353e3fe5@kernel.org>
+Date: Tue, 17 Mar 2026 12:28:05 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260317-arm_defconf_cleanup-v1-1-8eecb7fdd24d@kernel.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 5/9] arm: configs: remove obsolete assignments to
+ SND_SOC_ROCKCHIP
+To: "Vincent Mailhol (Arm)" <mailhol@kernel.org>,
+ Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>,
+ Mikko Rapeli <mikko.rapeli@linaro.org>,
+ Richard Henderson <richard.henderson@linaro.org>,
+ Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>,
+ Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ Madhavan Srinivasan <maddy@linux.ibm.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
+ "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
+ Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
+ Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
+ Alexander Gordeev <agordeev@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@linux.ibm.com>,
+ Sven Schnelle <svens@linux.ibm.com>,
+ Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+ Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+ Clark Williams <clrkwllms@kernel.org>, Steven Rostedt <rostedt@goodmis.org>,
+ Pablo Neira Ayuso <pablo@netfilter.org>,
+ Alim Akhtar <alim.akhtar@samsung.com>, Frank Li <Frank.Li@nxp.com>,
+ Sascha Hauer <s.hauer@pengutronix.de>,
+ Pengutronix Kernel Team <kernel@pengutronix.de>,
+ Fabio Estevam <festevam@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>,
+ Piotr Wojtaszczyk <piotr.wojtaszczyk@timesys.com>,
+ Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>,
+ Geert Uytterhoeven <geert+renesas@glider.be>,
+ Magnus Damm <magnus.damm@gmail.com>,
+ Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
+ Gregory CLEMENT <gregory.clement@bootlin.com>,
+ =?UTF-8?Q?Th=C3=A9o_Lebrun?= <theo.lebrun@bootlin.com>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ Helge Deller <deller@gmx.de>, Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+ =?UTF-8?Q?Jonathan_Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>,
+ Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>,
+ Thomas Zimmermann <tzimmermann@suse.de>, Arnd Bergmann <arnd@arndb.de>,
+ Heiko Stuebner <heiko@sntech.de>,
+ Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+ Mark Brown <broonie@kernel.org>, Eric Biggers <ebiggers@kernel.org>,
+ Ard Biesheuvel <ardb@kernel.org>,
+ Sricharan Ramabadhran <quic_srichara@quicinc.com>,
+ Bjorn Andersson <andersson@kernel.org>, Michael Walle <mwalle@kernel.org>,
+ Guenter Roeck <linux@roeck-us.net>,
+ Srinivas Kandagatla <srinivas.kandagatla@oss.qualcomm.com>,
+ "Rob Herring (Arm)" <robh@kernel.org>,
+ Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Anna Schumaker <anna.schumaker@oracle.com>
+Cc: Alexandre Gonzalo <alexandre.gonzalo@arm.com>,
+ linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-omap@vger.kernel.org, loongarch@lists.linux.dev,
+ linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-sh@vger.kernel.org, linux-rt-devel@lists.linux.dev,
+ linux-samsung-soc@vger.kernel.org, imx@lists.linux.dev,
+ linux-renesas-soc@vger.kernel.org, linux-parisc@vger.kernel.org,
+ openbmc@lists.ozlabs.org
+References: <20260317-arm_defconf_cleanup-v1-0-8eecb7fdd24d@kernel.org>
+ <20260317-arm_defconf_cleanup-v1-5-8eecb7fdd24d@kernel.org>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ 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 a/A=
+In-Reply-To: <20260317-arm_defconf_cleanup-v1-5-8eecb7fdd24d@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Hi,
-
-On Tue, Mar 17, 2026 at 10:13:37AM +0100, Vincent Mailhol (Arm) wrote:
-> merge_config.sh yields this warning:
+On 17/03/2026 10:13, Vincent Mailhol (Arm) wrote:
+> CONFIG_SND_SOC_ROCKCHIP was removed in commit cae3cc435db5 ("ASoC:
+> rockchip: Standardize ASoC menu"). However it is still referenced in
+> some defconfigs.
 > 
->   ./scripts/kconfig/merge_config.sh: 384: [: false: unexpected operator
+> Remove any references to CONFIG_SND_SOC_ROCKCHIP.
 > 
-> This happens because the script runs under /bin/sh but compares
-> strings using the '==' operator, which is a bash extension. The POSIX
-> test command only specifies '=' for string equality.
+> FYI, the suppressions were done using:
 > 
-> Replace '==' with the POSIX-compatible '=' so the script works when
-> run with /bin/sh as intended.
+>   git ls-files -z 'arch/*/configs/*defconfig' |\
+>     xargs -0 sed -i -E '/^CONFIG_SND_SOC_ROCKCHIP/d'
 > 
-> Fixes: dfc97e1c5da5 ("scripts: kconfig: merge_config.sh: use awk in checks too")
+> Fixes: cae3cc435db5 ("ASoC: rockchip: Standardize ASoC menu")
 > Signed-off-by: Vincent Mailhol (Arm) <mailhol@kernel.org>
-
-This fix is already merged in kbuild trees:
-
-https://lore.kernel.org/linux-kbuild/20260309121505.40454-1-o451686892@gmail.com/
-https://git.kernel.org/pub/scm/linux/kernel/git/kbuild/linux.git/log/?h=kbuild-fixes-for-next
-
-Cheers,
-
--Mikko
-
 > ---
->  scripts/kconfig/merge_config.sh | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/scripts/kconfig/merge_config.sh b/scripts/kconfig/merge_config.sh
-> index 735e1de450c6..073c6bec5245 100755
-> --- a/scripts/kconfig/merge_config.sh
-> +++ b/scripts/kconfig/merge_config.sh
-> @@ -381,7 +381,7 @@ END {
->  	STRICT_MODE_VIOLATED=true
->  fi
->  
-> -if [ "$STRICT" == "true" ] && [ "$STRICT_MODE_VIOLATED" == "true" ]; then
-> +if [ "$STRICT" = "true" ] && [ "$STRICT_MODE_VIOLATED" = "true" ]; then
->  	echo "Requested and effective config differ"
->  	exit 1
->  fi
-> 
-> -- 
-> 2.43.0
-> 
+>  arch/arm/configs/multi_v7_defconfig | 1 -
+>  arch/arm64/configs/defconfig        | 1 -
+
+This was already posted:
+https://lore.kernel.org/all/20260313-rockchip-snd-cleanup-v1-1-77d9a953fd1b@schnwalter.eu/
+but just like that patch you did not send it to soc@ (if I am not
+mistaken... CC list is enormous).
+
+I think you are mixing here independent works, like kconfig and per-arch
+defconfig changes. Please split these per arch defconfig maintainers -
+patches and patchset, so you won't be Cc-ing 50 addresses.
+
+Best regards,
+Krzysztof
