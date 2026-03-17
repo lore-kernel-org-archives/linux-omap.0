@@ -1,177 +1,191 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from DUZPR83CU001.outbound.protection.outlook.com (mail-northeuropeazon11012059.outbound.protection.outlook.com [52.101.66.59])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D8DC34A3A2;
-	Tue, 17 Mar 2026 11:36:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773747374; cv=none; b=sTkY30e/jVxTJB3P9xkRNktgr9GNdjHqZ5z1A9So+4tzeVrjqSkm7noCOWtGv8+dNLvwGyyrzfeFg66XhODeCdl8JA2q3yRfA4qlpSFgJjvtm18OdODcyhlEYhLrplzI1wbJP+p9W9D6gpBqcsAkrRzyGQ3CbX5boqebwMKCr3c=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773747374; c=relaxed/simple;
-	bh=ndd3y2M1FJ5lkjT9Ky5c6ddZPhEl/7pYxCez3yb4Htk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=swGsQK4kve6s0upe8sqeTKqBd3Um1C1JuGXhzryiUn/gX4QgmDhDi0HbyDQuGncsuyP6iG8X6KzxGdpls8fCCSUZD3dp/uAZGF3eLtWawRD3cktNh168OKM+9RBYppvmsuFfAbG2tSHxNHZZ62WHmYygVsRjSFTW5hf/9O4srQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZOFBaEL1; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 967E03CD8D2;
+	Tue, 17 Mar 2026 13:54:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.66.59
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773755666; cv=fail; b=aq2c9TMavKJDRkWOhdGlU4MweIwAJ17hbTA1P3ZHUZB/E57zWyicYPooSi/pBrichWc5M6N17ra+1sryFGqmHitYYj/IfeGuPxbX1aN3jRY2HMci9fXWK8iGXjnbcf9SLoWovEkjl/EEvN1PmNBKLG7YwR57wmCltvOLpXOC3u4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773755666; c=relaxed/simple;
+	bh=h8vW9QFHEsbdwF3sZuZYLNzmqqdLN09PcEnZ1dPYIV0=;
+	h=Message-ID:Subject:From:To:CC:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=az8Kvfg56fhnaBes9UW6y9G7tghueHzig9j0MqDNL0RkyKvbTDv+4go4WDXATJK9nqGLY97ewZ9vqB0wL9IWgP5OB9myLC9+H//EKwy7Xv8eHOVDYCscmSs9BvbeRfU5KPgjr7lVjhyyNSDRUVGOsp2vXOYp5SsRz7yJOTpsd+E=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foss.st.com; spf=pass smtp.mailfrom=foss.st.com; dkim=pass (2048-bit key) header.d=foss.st.com header.i=@foss.st.com header.b=kfDjiaA6; arc=fail smtp.client-ip=52.101.66.59
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foss.st.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=foss.st.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZOFBaEL1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFA05C19425;
-	Tue, 17 Mar 2026 11:35:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773747373;
-	bh=ndd3y2M1FJ5lkjT9Ky5c6ddZPhEl/7pYxCez3yb4Htk=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=ZOFBaEL1peJFlZlM/IFUqQ9l81xhjfdKqgAosLx4awK4bfo0fKDor9WJNzMMBDocn
-	 bCJUqsONa+XxRSW/VG675tJtnjpLzIvjl8U5xcSP5dq4l0+F4wfMzSs3SvnkmISV3T
-	 /dpfjAFCqHeo5MJoPnwc2YNJ0R56WPE57Ycplr2CYd8v62sY03T21QQRfKAfIfJEge
-	 4FckdoLUJ9O7GHicLm1Va6ZOW0ITUFmBoS6mowFktaS+rKBmnkAR+8kkCjDpUk7rKi
-	 FMuwJzVU6K+RXnM+0Z0FPJgY9r8KepkwpGoqLUOAQO094ErkIZ1U93e07AWeqqq7Iv
-	 06jBxVQOIF/NQ==
-Message-ID: <9545b66c-f223-48a3-96fe-c906d2307654@kernel.org>
-Date: Tue, 17 Mar 2026 12:35:53 +0100
+	dkim=pass (2048-bit key) header.d=foss.st.com header.i=@foss.st.com header.b="kfDjiaA6"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=AqThbOnFQ8/SlDMtiUWjR9WZ3ATg2FYepBTcEpg+fSNBu1zBXcvGbLsz1GwmRWSvJlIhm5WJRvHeP/u+8K9GGCwZwIkrIrSZeAnQMQyfkZ5YBLzr4/pXrB11GYL7Z/GPC12p9+oR/jsw7GSePq3++4UdqyRTAxKUXiaPXoAAhT5IP90qgJJQtiqj/PDyViRSXqVKQDbVztdUh52pFNDrfOVmMKIgx9CsKtnCcRny2Q/Lpz7HbfyoEI5I/37PadnGbwSR94PTDkXL6JZtp3Qp9hPCsv+sRyNAHKJo7nafTdtozXhd9/6uqUG02I1OKThk30smYqktio2ojIFWJrKBow==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=h8vW9QFHEsbdwF3sZuZYLNzmqqdLN09PcEnZ1dPYIV0=;
+ b=k7OwV4RggN4Ch/OhZVZDDjgEcWNpApl/udsYwI9n9HoItWgfgyfo9oMP4hcHginn5YYHJqPP3sKu/V1nwLdyPPbcuzYkisKR2zlFTpHT6h0Q0I6h3RUrTKiRfKnauWAFNgKxBNE9rtiSJZCz/BwDiCrLvpXxKKTXh7GmVUGZIn+Tt5WBDtjuDS2Y+7xmOzolDevs96IMPt1s88mj+wfEgjk30wH/Xfv6ai0fDwFLpyt1Eg5+HBw/G7p9SZpSC0l647+UPlOqV9cqFfXvjuAUB79s5mQ2Vn9BubKezOZwnLmYlYCU9L/MXMhciRZXkMZ9HWu0OUi0ZfoP8+j+Q1ZpeQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
+ 164.130.1.59) smtp.rcpttodomain=sang-engineering.com
+ smtp.mailfrom=foss.st.com; dmarc=fail (p=none sp=none pct=100) action=none
+ header.from=foss.st.com; dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=foss.st.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=h8vW9QFHEsbdwF3sZuZYLNzmqqdLN09PcEnZ1dPYIV0=;
+ b=kfDjiaA6i0BZjlyHKa0nFI0yNOfc0zEKrJvBXWCpHiiwfUiOmvcI8qmBFegUQNt654SF5USEB/M9GfLMmbj/HwI5fuIfbx5gR853hLCDyJ9f1+cc30r5egEfPG8uX/8YfsZxPzznhZvnaPOmvRj0ijO1KD3HRSZlt4Nlq0OSNoEThXqPkIfYnJIQdIL/je9RopaznemXZ8hQUUERtyIDCahvyBJ4K3ssvtXqEZMAOUX41HC4lUhVjoLjZU3DNf0QK4TTMTeZcKK6X2SAp5V1RqAUaZKVsjo2Wl8BOxO1FawBKrWfchhEMQkmnMlL3pVs47eEGiPdBEKU5UVil6ZGQw==
+Received: from DB9PR06CA0009.eurprd06.prod.outlook.com (2603:10a6:10:1db::14)
+ by FRZPR10MB9918.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:d10:1c9::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9700.24; Tue, 17 Mar
+ 2026 13:54:21 +0000
+Received: from DU6PEPF00009524.eurprd02.prod.outlook.com
+ (2603:10a6:10:1db:cafe::28) by DB9PR06CA0009.outlook.office365.com
+ (2603:10a6:10:1db::14) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9700.24 via Frontend Transport; Tue,
+ 17 Mar 2026 13:54:12 +0000
+X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 164.130.1.59)
+ smtp.mailfrom=foss.st.com; dkim=none (message not signed)
+ header.d=none;dmarc=fail action=none header.from=foss.st.com;
+Received-SPF: Fail (protection.outlook.com: domain of foss.st.com does not
+ designate 164.130.1.59 as permitted sender) receiver=protection.outlook.com;
+ client-ip=164.130.1.59; helo=smtpO365.st.com;
+Received: from smtpO365.st.com (164.130.1.59) by
+ DU6PEPF00009524.mail.protection.outlook.com (10.167.8.5) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9700.17 via Frontend Transport; Tue, 17 Mar 2026 13:54:20 +0000
+Received: from STKDAG1NODE2.st.com (10.75.128.133) by smtpo365.st.com
+ (10.250.44.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.29; Tue, 17 Mar
+ 2026 14:56:53 +0100
+Received: from [192.168.8.15] (10.48.87.74) by STKDAG1NODE2.st.com
+ (10.75.128.133) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.29; Tue, 17 Mar
+ 2026 14:54:18 +0100
+Message-ID: <dd21653b7343e261ec9c88c622c5facbba69df95.camel@foss.st.com>
+Subject: Re: [PATCH v4 04/15] hwspinlock: add callback to fill private data
+ of a hwspinlock
+From: Antonio Borneo <antonio.borneo@foss.st.com>
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+	<linux-renesas-soc@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Bjorn Andersson <andersson@kernel.org>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>, Orson Zhai
+	<orsonzhai@gmail.com>, Chunyan Zhang <zhang.lyra@gmail.com>, "Maxime
+ Coquelin" <mcoquelin.stm32@gmail.com>, Alexandre Torgue
+	<alexandre.torgue@foss.st.com>, Wilken Gottwalt <wilken.gottwalt@posteo.net>,
+	Chen-Yu Tsai <wens@kernel.org>, Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Samuel Holland <samuel@sholland.org>, <linux-remoteproc@vger.kernel.org>,
+	<linux-omap@vger.kernel.org>, <linux-arm-msm@vger.kernel.org>,
+	<linux-stm32@st-md-mailman.stormreply.com>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-sunxi@lists.linux.dev>
+Date: Tue, 17 Mar 2026 14:54:16 +0100
+In-Reply-To: <20260310075539.11701-5-wsa+renesas@sang-engineering.com>
+References: <20260310075539.11701-1-wsa+renesas@sang-engineering.com>
+	 <20260310075539.11701-5-wsa+renesas@sang-engineering.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.48.4 
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 9/9] arm64: defconfig: remove obsolete assignment to
- SLIM_QCOM_CTRL
-To: "Vincent Mailhol (Arm)" <mailhol@kernel.org>,
- Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>,
- Mikko Rapeli <mikko.rapeli@linaro.org>,
- Richard Henderson <richard.henderson@linaro.org>,
- Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>,
- Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>,
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
- Huacai Chen <chenhuacai@kernel.org>, WANG Xuerui <kernel@xen0n.name>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- Madhavan Srinivasan <maddy@linux.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>,
- "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
- Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
- Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
- Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
- Alexander Gordeev <agordeev@linux.ibm.com>,
- Christian Borntraeger <borntraeger@linux.ibm.com>,
- Sven Schnelle <svens@linux.ibm.com>,
- Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
- x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
- Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
- Clark Williams <clrkwllms@kernel.org>, Steven Rostedt <rostedt@goodmis.org>,
- Pablo Neira Ayuso <pablo@netfilter.org>,
- Alim Akhtar <alim.akhtar@samsung.com>, Frank Li <Frank.Li@nxp.com>,
- Sascha Hauer <s.hauer@pengutronix.de>,
- Pengutronix Kernel Team <kernel@pengutronix.de>,
- Fabio Estevam <festevam@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>,
- Piotr Wojtaszczyk <piotr.wojtaszczyk@timesys.com>,
- Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Geert Uytterhoeven <geert+renesas@glider.be>,
- Magnus Damm <magnus.damm@gmail.com>,
- Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>,
- Gregory CLEMENT <gregory.clement@bootlin.com>,
- =?UTF-8?Q?Th=C3=A9o_Lebrun?= <theo.lebrun@bootlin.com>,
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
- Helge Deller <deller@gmx.de>, Janusz Krzysztofik <jmkrzyszt@gmail.com>,
- =?UTF-8?Q?Jonathan_Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>,
- Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>,
- Thomas Zimmermann <tzimmermann@suse.de>, Arnd Bergmann <arnd@arndb.de>,
- Heiko Stuebner <heiko@sntech.de>,
- Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
- Mark Brown <broonie@kernel.org>, Eric Biggers <ebiggers@kernel.org>,
- Ard Biesheuvel <ardb@kernel.org>,
- Sricharan Ramabadhran <quic_srichara@quicinc.com>,
- Bjorn Andersson <andersson@kernel.org>, Michael Walle <mwalle@kernel.org>,
- Guenter Roeck <linux@roeck-us.net>,
- Srinivas Kandagatla <srinivas.kandagatla@oss.qualcomm.com>,
- "Rob Herring (Arm)" <robh@kernel.org>,
- Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Anna Schumaker <anna.schumaker@oracle.com>
-Cc: Alexandre Gonzalo <alexandre.gonzalo@arm.com>,
- linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-omap@vger.kernel.org, loongarch@lists.linux.dev,
- linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- linux-sh@vger.kernel.org, linux-rt-devel@lists.linux.dev,
- linux-samsung-soc@vger.kernel.org, imx@lists.linux.dev,
- linux-renesas-soc@vger.kernel.org, linux-parisc@vger.kernel.org,
- openbmc@lists.ozlabs.org
-References: <20260317-arm_defconf_cleanup-v1-0-8eecb7fdd24d@kernel.org>
- <20260317-arm_defconf_cleanup-v1-9-8eecb7fdd24d@kernel.org>
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=krzk@kernel.org; keydata=
- xsFNBFVDQq4BEAC6KeLOfFsAvFMBsrCrJ2bCalhPv5+KQF2PS2+iwZI8BpRZoV+Bd5kWvN79
- cFgcqTTuNHjAvxtUG8pQgGTHAObYs6xeYJtjUH0ZX6ndJ33FJYf5V3yXqqjcZ30FgHzJCFUu
- JMp7PSyMPzpUXfU12yfcRYVEMQrmplNZssmYhiTeVicuOOypWugZKVLGNm0IweVCaZ/DJDIH
- gNbpvVwjcKYrx85m9cBVEBUGaQP6AT7qlVCkrf50v8bofSIyVa2xmubbAwwFA1oxoOusjPIE
- J3iadrwpFvsZjF5uHAKS+7wHLoW9hVzOnLbX6ajk5Hf8Pb1m+VH/E8bPBNNYKkfTtypTDUCj
- NYcd27tjnXfG+SDs/EXNUAIRefCyvaRG7oRYF3Ec+2RgQDRnmmjCjoQNbFrJvJkFHlPeHaeS
- BosGY+XWKydnmsfY7SSnjAzLUGAFhLd/XDVpb1Een2XucPpKvt9ORF+48gy12FA5GduRLhQU
- vK4tU7ojoem/G23PcowM1CwPurC8sAVsQb9KmwTGh7rVz3ks3w/zfGBy3+WmLg++C2Wct6nM
- Pd8/6CBVjEWqD06/RjI2AnjIq5fSEH/BIfXXfC68nMp9BZoy3So4ZsbOlBmtAPvMYX6U8VwD
- TNeBxJu5Ex0Izf1NV9CzC3nNaFUYOY8KfN01X5SExAoVTr09ewARAQABzSVLcnp5c3p0b2Yg
- S296bG93c2tpIDxrcnprQGtlcm5lbC5vcmc+wsGVBBMBCgA/AhsDBgsJCAcDAgYVCAIJCgsE
- FgIDAQIeAQIXgBYhBJvQfg4MUfjVlne3VBuTQ307QWKbBQJoF1BKBQkWlnSaAAoJEBuTQ307
- QWKbHukP/3t4tRp/bvDnxJfmNdNVn0gv9ep3L39IntPalBFwRKytqeQkzAju0whYWg+R/rwp
- +r2I1Fzwt7+PTjsnMFlh1AZxGDmP5MFkzVsMnfX1lGiXhYSOMP97XL6R1QSXxaWOpGNCDaUl
- ajorB0lJDcC0q3xAdwzRConxYVhlgmTrRiD8oLlSCD5baEAt5Zw17UTNDnDGmZQKR0fqLpWy
- 786Lm5OScb7DjEgcA2PRm17st4UQ1kF0rQHokVaotxRM74PPDB8bCsunlghJl1DRK9s1aSuN
- hL1Pv9VD8b4dFNvCo7b4hfAANPU67W40AaaGZ3UAfmw+1MYyo4QuAZGKzaP2ukbdCD/DYnqi
- tJy88XqWtyb4UQWKNoQqGKzlYXdKsldYqrLHGoMvj1UN9XcRtXHST/IaLn72o7j7/h/Ac5EL
- 8lSUVIG4TYn59NyxxAXa07Wi6zjVL1U11fTnFmE29ALYQEXKBI3KUO1A3p4sQWzU7uRmbuxn
- naUmm8RbpMcOfa9JjlXCLmQ5IP7Rr5tYZUCkZz08LIfF8UMXwH7OOEX87Y++EkAB+pzKZNNd
- hwoXulTAgjSy+OiaLtuCys9VdXLZ3Zy314azaCU3BoWgaMV0eAW/+gprWMXQM1lrlzvwlD/k
- whyy9wGf0AEPpLssLVt9VVxNjo6BIkt6d1pMg6mHsUEVzsFNBFVDXDQBEADNkrQYSREUL4D3
- Gws46JEoZ9HEQOKtkrwjrzlw/tCmqVzERRPvz2Xg8n7+HRCrgqnodIYoUh5WsU84N03KlLue
- MNsWLJBvBaubYN4JuJIdRr4dS4oyF1/fQAQPHh8Thpiz0SAZFx6iWKB7Qrz3OrGCjTPcW6ei
- OMheesVS5hxietSmlin+SilmIAPZHx7n242u6kdHOh+/SyLImKn/dh9RzatVpUKbv34eP1wA
- GldWsRxbf3WP9pFNObSzI/Bo3kA89Xx2rO2roC+Gq4LeHvo7ptzcLcrqaHUAcZ3CgFG88CnA
- 6z6lBZn0WyewEcPOPdcUB2Q7D/NiUY+HDiV99rAYPJztjeTrBSTnHeSBPb+qn5ZZGQwIdUW9
- YegxWKvXXHTwB5eMzo/RB6vffwqcnHDoe0q7VgzRRZJwpi6aMIXLfeWZ5Wrwaw2zldFuO4Dt
- 91pFzBSOIpeMtfgb/Pfe/a1WJ/GgaIRIBE+NUqckM+3zJHGmVPqJP/h2Iwv6nw8U+7Yyl6gU
- BLHFTg2hYnLFJI4Xjg+AX1hHFVKmvl3VBHIsBv0oDcsQWXqY+NaFahT0lRPjYtrTa1v3tem/
- JoFzZ4B0p27K+qQCF2R96hVvuEyjzBmdq2esyE6zIqftdo4MOJho8uctOiWbwNNq2U9pPWmu
- 4vXVFBYIGmpyNPYzRm0QPwARAQABwsF8BBgBCgAmAhsMFiEEm9B+DgxR+NWWd7dUG5NDfTtB
- YpsFAmgXUF8FCRaWWyoACgkQG5NDfTtBYptO0w//dlXJs5/42hAXKsk+PDg3wyEFb4NpyA1v
- qmx7SfAzk9Hf6lWwU1O6AbqNMbh6PjEwadKUk1m04S7EjdQLsj/MBSgoQtCT3MDmWUUtHZd5
- RYIPnPq3WVB47GtuO6/u375tsxhtf7vt95QSYJwCB+ZUgo4T+FV4hquZ4AsRkbgavtIzQisg
- Dgv76tnEv3YHV8Jn9mi/Bu0FURF+5kpdMfgo1sq6RXNQ//TVf8yFgRtTUdXxW/qHjlYURrm2
- H4kutobVEIxiyu6m05q3e9eZB/TaMMNVORx+1kM3j7f0rwtEYUFzY1ygQfpcMDPl7pRYoJjB
- dSsm0ZuzDaCwaxg2t8hqQJBzJCezTOIkjHUsWAK+tEbU4Z4SnNpCyM3fBqsgYdJxjyC/tWVT
- AQ18NRLtPw7tK1rdcwCl0GFQHwSwk5pDpz1NH40e6lU+NcXSeiqkDDRkHlftKPV/dV+lQXiu
- jWt87ecuHlpL3uuQ0ZZNWqHgZoQLXoqC2ZV5KrtKWb/jyiFX/sxSrodALf0zf+tfHv0FZWT2
- zHjUqd0t4njD/UOsuIMOQn4Ig0SdivYPfZukb5cdasKJukG1NOpbW7yRNivaCnfZz6dTawXw
- XRIV/KDsHQiyVxKvN73bThKhONkcX2LWuD928tAR6XMM2G5ovxLe09vuOzzfTWQDsm++9UKF a/A=
-In-Reply-To: <20260317-arm_defconf_cleanup-v1-9-8eecb7fdd24d@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: STKCAS1NODE1.st.com (10.75.128.134) To STKDAG1NODE2.st.com
+ (10.75.128.133)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DU6PEPF00009524:EE_|FRZPR10MB9918:EE_
+X-MS-Office365-Filtering-Correlation-Id: ea234ec9-7203-461c-b3ee-08de842cb02c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|82310400026|36860700016|376014|7416014|7053199007|22082099003|18002099003|56012099003;
+X-Microsoft-Antispam-Message-Info:
+	AI6RG4Fx1UK97ITArYgTPro+HuBgaUhXw5pHiT1nDKsN1sThYItfefGOC35S28gXv2KuA2AOJn7lDPIfZAN1D3yD9c7U4i1KlKQlY53StGPCVd7YXzCPVzVwlxk7zdrWjAIKt6piU/I+aV3Ja2YE9hGLKAsQLnTqbGMa42oNxtVi2RTEH1vDufJf+6qvpdP3EnbYQpRl9hVd7Oj9xhY9ZZDILfrkqz+N9IYoS/+i53uwdUO6MGxuZZSKAfJwlaeAf/DfXJl79UFShAikn6M9VP9Fhm/J7ncNMQmwGEqQSQIm+yWcZzx5pSHRMf25zSH2aJOkhEZFyBt1zMDEacGbzDabOT8mMUFKQwrQU+qFpoiCFhwWrFbGf5s0kp+B0acPprHupJWW7iihE3Thi/SjXqa+n7o1VdbBGcW4nxuBzC21/u8eFRObQGmnlW90SQX2dqMgT+zfw7TDP3OUCsfJQEKvTMOvAk9QoogJoA1PWtX2TstTPwBNy6E+itbLMfMZgXh6bmdmz3ZtBk2Ja5b/4xvwE/0YLneNquW9l62MO6r+WA23tK2XOHnXQeK6h9iUJmS0LTJGtkb3fCT3ughg5fBEnpF31JR46Tvs9PYUknA6R3AERH+1F2ttxX+4vX2kCWIjA4uoml9ehB2+Bx1/knJCKsfH64AQkuqyCLpNfElbFlQzhyb45MSWWevoXXwFRwA2hPYK/yRBoXPoaijkLa6YbHSYBZWeVm0QLBgAZ2PrDk71pbj9b1PNvPs9dHju4xO3aL0HjECf3E7vFVfJzg==
+X-Forefront-Antispam-Report:
+	CIP:164.130.1.59;CTRY:IT;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:smtpO365.st.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(36860700016)(376014)(7416014)(7053199007)(22082099003)(18002099003)(56012099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	RmGw/7gVYBpsqbXd3U8AA7L9iVS99zZwjEk3NUyTsgI249tGBZGzN0ZFy4R3bdmMt1RsAqU5dT9Wl5DNQwn+UKl7KkdaN9vpTIvGziowzg3h+rLbJxGwDpvu8kocMRTaCt9nWgDRcNw3kWeZoWY+2D+m3Yl/y0Trmm6QAo00YiL8knSehHPhZh1+EWreR0sI3T8y/pte3YJWGa6aes3M+GWr+TtVcI0/lV0rxVwlipmowIDcKozAZT16A0u/Xe1KRuxO5cXF+eaM5LQj4p/VoX8qTgOfReYQ3/Q30YtNfJ34WpRQNU3e4jce6TWVjgnm34jdtKm+Jqn0G3ktRNfh0jaiiTF46z1tbmi/eX+1AW/EGVa6dfMrdlMTE8sZA2rzVu92e/4EgPA4/GttqFPihR04fdwInWoP2RyAv+tfn5GZatXooV8uyz5bnwAlsD7k
+X-OriginatorOrg: foss.st.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Mar 2026 13:54:20.1205
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: ea234ec9-7203-461c-b3ee-08de842cb02c
+X-MS-Exchange-CrossTenant-Id: 75e027c9-20d5-47d5-b82f-77d7cd041e8f
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=75e027c9-20d5-47d5-b82f-77d7cd041e8f;Ip=[164.130.1.59];Helo=[smtpO365.st.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	DU6PEPF00009524.eurprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: FRZPR10MB9918
 
-On 17/03/2026 10:13, Vincent Mailhol (Arm) wrote:
-> The Qcom Slimbus controller driver is not in the kernel tree
-> anymore. Clean-up the leftover reference to CONFIG_SLIM_QCOM_CTRL
-> which was left in the defconfig.
-> 
-> Fixes: 7cbba32a2d62 ("slimbus: qcom: remove unused qcom controller driver")
-> Signed-off-by: Vincent Mailhol (Arm) <mailhol@kernel.org>
+On Tue, 2026-03-10 at 08:55 +0100, Wolfram Sang wrote:
+> To hide internal core structures from providers, a callback is added to
+> the ops which allows to set the 'priv' field of a hwspinlock. It is
+> called when a hwspinlock device is registered and, thus, iterated over
+> all locks. The register-functions are also extended to pass a data
+> pointer to this callback, so it can do necessary calculations for the
+> priv field of each hwspinlock. Providers are added only an empty
+> placeholder and are converted separately because these changes need
+> dedicated reviews.
+>=20
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 > ---
->  arch/arm64/configs/defconfig | 1 -
->  1 file changed, 1 deletion(-)
+> =C2=A0drivers/hwspinlock/hwspinlock_core.c=C2=A0=C2=A0=C2=A0=C2=A0 | 19 +=
+++++++++++++++----
+> =C2=A0drivers/hwspinlock/hwspinlock_internal.h | 19 +++++++++++--------
+> =C2=A0drivers/hwspinlock/omap_hwspinlock.c=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=
+=A0 2 +-
+> =C2=A0drivers/hwspinlock/qcom_hwspinlock.c=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=
+=A0 2 +-
+> =C2=A0drivers/hwspinlock/sprd_hwspinlock.c=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=
+=A0 2 +-
+> =C2=A0drivers/hwspinlock/stm32_hwspinlock.c=C2=A0=C2=A0=C2=A0 |=C2=A0 2 +=
+-
+> =C2=A0drivers/hwspinlock/sun6i_hwspinlock.c=C2=A0=C2=A0=C2=A0 |=C2=A0 2 +=
+-
+> =C2=A0include/linux/hwspinlock.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 4 ++--
+> =C2=A08 files changed, 33 insertions(+), 19 deletions(-)
+>=20
+> diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hw=
+spinlock_core.c
+> index 2c9eceba7fe8..afe1e7ce2829 100644
+> --- a/drivers/hwspinlock/hwspinlock_core.c
+> +++ b/drivers/hwspinlock/hwspinlock_core.c
+> @@ -507,6 +507,7 @@ static struct hwspinlock *hwspin_lock_unregister_sing=
+le(unsigned int id)
+> =C2=A0 * @ops: hwspinlock handlers for this device
+> =C2=A0 * @base_id: id of the first hardware spinlock in this bank
+> =C2=A0 * @num_locks: number of hwspinlocks provided by this device
+> + * @init_data: additional data passed on to the init_priv callback
+> =C2=A0 *
+> =C2=A0 * This function should be called from the underlying platform-spec=
+ific
+> =C2=A0 * implementation, to register a new hwspinlock device instance.
+> @@ -516,10 +517,11 @@ static struct hwspinlock *hwspin_lock_unregister_si=
+ngle(unsigned int id)
+> =C2=A0 * Returns: %0 on success, or an appropriate error code on failure
+> =C2=A0 */
+> =C2=A0int hwspin_lock_register(struct hwspinlock_device *bank, struct dev=
+ice *dev,
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0const struct hwspinlock_ops *ops, int base_id, int num_lo=
+cks)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0const struct hwspinlock_ops *ops, int base_id, int num_lo=
+cks,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0void *init_data)
 
-https://lore.kernel.org/all/20251223140645.3545658-1-mikko.rapeli@linaro.org/
+Hi Wolfram,
 
-I even asked there to send it to qcom maintainers :/
+this API is described in Documentation/locking/hwspinlock.rst
+in chapter 'API for implementors'.
 
-Exactly that case also encouraged me to document this, since we do not
-know how to fix get_maintainers. See commit
-6efe5322f060099c8bc51aaee83b857394e42dd5
+Changing the API parameters should require updating the documentation too.
 
-Best regards,
-Krzysztof
+Since this API is changed again in 10/15, it's probably fine to update the
+documentation only once in the last 15/15.
+
+Best Regards,
+Antonio
