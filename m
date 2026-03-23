@@ -1,41 +1,42 @@
 Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F9953B27C5;
-	Mon, 23 Mar 2026 15:03:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922923B2FE0
+	for <linux-omap@vger.kernel.org>; Mon, 23 Mar 2026 15:03:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774278183; cv=none; b=fwjuQ9CjXeoNrK/V/eVeGY6RYN5MfSLQZVp87gGmIVQVfUe2RfuwbFY3KIdAXU7g7V9C6vQXMqUs+dGVx7ewOsdWYV+YQgY086/OhwIpni6Tfybqob7SKDj/cn9GAuGOzhmLy2Mr4DhqioXZBTwxlvG5HZVHjZNnWa18WWlxOqQ=
+	t=1774278185; cv=none; b=uYCnRDGz08bZLOy5Aq9X++yuc6xNN6ngF6g5bW8ovGcM488h70K9OaWqYdJXE61gSeoZQ3FTnIBNDjUABcujQ35jTL+PrsrHRHr5Bt1YWRL1eSy7tl8tyet6upsd250YKbLPxk7fnZUDuFiHo7Y9ZZ2WW1Xwqg7kp0MZ0HSGwKE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774278183; c=relaxed/simple;
-	bh=1llMV2XrxLGYKxlvoSuxQuMv7LW/C1l7c6ICeXPKteU=;
+	s=arc-20240116; t=1774278185; c=relaxed/simple;
+	bh=SQ0tVpelw5gTioGeYexAskj+zZqRZRumKOwNGWTMR4w=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Y6OguBChEMhPJV3I9b05mmLi0wm3jwUzeXoP+w4414/LSzroKF1SmB3Nt+hGPAQZ2tc1lkz76HPiCVr1CZAwKsCC0g8LlidLXtjQ98E02tPPb6OXAjrTQIoS5LcJ0tT90ZmTQXI1j6wD2Yc1RoUkjfIB72ecKhsktQooSRIBLNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=Tt8Z6K+W; arc=none smtp.client-ip=185.246.85.4
+	 In-Reply-To:To:Cc; b=Pw4b1k1zp6RLPdpfTY489FqznV2Ae6qfNFjxw21WdvPMqNvkWgogvMJu8qbvOiAt9z8NnP/LkdjzqgUWWpVKE8pHiOKgUzw4jc3dmL1AaRzK7n21ck5TNuVRDeRFwO08ADikJ6LMfMmWrYEOLiBEHC4BVFZ0thFLcjTs3b+/Mi0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=hQnbXqRI; arc=none smtp.client-ip=185.246.85.4
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="Tt8Z6K+W"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="hQnbXqRI"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id BDA964E427B1;
-	Mon, 23 Mar 2026 15:03:00 +0000 (UTC)
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 54CE74E427B2
+	for <linux-omap@vger.kernel.org>; Mon, 23 Mar 2026 15:03:02 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 93D1D5FEF6;
-	Mon, 23 Mar 2026 15:03:00 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 442D010450FE8;
-	Mon, 23 Mar 2026 16:02:58 +0100 (CET)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 2B46B5FEF6;
+	Mon, 23 Mar 2026 15:03:02 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id F028C10450FC6;
+	Mon, 23 Mar 2026 16:02:59 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1774278179; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	t=1774278181; h=from:subject:date:message-id:to:cc:mime-version:content-type:
 	 content-transfer-encoding:in-reply-to:references;
-	bh=mEj6I82Butstr1tfMlJeMGpvyxIOHycoQhYhLpOxC0A=;
-	b=Tt8Z6K+W3HeAm+5jR2H7G0rHNIWDzjitLz6jlbcmPHaySRV54ZVpEbQSIRqa8f3Zi+R8+Q
-	GWfUj9uvxKvA/sKRZ61hkcE/a/uKaNrhxziW6MDMvWg1wsoJaBvYjNJvqbgRrSJfYvvVd8
-	t5nl+z8ly8rFcZ856f6rIVHJb64H91IhuO0r+HAfYj0qG7ueVxm4nw4VrrxxGkrm5Ynnfy
-	b+IH6DxjFZo+wEXnCDO1+iOYNa617kShn1DVs9n6O+FWjn2eZd9Q1IyDV2MUgwcIi9ZUev
-	afC2eYFcWx7PwZ/jZ7y0p6C6b42SpM7nlh90tzOUDhldmQd0lT98WCbqbypUdQ==
+	bh=nzMhpUhFMgmicdXs6rb/lVvOvdoLRNH76pVL85a8Emc=;
+	b=hQnbXqRIkmXv+fq57SL4Adqi4DsBGYSRJ4aKtq0lnhPcE2pD/CfnTKYUcPeDO8jijmWDyD
+	QKESozZUhFE1LOjnzvL+Rvcq5pl8JWD3bz9a0pmCo5KbP60w3yYRWhkP3J0l+bwyPudQGl
+	6aMDECqew1o+KjkGYZ9jfJ0VmJ2oPAxX1sIHyozlV9z3seDMStGNXdQXsKshcmLDKi67Js
+	ar57e4pq3+FtuZzbq6ReS06tygDSflHc4yu3g/BCcV0QrW54oWM0Od1NfDPhb/inpII1/m
+	gZppL6LzVzIyUmd5pLX2mHz5YAi+KBWuzYQubfEpBouxn5vds/NbzuehqTpubA==
 From: Thomas Richard <thomas.richard@bootlin.com>
-Date: Mon, 23 Mar 2026 16:02:45 +0100
-Subject: [PATCH 4/8] mfd: omap-usb-host: Sanitize error path in the probe()
+Date: Mon, 23 Mar 2026 16:02:46 +0100
+Subject: [PATCH 5/8] dt-bindings: mfd: ti,omap-usb-host: Convert to DT
+ schema
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -44,7 +45,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260323-omap4-fix-usb-support-v1-4-b668132124ac@bootlin.com>
+Message-Id: <20260323-omap4-fix-usb-support-v1-5-b668132124ac@bootlin.com>
 References: <20260323-omap4-fix-usb-support-v1-0-b668132124ac@bootlin.com>
 In-Reply-To: <20260323-omap4-fix-usb-support-v1-0-b668132124ac@bootlin.com>
 To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
@@ -59,212 +60,275 @@ Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
 X-Mailer: b4 0.14.2
 X-Last-TLS-Session-Version: TLSv1.3
 
-Use dev_err_probe() to simplify the code and standardize the error output.
-Remove -ENOMEM messages, there's already enough output.
+Convert OMAP HS USB Host binding to DT schema. The 'ti,hwmods' property is
+not mandatory anymore as it is no longer required when the omap-usb-host
+node is a child of a new interconnect target (ti,sysc).
 
 Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
 ---
- drivers/mfd/omap-usb-host.c | 81 +++++++++++++++++++--------------------------
- 1 file changed, 34 insertions(+), 47 deletions(-)
+ .../devicetree/bindings/mfd/omap-usb-host.txt      | 103 ----------------
+ .../devicetree/bindings/mfd/ti,omap-usb-host.yaml  | 131 +++++++++++++++++++++
+ MAINTAINERS                                        |   1 +
+ 3 files changed, 132 insertions(+), 103 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 4e066a17cef0400edbfcb3012a16ceee06e52140..ac974285be341fa579ef198d1893b77af428b5f8 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -546,22 +546,17 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		dev->platform_data = pdata;
- 	}
- 
--	if (!pdata) {
--		dev_err(dev, "Missing platform data\n");
--		return -ENODEV;
--	}
-+	if (!pdata)
-+		return dev_err_probe(dev, -ENODEV, "Missing platform data\n");
- 
--	if (pdata->nports > OMAP3_HS_USB_PORTS) {
--		dev_info(dev, "Too many num_ports <%d> in platform_data. Max %d\n",
--				pdata->nports, OMAP3_HS_USB_PORTS);
--		return -ENODEV;
--	}
-+	if (pdata->nports > OMAP3_HS_USB_PORTS)
-+		return dev_err_probe(dev, -ENODEV,
-+				     "Too many num_ports <%d> in platform_data. Max %d\n",
-+				     pdata->nports, OMAP3_HS_USB_PORTS);
- 
- 	omap = devm_kzalloc(dev, sizeof(*omap), GFP_KERNEL);
--	if (!omap) {
--		dev_err(dev, "Memory allocation failed\n");
-+	if (!omap)
- 		return -ENOMEM;
--	}
- 
- 	omap->uhh_base = devm_platform_ioremap_resource(pdev, 0);
- 	if (IS_ERR(omap->uhh_base))
-@@ -614,7 +609,6 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 	omap->hsic60m_clk = devm_kzalloc(dev, i, GFP_KERNEL);
- 
- 	if (!omap->utmi_clk || !omap->hsic480m_clk || !omap->hsic60m_clk) {
--		dev_err(dev, "Memory allocation failed\n");
- 		ret = -ENOMEM;
- 		goto err_mem;
- 	}
-@@ -648,9 +642,8 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 			omap->ehci_logic_fck = devm_clk_get(dev,
- 							    "usbhost_120m_fck");
- 			if (IS_ERR(omap->ehci_logic_fck)) {
--				ret = PTR_ERR(omap->ehci_logic_fck);
--				dev_err(dev, "usbhost_120m_fck failed:%d\n",
--					ret);
-+				ret = dev_err_probe(dev, PTR_ERR(omap->ehci_logic_fck),
-+						    "usbhost_120m_fck failed\n");
- 				goto err_mem;
- 			}
- 		}
-@@ -660,36 +653,36 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 	/* for OMAP4+ i.e. USBHS REV2+ */
- 	omap->utmi_p1_gfclk = devm_clk_get(dev, "utmi_p1_gfclk");
- 	if (IS_ERR(omap->utmi_p1_gfclk)) {
--		ret = PTR_ERR(omap->utmi_p1_gfclk);
--		dev_err(dev, "utmi_p1_gfclk failed error:%d\n", ret);
-+		ret = dev_err_probe(dev, PTR_ERR(omap->utmi_p1_gfclk),
-+				    "utmi_p1_gfclk failed error\n");
- 		goto err_mem;
- 	}
- 
- 	omap->utmi_p2_gfclk = devm_clk_get(dev, "utmi_p2_gfclk");
- 	if (IS_ERR(omap->utmi_p2_gfclk)) {
--		ret = PTR_ERR(omap->utmi_p2_gfclk);
--		dev_err(dev, "utmi_p2_gfclk failed error:%d\n", ret);
-+		ret = dev_err_probe(dev, PTR_ERR(omap->utmi_p2_gfclk),
-+				    "utmi_p2_gfclk failed error\n");
- 		goto err_mem;
- 	}
- 
- 	omap->xclk60mhsp1_ck = devm_clk_get(dev, "refclk_60m_ext_p1");
- 	if (IS_ERR(omap->xclk60mhsp1_ck)) {
--		ret = PTR_ERR(omap->xclk60mhsp1_ck);
--		dev_err(dev, "refclk_60m_ext_p1 failed error:%d\n", ret);
-+		ret = dev_err_probe(dev, PTR_ERR(omap->xclk60mhsp1_ck),
-+				    "refclk_60m_ext_p1 failed error\n");
- 		goto err_mem;
- 	}
- 
- 	omap->xclk60mhsp2_ck = devm_clk_get(dev, "refclk_60m_ext_p2");
- 	if (IS_ERR(omap->xclk60mhsp2_ck)) {
--		ret = PTR_ERR(omap->xclk60mhsp2_ck);
--		dev_err(dev, "refclk_60m_ext_p2 failed error:%d\n", ret);
-+		ret = dev_err_probe(dev, PTR_ERR(omap->xclk60mhsp2_ck),
-+				    "refclk_60m_ext_p2 failed error\n");
- 		goto err_mem;
- 	}
- 
- 	omap->init_60m_fclk = devm_clk_get(dev, "refclk_60m_int");
- 	if (IS_ERR(omap->init_60m_fclk)) {
--		ret = PTR_ERR(omap->init_60m_fclk);
--		dev_err(dev, "refclk_60m_int failed error:%d\n", ret);
-+		ret = dev_err_probe(dev, PTR_ERR(omap->init_60m_fclk),
-+				    "refclk_60m_int failed error\n");
- 		goto err_mem;
- 	}
- 
-@@ -706,9 +699,9 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		 */
- 		omap->utmi_clk[i] = devm_clk_get(dev, clkname);
- 		if (IS_ERR(omap->utmi_clk[i])) {
--			ret = PTR_ERR(omap->utmi_clk[i]);
--			dev_err(dev, "Failed to get clock : %s : %d\n",
--				clkname, ret);
-+			ret = dev_err_probe(dev, PTR_ERR(omap->utmi_clk[i]),
-+					    "Failed to get clock : %s\n",
-+					    clkname);
- 			goto err_mem;
- 		}
- 
-@@ -716,9 +709,9 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 				"usb_host_hs_hsic480m_p%d_clk", i + 1);
- 		omap->hsic480m_clk[i] = devm_clk_get(dev, clkname);
- 		if (IS_ERR(omap->hsic480m_clk[i])) {
--			ret = PTR_ERR(omap->hsic480m_clk[i]);
--			dev_err(dev, "Failed to get clock : %s : %d\n",
--				clkname, ret);
-+			ret = dev_err_probe(dev, PTR_ERR(omap->hsic480m_clk[i]),
-+					    "Failed to get clock : %s\n",
-+					    clkname);
- 			goto err_mem;
- 		}
- 
-@@ -726,9 +719,9 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 				"usb_host_hs_hsic60m_p%d_clk", i + 1);
- 		omap->hsic60m_clk[i] = devm_clk_get(dev, clkname);
- 		if (IS_ERR(omap->hsic60m_clk[i])) {
--			ret = PTR_ERR(omap->hsic60m_clk[i]);
--			dev_err(dev, "Failed to get clock : %s : %d\n",
--				clkname, ret);
-+			ret = dev_err_probe(dev, PTR_ERR(omap->hsic60m_clk[i]),
-+					    "Failed to get clock : %s\n",
-+					    clkname);
- 			goto err_mem;
- 		}
- 	}
-@@ -737,16 +730,14 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		ret = clk_set_parent(omap->utmi_p1_gfclk,
- 					omap->xclk60mhsp1_ck);
- 		if (ret != 0) {
--			dev_err(dev, "xclk60mhsp1_ck set parent failed: %d\n",
--				ret);
-+			dev_err_probe(dev, ret, "xclk60mhsp1_ck set parent failed\n");
- 			goto err_mem;
- 		}
- 	} else if (is_ehci_tll_mode(pdata->port_mode[0])) {
- 		ret = clk_set_parent(omap->utmi_p1_gfclk,
- 					omap->init_60m_fclk);
- 		if (ret != 0) {
--			dev_err(dev, "P0 init_60m_fclk set parent failed: %d\n",
--				ret);
-+			dev_err_probe(dev, ret, "P0 init_60m_fclk set parent failed\n");
- 			goto err_mem;
- 		}
- 	}
-@@ -755,16 +746,14 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 		ret = clk_set_parent(omap->utmi_p2_gfclk,
- 					omap->xclk60mhsp2_ck);
- 		if (ret != 0) {
--			dev_err(dev, "xclk60mhsp2_ck set parent failed: %d\n",
--				ret);
-+			dev_err_probe(dev, ret, "xclk60mhsp2_ck set parent failed\n");
- 			goto err_mem;
- 		}
- 	} else if (is_ehci_tll_mode(pdata->port_mode[1])) {
- 		ret = clk_set_parent(omap->utmi_p2_gfclk,
- 						omap->init_60m_fclk);
- 		if (ret != 0) {
--			dev_err(dev, "P1 init_60m_fclk set parent failed: %d\n",
--				ret);
-+			dev_err_probe(dev, ret, "P1 init_60m_fclk set parent failed\n");
- 			goto err_mem;
- 		}
- 	}
-@@ -775,17 +764,15 @@ static int usbhs_omap_probe(struct platform_device *pdev)
- 	if (dev->of_node) {
- 		ret = of_platform_populate(dev->of_node,
- 				usbhs_child_match_table, NULL, dev);
+diff --git a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+deleted file mode 100644
+index a0d8c30c2631e534cae50dfc7183cd04e744f31f..0000000000000000000000000000000000000000
+--- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
++++ /dev/null
+@@ -1,103 +0,0 @@
+-OMAP HS USB Host
 -
- 		if (ret) {
--			dev_err(dev, "Failed to create DT children: %d\n", ret);
-+			dev_err_probe(dev, ret, "Failed to create DT children\n");
- 			goto err_mem;
- 		}
- 
- 	} else {
- 		ret = omap_usbhs_alloc_children(pdev);
- 		if (ret) {
--			dev_err(dev, "omap_usbhs_alloc_children failed: %d\n",
--						ret);
-+			dev_err_probe(dev, ret, "omap_usbhs_alloc_children failed\n");
- 			goto err_mem;
- 		}
- 	}
+-Required properties:
+-
+-- compatible: should be "ti,usbhs-host"
+-- reg: should contain one register range i.e. start and length
+-- ti,hwmods: must contain "usb_host_hs"
+-
+-Optional properties:
+-
+-- num-ports: number of USB ports. Usually this is automatically detected
+-  from the IP's revision register but can be overridden by specifying
+-  this property. A maximum of 3 ports are supported at the moment.
+-
+-- portN-mode: String specifying the port mode for port N, where N can be
+-  from 1 to 3. If the port mode is not specified, that port is treated
+-  as unused. When specified, it must be one of the following.
+-	"ehci-phy",
+-        "ehci-tll",
+-        "ehci-hsic",
+-        "ohci-phy-6pin-datse0",
+-        "ohci-phy-6pin-dpdm",
+-        "ohci-phy-3pin-datse0",
+-        "ohci-phy-4pin-dpdm",
+-        "ohci-tll-6pin-datse0",
+-        "ohci-tll-6pin-dpdm",
+-        "ohci-tll-3pin-datse0",
+-        "ohci-tll-4pin-dpdm",
+-        "ohci-tll-2pin-datse0",
+-        "ohci-tll-2pin-dpdm",
+-
+-- single-ulpi-bypass: Must be present if the controller contains a single
+-  ULPI bypass control bit. e.g. OMAP3 silicon <= ES2.1
+-
+-- clocks: a list of phandles and clock-specifier pairs, one for each entry in
+-  clock-names.
+-
+-- clock-names: should include:
+-  For OMAP3
+-  * "usbhost_120m_fck" - 120MHz Functional clock.
+-
+-  For OMAP4+
+-  * "refclk_60m_int" - 60MHz internal reference clock for UTMI clock mux
+-  * "refclk_60m_ext_p1" - 60MHz external ref. clock for Port 1's UTMI clock mux.
+-  * "refclk_60m_ext_p2" - 60MHz external ref. clock for Port 2's UTMI clock mux
+-  * "utmi_p1_gfclk" - Port 1 UTMI clock mux.
+-  * "utmi_p2_gfclk" - Port 2 UTMI clock mux.
+-  * "usb_host_hs_utmi_p1_clk" - Port 1 UTMI clock gate.
+-  * "usb_host_hs_utmi_p2_clk" - Port 2 UTMI clock gate.
+-  * "usb_host_hs_utmi_p3_clk" - Port 3 UTMI clock gate.
+-  * "usb_host_hs_hsic480m_p1_clk" - Port 1 480MHz HSIC clock gate.
+-  * "usb_host_hs_hsic480m_p2_clk" - Port 2 480MHz HSIC clock gate.
+-  * "usb_host_hs_hsic480m_p3_clk" - Port 3 480MHz HSIC clock gate.
+-  * "usb_host_hs_hsic60m_p1_clk" - Port 1 60MHz HSIC clock gate.
+-  * "usb_host_hs_hsic60m_p2_clk" - Port 2 60MHz HSIC clock gate.
+-  * "usb_host_hs_hsic60m_p3_clk" - Port 3 60MHz HSIC clock gate.
+-
+-Required properties if child node exists:
+-
+-- #address-cells: Must be 1
+-- #size-cells: Must be 1
+-- ranges: must be present
+-
+-Properties for children:
+-
+-The OMAP HS USB Host subsystem contains EHCI and OHCI controllers.
+-See Documentation/devicetree/bindings/usb/generic-ehci.yaml and
+-Documentation/devicetree/bindings/usb/generic-ohci.yaml.
+-
+-Example for OMAP4:
+-
+-usbhshost: usbhshost@4a064000 {
+-	compatible = "ti,usbhs-host";
+-	reg = <0x4a064000 0x800>;
+-	ti,hwmods = "usb_host_hs";
+-	#address-cells = <1>;
+-	#size-cells = <1>;
+-	ranges;
+-
+-	usbhsohci: ohci@4a064800 {
+-		compatible = "ti,ohci-omap3";
+-		reg = <0x4a064800 0x400>;
+-		interrupt-parent = <&gic>;
+-		interrupts = <0 76 0x4>;
+-	};
+-
+-	usbhsehci: ehci@4a064c00 {
+-		compatible = "ti,ehci-omap";
+-		reg = <0x4a064c00 0x400>;
+-		interrupt-parent = <&gic>;
+-		interrupts = <0 77 0x4>;
+-	};
+-};
+-
+-&usbhshost {
+-	port1-mode = "ehci-phy";
+-	port2-mode = "ehci-tll";
+-	port3-mode = "ehci-phy";
+-};
+-
+-&usbhsehci {
+-	phys = <&hsusb1_phy 0 &hsusb3_phy>;
+-};
+diff --git a/Documentation/devicetree/bindings/mfd/ti,omap-usb-host.yaml b/Documentation/devicetree/bindings/mfd/ti,omap-usb-host.yaml
+new file mode 100644
+index 0000000000000000000000000000000000000000..7831ad891229aee650d83adcd82405c9dde472a8
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mfd/ti,omap-usb-host.yaml
+@@ -0,0 +1,131 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/mfd/ti,omap-usb-host.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: OMAP HS USB Host
++
++maintainers:
++  - Thomas Richard <thomas.richard@bootlin.com>
++
++description: |
++  description
++
++properties:
++  compatible:
++    const: ti,usbhs-host
++
++  reg:
++    maxItems: 1
++
++  ti,hwmods:
++    const: usb_host_hs
++
++  num-ports:
++    description:
++      number of USB ports. Usually this is automatically detected from the IP's
++      revision register but can be overridden by specifying this property. A
++      maximum of 3 ports are supported at the moment.
++    maximum: 3
++
++  single-ulpi-bypass:
++    $ref: /schemas/types.yaml#/definitions/flag
++    description:
++      Must be present if the controller contains a single ULPI bypass control
++      bit. e.g. OMAP3 silicon <= ES2.1ULPI bypass control bit.
++      e.g. OMAP3 silicon <= ES2.1.
++
++  clocks:
++    description: clock-specifier
++
++  clock-names:
++    oneOf:
++      - items:
++          - const: usbhost_120m_fck
++      - items:
++          - const: refclk_60m_int
++          - const: refclk_60m_ext_p1
++          - const: refclk_60m_ext_p2
++
++  "#address-cells":
++    const: 1
++
++  "#size-cells":
++    const: 1
++
++  ranges: true
++
++patternProperties:
++  "^port[0-3]-mode$":
++    $ref: /schemas/types.yaml#/definitions/string
++    description:
++      String specifying the port mode for port N, where N can be from 1 to 3.
++      the port mode is not specified, that port is treated as unused. When
++      specified, it must be one of the following.
++    enum:
++      - ehci-phy
++      - ehci-tll
++      - ehci-hsic
++      - ohci-phy-6pin-datse0
++      - ohci-phy-6pin-dpdm
++      - ohci-phy-3pin-datse0
++      - ohci-phy-4pin-dpdm
++      - ohci-tll-6pin-datse0
++      - ohci-tll-6pin-dpdm
++      - ohci-tll-3pin-datse0
++      - ohci-tll-4pin-dpdm
++      - ohci-tll-2pin-datse0
++      - ohci-tll-2pin-dpdm
++
++  "^usb@":
++    type: object
++
++required:
++  - compatible
++  - reg
++
++allOf:
++  - if:
++      patternProperties:
++        "^usb@": true
++    then:
++      required:
++        - ranges
++        - "#address-cells"
++        - "#size-cells"
++
++additionalProperties: false
++
++examples:
++  - |
++    bus {
++        #address-cells = <1>;
++        #size-cells = <1>;
++
++        usbhshost: usbhshost@4a064000 {
++            compatible = "ti,usbhs-host";
++            reg = <0x4a064000 0x800>;
++            ti,hwmods = "usb_host_hs";
++            port1-mode = "ehci-phy";
++            port2-mode = "ehci-tll";
++            port3-mode = "ehci-phy";
++            #address-cells = <1>;
++            #size-cells = <1>;
++            ranges;
++
++            usbhsohci: usb@4a064800 {
++                compatible = "ti,ohci-omap3";
++                reg = <0x4a064800 0x400>;
++                interrupt-parent = <&gic>;
++                interrupts = <0 76 0x4>;
++            };
++
++            usbhsehci: usb@4a064c00 {
++                compatible = "ti,ehci-omap";
++                reg = <0x4a064c00 0x400>;
++                interrupt-parent = <&gic>;
++                interrupts = <0 77 0x4>;
++            };
++        };
++    };
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 7d10988cbc62b77515aa1a1fee1c7d3e594869fa..28da3ac5896681bcdab29c23c98eff3612dc181d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -19397,6 +19397,7 @@ W:	http://linux.omap.com/
+ Q:	http://patchwork.kernel.org/project/linux-omap/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+ F:	Documentation/devicetree/bindings/arm/ti/omap.yaml
++F:	Documentation/devicetree/bindings/mfd/ti,omap-usb-host.yaml
+ F:	arch/arm/configs/omap2plus_defconfig
+ F:	arch/arm/mach-omap2/
+ F:	drivers/bus/omap*.[ch]
 
 -- 
 2.53.0
