@@ -1,56 +1,55 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 818003446CC;
-	Thu, 26 Mar 2026 17:41:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2EE937F8AD;
+	Thu, 26 Mar 2026 18:09:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774546874; cv=none; b=AQvdlWsSmq1ERNOExMUry12fP235WStJQqOcMmAKu8yQnqE4HYTt5uURoQWP3vq6ZC4stYsMTjxyf19J9GtkfL/rFg8BZ+PJU0kPwI7VUA7Jdzgw/ksnuyJd9p8FmiFe6DVGTP9uCG9XrcFIxto3Ai7TEaLgA/rGKjGjnxPPmgE=
+	t=1774548587; cv=none; b=rKNnJeSNpaUGfiFKeqEWQPan2gvv2zJBT53YvIiQEZHe6erhsGVWRB9vUoEJmW5CpX82J0sJNoeZAAJRKDuml25sxCPIJQmzsRT2X1nJdyuehdckkbq/M/Kzqs4+0tAcy+KpDiDkiEr9p6w8dl4CW57wq3lXc2Nlti8y6twr/7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774546874; c=relaxed/simple;
-	bh=y2HmnRcLJJ8HS4kuIm9lQr9tyMPyTUtfBDwLVFKrKqU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=m9iT2ziEAXjhbTACtReUuc+l+uQvG2E9DewBr58+bYBiHFLBveejKgipKDJHA8dKo8nldT4nJp0zhaMp2iXVhpNLDCnQXL8RlyOH+MqPZcio7alViWlQ1vRcJ/9Rmgt54wKWOLOdIQs2bUQiqJI/hE/7b2AhIPBsMF0GHk6ybTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GEIe77U6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774548587; c=relaxed/simple;
+	bh=Rn+vhInqQodS/bAOEwWYdnq6SYa4NomZ2mbnsMoy6H0=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=AHVzbyTqW3EaElpxV1iixRRmR/zXMCmo3/EBt9CcUdGKHDFNTFpLphKWVjDdZibxPyk0Z7WevwfOqLvnKl6vCYczTdGZgW3gPaJIUpFe9cK3PU1iHfwgDMP2shJb8oOA/NNlKgx5zxE7zJcG1GI8wMqgPra55iNiyeyGFSPYEm0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GPQKysa2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GEIe77U6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70CBCC116C6;
-	Thu, 26 Mar 2026 17:41:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GPQKysa2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9922C116C6;
+	Thu, 26 Mar 2026 18:09:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774546873;
-	bh=y2HmnRcLJJ8HS4kuIm9lQr9tyMPyTUtfBDwLVFKrKqU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=GEIe77U6Ip02xX+b0iJGz2iUhHFHIUBzkDmC77AYhSoc8RUWXJnpJr/hV4bVuFzyY
-	 xBphxVhSjCjJSE015JYnDTx4sZRgkTNPRY1iC9DTpwLSqhcJQEizXYP5p3Yt7a3Kaw
-	 R9qitskxyCRoNFJzme8kGbxp887C9poIjnYH/uJc824LxCdw+UlqTd5Miw1sr2rjtz
-	 Gtf3NFPxVRdJEJ2jZFRlQqS9SwoiJBNQALjzWe+6a4xGC0PrhJgth12/kaYjzcKIzr
-	 qo19TB6oWmdIHQDgfnRaBN5jea+y88y6UPVCesH1xceAtkOQCB/CcpOm9W4em68pHj
-	 WUrCs72uILyCQ==
-Date: Thu, 26 Mar 2026 23:10:58 +0530
-From: Manivannan Sadhasivam <mani@kernel.org>
-To: Hans Zhang <18255117159@163.com>, bhelgaas@google.com, 
-	helgaas@kernel.org
-Cc: lpieralisi@kernel.org, jingoohan1@gmail.com, kwilczynski@kernel.org, 
-	florian.fainelli@broadcom.com, jim2101024@gmail.com, robh@kernel.org, 
-	ilpo.jarvinen@linux.intel.com, linux-arm-msm@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-renesas-soc@vger.kernel.org, 
-	claudiu.beznea.uj@bp.renesas.com, linux-mediatek@lists.infradead.org, linux-tegra@vger.kernel.org, 
-	linux-omap@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com, linux-pci@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, shawn.lin@rock-chips.com
+	s=k20201202; t=1774548586;
+	bh=Rn+vhInqQodS/bAOEwWYdnq6SYa4NomZ2mbnsMoy6H0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=GPQKysa2Kkl0pnDdhP2t5CHyGa0cSastDgmKm1O2tVeZiouqwEbsOgxTrwYLdJo+p
+	 Ufja9z0tJ2PtiRx9h6st1c6T9AoJRU36LL+yeBp8LiylI7/3RBzBX12VaEnqZNdgr7
+	 CA+E7cZdX0iMz4YCgV4wa0RAs2ytQxQNOrpeU+P/G7dkkXQcaLNf4hc1u87LijDMYT
+	 YK89haZnBIMHtd6lRQxHNY8CBETPQVS3QsUUPzBlpSyp7lGtqMmmkCDEgL5jqJl8N1
+	 WRrCF+Z4e5BzM1QOPKpSOgWr/y59L1IZRZ2xky1NUV6h8K+Mbe8i5vnaHXu6BC0S5Y
+	 i1dnY6VpNPZ8A==
+Date: Thu, 26 Mar 2026 13:09:45 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Hans Zhang <18255117159@163.com>
+Cc: lpieralisi@kernel.org, jingoohan1@gmail.com, mani@kernel.org,
+	kwilczynski@kernel.org, bhelgaas@google.com,
+	florian.fainelli@broadcom.com, jim2101024@gmail.com,
+	robh@kernel.org, ilpo.jarvinen@linux.intel.com,
+	linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-renesas-soc@vger.kernel.org, claudiu.beznea.uj@bp.renesas.com,
+	linux-mediatek@lists.infradead.org, linux-tegra@vger.kernel.org,
+	linux-omap@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	shawn.lin@rock-chips.com
 Subject: Re: [PATCH v9 1/5] PCI: Add pcie_get_link_speed() helper for safe
  array access
-Message-ID: <yxtwt2gwwasccsfrymnfahn3ruimnpa3noctqbdurei5yzi233@6j5wzkudjrb7>
-References: <20260313165522.123518-1-18255117159@163.com>
- <20260313165522.123518-2-18255117159@163.com>
+Message-ID: <20260326180945.GA1331170@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
 In-Reply-To: <20260313165522.123518-2-18255117159@163.com>
 
 On Sat, Mar 14, 2026 at 12:55:18AM +0800, Hans Zhang wrote:
@@ -65,13 +64,10 @@ On Sat, Mar 14, 2026 at 12:55:18AM +0800, Hans Zhang wrote:
 > allow us to safely handle invalid values after the range check is
 > removed from of_pci_get_max_link_speed().
 > 
-
-Bjorn: Could you please take a look at this patch and ack if looks good? Rest of
-the patches look good to me (I might squash patch 5 with 4 while applying).
-
-- Mani
-
 > Signed-off-by: Hans Zhang <18255117159@163.com>
+
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
 > ---
 >  drivers/pci/pci.h   |  2 ++
 >  drivers/pci/probe.c | 16 ++++++++++++++++
@@ -120,6 +116,3 @@ the patches look good to me (I might squash patch 5 with 4 while applying).
 > -- 
 > 2.34.1
 > 
-
--- 
-மணிவண்ணன் சதாசிவம்
