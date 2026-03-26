@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2EE937F8AD;
-	Thu, 26 Mar 2026 18:09:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A33439EF1C;
+	Thu, 26 Mar 2026 18:16:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774548587; cv=none; b=rKNnJeSNpaUGfiFKeqEWQPan2gvv2zJBT53YvIiQEZHe6erhsGVWRB9vUoEJmW5CpX82J0sJNoeZAAJRKDuml25sxCPIJQmzsRT2X1nJdyuehdckkbq/M/Kzqs4+0tAcy+KpDiDkiEr9p6w8dl4CW57wq3lXc2Nlti8y6twr/7Y=
+	t=1774548986; cv=none; b=rQJg/yIjuPb6jlQutKT9VXrDM12cbTlRJo0OaQkRASCjfBATgAHMPkJvXDiDWLqBtzP2/SGdR0QJg+LtbaOXTfoDQwj9u6gkBQlJsNGA3BqhoUUo+ZKPejQYRVcnpXqmftrWFqwuXF8y9jzOamTsPyB5besmuSESfxPBG6sFeZw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774548587; c=relaxed/simple;
-	bh=Rn+vhInqQodS/bAOEwWYdnq6SYa4NomZ2mbnsMoy6H0=;
+	s=arc-20240116; t=1774548986; c=relaxed/simple;
+	bh=43VqNhtITmRTb0E71wFtuKVyxafRya6of6b3L56zIuM=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=AHVzbyTqW3EaElpxV1iixRRmR/zXMCmo3/EBt9CcUdGKHDFNTFpLphKWVjDdZibxPyk0Z7WevwfOqLvnKl6vCYczTdGZgW3gPaJIUpFe9cK3PU1iHfwgDMP2shJb8oOA/NNlKgx5zxE7zJcG1GI8wMqgPra55iNiyeyGFSPYEm0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GPQKysa2; arc=none smtp.client-ip=10.30.226.201
+	 Content-Disposition:In-Reply-To; b=kRfO6rY2Unl4nf7foTDa8VlovACf7ESFmeLvQCoS86fJQEoZcy3pfp0q2F3w7EgGRolCnafJwf+pTqbUYpsLDUelb6wW7nboAy1yjuYQZV/qllDHkmVsAjTuNnv5hyzai+/ZlqKPx3Yvxs4sIZ96bFaft7s7Bqyxv+NzLwrbP14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rH9ZhPho; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GPQKysa2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9922C116C6;
-	Thu, 26 Mar 2026 18:09:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rH9ZhPho"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B186C116C6;
+	Thu, 26 Mar 2026 18:16:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774548586;
-	bh=Rn+vhInqQodS/bAOEwWYdnq6SYa4NomZ2mbnsMoy6H0=;
+	s=k20201202; t=1774548985;
+	bh=43VqNhtITmRTb0E71wFtuKVyxafRya6of6b3L56zIuM=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:From;
-	b=GPQKysa2Kkl0pnDdhP2t5CHyGa0cSastDgmKm1O2tVeZiouqwEbsOgxTrwYLdJo+p
-	 Ufja9z0tJ2PtiRx9h6st1c6T9AoJRU36LL+yeBp8LiylI7/3RBzBX12VaEnqZNdgr7
-	 CA+E7cZdX0iMz4YCgV4wa0RAs2ytQxQNOrpeU+P/G7dkkXQcaLNf4hc1u87LijDMYT
-	 YK89haZnBIMHtd6lRQxHNY8CBETPQVS3QsUUPzBlpSyp7lGtqMmmkCDEgL5jqJl8N1
-	 WRrCF+Z4e5BzM1QOPKpSOgWr/y59L1IZRZ2xky1NUV6h8K+Mbe8i5vnaHXu6BC0S5Y
-	 i1dnY6VpNPZ8A==
-Date: Thu, 26 Mar 2026 13:09:45 -0500
+	b=rH9ZhPhoyZPAUHGu42qfHJzQoyDXiaLHk6u2TDy7jxtMKoyFyr1etgM02j2RMJag2
+	 +iwu/QLH6SDpzrX2Rwk7Xf0D6UaUv0Ye7LUU1K4BrOo4hIU5IkQT+aOp2QxQMFS4LN
+	 Sm/C7ZPguXcDl6fWI5t8T1BYmS/AirzbSCbMC4v3AtXUqoEUsbX80tNGQMYwKTFXAj
+	 8J0GdOJCo649nUq3toORH7UXb0O2mTBwPoR2YLTayka8sROxFdMkqb6K66rqL+ieDD
+	 X/OwHRNfv1L6odykUi95poRDrpG0rOAWuK8xO8B1T+sfP/rfAn6ckYa8+jwX+T1tkY
+	 XXnHox9MEju3w==
+Date: Thu, 26 Mar 2026 13:16:24 -0500
 From: Bjorn Helgaas <helgaas@kernel.org>
 To: Hans Zhang <18255117159@163.com>
 Cc: lpieralisi@kernel.org, jingoohan1@gmail.com, mani@kernel.org,
@@ -41,7 +41,7 @@ Cc: lpieralisi@kernel.org, jingoohan1@gmail.com, mani@kernel.org,
 	shawn.lin@rock-chips.com
 Subject: Re: [PATCH v9 1/5] PCI: Add pcie_get_link_speed() helper for safe
  array access
-Message-ID: <20260326180945.GA1331170@bhelgaas>
+Message-ID: <20260326181624.GA1331242@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -65,9 +65,6 @@ On Sat, Mar 14, 2026 at 12:55:18AM +0800, Hans Zhang wrote:
 > removed from of_pci_get_max_link_speed().
 > 
 > Signed-off-by: Hans Zhang <18255117159@163.com>
-
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-
 > ---
 >  drivers/pci/pci.h   |  2 ++
 >  drivers/pci/probe.c | 16 ++++++++++++++++
@@ -96,12 +93,23 @@ Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 >  
 > +/**
 > + * pcie_link_speed_value - Get speed value from PCIe generation number
+
+Wrong name here (pcie_link_speed_value vs pcie_get_link_speed)
+(pointed out by Sashiko).
+
 > + * @speed: PCIe speed (1-based: 1 = 2.5GT, 2 = 5GT, ...)
 > + *
 > + * Returns the speed value (e.g., PCIE_SPEED_2_5GT) if @speed is valid,
 > + * otherwise returns PCI_SPEED_UNKNOWN.
 > + */
 > +unsigned char pcie_get_link_speed(unsigned int speed)
+
+Sashiko also pointed out that the commit log says this returns "enum
+pci_bus_speed", while here we return unsigned char (which is also the
+type of pcie_link_speed[x]).
+
+https://sashiko.dev/#/patchset/20260313165522.123518-1-18255117159%40163.com
+
 > +{
 > +	if (speed >= ARRAY_SIZE(pcie_link_speed))
 > +		return PCI_SPEED_UNKNOWN;
