@@ -1,124 +1,81 @@
-Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A61937C0EB
-	for <linux-omap@vger.kernel.org>; Fri, 27 Mar 2026 11:43:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.117.254.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF7D33914E1;
+	Fri, 27 Mar 2026 12:55:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774611812; cv=none; b=ruX+48dlbwvrK9mlwYcABNQRB8ipByFl834UAZEseVpfdUpwDs1v+Ud+P1ggr8TopioYZHPYyldthhiZzJrDIO+85tXaBpErexsd+RmbXe1i5VbwPBM/HzjZdvxiT4RnsnXDvaifqomSvGxXgB7JOTAITJqwgoLpfCU/Pbdep6s=
+	t=1774616159; cv=none; b=ko4nxImUZhZtHY6hQ4smK+OtPTCPaK1Z7v+Sr26aphe/bYlYOkyDG8S71ZCqgwJ4H4Q397qibfyzXuUPktNuNqcFHHDPRasCnJd81zyhhLVSGkgAwtOaAIiLt0ucBOXJyakx1LGmyTMX+NcQSmLFC8rjy3EvHhT5KxAf0hibTcM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774611812; c=relaxed/simple;
-	bh=uYAApojvLTIkmyKoZpYwJZCokmKbnpF9c6WhaIacVG4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sqE1/H71xU0/eDtLU2q16FBjs8eSvRNn1OpaV8Vt9WpD9d1KcWgM/dYP2mYAZ/ginJmDC9L7ZltUknkzrm71094v46pr7p5c1GHFGtiZ0ZCGJPQ3qQvmDymrBi8vmn5ADewFGlSjObgzPjEMLFCu3ZYoJuO4Vlw7Mittn68lEWI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=k4QvSzox; arc=none smtp.client-ip=194.117.254.33
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
+	s=arc-20240116; t=1774616159; c=relaxed/simple;
+	bh=wI265DU1zQyJuVh/cOxpbjdnIdFBQbqGC5Af6QBodKI=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Mb8Xg+N4QzsUaFem+v+xBVUJQ8xkc5LJnEtm+axmv4R/Xfsm25hOI3Y+Q5HCkWajm/bCYsYG669vbr6JJ6g8rjTp5PzEdp2z6Yt4Z6bo5TVlWxHn2m6vDdUl3G32GdvrCyYSiIA7eqyXnZda/hmVG1iBDDnT09rgmVuLxczFHUo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=UuDXQ6UH; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="k4QvSzox"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	sang-engineering.com; h=date:from:to:cc:subject:message-id
-	:references:mime-version:content-type:in-reply-to; s=k1; bh=H/mm
-	EvjF+xhmn9Wns9betMD2C6MNmROj8DyAiLE02zM=; b=k4QvSzox0bVkfsfDjzFG
-	LGuc3RY6Nc4A01kHbyNKckXguVBwpBOKFgCosfhLsRsjq4eDoNRYZpMIVCJ0O3hr
-	gfeanKsyTEOWbah1eONyp6cI2lvZTWiinFUqQ1+gY2hdjjx+hPdnLjDCYK70TUJ4
-	aFc/YaBf28GDjSGd7mxe254RWqDfD9attVFCtj8ikS1PeMOzQ7Wq1WpZ9OE7cTEW
-	LWHjg90xTnSXm5laQso2Th3BJmrtN84wxdyQWCBE0l/PveVIj91/BXi11wFJWf4A
-	0Ik6WG0aYRHLixjG/wpRM3UOW+oQhTX4llCiif+gTG5sUZ6tFSGGFUkiiWl6Oq3N
-	Rg==
-Received: (qmail 174700 invoked from network); 27 Mar 2026 12:43:25 +0100
-Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 27 Mar 2026 12:43:25 +0100
-X-UD-Smtp-Session: l3s3148p1@m9s6AgBO++RUhsJN
-Date: Fri, 27 Mar 2026 12:43:24 +0100
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-To: linux-renesas-soc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Andy Shevchenko <andy@kernel.org>,
-	Antonio Borneo <antonio.borneo@foss.st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Bjorn Andersson <andersson@kernel.org>,
-	Boqun Feng <boqun@kernel.org>, Chen-Yu Tsai <wens@kernel.org>,
-	Chunyan Zhang <zhang.lyra@gmail.com>,
-	Danilo Krummrich <dakr@kernel.org>,
-	David Lechner <dlechner@baylibre.com>, driver-core@lists.linux.dev,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Dybcio <konradybcio@kernel.org>, Lee Jones <lee@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-gpio@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-remoteproc@vger.kernel.org, linux-spi@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-sunxi@lists.linux.dev, Mark Brown <broonie@kernel.org>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Nuno =?utf-8?B?U8Oh?= <nuno.sa@analog.com>,
-	Orson Zhai <orsonzhai@gmail.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Samuel Holland <samuel@sholland.org>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Srinivas Kandagatla <srini@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>, Waiman Long <longman@redhat.com>,
-	Wilken Gottwalt <wilken.gottwalt@posteo.net>,
-	Will Deacon <will@kernel.org>
-Subject: Re: [PATCH v5 00/15] hwspinlock: move device alloc into core and
- refactor includes
-Message-ID: <acZtXL7OiM0ceyMe@shikoro>
-References: <20260319105947.6237-1-wsa+renesas@sang-engineering.com>
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="UuDXQ6UH"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID;
+	bh=cMp2C5O1khQmjkF3fvxbwjVEMOLIqREAg3Lz7C/AiC4=; b=UuDXQ6UHwHs1C5K+O8cL9Pj1Hg
+	8VI42USN8Rp99l9uoEaA+8QNuDUc5lhms5SN9XQov7MmCdkWxUNHU7hah6Qadsb6e833D1RS1Gv1C
+	Hdw8F8T8jjgN8bn79+Ddn0SVoIZfZEc/ZocCGG9zRkizaopxFLr5Sf4N1Ep3kgT1H3aZlMrIf0Og0
+	8Ep1V1k45Uj8sO3AGz93W84cOzhIplQvtH1AB1mka5tkBxv8wB3CaqEFp9HqWSeFIwumrRACR9XNy
+	T3BBhj9TBoCc+x7fFR4c5CByBsZdJqjIvzK2ixTSEg8jYPpCY/myZQD4DILQnGj4AaFvKQUVCiXsg
+	laoYkizw==;
+Date: Fri, 27 Mar 2026 13:36:12 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Thomas Richard <thomas.richard@bootlin.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
+ <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
+ <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown
+ <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski
+ <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Lee Jones
+ <lee@kernel.org>, Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+ linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+ devicetree@vger.kernel.org
+Subject: Re: [PATCH 1/8] regulator: pbias: Add pbias SIM regulator for OMAP4
+Message-ID: <20260327133612.6ee909fd@kemnade.info>
+In-Reply-To: <20260323-omap4-fix-usb-support-v1-1-b668132124ac@bootlin.com>
+References: <20260323-omap4-fix-usb-support-v1-0-b668132124ac@bootlin.com>
+	<20260323-omap4-fix-usb-support-v1-1-b668132124ac@bootlin.com>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260319105947.6237-1-wsa+renesas@sang-engineering.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 19, 2026 at 11:59:22AM +0100, Wolfram Sang wrote:
-> Changes since v4:
-> 
-> * update Documentation, too, when ABI gets changed (Thanks Antonio!)
-> * rebased to 7.0-rc4
-> * added more tags (Thanks!)
-> 
-> My ultimate goal is to allow hwspinlock provider drivers outside of the
-> subsystem directory. It turned out that a simple split of the headers
-> files into a public provider and a public consumer header file is not
-> enough because core internal structures need to stay hidden. Even more,
-> their opaqueness could and should even be increased. That would also
-> allow the core to handle the de-/allocation of the hwspinlock device
-> itself.
-> 
-> This series does all that. Patches 1-2 remove the meanwhile unused
-> platform_data to ease further refactoring. Patches 3-9 abstract access
-> to internal structures away using helpers. Patch 10 then moves
-> hwspinlock device handling to the core, simplifying drivers. The
-> remaining patches refactor the headers until the internal one is gone
-> and the public ones are divided into provider and consumer parts. More
-> details are given in the patch descriptions.
-> 
-> One note about using a callback to initialize hwspinlock priv: I also
-> experimented with a dedicated 'set_priv' helper function. It felt a bit
-> clumsy to me. Drivers would need to save the 'bank' pointer again and
-> iterate over it. Because most drivers will only have a simple callback
-> anyhow, it looked leaner to me.
-> 
-> This series has been tested on a Renesas SparrowHawk board (R-Car V4H)
-> with a yet-to-be-upstreamed hwspinlock driver for the MFIS IP core. A
-> branch can be found here (without the MFIS driver currently):
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git renesas/hwspinlock/refactor-alloc-buildtest
-> 
-> Build bots reported success.
+On Mon, 23 Mar 2026 16:02:42 +0100
+Thomas Richard <thomas.richard@bootlin.com> wrote:
 
-Sashiko found some valid issues[1], so I am already working on a v6.
+> Add support for the pbias SIM regulator found on OMAP4 (for USB I/O cell).
+> 
+> Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
+> ---
+>  drivers/regulator/pbias-regulator.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+> 
+> diff --git a/drivers/regulator/pbias-regulator.c b/drivers/regulator/pbias-regulator.c
+> index cd5a0d7e44555f04d1e44470036c6e3d9feb7be6..10c4940e73635293bebd26bf99a9067eb6e39107 100644
+> --- a/drivers/regulator/pbias-regulator.c
+> +++ b/drivers/regulator/pbias-regulator.c
+> @@ -81,6 +81,16 @@ static const struct pbias_reg_info pbias_sim_omap3 = {
+>  	.name = "pbias_sim_omap3"
+>  };
+>  
+> +static const struct pbias_reg_info pbias_sim_omap4 = {
+> +	.enable = BIT(28) |  BIT(20),
+> +	.enable_mask = BIT(31) | BIT(28) | BIT(20),
+> +	.vmode = BIT(31),
 
-[1] https://sashiko.dev/#/patchset/20260319105947.6237-1-wsa%2Brenesas%40sang-engineering.com
+BIT(27)? or am I mixing something up?
 
+Regards,
+Andreas
