@@ -1,99 +1,125 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from lahtoruutu.iki.fi (lahtoruutu.iki.fi [185.185.170.37])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68C1C3EFD0A
-	for <linux-omap@vger.kernel.org>; Fri, 27 Mar 2026 13:19:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774617543; cv=none; b=gi7+AKA91NEvzDhj0YrHlFHRsSODaRC6E5ttfBpdDhZe22luQpNLV2OMAw0bAgkIIkwiac7pvZ5P4GO7KhnPeivx+JyNSU3XjrwOrkKDNM5Rgblo0sfcAYQBhKJ45DVIFqesO/KhlFFlV6FOmtA21FPNIhpjFEZnKnmJWE1aoak=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774617543; c=relaxed/simple;
-	bh=Ftlsz681zgqhKwKdw2wdE3UpwUeP9ZgfFK8yjps7MBs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=lwzdfJ5Pdx4O7Lh8YckiMgCTwy0zhdmM8MCG190MSi4ojHibUo5Xdj7pzf03YT4e8Pecs9e7YnZYSjcBmVHXgIf9FuBF4JdYXxKZdkpTLZOqCh8PBnXK7v1iHNpl7DQzpf1QjiWHZrWpbiGDXW+5Xe5oLudWhfKDEWP7KbCvOEU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=TiblL0eN; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF546391516;
+	Fri, 27 Mar 2026 14:05:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=185.185.170.37
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774620322; cv=pass; b=IA64cVJNC7geGB2zqQLk5Gfz0/HgB/90uw1Hjz7XXS1mf7gS5sQpiO9MJwIuUrSM+ht0M81zd5mCCErEHj4yUKoVJe3fC01S9q8gxUU/8HG+6XTw1Cx3jyK9Pauilq5J3oXCCISiZW90w7OGWWPiE3IDM5htUuDSHzraxZQ1DvY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774620322; c=relaxed/simple;
+	bh=LDW9ttjB3G8IFcmk08SYxamlEEgze56whSHpri4sMew=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=i3mejfCoTwcS9KFG5AjOhfPt0aInT3tMOG9C376oRrnQQ5otoTO80Cq1PzGMVcQLXP4qQ+cZxjojbZu4UevGIwW/Zz48n/eTvQz+UMZ9qVOtwcYZd76Zb5mQ9nLn/o/VsPzhCPpDam90KTCTTa+i+jJb/HAw+9Mu0/HLRr7Dg2w=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (2048-bit key) header.d=iki.fi header.i=@iki.fi header.b=mza3c35K; arc=pass smtp.client-ip=185.185.170.37
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iki.fi
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="TiblL0eN"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id C3DC71A3023;
-	Fri, 27 Mar 2026 13:18:59 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 9434760230;
-	Fri, 27 Mar 2026 13:18:59 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 3491D10451302;
-	Fri, 27 Mar 2026 14:18:55 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1774617538; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:content-language:in-reply-to:references;
-	bh=9cQUuQ/ZRSxD4m/Rh9Nc1u1MgzCT+v4F+G6fMpHiUlM=;
-	b=TiblL0eNLCLJJ/15K7x2gdVr1DaLBZae6I/UTmpuGumSDGJ4KxzYCqEBprYwDQRftgx0f1
-	jMBCtp20A9UJhusrJM1fZSTR2Hx3yEQBTOuZJJPQDhlAaDNSlcngINbJ0tHcfCukuRNTdT
-	p3QXOi39yprRBoIx0q7CCQqu3ZOTiR72sE6wshiNQ93x/o5qYtxmgR5XeQQ2pjqnmA2qXv
-	cHxSrVIb+RsesR5FVCb0nrHCduFEN1guj7aXliO20RLPOw9g6jjQ3XrpNUvH/G5C49EylZ
-	ZF/mCPfDvSFLRJNL0DSYxoX84hmQ40knUCO190wXl+PzybEGrJmZP6yYszbALA==
-Message-ID: <0e62fbaf-311b-458b-bf7d-63f20de28f44@bootlin.com>
-Date: Fri, 27 Mar 2026 14:18:53 +0100
+	dkim=pass (2048-bit key) header.d=iki.fi header.i=@iki.fi header.b="mza3c35K"
+Received: from darkstar.musicnaut.iki.fi (85-76-0-165-nat.elisa-mobile.fi [85.76.0.165])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange secp256r1 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: aaro.koskinen)
+	by lahtoruutu.iki.fi (Postfix) with ESMTPSA id 4fj2Tf2bXjz49PtJ;
+	Fri, 27 Mar 2026 16:05:10 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=lahtoruutu;
+	t=1774620311;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Xtu2xKU24myRwQOk9cD2GRQKYnMGvF6fQQgu2QdaIVo=;
+	b=mza3c35Kmh+arZTcuM8M7dyjpYU+J4QtKVF7egPoeX584oYLBmaVOmJdh9mF7aO76FO522
+	DoWBboy3qVOuO8u+vVnt1fgOtZXOizqeJKKxWdUq8b0U1TsGqC7XlinELtBNOraSxk7/kw
+	/MNmwdNY6kZpfn64bbVMvS56foElvusEtf5QO7DEpFFM3lgoiyxHOk67ThXGORpJPuY3vR
+	HQeYvhGpL+0yIp7h9qcRsGkhON81Zb/E2vdlRE1nOrLCgkB7s7jx+4IvfkhzLPfFhuTCJs
+	yihinluu5OSsQk63s9tTEQ6sG7xlePx3hABKOR6hvKB0eg+N6KMo97vs5NGIOg==
+ARC-Seal: i=1; a=rsa-sha256; d=iki.fi; s=lahtoruutu; cv=none; t=1774620311;
+	b=YM9iDk2dbFZCuGBcj10XBwYndUhXYqthGRKA1GZDwgbh7Mij3gYseCYAiwCOV8iWAaL6bd
+	CpS77D2MIW0pA4iDtxTtm/C0io0Fy3tKySDftyV2ELZR2hKnpbzN45RBPOM6E0d3jHy1uh
+	iGl0eqaVqoNeyS1eMFo+X9tC+NrbvZoRlt4Ik47aG4CKmgZ2VeO4lCOTitGTbx2QeEyUGw
+	lKC5z2/1FrP3PuapT5KtVprfW0gB4Z9t2wSgJzg2L7n8f38836XAaLTWVQ2DyJEaeYjLqO
+	a5FNafQPCNT+FB2Wgq+CyGBOcP1JnyI8MLEKtICSYglSWOQTtZLIRFAxf+y5Rg==
+ARC-Authentication-Results: i=1;
+	ORIGINATING;
+	auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
+	s=lahtoruutu; t=1774620311;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Xtu2xKU24myRwQOk9cD2GRQKYnMGvF6fQQgu2QdaIVo=;
+	b=IyWlVDjPWa1NvUpyWqmDQMeZy1hyYx0X8VEU2DGo/x/rdEfM8oyjQgLqlx62LrLnI8gB8t
+	dCAIkh0G5B3/JufzHK4G3J6ngmtgNVw95p/gnjI11sMzHbNGtvVVCQUn2OQej5Fax/aW26
+	92dHDzMI5w66A0cf7+9QhCcbcdJvOCAUQCxomR4HZVKT/n/bTDTAdSRdMthDoe/atoYSzY
+	WMCtzpwyEdOLCi4d/MshN4kEuzDkB10PdM9BBf3ce8UgtGcj/c4Fw6C97vgJ0F5h2kUlP0
+	scQSWBDV9aBtd0v08WPJhUjK898QgoxHgJQSW/SmsBbrTX3CVDoz94wiKzuaqg==
+Date: Fri, 27 Mar 2026 16:05:08 +0200
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Arnd Bergmann <arnd@kernel.org>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans de Goede <hansg@kernel.org>,
+	Linux-OMAP <linux-omap@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	Kevin Hilman <khilman@kernel.org>
+Subject: Re: [RFT PATCH v3] ARM: omap1: enable real software node lookup of
+ GPIOs on Nokia 770
+Message-ID: <acaOlGcGQEZHQ_mJ@darkstar.musicnaut.iki.fi>
+References: <20260212112508.73500-1-bartosz.golaszewski@oss.qualcomm.com>
+ <2fb42d16-887a-4564-8e50-c9d6db564c4e@app.fastmail.com>
+ <CAMRc=McYj-D8XL_wnmTEucMrwCy1-xr7h0XYrL68soMVHL1SRA@mail.gmail.com>
+ <7h1phxpzml.fsf@baylibre.com>
+ <CAMRc=McosSU39SERKtjmhJdTv2cPi44PG=bYqAcfQLDX4QB0Tg@mail.gmail.com>
+ <CAMRc=MeYMe1gXjiYuQJpNWchp+V1uLkuRuyO3ohQjfAcg9q3MQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/8] regulator: pbias: Add pbias SIM regulator for OMAP4
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
- <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>,
- Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>,
- Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>,
- Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
- <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>,
- Thomas Petazzoni <thomas.petazzoni@bootlin.com>, linux-omap@vger.kernel.org,
- linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
-References: <20260323-omap4-fix-usb-support-v1-0-b668132124ac@bootlin.com>
- <20260323-omap4-fix-usb-support-v1-1-b668132124ac@bootlin.com>
- <20260327133612.6ee909fd@kemnade.info>
-Content-Language: en-US
-From: Thomas Richard <thomas.richard@bootlin.com>
-In-Reply-To: <20260327133612.6ee909fd@kemnade.info>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMRc=MeYMe1gXjiYuQJpNWchp+V1uLkuRuyO3ohQjfAcg9q3MQ@mail.gmail.com>
 
-Hello Andreas,
+Hi,
 
-Thanks for the review.
-
-On 3/27/26 1:36 PM, Andreas Kemnade wrote:
-> On Mon, 23 Mar 2026 16:02:42 +0100
-> Thomas Richard <thomas.richard@bootlin.com> wrote:
+On Thu, Mar 26, 2026 at 09:57:31AM +0100, Bartosz Golaszewski wrote:
+> On Mon, Mar 16, 2026 at 9:50 AM Bartosz Golaszewski <brgl@kernel.org> wrote:
+> > On Fri, Mar 6, 2026 at 1:31 AM Kevin Hilman <khilman@kernel.org> wrote:
+> > > Bartosz Golaszewski <brgl@kernel.org> writes:
+> > > > On Thu, Feb 12, 2026 at 12:46 PM Arnd Bergmann <arnd@kernel.org> wrote:
+> > > >> On Thu, Feb 12, 2026, at 12:25, Bartosz Golaszewski wrote:
+> > > >> > Currently the board file for Nokia 770 creates dummy software nodes not
+> > > >> > attached in any way to the actual GPIO controller devices and uses the
+> > > >> > fact that GPIOLIB matching swnode's name to the GPIO chip's label during
+> > > >> > software node lookup. This behavior is wrong and we want to remove it.
+> > > >> > To that end, we need to first convert all existing users to creating
+> > > >> > actual fwnode links.
+> > > >> >
+> > > >> > Create real software nodes for GPIO controllers on OMAP16xx and
+> > > >> > reference them from the software nodes in the nokia board file.
+> > > >> >
+> > > >> > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> > > >>
+> > > >> Acked-by: Arnd Bergmann <arnd@arndb.de>
+> > > >
+> > > > Aaro, Janusz: Can you please pick it up for v7.1?
+> > >
+> > > I can take this via the OMAP tree once I have confirmation from
+> > > Aaro/Janusz that they've tested.
 > 
->> Add support for the pbias SIM regulator found on OMAP4 (for USB I/O cell).
->>
->> Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
->> ---
->>  drivers/regulator/pbias-regulator.c | 11 +++++++++++
->>  1 file changed, 11 insertions(+)
->>
->> diff --git a/drivers/regulator/pbias-regulator.c b/drivers/regulator/pbias-regulator.c
->> index cd5a0d7e44555f04d1e44470036c6e3d9feb7be6..10c4940e73635293bebd26bf99a9067eb6e39107 100644
->> --- a/drivers/regulator/pbias-regulator.c
->> +++ b/drivers/regulator/pbias-regulator.c
->> @@ -81,6 +81,16 @@ static const struct pbias_reg_info pbias_sim_omap3 = {
->>  	.name = "pbias_sim_omap3"
->>  };
->>  
->> +static const struct pbias_reg_info pbias_sim_omap4 = {
->> +	.enable = BIT(28) |  BIT(20),
->> +	.enable_mask = BIT(31) | BIT(28) | BIT(20),
->> +	.vmode = BIT(31),
-> 
-> BIT(27)? or am I mixing something up?
-No you're right, I did a mistake.
-I'll send a v2 in the next few days to address this, Mark's and Conor's
-feedback, as well as few other issues I identified.
+> Hi again! Any chance we could get this queued? Janusz, Aaro: any objections?
 
-Best Regards,
-Thomas
+Unfortunately the patch doesn't work - 770 just dies silently. This
+means that e.g. CBUS GPIOs are not working as those are needed to keep
+the device powered. I'll try to figure out how to debug this...
+
+A.
