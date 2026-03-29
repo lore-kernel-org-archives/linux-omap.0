@@ -1,145 +1,122 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF435285CA4;
-	Sun, 29 Mar 2026 11:50:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4699372EC0;
+	Sun, 29 Mar 2026 14:48:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774785007; cv=none; b=nj+oRifpt/GaYLocEvKfSe+qUzdq/jG4IDKFdRaThuuf07yGUUadGbsHdn6iLDOB5OnSALVghTWn4X+h4zfgRo/FF3+vkEke5KUWu8rguXbJJ5aa9oKMVyw6GumDchqogTDq9FWlCqtuoHVuo7DeyOj/F1je2+fm5qF3LqWk4NA=
+	t=1774795734; cv=none; b=hzg3WxQb3wDw3WoWmDzkZZy2pruo6RvpdnMk3EzApZc9JO5vsN5W5HddiQ3l4FoSJZTt2n8iZNO5fJ7oC+bRz8AskfQoE/ibSK2WMpS19WR8jufMXaueCK/fnPZ6J/eGfY+fV8Z6cq58lEdCAveP6RimR3qKCRtEnQ8XFDwD324=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774785007; c=relaxed/simple;
-	bh=O7l6ak4xT7cXmqRnv4fc6BGKQgIBxzW99MT7EQs0/sc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BUZU1MSQtethxdTryzGQOWkKkYayIWKZT/STWYow/pvsce3ckSDa96IKwVl08J6ytfEPVnPCTzPMuyu0JQvqY7eWzuMyKbnXBd7nG6Jqnr5F4mLJJFaE1V0OobO6UVMwmZIp88nFEQlHiTRpEVBihdMYb0n9RqUuYt48Qp6kdw8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=C3sKWJtV; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1774795734; c=relaxed/simple;
+	bh=WpuLa+iR+7dPc/R2n3OibyMBDZqIk4vAA9bHtGje/bE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=H/X+E0ssuz4UD2yNwOkGAesXEasp1YQCYcIq/YBKx3VbR2Xh5Lj+PMAf2drKHqStL+dzNntWpaJnPFpfj94uOcdKj+mjr8uXsIUuvd1w8B5IgdMxLB8jbC7gD4EZQpub/ioOGy8dT205fo9ulKysIwGoqbFeOTiG5EPViEZrJOI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=F7yvNXzL; arc=none smtp.client-ip=220.197.31.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="C3sKWJtV"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774785006; x=1806321006;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=O7l6ak4xT7cXmqRnv4fc6BGKQgIBxzW99MT7EQs0/sc=;
-  b=C3sKWJtVnwXpL1lypRdAdR76iOjSwgmq6+ngKXFCIMiTjBV/ADwQqbsx
-   shQuta1if3nYaFCbMUYAe/FyKo+nQjR4lXczSAmALCF4heNpWJy+PsUot
-   nUSmgSzeL79t4RuenlYYdR0IsBU5AYwtsrynLHGoHWqMFbntxNbxZsDYP
-   3Zx/MjivojYyn7A6zy7TRn+qxY7eysdnwx+cT3cQ6YRsCHdfA8EZEc/4t
-   vrZMrb86RDmJsOzxDHO8z2/CS8TfUenVl7Ccr5276zcPpSpXWgbGiFBDJ
-   XrnNkccsytElNMHJtfkMniXff8uWBxkriP3PU51qBIfNXNj6Q47HuYOSS
-   A==;
-X-CSE-ConnectionGUID: AcJzY4M0RiexTzjd4y7+iQ==
-X-CSE-MsgGUID: VNpS4k7eTVCHgAo+EYzCGQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11742"; a="75505198"
-X-IronPort-AV: E=Sophos;i="6.23,148,1770624000"; 
-   d="scan'208";a="75505198"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2026 04:50:05 -0700
-X-CSE-ConnectionGUID: Eac3bGOiSs+hvqllPRxdgg==
-X-CSE-MsgGUID: 6JZe9bwLTSGA9q6CN5UDzA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,148,1770624000"; 
-   d="scan'208";a="225675186"
-Received: from klitkey1-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.29])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2026 04:50:02 -0700
-Date: Sun, 29 Mar 2026 14:49:59 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <brgl@kernel.org>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-	Arnd Bergmann <arnd@kernel.org>,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Linux-OMAP <linux-omap@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	Kevin Hilman <khilman@kernel.org>
-Subject: Re: [RFT PATCH v3] ARM: omap1: enable real software node lookup of
- GPIOs on Nokia 770
-Message-ID: <ackRzly0mXHReI7V@ashevche-desk.local>
-References: <20260212112508.73500-1-bartosz.golaszewski@oss.qualcomm.com>
- <2fb42d16-887a-4564-8e50-c9d6db564c4e@app.fastmail.com>
- <CAMRc=McYj-D8XL_wnmTEucMrwCy1-xr7h0XYrL68soMVHL1SRA@mail.gmail.com>
- <7h1phxpzml.fsf@baylibre.com>
- <CAMRc=McosSU39SERKtjmhJdTv2cPi44PG=bYqAcfQLDX4QB0Tg@mail.gmail.com>
- <CAMRc=MeYMe1gXjiYuQJpNWchp+V1uLkuRuyO3ohQjfAcg9q3MQ@mail.gmail.com>
- <acaOlGcGQEZHQ_mJ@darkstar.musicnaut.iki.fi>
- <CAMRc=McDdK8Y7wtG8WObjD6WF-2ftKBDwKbvj=xL-NMfeV=bPQ@mail.gmail.com>
- <aca3ajb_G3gD24S7@darkstar.musicnaut.iki.fi>
- <CAMRc=McVPskF4pMQSz=hR8CkyZhoPmCU_yJFT66vgTCPJd3-Vw@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="F7yvNXzL"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Message-ID:Date:MIME-Version:Subject:To:From:
+	Content-Type; bh=6D55HdNBFgogkbxZ9B6R/xFqNQaywSSEdDJEMT48Flw=;
+	b=F7yvNXzLWcYYggmho/921Cdsj6BQqjQJgBSJHBEj4Vw9puKVQlnetagQ5l37K3
+	8ux/HqhEJB2aARWpwEBywajYM6gLq9/+4k1oxuO6opefsdSeHpQCrA3AzY1QeNfG
+	Klrgdk9QPyY/3nPqdQs2t6q70aBKgd0j18K2DHtpBNzRQ=
+Received: from [192.168.50.71] (unknown [])
+	by gzga-smtp-mtada-g1-3 (Coremail) with SMTP id _____wCnr9J+O8lpUdKTCA--.51946S2;
+	Sun, 29 Mar 2026 22:47:27 +0800 (CST)
+Message-ID: <fbff8f2a-f4a9-4e06-b5ae-cfb554e73664@163.com>
+Date: Sun, 29 Mar 2026 22:47:26 +0800
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMRc=McVPskF4pMQSz=hR8CkyZhoPmCU_yJFT66vgTCPJd3-Vw@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v9 0/5] PCI: of: Remove max-link-speed generation
+ validation
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: lpieralisi@kernel.org, jingoohan1@gmail.com, mani@kernel.org,
+ kwilczynski@kernel.org, bhelgaas@google.com, florian.fainelli@broadcom.com,
+ jim2101024@gmail.com, robh@kernel.org, ilpo.jarvinen@linux.intel.com,
+ linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-renesas-soc@vger.kernel.org, claudiu.beznea.uj@bp.renesas.com,
+ linux-mediatek@lists.infradead.org, linux-tegra@vger.kernel.org,
+ linux-omap@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com,
+ linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+ shawn.lin@rock-chips.com
+References: <20260327164250.GA1513325@bhelgaas>
+Content-Language: en-US
+From: Hans Zhang <18255117159@163.com>
+In-Reply-To: <20260327164250.GA1513325@bhelgaas>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-CM-TRANSID:_____wCnr9J+O8lpUdKTCA--.51946S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxJFyDCr18WF1UtFyfJr4rGrg_yoW5WrWDpa
+	y2kF40vry0qr43Xr4DX3W5Z3WYq3ZxurWjyryFg3s7Z3ZxCrsxXFyIvayFqF9Ikrsxury2
+	qF12qF4akFW7AFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07U7fHbUUUUU=
+X-CM-SenderInfo: rpryjkyvrrlimvzbiqqrwthudrp/xtbC7AC7X2nJO4BGqwAA3+
 
-+Cc: Heikki, the author of the code in question.
 
-On Fri, Mar 27, 2026 at 06:23:29PM +0100, Bartosz Golaszewski wrote:
-> On Fri, Mar 27, 2026 at 5:59 PM Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> > On Fri, Mar 27, 2026 at 03:22:12PM +0100, Bartosz Golaszewski wrote:
-> > > Hmm, I'm wondering if there's a race with consumers already requesting
-> > > the GPIOs after the controller device is registered but before the
-> > > software node is added. I'll send a version with software nodes being
-> > > registered first, then passes as firmware nodes to the platform device
-> > > API before the device is registered.
-> >
-> > It crashes early, I was able to get an UART log from OSK (another
-> > 16xx board):
-> >
-> > [    1.001525] Register r12 information: 2-page vmalloc region starting at 0xc2808000 allocated at kernel_clone+0xa4/0x20c
-> > [    1.013092] Process swapper/0 (pid: 1, stack limit = 0x(ptrval))
-> > [    1.019500] Stack: (0xc2809ed0 to 0xc280a000)
-> > [    1.024230] 9ec0:                                     c072d000 c0529474 c06b3aa0 c050a3cc
-> > [    1.032958] 9ee0: c072d000 c085c000 00000002 c052582c c050a324 c072d000 00000000 c0503160
-> > [    1.041687] 9f00: 00002710 00000000 c04da8f8 c0060900 c2809f64 ffffffff 00010000 946f70b5
-> > [    1.050384] 9f20: 00000062 c0816120 00000002 c052582c c0525848 c072d000 c04da8f8 c0060a18
-> > [    1.059112] 9f40: c2809f64 c2809f64 00000000 946f70b5 00000062 c0816120 00000002 c052582c
-> > [    1.067810] 9f60: c052584c c072d000 c04da8f8 c050352c 00000002 00000002 00000000 c0502400
-> > [    1.076507] 9f80: c2809f7c 00000000 c03f86f4 00000000 00000000 00000000 00000000 00000000
-> > [    1.085205] 9fa0: 00000000 c03f8704 00000000 c000850c 00000000 00000000 00000000 00000000
-> > [    1.093902] 9fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-> > [    1.102600] 9fe0: 00000000 00000000 00000000 00000000 00000013 00000000 00000000 00000000
-> > [    1.111206] Call trace:
-> > [    1.111328]  software_node_to_swnode from device_add_software_node+0x20/0x80
-> > [    1.121704]  device_add_software_node from omap16xx_gpio_init+0xa8/0xe4
-> > [    1.128997]  omap16xx_gpio_init from do_one_initcall+0x68/0x1f4
-> > [    1.135620]  do_one_initcall from kernel_init_freeable+0x1ec/0x240
-> > [    1.142517]  kernel_init_freeable from kernel_init+0x10/0x108
-> > [    1.148864]  kernel_init from ret_from_fork+0x14/0x28
-> > [    1.154357] Exception stack(0xc2809fb0 to 0xc2809ff8)
-> > [    1.159820] 9fa0:                                     00000000 00000000 00000000 00000000
-> > [    1.168518] 9fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-> > [    1.177185] 9fe0: 00000000 00000000 00000000 00000000 00000013 00000000
-> > [    1.184295] Code: e3500000 012fff1e e59f3034 e5932000 (e5923000)
-> > [    1.191040] ---[ end trace 0000000000000000 ]---
-> > [    1.196350] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
-> > [    1.204559] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b ]---
+
+On 3/28/26 00:42, Bjorn Helgaas wrote:
+> On Sat, Mar 14, 2026 at 12:55:17AM +0800, Hans Zhang wrote:
+>> Hi,
+>>
+>> This series moves the validation from the common OF function to the
+>> individual PCIe controller drivers.  To protect against out-of-bounds
+>> accesses to the pcie_link_speed[] array, we first introduce a helper
+>> function pcie_get_link_speed() that safely returns the speed value
+>> (or PCI_SPEED_UNKNOWN) for a given generation number.
+>>
+>> Then all direct uses of pcie_link_speed[] as an array are converted to
+>> use the new helper, ensuring that even if an invalid generation number
+>> reaches those code paths, no out-of-bounds access occurs.
+>>
+>> For several drivers that read the "max-link-speed" property
+>> (pci-j721e, brcmstb, mediatek-gen3, rzg3s-host), we add an explicit
+>> validation step: if the value is missing, out of range, or unsupported
+>> by the hardware, a safe default is used (usually Gen2). Other drivers
+>> (mainly DesignWare glue drivers) rely on the helper to safely handle
+>> invalid values, but do not yet include fallback logic or warnings.
+>>
+>> Finally, the range check is removed from of_pci_get_max_link_speed(),
+>> so that future PCIe generations can be supported without modifying
+>> drivers/pci/of.c.
 > 
-> Thanks. This makes sense. Both omap16xx_gpio_init() and
-> software_node_init() run as postcore_initcall() so if the order is not
-> right, it will fail.
+> Thanks for this series.
 > 
-> Cc'ing Andy who's a reviewer for software nodes. Andy: is there any
-> reason to run software_node_init() as a postcore initcall? It only
-> allocates the kset, can we move it to core_initcall() by any chance?
+> We still have a couple references to pcie_link_speed[] that bypass
+> pcie_get_link_speed().  These are safe because PCI_EXP_LNKSTA_CLS is
+> 0xf and pcie_link_speed[] is size 16, but I'm not sure the direct
+> reference is necessary.
+> 
+> The array itself is exported, which I suppose we needed for modular
+> PCI controller drivers, but we probably don't need it now that
+> pcie_get_link_speed() is exported?
+> 
+>    $ git grep "\<pcie_link_speed\>"
+>    drivers/pci/pci-sysfs.c:        speed = pcie_link_speed[linkstat & PCI_EXP_LNKSTA_CLS];
+>    drivers/pci/pci.c:      return pcie_link_speed[FIELD_GET(PCI_EXP_LNKSTA_CLS, lnksta)];
+>    drivers/pci/pci.h:extern const unsigned char pcie_link_speed[];
+>    drivers/pci/pci.h:      bus->cur_bus_speed = pcie_link_speed[linksta & PCI_EXP_LNKSTA_CLS];
+>    drivers/pci/probe.c:const unsigned char pcie_link_speed[] = {
+>    drivers/pci/probe.c:EXPORT_SYMBOL_GPL(pcie_link_speed);
+>    drivers/pci/probe.c:    if (speed >= ARRAY_SIZE(pcie_link_speed))
+>    drivers/pci/probe.c:    return pcie_link_speed[speed];
+>    drivers/pci/probe.c:            bus->max_bus_speed = pcie_link_speed[linkcap & PCI_EXP_LNKCAP_SLS];
 
-Good question. I don't know why it's chosen like this.
-Let ask Heikki, who is the author of the code.
+Hi Bjorn,
 
--- 
-With Best Regards,
-Andy Shevchenko
+Yes, I also realized that this array is directly used in other places. 
+So I submitted this series and I would appreciate it if you could review 
+it to ensure its correctness.
 
+See also this series:
+https://patchwork.kernel.org/project/linux-pci/patch/20260315160057.127639-1-18255117159@163.com/
+
+Best regards,
+Hans
 
