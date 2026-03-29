@@ -1,122 +1,107 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4699372EC0;
-	Sun, 29 Mar 2026 14:48:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EC8924169D
+	for <linux-omap@vger.kernel.org>; Sun, 29 Mar 2026 18:30:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774795734; cv=none; b=hzg3WxQb3wDw3WoWmDzkZZy2pruo6RvpdnMk3EzApZc9JO5vsN5W5HddiQ3l4FoSJZTt2n8iZNO5fJ7oC+bRz8AskfQoE/ibSK2WMpS19WR8jufMXaueCK/fnPZ6J/eGfY+fV8Z6cq58lEdCAveP6RimR3qKCRtEnQ8XFDwD324=
+	t=1774809025; cv=none; b=g9fxgbLF4aA1sbJB4QaCua2rZ5MSg/J74Mp3QbJftQITjAc1ggEpIgBVJegcnLfJ1FA4B/6eNiS3id4RNHatVGw+U8FPi3bMmmhekD2JfSsBKkmhbqreIdaLGb8+1e0UVNhZ1k9mK/VJz8oPY8Y1386SwfwhW52GMzDWZICT/XA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774795734; c=relaxed/simple;
-	bh=WpuLa+iR+7dPc/R2n3OibyMBDZqIk4vAA9bHtGje/bE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=H/X+E0ssuz4UD2yNwOkGAesXEasp1YQCYcIq/YBKx3VbR2Xh5Lj+PMAf2drKHqStL+dzNntWpaJnPFpfj94uOcdKj+mjr8uXsIUuvd1w8B5IgdMxLB8jbC7gD4EZQpub/ioOGy8dT205fo9ulKysIwGoqbFeOTiG5EPViEZrJOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=F7yvNXzL; arc=none smtp.client-ip=220.197.31.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1774809025; c=relaxed/simple;
+	bh=pq1S2/WTsxuiTEJQKGv2gIgx0xjUtOuCL7F0BYi1akA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZIEEGOdcHgu9lt4kXZVj5IRyjhrxwGWEsV3L/hoC8ruo/uDYrTVS/aeRDYTAQK/PYGk94977P2u4q4Gz/1xtr7qwWAFPCS342S5JLkF7CyaH8Qsn8pujdT+CxhoLc/jsiVNA1p8O23B6V7PXAAkcMpLxcj3xohOqdZwZMJY39DM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=F4SyAqBc; arc=none smtp.client-ip=209.85.128.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="F7yvNXzL"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=Message-ID:Date:MIME-Version:Subject:To:From:
-	Content-Type; bh=6D55HdNBFgogkbxZ9B6R/xFqNQaywSSEdDJEMT48Flw=;
-	b=F7yvNXzLWcYYggmho/921Cdsj6BQqjQJgBSJHBEj4Vw9puKVQlnetagQ5l37K3
-	8ux/HqhEJB2aARWpwEBywajYM6gLq9/+4k1oxuO6opefsdSeHpQCrA3AzY1QeNfG
-	Klrgdk9QPyY/3nPqdQs2t6q70aBKgd0j18K2DHtpBNzRQ=
-Received: from [192.168.50.71] (unknown [])
-	by gzga-smtp-mtada-g1-3 (Coremail) with SMTP id _____wCnr9J+O8lpUdKTCA--.51946S2;
-	Sun, 29 Mar 2026 22:47:27 +0800 (CST)
-Message-ID: <fbff8f2a-f4a9-4e06-b5ae-cfb554e73664@163.com>
-Date: Sun, 29 Mar 2026 22:47:26 +0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F4SyAqBc"
+Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-48557c8ad47so28479305e9.0
+        for <linux-omap@vger.kernel.org>; Sun, 29 Mar 2026 11:30:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1774809022; x=1775413822; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=wCXcpkuT9MjL6s3OBnbX3wIF98Pu7GQq85w5vsjac8c=;
+        b=F4SyAqBcSu5TzIL1Yr/FEIqxj4hSyjjIZI2nxPaIX094liCfrEcDvJ97Sb0zH3AdXo
+         VGW35vdWA7e99TeYfRJ3tKC11lFmW7Ej7j2NuAoKRVW+d4dE5L8QyOEKMdts0HWbnwFJ
+         2bHYuhYvcmSPl4dTTNK0ko5oIsc9ttSn7o9dLmd2fKQJPd2qBeW4z2GvjVpskwKHcZyH
+         3PDnCf3DCtysVjblfZXwP2yiyqeSGzY648/zCXbmyFgBROIUxUUrT8X6MMHIYdidzEQs
+         5Cl13+1iseSykcYVxQHm48vL/ToIsXBuToU3Z/b7tN2bBPKe4LOOSLfROR62H8YYmdF+
+         gw8w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774809022; x=1775413822;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=wCXcpkuT9MjL6s3OBnbX3wIF98Pu7GQq85w5vsjac8c=;
+        b=MDUvS/gy5sTpsGUczeV+vOuzRwzWf25FJoiPbCOwXhY6EvJkiEtbHYBTH9Qk0SWfNm
+         QMvjYPyk6ETyNk1h5TfuOM7sWDqoNafSehemMXdBzyiK9kskvFOF0h4OoEfqI+kaxpTh
+         2jkLevl2TJBOAKyhTibRfycjK8wjIl2YDcDqa+7bCuc0ide8c9nLZk8jXKO5yeW8cm+M
+         lQwks0siPJk8l6y2G8VlaDZPjZxAzIMaJkIcXqWdTjVP3LSdhQwgo31aWSMX6l4QVJkh
+         dAovX2mG5G3ckzG6seduUeexE5ZPZhSkKAkSncgAHWOanWAjnSIrluNiwke5K+gL0DrJ
+         /+1A==
+X-Forwarded-Encrypted: i=1; AJvYcCVBfMWHZ6ODmJR4WJcxSQbg1kJXKpuYtFGZaA6LLCy/fAWD/9dT0TaU2S/krbgKcPTwM4Q+PlyA5lV0@vger.kernel.org
+X-Gm-Message-State: AOJu0YwgLyzypXIRtfrMnNivokWGVrFHe8jy8TbKAvadylROALAeDogF
+	pfWDb5OJqemT6N70dWLGn/IQxnyHjAokvg5KfuAVHyACgwn4HsgvUau2
+X-Gm-Gg: ATEYQzx554PYe7U7xpnh55cu14unI07siKXKtM+v1MdRZDuiWSoHPK1X+8oh4YhD/Qr
+	lrCBwcjrSab2ivpDm9C4s4mUot+/6CoqA/YuP68NGs/pkAvzQZF5jwgWoJOUxjmEw68lCefWYTp
+	arNsFGdkMei7EF3vFCxKcyIFKMdXC6sGLR26SVSZB6pJ6+JBqbCObUgsLyLparx0AZvAwF1qYiw
+	5ingPcMxXXmLtjqgUOWq+DuARFy+GOkcZhQeWESN0FHJHkmPULODUgbMrRAdGTJAS2fx72TrN1a
+	2pCYgXGFVm5OhxTuIHtf9uVKjlgdJHtTTBqyi7W6fWHrDM4+Q0rUkq8G6+ZGsb7oFrxWtBpIP4g
+	FPr+TMJFR9kXJ9CD8HuO4YPcAaTUO2QUMRRep0il4cCRJpiWPsP6WliFsx1J29jmZ0R1a4OOO72
+	bBcrayf7DmdAazVUzs732Sh5IugaOXNImNtU7Lh13hgIfiprr5W0VYf9I=
+X-Received: by 2002:a05:600c:1f13:b0:487:169:9f64 with SMTP id 5b1f17b1804b1-48727d73709mr164080515e9.12.1774809022057;
+        Sun, 29 Mar 2026 11:30:22 -0700 (PDT)
+Received: from nixos-office (195-23-151-163.net.novis.pt. [195.23.151.163])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43cf245f8a3sm14307369f8f.24.2026.03.29.11.30.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 29 Mar 2026 11:30:21 -0700 (PDT)
+Sender: Julian Braha <julian.braha@gmail.com>
+From: Julian Braha <julianbraha@gmail.com>
+To: tony@atomide.com,
+	d-gerlach@ti.com
+Cc: daniel.lezcano@linaro.org,
+	tglx@linutronix.de,
+	linux@armlinux.org.uk,
+	arnd@arndb.de,
+	linux-kernel@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Julian Braha <julianbraha@gmail.com>
+Subject: [PATCH] ARM: omap2: dead code cleanup in kconfig for ARCH_OMAP4
+Date: Sun, 29 Mar 2026 19:30:18 +0100
+Message-ID: <20260329183018.519560-1-julianbraha@gmail.com>
+X-Mailer: git-send-email 2.51.2
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v9 0/5] PCI: of: Remove max-link-speed generation
- validation
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: lpieralisi@kernel.org, jingoohan1@gmail.com, mani@kernel.org,
- kwilczynski@kernel.org, bhelgaas@google.com, florian.fainelli@broadcom.com,
- jim2101024@gmail.com, robh@kernel.org, ilpo.jarvinen@linux.intel.com,
- linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-renesas-soc@vger.kernel.org, claudiu.beznea.uj@bp.renesas.com,
- linux-mediatek@lists.infradead.org, linux-tegra@vger.kernel.org,
- linux-omap@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com,
- linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
- shawn.lin@rock-chips.com
-References: <20260327164250.GA1513325@bhelgaas>
-Content-Language: en-US
-From: Hans Zhang <18255117159@163.com>
-In-Reply-To: <20260327164250.GA1513325@bhelgaas>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-CM-TRANSID:_____wCnr9J+O8lpUdKTCA--.51946S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxJFyDCr18WF1UtFyfJr4rGrg_yoW5WrWDpa
-	y2kF40vry0qr43Xr4DX3W5Z3WYq3ZxurWjyryFg3s7Z3ZxCrsxXFyIvayFqF9Ikrsxury2
-	qF12qF4akFW7AFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07U7fHbUUUUU=
-X-CM-SenderInfo: rpryjkyvrrlimvzbiqqrwthudrp/xtbC7AC7X2nJO4BGqwAA3+
+Content-Transfer-Encoding: 8bit
 
+The same kconfig 'select OMAP_INTERCONNECT' appears twice for ARCH_OMAP4.
+I propose removing the second instance, as it is effectively dead code.
 
+This dead code was found by kconfirm, a static analysis tool for Kconfig.
 
-On 3/28/26 00:42, Bjorn Helgaas wrote:
-> On Sat, Mar 14, 2026 at 12:55:17AM +0800, Hans Zhang wrote:
->> Hi,
->>
->> This series moves the validation from the common OF function to the
->> individual PCIe controller drivers.  To protect against out-of-bounds
->> accesses to the pcie_link_speed[] array, we first introduce a helper
->> function pcie_get_link_speed() that safely returns the speed value
->> (or PCI_SPEED_UNKNOWN) for a given generation number.
->>
->> Then all direct uses of pcie_link_speed[] as an array are converted to
->> use the new helper, ensuring that even if an invalid generation number
->> reaches those code paths, no out-of-bounds access occurs.
->>
->> For several drivers that read the "max-link-speed" property
->> (pci-j721e, brcmstb, mediatek-gen3, rzg3s-host), we add an explicit
->> validation step: if the value is missing, out of range, or unsupported
->> by the hardware, a safe default is used (usually Gen2). Other drivers
->> (mainly DesignWare glue drivers) rely on the helper to safely handle
->> invalid values, but do not yet include fallback logic or warnings.
->>
->> Finally, the range check is removed from of_pci_get_max_link_speed(),
->> so that future PCIe generations can be supported without modifying
->> drivers/pci/of.c.
-> 
-> Thanks for this series.
-> 
-> We still have a couple references to pcie_link_speed[] that bypass
-> pcie_get_link_speed().  These are safe because PCI_EXP_LNKSTA_CLS is
-> 0xf and pcie_link_speed[] is size 16, but I'm not sure the direct
-> reference is necessary.
-> 
-> The array itself is exported, which I suppose we needed for modular
-> PCI controller drivers, but we probably don't need it now that
-> pcie_get_link_speed() is exported?
-> 
->    $ git grep "\<pcie_link_speed\>"
->    drivers/pci/pci-sysfs.c:        speed = pcie_link_speed[linkstat & PCI_EXP_LNKSTA_CLS];
->    drivers/pci/pci.c:      return pcie_link_speed[FIELD_GET(PCI_EXP_LNKSTA_CLS, lnksta)];
->    drivers/pci/pci.h:extern const unsigned char pcie_link_speed[];
->    drivers/pci/pci.h:      bus->cur_bus_speed = pcie_link_speed[linksta & PCI_EXP_LNKSTA_CLS];
->    drivers/pci/probe.c:const unsigned char pcie_link_speed[] = {
->    drivers/pci/probe.c:EXPORT_SYMBOL_GPL(pcie_link_speed);
->    drivers/pci/probe.c:    if (speed >= ARRAY_SIZE(pcie_link_speed))
->    drivers/pci/probe.c:    return pcie_link_speed[speed];
->    drivers/pci/probe.c:            bus->max_bus_speed = pcie_link_speed[linkcap & PCI_EXP_LNKCAP_SLS];
+Signed-off-by: Julian Braha <julianbraha@gmail.com>
+---
+ arch/arm/mach-omap2/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
 
-Hi Bjorn,
-
-Yes, I also realized that this array is directly used in other places. 
-So I submitted this series and I would appreciate it if you could review 
-it to ensure its correctness.
-
-See also this series:
-https://patchwork.kernel.org/project/linux-pci/patch/20260315160057.127639-1-18255117159@163.com/
-
-Best regards,
-Hans
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 821727eefd5a..f3f19bcfca2c 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -42,7 +42,6 @@ config ARCH_OMAP4
+ 	select PM if CPU_IDLE
+ 	select ARM_ERRATA_754322
+ 	select ARM_ERRATA_775420
+-	select OMAP_INTERCONNECT
+ 
+ config SOC_OMAP5
+ 	bool "TI OMAP5"
+-- 
+2.51.2
 
