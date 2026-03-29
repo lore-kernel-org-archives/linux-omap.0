@@ -1,186 +1,145 @@
-Received: from mail-dl1-f54.google.com (mail-dl1-f54.google.com [74.125.82.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 863FA2DEA75
-	for <linux-omap@vger.kernel.org>; Fri, 27 Mar 2026 19:11:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF435285CA4;
+	Sun, 29 Mar 2026 11:50:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774638684; cv=none; b=b/Zoc0cNh308TbDSaUwmky3dqokUvfEAbKSjotokbs6sEGqPBjurpPrczOgM1gS3fctc7U1cFypm++YNAFkq/tStbqvxNVphaj95hQV3YzrCwVcONH8Hf9rEgXPjjKuaYrRz89hRhJ7wTPe8Ny/H9f1dwyal31qd+ImuGbrN1AA=
+	t=1774785007; cv=none; b=nj+oRifpt/GaYLocEvKfSe+qUzdq/jG4IDKFdRaThuuf07yGUUadGbsHdn6iLDOB5OnSALVghTWn4X+h4zfgRo/FF3+vkEke5KUWu8rguXbJJ5aa9oKMVyw6GumDchqogTDq9FWlCqtuoHVuo7DeyOj/F1je2+fm5qF3LqWk4NA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774638684; c=relaxed/simple;
-	bh=MY7cvhxbG7/wiNuf5e5sQpLEVRQoOMUVb6G8zWyUBs0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=drOKNJyGVwWp7K1h2aeRZVHP88CJJiHFOJ05YQ8owirvhHgnUfyEdIrmsLFF4GYblwyePZtQBcA0WxWd7CE2Ifea5MlDrOBhsfucDFRJHV+Zj2IDRBfsPhQywSiKMIfoBxWgSr+4HP33eZ5SGpXwPDhUe1wN5vhGlk4K2pARW5A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HHqLCdt3; arc=none smtp.client-ip=74.125.82.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1774785007; c=relaxed/simple;
+	bh=O7l6ak4xT7cXmqRnv4fc6BGKQgIBxzW99MT7EQs0/sc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=BUZU1MSQtethxdTryzGQOWkKkYayIWKZT/STWYow/pvsce3ckSDa96IKwVl08J6ytfEPVnPCTzPMuyu0JQvqY7eWzuMyKbnXBd7nG6Jqnr5F4mLJJFaE1V0OobO6UVMwmZIp88nFEQlHiTRpEVBihdMYb0n9RqUuYt48Qp6kdw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=C3sKWJtV; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HHqLCdt3"
-Received: by mail-dl1-f54.google.com with SMTP id a92af1059eb24-1279eced0b9so3757473c88.0
-        for <linux-omap@vger.kernel.org>; Fri, 27 Mar 2026 12:11:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1774638682; x=1775243482; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=zCbLjBWf2b55Ge/3z8jm9aEiQT0X4UuXkcvJNvdHJnc=;
-        b=HHqLCdt3HSwMxY8SYohSVOvhhyob2P4NRsXJ/z/ifCwWrpXxpXmxXLMA7STK1BD+Fd
-         MYprgzZ/mS58Cbes6VYME0bfqbboBhlQQCXF1u+wlJ27nbBAO6D5GNzzPD3D4tUZDgdH
-         Pu5ZsD+WYdx5gkmE9VhbQPIyezQSzlNd61mGUQMUtzH9NXgZVsKTorgzvBhU6Hr7nYMr
-         X7ngEDqpKy3/hO3VV/32VkNLNpTMixvlPCBk5H5NC1y6Pim6rDVA0rOss4/Mx/84kOFr
-         EwP/axiCkpc+085PcYoIWOs6pHO0sWRblbttDK63eye7Cij6ywhhnWzC0Jx7OAgbGjOF
-         Pf/w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774638682; x=1775243482;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=zCbLjBWf2b55Ge/3z8jm9aEiQT0X4UuXkcvJNvdHJnc=;
-        b=TQAQsUc6zstJosnGyIJHAII8s3T8goobHWhJueMwu0DUZ0t316FJJaj0In5qhO0llG
-         CuMyr9e3WbCoigTtIlid9yrOJRMlMWiRmXe1QH6nQ1iUB2S+dXcG6f3u3voK7ktESXEj
-         FeoaVtxfiXZ+0RaqqTJ0B4lfhn7itbU2n9hjTlOBLXgjnEWeCimxeguYDz2KcSfm0vVh
-         Nm6M9omqbNtgkMfsRNCorUfOViPvz/dInftFpRxPGnmV5QKdKTnxjrFJMR5ENq7dS2Ud
-         wdFIYz9420yvEvDA4I9uj9gh0dwwfe0is84GjFVP7E72M23PJYtcdxW6xq0ygAyIvvBt
-         vuWw==
-X-Gm-Message-State: AOJu0YxQLKLqIXGcKKdnzrO3GxeOEdKts4WyejREsAf42aSPN5lVj9Bc
-	7GQVn4gy6T30UiKRsV3a3+axuOXjVqHTsTzMt7AexoIQT00U/FuQSc25ttSzM9Ox
-X-Gm-Gg: ATEYQzxnQDsAIzQ0wcJmL6JFnPazltDD3KibsaUm288HrPDFSLY06sHxiWV8fgEljub
-	4w6QV/RHSMVTccyMkqzVaLYryJaXFReMsMM7rpra/tTx2y9cmV/WvybrrbJc0CbMppLxu0x26HE
-	KME8NRlj6G9AFHlJ6cD6WSwioUAsgbeACGEg6YwbMykIbT/LqZGe1Ly/yc3n1fA0Azqx6YAs3MZ
-	+MqN3KuWsD3o3F+efHHrqRvyOzHoxpR3fcSr+21MDnZbfyuJF2YS2ighcsD3pbr/vss2//O05r3
-	ApEhywmIvrCcEc513wvUYLEiFNWiVXcEnkBdj/PgX5+ho+tyBV3vS6M9fP5lIBPoL+p2wj1PO7Q
-	3I6TcR3qCjnjHfdf0UUnp3ngpSS8e4VteKK5zJZN5QPTATZJku9trXQrHK/1/87tEdARoVfZFd7
-	F9+6gfAX+EEijXGPZK7HZZIlrfw94woSZElo19zK/5SfbxPVQeiwyJ8HE=
-X-Received: by 2002:a05:7022:6191:b0:127:3b1e:7e0e with SMTP id a92af1059eb24-12ab28cb779mr2194710c88.20.1774638682181;
-        Fri, 27 Mar 2026 12:11:22 -0700 (PDT)
-Received: from ryzen ([2601:644:8000:5b5d::8bd])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2c3c46a0a84sm216527eec.9.2026.03.27.12.11.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Mar 2026 12:11:21 -0700 (PDT)
-From: Rosen Penev <rosenp@gmail.com>
-To: linux-omap@vger.kernel.org
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="C3sKWJtV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774785006; x=1806321006;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=O7l6ak4xT7cXmqRnv4fc6BGKQgIBxzW99MT7EQs0/sc=;
+  b=C3sKWJtVnwXpL1lypRdAdR76iOjSwgmq6+ngKXFCIMiTjBV/ADwQqbsx
+   shQuta1if3nYaFCbMUYAe/FyKo+nQjR4lXczSAmALCF4heNpWJy+PsUot
+   nUSmgSzeL79t4RuenlYYdR0IsBU5AYwtsrynLHGoHWqMFbntxNbxZsDYP
+   3Zx/MjivojYyn7A6zy7TRn+qxY7eysdnwx+cT3cQ6YRsCHdfA8EZEc/4t
+   vrZMrb86RDmJsOzxDHO8z2/CS8TfUenVl7Ccr5276zcPpSpXWgbGiFBDJ
+   XrnNkccsytElNMHJtfkMniXff8uWBxkriP3PU51qBIfNXNj6Q47HuYOSS
+   A==;
+X-CSE-ConnectionGUID: AcJzY4M0RiexTzjd4y7+iQ==
+X-CSE-MsgGUID: VNpS4k7eTVCHgAo+EYzCGQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11742"; a="75505198"
+X-IronPort-AV: E=Sophos;i="6.23,148,1770624000"; 
+   d="scan'208";a="75505198"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2026 04:50:05 -0700
+X-CSE-ConnectionGUID: Eac3bGOiSs+hvqllPRxdgg==
+X-CSE-MsgGUID: 6JZe9bwLTSGA9q6CN5UDzA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,148,1770624000"; 
+   d="scan'208";a="225675186"
+Received: from klitkey1-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.29])
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2026 04:50:02 -0700
+Date: Sun, 29 Mar 2026 14:49:59 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <brgl@kernel.org>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Arnd Bergmann <arnd@kernel.org>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
 	Tony Lindgren <tony@atomide.com>,
 	Russell King <linux@armlinux.org.uk>,
-	Kees Cook <kees@kernel.org>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	linux-arm-kernel@lists.infradead.org (moderated list:ARM SUB-ARCHITECTURES),
-	linux-kernel@vger.kernel.org (open list),
-	linux-hardening@vger.kernel.org (open list:KERNEL HARDENING (not covered by other areas):Keyword:\b__counted_by(_le|_be)?\b)
-Subject: [PATCHv2] ARM: omap2: simplify allocation for omap_device
-Date: Fri, 27 Mar 2026 12:11:04 -0700
-Message-ID: <20260327191104.206512-1-rosenp@gmail.com>
-X-Mailer: git-send-email 2.53.0
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans de Goede <hansg@kernel.org>,
+	Linux-OMAP <linux-omap@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	Kevin Hilman <khilman@kernel.org>
+Subject: Re: [RFT PATCH v3] ARM: omap1: enable real software node lookup of
+ GPIOs on Nokia 770
+Message-ID: <ackRzly0mXHReI7V@ashevche-desk.local>
+References: <20260212112508.73500-1-bartosz.golaszewski@oss.qualcomm.com>
+ <2fb42d16-887a-4564-8e50-c9d6db564c4e@app.fastmail.com>
+ <CAMRc=McYj-D8XL_wnmTEucMrwCy1-xr7h0XYrL68soMVHL1SRA@mail.gmail.com>
+ <7h1phxpzml.fsf@baylibre.com>
+ <CAMRc=McosSU39SERKtjmhJdTv2cPi44PG=bYqAcfQLDX4QB0Tg@mail.gmail.com>
+ <CAMRc=MeYMe1gXjiYuQJpNWchp+V1uLkuRuyO3ohQjfAcg9q3MQ@mail.gmail.com>
+ <acaOlGcGQEZHQ_mJ@darkstar.musicnaut.iki.fi>
+ <CAMRc=McDdK8Y7wtG8WObjD6WF-2ftKBDwKbvj=xL-NMfeV=bPQ@mail.gmail.com>
+ <aca3ajb_G3gD24S7@darkstar.musicnaut.iki.fi>
+ <CAMRc=McVPskF4pMQSz=hR8CkyZhoPmCU_yJFT66vgTCPJd3-Vw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMRc=McVPskF4pMQSz=hR8CkyZhoPmCU_yJFT66vgTCPJd3-Vw@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-Use a flexible array member to combine allocations.
++Cc: Heikki, the author of the code in question.
 
-Add __counted_by for extra runtime analysis.
+On Fri, Mar 27, 2026 at 06:23:29PM +0100, Bartosz Golaszewski wrote:
+> On Fri, Mar 27, 2026 at 5:59 PM Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+> > On Fri, Mar 27, 2026 at 03:22:12PM +0100, Bartosz Golaszewski wrote:
+> > > Hmm, I'm wondering if there's a race with consumers already requesting
+> > > the GPIOs after the controller device is registered but before the
+> > > software node is added. I'll send a version with software nodes being
+> > > registered first, then passes as firmware nodes to the platform device
+> > > API before the device is registered.
+> >
+> > It crashes early, I was able to get an UART log from OSK (another
+> > 16xx board):
+> >
+> > [    1.001525] Register r12 information: 2-page vmalloc region starting at 0xc2808000 allocated at kernel_clone+0xa4/0x20c
+> > [    1.013092] Process swapper/0 (pid: 1, stack limit = 0x(ptrval))
+> > [    1.019500] Stack: (0xc2809ed0 to 0xc280a000)
+> > [    1.024230] 9ec0:                                     c072d000 c0529474 c06b3aa0 c050a3cc
+> > [    1.032958] 9ee0: c072d000 c085c000 00000002 c052582c c050a324 c072d000 00000000 c0503160
+> > [    1.041687] 9f00: 00002710 00000000 c04da8f8 c0060900 c2809f64 ffffffff 00010000 946f70b5
+> > [    1.050384] 9f20: 00000062 c0816120 00000002 c052582c c0525848 c072d000 c04da8f8 c0060a18
+> > [    1.059112] 9f40: c2809f64 c2809f64 00000000 946f70b5 00000062 c0816120 00000002 c052582c
+> > [    1.067810] 9f60: c052584c c072d000 c04da8f8 c050352c 00000002 00000002 00000000 c0502400
+> > [    1.076507] 9f80: c2809f7c 00000000 c03f86f4 00000000 00000000 00000000 00000000 00000000
+> > [    1.085205] 9fa0: 00000000 c03f8704 00000000 c000850c 00000000 00000000 00000000 00000000
+> > [    1.093902] 9fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+> > [    1.102600] 9fe0: 00000000 00000000 00000000 00000000 00000013 00000000 00000000 00000000
+> > [    1.111206] Call trace:
+> > [    1.111328]  software_node_to_swnode from device_add_software_node+0x20/0x80
+> > [    1.121704]  device_add_software_node from omap16xx_gpio_init+0xa8/0xe4
+> > [    1.128997]  omap16xx_gpio_init from do_one_initcall+0x68/0x1f4
+> > [    1.135620]  do_one_initcall from kernel_init_freeable+0x1ec/0x240
+> > [    1.142517]  kernel_init_freeable from kernel_init+0x10/0x108
+> > [    1.148864]  kernel_init from ret_from_fork+0x14/0x28
+> > [    1.154357] Exception stack(0xc2809fb0 to 0xc2809ff8)
+> > [    1.159820] 9fa0:                                     00000000 00000000 00000000 00000000
+> > [    1.168518] 9fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+> > [    1.177185] 9fe0: 00000000 00000000 00000000 00000000 00000013 00000000
+> > [    1.184295] Code: e3500000 012fff1e e59f3034 e5932000 (e5923000)
+> > [    1.191040] ---[ end trace 0000000000000000 ]---
+> > [    1.196350] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+> > [    1.204559] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b ]---
+> 
+> Thanks. This makes sense. Both omap16xx_gpio_init() and
+> software_node_init() run as postcore_initcall() so if the order is not
+> right, it will fail.
+> 
+> Cc'ing Andy who's a reviewer for software nodes. Andy: is there any
+> reason to run software_node_init() as a postcore initcall? It only
+> allocates the kset, can we move it to core_initcall() by any chance?
 
-Remove goto paths as they are not really needed anymore.
+Good question. I don't know why it's chosen like this.
+Let ask Heikki, who is the author of the code.
 
-Signed-off-by: Rosen Penev <rosenp@gmail.com>
----
- v2: remove kfree and fix compilation.
- arch/arm/mach-omap2/omap_device.c | 29 ++++++++++-------------------
- arch/arm/mach-omap2/omap_device.h |  4 ++--
- 2 files changed, 12 insertions(+), 21 deletions(-)
+-- 
+With Best Regards,
+Andy Shevchenko
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 79db4c49ffc9..77a75b0b9ae6 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -307,35 +307,27 @@ static struct omap_device *omap_device_alloc(struct platform_device *pdev,
- 	int ret = -ENOMEM;
- 	struct omap_device *od;
- 	int i;
--	struct omap_hwmod **hwmods;
-+	struct omap_hwmod *hwmod;
-
--	od = kzalloc_obj(struct omap_device);
--	if (!od)
--		goto oda_exit1;
-+	od = kzalloc_flex(*od, hwmods, oh_cnt);
-+	if (!od) {
-+		dev_err(&pdev->dev, "omap_device: build failed (%d)\n", ret);
-+		return ERR_PTR(ret);
-+	}
-
- 	od->hwmods_cnt = oh_cnt;
-+	memcpy(od->hwmods, ohs, oh_cnt * sizeof(*od->hwmods));
-
--	hwmods = kmemdup_array(ohs, oh_cnt, sizeof(*hwmods), GFP_KERNEL);
--	if (!hwmods)
--		goto oda_exit2;
--
--	od->hwmods = hwmods;
- 	od->pdev = pdev;
- 	pdev->archdata.od = od;
-
- 	for (i = 0; i < oh_cnt; i++) {
--		hwmods[i]->od = od;
--		_add_hwmod_clocks_clkdev(od, hwmods[i]);
-+		hwmod = od->hwmods[i];
-+		hwmod->od = od;
-+		_add_hwmod_clocks_clkdev(od, hwmod);
- 	}
-
- 	return od;
--
--oda_exit2:
--	kfree(od);
--oda_exit1:
--	dev_err(&pdev->dev, "omap_device: build failed (%d)\n", ret);
--
--	return ERR_PTR(ret);
- }
-
- static void omap_device_delete(struct omap_device *od)
-@@ -344,7 +336,6 @@ static void omap_device_delete(struct omap_device *od)
- 		return;
-
- 	od->pdev->archdata.od = NULL;
--	kfree(od->hwmods);
- 	kfree(od);
- }
-
-diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
-index aa8096ecb23c..fae09cfce137 100644
---- a/arch/arm/mach-omap2/omap_device.h
-+++ b/arch/arm/mach-omap2/omap_device.h
-@@ -37,11 +37,11 @@
- /**
-  * struct omap_device - omap_device wrapper for platform_devices
-  * @pdev: platform_device
-- * @hwmods: (one .. many per omap_device)
-  * @hwmods_cnt: ARRAY_SIZE() of @hwmods
-  * @_state: one of OMAP_DEVICE_STATE_* (see above)
-  * @flags: device flags
-  * @_driver_status: one of BUS_NOTIFY_*_DRIVER from <linux/device.h>
-+ * @hwmods: (one .. many per omap_device)
-  *
-  * Integrates omap_hwmod data into Linux platform_device.
-  *
-@@ -51,11 +51,11 @@
-  */
- struct omap_device {
- 	struct platform_device		*pdev;
--	struct omap_hwmod		**hwmods;
- 	unsigned long			_driver_status;
- 	u8				hwmods_cnt;
- 	u8				_state;
- 	u8                              flags;
-+	struct omap_hwmod		*hwmods[] __counted_by(hwmods_cnt);
- };
-
- /* Device driver interface (call via platform_data fn ptrs) */
---
-2.53.0
 
