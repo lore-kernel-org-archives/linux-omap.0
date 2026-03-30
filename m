@@ -1,119 +1,96 @@
-Received: from server.couthit.com (server.couthit.com [162.240.164.96])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC7343B4E8B;
-	Mon, 30 Mar 2026 12:23:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.240.164.96
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A85693CB2FE
+	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 12:26:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774873395; cv=none; b=mlnbOOP/T8cxVqJMt17wapq7uaFdyMNxBiY8HSmTl/v0pzzwBps/X4p+H8H1KZ+x4M5wGtsjptRxgYgb+IhaQZj2+kg/FikA4c/PoeviTCOx7xfH7c1k+5efzoe9xzRAFnBCi0o07UHxtaGF5inlIpsZrUR4Yncj7R4zskE7z5c=
+	t=1774873609; cv=none; b=UeIjJ2/KXOiunR9QBGGP6/sTvobcofKoyC6adeKVD7kreP5Uas3dIW5uMg2ff1nYTW8YuXTQqM1sj52Kauq9vn5/UmUQzDi5SIiXzf0KUdk8srp0sfJ0RzIHoMCgZiJCMFdzvNOOQQf4Cg5s01IHcQn6vTvdp5JgqkCOiRHX3b8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774873395; c=relaxed/simple;
-	bh=FsvuZh6AdTR/1QOkqYfLXEn+LEcBDFMJTS700Rj4mxc=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 MIME-Version:Content-Type; b=QkwLGP7lSaMeqBXkIWW2vnxuKuO5VZhz7oZEq5bjjMMWC0H/Etj43mtD64QKnQoDJBq8Y/w6p1e2r5N8xUia1r9C+ypILNPRdoMrXzv7G2j70b86p81GEcPmRXXdqPMlr3VMyeaqgjwyW96lpwgz1jOx3w7TMok2M1Hl4rqQTH0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=couthit.com; spf=pass smtp.mailfrom=couthit.com; dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b=xzEvR8ZH; arc=none smtp.client-ip=162.240.164.96
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=couthit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=couthit.com
+	s=arc-20240116; t=1774873609; c=relaxed/simple;
+	bh=AHtCIKj55eWGE7GRtpfrjZZg4gF/iBOryNVSD/NH+Mo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=SIf5ylE1p6s8gZRMbKVazIqFUmAjBluuuEVf9feiIwKtgJW3HLVLZnx3knVR/bluSlIAntMVBwLVvnWrWfJD+uekzuj/lykEExJaCTfsiqokve23Wg+Yfz1Mi7uBiUAjiqojds1ZDJBpM9JyIU+3j46EAtaXuwlQRz5gJGWrZ80=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cewle8kP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b="xzEvR8ZH"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=couthit.com
-	; s=default; h=Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:
-	References:In-Reply-To:Message-ID:Cc:To:From:Date:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=wqOHbYxZOhKblA4rwLkEKOT4hJPxT7ENuF/pYv/tQxg=; b=xzEvR8ZHDo4I62B4dPIGN+0R3O
-	5QkEzWyY2CAiRv+A+QGcAI+eWBtBpZvb/1yI9cuCbe7qO5sOLlF616Fuu7YZ5fY+a1Ob2ivJ/EKDW
-	4dr0PONKQPEqiBx6KkNngxOSWbtmEJ2g0dF4F2tZrpPl5reUgff2+pmCrjD4SwRv+i+lw5ZxYiurR
-	cdTYStoFU/YtAMF8l5wJfgwLde4TQHEGdC4e1I5fdG5sQ0c2MOu5xcbHwaCF6Ye8V55Op4aIivYR4
-	0gKrvMTWbamrfZxaViQFbCOuYD+/KkTmBkqaBb4dw0H1n+umP/mCOm0+FVKsCu+bMacfQebnYRxcV
-	tuBypLMQ==;
-Received: from [115.246.246.98] (port=33079 helo=zimbra.couthit.local)
-	by server.couthit.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.98.1)
-	(envelope-from <parvathi@couthit.com>)
-	id 1w7Be4-00000005tTc-05MZ;
-	Mon, 30 Mar 2026 08:23:04 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by zimbra.couthit.local (Postfix) with ESMTP id 2AB1E1B22FE5;
-	Mon, 30 Mar 2026 17:52:58 +0530 (IST)
-Received: from zimbra.couthit.local ([127.0.0.1])
- by localhost (zimbra.couthit.local [127.0.0.1]) (amavis, port 10032)
- with ESMTP id ZZfqEwv8_Cm0; Mon, 30 Mar 2026 17:52:57 +0530 (IST)
-Received: from localhost (localhost [127.0.0.1])
-	by zimbra.couthit.local (Postfix) with ESMTP id 9538D1B23224;
-	Mon, 30 Mar 2026 17:52:57 +0530 (IST)
-X-Virus-Scanned: amavis at couthit.local
-Received: from zimbra.couthit.local ([127.0.0.1])
- by localhost (zimbra.couthit.local [127.0.0.1]) (amavis, port 10026)
- with ESMTP id U0buoev9nmnn; Mon, 30 Mar 2026 17:52:57 +0530 (IST)
-Received: from zimbra.couthit.local (zimbra.couthit.local [10.10.10.103])
-	by zimbra.couthit.local (Postfix) with ESMTP id 6D0871B22FE5;
-	Mon, 30 Mar 2026 17:52:57 +0530 (IST)
-Date: Mon, 30 Mar 2026 17:52:57 +0530 (IST)
-From: Parvathi Pudi <parvathi@couthit.com>
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Parvathi Pudi <parvathi@couthit.com>, Krzysztof Kozlowski <krzk@kernel.org>, 
-	Kevin Hilman <khilman@baylibre.com>, nm <nm@ti.com>, 
-	Vignesh Raghavendra <vigneshr@ti.com>, afd <afd@ti.com>, 
-	rogerq <rogerq@kernel.org>, tony <tony@atomide.com>, 
-	robh <robh@kernel.org>, krzk+dt <krzk+dt@kernel.org>, 
-	conor+dt <conor+dt@kernel.org>, 
-	richardcochran <richardcochran@gmail.com>, 
-	aaro koskinen <aaro.koskinen@iki.fi>, andreas <andreas@kemnade.info>, 
-	linux-omap <linux-omap@vger.kernel.org>, 
-	devicetree <devicetree@vger.kernel.org>, 
-	linux-kernel <linux-kernel@vger.kernel.org>, 
-	netdev <netdev@vger.kernel.org>, danishanwar <danishanwar@ti.com>, 
-	pratheesh <pratheesh@ti.com>, j-rameshbabu <j-rameshbabu@ti.com>, 
-	praneeth <praneeth@ti.com>, srk <srk@ti.com>, rogerq <rogerq@ti.com>, 
-	m-malladi <m-malladi@ti.com>, krishna <krishna@couthit.com>, 
-	mohan <mohan@couthit.com>, pmohan <pmohan@couthit.com>, 
-	basharath <basharath@couthit.com>, 
-	Murali Karicheri <m-karicheri2@ti.com>
-Message-ID: <2119014162.782613.1774873377419.JavaMail.zimbra@couthit.local>
-In-Reply-To: <6c523569-928b-4df5-89f3-9a460d5f6020@lunn.ch>
-References: <20260307122641.738450-1-parvathi@couthit.com> <20260307122641.738450-4-parvathi@couthit.com> <7ho6ks1r4s.fsf@baylibre.com> <91797572.667989.1773662409130.JavaMail.zimbra@couthit.local> <ee2ec279-ee5d-4d6d-b6ff-35187e3f03e6@kernel.org> <1868242922.724201.1774332140293.JavaMail.zimbra@couthit.local> <6c523569-928b-4df5-89f3-9a460d5f6020@lunn.ch>
-Subject: Re: [PATCH v5 3/3] arm: dts: ti: Add device tree support for
- PRU-ICSS on AM335x
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cewle8kP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E524C2BCB0
+	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 12:26:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774873609;
+	bh=AHtCIKj55eWGE7GRtpfrjZZg4gF/iBOryNVSD/NH+Mo=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=Cewle8kPhz/ya3s+FO5WMYymxCjawPAP+TTgf+1eMEvF3NPyddME9vK5ylZL/pKd7
+	 tQeb8LjGVvbSO/yUaYq5aVRkG7zJzxl5dVxcYOvmy0/o3l0aUyOp2HlJhU9Hxdybbx
+	 lvTGq9AeVEmGIij76A8LMpR+UWqBzzrxkjafi7fytYKkwuHmcWtm1HjueFDjPpZ8CG
+	 3DtRR7IfPdzsQMSWue+bzSsLi8UCt25ulv3cnqheF6fPfQb6VXt2nfwY6SDfFFnvfF
+	 Qqkl6HXoSAYMlv+IrsOxzZHCmyKf1R/GOAqYkXqFUj2vAzHbK+TY/nf81mpdF60V0d
+	 JfSuW2STfuGtA==
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5a126c8aab9so5265004e87.0
+        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 05:26:49 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXP7bipalwP+dvbt6h7dQcogXOWSdjIbtfoUybp3qv4u4oQl7KDoVMpT37jO2/DScJGSDKndo6Z1ObT@vger.kernel.org
+X-Gm-Message-State: AOJu0YzS/Wglmfr8+AtM/+7bjqCW9HTlHSSDV3rH7XOH048wxAU2dhcc
+	QiP0nPpJ31dOwUXWOFPUyJWvmWtRv9Sck1hm8WckOSDZrSUZAg0kJb56aCZX1nxpkx1DQ2VFTFd
+	Hx92YJwImRp+sQrzOw7MPUFFx+qI9kTkmFE2+gG+bVQ==
+X-Received: by 2002:a05:6512:2302:b0:5a1:4017:18d1 with SMTP id
+ 2adb3069b0e04-5a2ab935ac2mr3963243e87.37.1774873607983; Mon, 30 Mar 2026
+ 05:26:47 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-X-Mailer: Zimbra 9.0.0_ZEXTRAS_20240927 (ZimbraWebClient - GC138 (Linux)/9.0.0_ZEXTRAS_20240927)
-Thread-Topic: Add device tree support for PRU-ICSS on AM335x
-Thread-Index: Yeg9Le+d6/LdmTazsRbjkV66zNcCzA==
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - server.couthit.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - couthit.com
-X-Get-Message-Sender-Via: server.couthit.com: authenticated_id: smtp@couthit.com
-X-Authenticated-Sender: server.couthit.com: smtp@couthit.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+References: <2fb42d16-887a-4564-8e50-c9d6db564c4e@app.fastmail.com>
+ <CAMRc=McYj-D8XL_wnmTEucMrwCy1-xr7h0XYrL68soMVHL1SRA@mail.gmail.com>
+ <7h1phxpzml.fsf@baylibre.com> <CAMRc=McosSU39SERKtjmhJdTv2cPi44PG=bYqAcfQLDX4QB0Tg@mail.gmail.com>
+ <CAMRc=MeYMe1gXjiYuQJpNWchp+V1uLkuRuyO3ohQjfAcg9q3MQ@mail.gmail.com>
+ <acaOlGcGQEZHQ_mJ@darkstar.musicnaut.iki.fi> <CAMRc=McDdK8Y7wtG8WObjD6WF-2ftKBDwKbvj=xL-NMfeV=bPQ@mail.gmail.com>
+ <aca3ajb_G3gD24S7@darkstar.musicnaut.iki.fi> <CAMRc=McVPskF4pMQSz=hR8CkyZhoPmCU_yJFT66vgTCPJd3-Vw@mail.gmail.com>
+ <ackRzly0mXHReI7V@ashevche-desk.local> <aco3YBCQsT2BN2_N@kuha>
+In-Reply-To: <aco3YBCQsT2BN2_N@kuha>
+From: Bartosz Golaszewski <brgl@kernel.org>
+Date: Mon, 30 Mar 2026 14:26:36 +0200
+X-Gmail-Original-Message-ID: <CAMRc=Mf8+CPU+azcZ-Q=RiAQs8rh40Ex3kE7xhUWAWNDnR8KKQ@mail.gmail.com>
+X-Gm-Features: AQROBzBzoMQj_yi1O7GWL1v5KyhSCqt-LPe-BXFuLUoNwr5idSYsB_NYvCAw6-c
+Message-ID: <CAMRc=Mf8+CPU+azcZ-Q=RiAQs8rh40Ex3kE7xhUWAWNDnR8KKQ@mail.gmail.com>
+Subject: Re: [RFT PATCH v3] ARM: omap1: enable real software node lookup of
+ GPIOs on Nokia 770
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Arnd Bergmann <arnd@kernel.org>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Tony Lindgren <tony@atomide.com>, 
+	Russell King <linux@armlinux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
+	Hans de Goede <hansg@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, 
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Kevin Hilman <khilman@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Mon, Mar 30, 2026 at 10:43=E2=80=AFAM Heikki Krogerus
+<heikki.krogerus@linux.intel.com> wrote:
+>
+> > > Thanks. This makes sense. Both omap16xx_gpio_init() and
+> > > software_node_init() run as postcore_initcall() so if the order is no=
+t
+> > > right, it will fail.
+> > >
+> > > Cc'ing Andy who's a reviewer for software nodes. Andy: is there any
+> > > reason to run software_node_init() as a postcore initcall? It only
+> > > allocates the kset, can we move it to core_initcall() by any chance?
+> >
+> > Good question. I don't know why it's chosen like this.
+> > Let ask Heikki, who is the author of the code.
+>
+> I don't remember why it was it made a postcore initcall (I only
+> remember that there was some reason at the time). It's probable
+> fine to just make it a core initcall.
+>
 
->> We have verified that dtbs_check does report this issue, and we will update
->> our test setup to retain full dtbs_check output to avoid missing such warnings
->> in the future.
-> 
-> I would expect the exit value is set to something other than 0 when it
-> finds an error. Why not just fail the test based on that?
-> 
+We can't really make it a core_initcall() either - kernel_kobj on
+which software nodes depend is currently initialized in a
+core_initcall() which could have been the reason for putting
+software_node_init() in a postcore_initcall(). I think both
+kernel_kobj and software nodes should be made available earlier.
 
-Earlier, we were using the command "grep -v '^\s\s*'" to capture the logs.
-We noticed that this command skips capturing output lines that starts with an
-indent. To prevent this, we have temporarily modified the grep command to capture
-the full output. The downside is that this results in a bigger log file. 
-
-We will review and try to come up with a better way to handle this issue.
-
-Thanks and Regards,
-Parvathi
+Bart
