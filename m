@@ -1,118 +1,96 @@
-Received: from mail-dy1-f169.google.com (mail-dy1-f169.google.com [74.125.82.169])
+Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49EEC3A6EEA
-	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 21:46:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17DA93A6B7A
+	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 21:53:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774907212; cv=none; b=AurBuDDpxqjJ5o3SadREuYD+1WrwMSallsFJhUJaMS480KEsDMt8HoB93cx8hML4dQXtfKxFjMLHDWCbKYJMcH2VZ/GkmDg4WenwzBVxxBXTF2auo5JD0zbJ4M3r+fUDudx+DlQbD5bGaxvCoQjF2Ty1hT5rGmgGUGifo6aZKmk=
+	t=1774907599; cv=none; b=XifXdCTZxIFtHyLWjA6fHu2M1tx4ZUcVr0H9BxrZ5Hpi+X06CQAK4wlTl71MiKOiG6ngyLjYn5nsc3O9yKhcEbLWxg/MdrMxXtH6m2MhIc76f75Lrw+s7OmkYHWpu0/0FXn0197KT9VMo7rkJcF6BdUZ9sH/YJLbB5rGLvcRUxs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774907212; c=relaxed/simple;
-	bh=H6TjEPdSZGIipXDhaHlw3GjgyD8b6HCnTcEmbY8Pw/c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hUWy2o159m4dHCxc22C7f4uqOZnahvUQzQqjEKK5yDC5iNZfcSJnMQgIm0LBkJBE9i6B32UU61drndM5V2VKiHFw7CdDfwpqpCy1ljDRLCa8Q0fJBfN6wRneGWfUuUMLMFldEJE9O/xp1Y8JTtuACtli588rS/D+9zv1fa1ZmFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DIIPSnF5; arc=none smtp.client-ip=74.125.82.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1774907599; c=relaxed/simple;
+	bh=4jTPZVvGwUIlEBcgQGdmD1Mj4Ocux/MAzit3JUzidYE=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=gNYbThMi+okbCvr8NxqAHP843nN9t1LfTaf1GVkvcwOFW0PtTG5x2glIBEvFVhNFcSq4bDwi+kx7wC1xX/QKQNeseUXHv7BgFbFfvPEQKX1h0o8dtpzfa4XZyyMjZgbhIdA7GEtzdeq16loDr5S63ARwb8wp50/X4TSiejIYqWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=S2xCY4t1; arc=none smtp.client-ip=209.85.210.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DIIPSnF5"
-Received: by mail-dy1-f169.google.com with SMTP id 5a478bee46e88-2c17446ba8dso3085815eec.1
-        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:46:51 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="S2xCY4t1"
+Received: by mail-pf1-f173.google.com with SMTP id d2e1a72fcca58-82cd98be655so88238b3a.0
+        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:53:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1774907210; x=1775512010; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=y/4gRi5RHE4lEQNk8r3GZP5jsAjQXbbb0ZHPhMUySrM=;
-        b=DIIPSnF5M6TJOXjmgABD26oMcLvEltvmnX/nc5atQExOQErENo8AJz4eSwwLhzbkjb
-         ZrrUdvmWVOfwTEROGD8Nn+ktUwLj8OFElNWqxIDhwLpvC3Z1lCoMkexe/elFnX1R1kni
-         t+Mt3Wv9O/sFFkH0HButc+y5m/DCxqtr3ZgYvtvXSD43gE5JIwDuzBBSkYjuHuwHLmXa
-         8zJVaR8xnjD4pNC+BxJ6Dzerese1rdIQ8e+cRUS1/jvGU31GCeWBAXgyWDeT26Ik3tGJ
-         VdPB990Z8hU0Whvu0u9MrPn+drJyFqpG6bQHH93YRiJBVnDS5P1uK1tXa9LcSJuzENjl
-         7Nkg==
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1774907597; x=1775512397; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:date:message-id:subject
+         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=nahCW0+Ro8Vy+N/mWFUvcaNK++QL1eNsUklGbOxkbK8=;
+        b=S2xCY4t17JLGnEri36yQQnRaskGpcBACA+piTtYlOfnLoBFU38Rit1LSD/ksz85Arg
+         C7dTWE/uSHLi7yi8xDRIOZp2JFXF8qT6rJQv5g4zjOfIwVZzhZT7e3x737+3brTCMCh1
+         xVGmlDxP5Zx5H1bYvvFBkl1zmeNGpl252c3iJsl8jMu2AzTOA+VHVZOhvGgqwYfSYPFq
+         BlNnB/vVJD4pw7YUjm4W0f73yFDspHWg+S+weI7yrkWmzMzpBXAta00S6NXM9YMpssgD
+         Itx7Wyccdi2pFfLDW2aKT2Zs1p/7M7FcSTxDXLvx9v/3gz6sglIqril0vCklLuJACEGo
+         V8Ww==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774907210; x=1775512010;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=y/4gRi5RHE4lEQNk8r3GZP5jsAjQXbbb0ZHPhMUySrM=;
-        b=gP44VNYzvJY4XLM/AW6y21WtOnCu/kHRnExAVxxhvDDE9UsDd4CCwCavXI6n9wlUUx
-         PSPdKrrlur+y9KMJ/WLaJJWAHNAqEFR9su6EOpA2uNtLUnj199JHYJ3xpMq+sI8i2I/A
-         dqsmEqWaOKJYvbAxm0s7lZovLKzSp39i1ljUHFcRxm91lUZB3gOgr7UtzPiNYlGV9kUt
-         LZQs7pKsN3uAfRKqOJ1EDgjvOwB0P0W/OpypfL2VdkIvkpWH57ZBI4IX2WauYnPCnhe8
-         UzwW1vW6fRz+6/T3N9oo8+hdalX/5+TaXPHu//Mgf2RsyfNMpKsO/BR691c6bNwHTAh6
-         wrfA==
-X-Forwarded-Encrypted: i=1; AJvYcCVyJa0j6rLdvF97Lh6xhsnuE10OG/BVES7wR1hts3eNeaMbxD+ZbWuMWMtVLC4Cu/ZTK0arYpLsmPEv@vger.kernel.org
-X-Gm-Message-State: AOJu0YyOWIaLqdczvUdppUWqowBoehYoClerQcXKS/xChPCwycTKAaPA
-	RR+nCDsQlTKkMKdIdMQKrQP4Nn82+HtAfCc77n6zE4Pqrv6QkL+oXhb4
-X-Gm-Gg: ATEYQzw/nHAv9OOuDZJbK+Loi70I9NUtOe7Zg6UuSsUZJNyDWatPDNOfX4xZr/qAsM+
-	gyzLVbWAYNEhrby6avvxosgOioGrVxWLEP5k9Ds8QQCXuyqvq8plRXc7hVYzwRQ2/uhMkFdAZp6
-	pnmfRVyZd5sbsUx9bm/pBopRdo9BJUdQaBSgO3GxN6k5hR2Dhy/BgiHNaOfWQE6GAuUJ11q0yNd
-	XlBx0qOi14tltKlm8lVMCNDQN0dkjjTZQKYVJ9NKRCa855tzV6pXjHm328CdGCpeSqGEaiT6Iv+
-	H62mKBJLxEJDcXT6A565S9KMN6mnc3bK2T64mAA70CFGiXVGdnaSLVkv/A9qdLZmiJsR5MNNJIC
-	HW+JCggtMrkjl4zJ4YnwPT89bLAqvcvC7TkIi0DivPVxNiv29ueW0sWtoQfZ276aD9aF/mq4NSt
-	880ha1Iw+8//QLG72BvWJWt2kyirve/ybDcFQ9NfnZM+8O0rNCNeY1NXzqGeo07MA3
-X-Received: by 2002:a05:7301:1f17:b0:2c5:d833:a507 with SMTP id 5a478bee46e88-2c7bc35b062mr700637eec.12.1774907210198;
-        Mon, 30 Mar 2026 14:46:50 -0700 (PDT)
-Received: from google.com ([2a00:79e0:2ebe:8:7f4e:2749:b37a:e9d5])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2c3c68b2721sm7751610eec.14.2026.03.30.14.46.48
+        d=1e100.net; s=20251104; t=1774907597; x=1775512397;
+        h=content-transfer-encoding:mime-version:date:message-id:subject
+         :references:in-reply-to:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=nahCW0+Ro8Vy+N/mWFUvcaNK++QL1eNsUklGbOxkbK8=;
+        b=PTGckDNOLf/0/Bazn3dBwNI5kPBUHdEaBkHV3yYXK195O05SfJ1WSN5dPUbBJWEduc
+         VjZcpj8fRl2oyQL07xxWpwcNXu8z+mnc214wH7xcau4wFSxyX4eX0atVnwVHVmETSRZH
+         9f0/Tl//P2ZjXnjI4H+lgievgeCAfUeiU1EYViA0EZJ/QFtOM1w6M5uZWVunzwIspqbM
+         6gQH+vQkp+3/GOGzetvboM15c7ho0Z71z5dzBbYb0hcdhj1Yhn0fefYbElYgND5L/PJ5
+         rcy5aGjR/MyUnf0aIv4jmjNIaKlJxG3Ta2cKPZkbnBPJReGJJR3H28C4kFeNZc+Gykn4
+         GXrQ==
+X-Forwarded-Encrypted: i=1; AJvYcCU6lBxMX4NkwmRJ33RUX++ZIMLcm28bO/u7Bl5SrZHEwdH78+C+LUA6zhkj+iljZJOg59XmMxaL9AGC@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw/iEDtcJZG0rTHec9vZjXPNemQrcOjwPndal6HqR3VXIGeG4Gs
+	X31c85HNrOYS6dtpgv5b/lReMv3OGMpZMMgIvYz+hsNA1AZc1ypEagdlsX+jIMyLlb6UxpDdUxP
+	PvqjbzSQ=
+X-Gm-Gg: ATEYQzwkwSgKin0siS6obKSd5fSdo7+H6JxUFAJZoD9r6h0HofbPih6M8qH9XgHnDID
+	OfrUf1aWvJeFe0xC+0dvUkkjQLD7mSiS9WoLiavBLm5D+cpX3R+c0gtR12nfE9VpeXgGjaNSlty
+	xmp6mbKEXJbNQIgvI0dMt76rYkEhWr7ZCNcpLkp6rhDIILkQUeVYnR+rAVwa2AQSdH7MzUrKcJ6
+	UWmnX9xhFEuSW4ZKBkvMplAZLPMnqsO9vcDo4yxDsNzOPqu+RCNg/VovwNxP3rN01+9IqAZkOsJ
+	iWCWgGStagRi4YzN61e6iV2Z22aPWXRvlmgE5GvOyYE9O353iua7pR2pGaI0eJjZbPjAfGCM+qQ
+	fYoVYEq5zzagfqvAzLreLRAo51uTH5oXJF5BW8QHaRz4RaxHrqv3V9CYU4qlERZOCYC/y+1WCCH
+	LuFlw+bKqX9VMCThNuMkk=
+X-Received: by 2002:a05:6a00:cce:b0:82c:d8c4:35d with SMTP id d2e1a72fcca58-82cd8c40707mr536001b3a.14.1774907597268;
+        Mon, 30 Mar 2026 14:53:17 -0700 (PDT)
+Received: from localhost ([97.126.187.42])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82ca846e08dsm8289266b3a.24.2026.03.30.14.53.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Mar 2026 14:46:49 -0700 (PDT)
-Date: Mon, 30 Mar 2026 14:46:45 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, 
-	Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, 
-	Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>, brgl@kernel.org, 
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v4 2/3] driver core: make software nodes available earlier
-Message-ID: <acruxMNdnUlyRHiy@google.com>
-References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
- <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
- <acrcDTPpXZ_5A4D8@ashevche-desk.local>
+        Mon, 30 Mar 2026 14:53:16 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Janusz Krzysztofik <jmkrzyszt@gmail.com>, 
+ Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, 
+ Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <aca7HnXZ-aCSJPW7@darkstar.musicnaut.iki.fi>
+References: <aca7HnXZ-aCSJPW7@darkstar.musicnaut.iki.fi>
+Subject: Re: [PATCH] ARM: OMAP1: Fix DEBUG_LL and earlyprintk on OMAP16XX
+Message-Id: <177490759624.2030917.6444864958465208539.b4-ty@baylibre.com>
+Date: Mon, 30 Mar 2026 14:53:16 -0700
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <acrcDTPpXZ_5A4D8@ashevche-desk.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev
 
-On Mon, Mar 30, 2026 at 11:24:45PM +0300, Andy Shevchenko wrote:
-> On Mon, Mar 30, 2026 at 02:40:47PM +0200, Bartosz Golaszewski wrote:
-> > Software nodes are currently initialized in a function registered as
-> > a postcore_initcall(). However, some devices may want to register
-> > software nodes earlier than that (or also in a postcore_initcall() where
-> > they're at the merci of the link order). Move the initialization to
-> > driver_init() making swnode available much earlier as well as making
-> > their initialization time deterministic.
-> 
-> ...
-> 
-> > -static void __exit software_node_exit(void)
-> > -{
-> > -	ida_destroy(&swnode_root_ids);
-> > -	kset_unregister(swnode_kset);
-> >  }
-> > -__exitcall(software_node_exit);
-> 
-> 
-> Why? What's wrong with the __exitcall?
-> 
 
-It's dead code. Always was, always will be.
+On Fri, 27 Mar 2026 19:15:10 +0200, Aaro Koskinen wrote:
+> On OMAP16XX, the UART enable bit shifts are written instead of the actual
+> bits. This breaks the boot when DEBUG_LL and earlyprintk is enabled;
+> the UART gets disabled and some random bits get enabled. Fix that.
 
-Maybe split in a separate patch, but I sometimes feel the idea of "one
-change" is taken to extreme and adds to both developer's and maintainers
-burden by needing to keep track of extra patches.
+Applied, thanks!
 
-Thanks.
+[1/1] ARM: OMAP1: Fix DEBUG_LL and earlyprintk on OMAP16XX
+      commit: 7e74b606dd39c46d4378d6f6563f560a00ab8694
 
+Best regards,
 -- 
-Dmitry
+Kevin Hilman <khilman@baylibre.com>
+
