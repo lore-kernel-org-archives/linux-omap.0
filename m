@@ -1,100 +1,200 @@
-Received: from mail-pf1-f170.google.com (mail-pf1-f170.google.com [209.85.210.170])
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 388092EACF2
-	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 21:20:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3B393A16A4
+	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 21:35:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774905652; cv=none; b=VHsSx+ME6VqF1zawVazbUFIC1Ws/WycwFrMGouSpMzhwRem6lmSxHmZL8ARPa0OM+h/X1c7Vp+eLKh+yq+HyySpaToQc5Yybjk3dSAE7+h+IiBq+26TH/eIvQa67kDprgtfFk02k79hHKLko1UJMS6ouSKCffOwIu1igRDRa+rA=
+	t=1774906549; cv=none; b=PM39GIAsy+kX5Wc4LelqHqSU7wJHvQkm58Pnu8YmKUzPTXS76RiD6DsNFiVCRSSQnn+BYVTtGxOHCYdL43Yoc59T31dlwzFw469eFZ3x5Jop5UB0bY708nmpzgZ1oeIzvd1ORCbUvhctqxZJRZMP2bI9J1U5HV3Y8RND35bspSY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774905652; c=relaxed/simple;
-	bh=xxGSfNEhIKCN3A5hPhCPaCefZunVyRLNKNOdvFsKOV4=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=ndMmnIkly3hNGpKPwBV1Bs/pMIXfbQCbA/LvOGcgL5CgYFY4B1ZE0/ZlyzMvkFS/tLmYBt0CWxVAemS3OPRycLbuk1Y7qKsgpBD6X1hNT98YHN5c0habg9KqaTRmk22QrzvgnYcjGZ6p/4O8SkpiYTHbj7WLY7SERwOLYi+ztvY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=1V29NqNJ; arc=none smtp.client-ip=209.85.210.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	s=arc-20240116; t=1774906549; c=relaxed/simple;
+	bh=FBG264/as4xr5hoTu9a5yO1BMLPpFQRBi0Esu2p/Djo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=meruUKorKdfHjFi20yzrHfwTQ6v+5/OH6XafS+DlUI6C5xi0VhlwtQ7AxiF+WjL6l8srx5ReXdfXlIvVV9yLdYSvW/wrBjU0VWf44enbMcEDAiyB3jtaTsFYl+yKTQui2Et9FYtHDm5TkZCkUNo23WMpkcHF/PT9PqiOYCaAVgI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qy7hVKPZ; arc=none smtp.client-ip=209.85.216.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="1V29NqNJ"
-Received: by mail-pf1-f170.google.com with SMTP id d2e1a72fcca58-82a07738118so2775932b3a.0
-        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:20:51 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qy7hVKPZ"
+Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-3591cc98871so2135467a91.3
+        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:35:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1774905650; x=1775510450; darn=vger.kernel.org;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=KFHVzUWvS3ADraojc1oAhG0Cf/0/o+VUJl7DBlABpGk=;
-        b=1V29NqNJSgkLIRK/b7H1d392zMhCjUecWDnnJZEyvfCX7Bp8bdWElLpeXyVTlL9Gm8
-         19mPbKECJ+WTjIAGczfofTS812wGE5v/sj6BB6mqRXptSyoNVL3M/SqKMkoOf3HFK75A
-         fmK3MNUD9g20ELjJ/NSxdnvuxzxfaLf/JZCOLjZ3LGWwCgABPNwDQGMH1/ncGtEifBy7
-         VIMfWKI++E5Lagi9jh2TcrWtJtYse6yv03KdLBRwUeotGWPxqz/SgHlbnP1BCzenS7Xm
-         +wW6HwKaDOFgAVVfyamWPeUg32Xt2xU2H+51I2zh73HauNvKSlK7sxm4+/UeRRspZAmq
-         O5Sg==
+        d=gmail.com; s=20251104; t=1774906547; x=1775511347; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=uL4VcJmIWiPMelM8MkKEBxP0uSyKH0wJwktcMh1N2Xk=;
+        b=qy7hVKPZdv6OH7HWHOhV86/+AcZu86Qgva/XEDQlUVOK4uQCqYbcrlsibrFh64Sj8k
+         Qec8g9a+I6gYaVPWLDs+/ft34phRaC8n2nxN6VO5/fmI/t3tpWhInr82nh/mCI/x2+2n
+         5cpwMfaJbHchFV9AGMI30pqmvGMf1A/OO5W6Bz61Fta+otCOeIzroi671i+T/lYhkfOL
+         AT9PdxkNP0tCBSSU27lv/jL1bjjqEhqv4ZofV+kUhEY/Z7eIE0HjVzSifHe4SXsCvdmH
+         MLtwZD7rN+WJj9dQccauzg6yW+vx2kKBJBPQKx0okM5X7lxMf3tz50wVRlufLQa8Uy76
+         EGaw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774905650; x=1775510450;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=KFHVzUWvS3ADraojc1oAhG0Cf/0/o+VUJl7DBlABpGk=;
-        b=HVYdvrhfq54wf/RrExIfLGdZOY7Cl+oG5U8rZr8rJyOp5QnsZVIYUPakcH3dScn05T
-         X2lUff3Wgu0C2gB4wWH6XVRvpD20T17j826j/R/0R7LHlevSLLhxbzbPOaQpsqpJlxSh
-         fX4gEFyQAT5T1FW1MJmC333jzB8XEMVsfJhD421TE7J2GXnl7KKsSsUWEeI6NLdcqAxk
-         zbo4gIQoR8fV58qMqAFsjx4KFkGikDhyemLQs6g6Q0SqgPRGwKM6G5XkczGJy+GCd9r5
-         +cBpjb/pmiv0ApW1tSeO+pnkkd/dQY1DsCVkiPS9LhdKxCPMGwh9obfeFDFnX1EOSOE/
-         oznA==
-X-Forwarded-Encrypted: i=1; AJvYcCW7JdCne5/gJ29aTswxKwOuJub+mVDOvAwW7oO8M3PW2xlFe4VNF9q6sAaMLG8S4lAEQ8M0y7K9b79H@vger.kernel.org
-X-Gm-Message-State: AOJu0YyEDt8mw0bc8IpQoRrVz+8GWhBKoKwuwsP6T23l1Ps5Hb/8Sp5A
-	5VwV8iSBD/RPYKq4eyiU2LApXhD5kK+uzoGVcz/pEHke0h3ilSpKgvuhRK5zRT14Z0g=
-X-Gm-Gg: ATEYQzz4giLWEEsLCQKP4ZZnw0RvKI4O030wNajqLp3v+SrR2MTIESIyuV2mx7KmY2c
-	0/TOPgY8R2oLsrl3/gM5sj9AtB5D8IVuDmiksKdz1sn5xJ3zjW/Tssx17KHufvIEYOQKrpyLo4H
-	j/BI0BkNlViybIxVouqdvDHiwWr2EOqPC2UeMwgEdf0aVrAaFjonwW3XwJI2f2iUbGB+0jOYJD4
-	IouA+WGXEPhyjyoGZVg7paA/r3xEggjw3YfXYiG76WR5WWIsQ7X+J8JnzvQRJQu8tt1uw7ldP+6
-	phH3E1nILsm8JIG2MX7qQ12bTlHvyh4hFPhygY9mtYhBj+vJVwNHF4x1o4n9npY9QmH5xrDUU9h
-	/LZVYqbzXPz2yyJHHQ0H6CKI6ckeIH8p1nRyV91cuNJsZmme7KzvavtC/BAim3vifz2IHO1hXZ/
-	vwT76s4QknCiOZGCtN+9w=
-X-Received: by 2002:a05:6a00:23d2:b0:827:3093:901b with SMTP id d2e1a72fcca58-82c960961d8mr12314711b3a.43.1774905650561;
-        Mon, 30 Mar 2026 14:20:50 -0700 (PDT)
-Received: from localhost ([97.126.187.42])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82ca85d030asm9550520b3a.38.2026.03.30.14.20.50
+        d=1e100.net; s=20251104; t=1774906547; x=1775511347;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=uL4VcJmIWiPMelM8MkKEBxP0uSyKH0wJwktcMh1N2Xk=;
+        b=iO/KLOrmDEmA+qoaCfAbnvietG432JAowvDKRNd9UCXG6Dq8Ma1n1cvnxxD5Zk9UXX
+         2CiYoyhww80Hyo00HgW7qgk2ng9wSPGX9AaJ/bZ6oyBRJtx9IM04xZL1basYceM840bL
+         YDAW5vJ9450UPARRQqewCnygAEzJywqt21JJUU71VNG09f0LWtzvuYRVd6Q/3apwzCCi
+         Kh3l4aXguYWtdhWZe8dku+lXA+Sg14hJLA+Zp2bNdz15aulf6etAP4sJ4e7zMF2KM7wM
+         hoyIERwB22nBz2XHp3b/fDeKy0B2CvUmD18AjhE2ex+6E+VtYYq/8Dk7G+CC2Qu0BVV1
+         BYdA==
+X-Gm-Message-State: AOJu0YzMPGhx6LzG4tx3TraDOBpTVh1cdlCb6Gi3CrQsPBvIJ/783/Qc
+	jdvMOmoJZ5PAN24PriHJtDmJjwJp/MXt5sDsGTahC7GpBh+4OL2xltgtPndAVBvp
+X-Gm-Gg: ATEYQzxMV5KtGlHyt8xPZpZWAGJGGT8ZoCSYIsJQinjfljrTc7aav9hQ9rki6hSXEQ9
+	b3fVBCsAX7zY5LWV9jpPQwUqoJ4Wtgi8UMOzuqY/4f3LL1aEmsYFezLKYvIRWLplvfzfkeA0K53
+	JQffuwHGG2OlkaIILgzK3ExjhEL9PKHRJuD4VXrkzHXSSzQfmTEkrylWSUMpwhLY3d7i3hCrVkf
+	zzN3/Z9J5RofmD9aTQbeY4xhIfoaSGOG3PRqCAKzhaxF6Tpofz0Sn1D8y4ZgPQ9PqI/oAvyep1g
+	bOFcaXg2nBL3PRV3Eo7HHWOPQ/tt0fFvCyofJO1RRlTaLoJpNyk5DkrZ3AkFvUvWfAtDFSOB9vL
+	5qRsncqQ4jI7BqUU0TV6wbpBvygxKQJ8GbsUYqOZEjhyHmwJcnITwZxFYMCr9Ld6LenS7dbXvyv
+	yoJhRd2oKxRgX7ljNu+9FFOPTZqOE6E7KMYu7Ts/MQOw5bDjVE6DE5kzY=
+X-Received: by 2002:a17:902:f54d:b0:2b0:5cb4:d894 with SMTP id d9443c01a7336-2b0cdc215ddmr134897835ad.13.1774906546605;
+        Mon, 30 Mar 2026 14:35:46 -0700 (PDT)
+Received: from ryzen ([2601:644:8000:5b5d::8bd])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b24278501esm93975165ad.58.2026.03.30.14.35.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Mar 2026 14:20:50 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Rosen Penev <rosenp@gmail.com>, linux-omap@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
- <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
- <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Kees Cook
- <kees@kernel.org>, "Gustavo A. R. Silva" <gustavoars@kernel.org>,
- "moderated list:ARM SUB-ARCHITECTURES"
- <linux-arm-kernel@lists.infradead.org>, open list
- <linux-kernel@vger.kernel.org>, "open list:KERNEL HARDENING (not covered
- by other areas):Keyword:b__counted_by(_le|_be)?b"
- <linux-hardening@vger.kernel.org>
-Subject: Re: [PATCHv2] ARM: omap2: simplify allocation for omap_device
-In-Reply-To: <20260327191104.206512-1-rosenp@gmail.com>
-References: <20260327191104.206512-1-rosenp@gmail.com>
-Date: Mon, 30 Mar 2026 14:20:49 -0700
-Message-ID: <7hwlytui8e.fsf@baylibre.com>
+        Mon, 30 Mar 2026 14:35:45 -0700 (PDT)
+From: Rosen Penev <rosenp@gmail.com>
+To: linux-omap@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Kees Cook <kees@kernel.org>,
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	linux-arm-kernel@lists.infradead.org (moderated list:ARM SUB-ARCHITECTURES),
+	linux-kernel@vger.kernel.org (open list),
+	linux-hardening@vger.kernel.org (open list:KERNEL HARDENING (not covered by other areas):Keyword:\b__counted_by(_le|_be)?\b)
+Subject: [PATCHv3] ARM: omap2: simplify allocation for omap_device
+Date: Mon, 30 Mar 2026 14:35:28 -0700
+Message-ID: <20260330213528.18187-1-rosenp@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 
-Rosen Penev <rosenp@gmail.com> writes:
+Use a flexible array member (FAM) to combine hwmods array allocation
+with the omap_device structure. This reduces the number of allocations
+from two separate calls (one for the device, one for the array) to a
+single allocation, improving efficiency and reducing memory fragmentation.
 
-> Use a flexible array member to combine allocations.
->
-> Add __counted_by for extra runtime analysis.
->
-> Remove goto paths as they are not really needed anymore.
->
-> Signed-off-by: Rosen Penev <rosenp@gmail.com>
+The FAM approach also enables bounds checking through __counted_by(),
+which provides runtime verification that array accesses stay within
+the allocated size. This improves security and helps catch bugs during
+development.
 
-Could you please add a bit more explanation about the *why* behind this
-patch.  Your description tells us *what* you are doing, but is a bit
-light on the *why*.
+Simplify error handling by removing the unnecessary multi-label goto
+pattern. The new code is more straightforward: allocate, verify, copy
+data, and either return success or error immediately.
 
-Thanks,
+Also removes the now-redundant kfree(od->hwmods) in omap_device_delete()
+since the hwmods array is now embedded in the structure rather than
+separately allocated.
 
-Kevin
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ v3: add a verbose description explaining why. Powered by Claude Sonnet
+ 4.5.
+ v2: remove kfree and fix compilation.
+ arch/arm/mach-omap2/omap_device.c | 29 ++++++++++-------------------
+ arch/arm/mach-omap2/omap_device.h |  4 ++--
+ 2 files changed, 12 insertions(+), 21 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 79db4c49ffc9..77a75b0b9ae6 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -307,35 +307,27 @@ static struct omap_device *omap_device_alloc(struct platform_device *pdev,
+ 	int ret = -ENOMEM;
+ 	struct omap_device *od;
+ 	int i;
+-	struct omap_hwmod **hwmods;
++	struct omap_hwmod *hwmod;
+
+-	od = kzalloc_obj(struct omap_device);
+-	if (!od)
+-		goto oda_exit1;
++	od = kzalloc_flex(*od, hwmods, oh_cnt);
++	if (!od) {
++		dev_err(&pdev->dev, "omap_device: build failed (%d)\n", ret);
++		return ERR_PTR(ret);
++	}
+
+ 	od->hwmods_cnt = oh_cnt;
++	memcpy(od->hwmods, ohs, oh_cnt * sizeof(*od->hwmods));
+
+-	hwmods = kmemdup_array(ohs, oh_cnt, sizeof(*hwmods), GFP_KERNEL);
+-	if (!hwmods)
+-		goto oda_exit2;
+-
+-	od->hwmods = hwmods;
+ 	od->pdev = pdev;
+ 	pdev->archdata.od = od;
+
+ 	for (i = 0; i < oh_cnt; i++) {
+-		hwmods[i]->od = od;
+-		_add_hwmod_clocks_clkdev(od, hwmods[i]);
++		hwmod = od->hwmods[i];
++		hwmod->od = od;
++		_add_hwmod_clocks_clkdev(od, hwmod);
+ 	}
+
+ 	return od;
+-
+-oda_exit2:
+-	kfree(od);
+-oda_exit1:
+-	dev_err(&pdev->dev, "omap_device: build failed (%d)\n", ret);
+-
+-	return ERR_PTR(ret);
+ }
+
+ static void omap_device_delete(struct omap_device *od)
+@@ -344,7 +336,6 @@ static void omap_device_delete(struct omap_device *od)
+ 		return;
+
+ 	od->pdev->archdata.od = NULL;
+-	kfree(od->hwmods);
+ 	kfree(od);
+ }
+
+diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
+index aa8096ecb23c..fae09cfce137 100644
+--- a/arch/arm/mach-omap2/omap_device.h
++++ b/arch/arm/mach-omap2/omap_device.h
+@@ -37,11 +37,11 @@
+ /**
+  * struct omap_device - omap_device wrapper for platform_devices
+  * @pdev: platform_device
+- * @hwmods: (one .. many per omap_device)
+  * @hwmods_cnt: ARRAY_SIZE() of @hwmods
+  * @_state: one of OMAP_DEVICE_STATE_* (see above)
+  * @flags: device flags
+  * @_driver_status: one of BUS_NOTIFY_*_DRIVER from <linux/device.h>
++ * @hwmods: (one .. many per omap_device)
+  *
+  * Integrates omap_hwmod data into Linux platform_device.
+  *
+@@ -51,11 +51,11 @@
+  */
+ struct omap_device {
+ 	struct platform_device		*pdev;
+-	struct omap_hwmod		**hwmods;
+ 	unsigned long			_driver_status;
+ 	u8				hwmods_cnt;
+ 	u8				_state;
+ 	u8                              flags;
++	struct omap_hwmod		*hwmods[] __counted_by(hwmods_cnt);
+ };
+
+ /* Device driver interface (call via platform_data fn ptrs) */
+--
+2.53.0
+
