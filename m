@@ -1,66 +1,123 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0F1019046E;
-	Mon, 30 Mar 2026 13:37:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53B7E3D5657
+	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 13:44:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774877866; cv=none; b=uUR86iAF71J5SSI9E4/iCAcmSp7jR/3SkYPIPED8+v2ygLg3jQLz6BM/r9ARxP7Iyf5q4SqFcEOMsr2Fi5YIy1JwpxoCodeKzH2EEJp/iQS8GT/nLwFo24GHdh+cRINkCYY2boBm6PacWWErEez4qpkWMDZPZck3CHB1S2exruw=
+	t=1774878261; cv=none; b=m/AK69iZI5IZdtH/y1g1UuTfzDqQq4qwHdp+n/1cZzD6kQRrl7Qi7ihBIG1qOVjfMEbmr3In3AJqFV2j7K4Tvryzie4Cw7aJ0dW4Rs5oWvrjdMaaRm5Nraw/HlqxiAQeRKhJ3be98/jiXZIlEGAiUxcmCoz0bWCHlkhLckaSzuY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774877866; c=relaxed/simple;
-	bh=d49rzc7VgXP+qBIv+G+I+R2A+YQZkwu+LgZRxaLstvo=;
-	h=Mime-Version:Content-Type:Date:Message-Id:Subject:Cc:To:From:
-	 References:In-Reply-To; b=PEFUREwZFgAPpIBQnF0s69t9kQN8vaCgOaJLbyVMWY/saRcG9sdiSTnECiPdQO30Ks7s/Nx0MMCOmSGDk25fuP0EP4sWV12tIQ3dbmdnkcoSwLYVmbYN35IE9jV9JEohkuFwN4QW0A0l7SEIylqVJvAAV4SbXKRFZgsxC9PzO7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Jl8hWv+u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774878261; c=relaxed/simple;
+	bh=LWbpkfgOYG3eO49TWIvlQ7loTMS9Hfk1R7m6GLHz8vU=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=ZNWuDBqC3u0f4nmwJbpFuXf38M+UrhJ36WA3Y/IrdmX3+IhyVmUYR8qwHiixg0k1ASf4GVVt5R6ckrgh8XaW1CUES8/fDE6VN0AzPbNJeZTCzjAYPeZRABmA9VmEQT8BDXwS4XlD0Su7vIxE5fdt1IJIEiijhGjmg13TZgNsnSY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=sbj/Qzxb; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Jl8hWv+u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4E17C4CEF7;
-	Mon, 30 Mar 2026 13:37:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774877866;
-	bh=d49rzc7VgXP+qBIv+G+I+R2A+YQZkwu+LgZRxaLstvo=;
-	h=Date:Subject:Cc:To:From:References:In-Reply-To:From;
-	b=Jl8hWv+uJLAQPEKSKGdE36Wo97h3x2+83eL7VvA30dPSlAGNq20iJlr+RrB0l/qTB
-	 ls/X6vlrnayAkWbLGo3aTXCmKM1Hc38gIVCuDo751r6yCFETwEyUxUhqVuzm2Q7CPf
-	 QNNFMh+B1VQgOfWxTp/t0lan3Jg6GqfmcBB93S5FvdgyITm+lP1TOFxOvjGOYtj4sg
-	 0zxKew3Il0nIua8n6fqyzRXYLwwhm3C2PexPHfFLzXAn46rqWd3KlckUDVlhc4gICb
-	 /8wPvlfxqvBeu4mC48PTYWwBgbqs50wm62Vlu2LQq4T341SB29J8ikM3R7KY3oTVqw
-	 RRViDgBf0tbHg==
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="sbj/Qzxb"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 2FC421A3037;
+	Mon, 30 Mar 2026 13:44:16 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 029F45FFA8;
+	Mon, 30 Mar 2026 13:44:16 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 03C35104500D7;
+	Mon, 30 Mar 2026 15:44:11 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1774878254; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=JjVmML69Ah9mTKPWcFihyscyCX2F4nExIsj9CCysNLc=;
+	b=sbj/QzxbGCZxi5rQf9qXvJqHkOKkAyxVL7mOL4VQUufDd7KXHqbLq/PHNYN6U6zzw5phay
+	miGGNQiZwQ3pPTZoXPtiIJKL7dY00u0cQ7AiwqjdcBwmXIbxW6vtR2kth8M2sGfwQ9iQ0L
+	+BE85dTmcJv04f4cngCgYHcl1KkKsZfdXK6ri66q0CQ6t+q3gCJU2AQ32yBLYQXWbyINIY
+	5L7/h/kDbuyln+vya1b1vEvU3Bng/0fDHg30g8a14/oWdygE5bu/TVFNTfBXIt7Y7sLGto
+	82MMwySKkGKnG/KuUzBMM32pqVhTu03Eg17L7HTfG77z6L9mquDIG+4UVeV1BQ==
+From: Thomas Richard <thomas.richard@bootlin.com>
+Subject: [PATCH v2 00/11] Add SIM pbias regulator support for USB on OMAP4
+Date: Mon, 30 Mar 2026 15:43:57 +0200
+Message-Id: <20260330-omap4-fix-usb-support-v2-0-1c1e11b190dc@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Mon, 30 Mar 2026 15:37:41 +0200
-Message-Id: <DHG5OX85I4LL.39U0RRBS0JXFP@kernel.org>
-Subject: Re: [PATCH v4 0/3] ARM: omap1: use real firmware node lookup for
- GPIOs on Nokia 770
-Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
- <rafael@kernel.org>, "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>,
- "Daniel Scally" <djrscally@gmail.com>, "Heikki Krogerus"
- <heikki.krogerus@linux.intel.com>, "Sakari Ailus"
- <sakari.ailus@linux.intel.com>, "Aaro Koskinen" <aaro.koskinen@iki.fi>,
- "Janusz Krzysztofik" <jmkrzyszt@gmail.com>, "Tony Lindgren"
- <tony@atomide.com>, "Russell King" <linux@armlinux.org.uk>, "Dmitry
- Torokhov" <dmitry.torokhov@gmail.com>, "Kevin Hilman"
- <khilman@baylibre.com>, "Arnd Bergmann" <arnd@arndb.de>, <brgl@kernel.org>,
- <driver-core@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
- <linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
- <linux-omap@vger.kernel.org>
-To: "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>
-From: "Danilo Krummrich" <dakr@kernel.org>
-References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
-In-Reply-To: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAB1+ymkC/3WNzQ6CMBCEX4Xs2TX9IRQ9+R6GQ1uqbCJs0wLRE
+ N7darx6/CYz32yQQ6KQ4VxtkMJKmXgqoA4V+MFO94DUFwYlVCO0NMijjTXe6IlLdpiXGDnN6Hv
+ bam+EOTkDZRtTKJWv99oVHijPnF7fm1V+0p9R6T/GVaJA1zSt1Eqq2vqLY54fNB09j9Dt+/4GR
+ HayFLwAAAA=
+X-Change-ID: 20260317-omap4-fix-usb-support-cda83c7079b7
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+ Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
+ linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ devicetree@vger.kernel.org, Thomas Richard <thomas.richard@bootlin.com>
+X-Mailer: b4 0.14.3
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Mon Mar 30, 2026 at 2:40 PM CEST, Bartosz Golaszewski wrote:
-> Bartosz Golaszewski (3):
->       kernel: ksysfs: initialize kernel_kobj earlier
->       driver core: make software nodes available earlier
->       ARM: omap1: enable real software node lookup of GPIOs on Nokia 770
+To get USB working on OMAP4, pbias shall be configured to enable
+SIM_VDDS and unlock I/O cells. Until now this was done by the bootloader.
 
-Looks good to me overall (one minor nit in the first patch); which tree sho=
-uld
-this go through?
+The goal of this series is to add SIM pbias support to handle this in the
+kernel ensuring correct operation regardless of the bootloader. The
+vsim_pbias regulator (defined in pbias-regulator driver) will be handled by
+the omap-usb-host driver.
+
+In this second iteration I converted ti,pbias-regulator binding to DT
+schema and documented the pbias_sim_omap4 regulator. The vmod bit
+configuration for the pbias_sim_omap4 regulator has been fixed.
+On omap-usb-host side, I fixed the binding file as requested by Conor. In
+the driver I fixed the error path in suspend callback and now probe()
+function gracefully handles cases where no pbias regulator is provided.
+
+This series has been tested on VAR-SOM-OM44.
+
+Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
+---
+Changes in v2:
+- bindings: regulator: convert ti,pbias-regulator binding to DT schema.
+- bindings: regulator: document new pbias_sim_omap4 regulator.
+- regulator: pbias: fix disable_val and vmod for pbias_sim_omap4.
+- bindings: omap-usb-host: document missing clocks.
+- bindings: omap-usb-host: add a ref to usb object.
+- mfd: omap-usb-host: refactor suspend and resume callbacks.
+- mfd: omap-usb-host: do not return an error if optional pbias regulator is
+  not provided.
+- Link to v1: https://lore.kernel.org/r/20260323-omap4-fix-usb-support-v1-0-b668132124ac@bootlin.com
+
+---
+Thomas Richard (11):
+      dt-bindings: regulator: ti,pbias-regulator: Convert to DT schema
+      dt-bindings: regulator: ti,pbias-regulator: Add pbias_sim_omap4 regulator
+      regulator: pbias: Add pbias SIM regulator for OMAP4
+      ARM: dts: ti: omap4: Add pbias SIM regulator
+      mfd: omap-usb-host: Cleanup header includes
+      mfd: omap-usb-host: Sanitize error path in the probe()
+      mfd: omap-usb-host: Refactor suspend and resume callbacks
+      dt-bindings: mfd: ti,omap-usb-host: Convert to DT schema
+      dt-bindings: mfd: ti,omap-usb-host: Add 'pbias-supply' property
+      mfd: omap-usb-host: Add pbias regulator support
+      ARM: dts: ti: omap4: Add pbias regulator to the HS USB Host
+
+ .../devicetree/bindings/mfd/omap-usb-host.txt      | 103 ---------
+ .../devicetree/bindings/mfd/ti,omap-usb-host.yaml  | 167 +++++++++++++++
+ .../bindings/regulator/pbias-regulator.txt         |  32 ---
+ .../bindings/regulator/ti,pbias-regulator.yaml     | 126 +++++++++++
+ MAINTAINERS                                        |   2 +
+ arch/arm/boot/dts/ti/omap/omap4-l4.dtsi            |   7 +
+ drivers/mfd/omap-usb-host.c                        | 236 ++++++++++++---------
+ drivers/regulator/pbias-regulator.c                |  12 ++
+ 8 files changed, 449 insertions(+), 236 deletions(-)
+---
+base-commit: 7aaa8047eafd0bd628065b15757d9b48c5f9c07d
+change-id: 20260317-omap4-fix-usb-support-cda83c7079b7
+
+Best regards,
+-- 
+Thomas Richard <thomas.richard@bootlin.com>
+
