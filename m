@@ -1,85 +1,73 @@
-Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7E193DA5B3;
-	Mon, 30 Mar 2026 13:44:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 735CF2DCF67;
+	Mon, 30 Mar 2026 13:47:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774878279; cv=none; b=iBSztiBqcl1ivVO4LcECFlIU9PK0k8xjP+Rph5jgR5NYrn5tZOqXyGa+X7Cn8OfH4nWPhIIVW1hZfjvyXRx6KINvjt3cVTT04A3b9dhkQMvk2M//GHLQCay9skSWOqS1fP2meEDDD7T9tESryrX2KjmWPgVNcjckax9qdTY6DJA=
+	t=1774878479; cv=none; b=DrbNnDpYc4+AZ+cFCqKZtIUhWPtaZho0Zm7YENvus3BqtH90Vqa9dlRzfQ/j1oOAsSz7YjAbPeVyWn23vr1vSG6mKxwYOmXFMyrlqMu3tmIM6srNPKTFUVwHkIBpnqH9p1oyDpXvI9tcbLKK5WwQ+FmNklxXALBwi0eOkkDcV34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774878279; c=relaxed/simple;
-	bh=S+9pZnIR4Ii2mrRay+00UvKlRFHb53jV5wYXLigv92Y=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=gTUVm6Z3efVf+XZoz/psPBDuQviwHjAH82BVHR/3Ym9k0meHOOkYBTR6m+PkBSaQoZKZRrqSvlpHz7rAQYxNZKH+HI4HpffltCG8kptiVtgBiBdW+UE80jQnwOrdUGE2d0TcKTwHuC+3pxePWW73YN803YjdQXT5AMtU4aCzIRU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=rzSDKMu+; arc=none smtp.client-ip=185.246.85.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1774878479; c=relaxed/simple;
+	bh=4HWngODzhwNimgKwWfcRLqmqV+gsxSnsNR2bNYJtCnY=;
+	h=Mime-Version:Content-Type:Date:Message-Id:From:Subject:Cc:To:
+	 References:In-Reply-To; b=NqHbpUrbfIWCZrvXTeFSxG0eDKdMn6zHOOh2QRic69wiPq2JwCJMBEgmiENB7NrvSaXu2ZhAP5z2PcnCNTuSD0CFj0Gf4SbnOwiMVTrPcqBdys8qyC92ainVJjnhZ4knOxg1AAJMY+OZ4tHN+NwVOEGDzeQZTzrlEcVZEjb2bhs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=E1/zwihM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="rzSDKMu+"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id A825F4E42868;
-	Mon, 30 Mar 2026 13:44:36 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 7E40F5FFA8;
-	Mon, 30 Mar 2026 13:44:36 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 37E1E104505F2;
-	Mon, 30 Mar 2026 15:44:34 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1774878275; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=+LBatK0e2tx9BdeCCJcMioLXnURJiMafU/RyqrJOQxo=;
-	b=rzSDKMu+Xjq51PHLzGbLDefJ3u9lP54GkkfzPTPl7gCixCnE6+M/f0dZhEe62jutxt1jxp
-	VI7DxfUoBkra0+5SxG+Ta1eDJCxBgrXoKiKtmo0Qdt7B1fYFL7XoB0n8XlPjmX1ycRfXWh
-	IPZ1oLfBuGubkZH2x8WBPC+4J829F++Wgo0Vk0N2sDa8cbqdaRjQWI/LdmjJEvjvejGAQW
-	S7e4RvbdbKpUlUpuMNekbnkyO0RuRjB7STTEuwpUbF9c2d+C2opSvb5UUkznnW6TJrFIAP
-	fEWSpuPShlf1yFZfVzr0qt2XzqurdTyCLFuB3uP8lUv29Cxjf3TVRQBTjkYgQA==
-From: Thomas Richard <thomas.richard@bootlin.com>
-Date: Mon, 30 Mar 2026 15:44:08 +0200
-Subject: [PATCH v2 11/11] ARM: dts: ti: omap4: Add pbias regulator to the
- HS USB Host
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="E1/zwihM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C1F2C4CEF7;
+	Mon, 30 Mar 2026 13:47:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774878479;
+	bh=4HWngODzhwNimgKwWfcRLqmqV+gsxSnsNR2bNYJtCnY=;
+	h=Date:From:Subject:Cc:To:References:In-Reply-To:From;
+	b=E1/zwihM+sttFZGmZX09B5wZ3pRgOhu57TF/VAcFy/o8XuVyMibyvYFbqUI5tnrt9
+	 Up6mCERLdsi7+g7yAgd2X+OgkGkVXxPxlqAv3RkQkUSuToIOAN6pWAu5Uo9AtzVZWb
+	 2qMyjNq/wBE9CgHU5jdLQOTxiXGiE1UVfOgxHEgrIzdEluVabyLwJd8hffpplTn0MN
+	 HZaTDH9kwcN06nHoqVx+Rvj1atZPk/w3VhFX3YBXfdlEE87ev8sJGrZ5dDWQRL1tSh
+	 1bl9kTCAOJtIloVrxMzWLUxn8cUTNYSNaBgpWr8fFUlFdiy+vryDSxaythfTOX1lt4
+	 1m+BJpItHjojQ==
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260330-omap4-fix-usb-support-v2-11-1c1e11b190dc@bootlin.com>
-References: <20260330-omap4-fix-usb-support-v2-0-1c1e11b190dc@bootlin.com>
-In-Reply-To: <20260330-omap4-fix-usb-support-v2-0-1c1e11b190dc@bootlin.com>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>
-Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
- linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, 
- devicetree@vger.kernel.org, Thomas Richard <thomas.richard@bootlin.com>
-X-Mailer: b4 0.14.3
-X-Last-TLS-Session-Version: TLSv1.3
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 30 Mar 2026 15:47:53 +0200
+Message-Id: <DHG5WQI26R5U.WTZW61VKJHF5@kernel.org>
+From: "Danilo Krummrich" <dakr@kernel.org>
+Subject: Re: [PATCH v4 1/3] kernel: ksysfs: initialize kernel_kobj earlier
+Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>,
+ "Daniel Scally" <djrscally@gmail.com>, "Heikki Krogerus"
+ <heikki.krogerus@linux.intel.com>, "Sakari Ailus"
+ <sakari.ailus@linux.intel.com>, "Aaro Koskinen" <aaro.koskinen@iki.fi>,
+ "Janusz Krzysztofik" <jmkrzyszt@gmail.com>, "Tony Lindgren"
+ <tony@atomide.com>, "Russell King" <linux@armlinux.org.uk>, "Dmitry
+ Torokhov" <dmitry.torokhov@gmail.com>, "Kevin Hilman"
+ <khilman@baylibre.com>, "Arnd Bergmann" <arnd@arndb.de>, <brgl@kernel.org>,
+ <driver-core@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
+ <linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+ <linux-omap@vger.kernel.org>
+To: "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>
+References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com> <20260330-nokia770-gpio-swnodes-v4-1-b68592e977d0@oss.qualcomm.com>
+In-Reply-To: <20260330-nokia770-gpio-swnodes-v4-1-b68592e977d0@oss.qualcomm.com>
 
-On OMAP4 add the pbias SIM regulator to the OMAP HS USB Host.
+On Mon Mar 30, 2026 at 2:40 PM CEST, Bartosz Golaszewski wrote:
+> diff --git a/include/linux/kobject.h b/include/linux/kobject.h
+> index c8219505a79f98bc370e52997efc8af51833cfda..71b9086621c35b7e4ef99b9d3=
+b6707db23faf58c 100644
+> --- a/include/linux/kobject.h
+> +++ b/include/linux/kobject.h
+> @@ -219,4 +219,6 @@ int kobject_synth_uevent(struct kobject *kobj, const =
+char *buf, size_t count);
+>  __printf(2, 3)
+>  int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...)=
+;
+> =20
+> +void ksysfs_init(void);
 
-Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
----
- arch/arm/boot/dts/ti/omap/omap4-l4.dtsi | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi b/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-index 6904a84a1700..c5e097f9cd17 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-@@ -301,6 +301,7 @@ usbhshost: usbhshost@0 {
- 				clock-names = "refclk_60m_int",
- 					      "refclk_60m_ext_p1",
- 					      "refclk_60m_ext_p2";
-+				pbias-supply = <&pbias_sim_reg>;
- 
- 				usbhsohci: usb@800 {
- 					compatible = "ti,ohci-omap3";
-
--- 
-2.53.0
-
+NIT: I'm aware there's also all the core kobjects in include/linux/kobject.=
+h,
+but maybe a separate header would be a better fit.
