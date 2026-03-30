@@ -1,84 +1,81 @@
-Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04A6D3A1682
-	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 21:14:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 855A13A1A3D
+	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 21:19:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774905248; cv=none; b=I/NYKJbqkLhwGvzsXSWawOjyqF9w4A+DAFHOOgbnZPR+8VTJdPZh9AbUmhfbPFWqO6lsqcky+fAiHF6WZPH9YIchDaDUPJ/3/6qDIYv7DmTPZa8RYg+y9SSSkafPt1q9Q8N72qUPej6lBsjhkBQ3NUW5nNtnhlYR7nTfDhT6w0g=
+	t=1774905552; cv=none; b=dUrT6jhhv0RzUPoHNdOXnUZZ4C7NlycHWSGV//vCUR3gbkLutfWwxy5aOYX1YYZb52yTFWLdmsc/WNsjIjjAbq/0VfNoeeso/IvmIBO19mlNEfhmCKITckzZkJ3Ziz8KUvBAwz3lzQ14UV0/YA+havkcrdR7co1dhoYRJieUjmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774905248; c=relaxed/simple;
-	bh=5pooe8akLgHWo88qYtDDC/7ED3+Zasl35vKrSAKLMUw=;
+	s=arc-20240116; t=1774905552; c=relaxed/simple;
+	bh=Ki7/WgI32wqgeZnpNNxb7Gtn/4pBYH8K6/mznsZphg8=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=BaN/JGv/xLyd+j9akpfxPsTodEpaL+GnYWUS7z2jOI2yqe2cVg9V8LnntBIgnLoMMuNKaF1A9HWN28YRDcFiCemTO5Gki7UNPDl5N1+MwHAJqcQtKiJcffTuYWef/LLcN1UUyd/KCNNZCL+fJFVaCbqUeZVoW+EgkNSrSPk+AM0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=e8PkOwLD; arc=none smtp.client-ip=209.85.214.177
+	 MIME-Version:Content-Type; b=S76of/QbUsUefjkOYJUiWz7eqMUyM4Rhk05cAmFLfUQBgTYfFccTHdv9b7XU94x5M2Anv643LPzctKMIsGmSDNtgwUIKf1UxZRN3hBZ0tcCYwZBV2SScwUBNLgKqQf4ajzthJN9zkkwPc124hbPuT9Qen2NHvCqYOuQyN0wKb8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=eEhYh0f1; arc=none smtp.client-ip=209.85.216.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="e8PkOwLD"
-Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-2ab232cc803so23744275ad.3
-        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:14:05 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="eEhYh0f1"
+Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-35d9f68d011so1287334a91.2
+        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:19:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1774905245; x=1775510045; darn=vger.kernel.org;
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1774905550; x=1775510350; darn=vger.kernel.org;
         h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
          :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=itki3S53hN5ghJ+TbLPQdNLhKu/I8y2gwGAHgQqiXFA=;
-        b=e8PkOwLDSZGU6YRo5IrvgqWM9KONmv5IER/GNo22e4IQE2ZHZ6yd8LkwVoXCeUhfSE
-         2EwrN+9lockx5OQpt17JzdXscXDSEzaZy0pDDGWmV5NrMMP5Y4hRTLAP4Pz/zHCV/Hj0
-         4uFPOfrxU3pbUyAmaQmodIwv7sPJ8dhvtO/iRP3yltYMtBX21Ce/bnJdPvJm2LG0JpkC
-         OqtUKKpk+xmYIK/CcXqaJEPmvjuuty/TN/cXNrRX6U/xKLT0MjHf5LrxzeDAImrpi893
-         HLYWDsUZ+ImOPwt8d5j0LJnjEKS1nTBQCh8KR+C+Xtq26hrROzuYmME+wgvkanxT44qj
-         XUXA==
+        bh=kjSx54bMkrLLfgzdPU0y1PUqW6GqciS0yWj8IpjRMAE=;
+        b=eEhYh0f13Ei3PNfEIrn1oIW4rt/nk372DTZhG4ETdp7AjaCP7AzKJRydtX+Jb8jKxC
+         ZjBkEmUuHlCUMYobP3/JKKBq2moWrthP3YX3N3uL/LP6/vcm4w0bMSPNhp77iHU1MsUV
+         JdGeYVlPlH0Du6i9FTnak+LEwVvaJjMZyMVviODb0mA0dolwoUd4GIqCdWxkhqyNnVOh
+         wxTs+ltCs6y3624tbWPwsQhfhJ9koDvTtkowNohlMbkUoJMmKZViR6yaSupw93UatLzs
+         5fi/1lQqEwGfVo1URnG1x8Ke8stszqCbJ/wznL/MACVlxCIunu9p3W/FoD64v2iB+A7K
+         AU/Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774905245; x=1775510045;
+        d=1e100.net; s=20251104; t=1774905550; x=1775510350;
         h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
          :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=itki3S53hN5ghJ+TbLPQdNLhKu/I8y2gwGAHgQqiXFA=;
-        b=hL1jZe58J5bulaCF65dbe0qjjnqOwi1n8s9e7A6ZBHQTcYadf59FJqPbD9isN8vrdQ
-         z68u95hxRqjBWK4WaYLeGcbwQ2eXKcNMxME7So0SHPNy6izIyG8h84JqnT18tHILsfiO
-         I9ceaDYFNow6spltf8tzhamJhp8GQehpxnXMlEMMKmkawzhKa3SkY0ouatP/K2JjovDJ
-         p3hU8/JqteuEwMgg9cDFOWT4dKNXWsVc0sg/cReDQPuZnhY47P6HN9MDF0LJ2VfqEh+W
-         OgJ52mJ2WIvhKmmKzyGgN1GCyL3izjZnJfnZR2WsdCF3MU6XTcjbPUbiXqgEdQqoxZ6l
-         H2wg==
-X-Forwarded-Encrypted: i=1; AJvYcCVrDeWCbJIOEZiFglQ8BmmD3yOuJ3xL3vVd08CQ8V7e49H1bJZWFvLPLBiuWFVOnFAD+oTXBDztyEZt@vger.kernel.org
-X-Gm-Message-State: AOJu0YyUpSAojRjPUF9g7R7EcBV7JpfsLJ8z0oVafmDDuUkiNv5oiuJu
-	ykh/TM4f80RoeIVefORvGA7pu5NDe01CSFj9cGVRtnQMa47lz/53TvSEJeWyO/VgD2A=
-X-Gm-Gg: ATEYQzy+lCfm6XoJY2sFipe3VhJfi9KSahWraicR7g9A+PXQK+9ejM4kWH/4JrNcQ/n
-	XfJCW5btKUfM+FpyBFQpBmcGbh2GCHBG2c+pCe+2ysWpO7DoKnMqE7WfmbkpcyIzn420McnMsFy
-	SyFGoXcpJQmZQIIlHXfY0DpEsHkdMUmfaFAZglQzbFTDtURAi3x66y5GxEY3sdsi9j7kWg4kZSd
-	Wn798Addx4bZWrTR5Lo/1VsP74jSt0vHuEOll4g7TOtXRvQ5AjP770pctRkosI0BRnJRohaqWmf
-	J1rgTaU/mhkeFuSic+jXTMipayNX5tRq66rv6aJi/xhDO4JSC6vPqtlTmsT31DRm85uTl3enqtc
-	NwO5KaN1JnxaFO3fcFQo0y4CREkmonhl7MUN+Rpv2UE+vFprt6jbPnlNlvQw/FPu5b8nLrkBx/P
-	S1lUB8bjfjhZgYbEkU1PI=
-X-Received: by 2002:a17:902:d541:b0:2ae:c981:2a29 with SMTP id d9443c01a7336-2b0cdbf7bddmr141880015ad.2.1774905245314;
-        Mon, 30 Mar 2026 14:14:05 -0700 (PDT)
+        bh=kjSx54bMkrLLfgzdPU0y1PUqW6GqciS0yWj8IpjRMAE=;
+        b=KqnFF2pyAJsURZeGcaIXB9NImU60iMidjgJTakkg75XB0xc98QbzJ6p7fpg0G1o/C3
+         8i6Xmcr1NM12lEK1kn7c0CVKSdlh7beG/tIV3V9asFWIEohrgXBDzGDDsmenre1ulomT
+         342F762WiC7ApYerdWyXEDer3MQYCCcU7RgJqPb4/EWp/hpNP6vj3VHYNKROHUoU/Yrg
+         9E/tujhhJyHnFeW8oCeCe5F80jefqNlWgFSapgvEiARevd6zg8tTT42Zplp1TXIdqED0
+         HzHO+8zIQyt5NOrC39czZCn7mSglidgFNnbVbM/08Jv/XJF7Lkhtve8kFmQhD/hDZz+n
+         9LeQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVfFLbK4TQBi2+efRdlp+B/8Ut2Hx5K1eP99f18OZtY+ZyWQ0sxM0LaCtLc5d+wHXrWoFePhqV2UnV4@vger.kernel.org
+X-Gm-Message-State: AOJu0YyaI9U1MQQ+z0ZeRNcVw0kAYu2atHJuyJxjr5T3RXkMyX4W7ddV
+	DPDrn7q5Y/zHmPffV7F0Pnji2WHlNQX4A5USVw9QC/dU/PPv6Sk91zuCSU19/laCwHI=
+X-Gm-Gg: ATEYQzyTZzw+Rr4GPZyn32NAIy5tdUrJDjTl7TWlk4yocFPhWkuSIpcsCY2mVoWDvuN
+	U+IwDD40tK75yPyboIJaWiTcx2SSjQ/5lpgaQQFggqL2DQsLa5CKwmDT6Fw7ihZ1g2l1PgA9NFw
+	zWf7tpyBIbAA2Ial5VLBDMtgnTDJyePlPixOKc3rnEEdCW9tWXdRAaNtQv/hve/a+53wgeMFBQZ
+	wIraKrM60nVFBNM1L6Z29mqVUeMjX+1E3EjJF7xG1v/VnhgMJ9gUF6kx0d1zHJmIMshPFFNIb2C
+	5m6B1APuuS30VBOV5zQmrYwoj3LO9TbVdBeoKdNjC+SL/CAfcnMfagbhpY3Jj2PlelrcwcINtQb
+	6uQt0zhNuewmuen3ZgcAJsxdswTVxblJMUsA7qq0nAeIxqu5q141uBWl8hQR65jDB7zyCoIXzU0
+	hJPYppJ5yKy/B0cAYzsok=
+X-Received: by 2002:a17:90b:1a8c:b0:35b:9aaf:21c2 with SMTP id 98e67ed59e1d1-35c3000d679mr12293717a91.13.1774905549876;
+        Mon, 30 Mar 2026 14:19:09 -0700 (PDT)
 Received: from localhost ([97.126.187.42])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b242676e13sm93479195ad.28.2026.03.30.14.14.04
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35d950b5583sm7943123a91.14.2026.03.30.14.19.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Mar 2026 14:14:04 -0700 (PDT)
+        Mon, 30 Mar 2026 14:19:09 -0700 (PDT)
 From: Kevin Hilman <khilman@baylibre.com>
-To: Kory Maincent <kory.maincent@bootlin.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
- <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
- <tony@atomide.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski
- <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Russell King
- <linux@armlinux.org.uk>, Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
- linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- dri-devel@lists.freedesktop.org, Luca Ceresoli
- <luca.ceresoli@bootlin.com>, Bajjuri Praneeth <praneeth@ti.com>, Maarten
- Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard
- <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, Louis
- Chauvet <louis.chauvet@bootlin.com>
-Subject: Re: [PATCH v2 1/3] ARM: dts: ti: Enable overlays for am335x
- BeagleBoard devicetrees
-In-Reply-To: <20260324103934.7d259008@kmaincent-XPS-13-7390>
-References: <20260216-feature_bbge-v2-1-22805cfdbf62@bootlin.com>
- <177275924369.1445909.1029086854461649971.b4-ty@baylibre.com>
- <20260324103934.7d259008@kmaincent-XPS-13-7390>
-Date: Mon, 30 Mar 2026 14:14:04 -0700
-Message-ID: <7h341hvx43.fsf@baylibre.com>
+To: Neil Armstrong <neil.armstrong@linaro.org>, aaro.koskinen@iki.fi,
+ airlied@gmail.com, andreas@kemnade.info, conor+dt@kernel.org,
+ jernej.skrabec@gmail.com, jonas@kwiboo.se, krzk+dt@kernel.org,
+ laurent.pinchart@ideasonboard.com, maarten.lankhorst@linux.intel.com,
+ mripard@kernel.org, prabhakar.mahadev-lad.rj@bp.renesas.com,
+ jesszhan0024@gmail.com, rfoss@kernel.org, robh@kernel.org,
+ rogerq@kernel.org, simona@ffwll.ch, thierry.reding@gmail.com,
+ tony@atomide.com, tzimmermann@suse.de, andrzej.hajda@intel.com, Mithil
+ Bavishi <bavishimithil@gmail.com>
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: (subset) [PATCH v9 0/8] Initial support for Samsung Galaxy Tab
+ 2 series
+In-Reply-To: <177451576215.103892.12129135091369769725.b4-ty@linaro.org>
+References: <20260303203017.511-1-bavishimithil@gmail.com>
+ <177451576215.103892.12129135091369769725.b4-ty@linaro.org>
+Date: Mon, 30 Mar 2026 14:19:09 -0700
+Message-ID: <7hzf3puib6.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -87,36 +84,30 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain
 
-Kory Maincent <kory.maincent@bootlin.com> writes:
+Hi Neil,
 
-> Hello Kevin,
->
-> On Thu, 05 Mar 2026 17:07:23 -0800
-> Kevin Hilman <khilman@baylibre.com> wrote:
->
->> On Mon, 16 Feb 2026 17:55:52 +0100, Kory Maincent (TI) wrote:
->> > Allow overlays to be applied to am335x BeagleBoard boards. This adds
->> > around ~40% to the total size of the DTB files on average.
->> > 
->> >   
->> 
->> Applied, thanks!
->> 
->> [1/3] ARM: dts: ti: Enable overlays for am335x BeagleBoard devicetrees
->>       commit: 18161bb01ede109fed41c66efa2624a4c27377f7
->> 
->> Best regards,
->
-> Thanks for merging it.
-> I see that you have merged patch 1 and 2 in your for-next branch.
-> Is there a reason to not merge the patch 3? Are you waiting for a dts
-> maintainer ack?
->
-> Maybe I can resend only the 3rd patch to ping the dts maintainers.
+Neil Armstrong <neil.armstrong@linaro.org> writes:
 
-Not necessary.  I'm not sure how/why I missed patch 3.  It's now queued
-in my tree.
+> Hi,
+>
+> On Tue, 03 Mar 2026 15:30:09 -0500, Mithil Bavishi wrote:
+>> This series adds initial support for the Samsung Galaxy Tab 2
+>> (samsung-espresso7/10) series of devices. It adds support for 6 variants
+>> (P3100, P3110, P3113, P5100, P5110, P5113). Downstream categorised them
+>> based on 3G and WiFi, but since they use different panel, touch
+>> controllers, batteries, I decided to categorise them based on screen
+>> size as espresso7 and espresso10.
+>> 
+>> [...]
+>
+> Thanks, Applied to https://gitlab.freedesktop.org/drm/misc/kernel.git (drm-misc-next)
+>
+> [4/8] dt-bindings: display: panel-lvds: Add compatibles for Samsung LTN070NL01 and LTN101AL03 panels
+>       https://gitlab.freedesktop.org/drm/misc/kernel/-/commit/d37690b5e02418a2365548300628ef3895a24ed2
 
-Thanks for letting me know,
+Since the bindings patch already had acks from the DT maintainers, I
+queued it along with the DT patches (via the OMAP tree.)
+
+Do you prefer if I drop my version?
 
 Kevin
