@@ -1,88 +1,104 @@
-Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D58B4387362;
-	Mon, 30 Mar 2026 16:40:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FDB52BE7DC;
+	Mon, 30 Mar 2026 20:24:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774888858; cv=none; b=ghNq+3eD08NQzYoACOMiXek5Ga6m6mVolfqrIH7O///GR9OOuZxjGpOLY3K6ZdUMiXR3lEO5GRflitQPoydL9idopIyUgH44KLBiYQAGjTpJoOMYIuZBQqcRg090ozZNr1xlTUaY6APSXwNOuRGXrkrxrAf2EOO3VnD/2aGK7uU=
+	t=1774902294; cv=none; b=NChcmkBppVlVWEjgdTM7ZUvg0s5epL2xg0bjefBBZOKl1iXTbDvEmD/E2PWaCzc+3G8GyWqTUDWhB1B2IhUN8Yflxc+ZoZr9AMxA6DxlmeroBGXmcg6VIhZ1oMwLAVs/EoGIovFtaNf8M6fXnwAV7LcuTIqGJpcqxFt96/pGXmI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774888858; c=relaxed/simple;
-	bh=bpeWtipLnVmfOQRtesH8geWVIabjT0Ic4+iwHw6Yd78=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=R0nAh2r/x3lKr+nhaeC51tImiPsOKgDp5yDAfPGiz+zFGCcCZiHlnwCLTIsX0NL0Ya/Gje2A8PXdIhDqykHUEZvVQnr4UjlrpQA29e+I9ublc3xeSWVCjphTGxiXw01TMJDwhUC0/L/NE+gTLKTJbYMNXfDS7mVeo7EidWae46o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=GTCzhQXv; arc=none smtp.client-ip=185.171.202.116
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1774902294; c=relaxed/simple;
+	bh=i6O0R420JsaobqCAMpIhjIoGFKW4TulkjH6tJS6uS2s=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=It1pyDSh0M+SlQnhDoVprlmucNGlHMdZEno/OTCnMHkmzwM45GcS1sZIeS6wYhtwVfWfE7vJs8RQ9yxP9SCT9YgfCyhqEvde68Iqhxiu5TZCqNLbt0OswJXQN20yLoqWjcBDR/N+Zo/aJynj6qN+jwdyEhOtsxv0mCj5UTpbrH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=I4rvMLab; arc=none smtp.client-ip=192.198.163.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="GTCzhQXv"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-04.galae.net (Postfix) with ESMTPS id 1C343C566B3;
-	Mon, 30 Mar 2026 16:41:24 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id D86A45FFA8;
-	Mon, 30 Mar 2026 16:40:53 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id A760B104507B4;
-	Mon, 30 Mar 2026 18:40:50 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1774888853; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:content-language:in-reply-to:references;
-	bh=1GVIJ14Rcnu3aWGSyZMGL/UvjT6CVFMLKw9tvpzQihI=;
-	b=GTCzhQXvVWcDqCGJtMD7wlkyB3V2ABlOK4iazVK+tIYFW5nIv1n9Rb5XMJ59l9i5o/5uy+
-	SKsCFm4F+bk9tp2ymc2R3aQat6jdnlDBtYPfee0WvGlZA0Ipq/0SUPIMR0h2CEUUIokWrY
-	jmkhCUtgBel6dqpLauLB4R+7Je0NHrWd+uWYrWzM9PMRD6EvnUq+uPMa6iUCgUv5M5XoHe
-	i24mEnFNW9iSUY0Kn82FifsHhVAKEXfs/FR/ikOD8huCJUTSV1DyuKlR49xOf8nGCwAGFv
-	+vI69oOvEUBcUq7c1kIsJr0J+x/1F2bDNzNQmIeUt5EQStQ27vJW89Vs41hnzA==
-Message-ID: <e9f864af-190a-411b-b6cc-80e6a29449ba@bootlin.com>
-Date: Mon, 30 Mar 2026 18:40:49 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="I4rvMLab"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774902293; x=1806438293;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=i6O0R420JsaobqCAMpIhjIoGFKW4TulkjH6tJS6uS2s=;
+  b=I4rvMLabUxKJl7BY8w/zu8MQnb37J39/ypXTlHwWY71JDqzyVNQgTRg8
+   nwb3erMaHxbunEyjsmuwXrmJWgGePxGfrMuOx81z3pV7voRfUSJbxCaNs
+   BFEEiSW4cO0/ZmTgk3bylAchgZzBAL8kPluMqxcJ0UHAawivUBAMG03CO
+   /pRthJW2yqpSQzXvV/9m/a381Wwn609L446l0NesEE1Lych3eg3T+j+lc
+   2ME0JgSv7K/DZ2S4Ad3nUazQ6dSHMjFlOh5hTENAxtLCw7/+mD+Qrq1Q7
+   pONEOArmusjY/iO2A1oVJb8YgHIoRONmhDrHvKBd1fKWeCaoENfm9vnIa
+   A==;
+X-CSE-ConnectionGUID: CFH8+w6sSoClUjwgNb7gHQ==
+X-CSE-MsgGUID: 3Z/rjNrASpCa+TAyk3dhug==
+X-IronPort-AV: E=McAfee;i="6800,10657,11744"; a="86598205"
+X-IronPort-AV: E=Sophos;i="6.23,150,1770624000"; 
+   d="scan'208";a="86598205"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2026 13:24:52 -0700
+X-CSE-ConnectionGUID: TXJZI8ekRJ6g6M9KfTUpgw==
+X-CSE-MsgGUID: 7aHZRfASRmelp1lYOfoS4w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,150,1770624000"; 
+   d="scan'208";a="223280125"
+Received: from vpanait-mobl.ger.corp.intel.com (HELO localhost) ([10.245.245.100])
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2026 13:24:48 -0700
+Date: Mon, 30 Mar 2026 23:24:45 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>,
+	brgl@kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v4 2/3] driver core: make software nodes available earlier
+Message-ID: <acrcDTPpXZ_5A4D8@ashevche-desk.local>
+References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
+ <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 09/11] dt-bindings: mfd: ti,omap-usb-host: Add
- 'pbias-supply' property
-To: Aaro Koskinen <aaro.koskinen@iki.fi>,
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
- Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>,
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>
-Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
- linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
- devicetree@vger.kernel.org
-References: <20260330-omap4-fix-usb-support-v2-0-1c1e11b190dc@bootlin.com>
- <20260330-omap4-fix-usb-support-v2-9-1c1e11b190dc@bootlin.com>
-Content-Language: en-US
-From: Thomas Richard <thomas.richard@bootlin.com>
-In-Reply-To: <20260330-omap4-fix-usb-support-v2-9-1c1e11b190dc@bootlin.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On 3/30/26 3:44 PM, Thomas Richard wrote:
-> Add the 'pbias-supply' property, it is used to specify the voltage
-> regulator that provides the bias voltage for USB cell.
-> 
-> Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
-> ---
->  Documentation/devicetree/bindings/mfd/ti,omap-usb-host.yaml | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/mfd/ti,omap-usb-host.yaml b/Documentation/devicetree/bindings/mfd/ti,omap-usb-host.yaml
-> index 3b5b041f0321..d0a61dec4961 100644
-> --- a/Documentation/devicetree/bindings/mfd/ti,omap-usb-host.yaml
-> +++ b/Documentation/devicetree/bindings/mfd/ti,omap-usb-host.yaml
-> @@ -83,6 +83,12 @@ properties:
->  
->    ranges: true
->  
-> +  pbias-supply:
-> +    $ref: /schemas/types.yaml#/definitions/phandle
+On Mon, Mar 30, 2026 at 02:40:47PM +0200, Bartosz Golaszewski wrote:
+> Software nodes are currently initialized in a function registered as
+> a postcore_initcall(). However, some devices may want to register
+> software nodes earlier than that (or also in a postcore_initcall() where
+> they're at the merci of the link order). Move the initialization to
+> driver_init() making swnode available much earlier as well as making
+> their initialization time deterministic.
 
-I'm sorry, I missed dt_binding_check error. $ref is not needed.
+...
 
-Best Regards,
-Thomas
+> -static void __exit software_node_exit(void)
+> -{
+> -	ida_destroy(&swnode_root_ids);
+> -	kset_unregister(swnode_kset);
+>  }
+> -__exitcall(software_node_exit);
+
+
+Why? What's wrong with the __exitcall?
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
