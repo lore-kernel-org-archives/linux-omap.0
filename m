@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2D443D75D5
-	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:08:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8A7D3A4518
+	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:19:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774879729; cv=none; b=bg9oDxJXVTVwI5KrE6yWvkTd+RkGDpV7GP9BBMIV1uo0jLc1gCYFy/TFVKxw2p5MXp4LKHlt3trxR0FWF16ciGraBAxcuWRXSuV9HECVyGS2rOXne+ZPhf02bwwaGqFTokk2LdpZ4lMXrCYrMBoOpRZgZTJryhIKIH8iBpYzENA=
+	t=1774880363; cv=none; b=V8O18bsZFejDkGG/Z4vK9PvePgZhadY4WfhWOq5l7HA6MenslVxUMELQ/74TWGJmqoEm4h8LEMjOF44L9zXxcBucfwvufE/2G9Yryps+KJee7mkVj9W/FAltmc4BXEa7/C1wfJ3dYfldi71gsEsLaR2Rv3Jdwy8x1FdCCW5M6so=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774879729; c=relaxed/simple;
-	bh=UBMvKa6530vLa0XbCReC9z5oa2AyiAgd7zjDJyxTv74=;
+	s=arc-20240116; t=1774880363; c=relaxed/simple;
+	bh=jKPl7vLvqPt4L8fZQsfb39R9t7tBQznk82n5HFjIulw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=nHqd/s+int8rO+1AWCF+i/T9N6jh2KIdUEy/6AA2jCGcN+mcOi6O+SywbJD7BL9NoxtFfP8EWCmWaypTz5fmxUBiSAQO4txp6n/U5CFkzCBmy0yTOP1SYfYFDXgIbqtK9iTFLb6LmmIKv7ghH46wskEXD6tq99XNTNN0KDu0Is0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uuP7Z1Ks; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=Xtmj80EBrQupsRguU22JkscdF13KIvWKqrhwkqVuhLD8VCuq5dwuHi0reO9/Kmx0f2ghl2z6cY1veEPwg8OOfMScIF+PWTceuotPRdT0qVXeYT+rp5kVrHQMfFqYCUrGjSdc2k+dhRLHw/GZMOtDoOiGiWco8LRVDwkFvjZCmaI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BL25BcqC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uuP7Z1Ks"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61560C2BCB8
-	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:08:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BL25BcqC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC3CAC2BCB6
+	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:19:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774879729;
-	bh=UBMvKa6530vLa0XbCReC9z5oa2AyiAgd7zjDJyxTv74=;
+	s=k20201202; t=1774880362;
+	bh=jKPl7vLvqPt4L8fZQsfb39R9t7tBQznk82n5HFjIulw=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=uuP7Z1KsMgAA6tSsPe2Z5q0aw+WmtfZ+YM3g7RqLtOGZbCjBUCFDGPXKx1sZgMUTW
-	 5Bv24X1+9iOsLr8H5S0AxGPl5YVOjUUerA2gE4NkPS6v+P8//CqoiKR3akGiuY/9nn
-	 lfPWH9fALC2uJtMI7+dGs+kcW4lLy1bGguXutCbJffPStgYy71J8RZrhVBGFGPQ/D5
-	 F22RwOEq+Vly6dJixo51icP4mdgf9gnXn3g/rAQ04jobWUTbFQ8h/DfIOkctYqrTt/
-	 clayt7zBzx5tFb6Osuqcdlzia+Eccuc4WB2rwJE9J9TxMCXDdnVPdarIcRLwkCgrRr
-	 pd1UrbPCRMpEw==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-38ad26e3992so34968401fa.1
-        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 07:08:49 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCXJybGhzuc4osbpYfBJU7kbUQ8qCogfxvw8VitnoQ5CBssz0s2rJQYWTrLvm6JdUe8c6Yj0GQXZK5Aw@vger.kernel.org
-X-Gm-Message-State: AOJu0YwmUWmdEaOBBjuz7ez15I38F0YJI7cgrFzLFmPBU5wrBRUlp66U
-	MGuRVaYRP4ID5PJuMZiovWZoQjV3GXlvQ9l0uRX3RbbEmIMbZgsLwJsgk0S6yOB8+9eJLFTp5Ad
-	abZmLA3aktf987+VGUGOf4IkApAT098+7jLbB0YGzVg==
-X-Received: by 2002:a2e:a548:0:b0:38a:43eb:239e with SMTP id
- 38308e7fff4ca-38c73192b65mr45193471fa.13.1774879728025; Mon, 30 Mar 2026
- 07:08:48 -0700 (PDT)
+	b=BL25BcqCDMG25fw/wVsiojhvGXgPIqTZWewqcjhAAxT3uAzbAkj7BZBpbIdLjl4sR
+	 rCPNnZDrLQqnjaLrfZVVQlBLzW/VimcouO8ihTGQrD3NIfEX83Nw/Cya1TO7XgnxIz
+	 Q6FQ00ZD9Fu/sK2YoNhgTInSQgBsXuFdYC5OWTAOsCw1nkTq0nX65W2gDY/fiPgPTR
+	 ogUNAlH86GJd0zm7kTkvf20W0yHCCPlwDUj/0ZmdhZCM3WjZSC2NZu9ZiSwH7V9D0A
+	 8i84wUpKG7pbL0IcouaHmXJwa33t2NX208fzkdmaspWP48Lj7jI9uc3FS08O05QM5w
+	 9hk2SJWlpiisA==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-38ad12fb595so46401311fa.0
+        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 07:19:22 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCWlKskbgz7p7yHHHlj5Do4yLiGeyH0u6wxny7BUocYPHwXo4g5CkwuuUut21LBI437K5zgvllzMz1zO@vger.kernel.org
+X-Gm-Message-State: AOJu0YzsTQzcmfciPr6/rprlwPvTZSx5SGvOaoHt638hIjbmaH35DXqm
+	WNtA37NDJ3fr+Y/8lKaf8rv4Q5poRzgJBYWU7x/mf/Lt53g98T2wlbzA3npQYYkgaxyTa07+Qhd
+	lz227G/y1j/qsXFuiRhlVjeyKlShyE/Zvpaf9JQw2qg==
+X-Received: by 2002:a05:651c:1b12:b0:38b:f0f0:e39b with SMTP id
+ 38308e7fff4ca-38c75c5ef7emr42861941fa.10.1774880361407; Mon, 30 Mar 2026
+ 07:19:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -42,15 +42,14 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
- <DHG5OX85I4LL.39U0RRBS0JXFP@kernel.org> <CAMRc=MfG1ZF=4T2WAw71Zb+4BFD2_4VSNRQZQsoGLE8gZxWcHg@mail.gmail.com>
-In-Reply-To: <CAMRc=MfG1ZF=4T2WAw71Zb+4BFD2_4VSNRQZQsoGLE8gZxWcHg@mail.gmail.com>
+ <20260330-nokia770-gpio-swnodes-v4-1-b68592e977d0@oss.qualcomm.com> <DHG5WQI26R5U.WTZW61VKJHF5@kernel.org>
+In-Reply-To: <DHG5WQI26R5U.WTZW61VKJHF5@kernel.org>
 From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Mon, 30 Mar 2026 16:08:35 +0200
-X-Gmail-Original-Message-ID: <CAMRc=Md4gD+9Rkg9MSe0OiYw-bS53nMAarFq_MZZHEq=yxYwVQ@mail.gmail.com>
-X-Gm-Features: AQROBzCZ3sn6YhqN7BcNEXBcWbVXRGN722aFgaQTZcIuW6VGsXjtEbj0I4HGOcQ
-Message-ID: <CAMRc=Md4gD+9Rkg9MSe0OiYw-bS53nMAarFq_MZZHEq=yxYwVQ@mail.gmail.com>
-Subject: Re: [PATCH v4 0/3] ARM: omap1: use real firmware node lookup for
- GPIOs on Nokia 770
+Date: Mon, 30 Mar 2026 16:19:08 +0200
+X-Gmail-Original-Message-ID: <CAMRc=Mf3oWtrcdR+g69b8y4K-gwfMe+3LNMYQ6c6M-hw3Nh+Hw@mail.gmail.com>
+X-Gm-Features: AQROBzCFGjEJDyJGQ7QpuD7sAKfwUgETi1l52lFJ9qTeAWzKycqIShS33NqMS2A
+Message-ID: <CAMRc=Mf3oWtrcdR+g69b8y4K-gwfMe+3LNMYQ6c6M-hw3Nh+Hw@mail.gmail.com>
+Subject: Re: [PATCH v4 1/3] kernel: ksysfs: initialize kernel_kobj earlier
 To: Danilo Krummrich <dakr@kernel.org>
 Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
@@ -65,31 +64,29 @@ Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Mar 30, 2026 at 3:52=E2=80=AFPM Bartosz Golaszewski <brgl@kernel.or=
-g> wrote:
+On Mon, Mar 30, 2026 at 3:47=E2=80=AFPM Danilo Krummrich <dakr@kernel.org> =
+wrote:
 >
-> On Mon, Mar 30, 2026 at 3:37=E2=80=AFPM Danilo Krummrich <dakr@kernel.org=
-> wrote:
+> On Mon Mar 30, 2026 at 2:40 PM CEST, Bartosz Golaszewski wrote:
+> > diff --git a/include/linux/kobject.h b/include/linux/kobject.h
+> > index c8219505a79f98bc370e52997efc8af51833cfda..71b9086621c35b7e4ef99b9=
+d3b6707db23faf58c 100644
+> > --- a/include/linux/kobject.h
+> > +++ b/include/linux/kobject.h
+> > @@ -219,4 +219,6 @@ int kobject_synth_uevent(struct kobject *kobj, cons=
+t char *buf, size_t count);
+> >  __printf(2, 3)
+> >  int add_uevent_var(struct kobj_uevent_env *env, const char *format, ..=
+.);
 > >
-> > On Mon Mar 30, 2026 at 2:40 PM CEST, Bartosz Golaszewski wrote:
-> > > Bartosz Golaszewski (3):
-> > >       kernel: ksysfs: initialize kernel_kobj earlier
-> > >       driver core: make software nodes available earlier
-> > >       ARM: omap1: enable real software node lookup of GPIOs on Nokia =
-770
-> >
-> > Looks good to me overall (one minor nit in the first patch); which tree=
- should
-> > this go through?
+> > +void ksysfs_init(void);
 >
-> If the first two patches can make v7.1 then I'm fine with postponing
-> patch 3 until v7.2. Maybe Dmitry's changes allowing passing
-> unregistered software nodes to new platform devices (where are we with
-> this?) would also make it in and patch 3/3 could be smaller as a
-> result.
->
+> NIT: I'm aware there's also all the core kobjects in include/linux/kobjec=
+t.h,
+> but maybe a separate header would be a better fit.
 
-In other words: patches 1 and 2 can go though the driver core tree
-into v7.1 and patch 3/3 will be respun next cycle.
+Do you mean moving all the top-level kobject declarations
+(kernel_kobj, firmware_kobj, etc.) out of kobject.h into this new
+header (ksysfs.h?) along with their init functions?
 
 Bart
