@@ -1,104 +1,122 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FDB52BE7DC;
-	Mon, 30 Mar 2026 20:24:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04A6D3A1682
+	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 21:14:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774902294; cv=none; b=NChcmkBppVlVWEjgdTM7ZUvg0s5epL2xg0bjefBBZOKl1iXTbDvEmD/E2PWaCzc+3G8GyWqTUDWhB1B2IhUN8Yflxc+ZoZr9AMxA6DxlmeroBGXmcg6VIhZ1oMwLAVs/EoGIovFtaNf8M6fXnwAV7LcuTIqGJpcqxFt96/pGXmI=
+	t=1774905248; cv=none; b=I/NYKJbqkLhwGvzsXSWawOjyqF9w4A+DAFHOOgbnZPR+8VTJdPZh9AbUmhfbPFWqO6lsqcky+fAiHF6WZPH9YIchDaDUPJ/3/6qDIYv7DmTPZa8RYg+y9SSSkafPt1q9Q8N72qUPej6lBsjhkBQ3NUW5nNtnhlYR7nTfDhT6w0g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774902294; c=relaxed/simple;
-	bh=i6O0R420JsaobqCAMpIhjIoGFKW4TulkjH6tJS6uS2s=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=It1pyDSh0M+SlQnhDoVprlmucNGlHMdZEno/OTCnMHkmzwM45GcS1sZIeS6wYhtwVfWfE7vJs8RQ9yxP9SCT9YgfCyhqEvde68Iqhxiu5TZCqNLbt0OswJXQN20yLoqWjcBDR/N+Zo/aJynj6qN+jwdyEhOtsxv0mCj5UTpbrH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=I4rvMLab; arc=none smtp.client-ip=192.198.163.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1774905248; c=relaxed/simple;
+	bh=5pooe8akLgHWo88qYtDDC/7ED3+Zasl35vKrSAKLMUw=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=BaN/JGv/xLyd+j9akpfxPsTodEpaL+GnYWUS7z2jOI2yqe2cVg9V8LnntBIgnLoMMuNKaF1A9HWN28YRDcFiCemTO5Gki7UNPDl5N1+MwHAJqcQtKiJcffTuYWef/LLcN1UUyd/KCNNZCL+fJFVaCbqUeZVoW+EgkNSrSPk+AM0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=e8PkOwLD; arc=none smtp.client-ip=209.85.214.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="I4rvMLab"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774902293; x=1806438293;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=i6O0R420JsaobqCAMpIhjIoGFKW4TulkjH6tJS6uS2s=;
-  b=I4rvMLabUxKJl7BY8w/zu8MQnb37J39/ypXTlHwWY71JDqzyVNQgTRg8
-   nwb3erMaHxbunEyjsmuwXrmJWgGePxGfrMuOx81z3pV7voRfUSJbxCaNs
-   BFEEiSW4cO0/ZmTgk3bylAchgZzBAL8kPluMqxcJ0UHAawivUBAMG03CO
-   /pRthJW2yqpSQzXvV/9m/a381Wwn609L446l0NesEE1Lych3eg3T+j+lc
-   2ME0JgSv7K/DZ2S4Ad3nUazQ6dSHMjFlOh5hTENAxtLCw7/+mD+Qrq1Q7
-   pONEOArmusjY/iO2A1oVJb8YgHIoRONmhDrHvKBd1fKWeCaoENfm9vnIa
-   A==;
-X-CSE-ConnectionGUID: CFH8+w6sSoClUjwgNb7gHQ==
-X-CSE-MsgGUID: 3Z/rjNrASpCa+TAyk3dhug==
-X-IronPort-AV: E=McAfee;i="6800,10657,11744"; a="86598205"
-X-IronPort-AV: E=Sophos;i="6.23,150,1770624000"; 
-   d="scan'208";a="86598205"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2026 13:24:52 -0700
-X-CSE-ConnectionGUID: TXJZI8ekRJ6g6M9KfTUpgw==
-X-CSE-MsgGUID: 7aHZRfASRmelp1lYOfoS4w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,150,1770624000"; 
-   d="scan'208";a="223280125"
-Received: from vpanait-mobl.ger.corp.intel.com (HELO localhost) ([10.245.245.100])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2026 13:24:48 -0700
-Date: Mon, 30 Mar 2026 23:24:45 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>,
-	brgl@kernel.org, driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v4 2/3] driver core: make software nodes available earlier
-Message-ID: <acrcDTPpXZ_5A4D8@ashevche-desk.local>
-References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
- <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="e8PkOwLD"
+Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-2ab232cc803so23744275ad.3
+        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:14:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1774905245; x=1775510045; darn=vger.kernel.org;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=itki3S53hN5ghJ+TbLPQdNLhKu/I8y2gwGAHgQqiXFA=;
+        b=e8PkOwLDSZGU6YRo5IrvgqWM9KONmv5IER/GNo22e4IQE2ZHZ6yd8LkwVoXCeUhfSE
+         2EwrN+9lockx5OQpt17JzdXscXDSEzaZy0pDDGWmV5NrMMP5Y4hRTLAP4Pz/zHCV/Hj0
+         4uFPOfrxU3pbUyAmaQmodIwv7sPJ8dhvtO/iRP3yltYMtBX21Ce/bnJdPvJm2LG0JpkC
+         OqtUKKpk+xmYIK/CcXqaJEPmvjuuty/TN/cXNrRX6U/xKLT0MjHf5LrxzeDAImrpi893
+         HLYWDsUZ+ImOPwt8d5j0LJnjEKS1nTBQCh8KR+C+Xtq26hrROzuYmME+wgvkanxT44qj
+         XUXA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774905245; x=1775510045;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=itki3S53hN5ghJ+TbLPQdNLhKu/I8y2gwGAHgQqiXFA=;
+        b=hL1jZe58J5bulaCF65dbe0qjjnqOwi1n8s9e7A6ZBHQTcYadf59FJqPbD9isN8vrdQ
+         z68u95hxRqjBWK4WaYLeGcbwQ2eXKcNMxME7So0SHPNy6izIyG8h84JqnT18tHILsfiO
+         I9ceaDYFNow6spltf8tzhamJhp8GQehpxnXMlEMMKmkawzhKa3SkY0ouatP/K2JjovDJ
+         p3hU8/JqteuEwMgg9cDFOWT4dKNXWsVc0sg/cReDQPuZnhY47P6HN9MDF0LJ2VfqEh+W
+         OgJ52mJ2WIvhKmmKzyGgN1GCyL3izjZnJfnZR2WsdCF3MU6XTcjbPUbiXqgEdQqoxZ6l
+         H2wg==
+X-Forwarded-Encrypted: i=1; AJvYcCVrDeWCbJIOEZiFglQ8BmmD3yOuJ3xL3vVd08CQ8V7e49H1bJZWFvLPLBiuWFVOnFAD+oTXBDztyEZt@vger.kernel.org
+X-Gm-Message-State: AOJu0YyUpSAojRjPUF9g7R7EcBV7JpfsLJ8z0oVafmDDuUkiNv5oiuJu
+	ykh/TM4f80RoeIVefORvGA7pu5NDe01CSFj9cGVRtnQMa47lz/53TvSEJeWyO/VgD2A=
+X-Gm-Gg: ATEYQzy+lCfm6XoJY2sFipe3VhJfi9KSahWraicR7g9A+PXQK+9ejM4kWH/4JrNcQ/n
+	XfJCW5btKUfM+FpyBFQpBmcGbh2GCHBG2c+pCe+2ysWpO7DoKnMqE7WfmbkpcyIzn420McnMsFy
+	SyFGoXcpJQmZQIIlHXfY0DpEsHkdMUmfaFAZglQzbFTDtURAi3x66y5GxEY3sdsi9j7kWg4kZSd
+	Wn798Addx4bZWrTR5Lo/1VsP74jSt0vHuEOll4g7TOtXRvQ5AjP770pctRkosI0BRnJRohaqWmf
+	J1rgTaU/mhkeFuSic+jXTMipayNX5tRq66rv6aJi/xhDO4JSC6vPqtlTmsT31DRm85uTl3enqtc
+	NwO5KaN1JnxaFO3fcFQo0y4CREkmonhl7MUN+Rpv2UE+vFprt6jbPnlNlvQw/FPu5b8nLrkBx/P
+	S1lUB8bjfjhZgYbEkU1PI=
+X-Received: by 2002:a17:902:d541:b0:2ae:c981:2a29 with SMTP id d9443c01a7336-2b0cdbf7bddmr141880015ad.2.1774905245314;
+        Mon, 30 Mar 2026 14:14:05 -0700 (PDT)
+Received: from localhost ([97.126.187.42])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b242676e13sm93479195ad.28.2026.03.30.14.14.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 30 Mar 2026 14:14:04 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Kory Maincent <kory.maincent@bootlin.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
+ <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
+ <tony@atomide.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski
+ <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Russell King
+ <linux@armlinux.org.uk>, Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+ linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ dri-devel@lists.freedesktop.org, Luca Ceresoli
+ <luca.ceresoli@bootlin.com>, Bajjuri Praneeth <praneeth@ti.com>, Maarten
+ Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard
+ <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, Louis
+ Chauvet <louis.chauvet@bootlin.com>
+Subject: Re: [PATCH v2 1/3] ARM: dts: ti: Enable overlays for am335x
+ BeagleBoard devicetrees
+In-Reply-To: <20260324103934.7d259008@kmaincent-XPS-13-7390>
+References: <20260216-feature_bbge-v2-1-22805cfdbf62@bootlin.com>
+ <177275924369.1445909.1029086854461649971.b4-ty@baylibre.com>
+ <20260324103934.7d259008@kmaincent-XPS-13-7390>
+Date: Mon, 30 Mar 2026 14:14:04 -0700
+Message-ID: <7h341hvx43.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Type: text/plain
 
-On Mon, Mar 30, 2026 at 02:40:47PM +0200, Bartosz Golaszewski wrote:
-> Software nodes are currently initialized in a function registered as
-> a postcore_initcall(). However, some devices may want to register
-> software nodes earlier than that (or also in a postcore_initcall() where
-> they're at the merci of the link order). Move the initialization to
-> driver_init() making swnode available much earlier as well as making
-> their initialization time deterministic.
+Kory Maincent <kory.maincent@bootlin.com> writes:
 
-...
+> Hello Kevin,
+>
+> On Thu, 05 Mar 2026 17:07:23 -0800
+> Kevin Hilman <khilman@baylibre.com> wrote:
+>
+>> On Mon, 16 Feb 2026 17:55:52 +0100, Kory Maincent (TI) wrote:
+>> > Allow overlays to be applied to am335x BeagleBoard boards. This adds
+>> > around ~40% to the total size of the DTB files on average.
+>> > 
+>> >   
+>> 
+>> Applied, thanks!
+>> 
+>> [1/3] ARM: dts: ti: Enable overlays for am335x BeagleBoard devicetrees
+>>       commit: 18161bb01ede109fed41c66efa2624a4c27377f7
+>> 
+>> Best regards,
+>
+> Thanks for merging it.
+> I see that you have merged patch 1 and 2 in your for-next branch.
+> Is there a reason to not merge the patch 3? Are you waiting for a dts
+> maintainer ack?
+>
+> Maybe I can resend only the 3rd patch to ping the dts maintainers.
 
-> -static void __exit software_node_exit(void)
-> -{
-> -	ida_destroy(&swnode_root_ids);
-> -	kset_unregister(swnode_kset);
->  }
-> -__exitcall(software_node_exit);
+Not necessary.  I'm not sure how/why I missed patch 3.  It's now queued
+in my tree.
 
+Thanks for letting me know,
 
-Why? What's wrong with the __exitcall?
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Kevin
