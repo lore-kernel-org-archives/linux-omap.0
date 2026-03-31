@@ -1,123 +1,190 @@
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D0853F99EA
-	for <linux-omap@vger.kernel.org>; Tue, 31 Mar 2026 16:35:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B672E3E4C6C;
+	Tue, 31 Mar 2026 16:55:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774974936; cv=none; b=QM74b1/OVYL5DtCZgGXhB2vnQKr6JgnNp/5NU+kV1zw4TFbp7fncxgmnQS/99yjuNamsW8T5JEDmUaeFzfvNssveOuMKfZkRdGnjfiwsWP9mdNC2eD6YESo7ETQZe9WTemnuE3sxB2Ye1g4NKDMhlyuxhjEDhCMAKCVepGYCU/s=
+	t=1774976143; cv=none; b=qUCvGm/NyGDaBQmDZtuAwbbMZ1bw9nmfDLLKA3I1SjKU6o2jzPFB7/teuNBefYpFTZc99AIBUCaltGZg06EG8csnxUOqX8YV3WAFh29bc89dMd4M19O0SdXT0N1HTCalNtcwqx/tv96mHXN5P+RQGFkg/w2WlyiR6Dg51lp+hW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774974936; c=relaxed/simple;
-	bh=bF5musvkrEAhCDCOuLjDhsPiAjPms2Z9ddSnfETKH5s=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=sO5Glh1056v/ERGX8gz4JcrlUu8ChamtwrzlNhR7qAL6WSuEreybeGBzZbOE+hTZQ0GJWsaLSppW1naBB9uEGUGkersl0QYJ8qPpaHo77QaXt/oRAv2SBP9WpiEhHkR52nIbE6EoV1IWu9yKYhD6vtLMjGiep2N32pi8r0OTOPo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WZDUEejj; arc=none smtp.client-ip=209.85.128.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1774976143; c=relaxed/simple;
+	bh=TXgnhjxpO2HR++8xpxW1ouNg5LDZYEZ5+mSZghxn69Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qqwl7hGIT7B/ITPa9kxn28fc+3hkaJHHUYthTHlFnAqdBdBd8Gnl22EvReVokm7gF5z8EP57+wCn+v/eOctJK5tJWjqhv4R0BcNDxsncWoZKYiq4Cyz/ypbXbZbfffl30A/F7Emkgte0BoWD/FEVc1C/09mTsv63zQzYAi2q/ek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jS6jyNFh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WZDUEejj"
-Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-486fb439299so55456325e9.0
-        for <linux-omap@vger.kernel.org>; Tue, 31 Mar 2026 09:35:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1774974932; x=1775579732; darn=vger.kernel.org;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=bF5musvkrEAhCDCOuLjDhsPiAjPms2Z9ddSnfETKH5s=;
-        b=WZDUEejjZTpysUBuNNYi6pcxa12xcPmm0szUvXOrIkeJPS1C0a5e6ve8JZtJUg+ENH
-         CjEefej8+ntVZIdeWFvQ17sfBa2bf1qrt4KAlEc2JNI7I9HVeqhOMiZ9hEhr6AgVHsc5
-         6G92LzW+Ow3FsBOuaN9FfQU/DUi6PMPfE/MU0kD2KxywqoxXgSDYanhQNFdIr2IOZp8b
-         MR5wyXM4oup2JnmEDNAe5qi+9nbniUqir6KS5WXdSqiSgCGVc3tFdyUmsmXEMPP7A9gj
-         itRIPFMS2jiLIgOoN0MeH0FPJ76dob9RXRub/Ld23tefw6f1EfuSnJUcjPCCWtJayfi3
-         C5Pw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774974932; x=1775579732;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=bF5musvkrEAhCDCOuLjDhsPiAjPms2Z9ddSnfETKH5s=;
-        b=IxHKQUBFJkjp0Fys5K4Tu6qhes37/k720ovKiyp/e8evoFuwk9wXXSawTtlOMbEZQd
-         Ps53NDhF87xnOL1mQp5st6QIuX+6d0vg9EEuyYElSeR+VUltpchAjXTEinrpYL8dN/o7
-         lIlI5/XV3kkcaXKH/n3RG17e0VQ7cyKWqWE7Yf8Bsi+7UjZEqWZachEboPThOdJ9VTWk
-         WlsjUYULvP5vGCyCpKtAtlapgkQedOWVIkxG925W+9gs+6YBm7zd3Hd7N01hmZ6Yn4fB
-         YC5anh/pOl3bUQFesb7+6jdSBaUEGfYjp/3UwB36ppVfj95jlIW1Z6+vtb9znxRfdjBE
-         cmSg==
-X-Forwarded-Encrypted: i=1; AJvYcCUgebkIGc8egaxM9A2T8n/W9WfO1pU5x6KimDJID7Jqj4M6imrrm2qwAiuzoYB2Nnnzn1M7Xv3DRGQy@vger.kernel.org
-X-Gm-Message-State: AOJu0YxrzAiGWSRQm4tYc2JaVjdhdjWM6qQmCdeuYAjChPf6P+uUIoB7
-	3ElL80oZG3ElmAEmzvj1iaP7FWf9IUtBDB/1IEgGje1gx0+znZmYz9Y+
-X-Gm-Gg: ATEYQzytXyM4L/WlhEtD+b5wrWtFH6cZ+nGyJwoYUGRynuE4KoYVcm4EgX/8khqZFSj
-	15kCKF9pKEJIrdpd3Dn/vdCzdEmSFfzjStccW2EBfY3+4fFxDZaWXsiVBUWuBTR/PIfbP7CZdRB
-	jaGpSBhDwTwDIlbO5zaJkBIUXxZJ3eg42AF/ohJCRm5Wlss5xkvLABsLfTtBj8I86a9/nkyh4q0
-	nOcwECPmSj6vZndN87psJhPyKxvZrAfMgmLthvwSr5af4ZeVRIcT+ZCoSaaIP7fDccGJqws3L64
-	PHSu0AmZqtXKRGogeolBffmpU8gVVUZaG82Qtu9UZfNi0Ws5E2QeYWsMmi+4anLncv/AURYIlUv
-	QgW6L+UV5VQuaxA23kzCajSb6H1znUGtwUHQ6qllRV7m46647Rnjoz4JVPCj+VY2Rm/SDVsuq9m
-	/0A408hwF0X03uUuK+rGNX/jb7k7G7qGSNoLQAFR54ZAG89Iovk1kT8NIK7VveynQWY2rXWQXQW
-	IJTxtE=
-X-Received: by 2002:a05:600c:8b08:b0:485:3f1c:d897 with SMTP id 5b1f17b1804b1-48883572159mr594795e9.9.1774974932061;
-        Tue, 31 Mar 2026 09:35:32 -0700 (PDT)
-Received: from 0.1.2.1.2.0.a.2.dynamic.cust.swisscom.net ([2a02:1210:8642:2b00:82ee:73ff:feb8:99e3])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4887adc5690sm34964075e9.2.2026.03.31.09.35.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 31 Mar 2026 09:35:30 -0700 (PDT)
-Message-ID: <db75d50bc333635e3db07a2ce0f3e23a5f62c3d8.camel@gmail.com>
-Subject: Re: [PATCH] [RESEND, net-next] net: ethernet: ti-cpsw:: rename
- soft_reset() function
-From: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-To: Arnd Bergmann <arnd@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
- <pabeni@redhat.com>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, Murali
- Karicheri	 <m-karicheri2@ti.com>, Grygorii Strashko
- <grygorii.strashko@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Siddharth Vadapalli <s-vadapalli@ti.com>,
-  Roger Quadros <rogerq@kernel.org>, Vladimir Oltean
- <vladimir.oltean@nxp.com>, Kevin Hao <haokexin@gmail.com>,  Saeed Mahameed
- <saeedm@nvidia.com>, Daniel Zahka <daniel.zahka@gmail.com>,
- linux-omap@vger.kernel.org, 	netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Date: Tue, 31 Mar 2026 18:35:33 +0200
-In-Reply-To: <20260331161814.3725730-1-arnd@kernel.org>
-References: <20260331161254.3450606-1-arnd@kernel.org>
-	 <20260331161814.3725730-1-arnd@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.58.2 
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jS6jyNFh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DB58C2BCB2;
+	Tue, 31 Mar 2026 16:55:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774976143;
+	bh=TXgnhjxpO2HR++8xpxW1ouNg5LDZYEZ5+mSZghxn69Y=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=jS6jyNFhDuJU1B3wxNwrFRZpCxmsLytEE2YMNKa2Gu2JYTedOUfiYZ61xXhouo15n
+	 ErVH5jDUSjtI0IP6nT+x8zU2nuMMIVRJLbqdeHRZw9Y0YdEvmxOCgCDQKyE57UO2vt
+	 oIrbHd1HFWcBQmjXeBu9LPzs+CPMnMozwV4qoNEUOEZ9BnzjJHuyRPBDK591hs2cSP
+	 FoQw8tb8lsWr9DPmguCKMXZ57l7T3nEhd+2IZjhMEGRzAQp8TvNuKZBNLkjSVJeLMF
+	 3eJ2I58hExSPnQRm+hCRfUutvWo/t5zgUtE5F5NLOdXhycYsgLER0BkSBWV8JZQxmG
+	 FICAKmEP7bvgw==
+Date: Tue, 31 Mar 2026 17:55:37 +0100
+From: Lee Jones <lee@kernel.org>
+To: Thomas Richard <thomas.richard@bootlin.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH 7/8] mfd: omap-usb-host: Add pbias regulator support
+Message-ID: <20260331165537.GJ3795166@google.com>
+References: <20260323-omap4-fix-usb-support-v1-0-b668132124ac@bootlin.com>
+ <20260323-omap4-fix-usb-support-v1-7-b668132124ac@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260323-omap4-fix-usb-support-v1-7-b668132124ac@bootlin.com>
 
-On Tue, 2026-03-31 at 18:17 +0200, Arnd Bergmann wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
->=20
-> While looking at the glob symbols shared between the cpsw drivers,
-> I noticed that soft_reset() is the only one that is missing a proper
-> namespace prefix, and will pollute the kernel namespace, so rename
-> it to be consistent with the other symbols.
->=20
-> Fixes: c5013ac1dd0e1 ("net: ethernet: ti: cpsw: move set of common functi=
-ons in cpsw_priv")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+On Mon, 23 Mar 2026, Thomas Richard wrote:
 
-Reviewed-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-
+> Add pbias regulator support to enable SIM_VDDS supply and unlock USB I/O
+> cell. Previously, this was handled by the bootloader, now the kernel can
+> take responsibility for managing the PBIAS regulator, ensuring correct
+> operation regardless of the bootloader.
+> 
+> Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
 > ---
-> I just realized that this patch needs to come before
-> https://lore.kernel.org/netdev/20260331161254.3450606-1-arnd@kernel.org/T=
-/#u
->=20
-> The change itself is not important, but it renames a symbol that
-> gets exported under the new name by the other patch, so either
-> this gets applied first, or the other one needs a trivial change
-> to fix the export.
-> ---
-> =C2=A0drivers/net/ethernet/ti/cpsw.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 | 2 +-
-> =C2=A0drivers/net/ethernet/ti/cpsw_new.c=C2=A0 | 2 +-
-> =C2=A0drivers/net/ethernet/ti/cpsw_priv.c | 2 +-
-> =C2=A0drivers/net/ethernet/ti/cpsw_priv.h | 2 +-
-> =C2=A04 files changed, 4 insertions(+), 4 deletions(-)
+>  drivers/mfd/omap-usb-host.c | 41 ++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 40 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> index ac974285be341fa579ef198d1893b77af428b5f8..9e254e00183e940b775d5bde6e891f0d26af27b0 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -15,6 +15,9 @@
+>  #include <linux/pm_runtime.h>
+>  #include <linux/of.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/regulator/consumer.h>
+> +#include <linux/string_choices.h>
+> +
 
---=20
-Alexander Sverdlin.
+?
+
+>  
+>  #include "omap-usb.h"
+>  
+> @@ -95,6 +98,8 @@ struct usbhs_hcd_omap {
+>  	struct usbhs_omap_platform_data	*pdata;
+>  
+>  	u32				usbhs_rev;
+> +
+> +	struct regulator		*pbias;
+>  };
+>  /*-------------------------------------------------------------------------*/
+>  
+> @@ -270,6 +275,25 @@ static bool is_ohci_port(enum usbhs_omap_port_mode pmode)
+>  	}
+>  }
+>  
+> +static int omap_usbhs_set_pbias(struct device *dev, bool power_on)
+> +{
+> +	struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
+> +	int ret;
+> +
+> +	if (!omap->pbias)
+> +		return 0;
+> +
+> +	if (power_on)
+> +		ret = regulator_enable(omap->pbias);
+> +	else
+> +		ret = regulator_disable(omap->pbias);
+> +
+> +	if (ret)
+> +		dev_err(dev, "pbias reg %s failed\n", str_enable_disable(power_on));
+> +
+> +	return ret;
+> +}
+> +
+>  static int usbhs_runtime_resume(struct device *dev)
+>  {
+>  	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+> @@ -278,6 +302,10 @@ static int usbhs_runtime_resume(struct device *dev)
+>  
+>  	dev_dbg(dev, "usbhs_runtime_resume\n");
+>  
+> +	r = omap_usbhs_set_pbias(dev, true);
+> +	if (r)
+> +		return r;
+> +
+>  	omap_tll_enable(pdata);
+>  
+>  	if (!IS_ERR(omap->ehci_logic_fck))
+> @@ -355,7 +383,7 @@ static int usbhs_runtime_suspend(struct device *dev)
+>  
+>  	omap_tll_disable(pdata);
+>  
+> -	return 0;
+> +	return omap_usbhs_set_pbias(dev, false);
+>  }
+>  
+>  static unsigned omap_usbhs_rev1_hostconfig(struct usbhs_hcd_omap *omap,
+> @@ -564,6 +592,11 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+>  
+>  	omap->pdata = pdata;
+>  
+> +	omap->pbias = devm_regulator_get_optional(dev, "pbias");
+> +	if (IS_ERR(omap->pbias))
+> +		return dev_err_probe(dev, PTR_ERR(omap->pbias),
+> +				     "unable to get pbias regulator\n");
+
+You need to check for '-ENODEV' here or you are ignoring the optional part.
+
+> +
+>  	/* Initialize the TLL subsystem */
+>  	omap_tll_init(pdata);
+>  
+> @@ -759,6 +792,10 @@ static int usbhs_omap_probe(struct platform_device *pdev)
+>  	}
+>  
+>  initialize:
+> +	ret = omap_usbhs_set_pbias(dev, true);
+> +	if (ret)
+> +		goto err_mem;
+
+Since this regulator is also managed by 'usbhs_runtime_resume' and
+'usbhs_runtime_suspend', could manually enabling it here in probe and
+disabling it in remove interfere with the reference counting during runtime
+PM transitions? Should we consider relying entirely on runtime PM to manage
+its state?
+
+> +
+>  	omap_usbhs_init(dev);
+>  
+>  	if (dev->of_node) {
+> @@ -806,6 +843,8 @@ static void usbhs_omap_remove(struct platform_device *pdev)
+>  		of_platform_depopulate(&pdev->dev);
+>  	else
+>  		device_for_each_child(&pdev->dev, NULL, usbhs_omap_remove_child);
+> +
+> +	omap_usbhs_set_pbias(&pdev->dev, false);
+>  }
+>  
+>  static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
+> 
+> -- 
+> 2.53.0
+> 
+
+-- 
+Lee Jones [李琼斯]
