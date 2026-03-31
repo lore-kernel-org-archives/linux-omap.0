@@ -1,98 +1,116 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9AE03A6F17
-	for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 21:53:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2149538B7CD;
+	Tue, 31 Mar 2026 06:25:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774907600; cv=none; b=ilYFxKdBnMvumaTEkAatACU1MKZjB7T/aPbh00gGhJrYMPsBID06b5Ia8ca8rVSsNnUohDXwRPCpFvU/Dh8UaOjczxNbIwoU9zjHvH8WN5FPlJVKf9Dmo0j0mVIFmPvnD9e53TWXnYKKkQjpcMT54lpjW/Sqns8/DFOhBHixcUs=
+	t=1774938342; cv=none; b=gdqx0QbxBEfgCpR0A3yCpcxXcrOkTydowJ7fj92sEhZA7patMjVmSMLp+J/aYoKhlsEj80T3cHwH6pK6N6oYFmTyK0BjxzQ89SPnzU1O7D9LEQoim095oopWKjGsjahKpQ0eqHogj7vYAOI1TlCZS3/DlVYqtbR1qPsb8uBTXz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774907600; c=relaxed/simple;
-	bh=u+GD/euz/zBGUAdgJKuwponAH6MVIUcpwMw7ztjWV7Q=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=kPvniyTb/HXR+GqG9X6TFFqZbGLfmBdWmt/2ghFeFAhKIlk+rMMaoOuJS/OTW9hNOm8qDwKq4qPc6W2zPJi8MkFpvmcn3C8uoDCfVkUgvW9XNtRIvVASOpf1LWVYEd/SJSH/nkcAuTEtK5TH90ZClb41TQuDQ8vcBvF8fKwsRWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=W0wZ+12T; arc=none smtp.client-ip=209.85.216.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	s=arc-20240116; t=1774938342; c=relaxed/simple;
+	bh=3VFiO/9e0/Dwa/+IPq3LFbEGBlbpH2h2kskMyOOM2wU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=f+ff9PV3NCE9CjV4W648M6rlVOdLDgKBlrN05z5Dr1g6kOnTUqnZr4dV6FaT5Nw9pehe+A5IV2rQv6LlyhTeulQOi0rHykawZ8d/GS1e3eD37hKZhpNKBh+S5xudaTsxLnMg+jEDFKYWOJOs1aSPZSxbkZwmP6Crmp7POFBOoPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=M2mIq6aQ; arc=none smtp.client-ip=198.175.65.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="W0wZ+12T"
-Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-35d971fb6f1so1963040a91.0
-        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2026 14:53:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1774907598; x=1775512398; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=mhrLf69lwijmXhLU7sx2hxgwSuSk5Rjz6KB9T5JxPlM=;
-        b=W0wZ+12T1mBQZIDX72DTpJVkruHPHb6E7LHfYQWZ/rCN6dPh7Urj/CjU9CBnA2BcZW
-         66pnWSjCBcd3ECx1YpuTQjY4vmVw4X2MiqrNIuJIc9o50kx0XJzh+BYL/eQq5/NqVEid
-         /YhD0pDZVFEk47NNzej46LFUX1rxMjPNO/SG+4ZKnuX6WGmRSUJM+yTdnyHQkrY4TwpG
-         SMDPSJACJf161OL2oXACxksHfPloy7BdVWwyBRO+vTNX1bN+poLbdlOVSZUC0s/HMce/
-         wFraGKVei/tQnr5pflv9Lep2L9Cu5CNJ54ICABYBWuj0WWRyH3T3ItLI2wHZu1Ln8y1n
-         oOvA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1774907598; x=1775512398;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=mhrLf69lwijmXhLU7sx2hxgwSuSk5Rjz6KB9T5JxPlM=;
-        b=rJlc7YtBAiZ26EgttxmYN3YepTkudcKEeb1YSibAX0dDCwK+CZlyUvYbAAbGBaCjIU
-         sjsXqpqjVuBdyhR8rb9NC3dr2cxgclhePpCqBhG4hoj1fBe9lG6Hrj5Me8TCf9Ve3Tt4
-         MkfQE6Dwe/huEf9kmKTdFW+La4G9OH0MB4kB/dFXIXK4BRR8js5MBvZAS3kOA9lqPRh8
-         NNrJtVch+hKbVJZVvYL6ufiBxd2CajLqgKvhFVxnoyTUU6XuDsN5EzMKqdHAvZMxXABj
-         p4GzhiOfgWMY7b0Mtq+7vmDqHNgc5VLNqOYGtfR/WOU1mue/gUPV+cgg2uS3dS6z1C31
-         WzRw==
-X-Forwarded-Encrypted: i=1; AJvYcCUIY/4JUOVhX1xYrILmgciBWi5gnBy7r23CFuiYR+DtPEyDZjuTV/kgy21IpRj6/+ZuI1+e54jwOaAt@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy7Ax5+mBANlowaCFHz8cmQXNHepdPjK9ZD8c/TWQB24PnA7KRV
-	y3n03XSa1/0xn48HEl7qEwPFgLf4yeObsxOhtG3NJUQZVdH55PD7v9MHdzxi9NdBOQNR+86oQO0
-	rP3OLJKM=
-X-Gm-Gg: ATEYQzzHId5bApupfkyVdBhcZUK33PUyq6K07RAKvJqgELgNSyYAfRrat13w8cjzWuX
-	DuYa7TGENweqE+wrNJ8ZoeynjfiVTz2WyY/LMBsx0xM9CO4KZZCw/ahTcKqGzBMsOirHK85sria
-	kG58zsDOAgyK+UPuYhVxpRLk2Sgvb+srlEvIOQ5quMLahF2z2LoCymQGFq0Vr4hm6+b3cBNbXf4
-	azREsgwh34mfKigLY+eeTn8KShIKmId6YPJE856/O+GX6eohKP8Brrn38uFzp1fbCueVN6BJCep
-	3b4U1VTbUi/1+SFWbfOXzMMtY02u+301b4Y0RJz4KcyeWNyAATacZ9wB+MsEIBHMHNLiVC8qJCn
-	PKPF9dG9jRnF6E+1bZgKDvlqX7Hzqqqq+IP0bNhymcMSeq9lFJJ2D496+jyWwsRMB1wS+7V6EkB
-	CRtY4mXFV/9IiBN5OKrV8=
-X-Received: by 2002:a17:90b:4ac3:b0:35d:a557:e44 with SMTP id 98e67ed59e1d1-35da5572530mr6144809a91.6.1774907598192;
-        Mon, 30 Mar 2026 14:53:18 -0700 (PDT)
-Received: from localhost ([97.126.187.42])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35da9ef1b70sm3940792a91.16.2026.03.30.14.53.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Mar 2026 14:53:17 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: tony@atomide.com, Julian Braha <julianbraha@gmail.com>
-Cc: daniel.lezcano@linaro.org, linux@armlinux.org.uk, arnd@arndb.de, 
- linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
- linux-arm-kernel@lists.infradead.org, Thomas Gleixner <tglx@kernel.org>
-In-Reply-To: <20260329183018.519560-1-julianbraha@gmail.com>
-References: <20260329183018.519560-1-julianbraha@gmail.com>
-Subject: Re: [PATCH] ARM: omap2: dead code cleanup in kconfig for
- ARCH_OMAP4
-Message-Id: <177490759740.2030917.5758134874095517532.b4-ty@baylibre.com>
-Date: Mon, 30 Mar 2026 14:53:17 -0700
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="M2mIq6aQ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774938341; x=1806474341;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=3VFiO/9e0/Dwa/+IPq3LFbEGBlbpH2h2kskMyOOM2wU=;
+  b=M2mIq6aQm0Wf2Z5nB/MA+dMiE3IMI6YqKp2tWv0V6X/t72wRFCQfpACP
+   S6U3vW2MWIYnDG3S/hUv7HI9kSOwP4PfKaQiZ4m/DVVq3BsI5pi4wlsuQ
+   WcHKduVZIFgR137Px3hv4AE1RNMaG+e1wctxSKKydBr8/4U2mIiaeS2D7
+   g25ILUWpQv34mN/BnYmMoMkcmFHtZ6ArVU8vRcTYNT08HMFvTCm0Tl3KI
+   Y1Hesl39EuC8j6OkUOWdhRNEyMztUDBelqJuU4qOItuClxR6J5dM3D9n7
+   w3aBwfnae06fSWUoQhI2AqS2o+s8r2IhYcMJTf3CrlGkCyXj0hgDZsvgN
+   A==;
+X-CSE-ConnectionGUID: o70gKDI/TGiw/DeIF7QLBw==
+X-CSE-MsgGUID: j7FETsUAR2yOhTF2wB9Yig==
+X-IronPort-AV: E=McAfee;i="6800,10657,11744"; a="93323388"
+X-IronPort-AV: E=Sophos;i="6.23,151,1770624000"; 
+   d="scan'208";a="93323388"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2026 23:25:41 -0700
+X-CSE-ConnectionGUID: tM5AvxKvTS20bU+YYeM05g==
+X-CSE-MsgGUID: XLXLMmThTjauDlTqrccrPw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,151,1770624000"; 
+   d="scan'208";a="230730554"
+Received: from rvuia-mobl.ger.corp.intel.com (HELO localhost) ([10.245.245.209])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2026 23:25:35 -0700
+Date: Tue, 31 Mar 2026 09:25:33 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>,
+	brgl@kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v4 2/3] driver core: make software nodes available earlier
+Message-ID: <acto3TE1AR8iTzF0@ashevche-desk.local>
+References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
+ <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
+ <acrcDTPpXZ_5A4D8@ashevche-desk.local>
+ <acruxMNdnUlyRHiy@google.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <acruxMNdnUlyRHiy@google.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
+On Mon, Mar 30, 2026 at 02:46:45PM -0700, Dmitry Torokhov wrote:
+> On Mon, Mar 30, 2026 at 11:24:45PM +0300, Andy Shevchenko wrote:
+> > On Mon, Mar 30, 2026 at 02:40:47PM +0200, Bartosz Golaszewski wrote:
 
-On Sun, 29 Mar 2026 19:30:18 +0100, Julian Braha wrote:
-> The same kconfig 'select OMAP_INTERCONNECT' appears twice for ARCH_OMAP4.
-> I propose removing the second instance, as it is effectively dead code.
+...
+
+> > > -static void __exit software_node_exit(void)
+> > > -{
+> > > -	ida_destroy(&swnode_root_ids);
+> > > -	kset_unregister(swnode_kset);
+> > >  }
+> > > -__exitcall(software_node_exit);
+> > 
+> > Why? What's wrong with the __exitcall?
 > 
-> This dead code was found by kconfirm, a static analysis tool for Kconfig.
+> It's dead code. Always was, always will be.
+> 
+> Maybe split in a separate patch, but I sometimes feel the idea of "one
+> change" is taken to extreme and adds to both developer's and maintainers
+> burden by needing to keep track of extra patches.
 
-Applied, thanks!
+Why does __exitcall() exist then? It's also used in other places.
+I think it's generally good to have a possibility to clean up
+after run.
 
-[1/1] ARM: omap2: dead code cleanup in kconfig for ARCH_OMAP4
-      commit: 9ceb17ccd15ea32f19c9066f5f1b340d8340bd0b
+A bit of archaeology:
 
-Best regards,
+The first time it appeared was in the bcc2152647b8 ("Import 2.4.0-test3pre3").
+Then somehow spread a bit (but not much).
+
 -- 
-Kevin Hilman <khilman@baylibre.com>
+With Best Regards,
+Andy Shevchenko
+
 
