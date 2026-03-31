@@ -1,188 +1,129 @@
-Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010059.outbound.protection.outlook.com [52.101.46.59])
+Received: from out203-205-221-242.mail.qq.com (out203-205-221-242.mail.qq.com [203.205.221.242])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13E311A6826;
-	Tue, 31 Mar 2026 12:19:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.59
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774959561; cv=fail; b=ty8L6cjOB8Pboc8q7FyRnqCngjAUf8xvPpITRMY573jaiG2Uh/PkCLkNmzA4+/pye3Ox/Vkv3rpFb9u1KVmFzSBcSKa03GOYG45FrTw5/5slEZgPPx/KPC6q4w7+HJpQGH3Uoyx222yLXE5wF3fiNru4Jk4h9Y4oKF8HSBgi0PI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774959561; c=relaxed/simple;
-	bh=zdHp+vzdyMRbVEdAuA1cfvzY3ayE6FRIsaWRrEjd/fw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=JgKWszQtHwmfuHLDGRO/eYcVsigLFQmX39qFUKlVZD3lvkCz3xSvi/KKuSioarvhDgB1p+9Up1zS534zUAAvKoFfSNDY29h/BJY/+xoyJy0bZmHB4Th6YWs7qw4slo6DZxCHsnJVYZNn36+A7axYQ0+2ChkrwEoVyeCp2NMBJbU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=hujSxz4T; arc=fail smtp.client-ip=52.101.46.59
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 148173E0C51;
+	Tue, 31 Mar 2026 12:31:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.205.221.242
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774960308; cv=none; b=DmES2RMreC4LsWUCDJcet9TTUSnRR8oExKkwoKrnnuohLJpoFPHHBhc1DrZTrWEVjPOLzia45VxHO/tS2ftmnMrXvjNp5bNT9JmffTqJogXd1INOy8CmhH2014SNUJBSyBoqyV1MzoKZMqH3OKnx3zCfIvwv6tSSWjPlu9P31F0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774960308; c=relaxed/simple;
+	bh=ld0ceCtRwQxW3BqX6YHV9i+WaXMmLeZ3mJAWYproT2w=;
+	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version; b=faTl6YwweOb1Qxeyi1hvHFHbNp7xMOvU2SmfKw/o9JHES98uPQhYWYzjhEF5ZFl6A+eu4bZh9bLp0Ds3/dupqmltDZIIbkBit0MJGmrSlMumRG+tbfVTe8jDhuWcxcb461uNVFeQs3AnNpUtD2NvOMgsDoS8zP94Ls4kCSxHjIY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=kwJu93PG; arc=none smtp.client-ip=203.205.221.242
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="hujSxz4T"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=npEhU/BoNnKcpahuD0xn5vd6QeyTv9xmrpUymnVEglkckme9+9YohNGZq3nr2BHGKnn2vLSldFHP/4nv1ZiR5S+zvHf0q3kge/ovnGn2n6aCrpTkG2DM/LgeNN/DWBc64058MNG+kgkUIeXVt9pNy2LMexX/0XAwVH2zlUo3093wO8g3MDxXhyhKez1s1Y8Ysa8VmfZyGc4897evRNuuM10lGLLaGUOKmPi+X5/uSp+6Qi5bbE8VhN+pd4tfHpX+bLDP7evgzHZC/zxcglvpxm5HEh5xBCGiLK5HzHmLGADiHn4vkLutP/npwm4byF7juSuEx5cRIfNCdvpE1kUi4A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ZJkXpP31qfsrEm+q5zIu8YXx4jAqFbEaXndk6NE+lpo=;
- b=GujBUK8cQIKLXkOULVG/BlbK4CKFjnkoOju8K1Z6+UamcUFDg6iby6HYyfUs6qYRegknlsXohboy+l8helZFUamOo6JPVGOMG8pO9citLq2H5RVssqovEaLN6d6JYWakq9Afjs6hUsFTeEeBMVgpvvF6g/jxGqQG1j0Ntd+LH88SlwN+Hugab9scZHZgoLVA1EQX9RstHBa4e2z+PT5wzNFMP2gp9AELQ/U4KBh9xcNrvCXtnx0AHc97Dwhj9ymw9irT2DfUbWuPajgNsmVWu1uNyYYJMQOn2GV3x1rNSboViQDwz35v8DbV1LW5/6HJGw5620Az3CRPUlb10gCbug==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 198.47.21.194) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=ti.com;
- dmarc=pass (p=quarantine sp=none pct=100) action=none header.from=ti.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ZJkXpP31qfsrEm+q5zIu8YXx4jAqFbEaXndk6NE+lpo=;
- b=hujSxz4T7M6uER5kAz+lpKKW89wPATQhk4M6rIfpLYuXzzaDyJ8E4rnPe+tKavUGHhCUIi1svwmGCRClZG3TQge32ZYArqzNK4tSayBiivddSua13QePU+YJCXp0in5OhDfCcvPTGLl2HL/u355uuFLDt+0mgRb47CcEh78gU98=
-Received: from BL1PR13CA0181.namprd13.prod.outlook.com (2603:10b6:208:2be::6)
- by CYYPR10MB7625.namprd10.prod.outlook.com (2603:10b6:930:c0::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.15; Tue, 31 Mar
- 2026 12:19:17 +0000
-Received: from BL02EPF0002992B.namprd02.prod.outlook.com
- (2603:10b6:208:2be:cafe::a2) by BL1PR13CA0181.outlook.office365.com
- (2603:10b6:208:2be::6) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.9745.28 via Frontend Transport; Tue,
- 31 Mar 2026 12:19:17 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 198.47.21.194)
- smtp.mailfrom=ti.com; dkim=none (message not signed) header.d=none;dmarc=pass
- action=none header.from=ti.com;
-Received-SPF: Pass (protection.outlook.com: domain of ti.com designates
- 198.47.21.194 as permitted sender) receiver=protection.outlook.com;
- client-ip=198.47.21.194; helo=flwvzet200.ext.ti.com; pr=C
-Received: from flwvzet200.ext.ti.com (198.47.21.194) by
- BL02EPF0002992B.mail.protection.outlook.com (10.167.249.56) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.9745.21 via Frontend Transport; Tue, 31 Mar 2026 12:19:16 +0000
-Received: from DFLE207.ent.ti.com (10.64.6.65) by flwvzet200.ext.ti.com
- (10.248.192.31) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 31 Mar
- 2026 07:19:14 -0500
-Received: from DFLE205.ent.ti.com (10.64.6.63) by DFLE207.ent.ti.com
- (10.64.6.65) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 31 Mar
- 2026 07:19:14 -0500
-Received: from lelvem-mr05.itg.ti.com (10.180.75.9) by DFLE205.ent.ti.com
- (10.64.6.63) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
- Transport; Tue, 31 Mar 2026 07:19:14 -0500
-Received: from [10.24.50.20] (moteen-ubuntu-desk.dhcp.ti.com [10.24.50.20])
-	by lelvem-mr05.itg.ti.com (8.18.1/8.18.1) with ESMTP id 62VCJBLW2736751;
-	Tue, 31 Mar 2026 07:19:11 -0500
-Message-ID: <8d4a2839-5b1e-479e-a462-dbbc3d016020@ti.com>
-Date: Tue, 31 Mar 2026 17:49:10 +0530
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="kwJu93PG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1774960297; bh=5/VvbOXeI2Yc5WbpHQIFX2KzeSEo9vfcmy/9QvyW8Kk=;
+	h=From:To:Cc:Subject:Date;
+	b=kwJu93PG7gujs5JTH3CeDHqIBmTkANLRw+FkeEr2VvCInaKGgtDqkJYrmdLSDaaYE
+	 u28r0k7SuHRW+XDxhcQAfzGtHBKQVO2XaYud1yTTZUZ4cN8rFUhaBLLSq/cDfqZHCd
+	 dS89R8OW1t3d90KQ7oDfDfNLyUN2pnh7Y3iRvJFA=
+Received: from LAPTOP-KQCD4QBN.localdomain ([123.121.145.48])
+	by newxmesmtplogicsvrsza73-0.qq.com (NewEsmtp) with SMTP
+	id 7E119C3E; Tue, 31 Mar 2026 20:31:33 +0800
+X-QQ-mid: xmsmtpt1774960293t512z5y9j
+Message-ID: <tencent_74C5C53384C579056ED161B70122D16ACF06@qq.com>
+X-QQ-XMAILINFO: N/WmRbclY25GmJ6tVvoTTBz7ZHOYyDmyVzYbmrj7uQfXW9BoPELZ+4VVwbgugR
+	 s055osWOrd376iF3PjKLRvvyuCtVQ2kWC1DHK8pvmiOgHXKZ+o9vaZGzcYvOG2L8TDp9IAZmNI1v
+	 Q6lZp7KbtqHcn7qKUn/KON/tvWS7bBN+Qa4Kxm998McPEYry7KYkULgTIpOgVvh9zD8sDFHRFP1U
+	 RfURKYAHGRdqUoYTap/nAIZawEUFCDwRYliYmNifvNdXleOdwaSq/u9KnqFn04iYuSchP5jlU8nh
+	 1snclsF4FP5nS5468/INOesDsz/43x3c5vZKHh2hZXXy8dc2aqZkq/JmDi1brNVx/z7KdJ1dd0W4
+	 682txVizzOVF7lSxkTISEm05zuIivMiKz1zkXvk14C4+rlOZgW09X6jmdglBk69To5zozqOFtSqx
+	 62OMPnDWs2lDlcLdxGuPHZN6BBvTaBFpCzyPGHKyLj6Ei1ef//CSiGJb9hfUP9FWN/DVTG2IpoqJ
+	 qaSjZhB89oGjy1Y3mLEToa7NS1l5eYNcvb3AHsagkbPZcrMbwdEAI1XA5yLIfufVtKgZ859DyaxB
+	 FG62t6twJdAlHTKywVQl7/zsw4tc4M/WqiM6AbEBdhgwFpIwJKurDMifeZJMRcZynfHehr+pJrHC
+	 aE2nqggS4i74AbRr9bAJYcbCVHCKtyYHGqbaYrRe2TtcbhP1stCrv7jJkRHKNbUTamelbK9kpVVj
+	 bCfks+piGzcY//c6QpYvsvzWXu8KkVjCpsk0dVh6P4dHYYlfVsGqRQ2UGiFOH7akPGdZ+0oy1CZQ
+	 DaS0ZCYeUWAjtKkajWzgV3GfUFNcCvLTO1l3MLmddZKw9P8jRaGbwhSqtqT+lu1tEK6dCo5elmeD
+	 4LOL1TfSkWIK258ybXFmM1gdv30rm+etOMOXTED9Eay8j6+hpKfURKtvLdzPOd85zDAURNHvNcFY
+	 tKrxS17ESiRajqCtYbWA0rgUZOrnFpVpoMCmUqrAqmbcliD1+SNTcTIZIMbs8tE5lrpQAC1lImR9
+	 NKclUMz1eRvjKv7AurXmZVHMHC9X6EbQmlD50DTJChx8HZeWrlE4rORcErwhI=
+X-QQ-XMRINFO: NS+P29fieYNwqS3WCnRCOn9D1NpZuCnCRA==
+From: Wenyuan Li <2063309626@qq.com>
+To: Lee Jones <lee@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	gszhai@bjtu.edu.cn,
+	25125332@bjtu.edu.cn,
+	25125283@bjtu.edu.cn,
+	23120469@bjtu.edu.cn,
+	Wenyuan Li <2063309626@qq.com>
+Subject: [PATCH v2] mfd: tps65910: add error handling for dummy I2C transfer in probe
+Date: Tue, 31 Mar 2026 20:31:31 +0800
+X-OQ-MSGID: <20260331123131.10635-1-2063309626@qq.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] arm64: dts: ti: k3-j721e-main: Update delay select values
- for MMC1/2 subsystems
-To: Romain Naour <romain.naour@smile.fr>, <devicetree@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-omap@vger.kernel.org>
-CC: <conor+dt@kernel.org>, <krzk+dt@kernel.org>, <robh@kernel.org>,
-	<kristo@kernel.org>, <vigneshr@ti.com>, <nm@ti.com>, <stable@vger.kernel.org>
-References: <20260218203823.1825554-1-romain.naour@smile.fr>
-Content-Language: en-US
-From: Moteen Shah <m-shah@ti.com>
-In-Reply-To: <20260218203823.1825554-1-romain.naour@smile.fr>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL02EPF0002992B:EE_|CYYPR10MB7625:EE_
-X-MS-Office365-Filtering-Correlation-Id: 34ac821a-90b6-4091-7baf-08de8f1fba1c
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|376014|36860700016|1800799024|18002099003|56012099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	YDZY9pS2mxUv2NlCjHnkHzMyjZFXtF8isjMajp/vKg9e9JhoVP4XWctsfL//dGLKG3IUBxtz3irQgd0ycvt97tS27uip2fPj1ZfR6blbRE2+Q1kFuASn0wb1rF4FGwgcvjXoMhZnltkARymMMTa3GmcH+UE93iKKgxi+vMrhYMQb3Rqjfxjkjw9VkZZpbf4/vBkXq3nFbIK0ul266lX7Y8knzmmZ9ykpY1YutOYYnjnbsQLbE2qI9YFM4hshcYI/y/Nnxtgx3iUbHDtjFr6sN6T6g22pdmnkMVUMIZ6p4/hIuqiJI6PbMo4N3nbdFeWhuwdGLwWTOq/msimdiG1ODOgbSOWlfsX70YV5GwD8/dRBqXcoSbF2o/c5wJ29VznFnGZzMBYLlI2IZCOTlZW6Uwen6xFRBiV/AvGhrEFDWda0tDsjgS3LYrGGYHWILbzGCUW6xMiY8BImjvBnPnXUgQPy9eizKA8gQLJAEBsxaRb6v3zLTNqF1ot/jwCwJi3gCRukTjjgRDSxaJk1ojWzXH+PFsC/e0L6VivNTyL6VjyGBxcIjU15V8+/hAccqJKfGpUks2vxTiqSrtg6HBUl52d8GVjOV3Of7RQ/3+1rj0hIKxyDy1fk72XhIQ9MTC1oH3WKx7scKpblzl0686Xb9kdvDwOF+UrahdSJdD7/iZQyj7//sXrQ3tv9foL8KLrD/bR/zT67R3eRjOM7tjeRyGnewQnjfOFJQMEZEBlDF6d9WOTILRfz0F3i3pGkiyyTf8cnd9D84TEaPe1US2V5yQ==
-X-Forefront-Antispam-Report:
-	CIP:198.47.21.194;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:flwvzet200.ext.ti.com;PTR:ErrorRetry;CAT:NONE;SFS:(13230040)(82310400026)(376014)(36860700016)(1800799024)(18002099003)(56012099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	tQqvZtFt/UtwILKsaZETGYJ1Baed85dQjXHWEe4XeoTsyPUM0+cTDtZyqWw6yDYPZagTJywNqaZFDDrYr5jyYuu7QBeIEhgUfevG2pVDy5qUwGFDDLvj6kiKOcrWoxy5I0XL0BmD8gyiCSG+HXNiId4qpJtzYk/2TH4D9c2z6cres1NVGp7txM2OP6TdDTqMk5vDxb5Pv2dt6C3Pw/rJShJp8Ba9ouPhnDneTF00q4BD0nPbPwznWVybA4X8td806hceaW2ariWdf+7Z0aykkNKQJq6C4BKjUzbwuo2gNNJ6THcTyZ9toMR2Vk+6GTLztb6/1gSsfm8ol7vc+GcaOWijFD7O2yw1MMlEt7IzLdbgpJyw3ojRmsf+c25YIncv7YAVaE/2iRS5nozRQ2wOSKSU/43f4lEpmzhud/vR6+FpMU1oFiploIwisZzPbxnc
-X-OriginatorOrg: ti.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Mar 2026 12:19:16.1192
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 34ac821a-90b6-4091-7baf-08de8f1fba1c
-X-MS-Exchange-CrossTenant-Id: e5b49634-450b-4709-8abb-1e2b19b982b7
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=e5b49634-450b-4709-8abb-1e2b19b982b7;Ip=[198.47.21.194];Helo=[flwvzet200.ext.ti.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BL02EPF0002992B.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYYPR10MB7625
 
-Hey Romain,
+In tps65910_i2c_probe(), a dummy I2C transfer is performed to work
+around silicon erratum SWCZ010. However, the return value of
+i2c_master_send() is not checked.
 
-Thanks for the patch
+If this dummy transfer fails, the driver continues execution without
+detecting the error. This may lead to subsequent I2C operations also
+failing, but the driver would incorrectly report success.
 
-On 19/02/26 02:08, Romain Naour wrote:
-> The previous SPRSP36J datasheet recommends to set ti,otap-del-sel-sd-hs
-> value to 0 for MMC1 and MMC2 interfaces. These values were updated in
-> kernel 6.5. As a result we have some occasional regression with ultra
-> high speed DDR50 SDXC cards while mounting the rootfs:
+Add proper return value checking for the dummy I2C transfer. If the
+transfer fails, log the error and return an appropriate error code
+to the caller.
 
-This error shouldn't be limited to just DDR50, were you seeing similar 
-behavior with other speed modes?
->
->    mmc1: error -110 whilst initialising SD card
->
-> A similar issue may occur with u-boot after a reboot while
-> initialising the SD card:
->
->    mmc_init: -110, time 67
->
-> Update the delay values for legacy and high speed modes, based on
-> the latest revised datasheet SPRSP36K released in April 2024 [1].
->
->    (MMC1/2 - SD/SDIO Interface): Updated/Changed the
->    "OTAPDLYENA, DELAY ENABLE" and "OTAPDLYSEL, DELAY VALUE" for the
->    Default Speed and High Speed modes from "0x0" to "0x1"
->
-> [1] Table 6-86. MMC1/2 DLL Delay Mapping for All Timing Modes, in
-> https://www.ti.com/lit/ds/symlink/tda4vm.pdf,
-> (SPRSP36K – SEPTEMBER 2021 – REVISED APRIL 2024)
->
-> Cc: stable@vger.kernel.org # 6.5+
-> Fixes: af398252d68e ("arm64: dts: ti: k3-j721e-main: Update delay select values for MMC subsystems")
-> Signed-off-by: Romain Naour <romain.naour@smile.fr>
-> ---
->   arch/arm64/boot/dts/ti/k3-j721e-main.dtsi | 8 ++++----
->   1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi b/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
-> index d5fd30a01032..418e6010ef1f 100644
-> --- a/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
-> +++ b/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
-> @@ -1643,8 +1643,8 @@ main_sdhci1: mmc@4fb0000 {
->   		clocks = <&k3_clks 92 5>, <&k3_clks 92 0>;
->   		assigned-clocks = <&k3_clks 92 0>;
->   		assigned-clock-parents = <&k3_clks 92 1>;
-> -		ti,otap-del-sel-legacy = <0x0>;
-> -		ti,otap-del-sel-sd-hs = <0x0>;
-> +		ti,otap-del-sel-legacy = <0x1>;
-> +		ti,otap-del-sel-sd-hs = <0x1>;
->   		ti,otap-del-sel-sdr12 = <0xf>;
->   		ti,otap-del-sel-sdr25 = <0xf>;
->   		ti,otap-del-sel-sdr50 = <0xc>;
-> @@ -1671,8 +1671,8 @@ main_sdhci2: mmc@4f98000 {
->   		clocks = <&k3_clks 93 5>, <&k3_clks 93 0>;
->   		assigned-clocks = <&k3_clks 93 0>;
->   		assigned-clock-parents = <&k3_clks 93 1>;
-> -		ti,otap-del-sel-legacy = <0x0>;
-> -		ti,otap-del-sel-sd-hs = <0x0>;
-> +		ti,otap-del-sel-legacy = <0x1>;
-> +		ti,otap-del-sel-sd-hs = <0x1>;
->   		ti,otap-del-sel-sdr12 = <0xf>;
->   		ti,otap-del-sel-sdr25 = <0xf>;
->   		ti,otap-del-sel-sdr50 = <0xc>;
+Signed-off-by: Wenyuan Li <2063309626@qq.com>
+---
+v2:
+- Use dev_err_probe() for error handling
+- Replace ternary operator with if/else
+- Add TPS65910_DUMMY_XFER_LEN macro
+---
+ drivers/mfd/tps65910.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-
-Reviewed-by: Moteen Shah <m-shah@ti.com>
-
-Regards,
-Moteen
+diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
+index 6a7b7a697fb7..31e4726118b3 100644
+--- a/drivers/mfd/tps65910.c
++++ b/drivers/mfd/tps65910.c
+@@ -21,6 +21,9 @@
+ #include <linux/of.h>
+ #include <linux/property.h>
+ 
++/* Dummy I2C transfer length for SWCZ010 workaround */
++#define TPS65910_DUMMY_XFER_LEN 1
++
+ static const struct resource rtc_resources[] = {
+ 	{
+ 		.start  = TPS65910_IRQ_RTC_ALARM,
+@@ -472,7 +475,18 @@ static int tps65910_i2c_probe(struct i2c_client *i2c)
+ 	 * first I2C transfer. So issue a dummy transfer before the first
+ 	 * real transfer.
+ 	 */
+-	i2c_master_send(i2c, "", 1);
++	ret = i2c_master_send(i2c, "", TPS65910_DUMMY_XFER_LEN);
++	if (ret != TPS65910_DUMMY_XFER_LEN) {
++		int err;
++
++		if (ret < 0)
++			err = ret;
++		else
++			err = -EIO;
++
++	return dev_err_probe(&i2c->dev, err, "dummy transfer failed\n");
++	}
++
+ 	tps65910->regmap = devm_regmap_init_i2c(i2c, &tps65910_regmap_config);
+ 	if (IS_ERR(tps65910->regmap)) {
+ 		ret = PTR_ERR(tps65910->regmap);
+-- 
+2.43.0
 
