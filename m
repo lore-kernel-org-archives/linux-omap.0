@@ -1,131 +1,188 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010059.outbound.protection.outlook.com [52.101.46.59])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2943639BFF0;
-	Tue, 31 Mar 2026 11:09:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774955377; cv=none; b=Ikfa7sMqLcVsBRLl1V1AgCxCCfm19HEQhkIpUNdcdPg8jn/go0unTP998/zL69TnNz804Pa0H5biQj54K6HpIkJyKNuq+9Z749pSk+CH+kDGpLaWWu29mUqY4t2jke1+n+mwCfFsfZElhWCo3Yg6wzAFB1E1SlxVUTX3otyHirQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774955377; c=relaxed/simple;
-	bh=LpiNwcecD6qE6BaocrRQkrHduswXspS89v1SmDxcGYY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NpfwwJdAmEYK87EmPYXW/2m+zHl7l2owUb1gHvJxJfRraKdKNltsltoPuJwQkPVBDPbyOPro66Db/2qdPam6aHyyzQUkSV75GN9UPlYuxqnpx0ImLA9KjaL0dH+7jFTIv7icXw/iRl/vJwX3wjrkY/X05TBNKvYHqHeK29zg4QM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gwLhrCz7; arc=none smtp.client-ip=198.175.65.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13E311A6826;
+	Tue, 31 Mar 2026 12:19:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.59
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774959561; cv=fail; b=ty8L6cjOB8Pboc8q7FyRnqCngjAUf8xvPpITRMY573jaiG2Uh/PkCLkNmzA4+/pye3Ox/Vkv3rpFb9u1KVmFzSBcSKa03GOYG45FrTw5/5slEZgPPx/KPC6q4w7+HJpQGH3Uoyx222yLXE5wF3fiNru4Jk4h9Y4oKF8HSBgi0PI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774959561; c=relaxed/simple;
+	bh=zdHp+vzdyMRbVEdAuA1cfvzY3ayE6FRIsaWRrEjd/fw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=JgKWszQtHwmfuHLDGRO/eYcVsigLFQmX39qFUKlVZD3lvkCz3xSvi/KKuSioarvhDgB1p+9Up1zS534zUAAvKoFfSNDY29h/BJY/+xoyJy0bZmHB4Th6YWs7qw4slo6DZxCHsnJVYZNn36+A7axYQ0+2ChkrwEoVyeCp2NMBJbU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=hujSxz4T; arc=fail smtp.client-ip=52.101.46.59
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gwLhrCz7"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774955376; x=1806491376;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=LpiNwcecD6qE6BaocrRQkrHduswXspS89v1SmDxcGYY=;
-  b=gwLhrCz7THVDua2Xkomb5/3CwIe64YkS7Oh7kjBTlJcfAAL8BXW2llQH
-   ne/WU+SOo3L3bdnyyo4y1Pv9ZBfMB/NMlnRn1bn8Gnu97ctBaN4vF90rz
-   giruMMTnQWvDbfIu0+C0KUvUHoe5sFOg1rntKVeCd3mvdfdyqwhaGytsO
-   nGS//LY+9N4R7MfekpckbNYnbtpTJtp38Q+wl7tEdRP0AR1k7zzm9KrIW
-   WDbM9BZVVXPPPUUx4GGnXvGEP1NHfvdAvRqG04MjmmwnCGsq33eKiwwxS
-   tWX17A8efbFq2qnyUjKUeOIJsXy4ofXeJaM6A14C5U0CVYuaEkmBo/YZ/
-   w==;
-X-CSE-ConnectionGUID: 4+0XplwYS+iFxA6RFQvckQ==
-X-CSE-MsgGUID: sDvXecMIQX6wUZFGU3HyJw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11744"; a="79564585"
-X-IronPort-AV: E=Sophos;i="6.23,151,1770624000"; 
-   d="scan'208";a="79564585"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Mar 2026 04:09:35 -0700
-X-CSE-ConnectionGUID: gzK6vAGlTtOKb5e4wFOCIQ==
-X-CSE-MsgGUID: Cb2BImrJSVqLNPi0PBgcbw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,151,1770624000"; 
-   d="scan'208";a="231267662"
-Received: from rvuia-mobl.ger.corp.intel.com (HELO localhost) ([10.245.245.209])
-  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Mar 2026 04:09:31 -0700
-Date: Tue, 31 Mar 2026 14:09:28 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Bartosz Golaszewski <brgl@kernel.org>, driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Linux-OMAP <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH v4 2/3] driver core: make software nodes available earlier
-Message-ID: <acuraLhLVgyP-LUK@ashevche-desk.local>
-References: <20260330-nokia770-gpio-swnodes-v4-0-b68592e977d0@oss.qualcomm.com>
- <20260330-nokia770-gpio-swnodes-v4-2-b68592e977d0@oss.qualcomm.com>
- <acrcDTPpXZ_5A4D8@ashevche-desk.local>
- <acruxMNdnUlyRHiy@google.com>
- <acto3TE1AR8iTzF0@ashevche-desk.local>
- <DDF494E5-C188-4A86-AC02-265B6169B591@gmail.com>
- <acuMD7Oly4XWW4n8@ashevche-desk.local>
- <9359e475-fc8e-4d32-9ab4-383710170553@app.fastmail.com>
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="hujSxz4T"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=npEhU/BoNnKcpahuD0xn5vd6QeyTv9xmrpUymnVEglkckme9+9YohNGZq3nr2BHGKnn2vLSldFHP/4nv1ZiR5S+zvHf0q3kge/ovnGn2n6aCrpTkG2DM/LgeNN/DWBc64058MNG+kgkUIeXVt9pNy2LMexX/0XAwVH2zlUo3093wO8g3MDxXhyhKez1s1Y8Ysa8VmfZyGc4897evRNuuM10lGLLaGUOKmPi+X5/uSp+6Qi5bbE8VhN+pd4tfHpX+bLDP7evgzHZC/zxcglvpxm5HEh5xBCGiLK5HzHmLGADiHn4vkLutP/npwm4byF7juSuEx5cRIfNCdvpE1kUi4A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ZJkXpP31qfsrEm+q5zIu8YXx4jAqFbEaXndk6NE+lpo=;
+ b=GujBUK8cQIKLXkOULVG/BlbK4CKFjnkoOju8K1Z6+UamcUFDg6iby6HYyfUs6qYRegknlsXohboy+l8helZFUamOo6JPVGOMG8pO9citLq2H5RVssqovEaLN6d6JYWakq9Afjs6hUsFTeEeBMVgpvvF6g/jxGqQG1j0Ntd+LH88SlwN+Hugab9scZHZgoLVA1EQX9RstHBa4e2z+PT5wzNFMP2gp9AELQ/U4KBh9xcNrvCXtnx0AHc97Dwhj9ymw9irT2DfUbWuPajgNsmVWu1uNyYYJMQOn2GV3x1rNSboViQDwz35v8DbV1LW5/6HJGw5620Az3CRPUlb10gCbug==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 198.47.21.194) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=ti.com;
+ dmarc=pass (p=quarantine sp=none pct=100) action=none header.from=ti.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ZJkXpP31qfsrEm+q5zIu8YXx4jAqFbEaXndk6NE+lpo=;
+ b=hujSxz4T7M6uER5kAz+lpKKW89wPATQhk4M6rIfpLYuXzzaDyJ8E4rnPe+tKavUGHhCUIi1svwmGCRClZG3TQge32ZYArqzNK4tSayBiivddSua13QePU+YJCXp0in5OhDfCcvPTGLl2HL/u355uuFLDt+0mgRb47CcEh78gU98=
+Received: from BL1PR13CA0181.namprd13.prod.outlook.com (2603:10b6:208:2be::6)
+ by CYYPR10MB7625.namprd10.prod.outlook.com (2603:10b6:930:c0::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9769.15; Tue, 31 Mar
+ 2026 12:19:17 +0000
+Received: from BL02EPF0002992B.namprd02.prod.outlook.com
+ (2603:10b6:208:2be:cafe::a2) by BL1PR13CA0181.outlook.office365.com
+ (2603:10b6:208:2be::6) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9745.28 via Frontend Transport; Tue,
+ 31 Mar 2026 12:19:17 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 198.47.21.194)
+ smtp.mailfrom=ti.com; dkim=none (message not signed) header.d=none;dmarc=pass
+ action=none header.from=ti.com;
+Received-SPF: Pass (protection.outlook.com: domain of ti.com designates
+ 198.47.21.194 as permitted sender) receiver=protection.outlook.com;
+ client-ip=198.47.21.194; helo=flwvzet200.ext.ti.com; pr=C
+Received: from flwvzet200.ext.ti.com (198.47.21.194) by
+ BL02EPF0002992B.mail.protection.outlook.com (10.167.249.56) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.9745.21 via Frontend Transport; Tue, 31 Mar 2026 12:19:16 +0000
+Received: from DFLE207.ent.ti.com (10.64.6.65) by flwvzet200.ext.ti.com
+ (10.248.192.31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 31 Mar
+ 2026 07:19:14 -0500
+Received: from DFLE205.ent.ti.com (10.64.6.63) by DFLE207.ent.ti.com
+ (10.64.6.65) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Tue, 31 Mar
+ 2026 07:19:14 -0500
+Received: from lelvem-mr05.itg.ti.com (10.180.75.9) by DFLE205.ent.ti.com
+ (10.64.6.63) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20 via Frontend
+ Transport; Tue, 31 Mar 2026 07:19:14 -0500
+Received: from [10.24.50.20] (moteen-ubuntu-desk.dhcp.ti.com [10.24.50.20])
+	by lelvem-mr05.itg.ti.com (8.18.1/8.18.1) with ESMTP id 62VCJBLW2736751;
+	Tue, 31 Mar 2026 07:19:11 -0500
+Message-ID: <8d4a2839-5b1e-479e-a462-dbbc3d016020@ti.com>
+Date: Tue, 31 Mar 2026 17:49:10 +0530
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9359e475-fc8e-4d32-9ab4-383710170553@app.fastmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] arm64: dts: ti: k3-j721e-main: Update delay select values
+ for MMC1/2 subsystems
+To: Romain Naour <romain.naour@smile.fr>, <devicetree@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-omap@vger.kernel.org>
+CC: <conor+dt@kernel.org>, <krzk+dt@kernel.org>, <robh@kernel.org>,
+	<kristo@kernel.org>, <vigneshr@ti.com>, <nm@ti.com>, <stable@vger.kernel.org>
+References: <20260218203823.1825554-1-romain.naour@smile.fr>
+Content-Language: en-US
+From: Moteen Shah <m-shah@ti.com>
+In-Reply-To: <20260218203823.1825554-1-romain.naour@smile.fr>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL02EPF0002992B:EE_|CYYPR10MB7625:EE_
+X-MS-Office365-Filtering-Correlation-Id: 34ac821a-90b6-4091-7baf-08de8f1fba1c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|82310400026|376014|36860700016|1800799024|18002099003|56012099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	YDZY9pS2mxUv2NlCjHnkHzMyjZFXtF8isjMajp/vKg9e9JhoVP4XWctsfL//dGLKG3IUBxtz3irQgd0ycvt97tS27uip2fPj1ZfR6blbRE2+Q1kFuASn0wb1rF4FGwgcvjXoMhZnltkARymMMTa3GmcH+UE93iKKgxi+vMrhYMQb3Rqjfxjkjw9VkZZpbf4/vBkXq3nFbIK0ul266lX7Y8knzmmZ9ykpY1YutOYYnjnbsQLbE2qI9YFM4hshcYI/y/Nnxtgx3iUbHDtjFr6sN6T6g22pdmnkMVUMIZ6p4/hIuqiJI6PbMo4N3nbdFeWhuwdGLwWTOq/msimdiG1ODOgbSOWlfsX70YV5GwD8/dRBqXcoSbF2o/c5wJ29VznFnGZzMBYLlI2IZCOTlZW6Uwen6xFRBiV/AvGhrEFDWda0tDsjgS3LYrGGYHWILbzGCUW6xMiY8BImjvBnPnXUgQPy9eizKA8gQLJAEBsxaRb6v3zLTNqF1ot/jwCwJi3gCRukTjjgRDSxaJk1ojWzXH+PFsC/e0L6VivNTyL6VjyGBxcIjU15V8+/hAccqJKfGpUks2vxTiqSrtg6HBUl52d8GVjOV3Of7RQ/3+1rj0hIKxyDy1fk72XhIQ9MTC1oH3WKx7scKpblzl0686Xb9kdvDwOF+UrahdSJdD7/iZQyj7//sXrQ3tv9foL8KLrD/bR/zT67R3eRjOM7tjeRyGnewQnjfOFJQMEZEBlDF6d9WOTILRfz0F3i3pGkiyyTf8cnd9D84TEaPe1US2V5yQ==
+X-Forefront-Antispam-Report:
+	CIP:198.47.21.194;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:flwvzet200.ext.ti.com;PTR:ErrorRetry;CAT:NONE;SFS:(13230040)(82310400026)(376014)(36860700016)(1800799024)(18002099003)(56012099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	tQqvZtFt/UtwILKsaZETGYJ1Baed85dQjXHWEe4XeoTsyPUM0+cTDtZyqWw6yDYPZagTJywNqaZFDDrYr5jyYuu7QBeIEhgUfevG2pVDy5qUwGFDDLvj6kiKOcrWoxy5I0XL0BmD8gyiCSG+HXNiId4qpJtzYk/2TH4D9c2z6cres1NVGp7txM2OP6TdDTqMk5vDxb5Pv2dt6C3Pw/rJShJp8Ba9ouPhnDneTF00q4BD0nPbPwznWVybA4X8td806hceaW2ariWdf+7Z0aykkNKQJq6C4BKjUzbwuo2gNNJ6THcTyZ9toMR2Vk+6GTLztb6/1gSsfm8ol7vc+GcaOWijFD7O2yw1MMlEt7IzLdbgpJyw3ojRmsf+c25YIncv7YAVaE/2iRS5nozRQ2wOSKSU/43f4lEpmzhud/vR6+FpMU1oFiploIwisZzPbxnc
+X-OriginatorOrg: ti.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Mar 2026 12:19:16.1192
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 34ac821a-90b6-4091-7baf-08de8f1fba1c
+X-MS-Exchange-CrossTenant-Id: e5b49634-450b-4709-8abb-1e2b19b982b7
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=e5b49634-450b-4709-8abb-1e2b19b982b7;Ip=[198.47.21.194];Helo=[flwvzet200.ext.ti.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL02EPF0002992B.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYYPR10MB7625
 
-On Tue, Mar 31, 2026 at 12:45:59PM +0200, Arnd Bergmann wrote:
-> On Tue, Mar 31, 2026, at 10:55, Andy Shevchenko wrote:
-> > On Mon, Mar 30, 2026 at 11:52:34PM -0700, Dmitry Torokhov wrote:
-> >> On March 30, 2026 11:25:33 PM PDT, Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
-> >> >On Mon, Mar 30, 2026 at 02:46:45PM -0700, Dmitry Torokhov wrote:
-> >> 
-> >> The code section will be discarded when the kernel finishes booting so it
-> >> only increases image size on disk. 
-> >
-> > Almost true. Interesting microblaze case, where it's not discarded.
-> > But I can't find where it's actually used on any architecture.
-> 
-> I'm pretty sure that is just mistake
-> 
-> >> >A bit of archaeology:
-> >> >
-> >> >The first time it appeared was in the bcc2152647b8 ("Import 2.4.0-test3pre3").
-> >> >Then somehow spread a bit (but not much).
-> >> 
-> >> And it shows how useful it is. Maybe it had some purpose a long time ago, but
-> >> at present time this code will never be executed since it cannot be built as
-> >> a module.
-> >
-> > Are you sure about definition of __exitcall? As I read init.h the macro
-> > is defined when it's not a MODULE.
-> 
-> I also tried to trace this back now, and from what I found, both
-> the __init_call and __exit_call annotations gained __attribute_used__
-> back in lniux-2.6.0 as a way to prevent both gcc-3.3 and gcc-3.4
-> from warning about unused functions or discarding initcalls that
-> are actually required.
-> 
-> My best guess is that __exit_call should just use
-> __attribute__((unused)) instead of __attribute__((used)) and
-> have the compiler drop it from built-in code instead of the linker:
+Hey Romain,
 
-But why do we need that at all? Can we just drop the full section for good.
-Or i.o.w. where exactly is it being used in the current kernel?
+Thanks for the patch
 
--- 
-With Best Regards,
-Andy Shevchenko
+On 19/02/26 02:08, Romain Naour wrote:
+> The previous SPRSP36J datasheet recommends to set ti,otap-del-sel-sd-hs
+> value to 0 for MMC1 and MMC2 interfaces. These values were updated in
+> kernel 6.5. As a result we have some occasional regression with ultra
+> high speed DDR50 SDXC cards while mounting the rootfs:
 
+This error shouldn't be limited to just DDR50, were you seeing similar 
+behavior with other speed modes?
+>
+>    mmc1: error -110 whilst initialising SD card
+>
+> A similar issue may occur with u-boot after a reboot while
+> initialising the SD card:
+>
+>    mmc_init: -110, time 67
+>
+> Update the delay values for legacy and high speed modes, based on
+> the latest revised datasheet SPRSP36K released in April 2024 [1].
+>
+>    (MMC1/2 - SD/SDIO Interface): Updated/Changed the
+>    "OTAPDLYENA, DELAY ENABLE" and "OTAPDLYSEL, DELAY VALUE" for the
+>    Default Speed and High Speed modes from "0x0" to "0x1"
+>
+> [1] Table 6-86. MMC1/2 DLL Delay Mapping for All Timing Modes, in
+> https://www.ti.com/lit/ds/symlink/tda4vm.pdf,
+> (SPRSP36K – SEPTEMBER 2021 – REVISED APRIL 2024)
+>
+> Cc: stable@vger.kernel.org # 6.5+
+> Fixes: af398252d68e ("arm64: dts: ti: k3-j721e-main: Update delay select values for MMC subsystems")
+> Signed-off-by: Romain Naour <romain.naour@smile.fr>
+> ---
+>   arch/arm64/boot/dts/ti/k3-j721e-main.dtsi | 8 ++++----
+>   1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi b/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
+> index d5fd30a01032..418e6010ef1f 100644
+> --- a/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
+> +++ b/arch/arm64/boot/dts/ti/k3-j721e-main.dtsi
+> @@ -1643,8 +1643,8 @@ main_sdhci1: mmc@4fb0000 {
+>   		clocks = <&k3_clks 92 5>, <&k3_clks 92 0>;
+>   		assigned-clocks = <&k3_clks 92 0>;
+>   		assigned-clock-parents = <&k3_clks 92 1>;
+> -		ti,otap-del-sel-legacy = <0x0>;
+> -		ti,otap-del-sel-sd-hs = <0x0>;
+> +		ti,otap-del-sel-legacy = <0x1>;
+> +		ti,otap-del-sel-sd-hs = <0x1>;
+>   		ti,otap-del-sel-sdr12 = <0xf>;
+>   		ti,otap-del-sel-sdr25 = <0xf>;
+>   		ti,otap-del-sel-sdr50 = <0xc>;
+> @@ -1671,8 +1671,8 @@ main_sdhci2: mmc@4f98000 {
+>   		clocks = <&k3_clks 93 5>, <&k3_clks 93 0>;
+>   		assigned-clocks = <&k3_clks 93 0>;
+>   		assigned-clock-parents = <&k3_clks 93 1>;
+> -		ti,otap-del-sel-legacy = <0x0>;
+> -		ti,otap-del-sel-sd-hs = <0x0>;
+> +		ti,otap-del-sel-legacy = <0x1>;
+> +		ti,otap-del-sel-sd-hs = <0x1>;
+>   		ti,otap-del-sel-sdr12 = <0xf>;
+>   		ti,otap-del-sel-sdr25 = <0xf>;
+>   		ti,otap-del-sel-sdr50 = <0xc>;
+
+
+Reviewed-by: Moteen Shah <m-shah@ti.com>
+
+Regards,
+Moteen
 
