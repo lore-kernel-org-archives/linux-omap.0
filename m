@@ -1,66 +1,89 @@
-Received: from out162-62-57-210.mail.qq.com (out162-62-57-210.mail.qq.com [162.62.57.210])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E8061A9F82;
-	Wed,  1 Apr 2026 05:11:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.62.57.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEC8F3AB291
+	for <linux-omap@vger.kernel.org>; Wed,  1 Apr 2026 08:25:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775020306; cv=none; b=iBl9snDhQhsR3NV6XnJ4Pjkx8tjprqPSEYTBUfYeYde0W0IwVMSIOHPj6k52sMyOOnrKZg5ZiYBeP2jwVIN3Bi9vL6aODXU+igdhAcJ4RaRRYY53eVsfdBupfSyfWKNMspHjs/QuB/248GZAlvcMkXtkK7WNXq2hVFXhCP5FzMI=
+	t=1775031940; cv=none; b=o8M5z+3d/4Qq+ow1QMKC48XAnLPzJSf9B1z9BcItFQYmI4ylaHa97E/SH49xerWL+u0AdH9/kfRqCFzTvX6xc2Bomthuy/nczQZ2cWV86iTsiVwvgqHBYQaISYgKRl1s6F0KXbTxEhI3N95ch0ARjIj6g0rxEtAVfYXJAHfBKQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775020306; c=relaxed/simple;
-	bh=ND1cUuEErH2AdNPTFBbsVIYswLNxvu3CDQQQx8hsNjE=;
-	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version; b=QknSFReKI6J7OY59pgn0YjXirZeKk+2C2Ci2TaSmZQIvpos4slehtpDWxhhVkPebRFHSlXwPDwzSb8wohTJaIeo0JiMCRBkZPcm+aCNBpAkTM5q4zxq5fGbwHUim+mTFUhyNdNcFg+tzc9U4TTCAWGqwZU6gKgs14r59lCucfbo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=pzEfluo5; arc=none smtp.client-ip=162.62.57.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
+	s=arc-20240116; t=1775031940; c=relaxed/simple;
+	bh=D2S8IJXXCpP+MrVF4dkmeDJZETpfv0+LBGoOt9LwK2s=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hiMGWzfLEBOO9F9aXCDvgkDGLF50prYTa0POu3EpZ2CtmBVypAbVLi+bZYxW4XfTRihhr6JG6fN1l8nyqQs4B0fEJsAKW4oFluBjbm8HvK0eItH4MNA4Tn4jhyv7PeMc/V1P91c2dAr7K5IvYiC7NQdDWVceSqc9m55Wu4PpDZc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=uJyXZMDA; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=qbehA/Q8; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=uJyXZMDA; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=qbehA/Q8; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="pzEfluo5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1775020293; bh=TkFX3orHFyRY+ygpTsAR6Hl6Oki8OsXPNZzTf/O7Wx4=;
-	h=From:To:Cc:Subject:Date;
-	b=pzEfluo5CpZAWbFnRxYo17GkGUs0uiY6bJNMJbnYCvp4RqdFTBJibaSii6LWXP8qc
-	 NDgOBYoAAdDkEmZS1BiHctaxD75ndJyllj8+yUZQgO3BFh3+DHjOGsoUu3f3/RKcqE
-	 k8l4x234vmL7vxOFzS70pPTtlTn/HM/nnJ0JKifs=
-Received: from LAPTOP-KQCD4QBN.localdomain ([183.242.199.70])
-	by newxmesmtplogicsvrszc43-0.qq.com (NewEsmtp) with SMTP
-	id 26085003; Wed, 01 Apr 2026 13:09:32 +0800
-X-QQ-mid: xmsmtpt1775020172tek2ganzz
-Message-ID: <tencent_01102156392EC89EDF2CA22A7C8B4ABB2509@qq.com>
-X-QQ-XMAILINFO: NAEPl/HULyKM0b6PGDzEYvzldcZRCFgS0CgtiJsluNHkzKlIrHqqYu9tgsbge0
-	 U/+dT/mmRoN//i3ju7leELdLR/BIjvKd96kAY6RDnchOL6LYqS3FgL+5YDgBAVRIXH2H5FceU0Is
-	 j7czDuUeTPAl2CFkOiPPPu5pwhqsN0r9UaDD2Nas79yRX/jgpTs5nEwc/t1mheW53wpv3VphDyIi
-	 m918rr0b81rWkUr522Vr8mbAAnZOd5XnNClPERA0Z+CgV/ggF1x7ZO3wLwR8fTRR6QKOSfodHgCe
-	 L9+Si6fLvMJEiqSVoxh3HdhQrLW6pbYhitEdy87uOTTb2nFhYS19mD4OVvVqW3uXFTJBSvQLiZRL
-	 jpBKZMBbanMW5nHJvoy4pHKC0gZt6DjCY8vJBi5E7RM37wVvmq87LJpl/UbsNmGlJ890rKmZTN5g
-	 EjvCKV0dnMX0Kkq+ktRbAOBLAuj2IKaQlf6AZRWwZc7hiRCBKTb1o7pRMBQwjcTfTR0OdCQ5mzJV
-	 mZ6sxoHGKZnu92A4x4LIH40sX+6nBtTW7vDIu3Ic24NUdBNOwKEW/Nbj5gf9WsMOROoSgpL5WY4d
-	 ZkgBceSaQ9wOHCI3Y6HrubsiBLXX1UJUWyp0uW87XIIfNBUZu/6Xld//4R4lU+Y/Np5LzNwc07Tw
-	 Ru4wR/F/CEjkfzuN/CEUeA/8o2ExKJGv2Eq3F6VHdNbDQF4wTAYL2i6ef2WH8xbynC2JSRpCVstX
-	 KRHZyEwBmd7wX+u9j6+IdvA5V3Zi9rzivyka/mKzN21gBP1x6JtwgjF05mVKyLgrN7i0RQd6duPh
-	 4wdT9/f9ZJGYzoCMJujDDS3fjF/EoSOJRUapwPZBnIjGKa0HQZHYTtkAIs1cyLbFeHYCxTCQT/6z
-	 Jm5j2cgJGPEiPpXWGyihKc0dFsKSEu+TQemfM7NB4jflizivmKb1d1Jq2e9GlUwk63nJBJOHkNHv
-	 PkuyhNtdOv8Ec2vYgG2TraZCq3Z1hATtSLsJp3IVdlqudk78LEwFAZb4DbqBWXlsERlZ91QTjzd5
-	 0B/nXRxClvmQw8sNYEmpfODo4Q1F/RN9XelrnggEQ+LBbcDsrv91yw9/izTi1XKMzcccOuSh4doo
-	 wPXDWXeoCg1KY1rdk=
-X-QQ-XMRINFO: MPJ6Tf5t3I/ylTmHUqvI8+Wpn+Gzalws3A==
-From: Wenyuan Li <2063309626@qq.com>
-To: Lee Jones <lee@kernel.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	linux-omap@vger.kernel.org,
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="uJyXZMDA";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="qbehA/Q8";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="uJyXZMDA";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="qbehA/Q8"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 1F9E15BD44;
+	Wed,  1 Apr 2026 08:25:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1775031937; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=0tNSg7osbhu8a+Ed8jInfszcsVnHM85GdKDXyTSNRck=;
+	b=uJyXZMDAGs8wUkKiu2E3nmXhjoNJIlgRr77nC54d22buizv4aRrYtF4s6hs5SbNLMbHpHz
+	L2n6Olz0RYwRKmfNHmOBwUMajTJqI+6G97J2yA+NR8h0cRAXiqXSbtDCoRWbbpHBaWpcYN
+	Kc5scvf+4JVetz9nrqVeVjyYv30BrDA=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1775031937;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=0tNSg7osbhu8a+Ed8jInfszcsVnHM85GdKDXyTSNRck=;
+	b=qbehA/Q8ptiaijL8ilGQDzvcOkSCKG1gS08vy9zbI7FDVrA4OyAk70oz5xuM40ReAreW82
+	upOLeI7r6dEkYoAw==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1775031937; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=0tNSg7osbhu8a+Ed8jInfszcsVnHM85GdKDXyTSNRck=;
+	b=uJyXZMDAGs8wUkKiu2E3nmXhjoNJIlgRr77nC54d22buizv4aRrYtF4s6hs5SbNLMbHpHz
+	L2n6Olz0RYwRKmfNHmOBwUMajTJqI+6G97J2yA+NR8h0cRAXiqXSbtDCoRWbbpHBaWpcYN
+	Kc5scvf+4JVetz9nrqVeVjyYv30BrDA=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1775031937;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=0tNSg7osbhu8a+Ed8jInfszcsVnHM85GdKDXyTSNRck=;
+	b=qbehA/Q8ptiaijL8ilGQDzvcOkSCKG1gS08vy9zbI7FDVrA4OyAk70oz5xuM40ReAreW82
+	upOLeI7r6dEkYoAw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id AA8D34A0B0;
+	Wed,  1 Apr 2026 08:25:36 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id 9JszKIDWzGm3AwAAD6G6ig
+	(envelope-from <tzimmermann@suse.de>); Wed, 01 Apr 2026 08:25:36 +0000
+From: Thomas Zimmermann <tzimmermann@suse.de>
+To: linux@armlinux.org.uk,
+	aaro.koskinen@iki.fi,
+	jmkrzyszt@gmail.com,
+	tony@atomide.com,
+	andreas@kemnade.info,
+	khilman@baylibre.com,
+	rogerq@kernel.org,
+	arnd@arndb.de
+Cc: linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org,
-	gszhai@bjtu.edu.cn,
-	25125332@bjtu.edu.cn,
-	25125283@bjtu.edu.cn,
-	23120469@bjtu.edu.cn,
-	Wenyuan Li <2063309626@qq.com>
-Subject: [PATCH v2] mfd: tps65910: add error handling for dummy I2C transfer in probe
-Date: Wed,  1 Apr 2026 13:09:31 +0800
-X-OQ-MSGID: <20260401050931.2543-1-2063309626@qq.com>
-X-Mailer: git-send-email 2.43.0
+	linux-omap@vger.kernel.org,
+	soc@lists.linux.dev,
+	linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Thomas Zimmermann <tzimmermann@suse.de>
+Subject: [PATCH] arch/arm: Drop CONFIG_FIRMWARE_EDID from defconfig files
+Date: Wed,  1 Apr 2026 10:25:28 +0200
+Message-ID: <20260401082533.214103-1-tzimmermann@suse.de>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -68,64 +91,92 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Spamd-Result: default: False [-2.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_CONTAINS_FROM(1.00)[];
+	R_MISSING_CHARSET(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	ARC_NA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[15];
+	MIME_TRACE(0.00)[0:+];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:email,imap1.dmz-prg2.suse.org:helo];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	FREEMAIL_TO(0.00)[armlinux.org.uk,iki.fi,gmail.com,atomide.com,kemnade.info,baylibre.com,kernel.org,arndb.de];
+	RCVD_TLS_ALL(0.00)[];
+	TO_DN_SOME(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com]
+X-Spam-Flag: NO
+X-Spam-Score: -2.80
+X-Spam-Level: 
 
-In tps65910_i2c_probe(), a dummy I2C transfer is performed to work
-around silicon erratum SWCZ010. However, the return value of
-i2c_master_send() is not checked.
+CONFIG_FIRMWARE_EDID=y depends on X86 or EFI_GENERIC_STUB. Neither is
+true here, so drop the lines from the defconfig files.
 
-If this dummy transfer fails, the driver continues execution without
-detecting the error. This may lead to subsequent I2C operations also
-failing, but the driver would incorrectly report success.
-
-Add proper return value checking for the dummy I2C transfer. If the
-transfer fails, log the error and return an appropriate error code
-to the caller.
-
-Signed-off-by: Wenyuan Li <2063309626@qq.com>
+Signed-off-by: Thomas Zimmermann <tzimmermann@suse.de>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
 ---
-v2:
-- Use dev_err_probe() for error handling
-- Replace ternary operator with if/else
-- Add TPS65910_DUMMY_XFER_LEN macro
----
----
- drivers/mfd/tps65910.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ arch/arm/configs/davinci_all_defconfig | 1 -
+ arch/arm/configs/omap1_defconfig       | 1 -
+ arch/arm/configs/omap2plus_defconfig   | 1 -
+ arch/arm/configs/pxa_defconfig         | 1 -
+ 4 files changed, 4 deletions(-)
 
-diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
-index 6a7b7a697fb7..6243b66b1b6f 100644
---- a/drivers/mfd/tps65910.c
-+++ b/drivers/mfd/tps65910.c
-@@ -21,6 +21,9 @@
- #include <linux/of.h>
- #include <linux/property.h>
- 
-+/* Dummy I2C transfer length for SWCZ010 workaround */
-+#define TPS65910_DUMMY_XFER_LEN 1
-+
- static const struct resource rtc_resources[] = {
- 	{
- 		.start  = TPS65910_IRQ_RTC_ALARM,
-@@ -472,7 +475,18 @@ static int tps65910_i2c_probe(struct i2c_client *i2c)
- 	 * first I2C transfer. So issue a dummy transfer before the first
- 	 * real transfer.
- 	 */
--	i2c_master_send(i2c, "", 1);
-+	ret = i2c_master_send(i2c, "", TPS65910_DUMMY_XFER_LEN);
-+	if (ret != TPS65910_DUMMY_XFER_LEN) {
-+		int err;
-+
-+		if (ret < 0)
-+			err = ret;
-+		else
-+			err = -EIO;
-+
-+		return dev_err_probe(&i2c->dev, err, "dummy transfer failed\n");
-+	}
-+
- 	tps65910->regmap = devm_regmap_init_i2c(i2c, &tps65910_regmap_config);
- 	if (IS_ERR(tps65910->regmap)) {
- 		ret = PTR_ERR(tps65910->regmap);
+diff --git a/arch/arm/configs/davinci_all_defconfig b/arch/arm/configs/davinci_all_defconfig
+index 673408a10888..72703ef0c51c 100644
+--- a/arch/arm/configs/davinci_all_defconfig
++++ b/arch/arm/configs/davinci_all_defconfig
+@@ -148,7 +148,6 @@ CONFIG_DRM_TINYDRM=m
+ CONFIG_TINYDRM_ST7586=m
+ CONFIG_FB=y
+ CONFIG_FB_DA8XX=y
+-CONFIG_FIRMWARE_EDID=y
+ CONFIG_BACKLIGHT_PWM=m
+ CONFIG_BACKLIGHT_GPIO=m
+ CONFIG_FRAMEBUFFER_CONSOLE=y
+diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
+index df88763fc7c3..c6155f101fc9 100644
+--- a/arch/arm/configs/omap1_defconfig
++++ b/arch/arm/configs/omap1_defconfig
+@@ -136,7 +136,6 @@ CONFIG_FB_OMAP_LCDC_EXTERNAL=y
+ CONFIG_FB_OMAP_LCDC_HWA742=y
+ CONFIG_FB_OMAP_MANUAL_UPDATE=y
+ CONFIG_FB_OMAP_LCD_MIPID=y
+-CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_MODE_HELPERS=y
+ CONFIG_LCD_CLASS_DEVICE=y
+ CONFIG_FRAMEBUFFER_CONSOLE=y
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 0464f6552169..8e09e66ccc4d 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -505,7 +505,6 @@ CONFIG_DRM_SIMPLE_BRIDGE=m
+ CONFIG_DRM_TI_TFP410=m
+ CONFIG_DRM_TI_TPD12S015=m
+ CONFIG_FB=y
+-CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_MODE_HELPERS=y
+ CONFIG_FB_TILEBLITTING=y
+ CONFIG_LCD_CLASS_DEVICE=y
+diff --git a/arch/arm/configs/pxa_defconfig b/arch/arm/configs/pxa_defconfig
+index eacd08fd87ad..c51ae373ca88 100644
+--- a/arch/arm/configs/pxa_defconfig
++++ b/arch/arm/configs/pxa_defconfig
+@@ -391,7 +391,6 @@ CONFIG_LCD_CORGI=m
+ CONFIG_LCD_PLATFORM=m
+ CONFIG_BACKLIGHT_PWM=m
+ CONFIG_FRAMEBUFFER_CONSOLE=y
+-CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_TILEBLITTING=y
+ CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+ CONFIG_LOGO=y
 -- 
-2.43.0
+2.53.0
 
