@@ -1,65 +1,66 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
+Received: from mail-pg1-f172.google.com (mail-pg1-f172.google.com [209.85.215.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 060C43806A9
-	for <linux-omap@vger.kernel.org>; Wed,  1 Apr 2026 21:28:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BF16378D7F
+	for <linux-omap@vger.kernel.org>; Wed,  1 Apr 2026 21:29:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775078913; cv=none; b=CKWYsh2FMgpAW7dUc3670Cv1bWZmXOB4DdgTXLbErrEelibQnPHix/ckgArplcFItfW66MouFnsxvE6vW8jj9FRdgiFrOOeFH0/01a5roASESVRh4XNn89BDQYwHRJjTIDj+Ui2YSnQj/lHW1IPalUb54+VlLYmdIZ8Z4751BHM=
+	t=1775078945; cv=none; b=ADJVFIeFtOvjSPOyJWJjPqniOGtnpwj0zfy0HquBAhte/UCWivPTfYv85WfPNO38IUknsTLthZG/xJlPW7eU8v0N+Kv9ObE7+yuf+hblXXcT44YkaQDkhSi1JtOu8iDckIy1QW18g9TbQZMpN0/UmOVUCYZU2qed22PpYFhmwQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775078913; c=relaxed/simple;
-	bh=WEsLWV4qR6UWZvDqunL5H7vXZXLI1MjhtyEZ4X3JaQQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=mATD12Z8xYs1wdtQgYid/HRDoTpMwwVSWYEKZ+pHr/Lh8N2zb7zMyXVxv1lPq03O2rauugEHTaK4FGkRtD7DNL3YAvR39eKo3jx3wwt64J1Ii20x1RSUp4vAF77AJDuYgMqO/e1sQXRhnmO5ZEC4vveOtxdwvcShYo5glW+7OJg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=iCCMWfFJ; arc=none smtp.client-ip=209.85.216.52
+	s=arc-20240116; t=1775078945; c=relaxed/simple;
+	bh=U/fUOSJSk4+rbP24lUBM6nBwRMa4PD4EWPaEofbYms0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=T2JFBE1SqQ3f3o3YlIwnsMyQiKNCrc0HZLFwthDNK22dG7SnHxg69lTH5ZbBJcEMu1RtrqpSmm0ePJ8rvazVrjvcvLijXIzhMyZ3fibRjyy5K96QVz5tUeJPboahiLywOS2LdyZeheAwSA9OdrE6aXwVY4yd7qkvM88v2Lu5PWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b=0ert2CJV; arc=none smtp.client-ip=209.85.215.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="iCCMWfFJ"
-Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-35d94f4ee36so83601a91.3
-        for <linux-omap@vger.kernel.org>; Wed, 01 Apr 2026 14:28:30 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre-com.20230601.gappssmtp.com header.i=@baylibre-com.20230601.gappssmtp.com header.b="0ert2CJV"
+Received: by mail-pg1-f172.google.com with SMTP id 41be03b00d2f7-c74f0c3fc16so49979a12.2
+        for <linux-omap@vger.kernel.org>; Wed, 01 Apr 2026 14:29:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1775078910; x=1775683710; darn=vger.kernel.org;
+        d=baylibre-com.20230601.gappssmtp.com; s=20230601; t=1775078944; x=1775683744; darn=vger.kernel.org;
         h=mime-version:message-id:date:subject:cc:to:from:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=AYPEpP1b00lX0zsw7xL3leAQo4zY3t6/Feqga7nFICY=;
-        b=iCCMWfFJAqhrwmDZG550oLyOIlJPY6RD542oBH+N6AXJ2WFkG9THtjU9YSI/T3wP0O
-         kvuL9JlVCoGEdWmz+rQzcIfH0D4KYcJchxzzu4KMfXkEnZYhmzuM1gc2FEomE6Fdw0ns
-         dUnzjhHCMlbQsGajioD3lXjlHuuVnNGguy3zi+jybGMSBdBmzLoe8lwu5q802/LStx9q
-         aZtr1zkmUpRj62yoCnoEuJspss5/2bZ9HA6XAtvyXxzmn576dlgFUGO5sQl0QEXUxA0t
-         MEpnlkcn/HGQVIO0kzgQrlmp9ub04qM6KiShDgSWQ7L9qpiXNbPw8AoMc1C1GGLVu2Xx
-         m9hA==
+        bh=tA3CYuQv2XiQfD/33D614etMn9c8OW1fecXvIS0+Tb0=;
+        b=0ert2CJVfYhhonnErKzW8CN5upUs81zN+PTVTJt4iqJ35W/tE7Amu3n0o1W3r/fNpi
+         M0mhI/kGUT4/7FArQwgleKwu+XELJJBvH5XdhHSOaEDvMUu6c4oOiWiqU2H/zp8K8fqi
+         z2E9ODBjaCpS6SY/+FabdN6aQxR8HhwXNf2C+JkoElEwzeDIz04DiNw/8ytkv1BFG/qY
+         5QtksdVv2NFI6veumtIZ+f7aGSbop0/gUX+dpqEO4hoY5Xpk71T0yB2LGYbV+gtfl7Lc
+         Bhi+9DPZdNB1wOL3XZpbkgph0+HZuM9nI0WSezXxb0kzG1z5lV3Bj7wIggdroXL4ExC6
+         JkMA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775078910; x=1775683710;
+        d=1e100.net; s=20251104; t=1775078944; x=1775683744;
         h=mime-version:message-id:date:subject:cc:to:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=AYPEpP1b00lX0zsw7xL3leAQo4zY3t6/Feqga7nFICY=;
-        b=m4QWX+wnrQGRDWEkglqPUyIYFMU+C7KCyB6Np4hXLv4DNb+vz8lsBz7eXpnFsIYj3L
-         cb7UVSLNA3DibDSqBSbLv97ckPw+/tPyepEO+euqImHGKjZ7idIEXtaPx4toNRP5BWj4
-         +9Tvq+y3Z78fFUsBNq/Yr1QaiDoiFsNsm4ET15WehsO2Fn1ZfK+pr+kQ9UhtCPgNImEf
-         fvZqPzMlOG34PTPxDCUD0RcZWpp8832X0B8/LtF4dWbPqukgkBd8eaq0R1+Ck21JlXrp
-         /dQAW0FpGhzEkmDlfqI9sSB0GOYaDZM7DUZpn1YaIpO5g1L3mEGO65FzMEDe8++Rm89O
-         qtWA==
-X-Gm-Message-State: AOJu0YyeehrFnLruZbmc56dYQvXB+eu+519ocaB2RRVxeUAYTIA+wo8J
-	LDNi7R+vW/14Ied8vTOSvVE/zVZpzLaIU2zWO6bPWZdW2ueZ7jhHdvtA+7+2qQ2c6Xs=
-X-Gm-Gg: ATEYQzxioc175u4Yrdfyb1qEswsAiZl2IcMhSI/kGD1mGZybdVvdo6psrlmmYYnamZr
-	3RaAO1JFQgLiy5CsKQ2MGvezwpUSzbqTgiCcPex8ZT6HxzQA+XBbmBGcrE5Pkar7ZJuzrAo0nWj
-	My9hEMDVNcl/20aO04wqdt1Dl+eXUQlO4WOpJueQgCNXg9KqkNlDDs4WBALLmZeJWTouv6u689N
-	Y1Tzy7wKdDbOcsXI/GCcjAXaWcE4z4ReNSLtdhFiGwVWqrDB++73Fjnh3Jo0Sp/Ng9b4n2DPoAx
-	bOWJxs3uXNMMZqHcZlyx/HVbSsJr0m60d2sznnhzyXv57RlzevC4ybEWuT+fP4IsjC/c8AoGT0Y
-	OpobOSUVxQovk6+TZAJePWC9NIQMdN7tTE9EaJqCgdvY9MrPxg2nS5zQSJdHujCbA+850IukWzu
-	ukBtsb/cikPCGyufDgfVSxRW8Hr9NCOQ==
-X-Received: by 2002:a17:90b:3f0b:b0:35d:9f7c:142c with SMTP id 98e67ed59e1d1-35dc7052e98mr4367414a91.26.1775078910328;
-        Wed, 01 Apr 2026 14:28:30 -0700 (PDT)
+        bh=tA3CYuQv2XiQfD/33D614etMn9c8OW1fecXvIS0+Tb0=;
+        b=ROhJZfNmNTxH9vxsAvVRo0eRT24vCLbhn/OgxWUzRYV3a9KPC1RFt9OQ+6BrujMg48
+         sBHEWA9BfG+ocYwndNEnuHcXGdG85lNT+Vd6tVoiyKku7AUPS4TdQuplkUVDRC4kyCHM
+         6t5sfZuCSNunDH2Z/TzqrC8wuNbCHXUKlQG2he1CeSryDJ4ernjnDygtMMCBsQuMbBLw
+         PRBwEF81LlwUS82VYCnzx1+MBoZA7BtS/uNk9kO7Rx6EgGE7aRI/UbSZLp/6/0bXQidK
+         910zHYJVBJIRwiYYuXvjdnsRlwrMDYnU7h0gXwk9uMEalE0LfdjKdTnYeRgwN61ttXtP
+         wAMg==
+X-Gm-Message-State: AOJu0Yy7Ycpu6xO2MuJZlAp4EYsyLcph4iTN1xPEt6Cy7wDtwLhVkhBY
+	8gVX3mRLq8t93FLiTXI6KoaaZswTbyEq6vbnQcGWDRPEl2VcrEBjQqY/F0ME9IzqeWJ4aUu9m54
+	Ni6mixi8=
+X-Gm-Gg: ATEYQzzTWS8XVKufXXEI2c4LVDGYZ80BDK7JaXamz8YfDnKv1q8UCNxYQv8Iy3Mptzp
+	3EUD/tEwmGCBtVJ/M1S4h8FOH/hE8iOEW5h/k4YAfrB1ewH9r8cvChH/kyoaGEXiYn6EiWaXxoS
+	nmpMgVZ75ix/ftWy0Y9/mwbcDNS3Wq3Ik/ObIidmQaX1HxBM/29dtDNG9KwAxME34hVfrxLB3RF
+	pDgCTlT4ZPI6xhYe3AYE2wkfE9fSDpIdIDXjYCHIojN5YQyCh66Z1L5B8MyjDEp8KLIQu3/Cn8a
+	OqZCYvkonG7rqhqyWP/G8rk+hvpvwzdbgyahLMWU8BybdAxYacFwCItgdqZ2Rcem7b1LKCw7Xel
+	whYQQub5P+NFwWV1axyQ6xb/QP7p9WpD3iO5ugGl2l6OCOD+7w5gBw8l800Fvdel+EChLLAfc8O
+	/x948wUr/vLDGDlQmxm0Y=
+X-Received: by 2002:a05:6a20:734d:b0:39b:b35f:2eb5 with SMTP id adf61e73a8af0-39ef76c1b2emr5611986637.41.1775078943866;
+        Wed, 01 Apr 2026 14:29:03 -0700 (PDT)
 Received: from localhost ([97.126.187.42])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35dbe5e519dsm5918706a91.2.2026.04.01.14.28.29
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c76c647792bsm822742a12.6.2026.04.01.14.29.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 01 Apr 2026 14:28:29 -0700 (PDT)
+        Wed, 01 Apr 2026 14:29:03 -0700 (PDT)
 From: Kevin Hilman <khilman@baylibre.com>
 To: soc@lists.linux.dev
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [GIT PULL] ARM: soc/omap updates for v7.1
-Date: Wed, 01 Apr 2026 14:28:29 -0700
-Message-ID: <7hzf3mtloi.fsf@baylibre.com>
+Subject: [GIT PULL] arm: OMAP defconfig updates for v7.1
+Date: Wed, 01 Apr 2026 14:29:03 -0700
+Message-ID: <7hv7eatlnk.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -74,30 +75,22 @@ The following changes since commit 6de23f81a5e08be8fbf5e8d7e9febc72a5b5f27f:
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap.git tags/omap-for-v7.1/soc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap.git tags/omap-for-v7.1/defconfig-signed
 
-for you to fetch changes up to 9ceb17ccd15ea32f19c9066f5f1b340d8340bd0b:
+for you to fetch changes up to adcf290f9de2fc4768e5ba07c700e91faf9c86bf:
 
-  ARM: omap2: dead code cleanup in kconfig for ARCH_OMAP4 (2026-03-30 14:21:20 -0700)
-
-----------------------------------------------------------------
-ARM: soc/omap updates for v7.1
+  arm: multi_v7_defconfig: Enable more OMAP 3/4 related configs (2026-03-05 16:45:57 -0800)
 
 ----------------------------------------------------------------
-Aaro Koskinen (1):
-      ARM: OMAP1: Fix DEBUG_LL and earlyprintk on OMAP16XX
+arm: OMAP defconfig updates for v7.1
 
-Julian Braha (1):
-      ARM: omap2: dead code cleanup in kconfig for ARCH_OMAP4
+----------------------------------------------------------------
+Andreas Kemnade (1):
+      arm: multi_v7_defconfig: Enable more OMAP 3/4 related configs
 
-Randy Dunlap (1):
-      ARM: omap: fix all kernel-doc warnings
+Kory Maincent (TI) (1):
+      ARM: multi_v7_defconfig: omap2plus_defconfig: Enable ITE IT66121 driver
 
-Thorsten Blum (1):
-      ARM: omap2: Replace scnprintf with strscpy in omap3_cpuinfo
-
- arch/arm/mach-omap1/clock_data.c           | 4 ++--
- arch/arm/mach-omap2/Kconfig                | 1 -
- arch/arm/mach-omap2/id.c                   | 3 ++-
- include/linux/platform_data/voltage-omap.h | 4 ++--
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/configs/multi_v7_defconfig  | 28 ++++++++++++++++++++++++++++
+ arch/arm/configs/omap2plus_defconfig |  1 +
+ 2 files changed, 29 insertions(+)
