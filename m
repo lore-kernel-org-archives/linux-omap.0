@@ -1,118 +1,158 @@
-Received: from fhigh-b7-smtp.messagingengine.com (fhigh-b7-smtp.messagingengine.com [202.12.124.158])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7C2637882A
-	for <linux-omap@vger.kernel.org>; Thu,  2 Apr 2026 21:49:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.158
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30B213783A0;
+	Thu,  2 Apr 2026 21:51:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775166555; cv=none; b=TQvsQJnDYrky7KzldfsAnxq6NMp0K2lTul553Pn6TwQ5zeiNEUsObW4udy0QTFmuwFLnZ0lOY5UfU/0xmoF1U6uikG0D+TFPUgO6Zv6+oME7hWg1jxjsbYjT1stcIzE+HMCxPfof9l5gV/LFw2wXnV/nFD90VU0HMPD8az+C8iI=
+	t=1775166661; cv=none; b=kfjU5YT3HAsDFexZIRbtxda8FbmF4jHJ2ob87p2pm/4x3/ZwANean7PZszlgumSGGJrDjPSaXgX2GGZtKwznIiVm8Oz4ZlrbZ19FGVeCuvFe1WJ+uhNaw8mQemb3xKwQyAaJSV9fTeVP4cLHOmU236VajARX/58UGEhACSLmFMc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775166555; c=relaxed/simple;
-	bh=dzd1FUE6dT2IMhyX6vnewVLdO38rp0BybgKggTVioXw=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=Z+XeldNJ7EsFMLq6Qpxr8jqhvL9CiBNxVlL90QVrpG/vJ7eKw1Uh0JxYvlTji0L5UxkHT2VLNZ+REPooY9Bzj9+1f7dH2BISkn41xWWf3Ga5qT5Lr88djHc+B34aMdptTDzXo+iiPfahGtvHvOMq/u3dmlmHnXO11vw75uejs7Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=bAsOBNSh; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=mbiH+zmP; arc=none smtp.client-ip=202.12.124.158
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1775166661; c=relaxed/simple;
+	bh=+iWo8G+lGLAR0AEWKadkwlt32LjzfIOHKPITuBCakWs=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=OobjlbgR1l4o7IurPzNLwLvNRkSElKo16sx1D0IiIChSvFcY13dbe2tNDdsqfiCbxp8aXjljdE9jzK1B1o8OgPgkaM5RHjW9RVTyGJIFBcU+YE5D0HgI9/3jg/5wI2SE3GCGaxhv1B70rQ9zSDGJNUBjJQpTTkn+g7uydlO4xcs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uh7N/3FR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="bAsOBNSh";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="mbiH+zmP"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id 154A47A013F;
-	Thu,  2 Apr 2026 17:49:14 -0400 (EDT)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-04.internal (MEProxy); Thu, 02 Apr 2026 17:49:14 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1775166553;
-	 x=1775252953; bh=XB1+qEZQ3/4/NCjiwpc6YJhMs5uxlHHTszpVXBON2Bw=; b=
-	bAsOBNSh44rSX7Zp6fqe29xav6a8aWeSRrpZ+bm1aYmYYPihpK+KY3YdPyqQX7tq
-	+b3w2iwOG8KlV7urxMHA53JeTf1i+YA9u+duxowutB/uedKh5AvVoDWxUxENMH73
-	DnK9TtCSUdBWq9sexO9Wdxqg85wSmB9hvCffYjs0TBplAqtWHOmeTsDug+w4OEkN
-	u1EKWhgyE8CGEjAJrECNBP+enuSyjOfVk9Lm7NdMMvOgVXUZK07WRytbdEzbC4nz
-	qzD7WIv2B7hpmDMQzqhYNAf+1Z1gCCrVSU09C/rCofYKsdR5oFnloS3vtVzOkvVM
-	b7KbXtFUhhi6BuSusvQ+vg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1775166553; x=
-	1775252953; bh=XB1+qEZQ3/4/NCjiwpc6YJhMs5uxlHHTszpVXBON2Bw=; b=m
-	biH+zmP1EwDR0qNWOTXH6i+7xmqB2FMBcwtRsobX9jkxo81HRnKytTXXl8wgSTP7
-	d1CHmxI7QCAtThxrVC5z3v+4WOZU9ja7CX1za1HaWmpm287xBz0BlHM111PMn2kO
-	tojDZ0RnoMugLvBE7gHsQCQwbjJ/O9LIg/c2Upg1dJR911B0BTXJ5A+ro3KbbAh8
-	mUDVxseGK1YDFOKhjgr0goyXAGYW0DwxGfm2CiBAHPNmbGXdnu5XaKT1l+/2QIm5
-	RVxNwkUv0w5W9FeMYSO6Ba+YkKqF26FuJcN4GaZpOLazR2HaXuxZ8cljevAfpsIB
-	jKJk6ca0qDctEjbzYsOPg==
-X-ME-Sender: <xms:WeTOaTBnoBMs_w2pqOgtRm_MzhwgQwIJtsRItI5hl2cnFCWiNagztA>
-    <xme:WeTOaUXjzxMpYzVL0UFEvnDmeEO1aqJhI2ZV2oJwHTWay3F1R4e92wVMLH9S5ZE34
-    cOEArLdAs-vJCvdu5cL-9WcwDtQs6QMuQ4lMYjWPUHR53nj9siXTw39>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdejudehucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceurghi
-    lhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurh
-    epofggfffhvfevkfgjfhfutgfgsehtjeertdertddtnecuhfhrohhmpedftehrnhguuceu
-    vghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrthhtvghrnh
-    ephfdthfdvtdefhedukeetgefggffhjeeggeetfefggfevudegudevledvkefhvdeinecu
-    vehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprghrnhguse
-    grrhhnuggsrdguvgdpnhgspghrtghpthhtohepgedpmhhouggvpehsmhhtphhouhhtpdhr
-    tghpthhtohepkhhhihhlmhgrnhessggrhihlihgsrhgvrdgtohhmpdhrtghpthhtoheplh
-    hinhhugidqrghrmhdqkhgvrhhnvghlsehlihhsthhsrdhinhhfrhgruggvrggurdhorhhg
-    pdhrtghpthhtohepshhotgeslhhishhtshdrlhhinhhugidruggvvhdprhgtphhtthhope
-    hlihhnuhigqdhomhgrphesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:WeTOacvZm9K3BPmPFfXJFrch0VvfW2IYX9T4ocXM5b6QSMtLxdBwGg>
-    <xmx:WeTOaQUEWZ4PPlOBL-PEFI0971aaWNhQYGFngjyjabrWbsAgzhxRBA>
-    <xmx:WeTOaQHHMRPc2J8KYpja9U3cWBLDRGukrUhOQamDlOE4l7Jtkql6jg>
-    <xmx:WeTOaa3Lib2LN39k8jPIr8AIwoph6hZCjyno7KSb-VyimNBNViPBWQ>
-    <xmx:WeTOaWF0JE8d6O0v2jOTXSP9W2kHxYMPAFiMO_n2ibkEg7sFbsk41-75>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 8FD17700065; Thu,  2 Apr 2026 17:49:13 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uh7N/3FR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81CFAC116C6;
+	Thu,  2 Apr 2026 21:50:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775166660;
+	bh=+iWo8G+lGLAR0AEWKadkwlt32LjzfIOHKPITuBCakWs=;
+	h=Date:From:To:cc:Subject:In-Reply-To:References:From;
+	b=uh7N/3FRUjqua+aPCo/hGr/AdrmusEl1H/a3Cy2K3ax/7zWAaowq7QLQao9luVbWo
+	 hhp+ELOy56vNZgWo/30UXJ+R+KNwAUX+g9t5upzBm19UO38qCmclRomH9W9JilFn3g
+	 1M3od6tckFksVcXsO4otmEq7oBs2ncVax1WS/48Gk7Y/jRGn5aI6Ty0S32Qrtb3v+N
+	 FCfqxPCfuHXXK+tb8kOeAkmUobWREiK7V0IqzM0OnWy9oCVbOYxajs4XGYlWHY2x7t
+	 AkBA5ON0TiTxqW6AtiPnUW+DWm5PHRBPUIiBBcwzXpeViYkdJ68cXcODxvoTFEl/DM
+	 YZIYLd1IONOQA==
+Date: Thu, 2 Apr 2026 15:50:54 -0600 (MDT)
+From: Paul Walmsley <pjw@kernel.org>
+To: "Vincent Mailhol (Arm)" <mailhol@kernel.org>
+cc: Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nsc@kernel.org>, 
+    Mikko Rapeli <mikko.rapeli@linaro.org>, 
+    Richard Henderson <richard.henderson@linaro.org>, 
+    Matt Turner <mattst88@gmail.com>, Magnus Lindholm <linmag7@gmail.com>, 
+    Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+    Andreas Kemnade <andreas@kemnade.info>, 
+    Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
+    Tony Lindgren <tony@atomide.com>, Huacai Chen <chenhuacai@kernel.org>, 
+    WANG Xuerui <kernel@xen0n.name>, 
+    Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+    Madhavan Srinivasan <maddy@linux.ibm.com>, 
+    Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+    "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>, 
+    Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+    Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+    Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+    Alexander Gordeev <agordeev@linux.ibm.com>, 
+    Christian Borntraeger <borntraeger@linux.ibm.com>, 
+    Sven Schnelle <svens@linux.ibm.com>, 
+    Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
+    John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+    Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+    Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, 
+    x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+    Sebastian Andrzej Siewior <bigeasy@linutronix.de>, 
+    Clark Williams <clrkwllms@kernel.org>, 
+    Steven Rostedt <rostedt@goodmis.org>, 
+    Pablo Neira Ayuso <pablo@netfilter.org>, 
+    Krzysztof Kozlowski <krzk@kernel.org>, 
+    Alim Akhtar <alim.akhtar@samsung.com>, Frank Li <Frank.Li@nxp.com>, 
+    Sascha Hauer <s.hauer@pengutronix.de>, 
+    Pengutronix Kernel Team <kernel@pengutronix.de>, 
+    Fabio Estevam <festevam@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, 
+    Piotr Wojtaszczyk <piotr.wojtaszczyk@timesys.com>, 
+    Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
+    Lorenzo Pieralisi <lpieralisi@kernel.org>, 
+    Geert Uytterhoeven <geert+renesas@glider.be>, 
+    Magnus Damm <magnus.damm@gmail.com>, 
+    Vladimir Kondratiev <vladimir.kondratiev@mobileye.com>, 
+    Gregory CLEMENT <gregory.clement@bootlin.com>, 
+    =?ISO-8859-15?Q?Th=E9o_Lebrun?= <theo.lebrun@bootlin.com>, 
+    "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
+    Helge Deller <deller@gmx.de>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, 
+    =?ISO-8859-15?Q?Jonathan_Neusch=E4fer?= <j.neuschaefer@gmx.net>, 
+    Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
+    Thomas Zimmermann <tzimmermann@suse.de>, Arnd Bergmann <arnd@arndb.de>, 
+    Heiko Stuebner <heiko@sntech.de>, 
+    Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, 
+    Mark Brown <broonie@kernel.org>, Eric Biggers <ebiggers@kernel.org>, 
+    Ard Biesheuvel <ardb@kernel.org>, 
+    Sricharan Ramabadhran <quic_srichara@quicinc.com>, 
+    Bjorn Andersson <andersson@kernel.org>, Michael Walle <mwalle@kernel.org>, 
+    Guenter Roeck <linux@roeck-us.net>, 
+    Srinivas Kandagatla <srinivas.kandagatla@oss.qualcomm.com>, 
+    "Rob Herring (Arm)" <robh@kernel.org>, 
+    Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, 
+    Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+    Anna Schumaker <anna.schumaker@oracle.com>, 
+    Alexandre Gonzalo <alexandre.gonzalo@arm.com>, 
+    linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, 
+    linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+    linux-omap@vger.kernel.org, loongarch@lists.linux.dev, 
+    linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+    linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, 
+    linux-sh@vger.kernel.org, linux-rt-devel@lists.linux.dev, 
+    linux-samsung-soc@vger.kernel.org, imx@lists.linux.dev, 
+    linux-renesas-soc@vger.kernel.org, linux-parisc@vger.kernel.org, 
+    openbmc@lists.ozlabs.org
+Subject: Re: [PATCH 2/9] configs: remove orphan dependencies of
+ NETFILTER_XTABLES_LEGACY
+In-Reply-To: <20260317-arm_defconf_cleanup-v1-2-8eecb7fdd24d@kernel.org>
+Message-ID: <576cec38-a5e4-5391-2a57-b164e84a813f@kernel.org>
+References: <20260317-arm_defconf_cleanup-v1-0-8eecb7fdd24d@kernel.org> <20260317-arm_defconf_cleanup-v1-2-8eecb7fdd24d@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: A1UuxUpPOvY7
-Date: Thu, 02 Apr 2026 23:48:52 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Kevin Hilman" <khilman@baylibre.com>, soc@lists.linux.dev
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>,
- linux-arm-kernel@lists.infradead.org
-Message-Id: <83d0c8d8-fcde-4407-bb09-c2ae0e0e142d@app.fastmail.com>
-In-Reply-To: <7hqzoytlms.fsf@baylibre.com>
-References: <7hqzoytlms.fsf@baylibre.com>
-Subject: Re: [GIT PULL] ARM: dts: updates for ti/omap for v7.1
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 
-On Wed, Apr 1, 2026, at 23:29, Kevin Hilman wrote:
->
-> ----------------------------------------------------------------
-> ARM: dts: updates for ti/omap for v7.1
->
+On Tue, 17 Mar 2026, Vincent Mailhol (Arm) wrote:
 
-Hi Kevin,
+> Since its introduction in commit 9fce66583f06 ("netfilter: Exclude
+> LEGACY TABLES on PREEMPT_RT."), the configurations below all depend,
+> either directly or indirectly, on CONFIG_NETFILTER_XTABLES_LEGACY:
+> 
+>   - CONFIG_NETFILTER_XT_TARGET_CHECKSUM
+>   - CONFIG_IP_NF_FILTER
+>   - CONFIG_IP_NF_TARGET_REJECT
+>   - CONFIG_IP_NF_NAT
+>   - CONFIG_IP_NF_TARGET_MASQUERADE
+>   - CONFIG_IP_NF_MANGLE
+>   - CONFIG_IP6_NF_FILTER
+>   - CONFIG_IP6_NF_TARGET_REJECT
+>   - CONFIG_IP6_NF_MANGLE
+>   - CONFIG_IP6_NF_NAT
+>   - CONFIG_IP6_NF_TARGET_MASQUERADE
+> 
+> This new dependency caused many symbols to become orphaned, meaning
+> their dependencies are no longer satisfied and Kconfig drops them from
+> the final configuration.
+> 
+> Note that CONFIG_NFT_COMPAT is another parent dependency, so the
+> above-listed symbols would not become orphaned as long as NFT_COMPAT
+> is present.
+> 
+> Considering that these are legacy options and that nobody complained
+> in recent kernel releases when these options were already missing, it
+> is safe to assume they can be removed.
+> 
+> Suppress all these configuration symbols in all the defconfig files
+> that have neither CONFIG_NETFILTER_XTABLES_LEGACY nor
+> CONFIG_NFT_COMPAT set.
+> 
+> FYI, the suppressions were done using:
+> 
+>   git grep -z -L -E '^CONFIG_(NETFILTER_XTABLES_LEGACY|NFT_COMPAT)=(y|m)$' -- 'arch/*/configs/*defconfig' |\
+>     xargs -0 sed -i -E '/^CONFIG_(NETFILTER_XT_TARGET_CHECKSUM|IP_NF_FILTER|IP_NF_TARGET_REJECT|IP_NF_NAT|IP_NF_TARGET_MASQUERADE|IP_NF_MANGLE|IP6_NF_FILTER|IP6_NF_TARGET_REJECT|IP6_NF_MANGLE|IP6_NF_NAT|IP6_NF_TARGET_MASQUERADE)=(y|m)$/d'
+> 
+> Fixes: 9fce66583f06 ("netfilter: Exclude LEGACY TABLES on PREEMPT_RT.")
+> Signed-off-by: Vincent Mailhol (Arm) <mailhol@kernel.org>
 
-I applied this one, but I noticed two problems:
+Acked-by: Paul Walmsley <pjw@kernel.org> # arch/riscv
 
-There is no long form changelog text, please add
-more information about what is in the branch in
-the future. I've added a short paragraph while
-applying.
 
-> +-
->  arch/arm/boot/dts/ti/omap/omap4-samsung-espresso-common.dtsi     | 744 
-> +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/ti/omap/omap4-samsung-espresso10.dts           | 101 
-> +++++++++++++++++++++
->  arch/arm/boot/dts/ti/omap/omap4-samsung-espresso7.dts            |  70 
-> +++++++++++++++
->  arch/arm/boot/dts/ti/omap/omap5-l4.dtsi                          |   2 
-
-Something went wrong with the overly long lines here.
-
-      Arnd
+- Paul
