@@ -1,75 +1,50 @@
-Received: from server.couthit.com (server.couthit.com [162.240.164.96])
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72F3D38AC8B;
-	Thu,  2 Apr 2026 07:40:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.240.164.96
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E369238737B;
+	Thu,  2 Apr 2026 09:34:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775115616; cv=none; b=ev4fuQyivNaPnMrva2657DU6K2BkZkA5e/Dk9IIsZOR6nF+c7W9UxnkCZs/gdTTn7J0KgLzKQA7XtPOXz8jLVeFOfEPj03Kz4zosDNF5xA8870raQKuvJontqlbv/g+lwvgQWFQ0u9B/zXi6IcOsnitMABLYmusTZ+4bQ9yYI1k=
+	t=1775122463; cv=none; b=lsis+SSSe1OpAjmwljOxFGe7JJxJRrf7q6q4010KQLk6MhSzb4X3gdxkA8WGPMBEwrLs+f38lkmNrz1W9fg4U/jBkPVG2YiBEw7FhwkcrmjkmEHa41f6zHTv/4hU43JXWvNVUQKY1qKSu6JOlPslbluQbuOx1A8qsOovxSxtoPQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775115616; c=relaxed/simple;
-	bh=V/hqpMoCLHxrhThAuZnRODfhvjICEkM0tx12jNGjO7A=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nJ8KfSPg/fnIlCXnNg49rbkXxeowppVPfSqCwjJrBoUiXR3U6wVovAkC/PggAEmf3GqQ4w7TalWOfKl/IqBDoeTR9iN8zvQHIuUzUQaXTtycinbEW9MY4FDWbGdYsCaENIXIiSBuHUPU6LxTWciIgENmx9gUIdy9ZVno5fkha1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=couthit.com; spf=pass smtp.mailfrom=couthit.com; dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b=0oRhmgnZ; arc=none smtp.client-ip=162.240.164.96
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=couthit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=couthit.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=couthit.com header.i=@couthit.com header.b="0oRhmgnZ"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=couthit.com
-	; s=default; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ZkURrzmHyx9TCHCbUwl75CvIGREuQWymqE0tmONEj6c=; b=0oRhmgnZLes0LMX8DuGkDyw6fN
-	Frl71TY5Stn2XomGdm7E8S6+y3/QJcP1EEoywScrMJoEHotkMzL4NEqEK5scF8Bbxqnnc7H7ud+V9
-	msDqSgqLnpCuVUf16RgPluJQItyjvqoFz1sX/m0zaR8PfZstO/SQf8kmicGFQ9pC1BSDxDpa6CF97
-	jHOE/FeaUdt9QMJmfFCzQg6vi4L+DFQPlzoM58uDFDqBbpqwDJrgrYORh4+ONQdxs669k+zVW+VrS
-	+zn5v8YPX0E0hkRMq+9Y1aVs/Tvk5s80WsW53o80MS8zg8hPzhRSsuFH3Xnd8AvyKSPtfrghPmAcm
-	HmLDtn5A==;
-Received: from [115.246.246.98] (port=16281 helo=cypher.couthit.local)
-	by server.couthit.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.98.1)
-	(envelope-from <parvathi@couthit.com>)
-	id 1w8Cev-00000008LE4-20Gd;
-	Thu, 02 Apr 2026 03:40:10 -0400
-From: Parvathi Pudi <parvathi@couthit.com>
-To: nm@ti.com,
-	vigneshr@ti.com,
-	afd@ti.com,
-	khilman@baylibre.com,
-	rogerq@kernel.org,
-	tony@atomide.com,
-	robh@kernel.org,
-	krzk+dt@kernel.org,
-	conor+dt@kernel.org,
-	richardcochran@gmail.com,
-	aaro.koskinen@iki.fi,
-	andreas@kemnade.info
-Cc: andrew@lunn.ch,
+	s=arc-20240116; t=1775122463; c=relaxed/simple;
+	bh=fLgaCf5V+rXqmc2NSUTQo0avZ432LIA+F18nt6bc2nU=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ZMz3j2oQl2M3HMr/XXDuj1pXVOvzVPb8Qjh4KHDXtPEJVwprBOT0eqosW0ykTygKBfyx2hZZ2RXYETfiGWqkTdLZeb+jxTatyz2zgOBHL94rgZIXBS+WVyCiHzkpBN3CEhzfMH2BgSVAaGPRyRQdP6oPMg/RFHcdZn9hlPJCrVA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: 18eafac82e7711f1aa26b74ffac11d73-20260402
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.3.12,REQID:a05d23e2-2eb9-47a7-b4cc-1429f8bb3322,IP:0,U
+	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
+	release,TS:0
+X-CID-META: VersionHash:e7bac3a,CLOUDID:9fb7aec0872f907d0fbbfd1c23c62e2e,BulkI
+	D:nil,BulkQuantity:0,Recheck:0,SF:102|850|898,TC:nil,Content:0|15|50,EDM:-
+	3,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,A
+	V:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
+X-CID-BVR: 2,SSN|SDN
+X-CID-BAS: 2,SSN|SDN,0,_
+X-CID-FACTOR: TF_CID_SPAM_SNR
+X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
+X-UUID: 18eafac82e7711f1aa26b74ffac11d73-20260402
+X-User: zenghongling@kylinos.cn
+Received: from localhost.localdomain [(10.44.16.150)] by mailgw.kylinos.cn
+	(envelope-from <zenghongling@kylinos.cn>)
+	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
+	with ESMTP id 1783636459; Thu, 02 Apr 2026 17:34:07 +0800
+From: zenghongling <zenghongling@kylinos.cn>
+To: deller@gmx.de,
 	linux-omap@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	danishanwar@ti.com,
-	pratheesh@ti.com,
-	j-rameshbabu@ti.com,
-	praneeth@ti.com,
-	srk@ti.com,
-	rogerq@ti.com,
-	krishna@couthit.com,
-	mohan@couthit.com,
-	pmohan@couthit.com,
-	basharath@couthit.com,
-	parvathi@couthit.com,
-	Murali Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH v6 3/3] arm: dts: ti: Add device tree support for PRU-ICSS on AM335x
-Date: Thu,  2 Apr 2026 13:06:41 +0530
-Message-ID: <20260402073853.2170099-4-parvathi@couthit.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260402073853.2170099-1-parvathi@couthit.com>
-References: <20260402073853.2170099-1-parvathi@couthit.com>
+	linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+Cc: linux-kernel@vger.kernel.org,
+	zhongling0719@126.com,
+	zenghongling <zenghongling@kylinos.cn>,
+	kernel test robot <lkp@intel.com>
+Subject: [PATCH] fbdev: omap2: fix inconsistent lock returns in omapfb_mmap
+Date: Thu,  2 Apr 2026 17:34:03 +0800
+Message-Id: <20260402093403.12173-1-zenghongling@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -77,257 +52,34 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - server.couthit.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - couthit.com
-X-Get-Message-Sender-Via: server.couthit.com: authenticated_id: parvathi@couthit.com
-X-Authenticated-Sender: server.couthit.com: parvathi@couthit.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
 
-From: Roger Quadros <rogerq@ti.com>
+Fix the warning about inconsistent returns for '&rg->lock' in
+omapfb_mmap() function. The warning arises because the error path
+uses 'ofbi->region' while the normal path uses 'rg'.
 
-The TI Sitara AM335x ICE-V2 consists of single PRU-ICSS instance,
-This patch adds the new device tree overlay file in-order to enable
-PRU-ICSS instance, along with makefile changes.
+smatch warnings:
+drivers/video/fbdev/omap2/omapfb/omapfb-main.c:1126 omapfb_mmap()
+warn: inconsistent returns '&rg->lock'.
 
-PRU-ICSS instance consists of two PRU cores along with various
-peripherals such as the Interrupt Controller (PRU_INTC), the Industrial
-Ethernet Peripheral(IEP), the Real Time Media Independent Interface
-controller (MII_RT), and the Enhanced Capture (eCAP) event module.
-
-am33xx-l4.dtsi - Adds IEP and eCAP peripheral as child nodes
-of the PRUSS subsystem node.
-
-am335x-icev2-prueth.dtso - Adds PRU-ICSS instance node along with PRU
-eth port information and corresponding port configuration. It includes
-interrupt mapping for packet reception, HW timestamp collection, and PRU
-Ethernet ports in MII mode,
-
-GPIO configuration, boot strapping along with delay configuration for
-individual PRU Ethernet port and other required nodes.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Andrew F. Davis <afd@ti.com>
-Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
-Signed-off-by: Basharath Hussain Khaja <basharath@couthit.com>
-Signed-off-by: Parvathi Pudi <parvathi@couthit.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: zenghongling <zenghongling@kylinos.cn>
 ---
- arch/arm/boot/dts/ti/omap/Makefile            |   4 +
- .../ti/omap/am335x-icev2-prueth-overlay.dtso  | 156 ++++++++++++++++++
- arch/arm/boot/dts/ti/omap/am33xx-l4.dtsi      |  11 ++
- 3 files changed, 171 insertions(+)
- create mode 100644 arch/arm/boot/dts/ti/omap/am335x-icev2-prueth-overlay.dtso
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/ti/omap/Makefile b/arch/arm/boot/dts/ti/omap/Makefile
-index 3a4d9204339b..498c36ccb5ea 100644
---- a/arch/arm/boot/dts/ti/omap/Makefile
-+++ b/arch/arm/boot/dts/ti/omap/Makefile
-@@ -88,6 +88,9 @@ dtb-$(CONFIG_ARCH_OMAP4) += \
- am335x-bonegreen-hdmi-00a0-dtbs := am335x-bonegreen-eco.dtb \
- 	am335x-bone-hdmi-00a0.dtbo
+diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+index a8b2930290e1..d70deb6a9150 100644
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+@@ -1121,7 +1121,7 @@ static int omapfb_mmap(struct fb_info *fbi, struct vm_area_struct *vma)
+ 	return 0;
  
-+am335x-icev2-prueth-dtbs := am335x-icev2.dtb \
-+	am335x-icev2-prueth-overlay.dtbo
-+
- dtb-$(CONFIG_SOC_AM33XX) += \
- 	am335x-baltos-ir2110.dtb \
- 	am335x-baltos-ir3220.dtb \
-@@ -106,6 +109,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
- 	am335x-evmsk.dtb \
- 	am335x-guardian.dtb \
- 	am335x-icev2.dtb \
-+	am335x-icev2-prueth.dtb \
- 	am335x-lxm.dtb \
- 	am335x-mba335x.dtb \
- 	am335x-moxa-uc-2101.dtb \
-diff --git a/arch/arm/boot/dts/ti/omap/am335x-icev2-prueth-overlay.dtso b/arch/arm/boot/dts/ti/omap/am335x-icev2-prueth-overlay.dtso
-new file mode 100644
-index 000000000000..ffed1f3d046a
---- /dev/null
-+++ b/arch/arm/boot/dts/ti/omap/am335x-icev2-prueth-overlay.dtso
-@@ -0,0 +1,156 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * DT overlay for IDK AM335x
-+ *
-+ * Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com/
-+ */
-+
-+/*
-+ * AM335x ICE V2 board
-+ * http://www.ti.com/tool/tmdsice3359
-+ */
-+
-+/dts-v1/;
-+/plugin/;
-+
-+#include <dt-bindings/bus/ti-sysc.h>
-+#include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/pinctrl/am33xx.h>
-+#include <dt-bindings/clock/am3.h>
-+
-+&{/} {
-+        /* Dual-MAC Ethernet application node on PRU-ICSS */
-+        pruss_eth: pruss-eth {
-+                compatible = "ti,am3359-prueth";
-+                ti,prus = <&pru0>, <&pru1>;
-+                sram = <&ocmcram>;
-+                ti,mii-rt = <&pruss_mii_rt>;
-+                ti,iep = <&pruss_iep>;
-+                ti,ecap = <&pruss_ecap>;
-+                interrupts = <20 2 2>, <21 3 3>;
-+                interrupt-names = "rx_hp", "rx_lp";
-+                interrupt-parent = <&pruss_intc>;
-+
-+                pinctrl-0 = <&pruss_eth_default>;
-+                pinctrl-names = "default";
-+
-+                ethernet-ports {
-+                        #address-cells = <1>;
-+                        #size-cells = <0>;
-+                        pruss_emac0: ethernet-port@0 {
-+                                reg = <0>;
-+                                phy-handle = <&pruss_eth0_phy>;
-+                                phy-mode = "mii";
-+                                interrupts = <20 2 2>, <26 6 6>, <23 6 6>;
-+                                interrupt-names = "rx", "emac_ptp_tx",
-+                                                  "hsr_ptp_tx";
-+                                /* Filled in by bootloader */
-+                                local-mac-address = [00 00 00 00 00 00];
-+                        };
-+
-+                        pruss_emac1: ethernet-port@1 {
-+                                reg = <1>;
-+                                phy-handle = <&pruss_eth1_phy>;
-+                                phy-mode = "mii";
-+                                interrupts = <21 3 3>, <27 9 7>, <24 9 7>;
-+                                interrupt-names = "rx", "emac_ptp_tx",
-+                                                  "hsr_ptp_tx";
-+                                /* Filled in by bootloader */
-+                                local-mac-address = [00 00 00 00 00 00];
-+                        };
-+                };
-+        };
-+};
-+
-+&am33xx_pinmux {
-+	/* MDIO node for PRU-ICSS */
-+        pruss_mdio_default: pruss-mdio-default-pins {
-+                pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x88c, PIN_OUTPUT | MUX_MODE5) /* (V12) gpmc_clk.pr1_mdio_mdclk */
-+			AM33XX_IOPAD(0x888, PIN_INPUT | MUX_MODE5) /* (T13) gpmc_csn3.pr1_mdio_data */
-+                >;
-+        };
-+
-+	/* Pinmux configuration for PRU-ICSS */
-+        pruss_eth_default: pruss-eth-default-pins {
-+                pinctrl-single,pins = <
-+			AM33XX_IOPAD(0x8a0, PIN_INPUT | MUX_MODE2) /* (R1) lcd_data0.pr1_mii_mt0_clk */
-+			AM33XX_IOPAD(0x8b4, PIN_OUTPUT | MUX_MODE2) /* (T2) lcd_data5.pr1_mii0_txd0 */
-+			AM33XX_IOPAD(0x8b0, PIN_OUTPUT | MUX_MODE2) /* (T1) lcd_data4.pr1_mii0_txd1 */
-+			AM33XX_IOPAD(0x8ac, PIN_OUTPUT | MUX_MODE2) /* (R4) lcd_data3.pr1_mii0_txd2 */
-+			AM33XX_IOPAD(0x8a8, PIN_OUTPUT | MUX_MODE2) /* (R3) lcd_data2.pr1_mii0_txd3 */
-+			AM33XX_IOPAD(0x8cc, PIN_INPUT | MUX_MODE5) /* (U4) lcd_data11.pr1_mii0_rxd0 */
-+			AM33XX_IOPAD(0x8c8, PIN_INPUT | MUX_MODE5) /* (U3) lcd_data10.pr1_mii0_rxd1 */
-+			AM33XX_IOPAD(0x8c4, PIN_INPUT | MUX_MODE5) /* (U2) lcd_data9.pr1_mii0_rxd2 */
-+			AM33XX_IOPAD(0x8c0, PIN_INPUT | MUX_MODE5) /* (U1) lcd_data8.pr1_mii0_rxd3 */
-+			AM33XX_IOPAD(0x8a4, PIN_OUTPUT | MUX_MODE2) /* (R2) lcd_data1.pr1_mii0_txen */
-+			AM33XX_IOPAD(0x8d8, PIN_INPUT | MUX_MODE5) /* (V4) lcd_data14.pr1_mii_mr0_clk */
-+			AM33XX_IOPAD(0x8dc, PIN_INPUT | MUX_MODE5) /* (T5) lcd_data15.pr1_mii0_rxdv */
-+			AM33XX_IOPAD(0x8d4, PIN_INPUT | MUX_MODE5) /* (V3) lcd_data13.pr1_mii0_rxer */
-+			AM33XX_IOPAD(0x8d0, PIN_INPUT | MUX_MODE5) /* (V2) lcd_data12.pr1_mii0_rxlink */
-+			AM33XX_IOPAD(0x8e8, PIN_INPUT | MUX_MODE2) /* (V5) lcd_pclk.pr1_mii0_crs */
-+
-+			AM33XX_IOPAD(0x840, PIN_INPUT | MUX_MODE5) /* (R13) gpmc_a0.pr1_mii_mt1_clk */
-+			AM33XX_IOPAD(0x850, PIN_OUTPUT | MUX_MODE5) /* (R14) gpmc_a4.pr1_mii1_txd0 */
-+			AM33XX_IOPAD(0x84c, PIN_OUTPUT | MUX_MODE5) /* (T14) gpmc_a3.pr1_mii1_txd1 */
-+			AM33XX_IOPAD(0x848, PIN_OUTPUT | MUX_MODE5) /* (U14) gpmc_a2.pr1_mii1_txd2 */
-+			AM33XX_IOPAD(0x844, PIN_OUTPUT | MUX_MODE5) /* (V14) gpmc_a1.pr1_mii1_txd3 */
-+			AM33XX_IOPAD(0x860, PIN_INPUT | MUX_MODE5) /* (V16) gpmc_a8.pr1_mii1_rxd0 */
-+			AM33XX_IOPAD(0x85c, PIN_INPUT | MUX_MODE5) /* (T15) gpmc_a7.pr1_mii1_rxd1 */
-+			AM33XX_IOPAD(0x858, PIN_INPUT | MUX_MODE5) /* (U15) gpmc_a6.pr1_mii1_rxd2 */
-+			AM33XX_IOPAD(0x854, PIN_INPUT | MUX_MODE5) /* (V15) gpmc_a5.pr1_mii1_rxd3 */
-+			AM33XX_IOPAD(0x874, PIN_OUTPUT | MUX_MODE5) /* (U17) gpmc_wpn.pr1_mii1_txen */
-+			AM33XX_IOPAD(0x864, PIN_INPUT | MUX_MODE5) /* (U16) gpmc_a9.pr1_mii_mr1_clk */
-+			AM33XX_IOPAD(0x868, PIN_INPUT | MUX_MODE5) /* (T16) gpmc_a10.pr1_mii1_rxdv */
-+			AM33XX_IOPAD(0x86c, PIN_INPUT | MUX_MODE5) /* (V17) gpmc_a11.pr1_mii1_rxer */
-+			AM33XX_IOPAD(0x878, PIN_INPUT | MUX_MODE5) /* (U18) gpmc_be1n.pr1_mii1_rxlink */
-+			AM33XX_IOPAD(0x8ec, PIN_INPUT | MUX_MODE2) /* (R6) lcd_ac_bias_en.pr1_mii1_crs */
-+                >;
-+        };
-+};
-+
-+&gpio3 {
-+        mux-mii-hog {
-+		status = "disabled";
-+        };
-+
-+	mux-mii-hog-0 {
-+		gpio-hog;
-+		gpios = <10 GPIO_ACTIVE_HIGH>;
-+		/* ETH1 mux: Low for MII-PRU, high for RMII-CPSW */
-+		output-low;
-+		line-name = "MUX_MII_CTL1";
-+	};
-+};
-+
-+/*
-+ * Disable CPSW switch node and
-+ * MDIO configuration to prevent
-+ * conflict with PRU-ICSS
-+ */
-+&mac_sw {
-+        status = "disabled";
-+};
-+
-+&davinci_mdio_sw {
-+        status = "disabled";
-+};
-+
-+/* PRU-ICSS MDIO configuration */
-+&pruss_mdio {
-+        pinctrl-0 = <&pruss_mdio_default>;
-+        pinctrl-names = "default";
-+        reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
-+        reset-delay-us = <2>; /* PHY datasheet states 1uS min */
-+        status = "okay";
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+
-+        pruss_eth0_phy: ethernet-phy@1 {
-+                 reg = <1>;
-+        };
-+
-+        pruss_eth1_phy: ethernet-phy@3 {
-+                 reg = <3>;
-+        };
-+};
-diff --git a/arch/arm/boot/dts/ti/omap/am33xx-l4.dtsi b/arch/arm/boot/dts/ti/omap/am33xx-l4.dtsi
-index 89d16fcc773e..a63ef307d918 100644
---- a/arch/arm/boot/dts/ti/omap/am33xx-l4.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/am33xx-l4.dtsi
-@@ -896,6 +896,17 @@ pruss_mii_rt: mii-rt@32000 {
- 					reg = <0x32000 0x58>;
- 				};
+ error:
+-	omapfb_put_mem_region(ofbi->region);
++	omapfb_put_mem_region(rg);
  
-+				pruss_iep: iep@2e000 {
-+					compatible = "ti,am3356-icss-iep";
-+					reg = <0x2e000 0x31c>;
-+					clocks = <&pruss_iepclk_mux>;
-+				};
-+
-+				pruss_ecap: ecap@30000 {
-+					compatible = "ti,pruss-ecap";
-+					reg = <0x30000 0x60>;
-+				};
-+
- 				pruss_intc: interrupt-controller@20000 {
- 					compatible = "ti,pruss-intc";
- 					reg = <0x20000 0x2000>;
+ 	return r;
+ }
 -- 
-2.43.0
+2.25.1
 
