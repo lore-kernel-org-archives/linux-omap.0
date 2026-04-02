@@ -1,86 +1,87 @@
 Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 809003EAC76
-	for <linux-omap@vger.kernel.org>; Thu,  2 Apr 2026 14:15:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 602663EBF0C
+	for <linux-omap@vger.kernel.org>; Thu,  2 Apr 2026 14:15:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775139327; cv=none; b=NXw30EABw7k4ux0LzHUqf/pAUqb9Pzp0y/Waq8p4d4aYmQvkZHR74ul54IznEParQXYqb4Amn/isOBntLBD7vmfNy9qSMWiE2OMPBYG6ehTz18E+/wS2wrLdLcKdkMj+ElnQaTwrJZiKcTM0MMSiur7vG75I7Z22R2xqS9HZ+T4=
+	t=1775139330; cv=none; b=UMckOv/5E0dj/BODLrv/4Y37ci+mv8n2TMETc0c+MMUUjYoxDxLZtjg/WNMryWCpKBrUkzttnbxqHBIrL/fClcAGyQVm4rPuZb/CuO28tUGB0MBkX4G6DNaivcqUrlk9yuSkuA1NHewmT9oUlMacMN5Yi3sXd7inU7y4mxSWcyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775139327; c=relaxed/simple;
-	bh=yBKrNw7YytejW291mPySbI6LGBLYwN1ehugPvNfrHLM=;
+	s=arc-20240116; t=1775139330; c=relaxed/simple;
+	bh=84lA+sQad0KFCHbORyyoFKtDWqR/112mWPWVfk7uVlo=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=QW4VNjUXcJlo5dG9H+5YBawwdnyVcL6CSBh9bk04tZFuANsLFWstJa0uabF6o3lzNGwYv0tw3u1pB85xw/9n0eR5Y+TKARBu6Sai7+LpH5PXDMakVGQYBFiswYi4/KKZDdBb+EQqaCu/DCQjOTsOcdyJYF6V04RpoKhZIu/Nflo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=JK9y2rzy; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=R/8Ugbfl; arc=none smtp.client-ip=205.220.180.131
+	 In-Reply-To:To:Cc; b=ol57UFR6he2VBmU6/sKbpsuFi3CfPyZvpU/Dk1YT4R+Rw8g3YjE7fKqF0lF5pX0iAJ7UwJQ32GVBdsNVAHwN5xoJiGCYxGZRM3X3iOurYbBznFJ9B7uS4bMqodDYDTszX8E2NVxJ9frsWN6NCnQw7ivalh4sVW3J3l+ZoZjgKgI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=BCRWECBd; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=HOpNNqJv; arc=none smtp.client-ip=205.220.180.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="JK9y2rzy";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="R/8Ugbfl"
-Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 632BlFmF2337887
-	for <linux-omap@vger.kernel.org>; Thu, 2 Apr 2026 14:15:25 GMT
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="BCRWECBd";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="HOpNNqJv"
+Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 632BLKH6091382
+	for <linux-omap@vger.kernel.org>; Thu, 2 Apr 2026 14:15:28 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	HwshQwGEYEPB4ewYumRkBFMYexYVpzxnnKi7Qlm1u/c=; b=JK9y2rzy2T82T4od
-	hlXEty4Z194J87BnMHPKV1Xm0zaIdOavDzvHIjzVTkZJFpmq8LtbZt2PyzyqSERt
-	iQX1gQmPRsOF76azXI88JRtsbXsDXgT3NT4yFV8RsE5IKvIONKrLNac/yXF6ME4D
-	gDkbIdvlcTi5EApn7Kn/UnAaLdseqaPM0fRI08GakZ1U01PNuGh/VdaqIHkOEtpp
-	qOyzEzFHQO90FjRnF4aiJ0asS4jiHtmmcVR7beSN2+xHn5rR6csNXKG5Zshk+Vj/
-	SiHkOmaPKwcq6vdGdmkMFZOWXvebEdUC75QaCSfonmbkt4Gcg3l2ovpOUTPiktRC
-	nCZxUQ==
-Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com [209.85.160.200])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4d9qw08mju-1
+	ko1IaIbS30UK07529xORwTESC79YHbPzcSNYySWBN3s=; b=BCRWECBdceo8emiX
+	zVu1XemBIxDnAfpAVprpPRAtAlqgL/yPKHibQWKIS3zbIOD01OFtUiWDAS3pX6Fn
+	ucFB4kUiij61guxsMtPANwSlFiRlxBcTqjkm/jybIlqHtlUUaSzprNzh9eUZjlhO
+	4SY3Qxd3PEsLR/MdCYJkvauFJGNyoXqrSuxHJI26weardUyj6KzMZgZd0klhoQFy
+	0OWz113/0NiJGgwFWJ3SzZVjjjWotAojZrdACM8sI4q5TeA419H56AmYkcgMH7me
+	yLWG2u17rfXBltd9QIdNHGVvJfaGXuY9RqSvobF3/XoDleHUGKPlwYOox0/0jbeJ
+	NWr7Qw==
+Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com [209.85.160.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4d9jcua4dt-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Thu, 02 Apr 2026 14:15:25 +0000 (GMT)
-Received: by mail-qt1-f200.google.com with SMTP id d75a77b69052e-50b2cbe7223so27317931cf.2
-        for <linux-omap@vger.kernel.org>; Thu, 02 Apr 2026 07:15:25 -0700 (PDT)
+	for <linux-omap@vger.kernel.org>; Thu, 02 Apr 2026 14:15:28 +0000 (GMT)
+Received: by mail-qt1-f199.google.com with SMTP id d75a77b69052e-509044f54aaso25834551cf.1
+        for <linux-omap@vger.kernel.org>; Thu, 02 Apr 2026 07:15:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1775139325; x=1775744125; darn=vger.kernel.org;
+        d=oss.qualcomm.com; s=google; t=1775139327; x=1775744127; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=HwshQwGEYEPB4ewYumRkBFMYexYVpzxnnKi7Qlm1u/c=;
-        b=R/8UgbflCpIdNl7rlyqsfe5JWzWKvWzXy0jVTVogafCBWk8zo89fLZdiivw2tlDH1b
-         CCbflF3oAgeKd9s6KAEcAHDrYC6yZrUj73ZUhwMWGlj7YmsJzSdRdGGOqrvDPIZOb6sT
-         ZI8RbaRt6DgGxigPc+rGQV/6tk94b3/DAYg3y7PDRi/MjtnuJVDGa6AZWQgcvWCQNUEU
-         4FSn4xd+Ww5mkPj1PI43ps+13sucR2VKBIRWc2cVlcHfE8ERNvsAy+pO54GZwkmYJprk
-         nSV2hKNwa5unSpK4YNpOwNGuluZQXPrbz99pbT8Vpa1R29C88MnxkeozxkQk4aVulg5c
-         J1xA==
+        bh=ko1IaIbS30UK07529xORwTESC79YHbPzcSNYySWBN3s=;
+        b=HOpNNqJv6o1+z+CCM0u7Yr74wkVcTtCMgXku/RAko/mbYKwm0E0USTzzz+hNYQX9J3
+         sHVeqc9Cdg+w2Ku5XbB5+vg+8NbHdqAjmOdhcxjJ8tthVjbkUso79NobjW3slLw4tFfX
+         i3na5JdYKL2QpcttpDQSCjXb7fsJVUKo9KdU+xmqpFVi33SSZoTthSeLbpqcS5YDaP3p
+         VAQJ+6m3IztiYccsNT8EzMPeu5W0IUMZXjR/vTGdbwFU5dniZOduzFneCPZddVSF9PeO
+         oq/J+yAR+Sycx5Q/+3lnCSNOWlCZWr+pRRX3qA7Oqo7skCWRwOcSI2trBDmlDr5ETVEk
+         Cicg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775139325; x=1775744125;
+        d=1e100.net; s=20251104; t=1775139327; x=1775744127;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=HwshQwGEYEPB4ewYumRkBFMYexYVpzxnnKi7Qlm1u/c=;
-        b=a4y+BOXxPmcG7h/Ojl5SbpV0troRa2fAzGgkJRDecS6aLSus90dwjnI+D09o6inu23
-         8c1mSnQHqmgcnrbzs9Yx5xUjuf/RtVGl8/UbGi14MuVR7pwFsVZ4pVL5NR1KihRYOLLJ
-         w8tIL6WJjYOyVL3X//fcUerhMW9zf8fYpUHqIdL/H9KufLJO3IKkY1O1qnK8YXWy2mqy
-         2Tf4Kg+DBbWmU5iOlry6O1oJOAqEAQjgce0nTMXA2DECXZU8L3RyYkr49ekKuDX7xTZY
-         d7jjKz4A1SUu56HLyRa78SBRSL5bbVZ6SisMKByaXBrbY0q9xzzhL9q8zHYs2IMPlbpW
-         dq9w==
-X-Forwarded-Encrypted: i=1; AJvYcCW87BiV7KtQOH63VO5zs4raOu9H2sMUoJ0CKTBXMbI2Iu2cMPrQzRxGXVlFjCoGGFensNaJYhfCB+9b@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywuy76C9lEuhA2o64m/0uVlBqDkU2DI46HBB3Dh38KA8QvypWQp
-	ha36maDVSWA0EkdvtcIHB8PFAgSQMpL/St0S8dmWCWKEhkImJdVHdz5+BVmetTJHLXc1nCpk/2g
-	xzlAmmxvJW0BpAlDfFiQV+zXahI/q2Hc+k7WR6pjwrQ/YT/mcdERIVaQZJOpizE5b
-X-Gm-Gg: ATEYQzzUo/l0Ra0mSPetG9CTuT1paOuFvY8HLaZu48ya2sICEtbsaE7ndxQjpAqhv/E
-	OXusInX4tE9RjhOFmvwYaufVDKwJHWcie9gGbMCExQqh5G4ck27rP9hMCTtlUM1ikSkbOZVQubF
-	PxiMjP5eS7TFa/AnBk0Yxp9o5i9IfnhBOUfgviy98uugXh7nRFqKvb+E8JOJYQzVXagdC9AwF34
-	DdQZXXC3SFf522tB2FB57pImeCBdMS3EMAegVOvZFtvOl00nLwjKufj/nLf6arXL719i9Zuo6q1
-	oE3oupslDtN8BedR8iAeaDNbRpfyCawPLfrUQZ0aQIs/c+gR/9XQfC91Y0/FdfxUZb+v0Ka5NYD
-	9TPt+ACoAZ1NpUR7U0oA77wnd0IaxSH0dfKDj8RZETECFBADBZKQK
-X-Received: by 2002:ac8:5fd0:0:b0:509:2822:670d with SMTP id d75a77b69052e-50d3bc2a2f8mr109666451cf.27.1775139322702;
-        Thu, 02 Apr 2026 07:15:22 -0700 (PDT)
-X-Received: by 2002:ac8:5fd0:0:b0:509:2822:670d with SMTP id d75a77b69052e-50d3bc2a2f8mr109662421cf.27.1775139320358;
-        Thu, 02 Apr 2026 07:15:20 -0700 (PDT)
+        bh=ko1IaIbS30UK07529xORwTESC79YHbPzcSNYySWBN3s=;
+        b=jycbk/V0bRfAYw80yN7QON48JMhGzvjTKewM1sZINZRJcxosCvgLBCDGbIl4RW+z1U
+         Ve9z2ENYvleYtn2X//bV0DXi9AfMuzHfcvnwd3snFhqaOPHI55Mpqv8xLO4YqDI05UIc
+         I13D8jYhyyk3SQQxNwzbJ6U23vJCPn80HghBVMMjP9T8nQUyTTsLO1gSSB5oKytMygCB
+         4qILftR2YlSB3gN3SCalr5PIQgnCYhKUzIogeKWym9uyJUlbAAg6v/FJFrc5IFDURyHp
+         KG0fO5Nx5VSvGrdZr6XGCxhQ1FQr9/L6oRmx2r55BZ1956duJczwGb7CCHGo0dcbADes
+         X/Dw==
+X-Forwarded-Encrypted: i=1; AJvYcCXB1dCoV4ZoMPH8wvWqhLDZpRS4BlHDIUEc6VPKA6B1bU44ibLPeb1EKf3xV0MVjur0kur1iC+MRD3l@vger.kernel.org
+X-Gm-Message-State: AOJu0YwGDyJlUYwKdaHzLaqQq3zaIEsLxpWO2XG6CEwJbpUCKEwUnDK4
+	qr0UCuVxpmdu7GniSg9A+yiiHR4RsghhWcE9FVmRECE61IHlqiTOsvH5AJKuPmEmPn9N/cHUrGD
+	DkSwfNgcDJk9yfPrXhkUG5u2frRTBWfnxvRP36mBtPwJ4TAttqQOZKjoghzMF4LEg
+X-Gm-Gg: ATEYQzy5hOFGAlC57/iR32bK1zHj2odmRVLg0XfYj87Pq576figok0K7SRSbRiuclUR
+	aZwblZ+4eI5iMHJQ1TPjSasWSiZMwApQ6NLkWY6QLyHQrZo1LD0gyrD8OokW7Ij11LuGPcXbACI
+	C5lGMyqeUyPSAF+Wetmh4JO1ye71B181d8aTY26F4BxjUg5gCepjn75JlaMaDxMKAml3+5BaQE4
+	TkmnP4be1wtPYryUtou2IUncvb0eLYq7uFDnOVwPJew6JMWZ9/yC4eTfqjsci99wzSqrOXu5Lh7
+	Cz3wyxYxeS8bUZRk0XmK9hvPd/88iDSMEQd4RDzo4hNWl2ns4ekG8qHLddMRg+KmDCdXrqf82kC
+	GuETCWxifAIquTPlGZ8ZkTu/PBFyl3kV/nvNgHn4CVhCBnnuOaRqD
+X-Received: by 2002:a05:622a:207:b0:50b:465f:706c with SMTP id d75a77b69052e-50d3bdace4fmr105254821cf.60.1775139326265;
+        Thu, 02 Apr 2026 07:15:26 -0700 (PDT)
+X-Received: by 2002:a05:622a:207:b0:50b:465f:706c with SMTP id d75a77b69052e-50d3bdace4fmr105251081cf.60.1775139323963;
+        Thu, 02 Apr 2026 07:15:23 -0700 (PDT)
 Received: from brgl-qcom.local ([2a01:cb1d:dc:7e00:4ff1:3e57:22ec:dadc])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4887e80a5e2sm192824885e9.1.2026.04.02.07.15.19
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4887e80a5e2sm192824885e9.1.2026.04.02.07.15.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 Apr 2026 07:15:19 -0700 (PDT)
+        Thu, 02 Apr 2026 07:15:23 -0700 (PDT)
 From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Date: Thu, 02 Apr 2026 16:15:03 +0200
-Subject: [PATCH v5 2/4] software node: remove software_node_exit()
+Date: Thu, 02 Apr 2026 16:15:05 +0200
+Subject: [PATCH v5 4/4] ARM: omap1: enable real software node lookup of
+ GPIOs on Nokia 770
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -89,7 +90,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260402-nokia770-gpio-swnodes-v5-2-d730db3dd299@oss.qualcomm.com>
+Message-Id: <20260402-nokia770-gpio-swnodes-v5-4-d730db3dd299@oss.qualcomm.com>
 References: <20260402-nokia770-gpio-swnodes-v5-0-d730db3dd299@oss.qualcomm.com>
 In-Reply-To: <20260402-nokia770-gpio-swnodes-v5-0-d730db3dd299@oss.qualcomm.com>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -109,70 +110,246 @@ Cc: brgl@kernel.org, driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
         linux-omap@vger.kernel.org,
         Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=776;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=7115;
  i=bartosz.golaszewski@oss.qualcomm.com; h=from:subject:message-id;
- bh=yBKrNw7YytejW291mPySbI6LGBLYwN1ehugPvNfrHLM=;
- b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBpznnvGSCWONe5TLbuQtSrY72fMOoZXTKRAcb0s
- mqhmDG1RZuJAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCac557wAKCRAFnS7L/zaE
- w1OUD/9OSD86XkGc+sAjVkMGHKvcn39N4RTc5O0XXVLyLfKn8tE4xyjvFcPy+smX4mZyqyxcO9v
- QE0Y54slQVt6egHK85JFznO6nDzDzrYEI4wJnsTzUyRS/cE23bZdQm8DFkgyYgP8SulxVAS3F+e
- d+SBdsaUs6fkx/LqtPKOc1XoUXMTM7FD9IhjioyMDVXHUHCGcx0x8d42mPmg1PiaQLThQCwguoy
- sncbcYKbq7W+1u5FKq0JmITwHq57JrwfABCNQI0X1hVrQlwTi9AXAto2/4SHQww+mzBIse1gNU8
- gjo5XvNYp5r0dqhHoq6mXrJ0+kOV6ElLlHCw6n+vrXNjmMzdcz5Vccwh0z7vqIkRJvZwoRaBhHm
- 0xKIF6wX+eB1TQyioX01Sn/QUuJ1WgrEdOnx2t0/EQgEJVzp2gqeJLymBvCvoxDroUsRPyF1WdB
- P5fB2uoHdxlEid8l7NJPUtghQ94mOdP9pf16fIt+hn53sovq4v/O3tkDlVDcDL75pxTWYHkk+UK
- KmasIyRWS9Slo0MnNObblidd2xrrH5qjDmYLxjMyAdowUPByvMTuTwsvG+2F6WNzAF4gWsc87h+
- og8McoR/tx9in0Wch9REdNGOErbElO7/2aTCUayieZjXfpgNFbzdYNUbZibB/Y/2s/wiEhPOAVW
- oB7blfpwAAyLd1g==
+ bh=84lA+sQad0KFCHbORyyoFKtDWqR/112mWPWVfk7uVlo=;
+ b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBpznnyrQduqYRzaSGCrj/a3Z+EMcoLtnR8gXIhB
+ rRkqv36XQ6JAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCac558gAKCRAFnS7L/zaE
+ w051D/9/iGB6iVqBzF719/2yLqnIAn9kqb0163tgxIPoz8kXX/FI5zf+t6Q3zmC9Cygm5OUsqgK
+ 3n9fI+svI8LS2chxUKP7kCbHvxH3MlHHM300iW3hkLUyP9lkdwOHFQ3vvgA4djp78E1MeB+GKsW
+ /GMMtvgntw0YwmWqQqY9WFPagO8FSHAncV3ui9H6PZf9TIeQIHwDQVDjqlLZHCeUZ7BxSbwup/R
+ +YHFwpxiLdoFtdOX90NVHPpM3Yff462amLZatiXPrHWLaJblB7ZCjKZN+C1n0Gzrz+dDtXDM8sr
+ cPfaXSnQjZz68q0P7NWLbFGNqRJAsS58iBbcFWCg5b5gVQMw1LMdMzBHiCz9jTTrDdpG3/MbfS8
+ fEgjfM6Lxkd1oaH61wlXPx0Y6lmzjIvoGZb0kshhiQrymMOrMgvWjPuVX56IWKkRpW0GNXUJ0iA
+ vLIMOuaxk43lNIX8tl/QmEeYrpw2KFAi8MR/l1JFlADn3xEr+3imTlmUsdyUthTNmqsd+Ot6YIp
+ 3SLge6ThitT8CX8lKjNM44ZjsAijL3cRu8XH8lDcBwz7pd2Px87aAvJKBoBbwBGG1RtRhMM6pj/
+ 7bJLVfMTbgMApzwv+lIh6glmEODbiutZfQR3jm5iJfk8OUtD5eXjBLIgH1CiDIkXbpjcfpW0yLk
+ W1Ge0RJ1TNMYuwA==
 X-Developer-Key: i=bartosz.golaszewski@oss.qualcomm.com; a=openpgp;
  fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDAyMDEyOSBTYWx0ZWRfXyXCR1r3+7Ukn
- KTNntUX6/mj2ns7t35twvvGKmnoWEP2iJ9WAwAhnVjhH568efq9ujVbtwFWVlE36EKbB4bTYrz0
- jk0RqhLWK3OGSFKFWvUiJQtiHI/RRFywUxX+mtoPbnImZaVA85SRTTCaXH5Aco8PktKF8nY1Y4H
- frVLu1geVqgNlC2PkOApIZ7L56pP0SYqD9fIgeZRYG3NRd7iundFQBZip13GFdvJH2GQwX+xJuZ
- 9L1JYvacj78aJI0f7B8p+OTbF0dTbp3KP8Rz/rd1PgMcs01YjLoqATbzUiJF8NhYyzvE8BngGAp
- zbLcfjZ1qHnrBzCtfzfpZfeo4jfWRCqSbXXxJhaSRI511/SyQ/wg4MJERN6VTzzOWrngh+Eib3R
- MPCZ6gKC7EpFJ/03e8JvBBlhFfRjbxSv/Ni5KIrw4qTiVkVeh6NxCwGlpd9Cs7C3mlOrPA7zPj1
- 2CzNyWIH+7UOtzwW0Yg==
-X-Authority-Analysis: v=2.4 cv=PNICOPqC c=1 sm=1 tr=0 ts=69ce79fd cx=c_pps
- a=JbAStetqSzwMeJznSMzCyw==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNDAyMDEyOCBTYWx0ZWRfX8PMyWhri5S5U
+ E0V8m5vXRj/jrJnmgh/jDT3W+W2i6c5I2IWBkvva4eteBBqUQXB/S6YVWgPMyY1+cfuCfCYZf7d
+ oH3Ed+L4ZlSgt2eeAtzAQEaftzJJgqcz8d/NXee0ODhngTUQ4/ucebOiQWQvBXpoUhPMVSuB/6Z
+ wKW1M6qoEPzRLwnWRgHlTxU8heDFI3Yf/TLHoAvcqJPqxo4tHmoZmB3q6ArdEPf5y1GdSkmHLNH
+ 402GJ/m3m57HjSgzpJ18vT0JwDzNV8W9cRFLQ9OJDiWQiB4e1y/yiVQuK6mCBFyoD763L17WEt+
+ udKuFPfZwBWeX7ZS9/SR0/5Ee3L1k1Dxjnl+E3kELr6mob3ryj/jcKhoyY5wUUIiOlswLd+U5z5
+ kChlMt79wcbd7OSH7C9+wlesRn4Faj88AEB8Hqbv9lA/vKhb7kstudb2SD8e0uYqqT6aCYiy8iH
+ SDB5hoNuo743o1usc8Q==
+X-Proofpoint-GUID: xL1fJaEXV3DO7UMnM328YxcW99pPPQLM
+X-Authority-Analysis: v=2.4 cv=eYYwvrEH c=1 sm=1 tr=0 ts=69ce7a00 cx=c_pps
+ a=WeENfcodrlLV9YRTxbY/uA==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
  a=A5OVakUREuEA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=gowsoOTTUOVcmtlkKump:22 a=EUspDBNiAAAA:8
- a=mhlm9Ems92mV8WSaVUEA:9 a=QEXdDO2ut3YA:10 a=uxP6HrT_eTzRwkO_Te1X:22
-X-Proofpoint-GUID: i2Ptg-VENXzB7Q6Q8GCtGldAEeSwWic0
-X-Proofpoint-ORIG-GUID: i2Ptg-VENXzB7Q6Q8GCtGldAEeSwWic0
+ a=u7WPNUs3qKkmUXheDGA7:22 a=3WHJM1ZQz_JShphwDgj5:22 a=pGLkceISAAAA:8
+ a=EUspDBNiAAAA:8 a=mL5-Ybe71cLVbzrCEFIA:9 a=QEXdDO2ut3YA:10
+ a=kacYvNCVWA4VmyqE58fU:22
+X-Proofpoint-ORIG-GUID: xL1fJaEXV3DO7UMnM328YxcW99pPPQLM
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
  definitions=2026-04-02_02,2026-04-02_03,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 malwarescore=0 suspectscore=0 lowpriorityscore=0 spamscore=0
- priorityscore=1501 adultscore=0 phishscore=0 bulkscore=0 clxscore=1015
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2603050001 definitions=main-2604020129
+ suspectscore=0 priorityscore=1501 lowpriorityscore=0 phishscore=0
+ impostorscore=0 malwarescore=0 bulkscore=0 adultscore=0 clxscore=1015
+ spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2603050001
+ definitions=main-2604020128
 
-software_node_exit() is an __exitcall() in a built-in compilation unit
-so effectively dead code. Remove it.
+Currently the board file for Nokia 770 creates dummy software nodes not
+attached in any way to the actual GPIO controller devices and uses the
+fact that GPIOLIB matching swnode's name to the GPIO chip's label during
+software node lookup. This behavior is wrong and we want to remove it.
+To that end, we need to first convert all existing users to creating
+actual fwnode links.
 
+Create real software nodes for GPIO controllers on OMAP16xx and
+reference them from the software nodes in the nokia board file.
+
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Janusz Krzysztofik <jmkrzyszt@gmail.com>
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 ---
- drivers/base/swnode.c | 7 -------
- 1 file changed, 7 deletions(-)
+ arch/arm/mach-omap1/board-nokia770.c | 30 +++++-------------------------
+ arch/arm/mach-omap1/common.h         |  3 +++
+ arch/arm/mach-omap1/gpio16xx.c       | 28 +++++++++++++++++++++++++++-
+ 3 files changed, 35 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-index 51320837f3a9f1bf4f65aa161d9b941affc74936..26cbe1c2a2e043a2315764085207561069c23ccd 100644
---- a/drivers/base/swnode.c
-+++ b/drivers/base/swnode.c
-@@ -1135,10 +1135,3 @@ static int __init software_node_init(void)
- 	return 0;
- }
- postcore_initcall(software_node_init);
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
+index a5bf5554800fe17b430e84ae421ffa8da2bb11a0..46f817f6316b70ff37bb9dfde86c675fd692999b 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -36,25 +36,6 @@
+ #include "clock.h"
+ #include "mmc.h"
+ 
+-static const struct software_node nokia770_mpuio_gpiochip_node = {
+-	.name = "mpuio",
+-};
 -
--static void __exit software_node_exit(void)
--{
--	ida_destroy(&swnode_root_ids);
--	kset_unregister(swnode_kset);
--}
--__exitcall(software_node_exit);
+-static const struct software_node nokia770_gpiochip1_node = {
+-	.name = "gpio-0-15",
+-};
+-
+-static const struct software_node nokia770_gpiochip2_node = {
+-	.name = "gpio-16-31",
+-};
+-
+-static const struct software_node *nokia770_gpiochip_nodes[] = {
+-	&nokia770_mpuio_gpiochip_node,
+-	&nokia770_gpiochip1_node,
+-	&nokia770_gpiochip2_node,
+-	NULL
+-};
+-
+ #define ADS7846_PENDOWN_GPIO	15
+ 
+ static const unsigned int nokia770_keymap[] = {
+@@ -112,7 +93,7 @@ static const struct omap_lcd_config nokia770_lcd_config __initconst = {
+ };
+ 
+ static const struct property_entry nokia770_mipid_props[] = {
+-	PROPERTY_ENTRY_GPIO("reset-gpios", &nokia770_gpiochip1_node,
++	PROPERTY_ENTRY_GPIO("reset-gpios", &omap16xx_gpio1_swnode,
+ 			    13, GPIO_ACTIVE_LOW),
+ 	{ }
+ };
+@@ -138,7 +119,7 @@ static const struct property_entry nokia770_ads7846_props[] = {
+ 	PROPERTY_ENTRY_U16("ti,x-plate-ohms", 180),
+ 	PROPERTY_ENTRY_U16("ti,debounce-tol", 3),
+ 	PROPERTY_ENTRY_U16("ti,debounce-rep", 1),
+-	PROPERTY_ENTRY_GPIO("pendown-gpios", &nokia770_gpiochip1_node,
++	PROPERTY_ENTRY_GPIO("pendown-gpios", &omap16xx_gpio1_swnode,
+ 			    ADS7846_PENDOWN_GPIO, GPIO_ACTIVE_LOW),
+ 	{ }
+ };
+@@ -225,9 +206,9 @@ static inline void nokia770_mmc_init(void)
+ #if IS_ENABLED(CONFIG_I2C_CBUS_GPIO)
+ 
+ static const struct software_node_ref_args nokia770_cbus_gpio_refs[] = {
+-	SOFTWARE_NODE_REFERENCE(&nokia770_mpuio_gpiochip_node, 9, 0),
+-	SOFTWARE_NODE_REFERENCE(&nokia770_mpuio_gpiochip_node, 10, 0),
+-	SOFTWARE_NODE_REFERENCE(&nokia770_mpuio_gpiochip_node, 11, 0),
++	SOFTWARE_NODE_REFERENCE(&omap16xx_mpu_gpio_swnode, 9, 0),
++	SOFTWARE_NODE_REFERENCE(&omap16xx_mpu_gpio_swnode, 10, 0),
++	SOFTWARE_NODE_REFERENCE(&omap16xx_mpu_gpio_swnode, 11, 0),
+ };
+ 
+ static const struct property_entry nokia770_cbus_props[] = {
+@@ -318,7 +299,6 @@ static void __init omap_nokia770_init(void)
+ 	/* Unmask SleepX signal */
+ 	omap_writew((omap_readw(0xfffb5004) & ~2), 0xfffb5004);
+ 
+-	software_node_register_node_group(nokia770_gpiochip_nodes);
+ 	platform_add_devices(nokia770_devices, ARRAY_SIZE(nokia770_devices));
+ 
+ 	gpiod_add_lookup_table(&nokia770_irq_gpio_table);
+diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+index 7a7c3d9eb84a06c18fbc70e7c94a161b487cd002..c0f6e231fdb4422c5d2c1aa3e33dd6dd99d2710e 100644
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -35,6 +35,9 @@
+ #include "soc.h"
+ #include "i2c.h"
+ 
++extern const struct software_node omap16xx_mpu_gpio_swnode;
++extern const struct software_node omap16xx_gpio1_swnode;
++
+ #ifdef CONFIG_OMAP_SERIAL_WAKE
+ int omap_serial_wakeup_init(void);
+ #else
+diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
+index 55acec22fef4e73f20935473602ef6cb2f4f379c..e371183e0213912ebfa7edd34ca7e7683869ab12 100644
+--- a/arch/arm/mach-omap1/gpio16xx.c
++++ b/arch/arm/mach-omap1/gpio16xx.c
+@@ -9,6 +9,7 @@
+  */
+ 
+ #include <linux/platform_data/gpio-omap.h>
++#include <linux/property.h>
+ #include <linux/soc/ti/omap1-io.h>
+ 
+ #include "hardware.h"
+@@ -55,6 +56,8 @@ static struct omap_gpio_platform_data omap16xx_mpu_gpio_config = {
+ 	.regs                   = &omap16xx_mpuio_regs,
+ };
+ 
++const struct software_node omap16xx_mpu_gpio_swnode = { };
++
+ static struct platform_device omap16xx_mpu_gpio = {
+ 	.name           = "omap_gpio",
+ 	.id             = 0,
+@@ -99,6 +102,8 @@ static struct omap_gpio_platform_data omap16xx_gpio1_config = {
+ 	.regs                   = &omap16xx_gpio_regs,
+ };
+ 
++const struct software_node omap16xx_gpio1_swnode = { };
++
+ static struct platform_device omap16xx_gpio1 = {
+ 	.name           = "omap_gpio",
+ 	.id             = 1,
+@@ -122,6 +127,8 @@ static struct resource omap16xx_gpio2_resources[] = {
+ 	},
+ };
+ 
++static const struct software_node omap16xx_gpio2_swnode = { };
++
+ static struct omap_gpio_platform_data omap16xx_gpio2_config = {
+ 	.bank_width		= 16,
+ 	.regs                   = &omap16xx_gpio_regs,
+@@ -155,6 +162,8 @@ static struct omap_gpio_platform_data omap16xx_gpio3_config = {
+ 	.regs                   = &omap16xx_gpio_regs,
+ };
+ 
++static const struct software_node omap16xx_gpio3_swnode = { };
++
+ static struct platform_device omap16xx_gpio3 = {
+ 	.name           = "omap_gpio",
+ 	.id             = 3,
+@@ -183,6 +192,8 @@ static struct omap_gpio_platform_data omap16xx_gpio4_config = {
+ 	.regs                   = &omap16xx_gpio_regs,
+ };
+ 
++static const struct software_node omap16xx_gpio4_swnode = { };
++
+ static struct platform_device omap16xx_gpio4 = {
+ 	.name           = "omap_gpio",
+ 	.id             = 4,
+@@ -201,6 +212,14 @@ static struct platform_device *omap16xx_gpio_dev[] __initdata = {
+ 	&omap16xx_gpio4,
+ };
+ 
++static const struct software_node *omap16xx_gpio_swnodes[] __initconst = {
++	&omap16xx_mpu_gpio_swnode,
++	&omap16xx_gpio1_swnode,
++	&omap16xx_gpio2_swnode,
++	&omap16xx_gpio3_swnode,
++	&omap16xx_gpio4_swnode,
++};
++
+ /*
+  * omap16xx_gpio_init needs to be done before
+  * machine_init functions access gpio APIs.
+@@ -208,7 +227,7 @@ static struct platform_device *omap16xx_gpio_dev[] __initdata = {
+  */
+ static int __init omap16xx_gpio_init(void)
+ {
+-	int i;
++	int i, ret;
+ 	void __iomem *base;
+ 	struct resource *res;
+ 	struct platform_device *pdev;
+@@ -244,6 +263,13 @@ static int __init omap16xx_gpio_init(void)
+ 		iounmap(base);
+ 
+ 		platform_device_register(omap16xx_gpio_dev[i]);
++
++		ret = device_add_software_node(&omap16xx_gpio_dev[i]->dev,
++					       omap16xx_gpio_swnodes[i]);
++		if (ret) {
++			dev_err(&pdev->dev, "Failed to add software node.\n");
++			return ret;
++		}
+ 	}
+ 
+ 	return 0;
 
 -- 
 2.47.3
