@@ -1,102 +1,89 @@
-Received: from mail.tipi-net.de (mail.tipi-net.de [194.13.80.246])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BD612765D7;
-	Fri,  3 Apr 2026 22:28:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.13.80.246
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4829E2BF3F3;
+	Sat,  4 Apr 2026 09:11:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775255330; cv=none; b=qWO091Cxc31tVfJKlwmSyGdSgM2iquL9q6U9zOpfiJ80W1Ad2I6hum3SXCUA+KDo3I7NyPK1i+2rtKElnSbUTuswEAnvsJqHGz1//QeBDTi2ah5rv48ffU/L8qr39Tsc18V1n5U2uj0lmGwDXEbb6HW4X6kwpKOFix7b10RGjVs=
+	t=1775293867; cv=none; b=hBBRFfad+YYFtIAdPPlnS+yLtYnFTiaOqEquCqAUI0hxOzkdDq5yy79WsXRvHP2DuvreAqo15QRpF/MiTRDlKql+xxl0eXpdfwZJz6YzzpW8lDHzkl7pnJYGZvpyqazuylJlUt0LtbrpB/hGQUTqLmDYp/BKZZk5BuZj/L/GCQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775255330; c=relaxed/simple;
-	bh=X3zco+XvVhWpTCZMpFuVqN5WeEOytgRz8E3bdKkvgaM=;
-	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
-	 Message-ID:Content-Type; b=NisYsPyOedOYd3RoToKQmyLtclLhoDMbJ2IymJZ2OXovq1I5uF0Ec22kETpx6EU6X53K5pLcByhQmYIvsDJ6iBcQ7XHlYDHcie+f2lfRdG/LQGXBYJe0vy2LAD0nb0tLr74jPhqY+hazkf3z+e79itr3eIP20gDsZG9cVPkgMz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tipi-net.de; spf=pass smtp.mailfrom=tipi-net.de; dkim=pass (2048-bit key) header.d=tipi-net.de header.i=@tipi-net.de header.b=eHE8Jc4H; arc=none smtp.client-ip=194.13.80.246
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tipi-net.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tipi-net.de
+	s=arc-20240116; t=1775293867; c=relaxed/simple;
+	bh=D6I9c5mIBu3BvZ3459/JAGOxm0o8EKD73fxMvQ9jte0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ou5IuqcWWtZiht+EV65r0H/SI2f5Y0LczTfU0nbmqzC2d8CC1QR4Iul1a6ZML1sf5EYrGS5esRbs1HFjZkZbtOmhXwhlS0gYpXbn5aEvyEL1a6z0CW9dELkQ4N6PKbMaI8yU8ziCwHZhfzyX/U33YPy5jSwhM1yF/+Vt+SdCe40=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hGAKPvBp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=tipi-net.de header.i=@tipi-net.de header.b="eHE8Jc4H"
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 8ECBFA587E;
-	Sat,  4 Apr 2026 00:28:45 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tipi-net.de; s=dkim;
-	t=1775255326; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=7YzsoARFzCOSqfo/cEvzh2PgtShoqkpEQjef7RRbDNg=;
-	b=eHE8Jc4HwkoCAywnc7Zeq8zQujHlItD2zXiL7vjvdXkoi97POHp+ERCScWeNCt+Z//7Ztk
-	C7p4eagLNsxCC9NatVlKg6oLX1wQ3wv5M83OZCkfDbkxx/BQO37XbSF8vN1x+gN6JQXaI0
-	3Y6vHX2CjX/KiSC/zKZ9v4uElHe9xTFwwu3J2r0/ThYUE1C5kyR2J2aVrxPAU6T7rLsTTj
-	xgFDK43Ln4/VZXA5H8f0Ni5Uj82fFBFGcTBQkpeK8p5rLpp6jtms29hUlwAMPbuyd7zI0M
-	ncWqMt9VOtzYN/MFNtKaWhFYAsrEL6gZjAm8OexMrJgeoYDT8dr+18+0lnxA5w==
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hGAKPvBp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F895C19421;
+	Sat,  4 Apr 2026 09:11:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775293866;
+	bh=D6I9c5mIBu3BvZ3459/JAGOxm0o8EKD73fxMvQ9jte0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=hGAKPvBpmOKG98wQ56WG9mMhBjhGkm5cTzeBlW8pC0NN/4koD54K8oaaDbX57b2ey
+	 nefi5QdEi5/CqXQJhdZQIpFYudhD99FNoFRudJRmAcQtgLmCqMdFONNjiopx7B/Jdb
+	 PsjxfhTS80Wwc4c6mGQBs75ycWCzcCiN8+KCpePRen7hOSP2R5IBH+31xbuS8LlY9i
+	 ltMWawmFoJ1uvJt/xC9mDZ99vksVb/7PMobLraixUcx9XObyNtnngJnMF4gt4JqrfW
+	 3z53h9hPD4EJUNbPH5cwSpOpq19xOxCUh8JEuaH2WgHDlHu56EvGTXaJkJJlf33ynp
+	 puf1V6E287SGQ==
+Date: Sat, 4 Apr 2026 10:11:00 +0100
+From: Simon Horman <horms@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Arnd Bergmann <arnd@kernel.org>, Netdev <netdev@vger.kernel.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Grygorii Strashko <grygorii.strashko@ti.com>,
+	Murali Karicheri <m-karicheri2@ti.com>,
+	Siddharth Vadapalli <s-vadapalli@ti.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Vladimir Oltean <vladimir.oltean@nxp.com>,
+	Alexander Sverdlin <alexander.sverdlin@gmail.com>,
+	Ioana Ciornei <ioana.ciornei@nxp.com>,
+	Linux-OMAP <linux-omap@vger.kernel.org>,
+	Kevin Hao <haokexin@gmail.com>,
+	Daniel Zahka <daniel.zahka@gmail.com>, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/3] [v4, net-next] net: ethernet: ti-cpsw:: rename
+ soft_reset() function
+Message-ID: <20260404091100.GT113102@horms.kernel.org>
+References: <20260402184726.3746487-1-arnd@kernel.org>
+ <CAC_iWj+vjZ0WnKUuqeFfaPeSoj5ovxZiEmUD5R8hPsRfkqMihQ@mail.gmail.com>
+ <4498f664-15ca-4859-a050-a593f124105f@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Sat, 04 Apr 2026 00:28:45 +0200
-From: Nicolai Buchwitz <nb@tipi-net.de>
-To: Thomas Richard <thomas.richard@bootlin.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
- <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Rob Herring
- <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
- <conor+dt@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
- <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, Roger Quadros
- <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Thomas Petazzoni
- <thomas.petazzoni@bootlin.com>, netdev@vger.kernel.org,
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-omap@vger.kernel.org
-Subject: Re: [PATCH 2/2] ARM: dts: ti: var-som-om44: Add USB Ethernet
- controller node
-In-Reply-To: <20260403-b4-var-som-om44-lan7500-v1-2-0dadde850143@bootlin.com>
-References: <20260403-b4-var-som-om44-lan7500-v1-0-0dadde850143@bootlin.com>
- <20260403-b4-var-som-om44-lan7500-v1-2-0dadde850143@bootlin.com>
-Message-ID: <c7214f0bc4eb2129cb8e8fd8f41958a4@tipi-net.de>
-X-Sender: nb@tipi-net.de
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4498f664-15ca-4859-a050-a593f124105f@app.fastmail.com>
 
-On 3.4.2026 21:02, Thomas Richard wrote:
-> Add USB tree description, including the Gigabit Ethernet controller
-> (LAN7500). Adding the LAN7500 node will allow the bootloader to patch 
-> the
-> devicetree and set the MAC address.
+On Thu, Apr 02, 2026 at 09:16:29PM +0200, Arnd Bergmann wrote:
+> On Thu, Apr 2, 2026, at 21:13, Ilias Apalodimas wrote:
+> > Hi Arnd,
+> >
+> > On Thu, 2 Apr 2026 at 21:47, Arnd Bergmann <arnd@kernel.org> wrote:
+> >>
+> >> From: Arnd Bergmann <arnd@arndb.de>
+> >>
+> >> While looking at the glob symbols shared between the cpsw drivers,
+> >> I noticed that soft_reset() is the only one that is missing a proper
+> >> namespace prefix, and will pollute the kernel namespace, so rename
+> >> it to be consistent with the other symbols.
+> >>
+> >> Fixes: c5013ac1dd0e1 ("net: ethernet: ti: cpsw: move set of common functions in cpsw_priv")
+> >
+> > The patch seems fine, but why the Fixes: tag?
 > 
-> Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
-> ---
->  arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi | 14 ++++++++++++++
->  1 file changed, 14 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi 
-> b/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi
-> index 
-> 37d56b3010cff0f6ea6208289da0aba7328067d5..9e04aa70f98227ac0054fea6cd4521ed1323ecbd 
-> 100644
-> --- a/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi
-> +++ b/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi
-> @@ -322,4 +322,18 @@ &usbhshost {
-> 
->  &usbhsehci {
->  	phys = <&hsusb1_phy>;
-> +	#address-cells = <1>;
-> +	#size-cells = <0>;
-> +
-> +	usbhub: hub@1 {
-> +		compatible = "usb424,2514";
-> +		reg = <1>;
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		ethernet: ethernet@3 {
-> +			compatible = "usb424,7500";
-> +			reg = <3>;
-> +		};
-> +	};
->  };
+> Before the c5013ac1dd0e1 commit, this was a 'static inline' function,
+> which is allowed to clash with other identifiers. Making it a global
+> symbol during the move was a problem.
 
-Reviewed-by: Nicolai Buchwitz <nb@tipi-net.de>
+Hi Arnd,
 
-Thanks
-Nicolai
+If we are going to treat this as a fix then probably it should be separated
+from the rest of the patchset and routed via net. With the rump patchset
+re-submitted to net-next once dependencies are in place.
