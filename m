@@ -1,85 +1,127 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E98F635893;
-	Tue,  7 Apr 2026 02:20:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85430399015;
+	Tue,  7 Apr 2026 08:34:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775528446; cv=none; b=oSa5hSxl4JvUoH+MD2gUANiGhoQBLGQLVF+pF1iDEKYHMZvIbS2BgG3nE3r10kvQnl1ZdbFErWa04EPeL4l6Q+mJbfNEFoI2VdEm+OSJHkAJzjuit7ke7aoss3xwMm+qiICOKJ6wKqClemS1D0pbk4iUeb9TZ2c60Do+TM2BX90=
+	t=1775550884; cv=none; b=B8pP77hh/p8czJQPIXJEsdyFjS0z3i5JHLSYqhem+oK43nPjfZ8M9m+8LwmGRaQfmakBQl1o2koxlYP0hQsz0FqBCzQ2GmvYPDINfIFxmNX/BfxGHL1rUx/sUcIL57AeFSx5fZnTJsF1+WBcUFjzSz/UgWGzuYlux+4THi7k/B4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775528446; c=relaxed/simple;
-	bh=05wv7UBxC6F1xpRjeHp3mezC2Pa262FFuui5eUoKY4A=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=dUfwHTOLy700yfDH+ApXZnNLYfSXe+9gz0kUDaJcYNoIw13a4t6HvTr9fTMIaMKJCjqB7pQd1/hlFq3cHNR/Gyk11k9KNvDIMf59CblsPnvlU1SoPgtyL8AilBku+BK6CornUB5sCXkErHFJx/Ljye9nmY2n89yEqv4F7Z9adcU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WChUrc0V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775550884; c=relaxed/simple;
+	bh=ll5Xf8OgLSwzLu5gj1f8oU0LLlZwJOhEZFC7iIA9WeM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=GnDSw73FJVR3s38fKH1PKEbfPVHXBIDLw5Mz8eFUca13spXVPmqmdKxs0Qa6PZtzOdaF3HUh7irSFatyMI8Iyzy+yr2rmhF+j8WXOcIE8mV6uba2pOknMj9G9bbKophZsSl/rbV7uQEPhZd+WnQCnp9uHhJawO43ZtG2rnclHo8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=xkGzOt2f; arc=none smtp.client-ip=185.246.85.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WChUrc0V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB32DC2BCB1;
-	Tue,  7 Apr 2026 02:20:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775528445;
-	bh=05wv7UBxC6F1xpRjeHp3mezC2Pa262FFuui5eUoKY4A=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=WChUrc0V/q1omU30QqKfIe3vj13c0Iv4eVgcD/PRHo1pdD+zhPGNQ4BunXIYAFwEH
-	 7KIvUap7g/MMAQMCG+vS7AWbMO0QCCOgFzZrz13sL6GbAvR1gb+3wmA5MksoI2oSn9
-	 PfVumZL9bZsNkJ4rT4BSRAGFyyzzorTfQSrynPNXCtSo0Z7n73HcNfwyW9C0rySExX
-	 K8CmK+VKzpjDVmyWh9ZHtxQZjHuUHPKJxdV3nrJa7CvJSycOo9Bk7cwNgWMhdQeCqY
-	 a6aeUVsCUW959PfaLio5H/VEpqSAzn8BMQebkOhDoWEmlmENfXTbwNzHuKpAtv68h4
-	 KmYujJya5LJow==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3FED03809A28;
-	Tue,  7 Apr 2026 02:20:25 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="xkGzOt2f"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 032084E4294F;
+	Tue,  7 Apr 2026 08:34:26 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id AA828603C7;
+	Tue,  7 Apr 2026 08:34:26 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 901F310450169;
+	Tue,  7 Apr 2026 10:34:19 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1775550865; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:content-language:in-reply-to:references;
+	bh=MeVAzDBoyGqpo2KSnPfszamlpaudEQsSPJY6g/H6Ddc=;
+	b=xkGzOt2fHZy8K/uSb8zZSe7krpsMuTwa9sV0dleOZNXCZ0Rcr1V7kjqWPldKOwQVt8psTM
+	2hwNspJcP04jPOiA9hsbPXa19xKzO9a1DIRyJhEX6oNnIwPiYbDNv66rWw1CXzVi4aSsv7
+	RZJurmrlgJNgpZPP7uggfsMrRrrvjUoo2EK2LNoCcC7LoiVn8cVo/GTbjuDj7dgGJk9/C/
+	rJtt6dqYnnlxuANE4gZbL6y3vbWEwGICizQSymY3chIhzLn0DuMYt89JYpjNcS6Z6fTXNo
+	pT+lmzsH2H86Ege+Vey2IbLFm+6y9o4jUJSycrPmaiOdEn5M2wFBOqDV6GEeCQ==
+Message-ID: <c2026868-35ff-4b5e-a0e2-bf6b3f6b75ce@bootlin.com>
+Date: Tue, 7 Apr 2026 10:34:18 +0200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH 1/3] [v4,
- net-next] net: ethernet: ti-cpsw:: rename soft_reset() function
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <177552842404.3346653.1362966815028978410.git-patchwork-notify@kernel.org>
-Date: Tue, 07 Apr 2026 02:20:24 +0000
-References: <20260402184726.3746487-1-arnd@kernel.org>
-In-Reply-To: <20260402184726.3746487-1-arnd@kernel.org>
-To: Arnd Bergmann <arnd@kernel.org>
-Cc: netdev@vger.kernel.org, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
- grygorii.strashko@ti.com, ilias.apalodimas@linaro.org, m-karicheri2@ti.com,
- s-vadapalli@ti.com, rogerq@kernel.org, vladimir.oltean@nxp.com,
- alexander.sverdlin@gmail.com, ioana.ciornei@nxp.com,
- linux-omap@vger.kernel.org, arnd@arndb.de, haokexin@gmail.com,
- daniel.zahka@gmail.com, linux-kernel@vger.kernel.org
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/2] dt-bindings: net: Add schema for LAN75XX compatible
+ USB Ethernet controllers
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>, netdev@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-omap@vger.kernel.org
+References: <20260403-b4-var-som-om44-lan7500-v1-0-0dadde850143@bootlin.com>
+ <20260403-b4-var-som-om44-lan7500-v1-1-0dadde850143@bootlin.com>
+ <20260405-smoky-spectacular-koel-dbfcda@quoll>
+Content-Language: en-US
+From: Thomas Richard <thomas.richard@bootlin.com>
+In-Reply-To: <20260405-smoky-spectacular-koel-dbfcda@quoll>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-Hello:
+Hello Krzysztof,
 
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Thu,  2 Apr 2026 20:46:53 +0200 you wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
+On 4/5/26 10:06 AM, Krzysztof Kozlowski wrote:
+> On Fri, Apr 03, 2026 at 09:02:23PM +0200, Thomas Richard wrote:
+>> Create schema for LAN75XX compatible USB Ethernet controllers. The smsc75xx
+>> driver only supports LAN7500 and LAN7505 devices.
+>>
+>> Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
+>> ---
+>>  .../devicetree/bindings/net/microchip,lan75xx.yaml | 52 ++++++++++++++++++++++
+>>  1 file changed, 52 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/microchip,lan75xx.yaml b/Documentation/devicetree/bindings/net/microchip,lan75xx.yaml
+>> new file mode 100644
+>> index 0000000000000000000000000000000000000000..b84022976044ffec2024cff9fc0aa5016723abed
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/net/microchip,lan75xx.yaml
 > 
-> While looking at the glob symbols shared between the cpsw drivers,
-> I noticed that soft_reset() is the only one that is missing a proper
-> namespace prefix, and will pollute the kernel namespace, so rename
-> it to be consistent with the other symbols.
+> Rather microchip,lan7500.yaml. Wildcards don't really scale when you
+> have 75yy coming which does not fit into this binding.
 > 
-> [...]
+> 
+>> @@ -0,0 +1,52 @@
+>> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+>> +%YAML 1.2
+>> +---
+>> +$id: http://devicetree.org/schemas/net/microchip,lan75xx.yaml#
+>> +$schema: http://devicetree.org/meta-schemas/core.yaml#
+>> +
+>> +title: Microchip LAN7500/LAN7505 USB Ethernet Controllers
+>> +
+>> +maintainers:
+>> +  - Thomas Richard <thomas.richard@bootlin.com>
+>> +
+>> +description:
+>> +  Device tree properties for LAN75XX compatible USB Ethernet controller.
+>> +
+>> +allOf:
+>> +  - $ref: ethernet-controller.yaml#
+>> +
+>> +properties:
+>> +  compatible:
+>> +    items:
+> 
+> Drop items, that's enum directly.
+> 
+>> +      - enum:
+>> +          - usb424,7500
+>> +          - usb424,7505
+> 
+> But you should notice that this is exactly the same as 95xx, so why it
+> cannot go there? Because of the wildcard 95xx naming? That's not a
+> reason.
 
-Here is the summary with links:
-  - [1/3,v4,net-next] net: ethernet: ti-cpsw:: rename soft_reset() function
-    https://git.kernel.org/netdev/net-next/c/961f3c535608
-  - [2/3,v4,net-next] net: ethernet: ti-cpsw: fix linking built-in code to modules
-    https://git.kernel.org/netdev/net-next/c/df75bd552a87
-  - [3/3,v4,net-next] dpaa2: avoid linking objects into multiple modules
-    https://git.kernel.org/netdev/net-next/c/ede3136e5655
+Yes I noticed. I did not put them in 95xx because it is not the same
+driver. Isn't that a valid reason?
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+Best Regards,
+Thomas
 
