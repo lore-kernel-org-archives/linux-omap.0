@@ -1,103 +1,113 @@
-Received: from relay.smtp-ext.broadcom.com (relay.smtp-ext.broadcom.com [192.19.166.231])
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C46A138D018;
-	Tue,  7 Apr 2026 23:56:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.19.166.231
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D866F39891D;
+	Wed,  8 Apr 2026 07:57:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775606192; cv=none; b=FojUZhsN30Ewj8h1QU+Z7M5BozTCQFdcFJqdJCSh+7dnZORVmI7cChtED6dhL83+5Z1H+zx/z7imTdqjVZWmHGccybtdIAcfaAoVeF8fJZIleDWeZqPJac3/TiNoQI1XqBlhpH50WrCFmDMHt208kJe/pKrqB+8tD9O6zV0AAGc=
+	t=1775635048; cv=none; b=r4/fOSPUaBD8FASVjK7eIZ7uwiPJZwppKOFKA/my2FaXgBzz+9mFoeZomHRdq3jakkgMllbtwYqSELCzFlQc+sYmj/C8Wyl4bwOUaaYXubOIuqKbyUg6Nt7bi+Ugl9geTDN0s7b0IUyhLFuNlXZtjUwg4G+0cFEt5LyRq6nPAHE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775606192; c=relaxed/simple;
-	bh=lDHPIP0z91YIoy/9et8RAk6xDXDfMvOvLikEmjLe23E=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ZHNxscB3PmbfGAAnvCyKigqvNqVicS0b2c9VrNon1ODMlpZiUzHg4prSuIdTTQdaVYS8l2FW7K/VVUoe6hf7SnczEcTF959W+4BrqmQEC7Q4BWouoijWf8Poldo7zHrtH1S4GvQFYNmqHSg9Ew6LU1fpSnMK1ad47XfAyvqck+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=etZKesGq; arc=none smtp.client-ip=192.19.166.231
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1775635048; c=relaxed/simple;
+	bh=RLGEFpyI9pvm/PlKN71Wt8S04ww3ygVZKp8oCyzHPEQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=lEmAuIw4PvAXqgrO9t+KJWUvebfyhu4HHw2OzUOFz7q9mZPEjQL1fTZLQesRyGSvnNhobmp7nx8M+ceTKqC3nMScVmfX/HZThjC6rQovD/9Ksm+/oGnZOVXc90iUuwQNPT2qRqOoqv2tqmPoEe6AJrglMPOSNu+gmYELBqe+1V8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=tuQ1FZ2o; arc=none smtp.client-ip=185.246.85.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="etZKesGq"
-Received: from mail-acc-it-01.broadcom.com (mail-acc-it-01.acc.broadcom.net [10.35.36.83])
-	by relay.smtp-ext.broadcom.com (Postfix) with ESMTP id 47A12C011866;
-	Tue,  7 Apr 2026 16:56:21 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 relay.smtp-ext.broadcom.com 47A12C011866
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=broadcom.com;
-	s=dkimrelay; t=1775606181;
-	bh=lDHPIP0z91YIoy/9et8RAk6xDXDfMvOvLikEmjLe23E=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=etZKesGqg8Yyrjb9O/jaDjI/86KXY6pYOmhT97KKTouVQbpQSlEg2zk7wuGKb389z
-	 VU41KCeCikcbyThzNvL8gvnUOBrfGa6CRrQk+a6MO8JwjHXJ1A5YU3aaHk6Zz0zVcy
-	 Tay/hxbKuORbJU3qIbbYwu8thbi3eP2vnyg2XtUk=
-Received: from stbirv-lnx-1.igp.broadcom.net (stbirv-lnx-1.igp.broadcom.net [10.67.48.32])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail-acc-it-01.broadcom.com (Postfix) with ESMTPSA id 399BDAE80;
-	Tue,  7 Apr 2026 19:56:20 -0400 (EDT)
-From: Florian Fainelli <florian.fainelli@broadcom.com>
-To: linux-kernel@vger.kernel.org
-Cc: Florian Fainelli <florian.fainelli@broadcom.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Haojian Zhuang <haojian.zhuang@linaro.org>,
-	linux-gpio@vger.kernel.org (open list:PIN CONTROL SUBSYSTEM),
-	devicetree@vger.kernel.org (open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS),
-	linux-arm-kernel@lists.infradead.org (moderated list:PIN CONTROLLER - SINGLE),
-	linux-omap@vger.kernel.org (open list:PIN CONTROLLER - SINGLE)
-Subject: [PATCH 2/2] pinctrl: single: Add bcm7038-padconf compatible matching
-Date: Tue,  7 Apr 2026 16:56:11 -0700
-Message-Id: <20260407235611.550515-3-florian.fainelli@broadcom.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260407235611.550515-1-florian.fainelli@broadcom.com>
-References: <20260407235611.550515-1-florian.fainelli@broadcom.com>
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="tuQ1FZ2o"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 230B94E42978;
+	Wed,  8 Apr 2026 07:57:25 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id DF7DD603CB;
+	Wed,  8 Apr 2026 07:57:24 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 22A8E10450313;
+	Wed,  8 Apr 2026 09:57:21 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1775635043; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:content-language:in-reply-to:references;
+	bh=VR6odhlK+/dkz5N+TCsylMiayDUrGCxEmji/ieXKteg=;
+	b=tuQ1FZ2okNcwPg2TO6vf/DwocO2xVMBHT+AAzfg/45MgDpQ7ku+5U1ePHAn7E+fZd+SqI5
+	HTpLB4OyBjA8JRKQjrW8PNM48Zi3J9pQ0iUatTbtIaca/W4u9Vuk1vswHAxouT7fpOAkcd
+	LXAzW6PXAR8W1+X7sdMMqVXB+kIyHKmi0cVrOzWll41xtbFHpod05IAxG0Gg6WXGXC9OKJ
+	r419Og3E4JKD7qLsM+A8o3lAoVhzWmU7uTkilhzjKHkmYEEZIaMgQbOvPMyVoZNpxMS6Ff
+	JbIzscAwdeVM79FKS+420NkFCk/6yr6iS5jOQ5QguhRmYyIO/grf5K/I22nTZQ==
+Message-ID: <6b637950-2018-41d8-bdd2-27382a9b67d8@bootlin.com>
+Date: Wed, 8 Apr 2026 09:57:20 +0200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 01/11] dt-bindings: regulator: ti,pbias-regulator:
+ Convert to DT schema
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>,
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>,
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>, linux-omap@vger.kernel.org,
+ linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+References: <20260330-omap4-fix-usb-support-v2-0-1c1e11b190dc@bootlin.com>
+ <20260330-omap4-fix-usb-support-v2-1-1c1e11b190dc@bootlin.com>
+ <20260331-demonic-boisterous-spider-5ed5c6@quoll>
+Content-Language: en-US
+From: Thomas Richard <thomas.richard@bootlin.com>
+In-Reply-To: <20260331-demonic-boisterous-spider-5ed5c6@quoll>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-Just like the TI J7200 padconf, we lose the context and therefore need
-to save it and restore it across suspend/resume states.
+Hello Krzysztof,
 
-Signed-off-by: Florian Fainelli <florian.fainelli@broadcom.com>
----
- drivers/pinctrl/pinctrl-single.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+On 3/31/26 10:21 AM, Krzysztof Kozlowski wrote:
+> On Mon, Mar 30, 2026 at 03:43:58PM +0200, Thomas Richard wrote:
+>> +$id: http://devicetree.org/schemas/regulator/ti,pbias-regulator.yaml#
+>> +$schema: http://devicetree.org/meta-schemas/core.yaml#
+>> +
+>> +title: PBIAS internal regulator
+>> +
+>> +maintainers:
+>> +  - Thomas Richard <thomas.richard@bootlin.com>
+>> +
+>> +description: |
+> 
+> Do not need '|' unless you need to preserve formatting.
+> 
+>> +  PBIAS internal regulator for SD card dual voltage i/o pads on OMAP SoCs.
+>> +
+>> +properties:
+>> +  compatible:
+>> +    items:
+>> +      - enum:
+>> +          - ti,pbias-dra7
+>> +          - ti,pbias-omap2
+>> +          - ti,pbias-omap3
+>> +          - ti,pbias-omap4
+>> +          - ti,pbias-omap5
+>> +      - const: ti,pbias-omap
+>> +
+>> +  reg:
+>> +    maxItems: 1
+>> +
+>> +  syscon:
+>> +    description: Phandle of the system control module
+>> +    $ref: /schemas/types.yaml#/definitions/phandle
+>> +
+>> +patternProperties:
+>> +  '^pbias_*':
+> 
+> That wasn't in old binding and underscore is not allowed, so this needs
+> explanation. Old binding mentioned only the names.
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index d85e6c1f6321..657b42caf811 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1960,7 +1960,7 @@ static const struct pcs_soc_data pinctrl_single_am654 = {
- 	.irq_status_mask = (1 << 30),   /* WKUP_EVT */
- };
- 
--static const struct pcs_soc_data pinctrl_single_j7200 = {
-+static const struct pcs_soc_data pinctrl_single_loss_off = {
- 	.flags = PCS_CONTEXT_LOSS_OFF,
- };
- 
-@@ -1972,6 +1972,7 @@ static const struct pcs_soc_data pinconf_single = {
- };
- 
- static const struct of_device_id pcs_of_match[] = {
-+	{ .compatible = "brcm,bcm7038-padconf", .data = &pinctrl_single_loss_off },
- 	{ .compatible = "marvell,pxa1908-padconf", .data = &pinconf_single },
- 	{ .compatible = "ti,am437-padconf", .data = &pinctrl_single_am437x },
- 	{ .compatible = "ti,am654-padconf", .data = &pinctrl_single_am654 },
-@@ -1979,7 +1980,7 @@ static const struct of_device_id pcs_of_match[] = {
- 	{ .compatible = "ti,omap3-padconf", .data = &pinctrl_single_omap_wkup },
- 	{ .compatible = "ti,omap4-padconf", .data = &pinctrl_single_omap_wkup },
- 	{ .compatible = "ti,omap5-padconf", .data = &pinctrl_single_omap_wkup },
--	{ .compatible = "ti,j7200-padconf", .data = &pinctrl_single_j7200 },
-+	{ .compatible = "ti,j7200-padconf", .data = &pinctrl_single_loss_off },
- 	{ .compatible = "pinctrl-single", .data = &pinctrl_single },
- 	{ .compatible = "pinconf-single", .data = &pinconf_single },
- 	{ },
--- 
-2.34.1
+I did it to match existing devicetrees.
+I guess I should define properties like 'pbias-mmc' and 'pbias-sim',
+then update node names in devicetrees to match binding.
 
+Best Regards,
+Thomas
