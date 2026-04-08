@@ -1,95 +1,83 @@
-Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9C842475E3
-	for <linux-omap@vger.kernel.org>; Wed,  8 Apr 2026 07:58:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F4F83A7839;
+	Wed,  8 Apr 2026 09:11:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775635103; cv=none; b=kebkV/HQ1lsGz//9HfHWSz0OhUCxDczKYxMdxDGlzOIJxpKMVs2YNFsnaL0p97PW13q3DvcF4cdnTLysEivZFyhL7Aexb+H2/KP5R4RiwZPuYOh9DiWacmZ+zNCX6S2oocC3Bgs0b3u/KOknt7zba2ZA/DEtM2rk+xiFcnrUmBY=
+	t=1775639463; cv=none; b=cTFwjyvb1rviZkn7riSgbZDk/Ef+nlnHaW7zB5XnnklCHziCZEBq/iVSz0da+wr1BpkcV94NOfEsEVM+LEjidolO5t4wOKnLZKfW6knq2naytP7tvJk6Xb6KH709iW6DXvC6xJIWx4A2FYpljAmNPVXB8Xn7KC2n5WREXRnKvF8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775635103; c=relaxed/simple;
-	bh=Yz6zaA7HccdnO8j5GA8dM2q2o4G4Vg6cmhKKXLwtRT0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=E/WBWxiwKz0mDmatUHpoFsFIt+Hflwac7BNEzEqPDsO+mt5+eO7LsS8XfVIUEMiegEooFx8cGSHw/JYi+I1LiMePvf11IwdcNEQ1riAMRM8Fb5FAHijKjn2jgufr4uDUaD7DotCSYhpONgH7dk0lfPrWfa1uSwJGzazq6MuQ1/w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=J5SOlZhi; arc=none smtp.client-ip=185.246.85.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1775639463; c=relaxed/simple;
+	bh=2VV+jYCUy1KUMjQ952zuke1nZqlR8VBr0ssTABOVfMA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=QfS1etu7V6nPrgst4JBoPWrC1gJnw3OBvGRxND3N8xnfUJd9U7txrSgosPZg9uLEh7CUim52mY2yPmeUplUos/4q65Nkwxb3M+dUrakXlI6u7A5KwiGAinA6ZSoy13yzpfRArsUtesnmWPqYuHQzuRblsXskhGgA3ldhYlJ40s0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g+PJ0We1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="J5SOlZhi"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id 63A594E4296C;
-	Wed,  8 Apr 2026 07:58:19 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 39D7F603CB;
-	Wed,  8 Apr 2026 07:58:19 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 9771310450313;
-	Wed,  8 Apr 2026 09:58:15 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1775635098; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:content-language:in-reply-to:references;
-	bh=td691qGU7Hw7dFQz66Ba4guExquNXTBzAl80jvJ+rKY=;
-	b=J5SOlZhiU3WBnY7s4i9AdcF5QhiB5sCOBMEu4nSkem191O7NtUPiR+CdVHg6Rh5Wykdn2D
-	6emsZ4TI+oidYjAxhr7CkyXZOVuWIDJDbA3VDcWKKmZV2n0ex6bZLOfc49lzenXs1cuTXP
-	0xhtB3G2Q/VJvTGCRQAeLcNJmC93PJdUznBIZonV9OJ1EwiQHTp2nlzqGmkDSioG6PB68t
-	PEtg61+OEhQVYkjKtrbl8JEeK8JaLcVzEt718EUYz6ay8/WFpWNYzpFc68X9wgfMXjSWkk
-	/u58jULiQdGzd/Xlpcglkz2jMPsSd1UnsedVRmsq+/TOH5xwVF5dMx8h0xwDoA==
-Message-ID: <9d76f827-3967-4ab6-b6f0-77d1bd564278@bootlin.com>
-Date: Wed, 8 Apr 2026 09:58:15 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g+PJ0We1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38BDFC19424;
+	Wed,  8 Apr 2026 09:11:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775639462;
+	bh=2VV+jYCUy1KUMjQ952zuke1nZqlR8VBr0ssTABOVfMA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=g+PJ0We1keeJf67c5ymP8UhsDm73D9gznBNPMNOK94g18/nMlL8u80sz0SxjrwH15
+	 FRLmKlDDEtJsIVGJ14D3fKPHgqRvJPrzfMA7rMJfVRoiYajWlsMSG/GJ6XVtqXRd+d
+	 Omz1tiTCKhdvoDdwyXJsuDgC0DL+P48QCeU+YCUKbW6pSGNvldncxlJVkPg9F6+sew
+	 G3StpZjKFHLV0FaB6vO8NnDraDTXr3mXY4UqbDXsA+f4ckRp2wmVFzg7/HuDYwlrNE
+	 YlZ8m3cCcT7/PvX41ffwecnU3iUUWJLjdhmvrADnw7rSmKxk04yKCoc/RWmS6AGEub
+	 zh+1QiOyTWN1Q==
+Date: Wed, 8 Apr 2026 11:11:00 +0200
+From: Krzysztof Kozlowski <krzk@kernel.org>
+To: Florian Fainelli <florian.fainelli@broadcom.com>
+Cc: linux-kernel@vger.kernel.org, Linus Walleij <linusw@kernel.org>, 
+	Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+	Conor Dooley <conor+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+	Haojian Zhuang <haojian.zhuang@linaro.org>, "open list:PIN CONTROL SUBSYSTEM" <linux-gpio@vger.kernel.org>, 
+	"open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, 
+	"moderated list:PIN CONTROLLER - SINGLE" <linux-arm-kernel@lists.infradead.org>, "open list:PIN CONTROLLER - SINGLE" <linux-omap@vger.kernel.org>
+Subject: Re: [PATCH 1/2] dt-bindings: pinctrl: pinctrl-single: Add
+ brcm,bcm7038-padconf
+Message-ID: <20260408-crazy-efficient-ara-05233f@quoll>
+References: <20260407235611.550515-1-florian.fainelli@broadcom.com>
+ <20260407235611.550515-2-florian.fainelli@broadcom.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 02/11] dt-bindings: regulator: ti,pbias-regulator: Add
- pbias_sim_omap4 regulator
-To: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
- Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>,
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>,
- Thomas Petazzoni <thomas.petazzoni@bootlin.com>, linux-omap@vger.kernel.org,
- linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
-References: <20260330-omap4-fix-usb-support-v2-0-1c1e11b190dc@bootlin.com>
- <20260330-omap4-fix-usb-support-v2-2-1c1e11b190dc@bootlin.com>
- <20260331-funny-impetuous-bobcat-eb56af@quoll>
-Content-Language: en-US
-From: Thomas Richard <thomas.richard@bootlin.com>
-In-Reply-To: <20260331-funny-impetuous-bobcat-eb56af@quoll>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260407235611.550515-2-florian.fainelli@broadcom.com>
 
-Hello Krzysztof,
-
-On 3/31/26 10:22 AM, Krzysztof Kozlowski wrote:
-> On Mon, Mar 30, 2026 at 03:43:59PM +0200, Thomas Richard wrote:
->> Define pbias_sim_omap4 regulator for OMAP4. This regulators drives SIM_VDDS
->> supply and allows to unlock USB I/O cell.
->>
->> Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
->> ---
->>  Documentation/devicetree/bindings/regulator/ti,pbias-regulator.yaml | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/Documentation/devicetree/bindings/regulator/ti,pbias-regulator.yaml b/Documentation/devicetree/bindings/regulator/ti,pbias-regulator.yaml
->> index 3e020d87701b..908fbb46b5cf 100644
->> --- a/Documentation/devicetree/bindings/regulator/ti,pbias-regulator.yaml
->> +++ b/Documentation/devicetree/bindings/regulator/ti,pbias-regulator.yaml
->> @@ -89,6 +89,7 @@ allOf:
->>                contains:
->>                  enum:
->>                    - pbias_mmc_omap4
->> +                  - pbias_sim_omap4
+On Tue, Apr 07, 2026 at 04:56:10PM -0700, Florian Fainelli wrote:
+> Add the "brcm,bcm7038-padconf" compatible to the pinctrl-single binding.
 > 
-> Names cannot be fixed, because they represent different board naming.
-> Why growing the deprecated style?
+> Signed-off-by: Florian Fainelli <florian.fainelli@broadcom.com>
+> ---
+>  Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+> index 9135788cf62e..afe7329a1df2 100644
+> --- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+> +++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
+> @@ -38,6 +38,10 @@ properties:
+>            - enum:
+>                - marvell,pxa1908-padconf
+>            - const: pinconf-single
+> +      - items:
+> +          - enum:
+> +              - brcm,bcm7038-padconf
+> +          - const: pinctrl-single
 
-Okay, so I'll drop all if statements, add a regex which matches
-regulator names and fix the regulator name in the driver.
+If there is going to be a new version, entire block should be placed
+before 'ti' to have some sort of sorting by compatible.
 
-Best Regards,
-Thomas
+But no need to resend just for that.
+
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+
+Best regards,
+Krzysztof
+
