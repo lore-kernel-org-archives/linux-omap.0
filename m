@@ -1,83 +1,113 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F4F83A7839;
-	Wed,  8 Apr 2026 09:11:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F59323EAAB;
+	Wed,  8 Apr 2026 12:38:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775639463; cv=none; b=cTFwjyvb1rviZkn7riSgbZDk/Ef+nlnHaW7zB5XnnklCHziCZEBq/iVSz0da+wr1BpkcV94NOfEsEVM+LEjidolO5t4wOKnLZKfW6knq2naytP7tvJk6Xb6KH709iW6DXvC6xJIWx4A2FYpljAmNPVXB8Xn7KC2n5WREXRnKvF8=
+	t=1775651895; cv=none; b=p7aX4tcdowGgMjMRKJmnwHDgeHuFxkBCtWbEf0qp83G9wA1i4Si3UG2KrVIEe6TnlOc2/DelH9JjrlkybZDr9KEXxKQuzsEAPRPpmX5/TWlC2HnGWBXi2bDYQGeCHS5U+96HIG2SWuqrbZnKehK1Vr/T0AEMhZlgG3MMMxSaezU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775639463; c=relaxed/simple;
-	bh=2VV+jYCUy1KUMjQ952zuke1nZqlR8VBr0ssTABOVfMA=;
+	s=arc-20240116; t=1775651895; c=relaxed/simple;
+	bh=Q7WD5TqwsE+nB1erhCRTEU2h8dmXrctSRjrz48M9WlU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QfS1etu7V6nPrgst4JBoPWrC1gJnw3OBvGRxND3N8xnfUJd9U7txrSgosPZg9uLEh7CUim52mY2yPmeUplUos/4q65Nkwxb3M+dUrakXlI6u7A5KwiGAinA6ZSoy13yzpfRArsUtesnmWPqYuHQzuRblsXskhGgA3ldhYlJ40s0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g+PJ0We1; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=j/ar8+ffD/gSOLi68XDek25g21g61Wni5SMXowb1J0D+P9qDaeRJI4gM7jRzoF3s8FSNtFUavgBMuoTQ4W0EKF8qM06rvqs5mHZtuj36zlZVvccsybx88OqQhCW6c/YpJeL8fsGsVPOJhVNkocigkCBz6wX8O9D5EiOawCRynLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uNpn+x1T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g+PJ0We1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38BDFC19424;
-	Wed,  8 Apr 2026 09:11:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uNpn+x1T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 502D4C19421;
+	Wed,  8 Apr 2026 12:38:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775639462;
-	bh=2VV+jYCUy1KUMjQ952zuke1nZqlR8VBr0ssTABOVfMA=;
+	s=k20201202; t=1775651894;
+	bh=Q7WD5TqwsE+nB1erhCRTEU2h8dmXrctSRjrz48M9WlU=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=g+PJ0We1keeJf67c5ymP8UhsDm73D9gznBNPMNOK94g18/nMlL8u80sz0SxjrwH15
-	 FRLmKlDDEtJsIVGJ14D3fKPHgqRvJPrzfMA7rMJfVRoiYajWlsMSG/GJ6XVtqXRd+d
-	 Omz1tiTCKhdvoDdwyXJsuDgC0DL+P48QCeU+YCUKbW6pSGNvldncxlJVkPg9F6+sew
-	 G3StpZjKFHLV0FaB6vO8NnDraDTXr3mXY4UqbDXsA+f4ckRp2wmVFzg7/HuDYwlrNE
-	 YlZ8m3cCcT7/PvX41ffwecnU3iUUWJLjdhmvrADnw7rSmKxk04yKCoc/RWmS6AGEub
-	 zh+1QiOyTWN1Q==
-Date: Wed, 8 Apr 2026 11:11:00 +0200
-From: Krzysztof Kozlowski <krzk@kernel.org>
-To: Florian Fainelli <florian.fainelli@broadcom.com>
-Cc: linux-kernel@vger.kernel.org, Linus Walleij <linusw@kernel.org>, 
-	Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
-	Conor Dooley <conor+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, 
-	Haojian Zhuang <haojian.zhuang@linaro.org>, "open list:PIN CONTROL SUBSYSTEM" <linux-gpio@vger.kernel.org>, 
-	"open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, 
-	"moderated list:PIN CONTROLLER - SINGLE" <linux-arm-kernel@lists.infradead.org>, "open list:PIN CONTROLLER - SINGLE" <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH 1/2] dt-bindings: pinctrl: pinctrl-single: Add
- brcm,bcm7038-padconf
-Message-ID: <20260408-crazy-efficient-ara-05233f@quoll>
-References: <20260407235611.550515-1-florian.fainelli@broadcom.com>
- <20260407235611.550515-2-florian.fainelli@broadcom.com>
+	b=uNpn+x1Ts1E7YTZTNBo8Z+f3ZedyqHKaKhcOhMvlA3PPj/2j91d3MjAQSLbSDcmhY
+	 oeeR+fcJHWC1jjx+egVba6wV+ACEVZxS1TusHJmVER+bZv8ssdFQvf6gWwxFeSMoqi
+	 tv7sWDtzBRZZLm1I5PXUZ05Pf4ho0wotGGBZEE0A0K21b1Ojrigx6v7rn6BY8NX+jj
+	 U6b+ubSSgDiqpD36EHc7OOeicFhXqnZdhPi0IXb/s+9Qk2Bo9oiaKHnL6y1FHlzi0u
+	 FuEVVRvw1igUr8Om/hXjORBRwJrnapVyhNVJu7gnWPP7haS7BEY8XMgQG55NEV0ODk
+	 vFhewgaYv6m7Q==
+Date: Wed, 8 Apr 2026 07:38:12 -0500
+From: Rob Herring <robh@kernel.org>
+To: Thomas Richard <thomas.richard@bootlin.com>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 01/11] dt-bindings: regulator: ti,pbias-regulator:
+ Convert to DT schema
+Message-ID: <20260408123812.GA1864812-robh@kernel.org>
+References: <20260330-omap4-fix-usb-support-v2-0-1c1e11b190dc@bootlin.com>
+ <20260330-omap4-fix-usb-support-v2-1-1c1e11b190dc@bootlin.com>
+ <20260331-demonic-boisterous-spider-5ed5c6@quoll>
+ <6b637950-2018-41d8-bdd2-27382a9b67d8@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260407235611.550515-2-florian.fainelli@broadcom.com>
+In-Reply-To: <6b637950-2018-41d8-bdd2-27382a9b67d8@bootlin.com>
 
-On Tue, Apr 07, 2026 at 04:56:10PM -0700, Florian Fainelli wrote:
-> Add the "brcm,bcm7038-padconf" compatible to the pinctrl-single binding.
+On Wed, Apr 08, 2026 at 09:57:20AM +0200, Thomas Richard wrote:
+> Hello Krzysztof,
 > 
-> Signed-off-by: Florian Fainelli <florian.fainelli@broadcom.com>
-> ---
->  Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml | 4 ++++
->  1 file changed, 4 insertions(+)
+> On 3/31/26 10:21 AM, Krzysztof Kozlowski wrote:
+> > On Mon, Mar 30, 2026 at 03:43:58PM +0200, Thomas Richard wrote:
+> >> +$id: http://devicetree.org/schemas/regulator/ti,pbias-regulator.yaml#
+> >> +$schema: http://devicetree.org/meta-schemas/core.yaml#
+> >> +
+> >> +title: PBIAS internal regulator
+> >> +
+> >> +maintainers:
+> >> +  - Thomas Richard <thomas.richard@bootlin.com>
+> >> +
+> >> +description: |
+> > 
+> > Do not need '|' unless you need to preserve formatting.
+> > 
+> >> +  PBIAS internal regulator for SD card dual voltage i/o pads on OMAP SoCs.
+> >> +
+> >> +properties:
+> >> +  compatible:
+> >> +    items:
+> >> +      - enum:
+> >> +          - ti,pbias-dra7
+> >> +          - ti,pbias-omap2
+> >> +          - ti,pbias-omap3
+> >> +          - ti,pbias-omap4
+> >> +          - ti,pbias-omap5
+> >> +      - const: ti,pbias-omap
+> >> +
+> >> +  reg:
+> >> +    maxItems: 1
+> >> +
+> >> +  syscon:
+> >> +    description: Phandle of the system control module
+> >> +    $ref: /schemas/types.yaml#/definitions/phandle
+> >> +
+> >> +patternProperties:
+> >> +  '^pbias_*':
+> > 
+> > That wasn't in old binding and underscore is not allowed, so this needs
+> > explanation. Old binding mentioned only the names.
 > 
-> diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-> index 9135788cf62e..afe7329a1df2 100644
-> --- a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-> +++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.yaml
-> @@ -38,6 +38,10 @@ properties:
->            - enum:
->                - marvell,pxa1908-padconf
->            - const: pinconf-single
-> +      - items:
-> +          - enum:
-> +              - brcm,bcm7038-padconf
-> +          - const: pinctrl-single
+> I did it to match existing devicetrees.
+> I guess I should define properties like 'pbias-mmc' and 'pbias-sim',
+> then update node names in devicetrees to match binding.
 
-If there is going to be a new version, entire block should be placed
-before 'ti' to have some sort of sorting by compatible.
+For this ancient stuff, I would just leave the dts files alone. Just 
+explain that in the commit message.
 
-But no need to resend just for that.
+Your pattern should be '^pbias_' though.
 
-Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-
-Best regards,
-Krzysztof
-
+Rob
