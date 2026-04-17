@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E7B41EB5C2;
-	Fri, 17 Apr 2026 13:15:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B7753A6B86;
+	Fri, 17 Apr 2026 13:16:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776431760; cv=none; b=FOy2kq784lwCloYQHh4/BqyPhK+jr4yVfH3UxfyQLGQvYm9sQle1hGybY/omp1Oz4CG/mMU6VA1feGUa47+P6LyThIdI5qGukc24qVeeVMqqWF0AWtxkaEHnAlMv71YQ+1u11CUuOIM6wH4Cm2LOCmx6/lPtBa07LUAvhV2XM04=
+	t=1776431763; cv=none; b=aFh5T7j+W7IiCzOHZ3ESI/hCWIfYEm8k301BY9Ocs6mKbust1GlN9W+EtrLiMnUyIVQj0FTpops5/6z+DQZNEzxdukBMYfW+JCHhCLUb3TxRDTErI1GGGacy/d6kjGDMZ+jkaxsTtKoAl60jG78q2Kw3GZrM67AZDWeahMyiHAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776431760; c=relaxed/simple;
-	bh=3t8CdW+2lbkqrvxvlVhufeih1j58VNK7Gp9uCsojClc=;
+	s=arc-20240116; t=1776431763; c=relaxed/simple;
+	bh=ZwXQ0B97mAqYw+Pj4q1qkn3w0VEkp8PC3RW3zFe6OsA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DQh8SBWm5qj6hB1DOw6WgSgFvq2JQywG67cmmUjQgQNdri2CpAXUNjA2FTgBfIYKjlUpTAtXiUs2WkIUYdX+PUNOaQHkrmE2YiBJkEyn/plfbJpiBne/UG1Ph2Rv5kTlnzGMjAXqD54fAmqYbbZ6qT6467t9wrAIefM4M7rqVZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UVbqZkQE; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=WeMbgfyc/LMf1i1IXtXhplCL0xP8ULwC78WmDyPFuZIg87cCRlAKvY+VngZJVn4jSAveYYMeEpLK+6e2nX55evVOpBV/avBowzbk+Z2lZj6HIdW7OTvpo4Hz0py26KtwzpPNAmt6LCurxIIOq85nQHeJ9gR7h0aleqwybW+9wfU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cas8tNl9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UVbqZkQE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 266BEC19425;
-	Fri, 17 Apr 2026 13:15:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cas8tNl9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0C3CC2BCB0;
+	Fri, 17 Apr 2026 13:16:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776431759;
-	bh=3t8CdW+2lbkqrvxvlVhufeih1j58VNK7Gp9uCsojClc=;
+	s=k20201202; t=1776431762;
+	bh=ZwXQ0B97mAqYw+Pj4q1qkn3w0VEkp8PC3RW3zFe6OsA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=UVbqZkQEN53h7akJNXk0j+ukEncZxIVmMr39H0JMt4EnZrnvgAvMcWbdTPE8sEgCo
-	 VVg4LEWgAVvd09IV4ADTUmZMGVCuDxQkefWwciaRfMQlRtgGtDOY5SIWgAtDf90SMN
-	 4UYl0y9UVy2CWHtZ+COl6V07Ob4WBKZ0DYfpVLo/5yM84Gs67gklmCinv6Qu9m7VgP
-	 2knHhAT4cUe7cVDLyhcxCov0g15C0s30is4RkHhmRbQyyesFNKD0RlQD+0lZeDD71p
-	 EASAEbI4aTmaf+cJunQsXB4ZESNHabuvmWqb35FM78tS1pEKAhTM2AKT/nuyzs0+tP
-	 rLZZGIKztzPsg==
+	b=cas8tNl9CxmcLPr+klpYOiOUpWw43pvARwfWzkMhAldp4ZiMUUD85xhwTjq7t6hVg
+	 bIcshTUeASvThAOLJ6gi/HwyuE/Dir1wBYF/Hj5q8lgD/slBp7IQ7i63f0qexpV3wJ
+	 Dpdik+ZOT2LUCaDE9CzA3t21t9MAph0JK/phP//57EZbMMfSI9howf1iEOjXKH+sGI
+	 wHm+HbRaq2FdZdHUEirPh/MOgchAVjivRph3vR+xdxflx0o/dn8vCQediYu6KxEK78
+	 e7BzDvigmM3Xpx9AtOQL++z/+7AN13/idhGEszTreTBLHfZ6xObY5Sgu3f+zx0TmNO
+	 CMyLhJqHZ9Drw==
 From: Thierry Reding <thierry.reding@kernel.org>
 To: Thierry Reding <thierry.reding@kernel.org>
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
@@ -37,9 +37,9 @@ Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
 	linux-m68k@lists.linux-m68k.org,
 	devicetree@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 2/3] Documentation: ABI: Take over as contact for sysfs-driver-tegra-fuse
-Date: Fri, 17 Apr 2026 15:15:47 +0200
-Message-ID: <20260417131549.3154534-2-thierry.reding@kernel.org>
+Subject: [PATCH v2 3/3] dt-bindings: reserved-memory: Change maintainer for BPMP SHMEM
+Date: Fri, 17 Apr 2026 15:15:48 +0200
+Message-ID: <20260417131549.3154534-3-thierry.reding@kernel.org>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260417131549.3154534-1-thierry.reding@kernel.org>
 References: <20260417131549.3154534-1-thierry.reding@kernel.org>
@@ -53,27 +53,29 @@ Content-Transfer-Encoding: 8bit
 
 From: Thierry Reding <treding@nvidia.com>
 
-Peter sadly passed away a while ago, so I'll be taking over as contact
-for this ABI documentation.
+Peter sadly passed away a while ago, so change the maintainers for BPMP
+SHMEM to Jon and myself.
 
 Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Thierry Reding <treding@nvidia.com>
 ---
- Documentation/ABI/testing/sysfs-driver-tegra-fuse | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../bindings/reserved-memory/nvidia,tegra264-bpmp-shmem.yaml   | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-driver-tegra-fuse b/Documentation/ABI/testing/sysfs-driver-tegra-fuse
-index b8936fad2ccf..47d5513100f6 100644
---- a/Documentation/ABI/testing/sysfs-driver-tegra-fuse
-+++ b/Documentation/ABI/testing/sysfs-driver-tegra-fuse
-@@ -1,6 +1,6 @@
- What:		/sys/devices/*/<our-device>/fuse
- Date:		February 2014
--Contact:	Peter De Schrijver <pdeschrijver@nvidia.com>
-+Contact:	Thierry Reding <thierry.reding@kernel.org>
- Description:	read-only access to the efuses on Tegra20, Tegra30, Tegra114
- 		and Tegra124 SoC's from NVIDIA. The efuses contain write once
- 		data programmed at the factory. The data is laid out in 32bit
+diff --git a/Documentation/devicetree/bindings/reserved-memory/nvidia,tegra264-bpmp-shmem.yaml b/Documentation/devicetree/bindings/reserved-memory/nvidia,tegra264-bpmp-shmem.yaml
+index 4380f622f9a9..6efadc5f8078 100644
+--- a/Documentation/devicetree/bindings/reserved-memory/nvidia,tegra264-bpmp-shmem.yaml
++++ b/Documentation/devicetree/bindings/reserved-memory/nvidia,tegra264-bpmp-shmem.yaml
+@@ -7,7 +7,8 @@ $schema: http://devicetree.org/meta-schemas/core.yaml#
+ title: Tegra CPU-NS - BPMP IPC reserved memory
+ 
+ maintainers:
+-  - Peter De Schrijver <pdeschrijver@nvidia.com>
++  - Thierry Reding <thierry.reding@kernel.org>
++  - Jonathan Hunter <jonathanh@nvidia.com>
+ 
+ description: |
+   Define a memory region used for communication between CPU-NS and BPMP.
 -- 
 2.52.0
 
