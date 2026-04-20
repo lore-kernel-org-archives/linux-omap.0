@@ -1,112 +1,114 @@
-Received: from mail-dy1-f178.google.com (mail-dy1-f178.google.com [74.125.82.178])
+Received: from mail-vk1-f179.google.com (mail-vk1-f179.google.com [209.85.221.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B09AA72631
-	for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2026 00:14:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBAA3382F02
+	for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2026 06:50:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776644042; cv=none; b=UGKYRrlPD1ixPamLOaOJvoes+TUwoYDPHDu6iK+CGZqVEmrCcW1OZVv00ODghL07ndnAeO8W/eDUTrO/meRUAUNa9XozyAXGJ7ncAT/zj71qW/Sr50709fH5FMVqFVk3xVRxgf641IKDtJqAfzDErB/JQshj2KE9bPBs5T9Gx0w=
+	t=1776667822; cv=none; b=lTugeoksUctXhLitKtjjg0xoROOYJcYLuX/bPdZMJkXLEjCriZmnotX9T//MWUgCZsxohZQfoXu55Hv90pVMEVlM2oe+pWdGRprqHj/6Y8TIBLtbnFIL4VN2VLpQkGYC+vwC5u1SMCc0kP7xr1KY0fp+7Y2xr0j7O6CJ5X3aydU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776644042; c=relaxed/simple;
-	bh=8e6o2e3S2kEpCh7AnUm8Lw8k4A5RfrAJ6mTx35sXCWI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZH7qMLfpm/CBqGXxjj+tY7hZY7oIYJl5xe4DCEfhtaFrkTo/QJ/9IMB/PzWZhLnqRsgcFrIlQQIl4+dL//XzeWzPE6fg0bDspfYJIXBTqYTLRyWi1P0CnoIx+JArP3eSuz1SEi7Fc6qsyX0JzO+XXEtx0pbzHOi+1VkdPN2cyB0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=o6zSy1tM; arc=none smtp.client-ip=74.125.82.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+	s=arc-20240116; t=1776667822; c=relaxed/simple;
+	bh=66683rtKBPWrf7C4XTuvMiaBte65Hl+xhzNuAjnDIic=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Xl1L5yagdqqBK40ewp9JTSj6s4oPv2xcFhIIQi5uBrwuxlgxxz4KBHZPHlE5lTlAypeEJImIw6/dJLaT6FGLOXR5nks94KA+NIpzcp5xRiHgeiU5Vo02+Rbd8tDQAixZdeo6GHIEnTk4hGuw3uKbakqGWOUzkrL79Y5VKrtAqgM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.221.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="o6zSy1tM"
-Received: by mail-dy1-f178.google.com with SMTP id 5a478bee46e88-2d8ffdc31d0so6156308eec.0
-        for <linux-omap@vger.kernel.org>; Sun, 19 Apr 2026 17:14:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776644040; x=1777248840; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=iQb96jxVBSn1C0UL8YusHfEi4afe/T/8UPw4t0TEFHI=;
-        b=o6zSy1tM1wbRw+6bcSBnRybTMGq7xiM2L1J2hlwOWlnURCk/LW3J8037WeKj3aw+vq
-         1EnmlP8vgoynuessjLkCNFsve7J69YaGZhgmW2HrgRW6wSUFK/6hIQrqruumnZLPxp1x
-         QzvNMm2KbqO5Pe7XjKwn+9gtXF7fP4wDbjuXFPsy4nI2uoX2K2lACziYCRNMb5vKUrBW
-         afvMMDrbPcyvwpOxcUF8OoOGaPXgIKpMFV9bAEF3HhPPLqvlqRjXB4qwJtNiEtlJm5EE
-         95uxaFvw0rFjI+I/1A8gQaKruleXqQv6njGs8vxcFRHsjK5wszENXQ6NTA3RbQwJwH3c
-         9flQ==
+Received: by mail-vk1-f179.google.com with SMTP id 71dfb90a1353d-56f3e6bbecdso809966e0c.2
+        for <linux-omap@vger.kernel.org>; Sun, 19 Apr 2026 23:50:20 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776644040; x=1777248840;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=iQb96jxVBSn1C0UL8YusHfEi4afe/T/8UPw4t0TEFHI=;
-        b=j9GprA3/Dj7mKCBwJfvPJBHT2OVxcDZEuIkdCcSr1hY5h7eqTL07a2Va5xRjEQZFDC
-         bGm2wc47Ue/1GJsZ+FglTiiXWPN2orJop5LO6/WDFlDccuEIFnaJyqHi1BncnerNDzIT
-         SUIl8wx/NDuhZyaVIkpAOPO+7FL8xdCnBLMmUGoD03MdDfqWFaoOxBYuOo6uZCKIH54F
-         R4vtXkLFhl8uNtn8ocnGF0LZOO4yKjjIpR/pg3y7qkhxoaICQ569FjXbRL6oYKYw0xwe
-         4qFx2ozeDauJh+d3u3fwALT1zg2zDs+VeYpft8AwfL7bIEq5nidzQIJ/xgg6zSSrJfeH
-         qHjg==
-X-Forwarded-Encrypted: i=1; AFNElJ9xnRdW7YefNUcEY+sHiWtS31cAoKdZwag/KZZbnJnT83QDBPKvcV+8UxYU9XDiShSjq1LUeaq3i9YP@vger.kernel.org
-X-Gm-Message-State: AOJu0YzJDzCugVN2ZblXwfLyMviHyLnamaxszxUEyxTEXiTlJ0JGfz/M
-	PcP2gt1zL/irfWk1RVCdd/GROzp7vaoK1ZTz9ZKhAEf5y66u4pZ2Axop
-X-Gm-Gg: AeBDietvgjs8grWwEuSoklNcIimlX4H9RSBwvLq7wAL2fY1U1reIFETuK332xwdiKO3
-	p7pPoTacSWjdm655RVSJardbAwn+Rd62n4+vCt9VdMDjZgatwqD+lst7EmiRJ8Y46SwnQYmBySD
-	ocF63w6OtAKzzAkzr34Jiz3y/Ktl+aZD9tcxeiDEe4KC1uAHgWFcU5Ncwr4Yqwh19GwSevSTbkJ
-	hN2jMUD1Hq1jvMc8ysSSLhoP7NTU0I8daa+YTPnl5ZprodDAtl2vyHlbeek9SNb8kEAOQaY2Kqt
-	NWpz0DkzsqQd7n0hvhhIrJcd8df5iJfxSf1+zr9kBGM2MZ979TqBOTGMAVg+aCcMT4KNIOy6RO7
-	KKXte91Ep4qRijOJ0Uez6PaQYv+w+8IYz0+62akCtxSKOpraINUFk9zuIObEDDGVvcB3fOR1XoP
-	j9gFDjSmbAGhpQkLT/pGZlfDU9v/DnmRsRBi3a7BAfRs8yiHHmFT4YFf5xed5SsFF7QIGSyBZ57
-	Ps=
-X-Received: by 2002:a05:7301:4586:b0:2c8:7172:3b7b with SMTP id 5a478bee46e88-2e478646190mr6601303eec.18.1776644039839;
-        Sun, 19 Apr 2026 17:13:59 -0700 (PDT)
-Received: from google.com ([2a00:79e0:2ebe:8:1a4e:4965:5dff:cdee])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2e53ccce440sm11587954eec.14.2026.04.19.17.13.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 19 Apr 2026 17:13:59 -0700 (PDT)
-Date: Sun, 19 Apr 2026 17:13:56 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Oleksij Rempel <o.rempel@pengutronix.de>, 
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, 
-	Linus Walleij <linusw@kernel.org>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] Input: ads7846 - restore half-duplex support
-Message-ID: <aeVu2-zlzl-fn1dN@google.com>
-References: <20260419161848.825831-1-aaro.koskinen@iki.fi>
- <20260419161848.825831-2-aaro.koskinen@iki.fi>
+        d=1e100.net; s=20251104; t=1776667820; x=1777272620;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ev7Q2PR+MzeC42yfPBg+fufDGNaPf4avnQMcEXwV9q4=;
+        b=EmnFPBpOc4xadTB5aKDiRjXgYavQa9uJ/kfjNzL62vN73p1GDJEJbY+VDnNFgm8aGL
+         zc4LjS3KSQeHeveEX58xPdVOyiEuUmHDIU6BTPdlFpSFILjyNUeyULmQj7U6sArDfoLV
+         oGBfPFIYR8WMaWXHATu6EXyo5VD79QVaU6yqAkCCnHLEDPbsFgAlgvmSDNwlnuD6+Gbl
+         ugxW82vVoASh1l76sVnjN7zqpzbVTQaYQTsih9AMIg2hj95jkw0ZXRe43LXcUSoyRXST
+         gl+JQNrfNSkEIzjLdCjX4djsEWpK+7L0cuLQhFY8pCSj/NaEyhBPeq6608EmfCmjX3dD
+         Wy+g==
+X-Forwarded-Encrypted: i=1; AFNElJ/MfV8yhYS12WF1lAMd9mH771UcYimHUQxwBlQsStWfIZSXNEsSbzxUdzu6GMu08it/1dYF4129hhxd@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy2q4SCYxzUoipEDG1WbPyrT53sfMgY9h/vL6V52CVO0ep9KHbR
+	xq1U8/Mzj/Vi2J9EtBiJBfFhI43bjpE14mVhnJF/md95H4MPRhByTtQDzXxdf5Pc
+X-Gm-Gg: AeBDieuAMWw2RwuFej+gIEEDxPLz+adLYmiUCzGTvCKYzfkBWwCDjgCPvrnbs9bn8sf
+	OQxtFaLCoctE5K97p69WCJIeGilKfQGZdp9J/lb/EOQ0XVaOTpf+rUY73woKd1ZAuQRtkx9X+U8
+	YBDKOKSQhkHjhUD9rS/0RHU9IpMziQmA2GQSfSo5QXhGnbzPc/5XCl5xCgUBEbfdQP/oWtkYG0/
+	+Yf94XT+ByiXklLj+lp5DyrOCTFgBWyQn78FBAuBepyDTW6UABnxyS97HsUIqE4QF61pCREVdjB
+	qDrzlUMOT/RaevcRv8wEPDjYpIwQioFMBMO8koVWwQsqF/427loAI0ARGkhl66BfRxovT56c5rz
+	EH7OJrrZmWmFmY8bPZ6AgaHxRWJuIcxv48F3xf8cKZVxw+6t7Jvm0LInEDEJ8MeHM+S5ZDS7Zlq
+	KaQnX0QBl4d9WRBQRH+e0lwjepClSgeGlwa9JmxfX13yMOQGkM6T/bSEiM/kSieuVEWWuQOl4=
+X-Received: by 2002:a05:6122:ec3:b0:56d:4511:9367 with SMTP id 71dfb90a1353d-56fa55dffc5mr5117365e0c.0.1776667819835;
+        Sun, 19 Apr 2026 23:50:19 -0700 (PDT)
+Received: from mail-vs1-f45.google.com (mail-vs1-f45.google.com. [209.85.217.45])
+        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-56fa91bf90fsm5414515e0c.1.2026.04.19.23.50.18
+        for <linux-omap@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 19 Apr 2026 23:50:18 -0700 (PDT)
+Received: by mail-vs1-f45.google.com with SMTP id ada2fe7eead31-613207140bfso868682137.3
+        for <linux-omap@vger.kernel.org>; Sun, 19 Apr 2026 23:50:18 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ/KFqdxAianbwaefN541RJsRWTYwInucoda362lDY2XDIKZeBlREMbp694sdAkgrWJrqIZXCNG37D13@vger.kernel.org
+X-Received: by 2002:a05:6102:6051:b0:60f:7499:9b6b with SMTP id
+ ada2fe7eead31-616f859752fmr3673069137.29.1776667818181; Sun, 19 Apr 2026
+ 23:50:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260419161848.825831-2-aaro.koskinen@iki.fi>
+References: <20260417131549.3154534-1-thierry.reding@kernel.org>
+In-Reply-To: <20260417131549.3154534-1-thierry.reding@kernel.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 20 Apr 2026 08:50:06 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdWeXS3ytgozp-mSrW4jcMRCW7_tbDTbMoEdXdbVj0dqJA@mail.gmail.com>
+X-Gm-Features: AQROBzDvJRShLyy63Y8y4xm5mUkGqHiHZxGK82_lU0-LEkdWIcvZD7MEx0w1d6U
+Message-ID: <CAMuHMdWeXS3ytgozp-mSrW4jcMRCW7_tbDTbMoEdXdbVj0dqJA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] MAINTAINERS: Move Peter De Schrijver to CREDITS
+To: Thierry Reding <thierry.reding@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-tegra@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, 
+	linux-omap@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Paul Walmsley <pjw@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Aaro,
+Hi Thierry,
 
-On Sun, Apr 19, 2026 at 07:18:47PM +0300, Aaro Koskinen wrote:
- 
-> +static void ads7846_halfd_read_state(struct ads7846 *ts)
-> +{
-> +	struct ads7846_packet *packet = ts->packet;
-> +	int msg_idx = 0;
-> +
-> +	packet->ignore = false;
-> +
-> +	while (msg_idx < ts->msg_count) {
-> +		int error;
-> +
-> +		ads7846_wait_for_hsync(ts);
-> +
-> +		error = spi_sync(ts->spi, &ts->msg[msg_idx]);
-> +		if (error) {
-> +			dev_err_ratelimited(&ts->spi->dev, "spi_sync --> %d\n",
-> +					    error);
-> +			packet->ignore = true;
-> +			return;
+On Fri, 17 Apr 2026 at 15:15, Thierry Reding <thierry.reding@kernel.org> wrote:
+> From: Thierry Reding <treding@nvidia.com>
+>
+> Peter sadly passed away a while back. Paul did a much better job at
+> finding the right words to mourn this loss than I ever could, so I will
+> leave this link here:
+>
+>   https://lore.kernel.org/lkml/alpine.DEB.2.21.999.2407240345480.11116@utopia.booyaka.com/T/#u
+>
+> Co-developed-by: Paul Walmsley <pjw@kernel.org>
+> Co-developed-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Co-developed-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Sashiko recommends trying to power down ADC on errors, what do you
-think?
+   "every Co-developed-by: must be immediately
+    followed by a Signed-off-by: of the associated co-author."
 
+https://elixir.bootlin.com/linux/v7.0/source/Documentation/process/submitting-patches.rst#L506
 
-Thanks.
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+
+> Signed-off-by: Thierry Reding <treding@nvidia.com>
+> ---
+> Changes in v2:
+> - add more missing entries
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
 
 -- 
-Dmitry
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
