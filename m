@@ -1,60 +1,60 @@
 Received: from lahtoruutu.iki.fi (lahtoruutu.iki.fi [185.185.170.37])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C7B42E3B15;
-	Mon, 20 Apr 2026 19:32:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8CFA3A0E97;
+	Mon, 20 Apr 2026 19:43:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=185.185.170.37
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776713535; cv=pass; b=oqzBvYzbkPS0f+f69FvfCic/FJGysShlfWgEbtMSn5VhObkZRAGo9DcClhWaI7JJyllIybEmNn65aufo6kq7wRlyEfnQ8IFTxIb0OlC94OMzpX1la15w+dmtxTJ4doOlvnJyVTiNqV6ntWJElBJanJisZDPTCcLEgc9fZ17O3pY=
+	t=1776714196; cv=pass; b=uW3+6dwG4uDhgU1YbcTlVaU4somUtd1pU7opyC8ufaFYEz1fLsJJGZeMAZk9/QnWoupkBAGmObVkmD+aBuAFcD6W1Hc2YDSxC54xa5shaxHXtNUdIMNctp+D2z2L505TjA2nyz7qKIzjNNzDRLWe/MdhujCMHmzhhnJ/4AjPBrA=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776713535; c=relaxed/simple;
-	bh=MnjgDgm43KQZ2fMMPFZVWkYkAZQlDlm19bghmyolsKk=;
+	s=arc-20240116; t=1776714196; c=relaxed/simple;
+	bh=ijNV4rqhkgNGpRO307fnCTfYP7O2pPHUm7UUfifidGQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bcz7JorPDMxyU4AIT2G3tQ0aJLjT32geRJAI+fZ0huiMcXvtr3XqiPsuQYctI5iS+QJOSnLTPdp2mmHElqb1TidmzTWe0DS1P5lnuKq9eVz+6zryB83oxOrowVmnX61wExru7clqy8ZTbj+p8PyCp2ZISxpe3CZOqhpfNJprm6g=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (2048-bit key) header.d=iki.fi header.i=@iki.fi header.b=ukG37M+X; arc=pass smtp.client-ip=185.185.170.37
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZamWQJpqVASnGmMW8rv9/+iCfR7yraKIlRqAtbu2ymF+e56IFhVYZtme6EkWQ+gpRXMm+gN5uTJv8V+iXyqICOd8byqRiFOdd7A5iasNoefFIwkrU9i46bJIxh9Myiuxp4Aw6NO3t3ZEuIR2HMnycfrYWH+WJ++NKrUAiplORNI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (2048-bit key) header.d=iki.fi header.i=@iki.fi header.b=v1kXaJjq; arc=pass smtp.client-ip=185.185.170.37
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iki.fi
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=iki.fi header.i=@iki.fi header.b="ukG37M+X"
+	dkim=pass (2048-bit key) header.d=iki.fi header.i=@iki.fi header.b="v1kXaJjq"
 Received: from darkstar.musicnaut.iki.fi (unknown [83.245.248.121])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange secp256r1 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
 	(Authenticated sender: aaro.koskinen)
-	by lahtoruutu.iki.fi (Postfix) with ESMTPSA id 4fzwbp6gfLz49PtL;
-	Mon, 20 Apr 2026 22:32:06 +0300 (EEST)
+	by lahtoruutu.iki.fi (Postfix) with ESMTPSA id 4fzwrb0xjsz49PwS;
+	Mon, 20 Apr 2026 22:43:11 +0300 (EEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=lahtoruutu;
-	t=1776713527;
+	t=1776714191;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=6qxViCgW6EC8n2IF2MWZbBd3t3RwgF7Ubx8QXH+7lRc=;
-	b=ukG37M+XatFsnxm9gU5ZNXIygD0o16uXUHcSw677csPPsQbW20k1PzrsWYosrp17ktYOXX
-	QbWsqGecvBY82M5QVGZuJXuLj5eceOBWRESbxR9n7gvSK000cWB5h+7ywH5J3G1B8Payio
-	HR0x66QzjYvKpPlVn7T74VRqoxigMyidQtK1R+JDwy/XX1uBAwAdQNaIHeu8sta8gJWpc4
-	LO5Pk9LsfLYqEC3GXYdectkvyYL17TeLG+0P7+CPSL+E2UQUT91kedIs2XUixceEygw02X
-	BcdhJQZYIP+SeMP7jFjDbg+Poa7TMeEb86d8yYlyaL3m6qqkx9e3x93JB0DjPA==
+	bh=7yHOoBZEVrYXg4mmjrkM3nZCLvtILnaIFFMtWwQrCWM=;
+	b=v1kXaJjqLtfXHpHue52YpJCMHREyQalnDtFJQX7iNJDSZBGuaLSfH+dOUetfmhyrIbfCgq
+	9np2XwUeHRwDXjkjOTlicv+rIlZInejbl4C9UBXbPdsxwIvbpdplTBEJgRjwbKWosFoc5o
+	sazTRh4hjE4FCVjjd4L5JzL4Preqf1LVl25eqe6tRSRJj52ssTvjQcZAg/guXI4YxAvzT4
+	zNGlqy6Fv+r9HwW2B9uhhwlw7/2eXcWQoPxIzRMtaJo8ANJIDAasjjxHn1A+AVLVbYYyP4
+	fQ8R2CAS+ykRs8HV70aloqFFOzmIy7mgJcIUvf506iPdinZ+RP4DiCOCfbxVPA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
-	s=lahtoruutu; t=1776713527;
+	s=lahtoruutu; t=1776714191;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=6qxViCgW6EC8n2IF2MWZbBd3t3RwgF7Ubx8QXH+7lRc=;
-	b=azDM6yqK+EV2EmHdu1jfjA5cOhVrSzBrR/HgqvQw0XTLLFdmeLXMolAYQyRX4jeGZFzO6e
-	Tcpud8QZhLAZYTWB9b/LdiYrC0r8Py5breR8kd3f7VQR2VwHd9pWCXQoJ7pQNCpmVMJBCz
-	ucm3Mop9Xz1LqKj6DpRw/6lLh354RKqRylaorP3BqKAMnvLAXa+v2HiLM9OjP67dJTL23u
-	J6SqYtzRC5VR1fjl0/n1JULtMlVyHq20SiJi/BQshI3VBUOy9VDqCDL4WvVCYCYQFOMImL
-	KMahVddGP51yyVicnI9uK6uZZNLh2znft4rVeGrmbuO208QNgt9hWPA9zddCEQ==
+	bh=7yHOoBZEVrYXg4mmjrkM3nZCLvtILnaIFFMtWwQrCWM=;
+	b=GldxU+cvU3Z1t5ER7Luf0xR8v+C6fycxfzZzlkuaMUhYTWaWys01VM5wgzAdjIAnKkhpmP
+	RJUN341yqLZ1MNZ43vzXl5SSbl0KIeNprGX6IUQZjqWyyj1MJahViZkuyHf2t5pqnuHj/R
+	n9pv+fIYXfAF7QEd4fniBNC87R7R2z/fvVADl69sfiyDVZ/057e8BDRmSIoKhC1rZTkPKI
+	KN2iNcr60Km2vJddqeQmNlnzPxfuA9ZVpEI0fbd6RvQ/0mEgRqBHh9RggbeaSEZ/fJCceY
+	mXeMZT1enQGtSLAQZRS8TGkIgmkXh9CJuER3iDv1+HP7MSYDr92GQ6+L2aaZsA==
 ARC-Authentication-Results: i=1;
 	ORIGINATING;
 	auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
-ARC-Seal: i=1; a=rsa-sha256; d=iki.fi; s=lahtoruutu; cv=none; t=1776713527;
-	b=JAv0zZ7FBakVrPut9I8lBCR/KRYwoX4vJr/jHUknOIAxbDUq8X2fstMoq79ICvNuOFhIYC
-	APCOKpkK00hB3ipZzzkDalbIMhDzuwY4pcfBRd8bWuSvYqbAKRFO+fPRhEZD+5hlM/JbQD
-	HPu0mGFvWsjk8w35ofD3aHBshqSzVPzhpvamVRVmTQrujCKL7iDRR8GewTXpOsecoxgUPd
-	aDeDfSlHJf1nRO3t5KupwUsgTkI7Y6zfXzbXD8+Y2WxFX3GdUl4GAPwo6MuhlyOi/R9bPO
-	JsUjIoLNkLj2GpwwfCblU4U9FIlaPtDwIAJ81FGK+xl2Fkz3bVla2sHE6OtJ0g==
-Date: Mon, 20 Apr 2026 22:32:03 +0300
+ARC-Seal: i=1; a=rsa-sha256; d=iki.fi; s=lahtoruutu; cv=none; t=1776714191;
+	b=u7X7aMZPsoR5PPPhPqaAVtLDQjBI5Gz2qG8ZNXwHuUFtx5B0ZYl45Pk/ckeaXEZC8XQOMF
+	dFIQnLMwH/LaYntSjPTOW2ZNdQtMU7fdlGH2RokNCUj5XQPiP6CaV5uCdo9oSk8pKtvn3k
+	TPy7JVJVFajDlXr1hk8Ckp2wn7X4Z0pdgWdjqhW1wb6SikThyAN1al8pKXau6bO1tagJuZ
+	ntsZwkkxaA2glDPhMZA4NlLVfJEJSRfOhRsFxse+mKa7VOrdaWqyCTG8YbnM6TvLoLCKCX
+	l1Qqxtx5WbjN5QIrVo0tB8/LZUxcJOnHjStMOmKu92ECLsvvIc2qvK6kLxVirw==
+Date: Mon, 20 Apr 2026 22:43:08 +0300
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
 To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc: Oleksij Rempel <o.rempel@pengutronix.de>,
@@ -62,11 +62,12 @@ Cc: Oleksij Rempel <o.rempel@pengutronix.de>,
 	Tony Lindgren <tony@atomide.com>, Linus Walleij <linusw@kernel.org>,
 	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] Input: ads7846 - restore half-duplex support
-Message-ID: <aeZ_M7jjisCExva8@darkstar.musicnaut.iki.fi>
+Subject: Re: [PATCH v2 2/2] Input: ads7846 - fix up the pendown GPIO setup on
+ Nokia 770
+Message-ID: <aeaBzPwdkwJzjFD8@darkstar.musicnaut.iki.fi>
 References: <20260419161848.825831-1-aaro.koskinen@iki.fi>
- <20260419161848.825831-2-aaro.koskinen@iki.fi>
- <aeVu2-zlzl-fn1dN@google.com>
+ <20260419161848.825831-3-aaro.koskinen@iki.fi>
+ <aeVs2VUqPL1v0Vka@google.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -75,43 +76,23 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aeVu2-zlzl-fn1dN@google.com>
+In-Reply-To: <aeVs2VUqPL1v0Vka@google.com>
 
 Hi,
 
-On Sun, Apr 19, 2026 at 05:13:56PM -0700, Dmitry Torokhov wrote:
-> > +static void ads7846_halfd_read_state(struct ads7846 *ts)
-> > +{
-> > +	struct ads7846_packet *packet = ts->packet;
-> > +	int msg_idx = 0;
-> > +
-> > +	packet->ignore = false;
-> > +
-> > +	while (msg_idx < ts->msg_count) {
-> > +		int error;
-> > +
-> > +		ads7846_wait_for_hsync(ts);
-> > +
-> > +		error = spi_sync(ts->spi, &ts->msg[msg_idx]);
-> > +		if (error) {
-> > +			dev_err_ratelimited(&ts->spi->dev, "spi_sync --> %d\n",
-> > +					    error);
-> > +			packet->ignore = true;
-> > +			return;
+On Sun, Apr 19, 2026 at 05:06:53PM -0700, Dmitry Torokhov wrote:
+> > -	d = gpiod_get(NULL, "ads7846_irq", GPIOD_IN);
+> > -	if (IS_ERR(d))
+> > -		pr_err("Unable to get ADS7846 IRQ GPIO descriptor\n");
+> > -	else
+> > -		nokia770_spi_board_info[1].irq = gpiod_to_irq(d);
 > 
-> Sashiko recommends trying to power down ADC on errors, what do you
-> think?
+> No, I think what we need here is a simple gpiod_put(). The mapping is
+> not going to change unless someone tries to unload gpiochip, but then
+> the device is not going to work anyway.
 
-If we want to re-work error handling, then I guess it should be done the
-same way for both full and half-duplex modes, and belongs to a separate
-change set. This code has been in use quite a while, maybe 20 years,
-and I haven't seen those errors in real use anyway, and AFAIK there
-hasn't been any bug/problem reports by others either.
-
-Maybe it wasn't so clearly stated in the commit message, but the patch
-just restores the old code verbatim that was working fine for half-duplex
-mode.
-
-(Thanks for introducing Sashiko, I wasn't aware.)
+OK, I will do that in v3. I tried unbind/re-bind the gpiochip before
+loading the touchscreen module and yes, it seems to fail in consistent
+manner without suprises (e.g. no crash, just probe failing).
 
 A.
