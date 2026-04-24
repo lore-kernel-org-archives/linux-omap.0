@@ -1,119 +1,91 @@
-Received: from mail-yw1-f176.google.com (mail-yw1-f176.google.com [209.85.128.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from meesny.iki.fi (meesny.iki.fi [195.140.195.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BACB1A9F90
-	for <linux-omap@vger.kernel.org>; Fri, 24 Apr 2026 05:32:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B98B83DA7C2;
+	Fri, 24 Apr 2026 14:29:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=195.140.195.201
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777008771; cv=pass; b=bGzfttIdy6l7nxKLFwsmNanrLLv1H8nZoCOO3zbMKlTs6+IrYppEh5mU4lIm2zoGaBwiB3yEm+fSY5LaoS+g47vO3lO4ixPVKqO/ECKBbs8QvVJsJ/nqsOFvfkxVOfI8OLrM0b5nJCFvskOJlp6IL8FOyceaufgCIGuc8tQMm30=
+	t=1777040964; cv=pass; b=TyIjsJugV/8185Pp5jzCFl6E4KE7kJ9SWCCNH6Hq6RUnsmVXlFw0yWph7VlvwAizteWfrnzwHZKwNKGQS7Np2E58hj7lZsOA2e/45G6sLW9QjsoCbKO4PCOWSTjNDKe8JGstDF2AD6odyAHlrkoj4qMTkyYSNRv+lIEv4p24bkg=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777008771; c=relaxed/simple;
-	bh=WeR454MIF6XD7WivrKik5WjQw4uaLEFSXdm3lgCCH+M=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=JUGsnopYwG/pVDM5wb9USy3MUE9K6cf24Dc5B9cUMMlm539wq3uJ3DXiTaCtWo3LKlpFivZjSG9gDxiajSa+j/2zbMxAGun6hf3h8BPkcqqk0CXpW5NLOdnOS7pu6K0rGUydlmQNnLJGysYYEepT4ymlpdZZSAyvF/hkMb69H18=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rwmnBEVf; arc=pass smtp.client-ip=209.85.128.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1777040964; c=relaxed/simple;
+	bh=UF/fHOpKUtfD/18IuQaTa5NrsTDfEbDXOc7XpHFNzFE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=jECW6c1yjfo19YY/9P9xGN/xFYxn3mJ6oVyFExVB5Zlue4R2Ur6F0+Vd6Okd5hCvqBUus7POI6PSWxyC+qe2knvh5XILd5CPsuvNHrNV3DrxcxrdTNhMAqC46+DoWa/hv7CG65yIk60smFh4frmDKgh1XeY7MT5MGXMBk/EtiLE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b=qwQDQBjb; arc=pass smtp.client-ip=195.140.195.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iki.fi
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rwmnBEVf"
-Received: by mail-yw1-f176.google.com with SMTP id 00721157ae682-7986e0553bdso71337287b3.2
-        for <linux-omap@vger.kernel.org>; Thu, 23 Apr 2026 22:32:50 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1777008769; cv=none;
-        d=google.com; s=arc-20240605;
-        b=Ary5m1um9u7M1WwW7a6/cn8ptK5YgkiABBrh0B8K8vKRd0K4uKd6EOnxd+b/BRhm5i
-         oGAsXh4z2ZotA+uDRi8zMIqzdmfwGdIlGtTGe/W2iIkX/w9Q9obF0yYUevGEHvU+QFgJ
-         k430jhtAKklep63uFKsiA4WXXXVxJH+rWhlGBSzaQuOi1vI8arLKsTVyqIFo95oHBTD4
-         ncnqIxcPjh1vrm1p7ziMPYDc7j4bZ7z1w9CB/JweVqZHc5IFsYFc+krK7pL/RAAZ6aNg
-         mqmwkfJtSohPx3YmI+gRi1DXC+HxF0DSXnRzSWa75iwS12pTUhYrlV1xUZlptETPkffL
-         1zEA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=aTWDo7tfrhFJ+mriWX1EXSAY360G5GQcYwGOoiyouIo=;
-        fh=GbaxtsqtgzG0GRlKsQLbsiPsA74pUp3ufNym1hQI0jQ=;
-        b=cUeJqtMkWqpQcqCrDDwi6FaaYn7Zhlq60j7yzQLFqigEsgA2Kfxgv3G+xtviJAfD2i
-         aKB+IWWHkNrq+0e8NdGie8BhhzIC3jXUxKb1MspJD5IRRGCjW6mmAua6NRHRLJmewTK9
-         pXe63ZlDwif5JLXEtO/fC5c/hHii7/qItWl3SC2w1/zAlAUg6qW8VzGF9o+x72owp42T
-         lt5ASOsYAMEWWlR96qRpox7tlqZxl28cpu/SFZDTmTEWcvFcWHKwLCOuomcjL78Z6yna
-         ApyM3f1ZWFxwbv5RqLhE40pXwOV8nihhuEysu7VAeddq6oEQYgAKSY4d3oHnTb+56BUU
-         a4vg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777008769; x=1777613569; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=aTWDo7tfrhFJ+mriWX1EXSAY360G5GQcYwGOoiyouIo=;
-        b=rwmnBEVf7uRtUvdS8ToX0USskf3gXagrH/WJ6KN0/1nm8F3D1WwqiHm9wwCtVyupNv
-         9hh60z//uPHKWhRuwgiBSeYae/E1df3OtWkK2WVPhStSo+FD76frtVPJX1B6qh9JgfUM
-         oX7EqxYrIr65+kNlW1wXFAOZq9WN5s0SAT5Bdaz0vJ7Qar2z/CApbxQScO31HoEWXJFL
-         qO0InWUY/O4S+F2983E+DtjCoT+kJDcMoxyumSAQPJwVqzPgF41fRiSbv2VXWVYxz9sx
-         JqhV22Rf4v5BFeLMpoyhfRQ9bnzDM/yptuv8lw1adFoPYtMK8NrvIf/eOWStzlxaQ1m7
-         ScOA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777008769; x=1777613569;
-        h=cc:to:subject:message-id:date:from:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=aTWDo7tfrhFJ+mriWX1EXSAY360G5GQcYwGOoiyouIo=;
-        b=qvkEv9T6zLU5bUhkVTz2gdxpV7kSpcT8ydWD5suWBQDGCWTIW/SvRMX82nE0vVo/IA
-         A0oCi3yxXSIRyiQiPIaupDOyem7B6YWKLD1kGV4OzyeCf9ljozclzdc69n7uaO4EeIhj
-         7mIGRw/POJ6T1InyA1SGrE0OKbSj1KwGGYhBt6QNI997ySuxmbE0Mod18L4DNlFIgunG
-         NXpBlgfNb+ZsNloMYxAfPHfVBbvadc/6otFBPegS9+cx1zKIcBttiqerRqKEX/WkNnGL
-         SxEPbimRNV5PRiPj2xsQkIBlGSsSvrWHNCNIt9LUox1v31d5RA8D1YDptOPuSHHPh8x0
-         KYmQ==
-X-Forwarded-Encrypted: i=1; AFNElJ9sXqzfXYj/LloV56629VKV/oRM5fEHGezx06ZX6QDh98wi1otM+SjUIq91UoT+dRvW2/JkDT0vUpHR@vger.kernel.org
-X-Gm-Message-State: AOJu0YwmorJXItxjoy/bD2H08YiWUGRf0UwlfXa5SpoThkL29tJJ6+u0
-	z8Wi2on4W+aZNSEvJi/1aztC4htoPc3876n4wiffurC5LDGrG1vGeqAhpBxq9BwH/ZcOK1Afznv
-	s7OT0S8NjhQ/1ygf8Urvv+MgvGqir76A=
-X-Gm-Gg: AeBDiesCOWAGSPlnjS/rr6J9GITa7pWiwqsZLSNFGQA9xQdd9pVVYmagLTbSJoIsDDf
-	9u8T50ugb8PmkdJRj9JJ5OkRXGpOV2HTqv/reZhrhEdE0sbIGFWhEmDR73hg0HXc3eF0THrKKU0
-	U/iBALNk7xapN4rm/zH+eDM75KUoQFLnJlJvuGxy1pSnU/jN3lHBPgolVVCXlhl6u/lNX3bwmYt
-	dR6Mo+7sIOP9MKVW3JxzqGWuxixMJTt8nFXnipp2c3Unq6BVzgdjY4DpS0WKT9iC8p3ByVvQvpJ
-	A2u2/WAR7TE6gBFG9phM
-X-Received: by 2002:a05:690c:f06:b0:7ba:e1dc:1b3f with SMTP id
- 00721157ae682-7bae1dc26a7mr239188277b3.25.1777008769560; Thu, 23 Apr 2026
- 22:32:49 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b="qwQDQBjb"
+Received: from darkstar.musicnaut.iki.fi (unknown [83.245.248.121])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange secp256r1 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: aaro.koskinen)
+	by meesny.iki.fi (Postfix) with ESMTPSA id 4g2FhV0LpYzyVM;
+	Fri, 24 Apr 2026 17:29:13 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=meesny;
+	t=1777040954;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=fMwsQXgFs4m3qlLNw/toiRnwqncp8Y42U18B4PsNAg4=;
+	b=qwQDQBjbWfJSCP4k7G61Rjqjz5S93y2pxCVCgJJMAvFvnxXBuz0YlKknaMW9VfkKbt69W/
+	K/ObdL9OTXI/GY461SuhA+/6QauEbAQy7b9+kGjuWESWfhipltUDRYKYw+sJVSl2+vDiJ2
+	11O44EB1xfkTAf667lve5+jDFiwipOM=
+ARC-Seal: i=1; a=rsa-sha256; d=iki.fi; s=meesny; cv=none; t=1777040954;
+	b=CYLYSXDdjVzW1pWXlVAiLaXM+8WRf6QjviIYHZws+qrlqZheRiEK62mNZNzXx1433Pi6LY
+	X5BWAZue+UgNr5qoP6J/I3c0JNSZ/wLFJn/JFdHBlsZfd4WhMSnmnwJpzZIBdE/tGMoZ1S
+	TALo4KrDjJvA6GktYIK5MOgboN+jxfA=
+ARC-Authentication-Results: i=1;
+	ORIGINATING;
+	auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
+	s=meesny; t=1777040954;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=fMwsQXgFs4m3qlLNw/toiRnwqncp8Y42U18B4PsNAg4=;
+	b=f/vpRq9glew7YhRu9hjMdTxVSB3WZJusL7De1c+MC3G0MhscPRs6eJ6jn9a1D1SHbLGGth
+	2R8s2qwxB0cRybw/c7FhaeteUqGonoz+GzN3/oWfA4LC4N9CtLuwOrVjpaUdLDjxhhUpsZ
+	HGkO/vTI52NDzOC0eMS2RObeONfpQbE=
+Date: Fri, 24 Apr 2026 17:29:07 +0300
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Ginger <ginger.jzllee@gmail.com>
+Cc: edubezval@gmail.com, j-keerthy@ti.com, linux-pm@vger.kernel.org,
+	linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [bug report] Potential deadlock bug in
+ 'drivers/thermal/ti-soc-thermal/ti-bandgap.c', between
+ 'ti_bandgap_write_counter()' and 'ti_bandgap_talert_irq_handler()'
+Message-ID: <aet-M04R_R-Y0JHn@darkstar.musicnaut.iki.fi>
+References: <CAGp+u1ZRvs6UJDRu1041mO93DsQvM1dkZ0CZRfEEsVBAVPvKig@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Ginger <ginger.jzllee@gmail.com>
-Date: Fri, 24 Apr 2026 13:32:39 +0800
-X-Gm-Features: AQROBzAftKukUZO5qXsKq3OfljKiCLNFqNzHrr6GoKnbrnXrbHqj9W5ZAtNDkkY
-Message-ID: <CAGp+u1ZRvs6UJDRu1041mO93DsQvM1dkZ0CZRfEEsVBAVPvKig@mail.gmail.com>
-Subject: [bug report] Potential deadlock bug in 'drivers/thermal/ti-soc-thermal/ti-bandgap.c',
- between 'ti_bandgap_write_counter()' and 'ti_bandgap_talert_irq_handler()'
-To: edubezval@gmail.com, j-keerthy@ti.com
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAGp+u1ZRvs6UJDRu1041mO93DsQvM1dkZ0CZRfEEsVBAVPvKig@mail.gmail.com>
 
-Dear Linux kernel maintainers,
+Hi,
 
-My research-based static analyzer found a potential deadlock bug
-within the 'drivers/thermal/ti-soc-thermal' subsystem, more
-specifically, in 'drivers/thermal/ti-soc-thermal/ti-bandgap.c'.
-This deadlock potentially occurs with the involvement of hard irq.
+On Fri, Apr 24, 2026 at 01:32:39PM +0800, Ginger wrote:
+> Potential concurrent triggering executions:
+> T0:
+> ti_bandgap_talert_irq_handler [t1]
+>         --> spin_lock(&bgp->lock); [t2]
+> 
+> T1:
+> ti_bandgap_write_counter
+>     --> spin_lock(&bgp->lock); [t0]
+> 
+> T1 does not disable hardware irqs in acquiring the spin lock. If T0
+> (i.e., the hard irq context) occurs after T1 acquires the lock and
+> both happen within the same CPU, then T0 will not proceed because it
+> cannot hold the spin lock that has already been possessed by T1, yet
+> T1 cannot proceed because the hard irq runs disables preempts.
 
-Kernel version: long-term kernel v6.18.9
+It's a threaded interrupt.
 
-Potential concurrent triggering executions:
-T0:
-ti_bandgap_talert_irq_handler [t1]
-        --> spin_lock(&bgp->lock); [t2]
-
-T1:
-ti_bandgap_write_counter
-    --> spin_lock(&bgp->lock); [t0]
-
-T1 does not disable hardware irqs in acquiring the spin lock. If T0
-(i.e., the hard irq context) occurs after T1 acquires the lock and
-both happen within the same CPU, then T0 will not proceed because it
-cannot hold the spin lock that has already been possessed by T1, yet
-T1
-cannot proceed because the hard irq runs disables preempts.
-
-Thank you for your time and consideration.
-
-Best regards,
-Ginger
+A.
