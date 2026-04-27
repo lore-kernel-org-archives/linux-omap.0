@@ -1,118 +1,127 @@
-Received: from fhigh-b5-smtp.messagingengine.com (fhigh-b5-smtp.messagingengine.com [202.12.124.156])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB51C3B19CE;
-	Mon, 27 Apr 2026 10:52:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.156
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F90AF9C0;
+	Mon, 27 Apr 2026 14:24:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777287150; cv=none; b=DthOFjOV4sL2MlBrD7ouYqb42PTTHEiNnC+/j5OwfP0kI3E0/vA0dlx9DM9O5qF19QpUAgpdp4E+GEpi0Uz4tg4eDtgdyp196YMAPxmrO+6IL5iLrU3AGHGD3cQ3A+xg/Rm/ArtMYzl/m8i5qBMSN6TWxV7kDAIxhO92nB2oMO0=
+	t=1777299843; cv=none; b=WIgQFm41/PcgCFDOSe3zHsc7vEgL2aGcsCLKD4xCvcy5L5//O3VLVYESNoH+l6YQiTXHFWl6vMTC9Vg3C+1BagHz5XCQu5c1W5DMAWMiv6V+J6VJyZPPpjRYNbRN5kzXAu13g8MOZCyABU+stAHMMGe0hBlGCPq91GINxO+8NHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777287150; c=relaxed/simple;
-	bh=2/M+r/dzyAJl/ExhHcBys0ugylVvG6ynvp563L3fnPI=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=kANsfUG2wzTrQWvAWh1zlzhX753aPSEh9cNNvUKVEe6TEKUA3Nmh/z3F2od/PDmUTmic+sRd47hDudO1+o6AeUYDfGhE6rwNqvWq+80xxChC+uyO/YF3V03nyMfKN1fPLqvGJEoXETwjaqC6cqNCsYoNhfixP2X9WsLrfMVKHqA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=i3lKiaXV; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=sq0xlL49; arc=none smtp.client-ip=202.12.124.156
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1777299843; c=relaxed/simple;
+	bh=ftZ0XwT6UuuizUHV9Pp1aiajU/PBr+uLiW96IGbuHvs=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=K+1zsQ0lALjMjfeXGAUmhqXhjy4/YvIKYkg0ZkO/oL723zg3cXrrw0skZf9JlmOG9Mtr4TNEBo0/JY5A0gws0INKYeNCSs+5vE3mlNoIBJ8ejL8eKqLCwz6emtlCP+wLqwJnEpByTsessiBRrbnykvvinEbwtyzLn7U3u67foTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sRxiN7hp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="i3lKiaXV";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="sq0xlL49"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id D7B677A00BC;
-	Mon, 27 Apr 2026 06:52:26 -0400 (EDT)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-04.internal (MEProxy); Mon, 27 Apr 2026 06:52:27 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1777287146;
-	 x=1777373546; bh=VszaiiOS69LMCrF4cs+T+KN9spCJ8nVeRr4kSbOs1XQ=; b=
-	i3lKiaXV1DkZ7dW7YxB0zQBj7iLHSfc30tdPzrsF+LdH55SqyMKCJp5g45zn9wpb
-	wQnu/3lSs6alP0zb/RlIstJWCRPxrcVVZ/LVhFGns8vlj5EVZzSH6gnARb4HunHT
-	UFlAdlTGiW7+C8gTkm0rZpuOdFmzhvXJ8TboWVUDBmSH/9HmmJocBOLF/RN92dCj
-	0VxSNh1U1r/D9GcXq7qya7oApU+AkVwTsoPW3dZ1JetNjc8Ln4YYWUCdxHnR67kz
-	PUnwReYoqBj13a4QRbd8Hl6mPdYkPMDDIjsDdCH0LaojvzgH5zGggaD/PundXGd2
-	RpeZ7fjKpJFIYTGMwsSW+Q==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1777287146; x=
-	1777373546; bh=VszaiiOS69LMCrF4cs+T+KN9spCJ8nVeRr4kSbOs1XQ=; b=s
-	q0xlL49/jJdl1t2cEtLucmn0Q9bXqfkKBiXTm5f3kSlshyH+XuoJOVTqCT4/7lyt
-	lQfJ5my5YtLb/b22yJJ1ewi8bnmCDDr4tS7gX3lM9Qdq49UcSa6j0j7OXQ6DX4kL
-	jmYOpP1P8KHwdv7CW25yUWB4jm4Xa1WIDWHYzAIrtLXnNsZsNGbuarNMlS1tE/5k
-	0q7ZA/5kN8274gO62/WZC9AKpPZfgIYtGsjc4NOHDAvLoWsrPKiWh9OSjHpb18Gq
-	FljH+v9gBbqniVnE3AO57oaCUNtPEH363bIshQH07MPgQuHXd3KN1VQOaDrLljhR
-	FCtmRAfYzfqWcrqTkqYeg==
-X-ME-Sender: <xms:6j_vae90RTOVVNevnRVJ7_7NkpEW2pW4JrnqAC6w5ePkOAZXnSWZ1A>
-    <xme:6j_vaZhXhCUtRtYEnMWD6jbEzzdLhuVoM1AzsFeq-MCe_cjVnq_XK6DSN1xFBNE2l
-    eGz8XatgZi6K8dfspSEfMN7lgfpYA-0Ler7ub4GKtbCX6EXYdOnSjs>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdejkeehtdcutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
-    hrpefoggffhffvvefkjghfufgtgfesthejredtredttdenucfhrhhomhepfdetrhhnugcu
-    uegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtthgvrh
-    hnpefhtdfhvddtfeehudekteeggffghfejgeegteefgffgvedugeduveelvdekhfdvieen
-    ucevlhhushhtvghrufhiiigvpedunecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnug
-    esrghrnhgusgdruggvpdhnsggprhgtphhtthhopedvtddpmhhouggvpehsmhhtphhouhht
-    pdhrtghpthhtoheplhhinhhugiesrghrmhhlihhnuhigrdhorhhgrdhukhdprhgtphhtth
-    hopehtohhnhiesrghtohhmihguvgdrtghomhdprhgtphhtthhopehkhhhilhhmrghnsegs
-    rgihlhhisghrvgdrtghomhdprhgtphhtthhopegujhhrshgtrghllhihsehgmhgrihhlrd
-    gtohhmpdhrtghpthhtohepughmihhtrhihrdhtohhrohhkhhhovhesghhmrghilhdrtgho
-    mhdprhgtphhtthhopehjmhhkrhiihihsiihtsehgmhgrihhlrdgtohhmpdhrtghpthhtoh
-    eprggrrhhordhkohhskhhinhgvnhesihhkihdrfhhipdhrtghpthhtohepsghrghhlsehk
-    vghrnhgvlhdrohhrghdprhgtphhtthhopegurghkrheskhgvrhhnvghlrdhorhhg
-X-ME-Proxy: <xmx:6j_vacMXLOCRI7xDUznXTth8jdPsep2YclT8G2_FhbPaB3u1JYokhQ>
-    <xmx:6j_vaQKnGyjQT2V7a9bokjAPQlndHf3khTSONj8OIR8S2dMInAIoiA>
-    <xmx:6j_vaXxgYZU7PKY05SkCYggqJddVDeQi6MeiOqc8SeGwdsj6wLqcfA>
-    <xmx:6j_vaQ6EPqeScOkCDw-NObr5fpNmf2LvgLqTcSUZ2s4j5itKTbMAoA>
-    <xmx:6j_vaUSzpLA04WEL2-l84ubvlS_Eq2ohIFp_r3RJzzp9oCnpyJ2Hjha8>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 849C770006A; Mon, 27 Apr 2026 06:52:26 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sRxiN7hp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC263C19425;
+	Mon, 27 Apr 2026 14:23:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1777299843;
+	bh=ftZ0XwT6UuuizUHV9Pp1aiajU/PBr+uLiW96IGbuHvs=;
+	h=From:To:Cc:Subject:Date:From;
+	b=sRxiN7hp9DE6K4vJvQH/+GCR3cimtAOQLXQRpPar3WCm/X1+DprIIJ9tPpB42EQzY
+	 gJZVVJ/q+C9Bg+wDDMKyXHpFzgZH8ejXky0uZNzCYBKfq41c6hTr4yELINTYGgtA6E
+	 iLLlV+oQ8iF0RA2aPWsHxFPPcvPezbJiX0+sNZPtuAYzDQYViCJC96oM6piu62PkoW
+	 Q0cG2/saUzrOE3HhFzCWWXQbFsDAGkopAuJlzSqjZtdD9UWP5T+EH0sWWIcePGd4La
+	 G1hEd7FnuYb/tmGpJz7ARATyxFgORRBvToKLMziTOJuE9WF98qDH9UBZueeuxeuRHE
+	 IsRuwgNFl6Smw==
+From: Arnd Bergmann <arnd@kernel.org>
+To: 
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	"Aaro Koskinen" <aaro.koskinen@iki.fi>,
+	"Andreas Kemnade" <andreas@kemnade.info>,
+	"Bartosz Golaszewski" <brgl@kernel.org>,
+	=?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	"Dmitry Torokhov" <dmitry.torokhov@gmail.com>,
+	"Eric Dumazet" <edumazet@google.com>,
+	"Felipe Balbi" <balbi@kernel.org>,
+	"Jakub Kicinski" <kuba@kernel.org>,
+	"Johannes Berg" <johannes@sipsolutions.net>,
+	"Kevin Hilman" <khilman@baylibre.com>,
+	"Krzysztof Kozlowski" <krzk+dt@kernel.org>,
+	"Linus Walleij" <linusw@kernel.org>,
+	"Paolo Abeni" <pabeni@redhat.com>,
+	"Rob Herring" <robh+dt@kernel.org>,
+	"Roger Quadros" <rogerq@kernel.org>,
+	"Tony Lindgren" <tony@atomide.com>,
+	linux-wireless@vger.kernel.org,
+	netdev@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-gpio@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: [PATCH v3 0/3] wireless: p54 devicetree conversion
+Date: Mon, 27 Apr 2026 16:23:52 +0200
+Message-Id: <20260427142355.2532714-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AGuRs2470qq3
-Date: Mon, 27 Apr 2026 12:52:04 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>,
- "Danilo Krummrich" <dakr@kernel.org>,
- "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>,
- "Daniel Scally" <djrscally@gmail.com>,
- "Heikki Krogerus" <heikki.krogerus@linux.intel.com>,
- "Sakari Ailus" <sakari.ailus@linux.intel.com>,
- "Aaro Koskinen" <aaro.koskinen@iki.fi>,
- "Janusz Krzysztofik" <jmkrzyszt@gmail.com>,
- "Tony Lindgren" <tony@atomide.com>, "Russell King" <linux@armlinux.org.uk>,
- "Dmitry Torokhov" <dmitry.torokhov@gmail.com>,
- "Kevin Hilman" <khilman@baylibre.com>
-Cc: "Bartosz Golaszewski" <brgl@kernel.org>, driver-core@lists.linux.dev,
- linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>
-Message-Id: <94985c72-fd4c-4afd-aee6-881d1f17b2f6@app.fastmail.com>
-In-Reply-To: 
- <20260427-nokia770-gpio-swnodes-v6-1-b693296c1985@oss.qualcomm.com>
-References: 
- <20260427-nokia770-gpio-swnodes-v6-0-b693296c1985@oss.qualcomm.com>
- <20260427-nokia770-gpio-swnodes-v6-1-b693296c1985@oss.qualcomm.com>
-Subject: Re: [PATCH v6 1/3] ARM: omap1: drop unused variable from omap16xx_gpio_init()
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Mon, Apr 27, 2026, at 12:46, Bartosz Golaszewski wrote:
-> The pdata variable is set but not used. Remove it.
->
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> ---
->  arch/arm/mach-omap1/gpio16xx.c | 2 --
+From: Arnd Bergmann <arnd@arndb.de>
 
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+This is an older patch of mine that I lost track of. We already decided
+a while ago that the OMAP2 platform should probably be removed entirely,
+and this is the only known user, but it's probably a good idea to still
+get the driver changes in, in case there are other out-of-tree users.
+
+We probably don't have to worry about bisectability any more though,
+so the devicetree and driver changes can just get merged independently
+through the OMAP and wireless trees, respectively.
+
+     Arnd
+
+v2 Link: https://lore.kernel.org/all/20230404082401.1087835-1-arnd@kernel.org/
+
+Cc: "Aaro Koskinen" <aaro.koskinen@iki.fi>
+Cc: "Andreas Kemnade" <andreas@kemnade.info>
+Cc: "Arnd Bergmann" <arnd@arndb.de>
+Cc: "Bartosz Golaszewski" <brgl@kernel.org>
+Cc: "Benoît Cousson" <bcousson@baylibre.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
+Cc: "Eric Dumazet" <edumazet@google.com>
+Cc: "Felipe Balbi" <balbi@kernel.org>
+Cc: "Jakub Kicinski" <kuba@kernel.org>
+Cc: "Johannes Berg" <johannes@sipsolutions.net>
+Cc: "Kevin Hilman" <khilman@baylibre.com>
+Cc: "Krzysztof Kozlowski" <krzk+dt@kernel.org>
+Cc: "Linus Walleij" <linusw@kernel.org>
+Cc: "Paolo Abeni" <pabeni@redhat.com>
+Cc: "Rob Herring" <robh+dt@kernel.org>
+Cc: "Roger Quadros" <rogerq@kernel.org>
+Cc: "Tony Lindgren" <tony@atomide.com>
+Cc: linux-wireless@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-gpio@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+
+
+Arnd Bergmann (3):
+  dt-bindings: net: add st,stlc45xx/p54spi binding
+  ARM: dts: omap2: add stlc4560 spi-wireless node
+  p54spi: convert to devicetree
+
+ .../bindings/net/wireless/st,stlc45xx.yaml    | 58 ++++++++++++++++
+ MAINTAINERS                                   |  1 +
+ arch/arm/boot/dts/ti/omap/omap2.dtsi          |  4 ++
+ .../dts/ti/omap/omap2420-n8x0-common.dtsi     | 12 ++++
+ arch/arm/mach-omap2/board-n8x0.c              | 18 -----
+ drivers/net/wireless/intersil/p54/p54spi.c    | 68 +++++++------------
+ drivers/net/wireless/intersil/p54/p54spi.h    |  3 +
+ 7 files changed, 103 insertions(+), 61 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/wireless/st,stlc45xx.yaml
+
+-- 
+2.39.5
+
