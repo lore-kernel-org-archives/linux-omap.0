@@ -1,291 +1,119 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0077C3D47B8;
-	Mon, 27 Apr 2026 14:24:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37FAC3A0E8E;
+	Mon, 27 Apr 2026 14:44:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777299862; cv=none; b=kE2z9OTXg3VcoI35IkyO+LTMJOyaK3PtlMm7ju9WarMDOUqdsvm0GAYw0dRz5/Iz13sWTgIBB2anQayteYVb6AVPp+nAIicGuhze727KyCbcQKpp/kqH1CMPTx5GOlbks/7OM6UrDRNBKmJd3FlUMPMPG0ijlG5q28DmPsyv934=
+	t=1777301049; cv=none; b=s73Miy8YXF2oPooIWkqaHeNOiBs2X63zgzIoX/4euVamygrN67XN219XHtBXtBBQpb4HC/PDZFE894FKbDi9fvBjKiaTweDt+4kn+JVpDbyA/BCRSaHvZJZfGJwgiGrPe14tVJVl78tdqPHzZRKfrmod+md0stxQ5ziI5jjEF0A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777299862; c=relaxed/simple;
-	bh=5vHeUD4XDO+jrNf3SjbxNwWzSv6HWIWXWuo72nUC1JI=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=XTEo+3K4qvj/Qw5PgD824LchE2hGsvkB/JHOROIci38DLc5hq+pQ6T1zwxe55bdaRQyRC0Cw3YpF+YU4WY7uhyPO1PU2CJOjPAAkAihpD/PmbjK2CpBXkgxndCqPdYXKCyvbD7bLmD2sBHbDL8El6OO6UUilzifla/QZVQWHP9U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uGdsR4+k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777301049; c=relaxed/simple;
+	bh=xEZviH1Rx0Trs7TNfbXnsRxSsbOwAKS55WHlb0BfwFs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=M3k1nBiZbD5LDoaOG8tGz+yx634EGd5csHVS0XEv+UKrmpOSBA3Oz4EiSW6Qo5MWjCZ2WcV2bnQTYhwcVazPyf+rvT+W1xM3V0aeDS1zyeMAvE2GD3z2faUOD/Ss1nsV7tp99ekaR9AeVKcmSMUqFQewEsa2uO5RZd3dSSkBfLo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Lsk9RasP; arc=none smtp.client-ip=192.198.163.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uGdsR4+k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F4C4C2BCC4;
-	Mon, 27 Apr 2026 14:24:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777299861;
-	bh=5vHeUD4XDO+jrNf3SjbxNwWzSv6HWIWXWuo72nUC1JI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=uGdsR4+k3FvnnYnvX3Y8UhtjVufTKOlRn85hY5P7E9hwpr3x3DRbxCttv2TDtdkMC
-	 UZBGTe8kwF1BBuT+Rk8dj3YxZ7hcEMWHn3RZ2E35/Igo/CaXdbC8fANsB7mH+rKLkb
-	 fjm8htxAkvo46HqYmaN+ZUCW7/DeEHD7hkXKPJP/trr3Fsf0pYfh+w/aRK9YuYhtgr
-	 ue73ltKQMJqkuDpyG6xB9V7mVUy303EhLF5iJFMY0kV/XSr1p86aoTUeQInQPIaC+R
-	 2wtwquWyoYCKsrMS4MKjF7S987ZTRy66tm0UjHpMiDgYFAytkx472Rjo/Udnownd7r
-	 tog962DDwol7w==
-From: Arnd Bergmann <arnd@kernel.org>
-To: 
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	"Aaro Koskinen" <aaro.koskinen@iki.fi>,
-	"Andreas Kemnade" <andreas@kemnade.info>,
-	"Bartosz Golaszewski" <brgl@kernel.org>,
-	=?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	"Dmitry Torokhov" <dmitry.torokhov@gmail.com>,
-	"Eric Dumazet" <edumazet@google.com>,
-	"Felipe Balbi" <balbi@kernel.org>,
-	"Jakub Kicinski" <kuba@kernel.org>,
-	"Johannes Berg" <johannes@sipsolutions.net>,
-	"Kevin Hilman" <khilman@baylibre.com>,
-	"Krzysztof Kozlowski" <krzk+dt@kernel.org>,
-	"Linus Walleij" <linusw@kernel.org>,
-	"Paolo Abeni" <pabeni@redhat.com>,
-	"Rob Herring" <robh+dt@kernel.org>,
-	"Roger Quadros" <rogerq@kernel.org>,
-	"Tony Lindgren" <tony@atomide.com>,
-	linux-wireless@vger.kernel.org,
-	netdev@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-gpio@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	Christian Lamparter <chunkeey@gmail.com>
-Subject: [PATCH v3 3/3] p54spi: convert to devicetree
-Date: Mon, 27 Apr 2026 16:23:55 +0200
-Message-Id: <20260427142355.2532714-4-arnd@kernel.org>
-X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20260427142355.2532714-1-arnd@kernel.org>
-References: <20260427142355.2532714-1-arnd@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Lsk9RasP"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1777301046; x=1808837046;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=xEZviH1Rx0Trs7TNfbXnsRxSsbOwAKS55WHlb0BfwFs=;
+  b=Lsk9RasPDytBYGk7N3tSKGqb/7bS5Nydd/cJNorApdrGQbdL/1uki6e9
+   Q6iPg3ugvJbWDikfnzNeNj7/Qay2jONSroZQExadYxleyGML8pYKYexNv
+   mzzqL4EhWHQDqI2GSTz/WZGRkQNr4B3iJlDQjOboETE+sAF/gR8fZwkSz
+   Plb46jaHDUew4zLGugFAbanCrGJnipm0vAL5QvUf9CRGUfrGWifeSYRwE
+   1j7u2booYSHgPd4KtyaDtfzgO2n51JRHu/NpfV/U8MyUoI+LepgxAWqsq
+   pfm/qyNgVc1c78VvWnBwLaqZMT4by2OzJ7E5mBmVcvFVqKusgwgJhbCD9
+   Q==;
+X-CSE-ConnectionGUID: BGBZRrA4RQiIuTNW8aKggQ==
+X-CSE-MsgGUID: RwTS3mEkQL+YYwlnaZr6lw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11769"; a="78248292"
+X-IronPort-AV: E=Sophos;i="6.23,202,1770624000"; 
+   d="scan'208";a="78248292"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2026 07:44:05 -0700
+X-CSE-ConnectionGUID: HZMRTky5RgWSWwZjmbXWZg==
+X-CSE-MsgGUID: Bb9Y1DJDQmu6NQQfLbze+w==
+X-ExtLoop1: 1
+Received: from fpallare-mobl4.ger.corp.intel.com (HELO localhost) ([10.245.244.2])
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2026 07:43:59 -0700
+Date: Mon, 27 Apr 2026 17:43:56 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>,
+	brgl@kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v6 2/3] ARM: omap1: use platform_device_register_full()
+ for GPIO devices on OMAP 16xx
+Message-ID: <ae92LAOy6nRsFb9w@ashevche-desk.local>
+References: <20260427-nokia770-gpio-swnodes-v6-0-b693296c1985@oss.qualcomm.com>
+ <20260427-nokia770-gpio-swnodes-v6-2-b693296c1985@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260427-nokia770-gpio-swnodes-v6-2-b693296c1985@oss.qualcomm.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-From: Arnd Bergmann <arnd@arndb.de>
+On Mon, Apr 27, 2026 at 12:46:33PM +0200, Bartosz Golaszewski wrote:
+> Ahead of changes attaching GPIO controller's software nodes referenced
+> from the Nokia 770 board files to their target devices, switch the
+> method for registering the platform devices to the
+> platform_device_register_full() variant. This is done to leverage the
+> new swnode field of struct platform_device_info which automate the
+> software node's registration and assignment.
 
-The Prism54 SPI driver hardcodes GPIO numbers and expects users to
-pass them as module parameters, apparently a relic from its life as a
-staging driver. This works because there is only one user, the Nokia
-N8x0 tablet.
+...
 
-Convert this to the gpio descriptor interface and DT based probing
-to improve this and simplify the code at the same time.
+>  	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++) {
+> -		pdev = omap16xx_gpio_dev[i];
+> +		pdevinfo = omap16xx_gpio_dev[i];
+>  
+> -		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +		res = &pdevinfo->res[0];
+>  		if (unlikely(!res)) {
+>  			dev_err(&pdev->dev, "Invalid mem resource.\n");
+>  			return -ENODEV;
 
-Acked-by: Christian Lamparter <chunkeey@gmail.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm/mach-omap2/board-n8x0.c           | 18 ------
- drivers/net/wireless/intersil/p54/p54spi.c | 68 ++++++++--------------
- drivers/net/wireless/intersil/p54/p54spi.h |  3 +
- 3 files changed, 28 insertions(+), 61 deletions(-)
+>  		base = ioremap(res->start, resource_size(res));
+>  		if (unlikely(!base)) {
+> -			dev_err(&pdev->dev, "ioremap failed.\n");
+> +			pr_err("ioremap failed.\n");
+>  			return -ENOMEM;
+>  		}
 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 969265d5d5c6..d9acd32c5457 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -20,7 +20,6 @@
- #include <linux/spi/spi.h>
- #include <linux/usb/musb.h>
- #include <linux/mmc/host.h>
--#include <linux/platform_data/spi-omap2-mcspi.h>
- #include <linux/platform_data/mmc-omap.h>
- #include <linux/mfd/menelaus.h>
- 
-@@ -106,21 +105,6 @@ static void __init n8x0_usb_init(void) {}
- 
- #endif /*CONFIG_USB_MUSB_TUSB6010 */
- 
--
--static struct omap2_mcspi_device_config p54spi_mcspi_config = {
--	.turbo_mode	= 0,
--};
--
--static struct spi_board_info n800_spi_board_info[] __initdata = {
--	{
--		.modalias	= "p54spi",
--		.bus_num	= 2,
--		.chip_select	= 0,
--		.max_speed_hz   = 48000000,
--		.controller_data = &p54spi_mcspi_config,
--	},
--};
--
- #if defined(CONFIG_MENELAUS) && IS_ENABLED(CONFIG_MMC_OMAP)
- 
- /*
-@@ -524,7 +508,5 @@ omap_late_initcall(n8x0_late_initcall);
- void * __init n8x0_legacy_init(void)
- {
- 	board_check_revision();
--	spi_register_board_info(n800_spi_board_info,
--				ARRAY_SIZE(n800_spi_board_info));
- 	return &mmc1_data;
- }
-diff --git a/drivers/net/wireless/intersil/p54/p54spi.c b/drivers/net/wireless/intersil/p54/p54spi.c
-index 9d66dcae54e0..1cda3b42b5d7 100644
---- a/drivers/net/wireless/intersil/p54/p54spi.c
-+++ b/drivers/net/wireless/intersil/p54/p54spi.c
-@@ -8,6 +8,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/mod_devicetable.h>
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
- #include <linux/firmware.h>
-@@ -15,7 +16,7 @@
- #include <linux/irq.h>
- #include <linux/spi/spi.h>
- #include <linux/etherdevice.h>
--#include <linux/gpio.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/slab.h>
- 
- #include "p54spi.h"
-@@ -30,19 +31,6 @@
- MODULE_FIRMWARE("3826.arm");
- MODULE_FIRMWARE("3826.eeprom");
- 
--/* gpios should be handled in board files and provided via platform data,
-- * but because it's currently impossible for p54spi to have a header file
-- * in include/linux, let's use module parameters for now
-- */
--
--static int p54spi_gpio_power = 97;
--module_param(p54spi_gpio_power, int, 0444);
--MODULE_PARM_DESC(p54spi_gpio_power, "gpio number for power line");
--
--static int p54spi_gpio_irq = 87;
--module_param(p54spi_gpio_irq, int, 0444);
--MODULE_PARM_DESC(p54spi_gpio_irq, "gpio number for irq line");
--
- static void p54spi_spi_read(struct p54s_priv *priv, u8 address,
- 			      void *buf, size_t len)
- {
-@@ -262,14 +250,14 @@ static int p54spi_upload_firmware(struct ieee80211_hw *dev)
- 
- static void p54spi_power_off(struct p54s_priv *priv)
- {
--	disable_irq(gpio_to_irq(p54spi_gpio_irq));
--	gpio_set_value(p54spi_gpio_power, 0);
-+	disable_irq(priv->irq);
-+	gpiod_set_value(priv->gpio_powerdown, 1);
- }
- 
- static void p54spi_power_on(struct p54s_priv *priv)
- {
--	gpio_set_value(p54spi_gpio_power, 1);
--	enable_irq(gpio_to_irq(p54spi_gpio_irq));
-+	gpiod_set_value(priv->gpio_powerdown, 0);
-+	enable_irq(priv->irq);
- 
- 	/* need to wait a while before device can be accessed, the length
- 	 * is just a guess
-@@ -608,30 +596,19 @@ static int p54spi_probe(struct spi_device *spi)
- 		goto err_free;
- 	}
- 
--	ret = gpio_request(p54spi_gpio_power, "p54spi power");
--	if (ret < 0) {
--		dev_err(&priv->spi->dev, "power GPIO request failed: %d", ret);
-+	priv->gpio_powerdown = gpiod_get(&spi->dev, "powerdown", GPIOD_OUT_HIGH);
-+	if (IS_ERR(priv->gpio_powerdown)) {
-+		ret = PTR_ERR(priv->gpio_powerdown);
-+		dev_err(&priv->spi->dev, "powerdown GPIO request failed: %d", ret);
- 		goto err_free;
- 	}
- 
--	ret = gpio_request(p54spi_gpio_irq, "p54spi irq");
--	if (ret < 0) {
--		dev_err(&priv->spi->dev, "irq GPIO request failed: %d", ret);
--		goto err_free_gpio_power;
--	}
--
--	gpio_direction_output(p54spi_gpio_power, 0);
--	gpio_direction_input(p54spi_gpio_irq);
--
--	ret = request_irq(gpio_to_irq(p54spi_gpio_irq),
--			  p54spi_interrupt, IRQF_NO_AUTOEN, "p54spi",
--			  priv->spi);
-+	ret = request_irq(spi->irq, p54spi_interrupt, IRQF_NO_AUTOEN, "p54spi", priv->spi);
- 	if (ret < 0) {
- 		dev_err(&priv->spi->dev, "request_irq() failed");
--		goto err_free_gpio_irq;
-+		goto err_free_gpio_power;
- 	}
- 
--	irq_set_irq_type(gpio_to_irq(p54spi_gpio_irq), IRQ_TYPE_EDGE_RISING);
- 
- 	INIT_WORK(&priv->work, p54spi_work);
- 	init_completion(&priv->fw_comp);
-@@ -659,11 +636,9 @@ static int p54spi_probe(struct spi_device *spi)
- 
- err_free_common:
- 	release_firmware(priv->firmware);
--	free_irq(gpio_to_irq(p54spi_gpio_irq), spi);
--err_free_gpio_irq:
--	gpio_free(p54spi_gpio_irq);
-+	free_irq(priv->irq, spi);
- err_free_gpio_power:
--	gpio_free(p54spi_gpio_power);
-+	gpiod_put(priv->gpio_powerdown);
- err_free:
- 	p54_free_common(priv->hw);
- 	return ret;
-@@ -675,10 +650,8 @@ static void p54spi_remove(struct spi_device *spi)
- 
- 	p54_unregister_common(priv->hw);
- 
--	free_irq(gpio_to_irq(p54spi_gpio_irq), spi);
--
--	gpio_free(p54spi_gpio_power);
--	gpio_free(p54spi_gpio_irq);
-+	free_irq(priv->irq, spi);
-+	gpiod_put(priv->gpio_powerdown);
- 	release_firmware(priv->firmware);
- 
- 	mutex_destroy(&priv->mutex);
-@@ -686,10 +659,19 @@ static void p54spi_remove(struct spi_device *spi)
- 	p54_free_common(priv->hw);
- }
- 
-+struct of_device_id p54spi_of_ids[] = {
-+	{ .compatible = "cnxt,3110x", },
-+	{ .compatible = "isil,p54spi", },
-+	{ .compatible = "st,stlc4550", },
-+	{ .compatible = "st,stlc4560", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, p54spi_of_ids);
- 
- static struct spi_driver p54spi_driver = {
- 	.driver = {
- 		.name		= "p54spi",
-+		.of_match_table = p54spi_of_ids,
- 	},
- 
- 	.probe		= p54spi_probe,
-diff --git a/drivers/net/wireless/intersil/p54/p54spi.h b/drivers/net/wireless/intersil/p54/p54spi.h
-index e5619a13fd61..118785cc635a 100644
---- a/drivers/net/wireless/intersil/p54/p54spi.h
-+++ b/drivers/net/wireless/intersil/p54/p54spi.h
-@@ -107,6 +107,9 @@ struct p54s_priv {
- 
- 	enum fw_state fw_state;
- 	const struct firmware *firmware;
-+
-+	struct gpio_desc *gpio_powerdown;
-+	int irq;
- };
- 
- #endif /* P54SPI_H */
+Isn't this a stray change? Or why then? And why the previous dev_err() is left untouched?
+
+>  		__raw_writel(SYSCONFIG_WORD, base + OMAP1610_GPIO_SYSCONFIG);
+>  		iounmap(base);
+>  
+> -		platform_device_register(omap16xx_gpio_dev[i]);
+> +		platform_device_register_full(omap16xx_gpio_dev[i]);
+>  	}
+
 -- 
-2.39.5
+With Best Regards,
+Andy Shevchenko
+
 
