@@ -1,126 +1,117 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E91F1C5F11;
-	Thu, 30 Apr 2026 08:13:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A46A39F160;
+	Thu, 30 Apr 2026 09:25:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777536822; cv=none; b=g9R/0UTW9mnsZnwFzSuGuGm1+YK3Vx1E6rPSvE3uu8tlOvrDhmrS72kyt/ALmn6lzrghoHMMJBD4HIf638SW2yXEGIQ5o8dnms7ktvNHvFdaQwdOmlYeQtcA95wQdZMm+UfkqzCKWiBYpzfi8+i9KG9fjlhDa0UPXd2FnKBagi8=
+	t=1777541129; cv=none; b=D5hMj1nxEpOETapXT0FoUcSQkrSkRioqQgDF90qKuHZPp9LrXx4U+bBGIZqoAU2ajYUaOJtc1EN+mrii8Uv1PYWrQaHQjI0yqPyGnedN0oc1bRYZI3Al6qqryjHew85osbwExpxeDf9RymHwn3osIPq/7qN4kIZpV4NZDxtuxYk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777536822; c=relaxed/simple;
-	bh=Nv1JYf3LO+jPMQgpo8pnXz9mJrVmyxe8ICeN5WxGts0=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=G2NmflCEehtOI0PwxgJlnU5TMw/qNHmtjsHNjomJlyuzV2mYfBlnwSt8ZK1UpPdVi1p2t/9wIMPEeUwCjHD1Pt2OjTK50EOP86VPt0ByC7PvGYH6HhX283mPboOtA565KNTnNS3mZf1x+QGSkEtmbSskn6oIHT0H22ApIWl4UAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JnXNUI2k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777541129; c=relaxed/simple;
+	bh=B853Eh9uk565MxVVpob3pa08VA0fsq5RODboe/BkwDg=;
+	h=Date:Content-Type:MIME-Version:From:Cc:To:In-Reply-To:References:
+	 Message-Id:Subject; b=Fs9Qj9uAzNV9xGK6MexXhqUIWgV+GRItq+yDB6BBdVRDB9TMOxqyDnAkI6yVJ+8IN55iGUiWzg6yjlNNd9wvxw/JAFoPnuPXTvDeSUI2Ui8fOLUwM2AcqG2c/M6C4i/L4TeBlGCg377xEJ57/7LPWwvHHrY0RidE7Mx3PElnUnQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iot/Czbj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JnXNUI2k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E567C2BCB4;
-	Thu, 30 Apr 2026 08:13:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iot/Czbj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E38C5C2BCB4;
+	Thu, 30 Apr 2026 09:25:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777536822;
-	bh=Nv1JYf3LO+jPMQgpo8pnXz9mJrVmyxe8ICeN5WxGts0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=JnXNUI2kbvksQ919q/521+avcOx2zyEVqsVBqxwt3RH+ROKd/fUUSJM2rrjYPNmbw
-	 Q/9Ce43RKwDKkj0ud0TJw07+77hCYkRBEm9jiXX/78PnIDPPdbCs1kQueuYT7oaFhI
-	 oOsMhugqGFr8JP5pOTdkTbj8KkvTJj8XGx8uuIDrNHw4CFk94NWeWI7mb61GdIqetW
-	 2EdVMER7zLILK/DlEhSRGyCYQJ9PacbwJ1nXAyiLH4fcKkE0tkRnTN58kIU9pQQzuJ
-	 +UaqLXcKnzfZ5UwRymPYa0Se0wSbc/fyCijAcH2h37t6l7buHiEvCCvJHxRPwM/OVn
-	 8m2Z3vwErKoUA==
-From: Arnd Bergmann <arnd@kernel.org>
-To: netdev@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	"Aaro Koskinen" <aaro.koskinen@iki.fi>,
-	"Andreas Kemnade" <andreas@kemnade.info>,
-	"Bartosz Golaszewski" <brgl@kernel.org>,
-	=?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	"Dmitry Torokhov" <dmitry.torokhov@gmail.com>,
-	"Eric Dumazet" <edumazet@google.com>,
-	"Felipe Balbi" <balbi@kernel.org>,
-	"Jakub Kicinski" <kuba@kernel.org>,
-	"Johannes Berg" <johannes@sipsolutions.net>,
-	"Kevin Hilman" <khilman@baylibre.com>,
-	"Krzysztof Kozlowski" <krzk+dt@kernel.org>,
-	"Linus Walleij" <linusw@kernel.org>,
-	"Paolo Abeni" <pabeni@redhat.com>,
-	"Rob Herring" <robh+dt@kernel.org>,
-	"Roger Quadros" <rogerq@kernel.org>,
-	"Tony Lindgren" <tony@atomide.com>,
-	linux-wireless@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-gpio@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	Krzysztof Kozlowski <krzk@kernel.org>
-Subject: [PATCH v4 3/3 omap] ARM: dts: omap2: add stlc4560 spi-wireless node
-Date: Thu, 30 Apr 2026 10:12:42 +0200
-Message-Id: <20260430081242.3686993-4-arnd@kernel.org>
-X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20260430081242.3686993-1-arnd@kernel.org>
-References: <20260430081242.3686993-1-arnd@kernel.org>
+	s=k20201202; t=1777541129;
+	bh=B853Eh9uk565MxVVpob3pa08VA0fsq5RODboe/BkwDg=;
+	h=Date:From:Cc:To:In-Reply-To:References:Subject:From;
+	b=iot/Czbj1UTXZtIKbuakUOJPEZf2jgEJsXUobkf3fTE6pxHY1WoYVSUKSdjGjweU2
+	 uJCII7hbjhIouQ7z+4khXHPcxKRfaQKW5M8Ob7Ff/2xSIiteOAtptRQ6PRVkaTUlXR
+	 m5hnmHC34YoQvr6bwwzWq2O9IDz3/7o6w2Ux/d7uBQOzrHFiHHPE6x5MGEwTHosl5Y
+	 FtyWqlDWOsE2uTUmk93O2vMxDZkoZBQ9EeRqJitySRYcWBAmbfCmXMjl7Y98+WSE2j
+	 s23YYEIaJkoJReZgcK3bIv8Gfrr3USg/F7iytFGSPEmXH9vDS7tcs9sL21B1DUkETF
+	 aW/y9woiMNIXw==
+Date: Thu, 30 Apr 2026 04:25:27 -0500
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: "Rob Herring (Arm)" <robh@kernel.org>
+Cc: Christian Lamparter <chunkeey@gmail.com>, 
+ Andreas Kemnade <andreas@kemnade.info>, 
+ =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, 
+ Eric Dumazet <edumazet@google.com>, Bartosz Golaszewski <brgl@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Johannes Berg <johannes@sipsolutions.net>, Jakub Kicinski <kuba@kernel.org>, 
+ Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>, 
+ linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, 
+ linux-omap@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, 
+ Rob Herring <robh+dt@kernel.org>, linux-gpio@vger.kernel.org, 
+ Paolo Abeni <pabeni@redhat.com>, devicetree@vger.kernel.org, 
+ netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, 
+ Roger Quadros <rogerq@kernel.org>, linux-arm-kernel@lists.infradead.org, 
+ Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
+ Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, 
+ Linus Walleij <linusw@kernel.org>
+To: Arnd Bergmann <arnd@kernel.org>
+In-Reply-To: <20260430081242.3686993-2-arnd@kernel.org>
+References: <20260430081242.3686993-1-arnd@kernel.org>
+ <20260430081242.3686993-2-arnd@kernel.org>
+Message-Id: <177754112702.3678889.4847926893667561974.robh@kernel.org>
+Subject: Re: [PATCH v4 1/3 net-next] dt-bindings: net: add
+ st,stlc4560/p54spi binding
 
-From: Arnd Bergmann <arnd@arndb.de>
 
-Converted from the platform_device creation in board-n8x0.c.
+On Thu, 30 Apr 2026 10:12:40 +0200, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+> 
+> The SPI version of Prism54 was sold under a couple of different
+> names and supported by the Linux p54spi driver, but there was
+> never a DT binding for it.
+> 
+> Document the four known names of this device and the properties
+> that are sufficient for its use on the Nokia N8x0 tablet.
+> 
+> As I don't have this hardware or documentation for it, this is
+> purely based on existing usage in the driver.
+> 
+> Link: https://lore.kernel.org/all/e8dc9acb-6f85-e0a9-a145-d101ca6da201@gmail.com/
+> Acked-by: Christian Lamparter <chunkeey@gmail.com>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> v4: renamed file to st,stlc4560, matching the primary compatible string
+>     require st,stlc4560 string
+> ---
+>  .../bindings/net/wireless/st,stlc4560.yaml    | 61 +++++++++++++++++++
+>  MAINTAINERS                                   |  1 +
+>  2 files changed, 62 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/net/wireless/st,stlc4560.yaml
+> 
 
-Link: https://lore.kernel.org/all/20230314163201.955689-1-arnd@kernel.org/
-Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm/boot/dts/ti/omap/omap2.dtsi                |  4 ++++
- arch/arm/boot/dts/ti/omap/omap2420-n8x0-common.dtsi | 12 ++++++++++++
- 2 files changed, 16 insertions(+)
+My bot found errors running 'make dt_binding_check' on your patch:
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap2.dtsi b/arch/arm/boot/dts/ti/omap/omap2.dtsi
-index afabb36a8ac1..fdc1790adf43 100644
---- a/arch/arm/boot/dts/ti/omap/omap2.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap2.dtsi
-@@ -129,6 +129,8 @@ i2c2: i2c@48072000 {
- 		};
- 
- 		mcspi1: spi@48098000 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
- 			compatible = "ti,omap2-mcspi";
- 			ti,hwmods = "mcspi1";
- 			reg = <0x48098000 0x100>;
-@@ -140,6 +142,8 @@ mcspi1: spi@48098000 {
- 		};
- 
- 		mcspi2: spi@4809a000 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
- 			compatible = "ti,omap2-mcspi";
- 			ti,hwmods = "mcspi2";
- 			reg = <0x4809a000 0x100>;
-diff --git a/arch/arm/boot/dts/ti/omap/omap2420-n8x0-common.dtsi b/arch/arm/boot/dts/ti/omap/omap2420-n8x0-common.dtsi
-index 63b0b4921e4e..fe9dd8bbfc85 100644
---- a/arch/arm/boot/dts/ti/omap/omap2420-n8x0-common.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap2420-n8x0-common.dtsi
-@@ -109,3 +109,15 @@ partition@5 {
- 		};
- 	};
- };
-+
-+&mcspi2 {
-+	status = "okay";
-+
-+	wifi@0 {
-+		reg = <0>;
-+		compatible = "st,stlc4560";
-+		spi-max-frequency = <48000000>;
-+		interrupts-extended = <&gpio3 23 IRQ_TYPE_EDGE_RISING>;
-+		powerdown-gpios = <&gpio4 1 GPIO_ACTIVE_LOW>; /* gpio 97 */
-+	};
-+};
--- 
-2.39.5
+yamllint warnings/errors:
+
+dtschema/dtc warnings/errors:
+/builds/robherring/dt-review-ci/linux/Documentation/devicetree/bindings/net/wireless/st,stlc4560.yaml: $id: Cannot determine base path from $id, relative path/filename doesn't match actual path or filename
+ 	 $id: http://devicetree.org/schemas/net/wireless/st,stlc45xx.yaml
+ 	file: /builds/robherring/dt-review-ci/linux/Documentation/devicetree/bindings/net/wireless/st,stlc4560.yaml
+
+doc reference errors (make refcheckdocs):
+Warning: MAINTAINERS references a file that doesn't exist: Documentation/devicetree/bindings/net/wireless/st,stlc45xx.yaml
+MAINTAINERS: Documentation/devicetree/bindings/net/wireless/st,stlc45xx.yaml
+
+See https://patchwork.kernel.org/project/devicetree/patch/20260430081242.3686993-2-arnd@kernel.org
+
+The base for the series is generally the latest rc1. A different dependency
+should be noted in *this* patch.
+
+If you already ran 'make dt_binding_check' and didn't see the above
+error(s), then make sure 'yamllint' is installed and dt-schema is up to
+date:
+
+pip3 install dtschema --upgrade
+
+Please check and re-submit after running the above command yourself. Note
+that DT_SCHEMA_FILES can be set to your schema file to speed up checking
+your schema. However, it must be unset to test all examples with your schema.
 
