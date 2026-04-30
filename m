@@ -1,19 +1,19 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9F7D31F9A3;
-	Thu, 30 Apr 2026 15:33:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5D9E3016F1;
+	Thu, 30 Apr 2026 15:33:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777563227; cv=none; b=JrKClcCPmvugzBTgtaMPbcWcaZgVkEMJ+N5l7/aoOJZ2Jyc+6NW98BSJ0zTZWl2491sW65CdBZsQQZD5K0MTkTetn8GcgfpUXkMc/tJhquxfOZVJdqh8X5ps3io/NMQmcffOZfLHIu6gJMQrXuyBHwlOPkeYwXHoEZgCE75qpnI=
+	t=1777563231; cv=none; b=FRn5IH2QY3pnFJKVAo8xx96hxfef6CS64+LNJqqG4TmMHNF2/21JjYKQLdkVFmvLqVabzm+DDZWSS1mloz1C1SsDdb1/4bhTEwhviW2avdpZy5lUPUR7AojKShap8nitNEXm0kXHnU56DsPVQZd+HQboTbH4LEmc7rP/6ruvHEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777563227; c=relaxed/simple;
-	bh=aIyoNAj5rUTLLb9C21t0YUvB4rf1DO5cACrPoFhslLo=;
+	s=arc-20240116; t=1777563231; c=relaxed/simple;
+	bh=FOAw4AWbp77lx2wLlMA4jgFLHWN35/kBTPKtS2uBMh4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jxTsLMrq3N7FX1BSJEO41ytNhgoeJcwsVOytOjJHzzLG1W4DVRwDbG24GncqmLzjdHoZYq3pMvw3DM3KEUOK2e4L0jMLu9cELSb5XUGm0mMYvJahqqYMmRcXHTlnNSE6S3O7CFCr+0IFaGWknmDXsHS6C/bJg9f1GpFrEUj9wHE=
+	 MIME-Version; b=hWYQ91iFKCkHNSOCoj1qRoWVUbtF1j20EVsbqhe0BbeFWUxeZlfM6K4gZceuF1Y+MxeovnR9WC6EBBLDTohCi2yA4VgFC9aRSwgOVuKpO7a0TebL3+EJu8cZdRTOis72338fkLEDOgRtBOZ7MAINfkb6MPXd6fDKzspCO3yoTO4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1EABC2BCB3;
-	Thu, 30 Apr 2026 15:33:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E97E7C2BCB9;
+	Thu, 30 Apr 2026 15:33:47 +0000 (UTC)
 From: Geert Uytterhoeven <geert+renesas@glider.be>
 To: Linus Walleij <linusw@kernel.org>,
 	Lorenzo Bianconi <lorenzo@kernel.org>,
@@ -32,9 +32,9 @@ Cc: linux-gpio@vger.kernel.org,
 	linux-omap@vger.kernel.org,
 	linux-renesas-soc@vger.kernel.org,
 	Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH 3/7] pinctrl: ingenic: Fix type in .pin_config_group_get() callback
-Date: Thu, 30 Apr 2026 17:33:14 +0200
-Message-ID: <9f50c234c44af9075b5252ee7e59452ed2179b27.1777562725.git.geert+renesas@glider.be>
+Subject: [PATCH 4/7] pinctrl: mediatek: moore: Fix type in .pin_config_group_get() callback
+Date: Thu, 30 Apr 2026 17:33:15 +0200
+Message-ID: <ebdc02536f922f2261d6d338a6afa234015621ff.1777562725.git.geert+renesas@glider.be>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1777562725.git.geert+renesas@glider.be>
 References: <cover.1777562725.git.geert+renesas@glider.be>
@@ -50,20 +50,17 @@ On 64-bit platforms, "unsigned long" is 64-bit.  Hence checking if all
 "unsigned long" configuration values are equal should be done using an
 "unsigned long" temporary.
 
-While Ingenic is a 32-bit platform, it is still better to use the
-correct type, to serve as an example.
-
 Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
- drivers/pinctrl/pinctrl-ingenic.c | 3 ++-
+ drivers/pinctrl/mediatek/pinctrl-moore.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/pinctrl/pinctrl-ingenic.c b/drivers/pinctrl/pinctrl-ingenic.c
-index c7f14546de0528de..29d7f4e54bc7b126 100644
---- a/drivers/pinctrl/pinctrl-ingenic.c
-+++ b/drivers/pinctrl/pinctrl-ingenic.c
-@@ -4334,7 +4334,8 @@ static int ingenic_pinconf_group_get(struct pinctrl_dev *pctldev,
- 		unsigned int group, unsigned long *config)
+diff --git a/drivers/pinctrl/mediatek/pinctrl-moore.c b/drivers/pinctrl/mediatek/pinctrl-moore.c
+index 071ba849e5322396..17e30f83dc1972c0 100644
+--- a/drivers/pinctrl/mediatek/pinctrl-moore.c
++++ b/drivers/pinctrl/mediatek/pinctrl-moore.c
+@@ -402,7 +402,8 @@ static int mtk_pinconf_group_get(struct pinctrl_dev *pctldev,
+ 				 unsigned int group, unsigned long *config)
  {
  	const unsigned int *pins;
 -	unsigned int i, npins, old = 0;
