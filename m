@@ -1,81 +1,90 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDB23FE656
-	for <linux-omap@vger.kernel.org>; Thu, 30 Apr 2026 14:19:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C9BA1A0B15;
+	Thu, 30 Apr 2026 15:33:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777558761; cv=none; b=mYJyyaT6HXyg49Dx92xFAkOOFYtXNrW7f/ojZOqNnBBX8I0zBzsNqA9R4EWujpvFDoZJkaiJpY8X1G016S0YY8/jtCGaZ/ftxXEcNZaxQliVEmfqNoNGdDN0EXkqQF9UL11G0m+r9/nmGDcbam9vCm/Ekka/cRo0u0ekvmxjWpM=
+	t=1777563215; cv=none; b=CsOglZNQ3CkLQrB/r+vv/esvq0xsFuCIZ5UfDxZc/6KsOBurXbZfJ4xBa0w8aRycBVC4fB8AXHn/HMT9uwUn0cRbEXMYgOrDcyCzPEabQ1/UMLE8Sqm+3rnqI+wliRz+7Iz0fTRUDDdruN2FHwTQpw58bFQAGxizuM/yDduxRhM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777558761; c=relaxed/simple;
-	bh=F/klmbLlHjty1gUUHqY2Dbg+r9lnLNSpnZBORzQfjJQ=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=BIg1tIBwrBmnlbI7sAXGBYcKTQ8IVQjGqAzKoWt2byZk/1F/OZcULFbS2WbdlUSTVpYP60x/W3msFC+SoBvjuxrBHn7N+7E4aDb20dELWW0jYZKmpVvlxVR+kBKFUpGX0yV1It8Oz6H/DqNOwVjinIj2QerDZ/6WKT8T36LIKSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I4P/LG7t; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I4P/LG7t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74F3EC4AF0F
-	for <linux-omap@vger.kernel.org>; Thu, 30 Apr 2026 14:19:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777558761;
-	bh=F/klmbLlHjty1gUUHqY2Dbg+r9lnLNSpnZBORzQfjJQ=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc:From;
-	b=I4P/LG7tkJ62TA4BzqdV5EF2UiWWFowy2id1mu3WJfGMqtDHJ6CGzB8xg+DjTBfUx
-	 inXNM5WQe+V6D/jPCfVPl5ILLXQmTIvGFx7hID3c3XT0BADAKicUNCVfheKbTczbIO
-	 PNUBpb7TiNv2hz623mQEGrU/zjTtAYPUpdK92zUChqA95lVwllzBAU1v3PQF0m6AQF
-	 ZVRQsq7Kkd6RDCTPyeveaeOH5V+cbiUsiroG5VGU+W4cC6SCy6h56gPq5H13IRsEbH
-	 WQHZT2zVf+Q0Fba+E9f4kuYAcfqp6jTvQRUrlABUY3UojE7mOJN52qYH7cGQ+pdlgW
-	 qac9vM6Gv/JKw==
-Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-38e97e73234so9394721fa.1
-        for <linux-omap@vger.kernel.org>; Thu, 30 Apr 2026 07:19:21 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/Nadlu3jER4jowH7UejS7t4ko53GfpeWSiiCywKarrheoS/esEzdkIAxd0B06bS7Sgewb4UuOLcpfC@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx+o+aBTqw5QsssL86w/JHZeNfBUxuDL2+6+P/maCTLZ2YoKSTZ
-	OI8RBZ8L3HEpyV37nl6TVBxsaA2H5i0gdp4iIkWLQ1/zrdJX6Ss8t0TDz/o/P35hS0piSH66EHW
-	3sk5HKr/8DWdd2rBr2WPUJjP28s95RFDpXB567woiqw==
-X-Received: by 2002:a05:6512:2385:b0:5a4:18cb:884e with SMTP id
- 2adb3069b0e04-5a8522d7f89mr1123970e87.26.1777558760093; Thu, 30 Apr 2026
- 07:19:20 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 30 Apr 2026 14:19:19 +0000
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 30 Apr 2026 14:19:18 +0000
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <20260430081242.3686993-4-arnd@kernel.org>
+	s=arc-20240116; t=1777563215; c=relaxed/simple;
+	bh=e6NeHJJSWzZxYPocOW+k/EErrtmq3OJF2KLkL+vdVdA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OZA6K6T7nWLyTHSxJ8EHCLkA0rcunPPQSRwPtrIhns9TNvB3LgWeu8bJ6Tli1TA93stb9dTL0h1wAhWlGrGEwBJ8zdkjq/kcZEmClXXH6SewcgP6jzT8CJVz/2cI/pumUhNkuekdM2gfMvi9i7BFwGc2kjZKX2DcccrVMfbHAoM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD608C2BCB3;
+	Thu, 30 Apr 2026 15:33:31 +0000 (UTC)
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+To: Linus Walleij <linusw@kernel.org>,
+	Lorenzo Bianconi <lorenzo@kernel.org>,
+	Sean Wang <sean.wang@kernel.org>,
+	Paul Cercueil <paul@crapouillou.net>,
+	Tony Lindgren <tony@atomide.com>,
+	Haojian Zhuang <haojian.zhuang@linaro.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+Cc: linux-gpio@vger.kernel.org,
+	linux-mediatek@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-mips@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-omap@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH 0/7] pinctrl: Fix types in .pin_config_group_get() callbacks
+Date: Thu, 30 Apr 2026 17:33:11 +0200
+Message-ID: <cover.1777562725.git.geert+renesas@glider.be>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260430081242.3686993-1-arnd@kernel.org> <20260430081242.3686993-4-arnd@kernel.org>
-Date: Thu, 30 Apr 2026 14:19:18 +0000
-X-Gmail-Original-Message-ID: <CAMRc=MeYOxDdpS=AEMX7ChHcPTOsz1+DxuSNcNtV4PwOagwyUw@mail.gmail.com>
-X-Gm-Features: AVHnY4IpV9J_wm_g1EdQYCGOE-gGqU5pWdF_TAuz210HOf5B8hJhqLIEur523_Q
-Message-ID: <CAMRc=MeYOxDdpS=AEMX7ChHcPTOsz1+DxuSNcNtV4PwOagwyUw@mail.gmail.com>
-Subject: Re: [PATCH v4 3/3 omap] ARM: dts: omap2: add stlc4560 spi-wireless node
-To: Arnd Bergmann <arnd@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Andreas Kemnade <andreas@kemnade.info>, Bartosz Golaszewski <brgl@kernel.org>, 
-	=?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, 
-	"David S. Miller" <davem@davemloft.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
-	Eric Dumazet <edumazet@google.com>, Felipe Balbi <balbi@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
-	Johannes Berg <johannes@sipsolutions.net>, Kevin Hilman <khilman@baylibre.com>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Linus Walleij <linusw@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Rob Herring <robh+dt@kernel.org>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
-	linux-wireless@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, 
-	Krzysztof Kozlowski <krzk@kernel.org>, netdev@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-On Thu, 30 Apr 2026 10:12:42 +0200, Arnd Bergmann <arnd@kernel.org> said:
-> From: Arnd Bergmann <arnd@arndb.de>
->
-> Converted from the platform_device creation in board-n8x0.c.
->
-> Link: https://lore.kernel.org/all/20230314163201.955689-1-arnd@kernel.org/
-> Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
+	Hi all,
 
-Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+On 64-bit platforms, "unsigned long" is 64-bit.  However, when checking
+if all "unsigned long" configuration values passed to the
+.pin_config_group_get() callback are equal, several drivers use a 32-bit
+temporary.  Fortunately this works, as currently all configuration
+values fit in 32-bit.
+
+This series makes the code cleaner and more future-proof by changing the
+types of all temporaries to unsigned long.
+
+I intend to queue patches 5 and 6 in renesas-pinctrl for v7.2.
+Thanks for your comments!
+
+Geert Uytterhoeven (7):
+  pinctrl: airoha: Fix type in .pin_config_group_get() callback
+  pinctrl: equilibrium: Fix type in .pin_config_group_get() callback
+  pinctrl: ingenic: Fix type in .pin_config_group_get() callback
+  pinctrl: mediatek: moore: Fix type in .pin_config_group_get() callback
+  pinctrl: renesas: rzg2l: Fix type in .pin_config_group_get() callback
+  pinctrl: renesas: rzv2m: Fix type in .pin_config_group_get() callback
+  pinctrl: single: Fix type in .pin_config_group_get() callback
+
+ drivers/pinctrl/mediatek/pinctrl-airoha.c | 2 +-
+ drivers/pinctrl/mediatek/pinctrl-moore.c  | 3 ++-
+ drivers/pinctrl/pinctrl-equilibrium.c     | 3 ++-
+ drivers/pinctrl/pinctrl-ingenic.c         | 3 ++-
+ drivers/pinctrl/pinctrl-single.c          | 3 ++-
+ drivers/pinctrl/renesas/pinctrl-rzg2l.c   | 3 ++-
+ drivers/pinctrl/renesas/pinctrl-rzv2m.c   | 3 ++-
+ 7 files changed, 13 insertions(+), 7 deletions(-)
+
+-- 
+2.43.0
+
+Gr{oetje,eeting}s,
+
+						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
