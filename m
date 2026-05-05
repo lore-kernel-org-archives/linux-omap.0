@@ -1,54 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06296401A30
-	for <linux-omap@vger.kernel.org>; Tue,  5 May 2026 10:37:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02A1E406286
+	for <linux-omap@vger.kernel.org>; Tue,  5 May 2026 10:42:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777977448; cv=none; b=rvimUOnxM52BBRb97lIa8RJAHZGe8WP1g89ss94etJtCV9LhBQwo59VqAEbywqEGP/s/1Lyy8sZiDFU/eZJDXdxA+k+zr+uQ6bGRIDKDuVZySBjjiBdRyhsB0m2M9J9S9YgZk/mHsldMpkRA0GK1zSQHht5epHkwelw6jfMbdr4=
+	t=1777977727; cv=none; b=aBRZE3EBZhUpSYtL5LANMt9/9hIaZZbePyy4/Y5gk6iMfDIAwuZ0/HlO5Th/FIbqger5eBjx1A80uKAQQbdPpqirTbGbceQvyXLJjrbHBZmTsJjqSj0sXoAViV1ipmYPs0oD7nrJeEQYwVx+HO1726f0mTmAEI7tobHi763YxGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777977448; c=relaxed/simple;
-	bh=O1k9EcQ6FxBoy0l3c2OuSS9sgdShv8hsm/6tH6dR92Y=;
+	s=arc-20240116; t=1777977727; c=relaxed/simple;
+	bh=QAxbkpqBCKTE79BmMO4+ohI26sWtDnSzhbxpx26l2V8=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CPpW4OKs8MCGP0FrOgKfvvW4rdtqpxGz4rhsqM6XC0hwr4JDjJ43XsPRoYhi6czdWyjrq6BUQGwUtUVvp2JzAzuxgpzDD7Uv55y0a6RHRVUjNr+yOPIy7XA7O4Fj+HBAh6akZ7RV/NWPxUn5dTxkTNwFG85miT5ciYeELm503LY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ThXqo6e1; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=WhVpjw+WQo4WsYaYNsKzLKVdG3Pq8JEdAMkpQjXHn+rcNqwCvVP47L45j/orXAZiDsiaez2OU2CNtO1Tu9cQKI24QBWGYMYkFs0/DPjuaHkyypg0tDF93Y6FzFIYTM9LU4HMnmZaiV/s76pw4RclzEskZ6tZEFov/t7RoOEyXbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iB3LP/gB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ThXqo6e1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3116C4AF10
-	for <linux-omap@vger.kernel.org>; Tue,  5 May 2026 10:37:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iB3LP/gB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF938C2BCFF
+	for <linux-omap@vger.kernel.org>; Tue,  5 May 2026 10:42:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777977447;
-	bh=O1k9EcQ6FxBoy0l3c2OuSS9sgdShv8hsm/6tH6dR92Y=;
+	s=k20201202; t=1777977726;
+	bh=QAxbkpqBCKTE79BmMO4+ohI26sWtDnSzhbxpx26l2V8=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=ThXqo6e1rU/ERqtjJ0/iY65yI8g5OKLcudnQZ3mErUhAINOrMK1kRvatSEjw/aymI
-	 tyz8uJRT1H94QGgZgJpAmZBEKhwt+k5rgNB1+fkpLK6nLklda575BySe/kvkxgxrPi
-	 4W4L5829nXgbOk8BtTeUl/Z1/JKX8WvgnQyTT/G/C2RqdSFvkvX15ABfdQAGXz0o+b
-	 D/ZCmpEQgi4ZUdCkmV11FwMv4ggLphaQeEJBgZf95MrOsV40mnU3Z3cVRoeVPy2qze
-	 cR69WrZjNFzSklu/jNHQ4VFhLVhhXLbkcI7VGXwzxbLWJ0Wa6iULmA64C8/m9NpmJ3
-	 T6+DsTjTPuThg==
-Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5a40b2bc96dso5601928e87.3
-        for <linux-omap@vger.kernel.org>; Tue, 05 May 2026 03:37:27 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/JLTEPIvT4n8zj40yzPekg9iY379wFvRNl2UO8feaQP0fnt3yr9ilxV6SEUgcS9GtjB17SAcfNLsrD@vger.kernel.org
-X-Gm-Message-State: AOJu0YzhfmgmMIdDBDMKXoukgBc5lk3Vhe42WP2FxhzP/tCKCHt6sYz/
-	ByuEjGL8Ofc8ry9WDT9X0h7t091XvXbMzcSN1Q4NEcDK51IFcGDKZ2rc03mCEXyR1gbeAa32j8f
-	PzxYdcU51FrfHOk4k9fL1th0T3BUiiUI=
-X-Received: by 2002:a05:6512:3095:b0:5a8:8222:7fbb with SMTP id
- 2adb3069b0e04-5a882228046mr652967e87.34.1777977446254; Tue, 05 May 2026
- 03:37:26 -0700 (PDT)
+	b=iB3LP/gBTdkL681ekJ6SD7SzFnjeEi0S7q13Uso5teGhN4R9KYvcrXC4myk/6zJ9Y
+	 2psnd+tfE0mclve2Zz2qh9NG4Ht3aPQe37v+qJerfkOQ/ImhraqadrpeVodLewPo12
+	 PaU+AnLGj7Tf7GtmVl9ZyCQgl973aaKYdipuKSCq4BUg6N3orsVxuXcZyb3FQoBELf
+	 CBUarz8RynkQW0ZE/REclid3FDXRanLQIi+zq/ELKKn4xQaMeymZPrk7vs5czGy2ER
+	 c9Ac3gL9ItUiB9KwHsuNCbxzkt7LXDN+O76QcEREmz/T3dpZfcxc/ZocILw7NNJLph
+	 im4ok6XRSXD/Q==
+Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-392445f11c5so67348721fa.1
+        for <linux-omap@vger.kernel.org>; Tue, 05 May 2026 03:42:06 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+j3Pwpy8M0pYHpXGKSSWpOohwSf73yOS72RJMHsQ2y1UvL9I/zrPvcirHftduzOVKwtJyDN4lASNIu@vger.kernel.org
+X-Gm-Message-State: AOJu0YzgKcZor1TxI/OLcpuf3iLI82xfV0OvpZnaRnnIVaCLznRWenS3
+	gjBQjS+1FRE/CPuIv4GuRhy+9J/s8BYAe967j566zH9iwmvsEVBdDAHQaOCL9kdyvJgzBdScWMr
+	e2wAFJ7Nyqenn2Luu2jghsnn2sUz60Hw=
+X-Received: by 2002:a2e:bc09:0:b0:393:9cf1:78a with SMTP id
+ 38308e7fff4ca-393b2bda7c5mr11198661fa.22.1777977725320; Tue, 05 May 2026
+ 03:42:05 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260430081242.3686993-1-arnd@kernel.org> <20260430081242.3686993-3-arnd@kernel.org>
-In-Reply-To: <20260430081242.3686993-3-arnd@kernel.org>
+References: <20260430081242.3686993-1-arnd@kernel.org> <20260430081242.3686993-4-arnd@kernel.org>
+In-Reply-To: <20260430081242.3686993-4-arnd@kernel.org>
 From: Linus Walleij <linusw@kernel.org>
-Date: Tue, 5 May 2026 12:37:12 +0200
-X-Gmail-Original-Message-ID: <CAD++jL=tgW74cF_e+4Ak7cV_pUCYo3koqmZ6vNR9SQiUsb2zUA@mail.gmail.com>
-X-Gm-Features: AVHnY4Kta7CTuYHDE7Wgt7oimq4LNXS-PqBiYhrkb4K1P_cfZhJR-Ui5oKw0IfI
-Message-ID: <CAD++jL=tgW74cF_e+4Ak7cV_pUCYo3koqmZ6vNR9SQiUsb2zUA@mail.gmail.com>
-Subject: Re: [PATCH v4 2/3 net-next] p54spi: convert to devicetree
+Date: Tue, 5 May 2026 12:41:51 +0200
+X-Gmail-Original-Message-ID: <CAD++jLkDmQ5eK3Lzg4N2X=_iQMoeh9TWh67hvOLBh1r_x=afoQ@mail.gmail.com>
+X-Gm-Features: AVHnY4LQ-69b-VeuKsX-tQijtzj4ctkK9Gpn7v8pkwosSSN69m0jMPm2kOmRFFg
+Message-ID: <CAD++jLkDmQ5eK3Lzg4N2X=_iQMoeh9TWh67hvOLBh1r_x=afoQ@mail.gmail.com>
+Subject: Re: [PATCH v4 3/3 omap] ARM: dts: omap2: add stlc4560 spi-wireless node
 To: Arnd Bergmann <arnd@kernel.org>
 Cc: netdev@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, 
 	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
@@ -60,7 +60,7 @@ Cc: netdev@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
 	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, 
 	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org, 
-	linux-omap@vger.kernel.org, Christian Lamparter <chunkeey@gmail.com>
+	linux-omap@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
@@ -69,15 +69,11 @@ ote:
 
 > From: Arnd Bergmann <arnd@arndb.de>
 >
-> The Prism54 SPI driver hardcodes GPIO numbers and expects users to
-> pass them as module parameters, apparently a relic from its life as a
-> staging driver. This works because there is only one user, the Nokia
-> N8x0 tablet.
+> Converted from the platform_device creation in board-n8x0.c.
 >
-> Convert this to the gpio descriptor interface and DT based probing
-> to improve this and simplify the code at the same time.
->
-> Acked-by: Christian Lamparter <chunkeey@gmail.com>
+> Link: https://lore.kernel.org/all/20230314163201.955689-1-arnd@kernel.org=
+/
+> Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
 Reviewed-by: Linus Walleij <linusw@kernel.org>
