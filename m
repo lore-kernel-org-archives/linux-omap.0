@@ -1,125 +1,201 @@
-Received: from mail-dy1-f176.google.com (mail-dy1-f176.google.com [74.125.82.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.4])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B5FF392C28
-	for <linux-omap@vger.kernel.org>; Tue,  5 May 2026 04:45:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 200413C9EFB;
+	Tue,  5 May 2026 06:30:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777956329; cv=none; b=foeKkua/4yk6l5tnUqKkBjFxgEFynndHAVSmuy6+aU1gPsVNVp9yPItUIHZS6wC95qCGM4979E+kQK/w9x9HmbilH217Bb5yAiNhMPIqQcrcNC9ChnflMNhKBaUc5qCAcSZp1cfbX58tHxs5pdDmle64P5W7L0WsiVhQhqZwKpU=
+	t=1777962607; cv=none; b=ilTBljF/MG4mvVUA+xKquKgVQGd+6S9VcGx9N4qyik+ZUJ5yBKQnh/uBH00sVvAJwxo70+JoNFT071hYta7euyUJvEZDKgveK0qH/ZaFXipYmbAQ/3nX4vCNdyDslGeFf+nAAA/fjLT3iZZLKmn1osatZULg8NW8GrDCNGEXDN0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777956329; c=relaxed/simple;
-	bh=QlNQ1CHW07FnLlbPXvDmNwAFbmH5P+YPv/EZqeHbcAI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mWqULsaGbLKVDzNP4w28tAKc6/WxFG7zeCEpqTdBU2ww3T68/wSJPnZVMJ7t2Sqo4odotI7JATqw5L2rJZLv/cRndS0i+dIGuXdv3b3HLuJmMibWSuneqUPe7v8yXPtTY75S+Fu2cqX2JqWAv9WUF5zJof7Wb9HELgF1xdnEE/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=g+bAjIEh; arc=none smtp.client-ip=74.125.82.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1777962607; c=relaxed/simple;
+	bh=Gshdy4KsJzWqCiRNt8lQefnoup6TCmp8iBuVAHQYh7c=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=PXrwhGDUPsxxDKWULCIf6sdmnumMDPAKtyGoDIGYipKCpV4qo7ci3uO9qinaWWWgC+4QYgqxxMBRO+PGbiTLA9Frwsg7snnrmKCt2RREG6/cSLmgSr81GLuwqw6fPgvfO+SUFmfpaV9oNXNXnmY4sEQtvVi1m0DgmWQsomgF5G4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=dGVv4kpf; arc=none smtp.client-ip=220.197.31.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g+bAjIEh"
-Received: by mail-dy1-f176.google.com with SMTP id 5a478bee46e88-2f0ad52830cso3284384eec.1
-        for <linux-omap@vger.kernel.org>; Mon, 04 May 2026 21:45:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777956327; x=1778561127; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Kc0Sy8vq6FNzAEiI6/Rmeu/zFs4QicwXo3tqvVWtkD8=;
-        b=g+bAjIEhB1SaZf26lNKgGUzuHjpN5QKWnsNc+o+o61AHhQTaUm7dfpypcGplgRZGuo
-         +/cVvSK4YzlrIZrTLnhg5vKPJPgC5uJzyzI8QUD3FJTzqWfcaUEXBLOe2FEMWROVSkGL
-         ms6D5timZBcSAezIC9j9otElTJ7pMqTfkS9yjQQIxCAZQ7yjIvoIi2E8Osi5tFcJdZAx
-         gSfYER3d7mrixvGSmLFchmmM1bAOQLJfrgJe77enSuycVmkodt/vT+tc/UtL6AnlGVoM
-         Kw7ZVCWNI37ZQCzaG+9PwDDu7MZjWto2AdBMV09fwPuY1jrwLF9B7QQP+op0RGnqt1LN
-         DmTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777956327; x=1778561127;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Kc0Sy8vq6FNzAEiI6/Rmeu/zFs4QicwXo3tqvVWtkD8=;
-        b=B2vRVraUB9sS0W0IrrWsBNVp3+RMXVw5OAATQZtG20ccuI56Ve7vfm+4e3hhxeoEC7
-         695PI3uP3NChmLUAdKRsKx1hGIJ2kWfkfupUGj4LowAobZvm6bn2Sb8UdFpeY1BJTiZj
-         1CuzCCKtDehEs1C6esH5KprUb+z3tTHzHwECsIiH6nGllOUYkttebvP3LnJh1IhdX3jY
-         139KMXbLRDl6sHUGiZ9G9uQ6qjrC+lLtlILDGysjvUqt6AVEbWOjvhgnmnn25t8toEsX
-         0Uut4tu73ulCCQiPwczCwZTsh13CKurUI9WKvOQhZGTr1Yh9a6zvcDdU7OtHernTB3La
-         BC6w==
-X-Forwarded-Encrypted: i=1; AFNElJ+buftgM8xzuT1u2xGld1l11Z41eBc4/fdi7Pk63dF1rS7ZdoChGE1iMCufjf76B6AUIe6yW7q2RziQ@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy4+Qp8uOfGfdm/RePM2BEsjdbHzC340LrNiqJD7uemRUdmA9ap
-	33vG05OpK/balD+i73xJlTjoAPgK4d3d6geIEf7WG/SJRLnXsQhsukOQ
-X-Gm-Gg: AeBDieusFrp3eVI/zy8GvYvhwt3+Amy3LoGDutQwKKDD+sbi35FdQSK1BeT6KP4UjbM
-	kDJMki4CjFCZU23p0ZorHGSqaqnvJFQK/yiiGyJ6qy4h7IwKxAVOtTGO2TbvUSfsU8K3HnDSp85
-	v7wsiS3KQXXTNAV6KVy9ec5rRoccpF5lbcBQtfcb3/ABY7ejQ923oc0DeFKk+9brzb0PSUfkawL
-	uxMUnlQz4ktsDxaDbaoE0lPieaz6zuTzjV/6Bomr5HdRs1N8gdVXMBxA8jQYZ5SvMX14amxAA1J
-	XIxkX62DC7RjvcWSG6YXwRxkRZhMJhpx7FNkAZ44tcWYcf4YIIbCF1dF1CFd2jhCj5JupSCAgws
-	Gh2Qzua8+GFEqOdd0B0JaFiJQ7msMDEBGj9LLx3JjZdhkDmPyE2FPR0qNl1qG7VeFVfERLprbgX
-	PbR6eePyoc6CWWxroNBvbdDbSf2j2OJeW2oD++R6OFRoD87f/0hkeHc314JAMUY86mpGcGtsOnO
-	F0=
-X-Received: by 2002:a05:7300:5b9e:b0:2cf:28e8:d784 with SMTP id 5a478bee46e88-2efb9c84f2emr4962937eec.19.1777956327189;
-        Mon, 04 May 2026 21:45:27 -0700 (PDT)
-Received: from google.com ([2a00:79e0:2ebe:8:94ef:a6f3:2c96:2d58])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2f3bf67cf8dsm3627254eec.6.2026.05.04.21.45.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 May 2026 21:45:26 -0700 (PDT)
-Date: Mon, 4 May 2026 21:45:22 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Oleksij Rempel <o.rempel@pengutronix.de>, 
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, 
-	Linus Walleij <linusw@kernel.org>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] Input: ads7846 - restore half-duplex support
-Message-ID: <afl1zxCOyzd-al-N@google.com>
-References: <20260419161848.825831-1-aaro.koskinen@iki.fi>
- <20260419161848.825831-2-aaro.koskinen@iki.fi>
- <aeVu2-zlzl-fn1dN@google.com>
- <aeZ_M7jjisCExva8@darkstar.musicnaut.iki.fi>
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="dGVv4kpf"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Message-ID:Date:MIME-Version:Subject:To:From:
+	Content-Type; bh=mMW8AEGhMafvz4O5+74DGobnCil6TvXWOF0reU/8wjk=;
+	b=dGVv4kpfLQOtKe1W90YBYeq37NsDG0q3mgiZtNY4I3Vu6DXExg46Xh1QNmWoVk
+	hsIzTfkoNYC7nY5yQS/HFhc2St/qnnCH5kY/kdyHPdZyulsjOovGbEqUvGttAyK2
+	nUC+vzJJ3R2Wn+AXjYuZkjsGzT+P/zbgUE+HTLZEAlsq8=
+Received: from [192.168.50.71] (unknown [])
+	by gzga-smtp-mtada-g0-1 (Coremail) with SMTP id _____wCnTnkgjvlpV+DSDQ--.40732S2;
+	Tue, 05 May 2026 14:28:49 +0800 (CST)
+Message-ID: <25d5e524-d7b4-432d-8114-44d32b736732@163.com>
+Date: Tue, 5 May 2026 14:28:47 +0800
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aeZ_M7jjisCExva8@darkstar.musicnaut.iki.fi>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/2] PCI: cadence: Ensure that
+ cdns_pcie_host_wait_for_link() waits 100 ms after link up
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Siddharth Vadapalli <s-vadapalli@ti.com>, bhelgaas@google.com,
+ lpieralisi@kernel.org, kwilczynski@kernel.org, mani@kernel.org,
+ vigneshr@ti.com, robh@kernel.org, linux-omap@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20260504162216.GA646395@bhelgaas>
+Content-Language: en-US
+From: Hans Zhang <18255117159@163.com>
+In-Reply-To: <20260504162216.GA646395@bhelgaas>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wCnTnkgjvlpV+DSDQ--.40732S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxtF4ruF43JFy3AFy7ZF45trb_yoW7KrWUpa
+	yUGF1IkF4vqr45Z3Wvv3W5XrySqr98JFy7Xw1kKryxXrnFvr17tF42gF4agFy3Xr4qyr17
+	Zr1UtF9rGr1YyFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07U5sqAUUUUU=
+X-CM-SenderInfo: rpryjkyvrrlimvzbiqqrwthudrp/xtbCwwGEKGn5jiEdbwAA3j
 
-On Mon, Apr 20, 2026 at 10:32:03PM +0300, Aaro Koskinen wrote:
-> Hi,
+
+
+On 5/5/26 00:22, Bjorn Helgaas wrote:
+> On Mon, May 04, 2026 at 02:23:34PM +0800, Hans Zhang wrote:
+>> On 5/4/26 13:08, Siddharth Vadapalli wrote:
+>>> On 03/05/26 21:16, Hans Zhang wrote:
+>>>> On 5/2/26 13:18, Siddharth Vadapalli wrote:
+>>>>> On 01/05/26 21:05, Hans Zhang wrote:
+>>>>>> As per PCIe r6.0, sec 6.6.1, a Downstream Port that supports
+>>>>>> Link speeds
+>>>>>> greater than 5.0 GT/s, software must wait a minimum of 100
+>>>>>> ms after Link
+>>>>>> training completes before sending a Configuration Request.
+>>>>>>
+>>>>>> Add a new 'max_link_speed' field in struct cdns_pcie to record the
+>>>>>> maximum supported (or currently configured) link speed of
+>>>>>> the controller.
+>>>>>>
+>>>>>> In cdns_pcie_host_wait_for_link(), after the link is reported as up,
+>>>>>> insert a 100 ms delay if max_link_speed > 2 (i.e., > 5 GT/s). This
+>>>>>> implements the required delay at the common Cadence host layer.
+>>>>>>
+>>>>>> Currently max_link_speed is zero-initialized, so the delay is not yet
+>>>>>> active. Glue drivers must set max_link_speed appropriately to enable
+>>>>>> the delay. This matches the approach taken for the Synopsys DWC
+>>>>>> controller in commit 80dc18a0cba8d ("PCI: dwc: Ensure that
+>>>>>> dw_pcie_wait_for_link() waits 100 ms after link up").
+>>>>>>
+>>>>>> Signed-off-by: Hans Zhang <18255117159@163.com>
+>>>>>> ---
+>>>>>>    .../pci/controller/cadence/pcie-cadence-host-common.c    |
+>>>>>> 9 +++++ ++++
+>>>>>>    drivers/pci/controller/cadence/pcie-cadence.h            | 2 ++
+>>>>>>    2 files changed, 11 insertions(+)
+>>>>>>
+>>>>>> diff --git
+>>>>>> a/drivers/pci/controller/cadence/pcie-cadence-host- common.c
+>>>>>> b/drivers/pci/controller/cadence/pcie-cadence-host-common.c
+>>>>>> index 2b0211870f02..d4ae762f423f 100644
+>>>>>> --- a/drivers/pci/controller/cadence/pcie-cadence-host-common.c
+>>>>>> +++ b/drivers/pci/controller/cadence/pcie-cadence-host-common.c
+>>>>>> @@ -14,6 +14,7 @@
+>>>>>>    #include "pcie-cadence.h"
+>>>>>>    #include "pcie-cadence-host-common.h"
+>>>>>> +#include "../../pci.h"
+>>>>>>    #define LINK_RETRAIN_TIMEOUT HZ
+>>>>>> @@ -55,6 +56,14 @@ int cdns_pcie_host_wait_for_link(struct
+>>>>>> cdns_pcie *pcie,
+>>>>>>        /* Check if the link is up or not */
+>>>>>>        for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
+>>>>>>            if (pcie_link_up(pcie)) {
+>>>>>> +            /*
+>>>>>> +             * As per PCIe r6.0, sec 6.6.1, a Downstream Port that
+>>>>>> +             * supports Link speeds greater than 5.0 GT/s, software
+>>>>>> +             * must wait a minimum of 100 ms after Link training
+>>>>>> +             * completes before sending a Configuration Request.
+>>>>>> +             */
+>>>>>> +            if (pcie->max_link_speed > 2)
+>>>>>> +                msleep(PCIE_RESET_CONFIG_WAIT_MS);
+>>>>>
+>>>>> I think the above could be moved to cdns_pcie_host_start_link()
+>>>>> as follows:
+>>>>>
+>>>>> diff --git a/drivers/pci/controller/cadence/pcie-cadence-host-
+>>>>> common.c b/
+>>>>> drivers/pci/controller/cadence/pcie-cadence-host-common.c
+>>>>> index 2b0211870f02..0f885dcbdb12 100644
+>>>>> --- a/drivers/pci/controller/cadence/pcie-cadence-host-common.c
+>>>>> +++ b/drivers/pci/controller/cadence/pcie-cadence-host-common.c
+>>>>> @@ -115,6 +115,15 @@ int cdns_pcie_host_start_link(struct
+>>>>> cdns_pcie_rc *rc,
+>>>>>        if (!ret && rc->quirk_retrain_flag)
+>>>>>            ret = cdns_pcie_retrain(pcie, pcie_link_up);
+>>>>>
+>>>>> +    /*
+>>>>> +     * As per PCIe r6.0, sec 6.6.1, a Downstream Port that
+>>>>> +     * supports Link speeds greater than 5.0 GT/s, software
+>>>>> +     * must wait a minimum of 100 ms after Link training
+>>>>> +     * completes before sending a Configuration Request.
+>>>>> +     */
+>>>>> +    if (!ret && pcie->max_link_speed > 2)
+>>>>> +        msleep(PCIE_RESET_CONFIG_WAIT_MS);
+>>>>> +
+>>>>>        return ret;
+>>>>>    }
+>>>>>    EXPORT_SYMBOL_GPL(cdns_pcie_host_start_link);
+>>>>>
+>>>>> This will avoid an additional and unnecessary delay when
+>>>>> 'cdns_pcie_retrain()' retrains the link.
+>>>>>
+>>>>> Instead of checking for the link being up using
+>>>>> "pcie_link_up(pcie)", checking for 'ret' being zero should also
+>>>>> work (ret being zero indicates that the link is up).
+>>>>>
+>>>>> Since configuration space accesses will not be performed until
+>>>>> cdns_pcie_host_start_link() completes executing, it should be
+>>>>> safe to switch to the above implementation.
+>>>>
+>>>> Hi Siddharth,
+>>>>
+>>>> I think this is applicable to LGA IP as per the method you
+>>>> mentioned. However, for HPA IP, additional repetitive code needs to
+>>>> be added in the following code.
+>>>
+>>> Yes, additional code is required as you rightly pointed out, but the
+>>> problem I was trying to address with your patch is the following:
+>>>       cdns_pcie_host_start_link()
+>>>         calls cdns_pcie_host_wait_for_link()
+>>>           Link is Up and we wait for 100 ms here
+>>>         calls cdns_pcie_retrain()
+>>>             calls cdns_pcie_host_wait_for_link() a second time
+>>>               Link is Up again after retraining and we wait and
+>>>               we wait an additional 100 ms here.
+>>>
+>>> Instead, it will be sufficient if we could wait just once after
+>>> cdns_pcie_retrain() returns.
+>>
+>> Hi Siddharth,
+>>
+>> Yes, I looked at the code and indeed it works this way.
+>>
+>> Because of the abundance of redundant comments. I'm wondering if it's
+>> possible to encapsulate a helper function in the file
+>> drivers/pci/controller/pci-host-common.c, so that controller drivers like
+>> dwc and cadence can call this API. Or do you know where it would be
+>> appropriate to place it?
+>>
+>> Hello, Bjorn and Mani, I wonder what your opinions are.
 > 
-> On Sun, Apr 19, 2026 at 05:13:56PM -0700, Dmitry Torokhov wrote:
-> > > +static void ads7846_halfd_read_state(struct ads7846 *ts)
-> > > +{
-> > > +	struct ads7846_packet *packet = ts->packet;
-> > > +	int msg_idx = 0;
-> > > +
-> > > +	packet->ignore = false;
-> > > +
-> > > +	while (msg_idx < ts->msg_count) {
-> > > +		int error;
-> > > +
-> > > +		ads7846_wait_for_hsync(ts);
-> > > +
-> > > +		error = spi_sync(ts->spi, &ts->msg[msg_idx]);
-> > > +		if (error) {
-> > > +			dev_err_ratelimited(&ts->spi->dev, "spi_sync --> %d\n",
-> > > +					    error);
-> > > +			packet->ignore = true;
-> > > +			return;
-> > 
-> > Sashiko recommends trying to power down ADC on errors, what do you
-> > think?
+> Make a proposal.  Sounds fine to remove redundant comments if they
+> cause confusion.  Adding a helper to make things more consistent
+> across drivers also sounds fine, but it would be better to have a
+> straw-man proposal to respond to.
+
+Hi Bjorn,
+
+Thank you for your reply. I will then prepare the next version.
+
+Best regards,
+Hans
+
 > 
-> If we want to re-work error handling, then I guess it should be done the
-> same way for both full and half-duplex modes, and belongs to a separate
-> change set. This code has been in use quite a while, maybe 20 years,
-> and I haven't seen those errors in real use anyway, and AFAIK there
-> hasn't been any bug/problem reports by others either.
-> 
-> Maybe it wasn't so clearly stated in the commit message, but the patch
-> just restores the old code verbatim that was working fine for half-duplex
-> mode.
+> Bjorn
 
-Fair enough, applied.
-
-Thanks.
-
--- 
-Dmitry
