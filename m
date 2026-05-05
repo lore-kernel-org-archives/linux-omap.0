@@ -1,82 +1,86 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02A1E406286
-	for <linux-omap@vger.kernel.org>; Tue,  5 May 2026 10:42:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80F1F37F8A7
+	for <linux-omap@vger.kernel.org>; Tue,  5 May 2026 10:45:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777977727; cv=none; b=aBRZE3EBZhUpSYtL5LANMt9/9hIaZZbePyy4/Y5gk6iMfDIAwuZ0/HlO5Th/FIbqger5eBjx1A80uKAQQbdPpqirTbGbceQvyXLJjrbHBZmTsJjqSj0sXoAViV1ipmYPs0oD7nrJeEQYwVx+HO1726f0mTmAEI7tobHi763YxGg=
+	t=1777977944; cv=none; b=col39qQlBtmyBObx8lohTrlYlUb/Oc/OXWfHAObFeoKfAdxKkyh+rOSjWT/AUsVIWw40xojt2q/7b1tocF/5OVp7HVByyPh96sMQJIYjWLITJ8KchEft7W4pdMqt81LMGYBCLd+QbAmTRIKMbVOVHQnVnMV6/VQbP7/TjdKbXAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777977727; c=relaxed/simple;
-	bh=QAxbkpqBCKTE79BmMO4+ohI26sWtDnSzhbxpx26l2V8=;
+	s=arc-20240116; t=1777977944; c=relaxed/simple;
+	bh=TsTg/4UWC81TfUPMbovyHWMpmJYOhH0GyHDfnnm3vHk=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=WhVpjw+WQo4WsYaYNsKzLKVdG3Pq8JEdAMkpQjXHn+rcNqwCvVP47L45j/orXAZiDsiaez2OU2CNtO1Tu9cQKI24QBWGYMYkFs0/DPjuaHkyypg0tDF93Y6FzFIYTM9LU4HMnmZaiV/s76pw4RclzEskZ6tZEFov/t7RoOEyXbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iB3LP/gB; arc=none smtp.client-ip=10.30.226.201
+	 To:Cc:Content-Type; b=cEix52eA0VzBNn+mzbHU5Zfq7qgmUpAIgJ9Gr70kEoKsaYbHSsdGRk+SrUfxHYucAOHOapYsXlItWknbfkPcJxd/NRYFRwkOq+AujAYePhoeEMDjuze+MhD/P7X19SVTC5UDv6yWn28vzNKiA3lrUTWGQMe9H5JBOv74VNUO1/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kJ+tCkcS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iB3LP/gB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF938C2BCFF
-	for <linux-omap@vger.kernel.org>; Tue,  5 May 2026 10:42:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kJ+tCkcS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54E5AC2BD05
+	for <linux-omap@vger.kernel.org>; Tue,  5 May 2026 10:45:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1777977726;
-	bh=QAxbkpqBCKTE79BmMO4+ohI26sWtDnSzhbxpx26l2V8=;
+	s=k20201202; t=1777977944;
+	bh=TsTg/4UWC81TfUPMbovyHWMpmJYOhH0GyHDfnnm3vHk=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=iB3LP/gBTdkL681ekJ6SD7SzFnjeEi0S7q13Uso5teGhN4R9KYvcrXC4myk/6zJ9Y
-	 2psnd+tfE0mclve2Zz2qh9NG4Ht3aPQe37v+qJerfkOQ/ImhraqadrpeVodLewPo12
-	 PaU+AnLGj7Tf7GtmVl9ZyCQgl973aaKYdipuKSCq4BUg6N3orsVxuXcZyb3FQoBELf
-	 CBUarz8RynkQW0ZE/REclid3FDXRanLQIi+zq/ELKKn4xQaMeymZPrk7vs5czGy2ER
-	 c9Ac3gL9ItUiB9KwHsuNCbxzkt7LXDN+O76QcEREmz/T3dpZfcxc/ZocILw7NNJLph
-	 im4ok6XRSXD/Q==
-Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-392445f11c5so67348721fa.1
-        for <linux-omap@vger.kernel.org>; Tue, 05 May 2026 03:42:06 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ+j3Pwpy8M0pYHpXGKSSWpOohwSf73yOS72RJMHsQ2y1UvL9I/zrPvcirHftduzOVKwtJyDN4lASNIu@vger.kernel.org
-X-Gm-Message-State: AOJu0YzgKcZor1TxI/OLcpuf3iLI82xfV0OvpZnaRnnIVaCLznRWenS3
-	gjBQjS+1FRE/CPuIv4GuRhy+9J/s8BYAe967j566zH9iwmvsEVBdDAHQaOCL9kdyvJgzBdScWMr
-	e2wAFJ7Nyqenn2Luu2jghsnn2sUz60Hw=
-X-Received: by 2002:a2e:bc09:0:b0:393:9cf1:78a with SMTP id
- 38308e7fff4ca-393b2bda7c5mr11198661fa.22.1777977725320; Tue, 05 May 2026
- 03:42:05 -0700 (PDT)
+	b=kJ+tCkcSp6dpIN6tgYJu9sXU6+VcQHZ8W1zFFfUpjX8/2a9fzB+NHY0+oM5ubz08a
+	 EPwvgLTTDYnpinWIKHchn5Dy51BJeO15CBCAgYoSTfMYMpBVxh8eq8iobw7dkEcy1p
+	 BHY8T0doxouMzLmXwp0pTkjEuc2uxl3fShHQmUcuiJ1xAs/bHaG5CQCPo9Ijy+anqG
+	 8nDhUF6mRHTCmsDmQ+NizWo3zkHxEPZIhZX4S/XFacjjSr1vBb7Uq3txgsQiIMLnSx
+	 CyIuS4LHW+WbYQ1K3AhYpaaM6iGDu8+egCSAFp4PCGgCigVKMOK+OnXSLeMJ1kfQSO
+	 UqMCCoZtKUD2w==
+Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-39397d63804so22578061fa.2
+        for <linux-omap@vger.kernel.org>; Tue, 05 May 2026 03:45:44 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8Rmf5g4gmyoxSJUn872FsDKO9WgG/9Smcc5jzUgtw+kOESSRZVL3T76JeZYJMRbfxpsRimhiI7ipyx@vger.kernel.org
+X-Gm-Message-State: AOJu0YzPVkOY23mWNhfZlYdqzdE5T7BOAgDaRxhpuvYtUchmG3CG6dHD
+	IXCQR3EnS75dSorn/NOw+WyHljSiSBXkS4fRXZ8z0VoEPDT5/dnU8dAIxQEZf30nQn1UPd7hB8f
+	F+3hIS58v0MoTlSykqYT4FUr5Ka43CQU=
+X-Received: by 2002:a05:651c:4198:b0:393:a639:4a10 with SMTP id
+ 38308e7fff4ca-393a6394c4dmr22048921fa.15.1777977943005; Tue, 05 May 2026
+ 03:45:43 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260430081242.3686993-1-arnd@kernel.org> <20260430081242.3686993-4-arnd@kernel.org>
-In-Reply-To: <20260430081242.3686993-4-arnd@kernel.org>
+References: <cover.1777562725.git.geert+renesas@glider.be>
+In-Reply-To: <cover.1777562725.git.geert+renesas@glider.be>
 From: Linus Walleij <linusw@kernel.org>
-Date: Tue, 5 May 2026 12:41:51 +0200
-X-Gmail-Original-Message-ID: <CAD++jLkDmQ5eK3Lzg4N2X=_iQMoeh9TWh67hvOLBh1r_x=afoQ@mail.gmail.com>
-X-Gm-Features: AVHnY4LQ-69b-VeuKsX-tQijtzj4ctkK9Gpn7v8pkwosSSN69m0jMPm2kOmRFFg
-Message-ID: <CAD++jLkDmQ5eK3Lzg4N2X=_iQMoeh9TWh67hvOLBh1r_x=afoQ@mail.gmail.com>
-Subject: Re: [PATCH v4 3/3 omap] ARM: dts: omap2: add stlc4560 spi-wireless node
-To: Arnd Bergmann <arnd@kernel.org>
-Cc: netdev@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Bartosz Golaszewski <brgl@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, 
-	"David S. Miller" <davem@davemloft.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
-	Eric Dumazet <edumazet@google.com>, Felipe Balbi <balbi@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
-	Johannes Berg <johannes@sipsolutions.net>, Kevin Hilman <khilman@baylibre.com>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Rob Herring <robh+dt@kernel.org>, 
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org, 
-	linux-omap@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>
+Date: Tue, 5 May 2026 12:45:31 +0200
+X-Gmail-Original-Message-ID: <CAD++jLmg0-CviaWkzJi7xCvgwzz2KbVkmq-kqcWJ+2=uTNCoHg@mail.gmail.com>
+X-Gm-Features: AVHnY4J5V-rMG0dWh1E5TLlvveEO0urdyGOidGxFOXsPqvTO1NYgVMcBKduDto0
+Message-ID: <CAD++jLmg0-CviaWkzJi7xCvgwzz2KbVkmq-kqcWJ+2=uTNCoHg@mail.gmail.com>
+Subject: Re: [PATCH 0/7] pinctrl: Fix types in .pin_config_group_get() callbacks
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Lorenzo Bianconi <lorenzo@kernel.org>, Sean Wang <sean.wang@kernel.org>, 
+	Paul Cercueil <paul@crapouillou.net>, Tony Lindgren <tony@atomide.com>, 
+	Haojian Zhuang <haojian.zhuang@linaro.org>, Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
+	Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>, linux-gpio@vger.kernel.org, 
+	linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	linux-mips@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 30, 2026 at 10:13=E2=80=AFAM Arnd Bergmann <arnd@kernel.org> wr=
-ote:
+On Thu, Apr 30, 2026 at 5:33=E2=80=AFPM Geert Uytterhoeven
+<geert+renesas@glider.be> wrote:
 
-> From: Arnd Bergmann <arnd@arndb.de>
+> On 64-bit platforms, "unsigned long" is 64-bit.  However, when checking
+> if all "unsigned long" configuration values passed to the
+> .pin_config_group_get() callback are equal, several drivers use a 32-bit
+> temporary.  Fortunately this works, as currently all configuration
+> values fit in 32-bit.
 >
-> Converted from the platform_device creation in board-n8x0.c.
+> This series makes the code cleaner and more future-proof by changing the
+> types of all temporaries to unsigned long.
 >
-> Link: https://lore.kernel.org/all/20230314163201.955689-1-arnd@kernel.org=
-/
-> Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> I intend to queue patches 5 and 6 in renesas-pinctrl for v7.2.
+> Thanks for your comments!
 
-Reviewed-by: Linus Walleij <linusw@kernel.org>
+Excellent work Geert, thanks for noticing and fixing this!
+
+I applied patches 1, 2, 3, 4 and 7 to the pin control
+tree, leaving off the Renesas patches so you can keep the
+Renesas stuff together.
 
 Yours,
 Linus Walleij
