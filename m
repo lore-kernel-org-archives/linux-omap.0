@@ -1,111 +1,129 @@
-Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
+Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64A6D30595B
-	for <linux-omap@vger.kernel.org>; Wed,  6 May 2026 17:24:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF1A630595B
+	for <linux-omap@vger.kernel.org>; Wed,  6 May 2026 17:24:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778088245; cv=none; b=dN3FivxUwahw5XI8/SxVSt2q4yhaYVV+a5tclTE2MhOmuo/Nm7PQ2bDoTDQZMdBJdDxfrcVRGh8ognEqS/1GsIWY7CitgNSVCVKkaUMuG5EXl095/MTFxfqwVUE4CmK3tz6YxO9tFfaFyPaAeb1noTT7GAntTrM2n7/FtovSXno=
+	t=1778088295; cv=none; b=pDqZ6EHRHYJrbuiMEsAmzWW26xvHCrsKRDPYUaoWsPKRYqAaWdtauJN02fzqalGeG6Qh2DtzRNTGabUvaC1zOhu+SUMbVhghr/d4D0GFOLSHxxJILIv+dmjLjs6AQE95VZ5DqghuqYzuum19qIAQzODQ7EtUENDjJ8pGKNHedK0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778088245; c=relaxed/simple;
-	bh=pVvPgOiMZldoz4gPD1EEb+lZDazWRbOkpKXqmjJsD5c=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=WnOsycJFSq42myNHdt8KNkbYZU2NtL25X5v/TAHDlMxscIwqcZuZ05GGZjihwzhGEcWmMpl0QXTE0ioaMJJKPqBdeHi9O3nX7W2Ox3GeGq9qkoQkqzZ02rl0qWq7HeM4elO1BptPJKxVJtwpfzJM2Jr5SXOFztTVCN1PMOPCyPk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20251104.gappssmtp.com header.i=@baylibre-com.20251104.gappssmtp.com header.b=NLYckDXE; arc=none smtp.client-ip=209.85.216.49
+	s=arc-20240116; t=1778088295; c=relaxed/simple;
+	bh=DQb4mZmtpmsl6S4rgxHyevHyGJltkbl3e83K1WBj2MA=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=Rv5X6/O1paye/02njyhOL5Zc8yllPRlKO//yoZ8pFQvl4zcgO6pSZHbWs9Krd67BseDAPCdRLdJ8FClvSpDUFcQpycaJk7v3z1wM+v6dL9mZ/anEBgd/fp3xyyv4fA7x1WP09iWMDeDugPM3Q4FVXt8ZYsoKJx/VSc1qRNiUnp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20251104.gappssmtp.com header.i=@baylibre-com.20251104.gappssmtp.com header.b=FEFAAO2G; arc=none smtp.client-ip=209.85.214.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20251104.gappssmtp.com header.i=@baylibre-com.20251104.gappssmtp.com header.b="NLYckDXE"
-Received: by mail-pj1-f49.google.com with SMTP id 98e67ed59e1d1-36528851d7dso2025855a91.1
-        for <linux-omap@vger.kernel.org>; Wed, 06 May 2026 10:24:03 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre-com.20251104.gappssmtp.com header.i=@baylibre-com.20251104.gappssmtp.com header.b="FEFAAO2G"
+Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2b7d3ecc10dso62558165ad.2
+        for <linux-omap@vger.kernel.org>; Wed, 06 May 2026 10:24:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20251104.gappssmtp.com; s=20251104; t=1778088242; x=1778693042; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=4w9iJVVyuUDRZ2l55xQGBHnO/PNzQ3VP3q5G/LnaoPA=;
-        b=NLYckDXE0euVEA6R+RicvNAUXTqbTUGPHSCHpQ0yZzHeaGTJK1MWKXNZHkjm9QVdOz
-         5j4JTuQWECr3aFcL7uIFw6xbJKV25GVuY3M1i0pTXMHgDEa4acqzdZdTz41uLDAXzqdQ
-         E1Jadnhyy1BzBYVrTqfMmKgr5KsbVtVXsgFKVeX5h1Xw/DLXod7QJRnb28yKzH7giqav
-         mNV0PUng4hW64DV5xTZRZyEy/RJjS0fRd1CIr2B5RJ886chkWZUrM4fommE5k81gw1Tl
-         D7eSg1HizbXGGlE3UbYyKfFjnoYk527KlTvEwNaf7O/iSGFxdZM6MhO6qIMJlbThybfJ
-         yxcg==
+        d=baylibre-com.20251104.gappssmtp.com; s=20251104; t=1778088293; x=1778693093; darn=vger.kernel.org;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=3gVV/kfR/h1OysFK0qH9OZJa5FrVam8hK0PCgulO4EE=;
+        b=FEFAAO2GU5gCOUvgM5Lk6i3k/mrJUnHG9B714t6yrPNYM6TncSs1FGBtJMvSNGZdu8
+         NhA4q8J8F53SO8+PMuffOTqq9oYiFxQkeOyiaWSWAiyZFiqAfe1AtmfAdqMuVFhf4AGx
+         5rjjZsf+a7k1808I3dNaHnrRidyiv+WJKmjDE5ThisOaiCqELHrJpTqH94glSPbV/Kz6
+         y7bNESfqWRpH5a5/VupCdd6O0KkSVpVPlxTWH9qudpjbGsrFzIzK68HTT0iTX3f/+YMq
+         whYr15ZWSQf5TKpVQPX34V29bD60lX1b+lmypUhvkTtasWfIObbnk415/xffzYt6tRmY
+         OE/Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778088242; x=1778693042;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=4w9iJVVyuUDRZ2l55xQGBHnO/PNzQ3VP3q5G/LnaoPA=;
-        b=R7FVlT/7zDTaWDWJ0npjfQt8rAwzP9nm87602Q7fDYMx9lAn76eEUpgztt6XumiZ5a
-         yiqC9qtOvCCRTAp60hZDR/i3oYaPBpwJ8cenyzvLBWyXm9fUvZH7EJuMcEmaY0mkE8BK
-         0yDrLsXOpZqGx72wqeKQG1bwL4a4zILYDQfMEDX0TxNN07UwpbRXK59RJApQKxxU7Aa8
-         IyYfwiUSJ8QjJaEtdpB/NDJ1Btb5vNQpRzlUsK5vqWRJtJ+SefZdLiIsJtb2Ujpz7d93
-         +88rkeY4+gGvDz0RmkqozmRWcbiskQ+zuWbI1H1TnG3f4cXI+B3RDfhoZ7lcHMhOZyFe
-         vrxA==
-X-Forwarded-Encrypted: i=1; AFNElJ+Zc1QfgAMNvL+DIg5LsYudMRy4M3BZu1nUVWyEXyYi/N8J4gef+aHfwAXsLLtCsWuFR5GlubalPPel@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywt3LwIVVRUBeIsztepGW8t5gIN5fknJTs/2VDExxD5rtaKh6PX
-	vDi0IPquuHjjHV3BgpdHw5RbssNmsLe3FDE5SqWi5BSiuJMZNQv17rCR1XZuNdesNAc=
-X-Gm-Gg: AeBDies8iLlf71Cf4N4RQf/omSPeAnBRiFV+Klbh0FKzIcvrRxo6yvzLHODkVYj4xxy
-	inxutTT7TfBThz1GY27THBINUDuu8B4s2Q9akAO6q1L3ijhGSB+f3HDIjo81SBTb5gn49Tdcb7P
-	G0bEQ3F7FzulED/qy3RNZrNFISy2I0+lcl50QLRNELyE+zYzDHLm7I9NosoJmTYYEcEYWWVFWU0
-	6AIb6FohRdsAyHPb9CqGW1YRWB2Z79nw6vxL13UJzEefug02o4jlBkAsEFYEMrCnVN17dNgLCRV
-	MiTcHOXZAfgWCeI7OCcdZ5HSnio2KJFDf00G4pUFHpcxHXS1BJ4C8kOmBe0CUawH5PzLWa+OJXf
-	ufURINBS6XCmPrFIt03zJlAKexdySrovU1BCtdxOnYv7p3Co3O9WRvB852HxTYMtkzMTBX3kg/l
-	5bTSNJ5iV6Tn5rtS+2sLZwiE1s63RAn7gOCjbNDIke
-X-Received: by 2002:a17:90b:1c84:b0:35f:b288:8e4c with SMTP id 98e67ed59e1d1-365abe8b23dmr4046962a91.15.1778088242197;
-        Wed, 06 May 2026 10:24:02 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1778088293; x=1778693093;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=3gVV/kfR/h1OysFK0qH9OZJa5FrVam8hK0PCgulO4EE=;
+        b=RYlc0MRjHpoOPrX57uHwVY3Y+k5XH8ZGl/Kp5/jdKk/ILBFLS4PjHFR/Xg2nGFjOmT
+         tWE2GbVyqIYr5xrVFVc+eNoBNtDowi8Ua5A7BvCHZXEvLaIxhCcsD/HSan7Q9lb9EblB
+         VgEMWuSWKsCzqIduO2+VEZ6wjigSrBKJnbqVR4gsNZsIOuF41alY+hjIuiY3FRSKR7Ei
+         VlUfeoaoAB4q+k9ohQ/V+S7HOCzc+qVqSJQTBGp9WeBwqDroFT+g04tMvN72u0Fqm2De
+         9cuqSAOS3rsMD0N4P8vNwqUcR7XkBZFGSv+tJ2yC5nMpCek0kqMfP8nkGxyrIGo8pMYq
+         SFVA==
+X-Forwarded-Encrypted: i=1; AFNElJ9I0b5H64kXj1CpJ6Z8ZoYZu88OH56RRw5tb4Mvf8hP6juuynvvCFs23V82v5BgI5KoZGMdJwdnk6k4@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw7ydxQFJbFC50WvQlXI0fpQO+hZ6HJUasSfieVKrWVzB0XlnMy
+	FyPK/uorgl1q+Aov4dPN4fvyOWHeT97mDHTO+rsCqiIuhG0mXT+yAbPeITbI5nufrag=
+X-Gm-Gg: AeBDieso3kOt1WKbSglSoUPdPMCfSngsV+92Xpo5oZMlqN05GbeAx3Urised9Viwk4/
+	IMDToEfHJaNZlvxPY+0BU3G8558qSxVwIY8Oo8O5pNpMUxAZZ2Fn4n5ON+UNNJVuSJ8pmlqguHE
+	59PBg243XBXSAZuInK+n39/m7rCXB+OY/Uzpyf1350VCueCcRnWZl4ftsQK/tcG5suy7CCZkVNx
+	TjxKtdgj492ROTCa721p8NsSVBI63zO8qvonTjCdit0xGko8eZS9SPcyh9iDo2mUBvHGj2mdw9U
+	wXRIwk4rhHbq29xrxfGDw6Yna482tkEZbCaK4StJYdzJ/FHvohMu3c6ewdRgEeP7GwOGjhiq2ub
+	0yy/pSiKSnqoXll+3pvLF5ZZnlz+JKx6bHZXDEA6yctfBuUoob+TA34Fpi2h7MsT+aLGhBz6Byo
+	kUCh+Ffu8hOHntH30ARWz4R+yX5LjmRQ==
+X-Received: by 2002:a17:902:ea06:b0:2ba:919:bbf3 with SMTP id d9443c01a7336-2ba78f54ac5mr48636655ad.14.1778088293255;
+        Wed, 06 May 2026 10:24:53 -0700 (PDT)
 Received: from localhost ([97.126.187.42])
-        by smtp.gmail.com with UTF8SMTPSA id 98e67ed59e1d1-365b4fb5f1esm2984917a91.14.2026.05.06.10.24.01
+        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-2ba7b77cd50sm28311605ad.0.2026.05.06.10.24.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 May 2026 10:24:01 -0700 (PDT)
+        Wed, 06 May 2026 10:24:52 -0700 (PDT)
 From: Kevin Hilman <khilman@baylibre.com>
-To: Jean-Baptiste Maneyrol <jean-baptiste.maneyrol@tdk.com>, 
- Jonathan Cameron <jic23@kernel.org>, David Lechner <dlechner@baylibre.com>, 
- =?utf-8?q?Nuno_S=C3=A1?= <nuno.sa@analog.com>, 
- Andy Shevchenko <andy@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, 
- Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
- Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, akemnade@kernel.org
-Cc: linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
- Jonathan Cameron <jic23@kernel.org>
-In-Reply-To: <20251231-mpu9150-v1-0-08ecf085c4ae@kernel.org>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Jonathan Cameron <jic23@kernel.org>, akemnade@kernel.org, Jean-Baptiste
+ Maneyrol <jean-baptiste.maneyrol@tdk.com>, David Lechner
+ <dlechner@baylibre.com>, Nuno =?utf-8?Q?S=C3=A1?= <nuno.sa@analog.com>,
+ Andy
+ Shevchenko <andy@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Roger
+ Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring
+ <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH 2/2] ARM: dts: ti/omap: omap4-epson-embt2ws: fix typo in
+ iio device property
+In-Reply-To: <20260506142044.6456b2d5@kemnade.info>
 References: <20251231-mpu9150-v1-0-08ecf085c4ae@kernel.org>
-Subject: Re: (subset) [PATCH 0/2] iio: imu: inv-mpu9150: fix interrupts for
- MPU9150
-Message-Id: <177808824115.2120464.8993137097234559712.b4-ty@b4>
-Date: Wed, 06 May 2026 10:24:01 -0700
+ <20251231-mpu9150-v1-2-08ecf085c4ae@kernel.org>
+ <20260111123200.6871a41b@jic23-huawei>
+ <20260112094259.4648cfaa@kemnade.info> <7ha4yfzv2t.fsf@baylibre.com>
+ <20260506142044.6456b2d5@kemnade.info>
+Date: Wed, 06 May 2026 10:24:52 -0700
+Message-ID: <7h5x50a1sr.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15.2
+Content-Type: text/plain
 
+Andreas Kemnade <andreas@kemnade.info> writes:
 
-On Wed, 31 Dec 2025 22:14:15 +0100, akemnade@kernel.org wrote:
-> The Epson Moverio BT200 has MPU9150 chips. The devicetree has a simple
-> typo regarding the interrupt of that chip. Simply fixing it unweils
-> problems in the driver causing IRQ storms by calling
-> iio_readdev -T 0 iio:deviceX
-> 
-> With the fix applied one IRQ comes per sampling when calling
-> iio_readdev -T 0 iio:deviceX which looks like sane behaviour.
-> Probably applying this series has to be split between different kernel
-> releases to avoid having fixed devicetree with broken driver.
-> 
-> [...]
+> On Wed, 14 Jan 2026 14:30:02 -0800
+> Kevin Hilman <khilman@baylibre.com> wrote:
+>
+>> Andreas Kemnade <andreas@kemnade.info> writes:
+>> 
+>> > On Sun, 11 Jan 2026 12:32:00 +0000
+>> > Jonathan Cameron <jic23@kernel.org> wrote:
+>> >  
+>> >> On Wed, 31 Dec 2025 22:14:17 +0100
+>> >> akemnade@kernel.org wrote:
+>> >>   
+>> >> > From: Andreas Kemnade <andreas@kemnade.info>
+>> >> > 
+>> >> > Define interrupts properly. Unfortunately, this hides a bug in the linux
+>> >> > driver, so it needs to be used with the driver fixed only.
+>> >> > 
+>> >> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>    
+>> >> 
+>> >> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+>> >> Not related to patch 1 so if TI soc folk can pick this up that would be
+>> >> great.
+>> >>   
+>> > well, it needs things fixed via patch 1 to avoid creating havoc...
+>> > But from a strictly dogmatic point of view the devicetree describes the
+>> > hardware, so it is unrelated.
+>> > ... but from a more pragmatic point of view, I do not want to have interrupts
+>> > enabled for drivers which do not handle them correctly.
+>> >
+>> > Of course this should be picked up by omap folks.  
+>> 
+>> Based on the changelog comments, I will pick up the DT patch when the
+>> driver fix gets applied.
+>> 
+> the needed patch is in. So it can be applied.
 
-Applied, thanks!
+Thanks for the reminder.  Applying.
 
-[2/2] ARM: dts: ti/omap: omap4-epson-embt2ws: fix typo in iio device property
-      commit: e0abb8a515cdb7613a15ce54910405ce8110e4f5
-
-Best regards,
--- 
-Kevin Hilman (TI) <khilman@baylibre.com>
-
+Kevin
