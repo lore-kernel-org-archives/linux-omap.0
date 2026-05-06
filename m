@@ -1,66 +1,66 @@
-Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
+Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com [209.85.167.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DAC8425CDF
-	for <linux-omap@vger.kernel.org>; Wed,  6 May 2026 10:59:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65F633EB81E
+	for <linux-omap@vger.kernel.org>; Wed,  6 May 2026 11:07:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778065186; cv=none; b=btMKKpqpdu7OnX1o93CgiOTH+c5DIsPGW28zY2Zar8ZGykE2bn6DAYc0caFWRL5hcGsmubY4mUGenk9+uQXV3obAsDHxLcCykCH69/nX8v85rrzoFA/P/Ey8JcyDwyfp3C3CxKDMB9Ea2p30zKw6KvcabUB6qqK1RYPlcb8NAaQ=
+	t=1778065639; cv=none; b=AiQgxyrnlSHHWkFlqhMK0YvMS6W5tTfafUq5VS/+ascPGIFZSp4ZU4U3mewpau0kdGLwNWEFJGsktHPoCFFeGmZXzCpmPAPTrwgYPzveaxbw3oUTYrWvKlzVZ27RxyzQCv/k6sOiS+u+Z2KZOTZFEnNWJnOfZmvC7pk40BnsQnc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778065186; c=relaxed/simple;
-	bh=68tySyh4OCRbTeMjA4Q3ATFLu5St0nhIXSCwG3pciB8=;
+	s=arc-20240116; t=1778065639; c=relaxed/simple;
+	bh=VE2loX7GEHkLBIkfThKrvN6f+NIyZbdVKwUIZSotPoQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=MQe4C5qtEfg5yMMfy+/hvTOAR7hH7h1ASULU++2lE6EoS3kNWJCRhhLonvww51JLJE1TPRrG4p4hAq1mzmePQKEpMCtxzshOerhi2d37l2cpduWfTEYILtVLzp4dCRH1I8x61jaQvj2rP36ClvCkhI41Nb+grWcUVZqcmRitn0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=sMd0gAT1; arc=none smtp.client-ip=209.85.128.48
+	 In-Reply-To:Content-Type; b=cngmoiFpNG35tEN2dx1E60U/xU/0MDODdugNJniz0HaGywAiECEsRwfoyW2ewoLUK5aAIbCNHevI65Hc+7XK0AOLddnxLyZB5TLPMeShCnqcy2eOb46Oij37UkHcaeXkNAM+sPX1E53rBWh0sO11x1syt1oY3ea0kUlq4RMRC50=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jyEvSjlJ; arc=none smtp.client-ip=209.85.167.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sMd0gAT1"
-Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-48909558b3aso68890725e9.0
-        for <linux-omap@vger.kernel.org>; Wed, 06 May 2026 03:59:42 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jyEvSjlJ"
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5a8704dc3a8so3496597e87.3
+        for <linux-omap@vger.kernel.org>; Wed, 06 May 2026 04:07:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778065181; x=1778669981; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778065635; x=1778670435; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=V7mCE4spOzGHm/dSut48qSV7WdMjsy0PphKRPfYRcpo=;
-        b=sMd0gAT1FYcCxVNXtb8XsGV9ckUy6x97h2Lv0xJiBypiN5ziq8UjbBjLyajnZncwPC
-         VMXrCDkeQrkM9WSpx9Cl8kna/3Qdy6+p+gKSnDPakoiiQVr69sTufEgU9oFFzlnkD14t
-         1C414/SVfP/eX48S5w/hAqDsmWWrzLv/5ISmlI+M4mJ4yG2KRWUq/M0gDtG58kv3fiBK
-         TsHmur2A4BXfkVT/gtFq25HwTsbYytZcr49xrAoI77hanqQpOLhIo8gWPXATTm0Soh6/
-         XJT6RqereGEPgd/9GwjE+PY1eASpNDSq7G/F0uZwV8jjJ49gDkWR5v1leYvz1TWZmsP9
-         PZsg==
+        bh=aSXiRsYq+8taqfodn6O3tOJPun5BIE/c43g1ysDqCow=;
+        b=jyEvSjlJre2yiqI/y4H+nmHEwcqNWsZD8J9bzWDM+Cf5oJCuMg/FzlrwdjrFFO9ii5
+         UJbxyK4LZ0SbHkNzipLdKBoaxdIMdt+6SC1RyGiOMsCNO0sAZpPBsgyTt4H5dPUrwCtD
+         J4zBIAzusHpgp3hgFXkxma3Yy5Fcd3fL79pZxLkUjsYgQ8kzPGsoP/B8dtu6V7G378OH
+         XcKAnZNmJ5XyjAKkuNCHCrDf/mPr36ONlA0rVvFfn+LnvYLupSe/E6K38fK8lQnro4ZR
+         xKrmSBCxYSlpKvRLGUBMqFEymYaEf3Gwmva2sfteRAKY0lz6qYYClB4piASTMgWDEcN3
+         I7bw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778065181; x=1778669981;
+        d=1e100.net; s=20251104; t=1778065635; x=1778670435;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=V7mCE4spOzGHm/dSut48qSV7WdMjsy0PphKRPfYRcpo=;
-        b=eTh7WwOW1qrWIGdyB951iuA7nI2N4pWAQwHpe6mE6g//Vn16ZxStVqCRFcbC3S/rt/
-         mttkb7H9+5QhM5MrE9s3awSJ8nzZWAm9L60qLnQ1g4jKC0LOXcLg9ABzh8oidUqcqbEt
-         5VlItvxUPgIbJtFKVzbDWnL1+rXMcg8ITJRmqMhb9kMESjC3Zxj4f9ol7+ES5Z14CnIa
-         ulL93DwVnnE61CUr4lKmXVtXFtTkAnKkLE+g8z7ZnnMaDWxp0bfD4MLDtAjjJssrVHK1
-         a3Vkofij4kgsGpMzrBcQhSK95aqlqfSKOVtjbeSuEzd4vwZyaMOH04//iBoM0Y4wqqzO
-         tUlQ==
-X-Forwarded-Encrypted: i=1; AFNElJ/9eU2rFDljG0xrNb6jAyp7z9PR53EAglA2TeGMBAHosPo9S7hbiuGojfsqB/MvH0SKvlFaVesvQcnv@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw/1txOPNyQYpsKAKGprbroPUuQL7uOqN9p7FPs5FuyCfn8oSsP
-	UsXo4N0ITL3yG9yzGu7MazJqpm+bBh+Sg2FjnwNj+Tq8nQ8LBJkSsYLy
-X-Gm-Gg: AeBDietL5fuxCWeTU/0LiMd0lEYINEkLkg0JX0P8VbvzcGqTHDATp7d6kJiKNbNWyN1
-	vqHZUgWw1/uA7uVFVa1HsMT2gyKq7y4uC4YU3VY4Q0nTxH2H+/KPkRfIMdrZUoOvDLC1MXCDmXt
-	f70ETr35ZXygV6Fr9rhpEHTAVcws1JVMi6iZmz8FQj4+MKKw6dDvrj5118lMyp3ij3qKnZ4OlP/
-	wkLDALRnxNgXbOq1uYqdGlBi3Llaj4STWkmOoC/UvDYTn1WNkmVQoCzPLpLl49+sBfRNdNMBI3f
-	v3POZMgxOv6IB3ejLDMdMN8yJWHWckT4R2VdsPIAw3q0DOXF4h6+WQkptBSFZwVe38cnc031FsY
-	DGL7b8JBeq/bB5xzwe5o6gwvGADHNfq5N5AL9Nek2jFx5xjdyAvGpW136oK+IcddNQ4KTrsykmM
-	HZcO/q/C2Lq/TWOG3EkbUmM931R1fv487BzU4Mrs79h7vg6g==
-X-Received: by 2002:a05:600c:c094:b0:488:b14f:b8ed with SMTP id 5b1f17b1804b1-48e51dd89ffmr38486615e9.0.1778065181007;
-        Wed, 06 May 2026 03:59:41 -0700 (PDT)
+        bh=aSXiRsYq+8taqfodn6O3tOJPun5BIE/c43g1ysDqCow=;
+        b=ETC+awRi0bmMKBwVzq3C3xGYNGeWgluNghe+Ly6UESyWp7mjkgyuRmt4ElXZF0rXYx
+         gPBF0t8JgeGkIx9czj6hLAMvo8LV8226sClV4BuOZfPinuZR2RPsx5OQb3CyYdwPtiKo
+         B9fTzL55NE6T3PfvpA8Em9y1F7o/CD5fILPHetK8blV9eAjb2kENtKWfZgobUrc2PCIJ
+         YPIZQO3zGdu/qycTngfQrCK3jILCbwe1Si5HSc94pEYiMSGfRjZcOfvPP4fkeu7ah1pg
+         UAVjALKOzUBmXNOm15Sn8E/FHgGXsQpGXvEXunz3LBd1YE5iPCMvJcKwP9oPGokMbwY8
+         FTQg==
+X-Forwarded-Encrypted: i=1; AFNElJ/8Kfa77mkbWTEJ0gMkYa8Y9sw4mJ5VmGaGSEQWJycQhoOHSaYclt686vpVO3ezoX8ENB93QGIKEOXV@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx2tA5l9RtxKQWa8pOgCsVGR+3tOm09aB09mMKuCn8S6Uz4hKMi
+	WVlnxuSXGQD13rIASR52Xw1FsIjYA0hfhNEWyudbopT14QMpEMBujIlC
+X-Gm-Gg: AeBDiesc8Iw2Xh1qsJaT4e/7PHdfvZxUbmC1b6L2Qm3NDCqU2Q8fvgI8+7VS2+yDu3s
+	2eTLyZreGlf/7PRma2WfCarQm9htRLZl5fGeepyRUoYwXAzMvDNV05MTsdk67eXiXTE71AbY5eY
+	Wyq+WWY31bT6BbSzHD98DIlrxmrpgIuxA5WAjeNcRwRxqcPcsizaE3NpFcSlGC4OaB+AwRT1ML9
+	MUX/ytjMnp8hNeaN2f/ND9m/k1j2KkFwawhEwvqhxZ+iVDIV4XXsjkJPbkAl+4WTEwr93+S4VNW
+	90IBblmfMeLFQ8yDBGtYvJsJ4IcZoVD3yapwj6kffj7UOyoR8OUB0KNes4yAvj2NrDWl4MkH3P+
+	Cw4fl6qDw7At085wFXxyg4fQranGcaU/zCZ82iIUgvxkKqSF/hiTlhcbK2HtnUNxwx9jrIRw5g1
+	syPlcWARLg9cBDMUSN08ZrPHffKkUUnQZwbVtDi4KTHwaCWTlPzBr747s6
+X-Received: by 2002:a05:6512:692:b0:5a8:707f:904 with SMTP id 2adb3069b0e04-5a887a9a8abmr1144133e87.0.1778065634368;
+        Wed, 06 May 2026 04:07:14 -0700 (PDT)
 Received: from [192.168.1.10] ([95.43.220.235])
-        by smtp.googlemail.com with ESMTPSA id 5b1f17b1804b1-48e530d8691sm31468585e9.2.2026.05.06.03.59.39
+        by smtp.googlemail.com with ESMTPSA id 2adb3069b0e04-5a8616598c0sm4343635e87.83.2026.05.06.04.07.13
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 06 May 2026 03:59:40 -0700 (PDT)
-Message-ID: <115479a5-3471-4f49-ac7f-48da5508ee70@gmail.com>
-Date: Wed, 6 May 2026 13:59:38 +0300
+        Wed, 06 May 2026 04:07:14 -0700 (PDT)
+Message-ID: <5a3615d6-e203-4728-b062-4dc827d370df@gmail.com>
+Date: Wed, 6 May 2026 14:07:12 +0300
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -68,8 +68,8 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/5] arch: arm: dts: cpcap-mapphone: Set VAUDIO
- regulator always-on
+Subject: Re: [PATCH v2 4/5] arch: arm: dts: cpcap-mapphone: Add audio-codec
+ jack detection interrupts
 To: Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>,
  Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
  <conor+dt@kernel.org>, Tony Lindgren <tony@atomide.com>,
@@ -79,45 +79,39 @@ To: Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>,
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-omap@vger.kernel.org, linux-sound@vger.kernel.org
 References: <20250122164129.807247-1-ivo.g.dimitrov.75@gmail.com>
- <20250122164129.807247-2-ivo.g.dimitrov.75@gmail.com>
+ <20250122164129.807247-5-ivo.g.dimitrov.75@gmail.com>
 Content-Language: en-GB
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <20250122164129.807247-2-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <20250122164129.807247-5-ivo.g.dimitrov.75@gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
 Hi,
 
-It looks like this patch from the series may have been missed. Could you 
-please take another look and consider merging it?
+It looks like this patch from the series may have been missed as well. 
+Could you please take another look and consider merging it?
 
 Thanks!
 
-
 On 22.01.25 г. 18:41 ч., Ivaylo Dimitrov wrote:
-> VAUDIO regulator is used by cpcap codec and currently is enabled/disabled
-> by dapm logic, however, when regulator is turned off, various cpcap
-> functions (like jack detection) do not work.
-> 
-> Configure VAUDIO regulator-allowed-modes property while at it to enable
-> low-power regulator mode being set.
+> cpcap audio-codec supports headset/micrphone detect interrupts, configure
+> them.
 > 
 > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 > ---
->   arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi | 4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
+>   arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi | 2 ++
+>   1 file changed, 2 insertions(+)
 > 
 > diff --git a/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi
-> index ea02fd403a9b..83fd58157579 100644
+> index 83fd58157579..73e27b95105e 100644
 > --- a/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi
 > +++ b/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi
-> @@ -267,6 +267,8 @@ vaudio: VAUDIO {
->   		regulator-min-microvolt = <2775000>;
->   		regulator-max-microvolt = <2775000>;
->   		regulator-enable-ramp-delay = <1000>;
-> -		regulator-initial-mode = <0x00>; /* NORMAL */
-> +		regulator-allowed-modes = <0x00>, <0x40>; /* ON, LOW_PWR */
-> +		regulator-initial-mode = <0x00>; /* ON */
-> +		regulator-always-on;
->   	};
->   };
+> @@ -69,6 +69,8 @@ cpcap_regulators: regulators {
+>   
+>   		cpcap_audio: audio-codec {
+>   			#sound-dai-cells = <1>;
+> +			interrupts-extended = <&cpcap 9 0>, <&cpcap 10 0>;
+> +			interrupt-names = "hs", "mb2";
+>   
+>   			port@0 {
+>   				cpcap_audio_codec0: endpoint {
