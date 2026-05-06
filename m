@@ -1,42 +1,41 @@
 Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E67B043E4BE
-	for <linux-omap@vger.kernel.org>; Wed,  6 May 2026 12:13:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AEE04218B3;
+	Wed,  6 May 2026 12:13:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778069605; cv=none; b=MaF3+mrnre2PAvIhozYbKVAz8+EYxwvhjSsh9TDuZ62FQ9gXpXiDVv6NB1YKDapAwm8TAOnedEKI6Q4sD31DU9QE88f92OWuliYBCcZ7w37MWYW4p7P4H+mYzRGqJc7FomeHoVwgo+jcphJpEjM+nxH7pr0QhrG0CcT+pTrZj6Q=
+	t=1778069605; cv=none; b=bjgLzvbRSarWkWYu2akb+L1ps1KXTpIoKX5Tc+NNsnrq1sFKMrLkTLTp0Ej34OwBZyLTZPXcRNL9/sOhgeE50/vBnHi73Ohqr0oQkbMt8vA01If4lQOODGawOmBTgwGJ6f5w3B8f0d8HDZ8nWmdRCiEgjv77jh66pZGH/IGh40E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1778069605; c=relaxed/simple;
-	bh=AbgaqMlY8wz59xHBG2bGUq3n4kCOawW5putw5NBuBb0=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=IK64oB+Lhc6Z9JWePpFUnrNkECg9ltesmbGrgPXNGhFqhiOULRx6UHF1CE0c6lSfFX+5Ew3HgdQud/1mD/DZISLZjNvHooh2RcJsVldb1l9d1j4V9QP4PMsIA985jI38XtZ/d85cuRyEMM1hNy42DhRtdU9UWpYqu/wcB9Bc3iY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=YYomtWi+; arc=none smtp.client-ip=185.246.85.4
+	bh=6BJoT21okPC2svqqJmM994ukAh1veI+pOrQYZfGGSpY=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=dDAFP1jt5fEjkV8GM8R1NjdgPJ9CQdO8V8IHyNLqIUgr44qkD9JaSQe6g36V1ABwzEhptvI6jvvsXurcvdZlB/4MUhNbrYVzxwFDfZThsGwpo7/aejGAiS2IQqydLEGz1SxNflrF3pXXeXfNGxZWTpjlhkR2iKC0CA4oUbfju4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=BpbUx1wH; arc=none smtp.client-ip=185.246.85.4
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="YYomtWi+"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="BpbUx1wH"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id 90EB14E42C0C;
-	Wed,  6 May 2026 12:13:21 +0000 (UTC)
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 3FD794E42C09;
+	Wed,  6 May 2026 12:13:17 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 5FD2C6053C;
-	Wed,  6 May 2026 12:13:21 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 3AB4B102F24CF;
-	Wed,  6 May 2026 14:13:18 +0200 (CEST)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 008846053C;
+	Wed,  6 May 2026 12:13:17 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 00927102F24F4;
+	Wed,  6 May 2026 14:13:08 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1778069600; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=BediO3/S4l8G16E9hVv9C+1Tjoz4d/x+7MVR9kWDJF0=;
-	b=YYomtWi+mfVKhj/kqvcvf9ofTPciHa4WBhrKSFyo++2sZ17ZdZC6lwq8nYfkbOqE9tlJRB
-	QLafsoeC45+OXHbcGKv+O3KoZk13a4vGiIOakz3tTP9zWbZkKbP5dtOMh7Ho13t/ayXuIB
-	pwtzTQUrE43fX+DiDYbvrKNc/fbiru8BMYsor5IoVsYtGG0te9tH2PqmH8C7qblsl6v2Rf
-	0QHf3ftmZcYJLk9bVvdE/lFwbS/t+WoPZO8UBmTu8oc6S1GFvfSBPreop9nZJInM/XfP7o
-	pinMhhXBKZStZhyMSDQv/V3wzAdMuFcykOf57u5EB2miZPk9pcm6qsBbrJaD9Q==
+	t=1778069595; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=Vd35ht/9TSjl6+pyCixaHialcFScMPkKoQR0kl6TV64=;
+	b=BpbUx1wHl4l/vykUGLe1EPapL9UV0maolQ+M/WmDdcFypq0gbewdaJQr0W0XqQKmPn+p5I
+	41Ys+CLOqKWZsenpy2Vuh2cQbBmQatytU5Vf/PI2yjIv+e9zpf5oOmVXC8zwkNeEecPPcU
+	Qd8K0f9JUxkUG8/U9hsCkKRsoDNBQTjNdVGDXZ4TAxRr2t8dgepeySmfObarBVT1gd4/Vy
+	LtTd2wf27IariUqWU38IJJEu8eL9dDnLoTC1RcTQLkpaHIXN6mAwiOIFbU6Rmud2toYoxQ
+	ImojO6QNt6sYEotnLfcVXy+0JjHBoVQfeVZPsKotDZmPL8Jp4CqpxlGEHTApbA==
 From: Thomas Richard <thomas.richard@bootlin.com>
-Date: Wed, 06 May 2026 14:13:04 +0200
-Subject: [PATCH v2 2/2] ARM: dts: ti: var-som-om44: Add USB Ethernet
- controller node
+Subject: [PATCH v2 0/2] Add USB Ethernet controller (LAN7500) node in
+ VAR-SOM-OM44 devicetree
+Date: Wed, 06 May 2026 14:13:02 +0200
+Message-Id: <20260506-b4-var-som-om44-lan7500-v2-0-b8af59ab877c@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -45,9 +44,11 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260506-b4-var-som-om44-lan7500-v2-2-b8af59ab877c@bootlin.com>
-References: <20260506-b4-var-som-om44-lan7500-v2-0-b8af59ab877c@bootlin.com>
-In-Reply-To: <20260506-b4-var-som-om44-lan7500-v2-0-b8af59ab877c@bootlin.com>
+X-B4-Tracking: v=1; b=H4sIAE4w+2kC/3XNQQ6CMBCF4auQWTtmSouIK+9hWBRapAl0SEsaD
+ eHuVly7/F8y32wQbXA2wq3YINjkomOfozwV0I/aPy06kxtKKi8kJWGnMOmAkWfkWSmctK8rIqT
+ GDKavhTSygXy9BDu41yE/2tyjiyuH9/Eoie/6MxXJv2YSmGGjjbHXioSS9455nZw/9zxDu+/7B
+ 1z82mXAAAAA
+X-Change-ID: 20260330-b4-var-som-om44-lan7500-09dfdc713d39
 To: Andrew Lunn <andrew+netdev@lunn.ch>, 
  "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
  Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
@@ -63,40 +64,31 @@ Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, netdev@vger.kernel.org,
 X-Mailer: b4 0.14.3
 X-Last-TLS-Session-Version: TLSv1.3
 
-Add USB tree description, including the Gigabit Ethernet controller
-(LAN7500). Adding the LAN7500 node will allow the bootloader to patch the
-devicetree and set the MAC address.
+In this second version I added LAN7500 and LAN7505 definitions in
+microchip,lan95xx.yaml as requested by Krzysztof. I also added Nicolai's RB
+tag in devicetree patch.
 
-Reviewed-by: Nicolai Buchwitz <nb@tipi-net.de>
 Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
 ---
- arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+Changes in v2:
+- add Nicolai's RB tag in patch 2/2.
+- add LAN7500 and LAN7505 in microchip,lan95xx.yaml instead of creating a
+  new file.
+- Link to v1: https://lore.kernel.org/r/20260403-b4-var-som-om44-lan7500-v1-0-0dadde850143@bootlin.com
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi b/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi
-index 37d56b3010cf..9e04aa70f982 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi
-@@ -322,4 +322,18 @@ &usbhshost {
- 
- &usbhsehci {
- 	phys = <&hsusb1_phy>;
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	usbhub: hub@1 {
-+		compatible = "usb424,2514";
-+		reg = <1>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		ethernet: ethernet@3 {
-+			compatible = "usb424,7500";
-+			reg = <3>;
-+		};
-+	};
- };
+---
+Thomas Richard (2):
+      dt-bindings: net: microchip: Add LAN7500 and LAN7505 devices
+      ARM: dts: ti: var-som-om44: Add USB Ethernet controller node
 
+ .../devicetree/bindings/net/microchip,lan95xx.yaml         |  2 ++
+ arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi          | 14 ++++++++++++++
+ 2 files changed, 16 insertions(+)
+---
+base-commit: b50159d9eaefd95ad4e58bb94bc797761aeb9d8f
+change-id: 20260330-b4-var-som-om44-lan7500-09dfdc713d39
+
+Best regards,
 -- 
-2.53.0
+Thomas Richard <thomas.richard@bootlin.com>
 
