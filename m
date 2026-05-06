@@ -1,94 +1,96 @@
-Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AEE04218B3;
-	Wed,  6 May 2026 12:13:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01CBD31716F;
+	Wed,  6 May 2026 12:21:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778069605; cv=none; b=bjgLzvbRSarWkWYu2akb+L1ps1KXTpIoKX5Tc+NNsnrq1sFKMrLkTLTp0Ej34OwBZyLTZPXcRNL9/sOhgeE50/vBnHi73Ohqr0oQkbMt8vA01If4lQOODGawOmBTgwGJ6f5w3B8f0d8HDZ8nWmdRCiEgjv77jh66pZGH/IGh40E=
+	t=1778070070; cv=none; b=bfwY2eQUbb2YsxgWJIdMgdDGjOF3aZ0eYhK/o7PVhvo+Mg3qxZXd90onykmW9jhr/VtylixsMVhXetlfOnzFpN3VeSvshFxwJvwm9Lwvqdg74lWbA1kXqawXK1GphracQz/mLCXms0Bp5RFru6HtK2/za6pRtyDtv5pW10LhfM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778069605; c=relaxed/simple;
-	bh=6BJoT21okPC2svqqJmM994ukAh1veI+pOrQYZfGGSpY=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=dDAFP1jt5fEjkV8GM8R1NjdgPJ9CQdO8V8IHyNLqIUgr44qkD9JaSQe6g36V1ABwzEhptvI6jvvsXurcvdZlB/4MUhNbrYVzxwFDfZThsGwpo7/aejGAiS2IQqydLEGz1SxNflrF3pXXeXfNGxZWTpjlhkR2iKC0CA4oUbfju4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=BpbUx1wH; arc=none smtp.client-ip=185.246.85.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1778070070; c=relaxed/simple;
+	bh=MEcilob3lIa0Djuvxe+8G/SiF3Ck8f9Fw74juQCNS4k=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=q2ds2loLmGh4aD8hk2GP0t5u0kY1/vDPkyqojj7ucPPHfeEaLJs8bk7T8ixEOC/p9F/gdTEI715B/7QhwyFnNzKWHdF35H0lIqBUYux7Rn2jdd2d0AzxGsqoh8XrHne1u5KsYF3muRtgB0zE+y4LRWSjOXjnrq4FIrIRcYXydAw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=DBA9+0qw; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="BpbUx1wH"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id 3FD794E42C09;
-	Wed,  6 May 2026 12:13:17 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 008846053C;
-	Wed,  6 May 2026 12:13:17 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 00927102F24F4;
-	Wed,  6 May 2026 14:13:08 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1778069595; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding; bh=Vd35ht/9TSjl6+pyCixaHialcFScMPkKoQR0kl6TV64=;
-	b=BpbUx1wHl4l/vykUGLe1EPapL9UV0maolQ+M/WmDdcFypq0gbewdaJQr0W0XqQKmPn+p5I
-	41Ys+CLOqKWZsenpy2Vuh2cQbBmQatytU5Vf/PI2yjIv+e9zpf5oOmVXC8zwkNeEecPPcU
-	Qd8K0f9JUxkUG8/U9hsCkKRsoDNBQTjNdVGDXZ4TAxRr2t8dgepeySmfObarBVT1gd4/Vy
-	LtTd2wf27IariUqWU38IJJEu8eL9dDnLoTC1RcTQLkpaHIXN6mAwiOIFbU6Rmud2toYoxQ
-	ImojO6QNt6sYEotnLfcVXy+0JjHBoVQfeVZPsKotDZmPL8Jp4CqpxlGEHTApbA==
-From: Thomas Richard <thomas.richard@bootlin.com>
-Subject: [PATCH v2 0/2] Add USB Ethernet controller (LAN7500) node in
- VAR-SOM-OM44 devicetree
-Date: Wed, 06 May 2026 14:13:02 +0200
-Message-Id: <20260506-b4-var-som-om44-lan7500-v2-0-b8af59ab877c@bootlin.com>
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="DBA9+0qw"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID;
+	bh=/4qEkQwBeZBXmPpSGuA2DsdKBoBKWN8Kcgu73ejEo9o=; b=DBA9+0qwOxXnnHKSp6m1ufmG9f
+	jSLEwl4qIf/wO9UPBs0kfkPAQT7aST7lkuMm+zcH3o7z16qh9qGniBd2PclrsbXNND5PbBq1Ma+VG
+	P8ePmEj7ZxSqCV7YIbvy9YELBnEPSqw20XhoLAKz2J6hHBcLN5rgczJ4v0xeXIii+iumTpwJ2BDus
+	2kTncE0pufzoBqvWcJB71feVe82q31aNGjyNoNhJtPHooklX28+mcwrL2uYZeUPDhHwiPc5QWB826
+	MC5QLwo3a1jwzulpO7zVPl2qJx7SxE7EnZwqNiEM0uAhNbMFUIO1z2AhV0dQkLIH7vyHfjxKi1kG1
+	0HK1gThA==;
+Date: Wed, 6 May 2026 14:20:44 +0200
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Kevin Hilman <khilman@baylibre.com>
+Cc: Jonathan Cameron <jic23@kernel.org>, akemnade@kernel.org, Jean-Baptiste
+ Maneyrol <jean-baptiste.maneyrol@tdk.com>, David Lechner
+ <dlechner@baylibre.com>, Nuno =?UTF-8?B?U8Oh?= <nuno.sa@analog.com>, Andy
+ Shevchenko <andy@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Roger
+ Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring
+ <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH 2/2] ARM: dts: ti/omap: omap4-epson-embt2ws: fix typo in
+ iio device property
+Message-ID: <20260506142044.6456b2d5@kemnade.info>
+In-Reply-To: <7ha4yfzv2t.fsf@baylibre.com>
+References: <20251231-mpu9150-v1-0-08ecf085c4ae@kernel.org>
+	<20251231-mpu9150-v1-2-08ecf085c4ae@kernel.org>
+	<20260111123200.6871a41b@jic23-huawei>
+	<20260112094259.4648cfaa@kemnade.info>
+	<7ha4yfzv2t.fsf@baylibre.com>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAE4w+2kC/3XNQQ6CMBCF4auQWTtmSouIK+9hWBRapAl0SEsaD
- eHuVly7/F8y32wQbXA2wq3YINjkomOfozwV0I/aPy06kxtKKi8kJWGnMOmAkWfkWSmctK8rIqT
- GDKavhTSygXy9BDu41yE/2tyjiyuH9/Eoie/6MxXJv2YSmGGjjbHXioSS9455nZw/9zxDu+/7B
- 1z82mXAAAAA
-X-Change-ID: 20260330-b4-var-som-om44-lan7500-09dfdc713d39
-To: Andrew Lunn <andrew+netdev@lunn.ch>, 
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Oleksij Rempel <o.rempel@pengutronix.de>
-Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, netdev@vger.kernel.org, 
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-omap@vger.kernel.org, Thomas Richard <thomas.richard@bootlin.com>, 
- Nicolai Buchwitz <nb@tipi-net.de>
-X-Mailer: b4 0.14.3
-X-Last-TLS-Session-Version: TLSv1.3
 
-In this second version I added LAN7500 and LAN7505 definitions in
-microchip,lan95xx.yaml as requested by Krzysztof. I also added Nicolai's RB
-tag in devicetree patch.
+On Wed, 14 Jan 2026 14:30:02 -0800
+Kevin Hilman <khilman@baylibre.com> wrote:
 
-Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
----
-Changes in v2:
-- add Nicolai's RB tag in patch 2/2.
-- add LAN7500 and LAN7505 in microchip,lan95xx.yaml instead of creating a
-  new file.
-- Link to v1: https://lore.kernel.org/r/20260403-b4-var-som-om44-lan7500-v1-0-0dadde850143@bootlin.com
+> Andreas Kemnade <andreas@kemnade.info> writes:
+> 
+> > On Sun, 11 Jan 2026 12:32:00 +0000
+> > Jonathan Cameron <jic23@kernel.org> wrote:
+> >  
+> >> On Wed, 31 Dec 2025 22:14:17 +0100
+> >> akemnade@kernel.org wrote:
+> >>   
+> >> > From: Andreas Kemnade <andreas@kemnade.info>
+> >> > 
+> >> > Define interrupts properly. Unfortunately, this hides a bug in the linux
+> >> > driver, so it needs to be used with the driver fixed only.
+> >> > 
+> >> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>    
+> >> 
+> >> Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+> >> Not related to patch 1 so if TI soc folk can pick this up that would be
+> >> great.
+> >>   
+> > well, it needs things fixed via patch 1 to avoid creating havoc...
+> > But from a strictly dogmatic point of view the devicetree describes the
+> > hardware, so it is unrelated.
+> > ... but from a more pragmatic point of view, I do not want to have interrupts
+> > enabled for drivers which do not handle them correctly.
+> >
+> > Of course this should be picked up by omap folks.  
+> 
+> Based on the changelog comments, I will pick up the DT patch when the
+> driver fix gets applied.
+> 
+the needed patch is in. So it can be applied.
 
----
-Thomas Richard (2):
-      dt-bindings: net: microchip: Add LAN7500 and LAN7505 devices
-      ARM: dts: ti: var-som-om44: Add USB Ethernet controller node
-
- .../devicetree/bindings/net/microchip,lan95xx.yaml         |  2 ++
- arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi          | 14 ++++++++++++++
- 2 files changed, 16 insertions(+)
----
-base-commit: b50159d9eaefd95ad4e58bb94bc797761aeb9d8f
-change-id: 20260330-b4-var-som-om44-lan7500-09dfdc713d39
-
-Best regards,
--- 
-Thomas Richard <thomas.richard@bootlin.com>
-
+Regards,
+Andreas
