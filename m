@@ -1,116 +1,144 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73CE54611C6;
-	Wed,  6 May 2026 13:32:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F23883F0A83;
+	Wed,  6 May 2026 15:25:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778074359; cv=none; b=oomaBALiTf9p3+nN56/SCe5EdmG975Rw5V+pciwtdNpFYTpD3OjOmbYQ9o7HBPTAcOhrC5otHzcfkMsxGR3kZgb4peuirVFZ7I6TfA8vVwSJreuoaSyh8nYPx1I4coWdCn6Wtqns3IV5fLecS4oK3Ruyd0Akzmk5wwahPPxny6A=
+	t=1778081120; cv=none; b=k1eLSM/R167wC8u0eIzdMTd4l3BAMTEygYnF+De0iU5QyGabFPNkPwyc96GbhRMjMNuTILlFJkJxVdkhgFob3FP/46IfhK3bdAROydHAO9wzj2uakwmCLfqXX8/0QdKPCXspqf2+/R2OV9DPmam/pdZpzAlzNikiGB/mvwib6v0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778074359; c=relaxed/simple;
-	bh=hqEF9QBmsHf89v3HQqP30wbFhWcDKq6a6ZOM8TpWWP4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=TJ+x21WxhA6rXgMR+hNeVq+tqIi+h2BCL1rV/NnKjv0kZVZDxGGFgxyaFqfhuoiUm6tuUzm33fHrUhay/Skcduiku4+TBAY9wgukPsJzTql5v7OjoG9qVI/dDpKgfiK32igCqPeX5I0gjyQpdlsDI1XzL8r+HeOlz4VhCVw+W70=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A60jetpK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778081120; c=relaxed/simple;
+	bh=I9g65+AQEZ45KkU593/uHo6NiuQueGuXtUKkyxb2w+Q=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=U7O8DTDNJeLC2QH0PvkGOkKhOcw231f5kA7ne9feG9CyhmmXPqC+jArugNPXcsG9tyA6+mAEPpuX58dChSQO+2WB7RwhMXHOS/7K5hlta5jrnB5oAwehaeHLAsdrTrmsjZRYoXqIfL2OfLZmqhtI8sXYvYZI3mLgkzG291eIzHg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=H1c5bR0l; arc=none smtp.client-ip=117.135.210.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A60jetpK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A3D9C2BCB8;
-	Wed,  6 May 2026 13:32:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778074359;
-	bh=hqEF9QBmsHf89v3HQqP30wbFhWcDKq6a6ZOM8TpWWP4=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=A60jetpK/ojbehYN0wJxFf32PpEBuUZEXrrEoVQ8R1c1eRD10Pnqshs3tWpRQQn0U
-	 trtu5OwZdkVerx1vA9z3FM/TxIG6Gg6bdChLScnGWbjScBOpCPOFbilmO8gvbTIfqX
-	 rMz6sveWLKMSh3C34R7+Nde0+fDm3iWPQHJ4Tfq+f+YVmXgzLfUoWkFUcMaIzapBvR
-	 lmD/fjVe1Lg87G9zkJCX3rVlcpgr1eA15ioyz0i7+2Gu4VaI8tyVkPHne2LBZ1yHi8
-	 TTGLMJSlw1wMb4pwbeXr7V4KE+FF7/cICRrb7evvgR7iAz98rZo4XnOFmR0UGoL/xp
-	 KKyYIKMXgGzOA==
-Message-ID: <b99fd4d3-244a-422a-929d-ac05268165f8@kernel.org>
-Date: Wed, 6 May 2026 15:32:32 +0200
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="H1c5bR0l"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=fW
+	cSjK7EV2ez99Q2HCbUPG3YXPdtccdv6DKjz8LT2Wk=; b=H1c5bR0lY6woK98BBu
+	KS1lpJyYa+aqcVLHMqhvEee3O5SrDi8RoKrITFon2F0a3pmd/80Fg8StTNo9v/+/
+	Ml9B6c9lyIb8uaTqsDOkImVrTmRqoSRu+9XEq8gcMjUrUgD1na/NeLoph0Imcc2d
+	jaxf8+gpSe1cgQtuh5qHHqdYs=
+Received: from zhb.. (unknown [])
+	by gzga-smtp-mtada-g0-0 (Coremail) with SMTP id _____wCHAqsXXftpv5CgDg--.43926S2;
+	Wed, 06 May 2026 23:24:08 +0800 (CST)
+From: Hans Zhang <18255117159@163.com>
+To: bhelgaas@google.com,
+	lpieralisi@kernel.org,
+	kwilczynski@kernel.org,
+	mani@kernel.org,
+	vigneshr@ti.com,
+	jingoohan1@gmail.com,
+	thomas.petazzoni@bootlin.com,
+	pali@kernel.org,
+	ryder.lee@mediatek.com,
+	jianjun.wang@mediatek.com,
+	claudiu.beznea.uj@bp.renesas.com,
+	mpillai@cadence.com
+Cc: robh@kernel.org,
+	s-vadapalli@ti.com,
+	linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-mediatek@lists.infradead.org,
+	linux-renesas-soc@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Hans Zhang <18255117159@163.com>
+Subject: [PATCH v2 0/8] PCI: Add common helper for 100 ms delay after link training
+Date: Wed,  6 May 2026 23:23:38 +0800
+Message-Id: <20260506152346.166056-1-18255117159@163.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/2] dt-bindings: net: microchip: Add LAN7500 and
- LAN7505 devices
-To: Thomas Richard <thomas.richard@bootlin.com>,
- Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>,
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
- Oleksij Rempel <o.rempel@pengutronix.de>
-Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, netdev@vger.kernel.org,
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-omap@vger.kernel.org
-References: <20260506-b4-var-som-om44-lan7500-v2-0-b8af59ab877c@bootlin.com>
- <20260506-b4-var-som-om44-lan7500-v2-1-b8af59ab877c@bootlin.com>
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=krzk@kernel.org; keydata=
- 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 a/A=
-In-Reply-To: <20260506-b4-var-som-om44-lan7500-v2-1-b8af59ab877c@bootlin.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wCHAqsXXftpv5CgDg--.43926S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxZF48ArWDZFyxXr13tr17Awb_yoW5trykpF
+	WrGrWSkFn7JrWYv3Z5A3W7ury5W3Z5G3y7Jws7K34xXry3C3W3Jr1IqFs5tF9rGrWkZr12
+	vw1Ut3WDCa90yFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0ziDPEfUUUUU=
+X-CM-SenderInfo: rpryjkyvrrlimvzbiqqrwthudrp/xtbC6xm2Wmn7XRnXsQAA3u
 
-On 06/05/2026 14:13, Thomas Richard wrote:
-> Add bindings for LAN7500 and LAN7505 USB Ethernet Devices which are similar
-> to LAN9500.
-> 
-> Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
-> ---
->  Documentation/devicetree/bindings/net/microchip,lan95xx.yaml | 2 ++
->  1 file changed, 2 insertions(+)
+PCIe r6.0, sec 6.6.1 (Conventional Reset) states:
+
+- For a Downstream Port that supports Link speeds greater than 5.0 GT/s,
+  software must wait a minimum of 100 ms **after Link training completes**
+  before sending a Configuration Request to the device immediately below
+  that Port.
+
+Several PCIe host controller drivers currently omit this 100 ms delay
+when the negotiated link speed is Gen3 (8 GT/s) or higher. Only the DWC
+driver already implements it. The missing delay can lead to violations
+of the PCIe specification.
+
+To fix this consistently and avoid code duplication, this series:
+
+  1. Adds a static inline helper `pcie_wait_after_link_train()` in
+     drivers/pci/pci.h. The helper checks the given max_link_speed
+     (or negotiated speed) and calls msleep(100) if the speed is > 5 GT/s.
+
+  2. Converts the DWC driver to use this helper.
+
+  3. Adds the missing 100 ms delay to the Cadence PCIe controller
+     (both LGA - Legacy Architecture IP - and HPA - High Performance
+     Architecture IP) after introducing a `max_link_speed` field in
+     struct cdns_pcie.
+
+  4. Adds the delay to the Aardvark, MediaTek Gen3, and Renesas RZ/G3S
+     host drivers, reusing their existing link speed fields.
+
+All changes are placed exactly where the driver has just finished
+waiting for the link to come up, i.e., immediately after link training
+completes and before any Configuration Request would be issued.
+
+---
+Our company's product is based on the HPA IP from Cadence. When connecting
+to different devices, we encountered issues with the enumeration failure
+when connecting to the NVIDIA RTX5070 GPU and the NVMe SSD with PCIe 5.0
+interface. Our code is based on: 80dc18a0cba8d ("PCI: dwc: Ensure that
+dw_pcie_wait_for_link() waits 100 ms after link up").
+---
+Changes since v2:
+- Add pcie_wait_after_link_train() helper
+- Reduce repetitive code comments and have each Root Port driver use the
+  helper function instead.
+- Increase the delay to 100ms after enabling the link-up that distinguishes
+  between Cadence LGA and HPA IPs.
+- Add the Aardvark, MediaTek Gen3, and Renesas RZ/G3S Root Port driver. When
+  the speed is greater than GEN2, a delay of 100ms should be applied.
+
+v1:
+https://patchwork.kernel.org/project/linux-pci/patch/20260501153553.66382-1-18255117159@163.com/
+---
+Hans Zhang (8):
+  PCI: Add pcie_wait_after_link_train() helper
+  PCI: cadence: LGA: Add max_link_speed field and 100 ms delay after
+    link training
+  PCI: cadence: HPA: Add 100 ms delay after link training
+  PCI: j721e: Set max_link_speed to enable 100 ms delay after link up
+  PCI: dwc: Use common pcie_wait_after_link_train() helper
+  PCI: aardvark: Add 100 ms delay after link training
+  PCI: mediatek-gen3: Add 100 ms delay after link training
+  PCI: rzg3s-host: Add 100 ms delay after link training
+
+ drivers/pci/controller/cadence/pci-j721e.c          |  1 +
+ .../controller/cadence/pcie-cadence-host-common.c   |  4 ++++
+ .../pci/controller/cadence/pcie-cadence-host-hpa.c  |  3 +++
+ drivers/pci/controller/cadence/pcie-cadence.h       |  2 ++
+ drivers/pci/controller/dwc/pcie-designware.c        |  8 +-------
+ drivers/pci/controller/pci-aardvark.c               |  4 +++-
+ drivers/pci/controller/pcie-mediatek-gen3.c         |  2 ++
+ drivers/pci/controller/pcie-rzg3s-host.c            |  2 ++
+ drivers/pci/pci.h                                   | 13 +++++++++++++
+ 9 files changed, 31 insertions(+), 8 deletions(-)
 
 
-Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+base-commit: a293ec25d59dd96309058c70df5a4dd0f889a1e4
+-- 
+2.34.1
 
-Best regards,
-Krzysztof
