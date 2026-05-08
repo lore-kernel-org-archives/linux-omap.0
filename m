@@ -1,64 +1,63 @@
-Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
+Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EC033D1CA2
-	for <linux-omap@vger.kernel.org>; Fri,  8 May 2026 10:39:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7E313D170C
+	for <linux-omap@vger.kernel.org>; Fri,  8 May 2026 10:39:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778236761; cv=none; b=US5RZYyK/ZD8twfDKuxaw+imxFzUA2bPE+YkrLTKWzbL5zXtJx2dHwqUojiYx3r7RiTBfIeQiGvummzf4g3jMVgUWDCfUUh5Ho3LT1uCH/RrRaGbW52NBSnB3p9+u+50RNjge2iJc4Cmt4L7FXTGMvGj0z3FD+CkyHGH5xdcUCg=
+	t=1778236765; cv=none; b=Hl4Asr4ycCEdcFdN+APdyxyNzY08cGi9oe29t8s+FtbWoSwLxa6eddNvcpGv/ki/yZNRoAe9qFLMI7jivnq3ZY+I6dpE6bbiVsJApeTU+LrH26dWheuuinOq72GrnYgoZkY+ar/tueWJOhOYBY/fO3ZRRxjJEuAmOkb8S4w6wVI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778236761; c=relaxed/simple;
-	bh=hgD0CGh4ly4OvpPUJGHRau/Dkr3Aayaonu/8yfXXpu0=;
+	s=arc-20240116; t=1778236765; c=relaxed/simple;
+	bh=X8FuvP/99gyNUMmHvPuFXmMMvK2n28I6GDJoLygfXIc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DSXhT4dPnlPime5+5UdxW6d9YcY6A7Pq+6Y3JsK2KMHI9m12o5Yjl5rPuB+W146tEsIPiiv8CpYNBuDrgYsKx7OTJVQ7H4rudGulKo+S+pRYHLakyfFyTcB/Ba+dfx+aPifbGTfaUF5UGglQVGN7uJRhx9vp88TBFBKHMsa1tAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FUn7Xotu; arc=none smtp.client-ip=209.85.215.176
+	 MIME-Version; b=Vh52nwTE3d47gY1z/5pZyEhp9AFj2rG08NppVdUwm2pgyTyj9r/wO4teQ/5wbG2dk2eL37CKnTfH1koCGqTDbNVGLvD9M9t9xga6pS8as2F9pb8Vl9nA9UYLj56gxXCwLDpYkg0EyiP3RHWMk7Mnftl2k72AQCVM3ZfQ6ZwtxL8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rLu3fxGn; arc=none smtp.client-ip=209.85.216.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FUn7Xotu"
-Received: by mail-pg1-f176.google.com with SMTP id 41be03b00d2f7-c70fb6aa323so749883a12.3
-        for <linux-omap@vger.kernel.org>; Fri, 08 May 2026 03:39:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rLu3fxGn"
+Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-356337f058aso1195863a91.2
+        for <linux-omap@vger.kernel.org>; Fri, 08 May 2026 03:39:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778236759; x=1778841559; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778236763; x=1778841563; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=lLQoiR5rrh3hqy6OvnSB4BV7IM1W5VVe7Onht99maeg=;
-        b=FUn7XotuHqFNnpQ9zw0pzeSC83ZT3HShmDlCmAxYj9GRlpB9iqhYD0BvIjv0eO7i0X
-         XNt9rz/yBdcijOTmjsZz8oX41xRcHQVwbmu+c8LT/KWUPZVa7eo5arxo2TBqEKxAT92H
-         NScPQ0OmpP7G2MOGQCa6eeVbh7c1u9xWMcy4PXfPhAD5/JxGqmpEtLpiCaFFnCol+KyU
-         qumjrUbtZO5bXkD5CQSYLvFq/f3RBX/GoeP47wO5LR8zA4i2fbgWSfUGhRTxu1kQVv02
-         Pal5CW0NPB2cyWsQg8YK45mzd8QDqaT2f/+YXqXrnz54otA/L7sC/J2aezs1cbIpPAFt
-         3zaQ==
+        bh=M7TyisERyCLhAIeiN1+m/zKrVKHagMvjPp9LlZU4W08=;
+        b=rLu3fxGn+Fj+3HwvzCP3KAd1YotEsTpF9GtKQ3KXKw0L3GN8yBXti4vZPtfGxqW4Gj
+         87pWMyjruW9LAObvvJDhTqTmb55sdZg+aM80YvLGdCD4ANm1M/IMu6N/gaRriiQIwmib
+         5j2pH2oE3IqqXDngueuPKceQOhkNkI9FuqDinaYByQ8rEmkgiIZLXUUcEAaMLGHhyU2Y
+         Jg7mdsPzFNxe9ssgYWqz55yeE5r5ITdkqqQmXZSj0AAxLgUBGT99vE5euoqg4NqNzccz
+         0aYSs9MJ5VuJrKxMAVMI062/zMjbX4yJWZbp6N5ZCVG+7eiTvOFuhuhrkmsHywD/6GwD
+         BOLA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778236759; x=1778841559;
+        d=1e100.net; s=20251104; t=1778236763; x=1778841563;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=lLQoiR5rrh3hqy6OvnSB4BV7IM1W5VVe7Onht99maeg=;
-        b=JxWdzifg8T310NOw6wfBYfTiSubFfh7ANMANSknPIY4gNjaohV0SeYadOVQ7NpzrnX
-         1DK1azFPKdVA1GIgwYybeiWQOQb1T2ie1T5R75D+hQ28DsNzxPpRSYXvrJW0pz8bFnN+
-         3RaVzjrcFmaGUk8+WaVB5Eaffo/mbybhA/zJNJR14AOmTE3FWgyz2TxEbvm/RIaLm0Co
-         3NSPCIj+k5Vqjee6lHEV4NcNniQFdvkPt0u/H7mEqzLyLDpR9CtDEFprfXWbmaerANoo
-         44bNcoz88Z709zzo3RcPWL6senzN163rxZQeL/083iW2K1RRhayiskrvbicrz9vaY5H3
-         l9wA==
-X-Forwarded-Encrypted: i=1; AFNElJ/wtTd7cs8QM+vi8eqKhJtMvVVDADtlH2uK7ep7j07cpGZ745iprX/Q5YyDFyIxdRjOg554XrelS0LZ@vger.kernel.org
-X-Gm-Message-State: AOJu0YwU8EVlSB2fJhPGBUbqx0bntW3c/kIGhBsqOCdq7E+ohIqGBZLO
-	dUYPJq9zqFKoUw1shZNzEfFV27enJ5Ay4YXzx8pKyVaBz+nSN+YObQym
-X-Gm-Gg: Acq92OFhb1IJR34yNeaI9/e2SKfUhFP7obhXcaHM63nwtZHQWysKVCnE/8sp2OjbLuh
-	AZeElWsA+9b4j/IbktY/JXRaWURYBHAEn3HfBciGZdv7Ux32A76Fcwnqz6gkto5SMVpWYEfeapa
-	w++YYgkju7cGEfaC3yrapmtY3xGO62iPsJHF7U8lf9qsvvEofID7+NoK1wazvVJ6mFkfDbZaFS3
-	SfUibiNW4hyr1hC6Ucf063C3DSrSPlSmZnjhm27ACEX4gHfrNKd8qYsqELbrBrRlU6Gm6j/QSi/
-	fNt9CN4He809+SyfmBINW3CmjVr+aHPOh01nFojiEcytc82zYvvlElVkR+RG+8UT3KjUA5xiVsZ
-	zZ1sRNwv1wghmagD0ROzglVs/aMfX/NNd6cEtEmya/J1XZU51ljuVvY0EzTdKUuqxYvVb3uZnd4
-	p0DdwSU9Er3pjM0369Dgw+O6UMwbX12f0lOgZlwZF5PfOx3FoWTNGh8cPjt8+tf6vxa05UpjUrf
-	QOeBmw=
-X-Received: by 2002:a17:903:1d2:b0:2b0:663f:6b53 with SMTP id d9443c01a7336-2ba7908bfb1mr124730905ad.13.1778236758762;
-        Fri, 08 May 2026 03:39:18 -0700 (PDT)
+        bh=M7TyisERyCLhAIeiN1+m/zKrVKHagMvjPp9LlZU4W08=;
+        b=GP0whd+P8wzeM0umXa1cus2O3/d5bjJjPpzxqlF/y9SShTvLIcMaaPuziuc7MuXh9y
+         PhYwE1QIa4Q2yDUOTaEMo8mvKfM5jCjSsSN5cQrJKS90wkCXF4jvF0/Xm3UnQ4fdNgCI
+         EvK2KoWzLLk6zrPcARrVC2l1cvP5d698V3ZS3+05DQ/b/MkimbM1ij3oOExzdqvpmkVw
+         XNIwnAfNmw+c7u7aRP+DNT+PH+RqnPodiYsRzREDhnAoh583kJtBlH+ru/fj01/0RDpi
+         48KWYItGJrtY5v7TdYx8rzl6ttDJ3g1tjyzNLQqTmbOGIZ/tHGfpm9xNfHygb0dwbNEw
+         fyjQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8QXxahjZiIOSXqo6SEn0ot5BjMvd2os7jNunVM3ihGPTzwVSq3EY/TjtAjK6CyzMg4BbE3fg1cA1Ot@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyzu1F3JnNd6LgESDirIVQ005x0dpfRhuC/uxejTQ2UU6cyP4Ht
+	q+8exWM88v2A+nkIPTcuBwoip8p8Lmv1KJcXp1OBViRXEXay2wqt3PYz
+X-Gm-Gg: Acq92OFIdl29aVbHWy1tLBU5z9eBIgokHo9uM61LbLVlvYm78WxbP+EjYQ5oni4kbp2
+	Aeuq2fK1AnbaMw7tv09KOvOzuGVEglRz2+72cYXXhyo4M+hyrFF9cGq8xz1XYwAZ1k0+qjdo1Sl
+	E2buvh9QBtSqwL1QQpCd2qvvtnBi+FPkElYMivNXtnG30FoXzh7pGogeDpRmRdOpixyVddpCeTM
+	fh/tXd/+MsNa2k688jlLh1LrNqHr2ydSiG0HPysBxuT/oO8XGTc4HYFh5J+R2oEaASaZmtKnVfx
+	2SRr5TTHwnTk1Py0B0Xvo2rIHB3CLBoL8m967toEoDR198mPH/5cmwrZSTodhVLcgitrPOP+rBk
+	2DKJiSUBR8Gy71ow/OWo8w2w/u7xhyXiXEZ90XLdG1OY/BcVYKTK/vwMFwG1kniuyhJ8VJ5pdU+
+	B4psCbQSMXTMLf8+0cUUSoQEPwHoqtfrbg9M/Bzjez0PEcrnPrzdbcIcu9ugb5vynCuyB3
+X-Received: by 2002:a17:90a:e7c2:b0:366:1bab:c3d6 with SMTP id 98e67ed59e1d1-3661babc819mr5812280a91.10.1778236762673;
+        Fri, 08 May 2026 03:39:22 -0700 (PDT)
 Received: from phuc-desktop.. ([183.91.15.56])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2baf1d27109sm18309345ad.1.2026.05.08.03.39.16
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2baf1d27109sm18309345ad.1.2026.05.08.03.39.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 08 May 2026 03:39:18 -0700 (PDT)
+        Fri, 08 May 2026 03:39:22 -0700 (PDT)
 From: phucduc.bui@gmail.com
 To: peter.ujfalusi@gmail.com,
 	broonie@kernel.org
@@ -70,9 +69,9 @@ Cc: lgirdwood@gmail.com,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org,
 	bui duc phuc <phucduc.bui@gmail.com>
-Subject: [PATCH 5/7] ASoC: ti: ams-delta: Use guard() for spin locks
-Date: Fri,  8 May 2026 17:38:35 +0700
-Message-ID: <20260508103837.138142-6-phucduc.bui@gmail.com>
+Subject: [PATCH 6/7] ASoC: ti: omap-mcbsp-st: Use guard() for spin locks
+Date: Fri,  8 May 2026 17:38:36 +0700
+Message-ID: <20260508103837.138142-7-phucduc.bui@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260508103837.138142-1-phucduc.bui@gmail.com>
 References: <20260508103837.138142-1-phucduc.bui@gmail.com>
@@ -91,60 +90,118 @@ Merely code refactoring, and no behavior change.
 
 Signed-off-by: bui duc phuc <phucduc.bui@gmail.com>
 ---
- sound/soc/ti/ams-delta.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ sound/soc/ti/omap-mcbsp-st.c | 26 ++++++++------------------
+ 1 file changed, 8 insertions(+), 18 deletions(-)
 
-diff --git a/sound/soc/ti/ams-delta.c b/sound/soc/ti/ams-delta.c
-index ba173d9fcba9..6dd0d051a757 100644
---- a/sound/soc/ti/ams-delta.c
-+++ b/sound/soc/ti/ams-delta.c
-@@ -264,10 +264,10 @@ static void cx81801_timeout(struct timer_list *unused)
- {
- 	int muted;
+diff --git a/sound/soc/ti/omap-mcbsp-st.c b/sound/soc/ti/omap-mcbsp-st.c
+index 901578896ef3..b762d5d3e33b 100644
+--- a/sound/soc/ti/omap-mcbsp-st.c
++++ b/sound/soc/ti/omap-mcbsp-st.c
+@@ -156,7 +156,7 @@ static int omap_mcbsp_st_set_chgain(struct omap_mcbsp *mcbsp, int channel,
+ 	if (!st_data)
+ 		return -ENOENT;
  
--	spin_lock(&ams_delta_lock);
--	cx81801_cmd_pending = 0;
--	muted = ams_delta_muted;
--	spin_unlock(&ams_delta_lock);
-+	scoped_guard(spinlock, &ams_delta_lock) {
-+		cx81801_cmd_pending = 0;
-+		muted = ams_delta_muted;
-+	}
+-	spin_lock_irq(&mcbsp->lock);
++	guard(spinlock_irq)(&mcbsp->lock);
+ 	if (channel == 0)
+ 		st_data->ch0gain = chgain;
+ 	else if (channel == 1)
+@@ -166,7 +166,6 @@ static int omap_mcbsp_st_set_chgain(struct omap_mcbsp *mcbsp, int channel,
  
- 	/* Reconnect the codec DAI back from the modem to the CPU DAI
- 	 * only if digital mute still off */
-@@ -373,11 +373,11 @@ static void cx81801_receive(struct tty_struct *tty, const u8 *cp, const u8 *fp,
- 			continue;
- 		/* Complete modem response received, apply config to codec */
+ 	if (st_data->enabled)
+ 		omap_mcbsp_st_chgain(mcbsp);
+-	spin_unlock_irq(&mcbsp->lock);
  
--		spin_lock_bh(&ams_delta_lock);
--		mod_timer(&cx81801_timer, jiffies + msecs_to_jiffies(150));
--		apply = !ams_delta_muted && !cx81801_cmd_pending;
--		cx81801_cmd_pending = 1;
--		spin_unlock_bh(&ams_delta_lock);
-+		scoped_guard(spinlock_bh, &ams_delta_lock) {
-+			mod_timer(&cx81801_timer, jiffies + msecs_to_jiffies(150));
-+			apply = !ams_delta_muted && !cx81801_cmd_pending;
-+			cx81801_cmd_pending = 1;
-+		}
+ 	return ret;
+ }
+@@ -180,14 +179,13 @@ static int omap_mcbsp_st_get_chgain(struct omap_mcbsp *mcbsp, int channel,
+ 	if (!st_data)
+ 		return -ENOENT;
  
- 		/* Apply config pulse by connecting the codec to the modem
- 		 * if not already done */
-@@ -426,10 +426,10 @@ static int ams_delta_mute(struct snd_soc_dai *dai, int mute, int direction)
- 	if (ams_delta_muted == mute)
- 		return 0;
+-	spin_lock_irq(&mcbsp->lock);
++	guard(spinlock_irq)(&mcbsp->lock);
+ 	if (channel == 0)
+ 		*chgain = st_data->ch0gain;
+ 	else if (channel == 1)
+ 		*chgain = st_data->ch1gain;
+ 	else
+ 		ret = -EINVAL;
+-	spin_unlock_irq(&mcbsp->lock);
  
--	spin_lock_bh(&ams_delta_lock);
--	ams_delta_muted = mute;
--	apply = !cx81801_cmd_pending;
--	spin_unlock_bh(&ams_delta_lock);
-+	scoped_guard(spinlock_bh, &ams_delta_lock) {
-+		ams_delta_muted = mute;
-+		apply = !cx81801_cmd_pending;
-+	}
+ 	return ret;
+ }
+@@ -199,10 +197,9 @@ static int omap_mcbsp_st_enable(struct omap_mcbsp *mcbsp)
+ 	if (!st_data)
+ 		return -ENODEV;
  
- 	if (apply)
- 		gpiod_set_value(gpiod_modem_codec, !!mute);
+-	spin_lock_irq(&mcbsp->lock);
++	guard(spinlock_irq)(&mcbsp->lock);
+ 	st_data->enabled = 1;
+ 	omap_mcbsp_st_start(mcbsp);
+-	spin_unlock_irq(&mcbsp->lock);
+ 
+ 	return 0;
+ }
+@@ -215,10 +212,9 @@ static int omap_mcbsp_st_disable(struct omap_mcbsp *mcbsp)
+ 	if (!st_data)
+ 		return -ENODEV;
+ 
+-	spin_lock_irq(&mcbsp->lock);
++	guard(spinlock_irq)(&mcbsp->lock);
+ 	omap_mcbsp_st_stop(mcbsp);
+ 	st_data->enabled = 0;
+-	spin_unlock_irq(&mcbsp->lock);
+ 
+ 	return ret;
+ }
+@@ -241,13 +237,12 @@ static ssize_t st_taps_show(struct device *dev,
+ 	ssize_t status = 0;
+ 	int i;
+ 
+-	spin_lock_irq(&mcbsp->lock);
++	guard(spinlock_irq)(&mcbsp->lock);
+ 	for (i = 0; i < st_data->nr_taps; i++)
+ 		status += sysfs_emit_at(buf, status, (i ? ", %d" : "%d"),
+ 					st_data->taps[i]);
+ 	if (i)
+ 		status += sysfs_emit_at(buf, status, "\n");
+-	spin_unlock_irq(&mcbsp->lock);
+ 
+ 	return status;
+ }
+@@ -260,19 +255,17 @@ static ssize_t st_taps_store(struct device *dev,
+ 	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
+ 	int val, tmp, status, i = 0;
+ 
+-	spin_lock_irq(&mcbsp->lock);
++	guard(spinlock_irq)(&mcbsp->lock);
+ 	memset(st_data->taps, 0, sizeof(st_data->taps));
+ 	st_data->nr_taps = 0;
+ 
+ 	do {
+ 		status = sscanf(buf, "%d%n", &val, &tmp);
+ 		if (status < 0 || status == 0) {
+-			size = -EINVAL;
+-			goto out;
++			return -EINVAL;
+ 		}
+ 		if (val < -32768 || val > 32767) {
+-			size = -EINVAL;
+-			goto out;
++			return -EINVAL;
+ 		}
+ 		st_data->taps[i++] = val;
+ 		buf += tmp;
+@@ -283,9 +276,6 @@ static ssize_t st_taps_store(struct device *dev,
+ 
+ 	st_data->nr_taps = i;
+ 
+-out:
+-	spin_unlock_irq(&mcbsp->lock);
+-
+ 	return size;
+ }
+ 
 -- 
 2.43.0
 
