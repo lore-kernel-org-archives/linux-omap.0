@@ -1,63 +1,63 @@
-Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B1F33CF696
-	for <linux-omap@vger.kernel.org>; Fri,  8 May 2026 10:39:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B2ED3D3308
+	for <linux-omap@vger.kernel.org>; Fri,  8 May 2026 10:39:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778236752; cv=none; b=Ifzl+g4+DoVoxiTopPgvxs1ivnOg7ejujlTSrcPJtVr9ea/azrsuDvwMTZ1MUMVo0McSkajlgJMqvhuOcuhUEZjXfRO+wc29dEVekMwkSI4PrVBwpwGLQnoT1oxhZ+x7sKS+oeewrZvk9LAjQCVgE9em7egIRnDlt5238QE2sac=
+	t=1778236756; cv=none; b=YcH5N/lqp3auN7PGl0YSc+3svNMQak8yt4k+SX6FFsTlpeuph9OoJ+S4q9eWgT5OTFyt89Wm7+/bTttZdGvPHF8wg+QSR+vAlMX9HNkzRMeY7uUnITJG8A4yqq/QqxMJQOmb45TGH4gDmAXVSQFB/HzMjbRyGjtCiqAPyKc9DYc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778236752; c=relaxed/simple;
-	bh=IDfulofV8L3pjBAwtb/03nHXAYUcs5a20eJyXfotbwk=;
+	s=arc-20240116; t=1778236756; c=relaxed/simple;
+	bh=28cWvZt5+LjVRFYTpiBD7lWC/PI7kpR5cnKEpuPnDeQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XyljfyfEizATOBpfPZ7NPLEz9l63XI/BzDorzPrq7OAb3ik+YajxIXbnFlUN/Rutxm8I9/Blqw6jERvuFB8zKFHdve8AI6FVahnnQOMRxlEt/Th1l3tB1xngym6e5zmbS/P1WTqEv04Hqt2QfJcb9q7UMitL1PdcBGofcEH/YcA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HADUq02j; arc=none smtp.client-ip=209.85.214.169
+	 MIME-Version; b=TGEJ3Rc747juM0mRWofa2vDL+hA/GsEuInh543zPbkMQsZfJtcm9/Xc/GHR6iDtsez/gi6SIDv437pO0ywtq3ttN35cvLiSqBwLOfW6Z2s6XaoAbOXInT5y5c9zXx19PS38AGgvkUxNaa3w5G+HFDcNFrWMob711tVgkk52VKPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=V19QTynV; arc=none smtp.client-ip=209.85.214.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HADUq02j"
-Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2ba21d32776so13178795ad.2
-        for <linux-omap@vger.kernel.org>; Fri, 08 May 2026 03:39:11 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V19QTynV"
+Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-2b9705613ddso11906205ad.1
+        for <linux-omap@vger.kernel.org>; Fri, 08 May 2026 03:39:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778236751; x=1778841551; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778236755; x=1778841555; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=4zKyR5U1yAXuf2WaMek/cM/qR7vazFRcQvHEtxImguA=;
-        b=HADUq02jxeyeOIveZd7w7EYwT6G1v3nrgHsV69x8oSiWWp3JiVtiokQQFF7jGH4HfN
-         HLVTdYpn4UJ6nVoyXCPxG0FRcKyZRu76H6/xx23OV0Lm5WsoJbVrF5adVXji7UprChJK
-         isi3VqYUkJePRvHkG9kznDKJWJQwKSC5I2P/COoy2EB3yTJOT4krTWM8zDLsGR9hkJWY
-         C20HB3EPnKyDvLMaYLYhLE36BevGpLS+OabokUsgoen81CIeVPLof0cw99aLsradV/Vs
-         4yw6cir6cPBP/CHbiyUpcBawdQ8eZ7lt8segjYnT9NtLDgI9NuXeWI5F9PYH+WTrDw6p
-         2xIw==
+        bh=VtY4fEpkcKI43PjOB3u+OACOnE6yg3XP27IxAIRobhU=;
+        b=V19QTynVeUXGSbFe+O7PxceLr/8yFzhRaI9E/+g/caoKcIUP9syDHEtl1jAsqu37v4
+         R0hYO8et/WL/u/bfW9XLXLfbVPPMO2hOSN3QeYuGD+enOf6sbTVmcEYXmfgPj9x9XRgI
+         96ei9MzmnkZ2zbT/XMGYVxQwfT8D26bEZFiWYNFPPgZ41yPwfqM5dxRd41O4ijUFuZ2y
+         TvCNKf3znkCW38BJn0DYWD8CTroWH8EjdB3AbLeb3voXC9wr27kLNJzDQUEzLKCKkdW3
+         aY4xg1lRr1AiMK6rVAv5OFiNZU6JoPthiZ7jJGuXOXzrSXaCmSkm5/TseviWSNthVj8U
+         1jPQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778236751; x=1778841551;
+        d=1e100.net; s=20251104; t=1778236755; x=1778841555;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=4zKyR5U1yAXuf2WaMek/cM/qR7vazFRcQvHEtxImguA=;
-        b=PZpNfMXzIZmteCgj4AXE6Xp8Vu8Fu846CguMrYcKXMSaGberWUsghlceVE15wleicB
-         FZ+y0/1nZGf6dAI1Gv+XmMxSLi++wfxC/pP32NKlIOTM+Sng3oBbn8Gz4Fjao/I8R0Kx
-         HyPRVPqCUA9Osxp1c/xyG0QDRtkYz7JYz9rQZz6QlgiI90EfIbKK+xcAIdmfj0pzY/tt
-         FPnstHqohxbf+E5kyq8tFjwRfD6clglapOIGf2Odp+wiNVkB5zJEc1qcvYhT8UkmHEFm
-         xDTuyTl2kZWGL3xFWyJ2vTc6g2pHSgQyHdB5aibuqMKdt7PE/hu1CyPvyN5ybNL/bVD6
-         jZOw==
-X-Forwarded-Encrypted: i=1; AFNElJ+2iOZaYmXDUSADqQgPvOIDWr+ZEZktbfCTDiaVmxlvJpknVuYK0GEZECrGgiH+w3C5/w386Dv9i42a@vger.kernel.org
-X-Gm-Message-State: AOJu0YxXJL3/GjWDSZoiKKGR6NQc9TORsHlXfiJV0EVLUIwIhapM4Ju1
-	Zj2icZCT5IRliSNUpFly1P8OnLApip2JrHZFiMw9T7TU1psFZJXdirxu
-X-Gm-Gg: Acq92OGWZCpe7AfjoGISnH0YKTjnJU73fIE66sSYhr3UOzYSPGBkha7QkciXxSHYNsJ
-	4xtuHmdTA+kJmZ9pdmZwX89BMpuN25LTMqAR+rbyx544LiQSLFVcOpWwoi/TwfKrrRs33tsuvyk
-	2X3VHq7ma5Y86oxNjZLfVhwCCQ0Yb0C+w4DfrSLakhuBF/407eCX3I3gRIla8IE6xTohBorVLdB
-	zJ4YvAwmlHl54kKdmUZyagU1OWLJrpmWoy6dHTAGRmhMQGsaIE9xyiNkZ1T9l27ZL84aGvKaVcK
-	kGS4bQJsSXAgINaiNXI4cnX2nZvkwy0Jd8wj9tLrezn09VUAAZKdGIYfhsDq+d2lLW/+pFQUoqf
-	eoMsFLWouDhMS3L872wP34jtI6CCuGeig+q7cAE2B+ItjlgGGcGtvNPzkaE4RlSJH1Cgb7iIO7t
-	lhBddL5ObMw6cV077kYN+3t8azYQrhsplVPLoBMXqDJc8/KhME4ox025UrNQ==
-X-Received: by 2002:a17:902:e98e:b0:2b4:5e65:5d0e with SMTP id d9443c01a7336-2ba78c40260mr94019615ad.10.1778236750894;
-        Fri, 08 May 2026 03:39:10 -0700 (PDT)
+        bh=VtY4fEpkcKI43PjOB3u+OACOnE6yg3XP27IxAIRobhU=;
+        b=A7LEG+tCXEIxX1dQ1fg7UrsNDhzAZclpTzXgu3/7MvhGb3pYy5NWo+6HmLUrbiMsuW
+         ovcG3mmNYyx773dcPcZKueK/PK7U/dFuMo6HuNEXibswP88uV23f4u2LU1R8h8eLVnT0
+         V6DvVBt8fxQjqD91fFayVWXVj5+ZmKxKN+XIDiml/Rq4OaYnO60NoftcsnXy4crbTZ8j
+         k2kciZXdwVYSyBVp8AlgV6y6mrU9FweYyqcKk/7VijFHXvuf/+WvciO4e4wnpfNckmYp
+         9mxaDsiC0yY/wWhlY0xdDJoyzNkHYQQwGpeXTqSSGgsGssSsbkPOEmk7IVrn7vyZGStu
+         k6sQ==
+X-Forwarded-Encrypted: i=1; AFNElJ/Resx3lCDR+3FB9zx+DoghUYJ1q36SmEyBVCnwOhjP7VmKqNcpGdiguJAnbMfJJNu9BeQv0NeEWZCv@vger.kernel.org
+X-Gm-Message-State: AOJu0YyyDhITk4Tpks9LX6++cebCM1vSx1MFxIOIEAI0ubHTrY0d2ZqB
+	rnCCCCjlJ9ZjSDM2h9p6TwQV1iKlNqvB4tAUG0NwEYrHKxYU6uJ/nYaB
+X-Gm-Gg: Acq92OEpja0vTUIMu9KEduQn9Z4/Y/aoyCsZF703G3al9qQHRAqlX2hs9naxqfedS6Q
+	EOpnmYtoNW7W+6ryR2VFxzx3Vdv098a4WHHfViuON1IW95hQ28xdDfLf/GSAKYFB2rjLf4sWcET
+	m3geIQU4LdOfgOZSYkLzGQpfkXx3SfM7eddIuLSAA5B477VresGvXcOirHVS6yTUDFzLS9jeUEq
+	U/KcFBBqtLs74DvJP+RAIdCX/vm0Pu6cJ9eHpovgDVRTXuPe5aGTRZY8fIi22RnmP8A3aZ1N8IE
+	OsWBnt6pV5NlSp1olLVdzBJiAjfxYNCiY6AJWCtS6k6zr2Z/zuHffh6jarLE3lOMrrGTpHXlXC+
+	71DG6nUO61AAtZZVI/OeBEw91EllK5b0G+g/Btu8aqxWIY6hXJ9ZqWw/raZ4yU7IT0nF3NDX6bU
+	PMP7gmVMsPB+9s+lG6ZslktIs88S+0xfLWU7VWkda4qDXsrC8flt7Xe69AIhyuXL1qdOEM
+X-Received: by 2002:a17:903:2ecb:b0:2ba:2581:36bd with SMTP id d9443c01a7336-2ba798c26f5mr125067205ad.21.1778236754856;
+        Fri, 08 May 2026 03:39:14 -0700 (PDT)
 Received: from phuc-desktop.. ([183.91.15.56])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2baf1d27109sm18309345ad.1.2026.05.08.03.39.08
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2baf1d27109sm18309345ad.1.2026.05.08.03.39.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 08 May 2026 03:39:10 -0700 (PDT)
+        Fri, 08 May 2026 03:39:14 -0700 (PDT)
 From: phucduc.bui@gmail.com
 To: peter.ujfalusi@gmail.com,
 	broonie@kernel.org
@@ -69,9 +69,9 @@ Cc: lgirdwood@gmail.com,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org,
 	bui duc phuc <phucduc.bui@gmail.com>
-Subject: [PATCH 3/7] ASoC: ti: omap-hdmi: Use guard() for mutex locks
-Date: Fri,  8 May 2026 17:38:33 +0700
-Message-ID: <20260508103837.138142-4-phucduc.bui@gmail.com>
+Subject: [PATCH 4/7] ASoC: ti: omap-mcpdm: Use guard() for mutex locks
+Date: Fri,  8 May 2026 17:38:34 +0700
+Message-ID: <20260508103837.138142-5-phucduc.bui@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260508103837.138142-1-phucduc.bui@gmail.com>
 References: <20260508103837.138142-1-phucduc.bui@gmail.com>
@@ -90,63 +90,46 @@ Merely code refactoring, and no behavior change.
 
 Signed-off-by: bui duc phuc <phucduc.bui@gmail.com>
 ---
- sound/soc/ti/omap-hdmi.c | 18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ sound/soc/ti/omap-mcpdm.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/sound/soc/ti/omap-hdmi.c b/sound/soc/ti/omap-hdmi.c
-index 55e7cb96858f..e60f5b483fc5 100644
---- a/sound/soc/ti/omap-hdmi.c
-+++ b/sound/soc/ti/omap-hdmi.c
-@@ -49,7 +49,7 @@ static void hdmi_dai_abort(struct device *dev)
+diff --git a/sound/soc/ti/omap-mcpdm.c b/sound/soc/ti/omap-mcpdm.c
+index 1a5d19937c64..c7d7b502f120 100644
+--- a/sound/soc/ti/omap-mcpdm.c
++++ b/sound/soc/ti/omap-mcpdm.c
+@@ -251,13 +251,11 @@ static int omap_mcpdm_dai_startup(struct snd_pcm_substream *substream,
  {
- 	struct hdmi_audio_data *ad = dev_get_drvdata(dev);
+ 	struct omap_mcpdm *mcpdm = snd_soc_dai_get_drvdata(dai);
  
--	mutex_lock(&ad->current_stream_lock);
-+	guard(mutex)(&ad->current_stream_lock);
- 	if (ad->current_stream && ad->current_stream->runtime &&
- 	    snd_pcm_running(ad->current_stream)) {
- 		dev_err(dev, "HDMI display disabled, aborting playback\n");
-@@ -57,7 +57,6 @@ static void hdmi_dai_abort(struct device *dev)
- 		snd_pcm_stop(ad->current_stream, SNDRV_PCM_STATE_DISCONNECTED);
- 		snd_pcm_stream_unlock_irq(ad->current_stream);
- 	}
--	mutex_unlock(&ad->current_stream_lock);
+-	mutex_lock(&mcpdm->mutex);
++	guard(mutex)(&mcpdm->mutex);
+ 
+ 	if (!snd_soc_dai_active(dai))
+ 		omap_mcpdm_open_streams(mcpdm);
+ 
+-	mutex_unlock(&mcpdm->mutex);
+-
+ 	return 0;
  }
  
- static int hdmi_dai_startup(struct snd_pcm_substream *substream,
-@@ -86,16 +85,14 @@ static int hdmi_dai_startup(struct snd_pcm_substream *substream,
+@@ -269,7 +267,7 @@ static void omap_mcpdm_dai_shutdown(struct snd_pcm_substream *substream,
+ 	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
+ 	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
  
- 	snd_soc_dai_set_dma_data(dai, substream, &ad->dma_data);
+-	mutex_lock(&mcpdm->mutex);
++	guard(mutex)(&mcpdm->mutex);
  
--	mutex_lock(&ad->current_stream_lock);
--	ad->current_stream = substream;
--	mutex_unlock(&ad->current_stream_lock);
-+	scoped_guard(mutex, &ad->current_stream_lock)
-+		ad->current_stream = substream;
+ 	if (!snd_soc_dai_active(dai)) {
+ 		if (omap_mcpdm_active(mcpdm)) {
+@@ -287,8 +285,6 @@ static void omap_mcpdm_dai_shutdown(struct snd_pcm_substream *substream,
+ 		cpu_latency_qos_remove_request(&mcpdm->pm_qos_req);
  
- 	ret = ad->ops->audio_startup(ad->dssdev, hdmi_dai_abort);
- 
- 	if (ret) {
--		mutex_lock(&ad->current_stream_lock);
--		ad->current_stream = NULL;
--		mutex_unlock(&ad->current_stream_lock);
-+		scoped_guard(mutex, &ad->current_stream_lock)
-+			ad->current_stream = NULL;
- 	}
- 
- 	return ret;
-@@ -261,9 +258,8 @@ static void hdmi_dai_shutdown(struct snd_pcm_substream *substream,
- 
- 	ad->ops->audio_shutdown(ad->dssdev);
- 
--	mutex_lock(&ad->current_stream_lock);
--	ad->current_stream = NULL;
--	mutex_unlock(&ad->current_stream_lock);
-+	scoped_guard(mutex, &ad->current_stream_lock)
-+		ad->current_stream = NULL;
+ 	mcpdm->latency[stream1] = 0;
+-
+-	mutex_unlock(&mcpdm->mutex);
  }
  
- static const struct snd_soc_dai_ops hdmi_dai_ops = {
+ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
 -- 
 2.43.0
 
