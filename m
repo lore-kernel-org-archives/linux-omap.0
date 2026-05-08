@@ -1,61 +1,63 @@
-Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+Received: from mail-pg1-f172.google.com (mail-pg1-f172.google.com [209.85.215.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B4543D0905
-	for <linux-omap@vger.kernel.org>; Fri,  8 May 2026 10:38:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98F473D16F6
+	for <linux-omap@vger.kernel.org>; Fri,  8 May 2026 10:39:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778236734; cv=none; b=R7hbgu+xY9yfIpwMzitjpqERNUxvMDUbrkKhzt5Fzort6T5/e9fFNrl0jB+HZstvXNy2gdbEfja7nsA4QZlK5AH+zGPy+z8ppuBW4NgBitfwLDMj+XzNF+2UPlJRIsJRx6g80Q0tYuXHByFN27C8pFynaDP85t9HDP33BPf9p2s=
+	t=1778236741; cv=none; b=dX9Wk1Q4rN5jdJNuZ2haR4gxVrSWdI4TCOZ5HTxJQQXcWT1xIQBvot3ftvtGmY5qQ0TPOqdrjtfi392CCl0fxjLLIPE6vXMRqGvbRNpvaAijIWODo9j8Om2q+Z4HdGmim0mnr04Gh1FcdmiWhYt2XN2GIvCaSOxetU1V6Cvkh2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778236734; c=relaxed/simple;
-	bh=6OqTH0hYqu74jsj3Hyhqf0/kStXynlWfF9E7YDa08mc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=K6J6nKl0rB0DLKdlJ4ilgcWvtj4a1GrozdNNn2E9WZshdhcKy0z3QG7nc4Blmsn/oJUYWGM/BVhLDCDxXVRKz38itF/nFaeey7d+PUmclpPvJ0tPqvDqKGNCQaB7CAovPuDBS+wV+EVzxA/h2F3GTf3vIY8ij9PLrrGyZe66REI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NuaSxrIR; arc=none smtp.client-ip=209.85.214.172
+	s=arc-20240116; t=1778236741; c=relaxed/simple;
+	bh=HbNQyIOQfmtYFfsohHgbl06rBm8HI5vxHjV4u7D/pL0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=dy0jaE3hiA+pahihHOx6lhFs5WcmJ/C1YewcIl0Qa5n9e2HbQkLZXRl+l9IdG6wYkZknIafvvI1IURTrVnypCA/yWNlLC6AbpLlI5ojp2jl81Jctv2q/PoJjpP2eCgs4Q8u1bp39+vZw36Kl+x1jZem8C8iEdKK7uG57PIp52N0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lSm2BeKT; arc=none smtp.client-ip=209.85.215.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NuaSxrIR"
-Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-2ad9f316d68so8973545ad.2
-        for <linux-omap@vger.kernel.org>; Fri, 08 May 2026 03:38:53 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lSm2BeKT"
+Received: by mail-pg1-f172.google.com with SMTP id 41be03b00d2f7-c80203b9d7bso731088a12.0
+        for <linux-omap@vger.kernel.org>; Fri, 08 May 2026 03:39:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778236733; x=1778841533; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=6m/SKf2PyFWZeQKqRQhBbnBBScw1UjxM2ZPFwBwR5Y8=;
-        b=NuaSxrIRN9i/pVsjWES0egal3fVIHzug6rNh0Qa5OMl++CWDuwOEBO7t60K2n05ii9
-         eslsiRC9Tl4eXd1Q8YYLrgZlKh/zY0I1KRubLqGsUIAtaM0J6L7LqY2667Y0wvALa/eG
-         Sut132d3X9VVGcPQ02mM4ouHTnAIXuSrnGGIlOzxzC2/fL31UHOMkBsqN9oDc3NboYs+
-         2tLrhJOEX2M8WDAIujyxeQkXwY73qMVRE/2NmZ4PaLymn8Lu6Ayn35+FFpEOonq1iWvn
-         iI156vd+U7CH94Zg4H78Ubor+EvJSetPYqJiv0EJcDYtBcUaRaVsDkl5rQDGdWKxjHt0
-         fD9w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778236733; x=1778841533;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1778236740; x=1778841540; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=6m/SKf2PyFWZeQKqRQhBbnBBScw1UjxM2ZPFwBwR5Y8=;
-        b=hG8OwbjaONIVxpTTESc0RIigk3gKL00VhYf1m0QVpxASq7MigIbGGRdPtzCMDatCMD
-         CWLJn6mMZlNZpc4LxEfT5q07LR0JhRDiC59MkZG/KoNOVaYTM3SZSTWekz5VbEw1QMGD
-         VI6PYYNb1d0mCN4SJJzpdQpGzKSwORgkpuD8660hpd+QKYAm8wsiWJqnTez/7eBJf/8L
-         3XuSyHxFYhXAF2wR1T1J1IrMmOEMo948iWqU+UV9+FrIzH53F7/+nRQkrOES8LnnY/1K
-         4Ox5yOEwDnLDiv2oZZb8uv014BLLDpY69J7KfBGFGc5TpDnvVuyZBCh69jIUG6rioF3v
-         na5g==
-X-Forwarded-Encrypted: i=1; AFNElJ8F3HEJdSGpqJmLu4tN7Qbsci6Vgrl7IK+Me/gw7C0kus/mXNxApnrcbTnmLefzQiNkpXOtUytKofAE@vger.kernel.org
-X-Gm-Message-State: AOJu0YxUL6Jgz20MHvKkn2xZ8CMAxGCvKe0t80T8sGMttsnXXzi2Wtfl
-	llVz2OA9S4cdnFnAqElSMBm2AlnNo/7ImWL5deys9rrSTID8Ipg3I13k
-X-Gm-Gg: Acq92OFdVKcZLJDFe1qPIMEAab6ItTDnvh1zg4GGnnSsQroGjIJOJMIP/Kd7JVqKjMH
-	zKhvpZEDnlLID6WPfJo/LS5lDYVj4np49TocEaAk9mxq4D3df37cYfIGlFeoBDYgjIrOY3FkeWg
-	QzOlNYG3ql2wzM4GEMBD/Mjpa+9E0i51qvqbCEpudYsdV0eH/ZuPQ7qtmazvwFG6N0sM/qWolOH
-	QCOI6KcAYsmWGPCpx1Tj5uwPiCTXP2jRJK2LXmrX5PgdeMxHRCIzQkFu5cFwMWWITPi7E++Xee+
-	tKDtMohPMUgkS7N/vWDicjhHzfgxcouIwBenlwo9+ZjJE1hfOLqYm+34Tqbi7UmJw/Ocvb0RiXX
-	L4EqkQYmopAV/TNeip9/rRAzTHMnTagxK4QEj0aFC7Rzp36BNmRPGerJF3vyQeK/fH7zbDAjGbJ
-	i0yq/Hal8Ht54TegI+XhftNr6KEA+n+a9i+w04k3bDmgnIQVTiK1Rcqlqw7w==
-X-Received: by 2002:a17:902:ca85:b0:2ba:4086:ecb9 with SMTP id d9443c01a7336-2ba798d564cmr82193185ad.36.1778236732792;
-        Fri, 08 May 2026 03:38:52 -0700 (PDT)
+        bh=+PHyrKnEx3Qw34k80dXVEjulQeqN21vdCRBwPpUnfZM=;
+        b=lSm2BeKT660yA44NPx2nyf9g5J5GJHqFaeqswpB/sEFyZ8N2YEHpVxCChnytMoGX8O
+         Ewl5Ax9OmaQ7SvJqooq6IrCy6C7sp48KjuWwPDJvh6pRNN5z02PXL09R4uvayu3sKOTt
+         FbfqxTpyBZBZLnlTo++wbzbCtkW4iLGFf/O98sI5GEesb86opO+lpF66hCFevsApkdm+
+         e06URc/XVDLPE4IVIcmu7pa2YOMWMDsPxCd7s2Do5QZyamx4JI6QBfARjINTJBluuAZq
+         iJUAky4HaDwHEWhT4nDQhryTVmssZ7IXie0v7GkKds1QVQUCk9WyoNbmAeOaBdJ/lreV
+         HO+A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778236740; x=1778841540;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=+PHyrKnEx3Qw34k80dXVEjulQeqN21vdCRBwPpUnfZM=;
+        b=amb1GxJ+uNfI06bYOZ75hMzphZy0M25s105Wrv+3ND0C5W1OPElFMV57FVgVSE54Nr
+         zQ6HoxtHHXNcXm7HTkaQ4CyGdKyFx69ALdIf3HNH36kAKBCPuGxmjSP4m8/KVC/Qwr5z
+         Tc++RNXBUvc50CAVhPMunr54dlGpDmcYRR6bUJc4+YfWP7wS+TvVvL4EktPK4fBkpxGv
+         YdO00yrrcmp74FwhVpJl3EtJnron+iVOE6AqZ6vatz/pibal6mwdv0vaLWn8kP+d77Bb
+         KZBq+0DXjsPW1BX7/cTdAPHXdmSVe6IiXoaVcSLZ6ryES2ZdKbOdNThoDimt+SW702po
+         PdEw==
+X-Forwarded-Encrypted: i=1; AFNElJ/UFDIWcJNrAPpXEBEjGDP9H1joeHaA7vyqizsIkR5LrVH7/DIP2HrW3C1gsVFV4PfRhbQXrfjGNHJx@vger.kernel.org
+X-Gm-Message-State: AOJu0YyJlq8ZbQsQzhXg/5VwwUZZ2fkmhd3Sicd+XgoxiwSqOkpaOgbZ
+	yPqdZ7G1aFV8ZVK8EK571+cR6CodgNkN2i+N9YE/MCmDcTSgyutcyry+hgqUlQ==
+X-Gm-Gg: Acq92OEx+AbyyqTrri4WgRsFzgk081ww/yQCKjQ7CmLVMiB3bCgpM8YaUkv3dNLyNuv
+	ojb7TN99G5Z1cDhEa2I1g+KhIxfsnwPBJ9pgJFLFSLT9Y3XLCkVAaJEk5FncASetGmc6eG8Ot5I
+	2jFERmdVgwR7bjMubbBoKYzn+hEg1Vtat3k5vaita4o2uEtXKqzXgQlnQU9ltS4puge/JNJlDuJ
+	9AZTbClvOgCTcJBxTDKzfVkRiRWpX4aLTgdLjotzHg2GFIrPrnSDT4a+L7s+uYMY++negB0fGq3
+	X1Mx3XTVeFyblNEQJDOCfMWhB9/Ta/F8Zg9psHghM0qLe2ydZWtDALzARnsh0uZ2Fn+lKIkiOOr
+	17Ipkv0SrwTVqAIvwt0i8mj3red2UPVLsgPsquzzwmp8rzNNnMY1C6f8alzUpC16WxLbijdTi+4
+	t+5gEabn1da3Jznws9OCxCftHhqDLMPYBHAUmDliBDfvWkmZp9gWwrqXtj2w==
+X-Received: by 2002:a17:903:1ae6:b0:2b9:edbc:69f3 with SMTP id d9443c01a7336-2ba78b4bcdfmr118316335ad.9.1778236739848;
+        Fri, 08 May 2026 03:38:59 -0700 (PDT)
 Received: from phuc-desktop.. ([183.91.15.56])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2baf1d27109sm18309345ad.1.2026.05.08.03.38.49
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2baf1d27109sm18309345ad.1.2026.05.08.03.38.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 08 May 2026 03:38:52 -0700 (PDT)
+        Fri, 08 May 2026 03:38:59 -0700 (PDT)
 From: phucduc.bui@gmail.com
 To: peter.ujfalusi@gmail.com,
 	broonie@kernel.org
@@ -67,10 +69,12 @@ Cc: lgirdwood@gmail.com,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org,
 	bui duc phuc <phucduc.bui@gmail.com>
-Subject: [PATCH 0/7] ASoC: ti: Cleanup locking code using guard() helpers
-Date: Fri,  8 May 2026 17:38:30 +0700
-Message-ID: <20260508103837.138142-1-phucduc.bui@gmail.com>
+Subject: [PATCH 1/7] ASoC: ti: j721e-evm: Use guard() for mutex locks
+Date: Fri,  8 May 2026 17:38:31 +0700
+Message-ID: <20260508103837.138142-2-phucduc.bui@gmail.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260508103837.138142-1-phucduc.bui@gmail.com>
+References: <20260508103837.138142-1-phucduc.bui@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -81,45 +85,107 @@ Content-Transfer-Encoding: 8bit
 
 From: bui duc phuc <phucduc.bui@gmail.com>
 
-Hi all,
+Clean up the code using guard() for mutex locks.
+Merely code refactoring, and no behavior change.
 
-This series converts mutex and spinlock handling in TI ASoC drivers
-to use guard() helpers.
+Signed-off-by: bui duc phuc <phucduc.bui@gmail.com>
+---
+ sound/soc/ti/j721e-evm.c | 25 +++++++++----------------
+ 1 file changed, 9 insertions(+), 16 deletions(-)
 
-Most patches are straightforward conversions to guard() helpers.
-Two patches include minor cleanup changes in the process:
-
-omap-dmic: Simplified omap_dmic_dai_startup() by removing the
-temporary return variable and using a direct return path on error.
-
-omap-mcbsp: Modernized omap_mcbsp_request() by using __free(kfree) 
-for memory management. This ensures that memory is always freed on 
-error paths after the spinlock is released, without needing manual 
-goto labels.
-
-No behavior change intended.
-
-Best regards,
-Phuc
-
-bui duc phuc (7):
-  ASoC: ti: j721e-evm: Use guard() for mutex locks
-  ASoC: ti: omap-dmic: Use guard() for mutex locks
-  ASoC: ti: omap-hdmi: Use guard() for mutex locks
-  ASoC: ti: omap-mcpdm: Use guard() for mutex locks
-  ASoC: ti: ams-delta: Use guard() for spin locks
-  ASoC: ti: omap-mcbsp-st: Use guard() for spin locks
-  ASoC: ti: omap-mcbsp: Simplify lock and resource handling
-
- sound/soc/ti/ams-delta.c     | 26 ++++++++---------
- sound/soc/ti/j721e-evm.c     | 25 ++++++-----------
- sound/soc/ti/omap-dmic.c     | 44 ++++++++++++-----------------
- sound/soc/ti/omap-hdmi.c     | 18 +++++-------
- sound/soc/ti/omap-mcbsp-st.c | 26 ++++++-----------
- sound/soc/ti/omap-mcbsp.c    | 54 ++++++++++++++++--------------------
- sound/soc/ti/omap-mcpdm.c    |  8 ++----
- 7 files changed, 81 insertions(+), 120 deletions(-)
-
+diff --git a/sound/soc/ti/j721e-evm.c b/sound/soc/ti/j721e-evm.c
+index faa62c1a9b8e..8a3333aa32ee 100644
+--- a/sound/soc/ti/j721e-evm.c
++++ b/sound/soc/ti/j721e-evm.c
+@@ -263,7 +263,7 @@ static int j721e_audio_startup(struct snd_pcm_substream *substream)
+ 	int ret = 0;
+ 	int i;
+ 
+-	mutex_lock(&priv->mutex);
++	guard(mutex)(&priv->mutex);
+ 
+ 	domain->active++;
+ 
+@@ -303,7 +303,6 @@ static int j721e_audio_startup(struct snd_pcm_substream *substream)
+ out:
+ 	if (ret)
+ 		domain->active--;
+-	mutex_unlock(&priv->mutex);
+ 
+ 	return ret;
+ }
+@@ -323,30 +322,28 @@ static int j721e_audio_hw_params(struct snd_pcm_substream *substream,
+ 	int ret;
+ 	int i;
+ 
+-	mutex_lock(&priv->mutex);
++	guard(mutex)(&priv->mutex);
+ 
+-	if (domain->rate && domain->rate != params_rate(params)) {
+-		ret = -EINVAL;
+-		goto out;
+-	}
++	if (domain->rate && domain->rate != params_rate(params))
++		return -EINVAL;
+ 
+ 	if (params_width(params) == 16)
+ 		slot_width = 16;
+ 
+ 	ret = snd_soc_dai_set_tdm_slot(cpu_dai, 0x3, 0x3, 2, slot_width);
+ 	if (ret && ret != -ENOTSUPP)
+-		goto out;
++		return ret;
+ 
+ 	for_each_rtd_codec_dais(rtd, i, codec_dai) {
+ 		ret = snd_soc_dai_set_tdm_slot(codec_dai, 0x3, 0x3, 2,
+ 					       slot_width);
+ 		if (ret && ret != -ENOTSUPP)
+-			goto out;
++			return ret;
+ 	}
+ 
+ 	ret = j721e_configure_refclk(priv, domain_id, params_rate(params));
+ 	if (ret)
+-		goto out;
++		return ret;
+ 
+ 	sysclk_rate = priv->hsdiv_rates[domain->parent_clk_id];
+ 	for_each_rtd_codec_dais(rtd, i, codec_dai) {
+@@ -356,7 +353,7 @@ static int j721e_audio_hw_params(struct snd_pcm_substream *substream,
+ 			dev_err(priv->dev,
+ 				"codec set_sysclk failed for %u Hz\n",
+ 				sysclk_rate);
+-			goto out;
++			return ret;
+ 		}
+ 	}
+ 
+@@ -371,8 +368,6 @@ static int j721e_audio_hw_params(struct snd_pcm_substream *substream,
+ 		ret = 0;
+ 	}
+ 
+-out:
+-	mutex_unlock(&priv->mutex);
+ 	return ret;
+ }
+ 
+@@ -383,15 +378,13 @@ static void j721e_audio_shutdown(struct snd_pcm_substream *substream)
+ 	unsigned int domain_id = rtd->dai_link->id;
+ 	struct j721e_audio_domain *domain = &priv->audio_domains[domain_id];
+ 
+-	mutex_lock(&priv->mutex);
++	guard(mutex)(&priv->mutex);
+ 
+ 	domain->active--;
+ 	if (!domain->active) {
+ 		domain->rate = 0;
+ 		domain->active_link = 0;
+ 	}
+-
+-	mutex_unlock(&priv->mutex);
+ }
+ 
+ static const struct snd_soc_ops j721e_audio_ops = {
 -- 
 2.43.0
 
