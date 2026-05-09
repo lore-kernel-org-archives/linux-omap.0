@@ -1,78 +1,80 @@
 Received: from mail-dy1-f193.google.com (mail-dy1-f193.google.com [74.125.82.193])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D27D623BD1B
-	for <linux-omap@vger.kernel.org>; Sat,  9 May 2026 01:22:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C79CB274B43
+	for <linux-omap@vger.kernel.org>; Sat,  9 May 2026 01:43:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.193
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778289777; cv=none; b=UF/5+nTIb8UjqLzHh/tGgWs2ssKpXEKGXbUX/x4aR95QhaCVwLz1c1FnUYjmx32MlILynnvwX8VovSSECfRYpwIJlAC9IJ1C5jdDvIpxQ8rvGh7Y6w4BeGQEOoY1s406XVqxjTegvps3BgjljvR7y4Y3cH6ESEw7JC9Ab2DybDQ=
+	t=1778291025; cv=none; b=DSt3TmukztGZHYZ80XuomxuPK8b0t/CvPDsp3qE0nBwVX3UT4oE1CQxTYSYT0yrP0tyXYEpQD2seTFzexythyI0MxLn9o4R4GMHwoyQRhIrGIB/ANSFb5lTo/TOiOBkc9A4jOqBkW3OBwMMiH2WrEcgqGIbH49FomovAj07ECug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778289777; c=relaxed/simple;
-	bh=wdkxV+TyQvL0uyh201nZr6hlEdrLsEZvNEemWHe8Wnw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FHuI+Y+F429nYL8COEQcr1Tz3MTMQALk3QCyE0VVB15RFyo1XPV5qeoOAyyv+lTxk+QmNDYaisw524eQStH0LlFGsGQajpEBdbgmCZFiFcdCHwOlerZM5YvKCxwhRRaahKRsuB7zNFYUhlZ6pRIEcW+ZhireRJ5QJ2IBvz4zxVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=If+5QXsq; arc=none smtp.client-ip=74.125.82.193
+	s=arc-20240116; t=1778291025; c=relaxed/simple;
+	bh=gZcvL712PtEp/DN5bfBX90/0l6jiDpx5pdukpqsGraw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XQtq0Ilz3Qqz8GO25OZQFMvVa+2fIswnVzm1LMqz1onDcimkZb4rNk26IVkhy8NseaBTK7sheFuUD0hEDRY0F0UVh0rAB9eo1ttxPDDLbYhWP8tn0nmffBQnB4SkGiwgDNzXvC6jfCNtnrFiUfGPepnMBqAMBWJ+0MuVDkV8az8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ECVcODfp; arc=none smtp.client-ip=74.125.82.193
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="If+5QXsq"
-Received: by mail-dy1-f193.google.com with SMTP id 5a478bee46e88-2f36da5c8fbso2644047eec.0
-        for <linux-omap@vger.kernel.org>; Fri, 08 May 2026 18:22:55 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ECVcODfp"
+Received: by mail-dy1-f193.google.com with SMTP id 5a478bee46e88-2f3c623322bso4228145eec.0
+        for <linux-omap@vger.kernel.org>; Fri, 08 May 2026 18:43:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778289775; x=1778894575; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778291023; x=1778895823; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=G0cHu/AZOFkLjDuxm2JV8SwCnwjEcedfmgM9JUvSLnc=;
-        b=If+5QXsqUIqOwVjciTZoKJ3dop7rqS7YxhvLjngRqEL7lit23rK691sMmugEUgoZ+7
-         wS960rcRT34LkrfWduiiAHeaE7mBV4ulTkMBptZU/6ieC3zWQf5snbPt8LoZoGwQI+G3
-         85XeGqZdQaQ0JzRMJ/6LCp4jm1ap6CG06WyEfRbYWWRzDft5Xn3VgXkylYrUsl9QNoH+
-         X85JAAvBVpnBKDuL3RA8oeo/vCKjGfyZy5Ugt7CY2rCVV69PIjktpR2l8TWBMmpMTcQL
-         laBfLhjfui+GowosRk2ycATQSrfbDbjA8D/K98rn0owwwyhl+stMEpv9RZMsfIDyBFfG
-         kG2w==
+        bh=zJhfFQR9+98S4XKgeWbqpNJRqJ3OzaJN3o2IixMMcYk=;
+        b=ECVcODfpxEKhvYBej3QkODP+1HEuYZd8uWDtMX0SOolvoTKGLlBXBVVzPC2Fp+kuah
+         u2G6sAMbKCKRP25KJqsJsCmdF7yDVGpmXXt94Mkmlx7aTwoDVldP5vOcNTAiuuZ/Zs6p
+         ySlLsd4GAdBUwj5TVhYm0FbZT+8Xbhe23mdG4cMEMQr5X/nHUX3MWI9r9G3W/h8bRV67
+         dOJ/zYnHA9nzOetwKf+57tU6+3fNONmrBUruxC3SZhufabUC58XIk9E/WkuLIAKJk1CA
+         j0n8jUK2nHRnanDK/ge2qh39j1nvERtRjJEU/TWSSU8kMdUZ/EUFgGyQ+P2iCGQqcRrt
+         bQiw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778289775; x=1778894575;
+        d=1e100.net; s=20251104; t=1778291023; x=1778895823;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=G0cHu/AZOFkLjDuxm2JV8SwCnwjEcedfmgM9JUvSLnc=;
-        b=ZUdn94YJVrL2qJe8oZqi8W2ysbpGEbexjcUPO15CaPLcnl2URW7j8HyuSUqHm6BfID
-         7MQQavwPBgUoOZK8uwpQhsuoinrTJzjh2vu2PeKZQtVpIa4juyAGZ5/UPSJ8aincBCl/
-         0V3UkJTKeMKaf5BHuMcG3bwIdWkTP3tmV2LvCuoA8JZm4cfGAwJigWXrNTyaKEeevmXx
-         uK4dAmtURKUwvhwnunEwP/Xsc35qqT6N1+3Xz52RXMAVyl5fu2BCGuJJDLEF2reS/le1
-         d4pE1T0NZ7RrPyv21QJ2YuZ//8WbwwZutGaOGP2sOeXH8qqDva3M2Q/NNj9bnelN07PM
-         OJ7g==
-X-Forwarded-Encrypted: i=1; AFNElJ+zFpV4cKyWyp1abkcuWzydDRhr/Rf0RGIZgaj75/5nklnPLMD7JzYVxk4tUjALxDAmER4ResrwaCTf@vger.kernel.org
-X-Gm-Message-State: AOJu0YxA9mEYkMSHtR8MyrFQppwXTrR1tcqPrdMYSCUbdtoko/DxCo+4
-	zUHLJ1OW0u3BwcWC/T6YBrdEIrA1v2wC/DI/hIf/PLgIWUe3/Q5gkhir
-X-Gm-Gg: Acq92OFWucfhVQOD3UcvjDyMXbZvNiVU9YFifo+l6EtaDfbfzAFyrayza2Q464fpZwM
-	Ef3s2QeYYDEQnP+Vw5CVecsHniLGHhrlRmjufe7ul4Ku5GVqfQqdWKiPdM8LxKkqXBDWZnspAlh
-	Eaj+pnc+mb6EHGbG6+Au/9lBR5TmJdzJgztfRIdP1heH9Jr3/z9JSrrlD2xlDaS+eHu+4+8weI9
-	SrNVPZ5mKFIfDTR3aAJ35sj5Kg99YXrQqe3BXFk7UhztXmeewc0OibUY29oltbnw37UyfPzHMcY
-	gPhtA9x9INXorpIfEOpmpo6jxY8r+7wN0PLnVu+SoxokwebVkzGSOBwZoJ1zBFKdOYS4xrb+xUy
-	lJZpR8HoBABCJ+rBcm3zCObXd1fTeVVBBkjZ7Jc7U+m/TNbMW6xUqm9GtAiEXGHbMdqvQrR9iPD
-	1CnYBZ4r8BDH1DRcmJjQBT/zP9izw/fxqQNYL/M98u/kuuaL/f+/5NFYS35gC7Zae16ZH0Pfu96
-	IznGdLMH53fQbR3j0qHtsVvlfY0/TnTXhykfHv/whdKoEHRSI78W4eZBJVDLEIWyb7zc4TQ1+4G
-	aNK8xqOEeQjYwgg7JA==
-X-Received: by 2002:a05:7300:a508:b0:2d0:239a:23cb with SMTP id 5a478bee46e88-2fb4d68f9f1mr209442eec.16.1778289774801;
-        Fri, 08 May 2026 18:22:54 -0700 (PDT)
+        bh=zJhfFQR9+98S4XKgeWbqpNJRqJ3OzaJN3o2IixMMcYk=;
+        b=etSmmUo4Nf+o/tdsHeu2Ru2A8EI8umyNvb4IgsqFFY8+6DxoMz6pHNGoK/6HwS5Bll
+         +rkFaLaVuda6sowMgv7IN9wmMinGZanmm31+jPJ10E8GijadALdpzFKwTI4BG5hn4q4W
+         mqeQMi7YAVCnMv8Jjjby1SavbzBqKLpBQU9/DQVBg0bkvW0PR2pmF4YgQX2hQFSsz8ET
+         oooKXdpZnAq9NEfCSX+Wr2BHKnRqmwrbjYxwrygo/rRcHWPRoHdhKr4o+WoHddBXXahG
+         z9ymnzsfncj3242ZywukEPYuNy+T87CC3ReyTS6x2mIJOL4aw04P7EzfwMpnEqYhrSXQ
+         J2rw==
+X-Forwarded-Encrypted: i=1; AFNElJ+vU8fJFNtz6uwpnCxKAYzcudh5PHZr3mFmEPqJDU9HyK/dgW8BiPu1feZHeExBJF5noiOtE7YRqpb+@vger.kernel.org
+X-Gm-Message-State: AOJu0YycBQFOEEkaIDGzsuTZdCO32De8p1ZeLnzeFJya7iuA2jJz2ZDw
+	1KWE2DEPB3BW+923E/ObSL6ECX6Sw2hySAH1vHRDojM4P4pBGE3kA/Cc
+X-Gm-Gg: Acq92OHsOVyRhHZIQM3DRX1D7CVx/vS1bt4O1dJ9llNtZT7ceRIaHFuG/NhwEYIUOF5
+	nFkCkuGgbcrUG6D078V9DFBlifFFff80nESvBh/W04ah1ht74w/hRs/BTekn7juBYfZObRPshqs
+	3uh7yIaAbmOfJjznN9Vahu2f70lyVNHHbzdtOrXt1JYWjQZCXH1l4hrI42L4fKCxNPJfjHx5GuO
+	yrAeqdQHGFJQDLFUXC1u0KjkKeUTmcn8kgHgldWZ8KFHtaqP1Tahp/h7cRbl6i0E05e/4Ildgk1
+	/7wRwfRTbNKAgO2BDFrxT3VNC2WasA07B8MajmKoqKBTj4TP/pPdCZ+9/CHY7UgaB3jpZnZHhgi
+	g479tjS0po/v0EDjFDJY8rlr4kC3HluyRtDXRSo2MypljQR2M085xHmgCxlMkMw9bDOE+ytr8Au
+	7S8NveJGS20ah9Uvrl1mGWhRepGZyzMxYeuwcvoJLZwG0jmclnY0GdSac4Xd8RUnSlNgLHlSene
+	iT6c7F7gctFm/d2XqdF1qC2EYLKekngATcHNanZlH44Kjb4g8IMiDCrVVG08NZ7x68wBYAhdBsE
+	j5T4FDZLvsDn3wmdaA==
+X-Received: by 2002:a05:7300:6da5:b0:2ed:e12:376e with SMTP id 5a478bee46e88-2f54d67a686mr7456372eec.30.1778291022819;
+        Fri, 08 May 2026 18:43:42 -0700 (PDT)
 Received: from ethan-latitude5420.. (host-127-24.cafrjco.fresno.ca.us.clients.pavlovmedia.net. [68.180.127.24])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2f88914523csm4457310eec.29.2026.05.08.18.22.53
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2f8893441absm5991640eec.31.2026.05.08.18.43.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 08 May 2026 18:22:54 -0700 (PDT)
+        Fri, 08 May 2026 18:43:42 -0700 (PDT)
 From: Ethan Nelson-Moore <enelsonmoore@gmail.com>
 To: linux-arm-kernel@lists.infradead.org,
-	linux-sound@vger.kernel.org,
 	linux-omap@vger.kernel.org
 Cc: Russell King <linux@armlinux.org.uk>,
 	Ethan Nelson-Moore <enelsonmoore@gmail.com>,
-	Peter Ujfalusi <peter.ujfalusi@gmail.com>,
-	Jarkko Nikula <jarkko.nikula@bitmer.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>
-Subject: [PATCH] sound: soc: ti: rx51: remove stale reference to machine_is_nokia_rx51()
-Date: Fri,  8 May 2026 18:22:46 -0700
-Message-ID: <20260509012247.14990-1-enelsonmoore@gmail.com>
+	stable@vger.kernel.org,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Lee Jones <lee@kernel.org>,
+	Jon Hunter <jon-hunter@ti.com>,
+	Benoit Cousson <benoit.cousson@linaro.org>
+Subject: [PATCH] mfd: twl4030-power: fix stale ARM machine ID checks to use the DT
+Date: Fri,  8 May 2026 18:42:46 -0700
+Message-ID: <20260509014246.21649-1-enelsonmoore@gmail.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -82,40 +84,47 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The rx51 driver relies on the machine_is_nokia_rx51() macro, which is
-always false since commit 9b7141d01a76 ("ARM: OMAP2+: Drop legacy board
-file for n900"). Its presence prevents the removal of boards no longer
-present in the kernel from arch/arm/tools/mach-types, because the
-machine_is_*() macros are generated from mach-types. Drop this unused
-code.
+The twl4030-power driver contains two checks for ARM machine IDs via
+machine_is_*() macros. These checks are incorrect because the two
+platforms concerned now support only FDT booting, which does not use
+machine IDs, and therefore they will always fail. The legacy board
+files for these machines were removed in commit 1b383f44aabc ("ARM:
+OMAP2+: Drop board file for 3430sdp") and commit e92fc4f04a34 ("ARM:
+OMAP2+: Drop legacy board file for LDP"). To resolve this issue, use
+of_machine_is_compatible() instead.
 
+Fixes: 678fac419382 ("ARM: dts: OMAP3: Add support for OMAP3430 SDP board")
+Fixes: bd5fc6fa657c ("ARM: dts: Add basic support for omap3 LDP zoom1 labrador")
+Cc: stable@vger.kernel.org
 Signed-off-by: Ethan Nelson-Moore <enelsonmoore@gmail.com>
 ---
- sound/soc/ti/rx51.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/mfd/twl4030-power.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/sound/soc/ti/rx51.c b/sound/soc/ti/rx51.c
-index 7eeb12e5066c..cfc23e0838c2 100644
---- a/sound/soc/ti/rx51.c
-+++ b/sound/soc/ti/rx51.c
-@@ -19,8 +19,6 @@
- #include <sound/soc.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+index 0bca948ab6ba..fc1cf316c236 100644
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -30,8 +30,6 @@
+ #include <linux/property.h>
+ #include <linux/of.h>
  
 -#include <asm/mach-types.h>
 -
- #include "omap-mcbsp.h"
+ static u8 twl4030_start_script_address = 0x2b;
  
- enum {
-@@ -364,7 +362,7 @@ static int rx51_soc_probe(struct platform_device *pdev)
- 	struct snd_soc_card *card = &rx51_sound_card;
- 	int err;
+ /* Register bits for P1, P2 and P3_SW_EVENTS */
+@@ -294,8 +292,8 @@ twl4030_config_wakeup12_sequence(const struct twl4030_power_data *pdata,
+ 	if (err)
+ 		goto out;
  
--	if (!machine_is_nokia_rx51() && !of_machine_is_compatible("nokia,omap3-n900"))
-+	if (!of_machine_is_compatible("nokia,omap3-n900"))
- 		return -ENODEV;
- 
- 	card->dev = &pdev->dev;
+-	if (pdata->ac_charger_quirk || machine_is_omap_3430sdp() ||
+-	    machine_is_omap_ldp()) {
++	if (pdata->ac_charger_quirk || of_machine_is_compatible("ti,omap3430-sdp") ||
++	    of_machine_is_compatible("ti,omap3-ldp")) {
+ 		/* Disabling AC charger effect on sleep-active transitions */
+ 		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &data,
+ 				      R_CFG_P1_TRANSITION);
 -- 
 2.43.0
 
