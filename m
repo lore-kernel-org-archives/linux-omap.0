@@ -1,119 +1,112 @@
-Received: from mail-qv1-f66.google.com (mail-qv1-f66.google.com [209.85.219.66])
+Received: from mail-qv1-f68.google.com (mail-qv1-f68.google.com [209.85.219.68])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52E5F2F8BF0
-	for <linux-omap@vger.kernel.org>; Sat,  9 May 2026 16:39:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.219.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A598E3BB48
+	for <linux-omap@vger.kernel.org>; Sat,  9 May 2026 16:45:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.219.68
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778344758; cv=pass; b=WjOnih/keEXD4UCub1juHxzFGEMaHfwqTSPeiFV+Egh8Ch9cwrVbtKxe6+9X0zde8g0/vkT1DBYCeAJ4XGbqoJ2MA183twV//+9Fs/6wgffaMktvUxXG/zUE429bnPIKAAAmwzULf6hGJHEOp5h2eFF6LI9VAl+v6N3+xlP6eqo=
+	t=1778345111; cv=pass; b=ZApd6mSu35GZJwgpFqIuE1nkXwXxg/JgHOUW3IPnfqZvFvaVFPAtNq5krCOhqKsu1mk8gKD2ZmRlww8GI4ZX1WAlMX2hHaKlISDIw4uC9mqO53a2i3JTeQbJteouKfFF+e/EN5SL7S+Rj7v7JjY4XL3X8S5KkfiwsrJm2GcRu/c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778344758; c=relaxed/simple;
-	bh=OjvQAKtsddCwvtPj5IUL1zdvC6FgIzquAG4/cEYySIc=;
+	s=arc-20240116; t=1778345111; c=relaxed/simple;
+	bh=RTDsNVE3ocqjOsopP8iwGEg0f1/zwRBYg7404Npk/Nc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ZSEUSuCyR1A/XuJpnCysWu4p9fxUhkAljRUex5/kekWngX0wlvGUoQpNdG4nilWfrOkYA3wgHEERTo/ozPy72CzGiTyzM2Uzg2+HwFSSRVrFAd5EGM7MzhXJyRRZo1zfbbAA2QLuSZvpbHtAxI32QceWloeGcFY9gxoBOys9RJc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=O9+dmCMW; arc=pass smtp.client-ip=209.85.219.66
+	 To:Cc:Content-Type; b=paRlG0/GPfMdztBHi9eEUVqc+zuikBmARW7f2bPp2dfadXmdKSDjNBpxEuMD/nGK8Ea91S8t0rgo9mWl58Fc3ZhP8qn0+Jux4tdoLBvqXKJsAzxWVh+RHRuphGDTn2LF2LaDeazRYoTV7mHILKW6l+oQlCgXG+4zNFFBjKNXFfM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SOhQ6UM9; arc=pass smtp.client-ip=209.85.219.68
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O9+dmCMW"
-Received: by mail-qv1-f66.google.com with SMTP id 6a1803df08f44-8b7dccd6fe4so21955226d6.1
-        for <linux-omap@vger.kernel.org>; Sat, 09 May 2026 09:39:16 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1778344755; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SOhQ6UM9"
+Received: by mail-qv1-f68.google.com with SMTP id 6a1803df08f44-8b62ca1d28eso26900996d6.2
+        for <linux-omap@vger.kernel.org>; Sat, 09 May 2026 09:45:10 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778345109; cv=none;
         d=google.com; s=arc-20240605;
-        b=ZwxvmnxDmIF8YOBcd6oZ0Pn/i8WrrVu+iUxoemsO4nxdzJ75hRS5456nq0eF/x9yB7
-         8PFWwxG79IyMteIgWqRrdZueiYaOju924bfiXedKY7zbDkGMdd6lr5UmCB0WoppjuTQk
-         Yt2mHse3As66XG3IQknwKAl3Ge9JPEt/GowN7sZbz9iHBwzb8Gq1PIN9ZyXTOWXt3xgF
-         1IGBSXZ6IPeDwG4YVE/uYwXm7WSuFfUylMrFfHEC/mEBVh1YLb0e8YleySlSs6Oi2TAX
-         any5mlb/oysdzz9dHI3TafjgvrPPtEyPBuyB7izGkiHcYbdgnXBBMK18lfeciCxFbhXZ
-         fgOQ==
+        b=ZIyjgowiBliilCFfsSE5T9bZR430GI5mnzVORswu9rRzbqci37Yt53pdklyP7H0lED
+         pcPPVyu6H7pUt9v1+YoSz1/EC5FEL3JsiJ4sWMGUCy+5MG23rFC41ux3XXHs40bW0RHD
+         QlN5kmfvgSAVcYqFHsVk2FPLNvSk4ATyLLPFO/KUt27p1faonoZNmrl83YodKMugw8Xi
+         3CxflvxM38MEHiUci8D/42AE2vJ9Gl5Pmk8jpcR8JTTj2Zasdd0A85eqf0wyISg+enq0
+         tFISJUVqiHulmPDJm9uStqHw0MD4f6Y8bbxkIwes9CBSSxF+IiO4/nbzpjzagpufy4sv
+         qbyg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=OjvQAKtsddCwvtPj5IUL1zdvC6FgIzquAG4/cEYySIc=;
-        fh=LdfGoKdYyZGNn2Ye5aSTFOw7PlFLcwHjVxZeT1BEN9Y=;
-        b=c4AZYSmK6QqGx6HgJW2u3PB6P1f3jLtWqxEBkdDlOCzwsBxBpErcoRZoHM+APznDc4
-         B1BTMsY4YSKC1RvnM8WEucBRJAyqo7CiWMfAskqTjpCl25C9KmXpNaYcEs1CYho32ENI
-         9qc1xL1RaeY1XYMMeYwCSip8xL7AbN6UgdEUkNtBAfMSeDQQ+FKc3IgTqvUv8Bs3pOIs
-         xnFwLXSohZOVBTz7A4uLnwjluxYbqN1An0+C0x+/nLzDUnAlY6iilg4wd5gER2h/HJfh
-         tjqiSURzcgsMBQRwK8dvJ5ikiVDaUF5pGhHw892mKLf9WtPA378mIIGQrir74+zcat5f
-         ypXw==;
+        bh=RTDsNVE3ocqjOsopP8iwGEg0f1/zwRBYg7404Npk/Nc=;
+        fh=R+GeHW1gI7x+xdlFKUAtMfTAGrBf2Fr/xoEt2NrQNYI=;
+        b=e406kvUQqJU5sN9fGfLOPji3oJ25BH2vziPrizIwlZVdVfIDzQ4X9pkAG40fQ/F7oo
+         j5Vc1rPoXGtcbSoiyiIdZ/fQOj/ZJOcOzvpqaWksB4i9Jf/XeLUI84fGvK6gpumPO5JP
+         zCYsUIDxMwVR4v1svFSmu+gsmV499vS4+/Zn6LrvsMCoeTSrTd/CO+VkoaANQIayg1Oi
+         7+migNcwtACihwor0JufnTjXZ6WX2DvadjwE/ptR+b2l+QT9L84SQ94ZtwvL96D1nlhN
+         rT8ZeJgFW6f6Fvc/9rMG1g44+9TAlNEKseRdAIQMutMYbRnLtCsjlsaMSoVv1qoiVWXl
+         Jf9Q==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778344755; x=1778949555; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1778345109; x=1778949909; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=OjvQAKtsddCwvtPj5IUL1zdvC6FgIzquAG4/cEYySIc=;
-        b=O9+dmCMWxa/R8950KMHl7MdFG6lJJc58j1zYIyOdxEIMPxTQB9PFckiEp6FcceQZiR
-         1Ec/QMXo9OBxb65byqyfzUcFlNChgNBYfr7uwfjRb5Reiqo0D26R/WzPN8PqQ3j7y/yq
-         SM01v2IBwd4Df0t0Wwdv1IP/IRatwwWSdSZ+1cM2f4tsF7K55FRN9I8VrwYS0ROHfnhc
-         f+M9KR1gWxraPi3+PLL1Fk1YOanrBprJRF1E3kVPkQ21f1wkoHjcW26G7e4ms9B3QB4K
-         0vCZpOgkJeRBQsExAko3KnSE2ye/1vE5ZjXT/L9hoVc/VKaoJ9CZ44//QddCQEHDdKlU
-         GpBg==
+        bh=RTDsNVE3ocqjOsopP8iwGEg0f1/zwRBYg7404Npk/Nc=;
+        b=SOhQ6UM9iW5Y1ORgNK8DhGe7xJp6pTWgCmD9IgF8e88Eo7LwNFDIjgpKXMOiEQeToN
+         BaCNr6fVJ6FN8EMJ74d2YZOw8ebOb/6y9FOGlbHZTR9shiA9WtE2mTI6eqK6zoMTOYhe
+         FTwxPHRXDLUI+COGw/hHFhWCP4w+DkbeQefXAs3cnip9XpQeIpofEuqiYBydTQav7vEL
+         KZwWtyA8b3IPZKx/SSBe0Xoz3YAVz8Y4drMt20vc38WF0IMtzq9b/qZgpfaYnLmPKY25
+         VRO4MLcFwrIDQWXFcZHhdc/ysKjLXPObNyXdzxmkwDC5rGCG65p+/UPBzgF1nsfimeL2
+         +aAw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778344755; x=1778949555;
+        d=1e100.net; s=20251104; t=1778345109; x=1778949909;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=OjvQAKtsddCwvtPj5IUL1zdvC6FgIzquAG4/cEYySIc=;
-        b=El3GSAIg4VcSoYl8+KUeOAoxc4hfuIqdUuleb0IdkOn+sHEABTEZlN9PFlTzlXnssi
-         GyZhOTFDMH3odVqX5f8JN3NRA8MsKMClS0Hj4c1g1KRyZp0v0kmSYYoAHjbL7AuacR0h
-         oyujO7BjRtbSRu9QH+QHBE942eHtwMUBJyRmQtTiU1x0qaUiWhBoeJ4m6DN27owzc4LI
-         soxVra2qnX3jEtfrWBcfajaKyqV9rmtOoniaL/lXjLlYxkUdImhPKDF4nWL4akzBWYQF
-         Hn8GC5NsQ0V5mvrYbfnQnc3/VsaQ3/PtgaiXLx+VQvOs0OiLIU5QNqIw+NapfOzGJ15W
-         YwPg==
-X-Forwarded-Encrypted: i=1; AFNElJ+ROPCMYb25+z7GBhY4Gxm/96gd+EK5Yc9ea+SNFlbMc6bMk6NAzqhjoh7NzBd957z17TUjLA+ZZT7M@vger.kernel.org
-X-Gm-Message-State: AOJu0YwfZa7ev5OrSh5xDns1ifLGHadgT4z8s3xUEW9XhFj3Y9BjvrUg
-	fueWd9LR2uy9qrkch63coD1KrKilfW6Aw7tbL9im5OkrEOE8+2bTssnikXLbtCtZYCilPvr612d
-	BTSV10CA3hAox2/adB+loayw8beCjtF4=
-X-Gm-Gg: Acq92OHUYuKwZBE86rcgzxBGMO761zIH/k4ZRngQXr3S2YnOmaSi6/XDUOihyWN4Pql
-	8tHWeKJr+l4SbiOiECvNpCjRLK6tOUGm6adiGN2+ePXdw7dK+axun/TscDt2y1jmPeiHY0JtSr9
-	JVGtb+keymSqe5/i7EovmzXqZ4kGhnKs+xlBdgoF/M5+ZLIgaffao1w1Qtcfmw+7e/9LjdAaxfQ
-	kTr7Hvxg4WndeeHC71WxyPE/JwXAmHGG9vrc2v497plAs2BmqDcaqRQemfD7LHThR1tCd/JzD7m
-	jL0unOETuQg97dxOaPf9huwM1JakOx+lmhC96X5HNfWiO/TH3IZW7s55DrS+Fh6pnKQusLONAIN
-	GwVF2XKgoL31Biw==
-X-Received: by 2002:a05:6214:310c:b0:8bd:de6d:c344 with SMTP id
- 6a1803df08f44-8bdde6dc669mr190711176d6.20.1778344755322; Sat, 09 May 2026
- 09:39:15 -0700 (PDT)
+        bh=RTDsNVE3ocqjOsopP8iwGEg0f1/zwRBYg7404Npk/Nc=;
+        b=gCu5S+EGjWWWFKWjdhOr8N5mO46+a6c894Fo/ipKeaOzCAqlKJ6Lz1bAnykH7Cd+fW
+         DX2nCk2q0UGXG9I0WOhJOVktlTCOwTZXLQcC6uuS2ptE6KtGiLu5Wfo0wVLRNj+PIgb9
+         RK2TV4DzYgXXLnC5ECdaNDigO589VJRWsRf9X/DiAda2UBoQcmHb7wvEWAIoWttAOwsO
+         l5N3EAtqfBpBW9/ngLkfLSiVD3q7CwdtHl4rvA9b0Zc+ofa1KSfS5zF6X840XksJMe9W
+         KXW/63iWnYQzxISf9FoDjlNk5vLdhoG7i++Mo0XQyRQf7AL3FobcfklF8pQjtrEkRB3h
+         TOsA==
+X-Forwarded-Encrypted: i=1; AFNElJ8+n+zJBlR1wvZdyBUpdCDpHAFyyr9ZX6vqRXFpSiuFmNvSGy/SFx8F6yGGV1AZg4zkZ3pjmoa6oxeO@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzv2gaxVPqYzTyvm4++jLVAdhFeNrnbHk6M5DCRQYf5nueRqJFD
+	Uu3JEKH2mFeJLQOuLN2fwdzDPsn9houuGUoGrH0XUdeRLxZaSvHXUbt81C4WwAULZtVXWkBUwUx
+	NszPjIrsuzQhKgcd0XOTU/6PR2Z4o6AI=
+X-Gm-Gg: Acq92OH8ZMO9+CNs8iJ/NydpmvECZQSSJIGboFxzSNn533P70BxkH7X1JSG7iOr2W6x
+	A6zd7dpNlTSgHL4jX9YTAZK4BcTXfRNql8vipMrxlHkhNKdSD0bphz8DHfiZu4YrFdUjtfIPyN0
+	2jqFf7qhIobsMbOA6vpCViSzvbvJ05rYponCGwUsT7V0dSdIEEs+PctVeC8v3C+XzBwmaLqaRTU
+	BaqdpWjLRbezG30kG47uUM1cHBNAkgctipqrHwUq5bJX7wO2utSIvZghywQladbx8dkfWocdc3n
+	RFWWhL3gJF2QAu5v2q9FhUak2fFY/aQ2wh7QDjSIc3n58sEbpKSHMICgONa+BGuHn7LO
+X-Received: by 2002:a05:6214:48e:b0:895:498e:e9dd with SMTP id
+ 6a1803df08f44-8bc42784279mr256622446d6.2.1778345109540; Sat, 09 May 2026
+ 09:45:09 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260509012247.14990-1-enelsonmoore@gmail.com> <21e1eeaf-5c8c-488e-89a5-123fc2cc7b1d@bitmer.com>
-In-Reply-To: <21e1eeaf-5c8c-488e-89a5-123fc2cc7b1d@bitmer.com>
+References: <20260509014246.21649-1-enelsonmoore@gmail.com>
+In-Reply-To: <20260509014246.21649-1-enelsonmoore@gmail.com>
 From: Ethan Nelson-Moore <enelsonmoore@gmail.com>
-Date: Sat, 9 May 2026 09:39:03 -0700
-X-Gm-Features: AVHnY4KwbterUhlugcW_6pZ2ileRIcVWTQ4UTQB6XTT_Ceh7o1QHPSSaCQg7jZ0
-Message-ID: <CADkSEUiMKAQkRKek1fRpb=RtC99AzZm25emGbC75RzQYDct-1g@mail.gmail.com>
-Subject: Re: [PATCH] sound: soc: ti: rx51: remove stale reference to machine_is_nokia_rx51()
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-sound@vger.kernel.org, 
-	linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, 
-	Peter Ujfalusi <peter.ujfalusi@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, 
-	Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
+Date: Sat, 9 May 2026 09:44:57 -0700
+X-Gm-Features: AVHnY4KgdnUDXFOPNu9q7392VVUMqFCBpgGPyfSaViyblkIGEqmRglq6axhe8Qg
+Message-ID: <CADkSEUjuzsGLnL5N43dc6sa6bH8nGBr_U=tf-nXNAkTD7N=Cug@mail.gmail.com>
+Subject: Re: [PATCH] mfd: twl4030-power: fix stale ARM machine ID checks to
+ use the DT
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>, stable@vger.kernel.org, 
+	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
+	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
+	Tony Lindgren <tony@atomide.com>, Lee Jones <lee@kernel.org>, Jon Hunter <jon-hunter@ti.com>, 
+	Benoit Cousson <benoit.cousson@linaro.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi, Jarkko,
+On Fri, May 8, 2026 at 6:43=E2=80=AFPM Ethan Nelson-Moore
+<enelsonmoore@gmail.com> wrote:
+> The twl4030-power driver contains two checks for ARM machine IDs via
+> machine_is_*() macros. These checks are incorrect because the two
+> platforms concerned now support only FDT booting, which does not use
+> machine IDs, and therefore they will always fail.
 
-On Sat, May 9, 2026 at 6:07=E2=80=AFAM Jarkko Nikula <jarkko.nikula@bitmer.=
-com> wrote:
-> Not fully true since machine_is_nokia_rx51() still returns true on RX51
-> (N900) and driver loads successfully both before and after your patch.
-
-Thank you for testing the patch and pointing this out. I didn't know
-the kernel still considered the machine ID passed by the bootloader
-when booting with FDT.
-
-> But true you may remove this test so please update the commit log and
-> you may add my tested by tag:
->
-> Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-
-Okay. I'll resend the patch with your tag and a fixed commit message
+I have been informed that this is not correct and the kernel still
+considers the machine ID when booting with FDT, though there is still
+value in updating the check because it allows removing the machine IDs
+from mach-types. I will resend this patch with a fixed commit message
 after the 24-hour deadline.
-
-Ethan
