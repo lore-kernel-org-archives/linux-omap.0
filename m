@@ -1,123 +1,110 @@
-Received: from mail-dl1-f67.google.com (mail-dl1-f67.google.com [74.125.82.67])
+Received: from mail-qv1-f67.google.com (mail-qv1-f67.google.com [209.85.219.67])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C98634DCC7
-	for <linux-omap@vger.kernel.org>; Sun, 10 May 2026 05:42:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.67
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778391761; cv=none; b=X4hDKGf4eH9XJGGP4DUTzT5zEzG/xjC2hGhPdixMiQfkN74VXUqWvQ+kX6X/IRrvPSadKxBvE67J/oWx3WEuGtACi1JPc1LnHiJCreY4tNSxy7vLDKHSfkq+MovRdNp15FjOJXJ4/+CrR5lXHWME7pllOv7IC5NHCw5I0Fziy60=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778391761; c=relaxed/simple;
-	bh=Ihxi4KNOEEvlmd2zoiWy17HenaFDDKThY+SN88NDvYg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uwzRR5MbkbHdRzgjrHaTXfj4hqgbxDeTqL4C9gi6Dk5YJ4ZVvLyTt2mhCT709vjVusZ731NngozTEFW2Meye7pQJ9vtofuRfMms4xLZSVJiZaEIusPNIATXA1tGZnk/Cohpmk04TMQ5jrilCr2gH3vWFayzXT79F5yUgo+xfnCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rlG0ZtGi; arc=none smtp.client-ip=74.125.82.67
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5CA81AF0BB
+	for <linux-omap@vger.kernel.org>; Sun, 10 May 2026 05:47:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.219.67
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778392050; cv=pass; b=rtmIkZkMszCcOYzmDHiTjqjTqi3+6NzjgG784NpJkVguyI66p4Z9zvRn/IIymEhjL2JcoadKyHQ2GBcgL1OegSEVO+zP8MDSMilV6icMitwSTsHvcyqRvAUoT9l+Uyx++xG6BTca84XNwsIGJao9FCb6glithGy1XqUgFEPsRjU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778392050; c=relaxed/simple;
+	bh=NlyRJhvnlDjrc8/I3HZl/0CriWkgCPSLWWeusGUqgvA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=avUL/ENwVAkZu54AyK4tL7g8aIO2ObWJ4MfJLkdeifFT/5eyHP95e92mMIY7ZM3Oy/jivwsz7vOG85kmW+e3mbTgaTLfWyMhe93Y31CO60k9Wc44Zpl/Fm0b24iVnL2KG63c+U/t1NGTmd2JM1j94OYmi8rpAsvamIwRirwRX8A=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qKGfaxGJ; arc=pass smtp.client-ip=209.85.219.67
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rlG0ZtGi"
-Received: by mail-dl1-f67.google.com with SMTP id a92af1059eb24-12c8ccc7755so4766581c88.0
-        for <linux-omap@vger.kernel.org>; Sat, 09 May 2026 22:42:38 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qKGfaxGJ"
+Received: by mail-qv1-f67.google.com with SMTP id 6a1803df08f44-8b4000e51fdso34320186d6.1
+        for <linux-omap@vger.kernel.org>; Sat, 09 May 2026 22:47:29 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778392049; cv=none;
+        d=google.com; s=arc-20240605;
+        b=hpsl2bRlB2mKBEr53aHlRc++iU3aZtxuVEMe1xtQtZ5DdStv0VOt/im3KAr1TIfAVu
+         oxnxejrJvLEl98S5qQnahBaOcIdla0eRIm3BazTu5tVlSWxa9HzPVrdNeyS1+mc3xjyV
+         0MlWtd/YT8p5Y4p4ixPybRS2btDrAY0YEMD/2MulUpx1OZDKzMXHp/VuGq+bqquoA46x
+         9umkkErA3Pcwo06p6849VAW8VxFC0dOlLXAWu5KraSyZyhuTu/4dB6y0nZKxodoSXRkm
+         +UVxqZXs7ejM7xJiSCfgNmF8kCxFw1pOXaR3hO/d4HUcovKT1RHaT0XituHaflyQuOid
+         Ht9Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=NlyRJhvnlDjrc8/I3HZl/0CriWkgCPSLWWeusGUqgvA=;
+        fh=FB3oIp7U9BHIF1SDxj0XkBNEeYQ5xxx9+kngcFdExdo=;
+        b=gbbkEZCzMQehS7QkmElZKys3uPuacI5Aur5i1HcAQkrxeSScUtDhkMy8LWkkamxeyB
+         fgUa68SqmcHwMtNqfcneJ0z+EtHfnd2HtM0OQByDK6c3Ifz0GUQ3Qt5U+KEzDkXZGUFR
+         ywsac8BjeYON9qnhRZ13uW3Lat/Y6INeDwQz81HBvpcI2aOHUlSeoFTRKA3vT8z6tWgw
+         jl+vjfwrSnLyHa/2C27eOal5UwrsAEKaice3SjTAijBxuxHVKN0HOqX1014Dal60beIT
+         nKE/CCtnWzFu1pRn6f9Ai3NJNCpwTu0NmYFjuPmDPvC3itQG3WQrxbfbEmtOUZRiPrxb
+         NEbg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1778391758; x=1778996558; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=8enRmADSeIqpedQJEEHvSBxiqLlAtmUEe6kyexwW70I=;
-        b=rlG0ZtGi9i4yyFM8Fi6RwU4PzTZwdeuGwcIdk997Jn8qVBiG+sigjcsF/bo6PdlpS3
-         YdBvO0MgZeEfnh0GmhNUKMt1pKdaRvdvNG0j8uLsTPMVHfivpuu147U2OOPbltayaffn
-         skN4ibOtcaDr5JbhZ0uFhq3WmLVkL8VbYqS4J2ZnWTwq95WlWJaAceh+w/bSywX+gsKB
-         vfEx7srwoI5o2qIx/WL+PDFw/TWh8hOrfvq6zhfvS7zUCM71Aqze3T0rTyGFekhjrJg5
-         eAiYVv0UCANr1TRxcQy54V+HrbcTcgUmYp8Uz6cGaAXs+Q5GY8rcJIoKrt8Fv3odryRg
-         1pUw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778391758; x=1778996558;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1778392049; x=1778996849; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=8enRmADSeIqpedQJEEHvSBxiqLlAtmUEe6kyexwW70I=;
-        b=TUMDHQv559pZ88SdBSJ8FCNPS5g/2qE5W42f6K3rC0eYzYeyH8GSO4+24094iXGQQL
-         CmrA5bLYZKBneN7VA2o3TTf+ARbuaS920181Vf9BYiAfXhUbYTlwd+91KUJXCGOR4bh+
-         drE++4Bcnr7q1chBAnHbA6b5zqCSg31S0QlL/wv1E4cIy77R+49f4e5rn4My1PPk9tmx
-         J5QSLwryvfcFTbZgE/l/Gu4e0YhEV06mYnkrQkdKRFV2rYilaFSjyl5GqoDhCTsAnXwi
-         DrJmK4KrD8zoV6hvMmt1EsKV01kr7nVVyEu1KW5AHDX9SSHvLFOLAfaurXMBcXyVlpf5
-         ZRtw==
-X-Forwarded-Encrypted: i=1; AFNElJ/FxAOUExjY5l9G+PEfahDhZuTYOeOSmSurjd7IBXAJG2OSCpNz/Ig4fJe238o3qFnEReg6hVhG9Udj@vger.kernel.org
-X-Gm-Message-State: AOJu0YwDsdzAdUP0MNSp9AIWfw6voY9vv9PBafLSaOOkICIsMHDbB1wL
-	328tQ1AdRd9nra1ZoyGmjkM1cLJpN/lsoBxIo4HuHjTklGGNxF+I+5cB
-X-Gm-Gg: Acq92OEwf0QNOs4d+mIvdl6jezzUe+Ddf0gPYmogQH0Ia7HDxtFOmAonlLGUucXKcWD
-	8X7CBmR6jhcmIYqWTkzT0x/MoQbwlRvmGrjK/pq31X/rd4GzEi0B/KclTSXbVTdPKMOiZxpsase
-	zg4naAwtwYKIkunnBvxpvplH29aN776d+IRmn2O7bAkrftpa+Udx/T+cuedNjFrDIiMtNe28SbK
-	GkRHO6nEBg36csYBei8V+qYFM3o9IQIrUGB7G8zszboGcgzQUwgIHB5Y7RUTF6EWo1+wMVY96bz
-	O4yLVO49mznAll19z1M0cYBm9JFvinSmS6LgLMzbcu29iULUnCoMiXcO3UPLUIiVZqo9pdBMaO4
-	JaCthu/3cCX46HQ0xeYP/dNOxS3ObdakOMUSKJm9tGyeta6VrbeobopEb4rKjA6cePRCdE1u05h
-	EScXwEVElGmaREDNmBNQf47PMnm8G5cJsLmd6+9ssoHJmVyJdpHGJsD8OXE/O7g4PmmfurAsv6V
-	xUvDbb1UsxhfZuvqQmlX/rLpqqghanlRmqhUJ5EUygVATPoaMFld5UTymhkewhfV95SJ+myrlBl
-	+pWqQMK7iNugMxpKIg==
-X-Received: by 2002:a05:7022:f10b:b0:130:9b78:b180 with SMTP id a92af1059eb24-132a8715f72mr2229438c88.43.1778391757910;
-        Sat, 09 May 2026 22:42:37 -0700 (PDT)
-Received: from ethan-latitude5420.. (host-127-24.cafrjco.fresno.ca.us.clients.pavlovmedia.net. [68.180.127.24])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2f8862d429asm8820237eec.12.2026.05.09.22.42.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 09 May 2026 22:42:37 -0700 (PDT)
-From: Ethan Nelson-Moore <enelsonmoore@gmail.com>
-To: linux-sound@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Cc: Ethan Nelson-Moore <enelsonmoore@gmail.com>,
-	Jarkko Nikula <jarkko.nikula@bitmer.com>,
-	Peter Ujfalusi <peter.ujfalusi@gmail.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>
-Subject: [PATCH v2] ASoC: ti: rx51: remove stale reference to machine_is_nokia_rx51()
-Date: Sat,  9 May 2026 22:42:14 -0700
-Message-ID: <20260510054214.564950-1-enelsonmoore@gmail.com>
-X-Mailer: git-send-email 2.43.0
+        bh=NlyRJhvnlDjrc8/I3HZl/0CriWkgCPSLWWeusGUqgvA=;
+        b=qKGfaxGJbhYs0S5lEnejaL3hohYH49KKOmbLlM2TzCeRllI1GuvOi2dSQy3wS5OAUQ
+         GPBJ2znnSy9KYesJDmUTxhCiOk9r1b2NAUTtcXcv5PfUCx/8oud7RnIgappmuQL9/kSe
+         2QNZM2ENExnnXj7thy1qsaOVm4KuiPiO/FNgLaVVdB4eYA0QOgqJBkexVGjADSe+YP7L
+         durLKqzyJuaAPPIvG3QPvOg6nc4R6tzjVeoIA9mOzY7t1iMnyzh3opAyNWgdH5F5dXSn
+         vvirg36h1V8oYs6DzxLOPAMEV9/fz0I50iC8drhWwLnRe6u9x1Ie4maq2JgcqTmLSGL8
+         Mx5w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778392049; x=1778996849;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=NlyRJhvnlDjrc8/I3HZl/0CriWkgCPSLWWeusGUqgvA=;
+        b=WSSw+TRhD+lV1wNYAOFZxOdo0nV2bJvoR9pxDRd/wlMRG8iht5gQ9Yhkytk7M7t3R1
+         RgD6sBwIJSnZuP0b+7VEZD8rWp8k/Thrhb/YuDZsWzzot8HE8Nqhfnl+vz4RfRSDI64K
+         AqePmHaueAte0OVuaNxoo40Hb55b2qHBS97RjDPs39aC6JXqxBgqDqdXdd278xYEL8vS
+         vZRh758xpto2BTT3khi0TdG/+zvCywyywZ8LkBA5ACAqJdK6pOBNzza7YWaSQZUBecd/
+         L9sjr1NVYdmKnWtGr3hqKSt93zmrSvLG7yCxDjaqkrLDUVE7DgrFD5mdWBS3HS/XQaG7
+         vTJg==
+X-Forwarded-Encrypted: i=1; AFNElJ82BlKV0hFntVuUUdY110135YminrYehahCZdUJpE0IGEfaa8xDvVT3g2w0YSWTMpoK/QI5a71SqUE/@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx5Vp5ZxX6NEdDj9yryWtES36bNX8H0agRK3+bBDPQJHg5SrNo+
+	plaeaf/M5LmmYPsnYgOdA69xW8QjojPIqVvo788FXs2hLMP3KPNJg8h3/g4BMq/2VLNOCYMXZbN
+	7i5aWWNXf5gBb+10ZiHzRtCDrGqkC/BA=
+X-Gm-Gg: Acq92OH+Q/SjC6fZYxgns5nPuuCUauVwFqVxu4188pHnbGErWLbANG/xxn9RLi0/oUq
+	hF2LpzHJ/U54uiKDgUHGezt+xj7ks0DsUGLIDFixCi7ocFmfVFDB2eJy3hwPraRh4hDtsGhXpmO
+	E3P8ei/Cb2R66zfbfiGDQ5BSVKKTfxlTcMxDCvkcX5VKtFVRb7Cd57532baImPWBdCsH2FGdymF
+	6BtbhG+gxwAHV6htoaTEgak9hum13gyKCI1phUUUf/BiynEs3/Li5Q2AksYEeFgQuyFVqJy9MAG
+	bVN/QxCULBhzwZRmXmjMupGn7zrO3iYqVUpKhMdnsA7IXiCZoVgRyAC3tkQpL/0tlYnV
+X-Received: by 2002:a05:6214:4a86:b0:8ba:b3b3:971 with SMTP id
+ 6a1803df08f44-8c1aef0ba80mr77016986d6.32.1778392048684; Sat, 09 May 2026
+ 22:47:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260510053939.564314-1-enelsonmoore@gmail.com> <20260510053939.564314-3-enelsonmoore@gmail.com>
+In-Reply-To: <20260510053939.564314-3-enelsonmoore@gmail.com>
+From: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+Date: Sat, 9 May 2026 22:47:17 -0700
+X-Gm-Features: AVHnY4IBeUYn8NsHGeLm2DVNzKo78AU7QjDZBO_n8D3LQ2xwfQvtglASS8pqEw0
+Message-ID: <CADkSEUi0U1oKsxZ9YmgG6wh8rc=RK37wUgq-bmA5XUn3aYSuAA@mail.gmail.com>
+Subject: Re: [PATCH v2] ASoC: ti: omap3pandora: update board check to use DT compatible
+To: linux-sound@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Peter Ujfalusi <peter.ujfalusi@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, 
+	Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The rx51 driver relies on the machine_is_nokia_rx51() macro, which was
-used with the legacy board file dropped in commit 9b7141d01a76 ("ARM:
-OMAP2+: Drop legacy board file for n900"). The use of this macro
-prevents the removal of machine IDs no longer used by the kernel from
-arch/arm/tools/mach-types, because the machine_is_*() macros are
-generated from mach-types. Drop this unused code.
+On Sat, May 9, 2026 at 10:40=E2=80=AFPM Ethan Nelson-Moore
+<enelsonmoore@gmail.com> wrote:
+> ---
+> Changes from v1: Fix mistake in commit message and remove Fixes tags -
+> machine ID checks still work with DT booting if the bootloader passes
+> the ID
+>
+> Signed-off-by: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+> ---
 
-Tested-by: Jarkko Nikula <jarkko.nikula@bitmer.com> # v1
-Signed-off-by: Ethan Nelson-Moore <enelsonmoore@gmail.com>
----
-Changes from v1: Fix mistake in commit message - machine ID checks
-still work with DT booting if the bootloader passes the ID
-
- sound/soc/ti/rx51.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/sound/soc/ti/rx51.c b/sound/soc/ti/rx51.c
-index 7eeb12e5066c..cfc23e0838c2 100644
---- a/sound/soc/ti/rx51.c
-+++ b/sound/soc/ti/rx51.c
-@@ -19,8 +19,6 @@
- #include <sound/soc.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
- 
--#include <asm/mach-types.h>
--
- #include "omap-mcbsp.h"
- 
- enum {
-@@ -364,7 +362,7 @@ static int rx51_soc_probe(struct platform_device *pdev)
- 	struct snd_soc_card *card = &rx51_sound_card;
- 	int err;
- 
--	if (!machine_is_nokia_rx51() && !of_machine_is_compatible("nokia,omap3-n900"))
-+	if (!of_machine_is_compatible("nokia,omap3-n900"))
- 		return -ENODEV;
- 
- 	card->dev = &pdev->dev;
--- 
-2.43.0
-
+I forgot to move my changelog below the --- generated by git
+format-patch. Sorry. Could whoever merges this fix that, or should I
+resend this patch tomorrow?
