@@ -1,87 +1,112 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C4FC374E67
-	for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 11:31:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E499E379971;
+	Mon, 11 May 2026 12:02:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778499063; cv=none; b=toij2R9JYAitRhkg9yZbdBDMXC6ccZIoUGbSHf27TQOVdtddN2SV+djnA+DLjQBGrdyxlJs02KOT2ukf7TimFDX9YC9exRvimJuo0dgSEyPY9Q77bcbqOwt8pxaJ1uUPfxylG2JjFEW+ffMcBOWOQ9l8kV/gGtQC225k+y3ulMc=
+	t=1778500980; cv=none; b=g8VXg8FODJE4a+jhZsnWCQSLKXuI3e4cQ6gJRyd/7xinCgwZX0RUWUTZTebk1Bz/nVsN65NxA2s1KaZ/RWBSH/Jt5UR1CcdlC/n8ztOstJRasC9INMkS/qT4Dzg90JfwhWD/7qASaqqfWf/pbLIUqW7rVatjI6mKw1WnBAp8Ufs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778499063; c=relaxed/simple;
-	bh=EKKfwmDWueuzuiwLmDiqHwAUuKDTiRg25fPDMxAtu3I=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=WVfqOl9hpy0o/l8VI4qiG6nZ8slEM+EN6SLf+bmtGwlnSHjY47OXlgDBT//whivKkxFm4Iu3GZYxOEbn7TVM41AsZpc2H0KavSymtgGGux29PCNYySdShENi2LhBo2+fd3grNIscV5JojfPj4fK4zoKcuEayswi3I53+T+/gsCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ndaf6Okb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778500980; c=relaxed/simple;
+	bh=bEg2Oc42Jc1YTiUa6rw6CIPcwQmL+oHe4mTQX0c+a28=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=RRobU50ryIFu7tCoarnVJotEJVNU1ntY+12DJ39b2K+RifUWtc6kDwIiM77x08DYYM6CgwFeJfHq3gSoVs/swMOXCR+Ou/gufJ6Wl9L2yk7uAGrqeWmsHZfYWtXH6O3dVD+pIJ9KvYSF1Ch3QB3RZl34ftmVnFPb5cOlylPslOY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=db86Lt37; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ndaf6Okb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F5FEC4AF0E
-	for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 11:31:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="db86Lt37"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C87A7C2BCFA;
+	Mon, 11 May 2026 12:02:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778499063;
-	bh=EKKfwmDWueuzuiwLmDiqHwAUuKDTiRg25fPDMxAtu3I=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc:From;
-	b=Ndaf6Okb8sk0A8O7VL3aBsk0ONkOoBV714yHk6/dZQl1jlV/1eKAE9dRNOp9cBaRE
-	 oSicQNFzSi63gMWcQjyBj7ALHHOsKMQNy/DkmJBrk84C5kXsKd4iHdpoMiDNfEQR6m
-	 9T5ynO9CX+A67VySvl/YM891b+6++c0Cz3sDZc2ZZ/O8tbjI0h4kiBTJofBhkZuFvx
-	 zJcCXgj7y+afgvWRIKGS7D34JC29RgLIPoVv5TTP7rW6QNTfotzWaeBj8zkdteLjUN
-	 OegFcEWhkCYBg0KEZ6qCvAuruUlzQgbG7d19IO11CR5mBfMdoLVWiN/nAhSW1Q2TJ3
-	 eS3xMcJM1t8hw==
-Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5a860667fabso3769079e87.0
-        for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 04:31:03 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8Ei8icxGca1ypf+zodtWEk9APrGTOz82lIXKhcZFWpyV41KtzMPnSIh0s8Yx9WjSTTv+6E2Kz2p0LO@vger.kernel.org
-X-Gm-Message-State: AOJu0YyZUt5f8z1sBWSPcK+680Q48JuI0TxopWcV9nhi4SJuc3+XlV4H
-	eSMD2Nn1I/nxH7nNHVk1/Q0QUJ/OId4Y26NOSBo+AL6cJVgZ1VqsykE9bSWC0BHiVWEjXZo5lne
-	K3VM+lmtbppF6sg+daldeNSr7wJzKivp7RFaUa4pFEg==
-X-Received: by 2002:a05:6512:8013:20b0:5a8:9909:50a3 with SMTP id
- 2adb3069b0e04-5a8a94c1fc3mr3003771e87.32.1778499061711; Mon, 11 May 2026
- 04:31:01 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Mon, 11 May 2026 04:31:00 -0700
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Mon, 11 May 2026 04:30:59 -0700
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <20260507212451.3333185-3-arnd@kernel.org>
+	s=k20201202; t=1778500979;
+	bh=bEg2Oc42Jc1YTiUa6rw6CIPcwQmL+oHe4mTQX0c+a28=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+	b=db86Lt378y9R8RXR2snODXaYcOnBIjXKaAG3zaMPjW8VBneDp3zXnYMivY7dxf8c9
+	 rYJBt4F2xk7PeaYWevVR33LNpbtsAStWG9tGdJ0S2K3Obi10jF+Lj19rkceSzSNaJZ
+	 d71UcWzanMRvSnIen0Va2JtcNvMMQpDxffJ9Sh7YJFP9yzNek5wA8sYjBxO9F4UXq7
+	 KG3FQ0ATkSiUa5rDHEYQoEqoEzRSAB8kr0Oe22d9VdQbtv9NDPYMNPBtjbykS1175d
+	 fO/yOy20D6b8SPIuPHGE9aqpMRqi2dkMiCUDc0cIkznE7OtUxqWc8OjZDIGErLDaQl
+	 78fbgVU4u/yNw==
+From: Mark Brown <broonie@kernel.org>
+To: peter.ujfalusi@gmail.com, phucduc.bui@gmail.com
+Cc: lgirdwood@gmail.com, perex@perex.cz, tiwai@suse.com, 
+ jarkko.nikula@bitmer.com, linux-sound@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20260508103837.138142-1-phucduc.bui@gmail.com>
+References: <20260508103837.138142-1-phucduc.bui@gmail.com>
+Subject: Re: [PATCH 0/7] ASoC: ti: Cleanup locking code using guard()
+ helpers
+Message-Id: <177846113679.988959.549301226983834069.b4-ty@b4>
+Date: Mon, 11 May 2026 09:58:56 +0900
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260507212451.3333185-1-arnd@kernel.org> <20260507212451.3333185-3-arnd@kernel.org>
-Date: Mon, 11 May 2026 04:30:59 -0700
-X-Gmail-Original-Message-ID: <CAMRc=McjwW-LfB8+jAF7zGkThCzSWgWWbgRR8_4UFCZLGjrGGA@mail.gmail.com>
-X-Gm-Features: AVHnY4JxFqpXMEt4_ocDaPjTOBgIpI7Eah18wC4y2ej7QetMh_kqZpgwKUVhjKE
-Message-ID: <CAMRc=McjwW-LfB8+jAF7zGkThCzSWgWWbgRR8_4UFCZLGjrGGA@mail.gmail.com>
-Subject: Re: [PATCH 2/3] [v5 net-next] p54spi: convert to devicetree
-To: Arnd Bergmann <arnd@kernel.org>
-Cc: netdev@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Bartosz Golaszewski <brgl@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, 
-	"David S. Miller" <davem@davemloft.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
-	Eric Dumazet <edumazet@google.com>, Felipe Balbi <balbi@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
-	Johannes Berg <johannes@sipsolutions.net>, Kevin Hilman <khilman@baylibre.com>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Linus Walleij <linusw@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Rob Herring <robh+dt@kernel.org>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
-	linux-wireless@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, 
-	Christian Lamparter <chunkeey@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.16-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2009; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=bEg2Oc42Jc1YTiUa6rw6CIPcwQmL+oHe4mTQX0c+a28=;
+ b=owEBbQGS/pANAwAKASTWi3JdVIfQAcsmYgBqAcVwRUcuGoablk5B0LXmYra1XeG2Two6IgYxP
+ 5iSVT/qNsmJATMEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCagHFcAAKCRAk1otyXVSH
+ 0BMtB/9G8zJo+/JROGbvYdtwR0VOhgiMll9INUOP8ZuZFMHIy3sUj/0snGKWrfvmHylx2m7Dm2Y
+ bBYzNuQIfTKoiiyzPCOk4v08xFDLSFPbenBi/6Bu65MjDD2ESYW3jj9T3nt3+2c2QFd8p+c02f2
+ Ur18L2egqrwHqz7eOOlTIEWzFOhbeaASeYBGXfjsBo2edIiYG5xQgHBwNlnwrOaY5ELZAnaBRB3
+ pFKtocGMsuQyjpV8aSocP/9+0urSuM2no+lVLftHpWGZdYX4CO0U3zmkpPGsB9NX9OwlmTpNqsD
+ nN4r33S2qDiGDtOaedXFVKu+WX4Za48zYur8AIiEfmQ+9ypv
+X-Developer-Key: i=broonie@kernel.org; a=openpgp;
+ fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-On Thu, 7 May 2026 23:24:50 +0200, Arnd Bergmann <arnd@kernel.org> said:
-> From: Arnd Bergmann <arnd@arndb.de>
->
-> The Prism54 SPI driver hardcodes GPIO numbers and expects users to
-> pass them as module parameters, apparently a relic from its life as a
-> staging driver. This works because there is only one user, the Nokia
-> N8x0 tablet.
->
-> Convert this to the gpio descriptor interface and DT based probing
-> to improve this and simplify the code at the same time.
->
-> Acked-by: Christian Lamparter <chunkeey@gmail.com>
-> Reviewed-by: Linus Walleij <linusw@kernel.org>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
+On Fri, 08 May 2026 17:38:30 +0700, phucduc.bui@gmail.com wrote:
+> ASoC: ti: Cleanup locking code using guard() helpers
+> 
+> From: bui duc phuc <phucduc.bui@gmail.com>
+> 
+> Hi all,
+> 
+> This series converts mutex and spinlock handling in TI ASoC drivers
+> to use guard() helpers.
+> 
+> [...]
 
-Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Applied to
+
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-7.2
+
+Thanks!
+
+[1/7] ASoC: ti: j721e-evm: Use guard() for mutex locks
+      https://git.kernel.org/broonie/sound/c/6f4cf77320ae
+[2/7] ASoC: ti: omap-dmic: Use guard() for mutex locks
+      https://git.kernel.org/broonie/sound/c/bc59728f9349
+[3/7] ASoC: ti: omap-hdmi: Use guard() for mutex locks
+      https://git.kernel.org/broonie/sound/c/59115f79acd2
+[4/7] ASoC: ti: omap-mcpdm: Use guard() for mutex locks
+      https://git.kernel.org/broonie/sound/c/70031e9ad601
+[5/7] ASoC: ti: ams-delta: Use guard() for spin locks
+      https://git.kernel.org/broonie/sound/c/a8217778be47
+[6/7] ASoC: ti: omap-mcbsp-st: Use guard() for spin locks
+      https://git.kernel.org/broonie/sound/c/d94e794e8294
+[7/7] ASoC: ti: omap-mcbsp: Simplify lock and resource handling
+      https://git.kernel.org/broonie/sound/c/822f67bc269d
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
