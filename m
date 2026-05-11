@@ -1,81 +1,175 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D21823E9F7B
-	for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 13:34:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89BEC42316C;
+	Mon, 11 May 2026 16:14:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778506492; cv=none; b=cFe8DyH62gW75aCByibl76f4YPZQk+wZ5OhlgM0jCFEJGMG47LNeaEkl2xTHfNm6s+3ta55/YFGgQZKXlMIwTp+NUw2FMIMEjRS+tiSwbuT+p8HInxv3LV93SC49ck7UIVMtbIib+usjyCaS6p559gj/9pRnGhEo0EtC7lQWEvQ=
+	t=1778516066; cv=none; b=uQd/AEkJ2KurZiP741sjHIdWhmm4lXM6VJheeUk27ZvAnrtO2u46F5Iamv1ZLB5aQ+E+zOzN7xT+JfRpcOskvc9JEMWNIe3bjqJNC/BX7RZbSOF/xz5WchYBlPHagYJhPJrQZR25ErBsLkjsEJhYr6EkXP9iDAL72/zuoDCdSg0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778506492; c=relaxed/simple;
-	bh=r1NwL7C4TUXiy0IqMMrn3WpIg+m5YuGpDASE8HR118U=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MRYVVHM9BrjvEw6rARKwTXWVxKAvG+gKjj/fzLCAm7JSN478g7VYS/h8p2622BX1LPRVbOaWdzYO9cIyagzMNsa5M54PDa/zSOO/Cb/zve4VCI9zvT+7pJ9t28L/2tnZVwfNPjizXJ8gqQTdj3qw3FfJt1o2LX/Ya8ZR8G4l7uo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CY1zmRAv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778516066; c=relaxed/simple;
+	bh=loApl5z4gNMlxHcs5ARDnO2c3Zo1516aXOntv1kkSOI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Xokg7dAWVI1n5+Qjur1mYU80xjdvXd9ZZFEbNb6KRSTasvNzfPnaxKtXH195DRU7xHa5I3njYqDeVB7RROEoSZl7+AIzs1l76dbORnQmbQBFKYK765dcNDo66lcRlDDoSX5VJ2OL5iF1LUoZLWu2vp4f9YIC/LqTav215IOjE4w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AEeA/6RZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CY1zmRAv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81EAFC2BCFA
-	for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 13:34:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AEeA/6RZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0977C2BCB0;
+	Mon, 11 May 2026 16:14:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778506492;
-	bh=r1NwL7C4TUXiy0IqMMrn3WpIg+m5YuGpDASE8HR118U=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=CY1zmRAv/Ku8mbJt4v6JYur71VvXUxbPvCoe1xXRVF9B3F6gu+fmOley5laUHiwCG
-	 extjOR7/YS2xIQD8BEzYdA9lyWONIr6U0M0ZbPVoKwDFQd1T7bHwkrYorKd4qG+i0d
-	 0NyDNQ1y55OaK0E1yIBilPr71rkX7HVuDO1vRRlLqbWWavLej0icZOI+0xODaf6B01
-	 uEqdaqo4t0yPUT96/tEylp0NISrg6t0XIJli4QK6f0z7LYVqCxziIU89lJriPvoFo2
-	 ev1Rt9JCtlWduoD5wsvx8DH2xebwPrTbIZZSRaFXRz5HRCvRHYnzmF6nib5sSGRS8b
-	 EEAeIkqXYcEuQ==
-Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-393d6025f99so37372431fa.0
-        for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 06:34:52 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8yc03Uc59etSCoNfW3CqDV6EA+//9eBtUz3/Y0ancZ69tVWRdVoMgsy3d7dFJYX7w2vjesRotWLX9T@vger.kernel.org
-X-Gm-Message-State: AOJu0YziC57SBhvLEMdz9VPdCdNm/lxhrxvCRYQBnSaeioRAwMoRQNfN
-	bv6APPZze1G/2MENSUP30+kqs4EHiUOLAD0ea9oQoXK3b5kYBXeXERAPO3hVLStD/yMII0Lzl01
-	eZhELsAtm8GbdiA/pnX8oQ7RXjYGK7Sz6/18VkaSEAA==
-X-Received: by 2002:a05:651c:2229:b0:38e:15d9:d60d with SMTP id
- 38308e7fff4ca-393dad5f88bmr64043021fa.3.1778506491219; Mon, 11 May 2026
- 06:34:51 -0700 (PDT)
+	s=k20201202; t=1778516066;
+	bh=loApl5z4gNMlxHcs5ARDnO2c3Zo1516aXOntv1kkSOI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=AEeA/6RZ7YTpM/mMfohIkUuAPJCtp2QiDJuGU1bgB1m4w8DDqNIsJvjjEdg1yis6w
+	 WRBNHSyhHo6FBHW1PFoyBgzmhB543o/db/XweILflbtXmveiTQFmmBR7Y7eIK4qNsq
+	 jIjY90qth83Pt21QXi90Ffm3xgQYlnrBz6htplTsPUb94t5K3gJtlyZWyaQpMY/W8D
+	 nPq5l4OHunZThPbuUnqwORsQZJMmx2n/MsXXPnhNPcLne9U8Lk2JIMxsdG/l1oOhfw
+	 JNLxfqx/ld2gvmmvouQNRubK0Lk+HGJktszx3mEqeMMByX/R3I+vI/xJQqI7ninEbm
+	 uL/GzsKtc0pag==
+From: Simon Horman <horms@kernel.org>
+To: arnd@kernel.org
+Cc: 'Simon Horman' <horms@kernel.org>,
+	netdev@vger.kernel.org,
+	arnd@arndb.de,
+	aaro.koskinen@iki.fi,
+	andreas@kemnade.info,
+	brgl@kernel.org,
+	bcousson@baylibre.com,
+	davem@davemloft.net,
+	dmitry.torokhov@gmail.com,
+	edumazet@google.com,
+	balbi@kernel.org,
+	kuba@kernel.org,
+	johannes@sipsolutions.net,
+	khilman@baylibre.com,
+	krzk+dt@kernel.org,
+	linusw@kernel.org,
+	pabeni@redhat.com,
+	robh+dt@kernel.org,
+	rogerq@kernel.org,
+	tony@atomide.com,
+	linux-wireless@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-gpio@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	krzk@kernel.org
+Subject: Re: [PATCH 2/3] [v5 net-next] p54spi: convert to devicetree
+Date: Mon, 11 May 2026 17:12:45 +0100
+Message-ID: <20260511161243.49098-3-horms@kernel.org>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20260507212451.3333185-3-arnd@kernel.org>
+References: <20260507212451.3333185-3-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260430-nokia770-gpio-swnodes-v7-0-c88f74c90dd6@oss.qualcomm.com>
-In-Reply-To: <20260430-nokia770-gpio-swnodes-v7-0-c88f74c90dd6@oss.qualcomm.com>
-From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Mon, 11 May 2026 15:34:39 +0200
-X-Gmail-Original-Message-ID: <CAMRc=MdN9EpQVW=1Sb-9hRdt56Y5NNbskujjq2RiXhu90t0QyA@mail.gmail.com>
-X-Gm-Features: AVHnY4LqUFEpLtkv3mOskgVKC1lucSnvu3DKdQtMuet6VRvxpZSBsuokLGXn78E
-Message-ID: <CAMRc=MdN9EpQVW=1Sb-9hRdt56Y5NNbskujjq2RiXhu90t0QyA@mail.gmail.com>
-Subject: Re: [PATCH v7 0/3] ARM: omap1: use real firmware node lookup for
- GPIOs on Nokia 770
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>, 
-	Russell King <linux@armlinux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
-	Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Apr 30, 2026 at 9:31=E2=80=AFAM Bartosz Golaszewski
-<bartosz.golaszewski@oss.qualcomm.com> wrote:
->
-> This converts Nokia 770 to using real firmware node lookup for GPIOs by
-> attaching the software nodes describing GPIO controllers to their target
-> devices.
->
-> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> ---
+From: 'Simon Horman' <horms@kernel.org>
 
-Hi!
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
+Full review at: https://sashiko.dev
+---
+p54spi: convert to devicetree
 
-Gentle ping, can this be queued now for v7.2?
+This commit converts the Prism54 SPI driver from using hardcoded GPIO
+module parameters to using the GPIO descriptor interface and device tree
+probing.
 
-Thanks,
-Bart
+> diff --git a/drivers/net/wireless/intersil/p54/p54spi.c b/drivers/net/wireless/intersil/p54/p54spi.c
+> index 9d66dcae54e02..d18be25450285 100644
+> --- a/drivers/net/wireless/intersil/p54/p54spi.c
+> +++ b/drivers/net/wireless/intersil/p54/p54spi.c
+
+[ ... ]
+
+> @@ -30,19 +31,6 @@
+>  MODULE_FIRMWARE("3826.arm");
+>  MODULE_FIRMWARE("3826.eeprom");
+>  
+> -/* gpios should be handled in board files and provided via platform data,
+> - * but because it's currently impossible for p54spi to have a header file
+> - * in include/linux, let's use module parameters for now
+> - */
+> -
+> -static int p54spi_gpio_power = 97;
+> -module_param(p54spi_gpio_power, int, 0444);
+> -MODULE_PARM_DESC(p54spi_gpio_power, "gpio number for power line");
+> -
+> -static int p54spi_gpio_irq = 87;
+> -module_param(p54spi_gpio_irq, int, 0444);
+> -MODULE_PARM_DESC(p54spi_gpio_irq, "gpio number for irq line");
+> -
+>  static void p54spi_spi_read(struct p54s_priv *priv, u8 address,
+>  			      void *buf, size_t len)
+>  {
+
+Simon says: As a pre-existing issue I don't think we need to be concerned
+            about this in the scope of this patch-set. But it may
+	    be a potential for follow-up.
+
+This problem wasn't introduced by this patch, but I noticed a pre-existing
+issue in the context here. Does the p54spi_spi_read() function perform an SPI
+transfer using a stack-allocated buffer?
+
+Looking at p54spi_spi_read(), the addr variable is allocated on the stack and
+passed as a transfer buffer to spi_sync(). The SPI framework maps transfer
+buffers for DMA. Passing a stack-allocated buffer is illegal, particularly with
+CONFIG_VMAP_STACK enabled, because stack memory resides in vmalloc space and
+cannot be safely DMA-mapped.
+
+Could this cause memory corruption or a kernel panic during the transfer?
+
+[ ... ]
+
+> @@ -608,31 +596,20 @@ static int p54spi_probe(struct spi_device *spi)
+>  		goto err_free;
+>  	}
+>  
+> -	ret = gpio_request(p54spi_gpio_power, "p54spi power");
+> -	if (ret < 0) {
+> -		dev_err(&priv->spi->dev, "power GPIO request failed: %d", ret);
+> +	priv->gpio_powerdown = gpiod_get_optional(&spi->dev, "powerdown", GPIOD_OUT_HIGH);
+> +	if (IS_ERR(priv->gpio_powerdown)) {
+> +		ret = dev_err_probe(&priv->spi->dev, PTR_ERR(priv->gpio_powerdown),
+> +				    "powerdown GPIO request failed\n");
+>  		goto err_free;
+>  	}
+>  
+> -	ret = gpio_request(p54spi_gpio_irq, "p54spi irq");
+> -	if (ret < 0) {
+> -		dev_err(&priv->spi->dev, "irq GPIO request failed: %d", ret);
+> -		goto err_free_gpio_power;
+> -	}
+> -
+> -	gpio_direction_output(p54spi_gpio_power, 0);
+> -	gpio_direction_input(p54spi_gpio_irq);
+> -
+> -	ret = request_irq(gpio_to_irq(p54spi_gpio_irq),
+> -			  p54spi_interrupt, IRQF_NO_AUTOEN, "p54spi",
+> -			  priv->spi);
+> +	ret = request_irq(spi->irq, p54spi_interrupt, IRQF_NO_AUTOEN, "p54spi", priv->spi);
+
+Simon says: This one seems more concerning in the context of this patch-set.
+
+Is there missing validation for spi->irq before calling request_irq()?
+
+If the device tree node lacks an interrupts property, the SPI core may set
+spi->irq to 0 or a negative error code.
+
+Passing this directly to request_irq() without validation can successfully
+hijack a core system interrupt like the system timer on some architectures,
+leading to system instability or deadlocks.
+
+Should there be a check like if (spi->irq <= 0) to fail the probe gracefully?
+
+>  	if (ret < 0) {
+>  		dev_err(&priv->spi->dev, "request_irq() failed");
+> -		goto err_free_gpio_irq;
+> +		goto err_free_gpio_power;
+>  	}
