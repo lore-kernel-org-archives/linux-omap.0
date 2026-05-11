@@ -1,68 +1,87 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC8BD296BAF;
-	Mon, 11 May 2026 07:02:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C4FC374E67
+	for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 11:31:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778482964; cv=none; b=RYqJkLWW6SDyMI9tR3HI0QxFWgd9INdP42CdPylbsh8j0+lH+ZUjdV/3iSzulThwVUPqIoP5uCdsoFt/lVtLMnwBxLo03qGZI5fDrbe7ktJ0KkpFTgcBBPhcowmUlR30Iy0wwR5TmlSehP+SzaNxC0M0buG2RxSNAwUb3vPVTSo=
+	t=1778499063; cv=none; b=toij2R9JYAitRhkg9yZbdBDMXC6ccZIoUGbSHf27TQOVdtddN2SV+djnA+DLjQBGrdyxlJs02KOT2ukf7TimFDX9YC9exRvimJuo0dgSEyPY9Q77bcbqOwt8pxaJ1uUPfxylG2JjFEW+ffMcBOWOQ9l8kV/gGtQC225k+y3ulMc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778482964; c=relaxed/simple;
-	bh=Tdh/N1hAlE0eVbohv0554EUeYZWyi42yp17TIjpju5g=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=odlzpxAlM39HRMwZXRDoerpdmuzZgcGJRcc+d3yWv4ZnPFixx/r9Su2CurI+bvBQtwTCos4i8XJ8dHQln4d1ZuMy6Xw5dk0jVBdfncnspN7cf9K8lvOsJO/qahbc3f1P0ssNNQW3w8QK6OltJlyh/cvPOq5Gp/vFajtufRExa4g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OHLDXMEP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778499063; c=relaxed/simple;
+	bh=EKKfwmDWueuzuiwLmDiqHwAUuKDTiRg25fPDMxAtu3I=;
+	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WVfqOl9hpy0o/l8VI4qiG6nZ8slEM+EN6SLf+bmtGwlnSHjY47OXlgDBT//whivKkxFm4Iu3GZYxOEbn7TVM41AsZpc2H0KavSymtgGGux29PCNYySdShENi2LhBo2+fd3grNIscV5JojfPj4fK4zoKcuEayswi3I53+T+/gsCE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ndaf6Okb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OHLDXMEP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25F36C2BCB0;
-	Mon, 11 May 2026 07:02:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ndaf6Okb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F5FEC4AF0E
+	for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 11:31:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778482964;
-	bh=Tdh/N1hAlE0eVbohv0554EUeYZWyi42yp17TIjpju5g=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=OHLDXMEPFhnZDfHYyDEV5HluzVN5NysVQFyveHi6v7Cwmy2warBhBJMzSqMWLQ4hY
-	 0GugpNj51s6Ah+Bmc8EEmgqQbmAu4UYyMqRj/8bww+Cyac+DR2d6INKbeSvhSASHWM
-	 CyQBcpQkbbXKLZsNWeGsADXKg3LSTYmnvc4iuPnvonT1VuCmTiPJeyu/HqHDxAgy1J
-	 0GYltnvXZs+anrTpbMeCaGzGf5L/cjcPojB6vWaRSt0vbmYLVfndNx9Bx3C20G1TlB
-	 2pbKXHZ/74Z0ZYrQh8zJQUmiYb5MAa1n16jri7Mi3w0RPE87UVQeEU0U7Co6JikQcF
-	 MQW/FE2gv/KCg==
-Date: Mon, 11 May 2026 16:02:42 +0900
-From: Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>
-To: Hans Zhang <18255117159@163.com>
-Cc: bhelgaas@google.com, lpieralisi@kernel.org, mani@kernel.org, 
-	vigneshr@ti.com, jingoohan1@gmail.com, thomas.petazzoni@bootlin.com, 
-	pali@kernel.org, ryder.lee@mediatek.com, claudiu.beznea.uj@bp.renesas.com, 
-	mpillai@cadence.com, robh@kernel.org, s-vadapalli@ti.com, linux-omap@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, claudiu.beznea@tuxon.dev, linux-mediatek@lists.infradead.org, 
-	linux-renesas-soc@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 4/7] PCI: dwc: Use common
- pci_host_common_link_train_delay() helper
-Message-ID: <20260511070139.GA1096586@rocinante>
-References: <20260511055923.37117-1-18255117159@163.com>
- <20260511055923.37117-5-18255117159@163.com>
+	s=k20201202; t=1778499063;
+	bh=EKKfwmDWueuzuiwLmDiqHwAUuKDTiRg25fPDMxAtu3I=;
+	h=From:In-Reply-To:References:Date:Subject:To:Cc:From;
+	b=Ndaf6Okb8sk0A8O7VL3aBsk0ONkOoBV714yHk6/dZQl1jlV/1eKAE9dRNOp9cBaRE
+	 oSicQNFzSi63gMWcQjyBj7ALHHOsKMQNy/DkmJBrk84C5kXsKd4iHdpoMiDNfEQR6m
+	 9T5ynO9CX+A67VySvl/YM891b+6++c0Cz3sDZc2ZZ/O8tbjI0h4kiBTJofBhkZuFvx
+	 zJcCXgj7y+afgvWRIKGS7D34JC29RgLIPoVv5TTP7rW6QNTfotzWaeBj8zkdteLjUN
+	 OegFcEWhkCYBg0KEZ6qCvAuruUlzQgbG7d19IO11CR5mBfMdoLVWiN/nAhSW1Q2TJ3
+	 eS3xMcJM1t8hw==
+Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5a860667fabso3769079e87.0
+        for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 04:31:03 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8Ei8icxGca1ypf+zodtWEk9APrGTOz82lIXKhcZFWpyV41KtzMPnSIh0s8Yx9WjSTTv+6E2Kz2p0LO@vger.kernel.org
+X-Gm-Message-State: AOJu0YyZUt5f8z1sBWSPcK+680Q48JuI0TxopWcV9nhi4SJuc3+XlV4H
+	eSMD2Nn1I/nxH7nNHVk1/Q0QUJ/OId4Y26NOSBo+AL6cJVgZ1VqsykE9bSWC0BHiVWEjXZo5lne
+	K3VM+lmtbppF6sg+daldeNSr7wJzKivp7RFaUa4pFEg==
+X-Received: by 2002:a05:6512:8013:20b0:5a8:9909:50a3 with SMTP id
+ 2adb3069b0e04-5a8a94c1fc3mr3003771e87.32.1778499061711; Mon, 11 May 2026
+ 04:31:01 -0700 (PDT)
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Mon, 11 May 2026 04:31:00 -0700
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Mon, 11 May 2026 04:30:59 -0700
+From: Bartosz Golaszewski <brgl@kernel.org>
+In-Reply-To: <20260507212451.3333185-3-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260511055923.37117-5-18255117159@163.com>
+References: <20260507212451.3333185-1-arnd@kernel.org> <20260507212451.3333185-3-arnd@kernel.org>
+Date: Mon, 11 May 2026 04:30:59 -0700
+X-Gmail-Original-Message-ID: <CAMRc=McjwW-LfB8+jAF7zGkThCzSWgWWbgRR8_4UFCZLGjrGGA@mail.gmail.com>
+X-Gm-Features: AVHnY4JxFqpXMEt4_ocDaPjTOBgIpI7Eah18wC4y2ej7QetMh_kqZpgwKUVhjKE
+Message-ID: <CAMRc=McjwW-LfB8+jAF7zGkThCzSWgWWbgRR8_4UFCZLGjrGGA@mail.gmail.com>
+Subject: Re: [PATCH 2/3] [v5 net-next] p54spi: convert to devicetree
+To: Arnd Bergmann <arnd@kernel.org>
+Cc: netdev@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, 
+	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
+	Bartosz Golaszewski <brgl@kernel.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, 
+	"David S. Miller" <davem@davemloft.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
+	Eric Dumazet <edumazet@google.com>, Felipe Balbi <balbi@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
+	Johannes Berg <johannes@sipsolutions.net>, Kevin Hilman <khilman@baylibre.com>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Linus Walleij <linusw@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Rob Herring <robh+dt@kernel.org>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+	linux-wireless@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, 
+	Christian Lamparter <chunkeey@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Hello,
+On Thu, 7 May 2026 23:24:50 +0200, Arnd Bergmann <arnd@kernel.org> said:
+> From: Arnd Bergmann <arnd@arndb.de>
+>
+> The Prism54 SPI driver hardcodes GPIO numbers and expects users to
+> pass them as module parameters, apparently a relic from its life as a
+> staging driver. This works because there is only one user, the Nokia
+> N8x0 tablet.
+>
+> Convert this to the gpio descriptor interface and DT based probing
+> to improve this and simplify the code at the same time.
+>
+> Acked-by: Christian Lamparter <chunkeey@gmail.com>
+> Reviewed-by: Linus Walleij <linusw@kernel.org>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
 
-> -	/*
-> -	 * As per PCIe r6.0, sec 6.6.1, a Downstream Port that supports Link
-> -	 * speeds greater than 5.0 GT/s, software must wait a minimum of 100 ms
-> -	 * after Link training completes before sending a Configuration Request.
-> -	 */
-> -	if (pci->max_link_speed > 2)
-> -		msleep(PCIE_RESET_CONFIG_WAIT_MS);
-> +	pci_host_common_link_train_delay(pci->max_link_speed);
-
-This comment could move to the helper you added.
-
-Thank you!
-
-	Krzysztof
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
