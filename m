@@ -1,105 +1,164 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from flow-b2-smtp.messagingengine.com (flow-b2-smtp.messagingengine.com [202.12.124.137])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B78242EEC1
-	for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 16:51:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2835C231832;
+	Mon, 11 May 2026 19:45:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.137
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778518316; cv=none; b=tjhvP7Q9BOVUeYFWq1XMvZrfDAxfIIjCiQCuZ0FzWbgk8urRFIdpU2+i+bPiYcrvAhWjWzG1+jDByfwUUFnIxYWni5vlR48dkKfxbIXn+28CXm1r5ubuMaK6n7NBeH1R83L+B4/A0GNfXLCmsyPHAVS1MVHLjvOOwobZiz4IsFo=
+	t=1778528743; cv=none; b=WTb8yWshgTisi6UCNGwNIFB4TThbGApTldbUnEjyTO4DWSlV2GMwBz9BmGIVPGuPO/ko0DruJZ3G6rQAN8QnaC43hYfh6Eup999RLkGYThNjQJ9yaPrvTXa8NLlvUWBUs14VUluWMG5FY4GZ4Ia0u5TWxUKPQXu5XzW0fUWRsfY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778518316; c=relaxed/simple;
-	bh=sEezEQwh16ztL+41daNSGtYAfN9UHu+rNwfkaAQd+is=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=K8FRzGoJmSUFsJvWo9ju93mh07wPOe1ZEploCrg0OMr++RCLCW5QIzk73I+xms4biM+yqJP5y4R7OrK2+9bW/9joBfeV0hnWskXFitEt9ph/zh06Dzk1V7OQ6o65Sg+OGgw2z7e4spnCRAfNOyRh1G4yMmqJfGXPKHBj4Q1frIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre-com.20251104.gappssmtp.com header.i=@baylibre-com.20251104.gappssmtp.com header.b=drYPQJkU; arc=none smtp.client-ip=209.85.214.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	s=arc-20240116; t=1778528743; c=relaxed/simple;
+	bh=r2TkPBKD+Aftmua5eAHpQErNAyPhJyA9piMQtqs3gTA=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=ipwwdA/t6NsIoJjRDG4C2gAkJvAcJqgXVdETxbfTu5s+S5amnLm6wO3CUMAL6r++xiBdZyP7Gf7bo1aCAzisltwZujoyrVsDIwfby+FqOESHjmt6ABgx7Y40pYHPsC/MfplauIUdE5gUPn0lShkqRtx6YxI238I8mA4FINQ6Pp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=D4z5PANb; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=dlJ5/dJq; arc=none smtp.client-ip=202.12.124.137
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre-com.20251104.gappssmtp.com header.i=@baylibre-com.20251104.gappssmtp.com header.b="drYPQJkU"
-Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-2bc85eda6b6so9272315ad.1
-        for <linux-omap@vger.kernel.org>; Mon, 11 May 2026 09:51:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre-com.20251104.gappssmtp.com; s=20251104; t=1778518314; x=1779123114; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=UCCfdV5epOfYo3BsJom2sySg0/nC1lFfsXrTGiNtRwc=;
-        b=drYPQJkUQJeDrV3JRSRe6LjICU0/GmoOXK0dehCo+POHmijhuYgW/nik+ou4Fm8dlJ
-         nr7pHe1FmdXAwSVN6wlZei2COLMpZfzMOqvllW4ItlD5wr44dB+p/sJhsxC/uDpbdg1h
-         1dNbIC7HZiFDLT/Pm9jnM648fKE1UEeX53XEhGD4dP5S8WmuqqMdE8IN2rgwf40entQT
-         4/WKp6ido463k5VMBGM/WJltHIvJa2DfenTwl/1KQ0inkas++Wb2ENAtmtdTYVokuTGy
-         0xJqgzhGm5DimSyJEA/pcgXxH3U22MQ/MqP2DM+FzYOsdG+cuB+aT80UcjboeTuGuziJ
-         c3MQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1778518314; x=1779123114;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=UCCfdV5epOfYo3BsJom2sySg0/nC1lFfsXrTGiNtRwc=;
-        b=p/SWzhqUVj0udfcnwMwOfRcnD/azVqGj+U3W/Ujk/PJmvTDbQR+nbxJm+kYKBjnoDl
-         F6QPYmnAbZhWl9OWXcltxf+r7bqEpAA4Y0JF+ZM4JBHsb0H56NGaUKq5XAu2XBAGsBOB
-         3uWYaJDvSSJ2r7z52wifdcJcs4AYtNkZ0LqwFW4kao4CD6tfBLqX/P7U3vu4bQNhyKml
-         Wm8qxd8FqRqqmfsDiC3xz05mQUKto7M0kV5GiJasPijp3TR5WFDUul8H0OHR6M5HM19y
-         Mi2iDaKEHwhAdBGAsfVsnoHanPyu//yo42mElwq6+QexbakCjeqcGTqMBKwM2y9wkng8
-         V10A==
-X-Gm-Message-State: AOJu0Yw9nkji9S9dSXXMYwg5nhpA3VcXvdX/cHYZwo0TdVt3DU1+V7rS
-	p0iBJ8AUCmlWIeKc2uiaO4USE9yy0gA4T9OHRCQaqQijXOGwUxk9i5QJVVM1f55U1MQ=
-X-Gm-Gg: Acq92OFVI3e+AVxvZXoZplYhvFVc9Y/KWBhDN5hiBTnaXb4rAYfp8LhXxuaLbbyaVTH
-	nGlI0FNOi+coLEk4GKnnLPRYsr71qTUDm4xW05VvSF88N9mWb4ya4koI7P2eGVDWXRGv3YBGQzV
-	4cDT9i7L66rCSq55S9DlQKNHpNikiPRM3j9gmrC24ReE89F3b8Cg7edECtuJLkO0LmsYVdCZOKN
-	svqBi9kGMYQgo5+19fCClkBchBhzRt8XFRGsXctLo2XDKuKveYUtNA4FdjXsCswJvcYch8w0FWC
-	1+0EVkN60qhblKGYPxTqwkw09U7osipK6MI7ufFXurQnrwZerg6jzMiDzEjUq2B7nv4FhAxz8p7
-	2jSBd1ysDaHDOZDvW8aSleX+na3QRuAUDecMdKSxqNiuDs6PKxsC+PnzHUs6QSdRfgF/lkJm2uv
-	GRajPaYPG5gGfLmdPXFha9KDaFmvBLdg==
-X-Received: by 2002:a17:902:f70b:b0:2ba:5e44:ce8f with SMTP id d9443c01a7336-2baf0bd5421mr154830895ad.0.1778518314037;
-        Mon, 11 May 2026 09:51:54 -0700 (PDT)
-Received: from localhost ([97.126.187.42])
-        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-2baf1d40a65sm109201975ad.20.2026.05.11.09.51.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 11 May 2026 09:51:53 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: linux-omap@vger.kernel.org, Rosen Penev <rosenp@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, 
- Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, 
- Kees Cook <kees@kernel.org>, "Gustavo A. R. Silva" <gustavoars@kernel.org>, 
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
- linux-hardening@vger.kernel.org
-In-Reply-To: <20260330213528.18187-1-rosenp@gmail.com>
-References: <20260330213528.18187-1-rosenp@gmail.com>
-Subject: Re: [PATCHv3] ARM: omap2: simplify allocation for omap_device
-Message-Id: <177851831304.45285.1551367657338168278.b4-ty@b4>
-Date: Mon, 11 May 2026 09:51:53 -0700
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="D4z5PANb";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="dlJ5/dJq"
+Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
+	by mailflow.stl.internal (Postfix) with ESMTP id 6D4011300612;
+	Mon, 11 May 2026 15:45:39 -0400 (EDT)
+Received: from phl-imap-12 ([10.202.2.86])
+  by phl-compute-04.internal (MEProxy); Mon, 11 May 2026 15:45:40 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm2; t=1778528739;
+	 x=1778535939; bh=KxZ33PuusT961rLixN2ifdvh369r1mQpzu5JayZvCM8=; b=
+	D4z5PANbVp75yaAyqbWk8TXrVr0gxga8wuIzjhJAn/I4s82px9yxxTgj3plhNS8C
+	20eCKyiL2n0yCLiKzMVsRDjz97ZANH3ZSbWryKt+ZpTxoGuzY92XCd6L+IJKOb/M
+	0V1QS6L7KleXIM6f3vPP3rPWfHrNDzLPn6ocGHHkxiknoqLNCQG9pE0DPIUkMmj5
+	LT4UmyY9lF6ZGbdtuWC093+nWqCIeznqeTjWNwy38ZxqG7/yzToctTHRdZV32wqo
+	D12tRct0uG2yfKtr91iAy/E6IdzVGF4HI27yV3uQnl1TPd+6z8AnIu/W3NLW3kn8
+	5v40edD/yWCQ+AMauLaFlw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1778528739; x=
+	1778535939; bh=KxZ33PuusT961rLixN2ifdvh369r1mQpzu5JayZvCM8=; b=d
+	lJ5/dJq6u94Ln6yeJLFGxpyMWS4jbbnDDrG9mtCg2graLDsYIYxbf1Giy15cXseT
+	BdZD0L6aMIPj+mdSsOmeV/5G55uUlqSrNFSHZqDcSwAo4ey3OUnpH3kQe7qO0t99
+	xwH1TCWEpkMUso4yaYoiUHtpw8MWUUHxkvgAezWWo4Mtik2E5kLpG9VoGBfBd0cs
+	vYzAYLKT525QU78mHaWUM6baHfnmjQZ6nOUHNWTOdXuHc0eBmlGKPikQneSw5Aye
+	PpvrXSCqcxHQ8jMgFi/g/RMv7z8w4XtKgCUohxvFncPnhtKjwRpokJ/drl3/fiOt
+	UnmqWGovjPskXorK9H3oQ==
+X-ME-Sender: <xms:4jECaoio-q9Hn_18suna-XMApA-5lHHUbxhhZolaW0Aa2PJm9wT5qg>
+    <xme:4jECar3FEko5ciV0r8x99NHSqLrQq7B1RyOFYq9ZrejINaN5TG-r_gNwi3mPXlKTz
+    iJVjCw2BWefC7WIngNE6grcHmizR-yCiQ_hEylOuNwxoTDUjVlnjg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdduudelkedtucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddtnecuhfhrohhmpedftehrnhgu
+    uceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrthhtvg
+    hrnhephfdthfdvtdefhedukeetgefggffhjeeggeetfefggfevudegudevledvkefhvdei
+    necuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprghrnh
+    gusegrrhhnuggsrdguvgdpnhgspghrtghpthhtohepvdejpdhmohguvgepshhmthhpohhu
+    thdprhgtphhtthhopehtohhnhiesrghtohhmihguvgdrtghomhdprhgtphhtthhopegstg
+    houhhsshhonhessggrhihlihgsrhgvrdgtohhmpdhrtghpthhtohepkhhhihhlmhgrnhes
+    sggrhihlihgsrhgvrdgtohhmpdhrtghpthhtohepuggrvhgvmhesuggrvhgvmhhlohhfth
+    drnhgvthdprhgtphhtthhopegumhhithhrhidrthhorhhokhhhohhvsehgmhgrihhlrdgt
+    ohhmpdhrtghpthhtohepvgguuhhmrgiivghtsehgohhoghhlvgdrtghomhdprhgtphhtth
+    hopegrrghrohdrkhhoshhkihhnvghnsehikhhirdhfihdprhgtphhtthhopegrnhgurhgv
+    rghssehkvghmnhgruggvrdhinhhfohdprhgtphhtthhopegrrhhnugeskhgvrhhnvghlrd
+    horhhg
+X-ME-Proxy: <xmx:4jECaq-fWu4ldeE42gFx7xpX0gT51l92nKflXvkXkKeWkMuJbPpDSA>
+    <xmx:4jECaj5BEi_Xa2gk_9ctxMWOA5CaQV6l15RNRabp1EOAeBG2y8oHHA>
+    <xmx:4jECaqJcOVjx5muBXjU2JNcIaUUQLkDBVLzk5tM4-Aqh-kY6Nhrw-g>
+    <xmx:4jECajVQITiMaykQndkJ3I7EE_zQr88C2yi50Vcz8DgA5Yuw-Fz2Bg>
+    <xmx:4zECajhIaXzc9ryCdCBEsbuNhZ66JeG0SS8KAGAV4sSG8j9QRaB__1-8>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id 4DE381060065; Mon, 11 May 2026 15:45:38 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+X-ThreadId: Ap_j1q_rtJ4F
+Date: Mon, 11 May 2026 21:45:18 +0200
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Simon Horman" <horms@kernel.org>, "Arnd Bergmann" <arnd@kernel.org>
+Cc: Netdev <netdev@vger.kernel.org>, "Aaro Koskinen" <aaro.koskinen@iki.fi>,
+ "Andreas Kemnade" <andreas@kemnade.info>,
+ "Bartosz Golaszewski" <brgl@kernel.org>,
+ =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>,
+ "David S . Miller" <davem@davemloft.net>,
+ "Dmitry Torokhov" <dmitry.torokhov@gmail.com>,
+ "Eric Dumazet" <edumazet@google.com>, "Felipe Balbi" <balbi@kernel.org>,
+ "Jakub Kicinski" <kuba@kernel.org>,
+ "Johannes Berg" <johannes@sipsolutions.net>,
+ "Kevin Hilman" <khilman@baylibre.com>, krzk+dt@kernel.org,
+ "Linus Walleij" <linusw@kernel.org>, "Paolo Abeni" <pabeni@redhat.com>,
+ "Rob Herring" <robh+dt@kernel.org>, "Roger Quadros" <rogerq@kernel.org>,
+ "Tony Lindgren" <tony@atomide.com>, linux-wireless@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org,
+ "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+ Linux-OMAP <linux-omap@vger.kernel.org>,
+ "Krzysztof Kozlowski" <krzk@kernel.org>
+Message-Id: <edc4d6d6-7a43-442e-adb5-148e37402924@app.fastmail.com>
+In-Reply-To: <20260511161243.49098-3-horms@kernel.org>
+References: <20260507212451.3333185-3-arnd@kernel.org>
+ <20260511161243.49098-3-horms@kernel.org>
+Subject: Re: [PATCH 2/3] [v5 net-next] p54spi: convert to devicetree
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15.2
 
+On Mon, May 11, 2026, at 18:12, Simon Horman wrote:
+>
+> Simon says: As a pre-existing issue I don't think we need to be concerned
+>             about this in the scope of this patch-set. But it may
+> 	    be a potential for follow-up.
+>
+> This problem wasn't introduced by this patch, but I noticed a pre-existing
+> issue in the context here. Does the p54spi_spi_read() function perform an SPI
+> transfer using a stack-allocated buffer?
+>
+> Looking at p54spi_spi_read(), the addr variable is allocated on the stack and
+> passed as a transfer buffer to spi_sync(). The SPI framework maps transfer
+> buffers for DMA. Passing a stack-allocated buffer is illegal, particularly with
+> CONFIG_VMAP_STACK enabled, because stack memory resides in vmalloc space and
+> cannot be safely DMA-mapped.
+>
+> Could this cause memory corruption or a kernel panic during the transfer?
 
-On Mon, 30 Mar 2026 14:35:28 -0700, Rosen Penev wrote:
-> Use a flexible array member (FAM) to combine hwmods array allocation
-> with the omap_device structure. This reduces the number of allocations
-> from two separate calls (one for the device, one for the array) to a
-> single allocation, improving efficiency and reducing memory fragmentation.
-> 
-> The FAM approach also enables bounds checking through __counted_by(),
-> which provides runtime verification that array accesses stay within
-> the allocated size. This improves security and helps catch bugs during
-> development.
-> 
-> [...]
+I already commented on this earlier: This is indeed a theoretical
+bug, but it works in practice because DMA-capable SPI controllers
+tend to all use MMIO for short transfers instead of DMA.
 
-Applied, thanks!
+SPI is very fragile this way, and I do have some patches to improve
+that overall, but it seems out of scope for this one driver.
 
-[1/1] ARM: omap2: simplify allocation for omap_device
-      commit: 2a7a9e20b9e8b5dc4fdef777e67d390dcb3a8ea4
+>> -
+>> -	gpio_direction_output(p54spi_gpio_power, 0);
+>> -	gpio_direction_input(p54spi_gpio_irq);
+>> -
+>> -	ret = request_irq(gpio_to_irq(p54spi_gpio_irq),
+>> -			  p54spi_interrupt, IRQF_NO_AUTOEN, "p54spi",
+>> -			  priv->spi);
+>> +	ret = request_irq(spi->irq, p54spi_interrupt, IRQF_NO_AUTOEN, "p54spi", priv->spi);
+>
+> Simon says: This one seems more concerning in the context of this patch-set.
+>
+> Is there missing validation for spi->irq before calling request_irq()?
+>
+> If the device tree node lacks an interrupts property, the SPI core may set
+> spi->irq to 0 or a negative error code.
+>
+> Passing this directly to request_irq() without validation can successfully
+> hijack a core system interrupt like the system timer on some architectures,
+> leading to system instability or deadlocks.
+>
+> Should there be a check like if (spi->irq <= 0) to fail the probe gracefully?
 
-Best regards,
--- 
-Kevin Hilman (TI) <khilman@baylibre.com>
+I also commented on this: request_irq() already fails gracefully
+with -EINVAL when presented with an invalid IRQ. IRQ 0 is guaranteed
+to be invalid on any target that uses devicetree.
 
+      Arnd
