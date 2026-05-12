@@ -1,130 +1,76 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3599379C51;
-	Tue, 12 May 2026 07:05:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2600A47B42C;
+	Tue, 12 May 2026 07:14:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778569519; cv=none; b=Zl0yHmxHMrR0Od6OK4Y4qbfC+MwX45wNEbmke7aFUv7FqDwgD5G39PU159LltZL0aa1dbV9s27tp7hla/pRQGOlCxyp3AYa1C7LNlH/XupcpwLOd/Wdz+ng2VOzOKARbOjBoa7WYX4T0dqIZkFkDE4kef+kNoKQ+nJZ7LYNW6K0=
+	t=1778570054; cv=none; b=Tj4Kb4Dpp5MSVCqfSCHARCkFRMhiKOQVJxXv6q5edGyrzWIqYoBr8WL/Kl09zaVkDDHUkqo5ap8d2xrdEmjBDI9zjczBKyeb1adDl4+m7RxYOQqE0rgzVyO6veCwzJFUi/L6sO2M/cDls14HHqoL0q+dtuDx7//VG5Vx1Vv7I7k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778569519; c=relaxed/simple;
-	bh=CbKrYA7cN/wwbpVWPG+J7VYnuHQ+Y1RlkMJzpdzjJ2Q=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Fm0ICU/uDb/mDzqBDVVQyl3+uTCK13S5reIyISCMGiLdELOnazaSxkudMZvsKbxnwW6ApKBvqMJTgOV9dXmcYnaHjz+oMCuItsnTSmCLo0BUiFFYDAcc86NCdGCzx9ztVpoQFo9wb/Si7U7q+hvbNvQ8JlVXtArEtBTqOO7qSKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tpq9cN3m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778570054; c=relaxed/simple;
+	bh=g1gkbUsnWSdMZI7g7vFCqTGaKHg+bWKWO9fa+1v1mR0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Gx1lYZES5kK8/TBnPu8xn5dWF30Y6OIBhMVVEArkHTi83DfWDmqkLixZJxR/mHLGD21MiusuVjpWaj9+3/bZMsSnTKqt9Gmii1qr8swjcynXdYKJtIt/k4XuIquz56gIGGS0ALthxMqiSzASKvisHX2voszHUJdKsjgRmmU3Abs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MDnAZVaz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tpq9cN3m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69DEAC2BCB0;
-	Tue, 12 May 2026 07:05:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MDnAZVaz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AD69C2BCB0;
+	Tue, 12 May 2026 07:14:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778569519;
-	bh=CbKrYA7cN/wwbpVWPG+J7VYnuHQ+Y1RlkMJzpdzjJ2Q=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=tpq9cN3mXo3Rye52s4rApyI+1AFdgTwxtPdB/HYT1MCFvp9a7Jbr14L1eZLUokRl/
-	 wCrOlSQWkhqywVOEc9gAmR+PCPDUBQrlCrKoxV8b8cMHGNd0ebuYkQXVHk9PzFW925
-	 LF83+eoZKBvwxDoe396PpM1cvF5nuuhqtF/TCtPyRFrWe+NnQP5XifdUPQYsTP1knp
-	 mzMXLvEMem5OE0L7yyrk0iwks0k/jEDEU6P4ZMymGGG2FJo1w5kPJ6/3m80TnI3wyZ
-	 bpgWWyAyvJXsgIp5NSowbSc3tsxBnvzb9lzAZBfAZamK5+a2wBbHfkSVuBAqtcQLOV
-	 HT3Iu/3zoO52g==
-Message-ID: <e092cd5d-6a46-4440-9085-95c929e8fb83@kernel.org>
-Date: Tue, 12 May 2026 10:05:12 +0300
+	s=k20201202; t=1778570052;
+	bh=g1gkbUsnWSdMZI7g7vFCqTGaKHg+bWKWO9fa+1v1mR0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=MDnAZVazU1CPPk/nR7LPIrHfBHawgO8KnJnNyWNW1GvJ8DytEDFjlYXLsLSA83jBF
+	 tWosRUCbAF44OkS9wcWhOR0ypjISXSJ6hsaRMwZpj36T1uSCct8VCUZ2Txya5OVjVJ
+	 Ks3HxzT02BxSkQaq0N31sIF1AP9w4d+XOSZk0t3ZGMO4EDFwBfQ56wZRTD7FaVCA3h
+	 eWhUqUqRpFFSt0buIk745fgfSWhO4H42PTmBg41AI7YlDuyxYVLHtd3DFE/UXVKNnF
+	 AyktHd+C2E6JezY3FEEpzmR3pXHFIVRaRLgWtz83ulBiv3SMbLwM9ch/pREkmCmuER
+	 7D4WxzB4wl/Jg==
+Date: Tue, 12 May 2026 16:14:10 +0900
+From: Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>
+To: Hans Zhang <18255117159@163.com>
+Cc: bhelgaas@google.com, lpieralisi@kernel.org, mani@kernel.org, 
+	vigneshr@ti.com, jingoohan1@gmail.com, thomas.petazzoni@bootlin.com, 
+	pali@kernel.org, ryder.lee@mediatek.com, claudiu.beznea.uj@bp.renesas.com, 
+	mpillai@cadence.com, robh@kernel.org, s-vadapalli@ti.com, linux-omap@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, claudiu.beznea@tuxon.dev, linux-mediatek@lists.infradead.org, 
+	linux-renesas-soc@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 4/7] PCI: dwc: Use common
+ pci_host_common_link_train_delay() helper
+Message-ID: <20260512071328.GA3606279@rocinante>
+References: <20260511055923.37117-1-18255117159@163.com>
+ <20260511055923.37117-5-18255117159@163.com>
+ <20260511070139.GA1096586@rocinante>
+ <e600d0a4-b93e-425f-a5f1-c76802c65622@163.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 1/7] PCI: Add pci_host_common_link_train_delay() helper
-To: Hans Zhang <18255117159@163.com>, bhelgaas@google.com,
- lpieralisi@kernel.org, kwilczynski@kernel.org, mani@kernel.org,
- vigneshr@ti.com, jingoohan1@gmail.com, thomas.petazzoni@bootlin.com,
- pali@kernel.org, ryder.lee@mediatek.com, claudiu.beznea.uj@bp.renesas.com,
- mpillai@cadence.com
-Cc: robh@kernel.org, s-vadapalli@ti.com, linux-omap@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org,
- linux-renesas-soc@vger.kernel.org, linux-pci@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20260511055923.37117-1-18255117159@163.com>
- <20260511055923.37117-2-18255117159@163.com>
-Content-Language: en-US
-From: Claudiu Beznea <claudiu.beznea@kernel.org>
-In-Reply-To: <20260511055923.37117-2-18255117159@163.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e600d0a4-b93e-425f-a5f1-c76802c65622@163.com>
 
-Hi, Hans,
+Hello,
 
-On 5/11/26 08:59, Hans Zhang wrote:
-> PCIe r6.0, sec 6.6.1 (Conventional Reset) requires that for a Downstream
-> Port supporting Link speeds greater than 5.0 GT/s, software must wait a
-> minimum of 100 ms after Link training completes before sending any
-> Configuration Request.
+> > > -	/*
+> > > -	 * As per PCIe r6.0, sec 6.6.1, a Downstream Port that supports Link
+> > > -	 * speeds greater than 5.0 GT/s, software must wait a minimum of 100 ms
+> > > -	 * after Link training completes before sending a Configuration Request.
+> > > -	 */
+> > > -	if (pci->max_link_speed > 2)
+> > > -		msleep(PCIE_RESET_CONFIG_WAIT_MS);
+> > > +	pci_host_common_link_train_delay(pci->max_link_speed);
+> > 
+> > This comment could move to the helper you added.
 > 
-> Introduce a static inline helper pci_host_common_link_train_delay() that
-> checks the given max_link_speed (2 = 5.0 GT/s, 3 = 8.0 GT/s, etc.) and
-> calls msleep(100) only when the speed is greater than 5.0 GT/s.
+> Hi Krzysztof,
 > 
-> This allows multiple host controller drivers to share the same mandatory
-> delay without duplicating the logic.
-> 
-> Signed-off-by: Hans Zhang <18255117159@163.com>
-> ---
->   drivers/pci/controller/pci-host-common.h | 17 +++++++++++++++++
->   1 file changed, 17 insertions(+)
-> 
-> diff --git a/drivers/pci/controller/pci-host-common.h b/drivers/pci/controller/pci-host-common.h
-> index b5075d4bd7eb..d709f7e3e11a 100644
-> --- a/drivers/pci/controller/pci-host-common.h
-> +++ b/drivers/pci/controller/pci-host-common.h
-> @@ -10,6 +10,9 @@
->   #ifndef _PCI_HOST_COMMON_H
->   #define _PCI_HOST_COMMON_H
->   
-> +#include <linux/delay.h>
-> +#include "../pci.h"
-> +
->   struct pci_ecam_ops;
->   
->   int pci_host_common_probe(struct platform_device *pdev);
-> @@ -20,4 +23,18 @@ void pci_host_common_remove(struct platform_device *pdev);
->   
->   struct pci_config_window *pci_host_common_ecam_create(struct device *dev,
->   	struct pci_host_bridge *bridge, const struct pci_ecam_ops *ops);
-> +
-> +/**
-> + * pci_host_common_link_train_delay - Wait 100 ms if link speed > 5 GT/s
-> + * @max_link_speed: the maximum link speed (2 = 5.0 GT/s, 3 = 8.0 GT/s, ...)
-> + *
-> + * Must be called after Link training completes and before the first
-> + * Configuration Request is sent.
-> + */
-> +static inline void pci_host_common_link_train_delay(int max_link_speed)
-> +{
-> +	if (max_link_speed > 2)
-> +		msleep(PCIE_RESET_CONFIG_WAIT_MS);
+> Will add.
 
-In case of RZ/G3S driver the max_link_speed is populated based on 
-"max-link-speed" DT property (by calling of_pci_get_max_link_speed()). My 
-understanding from [1] (and the review of the initial RZ/G3S driver support) is 
-that this is not a mandatory property (note also the "Host drivers *could* add 
-this" from [1]). At least for the RZ/G3S driver, in case the "max-link-speed" DT 
-property is not present in DT but the controller supports more than 5GT/s (that 
-is possible as the driver supports more controller variants), the max_link_speed 
-argument will be negative. In that case the msleep() will not be called. This 
-looks like an opposite of what the patch set is trying to achieve.
+No need.  Per Mani's feedback about macro being well documented.
 
-Also, if I'm not wrong, there is also the possibility of having the 
-max-link-speed > 2 but the downstream port to not support more than 5GT/s. In 
-that case the mspeep() would also be executed (but I think that wouldn't be 
-really an issue).
+Thank you nonetheless!
 
-Thank you,
-Claudiu
-
-[1] 
-https://github.com/devicetree-org/dt-schema/blob/main/dtschema/schemas/pci/pci-bus-common.yaml#L117
-
-Thank you,
-Claudiu
-
+	Krzysztof
