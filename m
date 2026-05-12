@@ -1,98 +1,86 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BC49383304;
-	Tue, 12 May 2026 10:07:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06A3E3A05F1;
+	Tue, 12 May 2026 13:58:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778580479; cv=none; b=SWRt15mpw1P1IuzIOXh9W6RxlZVj5do7XuZRLFVADw8sjKriD9GW/kRX+5sD1N/KBJov/VDrnTsr9QDgXXqlk++Lzk5yZ5AiIgNcrN0YW8uVuzWPPLaVO4HNuWZPbf34S2adFT+8PdGURWhZpL0WNrYpKjn1xzAyt55mWXqh5MU=
+	t=1778594283; cv=none; b=KIBL7HtY92c1iJ6NtMyXgdGzErGVDU45dH5T62fgLAdsZfUuy+0FfmjDcCI70SpgSG5gvU8marM2Qan73cuYmSyjvejQUhs+fCg57nsLDOPr+LiYmBjA4MWaRfSea70kLRqUsZIaZv63d/MEft7UVRB+gyyAlQ9B9BkVzA7cYyY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778580479; c=relaxed/simple;
-	bh=eQ9jfRVoFQSsfWSxqwqwQP+2I8qoE/A3eF1LrMm6Hls=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=j888roYU/yuA2+nyqkzgvXq8W6VZnt6QXVJWRBfjBSJjH+iY1VxyDnhFjEYYbohppL36T4fjcVP7DjDrpxz4XQow/ydoOeLbQLD0j4g2k8IXrKihN6scrtY/clyHtQDzWQTJYf/SAJfaoVIp6X3NdHY1p/NVBv61fTOLEPpx3ug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=l11nVtHh; arc=none smtp.client-ip=117.135.210.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1778594283; c=relaxed/simple;
+	bh=Rc/JbSkhQh3KrrYjNEJF3TR+KAXO9DvjdINtI40/Tfw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=H+ZbsuPNIf8gwlH2PopQht/6WB7JVxAfiTkvfItYniC+axwmPFdIgXcUVnhzegH1sGxVwSgloGAm8ys3es0EI6c7bdHCY1yRjx+sQYIHZueLrxUf6VO+Ib46Px/9SGVhUVxKGeVnkcv4fD9UerkvQ1WqTdLFJ4Ibp6g4aRIdO14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=D0RmO0jq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="l11nVtHh"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=Message-ID:Date:MIME-Version:Subject:To:From:
-	Content-Type; bh=rq4RL+Vka9BqWTh+n74cXJ8jiIkAjFYQA9ezbcVKwM8=;
-	b=l11nVtHhS05LPBjraPnJUV3epcd49eg7vnfCSTy3DkvxfB/Iem6EvnQ4JrZ+O3
-	BhcY7irXVFlck61xjPG4X8Hus9w0cfkoycqGiyCMqQ/WFdniOD93FdgJ9AxJeoGe
-	dVHmA2apbi2ME13a7dgimnGQ49LaIn7Vkbs2WArMTitJE=
-Received: from [192.168.50.71] (unknown [])
-	by gzsmtp4 (Coremail) with SMTP id PygvCgB3yRC0+wJqHlnODQ--.89S2;
-	Tue, 12 May 2026 18:06:46 +0800 (CST)
-Message-ID: <a28b7442-8bd6-4a05-8864-af6c0ad35a2c@163.com>
-Date: Tue, 12 May 2026 18:06:44 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="D0RmO0jq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BF97C2BCB0;
+	Tue, 12 May 2026 13:58:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778594282;
+	bh=Rc/JbSkhQh3KrrYjNEJF3TR+KAXO9DvjdINtI40/Tfw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=D0RmO0jqQzwPQcyKil9HUcb1QoWlKI0VQLz3v+wjcMdkUGHv/Whh/XUa47rOSRmOW
+	 8Qgc82+PHXLy0rIczKBOOVDL/C+4/5o9KPYhA6FlZ3pZ6XR/TxQu/dksjUnQzmxGx9
+	 yApeu3sHkH0a+AGWuJLBK44eLJ9GQ3u0pH5oQcGEnOm8ggD6aONLhcU2q/I533f1jO
+	 RYFgQR6rmvPuRNXS+5eNObmXIQny8HqL1vg+ZSZ2Dxxdnmmao5asePeHrfRkipi/Iu
+	 ZaNJLoej2XJNfOCjv5EDrRN8G8ypODoiXtuJR0qNOZnA3C+VEU/MRyjcb1v6cWC8B8
+	 8fW9B3r4vFe5Q==
+Date: Tue, 12 May 2026 22:57:57 +0900
+From: Nathan Chancellor <nathan@kernel.org>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Mithil Bavishi <bavishimithil@gmail.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Sami Tolvanen <samitolvanen@google.com>,
+	Kees Cook <kees@kernel.org>, linux-arm-kernel@lists.infradead.org,
+	linux-omap@vger.kernel.org, llvm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ARM: OMAP2+: Make OMAP4 finish_suspend callback CFI-safe
+Message-ID: <20260512135757.GB570003@ax162>
+References: <20260512042341.1452-1-bavishimithil@gmail.com>
+ <20260512073442.GA570003@ax162>
+ <20260512100207.3d24837e@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 4/7] PCI: dwc: Use common
- pci_host_common_link_train_delay() helper
-To: =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kwilczynski@kernel.org>
-Cc: bhelgaas@google.com, lpieralisi@kernel.org, mani@kernel.org,
- vigneshr@ti.com, jingoohan1@gmail.com, thomas.petazzoni@bootlin.com,
- pali@kernel.org, ryder.lee@mediatek.com, claudiu.beznea.uj@bp.renesas.com,
- mpillai@cadence.com, robh@kernel.org, s-vadapalli@ti.com,
- linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- claudiu.beznea@tuxon.dev, linux-mediatek@lists.infradead.org,
- linux-renesas-soc@vger.kernel.org, linux-pci@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20260511055923.37117-1-18255117159@163.com>
- <20260511055923.37117-5-18255117159@163.com>
- <20260511070139.GA1096586@rocinante>
- <e600d0a4-b93e-425f-a5f1-c76802c65622@163.com>
- <20260512071328.GA3606279@rocinante>
-Content-Language: en-US
-From: Hans Zhang <18255117159@163.com>
-In-Reply-To: <20260512071328.GA3606279@rocinante>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:PygvCgB3yRC0+wJqHlnODQ--.89S2
-X-Coremail-Antispam: 1Uf129KBjvdXoW7Gr47XFW5ZryfKF15WryDWrg_yoWxuFg_u3
-	y8Awn7ur43XF93WwsIyrn8XFnxX34DuFWFqry0vrW2gw1jga1qyrsIgFs5ta1xC3y7JF47
-	JF1vkw1xKwn3ujkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUjeT5PUUUUU==
-X-CM-SenderInfo: rpryjkyvrrlimvzbiqqrwthudrp/xtbC6xZH6moC+7ZuEQAA3K
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260512100207.3d24837e@kemnade.info>
 
-
-
-On 5/12/26 15:14, Krzysztof Wilczyński wrote:
-> Hello,
+On Tue, May 12, 2026 at 10:02:07AM +0200, Andreas Kemnade wrote:
+> On Tue, 12 May 2026 16:34:42 +0900
+> Nathan Chancellor <nathan@kernel.org> wrote:
 > 
->>>> -	/*
->>>> -	 * As per PCIe r6.0, sec 6.6.1, a Downstream Port that supports Link
->>>> -	 * speeds greater than 5.0 GT/s, software must wait a minimum of 100 ms
->>>> -	 * after Link training completes before sending a Configuration Request.
->>>> -	 */
->>>> -	if (pci->max_link_speed > 2)
->>>> -		msleep(PCIE_RESET_CONFIG_WAIT_MS);
->>>> +	pci_host_common_link_train_delay(pci->max_link_speed);
->>>
->>> This comment could move to the helper you added.
->>
->> Hi Krzysztof,
->>
->> Will add.
+> > On Tue, May 12, 2026 at 12:23:41AM -0400, Mithil Bavishi wrote:
+> > > With CONFIG_CFI enabled, OMAP4 can trap in omap4_enter_lowpower()
+> > > because omap_pm_ops.finish_suspend points directly to the assembly
+> > > routine omap4_finish_suspend, which lacks the expected KCFI type
+> > > metadata.  
+> > 
+> > It sounds like omap4_finish_suspend() should be defined with
+> > SYM_TYPED_FUNC_START then? Is that the case for all of the other
+> > functions that are added to omap_pm_ops?
+> > 
+> omap_cpu_resume: the address is written to some cpu register and
+> on that way casted to u32. So therefore does not trigger CFI.
+> Same for secondary_startup which is also assembler code.
+> scu_prepare is C.
 > 
-> No need.  Per Mani's feedback about macro being well documented.
-> 
+> DO you have a pointer to any documentation:
+> :~/linux$ grep -R SYM_TYPED_FUNC_START Documentation/
 
-Hi Krzysztof,
+I don't think we have any formal documentation for SYM_TYPED_FUNC_START
+(it should probably be documented via kernel-doc?) but you can read the
+commit message of the change that added it for more information:
 
-Okay.
+  e84e008e7b02 ("cfi: Add type helper macros")
 
-Best regards,
-Hans
-
-> Thank you nonetheless!
-> 
-> 	Krzysztof
-
+-- 
+Cheers,
+Nathan
