@@ -1,77 +1,121 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09633481AA1;
-	Tue, 12 May 2026 08:03:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E440388374;
+	Tue, 12 May 2026 09:40:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778573013; cv=none; b=Sxetwuz3/4+k52K58u4ph6o/2qRgGQhFCWaZi3JGoGDyxrwE3Lh4mbQGMVqvL/9iuGSxCKWAsjjOeQ9yTsaptqMJeCUfmjLo7ZYz5vifrMXGew+4rbMgWgDuuVOpn5ZR9hz0MB1JpM21MQQQuexVFs+bgDWvgY6/sT2XqbHiw0A=
+	t=1778578840; cv=none; b=usJt5GOHXz6tKcObh0V5+JaUiGa4o1LQ0tqj2e1tIbfUiAlF6eueAyWzQ9EO9uhsSGOIEzAn7lOKYGRuPUy5PWrbXxwDeenF1ta7V+x+9iqx/CmDnKc9MdnXjRlgTmSlNc70Zlfu9oxJeayiwqrK/CztHCJvkojobkGsEuvziU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778573013; c=relaxed/simple;
-	bh=BN88OXqn/RZm+kW7bamY9IQhbkBmsNVwM82h2oVwq6g=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=k4vAZYpcYdcI+Cfcg7CUNhWskcyyUHr/NMq5Ix8wqjdgv0et2UxYPF3pyYQSEmORZV8wD7Mj61fubV1qEFLSPvboyDUfeTSCBkKFXLn92PfE52wrxbJmVRh9J+xJ0FpMiaJdxkY9Swmn749jh0yAs96vF3sV3FongiPghEsliYc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=fqDO1IVa; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1778578840; c=relaxed/simple;
+	bh=MQw7xk7AK7vUUFTxVKsaMlXHU3CigVS/H91vrn522b8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZhUNmc44qX/L3V4LEf8sqa1/BgEhFAmhiv+T4NXAFxitCnea02T9Zw7qYnYESd5eBbcxz6eITJwXPbS4QWq5faODaV3ro2txcwvpln7548Q4SFRLpj80ONheqr05/xUa5/nmfhe/go7XR8CUASa6btzC/SkrXb3J5VjsLXOuJvI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UD4r/Q8S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="fqDO1IVa"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=StyVMsh38RgdBxuIvlVbMdxNYiH9g+lHhpF3I9+o/1M=; b=fqDO1IVaPCtQ3NRyAgL7Vn0eQO
-	MiL1b+tLqQDPObZev8RnMhNjJVBQaSrr95YayUA0q+H7BHfDtCfuuYl7Hxhe9wo5CX3DJf2MchspW
-	OjxoPZzaFIo684B+C/yiOoV8Dq1zS1zm/2JhMLgBGW2ae/QZmf5milNvRMCbmUjEtRAp36ZEXgvmf
-	WlX+p9iLnN6s6b4jbdzUN1zk25RJtHIlbKESZyLVBo/XAB+mAVWbOxs0VMwLE7OoT+cH6M1E9+wPQ
-	zr4izLHmMBKJ+mQUhKGaClRSjEY108sWnsbN4l3gWyxshaQPCBEdwuoSl+NcLVNTIta6gdn35Igtj
-	5o/qZswA==;
-Date: Tue, 12 May 2026 10:02:07 +0200
-From: Andreas Kemnade <andreas@kemnade.info>
-To: Nathan Chancellor <nathan@kernel.org>
-Cc: Mithil Bavishi <bavishimithil@gmail.com>, Aaro Koskinen
- <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Roger Quadros
- <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King
- <linux@armlinux.org.uk>, Sami Tolvanen <samitolvanen@google.com>, Kees Cook
- <kees@kernel.org>, linux-arm-kernel@lists.infradead.org,
- linux-omap@vger.kernel.org, llvm@lists.linux.dev,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ARM: OMAP2+: Make OMAP4 finish_suspend callback
- CFI-safe
-Message-ID: <20260512100207.3d24837e@kemnade.info>
-In-Reply-To: <20260512073442.GA570003@ax162>
-References: <20260512042341.1452-1-bavishimithil@gmail.com>
-	<20260512073442.GA570003@ax162>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UD4r/Q8S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E2D3C2BCF5;
+	Tue, 12 May 2026 09:40:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1778578839;
+	bh=MQw7xk7AK7vUUFTxVKsaMlXHU3CigVS/H91vrn522b8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=UD4r/Q8SkhsDvHSeevTzvHmw6vz0Z+dZ58YkwWZkda6Ul7/l5f/CCzmlRP0IomKA5
+	 aynp0zH103Kmr4Eixzpci+QzROxprbZXnvAw0q4d0E7PC5QHBqpo0cU9PttPlRhM2o
+	 Bdw0s7lt2PrsE/IHKalO15/J1qYM4kTagd1v6cpiQ0mKs7DaCXmN0MRyaLV1YrKq8+
+	 RJUw/11YbCCJnOd2h1H2WCehjtJquNzS9aYRZboEYm25V81Ez7OhUt59g/Z2oSEvmv
+	 vOi0ZyWhaAd7tY1WjTQJ4L1LIQsKnm2wiBFX87ptwvUgcm1pwEg7kA05doboaeXvDK
+	 fJfUQXv/NTBTA==
+Date: Tue, 12 May 2026 10:40:32 +0100
+From: Simon Horman <horms@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Arnd Bergmann <arnd@kernel.org>, Netdev <netdev@vger.kernel.org>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	=?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Eric Dumazet <edumazet@google.com>, Felipe Balbi <balbi@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Kevin Hilman <khilman@baylibre.com>, krzk+dt@kernel.org,
+	Linus Walleij <linusw@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Rob Herring <robh+dt@kernel.org>, Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	"open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+	Linux-OMAP <linux-omap@vger.kernel.org>,
+	Krzysztof Kozlowski <krzk@kernel.org>
+Subject: Re: [PATCH 2/3] [v5 net-next] p54spi: convert to devicetree
+Message-ID: <20260512094032.GI27589@horms.kernel.org>
+References: <20260507212451.3333185-3-arnd@kernel.org>
+ <20260511161243.49098-3-horms@kernel.org>
+ <edc4d6d6-7a43-442e-adb5-148e37402924@app.fastmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <edc4d6d6-7a43-442e-adb5-148e37402924@app.fastmail.com>
 
-On Tue, 12 May 2026 16:34:42 +0900
-Nathan Chancellor <nathan@kernel.org> wrote:
-
-> On Tue, May 12, 2026 at 12:23:41AM -0400, Mithil Bavishi wrote:
-> > With CONFIG_CFI enabled, OMAP4 can trap in omap4_enter_lowpower()
-> > because omap_pm_ops.finish_suspend points directly to the assembly
-> > routine omap4_finish_suspend, which lacks the expected KCFI type
-> > metadata.  
+On Mon, May 11, 2026 at 09:45:18PM +0200, Arnd Bergmann wrote:
+> On Mon, May 11, 2026, at 18:12, Simon Horman wrote:
+> >
+> > Simon says: As a pre-existing issue I don't think we need to be concerned
+> >             about this in the scope of this patch-set. But it may
+> > 	    be a potential for follow-up.
+> >
+> > This problem wasn't introduced by this patch, but I noticed a pre-existing
+> > issue in the context here. Does the p54spi_spi_read() function perform an SPI
+> > transfer using a stack-allocated buffer?
+> >
+> > Looking at p54spi_spi_read(), the addr variable is allocated on the stack and
+> > passed as a transfer buffer to spi_sync(). The SPI framework maps transfer
+> > buffers for DMA. Passing a stack-allocated buffer is illegal, particularly with
+> > CONFIG_VMAP_STACK enabled, because stack memory resides in vmalloc space and
+> > cannot be safely DMA-mapped.
+> >
+> > Could this cause memory corruption or a kernel panic during the transfer?
 > 
-> It sounds like omap4_finish_suspend() should be defined with
-> SYM_TYPED_FUNC_START then? Is that the case for all of the other
-> functions that are added to omap_pm_ops?
+> I already commented on this earlier: This is indeed a theoretical
+> bug, but it works in practice because DMA-capable SPI controllers
+> tend to all use MMIO for short transfers instead of DMA.
 > 
-omap_cpu_resume: the address is written to some cpu register and
-on that way casted to u32. So therefore does not trigger CFI.
-Same for secondary_startup which is also assembler code.
-scu_prepare is C.
+> SPI is very fragile this way, and I do have some patches to improve
+> that overall, but it seems out of scope for this one driver.
 
-DO you have a pointer to any documentation:
-:~/linux$ grep -R SYM_TYPED_FUNC_START Documentation/
+Thanks, I agree this is out of scope.
 
-Regards,
-Andreas
+> >> -
+> >> -	gpio_direction_output(p54spi_gpio_power, 0);
+> >> -	gpio_direction_input(p54spi_gpio_irq);
+> >> -
+> >> -	ret = request_irq(gpio_to_irq(p54spi_gpio_irq),
+> >> -			  p54spi_interrupt, IRQF_NO_AUTOEN, "p54spi",
+> >> -			  priv->spi);
+> >> +	ret = request_irq(spi->irq, p54spi_interrupt, IRQF_NO_AUTOEN, "p54spi", priv->spi);
+> >
+> > Simon says: This one seems more concerning in the context of this patch-set.
+> >
+> > Is there missing validation for spi->irq before calling request_irq()?
+> >
+> > If the device tree node lacks an interrupts property, the SPI core may set
+> > spi->irq to 0 or a negative error code.
+> >
+> > Passing this directly to request_irq() without validation can successfully
+> > hijack a core system interrupt like the system timer on some architectures,
+> > leading to system instability or deadlocks.
+> >
+> > Should there be a check like if (spi->irq <= 0) to fail the probe gracefully?
+> 
+> I also commented on this: request_irq() already fails gracefully
+> with -EINVAL when presented with an invalid IRQ. IRQ 0 is guaranteed
+> to be invalid on any target that uses devicetree.
+
+Thanks, and sorry for not seeing your earlier comment.
+Or realising it is a false positive.
