@@ -1,121 +1,161 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E440388374;
-	Tue, 12 May 2026 09:40:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E8FA3A6F08;
+	Tue, 12 May 2026 10:07:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778578840; cv=none; b=usJt5GOHXz6tKcObh0V5+JaUiGa4o1LQ0tqj2e1tIbfUiAlF6eueAyWzQ9EO9uhsSGOIEzAn7lOKYGRuPUy5PWrbXxwDeenF1ta7V+x+9iqx/CmDnKc9MdnXjRlgTmSlNc70Zlfu9oxJeayiwqrK/CztHCJvkojobkGsEuvziU4=
+	t=1778580429; cv=none; b=q6PMbMtJVqgy7hLjMc0+B86Vc8W4PriLLPoy4yu0QopHm1/EEAfIKlGduU9dU7yjI4Kkh7itJp55+eo993tdWBfOLKYTYkHre7WYK069n4eah9dTydLBAd5+0azraPD3uruDO7QH6lffmQJWQ0NAOYRMqFG1VIxpQfHC5+ZqIls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778578840; c=relaxed/simple;
-	bh=MQw7xk7AK7vUUFTxVKsaMlXHU3CigVS/H91vrn522b8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZhUNmc44qX/L3V4LEf8sqa1/BgEhFAmhiv+T4NXAFxitCnea02T9Zw7qYnYESd5eBbcxz6eITJwXPbS4QWq5faODaV3ro2txcwvpln7548Q4SFRLpj80ONheqr05/xUa5/nmfhe/go7XR8CUASa6btzC/SkrXb3J5VjsLXOuJvI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UD4r/Q8S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778580429; c=relaxed/simple;
+	bh=AD0app1w4BFdSkcdIy/XC4ScpmQ9BJbGP3dbb6abghY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=g8ouLgPv0SOLaHznvHEcSCPOHd8wjY/pGRgfwsUY0xzqvtb6ha2mZsHzM8EUzf+WwhRxbR3UHVD6ilTLiTP/J3s+A0+IyWeKYNgha14gX29DVVHfOVxHc2DBJbC5GqKGuZPnLVbvOUAB3475QFyXZ6xHReOsUHh0S4QTUGbOoV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=cJYzaqLU; arc=none smtp.client-ip=117.135.210.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UD4r/Q8S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E2D3C2BCF5;
-	Tue, 12 May 2026 09:40:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778578839;
-	bh=MQw7xk7AK7vUUFTxVKsaMlXHU3CigVS/H91vrn522b8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=UD4r/Q8SkhsDvHSeevTzvHmw6vz0Z+dZ58YkwWZkda6Ul7/l5f/CCzmlRP0IomKA5
-	 aynp0zH103Kmr4Eixzpci+QzROxprbZXnvAw0q4d0E7PC5QHBqpo0cU9PttPlRhM2o
-	 Bdw0s7lt2PrsE/IHKalO15/J1qYM4kTagd1v6cpiQ0mKs7DaCXmN0MRyaLV1YrKq8+
-	 RJUw/11YbCCJnOd2h1H2WCehjtJquNzS9aYRZboEYm25V81Ez7OhUt59g/Z2oSEvmv
-	 vOi0ZyWhaAd7tY1WjTQJ4L1LIQsKnm2wiBFX87ptwvUgcm1pwEg7kA05doboaeXvDK
-	 fJfUQXv/NTBTA==
-Date: Tue, 12 May 2026 10:40:32 +0100
-From: Simon Horman <horms@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Arnd Bergmann <arnd@kernel.org>, Netdev <netdev@vger.kernel.org>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	=?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Eric Dumazet <edumazet@google.com>, Felipe Balbi <balbi@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Kevin Hilman <khilman@baylibre.com>, krzk+dt@kernel.org,
-	Linus Walleij <linusw@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Rob Herring <robh+dt@kernel.org>, Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	"open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-	Linux-OMAP <linux-omap@vger.kernel.org>,
-	Krzysztof Kozlowski <krzk@kernel.org>
-Subject: Re: [PATCH 2/3] [v5 net-next] p54spi: convert to devicetree
-Message-ID: <20260512094032.GI27589@horms.kernel.org>
-References: <20260507212451.3333185-3-arnd@kernel.org>
- <20260511161243.49098-3-horms@kernel.org>
- <edc4d6d6-7a43-442e-adb5-148e37402924@app.fastmail.com>
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="cJYzaqLU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Message-ID:Date:MIME-Version:Subject:To:From:
+	Content-Type; bh=kzdyIVkDD4QspuDbsjStOhs6nIN3cMjYoJI+LAqsHhM=;
+	b=cJYzaqLU7FvnxIe/dHqjQJeaKxTf8ggNXlJTQgH3HEwIGLY7vFGCYrEX/oQJnb
+	63fAXELNRTnwJ7/qRDPvHd8k+TZblVxS/lx5kQSogukkwyNY0sFVeO8xkDZsXq31
+	JTib7FThncgOzzXPag82g0b5MvcqThZnlyli6+FlV8sfs=
+Received: from [192.168.50.71] (unknown [])
+	by gzga-smtp-mtada-g1-4 (Coremail) with SMTP id _____wCnLwyM+wJqRYgUBA--.13809S2;
+	Tue, 12 May 2026 18:06:06 +0800 (CST)
+Message-ID: <bc68a395-0a66-481a-b6ae-cb10bfb68cb9@163.com>
+Date: Tue, 12 May 2026 18:06:04 +0800
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <edc4d6d6-7a43-442e-adb5-148e37402924@app.fastmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 1/7] PCI: Add pci_host_common_link_train_delay() helper
+To: Claudiu Beznea <claudiu.beznea@kernel.org>, bhelgaas@google.com,
+ lpieralisi@kernel.org, kwilczynski@kernel.org, mani@kernel.org,
+ vigneshr@ti.com, jingoohan1@gmail.com, thomas.petazzoni@bootlin.com,
+ pali@kernel.org, ryder.lee@mediatek.com, claudiu.beznea.uj@bp.renesas.com,
+ mpillai@cadence.com
+Cc: robh@kernel.org, s-vadapalli@ti.com, linux-omap@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org,
+ linux-renesas-soc@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20260511055923.37117-1-18255117159@163.com>
+ <20260511055923.37117-2-18255117159@163.com>
+ <e092cd5d-6a46-4440-9085-95c929e8fb83@kernel.org>
+Content-Language: en-US
+From: Hans Zhang <18255117159@163.com>
+In-Reply-To: <e092cd5d-6a46-4440-9085-95c929e8fb83@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wCnLwyM+wJqRYgUBA--.13809S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxCF13JFy3JFy5XF1xur48WFg_yoWrGrykpa
+	yxJF1akF4kJFW3ua17Za4UuFyYq3Z5Jayjkr9xG3s3ZrnxWrnakryjgwsYqF97Jrs5ZF12
+	yF1Ygwn7Cr47taDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07U4UDXUUUUU=
+X-CM-SenderInfo: rpryjkyvrrlimvzbiqqrwthudrp/xtbCww494GoC+4645QAA3Q
 
-On Mon, May 11, 2026 at 09:45:18PM +0200, Arnd Bergmann wrote:
-> On Mon, May 11, 2026, at 18:12, Simon Horman wrote:
-> >
-> > Simon says: As a pre-existing issue I don't think we need to be concerned
-> >             about this in the scope of this patch-set. But it may
-> > 	    be a potential for follow-up.
-> >
-> > This problem wasn't introduced by this patch, but I noticed a pre-existing
-> > issue in the context here. Does the p54spi_spi_read() function perform an SPI
-> > transfer using a stack-allocated buffer?
-> >
-> > Looking at p54spi_spi_read(), the addr variable is allocated on the stack and
-> > passed as a transfer buffer to spi_sync(). The SPI framework maps transfer
-> > buffers for DMA. Passing a stack-allocated buffer is illegal, particularly with
-> > CONFIG_VMAP_STACK enabled, because stack memory resides in vmalloc space and
-> > cannot be safely DMA-mapped.
-> >
-> > Could this cause memory corruption or a kernel panic during the transfer?
+
+
+On 5/12/26 15:05, Claudiu Beznea wrote:
+> Hi, Hans,
 > 
-> I already commented on this earlier: This is indeed a theoretical
-> bug, but it works in practice because DMA-capable SPI controllers
-> tend to all use MMIO for short transfers instead of DMA.
+> On 5/11/26 08:59, Hans Zhang wrote:
+>> PCIe r6.0, sec 6.6.1 (Conventional Reset) requires that for a Downstream
+>> Port supporting Link speeds greater than 5.0 GT/s, software must wait a
+>> minimum of 100 ms after Link training completes before sending any
+>> Configuration Request.
+>>
+>> Introduce a static inline helper pci_host_common_link_train_delay() that
+>> checks the given max_link_speed (2 = 5.0 GT/s, 3 = 8.0 GT/s, etc.) and
+>> calls msleep(100) only when the speed is greater than 5.0 GT/s.
+>>
+>> This allows multiple host controller drivers to share the same mandatory
+>> delay without duplicating the logic.
+>>
+>> Signed-off-by: Hans Zhang <18255117159@163.com>
+>> ---
+>>   drivers/pci/controller/pci-host-common.h | 17 +++++++++++++++++
+>>   1 file changed, 17 insertions(+)
+>>
+>> diff --git a/drivers/pci/controller/pci-host-common.h b/drivers/pci/ 
+>> controller/pci-host-common.h
+>> index b5075d4bd7eb..d709f7e3e11a 100644
+>> --- a/drivers/pci/controller/pci-host-common.h
+>> +++ b/drivers/pci/controller/pci-host-common.h
+>> @@ -10,6 +10,9 @@
+>>   #ifndef _PCI_HOST_COMMON_H
+>>   #define _PCI_HOST_COMMON_H
+>> +#include <linux/delay.h>
+>> +#include "../pci.h"
+>> +
+>>   struct pci_ecam_ops;
+>>   int pci_host_common_probe(struct platform_device *pdev);
+>> @@ -20,4 +23,18 @@ void pci_host_common_remove(struct platform_device 
+>> *pdev);
+>>   struct pci_config_window *pci_host_common_ecam_create(struct device 
+>> *dev,
+>>       struct pci_host_bridge *bridge, const struct pci_ecam_ops *ops);
+>> +
+>> +/**
+>> + * pci_host_common_link_train_delay - Wait 100 ms if link speed > 5 GT/s
+>> + * @max_link_speed: the maximum link speed (2 = 5.0 GT/s, 3 = 8.0 GT/ 
+>> s, ...)
+>> + *
+>> + * Must be called after Link training completes and before the first
+>> + * Configuration Request is sent.
+>> + */
+>> +static inline void pci_host_common_link_train_delay(int max_link_speed)
+>> +{
+>> +    if (max_link_speed > 2)
+>> +        msleep(PCIE_RESET_CONFIG_WAIT_MS);
 > 
-> SPI is very fragile this way, and I do have some patches to improve
-> that overall, but it seems out of scope for this one driver.
+> In case of RZ/G3S driver the max_link_speed is populated based on "max- 
+> link-speed" DT property (by calling of_pci_get_max_link_speed()). My 
+> understanding from [1] (and the review of the initial RZ/G3S driver 
+> support) is that this is not a mandatory property (note also the "Host 
+> drivers *could* add this" from [1]). At least for the RZ/G3S driver, in 
+> case the "max-link-speed" DT property is not present in DT but the 
+> controller supports more than 5GT/s (that is possible as the driver 
+> supports more controller variants), the max_link_speed argument will be 
+> negative. In that case the msleep() will not be called. This looks like 
+> an opposite of what the patch set is trying to achieve.
 
-Thanks, I agree this is out of scope.
+Hi Claudiu,
 
-> >> -
-> >> -	gpio_direction_output(p54spi_gpio_power, 0);
-> >> -	gpio_direction_input(p54spi_gpio_irq);
-> >> -
-> >> -	ret = request_irq(gpio_to_irq(p54spi_gpio_irq),
-> >> -			  p54spi_interrupt, IRQF_NO_AUTOEN, "p54spi",
-> >> -			  priv->spi);
-> >> +	ret = request_irq(spi->irq, p54spi_interrupt, IRQF_NO_AUTOEN, "p54spi", priv->spi);
-> >
-> > Simon says: This one seems more concerning in the context of this patch-set.
-> >
-> > Is there missing validation for spi->irq before calling request_irq()?
-> >
-> > If the device tree node lacks an interrupts property, the SPI core may set
-> > spi->irq to 0 or a negative error code.
-> >
-> > Passing this directly to request_irq() without validation can successfully
-> > hijack a core system interrupt like the system timer on some architectures,
-> > leading to system instability or deadlocks.
-> >
-> > Should there be a check like if (spi->irq <= 0) to fail the probe gracefully?
+The situation you mentioned also exists in the dwc common driver. My 
+understanding is that we are writing this driver at the normal rate 
+which is greater than GEN2. For some exceptions, or when the support is 
+greater than GEN2 but the actual operation is less than or equal to 
+GEN2, this situation might be unavoidable. Furthermore, for RZ/G3S, the 
+"max-link-speed" attribute can be added to the DT.
+
+
 > 
-> I also commented on this: request_irq() already fails gracefully
-> with -EINVAL when presented with an invalid IRQ. IRQ 0 is guaranteed
-> to be invalid on any target that uses devicetree.
+> Also, if I'm not wrong, there is also the possibility of having the max- 
+> link-speed > 2 but the downstream port to not support more than 5GT/s. 
+> In that case the mspeep() would also be executed (but I think that 
+> wouldn't be really an issue).
 
-Thanks, and sorry for not seeing your earlier comment.
-Or realising it is a false positive.
+
+Before this patch, the RZ/G3S driver would always perform a msleep(100) 
+regardless of whether it was greater than GEN2 or less than or equal to 
+GEN2.
+
+Best regards,
+Hans
+
+> 
+> Thank you,
+> Claudiu
+> 
+> [1] https://github.com/devicetree-org/dt-schema/blob/main/dtschema/ 
+> schemas/pci/pci-bus-common.yaml#L117
+> 
+> Thank you,
+> Claudiu
+
