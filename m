@@ -1,100 +1,180 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A438A366831;
-	Tue, 12 May 2026 21:25:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778621141; cv=none; b=TL1SylxGhEh1bWa8aCMx62ih0T7ZMScy1n4Wa5ie+R6jXpI/Svtjxv2P8J/J3ZazvlqJPncdiIPPW1bXuuhE0m9Lt2JgetKfgg/HPJbPXozK+xvVhvJ8cV8orwsRW81RA0g6qTMyBG7nArPTBaPLhaD0zqaS6UhPO7cFMi83N2U=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778621141; c=relaxed/simple;
-	bh=EJnWDfRo+uPbHrOqa3qgWqMaN3gN4wh4Fsfhj1nSvLQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rAqg+pHM6zNxQt2xjlxDqH/EE5ny+cm72zIO7mlLUsAoF7iU496c7f4qLcOqwkYwJLBDcfMMPKZNSv3SvWtBVvV2cTyFrmxyfTKY4/jKrc/oPu+/pwDCXdkDTMEtJyomzsiu9R1iQZqjEEV9nTGbgZW6+WEdUlLZh9QwOECA+RA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Avt+EHCV; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4BF83911B8
+	for <linux-omap@vger.kernel.org>; Wed, 13 May 2026 03:14:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.216.46
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778642096; cv=pass; b=NKA6rSG2EpHBtjQ8bJT80M1BAHLjPYWJz4fh+iJ2mNgeFsieae1/a5hL3lMf54v1r/5egG6etI3HRhyABFbpcDGlFCv+7EaUy1LAuUpQu0CB+nkMBkMq6+oRvKPQZk/6hcxO2a+tNjnQFdsC2sIQB3eAvAu1Ia+PsXnW7hFbMiM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778642096; c=relaxed/simple;
+	bh=NfKjw4OH3cZc9vx5/lhcJtqmI4I79M2cvfhxFcHCX3I=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=c7iwoljt9ittBkFqH/bidvUOyr41mQIOrGJZaMsuELTUDxMtgMStSn9RsFtpp7qK2iEUwVLC6MZ0eU1gzdkGSmYOR7fmTPN32NmrYZ4lRJUG4yrQ+AktPrS0JTijVrcKF83Xn4VCjZm/cj4xmN0tB95BTJg4Y1HycLPMuUrhY3g=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YoU8BiPS; arc=pass smtp.client-ip=209.85.216.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Avt+EHCV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 208D5C2BCB0;
-	Tue, 12 May 2026 21:25:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778621141;
-	bh=EJnWDfRo+uPbHrOqa3qgWqMaN3gN4wh4Fsfhj1nSvLQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Avt+EHCVMfTlk+wRz1p7d5iQ9oECUodk6IeA/e2U+soWUXY8AjlhsEDpTMMnR3Q09
-	 5NfG8l208seCxH/fqWx/SbhOPY4X375jr4U/+gR/wKrrZquUgQocXIOoZeYIY+z4e/
-	 YEJdarFRN4W+2E/gPLS6wJ8wjP7cgClBzWhi5f9U939wrj9lCpEVjHqK9pztnX7eB7
-	 5VGlzvJNRvs0vqpV558tHFtUlJDFhQuLvx5lofEmQ04MkPAPyElARm0O6CyQGwrn7l
-	 wG2lfhs2tRHwdjh+xGSxKLD6rRP9KVGLstZp9y9DYzdzyXn8F1xn/cceXiYRzWNNkq
-	 sQ/u3r0OL3DeA==
-Received: by pali.im (Postfix)
-	id 0526AB57; Tue, 12 May 2026 23:25:31 +0200 (CEST)
-Date: Tue, 12 May 2026 23:25:31 +0200
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali@kernel.org>
-To: Hans Zhang <18255117159@163.com>
-Cc: bhelgaas@google.com, lpieralisi@kernel.org, kwilczynski@kernel.org,
-	mani@kernel.org, vigneshr@ti.com, jingoohan1@gmail.com,
-	thomas.petazzoni@bootlin.com, ryder.lee@mediatek.com,
-	jianjun.wang@mediatek.com, claudiu.beznea.uj@bp.renesas.com,
-	mpillai@cadence.com, robh@kernel.org, s-vadapalli@ti.com,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org,
-	linux-renesas-soc@vger.kernel.org, linux-pci@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 6/8] PCI: aardvark: Add 100 ms delay after link
- training
-Message-ID: <20260512212531.jupoocz7acv22qyg@pali>
-References: <20260506152346.166056-1-18255117159@163.com>
- <20260506152346.166056-7-18255117159@163.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YoU8BiPS"
+Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-366070f71adso5621314a91.2
+        for <linux-omap@vger.kernel.org>; Tue, 12 May 2026 20:14:54 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1778642094; cv=none;
+        d=google.com; s=arc-20240605;
+        b=M5anz8kT6zuuLoKSO9k8Mfx1NhyQKaZlecyx1j8CH0mzzxRFXNUXa24Vje30CAHNHJ
+         UV1Eh2kerB7X48JdSELM+ie36NtbRnCZwagduevhibEwV+x4KdvrAkyWoNrCgG/VDYMT
+         +NICvf80JBIzaenGIvTPrd5A/fOFiMBWvZh4jjtyKyUlyqQrDx7UT3ItSAlj0rtC7x1b
+         OC3L6RlOwnkGUl+WaUD9h3Hz1pzdiQlzSimZqnJVkFRz5MRYKFoBSJgfavmIZLjoU8fK
+         cPpl2yCgxptfZRvQEfAaKUGToiv+m6AWBJgLpnXz7sKsBpcGps5ev2M9YAXXwe0SN7JY
+         1XyA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=CYlVJgBMJMBSzC9+QqB70POzR/0T9ox9YRqJAIrAuGo=;
+        fh=xmGAy3cUTsitC6AfOpDyiWux8DXwq5IgbjmQPfb6VcE=;
+        b=ZN3s+Im1gtbieKNLml4CVFW/jRwmg/AxrSNzkAZALi0Mc3xakNoW4bygkUPQnRRTxD
+         H2jPym2i9Zuvl4vhz4sRvDSzOZlVZlT05OOAkAE20sylDrGcMZdlXv9qYx+HWLxIl2ei
+         lkB+s5gRYGBCKI/61sGnPxqUo13h/7tiog/Y57zq4V9NGe+mEZMxpRwPJe7qYJorEYJ1
+         1suJpyL/ejxDyb8xKDuOttPh38wlhDT4rp1uXrWaMAAS0+FXWfRrzs9Ni8pZxztu04Ro
+         GyKSQmckmF3gH4TDx1tnBmYd4sMUC+HXGZHVmGVSulu1tMLyBodOSHaQ2TSG37Biktlh
+         ecJQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1778642094; x=1779246894; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=CYlVJgBMJMBSzC9+QqB70POzR/0T9ox9YRqJAIrAuGo=;
+        b=YoU8BiPSQjAF2RxzCuMLgIdUl0lLoqS84iXP8IiingE8LFuozIiqGyIMhF7NwWX0dA
+         0hpP65SZDBcg4jVO+XJrH3txGPhR5IPYjoiL8dEaoK6powWQiTDw0DSB3yve0hUH04wt
+         RjAoBTXB9uekOptZiwcDtEP0jnFSAKDs7NJCOX3Nr/JtideJr5UmzI6fqyAyAXmCeCon
+         f4gSxijFfdXsEFyWAj2wkiSDbt9icjgT2W/Q97i1T/U3xfMRusjIpYjJXYG3H3EmFQdn
+         DUpGvobJE3DxvVHWpt9Jh8PhofWa61W9p9JpJ9MC2z0vXu88pAcMNLBY2RPkb/L6Bf1I
+         QOnw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1778642094; x=1779246894;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=CYlVJgBMJMBSzC9+QqB70POzR/0T9ox9YRqJAIrAuGo=;
+        b=YL4U/OrhuGPJvZSSV5BRim0QrG7gXpGgkISM8wgwUOvVKpWc9YJ/Gxt2xRXz6K5G8V
+         49fj3e6QbNBNOsRv3mbLiKT7EWCAxshy+xqKED0bbtnCSSDjb7aZVJDnzw6DkyCr972i
+         tChsB6Wo4CymJmHfnStz5lkrPAIVOf2Kaqa2FIzb6N5IC2Q9CJ5SnbVLtUyAQ+ufL+y8
+         dt00ANGZGZDapY8bp2m7WPnHSSx+DJwkdVQpRXNvnHCOlvRZCENlZ4fGBVwunhXZUdy8
+         mkiUinh8IGNMxmEM6xPnlcdIQKGO3dRbzLY3DuBkWMHz33Qrsm1WVZi5lcg4qqwafijK
+         0lMw==
+X-Forwarded-Encrypted: i=1; AFNElJ+xNoLna+k5j0WpaAzQ7YHkX2s3Ee6aDX/tUwgqvdQowLHJGL2q3vOSTgkUiN/1P450CMK2lWhLA9e0@vger.kernel.org
+X-Gm-Message-State: AOJu0YyCrwgJE3646C8g2N7rJ1/ZdSCCtPpm+3slj/qPhkuuFHTB3gWA
+	NQjqJkx2kb20QUezwEmlnstM7Ep6T6eCiERyC1dBZkEfNBeOZOSzqbOr8HSE16KZR+RXp/49bDu
+	9h1mgcK3k764yGvab2UMGR5m3UPLbuXY=
+X-Gm-Gg: Acq92OH1ehxT8/JKUM4y6antYGsSR0hNaAGi3KwNlTek7FS7cMgjk0551j/e24jLL5k
+	N7XnilyvE2xoHhZ3FKU7dk37p2HMHXwdswn7H6nBvg51YQULvzJssl+VTYcmBnpxotaF3Iwr7XX
+	nIx9QBu6Z6lcx9pOMG5/3OnpMk9RHAV8+2FQlQ5c408Vsub6KgeF0FK+FmkEJx/i0z+IaTe9kIr
+	Fh/it8uuUm6uJLXPl/TavFmdpggQ/MXG7nhDQLbPZggxvBwDBws4lnKBf2ijx5Rnya4AZE9xOuS
+	egoQ3X8agGtPBNW9o0X2O9W6FcLPC16MK8TdOg==
+X-Received: by 2002:a17:90b:3907:b0:368:1088:bb1d with SMTP id
+ 98e67ed59e1d1-368f79946bemr1029956a91.15.1778642093964; Tue, 12 May 2026
+ 20:14:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260506152346.166056-7-18255117159@163.com>
-User-Agent: NeoMutt/20180716
+References: <20260508103837.138142-1-phucduc.bui@gmail.com>
+ <20260508103837.138142-8-phucduc.bui@gmail.com> <af_g24kqkm4QhDuU@sirena.co.uk>
+ <CAABR9nH62K5qqujXzr_HwT6F0V1ezzENAVnjqqu3zrMvmCYWbA@mail.gmail.com>
+In-Reply-To: <CAABR9nH62K5qqujXzr_HwT6F0V1ezzENAVnjqqu3zrMvmCYWbA@mail.gmail.com>
+From: Bui Duc Phuc <phucduc.bui@gmail.com>
+Date: Wed, 13 May 2026 10:14:42 +0700
+X-Gm-Features: AVHnY4KWCVXMXRBzhAxelHPQRxBLjCfp-EOJxWzIat9M2x18913Y6relP4HsudQ
+Message-ID: <CAABR9nGHO+q5BUmUtER_tcC1drz3bBap-+=pew2+JBKYsg_6Pw@mail.gmail.com>
+Subject: Re: [PATCH 7/7] ASoC: ti: omap-mcbsp: Simplify lock and resource handling
+To: Mark Brown <broonie@kernel.org>
+Cc: peter.ujfalusi@gmail.com, lgirdwood@gmail.com, perex@perex.cz, 
+	tiwai@suse.com, jarkko.nikula@bitmer.com, linux-sound@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Wednesday 06 May 2026 23:23:44 Hans Zhang wrote:
-> The Aardvark PCIe controller driver waits for the link to come up but
-> does not implement the mandatory 100 ms delay after link training
-> completes for speeds greater than 5.0 GT/s (PCIe r6.0 sec 6.6.1).
-> 
-> The driver already maintains a 'link_gen' field that holds the negotiated
-> link speed. Use it together with pcie_wait_after_link_train() to insert
-> the required delay immediately after confirming that the link is up.
-> 
-> Signed-off-by: Hans Zhang <18255117159@163.com>
-> ---
->  drivers/pci/controller/pci-aardvark.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/pci/controller/pci-aardvark.c b/drivers/pci/controller/pci-aardvark.c
-> index e34bea1ff0ac..526351c21c49 100644
-> --- a/drivers/pci/controller/pci-aardvark.c
-> +++ b/drivers/pci/controller/pci-aardvark.c
-> @@ -350,8 +350,10 @@ static int advk_pcie_wait_for_link(struct advk_pcie *pcie)
->  
->  	/* check if the link is up or not */
->  	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
-> -		if (advk_pcie_link_up(pcie))
-> +		if (advk_pcie_link_up(pcie)) {
-> +			pcie_wait_after_link_train(pcie->link_gen);
->  			return 0;
-> +		}
->  
->  		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
->  	}
-> -- 
-> 2.34.1
-> 
+Hi Mark,
 
-Are you sure that this is correct to do? Have you checked the A3720
-Functional Specification which describes how to bring PCIe link up?
+>> This function now mixes scoped and goto based cleanup which cleanup.h
+>> warns us not to do - are you sure this is a good idea?
 
-A3720 PCIe controller is buggy and needs more timing hacks to make it
-behave. Playing with random sleeps can break its internal logic.
-I'm not sure if it could be safe without proper testing.
+If you'd prefer to remove all goto jumps from the function,
+I can prepare an additional patch for that as well.
 
-And IIRC A3720 PCIe controller is just PCIe2.0 with 5 GT/s.
+-------------------------------------------------
+
+--- a/sound/soc/ti/omap-mcbsp.c
++++ b/sound/soc/ti/omap-mcbsp.c
+@@ -322,42 +322,40 @@ static int omap_mcbsp_request(struct omap_mcbsp *mcbsp)
+                                  "McBSP", (void *)mcbsp);
+                if (err != 0) {
+                        dev_err(mcbsp->dev, "Unable to request IRQ\n");
+-                       goto err_clk_disable;
+                }
+        } else {
+                err = request_irq(mcbsp->tx_irq, omap_mcbsp_tx_irq_handler, 0,
+                                  "McBSP TX", (void *)mcbsp);
+                if (err != 0) {
+                        dev_err(mcbsp->dev, "Unable to request TX IRQ\n");
+-                       goto err_clk_disable;
+-               }
+-
+-               err = request_irq(mcbsp->rx_irq, omap_mcbsp_rx_irq_handler, 0,
+-                                 "McBSP RX", (void *)mcbsp);
+-               if (err != 0) {
+-                       dev_err(mcbsp->dev, "Unable to request RX IRQ\n");
+-                       goto err_free_irq;
++               } else {
++                       err = request_irq(mcbsp->rx_irq,
+omap_mcbsp_rx_irq_handler, 0,
++                                         "McBSP RX", (void *)mcbsp);
++                       if (err != 0) {
++                               dev_err(mcbsp->dev, "Unable to request
+RX IRQ\n");
++                               free_irq(mcbsp->tx_irq, (void *)mcbsp);
++                       }
+                }
+        }
+
+-       return 0;
+-err_free_irq:
+-       free_irq(mcbsp->tx_irq, (void *)mcbsp);
+-err_clk_disable:
+-       if(mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+-               mcbsp->pdata->ops->free(mcbsp->id - 1);
++       if (err != 0) {
++               if(mcbsp->pdata->ops && mcbsp->pdata->ops->free)
++                       mcbsp->pdata->ops->free(mcbsp->id - 1);
+
+-       /* Disable wakeup behavior */
+-       if (mcbsp->pdata->has_wakeup)
+-               MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
++               /* Disable wakeup behavior */
++               if (mcbsp->pdata->has_wakeup)
++                       MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
+
+-       scoped_guard(spinlock, &mcbsp->lock) {
+-               reg_cache = mcbsp->reg_cache;
+-               mcbsp->free = true;
+-               mcbsp->reg_cache = NULL;
++               scoped_guard(spinlock, &mcbsp->lock) {
++                       reg_cache = mcbsp->reg_cache;
++                       mcbsp->free = true;
++                       mcbsp->reg_cache = NULL;
++               }
++
++               return err;
+        }
+
+-       return err;
++       return 0;
+ }
+
+------------------------------------------------
+
+Please let me know if this looks okay to you, and I'll prepare the patch.
+
+Best regards,
+Phuc
