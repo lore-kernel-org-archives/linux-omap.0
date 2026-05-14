@@ -1,88 +1,92 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail11.truemail.it (mail11.truemail.it [217.194.8.81])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B89C231A053;
-	Thu, 14 May 2026 01:35:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5B0F3DDDC7;
+	Thu, 14 May 2026 08:48:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.194.8.81
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778722521; cv=none; b=dwbOrhu/X+flHhn/q53EKLzqhkJWEg5sX6pYa04wyk1AGmcsAezMuPt3tqNCZE3qvRDafjLcOKFIIMWHjFU2RbE37Dzhykp7g2xqhNYEklODeFTwHF/1iQwkt3EKLNZjlKiitUsSKngcuwdwHb3kSYEh9At/2OTaDoJDyh6+LI4=
+	t=1778748512; cv=none; b=s/Tl8x/mJkJ2n1xLkYrXP8XSKC1i/uIKqEkny8xRdlsWz37deMn2UKSjOPeQD2zq9bZWgFQiHeoRb5mRZUzhB59QozSORfkdRjUjCwCc/dwAJfuPSrfaUtrySsgG2F9TbCHbc/KKttRZQyFGqz9ecO94iCDPSGqvCQqQwnfPH48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778722521; c=relaxed/simple;
-	bh=NapVsa99RbO9sdmhf+tgsyBXsulP9KcK1OsJq8GWuaY=;
+	s=arc-20240116; t=1778748512; c=relaxed/simple;
+	bh=cDlg5h8GbzkWsoINCi1kYk/V1GGhwvzfQGRKFmT6clQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=j8A1TGHyrXVqRGazuFJAxoz9qdqMzmx3MdlwWwb1Rt9WcomBXXYlnxziKkF8S4Wh4px1lBoEvuHvwn2u9ybtS0x1FwwwElxjkQ/ZBFa8cWziuE+Hw1y3s0twPQPeMDBIx3zb6Xs5k0aGYXQBViCdmqfDMz8d+MuuQltqnd7wxY8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BEW1D519; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=ffd8jZOc6m8oZkf4wLtnk04ggJkDCufoI15LHK0NkyBHJvXQ/dCnX6ciw87F8nDP673BejA9fevluSHA+i1K/s3QA0H+KcnlCA0CuqrZnBH26JPeKAqJqPSNNfx8ZwEfLwXVZMJQejE0/2F6v+BCGplhEskZB/KceHu45gRX21k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=dolcini.it; spf=pass smtp.mailfrom=dolcini.it; dkim=pass (2048-bit key) header.d=dolcini.it header.i=@dolcini.it header.b=mWaS6qmQ; arc=none smtp.client-ip=217.194.8.81
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=dolcini.it
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dolcini.it
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BEW1D519"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AEB4C19425;
-	Thu, 14 May 2026 01:35:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1778722521;
-	bh=NapVsa99RbO9sdmhf+tgsyBXsulP9KcK1OsJq8GWuaY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=BEW1D519Si7Mif1110fpWCzeMJwtrWeL+wIzW8V/vK/GmkJsUklq6Q8d4zpQVJaHV
-	 o7SjKg3Xf74mqoIGUBO8uF62geYOtxQFfSEQD2DBJLzBAyJWNMeYtVn17gszan20mF
-	 3JrUtHHYzPlJrpIJY06qKl8BOdd8gCWRwYGdoZytr3vATQmZO4dPx1o/fTxZaxZSAC
-	 RngCY6M3f8I1WURuSuH/ecqFlYT/WSIyjPQGlM2Pkuw6yxctOz7b75PiaZKcsVSKcO
-	 oPZ0nLZTkKU1TC9o2IN3wVOudMcqaoC4GEOunMk+97ZhQxgkkgPCSZDLmGmaIScyFN
-	 seSYrLHJL8nrw==
-Received: by finisterre.sirena.org.uk (Postfix, from userid 1000)
-	id 4C5A31AC58CE; Thu, 14 May 2026 02:35:19 +0100 (BST)
-Date: Thu, 14 May 2026 10:35:19 +0900
-From: Mark Brown <broonie@kernel.org>
-To: Bui Duc Phuc <phucduc.bui@gmail.com>
-Cc: peter.ujfalusi@gmail.com, lgirdwood@gmail.com, perex@perex.cz,
-	tiwai@suse.com, jarkko.nikula@bitmer.com,
-	linux-sound@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH 7/7] ASoC: ti: omap-mcbsp: Simplify lock and resource
- handling
-Message-ID: <agUm188qDiaSbeqc@sirena.co.uk>
-References: <20260508103837.138142-1-phucduc.bui@gmail.com>
- <20260508103837.138142-8-phucduc.bui@gmail.com>
- <af_g24kqkm4QhDuU@sirena.co.uk>
- <CAABR9nH62K5qqujXzr_HwT6F0V1ezzENAVnjqqu3zrMvmCYWbA@mail.gmail.com>
- <CAABR9nGHO+q5BUmUtER_tcC1drz3bBap-+=pew2+JBKYsg_6Pw@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=dolcini.it header.i=@dolcini.it header.b="mWaS6qmQ"
+Received: from gaggiata.pivistrello.it (93-49-2-63.ip317.fastwebnet.it [93.49.2.63])
+	by mail11.truemail.it (Postfix) with ESMTPA id C87FF1F81F;
+	Thu, 14 May 2026 10:48:18 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dolcini.it;
+	s=default; t=1778748498;
+	bh=HZEwhfuwdNVexFrFTdU5gwZTTzUcljfMdkapLcnZDSo=;
+	h=Received:From:To:Subject;
+	b=mWaS6qmQnYx/ZCTCxx9evkpzt+l3B8mSkZp0S4cfMOOLQjHIHmcRaayuEENre+o/x
+	 p3Nen8SJ/f6BMKYsMKFGDyydZD8p8lW3YUafKOrOSA2zTZnuR+vm0AipmffH+to4VE
+	 kzf5WDlJGGz+3B1+vVTIBTwe9u2Mvg4lEeQJxLnqw9A9iVemqI3gF1BjDM+Qoi7+uU
+	 SXWPMvou8kfUbb9SjEZlSYAgqDqGFxQI9sRYrZRBtMm/9625qhxEPGwiWBjvM5ToU3
+	 9JpsguorySQOANkQIlL0+2Pj8KJcvIbhGvQGhZB8BsnP0Q52WiuLDxkE/QZYdJsYTw
+	 6FxCQ1vQu6HCQ==
+Received: by gaggiata.pivistrello.it (Postfix, from userid 1000)
+	id 7C23A7FA92; Thu, 14 May 2026 10:48:18 +0200 (CEST)
+Date: Thu, 14 May 2026 10:48:18 +0200
+From: Francesco Dolcini <francesco@dolcini.it>
+To: "A. Sverdlin" <alexander.sverdlin@siemens.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>,
+	Shree Ramamoorthy <s-ramamoorthy@ti.com>,
+	Francesco Dolcini <francesco@dolcini.it>,
+	Nishanth Menon <nm@ti.com>, Vignesh Raghavendra <vigneshr@ti.com>
+Subject: Re: [PATCH] regulator: tps65219: fix irq_data.rdev not being assigned
+Message-ID: <agWMUrNZjscW2JtT@gaggiata.pivistrello.it>
+References: <20260513160706.1096845-1-alexander.sverdlin@siemens.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="+Dqov5AbO3R+Aajw"
-Content-Disposition: inline
-In-Reply-To: <CAABR9nGHO+q5BUmUtER_tcC1drz3bBap-+=pew2+JBKYsg_6Pw@mail.gmail.com>
-X-Cookie: Truckers welcome.
-
-
---+Dqov5AbO3R+Aajw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20260513160706.1096845-1-alexander.sverdlin@siemens.com>
 
-On Wed, May 13, 2026 at 10:14:42AM +0700, Bui Duc Phuc wrote:
+Hello Alexander,
+thanks for the patch
 
-> >> This function now mixes scoped and goto based cleanup which cleanup.h
-> >> warns us not to do - are you sure this is a good idea?
+On Wed, May 13, 2026 at 06:07:04PM +0200, A. Sverdlin wrote:
+...
+>   Internal error: Oops: 0000000096000004
+>   pc : regulator_notifier_call_chain
+>   lr : tps65219_regulator_irq_handler
+>   Call trace:
+>    regulator_notifier_call_chain
+>    tps65219_regulator_irq_handler
+>    handle_nested_irq
+>    regmap_irq_thread
+>    irq_thread_fn
+>    irq_thread
+>    kthread
+>    ret_from_fork
+...
 
-> If you'd prefer to remove all goto jumps from the function,
-> I can prepare an additional patch for that as well.
+> Link: https://lore.kernel.org/all/aBDSTxALaOc-PD7X@gaggiata.pivistrello.it/
+> Fixes: 64a6b577490c ("regulator: tps65219: Remove debugging helper function")
+> Signed-off-by: Alexander Sverdlin <alexander.sverdlin@siemens.com>
 
-That's probably a useful idea.
+Is this a fix for the issue I reported long ago? If yes, it should be
 
---+Dqov5AbO3R+Aajw
-Content-Type: application/pgp-signature; name="signature.asc"
+Reported-by: Francesco...
+Closes: https://lore.kernel.org/all/aBDSTxALaOc-PD7X@gaggiata.pivistrello.it/
+Cc: stable...
 
------BEGIN PGP SIGNATURE-----
+and remove the Link:
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmoFJtYACgkQJNaLcl1U
-h9DXCgf9G+YWUsJs9GiG/F6rSTE1X99HrklRfrVnBbHmx/WMx0lLL9NYjH+GbttD
-LsknZ3R+OySZRhDM/RXE4z1NGaypnSKdoOm5J/h7k6Ws21zFa0fIC00SocJaXidO
-sUpRdwQx+rsxT7QYiaH+KfP1B3TtkQUsTCbZGHN9oLcz2bm26FBdB/Lob/XFYmDI
-W1N4Ig5noDPeRpUjjfiNXs+R0ml7MNGaarDp/ZeCMbx9irx9/uXMtv6wreic2dkp
-L9ruCmIWXjqMYdYf/zWf092Gu/lw1ug0mnn9L/+6+YlEa8M+M7PFZZbAkLiAl55z
-XkJI3XKxhF3aTJYbLXq30f4cDfUHow==
-=ohPT
------END PGP SIGNATURE-----
+Francesco
 
---+Dqov5AbO3R+Aajw--
