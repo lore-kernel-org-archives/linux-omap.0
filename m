@@ -1,68 +1,79 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from meesny.iki.fi (meesny.iki.fi [195.140.195.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A6883D8909;
-	Thu, 14 May 2026 14:23:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778768586; cv=none; b=VZlOztjbkNVVhWvDFCWFXPJWf0mNAROwNt8JabWQDcI3OKQ5bu+LedcTXfCZS4I6YdOaaSf0CY4IxQfxjKfblPoWbIbZuuKaum+mnEIYeKZwCoMgEATxAVocSFuC39IncpT0sbWF53Sg473ngWReVN7eyton3boEXQwxjxpwBFc=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778768586; c=relaxed/simple;
-	bh=1+cb2sStXOE2OW7LJ8lDA5+VJbnboBqGunLXZmnPBgo=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D64A389E18;
+	Thu, 14 May 2026 17:10:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=195.140.195.201
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778778608; cv=pass; b=nBrTP6IHfCd1C6MkYLyYkkmb2u56RjvaGALF+8Upg2Uwua7qkTLNs/c1Lweq79fEOPLGDxFrk/TjO1eO/n7W6jNktrmWN1mYRNhdQN2GjA2rb4O8oUNaMhMMPJ0PK3Sae8AQ6mCuedcWnE4psfyhrk9GYoSfyrSIXbP+QnL1ghk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778778608; c=relaxed/simple;
+	bh=quVLhMAGCotpq7Q3ZXdmJatR0Zaz1mKaf2HjspYcorE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hgPztxvrqEcmk/zc3swr4cHuloq7IsR2ey0nbDLg+979xJHO4xba3XDoi+m1ssBuD3SChmmBs3sl6jETgWC7d1laKkZySI7mz5Rh9lTGBLgc4UmiigwmNsXhDR4mSR5OFF1CMMh7QLGVDKLoFk3ezts221oI4/k0NPewc188YgM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lI1Yhih7; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=XFRmb/UeAvfL+V6vVh7HlK6uT+63MlpIezjCYKCaRQ1w8nPRnjNGOk4eh6PZRVHaUyDlZKEj6YYcKy+4eBHTOfd2W69Dp3WPuOLparO6khUTM6uvqgMsuAzGYwoMxp8gQ5WfQsH5tpPCSEqmv8LE5hg3l9FqxC2OVBIcLGZquZ8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b=NBmeMdjE; arc=pass smtp.client-ip=195.140.195.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iki.fi
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lI1Yhih7"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1778768585; x=1810304585;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=1+cb2sStXOE2OW7LJ8lDA5+VJbnboBqGunLXZmnPBgo=;
-  b=lI1Yhih7xhY0J50+y0WpMg1JB5vhOPfLdi65KNFsozWaOgtV4NHn8kxo
-   /pQL9E/ikLObOCtZwROsGxcmyMMlvBYCjSHIvWV/k3eGYmpZkbM6z8Acy
-   YNPHrwDm/RAMWQewQPoU/54EL0VXt3Py1XmXbvrmKbaJg3Wfk/bMMZ4Pc
-   kjrCvy7Q5nWZMMKsP75P0VRKSFHQnHW9WEiud30eq4CvaiA0SjRE/eu5n
-   tjAuzGg6V3NrNV/AGG8+fax51wazuE9Z0ZyxPdE8tY6hdG/Pw0xTt3MXd
-   /fytuKNFfh9L8p80rU3i55pnc9SS8yq0B/TERKbvNe4iYWTJpICVZWFV0
-   g==;
-X-CSE-ConnectionGUID: bIOZ9Tw+Q7GbEsTprHoD5Q==
-X-CSE-MsgGUID: gzeav3UCQD6WTML3CbnnFw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11786"; a="79422775"
-X-IronPort-AV: E=Sophos;i="6.23,234,1770624000"; 
-   d="scan'208";a="79422775"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 May 2026 07:23:04 -0700
-X-CSE-ConnectionGUID: MoTmitk+SYGyMdDayYUivQ==
-X-CSE-MsgGUID: j2Ra0cpgRtCqNzrKqlrxCg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,234,1770624000"; 
-   d="scan'208";a="238289913"
-Received: from igk-lkp-server01.igk.intel.com (HELO bdf09bfdbd5f) ([10.211.93.152])
-  by orviesa008.jf.intel.com with ESMTP; 14 May 2026 07:22:59 -0700
-Received: from kbuild by bdf09bfdbd5f with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wNWxk-000000008or-1YWQ;
-	Thu, 14 May 2026 14:22:56 +0000
-Date: Thu, 14 May 2026 16:22:22 +0200
-From: kernel test robot <lkp@intel.com>
-To: Hans Zhang <18255117159@163.com>, bhelgaas@google.com,
-	lpieralisi@kernel.org, kwilczynski@kernel.org, mani@kernel.org,
-	vigneshr@ti.com, jingoohan1@gmail.com, thomas.petazzoni@bootlin.com,
-	pali@kernel.org, ryder.lee@mediatek.com, jianjun.wang@mediatek.com,
-	claudiu.beznea.uj@bp.renesas.com, mpillai@cadence.com
-Cc: oe-kbuild-all@lists.linux.dev, robh@kernel.org, s-vadapalli@ti.com,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org,
-	linux-renesas-soc@vger.kernel.org, linux-pci@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Hans Zhang <18255117159@163.com>
-Subject: Re: [PATCH v2 8/8] PCI: rzg3s-host: Add 100 ms delay after link
- training
-Message-ID: <202605141646.YYkbS6Hg-lkp@intel.com>
-References: <20260506152346.166056-9-18255117159@163.com>
+	dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b="NBmeMdjE"
+Received: from darkstar.musicnaut.iki.fi (85-76-71-86-nat.elisa-mobile.fi [85.76.71.86])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange secp256r1 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: aaro.koskinen)
+	by meesny.iki.fi (Postfix) with ESMTPSA id 4gGcJf05VvzyNR;
+	Thu, 14 May 2026 20:09:53 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=meesny;
+	t=1778778597;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ranXWKRhhfeffYG39L6YAknxenMYzYXGHr09Vb/2vp0=;
+	b=NBmeMdjENBZTv7/Amm+WcH+TaIAVge9MiDpPc7lqohkAw3Yxll7B2Fq4P31BjFEqxZAZXr
+	pvhjydh1WCfWORgWOg7eggMsIXKqgoM9EW/k/DMxGVsEfVZYkSFKhzJIuv21phLMxkSVBR
+	TGl6dqLpHkSmVHQ46MIhlLNzay74470=
+ARC-Seal: i=1; a=rsa-sha256; d=iki.fi; s=meesny; cv=none; t=1778778597;
+	b=QPYw6Vu51ExZfbQa3Xj3m/1pL5ULQl202XrGAgHYwZCmkap4askr0+RYiySHKCPNWTm/uV
+	wQHfc5vQ0ZKht7lm/yg+tcPi/ZITb+Ip0VPf12Lu8fZoL3twhhNblYyVrQCsyuKT4sm0/4
+	DGI5syvOFtPw+Kh1soGrk9DAPhpIuJU=
+ARC-Authentication-Results: i=1;
+	ORIGINATING;
+	auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
+	s=meesny; t=1778778597;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ranXWKRhhfeffYG39L6YAknxenMYzYXGHr09Vb/2vp0=;
+	b=lUtqBFVa0qm8A+UC5ouzsPiunNWCpn+iSiB1yuaIBBvGrtv+En5LaVobuqeSEBiTKnfC2y
+	a8m08Fn+kifwUh+pl19P1UNOM3zGNxSn88WFI69Vd74FwsWDtnuaJ4T/0xx9pB7lI4RZl5
+	WkgloBlnkeewHzjEJTAEv2NZbGWeEmE=
+Date: Thu, 14 May 2026 20:09:51 +0300
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Bartosz Golaszewski <brgl@kernel.org>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Kevin Hilman <khilman@baylibre.com>, Arnd Bergmann <arnd@arndb.de>,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v7 0/3] ARM: omap1: use real firmware node lookup for
+ GPIOs on Nokia 770
+Message-ID: <agYB3-T9yz9-hdr4@darkstar.musicnaut.iki.fi>
+References: <20260430-nokia770-gpio-swnodes-v7-0-c88f74c90dd6@oss.qualcomm.com>
+ <CAMRc=MdN9EpQVW=1Sb-9hRdt56Y5NNbskujjq2RiXhu90t0QyA@mail.gmail.com>
+ <20260513145926.2dc4d037@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -71,59 +82,27 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260506152346.166056-9-18255117159@163.com>
+In-Reply-To: <20260513145926.2dc4d037@kemnade.info>
 
-Hi Hans,
+Hi,
 
-kernel test robot noticed the following build errors:
+On Wed, May 13, 2026 at 02:59:26PM +0200, Andreas Kemnade wrote:
+> On Mon, 11 May 2026 15:34:39 +0200
+> Bartosz Golaszewski <brgl@kernel.org> wrote:
+> > > This converts Nokia 770 to using real firmware node lookup for GPIOs by
+> > > attaching the software nodes describing GPIO controllers to their target
+> > > devices.
+> > >
+> > > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> > 
+> > Hi!
+> > 
+> > Gentle ping, can this be queued now for v7.2?
+> > 
+> So any objections from your side, Aaro?
 
-[auto build test ERROR on a293ec25d59dd96309058c70df5a4dd0f889a1e4]
+It's fine.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Hans-Zhang/PCI-Add-pcie_wait_after_link_train-helper/20260514-132815
-base:   a293ec25d59dd96309058c70df5a4dd0f889a1e4
-patch link:    https://lore.kernel.org/r/20260506152346.166056-9-18255117159%40163.com
-patch subject: [PATCH v2 8/8] PCI: rzg3s-host: Add 100 ms delay after link training
-config: arm64-allnoconfig-bpf (https://download.01.org/0day-ci/archive/20260514/202605141646.YYkbS6Hg-lkp@intel.com/config)
-compiler: aarch64-linux-gnu-gcc (Debian 14.2.0-19) 14.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260514/202605141646.YYkbS6Hg-lkp@intel.com/reproduce)
+Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202605141646.YYkbS6Hg-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
-   In file included from drivers/pci/controller/pci-thunder-pem.c:16:
-   drivers/pci/controller/../pci.h: In function 'pcie_wait_after_link_train':
->> drivers/pci/controller/../pci.h:73:17: error: implicit declaration of function 'msleep' [-Wimplicit-function-declaration]
-      73 |                 msleep(PCIE_RESET_CONFIG_WAIT_MS);
-         |                 ^~~~~~
---
-   In file included from drivers/pci/controller/dwc/pcie-al.c:14:
-   drivers/pci/controller/dwc/../../pci.h: In function 'pcie_wait_after_link_train':
->> drivers/pci/controller/dwc/../../pci.h:73:17: error: implicit declaration of function 'msleep' [-Wimplicit-function-declaration]
-      73 |                 msleep(PCIE_RESET_CONFIG_WAIT_MS);
-         |                 ^~~~~~
-
-
-vim +/msleep +73 drivers/pci/controller/../pci.h
-
-    62	
-    63	/**
-    64	 * pcie_wait_after_link_train - Wait 100 ms if link speed > 5 GT/s
-    65	 * @max_link_speed: the maximum link speed (2 = 5.0 GT/s, 3 = 8.0 GT/s, ...)
-    66	 *
-    67	 * Must be called after Link training completes and before the first
-    68	 * Configuration Request is sent.
-    69	 */
-    70	static inline void pcie_wait_after_link_train(int max_link_speed)
-    71	{
-    72		if (max_link_speed > 2)
-  > 73			msleep(PCIE_RESET_CONFIG_WAIT_MS);
-    74	}
-    75	
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+A.
