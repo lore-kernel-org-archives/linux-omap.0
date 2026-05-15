@@ -1,188 +1,261 @@
-Received: from mx0b-001ae601.pphosted.com (mx0b-001ae601.pphosted.com [67.231.152.168])
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9A423CFF6D;
-	Fri, 15 May 2026 10:21:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=67.231.152.168
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778840491; cv=fail; b=isGrUDXvQIbsAH+5DqOfRmMUA7mbP7DDE2A8Zcgbm6Ka6mN86kdCqfzIlLViyq6wxX1cnJAcKg2/DtIX0oUrrCMRCqNdjYsGl4CiScT0yDwnU078s1jKJfcpECz6UmOExcmOmnuXwXsYTtrQMgjpdGaPnIawbZprEU29WD1MogQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778840491; c=relaxed/simple;
-	bh=HvDoaPWGqw+eSPwTJ1bTevP/KUvjP6B7oOqp1kwhMe0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rBYnL8Z7wlyzUsHrdCveo4BiQJFwKpWtD/4Av1rdw9bWsFHD62PxNzqkJNyiAJxOTXr13mv6A8YhGwKpCsvX5Xzta/q9/nk7I5uAHU8ug8fbTvKg7DQZLdTjoAbP/sjmNB1JoVZBrKouUP+36lsvOWVnxnqpulpR4grb4H9d4PI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=opensource.cirrus.com; spf=pass smtp.mailfrom=opensource.cirrus.com; dkim=pass (2048-bit key) header.d=cirrus.com header.i=@cirrus.com header.b=XvXxMM9Y; dkim=fail (1024-bit key) header.d=cirrus4.onmicrosoft.com header.i=@cirrus4.onmicrosoft.com header.b=tPbWhXYR reason="signature verification failed"; arc=fail smtp.client-ip=67.231.152.168
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=opensource.cirrus.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=opensource.cirrus.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E2BD48B38E;
+	Fri, 15 May 2026 15:05:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.4
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1778857559; cv=none; b=qnmUXfhLksNWJQSTHzDPyhQktUyCXB8vUtjiBBJgyk1Gx1qZ8gZv0a81db+e74poFchxmTSLpvjL3M31qKIEtGywRDFRY21S8CvOr352sIrrnZQN77/nN3BwUSzSEBW/RBBTNT+OoH/WcMVG/1M1Uxl6nWeQprbcScpESszaH6o=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1778857559; c=relaxed/simple;
+	bh=McpnXz/rGrMuSUIcvQ4AG8Kl82xuU/L/dKPrY5yg0M4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=mxUbV2YpyENZrwepfNQyJIfBFA+xJ9TaSQmtPS33rSFd8W9h0wrtC0fgJ/vnJe8zU4h06q766NnH12aSH3lOsdkAm+Cdkzd0ausqTzwBd4DgxOhrKaxc7aUMTrVKV/8XNWE8jeMq1oZMcVtO602tUOcowh+Y+0K2N7suS3HpwpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=ogJCGY5G; arc=none smtp.client-ip=117.135.210.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cirrus.com header.i=@cirrus.com header.b="XvXxMM9Y";
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=cirrus4.onmicrosoft.com header.i=@cirrus4.onmicrosoft.com header.b="tPbWhXYR"
-Received: from pps.filterd (m0077474.ppops.net [127.0.0.1])
-	by mx0b-001ae601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64F4mjVE4154599;
-	Fri, 15 May 2026 05:20:58 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=
-	PODMain02222019; bh=RgoWYkcGGjfBn5wZL7wufmaUcaSv704l001ZnXQy8oU=; b=
-	XvXxMM9YZdFiUPHAico5QvYRY742QaOTxJHyVKAtNBL1eWQD70OwJmC99a/A7wfn
-	PWKM+eHg2r3zQ/qQyGemPBGUNacRwGBgfqZN8nj8t4YLJn+0qQYVujyZQPZZgyHJ
-	PWHHpybHx+nWbEPuD6X76bc86118LwOQofo5R2DCV2npz5yVHPEK/EembiP20ii5
-	r8/u2BTtQ90wTC4b5UpdveqLZ4zbF9638PUD10/nZPtEVBGm8L6L55vzo08iYX/T
-	CRe7K/rO790OnPAsmI3HXvvcxwOgHgZ+X4uEIKKGqbqtpOH4RnUC5U9kK950cO9m
-	FwByXsfuDokOsV6ioX9NnQ==
-Received: from sj2pr03cu001.outbound.protection.outlook.com (mail-westusazon11022078.outbound.protection.outlook.com [52.101.43.78])
-	by mx0b-001ae601.pphosted.com (PPS) with ESMTPS id 4e5m2krsve-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Fri, 15 May 2026 05:20:57 -0500 (CDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=R4XsjLUUqyqHg1efeMEhbE/ZrXGdj+W1GZe/Hbb6Fxgvs18+scxG+++ZNol99iAHSzEcLMwtF+CrLpdGrGa5qiTAIrxj685pEhgw7N1gv2pU6PieNA4OxXQnPjIzztR7nJFEAOhxg6eXwOCO7P8fcqpn/a2qHIZRgjkArQzxqxXwSKLvNEGZ0dR/CmgagXWb/Zc6fh2sn+LYHhtNUvDePshKNvEas9FQN7fZSO4sVSYML5M4+WMWTQdhXbV8+OOBP+yaTHp1lgm3BxMR7NTjL8f96Cl6TfN99mOB2PizU49ZXQfPjc6Qydz1SRGCTIvdBFEZ7DPyEzKYQH+TrASmHQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=vK8IkeVbbb3SnM7m7A1eUSz4c5AnCxWlJcks5US2QTs=;
- b=cKsAJo3lQw1S3+Qu3znPpYo+cR18YiIipqBkWuj3RSmbLr7oueHqhfk0CC+PtXLp9ZfpRUeFR8AEIoaBRn5n0UxJPJBDhPS825dIz7sB2YZUBaAbhHjqaPhLvpWKFX040ZS0uziccL5Nf3dcaq7RSg553N4jm9m7YrhvflGmxf7Yx+PnHM1vgJaXAgq96lEorTypIvcZlhVnRmS2xuU7QcarqkWRNkikK8iIlEfOJQRA5P0QnbHWl3jjtxZEsTF7lNvmbnXh/RZMWUYj0fB1lPNE+HtMYBBh+r3eQD4tgDdRvYvfSJRQPzjeIUGs7pXTtsNgd6CvCQdO9zQ46jtK5g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=softfail (sender ip
- is 84.19.233.75) smtp.rcpttodomain=analog.com
- smtp.mailfrom=opensource.cirrus.com; dmarc=fail (p=reject sp=reject pct=100)
- action=oreject header.from=opensource.cirrus.com; dkim=none (message not
- signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=cirrus4.onmicrosoft.com; s=selector2-cirrus4-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=vK8IkeVbbb3SnM7m7A1eUSz4c5AnCxWlJcks5US2QTs=;
- b=tPbWhXYRP+0j3k5KJQswv0a3zDF0lH3YvFYHS1UEKYv/oP7oo8oYtBqiLgYwAcrzIz0MT1C++7SJ/42c1TckGKQSdt502N7fwH+JfoL5BAPQGUvO0MQjS885UAS3rCGgK5nrocL75suHqOfHYtwFz+5H7Hi+SsI32ABQDMdBUjI=
-Received: from LV3P220CA0025.NAMP220.PROD.OUTLOOK.COM (2603:10b6:408:234::35)
- by SA1PR19MB997369.namprd19.prod.outlook.com (2603:10b6:806:4c4::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9913.11; Fri, 15 May
- 2026 10:20:54 +0000
-Received: from BN1PEPF00005FFC.namprd05.prod.outlook.com
- (2603:10b6:408:234:cafe::88) by LV3P220CA0025.outlook.office365.com
- (2603:10b6:408:234::35) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.25.18 via Frontend Transport; Fri, 15
- May 2026 10:20:53 +0000
-X-MS-Exchange-Authentication-Results: spf=softfail (sender IP is 84.19.233.75)
- smtp.mailfrom=opensource.cirrus.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=oreject header.from=opensource.cirrus.com;
-Received-SPF: SoftFail (protection.outlook.com: domain of transitioning
- opensource.cirrus.com discourages use of 84.19.233.75 as permitted sender)
-Received: from edirelay1.ad.cirrus.com (84.19.233.75) by
- BN1PEPF00005FFC.mail.protection.outlook.com (10.167.243.228) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.25.13
- via Frontend Transport; Fri, 15 May 2026 10:20:53 +0000
-Received: from ediswmail9.ad.cirrus.com (ediswmail9.ad.cirrus.com [198.61.86.93])
-	by edirelay1.ad.cirrus.com (Postfix) with ESMTPS id 7F484406540;
-	Fri, 15 May 2026 10:20:52 +0000 (UTC)
-Received: from opensource.cirrus.com (ediswmail9.ad.cirrus.com [198.61.86.93])
-	by ediswmail9.ad.cirrus.com (Postfix) with ESMTPSA id 5AB99820244;
-	Fri, 15 May 2026 10:20:52 +0000 (UTC)
-Date: Fri, 15 May 2026 11:20:51 +0100
-From: Charles Keepax <ckeepax@opensource.cirrus.com>
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
-Cc: Lee Jones <lee@kernel.org>, Markus Schneider-Pargmann <msp@baylibre.com>,
-        Michael Hennerich <michael.hennerich@analog.com>,
-        Chen-Yu Tsai <wens@kernel.org>,
-        Marek Vasut <marek.vasut+renesas@gmail.com>,
-        James Ogletree <jogletre@opensource.cirrus.com>,
-        Fred Treven <fred.treven@cirrus.com>,
-        Ben Bright <ben.bright@cirrus.com>,
-        Support Opensource <support.opensource@diasemi.com>,
-        Andy Shevchenko <andy@kernel.org>,
-        Richard Fitzgerald <rf@opensource.cirrus.com>,
-        Chanwoo Choi <cw00.choi@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        =?iso-8859-1?Q?Andr=E9?= Draszik <andre.draszik@linaro.org>,
-        Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Andreas Kemnade <andreas@kemnade.info>,
-        Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>,
-        Tony Lindgren <tony@atomide.com>, Samuel Kayode <samkay014@gmail.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@foss.st.com>,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-sound@vger.kernel.org, linux-omap@vger.kernel.org,
-        imx@lists.linux.dev, linux-stm32@st-md-mailman.stormreply.com,
-        linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org
-Subject: Re: [PATCH v1] mfd: Use named initializers for arrays of
- i2c_device_data
-Message-ID: <agbzg9W+p2x391kW@opensource.cirrus.com>
-References: <20260515095839.4005460-2-u.kleine-koenig@baylibre.com>
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="ogJCGY5G"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Message-ID:Date:MIME-Version:Subject:To:From:
+	Content-Type; bh=D0aVJ1oI07M7fsLfw7yCfiuyUD9A/pHOpyMY/I0o1C0=;
+	b=ogJCGY5GZCO33EocCv82XtHrz71uQciISGEtOBaI6KUPvqZBTXI1vlRhWzoRMJ
+	AoMm1RqkBfRCAHa6aRGQUK801b33FTNE3yrwHQyrsI0nzqh+wa0+n9vXpaGLcZwn
+	3BifagXBGJ7WKejgWWYPtGM6QO3a0kB+lq3idysEMul7k=
+Received: from [IPV6:240e:b8f:91b3:d000:79ec:4c96:c180:869b] (unknown [])
+	by gzga-smtp-mtada-g0-2 (Coremail) with SMTP id _____wDnr6MGNgdqmNEiBg--.36082S2;
+	Fri, 15 May 2026 23:04:39 +0800 (CST)
+Message-ID: <01f61c3f-d2a7-4ce3-a820-a5502312a07f@163.com>
+Date: Fri, 15 May 2026 23:04:39 +0800
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 6/8] PCI: aardvark: Add 100 ms delay after link
+ training
+To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali@kernel.org>
+Cc: bhelgaas@google.com, lpieralisi@kernel.org, kwilczynski@kernel.org,
+ mani@kernel.org, vigneshr@ti.com, jingoohan1@gmail.com,
+ thomas.petazzoni@bootlin.com, ryder.lee@mediatek.com,
+ jianjun.wang@mediatek.com, claudiu.beznea.uj@bp.renesas.com,
+ mpillai@cadence.com, robh@kernel.org, s-vadapalli@ti.com,
+ linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-mediatek@lists.infradead.org, linux-renesas-soc@vger.kernel.org,
+ linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20260506152346.166056-1-18255117159@163.com>
+ <20260506152346.166056-7-18255117159@163.com>
+ <20260512212531.jupoocz7acv22qyg@pali>
+ <581e91fb-2e57-43ed-b79d-19dbf384b955@163.com>
+ <20260513072008.vol4htgbzquly2rb@pali>
+ <15532890-ce22-4b20-96d9-e7f7c47050d2@163.com>
+ <20260513185442.mw3md5te7dhojyd7@pali>
+Content-Language: en-US
+From: Hans Zhang <18255117159@163.com>
+In-Reply-To: <20260513185442.mw3md5te7dhojyd7@pali>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260515095839.4005460-2-u.kleine-koenig@baylibre.com>
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN1PEPF00005FFC:EE_|SA1PR19MB997369:EE_
-X-MS-Office365-Filtering-Correlation-Id: 09dd09d3-9a8f-4c69-4cf3-08deb26ba526
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|36860700016|61400799027|82310400026|56012099003|11063799003|22082099003|16102099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	2uZj3ZOtI7NqgR26VjaqtpwY4cBRNIuI3/yjepgCcJlfw4ZffgZbn9lcREYwD0Nun0qKB5zh2MDO4U8l5JKwtMtMpSjyqzVDIY8qOKFCriDAUgYtb++YjsXa3hXsriFhi4EySTTGlrd/7txJ6cgi6e1+QyMNKnMEnIUvMpaqo5NspH9U+3FMCarM/K9MpKMYvoUXynRKfG9dMAedWct//7z3NEzfch+ycF/gllUSUVevddj7Oe6tx7xEZ4DO38jgb8sS/Xtd5azyuz+2bYoeH5j0Hqjc8YeKREXLYwoJOIEah2eO0Jgmes54w99CPTUgt5qNvzWY0DqMs07U61yhrztOzRXQXB3ruLtTGzRyCGBsDvxnqW7Vaz23xlV2ImNspRIncXAKqHvlUr3mPTrcY+ss+/HD5fCosy3Pia0uBQajlAMGwtXxg/uh9pgdKghWO1bnzlWktWxyqpDF+PmMy1XsPktv+s12yZFOl+NZ2O9PEi9Ty6a3xCPWL81HWbs+aDXdB+bnXYQXOHntBB6+cGBTfZ1Qil+94z1eb58c0twPeM2CuG5sbbEtaJLDY4rvpOKdUsU/VX47t6t16R3nXf8zuoEmxX5UJKg3nOhOaAj7xmtccMuDjxprgR51E279atkKh2hw+XmvlCHCr67boRi7hzDNt10nOdIydlD92KD8Te5bmtX5K6TwhU5X/mRmuaP0aqVyfXSgDCjGOi/Mij0dgbIQ/EYRNBptm0oC0BY=
-X-Forefront-Antispam-Report:
-	CIP:84.19.233.75;CTRY:GB;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:edirelay1.ad.cirrus.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(7416014)(376014)(36860700016)(61400799027)(82310400026)(56012099003)(11063799003)(22082099003)(16102099003)(18002099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	a0v01sc8huhj8GZTosj0jXHe+6oRSlZEX3efZ/+98BMDzQx9l1Un9TtJaK3v20A0XoB20TMitB4quVRc2AJYk73VDMQo8ca89AQsIhFgzZYIjMBtiTL3E8iq38Fb8EKQdCS5HlMp/B/gXyG/Nd6tgpukOhC7VIBWcRtrSA+ZD7v0Z2Mj6toFOAYhFino+qzWfM+gmJ++ogn6ZrHJ9354ZptLXIMqE/opgTJm3bOi8lKKY4qDkjMqpHVk2VKjdcZLe4LaGLGavmB22cHgpTX3bDBsmVZA7VurnLl4GmD5w2wgfz7Ro++181HP3AIj28FW50Fi3fsUCh/pxnS6ErHD3vxpAvRSUZmNosnfDe0AfsjwjiRpinvNQmQbC7179vBCeeWzufNWczAYkWe5rAi2ob5udMXAL8g9V4T9V4yvmJ/je6iUwkWjCVp86/42yD23
-X-Exchange-RoutingPolicyChecked:
-	n48JFZQ9XkKqSF9J6ccwoYQcoB/YNdT31+uqvLQmTZLmEEnVOOjNgiAbCMthd1tswZ6KontousudC8tlrCGMIKZWhpQguOXS8kz6ClwHEnx/1aocc8creyLZgXhr/aNMwOIzX9U+u+V1dlNe09thozmr69O0TdyEEWfLaA4SP+nRhUj9PAXxH4OjFEQ1KaCICdgOF3kP/Luy2TZS/A6RIUgOzgyUNzlvLPCJlZBwHGXvViB/NB2QA7qd3NqmUWpKAodgUD6ikngiKVE9hJQeH7NdAoH8IrCDdSBJwz6+TCy21teOdXPaA86UYaoy50A0ejiqBTJrfySvAjyyNf8hLA==
-X-OriginatorOrg: opensource.cirrus.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 May 2026 10:20:53.3055
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 09dd09d3-9a8f-4c69-4cf3-08deb26ba526
-X-MS-Exchange-CrossTenant-Id: bec09025-e5bc-40d1-a355-8e955c307de8
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=bec09025-e5bc-40d1-a355-8e955c307de8;Ip=[84.19.233.75];Helo=[edirelay1.ad.cirrus.com]
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: TreatMessagesAsInternal-BN1PEPF00005FFC.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR19MB997369
-X-Proofpoint-ORIG-GUID: SipCwgKzMIkOMOTNkVqnfi4_GdMr9PzZ
-X-Authority-Analysis: v=2.4 cv=KOdqylFo c=1 sm=1 tr=0 ts=6a06f389 cx=c_pps
- a=hJoePaVs+Aefu24hhViaWA==:117 a=h1hSm8JtM9GN1ddwPAif2w==:17
- a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
- a=8nJEP1OIZ-IA:10 a=NGcC8JguVDcA:10 a=s63m1ICgrNkA:10 a=RWc_ulEos4gA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=iX4cTi3TZMoOKdANLEfx:22 a=KfkQE9S9VqCBgivYGm0O:22
- a=IpJZQVW2AAAA:8 a=w1d2syhTAAAA:8 a=HCcUUyVFpx8XlB7MacwA:9 a=3ZKOabzyN94A:10
- a=wPNLvfGTeEIA:10 a=IawgGOuG5U0WyFbmm1f5:22
-X-Proofpoint-GUID: SipCwgKzMIkOMOTNkVqnfi4_GdMr9PzZ
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTE1MDEwNCBTYWx0ZWRfX5NEKLcBSCOkL
- 4g5KeecBOjqZz7z6jpHo8kMrw2ebARVjXCRUCiqFU3a/AemGicmX1Qjul62to2n5fULoygigM1A
- kF5QI6W0fOI8EmL9s+IiETy0HrZQi39Y4qme0sRFbArmasTfs/ehFJzfBvXuBup0+1Dv2d7EgFG
- 892SED8rR3VRH1o9l1hedG/Rum8rNpnCggUo1rFaRvu90KSIb9ttpvpvzcztQWGUhykOnzPUZbd
- 73vm95UKlWar+Oh8xVMu6XtX+UhSm9Mey3wy0HafHQH9mUpjlGIQZsRg3f529sRujI24SxRd5tk
- kQXRl1/ATVA07BGV271yMTkTtcWLUAFcAwsPYxAXX5hVoyyXib38A0IDIF/AFwcFAhFrr9zN20B
- Lk/1J5Xu5KF2aEk1kfT38ZnZlbvg8uH6gmPP/HS0H9eHE5PDmI2zfTtTfpFQBPx5PnfZaRXi8Wv
- pVrc1KQR5L4mnDZIWnw==
-X-Proofpoint-Spam-Reason: safe
+X-CM-TRANSID:_____wDnr6MGNgdqmNEiBg--.36082S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW3XF1xXrWrJF4xWry5Wry7Awb_yoW3Zr43pF
+	W5Ga9FyF47Jr13u3W0q3W8ZFyjqan8C343Xrn8X347Wr9I9FyDtF12krWfuasrGr4vyr12
+	vw45tFy3CwnIva7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07URVbkUUUUU=
+X-CM-SenderInfo: rpryjkyvrrlimvzbiqqrwthudrp/xtbC6wjrj2oHNgiRnAAA3Z
 
-On Fri, May 15, 2026 at 11:58:39AM +0200, Uwe Kleine-König (The Capable Hub) wrote:
-> While being less compact, using named initializers allows to more easily
-> see which members of the structs are assigned which value without having
-> to lookup the declaration of the struct. And it's also more robust
-> against changes to the struct definition.
-> 
-> The mentioned robustness is relevant for a planned change to struct
-> i2c_device_id that replaces .driver_data by an anonymous union.
-> 
-> While touching all these arrays, unify indention and usage of commas.
-> 
-> This patch doesn't modify the compiled arrays, only their representation
-> in source form benefits. The former was confirmed with x86 and arm64
-> builds.
-> 
-> Signed-off-by: Uwe Kleine-König (The Capable Hub) <u.kleine-koenig@baylibre.com>
-> ---
 
-For the Wolfson/Cirrus bits:
 
-Reviewed-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+On 5/14/26 02:54, Pali RohÃ¡r wrote:
+> On Wednesday 13 May 2026 15:34:46 Hans Zhang wrote:
+>> On 5/13/26 15:20, Pali RohÃ¡r wrote:
+>>> On Wednesday 13 May 2026 15:00:04 Hans Zhang wrote:
+>>>>
+>>>>
+>>>> On 5/13/26 05:25, Pali RohÃ¡r wrote:
+>>>>> On Wednesday 06 May 2026 23:23:44 Hans Zhang wrote:
+>>>>>> The Aardvark PCIe controller driver waits for the link to come up but
+>>>>>> does not implement the mandatory 100 ms delay after link training
+>>>>>> completes for speeds greater than 5.0 GT/s (PCIe r6.0 sec 6.6.1).
+>>>>>>
+>>>>>> The driver already maintains a 'link_gen' field that holds the negotiated
+>>>>>> link speed. Use it together with pcie_wait_after_link_train() to insert
+>>>>>> the required delay immediately after confirming that the link is up.
+>>>>>>
+>>>>>> Signed-off-by: Hans Zhang <18255117159@163.com>
+>>>>>> ---
+>>>>>>     drivers/pci/controller/pci-aardvark.c | 4 +++-
+>>>>>>     1 file changed, 3 insertions(+), 1 deletion(-)
+>>>>>>
+>>>>>> diff --git a/drivers/pci/controller/pci-aardvark.c b/drivers/pci/controller/pci-aardvark.c
+>>>>>> index e34bea1ff0ac..526351c21c49 100644
+>>>>>> --- a/drivers/pci/controller/pci-aardvark.c
+>>>>>> +++ b/drivers/pci/controller/pci-aardvark.c
+>>>>>> @@ -350,8 +350,10 @@ static int advk_pcie_wait_for_link(struct advk_pcie *pcie)
+>>>>>>     	/* check if the link is up or not */
+>>>>>>     	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
+>>>>>> -		if (advk_pcie_link_up(pcie))
+>>>>>> +		if (advk_pcie_link_up(pcie)) {
+>>>>>> +			pcie_wait_after_link_train(pcie->link_gen);
+>>>>>>     			return 0;
+>>>>>> +		}
+>>>>>>     		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
+>>>>>>     	}
+>>>>>> -- 
+>>>>>> 2.34.1
+>>>>>>
+>>>>>
+>>>>> Are you sure that this is correct to do? Have you checked the A3720
+>>>>> Functional Specification which describes how to bring PCIe link up?
+>>>>>
+>>>>> A3720 PCIe controller is buggy and needs more timing hacks to make it
+>>>>> behave. Playing with random sleeps can break its internal logic.
+>>>>> I'm not sure if it could be safe without proper testing.
+>>>>>
+>>>>> And IIRC A3720 PCIe controller is just PCIe2.0 with 5 GT/s.
+>>>>
+>>>>
+>>>> Hi Pali,
+>>>>
+>>>> 1. This driver does not support A3720.
+>>>>
+>>>> static const struct of_device_id advk_pcie_of_match_table[] = {
+>>>> 	{ .compatible = "marvell,armada-3700-pcie", },
+>>>> 	{},
+>>>> };
+>>>> MODULE_DEVICE_TABLE(of, advk_pcie_of_match_table);
+>>>>
+>>>> If you need support for A3720, please submit the corresponding patch so that
+>>>> Bjorn and Mani can review it.
+>>>
+>>> 3700 (or 37xx) is family and covers both a3710 and a3720. In most cases is the
+>>> a3720 dominant and hence identifiers 3700 and 3720 are begin mixed.
+>>>
+>>>>
+>>>> 2. If A3720 only supports GEN2, you can configure "max-link-speed" to be 2
+>>>> in the DT. This will not affect the functionality of this patch.
+>>>
+>>> Whole A37xx supports only GEN2. And in DT files for 37xx should be
+>>> already there max-link-speed.
+>>>
+>>> Seems that in advk_pcie_of_match_table there is no GEN3 device
+>>> specified.
+>>>
+>>
+>> Hi Pali,
+>>
+>> However, I saw many GEN3 assignments and conditions in the code.
+>>
+>> ret = of_pci_get_max_link_speed(dev->of_node);
+>> if (ret <= 0 || ret > 3)
+>> 	pcie->link_gen = 3;
+>> else
+>> 	pcie->link_gen = ret;
+>>
+>>
+>> static void advk_pcie_train_link(struct advk_pcie *pcie)
+>> {
+>> 	struct device *dev = &pcie->pdev->dev;
+>> 	u32 reg;
+>> 	int ret;
+>>
+>> 	/*
+>> 	 * Setup PCIe rev / gen compliance based on device tree property
+>> 	 * 'max-link-speed' which also forces maximal link speed.
+>> 	 */
+>> 	reg = advk_readl(pcie, PCIE_CORE_CTRL0_REG);
+>> 	reg &= ~PCIE_GEN_SEL_MSK;
+>> 	if (pcie->link_gen == 3)
+>> 		reg |= SPEED_GEN_3;
+>> 	else if (pcie->link_gen == 2)
+>> 		reg |= SPEED_GEN_2;
+>> 	else
+>> 		reg |= SPEED_GEN_1;
+>> 	advk_writel(pcie, reg, PCIE_CORE_CTRL0_REG);
+>>
+>> 	/*
+>> 	 * Set maximal link speed value also into PCIe Link Control 2 register.
+>> 	 * Armada 3700 Functional Specification says that default value is based
+>> 	 * on SPEED_GEN but tests showed that default value is always 8.0 GT/s.
+>> 	 */
+>> 	reg = advk_readl(pcie, PCIE_CORE_PCIEXP_CAP + PCI_EXP_LNKCTL2);
+>> 	reg &= ~PCI_EXP_LNKCTL2_TLS;
+>> 	if (pcie->link_gen == 3)
+>> 		reg |= PCI_EXP_LNKCTL2_TLS_8_0GT;
+>> 	else if (pcie->link_gen == 2)
+>> 		reg |= PCI_EXP_LNKCTL2_TLS_5_0GT;
+>> 	else
+>> 		reg |= PCI_EXP_LNKCTL2_TLS_2_5GT;
+>> 	advk_writel(pcie, reg, PCIE_CORE_PCIEXP_CAP + PCI_EXP_LNKCTL2);
+>>
+>> ....
+>>
+>>
+>> If you are certain about the relevant information. Is it understandable that
+>> we need to delete the code related to GEN3?
+> 
+> Ok. So some explanation. pci-aardvark.c is implementing driver for PCIe
+> controller with codename aardvark. I have no idea from what this
+> codename comes and what is represents. What we know that the driver was
+> written for A37xx SoC platform according to A37xx functional specification.
+> As it is common in SoC world, vendors just buy some IP and integrate it
+> into SoC. In this case Marvell bought this PCIe controller IP and
+> integrated it into the A37xx. In past I tried to investigate what it
+> could be and IIRC my assumption was that it was PCIe IP from Denali.
+> Denali was acquired by Cadence, and when I compared Cadence PCIe
+> controller registers and PCIe controller registers in A37xx functional
+> specification there were large overlap. For me it looked like new
+> Cadence PCIe controller is an evolution (or new version) of what is in
+> A37xx. So this was some confirmation of my theory. Linux kernel has
+> separate driver for PCIe controller from Cadence and for refactoring
+> there were ideas to merge these two drivers... But there were more
+> important things, fix issues related to A37xx PCIe, lot of changes
+> which address these issues were sent to the list but they were not
+> taken. I do not think that it makes sense to do refactoring or doing any
+> other changes before addressing any existing issues with these
+> drivers (like PCIe card is not working correctly).
+> 
+> There are reported more HW erratas for this PCIe controller which needs
+> to be addressed in the software (meaning in Linux kernel) to make PCIe
+> card working properly. And there are more design HW decision which needs
+> does not conform to the PCIe specification and those deviations needs to
+> be "fixed" or "adjusted" in software (meaning in pci-aardvark.c driver)
+> to make PCI/PCIe compatible drivers to work correctly.
+> 
+> Now about GEN3. From register allocation it looks like that PCIe IP
+> supports GEN3. A37xx does not support it (or at least officially). This
+> does not mean that there cannot be some SoC with this "aardvark" PCIe IP
+> that is GEN3 capable. Just we see that such SoC is not supported by Linux.
+> Also as the comment in above code says, by default the speed is reported
+> as 8.0 GT/s, so changing it to 5.0 GT/s or 2.5 GT/s is needed as so code
+> some parts of GEN3 code in the driver is needed.
+> 
+> Does it makes sense to remove it? Does it makes sense to spend time on
+> such thing which does not address any existing issue? For me not.
+> Because it does not fix any _real_ issue with existing PCIe cards. And
+> for refactoring it is better to merge drivers as explained above and
+> IIRC cadence driver has HW on which is GEN3 used.
+> 
+> Now about your change. If you are sure that pcie_wait_after_link_train()
+> function is noop for pcie->link_gen == 2 || pcie->link_gen == 1 then go
+> ahead, I have no objects. I have not looked deeply at the change. I just
+> spotted some change which is touching timing critical code path which
+> was problematic in the past and broke many wifi cards. So I'm really
+> careful to prevent breaking Linux support again.
+> 
 
-Thanks,
-Charles
+Hi Pali,
+
+This condition, pcie->link_gen == 2 || pcie->link_gen == 1, will have no 
+effect.
+
+
+Best regards,
+Hans
+
+> As maintainers decided to not take any new changes from me for this
+> driver, I have no motivation to prepare any new changes. I will rather
+> spend my free time on something which will make sense and not be wasting
+> of my free time.
+>
+
