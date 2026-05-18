@@ -1,288 +1,96 @@
-Received: from mta-64-226.siemens.flowmailer.net (mta-64-226.siemens.flowmailer.net [185.136.64.226])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 680803E314E
-	for <linux-omap@vger.kernel.org>; Mon, 18 May 2026 08:34:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.136.64.226
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0C8423C8A0;
+	Mon, 18 May 2026 16:24:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779093289; cv=none; b=bomix/z8zU3JoboTGet0v4dvUWOD0iBZdGYOiSfnd3m4d1i2aSx8t78LhpudnuSY+SyUxznUO67o9fO5URqjQYbMdzUMKQmiCTLvwLZq/OryCR3X/0S61HIbh+6118GpmYIsFcEVqFPEPJHYD+JtEi0o7+YdXCHlD1eE2QDF8T4=
+	t=1779121441; cv=none; b=Y8k3EWzemBN4aYhNNq2MWYiVkQ6vn4S+xaUHBR/uh2FWNbgYvtZ6OJfKNalYoS4nYWwbJN+NhpJZLtfJUQmaHDyI1P2cgl2wN7Cla/Cp7f+bQqk9fjUIRKzGtabNMzCgVOmiW9OfBPWWXq7kRvIt19bO9/muUeYX8DO5eKcyw6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779093289; c=relaxed/simple;
-	bh=we1xnXX8MUtA6FfqKhG1wNOnLPLMBgN2q7Nal2yqL4U=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=t1hcsuPW+hSkzV23ADSVTBQHDu6uRmbSJ075J4Qdm5ZTbHKG04+VaXDDBcRqx6SxbQmWvmQhmGDQAtX5Jzt8hZ/hxlcujVpcQdVlXIf6uEJqfdUtdmhKpEzAVRJuZMyIKQT47sGoHK7s2PVpFhKjmPsRU45bmtaeuDdxQM/IrYs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=siemens.com; spf=pass smtp.mailfrom=rts-flowmailer.siemens.com; dkim=pass (2048-bit key) header.d=siemens.com header.i=alexander.sverdlin@siemens.com header.b=HzMGiasL; arc=none smtp.client-ip=185.136.64.226
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=siemens.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rts-flowmailer.siemens.com
+	s=arc-20240116; t=1779121441; c=relaxed/simple;
+	bh=fKQruQ7M7VOk36Hro21Vq4MYVghNnUgHIPzzALWoe80=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=rjUpjhvUZmVPjDNqVwaLA9jDkoTPQEi62nFu2JreuehR7RSrzCGUPBSHIIIDEsqtS9/2aYbQsdW0uklUxEi2XODC3byoQ59VG7nSVJOYihvOIqKx6oL0HdzSE0X0zl7eSVLEMALHEsLbIGKB/VfiYs+5zg4pNYX+zULBuM80Qy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZoSb7SCJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=siemens.com header.i=alexander.sverdlin@siemens.com header.b="HzMGiasL"
-Received: by mta-64-226.siemens.flowmailer.net with ESMTPSA id 20260518083435ecc28299a700020736
-        for <linux-omap@vger.kernel.org>;
-        Mon, 18 May 2026 10:34:35 +0200
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; s=fm1;
- d=siemens.com; i=alexander.sverdlin@siemens.com;
- h=Date:From:Subject:To:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding:Cc;
- bh=pfjQVAg4y4PH7Vz3fwwpIZnd2n5nYb+HdAus0R/Y2+M=;
- b=HzMGiasLfFBoRVmeuDGtoKkuCoX1HtCJaVZjpRm2oSUQIwIKUDjMyBl5tFC0+Kq/mgjPl+
- krhm/KxpvvLyVdQsyXMG6t+8E32eqwjMKQwAJ7Z7ZmRrJdW8R3f/ca22THoELih4nuxirD2B
- CVldqgEhA81DOZI3alwAZWITEnraRf6r8oqFtLLv6mnrni10zZUMjiZhTEP5tEsJy0UByV1m
- 3sXkAAFV1x/caoeiTPxKpC9ChLlDjJ7n7XOiNaGhL4kXbujXc5UFsiN0rlIZ7OL5zYqqzoMY
- 0aefwxQZq7ulUWFIe8vJ6+hC3vi6ytkF1unc1sQUEX+yaCrsrVqWg7Pg==;
-From: "A. Sverdlin" <alexander.sverdlin@siemens.com>
-To: linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Alexander Sverdlin <alexander.sverdlin@siemens.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Shree Ramamoorthy <s-ramamoorthy@ti.com>,
-	Francesco Dolcini <francesco@dolcini.it>,
-	Nishanth Menon <nm@ti.com>,
-	Vignesh Raghavendra <vigneshr@ti.com>,
-	stable@vger.kernel.org
-Subject: [PATCH v2] regulator: tps65219: fix irq_data.rdev not being assigned
-Date: Mon, 18 May 2026 10:31:11 +0200
-Message-ID: <20260518083113.2063368-1-alexander.sverdlin@siemens.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZoSb7SCJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB764C2BCC7;
+	Mon, 18 May 2026 16:23:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1779121441;
+	bh=fKQruQ7M7VOk36Hro21Vq4MYVghNnUgHIPzzALWoe80=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+	b=ZoSb7SCJWAIlaksVZvaIUN7twee63cZ4OiACFkZgAtZTxCbUW/vFkgmfkpDpA8Jqa
+	 0gA3bDn/PwKNwKUyuqywyCOtlewHkIpztBzcXekS7DW0kT6sthJJBEvlknqjfCIfI/
+	 YZTzUA0shmqUu1QJbt64ppR1k0Xu5EFfjcLAB6mYboLx/JKOev62RDWPIINQ/flCBw
+	 7rh0glknPoW/wICudz/5LS8NuK9HJbINnom0WuZJtf8TAIEjC188il2T17d2alTy9U
+	 2fL1TIJ8LDDBh2czA9Bkyk7wa8my4dxDIVyYW+53i/IwlTZ7J3DYCITbXOUdqvvpxb
+	 yiynRes4U3ImQ==
+From: Mark Brown <broonie@kernel.org>
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Alexander Sverdlin <alexander.sverdlin@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+ Liam Girdwood <lgirdwood@gmail.com>, 
+ Shree Ramamoorthy <s-ramamoorthy@ti.com>, 
+ Francesco Dolcini <francesco@dolcini.it>, Nishanth Menon <nm@ti.com>, 
+ Vignesh Raghavendra <vigneshr@ti.com>, stable@vger.kernel.org
+In-Reply-To: <20260518083113.2063368-1-alexander.sverdlin@siemens.com>
+References: <20260518083113.2063368-1-alexander.sverdlin@siemens.com>
+Subject: Re: [PATCH v2] regulator: tps65219: fix irq_data.rdev not being
+ assigned
+Message-Id: <177909879431.31945.5152188699162995282.b4-ty@b4>
+Date: Mon, 18 May 2026 11:06:34 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Flowmailer-Platform: Siemens
-Feedback-ID: 519:519-456497:519-21489:flowmailer
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.16-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1139; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=fKQruQ7M7VOk36Hro21Vq4MYVghNnUgHIPzzALWoe80=;
+ b=owEBbQGS/pANAwAKASTWi3JdVIfQAcsmYgBqCz0dIZKaXCFTRvdCLqCORghGQdgopctLMQ7MM
+ GU/sZ9BO9aJATMEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCags9HQAKCRAk1otyXVSH
+ 0EhFB/4yMl+qTHK9K/ZfiVdM5qcpjUxUQXNSdgcITtYRCQhPHCOXKTO8KlfCJZPZ57Hj12YKSUN
+ nEtqGrvZApt6VfXJ86d7fBSWvz/Lr6949N6qWePJrt+7hP5FGdrR2dfaQvJAmUQk6RV/8exe2t3
+ F2WVA1BWncZPQnO+hzc0TA9tPG0erJDN/NV4V6U77fUcuZXdvfvIrzdUgmv1R9NVZ31SahPBcCm
+ 1zLleZyifsOsx07bem1Ccc8NsE2mT7wDYF8tMXYYoRbJtH1glBEAwmXTniBTpTyIvx43+hwa0xE
+ zxGgU8tjc4hSuLDj+rcdGG4opmYSsDRa6Jl3g5nRClOVEjNQ
+X-Developer-Key: i=broonie@kernel.org; a=openpgp;
+ fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-From: Alexander Sverdlin <alexander.sverdlin@siemens.com>
+On Mon, 18 May 2026 10:31:11 +0200, A. Sverdlin wrote:
+> regulator: tps65219: fix irq_data.rdev not being assigned
 
-Commit 64a6b577490c ("regulator: tps65219: Remove debugging helper
-function") removed the tps65219_get_rdev_by_name() helper along with
-the irq_data.rdev assignment that depended on it. This left
-irq_data.rdev uninitialized for all IRQs, causing undefined behavior
-when regulator_notifier_call_chain() is called from the IRQ handler:
+Applied to
 
-  Internal error: Oops: 0000000096000004
-  pc : regulator_notifier_call_chain
-  lr : tps65219_regulator_irq_handler
-  Call trace:
-   regulator_notifier_call_chain
-   tps65219_regulator_irq_handler
-   handle_nested_irq
-   regmap_irq_thread
-   irq_thread_fn
-   irq_thread
-   kthread
-   ret_from_fork
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git for-7.1
 
-Instead of restoring a dedicated lookup array, restructure the probe
-function to combine regulator registration with IRQ registration in
-the same loop. This way the rdev returned by devm_regulator_register()
-is naturally available for assigning to irq_data.rdev without any
-auxiliary data structure.
+Thanks!
 
-Non-regulator IRQs (SENSOR, TIMEOUT) that don't correspond to any
-registered regulator are registered with rdev=NULL, and the IRQ handler
-is protected with a NULL check to avoid crashing.
+[1/1] regulator: tps65219: fix irq_data.rdev not being assigned
+      https://git.kernel.org/broonie/regulator/c/f9b2d3b703d1
 
-Cc: stable@vger.kernel.org
-Closes: https://lore.kernel.org/all/aBDSTxALaOc-PD7X@gaggiata.pivistrello.it/
-Reported-by: Francesco Dolcini <francesco@dolcini.it>
-Fixes: 64a6b577490c ("regulator: tps65219: Remove debugging helper function")
-Signed-off-by: Alexander Sverdlin <alexander.sverdlin@siemens.com>
----
-Changelog:
-v2:
-- added "Reported-by:"; "Closes:" instead of "Link:"; Cc: stable@...
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
 
- drivers/regulator/tps65219-regulator.c | 135 +++++++++++++++++--------
- 1 file changed, 95 insertions(+), 40 deletions(-)
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
-index d77ca486879fd..324c3a33af8a4 100644
---- a/drivers/regulator/tps65219-regulator.c
-+++ b/drivers/regulator/tps65219-regulator.c
-@@ -346,8 +346,9 @@ static irqreturn_t tps65219_regulator_irq_handler(int irq, void *data)
- 		return IRQ_HANDLED;
- 	}
- 
--	regulator_notifier_call_chain(irq_data->rdev,
--				      irq_data->type->event, NULL);
-+	if (irq_data->rdev)
-+		regulator_notifier_call_chain(irq_data->rdev,
-+					      irq_data->type->event, NULL);
- 
- 	dev_err(irq_data->dev, "Error IRQ trap %s for %s\n",
- 		irq_data->type->event_name, irq_data->type->regulator_name);
-@@ -398,14 +399,65 @@ static struct tps65219_chip_data chip_info_table[] = {
- 	},
- };
- 
--static int tps65219_regulator_probe(struct platform_device *pdev)
-+static bool tps65219_is_regulator_name(const struct tps65219_chip_data *pmic,
-+				       const char *name)
-+{
-+	int i;
-+
-+	for (i = 0; i < pmic->common_rdesc_size; i++)
-+		if (!strcmp(pmic->common_rdesc[i].name, name))
-+			return true;
-+	for (i = 0; i < pmic->rdesc_size; i++)
-+		if (!strcmp(pmic->rdesc[i].name, name))
-+			return true;
-+	return false;
-+}
-+
-+static int tps65219_register_irqs(struct platform_device *pdev,
-+				  struct tps65219 *tps,
-+				  struct regulator_dev *rdev,
-+				  struct tps65219_regulator_irq_type *irq_types,
-+				  int nirqs,
-+				  const char *regulator_name)
- {
- 	struct tps65219_regulator_irq_data *irq_data;
-+	int i, irq, error;
-+
-+	for (i = 0; i < nirqs; i++) {
-+		if (strcmp(irq_types[i].regulator_name, regulator_name))
-+			continue;
-+
-+		irq = platform_get_irq_byname(pdev, irq_types[i].irq_name);
-+		if (irq < 0)
-+			return -EINVAL;
-+
-+		irq_data = devm_kmalloc(tps->dev, sizeof(*irq_data), GFP_KERNEL);
-+		if (!irq_data)
-+			return -ENOMEM;
-+
-+		irq_data->dev = tps->dev;
-+		irq_data->type = &irq_types[i];
-+		irq_data->rdev = rdev;
-+
-+		error = devm_request_threaded_irq(tps->dev, irq, NULL,
-+						  tps65219_regulator_irq_handler,
-+						  IRQF_ONESHOT,
-+						  irq_types[i].irq_name,
-+						  irq_data);
-+		if (error)
-+			return dev_err_probe(tps->dev, error,
-+					     "Failed to request %s IRQ %d\n",
-+					     irq_types[i].irq_name, irq);
-+	}
-+	return 0;
-+}
-+
-+static int tps65219_regulator_probe(struct platform_device *pdev)
-+{
- 	struct tps65219_regulator_irq_type *irq_type;
- 	struct tps65219_chip_data *pmic;
- 	struct regulator_dev *rdev;
- 	int error;
--	int irq;
- 	int i;
- 
- 	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
-@@ -425,6 +477,19 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
- 			return dev_err_probe(tps->dev, PTR_ERR(rdev),
- 					      "Failed to register %s regulator\n",
- 					      pmic->common_rdesc[i].name);
-+
-+		error = tps65219_register_irqs(pdev, tps, rdev,
-+					       pmic->common_irq_types,
-+					       pmic->common_irq_size,
-+					       pmic->common_rdesc[i].name);
-+		if (error)
-+			return error;
-+		error = tps65219_register_irqs(pdev, tps, rdev,
-+					       pmic->irq_types,
-+					       pmic->dev_irq_size,
-+					       pmic->common_rdesc[i].name);
-+		if (error)
-+			return error;
- 	}
- 
- 	for (i = 0; i <  pmic->rdesc_size; i++) {
-@@ -434,52 +499,42 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
- 			return dev_err_probe(tps->dev, PTR_ERR(rdev),
- 					     "Failed to register %s regulator\n",
- 					     pmic->rdesc[i].name);
-+
-+		error = tps65219_register_irqs(pdev, tps, rdev,
-+					       pmic->common_irq_types,
-+					       pmic->common_irq_size,
-+					       pmic->rdesc[i].name);
-+		if (error)
-+			return error;
-+		error = tps65219_register_irqs(pdev, tps, rdev,
-+					       pmic->irq_types,
-+					       pmic->dev_irq_size,
-+					       pmic->rdesc[i].name);
-+		if (error)
-+			return error;
- 	}
- 
-+	/* Register non-regulator IRQs (TIMEOUT, SENSOR) with rdev=NULL */
- 	for (i = 0; i < pmic->common_irq_size; ++i) {
- 		irq_type = &pmic->common_irq_types[i];
--		irq = platform_get_irq_byname(pdev, irq_type->irq_name);
--		if (irq < 0)
--			return -EINVAL;
--
--		irq_data = devm_kmalloc(tps->dev, sizeof(*irq_data), GFP_KERNEL);
--		if (!irq_data)
--			return -ENOMEM;
--
--		irq_data->dev = tps->dev;
--		irq_data->type = irq_type;
--		error = devm_request_threaded_irq(tps->dev, irq, NULL,
--						  tps65219_regulator_irq_handler,
--						  IRQF_ONESHOT,
--						  irq_type->irq_name,
--						  irq_data);
-+		if (tps65219_is_regulator_name(pmic, irq_type->regulator_name))
-+			continue;
-+		error = tps65219_register_irqs(pdev, tps, NULL,
-+					       irq_type, 1,
-+					       irq_type->regulator_name);
- 		if (error)
--			return dev_err_probe(tps->dev, error,
--					     "Failed to request %s IRQ %d\n",
--					     irq_type->irq_name, irq);
-+			return error;
- 	}
- 
- 	for (i = 0; i < pmic->dev_irq_size; ++i) {
- 		irq_type = &pmic->irq_types[i];
--		irq = platform_get_irq_byname(pdev, irq_type->irq_name);
--		if (irq < 0)
--			return -EINVAL;
--
--		irq_data = devm_kmalloc(tps->dev, sizeof(*irq_data), GFP_KERNEL);
--		if (!irq_data)
--			return -ENOMEM;
--
--		irq_data->dev = tps->dev;
--		irq_data->type = irq_type;
--		error = devm_request_threaded_irq(tps->dev, irq, NULL,
--						  tps65219_regulator_irq_handler,
--						  IRQF_ONESHOT,
--						  irq_type->irq_name,
--						  irq_data);
-+		if (tps65219_is_regulator_name(pmic, irq_type->regulator_name))
-+			continue;
-+		error = tps65219_register_irqs(pdev, tps, NULL,
-+					       irq_type, 1,
-+					       irq_type->regulator_name);
- 		if (error)
--			return dev_err_probe(tps->dev, error,
--					     "Failed to request %s IRQ %d\n",
--					     irq_type->irq_name, irq);
-+			return error;
- 	}
- 
- 	return 0;
--- 
-2.52.0
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
 
