@@ -1,131 +1,288 @@
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mta-64-226.siemens.flowmailer.net (mta-64-226.siemens.flowmailer.net [185.136.64.226])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C29F93DFC6A
-	for <linux-omap@vger.kernel.org>; Mon, 18 May 2026 06:24:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 680803E314E
+	for <linux-omap@vger.kernel.org>; Mon, 18 May 2026 08:34:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.136.64.226
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779085488; cv=none; b=ldhXwHcetGEBT7C5xrbntiNnI97/aclFYaQM1znZhl2el1/LTZ+hMSHhA+tHFHOnanaenoZX59SNFkLS1UM9xmBLbvPl0oITTaakH6phgSFbb7IHdWadxLv5hLOkDepvjiyTLQgpFLD00zcs6cZdXONVurHWd6NBsXAEKGFQvGo=
+	t=1779093289; cv=none; b=bomix/z8zU3JoboTGet0v4dvUWOD0iBZdGYOiSfnd3m4d1i2aSx8t78LhpudnuSY+SyUxznUO67o9fO5URqjQYbMdzUMKQmiCTLvwLZq/OryCR3X/0S61HIbh+6118GpmYIsFcEVqFPEPJHYD+JtEi0o7+YdXCHlD1eE2QDF8T4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779085488; c=relaxed/simple;
-	bh=TNwJr1jchWZc67pG29qjhg66q50p8XG7WgD9vWPGSnU=;
-	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
-	 References:In-Reply-To; b=T7az0H5oymOMtmi931Kr9weqPnZmN7O9ZuU4Z8EdaKufQfoBSEUjOGYl/SAtmqc6BUyz9bWohKP3iRezVY7OFj38USKDkZJpvzXLUOWT7Ll6ZMzAsHoJ0VSMs66bdF8Ai9ekzooMPpqwXM91ZbqhNWWP4oz4gbSxnD+hwXinjBo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qfeOIIp1; arc=none smtp.client-ip=209.85.214.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1779093289; c=relaxed/simple;
+	bh=we1xnXX8MUtA6FfqKhG1wNOnLPLMBgN2q7Nal2yqL4U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=t1hcsuPW+hSkzV23ADSVTBQHDu6uRmbSJ075J4Qdm5ZTbHKG04+VaXDDBcRqx6SxbQmWvmQhmGDQAtX5Jzt8hZ/hxlcujVpcQdVlXIf6uEJqfdUtdmhKpEzAVRJuZMyIKQT47sGoHK7s2PVpFhKjmPsRU45bmtaeuDdxQM/IrYs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=siemens.com; spf=pass smtp.mailfrom=rts-flowmailer.siemens.com; dkim=pass (2048-bit key) header.d=siemens.com header.i=alexander.sverdlin@siemens.com header.b=HzMGiasL; arc=none smtp.client-ip=185.136.64.226
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=siemens.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rts-flowmailer.siemens.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qfeOIIp1"
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2b788a98557so10225295ad.2
-        for <linux-omap@vger.kernel.org>; Sun, 17 May 2026 23:24:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779085484; x=1779690284; darn=vger.kernel.org;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-transfer-encoding:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Z6rttZNdlncllwagKtpxOSQR52e6wAArMQpo2L8w5Pg=;
-        b=qfeOIIp1xSXdXf+8Y5wjCVboqWseIkCHKWgi3qQjR3RzAIwt5eVDNdCxpbib1kERXv
-         iSoG1TJajuWEuEDYNWriKaBI4DJ5YpQbfmmP3UC4wI5ii/VOjII1hNNCaSgFK4iBaUaX
-         fFWHV6E0yMl9s3cSNGVk1zbkTGAypXcbDKzj65ylHqgH41zwlydiXsxSJYui3GcPHqYs
-         pqb8F35vHUn3ZBvQ/BT8rMcCAakjJ9W4gd++se/fVJaMKjCX2//u+rBCbe39Rlvo/kpQ
-         dpqz1OvhVg6eubVKOj0qJjr5pSczwzgsdLwhpUSGdfSUSIsSoT/GzrqbvZlSK3dGU6CM
-         LvHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779085484; x=1779690284;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-transfer-encoding:mime-version:x-gm-gg:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Z6rttZNdlncllwagKtpxOSQR52e6wAArMQpo2L8w5Pg=;
-        b=RpDuzX1vWwqc5Qd6MDXsepgnQn8j3p+eZXofePz05AVfKvUuM12WdaSlfWhFe/mCiR
-         IJVjAex8XSWiS7Z47VgpuRYvgYBkGNenF1I6d5s7VS2DXp4QlNh8WXoQY9yAahYreoFM
-         QYbio8VzSXHINERBI0/Ahe/ngcVvxXZzX3kk/i4Xb+Lqj5wJyWBcl7bjri7DL3t01Sca
-         qGO7/qasenJZdP2f8b3ce8POu6RqnGXiLUrlisN7Qr4/bIyvXOam0g+piqqP1Qtn/8A/
-         nAZJH8I2FljAU88i4OgFJ+RHmwBy0zPdeHQqJHMWqpSEkVPNUgAJMbhsPHGA9VRzO6s+
-         c8WQ==
-X-Gm-Message-State: AOJu0Yw8LIG1xdP1+4sIUpj2IezXsLeKdruirf+S8VL90CFlvXIC3uy0
-	6NeBZhp2OFSJiORtwdRNzAYvp84vsp5xbYKOy+gxvELuzJybviSYY++H
-X-Gm-Gg: Acq92OET2YRyGDNtz1e06ucogo4biGgmfzWKUYswvE5B7SnvQ6M76IKSBoGwWFsK/7b
-	syts9Al3VGHAEUK23DbSTSCM7+zqYv6wTvlkEZNvRcfNB7NMyJ3fhRwdfMH6h98fcfQHn76Ubvs
-	kByt3v41FDSNa6ViatVN0nhkh3fxWFExKo8/yIdJCY6RyFSMBFhkEHyZWZnVK+Z8mbpl+wSiNoZ
-	DQkAoGC6RrG2o8n4uZc8kuW3M5RUZeEu7Ed5tBc+Efl8X7pdfIexvJgmCgfVA0Vo22m8kYmtfa8
-	GYGwQOuGYgltoFPGvGAFX8ZQgXh0n5q//5MYR502o0Jg3p1v6XzGLzN3Guew6hDAH5mOeIZuXD7
-	xnlf0/jtwujMu2mkCxWjx34aBkd9vRtb66UaSOobPGaXAwh+P7TShHjd6K0K1ve8LpYiykoBys9
-	9oRNv4N/OALCbrZIwDKySVvsxpTN+5yk1bN1YMXs6pqNy/79hTx6I/+A8/LoX6lyXRLbEVnecO8
-	MsRJYZRORW7l2X+Gb5ifKndiD2aym4zJUwjXK48vRlwiNrAGBw=
-X-Received: by 2002:a17:903:1b4c:b0:2ba:7610:3f21 with SMTP id d9443c01a7336-2bd7e802964mr144520365ad.5.1779085483840;
-        Sun, 17 May 2026 23:24:43 -0700 (PDT)
-Received: from localhost ([2601:644:8000:5b5d:7285:c2ff:fe45:8a32])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2bd5d235e04sm140491375ad.80.2026.05.17.23.24.42
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 17 May 2026 23:24:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=siemens.com header.i=alexander.sverdlin@siemens.com header.b="HzMGiasL"
+Received: by mta-64-226.siemens.flowmailer.net with ESMTPSA id 20260518083435ecc28299a700020736
+        for <linux-omap@vger.kernel.org>;
+        Mon, 18 May 2026 10:34:35 +0200
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; s=fm1;
+ d=siemens.com; i=alexander.sverdlin@siemens.com;
+ h=Date:From:Subject:To:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding:Cc;
+ bh=pfjQVAg4y4PH7Vz3fwwpIZnd2n5nYb+HdAus0R/Y2+M=;
+ b=HzMGiasLfFBoRVmeuDGtoKkuCoX1HtCJaVZjpRm2oSUQIwIKUDjMyBl5tFC0+Kq/mgjPl+
+ krhm/KxpvvLyVdQsyXMG6t+8E32eqwjMKQwAJ7Z7ZmRrJdW8R3f/ca22THoELih4nuxirD2B
+ CVldqgEhA81DOZI3alwAZWITEnraRf6r8oqFtLLv6mnrni10zZUMjiZhTEP5tEsJy0UByV1m
+ 3sXkAAFV1x/caoeiTPxKpC9ChLlDjJ7n7XOiNaGhL4kXbujXc5UFsiN0rlIZ7OL5zYqqzoMY
+ 0aefwxQZq7ulUWFIe8vJ6+hC3vi6ytkF1unc1sQUEX+yaCrsrVqWg7Pg==;
+From: "A. Sverdlin" <alexander.sverdlin@siemens.com>
+To: linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Alexander Sverdlin <alexander.sverdlin@siemens.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>,
+	Shree Ramamoorthy <s-ramamoorthy@ti.com>,
+	Francesco Dolcini <francesco@dolcini.it>,
+	Nishanth Menon <nm@ti.com>,
+	Vignesh Raghavendra <vigneshr@ti.com>,
+	stable@vger.kernel.org
+Subject: [PATCH v2] regulator: tps65219: fix irq_data.rdev not being assigned
+Date: Mon, 18 May 2026 10:31:11 +0200
+Message-ID: <20260518083113.2063368-1-alexander.sverdlin@siemens.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Sun, 17 May 2026 23:24:42 -0700
-Message-Id: <DILL63IHZU3T.15YECJHURQZSC@gmail.com>
-Cc: <linux-omap@vger.kernel.org>, "Aaro Koskinen" <aaro.koskinen@iki.fi>,
- "Kevin Hilman" <khilman@baylibre.com>, "Roger Quadros" <rogerq@kernel.org>,
- "Tony Lindgren" <tony@atomide.com>, "Lee Jones" <lee@kernel.org>, "open
- list" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] mfd: twl6030-irq: Use of_device_get_match_data()
-From: "Rosen Penev" <rosenp@gmail.com>
-To: "Andreas Kemnade" <andreas@kemnade.info>, "Rosen Penev"
- <rosenp@gmail.com>
-X-Mailer: aerc 0.21.0-0-g5549850facc2
-References: <20260518041558.765958-1-rosenp@gmail.com>
- <20260518074631.532e25dd@kemnade.info>
-In-Reply-To: <20260518074631.532e25dd@kemnade.info>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Flowmailer-Platform: Siemens
+Feedback-ID: 519:519-456497:519-21489:flowmailer
 
-On Sun May 17, 2026 at 10:46 PM PDT, Andreas Kemnade wrote:
-> On Sun, 17 May 2026 21:15:58 -0700
-> Rosen Penev <rosenp@gmail.com> wrote:
->
->> Use of_device_get_match_data() to fetch the IRQ mapping table directly i=
-nstead of open-coding an of_match_device() lookup.
->>
->> This also lets the driver drop the of_device.h include.
->>
->> Assisted-by: Codex:GPT-5.5
->> Signed-off-by: Rosen Penev <rosenp@gmail.com>
->> ---
->>  drivers/mfd/twl6030-irq.c | 10 ++++------
->>  1 file changed, 4 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
->> index 0ca00f618d4d..8831c81a1f90 100644
->> --- a/drivers/mfd/twl6030-irq.c
->> +++ b/drivers/mfd/twl6030-irq.c
->> @@ -27,7 +27,6 @@
->>  #include <linux/suspend.h>
->>  #include <linux/of.h>
->>  #include <linux/irqdomain.h>
->> -#include <linux/of_device.h>
->>
->>  #include "twl-core.h"
->>
->> @@ -293,10 +292,10 @@ int twl6030_init_irq(struct device *dev, int irq_n=
-um)
->>  	int			nr_irqs;
->>  	int			status;
->>  	u8			mask[3];
->> -	const struct of_device_id *of_id;
->> +	const int *irq_mapping_tbl;
->>
->> -	of_id =3D of_match_device(twl6030_of_match, dev);
->
-> twl6030_of_match is used only here.
->
->> -	if (!of_id || !of_id->data) {
->> +	irq_mapping_tbl =3D of_device_get_match_data(dev);
->
-> so how should of_device_get_match_data() know about it?
-Ah looks like this is wrong.
->
-> Regards,
-> Andreas
+From: Alexander Sverdlin <alexander.sverdlin@siemens.com>
+
+Commit 64a6b577490c ("regulator: tps65219: Remove debugging helper
+function") removed the tps65219_get_rdev_by_name() helper along with
+the irq_data.rdev assignment that depended on it. This left
+irq_data.rdev uninitialized for all IRQs, causing undefined behavior
+when regulator_notifier_call_chain() is called from the IRQ handler:
+
+  Internal error: Oops: 0000000096000004
+  pc : regulator_notifier_call_chain
+  lr : tps65219_regulator_irq_handler
+  Call trace:
+   regulator_notifier_call_chain
+   tps65219_regulator_irq_handler
+   handle_nested_irq
+   regmap_irq_thread
+   irq_thread_fn
+   irq_thread
+   kthread
+   ret_from_fork
+
+Instead of restoring a dedicated lookup array, restructure the probe
+function to combine regulator registration with IRQ registration in
+the same loop. This way the rdev returned by devm_regulator_register()
+is naturally available for assigning to irq_data.rdev without any
+auxiliary data structure.
+
+Non-regulator IRQs (SENSOR, TIMEOUT) that don't correspond to any
+registered regulator are registered with rdev=NULL, and the IRQ handler
+is protected with a NULL check to avoid crashing.
+
+Cc: stable@vger.kernel.org
+Closes: https://lore.kernel.org/all/aBDSTxALaOc-PD7X@gaggiata.pivistrello.it/
+Reported-by: Francesco Dolcini <francesco@dolcini.it>
+Fixes: 64a6b577490c ("regulator: tps65219: Remove debugging helper function")
+Signed-off-by: Alexander Sverdlin <alexander.sverdlin@siemens.com>
+---
+Changelog:
+v2:
+- added "Reported-by:"; "Closes:" instead of "Link:"; Cc: stable@...
+
+ drivers/regulator/tps65219-regulator.c | 135 +++++++++++++++++--------
+ 1 file changed, 95 insertions(+), 40 deletions(-)
+
+diff --git a/drivers/regulator/tps65219-regulator.c b/drivers/regulator/tps65219-regulator.c
+index d77ca486879fd..324c3a33af8a4 100644
+--- a/drivers/regulator/tps65219-regulator.c
++++ b/drivers/regulator/tps65219-regulator.c
+@@ -346,8 +346,9 @@ static irqreturn_t tps65219_regulator_irq_handler(int irq, void *data)
+ 		return IRQ_HANDLED;
+ 	}
+ 
+-	regulator_notifier_call_chain(irq_data->rdev,
+-				      irq_data->type->event, NULL);
++	if (irq_data->rdev)
++		regulator_notifier_call_chain(irq_data->rdev,
++					      irq_data->type->event, NULL);
+ 
+ 	dev_err(irq_data->dev, "Error IRQ trap %s for %s\n",
+ 		irq_data->type->event_name, irq_data->type->regulator_name);
+@@ -398,14 +399,65 @@ static struct tps65219_chip_data chip_info_table[] = {
+ 	},
+ };
+ 
+-static int tps65219_regulator_probe(struct platform_device *pdev)
++static bool tps65219_is_regulator_name(const struct tps65219_chip_data *pmic,
++				       const char *name)
++{
++	int i;
++
++	for (i = 0; i < pmic->common_rdesc_size; i++)
++		if (!strcmp(pmic->common_rdesc[i].name, name))
++			return true;
++	for (i = 0; i < pmic->rdesc_size; i++)
++		if (!strcmp(pmic->rdesc[i].name, name))
++			return true;
++	return false;
++}
++
++static int tps65219_register_irqs(struct platform_device *pdev,
++				  struct tps65219 *tps,
++				  struct regulator_dev *rdev,
++				  struct tps65219_regulator_irq_type *irq_types,
++				  int nirqs,
++				  const char *regulator_name)
+ {
+ 	struct tps65219_regulator_irq_data *irq_data;
++	int i, irq, error;
++
++	for (i = 0; i < nirqs; i++) {
++		if (strcmp(irq_types[i].regulator_name, regulator_name))
++			continue;
++
++		irq = platform_get_irq_byname(pdev, irq_types[i].irq_name);
++		if (irq < 0)
++			return -EINVAL;
++
++		irq_data = devm_kmalloc(tps->dev, sizeof(*irq_data), GFP_KERNEL);
++		if (!irq_data)
++			return -ENOMEM;
++
++		irq_data->dev = tps->dev;
++		irq_data->type = &irq_types[i];
++		irq_data->rdev = rdev;
++
++		error = devm_request_threaded_irq(tps->dev, irq, NULL,
++						  tps65219_regulator_irq_handler,
++						  IRQF_ONESHOT,
++						  irq_types[i].irq_name,
++						  irq_data);
++		if (error)
++			return dev_err_probe(tps->dev, error,
++					     "Failed to request %s IRQ %d\n",
++					     irq_types[i].irq_name, irq);
++	}
++	return 0;
++}
++
++static int tps65219_regulator_probe(struct platform_device *pdev)
++{
+ 	struct tps65219_regulator_irq_type *irq_type;
+ 	struct tps65219_chip_data *pmic;
+ 	struct regulator_dev *rdev;
+ 	int error;
+-	int irq;
+ 	int i;
+ 
+ 	struct tps65219 *tps = dev_get_drvdata(pdev->dev.parent);
+@@ -425,6 +477,19 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
+ 			return dev_err_probe(tps->dev, PTR_ERR(rdev),
+ 					      "Failed to register %s regulator\n",
+ 					      pmic->common_rdesc[i].name);
++
++		error = tps65219_register_irqs(pdev, tps, rdev,
++					       pmic->common_irq_types,
++					       pmic->common_irq_size,
++					       pmic->common_rdesc[i].name);
++		if (error)
++			return error;
++		error = tps65219_register_irqs(pdev, tps, rdev,
++					       pmic->irq_types,
++					       pmic->dev_irq_size,
++					       pmic->common_rdesc[i].name);
++		if (error)
++			return error;
+ 	}
+ 
+ 	for (i = 0; i <  pmic->rdesc_size; i++) {
+@@ -434,52 +499,42 @@ static int tps65219_regulator_probe(struct platform_device *pdev)
+ 			return dev_err_probe(tps->dev, PTR_ERR(rdev),
+ 					     "Failed to register %s regulator\n",
+ 					     pmic->rdesc[i].name);
++
++		error = tps65219_register_irqs(pdev, tps, rdev,
++					       pmic->common_irq_types,
++					       pmic->common_irq_size,
++					       pmic->rdesc[i].name);
++		if (error)
++			return error;
++		error = tps65219_register_irqs(pdev, tps, rdev,
++					       pmic->irq_types,
++					       pmic->dev_irq_size,
++					       pmic->rdesc[i].name);
++		if (error)
++			return error;
+ 	}
+ 
++	/* Register non-regulator IRQs (TIMEOUT, SENSOR) with rdev=NULL */
+ 	for (i = 0; i < pmic->common_irq_size; ++i) {
+ 		irq_type = &pmic->common_irq_types[i];
+-		irq = platform_get_irq_byname(pdev, irq_type->irq_name);
+-		if (irq < 0)
+-			return -EINVAL;
+-
+-		irq_data = devm_kmalloc(tps->dev, sizeof(*irq_data), GFP_KERNEL);
+-		if (!irq_data)
+-			return -ENOMEM;
+-
+-		irq_data->dev = tps->dev;
+-		irq_data->type = irq_type;
+-		error = devm_request_threaded_irq(tps->dev, irq, NULL,
+-						  tps65219_regulator_irq_handler,
+-						  IRQF_ONESHOT,
+-						  irq_type->irq_name,
+-						  irq_data);
++		if (tps65219_is_regulator_name(pmic, irq_type->regulator_name))
++			continue;
++		error = tps65219_register_irqs(pdev, tps, NULL,
++					       irq_type, 1,
++					       irq_type->regulator_name);
+ 		if (error)
+-			return dev_err_probe(tps->dev, error,
+-					     "Failed to request %s IRQ %d\n",
+-					     irq_type->irq_name, irq);
++			return error;
+ 	}
+ 
+ 	for (i = 0; i < pmic->dev_irq_size; ++i) {
+ 		irq_type = &pmic->irq_types[i];
+-		irq = platform_get_irq_byname(pdev, irq_type->irq_name);
+-		if (irq < 0)
+-			return -EINVAL;
+-
+-		irq_data = devm_kmalloc(tps->dev, sizeof(*irq_data), GFP_KERNEL);
+-		if (!irq_data)
+-			return -ENOMEM;
+-
+-		irq_data->dev = tps->dev;
+-		irq_data->type = irq_type;
+-		error = devm_request_threaded_irq(tps->dev, irq, NULL,
+-						  tps65219_regulator_irq_handler,
+-						  IRQF_ONESHOT,
+-						  irq_type->irq_name,
+-						  irq_data);
++		if (tps65219_is_regulator_name(pmic, irq_type->regulator_name))
++			continue;
++		error = tps65219_register_irqs(pdev, tps, NULL,
++					       irq_type, 1,
++					       irq_type->regulator_name);
+ 		if (error)
+-			return dev_err_probe(tps->dev, error,
+-					     "Failed to request %s IRQ %d\n",
+-					     irq_type->irq_name, irq);
++			return error;
+ 	}
+ 
+ 	return 0;
+-- 
+2.52.0
 
