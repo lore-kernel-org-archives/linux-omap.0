@@ -1,96 +1,84 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0C8423C8A0;
-	Mon, 18 May 2026 16:24:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A21B140315E;
+	Tue, 19 May 2026 09:02:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779121441; cv=none; b=Y8k3EWzemBN4aYhNNq2MWYiVkQ6vn4S+xaUHBR/uh2FWNbgYvtZ6OJfKNalYoS4nYWwbJN+NhpJZLtfJUQmaHDyI1P2cgl2wN7Cla/Cp7f+bQqk9fjUIRKzGtabNMzCgVOmiW9OfBPWWXq7kRvIt19bO9/muUeYX8DO5eKcyw6s=
+	t=1779181334; cv=none; b=QnvticBV99wMqhrgvuI9e5pgHVCRJ+ce0xqgSWw8e6DTLzYRDx4D9Sq6A45Lsd0mFysaBzq6ReVN695QoA2u61r/T11CA03xFkdB0ygGawdWwmBzjVPjBxJ4NFBFoj+YnvvrRyB6gIbKWC++iBZcWE74HBsTwVcJhAD93PTtlHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779121441; c=relaxed/simple;
-	bh=fKQruQ7M7VOk36Hro21Vq4MYVghNnUgHIPzzALWoe80=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=rjUpjhvUZmVPjDNqVwaLA9jDkoTPQEi62nFu2JreuehR7RSrzCGUPBSHIIIDEsqtS9/2aYbQsdW0uklUxEi2XODC3byoQ59VG7nSVJOYihvOIqKx6oL0HdzSE0X0zl7eSVLEMALHEsLbIGKB/VfiYs+5zg4pNYX+zULBuM80Qy4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZoSb7SCJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779181334; c=relaxed/simple;
+	bh=mPEptvOyR7WgDZVN1gwcEGA/JK+W8VxWTRuOcfaF5Hw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KUJwUs255I3ve7GmTqn6Bu/aw8fA0U67EwTJbfTJxkdD1eup6EmyujkkacCfmZgutmrGZlJLmPSjKCNYfNGLU4R+TvoI05aZPfL+aGXY2Uzbei+xbecfBNYTtSmAYcuT1Kx30bc+DZSRCVBhK57Fu4R8MMErVRhJ1FbWXh0ztWI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UHOzkY7s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZoSb7SCJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB764C2BCC7;
-	Mon, 18 May 2026 16:23:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UHOzkY7s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CD7CC2BCB3;
+	Tue, 19 May 2026 09:02:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779121441;
-	bh=fKQruQ7M7VOk36Hro21Vq4MYVghNnUgHIPzzALWoe80=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-	b=ZoSb7SCJWAIlaksVZvaIUN7twee63cZ4OiACFkZgAtZTxCbUW/vFkgmfkpDpA8Jqa
-	 0gA3bDn/PwKNwKUyuqywyCOtlewHkIpztBzcXekS7DW0kT6sthJJBEvlknqjfCIfI/
-	 YZTzUA0shmqUu1QJbt64ppR1k0Xu5EFfjcLAB6mYboLx/JKOev62RDWPIINQ/flCBw
-	 7rh0glknPoW/wICudz/5LS8NuK9HJbINnom0WuZJtf8TAIEjC188il2T17d2alTy9U
-	 2fL1TIJ8LDDBh2czA9Bkyk7wa8my4dxDIVyYW+53i/IwlTZ7J3DYCITbXOUdqvvpxb
-	 yiynRes4U3ImQ==
+	s=k20201202; t=1779181334;
+	bh=mPEptvOyR7WgDZVN1gwcEGA/JK+W8VxWTRuOcfaF5Hw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=UHOzkY7sRr0n399jZmuCztrnBd3N+2ZsYhKUe3+L2evzsoAh6WEPF7xggATG+QDrF
+	 yjkjR2Pw05qWc3K4hYRSEi5VEySVircFp/4BaaaigO2KyEks8HyzAtTBCPVpnZRGhA
+	 gMgzURwonviE0ZeJi69mGiO92LZtlPUBMkySQTNqU0EcetqZO/KwH5NBLdS6Y/W5jj
+	 XzfKrU6WEGk5u6m85OFJSdanHmfNozFgVd0H4I5SF9Bvx5SFoWP2D9H/3bKngfP5aV
+	 EXAWcTtQCIsUEg9nAOnPKxZZvCIfZ/ndsfmRdLPooAR8DmH04C8pKMOXsqK76hFGHy
+	 qjtnKZcqz+f5Q==
+Date: Tue, 19 May 2026 10:02:09 +0100
 From: Mark Brown <broonie@kernel.org>
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Alexander Sverdlin <alexander.sverdlin@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Liam Girdwood <lgirdwood@gmail.com>, 
- Shree Ramamoorthy <s-ramamoorthy@ti.com>, 
- Francesco Dolcini <francesco@dolcini.it>, Nishanth Menon <nm@ti.com>, 
- Vignesh Raghavendra <vigneshr@ti.com>, stable@vger.kernel.org
-In-Reply-To: <20260518083113.2063368-1-alexander.sverdlin@siemens.com>
-References: <20260518083113.2063368-1-alexander.sverdlin@siemens.com>
-Subject: Re: [PATCH v2] regulator: tps65219: fix irq_data.rdev not being
- assigned
-Message-Id: <177909879431.31945.5152188699162995282.b4-ty@b4>
-Date: Mon, 18 May 2026 11:06:34 +0100
+To: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+Cc: linux-sound@vger.kernel.org, linux-omap@vger.kernel.org,
+	Jarkko Nikula <jarkko.nikula@bitmer.com>,
+	Peter Ujfalusi <peter.ujfalusi@gmail.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
+Subject: Re: [PATCH v3] ASoC: ti: omap3pandora: update board check to use DT
+ compatible
+Message-ID: <edc020fe-1615-4a11-b414-c6d4e8b7dd1f@sirena.org.uk>
+References: <20260517023723.92731-3-enelsonmoore@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.16-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1139; i=broonie@kernel.org;
- h=from:subject:message-id; bh=fKQruQ7M7VOk36Hro21Vq4MYVghNnUgHIPzzALWoe80=;
- b=owEBbQGS/pANAwAKASTWi3JdVIfQAcsmYgBqCz0dIZKaXCFTRvdCLqCORghGQdgopctLMQ7MM
- GU/sZ9BO9aJATMEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCags9HQAKCRAk1otyXVSH
- 0EhFB/4yMl+qTHK9K/ZfiVdM5qcpjUxUQXNSdgcITtYRCQhPHCOXKTO8KlfCJZPZ57Hj12YKSUN
- nEtqGrvZApt6VfXJ86d7fBSWvz/Lr6949N6qWePJrt+7hP5FGdrR2dfaQvJAmUQk6RV/8exe2t3
- F2WVA1BWncZPQnO+hzc0TA9tPG0erJDN/NV4V6U77fUcuZXdvfvIrzdUgmv1R9NVZ31SahPBcCm
- 1zLleZyifsOsx07bem1Ccc8NsE2mT7wDYF8tMXYYoRbJtH1glBEAwmXTniBTpTyIvx43+hwa0xE
- zxGgU8tjc4hSuLDj+rcdGG4opmYSsDRa6Jl3g5nRClOVEjNQ
-X-Developer-Key: i=broonie@kernel.org; a=openpgp;
- fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="D+RprFDLBmMQK02r"
+Content-Disposition: inline
+In-Reply-To: <20260517023723.92731-3-enelsonmoore@gmail.com>
+X-Cookie: If it ain't baroque, don't phiques it.
 
-On Mon, 18 May 2026 10:31:11 +0200, A. Sverdlin wrote:
-> regulator: tps65219: fix irq_data.rdev not being assigned
 
-Applied to
+--D+RprFDLBmMQK02r
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git for-7.1
+On Sat, May 16, 2026 at 07:37:22PM -0700, Ethan Nelson-Moore wrote:
+> The omap3pandora driver contains a check for the ARM machine ID via the
+> machine_is_omap3_pandora() macro. The board concerned now supports
+> only FDT booting, which does not use machine IDs, and therefore the
 
-Thanks!
+Please do not submit new versions of already applied patches, please
+submit incremental updates to the existing code.  Modifying existing
+commits creates problems for other users building on top of those
+commits so it's best practice to only change pubished git commits if
+absolutely essential.
 
-[1/1] regulator: tps65219: fix irq_data.rdev not being assigned
-      https://git.kernel.org/broonie/regulator/c/f9b2d3b703d1
+--D+RprFDLBmMQK02r
+Content-Type: application/pgp-signature; name="signature.asc"
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.
+-----BEGIN PGP SIGNATURE-----
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmoMJxEACgkQJNaLcl1U
+h9AqawgAhcRrYXX6dut523TH7BMnHvW6onT/mX47R8iOwt1qvsDAKH87/Ff+VDR4
+hxV1bbBTd9NqDApXLBTUuESn1kQwUgwOs2P90qW/6vEIRSy/dYH1vJceYJ1AoNDk
+qTB6epFwcyIe0U6ymKg6u4efFKxAMH9xIKJDjYHH0DZVx2qBpxKnPbI3w/6pa+On
+qacBnuEupeMOJ8ldVwcMa/jEGoU1kUIyAy5B8UAY9K479H5eN3adNDMdg48mZEoN
+sLeTQRO0W3RG5w6H+i4rZ6V2tzU3TJJ/BiLo6C84oGa5t1TL73aS/N5wKP15d5ej
+29a0/VufZvlKX9r0o7HlD0tmvoBLZA==
+=SN/l
+-----END PGP SIGNATURE-----
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
+--D+RprFDLBmMQK02r--
