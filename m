@@ -1,80 +1,105 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E4893603C0
-	for <linux-omap@vger.kernel.org>; Wed, 20 May 2026 06:55:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 923252F25E4
+	for <linux-omap@vger.kernel.org>; Wed, 20 May 2026 07:05:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779260130; cv=none; b=A99mI5DH9grPp+zPpddlsfI8HPPsMLhG6pr3DVSDw86nZ1x/FoF8/wZd7FbiG29S5j9J5fu4dWrTDNx9c6mSeQVl+daPyq9/Av9GB8lih6opE2ozJ1goQEnU9GrGsa9cO98P4ZWPAgfVD5wd1mXu1IyI8lymhcHuvGPfteNxYrw=
+	t=1779260739; cv=none; b=ubMWPJA2uwqCdleHKOVwRzRfLSSc+zsj2kRyOmvAu6RgM57alOuyF4fgJpYKsG2ZQu7X/532ZbtTn8juXqk67XSnGqC7xHXm3vNPd/lkGsX6M5NihC+vwmzEuvHJhrxztVFa5pe/kEj8QE2sRZRlqST0u9oudfeCULuhV0Fuzls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779260130; c=relaxed/simple;
-	bh=F5OWh7vDe8NWAJEl7Un5LdCvfs5C5QmSjVqPyrD3i3A=;
+	s=arc-20240116; t=1779260739; c=relaxed/simple;
+	bh=hht1w8vuTNKlyUu0cIe3TJvjZttRuUdjfD3dz2HiCfM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=jpL3092exPpAJEW8F9RArsI4QbdDYHZ8rRRccHbMXOz8llFV0Fkc/9L4oxl7UQLiICWMpmwrmcHlfpjgtImlRX8FUhg6uVtQ55+vB3JeSKPBEm/roknut3JcZJNvdIuj27I1BshUZhuea4xa35+80801aqWO2v7WoqsfUldc46I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EIodqNHF; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=aDbqmweVaVmeAJWJZ6CXLD6JeN7/CQyYH6rW+JPurJXdzNyD+Qq8zwx2Q3s0BxgcgXJwKprRnUW2xcyqwFbE1R0gdbJ9Gh/T+w+4vognTfGczbGzZ4S0xKvD13BhpVU1INZB1ft0tRVMmmN5v1sycXaJkgBwHMb3q8O+btO88D4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PkTHLITs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EIodqNHF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CBC81F00897
-	for <linux-omap@vger.kernel.org>; Wed, 20 May 2026 06:55:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PkTHLITs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40E051F00897
+	for <linux-omap@vger.kernel.org>; Wed, 20 May 2026 07:05:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779260129;
-	bh=F5OWh7vDe8NWAJEl7Un5LdCvfs5C5QmSjVqPyrD3i3A=;
+	s=k20260515; t=1779260738;
+	bh=hht1w8vuTNKlyUu0cIe3TJvjZttRuUdjfD3dz2HiCfM=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=EIodqNHFKu2VMguG6saeXE9j+edQmczdI5zoWCbdBCwLYJVQfJlf/HZ+K2qBe+XTE
-	 433t6U49lPuiqljHcabKaf//T/Ivu/dyQKc4BaXvdX4djVhBUNMag7oYL1NkNgogXo
-	 EM5ac0RkE9gFIzlgt1MzQPfqcW5rPGqZBbxVchG0vCsQDN+qVou1OWDjyM3YrD6Zbf
-	 cCmS8YYShE+bOPmlbpujetiKd33MxxlzzdJ000XqgzkfSNSGBZxDqNciAeozQZ4tZQ
-	 weSOz1HzuK17mh4DwrHTOkvugB0nGBFiehKFfFegymqqe5RDgFSNsZadrrDVuBzajM
-	 0+6grBEBV+Vew==
-Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5a40b2bc96dso5169833e87.3
-        for <linux-omap@vger.kernel.org>; Tue, 19 May 2026 23:55:29 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ/httwh4HW9xYmu4p756HB4uWK1JJgkxdB0l1C1DkG6hY6YG3G7eMh0hdqJHErpoeOYIFYzMEXHQ7l1@vger.kernel.org
-X-Gm-Message-State: AOJu0YxlpbgHW1fYv2si2O5e1oZRaGvusxr40oEYzmkpRnH3VS1pIaHq
-	74/h1mh4K9DI/uH14amUUMdo/a3KmbaL6TTLuVFwH6wUNezzFPrjWhlMnT95zzAdHlX8RTrlcpJ
-	HHREn74dZgPWkUoy/SRbzTW8IeKozEJqlVGKnjqJ46g==
-X-Received: by 2002:a05:6512:3d88:b0:5a8:6747:b053 with SMTP id
- 2adb3069b0e04-5aa0e7322a9mr9105074e87.27.1779260127999; Tue, 19 May 2026
- 23:55:27 -0700 (PDT)
+	b=PkTHLITs4gEC2QTC1/MW7cwBGfPRqrhwYDmJJW7fJCC7kIDOabwaIdOtEpuqwZFKC
+	 EutPXM9hdeSJXEVsj4qtRiBd0nR3DPHVPczVyKPMc8jCczFeGXklo/wyEEP2B0kyZ3
+	 evbzx2kX8uUu4EAiC9nonXTw4/NtCirt5abuPwhjV4ug+L3DW9U758psgazVPEP940
+	 GraU4ogqLde4z+kdflnv047typ9GusSH4K7Jbf0vOIjPi0V4q8YAbGeEqYk01JCahu
+	 2ZCo0dRFZXSyL5W2xnIXAelyC1sPz1zUqskc+0RvcodYQley3rqf5DvCh8yLK/mrBp
+	 J0zahZkS0wg6w==
+Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-393d6025f99so52242821fa.0
+        for <linux-omap@vger.kernel.org>; Wed, 20 May 2026 00:05:38 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+dmiXPwoy08VPSJk4JjzpJuer8Cokcmv/MUNZefjF3oeHjD0Irn42ODu9ck1b+3m07n7NzE7smdeBZ@vger.kernel.org
+X-Gm-Message-State: AOJu0YzxG0A9nJxjtqXvAoe4oyGMutGSZLD17dV7GgjaYs3EwL8JTaxG
+	zcxRYqsrws1bqLDIj1ZxZAbPnih5jwiPqeW8IQwdiIp3SOrjrRoFCedjpVrc1Kc4zixU06ao46E
+	y7Hz6deGE3aq/O1yNgkP/ITAv3Pq2B9gbseiUAyY4Wg==
+X-Received: by 2002:a05:651c:4389:20b0:38b:dd55:b71 with SMTP id
+ 38308e7fff4ca-3945b64392bmr53652221fa.20.1779260737006; Wed, 20 May 2026
+ 00:05:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260309-gpio-hog-fwnode-v2-0-4e61f3dbf06a@oss.qualcomm.com>
- <20260309-gpio-hog-fwnode-v2-5-4e61f3dbf06a@oss.qualcomm.com>
- <ag0Dn66ZVnbTc7J2@google.com> <ag1GJygtLgngKQqj@google.com>
-In-Reply-To: <ag1GJygtLgngKQqj@google.com>
+References: <20260430-nokia770-gpio-swnodes-v7-0-c88f74c90dd6@oss.qualcomm.com>
+ <CAMRc=MdN9EpQVW=1Sb-9hRdt56Y5NNbskujjq2RiXhu90t0QyA@mail.gmail.com>
+ <20260513145926.2dc4d037@kemnade.info> <agYB3-T9yz9-hdr4@darkstar.musicnaut.iki.fi>
+In-Reply-To: <agYB3-T9yz9-hdr4@darkstar.musicnaut.iki.fi>
 From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Wed, 20 May 2026 08:55:15 +0200
-X-Gmail-Original-Message-ID: <CAMRc=Mc=EohSiLTnmpVKJ_ECog0Km3iHSic0V_f6wKqB2z9aLg@mail.gmail.com>
-X-Gm-Features: AVHnY4L05DYyj4JGkURacGAhkQpr2W67TrPmN7V2hcVAFkR5gQz7mSESeVfBauE
-Message-ID: <CAMRc=Mc=EohSiLTnmpVKJ_ECog0Km3iHSic0V_f6wKqB2z9aLg@mail.gmail.com>
-Subject: Re: [PATCH v2 5/6] gpio: remove machine hogs
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Linus Walleij <linusw@kernel.org>, 
-	Geert Uytterhoeven <geert+renesas@glider.be>, Frank Rowand <frowand.list@gmail.com>, 
-	Mika Westerberg <westeri@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, 
+Date: Wed, 20 May 2026 09:05:25 +0200
+X-Gmail-Original-Message-ID: <CAMRc=MdYPhdo4-OtJa=dEz8NZt2E2WWruHsiGwM_9UBEDLRm0g@mail.gmail.com>
+X-Gm-Features: AVHnY4Jxd4VHyVbpKe7wUqMdl1gLnqLNnWj1oS8zzh-8hShk08YnuC0WaNL22GY
+Message-ID: <CAMRc=MdYPhdo4-OtJa=dEz8NZt2E2WWruHsiGwM_9UBEDLRm0g@mail.gmail.com>
+Subject: Re: [PATCH v7 0/3] ARM: omap1: use real firmware node lookup for
+ GPIOs on Nokia 770
+To: Kevin Hilman <khilman@baylibre.com>
+Cc: Andreas Kemnade <andreas@kemnade.info>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, 
 	Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, 
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, linux-gpio@vger.kernel.org, 
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Arnd Bergmann <arnd@arndb.de>, driver-core@lists.linux.dev, 
 	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
 	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
-	linux-doc@vger.kernel.org
+	Aaro Koskinen <aaro.koskinen@iki.fi>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 20, 2026 at 7:27=E2=80=AFAM Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> >
-> > If there is no replacement maybe we can resurrect this? Or shoudl we
-> > have add swnode support for hogs?
+On Thu, May 14, 2026 at 7:10=E2=80=AFPM Aaro Koskinen <aaro.koskinen@iki.fi=
+> wrote:
 >
-> Hmm, I guess it is already there so I should simply switch. Sorry about
-> the noise.
+> Hi,
 >
+> On Wed, May 13, 2026 at 02:59:26PM +0200, Andreas Kemnade wrote:
+> > On Mon, 11 May 2026 15:34:39 +0200
+> > Bartosz Golaszewski <brgl@kernel.org> wrote:
+> > > > This converts Nokia 770 to using real firmware node lookup for GPIO=
+s by
+> > > > attaching the software nodes describing GPIO controllers to their t=
+arget
+> > > > devices.
+> > > >
+> > > > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcom=
+m.com>
+> > >
+> > > Hi!
+> > >
+> > > Gentle ping, can this be queued now for v7.2?
+> > >
+> > So any objections from your side, Aaro?
+>
+> It's fine.
+>
+> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+>
+> A.
 
-Earlier in this series you have examples of using software node based
-hogging, I hope you can use it?
+Kevin,
 
-Bart
+I think you offered to queue these patches before, can you take them for v7=
+.2?
+
+Thanks,
+Bartosz
