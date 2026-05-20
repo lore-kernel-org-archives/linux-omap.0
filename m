@@ -1,175 +1,204 @@
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010051.outbound.protection.outlook.com [52.101.193.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 270013A4F26
-	for <linux-omap@vger.kernel.org>; Wed, 20 May 2026 11:16:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779275808; cv=none; b=HUrmjPtUMVuysm+uRdJ1lQMiOSZq1H5Zr/GkQmZT3XjKFJWYZpBOmfj4hKlcmryKyDXq6XZ+j17x6opjTJPOGmWWRmjQDwdDVN3zdRfBr4+etfbmc6n+a+Rs5/YohZaJqEB9Cm62Noxt4E4wDeL7SYVBWkWqiU3OgGeYPFrGzRk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779275808; c=relaxed/simple;
-	bh=bpRfX7E/XCI4WdfVZIDJW6fSsGDUU1ccxHUq45Gn9qc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oAUL2yKY+2zTTNRRQ/p3OU96LreWveK8KxUUiK0R2iTUZ47vPGTPriXO3e+QEot9KkONtxE6SuNYikElpiuM7cZeQ5SxsVfQFjf3iIQa11dJTKEbTfAaTeDg0Ok/GZzR4Qsc+DpmK8GRk3Dp8AFOw/i2OCp6CjVuu2JzSjm2O7U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=B2LDmvKf; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=ecxHNvHb; arc=none smtp.client-ip=205.220.180.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 605D73DCDA3;
+	Wed, 20 May 2026 11:24:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.51
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1779276296; cv=fail; b=XYhKxU91gw5QiA5A7OSKGq4Y1utYmvKlAHJ55CTdZOflKKiubH+Htj5wF3SPDiqUU16tCJI/tYNe9XoE0zor/+L127tPJIUsTzIRhawPWRSu0yCY3Nk+Q9UF+hHMQjxA9VrgwiT0+p02qZLEjqx1quSBYH0LOAqTYOjWJyyWTdY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1779276296; c=relaxed/simple;
+	bh=xyqRmrc/SoHMS9DvjiiPmMdpYcUlSrvPaeBzkyLXZh4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=GWfRpF0QpGiFOjo60Lg9be9WKrXQ8+AoyudhysFVaWCbUzSPHLG8SZCsUXnFHZyq/mxfDSKDeDaveBBZPaskE3AZnV03OT7lD2xP9tbj6j92nam3MVxWbZvmL2x3aWQ0cKhxEVgpk5ggaTFYKR8286MzWvTW2/gX6jkO/U6RSmw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=OWqINoQY; arc=fail smtp.client-ip=52.101.193.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="B2LDmvKf";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="ecxHNvHb"
-Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 64K7CUuK2065134
-	for <linux-omap@vger.kernel.org>; Wed, 20 May 2026 11:16:39 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=qcppdkim1; bh=n8LPO6eze8wVsYJxM9DPMdIT0bs2Yo8vf+8
-	RsT33kuw=; b=B2LDmvKf5/GmERjsaC9w8Tt3KpwLjK/PGsblxGnTZXH56q33Ty9
-	fMj6xMYxnegBu3Txqkp/CtcUiV/sX/KMxdgDAZsIDzko/nXL+GyWeHTTcIAKd1Py
-	LeLGpcn783qcqIiwKF/lYocvTZYmeD3GPSUqFSkP5d2VWoVSsnN+tVQubH9AT4YO
-	QHH2aWBiApb4VaEKZAfQ9m47mRrpv6jtGVFLBAP/p4ojxHNXHdfqeRkDHgpxqE36
-	7lEsUloWqV8xUd5ELNhY21GhaEzHJ24vcop3SCTM5UTG3UfPV9rXua8qCEXl+9KV
-	Y17g25+LAXDC6AWwbpwsFbgnmGQHVJxwyGg==
-Received: from mail-ua1-f72.google.com (mail-ua1-f72.google.com [209.85.222.72])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4e8t3t4cht-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Wed, 20 May 2026 11:16:39 +0000 (GMT)
-Received: by mail-ua1-f72.google.com with SMTP id a1e0cc1a2514c-960476ee6f5so1762768241.2
-        for <linux-omap@vger.kernel.org>; Wed, 20 May 2026 04:16:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1779275798; x=1779880598; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=n8LPO6eze8wVsYJxM9DPMdIT0bs2Yo8vf+8RsT33kuw=;
-        b=ecxHNvHbGKg9DxjVh1pMRpx+ZHZPaiHgEIKn3VedFw5K2pl/oV/M2lE3Jx5K1xbqsx
-         itfv1FNgQckdLa0q+cMOHQYGnjDnKnCm03N9VFhvO4SEANiiqStkNrFyWXNQizO4ah27
-         25+2BerSYK/2t/msyewa6aiLFat6qElI1Q9kZeQuGUG7HzfXz8UAdgDIfasb0anZQ+X+
-         zKpolUgiuwk70pRMqHySmMi2XFz1YjzOCf2c/3uFwpeFrZwmphkUGVyhKjlAtlbr7XkQ
-         IQmwFx+0B1Zi1f3uUUSR027n0BRuQL08MCyC/YR8aqIRnTA/SsAqBsNPaqkf7zdnM9HL
-         o3Ww==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779275798; x=1779880598;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=n8LPO6eze8wVsYJxM9DPMdIT0bs2Yo8vf+8RsT33kuw=;
-        b=MWZ0WJExLBk1b5MVwbKVmSqPzQd6Uv/W21A1rrztwAq7jGuwHLQ7e1TOqUz1ijzwjC
-         CDqwqOF5n2AzOS0kFia9djAM8LTwzFOvzFMEbA7LQCZiK03JmwDhRE9sl/BH0LhYhmps
-         TurBBqzo2hFxGDCCWdZe4JH3o2ndcOUd0iCORvlKev8K/Akohw1Ra0nIwOQ4gQsWX08O
-         sAD6Py/F2G4Wp6ms2so1mDlty793f3sBQF4Q1Eh6Vg0a/xuTRb3shyaNFW7qLZP5NCXd
-         9BBpkzf/GcEkf5EJDzPUrPf9hI/E3Pxui3Ucl14MgRRUmDs3ut9o9IV5gdf8nKQ1mQbA
-         +t7g==
-X-Forwarded-Encrypted: i=1; AFNElJ/7uu/camV1K28/Qym2JAxkyDaeKamZde1YqrC+ICQW2Rd4XLa+ZkdeFrDcExtN3qVVbVQ3UNanEGSV@vger.kernel.org
-X-Gm-Message-State: AOJu0YxMcEP22JBcqY+meXGktbPcLeXi9nv3q0covxCCbAEH+DCqIpDQ
-	Pfir8D8ONryRsOiWhhqQ43M2oxEK1DE7edb+N5p/X71YZH6fQVdaAd2+KJqiyOAmqDTyUtTaH8k
-	/zbiI1pO1oPFCR2JqBOLx/O0gUDvKhaF0qvaMDeWn/GkO1KWxCA4mvHQ5g5fbwpOldh04ZSIq
-X-Gm-Gg: Acq92OGLTr8ZxjMp3wgHa5ZQ2CHD5uT9lMp+jLbnk8F1AV35ZDeHYmNx5VR7kM7H0vo
-	8BEo6hpaae0UlVsl+1ARF0del3NOQdWD+5WuV7XVesNTjbj5YWwAxrjiuNlub/Tpyfbz3ibqjVO
-	4kim0bspivKTb/+p/1y/rZIHpdc0FLYdVluDvhtWJkApg7+z9mI6ISfrM29uV6vu6QtICGEiyrv
-	JddoE7GwBd7NDRlTk+RIOsyFeggQPa5fgdct6VbgLn4TrKkPwkycUfPfk6umxTzn3KMM4kUJTg2
-	xMIHpgTIbQ/LZa+2ZpQg61XaE06DX99aNFpuJMaXSrKifdJz3I5Q5sFs4qtn4cfmR2dcVQXTMyn
-	zkGmZpBbnc49HJLJ0xvKlgPghlUZOb1m7K1o9
-X-Received: by 2002:a05:6102:d88:b0:631:2472:e832 with SMTP id ada2fe7eead31-63a3ce1bbb4mr11402866137.8.1779275798148;
-        Wed, 20 May 2026 04:16:38 -0700 (PDT)
-X-Received: by 2002:a05:6102:d88:b0:631:2472:e832 with SMTP id ada2fe7eead31-63a3ce1bbb4mr11402834137.8.1779275797766;
-        Wed, 20 May 2026 04:16:37 -0700 (PDT)
-Received: from quoll ([178.197.219.94])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48fffb9aac4sm519463095e9.9.2026.05.20.04.16.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 20 May 2026 04:16:36 -0700 (PDT)
-From: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-To: Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <nick.desaulniers+lkml@gmail.com>,
-        Bill Wendling <morbo@google.com>,
-        Justin Stitt <justinstitt@google.com>, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org, llvm@lists.linux.dev
-Cc: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-Subject: [PATCH v2] memory: omap-gpmc: Silence W=1 kerneldoc warnings
-Date: Wed, 20 May 2026 13:16:31 +0200
-Message-ID: <20260520111630.89365-2-krzysztof.kozlowski@oss.qualcomm.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="OWqINoQY"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=G597oNL0K4kCmUz5hLEOTQKwLpA8aRNlbVAW5hbr1wwhy5e5vTKWN+fBL5jtu7wAXuf0Zy9VYjJ9NE8r8mEqO4SMeh355wwbsPqFV9nWdpPu/Egw0PxIqceR5e3c+kqv1T7F8f1OyVhUIEIJtm1WNISzSH1NTwuDbXGRYqVg6cSKhjRP7uZuceNofgaRlukaaKwxZl4k1jYFTp5PUECGSQjol+G5VGy5o0qrPCaiRYUlyqlapDul46Td1KVvDLYBQfI2ZXcGMillU4utxYO1AaMXLDvC1RHoUqLzPi7veaPNrDhne/VW9epiHotB1Ok3Ftbi72ofhZmEZ0sVipcU3w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=nEWWEUGyXIpYjIqB2rL6YOnMSuAZRG9G/KZjSdGWEEw=;
+ b=dER+kQwcVvOALInloKzQQOqqp1e2Hw/mPcpULXpq6HC1uGhdRfIuTkr2BZjWFESkAoS0DXUj1jU71gE6m2WkSQotNf3CRSRaIgAd4ldIY25wqhKJ87pFuzv+NS3rayrHX57uoy91jewuBCY/t2oH8JhFyNyRwozre4wmpogKl97BQ1rqULdQvxRmEMY0irYnD9/q16n/i9SpvrP3Mt0ekNV0Hjq819yhvSNk2Hn1j/msWMlbGxhN7aCd/9UYlR9JtOWp9KiW/811YbzH9KFBRDOnbTuMI33Pp+aXFEZ1dJMevWvu6yZFgJZJyuRPvZQYZmKX6cWl21isS076nAK4OQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 198.47.23.194) smtp.rcpttodomain=couthit.com smtp.mailfrom=ti.com; dmarc=pass
+ (p=quarantine sp=none pct=100) action=none header.from=ti.com; dkim=none
+ (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=nEWWEUGyXIpYjIqB2rL6YOnMSuAZRG9G/KZjSdGWEEw=;
+ b=OWqINoQYu2yRm/SSiyACQozpbRy1k/DP9d1SWuI/jvve7lfGgtOfCSh1p1iTIUUNzESwwkjP0Nm2c9HDtvL4qwNHSmDDcyTNqxJp+imEx3W+dTcIP2ccjTEN40G9HoeFxLNMQMcPqgnpxxrhrvzayOi4yHkmR2L012jliBWqxLI=
+Received: from BLAPR03CA0133.namprd03.prod.outlook.com (2603:10b6:208:32e::18)
+ by CH2PR10MB4247.namprd10.prod.outlook.com (2603:10b6:610:7a::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.25.23; Wed, 20 May
+ 2026 11:24:52 +0000
+Received: from BL02EPF00021F6E.namprd02.prod.outlook.com
+ (2603:10b6:208:32e:cafe::5) by BLAPR03CA0133.outlook.office365.com
+ (2603:10b6:208:32e::18) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.48.14 via Frontend Transport; Wed, 20
+ May 2026 11:24:51 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 198.47.23.194)
+ smtp.mailfrom=ti.com; dkim=none (message not signed) header.d=none;dmarc=pass
+ action=none header.from=ti.com;
+Received-SPF: Pass (protection.outlook.com: domain of ti.com designates
+ 198.47.23.194 as permitted sender) receiver=protection.outlook.com;
+ client-ip=198.47.23.194; helo=lewvzet200.ext.ti.com; pr=C
+Received: from lewvzet200.ext.ti.com (198.47.23.194) by
+ BL02EPF00021F6E.mail.protection.outlook.com (10.167.249.10) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.48.11 via Frontend Transport; Wed, 20 May 2026 11:24:51 +0000
+Received: from DLEE203.ent.ti.com (157.170.170.78) by lewvzet200.ext.ti.com
+ (10.4.14.103) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.37; Wed, 20 May
+ 2026 06:24:51 -0500
+Received: from DLEE207.ent.ti.com (157.170.170.95) by DLEE203.ent.ti.com
+ (157.170.170.78) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.37; Wed, 20 May
+ 2026 06:24:49 -0500
+Received: from lelvem-mr05.itg.ti.com (10.180.75.9) by DLEE207.ent.ti.com
+ (157.170.170.95) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.37 via Frontend
+ Transport; Wed, 20 May 2026 06:24:49 -0500
+Received: from [172.24.231.152] (danish-tpc.dhcp.ti.com [172.24.231.152])
+	by lelvem-mr05.itg.ti.com (8.18.1/8.18.1) with ESMTP id 64KBOfl51864530;
+	Wed, 20 May 2026 06:24:41 -0500
+Message-ID: <60dfd918-876b-4b3e-b18f-9d27dab3b455@ti.com>
+Date: Wed, 20 May 2026 16:54:40 +0530
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1145; i=krzysztof.kozlowski@oss.qualcomm.com;
- h=from:subject; bh=bpRfX7E/XCI4WdfVZIDJW6fSsGDUU1ccxHUq45Gn9qc=;
- b=owEBbQKS/ZANAwAKAcE3ZuaGi4PXAcsmYgBqDZgOhJGanrF4VU+u0it6gisGEiiblRZ0i9PVN
- A1ljkrnIr2JAjMEAAEKAB0WIQTd0mIoPREbIztuuKjBN2bmhouD1wUCag2YDgAKCRDBN2bmhouD
- 165RD/4s6ylq3i1H6zWnYdYPCZ4sykHHKNKctsLXk7ozJfbpYs9VMrja1E9wWiMA2IOGEnJ6kmO
- DPZaIwmJjvXJ+RZjAhibQDSYWF66tjggsN2diVVwQcDak7sXueIi7unImkujskiKr9uVkpmrkFZ
- hATjNXnzsIE2HWVK1jcwPjnvpRQJfu32n9X8wD4lwbAY81A/aBEAPBTZZHPQdfOfuAYzPiO1dlv
- 1zNydR9WZcJr5P7JMVjbzU3/8dVEnM1rbJDcacXKq4MZVkzYesljDA3VgWwukBtIS0IwGShs1b2
- j7c2g5fBSPDEsLQtu0KPZM0dL/mfElZELBoifj/weCMGmRanRK2z/oTcJAsERS2MAWli5jMdI+V
- By/9aCvADvIgOQjywqnaoWbPKGfzcjeoOQ3+qvoRzxlpO9ET/OCSAVJMAlhi1ixvj++7R45CFrl
- hfHCm08lY7marwvMOLE4vFOPmghuunYKwMOYIum+b8szau1cXP7Iv93Hs73HBM0PEII7w/nzFP0
- c9qGL3xg0KLUxm5Ri08H7KFmQThwq28MtbpAUdX4ojPuM9B12MdOqLo4S13xfGE69cci2hpsgso
- afX4Pq9b2nWxO9/l9Bqe678jbRzhpzEKtQcQb/lg5WdvON2nk9m6XYbJGgsiaA7lOUTdxybUsCd WO8YHIcJkQ6XYqA==
-X-Developer-Key: i=krzysztof.kozlowski@oss.qualcomm.com; a=openpgp; fpr=9BD07E0E0C51F8D59677B7541B93437D3B41629B
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-GUID: nveEWT9XDVm26VHm4JiYOpyPPM_QobMU
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNTIwMDEwOSBTYWx0ZWRfX/GVOPpUCb1fV
- uTH40g2Z2OML2cqjGyM1zHGI3Ehq1FN+Vu60Aaz5MkEvRLUyKlTmzUU07iMqsUjfzzn/C3q9H6V
- rEH0jWDQ578zTaDXCjv83Woc81k5nOG4hip/TYcz32Tt2MhshhXIQbty3lplNwEwIEb/d0yYIQV
- brRgSbZaORzLM88/nc98I8DLEwHLSNf+dLdOrkJ2PeIMq52Djbw+zo4qyjGA3OdIIMgR/R+OFJL
- +SoAKEQhcNwy5pRjq0TdUTwKoG6FVCwOSEcfeuV7IhoaeGSo64i9HNni8obFZ/ha170uVR0ELnz
- up49U85/IBao1xBSVUHB5ALGnvtcEV3y/uGDa2RT6xIfyCGewZEIipXpoUmvAUBCQ2w+7gvj3SO
- toLSnL3baLziJnLtRjp0sUC6w/qd9x91gn9soW9ttSyAAO6mZMYc4jwlLUjn9cA3v8RIQbe7B0i
- 1y3Xj92VmSrDfnRZtCA==
-X-Proofpoint-ORIG-GUID: nveEWT9XDVm26VHm4JiYOpyPPM_QobMU
-X-Authority-Analysis: v=2.4 cv=C4LZDwP+ c=1 sm=1 tr=0 ts=6a0d9817 cx=c_pps
- a=ULNsgckmlI/WJG3HAyAuOQ==:117 a=gOEeR9iKwsj33Yj5oN/cWg==:17
- a=NGcC8JguVDcA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=3WHJM1ZQz_JShphwDgj5:22 a=EUspDBNiAAAA:8
- a=_sZAi5VIHEe3UkwORBcA:9 a=1WsBpfsz9X-RYQiigVTh:22
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.51,FMLib:17.12.100.49
- definitions=2026-05-20_02,2026-05-18_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- suspectscore=0 clxscore=1015 spamscore=0 phishscore=0 priorityscore=1501
- adultscore=0 bulkscore=0 lowpriorityscore=0 malwarescore=0 impostorscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2605130000 definitions=main-2605200109
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 0/3] Add support for ICSSM Ethernet on AM57x, AM437x,
+ and AM335x
+To: Parvathi Pudi <parvathi@couthit.com>, <nm@ti.com>, <vigneshr@ti.com>,
+	<afd@ti.com>, <khilman@baylibre.com>, <rogerq@kernel.org>,
+	<tony@atomide.com>, <robh@kernel.org>, <krzk+dt@kernel.org>,
+	<conor+dt@kernel.org>, <richardcochran@gmail.com>, <aaro.koskinen@iki.fi>,
+	<andreas@kemnade.info>
+CC: <linux-omap@vger.kernel.org>, <devicetree@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>, <andrew@lunn.ch>,
+	<pratheesh@ti.com>, <j-rameshbabu@ti.com>, <praneeth@ti.com>, <srk@ti.com>,
+	<rogerq@ti.com>, <krishna@couthit.com>, <mohan@couthit.com>,
+	<pmohan@couthit.com>, <basharath@couthit.com>
+References: <20260428072046.3022679-1-parvathi@couthit.com>
+Content-Language: en-US
+From: MD Danish Anwar <danishanwar@ti.com>
+In-Reply-To: <20260428072046.3022679-1-parvathi@couthit.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-C2ProcessedOrg: 333ef613-75bf-4e12-a4b1-8e3623f5dcea
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL02EPF00021F6E:EE_|CH2PR10MB4247:EE_
+X-MS-Office365-Filtering-Correlation-Id: 010c22d4-1d37-4dbc-41a8-08deb66268ea
+X-LD-Processed: e5b49634-450b-4709-8abb-1e2b19b982b7,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|36860700016|82310400026|1800799024|3023799007|921020|18002099003|22082099003|56012099003|5023799004;
+X-Microsoft-Antispam-Message-Info:
+	wRBAgxmYRkhDQHaSZzVOxQ/LFHh5O3c2lj0Xss5HFfGDJeyme9ZlQ6oNep1aZLmaGY62x5RK6Qi8gwlokzVT11PbnvYAZqcVV9eK0jdwzRbSatFrWGN0AksaBe4z4gR89aQHAkUtwb9mmvlhuBic39ggSj+jQqIN9uZnSyNhtShyw/xnKw6exjI4Oi9IiLM+OBWhkwdZnyeIHBcWuEyps0Y1GdGcl4igWaqaR7+2/N8VMv+cbQISDeaShDRbfBIOwzHXUhdeOPNnq/Q/M/NkUsy4T5L0LYDN4mPqtW5E4Zil67y4PEEaRS8BDNuyc2x/sPU6JgG1SnHYC06WAtDeZrUzB1BN5vbrXar3FpAiKG4rcXzXdmNchMxHLuRvkTNVVJlVpNo0Lk1jIV9ssETWZMXkfY4xvcq9hXMk6uZYoyt6NJ3DyOArR0KAqoYqeZrWk4z0Ep0EhHvEKR06ww7wjQDkJB+a1zAhCaVe04FGBVzj3YADLNumEZEb5YkDJLJV9wzxeTD38in1tFqZvV4tOOZj/V7AUHfGu0bERKClAyX1aPQj/r/T48/4dDJ6jYj/vxMeRk4WL7Hyxe59zAZvDroj/i3/zXJ3/9BayizW2GAMqGPYXP5NnkICX1OT81QEDFaLI7G8Wuo9G9vlXXv3urTNNQvf8CEU0z+njNpiIdvXX/PhFl5hCsU8AUFs86qP+2e2WxIBGfOCKs6f4phU/meUCr6oiwWneUNPFKPfSQKBrB4K90RUG0XNvw78o832OBD1ab9Aq2mswvMkvGCukQ==
+X-Forefront-Antispam-Report:
+	CIP:198.47.23.194;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:lewvzet200.ext.ti.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(7416014)(36860700016)(82310400026)(1800799024)(3023799007)(921020)(18002099003)(22082099003)(56012099003)(5023799004);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	YwAo5eOcjqSFiSAhXyfxPuX0m6+C1U9c4QInqJCUnclUT85999cBPkLIEJ5++oOXNjUC1bPwlTu5PzRZMl5VCTJ6iKz3G6YvNiH4HbpBeXLY2Ty6NLZkR5pLHawTbxOApkk3hZlb/MUDa/JtNhd8dsb4XhNq7WzRvKY/mB+u1QBvTRpj9Y/sTsedS8RaJjUrcLxJpoIc0IgUa8xCeD4ErN0VFcsE59Pt2jXEWNZQFOowD5ciynZ+gtLabnzog8aS6owHGayJglQS9gNwHjpd0RH7JaUcZRl5RUf5HFAW47lfCICqjqLPtwilIOqAaJgyQB7yPWJCLPLXs6GW9WBULD+/mBBXXFUuESFOUOiVLBimoempis/B8EGAGKl/iuZT/361Ve4e44FN0aF2Mnd4Nxl+SDFFRFo705uwScyX2CPL6l8IhtMVro6z89+l3FDn
+X-OriginatorOrg: ti.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 May 2026 11:24:51.5269
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 010c22d4-1d37-4dbc-41a8-08deb66268ea
+X-MS-Exchange-CrossTenant-Id: e5b49634-450b-4709-8abb-1e2b19b982b7
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=e5b49634-450b-4709-8abb-1e2b19b982b7;Ip=[198.47.23.194];Helo=[lewvzet200.ext.ti.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL02EPF00021F6E.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR10MB4247
 
-Recent W=1 builds print kerneldoc warnings, even though a correct
-kerneldoc is there:
 
-  Warning: drivers/memory/omap-gpmc.c:441 Excess function parameter 'cs' description in 'get_gpmc_timing_reg'
 
-Drop additional inline comments for arguments to fix that.  They are
-anyway not that useful.
+On 28/04/26 12:47 pm, Parvathi Pudi wrote:
+> Hi,
+> 
+> This series adds support for ICSSM Ethernet on Texas Instruments AM57x,
+> AM437x and AM335x platforms.
+> 
+> The AM57x and AM437x IDKs support two PRU-ICSS instances, each consisting
+> of two PRU cores, with each PRU-ICSS instance capable of handling two
+> Ethernet ports. For the AM57x platforms, the PRU-ICSS2 node has been added
+> to the am57xx-idk-common.dtsi, while for the AM437x platform, the PRU-ICSS1
+> node has been added to the am437x-idk-evm.dts.
+> 
+> The AM335x ICE features a single PRU-ICSS instance. A new device tree overlay
+> source file, am335x-icev2-prueth-overlay.dtso, has been introduced to define the
+> PRU-ICSS node for the AM335x platform.
+> 
+> This is v7 of the patch series [v1]. This series is based on the latest
+> next-20260427 linux-next.
+> 
+> Changes from v6 to v7 :
+> 
+> *) No code changes were made, only the version was updated.
+> *) Rebased the series on latest linux-next.
+> 
+> Changes from v5 to v6 :
+> 
+> *) Addressed Kevin Hilman, Krzysztof and Andrew lunn comments on patch 3 of
+> the series.
+> *) Fixed an issue with overlaying "output-low" property in "mux-mii-hog"
+> sub-node under "gpio3" node.
+> *) Rebased the series on latest linux-next.
+> 
+> Changes from v4 to v5 :
+> 
+> *) Addressed Andrew Davis's comments on patch 2 of the series.
+> *) Addressed Andrew Lunn and Nikolaus Schaller comments on patch 2 of the series.
+> *) Rebased the series on latest linux-next.
+> 
+> Changes from v3 to v4 :
+> 
+> *) No code changes were made, only the version was updated.
+> *) Rebased the series on latest linux-next.
+> 
+> Changes from v2 to v3 :
+> 
+> *) Addressed Andrew Davis's comment by placing PRUETH nodes in a new overlay file
+> am335x-icev2-prueth-overlay.dtso.
+> *) Rebased the series on latest linux-next.
+> 
+> Changes from v1 to v2 :
+> 
+> *) Addressed Andrew Lunn's comment on patch 1 of the series.
+> *) Addressed MD Danish Anwar comment on patch 1 of the series.
+> *) Rebased the series on latest linux-next.
+> 
+> [v1] https://lore.kernel.org/all/20251013125401.1435486-1-parvathi@couthit.com/
+> [v2] https://lore.kernel.org/all/20251103124820.1679167-1-parvathi@couthit.com/
+> [v3] https://lore.kernel.org/all/20251217130715.1327138-1-parvathi@couthit.com/
+> [v4] https://lore.kernel.org/all/20260105162546.1809714-1-parvathi@couthit.com/
+> [v5] https://lore.kernel.org/all/20260307122641.738450-1-parvathi@couthit.com/
+> [v6] https://lore.kernel.org/all/20260402073853.2170099-1-parvathi@couthit.com/
+> 
+> Thanks and Regards,
+> Parvathi
+> 
+> Roger Quadros (3):
+>   arm: dts: ti: Add device tree support for PRU-ICSS on AM57xx
+>   arm: dts: ti: Add device tree support for PRU-ICSS on AM437x
+>   arm: dts: ti: Add device tree support for PRU-ICSS on AM335x
+> 
 
-Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+For this series,
+Reviewed-by: MD Danish Anwar <danishanwar@ti.com>
 
----
-
-Changes in v2:
-1. Drop clang/LLVM references
----
- drivers/memory/omap-gpmc.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
-
-diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
-index d9e13c1f9b13..958d2b0ea54a 100644
---- a/drivers/memory/omap-gpmc.c
-+++ b/drivers/memory/omap-gpmc.c
-@@ -432,13 +432,9 @@ static unsigned int gpmc_clk_ticks_to_ns(unsigned int ticks, int cs,
-  *
-  */
- static int get_gpmc_timing_reg(
--	/* timing specifiers */
- 	int cs, int reg, int st_bit, int end_bit, int max,
- 	const char *name, const enum gpmc_clk_domain cd,
--	/* value transform */
--	int shift,
--	/* format specifiers */
--	bool raw, bool noval)
-+	int shift, bool raw, bool noval)
- {
- 	u32 l;
- 	int nr_bits;
 -- 
-2.53.0
+Thanks and Regards,
+Danish
 
