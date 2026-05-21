@@ -1,58 +1,59 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10B2237268D
-	for <linux-omap@vger.kernel.org>; Thu, 21 May 2026 09:04:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 598C93612E2
+	for <linux-omap@vger.kernel.org>; Thu, 21 May 2026 09:04:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779354245; cv=none; b=K36fX81Z4YSQb9j6HauBdmhZ9lI+nzikW5eRlhFwP4JdJeck2lg4c08S6Np60cALEBdSdHkl5gG2w5/VwgmRV4cxXEawgtATJeDvFt5i0boKZsehaDn2ESoekXyQz6l2JYhLz+PH4y+3Tinvx/rkBFyVQVqylS+CEz+wiPvov6I=
+	t=1779354268; cv=none; b=hvoGguAaP3aPiMCLO58cIoWEoWK7zJmOYsI1XEX75n8I4vYnJFL7lZL14I8sl4X3AS2JfRlbXraGRLLelPiRRMswf1tMEmYhvdbacMONNUkLrK7Xz2T5BP3BTS+oPFNpGEI4DUvNLE0T5QeuuLcohrH556xX4pp3P9SegV8yRas=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779354245; c=relaxed/simple;
-	bh=1QUNyf1+4GK6M6glNGqXfbJnZI6n5ng1QfS4YTKrhtM=;
+	s=arc-20240116; t=1779354268; c=relaxed/simple;
+	bh=TKLGSf3GBjMP36BA0MEdaSC8c160hy43LOrQEKAZGHA=;
 	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=i7ZQDoKBvCXmKlfkcRIeHw4FgX2qcZcIHfCeJ67p2ymDtVX3VDPscPp80SeJO25Z4P3X/n8Xqstq6cXo5rLROKKsh9nFpfBAES08X5Hf7FEXZFh8/AecuVcbbVLh0Dl+IXqo5ByAF1loXiOA4UTx2MzdD27rrwcu+gkKXyoAcK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U8xfN/oS; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=Uh60n7czKTCj9Z4uRbtaTHKovh7ITFUNOK703PAb1NVNxn2U1HQO/Mgql5BwiKnTbHWEGrmhUgImxkyENUomRHJERcwlb0gjjLvmo02ZUW7LdQJCDxrnijr8QAzXK5YHfElt6AoScahTzXUUhz9yihIYJGuuCVGtXJstyXJeY58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eKQomMCR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U8xfN/oS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6134E1F01563
-	for <linux-omap@vger.kernel.org>; Thu, 21 May 2026 09:04:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eKQomMCR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F7001F01572
+	for <linux-omap@vger.kernel.org>; Thu, 21 May 2026 09:04:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779354242;
-	bh=1QUNyf1+4GK6M6glNGqXfbJnZI6n5ng1QfS4YTKrhtM=;
+	s=k20260515; t=1779354266;
+	bh=TKLGSf3GBjMP36BA0MEdaSC8c160hy43LOrQEKAZGHA=;
 	h=From:In-Reply-To:References:Date:Subject:To:Cc;
-	b=U8xfN/oSnaOrNF+gtWDgNNJlSLhiqu7Q8UxQP2IAYfVXR5xgxWdbaVBaAzXyExy6m
-	 EiiCuk3G4CJ5/GOGGPGJAffJtx0E/wQuk3mK/TJjRlP9wLfMhSW/ggsqBOM9vvc0mJ
-	 4Q1+ZDu628ro1LYmqb+ztqMz72QHaA6fsdJrfe6qFmosM69fBhVsvkmDbR6GCCjFzr
-	 S0ofyit/qO0sxtHY0C1WlU4Xv1MWW0l23zwMhkHm/Ck0RnfSzGvkkrvPYsBRJCWr2a
-	 tN8Uht5hGv+3XNy6Y6s8OZja4tXvLwfByMASdUpbVP+Jw8XM0i8ZHc31/tsMxNxSAP
-	 tkWQifWvaOpFA==
-Received: by mail-dl1-f41.google.com with SMTP id a92af1059eb24-13643f6d1a9so98627c88.0
-        for <linux-omap@vger.kernel.org>; Thu, 21 May 2026 02:04:02 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8JXnA6hZGGftOmmcy7U2Q/mgWJuvmjbXBTBxWbik7nH+pTbl2fHUcdg1ufpsVGA/rPrmJieJddTUad@vger.kernel.org
-X-Gm-Message-State: AOJu0YwBx+XCbkFJEu/uZiMV9gqKsNfdLJlRCEBDt5R72GPly0RxL9kP
-	i64j/xkJSyA1IMCbVoOv9a65sKUWcNQOYNAu9zLragERrqokXLpN96GlJ9wRAJBA7XxGpAA73qe
-	FT13z/8tf3fhwCgzRJLGXW3MAcriuUSQK1reL7NQXSA==
-X-Received: by 2002:a05:7022:624:b0:134:7497:2153 with SMTP id
- a92af1059eb24-13632b19501mr1138896c88.20.1779354241319; Thu, 21 May 2026
- 02:04:01 -0700 (PDT)
+	b=eKQomMCRdagq0CrKNNAbWd+5SdT7HxEZk8SS5c8YukUkxYbmsHDNc/MTCkRogOOAR
+	 Pt90hL1Y+9+RT+N3XxUqrqLtC8PCPudBhj3TVnarBl21Gv9NEoCrtJ8+d5Jb/WMAeC
+	 ML0j7DPXCMlI6VpU6g8SKFHinb03aCauKOqSAnYd6mmg/ByxqHRUMCYHVZSLCbjYjR
+	 Jqr3WTarjbmTW+joe5Y++iCVDIgMGOqSp9V1U1/HCam6x7pvdtNk1FCRJOo8Tkv7FQ
+	 FOLySF45LYKr6CJSo7I6TQ3iC18Zx5azfFzHqJN/J5myRPJSuw9bweC9nSI3U1A2dq
+	 WJy66QWmIaooQ==
+Received: by mail-dl1-f52.google.com with SMTP id a92af1059eb24-135e88b8e55so6396948c88.0
+        for <linux-omap@vger.kernel.org>; Thu, 21 May 2026 02:04:25 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8uzgwlm15FcvyhYkzdVlnzIVPM0B8PijT+aaYWlTqAnSw2slZnm3yswhKDYG2+PnSttyg2re0XNK4Y@vger.kernel.org
+X-Gm-Message-State: AOJu0YzaJUjTIdGT5kuOi1SAXu5c5OavU/vdv2Vf58BX0ZmOQ/Kf1+8h
+	8A7v10DemgRY9jhgcaZdLXtn06BbBTg4tzJ9jIGxsNB285NgJWUbzq6fS6iJlDW+wXGqN8CgE+6
+	hnBtLInDc6T7pGmTUN0mNORYpbLVmDdi2Gj/zvM6EZQ==
+X-Received: by 2002:a05:7022:ec88:b0:134:a731:e778 with SMTP id
+ a92af1059eb24-13632f6adf6mr920006c88.39.1779354265385; Thu, 21 May 2026
+ 02:04:25 -0700 (PDT)
 Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 21 May 2026 02:03:57 -0700
+ HTTPREST; Thu, 21 May 2026 02:04:21 -0700
 Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 21 May 2026 02:03:57 -0700
+ HTTPREST; Thu, 21 May 2026 02:04:21 -0700
 From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <20260520183815.2510387-3-arnd@kernel.org>
+In-Reply-To: <20260520183815.2510387-8-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260520183815.2510387-1-arnd@kernel.org> <20260520183815.2510387-3-arnd@kernel.org>
-Date: Thu, 21 May 2026 02:03:57 -0700
-X-Gmail-Original-Message-ID: <CAMRc=Mf=JGOJUfs__HxxqTkiEk5NrkMX5J6RkO+=ybHUfWGShA@mail.gmail.com>
-X-Gm-Features: AVHnY4Iwi65kxiAOYAXhfVUikEld9MZPsgLFlTgVHCPfkqhuImHkvGx_B84f6lE
-Message-ID: <CAMRc=Mf=JGOJUfs__HxxqTkiEk5NrkMX5J6RkO+=ybHUfWGShA@mail.gmail.com>
-Subject: Re: [PATCH 02/10] [v3] input: gpio-keys: make legacy gpiolib optional
+References: <20260520183815.2510387-1-arnd@kernel.org> <20260520183815.2510387-8-arnd@kernel.org>
+Date: Thu, 21 May 2026 02:04:21 -0700
+X-Gmail-Original-Message-ID: <CAMRc=Mebt+hpSBfpsnHh1+SKt9b1cRBNge5WSoRrsfX1BBFgtA@mail.gmail.com>
+X-Gm-Features: AVHnY4LWqhGtTeBYvpB-D8gN85zif4ar2-h8NZZ1yCLGF3pH11futzwzVDKQXSE
+Message-ID: <CAMRc=Mebt+hpSBfpsnHh1+SKt9b1cRBNge5WSoRrsfX1BBFgtA@mail.gmail.com>
+Subject: Re: [PATCH 07/10] [v6 net-next] dt-bindings: net: add
+ st,stlc4560/p54spi binding
 To: Arnd Bergmann <arnd@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, 
 	Christian Lamparter <chunkeey@googlemail.com>, Johannes Berg <johannes@sipsolutions.net>, 
@@ -72,26 +73,27 @@ Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
 	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
 	linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, 
 	linux-input@vger.kernel.org, linux-leds@vger.kernel.org, 
-	netdev@vger.kernel.org, linux-gpio@vger.kernel.org
+	netdev@vger.kernel.org, Christian Lamparter <chunkeey@gmail.com>, 
+	Conor Dooley <conor.dooley@microchip.com>, linux-gpio@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 
-On Wed, 20 May 2026 20:38:07 +0200, Arnd Bergmann <arnd@kernel.org> said:
+On Wed, 20 May 2026 20:38:12 +0200, Arnd Bergmann <arnd@kernel.org> said:
 > From: Arnd Bergmann <arnd@arndb.de>
 >
-> Most users of gpio-keys and gpio-keys-polled use modern gpiolib
-> interfaces, but there are still number of ancient sh, arm32 and x86
-> machines that have never been converted.
+> The SPI version of Prism54 was sold under a couple of different
+> names and supported by the Linux p54spi driver, but there was
+> never a DT binding for it.
 >
-> Add an #ifdef block for the parts of the driver that are only used on
-> those legacy machines.
+> Document the four known names of this device and the properties
+> that are sufficient for its use on the Nokia N8x0 tablet.
 >
-> The two Rohm PMIC drivers use a gpio-keys device without an actual GPIO,
-> passing an IRQ number instead. In order to keep this working both with
-> and with CONFIG_GPIOLIB_LEGACY, change the gpio-keys driver to ignore
-> the gpio number if an IRQ is passed.
+> As I don't have this hardware or documentation for it, this is
+> purely based on existing usage in the driver.
 >
-> Link: https://lore.kernel.org/all/b3c94552-c104-42e3-be15-7e8362e8039e@gmail.com/
-> Link: https://lore.kernel.org/all/afJXG4_rtaj3l2Dk@google.com/
+> Link: https://lore.kernel.org/all/e8dc9acb-6f85-e0a9-a145-d101ca6da201@gmail.com/
+> Acked-by: Christian Lamparter <chunkeey@gmail.com>
+>
+> Acked-by: Conor Dooley <conor.dooley@microchip.com>
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
 
