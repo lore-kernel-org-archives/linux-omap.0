@@ -1,144 +1,124 @@
-Received: from mail-lf1-f48.google.com (mail-lf1-f48.google.com [209.85.167.48])
+Received: from mail-yx1-f52.google.com (mail-yx1-f52.google.com [74.125.224.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF709213E89
-	for <linux-omap@vger.kernel.org>; Fri, 22 May 2026 12:45:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC958349CE0
+	for <linux-omap@vger.kernel.org>; Fri, 22 May 2026 23:30:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779453932; cv=none; b=H7CGCXaqLzzysxBubTwohB2GZDYQ1mcZ2HHdTxQrPLBS40lpS7vNrEd0PAiLeB3HwnYvUOPj9PVyPeO9I0bnhlxenX1QjRKui5sik8fFpr8wgDAvAc1lNQFhmpPczf6fKE/jUodyV31czaOwnNMlOtBPFDFBK8lNLwjoGvOQIow=
+	t=1779492654; cv=none; b=WM1IwRJAVODLOSo1EVEZlMqEfq1JrAtLdhP9AZnrY2wPyfafUnQD/S3Ze6b4ttVg5q6gu9nGAdaO1lmXUjCrmJydv6nHnB9rkcB+RmCpGvgI76VfDDjoaUn1tMNINah+YAA+6R5MHpJJ1Gzo0K8hLMFbll5kiJOE17loT6N7TxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779453932; c=relaxed/simple;
-	bh=B6Wrx8wptznPEXE7GgI4oCIpRWZlbijf1SHKh604G6I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=eWShlf7r/PNNUJnARAucr86B2+cdFPVGkfMDW/GWHBz/z16c/5d86Cjs7M7ONuL6NfuZS5YyoWWM1YC176iFloLmJa1GCj31uIfFBIqkH6inbY6lJ0z7lX99at60jihtwmZwU54Ar23KFdf2CKjKNaKfUe4yaqV+sIEdrz7gmdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=S9TdA1s9; arc=none smtp.client-ip=209.85.167.48
+	s=arc-20240116; t=1779492654; c=relaxed/simple;
+	bh=vvmjUek1QzkG1Hk5FgNGb9tW9zywdDL3NFyvPD5zYmA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YTN0hpi++pOl4ENOG4lpV+IMkGdJeTCeBgflLsSbMSyrI5O+lLH9d3e25Vnp7o1LnqB5aOyWQoCTkME4ACaES0hsb6Y20J2IPNcc2f5lUiNZPgT1/qdMcpQfgfES2j5stNB3pag8jefjp0ofe7tY+CTnDEjBGBMi7YVz0LywezM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=azL1YG94; arc=none smtp.client-ip=74.125.224.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="S9TdA1s9"
-Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-5aa1b2327c8so8975575e87.0
-        for <linux-omap@vger.kernel.org>; Fri, 22 May 2026 05:45:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="azL1YG94"
+Received: by mail-yx1-f52.google.com with SMTP id 956f58d0204a3-65c52bb5dd7so7692278d50.2
+        for <linux-omap@vger.kernel.org>; Fri, 22 May 2026 16:30:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1779453928; x=1780058728; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=jEx08WhtJbuH9Jvv5ffuVG6XRuDs6AIyFWz3HRiJmYw=;
-        b=S9TdA1s9sU06k7pAAsQhZgPt6Jm2cy1jpfHiVjy/+4+phsKTB39AbQjFrUaHHvTuHa
-         7xcha/kC9qOvlrvOc+x2JTP+jZxZ/e3H1ei/X60CDqJpjGmR8Nzbf9OwEeh6jXSYmMe6
-         1lqGhLX9WLcsDUNoRDwB8RN2/7jcZGUB/8QVzZr9eANTujcgTuVz1xsDUvY1h5CzWkhw
-         CjjnUJzTgxZB4Xvh+ERZIfoeKsbVY7GHoFXwuSABK574IaI9xqc2uETLj3zU1ZFqV2YS
-         GuqN5wtrNjE3MnCX7eUhhI4j839ntAaSS2DRdL1e8/Q6vQSCXDKpTqbm32FekGdEJyes
-         Fk2g==
+        d=gmail.com; s=20251104; t=1779492652; x=1780097452; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=OVgXaIjnKTC975MfdRgmXFyZkQKLmkaHxhR1b9izJDM=;
+        b=azL1YG9489KJYI1wI1D8Po0tfa9q/tKbbyk9A0N1Fruv3gnLZr9uHOPcJIkzk7KH48
+         tye36PE6zAld5cr/AF2AEoJ182xxh5+IFDiA3qaBK15HfnoEUcORIghBxZXkIbPGbCWN
+         z9UO96y0CahgAC/uUsWciMZjuzK1Dszl7ork5+csL2dTdWnGyoUyGcU+YyGsddwXqanX
+         2Sp3WPTDe3ezqglgexcjJnY5/g4v0Ye7Ah799jLeZRJ5rOdi2Iz8pId3b48qbT7VXwcl
+         qXsJ+2mTgp0Wwzaug9WZmvzl4N63+iYs4TMCwGv5v2vOTvrCfjJkRgt9OY37s84tV2Rf
+         aZBw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1779453928; x=1780058728;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=jEx08WhtJbuH9Jvv5ffuVG6XRuDs6AIyFWz3HRiJmYw=;
-        b=Fl4oJWDMFF5ZeVdrBcYHRnBSl/kcxtG2+yY7qxj91Hb3qTNUbRn5vxpnlotzB2w8Ey
-         JbhJyJYfFCHa3Av88vy56EBflrEQsdgUIzT8TP1t4zA9yxxWXeFmbWwQ9ZOTjRl74o2X
-         MmJUt1z2fzmPnKqF9M+CWwO5inQqmanWYwcOBVkL1W5l45DFVmoMEYVqyM35MFaBdXlA
-         cZ4Gt0I3LvZr8XRYKzPMo2BlNAr0+6ianHMOicEbfgrUrjKQLXEzdCd09cIGGX1VEER3
-         KEo3y+MfPdq9nV3jS3T2D9jlRpugUC29QlMf91wTNPc91C881Kpu0wqLXXmHHqVeBVo6
-         wOaQ==
-X-Forwarded-Encrypted: i=1; AFNElJ8n4T6Ndfo17AYCreFIvM4pcrpl+uw+sDXeS5xrayKkB5cUCdZPLj99EfMkXTHua3+qjXaunBWvYD9+@vger.kernel.org
-X-Gm-Message-State: AOJu0YxdmBQ4ao0N18XOBvOrJJGIX1en8SuYX8n/rF1ySXy87Ch6QHu4
-	4FZWbYoc+pBipaO90pe/9jg+RbYI1Hcgq/hEJUmtfsX8PJlG53TdHHbo
-X-Gm-Gg: Acq92OFAr5od0cNDUW+qS4ZIIJLwv3pjqXoYXVpNVxZBJEaSktvaCo/tdogkGNblCMq
-	q+IxPj+waUKtdwDUgDvLp45SQAEdduEEIIKbiYro8Y65UStC9uP/PWpLDNXpStnvjJAELHRON4d
-	2mT4XFiBVrNvGZqa/UEhxzYwlVyQsd5ynlWo7NDEOthKQ4/qQMQfaWVZr0IdW1H9hrs6fwl4YKe
-	xoplTNQV2/V7RFO78cwchAiR/qwNM656o14MgPRklvHIp9mWst/PT95HU/oIkQ3ASQ6Hj+jBs58
-	YEV1CMV/6sz+4nMyu2zV+yNPf8bXvdI1H2mpKR7Hrsr9jQvZ6bYnOhs6Fz2HW934onRqNPsfZlL
-	oPIbL69t7wbQHhOY1A6yp+SOhDgLOSZxejCXJbbaFRKxFX/iaFePWQrGrgmQEFDEh5KrRhiZgZl
-	7gPv7MCw4oEcAjSziG2XsxW/yzsdKtIuiQ8qhsTQ/Tp980J2re3VFWzS3GJ/N7JfKMf8HX/Ecrx
-	lkkeajw
-X-Received: by 2002:a05:6512:33c9:b0:5a8:64c4:38c4 with SMTP id 2adb3069b0e04-5aa32314258mr1031399e87.8.1779453927777;
-        Fri, 22 May 2026 05:45:27 -0700 (PDT)
-Received: from ?IPV6:2a10:a5c0:800d:dd00:8fdf:935a:2c85:d703? ([2a10:a5c0:800d:dd00:8fdf:935a:2c85:d703])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5aa32cb37bfsm401018e87.11.2026.05.22.05.45.26
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 22 May 2026 05:45:27 -0700 (PDT)
-Message-ID: <55c36da0-6cc4-4c95-88ef-3dd5b2181b0d@gmail.com>
-Date: Fri, 22 May 2026 15:45:25 +0300
+        d=1e100.net; s=20251104; t=1779492652; x=1780097452;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OVgXaIjnKTC975MfdRgmXFyZkQKLmkaHxhR1b9izJDM=;
+        b=ELWOOFmc0JRDQpoSt07ahDvnL9oEDMcnnee5KUCeIsCXxj5Q+bnpSwnY3ucfQ9yrVG
+         D2j++1SiCB4DrqOEB8pnpT4PIIiiY5wvy8KEsX48z0bMRv8V4vAFhO52tN0HUnBXuUED
+         JCYoGvnUjpK3e0jUswlZ9dD21/thUgCjtddwriQDx8vnF4V0RoQxlzTuJzPYf4RpJm/y
+         CZoU7OMNZikJBJ98Ta3XR+0nwiOgk6jCZHUGgwqnFrygLZZ7akKzHVOywHJC2VBSJGxt
+         Ts1ykVrf7Bw4eGKC3bXszHU1eNdOs/M8G3S47jbVWmbzbyZNjcTeMIYCYC8hOCi9g2Oh
+         IeXw==
+X-Forwarded-Encrypted: i=1; AFNElJ8AC+UGtOvKbInuFX4fvSMqSiQr0sT8muraLmNIMJpOK/xR9QL+icU/Lh0XXqHK4ixBMvnu9iuzz+C2@vger.kernel.org
+X-Gm-Message-State: AOJu0YzvhZb30P7gUPTgZsZ2+9A8+A9ymigM8Y4P7I/FYx/YpuU3/j3p
+	sqAQM1AwNhFe7Zi/ffoDuYmzz7hBvhN4jGTGSwt2N4+vX8cE8i2ehE6r
+X-Gm-Gg: Acq92OH44a5yBtK4vGneWS7qhu+D1JVEqiKVLCv/q6DbxYZQufWuS4/H4DQGDcJzxCS
+	yJ8/4WjRvvwGh8DWZf/YMtdDeUjk7EzKsF5hvPnfRf8Kft0fEpPkWNhAp8upkOHhrgbIxuLqlQ/
+	WyjE0OfjiRLX1GxozOZda3TbYuwkqHx7YfF2wz8ZWyXDD1DFMI1WCwxAwkjmW7iifttCauDOOMs
+	w8lFC1VyKkVdGsyDDQu6xqItNLUT6XnZQ596GuzDUM4nbFM9MLX4Y9F/4DxjsOASolWzZ3+Dv+y
+	HymOM7N7JOlWV6vJ5mcIpMBU6LHcANAmN8tMIQt+wA/T4VZ7WMeS0SSg8IreQgzi3mNNHwibUU0
+	hdAfH1kcNLlDv4rrDIiZzbOoTf5M5N849MhN8aHUs4qxmpu8f5cmw/gRE7FrJ+R7w93nsndMS6+
+	rUx9t0uaf/DFp6mqutXjqfHt0Sdy+NlI2NDkSVFqLaumT8233ktMJ4CA4JYhI4eCGPZO+eQPVN0
+	EUzs3RP1Pe1IYBzwBmRfUBPeAW28owYXJ8x525TUrASSVjy+HU+Rf5AWSwNmuuVzP79tw==
+X-Received: by 2002:a05:690e:418e:b0:65c:5b88:849f with SMTP id 956f58d0204a3-65ec9931107mr5745827d50.45.1779492651865;
+        Fri, 22 May 2026 16:30:51 -0700 (PDT)
+Received: from localhost.localdomain (99-61-165-33.lightspeed.sntcca.sbcglobal.net. [99.61.165.33])
+        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-65ecfdfc74csm1341853d50.21.2026.05.22.16.30.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 22 May 2026 16:30:51 -0700 (PDT)
+From: Mithil Bavishi <bavishimithil@gmail.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>
+Cc: Sami Tolvanen <samitolvanen@google.com>,
+	Kees Cook <kees@kernel.org>,
+	Nathan Chancellor <nathan@kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-omap@vger.kernel.org,
+	llvm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Mithil Bavishi <bavishimithil@gmail.com>
+Subject: [PATCH v2] ARM: OMAP2+: Add CFI type for omap4_finish_suspend
+Date: Fri, 22 May 2026 16:30:36 -0700
+Message-ID: <20260522233036.12277-1-bavishimithil@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 02/10] [v3] input: gpio-keys: make legacy gpiolib optional
-To: Arnd Bergmann <arnd@arndb.de>, Arnd Bergmann <arnd@kernel.org>,
- "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>
-Cc: linux-kernel@vger.kernel.org,
- Christian Lamparter <chunkeey@googlemail.com>,
- Johannes Berg <johannes@sipsolutions.net>,
- Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
- <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
- x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
- Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
- Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee@kernel.org>,
- Pavel Machek <pavel@kernel.org>,
- Florian Fainelli <florian.fainelli@broadcom.com>,
- Jonas Gorski <jonas.gorski@gmail.com>, Andrew Lunn <andrew@lunn.ch>,
- Vladimir Oltean <olteanv@gmail.com>, "David S . Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- linux-wireless@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>,
- linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
- linux-sh@vger.kernel.org, linux-input@vger.kernel.org,
- linux-leds@vger.kernel.org, Netdev <netdev@vger.kernel.org>
-References: <20260520183815.2510387-1-arnd@kernel.org>
- <20260520183815.2510387-3-arnd@kernel.org>
- <b79d8ad9-f36e-4769-9dc2-58baefe23000@gmail.com>
- <681f328c-bc8a-4410-b876-f8c5f116325d@app.fastmail.com>
-Content-Language: en-US, en-AU, en-GB, en-BW
-From: Matti Vaittinen <mazziesaccount@gmail.com>
-In-Reply-To: <681f328c-bc8a-4410-b876-f8c5f116325d@app.fastmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 22/05/2026 11:28, Arnd Bergmann wrote:
-> On Fri, May 22, 2026, at 06:55, Matti Vaittinen wrote:
->> On 20/05/2026 21:38, Arnd Bergmann wrote:
->>> From: Arnd Bergmann <arnd@arndb.de>
->>>
->>> The two Rohm PMIC drivers use a gpio-keys device without an actual GPIO,
->>> passing an IRQ number instead. In order to keep this working both with
->>> and with CONFIG_GPIOLIB_LEGACY, change the gpio-keys driver to ignore
->>> the gpio number if an IRQ is passed.
->>>
->>
->> I am (still) all fine with this, even though I like Dmitry's set. I
->> suppose you already have a plan for merging this, but I still have to
->> ask - why the MFD changes aren't in own patch? I feel it would have
->> simplified merging, backporting, reviewing and reverting if needed.
-> 
-> Splitting it out would break bisection: The gpio-leds change without
-> the mfd change causes a build failure when assigning the .gpio
-> field, and the reverse causes a runtime failure when .gpio=0 is
-> a valid line.
+With CONFIG_CFI enabled, OMAP4 can trap in omap4_enter_lowpower()
+because omap_pm_ops.finish_suspend points directly to the assembly
+routine omap4_finish_suspend, which lacks the expected KCFI type
+metadata.
 
-Ah, yes. Thanks for explanation. (I feel a bit [a lot] stupid, as I 
-somehow missed the problem of .gpio = 0 being valid. That even though I 
-had it explicitly set to -1 myself :rolleyes: ).
+Annotate omap4_finish_suspend with SYM_TYPED_FUNC_START so the assembly
+routine carries the KCFI type metadata.
 
-No further questions ;)
-
-Yours,
-	-- Matti
-
--- 
+Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
 ---
-Matti Vaittinen
-Linux kernel developer at ROHM Semiconductors
-Oulu Finland
+ arch/arm/mach-omap2/sleep44xx.S | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-~~ When things go utterly wrong vim users can always type :help! ~~
+diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
+index f09c91978..0b48df6fc 100644
+--- a/arch/arm/mach-omap2/sleep44xx.S
++++ b/arch/arm/mach-omap2/sleep44xx.S
+@@ -58,7 +58,7 @@
+  * stack frame and it expects the caller to take care of it. Hence the entire
+  * stack frame is saved to avoid possible stack corruption.
+  */
+-ENTRY(omap4_finish_suspend)
++SYM_TYPED_FUNC_START(omap4_finish_suspend)
+ 	stmfd	sp!, {r4-r12, lr}
+ 	cmp	r0, #0x0
+ 	beq	do_WFI				@ No lowpower state, jump to WFI
+@@ -223,7 +223,7 @@ skip_scu_gp_clear:
+ 	isb
+ 	dsb
+ 	ldmfd	sp!, {r4-r12, pc}
+-ENDPROC(omap4_finish_suspend)
++SYM_FUNC_END(omap4_finish_suspend)
+ 
+ /*
+  * ============================
+-- 
+2.43.0
+
