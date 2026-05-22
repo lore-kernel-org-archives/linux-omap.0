@@ -1,100 +1,152 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f53.google.com (mail-lf1-f53.google.com [209.85.167.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 598C93612E2
-	for <linux-omap@vger.kernel.org>; Thu, 21 May 2026 09:04:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D093346AFB
+	for <linux-omap@vger.kernel.org>; Fri, 22 May 2026 04:55:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779354268; cv=none; b=hvoGguAaP3aPiMCLO58cIoWEoWK7zJmOYsI1XEX75n8I4vYnJFL7lZL14I8sl4X3AS2JfRlbXraGRLLelPiRRMswf1tMEmYhvdbacMONNUkLrK7Xz2T5BP3BTS+oPFNpGEI4DUvNLE0T5QeuuLcohrH556xX4pp3P9SegV8yRas=
+	t=1779425727; cv=none; b=j/9hnJdX3q3CBvpz6JB57Mk6cbXyu7od6vclirnyoivvx/V6siF0+8qnqOjykNpvNHG9UuuZJNEWdNQ8KNfEjGsHtGOIfM3LAPmSTwsAywZNRGv98QpFk4YBh1PAOoI6WOmh7NUZTNI+atx53vmKGI5HiFCobrJJ0a16SvuutVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779354268; c=relaxed/simple;
-	bh=TKLGSf3GBjMP36BA0MEdaSC8c160hy43LOrQEKAZGHA=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Uh60n7czKTCj9Z4uRbtaTHKovh7ITFUNOK703PAb1NVNxn2U1HQO/Mgql5BwiKnTbHWEGrmhUgImxkyENUomRHJERcwlb0gjjLvmo02ZUW7LdQJCDxrnijr8QAzXK5YHfElt6AoScahTzXUUhz9yihIYJGuuCVGtXJstyXJeY58=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eKQomMCR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779425727; c=relaxed/simple;
+	bh=B9CAhNAdGTp5Zt5LCmbUDLKXezoz9dQvKZMGvVbfxrs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=V9+gCVj4IoPXGGKmhNTXcSI9mQSHhoVm54Rd4TQuHpE2sT+01IouSh4gDBjXkET8B4afYhAs2jlOEXHxazUf3yxdclCc7kraeRGUOuykgP0sCYNfFnfa7ViXsP9C3PvuctTBtacOyC/bvLa7GDWc77AmlMdLplIUYRL/Lyh+oQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GbeIv5MT; arc=none smtp.client-ip=209.85.167.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eKQomMCR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F7001F01572
-	for <linux-omap@vger.kernel.org>; Thu, 21 May 2026 09:04:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779354266;
-	bh=TKLGSf3GBjMP36BA0MEdaSC8c160hy43LOrQEKAZGHA=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc;
-	b=eKQomMCRdagq0CrKNNAbWd+5SdT7HxEZk8SS5c8YukUkxYbmsHDNc/MTCkRogOOAR
-	 Pt90hL1Y+9+RT+N3XxUqrqLtC8PCPudBhj3TVnarBl21Gv9NEoCrtJ8+d5Jb/WMAeC
-	 ML0j7DPXCMlI6VpU6g8SKFHinb03aCauKOqSAnYd6mmg/ByxqHRUMCYHVZSLCbjYjR
-	 Jqr3WTarjbmTW+joe5Y++iCVDIgMGOqSp9V1U1/HCam6x7pvdtNk1FCRJOo8Tkv7FQ
-	 FOLySF45LYKr6CJSo7I6TQ3iC18Zx5azfFzHqJN/J5myRPJSuw9bweC9nSI3U1A2dq
-	 WJy66QWmIaooQ==
-Received: by mail-dl1-f52.google.com with SMTP id a92af1059eb24-135e88b8e55so6396948c88.0
-        for <linux-omap@vger.kernel.org>; Thu, 21 May 2026 02:04:25 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ8uzgwlm15FcvyhYkzdVlnzIVPM0B8PijT+aaYWlTqAnSw2slZnm3yswhKDYG2+PnSttyg2re0XNK4Y@vger.kernel.org
-X-Gm-Message-State: AOJu0YzaJUjTIdGT5kuOi1SAXu5c5OavU/vdv2Vf58BX0ZmOQ/Kf1+8h
-	8A7v10DemgRY9jhgcaZdLXtn06BbBTg4tzJ9jIGxsNB285NgJWUbzq6fS6iJlDW+wXGqN8CgE+6
-	hnBtLInDc6T7pGmTUN0mNORYpbLVmDdi2Gj/zvM6EZQ==
-X-Received: by 2002:a05:7022:ec88:b0:134:a731:e778 with SMTP id
- a92af1059eb24-13632f6adf6mr920006c88.39.1779354265385; Thu, 21 May 2026
- 02:04:25 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 21 May 2026 02:04:21 -0700
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 21 May 2026 02:04:21 -0700
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <20260520183815.2510387-8-arnd@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GbeIv5MT"
+Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5a877510541so7969370e87.2
+        for <linux-omap@vger.kernel.org>; Thu, 21 May 2026 21:55:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1779425724; x=1780030524; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=2uaBSQpnXDZ0Lr2vqL2X8w5SaBUCpNSkuNqugybr2/A=;
+        b=GbeIv5MTw2u/PaO2jrKBK2QR0+f6vbEfqatUpYeF/bCRKRhpq6G8Yn6bHVqyKbI1nO
+         6aflGJoaJ4FzfLZN2vCoCXevRZkYXwZ0ohRvtIJXvxt2FB4+k9M4FpvxB9W3y197bLcX
+         jzZOqcdFQ6HV/axNzl0q6d65TSOGZM1FYwEzSzmHuAQfon6HxozChLLd9/L69PZ6wO+o
+         BkUjjOuiW5GpBTuadz6fKqNuP3bZ2aGwkn2/iHq1LfFsfqp/JKOnGWjKayLekJ9Bk1L2
+         iKO/ICx3ULCTvLSVIqiJXbMEUeDgTJ6tlBe24etov6zbxICSiBCXgQ+LB7PjnK3fwgt5
+         V9lQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1779425724; x=1780030524;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=2uaBSQpnXDZ0Lr2vqL2X8w5SaBUCpNSkuNqugybr2/A=;
+        b=kwztHrFt0L8a2ydFAhLm5OGbuXyGnbhKQyKh3q2qul9ONOEYNvc814DcODMpyoBGCy
+         YfGRuZmHbJUod+sY9W2r9oz/VW/wtOr5p4fnWGFzUteiB6mG0dwSR0dNS/ELndZFVrlQ
+         zbKc52Z+6ExNrL97k3sT1NMKXTv7m0taIVEoVK7YbVrQFNXO2eatzOEl76W0LhjAuu8e
+         Vq5jFuBOL10wU0+SnvaBCBJV78EcT62/pc2EEuFhBtv1hGQOHjOdR5PhLquu8SXz7oEY
+         smrlvK+mDwBYUrmPcDvtd+0QWLHWRJWW5sR+sKpgBmYuTd5ayKsOL1AV9gUO7XgWV4Oc
+         04dQ==
+X-Forwarded-Encrypted: i=1; AFNElJ+fZYKz7VjS3MXzro3aADThFJAtm8aIgAJtej+VrdSmwxajL3jmsWWe8OMkXzd1a6N0fnI5J58/kXPM@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy6ULJhQ8Q8U7FyP4r1ZybQ62IiIIkE9D9nw7yJb//F9qBpnWiR
+	gnDYxDAJSBDbN6OxF38J5XncpuAhvHAmdz6eJ7SJd4/gDvy5NO8axVNK
+X-Gm-Gg: Acq92OHMLMNThKsApt0CVXMdDsR1uZZh7AmoZmR7kSc8nYnROoa8a2iofmUnZM2rJUr
+	0C8npbMzzWgslMpXgVTlSI0NAfymrB//Nkz74m4wBVg3z9FNNv9lCaBMChiF7AoGm1c38Fyip6S
+	S33LaYpSzg2ahwWBT09K5aJq7fKKR9XzjDT4puvrRdBLLXPc4v8lR6XpVZhbU+marhAg2RBgHxx
+	m6jj20NUlqiSIgNe2f5u1hBylI+0gL2duhxUKyzfIcg/prkWXhPMef8AJMLbKZGDpBEUoe8s9yW
+	umoN7r4Ic4L3Cm69foPYwStIyDZffSrSRobVIMq2pWKRYlbzV7SOoRRvz18ZdAFXzmFCqcW9ieN
+	rOLw5kSRrdVeGtwGvD95+RolNSCJMsDVOL9B21h0UkhIh9aYOUYeM21CjeHpb1nqbMZLJXisaYv
+	F6UdF4Xtb97HC8DBpSYHHfe7Ga7r1r3lxZSK5QGMMS4AmJyFrW9AeFlDuVK37DZMvgotBZFvKci
+	Xkxw0mszDXseTFM8RE=
+X-Received: by 2002:a05:6512:2552:b0:5a8:9988:f1d5 with SMTP id 2adb3069b0e04-5aa323bc03emr387730e87.24.1779425723236;
+        Thu, 21 May 2026 21:55:23 -0700 (PDT)
+Received: from ?IPV6:2a10:a5c0:800d:dd00:8fdf:935a:2c85:d703? ([2a10:a5c0:800d:dd00:8fdf:935a:2c85:d703])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5aa32cb36d2sm144533e87.13.2026.05.21.21.55.20
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 21 May 2026 21:55:22 -0700 (PDT)
+Message-ID: <b79d8ad9-f36e-4769-9dc2-58baefe23000@gmail.com>
+Date: Fri, 22 May 2026 07:55:19 +0300
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260520183815.2510387-1-arnd@kernel.org> <20260520183815.2510387-8-arnd@kernel.org>
-Date: Thu, 21 May 2026 02:04:21 -0700
-X-Gmail-Original-Message-ID: <CAMRc=Mebt+hpSBfpsnHh1+SKt9b1cRBNge5WSoRrsfX1BBFgtA@mail.gmail.com>
-X-Gm-Features: AVHnY4LWqhGtTeBYvpB-D8gN85zif4ar2-h8NZZ1yCLGF3pH11futzwzVDKQXSE
-Message-ID: <CAMRc=Mebt+hpSBfpsnHh1+SKt9b1cRBNge5WSoRrsfX1BBFgtA@mail.gmail.com>
-Subject: Re: [PATCH 07/10] [v6 net-next] dt-bindings: net: add
- st,stlc4560/p54spi binding
-To: Arnd Bergmann <arnd@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, 
-	Christian Lamparter <chunkeey@googlemail.com>, Johannes Berg <johannes@sipsolutions.net>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
-	Tony Lindgren <tony@atomide.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Thomas Gleixner <tglx@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
-	"H. Peter Anvin" <hpa@zytor.com>, Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee@kernel.org>, 
-	Pavel Machek <pavel@kernel.org>, Matti Vaittinen <mazziesaccount@gmail.com>, 
-	Florian Fainelli <florian.fainelli@broadcom.com>, Jonas Gorski <jonas.gorski@gmail.com>, 
-	Andrew Lunn <andrew@lunn.ch>, Vladimir Oltean <olteanv@gmail.com>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, linux-wireless@vger.kernel.org, 
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, 
-	linux-input@vger.kernel.org, linux-leds@vger.kernel.org, 
-	netdev@vger.kernel.org, Christian Lamparter <chunkeey@gmail.com>, 
-	Conor Dooley <conor.dooley@microchip.com>, linux-gpio@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 02/10] [v3] input: gpio-keys: make legacy gpiolib optional
+To: Arnd Bergmann <arnd@kernel.org>, linux-gpio@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+ Christian Lamparter <chunkeey@googlemail.com>,
+ Johannes Berg <johannes@sipsolutions.net>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
+ <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+ Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
+ Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee@kernel.org>,
+ Pavel Machek <pavel@kernel.org>,
+ Florian Fainelli <florian.fainelli@broadcom.com>,
+ Jonas Gorski <jonas.gorski@gmail.com>, Andrew Lunn <andrew@lunn.ch>,
+ Vladimir Oltean <olteanv@gmail.com>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+ linux-sh@vger.kernel.org, linux-input@vger.kernel.org,
+ linux-leds@vger.kernel.org, netdev@vger.kernel.org
+References: <20260520183815.2510387-1-arnd@kernel.org>
+ <20260520183815.2510387-3-arnd@kernel.org>
+Content-Language: en-US, en-AU, en-GB, en-BW
+From: Matti Vaittinen <mazziesaccount@gmail.com>
+In-Reply-To: <20260520183815.2510387-3-arnd@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Wed, 20 May 2026 20:38:12 +0200, Arnd Bergmann <arnd@kernel.org> said:
+On 20/05/2026 21:38, Arnd Bergmann wrote:
 > From: Arnd Bergmann <arnd@arndb.de>
->
-> The SPI version of Prism54 was sold under a couple of different
-> names and supported by the Linux p54spi driver, but there was
-> never a DT binding for it.
->
-> Document the four known names of this device and the properties
-> that are sufficient for its use on the Nokia N8x0 tablet.
->
-> As I don't have this hardware or documentation for it, this is
-> purely based on existing usage in the driver.
->
-> Link: https://lore.kernel.org/all/e8dc9acb-6f85-e0a9-a145-d101ca6da201@gmail.com/
-> Acked-by: Christian Lamparter <chunkeey@gmail.com>
->
-> Acked-by: Conor Dooley <conor.dooley@microchip.com>
+> 
+> Most users of gpio-keys and gpio-keys-polled use modern gpiolib
+> interfaces, but there are still number of ancient sh, arm32 and x86
+> machines that have never been converted.
+> 
+> Add an #ifdef block for the parts of the driver that are only used on
+> those legacy machines.
+> 
+> The two Rohm PMIC drivers use a gpio-keys device without an actual GPIO,
+> passing an IRQ number instead. In order to keep this working both with
+> and with CONFIG_GPIOLIB_LEGACY, change the gpio-keys driver to ignore
+> the gpio number if an IRQ is passed.
+> 
+> Link: https://lore.kernel.org/all/b3c94552-c104-42e3-be15-7e8362e8039e@gmail.com/
+> Link: https://lore.kernel.org/all/afJXG4_rtaj3l2Dk@google.com/
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
+> v3: resend
+> v2: skip the fake GPIO number passing from mfd
+> 
+> The removal of the arm platforms using this is not yet going to happen
+> for 7.2, and Dmitry's changes for the Rohm drivers have not yet
+> made it into linux-next as of 2026-05-20, so for the moment I
+> would still like to see this patch get merged, even if we are
+> closing in on completely removing the legacy gpio support in
+> the gpio_keys driver, so we can make CONFIG_GPIOLIB_LEGACY
+> default-disabled sooner.
 
-Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+I am (still) all fine with this, even though I like Dmitry's set. I 
+suppose you already have a plan for merging this, but I still have to 
+ask - why the MFD changes aren't in own patch? I feel it would have 
+simplified merging, backporting, reviewing and reverting if needed.
+
+Well, other than that:
+
+Reviewed-by: Matti Vaittinen <mazziesaccount@gmail.com>
+
+Yours,
+	-- Matti
+
+---
+Matti Vaittinen
+Linux kernel developer at ROHM Semiconductors
+Oulu Finland
+
+~~ When things go utterly wrong vim users can always type :help! ~~
