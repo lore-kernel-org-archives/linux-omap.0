@@ -1,57 +1,58 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 537A815B971;
-	Sat, 23 May 2026 01:17:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3331516132A;
+	Sat, 23 May 2026 22:05:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779499068; cv=none; b=q/3Mt2uy0L1kgB2tUsj3jfYHpJ51IQJhsVUWFFjPtmD6mzghKy/CcyztnhfJxTnEkm9iTj1kl7l3uOJbyPcX2J/8zOtVa0ZkH1QJjveVsn3jOh05OaGfHKS0Gah0GobjaL1PnsTdp/voRKCtQwuLi/zFtuwoIWrbw5R1AcDPuUc=
+	t=1779573920; cv=none; b=ZRfWfKdguydpz+H4UJrsFn4yMVso61lZKm+U0ApNkOwsBvBzU1ebGlnvLfFSz2Y8s9A5tx2g28z/IJjV1K16UyCFdh0rLEU0+QogIT4Jvf+zoShIJUZ4jwfqN+x3tRqwJ18sT4SvHV973ldCXfOpC7oq4ogMJi94TS2aBcEt8zc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779499068; c=relaxed/simple;
-	bh=dO3zXTzmwUSskeBLmpVxGmQPSV+yLgtT8f+5DJ/75F0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CKhTbZydkDAl3sw8z3oOJGhCk4HzVfp6u4rDWkZsldp6EpI8dk+e73HIpLb26TSeZ8zqHfycYNfQeMJ60vJBO/05T7fmjpW6ecfiRTS0Co7AEKKcGqUVR095nRXkEFnXYCdwRKnJLXGjx1UeuQLnSelXnY1xc/4/iLJa5hxUpiE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UN9bHPFU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779573920; c=relaxed/simple;
+	bh=hI2WxIL/SFibqPgCNfqmsJi15LBfE7vwSV9XDng5yMc=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=SIz9yiz9+l0sf6vBYzDB9rg8kNE8tbFTnoQAkS9D1kEAz3u9tad6N86lv+S0dTl31jozfU4cLdbv1yMGZkDoS0Ghf4Ixokn2CaUTkIDFpjmg9vAPHYm21UIgjw/4qRp8O9nDiYbwvEBsaghd4tZe4U9ucag2rhVFuEocM/my8rM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=29eVPFxr; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UN9bHPFU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C44A1F000E9;
-	Sat, 23 May 2026 01:17:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779499066;
-	bh=HgG/WK4w3DmgQeJigoCOVGTZUreRd8ANchlOeI9Sask=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=UN9bHPFU251YKJIEQ6b68/REcbApvPpea4AqPunrvaf0B5eHUiZ6rWBwKtmkUnzcu
-	 O8Q9N3jZxaZ1u7WXAJPP4cxt4oupewzOjy1TKcQrUfPBXNtSscgKsSJfZ2T2bw29yG
-	 YKTupMsk4bp2hiqanw8s67ClVh9s7ijpqoco8GA1tYT+wYdunu8EdCD6As7uhSl5sA
-	 uhTvbsg67bvxUEfJL9/PG3JPRGd30ZapdGBEB9ZmAqxsdfiR3tFMX8PkBdVNqr/Zth
-	 o5NfNCu+yqV82zPDeNVt+nCTjnyqXmy9diKuEw42XzMogEae/E596Z3dOezD50wGFR
-	 bf2gf9TSGRyjw==
-Date: Fri, 22 May 2026 18:17:41 -0700
-From: Nathan Chancellor <nathan@kernel.org>
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="29eVPFxr"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID;
+	bh=5y5C7U0eJNMWpozPRhpxeJdIqeK0zzLaadU8ylQbPm8=; b=29eVPFxrSct7jQWCF+6gO7VEHs
+	zKAP0Qda313Jh20BQWWgKsnRy1pBtFicxbgKdgC+UZNl9mNE2ESJ65O+vwTbr4DBVdTrjeqg6wR8L
+	saOEkvzVEY1VE2xp9ZYWdUfITY1x72Yt4GTaVgaP9gTF3KQqNscluekNakGKl4cro6dHMxjj9xeek
+	30PT+yCxhZmCUr5AdO9vAW3XdmXNUzWSjQ6w6P3CJSTz/Fx2x+EqkL6U9jymtBr/xAEc8ygNjbuIa
+	H3uj5A9XYEFwlb/lpVf6QpJ7qTtxOjYvw3w11jiicIcuT5SgSwyb57cH/eRRXhlp3NIXzn32Ttvf/
+	wAifhk3Q==;
+Date: Sun, 24 May 2026 00:04:52 +0200
+From: Andreas Kemnade <andreas@kemnade.info>
 To: Mithil Bavishi <bavishimithil@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Sami Tolvanen <samitolvanen@google.com>,
-	Kees Cook <kees@kernel.org>, linux-arm-kernel@lists.infradead.org,
-	linux-omap@vger.kernel.org, llvm@lists.linux.dev,
-	linux-kernel@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
+ <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
+ <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Sami Tolvanen
+ <samitolvanen@google.com>, Kees Cook <kees@kernel.org>, Nathan Chancellor
+ <nathan@kernel.org>, linux-arm-kernel@lists.infradead.org,
+ linux-omap@vger.kernel.org, llvm@lists.linux.dev,
+ linux-kernel@vger.kernel.org
 Subject: Re: [PATCH v2] ARM: OMAP2+: Add CFI type for omap4_finish_suspend
-Message-ID: <20260523011741.GC520407@ax162>
+Message-ID: <20260524000452.0d67f884@kemnade.info>
+In-Reply-To: <20260522233036.12277-1-bavishimithil@gmail.com>
 References: <20260522233036.12277-1-bavishimithil@gmail.com>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260522233036.12277-1-bavishimithil@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Fri, May 22, 2026 at 04:30:36PM -0700, Mithil Bavishi wrote:
+On Fri, 22 May 2026 16:30:36 -0700
+Mithil Bavishi <bavishimithil@gmail.com> wrote:
+
 > With CONFIG_CFI enabled, OMAP4 can trap in omap4_enter_lowpower()
 > because omap_pm_ops.finish_suspend points directly to the assembly
 > routine omap4_finish_suspend, which lacks the expected KCFI type
@@ -62,8 +63,7 @@ On Fri, May 22, 2026 at 04:30:36PM -0700, Mithil Bavishi wrote:
 > 
 > Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
 
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
-
+Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
 > ---
 >  arch/arm/mach-omap2/sleep44xx.S | 4 ++--
 >  1 file changed, 2 insertions(+), 2 deletions(-)
@@ -90,10 +90,4 @@ Reviewed-by: Nathan Chancellor <nathan@kernel.org>
 >  
 >  /*
 >   * ============================
-> -- 
-> 2.43.0
-> 
 
--- 
-Cheers,
-Nathan
