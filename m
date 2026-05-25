@@ -1,72 +1,101 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7113430566F;
-	Sun, 24 May 2026 18:43:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B113E51C6
+	for <linux-omap@vger.kernel.org>; Mon, 25 May 2026 08:58:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779648214; cv=none; b=qcCKsln6Y9LG8uKcqxhpDAt+vxx2niyuPamg7mXRrDkaG04sNgY5tW/5Gyydit9YqR2iqCDKcxIzcG7cWIyUYW0ocHk09j3bU41o8zkKvh8ibOcgYCjQVnhzP1HFCxYZtBg4UqP6bfpJwJdS5pAZv26yi+vigdixlEkjunUoXjE=
+	t=1779699485; cv=none; b=BWdcx+nKoRDxR3IlgllyMpGqqg2SGb+1mzYUcb43mf4C21WxHWck9WTuK+kL/0FEuwvK8omFivW5PaigPiWPWWVXgsCcDPZcTrQyc5OvVmHrENDki/Z/KjToIwOyS22CE/nnUz2p/WrCPQE09q01mO98g4ahH7DkzqVDiVRSbI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779648214; c=relaxed/simple;
-	bh=h3fhhHjq1Urb+xOi6hdz5mWYMhc3TDjDqTm+FaKmzrQ=;
-	h=From:To:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=ikYSxkoa2IHGJcSBlMqa13/bpP8x0HWc78CprVcT7ldtnzD28uMqCbD6ADArSrV/w8c57mLdksQjRjZiamjj8Wl/bFvlgnZ94baSF/FyrJjBQdroyHl49S+WLZypLzsM40vzgpfgCETRTJamw3PyzYhHLf9QdDEQ7hhk5Eqg5xY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IjesJ7mP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779699485; c=relaxed/simple;
+	bh=xXz/GYVV9QSNbeC/HxJ0KuDPx2s68Hc+e5zq10KEVeM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=XJ3Lw/2vMgmouPqU1znGkUa3Xb4qkG8iTgbrm8i7nsxfWXm4VUXWeBEQLnJh/9G/u49hbx+JzKlV6oJCHBenUv4bI/+nKWiIs7wl5O5uLzlUOct2GlAEcA9cbw4EFWQcmm9lBUsm6RPkK4HU7hF/9Sggv0aodY5DIwmZGjHoTpw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PsfSJ9qs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IjesJ7mP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A1E31F000E9;
-	Sun, 24 May 2026 18:43:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PsfSJ9qs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 668411F01571
+	for <linux-omap@vger.kernel.org>; Mon, 25 May 2026 08:58:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779648213;
-	bh=93LfK6VNYSDzQm7Uw0qdefA4fJbShzhy1ZhDPzH2M3U=;
-	h=From:To:In-Reply-To:References:Subject:Date;
-	b=IjesJ7mPhTax3jwDU8YT009egSr7m5kuuyilf1FuEwfn9eAC78xg6eS3zOcOUlRxZ
-	 3avLEx9DFhdo+VGekSiv18xIoBvoCRM1pmjzR8/ZqVEGiS61sWVk0FxvMqgBscsxtz
-	 +RuHm8nCPLVJydeidMU/sjhM7hK9uW4ZTDi0efICxpNTw6AyINgUTDqZYFuJIO4LbP
-	 9UYLw2WBxZ+tBMhLkX2YV3OAL57cwC0mfAjbom67mwI2WFE+E499e6F+jvKHGnqQ+o
-	 a4G6/hZiJkrA43ZJe+cn1FMvO+zC3zCY3uVsHqT5B517VclgeZe8fBWkFCM3mz9Tye
-	 uuZoqKZg+LyKQ==
-From: Krzysztof Kozlowski <krzk@kernel.org>
-To: Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Nathan Chancellor <nathan@kernel.org>, 
- Nick Desaulniers <nick.desaulniers+lkml@gmail.com>, 
- Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, 
- linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, 
- llvm@lists.linux.dev, 
- Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-In-Reply-To: <20260520111630.89365-2-krzysztof.kozlowski@oss.qualcomm.com>
-References: <20260520111630.89365-2-krzysztof.kozlowski@oss.qualcomm.com>
-Subject: Re: [PATCH v2] memory: omap-gpmc: Silence W=1 kerneldoc warnings
-Message-Id: <177964821108.15661.530728047035567405.b4-ty@b4>
-Date: Sun, 24 May 2026 20:43:31 +0200
+	s=k20260515; t=1779699482;
+	bh=xXz/GYVV9QSNbeC/HxJ0KuDPx2s68Hc+e5zq10KEVeM=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=PsfSJ9qsfwUwMwGEQi9C5gkghGo00zi/UHVZXT4fQmDaGE2tbo69FkGJUMDmJx5ZP
+	 ajPVIPljZ4PYnb9NQO2JuaYOFz0uSSzjinXFbifeiuH7Y5hFnmw/pg0AbsywCXU/SD
+	 iPUkHSnbzPHqA1uoorTRRt7DninH/J/mgesmdexSXzDEg3Ao0pEGi/C476ZUYOoNjo
+	 DhVby5WWmAzJI1rJokBGqtXYfB6crSo2ze8eCNS3Z8HpmjitJ5phMuXGeqY8YpS/IE
+	 4iv+mYl92pOnQMXUwDk8yLuuzxK9SKUDmBR1sZXJrfOae8y4hAMWzbqZLbeDzEDzc2
+	 WZ12vmUy0grtA==
+Received: by mail-ot1-f51.google.com with SMTP id 46e09a7af769-7e61da76fd9so1249740a34.0
+        for <linux-omap@vger.kernel.org>; Mon, 25 May 2026 01:58:02 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ9jqI/fKk+sCyRauXgh9fvDUM5OPw1lx9ICpy5ZvqujBBY44Jxn+c38N2/KbCg2lqskGUB3+9Z4vAp6@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxfmbc7cRL/AbCCth1YMF1Uo1oMcQw+Z8prkohbrhiGKKTfKaQv
+	unIFTHsYyPUCpHjzGvDkTfYRdP22C/YmYHsPj4o5IlHRc6qNCH7ljqkKyrpwmVzQDQvbRialufh
+	Xj5xET4OQ9WHJW/OpuYDY6VKrLvMkPWA=
+X-Received: by 2002:a05:6830:4985:b0:7d7:fb8c:3c29 with SMTP id
+ 46e09a7af769-7e5feeb63a7mr8912823a34.14.1779699481274; Mon, 25 May 2026
+ 01:58:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15.2
+References: <20260520183815.2510387-1-arnd@kernel.org> <20260520183815.2510387-3-arnd@kernel.org>
+In-Reply-To: <20260520183815.2510387-3-arnd@kernel.org>
+From: Linus Walleij <linusw@kernel.org>
+Date: Mon, 25 May 2026 10:57:44 +0200
+X-Gmail-Original-Message-ID: <CAD++jLnYeh3GfEfNXfCYdcdg_j2RAU63TYewwaTx3tm0tM531w@mail.gmail.com>
+X-Gm-Features: AVHnY4KW10_QvipgU3JqDhFdOUhRtRqnFXdZTNq6fk963CfrOH70VHOW3qgjj1k
+Message-ID: <CAD++jLnYeh3GfEfNXfCYdcdg_j2RAU63TYewwaTx3tm0tM531w@mail.gmail.com>
+Subject: Re: [PATCH 02/10] [v3] input: gpio-keys: make legacy gpiolib optional
+To: Arnd Bergmann <arnd@kernel.org>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Arnd Bergmann <arnd@arndb.de>, Christian Lamparter <chunkeey@googlemail.com>, 
+	Johannes Berg <johannes@sipsolutions.net>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
+	"H. Peter Anvin" <hpa@zytor.com>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee@kernel.org>, 
+	Pavel Machek <pavel@kernel.org>, Matti Vaittinen <mazziesaccount@gmail.com>, 
+	Florian Fainelli <florian.fainelli@broadcom.com>, Jonas Gorski <jonas.gorski@gmail.com>, 
+	Andrew Lunn <andrew@lunn.ch>, Vladimir Oltean <olteanv@gmail.com>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, linux-wireless@vger.kernel.org, 
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, 
+	linux-input@vger.kernel.org, linux-leds@vger.kernel.org, 
+	netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, May 20, 2026 at 8:38=E2=80=AFPM Arnd Bergmann <arnd@kernel.org> wro=
+te:
 
-On Wed, 20 May 2026 13:16:31 +0200, Krzysztof Kozlowski wrote:
-> Recent W=1 builds print kerneldoc warnings, even though a correct
-> kerneldoc is there:
-> 
->   Warning: drivers/memory/omap-gpmc.c:441 Excess function parameter 'cs' description in 'get_gpmc_timing_reg'
-> 
-> Drop additional inline comments for arguments to fix that.  They are
-> anyway not that useful.
-> 
-> [...]
+> From: Arnd Bergmann <arnd@arndb.de>
+>
+> Most users of gpio-keys and gpio-keys-polled use modern gpiolib
+> interfaces, but there are still number of ancient sh, arm32 and x86
+> machines that have never been converted.
+>
+> Add an #ifdef block for the parts of the driver that are only used on
+> those legacy machines.
+>
+> The two Rohm PMIC drivers use a gpio-keys device without an actual GPIO,
+> passing an IRQ number instead. In order to keep this working both with
+> and with CONFIG_GPIOLIB_LEGACY, change the gpio-keys driver to ignore
+> the gpio number if an IRQ is passed.
+>
+> Link: https://lore.kernel.org/all/b3c94552-c104-42e3-be15-7e8362e8039e@gm=
+ail.com/
+> Link: https://lore.kernel.org/all/afJXG4_rtaj3l2Dk@google.com/
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Applied, thanks!
+Reviewed-by: Linus Walleij <linusw@kernel.org>
 
-[1/1] memory: omap-gpmc: Silence W=1 kerneldoc warnings
-      https://git.kernel.org/krzk/linux-mem-ctrl/c/83c1d176fbac3c3ffbeaddbc37e11e083f19cebc
-
-Best regards,
--- 
-Krzysztof Kozlowski <krzk@kernel.org>
-
+Yours,
+Linus Walleij
