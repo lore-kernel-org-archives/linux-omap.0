@@ -1,131 +1,207 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA48C3ACF1E
-	for <linux-omap@vger.kernel.org>; Fri, 29 May 2026 08:02:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.173
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780041750; cv=pass; b=nkjWZ/Yhw8KNsM5OsPpcCD5JqWvMrxEt6EmTjI/IxsAsaSAHnFRr6oowrLRFbj2+5BbnLiuHG7iFmlTT3BpNeo72PQmMvS4t+q1W0n+GH2cJAwQSIZ2Hz43oP6bbkLuHJPgY7YL46Ukey3x+PXqti/Mbfax9LRP88Kor4SMvPeg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780041750; c=relaxed/simple;
-	bh=XT6w4vc0Qoe3DQquv1ih38xI5xPmjmTxa5U+zj2Fats=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=dKtZz7Hfh8g7qMyAZgz+E4qbD3qJXmLPIQjTdd077YjgGgt1Q1jhRhJmFjqNua9Mgwx20LmZqCsbdwPIWpSxMPVezbEM6CwsMpCJwT/h0XSCWdKucrIvLeTamWsxBnyKi+2EUdmfpSMTcoaa4eAGpnIVn/R5jXLYdHJCxHn2qr0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DyzZTbtr; arc=pass smtp.client-ip=209.85.214.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A44313A9D8B;
+	Fri, 29 May 2026 20:19:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1780085989; cv=none; b=lDgNUHUxC4o919pWqHV48B+W8XQGIJLTJClHoSHBYPh4edpyTgsLHr9iP7rUleHOxvIGn7OoAKZC+yNXwbXgRNOkG19DrTdO2guEdNpeBlRZ6wKtEmjHFoP2sMEaZsgi16Cp87q/Cdzsa2L4xRi2GZjTqJ5turhcn2RJjOx7P4o=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1780085989; c=relaxed/simple;
+	bh=dHNqL0eGJFAiEMt+7eKYnWmJpESFfmV9/XNPkjMC0oU=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=YQicL0I7Tbz0BQhMnwsI+E5bTBVSUX7mDHvWxEj3JF7Otw6spSQ4z2RqW4wUSpakYRwwVEGdFEUQwt2Z5ipECvaBsK3C+VwARqWkXXxTouTiHb6vjk9ZJophcpHwBJemnU+l/LXgjh05BgrfyeEpnHCfT8TFLD+1WTc6Sn6BgyE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dAZ3O6MJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DyzZTbtr"
-Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-2b458ca2296so102659635ad.0
-        for <linux-omap@vger.kernel.org>; Fri, 29 May 2026 01:02:29 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1780041749; cv=none;
-        d=google.com; s=arc-20240605;
-        b=IVC/uQXPBp0/oxmlifVe2fXA/Mqgcja+vaJKIzVcBGrbs5un4+bt3pJSStCRRoEQNh
-         uc/WZOK3p+33cMiAUkzQoUUR8i07B1eztjRNWygIJwygsTIbFRIC5nd7mP9Fyra6RPFA
-         PMDJlLwPHzx7W79ENOZ/6D7PWAy6ckB6WWiITVPSsKR8AjO7UaRLVlptLfDqAQANJJkZ
-         07bv3oN6GjrHY+r3iEszU1rsfXMslOlXQc64RtrpskNXquTMGwEcL6QpFG0Ml39h4K4p
-         2Rg2ikcGNFhmebTa+MDn3HgOBqz9fvO+Yj6opf+rjEhiCYjnhJDN7LjV4qWjZ5lKNx9r
-         eAkA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=XT6w4vc0Qoe3DQquv1ih38xI5xPmjmTxa5U+zj2Fats=;
-        fh=ZnXVkbxrg39QUVFFv3wD94AXAgQoMreCqPoaDiYlimc=;
-        b=Rb2SMD/U3ZeDCR2y8LWhhf9sYvd8EI6ln98riZiPojEWwZeDM1NXwvVehsY/hdiW7w
-         Z3SVJoSlKPgH+8Ishno2My76k6BiZ8lm7MtDvILGYOGdRV3gQAA2AI2xliJ8gEgOEsuh
-         pzxsm2wc9T7fL9GQC8VJIftr5EOTxGMfgZNZcaShrnc6LtSLosvYGkfdK7+RGsipaMWx
-         VH00FO9gpfDVpsfT1FBFmGTJG4VuhoqxyQZT+PpG+GSJX246Khm+9AaCGsdVeGhgbVo6
-         OLfODOqp1vmsYuIF31hCRxAm/rSgarBnRSZVE1FStSszNcs0BfSEYIqR9ril2g7ktg1g
-         ph4A==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780041749; x=1780646549; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=XT6w4vc0Qoe3DQquv1ih38xI5xPmjmTxa5U+zj2Fats=;
-        b=DyzZTbtrZ1n2pUax8yd/K5VlIptCfq8x17Y1bBwWhPrIij0QTiJOPUXga9Wk1PStt/
-         Z/UX82Dpe1ItakllYC6viWCR6Nre9Fnb6f60qOEMga+MfWzZ9OF6lLU5CPCWDvZacO+0
-         KvFL6AHvHXA7EM47EcHtijw8SuWz3liQi0gcdlWIi47OWjg8JDj0BULD+kZ29dnPnP4k
-         vUtHvuLIgjrRORImdUB7i4bk7qjvA5BoJixLH8dryHWOir77N0KT8m147f2PoC5TxDye
-         KSSpFvXYuOOLLoFaA59M593VjSX5/qQmA2vbWvJTivlCCErGxgg5GEUYH9Qkc/j/nQ+5
-         Ycpg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780041749; x=1780646549;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=XT6w4vc0Qoe3DQquv1ih38xI5xPmjmTxa5U+zj2Fats=;
-        b=oDNPDWnKj5nKAvVwZCRF+BZ1AHGdlaEN+P28uzCKHvuthjRPDsbEnoQIUSeiGpnuve
-         HIbhf6d8KUo2GqEu0+D/ZxPnIh57qNS8gKdOtRggJZISa3NU2R1EP01Ke0BUKnoWCi92
-         n0MO5qDrpXBQRXyO4vw/VF8AwOjs9cwUboVIbC877ZDuyv0YxiTTcDsSO6CB+ykyDpqb
-         F6qPgHILuKy83zmPJtTJHZp2zMSdHLcvzF1sPkVtOlMfsLou3hAC1q9gVZnq9RT4F+yk
-         kIoGvXcwIHyb+2a/vOKp/pR+krFsHcOqzaUizdgFVNLDOdv0ua1s3JyF1pq/C2ZX2abM
-         K6rQ==
-X-Forwarded-Encrypted: i=1; AFNElJ/RL1lg6mk2qTo/Mdw0f4SHvkFS177GvFDwjaSyVbcOTOhmKpVvxDFPLoNTm5oiPw/VP9Pnw2v8WXYl@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw5wV/8kT0b05mR0llB1rz5Io07gE0DlC3kKBOxfk2eYsEiTRKl
-	u2saTG0mq8WUV9Yhhlzd7UPbBHoYoV5oND03r4hAwWDHHd+JzDdg52OkQyQazztwb86y65P6Yqi
-	cT3ZZ8Ios7nQr3fO5DTOeSm1A3yx2pJY=
-X-Gm-Gg: Acq92OF6x8+z86HjmaLhhlMYuYhnlNdPGXvcfot1X96/4JCnYNflgBWP1Vp4vrurSpA
-	+L4hwqxY4sxzfLe6B/eanp/eGP4k0mC1/o/wSl4xmYH9IfQifM9br5p4ZvJR8lrSn7Yh4c+CVxp
-	hiYBJi4lBnkA5X2O4xBVU946VsPwBH58f3IFKdf5CJSf3SXrpMTsQWfwpabphc6uOVAaB2+5CFr
-	vFPMdTKC2hxv2qG+pPZuIcTe80hBkgUKj8Hb00YEOdBWICeNTOB41FmyFzpVewDZIdVDo67GTyV
-	64GSpcbz39JHEpGVaPo=
-X-Received: by 2002:a17:903:fa5:b0:2ba:6ca2:be0 with SMTP id
- d9443c01a7336-2bf2053340bmr25566605ad.4.1780041749021; Fri, 29 May 2026
- 01:02:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dAZ3O6MJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E90C51F00893;
+	Fri, 29 May 2026 20:19:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780085988;
+	bh=2Wc41D9OvCbWexi5nL+2XFDqm9GHqqY1BGAs17SzVDI=;
+	h=From:Date:Subject:To:Cc;
+	b=dAZ3O6MJuxT/2HCwzklBtGozWiqt8nlCPYPjOCs6E+eK3YHn397VwTbwvoNDrV7S2
+	 vslHeeNWpFJzAx8ATInrG6zpHqSSCJxZCnm0OlkmyFakD7aZbxvjvwGp2ZUv7/1F64
+	 YYAwOjFiqJVbcxJYburHOMtW838Ayi6W8s6g1ws3QXk9/JbTt5V0YeZ1GBacoH2L/9
+	 XruXgcnDt7/1v3m9fuJWHYU7IM+IQK3bNPOvpqVmDI5HCcjQuhkhjoc/JoZY9UhhCR
+	 5GoYkYIJ5qRQtpJG/XOW+C547LnedFnzJDkdLw5YkXGHq/byy0Eiw+TKU8Nxefjzgs
+	 PKel7FaWXDwPw==
+From: akemnade@kernel.org
+Date: Fri, 29 May 2026 22:19:33 +0200
+Subject: [PATCH v2] drm/omap: dsi: avoid sending bta sync all the time in
+ writes
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1779878004.git.u.kleine-koenig@baylibre.com> <d02f55dfd5bdd743ae5cd76f2a5af0d346226a68.1779878004.git.u.kleine-koenig@baylibre.com>
-In-Reply-To: <d02f55dfd5bdd743ae5cd76f2a5af0d346226a68.1779878004.git.u.kleine-koenig@baylibre.com>
-From: Matti Vaittinen <mazziesaccount@gmail.com>
-Date: Fri, 29 May 2026 11:02:17 +0300
-X-Gm-Features: AVHnY4KLQby2GKgYCaNbHrRuPj0X0-ETK3PqgCK0q7F1iL-UnUKeln5tOfAvRio
-Message-ID: <CANhJrGNyB7aqMhR5DiLXd6OPmsE4Vox=K7UwMPZ1ZZc2-Ciw3w@mail.gmail.com>
-Subject: Re: [PATCH v1 2/3] regulator: Use named initializers for
- platform_device_id arrays
-To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
-	Karel Balej <balejk@matfyz.cz>, Marek Vasut <marek.vasut+renesas@gmail.com>, 
-	Chanwoo Choi <cw00.choi@samsung.com>, Krzysztof Kozlowski <krzk@kernel.org>, 
-	Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
-	Samuel Kayode <samkay014@gmail.com>, =?UTF-8?Q?Andr=C3=A9_Draszik?= <andre.draszik@linaro.org>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
-	Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, 
-	linux-renesas-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-mediatek@lists.infradead.org, imx@lists.linux.dev, 
-	linux-arm-msm@vger.kernel.org, linux-samsung-soc@vger.kernel.org, 
-	linux-omap@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260529-vm-upstr-v2-1-24c30671719f@kernel.org>
+X-B4-Tracking: v=1; b=H4sIANT0GWoC/23MQQ7CIBCF4as0sxZTaEuxK+9huhAcWqJCM1Sia
+ bi72LXL/+Xl2yAiOYwwVBsQJhdd8CXEoQIzX/2EzN1Kg6iFrDuhWHqy1xJXYkZhL5sWte0klPt
+ CaN17py5j6dnFNdBnlxP/rX+QxBlnVp8atMpobPvzHcnj4xhogjHn/AUPgPOJoQAAAA==
+X-Change-ID: 20260528-vm-upstr-c8e7634ebf56
+To: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+ David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
+ Sebastian Reichel <sebastian.reichel@collabora.com>, 
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+ Tony Lindgren <tony@atomide.com>, 
+ Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Marek Vasut <marex@denx.de>, 
+ "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, 
+ linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, 
+ Andreas Kemnade <andreas@kemnade.info>
+X-Mailer: b4 0.15-dev-a6db3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4799; i=akemnade@kernel.org;
+ h=from:subject:message-id; bh=l2sReNzwjlH32twN/ktwI1ALAm5nnpRCKj6uWBcTpFY=;
+ b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFmSXx5k5rAfXvWx1WH/0tdRN+p+1zW15D5fpruV9fXmC
+ fuOKqT+7yhlYRDjYpAVU2T5Za3g9knlWW7w1Ah7mDmsTCBDGLg4BWAiySGMDAv0K26yntRxPKv0
+ eI72s6a5Uuf9XkZ9SLDbIXhukqCbxVOG/7W3TIsubZv8/f0pnUsr3nnNVLnY9LPF2twtMkwrYrF
+ OIgcA
+X-Developer-Key: i=akemnade@kernel.org; a=openpgp;
+ fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-ke 27.5.2026 klo 13.48 Uwe Kleine-K=C3=B6nig (The Capable Hub)
-(u.kleine-koenig@baylibre.com) kirjoitti:
->
-> Named initializers are better readable and more robust to changes of the
-> struct definition. This robustness is relevant for a planned change to
-> struct platform_device_id replacing .driver_data by an anonymous unit.
->
-> While touching these arrays unify spacing and usage of commas.
->
-> Signed-off-by: Uwe Kleine-K=C3=B6nig (The Capable Hub) <u.kleine-koenig@b=
-aylibre.com>
-Reviewed-by: Matti Vaittinen <mazziesaccount@gmail.com>
+From: Andreas Kemnade <andreas@kemnade.info>
 
---=20
+Some chips need configuration commands to be sent first, before they can
+send data. TC358762 for example needs PPI_LPTXTIMECNT configured
+and PPI_STARTPPI set to 1 to be able to transmit anything. To be able to
+configure such chips, do not send bta sync during writes if no acks are
+requested. Instead just wait for the packet to be sent to avoid FIFO
+overflows. There might be more to do about acks, but there seem to be
+virtually no users of that flag.
 
-Matti Vaittinen
-Linux kernel developer at ROHM Semiconductors
-Oulu Finland
+This came to light when fiddling with the Epson Moverio BT-200 display
+which consists of 2 TC358762 bridges with SPI funneled through
+to the unknown display chip. With that patch the bridge can be accessed,
+Reading back registers works, when the above-mentioned registers are set.
 
-~~ When things go utterly wrong vim users can always type :help! ~~
+In Command-Mode update, there was a nop sent, apparently the most
+relevant part wos the bta sync to acually force low power mode.
 
-Discuss - Estimate - Plan - Report and finally accomplish this:
-void do_work(int time) __attribute__ ((const));
+Video mode panel at OMAP4 (BT-200) and video mode at OMAP5 was tested.
+
+Fixes: e70965386353e ("drm/omap: dsi: simplify write function")
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+Tested-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> # droid4
+---
+This has now been also tested with command mode display on droid4.
+
+Qouting: Ivo:  "you may add my Tested-by"
+---
+Changes in v2:
+- fix commandmode update, need bta sync there
+- do not wait on short packets
+- Link to v1: https://patch.msgid.link/20260528-vm-upstr-v1-1-fb93ef8cbe47@kernel.org
+---
+ drivers/gpu/drm/omapdrm/dss/dsi.c | 55 +++++++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
+index 27fe7bca9e2c..6391203f6d25 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dsi.c
++++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+@@ -2194,28 +2194,42 @@ static int dsi_vc_send_null(struct dsi_data *dsi, int vc, int channel)
+ static int dsi_vc_write_common(struct omap_dss_device *dssdev, int vc,
+ 			       const struct mipi_dsi_msg *msg)
+ {
++	DECLARE_COMPLETION_ONSTACK(completion);
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+ 	int r;
+ 
+ 	if (mipi_dsi_packet_format_is_short(msg->type))
+-		r = dsi_vc_send_short(dsi, vc, msg);
++		return dsi_vc_send_short(dsi, vc, msg);
+ 	else
+ 		r = dsi_vc_send_long(dsi, vc, msg);
+ 
+ 	if (r < 0)
+ 		return r;
+ 
+-	/*
+-	 * TODO: we do not always have to do the BTA sync, for example
+-	 * we can improve performance by setting the update window
+-	 * information without sending BTA sync between the commands.
+-	 * In that case we can return early.
+-	 */
++	/* wait for IRQ for long packet transmission confirmation */
++	r = dsi_register_isr_vc(dsi, vc, dsi_completion_handler,
++			&completion, DSI_VC_IRQ_PACKET_SENT);
++	if (r)
++		return r;
+ 
+-	r = dsi_vc_send_bta_sync(dssdev, vc);
+-	if (r) {
+-		DSSERR("bta sync failed\n");
++	if (wait_for_completion_timeout(&completion,
++			msecs_to_jiffies(500)) == 0)
++		r = -EIO;
++
++	dsi_unregister_isr_vc(dsi, vc, dsi_completion_handler,
++			      &completion, DSI_VC_IRQ_PACKET_SENT);
++
++	if (r)
+ 		return r;
++
++	/* TODO: find out if more needs to be done for MIPI_DIS_MSG_REQ_ACK */
++
++	if (msg->flags & MIPI_DSI_MSG_REQ_ACK) {
++		r = dsi_vc_send_bta_sync(dssdev, vc);
++		if (r) {
++			DSSERR("bta sync failed\n");
++			return r;
++		}
+ 	}
+ 
+ 	/* RX_FIFO_NOT_EMPTY */
+@@ -3233,21 +3247,6 @@ static int _dsi_update(struct dsi_data *dsi)
+ 	return 0;
+ }
+ 
+-static int _dsi_send_nop(struct dsi_data *dsi, int vc, int channel)
+-{
+-	const u8 payload[] = { MIPI_DCS_NOP };
+-	const struct mipi_dsi_msg msg = {
+-		.channel = channel,
+-		.type = MIPI_DSI_DCS_SHORT_WRITE,
+-		.tx_len = 1,
+-		.tx_buf = payload,
+-	};
+-
+-	WARN_ON(!dsi_bus_is_locked(dsi));
+-
+-	return _omap_dsi_host_transfer(dsi, vc, &msg);
+-}
+-
+ static int dsi_update_channel(struct omap_dss_device *dssdev, int vc)
+ {
+ 	struct dsi_data *dsi = to_dsi_data(dssdev);
+@@ -3268,13 +3267,13 @@ static int dsi_update_channel(struct omap_dss_device *dssdev, int vc)
+ 	DSSDBG("dsi_update_channel: %d", vc);
+ 
+ 	/*
+-	 * Send NOP between the frames. If we don't send something here, the
++	 * Transition to LP here. If we don't send something here, the
+ 	 * updates stop working. This is probably related to DSI spec stating
+ 	 * that the DSI host should transition to LP at least once per frame.
+ 	 */
+-	r = _dsi_send_nop(dsi, VC_CMD, dsi->dsidev->channel);
++	r = dsi_vc_send_bta_sync(dssdev, vc);
+ 	if (r < 0) {
+-		DSSWARN("failed to send nop between frames: %d\n", r);
++		DSSWARN("failed to send bta sync between frames: %d\n", r);
+ 		goto err;
+ 	}
+ 
+
+---
+base-commit: e7ae89a0c97ce2b68b0983cd01eda67cf373517d
+change-id: 20260528-vm-upstr-c8e7634ebf56
+
+Best regards,
+--  
+Andreas Kemnade <akemnade@kernel.org>
+
