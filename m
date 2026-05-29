@@ -1,188 +1,126 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dl1-f43.google.com (mail-dl1-f43.google.com [74.125.82.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06A0F2D9787;
-	Thu, 28 May 2026 20:19:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41F7C39F17F
+	for <linux-omap@vger.kernel.org>; Fri, 29 May 2026 05:37:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779999562; cv=none; b=ofl4ClGZD3kR+ik+FloQQsyZhuyB0iuwaWKZC741h3DrOrEbvw9pOZt8xUt5Hj2rISJQT55ytr5Jfc3Zz0CQCdwplznqNDS0WcnNpD9ZaJ5vep+6EKnNBqKCS80Dt4q2A68H4B8XzR/0bax/eDYksaMPczwMkN4TxGGxKNe4GzQ=
+	t=1780033029; cv=none; b=V/o2ST7GrdYf1FZi0+O/BkD5ZCKeGoqb/9VLfl19HBDFpjzuBai+UI2bN1HqniIGOpiz5oDTjvmFZKgxV/3+zT92KD+VxWSk1GkzTSpZvFU/RHFw8wONpEe6s+XJumrjmCItcpI12fWO9RwXfrdyLKhx8zXo6lQ56c5ouM5jLic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779999562; c=relaxed/simple;
-	bh=dww0ZpGouDU3rfew4ddFRvk6Ifx/DNkivm32HJsnt9E=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=sfqtPHnzh+VB6x1rWc0CoZ99yjzuSeN6xeWGcMvv5eWF+0hLfG+f6CDPqdzDAchdQqqs09kQX1crPYD8VlCMLfti2fANlP5i1GBSHpF+BQ5oh9iI50V35/ivun1r5D743yLoYRFqd3gWoQJZfq+uBmybx2pb0HeUPza+EUEnNUw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=pLvB0Rb8; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1780033029; c=relaxed/simple;
+	bh=U/u+I7Fjs+lyPrjV5mTGiCw54swil5vB5IqkaePU3UM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mKx9UuKwUgzNKwemiWbQpeC5SlgXz/WRIC1Qmv15cLjZmSTMmdB4sEorOFhLcPfH02EZKqx5Mctk3IZPLvlm3u/9u/xWcg4+zPis1NliHyk+slopXANDUe2dn7MPypTvmAeP4qhPhS6FM/YTl3uMHiXcKF1V0wNpCGZRO+DI9bQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gGrftDdx; arc=none smtp.client-ip=74.125.82.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="pLvB0Rb8"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Cc:From:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=biI3Fi015+MwZ973Vf6VZ3ApFjpcxlUtSor4LXHCqho=; b=pLvB0Rb8vfM7zRXXm2UT7800K2
-	9U1XLNf2F3dc2DwP+cFhyeUtmGV+jk72YZQicruh+1+NF9xTti3CN1AisDkWyK/HPdZ7KRLHbyFz0
-	/LwYcKj3rYpa2gh8TCsjWwxKPrHaFI9AApv9A3OFC1h2ltbdFjB9PjZwxfMTv0PK9B51W0NaQzQfI
-	g7DkERV2P7rKzk6qfD2MEuWOF2xBlxuSj8cHg0wf4Um3oRnSqhR/Tmj0VSurd6RpcmY2WBs/CmODE
-	CPdldl+tQyn6dGPd33ND6xriZFx1ZLbAuw5cJV7D2cKMSBqm/KgDUwUuWkdmYr0CJ+as7CZC52EQy
-	Mnx/xXbw==;
-Date: Thu, 28 May 2026 22:19:12 +0200
-From: Andreas Kemnade <andreas@kemnade.info>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, Maarten Lankhorst
- <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>,
- Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>,
- Simona Vetter <simona@ffwll.ch>, Sebastian Reichel
- <sebastian.reichel@collabora.com>, Laurent Pinchart
- <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>,
- Linux-OMAP <linux-omap@vger.kernel.org>, Marek Vasut <marex@denx.de>, "H.
- Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org,
- linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm/omap: dsi: avoid sending bta sync all the time in
- writes
-Message-ID: <20260528221912.1771daa4@kemnade.info>
-In-Reply-To: <20260528220603.6600d45b@kemnade.info>
-References: <20260528-vm-upstr-v1-1-fb93ef8cbe47@kernel.org>
-	<ec1a577b-12fb-402c-9ceb-3c1e8265a7e9@gmail.com>
-	<20260528190234.4c00b740@kernel.org>
-	<37f64c1c-9920-41a6-a8c0-7a84a30c884a@gmail.com>
-	<20260528220603.6600d45b@kemnade.info>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gGrftDdx"
+Received: by mail-dl1-f43.google.com with SMTP id a92af1059eb24-1363e78746eso9885039c88.1
+        for <linux-omap@vger.kernel.org>; Thu, 28 May 2026 22:37:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1780033026; x=1780637826; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=b3mngTSiQ9G4QDQdoy3QdNFGLu5UDTjPqyOy5Rx/Ffg=;
+        b=gGrftDdxpBqeEcytuF5cMQivW8TLP4X3skIaFHpeJvM0bkgwWiUxNyfbJQ6N0n9Nnv
+         23NhooJzbJjpL3HS//soTiF2H1Jz1hokAV61p6wLnyy7muOB5dVjifRy6Q/vJhGGRQsP
+         9od7sc2lJz1LE7pvzI4Cv5Ymik3J5VXURow1bXTxx1meU8D/tMLumKW2voUjQIc58P6B
+         xcn00iQe+BNYjmW7eNBTCIqwcBptl1MSod/KdGsU92p1KzWHrmEy/1se9JrHn9cO7F+O
+         XVzU0QckkcIitEwwHaQdY1TIGeeEBHjW80XpoGehapMt7ZYnXgQACsnmFxuYbTievMKK
+         tNBQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780033026; x=1780637826;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=b3mngTSiQ9G4QDQdoy3QdNFGLu5UDTjPqyOy5Rx/Ffg=;
+        b=L/7FT+NcgGKNvZ5hnGvtRZiYsvtSHoxNJCdVX9u4iO/ib3VonyACi4h8uLwJ3kB+sl
+         CqE6CVXE8pCZphOYvTOqRtJcLNsdl6iuDvkLaJLXb9ORYTb/IbS0F5d1qxIxZxIxc2pp
+         23rTCaiLLWCdmjfPCxKtY/LuM+FjxqRsoufCOX63OB1boG1FoBJqUvBst0Q8sqN0Spe7
+         0a0j02r2wpzzeUTC225E+GbNhiCw/kQIeC103SuRikd6NHTrgoAusfZUE/Ssefiu2YO5
+         rhNY3ywbcpPkLx35ZT7eqbvvfPq7dC+2R3UlFCJA/5GrmySeAkHNDg+3Pvce2PHOPhqi
+         Mz4Q==
+X-Forwarded-Encrypted: i=1; AFNElJ/dbAft7y1Oetg78Pp69dMBnICjqHa3qMOEKAz31E1gNQG5Jpfqdl+IIzXwePuqUrdq3h5qh8d6yPEA@vger.kernel.org
+X-Gm-Message-State: AOJu0YznVluHFo4uPGMC/2M82aKSc5xheIr89zfHXIuBc0SvYY9yq8im
+	xJMGVGch7lClSU2zrQ59EvefHTWz64VS0OE5OpbSKE9mtZ1kqrhWhG69
+X-Gm-Gg: Acq92OF1Z7KZv9fbrlAhCzkNYbHBeqyKfmfhiyJJeGDggdio72sI+3g3cIchHVyv6Q4
+	3laUsaVEgeFpnDsBZ0cicjkkLqp3gUg1SM64ebrYWmAUSAg8/hdW8LmxEU4ZmoH7MQ/jMX03n29
+	bpYy3f+CeM5vErr62Zknp1h2PYFoIB34xKcsZNIP4eb7IRNJHriOq53A+E2VA7y/6EH230RULvi
+	8eC+dmpU/ZtNORagtHIBMq1lrR6fhUUC8uIqHE0KAoBK7F1eMI4R95gRX9smTQ7tWkxPPixr6Rd
+	q3T1rJiDLcPA9GB9BhGItVF0iO9Hgyc5GFwSYn15tFNFtoT5wyvUzb4uzAqkZi989MQJjgHXH/U
+	TkR4UQlZ/TAv3b59BUozQyUM7y8mnfhGMFh+ShgXOVo80jpNle74MGRyvUiweApFEM9GAXkEgqJ
+	PSI0kuGAvFqxB9rIJZhbBNSif/dt5D3pYSOiTlr5CEIEJuz/xtlgJGBINRIWAvT4Iy++kyOg1Yz
+	UA=
+X-Received: by 2002:a05:7022:2223:b0:135:d76a:aedc with SMTP id a92af1059eb24-137aeee5faemr536827c88.33.1780033026219;
+        Thu, 28 May 2026 22:37:06 -0700 (PDT)
+Received: from google.com ([2a00:79e0:2ebe:8:e169:a62b:d3ca:e8c5])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-137b2d04287sm832719c88.0.2026.05.28.22.37.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 28 May 2026 22:37:05 -0700 (PDT)
+Date: Thu, 28 May 2026 22:37:01 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Linus Walleij <linusw@kernel.org>
+Cc: Arnd Bergmann <arnd@kernel.org>, linux-gpio@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, 
+	Christian Lamparter <chunkeey@googlemail.com>, Johannes Berg <johannes@sipsolutions.net>, 
+	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
+	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
+	Tony Lindgren <tony@atomide.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+	Bartosz Golaszewski <brgl@kernel.org>, Lee Jones <lee@kernel.org>, Pavel Machek <pavel@kernel.org>, 
+	Matti Vaittinen <mazziesaccount@gmail.com>, Florian Fainelli <florian.fainelli@broadcom.com>, 
+	Jonas Gorski <jonas.gorski@gmail.com>, Andrew Lunn <andrew@lunn.ch>, 
+	Vladimir Oltean <olteanv@gmail.com>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, 
+	linux-input@vger.kernel.org, linux-leds@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 02/10] [v3] input: gpio-keys: make legacy gpiolib optional
+Message-ID: <ahklyAUMaOxy3Z9X@google.com>
+References: <20260520183815.2510387-1-arnd@kernel.org>
+ <20260520183815.2510387-3-arnd@kernel.org>
+ <CAD++jLnYeh3GfEfNXfCYdcdg_j2RAU63TYewwaTx3tm0tM531w@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAD++jLnYeh3GfEfNXfCYdcdg_j2RAU63TYewwaTx3tm0tM531w@mail.gmail.com>
 
-On Thu, 28 May 2026 22:06:03 +0200
-Andreas Kemnade <andreas@kemnade.info> wrote:
+On Mon, May 25, 2026 at 10:57:44AM +0200, Linus Walleij wrote:
+> On Wed, May 20, 2026 at 8:38 PM Arnd Bergmann <arnd@kernel.org> wrote:
+> 
+> > From: Arnd Bergmann <arnd@arndb.de>
+> >
+> > Most users of gpio-keys and gpio-keys-polled use modern gpiolib
+> > interfaces, but there are still number of ancient sh, arm32 and x86
+> > machines that have never been converted.
+> >
+> > Add an #ifdef block for the parts of the driver that are only used on
+> > those legacy machines.
+> >
+> > The two Rohm PMIC drivers use a gpio-keys device without an actual GPIO,
+> > passing an IRQ number instead. In order to keep this working both with
+> > and with CONFIG_GPIOLIB_LEGACY, change the gpio-keys driver to ignore
+> > the gpio number if an IRQ is passed.
+> >
+> > Link: https://lore.kernel.org/all/b3c94552-c104-42e3-be15-7e8362e8039e@gmail.com/
+> > Link: https://lore.kernel.org/all/afJXG4_rtaj3l2Dk@google.com/
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> 
+> Reviewed-by: Linus Walleij <linusw@kernel.org>
 
-> On Thu, 28 May 2026 20:43:12 +0300
-> Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> wrote:
->=20
-> > Hi,
-> >=20
-> > On 28.05.26 =D0=B3. 20:02 =D1=87., Andreas Kemnade wrote: =20
-> > > Hi,
-> > >=20
-> > > so this droid4? Or which device is it?
-> > >    =20
-> >=20
-> > Oh, sorry, yes, this is droid4.
-> >  =20
-> > > On Thu, 28 May 2026 17:44:14 +0300
-> > > Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> wrote:
-> > >    =20
-> > >> Applied against 6.18.31, no dice :)
-> > >>
-> > >> [   11.617523] [drm] Initialized pvr 1.17.4948957 for 56000000.gpu on
-> > >> minor 0
-> > >> [   11.674652] omapdss_dss 58000000.dss: bound 58001000.dispc (ops
-> > >> dispc_component_ops [omapdrm])
-> > >> [   11.775085] omapdss_dss 58000000.dss: bound 58001000.dispc (ops
-> > >> dsi_vc_flush_receive_data [omapdrm])
-> > >> [   12.222930] omapdss_dss 58000000.dss: bound 58001000.dispc (ops
-> > >> dsi_vc_flush_receive_data [omapdrm])
-> > >> [   12.245117] omapdss_dss 58000000.dss: bound 58001000.dispc (ops
-> > >> dsi_vc_flush_receive_data [omapdrm])
-> > >> [   12.247375] omapdss_dss 58000000.dss: bound 58004000.encoder (ops
-> > >> dsi_vc_flush_receive_data [omapdrm])
-> > >> [   12.249267] omapdss_dss 58000000.dss: bound 58006000.encoder (ops
-> > >> dsi_vc_flush_receive_data [omapdrm])
-> > >> [   12.284729] [drm] Initialized omapdrm 1.0.0 for omapdrm.0 on mino=
-r 1
-> > >> [   12.311981] [drm] Enabling DMM ywrap scrolling   =20
-> > >=20
-> > > I would expect some
-> > > output from  the panel-dsi-cm driver:
-> > > dev_info(&ddata->dsi->dev, "panel revision %02x.%02x.%02x\n",
-> > >                          id1, id2, id3);
-> > >=20
-> > > or some error:
-> > >          dev_err(&ddata->dsi->dev, "error while enabling panel, issui=
-ng HW reset\n");
-> > >=20
-> > > Any explanation why it is missing?
-> > >    =20
-> >=20
-> > It is there, I grep-ed for omapdrm only, didn't want to flood the ML:
-> >=20
-> > 2026-05-28T17:34:45.761932+03:00 devuan-droid4 kernel: [   12.502105]=20
-> > panel-dsi-cm 58004000.encoder.0: panel revision 70.01.02
-> >=20
-> > Here is the (almost)full boot log: https://paste.debian.net/hidden/e6ca=
-55a7
-> >  =20
-> 2026-05-28T17:34:45.763732+03:00 devuan-droid4 kernel: [  112.820404] DSI=
-: omapdss DSI: failed to send nop between frames: -5
-> 2026-05-28T17:34:45.763732+03:00 devuan-droid4 kernel: [  113.331726] DSI=
-: omapdss DSI: failed to send nop between frames: -5
->=20
-> and that is interesting. Apparently no PACKET_SENT_IRQ and the wait
-> completion times out. Maybe it is not used with short packets.
-> But..
->        /*
->          * Send NOP between the frames. If we don't send something here, =
-the
->          * updates stop working. This is probably related to DSI spec sta=
-ting
->          * that the DSI host should transition to LP at least once per fr=
-ame.
->          */
->         r =3D _dsi_send_nop(dsi, VC_CMD, dsi->dsidev->channel);
->=20
-> I do not see a reason why something should go into LP mode here. the
-> message will probably be sent in HS mode but the BTA sync (not done anymo=
-re)
-> is probably the only thing turning something to LP mode.
->=20
-> So to avoid PACKET_SENT_IRQ trouble, do:
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/=
-dss/dsi.c
-> index dcfcfc0efcdc..37323c9b08a8 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-> @@ -2200,7 +2200,7 @@ static int dsi_vc_write_common(struct omap_dss_devi=
-ce *dssdev, int vc,
->  	int r;
-> =20
->  	if (mipi_dsi_packet_format_is_short(msg->type))
-> -		r =3D dsi_vc_send_short(dsi, vc, msg);
-> +		return dsi_vc_send_short(dsi, vc, msg);
->  	else
->  		r =3D dsi_vc_send_long(dsi, vc, msg);
-> =20
->=20
-> Also try:
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/=
-dss/dsi.c
-> index dcfcfc0efcdc..37323c9b08a8 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-> @@ -3283,11 +3283,11 @@ static int dsi_update_channel(struct omap_dss_dev=
-ice *dssdev, int vc)
->  	DSSDBG("dsi_update_channel: %d", vc);
-> =20
->  	/*
-> -	 * Send NOP between the frames. If we don't send something here, the
-> +	 * Transition to LP here. If we don't send something here, the
->  	 * updates stop working. This is probably related to DSI spec stating
->  	 * that the DSI host should transition to LP at least once per frame.
->  	 */
-> -	r =3D _dsi_send_nop(dsi, VC_CMD, dsi->dsidev->channel);
-> +	r =3D dsi_vc_send_bta_sync(dssdev, vc);
+OK, if Lee Acks MFD changes I can pick this up.
 
-probably rather VC_CMD
->  	if (r < 0) {
->  		DSSWARN("failed to send nop between frames: %d\n", r);
->  		goto err;
->=20
->=20
->=20
-> Regards,
-> Andreas
->=20
+Thanks.
 
+-- 
+Dmitry
