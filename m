@@ -1,67 +1,67 @@
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 591CD3C988B
-	for <linux-omap@vger.kernel.org>; Fri,  5 Jun 2026 20:56:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A60A3D3498
+	for <linux-omap@vger.kernel.org>; Fri,  5 Jun 2026 20:56:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780692990; cv=none; b=jA4KAErHEAI4pXvzYjr2I3T7XjC2SjPktZFdc1+UToa1c5LI7KqEbXiIWe1Y0qL88cIgoajWnnb9YonpDJs9r3lbE67aEqsydkzYWMUt8GOb8wsOe57L4eBEL+Dm+tbetsRXtUTFgQXwwvSMUPzVOOHr6VrXglu2b5FPLqscGvA=
+	t=1780692996; cv=none; b=c+1NvBeKjE8J61OroLAV9YCN3zodi67rHKfhiNmLVUIoFjZHPYbMqaPsVg09rOGofJPP5gFuAs8uSQXjC9k/CVPa5fwsp16LUWr+J7m8ADsaqznqX/d4En3TiLLI/tlD6Ulwwm3MaFQSqqEPEG8uPjeEnk1TWH64ZHYfC5uVHps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780692990; c=relaxed/simple;
-	bh=65ILo2+sWblozJ+nGvK5FhHOAhxeUGueknxcV9j0Cbk=;
+	s=arc-20240116; t=1780692996; c=relaxed/simple;
+	bh=D/NehaAy+y0UChkX+5Urd3CLYL6nH8BL3LRA38L6uJY=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=C5VDrL/b+2P+kfTA17j70Ena2HbSUVv0KP83I4dLjwBzk+1PBBAF7/2PjWN0y24WvvnTlFeMSWRYhqFn8tRJ6pAKFhq09UVsnW9w3MZvvzx7EfujRMtChEIZBs/b0IhPC34XXqJKfGCxwD/X21pZFTVBMAI8ZaRt5cE/ZyOvuZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=S5Go9D1E; arc=none smtp.client-ip=209.85.216.48
+	 In-Reply-To:To:Cc; b=D7k5YLfULRKg0mt+kIpCiDvNg1UZENUplgvjsl9KOh9w9fyXMtw1Umn9G+LJt5yYF2xlGfWKF7HtRAhn/ebiy7N504nWieq7YPd+wOo3R02UIhkGMwQ3/uAmxcCdcUI0EZ7Rytgrgzv1NyJ4bHHcyJoecd6quIQ26T8ojats22s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XZo/aScS; arc=none smtp.client-ip=209.85.216.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="S5Go9D1E"
-Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-36ba303b143so215297a91.3
-        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2026 13:56:28 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XZo/aScS"
+Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-36bb43a58c7so255395a91.1
+        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2026 13:56:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780692987; x=1781297787; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1780692993; x=1781297793; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=eBgvYLDlEQcdbbu58Ns2XAryfMezzIlQKp5vzjn9zPY=;
-        b=S5Go9D1EUfg+wiwpkvKmJ+Um5J/rCAcRlLBejFi56PQXVd0ELEul4MFL2hPt4aQLcI
-         FkLhTn/zN/Lbyap/z1x67rv3DfZiE5IQQyqqGv18xjKo0rDJ0cqtuH3E32TxFO9hyiVe
-         K84I606c+C/ekyEmlw4aygU0NNmzGmG8sk4Z/bNb22UgRntLSP/YuZKWfLNyohrKDhYo
-         ZsPgBc+z0x5INiD00fGEJyTBRBky3q8fn/pG9Od1Sz0kaTorUclT1yp1z+o4m8xyEWBM
-         1TYSTibvekxD/yCA0TU9ciPuyCXOXfvfQS9zOdhav6+pqJIBZ04CPnslIMV+uUZuzBML
-         LEJA==
+        bh=8G5tNCGULtnZuv71TgRderFQDJ16M4SiXFMUj8Aa8bI=;
+        b=XZo/aScSItuXUfyj47jIe5IK4rLyXc5CApDMyoamFGjVZiqzEdv+u8PoarkMeQwBi9
+         zBfY75WGGMbDBZNzE66svsuNvsz00ZkfhX9Jam+yVhFXctX9WEfhGZ4mt7lzHtXuZ6LN
+         aPOj7StHnT+slCkj2xE5DjIniuSYyNvSGr6gE6qsP9Jl5Cgf/m4SBbw80G3ond0Djls1
+         6E2O8g7Ju179juYAS7hOYeGc1FAKIddAmb2IwZjpScxhWX6zKQHwrfkrZr37VWJcxDnc
+         PfXUU+UwWQe+foKppba6N8R6SCDCogbycsinwpXf/OqgViLnYF9mkhA2/vRX8Qksnl9I
+         2bzg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780692987; x=1781297787;
+        d=1e100.net; s=20251104; t=1780692993; x=1781297793;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=eBgvYLDlEQcdbbu58Ns2XAryfMezzIlQKp5vzjn9zPY=;
-        b=jVkPsY3nQNXNa1voBfwcdHnqvMxakArJ01FpNACx16RzWO/ETy8qYKnn8vkBvLm3fk
-         v/ra4JklLS1rJ335oITv+/9u8l2JMGU7h6MQKatMh6drWcEBeZnWkskVYMYhW6m3T+D4
-         uWk1YFh6rWkQ+TWu5InjLI1AJtzFoaiPzpPHifQOAX3MPF3z6dz0k35n6fWaFM4x9PMd
-         EbC4zeJq0n71ge8BRxCrZH8ovncXySYizGzBBq3Ln6onwD9UF1RozrAfLejbhNRuHZ6E
-         4PpdYKzHjV7eja96PmJYANGE31DLsYgRf6PmZwCjuYT1mDkPtteb5BzIlPw/D70uwJSj
-         622w==
-X-Forwarded-Encrypted: i=1; AFNElJ+uQV/9dAgnM8h38tbSmc0F09OTpP94tAH6xS7tg3vkg73GmiRM10BIfTVEe63UVMBTNpzQQIQqShNm@vger.kernel.org
-X-Gm-Message-State: AOJu0YxrmA0YFZnrkmfE5BGxToXfnSv6v+3/dK0egb29eYOXqRqeBUEn
-	aJYRMMUCwzyWsvIGPRlT1Bc26+AVSc4/70710Is56WIq0QeTXrXpRk0Yrhzwuphr9L0=
-X-Gm-Gg: Acq92OE8jycUSeErzueBd/WralwzBIbQle9TXfBqQgtTlr12JiDTchmnh7c29XbvQC5
-	FVgI6JOXTzVcm0QbVo7Fe2s4OIQjKs9itSmu4tatSvYt7RQmtUQHAfR0l4+ZJHrzOADQ99oCl9c
-	ABYzyklgRBEokIvFz+EyNQOrdMq1LT86CYs1NzB3Pf8FHFJAMPl0xXGbdrlHn8i1wv6G/dIz8g6
-	QPOYGJcrQ9V8+Qh/S4y+hjPicMlOEg/gi6RBBnZGqGLyKvrlY6OhAm8N/jPTYU6GQb/GkmY7Qqu
-	NHXIjRJmAJfkTpDZh4a1Aa9ihJSKTi8uCc09CYf124E1RsIngM0lMfGeWh/IVIoIiVipwrZSTod
-	mARRbpkhBRLQasutxc36q81EfKLbTE+ntr9AQwns7x/uSN0l+D5pZSL5Z7oFb5ZeGP26lIfBeEe
-	Eo6hAt2hzramm2narPFYeONZ1T1lTwYgpFvVJ6xdfDj6XWL+ATExNz
-X-Received: by 2002:a17:90b:3512:b0:365:d912:a4ad with SMTP id 98e67ed59e1d1-370ec0f4371mr2669333a91.0.1780692987477;
-        Fri, 05 Jun 2026 13:56:27 -0700 (PDT)
+        bh=8G5tNCGULtnZuv71TgRderFQDJ16M4SiXFMUj8Aa8bI=;
+        b=noRkYHcOPRBZHJtI2Ew8WUxFHnmLQS5TkJW5vgDUWrPklwvbczSp4/8SQgybktO6Ce
+         1HF2tgsv4fpcKx7khKzMV9S5OFVjmnDF4tj3FVhAMv+GLf9j8gR65WMYezVSFjMNeZCs
+         rMpxin90Bjln/OCOW3XMP73VWPSpjoSyC54pWHp5/j6atsW9JgLN/9FE5433wTHDpGHZ
+         qElwyiUPHcMo9SBV64PY18FZu77SU38viysR+MPxUK+19u+Mc04kbeUSvHXpqPzMgYNC
+         +Bp18VBmyysnO8BsJq833AdGeJ94a5U7qA/cfBVTAngDxZytRrPvU5K8KYcpmKj4+51E
+         07bA==
+X-Forwarded-Encrypted: i=1; AFNElJ8vyUIUghA0W1+d4NGRlXJZcLftjqbWu0lQSnthRK86jT4Ls9feQU1rW54+gjuvwsA0HxS701SlVUvW@vger.kernel.org
+X-Gm-Message-State: AOJu0YzBsedvYG/3P8DMhAcAeOX7FdJh3sKeTxqakjldUYjWuxUKc2kh
+	4y5oxazSvC+aG/5Q9Fp2PNfdcadBHQBvQpWnguchSOoIgw4PdMeoO5r6
+X-Gm-Gg: Acq92OFjVz3EOW2Rbgr2gwZqBKX0p2IADDf8jo6ddj/SxD1oO97ilfQ/9nLL2SIuLTg
+	L/gVX0mH1y7zKrq9xdmPXKLUC3gfYKP/9ZmDtRkDnkBhB5WfgtR+vGvMLxEhTja6IGei9jNBKW5
+	BnM88xGKGHUzoiRCU8VeC04s/+ZQ2fL28Rou3UXlK3vnck833bvoJBJf7k1dCxYoywYPNg6FmIn
+	CfgNLN3kgO/WZDdCgTBNm0nMoSnJhkSbW4Z5puth4tYMPoavuhtqqcPe+/794QpWHJRtUQUcmnI
+	B4XbYAHGESCy7b0SxU0Tgl7AkwgGXMuwAhU9uHodnFQX4JPy02ExazL8hXuRVFWDZ31pEJyMEGa
+	bSyWswJuRaVL15hYkviVlnTu3uzSRawcUnGdZs2XaeP/IloAdo5CGqAQzC7OBrEhTkxK2Ftk14b
+	tFe6x+ufpRj/8yNu/SUK6wxRIwbOYAMoAXBZaLN4vfuw==
+X-Received: by 2002:a17:90a:e70f:b0:364:be8f:1d86 with SMTP id 98e67ed59e1d1-370f0e4b6ecmr3103829a91.8.1780692993313;
+        Fri, 05 Jun 2026 13:56:33 -0700 (PDT)
 Received: from [192.168.1.3] ([2401:4900:881c:baba:b3d5:d6d:608b:987f])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3712fcb2607sm2197036a91.0.2026.06.05.13.56.21
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3712fcb2607sm2197036a91.0.2026.06.05.13.56.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 05 Jun 2026 13:56:27 -0700 (PDT)
+        Fri, 05 Jun 2026 13:56:32 -0700 (PDT)
 From: Bhargav Joshi <j.bhargav.u@gmail.com>
-Date: Sat, 06 Jun 2026 02:26:10 +0530
-Subject: [PATCH 1/3] dt-bindings: interrupt-controller: ti,irq-crossbar:
- Convert to DT schema
+Date: Sat, 06 Jun 2026 02:26:11 +0530
+Subject: [PATCH 2/3] irqchip: irq-crossbar: Handle renamed irqs-reserved
+ property
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -70,7 +70,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260606-crossbar-v1-1-f67f7cb9ee50@gmail.com>
+Message-Id: <20260606-crossbar-v1-2-f67f7cb9ee50@gmail.com>
 References: <20260606-crossbar-v1-0-f67f7cb9ee50@gmail.com>
 In-Reply-To: <20260606-crossbar-v1-0-f67f7cb9ee50@gmail.com>
 To: Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
@@ -82,197 +82,72 @@ Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-omap@vger.kernel.org, goledhruva@gmail.com, m-chawdhry@ti.com, 
  daniel.baluta@gmail.com, simona.toaca@nxp.com, j.bhargav.u@gmail.com
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1780692975; l=6926;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1780692975; l=2064;
  i=j.bhargav.u@gmail.com; h=from:subject:message-id;
- bh=65ILo2+sWblozJ+nGvK5FhHOAhxeUGueknxcV9j0Cbk=;
- b=eeKxLpPKNpHMBI/bRnCYUS9QnwrIEkc566aoS6b2pgrPEEuK6+w1uwcUOWHBScoUGFeqnX+7Y
- RL3F/y4U3DGARfRQx2lwcPT7fehnheK8+jIw7oO/kXL/Vkt+0T8D2sk
+ bh=D/NehaAy+y0UChkX+5Urd3CLYL6nH8BL3LRA38L6uJY=;
+ b=N+uc/uaK6/z0ZtSi78zcV8A/8ppuMi7cAioXppdZfRkMlCsr6KA4moSD+0m+B6zHKd9XRVNZ7
+ rsZ7B1vuw7IA0xT+qQJZZRmswPObkNu/lBjXwe5GnRqfouQpWBfZd5g
 X-Developer-Key: i=j.bhargav.u@gmail.com; a=ed25519;
  pk=IqNDwUZKECEA+n8wXctFLBbYL9NhFstZNbOznm/nX1k=
 
-Convert TI irq-crossbar binding from text format to DT schema.
+The DT binding for the TI IRQ Crossbar has been converted from text to
+YAML schema. As part of that conversion, 'ti,irqs-reserved' was renamed
+to 'ti,crossbar-irqs-reserved' to avoid a property name collision with
+ti,pruss-intc.yaml
 
-As part of conversion following changes are made:
- - Add '#interrupt-cells' as a required property which was missing in
-   text binding
- - As irq-crossbar is interrupt-controller. Move binding from
-   bindings/arm/omap to bindings/interrupt-controller
- - property ti,irqs-reserved is defined and used as a array but other
-   binding ti,pruss-intc.yaml uses same property name as a unit8 bitmask
-   which causes erros in dt_binding_check. Update ti,irqs-reserved
-   property name to ti,crossbar-irqs-reserved to resolve duplicate naming.
+Update the driver to try the new property name first and fall back to
+the old name ensuring compatibility with older device trees.
 
 Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
 ---
- .../devicetree/bindings/arm/omap/crossbar.txt      | 55 ------------
- .../interrupt-controller/ti,irq-crossbar.yaml      | 98 ++++++++++++++++++++++
- 2 files changed, 98 insertions(+), 55 deletions(-)
+ drivers/irqchip/irq-crossbar.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-deleted file mode 100644
-index a43e4c7aba3d..000000000000
---- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-+++ /dev/null
-@@ -1,55 +0,0 @@
--Some socs have a large number of interrupts requests to service
--the needs of its many peripherals and subsystems. All of the
--interrupt lines from the subsystems are not needed at the same
--time, so they have to be muxed to the irq-controller appropriately.
--In such places a interrupt controllers are preceded by an CROSSBAR
--that provides flexibility in muxing the device requests to the controller
--inputs.
--
--Required properties:
--- compatible : Should be "ti,irq-crossbar"
--- reg: Base address and the size of the crossbar registers.
--- interrupt-controller: indicates that this block is an interrupt controller.
--- ti,max-irqs: Total number of irqs available at the parent interrupt controller.
--- ti,max-crossbar-sources: Maximum number of crossbar sources that can be routed.
--- ti,reg-size: Size of a individual register in bytes. Every individual
--	    register is assumed to be of same size. Valid sizes are 1, 2, 4.
--- ti,irqs-reserved: List of the reserved irq lines that are not muxed using
--		 crossbar. These interrupt lines are reserved in the soc,
--		 so crossbar bar driver should not consider them as free
--		 lines.
--
--Optional properties:
--- ti,irqs-skip: This is similar to "ti,irqs-reserved", but these are for
--  SOC-specific hard-wiring of those irqs which unexpectedly bypasses the
--  crossbar. These irqs have a crossbar register, but still cannot be used.
--
--- ti,irqs-safe-map: integer which maps to a safe configuration to use
--  when the interrupt controller irq is unused (when not provided, default is 0)
--
--Examples:
--		crossbar_mpu: crossbar@4a002a48 {
--			compatible = "ti,irq-crossbar";
--			reg = <0x4a002a48 0x130>;
--			ti,max-irqs = <160>;
--			ti,max-crossbar-sources = <400>;
--			ti,reg-size = <2>;
--			ti,irqs-reserved = <0 1 2 3 5 6 131 132>;
--			ti,irqs-skip = <10 133 139 140>;
--		};
--
--Consumer:
--========
--See Documentation/devicetree/bindings/interrupt-controller/interrupts.txt and
--Documentation/devicetree/bindings/interrupt-controller/arm,gic.yaml for
--further details.
--
--An interrupt consumer on an SoC using crossbar will use:
--	interrupts = <GIC_SPI request_number interrupt_level>
--
--Example:
--	device_x@4a023000 {
--		/* Crossbar 8 used */
--		interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
--		...
--	};
-diff --git a/Documentation/devicetree/bindings/interrupt-controller/ti,irq-crossbar.yaml b/Documentation/devicetree/bindings/interrupt-controller/ti,irq-crossbar.yaml
-new file mode 100644
-index 000000000000..b31e147c2672
---- /dev/null
-+++ b/Documentation/devicetree/bindings/interrupt-controller/ti,irq-crossbar.yaml
-@@ -0,0 +1,98 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/interrupt-controller/ti,irq-crossbar.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
+diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+index cd1134101ace..64b042ce11a9 100644
+--- a/drivers/irqchip/irq-crossbar.c
++++ b/drivers/irqchip/irq-crossbar.c
+@@ -5,6 +5,7 @@
+  *  Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
+  *  Author: Sricharan R <r.sricharan@ti.com>
+  */
++#include "linux/of.h"
+ #include <linux/err.h>
+ #include <linux/io.h>
+ #include <linux/irqchip.h>
+@@ -197,6 +198,7 @@ static int __init crossbar_of_init(struct device_node *node)
+ 	u32 max = 0, entry, reg_size;
+ 	int i, size, reserved = 0;
+ 	const __be32 *irqsr;
++	const char *pname;
+ 	int ret = -ENOMEM;
+ 
+ 	cb = kzalloc_obj(*cb);
+@@ -231,14 +233,21 @@ static int __init crossbar_of_init(struct device_node *node)
+ 	for (i = 0; i < max; i++)
+ 		cb->irq_map[i] = IRQ_FREE;
+ 
+-	/* Get and mark reserved irqs */
+-	irqsr = of_get_property(node, "ti,irqs-reserved", &size);
++	/*
++	 * Get and mark reserved irqs
++	 * try new property name first, fall back to old name for compatibility
++	 * on older device trees.
++	 */
++	pname = of_property_present(node, "ti,crossbar-irqs-reserved") ?
++		"ti,crossbar-irqs-reserved" : "ti,irqs-reserved";
 +
-+title: Texas Instruments IRQ Crossbar
-+
-+maintainers:
-+  - Sricharan R <r.sricharan@ti.com>
-+
-+description:
-+  Some socs have a large number of interrupts requests to service the needs of
-+  its many peripherals and subsystems. All of the interrupt lines from the
-+  subsystems are not needed at the same time, so they have to be muxed to the
-+  irq-controller appropriately. In such places a interrupt controllers are
-+  preceded by an CROSSBAR that provides flexibility in muxing the device
-+  requests to the controller inputs.
-+
-+properties:
-+  compatible:
-+    const: ti,irq-crossbar
-+
-+  reg:
-+    maxItems: 1
-+
-+  interrupt-controller: true
-+
-+  '#interrupt-cells':
-+    const: 3
-+
-+  ti,max-irqs:
-+    $ref: /schemas/types.yaml#/definitions/uint32
-+    description:
-+      Total number of irqs available at the parent interrupt controller.
-+    minimum: 1
-+
-+  ti,max-crossbar-sources:
-+    $ref: /schemas/types.yaml#/definitions/uint32
-+    description:
-+      Maximum number of crossbar sources that can be routed.
-+    minimum: 1
-+
-+  ti,reg-size:
-+    $ref: /schemas/types.yaml#/definitions/uint32
-+    description:
-+      Size of a individual register in bytes. Every individual
-+      register is assumed to be of same size.
-+    enum: [1, 2, 4]
-+
-+  ti,crossbar-irqs-reserved:
-+    $ref: /schemas/types.yaml#/definitions/uint32-array
-+    description:
-+      List of the reserved irq lines that are not muxed using crossbar. These
-+      interrupt lines are reserved in the soc, so crossbar bar driver should not
-+      consider them as free lines.
-+
-+  ti,irqs-skip:
-+    $ref: /schemas/types.yaml#/definitions/uint32-array
-+    description:
-+      Similar to "ti,crossbar-irqs-reserved", but these are for SOC-specific hard-wiring
-+      of those irqs which unexpectedly bypasses the crossbar. These irqs have a
-+      crossbar register, but still cannot be used.
-+
-+  ti,irqs-safe-map:
-+    $ref: /schemas/types.yaml#/definitions/uint32
-+    description:
-+      integer which maps to a safe configuration to use when the interrupt
-+      controller irq is unused.
-+    default: 0
-+
-+required:
-+  - compatible
-+  - reg
-+  - interrupt-controller
-+  - '#interrupt-cells'
-+  - ti,max-irqs
-+  - ti,max-crossbar-sources
-+  - ti,reg-size
-+  - ti,crossbar-irqs-reserved
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    #include <dt-bindings/interrupt-controller/arm-gic.h>
-+
-+    crossbar_mpu: crossbar@4a002a48 {
-+        compatible = "ti,irq-crossbar";
-+        reg = <0x4a002a48 0x130>;
-+        interrupt-controller;
-+        #interrupt-cells = <3>;
-+        ti,max-irqs = <160>;
-+        ti,max-crossbar-sources = <400>;
-+        ti,reg-size = <2>;
-+        ti,crossbar-irqs-reserved = <0 1 2 3 5 6 131 132>;
-+        ti,irqs-skip = <10 133 139 140>;
-+    };
++	irqsr = of_get_property(node, pname, &size);
+ 	if (irqsr) {
+ 		size /= sizeof(__be32);
+ 
+ 		for (i = 0; i < size; i++) {
+ 			of_property_read_u32_index(node,
+-						   "ti,irqs-reserved",
++						   pname,
+ 						   i, &entry);
+ 			if (entry >= max) {
+ 				pr_err("Invalid reserved entry\n");
 
 -- 
 2.54.0
