@@ -1,67 +1,67 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A60A3D3498
-	for <linux-omap@vger.kernel.org>; Fri,  5 Jun 2026 20:56:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E766A3CEBA6
+	for <linux-omap@vger.kernel.org>; Fri,  5 Jun 2026 20:56:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780692996; cv=none; b=c+1NvBeKjE8J61OroLAV9YCN3zodi67rHKfhiNmLVUIoFjZHPYbMqaPsVg09rOGofJPP5gFuAs8uSQXjC9k/CVPa5fwsp16LUWr+J7m8ADsaqznqX/d4En3TiLLI/tlD6Ulwwm3MaFQSqqEPEG8uPjeEnk1TWH64ZHYfC5uVHps=
+	t=1780693001; cv=none; b=ms+QPNSrOwPezP0p2ur2DmxKBAmett3jV5zybkCkJZvG4c4ze5Vl5PlYyrMa+9inAz3bDEQwZ5982S8dslExlOWCf8JYJ6eG8tw9H/bggD12xvPzerDuQrPeLFzN8EIlpNNiYOgac7ClmZVFhSo3sWKGmmwA6cpzeJVM261nrW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780692996; c=relaxed/simple;
-	bh=D/NehaAy+y0UChkX+5Urd3CLYL6nH8BL3LRA38L6uJY=;
+	s=arc-20240116; t=1780693001; c=relaxed/simple;
+	bh=TAlX/MBj9t38pJGd4AC8U0jUF1uArbeoK5p0c92YSSU=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=D7k5YLfULRKg0mt+kIpCiDvNg1UZENUplgvjsl9KOh9w9fyXMtw1Umn9G+LJt5yYF2xlGfWKF7HtRAhn/ebiy7N504nWieq7YPd+wOo3R02UIhkGMwQ3/uAmxcCdcUI0EZ7Rytgrgzv1NyJ4bHHcyJoecd6quIQ26T8ojats22s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XZo/aScS; arc=none smtp.client-ip=209.85.216.51
+	 In-Reply-To:To:Cc; b=Q6OJ0C6RZryXsfFuw7Jaes24984idE+dYi5aGEDycoJgq9pWkrcd08iPgWOrDG9Zy1IfOeA3t96tbWy4XsUu/1lCsr87K0ofmI19PaRt8trzb0im20PIM0eUAwgunKXuPLRkpvU5k/6khWuhwLDOaTqQNYt7YSczfqilX/sN3Nc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=db0o2w2D; arc=none smtp.client-ip=209.85.214.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XZo/aScS"
-Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-36bb43a58c7so255395a91.1
-        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2026 13:56:33 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="db0o2w2D"
+Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2bf1497de04so3688665ad.3
+        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2026 13:56:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1780692993; x=1781297793; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1780692999; x=1781297799; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=8G5tNCGULtnZuv71TgRderFQDJ16M4SiXFMUj8Aa8bI=;
-        b=XZo/aScSItuXUfyj47jIe5IK4rLyXc5CApDMyoamFGjVZiqzEdv+u8PoarkMeQwBi9
-         zBfY75WGGMbDBZNzE66svsuNvsz00ZkfhX9Jam+yVhFXctX9WEfhGZ4mt7lzHtXuZ6LN
-         aPOj7StHnT+slCkj2xE5DjIniuSYyNvSGr6gE6qsP9Jl5Cgf/m4SBbw80G3ond0Djls1
-         6E2O8g7Ju179juYAS7hOYeGc1FAKIddAmb2IwZjpScxhWX6zKQHwrfkrZr37VWJcxDnc
-         PfXUU+UwWQe+foKppba6N8R6SCDCogbycsinwpXf/OqgViLnYF9mkhA2/vRX8Qksnl9I
-         2bzg==
+        bh=aIxeKA2d6OLuIfSBHegRQdEPIVJJ3D6xA5+Qs8RncbI=;
+        b=db0o2w2DHeNLGwJaVmfxYID2LEWw16+H0pgvsLuuUNcuK+rlWVOy1tF06nkX/DpP59
+         THa8LY9GSOl6DaU1ZhUvd3u8az1tphgtHHBOaXTAsbTHAGhHayhAPGCdzFki7pl0f7+h
+         iwkdMIEe3JU5DgyolSrhkllskek20eBBlThVKnq5LqI2LH64y2CEVFLaSoMori0dF61W
+         1GgIdoiJn/pHA1EsWp5JVAWWSri+33xVXOEtf5AexB5J/D5uXXSlmsIxj7DRaNF6R5GC
+         cucO6sg+92fFfnjgZCZ2mb7cbtiq8nUJ+gNQPYommOiBsFE5lt8OmgMlnBM+LK5mXmmI
+         TEpA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1780692993; x=1781297793;
+        d=1e100.net; s=20251104; t=1780692999; x=1781297799;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=8G5tNCGULtnZuv71TgRderFQDJ16M4SiXFMUj8Aa8bI=;
-        b=noRkYHcOPRBZHJtI2Ew8WUxFHnmLQS5TkJW5vgDUWrPklwvbczSp4/8SQgybktO6Ce
-         1HF2tgsv4fpcKx7khKzMV9S5OFVjmnDF4tj3FVhAMv+GLf9j8gR65WMYezVSFjMNeZCs
-         rMpxin90Bjln/OCOW3XMP73VWPSpjoSyC54pWHp5/j6atsW9JgLN/9FE5433wTHDpGHZ
-         qElwyiUPHcMo9SBV64PY18FZu77SU38viysR+MPxUK+19u+Mc04kbeUSvHXpqPzMgYNC
-         +Bp18VBmyysnO8BsJq833AdGeJ94a5U7qA/cfBVTAngDxZytRrPvU5K8KYcpmKj4+51E
-         07bA==
-X-Forwarded-Encrypted: i=1; AFNElJ8vyUIUghA0W1+d4NGRlXJZcLftjqbWu0lQSnthRK86jT4Ls9feQU1rW54+gjuvwsA0HxS701SlVUvW@vger.kernel.org
-X-Gm-Message-State: AOJu0YzBsedvYG/3P8DMhAcAeOX7FdJh3sKeTxqakjldUYjWuxUKc2kh
-	4y5oxazSvC+aG/5Q9Fp2PNfdcadBHQBvQpWnguchSOoIgw4PdMeoO5r6
-X-Gm-Gg: Acq92OFjVz3EOW2Rbgr2gwZqBKX0p2IADDf8jo6ddj/SxD1oO97ilfQ/9nLL2SIuLTg
-	L/gVX0mH1y7zKrq9xdmPXKLUC3gfYKP/9ZmDtRkDnkBhB5WfgtR+vGvMLxEhTja6IGei9jNBKW5
-	BnM88xGKGHUzoiRCU8VeC04s/+ZQ2fL28Rou3UXlK3vnck833bvoJBJf7k1dCxYoywYPNg6FmIn
-	CfgNLN3kgO/WZDdCgTBNm0nMoSnJhkSbW4Z5puth4tYMPoavuhtqqcPe+/794QpWHJRtUQUcmnI
-	B4XbYAHGESCy7b0SxU0Tgl7AkwgGXMuwAhU9uHodnFQX4JPy02ExazL8hXuRVFWDZ31pEJyMEGa
-	bSyWswJuRaVL15hYkviVlnTu3uzSRawcUnGdZs2XaeP/IloAdo5CGqAQzC7OBrEhTkxK2Ftk14b
-	tFe6x+ufpRj/8yNu/SUK6wxRIwbOYAMoAXBZaLN4vfuw==
-X-Received: by 2002:a17:90a:e70f:b0:364:be8f:1d86 with SMTP id 98e67ed59e1d1-370f0e4b6ecmr3103829a91.8.1780692993313;
-        Fri, 05 Jun 2026 13:56:33 -0700 (PDT)
+        bh=aIxeKA2d6OLuIfSBHegRQdEPIVJJ3D6xA5+Qs8RncbI=;
+        b=q3o+m1aeqijhHTndrxjNG8Z77J/0DcJ5+6414FK4UJ9NjM43lKNEHOTSIDLLYLjGRi
+         axFrkNIgVN88LjFYuU0ZsHWkta45yYRS2PF3CrEMUXiw1pHyDXymxf8ZYLjGTUzmDLO8
+         W5ao22d+hNuJBq6796SN3rQrLzUyG/nJn9IkZ5jJT0zCkGe/gbPhZHZ3qgJTkDxa3hBS
+         OZ7wmv7MAcBMO8fEosBzp/B2LduVRmGIYIZ3Ex2PjGKblArbNrfACykDLyxO7C+uRFTb
+         Nur4HF/c9yBHjJk8Mu2SlR3ac9MKeQNN9AC5A4rQ7yKEw0CBvAcg8PrKTS2ch9iAVBRu
+         Hliw==
+X-Forwarded-Encrypted: i=1; AFNElJ88nlZ3jdgpeJq+XYcNRf+/lhG+H/24Gz+3bN8oGEjaxh4Ql0y6Q1yO/O5APIQbh+ombd07D4lG+MyJ@vger.kernel.org
+X-Gm-Message-State: AOJu0YxxgrctyWqK6hGe2wEIibdD7DO5rpXZdeAL9VTP2TzwWGcb8xMW
+	VbBB2ZY/pzjNI9z0cVO5yucE64bJKArGz4h7UB2l6Y1xKdxoSGSMvlVO
+X-Gm-Gg: Acq92OGXBliV+xWvueEzN9gq5htcduGI2kDOLRYn0wgAgTXbRZ/eYDhq3748KWhhmKD
+	zqVUcQdDQsxrAdQtl3L4rBnlOo0UShjjErZs7MUG7mw4oOFDvf9JbL6SQ2Z2t+JCbKyqMd50seR
+	cmAUgpyum9Gw/uxanA+9dUf44ENi83G5XDgorusVLeJ516YDGLgk/1J4iaQh11QCmJf+dE9jrHB
+	wlHhcCwA9dziSfIa3LQXjdv2XWcq6B379DwgtHWio9VlTwbahtSAFMeFmzU9x+FRsOX053BB13f
+	80UNW7mbA/Gb8JDlXdfimasn9soPE99o4uyCqJ398KVQO7gVNx+GIYKomXt9eDk5n61FBBQql9J
+	75sVX7Wo4tzN/lUxDsbeDwKg7OVPQYLRZ5S8a5F0RtfK4+1G5nRjznb1il6aiqKxwwuS3r3Tgqx
+	hPdbRhuGmJpIc2G/GevodqPhLBsIwNclHk7ngLxXy2jQ==
+X-Received: by 2002:a17:90b:53c7:b0:36b:9c6d:b60b with SMTP id 98e67ed59e1d1-370ebef967bmr2679800a91.0.1780692999211;
+        Fri, 05 Jun 2026 13:56:39 -0700 (PDT)
 Received: from [192.168.1.3] ([2401:4900:881c:baba:b3d5:d6d:608b:987f])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3712fcb2607sm2197036a91.0.2026.06.05.13.56.27
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3712fcb2607sm2197036a91.0.2026.06.05.13.56.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 05 Jun 2026 13:56:32 -0700 (PDT)
+        Fri, 05 Jun 2026 13:56:38 -0700 (PDT)
 From: Bhargav Joshi <j.bhargav.u@gmail.com>
-Date: Sat, 06 Jun 2026 02:26:11 +0530
-Subject: [PATCH 2/3] irqchip: irq-crossbar: Handle renamed irqs-reserved
- property
+Date: Sat, 06 Jun 2026 02:26:12 +0530
+Subject: [PATCH 3/3] ARM: dts: omap: dra7: Use new property name
+ ti,crossbar-irqs-reserved
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -70,7 +70,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260606-crossbar-v1-2-f67f7cb9ee50@gmail.com>
+Message-Id: <20260606-crossbar-v1-3-f67f7cb9ee50@gmail.com>
 References: <20260606-crossbar-v1-0-f67f7cb9ee50@gmail.com>
 In-Reply-To: <20260606-crossbar-v1-0-f67f7cb9ee50@gmail.com>
 To: Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
@@ -82,72 +82,39 @@ Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-omap@vger.kernel.org, goledhruva@gmail.com, m-chawdhry@ti.com, 
  daniel.baluta@gmail.com, simona.toaca@nxp.com, j.bhargav.u@gmail.com
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1780692975; l=2064;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1780692975; l=982;
  i=j.bhargav.u@gmail.com; h=from:subject:message-id;
- bh=D/NehaAy+y0UChkX+5Urd3CLYL6nH8BL3LRA38L6uJY=;
- b=N+uc/uaK6/z0ZtSi78zcV8A/8ppuMi7cAioXppdZfRkMlCsr6KA4moSD+0m+B6zHKd9XRVNZ7
- rsZ7B1vuw7IA0xT+qQJZZRmswPObkNu/lBjXwe5GnRqfouQpWBfZd5g
+ bh=TAlX/MBj9t38pJGd4AC8U0jUF1uArbeoK5p0c92YSSU=;
+ b=xRBSV+NoD4DR5C5gkumtbkwnLNDvsIJyxmZUieht1Fedlt3KjTOz2Yo9d1RpZCU/aQ5yyTDZJ
+ 49SBeen4Ej+DqESpaPWR2BrOOohvXKTqLZGWhXVYNSZe4+wpy849Q4u
 X-Developer-Key: i=j.bhargav.u@gmail.com; a=ed25519;
  pk=IqNDwUZKECEA+n8wXctFLBbYL9NhFstZNbOznm/nX1k=
 
-The DT binding for the TI IRQ Crossbar has been converted from text to
-YAML schema. As part of that conversion, 'ti,irqs-reserved' was renamed
-to 'ti,crossbar-irqs-reserved' to avoid a property name collision with
-ti,pruss-intc.yaml
+Property name for irq-crossbar 'ti,irqs-reserved' is updated to
+'ti,crossbar-irqs-reserved' by new binding conversion.
 
-Update the driver to try the new property name first and fall back to
-the old name ensuring compatibility with older device trees.
+Update the crossbar node in dra7.dtsi to use the new property name.
+since driver accepts both new and old name this is non-functional
+change.
 
 Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
 ---
- drivers/irqchip/irq-crossbar.c | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/ti/omap/dra7.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index cd1134101ace..64b042ce11a9 100644
---- a/drivers/irqchip/irq-crossbar.c
-+++ b/drivers/irqchip/irq-crossbar.c
-@@ -5,6 +5,7 @@
-  *  Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
-  *  Author: Sricharan R <r.sricharan@ti.com>
-  */
-+#include "linux/of.h"
- #include <linux/err.h>
- #include <linux/io.h>
- #include <linux/irqchip.h>
-@@ -197,6 +198,7 @@ static int __init crossbar_of_init(struct device_node *node)
- 	u32 max = 0, entry, reg_size;
- 	int i, size, reserved = 0;
- 	const __be32 *irqsr;
-+	const char *pname;
- 	int ret = -ENOMEM;
- 
- 	cb = kzalloc_obj(*cb);
-@@ -231,14 +233,21 @@ static int __init crossbar_of_init(struct device_node *node)
- 	for (i = 0; i < max; i++)
- 		cb->irq_map[i] = IRQ_FREE;
- 
--	/* Get and mark reserved irqs */
--	irqsr = of_get_property(node, "ti,irqs-reserved", &size);
-+	/*
-+	 * Get and mark reserved irqs
-+	 * try new property name first, fall back to old name for compatibility
-+	 * on older device trees.
-+	 */
-+	pname = of_property_present(node, "ti,crossbar-irqs-reserved") ?
-+		"ti,crossbar-irqs-reserved" : "ti,irqs-reserved";
-+
-+	irqsr = of_get_property(node, pname, &size);
- 	if (irqsr) {
- 		size /= sizeof(__be32);
- 
- 		for (i = 0; i < size; i++) {
- 			of_property_read_u32_index(node,
--						   "ti,irqs-reserved",
-+						   pname,
- 						   i, &entry);
- 			if (entry >= max) {
- 				pr_err("Invalid reserved entry\n");
+diff --git a/arch/arm/boot/dts/ti/omap/dra7.dtsi b/arch/arm/boot/dts/ti/omap/dra7.dtsi
+index 711ce4c31bb1..80bee3db3a53 100644
+--- a/arch/arm/boot/dts/ti/omap/dra7.dtsi
++++ b/arch/arm/boot/dts/ti/omap/dra7.dtsi
+@@ -866,7 +866,7 @@ crossbar_mpu: crossbar@4a002a48 {
+ 			ti,max-irqs = <160>;
+ 			ti,max-crossbar-sources = <MAX_SOURCES>;
+ 			ti,reg-size = <2>;
+-			ti,irqs-reserved = <0 1 2 3 5 6 131 132>;
++			ti,crossbar-irqs-reserved = <0 1 2 3 5 6 131 132>;
+ 			ti,irqs-skip = <10 133 139 140>;
+ 			ti,irqs-safe-map = <0>;
+ 		};
 
 -- 
 2.54.0
