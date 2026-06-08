@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 649EC370D77;
-	Mon,  8 Jun 2026 12:25:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE00C38E100;
+	Mon,  8 Jun 2026 13:51:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780921557; cv=none; b=bXK9JsUyKzZ3D2e4TNPA3K+rPGc5+ZWLc0aweBvIdJ8xo6kZPv1d1f/wxOyFo68fyVKhyCn/4vMWgxeJXQhenfwX4LI27FM+FJQ+WYFueMjEMAdKNOLt4OMG6cH8GrKWBC2If8fM51H2D9Y+2DxwEyvcUK4CrKU+ibWpinacH38=
+	t=1780926686; cv=none; b=AHo5rgiIy07l128RnjNDF7J/3DwBStQqkEmNNxoLMm4YmGJ2D4ZRumxiWnjOGzaZyDSkL7lJH7HskFrbYrFJbVzKENchLFJGnz21yNLo8WpzY6jJpv/r4RXQEzxGD4cU4BrthqrWFxUhbR6MebYH1sYBbNRfuP6wM1oV0ImEFZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780921557; c=relaxed/simple;
-	bh=bVNkUabo3ud/anBTQclICpClAeW+v9Y1/MAmmG41WCk=;
+	s=arc-20240116; t=1780926686; c=relaxed/simple;
+	bh=ezLNYnN3VLyLnmMAcDa0Dty5s19GF2ckU9Nt+8eOyCI=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Hm5D3OT6R0AbhUa5ZoCWk1YsX9O0FVni7yS4/4XY2GQY15mOOzcabkc2sXNn9QPkZFTD3Q4q6UIomLE0XyJbuDkJqHoSackQjB4Xvk+TBb8aL6ynxGcbJIQapTDXP1g7RxN1+wzxuo0EVOFBsnIr83IccsCcFbUI0cGFx5Kc5rc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V3WRTkbD; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=eaxwSI/wRsZW9Y5xmWL4QQoImNb/z8pnwOjaZ4xnWUg9Ur3B1BOqi2GgavwfmaqXmFs+Se8vVHyfHC2gYB4Tv02amhpWW2aVABLYoPKmUSnL2R+04/73v9PX4ocHeJadFQke6ogGs58fngltRsBVJrCMxViL37RbTyrB69S7X5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TjiGMlZc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V3WRTkbD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B69541F00893;
-	Mon,  8 Jun 2026 12:25:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TjiGMlZc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78FDF1F00893;
+	Mon,  8 Jun 2026 13:51:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780921556;
-	bh=/Px+lEFLWyOaHo3lYbp1kWR77jypN2bFXFXDA78CNVk=;
+	s=k20260515; t=1780926685;
+	bh=qsgPf/aj5AqM4XlwqGisQjA8QGkVBwbA/n020cLT4j0=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=V3WRTkbD/fyG7qVnat2T+yLd7z43oQ68pKRYVWkz7cRlXkij3PZ87gYVQTbtD6aU8
-	 9388B9lwCkR7z9ole+pT4OQ1Y1nCg6E2udVqPdVvQjIlVs2j7sXgPn1L7BQoyJnDjU
-	 DYkDiO3D/CgAEEJdt3U8Z8G4xtK3KqIzDBeO7jkHrrDiN1+IVeMDJQwD/183y3gDsY
-	 QKtV/PHGVw42pkCZsZcuEtjCqROPwBw+cqvPbtBLMBAEpiAuN+QtRKAMJQHLBfKwer
-	 eIoA6OixdDWYIvQiOtUCBBIZ5ZDdzd3rKbDaHctnx8e9l43AgMBs7/ydxV7/G6ht0v
-	 gXdpFuJgapk2A==
-Message-ID: <ccc81b28-8949-48df-a345-ef392150fcd0@kernel.org>
-Date: Mon, 8 Jun 2026 14:25:49 +0200
+	b=TjiGMlZcxhBrath1HBJFbbSv5cbKYkTlsccZ+nNWIZKQIYXPl0eJnusx4C9uwSLf1
+	 6PtxpBWJ2CnzPnW6cAj7zpOYa/Q5HUjd3w9qMx11eqgMDfJG8ana3rczS5K1G5G6qu
+	 6Ohb4YmySGeV7uQAtvtOkpVgf+y+LwVh47P3wG6Bz3Im/tJzZg0gdAOIgDF0daFyDD
+	 a0WgJ7rZy10z2hKCf1u0BtlMQzgAs96fBvm0DByfqSCLkrLsFVaDKlGvSO11UA+eo6
+	 lebsoccOBIgW/KHy95VWRBft9AdAZDkl7CHiJlgjwtYQ2MMWBORSqldQTZbZXhTtWV
+	 2GeHF5KNs0ZXA==
+Message-ID: <8fc85a00-9daa-47e8-be0d-d6ab14af1a83@kernel.org>
+Date: Mon, 8 Jun 2026 15:51:20 +0200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -35,18 +35,19 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/2] dt-bindings: mfd: syscon: Disallow simple-bus with
- syscon
-To: "Rob Herring (Arm)" <robh@kernel.org>,
+Subject: Re: [PATCH 2/2] ARM: dts: ti: Add specific compatibles for SCM conf
+ nodes
+To: Andreas Kemnade <andreas@kemnade.info>,
  Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Conor Dooley <conor+dt@kernel.org>,
- Kevin Hilman <khilman@baylibre.com>, linux-kernel@vger.kernel.org,
- Tony Lindgren <tony@atomide.com>, Andreas Kemnade <andreas@kemnade.info>,
- Krzysztof Kozlowski <krzk+dt@kernel.org>, linux-omap@vger.kernel.org,
- Roger Quadros <rogerq@kernel.org>, Lee Jones <lee@kernel.org>,
- devicetree@vger.kernel.org
+Cc: Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>,
+ Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 References: <20260531110404.12768-3-krzysztof.kozlowski@oss.qualcomm.com>
- <178060921244.1298375.8605331769477177888.robh@kernel.org>
+ <20260531110404.12768-4-krzysztof.kozlowski@oss.qualcomm.com>
+ <20260603171038.137cd2e8@kemnade.info>
 From: Krzysztof Kozlowski <krzk@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=krzk@kernel.org; keydata=
@@ -92,41 +93,28 @@ Autocrypt: addr=krzk@kernel.org; keydata=
  K9bCVaboTA2T77QYkRcRJYSsO1alGX0ome/hMLD1daXlkrNUp1HWa3K4iytLRXjCSIorWiGs
  n+q3krnpXu3TFkA8qtOFZMdnIiFuiq1yLT8hptsV5xh1TA2nsVvSYiaCr3q4s4BKjS/KrLDb
  qoxzw8ISjdUp4pA85vb6YLCmb39NgidD+7PmAr65lBNveIFynTgsja1rRQ4=
-In-Reply-To: <178060921244.1298375.8605331769477177888.robh@kernel.org>
+In-Reply-To: <20260603171038.137cd2e8@kemnade.info>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 04/06/2026 23:40, Rob Herring (Arm) wrote:
+On 03/06/2026 17:10, Andreas Kemnade wrote:
+> On Sun, 31 May 2026 13:04:06 +0200
+> Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com> wrote:
 > 
-> On Sun, 31 May 2026 13:04:05 +0200, Krzysztof Kozlowski wrote:
->> "syscon" is a system controller with registers having their own
->> functions, thus not really a trivial MMIO simple bus.  "simple-bus" on
->> the other hand is just a bus on which multiple devices sit and the
->> "simple" means no functions are allowed here.
+>> writing-bindings.rst rules dictate that "syscon" must come with a
+>> specific compatible identifying the register layout.  Add specific
+>> compatibles for these devices.
 >>
->> Combination of both "syscon" and "simple-bus" is abuse of DT for easier
->> instantiating of Linux device drivers so add a schema to disallow that.
->>
->> Unfortunately there are a few old cases of that patterns, so add
->> exceptions:
->>
->> 1. "cznic,turris1x-cpld" and "img,pistachio-cr-periph" are already used
->>    in upstream DTS.
->>
->> 2. TI has several DTSI with a child of SCM device (e.g. "ti,am3-scm")
->>    using "syscon" and "simple-bus" but without a dedicated compatible
->>    documented anywhere.  Add new compatibles for such cases.
+>> This also allows to solve a different problem: "syscon" is contradictory
+>> to "simple-bus".  A system controller with registers having their own
+>> functions is not really a trivial MMIO simple bus.  These two cannot be
+>> used together, unless listed as an exception.
 >>
 >> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
->> ---
->>  .../bindings/mfd/syscon-common.yaml           | 27 +++++++++++++++++--
->>  1 file changed, 25 insertions(+), 2 deletions(-)
->>
 > 
-> Acked-by: Rob Herring (Arm) <robh@kernel.org>
+> Reviewed-By: Andreas Kemnade <andreas@kemnade.info>
 
-Thanks for ack, but this is partial patch on top of my earlier work
-which I forgot to squash here. I will send a v2 without the ack.
+For the record, that's wrong case in tag. Please use templates.
 
 Best regards,
 Krzysztof
