@@ -1,167 +1,273 @@
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 731D53914E4
-	for <linux-omap@vger.kernel.org>; Tue,  9 Jun 2026 15:25:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378813B0AC4;
+	Tue,  9 Jun 2026 16:28:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781018747; cv=none; b=QiB2gYOZwkyeHGXDyQzQJzh2zmeIrbEnZ9w/+c503aJVuRdjGZL3cG/iYRQ8s6HZh1Cd3zRonKBGcmfJ12PU+/MfrjLXl6ohIEbW85Lv68mSN4V8hlb14GkkRvWOd5cPla7vb2AdCKYS8UJpPTTH9DGHZRovp7VYAjmTNbcNOPI=
+	t=1781022509; cv=none; b=g7L50Lhjq+BJEYzBbsqKIzWSXiTyv+Gc2HqB3YOVFuL2eic+0nt+jl+NOmBAikPBZA4p4fIB+mymi/aJvW1ukqrra7cqItdlSNEC8JuT54pDwc2VMjzlnZalDr+sWwjqjqRsp+1qrpWyKXpOauL9IqIyoaNoQiBTPrPi7nQ/XDc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781018747; c=relaxed/simple;
-	bh=w1ClKgLhZ2bUXZdj2FMLv/c23L/8Zs6enQ18IQWTTuE=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=FteXogsOQPvbMpGyjEsmcLlQO/0NANjRUs2xLQwkOFoFaBbJoCQzbMixAzocEECzexYDtMsriVzE/UvVroBCH+R55csBTCl5PN32y0yOu1Exn7bLmjdogcOGmxpYZms0/DIkNUmntzgKP4yKfr3rUcWgPo8Z4luNkDnPZAjt3Ws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=iDiIrBYd; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=kgAO5pLn; arc=none smtp.client-ip=205.220.168.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1781022509; c=relaxed/simple;
+	bh=dJQQCW8D034RuKqi61gnhBl2I01Xy7W672XwaMirEcQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=H2EgLtaPMYG3+HcGySTLs8hYbpB0glimUPv+yezxyDYTNNqxjdzqPdmVO34AJQSXXEfrLuPXqfYGyqWxUiu/bAA4kLxDoBCAF5S73YPZm/dGyRo2DJ+PEfzRWjWsJjDX/4U9zR3qGHtWKKSjiKxt6ICr/aE834R5U+UCb1qp16Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CGnbzpbq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="iDiIrBYd";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="kgAO5pLn"
-Received: from pps.filterd (m0279866.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 659ClatW2247956
-	for <linux-omap@vger.kernel.org>; Tue, 9 Jun 2026 15:25:45 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	bMJJ/z4tFmq1ROVKLM1UW2J9lXKDuK2hxDYpfB3TmLM=; b=iDiIrBYdlotazEUZ
-	OPyfIz2PkBmylecDyPLU/witxmar0q3GzSccaTD+NWakxvgNkbsvsVuse8mbKM55
-	JrvpdhjNnxu5vrgjM3o/xKotsYmPQOC694xMre/ZDTukR44deG7U7wv0A1F8FqtD
-	6DvzJ1QzQiDLKGPD8/+KvdEpxVz1pwUKFO6yW2PYA4QDUKyMnYwm8jvT/WN7eVPY
-	GCAyQHzpLVRnwBL5xfa50FOUNDmOOS4n9TkSLM+VnZcdBQtVrVnFEQwwWD8YbzAH
-	CJnrR5NOd2Urbf4Z5OQWk079PAF9gVFuDEIDrRLkCb13gaUKSJsCpuK042RxTnMo
-	69cKEg==
-Received: from mail-pf1-f200.google.com (mail-pf1-f200.google.com [209.85.210.200])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4epdeethca-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Tue, 09 Jun 2026 15:25:45 +0000 (GMT)
-Received: by mail-pf1-f200.google.com with SMTP id d2e1a72fcca58-84256bee9a9so3606543b3a.1
-        for <linux-omap@vger.kernel.org>; Tue, 09 Jun 2026 08:25:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1781018745; x=1781623545; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=bMJJ/z4tFmq1ROVKLM1UW2J9lXKDuK2hxDYpfB3TmLM=;
-        b=kgAO5pLnUZ2Tq8BSLT2w3NwZrN2wzhH77x3jTduuqk/ElhtZn5EQK7sikKmund5UHn
-         2rbIXta9a/AaWIcXH09jS5UOje+2H+sMphGik//VTMl7D+X18HEGuFMezRDUwnrSB8cy
-         CB9cM8zAU6YAeBGpYZPQ5az4/SxL2w6UFpvxALuPp5+6t2zmJAGjZg/RDeBqDZpVv8tI
-         N04A1Jsf263SjmNSOnthItYkJgU+Ode3FxGc1YQjxH4HoEdkHlx0ey95bzkKUfl/bLeZ
-         jG4PTjoBWz3XmWvoDFJdtKDVIUjlTrjM+H/09nbKcgseM8+sOmO3+JNafsmsnIfuK7tV
-         Tatg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781018745; x=1781623545;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=bMJJ/z4tFmq1ROVKLM1UW2J9lXKDuK2hxDYpfB3TmLM=;
-        b=N+auF8nU0ohmm8gTTwF1K40Fyi04poJAuCgFhDMewFPPgha+qznUAHUCnVg545NPL/
-         i7GqV4S2IkxMB7/7YEVPii7iJokqyVGRDmijL60SXP1wEikXbbiVDRXNgMxXuEBDqiOF
-         27n//qwyU/Kj1WykniD1l1jcBhEn+StMnBH50YYeUVlj1Aujp3OW62jsOKyqsxs5YoP3
-         ASKcAVmyXUyBmfbWm00YBd7DIPhAjI4DXR4gKLs9GIS9YlcgG0i80Z11ssOaEN3btCK0
-         leAn+GpuUZGoH0Fl01kUyW/4YSo7NbQ82MaNe2SJ8ec2uQMjung9rmcerqlI2jzu3QxV
-         N9lA==
-X-Forwarded-Encrypted: i=1; AFNElJ+TFaEPiQQw+EATCO7f1+7yvYd9zgLTrAdCJldDmfjRdAuBtLZy3RLW0tP105+pzMuXsGnDSYawfKa3@vger.kernel.org
-X-Gm-Message-State: AOJu0YwT9idPpf8Y6r/VDTO9KoDYS5HqY+9rC3jC3M90YXgj2mNHbqO1
-	OpQByiizmVbonWk9tlTrdUy17lvIOEBdkDljOMEhPQumPkvbINgiaGhoh1O/qetn4LSd1SaUZ+w
-	RBIzCp61qHjXwg+iN/Oa04dW2+d/jGQWyLgaM/5GhP3jxoxkHZenL92+sHCZkkkNy
-X-Gm-Gg: Acq92OFBSv/sWtjVUENXJJHRKPaH2IRjIxvfVA7Nyx6LiJg/lyIELkYC4BCZe08VC1A
-	xEMSmwM8ebV1uL7X2qkBjIH+LJ1JIyyGCLJr0IcVxtMwEqAws7SeUB+P8+dIhISa1/nOTOkporh
-	Y9P/5BoyqneUP28trPiqqvVy3m9GMO8t9UOJjT8m0FPUs6wNsEHxhNAuM0pzB8mwaKfGnuvibNU
-	8MS9FYCDS7HhSFxu8lcaMhDZgXDvOV6Etm3HRhjNXk4TOlpHYX1JR+5Xqe0uvhlIcxTlNruLLS3
-	kc79+xz57tmjauO6rshl96u2wysdWHlVjhuUHq8/1skQDyzw9wjd4CaLL2zPWKkkPLWi7llv3U0
-	LpG3C0oF4YPFYrnELVWgeg4XEgThHyIs=
-X-Received: by 2002:a05:6a00:451b:b0:842:7cb7:a3aa with SMTP id d2e1a72fcca58-842b0f86bf0mr20856492b3a.33.1781018744820;
-        Tue, 09 Jun 2026 08:25:44 -0700 (PDT)
-X-Received: by 2002:a05:6a00:451b:b0:842:7cb7:a3aa with SMTP id d2e1a72fcca58-842b0f86bf0mr20856437b3a.33.1781018743915;
-        Tue, 09 Jun 2026 08:25:43 -0700 (PDT)
-Received: from [192.168.1.11] ([120.56.203.186])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84282880050sm21250746b3a.29.2026.06.09.08.25.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 Jun 2026 08:25:42 -0700 (PDT)
-From: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
-X-Google-Original-From: Manivannan Sadhasivam <mani@kernel.org>
-To: bhelgaas@google.com, lpieralisi@kernel.org, kwilczynski@kernel.org,
-        vigneshr@ti.com, jingoohan1@gmail.com, thomas.petazzoni@bootlin.com,
-        ryder.lee@mediatek.com, claudiu.beznea.uj@bp.renesas.com,
-        mpillai@cadence.com, Hans Zhang <18255117159@163.com>
-Cc: robh@kernel.org, s-vadapalli@ti.com, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, claudiu.beznea@tuxon.dev,
-        linux-mediatek@lists.infradead.org, linux-renesas-soc@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20260518004246.1384532-1-18255117159@163.com>
-References: <20260518004246.1384532-1-18255117159@163.com>
-Subject: Re: [PATCH v4 0/7] PCI: Add common helper for 100 ms delay after
- link training
-Message-Id: <178101873635.8877.10733384254725006435.b4-ty@kernel.org>
-Date: Tue, 09 Jun 2026 20:55:36 +0530
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CGnbzpbq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 871F31F00893;
+	Tue,  9 Jun 2026 16:28:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1781022507;
+	bh=mnBqr/oojprozlQZfNYplJlBKL2vf9+PvY5mWTT3dsc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=CGnbzpbq2ir2U0YUoU/MVcUkdXc64ZBJ+JQYXxd1mlBrNLidxG0iEGQtF794/JCSf
+	 Cm87Zv+Kr0eeLuesxsB5NlkuHMBtBXm+Rl4JQvFG8eE4dXoCjapRwJCfklohYejAsN
+	 Kl1bnCQmucj/MxHTBB8rqq1uRx5WVM8asYTBPM+OxIDwvzWxka4jWUJvTZQmKk3WWt
+	 +YgG7EHJyx8UW0IIV9gZNkI+gzoBTNNSSfrDASZ33xMKUMu2Qgz0WP+P5J2GZbyk/t
+	 gk/w5WmaVZ0OSwl/wWMwuEKu0Jo5cLTUzjIwysY9xH8sK/9E31SKoQqaqmVcBxoKYM
+	 5uamaEaf/Nl5w==
+Date: Tue, 9 Jun 2026 17:28:21 +0100
+From: Conor Dooley <conor@kernel.org>
+To: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Cc: Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Jacky Huang <ychuang3@nuvoton.com>,
+	Shan-Chun Hung <schung@nuvoton.com>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-mediatek@lists.infradead.org,
+	linux-renesas-soc@vger.kernel.org,
+	linux-rockchip@lists.infradead.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v3 2/3] dt-bindings: mfd: syscon: Drop custom select for
+ older dtschema
+Message-ID: <20260609-vertical-antarctic-e18a7ec91685@spud>
+References: <20260608-n-dt-bindings-simple-bus-syscon-v3-0-4eba9ec1212a@oss.qualcomm.com>
+ <20260608-n-dt-bindings-simple-bus-syscon-v3-2-4eba9ec1212a@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.14.3
-X-Authority-Analysis: v=2.4 cv=H+DrBeYi c=1 sm=1 tr=0 ts=6a283079 cx=c_pps
- a=mDZGXZTwRPZaeRUbqKGCBw==:117 a=eDurORsI8St+1bJHqsJewQ==:17
- a=IkcTkHD0fZMA:10 a=FelO9ux0wxsA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=YMgV9FUhrdKAYTUUvYB2:22
- a=VwQbUJbxAAAA:8 a=snT30zDU7jmJpjBr2YoA:9 a=QEXdDO2ut3YA:10
- a=zc0IvFSfCIW2DFIPzwfm:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjA5MDE0NiBTYWx0ZWRfX9BdOm9DOJFLr
- ik4Lo2OzggYMdx6mwynOk07iK+kiGnOYjjlipmbYkSYG0MgNUO+BnIVXOkPpUIvv/F7b+Smk0w7
- J98MxMg+XcXWxi/B/tLDf/36v2oLxUsQvLNCRg7sinOoOSQbX1EpuajiXhc5dCa4tYOT9WngrOv
- GPZiR4mgWhEtKDEdT+rMA3pFiqJSCCC2ILjhXw4gXM92Uc5S8r3y7lBo+jcfCrkgiCo/F65LMAi
- CZrqeiIWLF9eP40ZYGO4o4ppp4Fn3sKBBoL42VBn7Eyr63u3ztDeM6fbSaRJPrsNpIIFPKOE1yl
- dzB5puvwJ+7a/UfoIBAVHZcf+ptCayrJ8ZR50oQ87I9to+eh2mNrWBb64fU8F9LZHOdLCWEvPr+
- gRjdAxIJdZZz7OUuIPPFdQR3qSvtkZJ7qwgS50cKPKb0uylbUjUxoOPu7Yu5OF0ZSOfSkO1W0Ye
- otXFoNciVe3sZplOfaA==
-X-Proofpoint-ORIG-GUID: 92PZC6Wemy5Tww5vuwmFtAz2unsIpaS6
-X-Proofpoint-GUID: 92PZC6Wemy5Tww5vuwmFtAz2unsIpaS6
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
- definitions=2026-06-09_03,2026-06-09_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- suspectscore=0 bulkscore=0 clxscore=1015 adultscore=0 malwarescore=0
- spamscore=0 lowpriorityscore=0 priorityscore=1501 impostorscore=0
- phishscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2605210000
- definitions=main-2606090146
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="ht75Ke9Mrmo6QJOk"
+Content-Disposition: inline
+In-Reply-To: <20260608-n-dt-bindings-simple-bus-syscon-v3-2-4eba9ec1212a@oss.qualcomm.com>
 
 
-On Mon, 18 May 2026 08:42:39 +0800, Hans Zhang wrote:
-> PCIe r6.0, sec 6.6.1 (Conventional Reset) requires that for a Downstream
-> Port supporting Link speeds greater than 5.0 GT/s, software must wait a
-> minimum of 100 ms after Link training completes before sending any
-> Configuration Request.
-> 
-> Several PCIe host controller drivers currently omit this 100 ms delay
-> when the negotiated link speed is Gen3 (8 GT/s) or higher. Only the DWC
-> driver already implements it. The missing delay can lead to violations
-> of the PCIe specification and cause enumeration failures with high-speed
-> devices (e.g., NVIDIA RTX5070 GPU, PCIe 5.0 NVMe SSDs).
-> 
-> [...]
+--ht75Ke9Mrmo6QJOk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Applied, thanks!
+On Mon, Jun 08, 2026 at 10:44:25PM +0200, Krzysztof Kozlowski wrote:
+> Older dtschema <2024.02 required custom select to avoid applying this
+> binding to anything having "syscon" compatible.  That's not the case
+> anymore and this additional select has two headaches:
+>=20
+> 1. Duplicates all the compatibles listed in the schema.
+>=20
+> 2. Is error-prone, because it requires contributor to add the compatible
+>    in two places, otherwise the schema will be silently ignored.
+>    The select list already misses mentioning compatibles:
+>    mediatek,mt8365-infracfg-nao and renesas,r9a08g046-lvds-cmn (with the
+>    latter being reverted for different reasons).
+>=20
+> This requires bumping minimum dtschema requirement to v2024.04, which
+> feels old enough to be a safe requirement.
 
-[1/7] PCI: Add pci_host_common_link_train_delay() helper
-      commit: 29fbf582e75015c031e7965fdd4084af123b9ca2
-[2/7] PCI: cadence: Add post-link delay for LGA and j721e glue driver
-      commit: 869317b95fd735684057666a65dd8ef95d4bd669
-[3/7] PCI: cadence: HPA: Add post-link delay
-      commit: 8dd5d65d0dc750b6890c0102c3992f4cef516196
-[4/7] PCI: dwc: Use common pci_host_common_link_train_delay() helper
-      commit: 681adc339e4c972b9f7a5ef8c2fb6a2f7737d4db
-[5/7] PCI: aardvark: Add 100 ms delay after link training
-      commit: 8a602b8bfebbf9a755e8f4732132719a3b298b29
-[6/7] PCI: mediatek-gen3: Add 100 ms delay after link up
-      commit: 798a96740d61c24f193b82388b681b6a4f102d3b
-[7/7] PCI: rzg3s-host: Use common pci_host_common_link_train_delay() helper
-      commit: 0ae259d0434bc31fc71696355538fd21027d6ebe
+I agree, seems reasonable enough given it's a jump from 2023.09 and not
+some large jump.
+The diff is nice too!
+I assume Rob will be taking it, but just in case..
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
 
-Best regards,
--- 
-Manivannan Sadhasivam <mani@kernel.org>
+Cheers,
+Conor.
 
+>=20
+> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+>=20
+> ---
+>=20
+> Changes in v3:
+> 1. Bump dtschema requirement
+>=20
+> Changes in v2:
+> 1. New patch
+> ---
+>  Documentation/devicetree/bindings/Makefile        |   2 +-
+>  Documentation/devicetree/bindings/mfd/syscon.yaml | 116 ----------------=
+------
+>  2 files changed, 1 insertion(+), 117 deletions(-)
+>=20
+> diff --git a/Documentation/devicetree/bindings/Makefile b/Documentation/d=
+evicetree/bindings/Makefile
+> index 7b668f7fd400..40c2094f47c2 100644
+> --- a/Documentation/devicetree/bindings/Makefile
+> +++ b/Documentation/devicetree/bindings/Makefile
+> @@ -6,7 +6,7 @@ DT_MK_SCHEMA ?=3D dt-mk-schema
+>  DT_SCHEMA_LINT =3D $(shell which yamllint || \
+>    echo "warning: python package 'yamllint' not installed, skipping" >&2)
+> =20
+> -DT_SCHEMA_MIN_VERSION =3D 2023.9
+> +DT_SCHEMA_MIN_VERSION =3D 2024.4
+> =20
+>  PHONY +=3D check_dtschema_version
+>  check_dtschema_version:
+> diff --git a/Documentation/devicetree/bindings/mfd/syscon.yaml b/Document=
+ation/devicetree/bindings/mfd/syscon.yaml
+> index 9c81010d5a74..b70018bf1bcf 100644
+> --- a/Documentation/devicetree/bindings/mfd/syscon.yaml
+> +++ b/Documentation/devicetree/bindings/mfd/syscon.yaml
+> @@ -19,122 +19,6 @@ description: |
+>  maintainers:
+>    - Lee Jones <lee@kernel.org>
+> =20
+> -# Need a select with all compatibles listed for compatibility with older
+> -# dtschema (<2024.02), so this will not be selected for other schemas ha=
+ving
+> -# syscon fallback.
+> -select:
+> -  properties:
+> -    compatible:
+> -      contains:
+> -        enum:
+> -          - airoha,en7581-pbus-csr
+> -          - al,alpine-sysfabric-service
+> -          - allwinner,sun8i-a83t-system-controller
+> -          - allwinner,sun8i-h3-system-controller
+> -          - allwinner,sun8i-v3s-system-controller
+> -          - allwinner,sun50i-a64-system-controller
+> -          - altr,l3regs
+> -          - altr,sdr-ctl
+> -          - amd,pensando-elba-syscon
+> -          - amlogic,meson-mx-assist
+> -          - amlogic,meson-mx-bootrom
+> -          - amlogic,meson8-analog-top
+> -          - amlogic,meson8b-analog-top
+> -          - amlogic,meson8-pmu
+> -          - amlogic,meson8b-pmu
+> -          - apm,merlin-poweroff-mailbox
+> -          - apm,mustang-poweroff-mailbox
+> -          - apm,xgene-csw
+> -          - apm,xgene-efuse
+> -          - apm,xgene-mcb
+> -          - apm,xgene-rb
+> -          - apm,xgene-scu
+> -          - atmel,sama5d2-sfrbu
+> -          - atmel,sama5d3-nfc-io
+> -          - atmel,sama5d3-sfrbu
+> -          - atmel,sama5d4-sfrbu
+> -          - axis,artpec6-syscon
+> -          - brcm,cru-clkset
+> -          - brcm,sr-cdru
+> -          - brcm,sr-mhb
+> -          - cirrus,ep7209-syscon1
+> -          - cirrus,ep7209-syscon2
+> -          - cirrus,ep7209-syscon3
+> -          - cnxt,cx92755-uc
+> -          - econet,en751221-chip-scu
+> -          - freecom,fsg-cs2-system-controller
+> -          - fsl,imx93-aonmix-ns-syscfg
+> -          - fsl,imx93-wakeupmix-syscfg
+> -          - fsl,ls1088a-reset
+> -          - fsl,vf610-anatop
+> -          - fsl,vf610-mscm-cpucfg
+> -          - hisilicon,dsa-subctrl
+> -          - hisilicon,hi6220-sramctrl
+> -          - hisilicon,hip04-ppe
+> -          - hisilicon,pcie-sas-subctrl
+> -          - hisilicon,peri-subctrl
+> -          - hpe,gxp-sysreg
+> -          - loongson,ls1b-syscon
+> -          - loongson,ls1c-syscon
+> -          - lsi,axxia-syscon
+> -          - marvell,armada-3700-cpu-misc
+> -          - marvell,armada-3700-nb-pm
+> -          - marvell,armada-3700-avs
+> -          - marvell,armada-3700-usb2-host-device-misc
+> -          - marvell,armada-3700-usb2-host-misc
+> -          - marvell,dove-global-config
+> -          - mediatek,mt2701-pctl-a-syscfg
+> -          - mediatek,mt2712-pctl-a-syscfg
+> -          - mediatek,mt6397-pctl-pmic-syscfg
+> -          - mediatek,mt7981-topmisc
+> -          - mediatek,mt7988-topmisc
+> -          - mediatek,mt8135-pctl-a-syscfg
+> -          - mediatek,mt8135-pctl-b-syscfg
+> -          - mediatek,mt8173-pctl-a-syscfg
+> -          - mediatek,mt8365-syscfg
+> -          - microchip,lan966x-cpu-syscon
+> -          - microchip,mpfs-control-scb
+> -          - microchip,mpfs-sysreg-scb
+> -          - microchip,sam9x60-sfr
+> -          - microchip,sama7d65-ddr3phy
+> -          - microchip,sama7d65-sfrbu
+> -          - microchip,sama7g5-ddr3phy
+> -          - mscc,ocelot-cpu-syscon
+> -          - mstar,msc313-pmsleep
+> -          - nuvoton,ma35d1-sys
+> -          - nuvoton,wpcm450-shm
+> -          - nxp,s32g2-gpr
+> -          - nxp,s32g3-gpr
+> -          - qcom,apq8064-mmss-sfpb
+> -          - qcom,apq8064-sps-sic
+> -          - rockchip,px30-qos
+> -          - rockchip,rk3036-qos
+> -          - rockchip,rk3066-qos
+> -          - rockchip,rk3128-qos
+> -          - rockchip,rk3228-qos
+> -          - rockchip,rk3288-qos
+> -          - rockchip,rk3368-qos
+> -          - rockchip,rk3399-qos
+> -          - rockchip,rk3528-qos
+> -          - rockchip,rk3562-qos
+> -          - rockchip,rk3568-qos
+> -          - rockchip,rk3576-qos
+> -          - rockchip,rk3588-qos
+> -          - rockchip,rv1126-qos
+> -          - st,spear1340-misc
+> -          - stericsson,nomadik-pmu
+> -          - starfive,jh7100-sysmain
+> -          - ti,am62-opp-efuse-table
+> -          - ti,am62-usb-phy-ctrl
+> -          - ti,am625-dss-oldi-io-ctrl
+> -          - ti,am62p-cpsw-mac-efuse
+> -          - ti,am654-dss-oldi-io-ctrl
+> -          - ti,j784s4-acspcie-proxy-ctrl
+> -          - ti,j784s4-pcie-ctrl
+> -          - ti,keystone-pllctrl
+> -  required:
+> -    - compatible
+> -
+>  properties:
+>    compatible:
+>      oneOf:
+>=20
+> --=20
+> 2.53.0
+>=20
+
+--ht75Ke9Mrmo6QJOk
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCaig/JQAKCRB4tDGHoIJi
+0oLlAQCHwNbINj7drMDGPuJbu0+4qMK+maKGF6EB/ix0tWHZuAEA142K2XiPf6pe
+EJkgVBoshBZ7NIiPUqXP5uO/FD3ooQM=
+=4Xd/
+-----END PGP SIGNATURE-----
+
+--ht75Ke9Mrmo6QJOk--
