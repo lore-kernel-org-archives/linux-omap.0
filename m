@@ -1,60 +1,57 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A382C2EEE76;
-	Thu, 11 Jun 2026 16:31:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD8A3E2771;
+	Fri, 12 Jun 2026 16:22:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781195497; cv=none; b=GGJGQRVp7ZbvWGkOFjtllpcM1fqvB5V4g9tENBaHT3R0RDpGz6D5GjxD9HiLFOeASyiTR/Xl06GdU0oIhgkJmxJtS9p+DIrpLyrvEa7smJq0lt6q2gFMhb/wIHk07E+tKNj9KmNNW1NfdV1IY1MYFx+tP+852LwBVwGWLOjSAYg=
+	t=1781281329; cv=none; b=Siign4GPjd0EE2NgsIOmwGGhe9y3Aw2p76bU5+W7VHT5HAM/L4AcjI9r2nBRn/7JWuNHhxpvF8GN1Ab1p/GBPlPyBfUwawObiv4Eabq1Tqtl2qjniKyKQJLjewe+E5nGzkT1M1cB/Y8WrBos9JDY0tT0sBc/S/0u+g9SKT2syws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781195497; c=relaxed/simple;
-	bh=jFBe0ulhCY69u+lrTC6KHwARtkSWpRjbJw5LHfJrNyg=;
+	s=arc-20240116; t=1781281329; c=relaxed/simple;
+	bh=Xzg+sP8tWjGIluh75XfD2CMDorPVjg4yfYtja3AgQDg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PKzTSKjxDor+kM2+pL3dxeINkNW0sYbdVS4GoFjUfkhpu47py518j744p6RL41i8T3wDcd7U3MwPPSb5FbpUhHwOgWNr0SMUqjIGF3OhUs0WoYoiUlX3aZHB7/Eh1/3NwmUJMwTK/vltwf4bNMmnlcDKHcwGUvNWViAwchhnD+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M0uumjh+; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=butUTZDriKFx3kpAlJVj9eqGqDuQd+uUXsfE9qTeTGmSWZRCNoCdFZCV7uiAvvHSxksr7xoRmc5FUbNh3W/bGcnwA2VY69tCjrv+cXZ9b9JcQdCFSb9GlpEejUsfXJyRMhH+aV37r5Ilc5OwESh82CaKpji/746+pT+qSesysEI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z22YVM6W; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M0uumjh+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60A8C1F00893;
-	Thu, 11 Jun 2026 16:31:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z22YVM6W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18B1E1F00A3A;
+	Fri, 12 Jun 2026 16:22:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781195496;
-	bh=pKDVwyUq0CfLwiBc7EZM23dtINCGheBjdXmyBg9xwrI=;
+	s=k20260515; t=1781281323;
+	bh=X7p2Kiie/VwPTVeZsZUYTTjk6TXHw3XumFkCp16/1eI=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=M0uumjh+p4nAPbpKbVRwo/kjRcGl6JijzEhlgl6Mwhp3IiRN66lcTt3GBOXTOrsVF
-	 hcRKTVsUGRL30UM52xA9Qg3vCHlG9esMsVmLx+gisSsnAPsjFXCvT36gwcEJNdNggp
-	 fDBzqELKVi/CZHRuNSkuC9hkspueepE7bg+zenJ49qg9Mp4ReazlAjSd9Ct/JykU1R
-	 RCeI8lJVoi0ipH6dhfPj+3Qxtd07P/mUo4vst/GqlPeoXdj67aH2Y4oC7P7te3g1D1
-	 GXHgVRZFkeamw7Glci8gEdJ6s7ifGatjWqb/dGKg02V/s64VfmCPA4rCVT0FNwIid0
-	 pI9gPR8JR+xLg==
-Date: Thu, 11 Jun 2026 11:31:35 -0500
-From: Rob Herring <robh@kernel.org>
-To: Conor Dooley <conor@kernel.org>
-Cc: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>,
-	Lee Jones <lee@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Jacky Huang <ychuang3@nuvoton.com>,
-	Shan-Chun Hung <schung@nuvoton.com>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	b=Z22YVM6WMIASp6bj1/Lj5CY65UT+3UNWrBON6qYWNpw0F0ROXkocPb7+mxyQK9JXv
+	 XPhj7R63As+LKNe48ExXO+TlZCvteRV2aCuTZJYYDOLZynJgw42IRVmzFln5mPS+B9
+	 W0aeKwkDtkcyMvTAMJ3T7pbJNaE6vqwB67v7GFkRfQ/p0PPxLYu0BNrTtrGo8LG3X6
+	 D1uFff4UvovL0WBLq7iZRvv12GLKLps4GmetJoUDJI0z9UwdMukaGnsxzZ7BLxz5ZP
+	 pmf8rKWC/hKZSQb/2iYXEwLi/86TiQqEpUcRqfSfI7L336oBRhWagti2L1hzgefXZy
+	 f667hOdnhLW7A==
+Date: Fri, 12 Jun 2026 11:22:02 -0500
+From: "Rob Herring (Arm)" <robh@kernel.org>
+To: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Cc: Roger Quadros <rogerq@kernel.org>, linux-omap@vger.kernel.org,
 	Andreas Kemnade <andreas@kemnade.info>,
 	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jacky Huang <ychuang3@nuvoton.com>,
+	Tony Lindgren <tony@atomide.com>,
+	linux-rockchip@lists.infradead.org,
+	Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>,
+	Heiko Stuebner <heiko@sntech.de>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	devicetree@vger.kernel.org, Shan-Chun Hung <schung@nuvoton.com>,
+	linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
 	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org,
-	linux-renesas-soc@vger.kernel.org,
-	linux-rockchip@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v3 2/3] dt-bindings: mfd: syscon: Drop custom select for
- older dtschema
-Message-ID: <20260611163135.GA2913196-robh@kernel.org>
+	linux-mediatek@lists.infradead.org
+Subject: Re: [PATCH v3 1/3] dt-bindings: mfd: syscon: Disallow simple-bus
+ with syscon
+Message-ID: <178128132175.1153833.2573734544472661843.robh@kernel.org>
 References: <20260608-n-dt-bindings-simple-bus-syscon-v3-0-4eba9ec1212a@oss.qualcomm.com>
- <20260608-n-dt-bindings-simple-bus-syscon-v3-2-4eba9ec1212a@oss.qualcomm.com>
- <20260609-vertical-antarctic-e18a7ec91685@spud>
+ <20260608-n-dt-bindings-simple-bus-syscon-v3-1-4eba9ec1212a@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -63,32 +60,49 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260609-vertical-antarctic-e18a7ec91685@spud>
+In-Reply-To: <20260608-n-dt-bindings-simple-bus-syscon-v3-1-4eba9ec1212a@oss.qualcomm.com>
 
-On Tue, Jun 09, 2026 at 05:28:21PM +0100, Conor Dooley wrote:
-> On Mon, Jun 08, 2026 at 10:44:25PM +0200, Krzysztof Kozlowski wrote:
-> > Older dtschema <2024.02 required custom select to avoid applying this
-> > binding to anything having "syscon" compatible.  That's not the case
-> > anymore and this additional select has two headaches:
-> > 
-> > 1. Duplicates all the compatibles listed in the schema.
-> > 
-> > 2. Is error-prone, because it requires contributor to add the compatible
-> >    in two places, otherwise the schema will be silently ignored.
-> >    The select list already misses mentioning compatibles:
-> >    mediatek,mt8365-infracfg-nao and renesas,r9a08g046-lvds-cmn (with the
-> >    latter being reverted for different reasons).
-> > 
-> > This requires bumping minimum dtschema requirement to v2024.04, which
-> > feels old enough to be a safe requirement.
+
+On Mon, 08 Jun 2026 22:44:24 +0200, Krzysztof Kozlowski wrote:
+> "syscon" is a system controller with registers having their own
+> functions, thus not really a trivial MMIO simple bus.  "simple-bus" on
+> the other hand is just a bus on which multiple devices sit and the
+> "simple" means no functions are allowed here.
 > 
-> I agree, seems reasonable enough given it's a jump from 2023.09 and not
-> some large jump.
-> The diff is nice too!
-> I assume Rob will be taking it, but just in case..
-> Acked-by: Conor Dooley <conor.dooley@microchip.com>
+> Combination of both "syscon" and "simple-bus" is abuse of DT for easier
+> instantiating of Linux device drivers so add a schema to disallow that.
+> 
+> Unfortunately there are a few old cases of that patterns, so add
+> exceptions:
+> 
+> 1. "cznic,turris1x-cpld" and "img,pistachio-cr-periph" are already used
+>    in upstream DTS.
+> 
+> 2. TI has several DTSI with a child of SCM device (e.g. "ti,am3-scm")
+>    using "syscon" and "simple-bus" but without a dedicated compatible
+>    documented anywhere.  Add new compatibles for such cases.
+> 
+> Additionally, add comments around code enforcing two or three
+> compatibles: it is similar safeguard detecting incorrect bindings.
+> 
+> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+> 
+> ---
+> 
+> Changes in v3:
+> 1. s/ti,omap5-scm-conf/ti,omap5-sysc-padconf-global/ because it is more
+>    appropriate (specific)
+> 2. Add comments, why simple-mfd+syscon has dedicated if:then:
+> 
+> Changes in v2:
+> 1. Complete patch. I accidentally sent only part of it, built on top of
+>    internal WIP which I forgot to squash.
+>    I received Ack from Rob, but change is significant, so please kindly
+>    re-review.
+> ---
+>  .../devicetree/bindings/mfd/syscon-common.yaml     | 34 ++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
+> 
 
-I expect Lee to take this. I suspect syscon.yaml has other conflicting 
-changes.
+Acked-by: Rob Herring (Arm) <robh@kernel.org>
 
-Rob
