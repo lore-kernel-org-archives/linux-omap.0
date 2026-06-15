@@ -1,57 +1,57 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD8A3E2771;
-	Fri, 12 Jun 2026 16:22:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from elvis.franken.de (elvis.franken.de [193.175.24.41])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A68CB339708;
+	Mon, 15 Jun 2026 10:43:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.175.24.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781281329; cv=none; b=Siign4GPjd0EE2NgsIOmwGGhe9y3Aw2p76bU5+W7VHT5HAM/L4AcjI9r2nBRn/7JWuNHhxpvF8GN1Ab1p/GBPlPyBfUwawObiv4Eabq1Tqtl2qjniKyKQJLjewe+E5nGzkT1M1cB/Y8WrBos9JDY0tT0sBc/S/0u+g9SKT2syws=
+	t=1781520233; cv=none; b=Wjx44uOUfGTiO/ScBM2daqEhP2iMZ4U8YWXHWYI//BwUKdeezdBwW8/d1cmpI7cdd8I69+KW6r79F1tfzm7Cp6IaFRBO+yHw3qks733VD6lwMqRu1CxR3GoIDtB00suL3z0HfyutBPnpeJ3NxKeYjmH64rUIxWRAiApUywcraBo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781281329; c=relaxed/simple;
-	bh=Xzg+sP8tWjGIluh75XfD2CMDorPVjg4yfYtja3AgQDg=;
+	s=arc-20240116; t=1781520233; c=relaxed/simple;
+	bh=oVfd44ufR+op111XMW1UXh0Dk/Avy9DCMpoW+by1up8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=butUTZDriKFx3kpAlJVj9eqGqDuQd+uUXsfE9qTeTGmSWZRCNoCdFZCV7uiAvvHSxksr7xoRmc5FUbNh3W/bGcnwA2VY69tCjrv+cXZ9b9JcQdCFSb9GlpEejUsfXJyRMhH+aV37r5Ilc5OwESh82CaKpji/746+pT+qSesysEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z22YVM6W; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z22YVM6W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18B1E1F00A3A;
-	Fri, 12 Jun 2026 16:22:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781281323;
-	bh=X7p2Kiie/VwPTVeZsZUYTTjk6TXHw3XumFkCp16/1eI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Z22YVM6WMIASp6bj1/Lj5CY65UT+3UNWrBON6qYWNpw0F0ROXkocPb7+mxyQK9JXv
-	 XPhj7R63As+LKNe48ExXO+TlZCvteRV2aCuTZJYYDOLZynJgw42IRVmzFln5mPS+B9
-	 W0aeKwkDtkcyMvTAMJ3T7pbJNaE6vqwB67v7GFkRfQ/p0PPxLYu0BNrTtrGo8LG3X6
-	 D1uFff4UvovL0WBLq7iZRvv12GLKLps4GmetJoUDJI0z9UwdMukaGnsxzZ7BLxz5ZP
-	 pmf8rKWC/hKZSQb/2iYXEwLi/86TiQqEpUcRqfSfI7L336oBRhWagti2L1hzgefXZy
-	 f667hOdnhLW7A==
-Date: Fri, 12 Jun 2026 11:22:02 -0500
-From: "Rob Herring (Arm)" <robh@kernel.org>
-To: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-Cc: Roger Quadros <rogerq@kernel.org>, linux-omap@vger.kernel.org,
+	 Content-Type:Content-Disposition:In-Reply-To; b=a6zf9w9OuO0ugr/TjXFDSh5Y4SxKLIEX/GMLUaJEbqkkssPP0Llz++56hJTFP7yDlJWpfxshz4qShW/zG9shhgGixEb+48gGo4W6AzeDw6lLByT4Vzgxz4JmXXSrJJ33iJlUTmm859M9SfQKzZYUV9B+uecB/UN6xGQxZdlp55A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=alpha.franken.de; spf=pass smtp.mailfrom=alpha.franken.de; arc=none smtp.client-ip=193.175.24.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=alpha.franken.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alpha.franken.de
+Received: from uucp by elvis.franken.de with local-rmail (Exim 3.36 #1)
+	id 1wZ4ey-0000JJ-00; Mon, 15 Jun 2026 12:35:16 +0200
+Received: by alpha.franken.de (Postfix, from userid 1000)
+	id C060CC084D; Mon, 15 Jun 2026 12:33:22 +0200 (CEST)
+Date: Mon, 15 Jun 2026 12:33:22 +0200
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+To: Arnd Bergmann <arnd@kernel.org>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Christian Lamparter <chunkeey@googlemail.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
 	Andreas Kemnade <andreas@kemnade.info>,
 	Kevin Hilman <khilman@baylibre.com>,
-	Jacky Huang <ychuang3@nuvoton.com>,
-	Tony Lindgren <tony@atomide.com>,
-	linux-rockchip@lists.infradead.org,
-	Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>,
-	Heiko Stuebner <heiko@sntech.de>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	devicetree@vger.kernel.org, Shan-Chun Hung <schung@nuvoton.com>,
-	linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org
-Subject: Re: [PATCH v3 1/3] dt-bindings: mfd: syscon: Disallow simple-bus
- with syscon
-Message-ID: <178128132175.1153833.2573734544472661843.robh@kernel.org>
-References: <20260608-n-dt-bindings-simple-bus-syscon-v3-0-4eba9ec1212a@oss.qualcomm.com>
- <20260608-n-dt-bindings-simple-bus-syscon-v3-1-4eba9ec1212a@oss.qualcomm.com>
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>, Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Lee Jones <lee@kernel.org>, Pavel Machek <pavel@kernel.org>,
+	Matti Vaittinen <mazziesaccount@gmail.com>,
+	Florian Fainelli <florian.fainelli@broadcom.com>,
+	Jonas Gorski <jonas.gorski@gmail.com>, Andrew Lunn <andrew@lunn.ch>,
+	Vladimir Oltean <olteanv@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linux-sh@vger.kernel.org, linux-input@vger.kernel.org,
+	linux-leds@vger.kernel.org, netdev@vger.kernel.org,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: Re: [PATCH 05/10] [v2] mips: select legacy gpiolib interfaces where
+ used
+Message-ID: <ai_U8j3uOoIzoYrJ@alpha.franken.de>
+References: <20260520183815.2510387-1-arnd@kernel.org>
+ <20260520183815.2510387-6-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -60,49 +60,45 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260608-n-dt-bindings-simple-bus-syscon-v3-1-4eba9ec1212a@oss.qualcomm.com>
+In-Reply-To: <20260520183815.2510387-6-arnd@kernel.org>
 
-
-On Mon, 08 Jun 2026 22:44:24 +0200, Krzysztof Kozlowski wrote:
-> "syscon" is a system controller with registers having their own
-> functions, thus not really a trivial MMIO simple bus.  "simple-bus" on
-> the other hand is just a bus on which multiple devices sit and the
-> "simple" means no functions are allowed here.
+On Wed, May 20, 2026 at 08:38:10PM +0200, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
 > 
-> Combination of both "syscon" and "simple-bus" is abuse of DT for easier
-> instantiating of Linux device drivers so add a schema to disallow that.
+> A few old machines have not been converted away from the old-style
+> gpiolib interfaces. Make these select the new CONFIG_GPIOLIB_LEGACY
+> symbol so the code still works where it is needed but can be left
+> out otherwise.
 > 
-> Unfortunately there are a few old cases of that patterns, so add
-> exceptions:
+> This is the list of all gpio_request() calls in mips:
 > 
-> 1. "cznic,turris1x-cpld" and "img,pistachio-cr-periph" are already used
->    in upstream DTS.
+>   arch/mips/alchemy/devboards/db1000.c:           gpio_request(19, "sd0_cd");
+>   arch/mips/alchemy/devboards/db1000.c:           gpio_request(20, "sd1_cd");
+>   arch/mips/alchemy/devboards/db1200.c:   gpio_request(215, "otg-vbus");
+>   arch/mips/bcm47xx/workarounds.c:        err = gpio_request_one(usb_power, GPIOF_OUT_INIT_HIGH, "usb_power");
+>   arch/mips/bcm63xx/boards/board_bcm963xx.c:              gpio_request_one(board.ephy_reset_gpio,
+>   arch/mips/txx9/rbtx4927/setup.c:        gpio_request(15, "sio-dtr");
 > 
-> 2. TI has several DTSI with a child of SCM device (e.g. "ti,am3-scm")
->    using "syscon" and "simple-bus" but without a dedicated compatible
->    documented anywhere.  Add new compatibles for such cases.
+> Most of these should be easy enough to change to modern gpio descriptors
+> or remove if they are no longer in use.
 > 
-> Additionally, add comments around code enforcing two or three
-> compatibles: it is similar safeguard detecting incorrect bindings.
-> 
-> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-> 
+> Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> Reviewed-by: Linus Walleij <linusw@kernel.org>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
-> 
-> Changes in v3:
-> 1. s/ti,omap5-scm-conf/ti,omap5-sysc-padconf-global/ because it is more
->    appropriate (specific)
-> 2. Add comments, why simple-mfd+syscon has dedicated if:then:
-> 
-> Changes in v2:
-> 1. Complete patch. I accidentally sent only part of it, built on top of
->    internal WIP which I forgot to squash.
->    I received Ack from Rob, but change is significant, so please kindly
->    re-review.
+> v2: no changes. There was no discussion on this, but the patch
+>     has so far not made it into the linux-mips tree, so I'm including
+>     it for completeness.
 > ---
->  .../devicetree/bindings/mfd/syscon-common.yaml     | 34 ++++++++++++++++++++++
->  1 file changed, 34 insertions(+)
-> 
+>  arch/mips/Kconfig         | 5 +++++
+>  arch/mips/alchemy/Kconfig | 1 -
+>  arch/mips/txx9/Kconfig    | 1 +
+>  3 files changed, 6 insertions(+), 1 deletion(-)
 
-Acked-by: Rob Herring (Arm) <robh@kernel.org>
+applied to mips-next
 
+Thomas.
+
+-- 
+Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
+good idea.                                                [ RFC1925, 2.3 ]
