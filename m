@@ -1,104 +1,131 @@
-Received: from elvis.franken.de (elvis.franken.de [193.175.24.41])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A68CB339708;
-	Mon, 15 Jun 2026 10:43:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.175.24.41
+Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA33C3B6370
+	for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2026 20:05:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781520233; cv=none; b=Wjx44uOUfGTiO/ScBM2daqEhP2iMZ4U8YWXHWYI//BwUKdeezdBwW8/d1cmpI7cdd8I69+KW6r79F1tfzm7Cp6IaFRBO+yHw3qks733VD6lwMqRu1CxR3GoIDtB00suL3z0HfyutBPnpeJ3NxKeYjmH64rUIxWRAiApUywcraBo=
+	t=1781553948; cv=none; b=aT65vhyJfDnkf6NSQn7wyUouaipesVT2vY0K7orRuBLd0+MKpJUDRm8WKwqlrmeFofx4AwrnuV+3+SP851JZCTPjTTWvM83kz9jjDMPTkG9lk2ydwKFFMhnCM8fpIaV+ykBJEuPwcF++h1WQ0q2DI0Uodj6A+LeDoTT4NKGquZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781520233; c=relaxed/simple;
-	bh=oVfd44ufR+op111XMW1UXh0Dk/Avy9DCMpoW+by1up8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=a6zf9w9OuO0ugr/TjXFDSh5Y4SxKLIEX/GMLUaJEbqkkssPP0Llz++56hJTFP7yDlJWpfxshz4qShW/zG9shhgGixEb+48gGo4W6AzeDw6lLByT4Vzgxz4JmXXSrJJ33iJlUTmm859M9SfQKzZYUV9B+uecB/UN6xGQxZdlp55A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=alpha.franken.de; spf=pass smtp.mailfrom=alpha.franken.de; arc=none smtp.client-ip=193.175.24.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=alpha.franken.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alpha.franken.de
-Received: from uucp by elvis.franken.de with local-rmail (Exim 3.36 #1)
-	id 1wZ4ey-0000JJ-00; Mon, 15 Jun 2026 12:35:16 +0200
-Received: by alpha.franken.de (Postfix, from userid 1000)
-	id C060CC084D; Mon, 15 Jun 2026 12:33:22 +0200 (CEST)
-Date: Mon, 15 Jun 2026 12:33:22 +0200
-From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-To: Arnd Bergmann <arnd@kernel.org>
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Christian Lamparter <chunkeey@googlemail.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	s=arc-20240116; t=1781553948; c=relaxed/simple;
+	bh=9axWdOaIkqRMNU09y6jTxTgTHkd+mvEHBlnY8k5td8g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JbWa44m05pbQCmjFpROG61EoVqY2cwVbgBznQbgYirh56u4imwI4r7OwVqqnFh1S58ViG40KuQT+YBO1hWRGo11PpzAWIhRhT+8KDiFfx5u9kUgRXzsZpyt0ajzNN3pc2FlBYavSj3swPz5euEKRH7RJ5FsFqtJWGu/wX6zBUl8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=J/52TFUT; arc=none smtp.client-ip=209.85.160.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="J/52TFUT"
+Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-5176465a4a4so55895791cf.2
+        for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2026 13:05:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1781553946; x=1782158746; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=VzFm9TsiOk5XpcZicvYi+kCCpGBya7QC/I+a6kV9QxQ=;
+        b=J/52TFUTSjZ1OaMKqiw63vYeykYd9Gzt+7rI1QUNG1AOEiL/zxXVEMxYaFdLzZm5sl
+         CJsBnOjUw6OcuLpfUH+avTlsKZl2HdGD1ng/7F+fEM/spPRGV9m6mse3L6Uy6buqV4wo
+         fw44E1OXz7jq2Op56LwBG0h9dqhs2m0jKIwolBq2WZhNZLCdEEh/610SfzghsCJ29sVo
+         ZlCxeDtf2tG6nTL/I2SWs78ydxE9ikWVUuFrRSzvngBmRO9At1cAtykCiYsrWYujlsWK
+         rPEBuT294wjLFGmNE86ZheI2RE+3d8OUUwMVOhc1lA3zv32hLQbrJB0oS0THx0wvD4jC
+         2z2A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781553946; x=1782158746;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=VzFm9TsiOk5XpcZicvYi+kCCpGBya7QC/I+a6kV9QxQ=;
+        b=nJmO1MtHEu7qR2itU0P6koYWP6hgj7auSGSU1PRTxPuJt+SzRbs2Ua0ZBDRT9Iv40O
+         X5WFtOMe2QNAT3dniPEB9AeP9ooS5GBjmXppwiHCrRUo9T0Yb4q8vKulWmw83HWfBxsR
+         WeN0fxGjK8A+dfiu1mYABRhXLOuHWArSF0phDQFjyE/D6ASaYb9VvMSYiLrHEBNKXQk3
+         O6D7rDfQGv55pcLc6BuGgTXzvTg0aTa6YAhmEhB9wB0MTwdoWjAuYqJ2m/fDuJaYRwUI
+         we3vsKYzrK1ljS2tAtapVK3kdz7WGeC4cCoKM0CteaVhGQoCVTwgz5lTp0O8b5GTPaw1
+         DcyQ==
+X-Gm-Message-State: AOJu0YxApYV9hS3htPes3uLTTIf8WP47pAMIXOnC7TbxuQJYApd9kEtZ
+	mvFFXcSJzd+Ing9qKiO4i7oOFRWe3E13w5WWS4eT6UlViwkd0FQt2s8d
+X-Gm-Gg: Acq92OEf+mng9KnGM5PZMJWb1Yr591jA4wkQusmsFbREPtk776DvOzy+6FcMwwwZJWH
+	hGi4vAYAn5NbLZ7vmdAUBMvuQUNswYO3zV+veELb2c4KOmwDZkAsOkoJBuRmeraX3xbttbvCeUN
+	Nrfk8EjNTBOVbuTd06mod6MFXQv33I2E+SbOd0f/i0ebhBDx7Ckdi9gZzSnn8kWv7saNOfMysrH
+	9OmSAzwQov/Rg2G3wLovvysv5DI1W/nNVNRDAz4bFwmoqB4H15l65KTG1+9XQ5Jh5q+CRZ9gK9J
+	Ne5WX/HeFzJPDsEU9wddLMUcKKyqD7YRMOU9seNAHzp1oZnxqndCWpqfBGtrsUJhJob94LmZ1v7
+	DSf4KsHkn+Y4M58ChU5sZ1zLYq1Teh6bq843g87oBr88DFazr2/9KoibTfaNMtemQzLGnPMGHve
+	vruKdxSkRJwTp7omI0mNseC0jH8Xp4Hb47CD+z2jQK
+X-Received: by 2002:a05:622a:41ce:b0:517:7590:228e with SMTP id d75a77b69052e-51953248409mr144988601cf.0.1781553945916;
+        Mon, 15 Jun 2026 13:05:45 -0700 (PDT)
+Received: from i4-gl-tmk5904.ad.psu.edu ([130.203.156.186])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-517fb63e594sm118752911cf.8.2026.06.15.13.05.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 15 Jun 2026 13:05:45 -0700 (PDT)
+From: Yuho Choi <dbgh9129@gmail.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>,
 	Andreas Kemnade <andreas@kemnade.info>,
 	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>, Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Lee Jones <lee@kernel.org>, Pavel Machek <pavel@kernel.org>,
-	Matti Vaittinen <mazziesaccount@gmail.com>,
-	Florian Fainelli <florian.fainelli@broadcom.com>,
-	Jonas Gorski <jonas.gorski@gmail.com>, Andrew Lunn <andrew@lunn.ch>,
-	Vladimir Oltean <olteanv@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-	linux-sh@vger.kernel.org, linux-input@vger.kernel.org,
-	linux-leds@vger.kernel.org, netdev@vger.kernel.org,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: Re: [PATCH 05/10] [v2] mips: select legacy gpiolib interfaces where
- used
-Message-ID: <ai_U8j3uOoIzoYrJ@alpha.franken.de>
-References: <20260520183815.2510387-1-arnd@kernel.org>
- <20260520183815.2510387-6-arnd@kernel.org>
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yuho Choi <dbgh9129@gmail.com>
+Subject: [PATCH v1] bus: ti-sysc: Fix /chosen node reference leak
+Date: Mon, 15 Jun 2026 16:05:40 -0400
+Message-ID: <20260615200540.770205-1-dbgh9129@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260520183815.2510387-6-arnd@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-On Wed, May 20, 2026 at 08:38:10PM +0200, Arnd Bergmann wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
-> 
-> A few old machines have not been converted away from the old-style
-> gpiolib interfaces. Make these select the new CONFIG_GPIOLIB_LEGACY
-> symbol so the code still works where it is needed but can be left
-> out otherwise.
-> 
-> This is the list of all gpio_request() calls in mips:
-> 
->   arch/mips/alchemy/devboards/db1000.c:           gpio_request(19, "sd0_cd");
->   arch/mips/alchemy/devboards/db1000.c:           gpio_request(20, "sd1_cd");
->   arch/mips/alchemy/devboards/db1200.c:   gpio_request(215, "otg-vbus");
->   arch/mips/bcm47xx/workarounds.c:        err = gpio_request_one(usb_power, GPIOF_OUT_INIT_HIGH, "usb_power");
->   arch/mips/bcm63xx/boards/board_bcm963xx.c:              gpio_request_one(board.ephy_reset_gpio,
->   arch/mips/txx9/rbtx4927/setup.c:        gpio_request(15, "sio-dtr");
-> 
-> Most of these should be easy enough to change to modern gpio descriptors
-> or remove if they are no longer in use.
-> 
-> Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> Reviewed-by: Linus Walleij <linusw@kernel.org>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> v2: no changes. There was no discussion on this, but the patch
->     has so far not made it into the linux-mips tree, so I'm including
->     it for completeness.
-> ---
->  arch/mips/Kconfig         | 5 +++++
->  arch/mips/alchemy/Kconfig | 1 -
->  arch/mips/txx9/Kconfig    | 1 +
->  3 files changed, 6 insertions(+), 1 deletion(-)
+sysc_init_stdout_path() gets the /chosen node with
+of_find_node_by_path() to read stdout-path. The function then overwrites
+the local node pointer with the stdout-path lookup result, or exits on
+error, without dropping the /chosen reference.
 
-applied to mips-next
+Keep the /chosen node in a separate variable and put it after the
+stdout-path value has been used for the lookup. The successful stdout
+node lookup remains referenced by the cached stdout_path pointer.
 
-Thomas.
+Fixes: 3bb37c8e6e6a ("bus: ti-sysc: Handle stdout-path for debug console")
+Signed-off-by: Yuho Choi <dbgh9129@gmail.com>
+---
+ drivers/bus/ti-sysc.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+index a5b9507de37c..e118b900c9ac 100644
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -682,6 +682,7 @@ static struct device_node *stdout_path;
+ 
+ static void sysc_init_stdout_path(struct sysc *ddata)
+ {
++	struct device_node *chosen;
+ 	struct device_node *np = NULL;
+ 	const char *uart;
+ 
+@@ -691,15 +692,18 @@ static void sysc_init_stdout_path(struct sysc *ddata)
+ 	if (stdout_path)
+ 		return;
+ 
+-	np = of_find_node_by_path("/chosen");
+-	if (!np)
++	chosen = of_find_node_by_path("/chosen");
++	if (!chosen)
+ 		goto err;
+ 
+-	uart = of_get_property(np, "stdout-path", NULL);
+-	if (!uart)
++	uart = of_get_property(chosen, "stdout-path", NULL);
++	if (!uart) {
++		of_node_put(chosen);
+ 		goto err;
++	}
+ 
+ 	np = of_find_node_by_path(uart);
++	of_node_put(chosen);
+ 	if (!np)
+ 		goto err;
+ 
 -- 
-Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
-good idea.                                                [ RFC1925, 2.3 ]
+2.43.0
+
