@@ -1,85 +1,92 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from forward203a.mail.yandex.net (forward203a.mail.yandex.net [178.154.239.90])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82D4149691F;
-	Wed, 17 Jun 2026 15:41:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 238D43F1AD7;
+	Thu, 18 Jun 2026 11:11:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.154.239.90
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781710914; cv=none; b=MiP03u9Xu+/T9+xhHPgFosFykVFOzAfcDOCx/jAElXralqXIf/68fxb6UxJ8K98UxmFfP0TdKhwYyRD8HWG573fOlXeUd+Agf5CqJgj5UBmN/E72AI6g1gKXFIi9/JHkVjimPxVNmuib33jFw+h88zMtJxppyyGFa7uW/dfskCY=
+	t=1781781123; cv=none; b=JWiHM93Wc1hneKUDRttGCoy+gN2pBzrMnnwBwT49y0YgqidlI+smgf/eul7T3n3JrOBv6ZVz4yofBUU7evk3Sxg1nFewgU7gGVAE0LEtSPygkC45kT7NDwxgC8/Jw/k9ji9Bqia71Kw+lw8Fpk0DVkwrImd/bXhi2LDsuNiQ/zM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781710914; c=relaxed/simple;
-	bh=K96JSwwaowjEbeviUI1xlnKyD4dXQgJ11kqwaYRZRSg=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=BQ2v2FJyhyM9c9fh29vE/5AWGTdKDvJjamOg+HywHNc2sOyFmX8/1TwGPr+2u0FXedE74ov1jO6npYW44TsMZ/IdpPLGKQU39l0f+12QhUtARny1KpG8tlvJCtuQp0MZ7Fy3yCyxRfOM5aChbcnbqC/ae59H5VwGmENl8CAgMww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aUbx83mX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781781123; c=relaxed/simple;
+	bh=iDf1HIGoeJ7zt/90LyB2obe00YdPXhR/8+NFdQDsnN8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=eeWy74ORUnmh5bACWSiB8DH0Ok91rtqui1u+xyIUYULPQdd6lgWbtJ8vVvhL5fdXUz5yhAcROvjfr19FG144J7OeKAfssKLqOYfvOTeB4iF1T8LI0n8pnvmYVBQLiLXyN5fCKgSebWJ/+hUHC87+9xEvsm/QmAQGMai/NHr4wHU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=itb.spb.ru; spf=pass smtp.mailfrom=itb.spb.ru; dkim=pass (1024-bit key) header.d=itb.spb.ru header.i=@itb.spb.ru header.b=MVuUProC; arc=none smtp.client-ip=178.154.239.90
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=itb.spb.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=itb.spb.ru
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aUbx83mX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3B0E1F00A3E;
-	Wed, 17 Jun 2026 15:41:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781710899;
-	bh=Sv7WK0TLi0qOIuMOvJwU6mbH3yERNXs7/fEc4Hx4c8E=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=aUbx83mXCE+WKkE8VV32ftbCXH0r52gqX/y897tbK6cSBbc9oFa1CUdep0NNkVDMS
-	 u1jZqyq4K4DGwBLuqJiU7r/RAnQVDT3t/P+wcgUp6BkJnAAIix7vvwpwQ0iqLN0n6J
-	 qyPN5BkiHdYRo8lFkwnsoyQKBT5hRQ1MotmAlsK8sL877MNk4V1bv1wgCVUxZUTbdp
-	 qcWZF5PV3TnwPXfDq3bVuh+ClBEvwcJvXRfPqCkxxM068kS7C8fEWjhELds9UqdLQa
-	 prIzA40cwi5BaIv+lv0yZ6bIIA8QFvcZeSCB7ACyf7gTVDTlZrM+TxumhSTupvvnz4
-	 OKYIzZGXkiBJA==
-From: Lee Jones <lee@kernel.org>
-To: Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>, 
- Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, 
- Matthias Brugger <matthias.bgg@gmail.com>, 
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
- Jacky Huang <ychuang3@nuvoton.com>, Shan-Chun Hung <schung@nuvoton.com>, 
- Geert Uytterhoeven <geert+renesas@glider.be>, 
- Magnus Damm <magnus.damm@gmail.com>, Heiko Stuebner <heiko@sntech.de>, 
- Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, 
- linux-renesas-soc@vger.kernel.org, linux-rockchip@lists.infradead.org, 
- linux-omap@vger.kernel.org
-In-Reply-To: <20260608-n-dt-bindings-simple-bus-syscon-v3-0-4eba9ec1212a@oss.qualcomm.com>
-References: <20260608-n-dt-bindings-simple-bus-syscon-v3-0-4eba9ec1212a@oss.qualcomm.com>
-Subject: Re: (subset) [PATCH v3 0/3] dt-bindings: mfd: syscon: Tighten
- checks
-Message-Id: <178171089542.1654059.1933552286028471529.b4-ty@b4>
-Date: Wed, 17 Jun 2026 16:41:35 +0100
+	dkim=pass (1024-bit key) header.d=itb.spb.ru header.i=@itb.spb.ru header.b="MVuUProC"
+Received: from forward100a.mail.yandex.net (forward100a.mail.yandex.net [IPv6:2a02:6b8:c0e:500:1:45:d181:d100])
+	by forward203a.mail.yandex.net (Yandex) with ESMTPS id E6AFE86D01;
+	Thu, 18 Jun 2026 14:04:00 +0300 (MSK)
+Received: from mail-nwsmtp-smtp-production-main-54.vla.yp-c.yandex.net (mail-nwsmtp-smtp-production-main-54.vla.yp-c.yandex.net [IPv6:2a02:6b8:c17:2010:0:640:2180:0])
+	by forward100a.mail.yandex.net (Yandex) with ESMTPS id 0C049C0228;
+	Thu, 18 Jun 2026 14:03:52 +0300 (MSK)
+Received: by mail-nwsmtp-smtp-production-main-54.vla.yp-c.yandex.net (smtp) with ESMTPSA id c3Qvvj9gASw0-O58CIumu;
+	Thu, 18 Jun 2026 14:03:51 +0300
+X-Yandex-Fwd: 1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=itb.spb.ru; s=mail;
+	t=1781780631; bh=8mklkkdkLH3g2ukErRL/l+z7KVlGHL6lj9Vdmv5YDnc=;
+	h=Message-Id:Date:Cc:Subject:To:From;
+	b=MVuUProCd8khmRyomz+Hd3ipk+b8RMc6HKBA/G6wtvPoPkct2P4kp5ZAmdg8KpO8w
+	 fOuys1wu1d6f5IEKXGClkR7Wn69OKO0DwLQ9xedPHTv4uQcGk/8cV7HN2p2zX/NBZr
+	 07NfhKY1X7EKOzPrzoRba8h3UA3w4aL/PtNIrjbo=
+Authentication-Results: mail-nwsmtp-smtp-production-main-54.vla.yp-c.yandex.net; dkim=pass header.i=@itb.spb.ru
+From: Aleksandrova Alyona <aga@itb.spb.ru>
+To: Mark Brown <broonie@kernel.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Graeme Gregory <gg@slimlogic.co.uk>,
+	Laxman Dewangan <ldewangan@nvidia.com>,
+	linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	lvc-project@linuxtesting.org
+Subject: [PATCH] regulator: palmas: Check return value of palmas_smps_write()
+Date: Thu, 18 Jun 2026 14:03:38 +0300
+Message-Id: <20260618110338.53004-1-aga@itb.spb.ru>
+X-Mailer: git-send-email 2.26.2
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-Mailer: b4 0.16-dev-ad80c
 
-On Mon, 08 Jun 2026 22:44:23 +0200, Krzysztof Kozlowski wrote:
-> Changes in v3:
-> - Drop patch #2:
->   dt-bindings: mfd: syscon: Drop unneeded case for syscon + simple-mfd
-> - Bump dtschema requirement
-> - Link to v2: https://patch.msgid.link/20260608-n-dt-bindings-simple-bus-syscon-v2-0-0203e6c249dc@oss.qualcomm.com
-> 
-> Changes in v2:
-> 1. New patches #2 and #3
-> 1. Add missing part of patch #1, thus not adding Rob's Ack.
-> https://lore.kernel.org/all/20260531110404.12768-3-krzysztof.kozlowski@oss.qualcomm.com/
-> 
-> [...]
+palmas_set_mode_smps() updates the SMPS mode register when the rail is
+enabled, but it ignores a possible error from palmas_smps_write().
 
-Applied, thanks!
+Since enable_val is updated after the write, ignoring the error may leave
+the cached enable value inconsistent with the hardware state.
 
-[1/3] dt-bindings: mfd: syscon: Disallow simple-bus with syscon
-      commit: c11c918b40295dcb0ad2460d9534454072386f4c
-[2/3] dt-bindings: mfd: syscon: Drop custom select for older dtschema
-      commit: f78049ca80ba2e68f7f46870b0d68eb54a6ce378
+Return the error if the register write fails to avoid reporting success
+when the mode has not been updated.
 
---
-Lee Jones [李琼斯]
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
+
+Fixes: 51d3a0c999e1 ("regulator: palmas: preserve modes of rails during enable/disable")
+Signed-off-by: Aleksandrova Alyona <aga@itb.spb.ru>
+---
+ drivers/regulator/palmas-regulator.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index 337dd614695e..fa6dd240015e 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -469,8 +469,11 @@ static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
+ 	}
+ 
+ 	pmic->current_reg_mode[id] = reg & PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
+-	if (rail_enable)
+-		palmas_smps_write(pmic->palmas, rinfo->ctrl_addr, reg);
++	if (rail_enable) {
++		ret = palmas_smps_write(pmic->palmas, rinfo->ctrl_addr, reg);
++		if (ret)
++			return ret;
++	}
+ 
+ 	/* Switch the enable value to ensure this is used for enable */
+ 	pmic->desc[id].enable_val = pmic->current_reg_mode[id];
+-- 
+2.26.2
 
