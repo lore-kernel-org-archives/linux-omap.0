@@ -1,46 +1,41 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.5])
+Received: from mail-43170.protonmail.ch (mail-43170.protonmail.ch [185.70.43.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0615D2E7386;
-	Tue, 23 Jun 2026 07:26:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7A4B7260D
+	for <linux-omap@vger.kernel.org>; Thu, 25 Jun 2026 07:30:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782199615; cv=none; b=nkewMgrz4YIa819gs5PW2fU+5x+9lC57KxpAF2EaePNTAtXo2js1F8Q9uHJeZa91NWkAG+JPXIHdNx2FZ8R6OdTP6eS+3WbFdqscOblbeQT+uUBsSkQaN4g5LhG1sjjbiQrvYaiV5zulglrXFnpJ/qLTucDvS2HjIWDsd98lbHc=
+	t=1782372648; cv=none; b=BO66USE03bagmxM/4T0JR1azEiUZYaasJOIKBV6PgX2Z9ByeSBqngZvUNZxi7aTS26ZNRiwNcGBgFtzQcsFAIDXS2x2g8dvlE32v2uV9V/RBoDhz2ldxr4EBdeONw2YmZ3+mAcB/koyhDqS7NwdeGC3QjexTXj++K4XPNR3ce70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782199615; c=relaxed/simple;
-	bh=rYSLMaaP3Nx9YwTnfketvAH5z+T8xmvNYuoC4Bw1ky0=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=aoCpDa3uQh/pU+fhQDuYF6HynMJ1/RMxKsL70j5t2CCq55eqZFl3eYMQ6AX7WCY9A6G0mRZfD0SGsQabiv1/pnDOrGlH1W1tT/Toe2+qqHOFIB0LxT1XTA22geYOpyK8Pe0n3dh4+zEAWDkqWB+OjGF9baq3XcLM/HWAZBBrmow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=T8lNrf1K; arc=none smtp.client-ip=220.197.31.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1782372648; c=relaxed/simple;
+	bh=y0zfqFWokNsrIDe9PtcC0FGpPsu//Tml8hGBhCs4wsI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cL8s/mSAqAVyjVRhW6aCaZmx0ZVfCZPVqyNN8AKxejSeljTco2vF6BQG8IlmTqFnghVPUcLUdbMyh7hs/UPf7vEaqGYFuBVk8YcPld84RT0hwZCCMGZ7GesEyLDccrsouwfHLjv9NmU2Ky+Ig2YUNalw/qK1PiqIrsnkbcpuSac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=rasmusvillemoes.dk; spf=pass smtp.mailfrom=rasmusvillemoes.dk; dkim=pass (2048-bit key) header.d=rasmusvillemoes.dk header.i=@rasmusvillemoes.dk header.b=iJdp7McP; arc=none smtp.client-ip=185.70.43.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=rasmusvillemoes.dk
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rasmusvillemoes.dk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="T8lNrf1K"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=PN
-	4+aDsAu1UBBqtMfoO95odoovyt5n75yyVL3bxa65c=; b=T8lNrf1KZXZqdURLFm
-	zWhHr07bqDcLIKPHr6GPYbZ//EuGN0YCDLNSmn65lBKi4ymejiMPvXba7kv9PBKc
-	dUr0hZ34i4u1HMFUdod4QnKb7XpSZJj1kjRqATMowxk2nkIz+lqCt+UwJpgdC+dh
-	kdEHEiW5KWSr8IggtZruf8J7w=
-Received: from localhost.localdomain (unknown [])
-	by gzsmtp4 (Coremail) with SMTP id PygvCgCHrrHvNDpqB1a6Dg--.16039S2;
-	Tue, 23 Jun 2026 15:25:36 +0800 (CST)
-From: Haoxiang Li <haoxiang_li2024@163.com>
-To: paul@pwsan.com,
-	aaro.koskinen@iki.fi,
-	andreas@kemnade.info,
-	khilman@baylibre.com,
-	rogerq@kernel.org,
-	tony@atomide.com,
-	linux@armlinux.org.uk
+	dkim=pass (2048-bit key) header.d=rasmusvillemoes.dk header.i=@rasmusvillemoes.dk header.b="iJdp7McP"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rasmusvillemoes.dk;
+	s=protonmail; t=1782372637; x=1782631837;
+	bh=y2EyM1Slz2fBwVQO9+V9ep49e9+zU+R6lVHhXnzaIGA=;
+	h=From:To:Cc:Subject:Date:Message-ID:From:To:Cc:Date:Subject:
+	 Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
+	b=iJdp7McPE/EvMZZW61mm8S+1u3VqMtFig21yBh9q2YmYZBFUT1TwaBMqqgweR4Ld+
+	 1CK7LejYxkfudnsUz5cXavTfejEooMeK8kR6UNEG+EAnmMk3VWWjGg+DuwiIPrsMml
+	 WZEeRQ9z/r1+o5JAqgZ6ErvkYRWjIu7vp9PZVqkUKEiAV7X395Xo41URHfJ96Q/W/h
+	 hTZkO74Imvoq5XzaGrQG64km4Kx0u8BukoiGK3Gyx3h2ROYJP9moPqVo0lyc8WqGL1
+	 +Lj7e26WmHtTFW2dXQDAUnPiLEti1/pkeZK9XWSNNT/CGKhZvQaW+o26HRll/onx30
+	 8Nnj59Lj5ddpA==
+X-Pm-Submission-Id: 4gm9Sq5cJVz1DFTD
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+To: Tony Lindgren <tony@atomide.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>
 Cc: linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	Haoxiang Li <haoxiang_li2024@163.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] ARM: OMAP2+: Fix a reference leak bug in omap_hwmod_fix_mpu_rt_idx()
-Date: Tue, 23 Jun 2026 15:25:34 +0800
-Message-Id: <20260623072534.1997680-1-haoxiang_li2024@163.com>
-X-Mailer: git-send-email 2.25.1
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH] ARM: dts: omap3: fix #ssize-cells typo in omap34xx-omap36xx-clocks.dtsi
+Date: Thu, 25 Jun 2026 09:30:26 +0200
+Message-ID: <20260625073026.110253-1-linux@rasmusvillemoes.dk>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -48,39 +43,29 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:PygvCgCHrrHvNDpqB1a6Dg--.16039S2
-X-Coremail-Antispam: 1Uf129KBjvdXoWrur4fKF47Zw13AFW3tw4fXwb_yoWDCrX_Ww
-	s2gw1kWr4rtF409w45Aanxursayw1xGrW3Ar18tFsFkrW3WF1Iyryvv3s3AFyDXF4xKrZr
-	Zr4Iyr1Y9342gjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7sRNWrWUUUUUU==
-X-CM-SenderInfo: xkdr5xpdqjszblsqjki6rwjhhfrp/xtbCxRBy4Go6NPBPIAAA38
 
-omap_hwmod_fix_mpu_rt_idx() gets the first child node with
-of_get_next_child(), which returns a node with its reference count
-incremented. The function uses the child node to translate the MPU
-runtime register resource, but never drops the reference afterwards.
+One of the '#size-cells = <0>' lines added in commit
+808e65304d18 ("ARM: dts: omap3: Update clksel clocks to use reg
+instead of ti,bit-shift") had a trivial typo.
 
-Add the missing of_node_put() after of_address_to_resource().
-
-Fixes: 1dbcb97c656e ("ARM: OMAP2+: Fix module address for modules using mpu_rt_idx")
-Cc: stable@vger.kernel.org
-Signed-off-by: Haoxiang Li <haoxiang_li2024@163.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/ti/omap/omap34xx-omap36xx-clocks.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 974107ff18b4..1d7677ca3802 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2176,6 +2176,7 @@ static void omap_hwmod_fix_mpu_rt_idx(struct omap_hwmod *oh,
- 	if (error)
- 		pr_err("%s: error mapping mpu_rt_idx: %i\n",
- 		       __func__, error);
-+	of_node_put(child);
- }
+diff --git a/arch/arm/boot/dts/ti/omap/omap34xx-omap36xx-clocks.dtsi b/arch/arm/boot/dts/ti/omap/omap34xx-omap36xx-clocks.dtsi
+index ca6372711baf..a5ec71b00e57 100644
+--- a/arch/arm/boot/dts/ti/omap/omap34xx-omap36xx-clocks.dtsi
++++ b/arch/arm/boot/dts/ti/omap/omap34xx-omap36xx-clocks.dtsi
+@@ -258,7 +258,7 @@ clock@a18 {
+ 		reg = <0xa18>;
+ 		#clock-cells = <2>;
+ 		#address-cells = <1>;
+-		#ssize-cells = <0>;
++		#size-cells = <0>;
  
- /**
+ 		mad2d_ick: clock-mad2d-ick@3 {
+ 			reg = <3>;
 -- 
-2.25.1
+2.54.0
 
