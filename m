@@ -1,92 +1,71 @@
-Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 813E83A168B;
-	Fri, 26 Jun 2026 15:31:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5B0F3FAE1D;
+	Fri, 26 Jun 2026 16:11:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=156.67.10.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782487921; cv=none; b=lwyDsZWdDm2MjNNnmWqHPvFPtfjCAK78Ia0vofTDuyusWv4sFPt1JrN4DjsQi9Bf6dOfCDGyKHI8kt2XpcTeVJKvt/Rm/CT7NJ83ta/g6rmjBbH7cC//nsbvBZxy9fbfQdZ4RvB5Py7jPQMQJUmcoCUKW3CcXuj2Ixrd+7SIZYM=
+	t=1782490321; cv=none; b=IlaWf+R4QRPUJ6PNREZKekcPAJi8XeOq4qUDyQlYsAJGpGjLeHi3pBL3U2IDMzP/6tlWw2nATo1SB/Fc+XdQjDwJfTtAPXRnvGvW+neT0oA6OP9m6ncR2fcoEmHc07st9h53FwoxqLc4FC2l/PS7YHkbRCW5tNizxI6Ccx0DVDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782487921; c=relaxed/simple;
-	bh=vxxKpeQd3oR6u3/gFXrmmqLmgbVj2s8NkdXDc5z9e40=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=OlTbVMRdoT9MAB/fJQcW2G2xOsZspN0RwrCu0/NJRXsPn3avc9G2AGMavVWHFYhXNipRleq5EVol8PYaIPtuNP6GTaPlaMXSnao5epPDYXfE/iyIW7NjJ6odRn1s68usUWMNLKCcVN+4YwN/IgUpBN6JBjwRdo68VByUi/9SXQo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from localhost.localdomain (unknown [117.182.75.66])
-	by APP-01 (Coremail) with SMTP id qwCowACHLtdkmz5qd1FsAw--.37601S2;
-	Fri, 26 Jun 2026 23:31:50 +0800 (CST)
-From: WenTao Liang <vulab@iscas.ac.cn>
-To: Andrew Lunn <andrew+netdev@lunn.ch>,
-	netdev@vger.kernel.org
-Cc: "David S . Miller" <davem@davemloft.net>,
+	s=arc-20240116; t=1782490321; c=relaxed/simple;
+	bh=iSfR+9zbKksmHcBVuOe/NurIL4kLG4GXXN2/ltuck8U=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gbeDVVkMgQTWB3lyRho2rHh+1bSXnmNo0424tyxb1dMYHMnAYUh9KilqD/Bme6aPolyrTuBShtInLLZBCHTsL2z77buWC1mQAG4mCJWEeKAagyJCh48qmk20OIVdvnSLL7TLGsi8l5+ZjIJk2jFYzxuz12COubbDf/dfmDi26Tw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch; spf=pass smtp.mailfrom=lunn.ch; dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b=WwulOg/u; arc=none smtp.client-ip=156.67.10.101
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.b="WwulOg/u"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
+	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
+	bh=xpb0OgYrP34zH14FJQRa4tbViBikysXim0c8FtbtJd4=; b=WwulOg/ugjEm32QXtlxjbxk0wY
+	6x5bdZcw5jYLXj0wfIu9D7A7bSpXWwXPx3E49q6VCM/9FFU7hYCOMLVl/IPcpOGFAc2wOgumkZsfw
+	B10JCthIHCXibfxIE9H7eChT/CkJEVSnFjsFsN8qE68m4WJSWeNeQU3jJqe3p4f9q9hs=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+	(envelope-from <andrew@lunn.ch>)
+	id 1wd99g-009OGL-TV; Fri, 26 Jun 2026 18:11:48 +0200
+Date: Fri, 26 Jun 2026 18:11:48 +0200
+From: Andrew Lunn <andrew@lunn.ch>
+To: WenTao Liang <vulab@iscas.ac.cn>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, netdev@vger.kernel.org,
+	"David S . Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
 	Grygorii Strashko <grygorii.strashko@ti.com>,
-	linux-omap@vger.kernel.org,
-	stable@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	WenTao Liang <vulab@iscas.ac.cn>
-Subject: [PATCH] fix: net: ti: cpts_of_mux_clk_setup: fix device_node reference leak on   success path
-Date: Fri, 26 Jun 2026 23:31:48 +0800
-Message-Id: <20260626153148.52612-1-vulab@iscas.ac.cn>
-X-Mailer: git-send-email 2.39.5 (Apple Git-154)
+	linux-omap@vger.kernel.org, stable@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] fix: net: ti: cpts_of_mux_clk_setup: fix device_node
+ reference leak on   success path
+Message-ID: <64f44697-ecdd-4324-8112-c26ddc46da01@lunn.ch>
+References: <20260626153148.52612-1-vulab@iscas.ac.cn>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowACHLtdkmz5qd1FsAw--.37601S2
-X-Coremail-Antispam: 1UD129KBjvdXoW7JFykZw15tFWDCr4fXFW3GFg_yoWkGFcEgr
-	yIgF1fXa4UGr4qyw43trW7uasayFnF9a4xZayIyay3t3y3Cr4Fyrn8Cr1fZry7W3y8Gr1U
-	twnFyFW7Z342yjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUb3AFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
-	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Cr0_
-	Gr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
-	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
-	jxv20xvE14v26r126r1DMcIj6I8E87Iv67AKxVW8JVWxJwAm72CE4IkC6x0Yz7v_Jr0_Gr
-	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7M4IIrI8v6xkF7I0E8cxa
-	n2IY04v7MxkF7I0En4kS14v26r1q6r43MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4
-	AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE
-	17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1I6r4UMI
-	IF0xvE2Ix0cI8IcVCY1x0267AKxVWxJVW8Jr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1x
-	MIIF0xvEx4A2jsIE14v26r4j6F4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr1j6F4UJbIYCT
-	nIWIevJa73UjIFyTuYvjfU5dgADUUUU
-X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiDAAKA2o+idsuXgABsy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260626153148.52612-1-vulab@iscas.ac.cn>
 
-of_get_child_by_name acquires a device_node reference for refclk_np, and
-  of_clk_add_hw_provider additionally takes an extra reference internally.
-  On the success path, the function returns 0 without calling
-  of_node_put(refclk_np), leaking the initial reference.
+On Fri, Jun 26, 2026 at 11:31:48PM +0800, WenTao Liang wrote:
+> of_get_child_by_name acquires a device_node reference for refclk_np, and
+>   of_clk_add_hw_provider additionally takes an extra reference internally.
+>   On the success path, the function returns 0 without calling
+>   of_node_put(refclk_np), leaking the initial reference.
+> 
+> Add of_node_put(refclk_np) before returning success to properly release
+>   the acquired reference.
+> 
+> Cc: stable@vger.kernel.org
+> Fixes: a3047a81ba13 ("net: ethernet: ti: cpts: add support for ext rftclk selection")
+> Signed-off-by: WenTao Liang <vulab@iscas.ac.cn>
 
-Add of_node_put(refclk_np) before returning success to properly release
-  the acquired reference.
 
-Cc: stable@vger.kernel.org
-Fixes: a3047a81ba13 ("net: ethernet: ti: cpts: add support for ext rftclk selection")
-Signed-off-by: WenTao Liang <vulab@iscas.ac.cn>
+    Andrew
+
 ---
- drivers/net/ethernet/ti/cpts.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index 2ba4c8795d60..d6e6d074747e 100644
---- a/drivers/net/ethernet/ti/cpts.c
-+++ b/drivers/net/ethernet/ti/cpts.c
-@@ -714,7 +714,8 @@ static int cpts_of_mux_clk_setup(struct cpts *cpts, struct device_node *node)
- 		goto mux_fail;
- 	}
- 
--	return ret;
-+	of_node_put(refclk_np);
-+	return 0;
- 
- mux_fail:
- 	of_node_put(refclk_np);
--- 
-2.39.5 (Apple Git-154)
-
+pw-bot: cr
