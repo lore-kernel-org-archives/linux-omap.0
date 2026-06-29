@@ -1,33 +1,86 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9721143CEDF;
-	Mon, 29 Jun 2026 15:51:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7117538B133
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2026 20:19:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782748282; cv=none; b=HFzS4Y31bUQCmjWDRm2gMEQ3oDmY2916u4RSB//9x/kuaXBWLDAnKyFc6idZXXV08Ix+Y7j7xUZJG2IX7xng9HGk5NyHBpHY7PHU/pVWPFa+/Yyol4Gis1pICAEHJAPTWG5+Y0e+YPiARBP5Alq/8esYdMZncLIQcqXbc+fu/y8=
+	t=1782764379; cv=none; b=hfVg+rxVB8pUPLBti2I4vb/T79XqrL3f1KwWgoF9Wa+/J0F0v4GFs4RyCJFlptgnKks+l8OQCl14NqnjVMPBVaiJa+1/Nl3dsn2VdMg04mfuuuF28iHNJK1JqqafMwi6QPbAOLcewIwf+AqOpZOl9idhtWx2h/ms7oygZsRqXBk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782748282; c=relaxed/simple;
-	bh=f6k7CqaDDr7N8lJ9oJAbbzBJB23kzlUVgp3lEF+ne9Y=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=czk/4QNACzyHACWMjjYgp8H1oWWi/Rj938zJ+4XOsclGQpip8uuPhqKW8R0VaBi/NU1V5w3Y9hhtvhpKEqKdgKAPmU4Y5zSYa8YLMC4bulxCN5IqIN5s60oglF81KAoGA+YjUOC9NLL9z3JChqNaQLz4IRRbYsyE5N51jWWNmlY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=mcWg4ygE; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1782764379; c=relaxed/simple;
+	bh=pdYxeBI9YkOpfxIvVwA9F4HdzieF6uivgjdrMwZAkmk=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=GtwHGbGoByRdG06QDU3bw4D1eq2pd3KjCwL36DIlScojkQysFKhZu/C+vGbCFsX34Irl2stFpqkthoYq54Qvv9tDzufbgGPrb+P/F2p5qb0qFK16IYPL0Zv47oAr3nRym6K8Ovz9f+Emkzga8s8NTsuWSegvf+CLf6XEVVfh8pE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=QIze/DRA; arc=none smtp.client-ip=209.85.214.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="mcWg4ygE"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:To:Subject:From:Reply-To:Content-ID:
-	Content-Description:In-Reply-To:References;
-	bh=8sQUhO0gEm6SixPxSIu1WpqPG3obYPtKTd58dLgHyVU=; t=1782748280; x=1783957880; 
-	b=mcWg4ygEvtJA/DV9PG4bP967G0xhB/ubwUNc9fiBQScodYHiV152tM9urtqaBuPHQ5fAVdx5CY/
-	KuTPCpsHsG7Jp11BOdv/69Z+7RPfnHq4ixgCXj2JX0fU6YNejYloR87W8osdGS+mwDNJ2YYxqy3qS
-	RCjLpl9dX96MRzwof4N00fkfpQogKfbiTf3fZm5nnVoglEmd6ldAiUFPfLPPBDUgfprIR+HpYQgzh
-	l/u+VgoXP7cWrr+lT8GcMApy9MuGeRqcA3ZAMjo0b8lwICaZPnoIMMFeki0SkX1TypRgmLbEEMJcG
-	8zbziCqaPT+yIY1Pwz5apVedQ9Z+9O2a9YNQ==;
-From: Andreas Kemnade <andreas@kemnade.info>
-Date: Mon, 29 Jun 2026 17:50:59 +0200
-Subject: [PATCH v4] drm/omap: dsi: avoid sending bta sync all the time in
- writes
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="QIze/DRA"
+Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-2c9b42be8feso20740785ad.2
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2026 13:19:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre.com; s=google; t=1782764373; x=1783369173; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:date:message-id:subject
+         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=nZg/W7O3xMrPOVncSfqHtuO2PvBNacKXPKLTL7Ha6Q0=;
+        b=QIze/DRAV+9cyF54qAB57jhEkjkG9jxPaV91RrUxRXIOrRtvu7S753TGME+MIyHI9f
+         n9GbosdCnh2HoGIxV9rxoK88+OvpvvR8+f2cO53Y6hBhweHnMOLG1ZTq1cK7VUwq2liA
+         DuSmmy2qTHkNfEV7lNDSQH8C+4ERxRZLEvPSzPra3rgYGEM+zJdNM5bB8ui4L3fctkHk
+         8HZAiZngsANdUGN9ZKZkpWVQXUSDYb83IjchKnGw0Q9sfGIsyjxQd2QR+lMmBgQ0bWwo
+         LKaSm8245l8POJTygYnkzLBAVxnVxm6NeFBO1VoecXCgvyHrmwp559G8UwdAAQJvjyh8
+         tCNA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782764373; x=1783369173;
+        h=content-transfer-encoding:mime-version:date:message-id:subject
+         :references:in-reply-to:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=nZg/W7O3xMrPOVncSfqHtuO2PvBNacKXPKLTL7Ha6Q0=;
+        b=ItoZt1DEzSgq0HU8AexYrBYZpbG0QE9m08A9TFdfKs2eFwjOncvk4AbI1Fgpk/83NR
+         e7yC4UjzMAK6kdoJOg3bgK/mveAtXqYGlbGnge2jyE/1/s9W32npLmhH8SzBSDK0Sabm
+         QvChMY1nlXBj4IQIg1mDAC4SIBHbPRGCL5BfbXg0U5gBB0Fcid2RaTkTCJFC4gNgRyg1
+         icGR13T0l3A9x+KW2ct/qRtxRtXTbYUh3yxZ/OYMRuGppwu2yDzaVV7h5nzEDDJJx8n3
+         BsNZueDzyJdVIIQMXg34Yi5FZzZpWXq+MJEBMJwxh7j3yz+BZL1Nln5aqlc+tixLD8N9
+         fQjg==
+X-Forwarded-Encrypted: i=1; AHgh+RoUJ+3QIMmmEgN8QFWdiY01g4grsm/AqsyUelWmOAFqv2s41Y4l4N/ImA05oMm6qcTukLfRpnKDtuup@vger.kernel.org
+X-Gm-Message-State: AOJu0YwSJxhpsNDS7oi2+dr2CKFN8gWxSNnj9xxVJ/RfqdQXkyMB1v/b
+	Bo7QbXGPwEc27LFT2WgcHZ0K5eUR7aoDwRDumtkSOihKD96yDj5hmclpBGocQLXub4Y=
+X-Gm-Gg: AfdE7clqN5SgudjqKIR371jK5hZ6Q/TjiGM7LCnQlLjdJfIGh5MO15kR30MYeVgQ/mS
+	7vs+TMKzLd86YFEW4D/pIA12PBEqCSgXWjyD5u4hOuk5J4zypVy+mpqHxRP7WuOm/BxgUFA7c83
+	dauchFQAOp+b2XcqoIlshGGD7b+eXHk2TL8stfTUxz5+rVRVuwqX6G/mvMrIY1IQ663AXGvZNUV
+	6yAp99J42GFIgrA9zzzGNTWEBv92VNh7lNY3wdRq/bQfoZ5LOBERCawlYxY7gTqisJYy7XQ8zot
+	Zri0S83qmiat5j4p5eSIDplsqTXU8wpjUEX6DIQy2hbtdLmlPwLxu9vRiD9w1qBL1V6FMlmNlEm
+	GRwpDelOT61+9rFZ2eCbzeGjqM9dbPDUAWtIEWhMGREzNPBAykzUS6z+olo/OWKJPXw4e+YhesJ
+	VMmplICeQEoQ==
+X-Received: by 2002:a17:903:1c2:b0:2c9:e86e:aa0a with SMTP id d9443c01a7336-2ca2d3d202emr6219205ad.0.1782764373360;
+        Mon, 29 Jun 2026 13:19:33 -0700 (PDT)
+Received: from localhost ([71.212.202.210])
+        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-2ca37c908e7sm102735ad.35.2026.06.29.13.19.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 29 Jun 2026 13:19:32 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Lee Jones <lee@kernel.org>, Rob Herring <robh@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, 
+ Matthias Brugger <matthias.bgg@gmail.com>, 
+ AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
+ Jacky Huang <ychuang3@nuvoton.com>, Shan-Chun Hung <schung@nuvoton.com>, 
+ Geert Uytterhoeven <geert+renesas@glider.be>, 
+ Magnus Damm <magnus.damm@gmail.com>, Heiko Stuebner <heiko@sntech.de>, 
+ Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, 
+ Tony Lindgren <tony@atomide.com>, 
+ Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, 
+ linux-renesas-soc@vger.kernel.org, linux-rockchip@lists.infradead.org, 
+ linux-omap@vger.kernel.org
+In-Reply-To: <20260608-n-dt-bindings-simple-bus-syscon-v3-0-4eba9ec1212a@oss.qualcomm.com>
+References: <20260608-n-dt-bindings-simple-bus-syscon-v3-0-4eba9ec1212a@oss.qualcomm.com>
+Subject: Re: (subset) [PATCH v3 0/3] dt-bindings: mfd: syscon: Tighten
+ checks
+Message-Id: <178276437217.1055800.1836973932721840283.b4-ty@b4>
+Date: Mon, 29 Jun 2026 13:19:32 -0700
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -36,189 +89,29 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260629-vm-upstr-v4-1-9f0c62d8808e@kemnade.info>
-X-B4-Tracking: v=1; b=H4sIAGKUQmoC/23NTQ6DIBRG0a0YxsUIKEhH3UfjwJ+HklYwYEkb4
- 96LTmrTDr8XzmVBHpwGj87JghwE7bU1ceSnBLVDbXrAuosb0YzyrKAlDiN+TH52uC1BcJZDowq
- O4vPJgdLPPXWt4h60n6177eVAtuufSCCYYNVIBqpsG8jF5QbOwD21rkdbJdCjlAdJo6R5yzIui
- CBS/Uj2kfzrTxalBFl3nWRMlE2Uo6k7SLVRFlXrur4BFMj1XxcBAAA=
-X-Change-ID: 20260528-vm-upstr-c8e7634ebf56
-To: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, 
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
- Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
- David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
- Sebastian Reichel <sebastian.reichel@collabora.com>, 
- Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
- Tony Lindgren <tony@atomide.com>, 
- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Marek Vasut <marex@denx.de>, 
- "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, 
- linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, 
- Andreas Kemnade <andreas@kemnade.info>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5715; i=andreas@kemnade.info;
- h=from:subject:message-id; bh=f6k7CqaDDr7N8lJ9oJAbbzBJB23kzlUVgp3lEF+ne9Y=;
- b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFlOU7KmbTq80LN30VOTd9Gmf+7sn73CpPl04tt1B/783
- nDVOfzY1I5SFgYxLgZZMUWWX9YKbp9UnuUGT42wh5nDygQyhIGLUwAm8vU7wz/9ltOSbJ93Siz+
- MEG96ezUr0XWq3VsRC91CHau4jT0XnuHkeF1i2cIa8z1qllhb/gnbFf7NbFRSHdxcx+HuNhZXq6
- 9K3kA
-X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
- fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
+X-Mailer: b4 0.16-dev
 
-Some chips need configuration commands to be sent first, before they can
-send data. TC358762 for example needs PPI_LPTXTIMECNT configured
-and PPI_STARTPPI set to 1 to be able to transmit anything. To be able to
-configure such chips, do not send bta sync during writes if no acks are
-requested. Instead just wait for the packet to be sent to avoid FIFO
-overflows. There might be more to do about acks, but there seem to be
-virtually no users of that flag.
 
-This came to light when fiddling with the Epson Moverio BT-200 display
-which consists of 2 TC358762 bridges with SPI funneled through
-to the unknown display chip. With that patch the bridge can be accessed,
-Reading back registers works, when the above-mentioned registers are set.
+On Mon, 08 Jun 2026 22:44:23 +0200, Krzysztof Kozlowski wrote:
+> Changes in v3:
+> - Drop patch #2:
+>   dt-bindings: mfd: syscon: Drop unneeded case for syscon + simple-mfd
+> - Bump dtschema requirement
+> - Link to v2: https://patch.msgid.link/20260608-n-dt-bindings-simple-bus-syscon-v2-0-0203e6c249dc@oss.qualcomm.com
+> 
+> Changes in v2:
+> 1. New patches #2 and #3
+> 1. Add missing part of patch #1, thus not adding Rob's Ack.
+> https://lore.kernel.org/all/20260531110404.12768-3-krzysztof.kozlowski@oss.qualcomm.com/
+> 
+> [...]
 
-In Command-Mode update, there was a nop sent, apparently the most
-relevant part was the bta sync to actually force low power mode.
+Applied, thanks!
 
-Video mode panel at OMAP4 (BT-200) and video mode at OMAP5 was tested.
-
-Fixes: e70965386353e ("drm/omap: dsi: simplify write function")
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
-Changes in v4:
-- wait on completition on all packets (was limited to long packets only,
-  because I had the wrong impression that there is no confirmation on
-  these)
-- Link to v3: https://patch.msgid.link/20260628-vm-upstr-v3-1-9e9add93378b@kemnade.info
-
-Changes in v3:
-
-- Link to v2: https://patch.msgid.link/20260529-vm-upstr-v2-1-24c30671719f@kernel.org
-- fix things mentioned by claude here:
-  https://lore.gitlab.freedesktop.org/drm-ai-reviews/review-patch1-20260529-vm-upstr-v2-1-24c30671719f@kernel.org/
-  - fix typos
-  - register ISR before sending packet
-  - check for RX_FIFO_NOT_EMPTY also in for short packets
-
-Changes in v2:
-- fix commandmode update, need bta sync there
-- do not wait on short packets
-- Link to v1: https://patch.msgid.link/20260528-vm-upstr-v1-1-fb93ef8cbe47@kernel.org
-
-To: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-To: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-To: Maxime Ripard <mripard@kernel.org>
-To: Thomas Zimmermann <tzimmermann@suse.de>
-To: David Airlie <airlied@gmail.com>
-To: Simona Vetter <simona@ffwll.ch>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sebastian Reichel <sebastian.reichel@collabora.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: dri-devel@lists.freedesktop.org
-Cc: linux-kernel@vger.kernel.org
----
- drivers/gpu/drm/omapdrm/dss/dsi.c | 53 ++++++++++++++++++---------------------
- 1 file changed, 24 insertions(+), 29 deletions(-)
-
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 27fe7bca9e2c..3f22929c36e2 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -2194,28 +2194,38 @@ static int dsi_vc_send_null(struct dsi_data *dsi, int vc, int channel)
- static int dsi_vc_write_common(struct omap_dss_device *dssdev, int vc,
- 			       const struct mipi_dsi_msg *msg)
- {
-+	DECLARE_COMPLETION_ONSTACK(completion);
- 	struct dsi_data *dsi = to_dsi_data(dssdev);
- 	int r;
- 
-+	/* wait for IRQ for packet transmission confirmation */
-+	r = dsi_register_isr_vc(dsi, vc, dsi_completion_handler,
-+				&completion, DSI_VC_IRQ_PACKET_SENT);
-+	if (r)
-+		return r;
-+
- 	if (mipi_dsi_packet_format_is_short(msg->type))
- 		r = dsi_vc_send_short(dsi, vc, msg);
- 	else
- 		r = dsi_vc_send_long(dsi, vc, msg);
- 
--	if (r < 0)
-+	if ((!r) && wait_for_completion_timeout(&completion,
-+				msecs_to_jiffies(500)) == 0)
-+		r = -EIO;
-+
-+	dsi_unregister_isr_vc(dsi, vc, dsi_completion_handler,
-+			      &completion, DSI_VC_IRQ_PACKET_SENT);
-+	if (r)
- 		return r;
- 
--	/*
--	 * TODO: we do not always have to do the BTA sync, for example
--	 * we can improve performance by setting the update window
--	 * information without sending BTA sync between the commands.
--	 * In that case we can return early.
--	 */
-+	/* TODO: find out if more needs to be done for MIPI_DSI_MSG_REQ_ACK */
- 
--	r = dsi_vc_send_bta_sync(dssdev, vc);
--	if (r) {
--		DSSERR("bta sync failed\n");
--		return r;
-+	if (msg->flags & MIPI_DSI_MSG_REQ_ACK) {
-+		r = dsi_vc_send_bta_sync(dssdev, vc);
-+		if (r) {
-+			DSSERR("bta sync failed\n");
-+			return r;
-+		}
- 	}
- 
- 	/* RX_FIFO_NOT_EMPTY */
-@@ -3233,21 +3243,6 @@ static int _dsi_update(struct dsi_data *dsi)
- 	return 0;
- }
- 
--static int _dsi_send_nop(struct dsi_data *dsi, int vc, int channel)
--{
--	const u8 payload[] = { MIPI_DCS_NOP };
--	const struct mipi_dsi_msg msg = {
--		.channel = channel,
--		.type = MIPI_DSI_DCS_SHORT_WRITE,
--		.tx_len = 1,
--		.tx_buf = payload,
--	};
--
--	WARN_ON(!dsi_bus_is_locked(dsi));
--
--	return _omap_dsi_host_transfer(dsi, vc, &msg);
--}
--
- static int dsi_update_channel(struct omap_dss_device *dssdev, int vc)
- {
- 	struct dsi_data *dsi = to_dsi_data(dssdev);
-@@ -3268,13 +3263,13 @@ static int dsi_update_channel(struct omap_dss_device *dssdev, int vc)
- 	DSSDBG("dsi_update_channel: %d", vc);
- 
- 	/*
--	 * Send NOP between the frames. If we don't send something here, the
-+	 * Transition to LP here. If we don't send something here, the
- 	 * updates stop working. This is probably related to DSI spec stating
- 	 * that the DSI host should transition to LP at least once per frame.
- 	 */
--	r = _dsi_send_nop(dsi, VC_CMD, dsi->dsidev->channel);
-+	r = dsi_vc_send_bta_sync(dssdev, vc);
- 	if (r < 0) {
--		DSSWARN("failed to send nop between frames: %d\n", r);
-+		DSSWARN("failed to send bta sync between frames: %d\n", r);
- 		goto err;
- 	}
- 
-
----
-base-commit: dc59e4fea9d83f03bad6bddf3fa2e52491777482
-change-id: 20260528-vm-upstr-c8e7634ebf56
+[3/3] ARM: dts: ti: Add specific compatibles for SCM conf nodes
+      commit: 68f994ec51e279e63c8fc40c1bfa8add4b708111
 
 Best regards,
---  
-Andreas Kemnade <andreas@kemnade.info>
+-- 
+Kevin Hilman (TI) <khilman@baylibre.com>
 
