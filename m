@@ -1,131 +1,272 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3113736F905
-	for <linux-omap@vger.kernel.org>; Tue, 30 Jun 2026 01:30:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C41D335AC27
+	for <linux-omap@vger.kernel.org>; Tue, 30 Jun 2026 05:43:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782783012; cv=none; b=Q0HgRRLUMNxRQkB/lJsVAqISC1drkcBzX/ZY64dO7a+ZYCLDj2V9YASFn+55edHBVRDayA93NrEkr/BDe+dCFwvKZokUtqDE4xuPHIh2M6AdToJmBzy1x/0Ee78P0cKx4qNM1J6kyBrGlpuv5LFIHNjLmO0Hs+gWVx9tLNEMpeA=
+	t=1782798183; cv=none; b=YgR74vWPgW85yPbWd0tuuuq/Vu+AAioPc8cdsWPAIwVPJ9YgIRUKdpqoK6/ulLMXYNgsPwnI0ovFxa3ZTQBnK6r3sczBxsBEVfya5W7OoiKgGWumcGnroPfBJdVN9tRY6qt9okVcqqAGwc5jqqwdeWqizahbBZ6Q9mTQoMaySqE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782783012; c=relaxed/simple;
-	bh=bXq+zgUWFqiQ0o2Lg+6U13J89mOnPzmZWo0e+EaO3GE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jZS+O8bP7etRbJFQXTQKoN9GsMHuaLDcytYIF1sueoRsvl4HJydqpXGSoxeUOt7lAirwecMXf62uRQFpFYSLEGzsRwKsydCXjXXXkEdmFJhKxKv5r9RGjtnXY3+SCYGH3Auyi2GeG7YkvrynUGAGC7PqpuQTdkozrOZmrZ65X9Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YEUmtRwv; arc=none smtp.client-ip=209.85.216.52
+	s=arc-20240116; t=1782798183; c=relaxed/simple;
+	bh=LyrUuq/OZYi1Vy7RnOIIksiVI9H9chX7neLc+dpo/og=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=WFK14WrLyzhmgqkRrDs5K9fXStOwJE9kN7zOca9vv1G8g/o/XU1OspHM+eSAqlVYRhEA3p02/u0VLZ2hpu+wQ3ra2OAmmNyYtEEdGNOmUHZ4+GYsYQGC39ktKTgK+iA+4Mw2xZamh8BGrPei3mGx7ADciItY3zWnqUjKfDo94Ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MkPpBVnj; arc=none smtp.client-ip=209.85.128.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YEUmtRwv"
-Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-37fa53bc22dso2614727a91.3
-        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2026 18:30:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MkPpBVnj"
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-493a613571eso17945685e9.3
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2026 22:43:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782783001; x=1783387801; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=KYEsXemwGTTK1ewS6tBft6CHPQFa/c3l/+EJIKVBxps=;
-        b=YEUmtRwv8JqhJz1Dp84DuXJqYuOJaHhwGhTc4vNrgK6XQshxZ8FMMsegSJQHrnb0F7
-         U7ol6K1ZJZY50ajjyzlSRaVBjN65gzGXoaqL4RO+UeD3bYtVMRramz2sZs7MtoIzTvqN
-         P7ZqRzJnwChXlNqj8JXUCP1c6QPj5ai2w5vu4TSfFO2eXGFHIxOz25ZvQ19esLpWYoh5
-         Z6GiTx1+QQ4thv77oE3il5PuqXA2erFI+xKllFPBuV1zEiWs63+jylTUEsRK2udN0h04
-         yf9bs+ecNyVxAdHvTnGrtPAheDlvG58lk4tQiGnr1Ai0h+aJm1xn9knLQC2yvz/SyBbw
-         LnkA==
+        d=gmail.com; s=20251104; t=1782798180; x=1783402980; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=l60qb829+b056CbQNBxrBvUbd99a3Y5SxJc1xaAoFIk=;
+        b=MkPpBVnjHzECzIuOGy7XjRFm8IYFMNWdIOavWHKTOUmjZvPhfSKu7chrjN+OtDQkgM
+         yywNPemKM3YhNJWAKcxgOx0anrp1Nd4N2C1W5rTHdFPEGU/Eh8JpjCE3p0+oH9S0VlWU
+         1YJXzM7t811ID1qSYfTZiP83N7Tb4QQWeqSXzxk9VpCGd2vTnFDxuKAEyRtnMJEJmTqh
+         9+R34gU0YELf3tw5mu/tQeArXqLgoWaJhiGTFQOEFRqJuEqsSKHegUuCmQwZyjqNMFye
+         8JhKlZZSaiHcWhBnbDe0Yig7qe6mLVT/sOYp23OjVxo4Oq0Dl5AjG7sAl+weQaDjYkC/
+         FHng==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782783001; x=1783387801;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=KYEsXemwGTTK1ewS6tBft6CHPQFa/c3l/+EJIKVBxps=;
-        b=GrEm+EXMj4pyDirxzzGmXdjNIBAsGV9lJUPuikGjWPJqpdekD9XNiGie40ceJSxK87
-         SflsTqQ8KK/ufllZ/anXg0aaBk+9DT1q+/V3dPnk6aQBV0mDpfiW5Gzz0i5WfQB5FzXr
-         Vl9j4Cjmo2Yi8MgLF0QvEc8sAASVRPLjDCc42SAUh+ZnVPVlrls746ut0lZ7WMFUgNlO
-         ev7XHTAhccc95ODP/2zHv86JurysXGXtyBT77lQOmSNzRGEN3Oj4nnrqejK/29+Mjucq
-         mLiqKHLBycdnicxwNbcj/GZ1i7Z4h7yKGSnAYHI0VpSHh2jn49q4cax72r4Bxcxbz/64
-         tZ6Q==
-X-Gm-Message-State: AOJu0Yw36RdtTBltdzHoJ7uBfc7IyFS4jBEBfWm/Pj7V0oaU5dDqfDXZ
-	id0vR76w61k3ynp3G4FUHEAlR/BrO5HAukGnTz5DOFFkYVQYkJEHXbwtbdeTv2NW
-X-Gm-Gg: AfdE7cnBTgr0A+HE3JPbFc70WLec5EZcIcvOF2Lpf/wswNSAFwNIrEjUiDwRJ00vSr8
-	8epEnue3+/fEUH+33ttj0rGol1KG8NrDORtWdprdu4ACvrm6k8YVUg6civSdXlPJA8usJaVf/Mw
-	QtDZMh4CgYxSEbP9xGddeuLFqeDXjjfH6MUQZeDbi4otmC5M/OI70n8tIlrS2ceVJnVM1yppf5R
-	k4t6ms7cCS4P3o8Ptqn/984k+9IklpttR2z+4yyaZTiMglx1MgU6YlwxkamLC9KwznOd3iLlY9L
-	wCe7Sg1m2IRjo8oU4B/JI/a4SMjditO3+NsI0X14LzOolfgkCxK6Wgs9JtXlVY5jRRWgoK40Weo
-	5HmxrSIj8fP8tUhDei1XGvY6o4dKwRTDUhE6a2U20V7jdVUB5zTWu0pP6915mK/efpgaX+bxCIE
-	KjIKqh/DrsXDbC6lYqohzJzjJ0kBqD+eWuB1u9chP0q8oe2oRyW9a4Foc4nG1POMaD6Pu6xKgno
-	IvHGMXAUg==
-X-Received: by 2002:a17:90b:2808:b0:37f:b0a9:1a55 with SMTP id 98e67ed59e1d1-380525651b9mr1105722a91.11.1782783000906;
-        Mon, 29 Jun 2026 18:30:00 -0700 (PDT)
-Received: from ryzen.lan ([2601:644:8000:7a86::e34])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3805b7dd427sm63092a91.0.2026.06.29.18.29.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 29 Jun 2026 18:30:00 -0700 (PDT)
-From: Rosen Penev <rosenp@gmail.com>
-To: linux-omap@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Lee Jones <lee@kernel.org>,
-	linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH] mfd: twl-core: allocate modules with twl_private
-Date: Mon, 29 Jun 2026 18:29:58 -0700
-Message-ID: <20260630012958.1498689-1-rosenp@gmail.com>
-X-Mailer: git-send-email 2.54.0
+        d=1e100.net; s=20251104; t=1782798180; x=1783402980;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=l60qb829+b056CbQNBxrBvUbd99a3Y5SxJc1xaAoFIk=;
+        b=VIgHW0LYHfYPqwnt90HAnjMiXj97ciYwugKK0FflpPeR8eMqD+JBgfTrwl8XbW3tiy
+         /uIr/TG4MWXP1OP3WpXRXfFgG5cOFJPmA53hJW5xoa4+iIsaWDK2V/rwGX/TkF0lDw2W
+         iKB9VvSUHbdrdmzFDYXMsTv6cLt4xU73LISN2lvE3d5WSzmj2XBtnc5kG8348QimQGs9
+         cdRUxUoGj410B6AQqeJ2RPnzpQjsCxohMaNIZr7Wp2LMNP93+0miFISnDFwsp3TvVSn7
+         5v21qbxHlHvVPyodwZRjGYxtwbm4nMu1MQ+1FoOrXHXrmIUqkApCT0uOKzCcb6ap0Gy5
+         TBMQ==
+X-Gm-Message-State: AOJu0YzHX625buPRiXVAFqN9zfTJ/j5vgsgc5xh4omCLywSSbEGLq9ml
+	Zdp1SkH4Yo0qcoQMFwE7VmVX8sew0p1SQqDCm/bCbBmQMKsD+tEvNj9o
+X-Gm-Gg: AfdE7clxUxJ/WuuAJifp77IGf1HFGAJR00jHDjjHcJ/1JHdae5GFG8meFMXIXiYJO4w
+	p/5T9dvhnSOToXLmtKupSerC4vvjlNL9sVn4gknmHYu4btrtmSAje8Fv/Sjrc4SKsySwFRnVGaS
+	hJr3mIu6g/eehfK8yvNCHvM5/m6RFjMY8wmIPaed0NBD9FhJvDpfzsxpRqv1s0N0HhR4wfvjOZO
+	/sSMt/5qfMr1CvgD+eVyNmkKJXQITBcipv4OKCh1L2IPIAircsJETxqqrgPDNjuhJGGqiMkftI6
+	GQ/qqHV/StUQseDGTtmtnYNjLM9+F5cH9oF/Zymg/rq4ptipncAQRmglueWWItnbe8AHWDPMxZA
+	3D/KUDTqTg/87PrYpV25Uzi+dqzvjOfwLqop/cz/mTrSOH9Uwl2LnhBOsHh8E7FBAdldslbByEq
+	ihhTAnuZ0IfM4dWO3opw2W5aG9LjQvFm1nFbU=
+X-Received: by 2002:a05:600c:1f8f:b0:493:a5d4:3798 with SMTP id 5b1f17b1804b1-493b827f5ffmr33416535e9.1.1782798180072;
+        Mon, 29 Jun 2026 22:43:00 -0700 (PDT)
+Received: from [192.168.1.10] ([95.43.220.235])
+        by smtp.googlemail.com with ESMTPSA id ffacd0b85a97d-47563d194bbsm4025453f8f.3.2026.06.29.22.42.58
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 29 Jun 2026 22:42:59 -0700 (PDT)
+Message-ID: <4cb964d9-524d-40ec-8cd2-d936fff8eb85@gmail.com>
+Date: Tue, 30 Jun 2026 08:42:57 +0300
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4] drm/omap: dsi: avoid sending bta sync all the time in
+ writes
+To: Andreas Kemnade <andreas@kemnade.info>,
+ Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
+ David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+ Sebastian Reichel <sebastian.reichel@collabora.com>,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+ Tony Lindgren <tony@atomide.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Marek Vasut <marex@denx.de>,
+ "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org,
+ linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+References: <20260629-vm-upstr-v4-1-9f0c62d8808e@kemnade.info>
+Content-Language: en-GB
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <20260629-vm-upstr-v4-1-9f0c62d8808e@kemnade.info>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Use a flexible array member to allocate the twl_client array together
-with struct twl_private. This removes a separate devm_kcalloc() and
-keeps the module data tied to the main private structure.
+Hi,
+With this version of the patch I see:
 
-Signed-off-by: Rosen Penev <rosenp@gmail.com>
----
- drivers/mfd/twl-core.c | 15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+[  102.760894] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  303.860321] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  307.071624] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  307.360626] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  307.671142] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  308.660339] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  308.961059] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  313.191314] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  313.700378] DSI: omapdss DSI error: Failed to set dsi_if_enable to 0
+[  313.980346] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  314.791564] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  315.090362] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  322.850952] DSI: omapdss DSI error: Framedone not received for 250ms!
+[  323.111175] DSI: omapdss DSI error: Framedone not received for 250ms!
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index c024a28b057e..a7754b7ccae0 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -159,7 +159,7 @@ struct twl_private {
- 	unsigned int twl_id;
- 
- 	struct twl_mapping *twl_map;
--	struct twl_client *twl_modules;
-+	struct twl_client twl_modules[];
- };
- 
- static struct twl_private *twl_priv;
-@@ -760,7 +760,8 @@ twl_probe(struct i2c_client *client)
- 		goto free;
- 	}
- 
--	twl_priv = devm_kzalloc(&client->dev, sizeof(struct twl_private),
-+	num_slaves = twl_get_num_slaves();
-+	twl_priv = devm_kzalloc(&client->dev, struct_size(twl_priv, twl_modules, num_slaves),
- 				GFP_KERNEL);
- 	if (!twl_priv) {
- 		status = -ENOMEM;
-@@ -777,16 +778,6 @@ twl_probe(struct i2c_client *client)
- 		twl_regmap_config = twl4030_regmap_config;
- 	}
- 
--	num_slaves = twl_get_num_slaves();
--	twl_priv->twl_modules = devm_kcalloc(&client->dev,
--					 num_slaves,
--					 sizeof(struct twl_client),
--					 GFP_KERNEL);
--	if (!twl_priv->twl_modules) {
--		status = -ENOMEM;
--		goto free;
--	}
--
- 	for (i = 0; i < num_slaves; i++) {
- 		struct twl_client *twl = &twl_priv->twl_modules[i];
- 
--- 
-2.54.0
+while scrolling the (hildon)desktop on droid4, so I would say the change 
+broke command mode.
 
+Regards,
+Ivo
+
+On 29.06.26 г. 18:50 ч., Andreas Kemnade wrote:
+> Some chips need configuration commands to be sent first, before they can
+> send data. TC358762 for example needs PPI_LPTXTIMECNT configured
+> and PPI_STARTPPI set to 1 to be able to transmit anything. To be able to
+> configure such chips, do not send bta sync during writes if no acks are
+> requested. Instead just wait for the packet to be sent to avoid FIFO
+> overflows. There might be more to do about acks, but there seem to be
+> virtually no users of that flag.
+> 
+> This came to light when fiddling with the Epson Moverio BT-200 display
+> which consists of 2 TC358762 bridges with SPI funneled through
+> to the unknown display chip. With that patch the bridge can be accessed,
+> Reading back registers works, when the above-mentioned registers are set.
+> 
+> In Command-Mode update, there was a nop sent, apparently the most
+> relevant part was the bta sync to actually force low power mode.
+> 
+> Video mode panel at OMAP4 (BT-200) and video mode at OMAP5 was tested.
+> 
+> Fixes: e70965386353e ("drm/omap: dsi: simplify write function")
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
+> Changes in v4:
+> - wait on completition on all packets (was limited to long packets only,
+>    because I had the wrong impression that there is no confirmation on
+>    these)
+> - Link to v3: https://patch.msgid.link/20260628-vm-upstr-v3-1-9e9add93378b@kemnade.info
+> 
+> Changes in v3:
+> 
+> - Link to v2: https://patch.msgid.link/20260529-vm-upstr-v2-1-24c30671719f@kernel.org
+> - fix things mentioned by claude here:
+>    https://lore.gitlab.freedesktop.org/drm-ai-reviews/review-patch1-20260529-vm-upstr-v2-1-24c30671719f@kernel.org/
+>    - fix typos
+>    - register ISR before sending packet
+>    - check for RX_FIFO_NOT_EMPTY also in for short packets
+> 
+> Changes in v2:
+> - fix commandmode update, need bta sync there
+> - do not wait on short packets
+> - Link to v1: https://patch.msgid.link/20260528-vm-upstr-v1-1-fb93ef8cbe47@kernel.org
+> 
+> To: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
+> To: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+> To: Maxime Ripard <mripard@kernel.org>
+> To: Thomas Zimmermann <tzimmermann@suse.de>
+> To: David Airlie <airlied@gmail.com>
+> To: Simona Vetter <simona@ffwll.ch>
+> To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> To: Sebastian Reichel <sebastian.reichel@collabora.com>
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: dri-devel@lists.freedesktop.org
+> Cc: linux-kernel@vger.kernel.org
+> ---
+>   drivers/gpu/drm/omapdrm/dss/dsi.c | 53 ++++++++++++++++++---------------------
+>   1 file changed, 24 insertions(+), 29 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
+> index 27fe7bca9e2c..3f22929c36e2 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
+> @@ -2194,28 +2194,38 @@ static int dsi_vc_send_null(struct dsi_data *dsi, int vc, int channel)
+>   static int dsi_vc_write_common(struct omap_dss_device *dssdev, int vc,
+>   			       const struct mipi_dsi_msg *msg)
+>   {
+> +	DECLARE_COMPLETION_ONSTACK(completion);
+>   	struct dsi_data *dsi = to_dsi_data(dssdev);
+>   	int r;
+>   
+> +	/* wait for IRQ for packet transmission confirmation */
+> +	r = dsi_register_isr_vc(dsi, vc, dsi_completion_handler,
+> +				&completion, DSI_VC_IRQ_PACKET_SENT);
+> +	if (r)
+> +		return r;
+> +
+>   	if (mipi_dsi_packet_format_is_short(msg->type))
+>   		r = dsi_vc_send_short(dsi, vc, msg);
+>   	else
+>   		r = dsi_vc_send_long(dsi, vc, msg);
+>   
+> -	if (r < 0)
+> +	if ((!r) && wait_for_completion_timeout(&completion,
+> +				msecs_to_jiffies(500)) == 0)
+> +		r = -EIO;
+> +
+> +	dsi_unregister_isr_vc(dsi, vc, dsi_completion_handler,
+> +			      &completion, DSI_VC_IRQ_PACKET_SENT);
+> +	if (r)
+>   		return r;
+>   
+> -	/*
+> -	 * TODO: we do not always have to do the BTA sync, for example
+> -	 * we can improve performance by setting the update window
+> -	 * information without sending BTA sync between the commands.
+> -	 * In that case we can return early.
+> -	 */
+> +	/* TODO: find out if more needs to be done for MIPI_DSI_MSG_REQ_ACK */
+>   
+> -	r = dsi_vc_send_bta_sync(dssdev, vc);
+> -	if (r) {
+> -		DSSERR("bta sync failed\n");
+> -		return r;
+> +	if (msg->flags & MIPI_DSI_MSG_REQ_ACK) {
+> +		r = dsi_vc_send_bta_sync(dssdev, vc);
+> +		if (r) {
+> +			DSSERR("bta sync failed\n");
+> +			return r;
+> +		}
+>   	}
+>   
+>   	/* RX_FIFO_NOT_EMPTY */
+> @@ -3233,21 +3243,6 @@ static int _dsi_update(struct dsi_data *dsi)
+>   	return 0;
+>   }
+>   
+> -static int _dsi_send_nop(struct dsi_data *dsi, int vc, int channel)
+> -{
+> -	const u8 payload[] = { MIPI_DCS_NOP };
+> -	const struct mipi_dsi_msg msg = {
+> -		.channel = channel,
+> -		.type = MIPI_DSI_DCS_SHORT_WRITE,
+> -		.tx_len = 1,
+> -		.tx_buf = payload,
+> -	};
+> -
+> -	WARN_ON(!dsi_bus_is_locked(dsi));
+> -
+> -	return _omap_dsi_host_transfer(dsi, vc, &msg);
+> -}
+> -
+>   static int dsi_update_channel(struct omap_dss_device *dssdev, int vc)
+>   {
+>   	struct dsi_data *dsi = to_dsi_data(dssdev);
+> @@ -3268,13 +3263,13 @@ static int dsi_update_channel(struct omap_dss_device *dssdev, int vc)
+>   	DSSDBG("dsi_update_channel: %d", vc);
+>   
+>   	/*
+> -	 * Send NOP between the frames. If we don't send something here, the
+> +	 * Transition to LP here. If we don't send something here, the
+>   	 * updates stop working. This is probably related to DSI spec stating
+>   	 * that the DSI host should transition to LP at least once per frame.
+>   	 */
+> -	r = _dsi_send_nop(dsi, VC_CMD, dsi->dsidev->channel);
+> +	r = dsi_vc_send_bta_sync(dssdev, vc);
+>   	if (r < 0) {
+> -		DSSWARN("failed to send nop between frames: %d\n", r);
+> +		DSSWARN("failed to send bta sync between frames: %d\n", r);
+>   		goto err;
+>   	}
+>   
+> 
+> ---
+> base-commit: dc59e4fea9d83f03bad6bddf3fa2e52491777482
+> change-id: 20260528-vm-upstr-c8e7634ebf56
+> 
+> Best regards,
+> --
+> Andreas Kemnade <andreas@kemnade.info>
+> 
