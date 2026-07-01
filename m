@@ -1,110 +1,125 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8B6D2D5408;
-	Wed,  1 Jul 2026 16:45:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4412125B0B5
+	for <linux-omap@vger.kernel.org>; Wed,  1 Jul 2026 17:57:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782924345; cv=none; b=m2d3qnfO2LUtLRjXvLLy/iWS0PqrX+s9ZWK/KoKtIszonXfim9MYgT16r8RADj2bv0DwUQR61tdyCqdjGOEnm2Cd99zyol9S0yxJS2HVdBv5wKMWYBvJTSteJuEEN6OCzkRYkDNGoEm3X4lOtCoJKk5W6W1CPSiMcSM2HsudWYg=
+	t=1782928662; cv=none; b=Pkx5H0nqL9dEUmaH85sQYCSirxTQfrIUcEr2MlHjCuxB0onPrkDCSIROmyl36a3Ln5JdV+vPpmW7e5rLHns6UWFptlvX2rn/guNIR88YjsX8bJQnoZwDsFSgJP49gWi7OY7iOT1kBVztpnPxWcDSAayCtbBJ1qTBUTgp9/MMCjQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782924345; c=relaxed/simple;
-	bh=g2FAJ3MZ6WTq5XPr06Cie+9t3S1YgTQ5fz7dZk70lsc=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JfaT2hP7nHP1Is+ZqJ1RSCAdXzIBCqOBSlfMC4C0ZB34glsLW142m3loP9nUChPwNerAx4QDwVP0SHYAtLH5dKfeH/rPQtxcuhSWttyRQFgJc+B40xzHzBwRM6HD5S4bbVa/SlHg5ee2CZ4yQnbqdb2ddH9wn8YBuQlqCd1CfcE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=EdIJJCW/; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1782928662; c=relaxed/simple;
+	bh=m4JnlKp71dmBmVmXd0wN7hnWPeqvxXn+YH64ucbXVAM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=TJ1YjXzPFdBBMVGxAJGVusyedoQ6E3JMeiUGjXJ0vbPjwluUfJonJP4n18Tk5UgBElSe5cJYyCEFsEH9pxE9pGhhn2o4xQZTmWm/nRf1K9gM0wi1HvN5OOMpJwIIHulkQOVHnit8q9OzOfILrCVL2ehWVJ04csvj5FmzV0PuVqA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Y7Qd3hYC; arc=none smtp.client-ip=209.85.216.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="EdIJJCW/"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=WdspS75NOxfLhQ84f5cjMDOmswQRpBYDCdh0Opc/BZM=; t=1782924343; x=1784133943; 
-	b=EdIJJCW/F+OTzYaOMifTBEXP6uNs98fqNo3deOQy72kUCdb+OuLQRDhAJXkHsvO6CXYDTeBJT+k
-	dPsfC4aegqf1xElcKKRvKYEFPGYSRIeMkSW/BVxTa8/EA+76JTPE+Hsy8OeQcKrmhaJWLuFjMn1nW
-	koarrDAcxd6n9WnYWNC38aHSwm8sKrzeYEzBhCcUe0a8XOT0J0SntQOsFazAcWQkDDjlJk/PNCQju
-	1H7XKOtHpYlp+h4sYN594r1YR/wdLfbSVbjL+ptnjnJFzY29Cf2enPlRqFxp69bg5jDTe986qlafu
-	W7nd6oRAtCljGjkYyYW+Cfbm4lLgE4e5dn5A==;
-Date: Wed, 1 Jul 2026 18:45:25 +0200
-From: Andreas Kemnade <andreas@kemnade.info>
-To: Thomas Richard <thomas.richard@bootlin.com>
-Cc: Tero Kristo <kristo@kernel.org>, Michael Turquette
- <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, Brian Masney
- <bmasney@redhat.com>, Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
- linux-omap@vger.kernel.org, linux-clk@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] clk: ti: omap4: Initialize DPLL_USB_M2 during the boot
-Message-ID: <20260701184525.6d80ad79@kemnade.info>
-In-Reply-To: <20260701-clk-ti-omap4-dpll-usb-m2-v1-1-02d8a3845a55@bootlin.com>
-References: <20260701-clk-ti-omap4-dpll-usb-m2-v1-1-02d8a3845a55@bootlin.com>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Y7Qd3hYC"
+Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-37ff436a048so510355a91.1
+        for <linux-omap@vger.kernel.org>; Wed, 01 Jul 2026 10:57:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1782928660; x=1783533460; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=VL4o1uarTpj9xDmNVkt39wRpQkwyzo96/1lQVKIfDYU=;
+        b=Y7Qd3hYCNYOsveLwGL8Xs6iwHf57IaAexqqFkP3QNdOy/L8e5X8/fWx0dvZaNEM4co
+         QLNw0DROjy/zAuEJniCp+rALDB2HzmMQXHtiIMeQfMXtwHUhlF+YVx3A46GvQMMhq6Mf
+         GzD+5jXt1jAnFb1IkegbK1D58KKDM8Ek7bWzxQsAOCGeucMwDQkf5tLwFQWANveS8wKv
+         ui3f0Q0pKkM2ghnyYVr0yE6T9l1ltn9ABpL7pOSvfQNQMFxHW/I62vkuveFhCymbZHqR
+         XL7x9QC+xvIvxIei9/fO6ZhU5gzqq1Pgrq5H8qJd77bGlkrARSifYvZLvwjGbTYbKnUU
+         Vl4Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782928660; x=1783533460;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=VL4o1uarTpj9xDmNVkt39wRpQkwyzo96/1lQVKIfDYU=;
+        b=J+jcdw8txMnTqZtwnwAUBHUtSHIaUAk4HBH71+u/mvyGZWGNSFlKVUW8w9B3PWatM8
+         mFsWYhzXoI+XFUP4jfENfuYFFU4rm6cfaIzh1d2a7ad1lKA6x+euX6BB29YWuFhSUkFk
+         1kTyCZidWXWEpU6iXdJamzo0Xu1bfcxNHvxlHOjnY0avTHsjtlMdZDmBI68cYFysD7Eh
+         l56ya3u3QvHej6pLnLQFykXomQtjAfzRU+PEk1+W8f7ldm84EApNMWd/QEYHZ+Zj37Co
+         B2TSFJ3AqjrC6NP5i0oSbTq/b0SwRs/vhM8d8kYCQg5gLy+vrcBflmW8I8NYpJC+SjJ+
+         ctoQ==
+X-Gm-Message-State: AOJu0Yxla1MrLovEge+L3036DV7+ZoNHYePoHP0WBEX3fDsBudxXXnVx
+	w4STLz1jN7oEgKBreElCckIUCC7ncSiCOwAEACK8KCkCr5Ip5OYtbldx4XcYidukbJo=
+X-Gm-Gg: AfdE7cmluCmSY+pbsFshbaaBp8RVzWVcpU/w3Hfs2uvuvFf4sgOjPTk+lGAUZ6zfHlc
+	+MvvYltspCxSmj10sTmTb3Xsd4g+n3MZ4Ho31PNoHapLG7VwTXDquDe6Bw68v5WkBovS2GmF/Tc
+	WDiltd/ok5IAIGu5XGoPaDLnK5UdK86Zs5jMHHhA0k/cG0v2aCtJLzHA+Srxt9iOO3e9dy6lPZM
+	qhipJSZ0vkNTaEzMPcIzOrpSTJESFGm/BOPKShL0dzkYWs0/Alej7QR5g8l2byG5kkjbYdQh1/X
+	pcI0ZJsKFTFL6qR43lsnxt7rtgdmXPxvbnE2g6cjbjX9zImvlpot2R58DGg8lYAqcu/v1+krq5s
+	rN9+nlTZSjJd64NSsg2G/YQRXYRgWAyM/E7yXwF6USFU9VggZvbbQ0JKJhka7rAeKVgCevFPzoo
+	jUQvvwUeDSGLiGcdqB88w=
+X-Received: by 2002:a05:6a21:50c:b0:3b5:4fff:fa0f with SMTP id adf61e73a8af0-3bfed238ebdmr2953675637.14.1782928660440;
+        Wed, 01 Jul 2026 10:57:40 -0700 (PDT)
+Received: from localhost.localdomain ([2804:18:103:9e2a:b51:b011:2af9:a710])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-30f0bbdc544sm79130eec.25.2026.07.01.10.57.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 01 Jul 2026 10:57:40 -0700 (PDT)
+From: Wagner Popov dos Santos <wpopov@gmail.com>
+To: linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org,
+	Bin Liu <b-liu@ti.com>,
+	Wagner Popov dos Santos <wpopov@gmail.com>
+Subject: [PATCH] ARM: dts: am33xx: avoid invalid OCP device-link for timer1 and timer2
+Date: Wed,  1 Jul 2026 14:56:47 -0300
+Message-ID: <20260701175647.8694-1-wpopov@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Wed, 01 Jul 2026 17:06:28 +0200
-Thomas Richard <thomas.richard@bootlin.com> wrote:
+This patch fixes boot-time fw_devlink errors on AM335x/UCC3 caused
+by invalid device-link creation attempts involving timer1/timer2
+and supplier ocp.
 
-> Initialize and lock DPLL_USB_M2 at boot to make USB devices work.
-> 
-> Signed-off-by: Thomas Richard <thomas.richard@bootlin.com>
-> ---
-> Recently a series [1] adding back OMAP4 support in U-Boot has been merged
-> in next branch. While testing it, I noticed USB is not working on
-> omap4_var_som.
-> 
-> usb 1-1: new full-speed USB device number 8 using ohci-platform
-> usb 1-1: device descriptor read/64, error -62
-> usb 1-1: device descriptor read/64, error -62
-> usb 1-1: new full-speed USB device number 9 using ohci-platform
-> usb 1-1: device descriptor read/64, error -62
-> usb 1-1: device descriptor read/64, error -62
-> usb usb1-port1: attempt power cycle
-> 
-> The USB_M2 DPLL was previously initialized by U-Boot, but [1] lacks USB
-> support for OMAP4. This patch initializes the DPLL in the kernel to avoid
-> relying on the bootloader.
-> 
-> If you want to test, as U-Boot does not handle pbias regulators, you also
-> have to apply the patch series "[PATCH v2 00/11] Add SIM pbias regulator
-> support for USB on OMAP4" [2].
-> 
-> [1] https://lore.kernel.org/all/20260608-omap4-support-v3-0-8595ccd203f0@bootlin.com/
-> [2] https://lore.kernel.org/all/20260330-omap4-fix-usb-support-v2-0-1c1e11b190dc@bootlin.com/
-> ---
->  drivers/clk/ti/clk-44xx.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-> index 9b2824ed785b..3944c50b7cd0 100644
-> --- a/drivers/clk/ti/clk-44xx.c
-> +++ b/drivers/clk/ti/clk-44xx.c
-> @@ -811,6 +811,11 @@ int __init omap4xxx_dt_clk_init(void)
->  	if (rc)
->  		pr_err("%s: failed to configure USB DPLL!\n", __func__);
->  
-> +	usb_dpll = clk_get_sys(NULL, "dpll_usb_m2_ck");
-> +	rc = clk_set_rate(usb_dpll, OMAP4_DPLL_USB_DEFFREQ / 2);
-> +	if (rc)
-> +		pr_err("%s: failed to configure DPLL_USB_M2!\n", __func__);
-> +
->  	/*
->  	 * On OMAP4460 the ABE DPLL fails to turn on if in idle low-power
->  	 * state when turning the ABE clock domain. Workaround this by
-> 
-we have assigned-rates in omap44xx-clocks.dtsi
-for similar divider clocks. I have a patch needed because of recent u-boots
-not having some abe stuff initalized to have mcbsp working in master mode
-on omap4. I think should have some consistency here and agree on it.
+Observed kernel log messages:
 
-So I would say if it is all about setting recommended defaults, probably
-a better way is to have it in clk-44xx.c (as you have). Reparenting might
-be a different story. There might be reasons to have it reconfigured.
+  ti-sysc 44e31000.target-module: Failed to create device link (0x180)
+  with supplier ocp for
+  /ocp/interconnect@44c00000/segment@200000/target-module@31000/timer@0
 
-Regards,
-Andreas
+  ti-sysc 48040000.target-module: Failed to create device link (0x180)
+  with supplier ocp for
+  /ocp/interconnect@48000000/segment@0/target-module@40000/timer@0
+
+The change updates dependency handling for timer1 and timer2 so the
+kernel no longer attempts this invalid link-creation path during
+initialization of supplier ocp.
+
+Impact:
+
+- Removes the two ti-sysc/fw_devlink error messages at boot
+- Preserves current timer and clock assignment behavior
+- No functional regression observed in boot and timer operation tests
+
+Signed-off-by: Wagner Popov dos Santos <wpopov@gmail.com>
+---
+ arch/arm/boot/dts/ti/omap/am33xx.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/boot/dts/ti/omap/am33xx.dtsi b/arch/arm/boot/dts/ti/omap/am33xx.dtsi
+index ca3e7f5d7d0dc..760598d5ae1c9 100644
+--- a/arch/arm/boot/dts/ti/omap/am33xx.dtsi
++++ b/arch/arm/boot/dts/ti/omap/am33xx.dtsi
+@@ -708,6 +708,7 @@ &timer1_target {
+ 	timer@0 {
+ 		assigned-clocks = <&timer1_fck>;
+ 		assigned-clock-parents = <&sys_clkin_ck>;
++		post-init-providers = <&ocp>;
+ 	};
+ };
+ 
+@@ -721,5 +722,6 @@ &timer2_target {
+ 	timer@0 {
+ 		assigned-clocks = <&timer2_fck>;
+ 		assigned-clock-parents = <&sys_clkin_ck>;
++		post-init-providers = <&ocp>;
+ 	};
+ };
+-- 
+2.43.0
+
