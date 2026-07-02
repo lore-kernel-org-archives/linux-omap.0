@@ -1,33 +1,33 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 861244ADD9A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9387F4ADD9D;
 	Thu,  2 Jul 2026 13:53:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783000400; cv=none; b=L4YyxvfEQFEIRcpPz3Wm3h+ew1W8EaoELxDK7ofyahKnhSKizaqrZNnx/Tp7cXOP73sJ3csgAXPlYszFv7slz+a2v5MhCix8pJcRD/T0w6y0AKNIAuOcvXiITUKcoJUjCkR9G+fELvUGFvjHr+Xfm1y4KKd65M1bDYjltb9rSOo=
+	t=1783000400; cv=none; b=fklqVPGEgTEPs/vilhgExqedkXev4/3y+7TBYGztYXjch6mR3q1Lf37j/e+y9eww6dKiHEOCj3pHzdet/G3b6QxsAtiyhAIjLDJ9tQrZXurVMcWvjTwh0aewDCTMnJvFseGX6YN4FvOtHirAoEpUjHThcTeBG4ryW/OVVy0ad20=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1783000400; c=relaxed/simple;
-	bh=tqYyW/PX6hR7Wv5PgP4YYislXUMPcANlAU7/rHlopZQ=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=c02i7/QheMT0NUZ0nXxM75VduU3Ezb7PwY21Oq0hCZAQPDJlTMxrJwqeM9qT+R0RDVMtQZ1mRVU8htD8fklMRCClwGc9+BXMBZk/tHSNKFyDkRcigysl2KOZvKafmpy7rA2hV5KDzbYbqRL72sYRAkedMkImp5jygqffwJlolqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=fN3nHIS/; arc=none smtp.client-ip=178.238.236.174
+	bh=SsHv7eglcq/3f807scK8C7Ri2u8BTa5D48XTbqPe5So=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=JMBFmWuq+bUL/UZw1P6CJxgEUVtDmby9sdUIQu35H/msJKi9ECrwE4NlGF1AqzgQTz0UTtiBw5qMHQdFSEX3Nw+vh8d92gx3pilXMYkmI3X8636VmJ8Id3NTkUDqvVww/zt2H5EB+hd9ITa+UvhHSJ3CpKemHRQflAbCL5NwwMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=a5Eu+OCs; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="fN3nHIS/"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="a5Eu+OCs"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:To:In-Reply-To:References:Subject:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=tXulqD9IlD9hS/ExIkyaNUgdGu1Ig3SZNQ96GuHk7fc=; t=1783000397; x=1784209997; 
-	b=fN3nHIS/SA2g9gUfaFiAuuMFre8gXJaCKZMItPg4ePy9ciWI6ZZfoI0oTnkugFHJ7CwGcTNjTss
-	Sg754EssKYoA3CE8TGK92MK9a6sJ9K3sRBsJAlVmuP9AjLw6a7aIQFrlRhedBHOhOf7KuO+iU7G5h
-	VO3INqpcyv+Y62KaVgiLJ0sV0DXgi1qhxpFbFK11d52CnSYEF7y/b20EuSzd720CiwTcbh7m9axX8
-	ycKMs/TZC0yGieN9Bj4B0FaFDUHnxHNLRd4deyXkmZC4mjUvUEoooQ0I8jVawF0r2IZKpmTl9LjMp
-	LP4fFxL9dIC4ERBs4XpYeNwgW5g3rgQeWssA==;
+	d=kemnade.info; s=20220719; h=Cc:To:Subject:From:Reply-To:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=VCUIIUrab/Ij6Ur23OzvtXOHDAu9y4qtidV7a5tuD+Q=; t=1783000397; x=1784209997; 
+	b=a5Eu+OCsdUXnRnVMxsxqiJ9PZEMhELMMmc0o03tPFqHtEK8FSBGbTQFQ7iNpdFaoro2cU1QUv7d
+	QyyD/xjmdHBhZ7p6qQlCYaak4Zerh1D48mW+9Zq0XBqdbYoEx9lYrY/+Do7DGYbz1bSiLq7r30Y8c
+	9bpbrFmcyFQGeDMCcSQdfl5RKdDS8WdMCDVxQCpdRqccK0ByyGupwhIkwnUfFwvyjv+DRcM6Jq3xo
+	J/dF16JSiz/u7IJSn6kHipblSfUmONSqIc2LlTx7sk4t7L9Pu1myyBOEjJVqHmgr+3HlIHsfk79KZ
+	Mnvxxhhnduj8jn2Y8iyWmaoNTxYookvqj/sQ==;
 From: Andreas Kemnade <andreas@kemnade.info>
-Date: Thu, 02 Jul 2026 15:52:44 +0200
-Subject: [PATCH 2/2] arm: omap2plus_defconfig: Enable multi-LED
+Subject: [PATCH 0/2] ARM: dts: ti/omap: embt2ws: define RGB LED
+Date: Thu, 02 Jul 2026 15:52:42 +0200
+Message-Id: <20260702-b200multiled-v1-0-c1799ad45c96@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -36,9 +36,10 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260702-b200multiled-v1-2-c1799ad45c96@kemnade.info>
-References: <20260702-b200multiled-v1-0-c1799ad45c96@kemnade.info>
-In-Reply-To: <20260702-b200multiled-v1-0-c1799ad45c96@kemnade.info>
+X-B4-Tracking: v=1; b=H4sIACptRmoC/yXMQQqDMBBG4avIrA1MR6rgVcSFiX90RG1JVATx7
+ k3b5bd476KIoIhUZxcFHBr1tSY88ozc2K0DjPbJJCwlVyzGCvOyz5vO6I2DVCh80T19SSl5B3g
+ 9f7um/TvudoLbvg+67w8Z3pWPcAAAAA==
+X-Change-ID: 20260702-b200multiled-ce27e3f3a5f6
 To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
  Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
  Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
@@ -46,46 +47,35 @@ To: Aaro Koskinen <aaro.koskinen@iki.fi>,
  Conor Dooley <conor+dt@kernel.org>, Russell King <linux@armlinux.org.uk>
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
  linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- Andreas Kemnade <andreas@kemnade.info>
+ Andreas Kemnade <andreas@kemnade.info>, Pavel Machek <pavel@ucw.cz>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=901; i=andreas@kemnade.info;
- h=from:subject:message-id; bh=tqYyW/PX6hR7Wv5PgP4YYislXUMPcANlAU7/rHlopZQ=;
- b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFluubYzuw099S6vM9cW2mHZnqab+ixH0ezaQ64dHwKku
- Ddy5EzuKGVhEONikBVTZPllreD2SeVZbvDUCHuYOaxMIEMYuDgFYCIW3xkZnrsV7/gtIl72dv0f
- vyea7l6rI5UOL52w639V72u2JV+9jjMytBVmnXzTxSJh/YnnX8Wk2t0XfDnu/r10kduiQ7GLs2M
- iFwA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=682; i=andreas@kemnade.info;
+ h=from:subject:message-id; bh=SsHv7eglcq/3f807scK8C7Ri2u8BTa5D48XTbqPe5So=;
+ b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFluuZaXel0ebnDnbNh3ylGcbR1zj2jmYq5dZ3tnXpLYM
+ nOBmZxNRykLgxgXg6yYIssvawW3TyrPcoOnRtjDzGFlAhnCwMUpABOp2sbwP297SPHZ5+ytwSX9
+ xXbt+3YzGTWv9Ly7ePOKPxOOCncrZDEyPOo+OUO4Rp3DVv9X/vfJawS3Tl+itOrB1X+btDaZzCr
+ 8xQcA
 X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
  fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-Enable drivers needed to use RGB LEDs composed of multiple monochromatic
-LEDs.
+Combine the LED definitions into an RGB LED and add the drivers into
+defconfig.
+This has already been suggested a long time ago.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- arch/arm/configs/omap2plus_defconfig | 2 ++
- 1 file changed, 2 insertions(+)
+Andreas Kemnade (2):
+      ARM: dts: ti/omap: embt2ws: use mulit-led for RGB LED
+      arm: omap2plus_defconfig: Enable multi-LED
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index ad5ae1636dee..3a4fb59d3fad 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -602,6 +602,7 @@ CONFIG_MMC_OMAP_HS=y
- CONFIG_MMC_SDHCI_OMAP=y
- CONFIG_NEW_LEDS=y
- CONFIG_LEDS_CLASS=m
-+CONFIG_LEDS_CLASS_MULTICOLOR=m
- CONFIG_LEDS_CPCAP=m
- CONFIG_LEDS_LM3532=m
- CONFIG_LEDS_GPIO=m
-@@ -611,6 +612,7 @@ CONFIG_LEDS_PCA963X=m
- CONFIG_LEDS_PWM=m
- CONFIG_LEDS_BD2606MVV=m
- CONFIG_LEDS_TCA6507=m
-+CONFIG_LEDS_GROUP_MULTICOLOR=m
- CONFIG_LEDS_TRIGGERS=y
- CONFIG_LEDS_TRIGGER_TIMER=m
- CONFIG_LEDS_TRIGGER_ONESHOT=m
+ arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 13 ++++++++++---
+ arch/arm/configs/omap2plus_defconfig              |  2 ++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+---
+base-commit: dc59e4fea9d83f03bad6bddf3fa2e52491777482
+change-id: 20260702-b200multiled-ce27e3f3a5f6
 
--- 
-2.47.3
+Best regards,
+--  
+Andreas Kemnade <andreas@kemnade.info>
 
