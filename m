@@ -1,69 +1,91 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CF6C242D65;
-	Thu,  2 Jul 2026 00:38:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 861244ADD9A;
+	Thu,  2 Jul 2026 13:53:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782952730; cv=none; b=aL8TcbVPK/49Gquxse7IrPqzqZJM5ARoQVhxmedBltrIeHs6jfHYmAroJp7YXVB8QYkIUoFoFcD36UhuzBUQn4cIkwb25dhoccUnIj7gnm3gh+xdh45fpqY8BMIB/WQ8RNl6M5091ScfMpK7hgXRKpPAkvh1hFiRsMzhfxTkn5w=
+	t=1783000400; cv=none; b=L4YyxvfEQFEIRcpPz3Wm3h+ew1W8EaoELxDK7ofyahKnhSKizaqrZNnx/Tp7cXOP73sJ3csgAXPlYszFv7slz+a2v5MhCix8pJcRD/T0w6y0AKNIAuOcvXiITUKcoJUjCkR9G+fELvUGFvjHr+Xfm1y4KKd65M1bDYjltb9rSOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782952730; c=relaxed/simple;
-	bh=kT/NBqQunlWsQ7ubvjZhQleFnca7dO290+Jy4yB4+cU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=a/xbjw1ODO4chm1y7e5mzpRVz1D7x77ESTt4O0IlqbRaT4cs8qVTZhpYmvtRB3y0zy3WFyapAPokOk8/w1BkRbrkk4pmGBoM+h6OFCM85Bo3n33JgJ6b7Q3JxvbsVj3K8phIZVSisIo5SXZNEpuviBt8BoIfUsi5Hc6T6ECefe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DRSYZ+cN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783000400; c=relaxed/simple;
+	bh=tqYyW/PX6hR7Wv5PgP4YYislXUMPcANlAU7/rHlopZQ=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=c02i7/QheMT0NUZ0nXxM75VduU3Ezb7PwY21Oq0hCZAQPDJlTMxrJwqeM9qT+R0RDVMtQZ1mRVU8htD8fklMRCClwGc9+BXMBZk/tHSNKFyDkRcigysl2KOZvKafmpy7rA2hV5KDzbYbqRL72sYRAkedMkImp5jygqffwJlolqs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=fN3nHIS/; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DRSYZ+cN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9EC21F000E9;
-	Thu,  2 Jul 2026 00:38:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782952729;
-	bh=RQBnHF1qtS6KGf+wzw5MMQOAlTk6sYRCuY6XAJaTSS0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=DRSYZ+cNrD4eaUMA1Yzo5UAlyJZNYfyijYcOlj2OVeGlPPY9GsH1pOdugbAyeMoS4
-	 NChqDFgyYeU7McLKXTf0nYvCFkvviI+yaTpiOFcxsTVGdyZj95XW0xUy0o3yTcmnaj
-	 jI1eyP2zW2Zlrg0MQYoKJf9U4OpRVUMCxFcbvYtydGwRdlQKjJ+ytNKInAj/TZNUQS
-	 Bkw6/sI5mR0fLWCnN8523HCIJej/TfLJnRwUUvMSzmIn8eVgBvMv94iHsyODWSO6Ac
-	 e0/MvxdoPGsBKr2E9i5v6Mg7fGYruiA73OUsMQbwnsQitQYYtbfbfPdJz/zE3qu6cd
-	 rr7sQRTyK90Jg==
-From: Sasha Levin <sashal@kernel.org>
-To: stable@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Sasha Levin <sashal@kernel.org>,
-	Elizaveta Tereshkina <etereshkina@astralinux.ru>,
-	Grygorii Strashko <grygorii.strashko@ti.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Kevin Hao <haokexin@gmail.com>,
-	Alexander Sverdlin <alexander.sverdlin@gmail.com>,
-	Wenshan Lan <jetlan9@163.com>,
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-	Murali Karicheri <m-karicheri2@ti.com>,
-	linux-omap@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	lvc-project@linuxtesting.org
-Subject: Re: [PATCH 5.10] net: cpsw_new: Fix potential unregister of netdev that has not been registered yet
-Date: Wed,  1 Jul 2026 20:38:31 -0400
-Message-ID: <stable-reply-cpsw-new-510-20260701193800@kernel.org>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260630200717.1994713-1-etereshkina@astralinux.ru>
-References: <20260630200717.1994713-1-etereshkina@astralinux.ru>
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="fN3nHIS/"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=Cc:To:In-Reply-To:References:Subject:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=tXulqD9IlD9hS/ExIkyaNUgdGu1Ig3SZNQ96GuHk7fc=; t=1783000397; x=1784209997; 
+	b=fN3nHIS/SA2g9gUfaFiAuuMFre8gXJaCKZMItPg4ePy9ciWI6ZZfoI0oTnkugFHJ7CwGcTNjTss
+	Sg754EssKYoA3CE8TGK92MK9a6sJ9K3sRBsJAlVmuP9AjLw6a7aIQFrlRhedBHOhOf7KuO+iU7G5h
+	VO3INqpcyv+Y62KaVgiLJ0sV0DXgi1qhxpFbFK11d52CnSYEF7y/b20EuSzd720CiwTcbh7m9axX8
+	ycKMs/TZC0yGieN9Bj4B0FaFDUHnxHNLRd4deyXkmZC4mjUvUEoooQ0I8jVawF0r2IZKpmTl9LjMp
+	LP4fFxL9dIC4ERBs4XpYeNwgW5g3rgQeWssA==;
+From: Andreas Kemnade <andreas@kemnade.info>
+Date: Thu, 02 Jul 2026 15:52:44 +0200
+Subject: [PATCH 2/2] arm: omap2plus_defconfig: Enable multi-LED
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260702-b200multiled-v1-2-c1799ad45c96@kemnade.info>
+References: <20260702-b200multiled-v1-0-c1799ad45c96@kemnade.info>
+In-Reply-To: <20260702-b200multiled-v1-0-c1799ad45c96@kemnade.info>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
+ Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Russell King <linux@armlinux.org.uk>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ Andreas Kemnade <andreas@kemnade.info>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=901; i=andreas@kemnade.info;
+ h=from:subject:message-id; bh=tqYyW/PX6hR7Wv5PgP4YYislXUMPcANlAU7/rHlopZQ=;
+ b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFluubYzuw099S6vM9cW2mHZnqab+ixH0ezaQ64dHwKku
+ Ddy5EzuKGVhEONikBVTZPllreD2SeVZbvDUCHuYOaxMIEMYuDgFYCIW3xkZnrsV7/gtIl72dv0f
+ vyea7l6rI5UOL52w639V72u2JV+9jjMytBVmnXzTxSJh/YnnX8Wk2t0XfDnu/r10kduiQ7GLs2M
+ iFwA=
+X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
+ fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-> If an error occurs during register_netdev() for the first MAC in
-> cpsw_register_ports(), even though cpsw->slaves[0].ndev is set to NULL,
-> cpsw->slaves[1].ndev would remain unchanged. This could later cause
-> cpsw_unregister_ports() to attempt unregistering the second MAC.
+Enable drivers needed to use RGB LEDs composed of multiple monochromatic
+LEDs.
 
-Queued for 5.10.y, thanks.
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ arch/arm/configs/omap2plus_defconfig | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index ad5ae1636dee..3a4fb59d3fad 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -602,6 +602,7 @@ CONFIG_MMC_OMAP_HS=y
+ CONFIG_MMC_SDHCI_OMAP=y
+ CONFIG_NEW_LEDS=y
+ CONFIG_LEDS_CLASS=m
++CONFIG_LEDS_CLASS_MULTICOLOR=m
+ CONFIG_LEDS_CPCAP=m
+ CONFIG_LEDS_LM3532=m
+ CONFIG_LEDS_GPIO=m
+@@ -611,6 +612,7 @@ CONFIG_LEDS_PCA963X=m
+ CONFIG_LEDS_PWM=m
+ CONFIG_LEDS_BD2606MVV=m
+ CONFIG_LEDS_TCA6507=m
++CONFIG_LEDS_GROUP_MULTICOLOR=m
+ CONFIG_LEDS_TRIGGERS=y
+ CONFIG_LEDS_TRIGGER_TIMER=m
+ CONFIG_LEDS_TRIGGER_ONESHOT=m
 
 -- 
-Thanks,
-Sasha
+2.47.3
+
