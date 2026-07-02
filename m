@@ -1,110 +1,158 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 352C33403E1;
-	Thu,  2 Jul 2026 15:50:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783007444; cv=none; b=A8xyWOaD3jfLnd7Wi0nu3UMtDwxgMyHILbA243ucOjO7vrw16aGQfEw8T8tP4tXU/1HCmjQ5h9F4yHiOfs0E5cNh2yl9PEo108cCc82YJO62OBmsxFwdwTLSt8SfDFjyxlj0LkqBvlNR0g1K2rJUbow5nM527QDOicqNX4isB00=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783007444; c=relaxed/simple;
-	bh=FqDrGw5R4E8czJm4KoZVWMrrolruAjzN3fbEGxsWOAg=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=NeCcjbGSm9RKOMxgRzyJv9XdwNay/jkk69vVDrlGTFOV4a/nH7Kb3wlLuRoRjE8uVefgAn9Uzxe32wzYBmKWF2rIgAcrc4j/ZnYug8mNK+zs5VntvZmIPTs/GiP6ZDyXm4JlWOWOg7qanj0SPcSywJ+voYSQS5K5npNLhXiff/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=cD5JuBT2; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4ACE380FE0
+	for <linux-omap@vger.kernel.org>; Thu,  2 Jul 2026 21:13:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783026825; cv=pass; b=NVqSAfO7HoWfYue1mTrjhD11wrAxnJZybTrsPksIa9cENy+TYProuVTEMEhjMP1vK4srSjon2Mbc6TdalP0m294OzEFdp3zeg5nxov/dzvHRl2bTh8uustOKFFWFBhbkBZ5urI1RMSGPIN0GyRZWFRE/mQeXeQNXzqfiHRvZpdA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783026825; c=relaxed/simple;
+	bh=UMP72jH48Rq6NbnrlPu/ZWb1zwUhMl3lYtFHVM6IbQw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=QdjPdwOTiETx+67yFYMDx9lRiyNhMs9Ozcsv6k3DyIXJ710+TUP2G0LPIa5HYrsBpbKUckHYfDtWnUStNFmLhw9bTF4qXbJZteQN7/SpUeLwwPuswLDVyoZRPNI89dnGVHbMS/n6aLNT+xa6k1i+8XaWvzRpB4DRsm7AKq6MBzI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bwNwjL/a; arc=pass smtp.client-ip=209.85.218.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="cD5JuBT2"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:To:Subject:From:Reply-To:Content-ID:
-	Content-Description:In-Reply-To:References;
-	bh=hQsAfX1ZrVjd1qBgp6WovB6FVpvfR1qOWtzov+lIbew=; t=1783007443; x=1784217043; 
-	b=cD5JuBT24PEO8wG+DQ2/d0UqqGHXETDxOAs1kcmukhdOQslKKCJk/iiZge+ok0GihNQKcYVWBsI
-	V6LgF4zPC7fkR1bP3u9ohkx6m/Rn1UNAGP9I8for+8/EU+98z9asv6OKgKCh/YDyruRsfv8ERTLM5
-	8KDQmKrtTPBOwVoGnaUGAXbZIYIs3m26L8QZv+8c4eTOW5rIx9gY8VZLpzHlIiTU7Ydvyix6f/JgN
-	GMstWMP5fW+qG5zll8yu/EMT9MpnbCzfZ64Eb7zOZRYMrTjcsx4MyT/W7dR4yyFDuBThOdFhvrLnN
-	Q8GiwdJJr8bIU/7HBa4LonaLswuB9KBhaBJQ==;
-From: Andreas Kemnade <andreas@kemnade.info>
-Date: Thu, 02 Jul 2026 17:50:35 +0200
-Subject: [PATCH] fb: omap2: dsi: do not copy isr table
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bwNwjL/a"
+Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-c127a694ccbso331420466b.3
+        for <linux-omap@vger.kernel.org>; Thu, 02 Jul 2026 14:13:43 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783026822; cv=none;
+        d=google.com; s=arc-20260327;
+        b=qpyBADCJ0oeLlEkIC5A/Da3SXTMSrLDThIMoE9tG6KGZvo/0L79WaNZ3fdggTgVvLG
+         qPk2erVRs+bfQmDqrQHSh7hfXnnuot6R9wbU2hKLiYPH6gS3HI8dSQOigWy0s+7BsYjp
+         J4HkOihHELkN2M4Y6+MSn6UyRNeyrKudU3HDW0lQSR3PhtqzZB9GMbj06CxQy5XOPwaV
+         qGtYdW7vls94WkAREUDAvmjgxEzbvCYUIF8dG39zC8smQFvRZD1zn9LgFbH4ravvWihU
+         UeAb0GxsnZLpI71yWv+AYp8CGaZIZTk2Ak8pZSxvPHZHU1EQCuH395/B6QWjMPC75wD2
+         LKlw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=Cltvcsp5S5OpTUXmNU/LPetkh3uHo/gzqcpiFn+u3Fw=;
+        fh=0Cb28y7TkIyBgsiiZjbqdYKFQjVnIOqUPJZJ+pV5OFE=;
+        b=f7c9j2egnOopXPp/NINxOVllkLm9W7d77XaEL9VUO1ujhxvXUbi7aepnuh/EO/7d8R
+         NEnn8MKe3c5hf94IZbFWOFILAnXZwy7qVhanMKGXOWAYNTY9Y+eoPtD69+TPZKfvQTrk
+         yk+5eRcn/IsDPE7P2kCaZn1sbQu2pRhRZR4ST4phy1KcBtdsAHkyQsceMjBSuVgKiL6f
+         CO9okUjnVNYIlQVz2p/hts07ejLQVALoMtpGFdDR03p/71rP8d1Cbp4wvZHuZscG/y1T
+         x5x+twUiFR/5YRzI3HnWAAAm0XbO0bIeJhDP7QThOAOp0Di1ENSVFcnnPUnD5fovQzR5
+         hFIg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1783026822; x=1783631622; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Cltvcsp5S5OpTUXmNU/LPetkh3uHo/gzqcpiFn+u3Fw=;
+        b=bwNwjL/aMH/4kMnz4UQiDCZN5qObXYsWzgi7/z/ji3Qebg9ECh3mnunyepgdApsrCj
+         9a1FMVzR6ZgzsqkNUJUtNivgRV+Wp4rWauSXelBD0H3QsZ/LvcwieMihqXf/FdSILOWs
+         OpN6mq8k5kObnGAmT7G+/OXjDa4WzrzHCa5el7CzXqwWtISc1Nmb82uR1/ZbSm1K6Ydp
+         zG7mwjVFN1iMXtUfRf2wgSsNvAZVUzOuEsuXYaUycr1DM0gc6oTuwf3nHlbmM2qla/wz
+         2vMuStl7XeXIqZRYNk47fuHr9sPOxSlllzxd+yNPgHCjByLd9Q7wKM9uDOrPD888H9rv
+         q8sA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783026822; x=1783631622;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=Cltvcsp5S5OpTUXmNU/LPetkh3uHo/gzqcpiFn+u3Fw=;
+        b=dnxHrCuYwz2k+CWdzqCOU6OjF4ztZWDFU13QAR2qkqd1oNWyU1W8M5S7Y+LSuX6ovX
+         vbc2njzwqTUvMnh2hWoBa+hukpGISCrYECwv62u2pMXIqqW2ox0wbGRdMNoBJC91aRni
+         QqbZS59N3vaHOZo0WpQYbwTp6+DnW0v30ly5Otw/d+0e9+bYKFR4Y2K+FL7uus4tB6Ky
+         ddGp5Z/ZcdeGzqciXxUFYmp+2KP7Me0qiaT5oK4az8kmOEfWUmQL3dxs5LVWU3ZWPhZB
+         DoU1TUrJD+dFGYK5oo7aHVdc6/CjZEIk5drx3a9juvWBXTmytkx4F9IM9tPAsfcVXrVj
+         2g3Q==
+X-Gm-Message-State: AOJu0Yxfzv04TZHudN5dwK6NCkoUU5d/8bvVjCLBgxfZFPhkNVPiaOs3
+	uRJdCmuaxdLWYylUXNWrgPa1mEjEghHlTSpQ27hCvxlliwNUs4ij4pDjmok8vTOcqwUuUNz7nel
+	hbbSQlPexxnol2StYQQkTdib5isIrXHg=
+X-Gm-Gg: AfdE7clUFgo70QbkEm0LVhNnQTHok0OoJYODYaw7O8VJv/md/UKXwez7Lluaip/hDin
+	MthV4I6DAbVkXZR3Jn3/nQWg7SyF/dUCAsJzgdKO74U7c5JL1Ti7U5Z66CpcfICxqW5K5k8rd8j
+	3K6munXli4GYp1eLic5YYJlZRyJjlTi0kiMPE3arSNMz+MC7UOQPDBSEvDJmO9KgXG0pfK/vw/F
+	rQFwBtVLuRU391aCf3HP9rkgB7ge68GIP/lIHaKvfMLp4tAdrWJlLQUWrxyirX84cEIIR6OnYQj
+	F6Aa0H2u2UKTo6dcter1WRWdQIsPHyWqKyKhizGt/3W0KEZgeLfq
+X-Received: by 2002:a17:907:d13:b0:c12:4246:885c with SMTP id
+ a640c23a62f3a-c12ae4c1ac0mr342129566b.26.1783026821817; Thu, 02 Jul 2026
+ 14:13:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260702-fbomap-uaf-fix-v1-1-6417edf9d3e7@kemnade.info>
-X-B4-Tracking: v=1; b=H4sIAMuIRmoC/yXMywqAIBCF4VeJWTdgBiq9SrTQGmuCLmhFEL17V
- svvwPkviBSYIlTZBYEOjrzMCUWeQTvYuSfkLhmkkEpoIdG7ZbIr7taj5xMLpakz1jhfGkinNVC
- av2Dd/I67G6nd3grc9wOZSoJacgAAAA==
-X-Change-ID: 20260702-fbomap-uaf-fix-167ed8a8bf38
-To: Helge Deller <deller@gmx.de>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, 
- dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, 
- sashiko-bot@kernel.org, Andreas Kemnade <andreas@kemnade.info>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1934; i=andreas@kemnade.info;
- h=from:subject:message-id; bh=FqDrGw5R4E8czJm4KoZVWMrrolruAjzN3fbEGxsWOAg=;
- b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFluHRfitNy1PhSqCMQn6RslZk28PPfXAa6seF59y4T/0
- 10/HI/sKGVhEONikBVTZPllreD2SeVZbvDUCHuYOaxMIEMYuDgFYCKTlzMydKi8CptQtoRljvn0
- 4r/zs9d299ofSO93ipvf9bzNl7tkM8P/9Jc81ZbJ97jrXJkcq0o9HmqbL0pifRX10+pmTEjM1c1
- cAA==
-X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
- fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
+References: <20260615200540.770205-1-dbgh9129@gmail.com>
+In-Reply-To: <20260615200540.770205-1-dbgh9129@gmail.com>
+From: =?UTF-8?B?7LWc7Jyg7Zi4?= <dbgh9129@gmail.com>
+Date: Thu, 2 Jul 2026 17:13:28 -0400
+X-Gm-Features: AVVi8Cfq3tuleR6tpZDgcAyqLTAGOCOZXKRi4fTPfcaLKoebAlBvHPFMqzsMLOs
+Message-ID: <CACrCO_XcYF=T3kpeUcm_ReHdUXrwd6znPkpmLbonVKTVoNkw+w@mail.gmail.com>
+Subject: Re: [PATCH v1] bus: ti-sysc: Fix /chosen node reference leak
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
+	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
+	Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-To te able to unregister stuff from isrs, the corresponding table was
-copied.  Nobody seems to unregister stuff that way, so it does not help.
-But there are stack-allocated objects passed to these isrs giving chances
-of UAF of these objects if irqs are unregistered while they are handled,
-so better do not copy that table.
+Hi,
 
-Suggested-by: sashiko-bot@kernel.org
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
-Fix for drm variant fo driver:
-https://lore.kernel.org/lkml/20260702-dsi-uaf-v2-1-dbb4aa0f0b8e@kemnade.info/
----
- drivers/video/fbdev/omap2/omapfb/dss/dsi.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+Just a gentle ping on this patch.
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-index 330d9fb7d2b0..d98db01fdd39 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-@@ -326,8 +326,6 @@ struct dsi_data {
- 
- 	spinlock_t irq_lock;
- 	struct dsi_isr_tables isr_tables;
--	/* space for a copy used by the interrupt handler */
--	struct dsi_isr_tables isr_tables_copy;
- 
- 	int update_channel;
- #ifdef DSI_PERF_MEASURE
-@@ -838,15 +836,10 @@ static irqreturn_t omap_dsi_irq_handler(int irq, void *arg)
- 		timer_delete(&dsi->te_timer);
- #endif
- 
--	/* make a copy and unlock, so that isrs can unregister
--	 * themselves */
--	memcpy(&dsi->isr_tables_copy, &dsi->isr_tables,
--		sizeof(dsi->isr_tables));
- 
-+	dsi_handle_isrs(&dsi->isr_tables, irqstatus, vcstatus, ciostatus);
- 	spin_unlock(&dsi->irq_lock);
- 
--	dsi_handle_isrs(&dsi->isr_tables_copy, irqstatus, vcstatus, ciostatus);
--
- 	dsi_handle_irq_errors(dsidev, irqstatus, vcstatus, ciostatus);
- 
- 	dsi_collect_irq_stats(dsidev, irqstatus, vcstatus, ciostatus);
+I would appreciate any feedback when you have a chance to review this.
 
----
-base-commit: dc59e4fea9d83f03bad6bddf3fa2e52491777482
-change-id: 20260702-fbomap-uaf-fix-167ed8a8bf38
+Thanks
 
-Best regards,
---  
-Andreas Kemnade <andreas@kemnade.info>
-
+On Mon, 15 Jun 2026 at 16:05, Yuho Choi <dbgh9129@gmail.com> wrote:
+>
+> sysc_init_stdout_path() gets the /chosen node with
+> of_find_node_by_path() to read stdout-path. The function then overwrites
+> the local node pointer with the stdout-path lookup result, or exits on
+> error, without dropping the /chosen reference.
+>
+> Keep the /chosen node in a separate variable and put it after the
+> stdout-path value has been used for the lookup. The successful stdout
+> node lookup remains referenced by the cached stdout_path pointer.
+>
+> Fixes: 3bb37c8e6e6a ("bus: ti-sysc: Handle stdout-path for debug console")
+> Signed-off-by: Yuho Choi <dbgh9129@gmail.com>
+> ---
+>  drivers/bus/ti-sysc.c | 12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+> index a5b9507de37c..e118b900c9ac 100644
+> --- a/drivers/bus/ti-sysc.c
+> +++ b/drivers/bus/ti-sysc.c
+> @@ -682,6 +682,7 @@ static struct device_node *stdout_path;
+>
+>  static void sysc_init_stdout_path(struct sysc *ddata)
+>  {
+> +       struct device_node *chosen;
+>         struct device_node *np = NULL;
+>         const char *uart;
+>
+> @@ -691,15 +692,18 @@ static void sysc_init_stdout_path(struct sysc *ddata)
+>         if (stdout_path)
+>                 return;
+>
+> -       np = of_find_node_by_path("/chosen");
+> -       if (!np)
+> +       chosen = of_find_node_by_path("/chosen");
+> +       if (!chosen)
+>                 goto err;
+>
+> -       uart = of_get_property(np, "stdout-path", NULL);
+> -       if (!uart)
+> +       uart = of_get_property(chosen, "stdout-path", NULL);
+> +       if (!uart) {
+> +               of_node_put(chosen);
+>                 goto err;
+> +       }
+>
+>         np = of_find_node_by_path(uart);
+> +       of_node_put(chosen);
+>         if (!np)
+>                 goto err;
+>
+> --
+> 2.43.0
+>
