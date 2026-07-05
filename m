@@ -1,128 +1,131 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D0A439E18E;
-	Sat,  4 Jul 2026 08:41:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EA8718859B
+	for <linux-omap@vger.kernel.org>; Sun,  5 Jul 2026 07:58:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783154479; cv=none; b=YgeUCnmOXQ8o59aRp3I12tPgQ1vjgEJeVN0/rDoE0DeZb+6cPzRmYANaAAansqfZ8AaM7QX33R3jKK4EsNyeJwiQEx+HFhZHNPPkEdTZd0AG31vvArF7Sv/L2hy9FviiVzV4NmAoJLZVbUF0nQo+95aEyXq1URceLxJ8damQvPM=
+	t=1783238320; cv=none; b=usML83IuHC6OkjaNQK3HHCoZOFDrdo0lQoHmZ9LQLgTwtD5RiiET5dr9ed6pEZUVGvdUgVK7MUwpB8UnGiqgUCcwrUyXfdsBON2AtgycCmDtHYuUQftUo5BVO9zg+E53uDbmF1s3vNkPDYiRKhXmZwrLeZe7GPE3CIyrbU1AI8Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783154479; c=relaxed/simple;
-	bh=LoAQGQx1nOKBdu36DWA9epVCvUN1aDJ6wWrFVe89Z40=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=Y8V1+sNoFWgOWox3Q7EdetCvA1xvxM7HkT39khQd1elYPToG5f53/4LeWZ0EtDAOXqH7/55/M0dnz9ENtVLshF1Kj83Eozmszd8f7M9+y1E3vUGG78XdIHWul+VV9rxYjhKmOW4u4fh5kUK+k/sW/UXCL6Qqsdo/c3vc0A+IaFo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=ERr1QZNC; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1783238320; c=relaxed/simple;
+	bh=Gd6MlDdTQsHXKAXfnYEwmqafYU5uT6MkwvCo5cd4Z9M=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Rxx/jdfz/emjkHdNyzTi3ek53cT4bnztI/AQsV6Di9mTXFTpaDtjAwSBpx/+3WmQydb7Rsazk4psW2Dil6jYYgzXq6yidM/urGXaDHI5Cks2E9VifIYG+yG1dZ3AkTeE5RuYmhzEJv3xSafqV2L+X/nl+wLYrtF03+HGDkcD/bU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QrHF7ezA; arc=none smtp.client-ip=209.85.128.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="ERr1QZNC"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:To:Subject:From:Reply-To:Content-ID:
-	Content-Description:In-Reply-To:References;
-	bh=V41pSvo0YeLVFGkk+99Snc9WzkqH5EUfSjSfk1PM8ck=; t=1783154478; x=1784364078; 
-	b=ERr1QZNCPDBl5LLEBOlvqhjyXXW8WxBPchGoGsp3n1vX13IARP4fXGfYGwelpxlu8v6xwefCnHg
-	akaUcJKQ7KD8WYOCFpLjVcZ39WnIhDKuZuyWRD+/P9CBrQpV3xCmwRPaXd5eRMSglgBBdjxXbFfLp
-	ZCrf0Kgn4lcM6oowKChg8zeQDx8bhifXwqRf4nAxyh+pTaaUj7dYiAnFr3jCC4RyuG5QVF/PLI4iP
-	Y9u50SvSHCVTubzmNY2ayLmVgiS/cPCvFdKIYTzfHJLIM1WFLZmTDNBUobeN0yv6zkHrhN6eLfkFw
-	g13ryenJ5UK/tG+QW7NokoHp4AtIDdTFKQkw==;
-From: Andreas Kemnade <andreas@kemnade.info>
-Date: Sat, 04 Jul 2026 10:40:54 +0200
-Subject: [PATCH v2] gpios: palmas: add get_direction op
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QrHF7ezA"
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-493d3135f62so3693795e9.2
+        for <linux-omap@vger.kernel.org>; Sun, 05 Jul 2026 00:58:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1783238316; x=1783843116; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=xHxxISw9/eUoh0glcJjvTPDJ3DTP4w24ytxN3iIm2gE=;
+        b=QrHF7ezA6qaAE+sQV9O+OXZe2PHBsV8mFHQxxSYejLdc2j9ic+aqC2En84lWgmSmiL
+         GpWHx1kNUTfTIU1ZHvmUkfRsH3jih36bSBwDaqES+R9bvkHKp1bcQy6uHjs2jDWIqCJJ
+         BHQZuOOVXV14oGCr4hec+7efU5JbrOTKJgSvIwZ5JkKfGbld9k6c4PqcRQ7O5T94C7TU
+         IVH/bT/+/AvjZLQHZMvIP3hEPO3r7tVLkw5we659eD6joGBNiqpkYPkuo0vIEX8VU7Qj
+         ZEv6Klk9FVbwboCw4EJckoUGTB3lB94Q0LYvrDbrdlfYEgIzcvVvoxJ55+zxZCVDTsK1
+         EdwQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783238316; x=1783843116;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=xHxxISw9/eUoh0glcJjvTPDJ3DTP4w24ytxN3iIm2gE=;
+        b=Tjw3nvoUIGu0IH/6sjR8v4A4iIuutaAjuO3rxHsANT8hlqCEmYAsB7Z2yy8IIetiAO
+         CCKck3y8/KJe9uNsbv34QEfFGfIWQ9wRUP3Y90rxwuvCe8nnBhRavnKg6INUzWNNhDcI
+         zSjdvg5bAkCfX5TgsXqPk2VsFebWQ5lIHYNrT9Kw9+6Qnztsv4PsIgXC5RbhjOZum1T8
+         VY/JSeTA5C6TDxpiOMAFXA4sT33/vYtuTxbGII5lJkhEMK8DfOi8JVokpBvl0hZGR2Gd
+         +yk/VeKZZ3MszQhzqNq/fwOId2Z5JIyNB5X3lFEOiB2ewnsfEpmJy9l5VYxf7s/XCY7s
+         0erQ==
+X-Forwarded-Encrypted: i=1; AFNElJ9cDZNlEGAozPVVfFTF5djHci/p8JXYi72owCkJP9lNpnPcvWsN3ZW5pVwIOnKLvQgBCRWfBAEbz06s@vger.kernel.org
+X-Gm-Message-State: AOJu0YyvftgnBWzwRKpIVQXEdfuQugIt7QQi0phV6jiNVEv3ptgezZ54
+	FcA1ZDEKV2u/Je1hs+0X7HrSOve4+TQa4DtPfZLLzktFClzzwd9QMWry
+X-Gm-Gg: AfdE7cmUiyim55N58iKyTFsSG2HDZNmQQVe1wv6Xb8zIunStYiOUI8UpH0OYayWDmKS
+	GCOlRmTc2PXN7eO2HAn9LIJMTwmmOPGQ9F7E0r5AqoizLY3fhugsZr/7vlnBo3M0C0hyAJef5fK
+	vUaq//PhYqy7jH6Zj8b/kk/uS41BILzS7QNDXXOXRKpFtSS2Lmne0uuUcFLrOvw3keVitjTc9uM
+	9Pp7g9Y23iIkh45npMwr6diQ3IwKJQ5fzysiKxD+1gvy7mXb1mA9fX1J7HUYkfLFfiHRTAjM2+J
+	5onz4sYOTlugIGVKqzmoD7Oa61t1ZYg3IYg12d99CWgNFP/heEWuYUZN6qJKwwbrkCnatBKm7mk
+	73pdn6y135H/caV7qxqd8mzi616UdinlODOXGwUDl7YYKEohXg4brXpiG8aCdVr/99l/DHwCwLv
+	SZGC7OzxatJL/x/V77U9yHoYQmuPjDewVG0w==
+X-Received: by 2002:a05:600c:3551:b0:492:4714:2d7e with SMTP id 5b1f17b1804b1-493d11fe2f2mr68174165e9.36.1783238315894;
+        Sun, 05 Jul 2026 00:58:35 -0700 (PDT)
+Received: from localhost.localdomain ([95.43.220.235])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-493c63bfba1sm305769765e9.15.2026.07.05.00.58.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 05 Jul 2026 00:58:35 -0700 (PDT)
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: Vinod Koul <vkoul@kernel.org>,
+	Neil Armstrong <neil.armstrong@linaro.org>,
+	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>
+Cc: linux-phy@lists.infradead.org,
+	devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-gpio@vger.kernel.org,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH v2 0/5] phy: cpcap-usb: improve charger detection and export cable state
+Date: Sun,  5 Jul 2026 10:58:04 +0300
+Message-Id: <20260705075809.1793784-1-ivo.g.dimitrov.75@gmail.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260704-palmas-getdirection-v2-1-2fd85fee3832@kemnade.info>
-X-B4-Tracking: v=1; b=H4sIABXHSGoC/32Nyw6CMBBFf4XM2popL4Mr/sOwKO0Ao9KSFomG8
- O8W3Ls8ybnnrhDIMwW4Jit4WjiwsxHSUwJ6ULYnwSYypJiWeMFMTOo5qiB6mg170nP0RSVzMqb
- LsEWEuJw8dfw+qrfmx+HV3qO9p3Zj4DA7/zluF7l7/x8WKaTAvNSyKKpS6rx+0GiVoTPbzkGzb
- dsX7/DPIcsAAAA=
-X-Change-ID: 20260703-palmas-getdirection-914eddf30b00
-To: Linus Walleij <linusw@kernel.org>, 
- Bartosz Golaszewski <brgl@kernel.org>
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-omap@vger.kernel.org, stable@vger.kernel.org, 
- Andreas Kemnade <andreas@kemnade.info>, 
- Laxman Dewangan <ldewangan@nvidia.com>, 
- Samuel Ortiz <sameo@linux.intel.com>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2393; i=andreas@kemnade.info;
- h=from:subject:message-id; bh=LoAQGQx1nOKBdu36DWA9epVCvUN1aDJ6wWrFVe89Z40=;
- b=kA0DAAoWF+d09HUlhtwByyZiAGpIxx2jaSNojyj7duhY4ModwW4gye8ZO8dOH9gSIPtXs/34z
- Ih1BAAWCgAdFiEE+jsgRvIk5m1TlVg/F+d09HUlhtwFAmpIxx0ACgkQF+d09HUlhty5jQD9E73p
- siyiPfdBmRrKwm8EBlfk1dJCb1S0qyPb3r3CxGoBAPz4mi33F44uyKmTZ92oGbGRSB0Fj8R3Ujt
- uKYG99/UP
-X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
- fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
+Content-Transfer-Encoding: 8bit
 
-Accessing debug/gpio is quite noisy without a get_direction()
-implementation.  To calm that down add an implementation.
+The Motorola CPCAP USB PHY contains the hardware state machine used for
+USB cable detection. Besides distinguishing USB peripheral and host
+connections, it can also detect dedicated charging ports (DCP).
 
-Fixes: 3d50a2785271 ("gpio: palmas: Add support for Palmas GPIO")
-Cc: stable@vger.kernel.org
-Reviewed-by: Linus Walleij <linusw@kernel.org>
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
+This series starts with a fix to prevent spurious SysRq events when
+switching between USB and UART modes. It then adds DCP detection support
+to the CPCAP USB PHY, updates the Device Tree binding and corresponding
+mapphone Device Tree to use the charger detection interrupt, and finally
+exports the detected cable state through the Extcon framework.
+
+The existing driver already interprets the CPCAP USB detection state
+machine to determine the attached cable type. This series extends that
+logic to distinguish DCP connections and exposes the detected cable state
+through Extcon using a standard kernel interface. It also makes the idle
+UART mode optional, allowing the PHY to remain in its default USB
+detection configuration unless UART support is explicitly requested.
+
+The series has been tested on Motorola Droid 4 hardware.
+
 Changes in v2:
-- add a proper fixes tag
-- Link to v1: https://patch.msgid.link/20260703-palmas-getdirection-v1-1-046c155961c4@kemnade.info
+- add chrg_det interrupt instead of replacing se1
+- Fix remove() race by cancelling detect_work before hardware teardown
+- Restore SysRq state on all error paths
+- Introduce CPCAP_UNKNOWN initial mode
+- Snapshot enable_uart module parameter
 
-To: Linus Walleij <linusw@kernel.org>
-To: Bartosz Golaszewski <brgl@kernel.org>
-To: Laxman Dewangan <ldewangan@nvidia.com>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-gpio@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
----
- drivers/gpio/gpio-palmas.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+Ivaylo Dimitrov (5):
+  phy: cpcap-usb: Prevent line glitches from triggering sysrq
+  dt-bindings: phy: motorola,cpcap-usb: add chrg_det interrupt
+  ARM: dts: ti: cpcap-mapphone: use charger detection interrupt for
+    CPCAP USB PHY
+  phy: cpcap-usb: add DCP detection and make UART idle mode optional
+  phy: cpcap-usb: add extcon support
 
-diff --git a/drivers/gpio/gpio-palmas.c b/drivers/gpio/gpio-palmas.c
-index e377f6dd4ccf..e64ee0487718 100644
---- a/drivers/gpio/gpio-palmas.c
-+++ b/drivers/gpio/gpio-palmas.c
-@@ -116,6 +116,24 @@ static int palmas_gpio_input(struct gpio_chip *gc, unsigned offset)
- 	return ret;
- }
- 
-+static int palmas_gpio_get_direction(struct gpio_chip *gc, unsigned int offset)
-+{
-+	struct palmas_gpio *pg = gpiochip_get_data(gc);
-+	struct palmas *palmas = pg->palmas;
-+	unsigned int val;
-+	unsigned int reg;
-+	int ret;
-+	int gpio16 = (offset/8);
-+
-+	offset %= 8;
-+	reg = (gpio16) ? PALMAS_GPIO_DATA_DIR2 : PALMAS_GPIO_DATA_DIR;
-+	ret = palmas_read(palmas, PALMAS_GPIO_BASE, reg, &val);
-+	if (ret)
-+		return ret;
-+
-+	return (val & BIT(offset)) ? GPIO_LINE_DIRECTION_OUT : GPIO_LINE_DIRECTION_IN;
-+}
-+
- static int palmas_gpio_to_irq(struct gpio_chip *gc, unsigned offset)
- {
- 	struct palmas_gpio *pg = gpiochip_get_data(gc);
-@@ -165,6 +183,7 @@ static int palmas_gpio_probe(struct platform_device *pdev)
- 	palmas_gpio->gpio_chip.can_sleep = true;
- 	palmas_gpio->gpio_chip.direction_input = palmas_gpio_input;
- 	palmas_gpio->gpio_chip.direction_output = palmas_gpio_output;
-+	palmas_gpio->gpio_chip.get_direction = palmas_gpio_get_direction;
- 	palmas_gpio->gpio_chip.to_irq = palmas_gpio_to_irq;
- 	palmas_gpio->gpio_chip.set	= palmas_gpio_set;
- 	palmas_gpio->gpio_chip.get	= palmas_gpio_get;
+ .../bindings/phy/motorola,cpcap-usb-phy.yaml  |   6 +-
+ .../dts/ti/omap/motorola-cpcap-mapphone.dtsi  |   6 +-
+ drivers/phy/motorola/phy-cpcap-usb.c          | 334 +++++++++++++++---
+ 3 files changed, 290 insertions(+), 56 deletions(-)
 
----
-base-commit: dc59e4fea9d83f03bad6bddf3fa2e52491777482
-change-id: 20260703-palmas-getdirection-914eddf30b00
-
-Best regards,
---  
-Andreas Kemnade <andreas@kemnade.info>
+-- 
+2.39.5
 
