@@ -1,63 +1,63 @@
-Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 717C225B091
-	for <linux-omap@vger.kernel.org>; Sun,  5 Jul 2026 10:11:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 030A2392824
+	for <linux-omap@vger.kernel.org>; Sun,  5 Jul 2026 10:11:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783246285; cv=none; b=W+4x2lb2dqvu609ieumJV0jI3JMYlQyw7lnxaCM+TKkw7UicfWs+iizDUamH+KgTFddAD9h1XkZGOWLpMEEvYvJhqLXVVknY3SzTgM5MeKtIF1hgQCNO2PbNk/ZC3+GfkU96MPxwwXmPgbQD5/8epjfX4Y8x0S5lXcA2r9a6qWc=
+	t=1783246290; cv=none; b=eEvVDUoMdbWOJ0PhhzDk3YBuS6a7y+nQwlIAXp6JxTL9cINvKT/KZr6Y71YzohlvspDsqjssptXmM36EhxfJ56BP3PTmGVAqW7DNW4XupDDJNG1lVkQysxzm4QaGnO5gXJnywuc35YEvloOyEbDMpLMPkpPWN6duTbVJZ/JiW14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783246285; c=relaxed/simple;
-	bh=e7sepBvKllOJE2cVjyGxRX7LbgzcAMO6ZZ+f7CeIci4=;
+	s=arc-20240116; t=1783246290; c=relaxed/simple;
+	bh=Xsqlm+rF7jIXTcXnCSKMaVUBX15NQaxokCbcRbwJDbQ=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=e+nY/kbF0bbIiQUUJQvQ7c5ZmRyalOM1O2VrmHlrRRIR6l7zZ/gAJ24J63t3lCgcS4FIQIhRJ1D8z4g0beH7YY72gWLRSwY4DtLUxolzP7wadsnEyUIOBlSTAmCNGtIoTsVGOyAhoznd1o8x9tVei5jFJykAEkmKqUByBmOzb1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QcaJhpYF; arc=none smtp.client-ip=209.85.128.43
+	 MIME-Version; b=bo6XIw7sjexv4e2WwNAEm5CodRgbk/0Gd0w8lrm6lBzDVhkHbao9FvPWpt5CU7BrzPgu+ihuM7D76kABf9AyTe06XCoBXJ8wgwDWNAVGOYTOWj+53dqyqDpegi/Dy49sOxtv+vEZoWf+LV6qJtyqEL549bNog57pVSzODQHWOWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=a1NLJkIS; arc=none smtp.client-ip=209.85.128.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QcaJhpYF"
-Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-493b6f1b14bso7166355e9.0
-        for <linux-omap@vger.kernel.org>; Sun, 05 Jul 2026 03:11:24 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="a1NLJkIS"
+Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-490cf322ed0so12467135e9.1
+        for <linux-omap@vger.kernel.org>; Sun, 05 Jul 2026 03:11:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783246283; x=1783851083; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1783246284; x=1783851084; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=NTQQYukmPEeRXmpWGMDD6xv10gI6rwVhTPfZN5h8J8Q=;
-        b=QcaJhpYFWgkcCFWbBoW1uh/+SKCXoIMlzSfA9ney64+s7TVu57hjoWuUB+S3CpSINS
-         YPD5Vpw8V8Quo0D3cV3I25PWO6aat7m2iEqibeA8jFviCcR6ejv+50Om/AXzKz2CdOHJ
-         WGHgZilxYjcRBoeO1qS3TrNgw4buM+Rdl6cT7yU4gWyIvIP4hWGa1qlwALKHJztAZZZM
-         lMyKE/r77xcjXEEWdUZXKdgSW0ArZmvZ9uXEV3y1FMxQf1suy98XfB9uDqDlCcpaXNHG
-         5iINZDqI02vjSZ+F9JJAEYUaKwq3N29KjzrSG4OXaw2r6L7/We1qCohJqpI4JNptQ74+
-         CMZQ==
+        bh=7UY6T/viKs724YCtcNe87O9J53G3jzdQBIfSFXtvLiY=;
+        b=a1NLJkIS8n1xjhVOy5lYXcSxfeWUQbO4dPt8XKHTYwJL3QmyzS3X5FsW8LacxHXOMb
+         URmcwDIfMgG54oyiULOIoTvg9vpeUnNEwOhavFkRw/55A4U3aZ8wpPENkrEvnRD8D/F6
+         cWuEtjFl5kVYQxCeKdIm7LijNCbyBmPqmX3K1X+eKpl9JBOjl+X1w6VRO6j0iISCx0so
+         K4d9fdF1yw7ai1T0gRfcytQLuss8+D4qKtXHR4U+HjE2Ic14SQGoUF8+Wg+jXwJf9lhB
+         XR6HnqkMOozn9ek9TRuKBtBoi3XbZzEkGTqQmfUNrop2K+gd1oq915lzcxSy5da3tQJz
+         mrlg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783246283; x=1783851083;
+        d=1e100.net; s=20251104; t=1783246284; x=1783851084;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=NTQQYukmPEeRXmpWGMDD6xv10gI6rwVhTPfZN5h8J8Q=;
-        b=YQbVPLirNKLlmDZqPch6Q4WFnUXbk3Ssv9xiqBjc69dgUh4W3fyQqAy2xjrM+Z1rO2
-         GKzKGVrpIijAiIQRCGKykiigqrQaXZPI46BNDc9IjxJcCQfHVrBhl1uPuLqO9Czv5oCy
-         S96qF8+3LZDHkMasOAvF6gTKZXHZe/G6ZJ0DHStrwHYgj7TGaWXwAzPV6EZcWAmaJn6+
-         pMEZkKEp51KzdnqyRJVNwB9vaAp8ewmtdyP/gv/mlalfVu5tXK6jfMgeqJWvnWP0cy1y
-         w461ajqfFOSBUN+uQul7+phCKRp6iSm/XNmCxQWjKiYxl0q7ZZcMI52W8PWeSe2oO7xr
-         8HgA==
-X-Forwarded-Encrypted: i=1; AFNElJ/TKFZbWOspZAocTuby1zJCPrjDWQqJLxQuAYOfJDg2hB0+7OIR1Eh6/4BhaQAYOj6LCc9WGNoF3Ia3@vger.kernel.org
-X-Gm-Message-State: AOJu0YxsAyBV2tJ5umYXcQLog4tEcg7KSy88GRX2IRFs3OXKmVFWGFvR
-	AZJT6HuYiscd5OBMJAZgkY9jSJUr775lKZOcqyYgvCy1XhKqlAOdPTDU
-X-Gm-Gg: AfdE7cnd+Q+uniJUdbo3DaSBd4zIpebE1UvUu5sKuxgqauKKq4SQk2yFuIo9c4NOTAq
-	4V6V9aQrRqbZP2ohUoiIrI24M4q5u6mjay9AdVgJJ/3sJnqWyVekt6yPyFt+oUZdqciJA1iwKvZ
-	UIQDOWHBuV0Mdmv8AbzPfQyFcHOeOouPamMJUJZVDaROq0eY1ML4e0KBETEOGM8bldkxoHhRYoF
-	U09Ys6p3qokfBNMKkiZeSsLK/SQ97sy0IC3oXgVmi769gF3wm2WBhVCi990tmTQmXadlfnnkwyf
-	/NP3l9X9JpfejvX1vD/UCPUDWoA8BoNwloQibPhAa5DfoJzLTpPMst3YFzfj+byajVsavRoUavU
-	IBN8FA+VJko63qKP6WSBzwINgv4acWnAscJIjSGQowgeynnfqzqbndqol9oJqT5sJZWJENwuF4o
-	Xb/16ukFiFgudLyVhINBaZHfehptMY4VskzA==
-X-Received: by 2002:a05:600c:64c5:b0:492:4c2e:9613 with SMTP id 5b1f17b1804b1-493d5e61ff8mr29175395e9.18.1783246282611;
-        Sun, 05 Jul 2026 03:11:22 -0700 (PDT)
+        bh=7UY6T/viKs724YCtcNe87O9J53G3jzdQBIfSFXtvLiY=;
+        b=iDmMY0WGT2aa9w4qwEY3VcY1dIBQR2qH5Sz81nWm+C4PTSahGO6l0gDS8JVdlC5K1C
+         M66h435bleRGc8f3GUxqzdiu6Zl7u9cUq7PDmEe97Lb0tyODaJeprz+a37e/HFVcmM+g
+         k/OIe3F9f824qgYe0c7k2hdD0g4ig+vpSSpc1HLJIri9r3VNRsYw67NweQ/P6SiuLHG/
+         h9A2Lk0Du2hLvP1Z6ivF0xokcPKb8fAdyIYD/tD5SjTNaIslogFgfUAgNmyLt4IZk8us
+         2l/bDorCoj7oWeZzSbMZAPRnQq/PQUOFFOJFffWiJDuuEpNs7i5bu/MEWtFQqwZ8e+8D
+         yj/A==
+X-Forwarded-Encrypted: i=1; AFNElJ/jaBbzA3yRj5XcdxRP+F5/S6wwfDpyDrKtTZK+O/lVPChc8AlufnE3n3h0g0YS365agiuwdGaQaqxX@vger.kernel.org
+X-Gm-Message-State: AOJu0YwAvkRt3nCG+/nT8zBgvYyfgN86oo2lGzGfRYRIiA3LqxzgF+RS
+	bIiZR936+Vf6Do3aUlnYYxhcbBlJB/naYj3HtL5fiiY7cDRttH92fBsS
+X-Gm-Gg: AfdE7cmM4L2/kMYWopAkWdaz2h7yyzg3d6yOYHZuJlpmEZ7Ehdz4LXAMI5s2YMwF2YH
+	4KcX6MUqePERcAj+Talp7O5/tgZntPt5HPM+tn60p1gh1ue2mJQcTPOvnPoMmsQKxZt5umVEY+u
+	aDtFXK0qvMMXkTNLCEL+njhiiEASAxpQNb4QmIZO4qijcCWgMHZ6Xq8l9qLkku1ACHO/evuGDsy
+	d/6UW3wpOskFwuzve4mjAJ9nw/aEP7cuWCS/XUiCHSys4iVJnu7T8CbeSD2K5k6XplUOKxNsHVj
+	XOnE82P0w/nkU01uZKW/pzn8O9+7713hg+oz+VMyMeN7M6aod7KTjC9uMPCaV2U+hkFtk79tVfG
+	xyqbEzaY2Yv7AxJ76AVrQR37AxZjp0fEYyrBYlu5+BSl8KU9nU2Qc1EOvbvM3bn5X2wU0fLqVvx
+	sn3Nwn2fWeIOemq7jSL6rKtQUt5QTUQAsf0g==
+X-Received: by 2002:a05:600c:8b85:b0:493:bcef:5646 with SMTP id 5b1f17b1804b1-493d11db32emr69992255e9.12.1783246284252;
+        Sun, 05 Jul 2026 03:11:24 -0700 (PDT)
 Received: from localhost.localdomain ([95.43.220.235])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-493c637bbcfsm261382715e9.6.2026.07.05.03.11.21
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-493c637bbcfsm261382715e9.6.2026.07.05.03.11.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 05 Jul 2026 03:11:22 -0700 (PDT)
+        Sun, 05 Jul 2026 03:11:23 -0700 (PDT)
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 To: Vinod Koul <vkoul@kernel.org>,
 	Neil Armstrong <neil.armstrong@linaro.org>,
@@ -77,9 +77,9 @@ Cc: linux-phy@lists.infradead.org,
 	linux-omap@vger.kernel.org,
 	linux-gpio@vger.kernel.org,
 	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH v3 1/4] dt-bindings: phy: motorola,cpcap-usb: add chrg_det interrupt
-Date: Sun,  5 Jul 2026 13:11:02 +0300
-Message-Id: <20260705101105.1798069-2-ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH v3 2/4] ARM: dts: ti: cpcap-mapphone: use charger detection interrupt for CPCAP USB PHY
+Date: Sun,  5 Jul 2026 13:11:03 +0300
+Message-Id: <20260705101105.1798069-3-ivo.g.dimitrov.75@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260705101105.1798069-1-ivo.g.dimitrov.75@gmail.com>
 References: <20260705101105.1798069-1-ivo.g.dimitrov.75@gmail.com>
@@ -91,50 +91,36 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The CPCAP USB PHY driver uses the CPCAP charger detection interrupt
-for DCP detection.
+Update the CPCAP USB PHY interrupt mapping to use the charger
+detection interrupt and corresponding "chrg_det" interrupt name.
 
-Update the binding and example DTS to use the corresponding
-"chrg_det" interrupt name.
+This matches the driver and binding updates for DCP detection.
 
 Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 ---
- .../devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml     | 6 ++++--
+ arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi | 6 ++++--
  1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml b/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
-index 0febd04a61f4..523a8f8480d0 100644
---- a/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
-+++ b/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
-@@ -30,6 +30,7 @@ properties:
-       - description: se1 interrupt
-       - description: dm interrupt
-       - description: dp interrupt
-+      - description: charger detection interrupt
- 
-   interrupt-names:
-     description: Interrupt names
-@@ -43,6 +44,7 @@ properties:
-       - const: se1
-       - const: dm
-       - const: dp
-+      - const: chrg_det
- 
-   io-channels:
-     description: IIO ADC channels used by the USB PHY
-@@ -91,10 +93,10 @@ examples:
-         interrupts-extended = <
-             &cpcap 15 0 &cpcap 14 0 &cpcap 28 0 &cpcap 19 0
-             &cpcap 18 0 &cpcap 17 0 &cpcap 16 0 &cpcap 49 0
--            &cpcap 48 1
-+            &cpcap 48 1 &cpcap 13 0
-         >;
-         interrupt-names = "id_ground", "id_float", "se0conn", "vbusvld",
--                          "sessvld", "sessend", "se1", "dm", "dp";
-+                          "sessvld", "sessend", "se1", "dm", "dp", "chrg_det";
-         io-channels = <&cpcap_adc 2>, <&cpcap_adc 7>;
-         io-channel-names = "vbus", "id";
-         vusb-supply = <&vusb>;
+diff --git a/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi
+index 6b1195c2a768..51a858021541 100644
+--- a/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi
++++ b/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi
+@@ -125,11 +125,13 @@ cpcap_usb2_phy: phy {
+ 			interrupts-extended =
+ 				<&cpcap 15 0>, <&cpcap 14 0>, <&cpcap 28 0>,
+ 				<&cpcap 19 0>, <&cpcap 18 0>, <&cpcap 17 0>,
+-				<&cpcap 16 0>, <&cpcap 49 0>, <&cpcap 48 0>;
++				<&cpcap 16 0>, <&cpcap 49 0>, <&cpcap 48 0>,
++				<&cpcap 13 0>;
+ 			interrupt-names =
+ 				"id_ground", "id_float", "se0conn",
+ 				"vbusvld", "sessvld", "sessend",
+-				"se1", "dm", "dp";
++				"se1", "dm", "dp",
++				"chrg_det";
+ 			mode-gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>,
+ 				     <&gpio1 0 GPIO_ACTIVE_HIGH>;
+ 			io-channels = <&cpcap_adc 2>, <&cpcap_adc 7>;
 -- 
 2.39.5
 
