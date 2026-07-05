@@ -1,88 +1,73 @@
-Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
+Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 170EF3672A9
-	for <linux-omap@vger.kernel.org>; Sun,  5 Jul 2026 07:58:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FCA236492C
+	for <linux-omap@vger.kernel.org>; Sun,  5 Jul 2026 09:14:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783238332; cv=none; b=EZAmNPv0FDBJwLQ2Rc/abvkUx/+hKVM3Vl5JXUn9fZZlxzpghX74212ZpS1V4fy176vf7z/LK7K4d7jsWhfwlN1UidhatrABxJe9mSl4MCm5VLUQjY/0ZGoBcWCb1xXfDyMUPUw0hUU7hsxbFblMRvXkxnTLIsEqbha/vLs7FtQ=
+	t=1783242872; cv=none; b=tYLBAZ/YzRumde7HPagY0As1mBxo1PDH4FYBPOYascRMDK1K1EpUgSHkMN+yGdpVbaqzexU8vW5tgJse+Sm5Xsi8Qpp05ate4ygbd4lUQskyy0tWVtEUXC2jtkKoqpkTdD6nRmqyDmwNzAx45LoE72F7ceCnpedKRgtG9kkz8lU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783238332; c=relaxed/simple;
-	bh=qt6ETH0PLZPEtdrN7zLYk2gemtuPga9vD/OeXKZZEtQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=g/3pUtCVudegaKibHX6CtRQgtEwk/S3YSWXu5yqYX1FzmZ1P/zPgrp/G6wFgKnEqwZVQ675SF0ihRUKkib7MaacsEqgipDNMiKLfNJwArjm2iX3RUbD0nj2ZAhoOqLwOc7axQvBqauyK2+y/uU0R9FxTWu4csBt9uRa6rBvNJEE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PpbPwnuB; arc=none smtp.client-ip=209.85.128.47
+	s=arc-20240116; t=1783242872; c=relaxed/simple;
+	bh=97MuJ7f+ic8uPc7AIBf0dHxydppiGKw022sKqKsKEgk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lSXh0pCefu0a+qs4KmLYzATEN/S9iMVgbM/7FC4Ga+12Ct34plMYz7oriQ7s7tJlXssi1HzGa2mt8i1BSVBpSbwPHIzQZ74NSUQcDJTiRzGq2IbCNAZBvPhYAR7AstNyTJSJw6INyoYCKUdmfewAXAj3QIcAGF/JXO6pc/qnS3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DM+rijJy; arc=none smtp.client-ip=209.85.214.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PpbPwnuB"
-Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-493c52cde9eso20245485e9.3
-        for <linux-omap@vger.kernel.org>; Sun, 05 Jul 2026 00:58:49 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DM+rijJy"
+Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2caea3f742bso23743235ad.0
+        for <linux-omap@vger.kernel.org>; Sun, 05 Jul 2026 02:14:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783238328; x=1783843128; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ZByqymHXsan4FAIX/tL67BkYQ4wx58LlUk2KuZbE1aE=;
-        b=PpbPwnuBFHF5zzfTMXn2nxU4+es1AKBQtL7pVEQEvZgnRqJEGO7XC4gjQBh3w4TK6R
-         paUzL+PZqHmFGXFf9Ca/TTgMLsC+zl6KvtJVwyzv8Hi+6VQ4aqeSy3FFaBwz4Sd73pT2
-         2krXdq4x2tenglxRFNz4eJYD/+fDhEjd2IiTn/FNSgmcKOr2qX9vb85Kwo8q9U7pF+bd
-         fXY8yL5bDntTwIr+cGlADwR1rs+MqJAQSCfnx/qJVGTwA+smIE1ZosPFII3/lrPOWw/V
-         m9vtFzg6Wv1wUspuFtSgmErlRdZkNggSb6iweTbxIGZaAqX5tnUomboEOKrkAxXoWPlZ
-         4pig==
+        d=gmail.com; s=20251104; t=1783242870; x=1783847670; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=z1NsTEE3ehjkH33SSz+73WgxvLlmUtSGRdlF6FJ50lg=;
+        b=DM+rijJyyFfaYhMRcpzKdI6NXNquCtl9zzsjRlIbhrtdcVF53kqJK0MGZ4+We+byAk
+         KvWJvWMytE3Cj05GLLwAxOtAOmJrmWeQdubwStwTOgXU/KWjsDC7H6xCL28CQOgOf8u4
+         zIRkiL1KbATkZ7U+PwyX+as+y9IYD3C0cEdMFggLqZCauXd9NOCfx+QTwXW0kO7dQLDa
+         hDd4WnlWMc9LvjGdQj/WHP7xlgSIR+ey97My0iLPf0dXYj7yKGy3ZM+pol8Nkk2H9Ha3
+         8vOYNKfPSaOlqVwyYaHQXv5vfVmwU81/u0QqPWbBUqmRRMk183MjykDDLLBpbax2xG0H
+         gkMQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783238328; x=1783843128;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=ZByqymHXsan4FAIX/tL67BkYQ4wx58LlUk2KuZbE1aE=;
-        b=Sowgk/aEZH3U7rsSrlOVhvXeUMjipon/m7Q0lktQzebE6aco0XrX3Z6mHDmIPqdxyA
-         I6H1kZGpm2w+R1IJj7M+AWAsFjorfWAEi9hi5xyaIvh3oTKFLKYgJmrkw1eT+wGNGylr
-         q0oOxS5fBbje0/fCk+aaFsdzEx9JQtVuNxutW9FrKacB4CWcW4sCOf3zVF2FyHr4N1zq
-         NRGBfACv2i+BlZL0G4Ejzacx1Q+ZUlEmb4jVbMc7vykDK5mzMYHE32y/r2BdIqIhZL4z
-         Q3JX9tqT6J3yCKUVn/hnLNN/xripxQymjPNeTOtS6E7Z/cWubdf6HBCyhLWliYexMyMx
-         F8gQ==
-X-Forwarded-Encrypted: i=1; AFNElJ+J3W6icAuZvtOyitypABqThSffv47DN7bRwif9+SM31sRfnpY9v7dsysRi4bpKJT9dcYKfoPRzTWjB@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyyx8v8nm7vi+WaFSFSkK32RFaPfigSzz+peAgmZnhoLYC+zq9e
-	9z6JcvE1CQ/zW90QZ9XHjCRwz+NZJkkhhiQvL6JffwtO2aKomM8yC54N
-X-Gm-Gg: AfdE7cna4/7V9qgSI7tHKAjawiMJOpV0PpNlI+lY47MXe85OGWFywLcPMfaGRaOS46U
-	oetep2JaBotbY9QAuNIKk3YtJKKW+LMldCSOmWtAbg7G30Gs0TIPiLL87k1/2aWx4wvOpP9EP2O
-	fMsKo6n0h8ShwYvxS1PsWlpcRal/ZJxu+R+qEi1B277msTPMXDnsMBOXnvrOLGu6v0HdR2J86I5
-	k/mBCpDPCCQbjZev+ZbQBhReDIwokCA7C+kwmiDqPsPEtXQPr1ZLsGeYsEt1+fVQWXS619uwqbO
-	PEfKADneA1rn3DZ8JEYjZTABN567mTx3HjzPp9uTHXjBFdlff/uzpFtIH7Ff07HpBAKnHME21u5
-	TLUKVQVSK16A0zuKdsPm87936C1YykFnH+iXJgDULbrOaxxxd3ujkKX5epvblPzbp/7ZivL8jGj
-	ClZC+EJ5E7CG02WBwbbJSix2LAxkx8ldY1jQ==
-X-Received: by 2002:a05:600c:8208:b0:493:d216:ed8a with SMTP id 5b1f17b1804b1-493d216ef2amr57217655e9.16.1783238328308;
-        Sun, 05 Jul 2026 00:58:48 -0700 (PDT)
-Received: from localhost.localdomain ([95.43.220.235])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-493c63bfba1sm305769765e9.15.2026.07.05.00.58.46
+        d=1e100.net; s=20251104; t=1783242870; x=1783847670;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=z1NsTEE3ehjkH33SSz+73WgxvLlmUtSGRdlF6FJ50lg=;
+        b=f7rm6xiPblIxgrF3Ofy6T612QWQQF1wx+JgyoNsdjXjqikly7dkJDapSX4o7tO6uUy
+         l/wfGHsPYXNHeVlNk4gHZuKbJdsFFbAPFw+3qHnIs3VItRRke/ezyRuG7dsce+uvhLea
+         2G4IDV6iVcdJ1ZVU/GDC5ZaWHb+j29K2dsH+3SuPrQS5OYoPXg11RP+yfPXw0nXpF7Z5
+         IYnswCwvWCA2+ASliMhAdvs3wc3MJmsPDgA5fYWsxLBLhkyCAEqe2IQxxn69C+LLf72S
+         VEmxEOGvH4pQkxwojjCZocw5yOT4oaA0cH73nIqMDgKLfa0BlyITaSJIzD2u6qZGXgP3
+         0V/w==
+X-Forwarded-Encrypted: i=1; AHgh+RpY84gBp6l8aO6ErYi3wGzPMFTrGr9Ds7sYiIzVOXmWIunablkdY1rHI9frBigsnlo3Cr1dia0Beiyg@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy86hs/k0ztn50Z3Q/YXO8Ed3jkKeDEmynrusQeDcTI1k2w07zq
+	5lUO1eOdnB088BUrnb7nvJQigorjxEpdB+60vWvtMeUL5tre9wY1KcN+
+X-Gm-Gg: AfdE7cmCJxOqjpRxDp6MhYACBYQtQYFGEr0GHqRTArDvRHfNxDMyGenrYzhJjoWj7jU
+	zxuXC/f+0e3MfCumBG7oq9Ls1e0k/TFrHagbKGgrO0J0EtzyFfabAKFFFs0PzHz8eQ/P6dx7BUC
+	nRTVTpFzMTA5+fa5V1AAgT2Nn9Y+w56NF8upMczwQ17J4DkIgigoX3gor3evq+PY5NaFY6+iy32
+	K7kaBhNBMs5tVhtNzqoJHq3xZ/ZrcItGcX1vSzSaH0fAUgfVPIabDQFdcbT56LOSy3R9bLCq2We
+	ck58mUIN4OhM/qUySaM/0AsHdoAoSgBJkYbmyctdx+ZTuyJNOVqqGay39oI0d3ttY7v8A5MPrUv
+	75BFjF2m+ROgtJUc4HkRNYHiop4UwRGO5Mn8P/8T5idetp0zCnPINTNZLiQa0Oor1C/iNokoFLN
+	SXvF43P+hRZRu8NQ==
+X-Received: by 2002:a17:903:120e:b0:2c9:97a8:8c17 with SMTP id d9443c01a7336-2cbb9ee3835mr58177745ad.42.1783242870253;
+        Sun, 05 Jul 2026 02:14:30 -0700 (PDT)
+Received: from lgs.. ([152.32.214.178])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cad712706esm32368965ad.20.2026.07.05.02.14.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 05 Jul 2026 00:58:47 -0700 (PDT)
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: Vinod Koul <vkoul@kernel.org>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>
-Cc: linux-phy@lists.infradead.org,
-	devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
+        Sun, 05 Jul 2026 02:14:29 -0700 (PDT)
+From: Guangshuo Li <lgs201920130244@gmail.com>
+To: Bin Liu <b-liu@ti.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Wentao Liang <vulab@iscas.ac.cn>,
+	linux-usb@vger.kernel.org,
 	linux-omap@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH v2 5/5] phy: cpcap-usb: add extcon support
-Date: Sun,  5 Jul 2026 10:58:09 +0300
-Message-Id: <20260705075809.1793784-6-ivo.g.dimitrov.75@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20260705075809.1793784-1-ivo.g.dimitrov.75@gmail.com>
-References: <20260705075809.1793784-1-ivo.g.dimitrov.75@gmail.com>
+	linux-kernel@vger.kernel.org
+Cc: Guangshuo Li <lgs201920130244@gmail.com>
+Subject: [PATCH] usb: musb: omap2430: Do not put borrowed of_node in probe
+Date: Sun,  5 Jul 2026 17:14:11 +0800
+Message-ID: <20260705091411.282560-1-lgs201920130244@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -91,160 +76,44 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Register an Extcon device and report the detected cable state.
+omap2430_probe() stores pdev->dev.of_node in a local np variable. This is
+a borrowed pointer and the probe function does not take a reference to
+it.
 
-The driver already determines the type of cable attached during USB cable
-detection. Export the detected state through the Extcon framework so
-other drivers can consume it using a standard kernel interface.
+The success and error paths nevertheless call of_node_put(np). This drops
+a reference that is owned by the platform device, and can leave
+pdev->dev.of_node with an unbalanced reference count.
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Do not put the borrowed platform device node from omap2430_probe().
+References taken for the child MUSB device are handled by the device core,
+and the ctrl-module phandle reference is still released separately.
+
+Fixes: e194ce048f5a ("usb: musb: omap2430: Fix use-after-free in omap2430_probe()")
+Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
 ---
- drivers/phy/motorola/phy-cpcap-usb.c | 69 ++++++++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+ drivers/usb/musb/omap2430.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/phy/motorola/phy-cpcap-usb.c b/drivers/phy/motorola/phy-cpcap-usb.c
-index e776e54bbfd5..f1f2fe818324 100644
---- a/drivers/phy/motorola/phy-cpcap-usb.c
-+++ b/drivers/phy/motorola/phy-cpcap-usb.c
-@@ -12,6 +12,7 @@
- #include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/err.h>
-+#include <linux/extcon-provider.h>
- #include <linux/io.h>
- #include <linux/module.h>
- #include <linux/of.h>
-@@ -124,6 +125,7 @@ struct cpcap_phy_ddata {
- 	struct regmap *reg;
- 	struct device *dev;
- 	struct usb_phy phy;
-+	struct extcon_dev *edev;
- 	struct delayed_work detect_work;
- 	struct pinctrl *pins;
- 	struct pinctrl_state *pins_ulpi;
-@@ -135,12 +137,23 @@ struct cpcap_phy_ddata {
- 	struct regulator *vusb;
- 	atomic_t active;
- 	enum cpcap_mode mode;
-+	int cable;
- };
- 
- static bool cpcap_enable_uart;
- module_param_named(enable_uart, cpcap_enable_uart, bool, 0644);
- MODULE_PARM_DESC(enable_uart,
- 		 "Enable UART on the USB connector while idle (increases power consumption)");
-+
-+/* List of detectable cables */
-+static const unsigned int cpcap_extcon_cables[] = {
-+	EXTCON_USB,
-+	EXTCON_USB_HOST,
-+	EXTCON_CHG_USB_SDP,
-+	EXTCON_CHG_USB_DCP,
-+	EXTCON_NONE,
-+};
-+
- static bool cpcap_usb_vbus_valid(struct cpcap_phy_ddata *ddata)
- {
- 	int error, value = 0;
-@@ -227,6 +240,46 @@ static void cpcap_usb_try_musb_mailbox(struct cpcap_phy_ddata *ddata,
- 		__func__, error);
- }
- 
-+static void cpcap_usb_set_extcon(struct cpcap_phy_ddata *ddata)
-+{
-+	int cable;
-+
-+	switch (ddata->mode) {
-+	case CPCAP_CHARGER:
-+		cable = EXTCON_CHG_USB_DCP;
-+		break;
-+	case CPCAP_USB:
-+		cable = EXTCON_CHG_USB_SDP;
-+		break;
-+	case CPCAP_USB_HOST:
-+	case CPCAP_DOCK:
-+		cable = EXTCON_USB_HOST;
-+		break;
-+	case CPCAP_IDLE:
-+		cable = EXTCON_NONE;
-+		break;
-+	case CPCAP_UNKNOWN:
-+		dev_warn_once(ddata->dev, "called with unknown PHY mode\n");
-+		return;
-+	}
-+
-+	if (cable == ddata->cable)
-+		return;
-+
-+	if (ddata->cable == EXTCON_CHG_USB_SDP)
-+		extcon_set_state_sync(ddata->edev, EXTCON_USB, false);
-+	else if (cable == EXTCON_CHG_USB_SDP)
-+		extcon_set_state_sync(ddata->edev, EXTCON_USB, true);
-+
-+	if (ddata->cable != EXTCON_NONE)
-+		extcon_set_state_sync(ddata->edev, ddata->cable, false);
-+
-+	if (cable != EXTCON_NONE)
-+		extcon_set_state_sync(ddata->edev, cable, true);
-+
-+	ddata->cable = cable;
-+}
-+
- static void cpcap_usb_detect(struct work_struct *work)
- {
- 	struct cpcap_phy_ddata *ddata;
-@@ -276,6 +329,7 @@ static void cpcap_usb_detect(struct work_struct *work)
- 
- 		ddata->mode = CPCAP_DOCK;
- 		cpcap_usb_try_musb_mailbox(ddata, MUSB_ID_GROUND);
-+		cpcap_usb_set_extcon(ddata);
- 
- 		/*
- 		 * Force check state again after musb has reoriented,
-@@ -304,6 +358,7 @@ static void cpcap_usb_detect(struct work_struct *work)
- 
- 		ddata->mode = CPCAP_USB_HOST;
- 		cpcap_usb_try_musb_mailbox(ddata, MUSB_ID_GROUND);
-+		cpcap_usb_set_extcon(ddata);
- 
- 		return;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 333ab79f0ca9..6e749faac33c 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -454,7 +454,6 @@ static int omap2430_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "failed to register musb device\n");
+ 		goto err_disable_rpm;
  	}
-@@ -345,6 +400,8 @@ static void cpcap_usb_detect(struct work_struct *work)
- 		if (ddata->mode == CPCAP_USB)
- 			cpcap_usb_try_musb_mailbox(ddata, MUSB_VBUS_VALID);
+-	of_node_put(np);
  
-+		cpcap_usb_set_extcon(ddata);
-+
- 		return;
- 	}
+ 	return 0;
  
-@@ -357,6 +414,7 @@ static void cpcap_usb_detect(struct work_struct *work)
+@@ -464,7 +463,6 @@ static int omap2430_probe(struct platform_device *pdev)
+ 	if (!IS_ERR(glue->control_otghs))
+ 		put_device(glue->control_otghs);
+ err_put_musb:
+-	of_node_put(np);
+ 	platform_device_put(musb);
  
- 	ddata->mode = CPCAP_IDLE;
- 	cpcap_usb_try_musb_mailbox(ddata, MUSB_VBUS_OFF);
-+	cpcap_usb_set_extcon(ddata);
- 
- 	return;
- 
-@@ -785,7 +843,18 @@ static int cpcap_usb_phy_probe(struct platform_device *pdev)
- 	if (!otg)
- 		return -ENOMEM;
- 
-+	ddata->edev = devm_extcon_dev_allocate(&pdev->dev, cpcap_extcon_cables);
-+	if (IS_ERR(ddata->edev)) {
-+		return dev_err_probe(&pdev->dev, PTR_ERR(ddata->edev),
-+				     "failed to allocate extcon device\n");
-+	}
-+
-+	error = devm_extcon_dev_register(&pdev->dev, ddata->edev);
-+	if (error < 0)
-+		return error;
-+
- 	ddata->mode = CPCAP_UNKNOWN;
-+	ddata->cable = EXTCON_NONE;
- 	ddata->dev = &pdev->dev;
- 	ddata->phy.dev = ddata->dev;
- 	ddata->phy.label = "cpcap_usb_phy";
+ 	return ret;
 -- 
-2.39.5
+2.43.0
 
