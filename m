@@ -1,144 +1,118 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A1B137C11E;
-	Mon,  6 Jul 2026 17:15:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF06113A86C
+	for <linux-omap@vger.kernel.org>; Mon,  6 Jul 2026 17:16:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783358103; cv=none; b=C/5e1SBWRv4DhC6sANmdhPKZe9DeGrBUA61uSzqj6FbDUKVwMOxbVS7uKnqaIGXphzIqVK4iDZ/bDhYXgbnMBv9NLGEQNunjYhNhH/VRFvRE15Dsk1QQwoUJxIVdyVIUj40W781vnVDBFFuG6os+2QYKN5kKvCJFyBHbhXF4G0I=
+	t=1783358207; cv=none; b=WB+DgqQX1snjMr4Ati/iLM8FFLo6TTBzaKHujdhq+m+WdOUamr8cSlfERa4d3A7Lju7D/Czo+xPSZgCyNignkf74z4EgQONEzSU9/g+suspDJYx3ubRTt3Ahxj8wSHQzDw7MXCiacIvfZLB6GTrrc2N4FZWn7U0Yc5pfidhA+1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783358103; c=relaxed/simple;
-	bh=Cyrg0grsaRMPFMVwBK5PCRBknfGqtG3jJSiGJhjJh10=;
+	s=arc-20240116; t=1783358207; c=relaxed/simple;
+	bh=IkPAsQFWKMi0Ay6Ry3S3gT4vAm5wqkrZAM4RTAHMCSQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pBvUM7zHwdpaZQe+DCYR2pZRNgHqDdXmT3w1RP2UmBCiK5c7iMuCh5/fcJeptWyI3pCqMpFdEJ4uC9rTEfW5o4BFvXIlMDdlERuL5KkzSCluZSQITmu4rxK09IrAY5NRG2j1tLClnc3wnkHYEKLFV1nFUiq+xOWgT7lhJq3i3Wk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VJFrGpJJ; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=co8D6V1bMyciuKYkzAwgkDqgou7l3PeR4jCP8TIbe9nC/4roiRXXwvQi/xqmaecREXRaDZkLsENFnpkwzQ76AumNO9Z6MA+Wh7jgWoeYtDQV2i5BIrme8dXSfQuUx9XngWtsrIXjHTKb6jyxFPu+QhWRMomvBmk4evBfL7gLqAE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=CN/0sMYF; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=krRzD2PS; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VJFrGpJJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69C1D1F000E9;
-	Mon,  6 Jul 2026 17:14:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783358101;
-	bh=FLCkRFY/xZawZM4IfpyQEQBqFJQifdjTe2UFwHN+pbw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=VJFrGpJJi0WdJNBZtw4v4b+k6Zqo9dKSW5u3hd7vNaqe7DRoSA3roX+lo8tzwWPFZ
-	 K1TViY4xZvQQiOF8+PF4HjiGkJfplG5LjYwmIzsFKVRG+XxlGYomGz5Vkwq95amvdx
-	 4zKPi5OQvVVaTlisaZtCHrIUvXLxnkqOzbxAnmv8h9TVZgfseJbA5cDFYpTDEV+ySc
-	 5VBBboakFE94TO9Hs6IKFdMnD6xRpVR7ac94ZnKkZ1pzArVTbiuCwyb/j5aliMrWeY
-	 b7Zsl7te9dxAspf/EMLA7iwGhksS8dopDR+/KyNe1c+kH8K7eK3tQ/NojTG/Iq6BMT
-	 7oMlJvppDzAnQ==
-Date: Mon, 6 Jul 2026 18:14:56 +0100
-From: Conor Dooley <conor@kernel.org>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Vinod Koul <vkoul@kernel.org>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	linux-phy@lists.infradead.org, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v3 1/4] dt-bindings: phy: motorola,cpcap-usb: add
- chrg_det interrupt
-Message-ID: <20260706-visitor-calorie-b805ac5af970@spud>
-References: <20260705101105.1798069-1-ivo.g.dimitrov.75@gmail.com>
- <20260705101105.1798069-2-ivo.g.dimitrov.75@gmail.com>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="CN/0sMYF";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="krRzD2PS"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1783358205;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ucP00vuSVgg389id6t/z181QkBlpSQnaQFPI67Zm964=;
+	b=CN/0sMYFxb1WRatxA+uze9Acjf1VM/adVcZg+hUx8sOpq880D043gEREVrZPW1TIryqDwY
+	41ZUJEqWWMrxVebRRvQRBARIxkfztz3kl6GTJtuFQALFDsyH1POQ4YkFty0GdPEhZATx1F
+	1er5GZ2yCR5JKRrHQ8HN7Sw+NtntWwI=
+Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com
+ [209.85.160.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-348-d6NVDMMwNVW9phmZzbD-1Q-1; Mon, 06 Jul 2026 13:16:43 -0400
+X-MC-Unique: d6NVDMMwNVW9phmZzbD-1Q-1
+X-Mimecast-MFC-AGG-ID: d6NVDMMwNVW9phmZzbD-1Q_1783358203
+Received: by mail-qt1-f199.google.com with SMTP id d75a77b69052e-51c1c7f135bso61496811cf.0
+        for <linux-omap@vger.kernel.org>; Mon, 06 Jul 2026 10:16:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1783358203; x=1783963003; darn=vger.kernel.org;
+        h=user-agent:in-reply-to:content-disposition:content-type
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=ucP00vuSVgg389id6t/z181QkBlpSQnaQFPI67Zm964=;
+        b=krRzD2PSBQzcT2nokR1zS1jq5b2X+kxwEJREZ5pZo+f8UGCrLvhzW2mfnj5tbAr7qa
+         850VqXQV0vf0XRoxYlnfT7gP8uYHj4/J/72IgTVb2p+SCrAbiV8LMbm1EKbb+IK+KvbW
+         g0LtfwlxTerIIqDRQyhjgb37wc1jX3wYEsyh12xK7XTNy/Mj7wGDWfHfg2Udms1ZPMGP
+         qFI7J/CIxQM5gl8U727lYrZOM/mgGh/NRKSXxwJUFdvGPFVbxEPZ3ABTvak7CFCgq9y0
+         6cHADAr3nDAYPHe5ql+a14tlgsWPlCA2aHuOa0XASPSFLl8aRv7JiHPA1xDInQY5xkvF
+         Lr0w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783358203; x=1783963003;
+        h=user-agent:in-reply-to:content-disposition:content-type
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ucP00vuSVgg389id6t/z181QkBlpSQnaQFPI67Zm964=;
+        b=LVaf4lzA3bVevCikrv+G9Hhtbvl4ovKmT4L4HvTs5VLwHy2Q/LGVfi5gC713fvcGYQ
+         fYbR+aBgnlzvrNr/0s9I7//Kw7qbzrx8qUBdvEhGO5j2ai+G8JOhOoPFhpJzoOB6Eg+A
+         QpMvIwKtrcuQj6mFlHrJ7GPFPG4j2Ygu9r1e9ip205fU7TremKv2LznV/orbcEJ1EUgq
+         eM0p0Q49EltuhxvR235az0Jw7GkgmAJSlj4IedFkwf+/vG7YLnN9QVB7Hk6eub3F55ef
+         edhIshD1MSD/hkUfoqNkRG1adW+ajkBONHwomZPuru+1Lp5Nw2HTitC/pr0GvpalqWQ3
+         xz/Q==
+X-Forwarded-Encrypted: i=1; AHgh+Ro4buXJTE8rR9uRC8Anm1wEd8GsbAXyVJ3z5tjRINp2Wz+es3p8BalhepdLvLNVuUOiIeozGe/J8Sch@vger.kernel.org
+X-Gm-Message-State: AOJu0YyDEv4fk+vJsEw4KZ6GqgwYEaiNctsdFZ5nQbZ9gLDC0Eqmg7nI
+	potr2vFMEq2omyS+wRp9dUWUyZpU8vqIK8o9LkfC4TzP1kln9o9Wwqc1jnVtHmUnBI4xL4h/R+i
+	Q5hJxoS7a+ZcYbsMZX7GpaSrCHSsWDwnWGlR9ge8++EnN5L7vGePUR7VMZbWrUaw=
+X-Gm-Gg: AfdE7ckcvAicr4Hh067xsLXhiP2hQn2vMGss28fNXwSW13nrXrzBDIZeMScwSEHC3dt
+	hr47eiEElbFxsGiXqWwzJ3j4WsCYnhJvHQLk47ml88Uob91WPjOUw2W1bOaLQcqj/ASowM9WTLc
+	vzu+IgTcWcCWrVDUsujcv92BZ3Q+H7WCXGWzIea9QBVVN85eYuS4tcmPQ4bcbV7JywMoW/VmjDY
+	9gu0MHjf1wN4c5RMicG0AbJ/XWbUhP2bKF5OItOXhFoIqUSeeVkrYPJ/4SHp/MIL7l2uiFC0wf9
+	Ybn6fV5AGt3Qdx2EwIJbRzJmxWZEy5MMemydfLgJ6tSF9XRsvpL6ZPmQcDn+PlE6dhT6tUwznRX
+	WSUhpuejUijo4U86EyDKN785k9nGn8dLCHSvm6xz1QU1PFQ==
+X-Received: by 2002:ac8:5a15:0:b0:517:90d2:598b with SMTP id d75a77b69052e-51c7487fe16mr17439131cf.39.1783358203376;
+        Mon, 06 Jul 2026 10:16:43 -0700 (PDT)
+X-Received: by 2002:ac8:5a15:0:b0:517:90d2:598b with SMTP id d75a77b69052e-51c7487fe16mr17438771cf.39.1783358202925;
+        Mon, 06 Jul 2026 10:16:42 -0700 (PDT)
+Received: from redhat.com (c-73-183-53-213.hsd1.pa.comcast.net. [73.183.53.213])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51c41b19a66sm93193941cf.7.2026.07.06.10.16.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 06 Jul 2026 10:16:42 -0700 (PDT)
+Date: Mon, 6 Jul 2026 13:16:40 -0400
+From: Brian Masney <bmasney@redhat.com>
+To: Myeonghun Pak <mhun512@gmail.com>
+Cc: Tero Kristo <kristo@kernel.org>,
+	Michael Turquette <mturquette@baylibre.com>,
+	Stephen Boyd <sboyd@kernel.org>, linux-omap@vger.kernel.org,
+	linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Ijae Kim <ae878000@gmail.com>
+Subject: Re: [PATCH] clk: ti: adpll: unregister OF clock provider on remove
+Message-ID: <akvi-LCvVYYH2r6P@redhat.com>
+References: <20260626094134.71961-1-mhun512@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="EHPotJN9Y/7sp6ZZ"
-Content-Disposition: inline
-In-Reply-To: <20260705101105.1798069-2-ivo.g.dimitrov.75@gmail.com>
-
---EHPotJN9Y/7sp6ZZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20260626094134.71961-1-mhun512@gmail.com>
+User-Agent: Mutt/2.3.2 (2026-04-26)
 
-On Sun, Jul 05, 2026 at 01:11:02PM +0300, Ivaylo Dimitrov wrote:
-> The CPCAP USB PHY driver uses the CPCAP charger detection interrupt
-> for DCP detection.
+On Fri, Jun 26, 2026 at 06:41:26PM +0900, Myeonghun Pak wrote:
+> ti_adpll_probe() registers the driver's onecell clock provider with
+> of_clk_add_provider().  The remove path only frees the clock resources,
+> leaving the provider registered after the backing data has been torn
+> down.
+> 
+> Unregister the OF clock provider before freeing the ADPLL resources so
+> the provider no longer points at released driver data after device
+> removal.
+> 
+> Fixes: 21330497f303 ("clk: ti: Add support for dm814x ADPLL")
+> Co-developed-by: Ijae Kim <ae878000@gmail.com>
+> Signed-off-by: Ijae Kim <ae878000@gmail.com>
+> Signed-off-by: Myeonghun Pak <mhun512@gmail.com>
 
-This is not currently true, the driver does not look for this interrupt
-at the time of this patch.
+Reviewed-by: Brian Masney <bmasney@redhat.com>
 
-> Update the binding and example DTS to use the corresponding
-> "chrg_det" interrupt name.
-
-Sounds to me like this new interrupt is optional, since until now it has
-not been needed? The patch however makes it mandatory. I think your
-driver patch also makes it mandatory, which will break older
-devicetrees.
-
-What makes this ABI break okay?
-
-Thanks,
-Conor.
-
->=20
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> ---
->  .../devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml     | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy=
-=2Eyaml b/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
-> index 0febd04a61f4..523a8f8480d0 100644
-> --- a/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
-> +++ b/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
-> @@ -30,6 +30,7 @@ properties:
->        - description: se1 interrupt
->        - description: dm interrupt
->        - description: dp interrupt
-> +      - description: charger detection interrupt
-> =20
->    interrupt-names:
->      description: Interrupt names
-> @@ -43,6 +44,7 @@ properties:
->        - const: se1
->        - const: dm
->        - const: dp
-> +      - const: chrg_det
-> =20
->    io-channels:
->      description: IIO ADC channels used by the USB PHY
-> @@ -91,10 +93,10 @@ examples:
->          interrupts-extended =3D <
->              &cpcap 15 0 &cpcap 14 0 &cpcap 28 0 &cpcap 19 0
->              &cpcap 18 0 &cpcap 17 0 &cpcap 16 0 &cpcap 49 0
-> -            &cpcap 48 1
-> +            &cpcap 48 1 &cpcap 13 0
->          >;
->          interrupt-names =3D "id_ground", "id_float", "se0conn", "vbusvld=
-",
-> -                          "sessvld", "sessend", "se1", "dm", "dp";
-> +                          "sessvld", "sessend", "se1", "dm", "dp", "chrg=
-_det";
->          io-channels =3D <&cpcap_adc 2>, <&cpcap_adc 7>;
->          io-channel-names =3D "vbus", "id";
->          vusb-supply =3D <&vusb>;
-> --=20
-> 2.39.5
->=20
-
---EHPotJN9Y/7sp6ZZ
-Content-Type: application/pgp-signature; name=signature.asc
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCakvikAAKCRB4tDGHoIJi
-0v+aAP9LtdSSmr/h68scZGIFlgV6ysH5j3UmXqH1E2gDLiQUNwEA3nVaHeU2gU7A
-6DvEFs8Okg6Y6JMPXLUM2uDUSeiDOwY=
-=kZwB
------END PGP SIGNATURE-----
-
---EHPotJN9Y/7sp6ZZ--
