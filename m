@@ -1,118 +1,173 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF06113A86C
-	for <linux-omap@vger.kernel.org>; Mon,  6 Jul 2026 17:16:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 729C6420E78
+	for <linux-omap@vger.kernel.org>; Mon,  6 Jul 2026 21:26:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783358207; cv=none; b=WB+DgqQX1snjMr4Ati/iLM8FFLo6TTBzaKHujdhq+m+WdOUamr8cSlfERa4d3A7Lju7D/Czo+xPSZgCyNignkf74z4EgQONEzSU9/g+suspDJYx3ubRTt3Ahxj8wSHQzDw7MXCiacIvfZLB6GTrrc2N4FZWn7U0Yc5pfidhA+1c=
+	t=1783373164; cv=none; b=riM7yh3aoIJQZefMBnu5X5ZXn4LE3VCsau0XUbTIdDWM/csoocc4N6oAALr7lEEy/3VHmJfzlE3xMssPKe3SMJWtxaBAfGDjTEPNWH3YvVXyrlIbXxfq/iIxN5EbnbR6mEtVR7Dwxbj1KQaxeZj09xz3pK+RPrn7EnG0pgvuULc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783358207; c=relaxed/simple;
-	bh=IkPAsQFWKMi0Ay6Ry3S3gT4vAm5wqkrZAM4RTAHMCSQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=co8D6V1bMyciuKYkzAwgkDqgou7l3PeR4jCP8TIbe9nC/4roiRXXwvQi/xqmaecREXRaDZkLsENFnpkwzQ76AumNO9Z6MA+Wh7jgWoeYtDQV2i5BIrme8dXSfQuUx9XngWtsrIXjHTKb6jyxFPu+QhWRMomvBmk4evBfL7gLqAE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=CN/0sMYF; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=krRzD2PS; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1783373164; c=relaxed/simple;
+	bh=GHu8E+ZzIjl1pCy9QBxel1fS5I4F/Qa4IkmUrQYcut0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=HYUr6WtIBI8XGDbQy/AWE/Up7/XZMfPNyJjPCmzPJp9hFNsbS1/bOFKzL5hnh48ZT/kTRJkw/f1M32q3KXxfMlf/46aU7a0GjuOYL+perEeqzGBaJrCELczRx+evHMHodIWErVmaBR+bVGMtpyWy/e+Myagi/6mLQL783hsX9yw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=r017DZ2y; arc=none smtp.client-ip=209.85.128.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="CN/0sMYF";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="krRzD2PS"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1783358205;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ucP00vuSVgg389id6t/z181QkBlpSQnaQFPI67Zm964=;
-	b=CN/0sMYFxb1WRatxA+uze9Acjf1VM/adVcZg+hUx8sOpq880D043gEREVrZPW1TIryqDwY
-	41ZUJEqWWMrxVebRRvQRBARIxkfztz3kl6GTJtuFQALFDsyH1POQ4YkFty0GdPEhZATx1F
-	1er5GZ2yCR5JKRrHQ8HN7Sw+NtntWwI=
-Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com
- [209.85.160.199]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-348-d6NVDMMwNVW9phmZzbD-1Q-1; Mon, 06 Jul 2026 13:16:43 -0400
-X-MC-Unique: d6NVDMMwNVW9phmZzbD-1Q-1
-X-Mimecast-MFC-AGG-ID: d6NVDMMwNVW9phmZzbD-1Q_1783358203
-Received: by mail-qt1-f199.google.com with SMTP id d75a77b69052e-51c1c7f135bso61496811cf.0
-        for <linux-omap@vger.kernel.org>; Mon, 06 Jul 2026 10:16:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="r017DZ2y"
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-493c83474ddso31282535e9.3
+        for <linux-omap@vger.kernel.org>; Mon, 06 Jul 2026 14:26:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1783358203; x=1783963003; darn=vger.kernel.org;
-        h=user-agent:in-reply-to:content-disposition:content-type
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=ucP00vuSVgg389id6t/z181QkBlpSQnaQFPI67Zm964=;
-        b=krRzD2PSBQzcT2nokR1zS1jq5b2X+kxwEJREZ5pZo+f8UGCrLvhzW2mfnj5tbAr7qa
-         850VqXQV0vf0XRoxYlnfT7gP8uYHj4/J/72IgTVb2p+SCrAbiV8LMbm1EKbb+IK+KvbW
-         g0LtfwlxTerIIqDRQyhjgb37wc1jX3wYEsyh12xK7XTNy/Mj7wGDWfHfg2Udms1ZPMGP
-         qFI7J/CIxQM5gl8U727lYrZOM/mgGh/NRKSXxwJUFdvGPFVbxEPZ3ABTvak7CFCgq9y0
-         6cHADAr3nDAYPHe5ql+a14tlgsWPlCA2aHuOa0XASPSFLl8aRv7JiHPA1xDInQY5xkvF
-         Lr0w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783358203; x=1783963003;
-        h=user-agent:in-reply-to:content-disposition:content-type
-         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=gmail.com; s=20251104; t=1783373162; x=1783977962; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=ucP00vuSVgg389id6t/z181QkBlpSQnaQFPI67Zm964=;
-        b=LVaf4lzA3bVevCikrv+G9Hhtbvl4ovKmT4L4HvTs5VLwHy2Q/LGVfi5gC713fvcGYQ
-         fYbR+aBgnlzvrNr/0s9I7//Kw7qbzrx8qUBdvEhGO5j2ai+G8JOhOoPFhpJzoOB6Eg+A
-         QpMvIwKtrcuQj6mFlHrJ7GPFPG4j2Ygu9r1e9ip205fU7TremKv2LznV/orbcEJ1EUgq
-         eM0p0Q49EltuhxvR235az0Jw7GkgmAJSlj4IedFkwf+/vG7YLnN9QVB7Hk6eub3F55ef
-         edhIshD1MSD/hkUfoqNkRG1adW+ajkBONHwomZPuru+1Lp5Nw2HTitC/pr0GvpalqWQ3
-         xz/Q==
-X-Forwarded-Encrypted: i=1; AHgh+Ro4buXJTE8rR9uRC8Anm1wEd8GsbAXyVJ3z5tjRINp2Wz+es3p8BalhepdLvLNVuUOiIeozGe/J8Sch@vger.kernel.org
-X-Gm-Message-State: AOJu0YyDEv4fk+vJsEw4KZ6GqgwYEaiNctsdFZ5nQbZ9gLDC0Eqmg7nI
-	potr2vFMEq2omyS+wRp9dUWUyZpU8vqIK8o9LkfC4TzP1kln9o9Wwqc1jnVtHmUnBI4xL4h/R+i
-	Q5hJxoS7a+ZcYbsMZX7GpaSrCHSsWDwnWGlR9ge8++EnN5L7vGePUR7VMZbWrUaw=
-X-Gm-Gg: AfdE7ckcvAicr4Hh067xsLXhiP2hQn2vMGss28fNXwSW13nrXrzBDIZeMScwSEHC3dt
-	hr47eiEElbFxsGiXqWwzJ3j4WsCYnhJvHQLk47ml88Uob91WPjOUw2W1bOaLQcqj/ASowM9WTLc
-	vzu+IgTcWcCWrVDUsujcv92BZ3Q+H7WCXGWzIea9QBVVN85eYuS4tcmPQ4bcbV7JywMoW/VmjDY
-	9gu0MHjf1wN4c5RMicG0AbJ/XWbUhP2bKF5OItOXhFoIqUSeeVkrYPJ/4SHp/MIL7l2uiFC0wf9
-	Ybn6fV5AGt3Qdx2EwIJbRzJmxWZEy5MMemydfLgJ6tSF9XRsvpL6ZPmQcDn+PlE6dhT6tUwznRX
-	WSUhpuejUijo4U86EyDKN785k9nGn8dLCHSvm6xz1QU1PFQ==
-X-Received: by 2002:ac8:5a15:0:b0:517:90d2:598b with SMTP id d75a77b69052e-51c7487fe16mr17439131cf.39.1783358203376;
-        Mon, 06 Jul 2026 10:16:43 -0700 (PDT)
-X-Received: by 2002:ac8:5a15:0:b0:517:90d2:598b with SMTP id d75a77b69052e-51c7487fe16mr17438771cf.39.1783358202925;
-        Mon, 06 Jul 2026 10:16:42 -0700 (PDT)
-Received: from redhat.com (c-73-183-53-213.hsd1.pa.comcast.net. [73.183.53.213])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-51c41b19a66sm93193941cf.7.2026.07.06.10.16.41
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 06 Jul 2026 10:16:42 -0700 (PDT)
-Date: Mon, 6 Jul 2026 13:16:40 -0400
-From: Brian Masney <bmasney@redhat.com>
-To: Myeonghun Pak <mhun512@gmail.com>
-Cc: Tero Kristo <kristo@kernel.org>,
-	Michael Turquette <mturquette@baylibre.com>,
-	Stephen Boyd <sboyd@kernel.org>, linux-omap@vger.kernel.org,
-	linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Ijae Kim <ae878000@gmail.com>
-Subject: Re: [PATCH] clk: ti: adpll: unregister OF clock provider on remove
-Message-ID: <akvi-LCvVYYH2r6P@redhat.com>
-References: <20260626094134.71961-1-mhun512@gmail.com>
+        bh=ihP68MSIVTxfpMWP1SL0q+2pdJ2V1J6RQAuUgDHhRvQ=;
+        b=r017DZ2y+ltqd6XNJksy7oeelsuhCj80XVAzVCweQtH04ubhbpawn9W3jgTJnJaDOG
+         NV6qtsLtB58SVVjHIqrdA3SlRn1yakUCPEj6MrUMLS+lSIsOxUM281NYOzHuG9vRh+Ao
+         EIWsWlE5kLwdjVcA6le3Zc3tXQnVgjRW8tsjR0yCfXaWscd59BmyPJbPOtWHLorzgqkE
+         B599hS+4Gk4Io0jYLyR7e1x/jFt+a9U3lWuo5biaddnUzlNBHHVzfTZMVZfprle38qyp
+         ZlQLDtVCb4u0mDi9K9drLpI6qliiP3mj2yv5NAdkOAQsNzM3LU1j/NttTxTEQrhnSYA8
+         ZfZQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783373162; x=1783977962;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ihP68MSIVTxfpMWP1SL0q+2pdJ2V1J6RQAuUgDHhRvQ=;
+        b=G1gGfbUDBNWeAGPAUykqyTA4RFr8onJGoJIu74d+9AvHH/X+WHred0x9CZYWsYGM+L
+         ZVFx6L4yt+B0YiPp6qTr6C1NP4uWP5ZId+LisIn4oZGjPbBCS3JnOqMpDf3o0Bmooym8
+         OQEbaVGDAJUp861hr5WB28+o9SNh4a1Npa9o5HU5XnmBrQlbR4gOR78XIXI/oesx2E1X
+         TWGXEDM0pZaNJpM8Rq7QenJ7w6ECn5NGiSNTGvlH9CR1na7zXmNecTTPtNSXK3CPCtKJ
+         AHuj7WGH7yFG5itTK1ohn2nHVdAsYtfeFFgbozzw3E4lzR7iUvqdpmPt7ESIamAEcBFF
+         I2RQ==
+X-Forwarded-Encrypted: i=1; AHgh+RpkWp3lFGLaEdf4fu3dnSqhqAmG7VFzobe2enJh02VtpcmUbtlwUPn35P+3tFFULys0v0YX0OlHi36K@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz/9D2+CdaRgjpXxHcjupjYl+xCOU8LKZ/TEh2u2OBbUQ0eHmrD
+	rCiwERdX5sBuwSMBKJnLkFmr87FBbiYZ2PtF9TqtjJL3b2ex8Xha7odi
+X-Gm-Gg: AfdE7cmgJ+ZJ3U1rBJruWfGa+hD0aM1klmeOc3Jvh9IGPIX+aD/h535M5mZhO1wnex9
+	USkL9nTaa3Tz6HoCxOJESQLLVZCRT0zmmSNlJxQmlok9BvyeRHrKDgNzmz0RDTBwCb9kROfOMa9
+	DZbrJq8EJ5C9iOmTV575GC8xR0YByOe/oVb8HRXs4kkl3iqyu1kDJXcp3HLNJrKgpDXQ9a+9bl+
+	vRKrIeiFQ+zYRKwxQ5JOFQKdl5ihgKvaEJVsVrhVfxpWZ/iZNCj5epwdHRgXpFZzeiApXPeZSBY
+	zb+MoWSVcAeOHGdyMmn0IND18AtYAaaeO5x3oLyiUjI9+yn2yiGwTzTkgZqjiorVF8C8n/J1ZR/
+	oHCmSHM0ds2s7r1WC6ASGgtwW4CfLUSpI83LAwKbGBfoMChgR1uLwruASU6kJJZSV0iWl1/7ig9
+	wk+wEF/QKLfS0uo3fuDSNPKCDa
+X-Received: by 2002:a05:600c:1d0c:b0:493:bed9:b53d with SMTP id 5b1f17b1804b1-493df09b330mr24203455e9.31.1783373161558;
+        Mon, 06 Jul 2026 14:26:01 -0700 (PDT)
+Received: from [192.168.1.10] ([95.43.220.235])
+        by smtp.googlemail.com with ESMTPSA id 5b1f17b1804b1-493e01c8159sm12334715e9.1.2026.07.06.14.25.59
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 06 Jul 2026 14:26:01 -0700 (PDT)
+Message-ID: <2b192691-54d8-4449-a18c-b87266c6c73c@gmail.com>
+Date: Tue, 7 Jul 2026 00:25:58 +0300
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260626094134.71961-1-mhun512@gmail.com>
-User-Agent: Mutt/2.3.2 (2026-04-26)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 1/4] dt-bindings: phy: motorola,cpcap-usb: add chrg_det
+ interrupt
+To: Conor Dooley <conor@kernel.org>
+Cc: Vinod Koul <vkoul@kernel.org>, Neil Armstrong
+ <neil.armstrong@linaro.org>, Rob Herring <robh@kernel.org>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
+ linux-phy@lists.infradead.org, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+ linux-gpio@vger.kernel.org
+References: <20260705101105.1798069-1-ivo.g.dimitrov.75@gmail.com>
+ <20260705101105.1798069-2-ivo.g.dimitrov.75@gmail.com>
+ <20260706-visitor-calorie-b805ac5af970@spud>
+Content-Language: en-GB
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <20260706-visitor-calorie-b805ac5af970@spud>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Fri, Jun 26, 2026 at 06:41:26PM +0900, Myeonghun Pak wrote:
-> ti_adpll_probe() registers the driver's onecell clock provider with
-> of_clk_add_provider().  The remove path only frees the clock resources,
-> leaving the provider registered after the backing data has been torn
-> down.
+Hi,
+
+On 6.07.26 г. 20:14 ч., Conor Dooley wrote:
+> On Sun, Jul 05, 2026 at 01:11:02PM +0300, Ivaylo Dimitrov wrote:
+>> The CPCAP USB PHY driver uses the CPCAP charger detection interrupt
+>> for DCP detection.
 > 
-> Unregister the OF clock provider before freeing the ADPLL resources so
-> the provider no longer points at released driver data after device
-> removal.
+> This is not currently true, the driver does not look for this interrupt
+> at the time of this patch.
 > 
-> Fixes: 21330497f303 ("clk: ti: Add support for dm814x ADPLL")
-> Co-developed-by: Ijae Kim <ae878000@gmail.com>
-> Signed-off-by: Ijae Kim <ae878000@gmail.com>
-> Signed-off-by: Myeonghun Pak <mhun512@gmail.com>
 
-Reviewed-by: Brian Masney <bmasney@redhat.com>
+Right, this is bad wording caused by the fact that initially the driver 
+patch came before the binding patch.
 
+>> Update the binding and example DTS to use the corresponding
+>> "chrg_det" interrupt name.
+> 
+> Sounds to me like this new interrupt is optional, since until now it has
+> not been needed? The patch however makes it mandatory. I think your
+> driver patch also makes it mandatory, which will break older
+> devicetrees.
+> 
+
+Oh, it is indeed not needed for proper DCP/SDP detection, after some 
+experiments I was able to teach the driver to do proper detection by 
+using current interrupts only.
+
+> What makes this ABI break okay?
+> 
+
+Will send new series with schema/DT patches dropped.
+
+Thanks and regards,
+Ivo
+
+> Thanks,
+> Conor.
+> 
+>>
+>> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+>> ---
+>>   .../devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml     | 6 ++++--
+>>   1 file changed, 4 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml b/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
+>> index 0febd04a61f4..523a8f8480d0 100644
+>> --- a/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
+>> +++ b/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
+>> @@ -30,6 +30,7 @@ properties:
+>>         - description: se1 interrupt
+>>         - description: dm interrupt
+>>         - description: dp interrupt
+>> +      - description: charger detection interrupt
+>>   
+>>     interrupt-names:
+>>       description: Interrupt names
+>> @@ -43,6 +44,7 @@ properties:
+>>         - const: se1
+>>         - const: dm
+>>         - const: dp
+>> +      - const: chrg_det
+>>   
+>>     io-channels:
+>>       description: IIO ADC channels used by the USB PHY
+>> @@ -91,10 +93,10 @@ examples:
+>>           interrupts-extended = <
+>>               &cpcap 15 0 &cpcap 14 0 &cpcap 28 0 &cpcap 19 0
+>>               &cpcap 18 0 &cpcap 17 0 &cpcap 16 0 &cpcap 49 0
+>> -            &cpcap 48 1
+>> +            &cpcap 48 1 &cpcap 13 0
+>>           >;
+>>           interrupt-names = "id_ground", "id_float", "se0conn", "vbusvld",
+>> -                          "sessvld", "sessend", "se1", "dm", "dp";
+>> +                          "sessvld", "sessend", "se1", "dm", "dp", "chrg_det";
+>>           io-channels = <&cpcap_adc 2>, <&cpcap_adc 7>;
+>>           io-channel-names = "vbus", "id";
+>>           vusb-supply = <&vusb>;
+>> -- 
+>> 2.39.5
+>>
