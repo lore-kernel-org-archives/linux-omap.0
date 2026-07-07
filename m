@@ -1,48 +1,42 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA2783DD87B;
-	Tue,  7 Jul 2026 10:23:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AF723FFF8C;
+	Tue,  7 Jul 2026 12:32:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783419811; cv=none; b=UWCKXsJCqvio1vR3i6EqUiHzvcsdBf/+auT2/XcNmEBHlzJqGgD79Rjj3vxd6/YlQ7gm+qkWvi4znC5HQGNVLjB4LTvdbgSLROuGWNibWUYPwpOkZwN4NULcithRQ1r9OHRm6cQYak9AwRwyOzrItvnpk8Y3YHJQB2Hq0MiWiVU=
+	t=1783427580; cv=none; b=kv/+8k0X5R443xGD2W+zYHvscb4VvTL6fprtqnaIjSM3p7QqyH23U+otMQw/FXaf5V2avqkcDfA6DD97Cl7MGNabnPjWjwN6YNd6vqATNKEQneMCAjJoj4jWCFc5RmSgXwTb60AxcNFqHPQDcBhrt9gcfaIAT6ziJFpcg5C72ZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783419811; c=relaxed/simple;
-	bh=U2u7jAuQkfGOb0//ZhA6kmltPPJ/DEDYcMSN5BtW15g=;
+	s=arc-20240116; t=1783427580; c=relaxed/simple;
+	bh=jjBM9uBg4GNRJAA5jD9ZbVotfoOzWeYAB0imw5MTdIk=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Ll4zfllqrxqFkjPmm2nO6WTjshpobbC0Nf8mEjICVh9qeWha9p0SI9eVcal8SN3c6ANEPbvvQAiJnm7m9KNL4s1xRDJAAoP9L4c1tgFuYQCuEYgLN0UFN4za4Dy0ArbCFtKYuRU+nqLb2cY5c5U2MPhrdYWtmVR0cD4NS5I42b0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=LUCaGTc/; arc=none smtp.client-ip=178.238.236.174
+	 MIME-Version:Content-Type; b=MsufLgOdtKb3P6AlcO8H9mLz6FpAMa0q0gOk+La7fsS0w2R2qs9+Vm4XKD0Ov1MAy2DEL7G3f9s7XZ6XQ3B3bdOnTGhUpgB4whB6kQclt5s5i5KsDkYhHGKnHlHJHwcQrsQeJAzohoRK4GqWPqraQ1nVAcpXjE53CUeLk9vVZc0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=ZeWlRbob; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="LUCaGTc/"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="ZeWlRbob"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
 	Reply-To:Content-ID:Content-Description;
-	bh=obUmEjH5cNC4iY8a13DKMFpXMZHqKjdWLwToyyedgkg=; t=1783419809; x=1784629409; 
-	b=LUCaGTc/g08jkRBFervL3U7wJxYNT3wUrvj+1bZDbHWBK6oK3ZsSiBkOZ321jVpnT3cEcrQoTV/
-	hrrsIQRpztqjAewuvC3uJB8BIY+YWI5pH5q/4uOoCl54GGL0usFbTAp7gP0RfiHpOX7Y0Hll/eFtk
-	6Fl0ImaKDiw8hHg3X0j1aUC5+iP5MUcIM678AukUFlIsGbs553hqeV0BGzojJjeWRBNbRHzD/T4gm
-	vxMJXAB7sI5r25EuQ0hGFsfd9o4xzLzzxKqztgLeKCkGWsF0Ther+0UbNcrcnRNAa0vsOqbY46QAp
-	Mg61PfrGzLDIHPoq4ALPBJQITAme7DgSLKJw==;
-Date: Tue, 7 Jul 2026 12:22:03 +0200
+	bh=WhKnRiGBppKNpN86Hrh1BNfq/F8SUBk6UDvxQS7rtwE=; t=1783427579; x=1784637179; 
+	b=ZeWlRbobYriXf4b8YciyeYjCsLBeSQ+I1oFounRqs8PDkCuc0ZLdxln6pej6OAYPs0dqjObivhz
+	aiQM46xnqHxGfRW7ra8QBkUV7rT8Ko4ZlwGzunqoy7wXeQab5XfVVDfzDBIwYJ740VW9juLvQQ6tw
+	vbonoqMBK6vaPDrx1gVJl8DEPBJWwoDMQVxINAPP8KM8xVDafjfc1W8wZ2LaSipCbZ+3q1acTnVN4
+	YEyIC08Hgoc2GQ5HGahpKLMqcTq4LnhAVqG7+M9IwHvWAP7B+EngVmmiSistLfc96PaFOc4xK5nAi
+	3wVZuyXt37Le/5Z71ZbJOFnH3edojQArn6xg==;
+Date: Tue, 7 Jul 2026 14:32:54 +0200
 From: Andreas Kemnade <andreas@kemnade.info>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, Maarten Lankhorst
- <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>,
- Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>,
- Simona Vetter <simona@ffwll.ch>, Sebastian Reichel
- <sebastian.reichel@collabora.com>, Laurent Pinchart
- <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>,
- Linux-OMAP <linux-omap@vger.kernel.org>, Marek Vasut <marex@denx.de>, "H.
- Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org,
- linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v4] drm/omap: dsi: avoid sending bta sync all the time
- in writes
-Message-ID: <20260707122203.0bbc973e@kemnade.info>
-In-Reply-To: <4cb964d9-524d-40ec-8cd2-d936fff8eb85@gmail.com>
-References: <20260629-vm-upstr-v4-1-9f0c62d8808e@kemnade.info>
- <4cb964d9-524d-40ec-8cd2-d936fff8eb85@gmail.com>
+To: sashiko-bot@kernel.org, Helge Deller <deller@gmx.de>
+Cc: sashiko-reviews@lists.linux.dev, dri-devel@lists.freedesktop.org,
+ linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+ sashiko-bot@kernel.org, Andreas Kemnade <andreas@kemnade.info>
+Subject: Re: [PATCH] fb: omap2: dsi: do not copy isr table
+Message-ID: <20260707143254.76bbb791@kemnade.info>
+In-Reply-To: <20260702160541.340B11F000E9@smtp.kernel.org>
+References: <20260702-fbomap-uaf-fix-v1-1-6417edf9d3e7@kemnade.info>
+	<20260702160541.340B11F000E9@smtp.kernel.org>
 X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -53,64 +47,35 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Tue, 30 Jun 2026 08:42:57 +0300
-Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> wrote:
+On Thu, 02 Jul 2026 16:05:40 +0000
+sashiko-bot@kernel.org wrote:
 
-> Hi,
-> With this version of the patch I see:
+> [Severity: High]
+> This isn't a bug introduced by this patch, but it appears the identical
+> use-after-free vulnerability you are fixing here remains unpatched in the
+> equivalent DRM driver.
 > 
-> [  102.760894] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  303.860321] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  307.071624] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  307.360626] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  307.671142] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  308.660339] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  308.961059] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  313.191314] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  313.700378] DSI: omapdss DSI error: Failed to set dsi_if_enable to 0
-> [  313.980346] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  314.791564] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  315.090362] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  322.850952] DSI: omapdss DSI error: Framedone not received for 250ms!
-> [  323.111175] DSI: omapdss DSI error: Framedone not received for 250ms!
+> Does drivers/gpu/drm/omapdrm/dss/dsi.c:omap_dsi_irq_handler() need the same
+> fix? It still copies the table and drops the lock:
 > 
-> while scrolling the (hildon)desktop on droid4, so I would say the change 
-> broke command mode.
+> drivers/gpu/drm/omapdrm/dss/dsi.c:omap_dsi_irq_handler() {
+>     ...
+>     memcpy(&dsi->isr_tables_copy, &dsi->isr_tables, sizeof(dsi->isr_tables));
+>     spin_unlock(&dsi->irq_lock);
+>     dsi_handle_isrs(&dsi->isr_tables_copy, irqstatus, vcstatus, ciostatus);
+>     ...
+> }
 > 
-so let me summarize:
-- sending initialisation commands to video mode panel: no problem visible in
-  any case, theretical problems (not seen with the tested panels if sending too much data, fixed via v4.
-- command mode display: no picture and error messages without any bta sync (patch version 1).
-- working display with send_nop() replaced by simply sending bta_sync() and not
-  waiting for PACKET_SENT irq for short packets (v2).
-- partly working display (with v4), (always waiting for PACKET_SENT)
+> This could still race with a timeout in dsi_sync_vc_vp(), which creates a
+> completion on the stack:
+> 
+> drivers/gpu/drm/omapdrm/dss/dsi.c:dsi_sync_vc_vp() {
+>     DECLARE_COMPLETION_ONSTACK(completion);
+>     ...
+> }
 
-so there are some situations when waiting for a packet completition is harmful.
-In your case these were only siutations when short packets were sent.
-Do you have a more complete log of v4 boott?
-In the log for v1 which is not accessible anymore, there were other 
-more informative timeouts visible.
-
-But maybe as a wild guess also based on Sasikhos AI reviews, maybe
-this helps:
-
-diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-index 3f22929c36e2..eb3cd0d23cae 100644
---- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-@@ -3267,7 +3267,7 @@ static int dsi_update_channel(struct omap_dss_device *dssdev, int vc)
- 	 * updates stop working. This is probably related to DSI spec stating
- 	 * that the DSI host should transition to LP at least once per frame.
- 	 */
--	r = dsi_vc_send_bta_sync(dssdev, vc);
-+	r = dsi_vc_send_bta_sync(dssdev, VC_CMD);
- 	if (r < 0) {
- 		DSSWARN("failed to send bta sync between frames: %d\n", r);
- 		goto err;
-
-
-
-Then the call is equal to the original one done via send_nnop.
+Enitities with access to cerebral richness can find the link in the patch
+to the version for the drm driver.
 
 Regards,
 Andreas
