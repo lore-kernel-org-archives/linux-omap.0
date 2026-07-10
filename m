@@ -1,147 +1,157 @@
-Received: from mail-yw1-f179.google.com (mail-yw1-f179.google.com [209.85.128.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from OS8PR02CU002.outbound.protection.outlook.com (mail-japanwestazon11012058.outbound.protection.outlook.com [40.107.75.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32F24408013
-	for <linux-omap@vger.kernel.org>; Fri, 10 Jul 2026 10:29:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.179
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783679356; cv=none; b=E0P1UmaTD1jTb+1qgf5/B8EeIJBQf7yT3gPLTQLJcSjJIiCYp/x9JZCGZpQIdhyTo3LRt3t/KvkzwwTsgUjVYPEJ+SpStsGYLrEY08YMS25tA9nZBHcRPx61tAkpc6wE52o++JU3TrcZCa0qpGuGJM9kywOX/5L2EHLZgN3pgh4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783679356; c=relaxed/simple;
-	bh=8Lu8OMpVPc16MxdZvSkmOEt9Lvt01fn1EVEQixIYHBA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=clBVp6LV9JfOAep4+rPuPUFPISmoBLrIs4eCRznKot+KID8IUjYHN/xE/tpzRwu2OtvOUFwr0GfeNnhY+JWoDxNG9Zk3h0NJU4p49D+GQH/Eh8fPEfGfFXHnK8QULXdGWdtqLe8bC8gJYdJN5wdpTFe8tnddUP91bxdh9ep5HRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.128.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-yw1-f179.google.com with SMTP id 00721157ae682-80cebd41372so10701727b3.3
-        for <linux-omap@vger.kernel.org>; Fri, 10 Jul 2026 03:29:15 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783679354; x=1784284154;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=HsVN2cPDw+/JUxMMLcOD68aRVLlq59TmevfTz9ChQ+g=;
-        b=fgkWpmpF7IqZPnNM8xoksvi2Sk7M2DMQl61tHwAyAiRv8iQc+TvMI9n//N+eIII0ji
-         37QH5srjhUREmYZVX9h4G0SrpVnIolNO8F88wDSuXMDmcyUdcDaHgDcW/p+ofx2/AnQC
-         f3CMq0m/FkBKBpgJgU1/qwmNDUEdNB5spy7kJRTR3W9+7/vLUyAPBI9krkKuz9c/oKUN
-         ZfycYmrEtP7SO+RsU3cQUGSi+OjAOli0A9Wdlvi8MT4o3019sCN8g8jI2AtSw+bXwTAG
-         EEUSGP7WafiGqI/+G2Xq1gWTu88uYfmzOW93v8701xpUik3g+rOAjyJZtu9jR/fLuPXW
-         GhJw==
-X-Forwarded-Encrypted: i=1; AHgh+RqKZWh2xCMosIz9g6IS9863rif69eO+Rym1uUDT+aLCiwzw3KhQy8yoAmsQKZ0NEugk3NJOzP0bEqd8@vger.kernel.org
-X-Gm-Message-State: AOJu0YxEPJtwxAe8eSB7XGC+yc+ZyGCYcdyEUnAa46SrvWtV6Tcp+Mmn
-	DpuRkXTONHWqR0pdvoR8GNkw6x19aeBJFqOYVqKIANyYcuy/2LtIcKxwoKiAbG9P8Ks=
-X-Gm-Gg: AfdE7cm9N5MAJwZydeM0b0CX7+2tOawbdpQHXr4d2LJbnjqzeGNwSRvhXnpLX9n686G
-	Y4TGlm2iZvW/y9yq9FypO6sps5R8Ub2XyILQT6mSnpUxkvTZwSDMmwds/9P6TwH6aUaO8TsqhVq
-	Bk6tHC8EMNJIihffbq4HrD34yKgGhsMSRS0gSM1KMmFqvNKQPSSjerbMuVgte6xptZu5b8gXWol
-	TFfDLukVH2oyVhjbaiHbRK2SbPJcLZ1TYxwrYeLfDRtk/KUpjGyz5+uAUhTymZ5hI36ZkauH3JH
-	oas9MbhsqzG2KN0xrpqR2vThTkxT7NPT5xE0eZxpB/91ggz2Q7eCddTgiBE6IJFJXCDjTx0oMOK
-	BZtVNw76M4k2z9GWjnCtUwkXYxHFg7L9NT7EDQJcTQ+ppEP5WSEsYZYjdNi+zokFnoT/RT3gf0a
-	nEI0QVPE6P7hlgkWGwDEpmXjZjf3J6SbxDbRjvfyNNeveajNyXYNrT/g==
-X-Received: by 2002:a05:690c:6990:b0:80d:fc34:a79e with SMTP id 00721157ae682-81dbe33df80mr85608317b3.35.1783679354163;
-        Fri, 10 Jul 2026 03:29:14 -0700 (PDT)
-Received: from mail-yw1-f169.google.com (mail-yw1-f169.google.com. [209.85.128.169])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-81e6c22ed8esm41033017b3.44.2026.07.10.03.29.13
-        for <linux-omap@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 10 Jul 2026 03:29:14 -0700 (PDT)
-Received: by mail-yw1-f169.google.com with SMTP id 00721157ae682-80d33d13a23so9670627b3.1
-        for <linux-omap@vger.kernel.org>; Fri, 10 Jul 2026 03:29:13 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RrY86/Yc5lx5gZyuSqngOMC3/nf+1CDwFTMY78rRC1RtAR813RyKuX0Ko06rW5BIuPRfjIPEwoKc7hN@vger.kernel.org
-X-Received: by 2002:a05:6102:3911:b0:726:e608:6658 with SMTP id
- ada2fe7eead31-744dff43a82mr6415934137.11.1783678885257; Fri, 10 Jul 2026
- 03:21:25 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01EFA3FADE8;
+	Fri, 10 Jul 2026 11:10:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.75.58
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783681807; cv=fail; b=ildVLnVnUswVm96vbDYnelBfOxl1fTy9bCztSn0WMIzjgxdNNbNIh9bZdDHqGx3kNtSNhEwSHU3DTaNWNyxD2/Sny9Acvg1pMsQ+YlSmtRuX4p/OHeBTl/xQAI3b0a0PSiWqsxzwAFOmbPq/QFVQ2yNPxrGfp0EJFAUKAuNEK4k=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783681807; c=relaxed/simple;
+	bh=eju/Zk8k9yYln1xYZM5JK0X7c++eKBlAvkzRFfxdrg8=;
+	h=From:To:Subject:Date:Message-Id:Content-Type:MIME-Version; b=HOopLAmixFUSp7KYdyKzrmTHssUTRD7KwlzzPHLC+3I1In9xqsuMNrKBEx7MseLRt/pPtTRAM4BUsBsaBrms2uxIcvTOx3tj5GrUMLASszElSpzGMyZF3PnJkYd1OZiBO6kYxffvY9W6F09kIRxAYeGWXRwH+ejH0nFJy8arV3Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=vivo.com; spf=pass smtp.mailfrom=vivo.com; dkim=pass (2048-bit key) header.d=vivo.com header.i=@vivo.com header.b=ivIZaCqi; arc=fail smtp.client-ip=40.107.75.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=vivo.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=vivo.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=vivo.com header.i=@vivo.com header.b="ivIZaCqi"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=DrcFgd7qw1osXgwD4wrpiC6LqfIB8wQ9odAgeTa40+xeZ05xMDSw6/BkPh+yaUgC1qIpOh9d0nccKxkP+ViHI/BsrdaR4TJ55Zzc4ILtORMeIwWZc8doKJo9LWTlwVeUrHTk+ZpZp2KzQfEzCBbRH+FiEHX4AUaaKv9LXiwnJ/MxTo5k+W9m9A/lOksv8E05eTZ649NGtyzWT3JnXHNJOo+t7XJSpag91agfikiIOFKHUY+YUQYWEgJG4ufFRFsTmgozrfPxgLKLngjsLNdT5RmTH2q1/S3yxzCa5TJiZrhUwT8gzFeJ+MAVT0VamKiVEPRSYG5f6VkfzJKljWf1Jw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=DSiyO3wCswE4NK+XWgixjCcEme/lwzxsKobOLifhdH4=;
+ b=IXAteWsDAltW9zWRwQ3OEqTV2+ReXYwJNq9Ucw2OVlYzNsLg8fWA5SBfGdmL/dR47XzPIiuk9bJBq4/T4R+doLwOIH2j3abNrNZ4mPWwpZB8nbisvqU6Km7M7XBixuqSmX6cwHh8J+B68XyfXdnyotBhK1ZXP7inxvZoJxagShoMS6/8jto38yOsye90d2nddRGlCsrBLoFD8sipA3eE6h9imgYJ0/RvpwJZUkbG0zdmU5D/LKspGnv0lV96iG0AzoGFFGJZdR1ALA0KFQ8E/wXbluGMhQeJ7ISqyktGDo0UJ8UOIOO64mxQS8AwGXdL9aOeaCctWVvioFNMn8QEVA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=vivo.com; dmarc=pass action=none header.from=vivo.com;
+ dkim=pass header.d=vivo.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=vivo.com; s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=DSiyO3wCswE4NK+XWgixjCcEme/lwzxsKobOLifhdH4=;
+ b=ivIZaCqig4a6pX/6vYbjXM/qs/n413FS6lQjOTK2OOiZkUCMgYulCMhFVglExTim8OB8iP1yddMIXA7dK/wbZkxTutzpX8tnXrU5PvLXBKxeKRSghiOim0H6DjAesOZJQKHe7hvTVUaSW7/9ua+6dQdT2FTbRPGabnhS1MOJjX/FG0KmVUD1pWbm1b2weH88E0kjyMdRUYhtDGXzL5Fg+oLAwvoNO6++d3Lk3MbEx/1fmOykcXXqJQ936Ob/xTG3DScfJz14s8JL3Hztln/u92wt0KFg5+EPRE0ZNrEJQhdAODgJc9NRj7526R5uv54CsXbHgOgGVvBSzQV7Llz64g==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=vivo.com;
+Received: from SEZPR06MB5832.apcprd06.prod.outlook.com (2603:1096:101:c8::12)
+ by SETPR06MB9021.apcprd06.prod.outlook.com (2603:1096:101:317::24) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.17; Fri, 10 Jul
+ 2026 11:10:03 +0000
+Received: from SEZPR06MB5832.apcprd06.prod.outlook.com
+ ([fe80::f98:5e32:4ccb:d07b]) by SEZPR06MB5832.apcprd06.prod.outlook.com
+ ([fe80::f98:5e32:4ccb:d07b%6]) with mapi id 15.21.0181.016; Fri, 10 Jul 2026
+ 11:10:02 +0000
+From: Pan Chuang <panchuang@vivo.com>
+To: Ioana Ciornei <ioana.ciornei@nxp.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Chen-Yu Tsai <wens@kernel.org>,
+	Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Samuel Holland <samuel@sholland.org>,
+	Kees Cook <kees@kernel.org>,
+	Andrey Skvortsov <andrej.skvortzov@gmail.com>,
+	Pan Chuang <panchuang@vivo.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linuxppc-dev@lists.ozlabs.org (open list:QORIQ DPAA2 FSL-MC BUS DRIVER),
+	linux-kernel@vger.kernel.org (open list:QORIQ DPAA2 FSL-MC BUS DRIVER),
+	linux-omap@vger.kernel.org (open list:OMAP2+ SUPPORT),
+	linux-arm-kernel@lists.infradead.org (moderated list:ARM/Allwinner sunXi SoC support),
+	linux-sunxi@lists.linux.dev (open list:ARM/Allwinner sunXi SoC support)
+Subject: [PATCH 0/2] bus: Remove redundant error messages on IRQ request failure
+Date: Fri, 10 Jul 2026 19:09:25 +0800
+Message-Id: <20260710110930.462109-1-panchuang@vivo.com>
+X-Mailer: git-send-email 2.34.1
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: TP0P295CA0005.TWNP295.PROD.OUTLOOK.COM (2603:1096:910:2::8)
+ To SEZPR06MB5832.apcprd06.prod.outlook.com (2603:1096:101:c8::12)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1783615311.git.u.kleine-koenig@baylibre.com> <e5cc82aa51da5f545f745b126923fdd6085a68a0.1783615311.git.u.kleine-koenig@baylibre.com>
-In-Reply-To: <e5cc82aa51da5f545f745b126923fdd6085a68a0.1783615311.git.u.kleine-koenig@baylibre.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Fri, 10 Jul 2026 12:21:14 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdW4Thb0en6jeD23KhDp4pTe2F8o5GcBx4fnB+JAxPG-bQ@mail.gmail.com>
-X-Gm-Features: AUfX_mxlLApCIjqxIsg4l7Qhe6Rgf_3Xy6YCZC9GZlPPApUQFkmqIVPuBIh_jUI
-Message-ID: <CAMuHMdW4Thb0en6jeD23KhDp4pTe2F8o5GcBx4fnB+JAxPG-bQ@mail.gmail.com>
-Subject: Re: [PATCH v3 21/23] mfd: Unify style of of_device_id arrays
-To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
-Cc: Lee Jones <lee@kernel.org>, Linus Walleij <linusw@kernel.org>, 
-	Nicolas Ferre <nicolas.ferre@microchip.com>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Claudiu Beznea <claudiu.beznea@tuxon.dev>, 
-	Chen-Yu Tsai <wens@kernel.org>, Florian Fainelli <florian.fainelli@broadcom.com>, 
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Ray Jui <rjui@broadcom.com>, 
-	Scott Branden <sbranden@broadcom.com>, Marek Vasut <marek.vasut+renesas@gmail.com>, 
-	James Ogletree <jogletre@opensource.cirrus.com>, Fred Treven <fred.treven@cirrus.com>, 
-	Ben Bright <ben.bright@cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, 
-	Richard Fitzgerald <rf@opensource.cirrus.com>, 
-	Support Opensource <support.opensource@diasemi.com>, Krzysztof Kozlowski <krzk@kernel.org>, 
-	Peter Griffin <peter.griffin@linaro.org>, Alim Akhtar <alim.akhtar@samsung.com>, 
-	Tim Harvey <tharvey@gateworks.com>, Neil Armstrong <neil.armstrong@linaro.org>, 
-	Charles Keepax <ckeepax@opensource.cirrus.com>, Sven Peter <sven@kernel.org>, 
-	Janne Grunau <j@jannau.net>, Neal Gompa <neal@gompa.dev>, Chanwoo Choi <cw00.choi@samsung.com>, 
-	Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>, 
-	Luca Ceresoli <luca.ceresoli@bootlin.com>, =?UTF-8?Q?Andr=C3=A9_Draszik?= <andre.draszik@linaro.org>, 
-	Saravanan Sekar <sravanhome@gmail.com>, Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, Frank Li <Frank.Li@nxp.com>, 
-	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
-	Fabio Estevam <festevam@gmail.com>, =?UTF-8?Q?Jonathan_Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
-	Tony Lindgren <tony@atomide.com>, Matti Vaittinen <mazziesaccount@gmail.com>, 
-	Orson Zhai <orsonzhai@gmail.com>, Baolin Wang <baolin.wang@linux.alibaba.com>, 
-	Chunyan Zhang <zhang.lyra@gmail.com>, Fabrice Gasnier <fabrice.gasnier@foss.st.com>, 
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre Torgue <alexandre.torgue@foss.st.com>, 
-	Jernej Skrabec <jernej.skrabec@gmail.com>, Samuel Holland <samuel@sholland.org>, 
-	Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
-	Lorenzo Pieralisi <lpieralisi@kernel.org>, Magnus Damm <magnus.damm@gmail.com>, 
-	Heiko Stuebner <heiko@sntech.de>, mfd@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, patches@opensource.cirrus.com, 
-	linux-rpi-kernel@lists.infradead.org, linux-renesas-soc@vger.kernel.org, 
-	linux-sound@vger.kernel.org, linux-samsung-soc@vger.kernel.org, 
-	linux-amlogic@lists.infradead.org, asahi@lists.linux.dev, 
-	linux-mediatek@lists.infradead.org, imx@lists.linux.dev, 
-	linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org, 
-	linux-stm32@st-md-mailman.stormreply.com, linux-sunxi@lists.linux.dev, 
-	linux-rockchip@lists.infradead.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SEZPR06MB5832:EE_|SETPR06MB9021:EE_
+X-MS-Office365-Filtering-Correlation-Id: d8b4a032-1cb9-4ee8-2f51-08dede73c9e9
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|366016|376014|7416014|52116014|23010399003|18002099003|11063799006|6133799003|56012099006|921020|38350700014;
+X-Microsoft-Antispam-Message-Info:
+	xMOzqqjq7gXmUP2XJRysOhf6mgtaKcif18hdKJundxZ+mzGI4180/W+NP+CzQFoL6wCL3fWsIvuJKhE85CNoZJNTZosPwTdU70aI1zbN35GrF1eclF+m3nV0DysEZPaBk8JJSwCsmaNQ/ghACez0TylzY+BpIGZIjhmY30svKqVzQNwu6vnofvAG116MyBp99bzC6MBlnwA44Ucsh0nS3L4EztcvHXQSs6coG9zNWzPXb4PseOGovbgcUlzdy+X7mpbdQDa5ad0L08EvZMh8xBemsj7QFRCoqQJtMy5RSOMU06+SWorm24swkO8JHWSGQEuNuTOuxiDJkzVeRzEIr/7CH9S1YBIZ2M+7vqRUkEiPUpwjjNEKn2owe6I286Jxb9Epb8B9Cejt1axRVVQVu3J6M/5Q9aNdbsQu7f4EhXxMSffUIaIAcrk52oVLXPd+nlJ5Qs4ZtbqElqs9wGyqeSQI4AqwNJETJX2CqK+vrff4egiypsMuGLPf+bw2i+g78wQOFQFZmDGQXDWCfeSdO44v4JONLlrW8WNQU74RSAYTZNoCiuS+7M0phNxo5pjzyuC4MuTNo/9Qq5YmtmytyNSoC7qDUnSQcosx9DKvnTFM089RprTovKeWe+UEkN8D3pcqtNnoiXUMnboRi+uLeoZJlUSzMSndZNQoV2uWbBJeSyrROoehdWZrg2csEraerXPQIquDujUV6DfpIdix5BmbK5p9twziPEcBZ+lTjLQ=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SEZPR06MB5832.apcprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(7416014)(52116014)(23010399003)(18002099003)(11063799006)(6133799003)(56012099006)(921020)(38350700014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?exDnPN8dTNsRRCW1C3rEGatOrxylkWxoKilwRNljwQsAT95a0Q8H2ukLa7U/?=
+ =?us-ascii?Q?Ae/6h+L4gBqdpmkULeXiuUEdH5+xf39Cx4hkjey/tqI7niVWcssgLiL08GPS?=
+ =?us-ascii?Q?HKUoiUMG2/uT7YVefbwCsUMQEuTQLjuLErdfx4RkC+eWj1xEENjjJ+vD82zs?=
+ =?us-ascii?Q?p3n2NNRs+q1av0dM5TBE/nCk76gZSWoLf9BMc65cNVM0RmjlwtS69ze+DRY8?=
+ =?us-ascii?Q?t1EsOM04+o4iRdR2tFPoX+q4TJ6HaZ9cHJATdFws05Uhh3YTXmFCv4miI44E?=
+ =?us-ascii?Q?a1X/rULGz+Y1Mj6Ehtcv6AzoBZVLhk+GY8LC50PjCrZvxi7AIioAMHJyFvHc?=
+ =?us-ascii?Q?SSJIv3laJIOv6ZNP6xIKahF1Y+zsDrFhKbWVeGAhfL8e0Y+1MmDnY5ldD3Jt?=
+ =?us-ascii?Q?G9dkLYBDnzdO2EJthelGoIihYmlw+IdxMSahbpTV41IKDTAPY05X2ZLE6CJi?=
+ =?us-ascii?Q?NT7v1pBgMZy4XuCFTSrLR0ZOOKGI5j/aW6kcMl7JwAJzWjuHznn79M0p37Bz?=
+ =?us-ascii?Q?s9OLKUzAb0VsVaURrRsrloVhHkWszXoO6BX2zolKk4kJpYC/Z9n0TbJTuI2U?=
+ =?us-ascii?Q?Mm1zWrU89GtKDlllwYyaDuPXlMGImn4w4yy9A0duhnY9ctM1CGFcmFKlAK0L?=
+ =?us-ascii?Q?vHK/UwPmwCMnAq6OCFhwS1CJMD7pwVNkznXsIh22uFpw7EFw1u3xIWnaAqwf?=
+ =?us-ascii?Q?w/OkfeOKa3jFGYb43bRzqkpEEaW/kTZ+P2dq+5zRdf7S/nSFqySoCtwSlUSA?=
+ =?us-ascii?Q?opLzHrlpnSzic6e7Y2GCbe24/5qU5Ai/qd7DidGKyfsL7eHcWan70ZYQDX3g?=
+ =?us-ascii?Q?B0S4+0tQNXfWXF9DijNsBXReyEjTptMOBE1e6AQucZu3YyJ1CwWCigjkzQX5?=
+ =?us-ascii?Q?UTUIF/9I0bRGj2vBRtSzLoeCpOk+jhdDDo5qx+4kJrIKUTgyAxJ8Y5cUHMHH?=
+ =?us-ascii?Q?BPoO1jVuVzee3YoFbvAVUMRvnch1z0T08XKn0mv5JEFdqwLExGFgVOIZysMg?=
+ =?us-ascii?Q?EYPlN+jluxO7BInCpi0P5HGNkp41DDxq2HSlthuVBvRMoPMKF4fqfjrFSbSF?=
+ =?us-ascii?Q?Iz4ei8ihhMjM284tPIKRN/lp5hJsaw1hpPvft55JlU5W4EoG8V39cYQsvolF?=
+ =?us-ascii?Q?H1WamyYYFVfqNdhB5s5gN5KJCNw7ScDSsXWeeoetwU+ImyUpsCDlFh5U5+jH?=
+ =?us-ascii?Q?7OnW73/+RvxnDYCWNcyUE85E8rGHeSaQv+pWkAiVtseMqnoJxm+dzUyf8iHr?=
+ =?us-ascii?Q?A6BxZEUq8+0425Xi+aM6+VDQjGGCIpfqvkNLpn4IbFksK+mOXEqJeh4Zv/Ba?=
+ =?us-ascii?Q?F0IxN0EYUKaCzKyQYMB+Q3NYEYuNXq5OmnKcRHY7lslmhuv7SAZrShnAUEsu?=
+ =?us-ascii?Q?aUGyBY6hlkQs/0f4+H4oxubaVE7amMyBHKxRV6qaNeT0Y6XdCNM6XcBkxVHG?=
+ =?us-ascii?Q?Qz8IFqgfjWp5pMuhEB8SfQA+/GiUK944F6KscfDuEMD9/vbfvUfG6AzslSFW?=
+ =?us-ascii?Q?Kbjv+Ui+TtQC3lArE/unlinq99l1zLefoF44oc1uc5OP68a9ghg3aoQkGF05?=
+ =?us-ascii?Q?Mn2TCE+75wW0Gqyky/x1UTlPaKjizZqGHKQzE7H+igxQ6wQejlN8r3vr8uNr?=
+ =?us-ascii?Q?0S7OoHCFMWZ85KocWRWErmf7No1Dr2NsY0Xj5gvL88Rw48FX5c7Y+K1ITVg3?=
+ =?us-ascii?Q?q6lvVMEupzVXo4e1bFhaw5fm8G77Ka0/KBMqoigEtDlbnnmV4nS2LCgQKj9b?=
+ =?us-ascii?Q?u+W/y10m4g=3D=3D?=
+X-OriginatorOrg: vivo.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d8b4a032-1cb9-4ee8-2f51-08dede73c9e9
+X-MS-Exchange-CrossTenant-AuthSource: SEZPR06MB5832.apcprd06.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Jul 2026 11:10:02.6577
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 923e42dc-48d5-4cbe-b582-1a797a6412ed
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: PlmgvNNtbIl0HchZMszr9fQww4mL110wPjRiXyhezkv+D2IGjcb5nMvW573jIBNFVSqPQWC+ZAZTs8257rbcRQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SETPR06MB9021
 
-On Thu, 9 Jul 2026 at 19:00, Uwe Kleine-K=C3=B6nig (The Capable Hub)
-<u.kleine-koenig@baylibre.com> wrote:
-> These arrays already mostly match the most used and generally
-> recommended coding style. That is:
->
->  - no comma after the list terminator;
->  - a comma after an initializer if (and only if) the closing } is not
->    directly following;
->  - no explicit zeros in the list terminator;
->  - a space after an opening { and before a closing }, a single space in
->    the list terminator;
->
-> Adapt the offenders accordingly.
->
-> Reviewed-by: Andr=C3=A9 Draszik <andre.draszik@linaro.org> # for Maxim MA=
-X77759
-> Reviewed-by: Charles Keepax <ckeepax@opensource.cirrus.com>
-> Signed-off-by: Uwe Kleine-K=C3=B6nig (The Capable Hub) <u.kleine-koenig@b=
-aylibre.com>
+Commit 55b48e23f5c4 ("genirq/devres: Add error handling in
+devm_request_*_irq()") added automatic error logging to
+devm_request_threaded_irq() and devm_request_any_context_irq()
+via the new devm_request_result() helper, which prints device
+name, IRQ number, handler functions, and error code on failure.
 
->  drivers/mfd/rz-mtu3.c          |  2 +-
+Since devm_request_irq() is a static inline wrapper around
+devm_request_threaded_irq(), it also benefits from this
+automatic logging.
 
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be> # renesas
+Remove the now-redundant dev_err() and dev_err_probe() calls
+in bus drivers that follow these devm_request_*_irq()
+functions, as the core now provides more detailed diagnostic
+information on failure.
 
-Gr{oetje,eeting}s,
+Pan Chuang (2):
+  bus: fsl-mc: Remove redundant dev_err()
+  bus: Remove redundant dev_err()/dev_err_probe()
 
-                        Geert
+ drivers/bus/fsl-mc/dprc-driver.c | 6 +-----
+ drivers/bus/omap_l3_noc.c        | 7 +------
+ drivers/bus/sunxi-rsb.c          | 3 +--
+ 3 files changed, 3 insertions(+), 13 deletions(-)
 
---=20
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
+-- 
+2.34.1
 
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
