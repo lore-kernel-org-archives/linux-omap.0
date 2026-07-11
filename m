@@ -1,63 +1,63 @@
-Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81CA83168E6
-	for <linux-omap@vger.kernel.org>; Sat, 11 Jul 2026 20:42:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 503FC30F7FB
+	for <linux-omap@vger.kernel.org>; Sat, 11 Jul 2026 20:42:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783802564; cv=none; b=qxGVkdoNzzieCvuBjOp4YTp08pKyFF+VyX1uewtSbXJf2qEelLluW3ICanDVMzSGhA3l7992HHU1VKL2RoUS3Yp02jIunJUClBrYvn8oalxZfmL8G2Fmr6JqHw17/M+SLy0TO46IesTKN3PG27DDMX4LeTZ5FTJKHJlJgBgJQrA=
+	t=1783802567; cv=none; b=QbKkm/KQBdUa59JjY5i5/bjrFahAog4oZ465HT7XnhgrXbWwBzy+ggfCXbM/HdgWGg2HZeravi7uZiOeCBkAcwkHRvyKQ/ONu4pUd5s8AbmBQqvGpUm73Rnp7DaAccLhLp2c7fKkFCXYHkNCBkhiPfkLicktqqqpQ45Dv+sP0r0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783802564; c=relaxed/simple;
-	bh=2WBH7acSpS1buhG5UF6DDL20aRHFmpdt5Bv97S7dCpI=;
+	s=arc-20240116; t=1783802567; c=relaxed/simple;
+	bh=Ks2eP/cpFMNIiN5iTQ0FeCLHneQLovfhgH+//9ums1M=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=BXWFjjm8Hk3LHbPR/KLaUzb3A3jBNxzpfk77tHbp0fPK490uJ6eLlAqNrL8R7e07F+l4uXe2vfeCwYUgzqJM/AlfPy+IBYZPMqJGCadlNdnOgcUqEQRVlbTw1s2sT5+NE+RSWRK0k17A+AhavHaf0Ik2JWROAg1JiyJ7Ig3NgLg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lg2Cs4z+; arc=none smtp.client-ip=209.85.128.50
+	 MIME-Version; b=p43N4YvnMGb2VZggAb1LH13EuOgSD8hns5SmlCECJtEhgVftbkalA8kWJsr86SMPs443EMV3w9yuSmF1anF/E+NjWvHhsuq9KJdd5oLDHXVEZ8CIvrBztlmI12nk59BOnrsD1M4okDjqs7dYGOQfBFTWrOD7YcgudK1r0cMZOos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bvNcRQTV; arc=none smtp.client-ip=209.85.128.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lg2Cs4z+"
-Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-493c52cde9eso18521245e9.3
-        for <linux-omap@vger.kernel.org>; Sat, 11 Jul 2026 13:42:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bvNcRQTV"
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-493c19bad03so17130965e9.2
+        for <linux-omap@vger.kernel.org>; Sat, 11 Jul 2026 13:42:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783802562; x=1784407362; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1783802565; x=1784407365; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=D4Wlb7YHseLBpG9ALxYAV8hvXubKFh0TjzQy9FHDQQY=;
-        b=lg2Cs4z+D2eL+7PH0ehzPge8Gbz45/Kw5NYgNhr9JVOAqHsWqHbkCBATieYNOYceOL
-         2obR1dpz0WwZvfMKelubluBULLbqbW9vePBrPOYnBOA0QvWZu0hMlUKFqrk5nixDed7+
-         MUNK86vH6r2JOnvPSJ+6D4u773Yml/LBuqaUXnV/hyIE7NIWJVtj/HqaZfZzYsZrtmqF
-         /DQZQTXlELRzp0sm+VVjMVCixkuaqiZWvZbcAFiaspUZaflbNIgmmxi3wqW3E0+q5bSZ
-         xxM2K8WFwGvBqCFCLYp7bwS6qgl0McO2TdC/iQGp+A0zfw8zJoZwf+zxlYYKzHP/cz8d
-         pZ7g==
+        bh=OR+gVYl7lNIahaA/xS643KgVQohpeipjmcrGmazJ6MU=;
+        b=bvNcRQTVVw8n7mMb16mUwF1RBVaHYV+09ypgkxTkb1FOPa6kuMof7CgQv01ABJeDKW
+         tvPKp0HatvIkDf8fjvxfIwsBfQQeupcXo3ufOnXhw8VbuxEINFk7Qo3tIzdV3Tc5Pxyl
+         CAQ/IjJfbzRwQGYZPx+ME8bSVhR1vt/m7jZKKmlyatqChpD3KaQr7MVcGBg+8v5+zFYL
+         eZUIW/jh+zTENTDlBJpzN4pzZHoATWhJAo1Hz1YDnygOakMjnFzPmYZpJBuReJYhdT2Q
+         DM8U1wZ1SCyATKfSSI0gfmMrNsW4pUczv0EL8davQJbS0JCJiTPtadxPHRlNuj7X9/f9
+         t1Ng==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783802562; x=1784407362;
+        d=1e100.net; s=20251104; t=1783802565; x=1784407365;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=D4Wlb7YHseLBpG9ALxYAV8hvXubKFh0TjzQy9FHDQQY=;
-        b=Dw5x4unQ+TbvdUUKGmy7ejdeRVK7hqijRihLOLUKeP7CVOU/M2RQsU4OS82owxuxNS
-         PuaTnXxCoZVp7LyWkVwQRFDYJKWmZS3nLVH0I/UdVo7DZn3FHl+3H6M2am7CNjGzI3/a
-         dILm+s/S13kwo/OxkeTSNb25oPcreaPW+3umAsMdJ1pdZkrINZ/ygFRVmKpDSHgcDkQ+
-         eP9Fo/QPGeQbb1odxZBxF0FHteSMcKI0Ti9D5Gok6tMSqrWcTEKHC5gZOZb8RC1Wh6e2
-         JbBuIKh+3s6pvEjtLml5X5Hd9DH9reHXhaJXrR0LY3h6fTC9Zsxh9YGmIYU8Ofn5//dc
-         +nUg==
-X-Forwarded-Encrypted: i=1; AHgh+RpyjgaGlR3C/f69LE4X1wXqaLrU05ClsrPQSN49xj4Rjf5AqAwi8/+fwFfvMyAuV7LBpwNVMyTma6Ne@vger.kernel.org
-X-Gm-Message-State: AOJu0YytU+Pdf/vo98UoUyKsZ34PBqsiVf7LVOQ6IC5zHVoRNFwVrfcq
-	T4HWaL3pxK15dQJkK29AM5DrV0h+PZ0GUo240XJ9Tke/6dVnLhuBuGDs
-X-Gm-Gg: AfdE7ck/fGj6wEalgiV6SiAsIHTYM3CRmdL1A8ZxG0ml7S8bbBsEg8WK4GCAOqBU+5N
-	CA1LcYNsLhuvw3NsCPy5gIIR4D+UO0EohQJYmyOZaeBTMm6cVFDEINIF0ydEE7zOW05EYY3mTMD
-	J1eiIl3nz2+In2XUUVaip5Ue/1xY4i4m4jcWoAjAW0+a9YSkhwp/t7pdR+x5EVw/Der+3JMBiti
-	089eJABh3UBHG/jFLoOITudkvGADaHYPQSSHCkTBMzREo+CFmUC5Adp10lmzHX7KYR20r/twQuD
-	5LDk0Th2dai843xjWM5PHUJAmazgLW2EElPbxw13xLgelrg32DWeIAbMwuR4zggZWI/wzHm1F/l
-	00WP4utBr2ej33HNmtsD2+WZCmU0LuzR2ErMXaHsmexYcqEwN8QoTlPbY51BoqcLVJrzh1cgGNm
-	VzuWWCxZGyD/bzzGC31rJlLB72bxYdw5jUMA==
-X-Received: by 2002:a05:600c:6d48:b0:490:9588:bdb6 with SMTP id 5b1f17b1804b1-493f88389c0mr25978355e9.33.1783802561934;
-        Sat, 11 Jul 2026 13:42:41 -0700 (PDT)
+        bh=OR+gVYl7lNIahaA/xS643KgVQohpeipjmcrGmazJ6MU=;
+        b=p05xGy1JeNUoO7M4ZRumQoYRQQvfzUbbpwpbJbOj3voBcHK4xgVix2GiA65SlhI/6k
+         zuJ4SLYAzYFDOMxWQFLwdvhNq9g+fBfw9GwQ6nzbnLAItpCVY4EinIZz15coIAoiKyKK
+         fGAZICPAF0FOjt41rg1a2fTG0KcZ+dk4PRebaUptVGDs6nmK2FXIEsAavqmuCZqY/i+j
+         EEovP4Sn+Tf1DWLiKjWu+wK992TxX/CPE4PvoReeQCl8VPBxY91V1KqLTSjds+RPDjVN
+         syNBqWPslNQWujVeD54v+8yPq6NtPcKJoLRIGiN/HPh60R0vs2EY55TlRU/0I2YljCNw
+         ApDQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqiQQPNsuPy0dtUqgq2P4R42oDhHFZW0bmo3KCqyhnQ0jUziY4WJ7+bqAtvkVahUp8KEtWsDA4eIegp@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw9Q06xTPxsslRws7Mb5KHp4lqXM5QxAgicNBvhSTCa/qWK2v4i
+	UuanrBwpu0FqiVXBe9vWAbPP5DF6rSQKSOpLJJp/1GRWEVZCvgHRXnjl
+X-Gm-Gg: AfdE7cnAb097aFlRlOXmUTDz7oo+3pFNeaHzKr1Bly8nMgLIxpPbUkk6HYV8z8gD89f
+	En/rxQZg+gKDn44iOhwMk8gd5KQYVfSnA0W+u7NHzqgMamGy23UXJS10lmJFKYeYtnqenFM3tlj
+	GBCEm5mCJ7U1xlrJiIdHriquf+/JNoBJJfuCiEQS6h7g8EO3XdYWBQs7zGjgS/rAjorxw2Ugr3R
+	QBd+4T9iUbvFwDnlIfO4ZR/R7GoO4wBoCQwIMpx5sIPSl4BPEmHILz4bBsmKWf18aJw9pq15Qk1
+	WV5mzUrmBJVxqZx3SG395TYYUS4t/2Cq2nvhOrzbJK+maL/Xz+WeRqTfSX8CsiG7UA7NM4bEgXI
+	FBQlemeCDbP6VQlxzbvHrBsWAQ0B3rMFR34dhwPeA04pGKOkDBLH3C1uljoCqHRwNgtxkJ+OwrY
+	P2BYL8YDjhWClZpNRWLJai/UJBUkVtmBR+puIP5QZMap2p
+X-Received: by 2002:a05:600c:46ce:b0:493:bc92:ef45 with SMTP id 5b1f17b1804b1-493f8820951mr35073795e9.24.1783802564720;
+        Sat, 11 Jul 2026 13:42:44 -0700 (PDT)
 Received: from localhost.localdomain ([95.43.220.235])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-493f2d97527sm172704725e9.2.2026.07.11.13.42.40
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-493f2d97527sm172704725e9.2.2026.07.11.13.42.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 11 Jul 2026 13:42:41 -0700 (PDT)
+        Sat, 11 Jul 2026 13:42:43 -0700 (PDT)
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 To: Vinod Koul <vkoul@kernel.org>,
 	Neil Armstrong <neil.armstrong@linaro.org>,
@@ -77,9 +77,9 @@ To: Vinod Koul <vkoul@kernel.org>,
 	linux-omap@vger.kernel.org,
 	linux-gpio@vger.kernel.org
 Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH v5 2/7] dt-bindings: phy: motorola,cpcap-usb-phy: add optional safe pinctrl state
-Date: Sat, 11 Jul 2026 23:42:05 +0300
-Message-Id: <20260711204210.197144-3-ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH v5 3/7] phy: cpcap-usb: fix IRQ teardown race
+Date: Sat, 11 Jul 2026 23:42:06 +0300
+Message-Id: <20260711204210.197144-4-ivo.g.dimitrov.75@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20260711204210.197144-1-ivo.g.dimitrov.75@gmail.com>
 References: <20260711204210.197144-1-ivo.g.dimitrov.75@gmail.com>
@@ -91,40 +91,70 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Document the optional "safe" pinctrl state for the CPCAP USB PHY.
+there is a race between IRQ handler and remove:
+
+IRQ thread:
+    ddata->active == 1
+
+remove():
+    ddata->active = 0
+    cancel_delayed_work_sync()
+
+IRQ thread:
+    schedule_delayed_work()
+
+The IRQ handler can therefore queue detect work after it has been canceled
+during remove(). Free the IRQ handlers before canceling detect work to
+prevent new work from being scheduled during teardown.
+
+Reported by Sashiko
 
 Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 ---
- .../devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml      | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/phy/motorola/phy-cpcap-usb.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml b/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
-index d6d52d21280c..25c36138bf66 100644
---- a/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
-+++ b/Documentation/devicetree/bindings/phy/motorola,cpcap-usb-phy.yaml
-@@ -62,11 +62,13 @@ properties:
-   vusb-supply: true
+diff --git a/drivers/phy/motorola/phy-cpcap-usb.c b/drivers/phy/motorola/phy-cpcap-usb.c
+index 7cb020dd3423..741145c89e5b 100644
+--- a/drivers/phy/motorola/phy-cpcap-usb.c
++++ b/drivers/phy/motorola/phy-cpcap-usb.c
+@@ -393,6 +393,19 @@ static int cpcap_usb_init_interrupts(struct platform_device *pdev,
+ 	return 0;
+ }
  
-   pinctrl-names:
-+    minItems: 4
-     items:
-       - const: default
-       - const: ulpi
-       - const: utmi
-       - const: uart
-+      - const: safe
++static void cpcap_usb_fini_interrupts(struct platform_device *pdev,
++				     struct cpcap_phy_ddata *ddata)
++{
++	int i, irq;
++
++	for (i = 0; i < ARRAY_SIZE(cpcap_phy_irqs); i++) {
++		irq = platform_get_irq_byname(pdev, cpcap_phy_irqs[i]);
++
++		if (irq >= 0)
++			devm_free_irq(ddata->dev, irq, ddata);
++	}
++}
++
+ /*
+  * Optional pins and modes. At least Motorola mapphone devices
+  * are using two GPIOs and dynamic pinctrl to multiplex PHY pins
+@@ -691,6 +704,8 @@ static void cpcap_usb_phy_remove(struct platform_device *pdev)
+ 	int error;
  
-   mode-gpios:
-     description: Optional GPIOs for configuring alternate modes
-@@ -106,6 +108,7 @@ examples:
-         pinctrl-1 = <&usb_ulpi_pins>;
-         pinctrl-2 = <&usb_utmi_pins>;
-         pinctrl-3 = <&uart3_pins>;
--        pinctrl-names = "default", "ulpi", "utmi", "uart";
-+        pinctrl-4 = <&usb_safe_pins>;
-+        pinctrl-names = "default", "ulpi", "utmi", "uart", "safe";
-         mode-gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>, <&gpio1 0 GPIO_ACTIVE_HIGH>;
-     };
+ 	atomic_set(&ddata->active, 0);
++	cpcap_usb_fini_interrupts(pdev, ddata);
++	cancel_delayed_work_sync(&ddata->detect_work);
+ 	error = cpcap_usb_set_uart_mode(ddata);
+ 	if (error)
+ 		dev_err(ddata->dev, "could not set UART mode\n");
+@@ -698,7 +713,6 @@ static void cpcap_usb_phy_remove(struct platform_device *pdev)
+ 	cpcap_usb_try_musb_mailbox(ddata, MUSB_VBUS_OFF);
+ 
+ 	usb_remove_phy(&ddata->phy);
+-	cancel_delayed_work_sync(&ddata->detect_work);
+ 	regulator_disable(ddata->vusb);
+ }
+ 
 -- 
 2.39.5
 
