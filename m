@@ -1,70 +1,66 @@
-Received: from mo4-p03-ob.smtp.rzone.de (mo4-p03-ob.smtp.rzone.de [85.215.255.104])
+Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [85.215.255.84])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5124831159C;
-	Sat, 11 Jul 2026 06:05:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.104
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3D1C31D362;
+	Sat, 11 Jul 2026 06:05:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.84
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783749923; cv=pass; b=oyQY3IMMAr84b1MYoBgbB3CXME93oLH95EDLx0Ohs0vd2LYtg5RBl5hxY91Bh921aM2i/fQxTUAtfAtkyayX7nHsmUaFE9LSVZyleeTZn+9xgLIXoEn3WnypP6WmQpL34g0rO0b2ywgW+JdYIPbTCvm3kd889VX0OAJ05T02Gm4=
+	t=1783749927; cv=pass; b=f6KjP/WY4uj6RbeuaCOfh4N7mWKkUxavUFwXozeJUNUvZwvF0Js3Yn1IS3wpYvi/6cmOFY0odK43m09jL4xu+tvnolfQc+SpBQm+zkbz4RFZM53cMoX3Ak1/6SLSLGGp0sIXKPGQ9Gt6Py/pF1yqInT3E9fNMwsg30pff3shsaI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783749923; c=relaxed/simple;
-	bh=dimLf08yaYuVTXwXLVmSUQtgyZHrl56dsYX4wDKhUfo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ubgWuAeaUracbTkHWA3RzaJ7Nuznfyo+MEyY1jC2oOVzo7boRcAPJYPlnfRuSYKEN0PEvlU2NcvNVerES1q2xwAmNB7k73vXFHUJp7CAHGj8BYTfAPOiAfkPsVeoThS7U+agYgtRsvfFT+mymZxnVV6ZDJI6q/Iscq2Pc5g+tRs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=XY7dnCSJ; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=hDVrjEmI; arc=pass smtp.client-ip=85.215.255.104
+	s=arc-20240116; t=1783749927; c=relaxed/simple;
+	bh=P+CaOCyDEINLPIaTX0fosPO4YvbyfYcjNCNziZbOa1U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=mReLmpVSoofg4TMtZP+UeTjPbkJ3ugasSVhn1c8aLgsT082To+hqFpSF8pmBfTzESCd1gewPpiNrYgxNEGrgHAUH6eUwTycO4BUSXnJpVxVcjCm0Xz/ddqFiwIfEWyzG9BZQE5VUirrni+ShIu8f8q/00zZP0Ms+mF3qt/8u4TY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=Jv/FjH7Q; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=VQOxmGic; arc=pass smtp.client-ip=85.215.255.84
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="XY7dnCSJ";
-	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="hDVrjEmI"
-ARC-Seal: i=1; a=rsa-sha256; t=1783749729; cv=none;
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="Jv/FjH7Q";
+	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="VQOxmGic"
+ARC-Seal: i=1; a=rsa-sha256; t=1783749726; cv=none;
     d=strato.com; s=strato-dkim-0002;
-    b=UUOLd6ZyshpRymv4dMO+rXsVCXV2tZHyHRsZt7+F2cmqOcPlQnOcbv/LSWzLaNDgB/
-    YNylaLvpItMRoF/TlLWQfY0AeqwQHyjViw6MRXXF/0RCvTe5vR/1vXCLSG3jEZNdHF+K
-    iK5JSu/65A22CTSQsXAwTor+CE9wWmRpOoNsSh2+s0M7KhzCc4Mq3PLjdA96Od9zn7ai
-    Zrrw5PoMJ06dQHAFe2ppTcHA2AqtYW4oGfmxs6LN3dcjEbB6A8LRss2t/31h/fe7QFhu
-    VVJdiMcxyZQLEzc3qaDIQdejt+nBDFFt71gwhaXSkT4m0bG0CnTMgYaJmuPmSunE3ONm
-    8vAA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749729;
+    b=R1xy+vjV5qGJrZp3bx10t+TOSl93Iw/vG76b8g20LekJuqGlCtnQVAs6vaKz1vBe9G
+    vs7zukbaccMv3BIwll4TDG6SEbJBmv1Shaz/Q1Y9jEgXbLMGeVCHhdPXRrHtlk3At0xR
+    D6hvmhEjziT3ND82R4Fr8Fyhrw66VHWAUXb+jiDdFVjcq0Mfcu/OL/O1jVW2uR8q8F29
+    cOEMBGHY4f0WQkTjfjlqsr5iNfuNJfK7gfCBJFcC2Wb4WgeLDZ9Wf1c39bT0XxtChp8u
+    hCM2brIcZyCdO2iyfc5kAr63e2/fhYHy4qKFbg2LDOq/LFh0L0xy8VWCnD2hCkf1pOt/
+    Bgtw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749726;
     s=strato-dkim-0002; d=strato.com;
-    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
-    From:Subject:Sender;
-    bh=5Okt1Bb33hbe5/L8F0+NBgH6ufNIVFYW7HZ0thAd5DA=;
-    b=EOiIll0xUNOQO16tRr+AFZxfJKyD/dMmzbBK9pDwDM8iUEPho0teVtwsyY/dmxBJy8
-    /ZkfclCgKDABxl6k9Hrg9rfw3+/FMnOuFN9AhoAS84SA/qaNbWpDNXgaRv2ReGkSluwe
-    M/+z3p4tXw55Nsl393cMfgA+me91QxOzddKDiu+wNFWrxtjndyfYXvTrZHssWaC1V+D4
-    ArROF93vwHJADQ52hfU3io1DEvXR8Sc20KIE2SGYLNghkjXefBsZP6rASsPOKxhdl9cz
-    436vZEDGtUTtcMVT90HujVVbxUYRCgnecoUk+Ho5+lrVW9lSrlkyklHjxIoxm2eBdjSs
-    R70A==
+    h=Message-ID:Date:Subject:Cc:To:From:Cc:Date:From:Subject:Sender;
+    bh=55SlABL8sC4/v91Mc2l87z9dg40TyXcYAN1WaabwtgA=;
+    b=QoYeJb9+wBLMRfWj+jYkjq7jsoxyOht91kWkbtZKkPLRwYozYvc8mrS19LOxdMAGW6
+    6du5JmRGvMyrN6cPg+MvWC9o+c12+ie5ZyxfmUOdPosQimyGVV3+8AiI/+zI/l5pZ0JB
+    swZnhbntxVIqpF7wgKvIceCcuZzObRlPI8sNzb35mG7OhALO1bQAaqUK7hbrxohWeAZM
+    syWX/ry7fLJnE2tOoPPYHlHe58NwP0QkIrCmfhjiBtUqYuirx5kQJ9kn05mByJyA2/iE
+    42s8GFhSCGCg/dANzUnhz4kmVnDpfZ96aCTvrEqkbgFxndovBSXirQ3L63urQ9u0JBhi
+    +/FA==
 ARC-Authentication-Results: i=1; strato.com;
     arc=none;
     dkim=none
-X-RZG-CLASS-ID: mo03
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749729;
+X-RZG-CLASS-ID: mo02
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749726;
     s=strato-dkim-0002; d=goldelico.com;
-    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
-    From:Subject:Sender;
-    bh=5Okt1Bb33hbe5/L8F0+NBgH6ufNIVFYW7HZ0thAd5DA=;
-    b=XY7dnCSJueGYOy9UvXVGd6wc/nYTWW4OvK0E7XnuX+uFv5AaYufWrAVdAO8Sgw3zP+
-    fJ5158HiEExFYOBnPgUgSjhH5fn62sU/w5ylGXg350dxNf4Hou6YLfVQlldraiGwEIPr
-    dcZbh3DHadmjIVrBjhrcI0cKVGfgUNHTW5VJPdJ3nLyw/Ii6LmWyjyzfRLcyDH2UYSIV
-    zzKfWcfkHoD05foa+8jVbnYuujJARRVAqXUgLU9K61zGsLEQm5eyw3tpiRoRKab2aCTI
-    wgl2UI+u+QxxG7f/0jILfh6szUL7zFXiLXW4rs0XEoGsFHJTqk0P3nRk7OhDnoOHQK2+
-    j7/A==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783749729;
+    h=Message-ID:Date:Subject:Cc:To:From:Cc:Date:From:Subject:Sender;
+    bh=55SlABL8sC4/v91Mc2l87z9dg40TyXcYAN1WaabwtgA=;
+    b=Jv/FjH7QzkuyigtT8XXK2dwQ2vGQcHzBu9aWuIeAgyAcdv6gxMxDSqiY6pwaSNJSzw
+    wD2mal/H8htwmWvXrBI45troLrwAstuv3kZz1eJxIVeItPL+Vvm97abhVZm5INH+QShk
+    S0fUmJbprZy/3RkBB3MkiZRQ34wLkfGTrf8xfj7rXfWb43fT4pOIHl52srVxlFM8t34Q
+    VV/NNaa61kBSf932uC+GrazstytyFbgtDINJPqWbK34DWd6P48uJ545YS5eMNhFk/pfP
+    bTcZ7nqqj5AfKnM421S/6MOaLGGPxfuOEtxHmEG65+SquAM8oT8yTEJk1VmDvnKKmCwY
+    qBFg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783749726;
     s=strato-dkim-0003; d=goldelico.com;
-    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
-    From:Subject:Sender;
-    bh=5Okt1Bb33hbe5/L8F0+NBgH6ufNIVFYW7HZ0thAd5DA=;
-    b=hDVrjEmIFOAJHf7Fq5bMo30S77ZameLirNq7/VgCssyuhHYXNrG8TlO2qfaxIuT8fw
-    tWgU5Cx0gbYidKyBDHAA==
+    h=Message-ID:Date:Subject:Cc:To:From:Cc:Date:From:Subject:Sender;
+    bh=55SlABL8sC4/v91Mc2l87z9dg40TyXcYAN1WaabwtgA=;
+    b=VQOxmGicLvbfDiAUwz97zqTfaoLdmVuKV/V2cinZ5idzgW5WRVnp5mS1n7P6/55AvT
+    Yge9NQzSyXvQXRFfSHDA==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9qVpwcQVkPW4I1HrT35oLmciNszeF4HOToVDOd6S1gdjuILE2MKVd"
 Received: from iMac.fritz.box
     by smtp.strato.de (RZmta 55.5.6 AUTH)
-    with ESMTPSA id Q4b76426B628Ghm
+    with ESMTPSA id Q4b76426B624Ghk
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
 	(Client did not present a certificate);
-    Sat, 11 Jul 2026 08:02:08 +0200 (CEST)
+    Sat, 11 Jul 2026 08:02:04 +0200 (CEST)
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 To: Grond <grond66@riseup.net>,
 	Stefan Leichter <sle85276@gmx.de>,
@@ -107,152 +103,130 @@ Cc: letux-kernel@openphoenux.org,
 	linux-fbdev@vger.kernel.org,
 	kernel@pyra-handheld.com,
 	mfd@lists.linux.dev
-Subject: [PATCH 02/16] regulator: twl: Expose the TWL4030's REGEN signal as a regulator
-Date: Sat, 11 Jul 2026 08:01:49 +0200
-Message-ID: <1746667e5c17e2d39fc0747d7e098b32b3d7b479.1783749722.git.hns@goldelico.com>
+Subject: [PATCH 00/16] ARM: omap3: pandora: Modernize audio and backlight to Device Tree to finally remove pdata-quirks
+Date: Sat, 11 Jul 2026 08:01:47 +0200
+Message-ID: <cover.1783749722.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.50.1
-In-Reply-To: <cover.1783749722.git.hns@goldelico.com>
-References: <cover.1783749722.git.hns@goldelico.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF8
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="us-ascii"
 
-From: Grond <grond66@riseup.net>
+PATCH V1 2026-07-11 08:02:02:
+This series modernizes the OpenPandora handheld support by converting the 
+sound subsystem and backlight control to proper platform drivers and Device 
+Tree definitions.
 
-This is needed on some boards (for example, the Pandora), where REGEN is
-used to drive external regulators.
+The primary goal is the complete removal of omap3_pandora_legacy_init() 
+and the elimination of the last remaining user of machine_is_omap3_pandora().
 
-Signed-off-by: Grond <grond66@riseup.net>
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- drivers/regulator/twl-regulator.c | 52 +++++++++++++++++++++++++++++++
- include/linux/mfd/twl.h           |  3 ++
- 2 files changed, 55 insertions(+)
+History and Context
+===================
+The necessity of this cleanup was highlighted in several recent discussions:
 
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index 5bacfcebf59aa..d883ee8abec32 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -451,6 +451,16 @@ static const struct regulator_ops twl4030fixed_ops = {
- 	.get_status	= twl4030reg_get_status,
- };
- 
-+static const struct regulator_ops twl4030signal_ops = {
-+	.enable		= twl4030reg_enable,
-+	.disable	= twl4030reg_disable,
-+	.is_enabled	= twl4030reg_is_enabled,
-+
-+	.set_mode	= twl4030reg_set_mode,
-+
-+	.get_status	= twl4030reg_get_status,
-+};
-+
- /*----------------------------------------------------------------------*/
- 
- #define TWL4030_ADJUSTABLE_LDO(label, offset, num, turnon_delay, remap_conf) \
-@@ -511,6 +521,24 @@ static const struct twlreg_info TWLFIXED_INFO_##label = { \
- 		}, \
- 	}
- 
-+#define TWL4030_SIGNAL(label, offset, num, remap_conf) \
-+static const struct twlreg_info TWLSIGNAL_INFO_##label = { \
-+	.base = offset, \
-+	.id = num, \
-+	.remap = remap_conf, \
-+	.desc = { \
-+		.name = #label, \
-+		.id = TWL4030_REG_##label, \
-+		.n_voltages = 1, \
-+		.fixed_uV = 0, /* filled in from DT later */ \
-+		.ops = &twl4030signal_ops, \
-+		.type = REGULATOR_VOLTAGE, \
-+		.owner = THIS_MODULE, \
-+		.enable_time = 0, /* also filled in from DT */ \
-+		.of_map_mode = twl4030reg_map_mode, \
-+		}, \
-+	}
-+
- /*
-  * We list regulators here if systems need some level of
-  * software control over them after boot.
-@@ -536,6 +564,7 @@ TWL4030_FIXED_LDO(VINTDIG, 0x47, 1500, 13, 100, 0x08);
- TWL4030_FIXED_LDO(VUSB1V5, 0x71, 1500, 17, 100, 0x08);
- TWL4030_FIXED_LDO(VUSB1V8, 0x74, 1800, 18, 100, 0x08);
- TWL4030_FIXED_LDO(VUSB3V1, 0x77, 3100, 19, 150, 0x08);
-+TWL4030_SIGNAL(REGEN, 0x7f, 21, 0x08);
- 
- #define TWL_OF_MATCH(comp, family, label) \
- 	{ \
-@@ -548,6 +577,7 @@ TWL4030_FIXED_LDO(VUSB3V1, 0x77, 3100, 19, 150, 0x08);
- #define TWL6032_OF_MATCH(comp, label) TWL_OF_MATCH(comp, TWL6032, label)
- #define TWLFIXED_OF_MATCH(comp, label) TWL_OF_MATCH(comp, TWLFIXED, label)
- #define TWLSMPS_OF_MATCH(comp, label) TWL_OF_MATCH(comp, TWLSMPS, label)
-+#define TWLSIGNAL_OF_MATCH(comp, label) TWL_OF_MATCH(comp, TWLSIGNAL, label)
- 
- static const struct of_device_id twl_of_match[] = {
- 	TWL4030_OF_MATCH("ti,twl4030-vaux1", VAUX1),
-@@ -570,6 +600,7 @@ static const struct of_device_id twl_of_match[] = {
- 	TWLFIXED_OF_MATCH("ti,twl4030-vusb1v5", VUSB1V5),
- 	TWLFIXED_OF_MATCH("ti,twl4030-vusb1v8", VUSB1V8),
- 	TWLFIXED_OF_MATCH("ti,twl4030-vusb3v1", VUSB3V1),
-+	TWLSIGNAL_OF_MATCH("ti,twl4030-regen", REGEN),
- 	{},
- };
- MODULE_DEVICE_TABLE(of, twl_of_match);
-@@ -583,6 +614,7 @@ static int twlreg_probe(struct platform_device *pdev)
- 	struct regulation_constraints	*c;
- 	struct regulator_dev		*rdev;
- 	struct regulator_config		config = { };
-+	int ret;
- 
- 	template = of_device_get_match_data(&pdev->dev);
- 	if (!template)
-@@ -615,6 +647,26 @@ static int twlreg_probe(struct platform_device *pdev)
- 	case TWL4030_REG_VINTANA2:
- 	case TWL4030_REG_VINTDIG:
- 		c->always_on = true;
-+		break;
-+	case TWL4030_REG_REGEN:
-+		if (c->min_uV == 0 || c->max_uV == 0) {
-+			dev_err(&pdev->dev, "minimum or maximum regulator voltage zero in DT\n");
-+			return -EINVAL;
-+		}
-+
-+		if (c->min_uV != c->max_uV) {
-+			dev_err(&pdev->dev, "minimum and maximum voltage are different in DT\n");
-+			return -EINVAL;
-+		}
-+		info->desc.fixed_uV = c->min_uV;
-+
-+		ret = of_property_read_u32(pdev->dev.of_node, "startup-delay-us",
-+					   &info->desc.enable_time);
-+		if (ret) {
-+			dev_err(&pdev->dev, "no valid startup delay set in DT: %d\n", ret);
-+			return ret;
-+		}
-+
- 		break;
- 	default:
- 		break;
-diff --git a/include/linux/mfd/twl.h b/include/linux/mfd/twl.h
-index b31e07fa4d516..d249b4b22c898 100644
---- a/include/linux/mfd/twl.h
-+++ b/include/linux/mfd/twl.h
-@@ -738,6 +738,9 @@ int twl4030_sih_setup(struct device *dev, int module, int irq_base);
- #define TWL4030_REG_VUSB1V8	18
- #define TWL4030_REG_VUSB3V1	19
- 
-+/* digital output signal for enabling external regulators */
-+#define TWL4030_REG_REGEN	21
-+
- /* TWL6030 SMPS/LDO's */
- /* EXTERNAL dc-to-dc buck convertor controllable via SR */
- #define TWL6030_REG_VDD1	30
+1. Tony Lindgren noted that machine_is_omap3_pandora() checks never succeed 
+   on Device Tree-booted machines, leaving the audio subsystem functionally 
+   broken since the DT conversion years ago:
+   https://marc.info/?l=alsa-devel&m=165632351319716&w=2
+
+2. Ethan Nelson-Moore submitted a patch to replace the macro with DT 
+   compatibility checks (accepted as commit 45efb8fbdae3 in v7.2-rc1):
+   https://marc.info/?l=linux-omap&m=177841578110704&w=2
+
+3. Sascha Hauer pointed out that the entire omap3pandora driver fundamentally 
+   depended on this broken machine ID check:
+   https://marc.info/?l=linux-omap&m=178048982272252&w=2
+
+Design Choices and Implementation
+=================================
+Based on these discussions and a long-standing and working out-of-tree solution,
+we initially attempted a migration to generic frameworks like simple-audio-card 
+or audio-graph-card. However, the hardware routing peculiarities of the 
+OpenPandora introduced too many functional gaps. Replacing omap3pandora.c 
+entirely with pure DT definitions proved unfeasible. 
+
+Therefore, we opted to base a new proposal on the out-of-tree rewrite of
+the old-style sound board file kernel driver (sound/soc/ti/omap3pandora.c)
+into a proper platform driver that cleanly fetches its resources from the
+Device Tree, while adding specific handling for the twl4030-regen output
+and adapting the pandora device tree files.
+
+Series Structure
+================
+* Patches 01–06 (Preparation): Move highly specific legacy code to its proper 
+  infrastructure (TWL4030 regulator regeneration and codec handling).
+* Patch 07-08 (New Driver): Introduce a dedicated platform driver for the 
+  PCM1773 audio DAC.
+* Patches 09-14 (Audio Core): Rewrite the omap3pandora ASoC fabric driver 
+  and update the respective Device Tree nodes.
+* Patches 14–15 (Backlight): Remove the custom, legacy Pandora backlight driver,
+  convert it to generic Device Tree nodes
+* Patch 16: (Cleanup) safely delete the obsolete omap3_pandora_legacy_init().
+
+Notes & Testing
+===============
+* Testing: This series has been tested on real OpenPandora hardware.
+
+Credits
+=======
+This work is a collaborative effort by multiple authors over several years:
+* Grond <grond66@riseup.net>
+* Stefan Leichter <sle85276@gmx.de>
+* H. Nikolaus Schaller <hns@goldelico.com>
+
+
+Grond (8):
+  dt-bindings: twl-regulator: Add bindings for exposing ti,twl4030-regen
+  regulator: twl: Expose the TWL4030's REGEN signal as a regulator
+  arm: dts: twl4030: add twl4030-regen child
+  arm: dts: omap3pandora: Populate DT data for the TWL4030's REGEN
+    regulator
+  arm: dts: omap3pandora: Don't use DMA channels for unused SPI masters
+  ASoC: twl4030-codec: Allow setting APLL rate through the .set_sysclk()
+    interface
+  ASoC: pcm1773-codec: write a driver for the PCM1773 chip from TI
+  arm: dts: omap3pandora: Add device node for PCM1773 codec
+
+H. Nikolaus Schaller (5):
+  ASoC: dt-bindings: add TI PCM1773
+  ASoC: dt-bindings: add OpenPandora Sound Card
+  arm: dts: omap3-pandora-common: backlight: switch to twl4030 pwm and
+    pwm_bl
+  backlight: remove pandora_bl
+  arm: omap2: remove remaining pdata-quirks for pandora legacy devices
+
+Stefan Leichter (3):
+  ASoC: omap3pandora: Rewrite sound card driver as a platform driver
+    with DT
+  ARM: dts: omap3-pandora-common: Enable audio in/out (mcbsp4/2)
+  arm: dts: omap3pandora: create new DT node for the sound card
+
+ .../devicetree/bindings/mfd/ti,twl.yaml       |   1 +
+ .../sound/openpandora,omap3pandora-sound.yaml |  94 ++++
+ .../devicetree/bindings/sound/pcm1773.yaml    |  32 ++
+ .../dts/ti/omap/omap3-pandora-common.dtsi     |  84 ++++
+ arch/arm/boot/dts/ti/omap/twl4030.dtsi        |  14 +
+ arch/arm/mach-omap2/pdata-quirks.c            |  23 -
+ drivers/regulator/twl-regulator.c             |  52 ++
+ drivers/video/backlight/Kconfig               |   7 -
+ drivers/video/backlight/Makefile              |   1 -
+ drivers/video/backlight/pandora_bl.c          | 159 ------
+ include/linux/mfd/twl.h                       |   3 +
+ include/linux/mfd/twl4030-audio.h             |   3 +
+ sound/soc/codecs/Kconfig                      |   5 +
+ sound/soc/codecs/pcm1773.c                    | 149 ++++++
+ sound/soc/codecs/twl4030.c                    | 140 ++++--
+ sound/soc/ti/omap3pandora.c                   | 454 ++++++++++++------
+ 16 files changed, 855 insertions(+), 366 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml
+ create mode 100644 Documentation/devicetree/bindings/sound/pcm1773.yaml
+ delete mode 100644 drivers/video/backlight/pandora_bl.c
+ create mode 100644 sound/soc/codecs/pcm1773.c
+
 -- 
 2.50.1 (Apple Git-155)
 
