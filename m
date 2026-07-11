@@ -1,63 +1,61 @@
-Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7347A3CC323
-	for <linux-omap@vger.kernel.org>; Sat, 11 Jul 2026 16:48:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E1F7149DF1
+	for <linux-omap@vger.kernel.org>; Sat, 11 Jul 2026 20:42:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783788529; cv=none; b=vB2NvxFeb0ZOjK9CXsS7YmtPkFnePB0ZQ3rnEFeRfk9pf6t0RJqPJti1Q/bgHyo173Rgd/3xb6vyjxr0ousRTTebiEIC1KI73U+RaXyriIUGq2xhQRdUxXLiMjFAVFnaEaN8O4OwYBBI7euPTkTiB3auZYa0ZkKRZTyxItTOe68=
+	t=1783802561; cv=none; b=m4JZJklwycGyAxTMaU6BK4ZBV1xdU1INdy4JOc9K5zf/kjy14omgTOpkooFzOs5C4vZFdg/yydxwasJX6ZGrKXBlSrZVPYz585G/4h0OpxAQnInGO8/1EsmNTAdE8/kXi2gfkpFQXfUjiRgFmzJcyVlgTROhYg5niYor+/OCYKc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783788529; c=relaxed/simple;
-	bh=yVMP8UAtXlu981/AZfXfuu6ntdCZq3l09RETxP3vnIQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=UB4ffSor47dlEIfXylWhDmvVkW9ghOsA2hXaTJkmKnwMS+psPSjjG+yuX8GBvXQ1GUyjkAWWfhfkYLtqC3NjHQd3w1tVjjPXqP2DXTTVtSgvSV3i2+ofiwu5UwqnW4BDN46u2vLbOxPOJ7moV99HeAEHM0IBgueJ0t620KzykBg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qnb2V/4B; arc=none smtp.client-ip=209.85.128.45
+	s=arc-20240116; t=1783802561; c=relaxed/simple;
+	bh=L2sb5cET0wjT1JgD/AHsjf7HpJ891Sy1hzT2Y5sI8FI=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=bFIVLSA54OtcCJ28bpBYbWLcv6JPCfGIRAc6q7WDbHrl9g7hTXUUAVIy/4OyIbag9/jcAWtFTyf0g6q2aLhb1qlINRjhxGnI9terAsy243XW9RbiEev6AHzvMMBbTSPCAHFnkQ9GoWWQZYqCs3BZN4lPxrsouo9cbKyoBq1+LWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KKFbcQyq; arc=none smtp.client-ip=209.85.128.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qnb2V/4B"
-Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-493c2c0b9a8so16596215e9.1
-        for <linux-omap@vger.kernel.org>; Sat, 11 Jul 2026 09:48:37 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KKFbcQyq"
+Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-493c52cde9eso18521035e9.3
+        for <linux-omap@vger.kernel.org>; Sat, 11 Jul 2026 13:42:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783788516; x=1784393316; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=VDpn6H9slILEKuaZA30ay5+GU6mS2ER9t41k8f7Sm/c=;
-        b=qnb2V/4BHecTg/Bstd2nMyetg96JxjdqwwEPGpBQV5kC4m6oim5hvw2ownjnEQoxYH
-         EM13pqUiExGCOUWveiovV5Pg48IAbgut8sqqnJT1ALmvnN2KD87IcZCFd9ImEvkfXxmn
-         Doi5wQsapjWOtcNS9F8g1TKg8Pyi1wllbLirUo2oHlNM/nli0n97PJydxOhtrLmE8wed
-         hdCSoFHJBZWA2Zo0IDzpfwIi9CgJStbrG4wfrHeYTtW3TPyYJbZhXEhJ5SJgWmChmn03
-         II5dudICvCtO3WqRhour/Sp9RQ/Apou673hl1XN0cR7SJPXMEnuGTo9+3d/XHS4k/ZAi
-         +G8A==
+        d=gmail.com; s=20251104; t=1783802559; x=1784407359; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=PnttK4V5N2RbdGmmP/+gvD/lecbvQoerec0w3s7gRKw=;
+        b=KKFbcQyqnwjTAexocsEcTztm2/hp9ai65jm8Du/U0VVFFxyzx8D9fTbOrNNFVho+eT
+         laSFVCAd6tBbkLB3VbdNCltvmjWUbMizz1/RY0KlWnkVmMvPdvq5c8b++5HGkQig9+Hq
+         u3vFgNWrU/vHNaeuJf/kV5T8dmK3aBq/qqmUC0iXR/8ETZfuiSXjni9bIraQKu2YqfV/
+         ZdzZEeMf/8WW/7UZJUgdreXSCHsuSajGiRMSibV02Ysjq4f0K9x5s4f8ZxEUYm+7u9J+
+         RmTs7uJ5Cgos4Vc2zuVWeU2b63vRW43ILTQU3n7mJRRpDOU7fjwp7WLjAm42bRB6Hs8G
+         8vEQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783788516; x=1784393316;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=VDpn6H9slILEKuaZA30ay5+GU6mS2ER9t41k8f7Sm/c=;
-        b=PyND4rDUdsGRfbACphAClr/qL6I6AGXiDtb3ezNAAiC3/fcNTF1FXl6VUhp7iZTtQr
-         bk/f1LCM4RCZ7rOf90jDej82jGpmAd6oB1URgRbCWOsDMmpPtAu4OJ1WrCSi3CV+ZjDb
-         4VG0MMNeetHsmej4nVDsBx4DeUfg6J80tXCLmGZdUvWDcc+xp80AuvmxG/qHQzCfT9g5
-         gviT7MtK26xq70V6xv/9ustXtrlgGjzxqwNGeI5rDVNLhpfxOd0EYGtp49K6ETXPSphS
-         TG6zMVv3JZYuMaR/g3GVVqPTVv4v6khHC4LWN4xI/Fn12eA7A0NEXuPo8ajJKO6Lnd9+
-         wbOA==
-X-Forwarded-Encrypted: i=1; AHgh+Rrl1hk+LgGxch4ZwupXrb6N6mr3mrkHpYcmHGmRCJI0vHhQvaGFGoGMFO257b0MeszYyHNA1o6V0nE+@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz/7Q6EEUIry2lT4o2V1KODGfg5D7MzARLpvVGStHce9kKXNH4/
-	CW+6JIe0h+3GFihYqGhl5Lhh0LePGOQCXHEuBN3Olo+dtYz6n3L8K9vD
-X-Gm-Gg: AfdE7cligZP93DhxiLn2UkOm2DM1v8SNJZh9iud70rrIYzE0xZaTUDYPaY3YsKG9ywp
-	2xLHb43Xna2i81SwkiS47XOauFvX+I65duURhJPDSZa9x8/rWkCX61Leob6QFyQ4POOfyRVTR+z
-	nt5MIIY1IW6yCH5yKbPTfA52mFtB+clrrGheCTcbCwgx/fxvkJvLbNYypJXHwpkYH7+wTDgEtqc
-	Cba3iiuDMw+8WXBrFwOmz1c+c696RczJVYBWFGXRswj22unOfi5KPlt4wzUeL9mh3npx/B5A8WC
-	exJUdSe3b+sNzwKfWRM6vCoEDDy6hN5wGN9WW5/fbU3TgcuBp37ct/bA7592b9nA2dIaGPp1Br2
-	uwIoEOKOV8V/oWpuWKnQ6JYhCh4jik5fgxwJu+UHW+7cXTor4Hg7AMuiHBAhCaJCurSoIxiUSCj
-	n/9L4/tINMxZQzbIDUeq+ArAHgjca73MgmOA==
-X-Received: by 2002:a5d:5c89:0:b0:476:cfa0:a976 with SMTP id ffacd0b85a97d-47f2dcb60fcmr3613474f8f.5.1783788515836;
-        Sat, 11 Jul 2026 09:48:35 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1783802559; x=1784407359;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=PnttK4V5N2RbdGmmP/+gvD/lecbvQoerec0w3s7gRKw=;
+        b=mJP1XVVBnKvla7TmDk0SUBuVNg+bcRcpSRecTahk+tC1HQa4ZifUk4bbvLUf/a1KSL
+         Q0vJDT62DQ+V/73QZwY6usy1pRTuNXGgRo2zaspPivy5aij+KWauSlibcNr1WS0YHFJU
+         84Ws8APgqrDCdwXZkLGbyIdxHIK2jxSSB6xGGjsldoXET/4+h654B6IznsO1UHUvQi14
+         FS24mYwXfaiFl3BJhTWbyumVRE3gNXjcOTAooqLQqPpnPDMsS0q7tj8ZOSfoQ2/GoXEM
+         IP29iu85B94MfnOUXFSroU6Xu7K0t8wahdaA70L1onDMyWEebxo964mPetAy2r0njZ6M
+         UZEg==
+X-Forwarded-Encrypted: i=1; AHgh+RqhEJietS1howrgS+q3W19LBk6J1RXQJ8EFn1d9JgrFGMl1gFh0Ny7PskexHvRFsoGL+200WmKllzDq@vger.kernel.org
+X-Gm-Message-State: AOJu0YycwQn9I92ExtIzyrwGPlITFT6M9dL89tOaIK/ElZENN+tUXrK8
+	PK+AUu9DqdFqXD3CqwJCgoylteqx5o3j3LSZJ7Pznic4ayW353cB+Ckx
+X-Gm-Gg: AfdE7cmTaFU0wTxOyBNTm8MO0QjG1ahLxetjtwIVa07FJX8+E967CTN+TnQ19sOKZBQ
+	wwmwaNvvwcu80g7085aMYhntQvbYhbB6lS98G4QX0PRtrzrUnP0mawEHwwKxYVyUggvjotgJgxG
+	/Wvwx98XmT/OVbGrTop6gl+Zi2AEqtDN6UAVUidmX+AR+RgNrooJCThQDZ74s1D+iwBBzQ5mall
+	uyLgu/nLYRNrvWrBy+SqbowPmZ7HCfZVFPgoUKp86dQMH0vRNF5taeRX2/cYGoiiM5oBuFzKajv
+	dZ72CFcOX3VNSk/4mAhtNl4lsv+Gvaq3L3I1t1dklcGleMPrsrPN+dqL4r8WaKhZRi6JltrI5k4
+	OMRJzGPmUa1F6Fm0Qmp07/exZAdSDCrCpysComZ01B9kpI4CDld2pe4209m9nCjlasw729GxULL
+	59F+H6HRTikq3K8V59zm2xt0rDkMCiRedhxw==
+X-Received: by 2002:a05:600c:608e:b0:490:b8c0:d470 with SMTP id 5b1f17b1804b1-493f881f934mr35888195e9.19.1783802558744;
+        Sat, 11 Jul 2026 13:42:38 -0700 (PDT)
 Received: from localhost.localdomain ([95.43.220.235])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47a9e4d83bdsm69152875f8f.13.2026.07.11.09.48.34
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-493f2d97527sm172704725e9.2.2026.07.11.13.42.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 11 Jul 2026 09:48:35 -0700 (PDT)
+        Sat, 11 Jul 2026 13:42:38 -0700 (PDT)
 From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 To: Vinod Koul <vkoul@kernel.org>,
 	Neil Armstrong <neil.armstrong@linaro.org>,
@@ -77,12 +75,10 @@ To: Vinod Koul <vkoul@kernel.org>,
 	linux-omap@vger.kernel.org,
 	linux-gpio@vger.kernel.org
 Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH v4 6/6] ARM: dts: ti: cpcap-mapphone: add USB safe pinctrl state
-Date: Sat, 11 Jul 2026 19:47:54 +0300
-Message-Id: <20260711164754.185565-7-ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH v5 0/7] phy: cpcap-usb: improve charger detection and export cable state
+Date: Sat, 11 Jul 2026 23:42:03 +0300
+Message-Id: <20260711204210.197144-1-ivo.g.dimitrov.75@gmail.com>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20260711164754.185565-1-ivo.g.dimitrov.75@gmail.com>
-References: <20260711164754.185565-1-ivo.g.dimitrov.75@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -91,60 +87,69 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a pinctrl state that configures the USB interface pins into a safe
-GPIO configuration. This allows the CPCAP USB PHY driver to place the
-pins into a defined state whenever the USB interface is not active.
+The Motorola CPCAP USB PHY contains the hardware state machine used for
+USB cable detection. Besides distinguishing USB peripheral and host
+connections, it can also detect dedicated charging ports (DCP).
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
----
- .../dts/ti/omap/motorola-cpcap-mapphone.dtsi  |  3 ++-
- .../dts/ti/omap/motorola-mapphone-common.dtsi | 19 +++++++++++++++++++
- 2 files changed, 21 insertions(+), 1 deletion(-)
+This series extends the CPCAP USB PHY driver to detect DCP connections
+and export the detected cable state through the Extcon framework. It also
+makes the idle UART mode optional, allowing the PHY to remain in its
+default USB detection configuration unless UART support is explicitly
+requested.
 
-diff --git a/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi
-index 51a858021541..368cb539997f 100644
---- a/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/motorola-cpcap-mapphone.dtsi
-@@ -120,7 +120,8 @@ cpcap_usb2_phy: phy {
- 			pinctrl-1 = <&usb_ulpi_pins>;
- 			pinctrl-2 = <&usb_utmi_pins>;
- 			pinctrl-3 = <&uart3_pins>;
--			pinctrl-names = "default", "ulpi", "utmi", "uart";
-+			pinctrl-4 = <&usb_safe_pins>;
-+			pinctrl-names = "default", "ulpi", "utmi", "uart", "safe";
- 			#phy-cells = <0>;
- 			interrupts-extended =
- 				<&cpcap 15 0>, <&cpcap 14 0>, <&cpcap 28 0>,
-diff --git a/arch/arm/boot/dts/ti/omap/motorola-mapphone-common.dtsi b/arch/arm/boot/dts/ti/omap/motorola-mapphone-common.dtsi
-index acac3c243c7a..475ffe678e76 100644
---- a/arch/arm/boot/dts/ti/omap/motorola-mapphone-common.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/motorola-mapphone-common.dtsi
-@@ -352,6 +352,25 @@ OMAP4_IOPAD(0x1c8, PIN_INPUT_PULLUP | MUX_MODE7)
- 		>;
- 	};
- 
-+	usb_safe_pins: usb-safe-pins {
-+		pinctrl-single,pins = <
-+		OMAP4_IOPAD(0x196, MUX_MODE7)
-+		OMAP4_IOPAD(0x198, MUX_MODE7)
-+		OMAP4_IOPAD(0x1b2, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1b4, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1b6, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1b8, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1ba, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1bc, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1be, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1c0, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1c2, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1c4, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1c6, PIN_INPUT_PULLUP | MUX_MODE7)
-+		OMAP4_IOPAD(0x1c8, PIN_INPUT_PULLUP | MUX_MODE7)
-+		>;
-+	};
-+
- 	/*
- 	 * Note that the v3.0.8 stock userspace dynamically remuxes uart1
- 	 * rts pin probably for PM purposes to PIN_INPUT_PULLUP | MUX_MODE7
+The series updates the Device Tree binding for the optional charger
+detection interrupt and the optional "safe" pinctrl state. Corresponding
+mapphone Device Tree entries are added to describe the charger detection
+interrupt and enable the safe pinctrl state.
+
+The charger detection interrupt is not currently used by the driver.
+However, it is added to the binding and Device Tree because it describes
+a hardware capability of the CPCAP USB PHY.
+
+The series has been tested on Motorola Droid 4 hardware.
+
+Changes in v5:
+- fix race in remove()
+- fix commit message of PATCH 2
+- re-schedule detect_work if DCP/SDP modes cannot be reliably detected
+- fully configure PHY registers in DCP mode
+- fix extcon intermediate cable states
+
+Changes in v4:
+- make charger detection interrupt optional
+- make driver functional without charger detection interrupt
+- add bindings and Device Tree for 'safe' pinctrl mode
+- use 'safe' pinctrl state before switching PHY modes
+
+Changes in v3:
+- Drop "phy: cpcap-usb: Prevent line glitches from triggering sysrq"
+- Fix DT schema interrupts order
+- Fix boot cable detection
+
+Changes in v2:
+- add chrg_det interrupt instead of replacing se1
+- Fix remove() race by cancelling detect_work before hardware teardown
+- Restore SysRq state on all error paths
+- Introduce CPCAP_UNKNOWN initial mode
+- Snapshot enable_uart module parameter
+
+Ivaylo Dimitrov (7):
+  dt-bindings: phy: motorola,cpcap-usb: add chrg_det interrupt
+  dt-bindings: phy: motorola,cpcap-usb-phy: add optional safe pinctrl
+    state
+  phy: cpcap-usb: fix IRQ teardown race
+  phy: cpcap-usb: add DCP detection and make UART idle mode optional
+  phy: cpcap-usb: add extcon support
+  ARM: dts: ti: cpcap-mapphone: add charger detection interrupt for
+    CPCAP USB PHY
+  ARM: dts: ti: cpcap-mapphone: add USB safe pinctrl state
+
+ .../bindings/phy/motorola,cpcap-usb-phy.yaml  |  13 +-
+ .../dts/ti/omap/motorola-cpcap-mapphone.dtsi  |   9 +-
+ .../dts/ti/omap/motorola-mapphone-common.dtsi |  19 +
+ drivers/phy/motorola/phy-cpcap-usb.c          | 386 +++++++++++++++---
+ 4 files changed, 357 insertions(+), 70 deletions(-)
+
 -- 
 2.39.5
 
