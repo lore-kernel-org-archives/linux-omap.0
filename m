@@ -1,70 +1,70 @@
-Received: from mo4-p04-ob.smtp.rzone.de (mo4-p04-ob.smtp.rzone.de [85.215.255.121])
+Received: from mo4-p04-ob.smtp.rzone.de (mo4-p04-ob.smtp.rzone.de [81.169.146.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C79514A619;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B35A2DA768;
 	Sat, 11 Jul 2026 06:02:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.121
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=81.169.146.177
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783749767; cv=pass; b=doJjb01yLKSDq0pO3WrC/u+VKZEXWBD9GuA157qDlDbq7ur/0PCwDjD2+OKDORvwQnlxX2fuq1lNVLVHGK9dbKlw2zYBBPQBUgSC+i5XgoZkuSArD39d49sdqDEsIq8KdR+lfS7Bwmv7nMzLRChhhKIERuutgtwyMl0CNj+LLig=
+	t=1783749768; cv=pass; b=ArVYasvBu/1Fc36xpvd8IjDl2GZl8GlMUAP8pHvEbybZzA1vm9WACJGVMr6T7rsl0DJHkrSuS22oiN/zp9TCx0zLC5JNg+Z19oXGZL71s73LSTEgFgM8Z29msDCo7EHSpn5x7rltTOctL92GWbie29AId9i1fM36bxXL7JdbAOs=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783749767; c=relaxed/simple;
-	bh=dQiGYPN6L3Mn6GdD1aTlo5globLJ9HWANGZBAxpHXl4=;
+	s=arc-20240116; t=1783749768; c=relaxed/simple;
+	bh=8U83B9LRk1dKj2Jnju2tX3sgdInfkKSVyP3e6vEm7A8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=j7zzl9YXzq08Zf6UotxVATl4YoMkwbnQvKSeHXva1AvNoww23NuXJyN4txoyOBDr1KCowzJzRBn1Of/EIZRSp/9BEePh3FROhH3fdMx3jDNPzt+Cq89LZx1eHCYqHOBS1deQtvqXStJ1eaAUw/5W3dZhN6HWEkDoPtlafDVxcYk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=bZam3ACt; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=cB868UH1; arc=pass smtp.client-ip=85.215.255.121
+	 MIME-Version:Content-Type; b=Vsg7ok2oya7ic8zckEXPcrBllGPBkXZ8ugu26Ead58mQi/z5s/3Cqv6qa+xhShv6ys3wtfLLnYsOQ/aMJPvTK+dAVWHzmnSSJXCLZiZVmnlgFvvrMyvVECqbhdaVh0cPFghwq3OraunQH06SeLPej8EzC7s7KtdSYiLXH0PHn/Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=H0E6fUOI; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=o0YSAyo+; arc=pass smtp.client-ip=81.169.146.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="bZam3ACt";
-	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="cB868UH1"
-ARC-Seal: i=1; a=rsa-sha256; t=1783749738; cv=none;
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="H0E6fUOI";
+	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="o0YSAyo+"
+ARC-Seal: i=1; a=rsa-sha256; t=1783749746; cv=none;
     d=strato.com; s=strato-dkim-0002;
-    b=iF/B9SBDEvkXNuexCIPHG9Ujd48FL86LW8AQhbDHlVrSTnALAuBf0v8dutzcF7Ai0o
-    muiZkUmL80ELiPksCEAvRwMrm+B/juxJKuRexaRPAy49ef6GkXreqKuDhJ0nb/5IWS6s
-    Bth31lf95JRqIgzbl+T4IEFHyZRJzkSTkrBO93Kmws2zMvWBX4WruiLGUxLFzU1oAx7C
-    uVc9sWIT9bbp50oOJ9ltVlccfubHNbUYc5WxCkIq4ORRode+mOlfn1igcRcFyjXvBSQn
-    n7ItmwyjumvgxHOU1RqaTwSTVDb2EudTsEq0UL5FdD2rwltVi9+JHYDNZs/ci2PcHWJ4
-    YxrQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749738;
+    b=g9M4gqJl1SHWv2ddnj27JmqGZPXr91e/K/2pnJNAEchnkCkPExHpVQbpPBr5hRQ3g8
+    qDuN4k5maOCku7toQYWBo2QVzxOA+YZfM72g+2P0xzZtUcvR3YUHFAXrVfUmc6JMRfG3
+    IuIM/Kehz89pN9CWDPSVVXQgxzS7m8dAPmawcyfonIwhV451+MtVxPLmtoHjFe01NwEs
+    qibE+4iPhbm0R4HVd4pCw5ccdtYqGo/f59KKFGPh65gpg1arm8BfHk3QPfH4/4HKGomF
+    JNz4hiKa9fUn5bQL8iQBbjN+iQEnIs4RMO9c+iiiU7e1joKaaSMrKBSiEhttavkXjUMh
+    CPQw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749746;
     s=strato-dkim-0002; d=strato.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=t/x+YYxsv60bL+EGSlJ2dLJ3eczcNCxWtbxZDP+PXMA=;
-    b=D2e7Iyzhl4/CphUbFloTXyHZ2Ap7xTWkVzJyFesvwINQdw01EsJ76NOVrMhX0AcRgU
-    ED0hcClxLTgbjKyPXqRDM+FzhwgBfq7+DUyCGEKdPvuMYxyQvIpD/nvnkkGO0BV+905A
-    ATsmi1K5RcGMi+1EOSezjB85TFGSYN70KaNzxPBTnjojc4WkJ8P9SmjQuvOgr9VWofBH
-    Ya0S1hP7wVOdQSwsFD5AZJWMoTF+SCp7LL/Ynn6LYjGjO/lt7FvuBjMCUbOQN8iOe9bZ
-    J0FwZ1lSG/Vty29GO+w8GHVrOSj6fADI9C6bPjeMebDSrXennAHSd+TmwM0fOGwPHqjL
-    DuqQ==
+    bh=7pA0TFC7UkEDXI5FUk59zdzYhP+mOINP0O+fHg17PO8=;
+    b=FozWwp/sAiNBb0Vi3waIgup6pPUUKBANGqkq1yFyQATClVwnivdeT+iujS+w41DceP
+    KmcbvodJ8dz085DHhYjYmLFmEoPj0/H42iM1pHoNSPh1R8G7ZbZ+yRItLikSL2MfhGff
+    1Rhy8/5f3T1e5TxT1iuDyo9zQkm+KxA4nWqkPGiXeQd/P9QbOXCbO/pRBs/towBV62FH
+    d55CLgTFTB1JqL2NRuXJIApZX2F7dSRuU/jZG1RFTYPKU6Ua9VkCeyaA8NEU90du6kJc
+    nikb4byzkE2gxIG0DNwaEVpBfMczzxJIpg62ag8yBeWvPNGnAcdcwLv6hAlhatjtISa5
+    PmiQ==
 ARC-Authentication-Results: i=1; strato.com;
     arc=none;
     dkim=none
 X-RZG-CLASS-ID: mo04
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749738;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749746;
     s=strato-dkim-0002; d=goldelico.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=t/x+YYxsv60bL+EGSlJ2dLJ3eczcNCxWtbxZDP+PXMA=;
-    b=bZam3ACtFP/+X/qTQ4Ho0KMLfkU12LPFPoAt49mvn2uKjUqHr9W2UJJPxNWbS5W0gu
-    mGHPbyf9uBtzn7xMTc6BgcLJcSa1hCt2s+UtvlRsuVDa05xCvp1P2x6iLk89gFmuWdwE
-    aFI6Oc6dx8OWxMvIVVoU0t0CKZVFtBNVH6LcF0zJ8TPV1rk9FY0avTL+n8fPSLFRUy1h
-    XYx4GlnIcR7j4bKdxcN3ljCj2WV2iiH1prUnH5LNq7cYGoxBlzRVU4o9JJw+kkBbKveC
-    8S2a/zeW/d3I3ceQWkNtFQMSpnHXCW6oDx2mL7+PiuJP40R0mymfalu/GjBm9qBouQGf
-    6KGQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783749738;
+    bh=7pA0TFC7UkEDXI5FUk59zdzYhP+mOINP0O+fHg17PO8=;
+    b=H0E6fUOI+kXtvl2A2BrQrKmQMA7wJAlkBsexcdVWxwz2btf0WN9fY+v+U2YaSltr2W
+    XLMTszlt7IJ3CY4YmdBUAyrJI/zz18XDsb7IddVY6Kn3lHm9JnFsDj50UB982jC/7HAr
+    xCe2Wrp5bVtJD1BIn+z4wJLeQrBWihUu+p7LvCOUr2OlpBVZyr/VnacHDLUbkca7px/r
+    9sBZdwK/vaSRmNEQrbWzLgVW+AKObAWBooN5BaNpBZfLaJnQvPJBouuOV35cdp94iXuG
+    QaaqBiHzhakev6bvUronTMahQDRfBdXXMDfMCPY6MFEOIMIuWg1Ve45pbkAAdmqLQkD7
+    CWgw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783749746;
     s=strato-dkim-0003; d=goldelico.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=t/x+YYxsv60bL+EGSlJ2dLJ3eczcNCxWtbxZDP+PXMA=;
-    b=cB868UH1KLyRnvCaocIO59JWga3iF1uWRNJMphEEqoS4k2t1BUCiPb6eIyP46xL8WR
-    h23BL85VNpg+04e1u6Cg==
+    bh=7pA0TFC7UkEDXI5FUk59zdzYhP+mOINP0O+fHg17PO8=;
+    b=o0YSAyo+ZlRrYAUyXkQ2aUg8Awuw7E4YNwmC7YQ62b8sLgqlZ/QhLRRf48RMtbtKsg
+    43T3NehK34SoQdLmktBg==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9qVpwcQVkPW4I1HrT35oLmciNszeF4HOToVDOd6S1gdjuILE2MKVd"
 Received: from iMac.fritz.box
     by smtp.strato.de (RZmta 55.5.6 AUTH)
-    with ESMTPSA id Q4b76426B62HGhu
+    with ESMTPSA id Q4b76426B62PGi1
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
 	(Client did not present a certificate);
-    Sat, 11 Jul 2026 08:02:17 +0200 (CEST)
+    Sat, 11 Jul 2026 08:02:25 +0200 (CEST)
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 To: Grond <grond66@riseup.net>,
 	Stefan Leichter <sle85276@gmx.de>,
@@ -107,9 +107,9 @@ Cc: letux-kernel@openphoenux.org,
 	linux-fbdev@vger.kernel.org,
 	kernel@pyra-handheld.com,
 	mfd@lists.linux.dev
-Subject: [PATCH 09/16] ASoC: dt-bindings: add OpenPandora Sound Card
-Date: Sat, 11 Jul 2026 08:01:56 +0200
-Message-ID: <7989e699de400c0fe3f0cb7af77a54077784df78.1783749722.git.hns@goldelico.com>
+Subject: [PATCH 15/16] backlight: remove pandora_bl
+Date: Sat, 11 Jul 2026 08:02:02 +0200
+Message-ID: <f897f695c0e1e128d7ebb41be8dfdce4d634f552.1783749722.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <cover.1783749722.git.hns@goldelico.com>
 References: <cover.1783749722.git.hns@goldelico.com>
@@ -119,119 +119,215 @@ List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF8
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="us-ascii"
 
-The OpenPandora audio subsystem describes the routing links between the
-OMAP3 McBSP interface, the external PCM1773 DAC, and the TWL4030 audio
-codec, alongside amplifiers and power supplies.
+Retire the platform specific pandora backlight driver since
+it can now be replaced by twl_pm and device tree.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- .../sound/openpandora,omap3pandora-sound.yaml | 94 +++++++++++++++++++
- 1 file changed, 94 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml
+ drivers/video/backlight/Kconfig      |   7 --
+ drivers/video/backlight/Makefile     |   1 -
+ drivers/video/backlight/pandora_bl.c | 159 ---------------------------
+ 3 files changed, 167 deletions(-)
+ delete mode 100644 drivers/video/backlight/pandora_bl.c
 
-diff --git a/Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml b/Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml
-new file mode 100644
-index 0000000000000..d3c747e5c58d6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml
-@@ -0,0 +1,94 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org
-+$schema: http://devicetree.org
-+
-+title: OpenPandora OMAP3 Audio Complex
-+
-+maintainers:
-+ - H. Nikolaus Schaller <hns@goldelico.com>
-+
-+description:
-+ The OpenPandora audio subsystem describes the routing links between the
-+ OMAP3 McBSP interface, the external PCM1773 DAC, and the TWL4030 audio codec,
-+ alongside amplifiers and power supplies.
-+
-+properties:
-+ compatible:
-+   const: openpandora,omap3pandora-sound
-+
-+ status: true
-+
-+ label:
-+   $ref: /schemas/types.yaml#/definitions/string
-+   description: User-visible name for this sound card.
-+
-+ amp-gpios:
-+   maxItems: 1
-+   description: GPIO pin controlling the amplifier power state.
-+
-+ amp-supply:
-+   description: Regulator supplying power to the amplifier.
-+
-+ sound-dai:
-+   $ref: /schemas/types.yaml#/definitions/phandle-array
-+   minItems: 2
-+   maxItems: 2
-+   description:
-+     Phandles to the audio CPU DAI (OMAP3 McBSP) and the codec DAI.
-+
-+ routing:
-+   $ref: /schemas/types.yaml#/definitions/non-unique-string-array
-+   description:
-+     A list of the connections between audio components.
-+     Each entry is a pair of strings, the first being the connection's sink,
-+     the second being the connection's source.
-+
-+ widgets:
-+   $ref: /schemas/types.yaml#/definitions/non-unique-string-array
-+   description:
-+     User-specified audio sound widgets.
-+     Each entry is a pair of strings, the first being the widget type
-+     (e.g., "Speaker", "Headphone", "Microphone", "Line") and the second being its name.
-+
-+required:
-+ - compatible
-+ - sound-dai
-+
-+additionalProperties: false
-+
-+examples:
-+ - |
-+   #include <dt-bindings/gpio/gpio.h>
-+
-+   sound: sound {
-+       compatible = "openpandora,omap3pandora-sound";
-+       status = "okay";
-+
-+       label = "OpenPandora";
-+
-+       amp-gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
-+       amp-supply = <&regen>;
-+
-+       widgets =
-+           "Line", "Line Out",
-+           "Line", "Line In",
-+           "Headphone", "Headphone Jack",
-+           "Microphone", "Mic (internal)",
-+           "Microphone", "Mic (external)";
-+
-+       routing =
-+           "PCM1773 DAC", "APLL Enable",
-+           "Headphone Amplifier", "PCM1773 DAC",
-+           "Line Out", "PCM1773 DAC",
-+           "Headphone Jack", "Headphone Amplifier",
-+           "AUXL", "Line In",
-+           "AUXR", "Line In",
-+           "MAINMIC", "Mic (internal)",
-+           "Mic (internal)", "Mic Bias 1",
-+           "SUBMIC", "Mic (external)",
-+           "Mic (external)", "Mic Bias 2";
-+
-+       sound-dai = <&mcbsp2>, <&dac>;
-+   };
+diff --git a/drivers/video/backlight/Kconfig b/drivers/video/backlight/Kconfig
+index 7aa1c4b21111f..a250b3edc152c 100644
+--- a/drivers/video/backlight/Kconfig
++++ b/drivers/video/backlight/Kconfig
+@@ -451,13 +451,6 @@ config BACKLIGHT_MP3309C
+ 	  To compile this driver as a module, choose M here: the module will
+ 	  be called mp3309c.
+ 
+-config BACKLIGHT_PANDORA
+-	tristate "Backlight driver for Pandora console"
+-	depends on TWL4030_CORE
+-	help
+-	  If you have a Pandora console, say Y to enable the
+-	  backlight driver.
+-
+ config BACKLIGHT_SKY81452
+ 	tristate "Backlight driver for SKY81452"
+ 	depends on MFD_SKY81452
+diff --git a/drivers/video/backlight/Makefile b/drivers/video/backlight/Makefile
+index 21c8313cfb121..f97ab8ba85807 100644
+--- a/drivers/video/backlight/Makefile
++++ b/drivers/video/backlight/Makefile
+@@ -52,7 +52,6 @@ obj-$(CONFIG_BACKLIGHT_MAX8925)		+= max8925_bl.o
+ obj-$(CONFIG_BACKLIGHT_MP3309C)		+= mp3309c.o
+ obj-$(CONFIG_BACKLIGHT_MT6370)		+= mt6370-backlight.o
+ obj-$(CONFIG_BACKLIGHT_OMAP1)		+= omap1_bl.o
+-obj-$(CONFIG_BACKLIGHT_PANDORA)		+= pandora_bl.o
+ obj-$(CONFIG_BACKLIGHT_PWM)		+= pwm_bl.o
+ obj-$(CONFIG_BACKLIGHT_QCOM_WLED)	+= qcom-wled.o
+ obj-$(CONFIG_BACKLIGHT_RT4831)		+= rt4831-backlight.o
+diff --git a/drivers/video/backlight/pandora_bl.c b/drivers/video/backlight/pandora_bl.c
+deleted file mode 100644
+index 8a63ded0fa90f..0000000000000
+--- a/drivers/video/backlight/pandora_bl.c
++++ /dev/null
+@@ -1,159 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Backlight driver for Pandora handheld.
+- * Pandora uses TWL4030 PWM0 -> TPS61161 combo for control backlight.
+- * Based on pwm_bl.c
+- *
+- * Copyright 2009,2012 Gražvydas Ignotas <notasas@gmail.com>
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/platform_device.h>
+-#include <linux/delay.h>
+-#include <linux/backlight.h>
+-#include <linux/mfd/twl.h>
+-#include <linux/err.h>
+-
+-#define TWL_PWM0_ON		0x00
+-#define TWL_PWM0_OFF		0x01
+-
+-#define TWL_INTBR_GPBR1		0x0c
+-#define TWL_INTBR_PMBR1		0x0d
+-
+-#define TWL_PMBR1_PWM0_MUXMASK	0x0c
+-#define TWL_PMBR1_PWM0		0x04
+-#define PWM0_CLK_ENABLE		BIT(0)
+-#define PWM0_ENABLE		BIT(2)
+-
+-/* range accepted by hardware */
+-#define MIN_VALUE 9
+-#define MAX_VALUE 63
+-#define MAX_USER_VALUE (MAX_VALUE - MIN_VALUE)
+-
+-struct pandora_private {
+-	unsigned old_state;
+-#define PANDORABL_WAS_OFF 1
+-};
+-
+-static int pandora_backlight_update_status(struct backlight_device *bl)
+-{
+-	int brightness = bl->props.brightness;
+-	struct pandora_private *priv = bl_get_data(bl);
+-	u8 r;
+-
+-	if (bl->props.power != BACKLIGHT_POWER_ON)
+-		brightness = 0;
+-	if (bl->props.state & BL_CORE_FBBLANK)
+-		brightness = 0;
+-	if (bl->props.state & BL_CORE_SUSPENDED)
+-		brightness = 0;
+-
+-	if ((unsigned int)brightness > MAX_USER_VALUE)
+-		brightness = MAX_USER_VALUE;
+-
+-	if (brightness == 0) {
+-		if (priv->old_state == PANDORABL_WAS_OFF)
+-			goto done;
+-
+-		/* first disable PWM0 output, then clock */
+-		twl_i2c_read_u8(TWL4030_MODULE_INTBR, &r, TWL_INTBR_GPBR1);
+-		r &= ~PWM0_ENABLE;
+-		twl_i2c_write_u8(TWL4030_MODULE_INTBR, r, TWL_INTBR_GPBR1);
+-		r &= ~PWM0_CLK_ENABLE;
+-		twl_i2c_write_u8(TWL4030_MODULE_INTBR, r, TWL_INTBR_GPBR1);
+-
+-		goto done;
+-	}
+-
+-	if (priv->old_state == PANDORABL_WAS_OFF) {
+-		/*
+-		 * set PWM duty cycle to max. TPS61161 seems to use this
+-		 * to calibrate it's PWM sensitivity when it starts.
+-		 */
+-		twl_i2c_write_u8(TWL_MODULE_PWM, MAX_VALUE, TWL_PWM0_OFF);
+-
+-		/* first enable clock, then PWM0 out */
+-		twl_i2c_read_u8(TWL4030_MODULE_INTBR, &r, TWL_INTBR_GPBR1);
+-		r &= ~PWM0_ENABLE;
+-		r |= PWM0_CLK_ENABLE;
+-		twl_i2c_write_u8(TWL4030_MODULE_INTBR, r, TWL_INTBR_GPBR1);
+-		r |= PWM0_ENABLE;
+-		twl_i2c_write_u8(TWL4030_MODULE_INTBR, r, TWL_INTBR_GPBR1);
+-
+-		/*
+-		 * TI made it very easy to enable digital control, so easy that
+-		 * it often triggers unintentionally and disabes PWM control,
+-		 * so wait until 1 wire mode detection window ends.
+-		 */
+-		usleep_range(2000, 10000);
+-	}
+-
+-	twl_i2c_write_u8(TWL_MODULE_PWM, MIN_VALUE + brightness, TWL_PWM0_OFF);
+-
+-done:
+-	if (brightness != 0)
+-		priv->old_state = 0;
+-	else
+-		priv->old_state = PANDORABL_WAS_OFF;
+-
+-	return 0;
+-}
+-
+-static const struct backlight_ops pandora_backlight_ops = {
+-	.options	= BL_CORE_SUSPENDRESUME,
+-	.update_status	= pandora_backlight_update_status,
+-};
+-
+-static int pandora_backlight_probe(struct platform_device *pdev)
+-{
+-	struct backlight_properties props;
+-	struct backlight_device *bl;
+-	struct pandora_private *priv;
+-	u8 r;
+-
+-	priv = devm_kmalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+-	if (!priv)
+-		return -ENOMEM;
+-
+-	memset(&props, 0, sizeof(props));
+-	props.max_brightness = MAX_USER_VALUE;
+-	props.type = BACKLIGHT_RAW;
+-	bl = devm_backlight_device_register(&pdev->dev, pdev->name, &pdev->dev,
+-					priv, &pandora_backlight_ops, &props);
+-	if (IS_ERR(bl)) {
+-		dev_err(&pdev->dev, "failed to register backlight\n");
+-		return PTR_ERR(bl);
+-	}
+-
+-	platform_set_drvdata(pdev, bl);
+-
+-	/* 64 cycle period, ON position 0 */
+-	twl_i2c_write_u8(TWL_MODULE_PWM, 0x80, TWL_PWM0_ON);
+-
+-	priv->old_state = PANDORABL_WAS_OFF;
+-	bl->props.brightness = MAX_USER_VALUE;
+-	backlight_update_status(bl);
+-
+-	/* enable PWM function in pin mux */
+-	twl_i2c_read_u8(TWL4030_MODULE_INTBR, &r, TWL_INTBR_PMBR1);
+-	r &= ~TWL_PMBR1_PWM0_MUXMASK;
+-	r |= TWL_PMBR1_PWM0;
+-	twl_i2c_write_u8(TWL4030_MODULE_INTBR, r, TWL_INTBR_PMBR1);
+-
+-	return 0;
+-}
+-
+-static struct platform_driver pandora_backlight_driver = {
+-	.driver		= {
+-		.name	= "pandora-backlight",
+-	},
+-	.probe		= pandora_backlight_probe,
+-};
+-
+-module_platform_driver(pandora_backlight_driver);
+-
+-MODULE_AUTHOR("Gražvydas Ignotas <notasas@gmail.com>");
+-MODULE_DESCRIPTION("Pandora Backlight Driver");
+-MODULE_LICENSE("GPL");
+-MODULE_ALIAS("platform:pandora-backlight");
 -- 
 2.50.1 (Apple Git-155)
 
