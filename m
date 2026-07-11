@@ -1,70 +1,70 @@
-Received: from mo4-p04-ob.smtp.rzone.de (mo4-p04-ob.smtp.rzone.de [85.215.255.123])
+Received: from mo4-p04-ob.smtp.rzone.de (mo4-p04-ob.smtp.rzone.de [85.215.255.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79B561FD4;
-	Sat, 11 Jul 2026 06:02:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.123
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19A90136358;
+	Sat, 11 Jul 2026 06:02:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.120
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783749765; cv=pass; b=BaEsK6/CIs/rauwEkdkb4kifGb+eOjMp+FkNKiv1JzhiXyhS7bW8B5Q3NHTgV08v2X5MMd8gzp3TrCvSxQYE15G9aKhFdubHXC+vWWpL9A55mthjzE36GGt146ERiRrXN3ISt0BrYPdb/xLs2k//ujBi3lQj/UoszDo+n1y4Pes=
+	t=1783749767; cv=pass; b=iXpGsK95MXDPZixnMNQdleIgrhMaH501rRAmyaHPTmcWge7+96w9aFrSD/ICkmKIFQMilU0ReIiqUMVE9JQSc86jtUq3nJloUY2M14MJgv+R5ykcBcrRNWBagPgz1LzWxlGI1NX3RmohRvi3xKWWACESNBJWqZaSaQ3uij3vVLo=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783749765; c=relaxed/simple;
-	bh=gVLH3Gll/lrNoxOu6XuDqu7piiCuHfi0FO3rxwyky1U=;
+	s=arc-20240116; t=1783749767; c=relaxed/simple;
+	bh=bJ6qStkDY8RJBuTonDh7AE1zqx4/5rSPePh0EOtjHjs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Gg1EtC/6TEXhHVAaEFZsEAiVCDGyfdrKOjZl4EIa1ILU1k7tn8xKd6kiw4GbmCmsDJnaCOhMTB1yjgZMHcRb7tc7P4lTMroTsj/5GmRIY7ayZEu+esj4hF6ZMXPoemwhhI+kf2kyvdQzV15XjWFsKIBJbD4Wyll/E9EZzzy//2U=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=ODAdJdCE; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=WlvwVONf; arc=pass smtp.client-ip=85.215.255.123
+	 MIME-Version:Content-Type; b=UsT4Xrp0W/DbJzQsDsTwSHtNsTAON6x8zpCHs3GYejrhkZ8BTNEvpmNSe8wSJ8ZTzbAij5+LaSvNvXxIXgnXjokDG2UVSogGkv4PYC6UON5guhG2L5cO+1ar9GPRQrSZiYhNLJaWYWAhirnaJ+oDTuTqwO+l7petX+tr5+Li+ss=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=TmE6zxFj; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=LyjgpbMK; arc=pass smtp.client-ip=85.215.255.120
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="ODAdJdCE";
-	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="WlvwVONf"
-ARC-Seal: i=1; a=rsa-sha256; t=1783749732; cv=none;
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="TmE6zxFj";
+	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="LyjgpbMK"
+ARC-Seal: i=1; a=rsa-sha256; t=1783749733; cv=none;
     d=strato.com; s=strato-dkim-0002;
-    b=AxOWz8SVP1S6FOK1V10S8ZhkMMYVS2OCMbs43ygVVAZ8CKNTz01G+E3cIfvQLEayR6
-    jqyYAvoq2G+wAzR3Y9G2O6B3vpvqzN7aWO5PeobQF/x4Qg/4UqngcKGHDZz1iAUWQSZK
-    2FKFXSduwAjPkkH3efcWc3DC7W4DUiCw4vDoHTrplsQJQQ0s9hBhwZj5kD70BtXIx4yX
-    8LI631cCp4Y9We/AlbQATRmQJBg2lgpwj/v/ZfPUjiuKZzSJSZWkW+B7GHZXDD5jw2Od
-    IsV5QOIecP+lMoIdQQkgriOw7q9E/5T9Gn+VJnSwrq0RuTfzc4di9SiGICN0dz32q2z4
-    f55w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749732;
+    b=UNAol3P+3NSnVFANpP0PNenPYX/++5XBKrsgPStGoWHK/tv07cmPa4CJzz82unyIHc
+    M8eZ9x6nBCb5bdWStJBwD+utDt8qbnwDhnjVL3zpTkhg2sm+HIz6WG/SQUNAkUBFoid4
+    vVL0EHxWyMT0qkCfYkFfMwAzowyj1Fnm6BOpTCDIfGTIYvf+II4xprpVX15aGFypsvRm
+    ABT8MKCOpLoEns9Qa5xUOAuoB9lU0hKeT9TqHkLv14sY99APWS9uZXQuo2oP9BONzh9w
+    XGSJgByKluI4o61R5m931VxbCJE/fye3v22HyqwTWN+OLTtfNBA7HJ8602Ufw4F3+IbQ
+    d2ww==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749733;
     s=strato-dkim-0002; d=strato.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=ZB4drwZeCzFntaUbA8UcFyakx9+hGBaPBgbS+EjwmC4=;
-    b=l4WFSASvq/2zX/sPgvqRYr3ZmbRO0tbYaWlwn3hAPdh5QAMzl5Bip0rZ6L/TFNBp0l
-    TaUCmVp7x5ZGPbWZ0rYDrNP15p8CE8CplFPplOb6GZ3UzvCAGit4ib3smILsxNtRdH6c
-    3vT/P2UFJqj3MjHisc/o3b1qmT+GjhTzHONnYELCNQrTh3Jh0d3UBM0wKFy7ZSYn5cdi
-    eY4b+2WFoYQDlV8ug/6EagyXBB5GbUET+T0lsB/3PluXtEYIfhu8ES1f7a5uRFq8JiW/
-    R+o2At4b65nilUOCHtC+NyPD5b3GmnbMtLPXMuGTyVIRU4xwb70gpa0i7Bc0Pjlyt4OI
-    ybzQ==
+    bh=wV6iPQx9mr9GnWcgEuPgvu8N7t+FUMy7pZdOenitrKA=;
+    b=ii2uSQlgcBgDWO0l1OXPUTf/cKHjzlvnCuzFMpdI+q+YLehm+8FfA6yGgBxcSi4/DM
+    UKKA1YNeyp0wxx2RXyYb7jn8DOvp0y4cE+q15n5KyFtB0qZGRvoP9yNOq1Q3uPONBP6B
+    uTA0z7y5VHOZSb5JgTFkyO9VRPrNAWonHD3Z3tDXBWeYBDfrmwb84KrhhTKLHb5vZ61J
+    KfuwZntjwOkOlgdABXYJiC7ZLIvdodcJMtkU2p+vdx5SRrJfIFX875Ogo9PPWJtttk2L
+    2IakW966dWigtYojCV6X5VToJX2tvPMT4VUmAi+oreQnrFYXYGN9O9sYTFOymipRTvO+
+    bIyg==
 ARC-Authentication-Results: i=1; strato.com;
     arc=none;
     dkim=none
 X-RZG-CLASS-ID: mo04
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749732;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749733;
     s=strato-dkim-0002; d=goldelico.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=ZB4drwZeCzFntaUbA8UcFyakx9+hGBaPBgbS+EjwmC4=;
-    b=ODAdJdCE+yCfnSBSmGovKKmGSNhHP8ROyYNBa7qHxAeLe4Ooqbr6zwQ7rK7ATdSRks
-    MWFBNA53+Jmcv190NNht1gEYaUcx1W95J3OKKfagSGVyu8bNwkgJLLLjNGEZxZWFB70g
-    Uo+GUi1We4MHyZB4s143zxxkm2bd7gtoMEdiqtVSpfRx8LIhKNrs3RUqdPJ4X5eUzRrR
-    65BeDX1BHjfgpPU3LXI8va8kFDUcSEMbKK3gp2PnhXTBvnDO34J8zDKqMSVu3WSrm66K
-    FNQRj9XTqM2cKPvZ/hNLKbCGTB16GfwLT8Vin6pbrGXxXRFy+jf3OjuLpKWsKkY1Czdy
-    JJ2Q==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783749732;
+    bh=wV6iPQx9mr9GnWcgEuPgvu8N7t+FUMy7pZdOenitrKA=;
+    b=TmE6zxFjGDgs6NxLtFBYoH6EGjXG5RKaK8LImJxYODhQQx0QMlKfBTwwX27Fmhf95z
+    yaG+wFdkI908C3whCwXFEt9ZwEUxw/uL2GyzjFYKzzFb9KhA1SIbio8FbDj0l6aL6hf7
+    QQzSxcfchX0AuadBytx3x8E508pv5SHIXs7bEE1UsxD/JNhdxivN6tra0r3te6YksbVp
+    Xdp4884snRffHQldKJ+9Z0jMvvQmmPcsTZ52S6fPjOwWj4vKsrNcdMbkewjNse74ab5N
+    t9x8iAUIeWmtOD3aUcPi8D9sp1bpGYHXA1kun4xtcOKAy2MH8r0+09+/KyzFr2dEkG5m
+    Albw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783749733;
     s=strato-dkim-0003; d=goldelico.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=ZB4drwZeCzFntaUbA8UcFyakx9+hGBaPBgbS+EjwmC4=;
-    b=WlvwVONf4WYr92wgA8G3MKGSSueqLjRrbW6fKtwcUtkCLnHy0dflC3i5XWSwwIh9MT
-    onJo+t8VZVmM0oApg7Bw==
+    bh=wV6iPQx9mr9GnWcgEuPgvu8N7t+FUMy7pZdOenitrKA=;
+    b=LyjgpbMKh6H6ERpUAmFX42ygfbFz0rHJ1cHwrsF2a/wmKtnMvBsPB4UT/GVX7CtaN5
+    Nbkrryo0KmZRFkCZ03Dg==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9qVpwcQVkPW4I1HrT35oLmciNszeF4HOToVDOd6S1gdjuILE2MKVd"
 Received: from iMac.fritz.box
     by smtp.strato.de (RZmta 55.5.6 AUTH)
-    with ESMTPSA id Q4b76426B62AGhp
+    with ESMTPSA id Q4b76426B62CGhq
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
 	(Client did not present a certificate);
-    Sat, 11 Jul 2026 08:02:10 +0200 (CEST)
+    Sat, 11 Jul 2026 08:02:12 +0200 (CEST)
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 To: Grond <grond66@riseup.net>,
 	Stefan Leichter <sle85276@gmx.de>,
@@ -107,9 +107,9 @@ Cc: letux-kernel@openphoenux.org,
 	linux-fbdev@vger.kernel.org,
 	kernel@pyra-handheld.com,
 	mfd@lists.linux.dev
-Subject: [PATCH 04/16] arm: dts: omap3pandora: Populate DT data for the TWL4030's REGEN regulator
-Date: Sat, 11 Jul 2026 08:01:51 +0200
-Message-ID: <d0b2a73c7c208f33784eae4219ff3981800ae6f9.1783749722.git.hns@goldelico.com>
+Subject: [PATCH 05/16] arm: dts: omap3pandora: Don't use DMA channels for unused SPI masters
+Date: Sat, 11 Jul 2026 08:01:52 +0200
+Message-ID: <129b1ff8e73235c74ac66dab9041672190065785.1783749722.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <cover.1783749722.git.hns@goldelico.com>
 References: <cover.1783749722.git.hns@goldelico.com>
@@ -124,40 +124,52 @@ Content-Type: text/plain; charset="us-ascii"
 
 From: Grond <grond66@riseup.net>
 
-On the Pandora, REGEN is used to enable TPS61029DRC external regulator
-which runs a 5V power rail. The 5ms startup delay is taken from Pandora's
-3.2 kernel, where it is labeled as a "guess". So it may be possible to
-activate the regulator faster.
+On the pandora, only McSPI1 (spi0) is actually used. Because the device
+tree defaults in arch/arm/boot/dts/omap3.dtsi leave all of the mcspi
+interfaces enabled, the DMA channels which the device tree assigns to them
+cannot be used for anything else. This is a problem because OMAP3's sDMA
+controller can only have 32 DMA channels configured at any one time.
 
-On Pandora CC units, this regulator is used as the input to the LCD power
-supply. Therefore, problems are likely to arise if the regulator is ever
-disabled, so we add the regulator-always-on property to compensate.
+So when we try to use (for example) the McBSP subsystem (which is required
+for sound) it doesn't work because we've already exhausted our available
+DMA channels.
+
+Fix this by disabling mcspi[2-4] on the pandora device tree.
 
 Signed-off-by: Grond <grond66@riseup.net>
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/ti/omap/omap3-pandora-common.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ .../boot/dts/ti/omap/omap3-pandora-common.dtsi  | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
 diff --git a/arch/arm/boot/dts/ti/omap/omap3-pandora-common.dtsi b/arch/arm/boot/dts/ti/omap/omap3-pandora-common.dtsi
-index 06c5b23589991..a0116823ffdef 100644
+index a0116823ffdef..b4acab1625212 100644
 --- a/arch/arm/boot/dts/ti/omap/omap3-pandora-common.dtsi
 +++ b/arch/arm/boot/dts/ti/omap/omap3-pandora-common.dtsi
-@@ -486,6 +486,14 @@ &vsim {
- 	regulator-always-on;
+@@ -693,6 +693,23 @@ lcd_in: endpoint {
+ 
  };
  
-+&regen {
-+	regulator-min-microvolt = <5000000>;
-+	regulator-max-microvolt = <5000000>;
-+	startup-delay-us = <5000>;
-+	regulator-always-on;
-+	status = "okay";
++/*
++ * Only mcspi1 is used on the pandora, the others do not surface on the board
++ * due to pinmux configuration. disable the unused ones so that they do not
++ * consume DMA channels
++ */
++&mcspi2 {
++	status = "disabled";
 +};
 +
- &i2c2 {
- 	clock-frequency = <100000>;
- 	/* no clients so we should disable clock */
++&mcspi3 {
++	status = "disabled";
++};
++
++&mcspi4 {
++	status = "disabled";
++};
++
+ /* n/a - used as GPIOs */
+ &mcbsp1 {
+ };
 -- 
 2.50.1 (Apple Git-155)
 
