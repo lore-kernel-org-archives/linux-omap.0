@@ -1,118 +1,163 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mo4-p04-ob.smtp.rzone.de (mo4-p04-ob.smtp.rzone.de [85.215.255.123])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5916A38E8C6
-	for <linux-omap@vger.kernel.org>; Fri, 10 Jul 2026 19:46:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783712769; cv=none; b=tJAIdwfc7v+QTheCDmnqeEo9RqFAMWkmYY2PLLeudXuFoLR+RQvldgq/cmz5ZPxdct0lDJ4ERhhqkgJIa4u+ORfFrIQdFLjJ4Wkv1sgZYtrYJCcdFLojZShvbw9yCCB18Z+YsrT5tq+KinPDT5QQ0paMGUu0XI8NWGqLeP+I0/8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783712769; c=relaxed/simple;
-	bh=sZDwGaUkGBLrMyNSIpb3kLYEJV1iPNS+5Pn9t9xv6aE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Tp78ka8lwOytf7e7aYDlcjjRFPt3Oza3SHwhdcbFQyn0qGYsrn6lOY0foO9mZnTHc7OA9ZYB6kUiPzjQMT1f5k37CWu7llzUZuBcRz+89WT5PX2VfLjWB63AgKzeEeWfI/sT1iuoHPQEiS7JuBVvgYNsoHaaMD8XTCTY8jE7WVo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HkSsEg0f; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79B561FD4;
+	Sat, 11 Jul 2026 06:02:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.123
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783749765; cv=pass; b=BaEsK6/CIs/rauwEkdkb4kifGb+eOjMp+FkNKiv1JzhiXyhS7bW8B5Q3NHTgV08v2X5MMd8gzp3TrCvSxQYE15G9aKhFdubHXC+vWWpL9A55mthjzE36GGt146ERiRrXN3ISt0BrYPdb/xLs2k//ujBi3lQj/UoszDo+n1y4Pes=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783749765; c=relaxed/simple;
+	bh=gVLH3Gll/lrNoxOu6XuDqu7piiCuHfi0FO3rxwyky1U=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Gg1EtC/6TEXhHVAaEFZsEAiVCDGyfdrKOjZl4EIa1ILU1k7tn8xKd6kiw4GbmCmsDJnaCOhMTB1yjgZMHcRb7tc7P4lTMroTsj/5GmRIY7ayZEu+esj4hF6ZMXPoemwhhI+kf2kyvdQzV15XjWFsKIBJbD4Wyll/E9EZzzy//2U=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=ODAdJdCE; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=WlvwVONf; arc=pass smtp.client-ip=85.215.255.123
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HkSsEg0f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62A5B1F00AC4
-	for <linux-omap@vger.kernel.org>; Fri, 10 Jul 2026 19:46:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783712766;
-	bh=sZDwGaUkGBLrMyNSIpb3kLYEJV1iPNS+5Pn9t9xv6aE=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=HkSsEg0fbPswpwBbq7msyQoTQ/fzpUpBAWCJeyoo47JBrl1F4fLCAocKnijbpM/p6
-	 GDbOtWqNLNjYAx3W000zcCbmXpLxeTYg1+fMSzkuksy7ydBzM8bj7gC6WXw6wQdRD6
-	 vVdMHXz0K1GVFdtb/usTM0mXhAL+ZZsfcP7DWwsuADXRD4a5scfpg85ktfSdSrmGEW
-	 RX91BEivy4ThHjiAFPD10y6OZy6KCaoROgurcEirnNXtZytmK4+Y7XIXkAVzwQgQnS
-	 tWsz1C57JTWtsEG565sIfsiTVX1EO3rFjDmmROr8HMl9MVJMK0AKwMlgTnovI0C4jj
-	 cqjPm+xX37wIg==
-Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5aeae350e0aso1544552e87.1
-        for <linux-omap@vger.kernel.org>; Fri, 10 Jul 2026 12:46:06 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Rpkt0lqyH4ILaD4VEUFeLzenwme9UxHAWUoMvyerd7hRO9Ber/VMXp0HX8/0Nnbe12TMuML7BdcKlfs@vger.kernel.org
-X-Gm-Message-State: AOJu0YySjGIDHsH9uDJg3svaZmaZ3x7X8ecO9TK6awtBZz5KCJ5xEhRo
-	n2BJuJgW7i2ughycJ4tze6W9pLuEw73c1709ACnUSA5zoHW3DoM6QuYS8lOJPxHcxtP7sbFuxX4
-	35WLssIyasmWa0cAx9VA7a26hxO12Vmg=
-X-Received: by 2002:a05:6512:32cf:b0:5ae:b792:7f1e with SMTP id
- 2adb3069b0e04-5b0236a3891mr89821e87.30.1783712764308; Fri, 10 Jul 2026
- 12:46:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="ODAdJdCE";
+	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="WlvwVONf"
+ARC-Seal: i=1; a=rsa-sha256; t=1783749732; cv=none;
+    d=strato.com; s=strato-dkim-0002;
+    b=AxOWz8SVP1S6FOK1V10S8ZhkMMYVS2OCMbs43ygVVAZ8CKNTz01G+E3cIfvQLEayR6
+    jqyYAvoq2G+wAzR3Y9G2O6B3vpvqzN7aWO5PeobQF/x4Qg/4UqngcKGHDZz1iAUWQSZK
+    2FKFXSduwAjPkkH3efcWc3DC7W4DUiCw4vDoHTrplsQJQQ0s9hBhwZj5kD70BtXIx4yX
+    8LI631cCp4Y9We/AlbQATRmQJBg2lgpwj/v/ZfPUjiuKZzSJSZWkW+B7GHZXDD5jw2Od
+    IsV5QOIecP+lMoIdQQkgriOw7q9E/5T9Gn+VJnSwrq0RuTfzc4di9SiGICN0dz32q2z4
+    f55w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749732;
+    s=strato-dkim-0002; d=strato.com;
+    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
+    From:Subject:Sender;
+    bh=ZB4drwZeCzFntaUbA8UcFyakx9+hGBaPBgbS+EjwmC4=;
+    b=l4WFSASvq/2zX/sPgvqRYr3ZmbRO0tbYaWlwn3hAPdh5QAMzl5Bip0rZ6L/TFNBp0l
+    TaUCmVp7x5ZGPbWZ0rYDrNP15p8CE8CplFPplOb6GZ3UzvCAGit4ib3smILsxNtRdH6c
+    3vT/P2UFJqj3MjHisc/o3b1qmT+GjhTzHONnYELCNQrTh3Jh0d3UBM0wKFy7ZSYn5cdi
+    eY4b+2WFoYQDlV8ug/6EagyXBB5GbUET+T0lsB/3PluXtEYIfhu8ES1f7a5uRFq8JiW/
+    R+o2At4b65nilUOCHtC+NyPD5b3GmnbMtLPXMuGTyVIRU4xwb70gpa0i7Bc0Pjlyt4OI
+    ybzQ==
+ARC-Authentication-Results: i=1; strato.com;
+    arc=none;
+    dkim=none
+X-RZG-CLASS-ID: mo04
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783749732;
+    s=strato-dkim-0002; d=goldelico.com;
+    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
+    From:Subject:Sender;
+    bh=ZB4drwZeCzFntaUbA8UcFyakx9+hGBaPBgbS+EjwmC4=;
+    b=ODAdJdCE+yCfnSBSmGovKKmGSNhHP8ROyYNBa7qHxAeLe4Ooqbr6zwQ7rK7ATdSRks
+    MWFBNA53+Jmcv190NNht1gEYaUcx1W95J3OKKfagSGVyu8bNwkgJLLLjNGEZxZWFB70g
+    Uo+GUi1We4MHyZB4s143zxxkm2bd7gtoMEdiqtVSpfRx8LIhKNrs3RUqdPJ4X5eUzRrR
+    65BeDX1BHjfgpPU3LXI8va8kFDUcSEMbKK3gp2PnhXTBvnDO34J8zDKqMSVu3WSrm66K
+    FNQRj9XTqM2cKPvZ/hNLKbCGTB16GfwLT8Vin6pbrGXxXRFy+jf3OjuLpKWsKkY1Czdy
+    JJ2Q==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783749732;
+    s=strato-dkim-0003; d=goldelico.com;
+    h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
+    From:Subject:Sender;
+    bh=ZB4drwZeCzFntaUbA8UcFyakx9+hGBaPBgbS+EjwmC4=;
+    b=WlvwVONf4WYr92wgA8G3MKGSSueqLjRrbW6fKtwcUtkCLnHy0dflC3i5XWSwwIh9MT
+    onJo+t8VZVmM0oApg7Bw==
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9qVpwcQVkPW4I1HrT35oLmciNszeF4HOToVDOd6S1gdjuILE2MKVd"
+Received: from iMac.fritz.box
+    by smtp.strato.de (RZmta 55.5.6 AUTH)
+    with ESMTPSA id Q4b76426B62AGhp
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
+	(Client did not present a certificate);
+    Sat, 11 Jul 2026 08:02:10 +0200 (CEST)
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+To: Grond <grond66@riseup.net>,
+	Stefan Leichter <sle85276@gmx.de>,
+	"H . Nikolaus Schaller" <hns@goldelico.com>,
+	Grazvydas Ignotas <notasas@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Ethan Nelson-Moore <enelsonmoore@gmail.com>,
+	Jarkko Nikula <jarkko.nikula@bitmer.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Lee Jones <lee@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Daniel Thompson <danielt@kernel.org>,
+	Jingoo Han <jingoohan1@gmail.com>,
+	Helge Deller <deller@gmx.de>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Takashi Iwai <tiwai@suse.com>,
+	Sen Wang <sen@ti.com>,
+	Richard Fitzgerald <rf@opensource.cirrus.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Srinivas Kandagatla <srinivas.kandagatla@oss.qualcomm.com>,
+	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+	Charles Keepax <ckeepax@opensource.cirrus.com>,
+	Niranjan H Y <niranjan.hy@ti.com>
+Cc: letux-kernel@openphoenux.org,
+	devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	dri-devel@lists.freedesktop.org,
+	linux-fbdev@vger.kernel.org,
+	kernel@pyra-handheld.com,
+	mfd@lists.linux.dev
+Subject: [PATCH 04/16] arm: dts: omap3pandora: Populate DT data for the TWL4030's REGEN regulator
+Date: Sat, 11 Jul 2026 08:01:51 +0200
+Message-ID: <d0b2a73c7c208f33784eae4219ff3981800ae6f9.1783749722.git.hns@goldelico.com>
+X-Mailer: git-send-email 2.50.1
+In-Reply-To: <cover.1783749722.git.hns@goldelico.com>
+References: <cover.1783749722.git.hns@goldelico.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cover.1783615311.git.u.kleine-koenig@baylibre.com>
-In-Reply-To: <cover.1783615311.git.u.kleine-koenig@baylibre.com>
-From: Linus Walleij <linusw@kernel.org>
-Date: Fri, 10 Jul 2026 21:45:51 +0200
-X-Gmail-Original-Message-ID: <CAD++jLkJthrzmVCDE=BopUDMECBpMtPOpCJ9S0CKWRg--Zfz3A@mail.gmail.com>
-X-Gm-Features: AUfX_mx_vh7ziiGHTkkaiMBQb1TjjZ8vahBxzqeJira0tID9YqDdR27A_6wUme0
-Message-ID: <CAD++jLkJthrzmVCDE=BopUDMECBpMtPOpCJ9S0CKWRg--Zfz3A@mail.gmail.com>
-Subject: Re: [PATCH v3 00/23] mfd: Use named initializers for arrays of *_device_data
-To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
-Cc: Lee Jones <lee@kernel.org>, Florian Fainelli <florian.fainelli@broadcom.com>, 
-	Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, 
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, mfd@lists.linux.dev, 
-	linux-rpi-kernel@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
-	linux-kernel@vger.kernel.org, Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
-	linux-mediatek@lists.infradead.org, Qunqin Zhao <zhaoqunqin@loongson.cn>, 
-	linux-crypto@vger.kernel.org, Benson Leung <bleung@chromium.org>, 
-	Guenter Roeck <groeck@chromium.org>, chrome-platform@lists.linux.dev, 
-	Colin Foster <colin.foster@in-advantage.com>, David Rhodes <david.rhodes@cirrus.com>, 
-	Richard Fitzgerald <rf@opensource.cirrus.com>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Mika Westerberg <mika.westerberg@linux.intel.com>, Zha Qipeng <qipeng.zha@intel.com>, 
-	Thomas Richard <thomas.richard@bootlin.com>, linux-sound@vger.kernel.org, 
-	patches@opensource.cirrus.com, Xu Yilun <yilun.xu@intel.com>, 
-	Tom Rix <trix@redhat.com>, Michael Hennerich <michael.hennerich@analog.com>, 
-	Chen-Yu Tsai <wens@kernel.org>, Marek Vasut <marek.vasut+renesas@gmail.com>, 
-	James Ogletree <jogletre@opensource.cirrus.com>, Fred Treven <fred.treven@cirrus.com>, 
-	Ben Bright <ben.bright@cirrus.com>, Support Opensource <support.opensource@diasemi.com>, 
-	Andy Shevchenko <andy@kernel.org>, Charles Keepax <ckeepax@opensource.cirrus.com>, 
-	Chanwoo Choi <cw00.choi@samsung.com>, Krzysztof Kozlowski <krzk@kernel.org>, 
-	=?UTF-8?Q?Andr=C3=A9_Draszik?= <andre.draszik@linaro.org>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
-	Tony Lindgren <tony@atomide.com>, Samuel Kayode <samkay014@gmail.com>, 
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre Torgue <alexandre.torgue@foss.st.com>, 
-	linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org, 
-	imx@lists.linux.dev, linux-stm32@st-md-mailman.stormreply.com, 
-	linux@ew.tq-group.com, Nicolas Ferre <nicolas.ferre@microchip.com>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Claudiu Beznea <claudiu.beznea@tuxon.dev>, 
-	Peter Griffin <peter.griffin@linaro.org>, Alim Akhtar <alim.akhtar@samsung.com>, 
-	Tim Harvey <tharvey@gateworks.com>, Neil Armstrong <neil.armstrong@linaro.org>, 
-	Sven Peter <sven@kernel.org>, Janne Grunau <j@jannau.net>, Neal Gompa <neal@gompa.dev>, 
-	Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>, 
-	Luca Ceresoli <luca.ceresoli@bootlin.com>, Saravanan Sekar <sravanhome@gmail.com>, 
-	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>, 
-	Pengutronix Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, 
-	=?UTF-8?Q?Jonathan_Neusch=C3=A4fer?= <j.neuschaefer@gmx.net>, 
-	Matti Vaittinen <mazziesaccount@gmail.com>, Orson Zhai <orsonzhai@gmail.com>, 
-	Baolin Wang <baolin.wang@linux.alibaba.com>, Chunyan Zhang <zhang.lyra@gmail.com>, 
-	Fabrice Gasnier <fabrice.gasnier@foss.st.com>, Jernej Skrabec <jernej.skrabec@gmail.com>, 
-	Samuel Holland <samuel@sholland.org>, Liviu Dudau <liviu.dudau@arm.com>, 
-	Sudeep Holla <sudeep.holla@kernel.org>, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
-	Geert Uytterhoeven <geert+renesas@glider.be>, Magnus Damm <magnus.damm@gmail.com>, 
-	Heiko Stuebner <heiko@sntech.de>, linux-samsung-soc@vger.kernel.org, 
-	linux-amlogic@lists.infradead.org, asahi@lists.linux.dev, 
-	linux-arm-msm@vger.kernel.org, linux-sunxi@lists.linux.dev, 
-	linux-rockchip@lists.infradead.org, Peter Tyser <ptyser@xes-inc.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
 
-On Thu, Jul 9, 2026 at 6:59=E2=80=AFPM Uwe Kleine-K=C3=B6nig (The Capable H=
-ub)
-<u.kleine-koenig@baylibre.com> wrote:
+From: Grond <grond66@riseup.net>
 
-> The objective for this series is to prepare mfd for changing
-> of_device_id and the others to make driver_data a union, see
-> https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@baylibre=
-.com/
-> for the idea behind it.
+On the Pandora, REGEN is used to enable TPS61029DRC external regulator
+which runs a 5V power rail. The 5ms startup delay is taken from Pandora's
+3.2 kernel, where it is labeled as a "guess". So it may be possible to
+activate the regulator faster.
 
-The series:
-Reviewed-by: Linus Walleij <linusw@kernel.org>
+On Pandora CC units, this regulator is used as the input to the LCD power
+supply. Therefore, problems are likely to arise if the regulator is ever
+disabled, so we add the regulator-always-on property to compensate.
 
-Yours,
-Linus Walleij
+Signed-off-by: Grond <grond66@riseup.net>
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ arch/arm/boot/dts/ti/omap/omap3-pandora-common.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/ti/omap/omap3-pandora-common.dtsi b/arch/arm/boot/dts/ti/omap/omap3-pandora-common.dtsi
+index 06c5b23589991..a0116823ffdef 100644
+--- a/arch/arm/boot/dts/ti/omap/omap3-pandora-common.dtsi
++++ b/arch/arm/boot/dts/ti/omap/omap3-pandora-common.dtsi
+@@ -486,6 +486,14 @@ &vsim {
+ 	regulator-always-on;
+ };
+ 
++&regen {
++	regulator-min-microvolt = <5000000>;
++	regulator-max-microvolt = <5000000>;
++	startup-delay-us = <5000>;
++	regulator-always-on;
++	status = "okay";
++};
++
+ &i2c2 {
+ 	clock-frequency = <100000>;
+ 	/* no clients so we should disable clock */
+-- 
+2.50.1 (Apple Git-155)
+
