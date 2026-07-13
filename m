@@ -1,97 +1,124 @@
-Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from galaxy.gendns.com (galaxy.gendns.com [66.235.175.158])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0846A385519
-	for <linux-omap@vger.kernel.org>; Mon, 13 Jul 2026 14:12:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C0782F1FC3;
+	Mon, 13 Jul 2026 14:45:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.235.175.158
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783951941; cv=none; b=EVEfTaU2v9rFc8Btq1KtvhwsX8xSO48IJQzwllmW/AzuOpfONm6GCL7eDwFRSy2XJ85W1cnoOb7erojYK5hBa8KGqKuGsQGdYCKCBbGFs5GEt23U59EfJaEpJuw8qeny4dWCIe9E5iDMvs8rB6ILdoq14MIvlAHbVcGw8Tc5qYI=
+	t=1783953917; cv=none; b=BNKUzqvaOKxujMRh8zsbC3/iCkQDy/Gvuoy8BOtc3Cy23uk5d1PCx6fu1Xjf4WxOGdFRGxiLZ+EkHgYeBfislf+zyWSgEHUNtqZPVsfB4OQB3Mig83PoHi+PV9CnnXuHCgIXmq2U98vpGXlAd99DEzpRo3fwzSHqcnEA9ziY4oc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783951941; c=relaxed/simple;
-	bh=bkfxEHVzEoYCowt9lwKhpqu6A9vt6KeYyyg5eW8TDQ8=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IFRoSOeTFk5DdfsAgmn4S131P0jFuU1RftX7Wo/9g49ai88/B+HUr3L9haqYII4ivAs7kdw+HH8gPx9fwe3WHgxxPtArw1bO40W4WMbJ/FYiDAOSXE3VPgnWJRGEtEF18WVAxB/Bf+MJ9nyJ1K6RwWxFzB1vHGFwfEfuHsu0rj0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=X2kO+TJq; arc=none smtp.client-ip=209.85.221.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1783953917; c=relaxed/simple;
+	bh=jpyz5hAbwlvRRPo64MfFZ81i18i8D734nmZ6CUH9lvM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=RDk6ooPKTnW8IqUzKY94n0LbDIA1afgOqWDkHDwzBt49IYGxEmukETazgVAeyYbO+Ljr0KgAaHKsMAU5qzk54SC+g9/gscpf6hEapV+nPZqgQj1nxbdAXNllOA5WN57WnDU3+k6QJ8/9xv7iea2Yl5V3cfq+i+TItR23ZhEAG6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lechnology.com; spf=pass smtp.mailfrom=lechnology.com; dkim=pass (2048-bit key) header.d=lechnology.com header.i=@lechnology.com header.b=kPRts+KY; arc=none smtp.client-ip=66.235.175.158
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lechnology.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lechnology.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X2kO+TJq"
-Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-47ddf7b09e5so2769114f8f.1
-        for <linux-omap@vger.kernel.org>; Mon, 13 Jul 2026 07:12:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783951938; x=1784556738; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=YO4iO+4RoSYMeteNu9nUAyD/efKBamp9eHyouwcTSY0=;
-        b=X2kO+TJqZaXwvK5rbcew6R/B1kR6MikwWFfSxMbEJa7Zl2W67Mq4DUBpDDuKuHZRR2
-         mBSpRl/w0jJv8i6eejXEKrjlh+McKHtJXLP6jpGKf46Ll97VaBaF9CE/9wXFFqLYQxyg
-         7ejyWoGxeAs8ziLsyso/jl1oT/Z4NEVRiMHrMEgVI559a4n9Fz+Ln/xCWNH08dJxIACg
-         EZj1ZRHcAi2raLVIa1z71zkQF9CnFg2CtLr1EQi1RRnU0hHHdWTH9jTCMe9OWXLtvw5E
-         OEd01Bpqasifn0mDefpBHAySucrN5123LGUENne0eLSiFvoCxcr5MTk7fCZwjmedyPhm
-         AO6g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783951938; x=1784556738;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=YO4iO+4RoSYMeteNu9nUAyD/efKBamp9eHyouwcTSY0=;
-        b=Tpw/cIJQkssKwNoil7+wl3E9JX5ifeak1aa38G/3LDy1MRz2gshmDhnIH4Gx1Edufk
-         edv8ITbNOperxLT5nknNaSRocpo85D6e4QMojGLujWJUEUzkuXeP6r6u0p7yo1SUROHF
-         hj4J9a/Vw8HQZshotwICWzj0eoWCUaUuxl7Pme2DYPHrYPJNwvqMHd1qPil7h1QYS3v3
-         fxdzglQhDY+TC2DsBPxyndeBaqgdX5GLE809BPkq38x57KRx8DD8RppZK4OzHqzRw/Yg
-         Qj3qpADvdBfnvTHQ+wXwne1/HwhAMkaMUOt9joaLpVfgV+kJyN2qQ29oe9FAnzI6HGGa
-         Ho/g==
-X-Forwarded-Encrypted: i=1; AHgh+RoDzP1gj7j8o4v+ruccLQ4a+C4g2uRqTPOwpBXUoATVK7qgljwlV3Qsj9mIS1hUapx2h3QurT7kJvOV@vger.kernel.org
-X-Gm-Message-State: AOJu0YzcDEbpsvttrCKP+Lf0jG1LqOmh8TdT9gktcKNbk+ZWa+62zD/4
-	37+x90GcJzL8dOpCAYDygLmHBG3lpUnuL31+dwjwkoTK9UhOG6nSAy7e
-X-Gm-Gg: AfdE7ck4XLN4AjFlpHwXsYyXpnu7vERQgiYK6oB58w9dJvPU67HWO4VeYuZPqECqQT9
-	GWPhJZbqkT0bm21vvKn8CfAbBvo2fxX5T+9qNjJrReOP5nF2GfT8yMeJgr9gRC2EgJgiweSsUk3
-	CohlHgMqs5+GsUE390JZP360IME1JZZmNmCccEQxpEVyN0MDBo0ZRW/lUg7r/gxAlXfKOz7cBrf
-	2g5UlnZ4hUgcUy3g5DQ4P4ZfObMdU+1Zt13VBxbeW+AC850kFLMuNCDnI1g9g10pBxDGVj2myQH
-	EkfwBdmvaiEnLpwhHjWRw5Dg/YMvGHBTKdJSgKv/PiBJP/EIUTAsZ387ZZBDDdwtkHspijWF+2T
-	17HXL7K0J4HPcmqAvm+l0j4SJfM712O7gEgCxSjT6TBJCdZthnclRm5q1fLopa+1H2c7OOKXtbh
-	zPzXnEjNUno5qA5OqlICOeNYKAc5zrTNQWo1GdzAwSIsa/z8o+DM1zo2A2q6O+LXpEgipUgDXqo
-	Ck3VO1gTLKaVPR0lBmifxp1aCu/OexFgZUPZCBN0Wd5IrvWzIWZrktmeLA9tkvzNHnDas6Au+4C
-	ksySmZAnMY5G3AI2N3fw8miMJnXsNfWdtHpDJkfIAAjrEr6Uz8iyz7lJqMlhqBTxtMZoaq+LUKf
-	0x8KtZR5KnThItmDNnPQUfkFVH3wKs+qrVA==
-X-Received: by 2002:a05:6000:400a:b0:477:3d23:f920 with SMTP id ffacd0b85a97d-47f2dcec627mr10652902f8f.26.1783951938155;
-        Mon, 13 Jul 2026 07:12:18 -0700 (PDT)
-Received: from localhost (90-182-112-124.rcp.o2.cz. [90.182.112.124])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47aa0f213e8sm84998163f8f.34.2026.07.13.07.12.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 13 Jul 2026 07:12:18 -0700 (PDT)
-Date: Mon, 13 Jul 2026 16:12:15 +0200
-From: Joshua Crofts <joshua.crofts1@gmail.com>
-To: Pan Chuang <panchuang@vivo.com>
-Cc: Fabrice Gasnier <fabrice.gasnier@foss.st.com>, William Breathitt Gray
- <wbg@kernel.org>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre
- Torgue <alexandre.torgue@foss.st.com>, Vignesh Raghavendra
- <vigneshr@ti.com>, Julien Panis <jpanis@baylibre.com>, David Lechner
- <david@lechnology.com>, linux-iio@vger.kernel.org (open list:COUNTER
- SUBSYSTEM), linux-stm32@st-md-mailman.stormreply.com (moderated
- list:ARM/STM32 ARCHITECTURE), linux-arm-kernel@lists.infradead.org
- (moderated list:ARM/STM32 ARCHITECTURE), linux-kernel@vger.kernel.org (open
- list), linux-omap@vger.kernel.org (open list:TI ENHANCED CAPTURE (eCAP)
- DRIVER)
-Subject: Re: [PATCH] counter: Remove redundant dev_err()/dev_err_probe()
-Message-ID: <20260713161215.00001cc3@gmail.com>
-In-Reply-To: <20260713131005.306069-1-panchuang@vivo.com>
-References: <20260713131005.306069-1-panchuang@vivo.com>
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
+	dkim=pass (2048-bit key) header.d=lechnology.com header.i=@lechnology.com header.b="kPRts+KY"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=lechnology.com; s=default; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:From:References:To:Subject:MIME-Version:Date:Message-ID:Sender:
+	Reply-To:Cc:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=INl0jiwqDhGPDETixMKefTqug/oQonC2CS+nvIV3PMw=; b=kPRts+KYZ26uj+aJUVDbW7uRza
+	+0I25symShHRG3ruTSswL+FzNtvluFi5NQsWI1E8OXGFttK+9GxIdozY4NeQTVAsP1WxAwYayp9ob
+	Hg6Mdizci/iITZz4u3rn6aRLLdLz9DhiSSH6S67qzrL/D6fTfeTVAgGINn2kP9Ll2gEygQnrsymaF
+	ugdGgnph3xdTbOD6X/0pbpoY+1ls3AyZetYdg/vG32hKD7/jDETDQTy/ChVnKH8lmjlxFn0Rc8PSr
+	QOKCcnuEmoz0/XR9H+qKMDWFxEu70o3qIZyJeAlbNpKJ8wIgmDX52z6IjL3f+BUKV+cWj5PwUrc/Q
+	BDA/zUPA==;
+Received: from ip98-183-112-25.ok.ok.cox.net ([98.183.112.25]:52858 helo=[192.168.1.142])
+	by galaxy.gendns.com with essmtpa  (TLS1.3) tls TLS_AES_128_GCM_SHA256
+	(Exim 4.99.4)
+	(envelope-from <david@lechnology.com>)
+	id 1wjHVy-00000009aEK-0hNn;
+	Mon, 13 Jul 2026 10:20:09 -0400
+Message-ID: <1e330026-cd09-48d5-9478-4cff59f521e0@lechnology.com>
+Date: Mon, 13 Jul 2026 09:20:07 -0500
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] counter: Remove redundant dev_err()/dev_err_probe()
+To: Pan Chuang <panchuang@vivo.com>,
+ Fabrice Gasnier <fabrice.gasnier@foss.st.com>,
+ William Breathitt Gray <wbg@kernel.org>,
+ Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+ Alexandre Torgue <alexandre.torgue@foss.st.com>,
+ Vignesh Raghavendra <vigneshr@ti.com>, Julien Panis <jpanis@baylibre.com>,
+ "open list:COUNTER SUBSYSTEM" <linux-iio@vger.kernel.org>,
+ "moderated list:ARM/STM32 ARCHITECTURE"
+ <linux-stm32@st-md-mailman.stormreply.com>,
+ "moderated list:ARM/STM32 ARCHITECTURE"
+ <linux-arm-kernel@lists.infradead.org>,
+ open list <linux-kernel@vger.kernel.org>,
+ "open list:TI ENHANCED CAPTURE (eCAP) DRIVER" <linux-omap@vger.kernel.org>
+References: <20260713131005.306069-1-panchuang@vivo.com>
+Content-Language: en-US
+From: David Lechner <david@lechnology.com>
+Autocrypt: addr=david@lechnology.com; keydata=
+ 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
+In-Reply-To: <20260713131005.306069-1-panchuang@vivo.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - galaxy.gendns.com
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - lechnology.com
+X-Get-Message-Sender-Via: galaxy.gendns.com: authenticated_id: davidmain+lechnology.com/only user confirmed/virtual account not confirmed
+X-Authenticated-Sender: galaxy.gendns.com: davidmain@lechnology.com
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
 
-On Mon, 13 Jul 2026 21:10:04 +0800
-Pan Chuang <panchuang@vivo.com> wrote:
-
+On 7/13/26 8:10 AM, Pan Chuang wrote:
 > Since commit 55b48e23f5c4 ("genirq/devres: Add error handling in
 > devm_request_*_irq()"), devm_request_irq() and devm_request_threaded_irq()
 > automatically log detailed error messages on failure. Remove the
@@ -99,13 +126,4 @@ Pan Chuang <panchuang@vivo.com> wrote:
 > 
 > Signed-off-by: Pan Chuang <panchuang@vivo.com>
 > ---
-
-I think you can drop the commit hash and title from the message.
-Otherwise LGTM.
-
-Reviewed-by: Joshua Crofts <joshua.crofts1@gmail.com>
-
--- 
-Kind regards
-
-CJD
+Seems OK, but probably be should be split into one patch per driver.
