@@ -1,134 +1,129 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 296C837E2E1;
-	Mon, 13 Jul 2026 11:21:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7392D3ECBED
+	for <linux-omap@vger.kernel.org>; Mon, 13 Jul 2026 11:47:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783941698; cv=none; b=hPpOsG7yHJn0ZnZJ2EmgDJUeMp76BlKGeqMt6S1MCNr7oA8MtViCoPPuhNPjz9tfhORdLITBIHz6jfYEI57jBXRRXqj3PSvqMpr5PV9amx2OaULZQxLJ5rIpEKebnWgLj4mjw1IIRxbWApQuvXrQ21gr34YBPj1nzE7+4K0tWs8=
+	t=1783943244; cv=none; b=tPsfxNbodFfxZqXr6AF593PXa9Ctx68QdI/ouL0D1TLZ3n8naS4d/x7oqYwaDTuMtyWliLJt4087zjWMK/d7HxcmBlRw95+hAThWgDkif/V6YSXf6D/JWv0J32Lxps1cCHmOp4Uh4rh0eCfrDt2R9GIvO42lxsg4ssuM60l9Rks=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783941698; c=relaxed/simple;
-	bh=qjNurRQVSwJBiieOW9ThoUFB9rqOdoEiG35XLbhQwBc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BqB8gBruEKc7HI1knAmgDGdSrcXLLixMWBjRPWze4ce5KHciH7eGFMs7lf5r4O/9WW2Lj1YUx5dBUZjTQ2k9izKIII8DzqAFEakY18abvclJNLYvFhenhxjTIK/BBWGagp0B8Qcg8kmQkrsFlU0c0thBxFfV9BSJ+eAwarYvDk8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IVF7dN58; arc=none smtp.client-ip=192.198.163.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1783943244; c=relaxed/simple;
+	bh=2PYYlcQqLMp9ZyJlbZOu82v9vXV7Vz57pJlWzajpaQA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YZh69O4lU2dt6YUOw/43m5lpS5TzOWfLnywrdMhUJHPpNVrOgMfu+RVjIS8B9cpWte9GspkGWiilkWOzBL3w5kFrUlifbWtTT0YQHrYCe87QhA/18XFxtx35IEYxd8lnLHpVgp7dD0wjW0WyqALUrolw2Ed0FNc1AxK38ClAmAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OnV4iBuD; arc=none smtp.client-ip=209.85.214.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IVF7dN58"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1783941696; x=1815477696;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=qjNurRQVSwJBiieOW9ThoUFB9rqOdoEiG35XLbhQwBc=;
-  b=IVF7dN583n2OunJc1CHQolm8+7XOduXuuwucQ4mHTerQIJr5YCK/rA7C
-   3lbcO9z1fYueaaO1EBnIX9AQEOqqmeKXFpYndsc8HtwN7zSQoFzvW8Vkr
-   LrwfUYbDGgfAI22Ki+mjIwWrNpR0L8ANNOyRfzyIscGozuDaaRDOr6t5e
-   l3vJWFPrDnr1r8qnPeEFYv5oiCxX9rNJjkOa5Y+DlZ6bAbwgVWK4V5RCN
-   /RO8hSt+Mo/c8QUkhLWnCSNPtJ2kGfDeORU0jYL7Zauo1JViDaf/Qa1nk
-   yk9m5Jr1G+rUt0USJ2ujuf2oCdwPME67BFHyFCXpd0XHs7dqWR+PMQkkK
-   Q==;
-X-CSE-ConnectionGUID: YRv4HQ/oTNykr5w0amOAZg==
-X-CSE-MsgGUID: yhjfuB5ERdmGXwY7ALj03A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11841"; a="88372077"
-X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
-   d="scan'208";a="88372077"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jul 2026 04:21:35 -0700
-X-CSE-ConnectionGUID: FC1GeEyzSPKWMBYtZ/N88w==
-X-CSE-MsgGUID: 3GNUYWrFTM6f6PsT20OzmA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
-   d="scan'208";a="253788205"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.88])
-  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jul 2026 04:21:26 -0700
-Date: Mon, 13 Jul 2026 14:21:24 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Tony Lindgren <tony.lindgren@linux.intel.com>
-Cc: Tony Lindgren <tony@atomide.com>,
-	Praveen Talari <praveen.talari@oss.qualcomm.com>,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OnV4iBuD"
+Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-2cc7ef7ec27so32977635ad.1
+        for <linux-omap@vger.kernel.org>; Mon, 13 Jul 2026 04:47:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1783943242; x=1784548042; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=gUfgeiYLj2n8Lc+2ZjQf7Ijb1oRUUAQYlVMDWkCBke4=;
+        b=OnV4iBuD6vqmyda6BKuAYbiz5O3cYerXGCh4v4RcNbhkOmIGOPY32Oc5pWhQVfAozI
+         EPzb3IOxP+7n9QgTgTt+6xt6XgaQAMjcaqezxGIwcE2RGQ3hrHuUTMCM8wiLoajgDKOn
+         /BKWCJrEAmCTv0rt/4GghFbz4jy3NMc3fPmeSPSFJ2kWCCRxQFuDSvHTAC7Tig3KV5/X
+         vjHkrQ6SdXzrz1wm7k4myX+mVkwRErqi4mdiRSj4c2l9PEO2nt6w/dEiOhSBhtaUGYdg
+         4GQePgOP5u4nl1y3AiGkk+i9ouHSrPO1skwSv7M20sn3yhg/ew102pSCfoA73fpQnXxM
+         PV8w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783943242; x=1784548042;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=gUfgeiYLj2n8Lc+2ZjQf7Ijb1oRUUAQYlVMDWkCBke4=;
+        b=lkVEIoROoaCb4K3Ar2xsbstRNxrt3oPTUk2L+1SjSB0S+qluw9katpjmiLgVrtdvV3
+         7BlfvmOXp+3IJbEitAw4DeM1O2Kb8k/DaOogrFC3TIQPvcgfXsYWjAVDn+FEcMXPYK5r
+         fdc4/d++jfIUzWOVc0iX3ZyIvyPSEPf2De+YT0SRYkC11aQJCfZ6gH0ihsnTINJ73G2H
+         iFYbneO9FBDynU7OXrnWsn1EByxG5s557LDpQtI5euVBK0/9AV78Sq7ItvYQlgM2D6Qv
+         AULbj87lgMLX3lLVooloMtaAISWIpqOvF1r+4mD7LZGTYGpDuqB/YFTqaMOG6Kp40AgT
+         tWxw==
+X-Forwarded-Encrypted: i=1; AHgh+RqS5mQ7i1XNFIfHe3NRp9l/Mzj375Tdz4Y0sSKD/CiqF0uOzrm7VFd5Xdr7VLwH7kGlgXe3Nc0TAaAG@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxycjgu/LjDw109oL0coqKrv8MzPZE4cfCY8aNOIm/+Yyt1tC9c
+	Qi8/QLg16r/UFI0mUuGaFB4o1DUbgY39PYBjL/uxUlpX8u+v6Z/woFM0NwLy0rsak4k=
+X-Gm-Gg: AfdE7cnVKG74J0RQbCCYl3n4/TF0XXi3Ad4IjDsnnVAOvQWm19CH8dU++dLlo4n5yjJ
+	MqHKMbHRvl18pUnV6wwXL+gPElZ5Xk0EXIskkqS6lO+TRQDLAFy5rZaTwEHTNQPxNG3NJodoJnJ
+	fGT4RdFlbK8YYmWXORUuhw5neZXWxnw+ETQgOFoh5qdOk4nHZX1GiCw93kQlmz7X9UPSiCI6pAu
+	+RO2EwHa21YthYRa2HoCbSvKV3vYpr92HyUZuY+n8pCvynHYz/jS4Kg+wpjOd31EF0VpamHLNId
+	K8Hj7z/R3CuqPkdciYmWAxjqdTTthMCzqTrp9f+mMWQJpFeEpSxNH78r7P4YDpKFmilJHoW7NDm
+	jZ1GGtBVhI73Jns2RmNahXNy0wemdNQWQfctpmtjrNuoy2WMgWKZOxV1MFD9aYnboivj7Fc7NMb
+	pFkmfeOdj/fA==
+X-Received: by 2002:a17:903:2a88:b0:2cc:6018:f030 with SMTP id d9443c01a7336-2ce9e9b2507mr83806345ad.14.1783943241572;
+        Mon, 13 Jul 2026 04:47:21 -0700 (PDT)
+Received: from lgs.. ([101.76.249.46])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ccc99cc5aasm98328125ad.0.2026.07.13.04.47.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 13 Jul 2026 04:47:21 -0700 (PDT)
+From: Guangshuo Li <lgs201920130244@gmail.com>
+To: Bin Liu <b-liu@ti.com>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jiri Slaby <jirislaby@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Richard Genoud <richard.genoud@bootlin.com>,
-	Nicolas Ferre <nicolas.ferre@microchip.com>,
-	Alexandre Belloni <alexandre.belloni@bootlin.com>,
-	Claudiu Beznea <claudiu.beznea@tuxon.dev>,
-	Krzysztof Kozlowski <krzk@kernel.org>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Alim Akhtar <alim.akhtar@samsung.com>,
-	Orson Zhai <orsonzhai@gmail.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Chunyan Zhang <zhang.lyra@gmail.com>,
-	Patrice Chotard <patrice.chotard@foss.st.com>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Michal Simek <michal.simek@amd.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	bjorn.andersson@oss.qualcomm.com,
-	Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>,
-	linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-omap@vger.kernel.org, linux-mips@vger.kernel.org,
-	Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com>,
-	aniket.randive@oss.qualcomm.com,
-	chandana.chiluveru@oss.qualcomm.com
-Subject: Re: [PATCH 0/6] tty: serial: propagate errors from uart_ops.pm
- callback
-Message-ID: <alTKNEk97jkVGfML@ashevche-desk.local>
-References: <20260709-add_return_check_for_uart_change_pm-v1-0-e85c6ffa8ec4@oss.qualcomm.com>
- <ak9OPNcVAhkfxHvZ@ashevche-desk.local>
- <20260710043746.GM30058@atomide.com>
- <alSv8BPCOiyKvOI2@tlindgre-MOBL1>
+	Tony Lindgren <tony@atomide.com>,
+	linux-usb@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Guangshuo Li <lgs201920130244@gmail.com>,
+	stable@vger.kernel.org,
+	Johan Hovold <johan@kernel.org>
+Subject: [PATCH v2] usb: musb: omap2430: Do not put borrowed of_node in probe
+Date: Mon, 13 Jul 2026 19:47:11 +0800
+Message-ID: <20260713114711.955253-1-lgs201920130244@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alSv8BPCOiyKvOI2@tlindgre-MOBL1>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jul 13, 2026 at 12:29:20PM +0300, Tony Lindgren wrote:
-> On Fri, Jul 10, 2026 at 07:37:46AM +0300, Tony Lindgren wrote:
-> > * Andy Shevchenko <andriy.shevchenko@linux.intel.com> [260709 10:38]:
-> > > Note, that Tony (you have him in the Cc list) did a lot for some corner cases
-> > > with that and we still have them IIRC. Tony, do you know what is the state of
-> > > affairs with runtime PM for UART?
-> > 
-> > The RX side of things should work for hardware that can wake up to an incoming
-> > event. Linux for sure needs more work to properly handle the various corner case
-> > TX wake-up of a PM runtime idled UART. I'm mostly offline until Monday though,
-> > will check my notes for more details next week.
-> 
-> For the TX side handling, my understanding is that at least uart_update_mctrl()
-> needs to call PM runtime resume and put autosuspend. And we should assume
-> uart_update_mctrl() can sleep to resume the PM runtime suspended serial port.
-> 
-> For drivers, the callers of uport->ops->get/set_mctrl() should be updated
-> to use uart_update_mctrl() where possible. And the remaining ones that cannot
-> sleep should be fixed so they can sleep or have PM runtime disabled.
-> 
-> Anybody have better ideas?
+omap2430_probe() stores pdev->dev.of_node in a local np variable. This is
+a borrowed pointer and the probe function does not take a reference to
+it.
 
-I don't, but the above sounds like a plan. Is it a big task? I can help with
-something in that area, perhaps Ilpo also would be able to participate.
+The success and error paths nevertheless call of_node_put(np). This drops
+a reference that is owned by the platform device, and can leave
+pdev->dev.of_node with an unbalanced reference count.
 
+Do not put the borrowed platform device node from omap2430_probe().
+References taken for the child MUSB device are handled by the device core,
+and the ctrl-module phandle reference is still released separately.
+
+Fixes: ffbe2feac59b ("usb: musb: omap2430: Fix probe regression for missing resources")
+Cc: stable@vger.kernel.org
+Reviewed-by: Johan Hovold <johan@kernel.org>
+Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
+---
+v2:
+  - Correct the Fixes tag.
+  - Add Cc stable.
+  - Add Reviewed-by tag from Johan Hovold.
+  - No code changes.
+
+ drivers/usb/musb/omap2430.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 333ab79f0ca9..6e749faac33c 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -454,7 +454,6 @@ static int omap2430_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "failed to register musb device\n");
+ 		goto err_disable_rpm;
+ 	}
+-	of_node_put(np);
+ 
+ 	return 0;
+ 
+@@ -464,7 +463,6 @@ static int omap2430_probe(struct platform_device *pdev)
+ 	if (!IS_ERR(glue->control_otghs))
+ 		put_device(glue->control_otghs);
+ err_put_musb:
+-	of_node_put(np);
+ 	platform_device_put(musb);
+ 
+ 	return ret;
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.43.0
 
