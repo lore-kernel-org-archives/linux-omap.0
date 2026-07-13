@@ -1,172 +1,167 @@
-Received: from mo4-p03-ob.smtp.rzone.de (mo4-p03-ob.smtp.rzone.de [85.215.255.100])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A05FC3AE1BD;
-	Mon, 13 Jul 2026 08:28:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.100
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783931308; cv=pass; b=nE+0jFLqzD3NDW6lveGc1GuwoM/XoMLengRuZGvnm1qS++HVsJeztMgNeXCwRCXlRNRHoUa7CyZZFSeuOXmt7JigOzrp7zIq/4HKsR84jT2E0xQHzJvbwzOmb2AEycnFbnholSeEo8qm5mR0w07Vy5svVeV6R/1IU4/YNOa/s5Q=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783931308; c=relaxed/simple;
-	bh=hU0sagAME1G1zZIH0RQbZV4EmEHwkgt1Op5N1vS/zfo=;
-	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=EXLFEQzYUtvXH5d4CEAF1x6vD010Xuzej7vUDkIuLnKdtYFyH/FPtbstNJhUnohjJyEf59Dj/TcRFuCtG3Onq1rcdjFY6KbxoQsivMs/XYoYlKg8y5GAi+1lix1JD6GuqSSDhYI8ajZ6NS2WGI8xdF6SoPRpc7mZYubjYxzuvN0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=Vwx2oTP7; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=qtblV6pg; arc=pass smtp.client-ip=85.215.255.100
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64F363DEFFA;
+	Mon, 13 Jul 2026 09:20:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783934412; cv=none; b=fpjAFXdxSUNEhy3fVAJzVw1xing4XrLmVVm6Ai2Ug8ezzbv8d+4Bq4sQBmGe7up4Ukx6lg5dzYZ0V4IORzIjQnmcpHuhfgsM1Lq8ocFVIU3mtOC5EoazGim48wzN1ICZWMyoa6ghgv62/36NbN5u1nbx1cAyVqWcyv5m3xZKHUw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783934412; c=relaxed/simple;
+	bh=56ECmLCWIwuFRjqIshq8+MEA2uwaWWj8NR6L+hjVXLw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ZCZdb81y5dfBL1HmRtRROz5a3cRHdMFih3XQ5JaxW2KQ6US2/w+pm1XbQSVZ9x20C3l9EdOuLoaIXKNHrcKg2oDMiOEz48o3TltS8iXf0ZBaCnIoWQwsWjtXjysrX5BMlTdv0nLraTpeexcqh8Wwgaj6r+GIHsxOKbC8PB+sQpI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QkkbTShW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="Vwx2oTP7";
-	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="qtblV6pg"
-ARC-Seal: i=1; a=rsa-sha256; t=1783931231; cv=none;
-    d=strato.com; s=strato-dkim-0002;
-    b=Oka9nCCkM+WZsnC/UNUFXjjaf3XwBpi/Oav9a/hVi0pB8MRxssrukHul6GEWznHmPM
-    ESuqm0fBKdqPFempxtFxM3J6oqurPdAN0xkNajC7tnfKB87JmOP28ytTzrT4rCcb5E0Y
-    lDLmYq4epC7eTkSONqsvQ5ts/WdO8PD/lU1dGrx0TIBFfd2qN11ISGgOTmta0ies3oyf
-    GIrudUva1NnndTVf+19+KN4zAEDD1b6IeoB0FgLhmqcoZlXh/+2YLgDnZGtFEhb3yq5c
-    tYKdnPJRPylyoLu2ajTe3eXlYbR8QLF7Jqt5uPEu56g4QQyvBK+vTKJ7NbDoPFU7+nI0
-    cuUg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783931231;
-    s=strato-dkim-0002; d=strato.com;
-    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
-    From:Subject:Sender;
-    bh=Ib9mcRTAy1oPoZKxfhyC8Zte5eIn/Pz6JIUrDWg1aW4=;
-    b=D6jlrtCzML6mCSrVPwQjtXWqErpA5Jd47PDLQF00O/HrZwutL85UKj2K29XaNYs0SP
-    2YlkrJYN3XuQAw2iHRbBog4RFUlgpRAvlG65hkDFQ0JQdyQO2bUASmVz7ElyHlkbo8I8
-    dyXLYMVWohedYQGdxl9dgW4KDO6XIL8B62v5vlpu5uoxOgXiwPdkrMTG/VMRwAPB/tnj
-    NW4kK83Nl4UPPYHxhuG8NS+PFAaqhOrc4qbLNIRwLVLuEwygsEWF5d15vJDjtHPDAyax
-    0YiD376xYpuCZ/Xv1MOpoa8t7UTiEBRUtCMNkfSOZMktFizmgZZC4NdBvxzKi/854QqO
-    HjXw==
-ARC-Authentication-Results: i=1; strato.com;
-    arc=none;
-    dkim=none
-X-RZG-CLASS-ID: mo03
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783931231;
-    s=strato-dkim-0002; d=goldelico.com;
-    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
-    From:Subject:Sender;
-    bh=Ib9mcRTAy1oPoZKxfhyC8Zte5eIn/Pz6JIUrDWg1aW4=;
-    b=Vwx2oTP7GlXOMiikEv8RAjkcfTCZdI39w67GqKlHM4pRVbZNnftH6RbItr/nTaWaOy
-    p8RMzS7WI6acw58Z9T4pO+HtcqBvmtikn6DKE2F1nEip8hRo3bg8mAlJ9TfhbCQfAAUb
-    Og9gqA/oIzReRDaji0ii19RwxjkcRK315ISN3lwarVZcICTb2GwMCh8LJdh0wGFHR+oJ
-    6Ea0cs4mdlIAd0kTfdeRvSk/ZaoFjq+ldOba9I6iqqlHJH/qJLRsGXiAy7TqE2drO2YO
-    MmQyQyW/iYaIvHj7NRmgqO1dpB0rNEbwFT9Kut812dd+pRcGbgy3Mhe3APaC613UpzBK
-    fP/w==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783931231;
-    s=strato-dkim-0003; d=goldelico.com;
-    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
-    From:Subject:Sender;
-    bh=Ib9mcRTAy1oPoZKxfhyC8Zte5eIn/Pz6JIUrDWg1aW4=;
-    b=qtblV6pgFh3CET9boKnJ88eVlzy7oA3DhyC0d8mqPA3sunBkBdF/us2HHoQf+7FQSw
-    SdfBRHhUlBUtefoh7pBQ==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9qVpwcQVkPW4I1HrQi5pZlciNgDl2kEp5oHJ2/c57N2Mc49IfXTKd"
-Received: from smtpclient.apple
-    by smtp.strato.de (RZmta 55.5.6 AUTH)
-    with ESMTPSA id Q4b76426D8RAMvQ
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-	(Client did not present a certificate);
-    Mon, 13 Jul 2026 10:27:10 +0200 (CEST)
-Content-Type: text/plain;
-	charset=us-ascii
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QkkbTShW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3911B1F000E9;
+	Mon, 13 Jul 2026 09:19:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1783934406;
+	bh=KPn/0kVgFXc2JWBOxwYgPrEhEXzzno6JbbLqrG3d9Rg=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=QkkbTShWayZC/3S1cAmazn3mBVL0/FckQSgwfNDI9s3pWVxbPyiDw+/eYyCbvkg2f
+	 gmOdrozdDCKP4fyKKyrmRgCqAmf4y6jGLRIFnCc4hqyqUJly9fczBooVYmzQ4QdlOR
+	 2+4MmaH6FtOk6be73jHItrsAHrdUXLSntNM8SdqYkzpH1Au9jMJokajOKlRDbG7FE8
+	 TKdwWoofiVVWIHgfA97gMGRb5UKayPJqGPfCOCr0z4GV8q0To7qQp81tarJA7FYp5u
+	 Llv4EVzX1ExaVM+t3oaqUESVqfP/jHClnVW7MrNziUtAv5ChnIFap/2syT5bbMITXs
+	 b7wvWEX9I9WUA==
+Message-ID: <17497012-97d8-4c52-89b8-f433179f1eda@kernel.org>
+Date: Mon, 13 Jul 2026 11:19:52 +0200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.8\))
-Subject: Re: [PATCH 07/16] ASoC: dt-bindings: add TI PCM1773
-From: H. Nikolaus Schaller <hns@goldelico.com>
-In-Reply-To: <20260713-abiding-jumping-ape-7ce8ff@quoll>
-Date: Mon, 13 Jul 2026 10:27:00 +0200
-Cc: linux-fbdev@vger.kernel.org,
- Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
- Tony Lindgren <tony@atomide.com>,
- dri-devel@lists.freedesktop.org,
- Liam Girdwood <lgirdwood@gmail.com>,
- Niranjan H Y <niranjan.hy@ti.com>,
- Sen Wang <sen@ti.com>,
- Rob Herring <robh@kernel.org>,
- Aaro Koskinen <aaro.koskinen@iki.fi>,
- Kevin Hilman <khilman@baylibre.com>,
- Helge Deller <deller@gmx.de>,
- Lee Jones <lee@kernel.org>,
- Russell King <linux@armlinux.org.uk>,
- linux-omap@vger.kernel.org,
- Daniel Thompson <danielt@kernel.org>,
- Grazvydas Ignotas <notasas@gmail.com>,
- devicetree@vger.kernel.org,
- Conor Dooley <conor+dt@kernel.org>,
- Charles Keepax <ckeepax@opensource.cirrus.com>,
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 01/16] dt-bindings: twl-regulator: Add bindings for
+ exposing ti,twl4030-regen
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, Grond <grond66@riseup.net>
+Cc: Stefan Leichter <sle85276@gmx.de>, Grazvydas Ignotas <notasas@gmail.com>,
+ Tony Lindgren <tony@atomide.com>, Ethan Nelson-Moore
+ <enelsonmoore@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>,
+ Sascha Hauer <s.hauer@pengutronix.de>, Andreas Kemnade
+ <andreas@kemnade.info>, Lee Jones <lee@kernel.org>,
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>,
+ Mark Brown <broonie@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>,
+ Russell King <linux@armlinux.org.uk>, Daniel Thompson <danielt@kernel.org>,
+ Jingoo Han <jingoohan1@gmail.com>, Helge Deller <deller@gmx.de>,
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+ Sen Wang <sen@ti.com>, Richard Fitzgerald <rf@opensource.cirrus.com>,
  Arnd Bergmann <arnd@arndb.de>,
- Sascha Hauer <s.hauer@pengutronix.de>,
- mfd@lists.linux.dev,
- linux-sound@vger.kernel.org,
- Richard Fitzgerald <rf@opensource.cirrus.com>,
- Mark Brown <broonie@kernel.org>,
- Takashi Iwai <tiwai@suse.com>,
- Jaroslav Kysela <perex@perex.cz>,
  Srinivas Kandagatla <srinivas.kandagatla@oss.qualcomm.com>,
- linux-arm-kernel@lists.infradead.org,
- Roger Quadros <rogerq@kernel.org>,
- Jingoo Han <jingoohan1@gmail.com>,
- linux-kernel@vger.kernel.org,
- kernel@pyra-handheld.com,
- Jarkko Nikula <jarkko.nikula@bitmer.com>,
- Ethan Nelson-Moore <enelsonmoore@gmail.com>,
- Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <E7BB0C31-9C19-4A9F-BBD9-746B94177B07@goldelico.com>
+ Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+ Charles Keepax <ckeepax@opensource.cirrus.com>,
+ Niranjan H Y <niranjan.hy@ti.com>, letux-kernel@openphoenux.org,
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-sound@vger.kernel.org, linux-omap@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org,
+ linux-fbdev@vger.kernel.org, kernel@pyra-handheld.com, mfd@lists.linux.dev
 References: <cover.1783749722.git.hns@goldelico.com>
- <a02383ea5907a677f4c61066d423efde2b9de48b.1783749722.git.hns@goldelico.com>
- <20260713-abiding-jumping-ape-7ce8ff@quoll>
-To: Krzysztof Kozlowski <krzk+dt@kernel.org>
-X-Mailer: Apple Mail (2.3826.700.81.1.8)
+ <00718b18253a764c2a7c9a2b95c3b8c411796583.1783749722.git.hns@goldelico.com>
+ <20260713-aquatic-memorable-griffin-cf9e46@quoll>
+ <3D58F644-3EAA-4BE7-88FB-1DCEAE7D5768@goldelico.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ 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
+In-Reply-To: <3D58F644-3EAA-4BE7-88FB-1DCEAE7D5768@goldelico.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Hi Krzysztof,
+On 13/07/2026 10:26, H. Nikolaus Schaller wrote:
+> Hi Krzysztof,
+> 
+> Thank you for the feedback.
+> 
+>> Am 13.07.2026 um 09:39 schrieb Krzysztof Kozlowski <krzk@kernel.org>:
+>>
+>> On Sat, Jul 11, 2026 at 08:01:48AM +0200, H. Nikolaus Schaller wrote:
+>>> From: Grond <grond66@riseup.net>
+>>>
+>>> FIXME: not reflected in the bindings
+>>>
+>>> +Reguired properties:
+>>> +For twl3040 REGEN signal:
+>>> + - regulator-min-microvolt:
+>>> +  - Same meaning as in bindings/regulator/regulator.yaml, but must match
+>>> +    regulator-max-microvolt.
+>>> + - regulator-max-microvolt:
+>>> +  - Same meaning as in bindings/regulator/regulator.yaml, but must match
+>>> +    regulator-min-microvolt.
+>>> + - startup-delay-us:
+>>> +  - Same meaning as in bindings/regulator/fixed-regulator.yaml.
+>>
+>> I don't know what that means.
+>>
+>>>
+>>> Signed-off-by: Grond <grond66@riseup.net>
+>>
+>> As explicitly written in submitting patches: we do not take anonymous
+>> contributions.
+> 
+> Thanks for pointing this out. In more than 10 years of contributing, I actually have never run into this specific issue before.
+> 
+> To give some context: this is a contribution we received on our mailing list about 5 years ago. We do not know the author personally, but the code looks good and has been thoroughly tested by us. I kept their Signed-off-by because I didn't want to falsely claim authorship.
 
-Thank you for the feedback.
+Take the authorship. You are allowed to do that by both DCO and common
+sense (you are not doing something immoral, unless author shows
+interest/hints to fix it by themself).
 
-> Am 13.07.2026 um 09:38 schrieb Krzysztof Kozlowski <krzk@kernel.org>:
->=20
-> On Sat, Jul 11, 2026 at 08:01:54AM +0200, H. Nikolaus Schaller wrote:
->> PCM1771/3 is a simple audio codec that can be enabled through an
->> enable-gpio.
->>=20
->> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
->> ---
->> .../devicetree/bindings/sound/pcm1773.yaml    | 32 =
-+++++++++++++++++++
->> 1 file changed, 32 insertions(+)
->> create mode 100644 =
-Documentation/devicetree/bindings/sound/pcm1773.yaml
->>=20
->> diff --git a/Documentation/devicetree/bindings/sound/pcm1773.yaml =
-b/Documentation/devicetree/bindings/sound/pcm1773.yaml
->> new file mode 100644
->> index 0000000000000..f3e640705bf70
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/sound/pcm1773.yaml
->> @@ -0,0 +1,32 @@
->> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
->> +%YAML 1.2
->> +---
->> +$id: http://devicetree.org/schemas/bindings/sound/pcm1773.yaml#
->=20
-> You need to use latest existing bindings as starting point and test =
-your
-> code.
+Commit msg also needs fixing/rewriting.
 
-Resulting code from compiler was runtime tested.
+Beside, one more nit since there will be a new version:
 
-Actually, we used the latest bindings of some other audio dac as a =
-starting point.
-However, we introduced errors into the finally submitted file.
-We will verify and test the schema next time.
+A nit, subject: drop second/last, redundant "bindings for". The
+"dt-bindings" prefix is already stating that these are bindings.
+See also:
+https://elixir.bootlin.com/linux/v7.1-rc7/source/Documentation/devicetree/bindings/submitting-patches.rst#L23
 
-Regarding the checks: both the rob herring bot and the sashiko bot also =
-reported several issues directly to us,
-so we are already aware of some other remaining errors.
+Also, please wrap your replies to mailing list wrapping style.
 
-We are currently working on a v2 to clean everything up.
-
-Thanks and BR,
-Nikolaus=
+Best regards,
+Krzysztof
