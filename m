@@ -1,70 +1,70 @@
-Received: from mo4-p03-ob.smtp.rzone.de (mo4-p03-ob.smtp.rzone.de [85.215.255.102])
+Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [85.215.255.80])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ADA43E2AA1;
-	Mon, 13 Jul 2026 09:38:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.102
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3407F324B22;
+	Mon, 13 Jul 2026 09:39:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.80
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783935542; cv=pass; b=l3Wew1tM864gg24P/DGgj58WMYITa8tfTgQE0H9TH1NlN1IZCAefmVysHQikQnGTPpuceykrhCRUVbXQi1hv2cgxvjWeZaIN/BCVFyMbwodhWdrb4SMKZsZ+8VvqNGVyBTviKOMth76YaxBHRImIgH6ZWTFt2HN0JY/xVs8CacE=
+	t=1783935582; cv=pass; b=dqVsOKSSdu8l3BcD5b2HFJm0U6VmwdgQwca9zWqqXLYhNVkBXqvZ/fHUHIdX71EULbFKiLsz83Eq6eFGDRELuqRlB9h87lGQMoESd2AwIMLkBRtTyKp0Cp8TQuLmnqPL7bZwgzdu9Oun555N26MfIZTKNZDAZyLrO6yZBiaJIME=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783935542; c=relaxed/simple;
-	bh=imolX7qSsiq9DS+KtH4jQru07kjP4EZc5PZkld9Ag7k=;
+	s=arc-20240116; t=1783935582; c=relaxed/simple;
+	bh=hnhHYznYw4U+dJX7Gr1QJFYbWAhkfB84VU99JrG/Yvg=;
 	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=YT8STn3zikrWCW8HAqYEI+9b4n6fQ/Y7P0vXLtDYmAAxeiWU9IcuR/3QJujnQQpFGXV87/trmSzzWf2esGMRD6EH8nQAM0BfjwLnUSohkaGtJ7PF37f5g7wACf2otLcOgqrGvI1opTsTwQAhOopWqbwPofG455mbBONsP22Y4vQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=Cv8a4lrq; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=lTqAmbw6; arc=pass smtp.client-ip=85.215.255.102
+	 Message-Id:References:To; b=C+JfKRKGzThj/wTpIButSAxLK86pPwPyELhvSqvEHS0fEycSIf33/YHEHezD1J6uzicnoF0ZEVJmfzHTdfOeQ7u/Ex5xH6Oh56wdkp+PyAagpIdmzzjst+jGuyDbN+2ka7egqO+8TANVvfqePs+UPc1zoTlRDU1DJMWpKY4F6Tg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=GR+pzhec; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=dC8bNf8x; arc=pass smtp.client-ip=85.215.255.80
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="Cv8a4lrq";
-	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="lTqAmbw6"
-ARC-Seal: i=1; a=rsa-sha256; t=1783935504; cv=none;
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="GR+pzhec";
+	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="dC8bNf8x"
+ARC-Seal: i=1; a=rsa-sha256; t=1783935395; cv=none;
     d=strato.com; s=strato-dkim-0002;
-    b=A2PpFk0vGEtY2w45rqud1fyX6/O738D6k+R9ydMJO8qRmstNo1iQGxgaeBVdiZAa6x
-    +H2Xvm52EZT7p6OIBBTnBZHvSjhr+djdKOWWzkjoIDAb+N8VitYWFVQFi33g1xGltF02
-    p5BGSfXs/DZGNauyGU/CS5gk99Rf7NsSq+4rPxYaIRB6VJFBJY4Txx9S3wcD8JCcDIDV
-    K+WDvcI16sSth+1S++Iq+MNu0vSbudz0p9hxOHWv0+ELMTkgOT4yGk7mXMyhPTM/HM2O
-    xi/2NG2uls2D/23OXQRGlEHMHwvy7auByLc3n9s3hf9dudCO7CN4qRl79NDhnnt1fa+M
-    bHbA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783935504;
+    b=dP7OcmRnbwhCBH1RoJu0txmmrfPY1oppMgEqp052JfsHPADq+XQmroimpG/Bcd1tQ2
+    XkUF8sIltV3UbQKKEVvwnPLPY1isrhIkqM8+BH0cNyuMJZ647KC/9j9akGQwGMCBMDGY
+    2CHTazeGLdAOb7z1EvGSIL7q01ddxCVu4eWk3cW7Sic7J68wL72vEu8Eeg9L22dsd7kr
+    etviG/LUL9RVSvHOKzFhBrGA4lnscNb9P6f71d62ArlACy+3r7ukkTQT4eoJpUrSDNgw
+    BtVpqhFeiFQAt2Pf1ney1jGlCAQrTdHz+3k59/QNUxwbzbZCjP8wW0ukq9DpUu2zp/4X
+    z5HQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783935395;
     s=strato-dkim-0002; d=strato.com;
     h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
     From:Subject:Sender;
-    bh=imolX7qSsiq9DS+KtH4jQru07kjP4EZc5PZkld9Ag7k=;
-    b=sSD9A1+izIoL5gWAn4bTLYgoCWTPF+FoRHJO0L/2/TTi3KhWbXUZ4dY+5VO9Jl7cuk
-    tNHudl8u7i8/wsXnzkNhZQu+tK0HXlYQOs9IVgLuxGdwQB+u4ltTROcI/JFIcEyjhZx9
-    s4EEjuypFgvdFky1NX9h6Om8bVKCFXPKJZgq7WbuYplWGopRhA/rFr3x3d3yDQKlcLT6
-    MucTNnt5bC2A3fRaGut49Bs2V6UiKO6WVhENy1EVmoGWn6emR+77XqQBsyBZLUd9bqIV
-    40LvE9Hz8R9A8u+8dBI2nq1wOYcZn7AbOj98XL8PIX4OLYwi3Omp1/ELiQ57T/MQRmkR
-    Lv/w==
+    bh=hnhHYznYw4U+dJX7Gr1QJFYbWAhkfB84VU99JrG/Yvg=;
+    b=i4ylZOSETHOTtxTdM6FHIyJqoa1k5j8HFL1QUpsJGOci28Q7PDUR47wd+g173HWoYh
+    VvbTln2Babj6qzPodSTUnafD3yN6AJhAx4KjjalBC8DHfJTIAcRWPe+wh1jjsU1E6goG
+    izTHi4psfYWBT47tHAfOn3ELPpq8/C+DQJDkOidIP7nEKDyzdb6wowVAmh1Bka5LPI0/
+    O8ncVDwXSEGbj2Zv74GkKZOnwq3A7KKo8SVfpUFMbg+oJUjkbxpuCnoTxSk2QqfAY0zD
+    JtjXfC3phLcUTla7szaN/zyMiNf/uReytyKl8PVt0JS/1yuJ0uOvLvZjVK527lvGHzbp
+    dq3w==
 ARC-Authentication-Results: i=1; strato.com;
     arc=none;
     dkim=none
-X-RZG-CLASS-ID: mo03
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783935504;
+X-RZG-CLASS-ID: mo02
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783935395;
     s=strato-dkim-0002; d=goldelico.com;
     h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
     From:Subject:Sender;
-    bh=imolX7qSsiq9DS+KtH4jQru07kjP4EZc5PZkld9Ag7k=;
-    b=Cv8a4lrq73F2cX7+2YTJ5/fHsdk1X+y+tuAXmr5tNEtytNlRDE5RpaTuGfBtFneHdt
-    mHvnYiGaYUg1B7T4K7CeglLgD9Vy/zf+9ArlPaJlCDAmtf52Ax2Ys7J+r2G5YjsJg20M
-    k3uUHi3z0Da4FArlVNLkNbyuGYGhltbI8Nydm7f3PdgMgGU1QaNpcesnik2z79DvRf1H
-    4I5N3QBWOo2awuQMwqitYo/bqcx3bxVfol/ElWN3kFWOcpqr9fH3El49Gq45BZ13mf+C
-    UGN76T33iKjnQCqiaP10+CKSD05FoThCmYD8ef59AN7dKHCen1BDDn0fZ0RNB1D6AyJX
-    iA6A==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783935504;
+    bh=hnhHYznYw4U+dJX7Gr1QJFYbWAhkfB84VU99JrG/Yvg=;
+    b=GR+pzhecddLYFJZMc2TkGjkjxgc7DC0nZFR03CQdi+czSfM6pxlv/3KTMXQCGBNz9z
+    BcJuwmMD+eyqm9Gq96U9Fgny+Gkd9td1wnpUYRaXIzGjKFDXgR5JWNkkx97bxd9NdKmR
+    Ot6Nnogfl9XsMNwLcZPqnbQVo/77HbxfxrQMnIKbOhLUaM6FOKFU4PK0y0GH6QK9j1bQ
+    UGAG2tZ+xAvYFn3dJmvoVnJElakBDEcUMsjRQbukdeJIJKoDJ7yy7O/+QHBTfCO6Sz7d
+    wdafVe+iE9kJ4weOtCaj5gKcOGg1HmTshPDlA0BsSTq0U6xEQ4jqfgwRlttZHIn658vQ
+    O3ug==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783935395;
     s=strato-dkim-0003; d=goldelico.com;
     h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
     From:Subject:Sender;
-    bh=imolX7qSsiq9DS+KtH4jQru07kjP4EZc5PZkld9Ag7k=;
-    b=lTqAmbw6/daSGIIBIi0MdJ/BPBDk6SFFmSlKiaiBKD75i2vmEE9ZjNyMI7nxbAo+WG
-    7EGEWarw+yfjjzznYECw==
+    bh=hnhHYznYw4U+dJX7Gr1QJFYbWAhkfB84VU99JrG/Yvg=;
+    b=dC8bNf8xW+rX8n44wt9DVlrzvORrz9yJLqjhY6lCP6awzocEeb+ilJ8db4Rk1zkHNL
+    Mg/Z3iyLc5JCNkCNZiDg==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9qVpwcQVkPW4I1HrQi5pZlciNgDl2kEp5oHJ2/c57N2Mc49IfXTKd"
 Received: from smtpclient.apple
     by smtp.strato.de (RZmta 55.5.6 AUTH)
-    with ESMTPSA id Q4b76426D9cNNOb
+    with ESMTPSA id Q4b76426D9aXNNi
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
 	(Client did not present a certificate);
-    Mon, 13 Jul 2026 11:38:23 +0200 (CEST)
+    Mon, 13 Jul 2026 11:36:33 +0200 (CEST)
 Content-Type: text/plain;
 	charset=us-ascii
 Precedence: bulk
@@ -73,10 +73,11 @@ List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.8\))
-Subject: Re: [PATCH 09/16] ASoC: dt-bindings: add OpenPandora Sound Card
+Subject: Re: [PATCH 01/16] dt-bindings: twl-regulator: Add bindings for
+ exposing ti,twl4030-regen
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <5667350d-cc3f-421d-899f-f353b05c5ea1@kernel.org>
-Date: Mon, 13 Jul 2026 11:38:12 +0200
+In-Reply-To: <17497012-97d8-4c52-89b8-f433179f1eda@kernel.org>
+Date: Mon, 13 Jul 2026 11:36:23 +0200
 Cc: Grond <grond66@riseup.net>,
  Stefan Leichter <sle85276@gmx.de>,
  Grazvydas Ignotas <notasas@gmail.com>,
@@ -118,48 +119,65 @@ Cc: Grond <grond66@riseup.net>,
  kernel@pyra-handheld.com,
  mfd@lists.linux.dev
 Content-Transfer-Encoding: quoted-printable
-Message-Id: <8A0C119B-7885-4538-8D4F-AC60E5C91B7E@goldelico.com>
+Message-Id: <CA2C7052-43D0-411C-8556-26228EB6FEC2@goldelico.com>
 References: <cover.1783749722.git.hns@goldelico.com>
- <7989e699de400c0fe3f0cb7af77a54077784df78.1783749722.git.hns@goldelico.com>
- <20260713-infallible-capable-dormouse-aaaebe@quoll>
- <BF2B6C4A-A4CC-48D7-9854-DC014950184B@goldelico.com>
- <5667350d-cc3f-421d-899f-f353b05c5ea1@kernel.org>
+ <00718b18253a764c2a7c9a2b95c3b8c411796583.1783749722.git.hns@goldelico.com>
+ <20260713-aquatic-memorable-griffin-cf9e46@quoll>
+ <3D58F644-3EAA-4BE7-88FB-1DCEAE7D5768@goldelico.com>
+ <17497012-97d8-4c52-89b8-f433179f1eda@kernel.org>
 To: Krzysztof Kozlowski <krzk@kernel.org>
 X-Mailer: Apple Mail (2.3826.700.81.1.8)
 
 
 
-> Am 13.07.2026 um 11:21 schrieb Krzysztof Kozlowski <krzk@kernel.org>:
+> Am 13.07.2026 um 11:19 schrieb Krzysztof Kozlowski <krzk@kernel.org>:
 >=20
-> On 13/07/2026 10:27, H. Nikolaus Schaller wrote:
+> On 13/07/2026 10:26, H. Nikolaus Schaller wrote:
 >> Hi Krzysztof,
 >>=20
 >> Thank you for the feedback.
 >>=20
+>>> Am 13.07.2026 um 09:39 schrieb Krzysztof Kozlowski =
+<krzk@kernel.org>:
+>>>=20
+>>> On Sat, Jul 11, 2026 at 08:01:48AM +0200, H. Nikolaus Schaller =
+wrote:
+>>>> From: Grond <grond66@riseup.net>
+>>>>=20
+>>>=20
+>>>>=20
+>>>> Signed-off-by: Grond <grond66@riseup.net>
+>>>=20
+>>> As explicitly written in submitting patches: we do not take =
+anonymous
+>>> contributions.
 >>=20
->> It does not emit any C compiler issues or runtime problems so it =
-remained unnoticed.
->=20
-> I do not believe.
->=20
-> There is a clear warning from Rob's bot.
->=20
-> You just did not follow the process of building the code (compiler has
-> nothing to do here). Read submitting patches in DT dir and then =
-writing
-> schema for further instructions. This is ABSOLUTE MINIMUM. We are not
-> your build test service.
->=20
+>> Thanks for pointing this out. In more than 10 years of contributing, =
+I actually have never run into this specific issue before.
 >>=20
->> It was notified by the sahiko-bot and will be fixed in v2.
+>> To give some context: this is a contribution we received on our =
+mailing list about 5 years ago. We do not know the author personally, =
+but the code looks good and has been thoroughly tested by us. I kept =
+their Signed-off-by because I didn't want to falsely claim authorship.
 >=20
-> Sashiko has nothing to do with that.
+> Take the authorship. You are allowed to do that by both DCO and common
+> sense (you are not doing something immoral, unless author shows
+> interest/hints to fix it by themself).
+
+Ok, let's give him some days to respond. Thanks for the procedure
+to resolve a potential deadlock.
+
 >=20
-> You DID NOT BUILD the code.
+> Commit msg also needs fixing/rewriting.
+>=20
+> Beside, one more nit since there will be a new version:
+>=20
+> A nit, subject: drop second/last, redundant "bindings for". The
+> "dt-bindings" prefix is already stating that these are bindings.
 
-Hm. You are confusing me. I did "make" and did not get any errors...
-And the resulting code works as intended.
+Ok.
 
-Best regards and thanks,
-Nikolaus
+> Best regards,
+> Krzysztof
+
 
