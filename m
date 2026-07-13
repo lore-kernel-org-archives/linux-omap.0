@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64F363DEFFA;
-	Mon, 13 Jul 2026 09:20:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D240320A00;
+	Mon, 13 Jul 2026 09:22:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783934412; cv=none; b=fpjAFXdxSUNEhy3fVAJzVw1xing4XrLmVVm6Ai2Ug8ezzbv8d+4Bq4sQBmGe7up4Ukx6lg5dzYZ0V4IORzIjQnmcpHuhfgsM1Lq8ocFVIU3mtOC5EoazGim48wzN1ICZWMyoa6ghgv62/36NbN5u1nbx1cAyVqWcyv5m3xZKHUw=
+	t=1783934526; cv=none; b=JNVRvuBNA/hoZ3OEqqoblgyLasQJN+HBBMmgub/tn9wfjQlK7w6mpuK+mycXJck4AlpvjUN2e4zyHlTTTTOJvZ9WBiJaxh7+o/cTMuiscz8tkPJQEKvW3Ng0MF5QQKfBNvaOHSMhPMBhw6mvGrjjau5PYaalfhVSGR3iyPJ44sU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783934412; c=relaxed/simple;
-	bh=56ECmLCWIwuFRjqIshq8+MEA2uwaWWj8NR6L+hjVXLw=;
+	s=arc-20240116; t=1783934526; c=relaxed/simple;
+	bh=zEWkxhdFApi/cBy+w+bwkqlQR62G2qCkqvwvzIq+W4M=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ZCZdb81y5dfBL1HmRtRROz5a3cRHdMFih3XQ5JaxW2KQ6US2/w+pm1XbQSVZ9x20C3l9EdOuLoaIXKNHrcKg2oDMiOEz48o3TltS8iXf0ZBaCnIoWQwsWjtXjysrX5BMlTdv0nLraTpeexcqh8Wwgaj6r+GIHsxOKbC8PB+sQpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QkkbTShW; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:Content-Type; b=j3BQR9mfX25tSDm3iz+zKZ0RNLmeHM3s6DSNtPUWenBxDJ/Qn94lBqf5C23+G1PXI3iFdATwiMVaAqg24atklv4llkYozOasbIEOaSJj9YxdHqB+0xoE+IzZBueiqRH6NRVDb7ywk8hbzM+OetfnD/2Fw5XcxbOCfymECgMcfyI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FNFJCAIX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QkkbTShW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3911B1F000E9;
-	Mon, 13 Jul 2026 09:19:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FNFJCAIX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E2A11F000E9;
+	Mon, 13 Jul 2026 09:21:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783934406;
-	bh=KPn/0kVgFXc2JWBOxwYgPrEhEXzzno6JbbLqrG3d9Rg=;
+	s=k20260515; t=1783934525;
+	bh=EwGFQPVm1bO26xVtJmF/8zr4bH7SQWGraeozh6dAE00=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=QkkbTShWayZC/3S1cAmazn3mBVL0/FckQSgwfNDI9s3pWVxbPyiDw+/eYyCbvkg2f
-	 gmOdrozdDCKP4fyKKyrmRgCqAmf4y6jGLRIFnCc4hqyqUJly9fczBooVYmzQ4QdlOR
-	 2+4MmaH6FtOk6be73jHItrsAHrdUXLSntNM8SdqYkzpH1Au9jMJokajOKlRDbG7FE8
-	 TKdwWoofiVVWIHgfA97gMGRb5UKayPJqGPfCOCr0z4GV8q0To7qQp81tarJA7FYp5u
-	 Llv4EVzX1ExaVM+t3oaqUESVqfP/jHClnVW7MrNziUtAv5ChnIFap/2syT5bbMITXs
-	 b7wvWEX9I9WUA==
-Message-ID: <17497012-97d8-4c52-89b8-f433179f1eda@kernel.org>
-Date: Mon, 13 Jul 2026 11:19:52 +0200
+	b=FNFJCAIXF25WJ/l3S1PuHjuS15i1f4nVeVa5bQYaX9p+eCM//GITkfpYGvdlyow6W
+	 kN40V6AbNtRsrOq6AaOspfyuSzsb1QJhVfy8yjn0AexPt8A2LFxLHwLQy9awKxkLiX
+	 xDD+2gC+xYZ8F0V02nKAFP6uYd+QgFkEEQnFA7Y+svx1YFFFGXJjdyGvBVZWco2G4I
+	 O7Qyu2ngpsulFGAk8AeJI2urR7mRnx3IpGCs0i5peznFx35bRVxOKBVkaY7ZxrT7UN
+	 2U6hkTrk7xZIvWhkxtpNDeN6IWAU4FnJZfvIWCdulQazJGsqWugmkrp/IW5Ecqyj0s
+	 KeGYDjgTZZ+sw==
+Message-ID: <5667350d-cc3f-421d-899f-f353b05c5ea1@kernel.org>
+Date: Mon, 13 Jul 2026 11:21:49 +0200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 01/16] dt-bindings: twl-regulator: Add bindings for
- exposing ti,twl4030-regen
-To: "H. Nikolaus Schaller" <hns@goldelico.com>, Grond <grond66@riseup.net>
-Cc: Stefan Leichter <sle85276@gmx.de>, Grazvydas Ignotas <notasas@gmail.com>,
- Tony Lindgren <tony@atomide.com>, Ethan Nelson-Moore
- <enelsonmoore@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>,
+Subject: Re: [PATCH 09/16] ASoC: dt-bindings: add OpenPandora Sound Card
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Grond <grond66@riseup.net>, Stefan Leichter <sle85276@gmx.de>,
+ Grazvydas Ignotas <notasas@gmail.com>, Tony Lindgren <tony@atomide.com>,
+ Ethan Nelson-Moore <enelsonmoore@gmail.com>,
+ Jarkko Nikula <jarkko.nikula@bitmer.com>,
  Sascha Hauer <s.hauer@pengutronix.de>, Andreas Kemnade
  <andreas@kemnade.info>, Lee Jones <lee@kernel.org>,
  Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
@@ -61,9 +61,9 @@ Cc: Stefan Leichter <sle85276@gmx.de>, Grazvydas Ignotas <notasas@gmail.com>,
  linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org,
  linux-fbdev@vger.kernel.org, kernel@pyra-handheld.com, mfd@lists.linux.dev
 References: <cover.1783749722.git.hns@goldelico.com>
- <00718b18253a764c2a7c9a2b95c3b8c411796583.1783749722.git.hns@goldelico.com>
- <20260713-aquatic-memorable-griffin-cf9e46@quoll>
- <3D58F644-3EAA-4BE7-88FB-1DCEAE7D5768@goldelico.com>
+ <7989e699de400c0fe3f0cb7af77a54077784df78.1783749722.git.hns@goldelico.com>
+ <20260713-infallible-capable-dormouse-aaaebe@quoll>
+ <BF2B6C4A-A4CC-48D7-9854-DC014950184B@goldelico.com>
 From: Krzysztof Kozlowski <krzk@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=krzk@kernel.org; keydata=
@@ -109,59 +109,59 @@ Autocrypt: addr=krzk@kernel.org; keydata=
  K9bCVaboTA2T77QYkRcRJYSsO1alGX0ome/hMLD1daXlkrNUp1HWa3K4iytLRXjCSIorWiGs
  n+q3krnpXu3TFkA8qtOFZMdnIiFuiq1yLT8hptsV5xh1TA2nsVvSYiaCr3q4s4BKjS/KrLDb
  qoxzw8ISjdUp4pA85vb6YLCmb39NgidD+7PmAr65lBNveIFynTgsja1rRQ4=
-In-Reply-To: <3D58F644-3EAA-4BE7-88FB-1DCEAE7D5768@goldelico.com>
+In-Reply-To: <BF2B6C4A-A4CC-48D7-9854-DC014950184B@goldelico.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 13/07/2026 10:26, H. Nikolaus Schaller wrote:
+On 13/07/2026 10:27, H. Nikolaus Schaller wrote:
 > Hi Krzysztof,
 > 
 > Thank you for the feedback.
 > 
->> Am 13.07.2026 um 09:39 schrieb Krzysztof Kozlowski <krzk@kernel.org>:
+>> Am 13.07.2026 um 09:37 schrieb Krzysztof Kozlowski <krzk@kernel.org>:
 >>
->> On Sat, Jul 11, 2026 at 08:01:48AM +0200, H. Nikolaus Schaller wrote:
->>> From: Grond <grond66@riseup.net>
+>> On Sat, Jul 11, 2026 at 08:01:56AM +0200, H. Nikolaus Schaller wrote:
+>>> The OpenPandora audio subsystem describes the routing links between the
+>>> OMAP3 McBSP interface, the external PCM1773 DAC, and the TWL4030 audio
+>>> codec, alongside amplifiers and power supplies.
 >>>
->>> FIXME: not reflected in the bindings
+>>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+>>> ---
+>>> .../sound/openpandora,omap3pandora-sound.yaml | 94 +++++++++++++++++++
+>>> 1 file changed, 94 insertions(+)
+>>> create mode 100644 Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml
 >>>
->>> +Reguired properties:
->>> +For twl3040 REGEN signal:
->>> + - regulator-min-microvolt:
->>> +  - Same meaning as in bindings/regulator/regulator.yaml, but must match
->>> +    regulator-max-microvolt.
->>> + - regulator-max-microvolt:
->>> +  - Same meaning as in bindings/regulator/regulator.yaml, but must match
->>> +    regulator-min-microvolt.
->>> + - startup-delay-us:
->>> +  - Same meaning as in bindings/regulator/fixed-regulator.yaml.
+>>> diff --git a/Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml b/Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml
+>>> new file mode 100644
+>>> index 0000000000000..d3c747e5c58d6
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml
+>>> @@ -0,0 +1,94 @@
+>>> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+>>> +%YAML 1.2
+>>> +---
+>>> +$id: http://devicetree.org
+>>> +$schema: http://devicetree.org
 >>
->> I don't know what that means.
->>
->>>
->>> Signed-off-by: Grond <grond66@riseup.net>
->>
->> As explicitly written in submitting patches: we do not take anonymous
->> contributions.
+>> This wasn't ever tested. Why?
 > 
-> Thanks for pointing this out. In more than 10 years of contributing, I actually have never run into this specific issue before.
+> It does not emit any C compiler issues or runtime problems so it remained unnoticed.
+
+I do not believe.
+
+There is a clear warning from Rob's bot.
+
+You just did not follow the process of building the code (compiler has
+nothing to do here). Read submitting patches in DT dir and then writing
+schema for further instructions. This is ABSOLUTE MINIMUM. We are not
+your build test service.
+
 > 
-> To give some context: this is a contribution we received on our mailing list about 5 years ago. We do not know the author personally, but the code looks good and has been thoroughly tested by us. I kept their Signed-off-by because I didn't want to falsely claim authorship.
+> It was notified by the sahiko-bot and will be fixed in v2.
 
-Take the authorship. You are allowed to do that by both DCO and common
-sense (you are not doing something immoral, unless author shows
-interest/hints to fix it by themself).
+Sashiko has nothing to do with that.
 
-Commit msg also needs fixing/rewriting.
-
-Beside, one more nit since there will be a new version:
-
-A nit, subject: drop second/last, redundant "bindings for". The
-"dt-bindings" prefix is already stating that these are bindings.
-See also:
-https://elixir.bootlin.com/linux/v7.1-rc7/source/Documentation/devicetree/bindings/submitting-patches.rst#L23
-
-Also, please wrap your replies to mailing list wrapping style.
+You DID NOT BUILD the code.
 
 Best regards,
 Krzysztof
