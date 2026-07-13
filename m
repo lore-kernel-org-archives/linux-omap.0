@@ -1,197 +1,111 @@
-Received: from TYPPR03CU001.outbound.protection.outlook.com (mail-japaneastazon11012040.outbound.protection.outlook.com [52.101.126.40])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B73E417361;
-	Mon, 13 Jul 2026 13:10:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.126.40
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783948219; cv=fail; b=XNuUNyAOCve7yv7LA7CVbHJTykalhLaZywvfipSrI+f58Nwf6RJC7SrmbrZmKCaNCJjeXbzFq/1XvizRGZzDwR4z2f+cI7cuzx7SFMwQxLBA+28aiQlMSNWY7N2KQ+QGAwhumpCpQim/AwLsmVRfR6tYjhixK8nz2igZsrH/qAw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783948219; c=relaxed/simple;
-	bh=Ho5CGgFMupopZmlfgdxMzALj63NA4lYGk6rwcHDdANU=;
-	h=From:To:Cc:Subject:Date:Message-Id:Content-Type:MIME-Version; b=pcRzshMH03CV2j5MK359PWHh4IB/dxoGWQOcbsQ5NvXPk4MP8xyoYRuUEMrC2C8r69WNINNpoCgK6MYmp7XO/bOtf1B5OxbXuhhOUNvSa6iytN+S+lgZP3Pp70jyHzZjbjkrG9bUtrFtaOFMI5rHUTfw/Vn0E6FSLD/lMvR63Pg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=vivo.com; spf=pass smtp.mailfrom=vivo.com; dkim=pass (2048-bit key) header.d=vivo.com header.i=@vivo.com header.b=azClcS4R; arc=fail smtp.client-ip=52.101.126.40
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=vivo.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=vivo.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0846A385519
+	for <linux-omap@vger.kernel.org>; Mon, 13 Jul 2026 14:12:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.50
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783951941; cv=none; b=EVEfTaU2v9rFc8Btq1KtvhwsX8xSO48IJQzwllmW/AzuOpfONm6GCL7eDwFRSy2XJ85W1cnoOb7erojYK5hBa8KGqKuGsQGdYCKCBbGFs5GEt23U59EfJaEpJuw8qeny4dWCIe9E5iDMvs8rB6ILdoq14MIvlAHbVcGw8Tc5qYI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783951941; c=relaxed/simple;
+	bh=bkfxEHVzEoYCowt9lwKhpqu6A9vt6KeYyyg5eW8TDQ8=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=IFRoSOeTFk5DdfsAgmn4S131P0jFuU1RftX7Wo/9g49ai88/B+HUr3L9haqYII4ivAs7kdw+HH8gPx9fwe3WHgxxPtArw1bO40W4WMbJ/FYiDAOSXE3VPgnWJRGEtEF18WVAxB/Bf+MJ9nyJ1K6RwWxFzB1vHGFwfEfuHsu0rj0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=X2kO+TJq; arc=none smtp.client-ip=209.85.221.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=vivo.com header.i=@vivo.com header.b="azClcS4R"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=g5VthNGpGqeYH2tsFCJ9szT7MX9J9AprLdnajM8B30H2PBCehYNiPjfB5bIK6Qchau4aP4v3NDjak35I4/7H6LfcqRzyNMsUZc3rGjXmicJ6YfhdTwX5bvUm6Z//bQmJW/Cm5Ye2z7PdxhERPbob0ecOUdpiJHXa6zvkk1tnnC86B93/QOyi4/go6mEfapcNe1v183LJxHbeSTO4od55cli2ScHnmJQ/crOMLo/zkl1rv5NJ0OoCFhldQJzBwspKb7XOSzVCCPQgy+9aT4KKcdaZOQwnEtcDIUnjjqJNmvfBzukjZH/SHhUpclnZtHP9BgLqmmgm8JKsM63HsNDdxQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=wHf1/UEPEL9JQZVy2MFsqf+KA5lDj6pvbkOGsFpOshc=;
- b=em4S4bjDW+7nprQzziAK/qf0yfnue9Gk1Gp1rgMdoUNsUFAuKO2fDZJcCLrQF045lH8zcpkBuQ6VjCq+b4tJMId8KDgWBnWnPSyNGrK5b8y+30sTv671n9fGhn9xOTiqzFCkFyaFzFYhGci7Yd39Ll2WbABSkfRY/I/Qpfuq+1odUNkO1cj7duyaKXJBBSVvGm/n+Hm9Nr/iRYfSPKkeOMtOdrYyxCXtJpOAe/UkJT9TSlJqlPsKDZhg0ylTJM4kiHPnBlPw1q4h1ttdD8tvuUowL/BgO0N7mnx3vCJqjjiCBfAzk4P1iuGqUqxqfkDqRqMY2DNzPpJfCE6Qda7zFw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=vivo.com; dmarc=pass action=none header.from=vivo.com;
- dkim=pass header.d=vivo.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=vivo.com; s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wHf1/UEPEL9JQZVy2MFsqf+KA5lDj6pvbkOGsFpOshc=;
- b=azClcS4RjOxytk2hToAriFX5Fsm8jydxM3ljKcBIpJiuGVb4h8mhZGbkv3GhitlACbrdHprTqUXoQDxYOQaa+uP9dniBtJOTpjqSugAkghD8qYaKtEB/9ALNG99Cu6mqqVAqC2hm/kT27/I1NVTWjDC/OyDqLO4xYQ0+oHLl0qdmBfZFwUBDRvlLfzylaNgeND2dyfpJhVDo/K261as4fNn1jiKBNfKowdZSZGKUCt2RWCMOYWLysMA6ad0PWxqCraUfVP5laxXuwkPEXTWOTctoNCtdlJUZz+qw/7d+oIjca/fT2SvnDnbhBR0QTVPJjiVOLMXCt6KkhbJ1J6pmlw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=vivo.com;
-Received: from SEZPR06MB5832.apcprd06.prod.outlook.com (2603:1096:101:c8::12)
- by SE1PPF50B2D80A0.apcprd06.prod.outlook.com (2603:1096:108:1::415) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.14; Mon, 13 Jul
- 2026 13:10:15 +0000
-Received: from SEZPR06MB5832.apcprd06.prod.outlook.com
- ([fe80::f98:5e32:4ccb:d07b]) by SEZPR06MB5832.apcprd06.prod.outlook.com
- ([fe80::f98:5e32:4ccb:d07b%6]) with mapi id 15.21.0202.014; Mon, 13 Jul 2026
- 13:10:15 +0000
-From: Pan Chuang <panchuang@vivo.com>
-To: Fabrice Gasnier <fabrice.gasnier@foss.st.com>,
-	William Breathitt Gray <wbg@kernel.org>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Vignesh Raghavendra <vigneshr@ti.com>,
-	Julien Panis <jpanis@baylibre.com>,
-	David Lechner <david@lechnology.com>,
-	linux-iio@vger.kernel.org (open list:COUNTER SUBSYSTEM),
-	linux-stm32@st-md-mailman.stormreply.com (moderated list:ARM/STM32 ARCHITECTURE),
-	linux-arm-kernel@lists.infradead.org (moderated list:ARM/STM32 ARCHITECTURE),
-	linux-kernel@vger.kernel.org (open list),
-	linux-omap@vger.kernel.org (open list:TI ENHANCED CAPTURE (eCAP) DRIVER)
-Cc: Pan Chuang <panchuang@vivo.com>
-Subject: [PATCH] counter: Remove redundant dev_err()/dev_err_probe()
-Date: Mon, 13 Jul 2026 21:10:04 +0800
-Message-Id: <20260713131005.306069-1-panchuang@vivo.com>
-X-Mailer: git-send-email 2.34.1
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: TY4P301CA0112.JPNP301.PROD.OUTLOOK.COM
- (2603:1096:405:37b::7) To SEZPR06MB5832.apcprd06.prod.outlook.com
- (2603:1096:101:c8::12)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X2kO+TJq"
+Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-47ddf7b09e5so2769114f8f.1
+        for <linux-omap@vger.kernel.org>; Mon, 13 Jul 2026 07:12:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1783951938; x=1784556738; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=YO4iO+4RoSYMeteNu9nUAyD/efKBamp9eHyouwcTSY0=;
+        b=X2kO+TJqZaXwvK5rbcew6R/B1kR6MikwWFfSxMbEJa7Zl2W67Mq4DUBpDDuKuHZRR2
+         mBSpRl/w0jJv8i6eejXEKrjlh+McKHtJXLP6jpGKf46Ll97VaBaF9CE/9wXFFqLYQxyg
+         7ejyWoGxeAs8ziLsyso/jl1oT/Z4NEVRiMHrMEgVI559a4n9Fz+Ln/xCWNH08dJxIACg
+         EZj1ZRHcAi2raLVIa1z71zkQF9CnFg2CtLr1EQi1RRnU0hHHdWTH9jTCMe9OWXLtvw5E
+         OEd01Bpqasifn0mDefpBHAySucrN5123LGUENne0eLSiFvoCxcr5MTk7fCZwjmedyPhm
+         AO6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783951938; x=1784556738;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=YO4iO+4RoSYMeteNu9nUAyD/efKBamp9eHyouwcTSY0=;
+        b=Tpw/cIJQkssKwNoil7+wl3E9JX5ifeak1aa38G/3LDy1MRz2gshmDhnIH4Gx1Edufk
+         edv8ITbNOperxLT5nknNaSRocpo85D6e4QMojGLujWJUEUzkuXeP6r6u0p7yo1SUROHF
+         hj4J9a/Vw8HQZshotwICWzj0eoWCUaUuxl7Pme2DYPHrYPJNwvqMHd1qPil7h1QYS3v3
+         fxdzglQhDY+TC2DsBPxyndeBaqgdX5GLE809BPkq38x57KRx8DD8RppZK4OzHqzRw/Yg
+         Qj3qpADvdBfnvTHQ+wXwne1/HwhAMkaMUOt9joaLpVfgV+kJyN2qQ29oe9FAnzI6HGGa
+         Ho/g==
+X-Forwarded-Encrypted: i=1; AHgh+RoDzP1gj7j8o4v+ruccLQ4a+C4g2uRqTPOwpBXUoATVK7qgljwlV3Qsj9mIS1hUapx2h3QurT7kJvOV@vger.kernel.org
+X-Gm-Message-State: AOJu0YzcDEbpsvttrCKP+Lf0jG1LqOmh8TdT9gktcKNbk+ZWa+62zD/4
+	37+x90GcJzL8dOpCAYDygLmHBG3lpUnuL31+dwjwkoTK9UhOG6nSAy7e
+X-Gm-Gg: AfdE7ck4XLN4AjFlpHwXsYyXpnu7vERQgiYK6oB58w9dJvPU67HWO4VeYuZPqECqQT9
+	GWPhJZbqkT0bm21vvKn8CfAbBvo2fxX5T+9qNjJrReOP5nF2GfT8yMeJgr9gRC2EgJgiweSsUk3
+	CohlHgMqs5+GsUE390JZP360IME1JZZmNmCccEQxpEVyN0MDBo0ZRW/lUg7r/gxAlXfKOz7cBrf
+	2g5UlnZ4hUgcUy3g5DQ4P4ZfObMdU+1Zt13VBxbeW+AC850kFLMuNCDnI1g9g10pBxDGVj2myQH
+	EkfwBdmvaiEnLpwhHjWRw5Dg/YMvGHBTKdJSgKv/PiBJP/EIUTAsZ387ZZBDDdwtkHspijWF+2T
+	17HXL7K0J4HPcmqAvm+l0j4SJfM712O7gEgCxSjT6TBJCdZthnclRm5q1fLopa+1H2c7OOKXtbh
+	zPzXnEjNUno5qA5OqlICOeNYKAc5zrTNQWo1GdzAwSIsa/z8o+DM1zo2A2q6O+LXpEgipUgDXqo
+	Ck3VO1gTLKaVPR0lBmifxp1aCu/OexFgZUPZCBN0Wd5IrvWzIWZrktmeLA9tkvzNHnDas6Au+4C
+	ksySmZAnMY5G3AI2N3fw8miMJnXsNfWdtHpDJkfIAAjrEr6Uz8iyz7lJqMlhqBTxtMZoaq+LUKf
+	0x8KtZR5KnThItmDNnPQUfkFVH3wKs+qrVA==
+X-Received: by 2002:a05:6000:400a:b0:477:3d23:f920 with SMTP id ffacd0b85a97d-47f2dcec627mr10652902f8f.26.1783951938155;
+        Mon, 13 Jul 2026 07:12:18 -0700 (PDT)
+Received: from localhost (90-182-112-124.rcp.o2.cz. [90.182.112.124])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47aa0f213e8sm84998163f8f.34.2026.07.13.07.12.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 13 Jul 2026 07:12:18 -0700 (PDT)
+Date: Mon, 13 Jul 2026 16:12:15 +0200
+From: Joshua Crofts <joshua.crofts1@gmail.com>
+To: Pan Chuang <panchuang@vivo.com>
+Cc: Fabrice Gasnier <fabrice.gasnier@foss.st.com>, William Breathitt Gray
+ <wbg@kernel.org>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre
+ Torgue <alexandre.torgue@foss.st.com>, Vignesh Raghavendra
+ <vigneshr@ti.com>, Julien Panis <jpanis@baylibre.com>, David Lechner
+ <david@lechnology.com>, linux-iio@vger.kernel.org (open list:COUNTER
+ SUBSYSTEM), linux-stm32@st-md-mailman.stormreply.com (moderated
+ list:ARM/STM32 ARCHITECTURE), linux-arm-kernel@lists.infradead.org
+ (moderated list:ARM/STM32 ARCHITECTURE), linux-kernel@vger.kernel.org (open
+ list), linux-omap@vger.kernel.org (open list:TI ENHANCED CAPTURE (eCAP)
+ DRIVER)
+Subject: Re: [PATCH] counter: Remove redundant dev_err()/dev_err_probe()
+Message-ID: <20260713161215.00001cc3@gmail.com>
+In-Reply-To: <20260713131005.306069-1-panchuang@vivo.com>
+References: <20260713131005.306069-1-panchuang@vivo.com>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SEZPR06MB5832:EE_|SE1PPF50B2D80A0:EE_
-X-MS-Office365-Filtering-Correlation-Id: 81f789f0-7a95-4a3e-13a3-08dee0e01428
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|366016|1800799024|52116014|7416014|376014|18002099003|56012099006|11063799006|6133799003|921020|38350700014;
-X-Microsoft-Antispam-Message-Info:
-	9U4p1vnBsdPwrXivN4Kmo8NCFdJKMaw80I7IcF7CQWNOiHDKBdtduBsUk6UwPrQ9HPGdHhFYoILQGc2VGefcTJTQhEF8K9z3c8fJjaob55CWoPCeDmX7mTx0jdeWEJfV/TtDcnx/MURPliLMmytpws+FpqrGM24Dvofkjt43USv0EFaYty2V2wSul37OpceBhhHHjAxXcAO29PRt/YMTJj3Vo4eFDeJzDujJU+W8OtWE41XIt593XtOvqMNbuKCJ3WmHuvXjcT0hvFC2tiZr01qYVX3Vi7Bahsdkc9U8/YtI2GpqxwzDR29Iq+J4llvGdF/ke9Vd6/Ki1bIt47smlv+yvwbgLn1u7XKyPe6qMbsT5RTK3gciAedEQDg0+rDPArYpqLb+WIhzt5xUE0K7Sf+v82NGeoNFdZrKTnVadKUaypRuWhMiE18cI3ZeS0DNFvfsXfknastVTtsT3Oyi6nE9tTU+iWiUn8qBPsVyW6NM0hsF/p/ZkYCVATnkh/ecxElUyaPt4bYfcYPe3Qgwn5J9+rs5QopJqoyWuqtOxAfWS4Pbzptog2/5xxGdCJDYywzQiH0C7rEZ7pP4wpdUXaNTtpvoxU7uYA9vJrQ71aFbGYouja15NCJ/sGITExG+LCxctiSOyFNkOEAAgHu7RC3KflwFY55d+cQuZcniR2t8FvdrIQEr1AcGVmDOYUProocIpcsrJoHLzy2dnjmV7G95txDpOIztZFnHYDIA1y8vVfS6/Tdz0hgL/xE8B3UJ
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SEZPR06MB5832.apcprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(366016)(1800799024)(52116014)(7416014)(376014)(18002099003)(56012099006)(11063799006)(6133799003)(921020)(38350700014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?viHZTUovs4dSSXEo6K1B3T++uQ0bY4x9OIhYnL+vl0/ok3R8u+i/uQQArSt0?=
- =?us-ascii?Q?7dxt38pVnoZD0or0/GEGTHGdwwoQJE4Z54sY1ADq2GOQ8UgP5J4/YhwFICFR?=
- =?us-ascii?Q?iWIROIVw6HhD1ypVBd/Vd6a+CcA4GVQ1pgUHLOz85swjxdMxCYDDAsKIGsJB?=
- =?us-ascii?Q?1C4Qp4zL1adVxWxmhbLVzbWbMiuyxM6BX4Hrt5/yhTqEG1+bK6LBdvX0PXtm?=
- =?us-ascii?Q?fZR5NmrrmfEN19uR8WOcY5cA3Di7PeTM+fBo1J6Zyr7Y+WJxoaeLHZR9L6J5?=
- =?us-ascii?Q?/c2ZKMlgDby66nIFuanupa6Xz57ZZz6zm/QPfTs33esDes6ZedKelFU72Ruc?=
- =?us-ascii?Q?XSTkGymod7/XRGw2RdOK84u8Dg0Z3SWB+lNiz7OB8TLLid/YmaH5yNWkzmoq?=
- =?us-ascii?Q?4zTQMizdHh9h8MPtwB1GnlNhI2MeYy7pLpqXBBhjHeavrVkHV4B2fZI99hb0?=
- =?us-ascii?Q?jno74CwIm3yeoSrgDhEnPXq8OuokEwH0XZCRpkHMGNfVl5soOmyT/nfhJnIB?=
- =?us-ascii?Q?m9bbBjXqu3kayzPchtiXFGt1Z2c4gv9cl79PKToervyXouoORM2CdqJv6VUF?=
- =?us-ascii?Q?dYdhS9cKkUNy9oDhCCpZD+QwtYwaF1oP/cGOoVn4Yr79ow348+9QzW65gPV3?=
- =?us-ascii?Q?Cj0g2aOT+iv1QcTEwJMkmSq5MZwfFtdYRHPD/MinY42lOxV6oZyBVcsjCApu?=
- =?us-ascii?Q?LZjzxHMT+C0bl5APMKml4u/PwE3ucW9Ochf/5YYeXYXwDfyiagn75UhN2VRE?=
- =?us-ascii?Q?CEPS8omVH4WJaxwLUwTGmGLMR/ULo2xOhAJCJZWxCRICr/HykNbD2xJAkGNo?=
- =?us-ascii?Q?sgnIxHi3rwhv/g5/fudjk/Ku+MsteApoj5WGZ4/7zPX6WqVojDFJBpznXcOc?=
- =?us-ascii?Q?h8arIU6Q/woYs82qEaOs9cvv6KL3DqE47wv1qfDLSKeQEtd7Saoi+mNUPaxx?=
- =?us-ascii?Q?WOFeBA7gvLRppEZixJ4o7u6JVNVpEZUnPlFWZK/4EbakRo9PvgoWQpUigplm?=
- =?us-ascii?Q?6XvIuUNFi2GB3oFjI/N8uZYNXb+EB6eW1kiIqXN6CxDnM5DmYN29j18CKwFQ?=
- =?us-ascii?Q?Vbhrk7IKpvq9pkNRyliKkAqumXMbiQimeRok24nvEkIjFDDFLUHigtPd4ASc?=
- =?us-ascii?Q?BAUyUfIVlikG0N00ADYZaNb+Pe87lycXGPfUfi8KmsKIF8GG6Yuw44ULyhXr?=
- =?us-ascii?Q?TAbNAVmCFMqxZw3Yrh1SGT+0KwGMNoAvyNkLWAsMLkSvIt8I/70xFTgmDT/Q?=
- =?us-ascii?Q?s0VrQ9F3Y7iFTu2DBDWjOQdm/ZoR3tZJ6fDuBLqmWS1mxgN7UuFpIov/LxBm?=
- =?us-ascii?Q?7J6JmvIOMmc/e8xt3GSdG5qnbe6HmWxESaMov8vkk9Mnr5jebjf06Fpml4BP?=
- =?us-ascii?Q?qnwY/QPpVzvYWZFe05zJzAQcSRQmjGzEaVzq+YulMH/sBcZxfmtZ1vvdVBdU?=
- =?us-ascii?Q?yyStCqBZQrokRZ5ql86Un49N7/5noLG8Ux/qx9D2Cwy2OuP6N5he7KwrDZAG?=
- =?us-ascii?Q?seKnoLHhwmbTFydxK3UYxbuXUtafketb3iz50m1Vk/qsJNxkXvCUSxuBxq0G?=
- =?us-ascii?Q?DGOFw4iBpwgbGsrmLjsCb4ZkF07FovPF6/JKXHqNVYmOjguAH+Tc1zzP4TRJ?=
- =?us-ascii?Q?ebKZzphFx1TApoBplKQM3cLr9h2KOAXTWRkiQUp1+CbmGXFeGmHrDk31BA8a?=
- =?us-ascii?Q?4NNWwT8IwIq06GJkrfc5/JPSl4ifnYWMrUICkNJjku+azXhcHJFhnmNRHbsZ?=
- =?us-ascii?Q?nBep5kuXPg=3D=3D?=
-X-OriginatorOrg: vivo.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 81f789f0-7a95-4a3e-13a3-08dee0e01428
-X-MS-Exchange-CrossTenant-AuthSource: SEZPR06MB5832.apcprd06.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jul 2026 13:10:15.1488
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 923e42dc-48d5-4cbe-b582-1a797a6412ed
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: /MjQaf+YgrQC2BWQ/PLNClmPsxejFTL/paxSPSLRocTNvMsdBoEl+/RaX68eeT4dSshNEo4YAvDuGysSKchcXw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SE1PPF50B2D80A0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Since commit 55b48e23f5c4 ("genirq/devres: Add error handling in
-devm_request_*_irq()"), devm_request_irq() and devm_request_threaded_irq()
-automatically log detailed error messages on failure. Remove the
-now-redundant driver-specific dev_err() and dev_err_probe() calls.
+On Mon, 13 Jul 2026 21:10:04 +0800
+Pan Chuang <panchuang@vivo.com> wrote:
 
-Signed-off-by: Pan Chuang <panchuang@vivo.com>
----
- drivers/counter/stm32-timer-cnt.c | 10 ++--------
- drivers/counter/ti-ecap-capture.c |  2 +-
- drivers/counter/ti-eqep.c         |  2 +-
- 3 files changed, 4 insertions(+), 10 deletions(-)
+> Since commit 55b48e23f5c4 ("genirq/devres: Add error handling in
+> devm_request_*_irq()"), devm_request_irq() and devm_request_threaded_irq()
+> automatically log detailed error messages on failure. Remove the
+> now-redundant driver-specific dev_err() and dev_err_probe() calls.
+> 
+> Signed-off-by: Pan Chuang <panchuang@vivo.com>
+> ---
 
-diff --git a/drivers/counter/stm32-timer-cnt.c b/drivers/counter/stm32-timer-cnt.c
-index a3d8f7a5874e..9eee281350d0 100644
---- a/drivers/counter/stm32-timer-cnt.c
-+++ b/drivers/counter/stm32-timer-cnt.c
-@@ -759,11 +759,8 @@ static int stm32_timer_cnt_probe(struct platform_device *pdev)
- 		/* All events reported through the global interrupt */
- 		ret = devm_request_irq(&pdev->dev, ddata->irq[0], stm32_timer_cnt_isr,
- 				       0, dev_name(dev), counter);
--		if (ret) {
--			dev_err(dev, "Failed to request irq %d (err %d)\n",
--				ddata->irq[0], ret);
-+		if (ret)
- 			return ret;
--		}
- 	} else {
- 		for (i = 0; i < priv->nr_irqs; i++) {
- 			/*
-@@ -775,11 +772,8 @@ static int stm32_timer_cnt_probe(struct platform_device *pdev)
- 
- 			ret = devm_request_irq(&pdev->dev, ddata->irq[i], stm32_timer_cnt_isr,
- 					       0, dev_name(dev), counter);
--			if (ret) {
--				dev_err(dev, "Failed to request irq %d (err %d)\n",
--					ddata->irq[i], ret);
-+			if (ret)
- 				return ret;
--			}
- 		}
- 	}
- 
-diff --git a/drivers/counter/ti-ecap-capture.c b/drivers/counter/ti-ecap-capture.c
-index f69b6920463f..d77a256f0ed3 100644
---- a/drivers/counter/ti-ecap-capture.c
-+++ b/drivers/counter/ti-ecap-capture.c
-@@ -513,7 +513,7 @@ static int ecap_cnt_probe(struct platform_device *pdev)
- 
- 	ret = devm_request_irq(dev, ret, ecap_cnt_isr, 0, pdev->name, counter_dev);
- 	if (ret)
--		return dev_err_probe(dev, ret, "failed to request irq\n");
-+		return ret;
- 
- 	platform_set_drvdata(pdev, counter_dev);
- 
-diff --git a/drivers/counter/ti-eqep.c b/drivers/counter/ti-eqep.c
-index d9302ec21163..0dda3f2b14c7 100644
---- a/drivers/counter/ti-eqep.c
-+++ b/drivers/counter/ti-eqep.c
-@@ -526,7 +526,7 @@ static int ti_eqep_probe(struct platform_device *pdev)
- 	err = devm_request_threaded_irq(dev, irq, NULL, ti_eqep_irq_handler,
- 					IRQF_ONESHOT, dev_name(dev), counter);
- 	if (err < 0)
--		return dev_err_probe(dev, err, "failed to request IRQ\n");
-+		return err;
- 
- 	counter->name = dev_name(dev);
- 	counter->parent = dev;
+I think you can drop the commit hash and title from the message.
+Otherwise LGTM.
+
+Reviewed-by: Joshua Crofts <joshua.crofts1@gmail.com>
+
 -- 
-2.34.1
+Kind regards
 
+CJD
