@@ -1,125 +1,165 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from mo4-p03-ob.smtp.rzone.de (mo4-p03-ob.smtp.rzone.de [85.215.255.102])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8954D3E3163;
-	Mon, 13 Jul 2026 09:29:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783934977; cv=none; b=U9lcIZjt42FX5qgt66SR9Z7xCN2ITIkHxzMfpkED7RZlPMTnAMyJ7QiLGxHTXdh2QH5fVASXuWvt3Ybir4BAA/t9ydMZH+MgN8JbXYay+/mt6pl4hmResOmnUIjt3RN79EElE8FPhMT1xMQHhCNFUm69tS0q+TZaxd5+95cz4AU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783934977; c=relaxed/simple;
-	bh=IP6+FHRCeZ6ktDt3C7axt12zz2S64i+osWbdVgzJ2m8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kfxx9Ta9kTBWjM+j6MSmwavtnl7FyE1ElSQLLEBr8VFMxI2Xu+uU4GKDlWwVRisiT1Z/L03JKen/z9zNx/PmMdC4yQjMH5P82G/t/fePhVdpqyXTFhgja9rK5feQrGcZAuSNbp+Tr5f6Fb/DOciKcuR0oWzSeFoPeNvRW6Ob4Cw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YarZFYC3; arc=none smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ADA43E2AA1;
+	Mon, 13 Jul 2026 09:38:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=85.215.255.102
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783935542; cv=pass; b=l3Wew1tM864gg24P/DGgj58WMYITa8tfTgQE0H9TH1NlN1IZCAefmVysHQikQnGTPpuceykrhCRUVbXQi1hv2cgxvjWeZaIN/BCVFyMbwodhWdrb4SMKZsZ+8VvqNGVyBTviKOMth76YaxBHRImIgH6ZWTFt2HN0JY/xVs8CacE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783935542; c=relaxed/simple;
+	bh=imolX7qSsiq9DS+KtH4jQru07kjP4EZc5PZkld9Ag7k=;
+	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Message-Id:References:To; b=YT8STn3zikrWCW8HAqYEI+9b4n6fQ/Y7P0vXLtDYmAAxeiWU9IcuR/3QJujnQQpFGXV87/trmSzzWf2esGMRD6EH8nQAM0BfjwLnUSohkaGtJ7PF37f5g7wACf2otLcOgqrGvI1opTsTwQAhOopWqbwPofG455mbBONsP22Y4vQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com; spf=pass smtp.mailfrom=goldelico.com; dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=Cv8a4lrq; dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b=lTqAmbw6; arc=pass smtp.client-ip=85.215.255.102
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YarZFYC3"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1783934975; x=1815470975;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=IP6+FHRCeZ6ktDt3C7axt12zz2S64i+osWbdVgzJ2m8=;
-  b=YarZFYC3fbKVH6yRnBqmtzVR+8AVx8+rlKPO+b6VQLWvUZe4UYqZROj2
-   Krk6UL/0Ax2vIOjtra4HCe1kLE3paXtJMkigd/X9Rr5mtSe7OzqIvXZic
-   8wC9lNPaIpRIcfYtxjRIbtqi+WlzrJBoSHqb0SVOG3UGnlctqy4nFPX/7
-   6wwWTH9rmQ7jIAe3Q25b1AUqOJTY6hsdbeBmft0/0M/OOCGDBxvIg+HlP
-   Jo0K1Bbc95CB3Wl+6xli0LAAe7EJtxK+Dh/6oFLZIgAQfLUKzBoHkTdod
-   i9dyqOqXTRdKqrSF3npSWfLBsGxsTTU1CrrGGA9RWGsO517TE72V/8Du/
-   g==;
-X-CSE-ConnectionGUID: z24o08MsSc+/Vle9Q1vY/w==
-X-CSE-MsgGUID: a0/sTs0jQH6Uac4tWz25ew==
-X-IronPort-AV: E=McAfee;i="6800,10657,11841"; a="110082196"
-X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
-   d="scan'208";a="110082196"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jul 2026 02:29:34 -0700
-X-CSE-ConnectionGUID: 4vHZevoKQ0ioRPvqHl9QsQ==
-X-CSE-MsgGUID: U0RLdXqZR9Ovvs5nHqBgCw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
-   d="scan'208";a="260394092"
-Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.55])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jul 2026 02:29:23 -0700
-Date: Mon, 13 Jul 2026 12:29:20 +0300
-From: Tony Lindgren <tony.lindgren@linux.intel.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Praveen Talari <praveen.talari@oss.qualcomm.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jiri Slaby <jirislaby@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Richard Genoud <richard.genoud@bootlin.com>,
-	Nicolas Ferre <nicolas.ferre@microchip.com>,
-	Alexandre Belloni <alexandre.belloni@bootlin.com>,
-	Claudiu Beznea <claudiu.beznea@tuxon.dev>,
-	Krzysztof Kozlowski <krzk@kernel.org>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Alim Akhtar <alim.akhtar@samsung.com>,
-	Orson Zhai <orsonzhai@gmail.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Chunyan Zhang <zhang.lyra@gmail.com>,
-	Patrice Chotard <patrice.chotard@foss.st.com>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Michal Simek <michal.simek@amd.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	bjorn.andersson@oss.qualcomm.com,
-	Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>,
-	linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-omap@vger.kernel.org, linux-mips@vger.kernel.org,
-	Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com>,
-	aniket.randive@oss.qualcomm.com,
-	chandana.chiluveru@oss.qualcomm.com
-Subject: Re: [PATCH 0/6] tty: serial: propagate errors from uart_ops.pm
- callback
-Message-ID: <alSv8BPCOiyKvOI2@tlindgre-MOBL1>
-References: <20260709-add_return_check_for_uart_change_pm-v1-0-e85c6ffa8ec4@oss.qualcomm.com>
- <ak9OPNcVAhkfxHvZ@ashevche-desk.local>
- <20260710043746.GM30058@atomide.com>
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="Cv8a4lrq";
+	dkim=permerror (0-bit key) header.d=goldelico.com header.i=@goldelico.com header.b="lTqAmbw6"
+ARC-Seal: i=1; a=rsa-sha256; t=1783935504; cv=none;
+    d=strato.com; s=strato-dkim-0002;
+    b=A2PpFk0vGEtY2w45rqud1fyX6/O738D6k+R9ydMJO8qRmstNo1iQGxgaeBVdiZAa6x
+    +H2Xvm52EZT7p6OIBBTnBZHvSjhr+djdKOWWzkjoIDAb+N8VitYWFVQFi33g1xGltF02
+    p5BGSfXs/DZGNauyGU/CS5gk99Rf7NsSq+4rPxYaIRB6VJFBJY4Txx9S3wcD8JCcDIDV
+    K+WDvcI16sSth+1S++Iq+MNu0vSbudz0p9hxOHWv0+ELMTkgOT4yGk7mXMyhPTM/HM2O
+    xi/2NG2uls2D/23OXQRGlEHMHwvy7auByLc3n9s3hf9dudCO7CN4qRl79NDhnnt1fa+M
+    bHbA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1783935504;
+    s=strato-dkim-0002; d=strato.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=imolX7qSsiq9DS+KtH4jQru07kjP4EZc5PZkld9Ag7k=;
+    b=sSD9A1+izIoL5gWAn4bTLYgoCWTPF+FoRHJO0L/2/TTi3KhWbXUZ4dY+5VO9Jl7cuk
+    tNHudl8u7i8/wsXnzkNhZQu+tK0HXlYQOs9IVgLuxGdwQB+u4ltTROcI/JFIcEyjhZx9
+    s4EEjuypFgvdFky1NX9h6Om8bVKCFXPKJZgq7WbuYplWGopRhA/rFr3x3d3yDQKlcLT6
+    MucTNnt5bC2A3fRaGut49Bs2V6UiKO6WVhENy1EVmoGWn6emR+77XqQBsyBZLUd9bqIV
+    40LvE9Hz8R9A8u+8dBI2nq1wOYcZn7AbOj98XL8PIX4OLYwi3Omp1/ELiQ57T/MQRmkR
+    Lv/w==
+ARC-Authentication-Results: i=1; strato.com;
+    arc=none;
+    dkim=none
+X-RZG-CLASS-ID: mo03
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1783935504;
+    s=strato-dkim-0002; d=goldelico.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=imolX7qSsiq9DS+KtH4jQru07kjP4EZc5PZkld9Ag7k=;
+    b=Cv8a4lrq73F2cX7+2YTJ5/fHsdk1X+y+tuAXmr5tNEtytNlRDE5RpaTuGfBtFneHdt
+    mHvnYiGaYUg1B7T4K7CeglLgD9Vy/zf+9ArlPaJlCDAmtf52Ax2Ys7J+r2G5YjsJg20M
+    k3uUHi3z0Da4FArlVNLkNbyuGYGhltbI8Nydm7f3PdgMgGU1QaNpcesnik2z79DvRf1H
+    4I5N3QBWOo2awuQMwqitYo/bqcx3bxVfol/ElWN3kFWOcpqr9fH3El49Gq45BZ13mf+C
+    UGN76T33iKjnQCqiaP10+CKSD05FoThCmYD8ef59AN7dKHCen1BDDn0fZ0RNB1D6AyJX
+    iA6A==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1783935504;
+    s=strato-dkim-0003; d=goldelico.com;
+    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
+    From:Subject:Sender;
+    bh=imolX7qSsiq9DS+KtH4jQru07kjP4EZc5PZkld9Ag7k=;
+    b=lTqAmbw6/daSGIIBIi0MdJ/BPBDk6SFFmSlKiaiBKD75i2vmEE9ZjNyMI7nxbAo+WG
+    7EGEWarw+yfjjzznYECw==
+X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9qVpwcQVkPW4I1HrQi5pZlciNgDl2kEp5oHJ2/c57N2Mc49IfXTKd"
+Received: from smtpclient.apple
+    by smtp.strato.de (RZmta 55.5.6 AUTH)
+    with ESMTPSA id Q4b76426D9cNNOb
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
+	(Client did not present a certificate);
+    Mon, 13 Jul 2026 11:38:23 +0200 (CEST)
+Content-Type: text/plain;
+	charset=us-ascii
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260710043746.GM30058@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.8\))
+Subject: Re: [PATCH 09/16] ASoC: dt-bindings: add OpenPandora Sound Card
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+In-Reply-To: <5667350d-cc3f-421d-899f-f353b05c5ea1@kernel.org>
+Date: Mon, 13 Jul 2026 11:38:12 +0200
+Cc: Grond <grond66@riseup.net>,
+ Stefan Leichter <sle85276@gmx.de>,
+ Grazvydas Ignotas <notasas@gmail.com>,
+ Tony Lindgren <tony@atomide.com>,
+ Ethan Nelson-Moore <enelsonmoore@gmail.com>,
+ Jarkko Nikula <jarkko.nikula@bitmer.com>,
+ Sascha Hauer <s.hauer@pengutronix.de>,
+ Andreas Kemnade <andreas@kemnade.info>,
+ Lee Jones <lee@kernel.org>,
+ Rob Herring <robh@kernel.org>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>,
+ Liam Girdwood <lgirdwood@gmail.com>,
+ Mark Brown <broonie@kernel.org>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>,
+ Russell King <linux@armlinux.org.uk>,
+ Daniel Thompson <danielt@kernel.org>,
+ Jingoo Han <jingoohan1@gmail.com>,
+ Helge Deller <deller@gmx.de>,
+ Jaroslav Kysela <perex@perex.cz>,
+ Takashi Iwai <tiwai@suse.com>,
+ Sen Wang <sen@ti.com>,
+ Richard Fitzgerald <rf@opensource.cirrus.com>,
+ Arnd Bergmann <arnd@arndb.de>,
+ Srinivas Kandagatla <srinivas.kandagatla@oss.qualcomm.com>,
+ Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+ Charles Keepax <ckeepax@opensource.cirrus.com>,
+ Niranjan H Y <niranjan.hy@ti.com>,
+ letux-kernel@openphoenux.org,
+ devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org,
+ linux-sound@vger.kernel.org,
+ linux-omap@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org,
+ dri-devel@lists.freedesktop.org,
+ linux-fbdev@vger.kernel.org,
+ kernel@pyra-handheld.com,
+ mfd@lists.linux.dev
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <8A0C119B-7885-4538-8D4F-AC60E5C91B7E@goldelico.com>
+References: <cover.1783749722.git.hns@goldelico.com>
+ <7989e699de400c0fe3f0cb7af77a54077784df78.1783749722.git.hns@goldelico.com>
+ <20260713-infallible-capable-dormouse-aaaebe@quoll>
+ <BF2B6C4A-A4CC-48D7-9854-DC014950184B@goldelico.com>
+ <5667350d-cc3f-421d-899f-f353b05c5ea1@kernel.org>
+To: Krzysztof Kozlowski <krzk@kernel.org>
+X-Mailer: Apple Mail (2.3826.700.81.1.8)
 
-On Fri, Jul 10, 2026 at 07:37:46AM +0300, Tony Lindgren wrote:
-> * Andy Shevchenko <andriy.shevchenko@linux.intel.com> [260709 10:38]:
-> > Note, that Tony (you have him in the Cc list) did a lot for some corner cases
-> > with that and we still have them IIRC. Tony, do you know what is the state of
-> > affairs with runtime PM for UART?
-> 
-> The RX side of things should work for hardware that can wake up to an incoming
-> event. Linux for sure needs more work to properly handle the various corner case
-> TX wake-up of a PM runtime idled UART. I'm mostly offline until Monday though,
-> will check my notes for more details next week.
 
-For the TX side handling, my understanding is that at least uart_update_mctrl()
-needs to call PM runtime resume and put autosuspend. And we should assume
-uart_update_mctrl() can sleep to resume the PM runtime suspended serial port.
 
-For drivers, the callers of uport->ops->get/set_mctrl() should be updated
-to use uart_update_mctrl() where possible. And the remaining ones that cannot
-sleep should be fixed so they can sleep or have PM runtime disabled.
+> Am 13.07.2026 um 11:21 schrieb Krzysztof Kozlowski <krzk@kernel.org>:
+>=20
+> On 13/07/2026 10:27, H. Nikolaus Schaller wrote:
+>> Hi Krzysztof,
+>>=20
+>> Thank you for the feedback.
+>>=20
+>>=20
+>> It does not emit any C compiler issues or runtime problems so it =
+remained unnoticed.
+>=20
+> I do not believe.
+>=20
+> There is a clear warning from Rob's bot.
+>=20
+> You just did not follow the process of building the code (compiler has
+> nothing to do here). Read submitting patches in DT dir and then =
+writing
+> schema for further instructions. This is ABSOLUTE MINIMUM. We are not
+> your build test service.
+>=20
+>>=20
+>> It was notified by the sahiko-bot and will be fixed in v2.
+>=20
+> Sashiko has nothing to do with that.
+>=20
+> You DID NOT BUILD the code.
 
-Anybody have better ideas?
+Hm. You are confusing me. I did "make" and did not get any errors...
+And the resulting code works as intended.
 
-Regards,
+Best regards and thanks,
+Nikolaus
 
-Tony
