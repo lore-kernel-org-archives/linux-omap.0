@@ -1,129 +1,133 @@
-Received: from galaxy.gendns.com (galaxy.gendns.com [66.235.175.158])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C0782F1FC3;
-	Mon, 13 Jul 2026 14:45:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.235.175.158
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7539320CD3;
+	Tue, 14 Jul 2026 05:25:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783953917; cv=none; b=BNKUzqvaOKxujMRh8zsbC3/iCkQDy/Gvuoy8BOtc3Cy23uk5d1PCx6fu1Xjf4WxOGdFRGxiLZ+EkHgYeBfislf+zyWSgEHUNtqZPVsfB4OQB3Mig83PoHi+PV9CnnXuHCgIXmq2U98vpGXlAd99DEzpRo3fwzSHqcnEA9ziY4oc=
+	t=1784006752; cv=none; b=ZsdaBOqxziHjj3G8lc5Jm/zdmhYR6ayFWvYrd7v1cNY3/0mz7CDDmg1k8ARttkASCK4+tCBtoJyo9CD+Fa5gtF2NWGbe5yhaXgVuCxd56WqW1HBDowRtPKLvf/D6Su51FIfq+cinIgKag9nRj+8+W6EXNPHjLHdIL/c2rxWaNE0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783953917; c=relaxed/simple;
-	bh=jpyz5hAbwlvRRPo64MfFZ81i18i8D734nmZ6CUH9lvM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=RDk6ooPKTnW8IqUzKY94n0LbDIA1afgOqWDkHDwzBt49IYGxEmukETazgVAeyYbO+Ljr0KgAaHKsMAU5qzk54SC+g9/gscpf6hEapV+nPZqgQj1nxbdAXNllOA5WN57WnDU3+k6QJ8/9xv7iea2Yl5V3cfq+i+TItR23ZhEAG6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lechnology.com; spf=pass smtp.mailfrom=lechnology.com; dkim=pass (2048-bit key) header.d=lechnology.com header.i=@lechnology.com header.b=kPRts+KY; arc=none smtp.client-ip=66.235.175.158
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lechnology.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lechnology.com
+	s=arc-20240116; t=1784006752; c=relaxed/simple;
+	bh=nvUp6ixQ/4WO1OpQur/BaHDEnmJshINP5l4vlNHwZLQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=E1ArbopyttnJ6Ly3ecIHSD4RE1DQ1mk216QJZo20YKraBnyS0we+FB4xKcu5/fsZWgWrLBekds7Ln2CTDo55UCx9qvP+lG2KOeKmjdnnfzVepUlpaWeiLfJxzkHTT1gtDBkxWzofRq3t/iDg+hGPvzt2ehhmAsStcQvU3schr0A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=R4QERsU8; arc=none smtp.client-ip=198.175.65.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lechnology.com header.i=@lechnology.com header.b="kPRts+KY"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=lechnology.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-	In-Reply-To:From:References:To:Subject:MIME-Version:Date:Message-ID:Sender:
-	Reply-To:Cc:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=INl0jiwqDhGPDETixMKefTqug/oQonC2CS+nvIV3PMw=; b=kPRts+KYZ26uj+aJUVDbW7uRza
-	+0I25symShHRG3ruTSswL+FzNtvluFi5NQsWI1E8OXGFttK+9GxIdozY4NeQTVAsP1WxAwYayp9ob
-	Hg6Mdizci/iITZz4u3rn6aRLLdLz9DhiSSH6S67qzrL/D6fTfeTVAgGINn2kP9Ll2gEygQnrsymaF
-	ugdGgnph3xdTbOD6X/0pbpoY+1ls3AyZetYdg/vG32hKD7/jDETDQTy/ChVnKH8lmjlxFn0Rc8PSr
-	QOKCcnuEmoz0/XR9H+qKMDWFxEu70o3qIZyJeAlbNpKJ8wIgmDX52z6IjL3f+BUKV+cWj5PwUrc/Q
-	BDA/zUPA==;
-Received: from ip98-183-112-25.ok.ok.cox.net ([98.183.112.25]:52858 helo=[192.168.1.142])
-	by galaxy.gendns.com with essmtpa  (TLS1.3) tls TLS_AES_128_GCM_SHA256
-	(Exim 4.99.4)
-	(envelope-from <david@lechnology.com>)
-	id 1wjHVy-00000009aEK-0hNn;
-	Mon, 13 Jul 2026 10:20:09 -0400
-Message-ID: <1e330026-cd09-48d5-9478-4cff59f521e0@lechnology.com>
-Date: Mon, 13 Jul 2026 09:20:07 -0500
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="R4QERsU8"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1784006750; x=1815542750;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=nvUp6ixQ/4WO1OpQur/BaHDEnmJshINP5l4vlNHwZLQ=;
+  b=R4QERsU8RS0GjehHw65G9hMQISGMMXokVI4xaMMSs+bOu9blneZkwnd6
+   QNmnoujEGVfkWnB8P4azE3YuxkHgmiQaqdIKPPC+/yntrdKiQ/qu4AJDn
+   y1WHUr0pekFjz0MzMtBf+fFxEWNcbPj03PVGoHcSDGALkVQ8AofMev/C+
+   W+d7bfCzZo9ary/yp82+PeJXpkMjkf86la1/3alb0xl0VwceUvzAOaEwB
+   FcFbnSjW4AZqWxU5a4Z4o6Mdu4Z/5GbISn56zMFBFCpdglX7ojsWKG/Gd
+   ddpk41P0ipGOceLPeJMScfSSypXynLSp3MxJhlwk0+mBpcJ8S1y1Bki0Y
+   g==;
+X-CSE-ConnectionGUID: 8abq/H3/RguevLrjiOw64Q==
+X-CSE-MsgGUID: w6gzDah7T9mHmJ2ILezqrQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11846"; a="84583596"
+X-IronPort-AV: E=Sophos;i="6.25,163,1779174000"; 
+   d="scan'208";a="84583596"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jul 2026 22:25:48 -0700
+X-CSE-ConnectionGUID: b7VVUikhRGC8aHkOs9IFiw==
+X-CSE-MsgGUID: Jy/VK4toSbSQTUtrikKzFA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,163,1779174000"; 
+   d="scan'208";a="280169706"
+Received: from fdefranc-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.246.248])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jul 2026 22:25:36 -0700
+Date: Tue, 14 Jul 2026 08:25:32 +0300
+From: Tony Lindgren <tony.lindgren@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Tony Lindgren <tony@atomide.com>,
+	Praveen Talari <praveen.talari@oss.qualcomm.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Richard Genoud <richard.genoud@bootlin.com>,
+	Nicolas Ferre <nicolas.ferre@microchip.com>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Claudiu Beznea <claudiu.beznea@tuxon.dev>,
+	Krzysztof Kozlowski <krzk@kernel.org>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Alim Akhtar <alim.akhtar@samsung.com>,
+	Orson Zhai <orsonzhai@gmail.com>,
+	Baolin Wang <baolin.wang@linux.alibaba.com>,
+	Chunyan Zhang <zhang.lyra@gmail.com>,
+	Patrice Chotard <patrice.chotard@foss.st.com>,
+	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+	Alexandre Torgue <alexandre.torgue@foss.st.com>,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Michal Simek <michal.simek@amd.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	bjorn.andersson@oss.qualcomm.com,
+	Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>,
+	linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-stm32@st-md-mailman.stormreply.com,
+	linux-omap@vger.kernel.org, linux-mips@vger.kernel.org,
+	Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com>,
+	aniket.randive@oss.qualcomm.com,
+	chandana.chiluveru@oss.qualcomm.com
+Subject: Re: [PATCH 0/6] tty: serial: propagate errors from uart_ops.pm
+ callback
+Message-ID: <alXITHzkv4TlvwcT@tlindgre-MOBL1>
+References: <20260709-add_return_check_for_uart_change_pm-v1-0-e85c6ffa8ec4@oss.qualcomm.com>
+ <ak9OPNcVAhkfxHvZ@ashevche-desk.local>
+ <20260710043746.GM30058@atomide.com>
+ <alSv8BPCOiyKvOI2@tlindgre-MOBL1>
+ <alTKNEk97jkVGfML@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] counter: Remove redundant dev_err()/dev_err_probe()
-To: Pan Chuang <panchuang@vivo.com>,
- Fabrice Gasnier <fabrice.gasnier@foss.st.com>,
- William Breathitt Gray <wbg@kernel.org>,
- Maxime Coquelin <mcoquelin.stm32@gmail.com>,
- Alexandre Torgue <alexandre.torgue@foss.st.com>,
- Vignesh Raghavendra <vigneshr@ti.com>, Julien Panis <jpanis@baylibre.com>,
- "open list:COUNTER SUBSYSTEM" <linux-iio@vger.kernel.org>,
- "moderated list:ARM/STM32 ARCHITECTURE"
- <linux-stm32@st-md-mailman.stormreply.com>,
- "moderated list:ARM/STM32 ARCHITECTURE"
- <linux-arm-kernel@lists.infradead.org>,
- open list <linux-kernel@vger.kernel.org>,
- "open list:TI ENHANCED CAPTURE (eCAP) DRIVER" <linux-omap@vger.kernel.org>
-References: <20260713131005.306069-1-panchuang@vivo.com>
-Content-Language: en-US
-From: David Lechner <david@lechnology.com>
-Autocrypt: addr=david@lechnology.com; keydata=
- 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
-In-Reply-To: <20260713131005.306069-1-panchuang@vivo.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - galaxy.gendns.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - lechnology.com
-X-Get-Message-Sender-Via: galaxy.gendns.com: authenticated_id: davidmain+lechnology.com/only user confirmed/virtual account not confirmed
-X-Authenticated-Sender: galaxy.gendns.com: davidmain@lechnology.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alTKNEk97jkVGfML@ashevche-desk.local>
 
-On 7/13/26 8:10 AM, Pan Chuang wrote:
-> Since commit 55b48e23f5c4 ("genirq/devres: Add error handling in
-> devm_request_*_irq()"), devm_request_irq() and devm_request_threaded_irq()
-> automatically log detailed error messages on failure. Remove the
-> now-redundant driver-specific dev_err() and dev_err_probe() calls.
+On Mon, Jul 13, 2026 at 02:21:24PM +0300, Andy Shevchenko wrote:
+> On Mon, Jul 13, 2026 at 12:29:20PM +0300, Tony Lindgren wrote:
+> > On Fri, Jul 10, 2026 at 07:37:46AM +0300, Tony Lindgren wrote:
+> > > * Andy Shevchenko <andriy.shevchenko@linux.intel.com> [260709 10:38]:
+> > > > Note, that Tony (you have him in the Cc list) did a lot for some corner cases
+> > > > with that and we still have them IIRC. Tony, do you know what is the state of
+> > > > affairs with runtime PM for UART?
+> > > 
+> > > The RX side of things should work for hardware that can wake up to an incoming
+> > > event. Linux for sure needs more work to properly handle the various corner case
+> > > TX wake-up of a PM runtime idled UART. I'm mostly offline until Monday though,
+> > > will check my notes for more details next week.
+> > 
+> > For the TX side handling, my understanding is that at least uart_update_mctrl()
+> > needs to call PM runtime resume and put autosuspend. And we should assume
+> > uart_update_mctrl() can sleep to resume the PM runtime suspended serial port.
+> > 
+> > For drivers, the callers of uport->ops->get/set_mctrl() should be updated
+> > to use uart_update_mctrl() where possible. And the remaining ones that cannot
+> > sleep should be fixed so they can sleep or have PM runtime disabled.
+> > 
+> > Anybody have better ideas?
 > 
-> Signed-off-by: Pan Chuang <panchuang@vivo.com>
-> ---
-Seems OK, but probably be should be split into one patch per driver.
+> I don't, but the above sounds like a plan. Is it a big task? I can help with
+> something in that area, perhaps Ilpo also would be able to participate.
+
+Not sure how much changes are involved. Maybe it's safer to set up a
+runtime PM enabled wrapper for uart_update_mctrl() and then start updating
+the uart_update_mctrl() and get/set_mctrl() callers one at a time to make
+them runtime PM aware.
