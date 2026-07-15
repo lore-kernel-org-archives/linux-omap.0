@@ -1,21 +1,21 @@
 Received: from luna.linkmauve.fr (82-65-109-163.subs.proxad.net [82.65.109.163])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A05AE492180;
-	Wed, 15 Jul 2026 17:52:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCD004A13B9;
+	Wed, 15 Jul 2026 17:52:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.65.109.163
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784137980; cv=none; b=NUY/ezLr3HSaIRlrSNEKrHWHPczVSvMgJrD0d2k9vNCb4TIfz+ja1VxdutrtwKGvAmkpg2ptlJMXYu+qpOmTVrhRwcLevWfRKTtXJLJ5PTf+9R7ZXwegIrgpqmWx4FzL0lK3iJ27lhoPtqHsF+0zm/XZuKO/Y4UPnJS7wvfJPrk=
+	t=1784137980; cv=none; b=PNkOUCjG8jjD2SA00lRYOTIhaUNhDSegivUcodnkRYJKKXIM+sSbddr44y39Gs7PoOW0LWVdURaguf4sEiS7WhIph5vcUvWwARiXYroYfX8f2Db1G8sMq4qEZFMIfs4J17DS+rfoQXe5meR1AnO+BdYejFHs+2SPD4SM+W+9NvQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1784137980; c=relaxed/simple;
-	bh=e2X4aAIB35tnuNFFrR/sMDVNB8hl9ij7Uv+uzc+FvF0=;
+	bh=uOz8qHflYfhCLHUoFf+DPpLsT3ojAu4y0xHkt0KrZYs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=av9vGnhkGI02PA8xsG38ojIRNrcF4KLJgWG3Mg58GvaJGfxMxs/TIVntlOgQ9/y9y0XspK4GT+q+b3FdZGflBQZiITlMe94JGns7TXKwGFfvfjsg2mrC4uP3mJ3ndPYys2S0AThkiMpUkJHXQtuHF5FJDYVNcTWtf4OomjQFewQ=
+	 MIME-Version:Content-Type; b=GYYXNpK3hhQyu0Jjws0aAhT5T4H70ZBJOLgn8GumQTmZmP3jV9KLfowfA93nMfYMIbwm6O6qiO1etdXX3eaCpT1vGfCY0vi1gdcOsWPqLg/UbfJGk5YK6AsZxWB0HDQ/8/ihekJrp6TOeJukp21YZqN2bi92npapBbtM3DtVtcc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linkmauve.fr; spf=pass smtp.mailfrom=linkmauve.fr; arc=none smtp.client-ip=82.65.109.163
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linkmauve.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linkmauve.fr
 Received: by luna.linkmauve.fr (Postfix, from userid 1000)
-	id D52EEF40D22; Wed, 15 Jul 2026 19:52:45 +0200 (CEST)
+	id B9800F40D23; Wed, 15 Jul 2026 19:52:48 +0200 (CEST)
 From: Link Mauve <linkmauve@linkmauve.fr>
 To: Srinivas Kandagatla <srini@kernel.org>
 Cc: Link Mauve <linkmauve@linkmauve.fr>,
@@ -105,9 +105,9 @@ Cc: Link Mauve <linkmauve@linkmauve.fr>,
 	linux-rtc@vger.kernel.org,
 	linux-sunxi@lists.linux.dev,
 	rust-for-linux@vger.kernel.org
-Subject: [PATCH 5/8] iio: pressure: bmp280: make reg_write callback take const void *
-Date: Wed, 15 Jul 2026 19:52:21 +0200
-Message-ID: <20260715175229.24672-6-linkmauve@linkmauve.fr>
+Subject: [PATCH 6/8] firmware: meson_sm: make reg_write callback take const void *
+Date: Wed, 15 Jul 2026 19:52:22 +0200
+Message-ID: <20260715175229.24672-7-linkmauve@linkmauve.fr>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260715175229.24672-1-linkmauve@linkmauve.fr>
 References: <20260715175229.24672-1-linkmauve@linkmauve.fr>
@@ -125,36 +125,36 @@ to immutable data, so let’s fix all users of the nvmem_config API.
 
 Signed-off-by: Link Mauve <linkmauve@linkmauve.fr>
 ---
- drivers/iio/pressure/bmp280-core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/firmware/meson/meson_sm.c       | 2 +-
+ include/linux/firmware/meson/meson_sm.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/iio/pressure/bmp280-core.c b/drivers/iio/pressure/bmp280-core.c
-index 990340a9b10c..0a39c5f39378 100644
---- a/drivers/iio/pressure/bmp280-core.c
-+++ b/drivers/iio/pressure/bmp280-core.c
-@@ -2261,11 +2261,11 @@ static int bmp580_nvmem_read(void *priv, unsigned int offset, void *val,
- 	return ret;
- }
- 
--static int bmp580_nvmem_write_impl(void *priv, unsigned int offset, void *val,
-+static int bmp580_nvmem_write_impl(void *priv, unsigned int offset, const void *val,
- 				   size_t bytes)
+diff --git a/drivers/firmware/meson/meson_sm.c b/drivers/firmware/meson/meson_sm.c
+index ab9751a59b55..5d4da2e3c3a9 100644
+--- a/drivers/firmware/meson/meson_sm.c
++++ b/drivers/firmware/meson/meson_sm.c
+@@ -196,7 +196,7 @@ EXPORT_SYMBOL(meson_sm_call_read);
+  *
+  * Return:	size of sent data on success, a negative value on error
+  */
+-int meson_sm_call_write(struct meson_sm_firmware *fw, void *buffer,
++int meson_sm_call_write(struct meson_sm_firmware *fw, const void *buffer,
+ 			unsigned int size, unsigned int cmd_index, u32 arg0,
+ 			u32 arg1, u32 arg2, u32 arg3, u32 arg4)
  {
- 	struct bmp280_data *data = priv;
--	u16 *buf = val;
-+	const u16 *buf = val;
- 	int ret, addr;
+diff --git a/include/linux/firmware/meson/meson_sm.h b/include/linux/firmware/meson/meson_sm.h
+index 3ebc2bd9a976..92cc61f3a1c0 100644
+--- a/include/linux/firmware/meson/meson_sm.h
++++ b/include/linux/firmware/meson/meson_sm.h
+@@ -21,7 +21,7 @@ struct meson_sm_firmware;
  
- 	guard(mutex)(&data->lock);
-@@ -2322,7 +2322,7 @@ static int bmp580_nvmem_write_impl(void *priv, unsigned int offset, void *val,
- 	return ret;
- }
- 
--static int bmp580_nvmem_write(void *priv, unsigned int offset, void *val,
-+static int bmp580_nvmem_write(void *priv, unsigned int offset, const void *val,
- 			      size_t bytes)
- {
- 	struct bmp280_data *data = priv;
+ int meson_sm_call(struct meson_sm_firmware *fw, unsigned int cmd_index,
+ 		  s32 *ret, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
+-int meson_sm_call_write(struct meson_sm_firmware *fw, void *buffer,
++int meson_sm_call_write(struct meson_sm_firmware *fw, const void *buffer,
+ 			unsigned int b_size, unsigned int cmd_index, u32 arg0,
+ 			u32 arg1, u32 arg2, u32 arg3, u32 arg4);
+ int meson_sm_call_read(struct meson_sm_firmware *fw, void *buffer,
 -- 
 2.55.0
 
