@@ -1,127 +1,176 @@
-Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88B8431355B
-	for <linux-omap@vger.kernel.org>; Wed, 15 Jul 2026 14:00:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91A1A1E5B68;
+	Wed, 15 Jul 2026 15:10:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784124054; cv=none; b=j1VdZFiiYeF3jkH8lRWEGcWtt5Wmgmwv8X31ANDiejfGpOTDRnSx/tTIpI1Eez4bwtZ0jMiGaZxrU8hVOGW7Gyf7CgFfQ7xS50Xnh2dywsh5TM8DAS2WnSvlK4O42E/aO9lDn2pgKO4pZAoyS9Qj/4SiiIV9I0Q4a2GOK6Hryuk=
+	t=1784128210; cv=none; b=PBwBnH2cHjJpvLoDRSBHkms5vFkiDFPns2QTVL1xO700jklUWvv+AHfDF7d3ERQxVMjKFi7pJYR3BaEz+FptwxVHfH6AWyc2d++jwfGDsBGIs6bkeY+Jlv/857OBvhRsS09EbflAhlUrVrmkHdN9lq/4Kzf1kgrlZ2eJ670xHjg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784124054; c=relaxed/simple;
-	bh=CE68Rb9kC/HDA2cBAQQX3Im6WA6S7tlqNN172Y2yO0s=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ZysVByyQg0nNTmrMhx4Z7lWTp3z6vDaNiPEsokhvZHXHV+byZoATxMabyUrw2V7rqJbX0fxnNsvWTNZFOCoxZHen0TKazaxqxpO++ZON+uVCeD2al0Cwbn+alnHb+/4dcwE+a+BmRbkw87kSSrnrqivkvEJcjhEOp9BobBF351I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NF0chKqZ; arc=none smtp.client-ip=209.85.128.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1784128210; c=relaxed/simple;
+	bh=PMWWdWROPx5T2hXnstRMOcMG5ExDZiLP03tLguMc5RE=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=J0ZJtBJ4PWHZm6EDZZEgTSXvxuDOEbHotBGxKnfsIfrSomFGgi3NeCfCB26SBCG+apwJFp1QCn+ZgIBwaHp+XApgbl7Vm/Sibl9pAx9VcuMuJFtmY6KDGNbDAO0JrLeEdFcSTzAkajIe8L4jqFBmiHvSVysLHMqQHxeD8idPHCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=im5G3xFz; arc=none smtp.client-ip=185.246.85.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NF0chKqZ"
-Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-493f75f7172so38348935e9.1
-        for <linux-omap@vger.kernel.org>; Wed, 15 Jul 2026 07:00:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784124051; x=1784728851; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=BArhhnpdI/Cv8HoI1hRJgRyqIoDXROOU23KIbFFyDpY=;
-        b=NF0chKqZXNAYbYItWEXZ3DZExK7A5RJqN7QOeYBSh12Ajs+OHrbRqoa1TgPTK7Z6VQ
-         K6tVtB0AbXfJH+51zDu1y9qZ7mLX7JLvycymiqvgE+wweAekdS5hV7L+y+XV5xNxrcqU
-         WecjiUe0oNE4WIc1JN3DWs4nj61fgiXuRzxBFEeMEIYPwM5b+2FRIsGn3m1YLBJfDuXH
-         BsHkkCvRRDkE7bO3igyluWt+nH1OC0LqBUis8g5HJLF92lA9rtTkwENQX2cydE6pFITG
-         NWXeZIV77CI52qRVolSjJHWbrVz2GuWEotUEPB+7PG+7d1beyGhYNHcG3cPP2lYlMQqi
-         c6ow==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784124051; x=1784728851;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=BArhhnpdI/Cv8HoI1hRJgRyqIoDXROOU23KIbFFyDpY=;
-        b=OTZ7wWTNxeUZHEbaqjdRJScBVmkXFzEtug+IaSZ9V9ZIABIsEFJIJ7qr44G/7nKOLs
-         M4+ms+IUVSrNjXpJuEmGkuXPHLfq83QrlNORhVPJqI9Q0JB+2a579QcW3kXxGAJYwMf3
-         9ARfyN5z7EcHX9Vy8C3t2r6DBvE8jI4wJvEfiquINF8rtgBma+O1DrEbluTS29te5RB/
-         /XTIR9kGhCNooS9uoHmWBRrxHROZww7yt++I+4oNLqpuFOl/rAa3WBZdNNPJckSXIBee
-         H72Voooq+xnGmdq6rKkplxLS4ZQivRZ+KIYsrYyRxy2Eb2zDeeh0wh9vcwN8u/WGX6k8
-         8Zxw==
-X-Forwarded-Encrypted: i=1; AHgh+RpZf0cm4f8pel0HfRQ6UnT6ugZgvZlsEoe4Pp7lIo4JzJ8vfDLZLaYHYXpoP2yVJviCLYw9nuiI/mRo@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzb9syAt1AGoMRLm0wWOspXQyXYqtcqsL/H0zAGf94+LKd7AFV8
-	TZBRZICefr+TG41m6tqp/QL0nc0h8gbUHmJo03b5rE52TOjkhWP3ohQo
-X-Gm-Gg: AfdE7cnZknDQZiQ31FCr3YK+2iAxECv25Nn1EOxIdgOPuGxmgbVK8IZw0/keHaenAqd
-	kFJZ8fx1Q4dU7HJ5FOkCG2fqPc/dmShCOY3bIevMR+ZMpG8j8lODBE+1DJgskq0Q9/p7fGX7L+h
-	/Kq0zz+xTXPE50JrmRPtWbSXM5smLTP+Gow4l/cS0JmfdA2kP3kGXJrHa6rKtWolQugmWZ3G8Zt
-	9xSV39CyZSSEyI3uanG2V00ALz1gQKXjONOLhNS7tPvHDbnY9MTaHh8XUXIggkR3epbmvKwkXO/
-	eO8X5bZz5yMdY+xHl25ouqkvOasJQuH+pMNcVS0hu5vEwV9eWlwXXRmKoqEU/liAbQcGbri6Ro6
-	Wz6pI4zbGhYfQmNnCigWnGxIj+ZoUjkFg2n0/OTqFFdK6R2U8EiWPreevXh1Q8Uws1MMtBOHI4l
-	Yq3Egh1wSj50mYgj9+MOM7JTezDGblvrU4V/lGt4eSTYbMolbMkEVP8QCF16rwxNy1jz5Dzui9m
-	kMkBgpGFI1MJ7DV8GttwcIYkOfMXh4SWqanhLdxDo9AUq18aw5TY37qbw5SmUzNWc0GTx5Arug6
-	GHsHiuF4k4u9lYXKY+6k4NUXkKVX5phhoSuaMKP3lxYuLm/XRnekZtFrhftm0JSt5ZRW47dyKJK
-	7MUXO+nOllaAwmcWN0xhAMoI=
-X-Received: by 2002:a05:600c:6211:b0:495:3a21:4e5d with SMTP id 5b1f17b1804b1-4953c001211mr34667645e9.0.1784124050314;
-        Wed, 15 Jul 2026 07:00:50 -0700 (PDT)
-Received: from localhost (90-182-112-124.rcp.o2.cz. [90.182.112.124])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4950a2edd6fsm150750035e9.11.2026.07.15.07.00.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Jul 2026 07:00:50 -0700 (PDT)
-Date: Wed, 15 Jul 2026 16:00:48 +0200
-From: Joshua Crofts <joshua.crofts1@gmail.com>
-To: Pan Chuang <panchuang@vivo.com>
-Cc: Fabrice Gasnier <fabrice.gasnier@foss.st.com>, William Breathitt Gray
- <wbg@kernel.org>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre
- Torgue <alexandre.torgue@foss.st.com>, Vignesh Raghavendra
- <vigneshr@ti.com>, Julien Panis <jpanis@baylibre.com>, David Lechner
- <david@lechnology.com>, linux-iio@vger.kernel.org (open list:COUNTER
- SUBSYSTEM), linux-stm32@st-md-mailman.stormreply.com (moderated
- list:ARM/STM32 ARCHITECTURE), linux-arm-kernel@lists.infradead.org
- (moderated list:ARM/STM32 ARCHITECTURE), linux-kernel@vger.kernel.org (open
- list), linux-omap@vger.kernel.org (open list:TI ENHANCED CAPTURE (eCAP)
- DRIVER)
-Subject: Re: [PATCH 0/3] counter: Remove redundant error messages on IRQ
- request failure
-Message-ID: <20260715160048.00000737@gmail.com>
-In-Reply-To: <20260715135030.326290-1-panchuang@vivo.com>
-References: <20260715135030.326290-1-panchuang@vivo.com>
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="im5G3xFz"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-03.galae.net (Postfix) with ESMTPS id E28114E40DDD;
+	Wed, 15 Jul 2026 15:10:04 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id B07856035C;
+	Wed, 15 Jul 2026 15:10:04 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id B047F11BD15D9;
+	Wed, 15 Jul 2026 17:10:01 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1784128204; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=OJVhzFpf0dxP3JwX9CMfXgwxYQOoiMVKTMSuLBj7pMg=;
+	b=im5G3xFzC5cwL4REP+C0b6cC3HV0pxOjgN/xEdbVRIQIrluxmp6mTcE6LQ4EYNKpER7MT3
+	AVmK47kNhnubMP3sH2atkHfdFJh5aOc4E7suX4zMaMM1kpAXDL1Jys9ROSMBsf51cVsRll
+	5QUZkjaGL0QFoI7hiu18Jp0eKN7d63/JTm6ohiU/L1EE/laMXdYXOFU+vVpAhaUUtz5paz
+	jhQ+tN8XVlXAvxb6Zk1rYIiU83x0Phzshu+7xrKDV/KpEiAvecVPbGIEZrHzWqGMEnsFvo
+	UvOLzuPSAwK5iK/ESl0Vym4pYt85hmtWJBSeMsfnqSSI90Vz6xMWRr0ovEUEvw==
+From: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+Date: Wed, 15 Jul 2026 17:09:56 +0200
+Subject: [PATCH] clk: ti: mux: resolve parent clocks by DT index, not by
+ name
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20260715-mathieu-wdt-clock-theo-v1-1-da65bba1828b@bootlin.com>
+X-B4-Tracking: v=1; b=H4sIAMOiV2oC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIzMDc0Nj3dzEkozM1FLd8pQS3eSc/ORs3ZKM1HzdNINk06REU4tUI1MLJaD
+ mgqLUtMwKsMHRsbW1AFHCfEdoAAAA
+X-Change-ID: 20260713-mathieu-wdt-clock-theo-f0c5ba58e258
+To: Tero Kristo <kristo@kernel.org>, 
+ Michael Turquette <mturquette@baylibre.com>, 
+ Stephen Boyd <sboyd@kernel.org>, Brian Masney <bmasney@redhat.com>, 
+ Tony Lindgren <tony@atomide.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
+ =?utf-8?q?Th=C3=A9o_Lebrun?= <theo.lebrun@bootlin.com>, 
+ =?utf-8?q?Gr=C3=A9gory_Clement?= <gregory.clement@bootlin.com>, 
+ linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, 
+ Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1784128201; l=3770;
+ i=mathieu.dubois-briand@bootlin.com; s=20241219; h=from:subject:message-id;
+ bh=PMWWdWROPx5T2hXnstRMOcMG5ExDZiLP03tLguMc5RE=;
+ b=IoZi1InAliUoFimfrks4wY1FOC09LKyKHTPFMAbXlHjp3qljjNPI7R9pUPNAPXIdk7EZZ49+c
+ OrMpLxiwWePAIMpriYP1uYLl2ymlR+2ixX/EZRBRO/z1C54raQwZjbo
+X-Developer-Key: i=mathieu.dubois-briand@bootlin.com; a=ed25519;
+ pk=1PVTmzPXfKvDwcPUzG0aqdGoKZJA3b9s+3DqRlm0Lww=
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Wed, 15 Jul 2026 21:50:27 +0800
-Pan Chuang <panchuang@vivo.com> wrote:
+Resolve parent clocks by their index into the device tree "clocks"
+property rather than matching names as strings. Name-based matching is
+fragile because a clock's "clock-output-names" value in its provider
+node can differ from the name used to reference it in a consumer node,
+and because names must be globally unique across all clock providers.
 
-> Commit 55b48e23f5c4 ("genirq/devres: Add error handling in
-> devm_request_*_irq()") added automatic error logging to
-> devm_request_threaded_irq() and devm_request_any_context_irq()
-> via the new devm_request_result() helper, which prints device
-> name, IRQ number, handler functions, and error code on failure.
-> 
-> Since devm_request_irq() is a static inline wrapper around
-> devm_request_threaded_irq(), it also benefits from this
-> automatic logging.
-> 
-> Remove the now-redundant dev_err() and dev_err_probe() calls
-> in counter drivers that follow these devm_request_*_irq()
-> functions, as the core now provides more detailed diagnostic
-> information on failure.
-> 
-> Pan Chuang (3):
->   counter: stm32-timer-cnt: Remove redundant dev_err()
->   counter: ti-ecap-capture: Remove redundant dev_err_probe()
->   counter: ti-eqep: Remove redundant dev_err_probe()
-> 
->  drivers/counter/stm32-timer-cnt.c | 10 ++--------
->  drivers/counter/ti-ecap-capture.c |  2 +-
->  drivers/counter/ti-eqep.c         |  2 +-
->  3 files changed, 4 insertions(+), 10 deletions(-)
-> 
+On AM335x, this caused broken clock trees where some clocks failed to
+enable because their parents could not be found.
 
-LGTM.
+Replace of_clk_parent_fill() with a clk_parent_data array that sets
+.index to the array position.
 
+Fixes: ec7aa25fa483 ("ARM: dts: Use clock-output-names for am3")
+Signed-off-by: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+---
+This commit aims to solve an issue I've been describing a few months ago
+on AM335x SoC [1]. I believe using the parent_data field of
+clk_init_data structure is now the preferred way to convey that data,
+and it should be more reliable than string comparisons.
+
+[1]: https://lore.kernel.org/all/DI4RUFQNSSNP.2QMSSQWJW9I2O@bootlin.com/
+---
+ drivers/clk/ti/mux.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+index d6a0ccfd81db..ded4432f7528 100644
+--- a/drivers/clk/ti/mux.c
++++ b/drivers/clk/ti/mux.c
+@@ -119,7 +119,7 @@ const struct clk_ops ti_clk_mux_ops = {
+ };
+ 
+ static struct clk *_register_mux(struct device_node *node, const char *name,
+-				 const char * const *parent_names,
++				 const struct clk_parent_data *parent_data,
+ 				 u8 num_parents, unsigned long flags,
+ 				 struct clk_omap_reg *reg, u8 shift, u32 mask,
+ 				 s8 latch, u8 clk_mux_flags, u32 *table)
+@@ -136,7 +136,7 @@ static struct clk *_register_mux(struct device_node *node, const char *name,
+ 	init.name = name;
+ 	init.ops = &ti_clk_mux_ops;
+ 	init.flags = flags;
+-	init.parent_names = parent_names;
++	init.parent_data = parent_data;
+ 	init.num_parents = num_parents;
+ 
+ 	/* struct clk_mux assignments */
+@@ -167,24 +167,26 @@ static void of_mux_clk_setup(struct device_node *node)
+ 	struct clk *clk;
+ 	struct clk_omap_reg reg;
+ 	unsigned int num_parents;
+-	const char **parent_names;
++	struct clk_parent_data *parent_data;
+ 	const char *name;
+ 	u8 clk_mux_flags = 0;
+ 	u32 mask = 0;
+ 	u32 shift = 0;
+ 	s32 latch = -EINVAL;
+ 	u32 flags = CLK_SET_RATE_NO_REPARENT;
++	int i;
+ 
+ 	num_parents = of_clk_get_parent_count(node);
+ 	if (num_parents < 2) {
+ 		pr_err("mux-clock %pOFn must have parents\n", node);
+ 		return;
+ 	}
+-	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
+-	if (!parent_names)
+-		goto cleanup;
++	parent_data = kcalloc(num_parents, sizeof(*parent_data), GFP_KERNEL);
++	if (!parent_data)
++		return;
+ 
+-	of_clk_parent_fill(node, parent_names, num_parents);
++	for (i = 0; i < num_parents; i++)
++		parent_data[i].index = i;
+ 
+ 	if (ti_clk_get_reg_addr(node, 0, &reg))
+ 		goto cleanup;
+@@ -207,7 +209,7 @@ static void of_mux_clk_setup(struct device_node *node)
+ 	mask = (1 << fls(mask)) - 1;
+ 
+ 	name = ti_dt_clk_name(node);
+-	clk = _register_mux(node, name, parent_names, num_parents,
++	clk = _register_mux(node, name, parent_data, num_parents,
+ 			    flags, &reg, shift, mask, latch, clk_mux_flags,
+ 			    NULL);
+ 
+@@ -215,7 +217,7 @@ static void of_mux_clk_setup(struct device_node *node)
+ 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+ 
+ cleanup:
+-	kfree(parent_names);
++	kfree(parent_data);
+ }
+ CLK_OF_DECLARE(mux_clk, "ti,mux-clock", of_mux_clk_setup);
+ 
+
+---
+base-commit: a13c140cc289c0b7b3770bce5b3ad42ab35074aa
+change-id: 20260713-mathieu-wdt-clock-theo-f0c5ba58e258
+
+Best regards,
 -- 
-Kind regards
+Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
 
-CJD
