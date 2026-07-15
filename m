@@ -1,21 +1,21 @@
 Received: from luna.linkmauve.fr (82-65-109-163.subs.proxad.net [82.65.109.163])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA1434A2E22;
-	Wed, 15 Jul 2026 17:52:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B89D44ADD9D;
+	Wed, 15 Jul 2026 17:53:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.65.109.163
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784137982; cv=none; b=RAWSmXDvEJlgOgUGe82eanLgJEurPa79qwtMDxA3Bzp8zlCHyEDsizrjU9VDCuH3Ukl4FP3vNAEZWV4BLTosT4vTdQCeGYJTKhjU/7LxNSuV14y7pwBVfyESa7ULxPMoCtmnLfGreLjWHwsqbSRN+KbpQmUCnkqGx8LZbMK6s2A=
+	t=1784137987; cv=none; b=tQ6Z9xDeEZBagRTMvWDbOBeZjOyqRQ7kAWnpVNp9VhaquFnyBgcJT48dnmETb+XbpZ6KXqlOPV+Nbrj2xUKj/qGS9Z+/40/9JH7SP1r9rkje/xiFIawD6CspOVnX8pwyTlr+2o+iwbYYl7tH+MDK3LtQsuNsE5SA+iGRVvSqVwc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784137982; c=relaxed/simple;
-	bh=HmDTdeFmXUNekb42xkLm8wMIQvrqoYDvHiyd1yd1CY0=;
+	s=arc-20240116; t=1784137987; c=relaxed/simple;
+	bh=/KIAOxfi5qPCF7yk1qXbs6TZ1oDnkuWk8273p3ANjNU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=QPypfGjxm9d5cbSKU+ia17pjzVsD8DUlf0SU+QO4PkXChPDGsdV7mnoSnpB8IrKsDiKT32zTIzHwIZOK2OGGOFxYWauhFrRne1lGW7xmdvH2ErddMsPW1xwsptEy8mV3cTgftEvBckHtv3XkYHT+LAYni1hE937g3e4A3/iT+h0=
+	 MIME-Version; b=oSJVbwdWFC4byF61RWgXITOpv8Zi632JJ0eZe8XHS/4ZLW/9qv1z9W6FVO3uRkwpjM6zO0Wfi7GS8r81A6Pt+SsqKZQpb9osGNhKx3Ldv18McWa8dtFvfdCpnNo8SU8Wj3mvfnlfxuwdcgie/QinRQotrGdg+3DmHn9x3tqJoAY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linkmauve.fr; spf=pass smtp.mailfrom=linkmauve.fr; arc=none smtp.client-ip=82.65.109.163
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linkmauve.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linkmauve.fr
 Received: by luna.linkmauve.fr (Postfix, from userid 1000)
-	id 8AFA9F40D25; Wed, 15 Jul 2026 19:52:52 +0200 (CEST)
+	id 6F87FF402E8; Wed, 15 Jul 2026 19:52:55 +0200 (CEST)
 From: Link Mauve <linkmauve@linkmauve.fr>
 To: Srinivas Kandagatla <srini@kernel.org>
 Cc: Link Mauve <linkmauve@linkmauve.fr>,
@@ -105,9 +105,9 @@ Cc: Link Mauve <linkmauve@linkmauve.fr>,
 	linux-rtc@vger.kernel.org,
 	linux-sunxi@lists.linux.dev,
 	rust-for-linux@vger.kernel.org
-Subject: [PATCH 7/8] mfd: twl-core: make reg_write callback take const void *
-Date: Wed, 15 Jul 2026 19:52:23 +0200
-Message-ID: <20260715175229.24672-8-linkmauve@linkmauve.fr>
+Subject: [PATCH 8/8] media: ov2740: remove NULL reg_write callback
+Date: Wed, 15 Jul 2026 19:52:24 +0200
+Message-ID: <20260715175229.24672-9-linkmauve@linkmauve.fr>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260715175229.24672-1-linkmauve@linkmauve.fr>
 References: <20260715175229.24672-1-linkmauve@linkmauve.fr>
@@ -117,53 +117,31 @@ List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-The previous commit switched from a pointer to mutable data to a pointer
-to immutable data, so let’s fix all users of the nvmem_config API.
+This field is already initialized to NULL, so there is no reason to
+write it again.
+
+This prevents it from appearing while grepping for reg_write in the
+future.
 
 Signed-off-by: Link Mauve <linkmauve@linkmauve.fr>
 ---
- drivers/mfd/twl-core.c  | 2 +-
- include/linux/mfd/twl.h | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/i2c/ov2740.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index c024a28b057e..d7e3ab41717b 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -447,7 +447,7 @@ static struct regmap *twl_get_regmap(u8 mod_no)
-  *
-  * Returns 0 on success or else a negative error code.
-  */
--int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
-+int twl_i2c_write(u8 mod_no, const u8 *value, u8 reg, unsigned num_bytes)
- {
- 	struct regmap *regmap = twl_get_regmap(mod_no);
- 	int ret;
-diff --git a/include/linux/mfd/twl.h b/include/linux/mfd/twl.h
-index b31e07fa4d51..131451d70960 100644
---- a/include/linux/mfd/twl.h
-+++ b/include/linux/mfd/twl.h
-@@ -168,7 +168,7 @@ int twl_set_regcache_bypass(u8 mod_no, bool enable);
- /*
-  * Read and write several 8-bit registers at once.
-  */
--int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
-+int twl_i2c_write(u8 mod_no, const u8 *value, u8 reg, unsigned num_bytes);
- int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
- 
- /*
-@@ -186,7 +186,7 @@ static inline int twl_i2c_write_u16(u8 mod_no, u16 val, u8 reg) {
- 	__le16 value;
- 
- 	value = cpu_to_le16(val);
--	return twl_i2c_write(mod_no, (u8 *) &value, reg, 2);
-+	return twl_i2c_write(mod_no, (const u8 *) &value, reg, 2);
- }
- 
- static inline int twl_i2c_read_u16(u8 mod_no, u16 *val, u8 reg) {
+diff --git a/drivers/media/i2c/ov2740.c b/drivers/media/i2c/ov2740.c
+index fb590dfadda1..799eca4023da 100644
+--- a/drivers/media/i2c/ov2740.c
++++ b/drivers/media/i2c/ov2740.c
+@@ -1271,7 +1271,6 @@ static int ov2740_register_nvmem(struct i2c_client *client,
+ 	nvmem_config.compat = true;
+ 	nvmem_config.base_dev = dev;
+ 	nvmem_config.reg_read = ov2740_nvmem_read;
+-	nvmem_config.reg_write = NULL;
+ 	nvmem_config.priv = nvm;
+ 	nvmem_config.stride = 1;
+ 	nvmem_config.word_size = 1;
 -- 
 2.55.0
 
