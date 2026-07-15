@@ -1,22 +1,22 @@
 Received: from luna.linkmauve.fr (82-65-109-163.subs.proxad.net [82.65.109.163])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C084643E07B;
-	Wed, 15 Jul 2026 19:03:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCF53400986;
+	Wed, 15 Jul 2026 19:09:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.65.109.163
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784142219; cv=none; b=deq/Aql+v8EBXyjVBuJ/7Pz8QyG/d3GITH9ufu+QyZ5NdaD86ljm+8qnY/QUaTWIqjGPiv5CNKLt6I3ccsue0caSrCe4m4LdCdkB8oTxV7kkAQf9G/VyJUUv4sBozounKpQW1D6ycegkL65xYzaq9QUpSN6TdOcWjiVbZ2CxG0E=
+	t=1784142571; cv=none; b=IJKQW8qM7CaXgjoRk42GqvRv236rtAXD9NoMaBY7Y3Zvy6gg1xhXd5M5qlB/3wUQfABRKZsyF+BCcP4gPMhLPYPOvOKqhJ9yU+uEesaEuUCsCw1rBNLiY80NYdn/XKhADFwgrkYZJrSORXHIg0FIt+hxTle+yFWhZW38+b4SS5c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784142219; c=relaxed/simple;
-	bh=QcRclczwWInW/m9Xbw/fiBz4XRN9PVU7yN3xi60RXRI=;
+	s=arc-20240116; t=1784142571; c=relaxed/simple;
+	bh=66x5PoM5bVTx1CXpsNEXknXuxFVHsPvPsPCs90jO+30=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=eQKQCxZWwYYYeVRAQ6qWh+GqQHlpXRJVM9BYgt+8vSlSPLJ/RXebIZUeVaMnrtDUqTPeNFpe54/j00m946I6LcXg6WZ11NIzxHvBi4LVZGMlTKyEu8rAoKvS8ceCmJIdZTvsrHU7DHzi+cyUPlR+yOEou+x4tSzSPzXlz1YJOBQ=
+	 Content-Type:Content-Disposition:In-Reply-To; b=Q+m+///HOEzU1q8J6ukbq1RQ0lV9HeZ8w05dm0C2BWewMdYGjo0dlBgU9t+CwVLL2p24Gfigf6Yqc08aP04COa6uf/iYy6+y1bzh6AFoj0SYoYkJo6TNJ79CkEzRhmnmGLvqXYii5rlhcVT1ahaoTIdje0hXFKHHkXch0HpeQIc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linkmauve.fr; spf=pass smtp.mailfrom=linkmauve.fr; arc=none smtp.client-ip=82.65.109.163
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linkmauve.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linkmauve.fr
 Received: by luna.linkmauve.fr (Postfix, from userid 1000)
-	id EFB14F40D2C; Wed, 15 Jul 2026 21:03:19 +0200 (CEST)
-Date: Wed, 15 Jul 2026 21:03:19 +0200
+	id 7F6AFF40D2D; Wed, 15 Jul 2026 21:09:06 +0200 (CEST)
+Date: Wed, 15 Jul 2026 21:09:06 +0200
 From: Link Mauve <linkmauve@linkmauve.fr>
 To: Andy Shevchenko <andriy.shevchenko@intel.com>
 Cc: Link Mauve <linkmauve@linkmauve.fr>,
@@ -93,34 +93,57 @@ Cc: Link Mauve <linkmauve@linkmauve.fr>,
 	imx@lists.linux.dev, linux-arm-msm@vger.kernel.org,
 	linux-stm32@st-md-mailman.stormreply.com, linux-rtc@vger.kernel.org,
 	linux-sunxi@lists.linux.dev, rust-for-linux@vger.kernel.org
-Subject: Re: [PATCH 1/8] nvmem: core: make reg_write() take a const void *
-Message-ID: <alfZd_eHgNk9izcy@luna>
+Subject: Re: [PATCH 0/8] nvmem: make reg_write() take a const void *
+Message-ID: <alfa0i2wLGZkhl5Z@luna>
 References: <20260715175229.24672-1-linkmauve@linkmauve.fr>
- <20260715175229.24672-2-linkmauve@linkmauve.fr>
- <alfYQP4a1U9pI6UR@ashevche-desk.local>
+ <alfZNQGcX0Z68eto@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <alfYQP4a1U9pI6UR@ashevche-desk.local>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <alfZNQGcX0Z68eto@ashevche-desk.local>
 Jabber-ID: linkmauve@linkmauve.fr
 
-On Wed, Jul 15, 2026 at 09:58:08PM +0300, Andy Shevchenko wrote:
-> On Wed, Jul 15, 2026 at 07:52:17PM +0200, Link Mauve wrote:
-> > This callback used to take a mutable void * for no reason, this was
-> > found while drafting the Rust abstraction.
+On Wed, Jul 15, 2026 at 10:02:13PM +0300, Andy Shevchenko wrote:
+> On Wed, Jul 15, 2026 at 07:52:16PM +0200, Link Mauve wrote:
+> > This callback used to take a mutable void * for no reason, which causes
+> > the compiler to be unaware that the val buffer should never be modified
+> > by the callback.
+> > 
+> > This was found while drafting the nvmem-provider Rust abstraction.
+> > 
+> > I’ve split this series based on the subsystem each patch affects, but I
+> > think it should go through the nvmem tree in one go after gathering the
+> > acks from the other subsystem maintainers.
 > 
-> I don't understand how it was compiled. const void * != void * in C and can't
-> be implicitly covered, if I am not mistaken. So, this patch heavily should
-> break the build. What did I miss?
+> It's an option. The other option (and often we go this way) is to introduce
+> a new name, convert users, convert the name back.
 
-I think I missed a lot of those drivers while compiling, probably
-because I built it for my target hardware instead of doing a
-COMPILE_TEST.
+Thanks for the hint, I’ll go for this route for v2 then.
+
+> 
+> See, for example, how GPIO subsystem changed a proto of .set() callback.
+
+I will, thanks.
+
+> 
+> > I’ve been told previously to not include too many maintainers in Cc, but
+> > I don’t know which ones to remove from the get_maintainers.pl output, so
+> > I’ve still included everyone, sorry about that.
+> 
+> With this, rather standard, way you will fulfill the above requirement
+> automatically. Also you won't need treewide change to bother everybody
+> with this. And also increase the chances to go in (maybe in a few releases
+> span).
+
+I originally thought given how few users of this API there are in the
+kernel, it would be simpler to fix them all in one go, but that might be
+a better option then.
 
 > 
 > -- 
