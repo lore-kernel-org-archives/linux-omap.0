@@ -1,21 +1,21 @@
 Received: from luna.linkmauve.fr (82-65-109-163.subs.proxad.net [82.65.109.163])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCD004A13B9;
-	Wed, 15 Jul 2026 17:52:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA1434A2E22;
+	Wed, 15 Jul 2026 17:52:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.65.109.163
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784137980; cv=none; b=PNkOUCjG8jjD2SA00lRYOTIhaUNhDSegivUcodnkRYJKKXIM+sSbddr44y39Gs7PoOW0LWVdURaguf4sEiS7WhIph5vcUvWwARiXYroYfX8f2Db1G8sMq4qEZFMIfs4J17DS+rfoQXe5meR1AnO+BdYejFHs+2SPD4SM+W+9NvQ=
+	t=1784137982; cv=none; b=RAWSmXDvEJlgOgUGe82eanLgJEurPa79qwtMDxA3Bzp8zlCHyEDsizrjU9VDCuH3Ukl4FP3vNAEZWV4BLTosT4vTdQCeGYJTKhjU/7LxNSuV14y7pwBVfyESa7ULxPMoCtmnLfGreLjWHwsqbSRN+KbpQmUCnkqGx8LZbMK6s2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784137980; c=relaxed/simple;
-	bh=uOz8qHflYfhCLHUoFf+DPpLsT3ojAu4y0xHkt0KrZYs=;
+	s=arc-20240116; t=1784137982; c=relaxed/simple;
+	bh=HmDTdeFmXUNekb42xkLm8wMIQvrqoYDvHiyd1yd1CY0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=GYYXNpK3hhQyu0Jjws0aAhT5T4H70ZBJOLgn8GumQTmZmP3jV9KLfowfA93nMfYMIbwm6O6qiO1etdXX3eaCpT1vGfCY0vi1gdcOsWPqLg/UbfJGk5YK6AsZxWB0HDQ/8/ihekJrp6TOeJukp21YZqN2bi92npapBbtM3DtVtcc=
+	 MIME-Version:Content-Type; b=QPypfGjxm9d5cbSKU+ia17pjzVsD8DUlf0SU+QO4PkXChPDGsdV7mnoSnpB8IrKsDiKT32zTIzHwIZOK2OGGOFxYWauhFrRne1lGW7xmdvH2ErddMsPW1xwsptEy8mV3cTgftEvBckHtv3XkYHT+LAYni1hE937g3e4A3/iT+h0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linkmauve.fr; spf=pass smtp.mailfrom=linkmauve.fr; arc=none smtp.client-ip=82.65.109.163
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linkmauve.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linkmauve.fr
 Received: by luna.linkmauve.fr (Postfix, from userid 1000)
-	id B9800F40D23; Wed, 15 Jul 2026 19:52:48 +0200 (CEST)
+	id 8AFA9F40D25; Wed, 15 Jul 2026 19:52:52 +0200 (CEST)
 From: Link Mauve <linkmauve@linkmauve.fr>
 To: Srinivas Kandagatla <srini@kernel.org>
 Cc: Link Mauve <linkmauve@linkmauve.fr>,
@@ -105,9 +105,9 @@ Cc: Link Mauve <linkmauve@linkmauve.fr>,
 	linux-rtc@vger.kernel.org,
 	linux-sunxi@lists.linux.dev,
 	rust-for-linux@vger.kernel.org
-Subject: [PATCH 6/8] firmware: meson_sm: make reg_write callback take const void *
-Date: Wed, 15 Jul 2026 19:52:22 +0200
-Message-ID: <20260715175229.24672-7-linkmauve@linkmauve.fr>
+Subject: [PATCH 7/8] mfd: twl-core: make reg_write callback take const void *
+Date: Wed, 15 Jul 2026 19:52:23 +0200
+Message-ID: <20260715175229.24672-8-linkmauve@linkmauve.fr>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260715175229.24672-1-linkmauve@linkmauve.fr>
 References: <20260715175229.24672-1-linkmauve@linkmauve.fr>
@@ -125,36 +125,45 @@ to immutable data, so let’s fix all users of the nvmem_config API.
 
 Signed-off-by: Link Mauve <linkmauve@linkmauve.fr>
 ---
- drivers/firmware/meson/meson_sm.c       | 2 +-
- include/linux/firmware/meson/meson_sm.h | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/twl-core.c  | 2 +-
+ include/linux/mfd/twl.h | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/firmware/meson/meson_sm.c b/drivers/firmware/meson/meson_sm.c
-index ab9751a59b55..5d4da2e3c3a9 100644
---- a/drivers/firmware/meson/meson_sm.c
-+++ b/drivers/firmware/meson/meson_sm.c
-@@ -196,7 +196,7 @@ EXPORT_SYMBOL(meson_sm_call_read);
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index c024a28b057e..d7e3ab41717b 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -447,7 +447,7 @@ static struct regmap *twl_get_regmap(u8 mod_no)
   *
-  * Return:	size of sent data on success, a negative value on error
+  * Returns 0 on success or else a negative error code.
   */
--int meson_sm_call_write(struct meson_sm_firmware *fw, void *buffer,
-+int meson_sm_call_write(struct meson_sm_firmware *fw, const void *buffer,
- 			unsigned int size, unsigned int cmd_index, u32 arg0,
- 			u32 arg1, u32 arg2, u32 arg3, u32 arg4)
+-int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
++int twl_i2c_write(u8 mod_no, const u8 *value, u8 reg, unsigned num_bytes)
  {
-diff --git a/include/linux/firmware/meson/meson_sm.h b/include/linux/firmware/meson/meson_sm.h
-index 3ebc2bd9a976..92cc61f3a1c0 100644
---- a/include/linux/firmware/meson/meson_sm.h
-+++ b/include/linux/firmware/meson/meson_sm.h
-@@ -21,7 +21,7 @@ struct meson_sm_firmware;
+ 	struct regmap *regmap = twl_get_regmap(mod_no);
+ 	int ret;
+diff --git a/include/linux/mfd/twl.h b/include/linux/mfd/twl.h
+index b31e07fa4d51..131451d70960 100644
+--- a/include/linux/mfd/twl.h
++++ b/include/linux/mfd/twl.h
+@@ -168,7 +168,7 @@ int twl_set_regcache_bypass(u8 mod_no, bool enable);
+ /*
+  * Read and write several 8-bit registers at once.
+  */
+-int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
++int twl_i2c_write(u8 mod_no, const u8 *value, u8 reg, unsigned num_bytes);
+ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
  
- int meson_sm_call(struct meson_sm_firmware *fw, unsigned int cmd_index,
- 		  s32 *ret, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
--int meson_sm_call_write(struct meson_sm_firmware *fw, void *buffer,
-+int meson_sm_call_write(struct meson_sm_firmware *fw, const void *buffer,
- 			unsigned int b_size, unsigned int cmd_index, u32 arg0,
- 			u32 arg1, u32 arg2, u32 arg3, u32 arg4);
- int meson_sm_call_read(struct meson_sm_firmware *fw, void *buffer,
+ /*
+@@ -186,7 +186,7 @@ static inline int twl_i2c_write_u16(u8 mod_no, u16 val, u8 reg) {
+ 	__le16 value;
+ 
+ 	value = cpu_to_le16(val);
+-	return twl_i2c_write(mod_no, (u8 *) &value, reg, 2);
++	return twl_i2c_write(mod_no, (const u8 *) &value, reg, 2);
+ }
+ 
+ static inline int twl_i2c_read_u16(u8 mod_no, u16 *val, u8 reg) {
 -- 
 2.55.0
 
