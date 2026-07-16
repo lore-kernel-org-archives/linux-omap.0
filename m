@@ -1,49 +1,49 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17C6B3F39CA;
-	Thu, 16 Jul 2026 17:44:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBFD443E48D;
+	Thu, 16 Jul 2026 17:45:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784223858; cv=none; b=ofCwsl1UJz+Ua/5/8zUxUX0BRJLGkgiq9CTL9XiGyuA28ZEce8XBuU7TjZc38/MVIcBa8Ok9mNmOmZ5ad7Mo3SR9qMGnekKeDTytAI+zdz4rxPhdW2T1jN+hxrLVL09PPUuJkmzlWbJQ9cmFqaTlmrHwTjEJ6eXlRg8DIsk+OH8=
+	t=1784223924; cv=none; b=DrdAQMm87DFLUenR89/GV/6rYiD1Lvcm4bx6rhP3wd6wo2+fWxvVG2hfgLYXNjxYFUkFzvCBISGq+/yGXUdfmPC76P5pLYxw+iNWMVAZZt8vscANaMAktMe3TuuLxQfIAtvDMLMER7J6Uj0vl+sAMqLMQf7ll2wwpeK4eAdrnrk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784223858; c=relaxed/simple;
-	bh=jR5j9NUUUDWrKfOXsM73JV6fyT1VqUxtuhsCIIn6jKM=;
+	s=arc-20240116; t=1784223924; c=relaxed/simple;
+	bh=zbVibP9aLTK8oNvSIhVNQ4AgGcuyaBeKvV56UEcTcpQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Aq7rnB6583hxcRDYrDiE19b0KqXCX0bfNIiDqziOz+Lo8A4vsEMa7JPBlkNI8ihsEP/HRY/sx2jgaq6+HpIsoSPPz7+ChSdrIVdi1ru4O+2q6APNqphV3L2UGxs8ruZJRlO9k744Mckz+LTGKRZWZviija5ZtaoAqqnvpnl656g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PBFu8dIS; arc=none smtp.client-ip=192.198.163.19
+	 Content-Type:Content-Disposition:In-Reply-To; b=BAhNWrBy1WVVTtg3W0Nb1NQlgToJy8kx/dFRNBni50gsJFJwLXuZ9p6Mjh1YQ0oirEY/OQma2gbPUQuo2jXTpY5VMT/mS5al3SsuBhyBxKVHyj09rcpI6xqK5qGvezoiLp6M7vqk6NHH/uKsqRYeRq+K+Nuxl5E5i9W9nig8AoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fa1lntsR; arc=none smtp.client-ip=198.175.65.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PBFu8dIS"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fa1lntsR"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784223857; x=1815759857;
+  t=1784223923; x=1815759923;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:content-transfer-encoding:in-reply-to;
-  bh=jR5j9NUUUDWrKfOXsM73JV6fyT1VqUxtuhsCIIn6jKM=;
-  b=PBFu8dIS6lPrXKqPR/f3wVgD/fhR/CvWS2WZCTQBLoRRwd8XNeuipGrM
-   LAxkimcOd3KMvfSEAM1uhZViALQHUf+8J4QeGf8ZVoPFFvEoT68WSbXzD
-   0oYTFW8Ag3RDbzHC8e2PGyET9EfpQIFbQTS8pQuRHmC+srczE5qMto14R
-   sb38PpvblsL1RIlgSopAA9u/cIEHZmPQ+Fkvv5BNTMP+UsfyXFdMjKDNg
-   ox1dTQgiJ0R34AKrdmDJc6V48uuMYDjNl432gauZAGY9TUktL1ZNiWNku
-   Lz03fiSonJs0fY6X3hFGvVm2Spyb7rW4C6LLbKlJnk1eNKs9KkyhNsaR1
+  bh=zbVibP9aLTK8oNvSIhVNQ4AgGcuyaBeKvV56UEcTcpQ=;
+  b=fa1lntsR0KjstL+qAvyVKMc1vA2g4rw5JjZ+lcdVvSGiUTBrrAS6812V
+   f+uiFX9SR05hATboMM1i3aGrDUAbd1sqs7OinwzrKT2kz7C6cs1DGPJ5b
+   gtaCMcj8c98+KwyDGMce8L5l0U68UGIvmy8Pk1a3DBFNfRI9T5TdD1+xM
+   /bI9DrcPoO4EdDXvSqb3NIAUcWJd7ycc4GU4686JXRUHfeONjmPy+MDYZ
+   1foP+4QkdWzzDwkF9HugSBn2MIlGaq6YnQmJgOjXHQYrP3oABlqxS6nEI
+   uhqvDJPmzC8o1NwlL5ae6ajWoDhUgz+UgXo5u1Ii4Q9Nr6ngDaw/8c09D
    w==;
-X-CSE-ConnectionGUID: /RpLniRTTC+vhxHSYO9vew==
-X-CSE-MsgGUID: I98l0juhTWevECEuCp28EA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11848"; a="83877238"
+X-CSE-ConnectionGUID: ImHTzSY2Rk6Ifxh3QBtbSg==
+X-CSE-MsgGUID: 8ibK9VeBS3CldJHzjVtwmg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11848"; a="85090253"
 X-IronPort-AV: E=Sophos;i="6.25,167,1779174000"; 
-   d="scan'208";a="83877238"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jul 2026 10:44:15 -0700
-X-CSE-ConnectionGUID: aMxhVdAuQT2VWNRoxPa/nw==
-X-CSE-MsgGUID: NDeukz9TQ02LlIOQEavzaw==
+   d="scan'208";a="85090253"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jul 2026 10:45:21 -0700
+X-CSE-ConnectionGUID: tUarK1GxR1ydTColBfz7Rw==
+X-CSE-MsgGUID: kqVQX9ajR9KmsayDkRu5Zg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.25,167,1779174000"; 
-   d="scan'208";a="256023287"
+   d="scan'208";a="279834026"
 Received: from conormcd-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.245.26])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jul 2026 10:43:55 -0700
-Date: Thu, 16 Jul 2026 20:43:53 +0300
+  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jul 2026 10:45:03 -0700
+Date: Thu, 16 Jul 2026 20:45:01 +0300
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
 Cc: Linus Walleij <linusw@kernel.org>,
@@ -123,8 +123,9 @@ Cc: Linus Walleij <linusw@kernel.org>,
 	Michael Buesch <m@bues.ch>, William Breathitt Gray <wbg@kernel.org>,
 	Robert Richter <rric@kernel.org>, linux-acpi@vger.kernel.org
 Subject: Re: [PATCH v2 00/21] gpio: Improvements around device-id arrays
-Message-ID: <alkYWcuMsfE5jkLR@ashevche-desk.local>
+Message-ID: <alkYnQdzZlKf2bfB@ashevche-desk.local>
 References: <cover.1784133987.git.u.kleine-koenig@baylibre.com>
+ <alkYWcuMsfE5jkLR@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -134,25 +135,29 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <cover.1784133987.git.u.kleine-koenig@baylibre.com>
+In-Reply-To: <alkYWcuMsfE5jkLR@ashevche-desk.local>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Wed, Jul 15, 2026 at 06:55:05PM +0200, Uwe Kleine-König (The Capable Hub) wrote:
-> Hello,
+On Thu, Jul 16, 2026 at 08:44:14PM +0300, Andy Shevchenko wrote:
+> On Wed, Jul 15, 2026 at 06:55:05PM +0200, Uwe Kleine-König (The Capable Hub) wrote:
+> > Hello,
+> > 
+> > as with v1 the original motivation for this series are the patches that
+> > convert the arrays to use named initializers, see
+> > https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@baylibre.com/
+> > for the idea behind it. Then by not closing the eyes for small issues
+> > spotted while working on that, this series grew a bit.
+> > 
+> > Changes since v1 (available at
+> > https://lore.kernel.org/linux-kernel/cover.1784013063.git.u.kleine-koenig@baylibre.com):
 > 
-> as with v1 the original motivation for this series are the patches that
-> convert the arrays to use named initializers, see
-> https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@baylibre.com/
-> for the idea behind it. Then by not closing the eyes for small issues
-> spotted while working on that, this series grew a bit.
-> 
-> Changes since v1 (available at
-> https://lore.kernel.org/linux-kernel/cover.1784013063.git.u.kleine-koenig@baylibre.com):
+> Sorry, but at first glance it seems this version is messed up.
+> I'm not going to look into it deeply, waiting for *carefully*
+> checked v3...
 
-Sorry, but at first glance it seems this version is messed up.
-I'm not going to look into it deeply, waiting for *carefully*
-checked v3...
+And with the above being said, my tags against v2 are not valid
+(withdrawn).
 
 -- 
 With Best Regards,
