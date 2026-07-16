@@ -1,166 +1,132 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBFD443E48D;
-	Thu, 16 Jul 2026 17:45:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C94024302FA
+	for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 17:49:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784223924; cv=none; b=DrdAQMm87DFLUenR89/GV/6rYiD1Lvcm4bx6rhP3wd6wo2+fWxvVG2hfgLYXNjxYFUkFzvCBISGq+/yGXUdfmPC76P5pLYxw+iNWMVAZZt8vscANaMAktMe3TuuLxQfIAtvDMLMER7J6Uj0vl+sAMqLMQf7ll2wwpeK4eAdrnrk=
+	t=1784224164; cv=none; b=HebwfRb4P+IZEzC4Q9kWo8ENabo8YaTgcAhhpXkm6+qVcje0AJ28/wjqDgDBa9rXshPJYruKJuZBiFHWm0fyg1i5XZ8aJM7t2JqhxVkmUAgmVlJkcmjVbL7Gten4zxL536yUYAYqS/4I7BQyKEegVVu9YF+InUsXhjZCjL6y1pI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784223924; c=relaxed/simple;
-	bh=zbVibP9aLTK8oNvSIhVNQ4AgGcuyaBeKvV56UEcTcpQ=;
+	s=arc-20240116; t=1784224164; c=relaxed/simple;
+	bh=bKRolBV3xBMMsK40FcrEsNOw9RXevHwtK+o1ICFtrTw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BAhNWrBy1WVVTtg3W0Nb1NQlgToJy8kx/dFRNBni50gsJFJwLXuZ9p6Mjh1YQ0oirEY/OQma2gbPUQuo2jXTpY5VMT/mS5al3SsuBhyBxKVHyj09rcpI6xqK5qGvezoiLp6M7vqk6NHH/uKsqRYeRq+K+Nuxl5E5i9W9nig8AoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fa1lntsR; arc=none smtp.client-ip=198.175.65.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=lPxHNfrl+dEjOX6JsTD9fIimopSLHqkaMZPKMf6jUEeLMUaRZGHvnGLMhR2YA2XqL1S3cH3TnpmuwUDgKR63zTokAutF2EvgM5dytPv+M95V7krrnHgWUSI2/844aQC8RX5hXTQwAgvcHig1hwDOgRLWK/YE+DIwstrJRrfcZdY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=HY9S8eGn; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=Sh3bCVBx; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fa1lntsR"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784223923; x=1815759923;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=zbVibP9aLTK8oNvSIhVNQ4AgGcuyaBeKvV56UEcTcpQ=;
-  b=fa1lntsR0KjstL+qAvyVKMc1vA2g4rw5JjZ+lcdVvSGiUTBrrAS6812V
-   f+uiFX9SR05hATboMM1i3aGrDUAbd1sqs7OinwzrKT2kz7C6cs1DGPJ5b
-   gtaCMcj8c98+KwyDGMce8L5l0U68UGIvmy8Pk1a3DBFNfRI9T5TdD1+xM
-   /bI9DrcPoO4EdDXvSqb3NIAUcWJd7ycc4GU4686JXRUHfeONjmPy+MDYZ
-   1foP+4QkdWzzDwkF9HugSBn2MIlGaq6YnQmJgOjXHQYrP3oABlqxS6nEI
-   uhqvDJPmzC8o1NwlL5ae6ajWoDhUgz+UgXo5u1Ii4Q9Nr6ngDaw/8c09D
-   w==;
-X-CSE-ConnectionGUID: ImHTzSY2Rk6Ifxh3QBtbSg==
-X-CSE-MsgGUID: 8ibK9VeBS3CldJHzjVtwmg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11848"; a="85090253"
-X-IronPort-AV: E=Sophos;i="6.25,167,1779174000"; 
-   d="scan'208";a="85090253"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jul 2026 10:45:21 -0700
-X-CSE-ConnectionGUID: tUarK1GxR1ydTColBfz7Rw==
-X-CSE-MsgGUID: kqVQX9ajR9KmsayDkRu5Zg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,167,1779174000"; 
-   d="scan'208";a="279834026"
-Received: from conormcd-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.245.26])
-  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jul 2026 10:45:03 -0700
-Date: Thu, 16 Jul 2026 20:45:01 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
-Cc: Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Lixu Zhang <lixu.zhang@intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans de Goede <hansg@kernel.org>, Andy Shevchenko <andy@kernel.org>,
-	Ray Jui <rjui@broadcom.com>,
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
-	Florian Fainelli <florian.fainelli@broadcom.com>,
-	Scott Branden <sbranden@broadcom.com>,
-	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>,
-	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
-	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>, Imre Kaloz <kaloz@openwrt.org>,
-	Conor Dooley <conor.dooley@microchip.com>,
-	Daire McNamara <daire.mcnamara@microchip.com>,
-	Daniel Palmer <daniel@thingy.jp>,
-	Romain Perier <romain.perier@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>, imx@lists.linux.dev,
-	linux-arm-kernel@lists.infradead.org,
-	linux-riscv@lists.infradead.org,
-	Hoan Tran <hoan@os.amperecomputing.com>,
-	Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>,
-	Mika Westerberg <westeri@kernel.org>,
-	"Enrico Weigelt, metux IT consult" <info@metux.net>,
-	Viresh Kumar <vireshk@kernel.org>, virtualization@lists.linux.dev,
-	Yinbo Zhu <zhuyinbo@loongson.cn>,
-	Thierry Reding <thierry.reding@kernel.org>,
-	Jonathan Hunter <jonathanh@nvidia.com>, linux-tegra@vger.kernel.org,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Joel Stanley <joel@jms.id.au>,
-	Andrew Jeffery <andrew@codeconstruct.com.au>,
-	Alban Bedel <albeu@free.fr>,
-	James Cowgill <james.cowgill@blaize.com>,
-	Matt Redfearn <matt.redfearn@blaize.com>,
-	Neil Jones <neil.jones@blaize.com>,
-	Nikolaos Pasaloukos <nikolaos.pasaloukos@blaize.com>,
-	Doug Berger <opendmb@gmail.com>, Keerthy <j-keerthy@ti.com>,
-	Vladimir Zapolskiy <vz@mleia.com>,
-	Piotr Wojtaszczyk <piotr.wojtaszczyk@timesys.com>,
-	Sven Peter <sven@kernel.org>, Janne Grunau <j@jannau.net>,
-	Neal Gompa <neal@gompa.dev>,
-	Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>,
-	=?iso-8859-1?Q?Andr=E9?= Draszik <andre.draszik@linaro.org>,
-	Bamvor Jian Zhang <bamv2005@gmail.com>,
-	Marek =?iso-8859-1?Q?Beh=FAn?= <kabel@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Avi Fishman <avifishman70@gmail.com>,
-	Tomer Maimon <tmaimon77@gmail.com>,
-	Tali Perry <tali.perry1@gmail.com>,
-	Patrick Venture <venture@google.com>, Nancy Yuen <yuenn@google.com>,
-	Benjamin Fair <benjaminfair@google.com>,
-	Santosh Shilimkar <ssantosh@kernel.org>,
-	Kevin Hilman <khilman@kernel.org>, Orson Zhai <orsonzhai@gmail.com>,
-	Baolin Wang <baolin.wang@linux.alibaba.com>,
-	Chunyan Zhang <zhang.lyra@gmail.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Manivannan Sadhasivam <mani@kernel.org>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Ludovic Desroches <ludovic.desroches@microchip.com>,
-	Paul Walmsley <pjw@kernel.org>,
-	Samuel Holland <samuel.holland@sifive.com>,
-	Michael Walle <mwalle@kernel.org>,
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-	Alexandre Torgue <alexandre.torgue@foss.st.com>,
-	Nobuhiro Iwamatsu <nobuhiro.iwamatsu.x90@mail.toshiba>,
-	Shubhrajyoti Datta <shubhrajyoti.datta@amd.com>,
-	Srinivas Neeli <srinivas.neeli@amd.com>,
-	Michal Simek <michal.simek@amd.com>, linux-aspeed@lists.ozlabs.org,
-	asahi@lists.linux.dev, linux-mediatek@lists.infradead.org,
-	openbmc@lists.ozlabs.org, linux-omap@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, linux-unisoc@lists.infradead.org,
-	linux-rockchip@lists.infradead.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	Michael Buesch <m@bues.ch>, William Breathitt Gray <wbg@kernel.org>,
-	Robert Richter <rric@kernel.org>, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v2 00/21] gpio: Improvements around device-id arrays
-Message-ID: <alkYnQdzZlKf2bfB@ashevche-desk.local>
-References: <cover.1784133987.git.u.kleine-koenig@baylibre.com>
- <alkYWcuMsfE5jkLR@ashevche-desk.local>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HY9S8eGn";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="Sh3bCVBx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1784224161;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=WQ2dOwd34yp2o4e4FFneZgLJ122AV+T21G+gB1LuX2U=;
+	b=HY9S8eGnm8bcYaMHurm7+K2aAY1W4c0qK44dSj/cE9nVvT3YEmk6P7Ni8gyH8VeT67Y+Sk
+	0jRea0Er4uRl8r3BhJ6mLeP6aGtahgOVKIn0g0t5FZ1I7yVwtBUoxsileP6RoCnCthub2X
+	3SDD4mrMPRLu+qif4tcjMd5Atn6FY/I=
+Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com
+ [209.85.222.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-595-lc9a3cLcMCqjBYlAEWj-5Q-1; Thu, 16 Jul 2026 13:49:20 -0400
+X-MC-Unique: lc9a3cLcMCqjBYlAEWj-5Q-1
+X-Mimecast-MFC-AGG-ID: lc9a3cLcMCqjBYlAEWj-5Q_1784224160
+Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-92e5fc4c7e9so425135385a.3
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 10:49:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1784224160; x=1784828960; darn=vger.kernel.org;
+        h=user-agent:in-reply-to:content-disposition:content-type
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=WQ2dOwd34yp2o4e4FFneZgLJ122AV+T21G+gB1LuX2U=;
+        b=Sh3bCVBxrq+yvlcUd1lfDMHxTfBAV2DclRnyxoEim3RUjG8ELZ8oFljbvRhSyHGF5m
+         rDGI2PuacImVxy2qPjU9qC54ahvEtEJuXSPLdDnUYBXRiWfClBQFi6TNxe/jNmg0DtqV
+         6wPgYyAGL5rct2FFcmh8ZtkId2wwyKJcUn4aapdiHdUQ8SCmF9bYxnYZ72Xo+3+6tjJP
+         uc/jqrqo7Ef821QP34RZp5t9r9DgQUuFPjEnfjMOCE4be8xKEONojlGaVl4rIHo4Zlav
+         XpEZbravEZeFKqC99oATzBDf+efTduMrsmJYb9i0ru4Vm1TW/Xuc3ycqbrUJGZTX+E5u
+         zY9g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784224160; x=1784828960;
+        h=user-agent:in-reply-to:content-disposition:content-type
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=WQ2dOwd34yp2o4e4FFneZgLJ122AV+T21G+gB1LuX2U=;
+        b=AA/i8S9FA/h1O+EKdo3NaF90Xj3HE9oBnOjdxkMj9yJX6hKX3KKsjk/XVJew45yHRj
+         YQs6s64lACoSaqiGp/kyIMYfoj3ge/jblh/V3SH41GTXgNTqNfF0kt5vImInVvKVVTFN
+         Kp7uEjBkjcjZEFKwK8HICaqT17NnWAmMYuDp8C4UZNrPXikRO3mN+p5pUM4cmztBA1nw
+         Qb+z8TUrrvg2DV8o73m6whk1Kp1wg8YcwbQpog5NWnbgEnDm5+z30tpm07VPpjTtWDXa
+         N81V0PbaCT058e3ahUJQ4YUMrJP25xI2dj49CvEJS1aGDLABEnVWEjj72/xupLa3aFeC
+         x0Tg==
+X-Forwarded-Encrypted: i=1; AHgh+RpAv6P2I2uHb41/feZF5zwcNz2aR49+IjDmNvW/LsrmKFXkMbAjLn/p/eSvRvj4Bp1UvkKO2TWRE3QA@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw6Ve+CI0VUGMekFsFw8nhX900eu3l5NHmjkUI14LnHVZed2iyS
+	L6tx1+AkSH+s43TN9RmbnsKHnQ//PeSguOjKiQQVUuNZVIoRcSZrGTbeoAjv6+AX0t0FOqw6+MA
+	VHV+KCAnp9WlI54dxxXOsvWWBAcWI5Qm/pAaw63qUDn80LKlNIMYY6BndVPSHIj0=
+X-Gm-Gg: AfdE7cnmEXiIzKN1PJhmwjMuzL0RAgdgHniohttr/q0ROmb76/bYOI8s3rfoFZqwp81
+	RIeXi9NpnkXzdrTEchn6Tcsk5sAXVEAtObFCfSt/Z7Ucs+teIAYB1AfD27UcNYcE93WEcXtiH2Y
+	9aAWGfprl11qHu49kDy7K5WtqCFuW3UQaLU92bBpqiEJEKyi7UBwFkVKsmS6EfNn+WkD8qXyeDa
+	Av31Q00L5VZHu6l6Vm6hFGPbYQ1rG8IDLjgVQJDUD+c9PB02gwncXE4HuPUuE/+JuDFQyXrmueR
+	oStQyYYt+ljF4YQBt/csy5PdpxdCGBCkgildRjWCeca9k7mxMmDRAoQB8nU8kI/WjmeC5boDDz7
+	FWkZ04iIc8sW4lLXiH9mGgCr822luenZ9l9k=
+X-Received: by 2002:a05:620a:6cca:b0:92e:764a:a5b0 with SMTP id af79cd13be357-930b0763009mr52092785a.14.1784224160007;
+        Thu, 16 Jul 2026 10:49:20 -0700 (PDT)
+X-Received: by 2002:a05:620a:6cca:b0:92e:764a:a5b0 with SMTP id af79cd13be357-930b0763009mr52088985a.14.1784224159551;
+        Thu, 16 Jul 2026 10:49:19 -0700 (PDT)
+Received: from redhat.com (c-73-183-53-213.hsd1.pa.comcast.net. [73.183.53.213])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-92ee5cf78a5sm2166683485a.31.2026.07.16.10.49.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Jul 2026 10:49:18 -0700 (PDT)
+Date: Thu, 16 Jul 2026 13:49:15 -0400
+From: Brian Masney <bmasney@redhat.com>
+To: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+Cc: Tero Kristo <kristo@kernel.org>,
+	Michael Turquette <mturquette@baylibre.com>,
+	Stephen Boyd <sboyd@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	=?iso-8859-1?Q?Th=E9o?= Lebrun <theo.lebrun@bootlin.com>,
+	=?iso-8859-1?Q?Gr=E9gory?= Clement <gregory.clement@bootlin.com>,
+	linux-omap@vger.kernel.org, linux-clk@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] clk: ti: mux: resolve parent clocks by DT index, not by
+ name
+Message-ID: <alkZmw-XmnCOZfOD@redhat.com>
+References: <20260715-mathieu-wdt-clock-theo-v1-1-da65bba1828b@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <alkYWcuMsfE5jkLR@ashevche-desk.local>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <20260715-mathieu-wdt-clock-theo-v1-1-da65bba1828b@bootlin.com>
+User-Agent: Mutt/2.4.0 (2026-06-19)
 
-On Thu, Jul 16, 2026 at 08:44:14PM +0300, Andy Shevchenko wrote:
-> On Wed, Jul 15, 2026 at 06:55:05PM +0200, Uwe Kleine-König (The Capable Hub) wrote:
-> > Hello,
-> > 
-> > as with v1 the original motivation for this series are the patches that
-> > convert the arrays to use named initializers, see
-> > https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@baylibre.com/
-> > for the idea behind it. Then by not closing the eyes for small issues
-> > spotted while working on that, this series grew a bit.
-> > 
-> > Changes since v1 (available at
-> > https://lore.kernel.org/linux-kernel/cover.1784013063.git.u.kleine-koenig@baylibre.com):
+Hi Mathieu,
+
+On Wed, Jul 15, 2026 at 05:09:56PM +0200, Mathieu Dubois-Briand wrote:
+> Resolve parent clocks by their index into the device tree "clocks"
+> property rather than matching names as strings. Name-based matching is
+> fragile because a clock's "clock-output-names" value in its provider
+> node can differ from the name used to reference it in a consumer node,
+> and because names must be globally unique across all clock providers.
 > 
-> Sorry, but at first glance it seems this version is messed up.
-> I'm not going to look into it deeply, waiting for *carefully*
-> checked v3...
+> On AM335x, this caused broken clock trees where some clocks failed to
+> enable because their parents could not be found.
+> 
+> Replace of_clk_parent_fill() with a clk_parent_data array that sets
+> .index to the array position.
+> 
+> Fixes: ec7aa25fa483 ("ARM: dts: Use clock-output-names for am3")
+> Signed-off-by: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
 
-And with the above being said, my tags against v2 are not valid
-(withdrawn).
+So this only updates of_mux_clk_setup(). of_ti_composite_mux_clk_setup()
+calls ti_clk_add_component(), which does a name based matching as well.
+It would be nice to have this consistent within the same driver. I know
+this is going to require a larger refactor.
 
--- 
-With Best Regards,
-Andy Shevchenko
+Otherwise your fix looks correct to me.
 
+Brian
 
