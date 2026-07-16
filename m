@@ -1,63 +1,63 @@
-Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
+Received: from mail-pg1-f182.google.com (mail-pg1-f182.google.com [209.85.215.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35AF52E8897
-	for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 09:08:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 926F13F54CA
+	for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 09:09:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784192940; cv=none; b=GAK6xKYwAzLSAJMxnb47+lF2FQOSS2Mb6orSMP25z9BHrrRWm+pwzcvvp5kerHB5YSX6EyjI4PJMulC+PUt6Xp1IAxmzgx3q3isX9VgJLDto6//TuUxLTKvlicydB2YpRKOrddn40sf19qCTOjsqqprXJaEVa1i2j7/cqgCIc0I=
+	t=1784192944; cv=none; b=CDVZeXVhVxvYlIgaJDZ4Dx7EvcBtrg0mY78P53Z/eFPgwlv2ATHJSinkVjwYIRbYfeLBZWlMkee9PBkPRN1ZVYTUfXPzPgH0BJgznHGqbEr7+2yB1UOzNvXWvU6074xuFoiB9aQaizLyspqU9Vzv2NvBz4ky8/Y26vXztSlbO3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784192940; c=relaxed/simple;
-	bh=JnU7UlQSbchu2TYcv0iygOEto1dGJRIqdXNTolT4xaw=;
+	s=arc-20240116; t=1784192944; c=relaxed/simple;
+	bh=57NVq0S2AlHmeh0L3SJpPKysGLjaiNdhbzGWZRlh98Q=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sxGXCCtfL47kqoi0sQaee1sPIGEaM82dzgxSB5/wRjt9ql8aAFHN7CSbtAz2XcNSThaS87yggWSBjOSwibKSlDr2YY2BI0jyCNqCmRrw+yTx7na+vdxQ9Y0y8RDkx0T6bBuGbu6a8/pw5CJVMYQ96KnhNhvr7XgUXGxKXvRmob8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=auGZPALE; arc=none smtp.client-ip=209.85.210.179
+	 MIME-Version; b=qggSvpb+lUV4C3s8Y33ZV6LJBj3/pVE8rv2T4VJJWekyZ4GKsC+pDEfDhpdiR154fAD26lWw003/WcyzN33qTpn0MtjQHmVQfJbSki2ZYJ2n3aVP8uC+KEq2MCI5uG7WtUkkXt975OkE1QQIrq5YnLt16Red6eQM5UWvxJzpqIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Z3BKqW3K; arc=none smtp.client-ip=209.85.215.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="auGZPALE"
-Received: by mail-pf1-f179.google.com with SMTP id d2e1a72fcca58-84a4d8fd6ecso3185344b3a.1
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 02:08:57 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Z3BKqW3K"
+Received: by mail-pg1-f182.google.com with SMTP id 41be03b00d2f7-c85b73ffb52so3695315a12.3
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 02:09:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784192937; x=1784797737; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1784192941; x=1784797741; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=mcj/2QWjWsxOQT4KfGLw5iUUwUVIUq7Ov2ZMhZrhSSo=;
-        b=auGZPALEpBILaqn/rjPpBiodNTJrsoViTzgj+/+sRawC0fps402THHy9YhNE1r8rf/
-         QIErs/rEIcrMhXUIiSyB/w59QBt6NcIlz6O3w6/wd2A3jJ0PMM4d32mXlhgW688mCA+z
-         eWCuaUwosneXkWFvISr6GmKfOJ+SpoAxbNwpmJzaoK8vypIM9iMezXmS/akMs+WuMhTO
-         5VwEr4mTdKyRsFkKBPf0+Mg0lV/lnMvCYb++GPRnuvPJER+2JdlQaOisWYchhEEcuU8r
-         l4HSiw4CpdQXm1QOoZQ5Hp4GLVzMeXFQcFyCbpzZKAT047me4GMbYIxFVkjzvRwCpd4y
-         jGdw==
+        bh=QAFG2wBH9r9TrXOu1Xguqk4pZPLZGhj2LPXn115L7c4=;
+        b=Z3BKqW3KMGONdfARxNOWYPOm94NOVsspQ9PIf53shbrG7PrJaFxwSviZwfWPh5uIbf
+         aQ48uTvCHPviRtyMdJG0U8wboQmHoolpc+vn2jdloUMq7pnxP7nbpdw2eID0gqPyzyHX
+         vkI9TO/tDACTpy6N7ZxHieWUqcIgRtWHSFtG41wrGvMEiMIPN0TREVxL/bmhaaMM91Q5
+         gEwpo5NCUDDCZZODf4MXbI2N0l7u4SrYuIwdNn4mls+aqNHMfmXjbLWKDNcLkRgx5q4c
+         NSe8Nl8o282NtvG4JlsVx11wjt91CKYlkLfNhdt4ekyLHHendl+OvDCf/yP0ZfGwXWQf
+         mMPQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784192937; x=1784797737;
+        d=1e100.net; s=20251104; t=1784192941; x=1784797741;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=mcj/2QWjWsxOQT4KfGLw5iUUwUVIUq7Ov2ZMhZrhSSo=;
-        b=kA06eu06DfCd+ofo25Sx4hwisDmNmE/K2HK3hu4DLlxDyl/m2aKdP9gNM0EIbbxhmk
-         CW/MnSrhEKW5+ykEjfmp0wvy8VPdsgJh3ZyqRSIPsonaW4KJH2Yw70D8a7MsO5mOmQOp
-         Nsep7NGgAF0u2pqJf/rSPWk09ySBIsMPhH7BVNnl3in4yKZk2MSFkJSzs4s9XKUj5Fjb
-         m+aIwPMqOWvAsZzC4EVyP8fO/1SRc1n3rLWleRVV+PNKUNrXfqbBWKWKkqXgMGNWf/5d
-         I5oGIiYdkp1R7WHjDEgt9rALZUSvyn191gtrEd5Qlpl1KjH5n3uC1rC0difZHcqpEakC
-         n4Fw==
-X-Forwarded-Encrypted: i=1; AHgh+RrwSVPsYPSMIaVy78LJ5FCTqCK4oX7dUA+Ujii/7CxtOlAPKvLS0yAuPB9l6bo03TwAmHIy9UM7G9iB@vger.kernel.org
-X-Gm-Message-State: AOJu0YydinBiFD9CqXdJL5inT171hMF3ZQgSwsw7GfzO4hAapbRHnwWs
-	m6+CyasFSs5uVB9/kJbWm/WwYzEWRHEh9+VzdZmNllInJ39G4Vu1x9FO
-X-Gm-Gg: AfdE7clZmi0HqDz5BvRNCQ53qN/Gvino0Eyyt9mmDkRXHmZ4UHDZL3NXBoDAPORLv21
-	/2GUx2dZaCepbCvJNC69qWbFB7OAIglugZi2x1VHkw0P7prMLbuBQ3g4jIve3OOHinAeAnhCkTF
-	NQ7U7m0wQuEUF3BFPG5bkt0PvQTI9HAphvoVMmsOVsPL7GclnTwwqdX4b5oL4+70ueAUyH1YkpZ
-	gAjl6L7VJ2NMOyVJoHYXuoqt1CcK5inVFcDvsI7fZzE+Mp0dp0OxTWAhANfUxZF1xGmbih/VVKs
-	Ev8MH8CT8XFw88h05oCGPm5ncK7A+GzGgUWDTuT0cZIZ8gfcGcD0fWxSzEjQo4/uQq+istCdqBM
-	Z6PoglFfwcgULPVrqb+gzyjRcXgdCwRWF1VaUY6jaXDi81PLutW8uuovHn3+BhHPQDXyLFvL2Zi
-	xoXVAOdgYDjrhl99rEmtw2+sjFEgqw4bExUb3J
-X-Received: by 2002:a05:6a00:2341:b0:848:2f84:f429 with SMTP id d2e1a72fcca58-84a6738a72fmr5729566b3a.66.1784192937232;
-        Thu, 16 Jul 2026 02:08:57 -0700 (PDT)
+        bh=QAFG2wBH9r9TrXOu1Xguqk4pZPLZGhj2LPXn115L7c4=;
+        b=kTXPk9lVnQazuqs6DUMsgwxHRiWjdXYOhAZNmPXXCNr97MYJkySUqF5DJeMs0YUSsM
+         RLwKcHikd+BqMskyeuiypzW1SxR+UQB3NWF/j6nO+v4zNcACYvD7d9tJc4GAYzoqjQ5W
+         P8D2v5rOtrHJkcvaYGJOFXxdt+NfbRwaFn6V6sGGNo9OI1uPvl87D+whK3rJict8CnMp
+         sULQRepoR0by6j7Yd1CEYUhql30yDX1TBGZMJgdf2k2RD14F5YtFU86EzhpO31mYIuoC
+         dJ1Df4/eybdf7sbXu2h9Ne21vaVUVImPpIScv8rQ6jali1h6OUu2RrkckpYa6+tn8zmf
+         5+vg==
+X-Forwarded-Encrypted: i=1; AHgh+Roh/u5I+m09kYwJZtESIcAKJZK6BvtyFYnL7dKjoPABDiuy844tqJ22dWilLJtTo4x6ne6/ehqWINCF@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx+n20l3ZcnFuJg3Cxak/SC4R0ZdZjMztesScCWE5yDC/N3UcUE
+	CGCEcWy1RVSBf3/ccIooL/GjJ6RSXxbtw67qHqmzCbZYeAmHwLLxU1B6YWvpkA==
+X-Gm-Gg: AfdE7ckZ7Kqx0siYs+KN+Na4G+dRidJ1JDW9VQLDBSRKHvPtlDLE1ISPnRE7dLtsLkR
+	6bKx4UjTlJu8HFL1cawDjnJ/Q2sj12GgXhW5WXhn7uekgFjjFTz/uEXxH8R9fc1daf9UBmvG1qu
+	JSfXjn5f8Fn2jbb47FG1Yl/NWr6MXKzpydDS8y/uVSKnqfhDmZpxHds6W5fnTRbG4ImiitO16l6
+	3qZdo39+qtfBK+oEcGRGnRvCqZBQh2LfYYEbjbhzraVtnnCGzB+jbgo/MhDklUAK7w/NJM9GjEN
+	MNsAL/r8Vyw159sH0An4pQ0twTwlc/RBu7MVbWk8TmEIykfwAKWOB2odelmPUU7tWl7ACOk3lAj
+	pHZ+Bj3IqPfDCGeMHolQwem0bGkEDat0c0+OCKRMNq0rxnP5tWlh5K1XuCQBL4oF3TbU6MMvEWd
+	XmsLnolZQmh6GBvsfuy+MMLIcINF3Ie9s7NtX9
+X-Received: by 2002:a05:6a00:f92:b0:847:80c8:dfdb with SMTP id d2e1a72fcca58-84a6739cf29mr5798838b3a.55.1784192940913;
+        Thu, 16 Jul 2026 02:09:00 -0700 (PDT)
 Received: from phuc-desktop.. ([183.91.15.56])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84a4f6bf5ecsm4511800b3a.29.2026.07.16.02.08.54
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84a4f6bf5ecsm4511800b3a.29.2026.07.16.02.08.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Jul 2026 02:08:56 -0700 (PDT)
+        Thu, 16 Jul 2026 02:09:00 -0700 (PDT)
 From: phucduc.bui@gmail.com
 To: Mark Brown <broonie@kernel.org>,
 	Sen Wang <sen@ti.com>,
@@ -70,9 +70,9 @@ To: Mark Brown <broonie@kernel.org>,
 Cc: linux-kernel@vger.kernel.org,
 	linux-sound@vger.kernel.org,
 	bui duc phuc <phucduc.bui@gmail.com>
-Subject: [PATCH v2 03/10] ASoC: ti: j721e-evm: Return the original error from card name parsing
-Date: Thu, 16 Jul 2026 16:08:22 +0700
-Message-ID: <20260716090829.72082-4-phucduc.bui@gmail.com>
+Subject: [PATCH v2 04/10] ASoC: ti: omap-abe-twl6040: Preserve error code and drop redundant log
+Date: Thu, 16 Jul 2026 16:08:23 +0700
+Message-ID: <20260716090829.72082-5-phucduc.bui@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260716090829.72082-1-phucduc.bui@gmail.com>
 References: <20260716090829.72082-1-phucduc.bui@gmail.com>
@@ -86,33 +86,39 @@ Content-Transfer-Encoding: 8bit
 
 From: bui duc phuc <phucduc.bui@gmail.com>
 
-Return the error from snd_soc_of_parse_card_name() directly instead of
-converting it to -ENODEV. The helper already logs the error, so drop the
-redundant dev_err().
+Return the original errors from the OF parsing helpers and remove the
+redundant error messages, as the helpers already report failures.
 
 Signed-off-by: bui duc phuc <phucduc.bui@gmail.com>
 ---
- sound/soc/ti/j721e-evm.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ sound/soc/ti/omap-abe-twl6040.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/sound/soc/ti/j721e-evm.c b/sound/soc/ti/j721e-evm.c
-index 312298e0b004..600897a3e1c5 100644
---- a/sound/soc/ti/j721e-evm.c
-+++ b/sound/soc/ti/j721e-evm.c
-@@ -870,10 +870,9 @@ static int j721e_soc_probe(struct platform_device *pdev)
- 	card->num_dapm_routes = ARRAY_SIZE(j721e_cpb_dapm_routes);
- 	card->fully_routed = 1;
+diff --git a/sound/soc/ti/omap-abe-twl6040.c b/sound/soc/ti/omap-abe-twl6040.c
+index 56aa4b22083b..dfa931071d81 100644
+--- a/sound/soc/ti/omap-abe-twl6040.c
++++ b/sound/soc/ti/omap-abe-twl6040.c
+@@ -234,16 +234,13 @@ static int omap_abe_probe(struct platform_device *pdev)
+ 	card->dapm_routes = audio_map;
+ 	card->num_dapm_routes = ARRAY_SIZE(audio_map);
  
--	if (snd_soc_of_parse_card_name(card, "model")) {
+-	if (snd_soc_of_parse_card_name(card, "ti,model")) {
 -		dev_err(&pdev->dev, "Card name is not provided\n");
 -		return -ENODEV;
 -	}
-+	ret = snd_soc_of_parse_card_name(card, "model");
++	ret = snd_soc_of_parse_card_name(card, "ti,model");
 +	if (ret)
 +		return ret;
  
- 	link_cnt = 0;
- 	conf_cnt = 0;
+ 	ret = snd_soc_of_parse_audio_routing(card, "ti,audio-routing");
+-	if (ret) {
+-		dev_err(&pdev->dev, "Error while parsing DAPM routing\n");
++	if (ret)
+ 		return ret;
+-	}
+ 
+ 	dai_node = of_parse_phandle(node, "ti,mcpdm", 0);
+ 	if (!dai_node) {
 -- 
 2.43.0
 
