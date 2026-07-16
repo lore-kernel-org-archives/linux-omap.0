@@ -1,127 +1,130 @@
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96AFE41B8D0
-	for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 11:40:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784202018; cv=none; b=dDQ2BTbsjbuiYoew9DfV7g8yKJKWsWkC/iIdcUsvDKfX7PhUEpvAqfH9rJWAgbsI1SPrgDG1j0csHwtlfObw94k3s9WS4rVsh30N/t79b6133QaGWqgaMrxvOIuLF/h+npaqdV6CsLU2mg7j8gCzAL3Se5BA+DNgt43z1ZnawFM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784202018; c=relaxed/simple;
-	bh=Im70qmgrbAmqVUaeBnO30L5OqJc05vwCNKCuum/grFA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=a2wWLS7BM2o5erudxWEFppz/vC3c/0cSDBfHYUOzOY5OszB/F97tdNXHEJJR4aIGzEAZBymWcOMVY6RjyRMqPS0bHA0vzRoPYiUV3Qa93hs3NqbDJSVGFVwgb9mKswXNmQqg/rqLhwagJGrnog2vFZKJ4QZWL+InvioiQPeuJ+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sigma-star.at; spf=pass smtp.mailfrom=sigma-star.at; dkim=pass (2048-bit key) header.d=sigma-star.at header.i=@sigma-star.at header.b=Z3Iz1z00; arc=none smtp.client-ip=209.85.128.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=sigma-star.at
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sigma-star.at
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EED741E6AA
+	for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 12:14:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.170
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784204097; cv=pass; b=AUyGmmiv0LgvPzc1wDywHf/OkK0PfgLedFMsOzXOj2Rb7KhIe24lGl21h6umVdy1y9bVqIpuVLXN5yDGqcY0t4FraOJAEYKkNCRnW9UnEFLckOxd4IKDf9+a4u1u4LF2PfwYRY+dGAK2PqHe+VLxo6sZoIJtctbF+T4qrtr+qH4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784204097; c=relaxed/simple;
+	bh=lcSEEoLh9v8Xf7iYjsafpgfNRcSeRiODoC8LvbpDzQs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=dBIyf3bgaw4CBhl9DRvxW8pTe1MQw1IJYU9Vo0X3OkboQ0jlIqk2Adss4kFq83bFFcwDGqE3dn+qpUIv1RtjaG0qwaVJoWhT1fbdL7l9JksLHzWnk7Uve72qg3z5G40j8RjyGbA9JH5VQaoK4rSbnehxeHwucQbB3wUkJkq+qgE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nMiUaowT; arc=pass smtp.client-ip=209.85.214.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sigma-star.at header.i=@sigma-star.at header.b="Z3Iz1z00"
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-493e8d4f4dcso46929565e9.0
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 04:40:12 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nMiUaowT"
+Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-2cee9b74ee1so30790625ad.3
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 05:14:33 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1784204071; cv=none;
+        d=google.com; s=arc-20260327;
+        b=iAurVUvponirhqZfHwIatRjMMwZjfESwlUkdAYEWXe2omky4hcVKGyiq29wbcm7y9X
+         eeqUai41Nn5yeTQZrDFVOWfLKowWV4H/onkk9cbDa4gNGmP/3TlCeD7nLXR8p76t6a0D
+         C8GJQLU9LH9Y25ajFXFNEd6IKJKvAMbpTqFpYTWEA3Y4M4KkX8C+7/pwVwT4q95koG45
+         tSB3I9AHutmvfV3yOA90fnTdYxtMMCr4YrCQ0wc0h7pSb3ZiRPB5DjTs5M2mi/BCC4WH
+         qQb6pyeQ485dmJIYe7F2DTXugSDjjmmi42j0oT48PFZO8Fz8XaR6OVPjKV9lB/pn8PwD
+         fU4g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=Ug4bYKwXfbQT2hm2q3vkYB4jylkefy17G46vSIaZJuQ=;
+        fh=r8CAtFEwvsc3f1XdypYQ6KKtRtfjqAtCV1qs+Yg1DkQ=;
+        b=Qwi+xNl78DUDB0SKfpEPbbjp1ZMVWy+UKase3WcCZBVBwPWTm0u4odfnnYhzDm2e89
+         zZNE2pgL9myMhK6tJiL/3UC7HGxejd9PZleHu8shLWRURc5in7g+Q+xTGOYgWAp2otdp
+         IfhEOaO0pTi0ojxKE55okFVN0klFLiNYeKFeNOb/9y93P72EatKJybxuDAvYcPacX3kZ
+         w5e9p3yw2x7FCuWdRaKjGSoorLyMDRl6HAKJnh9KgnlirVf+2kHsMslORbOUdOhryg3n
+         6Kt8fxRnaJGNZNw/gSlNK/P88XykmJS7EIxMGc9l5MnDXxrMW+7Gz483OMSsrmJ/3Y+g
+         bJ0Q==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sigma-star.at; s=google; t=1784202011; x=1784806811; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=c35SvQX07tBLJsWKz/d1e1Tptdw74CrKsOw1LXa+vBI=;
-        b=Z3Iz1z00DTFaHzFDBIW4pBNgfQ9NoB8nk9B7xzpBOQ68YQZ1bfDa3M/oh0cR8MFEPX
-         LmVfFKwfsMRIUoFfAOc3FNxZrEL2SGIrZErV70/wx3tfbNJ9tf+8oOJ/AI59l1XFu0hw
-         a+0ffcptQXRtdE7W/3MaLudM7cdBrqaqj+b/fJeCb5eAjDq6aO4MVBMFd7P8EWy8rumF
-         fqo//l0q1q9xjurvdAITbBNrPPDrS8AlqL7zeoXq3tOqGCXj+cmKb0JKQev1IdG4hIJ9
-         Ue+FS3TF7JZ659nVHwZkheKCDJPQDbU97dDMhFd8W0BeP/Y9w670+Xk+QQ/P4POEP6Ib
-         ROng==
+        d=gmail.com; s=20251104; t=1784204071; x=1784808871; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=Ug4bYKwXfbQT2hm2q3vkYB4jylkefy17G46vSIaZJuQ=;
+        b=nMiUaowTSepykKrgGQO6bsKRQUzY5Blsz/xJoszlXkdNX0bC3g1O4lXMRqu2wvEGKd
+         vayJWqSCBblADgJZTHb6mNENpoHnBVBsADZxPxl6oxFQFNuJMO6TgVJndlDlI1Fi9qsW
+         jGfkeeOb6jdnxB+sUU8exuUe8F59MQamX40euD/8EK/PTWUWfyyfct4qbUixy8jiBFr+
+         d+fxXdhvTMHbk4j0XrBMkGGKFL+zQ5N7aj7TP0+qvnLHe3POZUDaa0ZkUq/BKN+kaE+9
+         zuGkpY5tZx63bWwfn66hZgiwAX0ulYxXnTH6A1yeCCJcR7EE1KT/RQqylyOVnPDQUlPy
+         YlJg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784202011; x=1784806811;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=c35SvQX07tBLJsWKz/d1e1Tptdw74CrKsOw1LXa+vBI=;
-        b=PoMQ31UMmOZEX7bWI6/O8FSLEexgKZXZmruRhnCTZAvm0T5avW8w0Q32tM1M2jat/I
-         KEVTFT/WNTPlOiCmghE35PfPuFdNHauY1Uidi5wuUg8nU7X7hFw2zyVbLIGX//mDm7UH
-         rpqqCgZ60jl5K8z/h3/UyRUPvroxqhbq4tS//GRejtB+Z/tdU5mBNvxvwHPNV3eM6CCB
-         KReLZjEXxziS5BfB3XHqlbatZQ8//noQaGMEHH5uI9rJFhdhOx+UZUtO59XC7QTBqPxp
-         6NMx4fzuHgYAKvV/lkXbjQpcbp2FIG/BSYqkilbeZrrIahtd1XDLQEpimM61w0znKUsQ
-         kjPg==
-X-Forwarded-Encrypted: i=1; AHgh+Rp63LqufkngN3thuzGEemmmgyU1iV+GAcIpKwQIbwNiSeO9ySmq7AQm60XrOXDNvpRKfZpB2C28NeSH@vger.kernel.org
-X-Gm-Message-State: AOJu0YxzDNuAh+ys/cWXrqv++lF6PPffyW1RpCYdczqSeTQ2SN9BYYGL
-	4WlErp24ChaelS3/NyCKtSUdVTSDBh+niWcSSZvj+ducTFtYzg0A5DorZGNmOHfzM1o=
-X-Gm-Gg: AfdE7cl6kRnEkpk3urfeWmyXDghX94/pB3YzrZo3p4cUV44AHFy+gGYFWDZqgQ4lrg/
-	9vgm0WJj38RMQnKa62ZeeWxr8zddS0tvH50DYy3Y+9ZNZ1fYRjgx3WKZayzztAOOWBfdXGPv/iu
-	i8tA0G3DeTUJnoDQvrWoH0PoEvry1h8G2JBnyty+YmbsqYc/OZkUrJ/4l2csNJSUmf2mS/aR2CO
-	A5yutAKbiDcayHngv0AEi8YCJHXrUTw0sMEYHAR5De9zpWb8bdmUPINvVRWlOlCii80z9j2Zfxi
-	7uD8dqmV4b+4LZ3ZMVYy5ItYANXRWjAY0Z7s4bzJIBvFSbueBlJKrZAWIUys3/iJcnUbfck9fWD
-	IsJhhRa1kH9+v/h86dH1c0HGhJsJNw+H5OBpUQjO/HmcxdqfE4qPgvTcbRys1Rv893cubPJPeUD
-	LkXz4fPmftImAtHPjKxUo0tu+GTFv2nv92NokYTN5d+lkroBSk/xXL
-X-Received: by 2002:a05:600c:6285:b0:493:c42c:7e87 with SMTP id 5b1f17b1804b1-4953c2800b3mr70107945e9.33.1784202010654;
-        Thu, 16 Jul 2026 04:40:10 -0700 (PDT)
-Received: from localtoast.corp.sigma-star.at ([82.150.214.1])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47f4635082csm23611001f8f.7.2026.07.16.04.40.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Jul 2026 04:40:10 -0700 (PDT)
-From: David Oberhollenzer <david.oberhollenzer@sigma-star.at>
-To: devicetree@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	conor+dt@kernel.org,
-	krzk+dt@kernel.org,
-	robh@kernel.org,
-	tony@atomide.com,
-	rogerq@kernel.org,
-	khilman@baylibre.com,
-	andreas@kemnade.info,
-	aaro.koskinen@iki.fi
-Cc: Julian.FRIEDRICH@frequentis.com,
-	upstream+omap@sigma-star.at,
-	David Oberhollenzer <david.oberhollenzer@sigma-star.at>
-Subject: [PATCH] ARM: dts: ti/omap: dra7: fix PCIe PHY clock divider definition
-Date: Thu, 16 Jul 2026 13:39:47 +0200
-Message-ID: <20260716113947.92513-1-david.oberhollenzer@sigma-star.at>
-X-Mailer: git-send-email 2.55.0
+        d=1e100.net; s=20251104; t=1784204071; x=1784808871;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Ug4bYKwXfbQT2hm2q3vkYB4jylkefy17G46vSIaZJuQ=;
+        b=NbfsJrJFedjhHcC/KSVu1o8gch3b+2QI4iAwZFtvi1Z4BZMOY9QFQX8pLjf23fxKMx
+         4Ge0a29w8B8S+b9LQ1jJTdtPHfqw/q5ZHctDIlBBAfI9onMo6t7Etfi7aCzKMe133MWn
+         PPF9BCSmX52yIsa48j6l7F7iLFGhZJzjZ20IYEeR7zn9oq58m64CLiE9LAvm2JM49w1H
+         45XnNZRKWDRcizOk3sgs0z/7R7FmlRlu/bTKD8rI/2pycowYYVEZXLAcJFLRXwKnhV6x
+         yxOG12hZzjoxJjmGsc/0p5VxnFq64GwUes2KjUYdpYs3Wuwq74d+qw56zBOPO4SFYbZ2
+         dVwA==
+X-Forwarded-Encrypted: i=1; AHgh+Roq6mTu8lUUzIP91tWlbqES6XRNRp27GeJwiX7pmkPvy3lNyCKmGTMDNJMLJCzSM9l31+nrRBTAL92W@vger.kernel.org
+X-Gm-Message-State: AOJu0YwZQ0GelRceblGoXRezE8/ssGCVPjVKW4zR2m3ivGZw1h72nwux
+	E6WwLaTc1P/4gkGug/0Xce4ZWX7IxE5LV/pOuFzu6Xbg+KGqA6JGRGjkX+Z9p0khlzIjZn5ZhHS
+	NhO463dLteQNzNpfNOmtB3+Hpb8cXcEo=
+X-Gm-Gg: AfdE7cnKvR/PX0rQaLyt6fgo25GzSS6+PcePAtyQ0k2KvTxQgAcBFiy+lyOjNNHDNYx
+	+rKSpvK2FtN5TgKQz3ITHcfuGfucx/ouG+u5hVu70okyMRGG4wjYnHMVsZx5Vu6UIfG1r9q62YD
+	DlgX4MZFQPPWRjGttoiOyhRAxVUdejSD573IiMm0Yqycs4T/IDWjFLQf+RmPq7Vqm+LhkoLEEZ/
+	g1Dn8bWm2q5FLFGMbjED+tF3lfLZmh8XXqb27ON9tPqK8/EdnkX8LNaHRXvX0Grb7/C44x0MHek
+	X51+L6v+8wE3u5paL04GgumylNA4CD1e1GsM1ZUSfm184hGMagY=
+X-Received: by 2002:a17:903:3b87:b0:2c9:feea:4e4c with SMTP id
+ d9443c01a7336-2cf03ccd601mr69322415ad.15.1784204071288; Thu, 16 Jul 2026
+ 05:14:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260716090829.72082-1-phucduc.bui@gmail.com> <20260716090829.72082-11-phucduc.bui@gmail.com>
+ <3940b68d-da97-4e27-8816-e912162b6f62@intel.com> <CAABR9nGtoFmHjUcbhKxwY_-YJ_Kb++OVN8YkZKvkCMgBEHFjjQ@mail.gmail.com>
+ <1d4ebb0d-816e-4176-89d1-065a7bae00d7@intel.com>
+In-Reply-To: <1d4ebb0d-816e-4176-89d1-065a7bae00d7@intel.com>
+From: Bui Duc Phuc <phucduc.bui@gmail.com>
+Date: Thu, 16 Jul 2026 19:14:20 +0700
+X-Gm-Features: AUfX_myse5tgm1YTwzCHXWkFCHHBgR5UcKx6TYrnuC0pMv5Nn2uGIgWyUW240_I
+Message-ID: <CAABR9nFHLzxVvtT+mjDyvqV0hNc5RdJiPKMab0Oqiwqokf3zcg@mail.gmail.com>
+Subject: Re: [PATCH v2 10/10] ASoC: ti: rx51: Use dev_err_probe() for error handling
+To: Cezary Rojewski <cezary.rojewski@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-sound@vger.kernel.org, 
+	Mark Brown <broonie@kernel.org>, Sen Wang <sen@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, 
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Jarkko Nikula <jarkko.nikula@bitmer.com>, 
+	Christophe JAILLET <christophe.jaillet@wanadoo.fr>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Commit d0bdd8bb7f35 ("ARM: dts: ti/omap: dra7: fix redundant
-clock divider definition") removes the clock divider definition
-from optfclk_pciephy_div, reasoning that the table is redundant,
-as it contains the values 1 and 2, while also setting ti,max-div
-to 2 while ti,min-div is implicitly initialized to 1.
+Hi Cezary,
 
-What that commit missed was the fact that the values in the table
-are in reverse order, i.e. first 2, then 1.
+Thanks for the advice.
 
-As is clearly described in the documentation, the ordering is
-signifficant, the actual values for the register setting are
-derived from the index. If no table is specified, the driver
-assumes that the register value is divider - 1 (see also `_get_val`
-in `drivers/clk/ti/divider.c`).
+> >
+> > I've fixed the remaining instances and sent the v3 series.
+> Another round of helpful tips: wait a bit before sending another
+> revision.  What if someone finds another "small" thing?  It is rare to
+> have a good reason for generating high traffic on the list.  A day or
+> two of break is OK for simple sets, week or two for features and such.
 
-What is in fact redundant is the value of ti,max-div that is
-derived from the table if none is specified. To satisfy device
-tree semantic linters, it is removed instead.
+That makes sense. I'll wait a few days before sending the next revision
+to give people time for any additional comments.
 
-Fixes: d0bdd8bb7f35 ("fix redundant clock divider definition")
-Signed-off-by: David Oberhollenzer <david.oberhollenzer@sigma-star.at>
----
- arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> Also, please do include reviewers when sending updates - you've sent v3
+> without including them (e.g.: me).
+>
 
-diff --git a/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi b/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi
-index 0de16ee262cf..615a8fb47776 100644
---- a/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/dra7xx-clocks.dtsi
-@@ -1376,8 +1376,8 @@ optfclk_pciephy_div: clock-optfclk-pciephy-div-8@4a00821c {
- 		clocks = <&apll_pcie_ck>;
- 		#clock-cells = <0>;
- 		reg = <0x021c>;
-+		ti,dividers = <2>, <1>;
- 		ti,bit-shift = <8>;
--		ti,max-div = <2>;
- 	};
- 
- 	apll_pcie_clkvcoldo: clock-apll-pcie-clkvcoldo {
--- 
-2.55.0
+Sorry about that! I put your name in the v3 changelog but accidentally reus=
+ed
+my old =E2=81=A0git send-email=E2=81=A0 command without updating the CC lis=
+t.
+Thanks for the reminder, I'll make sure to double-check the CCs for
+future revisions
 
+Best regards,
+Phuc
