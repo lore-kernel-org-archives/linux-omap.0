@@ -1,153 +1,112 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
+Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23BCD40B36D
-	for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 10:40:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.180
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784198408; cv=none; b=BB5pLPeVteMdyKisx2W1ajPe930kt9qs21H12jGCbhs+N+kXneGvg8556Q8Ci9Q3AaFFaO609Iou4ITRQ7AyfuqkIg6aql1sBDAlVJpHfhfrKlNfKg10CMjvhTaN09ATavq5nYREcxsTSGrIyxUvJf9BC9J22QZc5oDMkcjS8BI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784198408; c=relaxed/simple;
-	bh=Kfdef2IapxrDty2M4zzD9vVHpmOkiH3XpVrKCSLWpf8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=n8R8ThgRPFz3Rk/zinwEXAH52dRw8eVVIwzec16RjnnB/D6dcogCPA53UfIdPO+h3rodOFReHHbi1tpH4xkh9m6OpK4HUgBWNswOEGa0snwAZq5fCevfKVjlWa7LrQLreukJrXu5t9bEfjaXzI/JjFuI4OKNMXvYR62BqTNYQNw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jJ58XpYp; arc=none smtp.client-ip=209.85.210.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 653AA3D2FFC
+	for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 10:41:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.171
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784198513; cv=pass; b=nmbCTUVKdqrMjKq3c3UKqgAGteX5I7we4q6aTqCCspHEhLo6dzpSbzwe7sjV0W27Drgzx9C7d7vVlTM1jC68/TPHpRrU4lXhmCCLBtyMnXUp8ejtrL7FukGBIzd3SG6FxrUa8PIXEJuim8jPWdCiHf99E+/JqP08J7cHYhbQoQQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784198513; c=relaxed/simple;
+	bh=JP6sOAXLUvLPH7W7EcdkbwSmBSNvmNL/XWPIPeP0OXA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=LQ5n4OqwpW/1MmezCBdRnAJlCwucR49wu7I86e91yFSxi/9PBAGDEtbw7/GIBxomiTgpxRKJqovdOYDFqfgs46bAVOmSyJGkg4vjvUh0SnFQXvhC/rR/jPENTBAjEDMI2o0Q6ovfqIN3KENd4KRV6JQ/VgNQ3ImnhtcjU5si9XM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cbdklFBN; arc=pass smtp.client-ip=209.85.214.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jJ58XpYp"
-Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-84874b52eabso4210593b3a.0
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 03:40:07 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cbdklFBN"
+Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-2ce9e39fccbso853065ad.1
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2026 03:41:52 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1784198512; cv=none;
+        d=google.com; s=arc-20260327;
+        b=lywkxF99FSmkkGTGN3uKurYYdad1Cq51kkMstZ+YMdJkF3yEX5JwuPRcOfXJYrqf7M
+         2D0PFrPO/kjGPG6Cq05pobDXmkEavhAR7NZ3WEASeJG/bahdSc1IWFZzLp8uEMCpkREm
+         EpyGKc6AyHSB9unbdgfYa0Dh6aAsAdKmKlhazwWRC3Wq6uQEqxjdLzpmWTsvpCvsI1sV
+         FC5NxBLQO/7JwVGNz0y/wnHtTvqJTuXkR/HNfTjkqDv/ULp0BsPKVS26yqhZ/F9L4h6P
+         Z+pI2jaoXUC7S8d15CEbvcQY3NBbd5UNJOODJOFA9dzqiRgMQe3bYyE4ZEVCNuRe5M60
+         +8xA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=eQrzUwZj4GqJ8tiddXXhlzubaZjD3v0tccnIoXXZE1k=;
+        fh=qC6v0N1enMqYC2AkSH13wHxM6Z3XVmzyrB2bjoKftP0=;
+        b=nae6sEvvV8O0+D+fzsYkHq0684C+H1Gmui5UIMfz6JAgZC6KMM9swQhtpnF/JUfrny
+         x4eDGkRAS5SoXUGwYL3e9B/KwkRAE21u+k050Bbyz6rScXWGrF3gi7fFGgFaaM3h5gz+
+         AmKm6rG0NAvsVYgIuzXK4cDqhRfTf8tY0SRWnCHizRsoG+4XlnitAAydFHH4nDNkO8cy
+         D6lUGbB6JpxNmsbVIdRMcxbxl5EhU7ik2NG0vZ48394pkPkTHV7gwd8OUes5kPAPbzB8
+         fOL9Sq98W8a3ggW7LUzTQN0Oc+MVcjVm1drB0xCHCoZ2hSxNsgEM7K23xyMUmQiL8OAq
+         zt+w==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784198406; x=1784803206; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=k28JGgDZy/pa1XIDw5BvJYQMqTQLHyZS9gnbAcvARGw=;
-        b=jJ58XpYpNKetm12/uxB5oN7ZAnctptzVNTMjY8Ggqea1reMw/2GihlT53rJUshO0tP
-         K6yxc5RcHY2/n07D5v6klVbwOoURTf4hYUdl0V2smgw7sT5gAJTwhrGhrbDAgWhbuE0Z
-         sVuLhuCrWpmXzmtOIHUtd5towjAO6kuL/0pN+Vkc51QdymlQrMjBlPuncaEhNE/+yP+C
-         g7qy69iM/W4jDbAc+r1SB9JEWe37OBNoSPVI3KmTi0Cg2bF+zWHKHO2qxekskHA/bkgx
-         zqAdMvfvIncegOVvPG1Zsb4w3obK6Vfbyu6FeIJFkSEAOqQXjQ4bS36YW1gpVvRHQZDf
-         PA9g==
+        d=gmail.com; s=20251104; t=1784198512; x=1784803312; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=eQrzUwZj4GqJ8tiddXXhlzubaZjD3v0tccnIoXXZE1k=;
+        b=cbdklFBNUifx0w2lOF595jpRs5xQGs6+DfCiHP0QARRojLCnd6WnA5iZvANQNLDMn/
+         dhBOGQPCAIdNstUcRqnJrIbzFtQVXegzFGjyFoAdlhLdgxzanbOBkpMlf02KwSDTqbfC
+         FJg8BYCBN3/FuEjCtz86v0cOfdcN2w/chbvUJ3RkRQ27kJO6uOypEfNfC42swdFtBEYM
+         jr5rdHst+R7vBrNxas4ubgFAyAw4P/mtESDIgNPG7XnvCju3kKkUw20R8mXTE7X4bbUZ
+         55XetNGmwIckf7jH2XjGY1jGmP0IWPufND41HrAaArSwCgfLw89WEmK3FypaqFaqVM9T
+         As9g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784198406; x=1784803206;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=k28JGgDZy/pa1XIDw5BvJYQMqTQLHyZS9gnbAcvARGw=;
-        b=qJ3UcCRutTJnMWDRT3y5qyCOCSY2KGDybMlH92pegT6AChmA/iW8OS3+G1PoQ0j4qw
-         pKB/anTWTpAxQO695B5fWAI6ZU4ZVoHL8LLDX2kMBsxaJUAcjfFL339dK+FZ0Bt+S4YF
-         FpI0dSRaG4K6V4H1iWvlq2uR2Hb3V7GKWrVnLGjwGa/dK1xiObLbfvp3nu58F5mx5e3z
-         NKTkGwXqV91Vy8i0xSMSRYFaxnXupvSnzbYQu5/U4zkdncuclbwA7qpXcUl1R08X/4oT
-         wRsNU9t8xRDSPdHmMK+8OuwLqWQyPmArrb+Fd9aSQA/KKwea/ZgsYFRy5etzaQpDOKCE
-         TiIw==
-X-Forwarded-Encrypted: i=1; AHgh+RrQ/0MrT5GFGqmYnvzUtofPicCHGXvBU3qW8I5GwQKdit9OgFwNG1Ecdy/AFHtCvxynYMTwkxR41Zu9@vger.kernel.org
-X-Gm-Message-State: AOJu0YzAHfB8w+5zIjSFNhDcx+HvoS01xUKA/YE7RDo+aHGx+xl889ZS
-	xS+5/O3VWmfEF/KUKZ/6DevB0k8+bZ6+eEW3nILYBJuoXRVhjjGuuPn+
-X-Gm-Gg: AfdE7cnot7NbEu6Pr51VUF9PLWX6BXdUdxi+ZugwVW70jFwp5+fJafpXHna7Tm3H2cR
-	BmI5H8wjVlmhV/mlwReYpN3r32fgF7ADEmXezQdUf6moFXkMWPZQ2uya9Id0NPQlusgqOc0mHJZ
-	sMZZ9eEMUG0cqSoPo6lpxcFOWdRfYOOmj7BCvh1woB89N6jODxaXID8qCeRPioHuJwjQJukOBOR
-	tm6eAGfLmrpArBg2c6OPzwemH8hDKO6resOzp5Y4E6i0Z+tmz/EGbxgzaqTdcGWDUuoQ1aSjxE+
-	1P8wCUBra17M0MrwaurE7T5J9NX28FAfGs2F9WHs+4uDcetYoIQfNd6VbvyfU4GNUX0zy1vKM/U
-	C5prupmxZ6MvjRKYg3+v3FMSKXuSyDVXJaZVW/keyzt7Bn649OjaTK1I3x40s+7iVut3tkmjBe6
-	nof4F/hqEQZpw9hee/QIVThY7SNO38DgV/xixt+5cmdn6dF+k=
-X-Received: by 2002:a05:6a00:3005:b0:848:76af:db34 with SMTP id d2e1a72fcca58-848897b575dmr21214485b3a.76.1784198406500;
-        Thu, 16 Jul 2026 03:40:06 -0700 (PDT)
-Received: from phuc-desktop.. ([183.91.15.56])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84a4f266724sm4757331b3a.15.2026.07.16.03.40.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Jul 2026 03:40:06 -0700 (PDT)
-From: phucduc.bui@gmail.com
-To: Mark Brown <broonie@kernel.org>,
-	Sen Wang <sen@ti.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Jarkko Nikula <jarkko.nikula@bitmer.com>,
-	Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-	linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	bui duc phuc <phucduc.bui@gmail.com>
-Subject: [PATCH v3 10/10] ASoC: ti: rx51: Use dev_err_probe() for error handling
-Date: Thu, 16 Jul 2026 17:39:11 +0700
-Message-ID: <20260716103911.77652-11-phucduc.bui@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260716103911.77652-1-phucduc.bui@gmail.com>
-References: <20260716103911.77652-1-phucduc.bui@gmail.com>
+        d=1e100.net; s=20251104; t=1784198512; x=1784803312;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=eQrzUwZj4GqJ8tiddXXhlzubaZjD3v0tccnIoXXZE1k=;
+        b=fdxiFx5YmFan4qn3WxPwO+ojwlJe/tLjHCLB+KNqkKRCCMgtcVzwAHUMz0bRmTyexf
+         ivIJ/08cmPHbbccjnxpHcpxK6IDpsUIYEDJJMgIDjqsMntqqyasaayh/FDxJKt5pYg7w
+         4QxBntdMT/wx/yrfrclfN+XqYCulIL7o7IU6EqokUb7C/A+6dHh5hitFCFIENhzxzqQs
+         rYiHQh01NCGDT4RsjfHqVBT6xVIpYhr7TVytSHw1PKdICd+LhbiN4FKZCPopWoJoRjL5
+         02Rl+HNUrXjhJZELXjFxvKFBbRGPzLrkA08kNzXkSUPYtkUKD4LYf2PgvOZLWqgfwnP8
+         lwxg==
+X-Forwarded-Encrypted: i=1; AHgh+RoxzZ4P3ebKEGyu9dURm9P2BmpQLpRNkOesACHbGtdYtmZDqYJospUYhbl4gGffUWFL+m5BejUVsSf+@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyyc7DelWCqp/adFkzocPycfE7UYGY2ltOJOLKn1K0Q/jp+rg6H
+	SgJNiwR+spg1gWlr6b5B24Wjt8uG5/ihQdfWLtb+se9A/QVHa2M+gCRLQ+Pt9YPg4oeRIblQ3qO
+	3x70Q8E6w/0VPkAhZuozVoPBX3g/oVos=
+X-Gm-Gg: AfdE7clbPLkzAdAtZIRkCGr8YbTYky/FTqiK9CEMWLQtdOh7wH7RhtanWbehMdL6d3m
+	mI01oMeUFXW0/29MknqiI+YErg48zcK3+NGuhoUDjaBtO8TqfzpHXCLkIyAmJQ1BKVHRQ1BJxJK
+	pyMeaOL00FighlJIBNJo4DVXxfv8FuXI9QvJEeQ1cbNPSvlxzRF28Cw8HmK4HberOEkYbP6pgBg
+	4BHeDlg1Dt5+jvIR0NXAoq7+k6Jm7rHJnCnABtTK1No5vG0Opm3m8Ex42bTbc06bT3WF1P0ikNt
+	YsoRtM/21j7IjnTa
+X-Received: by 2002:a17:903:3c2d:b0:2c9:e846:a589 with SMTP id
+ d9443c01a7336-2cf1f486585mr20139935ad.13.1784198511761; Thu, 16 Jul 2026
+ 03:41:51 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260716090829.72082-1-phucduc.bui@gmail.com> <20260716090829.72082-11-phucduc.bui@gmail.com>
+ <3940b68d-da97-4e27-8816-e912162b6f62@intel.com>
+In-Reply-To: <3940b68d-da97-4e27-8816-e912162b6f62@intel.com>
+From: Bui Duc Phuc <phucduc.bui@gmail.com>
+Date: Thu, 16 Jul 2026 17:41:40 +0700
+X-Gm-Features: AUfX_mzrjRGlLMVZD_1hObbnwLCLnGXTB2JeQoYT0Gfa37WjMSZzbVYfBE1414o
+Message-ID: <CAABR9nGtoFmHjUcbhKxwY_-YJ_Kb++OVN8YkZKvkCMgBEHFjjQ@mail.gmail.com>
+Subject: Re: [PATCH v2 10/10] ASoC: ti: rx51: Use dev_err_probe() for error handling
+To: Cezary Rojewski <cezary.rojewski@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-sound@vger.kernel.org, 
+	Mark Brown <broonie@kernel.org>, Sen Wang <sen@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, 
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Jarkko Nikula <jarkko.nikula@bitmer.com>, 
+	Christophe JAILLET <christophe.jaillet@wanadoo.fr>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-From: bui duc phuc <phucduc.bui@gmail.com>
+Hi Cezary,
 
-Replace dev_err() with dev_err_probe() when reporting probe
-failures. This preserves the original error code and suppresses
-unnecessary log messages for deferred probe errors.
+Thanks for the reminder, Cezary.
 
-Signed-off-by: bui duc phuc <phucduc.bui@gmail.com>
----
+>
+> Pinging this patch too to make it easier, Phuc.  Certainly 7/10 isn't
+> the only one.
+>
 
-Changes in v3:
- - Add the remaining missing parentheses to `snd_soc_register_card()` 
-   (Cezary).
+I've fixed the remaining instances and sent the v3 series.
 
- sound/soc/ti/rx51.c | 28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
-
-diff --git a/sound/soc/ti/rx51.c b/sound/soc/ti/rx51.c
-index cfc23e0838c2..b13faf162c75 100644
---- a/sound/soc/ti/rx51.c
-+++ b/sound/soc/ti/rx51.c
-@@ -418,31 +418,27 @@ static int rx51_soc_probe(struct platform_device *pdev)
- 	pdata->tvout_selection_gpio = devm_gpiod_get(card->dev,
- 						     "tvout-selection",
- 						     GPIOD_OUT_LOW);
--	if (IS_ERR(pdata->tvout_selection_gpio)) {
--		dev_err(card->dev, "could not get tvout selection gpio\n");
--		return PTR_ERR(pdata->tvout_selection_gpio);
--	}
-+	if (IS_ERR(pdata->tvout_selection_gpio))
-+		return dev_err_probe(card->dev, PTR_ERR(pdata->tvout_selection_gpio),
-+				     "could not get tvout selection gpio\n");
- 
- 	pdata->eci_sw_gpio = devm_gpiod_get(card->dev, "eci-switch",
- 					    GPIOD_OUT_HIGH);
--	if (IS_ERR(pdata->eci_sw_gpio)) {
--		dev_err(card->dev, "could not get eci switch gpio\n");
--		return PTR_ERR(pdata->eci_sw_gpio);
--	}
-+	if (IS_ERR(pdata->eci_sw_gpio))
-+		return dev_err_probe(card->dev, PTR_ERR(pdata->eci_sw_gpio),
-+				     "could not get eci switch gpio\n");
- 
- 	pdata->speaker_amp_gpio = devm_gpiod_get(card->dev,
- 						 "speaker-amplifier",
- 						 GPIOD_OUT_LOW);
--	if (IS_ERR(pdata->speaker_amp_gpio)) {
--		dev_err(card->dev, "could not get speaker enable gpio\n");
--		return PTR_ERR(pdata->speaker_amp_gpio);
--	}
-+	if (IS_ERR(pdata->speaker_amp_gpio))
-+		return dev_err_probe(card->dev, PTR_ERR(pdata->speaker_amp_gpio),
-+				     "could not get speaker enable gpio\n");
- 
- 	err = devm_snd_soc_register_card(card->dev, card);
--	if (err) {
--		dev_err(card->dev, "snd_soc_register_card failed (%d)\n", err);
--		return err;
--	}
-+	if (err)
-+		return dev_err_probe(card->dev, err,
-+				     "snd_soc_register_card() failed\n");
- 
- 	return 0;
- }
--- 
-2.43.0
-
+Best regards,
+Phuc
