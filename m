@@ -1,75 +1,73 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2721B2BEC5F
-	for <linux-omap@vger.kernel.org>; Sun, 19 Jul 2026 13:38:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 890A138F93B
+	for <linux-omap@vger.kernel.org>; Sun, 19 Jul 2026 14:10:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784468290; cv=none; b=M+xCPA491LwNW/o4a0++IzF/KErCN+NZ2vqpAt2oR46u9o7DkEYTu72F8MzosPBYhoT1oNOgDg9EtE6/dp2C+uj9sCJ7p3mBCzOrVqYmgRA1BLaSbLCru2nq7q+uRTV6hJXRj0Gh2SISjDO8srXLWLTJ+uq3U9WF8bBmZj4K2dc=
+	t=1784470235; cv=none; b=fpL70XahvqYYkUEdZevLlUO4UeU6nuGlFE4Kr8zelULjHjRoz4lYS2R6rpV/BpdvsIVVnYAgIULKjY+9HYyw/3ch3vHRY3pbd0wPk77M8jW0b6r6uWFSE9Mmm8w7sIKitVXQl1PuoSnnNbxScb0uKY5OV5UmUyJ8NajEUyilJec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784468290; c=relaxed/simple;
-	bh=WftaguEcCAcPmKC9Su5TwqMoY3w6a0AarFeIyjamMCI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=f8GgjZJBEsDjhS1JGYdJWCcCqfxgxzKAVDNJXqSmoza0d89qVNdf7TJcKDGBA6Ptuk0u/a1HKGNI2YNbplUwrTDtWATGg0+fmwA2nvs+ORHoe36SWhvE0Um5tIKkdu/MfOsPoxQnCbtUldPmrOgMDDiwSuGAJhwTA52sfg/johA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BUugsB5c; arc=none smtp.client-ip=209.85.128.53
+	s=arc-20240116; t=1784470235; c=relaxed/simple;
+	bh=1v4jx88eOjwpIxo/vM0L6nRfw2ufOcyZeERWgwj/FXM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QisnoYUxDIuIaRj2B1jNKm6dXGG24IrYdJ6PkcWQdRL1Jz6LL6ntAD0ivhoZLIOIek8IIQrRAoHzGRgqFubPqVYA99qxL/Z04EuHcBEK03L7uF7XdQJAbomn2WqzZtvJaq+34cNp4ECradfMEaY++snCXdc6ZvE6z1KPtOQ1Abw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=V232Nd3M; arc=none smtp.client-ip=209.85.221.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BUugsB5c"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-4954d29264cso8160055e9.2
-        for <linux-omap@vger.kernel.org>; Sun, 19 Jul 2026 06:38:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V232Nd3M"
+Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-476a130c138so5755628f8f.0
+        for <linux-omap@vger.kernel.org>; Sun, 19 Jul 2026 07:10:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784468283; x=1785073083; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=PpzzNW2sfZBH0zCyv8njtaSsrPQC9iQno8eKZX+8/b4=;
-        b=BUugsB5cWADzNMpelhEwbaw7eYt36ZsNqOC3WwG7CkLVlT92r+2aYk6nnRzI4Igtv6
-         TFrCG4xnJgMqmpw+yVgbyAnr9drVYyDX7YwkFXgC0h40WwPjwyCKwq767MWWfcUrDmEa
-         vo7+Rf6clxP4ALsALVghtUvY4jkuX/2nYGs1yDMCjWnjyO7XSNPj0kJzCEhhzJmetmpg
-         BP5gPh92Kxpx131pcgaIE1bnVz/JFCLxgebqKcIQboSDmVoPIhQS3Mx8PotfKTGvN+Or
-         jPXTtYvNpjPaU9ih2DAiKyA4leS6d9rfkYwol+CtDqZ+5aAu8KZlZmvBxbN8t4Wy+ETy
-         fdBg==
+        d=gmail.com; s=20251104; t=1784470232; x=1785075032; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=3Rq18KrwyxmENy5nVsOEr+/h8xbbEY9JxM7ic+yQE3Y=;
+        b=V232Nd3M3Gk7hihm9YOwxSFUmSCFZvJ2gKWr4X7/n2cw4s4BYirzmPqpnX5KJc0pDp
+         CnWP0ulUosIbNmggxOafG6chUTyELA/YAMDfpijVQBADZ+X+RSGiFMTCC5RrufXJhDb3
+         4l56jBhjGVNov1HWyi8ZxkXzfwb/CShIUuZ6M3CAQmvhNe6Gtto/icFdo5yELg87dCiL
+         CH9Pw6p2W4wAOMM4pP9pVwhazJqggu3r1Cx8rTnCeangItC3MAiN1fhAmiC9HIzJi0Jh
+         mVLIM+ARup4S/5/fTeEwXycGULnsOtGxvSfTBuFpPv6+otT5bX9/qaytir7iIP2m9M18
+         nWog==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784468283; x=1785073083;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=PpzzNW2sfZBH0zCyv8njtaSsrPQC9iQno8eKZX+8/b4=;
-        b=Z2heYzker4CAosbgGMMMyxLqU/cbnl3ardf1RC9zFppIoK0tbi51gysjC0jYY6tGJS
-         bwyfXCVxkxYrfLKNrlyhPUE2ktG1g7bqBtBi2Hs+Acn1020j5DbVP3m3Mi5Rm52h61oO
-         7LcUsGNdI3ho9cBM7IyZXFvVpU5JCO0jTxhDoxUKKs0LwFltDI9y7MeZqixg1tGECvRo
-         LwegRcW3e0kNZlY6g+yX+AzU32wvU0bclMvAcZ/wZeo+/O8haD9WdXB4fnpIC2rxHC9h
-         ODlIRoDV6qf3x4UXyrrVM3Ft2+y0B0hTkxXz//lzdkEybiMv266xRTuKOMEMJthMEsrh
-         M6jg==
-X-Forwarded-Encrypted: i=1; AHgh+Rpvwlc52k3wn5tQdi1PH9Z4X8bWunabd/CmuB5q83gx4aG4MZx1+QyRuVGPQznryLkgoTrSjbCFshZ4@vger.kernel.org
-X-Gm-Message-State: AOJu0YyinscEHLAuYJiv/MVQ9IYp/WDFTjKqC9fEgTKN+ymX9oOqSqoo
-	Cl/xwp8bnR2Sf2zmX51JfxQZTYceIesoFk7PS3+KWJwrOIp7N5eXB/Y+
-X-Gm-Gg: AfdE7ckIvpbgMRy8ycoa7Im1KviKWKrz4Bq8XOXpFVddfyqe6cg5lx39P3dYjgj65AF
-	2aW7AcuXC6w/LDGhisi7WRhUZY4bPV31yFXlAP+pAzQkDPh47Of/sYlR4g8xtDgrgTT3QmCyk8K
-	8NJhUpH1RdsTwicWm6c/TE/O/STiFfh3CMY1AnNgsmYsgaAX/gD53bz5nydA5J2zHEXWO9iQaOO
-	OJramjcnGPVcgj9L+9XHFNtvxh5cs0RT2Oneoat6ESeYv2jeh9rSt1zJUo6GZcif5eoUG+8FGFW
-	+59J1cNiFWbDECf5gcdcuHvy8o2BolSPXmJ5V27RWUolkqU1UBX4FZoKmaO+QpntcEfLngOS752
-	pUxjQEV9vd18HHPkoSqfwa8REfbO78ILmcvDIO2/J80ORpbwTR//duywINr00wWwn0zm1tD5mOh
-	0DGiIxowmX2OG9elEssviFoDujYEgJwpyK+kHhi6nT9POL
-X-Received: by 2002:a05:600c:3b01:b0:495:4fd4:144b with SMTP id 5b1f17b1804b1-4954fd419e8mr72113155e9.21.1784468283025;
-        Sun, 19 Jul 2026 06:38:03 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1784470232; x=1785075032;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=3Rq18KrwyxmENy5nVsOEr+/h8xbbEY9JxM7ic+yQE3Y=;
+        b=PvjR/+p4gDH+dnuY19bUc6KxXbYTYi3mlThqL0kvggakYRqfHhxuwoczYHm7lvL3Xg
+         sHv4jAHF8NNZ+PyRzWr7A0tEJ23dtqAmbpFe9Qct4RFEVNSX/dXUeEklCL5w2SoVJoVw
+         N1Xeabf5JE7M+gi6eBMhPzp4Fq5mUoGg3dXWums9idTLeFccBA5tEx3joV1lw3GsSXN+
+         X0NQzA1SGUOYMs0wvBywMwu0Q1FT7V6OJf7jm0I5xvPF6XDn82l2iUgyelso+3WeZe8+
+         Deo8+vrtGIEVd+svzY4LedT2MnV/tc5Tn9ywBgi3DxLeGlkSTalZ60BYfnuUgFqMNCxv
+         GDgw==
+X-Forwarded-Encrypted: i=1; AHgh+RqHuxolYqJPhHTDyAqZrQ2AOC3IECXSBWVZf1Pz7lMV9bbhQOY+FQYz5+qCuVoG2B0c5xf87l+m4KS5@vger.kernel.org
+X-Gm-Message-State: AOJu0YyFVAlrzsCoR/rAN2VlJJd/JDHMeE4MFSycfrCbk2eFWcH3nT57
+	eEN6aB7sWdDUmuKdDR9MhuqVqX0hH1fqXDoNzAaxwo3ZZwmqYwTt1dky
+X-Gm-Gg: AfdE7ckahdXK+Ww2vHCB8VBTnjKxCKOZ4CO1+pGkobw8sQKEnMJVHs6+Fsssb1P5RDj
+	m/q3mrHK1NQDDRLAnhr91QhAITSwfXHNPPwDpjNC6jgbjcdzUu+fBa7+sHIC32m5gsw7Eg/2C8h
+	6uMnpB/TUDE7xcNF2l4ZcsXCgWUAejPoUk7zKuKL860lEbbiKZ2DJqOjGkP55VcIIAkUXXtOOz/
+	bHph3mZVEnjjKfSi7xqMZfIYczcuIUk7/wvkuT2/bfJEV7DaropUIRGC3+QvyK8+ST5n9PY0ccw
+	zfvpa/oDyiNwdU2CpqU2cwB++f9Bu6KtPHTALzzlEeEEsfhwEnmqx3MyAohQV34sgsGjAThScGQ
+	deuWbOQjVmFYz1VO+hnvOW3HoP9qQM9+KcbnJlqsqV9R6cXf7bb1jFNh6iQW3r/9x/7xjyPsnFm
+	QCZQb/uq9FodNH4fpm+Fyw/nXzq2gMkMx8CmI6mO5vt7Gm
+X-Received: by 2002:a05:600c:4505:b0:493:f176:dc69 with SMTP id 5b1f17b1804b1-4954a413087mr105760505e9.37.1784470231540;
+        Sun, 19 Jul 2026 07:10:31 -0700 (PDT)
 Received: from localhost.localdomain ([188.26.50.240])
-        by smtp.googlemail.com with ESMTPSA id ffacd0b85a97d-47f63edda9bsm21807179f8f.31.2026.07.19.06.38.01
+        by smtp.googlemail.com with ESMTPSA id ffacd0b85a97d-47f63eddd1csm21264859f8f.29.2026.07.19.07.10.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 19 Jul 2026 06:38:02 -0700 (PDT)
+        Sun, 19 Jul 2026 07:10:31 -0700 (PDT)
 From: Eduard Bostina <egbostina@gmail.com>
 To: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
 	Andreas Kemnade <andreas@kemnade.info>,
 	Conor Dooley <conor+dt@kernel.org>,
 	devicetree@vger.kernel.org,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
 	Eduard Bostina <egbostina@gmail.com>,
 	Kevin Hilman <khilman@baylibre.com>,
 	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	linux-input@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-omap@vger.kernel.org,
+	linux-rtc@vger.kernel.org,
 	Rob Herring <robh@kernel.org>,
 	Roger Quadros <rogerq@kernel.org>,
 	Tony Lindgren <tony@atomide.com>
@@ -77,12 +75,10 @@ Cc: daniel.baluta@nxp.com,
 	simona.toaca@nxp.com,
 	goledhruva@gmail.com,
 	m-chawdhry@ti.com
-Subject: [PATCH v2 2/2] ARM: dts: ti: omap: Disable keypad and enable it on the boards that use it
-Date: Sun, 19 Jul 2026 13:37:30 +0000
-Message-ID: <20260719133730.3551691-3-egbostina@gmail.com>
+Subject: [PATCH 0/2] dt-bindings: rtc: Convert to DT schema
+Date: Sun, 19 Jul 2026 14:10:06 +0000
+Message-ID: <20260719141008.3562347-1-egbostina@gmail.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260719133730.3551691-1-egbostina@gmail.com>
-References: <20260719133730.3551691-1-egbostina@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -91,113 +87,27 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The keypad node in omap4-l4.dtsi and omap5-l4.dtsi lacks the matrix keymap,
-which is board specific. The binding requires the matrix properties, so the
-incomplete template nodes fail dtbs_check.
+This series converts the Texas Instruments Palmas RTC bindings to DT schema
+and resolves a node name compliance issue.
 
-Mark the keypad disabled in the SoC files and enable it on the boards
-that actually complete the node with a keymap.
+Patch 1 converts the text binding to DT schema.
 
-Signed-off-by: Eduard Bostina <egbostina@gmail.com>
----
- arch/arm/boot/dts/ti/omap/motorola-mapphone-mz607-mz617.dtsi | 2 ++
- arch/arm/boot/dts/ti/omap/omap4-droid-bionic-xt875.dts       | 2 ++
- arch/arm/boot/dts/ti/omap/omap4-droid4-xt894.dts             | 2 ++
- arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts            | 2 ++
- arch/arm/boot/dts/ti/omap/omap4-l4.dtsi                      | 1 +
- arch/arm/boot/dts/ti/omap/omap4-sdp.dts                      | 2 ++
- arch/arm/boot/dts/ti/omap/omap5-l4.dtsi                      | 1 +
- 7 files changed, 12 insertions(+)
+Patch 2 updates the tps659038_rtc nodes across the AM57xx device trees 
+to use the generic 'rtc' node name.
 
-diff --git a/arch/arm/boot/dts/ti/omap/motorola-mapphone-mz607-mz617.dtsi b/arch/arm/boot/dts/ti/omap/motorola-mapphone-mz607-mz617.dtsi
-index a356b3a2f24e..b97ab2906950 100644
---- a/arch/arm/boot/dts/ti/omap/motorola-mapphone-mz607-mz617.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/motorola-mapphone-mz607-mz617.dtsi
-@@ -4,6 +4,8 @@
- #include "motorola-mapphone-common.dtsi"
- 
- &keypad {
-+	status = "okay";
-+
- 	keypad,num-rows = <8>;
- 	keypad,num-columns = <8>;
- 	linux,keymap = <MATRIX_KEY(5, 0, KEY_VOLUMEUP)>,
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-droid-bionic-xt875.dts b/arch/arm/boot/dts/ti/omap/omap4-droid-bionic-xt875.dts
-index 1d9000f84f1b..e72ac17fdd96 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-droid-bionic-xt875.dts
-+++ b/arch/arm/boot/dts/ti/omap/omap4-droid-bionic-xt875.dts
-@@ -18,6 +18,8 @@ aliases {
- };
- 
- &keypad {
-+	status = "okay";
-+
- 	keypad,num-rows = <8>;
- 	keypad,num-columns = <8>;
- 	linux,keymap = <
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-droid4-xt894.dts b/arch/arm/boot/dts/ti/omap/omap4-droid4-xt894.dts
-index cc3f3e1b65ea..62f87cf95f74 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/ti/omap/omap4-droid4-xt894.dts
-@@ -46,6 +46,8 @@ slider {
- };
- 
- &keypad {
-+	status = "okay";
-+
- 	keypad,num-rows = <8>;
- 	keypad,num-columns = <8>;
- 	linux,keymap = <
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-index e11d1931c42a..d51913620f06 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-+++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-@@ -428,6 +428,8 @@ mpu9150: imu@68 {
- };
- 
- &keypad {
-+	status = "okay";
-+
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&keypad_pins>;
- 	keypad,num-rows = <2>;
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi b/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-index c1afc49f456c..00f98991cc5c 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-@@ -1200,6 +1200,7 @@ keypad: keypad@0 {
- 				reg = <0x0 0x80>;
- 				interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>;
- 				reg-names = "mpu";
-+				status = "disabled";
- 			};
- 		};
- 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-sdp.dts b/arch/arm/boot/dts/ti/omap/omap4-sdp.dts
-index b550105585a1..a04234b3be2a 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/ti/omap/omap4-sdp.dts
-@@ -531,6 +531,8 @@ &emif2 {
- };
- 
- &keypad {
-+	status = "okay";
-+
- 	keypad,num-rows = <8>;
- 	keypad,num-columns = <8>;
- 	linux,keymap = <0x00000012	/* KEY_E */
-diff --git a/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi b/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi
-index 72849e1c95b0..af32ca329930 100644
---- a/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi
-@@ -2449,6 +2449,7 @@ target-module@c000 {			/* 0x4ae1c000, ap 11 1c.0 */
- 			keypad: keypad@0 {
- 				compatible = "ti,omap4-keypad";
- 				reg = <0x0 0x400>;
-+				status = "disabled";
- 			};
- 		};
- 	};
+Eduard Bostina (2):
+  dt-bindings: rtc: Convert TI Palmas RTC to DT schema
+  ARM: dts: ti: omap: Fix Palmas RTC node names
+
+ .../devicetree/bindings/rtc/rtc-palmas.txt    | 32 -----------
+ .../bindings/rtc/ti,palmas-rtc.yaml           | 57 +++++++++++++++++++
+ .../boot/dts/ti/omap/am5729-beagleboneai.dts  |  2 +-
+ .../dts/ti/omap/am57xx-beagle-x15-common.dtsi |  2 +-
+ .../boot/dts/ti/omap/am57xx-idk-common.dtsi   |  2 +-
+ 5 files changed, 60 insertions(+), 35 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/rtc/rtc-palmas.txt
+ create mode 100644 Documentation/devicetree/bindings/rtc/ti,palmas-rtc.yaml
+
 -- 
 2.43.0
 
