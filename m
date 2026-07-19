@@ -1,63 +1,63 @@
-Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com [209.85.221.51])
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D79482773C3
-	for <linux-omap@vger.kernel.org>; Sun, 19 Jul 2026 13:38:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2721B2BEC5F
+	for <linux-omap@vger.kernel.org>; Sun, 19 Jul 2026 13:38:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784468284; cv=none; b=RS0jO0B8/y78HS+B2jFeiWJjBxiqpuVePuzJqVIscCB1hVFpAh1y/xwzGJIALAFBP1DL3CWTGVpzwCvK2KUlltVtsDnPPesu5ywce+8F39GiNi5e+xydEC3HhAJHcieSOd0ZqDEzW4TxocqHk5rsSFdFv9JW15W5EFY0vN4hf/E=
+	t=1784468290; cv=none; b=M+xCPA491LwNW/o4a0++IzF/KErCN+NZ2vqpAt2oR46u9o7DkEYTu72F8MzosPBYhoT1oNOgDg9EtE6/dp2C+uj9sCJ7p3mBCzOrVqYmgRA1BLaSbLCru2nq7q+uRTV6hJXRj0Gh2SISjDO8srXLWLTJ+uq3U9WF8bBmZj4K2dc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784468284; c=relaxed/simple;
-	bh=/O3+ndtGNpRqsFMhBUN5/uIG0FG38qsIlDe1l7WBD4o=;
+	s=arc-20240116; t=1784468290; c=relaxed/simple;
+	bh=WftaguEcCAcPmKC9Su5TwqMoY3w6a0AarFeIyjamMCI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pP8N+PD+GFKAMz5zavWJdvdQxsSufODiDeQkbg/+f7eHsflzX5LRkyZWfayPnAEKZ8mK3d1stZe04yHFoiwbC+H8DmAkOS7dMTG5Dsve3y7Ehk4xFaupNe6xyCeAGSrseTvJsT580SSAtl1JwDNVD3ehs80QlCzNMq1pesq2tOE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=sOZ+6Zx1; arc=none smtp.client-ip=209.85.221.51
+	 MIME-Version; b=f8GgjZJBEsDjhS1JGYdJWCcCqfxgxzKAVDNJXqSmoza0d89qVNdf7TJcKDGBA6Ptuk0u/a1HKGNI2YNbplUwrTDtWATGg0+fmwA2nvs+ORHoe36SWhvE0Um5tIKkdu/MfOsPoxQnCbtUldPmrOgMDDiwSuGAJhwTA52sfg/johA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BUugsB5c; arc=none smtp.client-ip=209.85.128.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sOZ+6Zx1"
-Received: by mail-wr1-f51.google.com with SMTP id ffacd0b85a97d-47f59f25ec4so840603f8f.2
-        for <linux-omap@vger.kernel.org>; Sun, 19 Jul 2026 06:38:02 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BUugsB5c"
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-4954d29264cso8160055e9.2
+        for <linux-omap@vger.kernel.org>; Sun, 19 Jul 2026 06:38:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784468281; x=1785073081; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1784468283; x=1785073083; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Y1a8IU4oZNpjbRSTqawhDwH5UJx4Zty6Y9NRCDB79bc=;
-        b=sOZ+6Zx1YfefeW1TllXqMGJPMtjY2+Qqns1A24j5D1yC0TNSJOLVqqb25HIG/A/680
-         1PdDwO17BBQcac8hjc8D4MfxMNP9ZorTyPVbMp2gUpCTWUKxOI57hC6YIEpVgFrXzbDg
-         O+2XRk2F9H+nUURG69fx81VHmcNYVJ8YBT7AEFQqIX2kA9s5ImjtXXrUpg9zEQIbLImZ
-         cUOL0vKTS+VJphk8/JNj6kvtn9PzgJ3xdGNnxIvugVqLiRJob0t6YByjkQ0ers+GroOJ
-         +WlnMxxIkhRpmd7stR78e5DgON3k1751irFQEzObuoK/m4jPWx8cO6jEuYqg7A74xrBD
-         3+bA==
+        bh=PpzzNW2sfZBH0zCyv8njtaSsrPQC9iQno8eKZX+8/b4=;
+        b=BUugsB5cWADzNMpelhEwbaw7eYt36ZsNqOC3WwG7CkLVlT92r+2aYk6nnRzI4Igtv6
+         TFrCG4xnJgMqmpw+yVgbyAnr9drVYyDX7YwkFXgC0h40WwPjwyCKwq767MWWfcUrDmEa
+         vo7+Rf6clxP4ALsALVghtUvY4jkuX/2nYGs1yDMCjWnjyO7XSNPj0kJzCEhhzJmetmpg
+         BP5gPh92Kxpx131pcgaIE1bnVz/JFCLxgebqKcIQboSDmVoPIhQS3Mx8PotfKTGvN+Or
+         jPXTtYvNpjPaU9ih2DAiKyA4leS6d9rfkYwol+CtDqZ+5aAu8KZlZmvBxbN8t4Wy+ETy
+         fdBg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784468281; x=1785073081;
+        d=1e100.net; s=20251104; t=1784468283; x=1785073083;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Y1a8IU4oZNpjbRSTqawhDwH5UJx4Zty6Y9NRCDB79bc=;
-        b=AjUY1kEspNv4HDhTNWuS/m7Jg9twd+sNgHIKtmfgDVxKPG0xofZ58OsudqxWVEkG5L
-         x/C+E3Nyw0QeNZj6GKizbw2OkMajpLAv4BAzt0hX/hlmbVEiK1RqMMYWAfKyjq8qbORJ
-         9T/jQ6SL3o4ls3HtzVDo8BrwZkpchp/VkDcBHaZ9wTb+vHUlYTIcZUEWEYNS1N6HZcVF
-         pgXpW8Q06KM+znfDhCMb0/P6QyoCPTD2XLVLG3SFVs3m4169NiST9UX4kFXO44cArFTV
-         lz9MkJXzoU8Qr789Of0puwcZ48kdx7OREsBr3pIySSPexFAfDRwT3QVKY/hF1nzVV6B1
-         /5XA==
-X-Forwarded-Encrypted: i=1; AHgh+RqbZMgeOTCSm85MG0SlMMpFfMTa54wsc3pCEjBL9UPXkwJOfj0jbvQ/cJ5FpWcN+TeHjkTdr6P622/1@vger.kernel.org
-X-Gm-Message-State: AOJu0YzMb4zzldqj/amuOsz18pcrMUaqX2M0Ft6TLEd8G7G8c2jPu9sm
-	NeYHn5JxGZDXv4RwfQ07RQtDSuqwGS+Ww1Tu8FW7FWtJ8zBslffHIE35
-X-Gm-Gg: AfdE7cnakrVJ44uDTjrcwIjLOWCxncs9CrfcYuzbZWkPb5tVHcdU9hQR845O+GARZM1
-	slO9ha3gjA5Vo6HzPdGpI6JyYtkpuTB6e11mCDRjq6QbM9O+2mSlXMUResPCzIkz9UMUAe5hZsq
-	ALkH76Ez1m66zpT8fw29RF1dBsewxMdevpMtXK2WoukPNZWdzZI7e4W48Z+yyfoA5zF/SfmeTUt
-	AJS84MPbpI8e1Fz+UWuge4+UZJ61T/D0Jzm8x5TYn3jmeLe79gmEAGTpZVumA7Ba4m30ayt/qRU
-	pztv45KzvO2iTjjepbFlipRxaV50gLc1FWaACo5FV3Dt9C+aZ1vreSnU8v1biVzKYjiNnD0u8mJ
-	HzuxXH6VMl+abqbKtyl43RsuIhSTJDGPVvzxzSl6+ZDKURBdJZlgGYXl9wXDnQvFFzNfhsEA6zZ
-	lwvtcqR/LIzzYFt4RZUr0PWkfpQ3Hg9UZSoN0ahIcGWvFm+ayGwEeEiB0=
-X-Received: by 2002:a05:6000:22ca:b0:461:a16c:a5f4 with SMTP id ffacd0b85a97d-47f62318b75mr12127661f8f.33.1784468280802;
-        Sun, 19 Jul 2026 06:38:00 -0700 (PDT)
+        bh=PpzzNW2sfZBH0zCyv8njtaSsrPQC9iQno8eKZX+8/b4=;
+        b=Z2heYzker4CAosbgGMMMyxLqU/cbnl3ardf1RC9zFppIoK0tbi51gysjC0jYY6tGJS
+         bwyfXCVxkxYrfLKNrlyhPUE2ktG1g7bqBtBi2Hs+Acn1020j5DbVP3m3Mi5Rm52h61oO
+         7LcUsGNdI3ho9cBM7IyZXFvVpU5JCO0jTxhDoxUKKs0LwFltDI9y7MeZqixg1tGECvRo
+         LwegRcW3e0kNZlY6g+yX+AzU32wvU0bclMvAcZ/wZeo+/O8haD9WdXB4fnpIC2rxHC9h
+         ODlIRoDV6qf3x4UXyrrVM3Ft2+y0B0hTkxXz//lzdkEybiMv266xRTuKOMEMJthMEsrh
+         M6jg==
+X-Forwarded-Encrypted: i=1; AHgh+Rpvwlc52k3wn5tQdi1PH9Z4X8bWunabd/CmuB5q83gx4aG4MZx1+QyRuVGPQznryLkgoTrSjbCFshZ4@vger.kernel.org
+X-Gm-Message-State: AOJu0YyinscEHLAuYJiv/MVQ9IYp/WDFTjKqC9fEgTKN+ymX9oOqSqoo
+	Cl/xwp8bnR2Sf2zmX51JfxQZTYceIesoFk7PS3+KWJwrOIp7N5eXB/Y+
+X-Gm-Gg: AfdE7ckIvpbgMRy8ycoa7Im1KviKWKrz4Bq8XOXpFVddfyqe6cg5lx39P3dYjgj65AF
+	2aW7AcuXC6w/LDGhisi7WRhUZY4bPV31yFXlAP+pAzQkDPh47Of/sYlR4g8xtDgrgTT3QmCyk8K
+	8NJhUpH1RdsTwicWm6c/TE/O/STiFfh3CMY1AnNgsmYsgaAX/gD53bz5nydA5J2zHEXWO9iQaOO
+	OJramjcnGPVcgj9L+9XHFNtvxh5cs0RT2Oneoat6ESeYv2jeh9rSt1zJUo6GZcif5eoUG+8FGFW
+	+59J1cNiFWbDECf5gcdcuHvy8o2BolSPXmJ5V27RWUolkqU1UBX4FZoKmaO+QpntcEfLngOS752
+	pUxjQEV9vd18HHPkoSqfwa8REfbO78ILmcvDIO2/J80ORpbwTR//duywINr00wWwn0zm1tD5mOh
+	0DGiIxowmX2OG9elEssviFoDujYEgJwpyK+kHhi6nT9POL
+X-Received: by 2002:a05:600c:3b01:b0:495:4fd4:144b with SMTP id 5b1f17b1804b1-4954fd419e8mr72113155e9.21.1784468283025;
+        Sun, 19 Jul 2026 06:38:03 -0700 (PDT)
 Received: from localhost.localdomain ([188.26.50.240])
-        by smtp.googlemail.com with ESMTPSA id ffacd0b85a97d-47f63edda9bsm21807179f8f.31.2026.07.19.06.37.59
+        by smtp.googlemail.com with ESMTPSA id ffacd0b85a97d-47f63edda9bsm21807179f8f.31.2026.07.19.06.38.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 19 Jul 2026 06:38:00 -0700 (PDT)
+        Sun, 19 Jul 2026 06:38:02 -0700 (PDT)
 From: Eduard Bostina <egbostina@gmail.com>
 To: Aaro Koskinen <aaro.koskinen@iki.fi>,
 	Andreas Kemnade <andreas@kemnade.info>,
@@ -77,9 +77,9 @@ Cc: daniel.baluta@nxp.com,
 	simona.toaca@nxp.com,
 	goledhruva@gmail.com,
 	m-chawdhry@ti.com
-Subject: [PATCH v2 1/2] dt-bindings: input: Convert TI Keypad Controller to DT schema
-Date: Sun, 19 Jul 2026 13:37:29 +0000
-Message-ID: <20260719133730.3551691-2-egbostina@gmail.com>
+Subject: [PATCH v2 2/2] ARM: dts: ti: omap: Disable keypad and enable it on the boards that use it
+Date: Sun, 19 Jul 2026 13:37:30 +0000
+Message-ID: <20260719133730.3551691-3-egbostina@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260719133730.3551691-1-egbostina@gmail.com>
 References: <20260719133730.3551691-1-egbostina@gmail.com>
@@ -91,129 +91,113 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Convert the Texas Instruments Keypad Controller bindings
-to DT schema.
+The keypad node in omap4-l4.dtsi and omap5-l4.dtsi lacks the matrix keymap,
+which is board specific. The binding requires the matrix properties, so the
+incomplete template nodes fail dtbs_check.
 
-During the conversion, the following updates were made:
-- Corrected the documented property 'linux,keypad-no-autorepeat'
-  to 'linux,input-no-autorepeat'. The old text binding documented
-  the property incorrectly. The standard input subsystem property is
-  'linux,input-no-autorepeat', which is actively used in device
-  trees and parsed by the kernel.
-- Added the 'reg-names' property ("mpu"), which was omitted from
-  the original text binding but is actively used in device trees.
+Mark the keypad disabled in the SoC files and enable it on the boards
+that actually complete the node with a keymap.
 
 Signed-off-by: Eduard Bostina <egbostina@gmail.com>
 ---
- .../devicetree/bindings/input/omap-keypad.txt | 28 ---------
- .../bindings/input/ti,omap4-keypad.yaml       | 63 +++++++++++++++++++
- 2 files changed, 63 insertions(+), 28 deletions(-)
- delete mode 100644 Documentation/devicetree/bindings/input/omap-keypad.txt
- create mode 100644 Documentation/devicetree/bindings/input/ti,omap4-keypad.yaml
+ arch/arm/boot/dts/ti/omap/motorola-mapphone-mz607-mz617.dtsi | 2 ++
+ arch/arm/boot/dts/ti/omap/omap4-droid-bionic-xt875.dts       | 2 ++
+ arch/arm/boot/dts/ti/omap/omap4-droid4-xt894.dts             | 2 ++
+ arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts            | 2 ++
+ arch/arm/boot/dts/ti/omap/omap4-l4.dtsi                      | 1 +
+ arch/arm/boot/dts/ti/omap/omap4-sdp.dts                      | 2 ++
+ arch/arm/boot/dts/ti/omap/omap5-l4.dtsi                      | 1 +
+ 7 files changed, 12 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/input/omap-keypad.txt b/Documentation/devicetree/bindings/input/omap-keypad.txt
-deleted file mode 100644
-index 34ed1c60ff95..000000000000
---- a/Documentation/devicetree/bindings/input/omap-keypad.txt
-+++ /dev/null
-@@ -1,28 +0,0 @@
--* TI's Keypad Controller device tree bindings
--
--TI's Keypad controller is used to interface a SoC with a matrix-type
--keypad device. The keypad controller supports multiple row and column lines.
--A key can be placed at each intersection of a unique row and a unique column.
--The keypad controller can sense a key-press and key-release and report the
--event using a interrupt to the cpu.
--
--This binding is based on the matrix-keymap binding with the following
--changes:
--
--keypad,num-rows and keypad,num-columns are required.
--
--Required SoC Specific Properties:
--- compatible: should be one of the following
--   - "ti,omap4-keypad": For controllers compatible with omap4 keypad
--      controller.
--
--Optional Properties specific to linux:
--- linux,keypad-no-autorepeat: do no enable autorepeat feature.
--
--Example:
--	keypad@4ae1c000{
--		compatible = "ti,omap4-keypad";
--		keypad,num-rows = <2>;
--		keypad,num-columns = <8>;
--		linux,keypad-no-autorepeat;
--	};
-diff --git a/Documentation/devicetree/bindings/input/ti,omap4-keypad.yaml b/Documentation/devicetree/bindings/input/ti,omap4-keypad.yaml
-new file mode 100644
-index 000000000000..5e0c101f9ba0
---- /dev/null
-+++ b/Documentation/devicetree/bindings/input/ti,omap4-keypad.yaml
-@@ -0,0 +1,63 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/input/ti,omap4-keypad.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
+diff --git a/arch/arm/boot/dts/ti/omap/motorola-mapphone-mz607-mz617.dtsi b/arch/arm/boot/dts/ti/omap/motorola-mapphone-mz607-mz617.dtsi
+index a356b3a2f24e..b97ab2906950 100644
+--- a/arch/arm/boot/dts/ti/omap/motorola-mapphone-mz607-mz617.dtsi
++++ b/arch/arm/boot/dts/ti/omap/motorola-mapphone-mz607-mz617.dtsi
+@@ -4,6 +4,8 @@
+ #include "motorola-mapphone-common.dtsi"
+ 
+ &keypad {
++	status = "okay";
 +
-+title: Texas Instruments Keypad Controller
+ 	keypad,num-rows = <8>;
+ 	keypad,num-columns = <8>;
+ 	linux,keymap = <MATRIX_KEY(5, 0, KEY_VOLUMEUP)>,
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-droid-bionic-xt875.dts b/arch/arm/boot/dts/ti/omap/omap4-droid-bionic-xt875.dts
+index 1d9000f84f1b..e72ac17fdd96 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-droid-bionic-xt875.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-droid-bionic-xt875.dts
+@@ -18,6 +18,8 @@ aliases {
+ };
+ 
+ &keypad {
++	status = "okay";
 +
-+maintainers:
-+  - Eduard Bostina <egbostina@gmail.com>
+ 	keypad,num-rows = <8>;
+ 	keypad,num-columns = <8>;
+ 	linux,keymap = <
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-droid4-xt894.dts b/arch/arm/boot/dts/ti/omap/omap4-droid4-xt894.dts
+index cc3f3e1b65ea..62f87cf95f74 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-droid4-xt894.dts
+@@ -46,6 +46,8 @@ slider {
+ };
+ 
+ &keypad {
++	status = "okay";
 +
-+description:
-+  TI's Keypad controller is used to interface a SoC with a matrix-type
-+  keypad device. The keypad controller supports multiple row and column lines.
-+  A key can be placed at each intersection of a unique row and a unique column.
-+  The keypad controller can sense a key-press and key-release and report the
-+  event using a interrupt to the cpu.
+ 	keypad,num-rows = <8>;
+ 	keypad,num-columns = <8>;
+ 	linux,keymap = <
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+index e11d1931c42a..d51913620f06 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
+@@ -428,6 +428,8 @@ mpu9150: imu@68 {
+ };
+ 
+ &keypad {
++	status = "okay";
 +
-+allOf:
-+  - $ref: /schemas/input/matrix-keymap.yaml#
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&keypad_pins>;
+ 	keypad,num-rows = <2>;
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi b/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
+index c1afc49f456c..00f98991cc5c 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
++++ b/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
+@@ -1200,6 +1200,7 @@ keypad: keypad@0 {
+ 				reg = <0x0 0x80>;
+ 				interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>;
+ 				reg-names = "mpu";
++				status = "disabled";
+ 			};
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-sdp.dts b/arch/arm/boot/dts/ti/omap/omap4-sdp.dts
+index b550105585a1..a04234b3be2a 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-sdp.dts
++++ b/arch/arm/boot/dts/ti/omap/omap4-sdp.dts
+@@ -531,6 +531,8 @@ &emif2 {
+ };
+ 
+ &keypad {
++	status = "okay";
 +
-+properties:
-+  compatible:
-+    const: ti,omap4-keypad
-+
-+  reg:
-+    maxItems: 1
-+
-+  reg-names:
-+    const: mpu
-+
-+  interrupts:
-+    maxItems: 1
-+
-+  linux,input-no-autorepeat:
-+    type: boolean
-+    description: Do not enable autorepeat feature.
-+
-+required:
-+  - compatible
-+  - reg
-+  - interrupts
-+  - keypad,num-rows
-+  - keypad,num-columns
-+  - linux,keymap
-+
-+unevaluatedProperties: false
-+
-+examples:
-+  - |
-+    #include <dt-bindings/interrupt-controller/arm-gic.h>
-+
-+    keypad@4ae1c000 {
-+        compatible = "ti,omap4-keypad";
-+        reg = <0x4ae1c000 0x400>;
-+        reg-names = "mpu";
-+        interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>;
-+        keypad,num-rows = <2>;
-+        keypad,num-columns = <8>;
-+        linux,keymap = <0x00000011   /* KEY_W */
-+                        0x0001001f>; /* KEY_S */
-+        linux,input-no-autorepeat;
-+    };
+ 	keypad,num-rows = <8>;
+ 	keypad,num-columns = <8>;
+ 	linux,keymap = <0x00000012	/* KEY_E */
+diff --git a/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi b/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi
+index 72849e1c95b0..af32ca329930 100644
+--- a/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi
++++ b/arch/arm/boot/dts/ti/omap/omap5-l4.dtsi
+@@ -2449,6 +2449,7 @@ target-module@c000 {			/* 0x4ae1c000, ap 11 1c.0 */
+ 			keypad: keypad@0 {
+ 				compatible = "ti,omap4-keypad";
+ 				reg = <0x0 0x400>;
++				status = "disabled";
+ 			};
+ 		};
+ 	};
 -- 
 2.43.0
 
