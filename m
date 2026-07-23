@@ -1,61 +1,63 @@
-Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF53E4399C3
-	for <linux-omap@vger.kernel.org>; Thu, 23 Jul 2026 10:06:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F244E43B4A5
+	for <linux-omap@vger.kernel.org>; Thu, 23 Jul 2026 10:06:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784801180; cv=none; b=mzprKH7tDbukXN6fQ7hb+SfgxUb8/llNRfwc8o3E6fqsAQPh2RHl75ug/jGBDupwTVRP0raKb66VnZQZ7XS+prJDBSk2Hh7P5+qFmpM3N3wdnWrCd5TaR6Wp+3f7GmSN0G6CKbLF1vLu35aWMcs76KyJR5hGs9aBAzh/ec57u2U=
+	t=1784801182; cv=none; b=MfmZQOwTOjky2hhE8S3O9EVa0ouZfHtcaJPnQXweDNnQYXEdereGcHbV1ZjF14vTMGornhvNjYENsaQFLokrN8B1/+pjmdvUfQmuwReg2cqfGfVUsMyFQrBLAuUgRZT1zs86Kg8cgfsihoi0rN6w8ddrcJ4znhjB3GeDk3VZ/Ks=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784801180; c=relaxed/simple;
-	bh=+Wyfo2vtIbswyXq9efM7rosBVsTJwzmKdaBzzC/aYRg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ea3M+EOPB9kJqps2mZkcc07xcEbz81xyCktV6S4Pddf9UIJX07UAmhyvdOQ6lyIpxMsxKlUTd36yhafyi0/fLOA2I9O9Ca3+Ts36nWIumrFA2eGQHz1MzYcjvSagW27RJh91DN2m+y5zyhD7wXYuedPslG3Pf8KaCMPMoVcCaGc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FXwYL5Cp; arc=none smtp.client-ip=209.85.128.45
+	s=arc-20240116; t=1784801182; c=relaxed/simple;
+	bh=kqwgEUYByWeKCt8A1G20ZW6yeKjOibdlAuv2gZFEVqg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=jBIX1TkY2WgY45ttTSaCShdf3JNPwlWPO27M9QKurC3gtKJCR+bvC+geOWZ2Dc7ibtElUMFKjCaA0ZQpoTRjln1MLnb9RwmAaYoB/kYqOwwzz9lJck2gcCOUTKRKR6zUg6smTDReiNbhj7ZZeNgQuxTNr59KxxJtrHBGM1Ivudg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LpFwFBQK; arc=none smtp.client-ip=209.85.128.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FXwYL5Cp"
-Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-49554ebb87dso5135235e9.3
-        for <linux-omap@vger.kernel.org>; Thu, 23 Jul 2026 03:06:17 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LpFwFBQK"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4956242332dso4136965e9.2
+        for <linux-omap@vger.kernel.org>; Thu, 23 Jul 2026 03:06:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1784801176; x=1785405976; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=BcGqlv2rED4NMS/3uzjzLmpezgSMOIuZyea8FmG7iIE=;
-        b=FXwYL5CpobBGYaEXcsi7sfU/6zrVN+9MWYNCWa0tCT18D4dDmbXrVK5NqH0gOsWfCe
-         TrFl0WWlwGXcPvIK8yWyaUTM6alsB06ngOdyMJJYnhiybARvXq1MyS7QIXhveZPHIPCH
-         SfPLk2lk2XWkzMq806Cru7wBi8yLywO+i+Crk5TwdRwRUPJ3jDTOKfUCe1tqEuCmIPcQ
-         u53zSiyYtRvDPkwxUQ64OV6pjw2IedJVh5EZHucUAULDCYp0AKU94k0bq0xF1TYn5b14
-         7r7wd+CMhTXXhJiXQV/KP0JFKzwRwg4eTflMaxb6p3WO6oTwu9kka5mdNgtqPURVXmV9
-         6F1w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784801176; x=1785405976;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1784801178; x=1785405978; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=BcGqlv2rED4NMS/3uzjzLmpezgSMOIuZyea8FmG7iIE=;
-        b=AuFv2jvoib19lDJP3M2143LwEUljkva7DkK35sqJwQ8lVK6N3l/pKVv3XJL4FgE7KD
-         Yu1mvO00cB3NcWCUrOZS9TYRm3VZZ4WIAGbBv5UoPuuPH0bjfauavdkvAUkpDApbBuEe
-         EfwPS20AtWJC2+cJdSCzh/r/xgSeFjETLYnNuw3MT2clxMdTIyvwN1PZ0IVUHmpFbzAp
-         Ur9Jh+UBTStMOFyZ4sxMRLVRn0lR4gLBs8jMToQAhyvkDclnGKG+nSrun0xAXLrWa7K8
-         z+ZAcxZnblG3fmiVPqH1HBrU82HisI9SUiruCLmYrHfH5BABtojemeQj5I943wQF7mTH
-         8zlQ==
-X-Forwarded-Encrypted: i=1; AHgh+RoAsA2SiEu5OgN+OM8DD8DPK7EiWpG/eY2xd2H6caa3WKaITWBw8I1nX4r+HjWSUQ7YpLdzOcguJ/3Y@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw8EIf3IxYteclXCl4Fykij7WuGXoPey+4SujWFXWfQ/Y9cMiJI
-	nYx2BiPKho9ynsfPXj2XFXhi2CdSv6sjMw8owXamhd9wn6BGS1d26A2F
-X-Gm-Gg: AR+sD13LmTnns4tor6+DNpleQz44iSKMWEMs+m5IP0vu30cVgnWCcNjXv6cngcM3zdx
-	tPldUF2UYx0qArbDKzMxhN6Ehi5PO93lKyP4lxGUNwm+AKwtRD2OljvEvTigle+uP7H96pk1Ah3
-	FbhlgHId9Rnx9mAWaHs9ll4953TOf5+vGlYTuEz/UfdsuR7Fy8HTPClfAhrjAa7ihH/9TGcSS38
-	eptIPfXyfDbTyc9p2lrk7k5/QjIfTe395m3rd4sKYxI9UXkiJWWm5rS607U0fbFAhdV9SXuHn5o
-	YcfG9DmUxHSAeg3oRW+wszAQCjnf9DoG7LHIco/yoT4QTaaYFqMueCIXhKVpQqHHTGlkWKqgfAW
-	qP0RB0WinjS417LaKSTAfdGSqS26s3YpxZ6aWgHkAgBfas1QnIm4wjvZKw8zJMtMVyVu/KavcOA
-	YDpWmPhmcD2cCkXW9HCbuczSnxBUQdSDBYI+i28kXaVv1P
-X-Received: by 2002:a05:600c:1914:b0:495:4d00:2fc0 with SMTP id 5b1f17b1804b1-49573ccb598mr27399575e9.12.1784801175908;
-        Thu, 23 Jul 2026 03:06:15 -0700 (PDT)
+        bh=6g+koxDLN1Chjep218/XBMsTlfwQifOiOfABmvTzX4A=;
+        b=LpFwFBQKShOgdfhRoBRsuw+SLLE1s+QvsSL5qFnSTAyeg+7Kr8dRPeMlG+shYJFDbG
+         KoUmDrOJ5y1Z2JA0thB/lOTDGL4BiLOLbmNnacxYxd3nYTyYCwgE6XN8m3v1MdDxMiCY
+         NoSbo3sDHvjheP2K/lvcyg3r8RhBmm3HHAE1MOD8n5vMLeiecV56kQZP1CH7Zwj9lXIz
+         QZWEnjdPiyuvBl2tHeQblL4FQn/HQfddIQewiFHrPIYy3kP7C9+sNi088szX/KRqMcFI
+         O6ltKyGKsadLyFnq+ZHKP9221BZ+iKKCUDJJ9CaSqtk4DnY/+pBO81i9c1RdScEVy+zI
+         oLGA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784801178; x=1785405978;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=6g+koxDLN1Chjep218/XBMsTlfwQifOiOfABmvTzX4A=;
+        b=og7Hr1ySP4yTZ1zhJ8oCd8/oYplfuF4VMy4nnyiYOA6vpFanQ90NrPYFLv4LHZrNUa
+         Y7cqLjGsit1ypYq0Xga8tAN0Iyskr/qwUMhPseUSIzH3Z0UrZ8NU7OYYZ4OV2ewJteHv
+         hMAcdOmSTToYke7ZYK/D/8rG46R2XB6MnmifGFUv2jGuqrfJAX5GT2ge601hk15CpbK8
+         Ldq0gqhoevewk7KN7dDkH46e4lfh5sJNa1uCjGZIjuMrDwEflhIegkOVd17ZaHU8n8yS
+         IDU9Ql3PJ0T8q6I5mTP4VR2mHDJayHNPwBTM3FU1CIkleXZPSbPTLqHGfkg97KQTYLo1
+         0J7A==
+X-Forwarded-Encrypted: i=1; AHgh+RpywVBkWT82SNYGhnKwH0+y69XwiyfU5USe+eYQ71JoOP8+oPGWtwKBxVdAbhZgAtaLpOpn/pNYlvHa@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy7yjn43ttnB+3IunXasnUyD/pUGxFHEuIc0/B2LdiDqo7gaJSr
+	OZtyu7eKfOa3FVlvdxo+T3JJpcaAU9MoNdsIxM7boBZHIZ9OUQP1HQAc
+X-Gm-Gg: AR+sD11E3AYMWHVdhsgWdwHc1cPpFo5nnE9EDOYwOgvOiBPpganU43I+Fpq/Jesxqqo
+	95oLNWnLs3z9XtCelquNHY7tFYgcboroerxGHOIv+kzZgWyK8ejZxYvUn2aMpadiyQ82quoj2pc
+	8Zel3spsgw6LeV8C6QPt4/qyGR/Sqf8ItxDwBnkJtFvLOGPsjpD1gtzziuInVISMKOd32+cNUX5
+	qolo4SaeGoCIiazueUKpezP62odHjvTP95xlTkIVkkQ0LoY98RPHxYH2w9a1fgupxeIMj70qrQ/
+	aFwjstvg9diTYejsJnqXbByapDsd5HLIGPvP6M0wcMcnOgXAl/lCCzIMi9p0vEkxgDvfV7BnSFL
+	X/cB4mnybUpvWcXaBMRXzYo5XVR+kYd5mhVt38supN6jAXQgBbZK3Uuwf4x6cRwOjBDKXKJTnty
+	+VT8kzFTrP8o/dWiyyQTB36hAPAYRSjmRico4Sj8HOGL+o
+X-Received: by 2002:a05:600c:4689:b0:492:6f6f:fa42 with SMTP id 5b1f17b1804b1-49573d37f29mr28050145e9.37.1784801178079;
+        Thu, 23 Jul 2026 03:06:18 -0700 (PDT)
 Received: from localhost.localdomain ([86.126.27.145])
-        by smtp.googlemail.com with ESMTPSA id ffacd0b85a97d-47f85b9a60asm14212163f8f.3.2026.07.23.03.06.13
+        by smtp.googlemail.com with ESMTPSA id ffacd0b85a97d-47f85b9a60asm14212163f8f.3.2026.07.23.03.06.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Jul 2026 03:06:15 -0700 (PDT)
+        Thu, 23 Jul 2026 03:06:17 -0700 (PDT)
 From: Eduard Bostina <egbostina@gmail.com>
 To: Aaro Koskinen <aaro.koskinen@iki.fi>,
 	Andreas Kemnade <andreas@kemnade.info>,
@@ -83,11 +85,14 @@ To: Aaro Koskinen <aaro.koskinen@iki.fi>,
 Cc: daniel.baluta@nxp.com,
 	simona.toaca@nxp.com,
 	goledhruva@gmail.com,
-	m-chawdhry@ti.com
-Subject: [PATCH v4 0/4] dt-bindings: Convert TI TPS65217 to DT schema
-Date: Thu, 23 Jul 2026 10:05:58 +0000
-Message-ID: <20260723100605.628882-1-egbostina@gmail.com>
+	m-chawdhry@ti.com,
+	Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Subject: [PATCH v4 1/4] ARM: dts: ti: am335x-guardian: Drop unused isink-en property
+Date: Thu, 23 Jul 2026 10:05:59 +0000
+Message-ID: <20260723100605.628882-2-egbostina@gmail.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260723100605.628882-1-egbostina@gmail.com>
+References: <20260723100605.628882-1-egbostina@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -96,46 +101,29 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This series converts the Texas Instruments TPS65217 PMIC bindings to DT
-schema.
+The 'isink-en' property is not documented and not read by any driver,
+so remove it from the TPS65217 backlight node.
 
-Changes in v4:
-- Removed the regulator/tps65217.txt binding. It documented the same
-  'ti,tps65217' compatible and is now fully covered by the new schema.
+Signed-off-by: Eduard Bostina <egbostina@gmail.com>
+Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+---
+ arch/arm/boot/dts/ti/omap/am335x-guardian.dts | 3 ---
+ 1 file changed, 3 deletions(-)
 
-Link to v3:
-https://lore.kernel.org/all/20260721112133.70382-1-egbostina@gmail.com/
-
-The binding covers the whole PMIC, so leds/backlight/ may not be the best
-location. I can move it to mfd/ or regulator/ if preferred.
-
-Eduard Bostina (4):
-  ARM: dts: ti: am335x-guardian: Drop unused isink-en property
-  ARM: dts: Rename the TPS65217 regulator nodes
-  dt-bindings: input: Convert TI TPS65217 power button to DT schema
-  dt-bindings: leds: backlight: Convert TPS65217 to DT schema
-
- .../bindings/input/ti,tps65217-pwrbutton.yaml |  42 +++++
- .../bindings/input/tps65218-pwrbutton.txt     |  30 ----
- .../bindings/leds/backlight/ti,tps65217.yaml  | 170 ++++++++++++++++++
- .../leds/backlight/tps65217-backlight.txt     |  27 ---
- .../bindings/regulator/tps65217.txt           |  78 --------
- .../boot/dts/ti/omap/am335x-bone-common.dtsi  |  14 +-
- .../arm/boot/dts/ti/omap/am335x-chilisom.dtsi |  14 +-
- arch/arm/boot/dts/ti/omap/am335x-guardian.dts |  17 +-
- arch/arm/boot/dts/ti/omap/am335x-nano.dts     |  14 +-
- .../dts/ti/omap/am335x-osd335x-common.dtsi    |  14 +-
- arch/arm/boot/dts/ti/omap/am335x-pepper.dts   |  14 +-
- arch/arm/boot/dts/ti/omap/am335x-shc.dts      |  31 +---
- arch/arm/boot/dts/ti/omap/am335x-sl50.dts     |  14 +-
- arch/arm/boot/dts/tps65217.dtsi               |  31 +---
- 14 files changed, 275 insertions(+), 235 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/input/ti,tps65217-pwrbutton.yaml
- delete mode 100644 Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
- create mode 100644 Documentation/devicetree/bindings/leds/backlight/ti,tps65217.yaml
- delete mode 100644 Documentation/devicetree/bindings/leds/backlight/tps65217-backlight.txt
- delete mode 100644 Documentation/devicetree/bindings/regulator/tps65217.txt
-
+diff --git a/arch/arm/boot/dts/ti/omap/am335x-guardian.dts b/arch/arm/boot/dts/ti/omap/am335x-guardian.dts
+index 6ce3a2d029ee..d595e79d6b05 100644
+--- a/arch/arm/boot/dts/ti/omap/am335x-guardian.dts
++++ b/arch/arm/boot/dts/ti/omap/am335x-guardian.dts
+@@ -320,9 +320,6 @@ backlight {
+ 		isel = <1>;  /* 1 - ISET1, 2 ISET2 */
+ 		fdim = <500>; /* TPS65217_BL_FDIM_500HZ */
+ 		default-brightness = <50>;
+-		/* 1(on) - enable current sink, while initialization */
+-		/* 0(off) - disable current sink, while initialization */
+-		isink-en = <1>;
+ 	};
+ 
+ 	regulators {
 -- 
 2.43.0
 
