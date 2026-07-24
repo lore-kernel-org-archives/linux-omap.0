@@ -1,68 +1,68 @@
-Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com [209.85.221.54])
+Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98C003EAC75
-	for <linux-omap@vger.kernel.org>; Fri, 24 Jul 2026 09:04:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDCC03ED5DA
+	for <linux-omap@vger.kernel.org>; Fri, 24 Jul 2026 09:04:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784883864; cv=none; b=CHyOxkqvBQ3z0WysMwewQICr9dRTDsTTMp3xWeJ4fyr8kh191wsY035OUHQNOhF8lzhIY5nddt4UksPLCioH8yx/jxp01Fckr78L+GA2x27Eph9BUHZPe+4wSXFYxw2bAtqYjD51Ix/bUeFyyHPgarX0bkfghECklVGQ8AepimU=
+	t=1784883864; cv=none; b=GHOuadC/GyCXCz0rnowLQPrVUngII4Zqrzhtgjf2oNHTeEd396PooUeNK1Uw2H8V2zi72t+rGm0vNcOzuNvdD1dKR3pA2XklMzdiCl43/mluOJ3fxLCfO0noBTEziOw1jJFHdSszd6p5hn5wVvejEYMcJibOkHpgD+UL3bBhQzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1784883864; c=relaxed/simple;
-	bh=i4qllS4+L+pREPH0T4wiXzxc5q4nTV6C2Q3lI6XF9y4=;
+	bh=c/HyNkuMW4z6Zoljb6+iJsr+eONkoiQ7+lwzLTi5cS0=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=fsqDKmcAfgv3BPe24AMw4y+wJzl+flVmdxn4M+SZ5y+KF2V0cIz2V9sdbBt1S+5nlq0GOEfo24dItvz/zmnreIS1rlNw1S7ucFWvKVVFpiNkn3FVWOJihMiEpJTAW7v05Wx3sF7n0nd8jcuc1CSC+ryeDAEhFlBSTPDjmFEqoC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=TJQJXebt; arc=none smtp.client-ip=209.85.221.54
+	 In-Reply-To:To:Cc; b=ZPadYSFDgrOdrwqTCcnkj6PUjAO11KjtLpfApaNam2YxY0zGJVjM7tWlIr1fB88AxUHzoEvNQPyZDvavfrM5BvyHd/UCNX/4TdhqKCmlvBlBav0kJIr0KjEE+7ieaP++p5whVsDnoFoUlAXpgrhCo33Qfu4r6crYHtNTdttcWSw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=KnpPI6ay; arc=none smtp.client-ip=209.85.221.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="TJQJXebt"
-Received: by mail-wr1-f54.google.com with SMTP id ffacd0b85a97d-47f707e5d75so165110f8f.1
-        for <linux-omap@vger.kernel.org>; Fri, 24 Jul 2026 02:04:18 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="KnpPI6ay"
+Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-47f904e80eeso198387f8f.1
+        for <linux-omap@vger.kernel.org>; Fri, 24 Jul 2026 02:04:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1784883857; x=1785488657; darn=vger.kernel.org;
+        d=baylibre.com; s=google; t=1784883859; x=1785488659; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=MLV7Kh0UK364ekQydmUokZhdiy99pnn6pB+Tv4eP+3c=;
-        b=TJQJXebtndoDHifWZk4L+YPtIt7ZMTnQKpJLdeiIW59NfDFtu55xcbF5pWkXwELeTs
-         mPViOzD9d88aGV4yVXRFKEFzMRoGMH+/0FacxJewwrahoJtxCj1GHR1KR6voOFb7pvCP
-         Fwn+1ZupPY5pFN1YUtF5/wB/xzDMSaGzd4TjH4JJ9WTbA/305avXm84GQK9u+xz6BLNg
-         KPAwe968H9ILkXB4JIn/+SX/XKJV2dOXV8M44c9kIoLUh6H9LzjHjXNn9mAwegfT7haq
-         maptLeE3lHrZghQMZQ2r9vW9Q+dqYgUclewPMq/BRgze9wts5dznHFJaOuHatYUPFW+F
-         +h2g==
+        bh=Vmy1hUJRw3q7Ic7Vi7VoynD2pQqL5T8Kb7uNyjYlj78=;
+        b=KnpPI6ayep6sTgfKaukD7VxQ4Nla21VYH8uCz7uebb0QbWpmf0FqyV2l09TZH0EufD
+         76Og+0fDWs3tOxpN+quZknMXYnJnseZiQGB/zyTe2MYBuXRWv+KBGHezflrMSby42ixh
+         93gYxX8PP2bBBTFv+qPXLo6PCL7CuNVZZO4+ofezFboyPwYITAle89Zz22rH118r8uNe
+         /FsQqS0NonR8fI3+jWJQ/V6ONJK3fPRT2Phmfg3SasgPnv+yB1KmvKukpL6tS39mCLDD
+         2uN91zDPInYPf7C0GIUDBiB18XgboelhzdB8C6tDtueWeSSGtYvn+BpU7scI6fiu2vdK
+         3qLA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784883857; x=1785488657;
+        d=1e100.net; s=20251104; t=1784883859; x=1785488659;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=MLV7Kh0UK364ekQydmUokZhdiy99pnn6pB+Tv4eP+3c=;
-        b=Vs8bkhcNc9z8UUPwbeRT69WZrblvcSIqskJ55DWhdXq0uIK37DaAI/Sn48+GklCd+N
-         X1o3W+RUoQ9gglmJo3/TwEduwJDZ7jVrNmBcf1OKvlSyOw9zUFlXsMkU843LgLMRjQvg
-         S5zJJmw5Ovdxmc9ssaLmzv//PPFKJbEYwZTf4iFNp+889No+SypxrVJUCKfAkxzXp4bw
-         TwdB7vspYjZ9vYwAeiWAzS1PR2WbAQj3lGauCvW1FyGN1uSRemth32HRV+aY6ks35AN+
-         5vL3KrDRzwZNe7vJxjwe62pPBQ/HHuNGsgfSwIFRniHF0YGe8eR0NZExuSupJJw8fAkG
-         CZEw==
-X-Forwarded-Encrypted: i=1; AHgh+Rpe+dmm8Ni1VlCRz43o53GbLGBLGWIXRMqTHAcZEQSn6hVHVD49Hqq2fgXNlFk2vH1kuFBnohg86jkt@vger.kernel.org
-X-Gm-Message-State: AOJu0YykBvCr9RPnTKqD+BSoKJCcwSfogKHtHT6hKI0Dyd4sQJpIBdxJ
-	UKquPO6M0oGq1H7DVuzcYtn66FfIHYgJT+0DyOejextUrH5j9ZzrRmM4S0JsI968+7dW84hriwz
-	wpfCgroc=
-X-Gm-Gg: AR+sD10gisVFuvstxe6jXLRkguAimFXB1afTK5Lm/TborTREvoHTEi6yPdBExOWwyWM
-	G7aZHbHc6L/w4esKV+XOUYxmoDFsPeuh1rdHZ/84uIbxCrnpV8IubWytDFan09WIWS7wjPdaJVw
-	KtkKi1JoZtMHmaapbvhkEGIhPZ531vmIDz2Dc9OchGCNlgJz0vf22xtnUHIWoEfeeHzCpf2P7cR
-	CQ71E7BR0q2c97tKgD3S+OWpHpWps+DSx7hOsf00rnT5aWVIDPadyOsxT5GZARuT6ryfe6354TV
-	o7l6S07Phj3pcQTMvmItizaYCArEcANOMVSHR/mbh31azJQbDo0xTqA2d/8A25Nf91FYVYyJr7a
-	8mh9jyAos2tbsYlDa15HsltzWkA+gB8W3Vc1gQFWZ6h1Dqq/I+uZD/QZM0ZzE9zsGcsRS+GWiID
-	qC
-X-Received: by 2002:a05:600c:3508:b0:495:5f00:9497 with SMTP id 5b1f17b1804b1-49573cd9427mr73102445e9.18.1784883856862;
-        Fri, 24 Jul 2026 02:04:16 -0700 (PDT)
+        bh=Vmy1hUJRw3q7Ic7Vi7VoynD2pQqL5T8Kb7uNyjYlj78=;
+        b=U5SHF+3yg4Eo8lYh5Fyn6iAUIU0XeeeQ3qRoVAzksCSHZrK8hyPrwfPyOg9OCIZ2Fc
+         vDRB7K14hc54cE4eflLSN5BWrVQKO0sZIGEkohlV/vPLeY8obvOQtBYxf8WWk5463OOE
+         61sKGXG+Iz8hB8WcQZirAJNADrOrL80uDImkErPdrx0xzqgQwBaeeQakFTTO9NpqZIBt
+         9fzCV3ngxLxrCwMLXs7YSrwBk02YWcHO34In8/e0cQ9FX78OzZBWYDQoLm8JBRwIIw9r
+         eomqj23rEzpv0P3GlYNBEfrAMgWW1YXCAYHR9EYnshFXNxC4V04YU2PEGx8Fu/Exn038
+         JINg==
+X-Forwarded-Encrypted: i=1; AHgh+RqaQMQ16wEST7XNeWpvswVVsLwYucUmmXw+XUzfrkO4MJqFEc3nx3VCmBJhbdg5lqGZBT3WfY6fcFWd@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw5KtxQTLHqxHAoGzkyLSVBUxQ71qlFqqAlKohgys6WZ+JJxQOr
+	GRUF71osNkWJep81kic6XzaZYRWExnVtGIWQi+4F6hqN+37fFdiErZimc4QZ5nXjI7O6uY+bC73
+	cTxmGJ3Q=
+X-Gm-Gg: AR+sD132Rit2AmK4NlCoXwpfnptgXvit+YcQWOZRXGbq6MwRfWeTQPM6F+AIboal+tl
+	jB6vgkfUwXDM7OrmenzYxiwWwxOZrAWtxdX7lw0BsD9hMIMI7DDgVwZrLuU1GlKLD7bqOf57gRi
+	A6bpMItcVyoUCQRQRwZXDVDpOJeRg1vL4VD65f3ZeMC68qOANepiyef38ttbuO/xuX70fN060gn
+	tVm0jHLKTGUXGCbDyEanRtApc60TnSkCHawkXP+9XllMoyLJFlSbsnPZ7fAay+M1a3hAPdz3oJO
+	FcjzneNiQ1Z66N8QyQ99nTYlqLjZ5KHXhPJRw3HqI0aPgkmwgRo0YoFK06sbD4hjGbQIqH0SkzZ
+	eOLngrpZDaTMyXG2X+pFkRmDDgjjxLabp0as6WDWYnNvbW+yFQmX2lYLih5Wx7AUuJTl8dPZ0x9
+	Qv
+X-Received: by 2002:a05:6000:230e:b0:47f:7b85:b883 with SMTP id ffacd0b85a97d-47f8d761973mr8352142f8f.47.1784883858984;
+        Fri, 24 Jul 2026 02:04:18 -0700 (PDT)
 Received: from localhost ([2a01:e0a:3c5:5fb1:e584:93af:f3aa:2c19])
-        by smtp.gmail.com with UTF8SMTPSA id 5b1f17b1804b1-4957af6b10esm57168825e9.5.2026.07.24.02.04.16
+        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-47f85c66cebsm21940318f8f.30.2026.07.24.02.04.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 24 Jul 2026 02:04:16 -0700 (PDT)
+        Fri, 24 Jul 2026 02:04:18 -0700 (PDT)
 From: Jerome Brunet <jbrunet@baylibre.com>
-Date: Fri, 24 Jul 2026 11:03:54 +0200
-Subject: [PATCH v2 3/7] clk: renesas: clean-up simple provider misuse of
+Date: Fri, 24 Jul 2026 11:03:55 +0200
+Subject: [PATCH v2 4/7] clk: rockchip: clean-up simple provider misuse of
  the consumer API
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -72,7 +72,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260724-clk-provider-simple-clean-v2-3-56f306156d25@baylibre.com>
+Message-Id: <20260724-clk-provider-simple-clean-v2-4-56f306156d25@baylibre.com>
 References: <20260724-clk-provider-simple-clean-v2-0-56f306156d25@baylibre.com>
 In-Reply-To: <20260724-clk-provider-simple-clean-v2-0-56f306156d25@baylibre.com>
 To: Andrew Lunn <andrew@lunn.ch>, 
@@ -91,20 +91,20 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org,
  linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, 
  Jerome Brunet <jbrunet@baylibre.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1091; i=jbrunet@baylibre.com;
- h=from:subject:message-id; bh=i4qllS4+L+pREPH0T4wiXzxc5q4nTV6C2Q3lI6XF9y4=;
- b=owEBbQKS/ZANAwAKAeb8Dxw38tqFAcsmYgBqYyqAHjrBMlLbsRDUuljqrEYPOyeyYAPzg/SXk
- jNGwdlpTaaJAjMEAAEKAB0WIQT04VmuGPP1bV8btxvm/A8cN/LahQUCamMqgAAKCRDm/A8cN/La
- hSkyD/4pUoLziZUxxkpmbPY/qvTAcrEdq7SBbVU6GpskFU5ov07moRfgR+6L+QnROKwYTiacIiV
- j1Id4mbcJS4lTGYyfhQHnpCpE6g4Ty5AOA5LGOh4j4/JBxdHL+gSrPGt14RoF6Yj4XQkhA1UHUu
- PUEYCZKL0dJtmaJtG+j9xQ1n8J5fLTJ4yYwDhVGPC0gFBub2VC55exg1nLw9H/BA9QuYfH/R6jB
- 1gRBMy3ki4RKKZlrSF/HE+vSq17ymWXfrS3FSS34wfEJBVX61mFRwB0GHvC4MH3rUyoibQ+VXyT
- fxhDd8LpNOnsg4bjNSbln23x9I7vCg5gIqqxj3bytRpFG6vWz/hwCe241843XOXyP8UZXor57aU
- yCUv+ewWTn7vvtq/y0V8EFxe3K77GZ5obxj3nS1lws92lwHu5LoB7SmbeRYj3c8n2Cw4DJ4BP04
- aDLst1r0KfbFdesTIeiNVRM7Pj3uVdpGPq95OarAzPWMQ84Rw9b01YxXpPr4Qt0BO8crTXNH5bT
- 9maeRb1sc1HL6+ksttwt1yZ9bpD0WzEbL1UOkKEbpdhQGM+2M9RzZzmlK0wbO4TnJ12TqHh5iWx
- gOM1ryGczqr/oYKu/yudM5d+TlB4vMwCZUy579E3zBPTZJJ6qG11DkD5DCSjYDdD8Ew2ujwzSo0
- pwxjz05NaJ3Z5Uw==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4291; i=jbrunet@baylibre.com;
+ h=from:subject:message-id; bh=c/HyNkuMW4z6Zoljb6+iJsr+eONkoiQ7+lwzLTi5cS0=;
+ b=owEBbQKS/ZANAwAKAeb8Dxw38tqFAcsmYgBqYyqBk+IBpzMF96bigh65kKM8JR3kcYzjychCK
+ YLz8MopaNCJAjMEAAEKAB0WIQT04VmuGPP1bV8btxvm/A8cN/LahQUCamMqgQAKCRDm/A8cN/La
+ hTcYEACzcSp51w21pbh6PuxyNr24pZ3Nv0ktAmcU30YtrNSoWzIKyhG/R/BUjOJjBIIM5fEjFsc
+ I9Ff5FAQ47iojQ4xWTuMQEcie071jy0QoM8sZvfgO3exSwBl/WWTEC9l516DlVG6FykYt/yiYG0
+ fESTr3eLuPkGhtarCnMF59QHA1lB+1HVNk40mVHJ5dz+EME59MdLhbrnh435AVGYxb21++PrMvf
+ fXl8QabMo7nUrBlCln+T+1yUy0aHgunlcb9vIs5Td97hFAR0L2q6tIwjv3K9bYWeYcSYrlSV9Wc
+ gt5WNE/fchVqJZI0ZPhOtLKzad6Cu6aXOLhv69hNyKT+9GIwIwyK+4mw+ISAGRd8zb3vPCllp4U
+ /pQ4MOOYcf6oi+Fv0/Yn3ZOckXomugCwNDcfDb/TnWO5TiUXdvF4oYQZe0C7lXTJIhFJX1zuX+9
+ WoWxbbbYLUVtPOzsJhyfWuvhiMv1GGbXU7b2HIhPdIfKSWDWfQv6VnD2+xoIlyX132umga2yB2Q
+ v9w5RJfsUI8Vc6vB8NBLI6MioQO8IyScg1hUX4E1jxa4XOV45O+oij5ex2/lBBPbc9Px4hdWu9j
+ 28R5oywcHI6hLv1xI5uaq5AXKff7NgVRPDts1XPF9B1jzy6mEX3cCtFYAE7+KpznmpEfEWXEK8b
+ 5KcVQbKkgbR7zJQ==
 X-Developer-Key: i=jbrunet@baylibre.com; a=openpgp;
  fpr=F29F26CF27BAE1A9719AE6BDC3C92AAF3E60AED9
 
@@ -117,22 +117,109 @@ consumer interface and corresponding clk_hw interface exist.
 Reviewed-by: Brian Masney <bmasney@redhat.com>
 Signed-off-by: Jerome Brunet <jbrunet@baylibre.com>
 ---
- drivers/clk/renesas/r9a06g032-clocks.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/clk/rockchip/clk-pll.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/clk/renesas/r9a06g032-clocks.c b/drivers/clk/renesas/r9a06g032-clocks.c
-index 076f587dfd39..1da25e4fb4d7 100644
---- a/drivers/clk/renesas/r9a06g032-clocks.c
-+++ b/drivers/clk/renesas/r9a06g032-clocks.c
-@@ -1014,7 +1014,7 @@ r9a06g032_div_determine_rate(struct clk_hw *hw, struct clk_rate_request *req)
- 	if (clk->index == R9A06G032_DIV_UART ||
- 	    clk->index == R9A06G032_DIV_P2_PG) {
- 		pr_devel("%s div uart hack!\n", __func__);
--		req->rate = clk_get_rate(hw->clk);
-+		req->rate = clk_hw_get_rate(hw);
- 		return 0;
+diff --git a/drivers/clk/rockchip/clk-pll.c b/drivers/clk/rockchip/clk-pll.c
+index 6b853800cb6b..89a783204f0e 100644
+--- a/drivers/clk/rockchip/clk-pll.c
++++ b/drivers/clk/rockchip/clk-pll.c
+@@ -259,13 +259,13 @@ static int rockchip_rk3036_pll_set_rate(struct clk_hw *hw, unsigned long drate,
+ 	const struct rockchip_pll_rate_table *rate;
+ 
+ 	pr_debug("%s: changing %s to %lu with a parent rate of %lu\n",
+-		 __func__, __clk_get_name(hw->clk), drate, prate);
++		 __func__, clk_hw_get_name(hw), drate, prate);
+ 
+ 	/* Get required rate settings from table */
+ 	rate = rockchip_get_pll_settings(pll, drate);
+ 	if (!rate) {
+ 		pr_err("%s: Invalid rate : %lu for pll clk %s\n", __func__,
+-			drate, __clk_get_name(hw->clk));
++			drate, clk_hw_get_name(hw));
+ 		return -EINVAL;
  	}
- 	req->rate = DIV_ROUND_UP(req->best_parent_rate, div);
+ 
+@@ -319,7 +319,7 @@ static int rockchip_rk3036_pll_init(struct clk_hw *hw)
+ 
+ 	rockchip_rk3036_pll_get_params(pll, &cur);
+ 
+-	pr_debug("%s: pll %s@%lu: Hz\n", __func__, __clk_get_name(hw->clk),
++	pr_debug("%s: pll %s@%lu: Hz\n", __func__, clk_hw_get_name(hw),
+ 		 drate);
+ 	pr_debug("old - fbdiv: %d, postdiv1: %d, refdiv: %d, postdiv2: %d, dsmpd: %d, frac: %d\n",
+ 		 cur.fbdiv, cur.postdiv1, cur.refdiv, cur.postdiv2,
+@@ -336,12 +336,12 @@ static int rockchip_rk3036_pll_init(struct clk_hw *hw)
+ 
+ 		if (!parent) {
+ 			pr_warn("%s: parent of %s not available\n",
+-				__func__, __clk_get_name(hw->clk));
++				__func__, clk_hw_get_name(hw));
+ 			return 0;
+ 		}
+ 
+ 		pr_debug("%s: pll %s: rate params do not match rate table, adjusting\n",
+-			 __func__, __clk_get_name(hw->clk));
++			 __func__, clk_hw_get_name(hw));
+ 		rockchip_rk3036_pll_set_params(pll, rate);
+ 	}
+ 
+@@ -743,13 +743,13 @@ static int rockchip_rk3399_pll_set_rate(struct clk_hw *hw, unsigned long drate,
+ 	const struct rockchip_pll_rate_table *rate;
+ 
+ 	pr_debug("%s: changing %s to %lu with a parent rate of %lu\n",
+-		 __func__, __clk_get_name(hw->clk), drate, prate);
++		 __func__, clk_hw_get_name(hw), drate, prate);
+ 
+ 	/* Get required rate settings from table */
+ 	rate = rockchip_get_pll_settings(pll, drate);
+ 	if (!rate) {
+ 		pr_err("%s: Invalid rate : %lu for pll clk %s\n", __func__,
+-			drate, __clk_get_name(hw->clk));
++			drate, clk_hw_get_name(hw));
+ 		return -EINVAL;
+ 	}
+ 
+@@ -803,7 +803,7 @@ static int rockchip_rk3399_pll_init(struct clk_hw *hw)
+ 
+ 	rockchip_rk3399_pll_get_params(pll, &cur);
+ 
+-	pr_debug("%s: pll %s@%lu: Hz\n", __func__, __clk_get_name(hw->clk),
++	pr_debug("%s: pll %s@%lu: Hz\n", __func__, clk_hw_get_name(hw),
+ 		 drate);
+ 	pr_debug("old - fbdiv: %d, postdiv1: %d, refdiv: %d, postdiv2: %d, dsmpd: %d, frac: %d\n",
+ 		 cur.fbdiv, cur.postdiv1, cur.refdiv, cur.postdiv2,
+@@ -820,12 +820,12 @@ static int rockchip_rk3399_pll_init(struct clk_hw *hw)
+ 
+ 		if (!parent) {
+ 			pr_warn("%s: parent of %s not available\n",
+-				__func__, __clk_get_name(hw->clk));
++				__func__, clk_hw_get_name(hw));
+ 			return 0;
+ 		}
+ 
+ 		pr_debug("%s: pll %s: rate params do not match rate table, adjusting\n",
+-			 __func__, __clk_get_name(hw->clk));
++			 __func__, clk_hw_get_name(hw));
+ 		rockchip_rk3399_pll_set_params(pll, rate);
+ 	}
+ 
+@@ -992,13 +992,13 @@ static int rockchip_rk3588_pll_set_rate(struct clk_hw *hw, unsigned long drate,
+ 	const struct rockchip_pll_rate_table *rate;
+ 
+ 	pr_debug("%s: changing %s to %lu with a parent rate of %lu\n",
+-		 __func__, __clk_get_name(hw->clk), drate, prate);
++		 __func__, clk_hw_get_name(hw), drate, prate);
+ 
+ 	/* Get required rate settings from table */
+ 	rate = rockchip_get_pll_settings(pll, drate);
+ 	if (!rate) {
+ 		pr_err("%s: Invalid rate : %lu for pll clk %s\n", __func__,
+-			drate, __clk_get_name(hw->clk));
++			drate, clk_hw_get_name(hw));
+ 		return -EINVAL;
+ 	}
+ 
 
 -- 
 2.47.3
