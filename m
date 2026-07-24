@@ -1,68 +1,69 @@
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44CF13EC2FF
-	for <linux-omap@vger.kernel.org>; Fri, 24 Jul 2026 09:04:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59A6F3EB110
+	for <linux-omap@vger.kernel.org>; Fri, 24 Jul 2026 09:04:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784883859; cv=none; b=ZycfpkUlXzyxJl9JtK3OlaKKubrznYcBE61TpZS1cFNaOnsO5rBPPyJnLPHl/gOgzgrpS6ddwdI+x/O6aT9vJ4z/E7PnVk7DM3MK8Evu/MPu68I+IOpoOLkbdUPDZbUscCkz/nz77TRIqOa9uHZqgMxmCzW0zDkwNBxDvN6c0gQ=
+	t=1784883862; cv=none; b=Q82HwHRSc6SjFOme9bxMeeUoHB5N4sYnv5EcEkguxssoAU1lt+AWyQ62X18fXt6ObsZpBb7BZjg18584Y04Gq4QxF8zVbwkDTplBuIt4nz7hNlDR5RjKF4o8fcSjbuaSIBTbLRYDh4Q4psBtJF0NOtHK4uSuewExUdHDgl/L+HI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784883859; c=relaxed/simple;
-	bh=ngZbu7qrPPUnt3qz5v/OxI6wrSNHJGvbM+okq4uzzqA=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Q9/U1oi4yPzDNrWrqtP6n6xWBrXspmcU3F2FMMmeZxOkf+9TXl519E+xxcqTPNbBeBuiYJRk0nHY8QDYEOb4+0AzWOjTcy/khAtXCVapMh9IAkwENvEbRmJt/6Kur1jKhzk4zZpo0If0FhlOkJFasW4hmE/pFbhGAc3kVUEms8g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=SJZZ2jdY; arc=none smtp.client-ip=209.85.128.42
+	s=arc-20240116; t=1784883862; c=relaxed/simple;
+	bh=tWtyJH+acydIB1bHXKtC61kdBeQ9YCay3I6fogeNCBU=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=rRCD16RNeYJouHvgkUaq4TH0kgzw721JvZCsPKQpdNZQ7akf1gWGvOHGdQg5XfKoMIAD/S8DjSqMExjybVD17P5Qv0o/gwZJr+tftnLoUxwLG9M7zUi18Ji6F4BVLkpFyoRlXwqo112zvs0XIo/1/Idsa5xI0uhi9fNYVwK09fQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=jfjAf7ug; arc=none smtp.client-ip=209.85.221.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="SJZZ2jdY"
-Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-495590dde14so2528575e9.0
-        for <linux-omap@vger.kernel.org>; Fri, 24 Jul 2026 02:04:17 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="jfjAf7ug"
+Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-47f7872abb6so135664f8f.3
+        for <linux-omap@vger.kernel.org>; Fri, 24 Jul 2026 02:04:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1784883855; x=1785488655; darn=vger.kernel.org;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=Q/Jg1vL6WCoKWmNIVSdaiN+VbT2b9Zn9L0z1UYJ+buU=;
-        b=SJZZ2jdYjolEFxzCnqMsjrModzEhkddN0PDrk0JsoVedqdmQP213ULosPHUsA1qW8j
-         9hS02cf8TSn9JnyqSmSEV8WpY7wYh3Dl1Pfc4S4Vf8BqU4OXOZYY5kB9BrW8hvDNgmuM
-         fxhKFOUZnXJvFJdOhU+psyXAsJNN0AaL2huimxNRp3zcIrjYgZFGva47HrcSKvNT5Ov8
-         QsBOlSxhno5H7YOKK6dgbX3gi2WmddP8pVbPe/MDNgWHSv2QMek8dJJYXd5a9o4aHHVi
-         2jSrPG1AJJzOcnyEB3OJBaXTD/GTydFhFAtF8icLPaV7WBLjaoOXPG7HmSgZiSiCDuhq
-         Mb3w==
+        d=baylibre.com; s=google; t=1784883860; x=1785488660; darn=vger.kernel.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=NTCgdt6IpHLKYtA76srcT7UD0TdTAQVzu4zf33H1PjU=;
+        b=jfjAf7ugTpaOgAv4PZqvA2wK5x5Md09d6BPN6QrvLsqPOlhVayg1oNVUug2G3NQRyC
+         9b2D4IiNeDhwT+xNqhGWqR0N5uYfuFv/qI446QBqhhzCHBI8cpMhmZUYQxYjUpjw+PRd
+         bxBWPYfH7oq8WjcVgHFQWXIqe8pbmkQOHneBDOrXhaXs2pfHO6YvGj8aYxL0djezg7oq
+         ZbVvljmI8EDA/QmGGZEKEObEIIUwKOx5IroHdz2Fc7CPWW6vUu2aB4Viby3fcrS2GRBU
+         fV1fVRTjBOKqtr/kz+kxe6GXTnMrtcHNbGBsmxg1zzUaYW+Fz/Od/Q/EM8ab8BL6ctK+
+         GYLA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784883855; x=1785488655;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=Q/Jg1vL6WCoKWmNIVSdaiN+VbT2b9Zn9L0z1UYJ+buU=;
-        b=QtEvtXebJaYRhBgJr1PyLADavAccwEc56GrP1n5pAryU/Kfl8kBX9KtJSPRbmGxSKU
-         4u5aa6xwt155C2f8L3l5Ke5zgvBFk+vgaJxdad9/mZryQ0VGrK5Tb/guID3QVZbR9+c2
-         Erh6VqVv/1BjQNDOUI4NnHODYXb5tjfst++0sMMIzm+soFcj1lR9E3dEpD2uRU+sjRT4
-         liBxkevnNnGIhZQyR3lS/jdAtn7aDf/cZ2SelVZuBjLcqc9gyBKoSdKrHyfK5TdwMb2r
-         Lu4kvSDQk9s4VP8Os2xCmyrMHkubXQPsJJOk+p/rvOhKKpuaJifugNK3oSDAuXlvbDAX
-         v+jA==
-X-Forwarded-Encrypted: i=1; AHgh+Rp9P1BOlL8K4LrhbwaEyeKtgsmkjVC841x2m8Ptdo0+HWOacmb73wMRca5PywoFWjEQqdH3jYiNsL3i@vger.kernel.org
-X-Gm-Message-State: AOJu0YyC1Ed7Cd8dkXHXQZ3/qBX6xAkOLttynZBseZq4Ba7BlvUKqaJY
-	yxf3HUhmeitRzHI66oe+EmMg209mM67eEXqJzcD1jepiipgEWx2C0MPcn8Z5NzSXIIYEIhFsM86
-	9omHmn9Y=
-X-Gm-Gg: AR+sD10O8M5TBjquyaHWaKpI7+kW5xFuyFNG+Q65qUP49qW4BwUYqq+9rMo8JlGYrHv
-	HIvo27D8HbYRGHa2P7etFdh1dJzoWSCjiG+qWm+crUnO2SsNkNcEm1/IPciwu6UGei6hYjfvZWH
-	PbtfSJUvPLb/u+t04nslP7VcTwGZGd6spFhIIr2djccHXNJbHylrTMQT+pY5FT8mNADwA2jaJwb
-	Cin809f4tLKqvFJx/snSzgl0OS36KYSQT4itzaM2bvC2bH4znDZHF5Kpr1KBspWSaPRb7IPGU7X
-	BxbyXyju7/uOPq0mYb+rpFaCrgoEOqM44kXtSqwLEBuJlPY6/cKKsd1ufzylVUl2gS55iGnrL1R
-	6U/O6B2zAb4FGn6vTRmZ6nBXoJsHTOS5jXHUqJAJ6aaHicSIgal4GvCa+T/gcvwE1OHLH6w8GNO
-	XU+MGklqjxkt4=
-X-Received: by 2002:a05:600c:6d04:b0:495:52dc:73a9 with SMTP id 5b1f17b1804b1-49573cc6d0emr50329905e9.11.1784883850753;
-        Fri, 24 Jul 2026 02:04:10 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1784883860; x=1785488660;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=NTCgdt6IpHLKYtA76srcT7UD0TdTAQVzu4zf33H1PjU=;
+        b=ETnM18gEeFyKGnRBIpbl0OrW54amX3iB2eDoY7NpDahqmkLpgZLPltExgsV+2PrC7o
+         b/k7x1TbQ8PCf61DK85/zpoNb4SRg+geYPPk75+p8m/qrUXlPdt1Exjhqk5L4qF1/rPP
+         gPhOMJjZA9BLYgR+bJWC/SN8t3Va36XvTenMCMsaHwKanUYuC7wcFuc4iv9cBM8Eg7Kg
+         xg+OHPYWJnsvb1wJrgE8k6IiEYdEs/zYWnbQP2P6BKjdyfpkrBagkFGS9ISd5QDgj9Ur
+         3QJs4MepYr/MqYcEn/KdKgvqdwPiH0888KgUZcszxpVUaqRkd9F4iEmVCQNPW8CjELRj
+         6dSA==
+X-Forwarded-Encrypted: i=1; AHgh+RqlNEz6RwP9AIegYKzi8BPV/afYxTKbHtzvIjkLOw9JuqreCrU8wyt56re7PxVBVcMigqYFCheKRwA2@vger.kernel.org
+X-Gm-Message-State: AOJu0YxEo0+Stciz2XI5I9yaqLxg1iZT8T/Nu0YEOsqc3/vwlhbHzBRt
+	MJHucPXOonnSnN38nGriG+ee3WaB5ihqR7fAu3vJoVA1fJmalkZ2KqdYgVR8U7HVsp8CaQDRHu1
+	jCJpAaLA=
+X-Gm-Gg: AR+sD12EVnLlWQxOdFWzGpHZbdj+ZMn+ChkxlpWDAt2zzWgObyoYdGONJfg4goXm5Dc
+	oMqIbonCbY/KFR6ug4rFku01UWK13T2pgAm1/V6curYt7jUuFy69mClFAF4gUjsLBaaGcMmfx8g
+	6NTw0iwCSKbaLZCldH4MQLupPNpOYE2mBslSZM+zSz0K2Fax+Y6Xz7LlgQGDmmjtgm9b1fs/mWF
+	QtmsUDaulzPpyWxCzvoXqljJnv5KOxZUWjTZoIyG2nbOL5Cdi0e+48e6iwWHl86HemKuXQQdEJt
+	7ClH/b3+piEjrNiKr7Cc2ZdPEZkv/X4KBYt8NtaaSxLlTdVX54fz/KBpwl7BEI6wpxHFbqTNc9T
+	ud6XNLFqXfDp003mwO/K6Qfx+nOLbAEMr8C+UZymkM4yxAImEe+c0o/oOg/BzFxC0ceQPR4KFCZ
+	iwea/6p0cbIE0=
+X-Received: by 2002:a05:6000:2389:b0:47f:93b6:8d05 with SMTP id ffacd0b85a97d-47f93b68d60mr5219684f8f.0.1784883854883;
+        Fri, 24 Jul 2026 02:04:14 -0700 (PDT)
 Received: from localhost ([2a01:e0a:3c5:5fb1:e584:93af:f3aa:2c19])
-        by smtp.gmail.com with UTF8SMTPSA id 5b1f17b1804b1-4957af78a02sm52350385e9.7.2026.07.24.02.04.10
+        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-47f85c67339sm23918983f8f.31.2026.07.24.02.04.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 24 Jul 2026 02:04:10 -0700 (PDT)
+        Fri, 24 Jul 2026 02:04:14 -0700 (PDT)
 From: Jerome Brunet <jbrunet@baylibre.com>
-Subject: [PATCH v2 0/7] clk: clean-up simple provider misuse of the
+Date: Fri, 24 Jul 2026 11:03:53 +0200
+Subject: [PATCH v2 2/7] clk: qcom: clean-up simple provider misuse of the
  consumer API
-Date: Fri, 24 Jul 2026 11:03:51 +0200
-Message-Id: <20260724-clk-provider-simple-clean-v2-0-56f306156d25@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -71,11 +72,9 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAHcqY2oC/42NQQ6CMBBFr0K6dkypWJCV9zAsyjDKKFDSYiMh3
- N2CF3D5fv7/bxGeHJMXZbIIR4E92yGCOiQCWzM8CLiJLJRUWubqBNi9YHQ2cEMOPPdjRzEjM4A
- pmjMiZoRKirgfHd35s3/fqh/7d/0knLbDrdGyn6ybd3lIt94/npBCChIvWhcqk5nOr7WZO64dH
- dH2olrX9Qs5b7Ao1wAAAA==
-X-Change-ID: 20260723-clk-provider-simple-clean-a8d5ccc4ec20
+Message-Id: <20260724-clk-provider-simple-clean-v2-2-56f306156d25@baylibre.com>
+References: <20260724-clk-provider-simple-clean-v2-0-56f306156d25@baylibre.com>
+In-Reply-To: <20260724-clk-provider-simple-clean-v2-0-56f306156d25@baylibre.com>
 To: Andrew Lunn <andrew@lunn.ch>, 
  Gregory Clement <gregory.clement@bootlin.com>, 
  Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, 
@@ -92,20 +91,20 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org,
  linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, 
  Jerome Brunet <jbrunet@baylibre.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2761; i=jbrunet@baylibre.com;
- h=from:subject:message-id; bh=ngZbu7qrPPUnt3qz5v/OxI6wrSNHJGvbM+okq4uzzqA=;
- b=owEBbQKS/ZANAwAKAeb8Dxw38tqFAcsmYgBqYyp6PPnWrA0DSJ4UJ6CstsYSqMPhVc8i6ZcbD
- Bp8my0uaVqJAjMEAAEKAB0WIQT04VmuGPP1bV8btxvm/A8cN/LahQUCamMqegAKCRDm/A8cN/La
- hYzUEACbbA9uvxujp8Cmfa3PzoTZ5cGEuPTX8RpG+NIB9lOpZWMoa1fR+25/AnbklP6EnRNPt+u
- mo8vWsoNfpYFAb8+oigyEE+UnaDdY2RNM2IpaXdUHdlmUXX36sAkdpuw9PlrKiuWdJALla4BjfA
- vpi9rQ+FceaCxa6CVs5+w+RXlougTYlBPouzG+njfSj1WEYb5/rpTwD2c48q0A0SjiOXbL/3T1s
- uDYBpb2rN7LYB2YvxshiaLkaEOpb+5QGIRDHwHyoHwrn8E1hIvyrIo1HDtT8C+fm1rbtfce0iEH
- 2q1UNJD27j9cnfxi+9ShMnnkhlIRhbpMG8V5eNDlp9zxpdzl/J31H1H0FUDK2kg9Pe/hZRt88y6
- xDgnulPPOR3YwraARkMAe0tmhYidPptJsBhVv59yAiZkZTgzX49HLrHFNazof0ZS250Sj5AtsT7
- yHIwPN8P+O7YLcwV5nqpad5lXpDi3YOJSqhJRlB36fglCpGY7+MMJap5EsulmSGu323+2LqsIXk
- b4vgUzy99hr4oRBEh/cmQjNPnN4/4l4TQZaFmeNm1ysWPv/eQ9PXyFexmj6AZwzC1ue6qALz4vA
- qsjEHdWeIoMJKf6sFWEIgUm42wjc0Q3Dr8dWMkUFSCdFPc09zJkJXNtt20TC8kc3Qg9Z/vEkbiH
- rEW8+SG6UGURodA==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3253; i=jbrunet@baylibre.com;
+ h=from:subject:message-id; bh=tWtyJH+acydIB1bHXKtC61kdBeQ9YCay3I6fogeNCBU=;
+ b=owEBbQKS/ZANAwAKAeb8Dxw38tqFAcsmYgBqYyp/w45qmtTosQnIAx1OStRzPQvEsipL2E/Lw
+ yCoEF/QmN2JAjMEAAEKAB0WIQT04VmuGPP1bV8btxvm/A8cN/LahQUCamMqfwAKCRDm/A8cN/La
+ hUwkEACyf9+F3KKPL0lbfHI4K+dGS21x1ICKK2JloqLuptXfFmL93tKHFaBxvE3RoGIW4MnvD/a
+ xjl/mhXdOBKFrrPN52n1H6Sy8BHbgV8b4iFfbZPTA/bH+VOHj1gaRcWw9BobjbZr505l3QYjFLB
+ dhOF5mk5Zb0zs0Y37gJ6s50bYPpgaghJh1nbJowznMuN7RBPXOg7keZM4c4E+QSTxVw124y/PY7
+ /a9LUuCd2p6+4nJWEIn+w22fNzwtmZIyfVlPZIe8ryf943A4eeIScf3NtHqaeptGBrD+i5yR8GI
+ wNSgGwUVp6/DTMAntJwPVRJMwz6Cp8tX2iLHclB0sKeQWc0cVWc43QWD8dALm1fDvAyXZ0zdvY9
+ i9beXiBoks+gDe8LHd3j+kuUvrrbL4xtl7dNRb8GRYkCw2RqZsd5vuOn6InV5PRftsPqKTcfNKY
+ 2fu/wtL0pLSimUUyLdjJmLaIaVOjQ6ne2OlWtUYRaB/TwkSrgsN9uUcwXfBOfBpS1DhYpOWH/C3
+ awHFTp2tmLQXR4lJrO2t9kzkb1VPfu1G3wRkZ3eICcTJ+dPhuLjwiATQYp6yj3RM4+ZALuaIBA0
+ 7IVsJwEto2YbLOKaI4xcK15Ne9C70RG35dvwyZdDvtNZApIEJNFfJQf9cPLXIKhtfqJED/5RkSo
+ zWdND+QOyfzSa+g==
 X-Developer-Key: i=jbrunet@baylibre.com; a=openpgp;
  fpr=F29F26CF27BAE1A9719AE6BDC3C92AAF3E60AED9
 
@@ -113,65 +112,88 @@ Clock provider should not be using the consumer interface.
 In other words, a provider should not be dealing with struct clk.
 
 This change targets occurrences for which the provider uses the
-consumer interface and corresponding clk_hw interface exist:
-* __clk_get_name() -> clk_hw_get_name()
-* __clk_is_enabled() -> clk_hw_is_enabled()
-* clk_get_rate() -> clk_hw_get_rate()
+consumer interface and corresponding clk_hw interface exist.
 
----
-Changes in v2:
-- Change split by platform for the different maitainers to pick it up
-- Link to v1: https://patch.msgid.link/20260723-clk-provider-simple-clean-v1-1-0c9668240467@baylibre.com
-
-To: Andrew Lunn <andrew@lunn.ch>
-To: Gregory Clement <gregory.clement@bootlin.com>
-To: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-To: Michael Turquette <mturquette@baylibre.com>
-To: Stephen Boyd <sboyd@kernel.org>
-To: Brian Masney <bmasney@redhat.com>
-To: Bjorn Andersson <andersson@kernel.org>
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Heiko Stuebner <heiko@sntech.de>
-To: Prashant Gaikwad <pgaikwad@nvidia.com>
-To: Thierry Reding <thierry.reding@kernel.org>
-To: Jonathan Hunter <jonathanh@nvidia.com>
-To: Tero Kristo <kristo@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-clk@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-arm-msm@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Cc: linux-rockchip@lists.infradead.org
-Cc: linux-tegra@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+Reviewed-by: Brian Masney <bmasney@redhat.com>
 Signed-off-by: Jerome Brunet <jbrunet@baylibre.com>
-
 ---
-Jerome Brunet (7):
-      clk: mvebu: clean-up simple provider misuse of the consumer API
-      clk: qcom: clean-up simple provider misuse of the consumer API
-      clk: renesas: clean-up simple provider misuse of the consumer API
-      clk: rockchip: clean-up simple provider misuse of the consumer API
-      clk: st: clean-up simple provider misuse of the consumer API
-      clk: tegra: clean-up simple provider misuse of the consumer API
-      clk: ti: clean-up simple provider misuse of the consumer API
+ drivers/clk/qcom/clk-hfpll.c | 4 ++--
+ drivers/clk/qcom/clk-krait.c | 2 +-
+ drivers/clk/qcom/clk-rcg.c   | 4 ++--
+ drivers/clk/qcom/clk-rcg2.c  | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
- drivers/clk/mvebu/clk-cpu.c            |  2 +-
- drivers/clk/qcom/clk-hfpll.c           |  4 ++--
- drivers/clk/qcom/clk-krait.c           |  2 +-
- drivers/clk/qcom/clk-rcg.c             |  4 ++--
- drivers/clk/qcom/clk-rcg2.c            |  2 +-
- drivers/clk/renesas/r9a06g032-clocks.c |  2 +-
- drivers/clk/rockchip/clk-pll.c         | 24 ++++++++++++------------
- drivers/clk/st/clkgen-pll.c            | 20 ++++++++++----------
- drivers/clk/tegra/clk-tegra210.c       |  2 +-
- drivers/clk/ti/clockdomain.c           |  2 +-
- 10 files changed, 32 insertions(+), 32 deletions(-)
----
-base-commit: dc59e4fea9d83f03bad6bddf3fa2e52491777482
-change-id: 20260723-clk-provider-simple-clean-a8d5ccc4ec20
+diff --git a/drivers/clk/qcom/clk-hfpll.c b/drivers/clk/qcom/clk-hfpll.c
+index 705352aff067..9e9118d24df7 100644
+--- a/drivers/clk/qcom/clk-hfpll.c
++++ b/drivers/clk/qcom/clk-hfpll.c
+@@ -166,7 +166,7 @@ static int clk_hfpll_set_rate(struct clk_hw *hw, unsigned long rate,
+ 
+ 	spin_lock_irqsave(&h->lock, flags);
+ 
+-	enabled = __clk_is_enabled(hw->clk);
++	enabled = clk_hw_is_enabled(hw);
+ 	if (enabled)
+ 		__clk_hfpll_disable(h);
+ 
+@@ -220,7 +220,7 @@ static int clk_hfpll_init(struct clk_hw *hw)
+ 		regmap_read(regmap, hd->status_reg, &status);
+ 		if (!(status & BIT(hd->lock_bit))) {
+ 			WARN(1, "HFPLL %s is ON, but not locked!\n",
+-			     __clk_get_name(hw->clk));
++			     clk_hw_get_name(hw));
+ 			clk_hfpll_disable(hw);
+ 			__clk_hfpll_init_once(hw);
+ 		}
+diff --git a/drivers/clk/qcom/clk-krait.c b/drivers/clk/qcom/clk-krait.c
+index f5ce403e1e27..5e4408b7445d 100644
+--- a/drivers/clk/qcom/clk-krait.c
++++ b/drivers/clk/qcom/clk-krait.c
+@@ -68,7 +68,7 @@ static int krait_mux_set_parent(struct clk_hw *hw, u8 index)
+ 	sel = clk_mux_index_to_val(mux->parent_map, 0, index);
+ 	mux->en_mask = sel;
+ 	/* Don't touch mux if CPU is off as it won't work */
+-	if (__clk_is_enabled(hw->clk))
++	if (clk_hw_is_enabled(hw))
+ 		__krait_mux_set_sel(mux, sel);
+ 
+ 	mux->reparent = true;
+diff --git a/drivers/clk/qcom/clk-rcg.c b/drivers/clk/qcom/clk-rcg.c
+index 31f0650b48ba..1664101e8f78 100644
+--- a/drivers/clk/qcom/clk-rcg.c
++++ b/drivers/clk/qcom/clk-rcg.c
+@@ -208,7 +208,7 @@ static int configure_bank(struct clk_dyn_rcg *rcg, const struct freq_tbl *f)
+ 	bool banked_p = !!rcg->p[1].pre_div_width;
+ 	struct clk_hw *hw = &rcg->clkr.hw;
+ 
+-	enabled = __clk_is_enabled(hw->clk);
++	enabled = clk_hw_is_enabled(hw);
+ 
+ 	ret = regmap_read(rcg->clkr.regmap, rcg->bank_reg, &reg);
+ 	if (ret)
+@@ -771,7 +771,7 @@ static int clk_rcg_lcc_set_rate(struct clk_hw *hw, unsigned long rate,
+ 	regmap_update_bits(rcg->clkr.regmap, rcg->ns_reg, gfm, 0);
+ 	ret = __clk_rcg_set_rate(rcg, f);
+ 	/* Switch back to M/N if it's clocking */
+-	if (__clk_is_enabled(hw->clk))
++	if (clk_hw_is_enabled(hw))
+ 		regmap_update_bits(rcg->clkr.regmap, rcg->ns_reg, gfm, gfm);
+ 
+ 	return ret;
+diff --git a/drivers/clk/qcom/clk-rcg2.c b/drivers/clk/qcom/clk-rcg2.c
+index 6064a0e17d51..d7914e59129f 100644
+--- a/drivers/clk/qcom/clk-rcg2.c
++++ b/drivers/clk/qcom/clk-rcg2.c
+@@ -489,7 +489,7 @@ static int clk_rcg2_determine_gp_rate(struct clk_hw *hw,
+ 	u64 parent_rate;
+ 
+ 	parent = clk_hw_get_parent(hw);
+-	parent_rate = clk_get_rate(parent->clk);
++	parent_rate = clk_hw_get_rate(parent);
+ 	if (!parent_rate)
+ 		return -EINVAL;
+ 
 
-Best regards,
---  
-Jerome
+-- 
+2.47.3
 
