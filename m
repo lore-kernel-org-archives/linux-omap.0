@@ -1,133 +1,78 @@
-Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A4084B8DE2
-	for <linux-omap@vger.kernel.org>; Thu, 23 Jul 2026 17:04:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6A204908B9;
+	Fri, 24 Jul 2026 06:06:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784826274; cv=none; b=PXv6xTUvW8RmYBQEe3IinryGqS7GdmoclhiMdi7R8on7H0NfTs5Gp6xT9Y2V8EE4Mn3/YgUV9IfuXKmywIc70hKJyMt1eL65ies1f1SaX/KKEmSxQYz0YRh9xYuN2dl25kpxG0VLce1ao0UiOTGAjnjKri0kplyCZHW5tM49S3w=
+	t=1784873185; cv=none; b=aRmkptgtxkuOpHw+WIWN8nLm2KPfVhDG3Mh2pZ9Pf7bqHknv9yH/A6sME1r9OqPbM3dRQxfOrJBxuaov1YHjwgS3HczVjsWpmkF3M8RgObfGQ6pcSt3Do0I5iBZ4yWL2BnNACdbNcU5JcQ+jM3wtCuLaTI+e0l4pWG+2zFdvbG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784826274; c=relaxed/simple;
-	bh=o9VVTo6S42mbOL5YNHeNddQl83IMRvNt9iVw7Ax1zcs=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=uLEHRMTuDeqFB+WKq/OZHlGdncL02qMUO3OXYME/BPiJh8FqSbckZs3zABmaqMeJxbMMRnWE3DgiEZlAK4elZtYIyqTFKlgy97AnRSO+gY0lXtNXQjRITwg7NpofTtTrcX6q9ERSeuC1uLSDK+cDJPxWzhTnLJGj/fkTkpKru9k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=BGcn2pm9; arc=none smtp.client-ip=209.85.221.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	s=arc-20240116; t=1784873185; c=relaxed/simple;
+	bh=cz4Rgyk6SE0Jy5yJIOzM0jLexd77fECOgRTELOCiN/k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ivuzxx3x570oqsH8ZjCgnyM5Oa32mtNaJ+o7d43UHKQV6CvMGoQXZ1J7rcrG0sPxZiqJQVFYjrEBQqSHlndqBLmf5kWRtXgn/Qc+D1h3kNRaFjFwWxXwtSf5eDGMFRE07KNrWv4mWQbQDpvqL09oGz6F+o+NpbdHbfW6spToI54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fUdDw2Vj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="BGcn2pm9"
-Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-47f3b39f2a1so830447f8f.2
-        for <linux-omap@vger.kernel.org>; Thu, 23 Jul 2026 10:04:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1784826265; x=1785431065; darn=vger.kernel.org;
-        h=content-type:mime-version:message-id:date:user-agent:references
-         :in-reply-to:subject:cc:to:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=jhojDdHC94+BdjAE5gd50YRzJP7qSAXpLrLf8nMSLLo=;
-        b=BGcn2pm9WvAug4PR8l3FANDWOZnBQ4XdbW21YipeI3nJ4ukRiQBaauWySLaXoEROPo
-         KYl4XqRUVJoStP/ov8Y2R4cynD3Uei8U7U/JNr1wxh6PHKu9iPfp+JkqsyRtiimnKIID
-         u94WFQQfdiv8izgm05vPzHzcdo4Vk9kdWiKwzBpidPHKXf02aR/YRfXhapIB5D6i9zKP
-         WecHCnnam4b7nQqsbx9VwAiQrqFyK840l+UkKI084tMkH5P2Ps9pXnEzoplZF157Wy1F
-         bGraUumSEdCftfBBfBiVnH6T0G4KawEtzV9NMJ1YpeeG0ryczMqalGAvviv62T3ZbI9e
-         2ixA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784826265; x=1785431065;
-        h=content-type:mime-version:message-id:date:user-agent:references
-         :in-reply-to:subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=jhojDdHC94+BdjAE5gd50YRzJP7qSAXpLrLf8nMSLLo=;
-        b=qh0JJJ5coVxLvOJ1abDp63UJ2Lq4tylbUnUOarKwRGbFqQTKUdVFvcntiyfAjU91V8
-         iCSKy5CJi4ZF6JxVSc/A0PBJNV8eceuP5FPxo0jTHsvZug59tiXQIbkJ5f8n/Vzr4GfO
-         r94L+tcD9knDIj2sotPqseLo+3iOcSNv6RifvWM/V5HU7kN6zrzOeaA2ahTyUIWNuGWF
-         sKB+aR92BOwkr3SpDoiMnd0r+9iET/YUjcViBO8Fj4Uevccr+S1SekwYi59KPDOBIs5I
-         FtvfO/cFbkUgN95HFWTMDcCx3yuFpoob2gMw0QgEvaqm+i8jpZTeIe5UuvHBxxo41yHk
-         ZoKg==
-X-Forwarded-Encrypted: i=1; AHgh+RpLRYpUgw/GTeoCrosYKcVrDKfOefAqaLxF7BlyHAwalJ9v/y8hI1tsUu7LDT1KjtWy/JxUdDdzFlK6@vger.kernel.org
-X-Gm-Message-State: AOJu0YwCbrd9fPihNpMJvHf7DfOM3etYrP0M4aQtS9pLqmefRkdEhwMm
-	l80giq6aggPIWaxdvPR1unMdCfa9cDJO98ORK8EgomB7JkVPMHgd4ZqZ16kkFTH+tv0=
-X-Gm-Gg: AR+sD12JumytqFz1wLPQK+3rawN+pWBBMlZ5S32SpSUSdUtNxVOhhEd+CoZOhAOfHqd
-	F/tK/5V3lmCcHxSdsEGtRWJve4K9U141s+fwdFVOq9135KZayZRvOd9co63lhYT7yQQ+nQmLICS
-	57Lhb3K5/Pjx8kKab3XPhAzakJw1ZTTMsCGM7QL9AhxiGEksGcwHEgxIShCFATOW3vP4/x4sl7k
-	blk6ySSljFOY+W2L263qK+zYZd0EVV+xg1zYNIayrAgRb7zRuzXVyxQ+DkWgFmqjPkzFkir81xw
-	sOee0QvDt1HcbgKOtafw4BnqncgOlQBfZ7+3J//CKlb+uKGxVuLEZE0ykxW7Z2pdMZfffOBWyzr
-	HwUqtbibBkBOqALhssV/xRgOrSYOTGbCGd/4G5K4D/AOe2o/VjWQGjkXtGhWs5c5pfDM8bTqK0A
-	N1
-X-Received: by 2002:a05:6000:230a:b0:47f:8aba:8a9a with SMTP id ffacd0b85a97d-47f8d71c7eamr5497660f8f.18.1784826265170;
-        Thu, 23 Jul 2026 10:04:25 -0700 (PDT)
-Received: from localhost ([2a01:e0a:3c5:5fb1:5f98:8c28:3e2c:1c72])
-        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-47f85c67339sm17937986f8f.31.2026.07.23.10.04.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Jul 2026 10:04:22 -0700 (PDT)
-From: Jerome Brunet <jbrunet@baylibre.com>
-To: Brian Masney <bmasney@redhat.com>
-Cc: Andrew Lunn <andrew@lunn.ch>,  Gregory Clement
- <gregory.clement@bootlin.com>,  Sebastian Hesselbarth
- <sebastian.hesselbarth@gmail.com>,  Michael Turquette
- <mturquette@baylibre.com>,  Stephen Boyd <sboyd@kernel.org>,  Bjorn
- Andersson <andersson@kernel.org>,  Geert Uytterhoeven
- <geert+renesas@glider.be>,  Heiko Stuebner <heiko@sntech.de>,  Prashant
- Gaikwad <pgaikwad@nvidia.com>,  Thierry Reding
- <thierry.reding@kernel.org>,  Jonathan Hunter <jonathanh@nvidia.com>,
-  Tero Kristo <kristo@kernel.org>,  linux-arm-kernel@lists.infradead.org,
-  linux-clk@vger.kernel.org,  linux-kernel@vger.kernel.org,
-  linux-arm-msm@vger.kernel.org,  linux-renesas-soc@vger.kernel.org,
-  linux-rockchip@lists.infradead.org,  linux-tegra@vger.kernel.org,
-  linux-omap@vger.kernel.org
-Subject: Re: [PATCH] clk: clean-up simple provider misuse of the consumer API
-In-Reply-To: <amImP6sFlv-sNhMh@redhat.com> (Brian Masney's message of "Thu, 23
-	Jul 2026 10:33:35 -0400")
-References: <20260723-clk-provider-simple-clean-v1-1-0c9668240467@baylibre.com>
-	<amImP6sFlv-sNhMh@redhat.com>
-User-Agent: mu4e 1.12.9; emacs 30.1
-Date: Thu, 23 Jul 2026 19:04:08 +0200
-Message-ID: <1j5x25d4dz.fsf@starbuckisacylon.baylibre.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fUdDw2Vj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 721BF1F000E9;
+	Fri, 24 Jul 2026 06:06:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784873184;
+	bh=sR2SdUSKgTFGbEVS0wvxdwiXMBvONMXt7n2+RC5+RK0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=fUdDw2VjHIGIpf5xZK2NH4yo+1pJFxeBM9CgSPqyS6NiRHacehwh09nsBV6fNg1eK
+	 MMkWLPbRC2B4g+e/aTFz/G5tXpi2D6rAzlUXc7keNTiku/42ixQmhkqNrj+Wx/93Hl
+	 u/iYAa2fslepTR0QxkJQnhPlWR0fk6ykIegJzvuX5lrjxNak42E0JDaEJb8ZpuZXtG
+	 Jke/u3BfXWPnp9mQ7jIPE6eqJOO+3uqgHhXvETEkoKh5168x8GpZ3DUAmmtc4/oXBK
+	 iTtAOhgrb5TKP6xiADv9ObVv0/VfEHeC+VTcKDR0W5XlpngyWA0kZ1lCsqpcv4wBT/
+	 FYKWsMIZBeYsg==
+Date: Fri, 24 Jul 2026 08:06:20 +0200
+From: Krzysztof Kozlowski <krzk@kernel.org>
+To: Eduard Bostina <egbostina@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Andreas Kemnade <andreas@kemnade.info>, Conor Dooley <conor+dt@kernel.org>, 
+	Daniel Thompson <danielt@kernel.org>, devicetree@vger.kernel.org, 
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>, dri-devel@lists.freedesktop.org, 
+	Jingoo Han <jingoohan1@gmail.com>, Kevin Hilman <khilman@baylibre.com>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Lee Jones <lee@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, 
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-leds@vger.kernel.org, 
+	linux-omap@vger.kernel.org, Mark Brown <broonie@kernel.org>, 
+	Mark Jackson <mpfj@newflow.co.uk>, Pavel Machek <pavel@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, daniel.baluta@nxp.com, 
+	simona.toaca@nxp.com, goledhruva@gmail.com, m-chawdhry@ti.com
+Subject: Re: [PATCH v4 4/4] dt-bindings: leds: backlight: Convert TPS65217 to
+ DT schema
+Message-ID: <20260724-gentle-starfish-of-fantasy-cbb2a3@quoll>
+References: <20260723100605.628882-1-egbostina@gmail.com>
+ <20260723100605.628882-5-egbostina@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260723100605.628882-5-egbostina@gmail.com>
 
-On jeu. 23 juil. 2026 at 10:33, Brian Masney <bmasney@redhat.com> wrote:
+On Thu, Jul 23, 2026 at 10:06:02AM +0000, Eduard Bostina wrote:
+> Convert the Texas Instruments TPS65217 bindings to DT schema.
+> 
+> During the conversion, the following updates were made:
+> - Documented the 'regulators', 'charger' and 'pwrbutton' child nodes,
+>   which are used by the boards but were missing from the old txt
+>   binding.
+> - Documented the 'interrupts', 'interrupt-controller', '#interrupt-cells'
+>   and 'ti,pmic-shutdown-controller' properties, which are used by the
+>   am335x boards and read by the driver.
+> 
+> The regulator/tps65217.txt binding documented the same 'ti,tps65217'
+> compatible and is superseded by this schema, so remove it as well.
+> 
+> Signed-off-by: Eduard Bostina <egbostina@gmail.com>
 
-> On Thu, Jul 23, 2026 at 03:20:59PM +0200, Jerome Brunet wrote:
->> Clock provider should not be using the consumer interface.
->> In other words, a provider should not be dealing with struct clk.
->> 
->> This change targets occurrences for which the provider uses the
->> consumer interface and corresponding clk_hw interface exist:
->> * __clk_get_name() -> clk_hw_get_name()
->> * __clk_is_enabled() -> clk_hw_is_enabled()
->> * clk_get_rate() -> clk_hw_get_rate()
->> 
->> Signed-off-by: Jerome Brunet <jbrunet@baylibre.com>
->> ---
->> The change being very simple, I did not think it was necessary
->> to split it into multiple changes. If you prefer it to be split,
->> just let me know how.
->> ---
->>  drivers/clk/mvebu/clk-cpu.c            |  2 +-
->>  drivers/clk/qcom/clk-hfpll.c           |  4 ++--
->>  drivers/clk/qcom/clk-krait.c           |  2 +-
->>  drivers/clk/qcom/clk-rcg.c             |  4 ++--
->>  drivers/clk/qcom/clk-rcg2.c            |  2 +-
->>  drivers/clk/renesas/r9a06g032-clocks.c |  2 +-
->>  drivers/clk/rockchip/clk-pll.c         | 24 ++++++++++++------------
->>  drivers/clk/st/clkgen-pll.c            | 20 ++++++++++----------
->>  drivers/clk/tegra/clk-tegra210.c       |  2 +-
->>  drivers/clk/ti/clockdomain.c           |  2 +-
->>  10 files changed, 32 insertions(+), 32 deletions(-)
->
-> This looks good to me however can you split this up by clk subsystem at
-> the very least so that the various submaintainers can pick up these up?
+Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
 
-Will do
+Best regards,
+Krzysztof
 
->
-> With that:
->
-> Reviewed-by: Brian Masney <bmasney@redhat.com>
-
--- 
-Jerome
