@@ -1,82 +1,136 @@
-Received: from wp23.hostingpalvelu.fi (wp23.hostingpalvelu.fi [31.217.193.162])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0B0C3DEAF6;
-	Sun, 26 Jul 2026 18:00:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=31.217.193.162
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 792CD37649B
+	for <linux-omap@vger.kernel.org>; Sun, 26 Jul 2026 21:57:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785088814; cv=none; b=gApCAhOMMDhhjWTtp44H0OjqEN8FLzgYzNciNcgK+rHYy8Vquf0BYuhC5ogqJJRPhbzYMGwXmwL2O52l7AhMjWDeNP9YcGbRmTdQTd29qocaEWoxiJj3XQ2b+UUtWzawNuIwjzRvvGETTP5wtVLOm6u0+GHHkYWxNSkz4YDXTso=
+	t=1785103066; cv=none; b=svw7yCTG/JZi+8yQSZA3+abc2TykW+CyMgCW6IlqRsz8lZGQzKXuac33ErfpuL/aNLo+wWyAzbiucnrM2QaDT2LJrPUN+k7slPVgpgRxWMzcDEl318pmOMJB4770ajwJzJjnCXDRD5S2aHZ5ZmxnYy706dwveo6w3QwHZZO8kVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785088814; c=relaxed/simple;
-	bh=tVKBu0gpgDXWfiW+57omA5cAQOKd7XQp02oAulWBFWE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KVLz76s39in2mYkV5NXZPIyWPbCkstO8QSu2BREWkj2L13H96OyCfMX+mN1GmTgU31olmwuGtF+0NP8/EYRVPAYOibapzSa/Bv6cdyfBvlmNJEdBjXQWihkxUrspzuxr/bDGa6MS27LAQeO+dlOtiRGMnomdIH5Q1nrTyNbquY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bitmer.com; spf=pass smtp.mailfrom=bitmer.com; dkim=pass (2048-bit key) header.d=bitmer.com header.i=@bitmer.com header.b=sppqTzIk; arc=none smtp.client-ip=31.217.193.162
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bitmer.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bitmer.com
+	s=arc-20240116; t=1785103066; c=relaxed/simple;
+	bh=ISbei8wuwbwd+qsDwqxaJvR+/sHMQY8pYWaHZpMoAdE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=P/WmL0sM/ezcO/tUzv3ugHRCz6g+SC4HIpVfCEVb0+mqVsRusjvBRkQfcpwMEY1zg1qZiT5+ZkAMEa1GkYsE1xdPurIA7Op0O6JZENNHVieE+3disyXWKRVXvEHEIiCScMgyoIIgcZ3AitN36R83a5R22ElE8qsAVbPqs8C21xY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GmQQTK04; arc=none smtp.client-ip=209.85.216.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bitmer.com header.i=@bitmer.com header.b="sppqTzIk"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=bitmer.com;
-	s=default; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=jCDjGDSWHZ8w+rxNCIKGEKBL8u1SAKE5Py/Ctugufng=; b=sppqTzIkEq3n+rd5IRFrMuvZbf
-	lNukKLaw2L6/Eksg/qJEhPbDpCl7+KBapufWWQBBQYiSI51P3FUX8Rtsaa/YebcnBmLPsdVSifxsZ
-	Ygab1xVlhVk/flg3C0nnLOgs8HHHyp4R8oRdlJP0O0OLnP43WijVcwJ2wdueORmnG3oNLhDZQCUnX
-	au4bwwuOQchdtZTrZ5O8qZwk/bCQOFUCfvyJ6WzAP6VElwnQM+FKK5poRD4pJ/VooVpGQc5v2h7qX
-	C3aIEm3UaLcMLN0jKCG9ix9SB2bqVHbKQLQCo72iU16590Q9H/UdKIMdD82ULulmqLdVZTEKNZ/2G
-	U4Hh0oow==;
-Received: from [91.159.31.97] (port=52472 helo=[192.168.0.12])
-	by wp23.hostingpalvelu.fi with esmtpsa  (TLS1.3) tls TLS_AES_128_GCM_SHA256
-	(Exim 4.99.4)
-	(envelope-from <jarkko.nikula@bitmer.com>)
-	id 1wo2oG-00000008P6c-2R1S;
-	Sun, 26 Jul 2026 20:38:43 +0300
-Message-ID: <ca078c36-1692-4d54-9d21-99adb0abd072@bitmer.com>
-Date: Sun, 26 Jul 2026 20:38:38 +0300
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GmQQTK04"
+Received: by mail-pj1-f53.google.com with SMTP id 98e67ed59e1d1-382ef647e20so2066681a91.1
+        for <linux-omap@vger.kernel.org>; Sun, 26 Jul 2026 14:57:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785103065; x=1785707865; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=tqWCtESQQ2bWbP4HQOrXWNhHPb+LXu076IiCVmal7Vw=;
+        b=GmQQTK04Im+bO4fjyi2mpEi32fSnN7aTF9fyGlfYp9K3mqemtaeK+jMuWVI3OXUkUD
+         ISEBDGxuHg4gcDDwgqULTKRCx53M2MTxuXh9QDImQdWwodgGbcT65GUpQyNtcqg/ycx/
+         hUE4J3+g5jz0eHsw8D7eaGHDcTf8VQMbghOEKGdsTgN2TDAR3uDeY0R9J3rwPBAOfr/c
+         xjk6kWFJUj14OCfknthbH9G0I/MwLZZRugboadUdtlaBTz8aJcN2WK9fMlTEKoDDTrBc
+         Hj0yjWzZsPUuQbWuvYaPi5kp/iDVNCmFh15YwYD6kWNtWMMHIuYwa8oIMTK/DsP4aQ42
+         3hTA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785103065; x=1785707865;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=tqWCtESQQ2bWbP4HQOrXWNhHPb+LXu076IiCVmal7Vw=;
+        b=dQdxbrdtIHb749Ln7U6Fhlrsfi8y6QYOn0+iX1A8n3EoEk3v3mkKzQuCGIAXUojMU8
+         BdlEkjIuM6N6JPIBqmdnL7YEW0TCbez+7UC8Hp2MPG/rA7+ihlIaeQKOlHH8jbcCEYEX
+         E6L4ju8ExhPOw0Y2kVXDAI7OXVN/g9Pr/nEKOXiuYNas+uW64sGnH8sPzOalyNe6Wc1G
+         V2YLxvBScQ3Un8Ckb2H7InU7QRylDXYGFkAgkvTPJ4S19GuoFjmh8DcV6m5kGkxzIjgZ
+         f+f3vRUJEAL/SHFckTBSl5QQT+F6izFaUvMcUep0VEQZD3PnDrChwUXOkA64yEGq5Q/I
+         0lrg==
+X-Forwarded-Encrypted: i=1; AHgh+RongoqxzwG/2/TrgYvliL+1aoQzYrBga7h/EolD7s3GZebJfFykRljpSjVp9o0CJBG/QsclYp4nRZxJ@vger.kernel.org
+X-Gm-Message-State: AOJu0YwzQaRcTv7ENqlmh5elk9B4jkD2rpn2Sez0n58vkxTsPw1jYXq5
+	p/lv7kcj6jzs90q96y4pX2ayC/scb2hqlCy5VH4SPZYt07983XzvaoUy
+X-Gm-Gg: AR+sD13LXlOtCYzJNqzlUJPTbDKVrtSPVaZT3PWkvmVVzYlXMdn4J+oDwvjRKWE2Z8f
+	m0Wwhj2NoJ5Bk008ZVn640Dsh184e+KsuOQ09ZR+PiQdn0YIhqG4pvmgwRZOdyAOML5dA2oLeTI
+	WTtDp2vH8ULUiI3hFSho1pTLM48PCyGjSDNyWyOCjQ+shDsy8lYcDQkKbvNZ5qSwhGPUO377GeI
+	Q8j5/e974zi+YCbtkUM6QHCy0wkV6c0uSdWIkNGp0tD0XIFNXq2CdOQA6vzBHzbX+8lDb+SudxB
+	83s72eMe6blBF2railyHrqvve9yiFBvPMCqd4BxD05HcdBcfD2lN7ELaBAJEzOaJT5vATuLf+fD
+	jF6NZwg3N9mo5YTFt60ikrptJOkYtwKwTPswauUZaOj9vNHke+akDWh95xlGvFIgCSY6d+tFtHU
+	SNwPV+X+Qw3WIbdLh8TiexTTpgN1TfFSWag+/cOeODrb95vm7+0mFK79MMsF1I/KoMgGono45YU
+	rC+MflweMVfVtjeI6PBU6Buz+OfMMtemQqglt8BY2PPY4qduoLpoT0=
+X-Received: by 2002:a17:90b:53ce:b0:38d:a150:ee04 with SMTP id 98e67ed59e1d1-38f2965eb5emr5493758a91.30.1785103064721;
+        Sun, 26 Jul 2026 14:57:44 -0700 (PDT)
+Received: from ryzen.lan ([2601:644:8000:7a86::e35])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38f2913c891sm2022788a91.0.2026.07.26.14.57.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 26 Jul 2026 14:57:42 -0700 (PDT)
+From: Rosen Penev <rosenp@gmail.com>
+To: linux-mmc@vger.kernel.org
+Cc: Ulf Hansson <ulfh@kernel.org>,
+	linux-omap@vger.kernel.org (open list:OMAP HS MMC SUPPORT),
+	linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH] mmc: omap_hsmmc: use platform_get_irq_optional for wake IRQ
+Date: Sun, 26 Jul 2026 14:57:40 -0700
+Message-ID: <20260726215740.34574-1-rosenp@gmail.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 04/10] ASoC: ti: omap-abe-twl6040: Preserve error code
- and drop redundant log
-To: phucduc.bui@gmail.com, Mark Brown <broonie@kernel.org>,
- Sen Wang <sen@ti.com>, Liam Girdwood <lgirdwood@gmail.com>,
- Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
- Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
- linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-sound@vger.kernel.org
-References: <20260716103911.77652-1-phucduc.bui@gmail.com>
- <20260716103911.77652-5-phucduc.bui@gmail.com>
-Content-Language: en-US
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-In-Reply-To: <20260716103911.77652-5-phucduc.bui@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - wp23.hostingpalvelu.fi
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - bitmer.com
-X-Get-Message-Sender-Via: wp23.hostingpalvelu.fi: authenticated_id: jarkko.nikula@bitmer.com
-X-Authenticated-Sender: wp23.hostingpalvelu.fi: jarkko.nikula@bitmer.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+Content-Transfer-Encoding: 8bit
 
-On 16/07/2026 1:39 pm, phucduc.bui@gmail.com wrote:
-> From: bui duc phuc <phucduc.bui@gmail.com>
->
-> Return the original errors from the OF parsing helpers and remove the
-> redundant error messages, as the helpers already report failures.
->
-> Signed-off-by: bui duc phuc <phucduc.bui@gmail.com>
-> ---
->  sound/soc/ti/omap-abe-twl6040.c | 11 ++++-------
->  1 file changed, 4 insertions(+), 7 deletions(-)
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Replace irq_of_parse_and_map() with platform_get_irq_optional() to
+get the wake IRQ. This is a more portable approach that works with
+both DT and non-DT platforms, and follows the modern platform API
+conventions for optional IRQ resources.
+
+The wake IRQ is now fetched earlier in the probe function alongside
+the main IRQ, and the -EPROBE_DEFER case is handled properly before
+the deferred probe can be triggered.
+
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ drivers/mmc/host/omap_hsmmc.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 58c881f2725b..4b5589157c59 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1764,7 +1764,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	struct mmc_host *mmc;
+ 	struct omap_hsmmc_host *host = NULL;
+ 	struct resource *res;
+-	int ret, irq;
++	int ret, irq, wake_irq;
+ 	const struct of_device_id *match;
+ 	const struct omap_mmc_of_data *data;
+ 	void __iomem *base;
+@@ -1792,6 +1792,11 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	if (irq < 0)
+ 		return irq;
+ 
++	wake_irq = platform_get_irq_optional(pdev, 1);
++	if (wake_irq == -EPROBE_DEFER)
++		return wake_irq;
++	wake_irq = max(wake_irq, 0);
++
+ 	base = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
+ 	if (IS_ERR(base))
+ 		return PTR_ERR(base);
+@@ -1811,6 +1816,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	host->use_dma	= 1;
+ 	host->dma_ch	= -1;
+ 	host->irq	= irq;
++	host->wake_irq	= wake_irq;
+ 	host->mapbase	= res->start + pdata->reg_offset;
+ 	host->base	= base + pdata->reg_offset;
+ 	host->power_mode = MMC_POWER_OFF;
+@@ -1820,9 +1826,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, host);
+ 
+-	if (pdev->dev.of_node)
+-		host->wake_irq = irq_of_parse_and_map(pdev->dev.of_node, 1);
+-
+ 	mmc->ops	= &omap_hsmmc_ops;
+ 
+ 	mmc->f_min = OMAP_MMC_MIN_CLOCK;
+-- 
+2.55.0
+
