@@ -1,89 +1,101 @@
-Received: from mail.ispras.ru (mail.ispras.ru [83.149.199.84])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D8433F788A;
-	Mon, 27 Jul 2026 10:23:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=83.149.199.84
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 436563B0AC8;
+	Mon, 27 Jul 2026 15:34:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785147817; cv=none; b=al5nO91SueqAaAT8iEkBkpNali7fS1IsnpJQEQu2Rq7XnZGkdlxUq9cu4b+4XESFsyvI8YetzQ97SeDEv1crWoAlIwWeaL4MExuKJ4GZKW1zkjVDw9MoFN33rA91rqRtTNDgGHk8yPxsZj8AvEzwjVsKGd4ehK4H/2MMSvLVtCE=
+	t=1785166497; cv=none; b=APqnKGlwscdH4iZMOl1jE1UstPYJKm29GXp1E+SjH6b2WgzKe+PK3u9NF84923HgxgrqVKy49qVOUQU6h8dtiIeihDUCTKysH69elgRSfWEaL0YrFAaIkh1ZIgWpSTZBCpTF3g0a/iLGkSMbMyW1WukTHSyutjQBS0DLSDduBKQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785147817; c=relaxed/simple;
-	bh=Mr6hONHciGB7yKpuan+4grohyhpvj2pPJfNeNLKzX6k=;
+	s=arc-20240116; t=1785166497; c=relaxed/simple;
+	bh=fdHzhx98F8QAqNbJOftJK94xoGSYtyz/Fx68+3/0nuc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dCROnasv6IfowcN2qLChAWtFP3PAIvSojI6ocqWfsfRMOb70BM3BqppLw9BWX3sVL8nD7S4XN0jmIk5dSZKY8PoYvLxe9lHubMWvSAcQwlekWVznpkHiXS4xjBEVv6FYa5wPwoOljXHqSYNZgFHlwu9rrKLU/fqQODoeb/2pIpU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ispras.ru; spf=pass smtp.mailfrom=ispras.ru; dkim=pass (1024-bit key) header.d=ispras.ru header.i=@ispras.ru header.b=nafLH+n8; arc=none smtp.client-ip=83.149.199.84
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ispras.ru
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ispras.ru
+	 Content-Type:Content-Disposition:In-Reply-To; b=mrw3a3zJcccp5JvgnIC3OHzB/b9E5u7wW8787P9bDYX/vvM2p0gfRBSuELtFBasWKx3VmjgPezW47k9eELTRRsvotTdCkAcuEQQaJy1IiGPGQEGPDKJGKmfM49kc+FnntDc6oVEEWD0Xuiiq7+IpypG+tTlrrtjpY1UFYfI0/U0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H/huRj+F; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ispras.ru header.i=@ispras.ru header.b="nafLH+n8"
-Received: from localhost (unknown [95.24.27.47])
-	by mail.ispras.ru (Postfix) with ESMTPSA id 1A64D45F8F4F;
-	Mon, 27 Jul 2026 10:16:32 +0000 (UTC)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mail.ispras.ru 1A64D45F8F4F
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ispras.ru;
-	s=default; t=1785147392;
-	bh=2Fq5DFW4lNpV/hH914loyGuMmRmv9nTvSzmqPMo8jZY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=nafLH+n82haSkPsnc6m+toUJym8c2jUekW6jeRNxzNDMjPewZWWVLdgzoPiwS8OXe
-	 4ipzlDy4pFoJ1ScS4DfsOMSAHpHmISZW6/GPNx5NlBOoBWrKu+qsLs48i7uKa1dVve
-	 9qdH90gHV5gzVqQpMs3cnkkzKhsw8ALDUbJO3t64=
-Date: Mon, 27 Jul 2026 13:16:31 +0300
-From: Fedor Pchelkin <pchelkin@ispras.ru>
-To: Aleksandrova Alyona <aga@itb.spb.ru>
-Cc: Mark Brown <broonie@kernel.org>, lvc-project@linuxtesting.org, 
-	Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, 
-	linux-kernel@vger.kernel.org, Laxman Dewangan <ldewangan@nvidia.com>, 
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2] regulator: palmas: Check return value of
- palmas_smps_write()
-Message-ID: <20260727130320-3c45e38d7dd850065914bd16-pchelkin@ispras>
-References: <20260618110338.53004-1-aga@itb.spb.ru>
- <20260727084150.30268-1-aga@itb.spb.ru>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H/huRj+F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A101F000E9;
+	Mon, 27 Jul 2026 15:34:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785166495;
+	bh=OSE8IoasrD58unzxSgBtl5+T5ruydJA2kXXGe4djiMM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=H/huRj+FkZT8rxFDSm2hICMewRtrDeCyVfV74XdKso+0RoccHn2jC5Mgzz3404BZL
+	 4rBoIWZ92IlWdwpSV4/xTuLCcx55APa3ZaQ7tx6veMsqKxODNwZLwYtfRsq/QZxKWg
+	 ivcvEse9xj/uKusBGiIvnUAidQrYBrfXv5qyi14PubnBkkhkPZchGK/8KAHmT2CX0R
+	 MjZnwgdsVvEI5LxQ3bGb6iGdvS6kK8Vdm5/KZFJ8Jlsm3+0hHixn8vncVvUbpDNR4j
+	 GCTq+lnN0eoFPD+JcKEPwNyymg1LkELLWJlFPPLTMqtkl35+Di1c+2k4ulBPXcMlI5
+	 /A6pMq8nXNOgQ==
+Date: Mon, 27 Jul 2026 17:34:52 +0200
+From: Thierry Reding <thierry.reding@kernel.org>
+To: Jerome Brunet <jbrunet@baylibre.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, 
+	Gregory Clement <gregory.clement@bootlin.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, 
+	Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, 
+	Brian Masney <bmasney@redhat.com>, Bjorn Andersson <andersson@kernel.org>, 
+	Geert Uytterhoeven <geert+renesas@glider.be>, Heiko Stuebner <heiko@sntech.de>, 
+	Prashant Gaikwad <pgaikwad@nvidia.com>, Jonathan Hunter <jonathanh@nvidia.com>, 
+	Tero Kristo <kristo@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
+	linux-rockchip@lists.infradead.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 1/7] clk: mvebu: clean-up simple provider misuse of
+ the consumer API
+Message-ID: <amd6lIpfUb29Gal_@orome>
+References: <20260724-clk-provider-simple-clean-v2-0-56f306156d25@baylibre.com>
+ <20260724-clk-provider-simple-clean-v2-1-56f306156d25@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="2f3tnfstgthwesf2"
 Content-Disposition: inline
-In-Reply-To: <20260727084150.30268-1-aga@itb.spb.ru>
+In-Reply-To: <20260724-clk-provider-simple-clean-v2-1-56f306156d25@baylibre.com>
 
-On Mon, 27. Jul 11:41, Aleksandrova Alyona wrote:
-> v2:
-> - Update current_reg_mode and enable_val only after a successful register
->   write to keep the cached state consistent with the hardware state.
 
-New versions of the patch are generally recommended to be sent in a
-separate email thread, not In-Reply-To.
+--2f3tnfstgthwesf2
+Content-Type: text/plain; protected-headers=v1; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH v2 1/7] clk: mvebu: clean-up simple provider misuse of
+ the consumer API
+MIME-Version: 1.0
 
-> @@ -468,12 +469,18 @@ static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
->  		return -EINVAL;
->  	}
->  
-> -	pmic->current_reg_mode[id] = reg & PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
-> -	if (rail_enable)
-> -		palmas_smps_write(pmic->palmas, rinfo->ctrl_addr, reg);
-> +	new_mode = reg & PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
-> +
-> +	if (rail_enable) {
-> +		ret = palmas_smps_write(pmic->palmas, rinfo->ctrl_addr, reg);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	pmic->current_reg_mode[id] = new_mode;
+On Fri, Jul 24, 2026 at 11:03:52AM +0200, Jerome Brunet wrote:
+> Clock provider should not be using the consumer interface.
+> In other words, a provider should not be dealing with struct clk.
+>=20
+> This change targets occurrences for which the provider uses the
+> consumer interface and corresponding clk_hw interface exist.
+>=20
+> Reviewed-by: Brian Masney <bmasney@redhat.com>
+> Signed-off-by: Jerome Brunet <jbrunet@baylibre.com>
+> ---
+>  drivers/clk/mvebu/clk-cpu.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-pmic->current_reg_mode[] update can be moved after the register write.
-Not sure if a new local variable is actually needed.  Sometimes this
-only complicates things for no real value.
+Reviewed-by: Thierry Reding <treding@nvidia.com>
 
->  
->  	/* Switch the enable value to ensure this is used for enable */
-> -	pmic->desc[id].enable_val = pmic->current_reg_mode[id];
-> +	pmic->desc[id].enable_val = new_mode;
->  
->  	return 0;
->  }
-> -- 
-> 2.26.2
+--2f3tnfstgthwesf2
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAmpnepoACgkQ3SOs138+
+s6GLgw/+NQfYR/3Wzn80ngNgyBG/2ubRWiFGqh6kqFPvkRAEs5StLHQNS2eDIqKm
+4V74umZnlJA08SglJLRkgRdPWy+4IBuipiGQpD6n+UrmGEUg5DBDlajeQEytQwnu
+IUq4BryldySDYFXKTEzzDV5eTxf27wG1sqFMBLL4aqV58o4vSK2q2d8CDZ2CjgXZ
+XhD30hil1dvV280lPDjBg3vWiL0SqOSl3NubqUYHvEApRYWSGHVMjwcnJVSkq2Ko
+mwNHlMNFVQUCcWLCRLh/qkXe8dKuJex/e6XIBjIhX4tdXdAyvQ+5hRUnmqQPWe7S
+xlMnQSbewWsuJxDwEMUmcAAD8mAzNf+t4dFtNfLlvtdVSjpkEyIkfzohLqbnG1s4
+JSIPmI03mifLMctCpfQ2qDWitTMns00tAvkK2SzfS9GyeW0W6yVxFCU+2UsTwse7
+CZR63ywGOUmQGB1Xw0LZKsp1/6t4ESMq+T6DPc54V3g8K4+JCUnYSKCxqa+Ck3Xx
+P/tJNBJjPkqLP6rvag1AZm3z1x5BsI3nWYZ1ZtyGMFRQxIf3RKeuo7taW+R3Bq1n
+tRGbbx2QW5AXgjCmjvLNYzFEkvDZIJbWEfPjLORLuVRVle9vnzCE2BpPZT3L55pG
+ayihIatqmM9Cba66uZL/tn08KDmubR0X0Fbvs/Orc5WCvlkaug4=
+=XS/f
+-----END PGP SIGNATURE-----
+
+--2f3tnfstgthwesf2--
