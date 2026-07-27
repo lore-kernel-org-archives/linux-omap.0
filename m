@@ -1,121 +1,101 @@
-Received: from mail-qk1-f177.google.com (mail-qk1-f177.google.com [209.85.222.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 037523BF68D
-	for <linux-omap@vger.kernel.org>; Mon, 27 Jul 2026 07:10:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CB943BB9E1;
+	Mon, 27 Jul 2026 07:42:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785136241; cv=none; b=E/72kfLPOkGOVfOC7oq8cdbltZt7dH4rmDxjgPwAJIFkeGsPv4IeYO0lOrjo9WB9Hxmsf+VnV+65YGrbNKAaRi2dDm7M95v0eK0GsL8cN2B6rs2lw/ZI/aebFCNiUgPvuDBpxXUnwO6Yotl/2Bh35P85zSzwaVFCT7tlS6bZqx0=
+	t=1785138124; cv=none; b=jv7JN5Eyr1DMBGJ0W8uZJGJaKDqCyRvVQarvRBkKwPBENJWbZZNXYGv0mDl4c1Bq4XDMmowA9JrUVuOCxcMtPviHOcL+cb0MYJ/wUY6jjPPl5N9TPS2sNkuRJXRRhOCIYbQgYPSJS3wzhp34NClsuiLLJNMMRHEAz4ENLvcGq8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785136241; c=relaxed/simple;
-	bh=0ajQB+hPab2vIWSNK6YjKmU3k2ZE+ruh1odyGqqOzg8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=USFYVRBTeeXB/uBGZ6OEm1Tb+LwM6MO0d8d+jr9+6CNt8+YOx35WEoKhijpKVOiB08PMZof2XA8g54NIprJeRZ78hcZ4sY7Bl0Q1F5OC9zKV5bmI02w79sOgxeiulNva3pr5lDgJZDKPJ10zbEN1BheQXsbQvzPc9UexdpYlt/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=H0HC5nN0; arc=none smtp.client-ip=209.85.222.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785138124; c=relaxed/simple;
+	bh=PC7KqKTOG1lIITed6bfez7FNmuX3Icze4gQUt5JUvHk=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=my2zj/0ukhiJTmO+IaEOw8iCLfpznUJJs95/Fgpdmv4wbzmARbTbpk+cBd1SBjbqAVCnvwHqM6PLGqtR8zlO/VTDvneh8xM7X+ttpZ5PGzPDaadHVjiI/geIz8TkZs+KisL0XdBQPEUuqkqmhPqo9WNaXjMQDOCoUGZbP+333zk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=LsCxpqDG; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H0HC5nN0"
-Received: by mail-qk1-f177.google.com with SMTP id af79cd13be357-92e533aacf2so122666885a.2
-        for <linux-omap@vger.kernel.org>; Mon, 27 Jul 2026 00:10:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785136239; x=1785741039; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=1OaiGLLoxTsUad13rL5qrpAU9a1lh1UZkttvZnhnlXg=;
-        b=H0HC5nN0Cb//8P5+s9yAaKM5b+hx6wttQWPo4zFfT0WZfS6Eh3CtPI2oOoZwsSjidm
-         KvDNUcUqTihE7Sdwk6RwykZvdSMqAuzSXZo21T4kGJPlG3WjZ4m2A7BahwleIwbxkCbc
-         C6xq+VjBXYDSgB5j3Rhz3PvMYOmWmheFFAuZuMT72jSOhcWwxyBD6s65xMzRcrJC0GGt
-         UggHh4Qc/0fFkCkxFDNM8zcgaR7mCHtH8IMKY0ur/GUxwAWa5fICCUpugAky5R04Y7BR
-         LANNKJ1Wuti/O/u41RuapEQeNiu4AP3KuhiQ2d6D2KBWS/+Bemgt5o/bfjqQqLwQRVB3
-         S0ig==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785136239; x=1785741039;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=1OaiGLLoxTsUad13rL5qrpAU9a1lh1UZkttvZnhnlXg=;
-        b=lxr3GzqFIARLZt7htEQVivDAdBSlETKx3yFMUCFPhGyo8m9KB1j8gs5oijMJJ+Hbqq
-         41awrbqnwG7/h0Fp6xNrKa6i2h2MQ1Wa+LSvOINy3HClh/XtNqis5U2r0q/FkneTZgcr
-         Ugot6mEXatxN9cXZGIJSCfF8TNlb8jBtEWRuMTJvQwXqRMOC0lpikcpbmsMqGWuQ5oPy
-         J6Diy5GRcjVHTRIcjX01Skj6SIQKXuXBaKTOgI2TIekwD7jcJ7zr0oHAA0jivNmKjIB+
-         JSu+en8ElVRU3GD7/3r7/iT6WxUtJA9p/vc3+use+E6KbZHEELlh31juuBP6iiK9R8HW
-         Jjcg==
-X-Forwarded-Encrypted: i=1; AHgh+RqWyYVGfOlNk+796fE9xDLzO/fTJm6JGq78JwsxwTcP08H17UEPPhknA3lBc/h4L7RZwGLpBr0Io+VE@vger.kernel.org
-X-Gm-Message-State: AOJu0YwrhMwyCJ4ONZ3JXypXy1AxZaTty6Vja/q6Mkg5Br8Pp4ZgiIRv
-	t3TjQio8Fvb8PGH6Q8In+27t5UhTc7UcaLyq3fk9dFDJ/WMka46/HXu3
-X-Gm-Gg: AR+sD13BlrOXmpbuh+YgxSgyFANQ5xclVdXc2vbO0mUSI9mU7q3W447p23Moc0jcOXo
-	UgYMMj/6VkxEP67sNWkCro18WhX7t9q1Rsr3X8YygCGitGc1ExkB5IFY8KehDo69gA4hC52DvSu
-	QljK4sCcj7l9kYuvJMgQIimuWBeM+Z1ymBWbnYNV44kHP6UcMXtFyFSIpyd9kn4CwiiJNS7NeUT
-	YjpAoWNLGbSoqj1KP5MrULmQRtX3Ou2j4/kkBKE2gVrtUtyjUsR7lFAQnFCKZT7EyDvYlkSj8AV
-	bDTR0FTtPJHzvbbXdIcUZBUd+7t/NRogZTQMpcEhqf6TjvFBG3uS/rL06HdcgfsWYoNPnHryne1
-	goqVZX5HOc1EgYBRFL1WgwohiJR70lp7H6CSUe0ZIycMqfuoi97WtXG6rIINz99MtL/xJDok955
-	Hbkqh9YqqJjuNddQ==
-X-Received: by 2002:a05:620a:26a5:b0:92d:a06c:de5a with SMTP id af79cd13be357-932df6e9ecamr702151285a.45.1785136238883;
-        Mon, 27 Jul 2026 00:10:38 -0700 (PDT)
-Received: from osman.mioffice.cn ([43.224.245.178])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-932de569a84sm557850885a.21.2026.07.27.00.10.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 27 Jul 2026 00:10:38 -0700 (PDT)
-From: Zhan Xusheng <zhanxusheng1024@gmail.com>
-X-Google-Original-From: Zhan Xusheng <zhanxusheng@xiaomi.com>
-To: Ulf Hansson <ulfh@kernel.org>
-Cc: Kishon Vijay Abraham I <kishon@kernel.org>,
-	linux-mmc@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Zhan Xusheng <zhanxusheng@xiaomi.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] mmc: omap_hsmmc: fix busy_timeout overflow in ns conversion on 32-bit
-Date: Mon, 27 Jul 2026 15:10:29 +0800
-Message-ID: <20260727071029.1355476-1-zhanxusheng@xiaomi.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="LsCxpqDG"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 499351A1282;
+	Mon, 27 Jul 2026 07:42:00 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 16385601BE;
+	Mon, 27 Jul 2026 07:42:00 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 0396611C10E5D;
+	Mon, 27 Jul 2026 09:41:55 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1785138118; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=EPyJancB1LkgAX6RkDstpBf3jWrLJyO0T0EVK9Nckuo=;
+	b=LsCxpqDGC1Vrv/AyOgy4tgGYj+UVaUW2AXmmZsKuV4LmpKzrp661IZ9BCsAkHSLuAhfufo
+	S59+2ybBNw1lRmnKeNmvFv8Q0kNWs5ShHdFiHG2y27FN/HKK3C3pRYEVBnzPcxc4zgxbep
+	SnLwiPOUXWpkYvQ36o7IKK9GNCPpJ65h+sxIKBfDIBnmz/2eXovgc64JyRyuPAnd5T9NO6
+	gP2OEhuCAxet4pjRx7GupZoamb0XkOHaczy9knWUjq81ty7qUrBW/RICGKx8YWKR4oFt4F
+	gb7D9TbMkfbs3I15gaLbEVmDEz1SAuMqXqTFgIxGTjAFcH07LMTVbhwxvuHVGg==
+From: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+Subject: [PATCH v2 0/2] clk: ti: mux: resolve parent clocks by DT index,
+ not by name
+Date: Mon, 27 Jul 2026 09:41:39 +0200
+Message-Id: <20260727-mathieu-wdt-clock-theo-v2-0-c048a6394436@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIALMLZ2oC/3WNQQ6CMBBFr0K6dgytKTauvIdh0ZbBTgTGtBU1h
+ LtbSVy6fC/57y8iYSRM4lQtIuJMiXgqoHaV8MFOVwTqCgtVq6Y+ygOMNgfCBzy7DH5gf4MckKG
+ vvXZWG1TaiDK+R+zptYUvbeFAKXN8bz+z/NpfUv9LzhIkdLbRzllplHFnx5wHmvaeR9Gu6/oBh
+ mHpKL4AAAA=
+X-Change-ID: 20260713-mathieu-wdt-clock-theo-f0c5ba58e258
+To: Tero Kristo <kristo@kernel.org>, 
+ Michael Turquette <mturquette@baylibre.com>, 
+ Stephen Boyd <sboyd@kernel.org>, Brian Masney <bmasney@redhat.com>, 
+ Tony Lindgren <tony@atomide.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
+ =?utf-8?q?Th=C3=A9o_Lebrun?= <theo.lebrun@bootlin.com>, 
+ =?utf-8?q?Gr=C3=A9gory_Clement?= <gregory.clement@bootlin.com>, 
+ linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, 
+ Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1785138115; l=1162;
+ i=mathieu.dubois-briand@bootlin.com; s=20241219; h=from:subject:message-id;
+ bh=PC7KqKTOG1lIITed6bfez7FNmuX3Icze4gQUt5JUvHk=;
+ b=2jXN5EP7AZ9gudDX2r2sAdrOJSEt3PFCi9YO2LsA24K4B/bKkg8oL38L1tr0qfEXBsFEym7Aa
+ 0Ph7noeadxdD2IadOfDcAhEems01+zSimzQXO32cpWPepDEMY1ZUWlY
+X-Developer-Key: i=mathieu.dubois-briand@bootlin.com; a=ed25519;
+ pk=1PVTmzPXfKvDwcPUzG0aqdGoKZJA3b9s+3DqRlm0Lww=
+X-Last-TLS-Session-Version: TLSv1.3
 
-omap_hsmmc_prepare_data() converts the command busy timeout to nanoseconds
-with:
+This commit aims to solve an issue I've been describing a few months ago
+on AM335x SoC [1]. I believe using the parent_data field of
+clk_init_data structure is now the preferred way to convey that data,
+and it should be more reliable than string comparisons.
 
-	timeout = req->cmd->busy_timeout * NSEC_PER_MSEC;
+[1]: https://lore.kernel.org/all/DI4RUFQNSSNP.2QMSSQWJW9I2O@bootlin.com/
 
-busy_timeout is an unsigned int (milliseconds) and timeout is a u64, but
-NSEC_PER_MSEC is 1000000L.  On 32-bit builds the multiplication is
-performed in 32-bit arithmetic and wraps for busy_timeout values above
-~4294 ms, before the result is assigned to the u64.
-
-The driver does not set mmc->max_busy_timeout, so the core does not cap the
-busy timeout, and commands such as erase or SANITIZE (MMC_SANITIZE_TIMEOUT_MS
-is 240000 ms) can pass a busy_timeout far larger than 4294 ms.  The wrapped,
-much smaller ns value is then programmed via set_data_timeout(), so the data
-timeout is set too short and the operation can time out prematurely.
-
-Cast busy_timeout to u64 before the multiplication so the conversion is done
-in 64-bit arithmetic.
-
-Fixes: 8cc9a3e73de1 ("mmc: host: omap_hsmmc: use generic_cmd6_time to program timeout value for CMD6")
-Cc: stable@vger.kernel.org
-Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
+Signed-off-by: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
 ---
- drivers/mmc/host/omap_hsmmc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes in v2:
+- Also use clk_parent_data structure in composite.c.
+- Rebase on v7.2-rc5.
+- Link to v1: https://lore.kernel.org/r/20260715-mathieu-wdt-clock-theo-v1-1-da65bba1828b@bootlin.com
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 58c881f2725b..3356ac5a1fa0 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1357,7 +1357,7 @@ omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
- 	if (req->data == NULL) {
- 		OMAP_HSMMC_WRITE(host->base, BLK, 0);
- 		if (req->cmd->flags & MMC_RSP_BUSY) {
--			timeout = req->cmd->busy_timeout * NSEC_PER_MSEC;
-+			timeout = (u64)req->cmd->busy_timeout * NSEC_PER_MSEC;
- 
- 			/*
- 			 * Set an arbitrary 100ms data timeout for commands with
+---
+Mathieu Dubois-Briand (2):
+      clk: ti: mux: resolve parent clocks by DT index, not by name
+      clk: ti: composite: resolve parent clocks by DT index, not by name
+
+ drivers/clk/ti/composite.c | 26 ++++++++++++++------------
+ drivers/clk/ti/mux.c       | 20 +++++++++++---------
+ 2 files changed, 25 insertions(+), 21 deletions(-)
+---
+base-commit: f5098b6bae761e346ebcd9da7f95622c04733cff
+change-id: 20260713-mathieu-wdt-clock-theo-f0c5ba58e258
+
+Best regards,
 -- 
-2.43.0
+Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
 
