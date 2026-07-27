@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 436563B0AC8;
-	Mon, 27 Jul 2026 15:34:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C300391E5C;
+	Mon, 27 Jul 2026 15:35:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785166497; cv=none; b=APqnKGlwscdH4iZMOl1jE1UstPYJKm29GXp1E+SjH6b2WgzKe+PK3u9NF84923HgxgrqVKy49qVOUQU6h8dtiIeihDUCTKysH69elgRSfWEaL0YrFAaIkh1ZIgWpSTZBCpTF3g0a/iLGkSMbMyW1WukTHSyutjQBS0DLSDduBKQ=
+	t=1785166537; cv=none; b=iKfMO0BrIOiHkyXLBkpFJ7GSEpQMQjXwlEalH8n7PHGaegzw/z8IyMYIXHxdy9N8HwFjhTjLn6kIvkTis/kkylb4RH9m4Nc7jYFr7CxJl3o9ITHLMPLUDffeqkiK6JTugkAOx0ZiW8VyYKTnaLEYcBn+XfimVPle0SVuo2vgD5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785166497; c=relaxed/simple;
-	bh=fdHzhx98F8QAqNbJOftJK94xoGSYtyz/Fx68+3/0nuc=;
+	s=arc-20240116; t=1785166537; c=relaxed/simple;
+	bh=9heVrqxfqGplyLky9CvhBHYemf/wCYw0kxCA06R//Oo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mrw3a3zJcccp5JvgnIC3OHzB/b9E5u7wW8787P9bDYX/vvM2p0gfRBSuELtFBasWKx3VmjgPezW47k9eELTRRsvotTdCkAcuEQQaJy1IiGPGQEGPDKJGKmfM49kc+FnntDc6oVEEWD0Xuiiq7+IpypG+tTlrrtjpY1UFYfI0/U0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H/huRj+F; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=VMZoz66M1cw4NhS9rvNFOiIfWc/BHl8FUtF+to1VfZMD+SaGym0bBuTuWy4tATRjjvy/vYbgBsv1w0oz+I/vSwLk0TqRbri5D+KINVFUZW1rjWNb9rqUVEH1mfENESDNUlXs49TFcGXvuLXCIXyNi0pHVqa84Oo0KkwtfOgdAfM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kPGyshAB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H/huRj+F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A101F000E9;
-	Mon, 27 Jul 2026 15:34:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kPGyshAB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A53C21F000E9;
+	Mon, 27 Jul 2026 15:35:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785166495;
-	bh=OSE8IoasrD58unzxSgBtl5+T5ruydJA2kXXGe4djiMM=;
+	s=k20260515; t=1785166536;
+	bh=6pimLA8PXpe/KB2O0/HbQ+QwyvJSF7KITGTCYTL5PK8=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=H/huRj+FkZT8rxFDSm2hICMewRtrDeCyVfV74XdKso+0RoccHn2jC5Mgzz3404BZL
-	 4rBoIWZ92IlWdwpSV4/xTuLCcx55APa3ZaQ7tx6veMsqKxODNwZLwYtfRsq/QZxKWg
-	 ivcvEse9xj/uKusBGiIvnUAidQrYBrfXv5qyi14PubnBkkhkPZchGK/8KAHmT2CX0R
-	 MjZnwgdsVvEI5LxQ3bGb6iGdvS6kK8Vdm5/KZFJ8Jlsm3+0hHixn8vncVvUbpDNR4j
-	 GCTq+lnN0eoFPD+JcKEPwNyymg1LkELLWJlFPPLTMqtkl35+Di1c+2k4ulBPXcMlI5
-	 /A6pMq8nXNOgQ==
-Date: Mon, 27 Jul 2026 17:34:52 +0200
+	b=kPGyshABvDxW3Ih+0CYOdp7ZetMFxAj2p4xEAoU4nrm+vWZ44ccOoqz64YO5hUEEG
+	 QvHaF3VO65kWPjOh2uqE1OaZIMSaFqAu3K9HnsjbqXYyuqX5n8xaapj4qeHA/5wr+4
+	 92YRfeMwxNcWOCMZr921uKVmanLykM2B8wSC+vT45+s6HjCs+MOT/P4ytTm/yhm1nB
+	 mBYgbIvIorqVh8Iqh/Z60kRsAA4NObO39857pZVg5SmgqnrOHER9MrVKuDU2FJuO3Y
+	 3rt3l1Z/Hni31UcWyk/3RJbV88Q9trPXsexJgI2uyXEDHzVwhEul1+RiSgFf6KyOEI
+	 R4zKa6Bw3KdsQ==
+Date: Mon, 27 Jul 2026 17:35:33 +0200
 From: Thierry Reding <thierry.reding@kernel.org>
 To: Jerome Brunet <jbrunet@baylibre.com>
 Cc: Andrew Lunn <andrew@lunn.ch>, 
@@ -38,11 +38,11 @@ Cc: Andrew Lunn <andrew@lunn.ch>,
 	Tero Kristo <kristo@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
 	linux-rockchip@lists.infradead.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2 1/7] clk: mvebu: clean-up simple provider misuse of
- the consumer API
-Message-ID: <amd6lIpfUb29Gal_@orome>
+Subject: Re: [PATCH v2 2/7] clk: qcom: clean-up simple provider misuse of the
+ consumer API
+Message-ID: <amd6vhL9bX0YmjE3@orome>
 References: <20260724-clk-provider-simple-clean-v2-0-56f306156d25@baylibre.com>
- <20260724-clk-provider-simple-clean-v2-1-56f306156d25@baylibre.com>
+ <20260724-clk-provider-simple-clean-v2-2-56f306156d25@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -50,20 +50,20 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="2f3tnfstgthwesf2"
+	protocol="application/pgp-signature"; boundary="zq5ldklgurjwxspu"
 Content-Disposition: inline
-In-Reply-To: <20260724-clk-provider-simple-clean-v2-1-56f306156d25@baylibre.com>
+In-Reply-To: <20260724-clk-provider-simple-clean-v2-2-56f306156d25@baylibre.com>
 
 
---2f3tnfstgthwesf2
+--zq5ldklgurjwxspu
 Content-Type: text/plain; protected-headers=v1; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH v2 1/7] clk: mvebu: clean-up simple provider misuse of
- the consumer API
+Subject: Re: [PATCH v2 2/7] clk: qcom: clean-up simple provider misuse of the
+ consumer API
 MIME-Version: 1.0
 
-On Fri, Jul 24, 2026 at 11:03:52AM +0200, Jerome Brunet wrote:
+On Fri, Jul 24, 2026 at 11:03:53AM +0200, Jerome Brunet wrote:
 > Clock provider should not be using the consumer interface.
 > In other words, a provider should not be dealing with struct clk.
 >=20
@@ -73,29 +73,32 @@ On Fri, Jul 24, 2026 at 11:03:52AM +0200, Jerome Brunet wrote:
 > Reviewed-by: Brian Masney <bmasney@redhat.com>
 > Signed-off-by: Jerome Brunet <jbrunet@baylibre.com>
 > ---
->  drivers/clk/mvebu/clk-cpu.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/clk/qcom/clk-hfpll.c | 4 ++--
+>  drivers/clk/qcom/clk-krait.c | 2 +-
+>  drivers/clk/qcom/clk-rcg.c   | 4 ++--
+>  drivers/clk/qcom/clk-rcg2.c  | 2 +-
+>  4 files changed, 6 insertions(+), 6 deletions(-)
 
 Reviewed-by: Thierry Reding <treding@nvidia.com>
 
---2f3tnfstgthwesf2
+--zq5ldklgurjwxspu
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAmpnepoACgkQ3SOs138+
-s6GLgw/+NQfYR/3Wzn80ngNgyBG/2ubRWiFGqh6kqFPvkRAEs5StLHQNS2eDIqKm
-4V74umZnlJA08SglJLRkgRdPWy+4IBuipiGQpD6n+UrmGEUg5DBDlajeQEytQwnu
-IUq4BryldySDYFXKTEzzDV5eTxf27wG1sqFMBLL4aqV58o4vSK2q2d8CDZ2CjgXZ
-XhD30hil1dvV280lPDjBg3vWiL0SqOSl3NubqUYHvEApRYWSGHVMjwcnJVSkq2Ko
-mwNHlMNFVQUCcWLCRLh/qkXe8dKuJex/e6XIBjIhX4tdXdAyvQ+5hRUnmqQPWe7S
-xlMnQSbewWsuJxDwEMUmcAAD8mAzNf+t4dFtNfLlvtdVSjpkEyIkfzohLqbnG1s4
-JSIPmI03mifLMctCpfQ2qDWitTMns00tAvkK2SzfS9GyeW0W6yVxFCU+2UsTwse7
-CZR63ywGOUmQGB1Xw0LZKsp1/6t4ESMq+T6DPc54V3g8K4+JCUnYSKCxqa+Ck3Xx
-P/tJNBJjPkqLP6rvag1AZm3z1x5BsI3nWYZ1ZtyGMFRQxIf3RKeuo7taW+R3Bq1n
-tRGbbx2QW5AXgjCmjvLNYzFEkvDZIJbWEfPjLORLuVRVle9vnzCE2BpPZT3L55pG
-ayihIatqmM9Cba66uZL/tn08KDmubR0X0Fbvs/Orc5WCvlkaug4=
-=XS/f
+iQIzBAABCgAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAmpnesUACgkQ3SOs138+
+s6EEqxAAlCFaxoVTCA1CfgRp8dzwZafYmIYgEsE0ClMOdVhcykkwkw+zzREQzNWw
+zrNc8zItDXLD59chu4jB1t5x3EUCI0fm0ykDZzAvFdWGIam/VRhf+5fFE0LlKMLC
+b3C/IFiDNgi4b+iSQYBVAxsPIxXXTiCtua/+8Hfkc049kvL5g+q0Z+snYb6nWRvt
++It5/oxa3V/Gbb02LDDOyoJudwBB2AuMyBWQIgpLly214d7YySjLH75z5RIjzklN
+XeD+uB6bfmKllsYQzn8Gg3IXQS0JDQMaAUGWMQV828p5fiDPRZFo/fHXN+2wkLk9
+wDdJTU4u6WcZ7s//S/KMekniPws8XtvC2Qf/X0JC5WeZbKW5cPn5KGIZfEjaZfGv
+MVVB7C6coPw4pK8S4enaKy+iEvCsbWSTqa9D1Zlj5yo+7X0gghxJ02FFeahPb2pH
+QS6xzkZZkIWaihgjvJ93QmV01HmV8YIY5c2gPayBfjHacGtT+VeY4CqQrhpH8q3Q
+wR2akmStfmHdp4RUHXCUKHwG3hVi0BOJtFxYjl2yTQPPesgNk7MP8tmObDyK0wRD
+3ObUnCOiWqqQV8JbpMo3d9cbrdcnN0S5fTEb7ETSaVVTzwn4YXQpjSPWeiGLQKVE
+RxiLGS6vCX5VSLCFMhFxQwB2bcol+N4e+sibrz68qhc99kNk1aU=
+=kezw
 -----END PGP SIGNATURE-----
 
---2f3tnfstgthwesf2--
+--zq5ldklgurjwxspu--
