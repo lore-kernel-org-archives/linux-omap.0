@@ -1,41 +1,42 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CB943BB9E1;
-	Mon, 27 Jul 2026 07:42:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A399A3DD866
+	for <linux-omap@vger.kernel.org>; Mon, 27 Jul 2026 07:42:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785138124; cv=none; b=jv7JN5Eyr1DMBGJ0W8uZJGJaKDqCyRvVQarvRBkKwPBENJWbZZNXYGv0mDl4c1Bq4XDMmowA9JrUVuOCxcMtPviHOcL+cb0MYJ/wUY6jjPPl5N9TPS2sNkuRJXRRhOCIYbQgYPSJS3wzhp34NClsuiLLJNMMRHEAz4ENLvcGq8c=
+	t=1785138126; cv=none; b=JTfppo0kWN5Di98bMsAsPuBzS0KOXfHTA+WzdRuiGLDGJLYLn6J2W4mg3mJhen4mw5gr3QyGQc2HogzJWESJczN0+tPdaJLCV1K2PQMidLwi2QdZCvgComV5PIzdfzQB7T/TArT7b+Tyt/xvDwJr0+s/Ctvo0/iZnnBRUkD8V8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785138124; c=relaxed/simple;
-	bh=PC7KqKTOG1lIITed6bfez7FNmuX3Icze4gQUt5JUvHk=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=my2zj/0ukhiJTmO+IaEOw8iCLfpznUJJs95/Fgpdmv4wbzmARbTbpk+cBd1SBjbqAVCnvwHqM6PLGqtR8zlO/VTDvneh8xM7X+ttpZ5PGzPDaadHVjiI/geIz8TkZs+KisL0XdBQPEUuqkqmhPqo9WNaXjMQDOCoUGZbP+333zk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=LsCxpqDG; arc=none smtp.client-ip=185.246.84.56
+	s=arc-20240116; t=1785138126; c=relaxed/simple;
+	bh=t07xrrRrUXYK9aJcYdFIgQonM0/UkjH18L6kmm/OK1o=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=DyONKtOts/3ajzYg7Y0TjfLoV07bavWqUAGRA+G5KFMg/MNOGVxv4LGUtwPRhl91BAT7UA2lEDD5DbKdP0MkTRTW6RgjqtLjviObQdxS6Fuvx6pt758lGy3HYa9lWeEkbeLaMOSICi1ehBWoaK4PLcXa7vRTePKF73kOcXsIQsk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=LRSo9v3t; arc=none smtp.client-ip=185.246.85.4
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="LsCxpqDG"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="LRSo9v3t"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 499351A1282;
-	Mon, 27 Jul 2026 07:42:00 +0000 (UTC)
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 359C84E40F93;
+	Mon, 27 Jul 2026 07:42:02 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 16385601BE;
-	Mon, 27 Jul 2026 07:42:00 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 0396611C10E5D;
-	Mon, 27 Jul 2026 09:41:55 +0200 (CEST)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 089CB601BE;
+	Mon, 27 Jul 2026 07:42:02 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 910B011C12194;
+	Mon, 27 Jul 2026 09:41:59 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1785138118; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding; bh=EPyJancB1LkgAX6RkDstpBf3jWrLJyO0T0EVK9Nckuo=;
-	b=LsCxpqDGC1Vrv/AyOgy4tgGYj+UVaUW2AXmmZsKuV4LmpKzrp661IZ9BCsAkHSLuAhfufo
-	S59+2ybBNw1lRmnKeNmvFv8Q0kNWs5ShHdFiHG2y27FN/HKK3C3pRYEVBnzPcxc4zgxbep
-	SnLwiPOUXWpkYvQ36o7IKK9GNCPpJ65h+sxIKBfDIBnmz/2eXovgc64JyRyuPAnd5T9NO6
-	gP2OEhuCAxet4pjRx7GupZoamb0XkOHaczy9knWUjq81ty7qUrBW/RICGKx8YWKR4oFt4F
-	gb7D9TbMkfbs3I15gaLbEVmDEz1SAuMqXqTFgIxGTjAFcH07LMTVbhwxvuHVGg==
+	t=1785138120; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=cLztjZt2dHeiT0DyyyMcgygGiCAxEqzdYsVkzhNavwk=;
+	b=LRSo9v3tk9+q9HOiRULf0f3nGMwaF8aLCtkakkSkQDdHfLWPs8epEd9shN0TvYBj6vg4u0
+	fgiLSJgp9rlVj9VEzTLTX7cNBH2l0GdSgMNEZTOEPrUsX6KQlNm4NQL9g1nBQie9Ta+Vu/
+	lYBBqvJXFgzzZb0FTSiqlc2OkVWnEpKor1Q+cX/3ibnzEtEqtA/OnyRXhEOOAymBfXGBEB
+	4RqZPGqYRP0r1ZoGiMKoIhiaR0UIZVa4cK0l8hVvcdX3fsdIGVTz2X8f4SVXY8Cqfcz48O
+	tZUl7JoW88I2EsmNAb7j9IQMon8eSU5wofIE25HZ0iEYjwHmtKU8d8KQDlSWCA==
 From: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
-Subject: [PATCH v2 0/2] clk: ti: mux: resolve parent clocks by DT index,
+Date: Mon, 27 Jul 2026 09:41:40 +0200
+Subject: [PATCH v2 1/2] clk: ti: mux: resolve parent clocks by DT index,
  not by name
-Date: Mon, 27 Jul 2026 09:41:39 +0200
-Message-Id: <20260727-mathieu-wdt-clock-theo-v2-0-c048a6394436@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -44,11 +45,9 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIALMLZ2oC/3WNQQ6CMBBFr0K6dgytKTauvIdh0ZbBTgTGtBU1h
- LtbSVy6fC/57y8iYSRM4lQtIuJMiXgqoHaV8MFOVwTqCgtVq6Y+ygOMNgfCBzy7DH5gf4MckKG
- vvXZWG1TaiDK+R+zptYUvbeFAKXN8bz+z/NpfUv9LzhIkdLbRzllplHFnx5wHmvaeR9Gu6/oBh
- mHpKL4AAAA=
-X-Change-ID: 20260713-mathieu-wdt-clock-theo-f0c5ba58e258
+Message-Id: <20260727-mathieu-wdt-clock-theo-v2-1-c048a6394436@bootlin.com>
+References: <20260727-mathieu-wdt-clock-theo-v2-0-c048a6394436@bootlin.com>
+In-Reply-To: <20260727-mathieu-wdt-clock-theo-v2-0-c048a6394436@bootlin.com>
 To: Tero Kristo <kristo@kernel.org>, 
  Michael Turquette <mturquette@baylibre.com>, 
  Stephen Boyd <sboyd@kernel.org>, Brian Masney <bmasney@redhat.com>, 
@@ -60,42 +59,106 @@ Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
  linux-kernel@vger.kernel.org, 
  Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1785138115; l=1162;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1785138115; l=3241;
  i=mathieu.dubois-briand@bootlin.com; s=20241219; h=from:subject:message-id;
- bh=PC7KqKTOG1lIITed6bfez7FNmuX3Icze4gQUt5JUvHk=;
- b=2jXN5EP7AZ9gudDX2r2sAdrOJSEt3PFCi9YO2LsA24K4B/bKkg8oL38L1tr0qfEXBsFEym7Aa
- 0Ph7noeadxdD2IadOfDcAhEems01+zSimzQXO32cpWPepDEMY1ZUWlY
+ bh=t07xrrRrUXYK9aJcYdFIgQonM0/UkjH18L6kmm/OK1o=;
+ b=0YzGYJ6AxoxZAjdpfj1S7wrOwL2Dt21hFA0tTWheSkp/GCV8ML/I5K1PTZgJWqPYscOfrCSdC
+ Jwq9J54ylYvAlvNwJ4I5XpCg8UhzKHRDhToeBYNcd1Ueghzf8iwxyg2
 X-Developer-Key: i=mathieu.dubois-briand@bootlin.com; a=ed25519;
  pk=1PVTmzPXfKvDwcPUzG0aqdGoKZJA3b9s+3DqRlm0Lww=
 X-Last-TLS-Session-Version: TLSv1.3
 
-This commit aims to solve an issue I've been describing a few months ago
-on AM335x SoC [1]. I believe using the parent_data field of
-clk_init_data structure is now the preferred way to convey that data,
-and it should be more reliable than string comparisons.
+Resolve parent clocks by their index into the device tree "clocks"
+property rather than matching names as strings. Name-based matching is
+fragile because a clock's "clock-output-names" value in its provider
+node can differ from the name used to reference it in a consumer node,
+and because names must be globally unique across all clock providers.
 
-[1]: https://lore.kernel.org/all/DI4RUFQNSSNP.2QMSSQWJW9I2O@bootlin.com/
+On AM335x, this caused broken clock trees where some clocks failed to
+enable because their parents could not be found.
 
+Replace of_clk_parent_fill() with a clk_parent_data array that sets
+.index to the array position.
+
+Fixes: ec7aa25fa483 ("ARM: dts: Use clock-output-names for am3")
 Signed-off-by: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
 ---
-Changes in v2:
-- Also use clk_parent_data structure in composite.c.
-- Rebase on v7.2-rc5.
-- Link to v1: https://lore.kernel.org/r/20260715-mathieu-wdt-clock-theo-v1-1-da65bba1828b@bootlin.com
+ drivers/clk/ti/mux.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
----
-Mathieu Dubois-Briand (2):
-      clk: ti: mux: resolve parent clocks by DT index, not by name
-      clk: ti: composite: resolve parent clocks by DT index, not by name
+diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+index d6a0ccfd81db..ded4432f7528 100644
+--- a/drivers/clk/ti/mux.c
++++ b/drivers/clk/ti/mux.c
+@@ -119,7 +119,7 @@ const struct clk_ops ti_clk_mux_ops = {
+ };
+ 
+ static struct clk *_register_mux(struct device_node *node, const char *name,
+-				 const char * const *parent_names,
++				 const struct clk_parent_data *parent_data,
+ 				 u8 num_parents, unsigned long flags,
+ 				 struct clk_omap_reg *reg, u8 shift, u32 mask,
+ 				 s8 latch, u8 clk_mux_flags, u32 *table)
+@@ -136,7 +136,7 @@ static struct clk *_register_mux(struct device_node *node, const char *name,
+ 	init.name = name;
+ 	init.ops = &ti_clk_mux_ops;
+ 	init.flags = flags;
+-	init.parent_names = parent_names;
++	init.parent_data = parent_data;
+ 	init.num_parents = num_parents;
+ 
+ 	/* struct clk_mux assignments */
+@@ -167,24 +167,26 @@ static void of_mux_clk_setup(struct device_node *node)
+ 	struct clk *clk;
+ 	struct clk_omap_reg reg;
+ 	unsigned int num_parents;
+-	const char **parent_names;
++	struct clk_parent_data *parent_data;
+ 	const char *name;
+ 	u8 clk_mux_flags = 0;
+ 	u32 mask = 0;
+ 	u32 shift = 0;
+ 	s32 latch = -EINVAL;
+ 	u32 flags = CLK_SET_RATE_NO_REPARENT;
++	int i;
+ 
+ 	num_parents = of_clk_get_parent_count(node);
+ 	if (num_parents < 2) {
+ 		pr_err("mux-clock %pOFn must have parents\n", node);
+ 		return;
+ 	}
+-	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
+-	if (!parent_names)
+-		goto cleanup;
++	parent_data = kcalloc(num_parents, sizeof(*parent_data), GFP_KERNEL);
++	if (!parent_data)
++		return;
+ 
+-	of_clk_parent_fill(node, parent_names, num_parents);
++	for (i = 0; i < num_parents; i++)
++		parent_data[i].index = i;
+ 
+ 	if (ti_clk_get_reg_addr(node, 0, &reg))
+ 		goto cleanup;
+@@ -207,7 +209,7 @@ static void of_mux_clk_setup(struct device_node *node)
+ 	mask = (1 << fls(mask)) - 1;
+ 
+ 	name = ti_dt_clk_name(node);
+-	clk = _register_mux(node, name, parent_names, num_parents,
++	clk = _register_mux(node, name, parent_data, num_parents,
+ 			    flags, &reg, shift, mask, latch, clk_mux_flags,
+ 			    NULL);
+ 
+@@ -215,7 +217,7 @@ static void of_mux_clk_setup(struct device_node *node)
+ 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+ 
+ cleanup:
+-	kfree(parent_names);
++	kfree(parent_data);
+ }
+ CLK_OF_DECLARE(mux_clk, "ti,mux-clock", of_mux_clk_setup);
+ 
 
- drivers/clk/ti/composite.c | 26 ++++++++++++++------------
- drivers/clk/ti/mux.c       | 20 +++++++++++---------
- 2 files changed, 25 insertions(+), 21 deletions(-)
----
-base-commit: f5098b6bae761e346ebcd9da7f95622c04733cff
-change-id: 20260713-mathieu-wdt-clock-theo-f0c5ba58e258
-
-Best regards,
 -- 
-Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+2.47.3
 
