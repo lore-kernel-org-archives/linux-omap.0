@@ -1,80 +1,95 @@
-Received: from wp23.hostingpalvelu.fi (wp23.hostingpalvelu.fi [31.217.193.162])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F520432E7A;
-	Mon, 27 Jul 2026 17:46:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=31.217.193.162
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 394653DD520;
+	Mon, 27 Jul 2026 22:55:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785174402; cv=none; b=S0uANQPJR0vKdRWykTb+O8Hf+ecIfGoP/cAxw+If1i2XhxTNGi1PLlvEl20L00lLSxbB+u09bcK9lAIML9HMG+fSHY3uiFzuJNBXb22WnWpZgBaK+qSUMuoYkkeZ+R8i3077cQkAA09eSvXxuqB4Dd0EB+ISVSZNRmpYETAvtAA=
+	t=1785192945; cv=none; b=AEWr7TVvbi+dbPTCStMBZszkJh+LP/h5royuwPHLCsIEbU4yZxvXO04nml4JeC0FfH4Bbp+XeEJm7prC8F1GGuKNiz/qWhyGG5KLQAUJs1Th6eUuVmv914YxrYmymUwmpFY41eQZhMj4Ewdm86Ye5/eSCSUvlwfv67P9p/2DVE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785174402; c=relaxed/simple;
-	bh=wjp4ntie7u68r0keH+uJQ0fDqDjHzf4A7Vm/mmhFnX8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=XdlUgBlSwq9W6NgMNwpRsXr/JycuzYWzfNZkTTFlJaW4ecURW9Z43iV7I4gb2h0rPLEvJfNSy8GtUg0whyBIIf4/s+LJEdm6hwOnsrWY/3+o8+RBrhiTCAZacHYXV+1LSqrignxGQsJTq7ZolELT/2maLvp9g/PhEhEFCq2wG7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bitmer.com; spf=pass smtp.mailfrom=bitmer.com; dkim=pass (2048-bit key) header.d=bitmer.com header.i=@bitmer.com header.b=LXh23w4d; arc=none smtp.client-ip=31.217.193.162
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bitmer.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bitmer.com
+	s=arc-20240116; t=1785192945; c=relaxed/simple;
+	bh=mEBfzjO+6yUBNYtZLAV862tOCMn8M1zcqCXfXePcipQ=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=AzREIPMpkn8hPsskhTUy/QC3TWTylQGyQxSoPHEiItX/BpR/VIdWflBQ7SdIC8K+HozCVCpYdj/kSXvg4GLZM7zY8tqzbCUuHp7lYMx5WQ3KWRYDXd2KeWINjb4SGUFu0Oq8HlRZUxmraUEZ4Rv4DNEfpdJZ+xLOt/DCySexga4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gDJ2me6H; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bitmer.com header.i=@bitmer.com header.b="LXh23w4d"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=bitmer.com;
-	s=default; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=waU9u/YgOeavZJ3O7FteGXSqfKmVNEJ1LKNCB7sORzg=; b=LXh23w4duvKvhGORGH6NDwYatl
-	QHk75ZdOWdc7AO7HjLk4rnQk2NtgPT+LEKryk9ieJnkhjNHHXqgSZXrpgMN+leeMmOQNW641xsOV7
-	266Qngn+9g2VKSXivW7E/mh0ksykVSjb+wntqErN1GtVMnl6v8n+1VSNwWyV6ZgorEgmzWx/T2NhW
-	g4/vFIOqLd0+L/M93dVMqDCuCDmsGB9nO8ZcDHFJSVNbpbqObWlB6vDk+eZbiGSJxHsNtuKPf3m/V
-	OzvxA3AbXrlF5kmBLfcQ1o3PpZ/07TlhZAaufkhVjPXuKnzDnlE8K8rfDfVOZA48vb8sIBv1qwJAr
-	VC2KE+aw==;
-Received: from 91-159-18-144.elisa-laajakaista.fi ([91.159.18.144]:45308 helo=[192.168.0.12])
-	by wp23.hostingpalvelu.fi with esmtpsa  (TLS1.3) tls TLS_AES_128_GCM_SHA256
-	(Exim 4.99.4)
-	(envelope-from <jarkko.nikula@bitmer.com>)
-	id 1woPP9-0000000EPYy-3cPY;
-	Mon, 27 Jul 2026 20:46:18 +0300
-Message-ID: <b95ab53f-12da-4ad9-82bd-f5248c237ad3@bitmer.com>
-Date: Mon, 27 Jul 2026 20:46:14 +0300
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gDJ2me6H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76E141F000E9;
+	Mon, 27 Jul 2026 22:55:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785192944;
+	bh=LkHsc9u3dSjgnXAXJktKKwHUceZdTR7+WwUbiIyWSGc=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=gDJ2me6HhmWOkWN4rtVJWqeQY9l9Rp8sTe6a3KoMDF3K7QMQCrnbdu058XGlirvBv
+	 3lsJ6YulHJDdKJGdXqv4tk21UzXKquVZwsx4TQ/5QA2OP/pOsFLd654ISAV2cJcTmM
+	 fnnidgICSXKOTjbSxEhlfGRQf8X5MbtWQ4g/tsD3p5mY7ZD18ESVpxj+n1Zi/M6B84
+	 KT29SgdPDfnxO1eoRfMTziA3rIbYTQSNZrm/ciVbPqumyXJHD45MdcugapH1LZLSOe
+	 UZv/ueECU8v2tswJgb6FxVlCu+inHTTxX1rlflkeAm8Yrkpf2Wc1mZI70yg/+pMTws
+	 p+YI4cOg/HG0A==
+From: Mark Brown <broonie@kernel.org>
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>, Sen Wang <sen@ti.com>, 
+ Liam Girdwood <lgirdwood@gmail.com>, 
+ Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+ linux-sound@vger.kernel.org, linux-omap@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+In-Reply-To: <20260724233432.31325-1-dmitry.torokhov@gmail.com>
+References: <20260724233432.31325-1-dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 1/2] ASoC: ti: omap-twl4030: drop support for platform
+ data
+Message-Id: <178517465866.50339.8625271301809233192.b4-ty@b4>
+Date: Mon, 27 Jul 2026 18:50:58 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/2] ASoC: ti: omap-twl4030: drop support for platform
- data
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sen Wang <sen@ti.com>,
- Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
-Cc: Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
- linux-sound@vger.kernel.org, linux-omap@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20260724233432.31325-1-dmitry.torokhov@gmail.com>
-Content-Language: en-US
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-In-Reply-To: <20260724233432.31325-1-dmitry.torokhov@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - wp23.hostingpalvelu.fi
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - bitmer.com
-X-Get-Message-Sender-Via: wp23.hostingpalvelu.fi: authenticated_id: jarkko.nikula@bitmer.com
-X-Authenticated-Sender: wp23.hostingpalvelu.fi: jarkko.nikula@bitmer.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+X-Mailer: b4 0.16-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1264; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=mEBfzjO+6yUBNYtZLAV862tOCMn8M1zcqCXfXePcipQ=;
+ b=owEBbQGS/pANAwAKASTWi3JdVIfQAcsmYgBqZ+HtUwHFfbDqCXiRmIV2XY8lXLjofx8ZlNsSe
+ dcK4xdBGreJATMEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCamfh7QAKCRAk1otyXVSH
+ 0IB2B/9pv6LG1H+N0oT97FYHBlIU+c2LfFwqEvLAPJtBIX8sPhr/6IrQu0wXqf4qXIxJBNEs+Q/
+ Aqk1kFZN8gGdSPU+NNta/mzHiCdNIew3Ksz9dzcrQnIY4cCR9HACdFj9/v06HuUZY9sIYUsQuj8
+ XEWeGwM6cdp57iShZj1yHdAjqJyvo4xP7Lrt2Yqy8I8WFhbpLOjsaygs3PndV8QrG4zwu8osQ7E
+ gTMKXfZ9kAbKgqVfAhDKnIMFKizn2cfp4UrwxqWdKpvhBf5ZFMRRM4wl9ha2/E1HTUtfKD4+g7e
+ YsjkcC9/4v/rjSN3R8W5LD0s6kufNUUGBqdm02DeWlPdKXON
+X-Developer-Key: i=broonie@kernel.org; a=openpgp;
+ fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-On 25/07/2026 2:34 am, Dmitry Torokhov wrote:
-> There are no users of omap_tw4030_pdata in the mainline kernel so
-> remove support for it from the driver.
->
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> ---
->  include/linux/platform_data/omap-twl4030.h |  42 -------
->  sound/soc/ti/omap-twl4030.c                | 134 +++++++--------------
->  2 files changed, 44 insertions(+), 132 deletions(-)
->  delete mode 100644 include/linux/platform_data/omap-twl4030.h
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+On Fri, 24 Jul 2026 16:34:29 -0700, Dmitry Torokhov wrote:
+> ASoC: ti: omap-twl4030: drop support for platform data
+
+Applied to
+
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-7.3
+
+Thanks!
+
+[1/2] ASoC: ti: omap-twl4030: drop support for platform data
+      https://git.kernel.org/broonie/sound/c/0f97c75d15c3
+[2/2] ASoC: ti: omap-twl4030: use per-device instance of headset jack gpio
+      https://git.kernel.org/broonie/sound/c/a9b7250a2f8b
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
