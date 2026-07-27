@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F8C63B0AEA;
-	Mon, 27 Jul 2026 15:36:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DF583B0AEA;
+	Mon, 27 Jul 2026 15:36:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785166562; cv=none; b=mHEg/TEQDlaf4cZYrmllo1y28vupZo4jnOxQ8XMIcuOxQq2Y+2UyYlzVH3PxGEH/Shqs9EZk6/jja+mo9rhBFnuiy9ScIn9kUSmR/I2L2j1YINeDBf08XhKlUT6tM9y6iMBguZpT72Wb0UEhA9dzxmjNrDmw0nN1UYWALV5Blco=
+	t=1785166618; cv=none; b=BBvOAgnQ3YEA5DNIaHZ0xJtxzQS7V6qklFrrJ/KIePcDVgUriNpSx7tMmzjDn+jfu1/mDDOAt0Wlvp1pbYcm3YHM2ML17IN/7a7OOloPxGeJgxkPLLEqSfLx22mCHiQoatTN4ZapawZrQX8U9NH+SJ2fF9qN4rbTSSTl2VNB+Vs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785166562; c=relaxed/simple;
-	bh=0uGo7n49a4/PaiQgsMOSEwMnykmYlC/p8tJ6OVNzUoU=;
+	s=arc-20240116; t=1785166618; c=relaxed/simple;
+	bh=rLZwPd0ARbhiS/nAOPjci7zoXQUZB1m6sKuexPqk80M=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VoVRCC3ka67rq8uYs8NXaAeT4AlRYYwJIaNE+XoDV66spleajbePAyyF5aA7sZ7GwQRezFUo7y+xYkJwZz5+p3HUi0dXQaza463+LWQlHMXau87A6KTtzwNxfKoFyYY5IJAhsPrWjkSi4zCzdORpYnkygaC59iQRe2LiDcaOwcw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VR0PAk25; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=cVQ4fBM9drZvOMrRArd10bkDnFGU8Ol3nsF3pFheqHkOeQJX5pnlMSWsC/GBgn+n9PYsMX13Pj5lJpHn6vDpuEWrRkngL9St0UVitKgqVt/kK9Jup2CB7OEfpDqQ/yrek8qRqY4iIfl36gpT0JjIOLpxUqjnb2K9Z1kWyb7zS/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XsOWJdfe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VR0PAk25"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B419D1F000E9;
-	Mon, 27 Jul 2026 15:36:00 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XsOWJdfe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 468F71F000E9;
+	Mon, 27 Jul 2026 15:36:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785166561;
-	bh=rH0dfJwx6TaUJRP9778eSVp+cuHpBPdxCqvvTxPFEdM=;
+	s=k20260515; t=1785166610;
+	bh=O2DP9sd+V3gapp2vPDfzOknQfw1soNffgDYWsjI+4Hs=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=VR0PAk25kOTzE8THqAMeXyIQ4iDVWM4cRIM07AXEHoe/7C/k/ktnbEHFIWB8fJeQj
-	 VjNd1r5ZFVqeMOoBTDTlUS0MEY4OGSnwJAXzBIEUvMnewMoWOWDHjMULcPcaoSLK2z
-	 a7aPaVwplqFn+8mNoq1biGH2vNiSKFWmL/hRwdRp5ZvQmBim74pLuCmuTKHXGiSvPZ
-	 sNEcCsoZnPdqbHixGkvHC+yysAjMjqmx2WTTOlNp1Rh401XT3XgyxxE4YCaK4bqBT1
-	 3kbMqNHU24jY2NCnD5v0NKGwkjWGgtF99j1vSPP9hJpBZccswonp6S8m7iTYTGNC3R
-	 daVrbOWXZhdyg==
-Date: Mon, 27 Jul 2026 17:35:58 +0200
+	b=XsOWJdfedVUvAlAsTjIsfwaiMzFbrquKnAstZhHi4+vXSekL2D60TGJVuQQAU4S9H
+	 jNtGSxefNhWWdWWEPLViTwIZZ+UqrI2C2awIK3R5gajgvVMB7XLZauHrpepXb02OQg
+	 5r0l5GJw/+iuhe/NGsTpdn5373eTYRXa0QolApGMsCoXIFWjxG6p0wbjO7r2ytLSS7
+	 2Qrn6T/33aWyRhftWLXomiGcNvkh7Kz4pE8cnzaPkuUyCOVkSyCfIT0klJs7l1KKSg
+	 nRxeDYGGkqfcDWVGxgj+N8UXZB56saDnFi0A56YdfJwsZMat9ybWEkgUWwHqDc2So0
+	 E0N7FsMYg43uA==
+Date: Mon, 27 Jul 2026 17:36:48 +0200
 From: Thierry Reding <thierry.reding@kernel.org>
 To: Jerome Brunet <jbrunet@baylibre.com>
 Cc: Andrew Lunn <andrew@lunn.ch>, 
@@ -38,11 +38,11 @@ Cc: Andrew Lunn <andrew@lunn.ch>,
 	Tero Kristo <kristo@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-clk@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
 	linux-rockchip@lists.infradead.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2 3/7] clk: renesas: clean-up simple provider misuse of
+Subject: Re: [PATCH v2 4/7] clk: rockchip: clean-up simple provider misuse of
  the consumer API
-Message-ID: <amd61_Itb8wOTq0H@orome>
+Message-ID: <amd7CasCCYOoyXhf@orome>
 References: <20260724-clk-provider-simple-clean-v2-0-56f306156d25@baylibre.com>
- <20260724-clk-provider-simple-clean-v2-3-56f306156d25@baylibre.com>
+ <20260724-clk-provider-simple-clean-v2-4-56f306156d25@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -50,20 +50,20 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="d7jdk6oml7vjgb7j"
+	protocol="application/pgp-signature"; boundary="xbtxxe6iq2gig57t"
 Content-Disposition: inline
-In-Reply-To: <20260724-clk-provider-simple-clean-v2-3-56f306156d25@baylibre.com>
+In-Reply-To: <20260724-clk-provider-simple-clean-v2-4-56f306156d25@baylibre.com>
 
 
---d7jdk6oml7vjgb7j
+--xbtxxe6iq2gig57t
 Content-Type: text/plain; protected-headers=v1; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH v2 3/7] clk: renesas: clean-up simple provider misuse of
+Subject: Re: [PATCH v2 4/7] clk: rockchip: clean-up simple provider misuse of
  the consumer API
 MIME-Version: 1.0
 
-On Fri, Jul 24, 2026 at 11:03:54AM +0200, Jerome Brunet wrote:
+On Fri, Jul 24, 2026 at 11:03:55AM +0200, Jerome Brunet wrote:
 > Clock provider should not be using the consumer interface.
 > In other words, a provider should not be dealing with struct clk.
 >=20
@@ -73,29 +73,29 @@ On Fri, Jul 24, 2026 at 11:03:54AM +0200, Jerome Brunet wrote:
 > Reviewed-by: Brian Masney <bmasney@redhat.com>
 > Signed-off-by: Jerome Brunet <jbrunet@baylibre.com>
 > ---
->  drivers/clk/renesas/r9a06g032-clocks.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/clk/rockchip/clk-pll.c | 24 ++++++++++++------------
+>  1 file changed, 12 insertions(+), 12 deletions(-)
 
 Reviewed-by: Thierry Reding <treding@nvidia.com>
 
---d7jdk6oml7vjgb7j
+--xbtxxe6iq2gig57t
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAmpnet4ACgkQ3SOs138+
-s6HboA//b1oIVu6KgMhWD7qHih0fVg+6Q3uvEb6OaReWRKDnD3Nqllw7sGwwDz5D
-kcOBUi3cZBA0RzeiEphBBZ9Tp4kHSIi7RRYW3W+RNHqYHHe1tkqUyJwbrKVawxEA
-e6CZMYf754GInAjT1QnThDGLTCK2ufz9jo2ljLyBhPkS1kuqJcLHIrXO52LdAvEh
-BwCzJDc5lpSVOnsaHh+bx1qUFRgcI5p/LOyfkhhFMGxpT4OnHZMJlZRdKfQti3QZ
-Pbk73asqPr5USZXPiPj8RRce9EwuKvq5+UppVu6MHKiP/Kq6jwPAcgVGYBf1+w2n
-cKtNv4/xKTEDBwcaZQ2I5VyCsoA4dLGj+q2ZvAvdtjI7xYziBrwRzQSYhZYtMeaK
-mSEmRzoZuOjcfajc1Gi4r920wTMcRgSnuLodSVQGxThjnDD7pPZSeP/PiXc+Q7pG
-C3z656rLQjarmY1iua5rt57KAwkr4kC0iuoHnGJuj2jcxOINB870xeTmjP15jzKB
-KjhvHs/g9wItAZcDYVaeQlN1sWv7doDJNp7U4b8xqB9ZIk29RcHYfdaSlTbxtVuW
-CVbxn10yKOVPws4Aq/M7vai+p8nxcSA4MdK6obo8lvcLf3h0s+BFhRkDQ0CEmfIr
-bolWFbEuM9bXdBRTMeA1FjyuThd6KZIokWYXTHif5SMV8hrTwf4=
-=VEtD
+iQIzBAABCgAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAmpnexAACgkQ3SOs138+
+s6HjrBAAqVx4wDajmCyTkTuu6eCSuKR8bW8dpLrULaaLS4gwAjsVCLv/lzY7LpDg
++d7MXmAEth+FTysFv2BJIbi8843APxU+e230/GErUGMV7l42ITOIepPHVDoFRdl4
+lP2vp96vn9eXV/tUSBVWoiyaqpk/TDbaPT5GtGsGU3TrtrmTFA1uC16YmAikOOV6
+EbexV8rKrsf+90wnf2ScvcZN25SrkjdHZPPiYm8ha+25tubNWQooRKGMaUF8wppr
+XQSHImaQ4Z0uDPqkZsn0DUJZcSQOHPMEmXgzfdZ/FyGueKY4028P2rsYU3xax4hZ
+qCxTSXsfkkUUm9jZOtuGLhgUPdVZ7Gc5G9x8VtSToJaBR0yA9Ko1L7pbPIKWoVFz
+FlivG9Fx1tetf3wKKbSqPtR1ncFtJeg3UENYFlawkgdONOYTbyjH/oZ9U7fWny9p
+UskCye1oz98QG0n7bpXlEQRs/GvdNZbgkgp50MENqjKDuSDn2LugNesoBSygozIU
+ewfAbShTn/10piWzHhHvekgPKhwQ7Utxu9E1P8FOovFB9k0S2R3uIUHSL+MldaJt
+p7pjYEC2RjPPvk7RpvVhCtsyr8Pihnx7Oh6wtaBOFf3tESxZSBgFfX/JOgD4w6IO
+mNYMw4Nt5ICFcm/aSDngscGzgFSO1mi7QQIUZWFDFMQQSbgjYg8=
+=q9vv
 -----END PGP SIGNATURE-----
 
---d7jdk6oml7vjgb7j--
+--xbtxxe6iq2gig57t--
