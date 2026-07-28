@@ -1,95 +1,158 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mout-p-201.mailbox.org (mout-p-201.mailbox.org [80.241.56.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 394653DD520;
-	Mon, 27 Jul 2026 22:55:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BCC3190473;
+	Tue, 28 Jul 2026 01:26:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.241.56.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785192945; cv=none; b=AEWr7TVvbi+dbPTCStMBZszkJh+LP/h5royuwPHLCsIEbU4yZxvXO04nml4JeC0FfH4Bbp+XeEJm7prC8F1GGuKNiz/qWhyGG5KLQAUJs1Th6eUuVmv914YxrYmymUwmpFY41eQZhMj4Ewdm86Ye5/eSCSUvlwfv67P9p/2DVE8=
+	t=1785201976; cv=none; b=VEC2lrzocagIoASonbwaq+o8X99hhiediEcKIBqhMuBbn8NUitQu6gaKQ4WKEG94Igrl21vhxiTIpPbi7r5Zco8pIzcQTks4uKmDq9pwDZj/EfjDjv8VIhX/MtUN1yCtyEFheHm5zQlgCVoc4OyKeXm3ktZeKO0dMkdsgFvdK/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785192945; c=relaxed/simple;
-	bh=mEBfzjO+6yUBNYtZLAV862tOCMn8M1zcqCXfXePcipQ=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=AzREIPMpkn8hPsskhTUy/QC3TWTylQGyQxSoPHEiItX/BpR/VIdWflBQ7SdIC8K+HozCVCpYdj/kSXvg4GLZM7zY8tqzbCUuHp7lYMx5WQ3KWRYDXd2KeWINjb4SGUFu0Oq8HlRZUxmraUEZ4Rv4DNEfpdJZ+xLOt/DCySexga4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gDJ2me6H; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785201976; c=relaxed/simple;
+	bh=57edHnPfQ+aD2wL4qUOTWP1fNCiF4jaCA4MN2AcAij0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=vBPQkllGzLviGuIvHCKILff1kHiqSLKJbgjoJq56+Hnt2GdiDCQmbMRow4XJF8rLW7d1Kjnre+yKCD8Nc0SCeLAE2vICvy/C4IPTTcNDU2MhtB5X71fQQ9L5+mKeeXsllMwPEZa/Z9aUHIHnbMtx6nGSzFW/Q7YYLbbTvPyg8Dg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org; spf=pass smtp.mailfrom=mailbox.org; dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b=ckTmdxs9; dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b=hErtWiox; arc=none smtp.client-ip=80.241.56.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mailbox.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gDJ2me6H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76E141F000E9;
-	Mon, 27 Jul 2026 22:55:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785192944;
-	bh=LkHsc9u3dSjgnXAXJktKKwHUceZdTR7+WwUbiIyWSGc=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=gDJ2me6HhmWOkWN4rtVJWqeQY9l9Rp8sTe6a3KoMDF3K7QMQCrnbdu058XGlirvBv
-	 3lsJ6YulHJDdKJGdXqv4tk21UzXKquVZwsx4TQ/5QA2OP/pOsFLd654ISAV2cJcTmM
-	 fnnidgICSXKOTjbSxEhlfGRQf8X5MbtWQ4g/tsD3p5mY7ZD18ESVpxj+n1Zi/M6B84
-	 KT29SgdPDfnxO1eoRfMTziA3rIbYTQSNZrm/ciVbPqumyXJHD45MdcugapH1LZLSOe
-	 UZv/ueECU8v2tswJgb6FxVlCu+inHTTxX1rlflkeAm8Yrkpf2Wc1mZI70yg/+pMTws
-	 p+YI4cOg/HG0A==
-From: Mark Brown <broonie@kernel.org>
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>, Sen Wang <sen@ti.com>, 
- Liam Girdwood <lgirdwood@gmail.com>, 
- Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
- linux-sound@vger.kernel.org, linux-omap@vger.kernel.org, 
- linux-kernel@vger.kernel.org
-In-Reply-To: <20260724233432.31325-1-dmitry.torokhov@gmail.com>
-References: <20260724233432.31325-1-dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 1/2] ASoC: ti: omap-twl4030: drop support for platform
- data
-Message-Id: <178517465866.50339.8625271301809233192.b4-ty@b4>
-Date: Mon, 27 Jul 2026 18:50:58 +0100
+	dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b="ckTmdxs9";
+	dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b="hErtWiox"
+Received: from smtp202.mailbox.org (unknown [10.196.197.202])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mout-p-201.mailbox.org (Postfix) with ESMTPS id 4h8Hq80jt3zMlGQ;
+	Tue, 28 Jul 2026 03:26:12 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
+	t=1785201972;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=DYj3Gwonno5tuigqL6BvnWApaq+2uBwSe5vHZ9bElX0=;
+	b=ckTmdxs9OkhWuPopV5aVBYLdi56OHydKkzRRtbTY8T4A3Ptc0tuBM2m9hxcis6VT3HqRBj
+	lhW/s8J892kWxhIECWC5npbZTxko9UerUFAkWIgLWjT0u5AenX6OBaO44m+sxkoeaJgAh9
+	Lt9YfrIYi5lifDN85sk+xK03/xyP9yHMIFEvqlB1rEVogpsHtroWwvBVXabEE00vD2EYRv
+	7L4aD8PeOTBeAv3EVR0bmyTGE8Vd1jOH9PLybGEmOBM+YjAOvvf+/xVlyV0a+O4fdlNp+u
+	BbwtUFXgtvrAXIbvmmNYk3tGT4sa0QwwjgzdQMh3DEOShsiy3ouT03g0eKQLoQ==
+From: Marek Vasut <marek.vasut+renesas@mailbox.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
+	t=1785201970;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=DYj3Gwonno5tuigqL6BvnWApaq+2uBwSe5vHZ9bElX0=;
+	b=hErtWioxNzYcuQSR6cgc6HhLaPgVsgNE/fEjbEgRpLqlojUzXglToYGEZBvNc74x+5aFvB
+	stnAQBGxcLHP5s8ICl817uqN+RatiCaXAaY0KQbo0kDJJEm7h0FYpwm5Dxkts7tEoK1994
+	ycpKjNEdH40z2Aa048E8GKhxQkcidD5WFIugELy7BXuJT5o6Tb7HFvToF8GqUmxf5PZ7sh
+	4L3Wdi/9c+jOYh17SfoZ976Qrrc/O4wjlGGtdDh4BmuH1MtZ33Ygx/wH/8PtJxZhbTzDn0
+	VYPhfLnDrLh+Fzw8j+wqIJ8YYoUSyTLkeYepQJ1KQZub1czTVr5PBWJ8CUvbLg==
+To: linux-pci@vger.kernel.org
+Cc: Marek Vasut <marek.vasut+renesas@mailbox.org>,
+	=?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
+	Anand Moon <linux.amoon@gmail.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Frank Li <Frank.Li@nxp.com>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Jesper Nilsson <jesper.nilsson@axis.com>,
+	Jingoo Han <jingoohan1@gmail.com>,
+	Koichiro Den <den@valinux.co.jp>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Manivannan Sadhasivam <mani@kernel.org>,
+	Minghuan Lian <minghuan.Lian@nxp.com>,
+	Mingkai Hu <mingkai.hu@nxp.com>,
+	Nicolas Frattaroli <nicolas.frattaroli@collabora.com>,
+	Niklas Cassel <cassel@kernel.org>,
+	Qianfeng Rong <rongqianfeng@vivo.com>,
+	Qiang Yu <qiang.yu@oss.qualcomm.com>,
+	Rob Herring <robh@kernel.org>,
+	Roy Zang <roy.zang@nxp.com>,
+	Shawn Lin <shawn.lin@rock-chips.com>,
+	Siddharth Vadapalli <s-vadapalli@ti.com>,
+	Srikanth Thokala <srikanth.thokala@intel.com>,
+	Vignesh Raghavendra <vigneshr@ti.com>,
+	Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>,
+	Yuho Choi <dbgh9129@gmail.com>,
+	imx@lists.linux.dev,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org,
+	linux-rockchip@lists.infradead.org
+Subject: [PATCH 0/2] PCI: dwc: Handle return value from endpoint .init/.preinit callbacks
+Date: Tue, 28 Jul 2026 03:24:23 +0200
+Message-ID: <20260728012548.465139-1-marek.vasut+renesas@mailbox.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.16-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1264; i=broonie@kernel.org;
- h=from:subject:message-id; bh=mEBfzjO+6yUBNYtZLAV862tOCMn8M1zcqCXfXePcipQ=;
- b=owEBbQGS/pANAwAKASTWi3JdVIfQAcsmYgBqZ+HtUwHFfbDqCXiRmIV2XY8lXLjofx8ZlNsSe
- dcK4xdBGreJATMEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCamfh7QAKCRAk1otyXVSH
- 0IB2B/9pv6LG1H+N0oT97FYHBlIU+c2LfFwqEvLAPJtBIX8sPhr/6IrQu0wXqf4qXIxJBNEs+Q/
- Aqk1kFZN8gGdSPU+NNta/mzHiCdNIew3Ksz9dzcrQnIY4cCR9HACdFj9/v06HuUZY9sIYUsQuj8
- XEWeGwM6cdp57iShZj1yHdAjqJyvo4xP7Lrt2Yqy8I8WFhbpLOjsaygs3PndV8QrG4zwu8osQ7E
- gTMKXfZ9kAbKgqVfAhDKnIMFKizn2cfp4UrwxqWdKpvhBf5ZFMRRM4wl9ha2/E1HTUtfKD4+g7e
- YsjkcC9/4v/rjSN3R8W5LD0s6kufNUUGBqdm02DeWlPdKXON
-X-Developer-Key: i=broonie@kernel.org; a=openpgp;
- fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-MBO-RS-ID: 50191466ca9f8db85b8
+X-MBO-RS-META: hmi6jyzzt1u6jydo7geudygbdrddrpon
 
-On Fri, 24 Jul 2026 16:34:29 -0700, Dmitry Torokhov wrote:
-> ASoC: ti: omap-twl4030: drop support for platform data
+This is a trivial preparatory change which allows checking
+the struct dw_pcie_ep_ops .init/.pre_init return values.
 
-Applied to
+Currently only the Layerscape PCIe controller benefits from this as
+its ls_pcie_ep_init() may fail in dw_pcie_ep_get_func_from_ep() call,
+but the Renesas R-Car Gen5 will benefit from this next.
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-7.3
+Since this affects many controller glues and has a huge CC list,
+I am sending this separately from the R-Car Gen5 patches.
 
-Thanks!
+Marek Vasut (2):
+  PCI: dwc: Handle return value from endpoint .init callback
+  PCI: dwc: Handle return value from endpoint .pre_init callback
 
-[1/2] ASoC: ti: omap-twl4030: drop support for platform data
-      https://git.kernel.org/broonie/sound/c/0f97c75d15c3
-[2/2] ASoC: ti: omap-twl4030: use per-device instance of headset jack gpio
-      https://git.kernel.org/broonie/sound/c/a9b7250a2f8b
+ drivers/pci/controller/dwc/pci-dra7xx.c         |  4 +++-
+ drivers/pci/controller/dwc/pci-keystone.c       |  4 +++-
+ drivers/pci/controller/dwc/pci-layerscape-ep.c  |  6 ++++--
+ drivers/pci/controller/dwc/pcie-artpec6.c       |  4 +++-
+ drivers/pci/controller/dwc/pcie-designware-ep.c | 14 ++++++++++----
+ drivers/pci/controller/dwc/pcie-designware.h    |  4 ++--
+ drivers/pci/controller/dwc/pcie-dw-rockchip.c   |  4 +++-
+ drivers/pci/controller/dwc/pcie-keembay.c       |  4 +++-
+ drivers/pci/controller/dwc/pcie-rcar-gen4.c     |  6 ++++--
+ 9 files changed, 35 insertions(+), 15 deletions(-)
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.
+---
+Cc: "Krzysztof Wilczyński" <kwilczynski@kernel.org>
+Cc: Anand Moon <linux.amoon@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Frank Li <Frank.Li@nxp.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Heiko Stuebner <heiko@sntech.de>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Jingoo Han <jingoohan1@gmail.com>
+Cc: Koichiro Den <den@valinux.co.jp>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: Manivannan Sadhasivam <mani@kernel.org>
+Cc: Minghuan Lian <minghuan.Lian@nxp.com>
+Cc: Mingkai Hu <mingkai.hu@nxp.com>
+Cc: Nicolas Frattaroli <nicolas.frattaroli@collabora.com>
+Cc: Niklas Cassel <cassel@kernel.org>
+Cc: Qianfeng Rong <rongqianfeng@vivo.com>
+Cc: Qiang Yu <qiang.yu@oss.qualcomm.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Roy Zang <roy.zang@nxp.com>
+Cc: Shawn Lin <shawn.lin@rock-chips.com>
+Cc: Siddharth Vadapalli <s-vadapalli@ti.com>
+Cc: Srikanth Thokala <srikanth.thokala@intel.com>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>
+Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+Cc: Yuho Choi <dbgh9129@gmail.com>
+Cc: imx@lists.linux.dev
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: linux-pci@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Cc: linux-rockchip@lists.infradead.org
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
+-- 
+2.53.0
 
