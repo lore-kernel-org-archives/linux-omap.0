@@ -1,172 +1,119 @@
-Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [213.167.242.64])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2012B47141F;
-	Wed, 29 Jul 2026 11:15:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.167.242.64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02E6A48EBFE;
+	Wed, 29 Jul 2026 13:32:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785323752; cv=none; b=GiqzN5KGqDd8q8C02D2+VO6PM/poSqmCx7N6DQRv7xmBZ2CnP6hC7HgoHIc/o9K5FM+BGsNr2eI/9ErMPBw67rga2eEaSjthw1Hm2DVDUVf2s4DUtYkX6Wk4UvSgyr9RgY5I7n0OT4mkBiA7S9t8Txhl0FMnqKQRdi3wsynvZKo=
+	t=1785331940; cv=none; b=GaXmNy94+Eco8Id7PCmKlju7L5Xj6JVGyr8k+Sj/xwm1ChHrJVvAcHo+deFmg5zZq4SyVBc1Gyz+HllmjRnApwo9GPARGEqR+6B/TZ/9KNWtNrsorBL5f8Y5LX5YhOUAYXj1agLQQLAqqTiXTN2pvH9bUCqaon+91Mncj3KkvEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785323752; c=relaxed/simple;
-	bh=gUuCfUtOb85tDdPzGoRIzPIcJj5GwVQkb8T2n6kQVN4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=AM9knKjTXtJ85cvTtDSATb7ohIB7Ub9AcURamEgmG/7GFNLABl0Wvy3wYKDo/OkcsZfyAfWa7oRmGsbQWVV2CQZge7NH6+iM2zY4qLp6ptRqW3R+6qbZVq38WBRxJXX+calUp/a8A/r6qPBb9ZD7SjNRMjezRImX+iXvXvDaTQU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ideasonboard.com; spf=pass smtp.mailfrom=ideasonboard.com; dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b=UaKHHXN7; arc=none smtp.client-ip=213.167.242.64
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ideasonboard.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ideasonboard.com
+	s=arc-20240116; t=1785331940; c=relaxed/simple;
+	bh=YKrR83CFG6tpDZzJZX//aN/Zfs0MXfWJ4eOlHzUUvns=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=ljEYbMa/UwJXlNwpi9wUGM41Otox3Jcn4Qe0vf5SxoinggjuYhrbwmk/Qj1lTVhqA+k5UbPq4SPY8Jy7F/+w8qOUwxd7tTvVfAEZzfHu/PxKf9BwaKLzfBRAEuYz6rpMaakaen7YUFAcRwqGQu0uhaafr9kxpzP3ipAtiS2FRvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fOLacvde; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="UaKHHXN7"
-Received: from [192.168.88.20] (91-158-153-178.elisa-laajakaista.fi [91.158.153.178])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 7A2F419C;
-	Wed, 29 Jul 2026 13:14:31 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-	s=mail; t=1785323672;
-	bh=gUuCfUtOb85tDdPzGoRIzPIcJj5GwVQkb8T2n6kQVN4=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=UaKHHXN7cE5QGzdupJ0rdab4haVGTOnnbDYV7w4gVY39ViQEUwUKuyO3tIk2YoORr
-	 gIkQQfWj/552Pm70wBLAyhouc96sE3mNo6pJs5YSwqsd9vo6aIlSO9n65NjlkngE4l
-	 JLyIctzKKDOyKYqMAS6eoYhFwCjSovWQU+yOUJCs=
-Message-ID: <39434782-9909-4bb4-b3da-a507acfc5e3d@ideasonboard.com>
-Date: Wed, 29 Jul 2026 14:15:33 +0300
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fOLacvde"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A83B1F00A3D;
+	Wed, 29 Jul 2026 13:32:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785331928;
+	bh=IGdHavip7JxTDusAB/Uo5MwL+ojTPGtIkgArw9SW8jA=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=fOLacvdeXoBiLnd713GgJ1a8E9pfgEDhBjn0WV3kK8PhmUqwdy44q0/2M2ZxjVAr9
+	 HNI44ziVQTTyXbthej9wA3GtrrUbzqoQPAfZqhQkzlsl//nxXs+kitUH7tX3wSHip8
+	 qvJnNGNVx+rdwFzoKMRNa7xDe6aU8MdSoEntjvmUHSKjbfrjB3vtXiJ1wUqV6lGiXx
+	 sSOIX/GZsHD82EiKSvwRMIja1rk85szzK0GUHfCUSgi/j1sqRbRAV2Hz4Q84t/N3HJ
+	 vLg5xgZ+2oF1WRsQBIrtrmECbgE8VRt2aEQ8Q34fhIz0kIqSbVlo2tcOvCDyHYFBLQ
+	 /gsDiJi9iwrGg==
+From: Mark Brown <broonie@kernel.org>
+To: Sen Wang <sen@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, 
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+ Jarkko Nikula <jarkko.nikula@bitmer.com>, 
+ Christophe JAILLET <christophe.jaillet@wanadoo.fr>, 
+ linux-omap@vger.kernel.org, phucduc.bui@gmail.com
+Cc: linux-kernel@vger.kernel.org, linux-sound@vger.kernel.org
+In-Reply-To: <20260716103911.77652-1-phucduc.bui@gmail.com>
+References: <20260716103911.77652-1-phucduc.bui@gmail.com>
+Subject: Re: [PATCH v3 00/10] ASoC: ti: Improve probe error handling
+Message-Id: <178526435380.318884.10754971669872535900.b4-ty@b4>
+Date: Tue, 28 Jul 2026 19:45:53 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5] drm/omap: dsi: avoid sending bta sync all the time in
- writes
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Marek Vasut <marex@denx.de>,
- hns@goldelico.com, dri-devel@lists.freedesktop.org,
- linux-kernel@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>,
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
- Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
- David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
- Sebastian Reichel <sebastian.reichel@collabora.com>,
- Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- Tony Lindgren <tony@atomide.com>,
- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-References: <20260725165909.508612-1-andreas@kemnade.info>
-Content-Language: en-US
-From: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-In-Reply-To: <20260725165909.508612-1-andreas@kemnade.info>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.16-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2484; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=YKrR83CFG6tpDZzJZX//aN/Zfs0MXfWJ4eOlHzUUvns=;
+ b=owEBbQGS/pANAwAKASTWi3JdVIfQAcsmYgBqagDVkcJzDko4vltVv2zuCu2AzOPU6N+4PLPrv
+ eoA5UVoPfCJATMEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCamoA1QAKCRAk1otyXVSH
+ 0JYkB/4v0yyDJwIm5CfrV9Y/33a/be4t1d560R3mnbQqxSE9HAhQQ0fYj8sCXu7iOK9K+3Tmitl
+ OiOO9oBc0Th9RGHOhN0yFSy1ibCAlm2+23unnXAXlMiZN0WgmVFvtschanixIQbyiynHHTV7OgO
+ pGYtIxInTHxe+PE1hOF2Nn2dyrK5EFZp0ruOQybJnL5fQ7UKbr8nl59YpR5BaKufdGmvibs9F05
+ c3OUwq1BBEpEs/eIco/SH7SvBmgslvmdcobaa+Gq6jmRWfq85BN370SBoEEPjf/8ReRPtRl98+d
+ 5Z022YbxaLqmYU4bE4Zn8NyElY5LlADgHTI5fWWwQH0rdgq0
+X-Developer-Key: i=broonie@kernel.org; a=openpgp;
+ fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-Hi,
+On Thu, 16 Jul 2026 17:39:01 +0700, phucduc.bui@gmail.com wrote:
+> ASoC: ti: Improve probe error handling
+> 
+> From: bui duc phuc <phucduc.bui@gmail.com>
+> 
+> Hi all,
+> 
+> This series cleans up probe error handling across several TI ASoC
+> drivers.
+> 
+> [...]
 
-On 25/07/2026 19:59, Andreas Kemnade wrote:
-> Some chips need configuration commands to be sent first, before they can
-> send data. TC358762 for example needs PPI_LPTXTIMECNT configured
-> and PPI_STARTPPI set to 1 to be able to transmit anything. To be able to
-> configure such chips, do not send bta sync during writes if no acks are
-> requested. Instead just wait for the packet to be sent to avoid FIFO
-> overflows. There might be more to do about acks, but there seem to be
-> virtually no users of that flag.
-> 
-> This came to light when fiddling with the Epson Moverio BT-200 display
-> which consists of 2 TC358762 bridges with SPI funneled through
-> to the unknown display chip. With that patch the bridge can be accessed,
-> Reading back registers works, when the above-mentioned registers are set.
-> 
-> In Command-Mode update, there was a nop sent, apparently the most
-> relevant part was the bta sync to actually force low power mode.
-> 
-> Video mode panel at OMAP4 (BT-200) and video mode at OMAP5 was tested.
-> 
-> Fixes: e70965386353e ("drm/omap: dsi: simplify write function")
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
-> Changes in v5:
-> - send bta sync on VC_CMD again
-> 
-> Changes in v4:
-> - wait on completition on all packets (was limited to long packets only,
->    because I had the wrong impression that there is no confirmation on
->    these)
-> - Link to v3: https://patch.msgid.link/20260628-vm-upstr-v3-1-9e9add93378b@kemnade.info
-> 
-> Changes in v3:
-> 
-> - Link to v2: https://patch.msgid.link/20260529-vm-upstr-v2-1-24c30671719f@kernel.org
-> - fix things mentioned by claude here:
->    https://lore.gitlab.freedesktop.org/drm-ai-reviews/review-patch1-20260529-vm-upstr-v2-1-24c30671719f@kernel.org/
->    - fix typos
->    - register ISR before sending packet
->    - check for RX_FIFO_NOT_EMPTY also in for short packets
-> 
-> Changes in v2:
-> - fix commandmode update, need bta sync there
-> - do not wait on short packets
-> - Link to v1: https://patch.msgid.link/20260528-vm-upstr-v1-1-fb93ef8cbe47@kernel.org
-> ---
->   drivers/gpu/drm/omapdrm/dss/dsi.c | 53 ++++++++++++++-----------------
->   1 file changed, 24 insertions(+), 29 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/omapdrm/dss/dsi.c b/drivers/gpu/drm/omapdrm/dss/dsi.c
-> index 27fe7bca9e2cf..eb3cd0d23cae3 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/dsi.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/dsi.c
-> @@ -2194,28 +2194,38 @@ static int dsi_vc_send_null(struct dsi_data *dsi, int vc, int channel)
->   static int dsi_vc_write_common(struct omap_dss_device *dssdev, int vc,
->   			       const struct mipi_dsi_msg *msg)
->   {
-> +	DECLARE_COMPLETION_ONSTACK(completion);
->   	struct dsi_data *dsi = to_dsi_data(dssdev);
->   	int r;
->   
-> +	/* wait for IRQ for packet transmission confirmation */
-> +	r = dsi_register_isr_vc(dsi, vc, dsi_completion_handler,
-> +				&completion, DSI_VC_IRQ_PACKET_SENT);
-> +	if (r)
-> +		return r;
-> +
->   	if (mipi_dsi_packet_format_is_short(msg->type))
->   		r = dsi_vc_send_short(dsi, vc, msg);
->   	else
->   		r = dsi_vc_send_long(dsi, vc, msg);
->   
-> -	if (r < 0)
-> +	if ((!r) && wait_for_completion_timeout(&completion,
-> +				msecs_to_jiffies(500)) == 0)
-> +		r = -EIO;
-> +
-> +	dsi_unregister_isr_vc(dsi, vc, dsi_completion_handler,
-> +			      &completion, DSI_VC_IRQ_PACKET_SENT);
-> +	if (r)
->   		return r;
->   
-> -	/*
-> -	 * TODO: we do not always have to do the BTA sync, for example
-> -	 * we can improve performance by setting the update window
-> -	 * information without sending BTA sync between the commands.
-> -	 * In that case we can return early.
-> -	 */
-> +	/* TODO: find out if more needs to be done for MIPI_DSI_MSG_REQ_ACK */
->   
-> -	r = dsi_vc_send_bta_sync(dssdev, vc);
-> -	if (r) {
-> -		DSSERR("bta sync failed\n");
-> -		return r;
-> +	if (msg->flags & MIPI_DSI_MSG_REQ_ACK) {
-> +		r = dsi_vc_send_bta_sync(dssdev, vc);
-> +		if (r) {
-> +			DSSERR("bta sync failed\n");
-> +			return r;
-> +		}
->   	}
+Applied to
 
-The dsi_vc_send_bta_sync() function does dsi_get_errors(), which we now 
-don't always do here. I think that might cause any errors to be left 
-there, which would trigger error handling on next read or write-with-bta.
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-7.3
 
-_omap_dsi_host_transfer forward declaration can now be remove.
+Thanks!
 
-I don't have HW to test this, but other than the above, it looks 
-reasonable. Although I have to say, based on my past experience, it's 
-also very easy to break a use case =).
+[01/10] ASoC: ti: ams-delta: Use dev_err_probe() for error handling
+        https://git.kernel.org/broonie/sound/c/5413fb3ba54c
+[02/10] ASoC: ti: davinci-evm: Use dev_err_probe() for error handling
+        https://git.kernel.org/broonie/sound/c/7ae5829ab0f2
+[03/10] ASoC: ti: j721e-evm: Return the original error from card name parsing
+        https://git.kernel.org/broonie/sound/c/1a1145d1b249
+[04/10] ASoC: ti: omap-abe-twl6040: Preserve error code and drop redundant log
+        https://git.kernel.org/broonie/sound/c/e0b2ab952d19
+[05/10] ASoC: ti: omap-abe-twl6040: Use dev_err_probe() for error handling
+        https://git.kernel.org/broonie/sound/c/3e8b2361c651
+[06/10] ASoC: ti: omap-dmic: Use dev_err_probe() for error handling
+        https://git.kernel.org/broonie/sound/c/fa1d248f1638
+[07/10] ASoC: ti: omap-hdmi: Use dev_err_probe() for error handling
+        https://git.kernel.org/broonie/sound/c/492a53506ab2
+[08/10] ASoC: ti: omap-twl4030: Return the original error code
+        https://git.kernel.org/broonie/sound/c/23c89b7d91cc
+[09/10] ASoC: ti: omap-twl4030: Use dev_err_probe() for error handling
+        https://git.kernel.org/broonie/sound/c/31d9b5bc1abb
+[10/10] ASoC: ti: rx51: Use dev_err_probe() for error handling
+        https://git.kernel.org/broonie/sound/c/924448b41b65
 
-  Tomi
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
 
