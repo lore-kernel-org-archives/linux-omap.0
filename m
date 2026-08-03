@@ -1,51 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 193F43502A5;
-	Mon,  3 Aug 2026 21:27:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA3478F39;
+	Mon,  3 Aug 2026 22:17:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785792444; cv=none; b=TzlQh1ht1ymT5JRvvvcRxJTkVH4bU64a5SEcPl8NZCANcXn+YBg982kVgcJIsh9CItbmcEg431/s6ydl085UQBxMqWn29j71XZpzOWWGpHtUbIbWXHf/oUJnYsEgA2INToImUIpxQvZYn5g2vNsxzb8ll97LSYP/lqw6yj1U4pI=
+	t=1785795447; cv=none; b=Awh0bAWFpUquLQWTqoN6B21HAyaJXRJgJJ0m6EGHKMHIGxIOV7fYIbf8nNw+Zj/L6q6+1N++D2B80edWT0kvRgHBAv7aaT6q0FoeDjus0jO0HM+HydlsR+Xx0OJ1y3z/ss341TgFPi0mCbAJSHTQwzJvirnuBzhhieiMgpXQlMU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785792444; c=relaxed/simple;
-	bh=seMLHlEDZy+mTM071EV4Zyx3Om5Ke3BlahHFB9AoDCI=;
+	s=arc-20240116; t=1785795447; c=relaxed/simple;
+	bh=6XzzIxTML45VHMRREzLkhjMtOFwy0FLglt1nKSpd+G8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NMmT5OaDFOEnhSnR3BjPeJKgT0Mn5t2a+tsj+/IVUV9HDkKrI9n7rGUMeSli6MJvXUZ6VR1xOcQ3ZI6HDcSMuMBFEMZrhfCRw4OApsUpZZu1z9C3x1fK2jYKiLti32kpVy1JMRGh9JExyumkZRkxV8r2OlhxKVm0Om6oJRRPgSY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZO90NxIj; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=gToHS9Y9vxy3Jv31sXFuunZIa7WUq1iD10Efx0bTQieQICZRaE+/GI1iw22RCUzXBHz4iEhyxv8lEb3N5Ok7H7NJmAZYjXZSfNS5PDWD/2bEsEI2te/QsYLOp5UgXE2hJNyl4fi+GrfM8CA5zAxkChJeJli3kUfgkNCs0/52vII=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q8Ec4Kpp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZO90NxIj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A17951F000E9;
-	Mon,  3 Aug 2026 21:27:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q8Ec4Kpp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 077141F000E9;
+	Mon,  3 Aug 2026 22:17:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785792442;
-	bh=dwJt0rr7dx2w5IxYaj+TelwjH2Zy2+tzGR2gR9KtOjA=;
+	s=k20260515; t=1785795446;
+	bh=3WeJos72ttiJG8idgzFWMe7RMdPcnTN0tGN50tPiISI=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=ZO90NxIjy1QY3zlcoc7etg3cfMu08gPNV1gaTxKuf7h/aB2zxMRFnxNdr1IxlhJfW
-	 N+aHJDOqf0oVk+f630apkufwabyykuWgJmYBrwUpTwbu9FSY4w6mAVC7Sv3u/hUyLs
-	 Fy9yTSeVssHowVZ92O5bdhGZOrVwHaTYTw0/ldI8lTDS81j4SUEQDCaCkuK7XmbU2v
-	 cNQIWvjmJajZQWF/M8atTpGPIPqy0zBLeCEAhcV1winFG170h/4lS81agy20lbeTdd
-	 ol2lTzsKz5fbtoRYpGkCYB83PNGCgsucPZ1TPWFX3XMlV9IIrHdxLiH95yCX4pUn8J
-	 45U+ph5GO47Ww==
-Date: Mon, 3 Aug 2026 16:27:22 -0500
-From: Rob Herring <robh@kernel.org>
-To: Bhargav Joshi <j.bhargav.u@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
+	b=Q8Ec4Kppwy2DajK8Q6p+5cIVr2Fj092lxSRbM4bh2aYT2xBlhsWk2M+8Eo0oRVwwu
+	 axos48ewmWTJUe2+9y66NM/iDbO8DIksCuVi7GkncoqQXKEhWI2NVIWlf3GjrwLfWn
+	 4yzAguu0MpNmEsN7N5YySv1ek7CzP7ePA4xe7fbYPMk5IwDr6XQi5GkBtyiBNvTSfP
+	 VFtTCJDWuThG3cQYOyF+bHf64y/NUhPvNe0IBk+K080MozQ+ezSh/AgjIo650PhITE
+	 7Hq5n/yefGZvBkxRFUIH++F2Qt7+wRcp23IEij4oL6/Ih/0uXdC2wjre5J8vP34IcD
+	 wroZ94RwUKxgA==
+Date: Mon, 3 Aug 2026 17:17:25 -0500
+From: "Rob Herring (Arm)" <robh@kernel.org>
+To: Eduard Bostina <egbostina@gmail.com>
+Cc: David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+	simona.toaca@nxp.com, daniel.baluta@nxp.com,
 	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Maxime Ripard <mripard@kernel.org>, goledhruva@gmail.com,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
 	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Alexandre Belloni <alexandre.belloni@bootlin.com>,
-	Keerthy <j-keerthy@ti.com>, Afzal Mohammed <afzal@ti.com>,
-	linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-rtc@vger.kernel.org,
-	goledhruva@gmail.com, m-chawdhry@ti.com, daniel.baluta@gmail.com,
-	simona.toaca@nxp.com
-Subject: Re: [PATCH v2 3/3] dt-bindings: rtc: ti,omap-rtc: Convert to DT
+	Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
+	linux-kernel@vger.kernel.org, Conor Dooley <conor+dt@kernel.org>,
+	devicetree@vger.kernel.org, m-chawdhry@ti.com,
+	linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Roger Quadros <rogerq@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] dt-bindings: display: ti: Convert ti,tpd12s015 to DT
  schema
-Message-ID: <20260803212722.GA575926-robh@kernel.org>
-References: <20260725-ti-omap-rtc-v2-0-13f765ca96b3@gmail.com>
- <20260725-ti-omap-rtc-v2-3-13f765ca96b3@gmail.com>
+Message-ID: <178579544500.726225.3201826985280204584.robh@kernel.org>
+References: <20260730092245.52034-1-egbostina@gmail.com>
+ <20260730092245.52034-2-egbostina@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -54,123 +57,28 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260725-ti-omap-rtc-v2-3-13f765ca96b3@gmail.com>
+In-Reply-To: <20260730092245.52034-2-egbostina@gmail.com>
 
-On Sat, Jul 25, 2026 at 02:31:58AM +0530, Bhargav Joshi wrote:
-> Convert the Texas Instruments OMAP Real Time Clock (RTC) binding from
-> the legacy text format to the DT schema. Mark 'ti,hwmods' as deprecated
-> as it is no longer used, it is kept to support legacy boards.
+
+On Thu, 30 Jul 2026 12:22:44 +0300, Eduard Bostina wrote:
+> Convert the Texas Instruments TPD12S015 HDMI level shifter and
+> ESD protection chip bindings to DT schema.
 > 
-> Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
+> During the conversion, the following updates were made:
+> - Added the 'ti,tpd12s016' compatible string, which is used in
+>   am57xx device trees.
+> - The 'gpios' property now allows up to 5 items, as the
+>   omap5-igep0050 device tree routes additional control pins
+>   beyond the standard 3 documented in the old text file.
+> 
+> Signed-off-by: Eduard Bostina <egbostina@gmail.com>
 > ---
->  Documentation/devicetree/bindings/rtc/rtc-omap.txt |  53 --------
->  .../devicetree/bindings/rtc/ti,omap-rtc.yaml       | 149 +++++++++++++++++++++
->  2 files changed, 149 insertions(+), 53 deletions(-)
+>  .../bindings/display/ti/ti,tpd12s015.txt      | 44 -----------
+>  .../bindings/display/ti/ti,tpd12s015.yaml     | 78 +++++++++++++++++++
+>  2 files changed, 78 insertions(+), 44 deletions(-)
+>  delete mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt
+>  create mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml
 > 
 
-> diff --git a/Documentation/devicetree/bindings/rtc/ti,omap-rtc.yaml b/Documentation/devicetree/bindings/rtc/ti,omap-rtc.yaml
-> new file mode 100644
-> index 000000000000..326d5ad97292
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/rtc/ti,omap-rtc.yaml
-> @@ -0,0 +1,149 @@
-> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-> +%YAML 1.2
-> +---
-> +$id: http://devicetree.org/schemas/rtc/ti,omap-rtc.yaml#
-> +$schema: http://devicetree.org/meta-schemas/core.yaml#
-> +
-> +title: Texas Instruments OMAP Real Time Clock
-> +
-> +maintainers:
-> +  - Keerthy <j-keerthy@ti.com>
-> +  - Afzal Mohammed <afzal@ti.com>
-> +
-> +description:
-> +  The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock with
-> +  century-range alarm matching, driven by the 32kHz clock.
-> +
-> +properties:
-> +  compatible:
-> +    oneOf:
-> +      - const: ti,da830-rtc
-> +      - const: ti,am3352-rtc
-
-am3352 is either compatible with da830 or it isn't. You can't have both. 
-I would drop this entry. You don't have the fix the .dts (or can do that 
-separately).
-
-> +      - items:
-> +          - const: ti,am3352-rtc
-> +          - const: ti,da830-rtc
-> +      - items:
-> +          - const: ti,am4372-rtc
-> +          - const: ti,am3352-rtc
-> +          - const: ti,da830-rtc
-> +
-> +  reg:
-> +    maxItems: 1
-> +
-> +  interrupts:
-> +    minItems: 2
-> +    maxItems: 2
-> +
-> +  system-power-controller:
-> +    type: boolean
-> +    description:
-> +      Indicates that this RTC controls system power via the pmic_power_en pin.
-> +
-> +  clocks:
-> +    minItems: 1
-> +    maxItems: 2
-> +
-> +  clock-names:
-> +    oneOf:
-> +      - items:
-> +          - const: ext-clk
-> +          - const: int-clk
-> +      - items:
-> +          - const: ext-clk
-> +      - items:
-> +          - const: int-clk
-
-This can be just:
-
-minItems: 1
-items:
-  - enum [ ext-clk, int-clk ]
-  - const: int-clk
-
-
-> +
-> +  pinctrl-0:
-> +    description:
-> +      Phandle to pin configuration for the external wakeup pins.
-> +
-> +  pinctrl-names:
-> +    minItems: 1
-> +
-> +  ti,hwmods:
-> +    $ref: /schemas/types.yaml#/definitions/string
-> +    description:
-> +      Name of the hwmod associated with the RTC.
-> +    const: rtc
-> +    deprecated: true
-> +
-> +patternProperties:
-> +  "^ext-wakeup(-[0-9]+)?$":
-> +    type: object
-> +
-> +    description:
-> +      Child node describing external wakeup pin configuration.
-> +
-> +    properties:
-> +      pins:
-> +        enum:
-> +          - ext_wakeup0
-> +          - ext_wakeup1
-> +          - ext_wakeup2
-> +          - ext_wakeup3
-
-pattern: '^ext_wakeup[0-3]$'
+Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
 
