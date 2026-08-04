@@ -1,314 +1,88 @@
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AC22488DA9
-	for <linux-omap@vger.kernel.org>; Tue,  4 Aug 2026 17:06:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3AF34BC02B;
+	Tue,  4 Aug 2026 17:27:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785863216; cv=none; b=RK+e7ZBEvdJU7D1yzO415D/B2k5lUe2UVlmnSPMrN1t4efyyxFbCKfiQ155Q6l8RysnaGrMxA1ox6BmbRA9Dswxxsoj1DWmBlH39JBLYmNlSju+DaBUcSJd/0GcJvtBQ5Z45c/9AfdOwEj070+nxH+cXZ12y6udMOOE0lTE8tv4=
+	t=1785864456; cv=none; b=mmTqunpe63uoNDx+d4tUTYhoEfdlHnVZg7g9SU1JFUH1ad4OdyU/oYBKYUKNIw3AQUJik9qGFJWnqwWa3h9EWJ9J4wdpHqtoKZhKnCVnSQl5dteE3biiv1HSV3NZsJvPZ5iJ6lAW3Hkr002WKM/Tjbk6KgFfdUNYp5DAwonfsHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785863216; c=relaxed/simple;
-	bh=VbB4Wil3UCJk1uCa8RVTSXImGevkwsTjzv2S+pJ7HVg=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=u6x2DXeDOZrGgxZc4ZLCvW0pJMB0dM67TM0+K9B6NO/HNZefYieoKF/DLap6Ib9pt5FEH9pC7XoQ/AM0Lj6o5DhbkydpBLKi8LuCFCPYfNQCy3UlzyFV93R6/+jhVwFvr95Ln4F3QdkdVDW3T+sTxhV4m7w8Lef4ci7Vc7uxojU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dfzIATKN; arc=none smtp.client-ip=209.85.216.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785864456; c=relaxed/simple;
+	bh=qyL/5x3Ox5XUKT5QVUlAMNQIMDxvdyUejXmVLdlCDUY=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=SXSIKMRKO1i91vpdl6lNz/REg9eGGCDyEC8gAvJ00HfPPbsUT/JHZ1aXTCfg2Wu+Ub/ekClzjOrnbtSykpP6vQEAIfvzEok/b1icVWx8RUssENjbkt4LtQbSK7cgB/d+zUTtJEHV60aHBgyKvOexLm8QWcx8rxU0uzEXt/bgF2o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=E997o615; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dfzIATKN"
-Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-37f9e2642deso8266a91.1
-        for <linux-omap@vger.kernel.org>; Tue, 04 Aug 2026 10:06:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785863193; x=1786467993; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=uYY+O4tPwhRgJZdDFD4Z3lnoHAwg4o64PZBS1DmAN5c=;
-        b=dfzIATKN1Lw1QchjIA+KADYhFvMIiX8MG9B/itTFLVq0gFBWGqKJ9pNtKLGF75J87X
-         mykm6uxak/72vIp6fmz/Zwm9c0bUxZ5VuARiyPnH65lg0+r4mofdVTxsyfDcqz8qyfZm
-         5pR3B72/4bPo8KuuU7gWwUWdWiV1AHsigLfIE1SxzfmqNVTTMniQSwmecMfsu45p7pt3
-         urQ+LVJg28eWwc5HbWD3t1mATtpG1fWRiUy7xsYAb2ARSw/7j6JTL4C/evTZ8yM/0vF5
-         gP/6ePEEJ7GhXatOHB6dXxRpX8ZZmFvhpr2FZ5Glj4DDbgdY9YIjkC2TQ4wusnMWeskE
-         d9iA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785863193; x=1786467993;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=uYY+O4tPwhRgJZdDFD4Z3lnoHAwg4o64PZBS1DmAN5c=;
-        b=G9/voaK7D8HLz47Vlc/Fv9won39AkHXJePbQZsWwwHuC56DEPpVacRBEDQS2Q35a+S
-         CSeVeH4cFQYj8Li7tnQLSFIRzvPmgJSp9XS5pwzzVVlQe951SsSVJZ4+wdpJLE97N/An
-         JxWhwNhxh3HCaQE2QMsbOLKobua2iGVbDPvp4nI68s5OumV7YwyMxPhFVRbcID97LQRu
-         0nSy7KCXxJj9vxctdAiZ4FBrZ6M3esnJyvhbiy5cIZUKYQ0qbSpscu468AejnCDxcaVZ
-         io8EjTy9WwFFjuOOfQ5p9O+3t8cFqJiSt0j5FKkqizE2TlfG0O6uKSC/hOVLGKryYswW
-         9Ocg==
-X-Gm-Message-State: AOJu0YyzEzB3b2uvncbml4KVsjM891cp5HaUloEymxH8zf43VXPOIJjT
-	RnI3kycfG+bI3DbSqwOtFhmvuXR0YHSME20gDVo8+JaPsUCOI+M4lPqm
-X-Gm-Gg: AR+sD13S6ZcdSzktMdSuiAV5XoZd7eOerCBK55yQikuPEdygz8sX9GqQF8GbhT7OCAa
-	vmY+cc9m7RBnyNCzUlMk0spInDlLK/eGvFyegIzgKhaD64w+rA6Q6Fr8eVotr2KCIi1/Deeyz6f
-	bK0K9W3uEhgiDSllDRbp29SfdqiRR05NnM8yIVGDwa1RvZBq4nFbQuAXFFuGudyws+CF9B7psE+
-	PPwndjqdQcU/KgRLH34clU7xu8N06vGH+ZgNPd1RPWfBFWiR8zzy1u+zwH/Kct5OX/QzLgP0lUH
-	7qPD9U8/ufGSy4t6bDdBFdZPiYHJiXTyIG1pobP3unX2Buov6gbqLh37FP4gd+9bDxDmWfBtRi/
-	ie2uuoY9bM7gqbYFknKPb4hzu9IGXp9xb1exc9zN5/wk0hpccSFsjxkEoJlb7AmtCMC4MA4NgZ2
-	qac75zKBDZCzmYdz6CuzJvWQtuMnNhvXW2aT+jaot2pOCyqhmScjnSX59xe971wNBQ/AjM/8njQ
-	7OBJ7TrTQ==
-X-Received: by 2002:a17:90b:264b:b0:381:bcfb:e710 with SMTP id 98e67ed59e1d1-3903c64c81cmr455190a91.3.1785863193378;
-        Tue, 04 Aug 2026 10:06:33 -0700 (PDT)
-Received: from [10.15.72.252] ([2409:40c2:5423:e712:2aaf:ae79:67c5:476d])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-13fca52d329sm5147124c88.4.2026.08.04.10.06.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Aug 2026 10:06:32 -0700 (PDT)
-From: Bhargav Joshi <j.bhargav.u@gmail.com>
-Date: Tue, 04 Aug 2026 22:35:08 +0530
-Subject: [PATCH v3 4/4] dt-bindings: rtc: ti,omap-rtc: Convert to DT schema
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="E997o615"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=Fq+sDujD4P6pQWOyHjShxqRFFnBlL2GQ+cPVDEnwW/U=; t=1785864453; x=1787074053; 
+	b=E997o615uof3Kfdl/PaFJ6EYJojToxNmaX9BBNvM/DSQy/W7W79aRkVlqMJORkMQXIeUbXD99Vn
+	KihvZdDqMTEjym5+xs9s01g3EOdKbgO3mPX/Q4+xcIZ9RQ2JYXshjTXg3p5UTrtij+On0dgMynFek
+	yUs8h1tos/ZvtRq7X46t6xamGMMQ6zYuWn5iowKspe0pX3KthE1nl7wy8fC8mGNQmwz2cSC+doyEH
+	DaVj97jGpeTFYsHlHbJjOwdBWL+mQGPZkKhm+FNTg6/9VMAR5U7T1Ui0S34xBs6Dt2GPU2GQBtdAs
+	1sqGtwTZg4HR4v9rjfogNRtBnHwPsad84jbQ==;
+Date: Tue, 4 Aug 2026 19:27:16 +0200
+From: Andreas Kemnade <andreas@kemnade.info>
+To: phucduc.bui@gmail.com
+Cc: Mark Brown <broonie@kernel.org>, Sen Wang <sen@ti.com>, Liam Girdwood
+ <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai
+ <tiwai@suse.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>,
+ linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-sound@vger.kernel.org
+Subject: Re: [PATCH 09/10] ASoC: ti: omap-twl4030: Use dev_err_probe() for
+ error handling
+Message-ID: <20260804192716.50d277b4@kemnade.info>
+In-Reply-To: <20260714120042.491712-10-phucduc.bui@gmail.com>
+References: <20260714120042.491712-1-phucduc.bui@gmail.com>
+	<20260714120042.491712-10-phucduc.bui@gmail.com>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260804-ti-omap-rtc-v3-4-ba3bbd8af570@gmail.com>
-References: <20260804-ti-omap-rtc-v3-0-ba3bbd8af570@gmail.com>
-In-Reply-To: <20260804-ti-omap-rtc-v3-0-ba3bbd8af570@gmail.com>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, 
- Alexandre Belloni <alexandre.belloni@bootlin.com>, 
- Keerthy <j-keerthy@ti.com>, Afzal Mohammed <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-rtc@vger.kernel.org, 
- goledhruva@gmail.com, m-chawdhry@ti.com, daniel.baluta@gmail.com, 
- simona.toaca@nxp.com, j.bhargav.u@gmail.com
-X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1785863118; l=5941;
- i=j.bhargav.u@gmail.com; h=from:subject:message-id;
- bh=VbB4Wil3UCJk1uCa8RVTSXImGevkwsTjzv2S+pJ7HVg=;
- b=hK83DJtdql0s9fVh0pB1mN+aT5VcopcY4vEC3oE/GWqdpf61rbyaapMGXgY8nsB8zlSmT0CHu
- blXDB+X02dWAAIUK5xAgstu5LtMM1MuV3jlRiN16zVo+9IRzMTsk5tf
-X-Developer-Key: i=j.bhargav.u@gmail.com; a=ed25519;
- pk=IqNDwUZKECEA+n8wXctFLBbYL9NhFstZNbOznm/nX1k=
 
-Convert the Texas Instruments OMAP Real Time Clock (RTC) binding from
-the legacy text format to the DT schema. Mark 'ti,hwmods' as deprecated
-as it is no longer used, it is kept to support legacy boards.
+On Tue, 14 Jul 2026 19:00:41 +0700
+phucduc.bui@gmail.com wrote:
 
-Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
----
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |  53 --------
- .../devicetree/bindings/rtc/ti,omap-rtc.yaml       | 140 +++++++++++++++++++++
- 2 files changed, 140 insertions(+), 53 deletions(-)
+> From: bui duc phuc <phucduc.bui@gmail.com>
+> 
+> Replace dev_err() with dev_err_probe() when reporting
+> devm_snd_soc_register_card() failures. This suppresses
+> unnecessary log messages for deferred probe errors.
+> 
+> Signed-off-by: bui duc phuc <phucduc.bui@gmail.com>
 
-diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-deleted file mode 100644
-index 062ebb14cecf..000000000000
---- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-+++ /dev/null
-@@ -1,53 +0,0 @@
--TI Real Time Clock
--
--Required properties:
--- compatible:
--	- "ti,da830-rtc"  - for RTC IP used similar to that on DA8xx SoC family.
--	- "ti,am3352-rtc" - for RTC IP used similar to that on AM335x SoC family.
--			    This RTC IP has special WAKE-EN Register to enable
--			    Wakeup generation for event Alarm. It can also be
--			    used to control an external PMIC via the
--			    pmic_power_en pin.
--	- "ti,am4372-rtc" - for RTC IP used similar to that on AM437X SoC family.
--- reg: Address range of rtc register set
--- interrupts: rtc timer, alarm interrupts in order
--
--Optional properties:
--- system-power-controller: whether the rtc is controlling the system power
--  through pmic_power_en
--- clocks: Any internal or external clocks feeding in to rtc
--- clock-names: Corresponding names of the clocks
--- pinctrl-0: a phandle pointing to the pin settings for the device
--- pinctrl-names: should be "default"
--
--Optional subnodes:
--- generic pinctrl node
--
--Required pinctrl subnodes properties:
--- pins - Names of ext_wakeup pins to configure
--
--Optional pinctrl subnodes properties:
--- input-enable - Enables ext_wakeup
--- ti,active-high - Set input active high (by default active low)
--
--Example:
--
--rtc@1c23000 {
--	compatible = "ti,da830-rtc";
--	reg = <0x23000 0x1000>;
--	interrupts = <19
--		      19>;
--	interrupt-parent = <&intc>;
--	system-power-controller;
--	clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
--	clock-names = "ext-clk", "int-clk";
--
--	pinctrl-0 = <&ext_wakeup>;
--	pinctrl-names = "default";
--
--	ext_wakeup: ext-wakeup {
--		pins = "ext_wakeup0";
--		input-enable;
--		ti,active-high;
--	};
--};
-diff --git a/Documentation/devicetree/bindings/rtc/ti,omap-rtc.yaml b/Documentation/devicetree/bindings/rtc/ti,omap-rtc.yaml
-new file mode 100644
-index 000000000000..02b3c23cf435
---- /dev/null
-+++ b/Documentation/devicetree/bindings/rtc/ti,omap-rtc.yaml
-@@ -0,0 +1,140 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/rtc/ti,omap-rtc.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: Texas Instruments OMAP Real Time Clock
-+
-+maintainers:
-+  - Keerthy <j-keerthy@ti.com>
-+  - Afzal Mohammed <afzal@ti.com>
-+
-+description:
-+  The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock with
-+  century-range alarm matching, driven by the 32kHz clock.
-+
-+properties:
-+  compatible:
-+    oneOf:
-+      - const: ti,da830-rtc
-+      - items:
-+          - const: ti,am3352-rtc
-+          - const: ti,da830-rtc
-+      - items:
-+          - const: ti,am4372-rtc
-+          - const: ti,am3352-rtc
-+          - const: ti,da830-rtc
-+
-+  reg:
-+    maxItems: 1
-+
-+  interrupts:
-+    minItems: 2
-+    maxItems: 2
-+
-+  system-power-controller:
-+    type: boolean
-+    description:
-+      Indicates that this RTC controls system power via the pmic_power_en pin.
-+
-+  clocks:
-+    minItems: 1
-+    maxItems: 2
-+
-+  clock-names:
-+    minItems: 1
-+    items:
-+      - enum: [ext-clk, int-clk]
-+      - const: int-clk
-+
-+  pinctrl-0:
-+    description:
-+      Phandle to pin configuration for the external wakeup pins.
-+
-+  pinctrl-names:
-+    minItems: 1
-+
-+  ti,hwmods:
-+    $ref: /schemas/types.yaml#/definitions/string
-+    description:
-+      Name of the hwmod associated with the RTC.
-+    const: rtc
-+    deprecated: true
-+
-+patternProperties:
-+  "^ext-wakeup(-[0-9]+)?$":
-+    type: object
-+
-+    description:
-+      Child node describing external wakeup pin configuration.
-+
-+    properties:
-+      pins:
-+        pattern: '^ext_wakeup[0-3]$'
-+
-+      input-enable:
-+        type: boolean
-+        description:
-+          Enables the external wakeup input on the selected pin.
-+
-+      ti,active-high:
-+        type: boolean
-+        description:
-+          Sets the wakeup input polarity to active high. By default the
-+          input is active low.
-+
-+    required:
-+      - pins
-+
-+    additionalProperties: false
-+
-+required:
-+  - compatible
-+  - reg
-+  - interrupts
-+
-+allOf:
-+  - $ref: rtc.yaml#
-+  - if:
-+      not:
-+        properties:
-+          compatible:
-+            contains:
-+              const: ti,am3352-rtc
-+    then:
-+      properties:
-+        system-power-controller: false
-+      patternProperties:
-+        "^ext-wakeup(-[0-9]+)?$": false
-+
-+unevaluatedProperties: false
-+
-+examples:
-+  - |
-+    rtc@23000 {
-+        compatible = "ti,da830-rtc";
-+        reg = <0x23000 0x1000>;
-+        interrupts = <19>, <19>;
-+        clocks = <&clk_32768_ck>;
-+        clock-names = "int-clk";
-+    };
-+
-+  - |
-+    rtc@0 {
-+        compatible = "ti,am3352-rtc", "ti,da830-rtc";
-+        reg = <0x0 0x1000>;
-+        interrupts = <75>, <76>;
-+        system-power-controller;
-+        clocks = <&clk_32k_rtc>, <&clk_32768_ck>;
-+        clock-names = "ext-clk", "int-clk";
-+
-+        pinctrl-0 = <&ext_wakeup>;
-+        pinctrl-names = "default";
-+
-+        ext-wakeup {
-+            pins = "ext_wakeup0";
-+            input-enable;
-+            ti,active-high;
-+        };
-+    };
+Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
 
--- 
-2.55.0
+> ---
+>  sound/soc/ti/omap-twl4030.c | 8 +++-----
+>  1 file changed, 3 insertions(+), 5 deletions(-)
+> 
+> diff --git a/sound/soc/ti/omap-twl4030.c b/sound/soc/ti/omap-twl4030.c
+> index 2a80e44035d7..576f4d3615e8 100644
+> --- a/sound/soc/ti/omap-twl4030.c
+> +++ b/sound/soc/ti/omap-twl4030.c
+> @@ -306,11 +306,9 @@ static int omap_twl4030_probe(struct platform_device *pdev)
+>  
+>  	snd_soc_card_set_drvdata(card, priv);
+>  	ret = devm_snd_soc_register_card(&pdev->dev, card);
+> -	if (ret) {
+> -		dev_err(&pdev->dev, "devm_snd_soc_register_card() failed: %d\n",
+> -			ret);
+> -		return ret;
+> -	}
+> +	if (ret)
+> +		return dev_err_probe(&pdev->dev, ret,
+> +				     "devm_snd_soc_register_card() failed\n");
+>  
+>  	return 0;
+>  }
 
