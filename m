@@ -1,84 +1,125 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA3478F39;
-	Mon,  3 Aug 2026 22:17:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 990B93FA5D4
+	for <linux-omap@vger.kernel.org>; Tue,  4 Aug 2026 02:25:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785795447; cv=none; b=Awh0bAWFpUquLQWTqoN6B21HAyaJXRJgJJ0m6EGHKMHIGxIOV7fYIbf8nNw+Zj/L6q6+1N++D2B80edWT0kvRgHBAv7aaT6q0FoeDjus0jO0HM+HydlsR+Xx0OJ1y3z/ss341TgFPi0mCbAJSHTQwzJvirnuBzhhieiMgpXQlMU=
+	t=1785810314; cv=none; b=XyYehbxCZhFZRgalbhRdsxhkKKhr3+34moBA66XEMlVVp9uj5i2CN7VoHHO5CmF1CJnybx0RAxmQjZQK2emrB30bLm6dBTQMogERYZO3JuaIMDVbtrkop+9/lD67fvsNbpl6PGMMMfIME/quJU/WjeAr1thlmRhUjJG4TWpeCLU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785795447; c=relaxed/simple;
-	bh=6XzzIxTML45VHMRREzLkhjMtOFwy0FLglt1nKSpd+G8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gToHS9Y9vxy3Jv31sXFuunZIa7WUq1iD10Efx0bTQieQICZRaE+/GI1iw22RCUzXBHz4iEhyxv8lEb3N5Ok7H7NJmAZYjXZSfNS5PDWD/2bEsEI2te/QsYLOp5UgXE2hJNyl4fi+GrfM8CA5zAxkChJeJli3kUfgkNCs0/52vII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q8Ec4Kpp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785810314; c=relaxed/simple;
+	bh=0ajQB+hPab2vIWSNK6YjKmU3k2ZE+ruh1odyGqqOzg8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=k6wwyOxJAZ81WMSqOeDNuNR8TCvch/eYetv3Ji99tIqRaaglAtnxV3RLpFE6XoiqRJpugo370xodWAWm2kBgJkOqTQn0lGFb/ZCk/auHwo9Jp4d6ME+ZFQGqCRkid4AfckPPgz1Mg1hntvcC0eeXBZ+NfH3rVJslnC5nUjqGEgI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OVV4PXhL; arc=none smtp.client-ip=209.85.214.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q8Ec4Kpp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 077141F000E9;
-	Mon,  3 Aug 2026 22:17:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785795446;
-	bh=3WeJos72ttiJG8idgzFWMe7RMdPcnTN0tGN50tPiISI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Q8Ec4Kppwy2DajK8Q6p+5cIVr2Fj092lxSRbM4bh2aYT2xBlhsWk2M+8Eo0oRVwwu
-	 axos48ewmWTJUe2+9y66NM/iDbO8DIksCuVi7GkncoqQXKEhWI2NVIWlf3GjrwLfWn
-	 4yzAguu0MpNmEsN7N5YySv1ek7CzP7ePA4xe7fbYPMk5IwDr6XQi5GkBtyiBNvTSfP
-	 VFtTCJDWuThG3cQYOyF+bHf64y/NUhPvNe0IBk+K080MozQ+ezSh/AgjIo650PhITE
-	 7Hq5n/yefGZvBkxRFUIH++F2Qt7+wRcp23IEij4oL6/Ih/0uXdC2wjre5J8vP34IcD
-	 wroZ94RwUKxgA==
-Date: Mon, 3 Aug 2026 17:17:25 -0500
-From: "Rob Herring (Arm)" <robh@kernel.org>
-To: Eduard Bostina <egbostina@gmail.com>
-Cc: David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-	simona.toaca@nxp.com, daniel.baluta@nxp.com,
-	Kevin Hilman <khilman@baylibre.com>,
-	Maxime Ripard <mripard@kernel.org>, goledhruva@gmail.com,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
-	linux-kernel@vger.kernel.org, Conor Dooley <conor+dt@kernel.org>,
-	devicetree@vger.kernel.org, m-chawdhry@ti.com,
-	linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Roger Quadros <rogerq@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] dt-bindings: display: ti: Convert ti,tpd12s015 to DT
- schema
-Message-ID: <178579544500.726225.3201826985280204584.robh@kernel.org>
-References: <20260730092245.52034-1-egbostina@gmail.com>
- <20260730092245.52034-2-egbostina@gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OVV4PXhL"
+Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2d02b4c3601so44917575ad.3
+        for <linux-omap@vger.kernel.org>; Mon, 03 Aug 2026 19:25:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785810310; x=1786415110; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=1OaiGLLoxTsUad13rL5qrpAU9a1lh1UZkttvZnhnlXg=;
+        b=OVV4PXhLzZLP8OQoWeJOJafRZj1Q1/uqjr+H4cemRtroqQK1zzAhvSPJEgaMAm/Hn5
+         e9pJzZdVt9YDYQojIAtzvRwQEotV0xX2lPqOFdknjKuJHsYgOL+Qtpo3tlSx2i2MGqTM
+         hzqp/H8Qaw7iPkEnL9+3OdU5CwOstGRRcE+HAESnBFoJOzH5yArhIFA6XkAnoQSAVu94
+         Mgv3sWDXCCVoXSoS935qKLyiCdINFAev03baH6hPwdPoMj0n9UmtCoCLfLalyqgJORkD
+         WBpNFsXwS+xhupjFnO1GU826p2lWhZn+bUskAm3vzyAry3zcE6qupz0+07iAqmNdKLX6
+         D3mA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785810310; x=1786415110;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=1OaiGLLoxTsUad13rL5qrpAU9a1lh1UZkttvZnhnlXg=;
+        b=dd26PTE92wGIcmUq3K8vAm0uVXQgePSEDJbSyz9pYSSvAvc5DgQxTRC0/kTkCrYrU8
+         Yu2vcVaPf4fI6XIFcJYjZiFkqa66nf9lxZcF5X1eebWWm3rk/g2+fKHxgXOqRMJASZ9z
+         kZOwMAfBdw50Nx1TTu9w4dEyMxQh7yryHc6zLFUuO7kLjcXMbub7n3mtuJcG6AZ0hOc2
+         ktAGYSrFYl7VYKLrZoaVlo9IhWLnlBheVLRnwIi+v1CDG0Bp964Od/DTASVdjHmrG4YP
+         yEQpkoJZ+ZZs2DY5NRRajNhUFXE5USnovtMEjD7rp65NVnTvw6WumVbeRsR+CPUQ4ugF
+         G6HA==
+X-Forwarded-Encrypted: i=1; AHgh+RrMNxCCGN16zAm6OTcLu8houvd9C9KOgEqxuC8NcaCx13U2ofwxw7jIsXmOrkPPx1gED1tZz6U11BqD@vger.kernel.org
+X-Gm-Message-State: AOJu0YwLLL/wO5ny4Ci33JJbU0/Z7kEwP5NPnTDljF1GcjZ9FyUJaidV
+	ctcUlqj1FRFBcgbmgYzltYHs0v2pa8tln+XCf7MdLxYyFGF4ejsvwMRY
+X-Gm-Gg: AR+sD12G69DJYjL0foQCDJCTa0HegGBkcOKbPo/URIPkpq/Ha8q2ITWe506SAarDwXW
+	p5FF2+JSKX4vwDLmb2CGhMoo0cppJ2TFDs74TCiIBvbV/PTzTA/iow9NchyUCNccQMdyC743Db7
+	2pX+zFj0Kd8/AOb++xvO2fNEgcrFzLM8RU+BIab8vZk8ZxcYmIHf6/BfDYvpPjKPuRAIWX5kRHF
+	jscZ9iWsMTXrI/zBCrSDdkyxLq9I6T4ejlisQBPMtcgVJdJHphVwgxX1PR4wJZIn8SxZZDAetRy
+	QVAeP+PbBWXGYyBk8j2WdeqKwng3PIUoyt919NtGtzpEZ6YHYbssEz/wjGYMdL/a6etCWgHLrWM
+	iP+Yi+TRo10JBSFSQwbjo/v2y5rqq+sw1FXFmTScTgCJtS3rwAA8bfnOy+Ox3pNIOqFPg4e3tYT
+	yf6Fa1QczslrIDWd6rtr0TfFyXn+gOsjvibQl6KBYTChze6PyryVz1a8ecYKJpI63OqBR/lT/T
+X-Received: by 2002:a17:902:ea05:b0:2c9:d55d:2d3 with SMTP id d9443c01a7336-2d052244e67mr121387165ad.15.1785810309827;
+        Mon, 03 Aug 2026 19:25:09 -0700 (PDT)
+Received: from osman.mioffice.cn ([43.224.245.178])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d04b1216bdsm45230825ad.69.2026.08.03.19.25.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 03 Aug 2026 19:25:08 -0700 (PDT)
+From: Zhan Xusheng <zhanxusheng1024@gmail.com>
+X-Google-Original-From: Zhan Xusheng <zhanxusheng@xiaomi.com>
+To: Ulf Hansson <ulfh@kernel.org>
+Cc: Jisheng Zhang <jszhang@kernel.org>,
+	Kishon Vijay Abraham I <kishon@kernel.org>,
+	Sekhar Nori <nsekhar@ti.com>,
+	Ravikumar Kattekola <rk@ti.com>,
+	Pedro Demarchi Gomes <pedrodemargomes@gmail.com>,
+	linux-mmc@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Zhan Xusheng <zhanxusheng@xiaomi.com>,
+	stable@vger.kernel.org
+Subject: [PATCH] mmc: omap_hsmmc: fix busy_timeout overflow in ns conversion on 32-bit
+Date: Tue,  4 Aug 2026 10:25:00 +0800
+Message-ID: <20260804022500.3768116-1-zhanxusheng@xiaomi.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260730092245.52034-2-egbostina@gmail.com>
+Content-Transfer-Encoding: 8bit
 
+omap_hsmmc_prepare_data() converts the command busy timeout to nanoseconds
+with:
 
-On Thu, 30 Jul 2026 12:22:44 +0300, Eduard Bostina wrote:
-> Convert the Texas Instruments TPD12S015 HDMI level shifter and
-> ESD protection chip bindings to DT schema.
-> 
-> During the conversion, the following updates were made:
-> - Added the 'ti,tpd12s016' compatible string, which is used in
->   am57xx device trees.
-> - The 'gpios' property now allows up to 5 items, as the
->   omap5-igep0050 device tree routes additional control pins
->   beyond the standard 3 documented in the old text file.
-> 
-> Signed-off-by: Eduard Bostina <egbostina@gmail.com>
-> ---
->  .../bindings/display/ti/ti,tpd12s015.txt      | 44 -----------
->  .../bindings/display/ti/ti,tpd12s015.yaml     | 78 +++++++++++++++++++
->  2 files changed, 78 insertions(+), 44 deletions(-)
->  delete mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt
->  create mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml
-> 
+	timeout = req->cmd->busy_timeout * NSEC_PER_MSEC;
 
-Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
+busy_timeout is an unsigned int (milliseconds) and timeout is a u64, but
+NSEC_PER_MSEC is 1000000L.  On 32-bit builds the multiplication is
+performed in 32-bit arithmetic and wraps for busy_timeout values above
+~4294 ms, before the result is assigned to the u64.
+
+The driver does not set mmc->max_busy_timeout, so the core does not cap the
+busy timeout, and commands such as erase or SANITIZE (MMC_SANITIZE_TIMEOUT_MS
+is 240000 ms) can pass a busy_timeout far larger than 4294 ms.  The wrapped,
+much smaller ns value is then programmed via set_data_timeout(), so the data
+timeout is set too short and the operation can time out prematurely.
+
+Cast busy_timeout to u64 before the multiplication so the conversion is done
+in 64-bit arithmetic.
+
+Fixes: 8cc9a3e73de1 ("mmc: host: omap_hsmmc: use generic_cmd6_time to program timeout value for CMD6")
+Cc: stable@vger.kernel.org
+Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
+---
+ drivers/mmc/host/omap_hsmmc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 58c881f2725b..3356ac5a1fa0 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1357,7 +1357,7 @@ omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
+ 	if (req->data == NULL) {
+ 		OMAP_HSMMC_WRITE(host->base, BLK, 0);
+ 		if (req->cmd->flags & MMC_RSP_BUSY) {
+-			timeout = req->cmd->busy_timeout * NSEC_PER_MSEC;
++			timeout = (u64)req->cmd->busy_timeout * NSEC_PER_MSEC;
+ 
+ 			/*
+ 			 * Set an arbitrary 100ms data timeout for commands with
+-- 
+2.43.0
 
