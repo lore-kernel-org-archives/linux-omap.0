@@ -1,116 +1,197 @@
-Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7668733D6FC
-	for <linux-omap@vger.kernel.org>; Wed,  5 Aug 2026 04:46:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.41
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785905188; cv=none; b=M1Ya21XEwNUw/AF3QBIPgGsupBF8jfNuLXOGfMWtKvf4LCQ/slcL213FHEoeekM/Ps+Rfi+T8ltnSVZ0m55vdBOlBFDsbR+1tW//P/MfIQiFsKEkOSyqIcLP+qAjc3JpnXrwkWNscSU0/W79hGtsFfxRjgTb10PcMMtQbSFfHZU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785905188; c=relaxed/simple;
-	bh=qCdOOz664G2wrMq4qg8yXIPqaSSxslpwDWsC/l8CCE4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=n1sN9ijyhMj+EhbX/+xhd1CCxBZwIbhXno7n2FhNe4vX2hIQx2SYk/ElhvMYILZ7lpxMUQtk7WI+A2SLyTiC5rBUgVbEgDvrp0zxlWjoDDNSUgej8l9kRIs9i8SXpbc5TzEPCkfWoz/4+3Yri8AjLiYOAGnyyIZyzCOspir5oao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qQl+C2xu; arc=none smtp.client-ip=209.85.216.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A2553E0C77;
+	Wed,  5 Aug 2026 07:07:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.15
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785913629; cv=fail; b=coaU+ScHJc+VZW0frl50smXf1KoYbCC1uMR2h2pVGkqPkLGYecDz091w0G+qZjeYuUjpROvnEmaiaEfN2dJ2j+TsGq5nqUq19yjBxmyUu0dIDl7OXo5XRz61Hs8YcoeKrt873591tQvdY8unOTv3gQvkKP45SavMNUr3DLywGME=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785913629; c=relaxed/simple;
+	bh=YbiwGItHlLaldlbeGX8PddUQUlbEbEjVYB4sGbeaa8I=;
+	h=Message-ID:Date:Subject:To:CC:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=d3JWJd7uu9kZ2umwe9wfvFUpYz1r4ti7kmRhzS8e7RL+5BfrLKS3aRII40qNzO/MCPMbA47w4v65lG+XXDdhSNUKeiygWlq+CakdPoXHqMNjWYZT8SaSPv0jdcp3vvWBnvL1iylWzlTuTY930mCptMeXLOQUnTW4rEVmKwGXyGk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gi8w+C3B; arc=fail smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qQl+C2xu"
-Received: by mail-pj1-f41.google.com with SMTP id 98e67ed59e1d1-383b4a3755fso529652a91.3
-        for <linux-omap@vger.kernel.org>; Tue, 04 Aug 2026 21:46:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785905185; x=1786509985; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=bE5UiVHPiiftCS1Al49sgBYUPZJgNfnsBnv57EVE2E4=;
-        b=qQl+C2xurkIKXyA1SOTZaafFlbUMdV6ZZH8zLbYdST2h4uF5ftgZKGKtcrnevNuVdo
-         8VSw5Mz86ik9AmFLE094SUKQpp+s7p/xTx2WNYK9T9dOlqHPcYbQwkvQ4kGpFHcVnqpF
-         NAMLKZ9fdoNfRQSP6oE57yQQD7kT/KFz2rl7grcC1gZlybn1PpNYUbmdCa+uhPp0iMUd
-         ukmWmwkjcV6lJXVMyJgDGWRQRlRVA5fMOTBvlNLZxc9UGgj+RYSIDH2J26YhKL1oKPKO
-         JRmm+64rAkFi7bt4VPeIMWclKxymlyVVRSjwY/4U4EzHPTHTdBPkg5hUuE5Jf0vVXJ01
-         u4OQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785905185; x=1786509985;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=bE5UiVHPiiftCS1Al49sgBYUPZJgNfnsBnv57EVE2E4=;
-        b=gGYEJAHi4N74xXJkj4xi0tzD0/C7Z6q7p0OfoWTUx8DUYRybu2OkQ67gtOFfmU1QKH
-         EXUIhfPwON8W1OUF8aOiweIbhXjD21ljdIzv2RwQHxW58LbbyCnZCK6ywQW0W6BgXol1
-         U+GAcDSg6vSGqmdyWlhI/1FcKRQkCyZwts7o7LhRWKYqqPgoolXh5e9sVQREmTEnaQTZ
-         NLYHoi6en9Rh72H+92DQ4G97aV4aSrYsQHcH6XSwBGYUdobLFdxU/PgN8hay3ZGPOKAC
-         w0CrBc3IV6oCEEmkzlhv1RBaEY2kwe3NPjx8fvqHnl0oPBpFMOGQrDM0td/y/3QQ6WSC
-         /leQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqTpOG+3AsTBIbHA2i8bDySGn29GztY8v8vlHAT/tbxpgfbI1CHy/xY5MRUeH2LqOT1JESgQMmmHuGx@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx+iVCQwAibt8xlw+ENnTxEch9zDhkDcB4Gk0pMolcvVauB2nQv
-	sJnQapXRhQIDaMcE6cEEgrkOsYA5fanP+vzjV6b26jTiT3XFXSN4jWD+
-X-Gm-Gg: AR+sD119j6msdJT0gO6CoBGtMn5gg8tE/hyf2H8hTnTiHao3FPrccMdHHdE2Xph1RQE
-	nVm0i4ICofKMzrZ63B3ONPvuUaH77IOH2kNs+irSX1zuqZfuJ6KHOgzMWJ4RiR0QQmiQooXlwrV
-	EVOphq1m6Q1iIswHUsqRAagL56ceTPtmYylrI8fH9Ydg+w00y0pob2Vdl81qIcVl0ADmVu5ac8u
-	dYKpjBx8xGC+zbF0cKEiRs+YuXxAgZQHvMD13P8DBEJL9mvF1CbSIkLTwVWaIl3kzDB7EzOGxnz
-	wzavvfHbrrIiwAV6yXDCrPoYBGRlZqI9XVJNUiGLmaDGd79Hj2Yu/r3ANHOSGTk47D754gd91od
-	PTihdh9fXclP5CVrmy6MqdxPn3QLZUkPrZNImio7fOHWj0AlzOyolTDbUtdI7hJZQTEKuFUKMfh
-	2o69aV7Mv2Q39xmfrAMfOjHUNwqVR9zxdKHRpwmtNHD59mUlD229sZbtYI/GcvI/chL3B2mYB1u
-	2XRc1gJsJ3T7HfPwuId3xawp8sd7tY7FOncbn6HEYXqi8U+WD4bRMPD/uDKI3G+YjfbO1XnoVJX
-	Jert
-X-Received: by 2002:a17:90b:4d91:b0:36d:b424:4f17 with SMTP id 98e67ed59e1d1-3903c53799cmr3711654a91.1.1785905184818;
-        Tue, 04 Aug 2026 21:46:24 -0700 (PDT)
-Received: from phuc-desktop.. ([183.91.15.56])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3903d2f97fbsm915871a91.1.2026.08.04.21.46.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Aug 2026 21:46:23 -0700 (PDT)
-From: phucduc.bui@gmail.com
-To: Mark Brown <broonie@kernel.org>,
-	Sen Wang <sen@ti.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Jarkko Nikula <jarkko.nikula@bitmer.com>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	bui duc phuc <phucduc.bui@gmail.com>
-Subject: [PATCH] ASoC: ti: omap-twl4030: Check for missing card name after parsing
-Date: Wed,  5 Aug 2026 11:45:56 +0700
-Message-ID: <20260805044556.38183-1-phucduc.bui@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gi8w+C3B"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1785913628; x=1817449628;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=YbiwGItHlLaldlbeGX8PddUQUlbEbEjVYB4sGbeaa8I=;
+  b=gi8w+C3BRfn+0cjGwmQiLkKbd/xNzAkSpkwFmiTQHzhStrvZdP88TH99
+   pMVywE2H1kj+Kd0RJOzFbegzJ+gInNZo3d40a/up1oSAL0GwX53tzSb3U
+   BANIJBtSrO2XYJ0glBKjmUTigJyWL3qMS0zOJ21PV55cD9MMyTj7/C02t
+   AnQvkX0GMJTbJHNdmpDQy1dfsVf3L5RRl4ruT3sMwZvJ9DYTPG4wLrfnH
+   HHOzJc3YfmYg+0FO6hSEcws4yiWGgZ04D4O/jCZQGBqT0s4lx09xb+JH9
+   Pca5gVcCmyx6RyA+Y9shNMwALhvcPWyDXPAhQzkHvDPu6lElp9TPwR54V
+   Q==;
+X-CSE-ConnectionGUID: YJX3S1fDRhKIdf/ILTI4Yg==
+X-CSE-MsgGUID: vqe6PJ79SrKSs3U6ExWXYQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11865"; a="90154354"
+X-IronPort-AV: E=Sophos;i="6.25,205,1779174000"; 
+   d="scan'208";a="90154354"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2026 00:07:07 -0700
+X-CSE-ConnectionGUID: 1rLd9PLdScGOcv7nNvzjkQ==
+X-CSE-MsgGUID: mcGa5a0UTR26Fur+M7jVOQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,205,1779174000"; 
+   d="scan'208";a="265562109"
+Received: from orsmsx903.amr.corp.intel.com ([10.22.229.25])
+  by orviesa004.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2026 00:07:06 -0700
+Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Wed, 5 Aug 2026 00:07:06 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45 via Frontend Transport; Wed, 5 Aug 2026 00:07:06 -0700
+Received: from BYAPR05CU005.outbound.protection.outlook.com (52.101.85.71) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Wed, 5 Aug 2026 00:07:06 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Zh3btJ0uD/HkQeCfGtiYkQRi0L7kQVmJ8G2CY89/Grjxe/8jl2JYQ+l/41n6Q5gZg4MuRyDQzCgsKKk2OMy30BVptnoPVkx6T7cYOjZPUM0WEnbIaXSAQi9PCDSHXgWs60H4AeX+eAmizThclPYwVPrX6yDAatbMqi+fmYEVepbxizrNDzX9GQkng0CxrXCheLm47DPtSc1Bf8Fy9jaNKrEL8/B0QRggy3ngODUumJLwyhhqRBfp+HCsfrATrhCeImzl6OV5XasYDdWSXoehufOPrjEfhRspONQSjK0iU34wTpSArkyihz8IhEEnFpEpLtZ64QdWMBwo8jk0JDNbjA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=acrLkQO8evaKl4SC/as5G/2JP01YaCOrp5xq6nJ/HJU=;
+ b=rY7eF8GMGpofT1arWpqszyrlM6LWOHIFvvXHactMdzlyzNYYTRBwxBR2AC8uuk/aKCWU9ol+jrGW5z0w8qoOAYA2xIhowFu7G+tegiFxWt6G6Bsu+GHkaeUoLsXPfn0K1h27mGAZRLX+Ma5J7rXv9H9HfRYNLS6IOVEGaHu9dUxudAsIwC2XcstA2hUf1B9lKw9C7ZpAkmjruPPA61CcwXcwTJS32EtQRy7vG+gqyr9FDy2T0GQX+xhn02nvXi6u4ctHFbLm1Hy4PTw/9v+1OWpoyBj95PqtGw86ekFH3w/P+1H3zg+e+R0JDMnKf6/1f/pyMZrhOsAXGDUhMYcYcw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH7PR11MB6006.namprd11.prod.outlook.com (2603:10b6:510:1e1::13)
+ by DS4PPF6F32BC4DA.namprd11.prod.outlook.com (2603:10b6:f:fc02::2e) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.18; Wed, 5 Aug
+ 2026 07:07:04 +0000
+Received: from PH7PR11MB6006.namprd11.prod.outlook.com
+ ([fe80::4e2d:28f0:ede9:73bd]) by PH7PR11MB6006.namprd11.prod.outlook.com
+ ([fe80::4e2d:28f0:ede9:73bd%5]) with mapi id 15.21.0292.013; Wed, 5 Aug 2026
+ 07:07:04 +0000
+Message-ID: <99bc4c85-5f5e-42bc-8799-eaa7ef5d1257@intel.com>
+Date: Wed, 5 Aug 2026 09:06:58 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 00/10] ASoC: ti: Improve probe error handling
+To: <phucduc.bui@gmail.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-sound@vger.kernel.org>, Mark Brown
+	<broonie@kernel.org>, Sen Wang <sen@ti.com>, Liam Girdwood
+	<lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai
+	<tiwai@suse.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>,
+	<linux-omap@vger.kernel.org>
+References: <20260714120042.491712-1-phucduc.bui@gmail.com>
+Content-Language: en-US
+From: Cezary Rojewski <cezary.rojewski@intel.com>
+In-Reply-To: <20260714120042.491712-1-phucduc.bui@gmail.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: WA2P291CA0028.POLP291.PROD.OUTLOOK.COM
+ (2603:10a6:1d0:1f::23) To PH7PR11MB6006.namprd11.prod.outlook.com
+ (2603:10b6:510:1e1::13)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR11MB6006:EE_|DS4PPF6F32BC4DA:EE_
+X-MS-Office365-Filtering-Correlation-Id: 691af58c-d33f-453c-7516-08def2c02719
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|23010399003|7416014|376014|6133799003|56012099006|11063799006|10067099003|22082099003|18002099003;
+X-Microsoft-Antispam-Message-Info: TZX9XrWCvnccCX/DDgDy4WmtmPeqGQ2ZdpR9TGRkAXsSz3ZvuTFc45ZX7pyBlcibnGkOM2JmnQ/ucl+/dMz6W2jZTfNSQxqpJWQ4+7Ms+NE+tGj6ZASY9xZzZsPW/KwwOOP9k6ywXwtfcWzK2agWUZU6Sbmu2ROHZDWpHM5cSUItHQS39eQgrcRguuGN18AfmSoyYT6WuHWTryxi9NkEBeuLfA4azprfxIvo/prE+cTRTwp5vNu9nI3UZGpZuG2ytfv8qh0uu9iivg2EjBPm9K/v4NUHGFKuWsDsWnUZvGmfPqmMrKpZoBzv6Uf7SptWoLvn6h94/olzyLgB2FnqW8NJu4dT7ruJ8cDzi8Jr4mxTC9I5cEkNnygzu+ZRd3BcC29Vtfa4okzhu51FgILqTOKo6xJ3koTuJrsPBP+bE1K72495xRiJIftDoypcy8LDz8hsaYYgB3j0EGMkY4OC/SaCcW2s6B6Eb2ZlZOHPM9/2dPcagJf9LCHgOvyLXtq5hTwaF13LiuuAgw9P6XxmIu4Rud7HozChNHOQnran4KFmL+vSTsrlfnbfZWgyl7lyfIps1hTgpsizp2PrUkNE9eWX2uXJ9AeL/JHG92uKeAFmyKFRKU1UNX1QAIA3VWNc85g5fjjaRDlpUY+D8Veh1a9aZ5lpLdh3lweQPrbVR9Q=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR11MB6006.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(7416014)(376014)(6133799003)(56012099006)(11063799006)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?VmN5eEk0RFZYY0pUek5ldHR4czdPMDlsNW02ZnB1emtIQjJQZkhiUUdqYlIv?=
+ =?utf-8?B?N1hNaktnZTBucFhYbmxoSVJoKy90cFhTZ0dUMWZybHo5SVRiWk8wUGVadFRB?=
+ =?utf-8?B?K2JYd2xLQ3phOHBGQk1FMHdOOWpUTTBDMFBJdFllTmZKSmRERHY0anBib2tS?=
+ =?utf-8?B?TGpUdlFvWlp6SmJRQmx6elVyNkxaandXMm9rMXhOMjgxR2FlU3lRZkhYL0Jh?=
+ =?utf-8?B?U2ZlVEpuY1VGSDJqNlVVMW5QK2Nsa0ZCa2IzT05ITDFneVZ2VUFwSmd6NExs?=
+ =?utf-8?B?cVh1WWw3c1pqRHVzeXQwTFJTUFlvRDNDOUdqSUI0YWZ5ZkJCZDNSdmZJMTZL?=
+ =?utf-8?B?ZGpjWmJYSmtiYytsM01jNmhsUzE3MCtyV1FKVEwrWmRSUWg4aUxLWjVwaTVC?=
+ =?utf-8?B?TnNZU2w2bUJjSGhLTG9wdkovN1N1SXFlOUUwMUhTUGlqYlh1T1I5T1VEUlBs?=
+ =?utf-8?B?d0NxS3lvVHZrYS9yb1VxSmZXUFZkSHowM2c2WlczQ1d5ZGkvR2lXTktDU0to?=
+ =?utf-8?B?WWh4MnE2OXdFL2pvaGlYRlVPWFNzQzVrU25xQ2dkSXVOS0JjV3MrZGhvajYr?=
+ =?utf-8?B?cUdxUmxlMi9FMWtZZDJDdmttdFdTbWlELzFqbVdpYmZ0SFNEVTBUU0dCN1Y0?=
+ =?utf-8?B?akorV3czZnJKQ0VnOG8rUmZIdFRrVDVsZnZqTXFsQTFuWlowb3hvbHRXUEVi?=
+ =?utf-8?B?Ti9XRzhaWnhZaXFSZWRVdlVwWC9SYkdNdytDOE5NTlJkazdpeGtFUDZRaFFQ?=
+ =?utf-8?B?L01OZnlhMFVudklHbm4rSlI4MTN4NGY0bUJTM0hGQnBmVFk2emJleXVudkhI?=
+ =?utf-8?B?d0doZXYvS3lIcFdKV3M1TUh2dTVvZUdlZnJlL2dNK3JpVC8xUFMrZ2Qxdlls?=
+ =?utf-8?B?Q2twS1ZvekU1d3V2dEN5WDlWMXo3Y3VTQ2dXYUlwYldBRy9zZDlzOEtOVCs3?=
+ =?utf-8?B?bkFCZG8yY0dSU3FWRS9rdmhuaWxUajJSTnl3MFUzUTJTdnlQbHlpVFlVdXkv?=
+ =?utf-8?B?b2wxaFFTc2tYR0F3TE54cEYzUEVyc1YrMXgydDU1d3pWcS9uQ0RDSUVFSWtU?=
+ =?utf-8?B?aTVvREI4ejVNb25xQURFeE1nenpqR296QjlMUU9qbmxXUE5EZ3lrZVJpVVpG?=
+ =?utf-8?B?L3JNaHJPdHA4Wk5Nb1ptSy8zYmlsOWorNzNsQmVnNFhBTm5kR1dLYjgyNG1U?=
+ =?utf-8?B?dWJxZUcvcXR4TFBRU2hZeVJ4QXRIb0RYaGQwKy9pSUs2RVh1UDNkM050T2xx?=
+ =?utf-8?B?YmtlOGYxRENKZ0pBdlVDMmNLVTZ5cnV1YVZRK3JKSERRNGo4bFhGQVUrL3BT?=
+ =?utf-8?B?TlFzTk5Tc0x2MDdpa1ZlOTNNUVhvVW9tZDdwOGZWTEdZNTVMQzB4dFNyZm05?=
+ =?utf-8?B?UlBTb0svdS9vK3ZBcjVoWDMzNnNtZm92R2xkT2VDenpGMEVxSWdIQzlmcFd4?=
+ =?utf-8?B?VmlaU2ZmY1FDN0hDWURTMlRaQVJmeHRCUkVOT0srdjhrNXFJaisyc2gxdW8r?=
+ =?utf-8?B?ZzF2a293YXdSZXdPckhwbjkrWEgwVXVoQXVOaGJvZFJTdlY4blhFVlVvTUFW?=
+ =?utf-8?B?ekdyR3BvM2t4TW9rVkJJNGVlWFIvYks4ZzV1eHZjcVNiaHAxLzRXM2NWOEZY?=
+ =?utf-8?B?YnB4dnpnWFg4R3JjNng0Wk11ZUxKTjF2TVpObGZaTzExeFpMc3FnL0E5dlgz?=
+ =?utf-8?B?MTR3MlFFV1NmMTNJckVZZzE4ampqU1M3d0IrbmhQYnptT1lDVkJGZ3FpdjF1?=
+ =?utf-8?B?NFV5RFNSYVcrcXZJRFdmRStPM2tiaDVGeFh5ejMvOWNKSVdGOUdrdkFaWEVy?=
+ =?utf-8?B?UmFKSm1USGRKZXk0Mndzb05ZalVWR0YwWXc5eThuWUNwZnVFYUZkMTAvamo1?=
+ =?utf-8?B?SjdRN3hlS3dFL1M4REc2cnRkaEVYY0tsUnNMNXdBbGgwQi9OMEwwWDJka2Zi?=
+ =?utf-8?B?NWtwSFIxK0I5YU92V0krRHZ6MnNTVGRwSXZuak9jOWpkRWdjREtYK3dNb2FT?=
+ =?utf-8?B?RnphUHJ2cDNHUW45WlRxRWUraSs3RWM3c2xlTkNXTmQvd29PNDl5d3RDMFVt?=
+ =?utf-8?B?aEM2WTBJV3o3UkN2ZEl3S0xEWVlUT0NKODRjb05jUEJpSzNhTFdLNTRYR01o?=
+ =?utf-8?B?aVFpR1I3OCtvL3VUQmJRV0FRSmpkaGZPN3JZVkcyUnlsZTR1MlRkQTFmbXdz?=
+ =?utf-8?B?NHZ4b2NqRTVaMW9pZUtEOVZ4MTJneHU0eld6WGxjK2NsSDVHckE2MHZoMmJr?=
+ =?utf-8?B?OEZtYWNDY0FJR3UvdzFNbXJEL281amZTREQ1blZvWFM2dGJzdXlXN0tFOHNn?=
+ =?utf-8?B?N2FkWnlRYVZXOE83MDNDVms2aEhobWtIM0RiT21qV1hUcllYMGVYOXBDTE4w?=
+ =?utf-8?Q?VL1lWzc8/mPaSWUs=3D?=
+X-Exchange-RoutingPolicyChecked: BMjcy1AGBhMP/xdL08sBk5vQwIcWRj9PmmeapdzzrKeL83FgKOPIhPax3ItARxaNBFe7aT5QQLBKGnzrAjwDx3Fft7AFanXi3GQZSsNvn0AC3Scnv44gDOWhj7m6yzz0wGeDON2V50eiRF1YJpeFjwcNV3t4+8DYizavMnzazVvVz7jz/nUudxAAVpRV9UCE04dnxuiDh+C4nfm9AXz+n53/KQiaFiGnTEX5dT8bcQGPNwNFLwLk5seUnbpPE0jsOTSroquaFsLaVyLzXUOSP3Kq01kpb9WvwFiy+YU610PNNyqKZYVKugCAmXwG1qXNlfwZlKFMqeDSavO7M625tQ==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 691af58c-d33f-453c-7516-08def2c02719
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR11MB6006.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Aug 2026 07:07:03.9493
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: DjZz/vmvOqfsuGaH7J4ydvRk/laq9Mp4U5VwulG4Ps4ye8hu5juijXmDXJhXljoN13MqNeULxtJ3D3RUFVVBVHkFR/A1Udg2CE2ruOTC3oE=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PPF6F32BC4DA
+X-OriginatorOrg: intel.com
 
-From: bui duc phuc <phucduc.bui@gmail.com>
+On 7/14/2026 2:00 PM, phucduc.bui@gmail.com wrote:
 
-Return any error from snd_soc_of_parse_card_name() directly. If the
-helper returns successfully but card->name remains unset, report the
-missing card name explicitly before returning -ENODEV.
+> The changes fall into two categories:
+>   1.Replace dev_err() with dev_err_probe() when reporting probe
+>     failures. This preserves the original error code while suppressing
+>     unnecessary log messages for deferred probe errors.
+>   2.Preserve the original error codes returned by helper functions
+>     instead of converting them to -ENODEV, and remove redundant error
+>     messages where the helper already reports the failure.
 
-Suggested-by: Andreas Kemnade <andreas@kemnade.info>
-Signed-off-by: bui duc phuc <phucduc.bui@gmail.com>
----
- sound/soc/ti/omap-twl4030.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+> bui duc phuc (10):
+>    ASoC: ti: ams-delta: Use dev_err_probe() for error handling
+>    ASoC: ti: davinci-evm: Use dev_err_probe() for error handling
+>    ASoC: ti: j721e-evm: Return the original error from card name parsing
+>    ASoC: ti: omap-abe-twl6040: Preserve error code and drop redundant log
+>    ASoC: ti: omap-abe-twl6040: Use dev_err_probe() for error handling
+>    ASoC: ti: omap-dmic: Use dev_err_probe() for error handling
+>    ASoC: ti: omap-hdmi: Use dev_err_probe() for error handling
+>    ASoC: ti: omap-twl4030: Return the original error code
+>    ASoC: ti: omap-twl4030: Use dev_err_probe() for error handling
+>    ASoC: ti: rx51: Use dev_err_probe() for error handling
+If there are no dependencies between the 1) and 2), have all patches 
+belonging to 1) lead the series before any 2)s pop up.
 
-diff --git a/sound/soc/ti/omap-twl4030.c b/sound/soc/ti/omap-twl4030.c
-index 8a3a792a21c6..a3ab52b2b64e 100644
---- a/sound/soc/ti/omap-twl4030.c
-+++ b/sound/soc/ti/omap-twl4030.c
-@@ -216,7 +216,11 @@ static int omap_twl4030_probe(struct platform_device *pdev)
- 	if (priv == NULL)
- 		return -ENOMEM;
- 
--	if (snd_soc_of_parse_card_name(card, "ti,model")) {
-+	ret = snd_soc_of_parse_card_name(card, "ti,model");
-+	if (ret)
-+		return ret;
-+
-+	if (!card->name) {
- 		dev_err(&pdev->dev, "Card name is not provided\n");
- 		return -ENODEV;
- 	}
--- 
-2.43.0
+Right now you have three outstanding patches in the middle of the set 
+that clearly differentiate from "Use dev_err_probe() for error handling" 
+pattern like if you are about to hide something.
 
+Which obviously you do not but the impression is there nonetheless.
+
+Kind regards,
+Czarek
