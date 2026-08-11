@@ -1,139 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from meesny.iki.fi (meesny.iki.fi [195.140.195.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB88736920F;
-	Tue, 11 Aug 2026 18:09:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786471767; cv=none; b=GFXYX8ef5eshtEi1qZVQikgzpFn70f8DUEZY7RQwMPWLEAx0ePlYQ7VAnI7ZucccxwAYVbq7T9x9qBYo+0ya8NZvTOwDug71yncnjTHBj32ydSxi+eD7NsnIWIIZFhfKQszOqmQDxYJ7VJJ2bQ9sOPIZlKwm0pCG1gRobse1SlU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786471767; c=relaxed/simple;
-	bh=R3Sm3emUwygtZH0CQ8dh3h0Y2HaTC/pUUS0iKw2VM9I=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C13137DEAA;
+	Tue, 11 Aug 2026 18:31:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=195.140.195.201
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786473112; cv=pass; b=Va7YOXxkA88ELvGhByDTlLii5nDvsHY/4otk6+ErDCmFla7UTBORoxs2dZHOrs6qUsK6AdYPZCnYxIG5ZoVyt7ATfSD3VcbvWCgesGuU/bFYSi+oRcmxDqTGiDR+XXfxPgSavWFVPvHKs6yo3amJtCatUC6zQ40kUKgSMOqw4ro=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786473112; c=relaxed/simple;
+	bh=mVtoqeSXP0mXI7aNM6KA5Qzg2WCi6PTEZbiLXWss438=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=my1cA/dmYJaRTU49iGPs8itK0PQbCsBD/XSWieVV4wh9zFfjXDb1dtLqrnhNZsjf4/CHR48boHI7RC17zQoz1/JzWyImise1cSypmn7U4PhegbL+5jCT/7THzEY1DgV/lo9pRpdBUS0upJgXjDyPBeogp/W9lN3p7GF/RkghtgA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UCU8L3fV; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=cLPpF1Q9hNmT9rYANr00803uxsNieebr4M2qeUnwKYieiq7m9fAwYy/ekewERYljq6UFDVYWa0dq4AcRcYpiaTFEfIIxsla+CAUzmR9/3BWsD9JfnFZOACN80fMg2IRnF6AeKyXSavbwJU24zxE16pjJ81/pD3tZZgl3ZlO2Xl0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b=VLP3EcAX; arc=pass smtp.client-ip=195.140.195.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iki.fi
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UCU8L3fV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FD1E1F000E9;
-	Tue, 11 Aug 2026 18:09:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786471766;
-	bh=fp0I+WEOJYjIihNljaA30yRbFo0fxG9dkAdF1R7NHwc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=UCU8L3fVCCuUJVT/V4RVLOGDK+nmw4dsEG2ZS/rljXqnPmOMylfs+x14VoazoQIBs
-	 QDED7Im4nx7eyBHMdjca2re+EvHQ4y75B9ZuhrZtPpPbvUtphSVGdvk81i5yochkAi
-	 Ke+5O4YSr0r6w7EjfWdl29yExS186q250UW6SkrLZ36y+WF3yi4EMQy5vuCwallBnI
-	 mp+KBe9Uy8uFCWvPMe47pLaDs7fmUQe9QS+Zs4AbYCjlqn6lzvW5D5GfkrPQDj/omU
-	 6+zqzhwbx2s2vD+k+dpOmFKxzqP5KMr4tzSRmv2KwfcYdqHIEbWaqwr/dh5E99yt1z
-	 T6rFrO5awJtMg==
-Date: Tue, 11 Aug 2026 19:09:15 +0100
-From: Mark Brown <broonie@kernel.org>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Grond <grond66@riseup.net>, Stefan Leichter <sle85276@gmx.de>,
-	Grazvydas Ignotas <notasas@gmail.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Ethan Nelson-Moore <enelsonmoore@gmail.com>,
-	Jarkko Nikula <jarkko.nikula@bitmer.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Andreas Kemnade <andreas@kemnade.info>, Lee Jones <lee@kernel.org>,
+	dkim=pass (1024-bit key) header.d=iki.fi header.i=@iki.fi header.b="VLP3EcAX"
+Received: from darkstar.musicnaut.iki.fi (85-76-106-235-nat.elisa-mobile.fi [85.76.106.235])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange secp256r1 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: aaro.koskinen)
+	by meesny.iki.fi (Postfix) with ESMTPSA id 4hKKvq3CmTzyYL;
+	Tue, 11 Aug 2026 21:31:35 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=meesny;
+	t=1786473097;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qoaDDpKICqAjBVzX4e4ip/j+XxAMW19YDIjYVhb0xDE=;
+	b=VLP3EcAXAYEjvdEQJqe1vsf06Bb4aES591foWz+TJBqb4PnioazWA7Lc6H+xzLcPjIUa5S
+	Y8ZOpu4awXoqTyrEhouUxBtzY+hLs8uoByvjO5/8m4fI3Ri0I5bRzghqo3W8OCWVzWd76V
+	+bxu+4c7ScaBWk41qcJyfGlJ/iRgwqE=
+ARC-Seal: i=1; a=rsa-sha256; d=iki.fi; s=meesny; cv=none; t=1786473097;
+	b=HYl0lh6U67DdmLOT6qp+LQUCXOYNJS+Lb84CN8kqcjEQGYyq+7jCBkMO/pMT32+cRtGVxU
+	74d9AU3u+1KYasa68ibKX1nXpAuDx1abnRiysjLKB241zcMjLibAoL8tpuh5RHSrpX+yKV
+	/WXZ6ITHckXec8mn1c7RPLnq1JgMkUs=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
+	s=meesny; t=1786473097;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=qoaDDpKICqAjBVzX4e4ip/j+XxAMW19YDIjYVhb0xDE=;
+	b=SiqmU3zBJo6pNRRNoPVeJXOWvNWPaqXZTOPDvNc4T3B0Tuz1L108/mRhJs3u21BKTGJEHK
+	lAhaAB2lUEAGNPwClCyLUrqeF20NiSAmNLax/9/sRKa+MZpUDKHZ2u5RMMVNiIC0i0vHXD
+	qGv1IaDMJBMw2UWNyslK5C+sRIN8M1w=
+ARC-Authentication-Results: i=1;
+	ORIGINATING;
+	auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
+Date: Tue, 11 Aug 2026 21:31:32 +0300
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
 	Rob Herring <robh@kernel.org>,
 	Krzysztof Kozlowski <krzk+dt@kernel.org>,
 	Conor Dooley <conor+dt@kernel.org>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Jacopo Mondi <jacopo.mondi@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
 	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Russell King <linux@armlinux.org.uk>,
-	Daniel Thompson <danielt@kernel.org>,
-	Jingoo Han <jingoohan1@gmail.com>, Helge Deller <deller@gmx.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
-	Sen Wang <sen@ti.com>,
-	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Srinivas Kandagatla <srinivas.kandagatla@oss.qualcomm.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	Charles Keepax <ckeepax@opensource.cirrus.com>,
-	Niranjan H Y <niranjan.hy@ti.com>, letux-kernel@openphoenux.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-sound@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	kernel@pyra-handheld.com, mfd@lists.linux.dev
-Subject: Re: [PATCH 02/16] regulator: twl: Expose the TWL4030's REGEN signal
- as a regulator
-Message-ID: <40172b9e-7435-41b7-8fb4-04095d4ba1ed@sirena.org.uk>
-Mail-Followup-To: "H. Nikolaus Schaller" <hns@goldelico.com>,
-	Grond <grond66@riseup.net>, Stefan Leichter <sle85276@gmx.de>,
-	Grazvydas Ignotas <notasas@gmail.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Ethan Nelson-Moore <enelsonmoore@gmail.com>,
-	Jarkko Nikula <jarkko.nikula@bitmer.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Andreas Kemnade <andreas@kemnade.info>, Lee Jones <lee@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Russell King <linux@armlinux.org.uk>,
-	Daniel Thompson <danielt@kernel.org>,
-	Jingoo Han <jingoohan1@gmail.com>, Helge Deller <deller@gmx.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
-	Sen Wang <sen@ti.com>,
-	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Srinivas Kandagatla <srinivas.kandagatla@oss.qualcomm.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	Charles Keepax <ckeepax@opensource.cirrus.com>,
-	Niranjan H Y <niranjan.hy@ti.com>, letux-kernel@openphoenux.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-sound@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	kernel@pyra-handheld.com, mfd@lists.linux.dev
-References: <cover.1783749722.git.hns@goldelico.com>
- <1746667e5c17e2d39fc0747d7e098b32b3d7b479.1783749722.git.hns@goldelico.com>
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v3 3/7] ARM: dts: ti: omap3-n950: Replace clock-frequency
+ in camera sensor node
+Message-ID: <antqhI-3175h-pX4@darkstar.musicnaut.iki.fi>
+References: <20260810180604.3034255-1-laurent.pinchart@ideasonboard.com>
+ <20260810180604.3034255-4-laurent.pinchart@ideasonboard.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="YozZDkin/iTDr57l"
-Content-Disposition: inline
-In-Reply-To: <1746667e5c17e2d39fc0747d7e098b32b3d7b479.1783749722.git.hns@goldelico.com>
-X-Cookie: Anything is possible, unless it's not.
-
-
---YozZDkin/iTDr57l
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20260810180604.3034255-4-laurent.pinchart@ideasonboard.com>
 
-On Sat, Jul 11, 2026 at 08:01:49AM +0200, H. Nikolaus Schaller wrote:
-> From: Grond <grond66@riseup.net>
->=20
-> This is needed on some boards (for example, the Pandora), where REGEN is
-> used to drive external regulators.
+On Mon, Aug 10, 2026 at 09:06:00PM +0300, Laurent Pinchart wrote:
+> The clock-frequency for camera sensors has been deprecated in favour of
+> the assigned-clocks and assigned-clock-rates properties. Replace it in
+> the device tree.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Is this a regulator or a GPIO?  It sounds an awful lot like a GPIO.
+Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
---YozZDkin/iTDr57l
-Content-Type: application/pgp-signature; name="signature.asc"
+A.
 
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmp7ZUoACgkQJNaLcl1U
-h9C2sAf/dYpOrF3gel//SuWNj2En9HCdjFRvmlfEP+Hk69wcbhAG1amOMbhl5jhY
-YLCA99bUq+a8dG3W29+y/GRDgvbsT9jbkPHMhmJM27G5rT/OoQ4ffXdFOciNi0xQ
-t/M0Y1M5gSXaBdJbtUITVNXIlc6pwyAqb30a2yXj+JXuo0oKD5Ex7JyKCCnDdEx6
-IikziTt0bKUaLdXJ7eH62kgnnF9Bsh/H1ndKzgsUAFFNLCcT0qrkgj4LXjEXAkNc
-G9dYq2vzKqz17K3dm70t2b6L0MMfe0K8WjFUyNqOe8rzog6LQ65bAj439xtW1T9d
-n4kMTcDV+bq+pl2o2p5hnbAm2GIR6Q==
-=O/3/
------END PGP SIGNATURE-----
-
---YozZDkin/iTDr57l--
+> ---
+>  arch/arm/boot/dts/ti/omap/omap3-n950.dts | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/ti/omap/omap3-n950.dts b/arch/arm/boot/dts/ti/omap/omap3-n950.dts
+> index b99f97880204..2864ed8dd6c3 100644
+> --- a/arch/arm/boot/dts/ti/omap/omap3-n950.dts
+> +++ b/arch/arm/boot/dts/ti/omap/omap3-n950.dts
+> @@ -74,8 +74,11 @@ smia_1: camera@10 {
+>  		reg = <0x10>;
+>  		/* No reset gpio */
+>  		vana-supply = <&vaux3>;
+> +
+>  		clocks = <&isp 0>;
+> -		clock-frequency = <9600000>;
+> +		assigned-clocks = <&isp 0>;
+> +		assigned-clock-rates = <9600000>;
+> +
+>  		flash-leds = <&as3645a_flash &as3645a_indicator>;
+>  		port {
+>  			smia_1_1: endpoint {
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
