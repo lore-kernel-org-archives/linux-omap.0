@@ -1,120 +1,93 @@
-Received: from lahtoruutu.iki.fi (lahtoruutu.iki.fi [185.185.170.37])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0138337F8D7;
-	Tue, 11 Aug 2026 18:32:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=185.185.170.37
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786473171; cv=pass; b=Gsjf6xdtCF/lLY1kT2XLD9tccXAfy6UtizB+a0jDIumQm1hkeL0dJXeceiOo/QZnfu6iKeak5lzp8RNosw056gU+UKkZqxFJlFH4psEJbxV2fcScDWBrWJQrF1daIfJvRmuoFo7F7JqNEdMCiQel108GdJZ/jVNu+1DMqfwH8NQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786473171; c=relaxed/simple;
-	bh=bIhM9ndig9/C3tRN23CbuAFxqICpJ2n+mv41X80JqBw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TJko2sR114/cAYZSgOFqTeD/9hAFGcJ6bbjehgO7b7BGcFnvGjfd82ynv7jHc4qfoOa8xo2NFu2zO/71G+saLrCocc8Md+90WdG+L9pG4qi2aj78qRMYkKku0A3OSug4To3qYcKEcUKUXwzV2QaFp4p4481LVH+weLXP9FZY3Aw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (2048-bit key) header.d=iki.fi header.i=@iki.fi header.b=oZLUx+2Z; arc=pass smtp.client-ip=185.185.170.37
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iki.fi
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C683D42BC56;
+	Tue, 11 Aug 2026 22:06:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786485990; cv=none; b=fLFhjK1j2ydZoviT3PGeeExF/uzB0iG1s1i/yDWj2ZAeE91qYgWiE4WbOlGEGqrfCZG6TZmQNPNLWxUTFiCgvChusJxyoGGdV6uj+tp1lReFHK9po9Oh1g5pCtx3zchEu2TInUD0X7NlITc75vpMfv2oe+3kAP2y3jhnvn9Zp5Q=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786485990; c=relaxed/simple;
+	bh=vPOwkA19BILr5jWVEFCEJ1E1syExXAu8WP+xH/2Au5s=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=N7GsQeBQ1XYehYf/HrCoMgKh+XCeDnkaN5/a9p+be9jVrv+yNjydafsKV4LUEm6OK/eg/wj++cdpaZkYkjRJv7vku+7yoi/A7Tzz172dSX1obfpTUdHNvSRNQjuUz//9/h3APqBu2yKIP2OlKoMq0el8MMhwkUHJNvr8FWW31MM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MlRCnUU+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=iki.fi header.i=@iki.fi header.b="oZLUx+2Z"
-Received: from darkstar.musicnaut.iki.fi (85-76-106-235-nat.elisa-mobile.fi [85.76.106.235])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange secp256r1 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: aaro.koskinen)
-	by lahtoruutu.iki.fi (Postfix) with ESMTPSA id 4hKKx05RS2z49Px5;
-	Tue, 11 Aug 2026 21:32:36 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=lahtoruutu;
-	t=1786473157;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=MLMZG3a0XkvDabygdqWI0Ok/u2IdHHNuIIa8OSa4q6U=;
-	b=oZLUx+2Z5E8ar3zagCuGrS7esWiLCq1IVCkwn+abDRIuWTNcVtBDNtLs8jtoidaDyGStUY
-	Udgi/WtXNC6fpn2lrz41TB7lhc0MXqMRR6FPWaCJI/F2gU7gFoMkZm6lexKpUbNZsBiZdU
-	BG3wN7gv2Ytn6V/76wn5COlNRVbQ14R3WzjnEUl+qX54ZXqvy5knqiu6YHyu7gE8b/CuUg
-	yNQj7XcJNb6XksKDn32EWA/n4q0oCXbl9OIrEoxmbTrXXdixsJd2BepUdE1kSkihDfefYt
-	Bh/7zp72Xkns7jbOYtq6rIJ6RqOP56dOW8Nk0GmGdNQhptSk89zVHNxBlGZjDg==
-ARC-Seal: i=1; a=rsa-sha256; d=iki.fi; s=lahtoruutu; cv=none; t=1786473157;
-	b=M55dj2UEFMEPOsz/hCG66MsDHuTWD0ardBnQ/+JYw+1BaMykUik0BS/RFXRJrr7Of0QU/8
-	+toeyTl4MELrDtT32KeXJBImz3gx5YvCD4k+THbeu7vyMCzBqsjCvluhuxV5LScIlKP1Qq
-	2625T3+tcFSTiC9UhW+0nmfyhhko6v82MLm/olcPFgg6Y+Qpt8/+IxilIyVL1LAlNcpnss
-	hKQy7tmBbrEmuEGeNXolC5IdrgsmxnrT0kKpMovvo1Q8O42leQj2FoFZhSwTuWw44NbPfh
-	EzvBmnDFDrRGnnb2B0MWwPDqKarsKXo8YX4k4nbJ1y0geu+a5IBNqm+wH9zNPg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
-	s=lahtoruutu; t=1786473157;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=MLMZG3a0XkvDabygdqWI0Ok/u2IdHHNuIIa8OSa4q6U=;
-	b=hvLE60Tpg2ceXVVEblS+fvjWXRFZCfUSWbzRqqvdOGkm5eYMYsJL/vuG3iEST5ao88H/Ns
-	IH4i3aILuj8ejWhhT/KmQnoLUwaqZA6/xUtjmB4IDtlpckafQV93XV+pK9yAsd01Ueo9wc
-	3L8/33XcgN9rv0LoIkVFN+Rt8bpwzN+pgxBR7W8sbf26p34sq5vP5FHKtseQkAkraDMKdR
-	wHUddPbCKY60zfpnXkg2LobfalkXXgfTUXWkp+VqUyXWfoyLn8UrV4F6TEpzcq1mu8PYdW
-	/3YrTFOLoD4XOZzV5RW2erUMQg1E4NPewpWCHKgmx3VjWQdeZM1yfXbgxjSFww==
-ARC-Authentication-Results: i=1;
-	ORIGINATING;
-	auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
-Date: Tue, 11 Aug 2026 21:32:35 +0300
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Jacopo Mondi <jacopo.mondi@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v3 5/7] ARM: dts: ti: omap3-n900: Replace clock-frequency
- in camera sensor node
-Message-ID: <antqw21HgXTAnZmI@darkstar.musicnaut.iki.fi>
-References: <20260810180604.3034255-1-laurent.pinchart@ideasonboard.com>
- <20260810180604.3034255-6-laurent.pinchart@ideasonboard.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MlRCnUU+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2ADA1F00A3A;
+	Tue, 11 Aug 2026 22:06:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786485989;
+	bh=AC3hifGM/g3I+wFfHWwI2131IAq2wrnFxUfvtLYQYDQ=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=MlRCnUU+Ag/OFIL4j3SJoDoDGo0khcSU9lzqrMITDj1nQVxT3EUWURV3GIkrOke5z
+	 mgB3f1O0X6oVuQbGPGPZPpA6kiWmreQMOgAO3bkiZHu/lKDGPyrx0yKXx/qhMqE86/
+	 T5Qd8GL8Rou7tBk1Ln5xoBxymyRd/Ugm8KA9BgpUzcvX2v89LJk81hi92k0g95Nt4E
+	 BfegYS1c/vHUXI8lj+tX6dVN9SCX2HQNRo5Y/Vd62NCaCUTYrRiBJpLq5NuvmpCxuD
+	 m6rOEmfcU84FT1/mo44c+BmKW4WiBqzJpc2GL9WH4v8RZMhWAegaMqHWuB/xrQF3Yg
+	 t6N86KcsaHA4A==
+From: Mark Brown <broonie@kernel.org>
+To: Sen Wang <sen@ti.com>, Liam Girdwood <lgirdwood@gmail.com>, 
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+ Jarkko Nikula <jarkko.nikula@bitmer.com>, 
+ Andreas Kemnade <andreas@kemnade.info>, linux-omap@vger.kernel.org, 
+ phucduc.bui@gmail.com
+Cc: linux-kernel@vger.kernel.org, linux-sound@vger.kernel.org
+In-Reply-To: <20260805044556.38183-1-phucduc.bui@gmail.com>
+References: <20260805044556.38183-1-phucduc.bui@gmail.com>
+Subject: Re: [PATCH] ASoC: ti: omap-twl4030: Check for missing card name
+ after parsing
+Message-Id: <178645686823.119683.658802759634601408.b4-ty@b4>
+Date: Tue, 11 Aug 2026 15:01:08 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260810180604.3034255-6-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.17-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1157; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=vPOwkA19BILr5jWVEFCEJ1E1syExXAu8WP+xH/2Au5s=;
+ b=owEBbQGS/pANAwAKASTWi3JdVIfQAcsmYgBqe5zi4M3C+vPXyQl6aDtJrd0qI1L/6eV9/smHy
+ OOiXch3sOqJATMEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCanuc4gAKCRAk1otyXVSH
+ 0Mr/B/4hdjCYFiCeSMzZ0JAc72WXA5EO/YdazvPxhEUrK53ZFoZUyhOKhpIrNZknfRrSrAr3yUv
+ 7f1pzH4l6HoJnXEy10VSObSPg7oEl2wzySQGbIt5m2ArpNJQBZXgb0zk/F5NwRH4+bZq4xbFEwk
+ 38xTKBNXcW7EbJNIoSPIP/8RzSbkanDDDqZa9m5+pipJMw56C3DIzIUb1afHZ0wZP7NXikS6HnR
+ E/+xMnoDruyJUNhMDjlbI7uzRgmfe5RtFC9LaRnRJSxZ5Ai9sZ16XqK/qVhmdi9jw44L3yCV7aK
+ 1si/nnNa+z514ubSc6MX6PEEnt5FWhVC673NhEg0vMKEC83+
+X-Developer-Key: i=broonie@kernel.org; a=openpgp;
+ fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-Hi,
+On Wed, 05 Aug 2026 11:45:56 +0700, phucduc.bui@gmail.com wrote:
+> ASoC: ti: omap-twl4030: Check for missing card name after parsing
 
-On Mon, Aug 10, 2026 at 09:06:02PM +0300, Laurent Pinchart wrote:
-> The clock-frequency for camera sensors has been deprecated in favour of
-> the assigned-clocks and assigned-clock-rates properties. Replace it in
-> the device tree.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Applied to
 
-Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-7.3
 
-A.
+Thanks!
 
-> ---
->  arch/arm/boot/dts/ti/omap/omap3-n900.dts | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/ti/omap/omap3-n900.dts b/arch/arm/boot/dts/ti/omap/omap3-n900.dts
-> index 7db73d9bed9e..97e9eae2b60e 100644
-> --- a/arch/arm/boot/dts/ti/omap/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/ti/omap/omap3-n900.dts
-> @@ -792,7 +792,8 @@ cam1: camera@3e {
->  
->  		clocks = <&isp 0>;
->  		clock-names = "extclk";
-> -		clock-frequency = <9600000>;
-> +		assigned-clocks = <&isp 0>;
-> +		assigned-clock-rates = <9600000>;
->  
->  		reset-gpio = <&gpio4 6 GPIO_ACTIVE_HIGH>; /* 102 */
->  
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+[1/1] ASoC: ti: omap-twl4030: Check for missing card name after parsing
+      https://git.kernel.org/broonie/sound/c/9e0698b77684
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
