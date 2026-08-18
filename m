@@ -1,310 +1,194 @@
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+Received: from mail-ua1-f53.google.com (mail-ua1-f53.google.com [209.85.222.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA099370D6B
-	for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2026 14:31:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2707947ACFE
+	for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2026 16:03:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787063502; cv=none; b=KcHbjPi77Jo2JvnzB1keXqgcz1wXSJmFfnVWZipQkb40qfhOyDiE1oBD503qxR4YglFvfBGR/P+OtRBjLSDBRpjYu28JJjbLFwk6/H4UxbjfMsNt7MilLYIestYG5BN33OULwivB1RRzw9AtLCVRlLpx1DcAQuUJfkv13j9uWk8=
+	t=1787068995; cv=none; b=OBdoI+RyG3torBu3yuRclWeXkf70xSg5ghIdSvYJF/J64/fqD7zEpKFhkNBqSxmvTeFpQANwg/SMUHNvCfmJ+BnpyMf+z1Cvws/+DPdNWDpt68Xhgr+RpjFaoGYhHoqRRfFOGsllVis7knVtF//TWlYuskw5LlO5yRA2W8Y2Nzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787063502; c=relaxed/simple;
-	bh=bJqIbElUcpqQLiMeMmTF1fWVKJqAYL76gZjzfUU7oAc=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=LTRGTASIvXWFvdzxCWevFDnfP9TzOPcFiFO37NPSjd8Owl6Vz54avNbTzYYKh3D9W1K6KHGvr2Q9g/jb4HWsv2FlwDU0wEHvgp8Q9r5tfeqIpZQJQzyvdPQ7q4TtKNr1EFP9AzX+ULEDGTVl4Oef24Y+GUv6PYqf/xeclpfgs/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Bd1YM4ww; arc=none smtp.client-ip=209.85.216.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+	s=arc-20240116; t=1787068995; c=relaxed/simple;
+	bh=mvNQB/sYtoFJ7JcI8nDsv1lOU3y1hBybUljYLNNJ+3k=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=m8D/f1UXA/xecxjHpELzgd/GBJJT7co2GEXXjFAx/zZKRaNNlRCWVrMIpe9HnYXFRH0YCsfHSPf/6EsoZ5pAevI3mpm7XztzdVA966Q6Rn8JbTCFpA+/iKlhlg9muAIxrWA9RlHLf3SKL4Uhk6f2rD8fHg+Sev1gLAUM6NWC2qY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.222.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Bd1YM4ww"
-Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-38fe113c792so532538a91.3
-        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2026 07:31:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787063500; x=1787668300; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=RE21JFz7XFYmP4oZ5LDGVF5TCaoOBdwIPAfKGxU/5ig=;
-        b=Bd1YM4ww4z9ihbH0kiibqxjOxVk+86ussTA4NNVhMAtYoadrhNgGsBoZGwNhZMOHol
-         qo6pQw3u7IFPRTlHSbKVwpz0tabRtLuEygayJdCqj0abBkaAlUbwLscOJBvJhcHW5iPE
-         N8L1QnJxhZVUG1lq/NEP7e7m0WeIXfoJQNLNQA/lJaUnJC2xPrHvCWAvnOZZ+zXMqxlx
-         qjX3aH/WpW4KMHHy7uzU5PC7wlUDLFgoH6V2zsa7ewTCzqe1PDWBya6j5ExGyNQK+8G2
-         08FjTYn4qMPgduhZRCQb7KXuB5OSJDa3gFsa0AQL2YwYgcDpy+jc+IOOAHV0Jd25ubT3
-         h+og==
+Received: by mail-ua1-f53.google.com with SMTP id a1e0cc1a2514c-9674d727c0aso771409241.1
+        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2026 09:03:12 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787063500; x=1787668300;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=RE21JFz7XFYmP4oZ5LDGVF5TCaoOBdwIPAfKGxU/5ig=;
-        b=DLj9XpgDWcTOi2j304uaWTNUG7Lk+YICt63fQgkmGDyMQQQGlUzzrFFSG6pZFAyrLs
-         yj72fAOkyrc1UaBvRO6sSkdQbT6tQjE9t4s1yB1Katr62YAN3DZIu2R0E1rrolgIix5e
-         gMYD/NAnTkwOxJ6esqyaoKmhGsPy12Q+2F1xpgVP/ev1IMyMNW7MVitui7IdXvFSauT3
-         XPxuSJ19AzKRV35XWdCmWMX3Id+YBHQcscZuh7fkGcRcaED76OmTQaZQDSi8TBnbJcMz
-         F/tq9Cqg9CrbZoBnuHN7ku3KVh59Z1ENQJm+n6jVNX0yOXNwCmPcSKgJyej4/IDBQN5j
-         tk/A==
-X-Forwarded-Encrypted: i=1; AHgh+RrUlmgG7yduV4DipYNh5h/k9JGCOC4w8MFlwMlsJ02EnRJg2XYSpEypwcpC6aeBVYRMR4Y2AikUWE/r@vger.kernel.org
-X-Gm-Message-State: AOJu0YxEF1eoT1i2+MZn26Br4YJQon+0iUWqLK16Mgtf3MIa3ykyv5r5
-	RxAhFnw7ne1MSxiv6eUa830Z1hpBzVyMn4CaKA4PTvxwOTFUEVPfgRT7
-X-Gm-Gg: AR+sD11ShHY4Htr5YCEJmp4ofOaMqvXUeY2cDxs3aG3qdFYVC4pWBTPkz32RhC0Jyb3
-	QiCS7teXKQwTcBYDIGVBRADaA7h9VGgSmGNJCb6hwMHHyI9C6GoxiUilZFPDvQdGobWU5uZA7fn
-	rmDkZYVHySy/HRKD6ECCVz2hgOGEXoMSgF8+ttudmuZzTPJ37PhfuhYUH8/i/hjFh+M2KMIFnuH
-	hWbPvdeu60GUBEtKSHR7xhr+Ixn1Iw4gjZtDYTVRSIp0GYta0pErXbPopcMvSSGSETFZMo/hZWw
-	pgUoWgUm/PBudsogOd0/nRxP6fkQzk+CHIqAUk4xjReqhOlS8EJYQ/6DYOMA5yMtZZW6aRS1/Gd
-	JT/GJG8jDTY+TiAbcODPH/IE7QX6uBKj5K1ann3YPWqrFQZkZrSYAQKAORfqvaLSEk1TuRKmfY9
-	1KBEvjegRlLyn3FAs1IcldySBenAsMar4cyjHrO9ugilUl+8/Kbedjkw9HLbAsfrBKVCYMKljo
-X-Received: by 2002:a17:90b:164b:b0:38e:76f8:fcbb with SMTP id 98e67ed59e1d1-3933b95a6b0mr24932418a91.4.1787063499757;
-        Tue, 18 Aug 2026 07:31:39 -0700 (PDT)
-Received: from [10.90.163.252] ([2409:40c2:501a:6e15:dc3f:c23f:e55e:d03d])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-327b43d488dsm9043527eec.29.2026.08.18.07.31.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Aug 2026 07:31:39 -0700 (PDT)
-From: Bhargav Joshi <j.bhargav.u@gmail.com>
-Date: Tue, 18 Aug 2026 19:58:49 +0530
-Subject: [PATCH v2 7/7] dt-bindings: usb: ti,da830-musb: Convert to DT
- schema
+        d=1e100.net; s=20251104; t=1787068991; x=1787673791;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=iw/lbY9kytY8ULR0QLLuK42AbhUxD9iRoxGBf4pN4b0=;
+        b=LmRVCG6WjgMZojUz9S2zRWOngcb6IWH6lO4UFsdDNGYHMqn3wpSNeFD/i/gUmJd+px
+         KhsaC+mBjV72FmfYzull05OltoOUx6Iqiy/n/I1M5b5vFTVdec5C4ZbfhrJgFxzDjUkD
+         yn758Qd7mG7OsVLC/XwUcyJz+LR5ZL1aRtyaOKz4n9wKiodqXCMvaQ2Afrto44S1y+iD
+         zVKof1QtLM0zNlDKFYQafVeYiR8CN0yccFK9uALdQMSLrHUETmj9U2u+NXlwwgiMA8Li
+         k0++BUeMRLRUFZmNb9JMoFAKD4AJndoXlbuKcFO9KmfyO+k3ep8edTlma4akH1RdWDL5
+         UV+Q==
+X-Forwarded-Encrypted: i=1; AHgh+RoAPwj19rEF3tDmj0RYNyaQcdqrTNxtWoF/WHe1r5nWswwvxSGPsy3RY5BUyB3aZVL5V7In2qkEDoO7@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx+CH2G9lQxRdTINwiwf0ixxi0KrD2XGqTqaWSJyneUbZiUWeBe
+	Hi5bviFrdVfa12mGd3p92BExu/MeeSg3bNegl25qNxQemZCEPIP1OJCwjoaIRyTSlfU=
+X-Gm-Gg: AR+sD13+sx8kI6QEDjPfZNBNVw+W5oriTOFr4Etb9R2j1yiUJ7+vYY7pMtwB0I219cW
+	jomvrjq1biXdi43uTXlUUdq0OK3QYWEvhQ3Fj+guXqf1k8+wxe41RVOXZuuI4nCErI7CFELO9KQ
+	4iIx054g7HCxrMzm8tOe64DhDWUFQLrJWhGUXHRHVhPTM8JeWcmLQyW37kyhd/WrZe8iqiZ+2/8
+	P1flSsouAUz+LoDuJuaKaOlpnESUlmY0KwRv0Jl2AwiXckercPcozOZKFrezD7BOEeeaXq4NqSW
+	FmGSajODqkrU0Tn+ateVj4VHagjNnWn/HFjWraIOd3zW7xOzCp9ls0tj08MhU8ACTO38vNpEhAA
+	gOOZ7nyNHcm7WpcRHS+a1FVO+hsugeToUN2kOChhU0SD7C+esIqdDDCeRWpZc6O/TTyG6r7/GkR
+	tD1gT8LVUUQBsKwJe2Q6JAXtoe+hervezV+57HbE8njJfLmPMvssql3B9rNx6o0PWrmctmEpOIT
+	v3HiriMN+oasnoE/olOb84dJPdvuxlF5guF
+X-Received: by 2002:a05:6102:6b53:b0:744:e685:d7b0 with SMTP id ada2fe7eead31-774a1740678mr1238758137.8.1787068990427;
+        Tue, 18 Aug 2026 09:03:10 -0700 (PDT)
+Received: from mail-vs1-f41.google.com (mail-vs1-f41.google.com. [209.85.217.41])
+        by smtp.gmail.com with ESMTPSA id a1e0cc1a2514c-97c4533ef8dsm1094347241.1.2026.08.18.09.03.08
+        for <linux-omap@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 18 Aug 2026 09:03:08 -0700 (PDT)
+Received: by mail-vs1-f41.google.com with SMTP id ada2fe7eead31-75609e844faso789301137.0
+        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2026 09:03:08 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RoXhbcL7/+oOvkZpP6/U7qnDhIe9vu8scLKcac7yrKWQav6u1w20X4jqm72/8LNSxfw5eEzJpbZjpPW@vger.kernel.org
+X-Received: by 2002:a67:f4d7:0:b0:774:ce64:242f with SMTP id
+ ada2fe7eead31-774ce6426a1mr1254990137.20.1787068988285; Tue, 18 Aug 2026
+ 09:03:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260818-ti-am33-usb-v2-7-66fd44d66824@gmail.com>
-References: <20260818-ti-am33-usb-v2-0-66fd44d66824@gmail.com>
-In-Reply-To: <20260818-ti-am33-usb-v2-0-66fd44d66824@gmail.com>
-To: Vignesh Raghavendra <vigneshr@ti.com>, Vinod Koul <vkoul@kernel.org>, 
- Frank Li <Frank.Li@kernel.org>, Rob Herring <robh@kernel.org>, 
- Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, 
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- Andrzej Siewior <bigeasy@linutronix.de>, 
- Neil Armstrong <neil.armstrong@linaro.org>, 
- Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Ravi B <ravibabu@ti.com>, Kumar Gupta <ajay.gupta@ti.com>, 
- Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: dmaengine@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, 
- linux-phy@lists.infradead.org, linux-omap@vger.kernel.org, 
- goledhruva@gmail.com, m-chawdhry@ti.com, daniel.baluta@gmail.com, 
- simona.toaca@nxp.com, j.bhargav.u@gmail.com
-X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1787063337; l=5232;
- i=j.bhargav.u@gmail.com; h=from:subject:message-id;
- bh=bJqIbElUcpqQLiMeMmTF1fWVKJqAYL76gZjzfUU7oAc=;
- b=ajK8gPvHZukbS3OTmoaPWtiAJLKyEZ4GPUFMq/CpE/Is60UY8/yuYcdWqrtu0dzz4DNm5f3F8
- Xln7lr2e1j+Bnn0KSAPjfBGJwlj+o/H8ZUzSgbPQCIDrSgByE2tgdsM
-X-Developer-Key: i=j.bhargav.u@gmail.com; a=ed25519;
- pk=IqNDwUZKECEA+n8wXctFLBbYL9NhFstZNbOznm/nX1k=
+References: <20260727-mathieu-wdt-clock-theo-v2-0-c048a6394436@bootlin.com> <20260727-mathieu-wdt-clock-theo-v2-1-c048a6394436@bootlin.com>
+In-Reply-To: <20260727-mathieu-wdt-clock-theo-v2-1-c048a6394436@bootlin.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 18 Aug 2026 18:02:56 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdU3yVqoyHC4eNF2NuYo8wy+6ODLoYat4R71X99Mxc_=kw@mail.gmail.com>
+X-Gm-Features: AcwNN1UX3m2v0gqW9gYIz88rQmzaoFEv7wr1R4REphzgiicb1AXNWUurKBdKrW0
+Message-ID: <CAMuHMdU3yVqoyHC4eNF2NuYo8wy+6ODLoYat4R71X99Mxc_=kw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] clk: ti: mux: resolve parent clocks by DT index,
+ not by name
+To: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+Cc: Tero Kristo <kristo@kernel.org>, Michael Turquette <mturquette@baylibre.com>, 
+	Stephen Boyd <sboyd@kernel.org>, Brian Masney <bmasney@redhat.com>, Tony Lindgren <tony@atomide.com>, 
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>, =?UTF-8?B?VGjDqW8gTGVicnVu?= <theo.lebrun@bootlin.com>, 
+	=?UTF-8?Q?Gr=C3=A9gory_Clement?= <gregory.clement@bootlin.com>, 
+	linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Matti Vaittinen <mazziesaccount@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Convert the TI DA8xx/OMAP-L1x MUSB text bindings to DT schema. Since
-DA8xx MUSB node acts as a parent bus for the CPPI41 DMA controller add
-required #address-cells, #size-cells, and ranges properties.
+Hi Mathieu,
 
-Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
----
- .../devicetree/bindings/usb/da8xx-usb.txt          |  69 -------------
- .../devicetree/bindings/usb/ti,da830-musb.yaml     | 113 +++++++++++++++++++++
- 2 files changed, 113 insertions(+), 69 deletions(-)
+On Mon, 27 Jul 2026 at 09:44, Mathieu Dubois-Briand
+<mathieu.dubois-briand@bootlin.com> wrote:
+> Resolve parent clocks by their index into the device tree "clocks"
+> property rather than matching names as strings. Name-based matching is
+> fragile because a clock's "clock-output-names" value in its provider
+> node can differ from the name used to reference it in a consumer node,
+> and because names must be globally unique across all clock providers.
+>
+> On AM335x, this caused broken clock trees where some clocks failed to
+> enable because their parents could not be found.
+>
+> Replace of_clk_parent_fill() with a clk_parent_data array that sets
+> .index to the array position.
+>
+> Fixes: ec7aa25fa483 ("ARM: dts: Use clock-output-names for am3")
+> Signed-off-by: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
 
-diff --git a/Documentation/devicetree/bindings/usb/da8xx-usb.txt b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
-deleted file mode 100644
-index 00320d92d3bb..000000000000
---- a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
-+++ /dev/null
-@@ -1,69 +0,0 @@
--TI DA8xx MUSB
--~~~~~~~~~~~~~
--For DA8xx/OMAP-L1x/AM17xx/AM18xx platforms.
--
--Required properties:
--~~~~~~~~~~~~~~~~~~~~
-- - compatible : Should be set to "ti,da830-musb".
--
-- - reg: Offset and length of the USB controller register set.
--
-- - interrupts: The USB interrupt number.
--
-- - interrupt-names: Should be set to "mc".
--
-- - dr_mode: The USB operation mode. Should be one of "host", "peripheral" or "otg".
--
-- - phys: Phandle for the PHY device
--
-- - phy-names: Should be "usb-phy"
--
-- - dmas: specifies the dma channels
--
-- - dma-names: specifies the names of the channels. Use "rxN" for receive
--   and "txN" for transmit endpoints. N specifies the endpoint number.
--
--Optional properties:
--~~~~~~~~~~~~~~~~~~~~
-- - vbus-supply: Phandle to a regulator providing the USB bus power.
--
--Example:
--	usb_phy: usb-phy {
--		compatible = "ti,da830-usb-phy";
--		#phy-cells = <0>;
--	};
--	usb0: usb@200000 {
--		compatible = "ti,da830-musb";
--		reg = <0x00200000 0x1000>;
--		ranges;
--		#address-cells = <1>;
--		#size-cells = <1>;
--		interrupts = <58>;
--		interrupt-names = "mc";
--
--		dr_mode = "host";
--		vbus-supply = <&usb_vbus>;
--		phys = <&usb_phy 0>;
--		phy-names = "usb-phy";
--
--		dmas = <&cppi41dma 0 0 &cppi41dma 1 0
--			&cppi41dma 2 0 &cppi41dma 3 0
--			&cppi41dma 0 1 &cppi41dma 1 1
--			&cppi41dma 2 1 &cppi41dma 3 1>;
--		dma-names =
--			"rx1", "rx2", "rx3", "rx4",
--			"tx1", "tx2", "tx3", "tx4";
--
--
--		cppi41dma: dma-controller@201000 {
--			compatible = "ti,da830-cppi41";
--			reg =  <0x201000 0x1000
--				0x202000 0x1000
--				0x204000 0x4000>;
--			reg-names = "controller", "scheduler", "queuemgr";
--			interrupts = <58>;
--			#dma-cells = <2>;
--			dma-channels = <4>;
--		};
--
--	};
-diff --git a/Documentation/devicetree/bindings/usb/ti,da830-musb.yaml b/Documentation/devicetree/bindings/usb/ti,da830-musb.yaml
-new file mode 100644
-index 000000000000..0faf2a1a17c7
---- /dev/null
-+++ b/Documentation/devicetree/bindings/usb/ti,da830-musb.yaml
-@@ -0,0 +1,113 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/usb/ti,da830-musb.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: TI DA8xx MUSB
-+
-+maintainers:
-+  - Sergei Shtylyov <sshtylyov@ru.mvista.com>
-+
-+allOf:
-+  - $ref: /schemas/usb/usb-drd.yaml#
-+
-+properties:
-+  compatible:
-+    const: ti,da830-musb
-+
-+  reg:
-+    maxItems: 1
-+
-+  interrupts:
-+    maxItems: 1
-+
-+  interrupt-names:
-+    const: mc
-+
-+  phys:
-+    maxItems: 1
-+
-+  phy-names:
-+    const: usb-phy
-+
-+  dmas:
-+    minItems: 1
-+    maxItems: 8
-+
-+  dma-names:
-+    minItems: 1
-+    maxItems: 8
-+    items:
-+      pattern: "^(rx|tx)[1-4]$"
-+
-+  vbus-supply:
-+    description: Phandle to a regulator providing the USB bus power.
-+
-+  clocks:
-+    maxItems: 1
-+
-+  clock-ranges: true
-+
-+  ranges: true
-+
-+  "#address-cells":
-+    const: 1
-+
-+  "#size-cells":
-+    const: 1
-+
-+patternProperties:
-+  "^dma-controller@[0-9a-f]+$":
-+    $ref: /schemas/dma/ti/ti,cppi41.yaml#
-+
-+required:
-+  - compatible
-+  - reg
-+  - interrupts
-+  - interrupt-names
-+  - phys
-+  - phy-names
-+  - ranges
-+  - "#address-cells"
-+  - "#size-cells"
-+
-+unevaluatedProperties: false
-+
-+examples:
-+  - |
-+    usb@200000 {
-+        compatible = "ti,da830-musb";
-+        reg = <0x00200000 0x1000>;
-+        ranges;
-+        #address-cells = <1>;
-+        #size-cells = <1>;
-+        interrupts = <58>;
-+        interrupt-names = "mc";
-+
-+        dr_mode = "host";
-+        vbus-supply = <&usb_vbus>;
-+        phys = <&usb_phy 0>;
-+        phy-names = "usb-phy";
-+
-+        clocks = <&psc1 1>;
-+        clock-ranges;
-+
-+        dmas = <&cppi41dma 0 0>, <&cppi41dma 1 0>,
-+               <&cppi41dma 2 0>, <&cppi41dma 3 0>,
-+               <&cppi41dma 0 1>, <&cppi41dma 1 1>,
-+               <&cppi41dma 2 1>, <&cppi41dma 3 1>;
-+        dma-names = "rx1", "rx2", "rx3", "rx4",
-+                    "tx1", "tx2", "tx3", "tx4";
-+
-+        dma-controller@201000 {
-+            compatible = "ti,da830-cppi41";
-+            reg = <0x201000 0x1000>,
-+                  <0x202000 0x1000>,
-+                  <0x204000 0x4000>;
-+            reg-names = "controller", "scheduler", "queuemgr";
-+            interrupts = <58>;
-+            #dma-cells = <2>;
-+            dma-channels = <4>;
-+        };
-+    };
+Thanks for your patch, which is now commit 667f420c09f1417c ("clk: ti:
+mux: resolve parent clocks by DT index, not by name") in clk/clk-next.
+
+This breaks booting BeagleBone Black for me: I don't get any output
+on the serial console, even with "earlycon keep_bootcon".  When the
+watchdog kicks in (or on kernel panic?), the system reboots.
+
+Reverting this commit fixes the issue.
+After reverting, I added debug code to print all parents, and compared
+them to the DTB, but didn't see any discrepancies.
+
+Your similar change to drivers/clk/ti/composite.c does not cause any
+issues for me.
+
+Do you have a clue?
+Thanks!
+
+> --- a/drivers/clk/ti/mux.c
+> +++ b/drivers/clk/ti/mux.c
+> @@ -119,7 +119,7 @@ const struct clk_ops ti_clk_mux_ops = {
+>  };
+>
+>  static struct clk *_register_mux(struct device_node *node, const char *name,
+> -                                const char * const *parent_names,
+> +                                const struct clk_parent_data *parent_data,
+>                                  u8 num_parents, unsigned long flags,
+>                                  struct clk_omap_reg *reg, u8 shift, u32 mask,
+>                                  s8 latch, u8 clk_mux_flags, u32 *table)
+> @@ -136,7 +136,7 @@ static struct clk *_register_mux(struct device_node *node, const char *name,
+>         init.name = name;
+>         init.ops = &ti_clk_mux_ops;
+>         init.flags = flags;
+> -       init.parent_names = parent_names;
+> +       init.parent_data = parent_data;
+>         init.num_parents = num_parents;
+>
+>         /* struct clk_mux assignments */
+> @@ -167,24 +167,26 @@ static void of_mux_clk_setup(struct device_node *node)
+>         struct clk *clk;
+>         struct clk_omap_reg reg;
+>         unsigned int num_parents;
+> -       const char **parent_names;
+> +       struct clk_parent_data *parent_data;
+>         const char *name;
+>         u8 clk_mux_flags = 0;
+>         u32 mask = 0;
+>         u32 shift = 0;
+>         s32 latch = -EINVAL;
+>         u32 flags = CLK_SET_RATE_NO_REPARENT;
+> +       int i;
+>
+>         num_parents = of_clk_get_parent_count(node);
+>         if (num_parents < 2) {
+>                 pr_err("mux-clock %pOFn must have parents\n", node);
+>                 return;
+>         }
+> -       parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
+> -       if (!parent_names)
+> -               goto cleanup;
+> +       parent_data = kcalloc(num_parents, sizeof(*parent_data), GFP_KERNEL);
+> +       if (!parent_data)
+> +               return;
+>
+> -       of_clk_parent_fill(node, parent_names, num_parents);
+> +       for (i = 0; i < num_parents; i++)
+> +               parent_data[i].index = i;
+>
+>         if (ti_clk_get_reg_addr(node, 0, &reg))
+>                 goto cleanup;
+> @@ -207,7 +209,7 @@ static void of_mux_clk_setup(struct device_node *node)
+>         mask = (1 << fls(mask)) - 1;
+>
+>         name = ti_dt_clk_name(node);
+> -       clk = _register_mux(node, name, parent_names, num_parents,
+> +       clk = _register_mux(node, name, parent_data, num_parents,
+>                             flags, &reg, shift, mask, latch, clk_mux_flags,
+>                             NULL);
+>
+> @@ -215,7 +217,7 @@ static void of_mux_clk_setup(struct device_node *node)
+>                 of_clk_add_provider(node, of_clk_src_simple_get, clk);
+>
+>  cleanup:
+> -       kfree(parent_names);
+> +       kfree(parent_data);
+>  }
+>  CLK_OF_DECLARE(mux_clk, "ti,mux-clock", of_mux_clk_setup);
+
+Gr{oetje,eeting}s,
+
+                        Geert
 
 -- 
-2.55.0
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
