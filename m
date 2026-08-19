@@ -1,191 +1,144 @@
-Received: from mail-vk1-f179.google.com (mail-vk1-f179.google.com [209.85.221.179])
+Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADDBB4078D2
-	for <linux-omap@vger.kernel.org>; Wed, 19 Aug 2026 19:13:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C291D2DEA93
+	for <linux-omap@vger.kernel.org>; Wed, 19 Aug 2026 20:32:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787166808; cv=none; b=suDiapZ/i/qpRfibez623BPaW5V2RmUFlmLRWO7Hk9AKJWI82I1NRv7HjZg+9If2Mq5IPh9l67xAE+xOF7X1XuOg8U/CVkOO9MCU4D9+TNXxli4KhK3Wz7wCPGALbbx/5iXFGbTZ+mt6HHFgb+pYxnnR7ZupfAvwh4NQ1jhPQTo=
+	t=1787171537; cv=none; b=YbKjm6ratq+3qIseTdaPhanY2pJyPutI7zDjb0aRrzhN96wL82OD4KkwQedvzrDneBgDOg8B3ZiFWpyaODBaEaSuO0U2+E7hWl0dKiTamrQz8Xf+yMjWMIdXJXpcri2zjueg6b8oxeyGwH1oyyqky6mkFGH0swpqJY8i9a4+bs8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787166808; c=relaxed/simple;
-	bh=GSvf9tiJTgNAYDBIQVpJtLQwvRj2IRYKk6mKKCQJXkY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=P1vtGVeTdnXSmvHPACCWaNeylcJPl+rqL7ChyPKdrT8mmQDvAIHSAHC2lxuHM3o7dwsLAtEd0s8wJ2uoiL0d1KIIt69LWA9DF3viU8sCl/K2JTJNds/ZpifWp9L6+rtcN85EVfc6j5b3FBg/jtiUtKVUjiiOAz129R7PR9q1Ulg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.221.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-m68k.org
+	s=arc-20240116; t=1787171537; c=relaxed/simple;
+	bh=sR917INAPqiRWTwUavwb9f+zXWLqhKiK8ywqX9IbxYw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=jyi8ghEQ0IInQL7JZw3cjmuRV9z3slPQ2Q7rtgsL+zUgjnEKBH67q3c5wrky9qXlY9nwEwZqvkEsNRTJf/eYMPMoZ8gd1bHFQZkATUZGZHqsywZnEgeAh5FIF174/Uk6UWG6MF5uhu/DHMFso+YPd+WNnJUDkSXO4SChL4ZQsCo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wp1RrccS; arc=none smtp.client-ip=209.85.216.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-vk1-f179.google.com with SMTP id 71dfb90a1353d-59b074ec7ceso622960e0c.1
-        for <linux-omap@vger.kernel.org>; Wed, 19 Aug 2026 12:13:24 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787166802; x=1787771602;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wp1RrccS"
+Received: by mail-pj1-f49.google.com with SMTP id 98e67ed59e1d1-384930ca5e2so1891686a91.3
+        for <linux-omap@vger.kernel.org>; Wed, 19 Aug 2026 13:32:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1787171535; x=1787776335; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:sender:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=2hrEOT6/riKwFJGpTfOre0kcDNbj58vo1NWhzAcptM0=;
-        b=NqY3ZfM71VzR+IYd8wgQmNxAtEoMXSuyRWRKfserLy3bN6vVuuRByvr+jpvihnccDB
-         FjUhVjhieVSg39Hy1mV6F9v+zIIcar5jBSPCw3QgzQdA1u4EvcPjX16XWdQacGOjlPYO
-         sbntMFc9U4907kLFiPEWJd4QaooAswsxp9lEMjD/tQdcO5arDxSJDwSK/T12/4SOvSMP
-         oDxF00EYio2M7MvqeJPUFuYtn4k/6ziiLo/FjPuaX34mDI018XJbgQuXTVWPqjvWA1+9
-         tGPaP8SH38NX0YzAaLUO/7SyD9WG9bXpu2ZCYla9lSAweVadtaOl00ljEElmzGSxKReK
-         jE1g==
-X-Forwarded-Encrypted: i=1; AHgh+Rp3reTi3NXP6EyvoNK2QfRiI19SDr4CEPgVJL6GpPncdTHraV1t7GjmHOyXz4tvpYBqJsTKg5OzqaFa@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw1MAg5ovc7bFVCdF15AUbD/CIHmGSiWnVPco0Zs3kjQHDIngOe
-	IhPy62mTulTh6yE4Dw6lrZcTa3l0DPDqTHplg+kk1jKznsWDSJ2SsH96xWQ6keIl
-X-Gm-Gg: AR+sD136M6u7Wv01nhXtXtfw9NlAshamAUqR/1HWH2jZOV6t4wYWZgf+U9lLZPYHz4f
-	1WzyfcG/hDEuSED3SWAdSDAmJ4OVHaRy4Zb74vzGz0C1TeBFHqQTv0dNECRsMpWUZgy+5CoSk4P
-	WoByAFsAj05ZKDH5clVkeooee0bMRViELAzFRNnR85a9EhfKl6To3nzNLYt8q7pzdVIJ1WzL+nk
-	1E540GjwRUXAw6iHgbV9sCtWHPZr8ue8qfhdEdE13pJXqeL7YG/EtJWqLF/IA9SFSu3dRiq9zJ8
-	TTG3Qjzn50BZuylaAGh/Lh8KAObj3XD2iDhXA6QUU6h64v+5L4dBeRu7oHmRnvcHJild9S9Fsax
-	BaYsKaj+ECOo/y0f8AVRb0s1vTlkMyZXp3mYeQndSLrGx487PqtdjzXMkbCe+yMOX3wbG42PDCU
-	NjMNTtAKEOxNnAz1bvq2yLOGehbsdmvuvdYX02uZGZ1sYmb/51x1by3ieZcoXgenob8alo3hVjd
-	8IkWUDDK6gmPRNZ2zFIpx+SghLdLb7L0eX+
-X-Received: by 2002:a05:6102:c10:b0:726:cd42:d023 with SMTP id ada2fe7eead31-777faba59c7mr2164029137.11.1787166802255;
-        Wed, 19 Aug 2026 12:13:22 -0700 (PDT)
-Received: from mail-vs1-f48.google.com (mail-vs1-f48.google.com. [209.85.217.48])
-        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-777daea8e4bsm3353983137.2.2026.08.19.12.13.21
-        for <linux-omap@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 19 Aug 2026 12:13:21 -0700 (PDT)
-Received: by mail-vs1-f48.google.com with SMTP id ada2fe7eead31-754ac74c495so602418137.0
-        for <linux-omap@vger.kernel.org>; Wed, 19 Aug 2026 12:13:21 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RpToKOA1ZyPYYiZtXCHWfND+bjoFv3hiniANCciLHzMf+CoSQq7PFLV/81+5J0u+zSnxyEtsoTdUMLU@vger.kernel.org
-X-Received: by 2002:a05:6102:e0c:b0:778:5369:763d with SMTP id
- ada2fe7eead31-778536977cfmr1785402137.1.1787166800995; Wed, 19 Aug 2026
- 12:13:20 -0700 (PDT)
+        bh=kakQd7SwwB4qJFxzAT3GLQtskQ627s0NDgwkRoO1YnU=;
+        b=Wp1RrccSlW1X9+Uaa1CnjB3s3pmxp7EniiOiDc+oDMhRJ6u8Tk5F2zuqktrdtcNhzV
+         M05YvG3dnqFyPg8Rrs85KXdVDVM8jnXUco8dRrKVhfDahOSRUuchMInR2YiYfFBVTH/p
+         Nkxc2Q+cXV77WyL93cqYvy7OUjulbrY045zyjER18oCu282KE8BG2txIAJy+WhBCE4Tl
+         nG2fQ8j3JZtIuOuXSTuqmUY180bhQo3EjyFgCfoA/jz020Im456ZWaDGgqg5bWRLkDwr
+         mWyickHWeugP70D72A+1XE/fWH8wF4tdxOEiJ22QUA+D+iUkpJxnqHy9PRAxvzpPnGR3
+         TuFg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787171535; x=1787776335;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:sender:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=kakQd7SwwB4qJFxzAT3GLQtskQ627s0NDgwkRoO1YnU=;
+        b=RCUyDQjUj/XWhfQdgq8W0+DpHPV0jOoaka4zTzPXJ9Qqcq0+riarcRhHnek/YUwF05
+         UFcMmTRpMjFoglVC5OGhHnaE6PwcyLHMT9PRp4oqbB21UgcEEeRdjamykXVsT7VcHCiv
+         QhubUPeoP4RQKdga4nmrrSUX4QBraK/pTDwWxyG7iI0EHkwepqHSmtYAT5YDJsqlsoCu
+         iTswkOqA5xzSVzUeGkjpEE73BRXxDNd7cgc8zBJt94ILorA9txBwNjl3qU8TBq6Q9w45
+         IGpXxbhx7FKgWIOCMdjxwQuC2o//PlvLEY9PRXfsCOpqQP5J7IC8Bn0kHv/wL6w09gMA
+         ju/w==
+X-Forwarded-Encrypted: i=1; AHgh+RpzxWEhSrCb42UQqoFG7Cj4eih8hJFGYxHo6IRsyCNz2weOP4ddkAPq7THQbFyNGnUNz7S2l38p2vlw@vger.kernel.org
+X-Gm-Message-State: AFuF++lC+THx2G5sZEIgggdaoq/Epd8qRtogMtmTGtInJNsU+SYsFeAn
+	gY49ArsMzxBDvnNhVyf/YKxrPPs/UJUdu4x2UU4z9XJK9QghQ70UEm0R
+X-Gm-Gg: AR+sD12ZDEO7wNtADROlZZh6IfCMt+ahzJluJIDA6jTGnP1PVJGtIrPH3B6RsPgDQ3D
+	y3y0JbZH3TQX5IH0jCgtqHP09kr8mDajNXhOFIuTGh4xoePRPgP/7umKIxCpOcRSqxyHrMuupIw
+	KVqslNYm0xP5SKffPIZKmFxmDMdApuJmRFQbbncxvh2MBZIDzXqvQaiHIuIvTL4Dcix82fdWRGi
+	yhVkjg0wwV34xivwkbGe6A0t1aVHMWPdIUDs2KnV0zeUksXFaf3mdOPbXSx1h+QQGYXuZGco4ZI
+	+hLHg6mxOtEyzG6fTyVGCT+EGbhPmhw0WbemhdSdAFtPewp14TXLSE5YlZSkhdyHUj5pIj7xHW1
+	CZKoS1Ee6Ow4XiOtEa9/qo1HqG3wsQORpNmz2Z3f9+Ee3L3UDNAZZulwNstMMwAXqu+wVx8Jldj
+	l5aCM0hE4UFBKwz4ruVYbgPpEh++PNaHFoY8GIANZRw05L5ua6ViRlSLYBsrqKL0ByndFXQGRUj
+	w==
+X-Received: by 2002:a17:90b:4a8d:b0:38e:ad9d:1161 with SMTP id 98e67ed59e1d1-39580553dfamr13842543a91.0.1787171535016;
+        Wed, 19 Aug 2026 13:32:15 -0700 (PDT)
+Received: from server.roeck-us.net ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1416ad6060asm16706081c88.6.2026.08.19.13.32.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 19 Aug 2026 13:32:14 -0700 (PDT)
+Sender: Guenter Roeck <groeck7@gmail.com>
+Date: Wed, 19 Aug 2026 13:32:12 -0700
+From: Guenter Roeck <linux@roeck-us.net>
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Tero Kristo <kristo@kernel.org>, Stephen Boyd <sboyd@kernel.org>,
+	Brian Masney <bmasney+clk@redhat.com>,
+	Jerome Brunet <jbrunet+clk@baylibre.com>,
+	Nobuhiro Iwamatsu <nobuhiro.iwamatsu.x90@mail.toshiba>,
+	Nuno Sa <nuno.sa@analog.com>,
+	Michael Hennerich <Michael.Hennerich@analog.com>,
+	Antoniu Miclaus <antoniu.miclaus@analog.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	David Lechner <dlechner@baylibre.com>,
+	Andy Shevchenko <andy@kernel.org>,
+	Sunny Luo <sunny.luo@amlogic.com>,
+	Xianwei Zhao <xianwei.zhao@amlogic.com>,
+	Mark Brown <broonie@kernel.org>, Kees Cook <kees@kernel.org>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>,
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-hwmon@vger.kernel.org, linux@analog.com,
+	linux-iio@vger.kernel.org, linux-amlogic@lists.infradead.org,
+	linux-spi@vger.kernel.org, linux-clk@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH treewide 3/5] hwmon: (ltc4282) Make sure clk_init_data is
+ fully initialized
+Message-ID: <0ee768d3-f913-4d29-902b-39f8bf973dd6@roeck-us.net>
+References: <cover.1787165329.git.geert+renesas@glider.be>
+ <8ec3c5cbd2df675a938f090470f5da5f22008517.1787165329.git.geert+renesas@glider.be>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260727-mathieu-wdt-clock-theo-v2-0-c048a6394436@bootlin.com>
- <20260727-mathieu-wdt-clock-theo-v2-1-c048a6394436@bootlin.com>
- <CAMuHMdU3yVqoyHC4eNF2NuYo8wy+6ODLoYat4R71X99Mxc_=kw@mail.gmail.com>
- <DKSOGEFQ4RJA.3LEW2Y8991H17@bootlin.com> <CAMuHMdVfFZ0P9Na-yD9EzBaUqkyiwjo8byxA2MouBt1DM8xQtA@mail.gmail.com>
- <DKT0MN8YMIAT.2ZI006JRL0OJ@bootlin.com>
-In-Reply-To: <DKT0MN8YMIAT.2ZI006JRL0OJ@bootlin.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 19 Aug 2026 21:13:08 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdUsupXQb7Y59ri8wtrjixPpWoLRk5SsuieZLjKG4Y+gwA@mail.gmail.com>
-X-Gm-Features: AcwNN1Xiw6RIMxHvPKUqNZp5ReyoCIje1jZT2LSNhpvxk-1rbWAWtnl6RZSRLC8
-Message-ID: <CAMuHMdUsupXQb7Y59ri8wtrjixPpWoLRk5SsuieZLjKG4Y+gwA@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] clk: ti: mux: resolve parent clocks by DT index,
- not by name
-To: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
-Cc: Tero Kristo <kristo@kernel.org>, Michael Turquette <mturquette@baylibre.com>, 
-	Stephen Boyd <sboyd@kernel.org>, Brian Masney <bmasney@redhat.com>, Tony Lindgren <tony@atomide.com>, 
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>, =?UTF-8?B?VGjDqW8gTGVicnVu?= <theo.lebrun@bootlin.com>, 
-	=?UTF-8?Q?Gr=C3=A9gory_Clement?= <gregory.clement@bootlin.com>, 
-	linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Matti Vaittinen <mazziesaccount@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8ec3c5cbd2df675a938f090470f5da5f22008517.1787165329.git.geert+renesas@glider.be>
 
-Hi Mathieu,
+On Wed, Aug 19, 2026 at 09:05:17PM +0200, Geert Uytterhoeven wrote:
+> The clk_init_data structure contains several mutually-exclusive members
+> for different methods to specify the possible parents of a clock,
+> prompting drivers to initialize only the members they need.  However,
+> not initializing all members may cause subtle issues, which are only
+> exposed when CONFIG_INIT_STACK_ALL_PATTERN or CONFIG_INIT_STACK_NONE is
+> enabled.
+> 
+> ltc428_clk_provider_setup() does not fill in any parent clocks, and
+> assumes that init.num_parents is NULL.  However, the latter in
+> uninitialized, and thus may cause a crash.
+> 
+> Make sure all members are fully initialized, to fix such bugs, and to
+> avoid future breakage when converting drivers to a different method for
+> specifying the parents.
+> 
+> Fixes: cbc29538dbf7d740 ("hwmon: Add driver for LTC4282")
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-On Wed, 19 Aug 2026 at 17:12, Mathieu Dubois-Briand
-<mathieu.dubois-briand@bootlin.com> wrote:
-> On Wed Aug 19, 2026 at 2:32 PM CEST, Geert Uytterhoeven wrote:
-> > On Wed, 19 Aug 2026 at 07:39, Mathieu Dubois-Briand
-> > <mathieu.dubois-briand@bootlin.com> wrote:
-> >> On Tue Aug 18, 2026 at 6:02 PM CEST, Geert Uytterhoeven wrote:
-> >> > On Mon, 27 Jul 2026 at 09:44, Mathieu Dubois-Briand
-> >> > <mathieu.dubois-briand@bootlin.com> wrote:
-> >> >> Resolve parent clocks by their index into the device tree "clocks"
-> >> >> property rather than matching names as strings. Name-based matching is
-> >> >> fragile because a clock's "clock-output-names" value in its provider
-> >> >> node can differ from the name used to reference it in a consumer node,
-> >> >> and because names must be globally unique across all clock providers.
-> >> >>
-> >> >> On AM335x, this caused broken clock trees where some clocks failed to
-> >> >> enable because their parents could not be found.
-> >> >>
-> >> >> Replace of_clk_parent_fill() with a clk_parent_data array that sets
-> >> >> .index to the array position.
-> >> >>
-> >> >> Fixes: ec7aa25fa483 ("ARM: dts: Use clock-output-names for am3")
-> >> >> Signed-off-by: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
-> >> >
-> >> > Thanks for your patch, which is now commit 667f420c09f1417c ("clk: ti:
-> >> > mux: resolve parent clocks by DT index, not by name") in clk/clk-next.
-> >> >
-> >> > This breaks booting BeagleBone Black for me: I don't get any output
-> >> > on the serial console, even with "earlycon keep_bootcon".  When the
-> >> > watchdog kicks in (or on kernel panic?), the system reboots.
+Applied.
 
-> > With omap2plus_defconfig and multi_v7_defconfig, it does boot.  However,
-> > this commit does have an impact on /sys/kernel/debug/clk/clk_summary:
-> >
-> > --- summary-7.2.0-rc2-00106-g0d4d262c1664       2026-08-19
-> > 10:56:51.622275674 +0200
-> > +++ summary-7.2.0-rc2-00107-g667f420c09f1       2026-08-19
-> > 10:58:13.929823890 +0200
-> > ...
-> >
-> > I.e. wdt1_fck changed its parent from clk_rc32k_ck to
-> > clk-24mhz-clkctrl:0000:0, which is probably not intended?
-> >
->
-> This was definitely not intended, but I believe this is a valid
-> configuration.
->
-> wdt1_fck has two potential parents. In the device tree
-> (am33xx-clocks.dtsi), we have:
->
->         wdt1_fck: clock-wdt1-fck@538 {
->                 ...
->                 clocks = <&clk_rc32k_ck>, <&clk_24mhz_clkctrl AM3_CLK_24MHZ_CLKDIV32K_CLKCTRL 0>;
->                 ...
->         };
->
-> As I understand it, the kernel is free to select any of the parents
-> here. Is that correct?
->
-> Previously, the link with the second parent was broken, and only the
-> first parent was known. That was my initial issue that triggered my
-> changes. Now, both parents can be selected. I assume the second one is
-> seen as a better option for some reason, and so now it is selected.
->
-> But maybe my assumption are wrongs, so feel free correct me here.
+Thanks,
+Guenter
 
-Thanks, that sounds like a good explanation!
-
-> > However, that is not the cause of the crash.  My .config has
-> > CONFIG_INIT_STACK_ALL_PATTERN enabled, so any uninitialized local
-> > variables contain garbage.
-> >
-> >> @@ -136,7 +136,7 @@ static struct clk *_register_mux(struct device_node *node, const char *name,
-> >>         init.name = name;
-> >>         init.ops = &ti_clk_mux_ops;
-> >>         init.flags = flags;
-> >> -       init.parent_names = parent_names;
-> >> +       init.parent_data = parent_data;
-> >>         init.num_parents = num_parents;
-> >>
-> >>         /* struct clk_mux assignments
-> >
-> > Init is not fully initialized, hence init.parent_names contains garbage
-> > (before, .parent_data contained garbage).
-> > As clk_core_populate_parent_map() prioritizes .parent_names over
-> > .parent_data, the uninitialized .parent_data didn't cause any harm before.
->
-> Nice catch. I didn't realise that while doing my changes.
->
-> Thanks for taking the time to track this issue.
-
-You're welcome!
-
-I submitted a first set of fixes, incl. "[PATCH treewide 1/5] clk:
-ti: Make sure clk_init_data is fully initialized"
-https://lore.kernel.org/e6f52b34163c8e708c1100107b437af0b3b049a6.1787165329.git.geert+renesas@glider.be/
-I will submit the remainder (way too many) later...
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+> ---
+> Compile-tested only.
+> ---
+>  drivers/hwmon/ltc4282.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/hwmon/ltc4282.c b/drivers/hwmon/ltc4282.c
+> index b1675dc5b3c7fd2f..54ba4b8542e94b7b 100644
+> --- a/drivers/hwmon/ltc4282.c
+> +++ b/drivers/hwmon/ltc4282.c
+> @@ -1106,7 +1106,7 @@ static const struct clk_ops ltc4282_ops = {
+>  static int ltc428_clk_provider_setup(struct ltc4282_state *st,
+>  				     struct device *dev)
+>  {
+> -	struct clk_init_data init;
+> +	struct clk_init_data init = {};
+>  	int ret;
+>  
+>  	if (!IS_ENABLED(CONFIG_COMMON_CLK))
