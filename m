@@ -1,19 +1,19 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF82B37C0F8;
-	Wed, 19 Aug 2026 19:06:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A283D34BB;
+	Wed, 19 Aug 2026 19:06:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787166371; cv=none; b=VeSL0EFvkqK7mpTjvd66mGMzEs7efNc0+4aV8Xe0aeHdgZ9D6seBl6Mqgnbf9NOQGdMdyUbJhCmMv1fcY8Appg7YL3TCKuneY5pVNU/vpsL5sX9n/UZe07KWPZcIhsCRpuP03Nht1qejbxjuacr47Grxa6gjR26AgJmlQoHQWpY=
+	t=1787166377; cv=none; b=o9g03xg/LGvjhUTLbSahKE/Jjv24XWw58R2WM0jScpA+4/tAI/wQY4mygBGqvJiuGDp0x49UB4r72ab0RT11RaZepFruTJtpxuBnRtm05AWUdXYxtUXsBUPJsvoa7R5UEar9IblasWnDaRZVqHBVOY6A7zwJBrD7/dIq59Tx5nI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787166371; c=relaxed/simple;
-	bh=bQbiIir746pDfV9q9WOIX5O5l1kno9nDhkPReNDVlbY=;
+	s=arc-20240116; t=1787166377; c=relaxed/simple;
+	bh=2p6bAIP0Cei9576iEhGUu60Huw/wlOYnprNMQaC5Ml0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=o0Vur4tEVPWN9ymCRp3CciVqtazENeFxQtK5cNQuTd04VnGAzUuSIFBdlEw13u5DdeGc2x6A2CKu+F5LSH8hF4Jh684JHpBVMh61s3AB7S6o/sWuFHbWQRqZgEOgDtRqlhR2DOVGHhwIOE1JmKadElvxvEigyUfUAGNYPLT3igU=
+	 MIME-Version; b=AgjRrm7jl6eqE5tfEglTIBr+mP7q5uMm1v9ZMRUDi2AH78kuSuzhx98zm4xYEumaik+OmmljE/zK7GKzs6+Qc/SXg6IFSrH8rw7ccH425OLP6hcDg7z4RoycmcUkKbHW8rMadQNAadNip70ZutZ912nGpwctzYJyrv7cFWqQHCE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 028071F000E9;
-	Wed, 19 Aug 2026 19:06:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DADE91F00A3A;
+	Wed, 19 Aug 2026 19:06:10 +0000 (UTC)
 From: Geert Uytterhoeven <geert+renesas@glider.be>
 To: Tero Kristo <kristo@kernel.org>,
 	Stephen Boyd <sboyd@kernel.org>,
@@ -43,9 +43,9 @@ Cc: linux-omap@vger.kernel.org,
 	linux-clk@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH treewide 4/5] iio: frequency: adf4377: Make sure clk_init_data is fully initialized
-Date: Wed, 19 Aug 2026 21:05:18 +0200
-Message-ID: <302584628c4c0699239a0218376fe1c11cdc8944.1787165329.git.geert+renesas@glider.be>
+Subject: [PATCH treewide 5/5] spi: amlogic-spisg: Make sure clk_init_data is fully initialized
+Date: Wed, 19 Aug 2026 21:05:19 +0200
+Message-ID: <9fb35ae0aedb7a6db0db6c78a8193c7602dd9d44.1787165329.git.geert+renesas@glider.be>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1787165329.git.geert+renesas@glider.be>
 References: <cover.1787165329.git.geert+renesas@glider.be>
@@ -64,7 +64,7 @@ not initializing all members may cause subtle issues, which are only
 exposed when CONFIG_INIT_STACK_ALL_PATTERN or CONFIG_INIT_STACK_NONE is
 enabled.
 
-adf4377_clk_register() fills in init.parent_data, and assumes that
+aml_spisg_clk_init() fills in init.parent_data, and assumes that
 init.parent_names is NULL.  However, the latter in uninitialized, and
 thus may cause a crash.
 
@@ -72,27 +72,27 @@ Make sure all members are fully initialized, to fix such bugs, and to
 avoid future breakage when converting drivers to a different method for
 specifying the parents.
 
-Fixes: 60e5448ddbec2dc2 ("iio: frequency: adf4377: add clk provider support")
+Fixes: cef9991e04aed330 ("spi: Add Amlogic SPISG driver")
 Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
 Compile-tested only.
 ---
- drivers/iio/frequency/adf4377.c | 2 +-
+ drivers/spi/spi-amlogic-spisg.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/iio/frequency/adf4377.c b/drivers/iio/frequency/adf4377.c
-index 4dd19a9aa9943c57..f4eb9ba5878e1893 100644
---- a/drivers/iio/frequency/adf4377.c
-+++ b/drivers/iio/frequency/adf4377.c
-@@ -990,7 +990,7 @@ static int adf4377_clk_register(struct adf4377_state *st)
+diff --git a/drivers/spi/spi-amlogic-spisg.c b/drivers/spi/spi-amlogic-spisg.c
+index afc8af04638d3b6e..9049a87e9d0f2df6 100644
+--- a/drivers/spi/spi-amlogic-spisg.c
++++ b/drivers/spi/spi-amlogic-spisg.c
+@@ -636,7 +636,7 @@ static int aml_spisg_target_abort(struct spi_controller *ctlr)
+ static int aml_spisg_clk_init(struct spisg_device *spisg, void __iomem *base)
  {
- 	struct spi_device *spi = st->spi;
- 	struct device *dev = &spi->dev;
+ 	struct device *dev = &spisg->pdev->dev;
 -	struct clk_init_data init;
 +	struct clk_init_data init = {};
- 	struct clk_parent_data parent_data;
- 	int ret;
- 
+ 	struct clk_divider *div;
+ 	struct clk_div_table *tbl;
+ 	char name[32];
 -- 
 2.43.0
 
