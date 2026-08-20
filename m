@@ -1,85 +1,120 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB36046EC8D;
-	Thu, 20 Aug 2026 13:43:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B16E238F249;
+	Thu, 20 Aug 2026 18:53:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787233419; cv=none; b=bIEIPlTv2VQiCZ1RFu4lWz1pO9dPeb72R7eQAgbYjLt5ebLKJL6nYJs4QExZzzfgAq0w2XV/eE8cuWfQyiQjnXCLTlwguiNtdEgvahd6K2rUNhT1ML6NXHPnjq0N3No1VIY9Q6GGslRdfZ5u2FN3uQuixYa6tu7ryX3q4a6c7PU=
+	t=1787252027; cv=none; b=rm7Y4DjqnrpWt9GUtIvdRHQaPVonpJ+zG1Vjb3ghE0X6tnhU9AbmoNAerSEmLQiBdIRBWoPRDDlhw27K0MoTFC8xE5KBv80H4PhCxDODpVdJEiKRudWlfMzBKrNNdexoYlHY++pQ1bXD7nRvMkekhRJiuofMCDHxt92aPnFj+EE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787233419; c=relaxed/simple;
-	bh=JF2Hfspvy+SVr2lJoLQECIEEFhR4v9Bj/u8UirX+ux4=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=LwXZaBMP1Ssn+oAreuho+rsISTYHeLogAfP5OZNxK1uHchjuOYE3jpTRVjhw9QAA37wFvrYm6UJZWRVOn87VPrKsf9da9myBYK5/G/gomT4OAzjB7KLihLeWcLGjHcLVL90pS/e3hlW4XHyZBnQVDBm8jSJz+gxg3MKT8Qb2bC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=TskAOehj; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1787252027; c=relaxed/simple;
+	bh=T4O6Ytd+oVjquoKgE7hf+vP7Dh6bPlJfF2fa2COS54M=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=Dj9GnINFDRy68XUdR0/ezzELKPAO8zGln/jeXz+fUurkZ9G/QEV3q3qjhW9a19vtGVaohkNi6EBtsC1RE46OaE/NKSQslWqfg7lnGrn7RnTeTIVr0JkxffDXtc5VndEr2+WKtlPE1Mnpw/eQF0pCNvNQ7+w6M7Im2x5Ad4VErOI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H0NP1aHU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="TskAOehj"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=0hnkKJN82zoHJv4K7UufbjGMMHI8pFhj5Ti31z7ZufA=; t=1787233416; x=1788443016; 
-	b=TskAOehjpqqby/XTZNLYWubl5RKB/0r1k25LTxK6vmPBOBvwcQnyzmta2+jzRZ9W9nFmZwmHiBA
-	KL7N9kR3s1rGYrT41hqus3a765ET2dEN4BFaTi32WmO86UTo/Q06OnKo7v/B2uI/rJ0lPtX7+nW+r
-	XWUWsKP6fuMe6qKKCgDAtv1rLQ6bH+i+xZ8GDh07VP5GB8cQGjVtx1sS2z075JHjGkltSAI15S8t8
-	1QAweyWcKnONZmrNVWUF5SQOlSYIdoupub2BSyDa1UOSZztwE84Rhd83bM/FzxeMC+/+2r1yJZUOb
-	zuENUG+1mqnsJrhUUXxfeOEggg5Yxkd5MtRA==;
-Date: Thu, 20 Aug 2026 15:43:23 +0200
-From: Andreas Kemnade <andreas@kemnade.info>
-To: Markus Elfring <Markus.Elfring@web.de>
-Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org,
- 1298662399@qq.com, Bartosz Golaszewski <brgl@kernel.org>, Grygorii Strashko
- <grygorii.strashko@ti.com>, Kevin Hilman <khilman@kernel.org>, Linus
- Walleij <linusw@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, LKML
- <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
-Subject: Re: gpio: omap: handle clk_prepare failure in probe
-Message-ID: <20260820154323.0a7c7929@kemnade.info>
-In-Reply-To: <1352405b-7bf2-46e6-9aa6-df1e60bc096c@web.de>
-References: <tencent_B4F504456790E8BA3C4EAB80F4BFB6954E08@qq.com>
-	<b610718b-3c9d-4417-b1b7-69f0ac15dae1@web.de>
-	<20260820114843.1b50783f@kemnade.info>
-	<1352405b-7bf2-46e6-9aa6-df1e60bc096c@web.de>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H0NP1aHU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 490B21F000E9;
+	Thu, 20 Aug 2026 18:53:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787252026;
+	bh=j4+HEzu84tHiUAZOxRhDjFI/ug5GzBnvn/WLzOcpkyY=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=H0NP1aHU1Kw2CsPh2H8BLbi6yqq5B182IUlX89TgqPSaIxveE5Jr3xi/Qcs3m7Xbd
+	 Y/befz+dDSuMEw7cndcbClLTwxPwc7YMS+Vi8jIm9FtAqL3cw54XFz7L5DBWi3jfUE
+	 VrLuxAHW68PsF4lFUW7glviay0Vqno/Hsk28QJhgmyIzPusNpwE7QnGXQ1kXqITIZd
+	 OpolHzWzmiPZELFdVHuOc73iCDT/vmumH2CHy4zYLFJtx5hsqWVO+H6JB998UjdRTA
+	 Og3YldTWRaRSDHc7iJubIDoaPP5HJp+E6InQYoqeywDSj3o7EzcgG1aOAPxnFpFT5g
+	 dA666zqlo005A==
+From: Mark Brown <broonie@kernel.org>
+To: Tero Kristo <kristo@kernel.org>, Stephen Boyd <sboyd@kernel.org>, 
+ Brian Masney <bmasney+clk@redhat.com>, 
+ Jerome Brunet <jbrunet+clk@baylibre.com>, 
+ Nobuhiro Iwamatsu <nobuhiro.iwamatsu.x90@mail.toshiba>, 
+ Nuno Sa <nuno.sa@analog.com>, Guenter Roeck <linux@roeck-us.net>, 
+ Michael Hennerich <Michael.Hennerich@analog.com>, 
+ Antoniu Miclaus <antoniu.miclaus@analog.com>, 
+ Jonathan Cameron <jic23@kernel.org>, David Lechner <dlechner@baylibre.com>, 
+ Andy Shevchenko <andy@kernel.org>, Sunny Luo <sunny.luo@amlogic.com>, 
+ Xianwei Zhao <xianwei.zhao@amlogic.com>, Kees Cook <kees@kernel.org>, 
+ Kevin Hilman <khilman@baylibre.com>, 
+ Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>, 
+ Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ linux-hwmon@vger.kernel.org, linux@analog.com, linux-iio@vger.kernel.org, 
+ linux-amlogic@lists.infradead.org, linux-spi@vger.kernel.org, 
+ linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <cover.1787165329.git.geert+renesas@glider.be>
+References: <cover.1787165329.git.geert+renesas@glider.be>
+Subject: Re: (subset) [PATCH treewide 0/5] clk: Make sure clk_init_data is
+ fully initialized (part 1)
+Message-Id: <178722791204.89147.8075686338925258822.b4-ty@b4>
+Date: Thu, 20 Aug 2026 13:11:52 +0100
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.17-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1882; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=T4O6Ytd+oVjquoKgE7hf+vP7Dh6bPlJfF2fa2COS54M=;
+ b=owEBbAGT/pANAwAKASTWi3JdVIfQAcsmYgBqh00yfuqNALH6N3AXS+G0HCah2fOyCOhjzME7f
+ KNnVXeAwAOJATIEAAEKAB0WIQSt5miqZ1cYtZ/in+ok1otyXVSH0AUCaodNMgAKCRAk1otyXVSH
+ 0AShB/dhLJEEeXKrFQP9gPrIolmzi20NN0M7zC8KH9y3aa0HDRIJ7TvS+Mlng+fdUJET/6Z7YdN
+ WwL1wHIjh3EU33JMDcZr5roVJlS2GMOtkapj/U0/KKGaNeIjzv4dfTSJHfNsGJzAEbsAl1DJOG2
+ EL9hRt5A6Bm6qkLavFafXoAOgXgTNPvroZfhwTUzkSICx+buDnmQ0FulKgO8h9wYKRMOsrRfyLO
+ 0vz7DyM9o2N/dZFZc+ioL0Zr6TqUFedhtZO+ICe+0AauztCGPgGqinrzsgRgm+I8INFJZoPOmt3
+ Ua3StNsCFMpgq0hNzFgNCUVp74ea+Y3GiTcnrWUWzMbP5B8=
+X-Developer-Key: i=broonie@kernel.org; a=openpgp;
+ fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-On Thu, 20 Aug 2026 12:47:05 +0200
-Markus Elfring <Markus.Elfring@web.de> wrote:
+On Wed, 19 Aug 2026 21:05:14 +0200, Geert Uytterhoeven wrote:
+> clk: Make sure clk_init_data is fully initialized (part 1)
+> 
+> 	Hi all,
+> 
+> The clk_init_data structure contains three mutually-exclusive members
+> for different methods to specify the possible parents of a clock,
+> prompting drivers to initialize only the members they need.  When commit
+> fc0c209c147f35ed ("clk: Allow parents to be specified without string
+> names") added the last two methods, this was done in a
+> backwards-compatible way, using a priority-based scheme:
+>   - .name, .ops, .num_parents, and .flags must always be initialized,
+>   - if .num_parents is non-zero, .parent_names must be initialized,
+>       - if .parent_names is NULL, .parent_data must be initialized,
+> 	  - if .parent_data is NULL, .parent_hws must be initialized
+> 	    and valid.
+> 
+> [...]
 
-> > About adding this to stable:
-> > does it bother anyone? =20
->=20
-> I imagine that it can be safer to avoid return value ignorance a bit more.
-> https://cwe.mitre.org/data/definitions/252.html
->=20
-Well, if that would depend on user input, esp. over the network, it would be
-clear.
-But here you need to patch the devicetree to add a clock there
-that has a prepare() in the ancestry. shows the desired behavior to exploit
-something.
+Applied to
 
-And then the error check is done by clk_enable() anyways.
-BTW: here the return value of that is not checked. That is the more
-interesting issue here.
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-7.3
 
-Quoting stable kernel rules:
-"
- - No "This could be a problem..." type of things like a "theoretical race
-    condition", unless an explanation of how the bug can be exploited is al=
-so
-    provided.
-"
-=46rom taking that verbatim, I would say no CC stable.
-But pragmatically, also to avoid noise in any security scanner, I would agr=
-ee
-to a CC stable here.
+Thanks!
 
-Regards,
-Andreas
+[5/5] spi: amlogic-spisg: Make sure clk_init_data is fully initialized
+      https://git.kernel.org/broonie/spi/c/b2702908ee23
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
