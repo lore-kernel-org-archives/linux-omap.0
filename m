@@ -1,103 +1,101 @@
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx.prosyst.ru (m2.prosoftsystems.ru [46.48.77.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED733803E1;
-	Fri, 21 Aug 2026 11:50:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA60647F2F7;
+	Fri, 21 Aug 2026 12:37:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.48.77.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787313051; cv=none; b=fkA8yRKKsPhAIcph3QO+X8sMkL7z0OpB0N0SyyRQZI7GMW0PJmESn6Tdebu+Vpa6agUgmfsJ6u85+//iKO6nU6mdqNUVoNeBsRma7KuKjtgeJb5P/XLSjMN29O1JDg+6YhZKcSu2aukZiusSxr8QA15e6/Ui8diIe6R+jLOgZyA=
+	t=1787315851; cv=none; b=dInGeJ2Y44RLj2Qgin6kSTZ7AYtuIV/j+dbVei8BV/fS2y6lUi0FIOQ4eAT6FZ1NdVY5iUHIgU6HWLWFfcwF5sXfM6vwcS5yZdRLAQdih/Y7cqMeQ2DkJfpwlamd75qUUBE2uubdDyybdMTN6spLG4/ODsi0xz1W/Jwf9WjNVBw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787313051; c=relaxed/simple;
-	bh=gGWt3N0H9V/r0Pd5vV/j3m0yDiezfwviuAyqs9hnxEI=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hvVvDYyWIZQBKsqqsBXqPcGAoeczxM6QygixwGI0Lyv9csKvryKiz4Sc4RUQwVxpjDzjshjgtG1jop+8MIEnA8vHuAVslbF6QtRnquwDvOOGhQSgD7SOjccZKe2kaPAziKRTXz9URR6Zx16uuxs/dp9KJrAL9DEUJBtTR7D5uTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=kb2QotSG; arc=none smtp.client-ip=178.238.236.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	s=arc-20240116; t=1787315851; c=relaxed/simple;
+	bh=bhix0NoECY1U5FjlnhaDsTxitCZO62/NAhK8uAmFIdw=;
+	h=Content-Type:From:To:CC:Subject:Date:Message-ID:MIME-Version; b=D6uD9IeFx/V8mBX3PnU5HcIeMxRGPOvss/EnupPMrvqwkGNLqNeWq8mrc89KdxWiieFDioX3n7sWqt1jjZuQBQ0GrtrRoJKGTPHcIRP55jR3P4gVtS4z2PleDm1hQiKDbrV64TpXcBCfed6scR4gZD3l6i1bEBSs7CIFvNqnIJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=prosoftsystems.ru; spf=pass smtp.mailfrom=prosoftsystems.ru; dkim=pass (2048-bit key) header.d=prosoftsystems.ru header.i=@prosoftsystems.ru header.b=PTe9b0/Y; arc=none smtp.client-ip=46.48.77.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=prosoftsystems.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=prosoftsystems.ru
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="kb2QotSG"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=59zBv3Eri2T8plmV6KBEXNjHzEh3l9vZRamhccgqmnE=; t=1787313050; x=1788522650; 
-	b=kb2QotSGGZfbCeHnZtJiG4dSwBvgQH85rwRTFVsTFAebndWEUfKjJvQi6/qy+6blTF4j3D/bOpC
-	3DQ6svFZO4cWvXB+2bo3YfE5nEptap+9kJSj7sUfXPQj1qvjbADxsvP98lCMzbSH2kCTnKjlIY5d7
-	0OqXrnHBj6wK6dd63tzXtwVaE1fM1vmH6YKHsyDRDPtaYkz4lDmC3W+uOq2CX7NS7vT5wgwSeNyYQ
-	kufT7Sy2/6jtPYx36pv4nQV351cAb1cBF7SI+QnIYo1tWn2BoiKwsTN36O0p2VndDncK1kjvi976f
-	QBhwDIRzQEc/s1EqWbXumyxyjI4uyZ+ioUsQ==;
-Date: Fri, 21 Aug 2026 13:48:26 +0200
-From: Andreas Kemnade <andreas@kemnade.info>
-To: =?UTF-8?B?0JbQsNC80LHQsNC60LjQtdCyINCg0LDQtNC40Lkg0KDQuNC60LDRgNC00Lg=?=
- =?UTF-8?B?0L3QvtCy0LjRhw==?= <r.zhambakiev@prosoftsystems.ru>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
- <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, "Tony Lindgren"
- <tony@atomide.com>, Lee Jones <lee@kernel.org>, Grygorii Strashko
- <grygorii.strashko@ti.com>, Marcin Niestroj <m.niestroj@grinn-global.com>,
- "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
- "mfd@lists.linux.dev" <mfd@lists.linux.dev>, "linux-kernel@vger.kernel.org"
- <linux-kernel@vger.kernel.org>, "lvc-project@linuxtesting.org"
- <lvc-project@linuxtesting.org>, "stable@vger.kernel.org"
- <stable@vger.kernel.org>
-Subject: Re: [PATCH 2/2] mfd: tps65217: Check return value when masking
- interrupt sources
-Message-ID: <20260821134826.7b545130@kemnade.info>
-In-Reply-To: <20260821075331.131315-3-r.zhambakiev@prosoftsystems.ru>
-References: <20260821075331.131315-1-r.zhambakiev@prosoftsystems.ru>
-	<20260821075331.131315-3-r.zhambakiev@prosoftsystems.ru>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
+	dkim=pass (2048-bit key) header.d=prosoftsystems.ru header.i=@prosoftsystems.ru header.b="PTe9b0/Y"
+Content-Language: ru-RU
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: quoted-printable
+DKIM-Signature: v=1; a=rsa-sha256; d=prosoftsystems.ru; s=ps;
+	c=relaxed/relaxed; t=1787315840; h=from:to:date:message-id:subject;
+	bh=bu1SHAT7xs2VAk06+KdYv63N+oLn93/xM31KjZqEV/g=;
+	b=PTe9b0/YsrsDTPkqxIa2VUEvOgKxzLP5PJle7DaI1k0pEuVHCBUiT5JHc4EbMASqSRkuoUWtYFK
+	wnHjgECd6FgLHdFpRXVqC2j71OyUZlsveYgY+sfnzbHASRi6y/PQ+/HD+HR6W5hbpT21MNBzo0Xdf
+	1PdNXhAz4LlhEI2BL0i3+Ye06sAxiKaw7atTlW07Ty5RyasLXb1BYn5HtgJeuU5o5Ty4W8SLH6WCK
+	gR83SnWyRmX09v2GON1tuKu+hqsdp4k+IZa1aWybqA0JD1Vjn29Is9WTvh3rbcaJLZ8tVYRptbh//
+	R/IRV5o8PxTe0VJ5CWCq3hPaePNsho+mWe+Q==
+Received: from ECHO-3.prosoft.ural.ru (172.25.100.229) by mx.prosoftsystems.ru
+ (172.21.240.33) with Microsoft SMTP Server (TLS) id 15.1.396.30; Fri, 21 Aug
+ 2026 17:37:20 +0500
+Received: from echo-2.prosoft.ural.ru (172.21.245.22) by
+ ECHO-3.prosoft.ural.ru (172.25.100.229) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1748.39; Fri, 21 Aug 2026 17:37:20 +0500
+Received: from echo-2.prosoft.ural.ru ([fe80::8f12:4f85:56d8:13ed]) by
+ echo-2.prosoft.ural.ru ([fe80::8f12:4f85:56d8:13ed%17]) with mapi id
+ 15.02.1748.039; Fri, 21 Aug 2026 17:37:20 +0500
+From: =?koi8-r?B?9sHNwsHLycXXIPLBxMnKIPLJy8HSxMnOz9fJ3g==?=
+	<r.zhambakiev@prosoftsystems.ru>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+CC: =?koi8-r?B?9sHNwsHLycXXIPLBxMnKIPLJy8HSxMnOz9fJ3g==?=
+	<r.zhambakiev@prosoftsystems.ru>, Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, "Tony
+ Lindgren" <tony@atomide.com>, Lee Jones <lee@kernel.org>, Marcin Niestroj
+	<m.niestroj@grinn-global.com>, Grygorii Strashko <grygorii.strashko@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"mfd@lists.linux.dev" <mfd@lists.linux.dev>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "lvc-project@linuxtesting.org"
+	<lvc-project@linuxtesting.org>
+Subject: [PATCH v2 0/4] mfd: tps65217: Handle IRQ initialization errors
+Thread-Topic: [PATCH v2 0/4] mfd: tps65217: Handle IRQ initialization errors
+Thread-Index: AQHdMWnOkQkgK2QPq0qFaGofPzFq+w==
+Date: Fri, 21 Aug 2026 12:37:20 +0000
+Message-ID: <20260821123712.260443-1-r.zhambakiev@prosoftsystems.ru>
+Accept-Language: ru-RU, en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, 21 Aug 2026 07:54:02 +0000
-=D0=96=D0=B0=D0=BC=D0=B1=D0=B0=D0=BA=D0=B8=D0=B5=D0=B2 =D0=A0=D0=B0=D0=B4=
-=D0=B8=D0=B9 =D0=A0=D0=B8=D0=BA=D0=B0=D1=80=D0=B4=D0=B8=D0=BD=D0=BE=D0=B2=
-=D0=B8=D1=87 <r.zhambakiev@prosoftsystems.ru> wrote:
+This series fixes the error handling in the IRQ setup and teardown
+paths of the TPS65217 MFD driver.
 
-> tps65217_irq_init() ignores the error returned by
-> tps65217_set_bits() when masking all interrupt sources. A failed
-> register write leaves the driver's software mask out of sync with the
-> hardware and may result in spurious interrupts.
->=20
-> Check the return value and propagate the error to the caller.
->=20
-> Found by Linux Verification Center (linuxtesting.org) with SVACE.
->=20
-> Fixes: 6556bdacf646fcaa ("mfd: tps65217: Add support for IRQs")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Radiy Zhambakiev <r.zhambakiev@prosoftsystems.ru>
+Patch 1 propagates the error from tps65217_irq_init() in probe, so a
+failed irq_domain creation does not leave a NULL domain behind that
+tps65217_remove() would later dereference.
+Patch 2 propagates the error of the initial register write in
+tps65217_irq_init(), so a failed mask write cannot leave the software
+mask out of sync with the hardware.
+Patch 3 fixes the irq_domain leak and the resulting=20
+use-after-free when probe fails after the domain has been created.
+Patch 4 fixes the NULL pointer dereference in the remove callback on
+devices probed without an interrupt, quiesces the parent interrupt
+before the domain is torn down, and balances enable_irq_wake().
 
-Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
+Changes since v1:
+- added "mfd: tps65217: Fix irq_domain leak and use-after-free on probe
+  failure"
+- added "mfd: tps65217: Fix NULL pointer dereference in remove callback"
 
-> ---
->  drivers/mfd/tps65217.c | 9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-> index 2d04d9e0ae29..9a1528456ffc 100644
-> --- a/drivers/mfd/tps65217.c
-> +++ b/drivers/mfd/tps65217.c
-> @@ -155,8 +155,13 @@ static int tps65217_irq_init(struct tps65217 *tps, i=
-nt irq)
-> =20
->  	/* Mask all interrupt sources */
->  	tps->irq_mask =3D TPS65217_INT_MASK;
-> -	tps65217_set_bits(tps, TPS65217_REG_INT, TPS65217_INT_MASK,
-> -			  TPS65217_INT_MASK, TPS65217_PROTECT_NONE);
-> +	ret =3D tps65217_set_bits(tps, TPS65217_REG_INT, TPS65217_INT_MASK,
-> +				TPS65217_INT_MASK, TPS65217_PROTECT_NONE);
-> +	if (ret) {
-> +		dev_err(tps->dev, "Failed to mask interrupt sources: %d\n",
-> +			ret);
-> +		return ret;
-> +	}
-> =20
->  	tps->irq_domain =3D irq_domain_create_linear(dev_fwnode(tps->dev), TPS6=
-5217_NUM_IRQ,
->  						   &tps65217_irq_domain_ops, tps);
+Patches 3 and 4 fix the in-scope findings of the Sashiko AI review.
+The remaining findings, in my opinion, are out of scope for this series and=
+ may be
+addressed in separate follow-up patches.
 
+Radiy Zhambakiev (4):
+  mfd: tps65217: Fix NULL pointer dereference on IRQ init failure
+  mfd: tps65217: Check return value when masking interrupt sources
+  mfd: tps65217: Fix irq_domain leak and use-after-free on probe failure
+  mfd: tps65217: Fix NULL pointer dereference in remove callback
+
+ drivers/mfd/tps65217.c | 68 ++++++++++++++++++++++++++++++------------
+ 1 file changed, 49 insertions(+), 19 deletions(-)
+
+--=20
+2.53.0
