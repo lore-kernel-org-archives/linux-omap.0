@@ -1,111 +1,164 @@
-Received: from mx.prosyst.ru (m2.prosoftsystems.ru [46.48.77.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0905D419FBB;
-	Fri, 21 Aug 2026 07:54:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.48.77.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3330A4334CA
+	for <linux-omap@vger.kernel.org>; Fri, 21 Aug 2026 08:14:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787298849; cv=none; b=RNkWm4k0HnloCBxXDBytyMsqLdoRUc6kfUDnzEAYcs2UhevrAxWCKbHPzT7jTPwrptaYA/d1n4N2xkwxej/qlDW/79HnsC9nYQV+z8By2kwybmeUbyxRL4X5tmPSVccf+OQcILxDbsqah0+GO4JPRfaRWnDg/n1QtZ/URrkzS1U=
+	t=1787300052; cv=none; b=p5JLRmQLfhn/ikGf0SoMQbnbShuQort61/9dNFOVTmZCNinvh0uMM1Y+vi7TBMNP95sZy2ci2JZma0GEO9mGYO7dkETVe688q7Es2Pczl0xg9jwLzM2MenuqulJuAGevBbnml3CqtGiYBW+TGgHZIdHVKZuN/gMDdF0Tm+NIV9s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787298849; c=relaxed/simple;
-	bh=v9Uks2YX9bo6AmhoTDp/QPHUwX6o/1CJTfC/Z5FtFt8=;
-	h=Content-Type:From:To:CC:Subject:Date:Message-ID:References:
-	 In-Reply-To:MIME-Version; b=JAzEIxkBRWqEgBQai7Mn/akMCLEERk9q+SETp6lBTk2Ay2FC+4pww523ajtmwdWhhTwFdweg0oRrtZ7l9CJkQH9vt7HJZbhW5GxswcCFRJAwqgDV2PbbQgfbxHnhf1aWwk7OALjiwtlNRg9VQpTFyepFpiJTdVFeoCJaMjr9+wc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=prosoftsystems.ru; spf=pass smtp.mailfrom=prosoftsystems.ru; dkim=pass (2048-bit key) header.d=prosoftsystems.ru header.i=@prosoftsystems.ru header.b=ohrtSkRO; arc=none smtp.client-ip=46.48.77.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=prosoftsystems.ru
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=prosoftsystems.ru
+	s=arc-20240116; t=1787300052; c=relaxed/simple;
+	bh=mT24nnk/I1Ij9QrLvfDGHsOQ/vipjk4FsG8df0huinQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pltm1j0BhaygYqxdrQNNoSEnZsqCtTapaqePmwrcO57iO8UXZqER3ZAw8KTu6sTSNS+7mhcs4GU0ZFKIAaQROGLaIt630Fibe0hJYdJ0WqiLTbfvZC6TqQcejOruPhdK/IrNUXu9COFPR6C6zKlx1rFk2LORfmFEHn8qiwc9qcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=eTHZT69O; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=prosoftsystems.ru header.i=@prosoftsystems.ru header.b="ohrtSkRO"
-Content-Language: ru-RU
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: quoted-printable
-DKIM-Signature: v=1; a=rsa-sha256; d=prosoftsystems.ru; s=ps;
-	c=relaxed/relaxed; t=1787298842; h=from:to:date:message-id:subject;
-	bh=d80hrUiBWS9VMj9C77oH8JPtF3ywVPvFIRx5zJTX2u4=;
-	b=ohrtSkRO3AjfnuG92xRF8lPJsqnSbhKORWGPolUTnWlDj9HrFFc6WgzuNPsGI0U7nFvjGKgWjLx
-	5TAFJUAxhcoB6LaHMn2YHWFbujli9tyxyg2vSYUg0xnqncmlgmPMcO+13y5y+ih74p6cRQxSa6u11
-	Lb82DKpr6jEJClSIFsDM7XvQFgbmHeeKGV63V3/eLSrgAnlPxWe19k9ljPDHO1GB02qq1ddjyv1Hz
-	8szpd2RvO5n+LYw/p0rAbz4mHbPBmAdy5iO30BXDpTOC6xYroKM2GTWWoNSIENjLyAnqq+qAIuCfz
-	bbQYjrsB5nJUdmJmnZydBnuYqiuSnUKCxt8Q==
-Received: from echo-2.prosoft.ural.ru (172.21.245.22) by mx.prosoftsystems.ru
- (172.21.240.33) with Microsoft SMTP Server (TLS) id 15.1.396.30; Fri, 21 Aug
- 2026 12:54:02 +0500
-Received: from echo-2.prosoft.ural.ru (172.21.245.22) by
- echo-2.prosoft.ural.ru (172.21.245.22) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1748.39; Fri, 21 Aug 2026 12:54:03 +0500
-Received: from echo-2.prosoft.ural.ru ([fe80::8f12:4f85:56d8:13ed]) by
- echo-2.prosoft.ural.ru ([fe80::8f12:4f85:56d8:13ed%17]) with mapi id
- 15.02.1748.039; Fri, 21 Aug 2026 12:54:02 +0500
-From: =?koi8-r?B?9sHNwsHLycXXIPLBxMnKIPLJy8HSxMnOz9fJ3g==?=
-	<r.zhambakiev@prosoftsystems.ru>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-CC: =?koi8-r?B?9sHNwsHLycXXIPLBxMnKIPLJy8HSxMnOz9fJ3g==?=
-	<r.zhambakiev@prosoftsystems.ru>, Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, "Tony
- Lindgren" <tony@atomide.com>, Lee Jones <lee@kernel.org>, Grygorii Strashko
-	<grygorii.strashko@ti.com>, Marcin Niestroj <m.niestroj@grinn-global.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"mfd@lists.linux.dev" <mfd@lists.linux.dev>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "lvc-project@linuxtesting.org"
-	<lvc-project@linuxtesting.org>, "stable@vger.kernel.org"
-	<stable@vger.kernel.org>
-Subject: [PATCH 2/2] mfd: tps65217: Check return value when masking interrupt
- sources
-Thread-Topic: [PATCH 2/2] mfd: tps65217: Check return value when masking
- interrupt sources
-Thread-Index: AQHdMUI7Rk6iTnyhQ025GACpPton4A==
-Date: Fri, 21 Aug 2026 07:54:02 +0000
-Message-ID: <20260821075331.131315-3-r.zhambakiev@prosoftsystems.ru>
-References: <20260821075331.131315-1-r.zhambakiev@prosoftsystems.ru>
-In-Reply-To: <20260821075331.131315-1-r.zhambakiev@prosoftsystems.ru>
-Accept-Language: ru-RU, en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="eTHZT69O"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1787300049;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=9dHyc6OyWyfr6wGCZseIDHPnwffk4iAkg01WX+1mfkE=;
+	b=eTHZT69OjAe5oxeHaDD+dcB3Rh4b784T3lKiFba29ZjVDrsUxifDSlG3HvK6oVyp5Ofe04
+	uTdX8EsDrxkOfWPaW/TY7OLOiusgzv0L7RHl2XZvNu71RVmppmoZRYR29Olp4Wx9BU+usp
+	Crpxa3fTDLEWE65RlseSJUmsIQNFNvA=
+Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-650-d0cUIMXaOmudE7mjPq5s-Q-1; Fri,
+ 21 Aug 2026 04:14:04 -0400
+X-MC-Unique: d0cUIMXaOmudE7mjPq5s-Q-1
+X-Mimecast-MFC-AGG-ID: d0cUIMXaOmudE7mjPq5s-Q_1787300043
+Received: from mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.111])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 203E91800149;
+	Fri, 21 Aug 2026 08:14:03 +0000 (UTC)
+Received: from thuth-p1g4.redhat.com (unknown [10.44.32.129])
+	by mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id E9190180034C;
+	Fri, 21 Aug 2026 08:13:58 +0000 (UTC)
+From: Thomas Huth <thuth@redhat.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] ARM: OMAP2+: Replace __ASSEMBLY__ with __ASSEMBLER__
+Date: Fri, 21 Aug 2026 10:13:56 +0200
+Message-ID: <20260821081356.165038-1-thuth@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.111
 
-tps65217_irq_init() ignores the error returned by
-tps65217_set_bits() when masking all interrupt sources. A failed
-register write leaves the driver's software mask out of sync with the
-hardware and may result in spurious interrupts.
+While the GCC and Clang compilers already define __ASSEMBLER__ auto-
+matically when compiling assembly code, __ASSEMBLY__ is a macro that
+only gets defined by the Makefiles in the kernel. This can be very
+confusing when switching between userspace and kernelspace coding, or
+when dealing with uapi headers that rather should use __ASSEMBLER__
+instead. Let's standardize now on the __ASSEMBLER__ macro to avoid
+this confusion.
 
-Check the return value and propagate the error to the caller.
-
-Found by Linux Verification Center (linuxtesting.org) with SVACE.
-
-Fixes: 6556bdacf646fcaa ("mfd: tps65217: Add support for IRQs")
-Cc: stable@vger.kernel.org
-Signed-off-by: Radiy Zhambakiev <r.zhambakiev@prosoftsystems.ru>
+Signed-off-by: Thomas Huth <thuth@redhat.com>
 ---
- drivers/mfd/tps65217.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ Note: This has been split from an earlier bigger patch of mine into
+       this separate patch to ease reviewing
 
-diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-index 2d04d9e0ae29..9a1528456ffc 100644
---- a/drivers/mfd/tps65217.c
-+++ b/drivers/mfd/tps65217.c
-@@ -155,8 +155,13 @@ static int tps65217_irq_init(struct tps65217 *tps, int=
- irq)
-=20
- 	/* Mask all interrupt sources */
- 	tps->irq_mask =3D TPS65217_INT_MASK;
--	tps65217_set_bits(tps, TPS65217_REG_INT, TPS65217_INT_MASK,
--			  TPS65217_INT_MASK, TPS65217_PROTECT_NONE);
-+	ret =3D tps65217_set_bits(tps, TPS65217_REG_INT, TPS65217_INT_MASK,
-+				TPS65217_INT_MASK, TPS65217_PROTECT_NONE);
-+	if (ret) {
-+		dev_err(tps->dev, "Failed to mask interrupt sources: %d\n",
-+			ret);
-+		return ret;
-+	}
-=20
- 	tps->irq_domain =3D irq_domain_create_linear(dev_fwnode(tps->dev), TPS652=
-17_NUM_IRQ,
- 						   &tps65217_irq_domain_ops, tps);
---=20
-2.53.0
+ arch/arm/mach-omap2/control.h | 8 ++++----
+ arch/arm/mach-omap2/soc.h     | 4 ++--
+ arch/arm/mach-omap2/sram.h    | 4 ++--
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index 7e7440533bf90..e4f4b16958084 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -18,7 +18,7 @@
+ 
+ #include "am33xx.h"
+ 
+-#ifndef __ASSEMBLY__
++#ifndef __ASSEMBLER__
+ #define OMAP242X_CTRL_REGADDR(reg)					\
+ 		OMAP2_L4_IO_ADDRESS(OMAP242X_CTRL_BASE + (reg))
+ #define OMAP243X_CTRL_REGADDR(reg)					\
+@@ -36,7 +36,7 @@
+ 		OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE + (reg))
+ #define AM33XX_CTRL_REGADDR(reg)					\
+ 		AM33XX_L4_WK_IO_ADDRESS(AM33XX_SCM_BASE + (reg))
+-#endif /* __ASSEMBLY__ */
++#endif /* __ASSEMBLER__ */
+ 
+ /*
+  * As elsewhere, the "OMAP2_" prefix indicates that the macro is valid for
+@@ -503,7 +503,7 @@
+ #define		FEAT_NEON_NONE		1
+ 
+ 
+-#ifndef __ASSEMBLY__
++#ifndef __ASSEMBLER__
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ extern u8 omap_ctrl_readb(u16 offset);
+ extern u16 omap_ctrl_readw(u16 offset);
+@@ -534,7 +534,7 @@ int omap_control_init(void);
+ #define omap_ctrl_writel(x, y)		WARN_ON(1)
+ #define omap4_ctrl_pad_writel(x, y)	WARN_ON(1)
+ #endif
+-#endif	/* __ASSEMBLY__ */
++#endif	/* __ASSEMBLER__ */
+ 
+ #endif /* __ARCH_ARM_MACH_OMAP2_CONTROL_H */
+ 
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index 9e3dbb743e5c4..b3949559edadf 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -19,7 +19,7 @@
+ #include "am33xx.h"
+ #include "omap54xx.h"
+ 
+-#ifndef __ASSEMBLY__
++#ifndef __ASSEMBLER__
+ 
+ #include <linux/bitops.h>
+ #include <linux/of.h>
+@@ -501,4 +501,4 @@ level(__##fn);
+ #define cpu_is_ti816x()		soc_is_ti816x()
+ #define cpu_is_ti81xx()		soc_is_ti81xx()
+ 
+-#endif	/* __ASSEMBLY__ */
++#endif	/* __ASSEMBLER__ */
+diff --git a/arch/arm/mach-omap2/sram.h b/arch/arm/mach-omap2/sram.h
+index 030cabc39821d..a1d72e014e62b 100644
+--- a/arch/arm/mach-omap2/sram.h
++++ b/arch/arm/mach-omap2/sram.h
+@@ -3,7 +3,7 @@
+  * Interface for functions that need to be run in internal SRAM
+  */
+ 
+-#ifndef __ASSEMBLY__
++#ifndef __ASSEMBLER__
+ 
+ extern void omap2_sram_ddr_init(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
+ 				u32 base_cs, u32 force_unlock);
+@@ -48,7 +48,7 @@ extern void omap_push_sram_idle(void);
+ static inline void omap_push_sram_idle(void) {}
+ #endif /* CONFIG_PM */
+ 
+-#endif /* __ASSEMBLY__ */
++#endif /* __ASSEMBLER__ */
+ 
+ /*
+  * OMAP2+: define the SRAM PA addresses.
+-- 
+2.55.0
+
