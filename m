@@ -1,67 +1,68 @@
-Received: from mail-pg1-f177.google.com (mail-pg1-f177.google.com [209.85.215.177])
+Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A996D3CF21A
-	for <linux-omap@vger.kernel.org>; Sat, 22 Aug 2026 15:08:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5856D3C13F5
+	for <linux-omap@vger.kernel.org>; Sat, 22 Aug 2026 15:08:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787411289; cv=none; b=YZFKCc1Fa1cD29q+JeHT2OO3vtQcoKAI3Iwpj4BCha7ZHrHo4fs516MpAzw+u44O6YyAUgi5lfylgP0Hl1/2urHZjiL/K1JTFlaZuNRv7CrNHM3+6uFzuitE4ZHCX6ByIlHcQrb2nj6dZ3Jk9OevPyWWpJjjAVIkctG/a7zh764=
+	t=1787411295; cv=none; b=iZa3WTIGwxvyhW/0lW3dqJDRsS13iQR3+e053Vn029NwULlJniQdqveO2MIlUOE5XRPiSCH7avUUMo3ZQm62DpGgJLUfn15F8xa4BTHZYkYqTGb5YuKw3HSPsIJuGKWu05/FAI/ZvoEKV+wMZrd0SKq8lGpLb9Zgjav7u6IAHU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787411289; c=relaxed/simple;
-	bh=iqwaq39/Zpa0iH6/a6W3yQV4x79xW81LRfZe/TmtbhQ=;
+	s=arc-20240116; t=1787411295; c=relaxed/simple;
+	bh=B23Kydln9+sFNwl/EddPsXeSNGxgpJc+Bv5D8Nfp/CM=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=VcIK/GY2P98faYrKHwFQkjJiV55kMJcKnbKd/xR6pq8FZcC3zEgkwexcaq5RUnBJglJExYBy4wbN1SPG53oyUiRfmARqxT6JTAYOR+xMK8bwF97Ver71ivxTyFzYdp+nP3U0Fen4M4wsx23QPsWR9UrTa9hxqD7CJCHWU4LcIeI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QJPwKErX; arc=none smtp.client-ip=209.85.215.177
+	 In-Reply-To:To:Cc; b=bnybP+/62KPsz12rOpr0dZrKANwyCjCEk58hjBkdnJuc9afvVDAFPP/sQgAiuTFfloGHz7UCHVHBr3Ko2Kfxx0fUgfV7bTpTvErrbD5+oHcZSHM50fdRsStr3sRxNTnXL8zz5o6mtyzTAVnAlX6oscTT/bhvfRMK7nXCShVF8Kw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=sfroaLax; arc=none smtp.client-ip=209.85.210.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QJPwKErX"
-Received: by mail-pg1-f177.google.com with SMTP id 41be03b00d2f7-c966b9ee9cbso1434351a12.1
-        for <linux-omap@vger.kernel.org>; Sat, 22 Aug 2026 08:08:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sfroaLax"
+Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-84830c774a0so2291725b3a.1
+        for <linux-omap@vger.kernel.org>; Sat, 22 Aug 2026 08:08:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787411288; x=1788016088; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1787411294; x=1788016094; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=3WRamQXpDUK+MxHYzTl3WtRIEBUdJqjnF0kXvecvEq4=;
-        b=QJPwKErXINwroUyaBXwl7z+C7w4M53TYAvgwn2DaJp6gIJWHI+iU5A9PKm+/N1kX3q
-         rdtAzEUb4LUd82+2yup3iqXdDsInAuS9e+d9EP5v+Imefb5Zy8ODllPyenWkmCDIgkh7
-         4l8bSDwl/aziD+YFS8Zlb7oOMuPHniVFexo1XFsNP3iPhW/AJbdnRRppRKi7m+DVxD7h
-         d7v7XMhR/W4fMQ3/gj3BFC89+eU6WM4TayhOPnh3WIA+VKqfj7WGJLTBxd+qDYEEzFHH
-         xeGenPtNVEE7g3iXPu88tblzUdBMBzru4YYj+0xyHqaUiZZqzxc9uqdFZQbfrxuXH/py
-         5QWg==
+        bh=7/zhBj9KsrWu1iz3uRFGRfIc5hKkqLHf63XbozGChRc=;
+        b=sfroaLaxYUfoSaeQ/atwN8JuYjCSALC9mC5xCx6sF+524JQ7rfY5vLRJDlHMq/Y5db
+         6vDRF4NerW6nLO7WcoHY/my1AOcIp+pnKy/6UecV9c6B/EpgueiRgyhbSezXELfiAaJ9
+         iHIit0wlX+NMT+piVs9CFbsQMkuTA4WsLsM/pMt5kjMt6I10jinjL56ULG17iRWDWuB1
+         CuF7KIeeG4hHly9Meo9sPFaWBiO+Nt/rTZrh14MjCeQcRGIVecmyEZCEqL2ncsAJ/o+/
+         WRg6d0LMZodoG6FMUJXjdHfEpyvM2RbuHzZN/7y5NOblMd5DASfK8aZVot7M5nK+1K3Y
+         G6pg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787411288; x=1788016088;
+        d=1e100.net; s=20251104; t=1787411294; x=1788016094;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=3WRamQXpDUK+MxHYzTl3WtRIEBUdJqjnF0kXvecvEq4=;
-        b=SIGQp5jkw0WUQd/89fXTGf8r40VpqUIKRLhiqgL4+9r6v+EnXNjFn8/xDia8zdFGJe
-         2z8VP61C+26ftrCBaN17tOOiQAmFeflgdqqNhXQl5AKCnQPSoqJ5BLnCYLEi/OSPGnxQ
-         x/htT08YYWZAyxHQ5SWAspu26q5QYrTbpO+CWw6AqasPYuqY5H9BBC6GRoJg7sBAVw28
-         gtO6N8xNg4AQxL8P6DAEewSTB0wDNdND9ckEhA+U7KkbFyTv4zTlgGt+oz3MAEqRTn8S
-         LhDzknrZtNEGhUeG/3UHmHXEe5XJNnGLUB/VvAybITMuUPcWWRiv15Uaz8eS9MlI1Ea8
-         9KBA==
-X-Gm-Message-State: AFuF++m3fG/pSQjuZbWsrx5LrJsBwNjHd0LROU4WVnInVjpHcSB5AGDB
-	EgBCsoQIYexOo2g0siEpxlDdOXJffKbSwj5wwdPjPq4cw+NBY6Nqyq9ALCwoecmAYyI=
-X-Gm-Gg: AR+sD12nZmPdFcTYAx/I6xgN3jzp6x+SZhmGgxpvQqt0Npz0N6xMY/jaWZ1DGPd0jko
-	TG1FWeaLoXuJHVWO0U8oTl5d0PJ2I8EPn/KsDLxbxdxi13PLRFJVkY0Xz9AfAHdvTe0TnvSKU3q
-	4x1lmS7naFdZhCmzJz5xDh7w8eBtgHgiGRocn9D0tkUs3CTdy8ve1ZO6a24V55lFWHIXA1nfo4v
-	6i2sItZdiWG3LLLJb2Fn6EIKMl/cWzB3zZPS2vxm5I1PSMYs/UrRWCDyy6KPX2ZBoZdMYYGCoLU
-	UFeujFv5PlHVqTUI/F/W4VdLxKAQ7byNOY2AuLonOQFByjuyIXqRhpZFYeJEtpkB+GecoP36/pI
-	xSF8KUFassGZ+AY+wKAlniuuM8Jc4cAdLs5gNV7m9uG/GrD6sfB6LI60eHLLADgXikBiI1u9r5H
-	2T3wV5ij1tgh0DRuROXpcT2H8lNNMxt7xwH0avTOtGuOxptRv4t7iMLOgUvZIGHwvj1ZTKOOIAA
-	jLeUdmrqEqpG1iVHSJQRQm8cbiVxtkns/harFkDPJuqVdJ1+v5cUijHJfpkIA==
-X-Received: by 2002:aa7:88c4:0:b0:82f:2b0:2809 with SMTP id d2e1a72fcca58-8520b942d1fmr10233534b3a.1.1787411287768;
-        Sat, 22 Aug 2026 08:08:07 -0700 (PDT)
+        bh=7/zhBj9KsrWu1iz3uRFGRfIc5hKkqLHf63XbozGChRc=;
+        b=GVGbnljaIvaJe/r3l72wp6+swtVb8sOwDIpnx8OhwKXAJ0f7wwyxKhqm+I0T3x80JQ
+         PxV07+EMr6itjcTMUYhxu6I+T9+NcYpeRtkmdS/0QHFC5JQShHpmCuR79VoovKyzX8lG
+         q7Ar6DHPNVNXfAyKFQQ9oaUBULHmArTLwpVi59m7KaPZefuCF5MvV/XaIOThKrkRzQXu
+         fzUVuDe/XMrVjGsSp5N4eyiahx6zPzRqVbq16S2CUa6frsk49MgcOAD5Q0L310qW8nEM
+         RZm6rTfm+scqq31bJXMQW8r37bbPn+KriCYW7xwFbHh/VktoKaCn33wWmVzHwCKJhjUX
+         R3dw==
+X-Gm-Message-State: AFuF++kDeeTh7579/szuag/+gcBL+Gjp4tUjhsGX1i4i4j6F5DSnW5AC
+	uNWs9kFMfskA4HA2RCfSf/HNqh7jsStcsGiNyw9YZ36el88lMBih9RXMe6ocXuPcHwQ=
+X-Gm-Gg: AR+sD11jinFV4qbp2vS2tT4GB7qZcFMOuZQf6Svh76RqZRUYoQTBdK+L1FmbKGCLiql
+	X6Skk1RgkxMFltjg3SWgT5F/nW1coPdveQsZzP6AIpgAcb9VYW2h1tFo78G9Hnp5LXsMBe7/aDL
+	x7/zjLPlyxTbwTq0RxXdKKi6Xbv557py0d+i9ExjzbiaIdnyH086QI3ZGpr8AoP9BDFIQBcLmtC
+	581H/u9aiiWzLtfSk8X8FZ1P0kNliV0H19FFGggqomIFwPBRrOHWeiAz5n0DLgCWvkr4BDF/4L1
+	kEuHGVSu+rtzgBGxIY1MzdkxX+0zkSgDn8rwUUfefXMUW0MiY8PNWU/DE1AyV8QQ5XOu4qXOU+t
+	uVlH3f9bMSS2IQZu5cHBB/Fi/gEuhHSlvhrPyeyR/soFnRYNHiEeTvN5Hx0D9LlYkZ43ndcxJnp
+	jutPXzA6p13kGeA5aoY17MM4/NXnjDCLIOYf2pm9HYwAZi8SIEYEGxBKzw3sXp+fUER5Ordm+yr
+	xorzkYab+fBSfvnfywvyy/9zuVXqWk0Uc6b94YNoTiasi4u45uB+cTP
+X-Received: by 2002:a05:6a00:14d4:b0:84a:2fff:cef9 with SMTP id d2e1a72fcca58-851f9f84b8emr18586843b3a.13.1787411293482;
+        Sat, 22 Aug 2026 08:08:13 -0700 (PDT)
 Received: from junjungu-PC.localdomain ([223.166.246.74])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8520f03b1ebsm628242b3a.30.2026.08.22.08.08.02
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8520f03b1ebsm628242b3a.30.2026.08.22.08.08.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 22 Aug 2026 08:08:07 -0700 (PDT)
+        Sat, 22 Aug 2026 08:08:13 -0700 (PDT)
 From: Felix Gu <ustc.gu@gmail.com>
-Date: Sat, 22 Aug 2026 23:07:47 +0800
-Subject: [PATCH 1/3] PCI: dra7xx: Fix clock enable leak on probe failure
+Date: Sat, 22 Aug 2026 23:07:48 +0800
+Subject: [PATCH 2/3] PCI: dra7xx: Fix device link leak when devm_phy_get()
+ fails
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -70,7 +71,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260822-dra7xx-v1-1-23e204d5548b@gmail.com>
+Message-Id: <20260822-dra7xx-v1-2-23e204d5548b@gmail.com>
 References: <20260822-dra7xx-v1-0-23e204d5548b@gmail.com>
 In-Reply-To: <20260822-dra7xx-v1-0-23e204d5548b@gmail.com>
 To: Vignesh Raghavendra <vigneshr@ti.com>, 
@@ -85,47 +86,43 @@ Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org,
  linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
  Felix Gu <ustc.gu@gmail.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1787411275; l=1209;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1787411275; l=1121;
  i=ustc.gu@gmail.com; h=from:subject:message-id;
- bh=iqwaq39/Zpa0iH6/a6W3yQV4x79xW81LRfZe/TmtbhQ=;
- b=JQwJxBp9JSiXLkuvgP9DsAqIhnNVN95oebkqBf5QP+o8m9TooJuuD3/GmQ47Qgmh0RJ1HbYN/
- XhZFZF9+3GCASDzQMKX+JxGYZMzSbVHilzqclpMzDdh1CfPZODqjapy
+ bh=B23Kydln9+sFNwl/EddPsXeSNGxgpJc+Bv5D8Nfp/CM=;
+ b=TX1ESX7RK6u/H0zkVg6E0SCFWHpFzbnS5YCn4VL1Y4bMfduClDLmt6rcMJoaUKwAyiOBXMhmO
+ cENEnoJzPM9DLryFJyE8Xfafq84ILfLThjpcV/5SGBtHXPuUruKAjOu
 X-Developer-Key: i=ustc.gu@gmail.com; a=ed25519;
  pk=fjUXwmjchVN7Ja6KGP55IXOzFeCl9edaHoQIEUA+/hw=
 
-dra7xx_pcie_probe() enables the optional clock but never disables it
-when probing fails afterwards.
+When devm_phy_get() fails, the code returned immediately and left the
+already created device links behind.
 
-Switch to devm_clk_get_optional_enabled(), which disables the clock
-automatically on failure.
+Jump to the existing err_link cleanup instead so those links are
+deleted on failure.
 
-Fixes: 5af9405397bf ("PCI: dra7xx: Get an optional clock")
+Fixes: 7a4db656a635 ("PCI: dra7xx: Create functional dependency between PCIe and PHY")
 Signed-off-by: Felix Gu <ustc.gu@gmail.com>
 ---
- drivers/pci/controller/dwc/pci-dra7xx.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/pci/controller/dwc/pci-dra7xx.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-index 6ae5b27e27b3..d43253f7dea6 100644
+index d43253f7dea6..bf32b14436f9 100644
 --- a/drivers/pci/controller/dwc/pci-dra7xx.c
 +++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-@@ -732,15 +732,11 @@ static int dra7xx_pcie_probe(struct platform_device *pdev)
- 	if (!link)
- 		return -ENOMEM;
- 
--	dra7xx->clk = devm_clk_get_optional(dev, NULL);
-+	dra7xx->clk = devm_clk_get_optional_enabled(dev, NULL);
- 	if (IS_ERR(dra7xx->clk))
- 		return dev_err_probe(dev, PTR_ERR(dra7xx->clk),
- 				     "clock request failed");
- 
--	ret = clk_prepare_enable(dra7xx->clk);
--	if (ret)
--		return ret;
--
+@@ -740,8 +740,10 @@ static int dra7xx_pcie_probe(struct platform_device *pdev)
  	for (i = 0; i < phy_count; i++) {
  		snprintf(name, sizeof(name), "pcie-phy%d", i);
  		phy[i] = devm_phy_get(dev, name);
+-		if (IS_ERR(phy[i]))
+-			return PTR_ERR(phy[i]);
++		if (IS_ERR(phy[i])) {
++			ret = PTR_ERR(phy[i]);
++			goto err_link;
++		}
+ 
+ 		link[i] = device_link_add(dev, &phy[i]->dev, DL_FLAG_STATELESS);
+ 		if (!link[i]) {
 
 -- 
 2.43.0
