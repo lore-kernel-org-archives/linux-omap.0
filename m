@@ -1,79 +1,74 @@
-Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
+Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9A283AE701
-	for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 18:11:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0406D3B71A3
+	for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 18:11:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788199873; cv=none; b=VzHZ/k7OQ8F7NcI4AYocAn/zxqdlt7A8K5URDbk+4YvUkEJA7dfLv0Zu33Uc9M9Zuc6a7hSqMwdcMDZ90MHPCm70ZJrBPW1/fhEOz3Vhrlv/oG7l3VbFSqDzRCBsW7tUy+tnM+ER39dH6M5+VbJ7hPTEcM7DxSfmbY5p9nHDWU4=
+	t=1788199873; cv=none; b=lsgl5rctm2nqDhvWZBhY+/UCJU8l4eCiQFtwX+4fZBeOtt2YmvfqeAXSauhG+Do6uwI74bEC6YiuVHVrtl28gCVWvr2H6Ke7/oSpka00HWvlY1JW85/SKD7RXSovl5toK/kaONBuLjm2zSCDHRq4gYOu7wdYy9MZevwZ2qPgW4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1788199873; c=relaxed/simple;
-	bh=VX9aq1/R5RrwRZmL7z7ZO3HDaJciT4M9uo4YXELNbqI=;
+	bh=YRdUvAeYdGRBs9Hw9METEgdNfX2XDDpkD3Fb6bsmtfc=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=elNwidSxp/lKF9ajMZu7AYTiDKPenkJzYhHGiIvYy/rjjybaa9dKmNSfP7tZx9cFwV2cHInCnNA+xpDFyTzYFwGUNgFcp67q6lVSb0P+Nt5FghBEyeIGWzqeJZgjAB5foaiaVP1TunbA+jBCOHHWSR9NReuV6AfSpw74tjrQ9uM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=fBfCCKAR; arc=none smtp.client-ip=209.85.216.47
+	 MIME-Version:Content-Type; b=nSzDAoZvDgyyLBuGskJQqxup6Cp6JMPQpn5DSbz4q7QlS71P3447D7Vuh7KD3RV0grsTIAt3t2TUaQEAgjUeBH84aWA3Tqzs/Fh/2uUiR9cXdr7DQNUf5c7vcQOyVO7qdriHG7tEeCjjCsX5S20kdPIFgimyIdKaeZPhdjR848U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=F9uJQNaU; arc=none smtp.client-ip=209.85.210.181
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="fBfCCKAR"
-Received: by mail-pj1-f47.google.com with SMTP id 98e67ed59e1d1-38a0c7e841fso85989a91.2
-        for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 11:11:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="F9uJQNaU"
+Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-8541875f596so2057819b3a.0
+        for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 11:11:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1788199870; x=1788804670; darn=vger.kernel.org;
+        d=baylibre.com; s=google; t=1788199871; x=1788804671; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:mime-version:date:message-id
          :subject:references:in-reply-to:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=1Wrt3p9UIC2EP+ugVnAYAftXrBkKybsqm1b51KtSzCs=;
-        b=fBfCCKAR9qEL2RzDJqdpp8hVecn3yNx0in8YWyfJ2MdIc4Xa3yHrYOhu6WjNAWIAez
-         HJ1NAky5+sNAFQsvKKvoIUdSQiAs+dZ2fxaFsdivwomgbRkRk4AFaVI2YsUUzzzxBhsh
-         wR4sDoeYlBL8fuRnlWstCEgxWvg1UQCeGiU4CxauGrtDZTIUqjgRPElejWFB9b2cgmq1
-         /rRYvIm7grg6NlP6/hjfH2mxFyY1EYSiI8BN+YCtjbe9yfwTX07WPAtisr5Ju8cA1FB1
-         4/0Sxeq1gIRWBhCcz8wZ4wiJnnlH63T7yLUrj9mNeA4mEBYiVkVDQoiKS45vgNYZNdST
-         F4Dg==
+        bh=bP3yBnej/1dS8o9eVuCwTXKp4H0+6SfILlIQPCeMips=;
+        b=F9uJQNaUyDeyDf+bOOlBDqM6kEumRUD5874g29W8jtvO1hoXwGbalGuw62lGjfBt4H
+         E+yANMorCkZ1rWZivRtufxuXka+HJZU+jUIOm5xexc1UGqxbTFMUXxOY8UIdnJ0t5BbV
+         dpHPBCE60MbM0aNX+io5REMkT6jD3EIZ1nbiRDJyDkHtaO8Nm4g5uud4fI2IlAIPkatZ
+         o4e7WW3EWIAFeaKE6eYem+BSwctYvp4i/41dzkwreaEvgWyPAU2MKyd6TA+hUv0o6PRL
+         4DKbRqepd+ZbFOT5Tcyd4BHmI1BhlQQMhpHfUWjblMEUEUjXirHfOFYq56mPv3VxyOOJ
+         /feQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788199870; x=1788804670;
+        d=1e100.net; s=20251104; t=1788199871; x=1788804671;
         h=content-transfer-encoding:content-type:mime-version:date:message-id
          :subject:references:in-reply-to:cc:to:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=1Wrt3p9UIC2EP+ugVnAYAftXrBkKybsqm1b51KtSzCs=;
-        b=Mo+mL5UMICk95dWTS6bcxX7s3UEFdx2KCp4p9CF7Sjp+TV1YFoXcEDPcxNMz+KHxAW
-         3UzsWetYeh2dM/whVC8spRKInCVtIXS1leSJphCRt8hG+4tvkwSTfJ+HUIcGVDpj+/To
-         g8oL+kTXMCUvDWeVfB2GVavDys6Qw8/rEywGV3cea6NziElfx/GgwtW9h4qJekDJKxHL
-         lwOg98BwDY2ZC6PEkGVnILH6bdlzMRELyGgFjx2ZzHn/3z2Nfm1FbXUEuCPigrH2/nOS
-         I6GG/tvsWyNcnNi0xKbZwgggr8a4ay6Cyi3q4A4CYWWy4yNvDPQ59OMOko2pONuujCvk
-         4NNQ==
-X-Gm-Message-State: AFuF++kMlsTI+7iFQmqgl/FpnK9HMtWTMEQIMICBWT+UivJrwD/FzJV8
-	AgKtZkrCIIBjhtxstMWegp569R2qZ2lsnJYbgLBifUOS9Rxi4oAcUt9v4Xfw/TuFrjQ=
-X-Gm-Gg: AYBFou2PyJmSsp4+NPMzEJiFy9npCnlQLlXIlNEmvil0kj0A6veQ2EopOD/m504Q1Ki
-	bFHyKghVPYQCQvv/rmuS3CkLYP8Ymndk6g4B/hTcZEJzFvg8tU7PQkoJ6N9MfmGkqnSdSwm6kZg
-	+AcmCMeUyd7zk7H+caIxs/fc+8zREoF/XFNCLzMfTIm9aYzFRrpZFA/3/+jyPAC48S9G8JutEFL
-	i5kVwSN2nIfOzFM71gZx/hOIktNkQJCh+LsM/zs7plLU0Fxzr6XGmKdMpurP3+pOJt/dBwql7Tz
-	87Awiqjc3zxhcifvF0Ka6CiB1/xdi3O8HIx9dm1SlBTk4ekmhKEbGUH/dKFJ08nJKOPb34wNLFr
-	SjN4mTgqL73milSODMFe2ojUikhl9LXylA5/cjd8/TQukZbdz+BmwDhGmXJcmXvIYUF1tycDrLB
-	B+PzIYuHh9weQ0Hx6eDLANXRQslRZ/dxtbz77YkbiWaRFfCX37iI7UuBAAyw==
-X-Received: by 2002:a17:90b:2b90:b0:38a:c3f:3b87 with SMTP id 98e67ed59e1d1-396d0fce294mr46228745a91.12.1788199870028;
-        Mon, 31 Aug 2026 11:11:10 -0700 (PDT)
+        bh=bP3yBnej/1dS8o9eVuCwTXKp4H0+6SfILlIQPCeMips=;
+        b=gMoM9964Wjj7nuS9c2PZl4KiSxE+gNmoA0MRz/yy6lNpb7J3qcm8bQI6VGOKJNsxGk
+         8QAfMJJx8gtIPE0kaA24nByuXezhIsmdu8VDHyYjGoCC8OHa3GGo0WcPTBvxCEziWKOF
+         KDMicyjfY4MPqaL1UwyIBdJZXSoOoRgyV78+BzcmtTZJVnNwZQ86LA4L/ivupD1NxoVH
+         eF5Pnk4ym6Fi4HL86FDzHbZu9y8WcuZ1cn72cC7J61BBhxmas4lgmMmwBt6+zGiPa5SW
+         2jqRMcc7cAvATqbAwOldaVL1g4qdN4dnZMMzmXneNvTEsJXRoc8uhH90HVIIPK8uUYPp
+         mZzA==
+X-Gm-Message-State: AFuF++lUGRESUtGtUD7vYcoSWzw42ct8OxvqsUaXUb3vn/5oFWg8Amc9
+	TuHEksu4mbzpMBsecZ46qAgWpFAnRdWSwJaZKzBj8+2fi+6QSQQwaGo/l0ctVRWhs3t16Z3Yk9g
+	/3uHl
+X-Gm-Gg: AR+sD13Qqj63U6NM4k5mG2sZ3zD3Ln9ev6qesDoIuISeoZSxjmPRMv7HnSGqvldKrfr
+	c6ZYhh2zSvy0B5/ado3mwzBNzucJXBqDx70aLYCemTaOHGWZmgZBvgjqv4m1vfI5NpbnBAy9K0L
+	k3u3w5BAb2/oBbXbEuvF9C8mF133KD6fvR2GPVXp/8Pe4ddyi6yWu/lniCX0X5pizclI25187Jo
+	dRr5N/g1ckh8uxqdBUnAmTD9Vl9Dzt2a9aiCm7aKAPXsqSEHqUC/X2/rjzB8Jhvb24JkahiTX0Q
+	nhKC+0lNqODiNDS6S6utTjeB4sfUVsTHbN7kcZHBQ/FtdcYtejSYfwzJ4pKiAa+6OUo7mN9Mcjy
+	JxnpMXqShS7N67TbTV6AZ5EB0CEpM+NDRuE1Axx0EkHyfeVrMO9xOkEeDa/lKZmQ7+MjOZ604ra
+	9JS5RNk/f3URIFuA1qwYbSDofjqiA1HQUFoEPnR+VIwG2WSg2Wiq36bLd4/Fiqnqfg7gRc
+X-Received: by 2002:a05:6a21:a8a:b0:3d3:ad3c:49a5 with SMTP id adf61e73a8af0-3d3ad3c6457mr32696645637.19.1788199871097;
+        Mon, 31 Aug 2026 11:11:11 -0700 (PDT)
 Received: from localhost ([71.212.197.238])
-        by smtp.gmail.com with UTF8SMTPSA id 98e67ed59e1d1-3990d4ede7csm757891a91.13.2026.08.31.11.11.09
+        by smtp.gmail.com with UTF8SMTPSA id 41be03b00d2f7-cc1f36fb8e4sm4571178a12.32.2026.08.31.11.11.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Aug 2026 11:11:09 -0700 (PDT)
+        Mon, 31 Aug 2026 11:11:10 -0700 (PDT)
 From: Kevin Hilman <khilman@baylibre.com>
-To: nm@ti.com, vigneshr@ti.com, afd@ti.com, aaro.koskinen@iki.fi, 
- andreas@kemnade.info, rogerq@kernel.org, tony@atomide.com, robh@kernel.org, 
- krzk+dt@kernel.org, conor+dt@kernel.org, richardcochran@gmail.com, 
- Parvathi Pudi <parvathi@couthit.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-kernel@vger.kernel.org, netdev@vger.kernel.org, danishanwar@ti.com, 
- pratheesh@ti.com, j-rameshbabu@ti.com, praneeth@ti.com, srk@ti.com, 
- rogerq@ti.com, krishna@couthit.com, mohan@couthit.com, pmohan@couthit.com, 
- basharath@couthit.com, Murali Karicheri <m-karicheri2@ti.com>
-In-Reply-To: <20260723102041.372148-1-parvathi@couthit.com>
-References: <20260723102041.372148-1-parvathi@couthit.com>
-Subject: Re: [PATCH] arm: dts: ti: Add device tree nodes for PRU-ICSS1
- instance on AM571x
-Message-Id: <178819986914.2869653.5429087561211412067.b4-ty@b4>
-Date: Mon, 31 Aug 2026 11:11:09 -0700
+To: aaro.koskinen@iki.fi, andreas@kemnade.info, rogerq@kernel.org, 
+ tony@atomide.com, Can Peng <pengcan@kylinos.cn>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20260728091859.150905-1-pengcan@kylinos.cn>
+References: <20260728091859.150905-1-pengcan@kylinos.cn>
+Subject: Re: [PATCH] bus: ti-sysc: unregister notifier on driver register
+ failure
+Message-Id: <178819987015.2869653.16458264341724910899.b4-ty@b4>
+Date: Mon, 31 Aug 2026 11:11:10 -0700
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -85,23 +80,21 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.16-dev
 
 
-On Thu, 23 Jul 2026 15:47:23 +0530, Parvathi Pudi wrote:
-> The TI Sitara AM571x device has two PRU-ICSS subsystems: PRU-ICSS1 and
-> PRU-ICSS2. DUAL-MAC Ethernet support is already available on PRU-ICSS2.
-> This patch adds device tree support to enable DUAL-MAC mode on PRU-ICSS1
-> for the AM571x IDK board.
+On Tue, 28 Jul 2026 17:18:58 +0800, Can Peng wrote:
+> sysc_init() registers the platform bus notifier before registering the
+> platform driver. If platform_driver_register() fails, the function returns
+> the error directly and leaves the notifier registered.
 > 
-> Each PRU-ICSS contains two PRU cores and several peripherals, including
-> the Interrupt Controller, IEP, MII_RT, MDIO, and eCAP. This patch also adds
-> the IEP and eCAP child nodes for PRU-ICSS1, making its layout consistent
-> with PRU-ICSS2.
+> Mirror the exit path on this failure by unregistering the notifier before
+> returning the error. Also check and return the notifier registration error
+> instead of continuing without the notifier installed.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] arm: dts: ti: Add device tree nodes for PRU-ICSS1 instance on AM571x
-      commit: fad89162c71bc2f81f99191d93edc63d5f6397a7
+[1/1] bus: ti-sysc: unregister notifier on driver register failure
+      (no commit info)
 
 Best regards,
 -- 
