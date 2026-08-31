@@ -1,77 +1,102 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8C1F48166B;
-	Mon, 31 Aug 2026 14:00:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 736DA480326
+	for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 17:44:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788184822; cv=none; b=oEfk1OvAAvQPo8OmgMVv6rMXoODpMXGMqfckYJXAx1W9nibI4PiM1K2VSE7NR/s6qbGNuHs0X87bClRiQFdBPnWS2DbtNVzctY5cqY+1G5/n9oX/IKr5JaIXVV8FPJpTsxK1E/qF06VnvCLGiMlCcGRE7Sw6cucnCkJF+O2WgbM=
+	t=1788198293; cv=none; b=YRgCkP1rbo01ZVQXkdVJCwLewgLpPPFu2o2lV5RmM+5TDR4fItjQpmGdRpeTZIfTshOH6uFyIC7pWqWXOADG19m2n2P/uP1M+aQsQ1gV8vExvauBCqDWVbOC2vWuck5OkfawwYXZL8md0c1rbF47S8EqkxnTVjEILcTPwLk1jcs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788184822; c=relaxed/simple;
-	bh=6jGkc2dmHqsO4NYpn3XqDZLDizGjtvdXPQ+FHzx+rRA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nzqgqtRWzG44bWl16fpPDi0FJRAVoC7ady/1m0ILSVW01rJ7cmw3pOvoQ/ss2Oqf4Ut4HNdSqnGybjYmXucpyDfHSHoOwFH4lbcOaREHhEvlWAnjF57lYMf0nle/8Jb7Ar+W9sFBCHzbFGzp1JM7Yku4JdEvYfugf9H0PL5fkBk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jBPaL6Na; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jBPaL6Na"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 192F41F00A3F;
-	Mon, 31 Aug 2026 14:00:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788184820;
-	bh=xNQtXXf+Ww8JrC6uRI24lyD+zbzJC0OkZfJ8+U3Y8ys=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=jBPaL6NaIKdIOL/07rBq5yx5nHx6zB1qDqzZM0OVzekZ31fWfjIaM/WupjazQGqbI
-	 l8iTPoJ15NLMymwF1p12sRxIA8ny2bErkJb8NL713n/NBMpqLJ/+ZSR3CxU5tYkgjT
-	 UsctH4cV1R6MlszlFGrLQwPLpE2FdjiiM2NN6w4bYrl1K1ei5GSHckK1cEG9I7tXXH
-	 JDMyPGC9Y/MP2lL64VADxMq4Ku4JmOQZr3Xu1Q/FavdeIryIMt7QyoEwaP2hcrC7oI
-	 ndV46BjIziwdGB/zcYlR1G+57vfliAAg2a+eaqS5Sy9NDtCYdt1msDh5P1gpfxPvGg
-	 RfAw7zYDEoyZQ==
-Date: Mon, 31 Aug 2026 09:00:19 -0500
-From: "Rob Herring (Arm)" <robh@kernel.org>
-To: Bhargav Joshi <j.bhargav.u@gmail.com>
-Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>, simona.toaca@nxp.com,
-	linux-phy@lists.infradead.org, Frank Li <Frank.Li@kernel.org>,
-	m-chawdhry@ti.com, Conor Dooley <conor+dt@kernel.org>,
-	Roger Quadros <rogerq@kernel.org>, Ravi B <ravibabu@ti.com>,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	daniel.baluta@gmail.com, Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andrzej Siewior <bigeasy@linutronix.de>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Vignesh Raghavendra <vigneshr@ti.com>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Kevin Hilman <khilman@baylibre.com>, linux-usb@vger.kernel.org,
-	dmaengine@vger.kernel.org, Vinod Koul <vkoul@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, goledhruva@gmail.com,
-	Kumar Gupta <ajay.gupta@ti.com>, linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2 7/7] dt-bindings: usb: ti,da830-musb: Convert to DT
- schema
-Message-ID: <178818481901.788794.2228539638923939154.robh@kernel.org>
-References: <20260818-ti-am33-usb-v2-0-66fd44d66824@gmail.com>
- <20260818-ti-am33-usb-v2-7-66fd44d66824@gmail.com>
+	s=arc-20240116; t=1788198293; c=relaxed/simple;
+	bh=OJz59BymLPH2X07/HNaEsZOAqsWDBphkuaZ4veb3x5M=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=WyfsTSnI9PJGxCwlQ25WIJny5b7whuLrX9QmP5hS59rROC2vKgievUBwZpKRJjoZEpeFqxEoySScag+s7++jLwnhInylzDCzklEbgRGYlhVdYZCzoHJMt/5VWyvsYlhPMaDTShdQAdIbVyS7xKFJqj8XeQsuflzi0mvr7Q76k4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=kernel.org; spf=pass smtp.mailfrom=baylibre.com; arc=none smtp.client-ip=209.85.214.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=kernel.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-2d8f265cbe6so21101245ad.0
+        for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 10:44:49 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788198289; x=1788803089;
+        h=content-type:mime-version:message-id:date:references:in-reply-to
+         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=iOcXlRKPdGaWyLXZRmYh2gsjN3nZXYDCKL0Pm8ihJIM=;
+        b=aU/2o1krP2/757h8i+NxIPoV8dEnKcsSD+fHfoy8X6zsirdaC3vZIREuMbN1h2TMTr
+         J42aEQ+2PnVG46QJsz0b4kqiOrPzzCpSgD148t55lABI95OkxMWStm2cFrrmC5RvbWhJ
+         01T9b+31ou+vgmD9kCoqpUIt/NvhGW7UphXPSrqvnZHdQOiYXcPc55/91t5K1i+o5a//
+         m02hngwBmInVdpKNK+m6lnbDoim3JAmUsKZAo/Qji1hMH87dzvUifBEqe3aPYB9ULvLT
+         AD7BToU1RhHfMc0YapSuP5RD1wVja3mOoNbNPrY7u3a8nk9Yx63J7iOOjr+D1W4N14Vi
+         c8nw==
+X-Forwarded-Encrypted: i=1; AKwUvBzwC0+GGu+wm/KzFlj5GNYBoHiZRKhKycT5bNETnAQEU/GluJXQO2tcJxtO/xaS7+ZRoaPI7b2/dAJ5@vger.kernel.org
+X-Gm-Message-State: AFuF++lYS3lzcH+6lPZKTibCXAvgFODTeFNlWtKxB0PC9+mavTPy9VeU
+	NL+/oFacTyBypVOEoQceXiny0tPBicmNNUlG0sylfEFa0Iz1SNMC+1Cd1lZqPsbtrO8=
+X-Gm-Gg: AYBFou3DIDuoX0g9Q5mol67+JAnmJ2RFAW2rp+w9rKxzHfScLq4OFrL1jpHOGz72P0p
+	HuiOz42awrBMTZH4oiOhdCuqGpB6X9ShJCEjtys71SIjRuwNQSVMKAqqeZfBY45tYS3G7Ylj57f
+	HogtIKDidUJmienSip2nSU+fQPQKGlXHq+yMAQrLk7YOQ69wrvrX1kaBBLR59EGYO/ajHEOXdwu
+	BMpt/4u6H5cSl/HK3lEGrOc0tUuTLtkP6v/akABnyTPrQbWzy4tOoA5zXSOqsOK53TlVutraX2j
+	0E6h+E7oL1ab4oUPtJvGAmv5ZfuqbYFWlCnmD1oikAKYJ2KUiofmOpEUrz5oJMiJoWnLOLrtzxq
+	MZ2iP42QPtwUPaf2nJAVuy2GRD27iMM3kBvUdtpvhqD7iGQmmKC5khe6vou4Ajndy4bZfIlNHDh
+	tCDEm1e3W+DyC+MlKv9fcEyT4iGd92J21TXPTuB/xUnAheU2n5mpp0+C0lmA==
+X-Received: by 2002:a17:90b:1d83:b0:38e:2e86:ed02 with SMTP id 98e67ed59e1d1-396d1023217mr36121504a91.14.1788198289340;
+        Mon, 31 Aug 2026 10:44:49 -0700 (PDT)
+Received: from localhost ([71.212.197.238])
+        by smtp.gmail.com with UTF8SMTPSA id 98e67ed59e1d1-3990d7bb7c5sm664546a91.14.2026.08.31.10.44.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 31 Aug 2026 10:44:48 -0700 (PDT)
+From: Kevin Hilman <khilman@kernel.org>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, "Markus Schneider-Pargmann
+ (TI)" <msp@baylibre.com>
+Cc: Andreas Kemnade <andreas@kemnade.info>, Daniel Lezcano
+ <daniel.lezcano@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-omap@vger.kernel.org, letux-kernel@openphoenux.org
+Subject: Re: [PATCH] clocksource/drivers/timer-ti-dm: Register
+ clocksource/event only for am654
+In-Reply-To: <E27F05E3-DE4F-4C77-95E3-1701B3410E93@goldelico.com>
+References: <20260828-v7-3-next-topic-ti-timer-dm-clocksource-omap-fix-v1-1-85f0e4dc6f9f@baylibre.com>
+ <20260828230445.3c2510b9@kemnade.info>
+ <E27F05E3-DE4F-4C77-95E3-1701B3410E93@goldelico.com>
+Date: Mon, 31 Aug 2026 10:44:48 -0700
+Message-ID: <7hzey26v73.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260818-ti-am33-usb-v2-7-66fd44d66824@gmail.com>
+Content-Type: text/plain
 
+"H. Nikolaus Schaller" <hns@goldelico.com> writes:
 
-On Tue, 18 Aug 2026 19:58:49 +0530, Bhargav Joshi wrote:
-> Convert the TI DA8xx/OMAP-L1x MUSB text bindings to DT schema. Since
-> DA8xx MUSB node acts as a parent bus for the CPPI41 DMA controller add
-> required #address-cells, #size-cells, and ranges properties.
-> 
-> Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
-> ---
->  .../devicetree/bindings/usb/da8xx-usb.txt          |  69 -------------
->  .../devicetree/bindings/usb/ti,da830-musb.yaml     | 113 +++++++++++++++++++++
->  2 files changed, 113 insertions(+), 69 deletions(-)
-> 
+>> Am 28.08.2026 um 23:04 schrieb Andreas Kemnade <andreas@kemnade.info>:
+>> 
+>> On Fri, 28 Aug 2026 20:47:45 +0200
+>> "Markus Schneider-Pargmann (TI)" <msp@baylibre.com> wrote:
+>> 
+>>> Registering clocksource/clockevent for the older platforms breaks
+>>> booting them. The older platforms have their own implementation in early
+>>> boot that is used to register clocksource/clockevent in
+>>> timer-ti-dm-systimer.c.
+>>> 
+>>> With am654, the timer is much more complex with more dependencies so
+>>> doing this in early boot with the other driver is very difficult and
+>>> gets ugly. Instead it is implemented in the platform driver for am654.
+>>> However the old platforms may not register clocksource/clockevent in
+>>> this driver as that would break the boot.
+>>> 
+>>> Add a system_timer_capable flag that is only set for am654-timer that
+>>> gates the clocksource/clockevent registration.
+>>> 
+>>> Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
+>>> Closes: https://lore.kernel.org/r/2013A99A-0502-4128-ACFA-B04886224393@goldelico.com
+>>> Fixes: b8eeeca55456 ("clocksource/drivers/timer-ti-dm: Add clocksource support")
+>>> Signed-off-by: Markus Schneider-Pargmann (TI) <msp@baylibre.com>
+>> 
+>> Tested-by: Andreas Kemnade <andreas@kemnade.info> # OMAP3 GTA04
+>
+> Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # OMAP3 OpenPandora
+>
 
-Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
+Tested-by: Kevin Hilman <khilman@baylibre.com> # OMAP3 Beagle XM
 
