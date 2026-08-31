@@ -1,230 +1,454 @@
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29F8B28BAB9
-	for <linux-omap@vger.kernel.org>; Sat, 29 Aug 2026 19:40:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3345444062C;
+	Mon, 31 Aug 2026 13:38:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788032412; cv=none; b=cmdTY8fZhuv0wr59R2/0WstKJ5freJf8fjj6Hut5OZ02dNbzp/2s0CS7uv+dwCbq3rIh6EEPU/bI8C7Ima8Z9xITEleqAoo2ET69SHgt53WP+/UxESORAc3lcvp2Z2UIHTK9KB+n2yMCrMhznRpOf0vfWD25Cxg8lL6vQuyWJZ8=
+	t=1788183489; cv=none; b=K5X+Yo4JlciBEuFTn1atsDjiEM1t6NtustzL8ZS2rFwc1n5sH59cAa2NAOqiVukcq0uEWU/fIfFXWgQ9FjqM0N/axxWoOBOcbODGVg4tA0/FJNBdQqrsPtk/J+HlygRJhKOAxXucJd+7JqzLksCHG34rfxBt5cBnZodAFwJfae8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788032412; c=relaxed/simple;
-	bh=npM1146Vvb11yWHW6n3x5pHESbaeqKx29NChJljV0/4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=o0iaW61+LO46M0j629P/mXx+2c4fkKbTMwyWsxvct94bXcEvn+M6xsxZR137DUlu9M4U2rv9ovYqEUSm5S5crq9IM9iutzc+8xNIk6DV5m52rlM6sO94lVTf2mQ7ggOglgKwzZKtfFuZKodv0ftuNPfQ4R9z4rEN5apNYt3xoow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=jdoNvwp4; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=VafolqyS; arc=none smtp.client-ip=205.220.168.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1788183489; c=relaxed/simple;
+	bh=xrnhguSKIg+Cztql5C7mmZw7koLKaWLcDIqriV2Ft3I=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=i2quNR5qyeQyPBEin5tDAbgBWFQiw91rIHvc/AaIUGqkzyU8Wvy1jhtt7vArlngdNy/I6Lf3Rq1SBwb65ZyOIZAceGWi4SdmnFoCg0Ela7lmMpu/FxXMDPW3UL0DzLc4Mwiiyi7mcNT9SWMM6hr2UqCeccqSWxC1hVM8Uvlupxc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UuOZkee6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="jdoNvwp4";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="VafolqyS"
-Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67TGx3g53024113
-	for <linux-omap@vger.kernel.org>; Sat, 29 Aug 2026 19:40:10 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:message-id:mime-version
-	:subject:to; s=qcppdkim1; bh=hYiveUwHFDnmvItlqlpCWNnBFXbaG6Y73B3
-	LHxHlYDA=; b=jdoNvwp4Agh5AAx8ydtmca/v+hin9R6Yl53471aKYafW1cOX+/s
-	AjjusNWMz1D5H/UvIZgtCWpa6DsQnAnEIiq14acSrKeivyNl972n2yo4jIqBkuTv
-	TWXhaAGDEfvNmIPZpo4KTZ24ruEvE0wWeLxdtJ+ux/J8AzR5sZR9hHh4QMf4DZzb
-	Y8y47ejlxCmFrr/Em2tvaAR9zDRscgZXs0K1ObceMInN2sUz9AAiBId+RfVrbCT8
-	uw1/1RtTVVdVtJxGZjcYsayiH/R80DgW0UoYb0vcZdDQG1F24AaoXPQ4aUImfhWN
-	Q+oCPv5XlwI4p40dcbUuhus5+tEo/O/i6Lg==
-Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com [209.85.160.200])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4gbqdfhp01-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Sat, 29 Aug 2026 19:40:09 +0000 (GMT)
-Received: by mail-qt1-f200.google.com with SMTP id d75a77b69052e-51c1d137a68so54908311cf.3
-        for <linux-omap@vger.kernel.org>; Sat, 29 Aug 2026 12:40:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1788032409; x=1788637209; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=hYiveUwHFDnmvItlqlpCWNnBFXbaG6Y73B3LHxHlYDA=;
-        b=VafolqySzT6b5rwzFq+Bw8dPbT0nFafAfHW3KlTEsTEtV3Z7N4cjNB75zH7iFDViEf
-         Muqx6T5Ftq/G8CgHImILgiAc/WfTMMUR8ZNMnhzA5Bf87CAM3wNgfWfa8BzqTAeK3gCe
-         56nqtC0E/tfG1B7kJCiPpUW5NQv391pFwQfDmEIaTLX+4SFQpzBt9SZLgcZOXB/gcW6f
-         IexlGbU7PRPva8ObzvBk/b22BK6nkLL1Mt8z11vSla4FcVf51ubLfWejnKBJVEoQBtOD
-         +jPx9MVYLznZWK1BGAUqCuEDrzJ69LEVPwL69KtbcUJndYnenm8BmlTEf3MkxdgRIdYm
-         vDMw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788032409; x=1788637209;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=hYiveUwHFDnmvItlqlpCWNnBFXbaG6Y73B3LHxHlYDA=;
-        b=Ixr6DzzShCXys6sIyzFwvm8QC+Ijgxh8wWdv9znYiImD98B+a9b8xeUUabSs6z/7PT
-         VS47RYHh/s6JuU/SiZziPntIgEp5w9E1xTFoLIWKmYAy6bQ4evwOCBH0wX4noxbjeQv+
-         k3cXvoD7PsI1xx9ClFZ3J+Xs5ENzyGy2gM/rfTKRM+G7CO8LLA49HXIYFa46oIWAEH2N
-         1fP5PeDmcg5dZncUqSHjCRyxs9e6q3ND5DiMfbX4Z4zoQEhwGkhV7+DBb0Ps+HwtlfE9
-         X6tEX/4GA4Ak7ukS7JAHF7RIkY3+BPoHF2C2e2A2Gtw8L/67DxTR7MecOqPd6dIf/H2A
-         BUag==
-X-Forwarded-Encrypted: i=1; AHgh+RpTlHVqLx77EWi6yTThyie86YHAFDNNFyqS9N3sY5bAOj+bcCl1ELQTnkNotB0eAUVgcJYXCSMQnTxJ@vger.kernel.org
-X-Gm-Message-State: AFuF++m/5f3LUJ1fePYbzObAtwAitS9MVOIUIoPzJEldyX7AJ///lzfX
-	udlTyZ0AHLndLWh6bMJAhFK3YxDa0UgYTKRT9/uf5iOfsP6WTRvfalOrXq+tROE8epbZ0jXmxjf
-	qiEsQY/3yzNb+TRRGR8pXP0zGYoe5tmiqLJArVpmBn6eGQiD35w8gkUwid8fpHGaF
-X-Gm-Gg: AR+sD12zibt0kZn6NntbnzgKU1mwTp23ShMhCLg080ToRs39krGJ3Z0YsF9afVgGa4Y
-	yUezwhylnF4lZQ05wNec/zyTQHZpoWmE0Ksi/043uDi+hoFcY+ded5ALBgXMKxSYefkn9gUMBwT
-	NcytUsK40tVqELfulLVTaqxJu5pir/E+366muRvOYk069Ax5h903hUl3T31+j+ybCQGqabFSu6a
-	7GnNfB09BFGjGX1PNnzXu94B5X6FChoWxMcsLB25qbI2TBnP8tQ/n+0zwiSw8t7OzIYlKrsLIgW
-	XQ+mE3EPiE7PNdV1jTdYxO/drNpG1abU9GZCBfRpiGKzzQ3mtMOJii7Edbczl7ueA9f0jSSizGa
-	MC0R9soRBAufctnY=
-X-Received: by 2002:a05:622a:1b16:b0:52e:2d19:b27f with SMTP id d75a77b69052e-52fb94d570bmr202997501cf.19.1788032408886;
-        Sat, 29 Aug 2026 12:40:08 -0700 (PDT)
-X-Received: by 2002:a05:622a:1b16:b0:52e:2d19:b27f with SMTP id d75a77b69052e-52fb94d570bmr202996951cf.19.1788032408324;
-        Sat, 29 Aug 2026 12:40:08 -0700 (PDT)
-Received: from quoll ([178.197.219.214])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-482fbb20737sm10575647f8f.22.2026.08.29.12.40.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 29 Aug 2026 12:40:07 -0700 (PDT)
-From: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>,
-        Andreas Kemnade <andreas@kemnade.info>,
-        Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>,
-        Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>,
-        Krzysztof Kozlowski <krzk+dt@kernel.org>,
-        Conor Dooley <conor+dt@kernel.org>,
-        Enric Balletbo i Serra <eballetbo@gmail.com>,
-        Javier Martinez Canillas <javier@dowhile0.org>,
-        linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-Subject: [PATCH] ARM: dts: ti: omap: Replace spaces indentation with tabs
-Date: Sat, 29 Aug 2026 21:40:04 +0200
-Message-ID: <20260829194003.107677-2-krzysztof.kozlowski@oss.qualcomm.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UuOZkee6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D2AA1F00A3F;
+	Mon, 31 Aug 2026 13:38:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788183486;
+	bh=fH1Ye0xirHU3yWSqBSYZpHZlv7lmBwICD1Q4n8jnmPY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=UuOZkee6AAIpqfKx1rOdEzgoKY64fVZ0/Ph0jKpbEdtZWZOgCQ3GlBvqkevU8dswX
+	 w4jRiO8nONkZQ0t2Dwtb+tNRjtwtEW3ZKqbVPKdKl5/IKOaE5V2dQU1uwv20P9UhnR
+	 nb41NSnkdyfwTHHO2h3E/h0+4bDGiwVmWe2OPfEhOZVM59syYH2yhG5iP7FFj0n0Cx
+	 2562dByP245KAJuevfvgNHgHbXCRBoBg+xTQODirntpKkyYgxja6jJFL45d+mRtvS2
+	 Ue4GmL0xbdZFSDh4oaJ42YQ/Uagm2tB74YCilZNCjvPbdPRPGBU04pJpeDq3VvZc0b
+	 zx5EGLF3pWXBA==
+From: Sasha Levin <sashal@kernel.org>
+To: patches@lists.linux.dev,
+	stable@vger.kernel.org
+Cc: Akashdeep Kaur <a-kaur@ti.com>,
+	Lee Jones <lee@kernel.org>,
+	Sasha Levin <sashal@kernel.org>,
+	aaro.koskinen@iki.fi,
+	andreas@kemnade.info,
+	khilman@baylibre.com,
+	rogerq@kernel.org,
+	tony@atomide.com,
+	linux-omap@vger.kernel.org,
+	mfd@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.18-6.6] mfd: tps65219: Make poweroff handler conditional on system-power-controller
+Date: Mon, 31 Aug 2026 09:22:33 -0400
+Message-ID: <20260831133314.4125787-125-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
+References: <20260831133314.4125787-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4115; i=krzysztof.kozlowski@oss.qualcomm.com;
- h=from:subject; bh=npM1146Vvb11yWHW6n3x5pHESbaeqKx29NChJljV0/4=;
- b=owEBbQKS/ZANAwAKAcE3ZuaGi4PXAcsmYgBqkzWTt3j93a7KYuLzRBWHyovBmCMBPhjrE64MS
- CEQymWF3nuJAjMEAAEKAB0WIQTd0mIoPREbIztuuKjBN2bmhouD1wUCapM1kwAKCRDBN2bmhouD
- 18RmD/9+y88q9lBhidpRg3jItQYfGbtek5b9Kivylu10x5064geV2lw2v+5z/nEhxw1Z8qlVhz4
- qF1cTGL7CDz14+i/tVeW1mx5Mlv2QXDdg9Qoq4dCVgOW8AiMsjZh1Ml6S+5DhHOYon/eQDyX51p
- ykF5M0lmL4a2/MjYw3I7fjUs+iOIAc09OQDV5TtAbt1d0bnptcgmCgoO9GmQaJWp6DkKfgHrg2y
- L/G9jcoMLr5rWGW7u7SOmNss/5YL77pzGpa8MG91/BZXquFwtC+hA/C51x+yEslyMxZ3Xa3sunZ
- ae1Dmd3gJhfDGPr3GlgLnd1Wb7iVnpCmlasLsBbwt3nIy3zhr8qPcTN8v8nxYXNjFOFKMzTA+uE
- 9FZDSRThmKy2Zk+AtZPnFBGHFBUo8LgyCUB1gULwpv3d/rmoQaDTtSxY5ISsU/y4sUGw/kegLzZ
- uUma3LT0F80+txlhNbema2Xf3EFIcAUedYk7O4azvb/JvbsLb56trRXoTuwdBaKZJiDmCWIVu0Q
- vb8ATr+zLlRW1Ze7DsidUkkIzqyo7k6SEJcOQFILOKAgVMSOs74HiFYA+AOAyD6uFZm6c6Kr++f
- 77mQ8ydScHGGqschQWFiUl4ThXDALqOOSh+dXfpXxuB8pIVB+9XYPYRqwgEbFscg1ATcuf/Vlqt tZ+Ex7XsfTGsZRQ==
-X-Developer-Key: i=krzysztof.kozlowski@oss.qualcomm.com; a=openpgp; fpr=9BD07E0E0C51F8D59677B7541B93437D3B41629B
+X-stable: review
+X-Patchwork-Hint: Ignore
+X-stable-base: Linux 6.18.48
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODI5MDE3MCBTYWx0ZWRfX4AjLgeEvmSe5
- 9fpsw49mJ3hCSMRz76y8Chb32glv23l/aNOiWySFxLMCN54yEE2CSMq/qVQZx2lByxia+/W99sB
- aqoZSAUxSKfeeD7Y7hLp274sF/9bLizFm5bsaiZ+KfNHLVyRRgtE9HkYeZP7d3Cn/9YNpSG44L4
- 1FZC1scFNl7H/5uXpKVjNwiBPpeLcd8Ou3mz/sHpN/ASxswog90jfKUDdNoSbHGiUVARA2sdAo5
- 0lWIS5qTAb34pja+46DVNuZit8LrYot7eLkv5UZZ8NDZDrFxL55FLndOUTneQMAXBPENI/FDeQ6
- kIxelnqOCOdkeSQuk5AkAeg3a/aBLUFo7Sx1m73Pqe7E9eHz5gb7W6LVYU4O6B9Y9s6SdR/t7BV
- P591Yyi3CsxttA6qURZFs/K7O5a986T6GDXDB3UX/feNP99uOy96vVB074VCfng1rSVecUmY8/a
- uwdmSW/vr5Ya9b+R0bQ==
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODI5MDE3MCBTYWx0ZWRfXyK0lNZfDI2hA
- ihUCKGGHLUAVst4MqySDIo6BDFRYb/mL3UixvlENHu/RIQ3tVXIpBB1ayRPTCa8TnC6PG35FCTJ
- 4sGnkxtnKiFzyKs2w7F+S7qRo/+wTJg=
-X-Authority-Analysis: v=2.4 cv=B7eJFutM c=1 sm=1 tr=0 ts=6a93359a cx=c_pps
- a=JbAStetqSzwMeJznSMzCyw==:117 a=+bKQE0WJfmhK2875HamI0Q==:17
- a=Sv0fKeRqtYgA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=Um2Pa8k9VHT-vaBCBUpS:22 a=EUspDBNiAAAA:8
- a=MMfNdgY-GmuYLy5ODHIA:9 a=uxP6HrT_eTzRwkO_Te1X:22
-X-Proofpoint-GUID: RQkBYzpUonp7qKqs7dSwr9cxvnbvmZpI
-X-Proofpoint-ORIG-GUID: RQkBYzpUonp7qKqs7dSwr9cxvnbvmZpI
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-29_05,2026-08-27_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 spamscore=0 lowpriorityscore=0 suspectscore=0
- impostorscore=0 clxscore=1015 phishscore=0 malwarescore=0 bulkscore=0
- adultscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2608290170
 
-Replace excessive spaces for aligning indentation into tabs.  This will
-be reported by dt-style-check ("[mixed-indent-chars] too many space
-characters in indent (more than 7)").
+From: Akashdeep Kaur <a-kaur@ti.com>
 
-Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+[ Upstream commit 104cd764a031bfe2ffe253adce9581384a78c16e ]
+
+Currently, the TPS65219 driver unconditionally registers a poweroff
+handler. This causes issues on systems where a different component
+(such as TF-A firmware) should handle system poweroff instead.
+
+Make the poweroff handler registration conditional based on the
+"system-power-controller" device tree property. This follows the
+standard kernel pattern where only the designated power controller
+registers for system poweroff operations.
+
+On systems where the property is absent, the PMIC will not register
+a poweroff handler, allowing other poweroff mechanisms to function.
+
+Signed-off-by: Akashdeep Kaur <a-kaur@ti.com>
+Link: https://patch.msgid.link/20260401112257.1248437-3-a-kaur@ti.com
+Signed-off-by: Lee Jones <lee@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/boot/dts/ti/omap/motorola-mapphone-common.dtsi | 8 ++++----
- arch/arm/boot/dts/ti/omap/omap3-igep.dtsi               | 2 +-
- arch/arm/boot/dts/ti/omap/omap3-tao3530.dtsi            | 8 ++++----
- arch/arm/boot/dts/ti/omap/omap4.dtsi                    | 4 ++--
- 4 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/boot/dts/ti/omap/motorola-mapphone-common.dtsi b/arch/arm/boot/dts/ti/omap/motorola-mapphone-common.dtsi
-index 28b4f12b82a7..edc84928e9b6 100644
---- a/arch/arm/boot/dts/ti/omap/motorola-mapphone-common.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/motorola-mapphone-common.dtsi
-@@ -101,10 +101,10 @@ &cpu0 {
- 	 */
- 	operating-points = <
- 		/* kHz    uV */
--	        300000  1025000
--	        600000  1200000
--	        800000  1313000
--	        1008000 1375000
-+		300000  1025000
-+		600000  1200000
-+		800000  1313000
-+		1008000 1375000
- 		1200000 1375000
- 	>;
- };
-diff --git a/arch/arm/boot/dts/ti/omap/omap3-igep.dtsi b/arch/arm/boot/dts/ti/omap/omap3-igep.dtsi
-index 7346cad84eda..a0717461dee8 100644
---- a/arch/arm/boot/dts/ti/omap/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap3-igep.dtsi
-@@ -37,7 +37,7 @@ &omap3_pmx_core {
- 	gpmc_pins: gpmc-pins {
- 		pinctrl-single,pins = <
- 			/* OneNAND seems to require PIN_INPUT on clock. */
--                        OMAP3_CORE1_IOPAD(0x20be, PIN_INPUT | MUX_MODE0)        /* gpmc_clk.gpmc_clk */
-+			OMAP3_CORE1_IOPAD(0x20be, PIN_INPUT | MUX_MODE0)        /* gpmc_clk.gpmc_clk */
- 		>;
- 	};
+LLM Generated explanations, may be completely bogus:
+
+## Phase 1: Commit Message Forensics
+
+**Step 1.1 — Subject line**
+
+Record: `[mfd: tps65219]` `[Make]` — Make poweroff handler registration
+conditional on the `system-power-controller` device-tree property.
+
+**Step 1.2 — Tags**
+
+Record:
+- `Signed-off-by: Akashdeep Kaur <a-kaur@ti.com>` (author)
+- `Link:
+  https://patch.msgid.link/20260401112257.1248437-3-a-kaur@ti.com`
+  (patch submission; message-id suffix `-3` indicates patch 3 of a
+  series)
+- `Signed-off-by: Lee Jones <lee@kernel.org>` (MFD maintainer)
+- No `Fixes:`, `Reported-by:`, `Tested-by:`, `Reviewed-by:`, `Cc:
+  stable@vger.kernel.org`
+
+**Step 1.3 — Body analysis**
+
+Record:
+- **Bug:** TPS65219 driver unconditionally registers a system poweroff
+  handler even when another component (e.g. TF-A) should handle
+  shutdown.
+- **Symptom:** Wrong poweroff path is taken; TF-A/PSCI shutdown is
+  preempted or conflicted by PMIC I2C soft-shutdown.
+- **Root cause:** Driver ignores the existing `system-power-controller`
+  DT property documented in the binding.
+- **Fix:** Only call `devm_register_power_off_handler()` when
+  `of_device_is_system_power_controller()` is true.
+
+**Step 1.4 — Hidden bug fix?**
+
+Record: Yes. Despite “Make … conditional” wording, this is a real
+platform correctness bug: the driver registers a shutdown handler on
+boards where it should not, breaking the intended poweroff mechanism.
+
+---
+
+## Phase 2: Diff Analysis
+
+**Step 2.1 — Inventory**
+
+Record:
+- **File:** `drivers/mfd/tps65219.c` (+4/-4 net, ~10 lines touched)
+- **Function:** `tps65219_probe()`
+- **Scope:** Single-file, surgical driver fix
+
+**Step 2.2 — Code flow change**
+
+Record:
+- **Before:** `devm_register_power_off_handler()` always runs during
+  probe.
+- **After:** Registration is wrapped in `if
+  (of_device_is_system_power_controller(tps->dev->of_node))`.
+- **Error handling:** Switches to `dev_err_probe()` (consistent with
+  nearby tps6594 code).
+- **Path affected:** Probe success path on all boards with a
+  TPS65214/15/19 PMIC.
+
+**Step 2.3 — Bug mechanism**
+
+Record:
+- **Category:** Logic / correctness fix (wrong shutdown handler
+  registration).
+- **Mechanism:** PMIC registers into the sys-off handler chain
+  unconditionally. On K3 platforms where TF-A/PSCI owns shutdown, the
+  PMIC handler sends an I2C OFF request via `tps65219_soft_shutdown()`,
+  conflicting with the firmware path. The DT binding already defines
+  `system-power-controller` as the gate for this behavior; the driver
+  simply did not honor it.
+
+**Step 2.4 — Fix quality**
+
+Record:
+- Fix is obviously correct and matches established PMIC driver patterns
+  (`tps6594-core.c`, `rn5t618.c`, `max77620.c`, `tps6586x.c`).
+- Minimal diff, no API changes.
+- **Regression risk:** Low for boards that already have `system-power-
+  controller` in DT (no behavior change). One in-tree board
+  (`k3-am62-lp-sk.dts`) lacks the property and currently relies on
+  unconditional registration; it may need a companion DT patch adding
+  `system-power-controller` if PMIC shutdown is still required there.
+  Other AM62 tps65219 boards already have the property.
+
+---
+
+## Phase 3: Git History Investigation
+
+**Step 3.1 — Blame**
+
+Record:
+- Unconditional `devm_register_power_off_handler()` introduced by commit
+  `3df4c63675203` (“mfd: tps65219: Add support for soft shutdown via
+  sys-off API”, 2023-06-15).
+- That code is present unchanged in the local tree at lines 544–550.
+
+**Step 3.2 — Fixes: tag**
+
+Record: Not applicable (no `Fixes:` tag). Bug introduced by
+`3df4c63675203`, which is in this tree.
+
+**Step 3.3 — Related file history**
+
+Record:
+- Driver added in `74c17a0a49a6a` (first appeared in v6.10).
+- Poweroff support added 2023-06-15.
+- DT binding `system-power-controller` documented since `4d2aed6ee306c`
+  (2022-08-23), before poweroff handler was added.
+- Fix commit is not yet merged into this checkout (buggy code still
+  present).
+- Patch is 3/N of a series per message-id; standalone driver change is
+  self-contained.
+
+**Step 3.4 — Author context**
+
+Record: Akashdeep Kaur is a TI contributor with K3 device-tree work. Lee
+Jones is the MFD maintainer who committed the original poweroff support.
+
+**Step 3.5 — Dependencies**
+
+Record:
+- `of_device_is_system_power_controller()` exists in
+  `include/linux/of.h` (available via `#include <linux/i2c.h>` already
+  in the file).
+- No structural prerequisites; patch applies standalone to
+  `tps65219_probe()`.
+
+---
+
+## Phase 4: Mailing List and External Research
+
+**Step 4.1 — Original discussion**
+
+Record: `b4 dig -c` could not match the fix commit (not merged in this
+tree). Direct lore fetch returned 403 Forbidden. Link points to patch 3
+of an April 2026 TI submission series.
+
+**Step 4.2 — Reviewers**
+
+Record: UNVERIFIED — could not retrieve thread via lore or b4.
+
+**Step 4.3 — Bug report**
+
+Record: No external bug report linked. Issue described in commit message
+(TF-A conflict).
+
+**Step 4.4 — Series context**
+
+Record: Message-id suffix `-3` suggests a multi-patch series; possible
+companion DT updates exist but were not analyzed (not in provided diff).
+
+**Step 4.5 — Stable list**
+
+Record: UNVERIFIED — stable list search not accessible.
+
+---
+
+## Phase 5: Code Semantic Analysis
+
+**Step 5.1 — Key functions**
+
+Record: `tps65219_probe()`, `tps65219_power_off_handler()`,
+`tps65219_soft_shutdown()`.
+
+**Step 5.2 — Callers**
+
+Record: `tps65219_probe()` called from I2C core during device
+enumeration on boards with `compatible = "ti,tps65214"`,
+`"ti,tps65215"`, or `"ti,tps65219"`. Ten in-tree TI K3 DTS files use
+tps65219.
+
+**Step 5.3 — Callees**
+
+Record: `devm_register_power_off_handler()` → sys-off notifier chain;
+handler calls `tps65219_soft_shutdown()` which writes PMIC registers
+over I2C.
+
+**Step 5.4 — Reachability**
+
+Record: Triggered on every `poweroff`/`halt`/`shutdown` on systems where
+the handler is registered. User-visible via standard shutdown syscalls.
+
+**Step 5.5 — Similar patterns**
+
+Record: Identical conditional pattern in `tps6594-core.c:788-792`,
+`rn5t618.c:217-222`, `max77620.c:576-580`, `tps6586x.c:585-599`.
+
+---
+
+## Phase 6: Cross-Reference Against Local Tree (v6.18.44)
+
+**Step 6.1 — Buggy code present?**
+
+Record: **Yes.** Local tree is `v6.18.44` (`git describe HEAD` =
+`v6.18.44-1-g2736c32da98b9`). Unconditional registration at
+`drivers/mfd/tps65219.c:544-550`. Bug present since v6.10 (driver
+introduction) for poweroff path since mid-2023.
+
+**Step 6.2 — Backport difficulty**
+
+Record: Clean apply expected — small hunk in `tps65219_probe()`, no
+conflicts visible. `of_device_is_system_power_controller` and DT binding
+property both exist in this tree.
+
+**Step 6.3 — Related fixes already present?**
+
+Record: No equivalent conditional registration found in current
+`tps65219.c`.
+
+---
+
+## Phase 7: Subsystem Context
+
+**Step 7.1 — Subsystem**
+
+Record: `drivers/mfd/` — MFD/PMIC driver. **Criticality: IMPORTANT**
+(affects system shutdown on embedded TI K3 platforms, not universal but
+operationally critical on affected hardware).
+
+**Step 7.2 — Activity**
+
+Record: Active development — TPS65214/15 support added recently; driver
+actively maintained by TI and MFD maintainers.
+
+---
+
+## Phase 8: Impact and Risk Assessment
+
+**Step 8.1 — Who is affected**
+
+Record: Users of TI K3 SoCs (AM62 family and derivatives) with
+TPS65214/15/19 PMIC, especially boards where TF-A handles shutdown but
+the PMIC is present for regulators.
+
+**Step 8.2 — Trigger conditions**
+
+Record: Any system shutdown (`halt`, `poweroff`, `shutdown`). Common
+user/admin operation. Not security-sensitive but operationally
+important.
+
+**Step 8.3 — Failure mode severity**
+
+Record: Improper or failed system shutdown when PMIC handler conflicts
+with TF-A/PSCI path. **Severity: MEDIUM-HIGH** — system may hang instead
+of powering off, or take wrong shutdown path. Not a kernel oops, but a
+real operational failure on production embedded systems.
+
+**Step 8.4 — Risk vs benefit**
+
+Record:
+- **Benefit:** HIGH for affected TI K3 platforms — restores correct
+  shutdown delegation per DT contract.
+- **Risk:** LOW — 10-line change following established pattern; 9 of 10
+  in-tree tps65219 boards already declare `system-power-controller`.
+- **Ratio:** Benefit clearly outweighs risk.
+
+---
+
+## Phase 9: Final Synthesis
+
+**Evidence FOR backport:**
+- Fixes real shutdown correctness bug on TF-A-managed platforms
+- Aligns driver with DT binding documented since 2022
+- Matches established kernel PMIC pattern (tps6594, rn5t618, etc.)
+- Small, surgical, maintainer-reviewed
+- Buggy code confirmed present in v6.18.44 tree
+- Affects commonly deployed TI K3 embedded hardware
+
+**Evidence AGAINST:**
+- `k3-am62-lp-sk.dts` lacks `system-power-controller`; may need
+  companion DT patch (not in this commit)
+- Mailing list review details unverified
+- Not a crash/corruption bug — shutdown path correctness
+
+**Stable rules checklist:**
+1. Obviously correct and tested? **PASS** — standard pattern, maintainer
+   SOB; runtime testing claimed in original poweroff commit for related
+   hardware
+2. Fixes real bug affecting users? **PASS** — wrong shutdown handler on
+   TF-A platforms
+3. Important issue? **PASS** — shutdown failure/hang, MEDIUM-HIGH
+   severity
+4. Small and contained? **PASS** — single file, ~10 lines
+5. No new features/APIs? **PASS** — implements existing DT contract
+6. Can apply to local tree? **PASS** — code and prerequisites present
+
+**Exception category:** Hardware/platform quirk/workaround alignment
+(DT-driven behavior gate).
+
+---
+
+## Verification
+
+- [Phase 1] Parsed commit message and tags from user-provided diff
+- [Phase 2] Analyzed diff: conditional
+  `of_device_is_system_power_controller()` wrap in `tps65219_probe()`
+- [Phase 3] `git describe HEAD`: v6.18.44-1-g2736c32da98b9
+- [Phase 3] `git blame -L 544,550 drivers/mfd/tps65219.c`: lines from
+  `3df4c63675203` (2023-06-08)
+- [Phase 3] `git show 3df4c63675203`: introduced unconditional poweroff
+  handler
+- [Phase 3] `git log --oneline -20 -- drivers/mfd/tps65219.c`: confirmed
+  driver history
+- [Phase 3] `git tag --contains 74c17a0a49a6a`: driver first in v6.10
+- [Phase 4] `b4 dig -c 3df4c63675203`: found original poweroff patch
+  lore link
+- [Phase 4] `b4 dig -c <fix_commit>`: no match (fix not merged)
+- [Phase 4] lore fetch: 403 Forbidden — review thread UNVERIFIED
+- [Phase 5] Read `tps65219_power_off_handler()` and
+  `tps65219_soft_shutdown()` at lines 29-40
+- [Phase 5] Read `kernel/reboot.c:557-565`:
+  `devm_register_power_off_handler` API
+- [Phase 5] Compared with `tps6594-core.c:788-792`, `rn5t618.c:217-222`,
+  `max77620.c:576-580`
+- [Phase 6] Grep confirmed buggy unconditional registration at
+  `tps65219.c:544-550`
+- [Phase 6] Grep `system-power-controller` in 10 tps65219 DTS files: 9
+  have property, `k3-am62-lp-sk.dts` does not
+- [Phase 6] Read
+  `Documentation/devicetree/bindings/regulator/ti,tps65219.yaml:34-37`:
+  property documented
+- [Phase 6] Read `include/linux/of.h:1706-1708`:
+  `of_device_is_system_power_controller()` implementation
+- [Phase 6] Verified `#include <linux/i2c.h>` pulls in `<linux/of.h>` —
+  no new include needed
+- [Phase 7] K3 AM62 has PSCI (`k3-am62.dtsi:30-31`)
+- [Phase 8] UNVERIFIED: exact failure symptoms on specific TF-A platform
+  (no bug report accessible)
+
+This commit corrects a driver-DT contract violation that causes improper
+system shutdown on TI K3 platforms where TF-A should handle poweroff.
+The fix is small, follows an established PMIC pattern already used in
+this tree, and the buggy code is present in v6.18.44.
+
+**YES**
+
+ drivers/mfd/tps65219.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/mfd/tps65219.c b/drivers/mfd/tps65219.c
+index 7275dcdb7c44f..e52fbf1481fef 100644
+--- a/drivers/mfd/tps65219.c
++++ b/drivers/mfd/tps65219.c
+@@ -541,13 +541,15 @@ static int tps65219_probe(struct i2c_client *client)
+ 		return ret;
+ 	}
  
-diff --git a/arch/arm/boot/dts/ti/omap/omap3-tao3530.dtsi b/arch/arm/boot/dts/ti/omap/omap3-tao3530.dtsi
-index 92a5846048bd..f5bfa01ee244 100644
---- a/arch/arm/boot/dts/ti/omap/omap3-tao3530.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap3-tao3530.dtsi
-@@ -145,10 +145,10 @@ OMAP3_CORE1_IOPAD(0x21ce, PIN_OUTPUT | MUX_MODE0)	/* mcspi1_cs0.mcspi1_cs0 */
+-	ret = devm_register_power_off_handler(tps->dev,
+-					      tps65219_power_off_handler,
+-					      tps);
+-	if (ret) {
+-		dev_err(tps->dev, "failed to register power-off handler: %d\n", ret);
+-		return ret;
++	if (of_device_is_system_power_controller(tps->dev->of_node)) {
++		ret = devm_register_power_off_handler(tps->dev,
++						      tps65219_power_off_handler,
++						      tps);
++		if (ret)
++			return dev_err_probe(tps->dev, ret,
++					     "Failed to register power-off handler\n");
+ 	}
++
+ 	return 0;
+ }
  
- 	mcspi3_pins: mcspi3-pins {
- 		pinctrl-single,pins = <
--                        OMAP3_CORE1_IOPAD(0x25dc, PIN_OUTPUT | MUX_MODE1)	/* etk_d0.mcspi3_simo gpio14 INPUT | MODE1 */
--                        OMAP3_CORE1_IOPAD(0x25de, PIN_INPUT_PULLUP | MUX_MODE1)	/* etk_d1.mcspi3_somi gpio15 INPUT | MODE1 */
--                        OMAP3_CORE1_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE1)	/* etk_d2.mcspi3_cs0 gpio16 INPUT | MODE1 */
--                        OMAP3_CORE1_IOPAD(0x25e2, PIN_INPUT | MUX_MODE1)	/* etk_d3.mcspi3_clk gpio17 INPUT | MODE1 */
-+			OMAP3_CORE1_IOPAD(0x25dc, PIN_OUTPUT | MUX_MODE1)	/* etk_d0.mcspi3_simo gpio14 INPUT | MODE1 */
-+			OMAP3_CORE1_IOPAD(0x25de, PIN_INPUT_PULLUP | MUX_MODE1)	/* etk_d1.mcspi3_somi gpio15 INPUT | MODE1 */
-+			OMAP3_CORE1_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE1)	/* etk_d2.mcspi3_cs0 gpio16 INPUT | MODE1 */
-+			OMAP3_CORE1_IOPAD(0x25e2, PIN_INPUT | MUX_MODE1)	/* etk_d3.mcspi3_clk gpio17 INPUT | MODE1 */
- 		>;
- 	};
- 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4.dtsi b/arch/arm/boot/dts/ti/omap/omap4.dtsi
-index c8eedd33b5d6..6ebe5f6deee1 100644
---- a/arch/arm/boot/dts/ti/omap/omap4.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap4.dtsi
-@@ -679,7 +679,7 @@ dsi2: encoder@0 {
- 						interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
- 						status = "disabled";
- 						clocks = <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 8>,
--						         <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 10>;
-+							 <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 10>;
- 						clock-names = "fck", "sys_clk";
- 
- 						#address-cells = <1>;
-@@ -716,7 +716,7 @@ hdmi: encoder@0 {
- 						interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>;
- 						status = "disabled";
- 						clocks = <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 9>,
--						         <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 10>;
-+							 <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 10>;
- 						clock-names = "fck", "sys_clk";
- 						dmas = <&sdma 76>;
- 						dma-names = "audio_tx";
 -- 
 2.53.0
 
