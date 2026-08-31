@@ -1,102 +1,102 @@
-Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+Received: from mail-pg1-f170.google.com (mail-pg1-f170.google.com [209.85.215.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 736DA480326
-	for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 17:44:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFA7434A78E
+	for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 18:11:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788198293; cv=none; b=YRgCkP1rbo01ZVQXkdVJCwLewgLpPPFu2o2lV5RmM+5TDR4fItjQpmGdRpeTZIfTshOH6uFyIC7pWqWXOADG19m2n2P/uP1M+aQsQ1gV8vExvauBCqDWVbOC2vWuck5OkfawwYXZL8md0c1rbF47S8EqkxnTVjEILcTPwLk1jcs=
+	t=1788199868; cv=none; b=RAVlqzHuaWYj7szij84Qxl9Vl8xRvo6SaboO7mTCCx4sFdqnc9W1POG/sbD4KInkd/xH+Wanm6BrXLRJKGzijOfj9blAanTWcB/DFlvrlIYdgPJLErcvHS6IuM1pT0MzNKduXyyIjT6vanIAzlyk/ZfYWYQyjJ5J2xHw4SEY/5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788198293; c=relaxed/simple;
-	bh=OJz59BymLPH2X07/HNaEsZOAqsWDBphkuaZ4veb3x5M=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=WyfsTSnI9PJGxCwlQ25WIJny5b7whuLrX9QmP5hS59rROC2vKgievUBwZpKRJjoZEpeFqxEoySScag+s7++jLwnhInylzDCzklEbgRGYlhVdYZCzoHJMt/5VWyvsYlhPMaDTShdQAdIbVyS7xKFJqj8XeQsuflzi0mvr7Q76k4k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=kernel.org; spf=pass smtp.mailfrom=baylibre.com; arc=none smtp.client-ip=209.85.214.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=kernel.org
+	s=arc-20240116; t=1788199868; c=relaxed/simple;
+	bh=yjOLCTPmx4PvLECBxj5Od38tAnTgXsfngjPZ98hkwec=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=HVXeGefjNSlfBMirtlTRZHwiMEPJSJna3eRRAqyjFIzXThLZbEG1Q9zf4GSdyACYNoRTwnTUCkPXpcuZH1zGxrxqcayEJVJIb4aAa77j9l1LhwpoVL5MktUJgVxlptQrzp8ubdhAWLy2rkwXjcUwNd35826DDjfaqWV5coI6qJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=MS0ASUT9; arc=none smtp.client-ip=209.85.215.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
-Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-2d8f265cbe6so21101245ad.0
-        for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 10:44:49 -0700 (PDT)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="MS0ASUT9"
+Received: by mail-pg1-f170.google.com with SMTP id 41be03b00d2f7-cc1c73645a1so59813a12.1
+        for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 11:11:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre.com; s=google; t=1788199866; x=1788804666; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:date:message-id
+         :subject:references:in-reply-to:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=EI2uoMQ2Bv4HGoXR37AMSbNrDmCDC9d8CsQuF9DQvSk=;
+        b=MS0ASUT9+fY1Rq7jNo3uXDxumjWombEY2hSpbSmiMRXwrPoS0grGXQ9kcVThMYEsTe
+         HDg+i+qSFC+Z+z5jvh34s48HqcYfx8wm29em31kbrH6Vlc6J9w5EgkCU+xGO7H/HjZPm
+         DO1x74P61qjSiOpHi6qKU4Yh1StZ8lZ/V+ug/gWsBzswvmYrJrnS0ulYshvoSB5mGyN5
+         Y7l/tqzkrFYOa24S3Rf9oOisb7fXcDSXPxPxZmXPH1pTbtYM9cvMI18d+IjAJIT6LY6Z
+         p4vX0xTuKtAAi7JVGC10CrhL5WUuqnihzgRuG4iXsRQ0QUOiD2DZethI7wPig572YEqJ
+         1MBw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788198289; x=1788803089;
-        h=content-type:mime-version:message-id:date:references:in-reply-to
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=iOcXlRKPdGaWyLXZRmYh2gsjN3nZXYDCKL0Pm8ihJIM=;
-        b=aU/2o1krP2/757h8i+NxIPoV8dEnKcsSD+fHfoy8X6zsirdaC3vZIREuMbN1h2TMTr
-         J42aEQ+2PnVG46QJsz0b4kqiOrPzzCpSgD148t55lABI95OkxMWStm2cFrrmC5RvbWhJ
-         01T9b+31ou+vgmD9kCoqpUIt/NvhGW7UphXPSrqvnZHdQOiYXcPc55/91t5K1i+o5a//
-         m02hngwBmInVdpKNK+m6lnbDoim3JAmUsKZAo/Qji1hMH87dzvUifBEqe3aPYB9ULvLT
-         AD7BToU1RhHfMc0YapSuP5RD1wVja3mOoNbNPrY7u3a8nk9Yx63J7iOOjr+D1W4N14Vi
-         c8nw==
-X-Forwarded-Encrypted: i=1; AKwUvBzwC0+GGu+wm/KzFlj5GNYBoHiZRKhKycT5bNETnAQEU/GluJXQO2tcJxtO/xaS7+ZRoaPI7b2/dAJ5@vger.kernel.org
-X-Gm-Message-State: AFuF++lYS3lzcH+6lPZKTibCXAvgFODTeFNlWtKxB0PC9+mavTPy9VeU
-	NL+/oFacTyBypVOEoQceXiny0tPBicmNNUlG0sylfEFa0Iz1SNMC+1Cd1lZqPsbtrO8=
-X-Gm-Gg: AYBFou3DIDuoX0g9Q5mol67+JAnmJ2RFAW2rp+w9rKxzHfScLq4OFrL1jpHOGz72P0p
-	HuiOz42awrBMTZH4oiOhdCuqGpB6X9ShJCEjtys71SIjRuwNQSVMKAqqeZfBY45tYS3G7Ylj57f
-	HogtIKDidUJmienSip2nSU+fQPQKGlXHq+yMAQrLk7YOQ69wrvrX1kaBBLR59EGYO/ajHEOXdwu
-	BMpt/4u6H5cSl/HK3lEGrOc0tUuTLtkP6v/akABnyTPrQbWzy4tOoA5zXSOqsOK53TlVutraX2j
-	0E6h+E7oL1ab4oUPtJvGAmv5ZfuqbYFWlCnmD1oikAKYJ2KUiofmOpEUrz5oJMiJoWnLOLrtzxq
-	MZ2iP42QPtwUPaf2nJAVuy2GRD27iMM3kBvUdtpvhqD7iGQmmKC5khe6vou4Ajndy4bZfIlNHDh
-	tCDEm1e3W+DyC+MlKv9fcEyT4iGd92J21TXPTuB/xUnAheU2n5mpp0+C0lmA==
-X-Received: by 2002:a17:90b:1d83:b0:38e:2e86:ed02 with SMTP id 98e67ed59e1d1-396d1023217mr36121504a91.14.1788198289340;
-        Mon, 31 Aug 2026 10:44:49 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1788199866; x=1788804666;
+        h=content-transfer-encoding:content-type:mime-version:date:message-id
+         :subject:references:in-reply-to:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=EI2uoMQ2Bv4HGoXR37AMSbNrDmCDC9d8CsQuF9DQvSk=;
+        b=VyEEyGBjPgG1KCyUpjGaoFTeX7PY2gdcA2CpcBi/a95L4mtvPhk4wmsopJjceD65my
+         ctCST+h+psCCR8bo9Wmu3NJ0oG+fQou6Yoj5aUP1e7Zv+bTrR2QG1j/JGK99SFcnCDwb
+         6a+Ut946MqyHTcSZvOhsnpeMWt5mAAXLKJemDqzHtCPLttZyf3gYHL9BhFF3SWKK8YgF
+         1RMNzh5RG+quKewmC/eLlkgnfTcZfdRvt0vg9nD+W2sevSXY89FZMV/ecSDCrEILG9CN
+         fxpG6QPH1t6JAeW+FVKMlZh3o1B8Jhcz7zPVTp1qCNsSZ52K1yhgR87Mfdycd0YJYHPT
+         M+jA==
+X-Gm-Message-State: AFuF++lE+zj52TNdnYTh8Pb7e6ml2pMlYbj1q+vt5tDmYBtHns9SGvzZ
+	flnRCV/EBosNoKKdGwoNhPCIcx2YljDWBS3nqsL9jLfZz8FxqtocLte7SPKV5kdPi4U=
+X-Gm-Gg: AYBFou2/jXbKM3xON+vcQzyBSULDrUwkzyBgH8BOqIbC1NbbTlJM+f4J3P83/bg0CdZ
+	VTW0HGJzZbs6ttOckZMKYL/JFrpkN5bjZpbPs6fp68IAS7BtSU2ncCFC+mUWG7YJErt++t+EW1e
+	UlfhEONsCVSZi9o85i2AU5cwRzhNTXSSjujsFOBfwXpGaACJG4bpZOChuS5SqmJdc0zXnOt6mIv
+	DpTT4T0eOdYXOjan9BBYKZszYTJfraa1Z/51u7V0pdVKhTlcC7g6gFvqVv73PgOWo8fCJjT1oZM
+	Qn8gY/eRyNLQVPcibDpBNh0uOtjRQiE8RK8T+LdwwafZ+o4fwmxVYoVAtM52l/MQDKEzS2b7D7N
+	+FI/sJ9W/qwoCTUJ8CEGMK/6mDL6nDgMxMfKmGwX3rwNpgaLoaT/KV6CO/OooT8EYw2ewd8HP77
+	14OjsTxiS/X1LwnLm1WOAreGdSqSPGiW5kIFMKeIYhceH7g2p2vf0jVsWFQlw4ZlgcbnVC
+X-Received: by 2002:a17:90b:564e:b0:381:25ce:bcc2 with SMTP id 98e67ed59e1d1-396d0ee7010mr39640222a91.6.1788199865979;
+        Mon, 31 Aug 2026 11:11:05 -0700 (PDT)
 Received: from localhost ([71.212.197.238])
-        by smtp.gmail.com with UTF8SMTPSA id 98e67ed59e1d1-3990d7bb7c5sm664546a91.14.2026.08.31.10.44.48
+        by smtp.gmail.com with UTF8SMTPSA id 98e67ed59e1d1-3990d802787sm821907a91.16.2026.08.31.11.11.05
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Aug 2026 10:44:48 -0700 (PDT)
-From: Kevin Hilman <khilman@kernel.org>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>, "Markus Schneider-Pargmann
- (TI)" <msp@baylibre.com>
-Cc: Andreas Kemnade <andreas@kemnade.info>, Daniel Lezcano
- <daniel.lezcano@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-omap@vger.kernel.org, letux-kernel@openphoenux.org
-Subject: Re: [PATCH] clocksource/drivers/timer-ti-dm: Register
- clocksource/event only for am654
-In-Reply-To: <E27F05E3-DE4F-4C77-95E3-1701B3410E93@goldelico.com>
-References: <20260828-v7-3-next-topic-ti-timer-dm-clocksource-omap-fix-v1-1-85f0e4dc6f9f@baylibre.com>
- <20260828230445.3c2510b9@kemnade.info>
- <E27F05E3-DE4F-4C77-95E3-1701B3410E93@goldelico.com>
-Date: Mon, 31 Aug 2026 10:44:48 -0700
-Message-ID: <7hzey26v73.fsf@baylibre.com>
+        Mon, 31 Aug 2026 11:11:05 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, 
+ Tony Lindgren <tony@atomide.com>, Yuho Choi <dbgh9129@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20260615200540.770205-1-dbgh9129@gmail.com>
+References: <20260615200540.770205-1-dbgh9129@gmail.com>
+Subject: Re: [PATCH v1] bus: ti-sysc: Fix /chosen node reference leak
+Message-Id: <178819986489.2869653.4530826376882355850.b4-ty@b4>
+Date: Mon, 31 Aug 2026 11:11:04 -0700
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.16-dev
 
-"H. Nikolaus Schaller" <hns@goldelico.com> writes:
 
->> Am 28.08.2026 um 23:04 schrieb Andreas Kemnade <andreas@kemnade.info>:
->> 
->> On Fri, 28 Aug 2026 20:47:45 +0200
->> "Markus Schneider-Pargmann (TI)" <msp@baylibre.com> wrote:
->> 
->>> Registering clocksource/clockevent for the older platforms breaks
->>> booting them. The older platforms have their own implementation in early
->>> boot that is used to register clocksource/clockevent in
->>> timer-ti-dm-systimer.c.
->>> 
->>> With am654, the timer is much more complex with more dependencies so
->>> doing this in early boot with the other driver is very difficult and
->>> gets ugly. Instead it is implemented in the platform driver for am654.
->>> However the old platforms may not register clocksource/clockevent in
->>> this driver as that would break the boot.
->>> 
->>> Add a system_timer_capable flag that is only set for am654-timer that
->>> gates the clocksource/clockevent registration.
->>> 
->>> Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
->>> Closes: https://lore.kernel.org/r/2013A99A-0502-4128-ACFA-B04886224393@goldelico.com
->>> Fixes: b8eeeca55456 ("clocksource/drivers/timer-ti-dm: Add clocksource support")
->>> Signed-off-by: Markus Schneider-Pargmann (TI) <msp@baylibre.com>
->> 
->> Tested-by: Andreas Kemnade <andreas@kemnade.info> # OMAP3 GTA04
->
-> Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # OMAP3 OpenPandora
->
+On Mon, 15 Jun 2026 16:05:40 -0400, Yuho Choi wrote:
+> sysc_init_stdout_path() gets the /chosen node with
+> of_find_node_by_path() to read stdout-path. The function then overwrites
+> the local node pointer with the stdout-path lookup result, or exits on
+> error, without dropping the /chosen reference.
+> 
+> Keep the /chosen node in a separate variable and put it after the
+> stdout-path value has been used for the lookup. The successful stdout
+> node lookup remains referenced by the cached stdout_path pointer.
+> 
+> [...]
 
-Tested-by: Kevin Hilman <khilman@baylibre.com> # OMAP3 Beagle XM
+Applied, thanks!
+
+[1/1] bus: ti-sysc: Fix /chosen node reference leak
+      (no commit info)
+
+Best regards,
+-- 
+Kevin Hilman (TI) <khilman@baylibre.com>
 
