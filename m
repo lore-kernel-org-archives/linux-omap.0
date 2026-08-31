@@ -1,82 +1,80 @@
-Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
+Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32D4D4078C9
-	for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 18:11:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D290D420486
+	for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 18:11:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788199882; cv=none; b=qEmkuejhJo+NLEdKh9CuacojxMatdXvnED9IZDJom0dVAM9TPa3X4CEQvutVPXdBLpPmStjViNtdR6CbCSitWRUUpt6fprxEPIvThMSf9x/fnMJnrEGkt83gg0zpBbQdS7lYXwfEradcEoZAIu42XX7sGrwMNWq7g452PguZMD0=
+	t=1788199883; cv=none; b=RyQkFMA+VEzSB2VZf1WYS7z/nLjdn3rRvIO0y441DsKePsiLezK0Zn2dflkgWx9SeEgTRHEauTOMuYX4fOAffxKScNZYvc+Hc5nLhqFnBiD3LQrOEbTCTiZesdpy4vAdmhUkjjX6wMONPHSKdNpYmjn5sIfI7GQ7K/Tn/FCf4pY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788199882; c=relaxed/simple;
-	bh=7M1s0xF0BcSaXgsX1yy+hfw6UoE4A+irlTuRhWvHUWM=;
+	s=arc-20240116; t=1788199883; c=relaxed/simple;
+	bh=GwvVmdOasksVQpTljB1yONv+ydx6AdGFOmBJEsuZ44Q=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=RbGY+hUo6kP++h5nkCxsxZaxFlNdp1DeQsfD6p+hh80mmPzjvTVobYACxhS/dsZy91fCHd6nulq3fYZ+sfxe3iAFmgjADQvlOTth7LjnJ/ibTE4tPyoSItYZQ9mThIUNMcmZ1r1L550ExMYrAHUPwo8J5K059wNS69Zdde5bgcI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=HylW1t2L; arc=none smtp.client-ip=209.85.216.46
+	 MIME-Version:Content-Type; b=kFTgS4+N0+6YwjXpyqANzM4pxMfAI6BYsImrspbNiDZspDDNh/9LKkGrx/bxPPlM6HYCj8aPb255g7R9Rq6APqZIpJTJG0hfMNllVUO+JN9DveDE3zYllqinhCT/7xigEMZzIKHzuRxH0zHyZ2/vVTbP7aBDS0Ao3s93rF1vos4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=A1c0ZIc1; arc=none smtp.client-ip=209.85.216.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="HylW1t2L"
-Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-382ef647e20so3895013a91.1
-        for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 11:11:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="A1c0ZIc1"
+Received: by mail-pj1-f43.google.com with SMTP id 98e67ed59e1d1-383b4a3755fso70916a91.3
+        for <linux-omap@vger.kernel.org>; Mon, 31 Aug 2026 11:11:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1788199880; x=1788804680; darn=vger.kernel.org;
+        d=baylibre.com; s=google; t=1788199881; x=1788804681; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:mime-version:date:message-id
          :subject:references:in-reply-to:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=0Uhie3yrhdtsyaXSLpjZz2IifaCmtgudsPqCCc1ga+c=;
-        b=HylW1t2LQIaV9lJlm+kdFCB6qUQz2daA/Hit5L+cBbYZQYDPrSE91v5zcMS/CSDHbx
-         YABmNIBQ5lhHZcs1PYDXFOMOmrkboGKBSK+3KktGfDXcnb9JPr63U14uaoyfjqjp5agS
-         Dj+p/AGbc8LuPeYfpz1idawTMIcIZnKYuLs0rrllJPvYvi0YKIh+JTGVudUL4XLuZttf
-         c7bNoIhRKh87gRygPVNxUDtmSrYFSKFOzojxsKZn3GX16cefYRbA9iLzVu5LbeGJkY/R
-         jbZLKjvYFeqJpO8FnaZVTLls6E2E/e7E92uoL63mFeBU2fWvc05fOw8OlXeBx9b2XV53
-         LfCA==
+        bh=HY8aVkF7j6juR+nATWesw8MV58ZoElmwKvQ+IQ/wROo=;
+        b=A1c0ZIc1QmUV4KAlhXdTKv6KAdA8YI43TyW+oTU2iX0wWtIgcjLF6OGOhEQAD4/R9U
+         eIj+fXec7VmepV659hDg7gkNuJWk3B2jPEfV9jqDZs0YaIY1HFybYCS+2g1NFvrQMgag
+         6li4zSIq85/s9qez3EPCHGKuAiyqJlh9CnI+U0oinwGMzn9uQQ7xMJhZm5sM7x/b9w5Z
+         H8q2S3UgBLgfjkglVMlavAI0NsNO+BRMdIuHA7CZpo+HPVABoyMzL1AdA5wA/QQ4DEv/
+         pafwew4AxS8kr7XQ4mLub5QA0JOMScUvlM/mw4AvpLPIjG0DRZ2YdI2/xxAKKs9nF94e
+         HBGw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788199880; x=1788804680;
+        d=1e100.net; s=20251104; t=1788199881; x=1788804681;
         h=content-transfer-encoding:content-type:mime-version:date:message-id
          :subject:references:in-reply-to:cc:to:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=0Uhie3yrhdtsyaXSLpjZz2IifaCmtgudsPqCCc1ga+c=;
-        b=CoHc66bBUHz5p7u0HnE+uuNVTAOEDROmC85Ufrpb7vojBJ0OLcMby6j7/DAdDeAMId
-         qAk6WYRit7i09ceVv00ClCtfPPvimVY/sqb3Xt/2MI0Cf/Ug4rU3Z69FLZPOTUlHbWp5
-         isTc5VoQty4hCAFK5OxH1CyqJYrrQhEBwiZyp2RWmmuSX1JvHGfkWIlnK5SSbu+4IokT
-         BqRhixR4qGGvcalyAlf/Xw/tsmvPY6q0Vd5yDWnCKW47GKEHHb5vRFd9NDuCveVOdPkI
-         HOO9XoRtJcMS7ORJy7zJa2o+/qFAYtkpvP5/An5kvKopG1y6hLFluFgkEodm/95AhxYZ
-         gZnA==
-X-Gm-Message-State: AFuF++lsDNouSpKEvG47q5MJzh6ZaUg3Zpxun/LET6NsDpEh8OF4XF1w
-	gDtHye+8Okjju47y685p/WJh1Ty8/dib8GY3Haaekywll3ACM/r0GIsN39f5hVDt+8E=
-X-Gm-Gg: AYBFou2zm61k2q8SdY1z3632xhbhnRRD2zGDPirLlDMOpr2zvsQSnFXiCU7CzZ+IGm3
-	0QkeGlVH6gMq8OlRGV9+leR4BFooCMrYcZKrgw5Pgs11X3P7KMFGUnfTaNUshoa3LBb3uRdfvGh
-	aDimq1DuDNw6onMPvzVPIMmnRvneW0t0l//DAeU7eR3MCOTJ65WFGSW6IRyw+qiOdGm+4+rUlo1
-	0HMIwzg3nrMk/6hpAN5tVGwh4UKl01OF2lWZ9jUximR+ScPE9tZJTsO5wVmNEliZuXLteOnApIF
-	O8of8dsGGpQR0bT8Q7qjFOA2oKni0ZnE/ZAuIzY4KHqF+RCZ3jbLUB887B30/Xx88N7bwSa/YYw
-	bhaiUMcZwK7HrKiT1f9WlDfSz+5M7Zarn7s6YUJ1e1SNMqSDeg09PQ7R+rkhji6kMaAExXXC3Sc
-	nHtNVVlpwnqMzPbpfWC+pySVqQS6gq1JT65C7CU81CAxctFwst0bGUxQaONA==
-X-Received: by 2002:a17:90b:5405:b0:38e:67e1:15b with SMTP id 98e67ed59e1d1-396d0de4c19mr41311265a91.6.1788199880306;
-        Mon, 31 Aug 2026 11:11:20 -0700 (PDT)
+        bh=HY8aVkF7j6juR+nATWesw8MV58ZoElmwKvQ+IQ/wROo=;
+        b=MDpUj93xvccgH3PWG9u1jB+FNKf+I0GepDc9mmXqXdUyjvTomJtR/VhFQbsaZD+y83
+         plqgE+Hw5QLuYEawzRmLBcPtC6ASxAAyKVZYtHf4AaEXSwkKWXUeAOGYNUIbeqot2LFo
+         Mkx7bmQG3IKu8dkr8GMoxUG/pPG9dVYUOukHMVoC/VF1wvtPhCxq8a7rWwM81QrxQw1i
+         Wex1pC45BAzMJ2EGe1UCCLKTz06PDN9zt+K3h63x3+zvdTGPJtVIvPGA4CF7EcpkgpVg
+         FEaXLjlDDPskuDk/tNIGmxP3UFuVl8g5vL1Qb+qYDH/7FyWVCNaWaO5Wc6N8wNJgKgt7
+         Zq4w==
+X-Forwarded-Encrypted: i=1; AKwUvBwrREpV3eV1iqIxSGeFCPobgjo65dkTwjsfZCyUjjtHkmbMcFToeICfZQ2CKIsPWY3P2EdIMUYZlLIt@vger.kernel.org
+X-Gm-Message-State: AFuF++kTVG3QZWQ4WB3mYP3Aq38odyggDWtmurUHhQNEH8k7HDL5ZZMx
+	AT9E3R3I1Jb/uheSHLirNcM6DxLT8hAEfdhue2M2kvmPZw80jS6WVrtm6BjA3bGLZIs=
+X-Gm-Gg: AYBFou3+UFNpfodlly/dumzR4ELPrNi+dCeE8Kaz5P1taiddp4PbJMvP8KmONPv3Vun
+	FwbYpyRiSwrmoryBe5AENVues8Qt3pv8WIE4sTrZyp35fmuUu2HVjiL2YwNUi09TXgu2DgFN9aP
+	DYp0dU+3EOXiuHYCQYwAiLL8CqghHypvYzpndHWPC+8JAbpz2+MfQMEQzHA0+W1rDBqGpwNct++
+	HhYoBWL/3WUUX3goPZxGdUDWx77GmqbpSATzqY64J4h3D+VAOdDignPVuNI0BQKrg7yoeQR7c89
+	JvIXC27KXZLUNpwTw5hG6kih+gQDvKZDcpyXp42awgshCvgvVNuSOhXK/nMvZcb1QC+jo02mHtZ
+	33OdGvipFwTNhpoMT5sx446y6Su1xTzGrzZPopPdS1bL+6WO3NPezmzJjcFOVjV6CkzrDqaHmFP
+	u67IlCjl5yOhQJ4/I7xCMW7dtdEmEd0GefFKm5qQkldfjJGs/dm3Jm7UHO8g==
+X-Received: by 2002:a17:90b:5102:b0:38e:70d5:b12d with SMTP id 98e67ed59e1d1-396d0ea862fmr45988035a91.6.1788199881361;
+        Mon, 31 Aug 2026 11:11:21 -0700 (PDT)
 Received: from localhost ([71.212.197.238])
-        by smtp.gmail.com with UTF8SMTPSA id 98e67ed59e1d1-3990d4f1bb8sm953382a91.14.2026.08.31.11.11.19
+        by smtp.gmail.com with UTF8SMTPSA id 98e67ed59e1d1-3990bd1b395sm915178a91.1.2026.08.31.11.11.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Aug 2026 11:11:19 -0700 (PDT)
+        Mon, 31 Aug 2026 11:11:20 -0700 (PDT)
 From: Kevin Hilman <khilman@baylibre.com>
 To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Roger Quadros <rogerq@kernel.org>, 
- Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
- Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, 
  Alexandre Belloni <alexandre.belloni@bootlin.com>, 
- Keerthy <j-keerthy@ti.com>, Afzal Mohammed <afzal@ti.com>, 
- Bhargav Joshi <j.bhargav.u@gmail.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-rtc@vger.kernel.org, 
- goledhruva@gmail.com, m-chawdhry@ti.com, daniel.baluta@gmail.com, 
- simona.toaca@nxp.com
-In-Reply-To: <20260804-ti-omap-rtc-v3-0-ba3bbd8af570@gmail.com>
-References: <20260804-ti-omap-rtc-v3-0-ba3bbd8af570@gmail.com>
-Subject: Re: (subset) [PATCH v3 0/4] dt-bindings: rtc: ti,omap-rtc: Convert
- to DT schema and cleanups
-Message-Id: <178819987948.2869653.8611872287361321385.b4-ty@b4>
-Date: Mon, 31 Aug 2026 11:11:19 -0700
+ Andreas Kemnade <andreas@kemnade.info>, Conor Dooley <conor+dt@kernel.org>, 
+ devicetree@vger.kernel.org, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
+ linux-rtc@vger.kernel.org, Rob Herring <robh@kernel.org>, 
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+ Eduard Bostina <egbostina@gmail.com>
+Cc: daniel.baluta@nxp.com, simona.toaca@nxp.com, goledhruva@gmail.com, 
+ m-chawdhry@ti.com
+In-Reply-To: <20260719141008.3562347-1-egbostina@gmail.com>
+References: <20260719141008.3562347-1-egbostina@gmail.com>
+Subject: Re: (subset) [PATCH 0/2] dt-bindings: rtc: Convert to DT schema
+Message-Id: <178819988045.2869653.16639071093612124641.b4-ty@b4>
+Date: Mon, 31 Aug 2026 11:11:20 -0700
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -88,31 +86,21 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.16-dev
 
 
-On Tue, 04 Aug 2026 22:35:04 +0530, Bhargav Joshi wrote:
-> This series converts the Texas Instruments OMAP Real Time Clock (RTC)
-> binding from the legacy format to dt-schema.
+On Sun, 19 Jul 2026 14:10:06 +0000, Eduard Bostina wrote:
+> This series converts the Texas Instruments Palmas RTC bindings to DT schema
+> and resolves a node name compliance issue.
 > 
-> The am3352-rtc is compatible with the da830-trc. Update the compatible
-> string to include the ti,da830-rtc fallback
+> Patch 1 converts the text binding to DT schema.
 > 
-> Two legacy, undocumented properties were discovered in the upstream
-> device trees:
->  - 'ext-clk-src' in am57xx-idk-common.dtsi
->  - 'ti,no-init' in am335x-shc.dts
-> Both properties are completely unhandled by the rtc-omap driver. Patches
-> 1 and 2 remove them from the device trees. Patch 3 then introduces the
-> new YAML schema.
+> Patch 2 updates the tps659038_rtc nodes across the AM57xx device trees
+> to use the generic 'rtc' node name.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/4] ARM: dts: ti: am57xx-idk-common: Remove unused ext-clk-src property
-      commit: ff94c2d480faee28000d0a4c4f23147f15a9d1b1
-[2/4] ARM: dts: ti: am335x-shc: Remove unused ti,no-init property
-      commit: 7b300285a4af35396df237ca6bb4ce24f721dcec
-[3/4] ARM: dts: omap: dra7: add da830 fallback to am3352 rtc compatible string
-      commit: 008e8fab68d8b33929686c2f71ff92675ec515b5
+[2/2] ARM: dts: ti: omap: Fix Palmas RTC node names
+      commit: eaeb86b1194ef162254059ba6a2c5145d1ed7ef1
 
 Best regards,
 -- 
