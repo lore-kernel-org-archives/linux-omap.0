@@ -1,67 +1,68 @@
-Received: from mail-ot1-f46.google.com (mail-ot1-f46.google.com [209.85.210.46])
+Received: from mail-oa1-f42.google.com (mail-oa1-f42.google.com [209.85.160.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F3C338E106
-	for <linux-omap@vger.kernel.org>; Tue,  1 Sep 2026 21:42:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 769253BB131
+	for <linux-omap@vger.kernel.org>; Tue,  1 Sep 2026 21:42:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788298954; cv=none; b=oZSmWOVDH4qZTv8l1K/8nbbovSi1JRugGpQ8nLgvgfcm5Fa50IBD5JdlAsDWMuPT6giNDSGso8q0rEMm6tuOrDeGJXR1lPnh2e1Ij4KmPG6eG6Xv8B7UVl1y7Jrl8XeAgBq8UHmRWshKM5MPUZHua/dcUwWIuFzBTRmpT+oSt88=
+	t=1788298955; cv=none; b=QKwkfQGo4p7uiOM+2Eh0uJCnnvXjZzNn9W0lPTCN4lRAXDgeYKiAsoRH1RMWv18y/zyJYYdXmbhdc5wWTAHwDqH/NMEF+XIpJvva0y1HCJn9BDC41YTuMzoBsMn0VvN9dQ1BH0DS3QaszDShmnmNFRsgjQtt2tZxxvP9XutXJuE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788298954; c=relaxed/simple;
-	bh=81GtuhM8WPaQORq30yLJ9T7RnVg1D0CM09jTFAW6Whg=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=DPusgpdvwuXZ86PCNfwfNHUOrw99+d7XW8ly7pF5RMvo/wl+Nz1IqEEyl0UztjMA809rgbDnI4uPLvpdBWx/fVE7ZUyiroNkjKgVwRnIpT+O/pZgkwzovlBE6YAV6s78SEMKi6XBlqsASPJ5m0bBvcUIAhhpc+PvHKAML+1OiF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mOaowlb2; arc=none smtp.client-ip=209.85.210.46
+	s=arc-20240116; t=1788298955; c=relaxed/simple;
+	bh=JPUA3viflQ2v9uEzqZ95Rm337zpwh6hXrUk2Yg+PzV8=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=NqbZrxtVV03psFXrLWRciWMlDmLMXzkPdGJO0c8PpjArRrISZu5gBIn48EvfP4TIyhaU3ydUxvKn5fo7owC6NrgluP7LYsoqOcgMN/3SprnHG4542EZUUzHqJ9iZ8XnakApI2IgGSXZlKEdaM3kFnr8XT7jCfnaAjuWqFoVXyPw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=P02ltant; arc=none smtp.client-ip=209.85.160.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mOaowlb2"
-Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-7eb5bdb50fcso200274a34.1
-        for <linux-omap@vger.kernel.org>; Tue, 01 Sep 2026 14:42:32 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P02ltant"
+Received: by mail-oa1-f42.google.com with SMTP id 586e51a60fabf-46ad7304688so1684070fac.0
+        for <linux-omap@vger.kernel.org>; Tue, 01 Sep 2026 14:42:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788298951; x=1788903751; darn=vger.kernel.org;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=y249H53XhLZ2onZan6XPWtvu2gNoxIJKlrKV115uQNw=;
-        b=mOaowlb2nBqpA2MI2X9Q+0Oy7O0HGn49oi6X/L32JIQ8IB9uXwckHU+rdRSJbtfM13
-         ewJfJvInM+eDOnpta/LlkkqZJfN5qpd790gj7UrVDuCmS5PDNKErvjBhDkxcSngNTtgO
-         bYAjgbqoEfQ8KVvdY4EARjiLQsIFXVpku+geSOdsrcAbdjH8gOMXZYCf2wUGMfZtu8pa
-         GZ7A9CKJhYVnygNSyli+iEKnJ4fGbHxo5/nctCjQDw+mmuu5deRZ7WyIfDCob9Lu19dA
-         dRtmXMgk2EbAtm4AEnlZl4h3mfVd5yH0tuMXrfFEbmQn7PIOLd5WqOR01XYsDnlrTAdE
-         S7QQ==
+        d=gmail.com; s=20251104; t=1788298953; x=1788903753; darn=vger.kernel.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=F+NmUzFRKeuEQ7M+1ibV0+Pzn+8gHlXWcUZ2COu4Ht4=;
+        b=P02ltantu8oshKZx4o9a1xUnDYuKblvHDHy+YNGvhEPpwpmIO9JaWHP2XDXpg8QpAx
+         Kmg6Zo9rO1JeLJfEltpVgzrJSU58i6DjzOnWg4sp1Wuoo48K82TI3+3JIWQU5zDz8rIU
+         j+wXa4awoJHrC1xqRbTPVDMjTnB4EbKyIzX0Ar/u5evhkTFePKY8/2fUuN7UMuTb4CMO
+         T3jDgt1zMw2j6qk8jOtfVPIXvwR0MyrE9DBcVovjIM8Tj1LkJ1G+DbyV1aEWLXJtq7Hm
+         YMHIylHtwTp49IsQxtQ3JxYQO7Nl8gJIb/AZDNn2pBKPAD6YC7RAftFqaK+fq1LN9b22
+         qAWQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788298951; x=1788903751;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=y249H53XhLZ2onZan6XPWtvu2gNoxIJKlrKV115uQNw=;
-        b=fn0dE7fUKuEmmOoRlnWFq0XMBaLcqeb5xxLa7i4phj88g6i1QfQ+fJ85d9/eWtUolg
-         FuATwwi5h4G9H0+12+VFVCadRxmn5glWQzg27Olt0eRMDTGTjGzqaxLm4+4BvpcQY5XN
-         pw99H/Tanega2oxhuorzljaW0ctS6oJ6Xv9w3q75eECHa6Za85uQFidjQFVfR4nbL2Lb
-         /zljzXTOAyz3xBl5Aj/RMjtsiEbp1MdlpPqp4EzaWl0XUIvEseJgKgL1pjmyUNz79MWR
-         N1DYRGHMdd6QMVKzsRUke+VB9XWJWDACSPT+vW+mVy+qD2L0o+smCPCydfc87Ztyfj/m
-         Zb1A==
-X-Gm-Message-State: AFuF++lisRpD+nq8wlTJWB+GYOJHWNdmj0i6M4HVboBwIdgTRu7iAns1
-	Vj/jszdsRk21f40U5PP2VgPjj+AqEq9ahkDa5OSdXuNhUrkNc9MaSazE
-X-Gm-Gg: AR+sD10TFsSJHcvDfhWKcD8gX5UtQBKVHoONzHr+rqOjx04LyZfTfAydEakJmtjKZB1
-	zHjvC881P4jmC0Q2mE/gFfJYvkpO5kJ00aD9CdE5QdBKfc+j0p0q6NoFy9bxbuZ7nK2T3NoxVlF
-	l7iDILXlOCOykarwb4VEe9N/VEGjjy+DcY6F90voGfoTCG87vU+4OOd7S3p/+97jXybcmPYTGIf
-	azVT2ZR/vamzm7+pCL6N0M4faI69zOQjxtSZNL3+mGKWDxpcqj0ii6DsC5S32f2R6pQ/l8xvfmW
-	SgW84ER7kq1ZweQpTb12PJcafwAse0TuTIZs09krVq4l8XJ0LnmYyNgaKwOS+5f0O7mLjCPl7VL
-	LfxQ6iWuvbkGJpAevMeXHs5k44wDfbN7/DOJUaPhdOZ0zbOmuug7nf3p8gKQlJn0BD4mjZFH0pb
-	WA9JRn3bdFO137Xs465R9zY1mAAhJS3RWk7Kpn62vvn8cJFRU9gWNEUnWs8JYRUf4ay70B5b0ln
-	+v7Xqkv2jpdzt7lzTbA0rfX4HvmZyWz5RzE3BHiTlDMvzNBZkBNIXPe5esZu0Dt4hxpla7qOmeK
-	LRYDqCuQm4RMK/TLptTamJz/kfhBj2wH1PYGbcgjjgWDdA==
-X-Received: by 2002:a05:6820:824:b0:6b3:6bc7:2ea7 with SMTP id 006d021491bc7-6b36bc73476mr11612524eaf.7.1788298951280;
-        Tue, 01 Sep 2026 14:42:31 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1788298953; x=1788903753;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=F+NmUzFRKeuEQ7M+1ibV0+Pzn+8gHlXWcUZ2COu4Ht4=;
+        b=se7LCHNMUhTpeOo6dJrBrP4BjDtEKM6bhz2m3oNMmiDUTTpUdDZqpsNxRagacgFKI+
+         lr2CiqMPgk21aau2ZYurk2RiK8Y3auSEQWFBfd9Sfs1EHSwk1lGh65EHdfoAlqp4EimX
+         QkRCX19KH6WECqK2tPI+O34HeGBckh5qPPxygWTsvp/xwc6fiH88jnpT2admZov5jUyQ
+         GL4m05QCq7FmiV9Mw2j5TX/3w/fS7R0CrQVhmGjuAtXRntXcJrQcy58nTh9NbPnLhUBR
+         kkPQGQRAU3N3jYsr5cP9eVP9l2tTHHfplhjs2MsQYZeEQv1e6srly78Alju5Produ5l+
+         +4SA==
+X-Gm-Message-State: AFuF++kTWCVGMU759HbCPpuvRu6Crf/2L5AaoXq08lyijL4u28IrYF+w
+	HIs5FzHRQKSlTqJXEAI7R3KvBKOyO1a1yLbIru7GutvbNdd/iVgyvtu8
+X-Gm-Gg: AR+sD13tQEjyRo22ooEiY3yNg3Y/KypP5N2goX9OTiHnFbjRDlJwN8gsOjt0PpuSnuk
+	plEP+t0Bjl7uzGdzH4l9oWXz7gc7u8BeouuMoY/PdJRPOeDptxfeJ6ArMGl6kg4av2iBNOIRCgf
+	cylRdIpXSPAC7oByr2fwXThHK4ABJCxnFxD/5qxMgyuiiwZ0t4k0tVyDdAGC/oXqzz+m39wtkyl
+	YD7Qq18SPVXKnK/+v9oirtweClj8BbbxaNfiNUrxP6qjKmqtSReSXcZ00raSrJAfVnrwyXzZ1nY
+	Y8SidTs9lB35iHwDBjSPtKAZdi16QN5lM5te9BxeaM2XsfrmwoDDjDJkOol3WyW3GRrixmiC8s+
+	E2DG0Y9FDxkdYV46M57ir84KoWASkf4xqruWP79uQx7XY9WYDVc85zq2r/9FHmVappMIF5dwgKa
+	jY1Ln9D7tzkrMaokQ+WNm//lqA3SbMcONYxmkGcP9H+lQUWuF8REXwbiXXSKVbHByVOFA39SIL2
+	E3PhbV6WD2nYEyD8a+eVNdkRja6WdoFrVqIoSCA1H208xU/JdujjMWt0ygOJruQH4d+2kSgWPfi
+	hm7TEH8DsJJ7N0PvGdUU8/Glc08NU6XEe8vqQBahFpm+NQ==
+X-Received: by 2002:a05:6820:f012:b0:6b1:a812:988a with SMTP id 006d021491bc7-6b4716950fdmr99940eaf.6.1788298953204;
+        Tue, 01 Sep 2026 14:42:33 -0700 (PDT)
 Received: from [127.0.1.1] (140-186-136-19-dynamic.midco.net. [140.186.136.19])
-        by smtp.gmail.com with ESMTPSA id 006d021491bc7-6b40ba648f6sm1094703eaf.2.2026.09.01.14.42.28
+        by smtp.gmail.com with ESMTPSA id 006d021491bc7-6b40ba648f6sm1094703eaf.2.2026.09.01.14.42.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 01 Sep 2026 14:42:30 -0700 (PDT)
+        Tue, 01 Sep 2026 14:42:32 -0700 (PDT)
 From: Robert Nelson <robertcnelson@gmail.com>
-Subject: [PATCH 0/3] Add support for BeagleBone Black RevD
-Date: Tue, 01 Sep 2026 16:42:20 -0500
-Message-Id: <20260901-v7-3-rc1-beaglebone-black-revd-v1-0-f521950b777a@gmail.com>
+Date: Tue, 01 Sep 2026 16:42:21 -0500
+Subject: [PATCH 1/3] dt-bindings: omap: Add BeagleBone Black RevD
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -70,10 +71,9 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIALxGl2oC/yXNQQ6CMBCF4auQWTtJS2OJXsW4mBkGHCXFtEhMC
- He36vJbvP9tUDSbFjg3G2RdrdicKvyhAblRGhWtr4bWtdGdnMe1w4BZPLLSOCnPSZEnkgfWeY+
- dEIfBUzzGADXyzDrY+3dwuf5dXnxXWb5V2PcPzG7msoIAAAA=
-X-Change-ID: 20260901-v7-3-rc1-beaglebone-black-revd-7cab3f1a6563
+Message-Id: <20260901-v7-3-rc1-beaglebone-black-revd-v1-1-f521950b777a@gmail.com>
+References: <20260901-v7-3-rc1-beaglebone-black-revd-v1-0-f521950b777a@gmail.com>
+In-Reply-To: <20260901-v7-3-rc1-beaglebone-black-revd-v1-0-f521950b777a@gmail.com>
 To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
  Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
  Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
@@ -86,27 +86,27 @@ Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
  Robert Nelson <robertcnelson@gmail.com>
 X-Mailer: b4 0.15.2
 
-The BeagleBoard.org BeagleBone Black RevD and Industrial (00D0/EID0) are
-redesigns of the BeagleBone Black Rev C3. They feature an IT66122 HDMI
-PHY to replace the EOL NXP TDA19988.
+Document the beagle,am335x-bone-black-revd compatible string in the
+appropriate place within the omap family binding file.
 
 Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
 ---
-Robert Nelson (3):
-      dt-bindings: omap: Add BeagleBone Black RevD
-      arm: dts: omap: Add support for BeagleBone Black RevD
-      arm: dts: ti: Enable overlays for BeagleBone Black RevD
+ Documentation/devicetree/bindings/arm/ti/omap.yaml | 1 +
+ 1 file changed, 1 insertion(+)
 
- Documentation/devicetree/bindings/arm/ti/omap.yaml |   1 +
- arch/arm/boot/dts/ti/omap/Makefile                 |   2 +
- .../dts/ti/omap/am335x-boneblack-ite-hdmi.dtsi     | 184 +++++++++++++++++++++
- .../arm/boot/dts/ti/omap/am335x-boneblack-revd.dts | 166 +++++++++++++++++++
- 4 files changed, 353 insertions(+)
----
-base-commit: cee9395acd8043be0644b25c34bfa86623f2b935
-change-id: 20260901-v7-3-rc1-beaglebone-black-revd-7cab3f1a6563
+diff --git a/Documentation/devicetree/bindings/arm/ti/omap.yaml b/Documentation/devicetree/bindings/arm/ti/omap.yaml
+index f694dcbf2348..9666c455628d 100644
+--- a/Documentation/devicetree/bindings/arm/ti/omap.yaml
++++ b/Documentation/devicetree/bindings/arm/ti/omap.yaml
+@@ -104,6 +104,7 @@ properties:
+       - description: TI AM33 based platform
+         items:
+           - enum:
++              - beagle,am335x-bone-black-revd
+               - compulab,cm-t335
+               - moxa,uc-8100-me-t
+               - novatech,am335x-lxm
 
-Best regards,
---  
-Robert Nelson <robertcnelson@gmail.com>
+-- 
+2.55.0
 
