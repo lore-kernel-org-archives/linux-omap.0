@@ -1,174 +1,120 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0C0A3D7A18;
-	Wed,  2 Sep 2026 08:30:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A456D3E9C2B;
+	Wed,  2 Sep 2026 08:34:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788337816; cv=none; b=jWIAD2wtEyLLfCUhgQG1Gq3AeO+z4HC0TYyWa1f+sWS/5CZO0Yquf/ZdYy+7EBfsiIGHAPHb0V3LxbCLNuei6Irc8L9SM9kwYlDNvabDmfiYHreQ6/GVljBD3SDuwmG1n0Vjix77Yyrfkd1ZvlQ/Umrdx1QAEg8M6jxfMpcTZVI=
+	t=1788338076; cv=none; b=CNS4Iejgj+gWaSZNy6Xxhr7iO/2rNvg1p4Et6lGTkd5UeWV5ioMbJyiz9A7vkDxITHBdDM+n0hoy29g1hzBLL4JmEQqh4mMss27bptMz11YnD/LGBEBojZ2onXMgSdBWBekC3+op+BAbh86fhIbObMPA1+/ug1JF68UbWw1Uf+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788337816; c=relaxed/simple;
-	bh=p9/TMtF9B6gGW8ww0VDbOuFqE32oPW1eyBSzktShqa0=;
-	h=Mime-Version:Content-Type:Date:Message-Id:Subject:Cc:From:To:
-	 References:In-Reply-To; b=oJOh9cqacrQVc4uy8u4z6tusDvVU50QyNsPiC4WDeHfbCtiUasSpjD12+hYdIVpcJVmHT1fK6jUWI/fMizzLv+xuFS4pAhh6s3NZhbOxbmoNv0ID5XlBG8bw2s8mp7W2udDSbtANV/AQIEJ10aVx9Ym11xC8BzIYfDCDW5+hKSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=nM6pZzfB; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1788338076; c=relaxed/simple;
+	bh=pnNUS8mWmhzCdDTdxo+urlGVuBOjkXrjTonoFRnkpRU=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=pPe2Vok0agKl2cO82BEb28+5T/0Y0dwk6md+SGPdgvjsNVwZkswuBr3/ybs8w1PrQLUKMgUfyX434xZbLiCWiPZ7f/m13iJGahCAmZsD46MvnYqXOISQBlNMUJbRdDKEYsK3Rgkjn3OhaeWIZRpb3Eq0qr5ITW/Co6sx/bfPPKQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=LLW6JXV9; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="nM6pZzfB"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 2FCC01A193E;
-	Wed,  2 Sep 2026 08:30:11 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id E14686053C;
-	Wed,  2 Sep 2026 08:30:10 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 7B61811C792AC;
-	Wed,  2 Sep 2026 10:30:03 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1788337805; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=YZdKpCWAftcptnJNEmrAxxlMDwJvGn6KP9PAe+ZZ0tk=;
-	b=nM6pZzfB6xyqLj6RHiiBMchUbO/wFudV2mFFuJ1nV2FSmV+tsf32xq4nGae+jcOI3tX18k
-	OgOIJKDv+/RqqfDaclraqGkVXyVa71ymwYlSEV/Rdp0ubbKsPKOpdWEX4hR0J/JQzBMY9P
-	G0x7r7mZVAh4ECLm4ODRO/lsDJ0WZlTnupul15NZE1YJPeW/fekJuh9mKFki1RQKz1lwQP
-	Gyhgx23iM6JxkDJ6Zl9r135TzzBrESHshJvt7eKoth3UOP3EbRBMBETx/vmJUOHheJmAEa
-	ogXyT2mdcNaE2O1IP7cbcMA5Cg4uCugjGQg7nYvVFMIGJyP3JVPcLdH7x602Nw==
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="LLW6JXV9"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=l7XpSW2eb4oLDc6eE3Z9RgxOJk8x+ZF6XYRM954FsY8=; t=1788338074; x=1789547674; 
+	b=LLW6JXV9d9CdSdAtLT9EJs5pNQNukJ2+yOjs1X4HAAAXz457Sz3AENr8sj5tEdHH1yhhdQ/+s/K
+	oIynr71bxeEaZXu4bKo3TTi1DFVi2y33nlVWC1FmIc/T4sLBnrw9dsVdiyE7uWMHflIAIjGJbuxCt
+	evM3Ic3GGPQKAq6DaaoiyN+OTNZxLMx+K96MtT2WSB5xHZNWBVkjrjKI6Vwg/jetov1Z5cTGldSsz
+	7v6fPIiN1Q6+5tM18YeTXH8bQPstFWQqXGKvmLlKwx+RbRkKplZHufWllZWkVjFDg5Ur/gWIL2lUm
+	abZgCYg0VJImy721W0nN580W95+bzcVK3vwg==;
+Date: Wed, 2 Sep 2026 10:34:25 +0200
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+Cc: Tero Kristo <kristo@kernel.org>, Michael Turquette
+ <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, Brian Masney
+ <bmasney@redhat.com>, Tony Lindgren <tony@atomide.com>, Thomas Petazzoni
+ <thomas.petazzoni@bootlin.com>, =?UTF-8?B?VGjDqW8=?= Lebrun
+ <theo.lebrun@bootlin.com>, =?UTF-8?B?R3LDqWdvcnk=?= Clement
+ <gregory.clement@bootlin.com>, linux-omap@vger.kernel.org,
+ linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, hns@goldecilo.com
+Subject: Re: [PATCH v2 0/2] clk: ti: mux: resolve parent clocks by DT index,
+ not by name
+Message-ID: <20260902103425.2cf41f15@kemnade.info>
+In-Reply-To: <20260902082639.69643254@kemnade.info>
+References: <20260727-mathieu-wdt-clock-theo-v2-0-c048a6394436@bootlin.com>
+	<20260902082639.69643254@kemnade.info>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 02 Sep 2026 10:30:02 +0200
-Message-Id: <DL4OUCXRGBEA.2G2WHI4FH2AY8@bootlin.com>
-Subject: Re: [PATCH v2 0/2] clk: ti: mux: resolve parent clocks by DT index,
- not by name
-Cc: "Tero Kristo" <kristo@kernel.org>, "Michael Turquette"
- <mturquette@baylibre.com>, "Stephen Boyd" <sboyd@kernel.org>, "Brian
- Masney" <bmasney@redhat.com>, "Tony Lindgren" <tony@atomide.com>, "Thomas
- Petazzoni" <thomas.petazzoni@bootlin.com>, =?utf-8?q?Th=C3=A9o_Lebrun?=
- <theo.lebrun@bootlin.com>, =?utf-8?q?Gr=C3=A9gory_Clement?=
- <gregory.clement@bootlin.com>, <linux-omap@vger.kernel.org>,
- <linux-clk@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
- <hns@goldecilo.com>
-From: "Mathieu Dubois-Briand" <mathieu.dubois-briand@bootlin.com>
-To: "Andreas Kemnade" <andreas@kemnade.info>
-X-Mailer: aerc 0.21.0-0-g5549850facc2
-References: <20260727-mathieu-wdt-clock-theo-v2-0-c048a6394436@bootlin.com>
- <20260902082639.69643254@kemnade.info>
-In-Reply-To: <20260902082639.69643254@kemnade.info>
-X-Last-TLS-Session-Version: TLSv1.3
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Wed Sep 2, 2026 at 8:26 AM CEST, Andreas Kemnade wrote:
+On Wed, 2 Sep 2026 08:26:39 +0200
+Andreas Kemnade <andreas@kemnade.info> wrote:
+
 > Hi,
->
+> 
 > this seems to produce on OMAP3 (DM3730), even with the init fix.
->
-> [    0.000000] clocksource: 32k_counter: mask: 0xffffffff max_cycles: 0xf=
-fffffff
-> , max_idle_ns: 58327039986419 ns                                         =
-      =20
-> [    0.000030] sched_clock: 32 bits at 33kHz, resolution 30517ns, wraps e=
-very 65
-> 535999984741ns                                                           =
-      =20
-> [    0.013488] clk: failed to reparent gpt1_fck to omap_32k_fck: -22     =
-      =20
-> [    0.019805] Failed to initialize '/ocp@68000000/target-module@48318000=
-/timer@
-> 0': -19                                                                  =
-      =20
->
+> 
+> [    0.000000] clocksource: 32k_counter: mask: 0xffffffff max_cycles: 0xffffffff
+> , max_idle_ns: 58327039986419 ns                                                
+> [    0.000030] sched_clock: 32 bits at 33kHz, resolution 30517ns, wraps every 65
+> 535999984741ns                                                                  
+> [    0.013488] clk: failed to reparent gpt1_fck to omap_32k_fck: -22            
+> [    0.019805] Failed to initialize '/ocp@68000000/target-module@48318000/timer@
+> 0': -19                                                                         
+> 
+
+created a backrace with that -EINVAL:
+[    0.030975]  clk_fetch_parent_index from clk_core_set_parent_nolock+0x7c/0x18
+[    0.031005]  clk_core_set_parent_nolock from clk_set_parent+0x6c/0x18c       
+[    0.031036]  clk_set_parent from of_clk_set_defaults+0x304/0x6e8             
+[    0.031066]  of_clk_set_defaults from dmtimer_systimer_setup+0x5c/0x1cc      
+[    0.031127]  dmtimer_systimer_setup from dmtimer_clkevt_init_common+0x78/0x10
+[    0.031158]  dmtimer_clkevt_init_common from dmtimer_clockevent_init+0x80/0x8
+[    0.031188]  dmtimer_clockevent_init from dmtimer_systimer_init+0x114/0x134  
+[    0.031219]  dmtimer_systimer_init from timer_probe+0x68/0xf4                
+[    0.031250]  timer_probe from start_kernel+0x19c/0x370                       
+[    0.031280]  start_kernel from 0x0                                           
+
+Maybe something is not ready yet for using indexes instead of names there.
+
 > Regards,
 > Andreas
-
-Hi Andreas,
-
-That one will be a bit harder for me to debug, as I'm not sure I can
-easily get this hardware. But looking at the device tree and the
-reference manual, I suspect something is wrong in the omap3 device tree.
-
-In omap3.dtsi, we have this node [1]:
-
-&timer1_target {
-	ti,no-reset-on-init;
-	ti,no-idle;
-	timer@0 {
-		assigned-clocks =3D <&gpt1_fck>;
-		assigned-clock-parents =3D <&omap_32k_fck>;
-	};
-};
-
-I suspect that's the source of the error: __set_clk_parents() in
-drivers/clk/clk-conf.c will try to set &omap_32k_fck as a parent of
-&gpt1_fck. But looking at omap3xxx-clocks.dtsi [2], &omap_32k_fck is not
-a valid parent:
-
-	gpt1_fck: gpt1_fck {
-		#clock-cells =3D <0>;
-		compatible =3D "ti,composite-clock";
-		clocks =3D <&gpt1_gate_fck>, <&gpt1_mux_fck>;
-	};
-
-Yet the &gpt1_mux_fck is a mux, and one of the parent is indeed
-&omap_32k_fck [3]. So I suspect the correct assigned clock parent in
-timer@0 should be &gpt1_mux_fck.
-
-Can you try it that way?
-
-Now, I have doubts about how this was working correctly so far. You
-don't see any error at all without my changes?
-
-[1]: https://web.git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git=
-/tree/arch/arm/boot/dts/ti/omap/omap3.dtsi?h=3Dv7.3-rc1#n1036
-[2]: https://web.git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git=
-/tree/arch/arm/boot/dts/ti/omap/omap3xxx-clocks.dtsi?h=3Dv7.3-rc1#n1183
-[3]: https://web.git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git=
-/tree/arch/arm/boot/dts/ti/omap/omap3xxx-clocks.dtsi?h=3Dv7.3-rc1#n737
-
-Thanks,
-Mathieu
-
->
+> 
 > On Mon, 27 Jul 2026 09:41:39 +0200
 > Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com> wrote:
->
->> This commit aims to solve an issue I've been describing a few months ago
->> on AM335x SoC [1]. I believe using the parent_data field of
->> clk_init_data structure is now the preferred way to convey that data,
->> and it should be more reliable than string comparisons.
->>=20
->> [1]: https://lore.kernel.org/all/DI4RUFQNSSNP.2QMSSQWJW9I2O@bootlin.com/
->>=20
->> Signed-off-by: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
->> ---
->> Changes in v2:
->> - Also use clk_parent_data structure in composite.c.
->> - Rebase on v7.2-rc5.
->> - Link to v1: https://lore.kernel.org/r/20260715-mathieu-wdt-clock-theo-=
-v1-1-da65bba1828b@bootlin.com
->>=20
->> ---
->> Mathieu Dubois-Briand (2):
->>       clk: ti: mux: resolve parent clocks by DT index, not by name
->>       clk: ti: composite: resolve parent clocks by DT index, not by name
->>=20
->>  drivers/clk/ti/composite.c | 26 ++++++++++++++------------
->>  drivers/clk/ti/mux.c       | 20 +++++++++++---------
->>  2 files changed, 25 insertions(+), 21 deletions(-)
->> ---
->> base-commit: f5098b6bae761e346ebcd9da7f95622c04733cff
->> change-id: 20260713-mathieu-wdt-clock-theo-f0c5ba58e258
->>=20
->> Best regards,
-
-
-
-
---=20
-Mathieu Dubois-Briand, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+> 
+> > This commit aims to solve an issue I've been describing a few months ago
+> > on AM335x SoC [1]. I believe using the parent_data field of
+> > clk_init_data structure is now the preferred way to convey that data,
+> > and it should be more reliable than string comparisons.
+> > 
+> > [1]: https://lore.kernel.org/all/DI4RUFQNSSNP.2QMSSQWJW9I2O@bootlin.com/
+> > 
+> > Signed-off-by: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
+> > ---
+> > Changes in v2:
+> > - Also use clk_parent_data structure in composite.c.
+> > - Rebase on v7.2-rc5.
+> > - Link to v1: https://lore.kernel.org/r/20260715-mathieu-wdt-clock-theo-v1-1-da65bba1828b@bootlin.com
+> > 
+> > ---
+> > Mathieu Dubois-Briand (2):
+> >       clk: ti: mux: resolve parent clocks by DT index, not by name
+> >       clk: ti: composite: resolve parent clocks by DT index, not by name
+> > 
+> >  drivers/clk/ti/composite.c | 26 ++++++++++++++------------
+> >  drivers/clk/ti/mux.c       | 20 +++++++++++---------
+> >  2 files changed, 25 insertions(+), 21 deletions(-)
+> > ---
+> > base-commit: f5098b6bae761e346ebcd9da7f95622c04733cff
+> > change-id: 20260713-mathieu-wdt-clock-theo-f0c5ba58e258
+> > 
+> > Best regards,  
+> 
+> 
+> 
 
