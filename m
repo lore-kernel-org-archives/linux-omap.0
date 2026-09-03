@@ -1,71 +1,72 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C997494A1B;
-	Thu,  3 Sep 2026 11:46:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 579D84582E0;
+	Thu,  3 Sep 2026 12:06:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788435988; cv=none; b=sU6EzdTAgeA+IdKGjTVNOoJNviwCpWSerAQVeRBsw4E1203Ro5xODYpOS8kFy5wpOzBQlavdZyYmcrz4Q9tGYKrsddpIufgC9xQVFZedkwEr/Xey/uvG4pPbHEfDYL92C3EcndzlLqy5IBy1b75Pti+2bMp3kFachYVK3qfnhNw=
+	t=1788437215; cv=none; b=mxsCs9MJmeTkoy0ZmijdWJx6BlxS/CNRdNdktQG5iDzvLEy71DTZ+UEYKbX52br+3vjWzhipHI3/86sSex8ENKqhCHgpGC1duyBmr2j6ETyX+Rjb+kLONaVQAhiUv1CjUKOuTqPTsBTUHGV+E+oaj8XY3Y6jAvM6YD1EwkHbPxM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788435988; c=relaxed/simple;
-	bh=yBLGsiC5Qo5U7xVpJC95AXV9s4D/tC+FX9uG5XmguZk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=X+p/n5U9Kfd+AkKt0N23wIWsLG8IhNqETH3dJ+ZOTW3OYCJr4GzHRLBkQW6oBB1y0YJQwsLH6AZwJX209nlUhkLCrJin+6OPDm1A79f6ILtJZfZN2B7i0mhvr/I4kwc0rFTb5JUXukGWPTrIVYKW4mYB6XOPwO7ysP1y9IJLHy0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nvU3ngAT; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nvU3ngAT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 578CC1F000E9;
-	Thu,  3 Sep 2026 11:46:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788435976;
-	bh=hMqxdzKrWow7jpM0HakJLDnYHFNMOJBE2QIgHGSmMT8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=nvU3ngATjz6jRDjc1JUWES6jaVshC5LwTusZaLg8us52Cv9XxjMgcspOcme5x0yQ8
-	 k/GDanFLKF4KOzgg3GZ3p24+zS7F2SeVu31Bh6AptlWJP7qDWW0PKOTVMXrYkHT4va
-	 KFfhWplD0KuS9K+jtULivEQX6BM4eX0nKCx3OIbO+WBW/Y/Wp2recyxpOYiTHtwWkt
-	 RYY5x75zt9P/fq8kWHamfKRtDVnt68omeHh0aXvbhSCv2ttMpCAeIwl7uqcoMt7pWj
-	 +tGc92zy8MV8r8BnW29xdmDDZDs770qfItBSZrvL/p1xBGUv/L/94tfapcLT+qSVM2
-	 ZOs6Jk0cER1sw==
-Date: Thu, 3 Sep 2026 13:45:53 +0200
-From: Manivannan Sadhasivam <mani@kernel.org>
-To: Bhargav Joshi <j.bhargav.u@gmail.com>
-Cc: Vignesh Raghavendra <vigneshr@ti.com>, Vinod Koul <vkoul@kernel.org>, 
-	Frank Li <Frank.Li@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrzej Siewior <bigeasy@linutronix.de>, 
-	Neil Armstrong <neil.armstrong@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Ravi B <ravibabu@ti.com>, 
-	Kumar Gupta <ajay.gupta@ti.com>, Bin Liu <b-liu@ti.com>, dmaengine@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, 
-	linux-phy@lists.infradead.org, linux-omap@vger.kernel.org, goledhruva@gmail.com, 
-	m-chawdhry@ti.com, daniel.baluta@gmail.com, simona.toaca@nxp.com
-Subject: Re: [PATCH v3 2/6] dt-bindings: phy: ti,am335x-usb-phy: Convert to
- DT schema
-Message-ID: <yawsbme42sxvel5ftn6urvxnqczx6hd2crdnh22abeegfigdnz@tpmzmpc2wbny>
-References: <20260901-ti-am33-usb-v3-0-5e15c617d2e9@gmail.com>
- <20260901-ti-am33-usb-v3-2-5e15c617d2e9@gmail.com>
+	s=arc-20240116; t=1788437215; c=relaxed/simple;
+	bh=ZHJGllSPb+7CGXYNvGmaEtI8msRdqf2h21hUq/XnrSU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hgP6rEA7R3ZoDbAh+UGx/36fuVPdzfSz0Dg4TvGr/2mp12hq2xIe4n0YUVx78ssuLPtGq7/N0YR0Lf/IPSCej8xZANrxVI1IX0Ynb/UcbZZh3hwJ5DBSfwwq3w9uhFcsMUEj2lZiDboTN5HOOtQY4aoNFMSvAzKjkP0X1WSYo3M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B809E1F00A3A;
+	Thu,  3 Sep 2026 12:06:51 +0000 (UTC)
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+To: Siddharth Vadapalli <s-vadapalli@ti.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: linux-omap@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH] net: ethernet: ti: davinci_mdio: Drop commas after match table sentinels
+Date: Thu,  3 Sep 2026 14:06:47 +0200
+Message-ID: <e481b6de46cecc6ea604ae165272c667274cc621.1788437140.git.geert+renesas@glider.be>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260901-ti-am33-usb-v3-2-5e15c617d2e9@gmail.com>
 
-On Tue, Sep 01, 2026 at 04:53:06AM +0530, Bhargav Joshi wrote:
-> Convert the TI AM335x USB PHY text bindings to DT schema.
-> Add undocumented vcc-supply property to match existing DTS usage.
-> 
-> Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
-> Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
+It does not make sense to have a comma after a sentinel, as any new
+elements must be added before the sentinel.
 
-Acked-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+---
+ drivers/net/ethernet/ti/davinci_mdio.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-- Mani
-
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index 48f85a3649b26548..5bec72f2f51dc548 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -510,7 +510,7 @@ static const struct soc_device_attribute k3_mdio_socinfo[] = {
+ 	{ .family = "J7200", .data = &am65_mdio_soc_data },
+ 	{ .family = "J721E", .data = &am65_mdio_soc_data },
+ 	{ .family = "J721S2", .data = &am65_mdio_soc_data },
+-	{ /* sentinel */ },
++	{ /* sentinel */ }
+ };
+ 
+ #if IS_ENABLED(CONFIG_OF)
+@@ -521,7 +521,7 @@ static const struct davinci_mdio_of_param of_cpsw_mdio_data = {
+ static const struct of_device_id davinci_mdio_of_mtable[] = {
+ 	{ .compatible = "ti,davinci_mdio", },
+ 	{ .compatible = "ti,cpsw-mdio", .data = &of_cpsw_mdio_data},
+-	{ /* sentinel */ },
++	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(of, davinci_mdio_of_mtable);
+ #endif
 -- 
-மணிவண்ணன் சதாசிவம்
+2.43.0
+
