@@ -1,611 +1,188 @@
-Received: from mail-pg1-f181.google.com (mail-pg1-f181.google.com [209.85.215.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001ae601.pphosted.com (mx0a-001ae601.pphosted.com [67.231.149.25])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63A9A470425
-	for <linux-omap@vger.kernel.org>; Fri,  4 Sep 2026 11:14:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.181
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788520445; cv=none; b=ghc5RyYOzmJJ5aK9OVYXtr53ezCY0mIx7efF8qZ2PFNWVDv1YK3K+W5GLAQkQMvupjshcHbVjIH/IeQiGMMdmdh5BGt+eHnHMcjGMjklPSLsYlrfjfp2q+UktBtURigv7YeqLg0seftpEUDidKdV7g+cBQLpEl4DpLWCnRQCFuM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788520445; c=relaxed/simple;
-	bh=jCIhAKe7wnLDSlElO3bSuA12dUGjruc8bVQ68QBuEc4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=t2Zj2ogBlBZXJT3fWxCkrRk8hUYq+5igRR8VTi67ItgUylWD+5j3aDIyEyXdERnMHGB9Pki3kZ5XcwIAsiBhL4bdgHzGcJlVcCD0gdBkUTjYNb0OhlY5HxJpFZaJySPNcTysD9aMJMz5eh9Wr+e8dEiVtwXM7LH7Nk0wqcCkFag=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EgdmSGVo; arc=none smtp.client-ip=209.85.215.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EBA1445AE6;
+	Fri,  4 Sep 2026 12:18:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=67.231.149.25
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788524336; cv=fail; b=n6DF8lHXgfKD+R/vCfjlvXV/BFDD1fILZDnEZgDiEQGYr83kjO+ytE5J5bQU1oICR8VfQyG4u0TjPl5TnK1qCGxJYFtkE+ddc+XfAardyl8QGv2BEY25I6T05f52SYAp2IkLCFP4/iknoCIBJuUiFF04MWO3bCkCenwDwYyM8vA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788524336; c=relaxed/simple;
+	bh=akpT4zFhsHABd2AAgX1K6D5r3BN5XA3SXxCdQG02RMk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DA/e3D2bisaGQTDSTRoUcNvmAviCmnT507y8zQsVHe0vMQZpiO9lzsiv1TDsd2h8n5eevICUjyqT8MlUU/mxlJj0ShUJxT+JrC1qCRdNOniFdKR8dhSIrQiFy3RqgRegWehlaHomiYGWyRqLzxuRuuLjieNw61AFGwo3y29ObC8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=opensource.cirrus.com; spf=pass smtp.mailfrom=opensource.cirrus.com; dkim=pass (2048-bit key) header.d=cirrus.com header.i=@cirrus.com header.b=Qru1NFes; dkim=pass (1024-bit key) header.d=cirrus4.onmicrosoft.com header.i=@cirrus4.onmicrosoft.com header.b=y+mB2nEO; arc=fail smtp.client-ip=67.231.149.25
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=opensource.cirrus.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=opensource.cirrus.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EgdmSGVo"
-Received: by mail-pg1-f181.google.com with SMTP id 41be03b00d2f7-cc1b838f9b6so1085567a12.3
-        for <linux-omap@vger.kernel.org>; Fri, 04 Sep 2026 04:14:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=cirrus.com header.i=@cirrus.com header.b="Qru1NFes";
+	dkim=pass (1024-bit key) header.d=cirrus4.onmicrosoft.com header.i=@cirrus4.onmicrosoft.com header.b="y+mB2nEO"
+Received: from pps.filterd (m0077473.ppops.net [127.0.0.1])
+	by mx0a-001ae601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6844HU2p2479378;
+	Fri, 4 Sep 2026 07:16:31 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cirrus.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=PODMain02222019; bh=Sj+5aMY2yuNuOhKyG6
+	wLa892Yt3ZhQuKHFnJY1HFgpI=; b=Qru1NFesv7TxZ/zTTndDpvVJ83qYvx+NWV
+	/n6VXis/5cbDftXesXCW8rOKZlqNfDlHqSMuAcCWzhBCZjToCDlBubxvpRDEaYu8
+	yJonZQKHosU/8An5wJKZV+k7/o6tpSzYYPiH6NC5FeIPOEc20EfPqiYBdyWnldbD
+	iIjHDdLLxL1JeKK01Smo78XLjnsRAvt/WSRcfnB7Bb5SVNJlIas1W+nht016MtUB
+	GpT/R+PCcRhEc4mmo0se9mudn+LJA4CV33DW/U1VKxne2ukAslBp1dHffE3Zzcff
+	SnPM5+0lN0pp/W731bzu7DrRzZpnaqN/L6O5/OQG+ay+nZ4efRfg==
+Received: from sn4pr0501cu005.outbound.protection.outlook.com (mail-southcentralusazhn15011023.outbound.protection.outlook.com [52.102.140.23])
+	by mx0a-001ae601.pphosted.com (PPS) with ESMTPS id 4geyrqj92b-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Fri, 04 Sep 2026 07:16:30 -0500 (CDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=CZ+tw183jh9y7Miy+T+ZNneIEB64IT/lK/PA464+eeIyxZSlomLUsb6R67J3W0a9J8uujKRFIk4lwdeaGzeBEWeLUZsRYSZINKaGMM0LOpmuTfbp0MyhHooXgKdos8GYHkuGAtao/ip8q5F3Kc3aAlUdbQ0Z7WeCGI9HN7KMT4yFz/vLT4zJzuSHMPpIdilPzNDs6UWmmYtdwgGq/BdsDF8fEmDySkDcVPQrKTfm62zJjAlzKK904JZoNaAYJneQLHbWmjCW/eRB4rRuqWczNI+TFMhEJCT8KFYjIbDrH4wpMUzbxEWizuUoeCpz+RMPAtRojr3asBcLmZ1AeDexFg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Sj+5aMY2yuNuOhKyG6wLa892Yt3ZhQuKHFnJY1HFgpI=;
+ b=VgIqd6ANDksUtbP0oRc72OS3jBJOWka8AaEUx2Hf/IWVcH6EDPBQQRB9wy/hmKeTglTAEgrkv4st9JFbmQJzImjXB1BvE+3irJ0wJWEimNUwUbBmLYS2M4NIrgdpA5goS4ad+fWgrRztzNPJQfDtCYwKhjE7ttzvRSD7PqJ6r7jemyiK0lSQ+e2uQewlRCxbNQB3ZBoHJKNlslOff2/Fhnhqm7Cc6jyTwoKIf0ryyo+4506myJtyFhLNR2AhEg3SN4io3yAl5ebQ+pT0RUDWwZrNUUJpzhubYMioE9IdHZT6qSTBiPUpvTggRQAuPx716zKjiyIMRd4ZvAXyeN/H1g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=softfail (sender ip
+ is 84.19.233.75) smtp.rcpttodomain=analog.com
+ smtp.mailfrom=opensource.cirrus.com; dmarc=fail (p=reject sp=reject pct=100)
+ action=oreject header.from=opensource.cirrus.com; dkim=none (message not
+ signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788520441; x=1789125241; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=vfrdoUnoIuhUy7m0yBcreTek5MieQGNFQjYU/Vb71Ek=;
-        b=EgdmSGVo1uN3J/sx0rUIR9I5tahbw7MWBoVOKP5+D/mIj7xRVXZjpblbSvCAijyR/c
-         7EjeGOxrgY9eLagGk6DQSpAfbJy4+hWvU92MHKLXAYyx14y1CNqG15jPzJ6TjnJn3Zzj
-         z8fwg6xr3jq4txYRycENlyZH9IBiMCF7NiC4/jHpnx4I8xomSotXEZ6geGts43fIu8zw
-         3LVcWF5Jm5iNVfoeWi9/yDE7JYa2uDV7nIB675+aObUZTE36gFo8yltoNmSkEzOH+Tu5
-         /Ju6e/2e+nHIz/2U2j6lijySzI7v3Z/dqXuwSLvziiUTrHSAT7epG3dlDnSwD5435uwA
-         G+lg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788520441; x=1789125241;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=vfrdoUnoIuhUy7m0yBcreTek5MieQGNFQjYU/Vb71Ek=;
-        b=QA+AtH+JchaXGeEBdLvayyboA0l7et6Z1mfIfNMv3m/tePODahMEjAKEaN/6D2qevr
-         RWp9wGLqHpPWInX47JMxkfH1RoyPfr8gG6iWhTO+ahXQWidke0Esab75N9rwQQKBahVO
-         SSOSpwe1isJ2633ivZBiHmdra6ceeYQJvZnuUIUAh+JYa0pmBzztMp+zgsyPPKGgDGRj
-         rP7clLmXUyezp7VrnVtWFw/p38zHp4LISQULEMyyV/oQX/0VWFArqQWFt9Z942xiZucC
-         8ZEmvEP69OkIV6U4ZL7Dgel36E66ThQQb6V4pOukBRUB+FY1CaXcIL3fZXNvWQUTucIA
-         NXfA==
-X-Forwarded-Encrypted: i=1; AKwUvBySfneGBduCi7Vp+iVUiCRTleAP//kf7rG8o/xWvLaPRXQaGR63zWt9FZwB2W1GijODMBibnoRF/84R@vger.kernel.org
-X-Gm-Message-State: AFuF++nBuJeW1cekmBx/Q8hJRlWo0t9MpB5u8V3vOpjnsC0XFyFh9tpD
-	xoo9KXuYkow9Rdi5yWzUpX6YCW75oBtdrl1AP/GRWMjCpomt1JnNKfa3
-X-Gm-Gg: AYBFou24upyEkXHctI5+vUCOQFaEjjxWFpCDzqzvPll1L+wlPtLl0cy9z5j4rvwyGEY
-	z2aSH+Vhs16Mf4GFAg1fPU3cFc9JzSA+BQD8fre1+9F5tctuaFo+JqYUBr/EhnO4hxT5DN2F9lQ
-	NNJ+iFrHVBpKySYhO/JjM0sp3l/uEcGqa2jiFWZf2MpqgHknzqSYS2815ctVvlvKeGAiSca08o5
-	jf1oX1URj4GwFS/9aEDWcTka0GZj1nm0ppAEpNDJJOeZEUTP+oAYLAx703FpNZegArlnXuQKqME
-	ZlDIpA4/2UrsHc4JALawKsjPaowRZR8OmdA4ANDIMIostpOEvhxwf1h1lVA4pdf78VEkR8aKRiv
-	hWgU3TQ2NBIRxszyaQ0CmwiXCPeEZPozvIIdxi5+o+hnDYIS7lBVMGgcgxiJdp67Ez9y3dcbeLQ
-	eJyuVc+fqa71UcWT7P6mkXL3Ik0aDc/p+qXMPqEnas4hekuqAjH1W4MWpXuYAQS6otklJKQwIPZ
-	DHrfdqI4tYT0Z8=
-X-Received: by 2002:a17:90b:3a8e:b0:390:8361:a532 with SMTP id 98e67ed59e1d1-39b260d2eb3mr7940595a91.7.1788520440953;
-        Fri, 04 Sep 2026 04:14:00 -0700 (PDT)
-Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3339a62be87sm5391413eec.6.2026.09.04.04.13.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Sep 2026 04:14:00 -0700 (PDT)
-From: Hemanth Selam <hemanth.selam@gmail.com>
-To: Helge Deller <deller@gmx.de>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Peter Jones <pjones@redhat.com>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: linux-kernel@vger.kernel.org,
-	linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linux-omap@vger.kernel.org
-Subject: [PATCH] fbdev: fix typos in comments
-Date: Fri,  4 Sep 2026 16:43:43 +0530
-Message-ID: <20260904111355.25780-1-hemanth.selam@gmail.com>
-X-Mailer: git-send-email 2.48.1
+ d=cirrus4.onmicrosoft.com; s=selector2-cirrus4-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Sj+5aMY2yuNuOhKyG6wLa892Yt3ZhQuKHFnJY1HFgpI=;
+ b=y+mB2nEO3q+E0iavWy77RNm86c6aqEzrQvOTwK2YNBofcQ72IvXC1Mc+6V6WCXojaBUWf8/hnRq8qE8MopdG1vQ+IvN7eL2d+jkWQ8wtf1itFblJgmZSbLCGg1KfRbDSIyWggVI+ePwgBhRzvPzEOWg5zDZo/sCE485xE23YjK0=
+Received: from PH0P220CA0002.NAMP220.PROD.OUTLOOK.COM (2603:10b6:510:d3::14)
+ by PH7PR19MB6088.namprd19.prod.outlook.com (2603:10b6:510:1df::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Fri, 4 Sep
+ 2026 12:16:26 +0000
+Received: from BY1PEPF000264B2.namprd02.prod.outlook.com
+ (2603:10b6:510:d3:cafe::39) by PH0P220CA0002.outlook.office365.com
+ (2603:10b6:510:d3::14) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.13 via Frontend Transport; Fri, 4
+ Sep 2026 12:16:26 +0000
+X-MS-Exchange-Authentication-Results: spf=softfail (sender IP is 84.19.233.75)
+ smtp.mailfrom=opensource.cirrus.com; dkim=none (message not signed)
+ header.d=none;dmarc=fail action=oreject header.from=opensource.cirrus.com;
+Received-SPF: SoftFail (protection.outlook.com: domain of transitioning
+ opensource.cirrus.com discourages use of 84.19.233.75 as permitted sender)
+Received: from edirelay1.ad.cirrus.com (84.19.233.75) by
+ BY1PEPF000264B2.mail.protection.outlook.com (10.167.242.118) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.8
+ via Frontend Transport; Fri, 4 Sep 2026 12:16:24 +0000
+Received: from ediswmail9.ad.cirrus.com (ediswmail9.ad.cirrus.com [198.61.86.93])
+	by edirelay1.ad.cirrus.com (Postfix) with ESMTPS id 09554406543;
+	Fri,  4 Sep 2026 12:16:23 +0000 (UTC)
+Received: from opensource.cirrus.com (ediswmail9.ad.cirrus.com [198.61.86.93])
+	by ediswmail9.ad.cirrus.com (Postfix) with ESMTPSA id DD351820247;
+	Fri,  4 Sep 2026 12:16:22 +0000 (UTC)
+Date: Fri, 4 Sep 2026 13:16:21 +0100
+From: Charles Keepax <ckeepax@opensource.cirrus.com>
+To: Hemanth Selam <hemanth.selam@gmail.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Krzysztof Kozlowski <krzk+dt@kernel.org>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Claudiu Beznea <claudiu.beznea@tuxon.dev>,
+        Andrei Simion <andrei.simion@microchip.com>,
+        Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>,
+        Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
+        David Rhodes <david.rhodes@cirrus.com>,
+        Richard Fitzgerald <rf@opensource.cirrus.com>,
+        Support Opensource <support.opensource@diasemi.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+        Oder Chiou <oder_chiou@realtek.com>,
+        Shenghao Ding <shenghao-ding@ti.com>, Kevin Lu <kevin-lu@ti.com>,
+        Baojun Xu <baojun.xu@ti.com>, Sen Wang <sen@ti.com>,
+        Cezary Rojewski <cezary.rojewski@intel.com>,
+        Peter Ujfalusi <peter.ujfalusi@linux.intel.com>,
+        Bard Liao <yung-chuan.liao@linux.intel.com>,
+        Kai Vehmanen <kai.vehmanen@linux.intel.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>,
+        Srinivas Kandagatla <srini@kernel.org>,
+        Jarkko Nikula <jarkko.nikula@bitmer.com>,
+        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
+        Masami Hiramatsu <mhiramat@kernel.org>, linux-kernel@vger.kernel.org,
+        linux-sound@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, patches@opensource.cirrus.com,
+        linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+        linux-omap@vger.kernel.org
+Subject: Re: [PATCH] ASoC: fix typos in comments
+Message-ID: <apq2lVTP6tyymn5r@opensource.cirrus.com>
+References: <20260904110315.11650-1-hemanth.selam@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260904110315.11650-1-hemanth.selam@gmail.com>
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BY1PEPF000264B2:EE_|PH7PR19MB6088:EE_
+X-MS-Office365-Filtering-Correlation-Id: 177a3fc7-82fd-4ade-3488-08df0a7e5705
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|23010399003|82310400026|376014|7416014|34020700016|61400799027|22082099003|18002099003|16102099003|56012099006|11063799006|10067099003|12100799066;
+X-Microsoft-Antispam-Message-Info:
+	fHKxuKve1yQOQtOLE+rm2ltXnt1xN006AlWKeOH2hvAfjAX/cBRtL3fLTnxX/FaSilbMATWJRfZQiOBmwHxSB6CtdsdY4og3zExpR74GW/SOTvh6IHJOjuLLt8x44iwRkQjJ/xUUGTYiM0WJ19kFVgFbh4zTieTuPEuSXXlH+uZMFsgiaucbLf/9Kab7xjHV98rWfsNeF4xIDnaSetYoAV27hYKA4OdEz13Pa38sj4tc0enVE7OWDosBzD7kmWCYDKHyi+OuWbOBI7v7kWD7CW2cqcQGAbQEmvEptTIWWiSo1QYu2sQ/tp6NDU37FPs60LWiw/Jb8hRk/1ovkjRlfHzVKkCd+WUn/iw0HuaNsltea3eDHo5y6q94z9nJbCadvnxZJ8GlEj4n8qB6zs4xFIyS3w6VvkIKszjP1ilrGlcDIUMs5GgW44YUo58GinFwA7NzhL7gcjdo9lGzQISaRlwGyiko06B2LqItWa1zl+M7ZZZoKXMTTtIVvL/b4vMD/qOwDcBugR4p9/drQjhZ2gVg3+8iEBvg/cY/nJoZXBWtS6WEiBzSnVjc5DMQmfe/C32SK0x4mNKo6C2U6E/GEycJ/OzR2d5IkImtNYdvmiQUj8A7qUf2x6gjurpkS16SaWw+06GF3iTiiO9Heo0zmW9uNQD3V3ipG2v1JuCXDl0zGvOIeSpdvKwL/JBEanVmQqqOcvJXACHuSh3zvTMX9w==
+X-Forefront-Antispam-Report:
+	CIP:84.19.233.75;CTRY:GB;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:edirelay1.ad.cirrus.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(82310400026)(376014)(7416014)(34020700016)(61400799027)(22082099003)(18002099003)(16102099003)(56012099006)(11063799006)(10067099003)(12100799066);DIR:OUT;SFP:1501;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	4/UATG3P+x7p3Sqog5oWKvtRIEC+C6ZP1GmjUbN1IKdHf5ApdugGsfi94LJgWzP8QXj6fPD3vx5FB9K4LXb25wUsZ/qyaYxVuqsvpZh1FVPIy/WHBOcfoFW1Qg10v7ZaRzeC61F9j5LGk9AlgHzhBtG4O0fO+xSoAUXRszPWqVAz7wmhG8gvELhF5/0MuHZ3IbGI1YZoxtOTWR8CPtQ+tfNuwq6xULCgQN9YmHcdzOZ0/nEEURKF4WIhZGa9nHjvO43sia/BSoU6jSBsGUucwjIlXsow0exUthlfv0DW7FnGEHn7uuwihnTv0rR4SrbPDDU7YyMfm4MeA+KnKzO1GVWTd8Og0xzX3zqU8givTGQ5AvV0OtPsEs/iH+SQMuFosnijmMUCYrYIYAjFaMmDfwubKijEmfU0+CwOZutBjIwuURCorsNw9DsEb3JAxZvE
+X-Exchange-RoutingPolicyChecked:
+	M/byfnsx8hh+JhGTvW+i3nMQRkPVY1593nZlvdnTVKKoC40JyP9LWV/VuZrWA54WgaI9/4h4XYQFLorrv1fN3IuuL0ZeME+ycbc9opGmSJSDchi5YQt0x2vgwieX+I2WyUrzvqwiVa+IIqX8HMP/dqdjEOMRDLZQq5WiuhM65tOyqSHawvxkZQ2atlH551TGTL05aGzUGZw+9VrnxA0u0vnAtj6uEChjpCbE3gnksRXQ8ZSdcxHs0oQHgS9wslZG/Dge9/wIFy4JKvtah646cH7/Sewm6fvhKqjOTqeHIGLPtVFrsRCFzgkPC7/m8JAe2PchP5UsokIRS/xFdXMFHg==
+X-OriginatorOrg: opensource.cirrus.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Sep 2026 12:16:24.9023
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 177a3fc7-82fd-4ade-3488-08df0a7e5705
+X-MS-Exchange-CrossTenant-Id: bec09025-e5bc-40d1-a355-8e955c307de8
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=bec09025-e5bc-40d1-a355-8e955c307de8;Ip=[84.19.233.75];Helo=[edirelay1.ad.cirrus.com]
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: TreatMessagesAsInternal-BY1PEPF000264B2.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR19MB6088
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTA0MDExMCBTYWx0ZWRfX/5j9x+xsGmKR
+ n/bacUt0uIwbopKKrxqwsKmnu0EiwvmVzUkZsx6zpCTCCh/QutPkb7yfItSbqm+oWD2CWCBQB28
+ QgAjIQXHFueU+AlNI+zjPayfeyaD3sxK6X4SRG10/aQUzFklkbOAfGeoxDGRBR5QZUKIeRWmXvE
+ tzuiHbYhX5Ejxm7yY+wIDanDwOH6fZNUIb9kXzbkIG+4rkr6jRwF8HFY/iYCoTnEBqTC7aG/VS8
+ 8wxBkrJEqeAqeBP4Z9nPdaZ+Ljx5TusihQriBAxejIaimpXEnjN407yW02WmgfnRfw7ungZ+iEB
+ jQzyhigzVv3RDsQrF4XllMtCk8wyDTRsaATDiR3LxPMG/a/qbF4YXDcu/bto3NrppfbiSEaM0bJ
+ gqRULXTHNzbaEbgTPKjEDsaCScw/kJxxTJR0XUBXHSPBymAT33qSzijAXUwv+O65Bn16nzkwrcA
+ fwpwuKr2IAUFQ+Q63HA==
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTA0MDExMCBTYWx0ZWRfX3jZ2QJ111mHm
+ f42G0ic4nucJBGgiY1wPiVuDPo9D68RV2RGId+zMJsT4zt4MWfQ/1plv6Ozf+llZhlo9n8DDBZv
+ Yu0IwYr/vGVgXxJOE2A4RUpm/bHhAkY=
+X-Proofpoint-GUID: g5byBwPivZFQ-pGY8bCAPEq-F02MwuAW
+X-Authority-Analysis: v=2.4 cv=A8Nc+aWG c=1 sm=1 tr=0 ts=6a9ab69f cx=c_pps
+ a=yICVNc/tqHXuIRF/6KaW8A==:117 a=h1hSm8JtM9GN1ddwPAif2w==:17
+ a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
+ a=kj9zAlcOel0A:10 a=VdqzKS8jKosA:10 a=s63m1ICgrNkA:10 a=RWc_ulEos4gA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=iX4cTi3TZMoOKdANLEfx:22 a=Dj2-6B8FqX4mGL0U3gbX:22
+ a=pGLkceISAAAA:8 a=w1d2syhTAAAA:8 a=wbSmXUBKm7kmP3h1SjcA:9 a=CjuIK1q_8ugA:10
+ a=jZz-an6Pvt0H8_Yc_ROU:22
+X-Proofpoint-ORIG-GUID: g5byBwPivZFQ-pGY8bCAPEq-F02MwuAW
+X-Proofpoint-Spam-Reason: safe
 
-Fix typos in comments, reported by scripts/checkpatch.pl using the
-misspelling list in scripts/spelling.txt.  Only touches comments, no code
-changes.
+On Fri, Sep 04, 2026 at 04:33:01PM +0530, Hemanth Selam wrote:
+> Fix typos in comments, reported by scripts/checkpatch.pl using the
+> misspelling list in scripts/spelling.txt.  Only touches comments, no code
+> changes.
+> 
+> Assisted-by: Cursor:claude-opus-5
+> Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+> ---
 
-Assisted-by: Cursor:claude-opus-5
-Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
----
- drivers/video/fbdev/aty/aty128fb.c              | 2 +-
- drivers/video/fbdev/aty/atyfb_base.c            | 4 ++--
- drivers/video/fbdev/aty/mach64_cursor.c         | 2 +-
- drivers/video/fbdev/aty/radeon_base.c           | 4 ++--
- drivers/video/fbdev/aty/radeon_monitor.c        | 4 ++--
- drivers/video/fbdev/aty/radeonfb.h              | 2 +-
- drivers/video/fbdev/au1100fb.c                  | 2 +-
- drivers/video/fbdev/efifb.c                     | 4 ++--
- drivers/video/fbdev/grvga.c                     | 2 +-
- drivers/video/fbdev/kyro/STG4000OverlayDevice.c | 2 +-
- drivers/video/fbdev/maxinefb.c                  | 2 +-
- drivers/video/fbdev/mmp/core.c                  | 2 +-
- drivers/video/fbdev/mmp/hw/mmp_ctrl.c           | 4 ++--
- drivers/video/fbdev/mmp/hw/mmp_ctrl.h           | 4 ++--
- drivers/video/fbdev/mmp/hw/mmp_spi.c            | 2 +-
- drivers/video/fbdev/ocfb.c                      | 2 +-
- drivers/video/fbdev/omap2/omapfb/dss/dispc.c    | 4 ++--
- drivers/video/fbdev/pm2fb.c                     | 2 +-
- drivers/video/fbdev/skeletonfb.c                | 6 +++---
- drivers/video/fbdev/sstfb.c                     | 2 +-
- drivers/video/fbdev/tgafb.c                     | 6 +++---
- drivers/video/fbdev/tridentfb.c                 | 2 +-
- drivers/video/fbdev/via/dvi.c                   | 6 +++---
- drivers/video/fbdev/via/hw.c                    | 2 +-
- drivers/video/fbdev/via/viafbdev.c              | 4 ++--
- drivers/video/sticore.c                         | 2 +-
- include/video/mmp_disp.h                        | 6 +++---
- 27 files changed, 43 insertions(+), 43 deletions(-)
+Reviewed-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 
-diff --git a/drivers/video/fbdev/aty/aty128fb.c b/drivers/video/fbdev/aty/aty128fb.c
-index c349a1711ff5..6f71c3c6307e 100644
---- a/drivers/video/fbdev/aty/aty128fb.c
-+++ b/drivers/video/fbdev/aty/aty128fb.c
-@@ -753,7 +753,7 @@ static u32 depth_to_dst(u32 depth)
- }
- 
- /*
-- * PLL informations retreival
-+ * PLL information retreival
-  */
- 
- 
-diff --git a/drivers/video/fbdev/aty/atyfb_base.c b/drivers/video/fbdev/aty/atyfb_base.c
-index 97cc8b6a9361..b1f33642e722 100644
---- a/drivers/video/fbdev/aty/atyfb_base.c
-+++ b/drivers/video/fbdev/aty/atyfb_base.c
-@@ -2966,7 +2966,7 @@ static int atyfb_setup_sparc(struct pci_dev *pdev, struct fb_info *info,
- 
- 	/*
- 	 * Figure mmap addresses from PCI config space.
--	 * Split Framebuffer in big- and little-endian halfs.
-+	 * Split Framebuffer in big- and little-endian halves.
- 	 */
- 	for (i = 0; i < 6 && pdev->resource[i].start; i++)
- 		/* nothing */ ;
-@@ -3387,7 +3387,7 @@ static int init_from_bios(struct atyfb_par *par)
- 
- 		PRINTKI("Mach64 BIOS is located at %x, mapped at %x.\n", rom_addr, bios_base);
- 
--		/* check for frequncy table */
-+		/* check for frequency table */
- 		bios_ptr = (u8*)bios_base;
- 		rom_table_offset = (u16)(bios_ptr[0x48] | (bios_ptr[0x49] << 8));
- 		freq_table_offset = bios_ptr[rom_table_offset + 16] | (bios_ptr[rom_table_offset + 17] << 8);
-diff --git a/drivers/video/fbdev/aty/mach64_cursor.c b/drivers/video/fbdev/aty/mach64_cursor.c
-index e826cb7dd55d..60abb9666395 100644
---- a/drivers/video/fbdev/aty/mach64_cursor.c
-+++ b/drivers/video/fbdev/aty/mach64_cursor.c
-@@ -43,7 +43,7 @@
-  *
-  *
-  * The Screen position of the top left corner of the displayed
-- * cursor is specificed by CURS_HORZ_VERT_POSN. Care must be taken
-+ * cursor is specified by CURS_HORZ_VERT_POSN. Care must be taken
-  * when the cursor hot spot is not the top left corner and the
-  * physical cursor position becomes negative. It will be displayed
-  * if either the horizontal or vertical cursor position is negative
-diff --git a/drivers/video/fbdev/aty/radeon_base.c b/drivers/video/fbdev/aty/radeon_base.c
-index b6b058cee751..387bc5f96765 100644
---- a/drivers/video/fbdev/aty/radeon_base.c
-+++ b/drivers/video/fbdev/aty/radeon_base.c
-@@ -779,7 +779,7 @@ static void radeon_get_pllinfo(struct radeonfb_info *rinfo)
- #endif /* CONFIG_PPC || CONFIG_SPARC */
- 
- 	/*
--	 * Check out if we have an X86 which gave us some PLL informations
-+	 * Check out if we have an X86 which gave us some PLL information
- 	 * and if yes, retrieve them
- 	 */
- 	if (!force_measure_pll && rinfo->bios_seg) {
-@@ -2407,7 +2407,7 @@ static int radeonfb_pci_register(struct pci_dev *pdev,
- 	if (rinfo->bios_seg == NULL && rinfo->is_mobility)
- 		radeon_map_ROM(rinfo, pdev);
- 
--	/* Get informations about the board's PLL */
-+	/* Get information about the board's PLL */
- 	radeon_get_pllinfo(rinfo);
- 
- #ifdef CONFIG_FB_RADEON_I2C
-diff --git a/drivers/video/fbdev/aty/radeon_monitor.c b/drivers/video/fbdev/aty/radeon_monitor.c
-index 621d13a1a1d9..775888c43ef0 100644
---- a/drivers/video/fbdev/aty/radeon_monitor.c
-+++ b/drivers/video/fbdev/aty/radeon_monitor.c
-@@ -58,7 +58,7 @@ static char *radeon_get_mon_name(int type)
- 
- #if defined(CONFIG_PPC) || defined(CONFIG_SPARC)
- /*
-- * Try to find monitor informations & EDID data out of the Open Firmware
-+ * Try to find monitor information & EDID data out of the Open Firmware
-  * device-tree. This also contains some "hacks" to work around a few machine
-  * models with broken OF probing by hard-coding known EDIDs for some Mac
-  * laptops internal LVDS panel. (XXX: not done yet)
-@@ -248,7 +248,7 @@ static int radeon_get_panel_info_BIOS(struct radeonfb_info *rinfo)
- 	return 0;
- }
- 
--/* Try to extract the connector informations from the BIOS. This
-+/* Try to extract the connector information from the BIOS. This
-  * doesn't quite work yet, but it's output is still useful for
-  * debugging
-  */
-diff --git a/drivers/video/fbdev/aty/radeonfb.h b/drivers/video/fbdev/aty/radeonfb.h
-index 91d81b576231..0781caea2c71 100644
---- a/drivers/video/fbdev/aty/radeonfb.h
-+++ b/drivers/video/fbdev/aty/radeonfb.h
-@@ -148,7 +148,7 @@ struct pll_info {
-  * This structure contains the various registers manipulated by this
-  * driver for setting or restoring a mode. It's mostly copied from
-  * XFree's RADEONSaveRec structure. A few chip settings might still be
-- * tweaked without beeing reflected or saved in these registers though
-+ * tweaked without being reflected or saved in these registers though
-  */
- struct radeon_regs {
- 	/* Common registers */
-diff --git a/drivers/video/fbdev/au1100fb.c b/drivers/video/fbdev/au1100fb.c
-index 39f86ffb1ae3..01c836cb5205 100644
---- a/drivers/video/fbdev/au1100fb.c
-+++ b/drivers/video/fbdev/au1100fb.c
-@@ -528,7 +528,7 @@ static int au1100fb_setmode(struct au1100fb_device *fbdev)
- 	if (!info->var.rotate || (info->var.rotate == 180)) {
- 		words *= info->var.yres_virtual;
- 		if (info->var.rotate /* 180 */) {
--			words -= (words % 8); /* should be divisable by 8 */
-+			words -= (words % 8); /* should be divisible by 8 */
- 		}
- 	}
- 	fbdev->regs->lcd_words = LCD_WRD_WRDS_N(words);
-diff --git a/drivers/video/fbdev/efifb.c b/drivers/video/fbdev/efifb.c
-index ad8dec7807c3..e1c764854004 100644
---- a/drivers/video/fbdev/efifb.c
-+++ b/drivers/video/fbdev/efifb.c
-@@ -97,7 +97,7 @@ static int efifb_setcolreg(unsigned regno, unsigned red, unsigned green,
- }
- 
- /*
-- * If fbcon deffered console takeover is configured, the intent is for the
-+ * If fbcon deferred console takeover is configured, the intent is for the
-  * framebuffer to show the boot graphics (e.g. vendor logo) until there is some
-  * (error) message to display. But the boot graphics may have been destroyed by
-  * e.g. option ROM output, detect this and restore the boot graphics.
-@@ -421,7 +421,7 @@ static int efifb_probe(struct platform_device *dev)
- 	size_vmode = efifb_defined.yres * efifb_fix.line_length;
- 
- 	/*   size_total -- all video memory we have. Used for
--	 *                 entries, ressource allocation and bounds
-+	 *                 entries, resource allocation and bounds
- 	 *                 checking. */
- 	size_total = si->lfb_size;
- 	if (size_total < size_vmode)
-diff --git a/drivers/video/fbdev/grvga.c b/drivers/video/fbdev/grvga.c
-index a6594bcd74e8..771d9491b49e 100644
---- a/drivers/video/fbdev/grvga.c
-+++ b/drivers/video/fbdev/grvga.c
-@@ -432,7 +432,7 @@ static int grvga_probe(struct platform_device *dev)
- 			retval = -ENOMEM;
- 			goto dealloc_cmap;
- 		}
--	} else {	/* Allocate frambuffer memory */
-+	} else {	/* Allocate framebuffer memory */
- 
- 		unsigned long page;
- 
-diff --git a/drivers/video/fbdev/kyro/STG4000OverlayDevice.c b/drivers/video/fbdev/kyro/STG4000OverlayDevice.c
-index 9fde0e3b69ec..a54a8a9197e5 100644
---- a/drivers/video/fbdev/kyro/STG4000OverlayDevice.c
-+++ b/drivers/video/fbdev/kyro/STG4000OverlayDevice.c
-@@ -60,7 +60,7 @@ typedef struct _OVRL_SRC_DEST {
- 	u32 ulDstX2;
- 	u32 ulDstY2;
- 
--	/*clipped pixel pos of source data within buffer thses need to be 128 bit word aligned */
-+	/*clipped pixel pos of source data within buffer these need to be 128 bit word aligned */
- 	u32 ulSrcX1;
- 	u32 ulSrcY1;
- 	u32 ulSrcX2;
-diff --git a/drivers/video/fbdev/maxinefb.c b/drivers/video/fbdev/maxinefb.c
-index 67d4bd881041..88aec13a98fb 100644
---- a/drivers/video/fbdev/maxinefb.c
-+++ b/drivers/video/fbdev/maxinefb.c
-@@ -98,7 +98,7 @@ static int maxinefb_setcolreg(unsigned regno, unsigned red, unsigned green,
- 		return 1;
- 
- 	red   >>= 8;    /* The cmap fields are 16 bits    */
--	green >>= 8;    /* wide, but the harware colormap */
-+	green >>= 8;    /* wide, but the hardware colormap */
- 	blue  >>= 8;    /* registers are only 8 bits wide */
- 
- 	hw_colorvalue = (blue << 16) + (green << 8) + (red);
-diff --git a/drivers/video/fbdev/mmp/core.c b/drivers/video/fbdev/mmp/core.c
-index 3c35b0a3ea09..9d4fda2fc83f 100644
---- a/drivers/video/fbdev/mmp/core.c
-+++ b/drivers/video/fbdev/mmp/core.c
-@@ -65,7 +65,7 @@ static DEFINE_MUTEX(disp_lock);
-  * @p: panel to be registered
-  *
-  * this function provides interface for panel drivers to register panel
-- * to panel_list and connect to path which matchs panel->plat_path_name.
-+ * to panel_list and connect to path which matches panel->plat_path_name.
-  * no error returns when no matching path is found as path register after
-  * panel register is permitted.
-  */
-diff --git a/drivers/video/fbdev/mmp/hw/mmp_ctrl.c b/drivers/video/fbdev/mmp/hw/mmp_ctrl.c
-index 2c457da67a9f..3db608e5aef1 100644
---- a/drivers/video/fbdev/mmp/hw/mmp_ctrl.c
-+++ b/drivers/video/fbdev/mmp/hw/mmp_ctrl.c
-@@ -325,7 +325,7 @@ static void ctrl_set_default(struct mmphw_ctrl *ctrl)
- 	u32 tmp, irq_mask;
- 
- 	/*
--	 * LCD Global control(LCD_TOP_CTRL) should be configed before
-+	 * LCD Global control(LCD_TOP_CTRL) should be configured before
- 	 * any other LCD registers read/write, or there maybe issues.
- 	 */
- 	tmp = readl_relaxed(ctrl->reg_base + LCD_TOP_CTRL);
-@@ -521,7 +521,7 @@ static int mmphw_probe(struct platform_device *pdev)
- 	/* init global regs */
- 	ctrl_set_default(ctrl);
- 
--	/* init pathes from machine info and register them */
-+	/* init paths from machine info and register them */
- 	for (i = 0; i < ctrl->path_num; i++) {
- 		/* get from config and machine info */
- 		path_plat = &ctrl->path_plats[i];
-diff --git a/drivers/video/fbdev/mmp/hw/mmp_ctrl.h b/drivers/video/fbdev/mmp/hw/mmp_ctrl.h
-index 719b99a9bc77..80aefe5cace1 100644
---- a/drivers/video/fbdev/mmp/hw/mmp_ctrl.h
-+++ b/drivers/video/fbdev/mmp/hw/mmp_ctrl.h
-@@ -1404,7 +1404,7 @@ struct mmphw_ctrl {
- 	int status;
- 	struct mutex access_ok;
- 
--	/*pathes*/
-+	/*paths*/
- 	int path_num;
- 	struct mmphw_path_plat path_plats[] __counted_by(path_num);
- };
-@@ -1434,7 +1434,7 @@ static inline void __iomem *ctrl_regs(struct mmp_path *path)
- 	return path_to_ctrl(path)->reg_base;
- }
- 
--/* path regs, for regs symmetrical for both pathes */
-+/* path regs, for regs symmetrical for both paths */
- static inline struct lcd_regs *path_regs(struct mmp_path *path)
- {
- 	if (path->id == PATH_PN)
-diff --git a/drivers/video/fbdev/mmp/hw/mmp_spi.c b/drivers/video/fbdev/mmp/hw/mmp_spi.c
-index 3f253f4271ac..8e6e8be441d2 100644
---- a/drivers/video/fbdev/mmp/hw/mmp_spi.c
-+++ b/drivers/video/fbdev/mmp/hw/mmp_spi.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
- /*
-  * linux/drivers/video/mmp/hw/mmp_spi.c
-- * using the spi in LCD controler for commands send
-+ * using the spi in LCD controller for commands send
-  *
-  * Copyright (C) 2012 Marvell Technology Group Ltd.
-  * Authors:  Guoqing Li <ligq@marvell.com>
-diff --git a/drivers/video/fbdev/ocfb.c b/drivers/video/fbdev/ocfb.c
-index 893888260c21..c16e907e5710 100644
---- a/drivers/video/fbdev/ocfb.c
-+++ b/drivers/video/fbdev/ocfb.c
-@@ -115,7 +115,7 @@ static int ocfb_setupfb(struct ocfb_dev *fbdev)
- 	fbdev->little_endian = 0;
- 	ocfb_writereg(fbdev, OCFB_VBARA, fbdev->fb_phys);
- 
--	/* Detect endianess */
-+	/* Detect endianness */
- 	if (ocfb_readreg(fbdev, OCFB_VBARA) != fbdev->fb_phys) {
- 		fbdev->little_endian = 1;
- 		ocfb_writereg(fbdev, OCFB_VBARA, fbdev->fb_phys);
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
-index 1dc70c96d813..cbe3cc545131 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
-@@ -2119,7 +2119,7 @@ static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
- 
- 	/*
- 	 * Pixel data should be prepared before visible display point starts.
--	 * So, atleast DS-2 lines must have already been fetched by DISPC
-+	 * So, at least DS-2 lines must have already been fetched by DISPC
- 	 * during nonactive - pos_x period.
- 	 */
- 	val = div_u64((u64)(nonactive - pos_x) * lclk, pclk);
-@@ -2130,7 +2130,7 @@ static int check_horiz_timing_omap3(unsigned long pclk, unsigned long lclk,
- 
- 	/*
- 	 * All lines need to be refilled during the nonactive period of which
--	 * only one line can be loaded during the active period. So, atleast
-+	 * only one line can be loaded during the active period. So, at least
- 	 * DS - 1 lines should be loaded during nonactive period.
- 	 */
- 	val =  div_u64((u64)nonactive * lclk, pclk);
-diff --git a/drivers/video/fbdev/pm2fb.c b/drivers/video/fbdev/pm2fb.c
-index 058075a34c5d..f287c9059489 100644
---- a/drivers/video/fbdev/pm2fb.c
-+++ b/drivers/video/fbdev/pm2fb.c
-@@ -428,7 +428,7 @@ static void set_aperture(struct pm2fb_par *p, u32 depth)
- 	}
- #endif
- 
--	/* We don't use aperture two, so this may be superflous */
-+	/* We don't use aperture two, so this may be superfluous */
- 	pm2_WR(p, PM2R_APERTURE_TWO, PM2F_APERTURE_STANDARD);
- }
- 
-diff --git a/drivers/video/fbdev/skeletonfb.c b/drivers/video/fbdev/skeletonfb.c
-index 7e98850d9bde..bbfbf55cdab8 100644
---- a/drivers/video/fbdev/skeletonfb.c
-+++ b/drivers/video/fbdev/skeletonfb.c
-@@ -478,7 +478,7 @@ static int xxxfb_blank(int blank_mode, struct fb_info *info)
- 
- /**
-  *      xxxfb_fillrect - REQUIRED function. Can use generic routines if
-- *		 	 non acclerated hardware and packed pixel based.
-+ *		 	 non accelerated hardware and packed pixel based.
-  *			 Draws a rectangle on the screen.
-  *
-  *      @info: frame buffer structure that represents a single frame buffer
-@@ -505,7 +505,7 @@ void xxxfb_fillrect(struct fb_info *p, const struct fb_fillrect *region)
- 
- /**
-  *      xxxfb_copyarea - REQUIRED function. Can use generic routines if
-- *                       non acclerated hardware and packed pixel based.
-+ *                       non accelerated hardware and packed pixel based.
-  *                       Copies one area of the screen to another area.
-  *
-  *      @info: frame buffer structure that represents a single frame buffer
-@@ -530,7 +530,7 @@ void xxxfb_copyarea(struct fb_info *p, const struct fb_copyarea *area)
- 
- /**
-  *      xxxfb_imageblit - REQUIRED function. Can use generic routines if
-- *                        non acclerated hardware and packed pixel based.
-+ *                        non accelerated hardware and packed pixel based.
-  *                        Copies a image from system memory to the screen.
-  *
-  *      @info: frame buffer structure that represents a single frame buffer
-diff --git a/drivers/video/fbdev/sstfb.c b/drivers/video/fbdev/sstfb.c
-index 2745557822f7..0c048f9fee68 100644
---- a/drivers/video/fbdev/sstfb.c
-+++ b/drivers/video/fbdev/sstfb.c
-@@ -15,7 +15,7 @@
-  * 09/2002 Helge Deller    <deller@gmx.de>
-  *	(enable driver on big-endian machines (hppa), ioctl fixes)
-  * 12/2002 Helge Deller    <deller@gmx.de>
-- *	(port driver to new frambuffer infrastructure)
-+ *	(port driver to new framebuffer infrastructure)
-  * 01/2003 Helge Deller    <deller@gmx.de>
-  *	(initial work on fb hardware acceleration for voodoo2)
-  * 08/2006 Alan Cox 	   <alan@redhat.com>
-diff --git a/drivers/video/fbdev/tgafb.c b/drivers/video/fbdev/tgafb.c
-index dccfc38cfbd5..32296f926196 100644
---- a/drivers/video/fbdev/tgafb.c
-+++ b/drivers/video/fbdev/tgafb.c
-@@ -884,7 +884,7 @@ tgafb_clut_imageblit(struct fb_info *info, const struct fb_image *image)
- 
- /**
-  *      tgafb_imageblit - REQUIRED function. Can use generic routines if
-- *                        non acclerated hardware and packed pixel based.
-+ *                        non accelerated hardware and packed pixel based.
-  *                        Copies a image from system memory to the screen.
-  *
-  *      @info: frame buffer structure that represents a single frame buffer
-@@ -921,7 +921,7 @@ tgafb_imageblit(struct fb_info *info, const struct fb_image *image)
- 
- /**
-  *      tgafb_fillrect - REQUIRED function. Can use generic routines if
-- *                       non acclerated hardware and packed pixel based.
-+ *                       non accelerated hardware and packed pixel based.
-  *                       Draws a rectangle on the screen.
-  *
-  *      @info: frame buffer structure that represents a single frame buffer
-@@ -1047,7 +1047,7 @@ tgafb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
- 
- /*
-  *      tgafb_copyarea - REQUIRED function. Can use generic routines if
-- *                       non acclerated hardware and packed pixel based.
-+ *                       non accelerated hardware and packed pixel based.
-  *                       Copies on area of the screen to another area.
-  *
-  *      @info: frame buffer structure that represents a single frame buffer
-diff --git a/drivers/video/fbdev/tridentfb.c b/drivers/video/fbdev/tridentfb.c
-index 9f055ba776c8..6501f6e2615a 100644
---- a/drivers/video/fbdev/tridentfb.c
-+++ b/drivers/video/fbdev/tridentfb.c
-@@ -58,7 +58,7 @@ static struct fb_fix_screeninfo tridentfb_fix = {
- 	.accel = FB_ACCEL_NONE,
- };
- 
--/* defaults which are normally overriden by user values */
-+/* defaults which are normally overridden by user values */
- 
- /* video mode */
- static char *mode_option;
-diff --git a/drivers/video/fbdev/via/dvi.c b/drivers/video/fbdev/via/dvi.c
-index 27990a73bfa3..47cacdbec830 100644
---- a/drivers/video/fbdev/via/dvi.c
-+++ b/drivers/video/fbdev/via/dvi.c
-@@ -399,7 +399,7 @@ void viafb_dvi_enable(void)
- 			tmds_register_write(0x88, 0x3b);
- 		else
- 			/*clear CR91[5] to direct on display period
--			   in the secondary diplay path */
-+			   in the secondary display path */
- 			via_write_reg_mask(VIACR, 0x91, 0x00, 0x20);
- 		break;
- 
-@@ -407,12 +407,12 @@ void viafb_dvi_enable(void)
- 		if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CLE266)
- 			viafb_write_reg_mask(CR93, VIACR, 0x21, BIT0 + BIT5);
- 
--		/*fix dvi cann't be enabled with MB VT5718C4 - Al Zhang */
-+		/*fix dvi can't be enabled with MB VT5718C4 - Al Zhang */
- 		if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CLE266)
- 			tmds_register_write(0x88, 0x3b);
- 		else
- 			/*clear CR91[5] to direct on display period
--			  in the secondary diplay path */
-+			  in the secondary display path */
- 			via_write_reg_mask(VIACR, 0x91, 0x00, 0x20);
- 
- 		/*fix DVI cannot enable on EPIA-M board */
-diff --git a/drivers/video/fbdev/via/hw.c b/drivers/video/fbdev/via/hw.c
-index 66afd7be00cc..e9d0fac8fb17 100644
---- a/drivers/video/fbdev/via/hw.c
-+++ b/drivers/video/fbdev/via/hw.c
-@@ -1542,7 +1542,7 @@ static void init_gfx_chip_info(int chip_type)
- 		else
- 			viaparinfo->chip_info->gfx_chip_revision =
- 			CLE266_REVISION_CX;
--		/* restore orignal CR4F value */
-+		/* restore original CR4F value */
- 		viafb_write_reg(CR4F, VIACR, tmp);
- 	}
- 
-diff --git a/drivers/video/fbdev/via/viafbdev.c b/drivers/video/fbdev/via/viafbdev.c
-index dd9374e8ad09..2c67a18d16ad 100644
---- a/drivers/video/fbdev/via/viafbdev.c
-+++ b/drivers/video/fbdev/via/viafbdev.c
-@@ -190,7 +190,7 @@ static int viafb_check_var(struct fb_var_screeninfo *var,
- 
- 	DEBUG_MSG(KERN_INFO "viafb_check_var!\n");
- 	/* Sanity check */
--	/* HW neither support interlacte nor double-scaned mode */
-+	/* HW neither support interlacte nor double-scanned mode */
- 	if (var->vmode & FB_VMODE_INTERLACED || var->vmode & FB_VMODE_DOUBLE)
- 		return -EINVAL;
- 
-@@ -765,7 +765,7 @@ static int viafb_cursor(struct fb_info *info, struct fb_cursor *cursor)
- 	if (info->flags & FBINFO_HWACCEL_DISABLED || info != viafbinfo)
- 		return -ENODEV;
- 
--	/* LCD ouput does not support hw cursors (at least on VN896) */
-+	/* LCD output does not support hw cursors (at least on VN896) */
- 	if ((chip_name == UNICHROME_CLE266 && viapar->iga_path == IGA2) ||
- 		viafb_LCD_ON)
- 		return -ENODEV;
-diff --git a/drivers/video/sticore.c b/drivers/video/sticore.c
-index 1d4477f20450..6876a03c464a 100644
---- a/drivers/video/sticore.c
-+++ b/drivers/video/sticore.c
-@@ -389,7 +389,7 @@ static int sti_font_setup(char *str)
-  *	- sti_font=<number>	(<number> = 1,2,3,...)
-  *		most STI ROMs have built-in HP specific fonts, which can be selected
-  *		by giving the desired number to the sticon driver.
-- *		NOTE: This number is machine and STI ROM dependend.
-+ *		NOTE: This number is machine and STI ROM dependent.
-  *	- sti_font=<height>x<width>  (e.g. sti_font=16x8)
-  *		<height> and <width> gives hints to the height and width of the
-  *		font which the user wants. The sticon driver will try to use
-diff --git a/include/video/mmp_disp.h b/include/video/mmp_disp.h
-index 41354bd49895..88358527d11b 100644
---- a/include/video/mmp_disp.h
-+++ b/include/video/mmp_disp.h
-@@ -172,7 +172,7 @@ struct mmp_panel {
- 	/* use node to register to list */
- 	struct list_head node;
- 	const char *name;
--	/* path name used to connect to proper path configed */
-+	/* path name used to connect to proper path configured */
- 	const char *plat_path_name;
- 	struct device *dev;
- 	int panel_type;
-@@ -291,7 +291,7 @@ static inline int mmp_overlay_set_addr(struct mmp_overlay *overlay,
-  * it defined a common interface that plat driver need to implement
-  */
- struct mmp_path_info {
--	/* driver data, set when registed*/
-+	/* driver data, set when registered*/
- 	const char *name;
- 	struct device *dev;
- 	int id;
-@@ -309,7 +309,7 @@ extern void mmp_unregister_path(struct mmp_path *path);
- extern void mmp_register_panel(struct mmp_panel *panel);
- extern void mmp_unregister_panel(struct mmp_panel *panel);
- 
--/* defintions for platform data */
-+/* definitions for platform data */
- /* interface for buffer driver */
- struct mmp_buffer_driver_mach_info {
- 	const char	*name;
--- 
-2.48.1
-
+Thanks,
+Charles
