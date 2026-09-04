@@ -1,92 +1,167 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E6824F052D;
-	Fri,  4 Sep 2026 15:58:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84CA9345CCA;
+	Fri,  4 Sep 2026 18:17:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788537494; cv=none; b=Lx1skuFPWQWOPbx/aFwTPUvipdUb/8Z3+nVC3JP/wGfxyHFCjDgMuEFhBOzz84748WiHFo32nWuQ0C2lHiOtc+O1/daGgT1XhwEh/xMu3vb4a0qGAPLB9nyQl849IMzdSgdIxBjrsW765sATXvopTSQEp4D5+KivL8LakIx6Mzk=
+	t=1788545851; cv=none; b=LwahGRIO5G3R9Uh5GY9i4UQDDiUPXseg10VjKUPlc6zH/q/tCTOYtNNwdRDhFfZa2hoUwx8X4JFWt+A7tRUmbii5LNxcAZPKDuJoO9LHmesjMSl69y/iTbFdPbicd3BvKNGVj1gO9BZOMk01xayc+nsi2OcYKMWdRWkEo6ZYoqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788537494; c=relaxed/simple;
-	bh=MAMHc3lcCEx7Gz9i6NwKaBAiqbW/7oSEolLbycKUbPU=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=HymG4gMpbjuwtdR5sHZXfp/PRlIuWCP6TuKhoTqEx9PoqwAKmC2TWgAbR3/VqdZToXdPuevvh1FDK4u2e/cSfHe5JCspUC76TV51XVIcoZ47rdxFK1mS6oGnPtkE+TXmen6rWYY2RTx0JT5M3OHuJ5XxcT53yDx4Ha/o/szKoA4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YeoORvmH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788545851; c=relaxed/simple;
+	bh=VsnS007wh0sFiE9YAIKe95TPm3S3rLH78d0O1zLuIMo=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=F+zYwUcgO1+hRwQVaMkNLP2jjWpHvdFuXv8u8bZgzTPfJYjDVP2Q9IVoO7yGPi+D0OssG+e6SIkLaQCrV+UK+U+XgpJqemYcnP2MYt8jR8P33qGVj6tHzSwyv2m5uTnFmiRfPackOHTj22YnQgtFMh0gf+acVgjaRd6AHqqZVoY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=Jz3fMcFB; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YeoORvmH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92D661F00A3D;
-	Fri,  4 Sep 2026 15:58:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788537493;
-	bh=xFBkR9T0SQCtUDwL8PQObCORwH0zWTKutCjB4dzETP4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=YeoORvmHxqLmUVtXYpglFo8Xgu1ji5AKGIXIO6Mm8N5xIm4dXmqXD+clgqcWKLeY3
-	 TQXS47+v9ZKtzRnB9bwcmz/xuaotwZQZt+msSrow1xFdWHhWuZI7rpSimHlnU7ercc
-	 qq8732lFwY9ju3z4VMdciwyPv6/45agXQqEHVc/j1wIeyMWtwmURw6TnxLOh6kUjXE
-	 qt2RQj1/NpPKFcBnXJsX+gLYdYGuK6yw7/7pPoiKZQlxG6bMMx5OD2cxw6yQjanA0O
-	 l6mxQekLsEfYk02DnMQQtBWF+b1uSpc35BoRUjFKJ/MvNqfSS5szwk94rmCJUfqbjD
-	 pTinIofYxQYWg==
-Date: Fri, 4 Sep 2026 08:58:11 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Siddharth Vadapalli <s-vadapalli@ti.com>
-Cc: <dario.binacchi@amarulasolutions.com>, <mkl@pengutronix.de>,
- <mailhol@kernel.org>, <msp@baylibre.com>, <florian.fainelli@broadcom.com>,
- <jonas.gorski@gmail.com>, <andrew@lunn.ch>, <olteanv@gmail.com>,
- <davem@davemloft.net>, <edumazet@google.com>, <pabeni@redhat.com>,
- <kurt@linutronix.de>, <hauke@hauke-m.de>, <chester.a.unal@arinc9.com>,
- <daniel@makrotopia.org>, <matthias.bgg@gmail.com>,
- <angelogioacchino.delregno@collabora.com>, <ansuelsmth@gmail.com>,
- <linusw@kernel.org>, <luizluca@gmail.com>, <alvin.sipraga@analog.com>,
- <clement.leger@bootlin.com>, <justin.chen@broadcom.com>, <dlan@kernel.org>,
- <rogerq@kernel.org>, <hkallweit1@gmail.com>, <linux@armlinux.org.uk>,
- <rjui@broadcom.com>, <sbranden@broadcom.com>,
- <bcm-kernel-feedback-list@broadcom.com>, <opendmb@gmail.com>,
- <andrei.botila@oss.nxp.com>, <wangruikang@iscas.ac.cn>,
- <amadeus@jmu.edu.cn>, <kees@kernel.org>, <tmshlvck@gmail.com>,
- <c-vankar@ti.com>, <horms@kernel.org>, <vadim.fedorenko@linux.dev>,
- <daniel.zahka@gmail.com>, <nora.schiffer@ew.tq-group.com>,
- <v-singh1@ti.com>, <oss@vassilevski.com>, <haokexin@gmail.com>,
- <alex@sverdlin.org>, <aleksandr.loktionov@intel.com>,
- <lgs201920130244@gmail.com>, <linux-can@vger.kernel.org>,
- <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
- <linux-arm-kernel@lists.infradead.org>,
- <linux-mediatek@lists.infradead.org>, <linux-renesas-soc@vger.kernel.org>,
- <linux-riscv@lists.infradead.org>, <spacemit@lists.linux.dev>,
- <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH net-next 00/33] Remove comma after sentinel entries in
- match table
-Message-ID: <20260904085811.7e2c2db6@kernel.org>
-In-Reply-To: <20260904043724.2955444-1-s-vadapalli@ti.com>
-References: <20260904043724.2955444-1-s-vadapalli@ti.com>
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="Jz3fMcFB"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=Subject:To:From:Reply-To:Cc:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=y3ymHnKhdswdztxRlebmLmLOrkWSnm2XWakmHOi2uPU=; t=1788545849; x=1789755449; 
+	b=Jz3fMcFBahrLnvaR+HlILwfqgty8ab/8ZMWbKkQsH9mGUElmNTi0XgTzPJngV18HoCWahbo8kec
+	gRBwDR5JLPGFsJI8wh3gVbkPxExbtt066pEYZfImR4mYFY81nZcsLsY0XhwG5eViCx0FX1torFu2d
+	rJnTtcA8Hr/N4S/3IN0IUKzOmqzzgBuLYDpaQZZouF4o3W8yaNzDczjFfQOwAOYcQ0s0ClrwBzemS
+	dgfYe3F5zqch+hFFji156NHrkHlW+qYVpsUVkH2IFePdtWgFVcPOf8wLv9Y03CtGSEPXPQpHpezLZ
+	3HLrUqvuh07/KnaD/nKeNGs2RwQKlEwNi0iA==;
+From: Andreas Kemnade <andreas@kemnade.info>
+To: kristo@kernel.org,
+	sboyd@kernel.org,
+	bmasney+clk@redhat.com,
+	jbrunet+clk@baylibre.com,
+	kees@kernel.org,
+	mathieu.dubois-briand@bootlin.com,
+	andreas@kemnade.info,
+	linux-omap@vger.kernel.org,
+	linux-clk@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	hns@goldelico.com
+Subject: [PATCH] clk: ti: composite: resolve parent clocks by name again
+Date: Fri,  4 Sep 2026 20:17:16 +0200
+Message-ID: <20260904181716.631201-1-andreas@kemnade.info>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Fri, 4 Sep 2026 10:06:06 +0530 Siddharth Vadapalli wrote:
-> This series removes the comma present after sentinel entries in the match
-> tables across all networking subsystem drivers, with the exception of the
-> davinci_mdio.c driver, for which, the patch posted by Geert at:
-> https://lore.kernel.org/r/e481b6de46cecc6ea604ae165272c667274cc621.1788437140.git.geert+renesas@glider.be/
-> does the same.
-> 
-> Since I inquired about a cleanup across the entire networking subsystem but
-> didn't get a response:
-> https://lore.kernel.org/r/b3d19098-eccd-4619-b667-ad3b7e0a4422@ti.com/
-> I decided to post this series. Given that Andrew Lunn acknowledged the
-> cleanup of the davinci_mdio driver:
-> https://lore.kernel.org/r/abec6831-d344-489d-b70c-1e5dd4d43c2d@lunn.ch/
-> and I don't see why the cleanup is specific to davinci_mdio driver alone,
-> I am hoping that this series is treated identically to the patch that
-> Geert had posted for the davinci_mdio driver.
-> 
-> Series is based on commit
-> 6ebcf5074cff net: openvswitch: don't schedule rebalancing if there are no datapaths
-> of the 'main' branch of the net-next tree.
+Trying to resolve them by DT index causes massive havoc on OMAP3, Clocks
+around the timers used as a system clocksource are not properly resolved
+causing ealy boot failures. The problem seems to be that parents must be
+resolved by looking into the clocks property of the component node marked
+with "ti,composite-mux-clock", with the switch to dt index, that node
+was not used anymore. It was used by the of_clk_parent_fill() call.
+To a lesser extent also OMAP4/5 boards are affected.
 
-You failed to specify why this "cleanup" makes a difference.
-have you ever seen the sentinel not be the last entry?
+Since this patch was introduced just because of a cleanup request
+and not to solve the actual problem
+(https://lore.kernel.org/linux-omap/alkZmw-XmnCOZfOD@redhat.com/)
+just revert it. Cleanup needs really more thought here.
+The similar change to the TI mux clock, which solves a problem on the AM3
+platform, seems to be harmless.
+
+So just revert
+commit fe3dd92ac54a ("clk: ti: composite: resolve parent clocks by DT index, not by name")
+for now.
+
+Fixes: fe3dd92ac54a ("clk: ti: composite: resolve parent clocks by DT index, not by name")
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ drivers/clk/ti/composite.c | 26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
+index 01eae8995254..c379bbdae25a 100644
+--- a/drivers/clk/ti/composite.c
++++ b/drivers/clk/ti/composite.c
+@@ -52,7 +52,7 @@ static const struct clk_ops ti_composite_gate_ops = {
+ 
+ struct component_clk {
+ 	int num_parents;
+-	struct clk_parent_data *parent_data;
++	const char **parent_names;
+ 	struct device_node *node;
+ 	int type;
+ 	struct clk_hw *hw;
+@@ -116,7 +116,7 @@ static void __init _register_composite(void *user,
+ 	struct clk_hw_omap_comp *cclk = to_clk_hw_comp(hw);
+ 	struct component_clk *comp;
+ 	int num_parents = 0;
+-	struct clk_parent_data *parent_data = NULL;
++	const char **parent_names = NULL;
+ 	const char *name;
+ 	int i;
+ 	int ret;
+@@ -155,7 +155,7 @@ static void __init _register_composite(void *user,
+ 			continue;
+ 		if (comp->num_parents) {
+ 			num_parents = comp->num_parents;
+-			parent_data = comp->parent_data;
++			parent_names = comp->parent_names;
+ 			break;
+ 		}
+ 	}
+@@ -166,8 +166,8 @@ static void __init _register_composite(void *user,
+ 	}
+ 
+ 	name = ti_dt_clk_name(node);
+-	clk = clk_register_composite_pdata(NULL, name,
+-				     parent_data, num_parents,
++	clk = clk_register_composite(NULL, name,
++				     parent_names, num_parents,
+ 				     _get_hw(cclk, CLK_COMPONENT_TYPE_MUX),
+ 				     &ti_clk_mux_ops,
+ 				     _get_hw(cclk, CLK_COMPONENT_TYPE_DIVIDER),
+@@ -190,7 +190,7 @@ static void __init _register_composite(void *user,
+ 		if (!cclk->comp_clks[i])
+ 			continue;
+ 		list_del(&cclk->comp_clks[i]->link);
+-		kfree(cclk->comp_clks[i]->parent_data);
++		kfree(cclk->comp_clks[i]->parent_names);
+ 		kfree(cclk->comp_clks[i]);
+ 	}
+ 
+@@ -237,9 +237,8 @@ int __init ti_clk_add_component(struct device_node *node, struct clk_hw *hw,
+ 				int type)
+ {
+ 	unsigned int num_parents;
+-	struct clk_parent_data *parent_data;
++	const char **parent_names;
+ 	struct component_clk *clk;
+-	unsigned int i;
+ 
+ 	num_parents = of_clk_get_parent_count(node);
+ 
+@@ -248,21 +247,20 @@ int __init ti_clk_add_component(struct device_node *node, struct clk_hw *hw,
+ 		return -EINVAL;
+ 	}
+ 
+-	parent_data = kcalloc(num_parents, sizeof(*parent_data), GFP_KERNEL);
+-	if (!parent_data)
++	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
++	if (!parent_names)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < num_parents; i++)
+-		parent_data[i].index = i;
++	of_clk_parent_fill(node, parent_names, num_parents);
+ 
+ 	clk = kzalloc_obj(*clk);
+ 	if (!clk) {
+-		kfree(parent_data);
++		kfree(parent_names);
+ 		return -ENOMEM;
+ 	}
+ 
+ 	clk->num_parents = num_parents;
+-	clk->parent_data = parent_data;
++	clk->parent_names = parent_names;
+ 	clk->hw = hw;
+ 	clk->node = node;
+ 	clk->type = type;
+-- 
+2.47.3
+
