@@ -1,54 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AC704E3EF8
-	for <linux-omap@vger.kernel.org>; Fri,  4 Sep 2026 22:36:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C17AA51FCB1
+	for <linux-omap@vger.kernel.org>; Fri,  4 Sep 2026 22:36:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788561369; cv=none; b=HqoxXx2JYmGYZNxke0Q4wj+s6sBI/iX/2Ogzcj97hkrFgKuyfrKngGudCyzlC+XbAWy/jNgqXSkhVMkH4sN9V2IS8fnS3Vk7riQFbUa+e4Qv3as0MbbxabUXKNSr+wa6aKZe/OMsufS9qB7p30qmoKbqCjjUcIGlCal8LxDi8KU=
+	t=1788561387; cv=none; b=MKBD1Zo/onpxb6z7scloJ071Y/kLnIo13zJYSVMzYUbaZ1D4Rd9BEqGU0E9be4x/BBgISSVA9JhYaP2NoXZ2fVnr+KeaJoViuMmLxfYu6ypTeOHHIqXIEIBL3jbbAMiXtprtyA3yyTS5pwHxJzmZ0sbY/u5GEzmwLySpW3Qo+Xg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788561369; c=relaxed/simple;
+	s=arc-20240116; t=1788561387; c=relaxed/simple;
 	bh=/oXwqSl9Gxhd9ASYzU33CVNwSksmytljDqKt0iBuLvI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=nVJypRBSzH45ujg888/LMiR6K9v5EWggs2YoUADbs+XKTqTRROr3NwOFXRN1vsVl72nezA6sxNJyMJYKRGjMs3BtIcvW/VUiPKK2ji0LtsaxTNUMCKIKakoOLfkojiKbP79/y3vkHzu25L4WrgX9pTpwiQ67EeasWJgTXWcv1pk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ml6ZPbdi; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=AndHm0V3Au8mMBIuRG8wwiqMaz6Vvq9VqUUiX91c+qov6k5G3mNW6ZR5aHVhFOg9z8SS/IXWpjh2bNdjY8/ImAHMK+AiErdALY8SzzhAzDUbWKxlhq/1OuvoPNz2ybKWOkFN8Q6F3UQDWTrJk818lLI85bAmzKYRYN+0/sPMRDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GlVbCwxd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ml6ZPbdi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17F071F0155E
-	for <linux-omap@vger.kernel.org>; Fri,  4 Sep 2026 22:36:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GlVbCwxd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BD6B1F0156B
+	for <linux-omap@vger.kernel.org>; Fri,  4 Sep 2026 22:36:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788561368;
+	s=k20260515; t=1788561385;
 	bh=/oXwqSl9Gxhd9ASYzU33CVNwSksmytljDqKt0iBuLvI=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=ml6ZPbdicpCTCGRsa4fruA8q/UpjUgIWf/z1j3+dK9X3uiutTe0Gl0W9Lye+gyHVj
-	 8YmhHW8o3E5cvDD7BLuj2wEtwXOUvyv04hlKcGfZAbXiQJ/LOeLdCD+tUA+VGQVvFB
-	 gmbCoxnTcLMl2erVHI1WMv20AhSU7ZLcp+yLOFH6iat052BEu/i84vxzZhJIUu0oy9
-	 P7+8EJnGgIc7YQx9NQOdfRTN6gX0Q1EY7UbO+HN5y37jJceCICC6QEbK1be07F1FzD
-	 DjwZ9SGW8JDK0WHPnhvmq1CH55jWjHQ0iSSlLt318rSpCiSaTGyvgyAYR5YRruMwQZ
-	 BIo2SADVEtdig==
-Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-5b5e1340faeso1358594e87.3
-        for <linux-omap@vger.kernel.org>; Fri, 04 Sep 2026 15:36:07 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvByBsDQG3OccIrjKq5HGCK05AMd8qr/EZHzSeE1/quTKffGZiB8frq2rKaeUcBT/VgqrSo1satb4R9h/@vger.kernel.org
-X-Gm-Message-State: AFuF++mKZqm2ZMudntDlrIFxHIl8JPtuokAT24yzrUHnuGjIQethwNBU
-	yhuHJT+guzJkjz16QdVyCeO4Hpd/9VGciTne5NJMEawqJ8/5167/WP4yhCIKKPizVCv9V8RV0bk
-	C4XXv2H9F61MiCMDG36udTKnyJqjueeo=
-X-Received: by 2002:a05:6512:61b3:b0:5b4:583f:9f32 with SMTP id
- 2adb3069b0e04-5b616f324a3mr1360069e87.20.1788561366767; Fri, 04 Sep 2026
- 15:36:06 -0700 (PDT)
+	b=GlVbCwxddIH2dGDoJPIA/h2Tst/6qBA1KGZqh+6T+wL3wdW8xpNgyzaSqPTvBO3IW
+	 dmWsdWcd/TE+zleN5SMZD9rLM8nV3rxKKRQIlCABrM8elVbNhL6ZG6n1LB+RpwiAMR
+	 mWEEHJ2ijqefgTMOVlyCe6A4bK22tcocp1M1amhMsGRuSaSdQeiKrQjGl8ma2dSnqI
+	 7iGskWVDBlHW02icgqAP7VeQOEbWbRAIUSZMRyRq8VivPjFPHzPGt2yYzma34ys9Tp
+	 2OOnvpmEk8u59IFhysAtgxkO25ylitmXa46S7QuFOChTDJs0sRRb3d7WqqybV3DH0y
+	 vPUw1DQqB7/xA==
+Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5b01910b499so1428491e87.0
+        for <linux-omap@vger.kernel.org>; Fri, 04 Sep 2026 15:36:25 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBzOex1kGVyuPwc7qB5OMGRuPV8c+SyVsJwyppzkwLFzEH2wm+qFvwNFzDndvz8G+8dWn6I3Qybv5Mng@vger.kernel.org
+X-Gm-Message-State: AFuF++nk0aEkudTMfv9yzIikFtIvryxB4QS51a11jVjxDGQQ6klWaoeM
+	XbuUcDeXV/5QHjArvSE7/aQTv1/4JXuqvZcwzcuQQaHWKFwHS6br8gkRuJya4O77cEqzNqoCTAB
+	GWLJUBUlSp9bAwt3ulfaQsj3A2MlkvEs=
+X-Received: by 2002:a05:6512:a86:b0:5ae:b7c7:5334 with SMTP id
+ 2adb3069b0e04-5b60e8f8b8dmr2291058e87.17.1788561384171; Fri, 04 Sep 2026
+ 15:36:24 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260904043724.2955444-1-s-vadapalli@ti.com> <20260904043724.2955444-18-s-vadapalli@ti.com>
-In-Reply-To: <20260904043724.2955444-18-s-vadapalli@ti.com>
+References: <20260904043724.2955444-1-s-vadapalli@ti.com> <20260904043724.2955444-19-s-vadapalli@ti.com>
+In-Reply-To: <20260904043724.2955444-19-s-vadapalli@ti.com>
 From: Linus Walleij <linusw@kernel.org>
-Date: Sat, 5 Sep 2026 00:35:54 +0200
-X-Gmail-Original-Message-ID: <CAD++jLkfg0tRxDc7B2-TJqRmqxFxUFkFPwHya-gvGZ1OeytoYA@mail.gmail.com>
-X-Gm-Features: AcwNN1VqRxubfaJ8mQrA8mitm0PwyRWyXr5M0LUGIuqfl4J37AtzKVm3Hf5r70E
-Message-ID: <CAD++jLkfg0tRxDc7B2-TJqRmqxFxUFkFPwHya-gvGZ1OeytoYA@mail.gmail.com>
-Subject: Re: [PATCH net-next 17/33] net: dsa: mv88e6060: Remove comma after
+Date: Sat, 5 Sep 2026 00:36:12 +0200
+X-Gmail-Original-Message-ID: <CAD++jLn+fsxrH2YvJSnaYhHg2EQiUnjMX5BFE_MDAzvvJjY3Bw@mail.gmail.com>
+X-Gm-Features: AcwNN1WIrbJQES4aWl5_UIygFkf4p6tsLt1aSuz1HDzaVFgsk_a2nVa_8mNAHm8
+Message-ID: <CAD++jLn+fsxrH2YvJSnaYhHg2EQiUnjMX5BFE_MDAzvvJjY3Bw@mail.gmail.com>
+Subject: Re: [PATCH net-next 18/33] net: dsa: mv88e6xxx: Remove comma after
  sentinel-entry in match-table
 To: Siddharth Vadapalli <s-vadapalli@ti.com>
 Cc: dario.binacchi@amarulasolutions.com, mkl@pengutronix.de, 
