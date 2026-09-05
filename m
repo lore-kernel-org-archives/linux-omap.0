@@ -1,65 +1,66 @@
-Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9856B440A1D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AFDB440A1F
 	for <linux-omap@vger.kernel.org>; Sat,  5 Sep 2026 09:47:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.50
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788601639; cv=none; b=IDRnSKqoqsl5rbr+KSVCqCr8pfqFiykyWhUWKqT3VyVAk+LkxJuBZ8cYvUFK3HnXLJQ2fHlrZ8MfiRdorq6oKyuF5X6//c2x7l3XAVB7MmJD1gbovuzlyw6JafTqJLB9tVs3RfVx3dZKlE8h6iCv/5Zi2V2lJK/uKxE3S+6Caqs=
+	t=1788601639; cv=none; b=S/s2bzHk8/sWl/voPKA3jE+UAfTgrFQIGcybDclTVZd/iCLTC5mVYKPoXHy5P1CnOQmbyy8bE9Ty+wwFClczlVOX96UczW+oLZwxFghrLzPq9I6EwV4gk0X+1lu1W6czbIeDgbXzt4yE4lYk6pIC2Mzdf6IFLl/MABmYrb2uIjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1788601639; c=relaxed/simple;
-	bh=/cAOJWdBCi1HZBkEDQRQ71AKnd55wOx5U/6xyND51hI=;
+	bh=YsfDHjDKsIWAkoUgaj1imFKWTfOFfJnvMXwuV6H0pgE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=WjhpsVsOXSrbJzetaT7nz91RVIaazylpkBWW2wgCe8AGvUdnUbSxv1SUvBSWHVqEisX9lvAVBl9FA8/ywxHN0DIFkc+BqZh5IafPcpPC7e+TwqoUG+nCxN1F5zjxVmTaY9HFy41doZJ3kphiefmct7ETEgylyNTnGhiXaeHpMw8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EFI+tp15; arc=none smtp.client-ip=209.85.221.50
+	 MIME-Version; b=D7c5kaHYmXbDxMCXXEBWNaeySeLjQwTPHaSsOe6yTrTLJ31NyO3F3KxnzEKoGc/TXYp4uAc8z3zCmFnyCjQS8q/he0B6v4a3gIFa2ThH11TytUdnNJEAbF2saZGjqfRAQv+KA7ZifDF8+FcwGWalBFXGU81s7JawgqHR0k45luY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WF6eznBR; arc=none smtp.client-ip=209.85.221.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EFI+tp15"
-Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-48431648f33so2093289f8f.0
-        for <linux-omap@vger.kernel.org>; Sat, 05 Sep 2026 02:47:12 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WF6eznBR"
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-4843e397f74so2283131f8f.1
+        for <linux-omap@vger.kernel.org>; Sat, 05 Sep 2026 02:47:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788601629; x=1789206429; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1788601628; x=1789206428; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=2UF/kDvW954cskV6VTtZlG+ZJZtMcv/59sgPBL3REqE=;
-        b=EFI+tp158j2wiB21Myvk/wgCpoY7SpCPPV4iM44MN9ai29MJeDR2nrW4gt9EJ4yBX9
-         oHU++5jfkKuVqZ3GyJ2Xu0+VD1oPEJnBtBo8yd+gPXmvF/j5RNQL5xYYUv3klx+f3DcH
-         SsbYzLfoe1QR6WTm5fyyoQo2pDWEm3LXOW13u/4iwyE+GEOF2PPRMdcOCSAe9Z9TTfnT
-         gwETBy1Tdw05aGpcBqwbi5tXmNFwvu6wDwNyqksYI2rWH2Nmgj0EIDCRYDI6gQqLbk2V
-         vqnfZmOHbYl3KDfaVlfZrIwQEB6/XTcvA6AHdfLlrTfSYKkwn26eOhRk5UjGiB7xx2Xd
-         pi0A==
+        bh=9h3cyhQ1bY0apuRrAImVycgRtlSF3vYdx1yKBS/SgnI=;
+        b=WF6eznBRtkwHGPWcdSI5zmE6nOZXyfhdN2pXXayZzx0BbgJPuw+KlFuKyGt+oPL4Gn
+         x5Fdmar1PYKUgTWNQMERUPVz0nv7Mxix0vYmZEYWQJJOKq2IhCwllLS0NUlGI53+Sb5v
+         5/bNjxfGOVPTwMCDRyEgg8niqb1POYfm+DvWwohpgMrPJQpIvHANwiBLbEd1TEAyWkB6
+         Yk0kGOVhMD6W24IF/0oUwz3EPVKNZvvniPgnF/EmaNhO2oDa4d3jzD/DgSjSYE1SDRdD
+         eJVT5P/AMMCz+8MsEccoS5fKN9eLm8DUge+M/Pg7OhsbQTmPGElHSKeWCxs9g7wuy/tx
+         Kv6w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788601629; x=1789206429;
+        d=1e100.net; s=20251104; t=1788601628; x=1789206428;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=2UF/kDvW954cskV6VTtZlG+ZJZtMcv/59sgPBL3REqE=;
-        b=ivv9wSi0EX9Dp9FQTn2O4Z6gWgPHhpFfrpEV7vEQJCS0sP17nopgMYUQVa9GHoMngu
-         FdtmbWJtHBD+q6pJwQhZoBP1P6RrStCMMt6DU6uPGVmqlP2wyoCFGwTgph7aJDOKvkvr
-         jXXvqn/zzZ+3KsDzbSOwJ1tEk9j8Ig7D5FCkFRLECLE4zFzF9mdc3ZqozuDnQB7FCdWg
-         di1UnCLC/UqgtM53em2Awr0Gj0AxGByc8vyKIsUkEkYchHtVurPd9EtISMpJoXiXI5Mm
-         uCAcT3gCVDgyO0mv/3gCBo9OFp7DJOoLk+3C8RQ5eOMvkjgH+l/z20fMGN9W/KKMx6mu
-         EE7w==
-X-Forwarded-Encrypted: i=1; AKwUvBxPUF+eg2FmcgdvwXyYVuLzF00VctJR8pbb1/gnHjasWDo4aZIZjdvRdN3b7Wz4uB6dg9a8r86hfYNK@vger.kernel.org
-X-Gm-Message-State: AFuF++mtSy2MY0gvFSLIZfF/4xJ9P6JdCyBZNIGpcrHJ1cwmGzxUwZ4X
-	oUQnCJEH6dRqiHA2NZf+sHr5mJT0pYEry/CghsR1QlN6kzBmQSY2Wi9f
-X-Gm-Gg: AYBFou0wA9Kc2dw8pcmRQKZQM6fUZFN9iUDjy7PvVrNPDMJZZ2EUEb20hLrFzXQ/OJV
-	ezuoBcBnXa7subUTDKeIceOVwtDAG+SjANhBmr7PGY90zIbx4AIgE1Wiql6cdsbdMwK7FGmdYy5
-	QGEryVAJawJrPljtr5OaaBftz7X+Rxcd/qr5O9GFsE3aTULB6nOkPpMDXKv+oVena0qju05NoLq
-	XoO3ZMW+vRBSnA+AlHGYfRRZhSsKFn5GKuBBSAKZhf8tkQecZC8aucazhkw1/05SE2kJKW+tSmJ
-	CL+48sckIs08WiZ1WuH/NyNQ52YEdrg0dKT7yhuGZKfbh9UuJNUvgyJl8ptmwFzcTiCUHjOlhEh
-	1GialPrB2zzeGCWliY4VDIea1x7DukwFbwAuDTjVr/93odCJOz9m5VgV1xU+utnpKH/CYYaQA+4
-	6V9iczh4PeN4a16ah9crEs0xxDoOVZOvUpYh61Z5cF+kVW+wDXUVHgukH3DGrIih+KReO6ZgM5o
-	0A548thk/0d5teKSsoOKUhoG89ceti7biTbznNCsWeHsZkuXbb85dsdYlH+ktZQEtDHakIbg488
-	HM6qJhWRz8XetGXhnK8jjxms06XofD5Qe841UD7vSUDMVzlvIyUR2rjkiHorBOKOsTU=
-X-Received: by 2002:a05:600c:3544:b0:49b:8f5e:51fb with SMTP id 5b1f17b1804b1-49cf82bea0amr94305605e9.3.1788601629194;
-        Sat, 05 Sep 2026 02:47:09 -0700 (PDT)
+        bh=9h3cyhQ1bY0apuRrAImVycgRtlSF3vYdx1yKBS/SgnI=;
+        b=SCULnsuwKnvQUgm3XveNTCKgOsnHFBuUUdA6xYtqoBfT/eZeDemxz/9bLuZUSk3xct
+         /ZiLZc7wa2Mb/x3zrJkkGmHHfFXodLwvaQix5fJWQZlpnUiPSkDyBDVnwfueViv6fO0c
+         50oMaH8hSj33lXqax1hfc8t+F5aax6J5LpGtIM9VgR+lx4aJA5miMqlKdQ302HyMQ0Oc
+         XpVYWjXvvI46hJ1Cz3CNrOYyT95DOaXgeTj/916Ws6iTiJeLbMXLSjNT65JdDMi6m+Rz
+         hi/xLK+3+dljCpFIpOqvaRw/WH+dNJammaEf3ZGrofXaVg6AMoDQfmZ3TAYXwOv2K8BS
+         +Qbw==
+X-Forwarded-Encrypted: i=1; AKwUvBx83MWE3tuOgpjEOeBPFOIqmNKPz3ZUMjd29RzJuAAkCNpUTyHq1sNN/g/EUwRDoJ2Zw9Mewd56b+wJ@vger.kernel.org
+X-Gm-Message-State: AFuF++mSzjxSF5rJKIxo2vBWLFR22jFSlvOkgFWmvoqpAMGI/6S5hiA/
+	6l5KC71hfvOwyQoyaD6eh4G+juQ9zwFZqiN+tpZw5H8mctGmUNQZclnm
+X-Gm-Gg: AYBFou1MxcljhJ9S8ZOmMJToVvVH8VF/vTvOXg6E8J4FwqB7FhKsAzwMTziRUVIR0r0
+	Lu3akvS60XMuCc3ND+mzd2ps95x0kfaJXcV7QuoQnPSZgfaUmbZK6GgWpTwZlqW4GjE9xrRuOrY
+	9N1Yipf5tP1Xj8xsiC2ME/3ExhyPl+RFESUX/T5TepcFiO3JOCeKwyTeCiVGdksVIWNQJk3jgf0
+	IBX3NYsWskkk/M4FYK0/FNQ3dJ6gliLmu9rGqMPZ9fHQTlgXK590PRDUsrMA5o37euhHQkHaxgr
+	UCWapeCbwSQYU518oh8y2HBAgkAfXSacu/XOrRcg914kfum6TQngMwAsO7xL7NOXzbw73HXwQ/4
+	a1fgxQKqwchcNxW4qweQXcINoADHDYFWx7FLAq+JmZoqcNdePSCQ6VFe9xSC0onv91QRPPI3qeS
+	PQzpzWF0F7uk7QD5xD7fFRuiwL1dI9vbqC1NnKSv4pxJfLfIlnvwExeyIxl0UgMnP0PW+5HMOQp
+	Fwf0H3FeK8jCIGMC87S+FFece5EyVPYh/ZGF4oFpGXFNpt85HYbrrR0Nl8UNj3mXlXt1jL4+Egb
+	T22aw6jk/HOx4nxPEh91aIGDdu/TpvjDXdDBpCNXiBwd64R/z7ccJqAzB7IyPHYXYJ5+bcF3740
+	9Hg==
+X-Received: by 2002:a05:600c:a307:b0:49c:f13d:ffea with SMTP id 5b1f17b1804b1-49cf13e05c2mr154976805e9.14.1788601627485;
+        Sat, 05 Sep 2026 02:47:07 -0700 (PDT)
 Received: from localhost.localdomain (dynamic-2a02-3100-a4eb-3001-c06d-af27-9fa2-ea53.310.pool.telefonica.de. [2a02:3100:a4eb:3001:c06d:af27:9fa2:ea53])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-485883c6ba4sm14232013f8f.25.2026.09.05.02.47.07
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-485883c6ba4sm14232013f8f.25.2026.09.05.02.47.05
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sat, 05 Sep 2026 02:47:08 -0700 (PDT)
+        Sat, 05 Sep 2026 02:47:06 -0700 (PDT)
 From: Karl Mehltretter <kmehltretter@gmail.com>
 To: Jonathan Corbet <corbet@lwn.net>
 Cc: Karl Mehltretter <kmehltretter@gmail.com>,
@@ -93,11 +94,10 @@ Cc: Karl Mehltretter <kmehltretter@gmail.com>,
 	linux-ide@vger.kernel.org,
 	Ethan Nelson-Moore <enelsonmoore@gmail.com>,
 	Michael Schmitz <schmitzmic@gmail.com>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-Subject: [PATCH v2 5/9] docs: kernel-parameters: Drop the mini2440= entry
-Date: Sat,  5 Sep 2026 11:46:45 +0200
-Message-Id: <20260905094649.41996-6-kmehltretter@gmail.com>
+	Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH v2 4/9] docs: kernel-parameters: Drop the enable_timer_pin_1 entry
+Date: Sat,  5 Sep 2026 11:46:44 +0200
+Message-Id: <20260905094649.41996-5-kmehltretter@gmail.com>
 X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 In-Reply-To: <20260905094649.41996-1-kmehltretter@gmail.com>
 References: <20260905094649.41996-1-kmehltretter@gmail.com>
@@ -109,54 +109,38 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-mini2440= went away with commit 61b7f8920b17 ("ARM: s3c: remove all
-s3c24xx support"); nothing parses it any more.
+enable_timer_pin_1 lost its early_param() in commit efa2559f6516 ("x86:
+order variables in io_apic_xx.c"); nothing parses it any more.
 
 Drop the entry.
 
 Found by cross-checking every documented name against the __setup(),
 early_param() and core_param() registrations in the tree.
 
-Fixes: 61b7f8920b17 ("ARM: s3c: remove all s3c24xx support")
+Fixes: efa2559f6516 ("x86: order variables in io_apic_xx.c")
 Assisted-by: LLM
 Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
-Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
 ---
- .../admin-guide/kernel-parameters.txt         | 21 -------------------
- 1 file changed, 21 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt | 6 ------
+ 1 file changed, 6 deletions(-)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index f4314492953d..2ed1e2c03c61 100644
+index 2a8d862ef30f..f4314492953d 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -4052,27 +4052,6 @@ Kernel parameters
- 			Enable or disable the microcode minimal revision
- 			enforcement for the runtime microcode loader.
+@@ -1647,12 +1647,6 @@ Kernel parameters
+ 			to discrete, to make X server driver able to add WB
+ 			entry later. This parameter enables that.
  
--	mini2440=	[ARM,HW,KNL]
--			Format:[0..2][b][c][t]
--			Default: "0tb"
--			MINI2440 configuration specification:
--			0 - The attached screen is the 3.5" TFT
--			1 - The attached screen is the 7" TFT
--			2 - The VGA Shield is attached (1024x768)
--			Leaving out the screen size parameter will not load
--			the TFT driver, and the framebuffer will be left
--			unconfigured.
--			b - Enable backlight. The TFT backlight pin will be
--			linked to the kernel VESA blanking code and a GPIO
--			LED. This parameter is not necessary when using the
--			VGA shield.
--			c - Enable the s3c camera interface.
--			t - Reserved for enabling touchscreen support. The
--			touchscreen support is not enabled in the mainstream
--			kernel as of 2.6.30, a preliminary port can be found
--			in the "bleeding edge" mini2440 support kernel at
--			https://repo.or.cz/w/linux-2.6/mini2440.git
+-	enable_timer_pin_1 [X86]
+-			Enable PIN 1 of APIC timer
+-			Can be useful to work around chipset bugs
+-			(in particular on some ATI chipsets).
+-			The kernel tries to set a reasonable default.
 -
- 	mitigations=
- 			[X86,PPC,S390,ARM64,EARLY] Control optional mitigations for
- 			CPU vulnerabilities.  This is a set of curated,
+ 	enforcing=	[SELINUX] Set initial enforcing status.
+ 			Format: {"0" | "1"}
+ 			See security/selinux/Kconfig help text.
 -- 
 2.53.0
 
