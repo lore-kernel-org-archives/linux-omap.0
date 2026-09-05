@@ -1,65 +1,65 @@
-Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6072B3ECBCF
-	for <linux-omap@vger.kernel.org>; Sat,  5 Sep 2026 09:47:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9856B440A1D
+	for <linux-omap@vger.kernel.org>; Sat,  5 Sep 2026 09:47:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788601635; cv=none; b=b0i59f7LS3Nkk0vNFy/ZNv8BhiFn2eshKsB4ERR8FORbGMOGUDPJfoAQKGLB5yznfWkn4Bs1du7ikE2IDrzcZLr4YiU/11ldFYQUSKnU7NbjMp5A619wkfo9k+9xITXyRPUl4u3WnSZ/ZD8sky5q+vf6p9yqcQ4hGDkbng4Xq/4=
+	t=1788601639; cv=none; b=IDRnSKqoqsl5rbr+KSVCqCr8pfqFiykyWhUWKqT3VyVAk+LkxJuBZ8cYvUFK3HnXLJQ2fHlrZ8MfiRdorq6oKyuF5X6//c2x7l3XAVB7MmJD1gbovuzlyw6JafTqJLB9tVs3RfVx3dZKlE8h6iCv/5Zi2V2lJK/uKxE3S+6Caqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788601635; c=relaxed/simple;
-	bh=zqIZgn7Zgj5WSQepFgJtQ9GMMyKpvR8InLxOiqTa/8o=;
+	s=arc-20240116; t=1788601639; c=relaxed/simple;
+	bh=/cAOJWdBCi1HZBkEDQRQ71AKnd55wOx5U/6xyND51hI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ITUrAlGYgipbLSlWk7DeHm8SCAucepMAWR6pb6q2fALEM/1PFGkRUjX+W9u33QD6nHvTwobjLDfyZmD1VppJ0/mZpLooB/1hUWbh/iLddOoNBa+sGv/wxV97zG9C1ZV+VAyhBiv0CG495O8BH0Kb9qOFSimE04isDhEkXZdg+iU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=sS3GkGDt; arc=none smtp.client-ip=209.85.221.48
+	 MIME-Version; b=WjhpsVsOXSrbJzetaT7nz91RVIaazylpkBWW2wgCe8AGvUdnUbSxv1SUvBSWHVqEisX9lvAVBl9FA8/ywxHN0DIFkc+BqZh5IafPcpPC7e+TwqoUG+nCxN1F5zjxVmTaY9HFy41doZJ3kphiefmct7ETEgylyNTnGhiXaeHpMw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EFI+tp15; arc=none smtp.client-ip=209.85.221.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sS3GkGDt"
-Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-4858595f997so1139131f8f.1
-        for <linux-omap@vger.kernel.org>; Sat, 05 Sep 2026 02:47:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EFI+tp15"
+Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-48431648f33so2093289f8f.0
+        for <linux-omap@vger.kernel.org>; Sat, 05 Sep 2026 02:47:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788601626; x=1789206426; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1788601629; x=1789206429; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=RNFfTw1WuaSNgs5HCMSq2uznGZvnZVsIDtneqTMILXg=;
-        b=sS3GkGDtOZOrxGVH2ecp8Y9BijuvKIZGE9cRol9c394h++PWXXMUkrbfk4MaucH7Xb
-         U6xnSpOgpPlCLgGRJgFJusDEMpGl6GoEPagk0EBRDekWebDNSJ9c2+7bDODP5t5sx6WO
-         S7qWSKaOAWth8EWw5f4FyoVQksRMC12WKRbvoec5wN9+mVJAxfr0JzbGojpcXGDPLycy
-         Wm8keJ8zf60yL0isTXgjllly0MsmA/q9Yly09xrEJx9E+b1vfnw2Do6nlXQGx7bqY2/W
-         iT83xkaYf1IN7FJtaRTK97E2OxZs+3sKatwn2475v/Wkqn0YcgJ9E5z39H73lyE+5dXm
-         3iCw==
+        bh=2UF/kDvW954cskV6VTtZlG+ZJZtMcv/59sgPBL3REqE=;
+        b=EFI+tp158j2wiB21Myvk/wgCpoY7SpCPPV4iM44MN9ai29MJeDR2nrW4gt9EJ4yBX9
+         oHU++5jfkKuVqZ3GyJ2Xu0+VD1oPEJnBtBo8yd+gPXmvF/j5RNQL5xYYUv3klx+f3DcH
+         SsbYzLfoe1QR6WTm5fyyoQo2pDWEm3LXOW13u/4iwyE+GEOF2PPRMdcOCSAe9Z9TTfnT
+         gwETBy1Tdw05aGpcBqwbi5tXmNFwvu6wDwNyqksYI2rWH2Nmgj0EIDCRYDI6gQqLbk2V
+         vqnfZmOHbYl3KDfaVlfZrIwQEB6/XTcvA6AHdfLlrTfSYKkwn26eOhRk5UjGiB7xx2Xd
+         pi0A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788601626; x=1789206426;
+        d=1e100.net; s=20251104; t=1788601629; x=1789206429;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=RNFfTw1WuaSNgs5HCMSq2uznGZvnZVsIDtneqTMILXg=;
-        b=VOCYXq01uL6RR6M3R23kGNekg5g7/9H9CUD3DmE9jSwdswfLKafNDV7sofX295I844
-         J/hjHLULF2Vo1TWDRMK0kTq6oKZ8Ou05koDXPeVbSkvMBr31TBKNpSWy2+bj93XrSTUM
-         3gjVWXy5I7LMBEDQMG4aSNKyuAmZuMZBifDezgJWai0Y4FpjdHnVxGiywbWNkw4uQgsv
-         JF3KTWghK704zEE7IsuAOPwXkPLklHqynPceYpOxkwcLqvNXzcxOFYOIZd9WL4UpUfX7
-         WqVscmnGAFCJgS37txwQTg/YlNoZubMQpbMsaLx+6QnwNdeZvbyIOqHSvFSwrtZVvWZ3
-         2ccQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwPTcZ/xm3XEiNc/279YyXgBuOIlr1bJJOgzozXiEGoyW1CJP47Tp55+Muao6g1euuA3qmxDmCKBwMk@vger.kernel.org
-X-Gm-Message-State: AFuF++mOOIrKAzt0gJ9bVRJ4WPFd/4ojY6QKpoZAftQVcxiDuO4yBAT1
-	yv9nw0BjtfbguwL+S0pgrIe3og1ujHrM7WdXLUL0tmR4rxor6yHL8QRT
-X-Gm-Gg: AYBFou1TTperSJZlJ+IjlP0ovaT0RcAIncFqIUEFpJJuoNvI8ZXbszYN7KsUyKf98VL
-	ud/Zt/U5pV5k1KiS71hCTfbsZjVh5XnEwiUCMw7M5Wc+fvW6e7LHMf750GmHASZYM6WGsC5hpvf
-	CvInmU+rHhpI4eipWdudOeUmW4r7uwSiix/39kdlpAf05GIoplYPeyPoSlIEGhngbQPqaIb+PCP
-	74ui8kNZhIvcWF6zGEOIJsvCU+LiVtLVcNpMYf6QR8S4EJXPh+8FiWtQtPxAkZQwN1jxQ4+DgU4
-	iEXev2VFkg2hIl+r7MP6jKF3DZmA/wANW8bZdnWVyVDALWcdnyaLuBlObkJ5iMC8Jd4GNnzAcEi
-	Q1D55dXjZ/hS5e8cRcq1nccvwxzCSvS44JuFD0l/rcg7SC1WANAdiXH/GXPasHAm2NP2Xit6w02
-	TUKKt95o5M3qqBxDcMqNWdftuH9UevbgN1vjCccs1yc2y9yaO4xnGqW/9qCy1IIOdve19f699DM
-	qDrAnuuv+YUQ1E1fZzwhTWx/4m5dYnBs4M9zCdsKiCp+L82SAGx9VJPiQ17Wn85vZiea8pkpumh
-	8/4dLEgLToxdCvjCvW+obNhh6iU9LuvLp28j8dmRLaoJvfgxkRqKV/VpJVFYg9jWpgM=
-X-Received: by 2002:a05:6000:178e:b0:484:3200:b7a1 with SMTP id ffacd0b85a97d-4858708c88amr21220202f8f.13.1788601625675;
-        Sat, 05 Sep 2026 02:47:05 -0700 (PDT)
+        bh=2UF/kDvW954cskV6VTtZlG+ZJZtMcv/59sgPBL3REqE=;
+        b=ivv9wSi0EX9Dp9FQTn2O4Z6gWgPHhpFfrpEV7vEQJCS0sP17nopgMYUQVa9GHoMngu
+         FdtmbWJtHBD+q6pJwQhZoBP1P6RrStCMMt6DU6uPGVmqlP2wyoCFGwTgph7aJDOKvkvr
+         jXXvqn/zzZ+3KsDzbSOwJ1tEk9j8Ig7D5FCkFRLECLE4zFzF9mdc3ZqozuDnQB7FCdWg
+         di1UnCLC/UqgtM53em2Awr0Gj0AxGByc8vyKIsUkEkYchHtVurPd9EtISMpJoXiXI5Mm
+         uCAcT3gCVDgyO0mv/3gCBo9OFp7DJOoLk+3C8RQ5eOMvkjgH+l/z20fMGN9W/KKMx6mu
+         EE7w==
+X-Forwarded-Encrypted: i=1; AKwUvBxPUF+eg2FmcgdvwXyYVuLzF00VctJR8pbb1/gnHjasWDo4aZIZjdvRdN3b7Wz4uB6dg9a8r86hfYNK@vger.kernel.org
+X-Gm-Message-State: AFuF++mtSy2MY0gvFSLIZfF/4xJ9P6JdCyBZNIGpcrHJ1cwmGzxUwZ4X
+	oUQnCJEH6dRqiHA2NZf+sHr5mJT0pYEry/CghsR1QlN6kzBmQSY2Wi9f
+X-Gm-Gg: AYBFou0wA9Kc2dw8pcmRQKZQM6fUZFN9iUDjy7PvVrNPDMJZZ2EUEb20hLrFzXQ/OJV
+	ezuoBcBnXa7subUTDKeIceOVwtDAG+SjANhBmr7PGY90zIbx4AIgE1Wiql6cdsbdMwK7FGmdYy5
+	QGEryVAJawJrPljtr5OaaBftz7X+Rxcd/qr5O9GFsE3aTULB6nOkPpMDXKv+oVena0qju05NoLq
+	XoO3ZMW+vRBSnA+AlHGYfRRZhSsKFn5GKuBBSAKZhf8tkQecZC8aucazhkw1/05SE2kJKW+tSmJ
+	CL+48sckIs08WiZ1WuH/NyNQ52YEdrg0dKT7yhuGZKfbh9UuJNUvgyJl8ptmwFzcTiCUHjOlhEh
+	1GialPrB2zzeGCWliY4VDIea1x7DukwFbwAuDTjVr/93odCJOz9m5VgV1xU+utnpKH/CYYaQA+4
+	6V9iczh4PeN4a16ah9crEs0xxDoOVZOvUpYh61Z5cF+kVW+wDXUVHgukH3DGrIih+KReO6ZgM5o
+	0A548thk/0d5teKSsoOKUhoG89ceti7biTbznNCsWeHsZkuXbb85dsdYlH+ktZQEtDHakIbg488
+	HM6qJhWRz8XetGXhnK8jjxms06XofD5Qe841UD7vSUDMVzlvIyUR2rjkiHorBOKOsTU=
+X-Received: by 2002:a05:600c:3544:b0:49b:8f5e:51fb with SMTP id 5b1f17b1804b1-49cf82bea0amr94305605e9.3.1788601629194;
+        Sat, 05 Sep 2026 02:47:09 -0700 (PDT)
 Received: from localhost.localdomain (dynamic-2a02-3100-a4eb-3001-c06d-af27-9fa2-ea53.310.pool.telefonica.de. [2a02:3100:a4eb:3001:c06d:af27:9fa2:ea53])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-485883c6ba4sm14232013f8f.25.2026.09.05.02.47.04
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-485883c6ba4sm14232013f8f.25.2026.09.05.02.47.07
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sat, 05 Sep 2026 02:47:05 -0700 (PDT)
+        Sat, 05 Sep 2026 02:47:08 -0700 (PDT)
 From: Karl Mehltretter <kmehltretter@gmail.com>
 To: Jonathan Corbet <corbet@lwn.net>
 Cc: Karl Mehltretter <kmehltretter@gmail.com>,
@@ -93,10 +93,11 @@ Cc: Karl Mehltretter <kmehltretter@gmail.com>,
 	linux-ide@vger.kernel.org,
 	Ethan Nelson-Moore <enelsonmoore@gmail.com>,
 	Michael Schmitz <schmitzmic@gmail.com>,
-	Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH v2 3/9] docs: kernel-parameters: Drop the edac_report= entry
-Date: Sat,  5 Sep 2026 11:46:43 +0200
-Message-Id: <20260905094649.41996-4-kmehltretter@gmail.com>
+	Andreas Kemnade <andreas@kemnade.info>,
+	Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Subject: [PATCH v2 5/9] docs: kernel-parameters: Drop the mini2440= entry
+Date: Sat,  5 Sep 2026 11:46:45 +0200
+Message-Id: <20260905094649.41996-6-kmehltretter@gmail.com>
 X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 In-Reply-To: <20260905094649.41996-1-kmehltretter@gmail.com>
 References: <20260905094649.41996-1-kmehltretter@gmail.com>
@@ -108,40 +109,54 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-edac_report= went away with commit fee27d7d9788 ("EDAC: Delete
-edac_stub.c"); nothing parses it any more.
+mini2440= went away with commit 61b7f8920b17 ("ARM: s3c: remove all
+s3c24xx support"); nothing parses it any more.
 
 Drop the entry.
 
 Found by cross-checking every documented name against the __setup(),
 early_param() and core_param() registrations in the tree.
 
-Fixes: fee27d7d9788 ("EDAC: Delete edac_stub.c")
+Fixes: 61b7f8920b17 ("ARM: s3c: remove all s3c24xx support")
 Assisted-by: LLM
 Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
 ---
- Documentation/admin-guide/kernel-parameters.txt | 8 --------
- 1 file changed, 8 deletions(-)
+ .../admin-guide/kernel-parameters.txt         | 21 -------------------
+ 1 file changed, 21 deletions(-)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 99d5bb68968a..2a8d862ef30f 100644
+index f4314492953d..2ed1e2c03c61 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -1578,14 +1578,6 @@ Kernel parameters
- 			PCI device even when its classcode is not of the
- 			UART class.
+@@ -4052,27 +4052,6 @@ Kernel parameters
+ 			Enable or disable the microcode minimal revision
+ 			enforcement for the runtime microcode loader.
  
--	edac_report=	[HW,EDAC] Control how to report EDAC event
--			Format: {"on" | "off" | "force"}
--			on: enable EDAC to report H/W event. May be overridden
--			by other higher priority error reporting module.
--			off: disable H/W event reporting through EDAC.
--			force: enforce the use of EDAC to report H/W event.
--			default: on.
+-	mini2440=	[ARM,HW,KNL]
+-			Format:[0..2][b][c][t]
+-			Default: "0tb"
+-			MINI2440 configuration specification:
+-			0 - The attached screen is the 3.5" TFT
+-			1 - The attached screen is the 7" TFT
+-			2 - The VGA Shield is attached (1024x768)
+-			Leaving out the screen size parameter will not load
+-			the TFT driver, and the framebuffer will be left
+-			unconfigured.
+-			b - Enable backlight. The TFT backlight pin will be
+-			linked to the kernel VESA blanking code and a GPIO
+-			LED. This parameter is not necessary when using the
+-			VGA shield.
+-			c - Enable the s3c camera interface.
+-			t - Reserved for enabling touchscreen support. The
+-			touchscreen support is not enabled in the mainstream
+-			kernel as of 2.6.30, a preliminary port can be found
+-			in the "bleeding edge" mini2440 support kernel at
+-			https://repo.or.cz/w/linux-2.6/mini2440.git
 -
- 	edd=		[EDD]
- 			Format: {"off" | "on" | "skip[mbr]"}
- 
+ 	mitigations=
+ 			[X86,PPC,S390,ARM64,EARLY] Control optional mitigations for
+ 			CPU vulnerabilities.  This is a set of curated,
 -- 
 2.53.0
 
