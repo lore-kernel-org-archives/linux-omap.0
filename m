@@ -1,74 +1,99 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.3])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C4C2503BE6;
-	Sat,  5 Sep 2026 19:04:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF36C33E360;
+	Sun,  6 Sep 2026 03:42:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.3
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788635060; cv=none; b=Yb3zjL5wXW5cDMRrvApwyWxnnIJkUms8aWLi90wTpPZQNvHANUr6zXCByYJZWQ+YnKRYezwnIzRZnCw6MW0Ujh073NWhJn2Dt50CqwhqFViB91nzhzKaexGr6N9U9tWs4A25wt1X3qDKk3Xcq6/cW74xnCB8vVnLKn24hysDTw8=
+	t=1788666137; cv=none; b=asjitP/wZnCM0YEtsgS3fh9OFY2gUQQqtAX6CCACZ1uw+p4SA4bWjQAJwyqHskm5IXbgBQ08jtnnFg1Ru7ih/gAvs/UYDI454mm5LiExk0tgcK9AbVDAZHkiUcjPcu/7lcyRMLDifVQVBWJgAAzzdxWfwsorXJMgAWm9jt2Gy0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788635060; c=relaxed/simple;
-	bh=ZO7QoC55JS7YlrPj7n0tc+0W47P37ccqMQAZ8EeLG2I=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=mZiTWHGz9rF2s/sSCemSOJyntjvbAn6Sn2QifPhlYuCUgPVsoux/kxVeUloBggVWINahDwN90NoMJLZNDMnH9FkP19tTdmW0vHSu2BEKG909F3L7D9c7QQOXGWj06xrA4p8Vc8grZFjXuH7KQqeZFJf2ClpAvxPrLm5k4OBwsM0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bGZK3QdN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788666137; c=relaxed/simple;
+	bh=z+I4zAxIb+/0nEXzsAF9oU3Gf2EV3Il6oaXYlIRIzek=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UhvHp3/uQGv7XZuj+Xh43dCaWMTllbE34tuL24u1JlW+zsGo2A3rjXXPeMWS+pdHaTNNdrWArGy2NqOQ6TDJa7xrBNdQZ33mTBkC2OYUxYDonYwcgQHoBj+zzK0zWdjkHkwL33q59kn/SPtjwX+VFL9SpjAVZHv5fdL4DDm8feE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=SvLF3D16; arc=none smtp.client-ip=117.135.210.3
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bGZK3QdN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 348EF1F00A3A;
-	Sat,  5 Sep 2026 19:04:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788635058;
-	bh=ZO7QoC55JS7YlrPj7n0tc+0W47P37ccqMQAZ8EeLG2I=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=bGZK3QdNjedBzOdUANccbLKsTmyU0rDMg1V3AvzOw4poWea8kGxs2E+vX3rkzrgiB
-	 KnbVlVWeluoqRYYYipEvWzTQ29XK4z4R5pvKtfXP1alBXKG0kP5dd3LMoM9pn9a3GT
-	 gRR3RPmUBW140oaCy42R7rFAk7Hd5h2f0y3vABFeHZUxePUbbJYSxN3IYNv5ke/cww
-	 IFXCkDblqcA9ekeWxs148h1D9nRiYtEqj5ZZHC0yfTKPQT/uYgXI+ue0xNtb7Du9T9
-	 WDZ6pGyF6xS3tBM6jcVIEvfIdfyNPgwORLbTMX/l0h9aTWoKPPY8wbvoj+0NHJP8AH
-	 7Kf+vcht5wgHw==
-From: Thomas Gleixner <tglx@kernel.org>
-To: Karl Mehltretter <kmehltretter@gmail.com>, Jonathan Corbet <corbet@lwn.net>
-Cc: Karl Mehltretter <kmehltretter@gmail.com>, Geert Uytterhoeven
- <geert@linux-m68k.org>, linux-m68k@lists.linux-m68k.org, Dmitry Torokhov
- <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org,
- linux-doc@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov
- <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
- Steve Wahl <steve.wahl@hpe.com>, Dimitri Sivanich
- <dimitri.sivanich@hpe.com>, Tony Luck <tony.luck@intel.com>,
- linux-edac@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>, Arnd
- Bergmann <arnd@arndb.de>, linux-samsung-soc@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>,
- Kevin Hilman <khilman@baylibre.com>, linux-omap@vger.kernel.org, Dominik
- Brodowski <linux@dominikbrodowski.net>, Damien Le Moal
- <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>,
- linux-ide@vger.kernel.org
-Subject: Re: [PATCH 4/9] docs: kernel-parameters: Drop the
- enable_timer_pin_1 entry
-In-Reply-To: <20260905070347.25902-5-kmehltretter@gmail.com>
-References: <20260905070347.25902-1-kmehltretter@gmail.com>
- <20260905070347.25902-5-kmehltretter@gmail.com>
-Date: Sat, 05 Sep 2026 21:04:15 +0200
-Message-ID: <87ik4j5xlc.ffs@fw13>
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="SvLF3D16"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=xt
+	acXvrktn66L3QWU8uVsmniCDM9OQcM9WReuJ0Hgp4=; b=SvLF3D16VJD9KQOfhn
+	SIY6U8tgGqetpOh3gauC1sxLWHrU2H7g2D/mOHwNvMVh0a0y5EzrXNTcEl6eng8y
+	F4iR/OwW0F1uaOtRUwipk4gKtddWLM1FVKYN69WMqCTTzDc0/4Am8SeeoujXhFuA
+	7vEgNvMYoyeI36f2oEZo4ET80=
+Received: from localhost.localdomain (unknown [])
+	by gzsmtp3 (Coremail) with SMTP id PigvCgBXhfz_4JxqO+zERA--.30741S4;
+	Sun, 06 Sep 2026 11:41:53 +0800 (CST)
+From: Pengpeng Hou <hppiscas@163.com>
+To: Bin Liu <b-liu@ti.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Pengpeng Hou <hppiscas@163.com>,
+	Tony Lindgren <tony@atomide.com>,
+	linux-usb@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 2/3] usb: musb: omap2430: Propagate PHY errors from runtime resume
+Date: Sun,  6 Sep 2026 11:41:48 +0800
+Message-ID: <20260906034149.85550-3-hppiscas@163.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:PigvCgBXhfz_4JxqO+zERA--.30741S4
+X-Coremail-Antispam: 1Uf129KBjvJXoW7AF4DGFW7Kw1xGrW3ur4kWFg_yoW8GF1kpa
+	nrWayFyrWkJ39rK3Zxt3W5XFn5G397trW3C34I9ws3ur17GwnFkryUtFWjyF1YgF18tFW2
+	yF40ya1Uur4fKFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jYE_NUUUUU=
+X-CM-SenderInfo: 5kssx2xfdvqiywtou0bp/xtbC7QE6A2qc4QGuTQAA3g
 
-On Sat, Sep 05 2026 at 09:03, Karl Mehltretter wrote:
+omap2430_runtime_resume() ignores phy_init() and phy_power_on()
+failures and continues to initialize the glue state without a usable PHY.
 
-> enable_timer_pin_1 lost its early_param() in commit efa2559f6516 ("x86:
-> order variables in io_apic_xx.c"); nothing parses it any more.
->
-> Drop the entry.
->
-> Found by cross-checking every documented name against the __setup(),
-> early_param() and core_param() registrations in the tree.
->
-> Fixes: efa2559f6516 ("x86: order variables in io_apic_xx.c")
-> Assisted-by: LLM
-> Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+Return initialization errors and call phy_exit() when power-on fails
+after a successful initialization. Keep is_runtime_suspended set until the
+PHY and glue state have both been restored.
 
-Acked-by: Thomas Gleixner <tglx@kernel.org>
+The issue was found by our static-analysis tool and manually reviewed.
+
+Fixes: 10ac7e7757f5 ("usb: musb: omap2430: Add support for idling phy when musb is idle")
+Assisted-by: gpt 5
+Signed-off-by: Pengpeng Hou <hppiscas@163.com>
+---
+ drivers/usb/musb/omap2430.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 52fcbd209c66..f881455a1a23 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -514,13 +514,21 @@ static int omap2430_runtime_resume(struct device *dev)
+ {
+ 	struct omap2430_glue		*glue = dev_get_drvdata(dev);
+ 	struct musb			*musb = glue_to_musb(glue);
++	int ret;
+ 
+ 	if (!musb)
+ 		return 0;
+ 
+ 	if (!glue->phy_suspended) {
+-		phy_init(musb->phy);
+-		phy_power_on(musb->phy);
++		ret = phy_init(musb->phy);
++		if (ret)
++			return ret;
++
++		ret = phy_power_on(musb->phy);
++		if (ret) {
++			phy_exit(musb->phy);
++			return ret;
++		}
+ 	}
+ 
+ 	omap2430_low_level_init(musb);
+-- 
+2.50.1 (Apple Git-155)
+
