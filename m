@@ -1,111 +1,78 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60B1033E360;
-	Sun,  6 Sep 2026 03:58:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19374171BB;
+	Sun,  6 Sep 2026 07:33:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788667135; cv=none; b=o4TZJ82YIE20oDELjk+Pd7uNLbGV4MbLyLT5gHr2k74ESLz1MKcNkjwl3w+dv/Hv2fxHJ3gre0NvAdJ613ntnAtlXytLshdmGrFCqf1HNMX02uPxRqLQQXr0TXCwRmpQOoS9Oy5NoRxQnRIOd2kH4Syx0gbVIQZGJiURwoXGAcA=
+	t=1788679997; cv=none; b=KTXIjRVZFN/XOEqJNMTK1BeQCzPBUb53MgIbKy2JzNu+P46QklPu0Rsswr3PjAMKMLK4E8rUkjSTcVrPJPsr0riU/pPnTSbVsPen+tJ3nb3IWu47qL02AQmdDGif6NeI9WfZU1ZZXRm4h9tg32ExA4L8QCFoTsN3z6r1LlLzBVI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788667135; c=relaxed/simple;
-	bh=vvyAxBwYRuSuFr1Lfde/jLWfJLW5ponsOXKY2bOsW2s=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=GFuArtvUBnkTKVsVBD6e1xk4gmVknkGgFsufL3z/rpUBAUQuJ2RGNfqDuUf72bVJ2PJqB/r7qijA9Fro5QLw+DLS4jnca5yvWxRbLoZHOUxJxRXklpo8iftv0B5dHNctLcZVHJUznXqSVZH+bGA24dfSXGl/T7RRsii5pdr3x6w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=0N2GaVta; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1788679997; c=relaxed/simple;
+	bh=XKVVobAe0uixj3aaF5J47JXf1IU9hX+dFu3smmla0hs=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Zg9c2AVhOtb00m2gZR7I6YDNQarMeSqIo46i4EPGNr3wrqfokaYi9LIJGLrn7GhAsfHrDyfFM1iIqAx3CIyuSfLGVVNAcpifre8eMxWpZo1dDk83uPZYI1NRcZnls6m/8UXwlQzcX/+arLhdKuQIQFAV2xnpKk7iWSImX+O2kr0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=K0b7Fyp9; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="0N2GaVta"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="K0b7Fyp9"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=0HkFo0ybA+orVFH/u7Fk4Ze5CEEmhF31UK62O8mlgwM=; b=0N2GaVtaoti9ntZUVjraUk/TwS
-	zA8FVp8lzNBR2HsnmRGGC+MadsLt1fIXrbhnQePRLjD374qnAommHTW7fhlrvbV5vyvdaoWEjnO0n
-	KNWc9m8l0qcTsQF0tnL1DxxznmoXytuzdQSq4KolMxbAc2v/BY78G7Q8LnAL/Hl9BdANR9meNTaIt
-	/rKx9NH8XePfZUmzfEX4Abjvj89pFQyLSPP2gZAijeNsL6l2HB/N5OTYv/q8jmmNrDxlirrPI/G6Q
-	i2zM97uJb1DXPy1u1aBpQJij0dY0uOfY9cg5txILtiHQo16jVXZUGayAKMhiDogZSG4iiT+wqqsB7
-	LONEM9PA==;
-Received: from [50.53.43.113] (helo=[192.168.254.34])
-	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x341k-00000004es3-2eE6;
-	Sun, 06 Sep 2026 03:58:45 +0000
-Message-ID: <f241beab-4c83-4f18-bb02-9d6e3fd5ecc3@infradead.org>
-Date: Sat, 5 Sep 2026 20:58:42 -0700
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=HXwwW5MflXtebrops4jKjGoABUQ/YtxAfVoVUCVVlbY=; t=1788679996; x=1789889596; 
+	b=K0b7Fyp9NYvefi8usAM12edxCDt0RXt+N/ERD/wps60VdwPEqrl75N0NsUlG9IDK5CfpJu+39nz
+	Mn210ba2lhAPXyypfnCk1YXu8WkYETuMR8uxvebkKuSK6fZRu2S28ZBTlv6c5oOm9ru5AISshBHL9
+	eWFgau9+9ZWTtvin42V2LmtsftXWV2Mldo/uW4DvAfY2CsvYswGAqSvk0BFDZUK7ZAVqniLh7SSYb
+	AVbE6XO6H4v86hPtKElcxKVyDgo9MnewoeHqxtKkDtq2s7xtsX5z43SkdPzoCeA/aHcZHEnwCNHJR
+	UzVgx8EiHv2qzmJGkxGARJj/xrKDWpPT1asw==;
+Date: Sun, 6 Sep 2026 09:33:01 +0200
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Andrew Davis <afd@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Vignesh R <vigneshr@ti.com>, Kevin
+ Hilman <khilman@baylibre.com>, "Roger Quadros" <rogerq@kernel.org>, Andi
+ Shyti <andi.shyti@kernel.org>, <linux-omap@vger.kernel.org>,
+ <linux-arm-kernel@lists.infradead.org>, <linux-i2c@vger.kernel.org>,
+ <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/8] i2c: omap: Drop bit shift for I2C register
+ addresses
+Message-ID: <20260906093301.01fa544e@kemnade.info>
+In-Reply-To: <20260904131252.2126353-2-afd@ti.com>
+References: <20260904131252.2126353-1-afd@ti.com>
+	<20260904131252.2126353-2-afd@ti.com>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 0/9] docs: kernel-parameters: Remove ten entries for
- parameters that no longer exist
-To: Karl Mehltretter <kmehltretter@gmail.com>,
- Jonathan Corbet <corbet@lwn.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
- linux-m68k@lists.linux-m68k.org, Dmitry Torokhov
- <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org,
- linux-doc@vger.kernel.org, Shuah Khan <skhan@linuxfoundation.org>,
- Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
- x86@kernel.org, Steve Wahl <steve.wahl@hpe.com>,
- Dimitri Sivanich <dimitri.sivanich@hpe.com>,
- Mike Travis <mike.travis@hpe.com>, Tony Luck <tony.luck@intel.com>,
- linux-edac@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
- Arnd Bergmann <arnd@arndb.de>, linux-samsung-soc@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>,
- Kevin Hilman <khilman@baylibre.com>, linux-omap@vger.kernel.org,
- Dominik Brodowski <linux@dominikbrodowski.net>,
- Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>,
- linux-ide@vger.kernel.org, Ethan Nelson-Moore <enelsonmoore@gmail.com>,
- Michael Schmitz <schmitzmic@gmail.com>,
- Andreas Kemnade <andreas@kemnade.info>
-References: <20260905094649.41996-1-kmehltretter@gmail.com>
-Content-Language: en-US
-From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20260905094649.41996-1-kmehltretter@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-Hi,
+On Fri, 4 Sep 2026 08:12:45 -0500
+Andrew Davis <afd@ti.com> wrote:
 
-On 9/5/26 2:46 AM, Karl Mehltretter wrote:
-> kernel-parameters.txt still documents ten boot parameters whose parsing
-> code was removed with the drivers or platforms that used them, one of
-> them (atarimouse=) since before the git history. One patch per
-> parameter, each with a Fixes: tag for the commit that removed the
-> parser, so the maintainers of that area are on their own patch only;
-> the two pata_legacy module parameters share the last one. Each entry
-> was checked with git grep for its __setup(), early_param() and
-> module_param() handler and with git log -S for the removing commit.
+> No remaining board device uses a shift other than 2, and no DT supported
+> platform ever did. We can drop this flag and use the pre-shifted register
+> addresses. This simplifies the register access.
 > 
-> Changes in v2:
-> - patch 9: drop the Fixes: tag for 0dcd0a76370a, which removed the
->   separate pata_qdi driver and not the pata_legacy parameter; both
->   parameters went away in 3c4d783f6922 alone
-> - collect the Reviewed-by and Acked-by tags from v1
+> Signed-off-by: Andrew Davis <afd@ti.com>
+> ---
+>  arch/arm/mach-omap1/i2c.c              |  4 ---
+>  drivers/i2c/busses/i2c-omap.c          | 50 +++++++++++---------------
+>  include/linux/platform_data/i2c-omap.h |  5 ---
+>  3 files changed, 21 insertions(+), 38 deletions(-)
 > 
-> v1: https://lore.kernel.org/all/20260905070347.25902-1-kmehltretter@gmail.com/
-> 
-> Karl Mehltretter (9):
->   docs: kernel-parameters: Drop the atarimouse= entry
->   docs: kernel-parameters: Drop the bau= entry
->   docs: kernel-parameters: Drop the edac_report= entry
->   docs: kernel-parameters: Drop the enable_timer_pin_1 entry
->   docs: kernel-parameters: Drop the mini2440= entry
->   docs: kernel-parameters: Drop the nomfgpt entry
->   docs: kernel-parameters: Drop the omap_mux= entry
->   docs: kernel-parameters: Drop the pcmv= entry
->   docs: kernel-parameters: Drop the pata_legacy.qdi and
->     pata_legacy.winbond entries
-> 
->  .../admin-guide/kernel-parameters.txt         | 67 -------------------
->  1 file changed, 67 deletions(-)
+> diff --git a/arch/arm/mach-omap1/i2c.c b/arch/arm/mach-omap1/i2c.c
+> index 94d3e7883e027..bc7828a858941 100644
+> --- a/arch/arm/mach-omap1/i2c.c
+> +++ b/arch/arm/mach-omap1/i2c.c
+> @@ -61,10 +61,6 @@ int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *pdata,
+>  		       OMAP_I2C_FLAG_16BIT_DATA_REG |
+>  		       OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK;
+>  
+> -	/* how the cpu bus is wired up differs for 7xx only */
+> -
+This could perhaps go into the commit message, but besides of that
+Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
 
-For patches 1/9, 2/9, 4/9, 5/9, 6/9, 7/9, and 8/9:
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-
-thanks.
--- 
-~Randy
