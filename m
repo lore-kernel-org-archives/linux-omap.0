@@ -1,44 +1,64 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3B3B30D411;
-	Sun,  6 Sep 2026 07:41:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7F2430CD9E;
+	Sun,  6 Sep 2026 08:19:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788680472; cv=none; b=IeAKczDDhznG1J6N1ec6M5NBoSBOtN9WwaC2TJ0IGLK5sfqozx2c4vppPJ/vRRdRVo7eCM4kKujkyYNs0wpk0luE4E6zrPVHadmShiRul/Yxv1GxrtgUnByykyiHR+ET9oocNHUIntydqFtWwzEW3Vj1X5OassmVjpUykVuzBT4=
+	t=1788682766; cv=none; b=rwTWmvVCyASDdpxG/mSWJM63UIEue7a3Z2JUWgXYp+RHrVZ/FNrdtP9vMVP9voxaDNF2PkWLZUqEJW7yCrfLxIyYKH9jbR0g0BvJe94QdGDgE5Sf3bvD8yjN0/SPGvRs5DKwwJfhZ3W8IGqKYO5FhVi3toPuDQus0tir00zf0Lw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788680472; c=relaxed/simple;
-	bh=4xpTTEyla48IxLsIEqP3kWvyfXr/IGLbqWGu48o68RU=;
+	s=arc-20240116; t=1788682766; c=relaxed/simple;
+	bh=L5srEMJP1B5M0FdrqGNhOEFicz2UgHY3O0TahFjuZNE=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=iVUiqxLk5a6Dl78WpUmhfydHIe9+GBrcdETvzQNMNkRD+lWHfi7f/kLesgpet+j5gqBYieL1gOk12eb72nYHYxPvsUlOry6IIhNBZej9Qa8GpIOvTTnLu01Fp3U959UThz72Ezcax1JrcN+D5AiFuurJQMwqxQLgeKEbDhi0eoM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=dfqRBLCl; arc=none smtp.client-ip=178.238.236.174
+	 MIME-Version:Content-Type; b=nNSqKwks7cPTF/mYWT7y/bzx2yIt+gRtAMjbNQDJI5GrQGLenn0XEvI7Yt6SEly1N03Os3/tf8eXUC48e1NLcpkJ0AHqoFSAWxS4odFHg2agFII+sOUoelj+Yt72y49zdZ5Q0D4Ay0Lbki8jkTTkRy521WrVpogrmzMH9TAtZBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=wo6/G8dN; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="dfqRBLCl"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="wo6/G8dN"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
 	Reply-To:Content-ID:Content-Description;
-	bh=milCblzzV22WWnRAsPChts+TblEkiAOBKPefNK0F9Xc=; t=1788680470; x=1789890070; 
-	b=dfqRBLClf5Wmj2AW71MN5j5gtAJd9fDjzF7FFIQHr4O1L+iglUVskg9Pe/WWaLOaRz5mg/jCO4z
-	f3egjozzC+gQ7eEQanfer6zr0xLt4pqkLaL92E+jxldNqXplem0aV9u8W8Y67sQLmbunmZ2hHrKhP
-	GPjycJyZpA3iTI7z2yqlT6hdDZUIftuWQ4ndYTThxMR3y1Z6JzY6IhaO8JXIcLrQV9AhzqCQ0oyKE
-	XPI9A+/lfp+OW+SvuQIhWIVBpdi9eIXwtSh9A/ShBD7en4TetEQlSTc+JC+wkmdofjW4cW4d1UkOc
-	y1lnO5c1r3+NhLrrBzH3S+zgfr+0gap025Xw==;
-Date: Sun, 6 Sep 2026 09:41:06 +0200
+	bh=qVqBaro4u6j4vDM7zRBqf26XGAFIlsvWCm284+Ot/Vs=; t=1788682764; x=1789892364; 
+	b=wo6/G8dNlvO19ndW8r5EKUPJU55fREq9XbZnwqmi2UI5H9VtIpSoTd4YB45Eh65kTjGHfh5OPOs
+	1xGZoCDHEmEyLss3xDq0fzrpmgw4e9SAxyM+gVPRBY1VXwPk8Pp8e1sN5FP57ZjX65nW25ihHJRip
+	1j7Je0Q2O0Lkp276MmHhDQisv7mZMuPykCFrBd1mO/32x6L54pb5lqbiE0+fWJ8IHLsJCOmJdDdfV
+	S5iurhY0IRFxWpLqbOh1/mg57KJ9aRulrTP0+s1/+dapHaVjZTSlWHOci7Nmph/YJeKaDrahZQk0m
+	lFnav5vk7UAQnd16UeLzpUyMF+QHRM7BIS6g==;
+Date: Sun, 6 Sep 2026 10:19:10 +0200
 From: Andreas Kemnade <andreas@kemnade.info>
-To: Andrew Davis <afd@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Vignesh R <vigneshr@ti.com>, Kevin
- Hilman <khilman@baylibre.com>, "Roger Quadros" <rogerq@kernel.org>, Andi
- Shyti <andi.shyti@kernel.org>, <linux-omap@vger.kernel.org>,
- <linux-arm-kernel@lists.infradead.org>, <linux-i2c@vger.kernel.org>,
- <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 2/8] i2c: omap: Remove unused is_rdr and is_xdr
- variables
-Message-ID: <20260906094106.41f8d2e7@kemnade.info>
-In-Reply-To: <20260904131252.2126353-3-afd@ti.com>
-References: <20260904131252.2126353-1-afd@ti.com>
-	<20260904131252.2126353-3-afd@ti.com>
+To: Borislav Petkov <bp@alien8.de>
+Cc: Karl Mehltretter <kmehltretter@gmail.com>, Jonathan Corbet
+ <corbet@lwn.net>, Geert Uytterhoeven <geert@linux-m68k.org>,
+ linux-m68k@lists.linux-m68k.org, Dmitry Torokhov
+ <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org,
+ linux-doc@vger.kernel.org, Shuah Khan <skhan@linuxfoundation.org>, Randy
+ Dunlap <rdunlap@infradead.org>, Thomas Gleixner <tglx@kernel.org>, Ingo
+ Molnar <mingo@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org, Steve Wahl <steve.wahl@hpe.com>, Dimitri Sivanich
+ <dimitri.sivanich@hpe.com>, Mike Travis <mike.travis@hpe.com>, Tony Luck
+ <tony.luck@intel.com>, linux-edac@vger.kernel.org, Krzysztof Kozlowski
+ <krzk@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+ linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@baylibre.com>,
+ linux-omap@vger.kernel.org, Dominik Brodowski <linux@dominikbrodowski.net>,
+ Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>,
+ linux-ide@vger.kernel.org, Ethan Nelson-Moore <enelsonmoore@gmail.com>,
+ Michael Schmitz <schmitzmic@gmail.com>
+Subject: Re: [PATCH v2 3/9] docs: kernel-parameters: Drop the edac_report=
+ entry
+Message-ID: <20260906101910.588d055e@kemnade.info>
+In-Reply-To: <20260905185037.GDapxkfbPNUxJgaMH8@fat_crate.local>
+References: <20260905094649.41996-1-kmehltretter@gmail.com>
+	<20260905094649.41996-4-kmehltretter@gmail.com>
+	<20260905151345.GAapwxqT93wPWHF7u4@fat_crate.local>
+	<apwzmSr6b0WEkW86@gmail.com>
+	<20260905153336.GBapw2UFa7Sdc0ve_A@fat_crate.local>
+	<871pb7zn36.fsf@trenco.lwn.net>
+	<20260905162742.GCapxC_ra7hJd27LDR@fat_crate.local>
+	<apxDtqM8UMN5KNjs@gmail.com>
+	<20260905194720.7033b956@kemnade.info>
+	<20260905185037.GDapxkfbPNUxJgaMH8@fat_crate.local>
 X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -49,77 +69,40 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Fri, 4 Sep 2026 08:12:46 -0500
-Andrew Davis <afd@ti.com> wrote:
+On Sat, 5 Sep 2026 11:50:37 -0700
+Borislav Petkov <bp@alien8.de> wrote:
 
-> These are passed into omap_i2c_{receive,transmit}_data() but are never
-> used, remove them.
+> On Sat, Sep 05, 2026 at 07:47:20PM +0200, Andreas Kemnade wrote:
+> > > That's for "not getting any answers" which is not the case here.  
 > 
-> Signed-off-by: Andrew Davis <afd@ti.com>
+> No, that's the case ALWAYS. If you spam maintainers with too often
+> submissions, you end up achieving the opposite to what you're trying to do.
+>
+This particular set was sent too fast, I agree, but reading that document again, it
+sounds like the summary is being patient with busy people.
 
-Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
-> ---
->  drivers/i2c/busses/i2c-omap.c | 14 ++++++--------
->  1 file changed, 6 insertions(+), 8 deletions(-)
+Some subsystems even discourage waiting in such cases:
+e.g.
+https://docs.kernel.org/process/maintainer-netdev.html
+"Do not wait too long (weeks) between postings either as it will make it
+harder for reviewers to recall all the context."
+
+[...] 
+> > But if the main maintainers (which is a bit harder to say in this series) found
+> > time to review, than IMHO (also seen from my maintainer perspective), improve
+> > as soon as you find time and submit the improved version.  
 > 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 72f979eec7311..68b0a043f1e51 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -993,8 +993,7 @@ static int errata_omap3_i462(struct omap_i2c_dev *omap)
->  	return 0;
->  }
->  
-> -static void omap_i2c_receive_data(struct omap_i2c_dev *omap, u8 num_bytes,
-> -		bool is_rdr)
-> +static void omap_i2c_receive_data(struct omap_i2c_dev *omap, u8 num_bytes)
->  {
->  	u16		w;
->  
-> @@ -1014,8 +1013,7 @@ static void omap_i2c_receive_data(struct omap_i2c_dev *omap, u8 num_bytes,
->  	}
->  }
->  
-> -static int omap_i2c_transmit_data(struct omap_i2c_dev *omap, u8 num_bytes,
-> -		bool is_xdr)
-> +static int omap_i2c_transmit_data(struct omap_i2c_dev *omap, u8 num_bytes)
->  {
->  	u16		w;
->  
-> @@ -1119,7 +1117,7 @@ static int omap_i2c_xfer_data(struct omap_i2c_dev *omap)
->  					OMAP_I2C_BUFSTAT_REG) >> 8) & 0x3F;
->  			}
->  
-> -			omap_i2c_receive_data(omap, num_bytes, true);
-> +			omap_i2c_receive_data(omap, num_bytes);
->  			omap_i2c_ack_stat(omap, OMAP_I2C_STAT_RDR);
->  			continue;
->  		}
-> @@ -1130,7 +1128,7 @@ static int omap_i2c_xfer_data(struct omap_i2c_dev *omap)
->  			if (omap->threshold)
->  				num_bytes = omap->threshold;
->  
-> -			omap_i2c_receive_data(omap, num_bytes, false);
-> +			omap_i2c_receive_data(omap, num_bytes);
->  			omap_i2c_ack_stat(omap, OMAP_I2C_STAT_RRDY);
->  			continue;
->  		}
-> @@ -1142,7 +1140,7 @@ static int omap_i2c_xfer_data(struct omap_i2c_dev *omap)
->  			if (omap->fifo_size)
->  				num_bytes = omap->buf_len;
->  
-> -			ret = omap_i2c_transmit_data(omap, num_bytes, true);
-> +			ret = omap_i2c_transmit_data(omap, num_bytes);
->  			if (ret < 0)
->  				break;
->  
-> @@ -1157,7 +1155,7 @@ static int omap_i2c_xfer_data(struct omap_i2c_dev *omap)
->  			if (omap->threshold)
->  				num_bytes = omap->threshold;
->  
-> -			ret = omap_i2c_transmit_data(omap, num_bytes, false);
-> +			ret = omap_i2c_transmit_data(omap, num_bytes);
->  			if (ret < 0)
->  				break;
->  
+> If you want an earlier submission, feel free to ask the person.
+> 
+> In the general case, though, one should do a good testing before submitting
+> and all the issues caught after that, one can work in in her/his next version
+> locally and perhaps even state so.
+> 
+Hmm, maybe I was misunderstood. Just to avoid that I accidentially provoke
+patch-flooding with my comments:
+The next revision should come only after you have finished your homework
+(improve according to review comments, tests,...) and any further review
+comments are unlikely.
 
+Regards,
+Andreas
