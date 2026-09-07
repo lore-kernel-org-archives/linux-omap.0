@@ -1,37 +1,67 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 707752F1FDF;
-	Mon,  7 Sep 2026 17:38:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0BE840BCD1
+	for <linux-omap@vger.kernel.org>; Mon,  7 Sep 2026 21:01:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788802733; cv=none; b=d40AqgAK2KxU7ndnMnJsBR4RtrtHpn7dbYZlbUQau4UfM57PXLdmV1rh29RMy59N/IoqC4NVkzxd7GaktJtp+keiza3HJdUrxgnVthVvHM1JOlPXTfRTo40ckDEkdbsOSEIDPI6zDvj9wmVncvT8iwKJAeZfoMV+bHQCMS3Fm3o=
+	t=1788814905; cv=none; b=cU6/AmbpCrHFn3+Gq0it9DHqOWaYP21sUkK1YgjU9s1sESHWoGXnBZjBrMAR0+m5z4j7wGRh99ItCt5AhfOS28HXFwZFBBNziympITf7oLuvraQPFDz8JlMFcm9FPdXPXayev2246QoPgJueKkrcCKi2qmxGqFo6KGhBs/jYzKU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788802733; c=relaxed/simple;
-	bh=cwMC9G7gnwaXq64yEud4524UTE6Mb6KcXo34iuocqkc=;
+	s=arc-20240116; t=1788814905; c=relaxed/simple;
+	bh=NBcfPz5Kg5pxUSo6iph13FYLp+Mgm5G1VrbxsH1itNw=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Vnyd4A9oTVd3HrgNBUf7Z2BE4RFjJLznK7nEpQpoic1vZYtvTyKBcL59jQON9fN3GjcMA76VS7/hZIsN92KsPFaIL98Xgg08LqXVTJgxKy52f5tp06x4B8ymOwxB8iys/8DDXPvxZJGGTYVFScb53DPY72gyMHyc2MrzfAtF9ZQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=E79BYnA4; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
+	 In-Reply-To:Content-Type; b=B3LndL0Wxr0yvF48gofk7IgYlH+y/D7attpai8zQW2iWaiLAth/Wqh/WBHgzlAV67V6e9ahT4ywNHpa7YygVL8bzO6w69oxaNVYrGIJ3N9jI85cFWaq9PiC1+q9feZE3sHzKt+XrYjZz5iljudkW1DwRnvma1XArd7KBAPNPQfw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ghebp8M5; arc=none smtp.client-ip=209.85.221.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="E79BYnA4"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=TOFA0MqUebHWi232H8eweG4EROiQZqrSU1VKpFmiZyk=; b=E79BYnA4tnCNFSPtUys8222Hrm
-	j9DIHfNJqdB/f0sQdEpO2ACeMgcO0/lAIqB8tFzwXBiEbJbDSXnzrOiJTrooZ2OCTqfyY/S+RilOI
-	67d/WqSBMcGXMHzjggvPbi6q/vZe09e0JSuLQ7uWMW4943q6dP8tzqb78Nz6dr7yXj+dTOKS2dQon
-	pBeDcj0nxgZK7Wqe/WsHc0cmFBEW7YJM2VBykHCwRD5yT+Kn19w3MdRgHpnCQXChxmQ+yRfT5wmb0
-	F3lNjwMpDx38pzQM3QxTmW382yL6oS+0SRkZYl/fcXEscFEuw93+SzZLDGJGKoCNV9WoYtRAVd+Ab
-	gUtsrSMg==;
-Received: from [50.53.43.113] (helo=[192.168.254.34])
-	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x3dIu-00000007Vak-1Fe5;
-	Mon, 07 Sep 2026 17:38:48 +0000
-Message-ID: <0cc406f6-10b9-431b-a958-9b3713cf8acd@infradead.org>
-Date: Mon, 7 Sep 2026 10:38:47 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ghebp8M5"
+Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-485888b3c3dso4047360f8f.2
+        for <linux-omap@vger.kernel.org>; Mon, 07 Sep 2026 14:01:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1788814902; x=1789419702; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=0jKO+9sWDvAmMVaHnfnr4Hp4hjfEF0vm85uCtXj8WFQ=;
+        b=ghebp8M5VPbmNcaHHW7NTilf6ArvvK1Rw9d00eTsqMrk47ryKX5Lv5Ibv7wm50vSnk
+         PDernjrqC6K1ONjX7RuwGLKREynlU8grfvc5fKglYxmEXkEhtNol8pfQp/HxGmpvDPlq
+         b/4Vu1pJVyRZNTWVp9nhw+9jSf5Z35V7AG/m2v7ZQyx56/cw7pg3x8jjQkwIIrExYdeO
+         Phq/rYgdDwCAtYX+XpQQ4ehGl8U9RMjzF2mAkd4AM7CUaWEz0Un1U6HpiCqJTmimewO5
+         fLoE543d8kal8UHNI9FTJbNLdTU1Sf13fj2g1C0Y4aWqAKcc4p6mwQFbpARXlnAbClJo
+         pycg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788814902; x=1789419702;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=0jKO+9sWDvAmMVaHnfnr4Hp4hjfEF0vm85uCtXj8WFQ=;
+        b=lzDw5Lwy8r2PNHd4Nzl/+Bx1CCv8TCMjne+Yffc3sUUeAvtXjfBPRCtYZ/hiCHruUu
+         OQWdzZAndJFtBBWxmKGOvckbHbUe3V7GxYb3u4PeIG1LCDypHXy1fp//nKDYS5EHETFh
+         vj375E0eNzfJv1q6EMWxZnLRd3kqyFlBjP7iXye4Suk5Sww4BQhicKnIjdU3QUrbuuYy
+         oux5UcL9fl61ZK4bZkrVptIVn+UYYfA5ByuREIDVYBPH7fGLZZJ2cFpQP8MhHVuBia6k
+         VkrXw+lcd3iB7NHe+rpRVs7hOKEXAlkvHwTTFgwowo6wn8uthTmLMPeXQqyziR1gMjvX
+         Rk8g==
+X-Forwarded-Encrypted: i=1; AKwUvBwpbidwyVB/8pFwS9ju41j7G35D5dxwLXE78hJDj92kv5wmTGqjHrV2gddl0liulgd6JWK3dPm+cl+j@vger.kernel.org
+X-Gm-Message-State: AFuF++l2eELf9QZZe4Sm/OMutazRpqvzJ+UY5d2KNAHrR5zmaC2OPeWq
+	vwVwOHGi8cV1UQ7C0xN110hbYuaugXGtVr7qD+ioBERkM8OBVM2ujcX9
+X-Gm-Gg: AYBFou0Gktli8x7RkR9ws4U8yFRwc4estdxOfuoS+rVTUOSRnUWumGVFP1qaJA13ijy
+	9c4HzlcDPMsPg9LJmGZDnexAvDyDrjzL/7bdpqm+WmTmTsJloLeY9GiLmw7EalW62vYcPihbXMs
+	K01IeFi13RQzPZverUPNIgzUbb9l5gxXFWpripU7VkoAdjTJWOXlzHsjnbGk9FfEYE31Zt/QKWR
+	rHaE1tPPkohEtgD1hJFhjj8ujNyc9FK7T7HkLbMBYCZNnrdWaUXB84gRIGcfNKaWQZCDcDVwh9t
+	FJO6PvjtZIk1FmODY9z1xOsbPPiu2CxmHN1ahe+r6+WRLzrtMUogRde3asdiEvPrHyrp7EOYOi4
+	oMDemgM/qwePyHtljji9EAZcFKCysRzURJ7sQdh4VEm6uLkSEQDHfIPYfWigRsF2dTuYsY+QQ4u
+	O/kbEdLWOGB1CA4rfDVI+jdcPMnzAtT6v4mjibftwZ3S9WTTsDycQLtb0/9c4xIAQsvnCOaQBJ
+X-Received: by 2002:a05:600c:1da8:b0:49c:cf18:494e with SMTP id 5b1f17b1804b1-49cf825a530mr297613755e9.12.1788814901592;
+        Mon, 07 Sep 2026 14:01:41 -0700 (PDT)
+Received: from [192.168.1.10] ([95.43.220.235])
+        by smtp.googlemail.com with ESMTPSA id 5b1f17b1804b1-49cf5135353sm299682235e9.2.2026.09.07.14.01.40
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 07 Sep 2026 14:01:41 -0700 (PDT)
+Message-ID: <6fb14341-655f-4cd0-8704-50c8d2e5850d@gmail.com>
+Date: Tue, 8 Sep 2026 00:01:39 +0300
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -39,76 +69,65 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/5] driver core: fix typos and repeated words in comments
-To: Hemanth Selam <hemanth.selam@gmail.com>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Pavel Machek <pavel@kernel.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Danilo Krummrich <dakr@kernel.org>,
- Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
- Lukasz Luba <lukasz.luba@arm.com>, Eduardo Valentin <edubezval@gmail.com>,
- Keerthy <j-keerthy@ti.com>, Christian Loehle <christian.loehle@arm.com>,
- Thierry Reding <thierry.reding@kernel.org>,
- Jonathan Hunter <jonathanh@nvidia.com>
-Cc: linux-pm@vger.kernel.org, driver-core@lists.linux.dev,
- linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
- linux-tegra@vger.kernel.org, linux-acpi@vger.kernel.org
-References: <20260907064725.10686-1-hemanth.selam@gmail.com>
-Content-Language: en-US
-From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20260907064725.10686-1-hemanth.selam@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH] ASoC: ti: omap-hdmi: Fix build error from a merge commit
+To: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
+ Jarkko Nikula <jarkko.nikula@bitmer.com>, Sen Wang <sen@ti.com>,
+ Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>,
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+ Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+ linux-sound@vger.kernel.org, linux-omap@vger.kernel.org,
+ linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
+References: <20260903-omap-hdmi-fix-v1-1-b0447a1d35d5@ideasonboard.com>
+Content-Language: en-GB
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <20260903-omap-hdmi-fix-v1-1-b0447a1d35d5@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
 
 
-On 9/6/26 11:47 PM, Hemanth Selam wrote:
-> This corrects 5 misspellings and repeated words in comments.  Each is a
-> separate patch so that any one of them can be dropped without touching
-> the rest.
+On 3.09.26 г. 12:38 ч., Tomi Valkeinen wrote:
+> 'ad->card' was removed in commit 9af2c1d4f847 ("ASoC: ti: omap-hdmi:
+> remove unused *card"), but commit 699e5975e2a5 ("drm/omap: Report HDMI
+> hotplug events to the ASoC HDMI codec") moved that code line. These
+> commits were applied to different trees, and the merge was not quite
+> right: assignment to 'ad->card' from the latter commit was left in the
+> file, causing:
 > 
-> Nothing outside comments changes.  Every touched C file was checked by
-> dropping its comments, replacing each string literal with a placeholder
-> and collapsing whitespace; what remained was identical before and after,
-> so the compiled code cannot differ.
+> sound/soc/ti/omap-hdmi.c:408:11: error: ‘struct hdmi_audio_data’ has no member named ‘card’
 > 
-> The mistakes were found with scripts/checkpatch.pl against the list in
-> scripts/spelling.txt.  The scanning, the edits and the changelogs were
-> produced with Cursor running the claude-opus-5 model, from a request to
-> find and fix spelling mistakes across the tree, and every correction was
-> then re-checked by the comparison described above.  Words that name an
-> identifier were left alone deliberately, even when they read as typos,
-> because correcting the prose would make the comment disagree with the
-> code it describes.
+> Fix the issue by removing the line.
 > 
-> Tested by building x86_64 defconfig at v7.3-rc1-269-gbc35965f6940, which
-> is clean.  Nothing else was built, so any patch touching code that
-> x86_64 defconfig does not compile has been read but not compiled.
-> 
-> Hemanth Selam (5):
->   driver core: fix typo "sucessfully" in comment
->   thermal: fix typos in comments
->   tools/thermal: fix typo "binded" in comments
->   cpuidle: fix repeated word 'that' in comment
->   ACPI: NUMA: fix typo in log message
-> 
->  drivers/acpi/numa/srat.c                    |  2 +-
->  drivers/base/power/clock_ops.c              |  2 +-
->  drivers/cpuidle/cpuidle-tegra.c             |  2 +-
->  drivers/thermal/thermal_core.c              |  2 +-
->  drivers/thermal/thermal_of.c                |  4 ++--
->  drivers/thermal/ti-soc-thermal/ti-bandgap.c | 12 ++++++------
->  include/uapi/linux/thermal.h                |  8 ++++----
->  tools/thermal/tmon/sysfs.c                  |  2 +-
->  tools/thermal/tmon/tmon.h                   |  2 +-
->  tools/thermal/tmon/tui.c                    |  2 +-
->  10 files changed, 19 insertions(+), 19 deletions(-)
-> 
+> Reported-by: Mark Brown <broonie@kernel.org>
+> Closes: https://lore.kernel.org/all/apbbvQSfUbzYRFaw@sirena.org.uk/
+> Fixes: 1ae7fe832c2d ("Merge drm/drm-next into drm-misc-next")
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
 
-For the series:
+Reviewed-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-
-thanks.
--- 
-~Randy
+> ---
+>   sound/soc/ti/omap-hdmi.c | 1 -
+>   1 file changed, 1 deletion(-)
+> 
+> diff --git a/sound/soc/ti/omap-hdmi.c b/sound/soc/ti/omap-hdmi.c
+> index c32ec7c0b0cf..2cabd4cc5b0b 100644
+> --- a/sound/soc/ti/omap-hdmi.c
+> +++ b/sound/soc/ti/omap-hdmi.c
+> @@ -405,7 +405,6 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
+>   	card->dev = dev;
+>   
+>   	atomic_set(&ad->jack_state, -1);
+> -	ad->card = card;
+>   
+>   	snd_soc_card_set_drvdata(card, ad);
+>   	ret = devm_snd_soc_register_card(dev, card);
+> 
+> ---
+> base-commit: 97c594f71fa71dc30a0583a76d8b6ef5c5ea10b1
+> change-id: 20260903-omap-hdmi-fix-7f085e21b708
+> 
+> Best regards,
+> --
+> Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
+> 
