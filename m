@@ -1,62 +1,64 @@
-Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
+Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 023D240928B
-	for <linux-omap@vger.kernel.org>; Mon,  7 Sep 2026 06:47:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FBF7403E9D
+	for <linux-omap@vger.kernel.org>; Mon,  7 Sep 2026 06:47:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788763657; cv=none; b=IWG6ZLNeq/aYfWL5kPIawESCm0jI5B65Rugm9IJr5BHaOb550mXvsaBMCId9VBj3VZ0ji8x+BfLpZzlRYmMRxjag1DBzbOTs9svX5SMppo0sHwrEd3Ir7TSx9ccGArQSyKZxgJl6bWrTKvNM2xnkDjSh/9zi1diR7GqYf1gZctU=
+	t=1788763662; cv=none; b=rdeeHU56bjfhppGPtzB7CtBmbA+vGgA4Txu2MR6LiS7herzlh6l4Yy6D23EQlYE+iyFjM0g+4X/wLekz/KWe8KlKep1VmCTCbTk94Z/GSoA9F3Z7SctKK7y1h4zbuIw9jgv6MJOuzpdF6h9k0l18WtPilQDit/ttKE7c2ivkdw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788763657; c=relaxed/simple;
-	bh=GnJq7OFzqU3yVwU33wEMiUZavL/p2fo6PlQ7aO7+lBo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CotYiWDsPGqkSmjk3oIYo6KaV0qMJTuCqBtSWKtQxZysSzSEGmMP2xj6d1Bf76cUex/6NcwZkeqQscGDvh85dwiX5UDkRvUCL1tRkYs+LguweYTvNF9TdB/B3WdBDUGMUNxkBCv4xQCKdBBrMZwkX3sC3sXXE1AlTj1YOFEkqQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LqdNj6mA; arc=none smtp.client-ip=209.85.210.174
+	s=arc-20240116; t=1788763662; c=relaxed/simple;
+	bh=Q3bBIxz90yEEYsWH5ikWyXfUpYba5QGg5QwQbHT02IE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=WcW7QqxIXcUyie08QGbmiQwdCti3YS0b0iYMGeIOgPcs4p6dZRw3CY96b+60c2g4o0ICxz6XmiSWe7mSDyL2gAhnwrXzsfL917CMWN0Lor698xG2RIM0zo7Tp3pp/HUxuHlVmzCYPn4qdGGBr5jVa0vTIUGb5L879QwWSmuY+as=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KAZsVs8m; arc=none smtp.client-ip=209.85.216.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LqdNj6mA"
-Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-8520161fdb9so3458791b3a.3
-        for <linux-omap@vger.kernel.org>; Sun, 06 Sep 2026 23:47:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KAZsVs8m"
+Received: by mail-pj1-f47.google.com with SMTP id 98e67ed59e1d1-39682983a0fso3467230a91.3
+        for <linux-omap@vger.kernel.org>; Sun, 06 Sep 2026 23:47:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788763654; x=1789368454; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Obcaema8mLbnmFBhxTp3oD6l+HUHR5TP+xdhdYT8HdM=;
-        b=LqdNj6mAG8Y84uQYvBnKDUikdqqKwKfye91GgaRY08V2BE1CFKrBx3UhExnEnR5kEw
-         NEj8/TZx2O3vzs8j1PzlLuGnIVJ9GsFWGJeLwrvhXCzLT269cqSbkmcU2g9H+c3XJaWi
-         qK7SUm0ZFLlaY6iSoduwg9KnXxAxgBByNqH5KD309I5mY/Psy2JOUN0xP4NVP9XKvFHk
-         XdWE7JpFVgPVF9guyYIcvoMRLx3HhUMFgamrh9Uwe5/wW5Y4ZXEyX9/Xt4UPIFir5M5p
-         zECg6E+LIB/s60BiEMw5PbGLHMe+fETUpAJifEjtEDTsL134xBCXxxFSdKptmlgr7URF
-         zbkA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788763654; x=1789368454;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1788763660; x=1789368460; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Obcaema8mLbnmFBhxTp3oD6l+HUHR5TP+xdhdYT8HdM=;
-        b=DYYG2avXb+P3oOpQYNQzlo6IhROOvdhMRDPt2h9sBJ8u1+n2mJpAxc6XpmF9SyRMKo
-         72c/Bk2rtEXgyyIMpfjnO04Bva8kMBhEm+vwvjXz6rT9EkYEdpjMCDhN4MAFmoHhie1M
-         ry+c2b4avCAPWkDtp6TlwxKwXllt4q6p0/4ytagqZ1ig4xz7o0YM7Q9PKxzXHEEduRDe
-         X9iU0W+Y807oRnB66IkyUy6YWdIi5ZSmsteybIrlJpISyGrqX8GHISuBVpPCXHE3BFWl
-         4b3A8W/i42BfVe8srdHGFDeYq5XF4yaQLMlvnfP8cR7TL0NNhGK71tP8C+8n5auuD2hy
-         AGjA==
-X-Forwarded-Encrypted: i=1; AKwUvBy0dPq8S6XlZqC4UF06yTZsKeQibEcge1fe14t0eCTqGVbcIGgSaqKVoGl55d57LwEwKZkG0GylhM+J@vger.kernel.org
-X-Gm-Message-State: AFuF++miaKkgQLR39RfuaHYvPZS6JJMkIFXFSePq+eUN2V6pkVDfJi4c
-	MzsMyq0v4ERvG5cWt1c8ufbYaX9V6jdbBcdaLfqU6/f/6nFzIvv3LPA3
-X-Gm-Gg: AYBFou1KaO2B3e/IUo1fOgo4rwSjkLo0Ekyto5HEyzicRTjeC0AnBffB+Sigc09W2XT
-	HOx/KnntyjA5aufpypqZgzMbOzRKimOfyYsB83cbv37B1fRuzwKcWArblsboFdtrvPgLBe4LHPL
-	w+ZdcXBvgwluJf7E3XwA/Ws+sk2qu6R9FsH0YDnoToXvoRqE7XoR9GY2u84jNI7lNLcobHwtg1W
-	EL0H+HQqDyH7xzaGP8Odi8Bj3a7DppV9l328Vn80LKbJvPMWaRatXOjgk851QnT0lz/B3eBCOlj
-	aqfOaGT3wAS32P/rkkJiaudELsVY+zhvfjDoAkCjdGA8A67vY8pKHFLumXuUwNqG+mOvkA590vn
-	cIc4LHqGcS4iB/bxigIKW0UVYrRe+CmMnNcBXjoOsQeM6jog1FlfEOZBLlZAyfNASr6MdXxZTPA
-	2AHYZxu4kEONZu+pumYQx9q/yVOo2Wp9KyuHQu+ckQ9Vt2C+/RSUbsF1mnlBbGhXkgV+455NFJh
-	MReefLtjeFmcw==
-X-Received: by 2002:a05:6a20:244a:b0:3da:1fc0:fb07 with SMTP id adf61e73a8af0-3da39d18791mr30838754637.6.1788763654025;
-        Sun, 06 Sep 2026 23:47:34 -0700 (PDT)
+        bh=Rh6WnyF7wCSbyOvDJNwh7JY6+tMlKujEj6rsY7bD4mU=;
+        b=KAZsVs8mh7GDKrQAO6O6sFD1lealyJfsfycKd4Cq8TDv5qJRo2Xv0wNqiSeksip3Jo
+         bwaG3maYCK0tnc5KilVd1m53J6omDjYYFBn71RxoIQn2CjnFrZid49ZKQGlVORxQXQ4w
+         3EuR+ppm5eOflUmC3jMnalDFXyARUu58qNYhC6WPGNF3VwWzx6L02Cx+4pq2qxgM6SbI
+         GRZZgP026U+q7V9bSSs7Kb2SDFe+0hz87+JGgLz9N6gsHe4Cy7Xg9Uu/nYOxbahxER4q
+         PD9R9MH5gP9ZU/kkKV1i5mf2HjR19R+PZXTecqVEkWMSuD7YDtCw/JMxaIZ3gYBTtH32
+         0YUA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788763660; x=1789368460;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Rh6WnyF7wCSbyOvDJNwh7JY6+tMlKujEj6rsY7bD4mU=;
+        b=ErvxahxrgnGvS5ugKy1uzvkMNGgeMdQrq6VgL5MaZ+Yzl2rR/7RCuzct4P5bbR3msX
+         vwSLZsNCPvsqj2DIPVY53HDJGBAkPPipQN9fwywzt2Eij4+hHNmVNtga2jkuoXt5qie1
+         j2kTRSdInFSZ/DaaYuj/6XmlYwEQiP4dGIX/z3wyce6GuNTs+pcfctYpYCnD43a74yNT
+         45it+9nTcnLszZRma7m3lDS95crg3c2wKPyMnaxgPsJaZjhWLPQuR/Oo20tpVG+JIltP
+         YdsAfFutMGiqRejzdyFKHlgU7lUPulSuapDTWr9n/i7rxOhmMIdoyasLcGyH+ferAZbL
+         ZiEg==
+X-Forwarded-Encrypted: i=1; AKwUvBykVABFeOKFtHivCP08jMziKKJHQKlMAusii2DFrVXRwOyr7RjJqzFqetpwOdPKen7qsyanTpsoVeEd@vger.kernel.org
+X-Gm-Message-State: AFuF++ln+V4+wYn3ePZ2G1hTFAg6Yv1QVZMLxrV+XqCLH+OT7PtWz45b
+	xrzJebMwlWJvXuuQowCFIWbCRAsyZ77uxh/ls6INZyJfsZwmPJhjpjVu
+X-Gm-Gg: AYBFou0+3lK2aaw6mcp9HjcHdw64KMDgw9y3y+baCdAgSj6LUMQb6lf6IcY5bqfR3MQ
+	Z8KrRaIlA3no+XXaCRkrluiHZ2PoxSgiD38T/eYVgha4CmOMrWjm9C69rsSRcfMq1mPZZeVyrIX
+	XgausmJZCu7apmGmc50HuDPnUmeClUePZ5Hv16gXYkDWfiio3N/GqgvXbz8JMgV5UqnbmFsGDR2
+	bANnD/nevx/XvqqxaSW079EiaRQhapfKddMtiRhvFSfnfIxRZi9bXH/pjfxSlgxHWGqzddX0Mk6
+	jL2qGLAUbHTvtiG2wa8ByKG2PG9uCmfJzeC+qBdzZccJPnICT+r2k5rjLRFlBzHXb1poV4WoJJg
+	/1PEz655gu1R69sZUiGaSuwCy5NSZf0elln02o0xl2LhmHnYuFSE2Neym4S1SO4W+zMKvjd1dTI
+	g5PU7pIHdVc/+ALK+dtfq+Ir/TPXnQn1x+g/Jm9H1uMPSnTUsIWN5g12gsxRM9ibPgRO9OmoRht
+	rW/Iis3x6H0AQ==
+X-Received: by 2002:a17:90b:5790:b0:398:9bd5:4910 with SMTP id 98e67ed59e1d1-39b2624f0ffmr31452068a91.23.1788763659995;
+        Sun, 06 Sep 2026 23:47:39 -0700 (PDT)
 Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-333c9db92b1sm24811158eec.9.2026.09.06.23.47.28
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-333c9db92b1sm24811158eec.9.2026.09.06.23.47.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 06 Sep 2026 23:47:33 -0700 (PDT)
+        Sun, 06 Sep 2026 23:47:39 -0700 (PDT)
 From: Hemanth Selam <hemanth.selam@gmail.com>
 To: "Rafael J . Wysocki" <rafael@kernel.org>,
 	Len Brown <lenb@kernel.org>,
@@ -77,10 +79,12 @@ Cc: linux-pm@vger.kernel.org,
 	linux-omap@vger.kernel.org,
 	linux-tegra@vger.kernel.org,
 	linux-acpi@vger.kernel.org
-Subject: [PATCH 0/5] driver core: fix typos and repeated words in comments
-Date: Mon,  7 Sep 2026 12:17:20 +0530
-Message-ID: <20260907064725.10686-1-hemanth.selam@gmail.com>
+Subject: [PATCH 1/5] driver core: fix typo "sucessfully" in comment
+Date: Mon,  7 Sep 2026 12:17:21 +0530
+Message-ID: <20260907064725.10686-2-hemanth.selam@gmail.com>
 X-Mailer: git-send-email 2.48.1
+In-Reply-To: <20260907064725.10686-1-hemanth.selam@gmail.com>
+References: <20260907064725.10686-1-hemanth.selam@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -89,47 +93,29 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This corrects 5 misspellings and repeated words in comments.  Each is a
-separate patch so that any one of them can be dropped without touching
-the rest.
+Correct "sucessfully" to "successfully", reported by scripts/checkpatch.pl
+using the misspelling list in scripts/spelling.txt.  Only touches comments,
+no code changes.
 
-Nothing outside comments changes.  Every touched C file was checked by
-dropping its comments, replacing each string literal with a placeholder
-and collapsing whitespace; what remained was identical before and after,
-so the compiled code cannot differ.
+Assisted-by: Cursor:claude-opus-5
+Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+---
+ drivers/base/power/clock_ops.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The mistakes were found with scripts/checkpatch.pl against the list in
-scripts/spelling.txt.  The scanning, the edits and the changelogs were
-produced with Cursor running the claude-opus-5 model, from a request to
-find and fix spelling mistakes across the tree, and every correction was
-then re-checked by the comparison described above.  Words that name an
-identifier were left alone deliberately, even when they read as typos,
-because correcting the prose would make the comment disagree with the
-code it describes.
-
-Tested by building x86_64 defconfig at v7.3-rc1-269-gbc35965f6940, which
-is clean.  Nothing else was built, so any patch touching code that
-x86_64 defconfig does not compile has been read but not compiled.
-
-Hemanth Selam (5):
-  driver core: fix typo "sucessfully" in comment
-  thermal: fix typos in comments
-  tools/thermal: fix typo "binded" in comments
-  cpuidle: fix repeated word 'that' in comment
-  ACPI: NUMA: fix typo in log message
-
- drivers/acpi/numa/srat.c                    |  2 +-
- drivers/base/power/clock_ops.c              |  2 +-
- drivers/cpuidle/cpuidle-tegra.c             |  2 +-
- drivers/thermal/thermal_core.c              |  2 +-
- drivers/thermal/thermal_of.c                |  4 ++--
- drivers/thermal/ti-soc-thermal/ti-bandgap.c | 12 ++++++------
- include/uapi/linux/thermal.h                |  8 ++++----
- tools/thermal/tmon/sysfs.c                  |  2 +-
- tools/thermal/tmon/tmon.h                   |  2 +-
- tools/thermal/tmon/tui.c                    |  2 +-
- 10 files changed, 19 insertions(+), 19 deletions(-)
-
+diff --git a/drivers/base/power/clock_ops.c b/drivers/base/power/clock_ops.c
+index 59bb37e8244c..3b8ba27802a8 100644
+--- a/drivers/base/power/clock_ops.c
++++ b/drivers/base/power/clock_ops.c
+@@ -250,7 +250,7 @@ EXPORT_SYMBOL_GPL(pm_clk_add);
+  *
+  * Add the clock to the list of clocks used for the power management of @dev.
+  * The power-management code will take control of the clock reference, so
+- * callers should not call clk_put() on @clk after this function sucessfully
++ * callers should not call clk_put() on @clk after this function successfully
+  * returned.
+  */
+ int pm_clk_add_clk(struct device *dev, struct clk *clk)
 -- 
 2.48.1
 
