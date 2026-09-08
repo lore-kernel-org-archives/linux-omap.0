@@ -1,54 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27FE1595720
-	for <linux-omap@vger.kernel.org>; Tue,  8 Sep 2026 17:33:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF89F592214
+	for <linux-omap@vger.kernel.org>; Tue,  8 Sep 2026 17:35:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788888824; cv=none; b=o7wsvrXEyYBZ7j+l1Ha3Eqf1XWVzQ8oIEWLIt6iBuvHstHE9LZmcmMTnPaZ33iN7o/Gsw5vz/v7fZnrmv6xXkI/HJ8uffxbatoFfHN6oj5MjY/jwwIle/ol84n0C7KwTQkM96fhLddPZlQoejK6iQy+Ufy6KXF/Fqv41UYfIDWg=
+	t=1788888930; cv=none; b=lPcyuz4ysZSwJTgB8AZHGs0YwWB7fKmAAmNiD3swG2sWSvfAsokVk5l5QyR77nk9m+HkizRXQh5POQhGbEAy3MC+PEZDE/xgM3vdl7tUJ5BYPHZJWDv8ksNA/cQrL4hUB9FbSF0mLdGdpdMApenvMVTiz9x+BOUYND+TJnY9PFM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788888824; c=relaxed/simple;
-	bh=gmIGR0/AjmJLqjqIA+b+biNqhfd5J7r7shYDGeksk7M=;
+	s=arc-20240116; t=1788888930; c=relaxed/simple;
+	bh=zvjd/OzBfuPYT7BKbdMoiUi8iXO0iBXgZckMkZOu3PU=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fgj2VZAff9HB4c1kyR68M/GwirURFwKgeIyVYPY1x6Ab/fVH+O6TBut+vN+dIT1iJHrvwYh8ixeSc4ASF/o37zieH5wg6A6KStX37Li1kijQHaRZWyMfpPNKNI/lyu6CYCVus9n5qB7NfXki353zKLEBP2EhpvmhB4G0INvsK20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oYUkJxyp; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=lgarSIesd1OFQ3ihqTUSs1YNxhscxwHTAKuQ6f5t5gJ7RBEoXu6pYxNZYvcei3FFKCVBIoHB4rUO22cOnuH39ozjCr3DiawwbCuDs2Nlx1OBPAEYPGUzrOLNqlh94t2EbFsuLUZl0vGz0c165brExmwj50n1cbnfL4idaSGJ3p0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qwshzapm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oYUkJxyp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 025AB1F01559
-	for <linux-omap@vger.kernel.org>; Tue,  8 Sep 2026 17:33:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qwshzapm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0F371F0155B
+	for <linux-omap@vger.kernel.org>; Tue,  8 Sep 2026 17:35:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788888823;
-	bh=gmIGR0/AjmJLqjqIA+b+biNqhfd5J7r7shYDGeksk7M=;
+	s=k20260515; t=1788888928;
+	bh=zvjd/OzBfuPYT7BKbdMoiUi8iXO0iBXgZckMkZOu3PU=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=oYUkJxypWqLI8uJLzQPHxhQ71Ks/IyFSnoobdkhybHg/VFrZcScUaUzcU5iGJu3Yg
-	 SVr1zNYq9lzWcvDiEUcX1atpf0jaVT6xPToEVsGnnnsYQD5x0GXAUtiUe+VTGJC6+U
-	 lVLE5LREy7a0wkg5nqv6jsrAjqnRn4VO+GvC4P1WC1OuR3Y0iPEm0L25Nk/xBf6b9z
-	 uj+EZWNfmBY9zPHxZZzMY+PZaGLcUap6z6HgDOpRkikwj/4SgkOIg8RzL7eKjY5zR2
-	 8qBXig3e3zoeZ5+dV8aYrX3pQiy5jGox/+C0yb3jT+lcAU0xZn8D99wJLkp8fHxUtM
-	 u1lhsOfW8IKpA==
-Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5b4b037a2c1so4121436e87.2
-        for <linux-omap@vger.kernel.org>; Tue, 08 Sep 2026 10:33:42 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBzm9NYzXmcfWCmRQW6uDhfxudieUOhv+js8+fWQEt34EKo5wmeoG6YyJ7HYl6+7oklW38UoB90s2hGf@vger.kernel.org
-X-Gm-Message-State: AFuF++myLoaCQ69WGCb5G2LFTKEpgBJvX1j9tp7HuaK9/YPLBKqG/MsM
-	fERJ23MwK8y/A9hiKjee5ptxZRBQDGO8VKO9tuOX/x2Tt45wdvuZjcCC2S+LbPSBwP6xHfUC2lK
-	SN881HH8DYdGgxcGbT5MMkf/OgVHjCHM=
-X-Received: by 2002:a05:6512:2241:b0:5b5:fae5:b241 with SMTP id
- 2adb3069b0e04-5b616f22e66mr5771186e87.14.1788888821627; Tue, 08 Sep 2026
- 10:33:41 -0700 (PDT)
+	b=Qwshzapm39uXq2bVZZ9GfIJxkRheR3vOmylHbJtw3OxtcIqEw4JoMA7w+Tw/kgH4O
+	 1rCS4JS58AFDBjVvowhwlytP979SDLVjwHHeX8h/SjjynwzRGtIxITSyRESG7cOEvl
+	 3HtdMPZIJMUxw/VSwULMfZECLECqDa8XTzdlotHHLNl7Z18J9S91ysKJU/+rsSE3st
+	 zRG2A5Weif3rhmhHI0XD5iRES+YAIJcQ2wJO4+SOoBi8ErXXYJ7STnxRAwRPBCYu0W
+	 desQfa5d0YO4aFUsg16AnAqsoQKwbyDEOsvhbUJ1x0nYUQ/eNxL3zzmcUyeTMJuXyv
+	 Si2cRn1tsxNWA==
+Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-3a20c95e412so41304631fa.1
+        for <linux-omap@vger.kernel.org>; Tue, 08 Sep 2026 10:35:28 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBwo+4T+yYXexTAiaPrOLud98l/i+Iag/Y2QAVZ4cNb+2d/vkBXnbFTEn8bntKJOl04KwbwzbK6Ao6lh@vger.kernel.org
+X-Gm-Message-State: AFuF++m73cWEjNLZ4/VqDm3lZO+6EvSfJM075XOJvWvTJSXfboiJDJwA
+	wLw2CjJF0XxKTuM6BDQiBQoo4WWgapXCs+iL/4vgNa1NPuDNCqxbfLi/z4kOQnu35GBN1Fipu4m
+	MjExsP5TWl/uuKMMO9F2BsYueV6XNhB8=
+X-Received: by 2002:a05:6512:3b2a:b0:5b6:1870:268a with SMTP id
+ 2adb3069b0e04-5b6187043cbmr4987140e87.59.1788888927352; Tue, 08 Sep 2026
+ 10:35:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260908152808.3928630-1-arnd@kernel.org> <20260908152808.3928630-6-arnd@kernel.org>
-In-Reply-To: <20260908152808.3928630-6-arnd@kernel.org>
+References: <20260908152808.3928630-1-arnd@kernel.org> <20260908152808.3928630-7-arnd@kernel.org>
+In-Reply-To: <20260908152808.3928630-7-arnd@kernel.org>
 From: Linus Walleij <linusw@kernel.org>
-Date: Tue, 8 Sep 2026 19:33:29 +0200
-X-Gmail-Original-Message-ID: <CAD++jLka1EcE_pgbQ+k-==7ZBy4t=UzMRoSpftToUvqSWikfOA@mail.gmail.com>
-X-Gm-Features: AcwNN1W4V_RHIjZXrzOUvAHXUKzBi-tBnO9Xu5bnMkKM7BxKaEWn60o-CzXXb5s
-Message-ID: <CAD++jLka1EcE_pgbQ+k-==7ZBy4t=UzMRoSpftToUvqSWikfOA@mail.gmail.com>
-Subject: Re: [PATCH 05/13] ARM: orion/dove/mv78xx0: remove all board files
+Date: Tue, 8 Sep 2026 19:35:14 +0200
+X-Gmail-Original-Message-ID: <CAD++jLnPYmOre6_kZfftmOaWyNdDSTTNxsJn8PsnwA=KqoYXkg@mail.gmail.com>
+X-Gm-Features: AcwNN1Vy2Xn3FP6S0HerShzZSl6E63lIl1BsiI7kBkdVTNwbpJho60d2kWzYdwE
+Message-ID: <CAD++jLnPYmOre6_kZfftmOaWyNdDSTTNxsJn8PsnwA=KqoYXkg@mail.gmail.com>
+Subject: Re: [PATCH 06/13] ARM: omap2: remove omap24xx support
 To: Arnd Bergmann <arnd@kernel.org>
 Cc: Krzysztof Kozlowski <krzk@kernel.org>, Alexandre Belloni <alexandre.belloni@bootlin.com>, 
 	Russell King <linux@armlinux.org.uk>, Drew Fustini <fustini@kernel.org>, 
@@ -71,18 +71,13 @@ Cc: Krzysztof Kozlowski <krzk@kernel.org>, Alexandre Belloni <alexandre.belloni@
 	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
 	devicetree@vger.kernel.org, imx@lists.linux.dev, 
 	linux-stm32@st-md-mailman.stormreply.com, linux-omap@vger.kernel.org, 
-	Alexander Clouter <alex@digriz.org.uk>, "Jeremy J. Peper" <jeremy@jeremypeper.com>, 
-	Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>, Ulf Hansson <ulfh@kernel.org>, 
-	=?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kwilczynski@kernel.org>, 
-	Manivannan Sadhasivam <mani@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Vinod Koul <vkoul@kernel.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
-	Guenter Roeck <linux@roeck-us.net>, Mark Brown <broonie@kernel.org>, 
-	Bartosz Golaszewski <brgl@kernel.org>, Thomas Weissschuh <thomas.weissschuh@linutronix.de>, 
-	linux-ide@vger.kernel.org, linux-mmc@vger.kernel.org, 
-	linux-pci@vger.kernel.org, linux-phy@lists.infradead.org, 
-	linux-rtc@vger.kernel.org, linux-pm@vger.kernel.org, 
-	linux-watchdog@vger.kernel.org, linux-sound@vger.kernel.org, 
-	linux-gpio@vger.kernel.org
+	Paul Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>, 
+	"David S. Miller" <davem@davemloft.net>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
+	Kyungmin Park <kyungmin.park@samsung.com>, Helge Deller <deller@gmx.de>, 
+	Tero Kristo <kristo@kernel.org>, Stephen Boyd <sboyd@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, linux-media@vger.kernel.org, 
+	linux-mtd@lists.infradead.org, linux-fbdev@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-clk@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
@@ -91,52 +86,44 @@ e:
 
 > From: Arnd Bergmann <arnd@arndb.de>
 >
-> The 'orion' platform is the predecessor to what linux now calls the
-> 'mvebu' line of Marvell SoCs, and originally covered orion5x,
-> mv78xx0, kirkwood, dove and a few others that do not have any
-> upstream support at the moment.
+> The omap24xx SoC platform was used in the Nokia N800 and N810 tablets
+> released on 2007 and was among the first ARMv6 CPUs in products that
+> made it into products.
 >
-> Only a few board files remain here, these are the ones left
-> in 2022 board file purge because they had some level of support
-> in Debian or OpenWRT, mostly for commercial NAS or router boxes.
-> This distro support is now gone, and nobody has converted the
-> board files to devicetree, though the orion5x and dove platforms
-> also come with devicetree support for some other machines.
+> Unfortunately the early ARM1136r0 CPU cores had a number of quirks that
+> caused a disproportionate amount of work to keep them compatible with
+> later ARMv6K/v7/v8 implementations.
 >
-> Cc: Andrew Lunn <andrew@lunn.ch>
-> Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-> Cc: Gregory Clement <gregory.clement@bootlin.com>
-> Cc: Alexander Clouter <alex@digriz.org.uk>
-> Cc: Jeremy J. Peper <jeremy@jeremypeper.com>
-> Cc: Damien Le Moal <dlemoal@kernel.org>
-> Cc: Niklas Cassel <cassel@kernel.org>
-> Cc: Ulf Hansson <ulfh@kernel.org>
-> Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
-> Cc: "Krzysztof Wilczy=C5=84ski" <kwilczynski@kernel.org>
-> Cc: Manivannan Sadhasivam <mani@kernel.org>
-> Cc: Rob Herring <robh@kernel.org>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Vinod Koul <vkoul@kernel.org>
-> Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> Cc: Daniel Lezcano <daniel.lezcano@kernel.org>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-> Cc: Mark Brown <broonie@kernel.org>
-> Cc: Linus Walleij <linusw@kernel.org>
-> Cc: Bartosz Golaszewski <brgl@kernel.org>
-> Cc: Thomas Weissschuh <thomas.weissschuh@linutronix.de>
-> Cc: linux-ide@vger.kernel.org
-> Cc: linux-mmc@vger.kernel.org
-> Cc: linux-pci@vger.kernel.org
-> Cc: linux-phy@lists.infradead.org
-> Cc: linux-rtc@vger.kernel.org
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-watchdog@vger.kernel.org
-> Cc: linux-sound@vger.kernel.org
-> Cc: linux-gpio@vger.kernel.org
+> Drop the support for this SoC in order to allow removing ARM1136r0.
+>
+> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: Andreas Kemnade <andreas@kemnade.info>
+> Cc: Kevin Hilman <khilman@baylibre.com>
+> Cc: Roger Quadros <rogerq@kernel.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Herbert Xu <herbert@gondor.apana.org.au>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Helge Deller <deller@gmx.de>
+> Cc: Tero Kristo <kristo@kernel.org>
+> Cc: Stephen Boyd <sboyd@kernel.org>
+> Cc: Thomas Zimmermann <tzimmermann@suse.de>
+> Cc: linux-kernel@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: devicetree@vger.kernel.org
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-mtd@lists.infradead.org
+> Cc: linux-fbdev@vger.kernel.org
+> Cc: dri-devel@lists.freedesktop.org
+> Cc: linux-clk@vger.kernel.org
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Acked-by: Linus Walleij <linusw@kernel.org>
+Since Aaro says it can go, it can go.
+
+If the n800 had a PostmarketOS port things would be different,
+but it does not.
 
 Yours,
 Linus Walleij
