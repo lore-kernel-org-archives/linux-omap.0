@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0215354DADA;
-	Tue,  8 Sep 2026 15:29:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A51D5560AAF;
+	Tue,  8 Sep 2026 15:29:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788881363; cv=none; b=cjfjqoItV+QVqGyxbz8cLuYpCMIiS4eJWiIyYd9BmZnsRrSjoN+2GW2VRlNfhBiBH2jPgnPaR87Zxumgx0clQECzeaxFMKtDzTiER2kZAiqRmsyOxKh/GJHBV+ZZGU+C0DLWDTvD/EBjSgGhh56keuZl6K3xyBA2SwhJ3jQmJl0=
+	t=1788881375; cv=none; b=u5llZ3Cs6Hy2pE0FTE6PaZ3jNGIUBCrCV1QIQcB0YOk8mCHnc4zYO3MvGJPl7x9so4jb7hzQJNRjcxAMmksTIK+7aCiifwCc4Okl4vUqEc6sPY4/2m8JSJUdFoRytULBBSbDq454DQpPtPlQPnsaeoc4ur7YAg9DieSn0yTvfp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788881363; c=relaxed/simple;
-	bh=EyzmGFlDKMEsRxHYd53yOAvAVgwzh65GygUkQWPKKr0=;
+	s=arc-20240116; t=1788881375; c=relaxed/simple;
+	bh=TFDDKj6QgutQvPcWV60rk78zNism3Xn23i1WqoZHKP8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=NPAvxWXjFk2SsAbRVZMsmscxs9R5e/p9rlhVEanq1j3Ur5zhvW/K4kzcoksIEILvFKWMbf352B21EC9zS20oggvM0QJboyaR8s1hX79/JMn7IvVNnk/MNB1zOL8RoKEqINlRfTpg/nzXQ+sqm5yRFFQGk9py+EqMF8u7GeWg9UI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aQ5YccDh; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=nvoq380LFkMDgPZ/Y40PzdK6Lvloy7yebJXuCcr80DcIzcqmeFoqi9hSBXA2kz1HRnYq0X9DnbWu+V8VRYFaMLZXAaKBuLNAazN/Up+OI33GfmP0BuAaHIQx4SOlCw+jtYuTGcxESAlzCScQaazOX6XqdoXxgy7gM+uhKQ6jM/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JvrlpqG/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aQ5YccDh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D0B71F00AC4;
-	Tue,  8 Sep 2026 15:28:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JvrlpqG/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 812E01F00A3F;
+	Tue,  8 Sep 2026 15:29:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788881345;
-	bh=rgdOD5be0J4zQbzu0Ghb8ngpITCFzVUYepeFb30Q+B4=;
+	s=k20260515; t=1788881354;
+	bh=yzv/Nwy97ppDqJRzRnLfPz4gRlPsC1f/yQ0/46s1+Rk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=aQ5YccDhj5ffB19MzDc9OeCzFsODhpjmQwaw41Dj4SNl32YUOhVAG7z8+WSYOqIln
-	 bF49YKat+cZLI7O/lH8Kji3qXnpdSUa9srGh+i/tPjUC+yVS4qQqQXHtHk0duGkOAL
-	 OOvd9zDcWouhscvaOhltPlQ+c8Ltcdsc583A7D7Gb5bvIBmJhEalMxStyMVnbviFHf
-	 li7O/HE1rBZj3D0AQ9Tzqb0Z4MHx6VrEayMiIap24G/yq/7BkhQPjfP9zO+dlg4x+v
-	 4inN/LXHbHlNViw8Ly1GlcWd/ougOebqIRluA0z825vY08jqnb65+d5s5hII5iTF8c
-	 S6Rfveo5abbKA==
+	b=JvrlpqG/lSUcuq5xuN6uWk1qmuuT+Wzt90APZ01TLxi2JidivsXNcAVVYB3ER6pvK
+	 FYO7OYezj6qu88ItkbGJ+fx/lQ+RuFvd9ZQlZ/9HtQVgfngXUbNIawfBnoMm4Ko157
+	 Fiql0c2+KmNcHqEVNP1KfmeQPgHFaQP5IVKJENMVV1hHImS5GGDRAmO8GUXw+T2W53
+	 IKDU6yVBAulqcRR9M7g53Gs1TjrBXF5/OfUuakLdjzi7qlmSKHaZf4vnxEk592WMpv
+	 4P/zCq/YR/cwMIHDdnMOVLLt3qLBT+hs/UpUawG4G5FZUWq0K5hf2Eb0So71CLUUH2
+	 XlAM1tM9TmuEA==
 From: Arnd Bergmann <arnd@kernel.org>
 To: Krzysztof Kozlowski <krzk@kernel.org>,
 	Alexandre Belloni <alexandre.belloni@bootlin.com>,
@@ -72,17 +72,12 @@ Cc: Drew Fustini <fustini@kernel.org>,
 	imx@lists.linux.dev,
 	linux-stm32@st-md-mailman.stormreply.com,
 	linux-omap@vger.kernel.org,
-	Ian Molton <spyro@f2s.com>,
-	Jens Axboe <axboe@kernel.dk>,
-	Helge Deller <deller@gmx.de>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	"Paul E. McKenney" <paulmck@kernel.org>,
-	linux-block@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	linux-fbdev@vger.kernel.org
-Subject: [PATCH 03/13] ARM: remove riscpc
-Date: Tue,  8 Sep 2026 17:27:53 +0200
-Message-ID: <20260908152808.3928630-4-arnd@kernel.org>
+	Daniel Mack <daniel@zonque.org>,
+	Haojian Zhuang <haojian.zhuang@gmail.com>,
+	Bartosz Golaszewski <brgl@kernel.org>
+Subject: [PATCH 04/13] ARM: remove legacy pxa board files
+Date: Tue,  8 Sep 2026 17:27:54 +0200
+Message-ID: <20260908152808.3928630-5-arnd@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260908152808.3928630-1-arnd@kernel.org>
 References: <20260908152808.3928630-1-arnd@kernel.org>
@@ -96,4261 +91,6011 @@ Content-Transfer-Encoding: 8bit
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-The Acorn Risc PC is the oldest still support Arm machine in the kernel,
-originally shipped with an ARMv3 ARM610 support in 1994, it later allowed
-faster StrongARM CPUs.
+The PXA platform supports devicetree based booting, but still has a
+few traditional board files, which were left as a starting point for a
+possible conversion to devicetree during the last mass purge of board
+files in 2022.
 
-The main limitation here is the CPU bus that does not allow 16-bit
-wide data transfers and hence requires the kernel to be built with the
--march=armv3 compiler option that was discontinued in gcc-9.
+None of these boards were actually converted, so drop support for these
+now, along with the 'scoop' support chip that was used on some PDAs that
+are no longer usable now.
 
-As gcc-8 is barely supported for compiling the kernel, this one
-will not see another LTS kernel release, so remove it now.
+The only remaining board support is for the "Raumfeld" speaker system
+based on PXA300 SoC, though basic support for PXA250 and PXA270 is still
+there and may work with external dts files.
 
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Ian Molton <spyro@f2s.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Karl Mehltretter <kmehltretter@gmail.com>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: linux-block@vger.kernel.org
-Cc: linux-serial@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org
+Cc: Daniel Mack <daniel@zonque.org>
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Linus Walleij <linusw@kernel.org>
+Cc: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Ethan Nelson-Moore <enelsonmoore@gmail.com>
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- MAINTAINERS                                 |   20 -
- arch/arm/Kconfig                            |   33 +-
- arch/arm/Kconfig.debug                      |    8 +-
- arch/arm/boot/bootp/Makefile                |    2 -
- arch/arm/boot/compressed/Makefile           |    4 -
- arch/arm/boot/compressed/font.c             |    2 -
- arch/arm/boot/compressed/head.S             |    8 -
- arch/arm/boot/compressed/ll_char_wr.S       |  131 ---
- arch/arm/configs/rpc_defconfig              |  127 --
- arch/arm/include/asm/ecard.h                |  219 ----
- arch/arm/include/asm/hardware/ioc.h         |   69 --
- arch/arm/include/asm/hardware/iomd.h        |  182 ---
- arch/arm/include/asm/hardware/memc.h        |   23 -
- arch/arm/include/asm/io.h                   |    5 +-
- arch/arm/include/asm/memory.h               |    3 -
- arch/arm/kernel/head-common.S               |   13 -
- arch/arm/kernel/head.S                      |   12 -
- arch/arm/lib/delay-loop.S                   |    4 -
- arch/arm/mach-rpc/Kconfig                   |   24 -
- arch/arm/mach-rpc/Makefile                  |    9 -
- arch/arm/mach-rpc/dma.c                     |  393 -------
- arch/arm/mach-rpc/ecard-loader.S            |   40 -
- arch/arm/mach-rpc/ecard.c                   | 1146 -------------------
- arch/arm/mach-rpc/ecard.h                   |   66 --
- arch/arm/mach-rpc/fiq.S                     |   18 -
- arch/arm/mach-rpc/floppydma.S               |   29 -
- arch/arm/mach-rpc/include/mach/acornfb.h    |  137 ---
- arch/arm/mach-rpc/include/mach/hardware.h   |   73 --
- arch/arm/mach-rpc/include/mach/io.h         |   28 -
- arch/arm/mach-rpc/include/mach/irqs.h       |   42 -
- arch/arm/mach-rpc/include/mach/isa-dma.h    |   26 -
- arch/arm/mach-rpc/include/mach/memory.h     |   32 -
- arch/arm/mach-rpc/include/mach/uncompress.h |  181 ---
- arch/arm/mach-rpc/io-acorn.S                |   28 -
- arch/arm/mach-rpc/irq.c                     |  226 ----
- arch/arm/mach-rpc/riscpc.c                  |  225 ----
- arch/arm/mach-rpc/time.c                    |   97 --
- arch/arm/mm/mmu.c                           |    2 +-
- block/partitions/Kconfig                    |    7 -
- drivers/tty/vt/keyboard.c                   |    2 +-
- lib/fonts/font_acorn_8x8.c                  |    4 -
- 41 files changed, 12 insertions(+), 3688 deletions(-)
- delete mode 100644 arch/arm/boot/compressed/font.c
- delete mode 100644 arch/arm/boot/compressed/ll_char_wr.S
- delete mode 100644 arch/arm/configs/rpc_defconfig
- delete mode 100644 arch/arm/include/asm/ecard.h
- delete mode 100644 arch/arm/include/asm/hardware/ioc.h
- delete mode 100644 arch/arm/include/asm/hardware/iomd.h
- delete mode 100644 arch/arm/include/asm/hardware/memc.h
- delete mode 100644 arch/arm/mach-rpc/Kconfig
- delete mode 100644 arch/arm/mach-rpc/Makefile
- delete mode 100644 arch/arm/mach-rpc/dma.c
- delete mode 100644 arch/arm/mach-rpc/ecard-loader.S
- delete mode 100644 arch/arm/mach-rpc/ecard.c
- delete mode 100644 arch/arm/mach-rpc/ecard.h
- delete mode 100644 arch/arm/mach-rpc/fiq.S
- delete mode 100644 arch/arm/mach-rpc/floppydma.S
- delete mode 100644 arch/arm/mach-rpc/include/mach/acornfb.h
- delete mode 100644 arch/arm/mach-rpc/include/mach/hardware.h
- delete mode 100644 arch/arm/mach-rpc/include/mach/io.h
- delete mode 100644 arch/arm/mach-rpc/include/mach/irqs.h
- delete mode 100644 arch/arm/mach-rpc/include/mach/isa-dma.h
- delete mode 100644 arch/arm/mach-rpc/include/mach/memory.h
- delete mode 100644 arch/arm/mach-rpc/include/mach/uncompress.h
- delete mode 100644 arch/arm/mach-rpc/io-acorn.S
- delete mode 100644 arch/arm/mach-rpc/irq.c
- delete mode 100644 arch/arm/mach-rpc/riscpc.c
- delete mode 100644 arch/arm/mach-rpc/time.c
+ arch/arm/boot/compressed/Makefile         |    4 -
+ arch/arm/boot/compressed/head-sharpsl.S   |  151 ---
+ arch/arm/common/Kconfig                   |    6 -
+ arch/arm/common/Makefile                  |    2 -
+ arch/arm/common/scoop.c                   |  269 -----
+ arch/arm/common/sharpsl_param.c           |   63 --
+ arch/arm/configs/am200epdkit_defconfig    |   91 --
+ arch/arm/configs/spitz_defconfig          |  237 -----
+ arch/arm/include/asm/hardware/scoop.h     |   67 --
+ arch/arm/include/asm/mach/sharpsl_param.h |   33 -
+ arch/arm/mach-pxa/Kconfig                 |   89 --
+ arch/arm/mach-pxa/Makefile                |    8 -
+ arch/arm/mach-pxa/am200epd.c              |  395 -------
+ arch/arm/mach-pxa/am300epd.c              |  296 ------
+ arch/arm/mach-pxa/devices.c               |  705 -------------
+ arch/arm/mach-pxa/devices.h               |   68 --
+ arch/arm/mach-pxa/generic.h               |    5 -
+ arch/arm/mach-pxa/gumstix.c               |  237 -----
+ arch/arm/mach-pxa/gumstix.h               |   89 --
+ arch/arm/mach-pxa/pxa25x.c                |   59 --
+ arch/arm/mach-pxa/pxa27x.c                |   77 --
+ arch/arm/mach-pxa/pxa300.c                |    1 -
+ arch/arm/mach-pxa/pxa320.c                |    1 -
+ arch/arm/mach-pxa/pxa3xx.c                |    6 -
+ arch/arm/mach-pxa/sharpsl_pm.c            |  941 -----------------
+ arch/arm/mach-pxa/sharpsl_pm.h            |  108 --
+ arch/arm/mach-pxa/spitz.c                 | 1174 ---------------------
+ arch/arm/mach-pxa/spitz.h                 |  185 ----
+ arch/arm/mach-pxa/spitz_pm.c              |  257 -----
+ 29 files changed, 5624 deletions(-)
+ delete mode 100644 arch/arm/boot/compressed/head-sharpsl.S
+ delete mode 100644 arch/arm/common/scoop.c
+ delete mode 100644 arch/arm/common/sharpsl_param.c
+ delete mode 100644 arch/arm/configs/am200epdkit_defconfig
+ delete mode 100644 arch/arm/configs/spitz_defconfig
+ delete mode 100644 arch/arm/include/asm/hardware/scoop.h
+ delete mode 100644 arch/arm/include/asm/mach/sharpsl_param.h
+ delete mode 100644 arch/arm/mach-pxa/am200epd.c
+ delete mode 100644 arch/arm/mach-pxa/am300epd.c
+ delete mode 100644 arch/arm/mach-pxa/devices.h
+ delete mode 100644 arch/arm/mach-pxa/gumstix.c
+ delete mode 100644 arch/arm/mach-pxa/gumstix.h
+ delete mode 100644 arch/arm/mach-pxa/sharpsl_pm.c
+ delete mode 100644 arch/arm/mach-pxa/sharpsl_pm.h
+ delete mode 100644 arch/arm/mach-pxa/spitz.c
+ delete mode 100644 arch/arm/mach-pxa/spitz.h
+ delete mode 100644 arch/arm/mach-pxa/spitz_pm.c
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 4380d5660402..6e8fe7640064 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2350,12 +2350,6 @@ F:	Documentation/devicetree/bindings/display/arm,malidp.yaml
- F:	Documentation/gpu/afbc.rst
- F:	drivers/gpu/drm/arm/
- 
--ARM MFM AND FLOPPY DRIVERS
--M:	Ian Molton <spyro@f2s.com>
--S:	Maintained
--F:	arch/arm/include/asm/floppy.h
--F:	arch/arm/mach-rpc/floppydma.S
--
- ARM PMU PROFILING AND DEBUGGING
- M:	Will Deacon <will@kernel.org>
- M:	Mark Rutland <mark.rutland@arm.com>
-@@ -3494,20 +3488,6 @@ F:	include/linux/soc/renesas/
- N:	rcar
- K:	\brenesas,
- 
--ARM/RISCPC ARCHITECTURE
--M:	Russell King <linux@armlinux.org.uk>
--L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--S:	Maintained
--W:	http://www.armlinux.org.uk/
--F:	arch/arm/include/asm/hardware/ioc.h
--F:	arch/arm/include/asm/hardware/iomd.h
--F:	arch/arm/include/asm/hardware/memc.h
--F:	arch/arm/mach-rpc/
--F:	drivers/net/ethernet/8390/etherh.c
--F:	drivers/net/ethernet/i825xx/ether1*
--F:	drivers/net/ethernet/seeq/ether3*
--F:	drivers/scsi/arm/
--
- ARM/Rockchip SoC support
- M:	Heiko Stuebner <heiko@sntech.de>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index c3d6b8abc815..5770deca136d 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -55,7 +55,7 @@ config ARM
- 	select ARCH_WANT_LD_ORPHAN_WARN
- 	select BINFMT_FLAT_ARGVP_ENVP_ON_STACK
- 	select BUILDTIME_TABLE_SORT if MMU
--	select COMMON_CLK if !ARCH_RPC
-+	select COMMON_CLK
- 	select CLONE_BACKWARDS
- 	select CPU_PM if SUSPEND || CPU_IDLE
- 	select DCACHE_WORD_ACCESS if HAVE_EFFICIENT_UNALIGNED_ACCESS
-@@ -155,13 +155,13 @@ config ARM
- 	select PCI_SYSCALL if PCI
- 	select PERF_USE_VMALLOC
- 	select RTC_LIB
--	select SPARSE_IRQ if !ARCH_RPC
-+	select SPARSE_IRQ
- 	select SYS_SUPPORTS_APM_EMULATION
- 	select THREAD_INFO_IN_TASK
- 	select TIMER_OF if OF
- 	select HAVE_ARCH_VMAP_STACK if MMU && ARM_HAS_GROUP_RELOCS
- 	select TRACE_IRQFLAGS_SUPPORT if !CPU_V7M
--	select USE_OF if !ARCH_RPC
-+	select USE_OF
- 	# Above selects are sorted alphabetically; please add new ones
- 	# according to that.  Thanks.
- 	help
-@@ -277,25 +277,11 @@ config ARM_PATCH_PHYS_VIRT
- 	  this feature (eg, building a kernel for a single machine) and
- 	  you need to shrink the kernel to the minimal size.
- 
--config NEED_MACH_IO_H
--	bool
--	help
--	  Select this when mach/io.h is required to provide special
--	  definitions for this platform.  The need for mach/io.h should
--	  be avoided when possible.
--
--config NEED_MACH_MEMORY_H
--	bool
--	help
--	  Select this when mach/memory.h is required to provide special
--	  definitions for this platform.  The need for mach/memory.h should
--	  be avoided when possible.
--
- config PHYS_OFFSET
- 	hex "Physical address of main memory" if MMU
- 	depends on !ARM_PATCH_PHYS_VIRT || !AUTO_ZRELADDR
- 	default DRAM_BASE if !MMU
--	default 0x10000000 if ARCH_OMAP1 || ARCH_RPC
-+	default 0x10000000 if ARCH_OMAP1
- 	default 0xa0000000 if ARCH_PXA
- 	default 0xc0000000 if ARCH_EP93XX
- 	default 0
-@@ -337,7 +323,7 @@ config ARCH_MMAP_RND_BITS_MAX
- 
- config ARCH_MULTIPLATFORM
- 	bool "Require kernel to be portable to multiple machines" if EXPERT
--	depends on MMU && !ARCH_RPC
-+	depends on MMU
- 	default y
- 	help
- 	  In general, all Arm machines can be supported in a single
-@@ -429,8 +415,6 @@ source "arch/arm/mach-qcom/Kconfig"
- 
- source "arch/arm/mach-realtek/Kconfig"
- 
--source "arch/arm/mach-rpc/Kconfig"
--
- source "arch/arm/mach-rockchip/Kconfig"
- 
- source "arch/arm/mach-s3c/Kconfig"
-@@ -490,9 +474,6 @@ config ARCH_MPS2
- 	  This platform is scheduled for removal in early 2027
- 
- # Definitions to make life easier
--config ARCH_ACORN
--	bool
--
- config PLAT_ORION
- 	bool
- 	select CLKSRC_MMIO
-@@ -1191,7 +1172,7 @@ config ARCH_SELECT_MEMORY_MODEL
- 	def_bool y
- 
- config ARCH_FLATMEM_ENABLE
--	def_bool !ARCH_RPC
-+	def_bool y
- 
- config ARCH_SPARSEMEM_ENABLE
- 	def_bool y
-@@ -1594,7 +1575,7 @@ config ARCH_DEFAULT_CRASH_DUMP
- 
- config AUTO_ZRELADDR
- 	bool "Auto calculation of the decompressed kernel image address" if !ARCH_MULTIPLATFORM
--	default !ARCH_RPC
-+	default y
- 	help
- 	  ZRELADDR is the physical address where the decompressed kernel
- 	  image will be placed. If AUTO_ZRELADDR is selected, the address
-diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
-index f2a80955b7a0..56c090840c5a 100644
---- a/arch/arm/Kconfig.debug
-+++ b/arch/arm/Kconfig.debug
-@@ -1446,7 +1446,7 @@ config DEBUG_STM32_UART
- config DEBUG_UART_FLOW_CONTROL
- 	bool "Enable flow control (CTS) for the debug UART"
- 	depends on DEBUG_LL
--	default y if DEBUG_GEMINI || ARCH_RPC
-+	default y if DEBUG_GEMINI
- 	help
- 	  Some UART ports are connected to terminals that will use modem
- 	  control signals to indicate whether they are ready to receive text.
-@@ -1516,7 +1516,7 @@ config DEBUG_UART_PL01X
- 
- # Compatibility options for 8250
- config DEBUG_UART_8250
--	def_bool ARCH_IXP4XX || ARCH_RPC
-+	def_bool ARCH_IXP4XX
- 
- config DEBUG_UART_PHYS
- 	hex "Physical base address of debug UART"
-@@ -1527,7 +1527,6 @@ config DEBUG_UART_PHYS
- 	default 0x01f02800 if DEBUG_SUNXI_R_UART
- 	default 0x02530c00 if DEBUG_KEYSTONE_UART0
- 	default 0x02531000 if DEBUG_KEYSTONE_UART1
--	default 0x03010fe0 if ARCH_RPC
- 	default 0x07000000 if DEBUG_SUN9I_UART0
- 	default 0x09530000 if DEBUG_STIH418_SBC_ASC0
- 	default 0x10009000 if DEBUG_REALVIEW_STD_PORT || \
-@@ -1654,7 +1653,6 @@ config DEBUG_UART_VIRT
- 	default 0xc881f000 if DEBUG_RV1108_UART2
- 	default 0xc8821000 if DEBUG_RV1108_UART1
- 	default 0xc8912000 if DEBUG_RV1108_UART0
--	default 0xe0010fe0 if ARCH_RPC
- 	default 0xe0824200 if DEBUG_AT91_SAMA7G5_FLEXCOM3
- 	default 0xf0010000 if DEBUG_ASM9260_UART
- 	default 0xf0100000 if DEBUG_DIGICOLOR_UA0
-@@ -1779,7 +1777,6 @@ config DEBUG_UART_8250_PALMCHIP
- config DEBUG_UNCOMPRESS
- 	bool "Enable decompressor debugging via DEBUG_LL output"
- 	depends on !ARCH_MULTIPLATFORM
--	depends on !ARCH_RPC
- 	depends on DEBUG_LL && !DEBUG_OMAP2PLUS_UART && \
- 		     (!DEBUG_TEGRA_UART || !ZBOOT_ROM) && \
- 		     !DEBUG_BRCMSTB_UART && !DEBUG_SEMIHOSTING
-@@ -1789,7 +1786,6 @@ config DEBUG_UNCOMPRESS
- 
- config UNCOMPRESS_INCLUDE
- 	string
--	default "mach/uncompress.h" if ARCH_RPC
- 	default "debug/uncompress.h"
- 
- config EARLY_PRINTK
-diff --git a/arch/arm/boot/bootp/Makefile b/arch/arm/boot/bootp/Makefile
-index 12c61684b97f..1e47bf10069d 100644
---- a/arch/arm/boot/bootp/Makefile
-+++ b/arch/arm/boot/bootp/Makefile
-@@ -19,8 +19,6 @@ add_hex = $(shell printf 0x%x $$(( $(1) + $(2) )) )
- PARAMS_PHYS := $(call add_hex, $(PHYS_OFFSET), 0x100)
- 
- # guess an initrd location if possible
--initrd_offset-$(CONFIG_ARCH_RPC)	+= 0x08000000
--INITRD_OFFSET := $(initrd_offset-y)
- ifdef INITRD_OFFSET
- INITRD_PHYS := $(call add_hex, $(PHYS_OFFSET), $(INITRD_OFFSET))
- endif
 diff --git a/arch/arm/boot/compressed/Makefile b/arch/arm/boot/compressed/Makefile
-index d8d81ba741a2..32def10f5e03 100644
+index 32def10f5e03..232b646bfd26 100644
 --- a/arch/arm/boot/compressed/Makefile
 +++ b/arch/arm/boot/compressed/Makefile
-@@ -25,10 +25,6 @@ endif
- #
- # Architecture dependencies
- #
--ifeq ($(CONFIG_ARCH_ACORN),y)
--OBJS		+= ll_char_wr.o font.o
--endif
--
- ifeq ($(CONFIG_CPU_XSCALE),y)
+@@ -29,10 +29,6 @@ ifeq ($(CONFIG_CPU_XSCALE),y)
  OBJS		+= head-xscale.o
  endif
-diff --git a/arch/arm/boot/compressed/font.c b/arch/arm/boot/compressed/font.c
-deleted file mode 100644
-index 46a677649db4..000000000000
---- a/arch/arm/boot/compressed/font.c
-+++ /dev/null
-@@ -1,2 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--#include "../../../../lib/fonts/font_acorn_8x8.c"
-diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
-index 845abffbc2d6..af579905b630 100644
---- a/arch/arm/boot/compressed/head.S
-+++ b/arch/arm/boot/compressed/head.S
-@@ -668,14 +668,6 @@ LC1:		.word	.L_user_stack_end - LC1	@ sp
- .Linflated_image_size_offset:
- 		.long	(input_data_end - 4) - .
  
--#ifdef CONFIG_ARCH_RPC
--		.globl	params
--params:		ldr	r0, =0x10000100		@ params_phys for RPC
--		mov	pc, lr
--		.ltorg
--		.align
--#endif
+-ifeq ($(CONFIG_PXA_SHARPSL_DETECT_MACH_ID),y)
+-OBJS		+= head-sharpsl.o
+-endif
 -
- /*
-  * dcache_line_size - get the minimum D-cache line size from the CTR register
-  * on ARMv7.
-diff --git a/arch/arm/boot/compressed/ll_char_wr.S b/arch/arm/boot/compressed/ll_char_wr.S
+ ifeq ($(CONFIG_CPU_ENDIAN_BE32),y)
+ ifeq ($(CONFIG_CPU_CP15),y)
+ OBJS		+= big-endian.o
+diff --git a/arch/arm/boot/compressed/head-sharpsl.S b/arch/arm/boot/compressed/head-sharpsl.S
 deleted file mode 100644
-index 1ec8cb2898b1..000000000000
---- a/arch/arm/boot/compressed/ll_char_wr.S
+index 992e784500fa..000000000000
+--- a/arch/arm/boot/compressed/head-sharpsl.S
 +++ /dev/null
-@@ -1,131 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
+@@ -1,151 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
 -/*
-- *  linux/arch/arm/lib/ll_char_wr.S
+- * linux/arch/arm/boot/compressed/head-sharpsl.S
 - *
-- *  Copyright (C) 1995, 1996 Russell King.
+- * Copyright (C) 2004-2005 Richard Purdie <rpurdie@rpsys.net>
 - *
-- *  Speedups & 1bpp code (C) 1996 Philip Blundell & Russell King.
+- * Sharp's bootloader doesn't pass any kind of machine ID
+- * so we have to figure out the machine for ourselves...
 - *
-- *  10-04-96	RMK	Various cleanups & reduced register usage.
-- *  08-04-98	RMK	Shifts re-ordered
+- * Support for Poodle, Corgi (SL-C700), Shepherd (SL-C750)
+- * Husky (SL-C760), Tosa (SL-C6000), Spitz (SL-C3000),
+- * Akita (SL-C1000) and Borzoi (SL-C3100).
+- *
 - */
--
--@ Regs: [] = corruptible
--@       {} = used
--@       () = do not use
 -
 -#include <linux/linkage.h>
--#include <asm/assembler.h>
--	.text
+-#include <asm/mach-types.h>
 -
--LC0:	.word	LC0
--	.word	bytes_per_char_h
--	.word	video_size_row
--	.word	acorndata_8x8
--	.word	con_charconvtable
+-#ifndef CONFIG_PXA_SHARPSL
+-#error What am I doing here...
+-#endif
+-
+-		.section        ".start", "ax"
+-
+-__SharpSL_start:
+-
+-/* Check for TC6393 - if found we have a Tosa */
+-	ldr	r7, .TOSAID
+-	mov	r1, #0x10000000		@ Base address of TC6393 chip
+-	mov 	r6, #0x03
+-	ldrh	r3, [r1, #8]		@ Load TC6393XB Revison: This is 0x0003
+-	cmp	r6, r3
+-	beq	.SHARPEND		@ Success -> tosa
+-
+-/* Check for pxa270 - if found, branch */
+-	mrc p15, 0, r4, c0, c0		@ Get Processor ID
+-	and	r4, r4, #0xffffff00
+-	ldr	r3, .PXA270ID
+-	cmp	r4, r3
+-	beq	.PXA270
+-
+-/* Check for w100 - if not found we have a Poodle */
+-	ldr	r1, .W100ADDR		@ Base address of w100 chip + regs offset
+-
+-	mov r6, #0x31			@ Load Magic Init value
+-	str	r6, [r1, #0x280]	@ to SCRATCH_UMSK
+-	mov r5, #0x3000
+-.W100LOOP:
+-	subs r5, r5, #1
+-	bne .W100LOOP
+-	mov r6, #0x30			@ Load 2nd Magic Init value
+-	str	r6, [r1, #0x280]	@ to SCRATCH_UMSK
+-
+-	ldr	r6, [r1, #0]		@ Load Chip ID
+-	ldr	r3, .W100ID
+-	ldr	r7, .POODLEID
+-	cmp	r6, r3
+-	bne	.SHARPEND			@ We have no w100 - Poodle
+-
+-/* Check for pxa250 - if found we have a Corgi */
+-	ldr	r7, .CORGIID
+-	ldr	r3, .PXA255ID
+-	cmp	r4, r3
+-	blo	.SHARPEND			@ We have a PXA250 - Corgi
+-
+-/* Check for 64MiB flash - if found we have a Shepherd */
+-	bl	get_flash_ids
+-	ldr	r7, .SHEPHERDID
+-	cmp	r3, #0x76			@ 64MiB flash
+-	beq	.SHARPEND			@ We have Shepherd
+-
+-/* Must be a Husky */
+-	ldr	r7, .HUSKYID		@ Must be Husky
+-	b .SHARPEND
+-
+-.PXA270:
+-/* Check for 16MiB flash - if found we have Spitz */
+-	bl	get_flash_ids
+-	ldr	r7, .SPITZID
+-	cmp	r3, #0x73			@ 16MiB flash
+-	beq	.SHARPEND			@ We have Spitz
+-
+-/* Check for a second SCOOP chip - if found we have Borzoi */
+-	ldr	r1, .SCOOP2ADDR
+-	ldr	r7, .BORZOIID
+-	mov 	r6, #0x0140
+-	strh	r6, [r1]
+-	ldrh	r6, [r1]
+-	cmp	r6, #0x0140
+-	beq	.SHARPEND			@ We have Borzoi
+-
+-/* Must be Akita */
+-	ldr	r7, .AKITAID
+-	b	.SHARPEND			@ We have Borzoi
+-
+-.PXA255ID:
+-	.word	0x69052d00		@ PXA255 Processor ID
+-.PXA270ID:
+-	.word	0x69054100		@ PXA270 Processor ID
+-.W100ID:
+-	.word	0x57411002		@ w100 Chip ID
+-.W100ADDR:
+-	.word 	0x08010000		@ w100 Chip ID Reg Address
+-.SCOOP2ADDR:
+-	.word	0x08800040
+-.POODLEID:
+-	.word	MACH_TYPE_POODLE
+-.CORGIID:
+-	.word	MACH_TYPE_CORGI
+-.SHEPHERDID:
+-	.word	MACH_TYPE_SHEPHERD
+-.HUSKYID:
+-	.word	MACH_TYPE_HUSKY
+-.TOSAID:
+-	.word	MACH_TYPE_TOSA
+-.SPITZID:
+-	.word	MACH_TYPE_SPITZ
+-.AKITAID:
+-	.word	MACH_TYPE_AKITA
+-.BORZOIID:
+-	.word	MACH_TYPE_BORZOI
 -
 -/*
-- * r0 = ptr
-- * r1 = char
-- * r2 = white
+- * Return: r2 - NAND Manufacturer ID
+- *         r3 - NAND Chip ID
+- * Corrupts: r1
 - */
--ENTRY(ll_write_char)
--	stmfd	sp!, {r4 - r7, lr}
--@
--@ Smashable regs: {r0 - r3}, [r4 - r7], (r8 - fp), [ip], (sp), [lr], (pc)
--@
--	/*
--	 * calculate offset into character table
--	 */
--	mov	r1, r1, lsl #3
--	/*
--	 * calculate offset required for each row.
--	 */
--	adr	ip, LC0
--	ldmia	ip, {r3, r4, r5, r6, lr}
--	sub	ip, ip, r3
--	add	r6, r6, ip
--	add	lr, lr, ip
--	ldr	r4, [r4, ip]
--	ldr	r5, [r5, ip]
--	/*
--	 * Go to resolution-dependent routine...
--	 */
--	cmp	r4, #4
--	blt	Lrow1bpp
--	add	r0, r0, r5, lsl #3		@ Move to bottom of character
--	orr	r1, r1, #7
--	ldrb	r7, [r6, r1]
--	teq	r4, #8
--	beq	Lrow8bpplp
--@
--@ Smashable regs: {r0 - r3}, [r4], {r5 - r7}, (r8 - fp), [ip], (sp), {lr}, (pc)
--@
--Lrow4bpplp:
--	ldr	r7, [lr, r7, lsl #2]
--	mul	r7, r2, r7
--	sub	r1, r1, #1			@ avoid using r7 directly after
--	str	r7, [r0, -r5]!
--	ldrb	r7, [r6, r1]
--	ldr	r7, [lr, r7, lsl #2]
--	mul	r7, r2, r7
--	tst	r1, #7				@ avoid using r7 directly after
--	str	r7, [r0, -r5]!
--	subne	r1, r1, #1
--	ldrbne	r7, [r6, r1]
--	bne	Lrow4bpplp
--	ldmfd	sp!, {r4 - r7, pc}
+-get_flash_ids:
+-	mov	r1, #0x0c000000		@ Base address of NAND chip
+-	ldrb	r3, [r1, #24]		@ Load FLASHCTL
+-	bic	r3, r3, #0x11		@ SET NCE
+-	orr	r3, r3, #0x0a		@ SET CLR + FLWP
+-	strb	r3, [r1, #24]		@ Save to FLASHCTL
+-	mov 	r2, #0x90		@ Command "readid"
+-	strb	r2, [r1, #20]		@ Save to FLASHIO
+-	bic	r3, r3, #2		@ CLR CLE
+-	orr	r3, r3, #4		@ SET ALE
+-	strb	r3, [r1, #24]		@ Save to FLASHCTL
+-	mov	r2, #0			@ Address 0x00
+-	strb	r2, [r1, #20]		@ Save to FLASHIO
+-	bic	r3, r3, #4		@ CLR ALE
+-	strb	r3, [r1, #24]		@ Save to FLASHCTL
+-.fids1:
+-	ldrb	r3, [r1, #24]		@ Load FLASHCTL
+-	tst	r3, #32			@ Is chip ready?
+-	beq	.fids1
+-	ldrb	r2, [r1, #20]		@ NAND Manufacturer ID
+-	ldrb	r3, [r1, #20]		@ NAND Chip ID
+-	mov	pc, lr
 -
--@
--@ Smashable regs: {r0 - r3}, [r4], {r5 - r7}, (r8 - fp), [ip], (sp), {lr}, (pc)
--@
--Lrow8bpplp:
--	mov	ip, r7, lsr #4
--	ldr	ip, [lr, ip, lsl #2]
--	mul	r4, r2, ip
--	and	ip, r7, #15			@ avoid r4
--	ldr	ip, [lr, ip, lsl #2]		@ avoid r4
--	mul	ip, r2, ip			@ avoid r4
--	sub	r1, r1, #1			@ avoid ip
--	sub	r0, r0, r5			@ avoid ip
--	stmia	r0, {r4, ip}
--	ldrb	r7, [r6, r1]
--	mov	ip, r7, lsr #4
--	ldr	ip, [lr, ip, lsl #2]
--	mul	r4, r2, ip
--	and	ip, r7, #15			@ avoid r4
--	ldr	ip, [lr, ip, lsl #2]		@ avoid r4
--	mul	ip, r2, ip			@ avoid r4
--	tst	r1, #7				@ avoid ip
--	sub	r0, r0, r5			@ avoid ip
--	stmia	r0, {r4, ip}
--	subne	r1, r1, #1
--	ldrbne	r7, [r6, r1]
--	bne	Lrow8bpplp
--	ldmfd	sp!, {r4 - r7, pc}
+-.SHARPEND:
+diff --git a/arch/arm/common/Kconfig b/arch/arm/common/Kconfig
+index d72dccf6f3c2..cf75be68d05c 100644
+--- a/arch/arm/common/Kconfig
++++ b/arch/arm/common/Kconfig
+@@ -1,9 +1,3 @@
+ # SPDX-License-Identifier: GPL-2.0
+ config KRAIT_L2_ACCESSORS
+ 	bool
 -
--@
--@ Smashable regs: {r0 - r3}, [r4], {r5, r6}, [r7], (r8 - fp), [ip], (sp), [lr], (pc)
--@
--Lrow1bpp:
--	add	r6, r6, r1
--	ldmia	r6, {r4, r7}
--	strb	r4, [r0], r5
--	mov	r4, r4, lsr #8
--	strb	r4, [r0], r5
--	mov	r4, r4, lsr #8
--	strb	r4, [r0], r5
--	mov	r4, r4, lsr #8
--	strb	r4, [r0], r5
--	strb	r7, [r0], r5
--	mov	r7, r7, lsr #8
--	strb	r7, [r0], r5
--	mov	r7, r7, lsr #8
--	strb	r7, [r0], r5
--	mov	r7, r7, lsr #8
--	strb	r7, [r0], r5
--	ldmfd	sp!, {r4 - r7, pc}
+-config SHARP_PARAM
+-	bool
 -
--	.bss
--ENTRY(con_charconvtable)
--	.space	1024
-diff --git a/arch/arm/configs/rpc_defconfig b/arch/arm/configs/rpc_defconfig
+-config SHARP_SCOOP
+-	bool
+diff --git a/arch/arm/common/Makefile b/arch/arm/common/Makefile
+index e1bcc250874f..1935b23700b0 100644
+--- a/arch/arm/common/Makefile
++++ b/arch/arm/common/Makefile
+@@ -6,8 +6,6 @@
+ obj-y				+= firmware.o
+ 
+ obj-$(CONFIG_KRAIT_L2_ACCESSORS) += krait-l2-accessors.o
+-obj-$(CONFIG_SHARP_PARAM)	+= sharpsl_param.o
+-obj-$(CONFIG_SHARP_SCOOP)	+= scoop.o
+ obj-$(CONFIG_CPU_V7)		+= secure_cntvoff.o
+ obj-$(CONFIG_MCPM)		+= mcpm_head.o mcpm_entry.o mcpm_platsmp.o vlock.o
+ CFLAGS_REMOVE_mcpm_entry.o	= -pg
+diff --git a/arch/arm/common/scoop.c b/arch/arm/common/scoop.c
 deleted file mode 100644
-index edb52d56f679..000000000000
---- a/arch/arm/configs/rpc_defconfig
+index 90474994757c..000000000000
+--- a/arch/arm/common/scoop.c
 +++ /dev/null
-@@ -1,127 +0,0 @@
--# CONFIG_LOCALVERSION_AUTO is not set
+@@ -1,269 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Support code for the SCOOP interface found on various Sharp PDAs
+- *
+- * Copyright (c) 2004 Richard Purdie
+- *
+- *	Based on code written by Sharp/Lineo for 2.4 kernels
+- */
+-
+-#include <linux/device.h>
+-#include <linux/gpio/driver.h>
+-#include <linux/string.h>
+-#include <linux/slab.h>
+-#include <linux/platform_device.h>
+-#include <linux/export.h>
+-#include <linux/io.h>
+-#include <asm/hardware/scoop.h>
+-
+-/* PCMCIA to Scoop linkage
+-
+-   There is no easy way to link multiple scoop devices into one
+-   single entity for the pxa2xx_pcmcia device so this structure
+-   is used which is setup by the platform code.
+-
+-   This file is never modular so this symbol is always
+-   accessile to the board support files.
+-*/
+-struct scoop_pcmcia_config *platform_scoop_config;
+-EXPORT_SYMBOL(platform_scoop_config);
+-
+-struct  scoop_dev {
+-	void __iomem *base;
+-	struct gpio_chip gpio;
+-	spinlock_t scoop_lock;
+-	unsigned short suspend_clr;
+-	unsigned short suspend_set;
+-	u32 scoop_gpwr;
+-};
+-
+-void reset_scoop(struct device *dev)
+-{
+-	struct scoop_dev *sdev = dev_get_drvdata(dev);
+-
+-	iowrite16(0x0100, sdev->base + SCOOP_MCR);  /* 00 */
+-	iowrite16(0x0000, sdev->base + SCOOP_CDR);  /* 04 */
+-	iowrite16(0x0000, sdev->base + SCOOP_CCR);  /* 10 */
+-	iowrite16(0x0000, sdev->base + SCOOP_IMR);  /* 18 */
+-	iowrite16(0x00FF, sdev->base + SCOOP_IRM);  /* 14 */
+-	iowrite16(0x0000, sdev->base + SCOOP_ISR);  /* 1C */
+-	iowrite16(0x0000, sdev->base + SCOOP_IRM);
+-}
+-
+-static void __scoop_gpio_set(struct scoop_dev *sdev,
+-			unsigned offset, int value)
+-{
+-	unsigned short gpwr;
+-
+-	gpwr = ioread16(sdev->base + SCOOP_GPWR);
+-	if (value)
+-		gpwr |= 1 << (offset + 1);
+-	else
+-		gpwr &= ~(1 << (offset + 1));
+-	iowrite16(gpwr, sdev->base + SCOOP_GPWR);
+-}
+-
+-static int scoop_gpio_set(struct gpio_chip *chip, unsigned int offset,
+-			  int value)
+-{
+-	struct scoop_dev *sdev = gpiochip_get_data(chip);
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&sdev->scoop_lock, flags);
+-
+-	__scoop_gpio_set(sdev, offset, value);
+-
+-	spin_unlock_irqrestore(&sdev->scoop_lock, flags);
+-
+-	return 0;
+-}
+-
+-static int scoop_gpio_get(struct gpio_chip *chip, unsigned offset)
+-{
+-	struct scoop_dev *sdev = gpiochip_get_data(chip);
+-
+-	/* XXX: I'm unsure, but it seems so */
+-	return !!(ioread16(sdev->base + SCOOP_GPRR) & (1 << (offset + 1)));
+-}
+-
+-static int scoop_gpio_direction_input(struct gpio_chip *chip,
+-			unsigned offset)
+-{
+-	struct scoop_dev *sdev = gpiochip_get_data(chip);
+-	unsigned long flags;
+-	unsigned short gpcr;
+-
+-	spin_lock_irqsave(&sdev->scoop_lock, flags);
+-
+-	gpcr = ioread16(sdev->base + SCOOP_GPCR);
+-	gpcr &= ~(1 << (offset + 1));
+-	iowrite16(gpcr, sdev->base + SCOOP_GPCR);
+-
+-	spin_unlock_irqrestore(&sdev->scoop_lock, flags);
+-
+-	return 0;
+-}
+-
+-static int scoop_gpio_direction_output(struct gpio_chip *chip,
+-			unsigned offset, int value)
+-{
+-	struct scoop_dev *sdev = gpiochip_get_data(chip);
+-	unsigned long flags;
+-	unsigned short gpcr;
+-
+-	spin_lock_irqsave(&sdev->scoop_lock, flags);
+-
+-	__scoop_gpio_set(sdev, offset, value);
+-
+-	gpcr = ioread16(sdev->base + SCOOP_GPCR);
+-	gpcr |= 1 << (offset + 1);
+-	iowrite16(gpcr, sdev->base + SCOOP_GPCR);
+-
+-	spin_unlock_irqrestore(&sdev->scoop_lock, flags);
+-
+-	return 0;
+-}
+-
+-unsigned short read_scoop_reg(struct device *dev, unsigned short reg)
+-{
+-	struct scoop_dev *sdev = dev_get_drvdata(dev);
+-	return ioread16(sdev->base + reg);
+-}
+-
+-void write_scoop_reg(struct device *dev, unsigned short reg, unsigned short data)
+-{
+-	struct scoop_dev *sdev = dev_get_drvdata(dev);
+-	iowrite16(data, sdev->base + reg);
+-}
+-
+-EXPORT_SYMBOL(reset_scoop);
+-EXPORT_SYMBOL(read_scoop_reg);
+-EXPORT_SYMBOL(write_scoop_reg);
+-
+-#ifdef CONFIG_PM
+-static void check_scoop_reg(struct scoop_dev *sdev)
+-{
+-	unsigned short mcr;
+-
+-	mcr = ioread16(sdev->base + SCOOP_MCR);
+-	if ((mcr & 0x100) == 0)
+-		iowrite16(0x0101, sdev->base + SCOOP_MCR);
+-}
+-
+-static int scoop_suspend(struct platform_device *dev, pm_message_t state)
+-{
+-	struct scoop_dev *sdev = platform_get_drvdata(dev);
+-
+-	check_scoop_reg(sdev);
+-	sdev->scoop_gpwr = ioread16(sdev->base + SCOOP_GPWR);
+-	iowrite16((sdev->scoop_gpwr & ~sdev->suspend_clr) | sdev->suspend_set, sdev->base + SCOOP_GPWR);
+-
+-	return 0;
+-}
+-
+-static int scoop_resume(struct platform_device *dev)
+-{
+-	struct scoop_dev *sdev = platform_get_drvdata(dev);
+-
+-	check_scoop_reg(sdev);
+-	iowrite16(sdev->scoop_gpwr, sdev->base + SCOOP_GPWR);
+-
+-	return 0;
+-}
+-#else
+-#define scoop_suspend	NULL
+-#define scoop_resume	NULL
+-#endif
+-
+-static int scoop_probe(struct platform_device *pdev)
+-{
+-	struct scoop_dev *devptr;
+-	struct scoop_config *inf;
+-	struct resource *mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	int ret;
+-
+-	if (!mem)
+-		return -EINVAL;
+-
+-	devptr = kzalloc_obj(struct scoop_dev);
+-	if (!devptr)
+-		return -ENOMEM;
+-
+-	spin_lock_init(&devptr->scoop_lock);
+-
+-	inf = pdev->dev.platform_data;
+-	devptr->base = ioremap(mem->start, resource_size(mem));
+-
+-	if (!devptr->base) {
+-		ret = -ENOMEM;
+-		goto err_ioremap;
+-	}
+-
+-	platform_set_drvdata(pdev, devptr);
+-
+-	printk("Sharp Scoop Device found at 0x%08x -> 0x%8p\n",(unsigned int)mem->start, devptr->base);
+-
+-	iowrite16(0x0140, devptr->base + SCOOP_MCR);
+-	reset_scoop(&pdev->dev);
+-	iowrite16(0x0000, devptr->base + SCOOP_CPR);
+-	iowrite16(inf->io_dir & 0xffff, devptr->base + SCOOP_GPCR);
+-	iowrite16(inf->io_out & 0xffff, devptr->base + SCOOP_GPWR);
+-
+-	devptr->suspend_clr = inf->suspend_clr;
+-	devptr->suspend_set = inf->suspend_set;
+-
+-	devptr->gpio.base = -1;
+-
+-	if (inf->gpio_base != 0) {
+-		devptr->gpio.label = dev_name(&pdev->dev);
+-		devptr->gpio.base = inf->gpio_base;
+-		devptr->gpio.ngpio = 12; /* PA11 = 0, PA12 = 1, etc. up to PA22 = 11 */
+-		devptr->gpio.set = scoop_gpio_set;
+-		devptr->gpio.get = scoop_gpio_get;
+-		devptr->gpio.direction_input = scoop_gpio_direction_input;
+-		devptr->gpio.direction_output = scoop_gpio_direction_output;
+-
+-		ret = gpiochip_add_data(&devptr->gpio, devptr);
+-		if (ret)
+-			goto err_gpio;
+-	}
+-
+-	return 0;
+-
+-err_gpio:
+-	platform_set_drvdata(pdev, NULL);
+-err_ioremap:
+-	iounmap(devptr->base);
+-	kfree(devptr);
+-
+-	return ret;
+-}
+-
+-static void scoop_remove(struct platform_device *pdev)
+-{
+-	struct scoop_dev *sdev = platform_get_drvdata(pdev);
+-
+-	if (sdev->gpio.base != -1)
+-		gpiochip_remove(&sdev->gpio);
+-
+-	platform_set_drvdata(pdev, NULL);
+-	iounmap(sdev->base);
+-	kfree(sdev);
+-}
+-
+-static struct platform_driver scoop_driver = {
+-	.probe		= scoop_probe,
+-	.remove		= scoop_remove,
+-	.suspend	= scoop_suspend,
+-	.resume		= scoop_resume,
+-	.driver		= {
+-		.name	= "sharp-scoop",
+-	},
+-};
+-
+-static int __init scoop_init(void)
+-{
+-	return platform_driver_register(&scoop_driver);
+-}
+-
+-subsys_initcall(scoop_init);
+diff --git a/arch/arm/common/sharpsl_param.c b/arch/arm/common/sharpsl_param.c
+deleted file mode 100644
+index 1ca26c063f80..000000000000
+--- a/arch/arm/common/sharpsl_param.c
++++ /dev/null
+@@ -1,63 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Hardware parameter area specific to Sharp SL series devices
+- *
+- * Copyright (c) 2005 Richard Purdie
+- *
+- * Based on Sharp's 2.4 kernel patches
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/string.h>
+-#include <asm/mach/sharpsl_param.h>
+-#include <asm/page.h>
+-
+-/*
+- * Certain hardware parameters determined at the time of device manufacture,
+- * typically including LCD parameters are loaded by the bootloader at the
+- * address PARAM_BASE. As the kernel will overwrite them, we need to store
+- * them early in the boot process, then pass them to the appropriate drivers.
+- * Not all devices use all parameters but the format is common to all.
+- */
+-#ifdef CONFIG_ARCH_SA1100
+-#define PARAM_BASE	0xe8ffc000
+-#define param_start(x)	(void *)(x)
+-#else
+-#define PARAM_BASE	0xa0000a00
+-#define param_start(x)	__va(x)
+-#endif
+-#define MAGIC_CHG(a,b,c,d) ( ( d << 24 ) | ( c << 16 )  | ( b << 8 ) | a )
+-
+-#define COMADJ_MAGIC	MAGIC_CHG('C','M','A','D')
+-#define UUID_MAGIC	MAGIC_CHG('U','U','I','D')
+-#define TOUCH_MAGIC	MAGIC_CHG('T','U','C','H')
+-#define AD_MAGIC	MAGIC_CHG('B','V','A','D')
+-#define PHAD_MAGIC	MAGIC_CHG('P','H','A','D')
+-
+-struct sharpsl_param_info sharpsl_param;
+-EXPORT_SYMBOL(sharpsl_param);
+-
+-void sharpsl_save_param(void)
+-{
+-	struct sharpsl_param_info *params = param_start(PARAM_BASE);
+-
+-	memcpy(&sharpsl_param, params, sizeof(*params));
+-
+-	if (sharpsl_param.comadj_keyword != COMADJ_MAGIC)
+-		sharpsl_param.comadj=-1;
+-
+-	if (sharpsl_param.phad_keyword != PHAD_MAGIC)
+-		sharpsl_param.phadadj=-1;
+-
+-	if (sharpsl_param.uuid_keyword != UUID_MAGIC)
+-		sharpsl_param.uuid[0]=-1;
+-
+-	if (sharpsl_param.touch_keyword != TOUCH_MAGIC)
+-		sharpsl_param.touch_xp=-1;
+-
+-	if (sharpsl_param.adadj_keyword != AD_MAGIC)
+-		sharpsl_param.adadj=-1;
+-}
+-
+-
+diff --git a/arch/arm/configs/am200epdkit_defconfig b/arch/arm/configs/am200epdkit_defconfig
+deleted file mode 100644
+index 61beac88e863..000000000000
+--- a/arch/arm/configs/am200epdkit_defconfig
++++ /dev/null
+@@ -1,91 +0,0 @@
+-CONFIG_LOCALVERSION="gum"
 -CONFIG_SYSVIPC=y
--CONFIG_LOG_BUF_SHIFT=14
--CONFIG_BLK_DEV_INITRD=y
+-CONFIG_PREEMPT=y
 -CONFIG_EXPERT=y
--CONFIG_ARCH_MULTI_V4=y
+-# CONFIG_EPOLL is not set
+-# CONFIG_SHMEM is not set
 -# CONFIG_ARCH_MULTI_V7 is not set
--CONFIG_ARCH_RPC=y
--CONFIG_CPU_SA110=y
--CONFIG_FPE_NWFPE=y
--# CONFIG_AEABI is not set
+-CONFIG_ARCH_PXA=y
+-CONFIG_ARCH_GUMSTIX=y
 -CONFIG_ATAGS=y
+-CONFIG_CMDLINE="console=ttyS0,115200n8 root=1f01 rootfstype=jffs2"
 -CONFIG_MODULES=y
 -CONFIG_MODULE_UNLOAD=y
 -CONFIG_PARTITION_ADVANCED=y
--CONFIG_BSD_DISKLABEL=y
+-# CONFIG_SWAP is not set
+-# CONFIG_VM_EVENT_COUNTERS is not set
+-CONFIG_NET=y
+-CONFIG_PACKET=m
+-CONFIG_UNIX=y
+-CONFIG_INET=y
+-# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
+-# CONFIG_INET_XFRM_MODE_TUNNEL is not set
+-# CONFIG_INET_XFRM_MODE_BEET is not set
+-# CONFIG_INET_DIAG is not set
+-# CONFIG_IPV6 is not set
+-CONFIG_BT=m
+-CONFIG_BT_RFCOMM=m
+-CONFIG_BT_RFCOMM_TTY=y
+-CONFIG_BT_BNEP=m
+-CONFIG_BT_HCIUART=m
+-CONFIG_BT_HCIUART_H4=y
+-CONFIG_PCCARD=y
+-CONFIG_MTD=y
+-CONFIG_MTD_BLOCK=y
+-CONFIG_MTD_CFI=y
+-CONFIG_MTD_CFI_ADV_OPTIONS=y
+-CONFIG_MTD_CFI_GEOMETRY=y
+-# CONFIG_MTD_MAP_BANK_WIDTH_1 is not set
+-# CONFIG_MTD_MAP_BANK_WIDTH_4 is not set
+-# CONFIG_MTD_CFI_I2 is not set
+-CONFIG_MTD_CFI_INTELEXT=y
+-CONFIG_MTD_COMPLEX_MAPPINGS=y
+-CONFIG_MTD_PXA2XX=y
+-CONFIG_BLK_DEV_LOOP=m
+-CONFIG_BLK_DEV_SD=m
+-# CONFIG_BLK_DEV_BSG is not set
+-CONFIG_ATA=m
+-CONFIG_PATA_PCMCIA=m
+-CONFIG_NETDEVICES=y
+-CONFIG_SMC91X=m
+-# CONFIG_LEGACY_PTYS is not set
+-CONFIG_SERIAL_PXA=y
+-CONFIG_SERIAL_PXA_CONSOLE=y
+-# CONFIG_HW_RANDOM is not set
+-# CONFIG_HWMON is not set
+-CONFIG_WATCHDOG=y
+-CONFIG_SA1100_WATCHDOG=m
+-CONFIG_FB=y
+-CONFIG_FB_MODE_HELPERS=y
+-CONFIG_FB_TILEBLITTING=y
+-CONFIG_FB_PXA=y
+-CONFIG_FB_PXA_PARAMETERS=y
+-CONFIG_FB_MBX=m
+-CONFIG_FB_VIRTUAL=m
+-# CONFIG_VGA_CONSOLE is not set
+-CONFIG_SOUND=m
+-CONFIG_SND=m
+-CONFIG_SND_MIXER_OSS=m
+-CONFIG_SND_PCM_OSS=m
+-# CONFIG_SND_VERBOSE_PROCFS is not set
+-CONFIG_SND_PXA2XX_AC97=m
+-CONFIG_USB_GADGET=y
+-CONFIG_USB_ETH=m
+-CONFIG_MMC=y
+-CONFIG_MMC_PXA=y
+-# CONFIG_DNOTIFY is not set
+-CONFIG_VFAT_FS=y
+-CONFIG_JFFS2_FS=y
+-CONFIG_JFFS2_COMPRESSION_OPTIONS=y
+-CONFIG_JFFS2_RUBIN=y
+-CONFIG_NLS_CODEPAGE_437=y
+-CONFIG_NLS_ISO8859_1=y
+-CONFIG_DEBUG_KERNEL=y
+-# CONFIG_DETECT_SOFTLOCKUP is not set
+-CONFIG_CRYPTO=y
+-CONFIG_CRYPTO_CBC=m
+-CONFIG_CRYPTO_ECB=m
+-CONFIG_CRYPTO_ARC4=m
+-# CONFIG_DEBUG_BUGVERBOSE is not set
+-# CONFIG_DEBUG_PREEMPT is not set
+-CONFIG_DEBUG_USER=y
+diff --git a/arch/arm/configs/spitz_defconfig b/arch/arm/configs/spitz_defconfig
+deleted file mode 100644
+index c7cf089001bf..000000000000
+--- a/arch/arm/configs/spitz_defconfig
++++ /dev/null
+@@ -1,237 +0,0 @@
+-CONFIG_SYSVIPC=y
+-CONFIG_PREEMPT=y
+-CONFIG_BSD_PROCESS_ACCT=y
+-CONFIG_LOG_BUF_SHIFT=14
+-# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+-CONFIG_EXPERT=y
+-CONFIG_PROFILING=y
+-# CONFIG_ARCH_MULTI_V7 is not set
+-CONFIG_ARCH_PXA=y
+-CONFIG_PXA_SHARPSL=y
+-CONFIG_MACH_AKITA=y
+-CONFIG_MACH_BORZOI=y
+-CONFIG_ATAGS=y
+-CONFIG_CMDLINE="console=ttyS0,115200n8 console=tty1 noinitrd root=/dev/mtdblock2 rootfstype=jffs2   debug"
+-CONFIG_MODULES=y
+-CONFIG_MODULE_UNLOAD=y
+-CONFIG_MODULE_FORCE_UNLOAD=y
+-CONFIG_PARTITION_ADVANCED=y
+-CONFIG_BINFMT_MISC=m
+-CONFIG_PM=y
 -CONFIG_NET=y
 -CONFIG_PACKET=y
 -CONFIG_UNIX=y
 -CONFIG_INET=y
--CONFIG_IP_MULTICAST=y
--# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
--# CONFIG_INET_XFRM_MODE_TUNNEL is not set
--# CONFIG_INET_XFRM_MODE_BEET is not set
--# CONFIG_INET6_XFRM_MODE_TRANSPORT is not set
--# CONFIG_INET6_XFRM_MODE_TUNNEL is not set
--# CONFIG_INET6_XFRM_MODE_BEET is not set
--CONFIG_PARPORT=y
--CONFIG_PARPORT_PC=y
--CONFIG_PARPORT_PC_FIFO=y
--CONFIG_BLK_DEV_FD=y
--CONFIG_BLK_DEV_LOOP=m
--CONFIG_BLK_DEV_RAM=y
+-CONFIG_SYN_COOKIES=y
+-CONFIG_INET6_AH=m
+-CONFIG_INET6_ESP=m
+-CONFIG_INET6_IPCOMP=m
+-CONFIG_IPV6_TUNNEL=m
+-CONFIG_NETFILTER=y
+-CONFIG_IP_NF_IPTABLES=m
+-CONFIG_IP_NF_MATCH_ADDRTYPE=m
+-CONFIG_IP_NF_MATCH_ECN=m
+-CONFIG_IP_NF_MATCH_TTL=m
+-CONFIG_IP_NF_FILTER=m
+-CONFIG_IP_NF_TARGET_LOG=m
+-CONFIG_IP_NF_MANGLE=m
+-CONFIG_IP_NF_RAW=m
+-CONFIG_IP_NF_ARPTABLES=m
+-CONFIG_IP_NF_ARPFILTER=m
+-CONFIG_IP_NF_ARP_MANGLE=m
+-CONFIG_IP6_NF_IPTABLES=m
+-CONFIG_IP6_NF_MATCH_EUI64=m
+-CONFIG_IP6_NF_MATCH_FRAG=m
+-CONFIG_IP6_NF_MATCH_OPTS=m
+-CONFIG_IP6_NF_MATCH_HL=m
+-CONFIG_IP6_NF_MATCH_IPV6HEADER=m
+-CONFIG_IP6_NF_MATCH_RT=m
+-CONFIG_IP6_NF_FILTER=m
+-CONFIG_IP6_NF_MANGLE=m
+-CONFIG_IP6_NF_RAW=m
+-CONFIG_BT=m
+-CONFIG_BT_RFCOMM=m
+-CONFIG_BT_RFCOMM_TTY=y
+-CONFIG_BT_BNEP=m
+-CONFIG_BT_BNEP_MC_FILTER=y
+-CONFIG_BT_BNEP_PROTO_FILTER=y
+-CONFIG_BT_HIDP=m
+-CONFIG_BT_HCIUART=m
+-CONFIG_BT_HCIUART_H4=y
+-CONFIG_BT_HCIUART_BCSP=y
+-CONFIG_BT_HCIBCM203X=m
+-CONFIG_BT_HCIBPA10X=m
+-CONFIG_BT_HCIBFUSB=m
+-CONFIG_BT_HCIBTUART=m
+-CONFIG_BT_HCIVHCI=m
+-CONFIG_PCCARD=y
+-CONFIG_PCMCIA_PXA2XX=y
+-CONFIG_MTD=y
+-CONFIG_MTD_CMDLINE_PARTS=y
+-CONFIG_MTD_BLOCK=y
+-CONFIG_MTD_ROM=y
+-CONFIG_MTD_COMPLEX_MAPPINGS=y
+-CONFIG_MTD_RAW_NAND=y
+-CONFIG_MTD_NAND_SHARPSL=y
+-CONFIG_BLK_DEV_LOOP=y
 -CONFIG_BLK_DEV_SD=y
 -CONFIG_CHR_DEV_ST=m
--CONFIG_BLK_DEV_SR=y
--CONFIG_CHR_DEV_SG=y
+-CONFIG_CHR_DEV_OSST=m
+-CONFIG_BLK_DEV_SR=m
+-CONFIG_CHR_DEV_SG=m
 -# CONFIG_BLK_DEV_BSG is not set
--CONFIG_SCSI_CONSTANTS=y
--CONFIG_SCSI_LOGGING=y
--CONFIG_SCSI_ARXESCSI=m
--CONFIG_SCSI_CUMANA_2=m
--CONFIG_SCSI_EESOXSCSI=m
--CONFIG_SCSI_POWERTECSCSI=y
--CONFIG_SCSI_CUMANA_1=m
--CONFIG_SCSI_OAK1=m
 -CONFIG_ATA=y
--CONFIG_PATA_ICSIDE=y
--CONFIG_PATA_PLATFORM=y
+-CONFIG_PATA_PCMCIA=y
 -CONFIG_NETDEVICES=y
--CONFIG_ARM_ETHER1=y
--CONFIG_ARM_ETHER3=y
--CONFIG_ARM_ETHERH=y
+-CONFIG_PCMCIA_PCNET=m
 -CONFIG_PPP=m
--CONFIG_PPPOE=m
+-CONFIG_PPP_BSDCOMP=m
+-CONFIG_PPP_ASYNC=m
+-CONFIG_USB_CATC=m
+-CONFIG_USB_KAWETH=m
+-CONFIG_USB_PEGASUS=m
+-CONFIG_USB_RTL8150=m
+-CONFIG_USB_USBNET=m
+-# CONFIG_USB_NET_CDC_SUBSET is not set
+-CONFIG_NET_PCMCIA=y
+-CONFIG_INPUT_FF_MEMLESS=m
+-# CONFIG_INPUT_MOUSEDEV is not set
 -CONFIG_INPUT_EVDEV=y
--# CONFIG_MOUSE_PS2 is not set
--CONFIG_MOUSE_RISCPC=y
--# CONFIG_SERIO_SERPORT is not set
--CONFIG_LEGACY_PTY_COUNT=64
--CONFIG_SERIAL_8250=y
--CONFIG_SERIAL_8250_CONSOLE=y
--CONFIG_SERIAL_8250_NR_UARTS=16
--CONFIG_SERIAL_8250_RUNTIME_UARTS=8
--CONFIG_SERIAL_8250_ACORN=y
--CONFIG_PRINTER=m
--# CONFIG_HW_RANDOM is not set
--CONFIG_I2C=y
--CONFIG_I2C_CHARDEV=y
--# CONFIG_HWMON is not set
+-# CONFIG_KEYBOARD_ATKBD is not set
+-# CONFIG_INPUT_MOUSE is not set
+-CONFIG_INPUT_TOUCHSCREEN=y
+-CONFIG_TOUCHSCREEN_ADS7846=y
+-CONFIG_INPUT_MISC=y
+-CONFIG_INPUT_UINPUT=m
+-# CONFIG_SERIO is not set
+-# CONFIG_LEGACY_PTYS is not set
+-CONFIG_SERIAL_8250=m
+-CONFIG_SERIAL_8250_CS=m
+-CONFIG_SERIAL_PXA=y
+-CONFIG_SERIAL_PXA_CONSOLE=y
+-CONFIG_SPI=y
+-CONFIG_SPI_PXA2XX=y
 -CONFIG_FB=y
--CONFIG_FB_ACORN=y
+-CONFIG_FB_PXA=y
+-CONFIG_LCD_CLASS_DEVICE=y
+-CONFIG_LCD_CORGI=y
+-CONFIG_BACKLIGHT_CLASS_DEVICE=y
+-# CONFIG_VGA_CONSOLE is not set
 -CONFIG_FRAMEBUFFER_CONSOLE=y
--CONFIG_LOGO=y
--CONFIG_SOUND=m
--CONFIG_SOUND_PRIME=m
--CONFIG_SOUND_OSS=m
--CONFIG_SOUND_VIDC=m
--# CONFIG_USB_SUPPORT is not set
--CONFIG_RTC_CLASS=y
--CONFIG_RTC_DRV_PCF8583=y
+-CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+-CONFIG_HID_A4TECH=m
+-CONFIG_HID_APPLE=m
+-CONFIG_HID_BELKIN=m
+-CONFIG_HID_CHERRY=m
+-CONFIG_HID_CHICONY=m
+-CONFIG_HID_CYPRESS=m
+-CONFIG_HID_EZKEY=m
+-CONFIG_HID_GYRATION=m
+-CONFIG_HID_LOGITECH=m
+-CONFIG_HID_MICROSOFT=m
+-CONFIG_HID_MONTEREY=m
+-CONFIG_HID_PANTHERLORD=m
+-CONFIG_HID_PETALYNX=m
+-CONFIG_HID_SAMSUNG=m
+-CONFIG_HID_SONY=m
+-CONFIG_HID_SUNPLUS=m
+-CONFIG_USB_KBD=m
+-CONFIG_USB_MOUSE=m
+-CONFIG_USB=m
+-CONFIG_USB_MON=m
+-CONFIG_USB_OHCI_HCD=m
+-CONFIG_USB_SL811_HCD=m
+-CONFIG_USB_SL811_CS=m
+-CONFIG_USB_ACM=m
+-CONFIG_USB_PRINTER=m
+-CONFIG_USB_STORAGE=m
+-CONFIG_USB_MDC800=m
+-CONFIG_USB_MICROTEK=m
+-CONFIG_USB_SERIAL=m
+-CONFIG_USB_SERIAL_GENERIC=y
+-CONFIG_USB_SERIAL_BELKIN=m
+-CONFIG_USB_SERIAL_DIGI_ACCELEPORT=m
+-CONFIG_USB_SERIAL_CYPRESS_M8=m
+-CONFIG_USB_SERIAL_EMPEG=m
+-CONFIG_USB_SERIAL_FTDI_SIO=m
+-CONFIG_USB_SERIAL_VISOR=m
+-CONFIG_USB_SERIAL_IPAQ=m
+-CONFIG_USB_SERIAL_IR=m
+-CONFIG_USB_SERIAL_EDGEPORT=m
+-CONFIG_USB_SERIAL_EDGEPORT_TI=m
+-CONFIG_USB_SERIAL_GARMIN=m
+-CONFIG_USB_SERIAL_IPW=m
+-CONFIG_USB_SERIAL_KEYSPAN_PDA=m
+-CONFIG_USB_SERIAL_KEYSPAN=m
+-CONFIG_USB_SERIAL_KLSI=m
+-CONFIG_USB_SERIAL_KOBIL_SCT=m
+-CONFIG_USB_SERIAL_MCT_U232=m
+-CONFIG_USB_SERIAL_PL2303=m
+-CONFIG_USB_SERIAL_SAFE=m
+-CONFIG_USB_SERIAL_TI=m
+-CONFIG_USB_SERIAL_CYBERJACK=m
+-CONFIG_USB_SERIAL_OMNINET=m
+-CONFIG_USB_EMI62=m
+-CONFIG_USB_EMI26=m
+-CONFIG_USB_LEGOTOWER=m
+-CONFIG_USB_LCD=m
+-CONFIG_USB_CYTHERM=m
+-CONFIG_USB_IDMOUSE=m
+-CONFIG_USB_GADGET=m
+-CONFIG_USB_GADGET_DUMMY_HCD=y
+-CONFIG_USB_ZERO=m
+-CONFIG_USB_ETH=m
+-CONFIG_USB_GADGETFS=m
+-CONFIG_USB_MASS_STORAGE=m
+-CONFIG_USB_G_SERIAL=m
+-CONFIG_MMC=y
+-CONFIG_MMC_PXA=y
 -CONFIG_EXT2_FS=y
+-CONFIG_EXT2_FS_XATTR=y
+-CONFIG_EXT2_FS_POSIX_ACL=y
+-CONFIG_EXT2_FS_SECURITY=y
 -CONFIG_EXT4_FS=y
--CONFIG_AUTOFS_FS=m
--CONFIG_ISO9660_FS=y
--CONFIG_JOLIET=y
--CONFIG_MSDOS_FS=m
--CONFIG_VFAT_FS=m
--CONFIG_ADFS_FS=y
--CONFIG_NFS_FS=y
--# CONFIG_ACORN_PARTITION_CUMANA is not set
--# CONFIG_ACORN_PARTITION_EESOX is not set
--CONFIG_NLS_CODEPAGE_437=m
--CONFIG_NLS_CODEPAGE_737=m
--CONFIG_NLS_CODEPAGE_775=m
--CONFIG_NLS_CODEPAGE_850=m
--CONFIG_NLS_CODEPAGE_852=m
--CONFIG_NLS_CODEPAGE_855=m
--CONFIG_NLS_CODEPAGE_857=m
--CONFIG_NLS_CODEPAGE_860=m
--CONFIG_NLS_CODEPAGE_861=m
--CONFIG_NLS_CODEPAGE_862=m
--CONFIG_NLS_CODEPAGE_863=m
--CONFIG_NLS_CODEPAGE_864=m
--CONFIG_NLS_CODEPAGE_865=m
--CONFIG_NLS_CODEPAGE_866=m
--CONFIG_NLS_CODEPAGE_869=m
--CONFIG_NLS_CODEPAGE_874=m
--CONFIG_NLS_ISO8859_8=m
--CONFIG_NLS_ASCII=y
--CONFIG_NLS_ISO8859_1=m
--CONFIG_NLS_ISO8859_2=m
--CONFIG_NLS_ISO8859_3=m
--CONFIG_NLS_ISO8859_4=m
--CONFIG_NLS_ISO8859_5=m
--CONFIG_NLS_ISO8859_6=m
--CONFIG_NLS_ISO8859_7=m
--CONFIG_NLS_ISO8859_9=m
--CONFIG_NLS_KOI8_R=m
--CONFIG_FONTS=y
--CONFIG_FONT_8x16=y
--CONFIG_FONT_ACORN_8x8=y
+-# CONFIG_EXT4_FS_XATTR is not set
+-CONFIG_MSDOS_FS=y
+-CONFIG_VFAT_FS=y
+-CONFIG_TMPFS=y
+-CONFIG_JFFS2_FS=y
+-CONFIG_JFFS2_SUMMARY=y
+-CONFIG_JFFS2_COMPRESSION_OPTIONS=y
+-CONFIG_JFFS2_RUBIN=y
+-CONFIG_CRAMFS=m
+-CONFIG_NFS_FS=m
+-CONFIG_NFS_V3=y
+-CONFIG_NFS_V4=y
+-CONFIG_SMB_FS=m
+-CONFIG_SMB_NLS_DEFAULT=y
+-CONFIG_NFS_V4=m
+-CONFIG_NLS_DEFAULT="cp437"
+-CONFIG_NLS_CODEPAGE_437=y
+-CONFIG_NLS_ISO8859_1=y
+-CONFIG_NLS_UTF8=y
 -CONFIG_DEBUG_KERNEL=y
+-CONFIG_CRYPTO_NULL=m
+-CONFIG_CRYPTO_BENCHMARK=m
+-CONFIG_CRYPTO_ECB=m
+-CONFIG_CRYPTO_SHA256=m
+-CONFIG_CRYPTO_AES=m
+-CONFIG_CRYPTO_ANUBIS=m
+-CONFIG_CRYPTO_ARC4=m
+-CONFIG_CRYPTO_BLOWFISH=m
+-CONFIG_CRYPTO_CAST5=m
+-CONFIG_CRYPTO_CAST6=m
+-CONFIG_CRYPTO_KHAZAD=m
+-CONFIG_CRYPTO_SERPENT=m
+-CONFIG_CRYPTO_TEA=m
+-CONFIG_CRYPTO_TWOFISH=m
+-CONFIG_CRYPTO_HMAC=y
+-CONFIG_CRYPTO_MD4=m
+-CONFIG_CRYPTO_SHA512=m
+-CONFIG_CRYPTO_WP512=m
+-CONFIG_FONTS=y
+-CONFIG_FONT_8x8=y
+-CONFIG_FONT_8x16=y
 -CONFIG_MAGIC_SYSRQ=y
--CONFIG_DEBUG_USER=y
--CONFIG_DEBUG_LL=y
--CONFIG_DEBUG_LL_UART_8250=y
-diff --git a/arch/arm/include/asm/ecard.h b/arch/arm/include/asm/ecard.h
+-# CONFIG_DEBUG_PREEMPT is not set
+-# CONFIG_FTRACE is not set
+diff --git a/arch/arm/include/asm/hardware/scoop.h b/arch/arm/include/asm/hardware/scoop.h
 deleted file mode 100644
-index 7cbe001bf9cc..000000000000
---- a/arch/arm/include/asm/ecard.h
+index 505453315287..000000000000
+--- a/arch/arm/include/asm/hardware/scoop.h
 +++ /dev/null
-@@ -1,219 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * arch/arm/include/asm/ecard.h
-- *
-- * definitions for expansion cards
-- *
-- * This is a new system as from Linux 1.2.3
-- *
-- * Changelog:
-- *  11-12-1996	RMK	Further minor improvements
-- *  12-09-1997	RMK	Added interrupt enable/disable for card level
-- *
-- * Reference: Acorns Risc OS 3 Programmers Reference Manuals.
-- */
--
--#ifndef __ASM_ECARD_H
--#define __ASM_ECARD_H
--
--/*
-- * Currently understood cards (but not necessarily
-- * supported):
-- *                        Manufacturer  Product ID
-- */
--#define MANU_ACORN		0x0000
--#define PROD_ACORN_SCSI			0x0002
--#define PROD_ACORN_ETHER1		0x0003
--#define PROD_ACORN_MFM			0x000b
--
--#define MANU_ANT2		0x0011
--#define PROD_ANT_ETHER3			0x00a4
--
--#define MANU_ATOMWIDE		0x0017
--#define PROD_ATOMWIDE_3PSERIAL		0x0090
--
--#define MANU_IRLAM_INSTRUMENTS	0x001f
--#define MANU_IRLAM_INSTRUMENTS_ETHERN	0x5678
--
--#define MANU_OAK		0x0021
--#define PROD_OAK_SCSI			0x0058
--
--#define MANU_MORLEY		0x002b
--#define PROD_MORLEY_SCSI_UNCACHED	0x0067
--
--#define MANU_CUMANA		0x003a
--#define PROD_CUMANA_SCSI_2		0x003a
--#define PROD_CUMANA_SCSI_1		0x00a0
--
--#define MANU_ICS		0x003c
--#define PROD_ICS_IDE			0x00ae
--
--#define MANU_ICS2		0x003d
--#define PROD_ICS2_IDE			0x00ae
--
--#define MANU_SERPORT		0x003f
--#define PROD_SERPORT_DSPORT		0x00b9
--
--#define MANU_ARXE		0x0041
--#define PROD_ARXE_SCSI			0x00be
--
--#define MANU_I3			0x0046
--#define PROD_I3_ETHERLAN500		0x00d4
--#define PROD_I3_ETHERLAN600		0x00ec
--#define PROD_I3_ETHERLAN600A		0x011e
--
--#define MANU_ANT		0x0053
--#define PROD_ANT_ETHERM			0x00d8
--#define PROD_ANT_ETHERB			0x00e4
--
--#define MANU_ALSYSTEMS		0x005b
--#define PROD_ALSYS_SCSIATAPI		0x0107
--
--#define MANU_MCS		0x0063
--#define PROD_MCS_CONNECT32		0x0125
--
--#define MANU_EESOX		0x0064
--#define PROD_EESOX_SCSI2		0x008c
--
--#define MANU_YELLOWSTONE	0x0096
--#define PROD_YELLOWSTONE_RAPIDE32	0x0120
--
--#ifdef ECARD_C
--#define CONST
--#else
--#define CONST const
--#endif
--
--#define MAX_ECARDS	9
--
--struct ecard_id {			/* Card ID structure		*/
--	unsigned short	manufacturer;
--	unsigned short	product;
--	void		*data;
--};
--
--struct in_ecid {			/* Packed card ID information	*/
--	unsigned short	product;	/* Product code			*/
--	unsigned short	manufacturer;	/* Manufacturer code		*/
--	unsigned char	id:4;		/* Simple ID			*/
--	unsigned char	cd:1;		/* Chunk dir present		*/
--	unsigned char	is:1;		/* Interrupt status pointers	*/
--	unsigned char	w:2;		/* Width			*/
--	unsigned char	country;	/* Country			*/
--	unsigned char	irqmask;	/* IRQ mask			*/
--	unsigned char	fiqmask;	/* FIQ mask			*/
--	unsigned long	irqoff;		/* IRQ offset			*/
--	unsigned long	fiqoff;		/* FIQ offset			*/
--};
--
--typedef struct expansion_card ecard_t;
--typedef unsigned long *loader_t;
--
--typedef struct expansion_card_ops {	/* Card handler routines	*/
--	void (*irqenable)(ecard_t *ec, int irqnr);
--	void (*irqdisable)(ecard_t *ec, int irqnr);
--	int  (*irqpending)(ecard_t *ec);
--	void (*fiqenable)(ecard_t *ec, int fiqnr);
--	void (*fiqdisable)(ecard_t *ec, int fiqnr);
--	int  (*fiqpending)(ecard_t *ec);
--} expansioncard_ops_t;
--
--#define ECARD_NUM_RESOURCES	(6)
--
--#define ECARD_RES_IOCSLOW	(0)
--#define ECARD_RES_IOCMEDIUM	(1)
--#define ECARD_RES_IOCFAST	(2)
--#define ECARD_RES_IOCSYNC	(3)
--#define ECARD_RES_MEMC		(4)
--#define ECARD_RES_EASI		(5)
--
--#define ecard_resource_start(ec,nr)	((ec)->resource[nr].start)
--#define ecard_resource_end(ec,nr)	((ec)->resource[nr].end)
--#define ecard_resource_len(ec,nr)	((ec)->resource[nr].end - \
--					 (ec)->resource[nr].start + 1)
--#define ecard_resource_flags(ec,nr)	((ec)->resource[nr].flags)
--
--/*
-- * This contains all the info needed on an expansion card
-- */
--struct expansion_card {
--	struct expansion_card  *next;
--
--	struct device		dev;
--	struct resource		resource[ECARD_NUM_RESOURCES];
--
--	/* Public data */
--	void __iomem		*irqaddr;	/* address of IRQ register	*/
--	void __iomem		*fiqaddr;	/* address of FIQ register	*/
--	unsigned char		irqmask;	/* IRQ mask			*/
--	unsigned char		fiqmask;	/* FIQ mask			*/
--	unsigned char  		claimed;	/* Card claimed?		*/
--	unsigned char		easi;		/* EASI card			*/
--
--	void			*irq_data;	/* Data for use for IRQ by card	*/
--	void			*fiq_data;	/* Data for use for FIQ by card	*/
--	const expansioncard_ops_t *ops;		/* Enable/Disable Ops for card	*/
--
--	CONST unsigned int	slot_no;	/* Slot number			*/
--	CONST unsigned int	dma;		/* DMA number (for request_dma)	*/
--	CONST unsigned int	irq;		/* IRQ number (for request_irq)	*/
--	CONST unsigned int	fiq;		/* FIQ number (for request_irq)	*/
--	CONST struct in_ecid	cid;		/* Card Identification		*/
--
--	/* Private internal data */
--	const char		*card_desc;	/* Card description		*/
--	CONST loader_t		loader;		/* loader program */
--	u64			dma_mask;
--};
--
--void ecard_setirq(struct expansion_card *ec, const struct expansion_card_ops *ops, void *irq_data);
--
--struct in_chunk_dir {
--	unsigned int start_offset;
--	union {
--		unsigned char string[256];
--		unsigned char data[1];
--	} d;
--};
--
--/*
-- * Read a chunk from an expansion card
-- * cd : where to put read data
-- * ec : expansion card info struct
-- * id : id number to find
-- * num: (n+1)'th id to find.
-- */
--extern int ecard_readchunk (struct in_chunk_dir *cd, struct expansion_card *ec, int id, int num);
--
--/*
-- * Request and release ecard resources
-- */
--extern int ecard_request_resources(struct expansion_card *ec);
--extern void ecard_release_resources(struct expansion_card *ec);
--
--void __iomem *ecardm_iomap(struct expansion_card *ec, unsigned int res,
--			   unsigned long offset, unsigned long maxsize);
--#define ecardm_iounmap(__ec, __addr)	devm_iounmap(&(__ec)->dev, __addr)
--
--extern const struct bus_type ecard_bus_type;
--
--#define ECARD_DEV(_d)	container_of((_d), struct expansion_card, dev)
--
--struct ecard_driver {
--	int			(*probe)(struct expansion_card *, const struct ecard_id *id);
--	void			(*remove)(struct expansion_card *);
--	void			(*shutdown)(struct expansion_card *);
--	const struct ecard_id	*id_table;
--	unsigned int		id;
--	struct device_driver	drv;
--};
--
--#define ECARD_DRV(_d)	container_of((_d), struct ecard_driver, drv)
--
--#define ecard_set_drvdata(ec,data)	dev_set_drvdata(&(ec)->dev, (data))
--#define ecard_get_drvdata(ec)		dev_get_drvdata(&(ec)->dev)
--
--int ecard_register_driver(struct ecard_driver *);
--void ecard_remove_driver(struct ecard_driver *);
--
--#endif
-diff --git a/arch/arm/include/asm/hardware/ioc.h b/arch/arm/include/asm/hardware/ioc.h
-deleted file mode 100644
-index 6edd27fcd048..000000000000
---- a/arch/arm/include/asm/hardware/ioc.h
-+++ /dev/null
-@@ -1,69 +0,0 @@
+@@ -1,67 +0,0 @@
 -/* SPDX-License-Identifier: GPL-2.0-only */
 -/*
-- *  arch/arm/include/asm/hardware/ioc.h
+- *  Definitions for the SCOOP interface found on various Sharp PDAs
 - *
-- *  Copyright (C) Russell King
-- *
-- *  Use these macros to read/write the IOC.  All it does is perform the actual
-- *  read/write.
+- *  Copyright (c) 2004 Richard Purdie
 - */
--#ifndef __ASMARM_HARDWARE_IOC_H
--#define __ASMARM_HARDWARE_IOC_H
 -
--#ifndef __ASSEMBLY__
+-#define SCOOP_MCR  0x00
+-#define SCOOP_CDR  0x04
+-#define SCOOP_CSR  0x08
+-#define SCOOP_CPR  0x0C
+-#define SCOOP_CCR  0x10
+-#define SCOOP_IRR  0x14
+-#define SCOOP_IRM  0x14
+-#define SCOOP_IMR  0x18
+-#define SCOOP_ISR  0x1C
+-#define SCOOP_GPCR 0x20
+-#define SCOOP_GPWR 0x24
+-#define SCOOP_GPRR 0x28
 -
--/*
-- * We use __raw_base variants here so that we give the compiler the
-- * chance to keep IOC_BASE in a register.
-- */
--#define ioc_readb(off)		__raw_readb(IOC_BASE + (off))
--#define ioc_writeb(val,off)	__raw_writeb(val, IOC_BASE + (off))
+-#define SCOOP_CPR_OUT	(1 << 7)
+-#define SCOOP_CPR_SD_3V	(1 << 2)
+-#define SCOOP_CPR_CF_XV	(1 << 1)
+-#define SCOOP_CPR_CF_3V	(1 << 0)
 -
--#endif
+-#define SCOOP_GPCR_PA22	(1 << 12)
+-#define SCOOP_GPCR_PA21	(1 << 11)
+-#define SCOOP_GPCR_PA20	(1 << 10)
+-#define SCOOP_GPCR_PA19	(1 << 9)
+-#define SCOOP_GPCR_PA18	(1 << 8)
+-#define SCOOP_GPCR_PA17	(1 << 7)
+-#define SCOOP_GPCR_PA16	(1 << 6)
+-#define SCOOP_GPCR_PA15	(1 << 5)
+-#define SCOOP_GPCR_PA14	(1 << 4)
+-#define SCOOP_GPCR_PA13	(1 << 3)
+-#define SCOOP_GPCR_PA12	(1 << 2)
+-#define SCOOP_GPCR_PA11	(1 << 1)
 -
--#define IOC_CONTROL	(0x00)
--#define IOC_KARTTX	(0x04)
--#define IOC_KARTRX	(0x04)
+-struct scoop_config {
+-	unsigned short io_out;
+-	unsigned short io_dir;
+-	unsigned short suspend_clr;
+-	unsigned short suspend_set;
+-	int gpio_base;
+-};
 -
--#define IOC_IRQSTATA	(0x10)
--#define IOC_IRQREQA	(0x14)
--#define IOC_IRQCLRA	(0x14)
--#define IOC_IRQMASKA	(0x18)
+-/* Structure for linking scoop devices to PCMCIA sockets */
+-struct scoop_pcmcia_dev {
+-	struct device *dev;     /* Pointer to this socket's scoop device */
+-	int	irq;                /* irq for socket */
+-	int cd_irq;
+-	const char *cd_irq_str;
+-	unsigned char keep_vs;
+-	unsigned char keep_rd;
+-};
 -
--#define IOC_IRQSTATB	(0x20)
--#define IOC_IRQREQB	(0x24)
--#define IOC_IRQMASKB	(0x28)
+-struct scoop_pcmcia_config {
+-	struct scoop_pcmcia_dev *devs;
+-	int num_devs;
+-	void (*power_ctrl)(struct device *scoop, unsigned short cpr, int nr);
+-};
 -
--#define IOC_FIQSTAT	(0x30)
--#define IOC_FIQREQ	(0x34)
--#define IOC_FIQMASK	(0x38)
+-extern struct scoop_pcmcia_config *platform_scoop_config;
 -
--#define IOC_T0CNTL	(0x40)
--#define IOC_T0LTCHL	(0x40)
--#define IOC_T0CNTH	(0x44)
--#define IOC_T0LTCHH	(0x44)
--#define IOC_T0GO	(0x48)
--#define IOC_T0LATCH	(0x4c)
--
--#define IOC_T1CNTL	(0x50)
--#define IOC_T1LTCHL	(0x50)
--#define IOC_T1CNTH	(0x54)
--#define IOC_T1LTCHH	(0x54)
--#define IOC_T1GO	(0x58)
--#define IOC_T1LATCH	(0x5c)
--
--#define IOC_T2CNTL	(0x60)
--#define IOC_T2LTCHL	(0x60)
--#define IOC_T2CNTH	(0x64)
--#define IOC_T2LTCHH	(0x64)
--#define IOC_T2GO	(0x68)
--#define IOC_T2LATCH	(0x6c)
--
--#define IOC_T3CNTL	(0x70)
--#define IOC_T3LTCHL	(0x70)
--#define IOC_T3CNTH	(0x74)
--#define IOC_T3LTCHH	(0x74)
--#define IOC_T3GO	(0x78)
--#define IOC_T3LATCH	(0x7c)
--
--#endif
-diff --git a/arch/arm/include/asm/hardware/iomd.h b/arch/arm/include/asm/hardware/iomd.h
+-void reset_scoop(struct device *dev);
+-unsigned short read_scoop_reg(struct device *dev, unsigned short reg);
+-void write_scoop_reg(struct device *dev, unsigned short reg, unsigned short data);
+diff --git a/arch/arm/include/asm/mach/sharpsl_param.h b/arch/arm/include/asm/mach/sharpsl_param.h
 deleted file mode 100644
-index 53006ba5350f..000000000000
---- a/arch/arm/include/asm/hardware/iomd.h
+index 700a377c20bf..000000000000
+--- a/arch/arm/include/asm/mach/sharpsl_param.h
 +++ /dev/null
-@@ -1,182 +0,0 @@
+@@ -1,33 +0,0 @@
 -/* SPDX-License-Identifier: GPL-2.0-only */
 -/*
-- *  arch/arm/include/asm/hardware/iomd.h
+- * Hardware parameter area specific to Sharp SL series devices
 - *
-- *  Copyright (C) 1999 Russell King
+- * Copyright (c) 2005 Richard Purdie
 - *
-- *  This file contains information out the IOMD ASIC used in the
-- *  Acorn RiscPC and subsequently integrated into the CLPS7500 chips.
+- * Based on Sharp's 2.4 kernel patches
 - */
--#ifndef __ASMARM_HARDWARE_IOMD_H
--#define __ASMARM_HARDWARE_IOMD_H
+-
+-struct sharpsl_param_info {
+-  unsigned int comadj_keyword;
+-  unsigned int comadj;
+-
+-  unsigned int uuid_keyword;
+-  unsigned char uuid[16];
+-
+-  unsigned int touch_keyword;
+-  unsigned int touch_xp;
+-  unsigned int touch_yp;
+-  unsigned int touch_xd;
+-  unsigned int touch_yd;
+-
+-  unsigned int adadj_keyword;
+-  unsigned int adadj;
+-
+-  unsigned int phad_keyword;
+-  unsigned int phadadj;
+-} __attribute__((packed));
 -
 -
--#ifndef __ASSEMBLY__
+-extern struct sharpsl_param_info sharpsl_param;
+-extern void sharpsl_save_param(void);
 -
--/*
-- * We use __raw_base variants here so that we give the compiler the
-- * chance to keep IOC_BASE in a register.
-- */
--#define iomd_readb(off)		__raw_readb(IOMD_BASE + (off))
--#define iomd_readl(off)		__raw_readl(IOMD_BASE + (off))
--#define iomd_writeb(val,off)	__raw_writeb(val, IOMD_BASE + (off))
--#define iomd_writel(val,off)	__raw_writel(val, IOMD_BASE + (off))
--
--#endif
--
--#define IOMD_CONTROL	(0x000)
--#define IOMD_KARTTX	(0x004)
--#define IOMD_KARTRX	(0x004)
--#define IOMD_KCTRL	(0x008)
--
--#define IOMD_IRQSTATA	(0x010)
--#define IOMD_IRQREQA	(0x014)
--#define IOMD_IRQCLRA	(0x014)
--#define IOMD_IRQMASKA	(0x018)
--
--#define IOMD_IRQSTATB	(0x020)
--#define IOMD_IRQREQB	(0x024)
--#define IOMD_IRQMASKB	(0x028)
--
--#define IOMD_FIQSTAT	(0x030)
--#define IOMD_FIQREQ	(0x034)
--#define IOMD_FIQMASK	(0x038)
--
--#define IOMD_T0CNTL	(0x040)
--#define IOMD_T0LTCHL	(0x040)
--#define IOMD_T0CNTH	(0x044)
--#define IOMD_T0LTCHH	(0x044)
--#define IOMD_T0GO	(0x048)
--#define IOMD_T0LATCH	(0x04c)
--
--#define IOMD_T1CNTL	(0x050)
--#define IOMD_T1LTCHL	(0x050)
--#define IOMD_T1CNTH	(0x054)
--#define IOMD_T1LTCHH	(0x054)
--#define IOMD_T1GO	(0x058)
--#define IOMD_T1LATCH	(0x05c)
--
--#define IOMD_ROMCR0	(0x080)
--#define IOMD_ROMCR1	(0x084)
--#ifdef CONFIG_ARCH_RPC
--#define IOMD_DRAMCR	(0x088)
--#endif
--#define IOMD_REFCR	(0x08C)
--
--#define IOMD_FSIZE	(0x090)
--#define IOMD_ID0	(0x094)
--#define IOMD_ID1	(0x098)
--#define IOMD_VERSION	(0x09C)
--
--#ifdef CONFIG_ARCH_RPC
--#define IOMD_MOUSEX	(0x0A0)
--#define IOMD_MOUSEY	(0x0A4)
--#endif
--
--#ifdef CONFIG_ARCH_RPC
--#define IOMD_DMATCR	(0x0C0)
--#endif
--#define IOMD_IOTCR	(0x0C4)
--#define IOMD_ECTCR	(0x0C8)
--#ifdef CONFIG_ARCH_RPC
--#define IOMD_DMAEXT	(0x0CC)
--#endif
--
--#ifdef CONFIG_ARCH_RPC
--#define DMA_EXT_IO0	1
--#define DMA_EXT_IO1	2
--#define DMA_EXT_IO2	4
--#define DMA_EXT_IO3	8
--
--#define IOMD_IO0CURA	(0x100)
--#define IOMD_IO0ENDA	(0x104)
--#define IOMD_IO0CURB	(0x108)
--#define IOMD_IO0ENDB	(0x10C)
--#define IOMD_IO0CR	(0x110)
--#define IOMD_IO0ST	(0x114)
--
--#define IOMD_IO1CURA	(0x120)
--#define IOMD_IO1ENDA	(0x124)
--#define IOMD_IO1CURB	(0x128)
--#define IOMD_IO1ENDB	(0x12C)
--#define IOMD_IO1CR	(0x130)
--#define IOMD_IO1ST	(0x134)
--
--#define IOMD_IO2CURA	(0x140)
--#define IOMD_IO2ENDA	(0x144)
--#define IOMD_IO2CURB	(0x148)
--#define IOMD_IO2ENDB	(0x14C)
--#define IOMD_IO2CR	(0x150)
--#define IOMD_IO2ST	(0x154)
--
--#define IOMD_IO3CURA	(0x160)
--#define IOMD_IO3ENDA	(0x164)
--#define IOMD_IO3CURB	(0x168)
--#define IOMD_IO3ENDB	(0x16C)
--#define IOMD_IO3CR	(0x170)
--#define IOMD_IO3ST	(0x174)
--#endif
--
--#define IOMD_SD0CURA	(0x180)
--#define IOMD_SD0ENDA	(0x184)
--#define IOMD_SD0CURB	(0x188)
--#define IOMD_SD0ENDB	(0x18C)
--#define IOMD_SD0CR	(0x190)
--#define IOMD_SD0ST	(0x194)
--
--#ifdef CONFIG_ARCH_RPC
--#define IOMD_SD1CURA	(0x1A0)
--#define IOMD_SD1ENDA	(0x1A4)
--#define IOMD_SD1CURB	(0x1A8)
--#define IOMD_SD1ENDB	(0x1AC)
--#define IOMD_SD1CR	(0x1B0)
--#define IOMD_SD1ST	(0x1B4)
--#endif
--
--#define IOMD_CURSCUR	(0x1C0)
--#define IOMD_CURSINIT	(0x1C4)
--
--#define IOMD_VIDCUR	(0x1D0)
--#define IOMD_VIDEND	(0x1D4)
--#define IOMD_VIDSTART	(0x1D8)
--#define IOMD_VIDINIT	(0x1DC)
--#define IOMD_VIDCR	(0x1E0)
--
--#define IOMD_DMASTAT	(0x1F0)
--#define IOMD_DMAREQ	(0x1F4)
--#define IOMD_DMAMASK	(0x1F8)
--
--#define DMA_END_S	(1 << 31)
--#define DMA_END_L	(1 << 30)
--
--#define DMA_CR_C	0x80
--#define DMA_CR_D	0x40
--#define DMA_CR_E	0x20
--
--#define DMA_ST_OFL	4
--#define DMA_ST_INT	2
--#define DMA_ST_AB	1
--
--/*
-- * DMA (MEMC) compatibility
-- */
--#define HALF_SAM	vram_half_sam
--#define VDMA_ALIGNMENT	(HALF_SAM * 2)
--#define VDMA_XFERSIZE	(HALF_SAM)
--#define VDMA_INIT	IOMD_VIDINIT
--#define VDMA_START	IOMD_VIDSTART
--#define VDMA_END	IOMD_VIDEND
--
--#ifndef __ASSEMBLY__
--extern unsigned int vram_half_sam;
--#define video_set_dma(start,end,offset)				\
--do {								\
--	outl (SCREEN_START + start, VDMA_START);		\
--	outl (SCREEN_START + end - VDMA_XFERSIZE, VDMA_END);	\
--	if (offset >= end - VDMA_XFERSIZE)			\
--		offset |= 0x40000000;				\
--	outl (SCREEN_START + offset, VDMA_INIT);		\
--} while (0)
--#endif
--
--#endif
-diff --git a/arch/arm/include/asm/hardware/memc.h b/arch/arm/include/asm/hardware/memc.h
-deleted file mode 100644
-index 1d4ebe0a9678..000000000000
---- a/arch/arm/include/asm/hardware/memc.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  arch/arm/include/asm/hardware/memc.h
-- *
-- *  Copyright (C) Russell King.
-- */
--#define VDMA_ALIGNMENT	PAGE_SIZE
--#define VDMA_XFERSIZE	16
--#define VDMA_INIT	0
--#define VDMA_START	1
--#define VDMA_END	2
--
--#ifndef __ASSEMBLY__
--extern void memc_write(unsigned int reg, unsigned long val);
--
--#define video_set_dma(start,end,offset)				\
--do {								\
--	memc_write (VDMA_START, (start >> 2));			\
--	memc_write (VDMA_END, (end - VDMA_XFERSIZE) >> 2);	\
--	memc_write (VDMA_INIT, (offset >> 2));			\
--} while (0)
--
--#endif
-diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-index e6bd9e79737c..c3661af2ca2a 100644
---- a/arch/arm/include/asm/io.h
-+++ b/arch/arm/include/asm/io.h
-@@ -207,16 +207,13 @@ void __iomem *pci_remap_cfgspace(resource_size_t res_cookie, size_t size);
- /*
-  * Now, pick up the machine-defined IO definitions
-  */
--#ifdef CONFIG_NEED_MACH_IO_H
--#include <mach/io.h>
--#else
- #if IS_ENABLED(CONFIG_PCMCIA) || defined(CONFIG_PCI)
- #define IO_SPACE_LIMIT	((resource_size_t)0xfffff)
- #else
- #define IO_SPACE_LIMIT ((resource_size_t)0)
- #endif
-+
- #define __io(a)		__typesafe_io(PCI_IO_VIRT_BASE + ((a) & IO_SPACE_LIMIT))
--#endif
+diff --git a/arch/arm/mach-pxa/Kconfig b/arch/arm/mach-pxa/Kconfig
+index 2fb29b9ef744..354e3dc17776 100644
+--- a/arch/arm/mach-pxa/Kconfig
++++ b/arch/arm/mach-pxa/Kconfig
+@@ -50,77 +50,6 @@ config MACH_PXA3XX_DT
+ 	  the device tree. Needn't select any other machine while
+ 	  MACH_PXA3XX_DT is enabled.
  
- /*
-  *  IO port access primitives
-diff --git a/arch/arm/include/asm/memory.h b/arch/arm/include/asm/memory.h
-index 7c2fa7dcec6d..e10363ebdd1f 100644
---- a/arch/arm/include/asm/memory.h
-+++ b/arch/arm/include/asm/memory.h
-@@ -20,9 +20,6 @@
- #include <linux/types.h>
- #include <linux/sizes.h>
- 
--#ifdef CONFIG_NEED_MACH_MEMORY_H
--#include <mach/memory.h>
--#endif
- #include <asm/kasan_def.h>
- 
- /*
-diff --git a/arch/arm/kernel/head-common.S b/arch/arm/kernel/head-common.S
-index 42cae73fcc19..3cbbcdb63f7d 100644
---- a/arch/arm/kernel/head-common.S
-+++ b/arch/arm/kernel/head-common.S
-@@ -221,19 +221,6 @@ str_p2:	.asciz	").\n"
- ENDPROC(__error_p)
- 
- __error:
--#ifdef CONFIG_ARCH_RPC
--/*
-- * Turn the screen red on a error - RiscPC only.
-- */
--	mov	r0, #0x02000000
--	mov	r3, #0x11
--	orr	r3, r3, r3, lsl #8
--	orr	r3, r3, r3, lsl #16
--	str	r3, [r0], #4
--	str	r3, [r0], #4
--	str	r3, [r0], #4
--	str	r3, [r0], #4
--#endif
- 1:	mov	r0, r0
- 	b	1b
- ENDPROC(__error)
-diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
-index b12fe41e579b..2ffaea2c4c9b 100644
---- a/arch/arm/kernel/head.S
-+++ b/arch/arm/kernel/head.S
-@@ -347,18 +347,6 @@ __create_page_tables:
- 	/* we don't need any serial debugging mappings */
- 	ldr	r7, [r10, #PROCINFO_IO_MMUFLAGS] @ io_mmuflags
- #endif
--#ifdef CONFIG_ARCH_RPC
--	/*
--	 * Map in screen at 0x02000000 & SCREEN2_BASE
--	 * Similar reasons here - for debug.  This is
--	 * only for Acorn RiscPC architectures.
--	 */
--	add	r0, r4, #0x02000000 >> (SECTION_SHIFT - PMD_ENTRY_ORDER)
--	orr	r3, r7, #0x02000000
--	str	r3, [r0]
--	add	r0, r4, #0xd8000000 >> (SECTION_SHIFT - PMD_ENTRY_ORDER)
--	str	r3, [r0]
--#endif
- #endif
- #ifdef CONFIG_ARM_LPAE
- 	sub	r4, r4, #0x1000		@ point to the PGD table
-diff --git a/arch/arm/lib/delay-loop.S b/arch/arm/lib/delay-loop.S
-index 33b08ca1c242..56f9eea56268 100644
---- a/arch/arm/lib/delay-loop.S
-+++ b/arch/arm/lib/delay-loop.S
-@@ -9,10 +9,6 @@
- #include <asm/assembler.h>
- #include <asm/delay.h>
- 
--#ifdef CONFIG_ARCH_RPC
--		.arch	armv4
--#endif
+-if ATAGS
 -
- 		.text
- 
- .LC0:		.word	loops_per_jiffy
-diff --git a/arch/arm/mach-rpc/Kconfig b/arch/arm/mach-rpc/Kconfig
-deleted file mode 100644
-index 60b3823b690c..000000000000
---- a/arch/arm/mach-rpc/Kconfig
-+++ /dev/null
-@@ -1,24 +0,0 @@
--config ARCH_RPC
--	bool "RiscPC (DEPRECATED)"
--	depends on ARCH_MULTI_V4 && !(ARCH_MULTI_V4T || ARCH_MULTI_V5)
--	depends on !(ARCH_FOOTBRIDGE || ARCH_SA1100 || ARCH_MOXART || ARCH_GEMINI)
--	depends on !CC_IS_CLANG && GCC_VERSION < 90100 && GCC_VERSION >= 60000
--	depends on CPU_LITTLE_ENDIAN
--	depends on ATAGS
--	depends on MMU
--	select ARCH_ACORN
--	select ARCH_MAY_HAVE_PC_FDC
--	select CPU_SA110
--	select FIQ
--	select HAVE_PATA_PLATFORM
--	select ISA_DMA_API
--	select LEGACY_TIMER_TICK
--	select NEED_MACH_IO_H
--	select NEED_MACH_MEMORY_H
--	select NO_IOPORT_MAP
+-comment "Legacy board files"
+-
+-config ARCH_GUMSTIX
+-	bool "Gumstix XScale 255 boards (DEPRECATED)"
+-	select PXA25x
 -	help
--	  On the Acorn Risc-PC, Linux can support the internal IDE disk and
--	  CD-ROM interface, serial and parallel port, and the floppy drive.
+-	  Say Y here if you intend to run this kernel on
+-	  Basix, Connex, ws-200ax, ws-400ax systems
 -
--	  Support for these machines will go away in 2027,
--	  unless there are any remaining users that speak up.
-diff --git a/arch/arm/mach-rpc/Makefile b/arch/arm/mach-rpc/Makefile
+-	  Support for this machine will go away in early 2027,
+-	  unless it gets converted to device tree.
+-
+-choice
+-	prompt "Gumstix Carrier/Expansion Board"
+-	depends on ARCH_GUMSTIX
+-
+-config GUMSTIX_AM200EPD
+-	bool "Enable AM200EPD board support"
+-
+-config GUMSTIX_AM300EPD
+-	bool "Enable AM300EPD board support"
+-
+-endchoice
+-
+-config PXA_SHARPSL
+-	bool "SHARP Zaurus SL-5600, SL-C7xx and SL-Cxx00 Models (DEPRECATED)"
+-	select SHARP_PARAM
+-	select SHARP_SCOOP
+-	help
+-	  Say Y here if you intend to run this kernel on a
+-	  Sharp Zaurus SL-5600 (Poodle), SL-C700 (Corgi),
+-	  SL-C750 (Shepherd), SL-C760 (Husky), SL-C1000 (Akita),
+-	  SL-C3000 (Spitz), SL-C3100 (Borzoi) or SL-C6000x (Tosa)
+-	  handheld computer.
+-
+-	  Support for these machines will go away in early 2027,
+-	  unless they get converted to device tree.
+-
+-config PXA_SHARPSL_DETECT_MACH_ID
+-	bool "Detect machine ID at run-time in the decompressor"
+-	depends on PXA_SHARPSL
+-	help
+-	  Say Y here if you want the zImage decompressor to detect
+-	  the Zaurus machine ID at run-time. For latest kexec-based
+-	  boot loader, this is not necessary.
+-
+-config MACH_AKITA
+-	bool "Enable Sharp SL-1000 (Akita) Support"
+-	depends on PXA_SHARPSL
+-	select I2C
+-	select I2C_PXA
+-	select MACH_SPITZ
+-	select PXA27x
+-	select PXA_SHARP_Cxx00
+-
+-config MACH_SPITZ
+-	bool "Enable Sharp Zaurus SL-3000 (Spitz) Support"
+-	depends on PXA_SHARPSL
+-	select PXA27x
+-	select PXA_SHARP_Cxx00
+-
+-config MACH_BORZOI
+-	bool "Enable Sharp Zaurus SL-3100 (Borzoi) Support"
+-	depends on PXA_SHARPSL
+-	select PXA27x
+-	select PXA_SHARP_Cxx00
+-
+-endif # ATAGS
+-
+ config PXA25x
+ 	bool
+ 	select CPU_XSCALE
+@@ -157,22 +86,4 @@ config CPU_PXA320
+ 	help
+ 	  PXA320 (codename Monahans-P)
+ 
+-config PXA_SHARP_Cxx00
+-	bool
+-	select SHARPSL_PM
+-	help
+-	  Enable common support for Sharp Cxx00 models
+-
+-config SHARPSL_PM
+-	bool
+-	select APM_EMULATION
+-	select SHARPSL_PM_MAX1111
+-
+-config SHARPSL_PM_MAX1111
+-	bool
+-	select HWMON
+-	select SENSORS_MAX1111
+-	select SPI
+-	select SPI_MASTER
+-
+ endif
+diff --git a/arch/arm/mach-pxa/Makefile b/arch/arm/mach-pxa/Makefile
+index faccdd356482..3bc3b2e56afe 100644
+--- a/arch/arm/mach-pxa/Makefile
++++ b/arch/arm/mach-pxa/Makefile
+@@ -22,11 +22,3 @@ obj-$(CONFIG_CPU_PXA320)	+= pxa320.o
+ obj-$(CONFIG_MACH_PXA25X_DT)	+= pxa-dt.o
+ obj-$(CONFIG_MACH_PXA27X_DT)	+= pxa-dt.o
+ obj-$(CONFIG_MACH_PXA3XX_DT)	+= pxa-dt.o
+-
+-# 3rd Party Dev Platforms
+-obj-$(CONFIG_ARCH_GUMSTIX)	+= gumstix.o
+-obj-$(CONFIG_GUMSTIX_AM200EPD)	+= am200epd.o
+-obj-$(CONFIG_GUMSTIX_AM300EPD)	+= am300epd.o
+-
+-# End-user Products
+-obj-$(CONFIG_PXA_SHARP_Cxx00)	+= spitz.o sharpsl_pm.o spitz_pm.o
+diff --git a/arch/arm/mach-pxa/am200epd.c b/arch/arm/mach-pxa/am200epd.c
 deleted file mode 100644
-index 90a645a18444..000000000000
---- a/arch/arm/mach-rpc/Makefile
+index 4814f3cfe775..000000000000
+--- a/arch/arm/mach-pxa/am200epd.c
 +++ /dev/null
-@@ -1,9 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0-only
--#
--# Makefile for the linux kernel.
--#
--
--# Object file lists.
--
--obj-y	:=dma.o ecard.o ecard-loader.o fiq.o floppydma.o io-acorn.o irq.o \
--	  riscpc.o time.o
-diff --git a/arch/arm/mach-rpc/dma.c b/arch/arm/mach-rpc/dma.c
-deleted file mode 100644
-index 50e0f97afd75..000000000000
---- a/arch/arm/mach-rpc/dma.c
-+++ /dev/null
-@@ -1,393 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
+@@ -1,395 +0,0 @@
 -/*
-- *  linux/arch/arm/mach-rpc/dma.c
+- * am200epd.c -- Platform device for AM200 EPD kit
 - *
-- *  Copyright (C) 1998 Russell King
+- * Copyright (C) 2008, Jaya Kumar
 - *
-- *  DMA functions specific to RiscPC architecture
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License. See the file COPYING in the main directory of this archive for
+- * more details.
+- *
+- * Layout is based on skeletonfb.c by James Simmons and Geert Uytterhoeven.
+- *
+- * This work was made possible by help and equipment support from E-Ink
+- * Corporation. http://support.eink.com/community
+- *
+- * This driver is written to be used with the Metronome display controller.
+- * on the AM200 EPD prototype kit/development kit with an E-Ink 800x600
+- * Vizplex EPD on a Gumstix board using the Lyre interface board.
+- *
 - */
--#include <linux/mman.h>
--#include <linux/init.h>
--#include <linux/interrupt.h>
--#include <linux/dma-mapping.h>
--#include <linux/io.h>
--
--#include <asm/page.h>
--#include <asm/dma.h>
--#include <asm/fiq.h>
--#include <asm/irq.h>
--#include <mach/hardware.h>
--#include <linux/uaccess.h>
--
--#include <asm/mach/dma.h>
--#include <asm/hardware/iomd.h>
--
--struct iomd_dma {
--	struct dma_struct	dma;
--	void __iomem		*base;		/* Controller base address */
--	int			irq;		/* Controller IRQ */
--	unsigned int		state;
--	dma_addr_t		cur_addr;
--	unsigned int		cur_len;
--	dma_addr_t		dma_addr;
--	unsigned int		dma_len;
--};
--
--#if 0
--typedef enum {
--	dma_size_8	= 1,
--	dma_size_16	= 2,
--	dma_size_32	= 4,
--	dma_size_128	= 16
--} dma_size_t;
--#endif
--
--#define TRANSFER_SIZE	2
--
--#define CURA	(0)
--#define ENDA	(IOMD_IO0ENDA - IOMD_IO0CURA)
--#define CURB	(IOMD_IO0CURB - IOMD_IO0CURA)
--#define ENDB	(IOMD_IO0ENDB - IOMD_IO0CURA)
--#define CR	(IOMD_IO0CR - IOMD_IO0CURA)
--#define ST	(IOMD_IO0ST - IOMD_IO0CURA)
--
--static void iomd_get_next_sg(struct iomd_dma *idma)
--{
--	unsigned long end, offset, flags = 0;
--
--	if (idma->dma.sg) {
--		idma->cur_addr = idma->dma_addr;
--		offset = idma->cur_addr & ~PAGE_MASK;
--
--		end = offset + idma->dma_len;
--
--		if (end > PAGE_SIZE)
--			end = PAGE_SIZE;
--
--		if (offset + TRANSFER_SIZE >= end)
--			flags |= DMA_END_L;
--
--		idma->cur_len = end - TRANSFER_SIZE;
--
--		idma->dma_len -= end - offset;
--		idma->dma_addr += end - offset;
--
--		if (idma->dma_len == 0) {
--			if (idma->dma.sgcount > 1) {
--				idma->dma.sg = sg_next(idma->dma.sg);
--				idma->dma_addr = idma->dma.sg->dma_address;
--				idma->dma_len = idma->dma.sg->length;
--				idma->dma.sgcount--;
--			} else {
--				idma->dma.sg = NULL;
--				flags |= DMA_END_S;
--			}
--		}
--	} else {
--		flags = DMA_END_S | DMA_END_L;
--		idma->cur_addr = 0;
--		idma->cur_len = 0;
--	}
--
--	idma->cur_len |= flags;
--}
--
--static irqreturn_t iomd_dma_handle(int irq, void *dev_id)
--{
--	struct iomd_dma *idma = dev_id;
--	void __iomem *base = idma->base;
--	unsigned int state = idma->state;
--	unsigned int status, cur, end;
--
--	do {
--		status = readb(base + ST);
--		if (!(status & DMA_ST_INT))
--			goto out;
--
--		if ((state ^ status) & DMA_ST_AB)
--			iomd_get_next_sg(idma);
--
--		// This efficiently implements state = OFL != AB ? AB : 0
--		state = ((status >> 2) ^ status) & DMA_ST_AB;
--		if (state) {
--			cur = CURA;
--			end = ENDA;
--		} else {
--			cur = CURB;
--			end = ENDB;
--		}
--		writel(idma->cur_addr, base + cur);
--		writel(idma->cur_len, base + end);
--
--		if (status & DMA_ST_OFL &&
--		    idma->cur_len == (DMA_END_S|DMA_END_L))
--			break;
--	} while (1);
--
--	state = ~DMA_ST_AB;
--	disable_irq_nosync(irq);
--out:
--	idma->state = state;
--	return IRQ_HANDLED;
--}
--
--static int iomd_request_dma(unsigned int chan, dma_t *dma)
--{
--	struct iomd_dma *idma = container_of(dma, struct iomd_dma, dma);
--
--	return request_irq(idma->irq, iomd_dma_handle,
--			   0, idma->dma.device_id, idma);
--}
--
--static void iomd_free_dma(unsigned int chan, dma_t *dma)
--{
--	struct iomd_dma *idma = container_of(dma, struct iomd_dma, dma);
--
--	free_irq(idma->irq, idma);
--}
--
--static struct device isa_dma_dev = {
--	.init_name		= "fallback device",
--	.coherent_dma_mask	= ~(dma_addr_t)0,
--	.dma_mask		= &isa_dma_dev.coherent_dma_mask,
--};
--
--static void iomd_enable_dma(unsigned int chan, dma_t *dma)
--{
--	struct iomd_dma *idma = container_of(dma, struct iomd_dma, dma);
--	void __iomem *base = idma->base;
--	unsigned int ctrl = TRANSFER_SIZE | DMA_CR_E;
--
--	if (idma->dma.invalid) {
--		idma->dma.invalid = 0;
--
--		/*
--		 * Cope with ISA-style drivers which expect cache
--		 * coherence.
--		 */
--		if (!idma->dma.sg) {
--			idma->dma.sg = &idma->dma.buf;
--			idma->dma.sgcount = 1;
--			idma->dma.buf.length = idma->dma.count;
--			idma->dma.buf.dma_address = dma_map_single(&isa_dma_dev,
--				idma->dma.addr, idma->dma.count,
--				idma->dma.dma_mode == DMA_MODE_READ ?
--				DMA_FROM_DEVICE : DMA_TO_DEVICE);
--		}
--
--		idma->dma_addr = idma->dma.sg->dma_address;
--		idma->dma_len = idma->dma.sg->length;
--
--		writeb(DMA_CR_C, base + CR);
--		idma->state = DMA_ST_AB;
--	}
--
--	if (idma->dma.dma_mode == DMA_MODE_READ)
--		ctrl |= DMA_CR_D;
--
--	writeb(ctrl, base + CR);
--	enable_irq(idma->irq);
--}
--
--static void iomd_disable_dma(unsigned int chan, dma_t *dma)
--{
--	struct iomd_dma *idma = container_of(dma, struct iomd_dma, dma);
--	void __iomem *base = idma->base;
--	unsigned long flags;
--
--	local_irq_save(flags);
--	if (idma->state != ~DMA_ST_AB)
--		disable_irq(idma->irq);
--	writeb(0, base + CR);
--	local_irq_restore(flags);
--}
--
--static int iomd_set_dma_speed(unsigned int chan, dma_t *dma, int cycle)
--{
--	int tcr, speed;
--
--	if (cycle < 188)
--		speed = 3;
--	else if (cycle <= 250)
--		speed = 2;
--	else if (cycle < 438)
--		speed = 1;
--	else
--		speed = 0;
--
--	tcr = iomd_readb(IOMD_DMATCR);
--	speed &= 3;
--
--	switch (chan) {
--	case DMA_0:
--		tcr = (tcr & ~0x03) | speed;
--		break;
--
--	case DMA_1:
--		tcr = (tcr & ~0x0c) | (speed << 2);
--		break;
--
--	case DMA_2:
--		tcr = (tcr & ~0x30) | (speed << 4);
--		break;
--
--	case DMA_3:
--		tcr = (tcr & ~0xc0) | (speed << 6);
--		break;
--
--	default:
--		break;
--	}
--
--	iomd_writeb(tcr, IOMD_DMATCR);
--
--	return speed;
--}
--
--static struct dma_ops iomd_dma_ops = {
--	.type		= "IOMD",
--	.request	= iomd_request_dma,
--	.free		= iomd_free_dma,
--	.enable		= iomd_enable_dma,
--	.disable	= iomd_disable_dma,
--	.setspeed	= iomd_set_dma_speed,
--};
--
--static struct fiq_handler fh = {
--	.name	= "floppydma"
--};
--
--struct floppy_dma {
--	struct dma_struct	dma;
--	unsigned int		fiq;
--};
--
--static void floppy_enable_dma(unsigned int chan, dma_t *dma)
--{
--	struct floppy_dma *fdma = container_of(dma, struct floppy_dma, dma);
--	void *fiqhandler_start;
--	unsigned int fiqhandler_length;
--	struct pt_regs regs;
--
--	if (fdma->dma.sg)
--		BUG();
--
--	if (fdma->dma.dma_mode == DMA_MODE_READ) {
--		extern unsigned char floppy_fiqin_start, floppy_fiqin_end;
--		fiqhandler_start = &floppy_fiqin_start;
--		fiqhandler_length = &floppy_fiqin_end - &floppy_fiqin_start;
--	} else {
--		extern unsigned char floppy_fiqout_start, floppy_fiqout_end;
--		fiqhandler_start = &floppy_fiqout_start;
--		fiqhandler_length = &floppy_fiqout_end - &floppy_fiqout_start;
--	}
--
--	regs.ARM_r9  = fdma->dma.count;
--	regs.ARM_r10 = (unsigned long)fdma->dma.addr;
--	regs.ARM_fp  = (unsigned long)FLOPPYDMA_BASE;
--
--	if (claim_fiq(&fh)) {
--		printk("floppydma: couldn't claim FIQ.\n");
--		return;
--	}
--
--	set_fiq_handler(fiqhandler_start, fiqhandler_length);
--	set_fiq_regs(&regs);
--	enable_fiq(fdma->fiq);
--}
--
--static void floppy_disable_dma(unsigned int chan, dma_t *dma)
--{
--	struct floppy_dma *fdma = container_of(dma, struct floppy_dma, dma);
--	disable_fiq(fdma->fiq);
--	release_fiq(&fh);
--}
--
--static int floppy_get_residue(unsigned int chan, dma_t *dma)
--{
--	struct pt_regs regs;
--	get_fiq_regs(&regs);
--	return regs.ARM_r9;
--}
--
--static struct dma_ops floppy_dma_ops = {
--	.type		= "FIQDMA",
--	.enable		= floppy_enable_dma,
--	.disable	= floppy_disable_dma,
--	.residue	= floppy_get_residue,
--};
--
--/*
-- * This is virtual DMA - we don't need anything here.
-- */
--static void sound_enable_disable_dma(unsigned int chan, dma_t *dma)
--{
--}
--
--static struct dma_ops sound_dma_ops = {
--	.type		= "VIRTUAL",
--	.enable		= sound_enable_disable_dma,
--	.disable	= sound_enable_disable_dma,
--};
--
--static struct iomd_dma iomd_dma[6];
--
--static struct floppy_dma floppy_dma = {
--	.dma		= {
--		.d_ops	= &floppy_dma_ops,
--	},
--	.fiq		= FIQ_FLOPPYDATA,
--};
--
--static dma_t sound_dma = {
--	.d_ops		= &sound_dma_ops,
--};
--
--static int __init rpc_dma_init(void)
--{
--	unsigned int i;
--	int ret;
--
--	iomd_writeb(0, IOMD_IO0CR);
--	iomd_writeb(0, IOMD_IO1CR);
--	iomd_writeb(0, IOMD_IO2CR);
--	iomd_writeb(0, IOMD_IO3CR);
--
--	iomd_writeb(0xa0, IOMD_DMATCR);
--
--	/*
--	 * Setup DMA channels 2,3 to be for podules
--	 * and channels 0,1 for internal devices
--	 */
--	iomd_writeb(DMA_EXT_IO3|DMA_EXT_IO2, IOMD_DMAEXT);
--
--	iomd_dma[DMA_0].base	= IOMD_BASE + IOMD_IO0CURA;
--	iomd_dma[DMA_0].irq	= IRQ_DMA0;
--	iomd_dma[DMA_1].base	= IOMD_BASE + IOMD_IO1CURA;
--	iomd_dma[DMA_1].irq	= IRQ_DMA1;
--	iomd_dma[DMA_2].base	= IOMD_BASE + IOMD_IO2CURA;
--	iomd_dma[DMA_2].irq	= IRQ_DMA2;
--	iomd_dma[DMA_3].base	= IOMD_BASE + IOMD_IO3CURA;
--	iomd_dma[DMA_3].irq	= IRQ_DMA3;
--	iomd_dma[DMA_S0].base	= IOMD_BASE + IOMD_SD0CURA;
--	iomd_dma[DMA_S0].irq	= IRQ_DMAS0;
--	iomd_dma[DMA_S1].base	= IOMD_BASE + IOMD_SD1CURA;
--	iomd_dma[DMA_S1].irq	= IRQ_DMAS1;
--
--	for (i = DMA_0; i <= DMA_S1; i++) {
--		iomd_dma[i].dma.d_ops = &iomd_dma_ops;
--
--		ret = isa_dma_add(i, &iomd_dma[i].dma);
--		if (ret)
--			printk("IOMDDMA%u: unable to register: %d\n", i, ret);
--	}
--
--	ret = isa_dma_add(DMA_VIRTUAL_FLOPPY, &floppy_dma.dma);
--	if (ret)
--		printk("IOMDFLOPPY: unable to register: %d\n", ret);
--	ret = isa_dma_add(DMA_VIRTUAL_SOUND, &sound_dma);
--	if (ret)
--		printk("IOMDSOUND: unable to register: %d\n", ret);
--	return 0;
--}
--core_initcall(rpc_dma_init);
-diff --git a/arch/arm/mach-rpc/ecard-loader.S b/arch/arm/mach-rpc/ecard-loader.S
-deleted file mode 100644
-index eb8ac0412da6..000000000000
---- a/arch/arm/mach-rpc/ecard-loader.S
-+++ /dev/null
-@@ -1,40 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  linux/arch/arm/lib/ecard.S
-- *
-- *  Copyright (C) 1995, 1996 Russell King
-- *
-- * 27/03/03 Ian Molton Clean up CONFIG_CPU
-- */
--#include <linux/linkage.h>
--#include <asm/assembler.h>
--
--#define CPSR2SPSR(rt) \
--		mrs	rt, cpsr; \
--		msr	spsr_cxsf, rt
--
--@ Purpose: call an expansion card loader to read bytes.
--@ Proto  : char read_loader(int offset, char *card_base, char *loader);
--@ Returns: byte read
--
--ENTRY(ecard_loader_read)
--		stmfd	sp!, {r4 - r12, lr}
--		mov	r11, r1
--		mov	r1, r0
--		CPSR2SPSR(r0)
--		mov	lr, pc
--		mov	pc, r2
--		ldmfd	sp!, {r4 - r12, pc}
--
--@ Purpose: call an expansion card loader to reset the card
--@ Proto  : void read_loader(int card_base, char *loader);
--@ Returns: byte read
--
--ENTRY(ecard_loader_reset)
--		stmfd	sp!, {r4 - r12, lr}
--		mov	r11, r0
--		CPSR2SPSR(r0)
--		mov	lr, pc
--		add	pc, r1, #8
--		ldmfd	sp!, {r4 - r12, pc}
--
-diff --git a/arch/arm/mach-rpc/ecard.c b/arch/arm/mach-rpc/ecard.c
-deleted file mode 100644
-index 972465840548..000000000000
---- a/arch/arm/mach-rpc/ecard.c
-+++ /dev/null
-@@ -1,1146 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- *  linux/arch/arm/kernel/ecard.c
-- *
-- *  Copyright 1995-2001 Russell King
-- *
-- *  Find all installed expansion cards, and handle interrupts from them.
-- *
-- *  Created from information from Acorns RiscOS3 PRMs
-- *
-- *  08-Dec-1996	RMK	Added code for the 9'th expansion card - the ether
-- *			podule slot.
-- *  06-May-1997	RMK	Added blacklist for cards whose loader doesn't work.
-- *  12-Sep-1997	RMK	Created new handling of interrupt enables/disables
-- *			- cards can now register their own routine to control
-- *			interrupts (recommended).
-- *  29-Sep-1997	RMK	Expansion card interrupt hardware not being re-enabled
-- *			on reset from Linux. (Caused cards not to respond
-- *			under RiscOS without hard reset).
-- *  15-Feb-1998	RMK	Added DMA support
-- *  12-Sep-1998	RMK	Added EASI support
-- *  10-Jan-1999	RMK	Run loaders in a simulated RISC OS environment.
-- *  17-Apr-1999	RMK	Support for EASI Type C cycles.
-- */
--#define ECARD_C
 -
 -#include <linux/module.h>
 -#include <linux/kernel.h>
--#include <linux/types.h>
--#include <linux/sched.h>
--#include <linux/sched/mm.h>
+-#include <linux/errno.h>
+-#include <linux/string.h>
+-#include <linux/delay.h>
 -#include <linux/interrupt.h>
--#include <linux/completion.h>
--#include <linux/reboot.h>
--#include <linux/mm.h>
--#include <linux/slab.h>
--#include <linux/proc_fs.h>
--#include <linux/seq_file.h>
--#include <linux/device.h>
+-#include <linux/fb.h>
 -#include <linux/init.h>
--#include <linux/mutex.h>
--#include <linux/kthread.h>
+-#include <linux/platform_device.h>
 -#include <linux/irq.h>
--#include <linux/io.h>
+-#include <linux/gpio/legacy.h>
 -
--#include <asm/dma.h>
--#include <asm/ecard.h>
--#include <mach/hardware.h>
--#include <asm/irq.h>
--#include <asm/mmu_context.h>
--#include <asm/mach/irq.h>
--#include <asm/tlbflush.h>
+-#include "pxa25x.h"
+-#include "gumstix.h"
+-#include <linux/platform_data/video-pxafb.h>
 -
--#include "ecard.h"
+-#include "generic.h"
 -
--struct ecard_request {
--	void		(*fn)(struct ecard_request *);
--	ecard_t		*ec;
--	unsigned int	address;
--	unsigned int	length;
--	unsigned int	use_loader;
--	void		*buffer;
--	struct completion *complete;
+-#include <video/metronomefb.h>
+-
+-static unsigned int panel_type = 6;
+-static struct platform_device *am200_device;
+-static struct metronome_board am200_board;
+-
+-static struct pxafb_mode_info am200_fb_mode_9inch7 = {
+-	.pixclock	= 40000,
+-	.xres		= 1200,
+-	.yres		= 842,
+-	.bpp		= 16,
+-	.hsync_len	= 2,
+-	.left_margin	= 2,
+-	.right_margin	= 2,
+-	.vsync_len	= 1,
+-	.upper_margin	= 2,
+-	.lower_margin	= 25,
+-	.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 -};
 -
--struct expcard_quirklist {
--	unsigned short	 manufacturer;
--	unsigned short	 product;
--	const char	*type;
--	void (*init)(ecard_t *ec);
+-static struct pxafb_mode_info am200_fb_mode_8inch = {
+-	.pixclock	= 40000,
+-	.xres		= 1088,
+-	.yres		= 791,
+-	.bpp		= 16,
+-	.hsync_len	= 28,
+-	.left_margin	= 8,
+-	.right_margin	= 30,
+-	.vsync_len	= 8,
+-	.upper_margin	= 10,
+-	.lower_margin	= 8,
+-	.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 -};
 -
--static ecard_t *cards;
--static ecard_t *slot_to_expcard[MAX_ECARDS];
--static unsigned int ectcr;
--
--static void atomwide_3p_quirk(ecard_t *ec);
--
--/* List of descriptions of cards which don't have an extended
-- * identification, or chunk directories containing a description.
-- */
--static struct expcard_quirklist quirklist[] __initdata = {
--	{ MANU_ACORN, PROD_ACORN_ETHER1, "Acorn Ether1" },
--	{ MANU_ATOMWIDE, PROD_ATOMWIDE_3PSERIAL, NULL, atomwide_3p_quirk },
+-static struct pxafb_mode_info am200_fb_mode_6inch = {
+-	.pixclock	= 40189,
+-	.xres		= 832,
+-	.yres		= 622,
+-	.bpp		= 16,
+-	.hsync_len	= 28,
+-	.left_margin	= 34,
+-	.right_margin	= 34,
+-	.vsync_len	= 25,
+-	.upper_margin	= 0,
+-	.lower_margin	= 2,
+-	.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 -};
 -
--asmlinkage extern int
--ecard_loader_reset(unsigned long base, loader_t loader);
--asmlinkage extern int
--ecard_loader_read(int off, unsigned long base, loader_t loader);
--
--static inline unsigned short ecard_getu16(unsigned char *v)
--{
--	return v[0] | v[1] << 8;
--}
--
--static inline signed long ecard_gets24(unsigned char *v)
--{
--	return v[0] | v[1] << 8 | v[2] << 16 | ((v[2] & 0x80) ? 0xff000000 : 0);
--}
--
--static inline ecard_t *slot_to_ecard(unsigned int slot)
--{
--	return slot < MAX_ECARDS ? slot_to_expcard[slot] : NULL;
--}
--
--/* ===================== Expansion card daemon ======================== */
--/*
-- * Since the loader programs on the expansion cards need to be run
-- * in a specific environment, create a separate task with this
-- * environment up, and pass requests to this task as and when we
-- * need to.
-- *
-- * This should allow 99% of loaders to be called from Linux.
-- *
-- * From a security standpoint, we trust the card vendors.  This
-- * may be a misplaced trust.
-- */
--static void ecard_task_reset(struct ecard_request *req)
--{
--	struct expansion_card *ec = req->ec;
--	struct resource *res;
--
--	res = ec->slot_no == 8
--		? &ec->resource[ECARD_RES_MEMC]
--		: ec->easi
--		  ? &ec->resource[ECARD_RES_EASI]
--		  : &ec->resource[ECARD_RES_IOCSYNC];
--
--	ecard_loader_reset(res->start, ec->loader);
--}
--
--static void ecard_task_readbytes(struct ecard_request *req)
--{
--	struct expansion_card *ec = req->ec;
--	unsigned char *buf = req->buffer;
--	unsigned int len = req->length;
--	unsigned int off = req->address;
--
--	if (ec->slot_no == 8) {
--		void __iomem *base = (void __iomem *)
--				ec->resource[ECARD_RES_MEMC].start;
--
--		/*
--		 * The card maintains an index which increments the address
--		 * into a 4096-byte page on each access.  We need to keep
--		 * track of the counter.
--		 */
--		static unsigned int index;
--		unsigned int page;
--
--		page = (off >> 12) * 4;
--		if (page > 256 * 4)
--			return;
--
--		off &= 4095;
--
--		/*
--		 * If we are reading offset 0, or our current index is
--		 * greater than the offset, reset the hardware index counter.
--		 */
--		if (off == 0 || index > off) {
--			writeb(0, base);
--			index = 0;
--		}
--
--		/*
--		 * Increment the hardware index counter until we get to the
--		 * required offset.  The read bytes are discarded.
--		 */
--		while (index < off) {
--			readb(base + page);
--			index += 1;
--		}
--
--		while (len--) {
--			*buf++ = readb(base + page);
--			index += 1;
--		}
--	} else {
--		unsigned long base = (ec->easi
--			 ? &ec->resource[ECARD_RES_EASI]
--			 : &ec->resource[ECARD_RES_IOCSYNC])->start;
--		void __iomem *pbase = (void __iomem *)base;
--
--		if (!req->use_loader || !ec->loader) {
--			off *= 4;
--			while (len--) {
--				*buf++ = readb(pbase + off);
--				off += 4;
--			}
--		} else {
--			while(len--) {
--				/*
--				 * The following is required by some
--				 * expansion card loader programs.
--				 */
--				*(unsigned long *)0x108 = 0;
--				*buf++ = ecard_loader_read(off++, base,
--							   ec->loader);
--			}
--		}
--	}
--
--}
--
--static DECLARE_WAIT_QUEUE_HEAD(ecard_wait);
--static struct ecard_request *ecard_req;
--static DEFINE_MUTEX(ecard_mutex);
--
--/*
-- * Set up the expansion card daemon's page tables.
-- */
--static void ecard_init_pgtables(struct mm_struct *mm)
--{
--	struct vm_area_struct vma = TLB_FLUSH_VMA(mm, VM_EXEC);
--
--	/* We want to set up the page tables for the following mapping:
--	 *  Virtual	Physical
--	 *  0x03000000	0x03000000
--	 *  0x03010000	unmapped
--	 *  0x03210000	0x03210000
--	 *  0x03400000	unmapped
--	 *  0x08000000	0x08000000
--	 *  0x10000000	unmapped
--	 *
--	 * FIXME: we don't follow this 100% yet.
--	 */
--	pgd_t *src_pgd, *dst_pgd;
--
--	src_pgd = pgd_offset(mm, (unsigned long)IO_BASE);
--	dst_pgd = pgd_offset(mm, IO_START);
--
--	memcpy(dst_pgd, src_pgd, sizeof(pgd_t) * (IO_SIZE / PGDIR_SIZE));
--
--	src_pgd = pgd_offset(mm, (unsigned long)EASI_BASE);
--	dst_pgd = pgd_offset(mm, EASI_START);
--
--	memcpy(dst_pgd, src_pgd, sizeof(pgd_t) * (EASI_SIZE / PGDIR_SIZE));
--
--	flush_tlb_range(&vma, IO_START, IO_START + IO_SIZE);
--	flush_tlb_range(&vma, EASI_START, EASI_START + EASI_SIZE);
--}
--
--static int ecard_init_mm(void)
--{
--	struct mm_struct * mm = mm_alloc();
--	struct mm_struct *active_mm = current->active_mm;
--
--	if (!mm)
--		return -ENOMEM;
--
--	current->mm = mm;
--	current->active_mm = mm;
--	activate_mm(active_mm, mm);
--	mmdrop_lazy_tlb(active_mm);
--	ecard_init_pgtables(mm);
--	return 0;
--}
--
--static int
--ecard_task(void * unused)
--{
--	/*
--	 * Allocate a mm.  We're not a lazy-TLB kernel task since we need
--	 * to set page table entries where the user space would be.  Note
--	 * that this also creates the page tables.  Failure is not an
--	 * option here.
--	 */
--	if (ecard_init_mm())
--		panic("kecardd: unable to alloc mm\n");
--
--	while (1) {
--		struct ecard_request *req;
--
--		wait_event_interruptible(ecard_wait, ecard_req != NULL);
--
--		req = xchg(&ecard_req, NULL);
--		if (req != NULL) {
--			req->fn(req);
--			complete(req->complete);
--		}
--	}
--}
--
--/*
-- * Wake the expansion card daemon to action our request.
-- *
-- * FIXME: The test here is not sufficient to detect if the
-- * kcardd is running.
-- */
--static void ecard_call(struct ecard_request *req)
--{
--	DECLARE_COMPLETION_ONSTACK(completion);
--
--	req->complete = &completion;
--
--	mutex_lock(&ecard_mutex);
--	ecard_req = req;
--	wake_up(&ecard_wait);
--
--	/*
--	 * Now wait for kecardd to run.
--	 */
--	wait_for_completion(&completion);
--	mutex_unlock(&ecard_mutex);
--}
--
--/* ======================= Mid-level card control ===================== */
--
--static void
--ecard_readbytes(void *addr, ecard_t *ec, int off, int len, int useld)
--{
--	struct ecard_request req;
--
--	req.fn		= ecard_task_readbytes;
--	req.ec		= ec;
--	req.address	= off;
--	req.length	= len;
--	req.use_loader	= useld;
--	req.buffer	= addr;
--
--	ecard_call(&req);
--}
--
--int ecard_readchunk(struct in_chunk_dir *cd, ecard_t *ec, int id, int num)
--{
--	struct ex_chunk_dir excd;
--	int index = 16;
--	int useld = 0;
--
--	if (!ec->cid.cd)
--		return 0;
--
--	while(1) {
--		ecard_readbytes(&excd, ec, index, 8, useld);
--		index += 8;
--		if (c_id(&excd) == 0) {
--			if (!useld && ec->loader) {
--				useld = 1;
--				index = 0;
--				continue;
--			}
--			return 0;
--		}
--		if (c_id(&excd) == 0xf0) { /* link */
--			index = c_start(&excd);
--			continue;
--		}
--		if (c_id(&excd) == 0x80) { /* loader */
--			if (!ec->loader) {
--				ec->loader = kmalloc(c_len(&excd),
--							       GFP_KERNEL);
--				if (ec->loader)
--					ecard_readbytes(ec->loader, ec,
--							(int)c_start(&excd),
--							c_len(&excd), useld);
--				else
--					return 0;
--			}
--			continue;
--		}
--		if (c_id(&excd) == id && num-- == 0)
--			break;
--	}
--
--	if (c_id(&excd) & 0x80) {
--		switch (c_id(&excd) & 0x70) {
--		case 0x70:
--			ecard_readbytes((unsigned char *)excd.d.string, ec,
--					(int)c_start(&excd), c_len(&excd),
--					useld);
--			break;
--		case 0x00:
--			break;
--		}
--	}
--	cd->start_offset = c_start(&excd);
--	memcpy(cd->d.string, excd.d.string, 256);
--	return 1;
--}
--
--/* ======================= Interrupt control ============================ */
--
--static void ecard_def_irq_enable(ecard_t *ec, int irqnr)
--{
--}
--
--static void ecard_def_irq_disable(ecard_t *ec, int irqnr)
--{
--}
--
--static int ecard_def_irq_pending(ecard_t *ec)
--{
--	return !ec->irqmask || readb(ec->irqaddr) & ec->irqmask;
--}
--
--static void ecard_def_fiq_enable(ecard_t *ec, int fiqnr)
--{
--	panic("ecard_def_fiq_enable called - impossible");
--}
--
--static void ecard_def_fiq_disable(ecard_t *ec, int fiqnr)
--{
--	panic("ecard_def_fiq_disable called - impossible");
--}
--
--static int ecard_def_fiq_pending(ecard_t *ec)
--{
--	return !ec->fiqmask || readb(ec->fiqaddr) & ec->fiqmask;
--}
--
--static expansioncard_ops_t ecard_default_ops = {
--	ecard_def_irq_enable,
--	ecard_def_irq_disable,
--	ecard_def_irq_pending,
--	ecard_def_fiq_enable,
--	ecard_def_fiq_disable,
--	ecard_def_fiq_pending
+-static struct pxafb_mach_info am200_fb_info = {
+-	.modes		= &am200_fb_mode_6inch,
+-	.num_modes	= 1,
+-	.lcd_conn	= LCD_TYPE_COLOR_TFT | LCD_PCLK_EDGE_FALL |
+-			  LCD_AC_BIAS_FREQ(24),
 -};
 -
--/*
-- * Enable and disable interrupts from expansion cards.
-- * (interrupts are disabled for these functions).
-- *
-- * They are not meant to be called directly, but via enable/disable_irq.
-- */
--static void ecard_irq_unmask(struct irq_data *d)
--{
--	ecard_t *ec = irq_data_get_irq_chip_data(d);
+-/* register offsets for gpio control */
+-#define LED_GPIO_PIN 51
+-#define STDBY_GPIO_PIN 48
+-#define RST_GPIO_PIN 49
+-#define RDY_GPIO_PIN 32
+-#define ERR_GPIO_PIN 17
+-#define PCBPWR_GPIO_PIN 16
+-static int gpios[] = { LED_GPIO_PIN , STDBY_GPIO_PIN , RST_GPIO_PIN,
+-			RDY_GPIO_PIN, ERR_GPIO_PIN, PCBPWR_GPIO_PIN };
+-static char *gpio_names[] = { "LED" , "STDBY" , "RST", "RDY", "ERR", "PCBPWR" };
 -
--	if (ec) {
--		if (!ec->ops)
--			ec->ops = &ecard_default_ops;
--
--		if (ec->claimed && ec->ops->irqenable)
--			ec->ops->irqenable(ec, d->irq);
--		else
--			printk(KERN_ERR "ecard: rejecting request to "
--				"enable IRQs for %d\n", d->irq);
--	}
--}
--
--static void ecard_irq_mask(struct irq_data *d)
--{
--	ecard_t *ec = irq_data_get_irq_chip_data(d);
--
--	if (ec) {
--		if (!ec->ops)
--			ec->ops = &ecard_default_ops;
--
--		if (ec->ops && ec->ops->irqdisable)
--			ec->ops->irqdisable(ec, d->irq);
--	}
--}
--
--static struct irq_chip ecard_chip = {
--	.name		= "ECARD",
--	.irq_ack	= ecard_irq_mask,
--	.irq_mask	= ecard_irq_mask,
--	.irq_unmask	= ecard_irq_unmask,
--};
--
--void ecard_enablefiq(unsigned int fiqnr)
--{
--	ecard_t *ec = slot_to_ecard(fiqnr);
--
--	if (ec) {
--		if (!ec->ops)
--			ec->ops = &ecard_default_ops;
--
--		if (ec->claimed && ec->ops->fiqenable)
--			ec->ops->fiqenable(ec, fiqnr);
--		else
--			printk(KERN_ERR "ecard: rejecting request to "
--				"enable FIQs for %d\n", fiqnr);
--	}
--}
--
--void ecard_disablefiq(unsigned int fiqnr)
--{
--	ecard_t *ec = slot_to_ecard(fiqnr);
--
--	if (ec) {
--		if (!ec->ops)
--			ec->ops = &ecard_default_ops;
--
--		if (ec->ops->fiqdisable)
--			ec->ops->fiqdisable(ec, fiqnr);
--	}
--}
--
--static void ecard_dump_irq_state(void)
--{
--	ecard_t *ec;
--
--	printk("Expansion card IRQ state:\n");
--
--	for (ec = cards; ec; ec = ec->next) {
--		const char *claimed;
--
--		if (ec->slot_no == 8)
--			continue;
--
--		claimed = ec->claimed ? "" : "not ";
--
--		if (ec->ops && ec->ops->irqpending &&
--		    ec->ops != &ecard_default_ops)
--			printk("  %d: %sclaimed irq %spending\n",
--			       ec->slot_no, claimed,
--			       ec->ops->irqpending(ec) ? "" : "not ");
--		else
--			printk("  %d: %sclaimed irqaddr %p, mask = %02X, status = %02X\n",
--			       ec->slot_no, claimed,
--			       ec->irqaddr, ec->irqmask, readb(ec->irqaddr));
--	}
--}
--
--static void ecard_check_lockup(struct irq_desc *desc)
--{
--	static unsigned long last;
--	static int lockup;
--
--	/*
--	 * If the timer interrupt has not run since the last million
--	 * unrecognised expansion card interrupts, then there is
--	 * something seriously wrong.  Disable the expansion card
--	 * interrupts so at least we can continue.
--	 *
--	 * Maybe we ought to start a timer to re-enable them some time
--	 * later?
--	 */
--	if (last == jiffies) {
--		lockup += 1;
--		if (lockup > 1000000) {
--			printk(KERN_ERR "\nInterrupt lockup detected - "
--			       "disabling all expansion card interrupts\n");
--
--			desc->irq_data.chip->irq_mask(&desc->irq_data);
--			ecard_dump_irq_state();
--		}
--	} else
--		lockup = 0;
--
--	/*
--	 * If we did not recognise the source of this interrupt,
--	 * warn the user, but don't flood the user with these messages.
--	 */
--	if (!last || time_after(jiffies, last + 5*HZ)) {
--		last = jiffies;
--		printk(KERN_WARNING "Unrecognised interrupt from backplane\n");
--		ecard_dump_irq_state();
--	}
--}
--
--static void ecard_irq_handler(struct irq_desc *desc)
--{
--	ecard_t *ec;
--	int called = 0;
--
--	desc->irq_data.chip->irq_mask(&desc->irq_data);
--	for (ec = cards; ec; ec = ec->next) {
--		int pending;
--
--		if (!ec->claimed || !ec->irq || ec->slot_no == 8)
--			continue;
--
--		if (ec->ops && ec->ops->irqpending)
--			pending = ec->ops->irqpending(ec);
--		else
--			pending = ecard_default_ops.irqpending(ec);
--
--		if (pending) {
--			generic_handle_irq(ec->irq);
--			called ++;
--		}
--	}
--	desc->irq_data.chip->irq_unmask(&desc->irq_data);
--
--	if (called == 0)
--		ecard_check_lockup(desc);
--}
--
--static void __iomem *__ecard_address(ecard_t *ec, card_type_t type, card_speed_t speed)
--{
--	void __iomem *address = NULL;
--	int slot = ec->slot_no;
--
--	if (ec->slot_no == 8)
--		return ECARD_MEMC8_BASE;
--
--	ectcr &= ~(1 << slot);
--
--	switch (type) {
--	case ECARD_MEMC:
--		if (slot < 4)
--			address = ECARD_MEMC_BASE + (slot << 14);
--		break;
--
--	case ECARD_IOC:
--		if (slot < 4)
--			address = ECARD_IOC_BASE + (slot << 14);
--		else
--			address = ECARD_IOC4_BASE + ((slot - 4) << 14);
--		if (address)
--			address += speed << 19;
--		break;
--
--	case ECARD_EASI:
--		address = ECARD_EASI_BASE + (slot << 24);
--		if (speed == ECARD_FAST)
--			ectcr |= 1 << slot;
--		break;
--
--	default:
--		break;
--	}
--
--#ifdef IOMD_ECTCR
--	iomd_writeb(ectcr, IOMD_ECTCR);
--#endif
--	return address;
--}
--
--static int ecard_prints(struct seq_file *m, ecard_t *ec)
--{
--	seq_printf(m, "  %d: %s ", ec->slot_no, ec->easi ? "EASI" : "    ");
--
--	if (ec->cid.id == 0) {
--		struct in_chunk_dir incd;
--
--		seq_printf(m, "[%04X:%04X] ",
--			ec->cid.manufacturer, ec->cid.product);
--
--		if (!ec->card_desc && ec->cid.cd &&
--		    ecard_readchunk(&incd, ec, 0xf5, 0)) {
--			ec->card_desc = kmalloc(strlen(incd.d.string)+1, GFP_KERNEL);
--
--			if (ec->card_desc)
--				strcpy((char *)ec->card_desc, incd.d.string);
--		}
--
--		seq_printf(m, "%s\n", ec->card_desc ? ec->card_desc : "*unknown*");
--	} else
--		seq_printf(m, "Simple card %d\n", ec->cid.id);
--
--	return 0;
--}
--
--static int ecard_devices_proc_show(struct seq_file *m, void *v)
--{
--	ecard_t *ec = cards;
--
--	while (ec) {
--		ecard_prints(m, ec);
--		ec = ec->next;
--	}
--	return 0;
--}
--
--static struct proc_dir_entry *proc_bus_ecard_dir = NULL;
--
--static void ecard_proc_init(void)
--{
--	proc_bus_ecard_dir = proc_mkdir("bus/ecard", NULL);
--	proc_create_single("devices", 0, proc_bus_ecard_dir,
--			ecard_devices_proc_show);
--}
--
--#define ec_set_resource(ec,nr,st,sz)				\
--	do {							\
--		(ec)->resource[nr].name = dev_name(&ec->dev);	\
--		(ec)->resource[nr].start = st;			\
--		(ec)->resource[nr].end = (st) + (sz) - 1;	\
--		(ec)->resource[nr].flags = IORESOURCE_MEM;	\
--	} while (0)
--
--static void __init ecard_free_card(struct expansion_card *ec)
+-static int am200_init_gpio_regs(struct metronomefb_par *par)
 -{
 -	int i;
+-	int err;
 -
--	for (i = 0; i < ECARD_NUM_RESOURCES; i++)
--		if (ec->resource[i].flags)
--			release_resource(&ec->resource[i]);
--
--	kfree(ec);
--}
--
--static struct expansion_card *__init ecard_alloc_card(int type, int slot)
--{
--	struct expansion_card *ec;
--	unsigned long base;
--	int i;
--
--	ec = kzalloc_obj(ecard_t);
--	if (!ec) {
--		ec = ERR_PTR(-ENOMEM);
--		goto nomem;
--	}
--
--	ec->slot_no = slot;
--	ec->easi = type == ECARD_EASI;
--	ec->irq = 0;
--	ec->fiq = 0;
--	ec->dma = NO_DMA;
--	ec->ops = &ecard_default_ops;
--
--	dev_set_name(&ec->dev, "ecard%d", slot);
--	ec->dev.parent = NULL;
--	ec->dev.bus = &ecard_bus_type;
--	ec->dev.dma_mask = &ec->dma_mask;
--	ec->dma_mask = (u64)0xffffffff;
--	ec->dev.coherent_dma_mask = ec->dma_mask;
--
--	if (slot < 4) {
--		ec_set_resource(ec, ECARD_RES_MEMC,
--				PODSLOT_MEMC_BASE + (slot << 14),
--				PODSLOT_MEMC_SIZE);
--		base = PODSLOT_IOC0_BASE + (slot << 14);
--	} else
--		base = PODSLOT_IOC4_BASE + ((slot - 4) << 14);
--
--#ifdef CONFIG_ARCH_RPC
--	if (slot < 8) {
--		ec_set_resource(ec, ECARD_RES_EASI,
--				PODSLOT_EASI_BASE + (slot << 24),
--				PODSLOT_EASI_SIZE);
--	}
--
--	if (slot == 8) {
--		ec_set_resource(ec, ECARD_RES_MEMC, NETSLOT_BASE, NETSLOT_SIZE);
--	} else
--#endif
--
--	for (i = 0; i <= ECARD_RES_IOCSYNC - ECARD_RES_IOCSLOW; i++)
--		ec_set_resource(ec, i + ECARD_RES_IOCSLOW,
--				base + (i << 19), PODSLOT_IOC_SIZE);
--
--	for (i = 0; i < ECARD_NUM_RESOURCES; i++) {
--		if (ec->resource[i].flags &&
--		    request_resource(&iomem_resource, &ec->resource[i])) {
--			dev_err(&ec->dev, "resource(s) not available\n");
--			ec->resource[i].end -= ec->resource[i].start;
--			ec->resource[i].start = 0;
--			ec->resource[i].flags = 0;
+-	for (i = 0; i < ARRAY_SIZE(gpios); i++) {
+-		err = gpio_request(gpios[i], gpio_names[i]);
+-		if (err) {
+-			dev_err(&am200_device->dev, "failed requesting "
+-				"gpio %s, err=%d\n", gpio_names[i], err);
+-			goto err_req_gpio;
 -		}
 -	}
 -
-- nomem:
--	return ec;
--}
+-	gpio_direction_output(LED_GPIO_PIN, 0);
+-	gpio_direction_output(STDBY_GPIO_PIN, 0);
+-	gpio_direction_output(RST_GPIO_PIN, 0);
 -
--static ssize_t irq_show(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct expansion_card *ec = ECARD_DEV(dev);
--	return sprintf(buf, "%u\n", ec->irq);
--}
--static DEVICE_ATTR_RO(irq);
+-	gpio_direction_input(RDY_GPIO_PIN);
+-	gpio_direction_input(ERR_GPIO_PIN);
 -
--static ssize_t dma_show(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct expansion_card *ec = ECARD_DEV(dev);
--	return sprintf(buf, "%u\n", ec->dma);
--}
--static DEVICE_ATTR_RO(dma);
+-	gpio_direction_output(PCBPWR_GPIO_PIN, 0);
 -
--static ssize_t resource_show(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct expansion_card *ec = ECARD_DEV(dev);
--	char *str = buf;
--	int i;
+-	return 0;
 -
--	for (i = 0; i < ECARD_NUM_RESOURCES; i++)
--		str += sprintf(str, "%08x %08x %08lx\n",
--				ec->resource[i].start,
--				ec->resource[i].end,
--				ec->resource[i].flags);
+-err_req_gpio:
+-	while (--i >= 0)
+-		gpio_free(gpios[i]);
 -
--	return str - buf;
--}
--static DEVICE_ATTR_RO(resource);
--
--static ssize_t vendor_show(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct expansion_card *ec = ECARD_DEV(dev);
--	return sprintf(buf, "%u\n", ec->cid.manufacturer);
--}
--static DEVICE_ATTR_RO(vendor);
--
--static ssize_t device_show(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct expansion_card *ec = ECARD_DEV(dev);
--	return sprintf(buf, "%u\n", ec->cid.product);
--}
--static DEVICE_ATTR_RO(device);
--
--static ssize_t type_show(struct device *dev, struct device_attribute *attr, char *buf)
--{
--	struct expansion_card *ec = ECARD_DEV(dev);
--	return sprintf(buf, "%s\n", ec->easi ? "EASI" : "IOC");
--}
--static DEVICE_ATTR_RO(type);
--
--static struct attribute *ecard_dev_attrs[] = {
--	&dev_attr_device.attr,
--	&dev_attr_dma.attr,
--	&dev_attr_irq.attr,
--	&dev_attr_resource.attr,
--	&dev_attr_type.attr,
--	&dev_attr_vendor.attr,
--	NULL,
--};
--ATTRIBUTE_GROUPS(ecard_dev);
--
--int ecard_request_resources(struct expansion_card *ec)
--{
--	int i, err = 0;
--
--	for (i = 0; i < ECARD_NUM_RESOURCES; i++) {
--		if (ecard_resource_end(ec, i) &&
--		    !request_mem_region(ecard_resource_start(ec, i),
--					ecard_resource_len(ec, i),
--					ec->dev.driver->name)) {
--			err = -EBUSY;
--			break;
--		}
--	}
--
--	if (err) {
--		while (i--)
--			if (ecard_resource_end(ec, i))
--				release_mem_region(ecard_resource_start(ec, i),
--						   ecard_resource_len(ec, i));
--	}
 -	return err;
 -}
--EXPORT_SYMBOL(ecard_request_resources);
 -
--void ecard_release_resources(struct expansion_card *ec)
+-static void am200_cleanup(struct metronomefb_par *par)
 -{
 -	int i;
 -
--	for (i = 0; i < ECARD_NUM_RESOURCES; i++)
--		if (ecard_resource_end(ec, i))
--			release_mem_region(ecard_resource_start(ec, i),
--					   ecard_resource_len(ec, i));
--}
--EXPORT_SYMBOL(ecard_release_resources);
+-	free_irq(PXA_GPIO_TO_IRQ(RDY_GPIO_PIN), par);
 -
--void ecard_setirq(struct expansion_card *ec, const struct expansion_card_ops *ops, void *irq_data)
--{
--	ec->irq_data = irq_data;
--	barrier();
--	ec->ops = ops;
--}
--EXPORT_SYMBOL(ecard_setirq);
--
--void __iomem *ecardm_iomap(struct expansion_card *ec, unsigned int res,
--			   unsigned long offset, unsigned long maxsize)
--{
--	unsigned long start = ecard_resource_start(ec, res);
--	unsigned long end = ecard_resource_end(ec, res);
--
--	if (offset > (end - start))
--		return NULL;
--
--	start += offset;
--	if (maxsize && end - start > maxsize)
--		end = start + maxsize;
--	
--	return devm_ioremap(&ec->dev, start, end - start);
--}
--EXPORT_SYMBOL(ecardm_iomap);
--
--static void atomwide_3p_quirk(ecard_t *ec)
--{
--	void __iomem *addr = __ecard_address(ec, ECARD_IOC, ECARD_SYNC);
--	unsigned int i;
--
--	/* Disable interrupts on each port */
--	for (i = 0x2000; i <= 0x2800; i += 0x0400)
--		writeb(0, addr + i + 4);	
+-	for (i = 0; i < ARRAY_SIZE(gpios); i++)
+-		gpio_free(gpios[i]);
 -}
 -
--/*
-- * Probe for an expansion card.
-- *
-- * If bit 1 of the first byte of the card is set, then the
-- * card does not exist.
-- */
--static int __init ecard_probe(int slot, unsigned irq, card_type_t type)
+-static int am200_share_video_mem(struct fb_info *info)
 -{
--	ecard_t **ecp;
--	ecard_t *ec;
--	struct ex_ecid cid;
--	void __iomem *addr;
--	int i, rc;
--
--	ec = ecard_alloc_card(type, slot);
--	if (IS_ERR(ec)) {
--		rc = PTR_ERR(ec);
--		goto nomem;
--	}
--
--	rc = -ENODEV;
--	if ((addr = __ecard_address(ec, type, ECARD_SYNC)) == NULL)
--		goto nodev;
--
--	cid.r_zero = 1;
--	ecard_readbytes(&cid, ec, 0, 16, 0);
--	if (cid.r_zero)
--		goto nodev;
--
--	ec->cid.id	= cid.r_id;
--	ec->cid.cd	= cid.r_cd;
--	ec->cid.is	= cid.r_is;
--	ec->cid.w	= cid.r_w;
--	ec->cid.manufacturer = ecard_getu16(cid.r_manu);
--	ec->cid.product = ecard_getu16(cid.r_prod);
--	ec->cid.country = cid.r_country;
--	ec->cid.irqmask = cid.r_irqmask;
--	ec->cid.irqoff  = ecard_gets24(cid.r_irqoff);
--	ec->cid.fiqmask = cid.r_fiqmask;
--	ec->cid.fiqoff  = ecard_gets24(cid.r_fiqoff);
--	ec->fiqaddr	=
--	ec->irqaddr	= addr;
--
--	if (ec->cid.is) {
--		ec->irqmask = ec->cid.irqmask;
--		ec->irqaddr += ec->cid.irqoff;
--		ec->fiqmask = ec->cid.fiqmask;
--		ec->fiqaddr += ec->cid.fiqoff;
--	} else {
--		ec->irqmask = 1;
--		ec->fiqmask = 4;
--	}
--
--	for (i = 0; i < ARRAY_SIZE(quirklist); i++)
--		if (quirklist[i].manufacturer == ec->cid.manufacturer &&
--		    quirklist[i].product == ec->cid.product) {
--			if (quirklist[i].type)
--				ec->card_desc = quirklist[i].type;
--			if (quirklist[i].init)
--				quirklist[i].init(ec);
--			break;
--		}
--
--	ec->irq = irq;
--
--	/*
--	 * hook the interrupt handlers
--	 */
--	if (slot < 8) {
--		irq_set_chip_and_handler(ec->irq, &ecard_chip,
--					 handle_level_irq);
--		irq_set_chip_data(ec->irq, ec);
--		irq_clear_status_flags(ec->irq, IRQ_NOREQUEST);
--	}
--
--#ifdef CONFIG_ARCH_RPC
--	/* On RiscPC, only first two slots have DMA capability */
--	if (slot < 2)
--		ec->dma = 2 + slot;
--#endif
--
--	for (ecp = &cards; *ecp; ecp = &(*ecp)->next);
--
--	*ecp = ec;
--	slot_to_expcard[slot] = ec;
--
--	rc = device_register(&ec->dev);
--	if (rc)
--		goto nodev;
--
--	return 0;
--
-- nodev:
--	ecard_free_card(ec);
-- nomem:
--	return rc;
--}
--
--/*
-- * Initialise the expansion card system.
-- * Locate all hardware - interrupt management and
-- * actual cards.
-- */
--static int __init ecard_init(void)
--{
--	struct task_struct *task;
--	int slot, irqbase;
--
--	irqbase = irq_alloc_descs(-1, 0, 8, -1);
--	if (irqbase < 0)
--		return irqbase;
--
--	task = kthread_run(ecard_task, NULL, "kecardd");
--	if (IS_ERR(task)) {
--		printk(KERN_ERR "Ecard: unable to create kernel thread: %ld\n",
--		       PTR_ERR(task));
--		irq_free_descs(irqbase, 8);
--		return PTR_ERR(task);
--	}
--
--	printk("Probing expansion cards\n");
--
--	for (slot = 0; slot < 8; slot ++) {
--		if (ecard_probe(slot, irqbase + slot, ECARD_EASI) == -ENODEV)
--			ecard_probe(slot, irqbase + slot, ECARD_IOC);
--	}
--
--	ecard_probe(8, 11, ECARD_IOC);
--
--	irq_set_chained_handler(IRQ_EXPANSIONCARD, ecard_irq_handler);
--
--	ecard_proc_init();
--
--	return 0;
--}
--
--subsys_initcall(ecard_init);
--
--/*
-- *	ECARD "bus"
-- */
--static const struct ecard_id *
--ecard_match_device(const struct ecard_id *ids, struct expansion_card *ec)
--{
--	int i;
--
--	for (i = 0; ids[i].manufacturer != 65535; i++)
--		if (ec->cid.manufacturer == ids[i].manufacturer &&
--		    ec->cid.product == ids[i].product)
--			return ids + i;
--
--	return NULL;
--}
--
--static int ecard_drv_probe(struct device *dev)
--{
--	struct expansion_card *ec = ECARD_DEV(dev);
--	struct ecard_driver *drv = ECARD_DRV(dev->driver);
--	const struct ecard_id *id;
--	int ret;
--
--	id = ecard_match_device(drv->id_table, ec);
--
--	ec->claimed = 1;
--	ret = drv->probe(ec, id);
--	if (ret)
--		ec->claimed = 0;
--	return ret;
--}
--
--static void ecard_drv_remove(struct device *dev)
--{
--	struct expansion_card *ec = ECARD_DEV(dev);
--	struct ecard_driver *drv = ECARD_DRV(dev->driver);
--
--	drv->remove(ec);
--	ec->claimed = 0;
--
--	/*
--	 * Restore the default operations.  We ensure that the
--	 * ops are set before we change the data.
--	 */
--	ec->ops = &ecard_default_ops;
--	barrier();
--	ec->irq_data = NULL;
--}
--
--/*
-- * Before rebooting, we must make sure that the expansion card is in a
-- * sensible state, so it can be re-detected.  This means that the first
-- * page of the ROM must be visible.  We call the expansion cards reset
-- * handler, if any.
-- */
--static void ecard_drv_shutdown(struct device *dev)
--{
--	struct expansion_card *ec = ECARD_DEV(dev);
--	struct ecard_driver *drv = ECARD_DRV(dev->driver);
--	struct ecard_request req;
--
--	if (dev->driver) {
--		if (drv->shutdown)
--			drv->shutdown(ec);
--		ec->claimed = 0;
--	}
--
--	/*
--	 * If this card has a loader, call the reset handler.
--	 */
--	if (ec->loader) {
--		req.fn = ecard_task_reset;
--		req.ec = ec;
--		ecard_call(&req);
--	}
--}
--
--int ecard_register_driver(struct ecard_driver *drv)
--{
--	drv->drv.bus = &ecard_bus_type;
--
--	return driver_register(&drv->drv);
--}
--
--void ecard_remove_driver(struct ecard_driver *drv)
--{
--	driver_unregister(&drv->drv);
--}
--
--static int ecard_match(struct device *_dev, const struct device_driver *_drv)
--{
--	struct expansion_card *ec = ECARD_DEV(_dev);
--	struct ecard_driver *drv = ECARD_DRV(_drv);
--	int ret;
--
--	if (drv->id_table) {
--		ret = ecard_match_device(drv->id_table, ec) != NULL;
--	} else {
--		ret = ec->cid.id == drv->id;
--	}
--
--	return ret;
--}
--
--const struct bus_type ecard_bus_type = {
--	.name		= "ecard",
--	.dev_groups	= ecard_dev_groups,
--	.match		= ecard_match,
--	.probe		= ecard_drv_probe,
--	.remove		= ecard_drv_remove,
--	.shutdown	= ecard_drv_shutdown,
--};
--
--static int ecard_bus_init(void)
--{
--	return bus_register(&ecard_bus_type);
--}
--
--postcore_initcall(ecard_bus_init);
--
--EXPORT_SYMBOL(ecard_readchunk);
--EXPORT_SYMBOL(ecard_register_driver);
--EXPORT_SYMBOL(ecard_remove_driver);
--EXPORT_SYMBOL(ecard_bus_type);
-diff --git a/arch/arm/mach-rpc/ecard.h b/arch/arm/mach-rpc/ecard.h
-deleted file mode 100644
-index 873dd3d9f274..000000000000
---- a/arch/arm/mach-rpc/ecard.h
-+++ /dev/null
-@@ -1,66 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  ecard.h
-- *
-- *  Copyright 2007 Russell King
-- */
--
--/* Definitions internal to ecard.c - for it's use only!!
-- *
-- * External expansion card header as read from the card
-- */
--struct ex_ecid {
--	unsigned char	r_irq:1;
--	unsigned char	r_zero:1;
--	unsigned char	r_fiq:1;
--	unsigned char	r_id:4;
--	unsigned char	r_a:1;
--
--	unsigned char	r_cd:1;
--	unsigned char	r_is:1;
--	unsigned char	r_w:2;
--	unsigned char	r_r1:4;
--
--	unsigned char	r_r2:8;
--
--	unsigned char	r_prod[2];
--
--	unsigned char	r_manu[2];
--
--	unsigned char	r_country;
--
--	unsigned char	r_fiqmask;
--	unsigned char	r_fiqoff[3];
--
--	unsigned char	r_irqmask;
--	unsigned char	r_irqoff[3];
--};
--
--/*
-- * Chunk directory entry as read from the card
-- */
--struct ex_chunk_dir {
--	unsigned char r_id;
--	unsigned char r_len[3];
--	unsigned long r_start;
--	union {
--		char string[256];
--		char data[1];
--	} d;
--#define c_id(x)		((x)->r_id)
--#define c_len(x)	((x)->r_len[0]|((x)->r_len[1]<<8)|((x)->r_len[2]<<16))
--#define c_start(x)	((x)->r_start)
--};
--
--typedef enum ecard_type {		/* Cards address space		*/
--	ECARD_IOC,
--	ECARD_MEMC,
--	ECARD_EASI
--} card_type_t;
--
--typedef enum {				/* Speed for ECARD_IOC space	*/
--	ECARD_SLOW	 = 0,
--	ECARD_MEDIUM	 = 1,
--	ECARD_FAST	 = 2,
--	ECARD_SYNC	 = 3
--} card_speed_t;
-diff --git a/arch/arm/mach-rpc/fiq.S b/arch/arm/mach-rpc/fiq.S
-deleted file mode 100644
-index 087bdf4bc093..000000000000
---- a/arch/arm/mach-rpc/fiq.S
-+++ /dev/null
-@@ -1,18 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#include <linux/linkage.h>
--#include <asm/assembler.h>
--#include <mach/hardware.h>
--
--	.equ	ioc_base_high, IOC_BASE & 0xff000000
--	.equ	ioc_base_low, IOC_BASE & 0x00ff0000
--
--	.text
--	.global	rpc_default_fiq_end
--ENTRY(rpc_default_fiq_start)
--	mov	r12, #ioc_base_high
--	.if	ioc_base_low
--	orr	r12, r12, #ioc_base_low
--	.endif
--	strb	r12, [r12, #0x38]	@ Disable FIQ register
--	subs	pc, lr, #4
--rpc_default_fiq_end:
-diff --git a/arch/arm/mach-rpc/floppydma.S b/arch/arm/mach-rpc/floppydma.S
-deleted file mode 100644
-index 6698b83050dc..000000000000
---- a/arch/arm/mach-rpc/floppydma.S
-+++ /dev/null
-@@ -1,29 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  linux/arch/arm/lib/floppydma.S
-- *
-- *  Copyright (C) 1995, 1996 Russell King
-- */
--#include <linux/linkage.h>
--#include <asm/assembler.h>
--		.text
--
--		.global	floppy_fiqin_end
--ENTRY(floppy_fiqin_start)
--		subs	r9, r9, #1
--		ldrbgt	r12, [r11, #-4]
--		ldrble	r12, [r11], #0
--		strb	r12, [r10], #1
--		subs	pc, lr, #4
--floppy_fiqin_end:
--
--		.global	floppy_fiqout_end
--ENTRY(floppy_fiqout_start)
--		subs	r9, r9, #1
--		ldrbge	r12, [r10], #1
--		movlt	r12, #0
--		strble	r12, [r11], #0
--		subsle	pc, lr, #4
--		strb	r12, [r11, #-4]
--		subs	pc, lr, #4
--floppy_fiqout_end:
-diff --git a/arch/arm/mach-rpc/include/mach/acornfb.h b/arch/arm/mach-rpc/include/mach/acornfb.h
-deleted file mode 100644
-index 2bf18ab3d699..000000000000
---- a/arch/arm/mach-rpc/include/mach/acornfb.h
-+++ /dev/null
-@@ -1,137 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  arch/arm/mach-rpc/include/mach/acornfb.h
-- *
-- *  Copyright (C) 1999 Russell King
-- *
-- *  AcornFB architecture specific code
-- */
--
--#define acornfb_bandwidth(var) ((var)->pixclock * 8 / (var)->bits_per_pixel)
--
--static inline int
--acornfb_valid_pixrate(struct fb_var_screeninfo *var)
--{
--	u_long limit;
--
--	if (!var->pixclock)
+-	/* rough check if this is our desired fb and not something else */
+-	if ((info->var.xres != am200_fb_info.modes->xres)
+-		|| (info->var.yres != am200_fb_info.modes->yres))
 -		return 0;
 -
--	/*
--	 * Limits below are taken from RISC OS bandwidthlimit file
--	 */
--	if (current_par.using_vram) {
--		if (current_par.vram_half_sam == 2048)
--			limit = 6578;
--		else
--			limit = 13157;
--	} else {
--		limit = 26315;
--	}
+-	/* we've now been notified that we have our new fb */
+-	am200_board.metromem = info->screen_base;
+-	am200_board.host_fbinfo = info;
 -
--	return acornfb_bandwidth(var) >= limit;
--}
+-	/* try to refcount host drv since we are the consumer after this */
+-	if (!try_module_get(info->fbops->owner))
+-		return -ENODEV;
 -
--/*
-- * Try to find the best PLL parameters for the pixel clock.
-- * This algorithm seems to give best predictable results,
-- * and produces the same values as detailed in the VIDC20
-- * data sheet.
-- */
--static inline u_int
--acornfb_vidc20_find_pll(u_int pixclk)
--{
--	u_int r, best_r = 2, best_v = 2;
--	int best_d = 0x7fffffff;
--
--	for (r = 2; r <= 32; r++) {
--		u_int rr, v, p;
--		int d;
--
--		rr = 41667 * r;
--
--		v = (rr + pixclk / 2) / pixclk;
--
--		if (v > 32 || v < 2)
--			continue;
--
--		p = (rr + v / 2) / v;
--
--		d = pixclk - p;
--
--		if (d < 0)
--			d = -d;
--
--		if (d < best_d) {
--			best_d = d;
--			best_v = v - 1;
--			best_r = r - 1;
--		}
--
--		if (d == 0)
--			break;
--	}
--
--	return best_v << 8 | best_r;
--}
--
--static inline void
--acornfb_vidc20_find_rates(struct vidc_timing *vidc,
--			  struct fb_var_screeninfo *var)
--{
--	u_int div;
--
--	/* Select pixel-clock divisor to keep PLL in range */
--	div = var->pixclock / 9090; /*9921*/
--
--	/* Limit divisor */
--	if (div == 0)
--		div = 1;
--	if (div > 8)
--		div = 8;
--
--	/* Encode divisor to VIDC20 setting */
--	switch (div) {
--	case 1:	vidc->control |= VIDC20_CTRL_PIX_CK;  break;
--	case 2:	vidc->control |= VIDC20_CTRL_PIX_CK2; break;
--	case 3:	vidc->control |= VIDC20_CTRL_PIX_CK3; break;
--	case 4:	vidc->control |= VIDC20_CTRL_PIX_CK4; break;
--	case 5:	vidc->control |= VIDC20_CTRL_PIX_CK5; break;
--	case 6:	vidc->control |= VIDC20_CTRL_PIX_CK6; break;
--	case 7:	vidc->control |= VIDC20_CTRL_PIX_CK7; break;
--	case 8: vidc->control |= VIDC20_CTRL_PIX_CK8; break;
--	}
--
--	/*
--	 * With VRAM, the FIFO can be set to the highest possible setting
--	 * because there are no latency considerations for other memory
--	 * accesses. However, in 64 bit bus mode the FIFO preload value
--	 * must not be set to VIDC20_CTRL_FIFO_28 because this will let
--	 * the FIFO overflow. See VIDC20 manual page 33 (6.0 Setting the
--	 * FIFO preload value).
--	 */
--	if (current_par.using_vram) {
--		if (current_par.vram_half_sam == 2048)
--			vidc->control |= VIDC20_CTRL_FIFO_24;
--		else
--			vidc->control |= VIDC20_CTRL_FIFO_28;
--	} else {
--		unsigned long bandwidth = acornfb_bandwidth(var);
--
--		/* Encode bandwidth as VIDC20 setting */
--		if (bandwidth > 33334)		/* < 30.0MB/s */
--			vidc->control |= VIDC20_CTRL_FIFO_16;
--		else if (bandwidth > 26666)	/* < 37.5MB/s */
--			vidc->control |= VIDC20_CTRL_FIFO_20;
--		else if (bandwidth > 22222)	/* < 45.0MB/s */
--			vidc->control |= VIDC20_CTRL_FIFO_24;
--		else				/* > 45.0MB/s */
--			vidc->control |= VIDC20_CTRL_FIFO_28;
--	}
--
--	/* Find the PLL values */
--	vidc->pll_ctl = acornfb_vidc20_find_pll(var->pixclock / div);
--}
--
--#define acornfb_default_control()	(VIDC20_CTRL_PIX_VCLK)
--#define acornfb_default_econtrol()	(VIDC20_ECTL_DAC | VIDC20_ECTL_REG(3))
-diff --git a/arch/arm/mach-rpc/include/mach/hardware.h b/arch/arm/mach-rpc/include/mach/hardware.h
-deleted file mode 100644
-index 6f197706f979..000000000000
---- a/arch/arm/mach-rpc/include/mach/hardware.h
-+++ /dev/null
-@@ -1,73 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  arch/arm/mach-rpc/include/mach/hardware.h
-- *
-- *  Copyright (C) 1996-1999 Russell King.
-- *
-- *  This file contains the hardware definitions of the RiscPC series machines.
-- */
--#ifndef __ASM_ARCH_HARDWARE_H
--#define __ASM_ARCH_HARDWARE_H
--
--#include <mach/memory.h>
--
--/*
-- * What hardware must be present
-- */
--#define HAS_IOMD
--#define HAS_VIDC20
--
--/* Hardware addresses of major areas.
-- *  *_START is the physical address
-- *  *_SIZE  is the size of the region
-- *  *_BASE  is the virtual address
-- */
--#define RPC_RAM_SIZE		0x10000000
--#define RPC_RAM_START		0x10000000
--
--#define EASI_SIZE		0x08000000	/* EASI I/O */
--#define EASI_START		0x08000000
--#define EASI_BASE		IOMEM(0xe5000000)
--
--#define IO_START		0x03000000	/* I/O */
--#define IO_SIZE			0x01000000
--#define IO_BASE			IOMEM(0xe0000000)
--
--#define SCREEN_START		0x02000000	/* VRAM */
--#define SCREEN_END		0xdfc00000
--#define SCREEN_BASE		0xdf800000
--
--#define UNCACHEABLE_ADDR	(FLUSH_BASE + 0x10000)
--
--/*
-- * IO Addresses
-- */
--#define ECARD_EASI_BASE		(EASI_BASE)
--#define VIDC_BASE		(IO_BASE + 0x00400000)
--#define EXPMASK_BASE		(IO_BASE + 0x00360000)
--#define ECARD_IOC4_BASE		(IO_BASE + 0x00270000)
--#define ECARD_IOC_BASE		(IO_BASE + 0x00240000)
--#define IOMD_BASE		(IO_BASE + 0x00200000)
--#define IOC_BASE		(IO_BASE + 0x00200000)
--#define ECARD_MEMC8_BASE	(IO_BASE + 0x0002b000)
--#define FLOPPYDMA_BASE		(IO_BASE + 0x0002a000)
--#define PCIO_BASE		(IO_BASE + 0x00010000)
--#define ECARD_MEMC_BASE		(IO_BASE + 0x00000000)
--
--#define vidc_writel(val)	__raw_writel(val, VIDC_BASE)
--
--#define NETSLOT_BASE		0x0302b000
--#define NETSLOT_SIZE		0x00001000
--
--#define PODSLOT_IOC0_BASE	0x03240000
--#define PODSLOT_IOC4_BASE	0x03270000
--#define PODSLOT_IOC_SIZE	(1 << 14)
--#define PODSLOT_MEMC_BASE	0x03000000
--#define PODSLOT_MEMC_SIZE	(1 << 14)
--#define PODSLOT_EASI_BASE	0x08000000
--#define PODSLOT_EASI_SIZE	(1 << 24)
--
--#define	EXPMASK_STATUS		(EXPMASK_BASE + 0x00)
--#define EXPMASK_ENABLE		(EXPMASK_BASE + 0x04)
--
--#endif
-diff --git a/arch/arm/mach-rpc/include/mach/io.h b/arch/arm/mach-rpc/include/mach/io.h
-deleted file mode 100644
-index 8a8f28406691..000000000000
---- a/arch/arm/mach-rpc/include/mach/io.h
-+++ /dev/null
-@@ -1,28 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  arch/arm/mach-rpc/include/mach/io.h
-- *
-- *  Copyright (C) 1997 Russell King
-- *
-- * Modifications:
-- *  06-Dec-1997	RMK	Created.
-- */
--#ifndef __ASM_ARM_ARCH_IO_H
--#define __ASM_ARM_ARCH_IO_H
--
--#include <mach/hardware.h>
--
--#define IO_SPACE_LIMIT 0xffff
--
--/*
-- * We need PC style IO addressing for:
-- *  - floppy (at 0x3f2,0x3f4,0x3f5,0x3f7)
-- *  - parport (at 0x278-0x27a, 0x27b-0x27f, 0x778-0x77a)
-- *  - 8250 serial (only for compile)
-- *
-- * These peripherals are found in an area of MMIO which looks very much
-- * like an ISA bus, but with registers at the low byte of each word.
-- */
--#define __io(a)		(PCIO_BASE + ((a) << 2))
--
--#endif
-diff --git a/arch/arm/mach-rpc/include/mach/irqs.h b/arch/arm/mach-rpc/include/mach/irqs.h
-deleted file mode 100644
-index 0c3428fd9729..000000000000
---- a/arch/arm/mach-rpc/include/mach/irqs.h
-+++ /dev/null
-@@ -1,42 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  arch/arm/mach-rpc/include/mach/irqs.h
-- *
-- *  Copyright (C) 1996 Russell King
-- */
--
--#define IRQ_PRINTER		0
--#define IRQ_BATLOW		1
--#define IRQ_FLOPPYINDEX		2
--#define IRQ_VSYNCPULSE		3
--#define IRQ_POWERON		4
--#define IRQ_TIMER0		5
--#define IRQ_TIMER1		6
--#define IRQ_IMMEDIATE		7
--#define IRQ_EXPCARDFIQ		8
--#define IRQ_HARDDISK		9
--#define IRQ_SERIALPORT		10
--#define IRQ_FLOPPYDISK		12
--#define IRQ_EXPANSIONCARD	13
--#define IRQ_KEYBOARDTX		14
--#define IRQ_KEYBOARDRX		15
--
--#define IRQ_DMA0		16
--#define IRQ_DMA1		17
--#define IRQ_DMA2		18
--#define IRQ_DMA3		19
--#define IRQ_DMAS0		20
--#define IRQ_DMAS1		21
--
--#define FIQ_FLOPPYDATA		0
--#define FIQ_ECONET		2
--#define FIQ_SERIALPORT		4
--#define FIQ_EXPANSIONCARD	6
--#define FIQ_FORCE		7
--
--/*
-- * This is the offset of the FIQ "IRQ" numbers
-- */
--#define FIQ_START		64
--
--#define NR_IRQS			128
-diff --git a/arch/arm/mach-rpc/include/mach/isa-dma.h b/arch/arm/mach-rpc/include/mach/isa-dma.h
-deleted file mode 100644
-index d9c3af1ef718..000000000000
---- a/arch/arm/mach-rpc/include/mach/isa-dma.h
-+++ /dev/null
-@@ -1,26 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  arch/arm/mach-rpc/include/mach/isa-dma.h
-- *
-- *  Copyright (C) 1997 Russell King
-- */
--#ifndef __ASM_ARCH_DMA_H
--#define __ASM_ARCH_DMA_H
--
--#define MAX_DMA_CHANNELS	8
--
--#define DMA_0			0
--#define DMA_1			1
--#define DMA_2			2
--#define DMA_3			3
--#define DMA_S0			4
--#define DMA_S1			5
--#define DMA_VIRTUAL_FLOPPY	6
--#define DMA_VIRTUAL_SOUND	7
--
--#define DMA_FLOPPY		DMA_VIRTUAL_FLOPPY
--
--#define IOMD_DMA_BOUNDARY	(PAGE_SIZE - 1)
--
--#endif /* _ASM_ARCH_DMA_H */
--
-diff --git a/arch/arm/mach-rpc/include/mach/memory.h b/arch/arm/mach-rpc/include/mach/memory.h
-deleted file mode 100644
-index a586eb31b18d..000000000000
---- a/arch/arm/mach-rpc/include/mach/memory.h
-+++ /dev/null
-@@ -1,32 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  arch/arm/mach-rpc/include/mach/memory.h
-- *
-- *  Copyright (C) 1996,1997,1998 Russell King.
-- *
-- *  Changelog:
-- *   20-Oct-1996 RMK	Created
-- *   31-Dec-1997 RMK	Fixed definitions to reduce warnings
-- *   11-Jan-1998 RMK	Uninlined to reduce hits on cache
-- *   08-Feb-1998 RMK	Added __virt_to_bus and __bus_to_virt
-- *   21-Mar-1999 RMK	Renamed to memory.h
-- *		 RMK	Added TASK_SIZE and PAGE_OFFSET
-- */
--#ifndef __ASM_ARCH_MEMORY_H
--#define __ASM_ARCH_MEMORY_H
--
--/*
-- * Cache flushing area - ROM
-- */
--#define FLUSH_BASE_PHYS		0x00000000
--#define FLUSH_BASE		0xdf000000
--
--/*
-- * Sparsemem support.  Each section is a maximum of 64MB.  The sections
-- * are offset by 128MB and can cover 128MB, so that gives us a maximum
-- * of 29 physmem bits.
-- */
--#define MAX_PHYSMEM_BITS	29
--#define SECTION_SIZE_BITS	26
--
--#endif
-diff --git a/arch/arm/mach-rpc/include/mach/uncompress.h b/arch/arm/mach-rpc/include/mach/uncompress.h
-deleted file mode 100644
-index 1fbe7eb956fd..000000000000
---- a/arch/arm/mach-rpc/include/mach/uncompress.h
-+++ /dev/null
-@@ -1,181 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  arch/arm/mach-rpc/include/mach/uncompress.h
-- *
-- *  Copyright (C) 1996 Russell King
-- */
--#define VIDMEM ((char *)SCREEN_START)
-- 
--#include <linux/io.h>
--#include <mach/hardware.h>
--#include <asm/setup.h>
--#include <asm/page.h>
--
--int video_size_row;
--unsigned char bytes_per_char_h;
--extern unsigned long con_charconvtable[256];
--
--struct param_struct {
--	unsigned long page_size;
--	unsigned long nr_pages;
--	unsigned long ramdisk_size;
--	unsigned long mountrootrdonly;
--	unsigned long rootdev;
--	unsigned long video_num_cols;
--	unsigned long video_num_rows;
--	unsigned long video_x;
--	unsigned long video_y;
--	unsigned long memc_control_reg;
--	unsigned char sounddefault;
--	unsigned char adfsdrives;
--	unsigned char bytes_per_char_h;
--	unsigned char bytes_per_char_v;
--	unsigned long unused[256/4-11];
--};
--
--static const unsigned long palette_4[16] = {
--	0x00000000,
--	0x000000cc,
--	0x0000cc00,             /* Green   */
--	0x0000cccc,             /* Yellow  */
--	0x00cc0000,             /* Blue    */
--	0x00cc00cc,             /* Magenta */
--	0x00cccc00,             /* Cyan    */
--	0x00cccccc,             /* White   */
--	0x00000000,
--	0x000000ff,
--	0x0000ff00,
--	0x0000ffff,
--	0x00ff0000,
--	0x00ff00ff,
--	0x00ffff00,
--	0x00ffffff
--};
--
--#define palette_setpixel(p)	*(unsigned long *)(IO_START+0x00400000) = 0x10000000|((p) & 255)
--#define palette_write(v)	*(unsigned long *)(IO_START+0x00400000) = 0x00000000|((v) & 0x00ffffff)
--
--/*
-- * params_phys is a linker defined symbol - see
-- * arch/arm/boot/compressed/Makefile
-- */
--extern __attribute__((pure)) struct param_struct *params(void);
--#define params (params())
--
--#ifndef STANDALONE_DEBUG 
--unsigned long video_num_cols;
--unsigned long video_num_rows;
--unsigned long video_x;
--unsigned long video_y;
--unsigned char bytes_per_char_v;
--int white;
--
--/*
-- * This does not append a newline
-- */
--static inline void putc(int c)
--{
--	extern void ll_write_char(char *, char c, char white);
--	int x,y;
--	char *ptr;
--
--	x = video_x;
--	y = video_y;
--
--	if (c == '\n') {
--		if (++y >= video_num_rows)
--			y--;
--	} else if (c == '\r') {
--		x = 0;
--	} else {
--		ptr = VIDMEM + ((y*video_num_cols*bytes_per_char_v+x)*bytes_per_char_h);
--		ll_write_char(ptr, c, white);
--		if (++x >= video_num_cols) {
--			x = 0;
--			if ( ++y >= video_num_rows ) {
--				y--;
--			}
--		}
--	}
--
--	video_x = x;
--	video_y = y;
--}
--
--static inline void flush(void)
--{
--}
--
--/*
-- * Setup for decompression
-- */
--static void arch_decomp_setup(void)
--{
--	int i;
--	struct tag *t = (struct tag *)params;
--	unsigned int nr_pages = 0, page_size = PAGE_SIZE;
--
--	if (t->hdr.tag == ATAG_CORE) {
--		for (; t->hdr.size; t = tag_next(t)) {
--			if (t->hdr.tag == ATAG_VIDEOTEXT) {
--				video_num_rows = t->u.videotext.video_lines;
--				video_num_cols = t->u.videotext.video_cols;
--				video_x = t->u.videotext.x;
--				video_y = t->u.videotext.y;
--			} else if (t->hdr.tag == ATAG_VIDEOLFB) {
--				bytes_per_char_h = t->u.videolfb.lfb_depth;
--				bytes_per_char_v = 8;
--			} else if (t->hdr.tag == ATAG_MEM) {
--				page_size = PAGE_SIZE;
--				nr_pages += (t->u.mem.size / PAGE_SIZE);
--			}
--		}
--	} else {
--		nr_pages = params->nr_pages;
--		page_size = params->page_size;
--		video_num_rows = params->video_num_rows;
--		video_num_cols = params->video_num_cols;
--		video_x = params->video_x;
--		video_y = params->video_y;
--		bytes_per_char_h = params->bytes_per_char_h;
--		bytes_per_char_v = params->bytes_per_char_v;
--	}
--
--	video_size_row = video_num_cols * bytes_per_char_h;
--	
--	if (bytes_per_char_h == 4)
--		for (i = 0; i < 256; i++)
--			con_charconvtable[i] =
--				(i & 128 ? 1 << 0  : 0) |
--				(i & 64  ? 1 << 4  : 0) |
--				(i & 32  ? 1 << 8  : 0) |
--				(i & 16  ? 1 << 12 : 0) |
--				(i & 8   ? 1 << 16 : 0) |
--				(i & 4   ? 1 << 20 : 0) |
--				(i & 2   ? 1 << 24 : 0) |
--				(i & 1   ? 1 << 28 : 0);
--	else
--		for (i = 0; i < 16; i++)
--			con_charconvtable[i] =
--				(i & 8   ? 1 << 0  : 0) |
--				(i & 4   ? 1 << 8  : 0) |
--				(i & 2   ? 1 << 16 : 0) |
--				(i & 1   ? 1 << 24 : 0);
--
--
--	palette_setpixel(0);
--	if (bytes_per_char_h == 1) {
--		palette_write (0);
--		palette_write (0x00ffffff);
--		for (i = 2; i < 256; i++)
--			palette_write (0);
--		white = 1;
--	} else {
--		for (i = 0; i < 256; i++)
--			palette_write (i < 16 ? palette_4[i] : 0);
--		white = 7;
--	}
--
--	if (nr_pages * page_size < 4096*1024) error("<4M of mem\n");
--}
--#endif
-diff --git a/arch/arm/mach-rpc/io-acorn.S b/arch/arm/mach-rpc/io-acorn.S
-deleted file mode 100644
-index aa9bf0d771c0..000000000000
---- a/arch/arm/mach-rpc/io-acorn.S
-+++ /dev/null
-@@ -1,28 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-only */
--/*
-- *  linux/arch/arm/lib/io-acorn.S
-- *
-- *  Copyright (C) 1995, 1996 Russell King
-- *
-- * 27/03/03 Ian Molton Clean up CONFIG_CPU
-- */
--#include <linux/linkage.h>
--#include <linux/kern_levels.h>
--#include <asm/assembler.h>
--
--		.text
--		.align
--
--.Liosl_warning:
--		.ascii	KERN_WARNING "insl/outsl not implemented, called from %08lX\0"
--		.align
--
--/*
-- * These make no sense on Acorn machines.
-- * Print a warning message.
-- */
--ENTRY(insl)
--ENTRY(outsl)
--		adr	r0, .Liosl_warning
--		mov	r1, lr
--		b	_printk
-diff --git a/arch/arm/mach-rpc/irq.c b/arch/arm/mach-rpc/irq.c
-deleted file mode 100644
-index dc29384b6ef8..000000000000
---- a/arch/arm/mach-rpc/irq.c
-+++ /dev/null
-@@ -1,226 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--#include <linux/init.h>
--#include <linux/list.h>
--#include <linux/io.h>
--
--#include <asm/mach/irq.h>
--#include <asm/hardware/iomd.h>
--#include <asm/irq.h>
--#include <asm/fiq.h>
--
--// These are offsets from the stat register for each IRQ bank
--#define STAT	0x00
--#define REQ	0x04
--#define CLR	0x04
--#define MASK	0x08
--
--static const u8 irq_prio_h[256] = {
--	 0, 8, 9, 8,10,10,10,10,11,11,11,11,10,10,10,10,
--	12, 8, 9, 8,10,10,10,10,11,11,11,11,10,10,10,10,
--	13,13,13,13,10,10,10,10,11,11,11,11,10,10,10,10,
--	13,13,13,13,10,10,10,10,11,11,11,11,10,10,10,10,
--	14,14,14,14,10,10,10,10,11,11,11,11,10,10,10,10,
--	14,14,14,14,10,10,10,10,11,11,11,11,10,10,10,10,
--	13,13,13,13,10,10,10,10,11,11,11,11,10,10,10,10,
--	13,13,13,13,10,10,10,10,11,11,11,11,10,10,10,10,
--	15,15,15,15,10,10,10,10,11,11,11,11,10,10,10,10,
--	15,15,15,15,10,10,10,10,11,11,11,11,10,10,10,10,
--	13,13,13,13,10,10,10,10,11,11,11,11,10,10,10,10,
--	13,13,13,13,10,10,10,10,11,11,11,11,10,10,10,10,
--	15,15,15,15,10,10,10,10,11,11,11,11,10,10,10,10,
--	15,15,15,15,10,10,10,10,11,11,11,11,10,10,10,10,
--	13,13,13,13,10,10,10,10,11,11,11,11,10,10,10,10,
--	13,13,13,13,10,10,10,10,11,11,11,11,10,10,10,10,
--};
--
--static const u8 irq_prio_d[256] = {
--	 0,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	20,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	21,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	21,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	22,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	22,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	21,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	21,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	23,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	23,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	21,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	21,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	22,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	22,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	21,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--	21,16,17,16,18,16,17,16,19,16,17,16,18,16,17,16,
--};
--
--static const u8 irq_prio_l[256] = {
--	 0, 0, 1, 0, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
--	 4, 0, 1, 0, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
--	 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
--	 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
--	 6, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3, 3, 3, 3, 3, 3,
--	 6, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3, 3, 3, 3, 3, 3,
--	 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
--	 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
--	 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
--	 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
--	 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
--	 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
--	 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
--	 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
--	 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
--	 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
--};
--
--static int iomd_get_irq_nr(void)
--{
--	int irq;
--	u8 reg;
--
--	/* get highest priority first */
--	reg = readb(IOC_BASE + IOMD_IRQREQB);
--	irq = irq_prio_h[reg];
--	if (irq)
--		return irq;
--
--	/* get DMA  */
--	reg = readb(IOC_BASE + IOMD_DMAREQ);
--	irq = irq_prio_d[reg];
--	if (irq)
--		return irq;
--
--	/* get low priority */
--	reg = readb(IOC_BASE + IOMD_IRQREQA);
--	irq = irq_prio_l[reg];
--	if (irq)
--		return irq;
 -	return 0;
 -}
 -
--static void iomd_handle_irq(struct pt_regs *regs)
+-static int am200_unshare_video_mem(struct fb_info *info)
 -{
--	int irq;
+-	dev_dbg(&am200_device->dev, "ENTER %s\n", __func__);
 -
--	do {
--		irq = iomd_get_irq_nr();
--		if (irq)
--			generic_handle_irq(irq);
--	} while (irq);
+-	if (info != am200_board.host_fbinfo)
+-		return 0;
+-
+-	module_put(am200_board.host_fbinfo->fbops->owner);
+-	return 0;
 -}
 -
--static void __iomem *iomd_get_base(struct irq_data *d)
+-static int am200_fb_notifier_callback(struct notifier_block *self,
+-				 unsigned long event, void *data)
 -{
--	void *cd = irq_data_get_irq_chip_data(d);
+-	struct fb_event *evdata = data;
+-	struct fb_info *info = evdata->info;
 -
--	return (void __iomem *)(unsigned long)cd;
+-	dev_dbg(&am200_device->dev, "ENTER %s\n", __func__);
+-
+-	if (event == FB_EVENT_FB_REGISTERED)
+-		return am200_share_video_mem(info);
+-	else if (event == FB_EVENT_FB_UNREGISTERED)
+-		return am200_unshare_video_mem(info);
+-
+-	return 0;
 -}
 -
--static void iomd_set_base_mask(unsigned int irq, void __iomem *base, u32 mask)
--{
--	struct irq_data *d = irq_get_irq_data(irq);
--
--	d->mask = mask;
--	irq_set_chip_data(irq, (void *)(unsigned long)base);
--}
--
--static void iomd_irq_mask_ack(struct irq_data *d)
--{
--	void __iomem *base = iomd_get_base(d);
--	unsigned int val, mask = d->mask;
--
--	val = readb(base + MASK);
--	writeb(val & ~mask, base + MASK);
--	writeb(mask, base + CLR);
--}
--
--static void iomd_irq_mask(struct irq_data *d)
--{
--	void __iomem *base = iomd_get_base(d);
--	unsigned int val, mask = d->mask;
--
--	val = readb(base + MASK);
--	writeb(val & ~mask, base + MASK);
--}
--
--static void iomd_irq_unmask(struct irq_data *d)
--{
--	void __iomem *base = iomd_get_base(d);
--	unsigned int val, mask = d->mask;
--
--	val = readb(base + MASK);
--	writeb(val | mask, base + MASK);
--}
--
--static struct irq_chip iomd_chip_clr = {
--	.irq_mask_ack	= iomd_irq_mask_ack,
--	.irq_mask	= iomd_irq_mask,
--	.irq_unmask	= iomd_irq_unmask,
+-static struct notifier_block am200_fb_notif = {
+-	.notifier_call = am200_fb_notifier_callback,
 -};
 -
--static struct irq_chip iomd_chip_noclr = {
--	.irq_mask	= iomd_irq_mask,
--	.irq_unmask	= iomd_irq_unmask,
--};
--
--extern unsigned char rpc_default_fiq_start, rpc_default_fiq_end;
--
--void __init rpc_init_irq(void)
+-/* this gets called as part of our init. these steps must be done now so
+- * that we can use pxa_set_fb_info */
+-static void __init am200_presetup_fb(void)
 -{
--	unsigned int irq, clr, set;
+-	int fw;
+-	int fh;
+-	int padding_size;
+-	int totalsize;
 -
--	iomd_writeb(0, IOMD_IRQMASKA);
--	iomd_writeb(0, IOMD_IRQMASKB);
--	iomd_writeb(0, IOMD_FIQMASK);
--	iomd_writeb(0, IOMD_DMAMASK);
--
--	set_fiq_handler(&rpc_default_fiq_start,
--		&rpc_default_fiq_end - &rpc_default_fiq_start);
--
--	set_handle_irq(iomd_handle_irq);
--
--	for (irq = 0; irq < NR_IRQS; irq++) {
--		clr = IRQ_NOREQUEST;
--		set = 0;
--
--		if (irq <= 6 || (irq >= 9 && irq <= 15))
--			clr |= IRQ_NOPROBE;
--
--		if (irq == 21 || (irq >= 16 && irq <= 19) ||
--		    irq == IRQ_KEYBOARDTX)
--			set |= IRQ_NOAUTOEN;
--
--		switch (irq) {
--		case 0 ... 7:
--			irq_set_chip_and_handler(irq, &iomd_chip_clr,
--						 handle_level_irq);
--			irq_modify_status(irq, clr, set);
--			iomd_set_base_mask(irq, IOMD_BASE + IOMD_IRQSTATA,
--					   BIT(irq));
--			break;
--
--		case 8 ... 15:
--			irq_set_chip_and_handler(irq, &iomd_chip_noclr,
--						 handle_level_irq);
--			irq_modify_status(irq, clr, set);
--			iomd_set_base_mask(irq, IOMD_BASE + IOMD_IRQSTATB,
--					   BIT(irq - 8));
--			break;
--
--		case 16 ... 21:
--			irq_set_chip_and_handler(irq, &iomd_chip_noclr,
--						 handle_level_irq);
--			irq_modify_status(irq, clr, set);
--			iomd_set_base_mask(irq, IOMD_BASE + IOMD_DMASTAT,
--					   BIT(irq - 16));
--			break;
--
--		case 64 ... 71:
--			irq_set_chip(irq, &iomd_chip_noclr);
--			irq_modify_status(irq, clr, set);
--			iomd_set_base_mask(irq, IOMD_BASE + IOMD_FIQSTAT,
--					   BIT(irq - 64));
--			break;
--		}
--	}
--
--	init_FIQ(FIQ_START);
--}
-diff --git a/arch/arm/mach-rpc/riscpc.c b/arch/arm/mach-rpc/riscpc.c
-deleted file mode 100644
-index f70fb9c4b0cb..000000000000
---- a/arch/arm/mach-rpc/riscpc.c
-+++ /dev/null
-@@ -1,225 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- *  linux/arch/arm/mach-rpc/riscpc.c
-- *
-- *  Copyright (C) 1998-2001 Russell King
-- *
-- *  Architecture specific fixups.
-- */
--#include <linux/kernel.h>
--#include <linux/tty.h>
--#include <linux/delay.h>
--#include <linux/pm.h>
--#include <linux/init.h>
--#include <linux/sched.h>
--#include <linux/device.h>
--#include <linux/serial_8250.h>
--#include <linux/ata_platform.h>
--#include <linux/io.h>
--#include <linux/i2c.h>
--#include <linux/reboot.h>
--
--#include <asm/elf.h>
--#include <asm/mach-types.h>
--#include <mach/hardware.h>
--#include <asm/hardware/iomd.h>
--#include <asm/page.h>
--#include <asm/domain.h>
--#include <asm/setup.h>
--#include <asm/system_misc.h>
--
--#include <asm/mach/map.h>
--#include <asm/mach/arch.h>
--#include <asm/mach/time.h>
--
--extern void rpc_init_irq(void);
--
--unsigned int vram_size;
--unsigned int memc_ctrl_reg;
--unsigned int number_mfm_drives;
--
--static int __init parse_tag_acorn(const struct tag *tag)
--{
--	memc_ctrl_reg = tag->u.acorn.memc_control_reg;
--	number_mfm_drives = tag->u.acorn.adfsdrives;
--
--	switch (tag->u.acorn.vram_pages) {
--	case 512:
--		vram_size += PAGE_SIZE * 256;
--		fallthrough;	/* ??? */
--	case 256:
--		vram_size += PAGE_SIZE * 256;
+-	switch (panel_type) {
+-	case 6:
+-		am200_fb_info.modes = &am200_fb_mode_6inch;
+-		break;
+-	case 8:
+-		am200_fb_info.modes = &am200_fb_mode_8inch;
+-		break;
+-	case 97:
+-		am200_fb_info.modes = &am200_fb_mode_9inch7;
 -		break;
 -	default:
+-		dev_err(&am200_device->dev, "invalid panel_type selection,"
+-						" setting to 6\n");
+-		am200_fb_info.modes = &am200_fb_mode_6inch;
 -		break;
 -	}
--#if 0
--	if (vram_size) {
--		desc->video_start = 0x02000000;
--		desc->video_end   = 0x02000000 + vram_size;
--	}
--#endif
+-
+-	/* the frame buffer is divided as follows:
+-	command | CRC | padding
+-	16kb waveform data | CRC | padding
+-	image data | CRC
+-	*/
+-
+-	fw = am200_fb_info.modes->xres;
+-	fh = am200_fb_info.modes->yres;
+-
+-	/* waveform must be 16k + 2 for checksum */
+-	am200_board.wfm_size = roundup(16*1024 + 2, fw);
+-
+-	padding_size = PAGE_SIZE + (4 * fw);
+-
+-	/* total is 1 cmd , 1 wfm, padding and image */
+-	totalsize = fw + am200_board.wfm_size + padding_size + (fw*fh);
+-
+-	/* save this off because we're manipulating fw after this and
+-	 * we'll need it when we're ready to setup the framebuffer */
+-	am200_board.fw = fw;
+-	am200_board.fh = fh;
+-
+-	/* the reason we do this adjustment is because we want to acquire
+-	 * more framebuffer memory without imposing custom awareness on the
+-	 * underlying pxafb driver */
+-	am200_fb_info.modes->yres = DIV_ROUND_UP(totalsize, fw);
+-
+-	/* we divide since we told the LCD controller we're 16bpp */
+-	am200_fb_info.modes->xres /= 2;
+-
+-	pxa_set_fb_info(NULL, &am200_fb_info);
+-
+-}
+-
+-/* this gets called by metronomefb as part of its init, in our case, we
+- * have already completed initial framebuffer init in presetup_fb so we
+- * can just setup the fb access pointers */
+-static int am200_setup_fb(struct metronomefb_par *par)
+-{
+-	int fw;
+-	int fh;
+-
+-	fw = am200_board.fw;
+-	fh = am200_board.fh;
+-
+-	/* metromem was set up by the notifier in share_video_mem so now
+-	 * we can use its value to calculate the other entries */
+-	par->metromem_cmd = (struct metromem_cmd *) am200_board.metromem;
+-	par->metromem_wfm = am200_board.metromem + fw;
+-	par->metromem_img = par->metromem_wfm + am200_board.wfm_size;
+-	par->metromem_img_csum = (u16 *) (par->metromem_img + (fw * fh));
+-	par->metromem_dma = am200_board.host_fbinfo->fix.smem_start;
+-
 -	return 0;
 -}
 -
--__tagtable(ATAG_ACORN, parse_tag_acorn);
+-static int am200_get_panel_type(void)
+-{
+-	return panel_type;
+-}
 -
--static struct map_desc rpc_io_desc[] __initdata = {
-- 	{	/* VRAM		*/
--		.virtual	=  SCREEN_BASE,
--		.pfn		= __phys_to_pfn(SCREEN_START),
--		.length		= 	2*1048576,
--		.type		= MT_DEVICE
--	}, {	/* IO space	*/
--		.virtual	=  (u32)IO_BASE,
--		.pfn		= __phys_to_pfn(IO_START),
--		.length		= 	IO_SIZE	 ,
--		.type		= MT_DEVICE
--	}, {	/* EASI space	*/
--		.virtual	= (unsigned long)EASI_BASE,
--		.pfn		= __phys_to_pfn(EASI_START),
--		.length		= EASI_SIZE,
--		.type		= MT_DEVICE
+-static irqreturn_t am200_handle_irq(int irq, void *dev_id)
+-{
+-	struct metronomefb_par *par = dev_id;
+-
+-	wake_up_interruptible(&par->waitq);
+-	return IRQ_HANDLED;
+-}
+-
+-static int am200_setup_irq(struct fb_info *info)
+-{
+-	int ret;
+-
+-	ret = request_irq(PXA_GPIO_TO_IRQ(RDY_GPIO_PIN), am200_handle_irq,
+-				IRQF_TRIGGER_FALLING, "AM200", info->par);
+-	if (ret)
+-		dev_err(&am200_device->dev, "request_irq failed: %d\n", ret);
+-
+-	return ret;
+-}
+-
+-static void am200_set_rst(struct metronomefb_par *par, int state)
+-{
+-	gpio_set_value(RST_GPIO_PIN, state);
+-}
+-
+-static void am200_set_stdby(struct metronomefb_par *par, int state)
+-{
+-	gpio_set_value(STDBY_GPIO_PIN, state);
+-}
+-
+-static int am200_wait_event(struct metronomefb_par *par)
+-{
+-	return wait_event_timeout(par->waitq, gpio_get_value(RDY_GPIO_PIN), HZ);
+-}
+-
+-static int am200_wait_event_intr(struct metronomefb_par *par)
+-{
+-	return wait_event_interruptible_timeout(par->waitq,
+-					gpio_get_value(RDY_GPIO_PIN), HZ);
+-}
+-
+-static struct metronome_board am200_board = {
+-	.owner			= THIS_MODULE,
+-	.setup_irq		= am200_setup_irq,
+-	.setup_io		= am200_init_gpio_regs,
+-	.setup_fb		= am200_setup_fb,
+-	.set_rst		= am200_set_rst,
+-	.set_stdby		= am200_set_stdby,
+-	.met_wait_event		= am200_wait_event,
+-	.met_wait_event_intr	= am200_wait_event_intr,
+-	.get_panel_type		= am200_get_panel_type,
+-	.cleanup		= am200_cleanup,
+-};
+-
+-static unsigned long am200_pin_config[] __initdata = {
+-	GPIO51_GPIO,
+-	GPIO49_GPIO,
+-	GPIO48_GPIO,
+-	GPIO32_GPIO,
+-	GPIO17_GPIO,
+-	GPIO16_GPIO,
+-};
+-
+-int __init am200_init(void)
+-{
+-	int ret;
+-
+-	/*
+-	 * Before anything else, we request notification for any fb
+-	 * creation events.
+-	 *
+-	 * FIXME: This is terrible and needs to be nuked. The notifier is used
+-	 * to get at the fb base address from the boot splash fb driver, which
+-	 * is then passed to metronomefb. Instaed of metronomfb or this board
+-	 * support file here figuring this out on their own.
+-	 *
+-	 * See also the #ifdef in fbmem.c.
+-	 */
+-	fb_register_client(&am200_fb_notif);
+-
+-	pxa2xx_mfp_config(ARRAY_AND_SIZE(am200_pin_config));
+-
+-	/* request our platform independent driver */
+-	request_module("metronomefb");
+-
+-	am200_device = platform_device_alloc("metronomefb", -1);
+-	if (!am200_device)
+-		return -ENOMEM;
+-
+-	/* the am200_board that will be seen by metronomefb is a copy */
+-	platform_device_add_data(am200_device, &am200_board,
+-					sizeof(am200_board));
+-
+-	/* this _add binds metronomefb to am200. metronomefb refcounts am200 */
+-	ret = platform_device_add(am200_device);
+-
+-	if (ret) {
+-		platform_device_put(am200_device);
+-		fb_unregister_client(&am200_fb_notif);
+-		return ret;
+-	}
+-
+-	am200_presetup_fb();
+-
+-	return 0;
+-}
+-
+-module_param(panel_type, uint, 0);
+-MODULE_PARM_DESC(panel_type, "Select the panel type: 6, 8, 97");
+-
+-MODULE_DESCRIPTION("board driver for am200 metronome epd kit");
+-MODULE_AUTHOR("Jaya Kumar");
+-MODULE_LICENSE("GPL");
+diff --git a/arch/arm/mach-pxa/am300epd.c b/arch/arm/mach-pxa/am300epd.c
+deleted file mode 100644
+index 435fb72da7de..000000000000
+--- a/arch/arm/mach-pxa/am300epd.c
++++ /dev/null
+@@ -1,296 +0,0 @@
+-/*
+- * am300epd.c -- Platform device for AM300 EPD kit
+- *
+- * Copyright (C) 2008, Jaya Kumar
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License. See the file COPYING in the main directory of this archive for
+- * more details.
+- *
+- * This work was made possible by help and equipment support from E-Ink
+- * Corporation. http://support.eink.com/community
+- *
+- * This driver is written to be used with the Broadsheet display controller.
+- * on the AM300 EPD prototype kit/development kit with an E-Ink 800x600
+- * Vizplex EPD on a Gumstix board using the Broadsheet interface board.
+- *
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/string.h>
+-#include <linux/delay.h>
+-#include <linux/interrupt.h>
+-#include <linux/fb.h>
+-#include <linux/init.h>
+-#include <linux/platform_device.h>
+-#include <linux/irq.h>
+-#include <linux/gpio/legacy.h>
+-
+-#include "gumstix.h"
+-#include "mfp-pxa25x.h"
+-#include "irqs.h"
+-#include <linux/platform_data/video-pxafb.h>
+-
+-#include "generic.h"
+-
+-#include <video/broadsheetfb.h>
+-
+-static unsigned int panel_type = 6;
+-static struct platform_device *am300_device;
+-static struct broadsheet_board am300_board;
+-
+-static unsigned long am300_pin_config[] __initdata = {
+-	GPIO16_GPIO,
+-	GPIO17_GPIO,
+-	GPIO32_GPIO,
+-	GPIO48_GPIO,
+-	GPIO49_GPIO,
+-	GPIO51_GPIO,
+-	GPIO74_GPIO,
+-	GPIO75_GPIO,
+-	GPIO76_GPIO,
+-	GPIO77_GPIO,
+-
+-	/* this is the 16-bit hdb bus 58-73 */
+-	GPIO58_GPIO,
+-	GPIO59_GPIO,
+-	GPIO60_GPIO,
+-	GPIO61_GPIO,
+-
+-	GPIO62_GPIO,
+-	GPIO63_GPIO,
+-	GPIO64_GPIO,
+-	GPIO65_GPIO,
+-
+-	GPIO66_GPIO,
+-	GPIO67_GPIO,
+-	GPIO68_GPIO,
+-	GPIO69_GPIO,
+-
+-	GPIO70_GPIO,
+-	GPIO71_GPIO,
+-	GPIO72_GPIO,
+-	GPIO73_GPIO,
+-};
+-
+-/* register offsets for gpio control */
+-#define PWR_GPIO_PIN	16
+-#define CFG_GPIO_PIN	17
+-#define RDY_GPIO_PIN	32
+-#define DC_GPIO_PIN	48
+-#define RST_GPIO_PIN	49
+-#define LED_GPIO_PIN	51
+-#define RD_GPIO_PIN	74
+-#define WR_GPIO_PIN	75
+-#define CS_GPIO_PIN	76
+-#define IRQ_GPIO_PIN	77
+-
+-/* hdb bus */
+-#define DB0_GPIO_PIN	58
+-#define DB15_GPIO_PIN	73
+-
+-static int gpios[] = { PWR_GPIO_PIN, CFG_GPIO_PIN, RDY_GPIO_PIN, DC_GPIO_PIN,
+-			RST_GPIO_PIN, RD_GPIO_PIN, WR_GPIO_PIN, CS_GPIO_PIN,
+-			IRQ_GPIO_PIN, LED_GPIO_PIN };
+-static char *gpio_names[] = { "PWR", "CFG", "RDY", "DC", "RST", "RD", "WR",
+-				"CS", "IRQ", "LED" };
+-
+-static int am300_wait_event(struct broadsheetfb_par *par)
+-{
+-	/* todo: improve err recovery */
+-	wait_event(par->waitq, gpio_get_value(RDY_GPIO_PIN));
+-	return 0;
+-}
+-
+-static int am300_init_gpio_regs(struct broadsheetfb_par *par)
+-{
+-	int i;
+-	int err;
+-	char dbname[8];
+-
+-	for (i = 0; i < ARRAY_SIZE(gpios); i++) {
+-		err = gpio_request(gpios[i], gpio_names[i]);
+-		if (err) {
+-			dev_err(&am300_device->dev, "failed requesting "
+-				"gpio %s, err=%d\n", gpio_names[i], err);
+-			goto err_req_gpio;
+-		}
+-	}
+-
+-	/* we also need to take care of the hdb bus */
+-	for (i = DB0_GPIO_PIN; i <= DB15_GPIO_PIN; i++) {
+-		sprintf(dbname, "DB%d", i);
+-		err = gpio_request(i, dbname);
+-		if (err) {
+-			dev_err(&am300_device->dev, "failed requesting "
+-				"gpio %d, err=%d\n", i, err);
+-			goto err_req_gpio2;
+-		}
+-	}
+-
+-	/* setup the outputs and init values */
+-	gpio_direction_output(PWR_GPIO_PIN, 0);
+-	gpio_direction_output(CFG_GPIO_PIN, 1);
+-	gpio_direction_output(DC_GPIO_PIN, 0);
+-	gpio_direction_output(RD_GPIO_PIN, 1);
+-	gpio_direction_output(WR_GPIO_PIN, 1);
+-	gpio_direction_output(CS_GPIO_PIN, 1);
+-	gpio_direction_output(RST_GPIO_PIN, 0);
+-
+-	/* setup the inputs */
+-	gpio_direction_input(RDY_GPIO_PIN);
+-	gpio_direction_input(IRQ_GPIO_PIN);
+-
+-	/* start the hdb bus as an input */
+-	for (i = DB0_GPIO_PIN; i <= DB15_GPIO_PIN; i++)
+-		gpio_direction_output(i, 0);
+-
+-	/* go into command mode */
+-	gpio_set_value(CFG_GPIO_PIN, 1);
+-	gpio_set_value(RST_GPIO_PIN, 0);
+-	msleep(10);
+-	gpio_set_value(RST_GPIO_PIN, 1);
+-	msleep(10);
+-	am300_wait_event(par);
+-
+-	return 0;
+-
+-err_req_gpio2:
+-	while (--i >= DB0_GPIO_PIN)
+-		gpio_free(i);
+-	i = ARRAY_SIZE(gpios);
+-err_req_gpio:
+-	while (--i >= 0)
+-		gpio_free(gpios[i]);
+-
+-	return err;
+-}
+-
+-static int am300_init_board(struct broadsheetfb_par *par)
+-{
+-	return am300_init_gpio_regs(par);
+-}
+-
+-static void am300_cleanup(struct broadsheetfb_par *par)
+-{
+-	int i;
+-
+-	free_irq(PXA_GPIO_TO_IRQ(RDY_GPIO_PIN), par);
+-
+-	for (i = 0; i < ARRAY_SIZE(gpios); i++)
+-		gpio_free(gpios[i]);
+-
+-	for (i = DB0_GPIO_PIN; i <= DB15_GPIO_PIN; i++)
+-		gpio_free(i);
+-
+-}
+-
+-static u16 am300_get_hdb(struct broadsheetfb_par *par)
+-{
+-	u16 res = 0;
+-	int i;
+-
+-	for (i = 0; i <= (DB15_GPIO_PIN - DB0_GPIO_PIN) ; i++)
+-		res |= (gpio_get_value(DB0_GPIO_PIN + i)) ? (1 << i) : 0;
+-
+-	return res;
+-}
+-
+-static void am300_set_hdb(struct broadsheetfb_par *par, u16 data)
+-{
+-	int i;
+-
+-	for (i = 0; i <= (DB15_GPIO_PIN - DB0_GPIO_PIN) ; i++)
+-		gpio_set_value(DB0_GPIO_PIN + i, (data >> i) & 0x01);
+-}
+-
+-
+-static void am300_set_ctl(struct broadsheetfb_par *par, unsigned char bit,
+-				u8 state)
+-{
+-	switch (bit) {
+-	case BS_CS:
+-		gpio_set_value(CS_GPIO_PIN, state);
+-		break;
+-	case BS_DC:
+-		gpio_set_value(DC_GPIO_PIN, state);
+-		break;
+-	case BS_WR:
+-		gpio_set_value(WR_GPIO_PIN, state);
+-		break;
+-	}
+-}
+-
+-static int am300_get_panel_type(void)
+-{
+-	return panel_type;
+-}
+-
+-static irqreturn_t am300_handle_irq(int irq, void *dev_id)
+-{
+-	struct broadsheetfb_par *par = dev_id;
+-
+-	wake_up(&par->waitq);
+-	return IRQ_HANDLED;
+-}
+-
+-static int am300_setup_irq(struct fb_info *info)
+-{
+-	int ret;
+-	struct broadsheetfb_par *par = info->par;
+-
+-	ret = request_irq(PXA_GPIO_TO_IRQ(RDY_GPIO_PIN), am300_handle_irq,
+-				IRQF_TRIGGER_RISING, "AM300", par);
+-	if (ret)
+-		dev_err(&am300_device->dev, "request_irq failed: %d\n", ret);
+-
+-	return ret;
+-}
+-
+-static struct broadsheet_board am300_board = {
+-	.owner			= THIS_MODULE,
+-	.init			= am300_init_board,
+-	.cleanup		= am300_cleanup,
+-	.set_hdb		= am300_set_hdb,
+-	.get_hdb		= am300_get_hdb,
+-	.set_ctl		= am300_set_ctl,
+-	.wait_for_rdy		= am300_wait_event,
+-	.get_panel_type		= am300_get_panel_type,
+-	.setup_irq		= am300_setup_irq,
+-};
+-
+-int __init am300_init(void)
+-{
+-	int ret;
+-
+-	pxa2xx_mfp_config(ARRAY_AND_SIZE(am300_pin_config));
+-
+-	/* request our platform independent driver */
+-	request_module("broadsheetfb");
+-
+-	am300_device = platform_device_alloc("broadsheetfb", -1);
+-	if (!am300_device)
+-		return -ENOMEM;
+-
+-	/* the am300_board that will be seen by broadsheetfb is a copy */
+-	platform_device_add_data(am300_device, &am300_board,
+-					sizeof(am300_board));
+-
+-	ret = platform_device_add(am300_device);
+-
+-	if (ret) {
+-		platform_device_put(am300_device);
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+-module_param(panel_type, uint, 0);
+-MODULE_PARM_DESC(panel_type, "Select the panel type: 37, 6, 97");
+-
+-MODULE_DESCRIPTION("board driver for am300 epd kit");
+-MODULE_AUTHOR("Jaya Kumar");
+-MODULE_LICENSE("GPL");
+diff --git a/arch/arm/mach-pxa/devices.c b/arch/arm/mach-pxa/devices.c
+index edad956a1483..c2a2469a003a 100644
+--- a/arch/arm/mach-pxa/devices.c
++++ b/arch/arm/mach-pxa/devices.c
+@@ -1,715 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+-#include <linux/clkdev.h>
+-#include <linux/clk-provider.h>
+-#include <linux/dma-mapping.h>
+-#include <linux/dmaengine.h>
+-#include <linux/gpio-pxa.h>
+-#include <linux/platform_data/i2c-pxa.h>
+-#include <linux/soc/pxa/cpu.h>
+ 
+-#include <linux/platform_data/video-pxafb.h>
+-#include <linux/platform_data/mmc-pxamci.h>
+ #include "irqs.h"
+-#include <linux/platform_data/usb-ohci-pxa27x.h>
+-#include <linux/platform_data/mmp_dma.h>
+-
+-#include "mfp-pxa2xx.h"
+ #include "regs-ost.h"
+ #include "reset.h"
+-#include "devices.h"
+-#include "generic.h"
+-
+-void __init pxa_register_device(struct platform_device *dev, void *data)
+-{
+-	int ret;
+-
+-	dev->dev.platform_data = data;
+-
+-	ret = platform_device_register(dev);
+-	if (ret)
+-		dev_err(&dev->dev, "unable to register device: %d\n", ret);
+-}
+-
+-static struct resource pxa_resource_pmu = {
+-	.start	= IRQ_PMU,
+-	.end	= IRQ_PMU,
+-	.flags	= IORESOURCE_IRQ,
+-};
+-
+-struct platform_device pxa_device_pmu = {
+-	.name		= "xscale-pmu",
+-	.id		= -1,
+-	.resource	= &pxa_resource_pmu,
+-	.num_resources	= 1,
+-};
+-
+-static const struct resource pxamci_resources[] = {
+-	[0] = {
+-		.start	= 0x41100000,
+-		.end	= 0x41100fff,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= IRQ_MMC,
+-		.end	= IRQ_MMC,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-void __init pxa_set_mci_info(const struct pxamci_platform_data *info,
+-			     const struct property_entry *props)
+-{
+-	const struct platform_device_info mci_info = {
+-		.name		= "pxa2xx-mci",
+-		.id		= 0,
+-		.res		= pxamci_resources,
+-		.num_res	= ARRAY_SIZE(pxamci_resources),
+-		.data		= info,
+-		.size_data	= sizeof(*info),
+-		.dma_mask	= 0xffffffffUL,
+-		.properties	= props,
+-	};
+-	struct platform_device *mci_dev;
+-	int err;
+-
+-	mci_dev = platform_device_register_full(&mci_info);
+-	err = PTR_ERR_OR_ZERO(mci_dev);
+-	if (err)
+-		pr_err("Unable to create mci device: %d\n", err);
+-}
+-
+-static struct resource pxa2xx_udc_resources[] = {
+-	[0] = {
+-		.start	= 0x40600000,
+-		.end	= 0x4060ffff,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= IRQ_USB,
+-		.end	= IRQ_USB,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static u64 udc_dma_mask = ~(u32)0;
+-
+-struct platform_device pxa25x_device_udc = {
+-	.name		= "pxa25x-udc",
+-	.id		= -1,
+-	.resource	= pxa2xx_udc_resources,
+-	.num_resources	= ARRAY_SIZE(pxa2xx_udc_resources),
+-	.dev		=  {
+-		.dma_mask	= &udc_dma_mask,
 -	}
 -};
 -
--static void __init rpc_map_io(void)
--{
--	iotable_init(rpc_io_desc, ARRAY_SIZE(rpc_io_desc));
--
--	/*
--	 * Turn off floppy.
--	 */
--	writeb(0xc, PCIO_BASE + (0x3f2 << 2));
--
--	/*
--	 * RiscPC can't handle half-word loads and stores
--	 */
--	elf_hwcap &= ~HWCAP_HALF;
--}
--
--static struct resource acornfb_resources[] = {
--	/* VIDC */
--	DEFINE_RES_MEM(0x03400000, 0x00200000),
--	DEFINE_RES_IRQ(IRQ_VSYNCPULSE),
+-struct platform_device pxa27x_device_udc = {
+-	.name		= "pxa27x-udc",
+-	.id		= -1,
+-	.resource	= pxa2xx_udc_resources,
+-	.num_resources	= ARRAY_SIZE(pxa2xx_udc_resources),
+-	.dev		=  {
+-		.dma_mask	= &udc_dma_mask,
+-	}
 -};
 -
--static struct platform_device acornfb_device = {
--	.name			= "acornfb",
--	.id			= -1,
--	.dev			= {
+-static struct resource pxafb_resources[] = {
+-	[0] = {
+-		.start	= 0x44000000,
+-		.end	= 0x4400ffff,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= IRQ_LCD,
+-		.end	= IRQ_LCD,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static u64 fb_dma_mask = ~(u64)0;
+-
+-struct platform_device pxa_device_fb = {
+-	.name		= "pxa2xx-fb",
+-	.id		= -1,
+-	.dev		= {
+-		.dma_mask	= &fb_dma_mask,
 -		.coherent_dma_mask = 0xffffffff,
 -	},
--	.num_resources		= ARRAY_SIZE(acornfb_resources),
--	.resource		= acornfb_resources,
+-	.num_resources	= ARRAY_SIZE(pxafb_resources),
+-	.resource	= pxafb_resources,
 -};
 -
--static struct resource iomd_resources[] = {
--	DEFINE_RES_MEM(0x03200000, 0x10000),
--};
+-void __init pxa_set_fb_info(struct device *parent, struct pxafb_mach_info *info)
+-{
+-	pxa_device_fb.dev.parent = parent;
+-	pxa_register_device(&pxa_device_fb, info);
+-}
 -
--static struct platform_device iomd_device = {
--	.name			= "iomd",
--	.id			= -1,
--	.num_resources		= ARRAY_SIZE(iomd_resources),
--	.resource		= iomd_resources,
--};
--
--static struct resource iomd_kart_resources[] = {
--	DEFINE_RES_IRQ(IRQ_KEYBOARDRX),
--	DEFINE_RES_IRQ(IRQ_KEYBOARDTX),
--};
--
--static struct platform_device kbd_device = {
--	.name			= "kart",
--	.id			= -1,
--	.dev			= {
--		.parent 	= &iomd_device.dev,
--	},
--	.num_resources		= ARRAY_SIZE(iomd_kart_resources),
--	.resource		= iomd_kart_resources,
--};
--
--static struct plat_serial8250_port serial_platform_data[] = {
+-static struct resource pxa_resource_ffuart[] = {
 -	{
--		.mapbase	= 0x03010fe0,
--		.irq		= IRQ_SERIALPORT,
--		.uartclk	= 1843200,
--		.regshift	= 2,
--		.iotype		= UPIO_MEM,
--		.flags		= UPF_BOOT_AUTOCONF | UPF_IOREMAP | UPF_SKIP_TEST,
--	},
--	{ },
+-		.start	= 0x40100000,
+-		.end	= 0x40100023,
+-		.flags	= IORESOURCE_MEM,
+-	}, {
+-		.start	= IRQ_FFUART,
+-		.end	= IRQ_FFUART,
+-		.flags	= IORESOURCE_IRQ,
+-	}
 -};
 -
--static struct platform_device serial_device = {
--	.name			= "serial8250",
--	.id			= PLAT8250_DEV_PLATFORM,
--	.dev			= {
--		.platform_data	= serial_platform_data,
--	},
+-struct platform_device pxa_device_ffuart = {
+-	.name		= "pxa2xx-uart",
+-	.id		= 0,
+-	.resource	= pxa_resource_ffuart,
+-	.num_resources	= ARRAY_SIZE(pxa_resource_ffuart),
 -};
 -
--static struct pata_platform_info pata_platform_data = {
--	.ioport_shift		= 2,
--};
--
--static struct resource pata_resources[] = {
--	DEFINE_RES_MEM(0x030107c0, 0x20),
--	DEFINE_RES_MEM(0x03010fd8, 0x04),
--	DEFINE_RES_IRQ(IRQ_HARDDISK),
--};
--
--static struct platform_device pata_device = {
--	.name			= "pata_platform",
--	.id			= -1,
--	.num_resources		= ARRAY_SIZE(pata_resources),
--	.resource		= pata_resources,
--	.dev			= {
--		.platform_data	= &pata_platform_data,
--		.coherent_dma_mask = ~0,	/* grumble */
--	},
--};
--
--static struct platform_device *devs[] __initdata = {
--	&iomd_device,
--	&kbd_device,
--	&serial_device,
--	&acornfb_device,
--	&pata_device,
--};
--
--static struct i2c_board_info i2c_rtc = {
--	I2C_BOARD_INFO("pcf8583", 0x50)
--};
--
--static int __init rpc_init(void)
+-void __init pxa_set_ffuart_info(void *info)
 -{
--	i2c_register_board_info(0, &i2c_rtc, 1);
--	return platform_add_devices(devs, ARRAY_SIZE(devs));
+-	pxa_register_device(&pxa_device_ffuart, info);
 -}
 -
--arch_initcall(rpc_init);
+-static struct resource pxa_resource_btuart[] = {
+-	{
+-		.start	= 0x40200000,
+-		.end	= 0x40200023,
+-		.flags	= IORESOURCE_MEM,
+-	}, {
+-		.start	= IRQ_BTUART,
+-		.end	= IRQ_BTUART,
+-		.flags	= IORESOURCE_IRQ,
+-	}
+-};
 -
--static void rpc_restart(enum reboot_mode mode, const char *cmd)
+-struct platform_device pxa_device_btuart = {
+-	.name		= "pxa2xx-uart",
+-	.id		= 1,
+-	.resource	= pxa_resource_btuart,
+-	.num_resources	= ARRAY_SIZE(pxa_resource_btuart),
+-};
+-
+-void __init pxa_set_btuart_info(void *info)
 -{
--	iomd_writeb(0, IOMD_ROMCR0);
--
--	/*
--	 * Jump into the ROM
--	 */
--	soft_restart(0);
+-	pxa_register_device(&pxa_device_btuart, info);
 -}
 -
--void ioc_timer_init(void);
+-static struct resource pxa_resource_stuart[] = {
+-	{
+-		.start	= 0x40700000,
+-		.end	= 0x40700023,
+-		.flags	= IORESOURCE_MEM,
+-	}, {
+-		.start	= IRQ_STUART,
+-		.end	= IRQ_STUART,
+-		.flags	= IORESOURCE_IRQ,
+-	}
+-};
 -
--MACHINE_START(RISCPC, "Acorn-RiscPC")
--	/* Maintainer: Russell King */
--	.atag_offset	= 0x100,
--	.reserve_lp0	= 1,
--	.reserve_lp1	= 1,
--	.map_io		= rpc_map_io,
--	.init_irq	= rpc_init_irq,
--	.init_time	= ioc_timer_init,
--	.restart	= rpc_restart,
--MACHINE_END
-diff --git a/arch/arm/mach-rpc/time.c b/arch/arm/mach-rpc/time.c
+-struct platform_device pxa_device_stuart = {
+-	.name		= "pxa2xx-uart",
+-	.id		= 2,
+-	.resource	= pxa_resource_stuart,
+-	.num_resources	= ARRAY_SIZE(pxa_resource_stuart),
+-};
+-
+-void __init pxa_set_stuart_info(void *info)
+-{
+-	pxa_register_device(&pxa_device_stuart, info);
+-}
+-
+-static struct resource pxa_resource_hwuart[] = {
+-	{
+-		.start	= 0x41600000,
+-		.end	= 0x4160002F,
+-		.flags	= IORESOURCE_MEM,
+-	}, {
+-		.start	= IRQ_HWUART,
+-		.end	= IRQ_HWUART,
+-		.flags	= IORESOURCE_IRQ,
+-	}
+-};
+-
+-struct platform_device pxa_device_hwuart = {
+-	.name		= "pxa2xx-uart",
+-	.id		= 3,
+-	.resource	= pxa_resource_hwuart,
+-	.num_resources	= ARRAY_SIZE(pxa_resource_hwuart),
+-};
+-
+-void __init pxa_set_hwuart_info(void *info)
+-{
+-	if (cpu_is_pxa255())
+-		pxa_register_device(&pxa_device_hwuart, info);
+-	else
+-		pr_info("UART: Ignoring attempt to register HWUART on non-PXA255 hardware");
+-}
+-
+-static struct resource pxai2c_resources[] = {
+-	{
+-		.start	= 0x40301680,
+-		.end	= 0x403016a3,
+-		.flags	= IORESOURCE_MEM,
+-	}, {
+-		.start	= IRQ_I2C,
+-		.end	= IRQ_I2C,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa_device_i2c = {
+-	.name		= "pxa2xx-i2c",
+-	.id		= 0,
+-	.resource	= pxai2c_resources,
+-	.num_resources	= ARRAY_SIZE(pxai2c_resources),
+-};
+-
+-void __init pxa_set_i2c_info(struct i2c_pxa_platform_data *info)
+-{
+-	pxa_register_device(&pxa_device_i2c, info);
+-}
+-
+-#ifdef CONFIG_PXA27x
+-static struct resource pxa27x_resources_i2c_power[] = {
+-	{
+-		.start	= 0x40f00180,
+-		.end	= 0x40f001a3,
+-		.flags	= IORESOURCE_MEM,
+-	}, {
+-		.start	= IRQ_PWRI2C,
+-		.end	= IRQ_PWRI2C,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa27x_device_i2c_power = {
+-	.name		= "pxa2xx-i2c",
+-	.id		= 1,
+-	.resource	= pxa27x_resources_i2c_power,
+-	.num_resources	= ARRAY_SIZE(pxa27x_resources_i2c_power),
+-};
+-#endif
+-
+-static struct resource pxai2s_resources[] = {
+-	{
+-		.start	= 0x40400000,
+-		.end	= 0x40400083,
+-		.flags	= IORESOURCE_MEM,
+-	}, {
+-		.start	= IRQ_I2S,
+-		.end	= IRQ_I2S,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa_device_i2s = {
+-	.name		= "pxa2xx-i2s",
+-	.id		= -1,
+-	.resource	= pxai2s_resources,
+-	.num_resources	= ARRAY_SIZE(pxai2s_resources),
+-};
+-
+-struct platform_device pxa_device_asoc_ssp1 = {
+-	.name		= "pxa-ssp-dai",
+-	.id		= 0,
+-};
+-
+-struct platform_device pxa_device_asoc_ssp2= {
+-	.name		= "pxa-ssp-dai",
+-	.id		= 1,
+-};
+-
+-struct platform_device pxa_device_asoc_ssp3 = {
+-	.name		= "pxa-ssp-dai",
+-	.id		= 2,
+-};
+-
+-struct platform_device pxa_device_asoc_ssp4 = {
+-	.name		= "pxa-ssp-dai",
+-	.id		= 3,
+-};
+-
+-struct platform_device pxa_device_asoc_platform = {
+-	.name		= "pxa-pcm-audio",
+-	.id		= -1,
+-};
+-
+-static struct resource pxa_rtc_resources[] = {
+-	[0] = {
+-		.start  = 0x40900000,
+-		.end	= 0x40900000 + 0x3b,
+-		.flags  = IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start  = IRQ_RTC1Hz,
+-		.end    = IRQ_RTC1Hz,
+-		.name	= "rtc 1Hz",
+-		.flags  = IORESOURCE_IRQ,
+-	},
+-	[2] = {
+-		.start  = IRQ_RTCAlrm,
+-		.end    = IRQ_RTCAlrm,
+-		.name	= "rtc alarm",
+-		.flags  = IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa_device_rtc = {
+-	.name		= "pxa-rtc",
+-	.id		= -1,
+-	.num_resources  = ARRAY_SIZE(pxa_rtc_resources),
+-	.resource       = pxa_rtc_resources,
+-};
+-
+-struct platform_device sa1100_device_rtc = {
+-	.name		= "sa1100-rtc",
+-	.id		= -1,
+-	.num_resources  = ARRAY_SIZE(pxa_rtc_resources),
+-	.resource       = pxa_rtc_resources,
+-};
+-
+-#ifdef CONFIG_PXA25x
+-
+-static struct resource pxa25x_resource_pwm0[] = {
+-	[0] = {
+-		.start	= 0x40b00000,
+-		.end	= 0x40b0000f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-};
+-
+-struct platform_device pxa25x_device_pwm0 = {
+-	.name		= "pxa25x-pwm",
+-	.id		= 0,
+-	.resource	= pxa25x_resource_pwm0,
+-	.num_resources	= ARRAY_SIZE(pxa25x_resource_pwm0),
+-};
+-
+-static struct resource pxa25x_resource_pwm1[] = {
+-	[0] = {
+-		.start	= 0x40c00000,
+-		.end	= 0x40c0000f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-};
+-
+-struct platform_device pxa25x_device_pwm1 = {
+-	.name		= "pxa25x-pwm",
+-	.id		= 1,
+-	.resource	= pxa25x_resource_pwm1,
+-	.num_resources	= ARRAY_SIZE(pxa25x_resource_pwm1),
+-};
+-
+-static u64 pxa25x_ssp_dma_mask = DMA_BIT_MASK(32);
+-
+-static struct resource pxa25x_resource_ssp[] = {
+-	[0] = {
+-		.start	= 0x41000000,
+-		.end	= 0x4100001f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= IRQ_SSP,
+-		.end	= IRQ_SSP,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa25x_device_ssp = {
+-	.name		= "pxa25x-ssp",
+-	.id		= 0,
+-	.dev		= {
+-		.dma_mask = &pxa25x_ssp_dma_mask,
+-		.coherent_dma_mask = DMA_BIT_MASK(32),
+-	},
+-	.resource	= pxa25x_resource_ssp,
+-	.num_resources	= ARRAY_SIZE(pxa25x_resource_ssp),
+-};
+-
+-static u64 pxa25x_nssp_dma_mask = DMA_BIT_MASK(32);
+-
+-static struct resource pxa25x_resource_nssp[] = {
+-	[0] = {
+-		.start	= 0x41400000,
+-		.end	= 0x4140002f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= IRQ_NSSP,
+-		.end	= IRQ_NSSP,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa25x_device_nssp = {
+-	.name		= "pxa25x-nssp",
+-	.id		= 1,
+-	.dev		= {
+-		.dma_mask = &pxa25x_nssp_dma_mask,
+-		.coherent_dma_mask = DMA_BIT_MASK(32),
+-	},
+-	.resource	= pxa25x_resource_nssp,
+-	.num_resources	= ARRAY_SIZE(pxa25x_resource_nssp),
+-};
+-
+-static u64 pxa25x_assp_dma_mask = DMA_BIT_MASK(32);
+-
+-static struct resource pxa25x_resource_assp[] = {
+-	[0] = {
+-		.start	= 0x41500000,
+-		.end	= 0x4150002f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= IRQ_ASSP,
+-		.end	= IRQ_ASSP,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa25x_device_assp = {
+-	/* ASSP is basically equivalent to NSSP */
+-	.name		= "pxa25x-nssp",
+-	.id		= 2,
+-	.dev		= {
+-		.dma_mask = &pxa25x_assp_dma_mask,
+-		.coherent_dma_mask = DMA_BIT_MASK(32),
+-	},
+-	.resource	= pxa25x_resource_assp,
+-	.num_resources	= ARRAY_SIZE(pxa25x_resource_assp),
+-};
+-#endif /* CONFIG_PXA25x */
+-
+-#if defined(CONFIG_PXA27x) || defined(CONFIG_PXA3xx)
+-static u64 pxa27x_ohci_dma_mask = DMA_BIT_MASK(32);
+-
+-static struct resource pxa27x_resource_ohci[] = {
+-	[0] = {
+-		.start  = 0x4C000000,
+-		.end    = 0x4C00ff6f,
+-		.flags  = IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start  = IRQ_USBH1,
+-		.end    = IRQ_USBH1,
+-		.flags  = IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa27x_device_ohci = {
+-	.name		= "pxa27x-ohci",
+-	.id		= -1,
+-	.dev		= {
+-		.dma_mask = &pxa27x_ohci_dma_mask,
+-		.coherent_dma_mask = DMA_BIT_MASK(32),
+-	},
+-	.num_resources  = ARRAY_SIZE(pxa27x_resource_ohci),
+-	.resource       = pxa27x_resource_ohci,
+-};
+-
+-void __init pxa_set_ohci_info(struct pxaohci_platform_data *info)
+-{
+-	pxa_register_device(&pxa27x_device_ohci, info);
+-}
+-#endif /* CONFIG_PXA27x || CONFIG_PXA3xx */
+-
+-#if defined(CONFIG_PXA27x) || defined(CONFIG_PXA3xx)
+-static u64 pxa27x_ssp1_dma_mask = DMA_BIT_MASK(32);
+-
+-static struct resource pxa27x_resource_ssp1[] = {
+-	[0] = {
+-		.start	= 0x41000000,
+-		.end	= 0x4100003f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= IRQ_SSP,
+-		.end	= IRQ_SSP,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa27x_device_ssp1 = {
+-	.name		= "pxa27x-ssp",
+-	.id		= 0,
+-	.dev		= {
+-		.dma_mask = &pxa27x_ssp1_dma_mask,
+-		.coherent_dma_mask = DMA_BIT_MASK(32),
+-	},
+-	.resource	= pxa27x_resource_ssp1,
+-	.num_resources	= ARRAY_SIZE(pxa27x_resource_ssp1),
+-};
+-
+-static u64 pxa27x_ssp2_dma_mask = DMA_BIT_MASK(32);
+-
+-static struct resource pxa27x_resource_ssp2[] = {
+-	[0] = {
+-		.start	= 0x41700000,
+-		.end	= 0x4170003f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= IRQ_SSP2,
+-		.end	= IRQ_SSP2,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa27x_device_ssp2 = {
+-	.name		= "pxa27x-ssp",
+-	.id		= 1,
+-	.dev		= {
+-		.dma_mask = &pxa27x_ssp2_dma_mask,
+-		.coherent_dma_mask = DMA_BIT_MASK(32),
+-	},
+-	.resource	= pxa27x_resource_ssp2,
+-	.num_resources	= ARRAY_SIZE(pxa27x_resource_ssp2),
+-};
+-
+-static u64 pxa27x_ssp3_dma_mask = DMA_BIT_MASK(32);
+-
+-static struct resource pxa27x_resource_ssp3[] = {
+-	[0] = {
+-		.start	= 0x41900000,
+-		.end	= 0x4190003f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= IRQ_SSP3,
+-		.end	= IRQ_SSP3,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-struct platform_device pxa27x_device_ssp3 = {
+-	.name		= "pxa27x-ssp",
+-	.id		= 2,
+-	.dev		= {
+-		.dma_mask = &pxa27x_ssp3_dma_mask,
+-		.coherent_dma_mask = DMA_BIT_MASK(32),
+-	},
+-	.resource	= pxa27x_resource_ssp3,
+-	.num_resources	= ARRAY_SIZE(pxa27x_resource_ssp3),
+-};
+-
+-static struct resource pxa27x_resource_pwm0[] = {
+-	[0] = {
+-		.start	= 0x40b00000,
+-		.end	= 0x40b0001f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-};
+-
+-struct platform_device pxa27x_device_pwm0 = {
+-	.name		= "pxa27x-pwm",
+-	.id		= 0,
+-	.resource	= pxa27x_resource_pwm0,
+-	.num_resources	= ARRAY_SIZE(pxa27x_resource_pwm0),
+-};
+-
+-static struct resource pxa27x_resource_pwm1[] = {
+-	[0] = {
+-		.start	= 0x40c00000,
+-		.end	= 0x40c0001f,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-};
+-
+-struct platform_device pxa27x_device_pwm1 = {
+-	.name		= "pxa27x-pwm",
+-	.id		= 1,
+-	.resource	= pxa27x_resource_pwm1,
+-	.num_resources	= ARRAY_SIZE(pxa27x_resource_pwm1),
+-};
+-#endif /* CONFIG_PXA27x || CONFIG_PXA3xx */
+-
+-#if defined(CONFIG_PXA25x) || defined(CONFIG_PXA27x)
+-const struct software_node pxa2xx_gpiochip_node = {
+-	.name	= "gpio-pxa",
+-};
+-
+-struct resource pxa_resource_gpio[] = {
+-	{
+-		.start	= 0x40e00000,
+-		.end	= 0x40e0ffff,
+-		.flags	= IORESOURCE_MEM,
+-	}, {
+-		.start	= IRQ_GPIO0,
+-		.end	= IRQ_GPIO0,
+-		.name	= "gpio0",
+-		.flags	= IORESOURCE_IRQ,
+-	}, {
+-		.start	= IRQ_GPIO1,
+-		.end	= IRQ_GPIO1,
+-		.name	= "gpio1",
+-		.flags	= IORESOURCE_IRQ,
+-	}, {
+-		.start	= IRQ_GPIO_2_x,
+-		.end	= IRQ_GPIO_2_x,
+-		.name	= "gpio_mux",
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static struct pxa_gpio_platform_data pxa2xx_gpio_info = {
+-	.irq_base	= PXA_GPIO_TO_IRQ(0),
+-	.gpio_set_wake	= gpio_set_wake,
+-};
+-
+-struct platform_device pxa25x_device_gpio = {
+-	.name		= "pxa25x-gpio",
+-	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(pxa_resource_gpio),
+-	.resource	= pxa_resource_gpio,
+-	.dev		= {
+-		.platform_data	= &pxa2xx_gpio_info,
+-	},
+-};
+-
+-struct platform_device pxa27x_device_gpio = {
+-	.name		= "pxa27x-gpio",
+-	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(pxa_resource_gpio),
+-	.resource	= pxa_resource_gpio,
+-	.dev		= {
+-		.platform_data	= &pxa2xx_gpio_info,
+-	},
+-};
+-#endif /* CONFIG_PXA25x || CONFIG_PXA27x */
+-
+-static struct resource pxa_dma_resource[] = {
+-	[0] = {
+-		.start	= 0x40000000,
+-		.end	= 0x4000ffff,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.start	= IRQ_DMA,
+-		.end	= IRQ_DMA,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static u64 pxadma_dmamask = 0xffffffffUL;
+-
+-static struct platform_device pxa2xx_pxa_dma = {
+-	.name		= "pxa-dma",
+-	.id		= 0,
+-	.dev		= {
+-		.dma_mask = &pxadma_dmamask,
+-		.coherent_dma_mask = 0xffffffff,
+-	},
+-	.num_resources	= ARRAY_SIZE(pxa_dma_resource),
+-	.resource	= pxa_dma_resource,
+-};
+-
+-void __init pxa2xx_set_dmac_info(struct mmp_dma_platdata *dma_pdata)
+-{
+-	pxa_register_device(&pxa2xx_pxa_dma, dma_pdata);
+-}
+ 
+ void __init pxa_register_wdt(unsigned int reset_status)
+ {
+diff --git a/arch/arm/mach-pxa/devices.h b/arch/arm/mach-pxa/devices.h
 deleted file mode 100644
-index 9f8edcfe9357..000000000000
---- a/arch/arm/mach-rpc/time.c
+index 72c556ff67db..000000000000
+--- a/arch/arm/mach-pxa/devices.h
 +++ /dev/null
-@@ -1,97 +0,0 @@
+@@ -1,68 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#define PDMA_FILTER_PARAM(_prio, _requestor) (&(struct pxad_param) { \
+-	.prio = PXAD_PRIO_##_prio, .drcmr = _requestor })
+-struct mmp_dma_platdata;
+-
+-extern struct platform_device pxa_device_pmu;
+-extern struct platform_device pxa3xx_device_mci2;
+-extern struct platform_device pxa3xx_device_mci3;
+-extern struct platform_device pxa25x_device_udc;
+-extern struct platform_device pxa27x_device_udc;
+-extern struct platform_device pxa_device_fb;
+-extern struct platform_device pxa_device_ffuart;
+-extern struct platform_device pxa_device_btuart;
+-extern struct platform_device pxa_device_stuart;
+-extern struct platform_device pxa_device_hwuart;
+-extern struct platform_device pxa_device_i2c;
+-extern struct platform_device pxa_device_i2s;
+-extern struct platform_device sa1100_device_rtc;
+-extern struct platform_device pxa_device_rtc;
+-extern struct platform_device pxa_device_ac97;
+-
+-extern struct platform_device pxa27x_device_i2c_power;
+-extern struct platform_device pxa27x_device_ohci;
+-extern struct platform_device pxa27x_device_keypad;
+-
+-extern struct platform_device pxa25x_device_ssp;
+-extern struct platform_device pxa25x_device_nssp;
+-extern struct platform_device pxa25x_device_assp;
+-extern struct platform_device pxa27x_device_ssp1;
+-extern struct platform_device pxa27x_device_ssp2;
+-extern struct platform_device pxa27x_device_ssp3;
+-extern struct platform_device pxa3xx_device_ssp1;
+-extern struct platform_device pxa3xx_device_ssp2;
+-extern struct platform_device pxa3xx_device_ssp3;
+-extern struct platform_device pxa3xx_device_ssp4;
+-
+-extern struct platform_device pxa25x_device_pwm0;
+-extern struct platform_device pxa25x_device_pwm1;
+-extern struct platform_device pxa27x_device_pwm0;
+-extern struct platform_device pxa27x_device_pwm1;
+-
+-extern struct platform_device pxa3xx_device_nand;
+-extern struct platform_device pxa3xx_device_i2c_power;
+-
+-extern struct platform_device pxa3xx_device_gcu;
+-
+-extern struct platform_device pxa_device_asoc_platform;
+-extern struct platform_device pxa_device_asoc_ssp1;
+-extern struct platform_device pxa_device_asoc_ssp2;
+-extern struct platform_device pxa_device_asoc_ssp3;
+-extern struct platform_device pxa_device_asoc_ssp4;
+-
+-extern struct platform_device pxa25x_device_gpio;
+-extern struct platform_device pxa27x_device_gpio;
+-
+-extern const struct software_node pxa2xx_gpiochip_node;
+-
+-void __init pxa_register_device(struct platform_device *dev, void *data);
+-void __init pxa2xx_set_dmac_info(struct mmp_dma_platdata *dma_pdata);
+-
+-struct i2c_pxa_platform_data;
+-extern void pxa_set_i2c_info(struct i2c_pxa_platform_data *info);
+-#ifdef CONFIG_PXA27x
+-extern void pxa27x_set_i2c_power_info(struct i2c_pxa_platform_data *info);
+-#endif
+-#ifdef CONFIG_PXA3xx
+-extern void pxa3xx_set_i2c_power_info(struct i2c_pxa_platform_data *info);
+-#endif
+diff --git a/arch/arm/mach-pxa/generic.h b/arch/arm/mach-pxa/generic.h
+index caad4fca8de3..239d1b4119cc 100644
+--- a/arch/arm/mach-pxa/generic.h
++++ b/arch/arm/mach-pxa/generic.h
+@@ -38,11 +38,6 @@ extern struct syscore pxa_irq_syscore;
+ extern struct syscore pxa2xx_mfp_syscore;
+ extern struct syscore pxa3xx_mfp_syscore;
+ 
+-void __init pxa_set_ffuart_info(void *info);
+-void __init pxa_set_btuart_info(void *info);
+-void __init pxa_set_stuart_info(void *info);
+-void __init pxa_set_hwuart_info(void *info);
+-
+ void pxa_restart(enum reboot_mode, const char *);
+ 
+ #if defined(CONFIG_PXA25x) || defined(CONFIG_PXA27x)
+diff --git a/arch/arm/mach-pxa/gumstix.c b/arch/arm/mach-pxa/gumstix.c
+deleted file mode 100644
+index 7ab0cb015d1b..000000000000
+--- a/arch/arm/mach-pxa/gumstix.c
++++ /dev/null
+@@ -1,237 +0,0 @@
 -// SPDX-License-Identifier: GPL-2.0-only
 -/*
-- *  linux/arch/arm/common/time-acorn.c
+- *  linux/arch/arm/mach-pxa/gumstix.c
 - *
-- *  Copyright (c) 1996-2000 Russell King.
+- *  Support for the Gumstix motherboards.
 - *
-- *  Changelog:
-- *   24-Sep-1996	RMK	Created
-- *   10-Oct-1996	RMK	Brought up to date with arch-sa110eval
-- *   04-Dec-1997	RMK	Updated for new arch/arm/time.c
-- *   13=Jun-2004	DS	Moved to arch/arm/common b/c shared w/CLPS7500
+- *  Original Author:	Craig Hughes
+- *  Created:	Feb 14, 2008
+- *  Copyright:	Craig Hughes
+- *
+- *  Implemented based on lubbock.c by Nicolas Pitre and code from Craig
+- *  Hughes
 - */
--#include <linux/clocksource.h>
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
 -#include <linux/init.h>
+-#include <linux/platform_device.h>
 -#include <linux/interrupt.h>
--#include <linux/irq.h>
--#include <linux/io.h>
+-#include <linux/delay.h>
+-#include <linux/mtd/mtd.h>
+-#include <linux/mtd/partitions.h>
+-#include <linux/gpio/machine.h>
+-#include <linux/gpio/property.h>
+-#include <linux/gpio/legacy.h>
+-#include <linux/err.h>
+-#include <linux/clk.h>
 -
--#include <mach/hardware.h>
--#include <asm/hardware/ioc.h>
+-#include <asm/setup.h>
+-#include <asm/page.h>
+-#include <asm/mach-types.h>
+-#include <asm/irq.h>
+-#include <linux/sizes.h>
 -
--#include <asm/mach/time.h>
+-#include <asm/mach/arch.h>
+-#include <asm/mach/map.h>
+-#include <asm/mach/irq.h>
+-#include <asm/mach/flash.h>
 -
--#define RPC_CLOCK_FREQ 2000000
--#define RPC_LATCH DIV_ROUND_CLOSEST(RPC_CLOCK_FREQ, HZ)
+-#include "pxa25x.h"
+-#include <linux/platform_data/mmc-pxamci.h>
+-#include "gumstix.h"
+-#include "devices.h"
 -
--static u32 ioc_time;
+-#include "generic.h"
 -
--static u64 ioc_timer_read(struct clocksource *cs)
--{
--	unsigned int count1, count2, status;
--	unsigned long flags;
--	u32 ticks;
--
--	local_irq_save(flags);
--	ioc_writeb (0, IOC_T0LATCH);
--	barrier ();
--	count1 = ioc_readb(IOC_T0CNTL) | (ioc_readb(IOC_T0CNTH) << 8);
--	barrier ();
--	status = ioc_readb(IOC_IRQREQA);
--	barrier ();
--	ioc_writeb (0, IOC_T0LATCH);
--	barrier ();
--	count2 = ioc_readb(IOC_T0CNTL) | (ioc_readb(IOC_T0CNTH) << 8);
--	ticks = ioc_time + RPC_LATCH - count2;
--	local_irq_restore(flags);
--
--	if (count2 < count1) {
--		/*
--		 * The timer has not reloaded between reading count1 and
--		 * count2, check whether an interrupt was actually pending.
--		 */
--		if (status & (1 << 5))
--			ticks += RPC_LATCH;
--	} else if (count2 > count1) {
--		/*
--		 * The timer has reloaded, so count2 indicates the new
--		 * count since the wrap.  The interrupt would not have
--		 * been processed, so add the missed ticks.
--		 */
--		ticks += RPC_LATCH;
--	}
--
--	return ticks;
--}
--
--static struct clocksource ioctime_clocksource = {
--	.read = ioc_timer_read,
--	.mask = CLOCKSOURCE_MASK(32),
--	.rating = 100,
+-static struct resource flash_resource = {
+-	.start	= 0x00000000,
+-	.end	= SZ_64M - 1,
+-	.flags	= IORESOURCE_MEM,
 -};
 -
--void __init ioctime_init(void)
+-static struct mtd_partition gumstix_partitions[] = {
+-	{
+-		.name =		"Bootloader",
+-		.size =		0x00040000,
+-		.offset =	0,
+-		.mask_flags =	MTD_WRITEABLE  /* force read-only */
+-	} , {
+-		.name =		"rootfs",
+-		.size =		MTDPART_SIZ_FULL,
+-		.offset =	MTDPART_OFS_APPEND
+-	}
+-};
+-
+-static struct flash_platform_data gumstix_flash_data = {
+-	.map_name	= "cfi_probe",
+-	.parts		= gumstix_partitions,
+-	.nr_parts	= ARRAY_SIZE(gumstix_partitions),
+-	.width		= 2,
+-};
+-
+-static struct platform_device gumstix_flash_device = {
+-	.name		= "pxa2xx-flash",
+-	.id		= 0,
+-	.dev = {
+-		.platform_data = &gumstix_flash_data,
+-	},
+-	.resource = &flash_resource,
+-	.num_resources = 1,
+-};
+-
+-static struct platform_device *devices[] __initdata = {
+-	&gumstix_flash_device,
+-};
+-
+-#ifdef CONFIG_MMC_PXA
+-static struct pxamci_platform_data gumstix_mci_platform_data = {
+-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+-};
+-
+-static void __init gumstix_mmc_init(void)
 -{
--	ioc_writeb(RPC_LATCH & 255, IOC_T0LTCHL);
--	ioc_writeb(RPC_LATCH >> 8, IOC_T0LTCHH);
--	ioc_writeb(0, IOC_T0GO);
+-	pxa_set_mci_info(&gumstix_mci_platform_data, NULL);
+-}
+-#else
+-static void __init gumstix_mmc_init(void)
+-{
+-	pr_debug("Gumstix mmc disabled\n");
+-}
+-#endif
+-
+-#if IS_ENABLED(CONFIG_USB_PXA25X)
+-static const struct property_entry gumstix_vbus_props[] __initconst = {
+-	PROPERTY_ENTRY_GPIO("vbus-gpios", &pxa2xx_gpiochip_node,
+-			    GPIO_GUMSTIX_USB_GPIOn, GPIO_ACTIVE_HIGH),
+-	PROPERTY_ENTRY_GPIO("pullup-gpios", &pxa2xx_gpiochip_node,
+-			    GPIO_GUMSTIX_USB_GPIOx, GPIO_ACTIVE_HIGH),
+-	{ }
+-};
+-
+-static const struct platform_device_info gumstix_gpio_vbus_info __initconst = {
+-	.name		= "gpio-vbus",
+-	.id		= PLATFORM_DEVID_NONE,
+-	.properties	= gumstix_vbus_props,
+-};
+-
+-static void __init gumstix_udc_init(void)
+-{
+-	platform_device_register_full(&gumstix_gpio_vbus_info);
+-}
+-#else
+-static void gumstix_udc_init(void)
+-{
+-	pr_debug("Gumstix udc is disabled\n");
+-}
+-#endif
+-
+-#ifdef CONFIG_BT
+-/* Normally, the bootloader would have enabled this 32kHz clock but many
+-** boards still have u-boot 1.1.4 so we check if it has been turned on and
+-** if not, we turn it on with a warning message. */
+-static void gumstix_setup_bt_clock(void)
+-{
+-	int timeout = 500;
+-
+-	if (!(readl(OSCC) & OSCC_OOK))
+-		pr_warn("32kHz clock was not on. Bootloader may need to be updated\n");
+-	else
+-		return;
+-
+-	writel(readl(OSCC) | OSCC_OON, OSCC);
+-	do {
+-		if (readl(OSCC) & OSCC_OOK)
+-			break;
+-		udelay(1);
+-	} while (--timeout);
+-	if (!timeout)
+-		pr_err("Failed to start 32kHz clock\n");
 -}
 -
--static irqreturn_t
--ioc_timer_interrupt(int irq, void *dev_id)
+-static void __init gumstix_bluetooth_init(void)
 -{
--	ioc_time += RPC_LATCH;
--	legacy_timer_tick(1);
+-	int err;
+-
+-	gumstix_setup_bt_clock();
+-
+-	err = gpio_request(GPIO_GUMSTIX_BTRESET, "BTRST");
+-	if (err) {
+-		pr_err("gumstix: failed request gpio for bluetooth reset\n");
+-		return;
+-	}
+-
+-	err = gpio_direction_output(GPIO_GUMSTIX_BTRESET, 1);
+-	if (err) {
+-		pr_err("gumstix: can't reset bluetooth\n");
+-		return;
+-	}
+-	gpio_set_value(GPIO_GUMSTIX_BTRESET, 0);
+-	udelay(100);
+-	gpio_set_value(GPIO_GUMSTIX_BTRESET, 1);
+-}
+-#else
+-static void gumstix_bluetooth_init(void)
+-{
+-	pr_debug("Gumstix Bluetooth is disabled\n");
+-}
+-#endif
+-
+-static unsigned long gumstix_pin_config[] __initdata = {
+-	GPIO12_32KHz,
+-	/* BTUART */
+-	GPIO42_HWUART_RXD,
+-	GPIO43_HWUART_TXD,
+-	GPIO44_HWUART_CTS,
+-	GPIO45_HWUART_RTS,
+-	/* MMC */
+-	GPIO6_MMC_CLK,
+-	GPIO53_MMC_CLK,
+-	GPIO8_MMC_CS0,
+-};
+-
+-int __attribute__((weak)) am200_init(void)
+-{
+-	return 0;
+-}
+-
+-int __attribute__((weak)) am300_init(void)
+-{
+-	return 0;
+-}
+-
+-static void __init carrier_board_init(void)
+-{
+-	/*
+-	 * put carrier/expansion board init here if
+-	 * they cannot be detected programatically
+-	 */
+-	am200_init();
+-	am300_init();
+-}
+-
+-static void __init gumstix_init(void)
+-{
+-	pxa2xx_mfp_config(ARRAY_AND_SIZE(gumstix_pin_config));
+-
+-	pxa_set_ffuart_info(NULL);
+-	pxa_set_btuart_info(NULL);
+-	pxa_set_stuart_info(NULL);
+-	pxa_set_hwuart_info(NULL);
+-
+-	gumstix_bluetooth_init();
+-	gumstix_udc_init();
+-	gumstix_mmc_init();
+-	(void) platform_add_devices(devices, ARRAY_SIZE(devices));
+-	carrier_board_init();
+-}
+-
+-MACHINE_START(GUMSTIX, "Gumstix")
+-	.atag_offset	= 0x100, /* match u-boot bi_boot_params */
+-	.map_io		= pxa25x_map_io,
+-	.nr_irqs	= PXA_NR_IRQS,
+-	.init_irq	= pxa25x_init_irq,
+-	.init_time	= pxa_timer_init,
+-	.init_machine	= gumstix_init,
+-	.restart	= pxa_restart,
+-MACHINE_END
+diff --git a/arch/arm/mach-pxa/gumstix.h b/arch/arm/mach-pxa/gumstix.h
+deleted file mode 100644
+index 9005b3c0aabd..000000000000
+--- a/arch/arm/mach-pxa/gumstix.h
++++ /dev/null
+@@ -1,89 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- *  arch/arm/mach-pxa/include/mach/gumstix.h
+- */
+-
+-#include "irqs.h" /* PXA_GPIO_TO_IRQ */
+-
+-/* BTRESET - Reset line to Bluetooth module, active low signal. */
+-#define GPIO_GUMSTIX_BTRESET          7
+-#define GPIO_GUMSTIX_BTRESET_MD		(GPIO_GUMSTIX_BTRESET | GPIO_OUT)
+-
+-
+-/*
+-GPIOn - Input from MAX823 (or equiv), normalizing USB +5V into a clean
+-interrupt signal for determining cable presence. On the gumstix F,
+-this moves to GPIO17 and GPIO37. */
+-
+-/* GPIOx - Connects to USB D+ and used as a pull-up after GPIOn
+-has detected a cable insertion; driven low otherwise. */
+-
+-#define GPIO_GUMSTIX_USB_GPIOn		35
+-#define GPIO_GUMSTIX_USB_GPIOx		41
+-
+-/* usb state change */
+-#define GUMSTIX_USB_INTR_IRQ		PXA_GPIO_TO_IRQ(GPIO_GUMSTIX_USB_GPIOn)
+-
+-#define GPIO_GUMSTIX_USB_GPIOn_MD	(GPIO_GUMSTIX_USB_GPIOn | GPIO_IN)
+-#define GPIO_GUMSTIX_USB_GPIOx_CON_MD	(GPIO_GUMSTIX_USB_GPIOx | GPIO_OUT)
+-#define GPIO_GUMSTIX_USB_GPIOx_DIS_MD	(GPIO_GUMSTIX_USB_GPIOx | GPIO_IN)
+-
+-/*
+- * SD/MMC definitions
+- */
+-#define GUMSTIX_GPIO_nSD_WP		22 /* SD Write Protect */
+-#define GUMSTIX_GPIO_nSD_DETECT		11 /* MMC/SD Card Detect */
+-#define GUMSTIX_IRQ_GPIO_nSD_DETECT	PXA_GPIO_TO_IRQ(GUMSTIX_GPIO_nSD_DETECT)
+-
+-/*
+- * SMC Ethernet definitions
+- * ETH_RST provides a hardware reset line to the ethernet chip
+- * ETH is the IRQ line in from the ethernet chip to the PXA
+- */
+-#define GPIO_GUMSTIX_ETH0_RST		80
+-#define GPIO_GUMSTIX_ETH0_RST_MD	(GPIO_GUMSTIX_ETH0_RST | GPIO_OUT)
+-#define GPIO_GUMSTIX_ETH1_RST		52
+-#define GPIO_GUMSTIX_ETH1_RST_MD	(GPIO_GUMSTIX_ETH1_RST | GPIO_OUT)
+-
+-#define GPIO_GUMSTIX_ETH0		36
+-#define GPIO_GUMSTIX_ETH0_MD		(GPIO_GUMSTIX_ETH0 | GPIO_IN)
+-#define GUMSTIX_ETH0_IRQ		PXA_GPIO_TO_IRQ(GPIO_GUMSTIX_ETH0)
+-#define GPIO_GUMSTIX_ETH1		27
+-#define GPIO_GUMSTIX_ETH1_MD		(GPIO_GUMSTIX_ETH1 | GPIO_IN)
+-#define GUMSTIX_ETH1_IRQ		PXA_GPIO_TO_IRQ(GPIO_GUMSTIX_ETH1)
+-
+-
+-/* CF reset line */
+-#define GPIO8_RESET			8
+-
+-/* CF slot 0 */
+-#define GPIO4_nBVD1			4
+-#define GPIO4_nSTSCHG			GPIO4_nBVD1
+-#define GPIO11_nCD			11
+-#define GPIO26_PRDY_nBSY		26
+-#define GUMSTIX_S0_nSTSCHG_IRQ		PXA_GPIO_TO_IRQ(GPIO4_nSTSCHG)
+-#define GUMSTIX_S0_nCD_IRQ		PXA_GPIO_TO_IRQ(GPIO11_nCD)
+-#define GUMSTIX_S0_PRDY_nBSY_IRQ	PXA_GPIO_TO_IRQ(GPIO26_PRDY_nBSY)
+-
+-/* CF slot 1 */
+-#define GPIO18_nBVD1			18
+-#define GPIO18_nSTSCHG			GPIO18_nBVD1
+-#define GPIO36_nCD			36
+-#define GPIO27_PRDY_nBSY		27
+-#define GUMSTIX_S1_nSTSCHG_IRQ		PXA_GPIO_TO_IRQ(GPIO18_nSTSCHG)
+-#define GUMSTIX_S1_nCD_IRQ		PXA_GPIO_TO_IRQ(GPIO36_nCD)
+-#define GUMSTIX_S1_PRDY_nBSY_IRQ	PXA_GPIO_TO_IRQ(GPIO27_PRDY_nBSY)
+-
+-/* CF GPIO line modes */
+-#define GPIO4_nSTSCHG_MD		(GPIO4_nSTSCHG | GPIO_IN)
+-#define GPIO8_RESET_MD			(GPIO8_RESET | GPIO_OUT)
+-#define GPIO11_nCD_MD			(GPIO11_nCD | GPIO_IN)
+-#define GPIO18_nSTSCHG_MD		(GPIO18_nSTSCHG | GPIO_IN)
+-#define GPIO26_PRDY_nBSY_MD		(GPIO26_PRDY_nBSY | GPIO_IN)
+-#define GPIO27_PRDY_nBSY_MD		(GPIO27_PRDY_nBSY | GPIO_IN)
+-#define GPIO36_nCD_MD			(GPIO36_nCD | GPIO_IN)
+-
+-/* for expansion boards that can't be programatically detected */
+-extern int am200_init(void);
+-extern int am300_init(void);
+-
+diff --git a/arch/arm/mach-pxa/pxa25x.c b/arch/arm/mach-pxa/pxa25x.c
+index a273f0af095e..de6a306cf0e2 100644
+--- a/arch/arm/mach-pxa/pxa25x.c
++++ b/arch/arm/mach-pxa/pxa25x.c
+@@ -25,7 +25,6 @@
+ #include <linux/syscore_ops.h>
+ #include <linux/irq.h>
+ #include <linux/irqchip.h>
+-#include <linux/platform_data/mmp_dma.h>
+ #include <linux/soc/pxa/cpu.h>
+ #include <linux/soc/pxa/smemc.h>
+ 
+@@ -39,7 +38,6 @@
+ #include "smemc.h"
+ 
+ #include "generic.h"
+-#include "devices.h"
+ 
+ /*
+  * Various clock factors driven by the CCCR register.
+@@ -178,53 +176,6 @@ void __init pxa25x_map_io(void)
+ 	pxa25x_get_clk_frequency_khz(1);
+ }
+ 
+-static struct platform_device *pxa25x_devices[] __initdata = {
+-	&pxa25x_device_gpio,
+-	&pxa25x_device_udc,
+-	&pxa_device_pmu,
+-	&pxa_device_i2s,
+-	&sa1100_device_rtc,
+-	&pxa25x_device_ssp,
+-	&pxa25x_device_nssp,
+-	&pxa25x_device_assp,
+-	&pxa25x_device_pwm0,
+-	&pxa25x_device_pwm1,
+-	&pxa_device_asoc_platform,
+-};
+-
+-static const struct dma_slave_map pxa25x_slave_map[] = {
+-	/* PXA25x, PXA27x and PXA3xx common entries */
+-	{ "pxa2xx-ac97", "pcm_pcm_mic_mono", PDMA_FILTER_PARAM(LOWEST, 8) },
+-	{ "pxa2xx-ac97", "pcm_pcm_aux_mono_in", PDMA_FILTER_PARAM(LOWEST, 9) },
+-	{ "pxa2xx-ac97", "pcm_pcm_aux_mono_out",
+-	  PDMA_FILTER_PARAM(LOWEST, 10) },
+-	{ "pxa2xx-ac97", "pcm_pcm_stereo_in", PDMA_FILTER_PARAM(LOWEST, 11) },
+-	{ "pxa2xx-ac97", "pcm_pcm_stereo_out", PDMA_FILTER_PARAM(LOWEST, 12) },
+-	{ "pxa-ssp-dai.1", "rx", PDMA_FILTER_PARAM(LOWEST, 13) },
+-	{ "pxa-ssp-dai.1", "tx", PDMA_FILTER_PARAM(LOWEST, 14) },
+-	{ "pxa-ssp-dai.2", "rx", PDMA_FILTER_PARAM(LOWEST, 15) },
+-	{ "pxa-ssp-dai.2", "tx", PDMA_FILTER_PARAM(LOWEST, 16) },
+-	{ "pxa2xx-ir", "rx", PDMA_FILTER_PARAM(LOWEST, 17) },
+-	{ "pxa2xx-ir", "tx", PDMA_FILTER_PARAM(LOWEST, 18) },
+-	{ "pxa2xx-mci.0", "rx", PDMA_FILTER_PARAM(LOWEST, 21) },
+-	{ "pxa2xx-mci.0", "tx", PDMA_FILTER_PARAM(LOWEST, 22) },
+-
+-	/* PXA25x specific map */
+-	{ "pxa25x-ssp.0", "rx", PDMA_FILTER_PARAM(LOWEST, 13) },
+-	{ "pxa25x-ssp.0", "tx", PDMA_FILTER_PARAM(LOWEST, 14) },
+-	{ "pxa25x-nssp.1", "rx", PDMA_FILTER_PARAM(LOWEST, 15) },
+-	{ "pxa25x-nssp.1", "tx", PDMA_FILTER_PARAM(LOWEST, 16) },
+-	{ "pxa25x-nssp.2", "rx", PDMA_FILTER_PARAM(LOWEST, 23) },
+-	{ "pxa25x-nssp.2", "tx", PDMA_FILTER_PARAM(LOWEST, 24) },
+-};
+-
+-static struct mmp_dma_platdata pxa25x_dma_pdata = {
+-	.dma_channels	= 16,
+-	.nb_requestors	= 40,
+-	.slave_map	= pxa25x_slave_map,
+-	.slave_map_cnt	= ARRAY_SIZE(pxa25x_slave_map),
+-};
+-
+ static int __init pxa25x_init(void)
+ {
+ 	int ret = 0;
+@@ -237,16 +188,6 @@ static int __init pxa25x_init(void)
+ 
+ 		register_syscore(&pxa_irq_syscore);
+ 		register_syscore(&pxa2xx_mfp_syscore);
+-
+-		if (!of_have_populated_dt()) {
+-			software_node_register(&pxa2xx_gpiochip_node);
+-			pxa25x_device_gpio.dev.fwnode = software_node_fwnode(
+-								&pxa2xx_gpiochip_node);
+-
+-			pxa2xx_set_dmac_info(&pxa25x_dma_pdata);
+-			ret = platform_add_devices(pxa25x_devices,
+-						   ARRAY_SIZE(pxa25x_devices));
+-		}
+ 	}
+ 
+ 	return ret;
+diff --git a/arch/arm/mach-pxa/pxa27x.c b/arch/arm/mach-pxa/pxa27x.c
+index 814e0a12f38a..617af225628b 100644
+--- a/arch/arm/mach-pxa/pxa27x.c
++++ b/arch/arm/mach-pxa/pxa27x.c
+@@ -21,8 +21,6 @@
+ #include <linux/syscore_ops.h>
+ #include <linux/io.h>
+ #include <linux/irq.h>
+-#include <linux/platform_data/i2c-pxa.h>
+-#include <linux/platform_data/mmp_dma.h>
+ #include <linux/soc/pxa/cpu.h>
+ #include <linux/soc/pxa/smemc.h>
+ 
+@@ -33,14 +31,12 @@
+ #include "pxa27x.h"
+ #include "reset.h"
+ #include <linux/platform_data/pxa2xx_udc.h>
+-#include <linux/platform_data/usb-ohci-pxa27x.h>
+ #include <linux/platform_data/asoc-pxa.h>
+ #include "pm.h"
+ #include "addr-map.h"
+ #include "smemc.h"
+ 
+ #include "generic.h"
+-#include "devices.h"
+ #include <linux/clk-provider.h>
+ #include <linux/clkdev.h>
+ 
+@@ -272,90 +268,17 @@ void __init pxa27x_map_io(void)
+ 	pxa27x_get_clk_frequency_khz(1);
+ }
+ 
+-/*
+- * device registration specific to PXA27x.
+- */
+-void __init pxa27x_set_i2c_power_info(struct i2c_pxa_platform_data *info)
+-{
+-	local_irq_disable();
+-	PCFR |= PCFR_PI2CEN;
+-	local_irq_enable();
+-	pxa_register_device(&pxa27x_device_i2c_power, info);
+-}
+-
+-static struct platform_device *devices[] __initdata = {
+-	&pxa27x_device_gpio,
+-	&pxa27x_device_udc,
+-	&pxa_device_pmu,
+-	&pxa_device_i2s,
+-	&pxa_device_asoc_ssp1,
+-	&pxa_device_asoc_ssp2,
+-	&pxa_device_asoc_ssp3,
+-	&pxa_device_asoc_platform,
+-	&pxa_device_rtc,
+-	&pxa27x_device_ssp1,
+-	&pxa27x_device_ssp2,
+-	&pxa27x_device_ssp3,
+-	&pxa27x_device_pwm0,
+-	&pxa27x_device_pwm1,
+-};
+-
+-static const struct dma_slave_map pxa27x_slave_map[] = {
+-	/* PXA25x, PXA27x and PXA3xx common entries */
+-	{ "pxa2xx-ac97", "pcm_pcm_mic_mono", PDMA_FILTER_PARAM(LOWEST, 8) },
+-	{ "pxa2xx-ac97", "pcm_pcm_aux_mono_in", PDMA_FILTER_PARAM(LOWEST, 9) },
+-	{ "pxa2xx-ac97", "pcm_pcm_aux_mono_out",
+-	  PDMA_FILTER_PARAM(LOWEST, 10) },
+-	{ "pxa2xx-ac97", "pcm_pcm_stereo_in", PDMA_FILTER_PARAM(LOWEST, 11) },
+-	{ "pxa2xx-ac97", "pcm_pcm_stereo_out", PDMA_FILTER_PARAM(LOWEST, 12) },
+-	{ "pxa-ssp-dai.0", "rx", PDMA_FILTER_PARAM(LOWEST, 13) },
+-	{ "pxa-ssp-dai.0", "tx", PDMA_FILTER_PARAM(LOWEST, 14) },
+-	{ "pxa-ssp-dai.1", "rx", PDMA_FILTER_PARAM(LOWEST, 15) },
+-	{ "pxa-ssp-dai.1", "tx", PDMA_FILTER_PARAM(LOWEST, 16) },
+-	{ "pxa2xx-ir", "rx", PDMA_FILTER_PARAM(LOWEST, 17) },
+-	{ "pxa2xx-ir", "tx", PDMA_FILTER_PARAM(LOWEST, 18) },
+-	{ "pxa2xx-mci.0", "rx", PDMA_FILTER_PARAM(LOWEST, 21) },
+-	{ "pxa2xx-mci.0", "tx", PDMA_FILTER_PARAM(LOWEST, 22) },
+-	{ "pxa-ssp-dai.2", "rx", PDMA_FILTER_PARAM(LOWEST, 66) },
+-	{ "pxa-ssp-dai.2", "tx", PDMA_FILTER_PARAM(LOWEST, 67) },
+-
+-	/* PXA27x specific map */
+-	{ "pxa2xx-i2s", "rx", PDMA_FILTER_PARAM(LOWEST, 2) },
+-	{ "pxa2xx-i2s", "tx", PDMA_FILTER_PARAM(LOWEST, 3) },
+-	{ "pxa27x-camera.0", "CI_Y", PDMA_FILTER_PARAM(HIGHEST, 68) },
+-	{ "pxa27x-camera.0", "CI_U", PDMA_FILTER_PARAM(HIGHEST, 69) },
+-	{ "pxa27x-camera.0", "CI_V", PDMA_FILTER_PARAM(HIGHEST, 70) },
+-};
+-
+-static struct mmp_dma_platdata pxa27x_dma_pdata = {
+-	.dma_channels	= 32,
+-	.nb_requestors	= 75,
+-	.slave_map	= pxa27x_slave_map,
+-	.slave_map_cnt	= ARRAY_SIZE(pxa27x_slave_map),
+-};
+-
+ static int __init pxa27x_init(void)
+ {
+ 	int ret = 0;
+ 
+ 	if (cpu_is_pxa27x()) {
+-
+ 		pxa_register_wdt(RCSR);
+ 
+ 		pxa27x_init_pm();
+ 
+ 		register_syscore(&pxa_irq_syscore);
+ 		register_syscore(&pxa2xx_mfp_syscore);
+-
+-		if (!of_have_populated_dt()) {
+-			software_node_register(&pxa2xx_gpiochip_node);
+-			pxa27x_device_gpio.dev.fwnode = software_node_fwnode(
+-								&pxa2xx_gpiochip_node);
+-
+-			pxa2xx_set_dmac_info(&pxa27x_dma_pdata);
+-			ret = platform_add_devices(devices,
+-						   ARRAY_SIZE(devices));
+-		}
+ 	}
+ 
+ 	return ret;
+diff --git a/arch/arm/mach-pxa/pxa300.c b/arch/arm/mach-pxa/pxa300.c
+index f77ec118d5b9..0022bf235114 100644
+--- a/arch/arm/mach-pxa/pxa300.c
++++ b/arch/arm/mach-pxa/pxa300.c
+@@ -19,7 +19,6 @@
+ #include "pxa300.h"
+ 
+ #include "generic.h"
+-#include "devices.h"
+ 
+ static struct mfp_addr_map pxa300_mfp_addr_map[] __initdata = {
+ 
+diff --git a/arch/arm/mach-pxa/pxa320.c b/arch/arm/mach-pxa/pxa320.c
+index e372e6c118de..2e84afd94467 100644
+--- a/arch/arm/mach-pxa/pxa320.c
++++ b/arch/arm/mach-pxa/pxa320.c
+@@ -19,7 +19,6 @@
+ #include "pxa320.h"
+ 
+ #include "generic.h"
+-#include "devices.h"
+ 
+ static struct mfp_addr_map pxa320_mfp_addr_map[] __initdata = {
+ 
+diff --git a/arch/arm/mach-pxa/pxa3xx.c b/arch/arm/mach-pxa/pxa3xx.c
+index 06c578ea658e..46f4efdfb514 100644
+--- a/arch/arm/mach-pxa/pxa3xx.c
++++ b/arch/arm/mach-pxa/pxa3xx.c
+@@ -10,11 +10,9 @@
+  *             initial version
+  */
+ #include <linux/dmaengine.h>
+-#include <linux/dma/pxa-dma.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+-#include <linux/gpio-pxa.h>
+ #include <linux/pm.h>
+ #include <linux/platform_device.h>
+ #include <linux/irq.h>
+@@ -22,8 +20,6 @@
+ #include <linux/io.h>
+ #include <linux/of.h>
+ #include <linux/syscore_ops.h>
+-#include <linux/platform_data/i2c-pxa.h>
+-#include <linux/platform_data/mmp_dma.h>
+ #include <linux/soc/pxa/cpu.h>
+ #include <linux/clk/pxa.h>
+ 
+@@ -31,14 +27,12 @@
+ #include <asm/suspend.h>
+ #include "pxa3xx-regs.h"
+ #include "reset.h"
+-#include <linux/platform_data/usb-ohci-pxa27x.h>
+ #include "pm.h"
+ #include "addr-map.h"
+ #include "smemc.h"
+ #include "irqs.h"
+ 
+ #include "generic.h"
+-#include "devices.h"
+ 
+ #define PECR_IE(n)	((1 << ((n) * 2)) << 28)
+ #define PECR_IS(n)	((1 << ((n) * 2)) << 29)
+diff --git a/arch/arm/mach-pxa/sharpsl_pm.c b/arch/arm/mach-pxa/sharpsl_pm.c
+deleted file mode 100644
+index a611eea70e5a..000000000000
+--- a/arch/arm/mach-pxa/sharpsl_pm.c
++++ /dev/null
+@@ -1,941 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Battery and Power Management code for the Sharp SL-C7xx and SL-Cxx00
+- * series of PDAs
+- *
+- * Copyright (c) 2004-2005 Richard Purdie
+- *
+- * Based on code written by Sharp for 2.4 kernels
+- */
+-
+-#undef DEBUG
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/interrupt.h>
+-#include <linux/platform_device.h>
+-#include <linux/apm-emulation.h>
+-#include <linux/timer.h>
+-#include <linux/delay.h>
+-#include <linux/leds.h>
+-#include <linux/suspend.h>
+-#include <linux/gpio/legacy.h>
+-#include <linux/io.h>
+-
+-#include <asm/mach-types.h>
+-#include "pm.h"
+-#include "pxa2xx-regs.h"
+-#include "regs-rtc.h"
+-#include "sharpsl_pm.h"
+-
+-/*
+- * Constants
+- */
+-#define SHARPSL_CHARGE_ON_TIME_INTERVAL        (secs_to_jiffies(60))
+-#define SHARPSL_CHARGE_FINISH_TIME             (secs_to_jiffies(10*60))
+-#define SHARPSL_BATCHK_TIME                    (secs_to_jiffies(15))
+-#define SHARPSL_BATCHK_TIME_SUSPEND            (60*10) /* 10 min */
+-
+-#define SHARPSL_WAIT_CO_TIME                   15  /* 15 sec */
+-#define SHARPSL_WAIT_DISCHARGE_ON              100 /* 100 msec */
+-#define SHARPSL_CHECK_BATTERY_WAIT_TIME_TEMP   10  /* 10 msec */
+-#define SHARPSL_CHECK_BATTERY_WAIT_TIME_VOLT   10  /* 10 msec */
+-#define SHARPSL_CHECK_BATTERY_WAIT_TIME_ACIN   10  /* 10 msec */
+-#define SHARPSL_CHARGE_WAIT_TIME               15  /* 15 msec */
+-#define SHARPSL_CHARGE_CO_CHECK_TIME           5   /* 5 msec */
+-#define SHARPSL_CHARGE_RETRY_CNT               1   /* eqv. 10 min */
+-
+-/*
+- * Prototypes
+- */
+-#ifdef CONFIG_PM
+-static int sharpsl_off_charge_battery(void);
+-static int sharpsl_check_battery_voltage(void);
+-#endif
+-static int sharpsl_check_battery_temp(void);
+-static int sharpsl_ac_check(void);
+-static int sharpsl_average_value(int ad);
+-static void sharpsl_average_clear(void);
+-static void sharpsl_charge_toggle(struct work_struct *private_);
+-static void sharpsl_battery_thread(struct work_struct *private_);
+-
+-
+-/*
+- * Variables
+- */
+-struct sharpsl_pm_status sharpsl_pm;
+-static DECLARE_DELAYED_WORK(toggle_charger, sharpsl_charge_toggle);
+-static DECLARE_DELAYED_WORK(sharpsl_bat, sharpsl_battery_thread);
+-DEFINE_LED_TRIGGER(sharpsl_charge_led_trigger);
+-
+-
+-
+-struct battery_thresh sharpsl_battery_levels_acin[] = {
+-	{ 213, 100},
+-	{ 212,  98},
+-	{ 211,  95},
+-	{ 210,  93},
+-	{ 209,  90},
+-	{ 208,  88},
+-	{ 207,  85},
+-	{ 206,  83},
+-	{ 205,  80},
+-	{ 204,  78},
+-	{ 203,  75},
+-	{ 202,  73},
+-	{ 201,  70},
+-	{ 200,  68},
+-	{ 199,  65},
+-	{ 198,  63},
+-	{ 197,  60},
+-	{ 196,  58},
+-	{ 195,  55},
+-	{ 194,  53},
+-	{ 193,  50},
+-	{ 192,  48},
+-	{ 192,  45},
+-	{ 191,  43},
+-	{ 191,  40},
+-	{ 190,  38},
+-	{ 190,  35},
+-	{ 189,  33},
+-	{ 188,  30},
+-	{ 187,  28},
+-	{ 186,  25},
+-	{ 185,  23},
+-	{ 184,  20},
+-	{ 183,  18},
+-	{ 182,  15},
+-	{ 181,  13},
+-	{ 180,  10},
+-	{ 179,   8},
+-	{ 178,   5},
+-	{   0,   0},
+-};
+-
+-struct battery_thresh sharpsl_battery_levels_noac[] = {
+-	{ 213, 100},
+-	{ 212,  98},
+-	{ 211,  95},
+-	{ 210,  93},
+-	{ 209,  90},
+-	{ 208,  88},
+-	{ 207,  85},
+-	{ 206,  83},
+-	{ 205,  80},
+-	{ 204,  78},
+-	{ 203,  75},
+-	{ 202,  73},
+-	{ 201,  70},
+-	{ 200,  68},
+-	{ 199,  65},
+-	{ 198,  63},
+-	{ 197,  60},
+-	{ 196,  58},
+-	{ 195,  55},
+-	{ 194,  53},
+-	{ 193,  50},
+-	{ 192,  48},
+-	{ 191,  45},
+-	{ 190,  43},
+-	{ 189,  40},
+-	{ 188,  38},
+-	{ 187,  35},
+-	{ 186,  33},
+-	{ 185,  30},
+-	{ 184,  28},
+-	{ 183,  25},
+-	{ 182,  23},
+-	{ 181,  20},
+-	{ 180,  18},
+-	{ 179,  15},
+-	{ 178,  13},
+-	{ 177,  10},
+-	{ 176,   8},
+-	{ 175,   5},
+-	{   0,   0},
+-};
+-
+-/* MAX1111 Commands */
+-#define MAXCTRL_PD0      (1u << 0)
+-#define MAXCTRL_PD1      (1u << 1)
+-#define MAXCTRL_SGL      (1u << 2)
+-#define MAXCTRL_UNI      (1u << 3)
+-#define MAXCTRL_SEL_SH   4
+-#define MAXCTRL_STR      (1u << 7)
+-
+-extern int max1111_read_channel(int);
+-/*
+- * Read MAX1111 ADC
+- */
+-int sharpsl_pm_pxa_read_max1111(int channel)
+-{
+-	/* max1111 accepts channels from 0-3, however,
+-	 * it is encoded from 0-7 here in the code.
+-	 */
+-	return max1111_read_channel(channel >> 1);
+-}
+-
+-static int get_percentage(int voltage)
+-{
+-	int i = sharpsl_pm.machinfo->bat_levels - 1;
+-	int bl_status = sharpsl_pm.machinfo->backlight_get_status ? sharpsl_pm.machinfo->backlight_get_status() : 0;
+-	struct battery_thresh *thresh;
+-
+-	if (sharpsl_pm.charge_mode == CHRG_ON)
+-		thresh = bl_status ? sharpsl_pm.machinfo->bat_levels_acin_bl : sharpsl_pm.machinfo->bat_levels_acin;
+-	else
+-		thresh = bl_status ? sharpsl_pm.machinfo->bat_levels_noac_bl : sharpsl_pm.machinfo->bat_levels_noac;
+-
+-	while (i > 0 && (voltage > thresh[i].voltage))
+-		i--;
+-
+-	return thresh[i].percentage;
+-}
+-
+-static int get_apm_status(int voltage)
+-{
+-	int low_thresh, high_thresh;
+-
+-	if (sharpsl_pm.charge_mode == CHRG_ON) {
+-		high_thresh = sharpsl_pm.machinfo->status_high_acin;
+-		low_thresh = sharpsl_pm.machinfo->status_low_acin;
+-	} else {
+-		high_thresh = sharpsl_pm.machinfo->status_high_noac;
+-		low_thresh = sharpsl_pm.machinfo->status_low_noac;
+-	}
+-
+-	if (voltage >= high_thresh)
+-		return APM_BATTERY_STATUS_HIGH;
+-	if (voltage >= low_thresh)
+-		return APM_BATTERY_STATUS_LOW;
+-	return APM_BATTERY_STATUS_CRITICAL;
+-}
+-
+-void sharpsl_battery_kick(void)
+-{
+-	schedule_delayed_work(&sharpsl_bat, msecs_to_jiffies(125));
+-}
+-
+-static void sharpsl_battery_thread(struct work_struct *private_)
+-{
+-	int voltage, percent, apm_status, i;
+-
+-	if (!sharpsl_pm.machinfo)
+-		return;
+-
+-	sharpsl_pm.battstat.ac_status = (sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN) ? APM_AC_ONLINE : APM_AC_OFFLINE);
+-
+-	/* Corgi cannot confirm when battery fully charged so periodically kick! */
+-	if (!sharpsl_pm.machinfo->batfull_irq && (sharpsl_pm.charge_mode == CHRG_ON)
+-			&& time_after(jiffies, sharpsl_pm.charge_start_time +  SHARPSL_CHARGE_ON_TIME_INTERVAL))
+-		schedule_delayed_work(&toggle_charger, 0);
+-
+-	for (i = 0; i < 5; i++) {
+-		voltage = sharpsl_pm.machinfo->read_devdata(SHARPSL_BATT_VOLT);
+-		if (voltage > 0)
+-			break;
+-	}
+-	if (voltage <= 0) {
+-		voltage = sharpsl_pm.machinfo->bat_levels_noac[0].voltage;
+-		dev_warn(sharpsl_pm.dev, "Warning: Cannot read main battery!\n");
+-	}
+-
+-	voltage = sharpsl_average_value(voltage);
+-	apm_status = get_apm_status(voltage);
+-	percent = get_percentage(voltage);
+-
+-	/* At low battery voltages, the voltage has a tendency to start
+-	   creeping back up so we try to avoid this here */
+-	if ((sharpsl_pm.battstat.ac_status == APM_AC_ONLINE)
+-	    || (apm_status == APM_BATTERY_STATUS_HIGH)
+-	    || percent <= sharpsl_pm.battstat.mainbat_percent) {
+-		sharpsl_pm.battstat.mainbat_voltage = voltage;
+-		sharpsl_pm.battstat.mainbat_status = apm_status;
+-		sharpsl_pm.battstat.mainbat_percent = percent;
+-	}
+-
+-	dev_dbg(sharpsl_pm.dev, "Battery: voltage: %d, status: %d, percentage: %d, time: %ld\n", voltage,
+-			sharpsl_pm.battstat.mainbat_status, sharpsl_pm.battstat.mainbat_percent, jiffies);
+-
+-	/* Suspend if critical battery level */
+-	if ((sharpsl_pm.battstat.ac_status != APM_AC_ONLINE)
+-	     && (sharpsl_pm.battstat.mainbat_status == APM_BATTERY_STATUS_CRITICAL)
+-	     && !(sharpsl_pm.flags & SHARPSL_APM_QUEUED)) {
+-		sharpsl_pm.flags |= SHARPSL_APM_QUEUED;
+-		dev_err(sharpsl_pm.dev, "Fatal Off\n");
+-		apm_queue_event(APM_CRITICAL_SUSPEND);
+-	}
+-
+-	schedule_delayed_work(&sharpsl_bat, SHARPSL_BATCHK_TIME);
+-}
+-
+-void sharpsl_pm_led(int val)
+-{
+-	if (val == SHARPSL_LED_ERROR) {
+-		dev_err(sharpsl_pm.dev, "Charging Error!\n");
+-	} else if (val == SHARPSL_LED_ON) {
+-		dev_dbg(sharpsl_pm.dev, "Charge LED On\n");
+-		led_trigger_event(sharpsl_charge_led_trigger, LED_FULL);
+-	} else {
+-		dev_dbg(sharpsl_pm.dev, "Charge LED Off\n");
+-		led_trigger_event(sharpsl_charge_led_trigger, LED_OFF);
+-	}
+-}
+-
+-static void sharpsl_charge_on(void)
+-{
+-	dev_dbg(sharpsl_pm.dev, "Turning Charger On\n");
+-
+-	sharpsl_pm.full_count = 0;
+-	sharpsl_pm.charge_mode = CHRG_ON;
+-	schedule_delayed_work(&toggle_charger, msecs_to_jiffies(250));
+-	schedule_delayed_work(&sharpsl_bat, msecs_to_jiffies(500));
+-}
+-
+-static void sharpsl_charge_off(void)
+-{
+-	dev_dbg(sharpsl_pm.dev, "Turning Charger Off\n");
+-
+-	sharpsl_pm.machinfo->charge(0);
+-	sharpsl_pm_led(SHARPSL_LED_OFF);
+-	sharpsl_pm.charge_mode = CHRG_OFF;
+-
+-	schedule_delayed_work(&sharpsl_bat, 0);
+-}
+-
+-static void sharpsl_charge_error(void)
+-{
+-	sharpsl_pm_led(SHARPSL_LED_ERROR);
+-	sharpsl_pm.machinfo->charge(0);
+-	sharpsl_pm.charge_mode = CHRG_ERROR;
+-}
+-
+-static void sharpsl_charge_toggle(struct work_struct *private_)
+-{
+-	dev_dbg(sharpsl_pm.dev, "Toggling Charger at time: %lx\n", jiffies);
+-
+-	if (!sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN)) {
+-		sharpsl_charge_off();
+-		return;
+-	} else if ((sharpsl_check_battery_temp() < 0) || (sharpsl_ac_check() < 0)) {
+-		sharpsl_charge_error();
+-		return;
+-	}
+-
+-	sharpsl_pm_led(SHARPSL_LED_ON);
+-	sharpsl_pm.machinfo->charge(0);
+-	mdelay(SHARPSL_CHARGE_WAIT_TIME);
+-	sharpsl_pm.machinfo->charge(1);
+-
+-	sharpsl_pm.charge_start_time = jiffies;
+-}
+-
+-static void sharpsl_ac_timer(struct timer_list *unused)
+-{
+-	int acin = sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN);
+-
+-	dev_dbg(sharpsl_pm.dev, "AC Status: %d\n", acin);
+-
+-	sharpsl_average_clear();
+-	if (acin && (sharpsl_pm.charge_mode != CHRG_ON))
+-		sharpsl_charge_on();
+-	else if (sharpsl_pm.charge_mode == CHRG_ON)
+-		sharpsl_charge_off();
+-
+-	schedule_delayed_work(&sharpsl_bat, 0);
+-}
+-
+-
+-static irqreturn_t sharpsl_ac_isr(int irq, void *dev_id)
+-{
+-	/* Delay the event slightly to debounce */
+-	/* Must be a smaller delay than the chrg_full_isr below */
+-	mod_timer(&sharpsl_pm.ac_timer, jiffies + msecs_to_jiffies(250));
+-
+-	return IRQ_HANDLED;
+-}
+-
+-static void sharpsl_chrg_full_timer(struct timer_list *unused)
+-{
+-	dev_dbg(sharpsl_pm.dev, "Charge Full at time: %lx\n", jiffies);
+-
+-	sharpsl_pm.full_count++;
+-
+-	if (!sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN)) {
+-		dev_dbg(sharpsl_pm.dev, "Charge Full: AC removed - stop charging!\n");
+-		if (sharpsl_pm.charge_mode == CHRG_ON)
+-			sharpsl_charge_off();
+-	} else if (sharpsl_pm.full_count < 2) {
+-		dev_dbg(sharpsl_pm.dev, "Charge Full: Count too low\n");
+-		schedule_delayed_work(&toggle_charger, 0);
+-	} else if (time_after(jiffies, sharpsl_pm.charge_start_time + SHARPSL_CHARGE_FINISH_TIME)) {
+-		dev_dbg(sharpsl_pm.dev, "Charge Full: Interrupt generated too slowly - retry.\n");
+-		schedule_delayed_work(&toggle_charger, 0);
+-	} else {
+-		sharpsl_charge_off();
+-		sharpsl_pm.charge_mode = CHRG_DONE;
+-		dev_dbg(sharpsl_pm.dev, "Charge Full: Charging Finished\n");
+-	}
+-}
+-
+-/* Charging Finished Interrupt (Not present on Corgi) */
+-/* Can trigger at the same time as an AC status change so
+-   delay until after that has been processed */
+-static irqreturn_t sharpsl_chrg_full_isr(int irq, void *dev_id)
+-{
+-	if (sharpsl_pm.flags & SHARPSL_SUSPENDED)
+-		return IRQ_HANDLED;
+-
+-	/* delay until after any ac interrupt */
+-	mod_timer(&sharpsl_pm.chrg_full_timer, jiffies + msecs_to_jiffies(500));
+-
+-	return IRQ_HANDLED;
+-}
+-
+-static irqreturn_t sharpsl_fatal_isr(int irq, void *dev_id)
+-{
+-	int is_fatal = 0;
+-
+-	if (!sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_LOCK)) {
+-		dev_err(sharpsl_pm.dev, "Battery now Unlocked! Suspending.\n");
+-		is_fatal = 1;
+-	}
+-
+-	if (!sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_FATAL)) {
+-		dev_err(sharpsl_pm.dev, "Fatal Batt Error! Suspending.\n");
+-		is_fatal = 1;
+-	}
+-
+-	if (!(sharpsl_pm.flags & SHARPSL_APM_QUEUED) && is_fatal) {
+-		sharpsl_pm.flags |= SHARPSL_APM_QUEUED;
+-		apm_queue_event(APM_CRITICAL_SUSPEND);
+-	}
+-
 -	return IRQ_HANDLED;
 -}
 -
 -/*
-- * Set up timer interrupt.
+- * Maintain an average of the last 10 readings
 - */
--void __init ioc_timer_init(void)
+-#define SHARPSL_CNV_VALUE_NUM    10
+-static int sharpsl_ad_index;
+-
+-static void sharpsl_average_clear(void)
 -{
--	WARN_ON(clocksource_register_hz(&ioctime_clocksource, RPC_CLOCK_FREQ));
--	ioctime_init();
--	if (request_irq(IRQ_TIMER0, ioc_timer_interrupt, 0, "timer", NULL))
--		pr_err("Failed to request irq %d (timer)\n", IRQ_TIMER0);
+-	sharpsl_ad_index = 0;
 -}
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index 350f6dcc24cc..07c2fda4d422 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -1112,7 +1112,7 @@ static void __init fill_pmd_gaps(void)
- #define fill_pmd_gaps() do { } while (0)
- #endif
- 
--#if defined(CONFIG_PCI) && !defined(CONFIG_NEED_MACH_IO_H)
-+#if defined(CONFIG_PCI)
- static void __init pci_reserve_io(void)
- {
- 	struct static_vm *svm;
-diff --git a/block/partitions/Kconfig b/block/partitions/Kconfig
-index ce17e41451af..94e7df547e7a 100644
---- a/block/partitions/Kconfig
-+++ b/block/partitions/Kconfig
-@@ -19,13 +19,11 @@ config PARTITION_ADVANCED
- 
- config ACORN_PARTITION
- 	bool "Acorn partition support" if PARTITION_ADVANCED
--	default y if ARCH_ACORN
- 	help
- 	  Support hard disks partitioned under Acorn operating systems.
- 
- config ACORN_PARTITION_CUMANA
- 	bool "Cumana partition support" if PARTITION_ADVANCED
--	default y if ARCH_ACORN
- 	depends on ACORN_PARTITION
- 	help
- 	  Say Y here if you would like to use hard disks under Linux which
-@@ -33,12 +31,10 @@ config ACORN_PARTITION_CUMANA
- 
- config ACORN_PARTITION_EESOX
- 	bool "EESOX partition support" if PARTITION_ADVANCED
--	default y if ARCH_ACORN
- 	depends on ACORN_PARTITION
- 
- config ACORN_PARTITION_ICS
- 	bool "ICS partition support" if PARTITION_ADVANCED
--	default y if ARCH_ACORN
- 	depends on ACORN_PARTITION
- 	help
- 	  Say Y here if you would like to use hard disks under Linux which
-@@ -46,7 +42,6 @@ config ACORN_PARTITION_ICS
- 
- config ACORN_PARTITION_ADFS
- 	bool "Native filecore partition support" if PARTITION_ADVANCED
--	default y if ARCH_ACORN
- 	depends on ACORN_PARTITION
- 	help
- 	  The Acorn Disc Filing System is the standard file system of the
-@@ -56,7 +51,6 @@ config ACORN_PARTITION_ADFS
- 
- config ACORN_PARTITION_POWERTEC
- 	bool "PowerTec partition support" if PARTITION_ADVANCED
--	default y if ARCH_ACORN
- 	depends on ACORN_PARTITION
- 	help
- 	  Support reading partition tables created on Acorn machines using
-@@ -64,7 +58,6 @@ config ACORN_PARTITION_POWERTEC
- 
- config ACORN_PARTITION_RISCIX
- 	bool "RISCiX partition support" if PARTITION_ADVANCED
--	default y if ARCH_ACORN
- 	depends on ACORN_PARTITION
- 	help
- 	  Once upon a time, there was a native Unix port for the Acorn series
-diff --git a/drivers/tty/vt/keyboard.c b/drivers/tty/vt/keyboard.c
-index c41d850b29c6..9770c83aea74 100644
---- a/drivers/tty/vt/keyboard.c
-+++ b/drivers/tty/vt/keyboard.c
-@@ -1308,7 +1308,7 @@ static void kbd_bh(struct tasklet_struct *unused)
- #if defined(CONFIG_X86) || defined(CONFIG_ALPHA) ||\
-     defined(CONFIG_MIPS) || defined(CONFIG_PPC) || defined(CONFIG_SPARC) ||\
-     defined(CONFIG_PARISC) || defined(CONFIG_SUPERH) ||\
--    (defined(CONFIG_ARM) && defined(CONFIG_KEYBOARD_ATKBD) && !defined(CONFIG_ARCH_RPC))
-+    (defined(CONFIG_ARM) && defined(CONFIG_KEYBOARD_ATKBD))
- 
- static inline bool kbd_is_hw_raw(const struct input_dev *dev)
- {
-diff --git a/lib/fonts/font_acorn_8x8.c b/lib/fonts/font_acorn_8x8.c
-index 4ff52c79f8c4..ec2b1e463ab9 100644
---- a/lib/fonts/font_acorn_8x8.c
-+++ b/lib/fonts/font_acorn_8x8.c
-@@ -277,9 +277,5 @@ const struct font_desc font_acorn_8x8 = {
- 	.height	= 8,
- 	.charcount = 256,
- 	.data	= acorndata_8x8.data,
--#ifdef CONFIG_ARCH_ACORN
--	.pref	= 20,
--#else
- 	.pref	= 0,
+-
+-static int sharpsl_average_value(int ad)
+-{
+-	int i, ad_val = 0;
+-	static int sharpsl_ad[SHARPSL_CNV_VALUE_NUM+1];
+-
+-	if (sharpsl_pm.battstat.mainbat_status != APM_BATTERY_STATUS_HIGH) {
+-		sharpsl_ad_index = 0;
+-		return ad;
+-	}
+-
+-	sharpsl_ad[sharpsl_ad_index] = ad;
+-	sharpsl_ad_index++;
+-	if (sharpsl_ad_index >= SHARPSL_CNV_VALUE_NUM) {
+-		for (i = 0; i < (SHARPSL_CNV_VALUE_NUM-1); i++)
+-			sharpsl_ad[i] = sharpsl_ad[i+1];
+-		sharpsl_ad_index = SHARPSL_CNV_VALUE_NUM - 1;
+-	}
+-	for (i = 0; i < sharpsl_ad_index; i++)
+-		ad_val += sharpsl_ad[i];
+-
+-	return ad_val / sharpsl_ad_index;
+-}
+-
+-/*
+- * Take an array of 5 integers, remove the maximum and minimum values
+- * and return the average.
+- */
+-static int get_select_val(int *val)
+-{
+-	int i, j, k, temp, sum = 0;
+-
+-	/* Find MAX val */
+-	temp = val[0];
+-	j = 0;
+-	for (i = 1; i < 5; i++) {
+-		if (temp < val[i]) {
+-			temp = val[i];
+-			j = i;
+-		}
+-	}
+-
+-	/* Find MIN val */
+-	temp = val[4];
+-	k = 4;
+-	for (i = 3; i >= 0; i--) {
+-		if (temp > val[i]) {
+-			temp = val[i];
+-			k = i;
+-		}
+-	}
+-
+-	for (i = 0; i < 5; i++)
+-		if (i != j && i != k)
+-			sum += val[i];
+-
+-	dev_dbg(sharpsl_pm.dev, "Average: %d from values: %d, %d, %d, %d, %d\n", sum/3, val[0], val[1], val[2], val[3], val[4]);
+-
+-	return sum/3;
+-}
+-
+-static int sharpsl_check_battery_temp(void)
+-{
+-	int val, i, buff[5];
+-
+-	/* Check battery temperature */
+-	for (i = 0; i < 5; i++) {
+-		mdelay(SHARPSL_CHECK_BATTERY_WAIT_TIME_TEMP);
+-		sharpsl_pm.machinfo->measure_temp(1);
+-		mdelay(SHARPSL_CHECK_BATTERY_WAIT_TIME_TEMP);
+-		buff[i] = sharpsl_pm.machinfo->read_devdata(SHARPSL_BATT_TEMP);
+-		sharpsl_pm.machinfo->measure_temp(0);
+-	}
+-
+-	val = get_select_val(buff);
+-
+-	dev_dbg(sharpsl_pm.dev, "Temperature: %d\n", val);
+-	if (val > sharpsl_pm.machinfo->charge_on_temp) {
+-		printk(KERN_WARNING "Not charging: temperature out of limits.\n");
+-		return -1;
+-	}
+-
+-	return 0;
+-}
+-
+-#ifdef CONFIG_PM
+-static int sharpsl_check_battery_voltage(void)
+-{
+-	int val, i, buff[5];
+-
+-	/* disable charge, enable discharge */
+-	sharpsl_pm.machinfo->charge(0);
+-	sharpsl_pm.machinfo->discharge(1);
+-	mdelay(SHARPSL_WAIT_DISCHARGE_ON);
+-
+-	if (sharpsl_pm.machinfo->discharge1)
+-		sharpsl_pm.machinfo->discharge1(1);
+-
+-	/* Check battery voltage */
+-	for (i = 0; i < 5; i++) {
+-		buff[i] = sharpsl_pm.machinfo->read_devdata(SHARPSL_BATT_VOLT);
+-		mdelay(SHARPSL_CHECK_BATTERY_WAIT_TIME_VOLT);
+-	}
+-
+-	if (sharpsl_pm.machinfo->discharge1)
+-		sharpsl_pm.machinfo->discharge1(0);
+-
+-	sharpsl_pm.machinfo->discharge(0);
+-
+-	val = get_select_val(buff);
+-	dev_dbg(sharpsl_pm.dev, "Battery Voltage: %d\n", val);
+-
+-	if (val < sharpsl_pm.machinfo->charge_on_volt)
+-		return -1;
+-
+-	return 0;
+-}
 -#endif
- };
+-
+-static int sharpsl_ac_check(void)
+-{
+-	int temp, i, buff[5];
+-
+-	for (i = 0; i < 5; i++) {
+-		buff[i] = sharpsl_pm.machinfo->read_devdata(SHARPSL_ACIN_VOLT);
+-		mdelay(SHARPSL_CHECK_BATTERY_WAIT_TIME_ACIN);
+-	}
+-
+-	temp = get_select_val(buff);
+-	dev_dbg(sharpsl_pm.dev, "AC Voltage: %d\n", temp);
+-
+-	if ((temp > sharpsl_pm.machinfo->charge_acin_high) || (temp < sharpsl_pm.machinfo->charge_acin_low)) {
+-		dev_err(sharpsl_pm.dev, "Error: AC check failed: voltage %d.\n", temp);
+-		return -1;
+-	}
+-
+-	return 0;
+-}
+-
+-#ifdef CONFIG_PM
+-static int sharpsl_pm_suspend(struct platform_device *pdev, pm_message_t state)
+-{
+-	sharpsl_pm.flags |= SHARPSL_SUSPENDED;
+-	flush_delayed_work(&toggle_charger);
+-	flush_delayed_work(&sharpsl_bat);
+-
+-	if (sharpsl_pm.charge_mode == CHRG_ON)
+-		sharpsl_pm.flags |= SHARPSL_DO_OFFLINE_CHRG;
+-	else
+-		sharpsl_pm.flags &= ~SHARPSL_DO_OFFLINE_CHRG;
+-
+-	return 0;
+-}
+-
+-static int sharpsl_pm_resume(struct platform_device *pdev)
+-{
+-	/* Clear the reset source indicators as they break the bootloader upon reboot */
+-	RCSR = 0x0f;
+-	sharpsl_average_clear();
+-	sharpsl_pm.flags &= ~SHARPSL_APM_QUEUED;
+-	sharpsl_pm.flags &= ~SHARPSL_SUSPENDED;
+-
+-	return 0;
+-}
+-
+-static void corgi_goto_sleep(unsigned long alarm_time, unsigned int alarm_enable, suspend_state_t state)
+-{
+-	dev_dbg(sharpsl_pm.dev, "Time is: %08x\n", RCNR);
+-
+-	dev_dbg(sharpsl_pm.dev, "Offline Charge Activate = %d\n", sharpsl_pm.flags & SHARPSL_DO_OFFLINE_CHRG);
+-	/* not charging and AC-IN! */
+-
+-	if ((sharpsl_pm.flags & SHARPSL_DO_OFFLINE_CHRG) && (sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN))) {
+-		dev_dbg(sharpsl_pm.dev, "Activating Offline Charger...\n");
+-		sharpsl_pm.charge_mode = CHRG_OFF;
+-		sharpsl_pm.flags &= ~SHARPSL_DO_OFFLINE_CHRG;
+-		sharpsl_off_charge_battery();
+-	}
+-
+-	sharpsl_pm.machinfo->presuspend();
+-
+-	PEDR = 0xffffffff; /* clear it */
+-
+-	sharpsl_pm.flags &= ~SHARPSL_ALARM_ACTIVE;
+-	if ((sharpsl_pm.charge_mode == CHRG_ON) && ((alarm_enable && ((alarm_time - RCNR) > (SHARPSL_BATCHK_TIME_SUSPEND + 30))) || !alarm_enable)) {
+-		RTSR &= RTSR_ALE;
+-		RTAR = RCNR + SHARPSL_BATCHK_TIME_SUSPEND;
+-		dev_dbg(sharpsl_pm.dev, "Charging alarm at: %08x\n", RTAR);
+-		sharpsl_pm.flags |= SHARPSL_ALARM_ACTIVE;
+-	} else if (alarm_enable) {
+-		RTSR &= RTSR_ALE;
+-		RTAR = alarm_time;
+-		dev_dbg(sharpsl_pm.dev, "User alarm at: %08x\n", RTAR);
+-	} else {
+-		dev_dbg(sharpsl_pm.dev, "No alarms set.\n");
+-	}
+-
+-	pxa_pm_enter(state);
+-
+-	sharpsl_pm.machinfo->postsuspend();
+-
+-	dev_dbg(sharpsl_pm.dev, "Corgi woken up from suspend: %08x\n", PEDR);
+-}
+-
+-static int corgi_enter_suspend(unsigned long alarm_time, unsigned int alarm_enable, suspend_state_t state)
+-{
+-	if (!sharpsl_pm.machinfo->should_wakeup(!(sharpsl_pm.flags & SHARPSL_ALARM_ACTIVE) && alarm_enable)) {
+-		if (!(sharpsl_pm.flags & SHARPSL_ALARM_ACTIVE)) {
+-			dev_dbg(sharpsl_pm.dev, "No user triggered wakeup events and not charging. Strange. Suspend.\n");
+-			corgi_goto_sleep(alarm_time, alarm_enable, state);
+-			return 1;
+-		}
+-		if (sharpsl_off_charge_battery()) {
+-			dev_dbg(sharpsl_pm.dev, "Charging. Suspend...\n");
+-			corgi_goto_sleep(alarm_time, alarm_enable, state);
+-			return 1;
+-		}
+-		dev_dbg(sharpsl_pm.dev, "User triggered wakeup in offline charger.\n");
+-	}
+-
+-	if ((!sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_LOCK)) ||
+-	    (!sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_FATAL)))	{
+-		dev_err(sharpsl_pm.dev, "Fatal condition. Suspend.\n");
+-		corgi_goto_sleep(alarm_time, alarm_enable, state);
+-		return 1;
+-	}
+-
+-	return 0;
+-}
+-
+-static int corgi_pxa_pm_enter(suspend_state_t state)
+-{
+-	unsigned long alarm_time = RTAR;
+-	unsigned int alarm_status = ((RTSR & RTSR_ALE) != 0);
+-
+-	dev_dbg(sharpsl_pm.dev, "SharpSL suspending for first time.\n");
+-
+-	corgi_goto_sleep(alarm_time, alarm_status, state);
+-
+-	while (corgi_enter_suspend(alarm_time, alarm_status, state))
+-		{}
+-
+-	if (sharpsl_pm.machinfo->earlyresume)
+-		sharpsl_pm.machinfo->earlyresume();
+-
+-	dev_dbg(sharpsl_pm.dev, "SharpSL resuming...\n");
+-
+-	return 0;
+-}
+-
+-static int sharpsl_off_charge_error(void)
+-{
+-	dev_err(sharpsl_pm.dev, "Offline Charger: Error occurred.\n");
+-	sharpsl_pm.machinfo->charge(0);
+-	sharpsl_pm_led(SHARPSL_LED_ERROR);
+-	sharpsl_pm.charge_mode = CHRG_ERROR;
+-	return 1;
+-}
+-
+-/*
+- * Charging Control while suspended
+- * Return 1 - go straight to sleep
+- * Return 0 - sleep or wakeup depending on other factors
+- */
+-static int sharpsl_off_charge_battery(void)
+-{
+-	int time;
+-
+-	dev_dbg(sharpsl_pm.dev, "Charge Mode: %d\n", sharpsl_pm.charge_mode);
+-
+-	if (sharpsl_pm.charge_mode == CHRG_OFF) {
+-		dev_dbg(sharpsl_pm.dev, "Offline Charger: Step 1\n");
+-
+-		/* AC Check */
+-		if ((sharpsl_ac_check() < 0) || (sharpsl_check_battery_temp() < 0))
+-			return sharpsl_off_charge_error();
+-
+-		/* Start Charging */
+-		sharpsl_pm_led(SHARPSL_LED_ON);
+-		sharpsl_pm.machinfo->charge(0);
+-		mdelay(SHARPSL_CHARGE_WAIT_TIME);
+-		sharpsl_pm.machinfo->charge(1);
+-
+-		sharpsl_pm.charge_mode = CHRG_ON;
+-		sharpsl_pm.full_count = 0;
+-
+-		return 1;
+-	} else if (sharpsl_pm.charge_mode != CHRG_ON) {
+-		return 1;
+-	}
+-
+-	if (sharpsl_pm.full_count == 0) {
+-		int time;
+-
+-		dev_dbg(sharpsl_pm.dev, "Offline Charger: Step 2\n");
+-
+-		if ((sharpsl_check_battery_temp() < 0) || (sharpsl_check_battery_voltage() < 0))
+-			return sharpsl_off_charge_error();
+-
+-		sharpsl_pm.machinfo->charge(0);
+-		mdelay(SHARPSL_CHARGE_WAIT_TIME);
+-		sharpsl_pm.machinfo->charge(1);
+-		sharpsl_pm.charge_mode = CHRG_ON;
+-
+-		mdelay(SHARPSL_CHARGE_CO_CHECK_TIME);
+-
+-		time = RCNR;
+-		while (1) {
+-			/* Check if any wakeup event had occurred */
+-			if (sharpsl_pm.machinfo->charger_wakeup())
+-				return 0;
+-			/* Check for timeout */
+-			if ((RCNR - time) > SHARPSL_WAIT_CO_TIME)
+-				return 1;
+-			if (sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_CHRGFULL)) {
+-				dev_dbg(sharpsl_pm.dev, "Offline Charger: Charge full occurred. Retrying to check\n");
+-				sharpsl_pm.full_count++;
+-				sharpsl_pm.machinfo->charge(0);
+-				mdelay(SHARPSL_CHARGE_WAIT_TIME);
+-				sharpsl_pm.machinfo->charge(1);
+-				return 1;
+-			}
+-		}
+-	}
+-
+-	dev_dbg(sharpsl_pm.dev, "Offline Charger: Step 3\n");
+-
+-	mdelay(SHARPSL_CHARGE_CO_CHECK_TIME);
+-
+-	time = RCNR;
+-	while (1) {
+-		/* Check if any wakeup event had occurred */
+-		if (sharpsl_pm.machinfo->charger_wakeup())
+-			return 0;
+-		/* Check for timeout */
+-		if ((RCNR-time) > SHARPSL_WAIT_CO_TIME) {
+-			if (sharpsl_pm.full_count > SHARPSL_CHARGE_RETRY_CNT) {
+-				dev_dbg(sharpsl_pm.dev, "Offline Charger: Not charged sufficiently. Retrying.\n");
+-				sharpsl_pm.full_count = 0;
+-			}
+-			sharpsl_pm.full_count++;
+-			return 1;
+-		}
+-		if (sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_CHRGFULL)) {
+-			dev_dbg(sharpsl_pm.dev, "Offline Charger: Charging complete.\n");
+-			sharpsl_pm_led(SHARPSL_LED_OFF);
+-			sharpsl_pm.machinfo->charge(0);
+-			sharpsl_pm.charge_mode = CHRG_DONE;
+-			return 1;
+-		}
+-	}
+-}
+-#else
+-#define sharpsl_pm_suspend	NULL
+-#define sharpsl_pm_resume	NULL
+-#endif
+-
+-static ssize_t battery_percentage_show(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "%d\n", sharpsl_pm.battstat.mainbat_percent);
+-}
+-
+-static ssize_t battery_voltage_show(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "%d\n", sharpsl_pm.battstat.mainbat_voltage);
+-}
+-
+-static DEVICE_ATTR_RO(battery_percentage);
+-static DEVICE_ATTR_RO(battery_voltage);
+-
+-extern void (*apm_get_power_status)(struct apm_power_info *);
+-
+-static void sharpsl_apm_get_power_status(struct apm_power_info *info)
+-{
+-	info->ac_line_status = sharpsl_pm.battstat.ac_status;
+-
+-	if (sharpsl_pm.charge_mode == CHRG_ON)
+-		info->battery_status = APM_BATTERY_STATUS_CHARGING;
+-	else
+-		info->battery_status = sharpsl_pm.battstat.mainbat_status;
+-
+-	info->battery_flag = (1 << info->battery_status);
+-	info->battery_life = sharpsl_pm.battstat.mainbat_percent;
+-}
+-
+-#ifdef CONFIG_PM
+-static const struct platform_suspend_ops sharpsl_pm_ops = {
+-	.prepare	= pxa_pm_prepare,
+-	.finish		= pxa_pm_finish,
+-	.enter		= corgi_pxa_pm_enter,
+-	.valid		= suspend_valid_only_mem,
+-};
+-#endif
+-
+-static int sharpsl_pm_probe(struct platform_device *pdev)
+-{
+-	int ret, irq;
+-
+-	if (!pdev->dev.platform_data)
+-		return -EINVAL;
+-
+-	sharpsl_pm.dev = &pdev->dev;
+-	sharpsl_pm.machinfo = pdev->dev.platform_data;
+-	sharpsl_pm.charge_mode = CHRG_OFF;
+-	sharpsl_pm.flags = 0;
+-
+-	timer_setup(&sharpsl_pm.ac_timer, sharpsl_ac_timer, 0);
+-
+-	timer_setup(&sharpsl_pm.chrg_full_timer, sharpsl_chrg_full_timer, 0);
+-
+-	led_trigger_register_simple("sharpsl-charge", &sharpsl_charge_led_trigger);
+-
+-	sharpsl_pm.machinfo->init();
+-
+-	gpio_request(sharpsl_pm.machinfo->gpio_acin, "AC IN");
+-	gpio_direction_input(sharpsl_pm.machinfo->gpio_acin);
+-	gpio_request(sharpsl_pm.machinfo->gpio_batfull, "Battery Full");
+-	gpio_direction_input(sharpsl_pm.machinfo->gpio_batfull);
+-	gpio_request(sharpsl_pm.machinfo->gpio_batlock, "Battery Lock");
+-	gpio_direction_input(sharpsl_pm.machinfo->gpio_batlock);
+-
+-	/* Register interrupt handlers */
+-	irq = gpio_to_irq(sharpsl_pm.machinfo->gpio_acin);
+-	if (request_irq(irq, sharpsl_ac_isr, IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING, "AC Input Detect", sharpsl_ac_isr)) {
+-		dev_err(sharpsl_pm.dev, "Could not get irq %d.\n", irq);
+-	}
+-
+-	irq = gpio_to_irq(sharpsl_pm.machinfo->gpio_batlock);
+-	if (request_irq(irq, sharpsl_fatal_isr, IRQF_TRIGGER_FALLING, "Battery Cover", sharpsl_fatal_isr)) {
+-		dev_err(sharpsl_pm.dev, "Could not get irq %d.\n", irq);
+-	}
+-
+-	if (sharpsl_pm.machinfo->gpio_fatal) {
+-		irq = gpio_to_irq(sharpsl_pm.machinfo->gpio_fatal);
+-		if (request_irq(irq, sharpsl_fatal_isr, IRQF_TRIGGER_FALLING, "Fatal Battery", sharpsl_fatal_isr)) {
+-			dev_err(sharpsl_pm.dev, "Could not get irq %d.\n", irq);
+-		}
+-	}
+-
+-	if (sharpsl_pm.machinfo->batfull_irq) {
+-		/* Register interrupt handler. */
+-		irq = gpio_to_irq(sharpsl_pm.machinfo->gpio_batfull);
+-		if (request_irq(irq, sharpsl_chrg_full_isr, IRQF_TRIGGER_RISING, "CO", sharpsl_chrg_full_isr)) {
+-			dev_err(sharpsl_pm.dev, "Could not get irq %d.\n", irq);
+-		}
+-	}
+-
+-	ret = device_create_file(&pdev->dev, &dev_attr_battery_percentage);
+-	ret |= device_create_file(&pdev->dev, &dev_attr_battery_voltage);
+-	if (ret != 0)
+-		dev_warn(&pdev->dev, "Failed to register attributes (%d)\n", ret);
+-
+-	apm_get_power_status = sharpsl_apm_get_power_status;
+-
+-#ifdef CONFIG_PM
+-	suspend_set_ops(&sharpsl_pm_ops);
+-#endif
+-
+-	mod_timer(&sharpsl_pm.ac_timer, jiffies + msecs_to_jiffies(250));
+-
+-	return 0;
+-}
+-
+-static void sharpsl_pm_remove(struct platform_device *pdev)
+-{
+-	suspend_set_ops(NULL);
+-
+-	device_remove_file(&pdev->dev, &dev_attr_battery_percentage);
+-	device_remove_file(&pdev->dev, &dev_attr_battery_voltage);
+-
+-	led_trigger_unregister_simple(sharpsl_charge_led_trigger);
+-
+-	free_irq(gpio_to_irq(sharpsl_pm.machinfo->gpio_acin), sharpsl_ac_isr);
+-	free_irq(gpio_to_irq(sharpsl_pm.machinfo->gpio_batlock), sharpsl_fatal_isr);
+-
+-	if (sharpsl_pm.machinfo->gpio_fatal)
+-		free_irq(gpio_to_irq(sharpsl_pm.machinfo->gpio_fatal), sharpsl_fatal_isr);
+-
+-	if (sharpsl_pm.machinfo->batfull_irq)
+-		free_irq(gpio_to_irq(sharpsl_pm.machinfo->gpio_batfull), sharpsl_chrg_full_isr);
+-
+-	gpio_free(sharpsl_pm.machinfo->gpio_batlock);
+-	gpio_free(sharpsl_pm.machinfo->gpio_batfull);
+-	gpio_free(sharpsl_pm.machinfo->gpio_acin);
+-
+-	if (sharpsl_pm.machinfo->exit)
+-		sharpsl_pm.machinfo->exit();
+-
+-	timer_delete_sync(&sharpsl_pm.chrg_full_timer);
+-	timer_delete_sync(&sharpsl_pm.ac_timer);
+-}
+-
+-static struct platform_driver sharpsl_pm_driver = {
+-	.probe		= sharpsl_pm_probe,
+-	.remove		= sharpsl_pm_remove,
+-	.suspend	= sharpsl_pm_suspend,
+-	.resume		= sharpsl_pm_resume,
+-	.driver		= {
+-		.name		= "sharpsl-pm",
+-	},
+-};
+-
+-static int sharpsl_pm_init(void)
+-{
+-	return platform_driver_register(&sharpsl_pm_driver);
+-}
+-
+-static void sharpsl_pm_exit(void)
+-{
+-	platform_driver_unregister(&sharpsl_pm_driver);
+-}
+-
+-late_initcall(sharpsl_pm_init);
+-module_exit(sharpsl_pm_exit);
+diff --git a/arch/arm/mach-pxa/sharpsl_pm.h b/arch/arm/mach-pxa/sharpsl_pm.h
+deleted file mode 100644
+index 623167f30ec2..000000000000
+--- a/arch/arm/mach-pxa/sharpsl_pm.h
++++ /dev/null
+@@ -1,108 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * SharpSL Battery/PM Driver
+- *
+- * Copyright (c) 2004-2005 Richard Purdie
+- */
+-#ifndef _MACH_SHARPSL_PM
+-#define _MACH_SHARPSL_PM
+-
+-struct sharpsl_charger_machinfo {
+-	void (*init)(void);
+-	void (*exit)(void);
+-	int gpio_acin;
+-	int gpio_batfull;
+-	int batfull_irq;
+-	int gpio_batlock;
+-	int gpio_fatal;
+-	void (*discharge)(int);
+-	void (*discharge1)(int);
+-	void (*charge)(int);
+-	void (*measure_temp)(int);
+-	void (*presuspend)(void);
+-	void (*postsuspend)(void);
+-	void (*earlyresume)(void);
+-	unsigned long (*read_devdata)(int);
+-#define SHARPSL_BATT_VOLT       1
+-#define SHARPSL_BATT_TEMP       2
+-#define SHARPSL_ACIN_VOLT       3
+-#define SHARPSL_STATUS_ACIN     4
+-#define SHARPSL_STATUS_LOCK     5
+-#define SHARPSL_STATUS_CHRGFULL 6
+-#define SHARPSL_STATUS_FATAL    7
+-	bool (*charger_wakeup)(void);
+-	int (*should_wakeup)(unsigned int resume_on_alarm);
+-	void (*backlight_limit)(int);
+-	int (*backlight_get_status) (void);
+-	int charge_on_volt;
+-	int charge_on_temp;
+-	int charge_acin_high;
+-	int charge_acin_low;
+-	int fatal_acin_volt;
+-	int fatal_noacin_volt;
+-	int bat_levels;
+-	struct battery_thresh *bat_levels_noac;
+-	struct battery_thresh *bat_levels_acin;
+-	struct battery_thresh *bat_levels_noac_bl;
+-	struct battery_thresh *bat_levels_acin_bl;
+-	int status_high_acin;
+-	int status_low_acin;
+-	int status_high_noac;
+-	int status_low_noac;
+-};
+-
+-struct battery_thresh {
+-	int voltage;
+-	int percentage;
+-};
+-
+-struct battery_stat {
+-	int ac_status;         /* APM AC Present/Not Present */
+-	int mainbat_status;    /* APM Main Battery Status */
+-	int mainbat_percent;   /* Main Battery Percentage Charge */
+-	int mainbat_voltage;   /* Main Battery Voltage */
+-};
+-
+-struct sharpsl_pm_status {
+-	struct device *dev;
+-	struct timer_list ac_timer;
+-	struct timer_list chrg_full_timer;
+-
+-	int charge_mode;
+-#define CHRG_ERROR    (-1)
+-#define CHRG_OFF      (0)
+-#define CHRG_ON       (1)
+-#define CHRG_DONE     (2)
+-
+-	unsigned int flags;
+-#define SHARPSL_SUSPENDED       (1 << 0)  /* Device is Suspended */
+-#define SHARPSL_ALARM_ACTIVE    (1 << 1)  /* Alarm is for charging event (not user) */
+-#define SHARPSL_BL_LIMIT        (1 << 2)  /* Backlight Intensity Limited */
+-#define SHARPSL_APM_QUEUED      (1 << 3)  /* APM Event Queued */
+-#define SHARPSL_DO_OFFLINE_CHRG (1 << 4)  /* Trigger the offline charger */
+-
+-	int full_count;
+-	unsigned long charge_start_time;
+-	struct sharpsl_charger_machinfo *machinfo;
+-	struct battery_stat battstat;
+-};
+-
+-extern struct sharpsl_pm_status sharpsl_pm;
+-
+-extern struct battery_thresh sharpsl_battery_levels_acin[];
+-extern struct battery_thresh sharpsl_battery_levels_noac[];
+-
+-#define SHARPSL_LED_ERROR  2
+-#define SHARPSL_LED_ON     1
+-#define SHARPSL_LED_OFF    0
+-
+-void sharpsl_battery_kick(void);
+-void sharpsl_pm_led(int val);
+-
+-/* MAX1111 Channel Definitions */
+-#define MAX1111_BATT_VOLT   4u
+-#define MAX1111_BATT_TEMP   2u
+-#define MAX1111_ACIN_VOLT   6u
+-int sharpsl_pm_pxa_read_max1111(int channel);
+-
+-#endif
+diff --git a/arch/arm/mach-pxa/spitz.c b/arch/arm/mach-pxa/spitz.c
+deleted file mode 100644
+index 5eaf38243b9e..000000000000
+--- a/arch/arm/mach-pxa/spitz.c
++++ /dev/null
+@@ -1,1174 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Support for Sharp SL-Cxx00 Series of PDAs
+- * Models: SL-C3000 (Spitz), SL-C1000 (Akita) and SL-C3100 (Borzoi)
+- *
+- * Copyright (c) 2005 Richard Purdie
+- *
+- * Based on Sharp's 2.4 kernel patches/lubbock.c
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/platform_device.h>
+-#include <linux/delay.h>
+-#include <linux/gpio_keys.h>
+-#include <linux/gpio/legacy.h>
+-#include <linux/gpio/machine.h>
+-#include <linux/gpio/property.h>
+-#include <linux/leds.h>
+-#include <linux/i2c.h>
+-#include <linux/platform_data/i2c-pxa.h>
+-#include <linux/platform_data/pca953x.h>
+-#include <linux/property.h>
+-#include <linux/spi/spi.h>
+-#include <linux/spi/ads7846.h>
+-#include <linux/spi/corgi_lcd.h>
+-#include <linux/mtd/sharpsl.h>
+-#include <linux/mtd/physmap.h>
+-#include <linux/input-event-codes.h>
+-#include <linux/input/matrix_keypad.h>
+-#include <linux/regulator/machine.h>
+-#include <linux/io.h>
+-#include <linux/property.h>
+-#include <linux/reboot.h>
+-#include <linux/memblock.h>
+-
+-#include <asm/setup.h>
+-#include <asm/mach-types.h>
+-#include <asm/mach/arch.h>
+-#include <asm/mach/sharpsl_param.h>
+-#include <asm/hardware/scoop.h>
+-
+-#include "pxa27x.h"
+-#include "pxa27x-udc.h"
+-#include "reset.h"
+-#include <linux/platform_data/mmc-pxamci.h>
+-#include <linux/platform_data/usb-ohci-pxa27x.h>
+-#include <linux/platform_data/video-pxafb.h>
+-#include "spitz.h"
+-#include "sharpsl_pm.h"
+-#include "smemc.h"
+-
+-#include "generic.h"
+-#include "devices.h"
+-
+-/******************************************************************************
+- * Pin configuration
+- ******************************************************************************/
+-static unsigned long spitz_pin_config[] __initdata = {
+-	/* Chip Selects */
+-	GPIO78_nCS_2,	/* SCOOP #2 */
+-	GPIO79_nCS_3,	/* NAND */
+-	GPIO80_nCS_4,	/* SCOOP #1 */
+-
+-	/* LCD - 16bpp Active TFT */
+-	GPIOxx_LCD_TFT_16BPP,
+-
+-	/* PC Card */
+-	GPIO48_nPOE,
+-	GPIO49_nPWE,
+-	GPIO50_nPIOR,
+-	GPIO51_nPIOW,
+-	GPIO85_nPCE_1,
+-	GPIO54_nPCE_2,
+-	GPIO55_nPREG,
+-	GPIO56_nPWAIT,
+-	GPIO57_nIOIS16,
+-	GPIO104_PSKTSEL,
+-
+-	/* I2S */
+-	GPIO28_I2S_BITCLK_OUT,
+-	GPIO29_I2S_SDATA_IN,
+-	GPIO30_I2S_SDATA_OUT,
+-	GPIO31_I2S_SYNC,
+-
+-	/* MMC */
+-	GPIO32_MMC_CLK,
+-	GPIO112_MMC_CMD,
+-	GPIO92_MMC_DAT_0,
+-	GPIO109_MMC_DAT_1,
+-	GPIO110_MMC_DAT_2,
+-	GPIO111_MMC_DAT_3,
+-
+-	/* GPIOs */
+-	GPIO9_GPIO,	/* SPITZ_GPIO_nSD_DETECT */
+-	GPIO16_GPIO,	/* SPITZ_GPIO_SYNC */
+-	GPIO81_GPIO,	/* SPITZ_GPIO_nSD_WP */
+-	GPIO41_GPIO,	/* SPITZ_GPIO_USB_CONNECT */
+-	GPIO37_GPIO,	/* SPITZ_GPIO_USB_HOST */
+-	GPIO35_GPIO,	/* SPITZ_GPIO_USB_DEVICE */
+-	GPIO22_GPIO,	/* SPITZ_GPIO_HSYNC */
+-	GPIO94_GPIO,	/* SPITZ_GPIO_CF_CD */
+-	GPIO105_GPIO,	/* SPITZ_GPIO_CF_IRQ */
+-	GPIO106_GPIO,	/* SPITZ_GPIO_CF2_IRQ */
+-
+-	/* GPIO matrix keypad */
+-	GPIO88_GPIO,	/* column 0 */
+-	GPIO23_GPIO,	/* column 1 */
+-	GPIO24_GPIO,	/* column 2 */
+-	GPIO25_GPIO,	/* column 3 */
+-	GPIO26_GPIO,	/* column 4 */
+-	GPIO27_GPIO,	/* column 5 */
+-	GPIO52_GPIO,	/* column 6 */
+-	GPIO103_GPIO,	/* column 7 */
+-	GPIO107_GPIO,	/* column 8 */
+-	GPIO108_GPIO,	/* column 9 */
+-	GPIO114_GPIO,	/* column 10 */
+-	GPIO12_GPIO,	/* row 0 */
+-	GPIO17_GPIO,	/* row 1 */
+-	GPIO91_GPIO,	/* row 2 */
+-	GPIO34_GPIO,	/* row 3 */
+-	GPIO36_GPIO,	/* row 4 */
+-	GPIO38_GPIO,	/* row 5 */
+-	GPIO39_GPIO,	/* row 6 */
+-
+-	/* I2C */
+-	GPIO117_I2C_SCL,
+-	GPIO118_I2C_SDA,
+-
+-	GPIO0_GPIO | WAKEUP_ON_EDGE_RISE,	/* SPITZ_GPIO_KEY_INT */
+-	GPIO1_GPIO | WAKEUP_ON_EDGE_FALL,	/* SPITZ_GPIO_RESET */
+-};
+-
+-static const struct software_node spitz_scoop_1_gpiochip_node = {
+-	.name = "sharp-scoop.0",
+-};
+-
+-/* Only on Spitz */
+-static const struct software_node spitz_scoop_2_gpiochip_node = {
+-	.name = "sharp-scoop.1",
+-};
+-
+-/* Only on Akita */
+-static const struct software_node akita_max7310_gpiochip_node = {
+-	.name = "i2c-max7310",
+-};
+-
+-/******************************************************************************
+- * Scoop GPIO expander
+- ******************************************************************************/
+-#if defined(CONFIG_SHARP_SCOOP) || defined(CONFIG_SHARP_SCOOP_MODULE)
+-/* SCOOP Device #1 */
+-static struct resource spitz_scoop_1_resources[] = {
+-	[0] = {
+-		.start		= 0x10800000,
+-		.end		= 0x10800fff,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-};
+-
+-static struct scoop_config spitz_scoop_1_setup = {
+-	.io_dir		= SPITZ_SCP_IO_DIR,
+-	.io_out		= SPITZ_SCP_IO_OUT,
+-	.suspend_clr	= SPITZ_SCP_SUS_CLR,
+-	.suspend_set	= SPITZ_SCP_SUS_SET,
+-	.gpio_base	= SPITZ_SCP_GPIO_BASE,
+-};
+-
+-static struct platform_device spitz_scoop_1_device = {
+-	.name		= "sharp-scoop",
+-	.id		= 0,
+-	.dev		= {
+-		.platform_data	= &spitz_scoop_1_setup,
+-	},
+-	.num_resources	= ARRAY_SIZE(spitz_scoop_1_resources),
+-	.resource	= spitz_scoop_1_resources,
+-};
+-
+-/* SCOOP Device #2 */
+-static struct resource spitz_scoop_2_resources[] = {
+-	[0] = {
+-		.start		= 0x08800040,
+-		.end		= 0x08800fff,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-};
+-
+-static struct scoop_config spitz_scoop_2_setup = {
+-	.io_dir		= SPITZ_SCP2_IO_DIR,
+-	.io_out		= SPITZ_SCP2_IO_OUT,
+-	.suspend_clr	= SPITZ_SCP2_SUS_CLR,
+-	.suspend_set	= SPITZ_SCP2_SUS_SET,
+-	.gpio_base	= SPITZ_SCP2_GPIO_BASE,
+-};
+-
+-static struct platform_device spitz_scoop_2_device = {
+-	.name		= "sharp-scoop",
+-	.id		= 1,
+-	.dev		= {
+-		.platform_data	= &spitz_scoop_2_setup,
+-	},
+-	.num_resources	= ARRAY_SIZE(spitz_scoop_2_resources),
+-	.resource	= spitz_scoop_2_resources,
+-};
+-
+-static void __init spitz_scoop_init(void)
+-{
+-	spitz_scoop_1_device.dev.fwnode = software_node_fwnode(&spitz_scoop_1_gpiochip_node);
+-	platform_device_register(&spitz_scoop_1_device);
+-
+-	/* Akita doesn't have the second SCOOP chip */
+-	if (!machine_is_akita()) {
+-		spitz_scoop_2_device.dev.fwnode = software_node_fwnode(
+-							&spitz_scoop_2_gpiochip_node);
+-		platform_device_register(&spitz_scoop_2_device);
+-	}
+-}
+-
+-/* Power control is shared with between one of the CF slots and SD */
+-static void __maybe_unused spitz_card_pwr_ctrl(uint8_t enable, uint8_t new_cpr)
+-{
+-	unsigned short cpr;
+-	unsigned long flags;
+-
+-	if (new_cpr & 0x7) {
+-		gpio_set_value(SPITZ_GPIO_CF_POWER, 1);
+-		mdelay(5);
+-	}
+-
+-	local_irq_save(flags);
+-
+-	cpr = read_scoop_reg(&spitz_scoop_1_device.dev, SCOOP_CPR);
+-
+-	if (enable & new_cpr)
+-		cpr |= new_cpr;
+-	else
+-		cpr &= ~enable;
+-
+-	write_scoop_reg(&spitz_scoop_1_device.dev, SCOOP_CPR, cpr);
+-
+-	local_irq_restore(flags);
+-
+-	if (!(cpr & 0x7)) {
+-		mdelay(1);
+-		gpio_set_value(SPITZ_GPIO_CF_POWER, 0);
+-	}
+-}
+-
+-#else
+-static inline void spitz_scoop_init(void) {}
+-static inline void spitz_card_pwr_ctrl(uint8_t enable, uint8_t new_cpr) {}
+-#endif
+-
+-/******************************************************************************
+- * PCMCIA
+- ******************************************************************************/
+-#if defined(CONFIG_PCMCIA_PXA2XX) || defined(CONFIG_PCMCIA_PXA2XX_MODULE)
+-static void spitz_pcmcia_pwr(struct device *scoop, uint16_t cpr, int nr)
+-{
+-	/* Only need to override behaviour for slot 0 */
+-	if (nr == 0)
+-		spitz_card_pwr_ctrl(
+-			cpr & (SCOOP_CPR_CF_3V | SCOOP_CPR_CF_XV), cpr);
+-	else
+-		write_scoop_reg(scoop, SCOOP_CPR, cpr);
+-}
+-
+-static struct scoop_pcmcia_dev spitz_pcmcia_scoop[] = {
+-	{
+-		.dev		= &spitz_scoop_1_device.dev,
+-		.irq		= SPITZ_IRQ_GPIO_CF_IRQ,
+-		.cd_irq		= SPITZ_IRQ_GPIO_CF_CD,
+-		.cd_irq_str	= "PCMCIA0 CD",
+-	}, {
+-		.dev		= &spitz_scoop_2_device.dev,
+-		.irq		= SPITZ_IRQ_GPIO_CF2_IRQ,
+-		.cd_irq		= -1,
+-	},
+-};
+-
+-static struct scoop_pcmcia_config spitz_pcmcia_config = {
+-	.devs		= &spitz_pcmcia_scoop[0],
+-	.num_devs	= 2,
+-	.power_ctrl	= spitz_pcmcia_pwr,
+-};
+-
+-static void __init spitz_pcmcia_init(void)
+-{
+-	/* Akita has only one PCMCIA slot used */
+-	if (machine_is_akita())
+-		spitz_pcmcia_config.num_devs = 1;
+-
+-	platform_scoop_config = &spitz_pcmcia_config;
+-}
+-#else
+-static inline void spitz_pcmcia_init(void) {}
+-#endif
+-
+-/******************************************************************************
+- * GPIO keyboard
+- ******************************************************************************/
+-#if defined(CONFIG_KEYBOARD_MATRIX) || defined(CONFIG_KEYBOARD_MATRIX_MODULE)
+-
+-#define SPITZ_KEY_CALENDAR	KEY_F1
+-#define SPITZ_KEY_ADDRESS	KEY_F2
+-#define SPITZ_KEY_FN		KEY_F3
+-#define SPITZ_KEY_CANCEL	KEY_F4
+-#define SPITZ_KEY_EXOK		KEY_F5
+-#define SPITZ_KEY_EXCANCEL	KEY_F6
+-#define SPITZ_KEY_EXJOGDOWN	KEY_F7
+-#define SPITZ_KEY_EXJOGUP	KEY_F8
+-#define SPITZ_KEY_JAP1		KEY_LEFTALT
+-#define SPITZ_KEY_JAP2		KEY_RIGHTCTRL
+-#define SPITZ_KEY_SYNC		KEY_F9
+-#define SPITZ_KEY_MAIL		KEY_F10
+-#define SPITZ_KEY_OK		KEY_F11
+-#define SPITZ_KEY_MENU		KEY_F12
+-
+-static const uint32_t spitz_keymap[] = {
+-	KEY(0, 0, KEY_LEFTCTRL),
+-	KEY(0, 1, KEY_1),
+-	KEY(0, 2, KEY_3),
+-	KEY(0, 3, KEY_5),
+-	KEY(0, 4, KEY_6),
+-	KEY(0, 5, KEY_7),
+-	KEY(0, 6, KEY_9),
+-	KEY(0, 7, KEY_0),
+-	KEY(0, 8, KEY_BACKSPACE),
+-	KEY(0, 9, SPITZ_KEY_EXOK),	/* EXOK */
+-	KEY(0, 10, SPITZ_KEY_EXCANCEL),	/* EXCANCEL */
+-	KEY(1, 1, KEY_2),
+-	KEY(1, 2, KEY_4),
+-	KEY(1, 3, KEY_R),
+-	KEY(1, 4, KEY_Y),
+-	KEY(1, 5, KEY_8),
+-	KEY(1, 6, KEY_I),
+-	KEY(1, 7, KEY_O),
+-	KEY(1, 8, KEY_P),
+-	KEY(1, 9, SPITZ_KEY_EXJOGDOWN),	/* EXJOGDOWN */
+-	KEY(1, 10, SPITZ_KEY_EXJOGUP),	/* EXJOGUP */
+-	KEY(2, 0, KEY_TAB),
+-	KEY(2, 1, KEY_Q),
+-	KEY(2, 2, KEY_E),
+-	KEY(2, 3, KEY_T),
+-	KEY(2, 4, KEY_G),
+-	KEY(2, 5, KEY_U),
+-	KEY(2, 6, KEY_J),
+-	KEY(2, 7, KEY_K),
+-	KEY(3, 0, SPITZ_KEY_ADDRESS),	/* ADDRESS */
+-	KEY(3, 1, KEY_W),
+-	KEY(3, 2, KEY_S),
+-	KEY(3, 3, KEY_F),
+-	KEY(3, 4, KEY_V),
+-	KEY(3, 5, KEY_H),
+-	KEY(3, 6, KEY_M),
+-	KEY(3, 7, KEY_L),
+-	KEY(3, 9, KEY_RIGHTSHIFT),
+-	KEY(4, 0, SPITZ_KEY_CALENDAR),	/* CALENDAR */
+-	KEY(4, 1, KEY_A),
+-	KEY(4, 2, KEY_D),
+-	KEY(4, 3, KEY_C),
+-	KEY(4, 4, KEY_B),
+-	KEY(4, 5, KEY_N),
+-	KEY(4, 6, KEY_DOT),
+-	KEY(4, 8, KEY_ENTER),
+-	KEY(4, 9, KEY_LEFTSHIFT),
+-	KEY(5, 0, SPITZ_KEY_MAIL),	/* MAIL */
+-	KEY(5, 1, KEY_Z),
+-	KEY(5, 2, KEY_X),
+-	KEY(5, 3, KEY_MINUS),
+-	KEY(5, 4, KEY_SPACE),
+-	KEY(5, 5, KEY_COMMA),
+-	KEY(5, 7, KEY_UP),
+-	KEY(5, 10, SPITZ_KEY_FN),	/* FN */
+-	KEY(6, 0, KEY_SYSRQ),
+-	KEY(6, 1, SPITZ_KEY_JAP1),	/* JAP1 */
+-	KEY(6, 2, SPITZ_KEY_JAP2),	/* JAP2 */
+-	KEY(6, 3, SPITZ_KEY_CANCEL),	/* CANCEL */
+-	KEY(6, 4, SPITZ_KEY_OK),	/* OK */
+-	KEY(6, 5, SPITZ_KEY_MENU),	/* MENU */
+-	KEY(6, 6, KEY_LEFT),
+-	KEY(6, 7, KEY_DOWN),
+-	KEY(6, 8, KEY_RIGHT),
+-};
+-
+-static const struct software_node_ref_args spitz_mkp_row_gpios[] = {
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 12, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 17, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 91, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 34, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 36, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 38, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 39, GPIO_ACTIVE_HIGH),
+-};
+-
+-static const struct software_node_ref_args spitz_mkp_col_gpios[] = {
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 88, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 23, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 24, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 25, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 26, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 27, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 52, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 103, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 107, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 108, GPIO_ACTIVE_HIGH),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, 114, GPIO_ACTIVE_HIGH),
+-};
+-
+-static const struct property_entry spitz_mkp_properties[] = {
+-	PROPERTY_ENTRY_U32_ARRAY("linux,keymap", spitz_keymap),
+-	PROPERTY_ENTRY_REF_ARRAY("row-gpios", spitz_mkp_row_gpios),
+-	PROPERTY_ENTRY_REF_ARRAY("col-gpios", spitz_mkp_col_gpios),
+-	PROPERTY_ENTRY_U32("col-scan-delay-us", 10),
+-	PROPERTY_ENTRY_U32("debounce-delay-ms", 10),
+-	PROPERTY_ENTRY_BOOL("wakeup-source"),
+-	{ }
+-};
+-
+-static const struct platform_device_info spitz_mkp_info __initconst = {
+-	.name		= "matrix-keypad",
+-	.id		= PLATFORM_DEVID_NONE,
+-	.properties	= spitz_mkp_properties,
+-};
+-
+-
+-static void __init spitz_mkp_init(void)
+-{
+-	struct platform_device *pd;
+-	int err;
+-
+-	pd = platform_device_register_full(&spitz_mkp_info);
+-	err = PTR_ERR_OR_ZERO(pd);
+-	if (err)
+-		pr_err("failed to create keypad device: %d\n", err);
+-}
+-#else
+-static inline void spitz_mkp_init(void) {}
+-#endif
+-
+-/******************************************************************************
+- * GPIO keys
+- ******************************************************************************/
+-#if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
+-static const struct software_node spitz_gpio_keys_node = {
+-	.name = "spitz-gpio-keys",
+-};
+-
+-static const struct property_entry spitz_suspend_key_props[] = {
+-	PROPERTY_ENTRY_U32("linux,input-type", EV_PWR),
+-	PROPERTY_ENTRY_U32("linux,code", KEY_SUSPEND),
+-	PROPERTY_ENTRY_GPIO("gpios", &pxa2xx_gpiochip_node,
+-			    SPITZ_GPIO_ON_KEY, GPIO_ACTIVE_HIGH),
+-	PROPERTY_ENTRY_STRING("label", "On Off"),
+-	PROPERTY_ENTRY_BOOL("wakeup-source"),
+-	{ }
+-};
+-
+-static const struct software_node spitz_suspend_key_node = {
+-	.parent = &spitz_gpio_keys_node,
+-	.properties = spitz_suspend_key_props,
+-};
+-
+-static const struct property_entry spitz_sw1_props[] = {
+-	PROPERTY_ENTRY_U32("linux,input-type", EV_SW),
+-	PROPERTY_ENTRY_U32("linux,code", 0),
+-	PROPERTY_ENTRY_GPIO("gpios", &pxa2xx_gpiochip_node,
+-			    SPITZ_GPIO_SWA, GPIO_ACTIVE_HIGH),
+-	PROPERTY_ENTRY_STRING("label", "Display Down"),
+-	{ }
+-};
+-
+-static const struct software_node spitz_sw1_node = {
+-	.parent = &spitz_gpio_keys_node,
+-	.properties = spitz_sw1_props,
+-};
+-
+-static const struct property_entry spitz_sw2_props[] = {
+-	PROPERTY_ENTRY_U32("linux,input-type", EV_SW),
+-	PROPERTY_ENTRY_U32("linux,code", 1),
+-	PROPERTY_ENTRY_GPIO("gpios", &pxa2xx_gpiochip_node,
+-			    SPITZ_GPIO_SWB, GPIO_ACTIVE_HIGH),
+-	PROPERTY_ENTRY_STRING("label", "Lid Closed"),
+-	{ }
+-};
+-
+-static const struct software_node spitz_sw2_node = {
+-	.parent = &spitz_gpio_keys_node,
+-	.properties = spitz_sw2_props,
+-};
+-
+-static const struct software_node *spitz_gpio_keys_swnodes[] = {
+-	&spitz_gpio_keys_node,
+-	&spitz_suspend_key_node,
+-	&spitz_sw1_node,
+-	&spitz_sw2_node,
+-	NULL
+-};
+-
+-static void __init spitz_keys_init(void)
+-{
+-	struct platform_device_info keys_info = {
+-		.name	= "gpio-keys",
+-		.id	= PLATFORM_DEVID_NONE,
+-	};
+-	struct platform_device *pd;
+-	int err;
+-
+-	err = software_node_register_node_group(spitz_gpio_keys_swnodes);
+-	if (err) {
+-		pr_err("failed to register gpio-keys software nodes: %d\n", err);
+-		return;
+-	}
+-
+-	keys_info.fwnode = software_node_fwnode(&spitz_gpio_keys_node);
+-
+-	pd = platform_device_register_full(&keys_info);
+-	err = PTR_ERR_OR_ZERO(pd);
+-	if (err)
+-		pr_err("failed to create gpio-keys device: %d\n", err);
+-}
+-#else
+-static inline void spitz_keys_init(void) {}
+-#endif
+-
+-/******************************************************************************
+- * LEDs
+- ******************************************************************************/
+-#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+-static const struct software_node spitz_gpio_leds_node = {
+-	.name = "spitz-leds",
+-};
+-
+-static const struct property_entry spitz_orange_led_props[] = {
+-	PROPERTY_ENTRY_STRING("linux,default-trigger", "sharpsl-charge"),
+-	PROPERTY_ENTRY_GPIO("gpios",
+-			    &spitz_scoop_1_gpiochip_node, 6, GPIO_ACTIVE_HIGH),
+-	{ }
+-};
+-
+-static const struct software_node spitz_orange_led_node = {
+-	.name = "spitz:amber:charge",
+-	.parent = &spitz_gpio_leds_node,
+-	.properties = spitz_orange_led_props,
+-};
+-
+-static const struct property_entry spitz_green_led_props[] = {
+-	PROPERTY_ENTRY_STRING("linux,default-trigger", "disk-activity"),
+-	PROPERTY_ENTRY_GPIO("gpios",
+-			    &spitz_scoop_1_gpiochip_node, 0, GPIO_ACTIVE_HIGH),
+-	{ }
+-};
+-
+-static const struct software_node spitz_green_led_node = {
+-	.name = "spitz:green:hddactivity",
+-	.parent = &spitz_gpio_leds_node,
+-	.properties = spitz_green_led_props,
+-};
+-
+-static const struct software_node *spitz_gpio_leds_swnodes[] = {
+-	&spitz_gpio_leds_node,
+-	&spitz_orange_led_node,
+-	&spitz_green_led_node,
+-	NULL
+-};
+-
+-static void __init spitz_leds_init(void)
+-{
+-	struct platform_device_info led_info = {
+-		.name	= "leds-gpio",
+-		.id	= PLATFORM_DEVID_NONE,
+-	};
+-	struct platform_device *led_dev;
+-	int err;
+-
+-	err = software_node_register_node_group(spitz_gpio_leds_swnodes);
+-	if (err) {
+-		pr_err("failed to register LED software nodes: %d\n", err);
+-		return;
+-	}
+-
+-	led_info.fwnode = software_node_fwnode(&spitz_gpio_leds_node);
+-
+-	led_dev = platform_device_register_full(&led_info);
+-	err = PTR_ERR_OR_ZERO(led_dev);
+-	if (err)
+-		pr_err("failed to create LED device: %d\n", err);
+-}
+-#else
+-static inline void spitz_leds_init(void) {}
+-#endif
+-
+-/******************************************************************************
+- * SSP Devices
+- ******************************************************************************/
+-#if defined(CONFIG_SPI_PXA2XX) || defined(CONFIG_SPI_PXA2XX_MODULE)
+-
+-static const struct property_entry spitz_ads7846_props[] = {
+-	PROPERTY_ENTRY_STRING("compatible", "ti,ads7846"),
+-	PROPERTY_ENTRY_U32("touchscreen-max-pressure", 1024),
+-	PROPERTY_ENTRY_U16("ti,x-plate-ohms", 419),
+-	PROPERTY_ENTRY_U16("ti,y-plate-ohms", 486),
+-	PROPERTY_ENTRY_U16("ti,vref-delay-usecs", 100),
+-	PROPERTY_ENTRY_GPIO("pendown-gpios", &pxa2xx_gpiochip_node,
+-			    SPITZ_GPIO_TP_INT, GPIO_ACTIVE_LOW),
+-	PROPERTY_ENTRY_GPIO("ti,hsync-gpios", &pxa2xx_gpiochip_node,
+-			    SPITZ_GPIO_HSYNC, GPIO_ACTIVE_LOW),
+-	{ }
+-};
+-
+-static const struct software_node spitz_ads7846_swnode = {
+-	.name = "ads7846",
+-	.properties = spitz_ads7846_props,
+-};
+-
+-static const struct property_entry spitz_lcdcon_props[] = {
+-	PROPERTY_ENTRY_GPIO("BL_CONT-gpios",
+-			    &spitz_scoop_2_gpiochip_node, 6, GPIO_ACTIVE_LOW),
+-	PROPERTY_ENTRY_GPIO("BL_ON-gpios",
+-			    &spitz_scoop_2_gpiochip_node, 7, GPIO_ACTIVE_HIGH),
+-	{ }
+-};
+-
+-static const struct property_entry akita_lcdcon_props[] = {
+-	PROPERTY_ENTRY_GPIO("BL_ON-gpios",
+-			    &akita_max7310_gpiochip_node, 3, GPIO_ACTIVE_HIGH),
+-	PROPERTY_ENTRY_GPIO("BL_CONT-gpios",
+-			    &akita_max7310_gpiochip_node, 4, GPIO_ACTIVE_LOW),
+-	{ }
+-};
+-
+-static struct software_node spitz_lcdcon_node = {
+-	.name = "spitz-lcdcon",
+-};
+-
+-static struct corgi_lcd_platform_data spitz_lcdcon_info = {
+-	.init_mode		= CORGI_LCD_MODE_VGA,
+-	.max_intensity		= 0x2f,
+-	.default_intensity	= 0x1f,
+-	.limit_mask		= 0x0b,
+-	.kick_battery		= sharpsl_battery_kick,
+-};
+-
+-static struct spi_board_info spitz_spi_devices[] = {
+-	{
+-		.modalias		= "ads7846",
+-		.max_speed_hz		= 1200000,
+-		.bus_num		= 2,
+-		.chip_select		= 0,
+-		.swnode			= &spitz_ads7846_swnode,
+-		.irq			= PXA_GPIO_TO_IRQ(SPITZ_GPIO_TP_INT),
+-	}, {
+-		.modalias		= "corgi-lcd",
+-		.max_speed_hz		= 50000,
+-		.bus_num		= 2,
+-		.chip_select		= 1,
+-		.platform_data		= &spitz_lcdcon_info,
+-		.swnode			= &spitz_lcdcon_node,
+-	}, {
+-		.modalias		= "max1111",
+-		.max_speed_hz		= 450000,
+-		.bus_num		= 2,
+-		.chip_select		= 2,
+-	},
+-};
+-
+-static const struct software_node_ref_args spitz_spi_gpio_refs[] = {
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, SPITZ_GPIO_ADS7846_CS,
+-				GPIO_ACTIVE_LOW),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, SPITZ_GPIO_LCDCON_CS,
+-				GPIO_ACTIVE_LOW),
+-	SOFTWARE_NODE_REFERENCE(&pxa2xx_gpiochip_node, SPITZ_GPIO_MAX1111_CS,
+-				GPIO_ACTIVE_LOW),
+-};
+-
+-static const struct property_entry spitz_spi_properties[] = {
+-	PROPERTY_ENTRY_REF_ARRAY("gpios", spitz_spi_gpio_refs),
+-	{ }
+-};
+-
+-static const struct platform_device_info spitz_spi_device_info = {
+-	.name = "pxa2xx-spi",
+-	/* pxa2xx-spi platform-device ID equals respective SSP platform-device ID + 1 */
+-	.id = 2,
+-	.properties = spitz_spi_properties,
+-};
+-
+-static void __init spitz_spi_init(void)
+-{
+-	struct platform_device *pd;
+-	int err;
+-
+-	pd = platform_device_register_full(&spitz_spi_device_info);
+-	err = PTR_ERR_OR_ZERO(pd);
+-	if (err)
+-		pr_err("pxa2xx-spi: failed to instantiate SPI controller: %d\n",
+-		       err);
+-
+-	spitz_lcdcon_node.properties = machine_is_akita() ?
+-					akita_lcdcon_props : spitz_lcdcon_props;
+-	spi_register_board_info(ARRAY_AND_SIZE(spitz_spi_devices));
+-}
+-#else
+-static inline void spitz_spi_init(void) {}
+-#endif
+-
+-/******************************************************************************
+- * SD/MMC card controller
+- ******************************************************************************/
+-#if defined(CONFIG_MMC_PXA) || defined(CONFIG_MMC_PXA_MODULE)
+-/*
+- * NOTE: The card detect interrupt isn't debounced so we delay it by 250ms to
+- * give the card a chance to fully insert/eject.
+- */
+-static int spitz_mci_setpower(struct device *dev, unsigned int vdd)
+-{
+-	struct pxamci_platform_data* p_d = dev->platform_data;
+-
+-	if ((1 << vdd) & p_d->ocr_mask)
+-		spitz_card_pwr_ctrl(SCOOP_CPR_SD_3V, SCOOP_CPR_SD_3V);
+-	else
+-		spitz_card_pwr_ctrl(SCOOP_CPR_SD_3V, 0x0);
+-
+-	return 0;
+-}
+-
+-static struct pxamci_platform_data spitz_mci_platform_data = {
+-	.detect_delay_ms	= 250,
+-	.ocr_mask		= MMC_VDD_32_33|MMC_VDD_33_34,
+-	.setpower		= spitz_mci_setpower,
+-};
+-
+-static const struct property_entry spitz_mci_props[] __initconst = {
+-	PROPERTY_ENTRY_GPIO("cd-gpios", &pxa2xx_gpiochip_node,
+-			    SPITZ_GPIO_nSD_DETECT, GPIO_ACTIVE_LOW),
+-	PROPERTY_ENTRY_GPIO("wp-gpios", &pxa2xx_gpiochip_node,
+-			    SPITZ_GPIO_nSD_WP, GPIO_ACTIVE_LOW),
+-	{ }
+-};
+-
+-static void __init spitz_mmc_init(void)
+-{
+-	pxa_set_mci_info(&spitz_mci_platform_data, spitz_mci_props);
+-}
+-#else
+-static inline void spitz_mmc_init(void) {}
+-#endif
+-
+-/******************************************************************************
+- * USB Host
+- ******************************************************************************/
+-#if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
+-static int spitz_ohci_init(struct device *dev)
+-{
+-	int err;
+-
+-	err = gpio_request(SPITZ_GPIO_USB_HOST, "USB_HOST");
+-	if (err)
+-		return err;
+-
+-	/* Only Port 2 is connected, setup USB Port 2 Output Control Register */
+-	UP2OCR = UP2OCR_HXS | UP2OCR_HXOE | UP2OCR_DPPDE | UP2OCR_DMPDE;
+-
+-	return gpio_direction_output(SPITZ_GPIO_USB_HOST, 1);
+-}
+-
+-static void spitz_ohci_exit(struct device *dev)
+-{
+-	gpio_free(SPITZ_GPIO_USB_HOST);
+-}
+-
+-static struct pxaohci_platform_data spitz_ohci_platform_data = {
+-	.port_mode	= PMM_NPS_MODE,
+-	.init		= spitz_ohci_init,
+-	.exit		= spitz_ohci_exit,
+-	.flags		= ENABLE_PORT_ALL | NO_OC_PROTECTION,
+-	.power_budget	= 150,
+-};
+-
+-static void __init spitz_uhc_init(void)
+-{
+-	pxa_set_ohci_info(&spitz_ohci_platform_data);
+-}
+-#else
+-static inline void spitz_uhc_init(void) {}
+-#endif
+-
+-/******************************************************************************
+- * Framebuffer
+- ******************************************************************************/
+-#if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
+-static struct pxafb_mode_info spitz_pxafb_modes[] = {
+-	{
+-		.pixclock       = 19231,
+-		.xres           = 480,
+-		.yres           = 640,
+-		.bpp            = 16,
+-		.hsync_len      = 40,
+-		.left_margin    = 46,
+-		.right_margin   = 125,
+-		.vsync_len      = 3,
+-		.upper_margin   = 1,
+-		.lower_margin   = 0,
+-		.sync           = 0,
+-	}, {
+-		.pixclock       = 134617,
+-		.xres           = 240,
+-		.yres           = 320,
+-		.bpp            = 16,
+-		.hsync_len      = 20,
+-		.left_margin    = 20,
+-		.right_margin   = 46,
+-		.vsync_len      = 2,
+-		.upper_margin   = 1,
+-		.lower_margin   = 0,
+-		.sync           = 0,
+-	},
+-};
+-
+-static struct pxafb_mach_info spitz_pxafb_info = {
+-	.modes          = spitz_pxafb_modes,
+-	.num_modes      = ARRAY_SIZE(spitz_pxafb_modes),
+-	.fixed_modes    = 1,
+-	.lcd_conn	= LCD_COLOR_TFT_16BPP | LCD_ALTERNATE_MAPPING,
+-};
+-
+-static void __init spitz_lcd_init(void)
+-{
+-	pxa_set_fb_info(NULL, &spitz_pxafb_info);
+-}
+-#else
+-static inline void spitz_lcd_init(void) {}
+-#endif
+-
+-/******************************************************************************
+- * NAND Flash
+- ******************************************************************************/
+-#if defined(CONFIG_MTD_NAND_SHARPSL) || defined(CONFIG_MTD_NAND_SHARPSL_MODULE)
+-static uint8_t scan_ff_pattern[] = { 0xff, 0xff };
+-
+-static struct nand_bbt_descr spitz_nand_bbt = {
+-	.options	= 0,
+-	.offs		= 4,
+-	.len		= 2,
+-	.pattern	= scan_ff_pattern
+-};
+-
+-static int akita_ooblayout_ecc(struct mtd_info *mtd, int section,
+-			       struct mtd_oob_region *oobregion)
+-{
+-	if (section > 12)
+-		return -ERANGE;
+-
+-	switch (section % 3) {
+-	case 0:
+-		oobregion->offset = 5;
+-		oobregion->length = 1;
+-		break;
+-
+-	case 1:
+-		oobregion->offset = 1;
+-		oobregion->length = 3;
+-		break;
+-
+-	case 2:
+-		oobregion->offset = 6;
+-		oobregion->length = 2;
+-		break;
+-	}
+-
+-	oobregion->offset += (section / 3) * 0x10;
+-
+-	return 0;
+-}
+-
+-static int akita_ooblayout_free(struct mtd_info *mtd, int section,
+-				struct mtd_oob_region *oobregion)
+-{
+-	if (section)
+-		return -ERANGE;
+-
+-	oobregion->offset = 8;
+-	oobregion->length = 9;
+-
+-	return 0;
+-}
+-
+-static const struct mtd_ooblayout_ops akita_ooblayout_ops = {
+-	.ecc = akita_ooblayout_ecc,
+-	.free = akita_ooblayout_free,
+-};
+-
+-static const char * const probes[] = {
+-	"cmdlinepart",
+-	"ofpart",
+-	"sharpslpart",
+-	NULL,
+-};
+-
+-static struct sharpsl_nand_platform_data spitz_nand_pdata = {
+-	.badblock_pattern	= &spitz_nand_bbt,
+-	.part_parsers		= probes,
+-};
+-
+-static struct resource spitz_nand_resources[] = {
+-	{
+-		.start	= PXA_CS3_PHYS,
+-		.end	= PXA_CS3_PHYS + SZ_4K - 1,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-};
+-
+-static struct platform_device spitz_nand_device = {
+-	.name		= "sharpsl-nand",
+-	.id		= -1,
+-	.resource	= spitz_nand_resources,
+-	.num_resources	= ARRAY_SIZE(spitz_nand_resources),
+-	.dev		= {
+-		.platform_data	= &spitz_nand_pdata,
+-	}
+-};
+-
+-static void __init spitz_nand_init(void)
+-{
+-	if (machine_is_akita() || machine_is_borzoi()) {
+-		spitz_nand_bbt.len = 1;
+-		spitz_nand_pdata.ecc_layout = &akita_ooblayout_ops;
+-	}
+-
+-	platform_device_register(&spitz_nand_device);
+-}
+-#else
+-static inline void spitz_nand_init(void) {}
+-#endif
+-
+-/******************************************************************************
+- * NOR Flash
+- ******************************************************************************/
+-#if defined(CONFIG_MTD_PHYSMAP) || defined(CONFIG_MTD_PHYSMAP_MODULE)
+-static struct mtd_partition spitz_rom_parts[] = {
+-	{
+-		.name	="Boot PROM Filesystem",
+-		.offset	= 0x00140000,
+-		.size	= MTDPART_SIZ_FULL,
+-	},
+-};
+-
+-static struct physmap_flash_data spitz_rom_data = {
+-	.width		= 2,
+-	.nr_parts	= ARRAY_SIZE(spitz_rom_parts),
+-	.parts		= spitz_rom_parts,
+-};
+-
+-static struct resource spitz_rom_resources[] = {
+-	{
+-		.start	= PXA_CS0_PHYS,
+-		.end	= PXA_CS0_PHYS + SZ_8M - 1,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-};
+-
+-static struct platform_device spitz_rom_device = {
+-	.name		= "physmap-flash",
+-	.id		= -1,
+-	.resource	= spitz_rom_resources,
+-	.num_resources	= ARRAY_SIZE(spitz_rom_resources),
+-	.dev		= {
+-		.platform_data	= &spitz_rom_data,
+-	},
+-};
+-
+-static void __init spitz_nor_init(void)
+-{
+-	platform_device_register(&spitz_rom_device);
+-}
+-#else
+-static inline void spitz_nor_init(void) {}
+-#endif
+-
+-/******************************************************************************
+- * I2C devices
+- ******************************************************************************/
+-#if defined(CONFIG_I2C_PXA) || defined(CONFIG_I2C_PXA_MODULE)
+-static struct pca953x_platform_data akita_pca953x_pdata = {
+-	.gpio_base		= AKITA_IOEXP_GPIO_BASE,
+-};
+-
+-static struct i2c_board_info spitz_i2c_devs[] = {
+-	{
+-		.type		= "wm8750",
+-		.addr		= 0x1b,
+-	}, {
+-		.type		= "max7310",
+-		.addr		= 0x18,
+-		.platform_data	= &akita_pca953x_pdata,
+-		.swnode		= &akita_max7310_gpiochip_node,
+-	},
+-};
+-
+-static struct regulator_consumer_supply isl6271a_consumers[] = {
+-	REGULATOR_SUPPLY("vcc_core", NULL),
+-};
+-
+-static struct regulator_init_data isl6271a_info[] = {
+-	{
+-		.constraints = {
+-			.name		= "vcc_core range",
+-			.min_uV		= 850000,
+-			.max_uV		= 1600000,
+-			.always_on	= 1,
+-			.valid_ops_mask	= REGULATOR_CHANGE_VOLTAGE,
+-		},
+-	.consumer_supplies	= isl6271a_consumers,
+-	.num_consumer_supplies	= ARRAY_SIZE(isl6271a_consumers),
+-	}
+-};
+-
+-static struct i2c_board_info spitz_pi2c_devs[] = {
+-	{
+-		.type		= "isl6271a",
+-		.addr		= 0x0c,
+-		.platform_data	= &isl6271a_info,
+-	},
+-};
+-
+-static void __init spitz_i2c_init(void)
+-{
+-	int size = ARRAY_SIZE(spitz_i2c_devs);
+-
+-	/* Only Akita has the max7310 chip */
+-	if (!machine_is_akita())
+-		size--;
+-
+-	pxa_set_i2c_info(NULL);
+-	pxa27x_set_i2c_power_info(NULL);
+-	i2c_register_board_info(0, spitz_i2c_devs, size);
+-	i2c_register_board_info(1, ARRAY_AND_SIZE(spitz_pi2c_devs));
+-}
+-#else
+-static inline void spitz_i2c_init(void) {}
+-#endif
+-
+-static const struct property_entry spitz_audio_props[] = {
+-	PROPERTY_ENTRY_GPIO("mute-l-gpios", &spitz_scoop_1_gpiochip_node, 3,
+-			    GPIO_ACTIVE_HIGH),
+-	PROPERTY_ENTRY_GPIO("mute-r-gpios", &spitz_scoop_1_gpiochip_node, 4,
+-			    GPIO_ACTIVE_HIGH),
+-	PROPERTY_ENTRY_GPIO("mic-gpios", &spitz_scoop_2_gpiochip_node, 8,
+-			    GPIO_ACTIVE_HIGH),
+-	{ }
+-};
+-
+-static const struct property_entry akita_audio_props[] = {
+-	PROPERTY_ENTRY_GPIO("mute-l-gpios", &spitz_scoop_1_gpiochip_node, 3,
+-			    GPIO_ACTIVE_HIGH),
+-	PROPERTY_ENTRY_GPIO("mute-r-gpios", &spitz_scoop_1_gpiochip_node, 4,
+-			    GPIO_ACTIVE_HIGH),
+-	PROPERTY_ENTRY_GPIO("mic-gpios", &akita_max7310_gpiochip_node, 2,
+-			    GPIO_ACTIVE_HIGH),
+-	{ }
+-};
+-
+-/******************************************************************************
+- * Audio devices
+- ******************************************************************************/
+-static inline void spitz_audio_init(void)
+-{
+-	struct platform_device_info audio_info = {
+-		.name = "spitz-audio",
+-		.id = PLATFORM_DEVID_NONE,
+-		.properties = machine_is_akita() ?
+-				akita_audio_props : spitz_audio_props,
+-	};
+-
+-	platform_device_register_full(&audio_info);
+-}
+-
+-/******************************************************************************
+- * Machine init
+- ******************************************************************************/
+-static void spitz_poweroff(void)
+-{
+-	pxa_restart(REBOOT_GPIO, NULL);
+-}
+-
+-static void spitz_restart(enum reboot_mode mode, const char *cmd)
+-{
+-	uint32_t msc0 = __raw_readl(MSC0);
+-	/* Bootloader magic for a reboot */
+-	if ((msc0 & 0xffff0000) == 0x7ff00000)
+-		__raw_writel((msc0 & 0xffff) | 0x7ee00000, MSC0);
+-
+-	spitz_poweroff();
+-}
+-
+-static void __init spitz_init(void)
+-{
+-	software_node_register(&spitz_scoop_1_gpiochip_node);
+-	if (machine_is_akita())
+-		software_node_register(&akita_max7310_gpiochip_node);
+-	else
+-		software_node_register(&spitz_scoop_2_gpiochip_node);
+-
+-	init_gpio_reset(SPITZ_GPIO_ON_RESET, 1, 0);
+-	register_platform_power_off(spitz_poweroff);
+-
+-	PMCR = 0x00;
+-
+-	/* Stop 3.6MHz and drive HIGH to PCMCIA and CS */
+-	PCFR |= PCFR_OPDE;
+-
+-	pxa2xx_mfp_config(ARRAY_AND_SIZE(spitz_pin_config));
+-
+-	pxa_set_ffuart_info(NULL);
+-	pxa_set_btuart_info(NULL);
+-	pxa_set_stuart_info(NULL);
+-
+-	spitz_spi_init();
+-	spitz_scoop_init();
+-	spitz_mkp_init();
+-	spitz_keys_init();
+-	spitz_leds_init();
+-	spitz_mmc_init();
+-	spitz_pcmcia_init();
+-	spitz_uhc_init();
+-	spitz_lcd_init();
+-	spitz_nor_init();
+-	spitz_nand_init();
+-	spitz_i2c_init();
+-	spitz_audio_init();
+-
+-	regulator_has_full_constraints();
+-}
+-
+-static void __init spitz_fixup(struct tag *tags, char **cmdline)
+-{
+-	sharpsl_save_param();
+-	memblock_add(0xa0000000, SZ_64M);
+-}
+-
+-#ifdef CONFIG_MACH_SPITZ
+-MACHINE_START(SPITZ, "SHARP Spitz")
+-	.fixup		= spitz_fixup,
+-	.map_io		= pxa27x_map_io,
+-	.nr_irqs	= PXA_NR_IRQS,
+-	.init_irq	= pxa27x_init_irq,
+-	.init_machine	= spitz_init,
+-	.init_time	= pxa_timer_init,
+-	.restart	= spitz_restart,
+-MACHINE_END
+-#endif
+-
+-#ifdef CONFIG_MACH_BORZOI
+-MACHINE_START(BORZOI, "SHARP Borzoi")
+-	.fixup		= spitz_fixup,
+-	.map_io		= pxa27x_map_io,
+-	.nr_irqs	= PXA_NR_IRQS,
+-	.init_irq	= pxa27x_init_irq,
+-	.init_machine	= spitz_init,
+-	.init_time	= pxa_timer_init,
+-	.restart	= spitz_restart,
+-MACHINE_END
+-#endif
+-
+-#ifdef CONFIG_MACH_AKITA
+-MACHINE_START(AKITA, "SHARP Akita")
+-	.fixup		= spitz_fixup,
+-	.map_io		= pxa27x_map_io,
+-	.nr_irqs	= PXA_NR_IRQS,
+-	.init_irq	= pxa27x_init_irq,
+-	.init_machine	= spitz_init,
+-	.init_time	= pxa_timer_init,
+-	.restart	= spitz_restart,
+-MACHINE_END
+-#endif
+diff --git a/arch/arm/mach-pxa/spitz.h b/arch/arm/mach-pxa/spitz.h
+deleted file mode 100644
+index 04828d8918aa..000000000000
+--- a/arch/arm/mach-pxa/spitz.h
++++ /dev/null
+@@ -1,185 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * Hardware specific definitions for SL-Cx000 series of PDAs
+- *
+- * Copyright (c) 2005 Alexander Wykes
+- * Copyright (c) 2005 Richard Purdie
+- *
+- * Based on Sharp's 2.4 kernel patches
+- */
+-#ifndef __ASM_ARCH_SPITZ_H
+-#define __ASM_ARCH_SPITZ_H  1
+-#endif
+-
+-#include "irqs.h" /* PXA_NR_BUILTIN_GPIO, PXA_GPIO_TO_IRQ */
+-#include <linux/fb.h>
+-
+-/* Spitz/Akita GPIOs */
+-
+-#define SPITZ_GPIO_KEY_INT         (0) /* Key Interrupt */
+-#define SPITZ_GPIO_RESET           (1)
+-#define SPITZ_GPIO_nSD_DETECT      (9)
+-#define SPITZ_GPIO_TP_INT          (11) /* Touch Panel interrupt */
+-#define SPITZ_GPIO_AK_INT          (13) /* Remote Control */
+-#define SPITZ_GPIO_ADS7846_CS      (14)
+-#define SPITZ_GPIO_SYNC            (16)
+-#define SPITZ_GPIO_MAX1111_CS      (20)
+-#define SPITZ_GPIO_FATAL_BAT       (21)
+-#define SPITZ_GPIO_HSYNC           (22)
+-#define SPITZ_GPIO_nSD_CLK         (32)
+-#define SPITZ_GPIO_USB_DEVICE      (35)
+-#define SPITZ_GPIO_USB_HOST        (37)
+-#define SPITZ_GPIO_USB_CONNECT     (41)
+-#define SPITZ_GPIO_LCDCON_CS       (53)
+-#define SPITZ_GPIO_nPCE            (54)
+-#define SPITZ_GPIO_nSD_WP          (81)
+-#define SPITZ_GPIO_ON_RESET        (89)
+-#define SPITZ_GPIO_BAT_COVER       (90)
+-#define SPITZ_GPIO_CF_CD           (94)
+-#define SPITZ_GPIO_ON_KEY          (95)
+-#define SPITZ_GPIO_SWA             (97)
+-#define SPITZ_GPIO_SWB             (96)
+-#define SPITZ_GPIO_CHRG_FULL       (101)
+-#define SPITZ_GPIO_CO              (101)
+-#define SPITZ_GPIO_CF_IRQ          (105)
+-#define SPITZ_GPIO_AC_IN           (115)
+-#define SPITZ_GPIO_HP_IN           (116)
+-
+-/* Spitz Only GPIOs */
+-
+-#define SPITZ_GPIO_CF2_IRQ         (106) /* CF slot1 Ready */
+-#define SPITZ_GPIO_CF2_CD          (93)
+-
+-
+-/* Spitz/Akita Keyboard Definitions */
+-
+-#define SPITZ_KEY_STROBE_NUM         (11)
+-#define SPITZ_KEY_SENSE_NUM          (7)
+-#define SPITZ_GPIO_G0_STROBE_BIT     0x0f800000
+-#define SPITZ_GPIO_G1_STROBE_BIT     0x00100000
+-#define SPITZ_GPIO_G2_STROBE_BIT     0x01000000
+-#define SPITZ_GPIO_G3_STROBE_BIT     0x00041880
+-#define SPITZ_GPIO_G0_SENSE_BIT      0x00021000
+-#define SPITZ_GPIO_G1_SENSE_BIT      0x000000d4
+-#define SPITZ_GPIO_G2_SENSE_BIT      0x08000000
+-#define SPITZ_GPIO_G3_SENSE_BIT      0x00000000
+-
+-#define SPITZ_GPIO_KEY_STROBE0       88
+-#define SPITZ_GPIO_KEY_STROBE1       23
+-#define SPITZ_GPIO_KEY_STROBE2       24
+-#define SPITZ_GPIO_KEY_STROBE3       25
+-#define SPITZ_GPIO_KEY_STROBE4       26
+-#define SPITZ_GPIO_KEY_STROBE5       27
+-#define SPITZ_GPIO_KEY_STROBE6       52
+-#define SPITZ_GPIO_KEY_STROBE7       103
+-#define SPITZ_GPIO_KEY_STROBE8       107
+-#define SPITZ_GPIO_KEY_STROBE9       108
+-#define SPITZ_GPIO_KEY_STROBE10      114
+-
+-#define SPITZ_GPIO_KEY_SENSE0        12
+-#define SPITZ_GPIO_KEY_SENSE1        17
+-#define SPITZ_GPIO_KEY_SENSE2        91
+-#define SPITZ_GPIO_KEY_SENSE3        34
+-#define SPITZ_GPIO_KEY_SENSE4        36
+-#define SPITZ_GPIO_KEY_SENSE5        38
+-#define SPITZ_GPIO_KEY_SENSE6        39
+-
+-
+-/* Spitz Scoop Device (No. 1) GPIOs */
+-/* Suspend States in comments */
+-#define SPITZ_SCP_LED_GREEN     SCOOP_GPCR_PA11  /* Keep */
+-#define SPITZ_SCP_JK_B          SCOOP_GPCR_PA12  /* Keep */
+-#define SPITZ_SCP_CHRG_ON       SCOOP_GPCR_PA13  /* Keep */
+-#define SPITZ_SCP_MUTE_L        SCOOP_GPCR_PA14  /* Low */
+-#define SPITZ_SCP_MUTE_R        SCOOP_GPCR_PA15  /* Low */
+-#define SPITZ_SCP_CF_POWER      SCOOP_GPCR_PA16  /* Keep */
+-#define SPITZ_SCP_LED_ORANGE    SCOOP_GPCR_PA17  /* Keep */
+-#define SPITZ_SCP_JK_A          SCOOP_GPCR_PA18  /* Low */
+-#define SPITZ_SCP_ADC_TEMP_ON   SCOOP_GPCR_PA19  /* Low */
+-
+-#define SPITZ_SCP_IO_DIR      (SPITZ_SCP_JK_B | SPITZ_SCP_CHRG_ON | \
+-                               SPITZ_SCP_MUTE_L | SPITZ_SCP_MUTE_R | \
+-                               SPITZ_SCP_CF_POWER | SPITZ_SCP_JK_A | SPITZ_SCP_ADC_TEMP_ON)
+-#define SPITZ_SCP_IO_OUT      (SPITZ_SCP_CHRG_ON | SPITZ_SCP_MUTE_L | SPITZ_SCP_MUTE_R)
+-#define SPITZ_SCP_SUS_CLR     (SPITZ_SCP_MUTE_L | SPITZ_SCP_MUTE_R | SPITZ_SCP_JK_A | SPITZ_SCP_ADC_TEMP_ON)
+-#define SPITZ_SCP_SUS_SET     0
+-
+-#define SPITZ_SCP_GPIO_BASE	(PXA_NR_BUILTIN_GPIO)
+-#define SPITZ_GPIO_LED_GREEN	(SPITZ_SCP_GPIO_BASE + 0)
+-#define SPITZ_GPIO_JK_B		(SPITZ_SCP_GPIO_BASE + 1)
+-#define SPITZ_GPIO_CHRG_ON	(SPITZ_SCP_GPIO_BASE + 2)
+-#define SPITZ_GPIO_MUTE_L	(SPITZ_SCP_GPIO_BASE + 3)
+-#define SPITZ_GPIO_MUTE_R	(SPITZ_SCP_GPIO_BASE + 4)
+-#define SPITZ_GPIO_CF_POWER	(SPITZ_SCP_GPIO_BASE + 5)
+-#define SPITZ_GPIO_LED_ORANGE	(SPITZ_SCP_GPIO_BASE + 6)
+-#define SPITZ_GPIO_JK_A		(SPITZ_SCP_GPIO_BASE + 7)
+-#define SPITZ_GPIO_ADC_TEMP_ON	(SPITZ_SCP_GPIO_BASE + 8)
+-
+-/* Spitz Scoop Device (No. 2) GPIOs */
+-/* Suspend States in comments */
+-#define SPITZ_SCP2_IR_ON           SCOOP_GPCR_PA11  /* High */
+-#define SPITZ_SCP2_AKIN_PULLUP     SCOOP_GPCR_PA12  /* Keep */
+-#define SPITZ_SCP2_RESERVED_1      SCOOP_GPCR_PA13  /* High */
+-#define SPITZ_SCP2_RESERVED_2      SCOOP_GPCR_PA14  /* Low */
+-#define SPITZ_SCP2_RESERVED_3      SCOOP_GPCR_PA15  /* Low */
+-#define SPITZ_SCP2_RESERVED_4      SCOOP_GPCR_PA16  /* Low */
+-#define SPITZ_SCP2_BACKLIGHT_CONT  SCOOP_GPCR_PA17  /* Low */
+-#define SPITZ_SCP2_BACKLIGHT_ON    SCOOP_GPCR_PA18  /* Low */
+-#define SPITZ_SCP2_MIC_BIAS        SCOOP_GPCR_PA19  /* Low */
+-
+-#define SPITZ_SCP2_IO_DIR (SPITZ_SCP2_AKIN_PULLUP | SPITZ_SCP2_RESERVED_1 | \
+-                           SPITZ_SCP2_RESERVED_2 | SPITZ_SCP2_RESERVED_3 | SPITZ_SCP2_RESERVED_4 | \
+-                           SPITZ_SCP2_BACKLIGHT_CONT | SPITZ_SCP2_BACKLIGHT_ON | SPITZ_SCP2_MIC_BIAS)
+-
+-#define SPITZ_SCP2_IO_OUT   (SPITZ_SCP2_AKIN_PULLUP | SPITZ_SCP2_RESERVED_1)
+-#define SPITZ_SCP2_SUS_CLR  (SPITZ_SCP2_RESERVED_2 | SPITZ_SCP2_RESERVED_3 | SPITZ_SCP2_RESERVED_4 | \
+-                             SPITZ_SCP2_BACKLIGHT_CONT | SPITZ_SCP2_BACKLIGHT_ON | SPITZ_SCP2_MIC_BIAS)
+-#define SPITZ_SCP2_SUS_SET  (SPITZ_SCP2_IR_ON | SPITZ_SCP2_RESERVED_1)
+-
+-#define SPITZ_SCP2_GPIO_BASE		(PXA_NR_BUILTIN_GPIO + 12)
+-#define SPITZ_GPIO_IR_ON		(SPITZ_SCP2_GPIO_BASE + 0)
+-#define SPITZ_GPIO_AKIN_PULLUP		(SPITZ_SCP2_GPIO_BASE + 1)
+-#define SPITZ_GPIO_RESERVED_1		(SPITZ_SCP2_GPIO_BASE + 2)
+-#define SPITZ_GPIO_RESERVED_2		(SPITZ_SCP2_GPIO_BASE + 3)
+-#define SPITZ_GPIO_RESERVED_3		(SPITZ_SCP2_GPIO_BASE + 4)
+-#define SPITZ_GPIO_RESERVED_4		(SPITZ_SCP2_GPIO_BASE + 5)
+-#define SPITZ_GPIO_BACKLIGHT_CONT	(SPITZ_SCP2_GPIO_BASE + 6)
+-#define SPITZ_GPIO_BACKLIGHT_ON		(SPITZ_SCP2_GPIO_BASE + 7)
+-#define SPITZ_GPIO_MIC_BIAS		(SPITZ_SCP2_GPIO_BASE + 8)
+-
+-/* Akita IO Expander GPIOs */
+-#define AKITA_IOEXP_GPIO_BASE		(PXA_NR_BUILTIN_GPIO + 12)
+-#define AKITA_GPIO_RESERVED_0		(AKITA_IOEXP_GPIO_BASE + 0)
+-#define AKITA_GPIO_RESERVED_1		(AKITA_IOEXP_GPIO_BASE + 1)
+-#define AKITA_GPIO_MIC_BIAS		(AKITA_IOEXP_GPIO_BASE + 2)
+-#define AKITA_GPIO_BACKLIGHT_ON		(AKITA_IOEXP_GPIO_BASE + 3)
+-#define AKITA_GPIO_BACKLIGHT_CONT	(AKITA_IOEXP_GPIO_BASE + 4)
+-#define AKITA_GPIO_AKIN_PULLUP		(AKITA_IOEXP_GPIO_BASE + 5)
+-#define AKITA_GPIO_IR_ON		(AKITA_IOEXP_GPIO_BASE + 6)
+-#define AKITA_GPIO_RESERVED_7		(AKITA_IOEXP_GPIO_BASE + 7)
+-
+-/* Spitz IRQ Definitions */
+-
+-#define SPITZ_IRQ_GPIO_KEY_INT        PXA_GPIO_TO_IRQ(SPITZ_GPIO_KEY_INT)
+-#define SPITZ_IRQ_GPIO_AC_IN          PXA_GPIO_TO_IRQ(SPITZ_GPIO_AC_IN)
+-#define SPITZ_IRQ_GPIO_AK_INT         PXA_GPIO_TO_IRQ(SPITZ_GPIO_AK_INT)
+-#define SPITZ_IRQ_GPIO_HP_IN          PXA_GPIO_TO_IRQ(SPITZ_GPIO_HP_IN)
+-#define SPITZ_IRQ_GPIO_TP_INT         PXA_GPIO_TO_IRQ(SPITZ_GPIO_TP_INT)
+-#define SPITZ_IRQ_GPIO_SYNC           PXA_GPIO_TO_IRQ(SPITZ_GPIO_SYNC)
+-#define SPITZ_IRQ_GPIO_ON_KEY         PXA_GPIO_TO_IRQ(SPITZ_GPIO_ON_KEY)
+-#define SPITZ_IRQ_GPIO_SWA            PXA_GPIO_TO_IRQ(SPITZ_GPIO_SWA)
+-#define SPITZ_IRQ_GPIO_SWB            PXA_GPIO_TO_IRQ(SPITZ_GPIO_SWB)
+-#define SPITZ_IRQ_GPIO_BAT_COVER      PXA_GPIO_TO_IRQ(SPITZ_GPIO_BAT_COVER)
+-#define SPITZ_IRQ_GPIO_FATAL_BAT      PXA_GPIO_TO_IRQ(SPITZ_GPIO_FATAL_BAT)
+-#define SPITZ_IRQ_GPIO_CO             PXA_GPIO_TO_IRQ(SPITZ_GPIO_CO)
+-#define SPITZ_IRQ_GPIO_CF_IRQ         PXA_GPIO_TO_IRQ(SPITZ_GPIO_CF_IRQ)
+-#define SPITZ_IRQ_GPIO_CF_CD          PXA_GPIO_TO_IRQ(SPITZ_GPIO_CF_CD)
+-#define SPITZ_IRQ_GPIO_CF2_IRQ        PXA_GPIO_TO_IRQ(SPITZ_GPIO_CF2_IRQ)
+-#define SPITZ_IRQ_GPIO_nSD_INT        PXA_GPIO_TO_IRQ(SPITZ_GPIO_nSD_INT)
+-#define SPITZ_IRQ_GPIO_nSD_DETECT     PXA_GPIO_TO_IRQ(SPITZ_GPIO_nSD_DETECT)
+-
+-/*
+- * Shared data structures
+- */
+-extern struct platform_device spitzssp_device;
+-extern struct sharpsl_charger_machinfo spitz_pm_machinfo;
+diff --git a/arch/arm/mach-pxa/spitz_pm.c b/arch/arm/mach-pxa/spitz_pm.c
+deleted file mode 100644
+index 806847c36549..000000000000
+--- a/arch/arm/mach-pxa/spitz_pm.c
++++ /dev/null
+@@ -1,257 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Battery and Power Management code for the Sharp SL-Cxx00
+- *
+- * Copyright (c) 2005 Richard Purdie
+- */
+-
+-#include <linux/module.h>
+-#include <linux/stat.h>
+-#include <linux/init.h>
+-#include <linux/kernel.h>
+-#include <linux/delay.h>
+-#include <linux/gpio/legacy.h>
+-#include <linux/gpio-pxa.h>
+-#include <linux/interrupt.h>
+-#include <linux/platform_device.h>
+-#include <linux/apm-emulation.h>
+-#include <linux/spi/corgi_lcd.h>
+-
+-#include <asm/irq.h>
+-#include <asm/mach-types.h>
+-
+-#include "spitz.h"
+-#include "pxa27x.h"
+-#include "sharpsl_pm.h"
+-
+-#include "generic.h"
+-
+-#define SHARPSL_CHARGE_ON_VOLT         0x99  /* 2.9V */
+-#define SHARPSL_CHARGE_ON_TEMP         0xe0  /* 2.9V */
+-#define SHARPSL_CHARGE_ON_ACIN_HIGH    0x9b  /* 6V */
+-#define SHARPSL_CHARGE_ON_ACIN_LOW     0x34  /* 2V */
+-#define SHARPSL_FATAL_ACIN_VOLT        182   /* 3.45V */
+-#define SHARPSL_FATAL_NOACIN_VOLT      170   /* 3.40V */
+-
+-static int spitz_last_ac_status;
+-
+-static void spitz_charger_init(void)
+-{
+-	gpio_request(SPITZ_GPIO_KEY_INT, "Keyboard Interrupt");
+-	gpio_direction_input(SPITZ_GPIO_KEY_INT);
+-	gpio_request(SPITZ_GPIO_SYNC, "Sync");
+-	gpio_direction_input(SPITZ_GPIO_SYNC);
+-	gpio_request(SPITZ_GPIO_AC_IN, "Charger Detection");
+-	gpio_direction_input(SPITZ_GPIO_AC_IN);
+-	gpio_request(SPITZ_GPIO_ADC_TEMP_ON, "ADC Temp On");
+-	gpio_direction_output(SPITZ_GPIO_ADC_TEMP_ON, 0);
+-	gpio_request(SPITZ_GPIO_JK_B, "JK B");
+-	gpio_direction_output(SPITZ_GPIO_JK_B, 0);
+-	gpio_request(SPITZ_GPIO_CHRG_ON, "Charger On");
+-	gpio_direction_output(SPITZ_GPIO_CHRG_ON, 0);
+-}
+-
+-static void spitz_measure_temp(int on)
+-{
+-	gpio_set_value(SPITZ_GPIO_ADC_TEMP_ON, on);
+-}
+-
+-static void spitz_charge(int on)
+-{
+-	if (on) {
+-		if (sharpsl_pm.flags & SHARPSL_SUSPENDED) {
+-			gpio_set_value(SPITZ_GPIO_JK_B, 1);
+-			gpio_set_value(SPITZ_GPIO_CHRG_ON, 0);
+-		} else {
+-			gpio_set_value(SPITZ_GPIO_JK_B, 0);
+-			gpio_set_value(SPITZ_GPIO_CHRG_ON, 0);
+-		}
+-	} else {
+-		gpio_set_value(SPITZ_GPIO_JK_B, 0);
+-		gpio_set_value(SPITZ_GPIO_CHRG_ON, 1);
+-	}
+-}
+-
+-static void spitz_discharge(int on)
+-{
+-	gpio_set_value(SPITZ_GPIO_JK_A, on);
+-}
+-
+-/* HACK - For unknown reasons, accurate voltage readings are only made with a load
+-   on the power bus which the green led on spitz provides */
+-static void spitz_discharge1(int on)
+-{
+-	gpio_set_value(SPITZ_GPIO_LED_GREEN, on);
+-}
+-
+-static unsigned long gpio18_config = GPIO18_GPIO;
+-
+-static void spitz_presuspend(void)
+-{
+-	spitz_last_ac_status = sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN);
+-
+-	/* GPIO Sleep Register */
+-	PGSR0 = 0x00144018;
+-	PGSR1 = 0x00EF0000;
+-	if (machine_is_akita()) {
+-		PGSR2 = 0x2121C000;
+-		PGSR3 = 0x00600400;
+-	} else {
+-		PGSR2 = 0x0121C000;
+-		PGSR3 = 0x00600000;
+-	}
+-
+-	PGSR0 &= ~SPITZ_GPIO_G0_STROBE_BIT;
+-	PGSR1 &= ~SPITZ_GPIO_G1_STROBE_BIT;
+-	PGSR2 &= ~SPITZ_GPIO_G2_STROBE_BIT;
+-	PGSR3 &= ~SPITZ_GPIO_G3_STROBE_BIT;
+-	PGSR2 |= GPIO_bit(SPITZ_GPIO_KEY_STROBE0);
+-
+-	pxa2xx_mfp_config(&gpio18_config, 1);
+-	gpio_request_one(18, GPIOF_OUT_INIT_HIGH, "Unknown");
+-	gpio_free(18);
+-
+-	PRER = GPIO_bit(SPITZ_GPIO_KEY_INT);
+-	PFER = GPIO_bit(SPITZ_GPIO_KEY_INT) | GPIO_bit(SPITZ_GPIO_RESET);
+-	PWER = GPIO_bit(SPITZ_GPIO_KEY_INT) | GPIO_bit(SPITZ_GPIO_RESET) | PWER_RTC;
+-	PKWR = GPIO_bit(SPITZ_GPIO_SYNC) | GPIO_bit(SPITZ_GPIO_KEY_INT) | GPIO_bit(SPITZ_GPIO_RESET);
+-	PKSR = 0xffffffff; /* clear */
+-
+-	/* nRESET_OUT Disable */
+-	PSLR |= PSLR_SL_ROD;
+-
+-	/* Stop 3.6MHz and drive HIGH to PCMCIA and CS */
+-	PCFR = PCFR_GPR_EN | PCFR_OPDE;
+-}
+-
+-static void spitz_postsuspend(void)
+-{
+-}
+-
+-static int spitz_should_wakeup(unsigned int resume_on_alarm)
+-{
+-	int is_resume = 0;
+-	int acin = sharpsl_pm.machinfo->read_devdata(SHARPSL_STATUS_ACIN);
+-
+-	if (spitz_last_ac_status != acin) {
+-		if (acin) {
+-			/* charge on */
+-			sharpsl_pm.flags |= SHARPSL_DO_OFFLINE_CHRG;
+-			dev_dbg(sharpsl_pm.dev, "AC Inserted\n");
+-		} else {
+-			/* charge off */
+-			dev_dbg(sharpsl_pm.dev, "AC Removed\n");
+-			sharpsl_pm_led(SHARPSL_LED_OFF);
+-			sharpsl_pm.machinfo->charge(0);
+-			sharpsl_pm.charge_mode = CHRG_OFF;
+-		}
+-		spitz_last_ac_status = acin;
+-		/* Return to suspend as this must be what we were woken for */
+-		return 0;
+-	}
+-
+-	if (PEDR & GPIO_bit(SPITZ_GPIO_KEY_INT))
+-		is_resume |= GPIO_bit(SPITZ_GPIO_KEY_INT);
+-
+-	if (PKSR & GPIO_bit(SPITZ_GPIO_SYNC))
+-		is_resume |= GPIO_bit(SPITZ_GPIO_SYNC);
+-
+-	if (resume_on_alarm && (PEDR & PWER_RTC))
+-		is_resume |= PWER_RTC;
+-
+-	dev_dbg(sharpsl_pm.dev, "is_resume: %x\n", is_resume);
+-	return is_resume;
+-}
+-
+-static bool spitz_charger_wakeup(void)
+-{
+-	return !gpio_get_value(SPITZ_GPIO_KEY_INT) ||
+-		gpio_get_value(SPITZ_GPIO_SYNC);
+-}
+-
+-static unsigned long spitzpm_read_devdata(int type)
+-{
+-	switch (type) {
+-	case SHARPSL_STATUS_ACIN:
+-		return !gpio_get_value(SPITZ_GPIO_AC_IN);
+-	case SHARPSL_STATUS_LOCK:
+-		return gpio_get_value(sharpsl_pm.machinfo->gpio_batlock);
+-	case SHARPSL_STATUS_CHRGFULL:
+-		return gpio_get_value(sharpsl_pm.machinfo->gpio_batfull);
+-	case SHARPSL_STATUS_FATAL:
+-		return gpio_get_value(sharpsl_pm.machinfo->gpio_fatal);
+-	case SHARPSL_ACIN_VOLT:
+-		return sharpsl_pm_pxa_read_max1111(MAX1111_ACIN_VOLT);
+-	case SHARPSL_BATT_TEMP:
+-		return sharpsl_pm_pxa_read_max1111(MAX1111_BATT_TEMP);
+-	case SHARPSL_BATT_VOLT:
+-	default:
+-		return sharpsl_pm_pxa_read_max1111(MAX1111_BATT_VOLT);
+-	}
+-}
+-
+-struct sharpsl_charger_machinfo spitz_pm_machinfo = {
+-	.init             = spitz_charger_init,
+-	.exit             = NULL,
+-	.gpio_batlock     = SPITZ_GPIO_BAT_COVER,
+-	.gpio_acin        = SPITZ_GPIO_AC_IN,
+-	.gpio_batfull     = SPITZ_GPIO_CHRG_FULL,
+-	.batfull_irq	  = 1,
+-	.gpio_fatal       = SPITZ_GPIO_FATAL_BAT,
+-	.discharge        = spitz_discharge,
+-	.discharge1       = spitz_discharge1,
+-	.charge           = spitz_charge,
+-	.measure_temp     = spitz_measure_temp,
+-	.presuspend       = spitz_presuspend,
+-	.postsuspend      = spitz_postsuspend,
+-	.read_devdata     = spitzpm_read_devdata,
+-	.charger_wakeup   = spitz_charger_wakeup,
+-	.should_wakeup    = spitz_should_wakeup,
+-#if defined(CONFIG_LCD_CORGI)
+-	.backlight_limit = corgi_lcd_limit_intensity,
+-#endif
+-	.charge_on_volt	  = SHARPSL_CHARGE_ON_VOLT,
+-	.charge_on_temp	  = SHARPSL_CHARGE_ON_TEMP,
+-	.charge_acin_high = SHARPSL_CHARGE_ON_ACIN_HIGH,
+-	.charge_acin_low  = SHARPSL_CHARGE_ON_ACIN_LOW,
+-	.fatal_acin_volt  = SHARPSL_FATAL_ACIN_VOLT,
+-	.fatal_noacin_volt= SHARPSL_FATAL_NOACIN_VOLT,
+-	.bat_levels       = 40,
+-	.bat_levels_noac  = sharpsl_battery_levels_noac,
+-	.bat_levels_acin  = sharpsl_battery_levels_acin,
+-	.status_high_acin = 188,
+-	.status_low_acin  = 178,
+-	.status_high_noac = 185,
+-	.status_low_noac  = 175,
+-};
+-
+-static struct platform_device *spitzpm_device;
+-
+-static int spitzpm_init(void)
+-{
+-	int ret;
+-
+-	if (!machine_is_spitz() && !machine_is_akita()
+-			&& !machine_is_borzoi())
+-		return -ENODEV;
+-
+-	spitzpm_device = platform_device_alloc("sharpsl-pm", -1);
+-	if (!spitzpm_device)
+-		return -ENOMEM;
+-
+-	spitzpm_device->dev.platform_data = &spitz_pm_machinfo;
+-	ret = platform_device_add(spitzpm_device);
+-
+-	if (ret)
+-		platform_device_put(spitzpm_device);
+-
+-	return ret;
+-}
+-
+-static void spitzpm_exit(void)
+-{
+-	platform_device_unregister(spitzpm_device);
+-}
+-
+-module_init(spitzpm_init);
+-module_exit(spitzpm_exit);
 -- 
 2.53.0
 
