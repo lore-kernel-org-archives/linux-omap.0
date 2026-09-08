@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B9755616BD;
-	Tue,  8 Sep 2026 15:30:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E9B75581E8;
+	Tue,  8 Sep 2026 15:30:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788881429; cv=none; b=gAj2BYIbYaoSOb7g6NMgRd4S1jOyi6a8MS0iXt9vvd6E3UoQrFvMTK3hrqRTqkKdJp7NcUihVHNh7vYGQJdsuySeLGhwWCggR230f9QwuOjd2RfBASGD1UvC10ogK4+O0cXSQ2VXn1N43Ooo5iC2qb3WOSn/dapqhfqvn0fNNQU=
+	t=1788881441; cv=none; b=unQrPzBrSXPCsjSUvgS+IbYRGIrdVyL6VaRIwhuFCqovPO0MpDFDopJoifVEQO+bUl3VsQnOivOZSRZ29TqVRE/fnDjXc5OHmnGrMDtFcLnSdULuDLP5EVKTRms0bgEMkBdA2//alVrd05sRWFy6xkf7bQTg9WrH5UuiYJh2ATo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788881429; c=relaxed/simple;
-	bh=5FQDAwzA1TIBswmQGJcVVQV6Mmg0RTFceCV7f/Erp4c=;
+	s=arc-20240116; t=1788881441; c=relaxed/simple;
+	bh=6x0RYShN7Qvq55G/ZiPtnTAONO+EoPkxaRKwh3lPRVQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ZoPevbRperi5AYa3OiBy68raxnQDE1072dorXor98ub6tuxL9hoVdIAFOJ1/wRIJmwDFhsD8PyVGE6iQlhQHsKu0nO36bBpvvqO8pBJG2AhvP2XXcEdQ6ZZMBi5acS+OLHSurREXU2dmPxki0cZp+k7UKORfJANcGYC3FxmgmGY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MJgZRAg7; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=aDkl+ZYNBdREBey70jPU3Wel2P1Ks1ZkaFZDduT77bcf9w76mdJ4MZVdEgfSnxJ7nnRf5vAv8aroLUOxOHlqFEOAE8Q8+RlWLONtJNbaM7m3sGnHad8qfNcI0Y8zJDwkiQ/rCCW/EPLAYotSW/G1A76yLlh0CGtW3z7ejUqA5x0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FQ6/5vjk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MJgZRAg7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBC231F00A3A;
-	Tue,  8 Sep 2026 15:29:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FQ6/5vjk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E76D1F00A3D;
+	Tue,  8 Sep 2026 15:30:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788881408;
-	bh=K8BiEQjPp4FtOvk5zSL5eaI3jfVwTm3K7IeTsoioXnw=;
+	s=k20260515; t=1788881427;
+	bh=6uQsElwtEAzpNfoEN+c/AniRleQq7HJPFuOxkkSunLo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=MJgZRAg7FKjk1cnfy5JfqAZAPMnS4CRVUAbqHdV7swwq7cfhXgIqvErrey/fXHi9R
-	 N/6cMHmzAISdXGEwjpPIg5XxWXdpUa/NJVAeFv8a0nj0jP8Gk9AV6jloQdI4dbIVXz
-	 NeLnPaPcPVnepkxQFANbDDJtZQUZ+CL5NzZALvvsdj7qK4BemK027V3GasK/UGovqz
-	 ukV2m1cB0JrsaeKE0GKiu71IdIa3j0GpoAznHiwoBfZ4dHxt5ODIG7hv3mJYoFtjdq
-	 DUjLBEjR8mcfphco4Y+JZYtvnfXOiNEEo1qchjxkwB2aBxziqw5ecXC7U2dOpO/2Py
-	 hq7UQDbh+x3Bw==
+	b=FQ6/5vjksR2EVs0RDEw/1iPtvW6SrHtllirxmVTifxrpti+/+VQe9+L9LPYsrmj/A
+	 F0KxhmJqC0oH2e6ci4zUYciXySsi7YL4zNB3syFCTgipwnbX03kusY7LZPVYRgJ8RZ
+	 wShNWLDVAr/X5qMqxNS1Ivk9hYnAlOl5bY2kI3QFuthXeodcGvdVZAK1jZj6EOT+is
+	 rm/9uU4PO7S4kL53DmlpJS6AtZ+DScuFsBnnstHFUPTvKOLITXrIaRZpFL9dnlodT7
+	 A10PWzxoAsCLXrZd1XiZ2itoq7sHCOKo4WHbb2g7u9mCnucKiGqCj8tZlYdAidMUpV
+	 6tn/1zm5M2KhQ==
 From: Arnd Bergmann <arnd@kernel.org>
 To: Krzysztof Kozlowski <krzk@kernel.org>,
 	Alexandre Belloni <alexandre.belloni@bootlin.com>,
@@ -72,10 +72,12 @@ Cc: Drew Fustini <fustini@kernel.org>,
 	imx@lists.linux.dev,
 	linux-stm32@st-md-mailman.stormreply.com,
 	linux-omap@vger.kernel.org,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>
-Subject: [PATCH 09/13] ARM: lpc18xx: remove entire platform
-Date: Tue,  8 Sep 2026 17:27:59 +0200
-Message-ID: <20260908152808.3928630-10-arnd@kernel.org>
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Andi Shyti <andi.shyti@kernel.org>,
+	linux-i2c@vger.kernel.org
+Subject: [PATCH 11/13] ARM: versatile: remove mps2 support
+Date: Tue,  8 Sep 2026 17:28:01 +0200
+Message-ID: <20260908152808.3928630-12-arnd@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260908152808.3928630-1-arnd@kernel.org>
 References: <20260908152808.3928630-1-arnd@kernel.org>
@@ -89,2809 +91,515 @@ Content-Transfer-Encoding: 8bit
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-The NXP LPC18xx and LPC43xx microcontrollers are the more modern
-version of the classic LPC32xx line, but they lack memory management
-units.
+The Arm mps2 platform is the reference implementation for Arm
+microcontrollers and is useful for testing but not expected to be used
+as a production device.
 
-These microcontrollers all remain in production as of 2026, but
-there are no known users running Linux on them.
+With all the Cortex-M based products gone, there is no longer a need
+for a reference platform either, so remove it as well.
 
-The platform was marked deprecated in the 7.3-LTS release, which
-will remain supported for a few more years.
-
-Remove support for both LPC18xx and LPC43xx.
-
-Cc: Frank Li <Frank.Li@nxp.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
-Cc: Fabio Estevam <festevam@gmail.com>
+Cc: Liviu Dudau <liviu.dudau@arm.com>
+Cc: Sudeep Holla <sudeep.holla@kernel.org>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc: Linus Walleij <linusw@kernel.org>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Krzysztof Kozlowski <krzk+dt@kernel.org>
 Cc: Conor Dooley <conor+dt@kernel.org>
-Cc: Vladimir Zapolskiy <vz@mleia.com>
-Cc: imx@lists.linux.dev
+Cc: Andi Shyti <andi.shyti@kernel.org>
+Cc: Ethan Nelson-Moore <enelsonmoore@gmail.com>
 Cc: devicetree@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- MAINTAINERS                                   |  12 -
- arch/arm/Kconfig                              |  14 -
- arch/arm/Kconfig.debug                        |   9 -
- arch/arm/Makefile                             |   1 -
- arch/arm/boot/dts/nxp/lpc/Makefile            |   5 -
- arch/arm/boot/dts/nxp/lpc/lpc18xx.dtsi        | 543 ---------------
- arch/arm/boot/dts/nxp/lpc/lpc4337-ciaa.dts    | 221 -------
- .../boot/dts/nxp/lpc/lpc4350-hitex-eval.dts   | 485 --------------
- arch/arm/boot/dts/nxp/lpc/lpc4350.dtsi        |  48 --
- .../dts/nxp/lpc/lpc4357-ea4357-devkit.dts     | 624 ------------------
- .../boot/dts/nxp/lpc/lpc4357-myd-lpc4357.dts  | 621 -----------------
- arch/arm/boot/dts/nxp/lpc/lpc4357.dtsi        |  52 --
- arch/arm/configs/lpc18xx_defconfig            | 158 -----
- arch/arm/mach-lpc18xx/Makefile                |   2 -
- arch/arm/mach-lpc18xx/board-dt.c              |  19 -
- 15 files changed, 2814 deletions(-)
- delete mode 100644 arch/arm/boot/dts/nxp/lpc/lpc18xx.dtsi
- delete mode 100644 arch/arm/boot/dts/nxp/lpc/lpc4337-ciaa.dts
- delete mode 100644 arch/arm/boot/dts/nxp/lpc/lpc4350-hitex-eval.dts
- delete mode 100644 arch/arm/boot/dts/nxp/lpc/lpc4350.dtsi
- delete mode 100644 arch/arm/boot/dts/nxp/lpc/lpc4357-ea4357-devkit.dts
- delete mode 100644 arch/arm/boot/dts/nxp/lpc/lpc4357-myd-lpc4357.dts
- delete mode 100644 arch/arm/boot/dts/nxp/lpc/lpc4357.dtsi
- delete mode 100644 arch/arm/configs/lpc18xx_defconfig
- delete mode 100644 arch/arm/mach-lpc18xx/Makefile
- delete mode 100644 arch/arm/mach-lpc18xx/board-dt.c
+ arch/arm/Kconfig                     |  14 --
+ arch/arm/boot/dts/arm/Makefile       |   3 -
+ arch/arm/boot/dts/arm/mps2-an385.dts |  92 -----------
+ arch/arm/boot/dts/arm/mps2-an399.dts |  92 -----------
+ arch/arm/boot/dts/arm/mps2.dtsi      | 220 ---------------------------
+ arch/arm/configs/mps2_defconfig      | 102 -------------
+ arch/arm/mach-versatile/Makefile     |   3 -
+ arch/arm/mach-versatile/v2m-mps2.c   |  17 ---
+ drivers/i2c/busses/Kconfig           |   2 +-
+ 9 files changed, 1 insertion(+), 544 deletions(-)
+ delete mode 100644 arch/arm/boot/dts/arm/mps2-an385.dts
+ delete mode 100644 arch/arm/boot/dts/arm/mps2-an399.dts
+ delete mode 100644 arch/arm/boot/dts/arm/mps2.dtsi
+ delete mode 100644 arch/arm/configs/mps2_defconfig
+ delete mode 100644 arch/arm/mach-versatile/v2m-mps2.c
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0d10f778800d..292327185a08 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3032,18 +3032,6 @@ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- F:	arch/arm64/boot/dts/lg/
- 
--ARM/LPC18XX ARCHITECTURE
--M:	Vladimir Zapolskiy <vz@mleia.com>
--L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--S:	Maintained
--F:	Documentation/devicetree/bindings/i2c/nxp,lpc1788-i2c.yaml
--F:	arch/arm/boot/dts/nxp/lpc/lpc43*
--F:	drivers/i2c/busses/i2c-lpc2k.c
--F:	drivers/memory/pl172.c
--F:	drivers/mtd/spi-nor/controllers/nxp-spifi.c
--F:	drivers/rtc/rtc-lpc24xx.c
--N:	lpc18xx
--
- ARM/LPC32XX SOC SUPPORT
- M:	Vladimir Zapolskiy <vz@mleia.com>
- M:	Piotr Wojtaszczyk <piotr.wojtaszczyk@timesys.com>
 diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index da29afce309f..13b38be3353a 100644
+index 13b38be3353a..cf380b686867 100644
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
 @@ -443,20 +443,6 @@ source "arch/arm/mach-zte/Kconfig"
  
  source "arch/arm/mach-zynq/Kconfig"
  
--# ARMv7-M architecture
--config ARCH_LPC18XX
--	bool "NXP LPC18xx/LPC43xx (DEPRECATED)"
+-config ARCH_MPS2
+-	bool "ARM MPS2 platform (DEPRECATED)"
 -	depends on ARM_SINGLE_ARMV7M
--	select ARCH_HAS_RESET_CONTROLLER
 -	select ARM_AMBA
--	select CLKSRC_LPC32XX
--	select PINCTRL
+-	select CLKSRC_MPS2
 -	help
--	  Support for NXP's LPC18xx Cortex-M3 and LPC43xx Cortex-M4
--	  high performance microcontrollers.
+-	  Support for Cortex-M Prototyping System (or V2M-MPS2) which comes
+-	  with a range of available cores like Cortex-M3/M4/M7.
+-
+-	  Please, note that depends which Application Note is used memory map
+-	  for the platform may vary, so adjustment of RAM base might be needed.
 -
 -	  This platform is scheduled for removal in early 2027
 -
- config ARCH_MPS2
- 	bool "ARM MPS2 platform (DEPRECATED)"
- 	depends on ARM_SINGLE_ARMV7M
-diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
-index 52387fe2a057..e4910cf865da 100644
---- a/arch/arm/Kconfig.debug
-+++ b/arch/arm/Kconfig.debug
-@@ -511,14 +511,6 @@ choice
- 		  Say Y here if you want the debug print routines to direct
- 		  their output to UART1 serial port on KEYSTONE2 devices.
- 
--	config DEBUG_LPC18XX_UART0
--		bool "Kernel low-level debugging via LPC18xx/43xx UART0"
--		depends on ARCH_LPC18XX
--		select DEBUG_UART_8250
--		help
--		  Say Y here if you want kernel low-level debugging support
--		  on NXP LPC18xx/43xx UART0.
--
- 	config DEBUG_LPC32XX
- 		bool "Kernel low-level debugging messages via NXP LPC32xx UART"
- 		depends on ARCH_LPC32XX
-@@ -1551,7 +1543,6 @@ config DEBUG_UART_PHYS
- 	default 0x40011000 if STM32F4_DEBUG_UART || STM32F7_DEBUG_UART || \
- 				STM32H7_DEBUG_UART
- 	default 0x40028000 if DEBUG_AT91_SAMV7_USART1
--	default 0x40081000 if DEBUG_LPC18XX_UART0
- 	default 0x40090000 if DEBUG_LPC32XX
- 	default 0x40100000 if DEBUG_PXA_UART1
- 	default 0x42000000 if DEBUG_GEMINI
-diff --git a/arch/arm/Makefile b/arch/arm/Makefile
-index 5421a3ec3825..d3479e374c6f 100644
---- a/arch/arm/Makefile
-+++ b/arch/arm/Makefile
-@@ -185,7 +185,6 @@ machine-$(CONFIG_ARCH_HIGHBANK)		+= highbank
- machine-$(CONFIG_ARCH_HISI)		+= hisi
- machine-$(CONFIG_ARCH_IXP4XX)		+= ixp4xx
- machine-$(CONFIG_ARCH_KEYSTONE)		+= keystone
--machine-$(CONFIG_ARCH_LPC18XX)		+= lpc18xx
- machine-$(CONFIG_ARCH_LPC32XX)		+= lpc32xx
- machine-$(CONFIG_ARCH_MESON)		+= meson
- machine-$(CONFIG_ARCH_MMP)		+= mmp
-diff --git a/arch/arm/boot/dts/nxp/lpc/Makefile b/arch/arm/boot/dts/nxp/lpc/Makefile
-index 56b9a0ebb917..3f82628f3ff9 100644
---- a/arch/arm/boot/dts/nxp/lpc/Makefile
-+++ b/arch/arm/boot/dts/nxp/lpc/Makefile
-@@ -1,9 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
--dtb-$(CONFIG_ARCH_LPC18XX) += \
--	lpc4337-ciaa.dtb \
--	lpc4350-hitex-eval.dtb \
--	lpc4357-ea4357-devkit.dtb \
--	lpc4357-myd-lpc4357.dtb
- dtb-$(CONFIG_ARCH_LPC32XX) += \
- 	lpc3250-ea3250.dtb \
- 	lpc3250-phy3250.dtb
-diff --git a/arch/arm/boot/dts/nxp/lpc/lpc18xx.dtsi b/arch/arm/boot/dts/nxp/lpc/lpc18xx.dtsi
+ # Definitions to make life easier
+ config PLAT_ORION
+ 	bool
+diff --git a/arch/arm/boot/dts/arm/Makefile b/arch/arm/boot/dts/arm/Makefile
+index 07ebb64e2cd0..c01593dd197d 100644
+--- a/arch/arm/boot/dts/arm/Makefile
++++ b/arch/arm/boot/dts/arm/Makefile
+@@ -3,9 +3,6 @@ dtb-$(CONFIG_ARCH_INTEGRATOR) += \
+ 	integratorap.dtb \
+ 	integratorap-im-pd1.dtb \
+ 	integratorcp.dtb
+-dtb-$(CONFIG_ARCH_MPS2) += \
+-	mps2-an385.dtb \
+-	mps2-an399.dtb
+ dtb-$(CONFIG_ARCH_REALVIEW) += \
+ 	arm-realview-pb1176.dtb \
+ 	arm-realview-pb11mp.dtb \
+diff --git a/arch/arm/boot/dts/arm/mps2-an385.dts b/arch/arm/boot/dts/arm/mps2-an385.dts
 deleted file mode 100644
-index 152e98cf0c4e..000000000000
---- a/arch/arm/boot/dts/nxp/lpc/lpc18xx.dtsi
+index aebbebfc25d1..000000000000
+--- a/arch/arm/boot/dts/arm/mps2-an385.dts
 +++ /dev/null
-@@ -1,543 +0,0 @@
+@@ -1,92 +0,0 @@
 -/*
-- * Common base for NXP LPC18xx and LPC43xx devices.
+- * Copyright (C) 2015 ARM Limited
 - *
-- * Copyright 2015 Joachim Eastwood <manabian@gmail.com>
+- * Author: Vladimir Murzin <vladimir.murzin@arm.com>
 - *
-- * This code is released using a dual license strategy: BSD/GPL
-- * You can choose the licence that better fits your requirements.
+- * This file is dual-licensed: you can use it either under the terms
+- * of the GPL or the X11 license, at your option. Note that this dual
+- * licensing only applies to this file, and not this project as a
+- * whole.
 - *
-- * Released under the terms of 3-clause BSD License
-- * Released under the terms of GNU General Public License Version 2.0
+- *  a) This file is free software; you can redistribute it and/or
+- *     modify it under the terms of the GNU General Public License as
+- *     published by the Free Software Foundation; either version 2 of the
+- *     License, or (at your option) any later version.
 - *
+- *     This file is distributed in the hope that it will be useful,
+- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *     GNU General Public License for more details.
+- *
+- * Or, alternatively,
+- *
+- *  b) Permission is hereby granted, free of charge, to any person
+- *     obtaining a copy of this software and associated documentation
+- *     files (the "Software"), to deal in the Software without
+- *     restriction, including without limitation the rights to use,
+- *     copy, modify, merge, publish, distribute, sublicense, and/or
+- *     sell copies of the Software, and to permit persons to whom the
+- *     Software is furnished to do so, subject to the following
+- *     conditions:
+- *
+- *     The above copyright notice and this permission notice shall be
+- *     included in all copies or substantial portions of the Software.
+- *
+- *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+- *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+- *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+- *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+- *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+- *     OTHER DEALINGS IN THE SOFTWARE.
 - */
 -
--#include "../../armv7-m.dtsi"
+-/dts-v1/;
 -
--#include "dt-bindings/clock/lpc18xx-cgu.h"
--#include "dt-bindings/clock/lpc18xx-ccu.h"
+-#include "mps2.dtsi"
 -
--#define LPC_PIN(port, pin)	(0x##port * 32 + pin)
--#define LPC_GPIO(port, pin)	(port * 32 + pin)
+-/ {
+-	model = "ARM MPS2 Application Note 385/386";
+-	compatible = "arm,mps2";
+-
+-	aliases {
+-		serial0 = &uart0;
+-	};
+-
+-	chosen {
+-		bootargs = "earlycon";
+-		stdout-path = "serial0:9600n8";
+-	};
+-
+-	memory@21000000 {
+-		device_type = "memory";
+-		reg = <0x21000000 0x1000000>;
+-	};
+-
+-	smb {
+-		ethernet@0,0 {
+-			compatible = "smsc,lan9220", "smsc,lan9115";
+-			reg = <0 0x0 0x10000>;
+-			interrupts = <13>;
+-			interrupt-parent = <&nvic>;
+-			smsc,irq-active-high;
+-		};
+-	};
+-};
+-
+-&uart0 {
+-	status = "okay";
+-};
+-
+-&timer0 {
+-	status = "okay";
+-};
+-
+-&timer1 {
+-	status = "okay";
+-};
+-
+-&wdt {
+-	status = "okay";
+-};
+diff --git a/arch/arm/boot/dts/arm/mps2-an399.dts b/arch/arm/boot/dts/arm/mps2-an399.dts
+deleted file mode 100644
+index 349abf70b2a5..000000000000
+--- a/arch/arm/boot/dts/arm/mps2-an399.dts
++++ /dev/null
+@@ -1,92 +0,0 @@
+-/*
+- * Copyright (C) 2015 ARM Limited
+- *
+- * Author: Vladimir Murzin <vladimir.murzin@arm.com>
+- *
+- * This file is dual-licensed: you can use it either under the terms
+- * of the GPL or the X11 license, at your option. Note that this dual
+- * licensing only applies to this file, and not this project as a
+- * whole.
+- *
+- *  a) This file is free software; you can redistribute it and/or
+- *     modify it under the terms of the GNU General Public License as
+- *     published by the Free Software Foundation; either version 2 of the
+- *     License, or (at your option) any later version.
+- *
+- *     This file is distributed in the hope that it will be useful,
+- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *     GNU General Public License for more details.
+- *
+- * Or, alternatively,
+- *
+- *  b) Permission is hereby granted, free of charge, to any person
+- *     obtaining a copy of this software and associated documentation
+- *     files (the "Software"), to deal in the Software without
+- *     restriction, including without limitation the rights to use,
+- *     copy, modify, merge, publish, distribute, sublicense, and/or
+- *     sell copies of the Software, and to permit persons to whom the
+- *     Software is furnished to do so, subject to the following
+- *     conditions:
+- *
+- *     The above copyright notice and this permission notice shall be
+- *     included in all copies or substantial portions of the Software.
+- *
+- *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+- *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+- *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+- *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+- *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+- *     OTHER DEALINGS IN THE SOFTWARE.
+- */
+-
+-/dts-v1/;
+-
+-#include "mps2.dtsi"
+-
+-/ {
+-	model = "ARM MPS2 Application Note 399/400";
+-	compatible = "arm,mps2";
+-
+-	aliases {
+-		serial0 = &uart0;
+-	};
+-
+-	chosen {
+-		bootargs = "earlycon";
+-		stdout-path = "serial0:9600n8";
+-	};
+-
+-	memory@60000000 {
+-		device_type = "memory";
+-		reg = <0x60000000 0x1000000>;
+-	};
+-
+-	smb {
+-		ethernet@1,0 {
+-			compatible = "smsc,lan9220", "smsc,lan9115";
+-			reg = <1 0x0 0x10000>;
+-			interrupts = <13>;
+-			interrupt-parent = <&nvic>;
+-			smsc,irq-active-high;
+-		};
+-	};
+-};
+-
+-&uart0 {
+-	status = "okay";
+-};
+-
+-&timer0 {
+-	status = "okay";
+-};
+-
+-&timer1 {
+-	status = "okay";
+-};
+-
+-&wdt {
+-	status = "okay";
+-};
+diff --git a/arch/arm/boot/dts/arm/mps2.dtsi b/arch/arm/boot/dts/arm/mps2.dtsi
+deleted file mode 100644
+index e240bc8aa605..000000000000
+--- a/arch/arm/boot/dts/arm/mps2.dtsi
++++ /dev/null
+@@ -1,220 +0,0 @@
+-/*
+- * Copyright (C) 2015 ARM Limited
+- *
+- * Author: Vladimir Murzin <vladimir.murzin@arm.com>
+- *
+- * This file is dual-licensed: you can use it either under the terms
+- * of the GPL or the X11 license, at your option. Note that this dual
+- * licensing only applies to this file, and not this project as a
+- * whole.
+- *
+- *  a) This file is free software; you can redistribute it and/or
+- *     modify it under the terms of the GNU General Public License as
+- *     published by the Free Software Foundation; either version 2 of the
+- *     License, or (at your option) any later version.
+- *
+- *     This file is distributed in the hope that it will be useful,
+- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *     GNU General Public License for more details.
+- *
+- * Or, alternatively,
+- *
+- *  b) Permission is hereby granted, free of charge, to any person
+- *     obtaining a copy of this software and associated documentation
+- *     files (the "Software"), to deal in the Software without
+- *     restriction, including without limitation the rights to use,
+- *     copy, modify, merge, publish, distribute, sublicense, and/or
+- *     sell copies of the Software, and to permit persons to whom the
+- *     Software is furnished to do so, subject to the following
+- *     conditions:
+- *
+- *     The above copyright notice and this permission notice shall be
+- *     included in all copies or substantial portions of the Software.
+- *
+- *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+- *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+- *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+- *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+- *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+- *     OTHER DEALINGS IN THE SOFTWARE.
+- */
+-
+-#include "../armv7-m.dtsi"
 -
 -/ {
 -	#address-cells = <1>;
 -	#size-cells = <1>;
 -
--	cpus {
--		#address-cells = <1>;
--		#size-cells = <0>;
--
--		cpu@0 {
--			compatible = "arm,cortex-m3";
--			device_type = "cpu";
--			reg = <0x0>;
--			clocks = <&ccu1 CLK_CPU_CORE>;
--		};
+-	oscclk0: clock-50000000 {
+-		compatible = "fixed-clock";
+-		#clock-cells = <0>;
+-		clock-frequency = <50000000>;
 -	};
 -
--	clocks {
--		xtal: xtal {
--			compatible = "fixed-clock";
--			#clock-cells = <0>;
--			clock-frequency = <12000000>;
--		};
--
--		xtal32: xtal32 {
--			compatible = "fixed-clock";
--			#clock-cells = <0>;
--			clock-frequency = <32768>;
--		};
--
--		enet_rx_clk: enet_rx_clk {
--			compatible = "fixed-clock";
--			#clock-cells = <0>;
--			clock-frequency = <0>;
--			clock-output-names = "enet_rx_clk";
--		};
--
--		enet_tx_clk: enet_tx_clk {
--			compatible = "fixed-clock";
--			#clock-cells = <0>;
--			clock-frequency = <0>;
--			clock-output-names = "enet_tx_clk";
--		};
--
--		gp_clkin: gp_clkin {
--			compatible = "fixed-clock";
--			#clock-cells = <0>;
--			clock-frequency = <0>;
--			clock-output-names = "gp_clkin";
--		};
+-	oscclk1: clock-24576000 {
+-		compatible = "fixed-clock";
+-		#clock-cells = <0>;
+-		clock-frequency = <24576000>;
 -	};
 -
--	soc {
--		sct_pwm: pwm@40000000 {
--			compatible = "nxp,lpc1850-sct-pwm";
--			reg = <0x40000000 0x1000>;
--			clocks = <&ccu1 CLK_CPU_SCT>;
--			clock-names = "pwm";
--			resets = <&rgu 37>;
--			#pwm-cells = <3>;
--			status = "disabled";
--		};
--
--		dmac: dma-controller@40002000 {
--			compatible = "arm,pl080", "arm,primecell";
--			arm,primecell-periphid = <0x00041080>;
--			reg = <0x40002000 0x1000>;
--			interrupts = <2>;
--			clocks = <&ccu1 CLK_CPU_DMA>;
--			clock-names = "apb_pclk";
--			resets = <&rgu 19>;
--			#dma-cells = <2>;
--			dma-channels = <8>;
--			dma-requests = <16>;
--			lli-bus-interface-ahb1;
--			lli-bus-interface-ahb2;
--			mem-bus-interface-ahb1;
--			mem-bus-interface-ahb2;
--			memcpy-burst-size = <256>;
--			memcpy-bus-width = <32>;
--		};
--
--		spifi: spi@40003000 {
--			compatible = "nxp,lpc1773-spifi";
--			reg = <0x40003000 0x1000>, <0x14000000 0x4000000>;
--			reg-names = "spifi", "flash";
--			interrupts = <30>;
--			clocks = <&ccu1 CLK_SPIFI>, <&ccu1 CLK_CPU_SPIFI>;
--			clock-names = "spifi", "reg";
--			#address-cells = <1>;
--			#size-cells = <0>;
--			resets = <&rgu 53>;
--			status = "disabled";
--		};
--
--		mmcsd: mmc@40004000 {
--			compatible = "snps,dw-mshc";
--			reg = <0x40004000 0x1000>;
--			interrupts = <6>;
--			clocks = <&ccu1 CLK_CPU_SDIO>, <&ccu2 CLK_SDIO>;
--			clock-names = "biu", "ciu";
--			resets = <&rgu 20>;
--			status = "disabled";
--		};
--
--		usb0: usb@40006100 {
--			compatible = "nxp,lpc1850-ehci", "generic-ehci";
--			reg = <0x40006100 0x100>;
--			interrupts = <8>;
--			clocks = <&ccu1 CLK_CPU_USB0>;
--			resets = <&rgu 17>;
--			phys = <&usb0_otg_phy>;
--			phy-names = "usb";
--			has-transaction-translator;
--			status = "disabled";
--		};
--
--		usb1: usb@40007100 {
--			compatible = "nxp,lpc1850-ehci", "generic-ehci";
--			reg = <0x40007100 0x100>;
--			interrupts = <9>;
--			clocks = <&ccu1 CLK_CPU_USB1>;
--			resets = <&rgu 18>;
--			status = "disabled";
--		};
--
--		emc: memory-controller@40005000 {
--			compatible = "arm,pl172", "arm,primecell";
--			reg = <0x40005000 0x1000>;
--			clocks = <&ccu1 CLK_CPU_EMCDIV>, <&ccu1 CLK_CPU_EMC>;
--			clock-names = "mpmcclk", "apb_pclk";
--			resets = <&rgu 21>;
--			#address-cells = <2>;
--			#size-cells = <1>;
--			ranges = <0 0 0x1c000000 0x1000000
--				  1 0 0x1d000000 0x1000000
--				  2 0 0x1e000000 0x1000000
--				  3 0 0x1f000000 0x1000000>;
--			status = "disabled";
--		};
--
--		lcdc: lcd-controller@40008000 {
--			compatible = "arm,pl111", "arm,primecell";
--			reg = <0x40008000 0x1000>;
--			interrupts = <7>;
--			interrupt-names = "combined";
--			clocks = <&cgu BASE_LCD_CLK>, <&ccu1 CLK_CPU_LCD>;
--			clock-names = "clcdclk", "apb_pclk";
--			resets = <&rgu 16>;
--			status = "disabled";
--		};
--
--		eeprom: eeprom@4000e000 {
--			compatible = "nxp,lpc1857-eeprom";
--			reg = <0x4000e000 0x1000>, <0x20040000 0x4000>;
--			reg-names = "reg", "mem";
--			clocks = <&ccu1 CLK_CPU_EEPROM>;
--			clock-names = "eeprom";
--			resets = <&rgu 27>;
--			interrupts = <4>;
--			status = "disabled";
--		};
--
--		mac: ethernet@40010000 {
--			compatible = "nxp,lpc1850-dwmac", "snps,dwmac-3.611", "snps,dwmac";
--			reg = <0x40010000 0x2000>;
--			interrupts = <5>;
--			interrupt-names = "macirq";
--			clocks = <&ccu1 CLK_CPU_ETHERNET>;
--			clock-names = "stmmaceth";
--			resets = <&rgu 22>;
--			reset-names = "stmmaceth";
--			rx-fifo-depth = <256>;
--			tx-fifo-depth = <256>;
--			snps,pbl = <4>; /* 32 (8x mode) */
--			snps,force_thresh_dma_mode;
--			status = "disabled";
--		};
--
--		creg: syscon@40043000 {
--			compatible = "nxp,lpc1850-creg", "syscon", "simple-mfd";
--			reg = <0x40043000 0x1000>;
--			clocks = <&ccu1 CLK_CPU_CREG>;
--			resets = <&rgu 5>;
--
--			creg_clk: clock-controller {
--				compatible = "nxp,lpc1850-creg-clk";
--				clocks = <&xtal32>;
--				#clock-cells = <1>;
--			};
--
--			usb0_otg_phy: phy {
--				compatible = "nxp,lpc1850-usb-otg-phy";
--				clocks = <&ccu1 CLK_USB0>;
--				#phy-cells = <0>;
--			};
--
--			dmamux: dma-mux {
--				compatible = "nxp,lpc1850-dmamux";
--				#dma-cells = <3>;
--				dma-requests = <64>;
--				dma-masters = <&dmac>;
--			};
--		};
--
--		rtc: rtc@40046000 {
--			compatible = "nxp,lpc1850-rtc", "nxp,lpc1788-rtc";
--			reg = <0x40046000 0x1000>;
--			interrupts = <47>;
--			clocks = <&creg_clk 0>, <&ccu1 CLK_CPU_BUS>;
--			clock-names = "rtc", "reg";
--		};
--
--		cgu: clock-controller@40050000 {
--			compatible = "nxp,lpc1850-cgu";
--			reg = <0x40050000 0x1000>;
--			#clock-cells = <1>;
--			clocks = <&xtal>, <&creg_clk 1>, <&enet_rx_clk>, <&enet_tx_clk>, <&gp_clkin>;
--		};
--
--		ccu1: clock-controller@40051000 {
--			compatible = "nxp,lpc1850-ccu";
--			reg = <0x40051000 0x1000>;
--			#clock-cells = <1>;
--			clocks = <&cgu BASE_APB3_CLK>,   <&cgu BASE_APB1_CLK>,
--				 <&cgu BASE_SPIFI_CLK>,  <&cgu BASE_CPU_CLK>,
--				 <&cgu BASE_PERIPH_CLK>, <&cgu BASE_USB0_CLK>,
--				 <&cgu BASE_USB1_CLK>,   <&cgu BASE_SPI_CLK>;
--			clock-names = "base_apb3_clk",   "base_apb1_clk",
--				      "base_spifi_clk",  "base_cpu_clk",
--				      "base_periph_clk", "base_usb0_clk",
--				      "base_usb1_clk",   "base_spi_clk";
--		};
--
--		ccu2: clock-controller@40052000 {
--			compatible = "nxp,lpc1850-ccu";
--			reg = <0x40052000 0x1000>;
--			#clock-cells = <1>;
--			clocks = <&cgu BASE_AUDIO_CLK>, <&cgu BASE_UART3_CLK>,
--				 <&cgu BASE_UART2_CLK>, <&cgu BASE_UART1_CLK>,
--				 <&cgu BASE_UART0_CLK>, <&cgu BASE_SSP1_CLK>,
--				 <&cgu BASE_SSP0_CLK>,  <&cgu BASE_SDIO_CLK>;
--			clock-names = "base_audio_clk", "base_uart3_clk",
--				      "base_uart2_clk", "base_uart1_clk",
--				      "base_uart0_clk", "base_ssp1_clk",
--				      "base_ssp0_clk",  "base_sdio_clk";
--		};
--
--		rgu: reset-controller@40053000 {
--			compatible = "nxp,lpc1850-rgu";
--			reg = <0x40053000 0x1000>;
--			clocks = <&cgu BASE_SAFE_CLK>, <&ccu1 CLK_CPU_BUS>;
--			clock-names = "delay", "reg";
--			#reset-cells = <1>;
--		};
--
--		watchdog@40080000 {
--			compatible = "nxp,lpc1850-wwdt";
--			reg = <0x40080000 0x24>;
--			interrupts = <49>;
--			clocks = <&cgu BASE_SAFE_CLK>, <&ccu1 CLK_CPU_WWDT>;
--			clock-names = "wdtclk", "reg";
--		};
--
--		uart0: serial@40081000 {
--			compatible = "nxp,lpc1850-uart", "ns16550a";
--			reg = <0x40081000 0x1000>;
--			reg-shift = <2>;
--			interrupts = <24>;
--			clocks = <&ccu2 CLK_APB0_UART0>, <&ccu1 CLK_CPU_UART0>;
--			clock-names = "uartclk", "reg";
--			resets = <&rgu 44>;
--			dmas = <&dmamux  1 1 2
--				&dmamux  2 1 2
--				&dmamux 11 2 2
--				&dmamux 12 2 2>;
--			dma-names = "tx", "rx", "tx", "rx";
--			status = "disabled";
--		};
--
--		uart1: serial@40082000 {
--			compatible = "nxp,lpc1850-uart", "ns16550a";
--			reg = <0x40082000 0x1000>;
--			reg-shift = <2>;
--			interrupts = <25>;
--			clocks = <&ccu2 CLK_APB0_UART1>, <&ccu1 CLK_CPU_UART1>;
--			clock-names = "uartclk", "reg";
--			resets = <&rgu 45>;
--			dmas = <&dmamux 3 1 2
--				&dmamux 4 1 2>;
--			dma-names = "tx", "rx";
--			status = "disabled";
--		};
--
--		ssp0: spi@40083000 {
--			compatible = "arm,pl022", "arm,primecell";
--			reg = <0x40083000 0x1000>;
--			interrupts = <22>;
--			clocks = <&ccu2 CLK_APB0_SSP0>, <&ccu1 CLK_CPU_SSP0>;
--			clock-names = "sspclk", "apb_pclk";
--			resets = <&rgu 50>;
--			dmas = <&dmamux  9 0 2
--				&dmamux 10 0 2>;
--			dma-names = "rx", "tx";
--			#address-cells = <1>;
--			#size-cells = <0>;
--			status = "disabled";
--		};
--
--		timer0: timer@40084000 {
--			compatible = "nxp,lpc3220-timer";
--			reg = <0x40084000 0x1000>;
--			interrupts = <12>;
--			clocks = <&ccu1 CLK_CPU_TIMER0>;
--			clock-names = "timerclk";
--			resets = <&rgu 32>;
--		};
--
--		timer1: timer@40085000 {
--			compatible = "nxp,lpc3220-timer";
--			reg = <0x40085000 0x1000>;
--			interrupts = <13>;
--			clocks = <&ccu1 CLK_CPU_TIMER1>;
--			clock-names = "timerclk";
--			resets = <&rgu 33>;
--		};
--
--		pinctrl: pinctrl@40086000 {
--			compatible = "nxp,lpc1850-scu";
--			reg = <0x40086000 0x1000>;
--			clocks = <&ccu1 CLK_CPU_SCU>;
--		};
--
--		i2c0: i2c@400a1000 {
--			compatible = "nxp,lpc1788-i2c";
--			reg = <0x400a1000 0x1000>;
--			interrupts = <18>;
--			clocks = <&ccu1 CLK_APB1_I2C0>;
--			resets = <&rgu 48>;
--			#address-cells = <1>;
--			#size-cells = <0>;
--			status = "disabled";
--		};
--
--		can1: can@400a4000 {
--			compatible = "bosch,c_can";
--			reg = <0x400a4000 0x1000>;
--			interrupts = <43>;
--			clocks = <&ccu1 CLK_APB1_CAN1>;
--			resets = <&rgu 54>;
--			status = "disabled";
--		};
--
--		uart2: serial@400c1000 {
--			compatible = "nxp,lpc1850-uart", "ns16550a";
--			reg = <0x400c1000 0x1000>;
--			reg-shift = <2>;
--			interrupts = <26>;
--			clocks = <&ccu2 CLK_APB2_UART2>, <&ccu1 CLK_CPU_UART2>;
--			clock-names = "uartclk", "reg";
--			resets = <&rgu 46>;
--			dmas = <&dmamux 5 1 2
--				&dmamux 6 1 2>;
--			dma-names = "tx", "rx";
--			status = "disabled";
--		};
--
--		uart3: serial@400c2000 {
--			compatible = "nxp,lpc1850-uart", "ns16550a";
--			reg = <0x400c2000 0x1000>;
--			reg-shift = <2>;
--			interrupts = <27>;
--			clocks = <&ccu2 CLK_APB2_UART3>, <&ccu1 CLK_CPU_UART3>;
--			clock-names = "uartclk", "reg";
--			resets = <&rgu 47>;
--			dmas = <&dmamux  7 1 2
--				&dmamux  8 1 2
--				&dmamux 13 3 2
--				&dmamux 14 3 2>;
--			dma-names = "tx", "rx", "rx", "tx";
--			status = "disabled";
--		};
--
--		timer2: timer@400c3000 {
--			compatible = "nxp,lpc3220-timer";
--			reg = <0x400c3000 0x1000>;
--			interrupts = <14>;
--			clocks = <&ccu1 CLK_CPU_TIMER2>;
--			clock-names = "timerclk";
--			resets = <&rgu 34>;
--		};
--
--		timer3: timer@400c4000 {
--			compatible = "nxp,lpc3220-timer";
--			reg = <0x400c4000 0x1000>;
--			interrupts = <15>;
--			clocks = <&ccu1 CLK_CPU_TIMER3>;
--			clock-names = "timerclk";
--			resets = <&rgu 35>;
--		};
--
--		ssp1: spi@400c5000 {
--			compatible = "arm,pl022", "arm,primecell";
--			reg = <0x400c5000 0x1000>;
--			interrupts = <23>;
--			clocks = <&ccu2 CLK_APB2_SSP1>, <&ccu1 CLK_CPU_SSP1>;
--			clock-names = "sspclk", "apb_pclk";
--			resets = <&rgu 51>;
--			dmas = <&dmamux 11 2 2
--				&dmamux 12 2 2
--				&dmamux  3 3 2
--				&dmamux  4 3 2
--				&dmamux  5 2 2
--				&dmamux  6 2 2
--				&dmamux 13 2 2
--				&dmamux 14 2 2>;
--			dma-names = "rx", "tx", "tx", "rx",
--				    "tx", "rx", "rx", "tx";
--			#address-cells = <1>;
--			#size-cells = <0>;
--			status = "disabled";
--		};
--
--		i2c1: i2c@400e0000 {
--			compatible = "nxp,lpc1788-i2c";
--			reg = <0x400e0000 0x1000>;
--			interrupts = <19>;
--			clocks = <&ccu1 CLK_APB3_I2C1>;
--			resets = <&rgu 49>;
--			#address-cells = <1>;
--			#size-cells = <0>;
--			status = "disabled";
--		};
--
--		dac: dac@400e1000 {
--			compatible = "nxp,lpc1850-dac";
--			reg = <0x400e1000 0x1000>;
--			interrupts = <0>;
--			clocks = <&ccu1 CLK_APB3_DAC>;
--			resets = <&rgu 42>;
--			status = "disabled";
--		};
--
--		can0: can@400e2000 {
--			compatible = "bosch,c_can";
--			reg = <0x400e2000 0x1000>;
--			interrupts = <51>;
--			clocks = <&ccu1 CLK_APB3_CAN0>;
--			resets = <&rgu 55>;
--			status = "disabled";
--		};
--
--		adc0: adc@400e3000 {
--			compatible = "nxp,lpc1850-adc";
--			reg = <0x400e3000 0x1000>;
--			interrupts = <17>;
--			clocks = <&ccu1 CLK_APB3_ADC0>;
--			resets = <&rgu 40>;
--			status = "disabled";
--		};
--
--		adc1: adc@400e4000 {
--			compatible = "nxp,lpc1850-adc";
--			reg = <0x400e4000 0x1000>;
--			interrupts = <21>;
--			clocks = <&ccu1 CLK_APB3_ADC1>;
--			resets = <&rgu 41>;
--			status = "disabled";
--		};
--
--		gpio: gpio@400f4000 {
--			compatible = "nxp,lpc1850-gpio";
--			reg = <0x400f4000 0x4000>;
--			clocks = <&ccu1 CLK_CPU_GPIO>;
--			gpio-controller;
--			#gpio-cells = <2>;
--			gpio-ranges =	<&pinctrl LPC_GPIO(0,0)  LPC_PIN(0,0)  2>,
--					<&pinctrl LPC_GPIO(0,4)  LPC_PIN(1,0)  1>,
--					<&pinctrl LPC_GPIO(0,8)  LPC_PIN(1,1)  4>,
--					<&pinctrl LPC_GPIO(1,8)  LPC_PIN(1,5)  2>,
--					<&pinctrl LPC_GPIO(1,0)  LPC_PIN(1,7)  8>,
--					<&pinctrl LPC_GPIO(0,2)  LPC_PIN(1,15) 2>,
--					<&pinctrl LPC_GPIO(0,12) LPC_PIN(1,17) 2>,
--					<&pinctrl LPC_GPIO(0,15) LPC_PIN(1,20) 1>,
--					<&pinctrl LPC_GPIO(5,0)  LPC_PIN(2,0)  7>,
--					<&pinctrl LPC_GPIO(0,7)  LPC_PIN(2,7)  1>,
--					<&pinctrl LPC_GPIO(5,7)  LPC_PIN(2,8)  1>,
--					<&pinctrl LPC_GPIO(1,10) LPC_PIN(2,9)  1>,
--					<&pinctrl LPC_GPIO(0,14) LPC_PIN(2,10) 1>,
--					<&pinctrl LPC_GPIO(1,11) LPC_PIN(2,11) 3>,
--					<&pinctrl LPC_GPIO(5,8)  LPC_PIN(3,1)  2>,
--					<&pinctrl LPC_GPIO(1,14) LPC_PIN(3,4)  2>,
--					<&pinctrl LPC_GPIO(0,6)  LPC_PIN(3,6)  1>,
--					<&pinctrl LPC_GPIO(5,10) LPC_PIN(3,7)  2>,
--					<&pinctrl LPC_GPIO(2,0)  LPC_PIN(4,0)  7>,
--					<&pinctrl LPC_GPIO(5,12) LPC_PIN(4,8)  3>,
--					<&pinctrl LPC_GPIO(2,9)  LPC_PIN(5,0)  7>,
--					<&pinctrl LPC_GPIO(2,7)  LPC_PIN(5,7)  1>,
--					<&pinctrl LPC_GPIO(3,0)  LPC_PIN(6,1)  5>,
--					<&pinctrl LPC_GPIO(0,5)  LPC_PIN(6,6)  1>,
--					<&pinctrl LPC_GPIO(5,15) LPC_PIN(6,7)  2>,
--					<&pinctrl LPC_GPIO(3,5)  LPC_PIN(6,9)  3>,
--					<&pinctrl LPC_GPIO(2,8)  LPC_PIN(6,12) 1>,
--					<&pinctrl LPC_GPIO(3,8)  LPC_PIN(7,0)  8>,
--					<&pinctrl LPC_GPIO(4,0)  LPC_PIN(8,0)  8>,
--					<&pinctrl LPC_GPIO(4,12) LPC_PIN(9,0)  4>,
--					<&pinctrl LPC_GPIO(5,17) LPC_PIN(9,4)  2>,
--					<&pinctrl LPC_GPIO(4,11) LPC_PIN(9,6)  1>,
--					<&pinctrl LPC_GPIO(4,8)  LPC_PIN(a,1)  3>,
--					<&pinctrl LPC_GPIO(5,19) LPC_PIN(a,4)  1>,
--					<&pinctrl LPC_GPIO(5,20) LPC_PIN(b,0)  7>,
--					<&pinctrl LPC_GPIO(6,0)  LPC_PIN(c,1) 14>,
--					<&pinctrl LPC_GPIO(6,14) LPC_PIN(d,0) 17>,
--					<&pinctrl LPC_GPIO(7,0)  LPC_PIN(e,0) 16>,
--					<&pinctrl LPC_GPIO(7,16) LPC_PIN(f,1)  3>,
--					<&pinctrl LPC_GPIO(7,19) LPC_PIN(f,5)  7>;
--		};
--	};
--};
--
--&nvic {
--	arm,num-irq-priority-bits = <3>;
--};
-diff --git a/arch/arm/boot/dts/nxp/lpc/lpc4337-ciaa.dts b/arch/arm/boot/dts/nxp/lpc/lpc4337-ciaa.dts
-deleted file mode 100644
-index 5ff43c825944..000000000000
---- a/arch/arm/boot/dts/nxp/lpc/lpc4337-ciaa.dts
-+++ /dev/null
-@@ -1,221 +0,0 @@
--/*
-- * CIAA NXP LPC4337 (http://www.proyecto-ciaa.com.ar)
-- *
-- * Copyright (C) 2015 VanguardiaSur - www.vanguardiasur.com.ar
-- *
-- * This code is released using a dual license strategy: BSD/GPL
-- * You can choose the licence that better fits your requirements.
-- *
-- * Released under the terms of 3-clause BSD License
-- * Released under the terms of GNU General Public License Version 2.0
-- */
--/dts-v1/;
--
--#include "lpc18xx.dtsi"
--#include "lpc4357.dtsi"
--
--#include "dt-bindings/gpio/gpio.h"
--
--/ {
--	model = "CIAA NXP LPC4337";
--	compatible = "ciaa,lpc4337", "nxp,lpc4337", "nxp,lpc4350";
--
--	aliases {
--		serial0 = &uart2;
--		serial1 = &uart3;
+-	oscclk2: clock-25000000 {
+-		compatible = "fixed-clock";
+-		#clock-cells = <0>;
+-		clock-frequency = <25000000>;
 -	};
 -
--	chosen {
--		bootargs = "console=ttyS0,115200 earlyprintk";
--		stdout-path = &uart2;
+-	cfgclk: clock-5000000 {
+-		compatible = "fixed-clock";
+-		#clock-cells = <0>;
+-		clock-frequency = <5000000>;
 -	};
 -
--	memory@28000000 {
--		device_type = "memory";
--		reg = <0x28000000 0x0800000>; /* 8 MB */
--	};
--};
--
--&pinctrl {
--	enet_rmii_pins: enet-rmii-pins {
--		enet_rmii_rxd_cfg {
--			pins = "p1_15", "p0_0";
--			function = "enet";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_rmii_txd_cfg {
--			pins = "p1_18", "p1_20";
--			function = "enet";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_rmii_rx_dv_cfg {
--			pins = "p1_16";
--			function = "enet";
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_rmii_tx_en_cfg {
--			pins = "p0_1";
--			function = "enet";
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_ref_clk_cfg {
--			pins = "p1_19";
--			function = "enet";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_mdio_cfg {
--			pins = "p1_17";
--			function = "enet";
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_mdc_cfg {
--			pins = "p7_7";
--			function = "enet";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
+-	spicfgclk: clock-75000000 {
+-		compatible = "fixed-clock";
+-		#clock-cells = <0>;
+-		clock-frequency = <75000000>;
 -	};
 -
--	i2c0_pins: i2c0-pins {
--		i2c0_pins_cfg {
--			pins = "i2c0_scl", "i2c0_sda";
--			function = "i2c0";
--			input-enable;
--		};
+-	sysclk: spiclcd: spicon: i2cclcd: i2caud: clock-sys {
+-		compatible = "fixed-factor-clock";
+-		clocks = <&oscclk0>;
+-		#clock-cells = <0>;
+-		clock-div = <2>;
+-		clock-mult = <1>;
 -	};
 -
--	ssp_pins: ssp-pins {
--		ssp1_cs_cfg {
--			pins = "p6_7";
--			function = "gpio";
--			bias-pull-up;
--			bias-disable;
--		};
--
--		ssp1_miso_mosi_cfg {
--			pins = "p1_3", "p1_4";
--			function = "ssp1";
--			slew-rate = <1>;
--			bias-pull-down;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		ssp1_sck_cfg {
--			pins = "pf_4";
--			function = "ssp1";
--			slew-rate = <1>;
--			bias-disable;
--		};
+-	audmclk: clk-12388000 {
+-		compatible = "fixed-factor-clock";
+-		clocks = <&oscclk1>;
+-		#clock-cells = <0>;
+-		clock-div = <2>;
+-		clock-mult = <1>;
 -	};
 -
--	uart2_pins: uart2-pins {
--		uart2_rx_cfg {
--			pins = "p7_2";
--			function = "uart2";
--			bias-disable;
--			input-enable;
--		};
--
--		uart2_tx_cfg {
--			pins = "p7_1";
--			function = "uart2";
--			bias-disable;
--		};
--	};
--
--	uart3_pins: uart3-pins {
--		uart3_rx_cfg {
--			pins = "p2_4";
--			function = "uart3";
--			bias-disable;
--			input-enable;
--		};
--
--		uart3_tx_cfg {
--			pins = "p2_3";
--			function = "uart3";
--			bias-disable;
--		};
--	};
--};
--
--&enet_tx_clk {
--	clock-frequency = <50000000>;
--};
--
--&i2c0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&i2c0_pins>;
--	clock-frequency = <400000>;
--
--	eeprom@50 {
--		compatible = "microchip,24c512", "atmel,24c512";
--		reg = <0x50>;
--	};
--
--	eeprom@51 {
--		compatible = "microchip,24c02", "atmel,24c02";
--		reg = <0x51>;
--	};
--
--	eeprom@54 {
--		compatible = "microchip,24c512", "atmel,24c512";
--		reg = <0x54>;
--	};
--};
--
--&mac {
--	status = "okay";
--	phy-mode = "rmii";
--	pinctrl-names = "default";
--	pinctrl-0 = <&enet_rmii_pins>;
--};
--
--&sct_pwm {
--	status = "okay";
--};
--
--&ssp1 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&ssp_pins>;
--	cs-gpios = <&gpio LPC_GPIO(5,15) GPIO_ACTIVE_HIGH>;
--	num-cs = <1>;
--};
--
--&uart2 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart2_pins>;
--};
--
--&uart3 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart3_pins>;
--};
-diff --git a/arch/arm/boot/dts/nxp/lpc/lpc4350-hitex-eval.dts b/arch/arm/boot/dts/nxp/lpc/lpc4350-hitex-eval.dts
-deleted file mode 100644
-index 18f757c56905..000000000000
---- a/arch/arm/boot/dts/nxp/lpc/lpc4350-hitex-eval.dts
-+++ /dev/null
-@@ -1,485 +0,0 @@
--/*
-- * Hitex LPC4350 Evaluation Board
-- *
-- * Copyright 2015 Ariel D'Alessandro <ariel.dalessandro@gmail.com>
-- *
-- * This code is released using a dual license strategy: BSD/GPL
-- * You can choose the licence that better fits your requirements.
-- *
-- * Released under the terms of 3-clause BSD License
-- * Released under the terms of GNU General Public License Version 2.0
-- *
-- */
--/dts-v1/;
--
--#include "lpc18xx.dtsi"
--#include "lpc4350.dtsi"
--
--#include "dt-bindings/input/input.h"
--#include "dt-bindings/gpio/gpio.h"
--
--/ {
--	model = "Hitex LPC4350 Evaluation Board";
--	compatible = "hitex,lpc4350-eval-board", "nxp,lpc4350";
--
--	aliases {
--		serial0 = &uart0;
--		serial1 = &uart1;
--		serial2 = &uart2;
--		serial3 = &uart3;
--	};
--
--	chosen {
--		stdout-path = &uart0;
--	};
--
--	memory@28000000 {
--		device_type = "memory";
--		reg = <0x28000000 0x800000>; /* 8 MB */
--	};
--
--	pca_buttons {
--		compatible = "gpio-keys-polled";
--		poll-interval = <100>;
--		autorepeat;
--
--		button-0 {
--			label = "joy:right";
--			linux,code = <KEY_RIGHT>;
--			gpios = <&pca_gpio 8 GPIO_ACTIVE_LOW>;
--		};
--
--		button-1 {
--			label = "joy:up";
--			linux,code = <KEY_UP>;
--			gpios = <&pca_gpio 9 GPIO_ACTIVE_LOW>;
--		};
--
--
--		button-2 {
--			label = "joy:enter";
--			linux,code = <KEY_ENTER>;
--			gpios = <&pca_gpio 10 GPIO_ACTIVE_LOW>;
--		};
--
--		button-3 {
--			label = "joy:left";
--			linux,code = <KEY_LEFT>;
--			gpios = <&pca_gpio 11 GPIO_ACTIVE_LOW>;
--		};
--
--		button-4 {
--			label = "joy:down";
--			linux,code = <KEY_DOWN>;
--			gpios = <&pca_gpio 12 GPIO_ACTIVE_LOW>;
--		};
--
--		button-5 {
--			label = "user:sw3";
--			linux,code = <KEY_F1>;
--			gpios = <&pca_gpio 13 GPIO_ACTIVE_LOW>;
--		};
--
--		button-6 {
--			label = "user:sw4";
--			linux,code = <KEY_F2>;
--			gpios = <&pca_gpio 14 GPIO_ACTIVE_LOW>;
--		};
--
--		button-7 {
--			label = "user:sw5";
--			linux,code = <KEY_F3>;
--			gpios = <&pca_gpio 15 GPIO_ACTIVE_LOW>;
--		};
--	};
--
--	pca_leds {
--		compatible = "gpio-leds";
--
--		led0 {
--			label = "ext:led0";
--			gpios = <&pca_gpio 0 GPIO_ACTIVE_LOW>;
--			linux,default-trigger = "heartbeat";
--		};
--
--		led1 {
--			label = "ext:led1";
--			gpios = <&pca_gpio 1 GPIO_ACTIVE_LOW>;
--		};
--
--		led2 {
--			label = "ext:led2";
--			gpios = <&pca_gpio 2 GPIO_ACTIVE_LOW>;
--		};
--
--		led3 {
--			label = "ext:led3";
--			gpios = <&pca_gpio 3 GPIO_ACTIVE_LOW>;
--		};
--	};
--
--	vcc: vcc_fixed {
--		compatible = "regulator-fixed";
--		regulator-name = "3v3io";
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--	};
--};
--
--&pinctrl {
--	adc1_pins: adc1-pins {
--		adc1_pins_cfg {
--			pins = "pf_9";
--			function = "adc";
--			input-disable;
--			bias-disable;
--		};
--	};
--
--	emc_pins: emc-pins {
--		emc_addr0_23_cfg {
--			pins =	"p2_9",  "p2_10", "p2_11", "p2_12",
--				"p2_13", "p1_0",  "p1_1",  "p1_2",
--				"p2_8",  "p2_7",  "p2_6",  "p2_2",
--				"p2_1",  "p2_0",  "p6_8",  "p6_7",
--				"pd_16", "pd_15", "pe_0",  "pe_1",
--				"pe_2",  "pe_3",  "pe_4",  "pa_4";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_data0_15_cfg {
--			pins =	"p1_7",  "p1_8",  "p1_9",  "p1_10",
--				"p1_11", "p1_12", "p1_13", "p1_14",
--				"p5_4",  "p5_5",  "p5_6",  "p5_7",
--				"p5_0",  "p5_1",  "p5_2",  "p5_3";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_we_oe_cfg {
--			pins = "p1_6", "p1_3";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_bls0_3_cfg {
--			pins = "p1_4", "p6_6", "pd_13", "pd_10";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_cs0_cs2_cfg {
--			pins = "p1_5", "pd_12";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_sdram_dqm0_3_cfg {
--			pins = "p6_12", "p6_10", "pd_0", "pe_13";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_sdram_ras_cas_cfg {
--			pins = "p6_5", "p6_4";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_sdram_dycs0_cfg {
--			pins = "p6_9";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_sdram_cke_cfg {
--			pins = "p6_11";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_sdram_clock_cfg {
--			pins = "clk0", "clk1", "clk2", "clk3";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--	};
--
--	enet_mii_pins: enet-mii-pins {
--		enet_mii_rxd0_3_cfg {
--			pins = "p1_15", "p0_0", "p9_3", "p9_2";
--			function = "enet";
--			bias-disable;
--			input-enable;
--		};
--
--		enet_mii_txd0_3_cfg {
--			pins = "p1_18", "p1_20", "p9_4", "p9_5";
--			function = "enet";
--			bias-disable;
--		};
--
--		enet_mii_crs_col_cfg {
--			pins = "p9_0", "p9_6";
--			function = "enet";
--			bias-disable;
--			input-enable;
--		};
--
--		enet_mii_rx_clk_dv_er_cfg {
--			pins = "pc_0", "p1_16", "p9_1";
--			function = "enet";
--			bias-disable;
--			input-enable;
--		};
--
--		enet_mii_tx_clk_en_cfg {
--			pins = "p1_19", "p0_1";
--			function = "enet";
--			bias-disable;
--			input-enable;
--		};
--
--		enet_mdio_cfg {
--			pins = "p1_17";
--			function = "enet";
--			bias-disable;
--			input-enable;
--		};
--
--		enet_mdc_cfg {
--			pins = "pc_1";
--			function = "enet";
--			bias-disable;
--		};
--	};
--
--	i2c0_pins: i2c0-pins {
--		i2c0_pins_cfg {
--			pins = "i2c0_scl", "i2c0_sda";
--			function = "i2c0";
--			input-enable;
--		};
--	};
--
--	spifi_pins: spifi-pins {
--		spifi_clk_cfg {
--			pins = "p3_3";
--			function = "spifi";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		spifi_mosi_miso_sio2_3_cfg {
--			pins = "p3_7", "p3_6", "p3_5", "p3_4";
--			function = "spifi";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		spifi_cs_cfg {
--			pins = "p3_8";
--			function = "spifi";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--	};
--
--	uart0_pins: uart0-pins {
--		uart0_rx_cfg {
--			pins = "pf_11";
--			function = "uart0";
--			input-schmitt-disable;
--			bias-disable;
--			input-enable;
--		};
--
--		uart0_tx_cfg {
--			pins = "pf_10";
--			function = "uart0";
--			bias-pull-down;
--		};
--	};
--};
--
--&adc1 {
--	status = "okay";
--	vref-supply = <&vcc>;
--	pinctrl-names = "default";
--	pinctrl-0 = <&adc1_pins>;
--};
--
--&emc {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&emc_pins>;
--
--	cs0 {
--		#address-cells = <2>;
--		#size-cells = <1>;
--		ranges;
--
--		mpmc,cs = <0>;
--		mpmc,memory-width = <16>;
--		mpmc,byte-lane-low;
--		mpmc,write-enable-delay = <0>;
--		mpmc,output-enable-delay = <0>;
--		mpmc,read-access-delay = <70>;
--		mpmc,page-mode-read-delay = <70>;
--
--		flash@0,0 {
--			compatible = "sst,sst39vf320", "cfi-flash";
--			reg = <0 0 0x400000>;
--			bank-width = <2>;
--			#address-cells = <1>;
--			#size-cells = <1>;
--
--			partition@0 {
--				label = "bootloader";
--				reg = <0x000000 0x040000>; /* 256 KiB */
--			};
--
--			partition@1 {
--				label = "kernel";
--				reg = <0x040000 0x2C0000>; /* 2.75 MiB */
--			};
--
--			partition@2 {
--				label = "rootfs";
--				reg = <0x300000 0x100000>; /* 1 MiB */
--			};
--		};
--	};
--
--	cs2 {
--		#address-cells = <2>;
--		#size-cells = <1>;
--		ranges;
--
--		mpmc,cs = <2>;
--		mpmc,memory-width = <16>;
--		mpmc,byte-lane-low;
--		mpmc,write-enable-delay = <0>;
--		mpmc,output-enable-delay = <30>;
--		mpmc,read-access-delay = <90>;
--		mpmc,page-mode-read-delay = <55>;
--		mpmc,write-access-delay = <55>;
--		mpmc,turn-round-delay = <55>;
--
--		ext_sram: sram@2,0 {
--			compatible = "mmio-sram";
--			reg = <2 0 0x80000>; /* 512 KiB SRAM on IS62WV25616 */
--			#address-cells = <1>;
--			#size-cells = <1>;
--			ranges = <0 2 0 0x80000>;
--		};
--	};
--};
--
--&enet_tx_clk {
--	clock-frequency = <25000000>;
--};
--
--&i2c0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&i2c0_pins>;
--	clock-frequency = <400000>;
--
--	/* NXP SE97BTP with temperature sensor + eeprom */
--	sensor@18 {
--		compatible = "nxp,se97", "jedec,jc-42.4-temp";
--		reg = <0x18>;
--	};
--
--	eeprom@50 {
--		compatible = "nxp,24c02", "atmel,24c02";
--		reg = <0x50>;
--	};
--
--	pca_gpio: gpio@24 {
--		compatible = "nxp,pca9673";
--		reg = <0x24>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
--};
--
--&mac {
--	status = "okay";
--	phy-mode = "mii";
--	pinctrl-names = "default";
--	pinctrl-0 = <&enet_mii_pins>;
--};
--
--&spifi {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&spifi_pins>;
--
--	flash@0 {
--		compatible = "jedec,spi-nor";
--		reg = <0>;
--		spi-rx-bus-width = <4>;
--		#address-cells = <1>;
--		#size-cells = <1>;
--
--		partition@0 {
--			label = "bootloader";
--			reg = <0x000000 0x040000>; /* 256 KiB */
--		};
--
--		partition@1 {
--			label = "kernel";
--			reg = <0x040000 0x2c0000>; /* 2.75 MiB */
--		};
--
--		partition@2 {
--			label = "rootfs";
--			reg = <0x300000 0x500000>; /* 5 MiB */
--		};
--	};
--};
--
--&uart0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart0_pins>;
--};
-diff --git a/arch/arm/boot/dts/nxp/lpc/lpc4350.dtsi b/arch/arm/boot/dts/nxp/lpc/lpc4350.dtsi
-deleted file mode 100644
-index 707d22a219d8..000000000000
---- a/arch/arm/boot/dts/nxp/lpc/lpc4350.dtsi
-+++ /dev/null
-@@ -1,48 +0,0 @@
--/*
-- * NXP LPC4350 and LPC4330 SoC
-- *
-- * Copyright 2015 Ariel D'Alessandro <ariel.dalessandro@gmail.com>
-- *
-- * This code is released using a dual license strategy: BSD/GPL
-- * You can choose the licence that better fits your requirements.
-- *
-- * Released under the terms of 3-clause BSD License
-- * Released under the terms of GNU General Public License Version 2.0
-- *
-- */
--
--/ {
--	compatible = "nxp,lpc4350", "nxp,lpc4330";
--
--	cpus {
--		cpu@0 {
--			compatible = "arm,cortex-m4";
--		};
+-	audsclk: clk-3072000 {
+-		compatible = "fixed-factor-clock";
+-		clocks = <&oscclk1>;
+-		#clock-cells = <0>;
+-		clock-div = <8>;
+-		clock-mult = <1>;
 -	};
 -
 -	soc {
--		sram0: sram@10000000 {
--			compatible = "mmio-sram";
--			reg = <0x10000000 0x20000>; /* 96 + 32 KiB local SRAM */
--			#address-cells = <1>;
--			#size-cells = <1>;
--			ranges;
--		};
--
--		sram1: sram@10080000 {
--			compatible = "mmio-sram";
--			reg = <0x10080000 0x12000>; /* 64 + 8 KiB local SRAM */
--			#address-cells = <1>;
--			#size-cells = <1>;
--			ranges;
--		};
--
--		sram2: sram@20000000 {
--			compatible = "mmio-sram";
--			reg = <0x20000000 0x10000>; /* 4 x 16 KiB AHB SRAM */
--			#address-cells = <1>;
--			#size-cells = <1>;
--			ranges;
--		};
--	};
--};
-diff --git a/arch/arm/boot/dts/nxp/lpc/lpc4357-ea4357-devkit.dts b/arch/arm/boot/dts/nxp/lpc/lpc4357-ea4357-devkit.dts
-deleted file mode 100644
-index 7ccb4c2ca571..000000000000
---- a/arch/arm/boot/dts/nxp/lpc/lpc4357-ea4357-devkit.dts
-+++ /dev/null
-@@ -1,624 +0,0 @@
--/*
-- * Embedded Artist LPC4357 Developer's Kit
-- *
-- * Copyright 2015 Joachim Eastwood <manabian@gmail.com>
-- *
-- * This code is released using a dual license strategy: BSD/GPL
-- * You can choose the licence that better fits your requirements.
-- *
-- * Released under the terms of 3-clause BSD License
-- * Released under the terms of GNU General Public License Version 2.0
-- *
-- */
--/dts-v1/;
--
--#include "lpc18xx.dtsi"
--#include "lpc4357.dtsi"
--
--#include "dt-bindings/input/input.h"
--#include "dt-bindings/gpio/gpio.h"
--
--/ {
--	model = "Embedded Artists' LPC4357 Developer's Kit";
--	compatible = "ea,lpc4357-developers-kit", "nxp,lpc4357", "nxp,lpc4350";
--
--	aliases {
--		serial0 = &uart0;
--		serial1 = &uart1;
--		serial2 = &uart2;
--		serial3 = &uart3;
--	};
--
--	chosen {
--		stdout-path = &uart0;
--	};
--
--	memory@28000000 {
--		device_type = "memory";
--		reg = <0x28000000 0x2000000>; /* 32 MB */
--	};
--
--	vcc: vcc_fixed {
--		compatible = "regulator-fixed";
--		regulator-name = "3v3-supply";
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--	};
--
--	/* vmmc is controlled by sdmmc host internally */
--	vmmc: vmmc_fixed {
--		compatible = "regulator-fixed";
--		regulator-name = "vmmc-supply";
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--	};
--
--	gpio_joystick {
--		compatible = "gpio-keys-polled";
--		pinctrl-names = "default";
--		pinctrl-0 = <&gpio_joystick_pins>;
--		poll-interval = <100>;
--		autorepeat;
--
--		button-0 {
--			label = "joy_enter";
--			linux,code = <KEY_ENTER>;
--			gpios = <&gpio LPC_GPIO(4,8) GPIO_ACTIVE_LOW>;
--		};
--
--		button-1 {
--			label = "joy_left";
--			linux,code = <KEY_LEFT>;
--			gpios = <&gpio LPC_GPIO(4,9) GPIO_ACTIVE_LOW>;
--		};
--
--		button-2 {
--			label = "joy_up";
--			linux,code = <KEY_UP>;
--			gpios = <&gpio LPC_GPIO(4,10) GPIO_ACTIVE_LOW>;
--		};
--
--		button-3 {
--			label = "joy_right";
--			linux,code = <KEY_RIGHT>;
--			gpios = <&gpio LPC_GPIO(4,12) GPIO_ACTIVE_LOW>;
--		};
--
--		button-4 {
--			label = "joy_down";
--			linux,code = <KEY_DOWN>;
--			gpios = <&gpio LPC_GPIO(4,13) GPIO_ACTIVE_LOW>;
--		};
--	};
--
--	leds_mmio {
--		compatible = "gpio-leds";
--
--		led1 {
--			gpios = <&mmio_leds 15 GPIO_ACTIVE_HIGH>;
--			linux,default-trigger = "heartbeat";
--		};
--
--		led2 {
--			gpios = <&mmio_leds 14 GPIO_ACTIVE_HIGH>;
--		};
--
--		led3 {
--			gpios = <&mmio_leds 13 GPIO_ACTIVE_HIGH>;
--		};
--
--		led4 {
--			gpios = <&mmio_leds 12 GPIO_ACTIVE_HIGH>;
--		};
--
--		led5 {
--			gpios = <&mmio_leds 11 GPIO_ACTIVE_HIGH>;
--		};
--
--		led6 {
--			gpios = <&mmio_leds 10 GPIO_ACTIVE_HIGH>;
--		};
--
--		led7 {
--			gpios = <&mmio_leds 9 GPIO_ACTIVE_HIGH>;
--		};
--
--		led8 {
--			gpios = <&mmio_leds 8 GPIO_ACTIVE_HIGH>;
--		};
--
--		led9 {
--			gpios = <&mmio_leds 7 GPIO_ACTIVE_HIGH>;
--		};
--
--		led10 {
--			gpios = <&mmio_leds 6 GPIO_ACTIVE_HIGH>;
--		};
--
--		led11 {
--			gpios = <&mmio_leds 5 GPIO_ACTIVE_HIGH>;
--		};
--
--		led12 {
--			gpios = <&mmio_leds 4 GPIO_ACTIVE_HIGH>;
--		};
--
--		led13 {
--			gpios = <&mmio_leds 3 GPIO_ACTIVE_HIGH>;
--		};
--
--		led14 {
--			gpios = <&mmio_leds 2 GPIO_ACTIVE_HIGH>;
--		};
--
--		led15 {
--			gpios = <&mmio_leds 1 GPIO_ACTIVE_HIGH>;
--		};
--
--		led16 {
--			gpios = <&mmio_leds 0 GPIO_ACTIVE_HIGH>;
--		};
--	};
--};
--
--&pinctrl {
--	emc_pins: emc-pins {
--		emc_addr0_23_cfg {
--			pins =	"p2_9",  "p2_10", "p2_11", "p2_12",
--				"p2_13", "p1_0",  "p1_1",  "p1_2",
--				"p2_8",  "p2_7",  "p2_6",  "p2_2",
--				"p2_1",  "p2_0",  "p6_8",  "p6_7",
--				"pd_16", "pd_15", "pe_0",  "pe_1",
--				"pe_2",  "pe_3",  "pe_4",  "pa_4";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_data0_31_cfg {
--			pins =	"p1_7",  "p1_8",  "p1_9",  "p1_10",
--				"p1_11", "p1_12", "p1_13", "p1_14",
--				"p5_4",  "p5_5",  "p5_6",  "p5_7",
--				"p5_0",  "p5_1",  "p5_2",  "p5_3",
--				"pd_2",  "pd_3",  "pd_4",  "pd_5",
--				"pd_6",  "pd_7",  "pd_8",  "pd_9",
--				"pe_5",  "pe_6",  "pe_7",  "pe_8",
--				"pe_9",  "pe_10", "pe_11", "pe_12";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_we_oe_cfg {
--			pins = "p1_6", "p1_3";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_bls0_3_cfg {
--			pins = "p1_4", "p6_6", "pd_13", "pd_10";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_cs0_3_cfg {
--			pins = "p1_5", "p6_3", "pd_12", "pd_11";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_sdram_dqm0_3_cfg {
--			pins = "p6_12", "p6_10", "pd_0", "pe_13";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_sdram_ras_cas_cfg {
--			pins = "p6_5", "p6_4";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_sdram_dycs0_cfg {
--			pins = "p6_9";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_sdram_cke_cfg {
--			pins = "p6_11";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		emc_sdram_clock_cfg {
--			pins = "clk0", "clk1", "clk2", "clk3";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--	};
--
--	enet_rmii_pins: enet-rmii-pins {
--		enet_rmii_rxd_cfg {
--			pins = "p1_15", "p0_0";
--			function = "enet";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_rmii_txd_cfg {
--			pins = "p1_18", "p1_20";
--			function = "enet";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_rmii_rx_dv_cfg {
--			pins = "p1_16";
--			function = "enet";
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_rmii_tx_en_cfg {
--			pins = "p0_1";
--			function = "enet";
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_ref_clk_cfg {
--			pins = "p1_19";
--			function = "enet";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_mdio_cfg {
--			pins = "p1_17";
--			function = "enet";
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		enet_mdc_cfg {
--			pins = "pc_1";
--			function = "enet";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--	};
--
--	gpio_joystick_pins: gpio-joystick-pins {
--		gpio_joystick_cfg {
--			pins =	"p9_0", "p9_1", "pa_1", "pa_2", "pa_3";
--			function = "gpio";
--			input-enable;
--			bias-disable;
--		};
--	};
--
--	i2c0_pins: i2c0-pins {
--		i2c0_pins_cfg {
--			pins = "i2c0_scl", "i2c0_sda";
--			function = "i2c0";
--			input-enable;
--		};
--	};
--
--	sdmmc_pins: sdmmc-pins {
--		sdmmc_clk_cfg {
--			pins = "pc_0";
--			function = "sdmmc";
--			slew-rate = <1>;
--			bias-pull-down;
--		};
--
--		sdmmc_cmd_dat0_3_cfg {
--			pins = "pc_4", "pc_5", "pc_6", "pc_7", "pc_10";
--			function = "sdmmc";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		sdmmc_cd_cfg {
--			pins = "pc_8";
--			function = "sdmmc";
--			bias-pull-down;
--			input-enable;
--		};
--
--		sdmmc_pow_cfg {
--			pins = "pc_9";
--			function = "sdmmc";
--			bias-pull-down;
--		};
--	};
--
--	spifi_pins: spifi-pins {
--		spifi_clk_cfg {
--			pins = "p3_3";
--			function = "spifi";
--			slew-rate = <1>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		spifi_mosi_miso_sio2_3_cfg {
--			pins = "p3_7", "p3_6", "p3_5", "p3_4";
--			function = "spifi";
--			slew-rate = <0>;
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		spifi_cs_cfg {
--			pins = "p3_8";
--			function = "spifi";
--			bias-disable;
--		};
--	};
--
--	ssp0_pins: ssp0-pins {
--		ssp0_sck_miso_mosi_cfg {
--			pins = "pf_0", "pf_2", "pf_3";
--			function = "ssp0";
--			slew-rate = <1>;
--			bias-pull-down;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		ssp0_ssel_cfg {
--			pins = "pf_1";
--			function = "ssp0";
--			bias-pull-up;
--		};
--	};
--
--	uart0_pins: uart0-pins {
--		uart0_rx_cfg {
--			pins = "pf_11";
--			function = "uart0";
--			input-schmitt-disable;
--			bias-disable;
--			input-enable;
--		};
--
--		uart0_tx_cfg {
--			pins = "pf_10";
--			function = "uart0";
--			bias-pull-down;
--		};
--	};
--
--	uart3_pins: uart3-pins {
--		uart3_rx_cfg {
--			pins = "p2_4";
--			function = "uart3";
--			input-schmitt-disable;
--			bias-disable;
--			input-enable;
--		};
--
--		uart3_tx_cfg {
--			pins = "p9_3";
--			function = "uart3";
--			bias-pull-down;
--		};
--	};
--
--	usb0_pins: usb0-pins {
--		usb0_pwr_enable_cfg {
--			pins = "p2_3";
--			function = "usb0";
--		};
--
--		usb0_pwr_fault_cfg {
--			pins = "p8_0";
--			function = "usb0";
--			bias-disable;
--			input-enable;
--		};
--	};
--};
--
--&adc0 {
--	status = "okay";
--	vref-supply = <&vcc>;
--};
--
--&i2c0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&i2c0_pins>;
--	clock-frequency = <400000>;
--
--	mma7455@1d {
--		compatible = "fsl,mma7455";
--		reg = <0x1d>;
--	};
--
--	temperature-sensor@48 {
--		compatible = "national,lm75b";
--		reg = <0x48>;
--	};
--
--	eeprom@57 {
--		compatible = "microchip,24c64", "atmel,24c64";
--		reg = <0x57>;
--	};
--};
--
--&dac {
--	status = "okay";
--	vref-supply = <&vcc>;
--};
--
--&emc {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&emc_pins>;
--
--	cs0 {
--		#address-cells = <2>;
--		#size-cells = <1>;
+-		compatible = "simple-bus";
 -		ranges;
 -
--		mpmc,cs = <0>;
--		mpmc,memory-width = <16>;
--		mpmc,byte-lane-low;
--		mpmc,write-enable-delay = <0>;
--		mpmc,output-enable-delay = <0>;
--		mpmc,read-access-delay = <70>;
--		mpmc,page-mode-read-delay = <70>;
--
--		flash@0,0 {
--			compatible = "sst,sst39vf320", "cfi-flash";
--			reg = <0 0 0x400000>;
--			bank-width = <2>;
+-		apb@40000000 {
+-			compatible = "simple-bus";
 -			#address-cells = <1>;
 -			#size-cells = <1>;
+-			ranges = <0 0x40000000 0x10000>;
 -
--			partition@0 {
--				label = "bootloader";
--				reg = <0x000000 0x040000>; /* 256 KiB */
+-			timer0: mps2-timer0@0 {
+-				compatible = "arm,mps2-timer";
+-				reg = <0x0 0x1000>;
+-				interrupts = <8>;
+-				clocks = <&sysclk>;
+-				status = "disabled";
 -			};
 -
--			partition@1 {
--				label = "kernel";
--				reg = <0x040000 0x2c0000>; /* 2.75 MiB */
+-			timer1: mps2-timer1@1000 {
+-				compatible = "arm,mps2-timer";
+-				reg = <0x1000 0x1000>;
+-				interrupts = <9>;
+-				clocks = <&sysclk>;
+-				status = "disabled";
 -			};
 -
--			partition@2 {
--				label = "rootfs";
--				reg = <0x300000 0x100000>; /* 1 MiB */
+-			timer2: dual-timer@2000 {
+-				compatible = "arm,sp804", "arm,primecell";
+-				reg = <0x2000 0x1000>;
+-				clocks = <&sysclk>, <&sysclk>, <&sysclk>;
+-				clock-names = "timer0clk", "timer1clk",
+-					       "apb_pclk";
+-				interrupts = <10>;
+-				status = "disabled";
+-			};
+-
+-			uart0: serial@4000 {
+-				compatible = "arm,mps2-uart";
+-				reg = <0x4000 0x1000>;
+-				interrupts = <0>, <1>, <12>;
+-				clocks = <&sysclk>;
+-				status = "disabled";
+-			};
+-
+-			uart1: serial@5000 {
+-				compatible = "arm,mps2-uart";
+-				reg = <0x5000 0x1000>;
+-				interrupts = <2>, <3>, <12>;
+-				clocks = <&sysclk>;
+-				status = "disabled";
+-			};
+-
+-			uart2: serial@6000 {
+-				compatible = "arm,mps2-uart";
+-				reg = <0x6000 0x1000>;
+-				interrupts = <4>, <5>, <12>;
+-				clocks = <&sysclk>;
+-				status = "disabled";
+-			};
+-
+-			wdt: watchdog@8000 {
+-				compatible = "arm,sp805", "arm,primecell";
+-				arm,primecell-periphid = <0x00141805>;
+-				reg = <0x8000 0x1000>;
+-				interrupts = <0>;
+-				clocks = <&sysclk>, <&sysclk>;
+-				clock-names = "wdog_clk", "apb_pclk";
+-				status = "disabled";
 -			};
 -		};
 -	};
 -
--	cs2 {
--		#address-cells = <2>;
--		#size-cells = <1>;
--		ranges;
--
--		mpmc,cs = <2>;
--		mpmc,memory-width = <16>;
--
--		mmio_leds: gpio@2,0 {
--			compatible = "ti,7416374";
--			reg = <2 0 0x2>;
--			gpio-controller;
--			#gpio-cells = <2>;
--		};
--
--	};
--};
--
--&enet_tx_clk {
--	clock-frequency = <50000000>;
--};
--
--&mac {
--	status = "okay";
--	phy-mode = "rmii";
--	pinctrl-names = "default";
--	pinctrl-0 = <&enet_rmii_pins>;
--};
--
--&mmcsd {
--	status = "okay";
--	bus-width = <4>;
--	vmmc-supply = <&vmmc>;
--	pinctrl-names = "default";
--	pinctrl-0 = <&sdmmc_pins>;
--};
--
--&spifi {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&spifi_pins>;
--
--	flash@0 {
--		compatible = "jedec,spi-nor";
--		reg = <0>;
--		spi-cpol;
--		spi-cpha;
--		spi-rx-bus-width = <4>;
+-	fpga@40020000 {
+-		compatible = "simple-bus";
 -		#address-cells = <1>;
 -		#size-cells = <1>;
+-		ranges = <0 0x40020000 0x10000>;
 -
--		partition@0 {
--			label = "data";
--			reg = <0 0x200000>;
--		};
--	};
--};
+-		fpgaio@8000 {
+-			compatible = "syscon", "simple-mfd";
+-			reg = <0x8000 0x10>;
 -
--&ssp0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&ssp0_pins>;
--	num-cs = <1>;
--};
+-			ranges = <0x0 0x8000 0x10>;
+-			#address-cells = <1>;
+-			#size-cells = <1>;
 -
--&uart0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart0_pins>;
--};
+-			led@0,0 {
+-				compatible = "register-bit-led";
+-				reg = <0x00 0x04>;
+-				offset = <0x0>;
+-				mask = <0x01>;
+-				label = "userled:0";
+-				linux,default-trigger = "heartbeat";
+-				default-state = "on";
+-			};
 -
--&uart3 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart3_pins>;
--};
--
--&usb0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&usb0_pins>;
--};
-diff --git a/arch/arm/boot/dts/nxp/lpc/lpc4357-myd-lpc4357.dts b/arch/arm/boot/dts/nxp/lpc/lpc4357-myd-lpc4357.dts
-deleted file mode 100644
-index d18f2b2caf68..000000000000
---- a/arch/arm/boot/dts/nxp/lpc/lpc4357-myd-lpc4357.dts
-+++ /dev/null
-@@ -1,621 +0,0 @@
--// SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
--/*
-- * MYIR Tech MYD-LPC4357 Development Board with 800x480 7" TFT panel
-- *
-- * Copyright (C) 2016-2018 Vladimir Zapolskiy <vz@mleia.com>
-- */
--
--/dts-v1/;
--
--#include "lpc18xx.dtsi"
--#include "lpc4357.dtsi"
--
--#include <dt-bindings/gpio/gpio.h>
--
--/ {
--	model = "MYIR Tech LPC4357 Development Board";
--	compatible = "myir,myd-lpc4357", "nxp,lpc4357";
--
--	chosen {
--		stdout-path = "serial3:115200n8";
--	};
--
--	memory@28000000 {
--		device_type = "memory";
--		reg = <0x28000000 0x2000000>;
--	};
--
--	leds {
--		compatible = "gpio-leds";
--		pinctrl-names = "default";
--		pinctrl-0 = <&led_pins>;
--
--		led1 {
--			gpios = <&gpio LPC_GPIO(6,15) GPIO_ACTIVE_LOW>;
--			default-state = "off";
--		};
--
--		led2 {
--			gpios = <&gpio LPC_GPIO(6,16) GPIO_ACTIVE_LOW>;
--			default-state = "off";
--		};
--
--		led3 {
--			gpios = <&gpio LPC_GPIO(6,17) GPIO_ACTIVE_LOW>;
--			default-state = "off";
--		};
--
--		led4 {
--			gpios = <&gpio LPC_GPIO(6,10) GPIO_ACTIVE_LOW>;
--			default-state = "off";
--		};
--
--		led5 {
--			gpios = <&gpio LPC_GPIO(7,14) GPIO_ACTIVE_LOW>;
--			default-state = "off";
--		};
--
--		led6 {
--			gpios = <&gpio LPC_GPIO(6,14) GPIO_ACTIVE_LOW>;
--			default-state = "off";
--		};
--	};
--
--	panel: panel {
--		compatible = "innolux,at070tn92";
--		power-supply = <&vcc>;
--
--		port {
--			panel_input: endpoint {
--				remote-endpoint = <&lcdc_output>;
+-			led@0,1 {
+-				compatible = "register-bit-led";
+-				reg = <0x00 0x04>;
+-				offset = <0x0>;
+-				mask = <0x02>;
+-				label = "userled:1";
+-				linux,default-trigger = "usr";
+-				default-state = "off";
 -			};
 -		};
 -	};
 -
--	vcc: vcc_fixed {
--		compatible = "regulator-fixed";
--		regulator-name = "vcc-supply";
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--	};
--
--	vmmc: vmmc_fixed {
--		compatible = "regulator-fixed";
--		regulator-name = "vmmc-supply";
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--	};
--};
--
--&pinctrl {
--	can0_pins: can0-pins {
--		can_rd_cfg {
--			pins = "p3_1";
--			function = "can0";
--			input-enable;
--		};
--
--		can_td_cfg {
--			pins = "p3_2";
--			function = "can0";
--		};
--	};
--
--	can1_pins: can1-pins {
--		can_rd_cfg {
--			pins = "pe_1";
--			function = "can1";
--			input-enable;
--		};
--
--		can_td_cfg {
--			pins = "pe_0";
--			function = "can1";
--		};
--	};
--
--	emc_pins: emc-pins {
--		emc_addr0_22_cfg {
--			pins = "p2_9",  "p2_10", "p2_11", "p2_12",
--			       "p2_13", "p1_0",  "p1_1",  "p1_2",
--			       "p2_8",  "p2_7",  "p2_6",  "p2_2",
--			       "p2_1",  "p2_0",  "p6_8",  "p6_7",
--			       "pd_16", "pd_15", "pe_0",  "pe_1",
--			       "pe_2",  "pe_3",  "pe_4";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		emc_data0_15_cfg {
--			pins = "p1_7",  "p1_8",  "p1_9",  "p1_10",
--			       "p1_11", "p1_12", "p1_13", "p1_14",
--			       "p5_4",  "p5_5",  "p5_6",  "p5_7",
--			       "p5_0",  "p5_1",  "p5_2",  "p5_3";
--			function = "emc";
--			input-enable;
--			input-schmitt-disable;
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		emc_we_oe_cfg {
--			pins = "p1_6", "p1_3";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		emc_cs0_cfg {
--			pins = "p1_5";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		emc_sdram_dqm0_1_cfg {
--			pins = "p6_12", "p6_10";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		emc_sdram_ras_cas_cfg {
--			pins = "p6_5", "p6_4";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		emc_sdram_dycs0_cfg {
--			pins = "p6_9";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		emc_sdram_cke_cfg {
--			pins = "p6_11";
--			function = "emc";
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		emc_sdram_clock_cfg {
--			pins = "clk0";
--			function = "emc";
--			input-enable;
--			input-schmitt-disable;
--			slew-rate = <1>;
--			bias-disable;
--		};
--	};
--
--	enet_rmii_pins: enet-rmii-pins {
--		enet_rmii_rxd_cfg {
--			pins = "p1_15", "p0_0";
--			function = "enet";
--			input-enable;
--			input-schmitt-disable;
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		enet_rmii_txd_cfg {
--			pins = "p1_18", "p1_20";
--			function = "enet";
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		enet_rmii_rx_dv_cfg {
--			pins = "p1_16";
--			function = "enet";
--			input-enable;
--			input-schmitt-disable;
--			bias-disable;
--		};
--
--		enet_mdio_cfg {
--			pins = "p1_17";
--			function = "enet";
--			input-enable;
--			input-schmitt-disable;
--			bias-disable;
--		};
--
--		enet_mdc_cfg {
--			pins = "pc_1";
--			function = "enet";
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		enet_rmii_tx_en_cfg {
--			pins = "p0_1";
--			function = "enet";
--			bias-disable;
--		};
--
--		enet_ref_clk_cfg {
--			pins = "p1_19";
--			function = "enet";
--			slew-rate = <1>;
--			input-enable;
--			input-schmitt-disable;
--			bias-disable;
--		};
--	};
--
--	i2c0_pins: i2c0-pins {
--		i2c0_pins_cfg {
--			pins = "i2c0_scl", "i2c0_sda";
--			function = "i2c0";
--			input-enable;
--		};
--	};
--
--	i2c1_pins: i2c1-pins {
--		i2c1_pins_cfg {
--			pins = "pe_15", "pe_13";
--			function = "i2c1";
--			input-enable;
--		};
--	};
--
--	lcd_pins: lcd-pins {
--		lcd_vd0_23_cfg {
--			pins = "p4_1", "p4_4", "p4_3",  "p4_2",
--			       "p8_7", "p8_6", "p8_5",  "p8_4",
--			       "p7_5", "p4_8", "p4_10", "p4_9",
--			       "p8_3", "pb_6", "pb_5",  "pb_4",
--			       "p7_4", "p7_3", "p7_2",  "p7_1",
--			       "pb_3", "pb_2", "pb_1",  "pb_0";
--			function = "lcd";
--		};
--
--		lcd_vsync_en_dclk_lp_pwr_cfg {
--			pins = "p4_5", "p4_6", "p4_7", "p7_6", "p7_7";
--			function = "lcd";
--		};
--	};
--
--	led_pins: led-pins {
--		led_1_6_cfg {
--			pins = "pd_1", "pd_2", "pd_3", "pc_11", "pe_14", "pd_0";
--			function = "gpio";
--			bias-pull-down;
--		};
--	};
--
--	sdmmc_pins: sdmmc-pins {
--		sdmmc_clk_cfg {
--			pins = "pc_0";
--			function = "sdmmc";
--			slew-rate = <1>;
--			bias-pull-down;
--		};
--
--		sdmmc_cmd_dat0_3_cfg {
--			pins = "pc_4", "pc_5", "pc_6", "pc_7", "pc_10";
--			function = "sdmmc";
--			input-enable;
--			input-schmitt-disable;
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		sdmmc_cd_cfg {
--			pins = "pc_8";
--			function = "sdmmc";
--			input-enable;
--			bias-pull-down;
--		};
--	};
--
--	spifi_pins: spifi-pins {
--		spifi_sck_cfg {
--			pins = "p3_3";
--			function = "spifi";
--			input-enable;
--			input-schmitt-disable;
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		spifi_mosi_miso_sio2_sio3_cfg {
--			pins = "p3_7", "p3_6", "p3_5", "p3_4";
--			function = "spifi";
--			input-enable;
--			input-schmitt-disable;
--			slew-rate = <1>;
--			bias-disable;
--		};
--
--		spifi_cs_cfg {
--			pins = "p3_8";
--			function = "spifi";
--			bias-disable;
--		};
--	};
--
--	ssp1_pins: ssp1-pins {
--		ssp1_sck_cfg {
--			pins = "pf_4";
--			function = "ssp1";
--			slew-rate = <1>;
--			bias-pull-down;
--		};
--
--		ssp1_miso_cfg {
--			pins = "pf_6";
--			function = "ssp1";
--			input-enable;
--			input-schmitt-disable;
--			slew-rate = <1>;
--			bias-pull-down;
--		};
--
--		ssp1_mosi_cfg {
--			pins = "pf_7";
--			function = "ssp1";
--			slew-rate = <1>;
--			bias-pull-down;
--		};
--
--		ssp1_ssel_cfg {
--			pins = "pf_5";
--			function = "gpio";
--			bias-disable;
--		};
--	};
--
--	uart0_pins: uart0-pins {
--		uart0_rxd_cfg {
--			pins = "pf_11";
--			function = "uart0";
--			input-enable;
--			input-schmitt-disable;
--			bias-disable;
--		};
--
--		uart0_clk_dir_txd_cfg {
--			pins = "pf_8", "pf_9", "pf_10";
--			function = "uart0";
--			bias-pull-down;
--		};
--	};
--
--	uart1_pins: uart1-pins {
--		uart1_rxd_cfg {
--			pins = "pc_14";
--			function = "uart1";
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		uart1_dtr_txd_cfg {
--			pins = "pc_12", "pc_13";
--			function = "uart1";
--			bias-pull-down;
--		};
--	};
--
--	uart2_pins: uart2-pins {
--		uart2_rxd_cfg {
--			pins = "pa_2";
--			function = "uart2";
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		uart2_txd_cfg {
--			pins = "pa_1";
--			function = "uart2";
--			bias-pull-down;
--		};
--	};
--
--	uart3_pins: uart3-pins {
--		uart3_rx_cfg {
--			pins = "p2_4";
--			function = "uart3";
--			bias-disable;
--			input-enable;
--			input-schmitt-disable;
--		};
--
--		uart3_tx_cfg {
--			pins = "p2_3";
--			function = "uart3";
--			bias-pull-down;
--		};
--	};
--
--	usb0_pins: usb0-pins {
--		usb0_pwr_enable_cfg {
--			pins = "p6_3";
--			function = "usb0";
--		};
--
--		usb0_pwr_fault_cfg {
--			pins = "p8_0";
--			function = "usb0";
--			bias-disable;
--			input-enable;
--		};
--	};
--};
--
--&adc1 {
--	status = "okay";
--	vref-supply = <&vcc>;
--};
--
--&can0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&can0_pins>;
--};
--
--/* Pin conflict with EMC, muxed by JP5 and JP6 */
--&can1 {
--	status = "disabled";
--	pinctrl-names = "default";
--	pinctrl-0 = <&can1_pins>;
--};
--
--&emc {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&emc_pins>;
--
--	cs0 {
+-	smb {
+-		compatible = "simple-bus";
 -		#address-cells = <2>;
 -		#size-cells = <1>;
--		ranges;
--
--		mpmc,cs = <0>;
--		mpmc,memory-width = <16>;
--		mpmc,byte-lane-low;
--		mpmc,write-enable-delay = <0>;
--		mpmc,output-enable-delay = <0>;
--		mpmc,read-access-delay = <70>;
--		mpmc,page-mode-read-delay = <70>;
--
--		/* SST/Microchip SST39VF1601 */
--		flash@0,0 {
--			compatible = "cfi-flash";
--			reg = <0 0 0x400000>;
--			bank-width = <2>;
--		};
+-		ranges = <0 0 0x40200000 0x10000>,
+-			 <1 0 0xa0000000 0x10000>;
 -	};
 -};
--
--&enet_tx_clk {
--	clock-frequency = <50000000>;
--};
--
--&i2c0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&i2c0_pins>;
--	clock-frequency = <400000>;
--};
--
--&i2c1 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&i2c1_pins>;
--	clock-frequency = <400000>;
--
--	sensor@49 {
--		compatible = "national,lm75";
--		reg = <0x49>;
--	};
--
--	eeprom@50 {
--		compatible = "atmel,24c512";
--		reg = <0x50>;
--	};
--};
--
--&lcdc {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&lcd_pins>;
--
--	max-memory-bandwidth = <92240000>;
--
--	port {
--		lcdc_output: endpoint {
--			remote-endpoint = <&panel_input>;
--			arm,pl11x,tft-r0g0b0-pads = <0 8 16>;
--		};
--	};
--};
--
--&mac {
--	status = "okay";
--	phy-mode = "rmii";
--	pinctrl-names = "default";
--	pinctrl-0 = <&enet_rmii_pins>;
--	phy-handle = <&phy1>;
--
--	mdio {
--		#address-cells = <1>;
--		#size-cells = <0>;
--		compatible = "snps,dwmac-mdio";
--
--		phy1: ethernet-phy@1 {
--			reg = <1>;
--		};
--	};
--};
--
--&mmcsd {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&sdmmc_pins>;
--	bus-width = <4>;
--	vmmc-supply = <&vmmc>;
--};
--
--/* Pin conflict with SSP0, the latter is routed to J17 pin header */
--&spifi {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&spifi_pins>;
--
--	/* Atmel AT25DF321A */
--	flash@0 {
--		compatible = "jedec,spi-nor";
--		reg = <0>;
--		spi-max-frequency = <51000000>;
--		spi-cpol;
--		spi-cpha;
--	};
--};
--
--&ssp1 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&ssp1_pins>;
--	num-cs = <1>;
--	cs-gpios = <&gpio LPC_GPIO(7,19) GPIO_ACTIVE_LOW>;
--};
--
--/* Routed to J17 pin header */
--&uart0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart0_pins>;
--};
--
--/* RS485 */
--&uart1 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart1_pins>;
--};
--
--/* Routed to J17 pin header */
--&uart2 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart2_pins>;
--};
--
--&uart3 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart3_pins>;
--};
--
--&usb0 {
--	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&usb0_pins>;
--};
-diff --git a/arch/arm/boot/dts/nxp/lpc/lpc4357.dtsi b/arch/arm/boot/dts/nxp/lpc/lpc4357.dtsi
+diff --git a/arch/arm/configs/mps2_defconfig b/arch/arm/configs/mps2_defconfig
 deleted file mode 100644
-index d138ee7869ff..000000000000
---- a/arch/arm/boot/dts/nxp/lpc/lpc4357.dtsi
+index cacf3876f6e4..000000000000
+--- a/arch/arm/configs/mps2_defconfig
 +++ /dev/null
-@@ -1,52 +0,0 @@
--/*
-- * NXP LPC435x, LPC433x, LPC4327, LPC4325, LPC4317 and LPC4315 SoC
-- *
-- * Copyright 2015 Joachim Eastwood <manabian@gmail.com>
-- *
-- * This code is released using a dual license strategy: BSD/GPL
-- * You can choose the licence that better fits your requirements.
-- *
-- * Released under the terms of 3-clause BSD License
-- * Released under the terms of GNU General Public License Version 2.0
-- *
-- */
--
--/ {
--	compatible = "nxp,lpc4357";
--
--	cpus {
--		cpu@0 {
--			compatible = "arm,cortex-m4";
--		};
--	};
--
--	soc {
--		sram0: sram@10000000 {
--			compatible = "mmio-sram";
--			reg = <0x10000000 0x8000>; /* 32 KiB local SRAM */
--			#address-cells = <1>;
--			#size-cells = <1>;
--			ranges;
--		};
--
--		sram1: sram@10080000 {
--			compatible = "mmio-sram";
--			reg = <0x10080000 0xa000>; /* 32 + 8 KiB local SRAM */
--			#address-cells = <1>;
--			#size-cells = <1>;
--			ranges;
--		};
--
--		sram2: sram@20000000 {
--			compatible = "mmio-sram";
--			reg = <0x20000000 0x10000>; /* 4 x 16 KiB AHB SRAM */
--			#address-cells = <1>;
--			#size-cells = <1>;
--			ranges;
--		};
--	};
--};
--
--&eeprom {
--	status = "okay";
--};
-diff --git a/arch/arm/configs/lpc18xx_defconfig b/arch/arm/configs/lpc18xx_defconfig
-deleted file mode 100644
-index f142a6637ede..000000000000
---- a/arch/arm/configs/lpc18xx_defconfig
-+++ /dev/null
-@@ -1,158 +0,0 @@
+@@ -1,102 +0,0 @@
+-CONFIG_NO_HZ_IDLE=y
 -CONFIG_HIGH_RES_TIMERS=y
--CONFIG_PREEMPT=y
--CONFIG_BLK_DEV_INITRD=y
--# CONFIG_RD_BZIP2 is not set
--# CONFIG_RD_LZMA is not set
--# CONFIG_RD_XZ is not set
--# CONFIG_RD_LZO is not set
--# CONFIG_RD_LZ4 is not set
+-CONFIG_PREEMPT_VOLUNTARY=y
+-CONFIG_LOG_BUF_SHIFT=16
 -CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+-CONFIG_EXPERT=y
 -# CONFIG_UID16 is not set
 -CONFIG_BASE_SMALL=y
 -# CONFIG_FUTEX is not set
@@ -2899,23 +607,22 @@ index f142a6637ede..000000000000
 -# CONFIG_SIGNALFD is not set
 -# CONFIG_EVENTFD is not set
 -# CONFIG_AIO is not set
--CONFIG_EXPERT=y
 -# CONFIG_MMU is not set
--CONFIG_ARCH_LPC18XX=y
+-CONFIG_ARCH_MPS2=y
 -CONFIG_SET_MEM_PARAM=y
--CONFIG_DRAM_BASE=0x28000000
--CONFIG_DRAM_SIZE=0x02000000
--CONFIG_FLASH_MEM_BASE=0x1b000000
--CONFIG_FLASH_SIZE=0x00080000
--CONFIG_ARM_APPENDED_DTB=y
+-CONFIG_DRAM_BASE=0x21000000
+-CONFIG_DRAM_SIZE=0x1000000
+-# CONFIG_SUSPEND is not set
+-# CONFIG_BLOCK is not set
 -CONFIG_BINFMT_FLAT=y
--CONFIG_BINFMT_ZFLAT=y
 -# CONFIG_COREDUMP is not set
 -# CONFIG_VM_EVENT_COUNTERS is not set
 -CONFIG_NET=y
 -CONFIG_PACKET=y
 -CONFIG_UNIX=y
 -CONFIG_INET=y
+-CONFIG_IP_PNP=y
+-CONFIG_IP_PNP_DHCP=y
 -# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
 -# CONFIG_INET_XFRM_MODE_TUNNEL is not set
 -# CONFIG_INET_XFRM_MODE_BEET is not set
@@ -2925,155 +632,120 @@ index f142a6637ede..000000000000
 -CONFIG_DEVTMPFS=y
 -CONFIG_DEVTMPFS_MOUNT=y
 -# CONFIG_FW_LOADER is not set
--CONFIG_MTD=y
--CONFIG_MTD_BLOCK=y
--CONFIG_MTD_CFI=y
--CONFIG_MTD_CFI_INTELEXT=y
--CONFIG_MTD_CFI_AMDSTD=y
--CONFIG_MTD_CFI_STAA=y
--CONFIG_MTD_PHYSMAP=y
--CONFIG_MTD_PHYSMAP_OF=y
--CONFIG_MTD_SPI_NOR=y
--# CONFIG_MTD_SPI_NOR_USE_4K_SECTORS is not set
--CONFIG_SPI_NXP_SPIFI=y
--CONFIG_BLK_DEV_RAM=y
--CONFIG_SRAM=y
--CONFIG_EEPROM_AT24=y
--CONFIG_SCSI=y
--CONFIG_BLK_DEV_SD=y
--# CONFIG_BLK_DEV_BSG is not set
--# CONFIG_SCSI_LOWLEVEL is not set
 -CONFIG_NETDEVICES=y
+-# CONFIG_NET_CORE is not set
 -# CONFIG_NET_VENDOR_ARC is not set
+-# CONFIG_NET_CADENCE is not set
 -# CONFIG_NET_VENDOR_BROADCOM is not set
 -# CONFIG_NET_VENDOR_CIRRUS is not set
+-# CONFIG_NET_VENDOR_EZCHIP is not set
 -# CONFIG_NET_VENDOR_FARADAY is not set
 -# CONFIG_NET_VENDOR_HISILICON is not set
 -# CONFIG_NET_VENDOR_INTEL is not set
 -# CONFIG_NET_VENDOR_MARVELL is not set
 -# CONFIG_NET_VENDOR_MICREL is not set
--# CONFIG_NET_VENDOR_MICROCHIP is not set
 -# CONFIG_NET_VENDOR_NATSEMI is not set
 -# CONFIG_NET_VENDOR_QUALCOMM is not set
+-# CONFIG_NET_VENDOR_RENESAS is not set
 -# CONFIG_NET_VENDOR_ROCKER is not set
 -# CONFIG_NET_VENDOR_SAMSUNG is not set
 -# CONFIG_NET_VENDOR_SEEQ is not set
--# CONFIG_NET_VENDOR_SMSC is not set
--CONFIG_STMMAC_ETH=y
+-CONFIG_SMSC911X=y
+-# CONFIG_NET_VENDOR_STMICRO is not set
 -# CONFIG_NET_VENDOR_VIA is not set
 -# CONFIG_NET_VENDOR_WIZNET is not set
--CONFIG_SMSC_PHY=y
--# CONFIG_USB_NET_DRIVERS is not set
 -# CONFIG_WLAN is not set
--CONFIG_INPUT_EVDEV=y
--# CONFIG_KEYBOARD_ATKBD is not set
--CONFIG_KEYBOARD_GPIO=y
--CONFIG_KEYBOARD_GPIO_POLLED=y
--# CONFIG_INPUT_MOUSE is not set
+-# CONFIG_INPUT is not set
 -# CONFIG_SERIO is not set
 -# CONFIG_VT is not set
--# CONFIG_UNIX98_PTYS is not set
 -# CONFIG_LEGACY_PTYS is not set
--CONFIG_SERIAL_8250=y
--CONFIG_SERIAL_8250_CONSOLE=y
--CONFIG_SERIAL_OF_PLATFORM=y
+-CONFIG_SERIAL_MPS2_UART_CONSOLE=y
+-CONFIG_SERIAL_MPS2_UART=y
 -CONFIG_SERIAL_NONSTANDARD=y
 -# CONFIG_HW_RANDOM is not set
--CONFIG_I2C_LPC2K=y
--CONFIG_SPI=y
--CONFIG_SPI_PL022=y
--CONFIG_GPIOLIB=y
--CONFIG_GPIO_SYSFS=y
--CONFIG_GPIO_74XX_MMIO=y
--CONFIG_GPIO_PCF857X=y
--CONFIG_SENSORS_JC42=y
--CONFIG_SENSORS_LM75=y
+-# CONFIG_HWMON is not set
 -CONFIG_WATCHDOG=y
--CONFIG_LPC18XX_WATCHDOG=y
--CONFIG_REGULATOR=y
--CONFIG_REGULATOR_FIXED_VOLTAGE=y
--CONFIG_DRM=y
--CONFIG_DRM_PL111=y
--CONFIG_FB_MODE_HELPERS=y
--CONFIG_USB=y
--CONFIG_USB_EHCI_HCD=y
--CONFIG_USB_EHCI_ROOT_HUB_TT=y
--CONFIG_USB_EHCI_HCD_PLATFORM=y
--CONFIG_USB_STORAGE=y
--CONFIG_MMC=y
--CONFIG_MMC_DW=y
+-CONFIG_ARM_SP805_WATCHDOG=y
+-CONFIG_MFD_SYSCON=y
+-# CONFIG_USB_SUPPORT is not set
 -CONFIG_NEW_LEDS=y
 -CONFIG_LEDS_CLASS=y
--CONFIG_LEDS_PCA9532=y
--CONFIG_LEDS_PCA9532_GPIO=y
--CONFIG_LEDS_GPIO=y
+-CONFIG_LEDS_SYSCON=y
 -CONFIG_LEDS_TRIGGERS=y
+-CONFIG_LEDS_TRIGGER_TIMER=y
+-CONFIG_LEDS_TRIGGER_ONESHOT=y
 -CONFIG_LEDS_TRIGGER_HEARTBEAT=y
--CONFIG_RTC_CLASS=y
--CONFIG_RTC_DRV_LPC24XX=y
--CONFIG_DMADEVICES=y
--CONFIG_AMBA_PL08X=y
--CONFIG_LPC18XX_DMAMUX=y
--CONFIG_MEMORY=y
--CONFIG_ARM_PL172_MPMC=y
--CONFIG_IIO=y
--CONFIG_MMA7455_I2C=y
--CONFIG_LPC18XX_ADC=y
--CONFIG_LPC18XX_DAC=y
--CONFIG_IIO_SYSFS_TRIGGER=y
--CONFIG_PWM=y
--CONFIG_PWM_LPC18XX_SCT=y
--CONFIG_PHY_LPC18XX_USB_OTG=y
--CONFIG_NVMEM_LPC18XX_EEPROM=y
--CONFIG_EXT2_FS=y
--# CONFIG_FILE_LOCKING is not set
+-CONFIG_LEDS_TRIGGER_BACKLIGHT=y
+-CONFIG_LEDS_TRIGGER_CPU=y
+-CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
+-CONFIG_ARM_TIMER_SP804=y
 -# CONFIG_DNOTIFY is not set
 -# CONFIG_INOTIFY_USER is not set
--CONFIG_JFFS2_FS=y
--# CONFIG_NETWORK_FILESYSTEMS is not set
+-# CONFIG_MISC_FILESYSTEMS is not set
+-CONFIG_NFS_FS=y
+-CONFIG_NFS_V4=y
+-CONFIG_NFS_V4_1=y
+-CONFIG_NFS_V4_2=y
+-CONFIG_ROOT_NFS=y
+-CONFIG_NLS=y
 -CONFIG_PRINTK_TIME=y
 -# CONFIG_ENABLE_MUST_CHECK is not set
 -# CONFIG_DEBUG_BUGVERBOSE is not set
 -CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
--CONFIG_MAGIC_SYSRQ=y
 -CONFIG_DEBUG_FS=y
 -# CONFIG_SLUB_DEBUG is not set
 -# CONFIG_SCHED_DEBUG is not set
--CONFIG_DEBUG_LL=y
--CONFIG_EARLY_PRINTK=y
-diff --git a/arch/arm/mach-lpc18xx/Makefile b/arch/arm/mach-lpc18xx/Makefile
+-CONFIG_MEMTEST=y
+diff --git a/arch/arm/mach-versatile/Makefile b/arch/arm/mach-versatile/Makefile
+index d819fb2fc450..07171ef1d6a7 100644
+--- a/arch/arm/mach-versatile/Makefile
++++ b/arch/arm/mach-versatile/Makefile
+@@ -22,9 +22,6 @@ obj-$(CONFIG_ARCH_VEXPRESS_TC2_PM)	+= tc2_pm.o
+ CFLAGS_tc2_pm.o				+= -march=armv7-a
+ CFLAGS_REMOVE_tc2_pm.o			= -pg
+ 
+-# mps2
+-obj-$(CONFIG_ARCH_MPS2)			+= v2m-mps2.o
+-
+ ifdef CONFIG_SMP
+ obj-y					+= headsmp.o platsmp.o
+ obj-$(CONFIG_ARCH_REALVIEW)		+= platsmp-realview.o
+diff --git a/arch/arm/mach-versatile/v2m-mps2.c b/arch/arm/mach-versatile/v2m-mps2.c
 deleted file mode 100644
-index c80d80c199d3..000000000000
---- a/arch/arm/mach-lpc18xx/Makefile
+index 5b50d8e95cd7..000000000000
+--- a/arch/arm/mach-versatile/v2m-mps2.c
 +++ /dev/null
-@@ -1,2 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0-only
--obj-y += board-dt.o
-diff --git a/arch/arm/mach-lpc18xx/board-dt.c b/arch/arm/mach-lpc18xx/board-dt.c
-deleted file mode 100644
-index 4729eb83401a..000000000000
---- a/arch/arm/mach-lpc18xx/board-dt.c
-+++ /dev/null
-@@ -1,19 +0,0 @@
+@@ -1,17 +0,0 @@
 -// SPDX-License-Identifier: GPL-2.0-only
 -/*
-- * Device Tree board file for NXP LPC18xx/43xx
+- * Copyright (C) 2015 ARM Limited
 - *
-- * Copyright (C) 2015 Joachim Eastwood <manabian@gmail.com>
+- * Author: Vladimir Murzin <vladimir.murzin@arm.com>
 - */
 -
 -#include <asm/mach/arch.h>
 -
--static const char *const lpc18xx_43xx_compat[] __initconst = {
--	"nxp,lpc1850",
--	"nxp,lpc4350",
--	"nxp,lpc4370",
+-static const char *const mps2_compat[] __initconst = {
+-	"arm,mps2",
 -	NULL
 -};
 -
--DT_MACHINE_START(LPC18XXDT, "NXP LPC18xx/43xx (Device Tree)")
--	.dt_compat = lpc18xx_43xx_compat,
+-DT_MACHINE_START(MPS2DT, "MPS2 (Device Tree Support)")
+-	.dt_compat = mps2_compat,
 -MACHINE_END
+diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+index d7b89508311f..9d60d4b650ec 100644
+--- a/drivers/i2c/busses/Kconfig
++++ b/drivers/i2c/busses/Kconfig
+@@ -1260,7 +1260,7 @@ config I2C_UNIPHIER_F
+ 
+ config I2C_VERSATILE
+ 	tristate "ARM Versatile/Realview I2C bus support"
+-	depends on ARCH_MPS2 || ARCH_VERSATILE || ARCH_REALVIEW || ARCH_VEXPRESS || COMPILE_TEST
++	depends on ARCH_VERSATILE || ARCH_REALVIEW || ARCH_VEXPRESS || COMPILE_TEST
+ 	select I2C_ALGOBIT
+ 	help
+ 	  Say yes if you want to support the I2C serial bus on ARMs Versatile
 -- 
 2.53.0
 
