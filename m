@@ -1,54 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A50759574A
-	for <linux-omap@vger.kernel.org>; Tue,  8 Sep 2026 17:30:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27FE1595720
+	for <linux-omap@vger.kernel.org>; Tue,  8 Sep 2026 17:33:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788888643; cv=none; b=MUSiLe3aWYGEu7+SX+PztxgTgeLSe6rPln3k5htbYr+E7bn8SUD2GcFa4Mrxv8JhqxYSEonhuXhjZY52gUDiyGde8p81/7nfjqSYZlGT+VsAZGvZEXdZgbZ0IGYqDyu2/spJTb+4NTs5WGWbuGOfQ98RNWXNpWAvQ8kbhhIazj0=
+	t=1788888824; cv=none; b=o7wsvrXEyYBZ7j+l1Ha3Eqf1XWVzQ8oIEWLIt6iBuvHstHE9LZmcmMTnPaZ33iN7o/Gsw5vz/v7fZnrmv6xXkI/HJ8uffxbatoFfHN6oj5MjY/jwwIle/ol84n0C7KwTQkM96fhLddPZlQoejK6iQy+Ufy6KXF/Fqv41UYfIDWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788888643; c=relaxed/simple;
-	bh=68dTFTlGjK0XaJEAddlzUlXXUgt+rSGSQ0njU5H9lxc=;
+	s=arc-20240116; t=1788888824; c=relaxed/simple;
+	bh=gmIGR0/AjmJLqjqIA+b+biNqhfd5J7r7shYDGeksk7M=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=IIXsUQe09dVOZG+0cjcKMTbWC8BOLQRh96XVdJuort2MZLmzfqE9WeLXxXE4HGsa5yp6ozagy4omHiBbhLnPjFIyG+6vKtpbnYJYSUa2OPL4yZC/otkVcpTebV02o5U6tBq3xOMv0pbPNZKUAna7Zo8UO7sqzmPpUGxFlV5LVJ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oxrv/Clx; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=fgj2VZAff9HB4c1kyR68M/GwirURFwKgeIyVYPY1x6Ab/fVH+O6TBut+vN+dIT1iJHrvwYh8ixeSc4ASF/o37zieH5wg6A6KStX37Li1kijQHaRZWyMfpPNKNI/lyu6CYCVus9n5qB7NfXki353zKLEBP2EhpvmhB4G0INvsK20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oYUkJxyp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oxrv/Clx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFBDF1F00ADB
-	for <linux-omap@vger.kernel.org>; Tue,  8 Sep 2026 17:30:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oYUkJxyp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 025AB1F01559
+	for <linux-omap@vger.kernel.org>; Tue,  8 Sep 2026 17:33:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788888640;
-	bh=68dTFTlGjK0XaJEAddlzUlXXUgt+rSGSQ0njU5H9lxc=;
+	s=k20260515; t=1788888823;
+	bh=gmIGR0/AjmJLqjqIA+b+biNqhfd5J7r7shYDGeksk7M=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=oxrv/ClxN2t78XeQbMP1BOQ2CF7BRSdBlylr6GW7o5+/v5GYQVd60IwisZn6HiGsJ
-	 9RNqbkS68Pppw2cn+v5FA+PAWCNn2YMVBbWALX2+hALj/iBCSNzWIx3MqOR5Mo5tgV
-	 70O9as9qVLJ6hHVbxRTZC3jcjJfupxQQH2Pl2p0Hwd+hFuhAHt0AaJ25PHkfkCoFXI
-	 xXOtNRg2wCFas1yuSrwrvKDhy+o8lMgX5v4BGSyo166IzndsjZGIVmsTezw4ewkgYI
-	 X40EsPBLjrq0tDb2gMLQ3cQU0n2dV5bZlEWe6WpAj3cEufphl2aaG9ekhrHoOREV8Y
-	 aeQg2R1NDfojA==
-Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5b568dae0e8so3603378e87.0
-        for <linux-omap@vger.kernel.org>; Tue, 08 Sep 2026 10:30:40 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBw5moa0f34lO/twngYu8h+wJfa9Ny/kRcZ7hGQWaLbWAVE4cAN5ecOTGEiGaocKwqxmnGezbQkYKXDB@vger.kernel.org
-X-Gm-Message-State: AFuF++lbW0+8gk8T9zDWO0FJQBfuB690PnwGoL0ZG7ooOwwiv1wOm1jc
-	aF0TjT+9szhatSkkPTXWm7HXwusbQjRmO4EHze1BfXEQpaHbiwq4kCNo78ABhJSMogVLsJCUDNv
-	MyvgexRgj4vkkx4EbThcZopJLz0o75Fg=
-X-Received: by 2002:a05:6512:1252:b0:5b6:4ae:19e7 with SMTP id
- 2adb3069b0e04-5b61706d22fmr5531696e87.26.1788888639310; Tue, 08 Sep 2026
- 10:30:39 -0700 (PDT)
+	b=oYUkJxypWqLI8uJLzQPHxhQ71Ks/IyFSnoobdkhybHg/VFrZcScUaUzcU5iGJu3Yg
+	 SVr1zNYq9lzWcvDiEUcX1atpf0jaVT6xPToEVsGnnnsYQD5x0GXAUtiUe+VTGJC6+U
+	 lVLE5LREy7a0wkg5nqv6jsrAjqnRn4VO+GvC4P1WC1OuR3Y0iPEm0L25Nk/xBf6b9z
+	 uj+EZWNfmBY9zPHxZZzMY+PZaGLcUap6z6HgDOpRkikwj/4SgkOIg8RzL7eKjY5zR2
+	 8qBXig3e3zoeZ5+dV8aYrX3pQiy5jGox/+C0yb3jT+lcAU0xZn8D99wJLkp8fHxUtM
+	 u1lhsOfW8IKpA==
+Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5b4b037a2c1so4121436e87.2
+        for <linux-omap@vger.kernel.org>; Tue, 08 Sep 2026 10:33:42 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBzm9NYzXmcfWCmRQW6uDhfxudieUOhv+js8+fWQEt34EKo5wmeoG6YyJ7HYl6+7oklW38UoB90s2hGf@vger.kernel.org
+X-Gm-Message-State: AFuF++myLoaCQ69WGCb5G2LFTKEpgBJvX1j9tp7HuaK9/YPLBKqG/MsM
+	fERJ23MwK8y/A9hiKjee5ptxZRBQDGO8VKO9tuOX/x2Tt45wdvuZjcCC2S+LbPSBwP6xHfUC2lK
+	SN881HH8DYdGgxcGbT5MMkf/OgVHjCHM=
+X-Received: by 2002:a05:6512:2241:b0:5b5:fae5:b241 with SMTP id
+ 2adb3069b0e04-5b616f22e66mr5771186e87.14.1788888821627; Tue, 08 Sep 2026
+ 10:33:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260908152808.3928630-1-arnd@kernel.org> <20260908152808.3928630-5-arnd@kernel.org>
-In-Reply-To: <20260908152808.3928630-5-arnd@kernel.org>
+References: <20260908152808.3928630-1-arnd@kernel.org> <20260908152808.3928630-6-arnd@kernel.org>
+In-Reply-To: <20260908152808.3928630-6-arnd@kernel.org>
 From: Linus Walleij <linusw@kernel.org>
-Date: Tue, 8 Sep 2026 19:30:26 +0200
-X-Gmail-Original-Message-ID: <CAD++jLm=XWMMjJvLrLH-g3wfUEOFdzU_8K1oMHGuf2ZzfjFtxQ@mail.gmail.com>
-X-Gm-Features: AcwNN1VtwTPYEunvryYhcDqpN6EJYSgh3lXDGedkufyoJM4Ll9RbC4SzO6PXMr4
-Message-ID: <CAD++jLm=XWMMjJvLrLH-g3wfUEOFdzU_8K1oMHGuf2ZzfjFtxQ@mail.gmail.com>
-Subject: Re: [PATCH 04/13] ARM: remove legacy pxa board files
+Date: Tue, 8 Sep 2026 19:33:29 +0200
+X-Gmail-Original-Message-ID: <CAD++jLka1EcE_pgbQ+k-==7ZBy4t=UzMRoSpftToUvqSWikfOA@mail.gmail.com>
+X-Gm-Features: AcwNN1W4V_RHIjZXrzOUvAHXUKzBi-tBnO9Xu5bnMkKM7BxKaEWn60o-CzXXb5s
+Message-ID: <CAD++jLka1EcE_pgbQ+k-==7ZBy4t=UzMRoSpftToUvqSWikfOA@mail.gmail.com>
+Subject: Re: [PATCH 05/13] ARM: orion/dove/mv78xx0: remove all board files
 To: Arnd Bergmann <arnd@kernel.org>
 Cc: Krzysztof Kozlowski <krzk@kernel.org>, Alexandre Belloni <alexandre.belloni@bootlin.com>, 
 	Russell King <linux@armlinux.org.uk>, Drew Fustini <fustini@kernel.org>, 
@@ -71,8 +71,18 @@ Cc: Krzysztof Kozlowski <krzk@kernel.org>, Alexandre Belloni <alexandre.belloni@
 	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
 	devicetree@vger.kernel.org, imx@lists.linux.dev, 
 	linux-stm32@st-md-mailman.stormreply.com, linux-omap@vger.kernel.org, 
-	Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, 
-	Bartosz Golaszewski <brgl@kernel.org>
+	Alexander Clouter <alex@digriz.org.uk>, "Jeremy J. Peper" <jeremy@jeremypeper.com>, 
+	Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>, Ulf Hansson <ulfh@kernel.org>, 
+	=?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kwilczynski@kernel.org>, 
+	Manivannan Sadhasivam <mani@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Vinod Koul <vkoul@kernel.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
+	Guenter Roeck <linux@roeck-us.net>, Mark Brown <broonie@kernel.org>, 
+	Bartosz Golaszewski <brgl@kernel.org>, Thomas Weissschuh <thomas.weissschuh@linutronix.de>, 
+	linux-ide@vger.kernel.org, linux-mmc@vger.kernel.org, 
+	linux-pci@vger.kernel.org, linux-phy@lists.infradead.org, 
+	linux-rtc@vger.kernel.org, linux-pm@vger.kernel.org, 
+	linux-watchdog@vger.kernel.org, linux-sound@vger.kernel.org, 
+	linux-gpio@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
@@ -81,32 +91,52 @@ e:
 
 > From: Arnd Bergmann <arnd@arndb.de>
 >
-> The PXA platform supports devicetree based booting, but still has a
-> few traditional board files, which were left as a starting point for a
-> possible conversion to devicetree during the last mass purge of board
-> files in 2022.
+> The 'orion' platform is the predecessor to what linux now calls the
+> 'mvebu' line of Marvell SoCs, and originally covered orion5x,
+> mv78xx0, kirkwood, dove and a few others that do not have any
+> upstream support at the moment.
 >
-> None of these boards were actually converted, so drop support for these
-> now, along with the 'scoop' support chip that was used on some PDAs that
-> are no longer usable now.
+> Only a few board files remain here, these are the ones left
+> in 2022 board file purge because they had some level of support
+> in Debian or OpenWRT, mostly for commercial NAS or router boxes.
+> This distro support is now gone, and nobody has converted the
+> board files to devicetree, though the orion5x and dove platforms
+> also come with devicetree support for some other machines.
 >
-> The only remaining board support is for the "Raumfeld" speaker system
-> based on PXA300 SoC, though basic support for PXA250 and PXA270 is still
-> there and may work with external dts files.
->
-> Cc: Daniel Mack <daniel@zonque.org>
-> Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+> Cc: Andrew Lunn <andrew@lunn.ch>
+> Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+> Cc: Gregory Clement <gregory.clement@bootlin.com>
+> Cc: Alexander Clouter <alex@digriz.org.uk>
+> Cc: Jeremy J. Peper <jeremy@jeremypeper.com>
+> Cc: Damien Le Moal <dlemoal@kernel.org>
+> Cc: Niklas Cassel <cassel@kernel.org>
+> Cc: Ulf Hansson <ulfh@kernel.org>
+> Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
+> Cc: "Krzysztof Wilczy=C5=84ski" <kwilczynski@kernel.org>
+> Cc: Manivannan Sadhasivam <mani@kernel.org>
+> Cc: Rob Herring <robh@kernel.org>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Vinod Koul <vkoul@kernel.org>
+> Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
+> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> Cc: Daniel Lezcano <daniel.lezcano@kernel.org>
+> Cc: Guenter Roeck <linux@roeck-us.net>
+> Cc: Mark Brown <broonie@kernel.org>
 > Cc: Linus Walleij <linusw@kernel.org>
 > Cc: Bartosz Golaszewski <brgl@kernel.org>
-> Cc: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+> Cc: Thomas Weissschuh <thomas.weissschuh@linutronix.de>
+> Cc: linux-ide@vger.kernel.org
+> Cc: linux-mmc@vger.kernel.org
+> Cc: linux-pci@vger.kernel.org
+> Cc: linux-phy@lists.infradead.org
+> Cc: linux-rtc@vger.kernel.org
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-watchdog@vger.kernel.org
+> Cc: linux-sound@vger.kernel.org
+> Cc: linux-gpio@vger.kernel.org
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
 Acked-by: Linus Walleij <linusw@kernel.org>
-
-I ACK this based on the number of refactorings I did on this
-to remove the static GPIO assignments, I'm really tired of
-doing them if no-one benefits.
 
 Yours,
 Linus Walleij
