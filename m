@@ -1,67 +1,67 @@
-Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1E0B3B5303
-	for <linux-omap@vger.kernel.org>; Tue,  8 Sep 2026 19:22:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D197434991
+	for <linux-omap@vger.kernel.org>; Tue,  8 Sep 2026 19:40:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788895366; cv=none; b=pnW+DWOtvfRqo/ZNFQSbz5g61sDGFI+QLTFbNjohmWfT8o7dp9Y0rnhrQdt1aC98c0dYT+IjGnZ8C/ZBuXrwUSUlzXbmZSv093fCA6GqqZpOTHQW9A/drWirF9M6PZlZWKzlSL7VflVyeRNAtizsSsXGxH07pSgtPKE+k8pyRLc=
+	t=1788896416; cv=none; b=ED9v7wXKE9tcb6xqTdIQV3nrjdyaiI9nh1u8r/LcIO1yB1+fN+C9GqnfSxbEQ4UPCVwulQsjTnOi0KT+iaGlfetfGtXZMTwusAFmzXU3gwZzkui9hR+qMlLVWy0bq1t7wcqToHdz1MMAfu/nu3LDGuAxVpjRocqJTw8wfBaJmuY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788895366; c=relaxed/simple;
-	bh=BL1RUYoOl+2DCnnljwHrTpWKc1vt3ozShPXUSpVHg8g=;
+	s=arc-20240116; t=1788896416; c=relaxed/simple;
+	bh=EsrGjrnP7IgSiDLJcakyY4ms71wqAvVcdyupbrs+ipo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=h0z5e6P+ZXc9tKsg6ZhI0OZviEbiiWQGjt2yAgxjFfZ71TEfIThT3GrpgtHHSZ3FLKZnG5v9AZeEoYiX9gyuGP8HvhYpV3sD2YCiaGKwZSgpIpaFOlLKg3gtUXQ4j+sZ3B4vCTSj8oriQtrwm6pj2wPlIheOWwASKR4Lg89MI2Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IldMupf/; arc=none smtp.client-ip=209.85.128.50
+	 Content-Type:Content-Disposition:In-Reply-To; b=OVu/PJzsMQPieE8tdhJelccEaRZq0iSojp1+5aSgGutDHqPNk1s8i21DQBzAEOvfeiwHSoAA+HDx7dfGiFftzsKzJqiuqd+fDdwN/1n6+K2ouqG3qo0S7lj2ePMBda+z7U/kosUnVLCUfPFSBv3oR6qg3D1nnCT5xSdx3M+PovA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TEDHWMJM; arc=none smtp.client-ip=209.85.221.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IldMupf/"
-Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-49cd77e0f95so40582495e9.3
-        for <linux-omap@vger.kernel.org>; Tue, 08 Sep 2026 12:22:41 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TEDHWMJM"
+Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-485850cf499so3342373f8f.3
+        for <linux-omap@vger.kernel.org>; Tue, 08 Sep 2026 12:40:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788895358; x=1789500158; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1788896412; x=1789501212; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=GVs4+8gm56Wnu6exUObCNgkOQEYDE8t6OW3Oqkq6qd8=;
-        b=IldMupf/CXO1fJhcChwVffZ26pAdYEuJJo7n3NchFgpe6wbStMGfI4utvCihSq3+Mx
-         QfakSVaL/MJcsyxLgiVpLhVZFiyd8ScB3t8IUALrvbnZWyWN17avGp9xQ9S7P4++LXdU
-         LUlfBZMoh7BO7j3i9dt1eIczOoUyh6xGljMyldbvy7aZbl9McjsggHDOzBBQdaTDXM7h
-         T05dJ6nI49n7G0r3JT59zHl54FDUVXNFF31hTE4azXp5dODZo1yxFt83JcwMmjJUyP59
-         wMfR0iaSQSzgKmfqD4f+FZODJ2rym9Fks8lUDFHOufvKk5rwLwpiVRfU7SdRzD88aQWa
-         rObQ==
+        bh=HzP/HtSzvmP6ZP70XBuHWUc2m2AKpgco5yULa/5Kmis=;
+        b=TEDHWMJM9duaytD8JkqocezS6iP42AtBh5KBUdL6VJfMAo8G72zIpPgMijD++58Po0
+         YwHwizi3QVSNbvl4pEaWbB6M+s9YZwMWDOxMFtEILOG/FKg4VCuHJvoiejsBGj/B8ELd
+         M6MBENKrWZ/n8I8xUJVhLId7XCco84KBIIBd6Q3NUTtCaMHVeFeMf1doV9F52xOheVWd
+         ZafumnTzVsVcJ//LRyR7yjnBPr1uq+kT7RtXKWt7YOL3NTbu2nSpJmOBbctZl8f7VUDn
+         MHay7jF4KqXdYWKswO4Url/5cuki37cFsHDoyppV6YdOQGmyHB73PIIkwYzxyZ1J62Ib
+         xNBQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788895358; x=1789500158;
+        d=1e100.net; s=20251104; t=1788896412; x=1789501212;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=GVs4+8gm56Wnu6exUObCNgkOQEYDE8t6OW3Oqkq6qd8=;
-        b=BFfWPfjIG1RevEYp1q0fe8lwPq0f7n04g2Q8ktAVKd/bERp+4V9c5BYCchDiQbJCcw
-         AUuLnEoFOaAklUSsEsgfxIom0cp+5CnheUzY0F5NfvOSiPCCw+aUzuklIsOdDO5LtDsO
-         Yfqet9PuGciAYA08nLNNKEgXhIEPhprpxr4Qc1vT0fO20fTEMgOUOuJGXBmJxJTHLKZG
-         Ii44T6vFyrTW5fSDERj/0/3i6aNkJ5RwXMWFVojmgXI8ag7hDGhz5wOzX23VDOL84r1q
-         fwdH+Q3pjF9VdlgmTb7rg3U9wQZX2N8dheV92zfTuWS1ipvCsrO9vDTynBDmnvBvmkkL
-         OKhg==
-X-Forwarded-Encrypted: i=1; AKwUvBwQduyzMn36JfQwb38RnxZMDAgYm5vc0QI72EYZuG+gNwz4i1vtt7hjERr0V9CGWnQZiSPtj7gh0AiG@vger.kernel.org
-X-Gm-Message-State: AFuF++lDR5Atw5a2RnYJ7FG2I2kXp2yuvQBPsGrWMxjdCtbSp+ywPag0
-	G/jQ8RQYajckiKViL54X+2eJYsJMJpZn9kEJlMqnvxELMv1zGmOZYVjp
-X-Gm-Gg: AYBFou2bwWxW5AfiKBEXoSngW9xI8rUWT4PQrDRz5HgAeNQrbKrtdeIWCcCKoO6OnA5
-	Q701dijJC1+MY9lch1R2wlDO8h1BVbJaaDKt43pF3Rr7QHyFBorN+7JyaCKJzOUwkfQ8tGgKIwQ
-	0QPNrDTJAYXg+gGgnREAMnv5ljAiXz0K/teFYn30PVPks0ELasFW4NGbd1YhwNewCArX7xRgh27
-	1hHNZjevgI6xSrIsiQJLlJh/dHo5FOOxxNnfg/+VbkZtRq7U9Ss1lk9Hl/k7sPSmScdJV83jS95
-	u3Pb/NUhxRA73BSn91lVb72rfNCJ2TNtXOOmcFFpZgOa89dAkLaFfmiGVl5XYiqm2DPkC/FcNDJ
-	EWhpXcGfwMbLgqhR6O7skySiV9ur1OYgMU+/rr94WiUl+TYUwLQ9JhfNuyw92I7g3537JMSPHRC
-	tXywACaVucHJIhstyRBKbdCl/3HsxEciHw5GHUgIKuIvybMEX0rAMKjMSUSS4/GFAkTTQJP5glX
-	fefUc+kK0ePyDExWwpFjYSJKirDUn3GjTrG0s4ZyXLj6TQ+zu7Endo0yVZC6CgpiXBozHWMN69/
-	YHSSqgXu3MCj+R2rspXOclWcVxbcPA==
-X-Received: by 2002:a05:600c:3ba3:b0:49d:e79:612f with SMTP id 5b1f17b1804b1-49d0e79635amr157041045e9.26.1788895358151;
-        Tue, 08 Sep 2026 12:22:38 -0700 (PDT)
+        bh=HzP/HtSzvmP6ZP70XBuHWUc2m2AKpgco5yULa/5Kmis=;
+        b=BqGIqNuM8YR/A6zYI/tZD47AT8FijkNZ4g5saK9QrYK57sRKCRVwQbT0qMAD8PjR9S
+         TV68JYWDZX9RvXPaUZVIEoPbX2Zw1dS3eYT7pvDAOk0wFmfZKJ9vWUSuLirFzsO/48kX
+         fDhW3LuGDjHNgAzFbRhMUnTCQC3B+Z6mN5EJmCVCqbePe2X+GghLjJygXirRTDXQYvh5
+         gh74wkSDkhIK39uhGwlCLplspFcXN5MvvXo6TJOg03SYOTMo0ko3idRFrI5y5BICZI+j
+         /zc4SEMYQbGthZVdkMqZPMZI/SjNt8NIG4+B6MnaXQeVBY2/wPxy34Nog3TDbcXLRy06
+         E2RA==
+X-Forwarded-Encrypted: i=1; AKwUvBxAlwdDp5CMMMNdQExmitmrqp0OjZL6ZixJ/AdY5LO6BdNlQvjlgqXsawh5CnJWF/smyjA1lb79tQrd@vger.kernel.org
+X-Gm-Message-State: AFuF++nhRa/5OBzuxv1L05PmaDuK43Zv+RgxJ1ui4rVHEds4k5KfqtSl
+	MDaN0gOOo4NNC1S+GNnQrl5AX5mH4zlBdeQY3r7/WqRuK8y9/5UMk70K
+X-Gm-Gg: AYBFou1tukLPfGzJVWXupQ4asCkKQmIiCK4kp97W63erk7kNTEPdqi1SC81ZSdzDmy/
+	FNxuNkc/vk3deTqtq4oESrkYplSLJt4Z/D4QyIPF9TjAljXFdoLfHa0cAKtH7ZBT+rmYRPC+jQv
+	JWZfxspWueosRoJARGZxYi6HE7sdDoP5SWVSvNrSq2tkvNo3gchm96lw4ndyGhFBHquL3o+CSs9
+	IAvPYZOu/NxQQGRfFK1/Dy1KuOGvfUZTlzN07JrhHSKBEEKKOxZvwp9wN65qtQUIfPdP5mjtN1U
+	aOA+cU42tpc3b8JU3NjY4rZE+am2lvxYbt4hcIzKbVFF52VtGfBpe87joS6XFmxzsI6mh4usuI5
+	Zpx9gKlUIjupnBELDl5/Fdt4cX3i1oC/StofImNJ7QvxWL0FSVhlr2cPU3C8K76l4/ip192bTq5
+	piVYj5moFLM5i9cqxe6rsjNFKx89O2N2ax4WcfUIZFmeGkilJmt+rUH0RfbhtBcM4cZsOj8SygL
+	CpaySMobTzDkmpX3AFsLWxnvUQnpzqftodoW1jbZeJPOLixDPdzY3J4ViuIbHODutHcxeR4nzku
+	AJ025AXVjjnb4eIQ+vqq72wy
+X-Received: by 2002:a05:600c:a087:b0:49c:d26a:cf70 with SMTP id 5b1f17b1804b1-49cf825a75dmr321721005e9.15.1788896412155;
+        Tue, 08 Sep 2026 12:40:12 -0700 (PDT)
 Received: from MacBook-Pro-von-Karl (dynamic-095-117-170-066.95.117.pool.telefonica.de. [95.117.170.66])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-485881353e8sm38080321f8f.1.2026.09.08.12.21.58
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49d20fc1be3sm991795e9.4.2026.09.08.12.40.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Sep 2026 12:22:37 -0700 (PDT)
-Date: Tue, 8 Sep 2026 21:21:22 +0200
+        Tue, 08 Sep 2026 12:40:10 -0700 (PDT)
+Date: Tue, 8 Sep 2026 21:39:36 +0200
 From: Karl Mehltretter <kmehltretter@gmail.com>
 To: Arnd Bergmann <arnd@kernel.org>
 Cc: Krzysztof Kozlowski <krzk@kernel.org>, 
@@ -84,16 +84,11 @@ Cc: Krzysztof Kozlowski <krzk@kernel.org>,
 	Shawn Guo <shawnguo@kernel.org>, "David Hildenbrand (Arm)" <david@kernel.org>, 
 	Nicolas Pitre <npitre@baylibre.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
 	linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, imx@lists.linux.dev, 
-	linux-stm32@st-md-mailman.stormreply.com, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, 
-	Mauro Carvalho Chehab <mchehab@kernel.org>, Kyungmin Park <kyungmin.park@samsung.com>, 
-	Helge Deller <deller@gmx.de>, Tero Kristo <kristo@kernel.org>, Stephen Boyd <sboyd@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, linux-media@vger.kernel.org, linux-mtd@lists.infradead.org, 
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-clk@vger.kernel.org
-Subject: Re: [PATCH 06/13] ARM: omap2: remove omap24xx support
-Message-ID: <aqBXOemS4boakDGt@gmail.com>
+	linux-stm32@st-md-mailman.stormreply.com, linux-omap@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH 01/13] ARM: remove sa1100 platform
+Message-ID: <aqBhF5oS1A2W6dAa@gmail.com>
 References: <20260908152808.3928630-1-arnd@kernel.org>
- <20260908152808.3928630-7-arnd@kernel.org>
+ <20260908152808.3928630-2-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -102,38 +97,58 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260908152808.3928630-7-arnd@kernel.org>
+In-Reply-To: <20260908152808.3928630-2-arnd@kernel.org>
 
-On Tue, Sep 08, 2026 at 05:27:56PM +0100, Arnd Bergmann wrote:
->  86 files changed, 60 insertions(+), 10696 deletions(-)
+On Tue, Sep 08, 2026 at 05:27:51PM +0100, Arnd Bergmann wrote:
+>  62 files changed, 19 insertions(+), 10501 deletions(-)
 
 Note that Sashiko skipped reviewing this patch, because it exceeded
 its current 10000 line limit.
 
-> -CONFIG_ARCH_MULTI_V6=y
->  CONFIG_OMAP_RESET_CLOCKS=y
-> -CONFIG_ARCH_OMAP2=y
+> diff --git a/drivers/rtc/rtc-sa1100.c b/drivers/rtc/rtc-sa1100.c
+> @@ -275,18 +275,10 @@ static int sa1100_rtc_probe(struct platform_device *pdev)
+> -	if (IS_ENABLED(CONFIG_ARCH_SA1100) ||
+> -	    of_device_is_compatible(pdev->dev.of_node, "mrvl,sa1100-rtc")) {
+> -		info->rcnr = base + 0x04;
+> -		info->rtsr = base + 0x10;
+> -		info->rtar = base + 0x00;
+> -		info->rttr = base + 0x08;
+> -	} else {
+> -		info->rcnr = base + 0x0;
+> -		info->rtsr = base + 0x8;
+> -		info->rtar = base + 0x4;
+> -		info->rttr = base + 0xc;
+> -	}
+> +	info->rcnr = base + 0x0;
+> +	info->rtsr = base + 0x8;
+> +	info->rtar = base + 0x4;
+> +	info->rttr = base + 0xc;
 
-With CONFIG_ARCH_MULTI_V6 gone, CONFIG_ARM_ERRATA_411920=y a few lines
-down can be deleted (savedefconfig drops it)
+This drops the layout switch but keeps "mrvl,sa1100-rtc" in
+sa1100_rtc_dt_ids[] and in bindings/rtc/sa1100-rtc.yaml, so a DT with
+that compatible would now silently get the MMP register offsets instead
+of the SA1100 ones.
 
-> diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
-> deleted file mode 100644
+> diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+> @@ -614,16 +614,16 @@ config S3C2410_WATCHDOG
+>  	  be called s3c2410_wdt.
+>  
+>  config SA1100_WATCHDOG
+> -	tristate "SA1100/PXA2xx watchdog"
+> -	depends on ARCH_SA1100 || ARCH_PXA || COMPILE_TEST
+> +	tristate "PXA2xx watchdog"
+> +	depends on ARCH_PXA || COMPILE_TEST
+>  	help
+> -	  Watchdog timer embedded into SA11x0 and PXA2xx chips. This will
+> -	  reboot your system when timeout is reached.
+> +	  Watchdog timer embedded PXA2xx chips. This will reboot your
+> +	  system when timeout is reached.
+>  
 
-perl scripts/get_maintainer.pl --self-test=patterns now warns:
-  ./MAINTAINERS:19896: warning: no file matches	F:	arch/arm/mach-omap2/*gpmc*
+"embedded into PXA2xx chips" is better.
 
-> @@ -560,13 +533,11 @@ void __init pdata_quirks_init(const struct of_device_id *omap_dt_match_table)
->  	 * We still need this for omap2420 and omap3 PM to work, others are
-
-Stale comment about omap2420
-
-> diff --git a/arch/arm/mach-omap2/voltagedomains2xxx_data.c b/arch/arm/mach-omap2/voltagedomains2xxx_data.c
-> deleted file mode 100644
-> [...]
-> -void __init omap2xxx_voltagedomains_init(void)
-
-The declaration for this is still in voltage.h.
+The RTC_DRV_SA1100 help text a bit earlier in the patch also still says
+"built into your SA11x0 or PXA2xx CPU".
 
 Thanks,
 Karl
