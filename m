@@ -1,156 +1,139 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from lahtoruutu.iki.fi (lahtoruutu.iki.fi [185.185.170.37])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B90BD58B6B6;
-	Tue,  8 Sep 2026 16:56:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788886595; cv=none; b=icPkkgfyGBkn2emEtTovbKCBP1hLU9y7ch52QROntSjAFqu1dLkn9snLtkFbwmbqhYkTBV9SwebbJRyCETmMNWlJgQzwG9ieHDj++rk1NJlXkMXtQ9+9l2aHLOBGQeesV7yvqoiYsL5kWkrUw5eEZf3VGj//KNnG/ZfKSqSnwTs=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788886595; c=relaxed/simple;
-	bh=/XPuUaAUd29stiGou2x9DdmvMqe81AmQ7on+3rtpzOU=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=PD9jcluICZCaS17VTaEfhwHf8YbLRsBjMFBBziqb8G4eXxDCHJK2jsFojAxmZjZPYq64ycYvfrGEkpE78QOJuTvdu59aU+8kAG+IqFMaPHyMyz3ltLEsOBuykIMnNg+H6XGDntLv2Y+KT8O2VdaevAOza8pWYXQBnC58/mpOWhg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=ODicPeFe; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39737337BA4;
+	Tue,  8 Sep 2026 17:18:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=185.185.170.37
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788887939; cv=pass; b=NKHFrlrACMGXfWWZQQ0Vi1vJbRELi6VDZlgRHN+5vGTCQ5JCQnqsXI05ZN39+hDRJKjoCsyWz2C81JRgSZXqLJ8DwUABZvTP3+TsyvKmUtEFSyBti4mDWpLPbLg0YiZAKLMzsk8mDm08stybZh5oii9t+eAVkdbIgI52NzRspMA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788887939; c=relaxed/simple;
+	bh=tBwn5bdvvFXypTllpUAbZzuOgMxU9cJnnNMgNB6aHfM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WHunfRmyLh9RxNSuFqQ3SiCyaXhPvRYJarCmkPjhOUroLGfVOpC0XUQLpv4y1x1jTEvwEvjy0QFTqkVWcQ8rN2EBMVeTNyQORH1uAP+TaqeDKCyVeJcxCJZZxao07eHrw9pYtVR0mW/7Cp+t/Oc5bpZReMSbJ1fdIZrQYKDFNcQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi; spf=pass smtp.mailfrom=iki.fi; dkim=pass (2048-bit key) header.d=iki.fi header.i=@iki.fi header.b=RuEeEMW/; arc=pass smtp.client-ip=185.185.170.37
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iki.fi
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iki.fi
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ODicPeFe"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:References:Cc:To:From:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=zxfHukaWNxcBEp0pmc++HuJ+JqVKCOkG3+1+3ES2XS0=; b=ODicPeFePwbXN1VGfvRTuTw3HQ
-	MDFglIpSFqbftx4Rgk0l6f8Db4SxPyiBWlMvvakDym59AosfMfjJDUSZ3NGqHwPZEXREWOvNG0/ll
-	MIP2cZobGqmgKWCvcv2SGmgmaAsxHBhN1UlgYxKXfQZu29u9VYNBL1Nk6fhcjmyggU1Z+0nj46eRa
-	RwQAtn6yIf67IGcLW/cVLbwlIiKcKLAgIy2xa3jO3pv05gk4bPegrrd0j3RXnCm6ohosilFB5ntJT
-	eHdW7uYopifPUoU05XgMAUGKeJNIySrlXa8FevPxlwg4ezN3IPLWiUGmfOMeYtJu6bVn+y5YqLP+G
-	v7NNaKxg==;
-Received: from [50.53.43.113] (helo=[192.168.254.34])
-	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1x3z7A-00000009kEt-0dmC;
-	Tue, 08 Sep 2026 16:56:08 +0000
-Message-ID: <3b9c6799-0b74-41d0-8421-acfb3487b910@infradead.org>
-Date: Tue, 8 Sep 2026 09:56:05 -0700
+	dkim=pass (2048-bit key) header.d=iki.fi header.i=@iki.fi header.b="RuEeEMW/"
+Received: from darkstar.musicnaut.iki.fi (85-76-138-200-nat.elisa-mobile.fi [85.76.138.200])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange secp256r1 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: aaro.koskinen)
+	by lahtoruutu.iki.fi (Postfix) with ESMTPSA id 4hfVyj3s1Sz49Q5S;
+	Tue, 08 Sep 2026 20:18:37 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi; s=lahtoruutu;
+	t=1788887928;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=PO/N7p293WhZWOnEDuSy9gtwR4Cj1KkgRIMnOyAdkIo=;
+	b=RuEeEMW/lTLQi0I0YRvcxTIwqjW3vNe/zSCBmL/PGJcJBZCIMJydTjFu34u3aTjpaeBQp/
+	qlxsWAySlfMOjDBRxCvil5yr9Go9xiMyb3yHsgrHzpvjURsZDuC2J0VNoTCAzH9d50ohZ9
+	SZt4pd7ThrbA6qTlPwQRFXl85Go9ymb2mUnYH8zcdlBH8xKgdDG/aUdijBE6B91mHYsf/3
+	jHGxS5ZdtOAqcHIzQf8RLPi05/UAICgWjCa4RVxqPJrKEa4fpqAwol5EP2Mr/pyCO5XkJf
+	TvQHKUsuqJlrBKO1872gFYm514Sf7gAjW1wQgR4YUn/6wUUZCkdvej9fYv4iag==
+ARC-Seal: i=1; a=rsa-sha256; d=iki.fi; s=lahtoruutu; cv=none; t=1788887928;
+	b=SbNwL400m2OjexdcOokzSVLBXJYp5eFG2UrettS0xu6rLtPQAw0BoPf/Rha3nNm32X4n6N
+	pZhnu1IOhmA42K4eSL3KfjRee1wbSyxocwUHfDcWMWOHXj4ILLfIYj0jWl0C3v0shda8Cs
+	YtShuPaJjzTUQuyHUm+jWn6ClSqpo3i6e8bdD1Sy6wO5h9/gMFr72HuFxxQuuwAWWrwBjJ
+	Bvhd7kAL7qs2ZH5rUYZr3YJgdQLEkmeHK6NniKr8EnUhnI15MVz9pr297APC9kWFLR28Nd
+	gJE3miv9HUpHfPcdmHHFoGcNaVcJ+kap7WMST5SiQb1OOG5go9hAWHx3O2mZBA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=iki.fi;
+	s=lahtoruutu; t=1788887928;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=PO/N7p293WhZWOnEDuSy9gtwR4Cj1KkgRIMnOyAdkIo=;
+	b=PKxyd3l3jvpv/hX9vp8woYeZp39vkZDVbD7MEec2pYDL0IMXGYLnkm9tAwprnb+m4HisQ2
+	CW5kybZg+P7otj2oJtrIFVpdmVNtKUmS31fGV6YnREg1F9XRdbVjOZCdwPkB+jNi1dUtUI
+	7yL74o8J8adJHO9mTvoZjYN74doQp6+pmwVJQy8Vv4FXx5KqxhCn4/JS5JJmDwh/x0KBFz
+	RKjUDwmtYkvNckHVaeu/b+tTcKJKCccwev1BtIq7RW5wBTe5/NKaKTS+d0hIbqi3vontaO
+	eaNQzuBeoWECcyoUJmaDmeTAaq1rBu7nKsbJHhov2Dyhro3U1y7boF5omjgoAA==
+ARC-Authentication-Results: i=1;
+	ORIGINATING;
+	auth=pass smtp.auth=aaro.koskinen smtp.mailfrom=aaro.koskinen@iki.fi
+Date: Tue, 8 Sep 2026 20:18:35 +0300
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Arnd Bergmann <arnd@kernel.org>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Linus Walleij <linusw@kernel.org>,
+	Russell King <linux@armlinux.org.uk>,
+	Drew Fustini <fustini@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+	Rob Herring <robh@kernel.org>, Conor Dooley <conor+dt@kernel.org>,
+	Liviu Dudau <liviu.dudau@arm.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Vladimir Zapolskiy <vz@mleia.com>, Stefan Agner <stefan@agner.ch>,
+	Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+	Alexandre Torgue <alexandre.torgue@foss.st.com>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Nicolas Ferre <nicolas.ferre@microchip.com>,
+	Claudiu Beznea <claudiu.beznea@tuxon.dev>,
+	Andrew Lunn <andrew@lunn.ch>,
+	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+	Gregory Clement <gregory.clement@bootlin.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Kristoffer Ericson <kristoffer.ericson@gmail.com>,
+	Ethan Nelson-Moore <enelsonmoore@gmail.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Alexander Sverdlin <alexander.sverdlin@siemens.com>,
+	Shawn Guo <shawnguo@kernel.org>,
+	Karl Mehltretter <kmehltretter@gmail.com>,
+	"David Hildenbrand (Arm)" <david@kernel.org>,
+	Nicolas Pitre <npitre@baylibre.com>, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	devicetree@vger.kernel.org, imx@lists.linux.dev,
+	linux-stm32@st-md-mailman.stormreply.com,
+	linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Helge Deller <deller@gmx.de>, Tero Kristo <kristo@kernel.org>,
+	Stephen Boyd <sboyd@kernel.org>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-clk@vger.kernel.org
+Subject: Re: [PATCH 06/13] ARM: omap2: remove omap24xx support
+Message-ID: <aqBDa2f__ZE5BQao@darkstar.musicnaut.iki.fi>
+References: <20260908152808.3928630-1-arnd@kernel.org>
+ <20260908152808.3928630-7-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 00/13] ARM: deprecated platform removal
-From: Randy Dunlap <rdunlap@infradead.org>
-To: Arnd Bergmann <arnd@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>,
- Alexandre Belloni <alexandre.belloni@bootlin.com>,
- Linus Walleij <linusw@kernel.org>, Russell King <linux@armlinux.org.uk>
-Cc: Drew Fustini <fustini@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
- Rob Herring <robh@kernel.org>, Conor Dooley <conor+dt@kernel.org>,
- Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Frank Li <Frank.Li@nxp.com>,
- Sascha Hauer <s.hauer@pengutronix.de>,
- Pengutronix Kernel Team <kernel@pengutronix.de>,
- Fabio Estevam <festevam@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>,
- Stefan Agner <stefan@agner.ch>, Maxime Coquelin <mcoquelin.stm32@gmail.com>,
- Alexandre Torgue <alexandre.torgue@foss.st.com>,
- Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
- <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
- Nicolas Ferre <nicolas.ferre@microchip.com>,
- Claudiu Beznea <claudiu.beznea@tuxon.dev>, Andrew Lunn <andrew@lunn.ch>,
- Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
- Gregory Clement <gregory.clement@bootlin.com>,
- Robert Jarzmik <robert.jarzmik@free.fr>,
- Kristoffer Ericson <kristoffer.ericson@gmail.com>,
- Ethan Nelson-Moore <enelsonmoore@gmail.com>,
- Geert Uytterhoeven <geert@linux-m68k.org>,
- Alexander Sverdlin <alexander.sverdlin@siemens.com>,
- Shawn Guo <shawnguo@kernel.org>, Karl Mehltretter <kmehltretter@gmail.com>,
- "David Hildenbrand (Arm)" <david@kernel.org>,
- Nicolas Pitre <npitre@baylibre.com>, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- devicetree@vger.kernel.org, imx@lists.linux.dev,
- linux-stm32@st-md-mailman.stormreply.com, linux-omap@vger.kernel.org
-References: <20260908152808.3928630-1-arnd@kernel.org>
- <fd157e63-e581-44b6-9e4a-962002669438@infradead.org>
-Content-Language: en-US
-In-Reply-To: <fd157e63-e581-44b6-9e4a-962002669438@infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260908152808.3928630-7-arnd@kernel.org>
 
+Hi,
 
+On Tue, Sep 08, 2026 at 05:27:56PM +0200, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+> 
+> The omap24xx SoC platform was used in the Nokia N800 and N810 tablets
+> released on 2007 and was among the first ARMv6 CPUs in products that
+> made it into products.
+> 
+> Unfortunately the early ARM1136r0 CPU cores had a number of quirks that
+> caused a disproportionate amount of work to keep them compatible with
+> later ARMv6K/v7/v8 implementations.
+> 
+> Drop the support for this SoC in order to allow removing ARM1136r0.
+> 
+> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On 9/8/26 9:53 AM, Randy Dunlap wrote:
-> 
-> 
-> On 9/8/26 8:27 AM, Arnd Bergmann wrote:
->> From: Arnd Bergmann <arnd@arndb.de>
->>
->> In the 7.3 kernel, I marked a number of platforms and features as
->> deprecated, with the plan to keep these around for the LTS kernel, but
->> remove them in 7.4, see [1].
->>
->> Cleaning out the deprecated platform code has turned into a larger effort
->> than I expected, currently standing at 300 patches, with a lot of them
->> still in need of being split up into smaller ones, see [2] for a current
->> snapshot.
->>
->> The first series here removes just the bits in arch/arm/mach-*/, plus
->> the portions that directly depend on the removed Kconfig symbols where
->> these are trivial to remove.
->>
->> The parts that are not included are those that remove architectural
->> features and device drivers that become unused after this part. Some of
->> those may also make their way into 7.4, but at this point I would target
->> 7.5 for most of them, to keep the dependencies simple.
->>
->> This also gives everyone a chance to voice their objections in case
->> that some of the removed platform code does have active users after all,
->> before all the corresponding drivers are gone.
->>
->>      Arnd
->>
->> Links:
->> [1] https://lore.kernel.org/all/20260701212353.2196041-1-arnd@kernel.org/
->> [2] https://git.kernel.org/pub/scm/linux/kernel/git/soc/soc.git/log/?h=board-remove-7.3
->>
->> Arnd Bergmann (13):
->>   ARM: remove sa1100 platform
->>   ARM: remove footbridge
->>   ARM: remove riscpc
->>   ARM: remove legacy pxa board files
->>   ARM: orion/dove/mv78xx0: remove all board files
->>   ARM: omap2: remove omap24xx support
->>   ARM: imx: remove i.MX31 SoC support
->>   ARM: imx: remove nommu support
->>   ARM: lpc18xx: remove entire platform
->>   ARM: stm32: remove stm32f4/f7/h7 MCU support
->>   ARM: versatile: remove mps2 support
->>   ARM: at91: remove samv7 support
->>   ARM: axxia: remove entire platform
->>
->>  Documentation/arch/arm/index.rst              |    1 -
->>  Documentation/arch/arm/netwinder.rst          |   85 -
-> 
-> I don't see netwinder.rst in any of the single patches.
-> Should it be in one of them?
-> 
-> 
-> [snip]
-> 
->>  arch/arm/configs/netwinder_defconfig          |   88 -
-> 
-> Same for netwinder_defconfig.
-> 
-> If netwinder is going away, can all of
-> Documentation/arch/arm/nwfpe/ also go away?
-> 
-> Or do all of these come later (in phase 2 or 3)?
+Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-gag. I hadn't received patch 02/13 yet. Didn't realize that. :(
-
-Only the nwfpe/ question remains.
-
--- 
-~Randy
-
+A.
