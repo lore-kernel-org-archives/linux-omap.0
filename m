@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF6CD345ED0;
-	Wed,  9 Sep 2026 15:20:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DC5054EEB1;
+	Wed,  9 Sep 2026 15:20:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788967207; cv=none; b=JWJzvOc7zX4j5mdaoQeG49wVvWa2GReFn0aCw6hg9VkGjpl0pvevnc9+Yq+dr+lTTOvnbCBcLuQnmXSf2wuahwkMTbgPzWX7jzBhhLQbiHyMfK7UHimiEidlIXlGGu76S2HLUVX2fgW/xqmp0I46FNY3mBKJ8lftwHG04TfcJ7A=
+	t=1788967252; cv=none; b=NQElv4fi4Wk8kQD1KHQuMwKPWgpGA1BbkUyvsIrJ+GImBOCUribQi2DVaZXhY6SQLqhoNsAn8hWQpvPBWvrXmK/uAaRIk4Iac1pfA8BBhmSYNmFoxu3YdCPyuul2twQGkHSiQZtGR35clkapit54slBEbw1QOXgTu56ZAWEnQac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788967207; c=relaxed/simple;
-	bh=KmN7W4y7IaXOMBm1H+2QxlAd6Kf7FbOwJUq06cAzNFw=;
+	s=arc-20240116; t=1788967252; c=relaxed/simple;
+	bh=iKnrUSDT5Fz13GuLvMgcUO/V7iG0jox4Zc3GEwaDNdg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RSEjD5AsjyOM+1kPAaY95KdvRYjakLH840uhUxh8pw8ViZ5oT/XOKFeEF0UBsjWRuEUYuie2hJlkf71zD0LO5ZIg6N6R0Nu69iv+SyZ2oIwmhPGG4dHCmqByCkBWt++fRC2/OuwcwmEF/0xtsgQdYuuua5OjmlX4MM2rDSbsUb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PeC8LSHL; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=O87ZAnD2gl5fj3AWOb2LxH4sGRF0IwzkvTVQpqf5SoQ/jrD9G17wRtCpBU7cwzMDM7WrIkWRyyNFtHCv7TEX1G3oM9Qomd/b/eBiBjfiXuUkUZvC0ZnnQ9YcKwi/s3c4S+w1W3mbtCQ4cBBdaUsaqaU9lC24O1V7PtDGBDR1GMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XRuZHN25; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PeC8LSHL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 927A71F00A3D;
-	Wed,  9 Sep 2026 15:19:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XRuZHN25"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E753A1F00A3A;
+	Wed,  9 Sep 2026 15:20:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788967205;
-	bh=BCrgQdZDo3aLB7xh/LkoFLAu6AOAJTFKPiP9EgRixRg=;
+	s=k20260515; t=1788967251;
+	bh=0ItMITfrVntq3jEk4qbDTbiHGOd3wDC+1r6p8CkKYzM=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=PeC8LSHLI5XHUn2A06mQpcJs5ZdXNvUNb3idIWAJsDTh9QQxbPGDGTozG1i8azmYA
-	 jFtoAKTgM2ToU7+E3Itjsn/88If/it86QQ2g9Ef80U8ig+mENAvX5HVcWPrOQCfIFg
-	 0blWn0cCVYG9EEbd6cVN92eRVafHnhRZjpbHVp9cUehnVIZrgotHJC/Ns78zw72zyG
-	 ff86mR7Db+lMB5+oIun531Q/+iq3IJv+OCwsnuZKE6I1QhLlypm3NFu62AGf3R5es0
-	 u+SVtihCUii2hW82R3HElQ95Ok+SKrp68hYpORU0un1EVzgq/xRmsW9kbizr5hsXaR
-	 ejZ/Vo6XMnjZg==
-Date: Wed, 9 Sep 2026 17:19:55 +0200
+	b=XRuZHN25nHuU1pRuKySyqT8SViDEta6kvnVLNH4dXmFNksZ2AwghKYde3ICO15kr8
+	 kfzg+wuJUot5cSA2/v/NauUBKD/gyOYzS2BpIYqSEkrZdRJVWd2cnLrXoZ1hjAlezd
+	 V1gMYzMlIx8g3Q3oYTXijxBtTdkJp3IN1TdUh2xwUdrxT+pLQQgezXV0mHDcacQd38
+	 BTyLDjLKJKPQqfpXsLlHbFEz6jyawQD0BVqG5WXp/EDbAvTKrxlWG2beK0HNCFiAMw
+	 AQUbqIkNfcpDRW0w50HKXd84p4aUot8ra03TVhptKxW1Uw//90+ECl100HwQuhBO3S
+	 XJTrLBs4QUhoA==
+Date: Wed, 9 Sep 2026 17:20:42 +0200
 From: Manivannan Sadhasivam <mani@kernel.org>
 To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 Cc: Vinod Koul <vkoul@kernel.org>, 
@@ -37,10 +37,11 @@ Cc: Vinod Koul <vkoul@kernel.org>,
 	Tony Lindgren <tony@atomide.com>, Linus Walleij <linusw@kernel.org>, 
 	Bartosz Golaszewski <brgl@kernel.org>, linux-phy@lists.infradead.org, devicetree@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v5 0/7] phy: cpcap-usb: improve charger detection and
- export cable state
-Message-ID: <bb6uewt4jilrgeruehxl44ewuvkqhnl47ujgglhdk77zdvawas@avmjll6c6bgg>
+Subject: Re: [PATCH v5 2/7] dt-bindings: phy: motorola,cpcap-usb-phy: add
+ optional safe pinctrl state
+Message-ID: <cwgwosysf5wprofa2opu4ol2akv6yrjf4z5j7axgulbrhzpkq2@qjyodv2omhhb>
 References: <20260711204210.197144-1-ivo.g.dimitrov.75@gmail.com>
+ <20260711204210.197144-3-ivo.g.dimitrov.75@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -50,33 +51,14 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260711204210.197144-1-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <20260711204210.197144-3-ivo.g.dimitrov.75@gmail.com>
 
-On Sat, Jul 11, 2026 at 11:42:03PM +0300, Ivaylo Dimitrov wrote:
-> The Motorola CPCAP USB PHY contains the hardware state machine used for
-> USB cable detection. Besides distinguishing USB peripheral and host
-> connections, it can also detect dedicated charging ports (DCP).
+On Sat, Jul 11, 2026 at 11:42:05PM +0300, Ivaylo Dimitrov wrote:
+> Document the optional "safe" pinctrl state for the CPCAP USB PHY.
 > 
-> This series extends the CPCAP USB PHY driver to detect DCP connections
-> and export the detected cable state through the Extcon framework. It also
-> makes the idle UART mode optional, allowing the PHY to remain in its
-> default USB detection configuration unless UART support is explicitly
-> requested.
-> 
-> The series updates the Device Tree binding for the optional charger
-> detection interrupt and the optional "safe" pinctrl state. Corresponding
-> mapphone Device Tree entries are added to describe the charger detection
-> interrupt and enable the safe pinctrl state.
-> 
-> The charger detection interrupt is not currently used by the driver.
-> However, it is added to the binding and Device Tree because it describes
-> a hardware capability of the CPCAP USB PHY.
-> 
-> The series has been tested on Motorola Droid 4 hardware.
-> 
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 
-Due to mangled CC "--cc=linux-phy@lists.infradead.org" PHY list was not CCed to
-this series. Please fix it in the next version.
+Acked-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
 
 - Mani
 
