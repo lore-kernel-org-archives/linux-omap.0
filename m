@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BC2D53FD5C;
-	Wed,  9 Sep 2026 15:21:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 956243AEB2C;
+	Wed,  9 Sep 2026 15:32:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788967300; cv=none; b=RiD01TA/vK9CeK/JNps9UZ8FJlfEFt6eE8uUnbqEYW2v9YZz6m0rnaWlhbtogJI+YJRX3nKSStD0y7+eQoHT5pbWNfLWYdM6uxgzzORB0eSdbd/Af1YbW9Kq0G+wiW4dIFKKOOb3AGt5jF9JoZJlD/fWbv3E8Fmp5/aDzq8EIcc=
+	t=1788967939; cv=none; b=fACxqn+JVlc0Bogol5Knm2F0tY6ltQoKAuZD5G2WdO16LM6Bi1vyeYA89RszYyKin9K0+Uuz4wXX3o1y0rl2l0uhNViySXyfUVrTz/ps38m/aAvjDFDy2OuaOw+S3frdYo/2zqB1KoPOBn4ejjae1l6cUKu5kO1YNyNec7s21/w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788967300; c=relaxed/simple;
-	bh=xx4LjTBOF+PthZdT5ry3nARx2M+q+HqwHQs0R/a3zXU=;
+	s=arc-20240116; t=1788967939; c=relaxed/simple;
+	bh=XGeiZ9dLZLsr9DS2/J/+J3Y0FtcWfQo3TB5UJ2Y7SNk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HDGtEFdtl7f3q6r4cMJzS8aTXjZqn434r0bVwi/H/7VcwvzvUvxIf6ahBeb60m9Or0WdR19SI+kvcu6NFKZ/EpyVu36KltQjL4bx0/f3N/Ju9CcUkJrgL3EA6SDjMhykRX5qOlaY6rdiLR8XFEa9C0woLXG0SMqZCCL8BAGSXF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=alH5dShJ; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=Crn41YrwUxUIns3TnHPyn6iVEHh6ChKZ4Ruwwj0Z7wHsgDmQStWLjpNXVwDIrFlfnMPeipCoGY8MXnuGQZrofNz1NrEv0xG4BdoyImP/Spl3kUSh6GhgLJ0vbZaxHJV7CQy7YCcBjueScXuUlrlkTIXm7zbk8ixeGdjlSkfNEGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ABQ99Fcr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="alH5dShJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B9881F00A3D;
-	Wed,  9 Sep 2026 15:21:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ABQ99Fcr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D08CE1F00A3A;
+	Wed,  9 Sep 2026 15:32:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788967298;
-	bh=uGWFdqzb8bYvyWRbpjTJW+Qyf4vZQkcGd0eHszCLvzs=;
+	s=k20260515; t=1788967938;
+	bh=IzQ4BNbF6faCBeB/IFPsIGfhclYL1yNQY5hzJO1XqG0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=alH5dShJtqwV9Ubk9DHdNEsuCe6uAI/KFR4g3Z6MYpeWXB2h4QL4DkQm4aoDmM8jr
-	 szVG/nzcrMZifEGUU0kphu53+vfKU56XejKoO7a3wb6epPFxRQ5TBbmiquD8drwlMH
-	 MIyZMhsb1lAIv2fbxHpxsF8sLm4OOVOwDu8w4YI0Rpln+/e1/wisg8oVn7HLWL8D06
-	 c09eLld9OZwLTJh0Nv08R5zWA1ARUG5NkuEINS4s5nRofRj1fPIa5Hp/jy/u3ZT24K
-	 jbtAv8hlkSMuWDViRAKZQnVmkbqlvXKhmfLLaybR7OiV8eF3jEECD98dKPsNWEIwz7
-	 eyiEuaV04cpRg==
-Date: Wed, 9 Sep 2026 17:21:29 +0200
+	b=ABQ99Fcr8z6PssIHhGeNIOA/6HUbkQzaWVgO6zSij2p6NYH7OmNRNz3AVuDosKmBs
+	 1JNogt/yg00/i/cMm5P/kBQQEMczqsp8eP2H+w52XZ4cPzIserfY9oa5Vh8qLs76pk
+	 SuiIEskCsG8ElEFvueS0iCgg9TnVVYM8YEPvx/SCZCkl2eh5G5n/XhfBY5EQpj2bVx
+	 /DwaaLm+v4SvMn+rX+l8XyWdF8k5QQkt0t/8Cjp5P1af27FsO6NdqmnIO7B/6+/01z
+	 dHRa59ZxK8pf2P6Hr5mmVgUNclXsS7l1qhHL5SACfOtkCkc822XNTwgEvo/xudpxvH
+	 vvM7goXuY0qfg==
+Date: Wed, 9 Sep 2026 17:32:09 +0200
 From: Manivannan Sadhasivam <mani@kernel.org>
 To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 Cc: Vinod Koul <vkoul@kernel.org>, 
@@ -37,11 +37,10 @@ Cc: Vinod Koul <vkoul@kernel.org>,
 	Tony Lindgren <tony@atomide.com>, Linus Walleij <linusw@kernel.org>, 
 	Bartosz Golaszewski <brgl@kernel.org>, linux-phy@lists.infradead.org, devicetree@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH v5 1/7] dt-bindings: phy: motorola,cpcap-usb: add
- chrg_det interrupt
-Message-ID: <ac3a277xeybgvkcgo33jaspwp5hvwfysmnhbiy6hy2qfsfsleq@awfomjfn6fdu>
+Subject: Re: [PATCH v5 3/7] phy: cpcap-usb: fix IRQ teardown race
+Message-ID: <af7ikpyy7rheb5d46wpwn6v6sfwh4ncmgb2bcwzbl5flyikseu@mj5q24u4omun>
 References: <20260711204210.197144-1-ivo.g.dimitrov.75@gmail.com>
- <20260711204210.197144-2-ivo.g.dimitrov.75@gmail.com>
+ <20260711204210.197144-4-ivo.g.dimitrov.75@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -51,18 +50,46 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260711204210.197144-2-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <20260711204210.197144-4-ivo.g.dimitrov.75@gmail.com>
 
-On Sat, Jul 11, 2026 at 11:42:04PM +0300, Ivaylo Dimitrov wrote:
-> Document the optional CPCAP charger detection interrupt in the USB PHY
-> binding.
+On Sat, Jul 11, 2026 at 11:42:06PM +0300, Ivaylo Dimitrov wrote:
+> there is a race between IRQ handler and remove:
 > 
-> Update the example DTS to include the corresponding "chrg_det" interrupt
-> name.
+> IRQ thread:
+>     ddata->active == 1
+> 
+> remove():
+>     ddata->active = 0
+>     cancel_delayed_work_sync()
+> 
+> IRQ thread:
+>     schedule_delayed_work()
+> 
+> The IRQ handler can therefore queue detect work after it has been canceled
+> during remove(). Free the IRQ handlers before canceling detect work to
+> prevent new work from being scheduled during teardown.
+> 
+> Reported by Sashiko
+
+Add a proper tag.
+
 > 
 > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> ---
+>  drivers/phy/motorola/phy-cpcap-usb.c | 16 +++++++++++++++-
+>  1 file changed, 15 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/phy/motorola/phy-cpcap-usb.c b/drivers/phy/motorola/phy-cpcap-usb.c
+> index 7cb020dd3423..741145c89e5b 100644
+> --- a/drivers/phy/motorola/phy-cpcap-usb.c
+> +++ b/drivers/phy/motorola/phy-cpcap-usb.c
+> @@ -393,6 +393,19 @@ static int cpcap_usb_init_interrupts(struct platform_device *pdev,
+>  	return 0;
+>  }
+>  
+> +static void cpcap_usb_fini_interrupts(struct platform_device *pdev,
 
-Acked-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+s/fini/free
 
 - Mani
 
