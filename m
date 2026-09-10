@@ -1,213 +1,191 @@
-Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.153.233])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm2-f12.google.com (mail-wm2-f12.google.com [74.125.225.140])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B57A8403123;
-	Thu, 10 Sep 2026 12:25:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=68.232.153.233
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789043131; cv=none; b=BvRijZMAM8cqyVdmvnIcZoPzACx56lnIxUT63JyJzV1PfXowFUiLK8199Ded+R0wSdiad0rTqS5JpXVwJVhIFgF1L2WpyiTlGhh8OnKQOyfmV3rIqdbR7VSleuhLEBduhvZtjn7RONTHqKaDNWnOYfTWv7KB1d5Ic+OmwTxFZL0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789043131; c=relaxed/simple;
-	bh=MTbeJ01FO9J17bRn1c8XUB7qT3+WXI4gOZk+nMm/nfc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=PLIW8KR5HZS2aUtrDjVnQL8vbL94eeoPv52AcBdhx53U/JtVLrEt2iWtQTApQLR+j6H2jGRfQo3MFvYki/uh6z5o+rpQldBfyKpMUKf6BDfiP7CvcuLCZYdYHiDb+Bfc5qb8GQNDFJb+rz60gZBWR0GZ/4rE3imgxYxbao3b748=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microchip.com; spf=pass smtp.mailfrom=microchip.com; dkim=pass (2048-bit key) header.d=microchip.com header.i=@microchip.com header.b=Ud+OYh0B; arc=none smtp.client-ip=68.232.153.233
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microchip.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microchip.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3474748E0E3
+	for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2026 13:09:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.225.140
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789045762; cv=pass; b=cqDzMGbSIxXn6tPMU1nwOaHE8NzCPz1y7C8/PbZHPn7L2G5Av2Hz+U3ouKTql7lksa0E93Cpnqw5VnSTnjDmIIwB1MMlG6RSCpAoPd5LYkqLVm3b/Nqv4KN8v+xRO8O73rIG3A20zZN2vlMFl0fLPrzcFkXIYrpmdtz2ELdjYu0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789045762; c=relaxed/simple;
+	bh=OK0YfBX92H6A0Epu2Kw2rNUmQkQOp+XxcafXxrqgWXE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=jL1rM3q2YuAfcWA3kYk1iWaVXnSeIZ1gGD/u9IigjvpTlbTecxRoKiLd3gtTRpMX9IZ8LGm9iHIkMF3PUeIqfvX4Jhzz4GKHljqJQ3+YMp85bdlxpw0Qtt9UMTMwgthEpJ1y19ug5SXS7uToXKsB7QYOBow719ZN9s9aN/xdEX4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Nmc8Thfj; arc=pass smtp.client-ip=74.125.225.140
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=microchip.com header.i=@microchip.com header.b="Ud+OYh0B"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
-  t=1789043134; x=1820579134;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=MTbeJ01FO9J17bRn1c8XUB7qT3+WXI4gOZk+nMm/nfc=;
-  b=Ud+OYh0B6MJYJk8ei4L0phnNSlP4Twcl5S+mkc00cMtUCp1Hc0+gMarn
-   Gnd47ERcFLyXBRxfOqEFxarfYunsHqjh86WR/3U+twan/W/dESf3mmwM8
-   9Mo3fQY6EtXNDKH8oMex3cGaGQVwmeQjascmF/Pz6ghS1I2vt53dErsMM
-   MlqA3Yr2acwuyHX3gzN5wdaKd0Jv0kDEoYbKiDJ6bWeNqdx3P8DTb28Mn
-   Z4ejXwDIEkzqCvTlCHz7i3xubQlxI8zo/EngV5f0eNUrDNJzR3vThAwyT
-   INwm1qhavLByUA8qqeQoYjHCV0yl3cM9Z2Iy3y9I+LamgsiumiEUur4/t
-   g==;
-X-CSE-ConnectionGUID: 4abtTWM1TV2omNHCNlEErg==
-X-CSE-MsgGUID: IfbE0zNeTWSylvZ/wUi8cQ==
-X-IronPort-AV: E=Sophos;i="6.27,95,1787036400"; 
-   d="scan'208";a="294821428"
-X-Amp-Result: SKIPPED(no attachment in message)
-Received: from unknown (HELO email.microchip.com) ([170.129.1.10])
-  by esa5.microchip.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES128-GCM-SHA256; 10 Sep 2026 05:25:33 -0700
-Received: from chn-vm-ex03.mchp-main.com (10.10.85.151) by
- chn-vm-ex04.mchp-main.com (10.10.85.152) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.58; Thu, 10 Sep 2026 05:25:28 -0700
-Received: from [10.171.248.45] (10.10.85.11) by chn-vm-ex03.mchp-main.com
- (10.10.85.151) with Microsoft SMTP Server id 15.1.2507.58 via Frontend
- Transport; Thu, 10 Sep 2026 05:25:17 -0700
-Message-ID: <fe9feffe-5bf1-47c7-9b29-f289a0a2f5a2@microchip.com>
-Date: Thu, 10 Sep 2026 14:25:15 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Nmc8Thfj"
+Received: by mail-wm2-f12.google.com with SMTP id 5b1f17b1804b1-49b912e64ccso10011095e9.0
+        for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2026 06:09:19 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789045758; cv=none;
+        d=google.com; s=arc-20260327;
+        b=aTtwSH4RIhY8NKA92f8a+7iK29ejZAtWnsbxDg1OR3ewIUYVrBwg4ee/JhvJNETpz4
+         /QlxigmXZbvdLW1MkIXzLznHP41aiwdV+bW7WgEvL88RaERm3HPMvsx+Lqnfda/zyVOp
+         3AyZ6YHD9d59acyvmvmYul5JPKGhPK8iUuQq9P3zso2ad6PonyYxjpyqNuwSeDHOAlyU
+         J+13+Yman/eYaKswMRLJZU+Z6Jw8ceQKdsmdyBAz/IwVvd0egM8PwAw9rrf6VXYUbTeL
+         XijG4Y1m3Mb1WA7LWTarbfi8vsmamu2jTUJDBhJ4RaaxNWuKDtXrT0n8q3bDpjwdB4Hf
+         udtQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=Df7aozBOtXp5BasAQeyfsseQI0gbS7rSN3y93pihr6s=;
+        fh=cooq5RBx3IKs7HBOI3SrdBVxxLjDahfkJYTya8eC8mE=;
+        b=fu0lPCYm/QMY7TKCNT8cAU0omv8rT5dbv9G7ks/VJBXGjLgyxu0iJQRaOy9lnqiXHE
+         2IV10+CairE/E75idks/FgPo8QrYeBzjFmHa0z6YJ0xNj1rMMqMV8LPZqbJ5+gIDrLKr
+         U9bupV9IltkQaDCL7Jpz57H8wtURnCNb8vlkXRN44l5Zoz6wiEB45sBwSljozJld0ckk
+         BLLABBgqro4o0E7szl2wZtRz3jhqIwc7DgZKe9oIl13o80iT9OZTN8ohjrBgSz2nqDRb
+         duPy4qczRNhQLv8Lqf6ARrKsgZ6A8skdD+R0L6Q7cPXVK6Jkodl1Ai/WlNa1MmaVUCbJ
+         quSg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789045758; x=1789650558; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=Df7aozBOtXp5BasAQeyfsseQI0gbS7rSN3y93pihr6s=;
+        b=Nmc8ThfjVslSMqzrKT+riGIeqWXuIbbPKhuePOqXbEtive9B071Y2UmKWQ8xIFar0v
+         vA/GpXEFTitK8UACRjGIY+bU+kd4zM5UNY97QSblVGvIrYfRJ0prOF7gpAAMohqvNCHw
+         ADtOp2Cffsa9pyjg6w1EN3k8gJZVPkcLDY+VveKt4EHf1RVykK1+lvIc5UhcRlBf00CD
+         lawTFbZgQNQm1Fvu/R2lpmTbI5fCTfEB0dlwHpnclaXnT3rxsVg5mXzxap4nBabS/Dmo
+         e31sGhW4VwAzj1pm3vv+9atnWga8YADGgOYgvziJHOfkJkr3+BNMuMZZqefb7WfskKLk
+         1M5Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789045758; x=1789650558;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Df7aozBOtXp5BasAQeyfsseQI0gbS7rSN3y93pihr6s=;
+        b=Gq3Pi9YPidl3SOh26gAmv0QVXtdV1u02+oiOXpRqnGeW8IXpB0CS3Xl6/2FkNTykrJ
+         Zs8efzX7PATIA3fQ0+9NJBHL3azYihucAJlXRasHHiElW1o//CGptkn/pJP+CXr3z0On
+         Jklj1oRed4iPAN4oaQBGeeqr4P1tZS6b2MWkVxfv0sZMB5doxE8Cd/ItscrIAqaEyvaT
+         Qch3banCBfMgfBrBxrSA792yte217cHrwtqx6h4YCuoYbL+vDKGoFofIUHo8L5rLexxS
+         samoHBF8JODJtYvbLyu1kjMJlAVoV0raS9IsSeySVxPHr5Xqtapn8b1mLO1jAbboeeJL
+         bnhA==
+X-Forwarded-Encrypted: i=1; AKwUvBzpa0b1mrhYKFSJHyJFMHuuZFTH+oINFEbAUNWKOkRK7diSuHIgNK/MOEuEOqKMvXZc6VEtRyF5fE+V@vger.kernel.org
+X-Gm-Message-State: AFuF++mja7DU1KV4BMl4u4xaTS8MSSEE/aLlaXCrY2jqVSbmkEOWk0qp
+	YODGu9xYdzbmVIFU4S1dEEsw7QP5WmkKlVN7eAYODVDuLxAkTq1f2ibZKyZE2Fzf1LV8EJzHUHC
+	czDO1do5q5+0nEZbN5/JO5X9hFP/kyko=
+X-Gm-Gg: AYBFou0zR1ZQXTo736v5hmG1tZf0cEAOvQYHA2litu3LtQaqbzs/TBfZSucFN/ibsj9
+	1ssMxAPTKyb7oyee+urHEK9cfBoDN6vYHaziz53yV0PxWaMnOO7KwHwSrE8OM31lKAo1gOH9JgI
+	olSLPpyKM56WBkviGMuUiwF4EL2N8dJznONCfIvFDMSNWuU1aPG3USSt0NwVKuokQ8FXp0if2as
+	iIWgWDrfLlPlHZ23PlXAloOZe8fUayEFzG8MPfSnC+PFUnZZUpTfkmjYuDGpf+d2CKQDa4FUauK
+	fQep46srgDlZj0xnWm9XN3dULE3QSiKjiVqdAEZ86GO/QOaY1H5vyzMTIqKx1w+v7/p2lkfI2E8
+	/91E1T7guJbM0
+X-Received: by 2002:a05:600c:6c07:b0:49d:1cc7:5ec3 with SMTP id
+ 5b1f17b1804b1-49d259138abmr111164355e9.9.1789045757952; Thu, 10 Sep 2026
+ 06:09:17 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 12/13] ARM: at91: remove samv7 support
-To: Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, Arnd
- Bergmann <arnd@kernel.org>
-CC: Krzysztof Kozlowski <krzk@kernel.org>, Alexandre Belloni
-	<alexandre.belloni@bootlin.com>, Linus Walleij <linusw@kernel.org>, Russell
- King <linux@armlinux.org.uk>, Drew Fustini <fustini@kernel.org>, Conor Dooley
-	<conor+dt@kernel.org>, Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla
-	<sudeep.holla@kernel.org>, Lorenzo Pieralisi <lpieralisi@kernel.org>, Frank
- Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix
- Kernel Team <kernel@pengutronix.de>, Fabio Estevam <festevam@gmail.com>,
-	Vladimir Zapolskiy <vz@mleia.com>, Stefan Agner <stefan@agner.ch>, Maxime
- Coquelin <mcoquelin.stm32@gmail.com>, Alexandre Torgue
-	<alexandre.torgue@foss.st.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas
- Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, Roger
- Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Claudiu Beznea
-	<claudiu.beznea@tuxon.dev>, Andrew Lunn <andrew@lunn.ch>, Sebastian
- Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement
-	<gregory.clement@bootlin.com>, Robert Jarzmik <robert.jarzmik@free.fr>,
-	Kristoffer Ericson <kristoffer.ericson@gmail.com>, Ethan Nelson-Moore
-	<enelsonmoore@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, "A.
- Sverdlin" <alexander.sverdlin@siemens.com>, Shawn Guo <shawnguo@kernel.org>,
-	Karl Mehltretter <kmehltretter@gmail.com>, "David Hildenbrand (Red Hat)"
-	<david@kernel.org>, Nicolas Pitre <npitre@baylibre.com>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <devicetree@vger.kernel.org>,
-	<imx@lists.linux.dev>, <linux-stm32@st-md-mailman.stormreply.com>, Linux-OMAP
-	<linux-omap@vger.kernel.org>
-References: <20260908152808.3928630-1-arnd@kernel.org>
- <20260908152808.3928630-13-arnd@kernel.org>
- <20260908210947.GA519272-robh@kernel.org>
- <7608c487-390e-4526-a2ac-11f073c902c2@app.fastmail.com>
-From: Nicolas Ferre <nicolas.ferre@microchip.com>
-Content-Language: en-US, fr
-Organization: microchip
-In-Reply-To: <7608c487-390e-4526-a2ac-11f073c902c2@app.fastmail.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20260908152808.3928630-1-arnd@kernel.org> <20260908152808.3928630-9-arnd@kernel.org>
+ <CAOMZO5Bw72SkBChbRLg+FaYZ34ENAW95-0+LrgcrESu_YtNXFQ@mail.gmail.com>
+In-Reply-To: <CAOMZO5Bw72SkBChbRLg+FaYZ34ENAW95-0+LrgcrESu_YtNXFQ@mail.gmail.com>
+From: Jesse T <mr.bossman075@gmail.com>
+Date: Thu, 10 Sep 2026 09:08:41 -0400
+X-Gm-Features: AcwNN1UEFdvIck3fXBUKab0LkOKuiFOwC71vVQo2jwIoxCjaBOCf3NRiYyhyIhY
+Message-ID: <CAJFTR8RYajZ+Az9JvemMCApvUEGG3pDLq1KVkKyAsA6Luw-0BA@mail.gmail.com>
+Subject: Re: [PATCH 08/13] ARM: imx: remove nommu support
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Arnd Bergmann <arnd@kernel.org>, Giulio Benetti <giulio.benetti@benettiengineering.com>, 
+	Krzysztof Kozlowski <krzk@kernel.org>, Alexandre Belloni <alexandre.belloni@bootlin.com>, 
+	Linus Walleij <linusw@kernel.org>, Russell King <linux@armlinux.org.uk>, 
+	Drew Fustini <fustini@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, 
+	Conor Dooley <conor+dt@kernel.org>, Liviu Dudau <liviu.dudau@arm.com>, 
+	Sudeep Holla <sudeep.holla@kernel.org>, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
+	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>, 
+	Pengutronix Kernel Team <kernel@pengutronix.de>, Vladimir Zapolskiy <vz@mleia.com>, Stefan Agner <stefan@agner.ch>, 
+	Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre Torgue <alexandre.torgue@foss.st.com>, 
+	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
+	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
+	Tony Lindgren <tony@atomide.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, 
+	Claudiu Beznea <claudiu.beznea@tuxon.dev>, Andrew Lunn <andrew@lunn.ch>, 
+	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, 
+	Gregory Clement <gregory.clement@bootlin.com>, Robert Jarzmik <robert.jarzmik@free.fr>, 
+	Kristoffer Ericson <kristoffer.ericson@gmail.com>, Ethan Nelson-Moore <enelsonmoore@gmail.com>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Alexander Sverdlin <alexander.sverdlin@siemens.com>, 
+	Shawn Guo <shawnguo@kernel.org>, Karl Mehltretter <kmehltretter@gmail.com>, 
+	"David Hildenbrand (Arm)" <david@kernel.org>, Nicolas Pitre <npitre@baylibre.com>, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	devicetree@vger.kernel.org, imx@lists.linux.dev, 
+	linux-stm32@st-md-mailman.stormreply.com, linux-omap@vger.kernel.org, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 08/09/2026 at 23:30, Arnd Bergmann wrote:
-> On Tue, Sep 8, 2026, at 23:09, Rob Herring wrote:
->>
->> Do you want to drop all the samv7 platform compatibles from at91.yaml?
->> Are there non-Linux users using DT?
-> 
-> I see that zephyr uses DT here, but it uses an incompatible
-> set of bindings, see
-> https://github.com/zephyrproject-rtos/zephyr/tree/main/dts/arm/atmel
-> 
-> I'm dropping the references from the binding now, and also from
-> Documentation/arch/arm/microchip.rst, which I had missed earlier.
+On Wed, Sep 9, 2026 at 4:21=E2=80=AFPM Fabio Estevam <festevam@gmail.com> w=
+rote:
+>
+> On Tue, Sep 8, 2026 at 12:29=E2=80=AFPM Arnd Bergmann <arnd@kernel.org> w=
+rote:
+> >
+> > From: Arnd Bergmann <arnd@arndb.de>
+> >
+> > The i.MX platform has grown support for three separate product
+> > lines using Cortex-M based microcontrollers over the years:
+> >
+> >  - i.MX RT1050, a high-end microcontroller
+> >  - Vybrid vf610 suppors running Linux on either the Cortex-A5
+> >    CPU or the Cortex-M4 MCU
+> >  - i.MX7D similarly can run Linux on the Cortex-A7 or the
+> >    Cortex-M4
+> >
+> > There are no known upstream users of any of those three,
+There is both a u-boot and buildroot config for i.MX RT1050,
+I also do basic regression testing on this platform. I understand the
+need to depreciate no-MMU, but it's sad to see them go.
 
-Very good, thanks for having handling that Arnd.
+If it helps at all to remove i.MX RT1050 there are only 11 commits
+adding it that are from Giulio Benetti and I.
+For i.MX RT1170 only 3 commits by me which only got partially
+added. See
+Commit: fff65226b229 ("pinctrl: freescale: Add i.MXRT1170 pinctrl
+driver support")
 
-Acked-by: Nicolas Ferre <nicolas.ferre@microchip.com>
+I also occasionally test the stm32f429-disco as I have one.
 
-Best regards,
-   Nicolas
+> > so
+> > drop support and simplify the platform to assume that an MMU
+> > is present.
+> >
+> > Cc: Frank Li <Frank.Li@nxp.com>
+> > Cc: Sascha Hauer <s.hauer@pengutronix.de>
+> > Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
+> > Cc: Fabio Estevam <festevam@gmail.com>
+> > Cc: Stefan Agner <stefan@agner.ch>
+> > Cc: Rob Herring <robh@kernel.org>
+> > Cc: Krzysztof Kozlowski <krzk+dt@kernel.org>
+> > Cc: Conor Dooley <conor+dt@kernel.org>
+> > Cc: Vladimir Zapolskiy <vz@mleia.com>
+> > Cc: Giulio Benetti <giulio.benetti@benettiengineering.com>
+> > Cc: devicetree@vger.kernel.org
+> > Cc: imx@lists.linux.dev
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > ---
+> >  arch/arm/boot/dts/nxp/imx/Makefile            |    2 -
+> >  arch/arm/boot/dts/nxp/imx/imxrt1050-evk.dts   |   72 -
+> >  arch/arm/boot/dts/nxp/imx/imxrt1050-pinfunc.h |  993 -----------
+> >  arch/arm/boot/dts/nxp/imx/imxrt1050.dtsi      |  160 --
+> >  arch/arm/boot/dts/nxp/imx/imxrt1170-pinfunc.h | 1561 -----------------
+> >  arch/arm/boot/dts/nxp/vf/Makefile             |    2 -
+> >  arch/arm/boot/dts/nxp/vf/vf610m4-colibri.dts  |   61 -
+> >  arch/arm/boot/dts/nxp/vf/vf610m4-cosmic.dts   |   88 -
+> >  arch/arm/boot/dts/nxp/vf/vf610m4.dtsi         |   61 -
+> >  arch/arm/configs/imxrt_defconfig              |   35 -
+> >  arch/arm/configs/vf610m4_defconfig            |   39 -
+> >  arch/arm/mach-imx/Kconfig                     |   27 +-
+> >  arch/arm/mach-imx/Makefile                    |    3 -
+> >  arch/arm/mach-imx/mach-imx7d-cm4.c            |   18 -
+> >  arch/arm/mach-imx/mach-imxrt.c                |   19 -
+>
+> The imxrt1050-evk dts is used in U-Boot.
+>
+> Adding Jesse and Giulio, who use this platform in U-Boot.
 
-> diff --git a/Documentation/arch/arm/microchip.rst b/Documentation/arch/arm/microchip.rst
-> index e721d855f2c9..b776a6656717 100644
-> --- a/Documentation/arch/arm/microchip.rst
-> +++ b/Documentation/arch/arm/microchip.rst
-> @@ -157,45 +157,6 @@ the Microchip website: http://www.microchip.com.
-> 
->             Coming soon
-> 
-> -    * ARM Cortex-M7 MCUs
-> -      - sams70 family
-> -
-> -        - sams70j19
-> -        - sams70j20
-> -        - sams70j21
-> -        - sams70n19
-> -        - sams70n20
-> -        - sams70n21
-> -        - sams70q19
-> -        - sams70q20
-> -        - sams70q21
-> -
-> -      - samv70 family
-> -
-> -        - samv70j19
-> -        - samv70j20
-> -        - samv70n19
-> -        - samv70n20
-> -        - samv70q19
-> -        - samv70q20
-> -
-> -      - samv71 family
-> -
-> -        - samv71j19
-> -        - samv71j20
-> -        - samv71j21
-> -        - samv71n19
-> -        - samv71n20
-> -        - samv71n21
-> -        - samv71q19
-> -        - samv71q20
-> -        - samv71q21
-> -
-> -          * Datasheet
-> -
-> -          http://ww1.microchip.com/downloads/en/DeviceDoc/SAM-E70-S70-V70-V71-Family-Data-Sheet-DS60001527D.pdf
-> -
-> -
->   Linux kernel information
->   ------------------------
->   Linux kernel mach directory: arch/arm/mach-at91
-> diff --git a/Documentation/devicetree/bindings/arm/atmel-at91.yaml b/Documentation/devicetree/bindings/arm/atmel-at91.yaml
-> index bf161e0950ea..d9b32a95b136 100644
-> --- a/Documentation/devicetree/bindings/arm/atmel-at91.yaml
-> +++ b/Documentation/devicetree/bindings/arm/atmel-at91.yaml
-> @@ -258,45 +258,6 @@ properties:
->             - const: microchip,lan9668
->             - const: microchip,lan966
-> 
-> -      - items:
-> -          - enum:
-> -              - atmel,sams70j19
-> -              - atmel,sams70j20
-> -              - atmel,sams70j21
-> -              - atmel,sams70n19
-> -              - atmel,sams70n20
-> -              - atmel,sams70n21
-> -              - atmel,sams70q19
-> -              - atmel,sams70q20
-> -              - atmel,sams70q21
-> -          - const: atmel,sams70
-> -          - const: atmel,samv7
-> -
-> -      - items:
-> -          - enum:
-> -              - atmel,samv70j19
-> -              - atmel,samv70j20
-> -              - atmel,samv70n19
-> -              - atmel,samv70n20
-> -              - atmel,samv70q19
-> -              - atmel,samv70q20
-> -          - const: atmel,samv70
-> -          - const: atmel,samv7
-> -
-> -      - items:
-> -          - enum:
-> -              - atmel,samv71j19
-> -              - atmel,samv71j20
-> -              - atmel,samv71j21
-> -              - atmel,samv71n19
-> -              - atmel,samv71n20
-> -              - atmel,samv71n21
-> -              - atmel,samv71q19
-> -              - atmel,samv71q20
-> -              - atmel,samv71q21
-> -          - const: atmel,samv71
-> -          - const: atmel,samv7
-> -
->   additionalProperties: true
-> 
->   ...
-
+Thanks for the CC,
+Jesse Taube
