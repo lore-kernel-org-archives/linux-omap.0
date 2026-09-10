@@ -1,66 +1,68 @@
 Received: from mail-pz2-f12.google.com (mail-pz2-f12.google.com [74.125.228.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFACE49B5DE
-	for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2026 22:12:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F3EC49B5AF
+	for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2026 22:12:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789078340; cv=none; b=H9Hh5ZAHKSmTNMisTOw1c/zBXCx+Bc0rrBrInf+Jja7eU6CluFI6N22DOPWtqshiMHrYfxv31vuwIbItJ5N2ODq9BzWGy1DSVaOn3CB6UYhynzyWKFA5smJMJUCRLjlosp7ZtdgA52elUb5NdFTx2m4TVFeNaxlatL0GytJ7OwA=
+	t=1789078351; cv=none; b=Oy590Y+wXeoMvQZMiTFHxXWmvALsbBfUdeVSE6JQzjEgccCmIYQvpfKWhaVExVasTEOOQN0kuf30YRO6aQXm1j6KJ67gHBwnJohIzoxdL51qA0XZ2ozGus+Virp+DeN148olnIijztpMSqhsa9mZRCbFONZQM9r5yM1QA36BFts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789078340; c=relaxed/simple;
-	bh=7eZ6MGYrn7UuTOMdMokn5OY5P6XozBWE80r9RYz8pa0=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=mpHZZcbH4bhYfqrzsUUYEj834q4T0zyu6nDz7oUI0EwWrRhP5xk2cF5X5ofn5UFaN34LhJBTqueKejnxu08FZ+KyT2+f61BaK3QZWDJHIiy1G0xZfu988sfqaQnmm33U8g92+bcGqIBdkgPDGlKl+DCJE4UJFhnUflJKC0VNrxo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qgy/Yiyj; arc=none smtp.client-ip=74.125.228.12
+	s=arc-20240116; t=1789078351; c=relaxed/simple;
+	bh=BbAJHt9adMYyzBOCLH5rvGTbgi1xMnGL52q958OEAto=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=ASHpSdxi0NMuYATzxBScrq2EAioYQIMBX8jwkArmIq2FDQHH/u9NDQMGMrNaw+5pIZJ1hfy5AGJycnXUz3IO3NG5uB3MFxr4PRZGdq9UAHgcwx63spSK7T+OOkTLCkMK41g9zXglFRtpw9Dv3BT8vHLrS9/Bp2r0kkBRb4sYR9s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dBDgkh1u; arc=none smtp.client-ip=74.125.228.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qgy/Yiyj"
-Received: by mail-pz2-f12.google.com with SMTP id d2e1a72fcca58-855ce7e3990so18883b3a.0
-        for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2026 15:12:17 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dBDgkh1u"
+Received: by mail-pz2-f12.google.com with SMTP id d2e1a72fcca58-8523cc8262aso24833b3a.1
+        for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2026 15:12:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789078336; x=1789683136; darn=vger.kernel.org;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=rIxoez68u6cYjUY8xm3+9MUMr1Da3TBEKdq2C8N2mec=;
-        b=qgy/YiyjHbP7NT9NwyzQYaXOgwKg07ngmehhevd/YTY7OIrMZqWsdRnRuOlisuqk4D
-         26MAi7C4V7qNia53Y+e9zzzCTXawzazS3zfPPoT1EieIWwxt7NZjPw8/F8UdlAZsKfw2
-         UhjhK4Sf7nc/UKZhUFU5bvz+DrFsrq5kZyHqh8r8N4S1pkhR7X22WNZ2tLZuKs7ZU1Cx
-         AqqL3i0g9SgM1TPHC8dfnql4Vt8cRYNVutJzAozEys2qDV13lzuo2zT4D46q15V6YBCE
-         UKeA5gH8zQUcB0m6rLPdN0APchAvjj43zgxDYrLTvjaCmOTNscRXUw7Pnav+ZXEA1230
-         vpLw==
+        d=gmail.com; s=20251104; t=1789078349; x=1789683149; darn=vger.kernel.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=jQaA/YsbwqnIY6MwaWj7Df5zJPQ8UAD3/8j58BDH8n4=;
+        b=dBDgkh1u5p8y98/Yplqy01MMvH/QswR24/nXsiApjY+3Eq82RDUSzHipK4uGJMfl1T
+         vGCTBOMofso1sGNaq+Sb3stiOj4YQ3keY6VUHNv5LfajyLfoLA8G8Lv2fSPzTmXaJpLD
+         u/lRV7hycnsJRRnkq+d4vRm9FVqiTRgdTXxcESCuhjmd47b8V/RCVncusGEAnaNJOX+s
+         yPAHDqGmEsmKBIway8rCXgjzSG+Q3RnvdWRq1evDlPerhw4zKYl8pFV8XzJq5MWIgedJ
+         NV26E17tm7I8eXBrj6gU11XAximHvcKbG9BvPEZggy555r43miMISLMpg1C0NW/m4Opl
+         o2YA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789078336; x=1789683136;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=rIxoez68u6cYjUY8xm3+9MUMr1Da3TBEKdq2C8N2mec=;
-        b=nAyKGpmFkhtmzredPXEjVInufR7KtiunKR9AiVUKNd5o86IILg0ocIehC7F6aPit9O
-         aJqrSsmhQHAB0a/jDWohd/uOq8/MHTxqHixMxd3fjr3DTJisJs6WWe0Y6WEe/Dd8UCob
-         bNn5S9iN0jS3J3cSP3lbY4/wuDk/z0dOn1KPxd1yzR7YRXyKu9zNrOxTpvmfWzhFARcc
-         F/ZgQ6hnbkcjCnA6JxebYhbRi8u9EX/ts1GJourbUB0iMcsRcROp8d01q8blbrwUs1iB
-         7sgeEeAVwwVl1nDlvcU7E7sBB+CuK6KbmdQXW32boI3isBHr5uR9P/P6mvNphF+yeLvi
-         sWNg==
-X-Gm-Message-State: AFuF++k0tydDJx4ogUjNgMwPSPEjwqb6C2vrG7arib8Xd/Mo8uXD8bCi
-	V9YxyYauCY9xKUKUBOXrLrDU+az2wAe4DHrEbarD/cvf+7hm3wCRpBTv
-X-Gm-Gg: AYBFou0uGZd/HHy8apoO67whuBIyX0MekcLMf4XGlooKEoSZ9wWmCQAQ5FnjlOE0EsJ
-	T4TMkV6fjF+5vMEAC+PXkQiFwxeSAkOul/5SFCM+o0bPNWjrE4JXOfSHd68uC2wVGVtBwjmqvos
-	D9fpoPAEeikf77wIL2pPxRvL6ugJIKSNp6YBgsKuX+fUOfvg3uc7NCVhA7guws2LwEW52KVG6jF
-	/CWuLioYi5GqC5ydI/N+aaDsZc/C/vWgZDMBLlsL6uXidxbQKdMexpCteRpSMwufEkIgffttPIM
-	f64YKFrxwft+XwX27CQSKDJJmjPuGSMSAn1ypS85leMuIqJfxsAwO0ECNed+RmITg3QbB9HQlA/
-	9ot/3u91QTWIaGZgNZzmgPBPi9ufU07JJZoA/h1Pg6F1kKPOrASrhtwzsjVQj0OtJH4fEwMjypv
-	0KGjTa79dvZexV1UwuAw5L+us167w+GYFb3VxpB6MtskHClRNEwGvSFLcU7NZ6uIblV15iiEIEq
-	ONtwQHh/y2l
-X-Received: by 2002:a05:6a00:4708:b0:862:ff57:7672 with SMTP id d2e1a72fcca58-86b3160fde2mr616320b3a.2.1789078336410;
-        Thu, 10 Sep 2026 15:12:16 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1789078349; x=1789683149;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=jQaA/YsbwqnIY6MwaWj7Df5zJPQ8UAD3/8j58BDH8n4=;
+        b=JzID2v3KHoVAfj4qNsrD9EEnVanuIvGSZgTcDtHs9pzkaU2cPKQHWKWwr7xnmivJBL
+         2fhv27QhS0my0MEpGX1SLLYmZdkyR7xwVrMnlw9qnxeIuIzpDdhcdhnePI5baNStLS6O
+         4w5OHxbrnaqWLBxN+KwTJZfopN7OJMrMimIgVT3FJKtWzeKZ8yQnceQzKHsEgHmYiw+5
+         fJLTiSIRCNpslLMgeAdKMo+9kY2szlKT/zqoXVXwFq/MxXz3lrFJ8tGLt/aq4O2gdWUK
+         mYZ7rvtnGXeMJqBPykDmO9rGCtxGXtcl3A7ThVRj4yQFpni6xIVKbCy7lJ+FKqAr6giZ
+         nVwA==
+X-Gm-Message-State: AFuF++nFvWWPR+Ih4Y67v5c0LthlU2dHM790t5+vF4pbS+wV4FBn43wi
+	vdmmrXqwC/n5um1ypAYxcQU075OOpZ1Gs+31vtllTTP+kz8K+Bbc4uPj
+X-Gm-Gg: AYBFou0iPbG2iGx9Df/J4m3EcnavT5Aiwc+YYn0yuclOzadSbKTBv1fnsNlN/Q6EJrc
+	5LfF/V/RztWXVEHzYf6l0SFFA4TSb0q1XBdypGKs8daObMWxDjNluGYyPBdxTDWycjV8v6BjBRd
+	X4sOXagRuwU64Np9uSuBsvEBgA6k24Pcx/Q9M3FEg5SU82kHf6nDWYeX0Nzg9+U3QFFeNsYjG5N
+	yuPhci9WSnAO7+/Lqk9dA04XChs08OFeCImHlgH7mv/8QM7Qx/z44xyqQnvfS4rKjeY2b5+CdMP
+	+snXUotlo1V55uUwnKfucdS/WJq+FfF0B+Zr6A74ROjVs5eY14Zd41eiWI4MzqBAJnYOfY6Pt9k
+	6fiTat+yVmDHX2CKQwuT7g9TteiwegS0tomwp5RcqnCVPUEyedY2FnLHj7mxCMEpWBN9TEpo2LQ
+	hAMetxTdUyToWEFovj0SOGJekWl4fcJf0wvOCD38O+836Q/7Qu0xjkOgsbX4KvufwpGhaJ/Vte2
+	ykNhjtV5OaW
+X-Received: by 2002:a05:6a00:4891:b0:85f:2315:4efd with SMTP id d2e1a72fcca58-86b2f0f01f0mr781561b3a.1.1789078349465;
+        Thu, 10 Sep 2026 15:12:29 -0700 (PDT)
 Received: from [172.29.212.252] ([2409:40c2:5426:e355:af9c:7683:e7ab:273b])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-86b291bf622sm171875b3a.27.2026.09.10.15.12.03
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-86b291bf622sm171875b3a.27.2026.09.10.15.12.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Sep 2026 15:12:15 -0700 (PDT)
+        Thu, 10 Sep 2026 15:12:29 -0700 (PDT)
 From: Bhargav Joshi <j.bhargav.u@gmail.com>
-Subject: [PATCH 0/2] ARM: dts: ti: Clean up OMAP crypto bindings and dt
-Date: Fri, 11 Sep 2026 03:41:56 +0530
-Message-Id: <20260911-ti-dra7-omap-sham-fix-v1-0-c430f01b4e13@gmail.com>
+Date: Fri, 11 Sep 2026 03:41:57 +0530
+Subject: [PATCH 1/2] ARM: dts: ti: omap: dra7: Remove clocks from crypto
+ nodes
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -69,10 +71,9 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/x2MQQqAIBAAvxJ7bkGNsvpKdNhqqz2UohGB9Pek4
- wzMJIgchCP0RYLAt0RxZwZdFjDvdG6MsmQGo0yjOq3xElwCWXQHeYw7HbjKg1Xbkmpsbc1UQW5
- 94Kz/7zC+7weBa3bZZwAAAA==
-X-Change-ID: 20260911-ti-dra7-omap-sham-fix-388a067572b3
+Message-Id: <20260911-ti-dra7-omap-sham-fix-v1-1-c430f01b4e13@gmail.com>
+References: <20260911-ti-dra7-omap-sham-fix-v1-0-c430f01b4e13@gmail.com>
+In-Reply-To: <20260911-ti-dra7-omap-sham-fix-v1-0-c430f01b4e13@gmail.com>
 To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
  Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
  Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
@@ -85,35 +86,69 @@ Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
  linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, 
  j.bhargav.u@gmail.com
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1789078323; l=844;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1789078323; l=1722;
  i=j.bhargav.u@gmail.com; h=from:subject:message-id;
- bh=7eZ6MGYrn7UuTOMdMokn5OY5P6XozBWE80r9RYz8pa0=;
- b=0GW3lQ5bVI6HMiNuEB6pRZEm6cBmM2Hx90bycEmsXp0jnGevSiA357/A7PPohTL4EXCeHrTfM
- LePfyEqWG9tDQTNk09aVTB7wgKgUA19zbRwzZJ8NvDgs9oMbdpdlepm
+ bh=BbAJHt9adMYyzBOCLH5rvGTbgi1xMnGL52q958OEAto=;
+ b=s2lsYvRL+iaAkkoY+sP2q/EZlVEKggnNXoz5w98GQwNOuT4KUIGfJoMx5eXFubB4Q8a/GAnEO
+ FeHAazX9I2rAtuRZ2FVTHyxgN6rB/7YIZdyR+0K2oS3EGCP0xj2DFC0
 X-Developer-Key: i=j.bhargav.u@gmail.com; a=ed25519;
  pk=IqNDwUZKECEA+n8wXctFLBbYL9NhFstZNbOznm/nX1k=
 
-Patch 1 removes redundant "clocks" and "clock-names" properties from the
-DRA7 crypto dt nodes.
+The omap-sham and omap-aes crypto drivers do not use "clocks" and
+"clock-names" properties. Clock management is handled by the ti-sysc
+interconnect parent wrapper. The dt-bindings for ti,omap-sham and
+ti,omap-aes don't define these clock properties. Having them in the
+child nodes causes dtbs_check warnings.
 
-Patch 2 updates the ti,omap-sham YAML binding to add the missing
-"ti,omap3-sham" compatible, deprecates "ti,hwmods" and removes it from
-the required properties list.
+Remove the "clocks" and "clock-names" properties from the sham and aes
+nodes.
 
 Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
 ---
-Bhargav Joshi (2):
-      ARM: dts: ti: omap: dra7: Remove clocks from crypto nodes
-      dt-bindings: crypto: ti,omap-sham: Add OMAP3 compatible and deprecate ti,hwmods
+ arch/arm/boot/dts/ti/omap/dra7.dtsi | 8 --------
+ 1 file changed, 8 deletions(-)
 
- Documentation/devicetree/bindings/crypto/ti,omap-sham.yaml | 3 ++-
- arch/arm/boot/dts/ti/omap/dra7.dtsi                        | 8 --------
- 2 files changed, 2 insertions(+), 9 deletions(-)
----
-base-commit: 50d05c7c76c96b90462f24debacca971d2e86713
-change-id: 20260911-ti-dra7-omap-sham-fix-388a067572b3
+diff --git a/arch/arm/boot/dts/ti/omap/dra7.dtsi b/arch/arm/boot/dts/ti/omap/dra7.dtsi
+index 711ce4c31bb1..0784c6d9cbe4 100644
+--- a/arch/arm/boot/dts/ti/omap/dra7.dtsi
++++ b/arch/arm/boot/dts/ti/omap/dra7.dtsi
+@@ -1012,8 +1012,6 @@ aes1: aes@0 {
+ 				interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_HIGH>;
+ 				dmas = <&edma_xbar 111 0>, <&edma_xbar 110 0>;
+ 				dma-names = "tx", "rx";
+-				clocks = <&l3_iclk_div>;
+-				clock-names = "fck";
+ 			};
+ 		};
+ 
+@@ -1043,8 +1041,6 @@ aes2: aes@0 {
+ 				interrupts = <GIC_SPI 59 IRQ_TYPE_LEVEL_HIGH>;
+ 				dmas = <&edma_xbar 114 0>, <&edma_xbar 113 0>;
+ 				dma-names = "tx", "rx";
+-				clocks = <&l3_iclk_div>;
+-				clock-names = "fck";
+ 			};
+ 		};
+ 
+@@ -1073,8 +1069,6 @@ sham1: sham@0 {
+ 				interrupts = <GIC_SPI 46 IRQ_TYPE_LEVEL_HIGH>;
+ 				dmas = <&edma_xbar 119 0>;
+ 				dma-names = "rx";
+-				clocks = <&l3_iclk_div>;
+-				clock-names = "fck";
+ 			};
+ 		};
+ 
+@@ -1103,8 +1097,6 @@ sham2: sham@0 {
+ 				interrupts = <GIC_SPI 163 IRQ_TYPE_LEVEL_HIGH>;
+ 				dmas = <&edma_xbar 165 0>;
+ 				dma-names = "rx";
+-				clocks = <&l3_iclk_div>;
+-				clock-names = "fck";
+ 			};
+ 		};
+ 
 
-Best regards,
 -- 
-Bhargav
+2.55.0
 
