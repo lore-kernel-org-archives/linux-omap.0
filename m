@@ -1,67 +1,69 @@
-Received: from PA4PR04CU001.outbound.protection.outlook.com (mail-francecentralazon11013043.outbound.protection.outlook.com [40.107.162.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58E82493D2E;
-	Fri, 11 Sep 2026 15:47:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.162.43
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789141654; cv=fail; b=W6jYNSlqomiNfw5QCMNH7S2Ezp5P5IMTKf/kTbHEdgRalc+1PFzsp2EyIMUU5/oRC/ZL1Ws7cax6NIm+M6XRDxgCErGDrChiju7ktzaecO0+CwPC2efa79h4WjvQPRS0O5lGZr5MfWshQYdrXwVvnswKycOQKKMycbDlXhTUdvg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789141654; c=relaxed/simple;
-	bh=brdE7ZhsMWRD1TzB0eznvuTn1K2X5TaCXPkPX7akyMQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=VYeqlKMTkBZKMikJ9jbfKikE3zizitVzDZLmydXVlvoaSB3srKyPzKFW5UijR11680hp+M+FsDx8gI3X3nQFYAX8XGNAwO2c6DwVdf7i6pb5ZkX73BVHyBqKu/YUkEVFbcrAkQgrspjzaQhhNg+ZkipMxRJ5cyZ8t/v65Q28IYw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foss.st.com; spf=pass smtp.mailfrom=foss.st.com; dkim=pass (2048-bit key) header.d=foss.st.com header.i=@foss.st.com header.b=Cjy8KZXl; arc=fail smtp.client-ip=40.107.162.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foss.st.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=foss.st.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C0254A3F1F
+	for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2026 17:25:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789147556; cv=none; b=J8ut3y8pS4LaCdlQfYmf/lSPjfYb5nBJsBE9xQkFGgyWr4nukyjrqL4VCL0lO8gA6Ji5vr13woZ+5Oo0qXm/yFp5VOAQswINz34T1p0g/Qyzumufsdnb0O7bTHLaayMPdFvGyIzoQpzkmggkwdKiNkJIsx1kUTsPscxL2nc/hX8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789147556; c=relaxed/simple;
+	bh=EIna21TClEpTv6sU11YFri+uCAOmnbQs4gkq3+Yi4uk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=cmG40/b++W6peZhU+0RTdPjgqLhAbKzmf+R+B8dNQ5wb9rgDES3itKeXMvf8TFnd3mGu2a2SneExAI5sfJ6aFc0jVqbV3SD7NgiN1YKg+UIlsXguYjY6RTlMACX0qPaRnRmLzGtv/bleY4Y1scX9euSAVgBMH2xfgJwCOY9iDhI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rVuD1rzr; arc=none smtp.client-ip=209.85.216.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=foss.st.com header.i=@foss.st.com header.b="Cjy8KZXl"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=AvgHwMRAy+jT9+G/KXsq2toexNEE9onK4w1AiiH+6HtEyLP6luLeRLav9DslVFatWwvmhCxDilAAVCPI7Enrz/bEF+MfHvH7JFydM3ZyIvnMbzRSRpJCM7lKmxMG7jSF+YL6G2vaQ8XhyBnOwODEglu6VRt9vSzRcMYWNq73ClymelzOnkCoPmlQ1/e9VuoKjHfJsLuERV+C7pTwqC3TibjDz6YtNF6cIzMijVTWFqDUpaupjglGSFLd5dKEq5IzxQBgCdeQI0XfIvzJUozgpr8tCynroCk3HWOIhIG/QGGUjbNNcJaLFPMcZR8toyeL140gXlet6y+3AvzWY/CHUg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=2u9/ITUVxtMTvUDcBFfcR9iA3t9lqeXHZ3mC/OQF5NQ=;
- b=MuqTsdlKcvSWKIhAK4Z9YH28L57gN5IHKJE/qOVjPlgyJTujzevOAdYViwmwHOW8RUK17moniZ2blZy5KSGPDQnxKwqvGuqkf+0zymT03+p0qZ9EN8BT+nJUbtoCSdBvN2tAN1q9obdPDsB/7wOyN3dInbGCmqECZwlri3XDajBcCaqOGaS2oPbBR+uuNo4VibjXtEqQmvNBdh6m/OkYtQ1S1QSFeV+6BSNwOidgzjf4M5u92uDhrd47UU2ZabC+To9SQtSrybt16MkSvzSksb9/1U2VJqLJIP7VRbMGHbCb/nP5MBHV3QOMVSyof7CoMvuVRtwkENiEcyEE7y47Lw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=fail (sender ip is
- 164.130.1.60) smtp.rcpttodomain=kernel.org smtp.mailfrom=foss.st.com;
- dmarc=fail (p=none sp=none pct=100) action=none header.from=foss.st.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=foss.st.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=2u9/ITUVxtMTvUDcBFfcR9iA3t9lqeXHZ3mC/OQF5NQ=;
- b=Cjy8KZXlkXnCet05JnPsa+G5uXAtDBhShZTeDdmKsXsUiBHk1LjZmP9NuQx2p8BBe7K/gytBSTPZdnRkahK6/WRpjGnp4dY8+CAu0CJvWV/rl4DrYMyhE1kmW+aKIc1Q7UYocyo4PuITM/A0nPyiWycITT5XtK7I6R+9/R6jghnK0FFG6orX/nagYjTR1Sh7w4fGXyohqobosMayELT1jTe09uGMpYs9DMAQpuck03+FzMkBhObQpup+F9YIsPhqT4dSoNJMCm1akDvD8mLE3Mzrkwkc882Qvw85KRcVP+7OPWWfQVl2eNo5h/q/9gl2/+0RW+qmVtXd9QXYEEb7hA==
-Received: from DU6P191CA0029.EURP191.PROD.OUTLOOK.COM (2603:10a6:10:53f::28)
- by PRAPR10MB5251.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:102:291::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.9; Fri, 11 Sep
- 2026 15:47:25 +0000
-Received: from DU2PEPF00028D10.eurprd03.prod.outlook.com
- (2603:10a6:10:53f:cafe::25) by DU6P191CA0029.outlook.office365.com
- (2603:10a6:10:53f::28) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.406.9 via Frontend Transport; Fri, 11
- Sep 2026 15:47:25 +0000
-X-MS-Exchange-Authentication-Results: spf=fail (sender IP is 164.130.1.60)
- smtp.mailfrom=foss.st.com; dkim=none (message not signed)
- header.d=none;dmarc=fail action=none header.from=foss.st.com;
-Received-SPF: Fail (protection.outlook.com: domain of foss.st.com does not
- designate 164.130.1.60 as permitted sender) receiver=protection.outlook.com;
- client-ip=164.130.1.60; helo=smtpO365.st.com;
-Received: from smtpO365.st.com (164.130.1.60) by
- DU2PEPF00028D10.mail.protection.outlook.com (10.167.242.24) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.382.8 via Frontend Transport; Fri, 11 Sep 2026 15:47:25 +0000
-Received: from STKDAG1NODE2.st.com (10.75.128.133) by smtpO365.st.com
- (10.250.44.72) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.43; Fri, 11 Sep
- 2026 17:51:40 +0200
-Received: from [10.48.86.79] (10.48.86.79) by STKDAG1NODE2.st.com
- (10.75.128.133) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.43; Fri, 11 Sep
- 2026 17:46:09 +0200
-Message-ID: <cf9c29bd-7e44-445b-b493-fb120898e706@foss.st.com>
-Date: Fri, 11 Sep 2026 17:46:08 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rVuD1rzr"
+Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-38ea87caafeso1204258a91.3
+        for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2026 10:25:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789147554; x=1789752354; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:sender:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ZkBe7WUuSrDM7uq5LTSTLslXHOwqfZgVboPet1pdmR0=;
+        b=rVuD1rzrF+L8OWjaL7LkT5Kbon4EXXtCngg6PjNFzEAUqBojaiegJ4ZEumKh4as7nn
+         5h2eQ7E+uVWctPtSEUYKz0WMFxmDLm55Uco2n9BE6fq9eB7ar0RFqb2WvkSmS6dkhlkX
+         l+hutYB7VcQeOqDXA6Uuq0Ux/Zy4NtlYGWNstnkvFjkrRuA8A0qFAF0JQR8QkaaaVRDY
+         loRJaRSeKX5y6eSn0aKh9FTq/ODLZnwZ9OHapLAxGYIyAdqhgZGlsg9z98OTkPPGS5xc
+         Sd/FrUx0Yaga9yBhhhVW2oF6zupcsxMQ1MyJGkKmoz8caIaqJQ1h+DsGpMqeWBFyAXKA
+         2c4g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789147554; x=1789752354;
+        h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:sender:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=ZkBe7WUuSrDM7uq5LTSTLslXHOwqfZgVboPet1pdmR0=;
+        b=ig3XRJWa1Bmay9qN8UBkjLNhbnsTNxvrRk+EDckfqlGwVUer2YgdoWNMAeyxSWQZl1
+         Wmt2CyC4DALtosHZJzijY66LRx3rc2CkMdp7p0fJV8mw0uRac7w9UYtfshOfZAwrDTQA
+         Px7cKTFGcgkeUfFk24a32cvAxhKezp2LoBsugp2nHF5Jlmj4mMXQTfOmfEaYSqpWqk2L
+         01Kr9vnDd0HecVSVwXaYjfXr9tCfMSXsZvVTB8KYxiOmTqQyPwhFjA3W35McIX1sjPNE
+         WqIuB3ivO5Jc158aaVo5zCvbYqLGFH/SNgFIfSZ9T4/MGJSi+kcttfLSTahOfDo+6VMC
+         63qQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwATOqCiAhCLEhvOahOyEiNpXPmZn2IsluuWq+7u9WRZsyvQ+wARRtUnGwRT8TZNsuTrmA3ViEgclz1@vger.kernel.org
+X-Gm-Message-State: AFuF++lxr15nsKD9x/j6OmyCfBZME0vNMizbuovBu7cdxNu97dbkrDwL
+	rlSNcBCzJ8I0AkX+PDWEkGnDXCMPXZZ2S+qZ7vWq67/GZe+fGPDOqPIK
+X-Gm-Gg: AYBFou35Wvu5Dc13f8J+ptWPv1V+c0/JR4FFwlysXLMESuPBGrrZWYEWL497Mow2qbo
+	EpFz7Blp7mvml8/ZFWaNoehI8H+yoLN+jpAMeEPoO42mazh7DkyGRM/czE+fJpJB5MyPNdwJ5/Q
+	ivioFkg0DHp4biq9ERTKWkaUPRMm1FBTrYzDuN7tj8VyMUQXPK2S/PtC8bFdzYKE6Yt+4K8Qsvi
+	dbnFL8wwEfY6d0vgVsAes0m32ud+NRPmDdaNVQr8+ZxwcP1HKtEdZfcqFXOZaQovhPb1hBp2kSO
+	OuH0W0hikJYtO1FaDCKNOdSO0yajUSGaZG8URs5/0KzE+GiG/Qt7jh9/lbLp6hG3Lv/mTvRUTBt
+	S8Bfz2pW1QlYM0VoCtW3WNqd1iOZFHrwxAZTjX+rAjZO9hYWN2W4h2858RIfO0yw3WXQ8RF5UCP
+	CSQVy5gRMpEq1r+U7S2yv6Z8N8sso+vK5M76JbQvPFmfss6oAio9Ctd2Ul7W+ZOwEF0mL9AJlU6
+	RQMvHWAkqALlRuuaiuZkvk/icP6MR288SdYFJz2z5U/vTXB
+X-Received: by 2002:a17:90b:278c:b0:398:e6b6:acc2 with SMTP id 98e67ed59e1d1-39d9c1b4d9amr9025809a91.12.1789147554299;
+        Fri, 11 Sep 2026 10:25:54 -0700 (PDT)
+Received: from ?IPV6:2600:1700:e321:62f0:da43:aeff:fecc:bfd5? ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-33ba4cf015csm8838529eec.4.2026.09.11.10.25.52
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 11 Sep 2026 10:25:53 -0700 (PDT)
+Sender: Guenter Roeck <groeck7@gmail.com>
+Message-ID: <f1adea74-8f87-4442-aa12-18536cabec3c@roeck-us.net>
+Date: Fri, 11 Sep 2026 10:25:51 -0700
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -69,167 +71,124 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 10/13] ARM: stm32: remove stm32f4/f7/h7 MCU support
-To: Arnd Bergmann <arnd@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>,
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Linus Walleij
-	<linusw@kernel.org>, Russell King <linux@armlinux.org.uk>
-CC: Drew Fustini <fustini@kernel.org>, Arnd Bergmann <arnd@arndb.de>, "Rob
- Herring" <robh@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Liviu Dudau
-	<liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@kernel.org>, "Lorenzo
- Pieralisi" <lpieralisi@kernel.org>, Frank Li <Frank.Li@nxp.com>, Sascha Hauer
-	<s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>,
-	"Stefan Agner" <stefan@agner.ch>, Maxime Coquelin
-	<mcoquelin.stm32@gmail.com>, "Aaro Koskinen" <aaro.koskinen@iki.fi>, Andreas
- Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, Roger
- Quadros <rogerq@kernel.org>, "Tony Lindgren" <tony@atomide.com>, Nicolas
- Ferre <nicolas.ferre@microchip.com>, Claudiu Beznea
-	<claudiu.beznea@tuxon.dev>, Andrew Lunn <andrew@lunn.ch>, Sebastian
- Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement
-	<gregory.clement@bootlin.com>, Robert Jarzmik <robert.jarzmik@free.fr>,
-	Kristoffer Ericson <kristoffer.ericson@gmail.com>, Ethan Nelson-Moore
-	<enelsonmoore@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>,
-	Alexander Sverdlin <alexander.sverdlin@siemens.com>, Shawn Guo
-	<shawnguo@kernel.org>, Karl Mehltretter <kmehltretter@gmail.com>, "David
- Hildenbrand (Arm)" <david@kernel.org>, Nicolas Pitre <npitre@baylibre.com>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <devicetree@vger.kernel.org>,
-	<imx@lists.linux.dev>, <linux-stm32@st-md-mailman.stormreply.com>,
-	<linux-omap@vger.kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Christophe Parant <c.parant@phytec.fr>, Benjamin Gaignard
-	<benjamin.gaignard@collabora.com>, Dario Binacchi
-	<dario.binacchi@amarulasolutions.com>
-References: <20260908152808.3928630-1-arnd@kernel.org>
- <20260908152808.3928630-11-arnd@kernel.org>
+Subject: Re: [PATCH 0/3] watchdog: omap: Preserve OMAP watchdog across boot to
+ detect faulty boots
+To: Diogo Ivo <diogo.ivo@bootlin.com>,
+ Wim Van Sebroeck <wim@linux-watchdog.org>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
+ <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>
+Cc: linux-watchdog@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+ thomas.petazzoni@bootlin.com
+References: <20260911-omap4-wdt_boot-v1-0-637d778a4a1e@bootlin.com>
+ <407b9420-0ec6-4d95-960b-633677edf760@roeck-us.net>
+ <14eb1c72-fab0-445a-82f2-5851a855f723@bootlin.com>
 Content-Language: en-US
-From: Alexandre TORGUE <alexandre.torgue@foss.st.com>
-In-Reply-To: <20260908152808.3928630-11-arnd@kernel.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+From: Guenter Roeck <linux@roeck-us.net>
+Autocrypt: addr=linux@roeck-us.net; keydata=
+ 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
+ np3900V20aS7eD9K8GTU0TGC1pyz6IVJwIE=
+In-Reply-To: <14eb1c72-fab0-445a-82f2-5851a855f723@bootlin.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: ENXCAS1NODE2.st.com (10.75.128.138) To STKDAG1NODE2.st.com
- (10.75.128.133)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DU2PEPF00028D10:EE_|PRAPR10MB5251:EE_
-X-MS-Office365-Filtering-Correlation-Id: 17775c1d-c7d6-4ec2-8441-08df101bfa07
-X-LD-Processed: 75e027c9-20d5-47d5-b82f-77d7cd041e8f,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
- BCL:0;ARA:13230040|376014|7416014|82310400026|23010399003|1800799024|36860700016|56012099006|10067099003|11063799006|4143699003|22082099003|18002099003|41080700001;
-X-Microsoft-Antispam-Message-Info:
- imajK4QF5klaq03WdR/S+NJ7NNvxoXUvkBY5RWAVJLylQplErPggEU0auLmsFr/C6RHythvTPwpK0e9UrcFIL7srCo7kzlGeVyR3esOabRGdjJNm9nJ3nQP0iSurYKV8H3VIp3tYWKv21ffzM+uCmWlZYnrE8zmfWUKUHoIB8RMYzreL4e6UdvgE0GmcDuPIVdJ9sg/Iet/U54ozMaEmAX7XNBqJ8ssmNqnjZCIA90x0tniVS8PFGhb6AHVtnXGIbDG5iEmaApWESFZJAW6OhfdhUNx6kzkMZAvLM5+Xgqj5F4k0W5ZNj7ZMi04o4vYVAXkMB4X/34MiQuVEdoRbO/8owL4J6y3791Fujkf3DBtF+h3OvpxPVyGWeHDhMG1So3UlceLFkwUgCNRkEqo6xwYEmwCH2Kzw0FqjsjqLK3odh42BhUIX0Ruwr3a0N1A88JMJpQVSsiZlVqX9k/dNOTJoGp4tGoiXamxdA4bZTDZCjOc8YPio/F1ZSToqtVstmd12FqhqGLflc5Liznwdxf3YacRbm4moOEESurtYzVgUDigNpxV8SROa4rFsPVjXi3QqZVuXxhMCJV5VaPLJ8IYX3RH1Gn7u3ka3ncSvfVLl8YZP63PQv+b+JLaqcpTmc4SfsAUCHNQ+Zn1S3e0oxhb+rlYoWvGLYmPDPB5SipSBbJ7d/oFmFqrXQb0261aazDJ2GG9GA0CO7C1fCt7Die+f406rNE+emouIlWugwMxpO01kjZsV7zxv6BEqKEefGl/GW3sv3nhQvPQ4G+3rYA==
-X-Forefront-Antispam-Report:
- CIP:164.130.1.60;CTRY:IT;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:smtpO365.st.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(7416014)(82310400026)(23010399003)(1800799024)(36860700016)(56012099006)(10067099003)(11063799006)(4143699003)(22082099003)(18002099003)(41080700001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
- //Efo6JpJHlKdtxE0rhW2Sn6nfy7+D1TLhVolKmg+cRE4F5KVMVVOJ/V5r4RZBGEglEj0iFK0paEqjljMYjZ28IPixRPNs3GRQ5daFrXFczvkAGZav1UjnhBSpiCC75vjzSdhpDfVAGqGZSphTtle6rR6JSP828qH+3JyGExejwnAjX237WGWy3qi4aG5jImgzg2NgYkspTCAqpaje/hB1ZXd21JdmNhm0GREEmMNvvlx1TJzpY+gVk917KzBC37PLagXX7vKFmDM5pgZClmM3ZGHegeyd0ftz/KMBcStk2LCsDbvo3v70owsYtkx+IjJVPfOPAcLa68ER2lcBRnwYukoK4sLKSUv59jd9TYKR7ULOLnDHnTILnKqAA4uDOhaeng0uYavScCsiMDf7UKq7ws5LKhKD6dOijjCTgl9QHU0oe8yOUg+LBQmkk+C3eT
-X-OriginatorOrg: foss.st.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Sep 2026 15:47:25.4060
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 17775c1d-c7d6-4ec2-8441-08df101bfa07
-X-MS-Exchange-CrossTenant-Id: 75e027c9-20d5-47d5-b82f-77d7cd041e8f
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=75e027c9-20d5-47d5-b82f-77d7cd041e8f;Ip=[164.130.1.60];Helo=[smtpO365.st.com]
-X-MS-Exchange-CrossTenant-AuthSource: DU2PEPF00028D10.eurprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PRAPR10MB5251
 
-Hi Arnd
+On 9/11/26 08:17, Diogo Ivo wrote:
+> Hi Guenter,
+> 
+> On 9/11/26 4:29 PM, Guenter Roeck wrote:
+>> On 9/11/26 02:17, Diogo Ivo wrote:
+>>> Allow the OMAP watchdog to survive being stopped on kernel initialization
+>>> so it can detect a faulty boot in cases where the bootloader leaves it
+>>> running and the watchdog driver picks it up during kernel init.
+>>>
+>>> - Patch 1 removes a duplicate omap_wdt_start() call left behind by
+>>> cd004d8299f1 ("watchdog: Fix OMAP watchdog early handling"). This is
+>>> unrelated to the main goal of the series and can be picked up
+>>> independently.
+>>>
+>>> - Patch 2 adds support for reading the watchdog boot status. Probe now
+>>> checks whether the watchdog is already running and takes it over instead
+>>> of blindly stopping it based on early_enable alone. This introduces a
+>>> regression possibility, explained in detail in the patch's message.
+>>>
+>>> - Patch 3 marks the OMAP4 watchdog node ti,no-reset-on-init so the
+>>> ti-sysc driver stops resetting it. A detailed explaination of why is
+>>> also provided in the commit message of the patch.
+>>>
+>>> This series has been tested on a platform based on the VAR-SOM-OM44 from
+>>> Variscite, running a TI OMAP4460 SoC.
+>>>
+>> Please address the issues reported by Sashiko, or explain why they don't apply.
+> 
+> I have just replied to the Sashiko reviews but I'm not sure if you got
+> the replies as Sashiko did not include your e-mail in its review. If you
+> did not receive them please let me know and I can resend them. In
+> any case if you could give your opinion on the comments I left on the
+> patches about regressions that would be great as I think after the
+> Sashiko points are addressed that is the main blocker for this series.
+> 
+I did. I just wonder if the effort is worth the pain / cost.
 
-On 9/8/26 17:28, Arnd Bergmann wrote:
- > From: Arnd Bergmann <arnd@arndb.de>
- >
- > The stm32 platform started out as a Cortex-M based microcontoller
- > platform in 2007, with a few of the older products gaining Linux kernel
- > support in 2016. These days, the only relevant chips for Linux are the
- > stm32mp1 (Cortex-A7) and stm32mp2 (Cortex-A35) product lines, with the
- > microcontrollers running smaller RTOSs on new products.
- >
- > The microcontrollers were marked as deprecated in the linux-7.3LTS
- > release, which will remain supported for a few more years and
- > is expected to be sufficient for any of the remaining original users.
- >
- > Remove the MCU support now, leaving only the stm32mp SoCs in the platform.
- >
- > Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
- > Cc: Alexandre Torgue <alexandre.torgue@foss.st.com>
- > Cc: Rob Herring <robh@kernel.org>
- > Cc: Krzysztof Kozlowski <krzk+dt@kernel.org>
- > Cc: Conor Dooley <conor+dt@kernel.org>
- > Cc: Christophe Parant <c.parant@phytec.fr>
- > Cc: Benjamin Gaignard <benjamin.gaignard@collabora.com>
- > Cc: Dario Binacchi <dario.binacchi@amarulasolutions.com>
- > Cc: devicetree@vger.kernel.org
- > Cc: linux-stm32@st-md-mailman.stormreply.com
- > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
- > ---
- >   Documentation/arch/arm/index.rst              |   5 -
- >   Documentation/arch/arm/stm32/overview.rst     |   8 +-
- >   .../arch/arm/stm32/stm32f429-overview.rst     |  25 -
- >   .../arch/arm/stm32/stm32f746-overview.rst     |  32 -
- >   .../arch/arm/stm32/stm32f769-overview.rst     |  34 -
- >   .../arch/arm/stm32/stm32h743-overview.rst     |  33 -
- >   .../arch/arm/stm32/stm32h750-overview.rst     |  34 -
- >   arch/arm/Kconfig.debug                        |  38 -
- >   arch/arm/boot/dts/st/Makefile                 |  11 -
- >   arch/arm/boot/dts/st/stm32429i-eval.dts       | 349 --------
- >   arch/arm/boot/dts/st/stm32746g-eval.dts       | 236 ------
- >   arch/arm/boot/dts/st/stm32f4-pinctrl.dtsi     | 482 -----------
- >   arch/arm/boot/dts/st/stm32f429-disco.dts      | 243 ------
- >   arch/arm/boot/dts/st/stm32f429-pinctrl.dtsi   |  91 --
- >   arch/arm/boot/dts/st/stm32f429.dtsi           | 800 ------------------
- >   arch/arm/boot/dts/st/stm32f469-disco.dts      | 260 ------
- >   arch/arm/boot/dts/st/stm32f469-pinctrl.dtsi   |  92 --
- >   arch/arm/boot/dts/st/stm32f469.dtsi           |  18 -
- >   arch/arm/boot/dts/st/stm32f7-pinctrl.dtsi     | 436 ----------
- >   arch/arm/boot/dts/st/stm32f746-disco.dts      | 234 -----
- >   arch/arm/boot/dts/st/stm32f746-pinctrl.dtsi   |  55 --
- >   arch/arm/boot/dts/st/stm32f746.dtsi           | 727 ----------------
- >   .../dts/st/stm32f769-disco-mb1166-reva09.dts  |  13 -
- >   arch/arm/boot/dts/st/stm32f769-disco.dts      | 243 ------
- >   arch/arm/boot/dts/st/stm32f769-pinctrl.dtsi   |  55 --
- >   arch/arm/boot/dts/st/stm32f769.dtsi           |  37 -
- >   arch/arm/boot/dts/st/stm32h7-pinctrl.dtsi     | 301 -------
- >   arch/arm/boot/dts/st/stm32h743.dtsi           | 738 ----------------
- >   arch/arm/boot/dts/st/stm32h743i-disco.dts     | 145 ----
- >   arch/arm/boot/dts/st/stm32h743i-eval.dts      | 185 ----
- >   arch/arm/boot/dts/st/stm32h747i-disco.dts     | 149 ----
- >   arch/arm/boot/dts/st/stm32h750.dtsi           |   6 -
- >   arch/arm/boot/dts/st/stm32h750i-art-pi.dts    | 229 -----
- >   arch/arm/configs/stm32_defconfig              |  80 --
- >   arch/arm/mach-stm32/Kconfig                   |  38 +-
- >   arch/arm/mach-stm32/board-dt.c                |   7 -
- >   36 files changed, 7 insertions(+), 6462 deletions(-)
- >   delete mode 100644 Documentation/arch/arm/stm32/stm32f429-overview.rst
- >   delete mode 100644 Documentation/arch/arm/stm32/stm32f746-overview.rst
- >   delete mode 100644 Documentation/arch/arm/stm32/stm32f769-overview.rst
- >   delete mode 100644 Documentation/arch/arm/stm32/stm32h743-overview.rst
- >   delete mode 100644 Documentation/arch/arm/stm32/stm32h750-overview.rst
- >   delete mode 100644 arch/arm/boot/dts/st/stm32429i-eval.dts
- >   delete mode 100644 arch/arm/boot/dts/st/stm32746g-eval.dts
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f4-pinctrl.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f429-disco.dts
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f429-pinctrl.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f429.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f469-disco.dts
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f469-pinctrl.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f469.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f7-pinctrl.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f746-disco.dts
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f746-pinctrl.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f746.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f769-disco-mb1166-reva09.dts
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f769-disco.dts
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f769-pinctrl.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32f769.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32h7-pinctrl.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32h743.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32h743i-disco.dts
- >   delete mode 100644 arch/arm/boot/dts/st/stm32h743i-eval.dts
- >   delete mode 100644 arch/arm/boot/dts/st/stm32h747i-disco.dts
- >   delete mode 100644 arch/arm/boot/dts/st/stm32h750.dtsi
- >   delete mode 100644 arch/arm/boot/dts/st/stm32h750i-art-pi.dts
+Is there an actual use case ? Is the problem you are trying to solve
+a real problem, or a theoretic one ? For example, the patches impose
+a hard boot delay of more than 30 ms in omap_wdt_is_running().
+Even though that could be optimized (there is no reason to wait
+that long; the value could change a microsecond after the first read),
+it is nevertheless a mandatory boot delay.
 
-Acked-by: Alexandre Torgue <alexandre.torgue@foss.st.com>
+Another concern is the impact and potential side effects of setting
+ti,no-reset-on-init (and the possible boot loop cause by it due to the odd
+30-second init delay). After this change, a running watchdog is no longer
+stopped. What happens on systems which do not load the watchdog at all
+(for example because the driver was not configured) ? Will that also cause
+a boot loop on such systems ?
+
+This is just a couple of problems introduced by this series. You better have
+a very good reason for it to warrant having to deal with the potential fallout.
+
+Thanks,
+Guenter
 
