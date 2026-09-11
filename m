@@ -1,120 +1,111 @@
-Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx.prosyst.ru (m2.prosoftsystems.ru [46.48.77.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2894A46A5EE;
-	Fri, 11 Sep 2026 09:18:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D34D735E1CC;
+	Fri, 11 Sep 2026 09:31:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.48.77.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789118326; cv=none; b=m+aiYUk69icYlnv+bwklSzEYIIex4KoOBAn+Kc2Sn8G46Ct2nAY5w0G7PB4ur8i7wCZ4kYq/1ne6QG3RfH6YKTpwv2i9my022XmtHlAVww8G7LxGqC/6S66Vlqc0dmJvYFvbTIoHzqNiT8ajKE5d0TcUzMPCQ0f9b8QRX4JGuJA=
+	t=1789119104; cv=none; b=EYJpwY24PqJhTPoUfuD0u45BdN1a7JfclbWv7oVEZhkZvRn3my+bHVo0Msyfrh/gQsfqKiqhDhF+WPZEoBTtiEcokWv5BGgc3FVgpYQ4iYZT3ak1FRnOCt4opei/eYZTt5GKGF1o0O97veg4CxwOzEOlzXB5arAyge25VuIdTm8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789118326; c=relaxed/simple;
-	bh=838xy0F9X/VK0YPmnRqJ+ttIkFXS4oj9OMQoLICoUYc=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=c4TCJjEq/BE0Axg+9aaVR/zXBlG2gSfAmvCW16uEyYVOvg46uj3r3nZh7TrcpNsKoHp0JZ+X7jAw356KXN2lDSzQEK/kRZS/0CJ6QRyYk6N8iRIch3la5nPcA/oKV/f1YFpaQx5cOnDs+dVzrJnjAYpZ5RVvSmjjyHvTQmGflM0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=exXL670F; arc=none smtp.client-ip=185.171.202.116
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1789119104; c=relaxed/simple;
+	bh=EArwqju02I7Xzo5ITZJTsizIUFjx7Agcd6i6FF4JwD4=;
+	h=Content-Type:From:To:CC:Subject:Date:Message-ID:MIME-Version; b=cTlMLZEieoAOKS/eQoVfh55lkFLDw+iW9vNHLx4eIUtP+iUbBcDwzAVT1hdmHEPBUHFCQsWo6gWV5L9abzRAsbOsoFHDbfwzjaoSFfHerS/4yAJ8osP2+9FB4uHPvHWYAzhBux1+uz38vj1fOvvoOr7oZ+z11e2zNv5vMraQvPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=prosoftsystems.ru; spf=pass smtp.mailfrom=prosoftsystems.ru; dkim=pass (2048-bit key) header.d=prosoftsystems.ru header.i=@prosoftsystems.ru header.b=XHMOTKdI; arc=none smtp.client-ip=46.48.77.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=prosoftsystems.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=prosoftsystems.ru
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="exXL670F"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-04.galae.net (Postfix) with ESMTPS id 0AE29C653FC;
-	Fri, 11 Sep 2026 09:19:24 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 533E0601DE;
-	Fri, 11 Sep 2026 09:18:42 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 96E6311C7AFA4;
-	Fri, 11 Sep 2026 11:18:39 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1789118321; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=SYKJIY5q36jvMFs7Bja6orjyHSd3a65WX0v3LRrG3QQ=;
-	b=exXL670FStLtHC7wvEfCGbEqHk8pdsjczKeUjV+37rX7w8dM/mPTTjURxXVdxxJicX3xtu
-	BBNPbjhvcvH6HhVvROIQT0CnZLi9u8gTpCsbY4HW0tsCQzMIRKIYm0WsnjAsxS4/mSFrQG
-	sffq6AVHuHt1of4l+oA33xFK8y3LimGukY4bz3R0vc1vyrKubyiOAY0uvWBBIr96G6n0RL
-	RDzBh/h4FlJDY3KgWPiiJXAZlbQ7DE3hH9JJTEi6SOoJI3MXzRYvv6Cq8MT1bCh+Uo9tNT
-	SNpTRbAWaHn2HEyB0b9ZH4QOqsyK4lyQ8OdZp/Hjuwic2/yRo/0akTnyXmslMw==
-From: Diogo Ivo <diogo.ivo@bootlin.com>
-Date: Fri, 11 Sep 2026 11:17:36 +0200
-Subject: [PATCH 3/3] arm: dts: ti: omap: Prevent watchdog from being reset
- on kernel boot
+	dkim=pass (2048-bit key) header.d=prosoftsystems.ru header.i=@prosoftsystems.ru header.b="XHMOTKdI"
+Content-Language: ru-RU
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: quoted-printable
+DKIM-Signature: v=1; a=rsa-sha256; d=prosoftsystems.ru; s=ps;
+	c=relaxed/relaxed; t=1789119096; h=from:to:date:message-id:subject;
+	bh=bZV4WNmYM3+Grp//mW6iYzrxlqH3yVKntecCVlgazV0=;
+	b=XHMOTKdIIM9aniRpm4ykRlnZBh5NaA0lLWuWvMOa9lqDpxv8S+59XOLQCjN2jERsyPdDqCyhOTi
+	VrqatJib1osTq8YMrw93alkQFwydClJoMt9YMIKTHx740mlBhVChk+adGcjFfPBe1TlDjc/TaZFCl
+	mRfjxAGiNLWQ85JvAZg4nZElQIoZ/1MqqwXE/4p5I7DUKQ8FcZIE76pMKF1cZQZd/LycIhF9Dad22
+	TWl0Zsqg3sH7GfSfZnWOrlfXCn0JpPgKAVoZFpa46B0cts4wXspXJkmmlVNcw0YDSpw5Yzoo/0stw
+	oqYwFKIhFyWm60HXyKhaLGenR2xJQSuS6CcA==
+Received: from ECHO-3.prosoft.ural.ru (172.25.100.229) by mx.prosoftsystems.ru
+ (172.21.240.33) with Microsoft SMTP Server (TLS) id 15.1.396.30; Fri, 11 Sep
+ 2026 14:31:36 +0500
+Received: from echo-2.prosoft.ural.ru (172.21.245.22) by
+ ECHO-3.prosoft.ural.ru (172.25.100.229) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1748.39; Fri, 11 Sep 2026 14:31:36 +0500
+Received: from echo-2.prosoft.ural.ru ([::1]) by echo-2.prosoft.ural.ru
+ ([fe80::c1a2:90f7:8820:c669%17]) with mapi id 15.02.1748.039; Fri, 11 Sep
+ 2026 14:31:36 +0500
+From: =?koi8-r?B?9sHNwsHLycXXIPLBxMnKIPLJy8HSxMnOz9fJ3g==?=
+	<r.zhambakiev@prosoftsystems.ru>
+To: Eduardo Valentin <edubezval@gmail.com>
+CC: =?koi8-r?B?9sHNwsHLycXXIPLBxMnKIPLJy8HSxMnOz9fJ3g==?=
+	<r.zhambakiev@prosoftsystems.ru>, Keerthy <j-keerthy@ti.com>, "Rafael J.
+ Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>, "Greg
+ Kroah-Hartman" <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org"
+	<linux-pm@vger.kernel.org>, "linux-omap@vger.kernel.org"
+	<linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "lvc-project@linuxtesting.org"
+	<lvc-project@linuxtesting.org>
+Subject: [PATCH] thermal: ti-soc-thermal: Check return value of
+ clk_prepare_enable()
+Thread-Topic: [PATCH] thermal: ti-soc-thermal: Check return value of
+ clk_prepare_enable()
+Thread-Index: AQHdQdBXybVgwHSdD06fJ70Al9uVrw==
+Date: Fri, 11 Sep 2026 09:31:36 +0000
+Message-ID: <20260911093110.105635-1-r.zhambakiev@prosoftsystems.ru>
+Accept-Language: ru-RU, en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260911-omap4-wdt_boot-v1-3-637d778a4a1e@bootlin.com>
-References: <20260911-omap4-wdt_boot-v1-0-637d778a4a1e@bootlin.com>
-In-Reply-To: <20260911-omap4-wdt_boot-v1-0-637d778a4a1e@bootlin.com>
-To: Wim Van Sebroeck <wim@linux-watchdog.org>, 
- Guenter Roeck <linux@roeck-us.net>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>
-Cc: linux-watchdog@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
- thomas.petazzoni@bootlin.com, Diogo Ivo <diogo.ivo@bootlin.com>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1960; i=diogo.ivo@bootlin.com;
- h=from:subject:message-id; bh=838xy0F9X/VK0YPmnRqJ+ttIkFXS4oj9OMQoLICoUYc=;
- b=owEBbQKS/ZANAwAKAQa+fFtWXslFAcsmYgBqo8dndI7vfthcnQipmbIstb83LclhanENvnfro
- prDo2aPB0mJAjMEAAEKAB0WIQTma35o1i1081e8B2UGvnxbVl7JRQUCaqPHZwAKCRAGvnxbVl7J
- RackEACEHwGC55Gljg8w26w3wryBYrIegzP+TCiAG2IyUr6biVl1gCJS7+kxKBc/bo8nvOKhOQ1
- RvsrShDI1FDbvBBNLO7A2UsVfYmN4n62VYdQmazu7GP7BIsefV6IjjJK3cPj8Helhlk4u1hYclQ
- nrYwBXgpR/h0+3gcRXH2h4mVT6bzqpXB4DV8oQ6R7QRjylyPJ0O9Gg2yTT1dIgxBwa/tXRgFaPa
- nlvlNMswneWunZj1CuE7DO+j/7vWjex+WfTrM5XDfOfGxaxUcG2Xyt3Qp7BVqEyxpERfPrLtDnS
- qVtDa31id1f39cPgTqfdM90Ss0tSiz9nd/DMakW3ev/xE/1+RtQcEGxfj1a3Ywl3MZm2GFDrNxm
- KThXHCRebvFN2EzCDKqzwfRThMHxbAoZGkYj/ebUmYVom/bLUVbqtMBzlvRSj1GH/ATfVB7bEEz
- 3haeDtxhTFjIAStWbOg19rVIxeFVwFYISYm0h6L6oKzYcZz7NHFcwAAPWyDmIhnoyWQahsSCrpC
- QF/rJzQofofxr1kviF4GEQhdf1K5MGNn6teZiZYvXuxOFLpYorgucXObPXnOK5aTI0R5Rg7xaiH
- X2c6Fu3oJ+urfgKtqvHChuqz4TaCiOIwuPXFt6VOWngvekVtglejxuHWhae24HoZV1MP04wSiEP
- ZUs+sQqJ0CYNspA==
-X-Developer-Key: i=diogo.ivo@bootlin.com; a=openpgp;
- fpr=E66B7E68D62D74F357BC076506BE7C5B565EC945
-X-Last-TLS-Session-Version: TLSv1.3
 
-Currently the ti-sysc driver resets and idles the watchdog when it probes
-its target-module node. In a system where the watchdog is being used to
-detect a faulty boot this makes it impossible for the watchdog to do its
-function, in an unexpected and time-consuming manner to debug.
+From: Radiy Zhambakiev <r.zhambakiev@prosoftsystems.ru>
 
-Explicitly mark the watchdog node with ti,no-reset-on-init to prevent
-the reset portion from happening. This allows the watchdog driver proper
-to maintain the watchdog running.
+On SoCs with the CLK_CTRL feature the bandgap fclk is enabled in
+ti_bandgap_probe(), but the return value of clk_prepare_enable() is
+ignored. If the clock cannot be enabled, probe continues and all
+subsequent register accesses fail or return stale values.
 
-Signed-off-by: Diogo Ivo <diogo.ivo@bootlin.com>
+Check the return value and abort probe with the proper error code,
+using the existing put_clks cleanup path, which releases both clocks
+and the TSHUT IRQ that have been acquired at that point.
+
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
+
+Fixes: 8feaf0ce1a04 ("staging: OMAP4+: thermal: introduce bandgap temperatu=
+re sensor")
+Signed-off-by: Radiy Zhambakiev <r.zhambakiev@prosoftsystems.ru>
 ---
-The ti,no-idle property is deliberately not added to minimize the
-possibility of a regression on systems that were relying on the ti-sysc
-driver disabling the watchdog and did not service it. With just
-ti,no-reset-on-init we get a 3 second window for the watchdog driver to
-probe and maintain the watchdog alive, otherwise the system will behave
-almost in the same way as before. The only difference comes from introducing
-the small 3 second window that could lead to a watchdog expiration on systems
-where the watchdog was being stopped right next to its expiration, but
-that risk is much smaller regression-wise than always keeping its boot
-status. If this approach is deemed appropriate this patch should be
-mimicked in other TI SoC's with this watchdog.
----
- arch/arm/boot/dts/ti/omap/omap4-l4.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi b/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-index c1afc49f456c..eb0e10e51ba4 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/omap4-l4.dtsi
-@@ -1126,6 +1126,7 @@ target-module@4000 {			/* 0x4a314000, ap 7 18.0 */
- 					<SYSC_IDLE_SMART>,
- 					<SYSC_IDLE_SMART_WKUP>;
- 			ti,syss-mask = <1>;
-+			ti,no-reset-on-init;
- 			/* Domains (V, P, C): wakeup, wkup_pwrdm, l4_wkup_clkdm */
- 			clocks = <&l4_wkup_clkctrl OMAP4_WD_TIMER2_CLKCTRL 0>;
- 			clock-names = "fck";
-
--- 
-2.55.0
-
+diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/=
+ti-soc-thermal/ti-bandgap.c
+index ba43399d0b38..de9ad65d854a 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
++++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+@@ -953,9 +953,13 @@ int ti_bandgap_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "Cannot re-set clock rate. Continuing\n");
+=20
+ 	bgp->clk_rate =3D clk_rate;
+-	if (TI_BANDGAP_HAS(bgp, CLK_CTRL))
+-		clk_prepare_enable(bgp->fclock);
+-
++	if (TI_BANDGAP_HAS(bgp, CLK_CTRL)) {
++		ret =3D clk_prepare_enable(bgp->fclock);
++		if (ret) {
++			dev_err(&pdev->dev, "failed to enable fclock\n");
++			goto put_clks;
++		}
++	}
+=20
+ 	spin_lock_init(&bgp->lock);
+ 	bgp->dev =3D &pdev->dev;
+--=20
+2.53.0
