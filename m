@@ -1,123 +1,126 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr2-f12.google.com (mail-wr2-f12.google.com [74.125.225.76])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4306A4AA3F5
-	for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2026 18:15:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D74AB4AEBDD
+	for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2026 18:43:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789150511; cv=none; b=fjtzPLvog4yrDhZoBDSqPZmulwbZhHBF9X8/PDV8KzDqVnaOn1LjLrlH+8gDPn8ljzoDKkpTpHW7/uWg2FnKZGq6BBrkCxL6Hs3m78STHEvARyPEbJPT7Jg8MvtF71A/DrjxcuOB1JXu/WYGpUC2ri0L8FKGp9TUzWlEEgL3B+8=
+	t=1789152211; cv=none; b=tfhGzA3pfa7d/rPwuRxUFZJ0BLjgVQcytAEVYGcWLNs9d2EtqQ0l86GhllsG3nKIS0WZDqRSuGg37rtHkGPGxOc42rTK9P7xyrN42shAMIyBzv4XZeNJvE6dwjL0AvRK1ZRHLMjwmCpPCybbwWf0NXw0/6vvct7mhEB3U+Oic8w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789150511; c=relaxed/simple;
-	bh=Mgahn01sS5gczturDy/G4PNaMknNPNwtvnNftWb1g/A=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=oqbdEcKo7Newji4WwTUacuFs778uBctRBtISdXURbzxKikI/tvpEzyb8RFmzTKF+c9VRAR1kfy31lQ+mCFsIHxQ9DK+dJqL51P3aDkXPxYTinEoW9qulorUeh3LXnfbGjLjSv+/Kbu2eFfa2urIKrZEl+du+5W+2WcizVoEcXgY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U6dcLPin; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789152211; c=relaxed/simple;
+	bh=Vo/Zbo4FmIJeIV5z2fixRdEtyG30qlGNFYOjHoNYkqE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WrDTfEMFlj2ZMBAMVZHyqrFP26XCJPEQFjBQ76XsGrMD+MQ//R1lMMx9NJUZwmTH+BTy1RdxdEqUZYECzYJpE+BVnfEgMJfQdrcBNG44f5Kp1fxdRoPQazis8kFe3B+TPv5xJZE2sLrGOsesxlqLtprNhQvDumlL7GcjATZr82Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hkmGIJbB; arc=none smtp.client-ip=74.125.225.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U6dcLPin"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16D3A1F008A0
-	for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2026 18:15:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789150510;
-	bh=6+jUOnuRGVnXKnZ3KWqfUO9v4zUR2jeqpm+66XJzwFQ=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=U6dcLPinpaKlwlRALrFH4RPaWbGAHDSK/SLwpMlzm/w5iG3i8NNdsnbyhZrHSdLKy
-	 awwaN4tpz59egQpc/0FaXrxMN2dbDBZWlDNLr0HbcQZoK+DUMe4j1EvLT95qzJvJsf
-	 ji48B6gC+cswel50BzsT/YqnhjE3T/rrX3IDZ5DITGs/xUw9cb00akcnFjgqlUQAQB
-	 PqQsS4sJAaLi/yR73kgZNZR0jSp/bDeqvAHtuUfeCLc3ZEwh9BMk5A6n9IPvOzcYpQ
-	 PW0cEHcJh3uCODO5ez78rt9j3ZmPVEk59DU5shcGBzlIAgVTJMBYAO2cxRBdXl9z+N
-	 NTjSRYD1CId4A==
-Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5b7674fcb26so1437436e87.3
-        for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2026 11:15:09 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBxF7VYxihkKK6YNtGtVBo7pfb8h/t02S7I6sf8xNn6I6M2MtpIe+/uvGl4OZJaZ0nRH55wO8UvFUlI6@vger.kernel.org
-X-Gm-Message-State: AFuF++kowWZT0Mfq9dmVC8TLPK6YLHnREm7cWcYmL1Ues1GNMGx7D8Y0
-	BY/ixjx99P0N/ClV5dqcKkSW1Rz059IT5pepVV7y7Lx7NptiaTMedI7MmPv0I0MsQrhkNj3v8EG
-	c5kWOEb7gKZr87iHwki3zGIdZN1Qxahs=
-X-Received: by 2002:a05:6512:618c:b0:5b6:183c:5c8b with SMTP id
- 2adb3069b0e04-5b8a0311474mr1248761e87.41.1789150508682; Fri, 11 Sep 2026
- 11:15:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hkmGIJbB"
+Received: by mail-wr2-f12.google.com with SMTP id ffacd0b85a97d-4843cedd129so95780f8f.0
+        for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2026 11:43:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789152201; x=1789757001; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=WEMRrWkwvFIDZfKdDi5vmlHb7sgj26/s86919xqFCGg=;
+        b=hkmGIJbBp4EQG8Uj6bpqrQLLIx6687IoycAymJGV+AQbiulxMddwk/XjuxgBdaOgRh
+         vjlGnpEswovnh80F9t8tbcEwpHnU7ilhSJSoW0LTmXGNZMYdKZcQBLvAHXrDgJBDeok7
+         ZqmJfVVT1Y2C7Yk7vcFHuRPXWxQ6+IWNvElRuinPE86yblBvn8Wnq2azuUCCa5QWd3bf
+         qK4b/vMq22GGwsDShePmi7WSgExb5FsepmNmXsf5rbELNjDZ37OVZnFrpjXxcBMNVauO
+         btSHH3MjcKO15Zq7kM/kfsFWwG6wlO9FmPwkucU75k99FIABnvOlg7eQK01Vvw9l03n6
+         F2lg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789152201; x=1789757001;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=WEMRrWkwvFIDZfKdDi5vmlHb7sgj26/s86919xqFCGg=;
+        b=KOYULbteaueGPF2RC7GnYN06Dto8pMnDHE4G5JbuUuBc3C7dH6OSYi4DRE3/LF8iFM
+         8jov2w1iOqCGhWb7npj4KJWlJgZQyzCh3wIfXGOxu20pnFWlJgTikf6v//kx8hkQcpaW
+         VTAxmBrVzalAq9jbiVSVuZFwSYDLjawHeJcg4ILfR0VjIffu9wvWTvfnn6JJB9HzwasB
+         h4ewA+ytF6bKoOTRB/yr1NLggMOaGauaCpgcPxYFPucxXozE92dz9h9+m+3w5MfPmofj
+         101BeK7aMWonbtlF3uxfdYFUKRVi0SU01TxDL3h7koztklQT7d8w4AD/lOc0XnOnpgzk
+         Y8Qw==
+X-Forwarded-Encrypted: i=1; AKwUvBy0QvapdszxpzFn7o8GEK9EHDvWpmhX4h6wx8Fk2Kov6ybAidGUVIMdNkbdGmOCggA2oB5nLZCyny1y@vger.kernel.org
+X-Gm-Message-State: AFuF++lbBr25xr2eb0/COHruyeLEyVM9ZW41FizQXGlPL4fLUuYd4dAL
+	j6df20gfQOoFPIk1icFAHfH7SGqP3LeEfARgnY1dipbYfVUqiNvSIssU
+X-Gm-Gg: AYBFou3Q7/O0OnpcZoCGItt6E6reOzoQYb3igSAomSCbqGIW8AoQy3YQTUJvgTQGH6N
+	wSptz0nkX2f2KdGeEPClgiM4I0E2YL4pIhDUYcIpfuhvTCmVDrtfxEsq70TeGPuz8CzPR4Ohzbm
+	P52XQ5QVOO6DJLkl8sZZtsaFDaHKOnsqraRCz9pQiaV5t/CcKuls0uVo2eypzo07Ut17FDVqNM0
+	1NohmhnxT5nqTr1cQoxAcN3Tc5ci1RwopMsgUYBOQPEjAX70aoptXWrA9EAAwmmyQrpvy8a+F5G
+	tmphpwYlYPe698+T4YELqK8kLNEJ99q4NcEgJXHDm+WMtsmxTRfHUzJe0E/7+43LLKYG81Lb8NM
+	NKwQpMcpQDU3tRZ6oqLlbL1g/Feko9soXti4LEL0jLYvIs+y8m6ikMthzqKDTfCeYgilAtJdU48
+	9XWonsdbCOOrCYxg1t1QPNtIi/ZUbH1Hn4Bu6nTmttrJT00aupon66tMSI1sGbtZdddRFvxUtf0
+	tVakglS6695G+ovjy9v8cAG39QtCIhaHnKvxeXSLxDTzKAfJG9CZlKD8DK4z7xrNYzSwvaHu3Kf
+	dpGI7etHQdGd9h3dN19ZpJQ9eGxQ+9zUWA9lMZYLw6uf15lpgg==
+X-Received: by 2002:a05:6000:4605:b0:485:ac39:36ef with SMTP id ffacd0b85a97d-486eb1d3781mr14290458f8f.5.1789152200719;
+        Fri, 11 Sep 2026 11:43:20 -0700 (PDT)
+Received: from unknown748F3CBA5068 (dynamic-095-114-033-154.95.114.pool.telefonica.de. [95.114.33.154])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-486f0403125sm5446009f8f.8.2026.09.11.11.43.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 11 Sep 2026 11:43:20 -0700 (PDT)
+Date: Fri, 11 Sep 2026 20:42:46 +0200
+From: Karl Mehltretter <kmehltretter@gmail.com>
+To: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+Cc: Arnd Bergmann <arnd@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, 
+	Alexandre Belloni <alexandre.belloni@bootlin.com>, Linus Walleij <linusw@kernel.org>, 
+	Russell King <linux@armlinux.org.uk>, Drew Fustini <fustini@kernel.org>, Arnd Bergmann <arnd@arndb.de>, 
+	Rob Herring <robh@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
+	Lorenzo Pieralisi <lpieralisi@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, 
+	Stefan Agner <stefan@agner.ch>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, 
+	Alexandre Torgue <alexandre.torgue@foss.st.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+	Nicolas Ferre <nicolas.ferre@microchip.com>, Claudiu Beznea <claudiu.beznea@tuxon.dev>, 
+	Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, 
+	Gregory Clement <gregory.clement@bootlin.com>, Robert Jarzmik <robert.jarzmik@free.fr>, 
+	Kristoffer Ericson <kristoffer.ericson@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, 
+	Alexander Sverdlin <alexander.sverdlin@siemens.com>, Shawn Guo <shawnguo@kernel.org>, 
+	"David Hildenbrand (Arm)" <david@kernel.org>, Nicolas Pitre <npitre@baylibre.com>, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, 
+	imx@lists.linux.dev, linux-stm32@st-md-mailman.stormreply.com, 
+	linux-omap@vger.kernel.org, Ian Molton <spyro@f2s.com>, Jens Axboe <axboe@kernel.dk>, 
+	Helge Deller <deller@gmx.de>, Thomas Zimmermann <tzimmermann@suse.de>, 
+	"Paul E. McKenney" <paulmck@kernel.org>, linux-block@vger.kernel.org, linux-serial@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH 03/13] ARM: remove riscpc
+Message-ID: <aqRI3N5FPX1dpIlk@gmail.com>
+References: <20260908152808.3928630-1-arnd@kernel.org>
+ <20260908152808.3928630-4-arnd@kernel.org>
+ <CADkSEUjYhRk-ezaXZkHzFTFQnySFSisKtZfEP-_NtLnQF+6-1Q@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260908152808.3928630-1-arnd@kernel.org> <20260908152808.3928630-4-arnd@kernel.org>
- <CADkSEUjYhRk-ezaXZkHzFTFQnySFSisKtZfEP-_NtLnQF+6-1Q@mail.gmail.com>
- <CAD++jL=ysmPgs8yKH5KBobuv-eeCHHgZwvo1kvHOFuTwhkaOew@mail.gmail.com> <CAFr9PX=_FmMdR4TeP+tqURZdZCTjw8UYxAxeszs_vcpTbX+_aw@mail.gmail.com>
-In-Reply-To: <CAFr9PX=_FmMdR4TeP+tqURZdZCTjw8UYxAxeszs_vcpTbX+_aw@mail.gmail.com>
-From: Linus Walleij <linusw@kernel.org>
-Date: Fri, 11 Sep 2026 20:14:56 +0200
-X-Gmail-Original-Message-ID: <CAD++jL=zaF1zcTv6Mta5Xw69WeLC30NRcH0_pkSkLJJ0UtnZHQ@mail.gmail.com>
-X-Gm-Features: AcwNN1WjZ27WNa2xIf0xCkX2Q7TecAH1yvD-cA-Z7rRTMeFdlwjxtS93LAQhgdg
-Message-ID: <CAD++jL=zaF1zcTv6Mta5Xw69WeLC30NRcH0_pkSkLJJ0UtnZHQ@mail.gmail.com>
-Subject: Re: [PATCH 03/13] ARM: remove riscpc
-To: daniel@0x0f.com
-Cc: Ethan Nelson-Moore <enelsonmoore@gmail.com>, Russell King <linux@armlinux.org.uk>, 
-	Arnd Bergmann <arnd@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Drew Fustini <fustini@kernel.org>, 
-	Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
-	Lorenzo Pieralisi <lpieralisi@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
-	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
-	Fabio Estevam <festevam@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Stefan Agner <stefan@agner.ch>, 
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre Torgue <alexandre.torgue@foss.st.com>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
-	Tony Lindgren <tony@atomide.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, 
-	Claudiu Beznea <claudiu.beznea@tuxon.dev>, Andrew Lunn <andrew@lunn.ch>, 
-	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, 
-	Gregory Clement <gregory.clement@bootlin.com>, Robert Jarzmik <robert.jarzmik@free.fr>, 
-	Kristoffer Ericson <kristoffer.ericson@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-	Alexander Sverdlin <alexander.sverdlin@siemens.com>, Shawn Guo <shawnguo@kernel.org>, 
-	Karl Mehltretter <kmehltretter@gmail.com>, "David Hildenbrand (Arm)" <david@kernel.org>, 
-	Nicolas Pitre <npitre@baylibre.com>, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	devicetree@vger.kernel.org, imx@lists.linux.dev, 
-	linux-stm32@st-md-mailman.stormreply.com, linux-omap@vger.kernel.org, 
-	Ian Molton <spyro@f2s.com>, Jens Axboe <axboe@kernel.dk>, Helge Deller <deller@gmx.de>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, "Paul E. McKenney" <paulmck@kernel.org>, linux-block@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-fbdev@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CADkSEUjYhRk-ezaXZkHzFTFQnySFSisKtZfEP-_NtLnQF+6-1Q@mail.gmail.com>
 
-On Fri, Sep 11, 2026 at 4:38=E2=80=AFPM Daniel Palmer <daniel@0x0f.com> wro=
-te:
-> On Fri, 11 Sept 2026 at 18:11, Linus Walleij <linusw@kernel.org> wrote:
+On Thu, Sep 10, 2026 at 08:44:34PM +0100, Ethan Nelson-Moore wrote:
+> 
+> Because I think it's cool that the kernel still supports actual Acorn
+> hardware, I patched gcc 16.2 to restore ARMv3m support:
+> https://github.com/EthanNelson-Moore/gcc-arm-retro
+> 
 
-> > - One camp that are enthusiast like yourself. That kind of people
-> >   are running the show inside arch/m68k on Amigas and Ataris.
->
-> I have SMP working on m68k (dual 68040, real hardware) among other
-> oddities. I think some people would get a kick out of seeing it but
-> also I think some people would also ask why we can't just delete
-> everything that isn't arm64/amd64/riscv. I'm putting off sending
-> patches like that to avoid everything getting deleted. :)
+Nice.
 
-I have actually thought about SMP on m68k from time to time,
-because there is Swedish hardware with enough memory to run
-Linux with SMP like that (DIAB SMP m68k Unix computers).
+I've made a RiscPC emulator in the browser using QEMU and WASM. It boots
+Linux kernels and currently emulates a StrongARM RiscPC:
 
-I would say using generic entry would be a prerequisite for
-doing m68k SMP so we don't introduce *more* entry
-oddities, but after that I'm game.
+https://github.com/kmehltretter82/risc_pc_linux_emu
 
-With generic entry in front I think it should just be merged,
-but that is me personally.
+I used LLMs a lot while building it.
 
-As SoC maintainer I see that m68k has a lot of technical debt
-like drivers under arch/m68k and no proper hardware description
-(such as device tree) nor is it migrated to the actually standard
-board file structure (fwnode) which we use when we have no
-other description style.
+Your GCC work looks useful for this. I will look at building the RiscPC
+Linux kernel with it, and at emulating the original ARMv3 CPU too.
 
-There are things like
-amiints.c, cia.c, ataints.c, q40ints.c etc that should be in
-drivers/irqchip. So many time.c that should be in
-drivers/clocksource/* and many other unmodern things.
-
-Albeit I think actually going and fixing that can't be super-hard
-in the age of LLMs. So listing things like this likely will just make
-someone go and do it. :D
-
-Yours,
-Linus Walleij
+Thanks,
+Karl
