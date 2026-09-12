@@ -1,248 +1,236 @@
-Received: from PA4PR04CU001.outbound.protection.outlook.com (mail-francecentralazon11013012.outbound.protection.outlook.com [40.107.162.12])
+Received: from mout.gmx.net (mout.gmx.net [212.227.15.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD01727FB37;
-	Sat, 12 Sep 2026 16:16:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.162.12
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789229797; cv=fail; b=f0nxEIbvzk21/9co/XUNbq2pqPUPbvHzrn8xSStv6ymnY39/nfotxSkXBIFHqxSyNrgo9KmW+W7FwyMoZSN8AnN1/e7+udSKLILhnbVWKpCwWhycF5aM0ZdXf250vdKHQLTlcpjVzr17KZHWykFeIrKOcl0jYyea4L7j4+zeD5g=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789229797; c=relaxed/simple;
-	bh=/qrbLHadHC3vjBMOOck7EXhLBFi2SszF5M2IP4QOOX0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=nV22kFhpsrX8fBoArS6gs4fAxWZsXKRBaeVYMs8PnwuaxfUvRmRiIaZmr8AxNNOP0W6rqnZZJA46jkzs+pm7KjsqbPi+bfJpVrqu3naVvO/LsUMGNwqnuLJT71tPtYHZpQkGJRgiwmH3y5ut/jLOg+c27IgP2Sr8WwkWiFTmlME=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nxp.com; spf=pass smtp.mailfrom=nxp.com; dkim=pass (2048-bit key) header.d=nxp.com header.i=@nxp.com header.b=eopY0BWO; arc=fail smtp.client-ip=40.107.162.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nxp.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nxp.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA0B03F4831;
+	Sat, 12 Sep 2026 16:47:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.15
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789231625; cv=none; b=QN39WsiCTsLziOzmBKWYyv30E9CT2GLR2FDM5p2rNBqgue+EVIJz9B6AAsTwHIBL0JkqcLEfxwIeJkxL5JO+VwX+5x6Q3DcQak5ExOy4xe6idtPJuckD9HhPNsACnY10kB6Z/OmxuhjJO9Yr64CgVHx0FlG7+8I1dnMCLdEVy7o=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789231625; c=relaxed/simple;
+	bh=FJU8q53J2SJ+iuX4vWB2+PesDyEK1S5ACfblKzZIXjU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=KDAiaQPjXdpGUeW4G99Wu8mzqghCI3u9tapiKUzxXu9bFwgL5hTn9AXwrhyvTR8AWeFJa/HLXHZfoCQyBN0AF/xg4wvMTQmoIuynUCBLNldp59VON/IodRmxslwoZ9Rf5KiCIAKfX7rOD/WIl8EMHju7qU6xwGCXCslZsj2+lWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=deller@gmx.de header.b=SIkBq/Dj; arc=none smtp.client-ip=212.227.15.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nxp.com header.i=@nxp.com header.b="eopY0BWO"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=v/Tp4CLqhTOjRSYSS5Qiw67eJe0aOD6jzcgfdVUdIO6kes5pwtLbeLSAlD6rpVzPjqsHT6bbeGagrlBADJk/0ls+7qCngLHX9PU450IO0XV8gBd7gAWssSV9XApBd+osvX408bXNBbMVlPHivzJ05CxPR9KVIF8I6ixiB9WDAZ1Gzpr0f1QJxdzA7+o5e30Gz+fLCn44pdnHaar2R7KC2j+bRi6jEvgqD7wygoTuGrIYb7uKYaStVdbdfGfR6ie8MEi7SQkv1l8WAbzRrijH/hPaST7V1zvDGbRvL4KjfXhlLQ0ygDPUG1qozwrs0tfGhPhR07iwn8SEtOK4ZtPseg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=LoZbRRqYtVHqcPM6hFdzgqle9b2xvCA1hlTCv7ez/50=;
- b=qCiQXUxWxBLoBuM54VNYSVHy28ukpZvIo6eMqk1kIIGYeOYyl3wCeYSITIn6aBKLSqEyZHQ/9bV9804vxil2zlfRJbFiNL9E6v4dRQa7E/aX03zWbLG+YBuiRqIrhbhjRijpaYxW77LKYrxzxZ9A8kuKjuk5+IIZLzzPVxIRUmpJenhvsxvVsFRn9p+R7I28iVzMLZ24oKsxVerRlJJvpeSEETFTX01M1nLpkZv4Ln7dK50dRFUQ0qbvgeoKa0uoF7JyN66wwirxg/F8bINAr3tFOg8tn+HMJQ3vqmqPmaF2jS2CettmcftnPy+2a4ZF4QMjIVQt4ocrFFUyKekHyg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nxp.com; dmarc=pass action=none header.from=nxp.com; dkim=pass
- header.d=nxp.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nxp.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=LoZbRRqYtVHqcPM6hFdzgqle9b2xvCA1hlTCv7ez/50=;
- b=eopY0BWOAk15ljI6Lhaxu9PZm4OMawBQptoeM1dyz6TZxHiaINDdm0N1EX433lBaJsERkMGyew6K81Rc8u+2lye6lJTE8z3RxnkdDqOzSfqTIKDD6YapaJ3JIy0QnRpzveQt5Uqfq2MyIIVAfX096PjWicdGOCWFdQJCCHQF6BJ1n+Tl9g6NAW/sGWE1NhxmWHYr+cMyAbsXpC6VtkjaWqu2hvAAN2lGfhwhXw8/N2G3qOT5EDrsEufE5B65L5yz/OqF4LoYzLrew4HIOcmwUW2b7X5ix1quPBuFAWHq/jAJFW1RX7ic4AXpJ4ET6zvKYf41X3GMSXEbjPDWB8fBNA==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nxp.com;
-Received: from AM0PR04MB6900.eurprd04.prod.outlook.com (2603:10a6:208:17d::10)
- by DU2PR04MB8871.eurprd04.prod.outlook.com (2603:10a6:10:2e2::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.10; Sat, 12 Sep
- 2026 16:16:25 +0000
-Received: from AM0PR04MB6900.eurprd04.prod.outlook.com
- ([fe80::7fda:8431:ca1b:b023]) by AM0PR04MB6900.eurprd04.prod.outlook.com
- ([fe80::7fda:8431:ca1b:b023%4]) with mapi id 15.21.0406.007; Sat, 12 Sep 2026
- 16:16:24 +0000
-From: vladimir.oltean@nxp.com
-To: linux-pci@vger.kernel.org
-Cc: Aksh Garg <a-garg7@ti.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	=?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
-	Manivannan Sadhasivam <mani@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Vignesh Raghavendra <vigneshr@ti.com>,
-	Siddharth Vadapalli <s-vadapalli@ti.com>,
-	Manikandan K Pillai <mpillai@cadence.com>,
-	Felix Gu <ustc.gu@gmail.com>,
-	linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 3/3] PCI: keystone: Remove device links to PHY
-Date: Sat, 12 Sep 2026 19:14:40 +0300
-Message-ID: <20260912161440.1032188-4-vladimir.oltean@nxp.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260912161440.1032188-1-vladimir.oltean@nxp.com>
-References: <20260912161440.1032188-1-vladimir.oltean@nxp.com>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: BE1P281CA0165.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:b10:67::14) To AM0PR04MB6900.eurprd04.prod.outlook.com
- (2603:10a6:208:17d::10)
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=deller@gmx.de header.b="SIkBq/Dj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
+	s=s31663417; t=1789231608; x=1789836408; i=deller@gmx.de;
+	bh=7G0xZl5kIWgmTqXxm4xs2xlGIMXSqPhJhlV0xmiCK88=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
+	 References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:cc:content-transfer-encoding:
+	 content-type:date:from:message-id:mime-version:reply-to:subject:
+	 to;
+	b=SIkBq/DjLT4ubzG+Qvox5Z98rEcg/QKcpzOx8bpe8kH07xNzsObiZwBtZp4JSnKs
+	 mxngkhTqQG1VoMY925MuV2dX0muoJERLkda1CtQnFfOzS7wTSfSCIwWZ5IcTRAgUe
+	 gdgVY3gK/ilGqI+iX+gai4/HaJDpItaChspsWLKgxlLRGpfpHwZs2txiYNRq8VwCc
+	 ICJHOoNzZjKag6YDNPpijSljC1TqMryMSATfYURVPjvH2KC9XMh7EOiQvF4zDyw7j
+	 kMk4YBol/0Tnl7kkVdVV+4MX3AyAYtMKxLv2xjbL6aOkRACg1TUhYILsCsNGYYlrl
+	 dlPzofM/rziNy5WNqg==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from client.hidden.invalid by mail.gmx.net (mrgmx005
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 1N7iCW-1wjy4A32GY-016wol; Sat, 12
+ Sep 2026 18:46:48 +0200
+Message-ID: <973b9e09-1fef-492b-9510-bb25d158b2d9@gmx.de>
+Date: Sat, 12 Sep 2026 18:46:43 +0200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: AM0PR04MB6900:EE_|DU2PR04MB8871:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7746d58e-44ec-4dc1-8c92-08df10e9312c
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|10070799003|19092799006|366016|23010399003|376014|1800799024|7416014|56012099006|11063799006|10067099003|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	z5x2Ic+mP0jnDdsmvmFQip5ZaHyn23IDA1Ky+TWaN2Nc2ovenmYOJ40XxOtP4E5+1DhESXzt7za5z8H1RFNfU08cmXyg2UUMA8OoalBFa3VoY62Qsyh6NCNG3cXsCn/1ko6TfWUzTQ9Dk30gV5znl9p7ljavmr1QSBxx8320MQg2CUevuVsPfaGuqIPl5zmphBXeTKBAmQrkMMh103kte+LJ+2GM9b1CH9HYJ+G0cGH52Px+9VRKvJbqp1Spd61M8YhnFtyuGKyxZ5BaZTk7qgYjqd1qwQmRxtCL58/5VPJ36umpfSPVKctvOG97cyaSBN5rrHGkNKD5oUCODtQhIsydlPIm4TJH0q4n88MY2lSajdcgWnXHOHMoyfnI1QBteAPaNniaUo/aEb7NtChJAO5yzXHOyHAK5L3kHwT2g0uEPH0jm8r/SKfpavOLwmyBlHj8DgVXD6DjP9pNakDw4EYThG9x0Nb0oXLJXAXOKJU1Ws5p7pz9g1Gj+FOPX8B38gEdoPKtvjfKt6yo2QcEaW5w9Nw5e9RAyK32ALhCRr/DOhVh/ws5EE+L4Au/HbvuDf7NGcp/LxEHhuX12QUd0fXKd1klpXkMpAZbY34b8W7nJzPndG3Q2GL6fVZ7hUcLGRjPip1e2K9cb7mrXToACogLuWLiXiS4mlNUqTKDAug=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR04MB6900.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(10070799003)(19092799006)(366016)(23010399003)(376014)(1800799024)(7416014)(56012099006)(11063799006)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 2
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?qDrhgmbsYWHectne4eakpUVJarkFBFk+J3GMCVt3OYNtAUqva4vHwel9fnbU?=
- =?us-ascii?Q?VweVX/dJKwc3vzgluyTuttv/8sz8rS6iIPrYcTHyBmof6uastBIxcKpn/LMh?=
- =?us-ascii?Q?BKKcYrT4GxfKTkwswsgHsNvjvCPGu9to/798MotjsJB7fRkv72/ti3QpgN/b?=
- =?us-ascii?Q?Fiy+sv/AsnDklpS8FAX7ZZ+gu8EIwSF51aoLDgQAKniqBImn0AyrDMdhY45Y?=
- =?us-ascii?Q?ezr0cU7gdsCBy3x54yzY43FOzC/r3aM6bI2jh/gNU3df9tlv1Rv8mQW+QAGl?=
- =?us-ascii?Q?5l3BabxKWcMZmBTryKt8bHhPaaygZj5gr8ZxSVSy0zFJI3BYmypmyateJbGF?=
- =?us-ascii?Q?wxaPTZUiEp3sfaI25SI4T0AWmQh6JgzV7H8UaRxH+8nSjDXW6mvEqMZjBFqP?=
- =?us-ascii?Q?4RCoRmiYoNTCD36/0n92+4VIXpk3witJiriMZkJNS902DyZ+plolTN+ZEKG1?=
- =?us-ascii?Q?R12ZdhyBGs+4Z3Vb1mqdm0Fh00++lYK8dkhf/YSrOJOPgjWACTtRgim79ykR?=
- =?us-ascii?Q?JPBcTPA4Fx1wUSmYPTEe2mYDsx/QWVBzMtzwnsyc7PPgJlQaO6+yWfPKpYD2?=
- =?us-ascii?Q?cYuhCo9INT3mxCFYe0cXM6roxDEy31r6Ir8jcam9ABNBFYAwV/n1xZ0tt1b8?=
- =?us-ascii?Q?OWa10EuAYa3UpAp7MZyiaPPrC/9Sep1nO+dVzuUs1gvik/LSGbFIFvOOuI9h?=
- =?us-ascii?Q?X/upxrbHWlKpRB1xyu/K3Ctw8TbmU1Bj+JQnneZT2XhF60h4grYsqVhDZZIb?=
- =?us-ascii?Q?FFBSjFsb4UYcSpERIpZa7y5759JbRMMbGTzY7UmbMgIx+Q+WF8qPFlwhX6B7?=
- =?us-ascii?Q?G2zBksRPw7bzMs0mBvTG7SYo/6Ek0SWjqWjEC3HrJaka76R6Uc/ltS9xlil5?=
- =?us-ascii?Q?ewZjuBLtLHtQwr1jGcJtS3w3YG8iCGrgzn/M73c7W4y9GSL9KahiQqMd9Ywf?=
- =?us-ascii?Q?T77oPrYgvfZ/ErMbvxXvqbTr0p8x2/teQ1Ub+lEtnBJO3fnXLVO4iKEU0yKl?=
- =?us-ascii?Q?1UtCl4y3hiwJc8Pf1H3uiAGplEgWim4Pbo8yBrTd8FxgKmpB+66GZuyS0vau?=
- =?us-ascii?Q?ALJfR1SqtV6rb1CmNjBH0Z2FFt5Vbj8MWCRJY7vr9aD1hHtjAiLCE7C+CT1N?=
- =?us-ascii?Q?bbPVYeF4mz10bOCOd0DZGSVLKpGKtuUFWjoXdpAyBxK+Ro+9qwyFEh3xlyBa?=
- =?us-ascii?Q?WFVe+FQh6a9rgXot2wwyo5cOcY49BIFomqKF06RldzWqaFFEkS6DkfkKNHhG?=
- =?us-ascii?Q?SRJtQZiBOIkuVRDNfs82gJGLa+3sjyGVUUlWj1uOgy3bH3+caIx65M+3NoPo?=
- =?us-ascii?Q?YnK4Y+t+uZEOutO6l5ccKV81aNOoCyC3mxdG6Az2Pqk+tBFxxYh92bgZ9mEH?=
- =?us-ascii?Q?3wbaAHnNdP6CR5xeS3r5j1NTJ9V8OvOFfYJJOKFVVrJ+dx80GBPPCR+xWxv4?=
- =?us-ascii?Q?x672twxkhaGK7WVBhHM4oRgz7pvlf/z0pFDBbEznQn8iGeogFrnmXFkbwjSe?=
- =?us-ascii?Q?YkV+IwlmH6nEqbrawyil+n+sl0/KVli3GQAv/kpg8M8fJU3w89JN74geYgqO?=
- =?us-ascii?Q?PSORJIpyocllVhyua89xKczJEAn7kqHDgZ3Ufslva5av9meOZf7wxLP2/JbX?=
- =?us-ascii?Q?6TjJxrw6LzlwZZDGfh1CpMoUPDMRKgaiDZfccGQjzsDZXF3MZJuKVi8hJRlJ?=
- =?us-ascii?Q?J7ttTOplhXykz6h2q3tSTAitfIlJ3atwR7A1GYB4KYWLslFjUC3BOhcAFsCa?=
- =?us-ascii?Q?QXoIAmjSf5iZjotos8cp7K8Vc5P1grXTbdC9aF9sTSHzxahjXzp1FTX69PlG?=
-X-MS-Exchange-AntiSpam-MessageData-1: bPoWTVpbtHLBLyKxgGBKMtWxQY5vwjNHNCs=
-X-OriginatorOrg: nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7746d58e-44ec-4dc1-8c92-08df10e9312c
-X-MS-Exchange-CrossTenant-AuthSource: AM0PR04MB6900.eurprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Sep 2026 16:16:24.9251
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: cZaoLkjFToVkv+JZp7vO8D3gE1ug0AtMZu2b6Evaz8E42eal6tNwQ4y0/M5/ldN1ZbYLWAWO6khqHwurhUj1IA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DU2PR04MB8871
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] fbdev: fix typos in comments
+To: Hemanth Selam <hemanth.selam@gmail.com>,
+ Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+ Peter Jones <pjones@redhat.com>,
+ Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+References: <20260904111355.25780-1-hemanth.selam@gmail.com>
+Content-Language: en-US
+From: Helge Deller <deller@gmx.de>
+Autocrypt: addr=deller@gmx.de; keydata=
+ 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
+In-Reply-To: <20260904111355.25780-1-hemanth.selam@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:nPMsOSMslWcB5R91yz5E2CXbItIKdjsUnMMqD6XE3Il01mnKzre
+ CKacC6E140BTLuXp50LOr3FBBIlTXwPp7Zv2WCKOLuKQFH28W5Gr/dWUq+5qiZrFtxkxA/g
+ M2Hzs2YWYn5TDZRF7tmOA5jzzSjZa/bAM3HiBp3pUda3+OqELQq71QMyAQN7VKB1sVHW4qb
+ ihHc9fzUtn+k5Hqj5u7yg==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:8Ilvf7v7O3c=;SfaHV0dtjDCw/YJY4iodEf7Ynlf
+ srhnBXv+ORflPud1C0+NBWHXBI3brpLRwMMQevQz+aknMqpcazzVfkZfyqIt052GnBosWozzL
+ KVvqeAYBWs000kSB3ziSBTylXUSW3LEoXhsC6mbfTBzTlzkdXnxwacgA/BCF8jihhEP1fL2Zj
+ ElCYZ58DdYk3IFqi2rJGTiZNDk8+yjCW7dbP8l62b58dZLNJrNQFnA34mE9Y4F9p84oqBMUjb
+ jLu2tgVSECCJ3phW3mqnnIEGyAlMOdrovRazTYIYDAK9YM4y2CmLk6+0okFGCZ1bLl7Q/Xy5U
+ etZFN8MhHNmpgd/PV6FE2c8Ei1wqQDi0jDjqniOXvozClkC3Cz+aBGO7aYrVMWrrJ+tx0DTSN
+ zIlstS4c1pT/NFCDkOMWo0u6jGGffU3Nqm4Cxo7zZ+dwc3OuTNjowRvftiN2u083zglgVbGUk
+ octUT8O/SuYiIGrBJEHVM78Ua6R3fDbWp3DgifAW1kUXLlTL9cGAnQ5q5Nv03iumzR0PaDhJ3
+ XHqhP0Ip4fALOI9/OWNtO2aCNca/VQ0y3hBQgmSFwfu0TfvNsWSJ2eehFdm9tgJpBEx1pr2EE
+ EtW04dkoX7FI/Qa4jzkCCH1L3Y1UAF8D3c8hkYmLfKUt5F6282y31UJyJ19gvkS+W8fYnde2Z
+ ZKDq0QRWVhHXewegR4VObgOfdisD0g1iudbx+UBK4yfY1Jrxq+UyJJ5wDUy7kXn8NZGhY0s/9
+ cC53TSby1r11SlnynMM8NQn6+nvKwQwp57TiPJf0LgHRAEcHCzTIiZeKw3rQuTzYcsgD7Yx6G
+ 3bsqr0tvyL8H/6YAZ7FB0Khjb2cGSwb23ZT4A283cUoEOVY+K/4XVTH9j4DLY6U44euuibeX4
+ j3vuwpGAPpU+NxfCiBrYnrtsWw1axUWxpefU2SsqoOsyGR49v1grXNY4krcT31KMXxOrf2lKb
+ Cj5Q7dXV1e2H5ZqRaODSSKCyqBp7Q6F7yMaXopGT/l9PV2QUKr2t/CJS0Ub6PO2DLq+ibxZXk
+ O/6Xm6/wJGbEKgAWUJcZdBcdeIjtf+xQntg8+MD3kuIzK4N7IsAYh9gQdDLc42j76Ye2m0Pko
+ zGmHLCeOd7LZoU/5CIG1FBd3Ji99owDNv0JQocG+OMjqAefj8hEadba0tM/Xx6FkffctvMkxd
+ Y86VAB3Eb9ilFmZ6hQZiLuvDyKsMhOlHKh/pqoShZvqdXI5jXV6Ipqx3E+UUgfegXSgtqfr0F
+ duWt82KTTAdpKZGTeDyV+y0bFWHNeGdK5jn1ZFyXhd+HStei0ckPFP91h0PW3Ib7sgluxF1vo
+ S8RYH1VtcfwhwElmwlVnOOV65odwRpVbLLF+6PNxnYfHyP4A2vnnpPvEohG/4VE3uTD5D7S7Q
+ bqbz4+8ocRgTyepE/qYPR3C+dyH2GrgjxdZydf0s4sokh91fih08dT0/erBuOKLHUyaZAXqWC
+ v7Cla+Bds1/sgmDbwmmfc199Fu3MZd68DvzueGwxxxGvcCEcKyWBoKTzMkKqCWu+3Tu/uIJAZ
+ IBhxGl+cIpYAx/z1XaeQJR71BelI7Q6hZJtMiLCDELIYThz5etnpAt1GK+xZrtCaPQHaMEJuq
+ 71nKS+h5XJ4GwrlrEf0yvpoCEQ7A6xyekMmmRhy171fiVqwI8wNkjbcBrf5J229UrDjmqqSsI
+ 7yoHWsw2U7l8GbnlbnVC5PZRU04kdYslQw2NzsAl1KC6CF1sBSpZnF68quwIelnl6FLXq036C
+ xTK09zmx6HaRj2dLHwv9Lu+3QmQvEAXcUMxfuaHTzU6r2LyLam4GtfvnfaQaSRLaTnIilKRVy
+ 4YwzN6JFA9DnMJOHqRYl5/x3Xl5N+1PYnnkj4IwH/19H9v5ajVfEUFhTGt7ACBgNOLmcaV7LD
+ kXltc1v/P7gmUB31/k+GSS2iLzBJUtreozlof8fgywWmgyCz9mAc0PvG5Q55AGgUBGiTsxnYP
+ M3F1sL5E2kUr9aEWsxCgSnH+2Vmur/UD8sWGlepwZ6ozwg3fZzIXqqGWPX7gkObjRXECAF2ZN
+ EghRCLzHQPvwN50BFed7Gau/cTcCKBxKgGc+553Eax5NRHQHzeBLQ4cfWKQm7OmeASvXt12mO
+ aRs1EBqnBU6s/fiTAEHDrZ2v1S+2ruf1Er2INAWMXis50VJ86dNUfYZM//xp9Pu1ZAAFXXmGz
+ c5FGea+/dAv6rqs99ACUsBuOtR5EzuhrtCl6A2w/5slf2WO5Kdc99hdTz5epiRGBdZK1zGxpD
+ ex8RVu6EnAbx7NxQuP8dCRguHBLSeYjoPo5l01UEnq2BEv6LSMs5uW59Dq8P1C8JaKxPW2XEL
+ Xd8X8vJHWQb3MeYe8PA7BohQh42OBB7KdfMOfuREnKnUf/QYg7nO9lQDSfDpNgkBRq5UIrnBU
+ MieVq0CJ1C0eQOImto+XevXy8ExijKdx7id64ZpIkYHSJpiNZL16oVrC1l6LNnEtlVCYXBn+3
+ xocjejXt7H2J8BO20+01J14tXTeHPWgmXguYfRmmmu2SVuQRgXx41ZEQAUJraR54rZCgyQAhr
+ wGqIZQXPiAsPkDsAFf1BaypOvgX4VCCQfTsVpl0gciqFVGYAcZy5RAQ89EsNPpYfxnbGZcu1v
+ YNj6NTgwFKmCid5UuZm1AVz1rza9D5HKv708Mj7NAjJ/kdI/j1J0Y3ovYd4+3yRBd2xrpoHPN
+ 7mi1zYaMIwtpLEUy2zFta9c7bzawnV5KfkSQqViuQA8uhB2RoSa64GWNKDjcfaqx124N9n6nx
+ 7B9NCEJ/JykhI6GIa2j8K/U2i25w0+Yem8YzbZmVMzLUwYgSSx77OMMFwtnHDzw6F7z13cI8X
+ eH4WYR4zdAZeuoyMAoIqNvr8Qj2G6DYIY/kG633eg0ZaZuRH+w1E/0FSBLyK+mRyxcAjtir4V
+ InQfGfvoFSLYUO0p0szOAuNBsihWn7ZKSxFkS7VYtADTDQMnfJ/AvORRvM+a4VxewULspXdmj
+ zMQjqTcD2TL/KfC/wUKvyjlynz0JmcXcr8GQE15I9xHg8kRZ9N6WqnD9LQ8Qlbm8DCFyQheUy
+ R9QEXf9CKeesfpvFjYxR75K+9/vRWEOQjpL2/hnCwe9xeNOpgvHMdP/V2rL5xKLCFmbcUIjtz
+ 2EKqoz4OO4gUL8oNI4zZkzPoM+EBn/sIvtOjwTSKkxjuurjxCA89LTB6lYcwNAFWC60/E249j
+ 3RxgrNsh2wbchsO693L0RkT6AGxyfzapujVUXCgcsDnq3MYJ5YRyfRhOUc8/EKYa6OvHb/sOc
+ YQXi6sovQ+mkVrOBYe9YRf+BdvlmgnwGdg1MZcT94NbbiR3eY92kM80pH4Y6M42xDkK/erXwB
+ Wd5kS32Awzn5slq8YbgioWmAw4RgM3lDVvIlEw3K4uaE267fLLYBOdLsC1CWENARICTy8Jhhp
+ jQyHrOJyFd0hP7IBuawwuiV8LGVmaB6ySvpnHg/tCDCcQP+81RLgtVy5RFTHYpRUYr62TlaQa
+ Q30ZZy9ret1H2X9zLkiD3tKYCWvSK2IzOoBvqtfavfx0pOdPTBOVJCZVpEHFp5kyiHk08Vo1x
+ B97H+cIld5VSEPRaJMSxyLW6GkqKSZCrR5kOmG7M5jXq+qLuE/NbiGVSYuTK7LANkWe2bZTKc
+ I33x16kFsa9pe/E901zE7VvfUXzNhCepGUOgdgB/4XfipvldCmsKoyF7DLPSwdbUweegy8oTa
+ YVFbPaDykU6E+6pYvJ/8ClCEBVdXoiY6z/G1yq3+r7UOlwJUsLjfGKSm0p0EPuX3bf2GmykII
+ rqLt8Wr66Ihb88EiOUOEi4SF7/jqzM3YVo1/7bHiM/e5XYno4RZVrd6Lp1KFa5xXwMNlsszym
+ FWUYRGOBzhlTYRNo9xUqetNZhqMBAMpN7o6KEjOqbz6FHBmbwfXREvyFSw3gm+kagXrnuFLeR
+ j/Tmpy/msqTxB8ABZpXjJA995vJAyW4L+9XeQn3UhJmcLkdiXxSKp5uz+cyx7BSvEvb7AKtSS
+ vzYUJr107TyW2UvVjyzNFUGRqxUva1W4EUmTypnUv6NW0mG+Bx5hnzILnJXYeXlyRy3T2qoAb
+ QNwJwCq9ZRAsibNvDYAfOgKy4t8fo7hPc+uCjQv9EGTgETcOTvmz71n2Hr971XmDvUOwxe4V3
+ wLqJwCOklC+0E1lW4i7ic4QhO5JVikr9UaWKR1TgIf2oRVT7mnnV5GFB2tfBD+zcEFKZ9tOkF
+ rAksNwIKRPxk4LRlK+Q2XgXZcgLP+qr3n7QA2BPsUB55ShLIVz9QJWzDmLhK8CSC3N1FOotkX
+ qOkuOKON+l27YfTLMtvxJo1nUDpRHFqRti/I7mCVK4HYAgwVhHVkT5LsTniDQ8gmcKwuOW05C
+ 4EkpJZ/+uIQ6Um4b0MpvNlRlTsWcdX0mZnQtIALR2O7W93S02IGwh7AxyHAzO15I4xqMBXJbH
+ cXHXiIz5iAyVGEHgaudfH+NVh97OA2A1Hg8vIXpzlfG7FY+AkNY9V5X2Tld8Z/x1DKWHjKIiU
+ /Oq61mQ796B2O//hgywJ59upGJvf9d58FZpXVYkKRpPsvpDkvxiI0GicjtSuEfLgghYLppWjI
+ aajtXNgDZi3REieuvTulvTxpUq5/7KPjHexbCA50uvyep9fDi8n9ElQOFi5w6GTUTgyas2rAm
+ 379kbeDyTUGu6KziDYMeAEVzKSiXIYAZyz2eTMZTJBZhFSv4hdHiGyqQGroH99K3TbcPgaDh8
+ tXbHVOCkTUmFfLslS5CvoH9lmthJoEhLa1Y1mwLnUgef0RwlTZmhRmJSJnZ5kuQPc5+zuhbwZ
+ SCXSnqxF0aTEYLRak8jiC37em5SH0m/XcciRwDoVCL5mORD4IL6fec6DtXsJvZhxqXbkqVzdl
+ UUTkVwrGS99Rggrs7vuuLNG658u6KmKSYa7dQAWFwFkywG+uOjmXBLZHxoSvjtW0QhH5LvGlh
+ Pe4lpWI7Lt/F7Dvo+mNZledGQuS1E4Ti8iKgIuz7U2J2jX5mV6qOUzycYsD1Q5em3tAIak8Yw
+ NLFk5pqzc4dsKpZfrojY4iWu2auYZlQEtZFcKfCgowKR/vbnF9NYhqKGeqYLxtyhXMi+8nBWI
+ Lu6nHzy5g5hCMfKLIKEZHBPRHNp7J+3RFxI9Gs7VONf4RtPVxO2IgfAc5K0jIF7KzE57YoJNE
+ 9h2UZ+dJtCF+zu/aktLd/Pf1qwonmFk66D3d53CurI7yhpu47r5m1qfF7tcsj33FvVddzdNaR
+ SxDiI/4JCm9++W/m91ozPIaKT+agDdImDh6pg7EUAC0uClcJfm9XAQnFBGtjg9areAoOa++sr
+ tAj6xDB96zwm7YjtZurkF0E/pftNwimHGVse3JLRwAuBo9DmzjwjkPN5o/qDl8RrS9W1DToaX
+ IOGHv8s/Gpw9GwILinoqVX+na3XPLWbou7oiZhoc5q5t4voOGvPeaEcFMB1FEvUD/rOhVqC/C
+ NpAUARDM3oulvJZjbdN4h9lnw1dSl/fN/KDwe4NqjBOIca+7+2l0ytcrptlpXJgr5EO6zZWoY
+ 3sWooT0pMvYunTUh20+VsJTl7LGpHGHZVhs2hQLWfDwc31eT/LGFcvMehXC5D5o9HKv+18zb9
+ Y21/d+Z/UFdcRlf1yZ8uqPyJJUf6S1XYZwFwFKYgOPR+MD1lt2c4G/BIeuLzOQ/ZbpjkgdQFK
+ KH+DEJwRbIuUKBXtHEupoeDsE9h7QcnV4vUQHVFFvOjct68P0ud6sZRTUttYItgy0tUCOZBH5
+ FCvb8go+yDKx9Qwnl+1pxoU5kAqY38TluOXjAxlVVlBXvFI0/21BVhVQAvts84ynNF9T/pDyR
+ CEwBEXhpAKdtuZObC/n18yJzvuCCzWG3++CcGsM2ZrahZvzKUkOSZ7IVSjLuTBYbq1OPyx3+I
+ Ooo4ku6bk7Kfi+VKm6hnnYrsLvmp5nTPhRTFZS9WRI1wYVfVPTORvgd7DI8aDDAQo1aWUrHSH
+ Ti9QlvbNqz/xPBCsCgMw17aUqQIaKj9woeIQuzPy6yWTLrE7iCmt3ShZ3vl/JymCbeOgaJ1+Y
+ xtrvX42vucyHqE1lgKMhDUhVOgfhAoo/sx9DxPb/wcfyMBJFVHlMNJtObTmrevwJ6+Y6rNB7C
+ eWHWR+B9f4jFmU/6ye//4B2Ejp1q7BwhOQE72vz9i6UEwBe/DgFPMGqqoX+6YQM3PmggJ6DHW
+ 7Q3Uo59V+KVaLFMh9JY8Gt8LBUqcH6K8TqlThHiAH28otJoQchOgpc4cWGk2eNEXMUTtyskG7
+ 5+9OC5bC1F8GCIpmi+H4KPWiz2AHjGJ
 
-This is a partial revert of the device link pieces from commit
-49229238ab47 ("PCI: keystone: Cleanup PHY handling").
+On 9/4/26 13:13, Hemanth Selam wrote:
+> Fix typos in comments, reported by scripts/checkpatch.pl using the
+> misspelling list in scripts/spelling.txt.  Only touches comments, no cod=
+e
+> changes.
+>=20
+> Assisted-by: Cursor:claude-opus-5
+> Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+> ---
+>   drivers/video/fbdev/aty/aty128fb.c              | 2 +-
+>   drivers/video/fbdev/aty/atyfb_base.c            | 4 ++--
+>   drivers/video/fbdev/aty/mach64_cursor.c         | 2 +-
+>   drivers/video/fbdev/aty/radeon_base.c           | 4 ++--
+>   drivers/video/fbdev/aty/radeon_monitor.c        | 4 ++--
+>   drivers/video/fbdev/aty/radeonfb.h              | 2 +-
+>   drivers/video/fbdev/au1100fb.c                  | 2 +-
+>   drivers/video/fbdev/efifb.c                     | 4 ++--
+>   drivers/video/fbdev/grvga.c                     | 2 +-
+>   drivers/video/fbdev/kyro/STG4000OverlayDevice.c | 2 +-
+>   drivers/video/fbdev/maxinefb.c                  | 2 +-
+>   drivers/video/fbdev/mmp/core.c                  | 2 +-
+>   drivers/video/fbdev/mmp/hw/mmp_ctrl.c           | 4 ++--
+>   drivers/video/fbdev/mmp/hw/mmp_ctrl.h           | 4 ++--
+>   drivers/video/fbdev/mmp/hw/mmp_spi.c            | 2 +-
+>   drivers/video/fbdev/ocfb.c                      | 2 +-
+>   drivers/video/fbdev/omap2/omapfb/dss/dispc.c    | 4 ++--
+>   drivers/video/fbdev/pm2fb.c                     | 2 +-
+>   drivers/video/fbdev/skeletonfb.c                | 6 +++---
+>   drivers/video/fbdev/sstfb.c                     | 2 +-
+>   drivers/video/fbdev/tgafb.c                     | 6 +++---
+>   drivers/video/fbdev/tridentfb.c                 | 2 +-
+>   drivers/video/fbdev/via/dvi.c                   | 6 +++---
+>   drivers/video/fbdev/via/hw.c                    | 2 +-
+>   drivers/video/fbdev/via/viafbdev.c              | 4 ++--
+>   drivers/video/sticore.c                         | 2 +-
+>   include/video/mmp_disp.h                        | 6 +++---
+>   27 files changed, 43 insertions(+), 43 deletions(-)
+I've splitted it up in smaller patches per driver and applied them.
 
-The trouble with this is that a PHY consumer driver dereferences fields
-from struct phy, which will become no longer possible.
-
-Since commit 987351e1ea77 ("phy: core: Add consumer device link
-support") from 2019, the PHY core also adds a device link to order
-PHY provider and consumer suspend/resume operations. The reverted
-functionality is from 2018, and is redundant with the PHY core now.
-
-Signed-off-by: Vladimir Oltean <vladimir.oltean@nxp.com>
----
- drivers/pci/controller/dwc/pci-keystone.c | 31 +++--------------------
- 1 file changed, 4 insertions(+), 27 deletions(-)
-
-diff --git a/drivers/pci/controller/dwc/pci-keystone.c b/drivers/pci/controller/dwc/pci-keystone.c
-index 602516239a57..bd736a1624bc 100644
---- a/drivers/pci/controller/dwc/pci-keystone.c
-+++ b/drivers/pci/controller/dwc/pci-keystone.c
-@@ -129,7 +129,6 @@ struct keystone_pcie {
- 	int			num_lanes;
- 	u32			num_viewport;
- 	struct phy		**phy;
--	struct device_link	**link;
- 	struct			device_node *msi_intc_np;
- 	struct irq_domain	*intx_irq_domain;
- 	struct device_node	*np;
-@@ -1131,7 +1130,6 @@ static int ks_pcie_probe(struct platform_device *pdev)
- 	enum dw_pcie_device_mode mode;
- 	struct dw_pcie *pci;
- 	struct keystone_pcie *ks_pcie;
--	struct device_link **link;
- 	struct gpio_desc *gpiod;
- 	struct resource *res;
- 	void __iomem *base;
-@@ -1202,31 +1200,17 @@ static int ks_pcie_probe(struct platform_device *pdev)
- 	if (!phy)
- 		return -ENOMEM;
- 
--	link = devm_kcalloc(dev, num_lanes, sizeof(*link), GFP_KERNEL);
--	if (!link)
--		return -ENOMEM;
--
- 	for (i = 0; i < num_lanes; i++) {
- 		snprintf(name, sizeof(name), "pcie-phy%d", i);
- 		phy[i] = devm_phy_optional_get(dev, name);
- 		if (IS_ERR(phy[i])) {
- 			ret = PTR_ERR(phy[i]);
--			goto err_link;
--		}
--
--		if (!phy[i])
--			continue;
--
--		link[i] = device_link_add(dev, &phy[i]->dev, DL_FLAG_STATELESS);
--		if (!link[i]) {
--			ret = -EINVAL;
--			goto err_link;
-+			goto err;
- 		}
- 	}
- 
- 	ks_pcie->np = np;
- 	ks_pcie->pci = pci;
--	ks_pcie->link = link;
- 	ks_pcie->num_lanes = num_lanes;
- 	ks_pcie->phy = phy;
- 
-@@ -1236,7 +1220,7 @@ static int ks_pcie_probe(struct platform_device *pdev)
- 		ret = PTR_ERR(gpiod);
- 		if (ret != -EPROBE_DEFER)
- 			dev_err(dev, "Failed to get reset GPIO\n");
--		goto err_link;
-+		goto err;
- 	}
- 
- 	/* Obtain references to the PHYs */
-@@ -1251,7 +1235,7 @@ static int ks_pcie_probe(struct platform_device *pdev)
- 
- 	if (ret) {
- 		dev_err(dev, "failed to enable phy\n");
--		goto err_link;
-+		goto err;
- 	}
- 
- 	platform_set_drvdata(pdev, ks_pcie);
-@@ -1338,25 +1322,18 @@ static int ks_pcie_probe(struct platform_device *pdev)
- 	pm_runtime_disable(dev);
- 	ks_pcie_disable_phy(ks_pcie);
- 
--err_link:
--	while (--i >= 0 && link[i])
--		device_link_del(link[i]);
--
-+err:
- 	return ret;
- }
- 
- static void ks_pcie_remove(struct platform_device *pdev)
- {
- 	struct keystone_pcie *ks_pcie = platform_get_drvdata(pdev);
--	struct device_link **link = ks_pcie->link;
--	int num_lanes = ks_pcie->num_lanes;
- 	struct device *dev = &pdev->dev;
- 
- 	pm_runtime_put(dev);
- 	pm_runtime_disable(dev);
- 	ks_pcie_disable_phy(ks_pcie);
--	while (num_lanes--)
--		device_link_del(link[num_lanes]);
- }
- 
- static struct platform_driver ks_pcie_driver = {
--- 
-2.43.0
-
+Thanks!
+Helge
