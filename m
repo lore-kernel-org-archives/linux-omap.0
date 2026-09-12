@@ -1,82 +1,82 @@
-Received: from mail-qk2-f8.google.com (mail-qk2-f8.google.com [74.125.230.200])
+Received: from mail-qv2-f6.google.com (mail-qv2-f6.google.com [74.125.230.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 336A5376475
-	for <linux-omap@vger.kernel.org>; Sat, 12 Sep 2026 02:09:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A7C836308F
+	for <linux-omap@vger.kernel.org>; Sat, 12 Sep 2026 03:59:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.134
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789178960; cv=pass; b=efZuTQGhDxLXRBgJIv6OQkiZg8/m7RH1iaHjdmkuKGQtDWH0l6ewIJOFS0ofmUoiWmCt4l1pSkgtUxI0Jj/LnL2ZfxXF6myu+0NBDKEEAG6f4omJMVKFPAlT/Q3kve3VGwdJEEAhVESXwzxJxcHZzjKYdcIgyas0KohB60j4pKA=
+	t=1789185580; cv=pass; b=UFqYkFpHfEtnd5IPSPBkmZAnsA6jaCATQ8nVFfD5gFa7+xH7hFI7ilXeIkBIdIaGZ+p9Zs6d7REyv2pYBbC9DnRnRyJAiAaOrDF5sFsezVP1+nH5JwbZffo1NYbj4DYG10zvvQof1d0JFAvxbPuQCL43sV5lebA0sR+z4+aOwpg=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789178960; c=relaxed/simple;
-	bh=mdT9ENWPEzBfkyRK8P1a2dUQlY39G8cEaKSfK8TCWpw=;
+	s=arc-20240116; t=1789185580; c=relaxed/simple;
+	bh=BkL3lGBHwiEi97Q6sw1wqPYNFpmHLpnVSD+N4L8TFo0=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=sNu9CRjosXND7enaru+BzZACKkrlTI+z4mP3Uvh71FeNwDUXoshy0XdZhmNou4P0bkEWuiMJL/nHTi3QRzAg5bdEs2cyEiSzx0DoZv2wEXhclyaoJ7Y6PMMOjefll37JQcVV+TiBI24hN8+IfRIiUXewQg1Kqo+oxTjqu+OWcAY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JMm3dOKX; arc=pass smtp.client-ip=74.125.230.200
+	 To:Cc:Content-Type; b=Bj8dNAHRR50SZa4mER0K/cYTJfTM2GBVcpnSKSEt4q6qtJK1ev6VMzG90GFIaMABl2g2Gi1PtAzqvS26lxflZbyatbVj/lqdfBaL1uO75OXsoW0jm5cDgS/DdDCk3dPXy8OXik/phqhBKOtJZ2oQN8/1Y4MF2iHB9NEYi6obQuA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AUi99WX2; arc=pass smtp.client-ip=74.125.230.134
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JMm3dOKX"
-Received: by mail-qk2-f8.google.com with SMTP id d75a77b69052e-530e2f0c0a8so4153781cf.0
-        for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2026 19:09:13 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789178952; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AUi99WX2"
+Received: by mail-qv2-f6.google.com with SMTP id 6a1803df08f44-90cd0a3019eso6292136d6.0
+        for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2026 20:59:38 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789185577; cv=none;
         d=google.com; s=arc-20260327;
-        b=EZqmKp1dziLdnl1HdyXwekAy9gYOjwIWdHfiZinvYtNFn3ofWt7J/Zw/arpZALLnyK
-         VKGl1PSWM4DgA6byX2qwd5ANwGWvYfgy6+j16phENSiiCw9BJuuG3Q45o6OeJYP+mv0y
-         b/0BrjtldvDI+vcS3W34o+IaaQYvMjm2iS4NV+EW+G69sWgsRHrYSt79wAbzMjeo/ows
-         c39mMnz4Hgm49Rf4TNYoRxIa2SnSOvV5o7pOOgf4mk/ax65BEKEPASEzZEcdxoxPiHJY
-         9KqABPMNf4Rl4YbQ/QjMItkpzE8bP2n4YNTreYrJQM+fiG4FEex1/fbOg760VXF/OMOj
-         0JYA==
+        b=cVw03DHfSWmOE09JwhNuqbhGHDNsb2uyyw2PIJTRBBDQdR6+ban//M77a+1wRGmxWV
+         VUk549Eyud7Ck1724gHCvF22bWFiZ8jGBJuATwilkuUgOdJKhjOfixGTvR3KS8Iik9zV
+         xqt7aGnyqNeG8AUDcc4EuKAmncGZo8iTJTRxuE6vZyOhJCNi29MuR4D8F9u1e9Mq5Ljg
+         0W6bj1PnhZ/xNkf8W0GFfDmFjKZzrmdoy0X1IjQNGi+dFTow6gJfY284k1wMkyuqKzhA
+         2vzJ1QXRy4EzFBQ/lJJNy/o3G3e0gQEFtbI8zsRdKm5uLV/B9HkP2Bibk1I2JSr25SNp
+         8kJg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=mdT9ENWPEzBfkyRK8P1a2dUQlY39G8cEaKSfK8TCWpw=;
-        fh=qzzBMwamDf30kSkCgufkcwMDMWCb+6Txc84XOWeelBs=;
-        b=s0uVs9lOsmP+s4l6e4Ygx8CbusD+VgpshjIxaAtFKViBk8gsH/yhRUHQBMViN1TLZr
-         Tzw4RQVc7zwj5DhGoLBvqURwgrSG58B/Lf96rmMezp7Sx+Z3mLQcH4USWzdv69xuyDc8
-         accMKBde2orEJBkg2rIPxb5SHge6m1qaKT/2SoUMmK5s1qQrMd1nHRGJvNkXS4jS7zP0
-         Y33z7O0DJkriv/whJYPKoxQmZ2XkNpIRhJCIXJZxy7gwi0KuDlVoFVCZ+E1Bc1UKungJ
-         BlgkHdIZ35oYHFHgmMSbIf1sRLcV9Twq4+sNN+ZjfnRQc0ho7TW8ujHuu0HzFI3KsK8x
-         Mj8A==;
+        bh=BkL3lGBHwiEi97Q6sw1wqPYNFpmHLpnVSD+N4L8TFo0=;
+        fh=Sl/KiE+ithuSkvJJYMQ8zbmHukyjDL6rPJomYUFwA08=;
+        b=jvXiRyEA4XY6mZt5+/5WDmXajIlALHWEOkCAWciF8CIWiO2arygdKSTETQ56zYMkeQ
+         nBdBaa3OpiCzfzfJ2dY1R3j/CVuFbWGAYm9OYYTN5M+w8O+aPpSlCLHAWoWB5gVZHM9o
+         7AePs3djT3R0QM2aCvYsldneOq2yDht5ZdLPbRyaoVHcGkopzrE2PyJoke0eDjQJZp7B
+         Ef2GoHFfXfXH2mey1u9pvMdgsnqC4oIu8TPikWl7Yt9GQ4ArINeaiZ7jDmAz9C3U7L0b
+         rPd87D+GnUtOhtH6ERL3Ks81uv+7ll+wUZD9th4Do3iUA3fLc+86VCJCotPuajtJgW3I
+         +pOA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789178952; x=1789783752; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1789185577; x=1789790377; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=mdT9ENWPEzBfkyRK8P1a2dUQlY39G8cEaKSfK8TCWpw=;
-        b=JMm3dOKXg3dR288w9DJwRrPKB3jB2Gf5uWX+r2Jd94fqwUUkdUb0j8Tu/DNIpnF5Gh
-         +fKPDYcxNdVvIY+oI2ffqgGRXi5h1VT2cDFU21lEdRPmkMTAiv42+Z+OtKGgD5VM/Hw2
-         olMjymLuzbTX6+vI5HVpJmDgAGm4Xj31buSYpDWt7obqabhT3/TDoSX82s44Mepo45bw
-         9EVfVjW2P2wKmCTKoPvXWS7dCezilyn/1AUEgdmFXRsV+uzBIrx06eXZlP9YpKSNmmFN
-         GjTueV3c59yNLE0Nz57BNmZwVVs8eHNY3ZsfMatyrRcNs7h4QCgMHEsm6g/JMmx62Ecd
-         Mt/g==
+        bh=BkL3lGBHwiEi97Q6sw1wqPYNFpmHLpnVSD+N4L8TFo0=;
+        b=AUi99WX2mjCEnh94Mgz8UyqQU/oNEA9cIEKZBdzKT+z8ihWUMzk831dQkI3koNvu9G
+         FOXv9hL+LCMEPxf/E6B6X3tqNMNit0enH6a996hZjF9P1W9Ca9u/JogjBROhVSBVKuKe
+         i1ZglNYBRcPU+heleoHDLB4sNQG/UeUlV3ciG1mn4mte93xJ1PyBBaGWQo9SW/MmOyUE
+         E2GuwCGaztMXULuWO9e3gDAe+xNSNVCpMSpRBjuIJOXYQi9Lt395uXUGN7PpUrH06Wk6
+         hST40P8ADAOoVPLsm4F0dumn5utDUM8S2/msBC6ownOQBTLYS6vL4zC5VkaFucosXqdX
+         tFxQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789178952; x=1789783752;
+        d=1e100.net; s=20251104; t=1789185577; x=1789790377;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=mdT9ENWPEzBfkyRK8P1a2dUQlY39G8cEaKSfK8TCWpw=;
-        b=GNLGsq0vrWKAs/aGlWBjKe94GVZ9lYY/EFq+cnE7BYPjChftLOchPujj7fc0+RnL+S
-         3Dtv9glDBoDL7qvx8R38Ofxw+CW21GQrfcGzFxNfeRDi/vCAvZsvFj3MH78NEdpFz9lh
-         37l5xffQe35VJeZzlhpFFqXnL2fA2B1TtyoylMJ5BjGRL0/f8FXs+BnO4dtAZIAAxIVJ
-         WNDX76VHeRV0woqCnz/MobhqUnFrfCsc8v72uIY77EO3cZ7AJUvalOj2lAlXAP4WrgW5
-         8O4nCCIpbtT4mfEeiRqhN4z6ZwVyo1KEwjJGmmp+3afaDgOA4nmAoJSZHu3+HaUS9Qlp
-         cUtg==
-X-Forwarded-Encrypted: i=1; AKwUvBxLzFuOTteOHh0jrKA4EHW/NmNyT2ZURErWXxgg9H0kQZ9+MXY1ErwADlwge4a4gGxp4Q47qcqQWT6K@vger.kernel.org
-X-Gm-Message-State: AFuF++lUO94mp87qPsrpVQY0LDGyOQvq0TxCP1nKnAjx72MxEt32GM4K
-	roz6D1XcpGNi1py9Uv/vDANV3ci4qqMS0ClrF0Q36OYnhHyrXK193j2xhUS7saYKVf1Jvu6OUD2
-	FBoxDEc8vw6JdJ2v3JB8wS6UqiBp9PKM=
-X-Gm-Gg: AYBFou2NvkKVY1DuG0vvBtQfE+CvuA6CKP+GT1s37xhS/Z+6XaPCKkC6385eKA1hO1t
-	jdAxroSo/phvfGFfW991Qsd4hpsYHrA4K4fv0B4oJO7X+ib9V8H/ZMgSBaDOP8V58hPwSVv998U
-	iaDa76YxemaXTgtSVNb5WfOtCyOeBXQggzIegNG63PKNbzkSOquCne9Wpccvuizv5TsapEmNZ0u
-	R1OqPTkCHqQufT+DpEn4w2zMyA6+7CZdHxgGvXPHs7sClB4/VQb8yiYRLoSIRfrrYzph18fM2Gb
-	7qt0IWEbdt7N/ChY/gwnJBNbEEYpx21/Zb094ETOqyy7SmWyWW/sUDWgn4sfqyNWTRrBIWztK3S
-	81FLO3uOEH1VCb9SsVpf4glh6FSX6GwiQOYSfV7bu
-X-Received: by 2002:ac8:5dc6:0:b0:530:d1d6:792d with SMTP id
- d75a77b69052e-530e7dd8ae5mr13590681cf.15.1789178947506; Fri, 11 Sep 2026
- 19:09:07 -0700 (PDT)
+        bh=BkL3lGBHwiEi97Q6sw1wqPYNFpmHLpnVSD+N4L8TFo0=;
+        b=rNtKnaFbOtQFEUlA9TsSWkEa65mBHYuW6dSbXvHiPDLm9I6+kI8oDfjqH1CtwyhvMB
+         bscyZ112xyno5wg3vSJxdueLERG2CLi+AhGi1Z7oKGbvIZ+jlvD+LUWhAHEnMqfYBn/w
+         /R9w3+63VvtFZmCufyODmwuBYAyFG5G7CDl5gc+4rS5f39HbUnuZ2ZDG1J9kK7HY4NUF
+         ezC6hXuMkZmw9AVk6VZI9deYp2MNEQOzf5YbGNnUw1NxZuHxRclnN8RBkk+hbYmxPUvS
+         j5UoMHg89xvND6/s6glfiAPAC43Mojsc2ngCRAfAJrY+otO9UY4lEHPUoy//3nk53IGN
+         0y7A==
+X-Forwarded-Encrypted: i=1; AKwUvBxEWN8kjW7p+Whmq/ngrCTRustcAe4DrqrQA2gVIP5dOaCqbAc5SxPGi1PG/JgiBNCYoTOMp0kobJTS@vger.kernel.org
+X-Gm-Message-State: AFuF++lsYE3p9JN/+bW/x0L6hZH+bKsDtvAz4zCM5C+uCt/N7RORNUNE
+	g2t4a7lV6gnMHo1wmN6AQeI7R980YGrtyBy27DwKXGiuwtjCw7o+A2A+jvCSN1kewB0ybcd+5Ey
+	GOdS3rNDDVTb70f8w2pZCqt2f2amBfkM=
+X-Gm-Gg: AYBFou3K/Lcltetvra0js95unfx4Jr7Mly36j3DNLN25pDg9eyWrp6IJOoEoWty1O89
+	+1Ar9ZecfNHs7JwcIdGhPhQupka2FnSsORvn0NBuHvv7+qXCh+hqrDfdKPw8jZe1BdvCkxe6pBw
+	utcUJ480jMsJZIryIIgTTNt5dDyyVK6X1wb5tnB+eDq7i7nNYfzUOFLETqmBlMOAtQc1T/Qebx5
+	SNaUHOSO32Lh+Y9pYKx9J9tyR2yQOlSR5C0ptuWK/4IOFasgB2YE1ntU4uTzUxdT3Y2ZEIMQ0zM
+	yi0e0nTArNGVQRNFHxawTpaowlPYb+J5Of1aIEVu9KAjfbtheOB+99NrV3bADv6m71NZiQdXEaC
+	iF6vcsI3WeVwP9VTZWrKswSMwlBHLkOjBOlNiztir
+X-Received: by 2002:a05:6214:8446:b0:912:15a8:bd9f with SMTP id
+ 6a1803df08f44-91215a8ec1dmr55956796d6.7.1789185576987; Fri, 11 Sep 2026
+ 20:59:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -84,12 +84,13 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260908152808.3928630-1-arnd@kernel.org> <20260908152808.3928630-4-arnd@kernel.org>
- <CADkSEUjYhRk-ezaXZkHzFTFQnySFSisKtZfEP-_NtLnQF+6-1Q@mail.gmail.com> <aqRI3N5FPX1dpIlk@gmail.com>
-In-Reply-To: <aqRI3N5FPX1dpIlk@gmail.com>
+ <CADkSEUjYhRk-ezaXZkHzFTFQnySFSisKtZfEP-_NtLnQF+6-1Q@mail.gmail.com>
+ <aqRI3N5FPX1dpIlk@gmail.com> <CADkSEUgkPyikkhqLBOVEeS-H8L7CvUN8VD88=dUuTeFB8pUM5w@mail.gmail.com>
+In-Reply-To: <CADkSEUgkPyikkhqLBOVEeS-H8L7CvUN8VD88=dUuTeFB8pUM5w@mail.gmail.com>
 From: Ethan Nelson-Moore <enelsonmoore@gmail.com>
-Date: Fri, 11 Sep 2026 19:08:55 -0700
-X-Gm-Features: AcwNN1XgIQzd6k50BFzIHmb9Q0P_yN5Y-RnB_uEDdmfcLkrtltvi4fLr_oEAXtE
-Message-ID: <CADkSEUgkPyikkhqLBOVEeS-H8L7CvUN8VD88=dUuTeFB8pUM5w@mail.gmail.com>
+Date: Fri, 11 Sep 2026 20:59:26 -0700
+X-Gm-Features: AcwNN1VfZ_rXL-z6In5wMRJEgOMU7kPx8LknulegWooIebA5av8sYgSMw6by5S0
+Message-ID: <CADkSEUhpe5sX=C5NfUrFMoP9fOGNiFaJ5QmEAVJ=80p8H8S9HQ@mail.gmail.com>
 Subject: Re: [PATCH 03/13] ARM: remove riscpc
 To: Karl Mehltretter <kmehltretter@gmail.com>
 Cc: Arnd Bergmann <arnd@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, 
@@ -121,83 +122,17 @@ Content-Transfer-Encoding: quoted-printable
 
 Hi, Karl,
 
-On Fri, Sep 11, 2026 at 11:43=E2=80=AFAM Karl Mehltretter
-<kmehltretter@gmail.com> wrote:
-> I've made a RiscPC emulator in the browser using QEMU and WASM. It boots
-> Linux kernels and currently emulates a StrongARM RiscPC:
+On Fri, Sep 11, 2026 at 7:08=E2=80=AFPM Ethan Nelson-Moore
+<enelsonmoore@gmail.com> wrote:
+> The Risc PC and NetWinder lost their audio drivers when OSS was
+> removed in commit 727dede0ba8afbd8d19116d39f2ae8d19d00033d. RMK was
+> working on an ALSA driver for the NetWinder but never finished it
+> (IIRC it is in 2.6.0-rmk2 but probably doesn't work).
 
-That's awesome. Are you planning to add support for the NetWinder to the b?
-
-A couple things that I didn't see when I glanced through the code:
-
-* QEMU needs to model the broken ldrh/strh instructions for the Risc
-PC (but not the NetWinder). I am not sure exactly what their behavior
-is on real hardware (though I have seen forum posts where people
-investigated this - I'll let you know when I find them). For now, you
-could just have them load/store a random value (:p). It would also be
-helpful if it could print a warning when one of these instructions is
-executed, to help people detect and remove instances of them in e.g.
-JITs.
-
-* On ARMv3, CP15 register c0 is write-only, and you don't model this.
-This caused Linux on ARMv3 to be broken for a very long time before
-support was eventually removed - it was broken even in 2.4.18-rmk4. A
-patch to run Linux on the CL-PS7500FE (=3D ARM710 Risc PC on a chip,
-used in the Acorn A7000+) works around this by keeping a copy of it:
-http://webpal.bigbrd.com/patch-2.4.18-rmk4-wp3.gz. According to a
-comment in later 2.4 versions, that approach won't work, but I don't
-understand why. Also, the patch fails to fix other reads to the
-register outside cpu_get_pgd() (I forget which ones).
-
-A few things I know about early ARM hardware and Linux that might help you:
-
-Before 2.6, ARM support in the mainline kernel was very incomplete
-and, IIRC, unusable. To build a working kernel, you needed to apply a
-patch from http://ftp.armlinux.org.uk/pub/linux/arm/kernel/. There are
-no patches for versions newer than 2.4.27, but the 2.4.27 patch mostly
-applies correctly to 2.4.37.11 (I didn't try to fully fix it up
-though). The last patch that was released was 2.6.0-rmk2 - it has some
-relevant changes like the CL-PS7500 PS/2 mouse driver. There is also
-an unreleased 2.6.4 patch - I should ask RMK if he still has it.
-
-The NetWinder development team shipped patches to their kernel with
-additional features for the NetWinder (and other ARM hardware,
-including Acorn). This is the last one:
-http://www.netwinder.org/mirror/users/r/ralphs/kernel/patch-2.4.21-rmk1-nw1=
-.gz
-I don't think most of those changes ended up in mainline.
-
-The Risc PC and NetWinder lost their audio drivers when OSS was
-removed in commit 727dede0ba8afbd8d19116d39f2ae8d19d00033d. RMK was
-working on an ALSA driver for the NetWinder but never finished it
-(IIRC it is in 2.6.0-rmk2 but probably doesn't work).
-
-> I used LLMs a lot while building it.
-
-I don't use LLMs for environmental reasons, because they are often
-inaccurate, and because I like using my own brain and don't want it to
-atrophy, but we are all entitled to our own opinion.
-
-> Your GCC work looks useful for this. I will look at building the RiscPC
-> Linux kernel with it, and at emulating the original ARMv3 CPU too.
-
-Great. Let me know if it works.
-
-P.S. I have a few UI suggestions for the emulator:
-* Make the display bigger and able to lock the mouse/keyboard and go
-into fullscreen.
-* Remove the LK201 keyboard - the NetWinder used a normal PC keyboard
-(if you add it), and the Risc PC used an Acorn PS/2 keyboard (a normal
-British PC keyboard but with no Windows key):
-https://chrisacorns.computinghistory.org.uk/32bit_UpgradesA2G/Acorn_RiscPC_=
-Keyboard.html.
-Just keep virtual keys for the keys that you can't input in a web
-browser.
-* It should be possible to middle click using a modifier key if the
-emulator ever runs Risc OS, because middle clicking is heavily used in
-Risc OS.
-* I think some of the explanatory text is unnecessary.
-* The skeuomorphism is cute but inaccurately represents a Risc PC, and
-I think it clutters the UI unnecessarily.
+I just remembered someone wrote an ALSA driver that works on the ISA
+card version of the WaveArtist, which would probably be easy to get to
+work on the NetWinder:
+https://lore.kernel.org/all/1440445816-28593-1-git-send-email-linux@rainbow=
+-software.org/
 
 Ethan
