@@ -1,156 +1,180 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk2-f13.google.com (mail-qk2-f13.google.com [74.125.230.205])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 374593E2AD1
-	for <linux-omap@vger.kernel.org>; Sun, 13 Sep 2026 18:14:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FB593783B4
+	for <linux-omap@vger.kernel.org>; Sun, 13 Sep 2026 20:50:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.205
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789323252; cv=none; b=O+frgkBtICgS71L2tsP9/7yNMCIMJSRPcVesEe4fKtNP3uOpiCW/OvAaKQMlVvutbBA73/fmFCxXNu5s/EPnEZPQw5Nmf3nElVotiLNEt5hwdB8t7CgcCGY6A0aAPEeeqk3Y1l3YwYjvBPVKHsqWeQ5MZ8dBYokQhUWQcvqm6yc=
+	t=1789332626; cv=none; b=XWCLEzDsthMQou6LT3U/6JrB+HcQ4cBZczfPQOojL3YRqpAa+bhNVus+sR4V71cJWLdGa8Mdhxmm/zsm2w+H2HlzwtSSsOZv9vgdfsQ0YY3zJTyfjDNESryfWDBkt8FknmHTwH5qwJg/dNBQcxmjQiapOl6c5n8LHL1j2Jf7jwA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789323252; c=relaxed/simple;
-	bh=+i/WMQo12F+E81xj/jdX7lcu6060BfxnYwbQM4ckRZ4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=lVT+FkL+a1IPTfxm9hRygwPdikOA2tDbzQcvJz/XocuoaKhCDHlijXu6NSuAOpnbqCj8gmtp5KH7jgap8reG84yLB6C56KXl6dCKSKQyCCIv5T/1Y61fiOu6GBpFbXWLHNOsB3uW3YrhSBMTXt9c98rx4EzQd9kcb/ls2pr26tI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SO2SmIdY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789332626; c=relaxed/simple;
+	bh=cjSdxH7baFihtM/V1AMCnUMKfob28Q3GgdzY21w2Wkw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PwRHLJ5DCiQNDYPCR4+S/OytdClzDbxu9vpLZv1tIGkl4O8OYCCxZUuiy59N/IotSd5Z/AkvOaYMoHD7FIA50Ky8oQXhTZPGV835bkTHGtYmxO6hSbiNpQG5XyTzVH8aejAgngNI6Li+4/Jy1vYlfDOspccZwYO5u+RN1sLv8cQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rgYAjW+p; arc=none smtp.client-ip=74.125.230.205
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SO2SmIdY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DB581F00899
-	for <linux-omap@vger.kernel.org>; Sun, 13 Sep 2026 18:13:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789323239;
-	bh=+i/WMQo12F+E81xj/jdX7lcu6060BfxnYwbQM4ckRZ4=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=SO2SmIdYjJe5zzSusPLufb1N/4sITaFnh3OuAjM0+HDJ/0jzTDRo1LJJD3yuz0LAe
-	 m9utPZHktAferMrZ1uMTDiSdbFT8PuZIT68sd6yul+TOjyulMH1leZv3n2097fW0kI
-	 HZSTnOlV/XWa3doV6AwdmTxJGx3acDrumYZ3xAXLg9oBP7AZeX4c+jdG+GE3leTYME
-	 o+gGhWxF0SyzDJ1JCk+kUMy4kYISkcvV3AkuDb36TVraJLgPIZU84S7P5MYAV3syTK
-	 sGiu4PkjnJsUoo795urpsWbR9ka05zNomPSqGObRwYr6ZGH3GsxtKSjfhGjyfqiex9
-	 6SceEGtrOAcWw==
-Received: by mail-lf2-f12.google.com with SMTP id 2adb3069b0e04-5b5e4f13d7aso1282649e87.1
-        for <linux-omap@vger.kernel.org>; Sun, 13 Sep 2026 11:13:59 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBy5CWufBfXHigbW5TUZMcwAjVJIb+jdg/BtxiOd+xvwqVxAmTSSoEqUl2ACvDesb5smIhYsrVCmSz7r@vger.kernel.org
-X-Gm-Message-State: AFuF++kka7Q6uGa8I4K0R1Ij2HfUGYtXttWnfupmtIG77NFEhkAEbeom
-	NTaQ0mzFi48ZhbwUsJgHD3mikioT+TWJZRZ3MYS6IWkL/ZHOwqFog5sM5ikn9E9gTDWRS2o3JCq
-	qUvSlVd+qNspsLRwdMToF11+78aNVv2U=
-X-Received: by 2002:a05:6512:158b:b0:5b8:9ec5:c936 with SMTP id
- 2adb3069b0e04-5b8a8ec2c76mr1378800e87.44.1789323238029; Sun, 13 Sep 2026
- 11:13:58 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rgYAjW+p"
+Received: by mail-qk2-f13.google.com with SMTP id d75a77b69052e-530c602630bso15666651cf.3
+        for <linux-omap@vger.kernel.org>; Sun, 13 Sep 2026 13:50:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789332624; x=1789937424; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=FMTgWivp0e7gelEPDHuWnCELoEKFxvhsWudexAHdLaU=;
+        b=rgYAjW+pVNZoKaN9MRpHGtgEaRWlfwxDn5USyH4j+xgkWLa0f+idy+PW83mktI0fWA
+         F5Z3t21dSe0Gnj/jl/EGeFLS2MccVIMrBWMLYG7gfqpWb+tmc7VToz+nD4ZQA+80Nmag
+         dbgowVCqAaH9m9SDJFluappms85Tc+dkEvL8DoAkFZhl6asn8DicYq2B705p0grGFrvT
+         T2XtnmK2/jTNKXfwB88wr293pUkbnc3Esq0ysyRMh7hK9CVTzhSiikXQpMvbSb6C1BF7
+         VkMqq1l+2UTQvPjd7KiJ42+6aX7IMI31JcYNadwaWmeWlxg8KTGYc/8H/gOOQZQUSMJ4
+         vhAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789332624; x=1789937424;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=FMTgWivp0e7gelEPDHuWnCELoEKFxvhsWudexAHdLaU=;
+        b=Q+FYPZ0nIvpdBjQlfiEhIF4Ex6Y9YfZuer7IAKNAyDRZ2y7/ZSeLJVqR6hVojwVhCv
+         dXhxci3E31Tvp4BVZwhGdyZJNjtcXFwnTK8VrlA3Kz1ROHpzRZ7q0o5S4dFkZXjmWr+6
+         Yq8LEkUMIx8oPuf8jA5pv3ksTMHOODAigMuT3s8DLv3w/k8hmKKgMMlIVnhZsyvxJID1
+         kblMyfaFYwNwKCpox5BAMJeNijo9CUpNQrC7RF3aGhmDK9pYBr8BMxGJHo6ke4G7vfpj
+         B+uZhAFsGLCrqfsv07efdxq7GdQz6Gh7kZkapQplNCsgVLDSuYCvDZHlh9TkQ0tRvQ5d
+         GIcg==
+X-Forwarded-Encrypted: i=1; AKwUvBxjhqsP1JqWJqR+T67BbD7xH5NQmsEqvu85vrdWiyAzamR9L84afEbBXwNGeCdSnEJQCkQNJwye/uTS@vger.kernel.org
+X-Gm-Message-State: AFuF++lQOavzQTnuleHYyjXhpZqjRnfTZrUX5/ruc5ie6/MQlq8TyKVC
+	uR8Yewe9piPFoISIKZgFjY3BgTev/TthxYBLixgNo4fiX2rEm5tl8MU=
+X-Gm-Gg: AYBFou28Gi7o7S3iyCOU1s0Y4AtTGEunEyakw1R/j1GYCyEvhJTyd7QxoPnEFRCn+yj
+	Xb4IYsYaV9x8/kn4HudK4r1AiTLqgM77RhlbSq2YuL2lkshl0XdA0eKZ1pbV57KlUfDX/VoFOzf
+	ZrbxvhxrTVldSTNgGdn3HGuyvprhp1TkGmt5rmHUafgORkL4P071NMTCtEEn2tzJpjqOZyW+fji
+	CfNK233OK7rfJnvijzqtaopQHvw7FBbQGyzHKFUcNzhlh88k4L7XqPMPpONgkP0/1GxeyY5wll2
+	jKS29WJyRAOinREtb6kthxaTQHUhkE+plhoeLeargvhIIX0FulrK3UzNn6P6gaNk5lYgWsGTIXL
+	awrwgUo7+wZxo37uGrCbNbkpSZs80apEchUx4UxiBh6WVJjDrB72DIwfg3ldwjXLTp5+BV+y5Ok
+	I/jgfzx5p/kDX5yEvDMKS1eC27lSgBmEedbt7pgCVsFXLpvxpTwUM7bB8RSvvUAPppvQ3fFLwK5
+	Yf7UMzx/EW3c26rECfPBzdOE3Uk082HN59aRzR2VioHjmq9Wl2FUruV4zKXhZt+zpifguLmR+E2
+	5ljcyv93mld7SmQMp6BoOkt3Z1w5g8Pj/g==
+X-Received: by 2002:a05:622a:1355:b0:530:ba79:edd3 with SMTP id d75a77b69052e-530e832fe99mr121931421cf.62.1789332624296;
+        Sun, 13 Sep 2026 13:50:24 -0700 (PDT)
+Received: from localhost.localdomain ([104.39.73.78])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-530ca4ba156sm79460671cf.19.2026.09.13.13.50.22
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Sun, 13 Sep 2026 13:50:22 -0700 (PDT)
+From: Myeonghun Pak <mhun512@gmail.com>
+To: Lee Jones <lee@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	linux-omap@vger.kernel.org,
+	mfd@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	Ijae Kim <ae878000@gmail.com>
+Subject: [PATCH] mfd: twl-core: unregister the auxiliary platform device on unbind
+Date: Sun, 13 Sep 2026 16:50:12 -0400
+Message-ID: <20260913205013.54777-1-mhun512@gmail.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260908152808.3928630-1-arnd@kernel.org> <20260908152808.3928630-4-arnd@kernel.org>
- <CADkSEUjYhRk-ezaXZkHzFTFQnySFSisKtZfEP-_NtLnQF+6-1Q@mail.gmail.com>
- <CAD++jL=ysmPgs8yKH5KBobuv-eeCHHgZwvo1kvHOFuTwhkaOew@mail.gmail.com>
- <CAFr9PX=_FmMdR4TeP+tqURZdZCTjw8UYxAxeszs_vcpTbX+_aw@mail.gmail.com>
- <CAD++jL=zaF1zcTv6Mta5Xw69WeLC30NRcH0_pkSkLJJ0UtnZHQ@mail.gmail.com> <CAFr9PX=tVOzqGU4k0zSzXheuU5z5LZi4LSGdUvjChrSTrbyjJg@mail.gmail.com>
-In-Reply-To: <CAFr9PX=tVOzqGU4k0zSzXheuU5z5LZi4LSGdUvjChrSTrbyjJg@mail.gmail.com>
-From: Linus Walleij <linusw@kernel.org>
-Date: Sun, 13 Sep 2026 20:13:44 +0200
-X-Gmail-Original-Message-ID: <CAD++jL=nr_Rgf6e+vo2bbTRNvEXysEEMjMhGp3-2J2_JPSVkiA@mail.gmail.com>
-X-Gm-Features: AcwNN1UBjE2eanAt46mrgMtCvXLgZ5DQ_bTFYwRvKhaMIzHs2zMGgr1ICh4wWo0
-Message-ID: <CAD++jL=nr_Rgf6e+vo2bbTRNvEXysEEMjMhGp3-2J2_JPSVkiA@mail.gmail.com>
-Subject: Re: [PATCH 03/13] ARM: remove riscpc
-To: Daniel Palmer <daniel@0x0f.com>
-Cc: Ethan Nelson-Moore <enelsonmoore@gmail.com>, Russell King <linux@armlinux.org.uk>, 
-	Arnd Bergmann <arnd@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Drew Fustini <fustini@kernel.org>, 
-	Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Liviu Dudau <liviu.dudau@arm.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
-	Lorenzo Pieralisi <lpieralisi@kernel.org>, Frank Li <Frank.Li@nxp.com>, 
-	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
-	Fabio Estevam <festevam@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Stefan Agner <stefan@agner.ch>, 
-	Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre Torgue <alexandre.torgue@foss.st.com>, 
-	Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, 
-	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
-	Tony Lindgren <tony@atomide.com>, Nicolas Ferre <nicolas.ferre@microchip.com>, 
-	Claudiu Beznea <claudiu.beznea@tuxon.dev>, Andrew Lunn <andrew@lunn.ch>, 
-	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, 
-	Gregory Clement <gregory.clement@bootlin.com>, Robert Jarzmik <robert.jarzmik@free.fr>, 
-	Kristoffer Ericson <kristoffer.ericson@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-	Alexander Sverdlin <alexander.sverdlin@siemens.com>, Shawn Guo <shawnguo@kernel.org>, 
-	Karl Mehltretter <kmehltretter@gmail.com>, "David Hildenbrand (Arm)" <david@kernel.org>, 
-	Nicolas Pitre <npitre@baylibre.com>, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	devicetree@vger.kernel.org, imx@lists.linux.dev, 
-	linux-stm32@st-md-mailman.stormreply.com, linux-omap@vger.kernel.org, 
-	Ian Molton <spyro@f2s.com>, Jens Axboe <axboe@kernel.dk>, Helge Deller <deller@gmx.de>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, "Paul E. McKenney" <paulmck@kernel.org>, linux-block@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-fbdev@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi Daniel,
+twl_probe() registers a standalone platform device named "twl", but keeps
+its pointer only in a local variable. Probe errors unregister the device,
+while successful probe leaves no way for twl_remove() to release it. The
+platform device therefore remains registered after the I2C driver unbinds.
 
-On Sat, Sep 12, 2026 at 3:29=E2=80=AFAM Daniel Palmer <daniel@0x0f.com> wro=
-te:
-> On Sat, 12 Sept 2026 at 03:15, Linus Walleij <linusw@kernel.org> wrote:
+Register a managed action on the I2C device immediately after adding the
+platform device. This unregisters it on probe failure and driver unbind,
+and also handles failure to register the action itself. Remove the manual
+error-path unregister to avoid releasing the device twice.
 
-> > I would say using generic entry would be a prerequisite for
-> > doing m68k SMP so we don't introduce *more* entry
-> > oddities, but after that I'm game.
->
-> I have started this for one part of the m68k tree (68000), but it's
-> one of those things that is hard/frustrating to test on real hardware.
+This issue was identified during our ongoing static-analysis research while
+reviewing kernel code.
 
-Pretty cool!
+Fixes: defa6be1c821 ("mfd: Fix compile for twl-core.c by removing cpu_is_omap usage")
+Cc: stable@vger.kernel.org
+Assisted-by: OpenAI:GPT-5.6
+Co-developed-by: Ijae Kim <ae878000@gmail.com>
+Signed-off-by: Ijae Kim <ae878000@gmail.com>
+Signed-off-by: Myeonghun Pak <mhun512@gmail.com>
+---
+ drivers/mfd/twl-core.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-> For the last few weeks I've had claude create a QEMU that can boot all
-> of the m68k supported machines to Linux, Netbsd and their original OS.
-> It already found this:
-> https://lore.kernel.org/linux-m68k/20260828094940.3882602-1-daniel@0x0f.c=
-om/
-
-Now we're talking.
-
-> > As SoC maintainer I see that m68k has a lot of technical debt
-> > like drivers under arch/m68k and no proper hardware description
-> > (such as device tree)
->
-> I have m68k machines using devicetree... :)
->
-> > There are things like
-> > amiints.c, cia.c, ataints.c, q40ints.c etc that should be in
-> > drivers/irqchip. So many time.c that should be in
-> > drivers/clocksource/* and many other unmodern things.
->
-> Would be easier with devicetree. But is anyone crazy enough to go
-> through the pain of merging the devicetree support and then arguing
-> about devicetree bindings for each of those drivers only to be told
-> m68k should just be removed?
-
-That's conflating two completely different things that think
-about themselves as different communities.
-
-Devicetree is in its ambition OS-independent and the fact that
-the bindings are all in the Linux git is just a convenience because
-that community works well and is dominant.
-
-No device tree maintainer should *ever* complain abot
-*any* binding with reference to what Linux supports or
-where Linux want to go. Only people not actually working
-with device tree would say such things.
-
-Device tree bindings have been deleted but then by the
-person who is maintainer of the binding itself, and for
-the argument that "no operating system" supports the
-platform anymore.
-
-Reviewing and merging m68k bindings should not be
-any more problem than any other binding, and it should
-not have an impact on Linux support of m68k.
-
-> Once you have an emulator that the LLM can operate it can do the
-> change/build/test/debug cycle all on its own.
-> With a test harness it can even test the changes work on the real hardwar=
-e.
-> But I don't think that's enough to convince people the changes are
-> worth reviewing/merging.
-
-I will review them. And I do not think the DT maintainers
-have anything against m68k.
-
-Yours,
-Linus Walleij
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index c024a28b0..128cd3f6c 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -719,6 +719,11 @@ static const struct mfd_cell twl6032_cells[] = {
+ 	{ .name = "twl6032-clk" },
+ };
+ 
++static void twl_unregister_device(void *data)
++{
++	platform_device_unregister(data);
++}
++
+ /* NOTE: This driver only handles a single twl4030/tps659x0 chip */
+ static int
+ twl_probe(struct i2c_client *client)
+@@ -754,17 +759,22 @@ twl_probe(struct i2c_client *client)
+ 		return status;
+ 	}
+ 
++	status = devm_add_action_or_reset(&client->dev, twl_unregister_device,
++					  pdev);
++	if (status)
++		return status;
++
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+ 		dev_dbg(&client->dev, "can't talk I2C?\n");
+ 		status = -EIO;
+-		goto free;
++		goto out;
+ 	}
+ 
+ 	twl_priv = devm_kzalloc(&client->dev, sizeof(struct twl_private),
+ 				GFP_KERNEL);
+ 	if (!twl_priv) {
+ 		status = -ENOMEM;
+-		goto free;
++		goto out;
+ 	}
+ 
+ 	if ((id->driver_data) & TWL6030_CLASS) {
+@@ -784,7 +794,7 @@ twl_probe(struct i2c_client *client)
+ 					 GFP_KERNEL);
+ 	if (!twl_priv->twl_modules) {
+ 		status = -ENOMEM;
+-		goto free;
++		goto out;
+ 	}
+ 
+ 	for (i = 0; i < num_slaves; i++) {
+@@ -880,7 +890,7 @@ twl_probe(struct i2c_client *client)
+ 		status = devm_mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE,
+ 					      cells, num_cells, NULL, 0, NULL);
+ 		if (status < 0)
+-			goto free;
++			goto out;
+ 
+ 		if (of_device_is_system_power_controller(node)) {
+ 			if (!pm_power_off)
+@@ -896,10 +906,7 @@ twl_probe(struct i2c_client *client)
+ fail:
+ 	if (status < 0)
+ 		twl_remove(client);
+-free:
+-	if (status < 0)
+-		platform_device_unregister(pdev);
+-
++out:
+ 	return status;
+ }
+ 
+-- 
+2.39.5
