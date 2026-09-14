@@ -1,180 +1,164 @@
-Received: from mail-qk2-f13.google.com (mail-qk2-f13.google.com [74.125.230.205])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FB593783B4
-	for <linux-omap@vger.kernel.org>; Sun, 13 Sep 2026 20:50:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.205
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3B4040B373
+	for <linux-omap@vger.kernel.org>; Mon, 14 Sep 2026 08:32:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789332626; cv=none; b=XWCLEzDsthMQou6LT3U/6JrB+HcQ4cBZczfPQOojL3YRqpAa+bhNVus+sR4V71cJWLdGa8Mdhxmm/zsm2w+H2HlzwtSSsOZv9vgdfsQ0YY3zJTyfjDNESryfWDBkt8FknmHTwH5qwJg/dNBQcxmjQiapOl6c5n8LHL1j2Jf7jwA=
+	t=1789374772; cv=none; b=XXPen+yvWHZRxhuCi69PP4Hib7HJWUy6ncx4nFSsVrHa2gyzrAgB/OEEW2tArpXEnbqH31dar5EJEBg0dMl2UPHUuhTBrDpa0V8QhRt8dj70IXPPmML78jtPXAuxlOTGxdNOrMUCPartPRTvPdJZlaFemH1PlcB5wYYdjG5KTQg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789332626; c=relaxed/simple;
-	bh=cjSdxH7baFihtM/V1AMCnUMKfob28Q3GgdzY21w2Wkw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PwRHLJ5DCiQNDYPCR4+S/OytdClzDbxu9vpLZv1tIGkl4O8OYCCxZUuiy59N/IotSd5Z/AkvOaYMoHD7FIA50Ky8oQXhTZPGV835bkTHGtYmxO6hSbiNpQG5XyTzVH8aejAgngNI6Li+4/Jy1vYlfDOspccZwYO5u+RN1sLv8cQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rgYAjW+p; arc=none smtp.client-ip=74.125.230.205
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1789374772; c=relaxed/simple;
+	bh=wQIW58kd96Mxvk8XVo8GGflIQ5a1Ent2zmnDJu8T9NU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=C9FFtu7djVbYztNxtaQWpLCWt9x6uwZZw4ukBiIlffs7n06FMbqWC8MsVpGjxKDEE4E9vwIeJk82OqRuict5hH6lA4w9z5qwt+UWiI552fgab5vX/kHWrjj3c5dqjQDUbRkIjyZrFAF0cypvkNctCUsnkEMfCTGABXlAOHhBFek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=2d/FvAvt; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rgYAjW+p"
-Received: by mail-qk2-f13.google.com with SMTP id d75a77b69052e-530c602630bso15666651cf.3
-        for <linux-omap@vger.kernel.org>; Sun, 13 Sep 2026 13:50:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789332624; x=1789937424; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=FMTgWivp0e7gelEPDHuWnCELoEKFxvhsWudexAHdLaU=;
-        b=rgYAjW+pVNZoKaN9MRpHGtgEaRWlfwxDn5USyH4j+xgkWLa0f+idy+PW83mktI0fWA
-         F5Z3t21dSe0Gnj/jl/EGeFLS2MccVIMrBWMLYG7gfqpWb+tmc7VToz+nD4ZQA+80Nmag
-         dbgowVCqAaH9m9SDJFluappms85Tc+dkEvL8DoAkFZhl6asn8DicYq2B705p0grGFrvT
-         T2XtnmK2/jTNKXfwB88wr293pUkbnc3Esq0ysyRMh7hK9CVTzhSiikXQpMvbSb6C1BF7
-         VkMqq1l+2UTQvPjd7KiJ42+6aX7IMI31JcYNadwaWmeWlxg8KTGYc/8H/gOOQZQUSMJ4
-         vhAw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789332624; x=1789937424;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=FMTgWivp0e7gelEPDHuWnCELoEKFxvhsWudexAHdLaU=;
-        b=Q+FYPZ0nIvpdBjQlfiEhIF4Ex6Y9YfZuer7IAKNAyDRZ2y7/ZSeLJVqR6hVojwVhCv
-         dXhxci3E31Tvp4BVZwhGdyZJNjtcXFwnTK8VrlA3Kz1ROHpzRZ7q0o5S4dFkZXjmWr+6
-         Yq8LEkUMIx8oPuf8jA5pv3ksTMHOODAigMuT3s8DLv3w/k8hmKKgMMlIVnhZsyvxJID1
-         kblMyfaFYwNwKCpox5BAMJeNijo9CUpNQrC7RF3aGhmDK9pYBr8BMxGJHo6ke4G7vfpj
-         B+uZhAFsGLCrqfsv07efdxq7GdQz6Gh7kZkapQplNCsgVLDSuYCvDZHlh9TkQ0tRvQ5d
-         GIcg==
-X-Forwarded-Encrypted: i=1; AKwUvBxjhqsP1JqWJqR+T67BbD7xH5NQmsEqvu85vrdWiyAzamR9L84afEbBXwNGeCdSnEJQCkQNJwye/uTS@vger.kernel.org
-X-Gm-Message-State: AFuF++lQOavzQTnuleHYyjXhpZqjRnfTZrUX5/ruc5ie6/MQlq8TyKVC
-	uR8Yewe9piPFoISIKZgFjY3BgTev/TthxYBLixgNo4fiX2rEm5tl8MU=
-X-Gm-Gg: AYBFou28Gi7o7S3iyCOU1s0Y4AtTGEunEyakw1R/j1GYCyEvhJTyd7QxoPnEFRCn+yj
-	Xb4IYsYaV9x8/kn4HudK4r1AiTLqgM77RhlbSq2YuL2lkshl0XdA0eKZ1pbV57KlUfDX/VoFOzf
-	ZrbxvhxrTVldSTNgGdn3HGuyvprhp1TkGmt5rmHUafgORkL4P071NMTCtEEn2tzJpjqOZyW+fji
-	CfNK233OK7rfJnvijzqtaopQHvw7FBbQGyzHKFUcNzhlh88k4L7XqPMPpONgkP0/1GxeyY5wll2
-	jKS29WJyRAOinREtb6kthxaTQHUhkE+plhoeLeargvhIIX0FulrK3UzNn6P6gaNk5lYgWsGTIXL
-	awrwgUo7+wZxo37uGrCbNbkpSZs80apEchUx4UxiBh6WVJjDrB72DIwfg3ldwjXLTp5+BV+y5Ok
-	I/jgfzx5p/kDX5yEvDMKS1eC27lSgBmEedbt7pgCVsFXLpvxpTwUM7bB8RSvvUAPppvQ3fFLwK5
-	Yf7UMzx/EW3c26rECfPBzdOE3Uk082HN59aRzR2VioHjmq9Wl2FUruV4zKXhZt+zpifguLmR+E2
-	5ljcyv93mld7SmQMp6BoOkt3Z1w5g8Pj/g==
-X-Received: by 2002:a05:622a:1355:b0:530:ba79:edd3 with SMTP id d75a77b69052e-530e832fe99mr121931421cf.62.1789332624296;
-        Sun, 13 Sep 2026 13:50:24 -0700 (PDT)
-Received: from localhost.localdomain ([104.39.73.78])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-530ca4ba156sm79460671cf.19.2026.09.13.13.50.22
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sun, 13 Sep 2026 13:50:22 -0700 (PDT)
-From: Myeonghun Pak <mhun512@gmail.com>
-To: Lee Jones <lee@kernel.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	linux-omap@vger.kernel.org,
-	mfd@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org,
-	Ijae Kim <ae878000@gmail.com>
-Subject: [PATCH] mfd: twl-core: unregister the auxiliary platform device on unbind
-Date: Sun, 13 Sep 2026 16:50:12 -0400
-Message-ID: <20260913205013.54777-1-mhun512@gmail.com>
-X-Mailer: git-send-email 2.50.1
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="2d/FvAvt"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 91AF21A0606;
+	Mon, 14 Sep 2026 08:32:47 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 632E060323;
+	Mon, 14 Sep 2026 08:32:47 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 3BF4E11C7AFD9;
+	Mon, 14 Sep 2026 10:32:42 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1789374766; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:content-language:in-reply-to:references;
+	bh=t+bhyABek7V/xx++E1c8RabUELBTBXODnbFXuaAAKQQ=;
+	b=2d/FvAvtyc/nTCI+osd9aWSzqN3jILc8tPO/hoImrs1bErK9hO29yZuznpWAQ1KLbDsZAF
+	VEn/Wa/kJOlX3KwrGPW5TbqsABU1F2iayhdQmkxK7jF9NzPcsT2rFg4bzX2uWIsRhvPJrh
+	lMZpnW69DbP0OLRIXsr/xLcqfowQNtxCNSL3jp38UiRBQXpPc47MXSkR5Qu77BVKgdJMdI
+	lgRutwBQivXKAkON0WsRRxp+YhQVKdE7rT80cm9UE+Vcxp3SrNyFyS3Phat1rqLYDajzmP
+	SLi0Vq9YQE5JEuRCxb5N+G42oNkbsDlSzysWDB1bx3aZUQtvgipfGUHLaJOPdg==
+Message-ID: <b86b0f43-4a86-4bc8-865b-1d767992597a@bootlin.com>
+Date: Mon, 14 Sep 2026 10:32:42 +0200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/3] watchdog: omap: Preserve OMAP watchdog across boot to
+ detect faulty boots
+To: Guenter Roeck <linux@roeck-us.net>,
+ Wim Van Sebroeck <wim@linux-watchdog.org>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
+ <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>
+Cc: linux-watchdog@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+ thomas.petazzoni@bootlin.com
+References: <20260911-omap4-wdt_boot-v1-0-637d778a4a1e@bootlin.com>
+ <407b9420-0ec6-4d95-960b-633677edf760@roeck-us.net>
+ <14eb1c72-fab0-445a-82f2-5851a855f723@bootlin.com>
+ <f1adea74-8f87-4442-aa12-18536cabec3c@roeck-us.net>
+Content-Language: en-US
+From: Diogo Ivo <diogo.ivo@bootlin.com>
+In-Reply-To: <f1adea74-8f87-4442-aa12-18536cabec3c@roeck-us.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-twl_probe() registers a standalone platform device named "twl", but keeps
-its pointer only in a local variable. Probe errors unregister the device,
-while successful probe leaves no way for twl_remove() to release it. The
-platform device therefore remains registered after the I2C driver unbinds.
 
-Register a managed action on the I2C device immediately after adding the
-platform device. This unregisters it on probe failure and driver unbind,
-and also handles failure to register the action itself. Remove the manual
-error-path unregister to avoid releasing the device twice.
 
-This issue was identified during our ongoing static-analysis research while
-reviewing kernel code.
+On 9/11/26 7:25 PM, Guenter Roeck wrote:
+> On 9/11/26 08:17, Diogo Ivo wrote:
+>> Hi Guenter,
+>>
+>> On 9/11/26 4:29 PM, Guenter Roeck wrote:
+>>> On 9/11/26 02:17, Diogo Ivo wrote:
+>>>> Allow the OMAP watchdog to survive being stopped on kernel 
+>>>> initialization
+>>>> so it can detect a faulty boot in cases where the bootloader leaves it
+>>>> running and the watchdog driver picks it up during kernel init.
+>>>>
+>>>> - Patch 1 removes a duplicate omap_wdt_start() call left behind by
+>>>> cd004d8299f1 ("watchdog: Fix OMAP watchdog early handling"). This is
+>>>> unrelated to the main goal of the series and can be picked up
+>>>> independently.
+>>>>
+>>>> - Patch 2 adds support for reading the watchdog boot status. Probe now
+>>>> checks whether the watchdog is already running and takes it over 
+>>>> instead
+>>>> of blindly stopping it based on early_enable alone. This introduces a
+>>>> regression possibility, explained in detail in the patch's message.
+>>>>
+>>>> - Patch 3 marks the OMAP4 watchdog node ti,no-reset-on-init so the
+>>>> ti-sysc driver stops resetting it. A detailed explaination of why is
+>>>> also provided in the commit message of the patch.
+>>>>
+>>>> This series has been tested on a platform based on the VAR-SOM-OM44 
+>>>> from
+>>>> Variscite, running a TI OMAP4460 SoC.
+>>>>
+>>> Please address the issues reported by Sashiko, or explain why they 
+>>> don't apply.
+>>
+>> I have just replied to the Sashiko reviews but I'm not sure if you got
+>> the replies as Sashiko did not include your e-mail in its review. If you
+>> did not receive them please let me know and I can resend them. In
+>> any case if you could give your opinion on the comments I left on the
+>> patches about regressions that would be great as I think after the
+>> Sashiko points are addressed that is the main blocker for this series.
+>>
+> I did. I just wonder if the effort is worth the pain / cost.
+> 
+> Is there an actual use case ? Is the problem you are trying to solve
+> a real problem, or a theoretic one ? For example, the patches impose
+> a hard boot delay of more than 30 ms in omap_wdt_is_running().
+> Even though that could be optimized (there is no reason to wait
+> that long; the value could change a microsecond after the first read),
+> it is nevertheless a mandatory boot delay.
 
-Fixes: defa6be1c821 ("mfd: Fix compile for twl-core.c by removing cpu_is_omap usage")
-Cc: stable@vger.kernel.org
-Assisted-by: OpenAI:GPT-5.6
-Co-developed-by: Ijae Kim <ae878000@gmail.com>
-Signed-off-by: Ijae Kim <ae878000@gmail.com>
-Signed-off-by: Myeonghun Pak <mhun512@gmail.com>
----
- drivers/mfd/twl-core.c | 23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+Yes, I stumbled upon this problem while trying to do exactly what is on
+the commit messages, so having a system that does A/B updates and uses
+the watchdog to detect if the boot succeeded or failed. The current boot
+delay is actually (1000000 / 32768) * 10 = 305us, so quite a bit smaller
+than the 30ms you mention, even though from the Sashiko comments I need
+to take into account the prescaler, which in the worst case brings the
+value to the 30ms you mention, but if I adjust it I can bring it down to
+3ms in the worst case of a 128 prescaler. However, for a system with
+prescaler=1 the delay can be brought down to 30us.
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index c024a28b0..128cd3f6c 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -719,6 +719,11 @@ static const struct mfd_cell twl6032_cells[] = {
- 	{ .name = "twl6032-clk" },
- };
- 
-+static void twl_unregister_device(void *data)
-+{
-+	platform_device_unregister(data);
-+}
-+
- /* NOTE: This driver only handles a single twl4030/tps659x0 chip */
- static int
- twl_probe(struct i2c_client *client)
-@@ -754,17 +759,22 @@ twl_probe(struct i2c_client *client)
- 		return status;
- 	}
- 
-+	status = devm_add_action_or_reset(&client->dev, twl_unregister_device,
-+					  pdev);
-+	if (status)
-+		return status;
-+
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
- 		dev_dbg(&client->dev, "can't talk I2C?\n");
- 		status = -EIO;
--		goto free;
-+		goto out;
- 	}
- 
- 	twl_priv = devm_kzalloc(&client->dev, sizeof(struct twl_private),
- 				GFP_KERNEL);
- 	if (!twl_priv) {
- 		status = -ENOMEM;
--		goto free;
-+		goto out;
- 	}
- 
- 	if ((id->driver_data) & TWL6030_CLASS) {
-@@ -784,7 +794,7 @@ twl_probe(struct i2c_client *client)
- 					 GFP_KERNEL);
- 	if (!twl_priv->twl_modules) {
- 		status = -ENOMEM;
--		goto free;
-+		goto out;
- 	}
- 
- 	for (i = 0; i < num_slaves; i++) {
-@@ -880,7 +890,7 @@ twl_probe(struct i2c_client *client)
- 		status = devm_mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE,
- 					      cells, num_cells, NULL, 0, NULL);
- 		if (status < 0)
--			goto free;
-+			goto out;
- 
- 		if (of_device_is_system_power_controller(node)) {
- 			if (!pm_power_off)
-@@ -896,10 +906,7 @@ twl_probe(struct i2c_client *client)
- fail:
- 	if (status < 0)
- 		twl_remove(client);
--free:
--	if (status < 0)
--		platform_device_unregister(pdev);
--
-+out:
- 	return status;
- }
- 
--- 
-2.39.5
+> Another concern is the impact and potential side effects of setting
+> ti,no-reset-on-init (and the possible boot loop cause by it due to the odd
+> 30-second init delay). After this change, a running watchdog is no longer
+> stopped. What happens on systems which do not load the watchdog at all
+> (for example because the driver was not configured) ? Will that also cause
+> a boot loop on such systems ?
+
+Here with ti,no-reset-on-init the ti-sysc driver will shutdown the
+watchdog driver after 30 seconds, which can indeed cause problems. When
+I sent the patch I thought the timeout would be 3 seconds, which
+considerable reduces the possibility of a bootloop. I will look into it
+to see if it makes sense to change the timeout value and reduce the
+possibility of the bootloop. My initial assumption of the 3 seconds was
+what actually made me not add ti,no-idle-on-reset since that would
+completely block the watchdog stopping from ti-sysc.
+
+> This is just a couple of problems introduced by this series. You better 
+> have
+> a very good reason for it to warrant having to deal with the potential 
+> fallout.
+
+The reason is that in these systems the watchdog is not behaving as one
+would expect: if the bootloader leaves the watchdog running it is a
+reasonable expectation that unless the kernel or userspace services it
+the system should shutdown. With this series I have tried to achieve
+this while minimizing the risk of regressions, and from my point of
+view the only sore point is indeed the 30s timeout in ti-sysc. If you
+agree with my reasoning and think this is worth pursuing let me know and
+I will change the 30s timeout for v2. In the meantime patch 1 is
+completely regression free and can be picked up!
+
+Thanks,
+Diogo
+
+> Thanks,
+> Guenter
