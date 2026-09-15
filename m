@@ -1,175 +1,137 @@
-Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
+Received: from mail-pz2-f42.google.com (mail-pz2-f42.google.com [74.125.228.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C35CB4CCDD7
-	for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2026 20:15:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.140
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789503362; cv=pass; b=uRNTY6a7Jnu46Vpv7a8DzIjnubYwLhu3IVYRC1g+Ay076rqY+HzHm41kInEvOcQhmS5itY4mnKshvgNg7I2dEC5e2hTGHA12rIHfVerO2IgmFlvbgyHz8tQOvYuvbDM3lRyHiwEH8gFjiFu7Aum8KR45E0EWCge1Stv1Fdm0QSk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789503362; c=relaxed/simple;
-	bh=tIo4II1d9ForEs6449DJ6tBTc4LuD50qTRo8+K+5e2M=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=J1htbb4cTNjP89lJEohTuQUJG9fWIm5x5zUAonueEoHBrP0Exv+rqkee0MAs6w6BBHeIgdKBZQClgQQEwR3yJwhTcMVs4lqdUlJZQ7bbh/QWLveqpHZifKe7yP7RzxvVqw0z6n6VTunD5KYrQlc8iO09rlTWq6J2GK83Q/bMfFs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kMFK/xdh; arc=pass smtp.client-ip=74.125.228.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01F2E31ED7C
+	for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2026 20:59:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.42
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789506000; cv=none; b=FdwND+RPdriF3OImN5RKS7LaseLukhcS5faWfil5mfT6wyJ4w1NrIWHEdtAdqz0I6rX7A658hcJku8O626TyGELqGapfDZoOddJYzEbvAmhW5uBchEfHPEmISJm+sRQIvIgi1morJjLA/Q+vT5axU71XoNM0fCfP+eJPvMKnCj8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789506000; c=relaxed/simple;
+	bh=kPo2A4/G1RUw2GNBKxEWcUW5EjGZfPFUjXA4aA4hoPA=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=U1fupHyB1/CzvmOcvPZPfVYqLoQ3KNerjtZ9a0UPQE0C7DJt/wRmAzyUuPPGj5WxD/MmHgQjEBTJ5di6NIUFKHJ7n1agPtHGiHK4eU4u6KdAgnf6JPnK0Ddf/j0nk8Mts0gxSyfY91/DHBTEd1Hgu8X2h1In95zfgI89zqOlFyA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NAG9PKun; arc=none smtp.client-ip=74.125.228.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kMFK/xdh"
-Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c293d3da33bso3576766b.3
-        for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2026 13:15:55 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789503350; cv=none;
-        d=google.com; s=arc-20260327;
-        b=Xbo/iLHWQzd6qjIhLA11vSsZoliLAiIXZ3ea20+cg4Nllav9C6zPOr//Cb+GyuuBW6
-         S01qBs9VHnC1X1tQOy67f4WZmSJ1WcYk9RmcB8Ph7jx1VFNgVcqCI119lbsNqWozRJq4
-         Wjntn1nuDadRFw1upgx4+Vaz+qypmU8O529n8TWHcLYf6mmJhCyFLyGZoPdKaQMi9U+2
-         5wT9Dk1dPBQQfEV+aBzUgRmfOF8kq/y+FoxFtY0i9oB/fkYUZLT3iJLMdDIuArQZuEuE
-         vUr0fw73qmOfcud9XfOmK6ISqN0bRUpLUmu/F+IYa/6srkWR6e+WHkX3ALhnerpW4CWH
-         slww==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=EMk9jyFcs1z/vsVIU7tgrrT3h1+jFXhNZlrTV/0Lq28=;
-        fh=jdWe02o/zpvQtPsNlC2AW0Q/J0ncPzEcDLMVxozpK14=;
-        b=QJ7Yg9uNpuGEo/xsA8VW5cWy3GDN9W+LJlXVTJAde1fyP3VVT0WGVJZxlAaMx/SHQA
-         MmbMNZeoG22kQD/69qS8+x2EavE4JQe3rPAdVjFcgLQORHAiDUToY+dkze+sqS/YkBh0
-         pNBg8+AeTadJLYvf/dnHWNmCBMScDkth+h5KqWldvUIohvRqdQUn+W/VtXsEnqYEnB/N
-         vAojwMoX8/GE+Kq78WHrxyY6F/r117mnE9JEUktcp4P9vHnQ8Rqd7o1L8bFTcPbMpWKY
-         ndAnEEaMI0uDe4hg/2u6rIT1Fq47AyZEp/1f6V1JUMXyLNFvDZgpRTdS9F9cjK+kBk61
-         +INw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NAG9PKun"
+Received: by mail-pz2-f42.google.com with SMTP id 41be03b00d2f7-cc1ab18b3e6so25503a12.1
+        for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2026 13:59:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789503350; x=1790108150; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=EMk9jyFcs1z/vsVIU7tgrrT3h1+jFXhNZlrTV/0Lq28=;
-        b=kMFK/xdhuVPYWFau0SVnAOI0dP1+C/ya4QEGqAnK+/WVuj4My0qAoQvVI+BKoY1ZwI
-         NNABdWF+rnRpE/BFKhqhZ/72374Gy9eqKQpfsepDHKgixJYqiLHKeF7uqSuwRIr+AFw7
-         8JTPpKKSxCJQVvxWu8uSG9skZAQ2M3M9ggXG2ixYT19P0Ks5ehXSvpBZtpa4O59JsnUE
-         AEmjUlBrtixnd++kPKKOnZG0n0ogjzJEPniFUASQttiJrfpK73sW0IsgwVTbUlIwDL83
-         B8pt1JK0UJ20OQjry6Fy4j7Drm8AoJ0UIWSLyNEBfmWDCEDeQ0whVitGHVB5nO2aKI8B
-         vaZA==
+        d=gmail.com; s=20251104; t=1789505998; x=1790110798; darn=vger.kernel.org;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=mAXq3UY78M5fghzpC0/2Ye65vKnLicW7UPWpfKj82yw=;
+        b=NAG9PKunNszE+K5DKrWZdzgdXN5/w6EFNZ/eO38oA/0DXP7yEVxYFoYDBfXTK87AOF
+         mhLziy4gSUYVurgi3zgvZvTx8ZywnJZ9jmU7H/h6VLAV4SFzKDQoSuCegc6bfNjtFvFC
+         fwDVd3NLn6wPB/auH3W9CFoRRnZlsbTfVn690VpN2whVMxMDEVoOYQQnmpGmVRgtEPMh
+         QXq9MnTDbGtyRNltse8RacCm6QYolf1zErIlpgVzUA0kbsaxaRqSTrRXmCN4VTEKnngu
+         nSfS7DpqhHTMExfj+YbmrSPtzweboWWKwDSTmRnUsSevOhYO6x2cEmSoWIn9qQng1s8V
+         YJ8Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789503350; x=1790108150;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=EMk9jyFcs1z/vsVIU7tgrrT3h1+jFXhNZlrTV/0Lq28=;
-        b=Nq0sQj/V6Dpp9Lw0Dc4c88ChZQd85rW0Ej5e43hkiLMMSEpuS4BCjk1GtoVmVG2jMN
-         GZZQxP3SKxdEuQqyG8yj5aadUFPwB7vxY6qhxBQmVfogW5/0yQadPf4bjx5xTNeoH8XH
-         pNKS/RAO3x+lKsvXa6vgEq3h2pebW9qsgLuyTDhLLVFwJkbGoa9ZZMyhCKHYNAOWfSaV
-         FQU8r+Ki/54Z2trFkHjxCPCD+sysLMJIKGJzgyX9f3h5iHk45wQ0mS8cU0ex4Y0EOyzo
-         5MvcvTW+L4b7RVrzb04u2UZkWAEG93SwHydY58vJiSO1IqX6v+kiPbkKKAIZepQnShTg
-         yFDQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxdYGtJNccBGOaERMb5wwyHNH9ugKcSDolZVWmxH2cbQWuJ+Ze6BLxnOu4IBdDEMHrczDc4HPB1ZwiF@vger.kernel.org
-X-Gm-Message-State: AFuF++mFWA8SyLTeG3ZXGQd1vzcwH6IfKfy1ERY50FHazT1peh7ZE3md
-	Oy0igmd5RnLB01QcLGoaAggMXv2UlCmMyrZ+Y3nQ9btfhPaMNsaJQ9qUlZvoogkd1m1a4sDgIm1
-	G3VqyU1LphHii0iFYM+rDhRXLUJJlVOs=
-X-Gm-Gg: AYBFou3BpcbQH9aihAus4oKq/QssvlI6dqbsTBaig3GMJog9AaJcLnmBEqAy0EtdENW
-	lfObYv6IMPRyUlXy9vqbs3nvNLFny3TO2L+z+LJ5Sd2KFSpVb7MafT1tyLRmsLo0kAU5WHDnyzi
-	b1zP63OhqxoNwt3WulVucH7g3yC3iB//aBYlzPTB5MdeFQgZ9sXAJtiUJ3WToc29gFZnYTARjHs
-	EJ6YPbWmE12W+xFv2R52B7/+Jfp/hLQu9GYLTxCzDIuPh2O3moeRQSTuTcdcKPfy+bQSe74RBdc
-	+meW8SAaxv7EFMBu8d9feT0C6a4Xd55VbjRxm/iXukZszH5A2ZNAhz8=
-X-Received: by 2002:a17:907:94c1:b0:c21:7bf1:2c88 with SMTP id
- a640c23a62f3a-c29b86f6a30mr608631966b.2.1789503349926; Tue, 15 Sep 2026
- 13:15:49 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1789505998; x=1790110798;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=mAXq3UY78M5fghzpC0/2Ye65vKnLicW7UPWpfKj82yw=;
+        b=u542/NkZi+E9toJyN6LSxMmUTldNsEd1TpXjkI7v2oD/TA9UPoKKIpRyStgP9L01Nx
+         q8CG+DnVc66TWXMlHkWzxXbMRtlwZW2Sea9bQ2UIlLNyw6VvjVj0chEmcihuy7sF6A0m
+         Uzlr1WYX4UWyGcvKGBuecRZchgDchMDqijhZb/fTjWFv02Tq9B9M3oTKrsUW1ew39Bo/
+         hjUW77biEApIWpw7SdpYHp9olQuq6IZoNvjZD2Sr+A6bBikjiUSjdWpsbLZ+xqeCkgAF
+         f8RV0/a4/tWdPJKm/z5OZRQtVE1xjVVN8bK8RkU98jVU1pXuFukoCnDmkKd1LkVaE8u7
+         /Kbg==
+X-Gm-Message-State: AFuF++n6JcEbRuihI8e8EoPe6BAQxTD8Vy6Sl2v03TfAtgdAIsSmBoF1
+	wv5TWC7vYTt2q3G23ftt1ApHNLli1wycOUehCaqkJgjToQiQ9GorKJyk
+X-Gm-Gg: AYBFou3hA/uYeghCnCj6zwaUYj7PNHVBv+MAY+oZ/tx+/D9jUN6AQKkDoZ+5zemZme9
+	6cWYDHyceT0NuTNUoJSST8wiRI5mIuQsAocb7xx2Tv1W+iceWkO/RQClYRdUEWU5JPK0OY4IcyB
+	JT3aI0bQ8qobmQr9k4kkD6GY/ViFhVc0h0O9hieKakTuhswhibsibjPpwBMMOMAGd5nKps0Xcg2
+	ZAYDvQOiLHV9ziHskqRUvSt26hGHMKl2GuW62PoORXMTiX5zuTtnz/4YPT7LesIZM679tISr1wn
+	1eeKufAgCcxgQej3TmL9mhtha0zDRlg4OMuCDYplFvFJa+GFQJpraYhVPAcGyBDEY+m5cMkRvku
+	aheeK78gk7kTwgQO1QzgU6LxdmhYTGKYNqXH5VSf2qKDZqYf2Jt6o32ow+3iwLJmeW2T64zWmYI
+	0sZNW8FDNJcGpu79HVkpkk3kLuuqwUIzzDpMekmevCCaIJ2Act0KfygVI2htf4fPWj7yF55L7qA
+	QG6nPAnZkE=
+X-Received: by 2002:a05:6a20:9c8c:b0:3c3:2dc0:7cbd with SMTP id adf61e73a8af0-3dd5f550a29mr144628637.1.1789505998304;
+        Tue, 15 Sep 2026 13:59:58 -0700 (PDT)
+Received: from [10.107.92.252] ([2409:40c2:5413:87f7:9fa7:eb18:a8e7:30a7])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cc50abb1483sm465432a12.26.2026.09.15.13.59.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 15 Sep 2026 13:59:57 -0700 (PDT)
+From: Bhargav Joshi <j.bhargav.u@gmail.com>
+Subject: [PATCH v2 0/4] ARM: dts: ti: Clean up OMAP crypto bindings and dt
+Date: Wed, 16 Sep 2026 02:29:37 +0530
+Message-Id: <20260916-ti-dra7-omap-sham-fix-v2-0-4eadb60081e5@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260911-ti-dra7-omap-sham-fix-v1-0-c430f01b4e13@gmail.com>
- <20260911-ti-dra7-omap-sham-fix-v1-2-c430f01b4e13@gmail.com> <20260911082406.05e2a212@kemnade.info>
-In-Reply-To: <20260911082406.05e2a212@kemnade.info>
-From: Bhargav Joshi <j.bhargav.u@gmail.com>
-Date: Wed, 16 Sep 2026 01:45:37 +0530
-X-Gm-Features: AcwNN1WHlqVruIX69u_0BS3IFoNFccfPURE_yLQbZJm0y0g2wehRCyWKILewqPs
-Message-ID: <CAOWyW_5s++Sz6EFEX+zGTca_-xZvK29B88UzoEzsaP+QavF6CA@mail.gmail.com>
-Subject: Re: [PATCH 2/2] dt-bindings: crypto: ti,omap-sham: Add OMAP3
- compatible and deprecate ti,hwmods
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, 
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, 
-	Animesh Agarwal <animeshagarwal28@gmail.com>, linux-omap@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-crypto@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/4WNSwqDMBRFtyJv3FfyscY66j6KgxijPmiMJBJaJ
+ Htv6gY6PAfuuQdEG8hG6KoDgk0Uya8FxKUCs+h1tkhjYRBMNOzOOe6EY9AKvdMbxkU7nOiNsm0
+ 1a9RNiUFC2W7BFn12n33hheLuw+e8Sfxn/xUTR4amlmxifKgtl4/ZaXpdjXfQ55y/CD8La7oAA
+ AA=
+X-Change-ID: 20260911-ti-dra7-omap-sham-fix-388a067572b3
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, 
+ Herbert Xu <herbert@gondor.apana.org.au>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Animesh Agarwal <animeshagarwal28@gmail.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, 
+ j.bhargav.u@gmail.com
+X-Mailer: b4 0.14.3
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1789505986; l=1647;
+ i=j.bhargav.u@gmail.com; h=from:subject:message-id;
+ bh=kPo2A4/G1RUw2GNBKxEWcUW5EjGZfPFUjXA4aA4hoPA=;
+ b=rVqx5jSUyDMJKczoDv0lUuW775dpSmBSwHDpyYUPOKXi71Z9GGR9Z5DxWjAzK4aw0MNKiGMNO
+ +7Jea75W2TsAIasIU5Yj7avrZj2Dhk79O7x+B/PhUf6rIZh4jQ3TlWI
+X-Developer-Key: i=j.bhargav.u@gmail.com; a=ed25519;
+ pk=IqNDwUZKECEA+n8wXctFLBbYL9NhFstZNbOznm/nX1k=
 
-On Fri, Sep 11, 2026 at 11:54=E2=80=AFAM Andreas Kemnade <andreas@kemnade.i=
-nfo> wrote:
->
-> On Fri, 11 Sep 2026 03:41:58 +0530
-> Bhargav Joshi <j.bhargav.u@gmail.com> wrote:
->
-> > The OMAP SHAM driver supports OMAP3 SoCs, and "ti,omap3-sham" is
-> > actively used in existing dts. However, it was previously missing from
-> > binding. Add "ti,omap3-sham" to the list of valid compatibles.
-> >
-> > The legacy "ti,hwmods" property is no longer needed as TI OMAP mirgrate=
-d
-> > to "ti-sysc". Mark it as deprecated and remove it from the required
-> > properties.
-> >
-> > Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
->
-> What about also removing ti,hwmods usage while you are deprecating it?
+Patch 1 removes redundant properties clocks and clock-names from
+omap4-des bindings.
 
-Omap 4, 5 and dra7 already use ti,sysc wrapper and don't actually use ti,hw=
-mods.
-but legacy omap 2 and 3 still use ti,hwmods but I don't have hardware
-to test changes.
+Patch 2 removes redundant "clocks" and "clock-names" properties from the
+DRA7 crypto dt nodes.
 
-Since omap 4,5 etc don't use it,hwmods keeping it in required causes warnin=
-gs,
-Deprecating it and removing it from "required" fixes the warnings for
-modern SoCs without
-breaking the legacy ones.
+Patch 3 updates the ti,omap-sham YAML binding to add the missing
+"ti,omap3-sham" compatible, deprecates "ti,hwmods" and removes it from
+the required properties list.
 
-Best Regards,
+Patch 4 Adds missing subdirectory in $id path for omap2-aes and omap4-des.
+
+Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
+---
+Changes in v2:
+- Add patch 1 that removes redundant properties from des.
+- collect tag for patch 2
+- Add patch 4 to add missing subdirectory in $id path.
+- Link to v1: https://lore.kernel.org/r/20260911-ti-dra7-omap-sham-fix-v1-0-c430f01b4e13@gmail.com
+
+---
+Bhargav Joshi (4):
+      dt-bindings: crypto: ti,omap4-des: Remove redundant clock properties
+      ARM: dts: ti: omap: dra7: Remove clocks from crypto nodes
+      dt-bindings: crypto: ti,omap-sham: Add OMAP3 compatible and deprecate ti,hwmods
+      dt-bindings: crypto: ti,omap: Fix missing subdirectory in $id path
+
+ Documentation/devicetree/bindings/crypto/ti,omap-sham.yaml |  3 ++-
+ Documentation/devicetree/bindings/crypto/ti,omap2-aes.yaml |  2 +-
+ Documentation/devicetree/bindings/crypto/ti,omap4-des.yaml | 13 +------------
+ arch/arm/boot/dts/ti/omap/dra7-l4.dtsi                     |  2 --
+ arch/arm/boot/dts/ti/omap/dra7.dtsi                        |  8 --------
+ 5 files changed, 4 insertions(+), 24 deletions(-)
+---
+base-commit: 50d05c7c76c96b90462f24debacca971d2e86713
+change-id: 20260911-ti-dra7-omap-sham-fix-388a067572b3
+
+Best regards,
+-- 
 Bhargav
 
->
-> Regards,
-> Andreas
-> > ---
-> >  Documentation/devicetree/bindings/crypto/ti,omap-sham.yaml | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/Documentation/devicetree/bindings/crypto/ti,omap-sham.yaml=
- b/Documentation/devicetree/bindings/crypto/ti,omap-sham.yaml
-> > index d69b50228009..3ef05890e13a 100644
-> > --- a/Documentation/devicetree/bindings/crypto/ti,omap-sham.yaml
-> > +++ b/Documentation/devicetree/bindings/crypto/ti,omap-sham.yaml
-> > @@ -13,6 +13,7 @@ properties:
-> >    compatible:
-> >      enum:
-> >        - ti,omap2-sham
-> > +      - ti,omap3-sham
-> >        - ti,omap4-sham
-> >        - ti,omap5-sham
-> >
-> > @@ -32,6 +33,7 @@ properties:
-> >      description: Name of the hwmod associated with the SHAM module
-> >      $ref: /schemas/types.yaml#/definitions/string
-> >      enum: [sham]
-> > +    deprecated: true
-> >
-> >  dependencies:
-> >    dmas: [dma-names]
-> > @@ -40,7 +42,6 @@ additionalProperties: false
-> >
-> >  required:
-> >    - compatible
-> > -  - ti,hwmods
-> >    - reg
-> >    - interrupts
-> >
-> >
->
