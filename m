@@ -1,130 +1,106 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 014524A8A16;
-	Tue, 15 Sep 2026 12:05:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5794C3D411D;
+	Tue, 15 Sep 2026 12:30:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789473961; cv=none; b=sw1gPWUft/oKDF4Ydag0aBIojfLlxhxjgvYTcu3dAdpr1AsfVsU3be31EIANnQVwuwW3Gyj0x+cxUlXr1LJn4glo0G5VxJpYPXB3J7vYe4psWTULNEayvMwqOvMBZvp+4SPle4fgi27a8RLtblmnEqxmyRWvOwJ3JYgveaCsXN0=
+	t=1789475434; cv=none; b=sK6HTcGmwdd9dxPkg9dGSKqux/NLPqIYmU84IhVeOyHGkYyITFCKUIFhWpSglJed1v7q7mwZOZBnQ0ctPizqnjTA+L89y+HV2xgoxTPRDVvaN1jb6Nnp/5sutCI34UmOa85Kvq+f2zWNLV+LX3Hsvs3Vyq2LBEODrp2G4bSakng=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789473961; c=relaxed/simple;
-	bh=N5LBpQSIAUQ/HFSk4lckCaDRGxGChn1gurbecmVvuhA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=T0ozg0oCdmH2hdfAc/7xVuzNZczUMeCNOSpta7ODHG1lUvI5Q0e+poY9WMlhGneibFEKkRtFOp820ogtIvEGFoc6twhoi/LmEO7qaRcfLZUd7quTctuTRWfH4bVw2ZdGCsZSxL4DOnuD0symm6lDnyTI+HaaEjGTMe/G6EJb57w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=bSWXWuXT; arc=none smtp.client-ip=220.197.31.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1789475434; c=relaxed/simple;
+	bh=gCBuP+2Evjh4veQE3BW3pdqF9G7KNExs6hM05mou+nU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=sdci1KXKwqzpoL7b5s/1K2o8hkQ+EGXgTLazo31T1TFaeLXQETlgmCSMgcTF93+p8nbVWLSTf9ZO86EZpqVlvD+ODcHUUIPyy7vR86iWSTOm3wMJ068cjjRHpOUEcAaffqNtOGTO641MGZZGk06Tsp0nArNLvxCwgmLFDAXvheU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dPT/trEt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="bSWXWuXT"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=Vc
-	gRva2rsU2gA85H2EBlIuCFGwCT8FrfLOtefzUc5O4=; b=bSWXWuXT5EooQanUd4
-	Qm61z43ttG6Wv/+ULHaK2qg65StKxkgjClMxlPmsDJZVOXD4J6l7OdA8iLd//j1C
-	jA41cnxScKOLDgsuJk72760wMy6szUz97z6m/OF1xznPF3ljPXP49qZqt4Zk+rJG
-	siGoumUBcmR+AKPsRqpeJ8D1Y=
-Received: from chaosheng-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.lan (unknown [])
-	by gzga-smtp-mtada-g1-1 (Coremail) with SMTP id _____wDnN_cQNKlq1ig+Aw--.34817S5;
-	Tue, 15 Sep 2026 20:03:32 +0800 (CST)
-From: Quchaosheng <quchaosheng000406@163.com>
-To: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-Cc: Tony Lindgren <tony@atomide.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Andrzej Hajda <andrzej.hajda@intel.com>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Robert Foss <rfoss@kernel.org>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	Jonas Karlman <jonas@kwiboo.se>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Luca Ceresoli <luca.ceresoli@bootlin.com>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	dri-devel@lists.freedesktop.org,
-	devicetree@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	Quchaosheng <quchaosheng000406@163.com>
-Subject: [PATCH 2/2] ARM: dts: ti/omap: drop unit-address from tpd12s015 endpoints
-Date: Tue, 15 Sep 2026 20:03:27 +0800
-Message-ID: <20260915120327.47114-2-quchaosheng000406@163.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dPT/trEt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF1401F000FF;
+	Tue, 15 Sep 2026 12:30:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789475432;
+	bh=TVtfbg9cLJPxe8CeCcpFkHFABq+D56AX0qqaWOp7cYg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=dPT/trEtgWSwmvf4ssrot2pTPi+3EgP+7jA5SMylqsftSnb6kmNLGGkazcWzOosXn
+	 2Vp9dIoTa0CGeivRWiRZ4hlOD2VqdxKcxSudldG/8P1XhIg97wh2pz23M9uJVMvEB7
+	 ASJYBRFUgN1fzdHQpipXRRI5/LEKdxCMM0gEA/uGWM9OG0a4D8fU7Y+7+ZeYq2acLE
+	 dOVIfk/G4mTIw4oiTQUQXmInZ7vyMxnafJMjD4hTtYqzoq2ZNKZlPvKZsSSKOaznzY
+	 XI51RrUsrUic4xhyZKAv6MhvYZ5ItT2guPS0QlC0bSUhNYjVFAHqqoGLYCVM/6qLjS
+	 mOs6uFUo48N2w==
+Date: Tue, 15 Sep 2026 13:30:23 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Hemanth Selam <hemanth.selam@gmail.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>,
+	Claudiu Beznea <claudiu.beznea@tuxon.dev>,
+	Andrei Simion <andrei.simion@microchip.com>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+	Nicolas Ferre <nicolas.ferre@microchip.com>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>,
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
+	David Rhodes <david.rhodes@cirrus.com>,
+	Richard Fitzgerald <rf@opensource.cirrus.com>,
+	Support Opensource <support.opensource@diasemi.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Oder Chiou <oder_chiou@realtek.com>,
+	Shenghao Ding <shenghao-ding@ti.com>, Kevin Lu <kevin-lu@ti.com>,
+	Baojun Xu <baojun.xu@ti.com>, Sen Wang <sen@ti.com>,
+	Cezary Rojewski <cezary.rojewski@intel.com>,
+	Peter Ujfalusi <peter.ujfalusi@linux.intel.com>,
+	Bard Liao <yung-chuan.liao@linux.intel.com>,
+	Kai Vehmanen <kai.vehmanen@linux.intel.com>,
+	Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>,
+	Srinivas Kandagatla <srini@kernel.org>,
+	Jarkko Nikula <jarkko.nikula@bitmer.com>,
+	Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>, linux-sound@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	patches@opensource.cirrus.com, linux-mediatek@lists.infradead.org,
+	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2] ASoC: fix typos in comments
+Message-ID: <63334ddf-5ddc-4a90-8244-98e38a0ea174@sirena.org.uk>
+References: <20260904110315.11650-1-hemanth.selam@gmail.com>
+ <20260915063206.519683-1-hemanth.selam@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wDnN_cQNKlq1ig+Aw--.34817S5
-X-Coremail-Antispam: 1Uf129KBjvJXoW7ury5Zry5Aw18tr45Gry7GFg_yoW8Cry8p3
-	s29F4ktws7GFyFkr4DZw1qgF1qkF4kuF1ayF4UWryUCa13Xw18JF1xtwnakr1UCayfZw4j
-	9rs5WasFqw1DWF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0p_NtxAUUUUU=
-X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbC5BQXjGqpNBQeFQAA3D
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="GiDgBwWwOzEOdFcQ"
+Content-Disposition: inline
+In-Reply-To: <20260915063206.519683-1-hemanth.selam@gmail.com>
+X-Cookie: Void where prohibited by law.
 
-Drop the unit-address from the endpoint nodes of the tpd12s015 encoder on
-the am5729-beagleboneai and the am57xx-idk.
 
-The nodes carry a unit-address without a matching reg property, which the
-device tree specification does not allow. A plain endpoint name makes them
-match the schema for this binding.
+--GiDgBwWwOzEOdFcQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-No functional change.
+On Tue, Sep 15, 2026 at 12:02:00PM +0530, Hemanth Selam wrote:
 
-Signed-off-by: Quchaosheng <quchaosheng000406@163.com>
----
- arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts | 4 ++--
- arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi  | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+> v2:
+>  - Rebased onto asoc/for-next; v1 no longer applied against current code
+>    (Mark Brown).
 
-diff --git a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-index 76bfb3647..f40017a0e 100644
---- a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-+++ b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-@@ -168,7 +168,7 @@ ports {
- 			port@0 {
- 				reg = <0x0>;
- 
--				hdmi_encoder_in: endpoint@0 {
-+				hdmi_encoder_in: endpoint {
- 					remote-endpoint = <&hdmi_out>;
- 				};
- 			};
-@@ -176,7 +176,7 @@ hdmi_encoder_in: endpoint@0 {
- 			port@1 {
- 				reg = <0x1>;
- 
--				hdmi_encoder_out: endpoint@0 {
-+				hdmi_encoder_out: endpoint {
- 					remote-endpoint = <&hdmi_connector_in>;
- 				};
- 			};
-diff --git a/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi b/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
-index 5eccff3bb..4e8a5820b 100644
---- a/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
-@@ -135,7 +135,7 @@ ports {
- 			port@0 {
- 				reg = <0>;
- 
--				tpd12s015_in: endpoint@0 {
-+				tpd12s015_in: endpoint {
- 					remote-endpoint = <&hdmi_out>;
- 				};
- 			};
-@@ -143,7 +143,7 @@ tpd12s015_in: endpoint@0 {
- 			port@1 {
- 				reg = <1>;
- 
--				tpd12s015_out: endpoint@0 {
-+				tpd12s015_out: endpoint {
- 					remote-endpoint = <&hdmi_connector_in>;
- 				};
- 			};
+It's still not applying against my tree?
 
+--GiDgBwWwOzEOdFcQ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmqpOl4ACgkQJNaLcl1U
+h9Cpfgf/Q7YrQXQeaROc/u9unXenwWJLaxVPhJGgdjoufaOEw/YeQHHnC66FhF/H
+n2skcounXBkPPvmeFnkoCeV+3ammQ+wWQv6HVL9CWdEYOKJYiesoS+u5WI9KNae1
+hJyBQw0prpFKvyxuJKhv8aewBYknoowABWc/15HK8DjqQZPEw8gMzyCgZTJrb0IY
+JxTznbOUKHxMr0U6Mi6HS0zVX1HIYkuzKJ3VlKK6IYUGpxtP8+ceFa9UXjg2p9oU
+SrNghGQ8TeBx5GJ2h9Wkyv6bvXkX8ru2TV6WYgGo66bTvBCgV+1gAk3wrIWKPrdM
+vkfSCtaDDZQT0SRZ7QrFHs8WOQJtaQ==
+=0/I9
+-----END PGP SIGNATURE-----
+
+--GiDgBwWwOzEOdFcQ--
