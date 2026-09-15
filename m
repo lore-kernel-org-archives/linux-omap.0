@@ -1,210 +1,681 @@
-Received: from mx0a-0002e601.pphosted.com (mx0a-0002e601.pphosted.com [148.163.150.75])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f179.google.com (mail-pg1-f179.google.com [209.85.215.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DEBE2F8EB0;
-	Tue, 15 Sep 2026 06:12:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=148.163.150.75
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789452751; cv=fail; b=L4fRSMY7ZiPSVVvdzwXA2oJ5tJpjY8V9UMtbv34eAiTjzDcbbhJQB7neijSKAvrzg6wzaaMHcqUMqkE+jYwChuul5amPlLIrOrE7EW8a3vkEYGjl5uCwrspQIaVF8hjs2my/8hhyXLgDpBEim6QcnSNmsXaghgshWnXZ+1VqC/s=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789452751; c=relaxed/simple;
-	bh=tSwdFulArEyfEvglcVC314s+fmxyCT2vGY/Bnf4eBtQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=ZO6T7AAfUsWo13Ty93pXP5RDS5Tc0Xidr6jgHLlmkF6+vU19N0VMI3LOTk7mn5wzjdg3LpilxVi8cxTVtMlJYO6v2jiGBITliUcMYg5b+RWJOoiRYZZVd4827xdXXsEjKANm3e8B0UQ6iYX3R6abmyUuoz/I49o3q92QH2fjxaM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com; spf=pass smtp.mailfrom=ti.com; dkim=pass (2048-bit key) header.d=ti.com header.i=@ti.com header.b=pDd4IRbo; dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b=PCnhcq3i; arc=fail smtp.client-ip=148.163.150.75
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE8EA40B396
+	for <linux-omap@vger.kernel.org>; Tue, 15 Sep 2026 06:32:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.179
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789453944; cv=none; b=XQe+jNrlxAUjarJ0xAHx5VnTX076MkvnhV/LrbkqZie+7XazslaFAEtXbHTqoBhRNzjrq+YNzff1SjFTtS187eBTm08mQhVufo/erotYf+hVja1A2Aqjfn5FHD9ZAScTDhO2XKHuDugZ30HTURw+y3hPeGh3QRyKLGb5uKhaYI0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789453944; c=relaxed/simple;
+	bh=6C/HSGfxcGl/ipuQMllxmYNIy6q7nwEEjwj2KBdG3ik=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=J+LiGKhbz4uRfraERlNM6jx2pKg+SAk0Noc7g97CAcIDFkxq7Ruqvc5zJyfWuA+aEsj3XOQxjA58atUROcXQfrEdw2cMrvN983jexwxyw9drPumwnFsTRuEpTaYas2dD1+xutebQXxTu7uLHpN7KtXU66QnPjG6GlaQ/jBr5Ok0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=h1SGuByn; arc=none smtp.client-ip=209.85.215.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ti.com header.i=@ti.com header.b="pDd4IRbo";
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="PCnhcq3i"
-Received: from pps.filterd (m0384305.ppops.net [127.0.0.1])
-	by m0384305.ppops.net (8.18.1.11/8.18.1.11) with ESMTP id 68F2lhhG683778;
-	Tue, 15 Sep 2026 01:12:17 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=
-	proofpoint-05-2026; bh=IqYEChbHJk8TYUy3WlOOJI2o/h/XSiB5hoiXiWKQf
-	nA=; b=pDd4IRbobcn9YydgqWISN6qyEVOtg2cgudyiIMvdktTOts+lzV1gPltZK
-	yTowLHm/1rQTkUN1zou+kcvsDdIczZoBDPlhg88mgGhJx5HfvOQ6BsBQXZ9Wk5V3
-	5fB9gQCq4Nj2Inv2h/uwcGKhB820wSplu2oQpfQqy3Sm2xNpMld35IRI+cW8plQC
-	CYF22xoQeNOXfjxwq1F/UP1ttwZvIf3xxLsmX3koxbXL81eQ5sgQtmZ4mNI9j0vt
-	iN3ULzyMyFUywpd7k9l56UeCoMSbDHnaME9BQopEFzRiE5HpH7f3nmhSDT2y4PGI
-	lh8N9jpubukeARif/gIC2UeUC4Frg==
-Received: from byapr05cu005.outbound.protection.outlook.com (mail-westusazon11010043.outbound.protection.outlook.com [52.101.85.43])
-	by m0384305.ppops.net (PPS) with ESMTPS id 4gpvpa1bha-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Tue, 15 Sep 2026 01:12:16 -0500 (CDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=qkI236HhX9HJpNtnDfXYrgzTm67lgTCfWOuRkLBBVVjf3aLv+NbT8/luAGCaglAq9RIGugWr59CghUJyZNOAvZHLSGPyvOS18trh8xtI6WjBgLqbfKaYCrIoh2xWm4GLZcqjtwms5HiGv96znIXUMoL5ek7p4ujo/lxfXdD5ceNF0I38Gj8nEZyZZEca2Bp04i+IQFAb+EVDz4TB6slZwWn0XbWzcz2r9c9wT2vt9mWFA0SMiht3asG1N6jV8/hyOiaXgE5ieGiCy8drWkCdaQoO52erYmnkCRHuGhvr1Bsf0fkmevw9Y+Akkx8FvRKTqu7Ay1jC/YBGv0V0e+4+Eg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IqYEChbHJk8TYUy3WlOOJI2o/h/XSiB5hoiXiWKQfnA=;
- b=EIrb6sDeEbenrqWR/b/KfMQq9esneifyjs868VGptkKmY8bV6lXDr4lcuB1KVcjykqM/GAR/uEQru7mQBTNBrvGkzWCQXmaEPjNDWaosKDMQ4J12Ajubk7zFnCG2Mi+b4E56kKEyOyUtsnBrwSIYN4OS/sVmIOjSLt/kXpu+PVUcbefmPn+0USjRMb61zhv4MQUsvHG3v7ndZ+T7gy9JOLgu+UoXG13DBV4GuUrZZLtK/0Kb6hpFVwjrVdY4LWIH0OM4VVfEK03wJNLV8+M+NlP5LHD+x/934+HcdxeaxkzZYsBJ4/CSnt9LmlkaqasTQvr8iWyeNwAOdJCSQ7uUQQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 198.47.21.195) smtp.rcpttodomain=lists.infradead.org smtp.mailfrom=ti.com;
- dmarc=pass (p=quarantine sp=none pct=100) action=none header.from=ti.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=IqYEChbHJk8TYUy3WlOOJI2o/h/XSiB5hoiXiWKQfnA=;
- b=PCnhcq3iA5C0Eg4KWs8eN3xdUDACbjW0Z2nlHPzx00wNOODc/AMiAq3+B7viyobMr28qbTbWyf5wxTgeruk6uZ1SfXXYXkKVo0O8kIjTRDB2GuGXADxcMU83NYfa7hOm4RrltHPwHG3Ux5xpAI8+9MIPfpjaCvGF9vkIk5Hgk/M=
-Received: from BN9PR03CA0089.namprd03.prod.outlook.com (2603:10b6:408:fc::34)
- by DS4PPF717557185.namprd10.prod.outlook.com (2603:10b6:f:fc00::d29) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.9; Tue, 15 Sep
- 2026 06:12:14 +0000
-Received: from BN3PEPF00022BC6.namprd05.prod.outlook.com
- (2603:10b6:408:fc:cafe::52) by BN9PR03CA0089.outlook.office365.com
- (2603:10b6:408:fc::34) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.15 via Frontend Transport; Tue,
- 15 Sep 2026 06:12:14 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 198.47.21.195)
- smtp.mailfrom=ti.com; dkim=none (message not signed) header.d=none;dmarc=pass
- action=none header.from=ti.com;
-Received-SPF: Pass (protection.outlook.com: domain of ti.com designates
- 198.47.21.195 as permitted sender) receiver=protection.outlook.com;
- client-ip=198.47.21.195; helo=flwvzet201.ext.ti.com; pr=C
-Received: from flwvzet201.ext.ti.com (198.47.21.195) by
- BN3PEPF00022BC6.mail.protection.outlook.com (10.167.248.219) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.428.7 via Frontend Transport; Tue, 15 Sep 2026 06:12:13 +0000
-Received: from DFLE207.ent.ti.com (10.64.6.65) by flwvzet201.ext.ti.com
- (10.248.192.32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Tue, 15 Sep
- 2026 01:11:39 -0500
-Received: from DFLE210.ent.ti.com (10.64.6.68) by DFLE207.ent.ti.com
- (10.64.6.65) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Tue, 15 Sep
- 2026 01:11:39 -0500
-Received: from lelvem-mr06.itg.ti.com (10.180.75.8) by DFLE210.ent.ti.com
- (10.64.6.68) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45 via Frontend
- Transport; Tue, 15 Sep 2026 01:11:39 -0500
-Received: from [10.24.68.129] (a0507033-hp.dhcp.ti.com [10.24.68.129])
-	by lelvem-mr06.itg.ti.com (8.18.1/8.18.1) with ESMTP id 68F6BYgD2664949;
-	Tue, 15 Sep 2026 01:11:35 -0500
-Message-ID: <137e1bf8-6c39-42e2-8825-693e1d226678@ti.com>
-Date: Tue, 15 Sep 2026 11:41:34 +0530
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="h1SGuByn"
+Received: by mail-pg1-f179.google.com with SMTP id 41be03b00d2f7-cc149372c14so2738678a12.1
+        for <linux-omap@vger.kernel.org>; Mon, 14 Sep 2026 23:32:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789453941; x=1790058741; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=godyDfS7BUyeocBMPizi6OiwJkyeUZQ0Bils3zR68fo=;
+        b=h1SGuBynY82YgYQCFL0F7ETkUSsm12dmijlTUrnlWy4s+PrVmXo4ALWHEAOUh7U2yl
+         JOxtOW0NNo2aJQfkq1iQQ+LxZMIWgn6XpU0ZsPO07EiGL+DkI88AySXnJah9chU9Y4fd
+         CV0CBz0HPhH7F+isSb7PXLhRvCMGLt7jpbnAEJeV4+7On1DWPxj7Xz8YiGcRI7V280TK
+         ybYViO8Fijw7USp3B7qzgP87IynabnBNEA/ecliwyIUFpZK8QT1XPrA+gq5c2Op2Iuko
+         QelFEAqi+eapboSaT0i7KS5+C+TER5+UdGukOsKHeUQ/8rzxThKi6Z55MQLd3gw/XboA
+         ibcw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789453941; x=1790058741;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=godyDfS7BUyeocBMPizi6OiwJkyeUZQ0Bils3zR68fo=;
+        b=2bxsfOkriAYLN5i7PbqGbyqh1NFoc3lEP4TGAaVV8HQRpygKlRaz+X/DAF2EKTuLdR
+         lz7YVjWCAk7FVYh/cFQMButAD7gCVCBALh7sWIH72CW9jZjD3rDF4Pc/ai/EZLAUQImm
+         Jd7uxd9utYRCrQUcCLh0IRA9y/8Gvts+B1mPPrysqc50KgpqWVjyQEH7ULQC9MCx3DEo
+         pJtXpi7agi3b66Ue3BM9/GVkKh9OOezaJ4Fjjhng4ywZb6SaFPWyUx9x3Kf+eE47pLT4
+         k+hm72RZJG54YZw9Rp9I8xBoW6PYwBCyhcHtsRJIa8gmMyXtkCykpz9pC7gWdVKvvasl
+         rXuA==
+X-Forwarded-Encrypted: i=1; AKwUvBzp7H/OR2irNy7MI+G+SsgOACK5iA00V66OrIrmnJTvA2BYcYqw3KF8PNUGGhV5mYfb+mM6g+C/xUuk@vger.kernel.org
+X-Gm-Message-State: AFuF++lzr1I1OZja8Pa0aQVwc7WosT4yS3V/g484i7AoOKFp4OQj+Whq
+	4PPHTySP/Qvh58cPvKcJwDh1GYtUw8VJWeuoH5eO5+EvJCHPDo1lux1X
+X-Gm-Gg: AYBFou1zeTsAaftwG8eEIM0cl5P7QuaTBNgEmCmjsi/phmWjH8u/O4E9lMqvBRFPdHr
+	88bmS+NHIhqeoqxkBM8DpVUmmfNjTeOjPoA5Lkf/tTBL4LIzfbsHuN/mBt88hw17LsYlY27uzSL
+	jFpdDI4+TuwtxY2wdy8vqsYBfMY41Njuh5IX7hSfv6aY7Qka74Q2V5wKqA2kjtN4g+0bR1KU3DZ
+	0qRpnvZPVCSM+BH9bjQdnTA05rXbKcK6++Q2H112V7yif28x0lu5ckQ+WwGemrKNr1s79fXYTaJ
+	SYMfvZ+8fOQKJPMr9PIlcqVWGSxNK1TMQAEelO3GZ2YuBATGCTvLcQyiBmKdi58ySxSmx9VV+K5
+	rjOUYAtkiYsZScXSIMJrhgQSvt+SvPXtNL7YkCBhmq/eL4aXJPEe3wG8IjC4anuWp2czqeLnIL6
+	5ZgUnPCQh5+HVE9rXbSI+1JsIcsj+NfPi8c6YrVy6iBV6vHZROcJYzOkD3qN7ZexjsyTeQ8N/eA
+	0sq+JXcazFA/VgerNj3JgSc3w==
+X-Received: by 2002:a17:90b:1d82:b0:398:a2a3:b631 with SMTP id 98e67ed59e1d1-39dec0be84amr11371473a91.19.1789453940787;
+        Mon, 14 Sep 2026 23:32:20 -0700 (PDT)
+Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-33ba4ee07f2sm28379233eec.18.2026.09.14.23.32.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 14 Sep 2026 23:32:20 -0700 (PDT)
+From: Hemanth Selam <hemanth.selam@gmail.com>
+To: Mark Brown <broonie@kernel.org>,
+	Liam Girdwood <lgirdwood@gmail.com>
+Cc: Claudiu Beznea <claudiu.beznea@tuxon.dev>,
+	Andrei Simion <andrei.simion@microchip.com>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Takashi Iwai <tiwai@suse.com>,
+	Nicolas Ferre <nicolas.ferre@microchip.com>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Ray Jui <rjui@broadcom.com>,
+	Scott Branden <sbranden@broadcom.com>,
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	=?UTF-8?q?Nuno=20S=C3=A1?= <nuno.sa@analog.com>,
+	David Rhodes <david.rhodes@cirrus.com>,
+	Richard Fitzgerald <rf@opensource.cirrus.com>,
+	Support Opensource <support.opensource@diasemi.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Oder Chiou <oder_chiou@realtek.com>,
+	Shenghao Ding <shenghao-ding@ti.com>,
+	Kevin Lu <kevin-lu@ti.com>,
+	Baojun Xu <baojun.xu@ti.com>,
+	Sen Wang <sen@ti.com>,
+	Cezary Rojewski <cezary.rojewski@intel.com>,
+	Peter Ujfalusi <peter.ujfalusi@linux.intel.com>,
+	Bard Liao <yung-chuan.liao@linux.intel.com>,
+	Kai Vehmanen <kai.vehmanen@linux.intel.com>,
+	Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>,
+	Srinivas Kandagatla <srini@kernel.org>,
+	Jarkko Nikula <jarkko.nikula@bitmer.com>,
+	Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	linux-sound@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	patches@opensource.cirrus.com,
+	linux-mediatek@lists.infradead.org,
+	linux-arm-msm@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: [PATCH v2] ASoC: fix typos in comments
+Date: Tue, 15 Sep 2026 12:02:00 +0530
+Message-ID: <20260915063206.519683-1-hemanth.selam@gmail.com>
+X-Mailer: git-send-email 2.48.1
+In-Reply-To: <20260904110315.11650-1-hemanth.selam@gmail.com>
+References: <20260904110315.11650-1-hemanth.selam@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/3] PCI: Remove device links to Generic PHY
-To: <vladimir.oltean@nxp.com>, <linux-pci@vger.kernel.org>
-CC: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
-        "Manivannan
- Sadhasivam" <mani@kernel.org>,
-        Rob Herring <robh@kernel.org>, Bjorn Helgaas
-	<bhelgaas@google.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        "Siddharth
- Vadapalli" <s-vadapalli@ti.com>,
-        Manikandan K Pillai <mpillai@cadence.com>,
-        Felix Gu <ustc.gu@gmail.com>, <linux-kernel@vger.kernel.org>,
-        <linux-omap@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>
-References: <20260912161440.1032188-1-vladimir.oltean@nxp.com>
-Content-Language: en-US
-From: Aksh Garg <a-garg7@ti.com>
-In-Reply-To: <20260912161440.1032188-1-vladimir.oltean@nxp.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN3PEPF00022BC6:EE_|DS4PPF717557185:EE_
-X-MS-Office365-Filtering-Correlation-Id: d4c9b416-20f3-4f96-a958-08df12f048bf
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|36860700016|7416014|376014|23010399003|82310400026|10067099003|56012099006|3023799007|22082099003|18002099003|13003099007;
-X-Microsoft-Antispam-Message-Info:
-	3ZjjltiXMcl2OuC/XYxIKHWE/9LnjL2nHvS4zcbt7Nk+DyDP51Jc+g21RvtWopkBmXmAoqz49cv2gtq4yY3q/ADxDqcnI58Zvmcf/ovfoS/6TgpuFyh8EGFsZKWvKTBQ0iQ2LxIrkev2Ruun85M2Qr7uOIDT/bLcUIc1P/sL1iQdL2fqKKDKt0CB+MECrAYrBKggrJJZbAYDx/kz1Z5oNBmUn/rXBa3fx5IQAEmVCUbNmsLK/RoGejiFUJcVKsnWCAjtE4iFy/CPVmLZ44SUlO7UDpQBKM4Eypy/beP8C2Axke30ag0LND7RmS1+ijvK5+znJLhn74WL8N9b/tfqzbDCrwwxuyJyxnoafL9e3G6SRzNd4ZeOXHu5CmGNKLPuaKaryiCmyau889/ADZq7mPHz+3zUb+oNcawIXHCOnytpX4oXViaPw+o6v3z6HuyiA1l/z6rkrnI+KgI1wdGqiBW5THlFk2K2I9g3RDt0zysBAFbWsWYlazXGI+Li3zyIZOQlu8AaeEq++6nb8sMgL78GgcUD4EdDr+4HnIPGec1a7sDwF/T4PhDHgzKVubyjpfVmtpZJy1HFqiMz28zwz25eWXbbU4ahW4NEqNwuobiAksWO28BaqU3V3QggaZn4eUXnwZJkfJ+qPl6gPO14YMDsv85LzsOHPfV1G1SLhwO3veqP7It+vuz7brzNG7AdLE3QSCo2ixcOqsskdA+yEA==
-X-Forefront-Antispam-Report:
-	CIP:198.47.21.195;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:flwvzet201.ext.ti.com;PTR:ErrorRetry;CAT:NONE;SFS:(13230040)(1800799024)(36860700016)(7416014)(376014)(23010399003)(82310400026)(10067099003)(56012099006)(3023799007)(22082099003)(18002099003)(13003099007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	GaIb5YlifJwpcckIEjy0UlOYHD/DV5T1o9jWM0dsVlHadFWxUlrDUVo+M0atIvVZmMheVQmpODipwK6CgTha95n25bUF9Pxqn8t4raOHk17TGDDITaA7cOR95S/y64HRUv7yGHqT8pNAx6o64+qKiT9gMlDDHWWPelgRhN6NW1GZpq0q6U7uWChPDYPDaplmEYJl7y7HBkvhvpVI3RUXRYn8TgcjQ9ban3e2Xj1A1Pk5yTO0apsKsZy8wtbVHb2lUpDyhQk8zflvDrXqi/EfkqACQB0HvbozPxNz28AyRT+uD8mA8lQOZ9GesGsWyBBIZeK6YUhV0fIOCnCoErlaZig5leCt+pcjBOI4vcMRzqS7o78LYdluI+YE7mfzg3HCqkOkmiubm1A60+DKk/92sjjqp6zbHI4+IHh6+swlWt4qMSsEQJWzN5ZTfa7QVS1s
-X-Exchange-RoutingPolicyChecked:
-	CKqKdAXX8TBRUmup+0J/qe6nmVV947zqZiJ9LUkfRQ04Rxf6RmL4+2E1zkse+hzLmAh04t5W+J22zKfzdMq3CNLtqLXc6pylWnk68d34oWp6Y73LKe12DEFXSY4OwaoHaHBLRy734He+I0fWxZ/e+GKUSjLed14YqcNgz/kmimm5hSpYIJiQmrhspkb4jLoHQ0yhE9KMLVY+MDXX97h8LPkiEtFywANSr1aqxVTS0c5TNQAHwADZpfh6ot1GEg/vwmOva/goSdGbfjAgQ4UPEBFXMgVgd8+Yb40oCkZxrZuA5W+mpJY62YkaqQEzJv/+P540AnJ9OH1kq+3ePYDskw==
-X-OriginatorOrg: ti.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Sep 2026 06:12:13.0650
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: d4c9b416-20f3-4f96-a958-08df12f048bf
-X-MS-Exchange-CrossTenant-Id: e5b49634-450b-4709-8abb-1e2b19b982b7
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=e5b49634-450b-4709-8abb-1e2b19b982b7;Ip=[198.47.21.195];Helo=[flwvzet201.ext.ti.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN3PEPF00022BC6.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PPF717557185
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTE1MDA4NiBTYWx0ZWRfX0eaeUsGEcXJD
- 40wsewqyfw7vO/P7+km+TQRW5J0ArcwC2qEkJkpemLoEPIBNt7e7Bq2oCJdE+KwY/oGXDh1JZRt
- 48SZYWH8MF+7phSqQV9qYSt42B5BNkE/+XeqL7ESOCTK3v0vqlxbMuhYUFoyb7pcqjepQfXteHn
- rnAg433vlmZy+NS+Gmbm7+fUVS2VS0B26H3CkMtNRJj7lDHHpaciDG8Wb32stdsCch/jFo0GOTN
- NQiFpkRP9FGrGGdD3gju7Yi3cYXmJ0Q5YtAGJM6f71noayU6u0IeHCYmD9swe+zhWVxPa1LuZtC
- yzrF65yioRSK0Lno4UXSYjpLW1tgIKMlzBk+9jBzr56fVLNomvkYTkF57LvK/sZ/rlodqi+Km67
- YG785PcqgY1VCrJl43tkjEB4m36u6lMjUzNoeHA1Mmr7dgLU/LC+CMbhGDW91g/rc5IXlv6HiWz
- jqYaLWKbYjYKCz3erXQ==
-X-Proofpoint-ORIG-GUID: Cl2gDJ3eRqEhAXpOo1UFCUMAHO7JhVnF
-X-Authority-Analysis: v=2.4 cv=U7cHnuru c=1 sm=1 tr=0 ts=6aa8e1c1 cx=c_pps
- a=630MGKGvePsHimlcG8SYgw==:117 a=tJyPKKxUohctrY4NYmUjkA==:17
- a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10
- a=V5UXEbMT0ywA:10 a=VkNPw1HP01LnGYTKEx00:22 a=Z8NIEmU8O1QQgoT56wFK:22
- a=taLDd7a_hP9WKsMzeGRc:22 a=VwQbUJbxAAAA:8 a=8AirrxEcAAAA:8 a=sozttTNsAAAA:8
- a=24o-jWoAtj9wDgbWh-MA:9 a=QEXdDO2ut3YA:10 a=ST-jHhOKWsTCqRlWije3:22
-X-Proofpoint-GUID: Cl2gDJ3eRqEhAXpOo1UFCUMAHO7JhVnF
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTE1MDA4NiBTYWx0ZWRfX+6/p7eHBUQE1
- JnIxQssOYWl3qch5a1Ryr5VoWPrroZQcU9kWHwAS4CIs6DFh//6WqOz/tOmVHDJB/z/7cklCnkm
- iyeEv7g/sZkd0P4DCJM9ilLp0MgxgRo=
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-15_01,2026-09-14_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 phishscore=0 lowpriorityscore=0 suspectscore=0
- impostorscore=0 malwarescore=0 bulkscore=0 clxscore=1011 spamscore=0
- adultscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2609040000
- definitions=main-2609150086
+Content-Transfer-Encoding: 8bit
 
+Fix typos in comments, reported by scripts/checkpatch.pl using the
+misspelling list in scripts/spelling.txt.  Only touches comments, no code
+changes.
 
+Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+---
 
-On 12/09/26 21:44, vladimir.oltean@nxp.com wrote:
-> This is a request from Bjorn Helgaas to replace commit 9a9d18547ddc
-> ("PCI: Remove device links to PHY") from the pci/next branch with 3
-> distinct changes, per PCI controller, to handle conflicts with bug fixes
-> in the same area on dra7xx in a better way:
-> https://lore.kernel.org/linux-pci/20260911221209.GA587622@bhelgaas/
-> 
-> The patches are formatted against the v7.3-rc1 tag. They do *not* apply
-> to the current pci/next, as the change is already present there.
-> 
-> Previous submission was:
-> https://lore.kernel.org/linux-pci/20260810124315.433448-1-vladimir.oltean@nxp.com/
-> 
-> There is no other change than splitting up into individual commits and
-> adjusting each one's commit message. All review/ack tags were dropped in
-> that process.
-> 
+v2:
+ - Rebased onto asoc/for-next; v1 no longer applied against current code
+   (Mark Brown).
+ - Dropped the include/dt-bindings/sound/audio-graph.h hunk so this stays
+   confined to sound/soc/, as checkpatch asks for binding header changes
+   to be a separate patch.
+ - Dropped the Assisted-by trailer naming the model.
 
-Reviewed-by: Aksh Garg <a-garg7@ti.com>
+v1: https://lore.kernel.org/all/20260904110315.11650-1-hemanth.selam@gmail.com/
 
-Regards,
-Aksh Garg
+Applies cleanly to asoc/for-next (50f117b9f12c).
 
-> Vladimir Oltean (3):
->    PCI: cadence: Remove device links to PHY
->    PCI: dra7xx: Remove device links to PHY
->    PCI: keystone: Remove device links to PHY
-> 
->   .../controller/cadence/pcie-cadence-plat.c    |  4 ---
->   drivers/pci/controller/cadence/pcie-cadence.c | 16 +---------
->   drivers/pci/controller/cadence/pcie-cadence.h |  2 --
->   drivers/pci/controller/dwc/pci-dra7xx.c       | 16 ----------
->   drivers/pci/controller/dwc/pci-keystone.c     | 31 +++----------------
->   5 files changed, 5 insertions(+), 64 deletions(-)
-> 
+Only comments change.  Verified by stripping C comments from every
+touched file before and after the patch and comparing the result: all 30
+files are byte-identical outside comments.
+
+Build tested with allmodconfig on x86_64, building sound/soc/ with the
+touched files forced to rebuild: no new warnings or errors.  24 of the 25
+.c files are built by that config; sound/soc/ux500/ux500_msp_i2s.c is not
+(ARM-only), and its change is a standalone comment line.
+
+Separately, please drop "[PATCH v3] ASoC: codecs: fix typos in comments"
+(20260908055328.22099-1-hemanth.selam@gmail.com).  All four typos it
+fixed have since been corrected upstream, so it is obsolete rather than
+in need of a rebase.
+
+ sound/soc/atmel/atmel-pcm-dma.c            |  2 +-
+ sound/soc/bcm/cygnus-ssp.h                 |  2 +-
+ sound/soc/codecs/adau1701.c                |  4 ++--
+ sound/soc/codecs/cs35l33.c                 |  2 +-
+ sound/soc/codecs/cs35l34.c                 |  2 +-
+ sound/soc/codecs/cs42l42.c                 |  2 +-
+ sound/soc/codecs/cs42l73.c                 |  4 ++--
+ sound/soc/codecs/cx20442.c                 |  2 +-
+ sound/soc/codecs/da7210.c                  |  2 +-
+ sound/soc/codecs/hdac_hda.c                |  2 +-
+ sound/soc/codecs/hdac_hdmi.c               |  2 +-
+ sound/soc/codecs/max98927.c                |  4 ++--
+ sound/soc/codecs/mt6359.c                  |  8 ++++----
+ sound/soc/codecs/nau8825.c                 | 10 +++++-----
+ sound/soc/codecs/rt1320-sdw.c              |  2 +-
+ sound/soc/codecs/rt5631.h                  |  8 ++++----
+ sound/soc/codecs/rt5640.c                  |  2 +-
+ sound/soc/codecs/rt5645.c                  |  2 +-
+ sound/soc/codecs/rt5651.c                  |  2 +-
+ sound/soc/codecs/rt5670.c                  |  2 +-
+ sound/soc/codecs/tlv320dac33.c             |  2 +-
+ sound/soc/intel/atom/sst-mfld-dsp.h        |  2 +-
+ sound/soc/intel/atom/sst/sst.h             |  2 +-
+ sound/soc/intel/boards/sof_cirrus_common.c |  2 +-
+ sound/soc/qcom/qdsp6/q6asm-dai.c           |  2 +-
+ sound/soc/ti/davinci-i2s.c                 |  2 +-
+ sound/soc/ti/davinci-mcasp.c               |  2 +-
+ sound/soc/ti/omap-mcbsp.c                  |  2 +-
+ sound/soc/uniphier/aio.h                   |  2 +-
+ sound/soc/ux500/ux500_msp_i2s.c            |  2 +-
+ 30 files changed, 43 insertions(+), 43 deletions(-)
+
+diff --git a/sound/soc/atmel/atmel-pcm-dma.c b/sound/soc/atmel/atmel-pcm-dma.c
+index 7306e04da513..e4b73ae3df4f 100644
+--- a/sound/soc/atmel/atmel-pcm-dma.c
++++ b/sound/soc/atmel/atmel-pcm-dma.c
+@@ -47,7 +47,7 @@ static const struct snd_pcm_hardware atmel_pcm_dma_hardware = {
+  * atmel_pcm_dma_irq: SSC interrupt handler for DMAENGINE enabled SSC
+  *
+  * We use DMAENGINE to send/receive data to/from SSC so this ISR is only to
+- * check if any overrun occured.
++ * check if any overrun occurred.
+  */
+ static void atmel_pcm_dma_irq(u32 ssc_sr,
+ 	struct snd_pcm_substream *substream)
+diff --git a/sound/soc/bcm/cygnus-ssp.h b/sound/soc/bcm/cygnus-ssp.h
+index 4925e03c3c30..7848e15efbe1 100644
+--- a/sound/soc/bcm/cygnus-ssp.h
++++ b/sound/soc/bcm/cygnus-ssp.h
+@@ -27,7 +27,7 @@ struct ringbuf_regs {
+ 	unsigned wraddr;
+ 	unsigned baseaddr;
+ 	unsigned endaddr;
+-	unsigned fmark;   /* freemark for play, fullmark for caputure */
++	unsigned fmark;   /* freemark for play, fullmark for capture */
+ 	unsigned period_bytes;
+ 	unsigned buf_size;
+ };
+diff --git a/sound/soc/codecs/adau1701.c b/sound/soc/codecs/adau1701.c
+index 505d52c63627..4afbf46ffaa3 100644
+--- a/sound/soc/codecs/adau1701.c
++++ b/sound/soc/codecs/adau1701.c
+@@ -4,7 +4,7 @@
+  *
+  * Copyright 2011 Analog Devices Inc.
+  * Author: Lars-Peter Clausen <lars@metafoo.de>
+- *	based on an inital version by Cliff Cai <cliff.cai@analog.com>
++ *	based on an initial version by Cliff Cai <cliff.cai@analog.com>
+  */
+ 
+ #include <linux/module.h>
+@@ -699,7 +699,7 @@ static int adau1701_probe(struct snd_soc_component *component)
+ 	 */
+ 	adau1701->pll_clkdiv = ADAU1707_CLKDIV_UNSET;
+ 
+-	/* initalize with pre-configured pll mode settings */
++	/* initialize with pre-configured pll mode settings */
+ 	ret = adau1701_reset(component, adau1701->pll_clkdiv, 0);
+ 	if (ret < 0)
+ 		goto exit_regulators_disable;
+diff --git a/sound/soc/codecs/cs35l33.c b/sound/soc/codecs/cs35l33.c
+index d0f9231f5e44..b8c19f175701 100644
+--- a/sound/soc/codecs/cs35l33.c
++++ b/sound/soc/codecs/cs35l33.c
+@@ -578,7 +578,7 @@ static int cs35l33_set_tdm_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
+ 			| CS35L33_X_LOC);
+ 	}
+ 
+-	/* disconnect {vp,vbst}_mon routes: eanble later if set in tx_mask*/
++	/* disconnect {vp,vbst}_mon routes: enable later if set in tx_mask*/
+ 	snd_soc_dapm_del_routes(dapm, cs35l33_vp_vbst_mon_route,
+ 		ARRAY_SIZE(cs35l33_vp_vbst_mon_route));
+ 
+diff --git a/sound/soc/codecs/cs35l34.c b/sound/soc/codecs/cs35l34.c
+index 3f265bd760f7..a72be629a31e 100644
+--- a/sound/soc/codecs/cs35l34.c
++++ b/sound/soc/codecs/cs35l34.c
+@@ -297,7 +297,7 @@ static int cs35l34_set_tdm_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
+ 				CS35L34_X_STATE | CS35L34_X_LOC,
+ 				CS35L34_X_STATE | CS35L34_X_LOC);
+ 
+-	/* disconnect {vp,vbst}_mon routes: eanble later if set in tx_mask*/
++	/* disconnect {vp,vbst}_mon routes: enable later if set in tx_mask*/
+ 	while (slot >= 0) {
+ 		/* configure VMON_TX_LOC */
+ 		if (slot_num == 0)
+diff --git a/sound/soc/codecs/cs42l42.c b/sound/soc/codecs/cs42l42.c
+index 9e40c03ada4e..b5d69d5516a6 100644
+--- a/sound/soc/codecs/cs42l42.c
++++ b/sound/soc/codecs/cs42l42.c
+@@ -1682,7 +1682,7 @@ irqreturn_t cs42l42_irq_thread(int irq, void *data)
+ 	if (cs42l42->suspended || !cs42l42->init_done)
+ 		return IRQ_NONE;
+ 
+-	/* Read sticky registers to clear interurpt */
++	/* Read sticky registers to clear interrupt */
+ 	for (i = 0; i < ARRAY_SIZE(stickies); i++) {
+ 		regmap_read(cs42l42->regmap, irq_params_table[i].status_addr,
+ 				&(stickies[i]));
+diff --git a/sound/soc/codecs/cs42l73.c b/sound/soc/codecs/cs42l73.c
+index 72076ccf4570..72c4213ed74b 100644
+--- a/sound/soc/codecs/cs42l73.c
++++ b/sound/soc/codecs/cs42l73.c
+@@ -761,7 +761,7 @@ static const struct snd_soc_dapm_route cs42l73_audio_map[] = {
+ 	{"ASPOUTL", "ASP-IP Volume", "ASPL Output Mixer"},
+ 	{"ASPOUTR", "ASP-IP Volume", "ASPR Output Mixer"},
+ 
+-	/* Auxillary Capture */
++	/* Auxiliary Capture */
+ 	{"XSPL Output Mixer", NULL, "Input Left Capture"},
+ 	{"XSPR Output Mixer", NULL, "Input Right Capture"},
+ 
+@@ -1126,7 +1126,7 @@ static int cs42l73_set_bias_level(struct snd_soc_component *component,
+ 			mdelay(cs42l73->shutdwn_delay);
+ 			cs42l73->shutdwn_delay = 0;
+ 		} else {
+-			mdelay(15); /* Min amount of time requred to power
++			mdelay(15); /* Min amount of time required to power
+ 				     * down.
+ 				     */
+ 		}
+diff --git a/sound/soc/codecs/cx20442.c b/sound/soc/codecs/cx20442.c
+index 0dea84cd8ef2..d3c7a9370220 100644
+--- a/sound/soc/codecs/cx20442.c
++++ b/sound/soc/codecs/cx20442.c
+@@ -200,7 +200,7 @@ static int cx20442_write(struct snd_soc_component *component, unsigned int reg,
+  * Line discpline related code
+  *
+  * Any of the callback functions below can be used in two ways:
+- * 1) registerd by a machine driver as one of line discipline operations,
++ * 1) registered by a machine driver as one of line discipline operations,
+  * 2) called from a machine's provided line discipline callback function
+  *    in case when extra machine specific code must be run as well.
+  */
+diff --git a/sound/soc/codecs/da7210.c b/sound/soc/codecs/da7210.c
+index 597510de561a..40d759938edc 100644
+--- a/sound/soc/codecs/da7210.c
++++ b/sound/soc/codecs/da7210.c
+@@ -1158,7 +1158,7 @@ static int da7210_probe(struct snd_soc_component *component)
+ 	snd_soc_component_write(component, DA7210_PLL_DIV3, DA7210_MCLK_RANGE_10_20_MHZ |
+ 					      DA7210_PLL_BYP);
+ 
+-	/* Diable PLL and bypass it */
++	/* Disable PLL and bypass it */
+ 	snd_soc_component_write(component, DA7210_PLL, DA7210_PLL_FS_48000);
+ 
+ 	/* Activate all enabled subsystem */
+diff --git a/sound/soc/codecs/hdac_hda.c b/sound/soc/codecs/hdac_hda.c
+index 1c06fdbf0e71..7414be08d3d5 100644
+--- a/sound/soc/codecs/hdac_hda.c
++++ b/sound/soc/codecs/hdac_hda.c
+@@ -520,7 +520,7 @@ static int hdac_hda_codec_probe(struct snd_soc_component *component)
+ 	/*
+ 	 * hdac_device core already sets the state to active and calls
+ 	 * get_noresume. So enable runtime and set the device to suspend.
+-	 * pm_runtime_enable is also called during codec registeration
++	 * pm_runtime_enable is also called during codec registration
+ 	 */
+ 	pm_runtime_put(&hdev->dev);
+ 	pm_runtime_suspend(&hdev->dev);
+diff --git a/sound/soc/codecs/hdac_hdmi.c b/sound/soc/codecs/hdac_hdmi.c
+index d9e6fa6d3e99..b3f677e7ddc9 100644
+--- a/sound/soc/codecs/hdac_hdmi.c
++++ b/sound/soc/codecs/hdac_hdmi.c
+@@ -1753,7 +1753,7 @@ static int hdmi_codec_resume(struct device *dev)
+ 	/*
+ 	 * As the ELD notify callback request is not entertained while the
+ 	 * device is in suspend state. Need to manually check detection of
+-	 * all pins here. pin capablity change is not support, so use the
++	 * all pins here. pin capability change is not support, so use the
+ 	 * already set pin caps.
+ 	 *
+ 	 * NOTE: this is safe to call even if the codec doesn't actually resume.
+diff --git a/sound/soc/codecs/max98927.c b/sound/soc/codecs/max98927.c
+index d8dfaefdca7e..285c9d1ea721 100644
+--- a/sound/soc/codecs/max98927.c
++++ b/sound/soc/codecs/max98927.c
+@@ -672,7 +672,7 @@ static int max98927_probe(struct snd_soc_component *component)
+ 		     0x80);
+ 	regmap_write(max98927->regmap, MAX98927_R0026_PCM_TO_SPK_MONOMIX_B,
+ 		     0x1);
+-	/* Set inital volume (+13dB) */
++	/* Set initial volume (+13dB) */
+ 	regmap_write(max98927->regmap, MAX98927_R0036_AMP_VOL_CTRL, 0x38);
+ 	regmap_write(max98927->regmap, MAX98927_R003C_SPK_GAIN, 0x05);
+ 	/* Enable DC blocker */
+@@ -870,7 +870,7 @@ static int max98927_i2c_probe(struct i2c_client *i2c)
+ 	/* voltage/current slot configuration */
+ 	max98927_slot_config(i2c, max98927);
+ 
+-	/* codec registeration */
++	/* codec registration */
+ 	ret = devm_snd_soc_register_component(&i2c->dev,
+ 		&soc_component_dev_max98927,
+ 		max98927_dai, ARRAY_SIZE(max98927_dai));
+diff --git a/sound/soc/codecs/mt6359.c b/sound/soc/codecs/mt6359.c
+index b15bdb15dbb0..c51eae602ca0 100644
+--- a/sound/soc/codecs/mt6359.c
++++ b/sound/soc/codecs/mt6359.c
+@@ -82,7 +82,7 @@ static void mt6359_reset_capture_gpio(struct mt6359_priv *priv)
+ 			   0x3 << 0, 0x0);
+ }
+ 
+-/* use only when doing mtkaif calibraiton at the boot time */
++/* use only when doing mtkaif calibration at the boot time */
+ static void mt6359_set_dcxo(struct mt6359_priv *priv, bool enable)
+ {
+ 	regmap_update_bits(priv->regmap, MT6359_DCXO_CW12,
+@@ -90,7 +90,7 @@ static void mt6359_set_dcxo(struct mt6359_priv *priv, bool enable)
+ 			   (enable ? 1 : 0) << RG_XO_AUDIO_EN_M_SFT);
+ }
+ 
+-/* use only when doing mtkaif calibraiton at the boot time */
++/* use only when doing mtkaif calibration at the boot time */
+ static void mt6359_set_clksq(struct mt6359_priv *priv, bool enable)
+ {
+ 	/* Enable/disable CLKSQ 26MHz */
+@@ -99,7 +99,7 @@ static void mt6359_set_clksq(struct mt6359_priv *priv, bool enable)
+ 			   (enable ? 1 : 0) << RG_CLKSQ_EN_SFT);
+ }
+ 
+-/* use only when doing mtkaif calibraiton at the boot time */
++/* use only when doing mtkaif calibration at the boot time */
+ static void mt6359_set_aud_global_bias(struct mt6359_priv *priv, bool enable)
+ {
+ 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON13,
+@@ -107,7 +107,7 @@ static void mt6359_set_aud_global_bias(struct mt6359_priv *priv, bool enable)
+ 			   (enable ? 0 : 1) << RG_AUDGLB_PWRDN_VA32_SFT);
+ }
+ 
+-/* use only when doing mtkaif calibraiton at the boot time */
++/* use only when doing mtkaif calibration at the boot time */
+ static void mt6359_set_topck(struct mt6359_priv *priv, bool enable)
+ {
+ 	regmap_update_bits(priv->regmap, MT6359_AUD_TOP_CKPDN_CON0,
+diff --git a/sound/soc/codecs/nau8825.c b/sound/soc/codecs/nau8825.c
+index 5165aeba4b67..2eb0efc983a0 100644
+--- a/sound/soc/codecs/nau8825.c
++++ b/sound/soc/codecs/nau8825.c
+@@ -345,10 +345,10 @@ static u32 nau8825_intlog10_dec3(u32 value)
+ /**
+  * nau8825_xtalk_sidetone - computes cross talk suppression sidetone gain.
+  *
+- * @sig_org: orignal signal level
++ * @sig_org: original signal level
+  * @sig_cros: cross talk signal level
+  *
+- * The orignal and cross talk signal vlues need to be characterized.
++ * The original and cross talk signal vlues need to be characterized.
+  * Once these values have been characterized, this sidetone value
+  * can be converted to decibel with the equation below.
+  * sidetone = 20 * log (original signal level / crosstalk signal level)
+@@ -671,11 +671,11 @@ static void nau8825_xtalk_imm_stop(struct nau8825 *nau8825)
+  * Thus, the measurement function has four states to complete whole sequence.
+  * 1. Prepare state : Prepare the resource for detection and transfer to HPR
+  *     IMM stat to make JKR1(HPR) impedance measure.
+- * 2. HPR IMM state : Read out orignal signal level of JKR1(HPR) and transfer
++ * 2. HPR IMM state : Read out original signal level of JKR1(HPR) and transfer
+  *     to HPL IMM state to make JKTIP(HPL) impedance measure.
+  * 3. HPL IMM state : Read out cross talk signal level of JKTIP(HPL) and
+  *     transfer to IMM state to determine suppression sidetone gain.
+- * 4. IMM state : Computes cross talk suppression sidetone gain with orignal
++ * 4. IMM state : Computes cross talk suppression sidetone gain with original
+  *     and cross talk signal level. Apply this gain and then restore codec
+  *     configuration. Then transfer to Done state for ending.
+  */
+@@ -724,7 +724,7 @@ static void nau8825_xtalk_measure(struct nau8825 *nau8825)
+ 		nau8825->xtalk_state = NAU8825_XTALK_IMM;
+ 		break;
+ 	case NAU8825_XTALK_IMM:
+-		/* In impedance measure state, the orignal and cross talk
++		/* In impedance measure state, the original and cross talk
+ 		 * signal level vlues are ready. The side tone gain is deter-
+ 		 * mined with these signal level. After all, restore codec
+ 		 * configuration.
+diff --git a/sound/soc/codecs/rt1320-sdw.c b/sound/soc/codecs/rt1320-sdw.c
+index 444a91755be9..b13622e54ae0 100644
+--- a/sound/soc/codecs/rt1320-sdw.c
++++ b/sound/soc/codecs/rt1320-sdw.c
+@@ -2084,7 +2084,7 @@ static int rt1320_rae_load(struct rt1320_sdw_priv *rt1320)
+ 		regmap_update_bits(rt1320->regmap, 0x20005818, 0x80, 0x80);
+ 		/* RAE run */
+ 		regmap_update_bits(rt1320->regmap, 0x2000301c, 0x01, 0x01);
+-		/* Phase sync eanble */
++		/* Phase sync enable */
+ 		regmap_update_bits(rt1320->regmap, 0xc047, 0x80, 0x80);
+ 		break;
+ 	}
+diff --git a/sound/soc/codecs/rt5631.h b/sound/soc/codecs/rt5631.h
+index 8a6b99a48c7c..00734207ac9f 100644
+--- a/sound/soc/codecs/rt5631.h
++++ b/sound/soc/codecs/rt5631.h
+@@ -415,7 +415,7 @@
+ #define RT5631_ADDA_FILTER_CLK_SEL_256FS		(0 << 7) /* 256FS */
+ #define RT5631_ADDA_FILTER_CLK_SEL_384FS		(1 << 7) /* 384FS */
+ 
+-/* Power managment addition 1 (0x3A) */
++/* Power management addition 1 (0x3A) */
+ #define RT5631_PWR_MAIN_I2S_EN			(0x1 << 15)
+ #define RT5631_PWR_MAIN_I2S_BIT			15
+ #define RT5631_PWR_CLASS_D				(0x1 << 12)
+@@ -435,7 +435,7 @@
+ #define RT5631_PWR_DAC_R_TO_MIXER			(0x1 << 5)
+ #define RT5631_PWR_DAC_R_TO_MIXER_BIT		5
+ 
+-/* Power managment addition 2 (0x3B) */
++/* Power management addition 2 (0x3B) */
+ #define RT5631_PWR_OUTMIXER_L				(0x1 << 15)
+ #define RT5631_PWR_OUTMIXER_L_BIT			15
+ #define RT5631_PWR_OUTMIXER_R				(0x1 << 14)
+@@ -461,7 +461,7 @@
+ #define RT5631_PWR_PLL2				(0x1 << 0)
+ #define RT5631_PWR_PLL2_BIT				0
+ 
+-/* Power managment addition 3(0x3C) */
++/* Power management addition 3(0x3C) */
+ #define RT5631_PWR_VREF				(0x1 << 15)
+ #define RT5631_PWR_VREF_BIT				15
+ #define RT5631_PWR_FAST_VREF_CTRL			(0x1 << 14)
+@@ -489,7 +489,7 @@
+ #define RT5631_PWR_HP_AMP_DRIVING			(0x1 << 0)
+ #define RT5631_PWR_HP_AMP_DRIVING_BIT		0
+ 
+-/* Power managment addition 4(0x3E) */
++/* Power management addition 4(0x3E) */
+ #define RT5631_PWR_SPK_L_VOL				(0x1 << 15)
+ #define RT5631_PWR_SPK_L_VOL_BIT			15
+ #define RT5631_PWR_SPK_R_VOL				(0x1 << 14)
+diff --git a/sound/soc/codecs/rt5640.c b/sound/soc/codecs/rt5640.c
+index 4fa1eee8e87f..03d0ac3359f5 100644
+--- a/sound/soc/codecs/rt5640.c
++++ b/sound/soc/codecs/rt5640.c
+@@ -1216,7 +1216,7 @@ static const struct snd_soc_dapm_widget rt5640_dapm_widgets[] = {
+ 		0, rt5640_spk_l_mix, ARRAY_SIZE(rt5640_spk_l_mix)),
+ 	SND_SOC_DAPM_MIXER("SPK MIXR", RT5640_PWR_MIXER, RT5640_PWR_SM_R_BIT,
+ 		0, rt5640_spk_r_mix, ARRAY_SIZE(rt5640_spk_r_mix)),
+-	/* Ouput Volume */
++	/* Output Volume */
+ 	SND_SOC_DAPM_PGA("SPKVOL L", RT5640_PWR_VOL,
+ 		RT5640_PWR_SV_L_BIT, 0, NULL, 0),
+ 	SND_SOC_DAPM_PGA("SPKVOL R", RT5640_PWR_VOL,
+diff --git a/sound/soc/codecs/rt5645.c b/sound/soc/codecs/rt5645.c
+index bf9f278c3de9..bb448254275f 100644
+--- a/sound/soc/codecs/rt5645.c
++++ b/sound/soc/codecs/rt5645.c
+@@ -2209,7 +2209,7 @@ static const struct snd_soc_dapm_widget rt5645_dapm_widgets[] = {
+ 		0, rt5645_out_l_mix, ARRAY_SIZE(rt5645_out_l_mix)),
+ 	SND_SOC_DAPM_MIXER("OUT MIXR", RT5645_PWR_MIXER, RT5645_PWR_OM_R_BIT,
+ 		0, rt5645_out_r_mix, ARRAY_SIZE(rt5645_out_r_mix)),
+-	/* Ouput Volume */
++	/* Output Volume */
+ 	SND_SOC_DAPM_SWITCH("SPKVOL L", RT5645_PWR_VOL, RT5645_PWR_SV_L_BIT, 0,
+ 		&spk_l_vol_control),
+ 	SND_SOC_DAPM_SWITCH("SPKVOL R", RT5645_PWR_VOL, RT5645_PWR_SV_R_BIT, 0,
+diff --git a/sound/soc/codecs/rt5651.c b/sound/soc/codecs/rt5651.c
+index 9723b4c7540c..b911757376f5 100644
+--- a/sound/soc/codecs/rt5651.c
++++ b/sound/soc/codecs/rt5651.c
+@@ -1024,7 +1024,7 @@ static const struct snd_soc_dapm_widget rt5651_dapm_widgets[] = {
+ 			   0, rt5651_out_l_mix, ARRAY_SIZE(rt5651_out_l_mix)),
+ 	SND_SOC_DAPM_MIXER("OUT MIXR", RT5651_PWR_MIXER, RT5651_PWR_OM_R_BIT,
+ 			   0, rt5651_out_r_mix, ARRAY_SIZE(rt5651_out_r_mix)),
+-	/* Ouput Volume */
++	/* Output Volume */
+ 	SND_SOC_DAPM_SWITCH("OUTVOL L", RT5651_PWR_VOL,
+ 			    RT5651_PWR_OV_L_BIT, 0, &outvol_l_control),
+ 	SND_SOC_DAPM_SWITCH("OUTVOL R", RT5651_PWR_VOL,
+diff --git a/sound/soc/codecs/rt5670.c b/sound/soc/codecs/rt5670.c
+index f772f093479a..62d4e7cea5af 100644
+--- a/sound/soc/codecs/rt5670.c
++++ b/sound/soc/codecs/rt5670.c
+@@ -1901,7 +1901,7 @@ static const struct snd_soc_dapm_widget rt5670_dapm_widgets[] = {
+ 			   0, rt5670_out_l_mix, ARRAY_SIZE(rt5670_out_l_mix)),
+ 	SND_SOC_DAPM_MIXER("OUT MIXR", RT5670_PWR_MIXER, RT5670_PWR_OM_R_BIT,
+ 			   0, rt5670_out_r_mix, ARRAY_SIZE(rt5670_out_r_mix)),
+-	/* Ouput Volume */
++	/* Output Volume */
+ 	SND_SOC_DAPM_MIXER("HPOVOL MIXL", RT5670_PWR_VOL,
+ 			   RT5670_PWR_HV_L_BIT, 0,
+ 			   rt5670_hpvoll_mix, ARRAY_SIZE(rt5670_hpvoll_mix)),
+diff --git a/sound/soc/codecs/tlv320dac33.c b/sound/soc/codecs/tlv320dac33.c
+index 55a95b62a650..b91ab42882d1 100644
+--- a/sound/soc/codecs/tlv320dac33.c
++++ b/sound/soc/codecs/tlv320dac33.c
+@@ -914,7 +914,7 @@ static int dac33_prepare_chip(struct snd_pcm_substream *substream,
+ 	/* OSC calibration time */
+ 	dac33_write(component, DAC33_CALIB_TIME, 96);
+ 
+-	/* adjustment treshold & step */
++	/* adjustment threshold & step */
+ 	dac33_write(component, DAC33_INT_OSC_CTRL_B, DAC33_ADJTHRSHLD(2) |
+ 						 DAC33_ADJSTEP(1));
+ 
+diff --git a/sound/soc/intel/atom/sst-mfld-dsp.h b/sound/soc/intel/atom/sst-mfld-dsp.h
+index c8f0816edb53..59606259a06e 100644
+--- a/sound/soc/intel/atom/sst-mfld-dsp.h
++++ b/sound/soc/intel/atom/sst-mfld-dsp.h
+@@ -189,7 +189,7 @@ struct ipc_dsp_hdr {
+ union ipc_header_high {
+ 	struct {
+ 		u32  msg_id:8;	    /* Message ID - Max 256 Message Types */
+-		u32  task_id:4;	    /* Task ID associated with this comand */
++		u32  task_id:4;	    /* Task ID associated with this command */
+ 		u32  drv_id:4;    /* Identifier for the driver to track*/
+ 		u32  rsvd1:8;	    /* Reserved */
+ 		u32  result:4;	    /* Reserved */
+diff --git a/sound/soc/intel/atom/sst/sst.h b/sound/soc/intel/atom/sst/sst.h
+index c43946c5ecee..e24d9dad7ef6 100644
+--- a/sound/soc/intel/atom/sst/sst.h
++++ b/sound/soc/intel/atom/sst/sst.h
+@@ -182,7 +182,7 @@ struct sst_block {
+  * @pcm_substream : PCM substream
+  * @period_elapsed : PCM period elapsed callback
+  * @sfreq : stream sampling freq
+- * @cumm_bytes : cummulative bytes decoded
++ * @cumm_bytes : cumulative bytes decoded
+  */
+ struct stream_info {
+ 	unsigned int		status;
+diff --git a/sound/soc/intel/boards/sof_cirrus_common.c b/sound/soc/intel/boards/sof_cirrus_common.c
+index 88fc6cb2bfd4..ec4bda40ae00 100644
+--- a/sound/soc/intel/boards/sof_cirrus_common.c
++++ b/sound/soc/intel/boards/sof_cirrus_common.c
+@@ -151,7 +151,7 @@ static const char * const cs35l41_name_prefixes[] = { "WL", "WR", "TL", "TR" };
+  * UID 0x2 -> TL
+  * UID 0x3 -> TR
+  * Note: If there are less than 4 Amps, UIDs still map to WL/WR/TL/TR. Dynamic code will only create
+- * dai links for UIDs which exist, and ignore non-existant ones. Only 2 or 4 amps are expected.
++ * dai links for UIDs which exist, and ignore non-existent ones. Only 2 or 4 amps are expected.
+  * Return number of codecs found.
+  */
+ static int cs35l41_compute_codec_conf(void)
+diff --git a/sound/soc/qcom/qdsp6/q6asm-dai.c b/sound/soc/qcom/qdsp6/q6asm-dai.c
+index 4f09fdd40905..cd4f82bb8cc7 100644
+--- a/sound/soc/qcom/qdsp6/q6asm-dai.c
++++ b/sound/soc/qcom/qdsp6/q6asm-dai.c
+@@ -551,7 +551,7 @@ static void compress_event_handler(uint32_t opcode, uint32_t token,
+ 						 prtd->stream_id,
+ 						 CMD_CLOSE);
+ 				/*
+-				 * vaild stream ids start from 1, So we are
++				 * valid stream ids start from 1, So we are
+ 				 * toggling this between 1 and 2.
+ 				 */
+ 				prtd->stream_id = (prtd->stream_id == 1 ? 2 : 1);
+diff --git a/sound/soc/ti/davinci-i2s.c b/sound/soc/ti/davinci-i2s.c
+index ec7eb2f19b6f..3614f614117d 100644
+--- a/sound/soc/ti/davinci-i2s.c
++++ b/sound/soc/ti/davinci-i2s.c
+@@ -49,7 +49,7 @@
+  *    incompatible with ASP and with either McBSP.
+  *
+  * In short:  this uses ASP to implement I2S, not McBSP.
+- * And it won't be the only DaVinci implemention of I2S.
++ * And it won't be the only DaVinci implementation of I2S.
+  */
+ #define DAVINCI_MCBSP_DRR_REG	0x00
+ #define DAVINCI_MCBSP_DXR_REG	0x04
+diff --git a/sound/soc/ti/davinci-mcasp.c b/sound/soc/ti/davinci-mcasp.c
+index ad9e194a3d0d..d461ab419655 100644
+--- a/sound/soc/ti/davinci-mcasp.c
++++ b/sound/soc/ti/davinci-mcasp.c
+@@ -1818,7 +1818,7 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
+ 	    !mcasp->async_mode)
+ 		max_channels = mcasp->channels;
+ 	/*
+-	 * But we can always allow channels upto the amount of
++	 * But we can always allow channels up to the amount of
+ 	 * the available tdm_slots.
+ 	 */
+ 	if (max_channels < tdm_slots)
+diff --git a/sound/soc/ti/omap-mcbsp.c b/sound/soc/ti/omap-mcbsp.c
+index 5734388a4e4b..889e357b64d0 100644
+--- a/sound/soc/ti/omap-mcbsp.c
++++ b/sound/soc/ti/omap-mcbsp.c
+@@ -1237,7 +1237,7 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
+ 		break;
+ 	case OMAP_MCBSP_SYSCLK_CLKR_EXT:
+ 		regs->pcr0	|= SCLKME;
+-		/* Disable ouput on CLKR pin in master mode */
++		/* Disable output on CLKR pin in master mode */
+ 		regs->pcr0	&= ~CLKRM;
+ 		break;
+ 	default:
+diff --git a/sound/soc/uniphier/aio.h b/sound/soc/uniphier/aio.h
+index 1900ea01ce3d..87b27256cf80 100644
+--- a/sound/soc/uniphier/aio.h
++++ b/sound/soc/uniphier/aio.h
+@@ -183,7 +183,7 @@ struct uniphier_aio_selector {
+  *
+  * These are examples for sound data paths:
+  *
+- * For caputure device:
++ * For capture device:
+  *   (outer of AIO) -> iport -> iif -> ch -> rb -> (CPU)
+  * For playback device:
+  *   (CPU) -> rb -> ch -> oif -> oport -> (outer of AIO)
+diff --git a/sound/soc/ux500/ux500_msp_i2s.c b/sound/soc/ux500/ux500_msp_i2s.c
+index 683b485fb570..bd2cfc618290 100644
+--- a/sound/soc/ux500/ux500_msp_i2s.c
++++ b/sound/soc/ux500/ux500_msp_i2s.c
+@@ -19,7 +19,7 @@
+ 
+ #include "ux500_msp_i2s.h"
+ 
+- /* Protocol desciptors */
++ /* Protocol descriptors */
+ static const struct msp_protdesc prot_descs[] = {
+ 	{ /* I2S */
+ 		MSP_SINGLE_PHASE,
+-- 
+2.48.1
 
