@@ -1,245 +1,145 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr2-f28.google.com (mail-wr2-f28.google.com [74.125.225.92])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66EE22C11FA;
-	Wed, 16 Sep 2026 02:00:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A2F549550B
+	for <linux-omap@vger.kernel.org>; Wed, 16 Sep 2026 09:02:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789524019; cv=none; b=Dd5Bn6qZcsqcWwy7jJkMyd2rkpEtdVE2MvhtPZ+a9DDlVMHNhUg5ySyWKyCUSArV7utecxnSBRrC006p9pgfHSNyLo3S7z/NtOkM43M8gYd3+SocBFDlMI2mOoWNP5uIBaStUBxC3XEBTXO7uGK9SzjBst+W0fm1vuBhcHZw9gU=
+	t=1789549357; cv=none; b=Adm3p8tjj9DOUE8lnX0TuuMbp1oJDulOFUuLEKYeeMWtR58ndY0WEmNIDiQVCdFwCszt1za5PxnNk8S6QS1tFSS0JOu2rhUlf9DagZoHkV9RMDiS/IRSuliVrtqX9oLiW4f4nTTux/x86Xhd72LAXTroxWHnyu3zQu1eg3i7Ito=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789524019; c=relaxed/simple;
-	bh=4x1THk5tPNpQ0A2XPcYG+HK3rFk92doOKEFtYCFceHY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oko+KlQNqoxwrW+r+AfF8F4f9ehxt5p3SFJrDHG7vwZtl5u8/k5FYJGBmdbdS/8LbJkSXxdD/ZBxN6YgM0r4LxQt0vL/fy/3VOTPvHLZBjUHhfErNP1wZFmXxz4KGk7ndEZjBJic1Cssr+t6ZkPuCGZLiGJoUjgU09ZS2Tb2Iro=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=g7Gmenyv; arc=none smtp.client-ip=117.135.210.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1789549357; c=relaxed/simple;
+	bh=u3prVhhjxauBWG8qfoe+eEDvbRKE6KXSyVNyWaZNvTE=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Subject:From:To:Cc:
+	 References:In-Reply-To; b=JpWyVtPULyuN0hIrlVsoa0LTkYM+fkdaLTzECvJPVLtbNhGC8Ho4wzvhMiDKu1o6B+oUy3DiEIys5TrEGS88sgKMHv7ubThxeXFMmUQYWjrhxZqtMZxttEqj5sO+GHWPSR080b0ngjuj+vi5p40tYQ165bkFqPiD0NAjP7e6Fbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=aHkH1iZO; arc=none smtp.client-ip=74.125.225.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="g7Gmenyv"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=g2
-	CtAMhynmn6DHBR9QDKyNlir7XDVSvCEJcX3emHNPE=; b=g7GmenyvS2UUbanMXu
-	bmSSt5Hqi6TR+v4fch48ihZJmLt2QPzOceJBSR1ZJgK6NIaRi1RNPPeDUCLmfb4V
-	OANbDtOkhmf1L2SZ/Gje2zEWCj3Bfn8u89+Bv4RAMf62RBzaM+ssEJyDlpyF0JjI
-	23kP71Ar3K5ILV36G34TEUDRA=
-Received: from chaosheng-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.lan (unknown [])
-	by gzga-smtp-mtada-g0-3 (Coremail) with SMTP id _____wCHlXrK96lqbYrfAw--.61328S2;
-	Wed, 16 Sep 2026 09:58:36 +0800 (CST)
-From: Quchaosheng <quchaosheng000406@163.com>
-To: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	David Airlie <airlied@gmail.com>,
-	Simona Vetter <simona@ffwll.ch>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>
-Cc: dri-devel@lists.freedesktop.org,
-	devicetree@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	quchaosheng000406@163.com
-Subject: [PATCH v2 1/2] dt-bindings: display: ti,tpd12s015: Convert to DT schema
-Date: Wed, 16 Sep 2026 09:58:32 +0800
-Message-ID: <20260916015833.112753-1-quchaosheng000406@163.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260915120327.47114-1-quchaosheng000406@163.com>
-References: <20260915120327.47114-1-quchaosheng000406@163.com>
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="aHkH1iZO"
+Received: by mail-wr2-f28.google.com with SMTP id ffacd0b85a97d-485b1d2874aso448143f8f.1
+        for <linux-omap@vger.kernel.org>; Wed, 16 Sep 2026 02:02:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre.com; s=google; t=1789549341; x=1790154141; darn=vger.kernel.org;
+        h=in-reply-to:references:cc:to:from:subject:message-id:date
+         :content-type:mime-version:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=u3prVhhjxauBWG8qfoe+eEDvbRKE6KXSyVNyWaZNvTE=;
+        b=aHkH1iZOGRzkkq0iecytn4Efv2nGG3tqbIf3paCTHb89k9+yfRp7Zqac0vPqgUuNr0
+         5PwjwSwbN+1t7eA/c7mZr7FKJjO+QkFM5+nKL8YTC5J0rSbLTFj0UlOFzCfkh/7eMgUl
+         jEfiSSf7SJtMT+ZN7OBwQksbHk5TzvUtMEAwn9sF6aQqAYIyB6jvq6WSrsb9tOY64NPy
+         /qxldqN6ryLilI4EZFE31XZf3qr2VQ++nlRvZHMz5ix5/BAboTjdLj3deyk6XhdQzT/K
+         zm1RZ1wAfQzyOVjb0PDkqk3ORcv8LLMhfIuj3RYeHArtmyLd+HfwfG0uFH9Yy4J5iP32
+         I0Hg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789549341; x=1790154141;
+        h=in-reply-to:references:cc:to:from:subject:message-id:date
+         :content-type:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=u3prVhhjxauBWG8qfoe+eEDvbRKE6KXSyVNyWaZNvTE=;
+        b=TUqxAc7VKEsHaL5gCWeqn+cvOl+H8bL4lkqomkKihWzKbuJUeIXzWQ61MOvOfHd9hD
+         4uAjOLDVO0n+OzvueGtjl53Cf4LyMORjXolqMLyD1C4KJ3+gC3Um4IVWSG/1jZFZp9nu
+         7GTjbIzadffUdjHa962ovi7zGUgBSEozs8jCu9dP4dv9ZCZWsUXNyTwQujs9DFPuWFEo
+         3IcmHgcynVWqfg3SBhpZh6sLF1XeJx/jsNsApF2WOyswE1Gy7ZaCPNbK/dAqnYd3qBZi
+         LsXRxPTrqnne3l8xx1OMxonjLZDgZcKqAS310vCN9wKdSjoj7JtWOC0tkoHuVvB0ga69
+         vIyg==
+X-Forwarded-Encrypted: i=1; AKwUvByaapHp+fxhp5TQjDpx03XaxKV3hmjWKXsbiK+PUfHvEiBrt5IPfpvnNbsqEih7CSk/7+6UZb+gBMMw@vger.kernel.org
+X-Gm-Message-State: AFuF++lRlQ74bu+ZK5psouvHIWG5X1hNIdoO8ohEpzJSDBaiayjaxk9q
+	PrI0EinysBInFG2lPFLY3rVQZqCKkR+7qgXCkUoBzMshaGi/EpkPaNpvtlWdoP0JZoE=
+X-Gm-Gg: AYBFou0fs7fNi7bIkVKpfzFhEb3RBgk6cwxmXaGZWSo4bhVohBlp47OSxA9K7LZsu4D
+	zqJ8F9yyTdQOx5KRJI/nLgPrJNDa+GLYAAftDMQxcXp3zIN2sUqOOBHDBTdpqbtqKxVgWm+BBIa
+	Up84+AUnIPDmDe3SH3ElQrWDZ/4S71nK5GLEoC+or2XdkD0c0uV6jNG2/pLBdI9NSPUHAG6oI8+
+	Q77u5udW4jFXnfhPTlu9qYGkxsJNUZ7Pibv0gxTELGdkGdK4a4yAuEQlglEhkO/l7Qf3vw8KOlQ
+	rK8uMpgqrh/Rd5FRxHFuB22g7AyfRYLKyIHYw9oXK/zPSvivdR1ANIK6tIISdXZ1ca/Fj7JZMWc
+	Z5MmA+udkyZzwuPYwg5bvTKTHxnqG+RYBY81ooCv7i1oBKJxQ8u/PIhr2Z4pBb3/iyIdd4XwF5v
+	TwM9+hauV63XYDR5d2h+mO8foKD+yAQckWXyqZE5agD2egdhPiPJ6WYLfFN7sENLaO3g==
+X-Received: by 2002:a05:6000:40cc:b0:487:403:f2eb with SMTP id ffacd0b85a97d-4870d0452d3mr4199288f8f.17.1789549341185;
+        Wed, 16 Sep 2026 02:02:21 -0700 (PDT)
+Received: from localhost ([2001:4091:a245:8029:665d:b7b:5fa4:7ad0])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4870bf33e01sm6702324f8f.23.2026.09.16.02.02.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 16 Sep 2026 02:02:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wCHlXrK96lqbYrfAw--.61328S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxGw1fGryrGr4DAr4Utw4xWFg_yoW7Jw4rpF
-	n5Gas7CFy8WFyaqw4xAF1kCa1rAFWkAr40kF1xXFy5AF40qF40yF13Krn8XFy5CFyfZay2
-	qF47Ww17Krn7C3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pE-eOtUUUUU=
-X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbC4ww2q2qp98w6gQAA3x
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+ boundary=0a03f14af8c74b8b8ae71ef6964c726a8430f5297d9c30f5afc655f5a6b4;
+ micalg=pgp-sha512; protocol="application/pgp-signature"
+Date: Wed, 16 Sep 2026 11:02:15 +0200
+Message-Id: <DLGMAND8UBI6.394OZTY3JSLDX@baylibre.com>
+Subject: Re: [PATCH] clocksource/drivers/timer-ti-dm: Register
+ clocksource/event only for am654
+From: "Markus Schneider-Pargmann" <msp@baylibre.com>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, "Markus Schneider-Pargmann
+ (TI)" <msp@baylibre.com>
+Cc: "Andreas Kemnade" <andreas@kemnade.info>, "Daniel Lezcano"
+ <daniel.lezcano@kernel.org>, "Thomas Gleixner" <tglx@kernel.org>,
+ <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+ <linux-omap@vger.kernel.org>, <letux-kernel@openphoenux.org>
+X-Mailer: aerc 0.21.0-146-gb5c16ebe1835
+References: <20260828-v7-3-next-topic-ti-timer-dm-clocksource-omap-fix-v1-1-85f0e4dc6f9f@baylibre.com> <20260828230445.3c2510b9@kemnade.info> <E27F05E3-DE4F-4C77-95E3-1701B3410E93@goldelico.com>
+In-Reply-To: <E27F05E3-DE4F-4C77-95E3-1701B3410E93@goldelico.com>
 
-Convert the TPD12S015 HDMI level shifter binding to DT schema.
+--0a03f14af8c74b8b8ae71ef6964c726a8430f5297d9c30f5afc655f5a6b4
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
 
-The TI TPD12S015 is an HDMI companion chip that combines a level shifter
-and ESD protection circuitry. Document the two ports it exposes between
-the HDMI transmitter and the connector.
+On Sat Aug 29, 2026 at 9:23 AM CEST, H. Nikolaus Schaller wrote:
+>
+>> Am 28.08.2026 um 23:04 schrieb Andreas Kemnade <andreas@kemnade.info>:
+>>=20
+>> On Fri, 28 Aug 2026 20:47:45 +0200
+>> "Markus Schneider-Pargmann (TI)" <msp@baylibre.com> wrote:
+>>=20
+>>> Registering clocksource/clockevent for the older platforms breaks
+>>> booting them. The older platforms have their own implementation in earl=
+y
+>>> boot that is used to register clocksource/clockevent in
+>>> timer-ti-dm-systimer.c.
+>>>=20
+>>> With am654, the timer is much more complex with more dependencies so
+>>> doing this in early boot with the other driver is very difficult and
+>>> gets ugly. Instead it is implemented in the platform driver for am654.
+>>> However the old platforms may not register clocksource/clockevent in
+>>> this driver as that would break the boot.
+>>>=20
+>>> Add a system_timer_capable flag that is only set for am654-timer that
+>>> gates the clocksource/clockevent registration.
+>>>=20
+>>> Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
+>>> Closes: https://lore.kernel.org/r/2013A99A-0502-4128-ACFA-B04886224393@=
+goldelico.com
+>>> Fixes: b8eeeca55456 ("clocksource/drivers/timer-ti-dm: Add clocksource =
+support")
+>>> Signed-off-by: Markus Schneider-Pargmann (TI) <msp@baylibre.com>
+>>=20
+>> Tested-by: Andreas Kemnade <andreas@kemnade.info> # OMAP3 GTA04
+>
+> Tested-by: H. Nikolaus Schaller <hns@goldelico.com> # OMAP3 OpenPandora
+>
+> BR and thanks,
+> Nikolaus
+>
+> PS: I would suggest that patches for omap-dm-timer are also routed to lin=
+ux-omap@vger.kernel.org
 
-The tpd12s016 is software compatible with the tpd12s015 and is listed as a
-fallback compatible by am57xx-idk-common.dtsi, so accept it as a fallback
-of "ti,tpd12s015". The driver matches on "ti,tpd12s015" only, so a board
-using the tpd12s016 must list both compatibles.
+I agree, it should be added to the MAINTAINERS file.
 
-The gpios property takes the three CT CP HPD, LS OE and HPD GPIOs the
-driver obtains through devm_gpiod_get_index().
+Best
+Markus
 
-Signed-off-by: Quchaosheng <quchaosheng000406@163.com>
----
-v2:
- - gpios: drop the five-entry variant. The driver obtains three GPIOs
-   through devm_gpiod_get_index() (indices 0, 1 and 2) and never reads a
-   fourth or fifth, and no in-tree board passes more than three. Limit the
-   property to three entries to match.
- - Reword the description: the TPD12S016 can only be used as a fallback of
-   "ti,tpd12s015", because the driver matches on "ti,tpd12s015" alone.
- .../bindings/display/ti/ti,tpd12s015.txt      | 44 ---------
- .../bindings/display/ti/ti,tpd12s015.yaml     | 91 +++++++++++++++++++
- 2 files changed, 91 insertions(+), 44 deletions(-)
- delete mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt
- create mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml
+--0a03f14af8c74b8b8ae71ef6964c726a8430f5297d9c30f5afc655f5a6b4
+Content-Type: application/pgp-signature; name="signature.asc"
 
-diff --git a/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt b/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt
-deleted file mode 100644
-index 26e6d32e3..000000000
---- a/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt
-+++ /dev/null
-@@ -1,44 +0,0 @@
--TPD12S015 HDMI level shifter and ESD protection chip
--====================================================
--
--Required properties:
--- compatible: "ti,tpd12s015"
--
--Optional properties:
--- gpios: CT CP HPD, LS OE and HPD gpios
--
--Required nodes:
--- Video port 0 for HDMI input
--- Video port 1 for HDMI output
--
--Example
---------
--
--tpd12s015: encoder@1 {
--	compatible = "ti,tpd12s015";
--
--	gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>,	/* 60, CT CP HPD */
--		<&gpio2 9 GPIO_ACTIVE_HIGH>,	/* 41, LS OE */
--		<&gpio2 31 GPIO_ACTIVE_HIGH>;	/* 63, HPD */
--
--	ports {
--		#address-cells = <1>;
--		#size-cells = <0>;
--
--		port@0 {
--			reg = <0>;
--
--			tpd12s015_in: endpoint@0 {
--				remote-endpoint = <&hdmi_out>;
--			};
--		};
--
--		port@1 {
--			reg = <1>;
--
--			tpd12s015_out: endpoint@0 {
--				remote-endpoint = <&hdmi_connector_in>;
--			};
--		};
--	};
--};
-diff --git a/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml b/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml
-new file mode 100644
-index 000000000..96b44bd66
---- /dev/null
-+++ b/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml
-@@ -0,0 +1,91 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/display/ti/ti,tpd12s015.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: TI TPD12S015 HDMI level shifter and ESD protection chip
-+
-+maintainers:
-+  - Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-+
-+description: |
-+  The TPD12S015 is an HDMI companion chip that combines a level shifter and
-+  ESD protection circuitry. It sits between an HDMI transmitter and the HDMI
-+  connector, and provides control over the level shifter enable and the
-+  hot-plug detect signals.
-+
-+properties:
-+  compatible:
-+    oneOf:
-+      - const: ti,tpd12s015
-+      - items:
-+          - const: ti,tpd12s016
-+          - const: ti,tpd12s015
-+
-+  gpios:
-+    description:
-+      The CT CP HPD, LS OE and HPD GPIOs, in that order. The first controls
-+      the level shifter, the second enables the level shifter outputs and
-+      the third reads the hot-plug detect line.
-+    minItems: 3
-+    maxItems: 3
-+
-+  ports:
-+    $ref: /schemas/graph.yaml#/properties/ports
-+
-+    properties:
-+      port@0:
-+        $ref: /schemas/graph.yaml#/$defs/port-base
-+        unevaluatedProperties: false
-+        description: HDMI input from the transmitter.
-+
-+      port@1:
-+        $ref: /schemas/graph.yaml#/$defs/port-base
-+        unevaluatedProperties: false
-+        description: HDMI output to the connector.
-+
-+    required:
-+      - port@0
-+      - port@1
-+
-+required:
-+  - compatible
-+  - ports
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    #include <dt-bindings/gpio/gpio.h>
-+
-+    encoder1 {
-+        compatible = "ti,tpd12s015";
-+
-+        gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>,    /* 60, CT CP HPD */
-+                <&gpio2 9 GPIO_ACTIVE_HIGH>,    /* 41, LS OE */
-+                <&gpio2 31 GPIO_ACTIVE_HIGH>;    /* 63, HPD */
-+
-+        ports {
-+            #address-cells = <1>;
-+            #size-cells = <0>;
-+
-+            port@0 {
-+                reg = <0>;
-+
-+                tpd12s015_in: endpoint {
-+                    remote-endpoint = <&hdmi_out>;
-+                };
-+            };
-+
-+            port@1 {
-+                reg = <1>;
-+
-+                tpd12s015_out: endpoint {
-+                    remote-endpoint = <&hdmi_connector_in>;
-+                };
-+            };
-+        };
-+    };
-+
-+...
--- 
-2.43.0
+-----BEGIN PGP SIGNATURE-----
 
+iKMEABYKAEsWIQSJYVVm/x+5xmOiprOFwVZpkBVKUwUCaqpbFxsUgAAAAAAEAA5t
+YW51MiwyLjUrMS4xMiwyLDIRHG1zcEBiYXlsaWJyZS5jb20ACgkQhcFWaZAVSlOC
+6AEAy1JS2SlpxrlOQuQLSOsZO+CBah23b1Dff4+ir0VdUhYBAOU9suaTsiifYV/k
+vBrj8QHXWS0SbgbXDKjzES1Abp0O
+=kqWV
+-----END PGP SIGNATURE-----
+
+--0a03f14af8c74b8b8ae71ef6964c726a8430f5297d9c30f5afc655f5a6b4--
