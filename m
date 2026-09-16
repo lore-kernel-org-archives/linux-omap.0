@@ -1,128 +1,107 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B60843A1A27;
-	Wed, 16 Sep 2026 12:33:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 179AC3E9C17;
+	Wed, 16 Sep 2026 14:06:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789562024; cv=none; b=aFIPsnP8ZVROEoiA8Vmrq21fO6xj2OAeWBZFXWz1Ae+k+nTZwOQdLNTuCCV2jfCDaUxKy921gLnJic0nCSyudTUhMQ8n9pT1Vm3UVq3oL0sVCStfj1GzYWCUBS2Q1jahftuUF4MUykX9cQSJg8Xh9IqFNSV3jseJCVztUNHNgG8=
+	t=1789567584; cv=none; b=LzAEUJ5IvrPFgtFvqKsphHfHOE7Heh3/sv9xSoGQl6ZazY+CNDEQHwKnLckiQIE3EtDQ++R6M3jcd/q+HNNh6RZzeTHma1ydxZ7thlVYi7/RJOaMTvE4e51lMaAn8z33YxzXkQTQoewM7cRU3RscPPVnALI8kvgOrA0Juw2w7cQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789562024; c=relaxed/simple;
-	bh=qtcFxadVM0GQvkXe3v7puT3ZDqCDXy1QMHJnrRdbz+o=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=NJICUFz+olU3VQ+dTqGQAmY97bJ5ntU37XFhiKvoq5eoMJDGkO9LLc8WeoOecAWJVA/MobsQm75Dd546AkM8C1COg5zisTv80UiDRnwmcYR7v7I+2+F9o1sOueoOvPQALrj9cUVo7nGLwp6amJFj5Sx/oRYPOr1R0xiUKur4Yqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=FJZ+1v6q; arc=none smtp.client-ip=117.135.210.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1789567584; c=relaxed/simple;
+	bh=8TCVFKjnWPBfeA3Vjc5D+/gx6Y7LRkwCkc3WUlpm8BQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=J8E/0nL7sDWOe88tuEaUf13cmi9FlZjpPB0gaOKP6HgyQcPhxkEwAYgpCiuK8nb2ipM+lGtLFLa2RbSU+wJ9aqlBKTrHnJLV6U2Ggv2znLx5oIIgxryDZ2Gj9ToetdrXKNN/AUyrSKkgzj+w40ISJn+IPAtfBtU0WLCmXsvdnEU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A3C5/0uo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="FJZ+1v6q"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=Yw
-	thTuFCXwhCBJs5emd3GoGmBBNdx1niAg81qBqSATQ=; b=FJZ+1v6qf9fbgWzOIX
-	S1A4zX3b77WP7sEBTYv9OSDrKoN0PUeBJuTmSRxLlLhRxTQJuAxPp70g5UU3OhYd
-	bGhmomt0fOSK22Pch61DaAqtLoFEPtdnrGioRw4bM5mSCOs43vp4epTI+0DdlTt5
-	pk/BvLimCSQzCPBl9il3dTjA4=
-Received: from chaosheng-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.lan (unknown [])
-	by gzga-smtp-mtada-g0-3 (Coremail) with SMTP id _____wA3JL1KjKpqEbZDBA--.13280S3;
-	Wed, 16 Sep 2026 20:32:13 +0800 (CST)
-From: Quchaosheng <quchaosheng000406@163.com>
-To: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	David Airlie <airlied@gmail.com>,
-	Simona Vetter <simona@ffwll.ch>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A3C5/0uo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F051F1F000FF;
+	Wed, 16 Sep 2026 14:06:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789567582;
+	bh=8AwP2KHd7BIHx1d+h+dHPDd3n480upMyIFhWCqKbJ7I=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=A3C5/0uoni014VZ1tGf3f1Dqju+gJItCviWASNLz22siMh3s1UIADLBHExhPIpQVd
+	 yhaFAEbcN6ah8qBcI6xaJSYUC8prE/FftQR74CgAWCJ1+w5410behx4Uxuig+3ny/J
+	 icTJpecZ6UnyCcoX58QpKGel2knIReeropwrT3XTbd6JcOpCiGwbgY9qTeI9vlEQbC
+	 nvfQyq9zlkiQQiSGoCl0eJALM7mRX+WbZFOpF5iKw1d8f0PNkQuY2XBv6T/Vm8ioCE
+	 KN5nD80BlaL5okLLIiEYYvWd8Aox7uwr29OwTvg+1G2OSflAQpczMeSqxMMG1HfBot
+	 kOrkuiw6gtY+Q==
+Date: Wed, 16 Sep 2026 15:06:17 +0100
+From: Lee Jones <lee@kernel.org>
+To: =?utf-8?B?0JbQsNC80LHQsNC60LjQtdCyINCg0LDQtNC40Lkg0KDQuNC60LDRgNC00Lg=?=
+	=?utf-8?B?0L3QvtCy0LjRhw==?= <r.zhambakiev@prosoftsystems.ru>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
 	Andreas Kemnade <andreas@kemnade.info>,
 	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>
-Cc: dri-devel@lists.freedesktop.org,
-	devicetree@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	quchaosheng000406@163.com
-Subject: [PATCH v3 2/2] ARM: dts: ti/omap: drop unit-address from tpd12s015 endpoints
-Date: Wed, 16 Sep 2026 20:32:10 +0800
-Message-ID: <20260916123210.107841-2-quchaosheng000406@163.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260916123210.107841-1-quchaosheng000406@163.com>
-References: <20260916015833.112753-1-quchaosheng000406@163.com>
- <20260916123210.107841-1-quchaosheng000406@163.com>
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Marcin Niestroj <m.niestroj@grinn-global.com>,
+	Grygorii Strashko <grygorii.strashko@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"mfd@lists.linux.dev" <mfd@lists.linux.dev>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"lvc-project@linuxtesting.org" <lvc-project@linuxtesting.org>,
+	"stable@vger.kernel.org" <stable@vger.kernel.org>
+Subject: Re: [PATCH v3 2/3] mfd: tps65217: Check return value when masking
+ interrupt sources
+Message-ID: <20260916140617.GC1605367@google.com>
+References: <20260904063439.69881-1-r.zhambakiev@prosoftsystems.ru>
+ <20260904063439.69881-3-r.zhambakiev@prosoftsystems.ru>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wA3JL1KjKpqEbZDBA--.13280S3
-X-Coremail-Antispam: 1Uf129KBjvJXoW7Kr48Xry8uw43urWxCry8Xwb_yoW8Cr18p3
-	s29F4ktws7GF109F4DZw1q9F1qkF4DuF1ayF4UWryUCa13Xw1rJF1xt3sakr1UCayfZw4j
-	9rs5WasFqw1DWF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pisNVkUUUUU=
-X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbDAA178GqqjE15RQAA37
+In-Reply-To: <20260904063439.69881-3-r.zhambakiev@prosoftsystems.ru>
 
-The endpoint nodes of the tpd12s015 encoder on the am5729-beagleboneai and
-the am57xx-idk carry a unit-address without a matching reg property, which
-the device tree specification does not allow.
+On Fri, 04 Sep 2026, Жамбакиев Радий Рикардинович wrote:
 
-Drop the unit-address so the nodes are named "endpoint".
+> From: Radiy Zhambakiev <r.zhambakiev@prosoftsystems.ru>
+> 
+> tps65217_irq_init() ignores the error returned by
+> tps65217_set_bits() when masking all interrupt sources. A failed
+> register write leaves the driver's software mask out of sync with the
+> hardware and may result in spurious interrupts.
+> 
+> Check the return value and propagate the error to the caller.
+> 
+> Found by Linux Verification Center (linuxtesting.org) with SVACE.
+> 
+> Fixes: 6556bdacf646fcaa ("mfd: tps65217: Add support for IRQs")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Radiy Zhambakiev <r.zhambakiev@prosoftsystems.ru>
+> ---
+>  drivers/mfd/tps65217.c | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+> index 2d04d9e0ae29..9a1528456ffc 100644
+> --- a/drivers/mfd/tps65217.c
+> +++ b/drivers/mfd/tps65217.c
+> @@ -155,8 +155,13 @@ static int tps65217_irq_init(struct tps65217 *tps, int irq)
+>  
+>  	/* Mask all interrupt sources */
+>  	tps->irq_mask = TPS65217_INT_MASK;
+> -	tps65217_set_bits(tps, TPS65217_REG_INT, TPS65217_INT_MASK,
+> -			  TPS65217_INT_MASK, TPS65217_PROTECT_NONE);
+> +	ret = tps65217_set_bits(tps, TPS65217_REG_INT, TPS65217_INT_MASK,
+> +				TPS65217_INT_MASK, TPS65217_PROTECT_NONE);
+> +	if (ret) {
+> +		dev_err(tps->dev, "Failed to mask interrupt sources: %d\n",
+> +			ret);
 
-No functional change.
+Nit: Why wrap here?  The line below is clearly longer than this one.
 
-Signed-off-by: Quchaosheng <quchaosheng000406@163.com>
----
- arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts | 4 ++--
- arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi  | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+> +		return ret;
+> +	}
+>  
+>  	tps->irq_domain = irq_domain_create_linear(dev_fwnode(tps->dev), TPS65217_NUM_IRQ,
+>  						   &tps65217_irq_domain_ops, tps);
+> -- 
+> 2.55.0
 
-diff --git a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-index 76bfb364777e..f40017a0e414 100644
---- a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-+++ b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-@@ -168,7 +168,7 @@ ports {
- 			port@0 {
- 				reg = <0x0>;
- 
--				hdmi_encoder_in: endpoint@0 {
-+				hdmi_encoder_in: endpoint {
- 					remote-endpoint = <&hdmi_out>;
- 				};
- 			};
-@@ -176,7 +176,7 @@ hdmi_encoder_in: endpoint@0 {
- 			port@1 {
- 				reg = <0x1>;
- 
--				hdmi_encoder_out: endpoint@0 {
-+				hdmi_encoder_out: endpoint {
- 					remote-endpoint = <&hdmi_connector_in>;
- 				};
- 			};
-diff --git a/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi b/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
-index 5eccff3bb4b6..4e8a5820b05c 100644
---- a/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
-@@ -135,7 +135,7 @@ ports {
- 			port@0 {
- 				reg = <0>;
- 
--				tpd12s015_in: endpoint@0 {
-+				tpd12s015_in: endpoint {
- 					remote-endpoint = <&hdmi_out>;
- 				};
- 			};
-@@ -143,7 +143,7 @@ tpd12s015_in: endpoint@0 {
- 			port@1 {
- 				reg = <1>;
- 
--				tpd12s015_out: endpoint@0 {
-+				tpd12s015_out: endpoint {
- 					remote-endpoint = <&hdmi_connector_in>;
- 				};
- 			};
 -- 
-2.43.0
-
+Lee Jones
