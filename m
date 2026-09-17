@@ -1,107 +1,106 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx.prosyst.ru (m2.prosoftsystems.ru [46.48.77.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A724C4A2E32
-	for <linux-omap@vger.kernel.org>; Thu, 17 Sep 2026 09:01:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DED072E282B;
+	Thu, 17 Sep 2026 10:33:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.48.77.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789635719; cv=none; b=iBrM0Wrt97tN0Q+nibFwHEFI3iPXWcyc5WM/Y7PBVYwijmVVDpkXet3uP+Pbs/6WWQI/xnznqhPh1yIM2vXXeKIub5R9ccLNg7RiyY6IWWTdVyyglA3SfYlML3snEN1jDmD5VLC8/748ekJM/XiGHAJh+5DwiCRGMubSwiEy16Q=
+	t=1789641249; cv=none; b=VMf9MkCzt6FkZZYhrqoUkJTZbniMnOyh75k+M3pKfuR7yEccYEBNDVnTCDIH6uHh86noZQlojsyfEjmFeJAch2gYrOwUQACMP21Z3KlgN+6g9r6AbeFWE2F2077gizVI1lDbnlPiHhJZZWm66wrDubiT7yqWveapYA9xuE9dVM4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789635719; c=relaxed/simple;
-	bh=lv4i38JX0MPSPwizFOnHmQ/33Dj376/NZ6pziKSZq4A=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=alDeyON/sT9podsnpzwNHxye/Q3/Xm928DYZi0UQp33khdYGR8NLJuPaFqF3m3bN+6HMYK1o5xJ9BcAtFM5vvZo0Kd2rd16zzUlqBIgVXgB8yY4/QQX0xCcFKXhLsKZDOLuwxu1xpI/tzGmx8zDmRnyMsCe7oM2IvLAnrvmaJB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=nIefJ/yP; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1789641249; c=relaxed/simple;
+	bh=AUXXhyt3bGetJItXyKCM7nHT0krOIxBk3ZBdNv9cCoc=;
+	h=Content-Type:From:To:CC:Subject:Date:Message-ID:MIME-Version; b=BXQ9ekiaXglr4XrIp6oAknLEiz+caDs8BmPYaZX47+R95USPtuWYR7XUyX27MjatGUvSkFwFDVNS6ubE1QZAujjhF/diTQI5sbAmNXfDeS02a8SkyZ511OO+WML2E4vGDHGStihLPRsii6cxjLr8lx+JbcppHaYpMI7fsyxpnTc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=prosoftsystems.ru; spf=pass smtp.mailfrom=prosoftsystems.ru; dkim=pass (2048-bit key) header.d=prosoftsystems.ru header.i=@prosoftsystems.ru header.b=irllvP58; arc=none smtp.client-ip=46.48.77.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=prosoftsystems.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=prosoftsystems.ru
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="nIefJ/yP"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 02CD51A0923;
-	Thu, 17 Sep 2026 09:01:54 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id C99245FAA3;
-	Thu, 17 Sep 2026 09:01:53 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 9FF5311C7B07A;
-	Thu, 17 Sep 2026 11:01:40 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1789635708; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding; bh=eHBcWKK2OCT4aC468J13A1lKQqBlusqG57MbldRj4DI=;
-	b=nIefJ/yPjRhUmv7Mc0T7kgv5gugg2+oXtkuB3ag5fPS1WN2WC29Teq5zNPPlIXrWi11olH
-	Rsgw4sfhFwlbbuWiCi1uPoBlia846xN4eq2mXCFBK/5Xii+Hxb85zq4IgK8d66xJ7XU1QL
-	1eeI1crcrqeHtzzr2P+7OXzQbP0gcWnUZ0ev4FYG+YR01t3byvdIIGbM6C7O2xVXY6I93D
-	f2rsmjYsNK1gp0kEJkeExAWlz6E/2Q+qEP8uWhH3Y7blxyywosm2ie87m3cxuyflmhwfO7
-	j0sylzhJfNANo3y9C95w0BYDqvkBOFfcUhoRhvXd6Xr9xy0amIQ3GAErHaBB9A==
-From: "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>
-Date: Thu, 17 Sep 2026 11:01:34 +0200
-Subject: [PATCH v6] ARM: dts: am335x-bonegreen-eco: Enable 1GHz OPP by
- increasing vdd_mpu voltage
+	dkim=pass (2048-bit key) header.d=prosoftsystems.ru header.i=@prosoftsystems.ru header.b="irllvP58"
+Content-Language: ru-RU
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: quoted-printable
+DKIM-Signature: v=1; a=rsa-sha256; d=prosoftsystems.ru; s=ps;
+	c=relaxed/relaxed; t=1789641229; h=from:to:date:message-id:subject;
+	bh=EgBQqAvkziZSC4if5GYgNa1XIGSJE0cOmghthV+RRF8=;
+	b=irllvP588oCD8N4EoPLPDvqghYWDMzrH91fO0SD3qQjX2pkkFZNuHv5UPvFndSCnWvttyV8WRDC
+	pdKfTISJrpmH2OIfZVhf+vThqSLa35EfepEjzkcb3Cq0hDB7kZ2m3eIJXhi7DI/3qVbYZFrnAt4tB
+	+K+SXWc3ibFIWGUUHHiC1AN6itFXovUxRawDD/tZlKmILg6sAYWULsATkVBGKBKn1/1b3F3StahQ9
+	cyIHZQt0qd6fwOw19tApPS92ahZX/nVuYbnqsZsJ/qsjGdINvZP7sMAoGo5FcVD2oa+7hfqF0wqcY
+	Msiz/yaJBUpXoxtwnPwXV8v2aH0GI/Rpkf1A==
+Received: from echo-2.prosoft.ural.ru (172.21.245.22) by mx.prosoftsystems.ru
+ (172.21.240.33) with Microsoft SMTP Server (TLS) id 15.1.396.30; Thu, 17 Sep
+ 2026 15:33:49 +0500
+Received: from echo-2.prosoft.ural.ru (172.21.245.22) by
+ echo-2.prosoft.ural.ru (172.21.245.22) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1748.39; Thu, 17 Sep 2026 15:33:48 +0500
+Received: from echo-2.prosoft.ural.ru ([::1]) by echo-2.prosoft.ural.ru
+ ([fe80::c1a2:90f7:8820:c669%17]) with mapi id 15.02.1748.039; Thu, 17 Sep
+ 2026 15:33:48 +0500
+From: =?koi8-r?B?9sHNwsHLycXXIPLBxMnKIPLJy8HSxMnOz9fJ3g==?=
+	<r.zhambakiev@prosoftsystems.ru>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+CC: =?koi8-r?B?9sHNwsHLycXXIPLBxMnKIPLJy8HSxMnOz9fJ3g==?=
+	<r.zhambakiev@prosoftsystems.ru>, Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, "Tony
+ Lindgren" <tony@atomide.com>, Lee Jones <lee@kernel.org>, Grygorii Strashko
+	<grygorii.strashko@ti.com>, Marcin Niestroj <m.niestroj@grinn-global.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"mfd@lists.linux.dev" <mfd@lists.linux.dev>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "lvc-project@linuxtesting.org"
+	<lvc-project@linuxtesting.org>
+Subject: [PATCH v4 0/3] mfd: tps65217: Handle IRQ initialization errors
+Thread-Topic: [PATCH v4 0/3] mfd: tps65217: Handle IRQ initialization errors
+Thread-Index: AQHdRpAGpHT0ndxR306Cfla7HcDL1g==
+Date: Thu, 17 Sep 2026 10:33:48 +0000
+Message-ID: <20260917103312.92624-1-r.zhambakiev@prosoftsystems.ru>
+Accept-Language: ru-RU, en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20260917-fix_tps65219-v6-1-0544b735edb8@bootlin.com>
-X-B4-Tracking: v=1; b=H4sIAG2sq2oC/33MywrCMBCF4VeRrI1kpknauvI9RCRXDWgjTSmK9
- N0d3XhDl2eG77+yEvoUClvOrqwPYyopdzT0fMbc3nS7wJOnzVCgAhCax3TeDqeiFULLvdcIEjy
- ii4zIqQ/0f+TWG9r7VIbcXx71Ee/XH6ERueCm9lo0TmKNcWVzHg6pW7h8ZPfUWL1wwA9eEQ+yt
- cZKJ8CFby7/cUlct9qIqJRXvvnm6skRmg+uiDfWUllCHSvzzqdpugFAi18CZwEAAA==
-X-Change-ID: 20251106-fix_tps65219-dd62141d22cf
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Lee Jones <lee@kernel.org>, Shree Ramamoorthy <s-ramamoorthy@ti.com>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>
-Cc: Andrew Davis <afd@ti.com>, Bajjuri Praneeth <praneeth@ti.com>, 
- Thomas Petazzoni <thomas.petazzoni@bootlin.com>, linux-omap@vger.kernel.org, 
- linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
- "Kory Maincent (TI)" <kory.maincent@bootlin.com>
-X-Mailer: b4 0.16.1-dev-17221
-X-Last-TLS-Session-Version: TLSv1.3
 
-The vdd_mpu regulator maximum voltage was previously limited to 1.2985V,
-which prevented the CPU from reaching the 1GHz operating point. This
-limitation was put in place because voltage changes were not working
-correctly, causing the board to stall when attempting higher frequencies.
+From: Radiy Zhambakiev <r.zhambakiev@prosoftsystems.ru>
 
-With the recent TPS65219 PMIC driver fixes that properly implement the
-LOCK register handling, voltage transitions now work reliably. Increase
-the maximum voltage to 1.3515V to allow the full 1GHz OPP to be used.
+The TPS65217 MFD driver does not validate the outcome of IRQ
+initialisation: tps65217_probe() ignores the return value of
+tps65217_irq_init(), so a failed irq_domain creation leaves the
+driver bound with a NULL tps->irq_domain and the remove callback
+oopses, and a failed write of the interrupt mask leaves the software
+mask out of sync with the hardware.
 
-Reviewed-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-Signed-off-by: Kory Maincent (TI) <kory.maincent@bootlin.com>
----
-I was pinged that the following series was not fully merged: the devicetree
-change did not land upstream.
-https://lore.kernel.org/r/20251218-fix_tps65219-v5-0-8bb511417f3a@bootlin.com
----
- arch/arm/boot/dts/ti/omap/am335x-bonegreen-eco.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On top of that the irq_domain is torn down in the wrong order: the
+remove callback disposes the mappings and removes the domain before
+the MFD children are unbound, so children that requested interrupts
+(e.g. tps65217-charger) release virtual IRQs whose descriptors are
+already disposed, and on probe failure the domain is leaked with its
+host_data pointing to freed memory. The enable_irq_wake() in probe
+is never balanced.
 
-diff --git a/arch/arm/boot/dts/ti/omap/am335x-bonegreen-eco.dts b/arch/arm/boot/dts/ti/omap/am335x-bonegreen-eco.dts
-index d21118cdb6c2c..f00abfdd2cbd4 100644
---- a/arch/arm/boot/dts/ti/omap/am335x-bonegreen-eco.dts
-+++ b/arch/arm/boot/dts/ti/omap/am335x-bonegreen-eco.dts
-@@ -63,7 +63,7 @@ regulators {
- 			buck1: buck1 {
- 				regulator-name = "vdd_mpu";
- 				regulator-min-microvolt = <925000>;
--				regulator-max-microvolt = <1298500>;
-+				regulator-max-microvolt = <1351500>;
- 				regulator-boot-on;
- 				regulator-always-on;
- 			};
+This series plugs the probe error paths and moves the domain and
+wake-up teardown into devres, registered right after the domain is
+created. Devres actions are released in reverse order of
+registration, so on both removal and probe failure the MFD children
+release their IRQs first, then the parent interrupt is freed and its
+thread stopped, and only then is the domain removed.
 
----
-base-commit: 238650ef6c7c7cca08e032527329424c9fbd70e5
-change-id: 20251106-fix_tps65219-dd62141d22cf
+Changes since v3:
+  - No functional changes; applied the code-style fixes requested by
+    Lee Jones.
 
-Best regards,
---  
-Köry Maincent, Bootlin
-Embedded Linux and kernel engineering
-https://bootlin.com
+Link: https://lore.kernel.org/all/20260904063439.69881-1-r.zhambakiev@proso=
+ftsystems.ru/
 
+Radiy Zhambakiev (3):
+  mfd: tps65217: Fix NULL pointer dereference on IRQ init failure
+  mfd: tps65217: Check return value when masking interrupt sources
+  mfd: tps65217: Use devres for IRQ domain and wake teardown
+
+ drivers/mfd/tps65217.c | 70 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 49 insertions(+), 21 deletions(-)
+
+--=20
+2.53.0
