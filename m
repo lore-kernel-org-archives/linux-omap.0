@@ -1,96 +1,91 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E688B4A64E6
-	for <linux-omap@vger.kernel.org>; Thu, 17 Sep 2026 21:42:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B8FA497380;
+	Thu, 17 Sep 2026 23:00:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789681339; cv=none; b=X+niewwi8k5IwlVjweQjinS1c/Y4un6pHIVfbuwq0RZBaps9ns1cPnUz7msvW8GtM8LQIlIUniSXTZCRCMyG/lJ+xXmZ8e6Cotf4++5TanIpmR/Jhdj10aaGXEeQnZiTAUSTMn/TE+PMrWIduC3uv1z5nvZ91038xsnndGWaCns=
+	t=1789686047; cv=none; b=e2TVlik/teJeHufLb3tsaG/EtQQAnJ/wsLvhpEULNBsYSKt5Oswe6W3BtyPYAvk9JNIU15sN1ekT01k4e8Bf961PKhpuW1fsYASAvFNL9A6NwAZu2q/lPJzpUbPhWOs+VUS96yrJpEZdyrztu4d0QuRzQzNFcSjtFkZHvkHwgx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789681339; c=relaxed/simple;
-	bh=J08RF0JippXzOPX16V0ztB6TMUEWSeMwnzGLCutLPYE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=kTrpeVdPx43wQ/wlpfdlKJ4zLZRAitg0LLAHLhZ9X5iIeV6xjn+wZCmPIZnDiotCouz0xotdMfWcxRLYpUJ0k/0NvyQwFiaXj7kyb7raXcEC7KpBoV3jZ7VUcwq/+/QdJxrrV5blQoP2IAQ4vmUqS8D1R/y2zSzn4O4Wi+B76I8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BtJsgdiv; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789686047; c=relaxed/simple;
+	bh=gXuGyLy2tmRszawmUKlyiTtyX4tL2WlZ3pUjxElD5+A=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=p9cWPdhPeDpe4Q+uJ9bloGq+D+vyaz8XY8ynvxFEq0ZQiRFiDp8fiTuHKEONucggQNoEWS6ocw0vPiFEn0eXZdXe1RjGlIV12OxBz5JU0SUbDc6lGWC1tYTJiLaRt7vOFxPdTDDVoqkjzP2F/szJ9Og0BN160oIuCPDeOzi5pUE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hk95nq6E; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BtJsgdiv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77EBE1F0089D
-	for <linux-omap@vger.kernel.org>; Thu, 17 Sep 2026 21:42:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hk95nq6E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B4D51F000FF;
+	Thu, 17 Sep 2026 23:00:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789681337;
-	bh=+Vd37vlqPgoR34jGq+5SarCAahPWAWe4kwjRPQidlrk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=BtJsgdiv4lMiFIQVgmdR8uPTGBE3SksCFUE0VRGf/7plR5BsKss0wk44kg/IGESuy
-	 5o+jLQ+1nk25fhFU9JgEkagFuLHUQ8UYBIQQX/A5gtdGuybvyN6BKeNY1tB+Qos5n/
-	 nGQbSEqmvaOlUery2nP3gouw25q/6al1JCWu3lbTAgXC+ezfwSYIy0IPnOSUBIcIsC
-	 7HGmzNbbxOTFkYectDy6svosEuc4md1omiI9N8nRk0Ji7lc/KSfNfeuBrdx/80t0Gr
-	 7NEdQOOCzJWxZ08qaZHCoePZWUF1GKnLJHqiDEdXlhu+8H2B8syRuqxpDHTKVGx5gz
-	 vtOhO9zii+3zA==
-Received: by mail-lf2-f13.google.com with SMTP id 2adb3069b0e04-5b7be8dbabfso74210e87.2
-        for <linux-omap@vger.kernel.org>; Thu, 17 Sep 2026 14:42:17 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBzzy88JbmBTXiblZxvLMmyj0Dl9NPagFChZOR6yPuW7nJElEmY3W/dQq8AqwIfKUayzn5r66ROIg6FH@vger.kernel.org
-X-Gm-Message-State: AFuF++kVbW5flQTBKL6dij6FL2jFCmTgIuRbysn6UZ3RHZwfShdwK6t8
-	7PSDluFe8E6x8jNBGs1SpP11KMIVV6sZ0dXeM5iwMxp7wjjR0SQox0uH91Gu7n8hFhuliD9B+an
-	13lyVNOAX+0dTtQ6l0AEBFhGOaw8+Ebk=
-X-Received: by 2002:a05:6512:3baa:b0:5b6:4ae:3ff7 with SMTP id
- 2adb3069b0e04-5b8c18449abmr61087e87.31.1789681336165; Thu, 17 Sep 2026
- 14:42:16 -0700 (PDT)
+	s=k20260515; t=1789686043;
+	bh=4peBAsnWme09BQ6woZ305p/0tw0c7pP6SdCRfkMgd/M=;
+	h=Date:From:To:Cc:Subject:In-Reply-To;
+	b=hk95nq6EWlvY2MjWuIEtn9vj8KRLS9zn5Le2QUthvZbNDuGnEzRmzpOzl1E3IQ3nO
+	 /vqpQw9EiTp80get3fNEVJlriq+qaOoWaqQrWiApbEQgR7u4RHgKfEnz8q5tB0O197
+	 EQL9q/ddlt5WoeovLzzxCuOofyjEkbG10ZBcYS8M7bccJbkAH6nPMqJo3nRImz2OXp
+	 CvBAEh9rTuDEqOTqRho5IhsqSTJqkXokd9HgWPVf8xA7cBiT6gPT3Z+DtvXM3Sm1EF
+	 RIz7Vg1UTqMKf97cYz6Bc1MCXC59qiC34OzWPpv2i2ugCganI175vCM4ST6YXlwQKL
+	 S8lAxC+QAnRKw==
+Date: Thu, 17 Sep 2026 18:00:42 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: vladimir.oltean@nxp.com
+Cc: linux-pci@vger.kernel.org, Aksh Garg <a-garg7@ti.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
+	Manivannan Sadhasivam <mani@kernel.org>,
+	Rob Herring <robh@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+	Vignesh Raghavendra <vigneshr@ti.com>,
+	Siddharth Vadapalli <s-vadapalli@ti.com>,
+	Manikandan K Pillai <mpillai@cadence.com>,
+	Felix Gu <ustc.gu@gmail.com>, linux-kernel@vger.kernel.org,
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 0/3] PCI: Remove device links to Generic PHY
+Message-ID: <20260917230042.GA1091862@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260917204240.1284796-1-Frank.Li@oss.nxp.com>
-In-Reply-To: <20260917204240.1284796-1-Frank.Li@oss.nxp.com>
-From: Linus Walleij <linusw@kernel.org>
-Date: Thu, 17 Sep 2026 23:42:04 +0200
-X-Gmail-Original-Message-ID: <CAD++jL=uWFLWB_8T_q9UwbY1KzB+tcjJwOo4GheRF-72eU59Sg@mail.gmail.com>
-X-Gm-Features: AcwNN1UfNjWV7KrU9iWOWhdNsDlRn7O6RazPK4CNMASiCssILCbrQZDav7Nv7A0
-Message-ID: <CAD++jL=uWFLWB_8T_q9UwbY1KzB+tcjJwOo4GheRF-72eU59Sg@mail.gmail.com>
-Subject: Re: [PATCH 1/1] mmc: use dmaengine_get_dma_device() instead of chan->device->dev
-To: Frank.Li@oss.nxp.com
-Cc: Aubin Constans <aubin.constans@microchip.com>, Ulf Hansson <ulfh@kernel.org>, 
-	Nicolas Ferre <nicolas.ferre@microchip.com>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Claudiu Beznea <claudiu.beznea@tuxon.dev>, 
-	Paul Cercueil <paul@crapouillou.net>, Russell King <linux@armlinux.org.uk>, 
-	Wolfram Sang <wsa+renesas@sang-engineering.com>, Jesper Nilsson <jesper.nilsson@axis.com>, 
-	Lars Persson <lars.persson@axis.com>, Fan Wu <fanwu01@zju.edu.cn>, Frank Li <Frank.Li@nxp.com>, 
-	Rosen Penev <rosenp@gmail.com>, Pengpeng Hou <pengpeng@iscas.ac.cn>, 
-	Zhan Xusheng <zhanxusheng1024@gmail.com>, Pan Chuang <panchuang@vivo.com>, 
-	Pedro Demarchi Gomes <pedrodemargomes@gmail.com>, Ethan Nelson-Moore <enelsonmoore@gmail.com>, 
-	=?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@baylibre.com>, 
-	Rakuram Eswaran <rakuram.e96@gmail.com>, Khalid Aziz <khalid@kernel.org>, 
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Danilo Krummrich <dakr@kernel.org>, 
-	Bjorn Helgaas <bhelgaas@google.com>, Runyu Xiao <runyu.xiao@seu.edu.cn>, 
-	"open list:MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND..." <linux-mmc@vger.kernel.org>, 
-	"moderated list:ARM/Microchip (AT91) SoC support" <linux-arm-kernel@lists.infradead.org>, 
-	open list <linux-kernel@vger.kernel.org>, 
-	"open list:INGENIC JZ47xx SoCs" <linux-mips@vger.kernel.org>, 
-	"open list:OMAP HS MMC SUPPORT" <linux-omap@vger.kernel.org>, 
-	"open list:TMIO/SDHI MMC DRIVER" <linux-renesas-soc@vger.kernel.org>, 
-	"open list:ARM/ARTPEC MACHINE SUPPORT" <linux-arm-kernel@axis.com>, imx@lists.linux.dev, vkoul@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260912161440.1032188-1-vladimir.oltean@nxp.com>
 
-On Thu, Sep 17, 2026 at 10:42=E2=80=AFPM <Frank.Li@oss.nxp.com> wrote:
+On Sat, Sep 12, 2026 at 07:14:37PM +0300, vladimir.oltean@nxp.com wrote:
+> This is a request from Bjorn Helgaas to replace commit 9a9d18547ddc
+> ("PCI: Remove device links to PHY") from the pci/next branch with 3
+> distinct changes, per PCI controller, to handle conflicts with bug fixes
+> in the same area on dra7xx in a better way:
+> https://lore.kernel.org/linux-pci/20260911221209.GA587622@bhelgaas/
+> 
+> The patches are formatted against the v7.3-rc1 tag. They do *not* apply
+> to the current pci/next, as the change is already present there.
+> 
+> Previous submission was:
+> https://lore.kernel.org/linux-pci/20260810124315.433448-1-vladimir.oltean@nxp.com/
+> 
+> There is no other change than splitting up into individual commits and
+> adjusting each one's commit message. All review/ack tags were dropped in
+> that process.
+> 
+> Vladimir Oltean (3):
+>   PCI: cadence: Remove device links to PHY
+>   PCI: dra7xx: Remove device links to PHY
+>   PCI: keystone: Remove device links to PHY
+> 
+>  .../controller/cadence/pcie-cadence-plat.c    |  4 ---
+>  drivers/pci/controller/cadence/pcie-cadence.c | 16 +---------
+>  drivers/pci/controller/cadence/pcie-cadence.h |  2 --
+>  drivers/pci/controller/dwc/pci-dra7xx.c       | 16 ----------
+>  drivers/pci/controller/dwc/pci-keystone.c     | 31 +++----------------
+>  5 files changed, 5 insertions(+), 64 deletions(-)
 
-> Replace direct dma_chan::device::dev access with the proper
-> dmaengine_get_dma_device() for consumer API
->
-> chan->device->dev is not always the device used for DMA mapping.
-> Some DMA engines support per-channel IOMMU mappings, so different
-> channels may use different DMA devices.  dmaengine_get_dma_device()
-> returns the correct device for each channel.
->
-> This also prepares for making the DMA engine provider data structures
-> private. DMA consumers should not access DMA engine internals directly.
->
-> Assisted-by: LLM
-> Signed-off-by: Frank Li <Frank.Li@nxp.com>
+Thanks for this, I put these on:
 
-This looks good to me. Thanks for fixing all the sites!
-Reviewed-by: Linus Walleij <linusw@kernel.org>
+  pci/controller/cadence
+  pci/controller/dwc-dra7xx
+  pci/controller/dwc-keystone
 
-Yours,
-Linus Walleij
+respectively for v7.4, and dropped the PHY link cleanup patches from
+Felix that are no longer needed since the PHY links themselves are
+gone.
