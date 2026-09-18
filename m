@@ -1,33 +1,36 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 748EB282F16;
-	Fri, 18 Sep 2026 17:50:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56D1D49363E
+	for <linux-omap@vger.kernel.org>; Fri, 18 Sep 2026 19:04:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=194.117.254.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789753844; cv=none; b=ZqBJxgIYJU9JfkKmwgS/gbmkXMpZzAdh7oHsX/uBmIKUL+E3Y42NcUfrDfq3DFmOI/1Ga/jAJMWH2g4vKkpRMysORy1YHX2HyeSIBBjjfgpO0iQhrojJ6q+xHI+NeTLij314zaO0xJmlhlZ0jhHb3PEEhHso/Y7ISKBuBD/mIRo=
+	t=1789758254; cv=none; b=RS6T2BqPQ4U4Pcadq3TLKwiMyNUVDplh8trwGKQCNM99JaQsf4lNoITIoQmy55Uebu8jTN12CrS1htZIXTqri0T+37saL6KgG1i1TvoVuRTf/ONAjIqgc86kkVob7lqyIZtWh3864e/HQZo22+EFQzYBzuz5HAAV7Rn9q48BmNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789753844; c=relaxed/simple;
-	bh=jwqUH2/fnxblnjXYIcNTOs95dG3nDY4ZG5hOAciLubI=;
+	s=arc-20240116; t=1789758254; c=relaxed/simple;
+	bh=UzAcr4zFNpEWR8QoTd198zq5n4ye3nqQ50yJoiCIYaY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=D+UMswfsXOqNqnUYYbQhzxdsPzo5d2wMrswSOHpov/pst6dwjyLvL6glqByORo88lYNKIqSpK3eHqcUsMKu2I5eYm505XmytHRvtdB/j2IOdouxPtPAKJ5gKZ0/IdgqR1h1T3Or2CWNzoSMgwKinsWIuaoQ2Qg8fxc4AcIOS6e8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Jvtw5OGw; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=fvXaFFPFTJ5xpqhCUDGMx13HKBvZN+9cLCjpktnpKpQvD7GFDUSokt4jZnZlFuWWOhzSW8fvfkT94T+mHznMGqDbig/m8sG75BNvriQg6rmyJ6JUk4e9vfgVvMrpRFuMejuMOyDae8xwRKNaTK4iYlP+rroZbz7qhMAdxn4qHgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com; spf=pass smtp.mailfrom=sang-engineering.com; dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b=PtVookg5; arc=none smtp.client-ip=194.117.254.33
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Jvtw5OGw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05B751F000FF;
-	Fri, 18 Sep 2026 17:50:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789753837;
-	bh=TG2xvNJBCXx1WTpRAKtFtjW+qEDTB07eN3TryfDzbiM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Jvtw5OGw0qgxCGGmNESlcbfLK2iqnqleBg0SZDDtuoGuy78On8VzRlf5agdDYe+aU
-	 D6fKMdGPGu7vRSVE6n19/ak5jN+gjUEEsJiZWAp+R6AcU36ncJQ2YmcNHh2BdV2jls
-	 lW4iilLjgjTT/9jjNUn/+Sw/SSB0acL/5kXk21rl3MJvDnGoszcdb2gW1s3X28f9Gy
-	 JJLm3W9SWzbxgAVFkyPJaWtMf9t6tXYLrwRFxYKc08K498LyrxQs+yjQc7dHjkZauV
-	 Dur9aZKISUJ/kR5yNKl4bmrQEr8tdm1OlVy1NnuMJ7WaQo98QZGYMeSTsH6hq2y092
-	 XceuyyBfUgXdg==
-Date: Fri, 18 Sep 2026 23:20:32 +0530
-From: Vinod Koul <vkoul@kernel.org>
+	dkim=pass (2048-bit key) header.d=sang-engineering.com header.i=@sang-engineering.com header.b="PtVookg5"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	sang-engineering.com; h=date:from:to:cc:subject:message-id
+	:references:mime-version:content-type:in-reply-to; s=k1; bh=x4+D
+	9upuaenjWjZ0/dtM41htolecou62jNr6QYJiyhE=; b=PtVookg5iQKTKvaqLg/V
+	le9n4Ya6+P6oMAJIDLz7bwQHYOWPNA+2BRkNCTXsIkSwGLgpNiBURb38I31E11/v
+	wyApEEHsdo1fn8cJKwT3btI/SLa9ITzwA+nuo3Wnpm2lp1XdBgpsiwQAenbKBIrM
+	QG8Xc6p4pZ8059h82svBVX81BzDkOzmualYyeh1bukez1x+Lj8oR+hNVvnetHebd
+	qm5aXERfgaHfZGipLKRi7Mzmpmd1dPZmUL6XhA3fWHbO3QPjSnRsKui0Phql/nit
+	S6c5I0LjoAkrm47LrwHgp2QV5H/Ux0w6/9+KzOexRguOi8dpJZQEf8n8IpxP89o9
+	WA==
+Received: (qmail 2660367 invoked from network); 18 Sep 2026 21:03:46 +0200
+Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 18 Sep 2026 21:03:46 +0200
+X-UD-Smtp-Session: l3s3148p1@raRWj8ZbuqC57tsJ
+Date: Fri, 18 Sep 2026 21:03:46 +0200
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
 To: Frank.Li@oss.nxp.com
 Cc: Aubin Constans <aubin.constans@microchip.com>,
 	Ulf Hansson <ulfh@kernel.org>,
@@ -39,9 +42,8 @@ Cc: Aubin Constans <aubin.constans@microchip.com>,
 	Sascha Hauer <s.hauer@pengutronix.de>,
 	Pengutronix Kernel Team <kernel@pengutronix.de>,
 	Fabio Estevam <festevam@gmail.com>,
-	Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>,
+	Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber@suse.de>,
 	Manivannan Sadhasivam <mani@kernel.org>,
-	Wolfram Sang <wsa+renesas@sang-engineering.com>,
 	Jesper Nilsson <jesper.nilsson@axis.com>,
 	Lars Persson <lars.persson@axis.com>,
 	Linus Walleij <linusw@kernel.org>, Fan Wu <fanwu01@zju.edu.cn>,
@@ -49,7 +51,7 @@ Cc: Aubin Constans <aubin.constans@microchip.com>,
 	Pedro Demarchi Gomes <pedrodemargomes@gmail.com>,
 	Zhan Xusheng <zhanxusheng1024@gmail.com>,
 	Pan Chuang <panchuang@vivo.com>,
-	Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@baylibre.com>,
+	Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>,
 	Rakuram Eswaran <rakuram.e96@gmail.com>,
 	Ethan Nelson-Moore <enelsonmoore@gmail.com>,
 	Runyu Xiao <runyu.xiao@seu.edu.cn>,
@@ -63,10 +65,11 @@ Cc: Aubin Constans <aubin.constans@microchip.com>,
 	"open list:OMAP HS MMC SUPPORT" <linux-omap@vger.kernel.org>,
 	"moderated list:ARM/ACTIONS SEMI ARCHITECTURE" <linux-actions@lists.infradead.org>,
 	"open list:TMIO/SDHI MMC DRIVER" <linux-renesas-soc@vger.kernel.org>,
-	"open list:ARM/ARTPEC MACHINE SUPPORT" <linux-arm-kernel@axis.com>
+	"open list:ARM/ARTPEC MACHINE SUPPORT" <linux-arm-kernel@axis.com>,
+	vkoul@kernel.org
 Subject: Re: [PATCH v2 1/1] mmc: use dmaengine_get_dma_device() instead of
  chan->device->dev
-Message-ID: <aq156IdeXdaE4Fqg@parshuram>
+Message-ID: <aq2LEtdAVJ58mpMr@shikoro>
 References: <20260918152349.2101305-1-Frank.Li@oss.nxp.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -78,25 +81,12 @@ Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20260918152349.2101305-1-Frank.Li@oss.nxp.com>
 
-On 18-09-26, 11:23, Frank.Li@oss.nxp.com wrote:
-> From: Frank Li <Frank.Li@nxp.com>
-> 
-> Replace direct dma_chan::device::dev access with the proper
-> dmaengine_get_dma_device() for consumer API
-> 
-> chan->device->dev is not always the device used for DMA mapping.
-> Some DMA engines support per-channel IOMMU mappings, so different
-> channels may use different DMA devices.  dmaengine_get_dma_device()
-> returns the correct device for each channel.
-> 
-> This also prepares for making the DMA engine provider data structures
-> private. DMA consumers should not access DMA engine internals directly.
-> 
-> Assisted-by: LLM
-> Reviewed-by: Linus Walleij <linusw@kernel.org>
-> Signed-off-by: Frank Li <Frank.Li@nxp.com>
 
-Reviewed-by: Vinod Koul <vkoul@kernel.org>
+>  drivers/mmc/host/renesas_sdhi_sys_dmac.c |  8 ++++----
+>  drivers/mmc/host/sh_mmcif.c              |  8 ++++----
+>  drivers/mmc/host/usdhi6rol0.c            |  6 +++---
 
--- 
-~Vinod
+For these Renesas drivers:
+
+Reviewed-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+
