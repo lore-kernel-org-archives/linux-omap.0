@@ -1,49 +1,47 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE2C62D7D47;
-	Fri, 18 Sep 2026 12:30:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E4C140E8D7;
+	Fri, 18 Sep 2026 12:43:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789734609; cv=none; b=qxTuqscInj/EVWoomFpnxLkkSPdAl34wNeIAqrwkQ4SVHQuPb91iG2fhGhSqrFqMRJcrq+OUf11XotMwExvVgD8zcdhtZeW556p1GTKX1EnzBgWHVJASHSwdP+gJAAwGiOCOZZa5QP0cIZkG8DeWPD3IVFZdnD2EurED9yl6ySo=
+	t=1789735387; cv=none; b=JNEmaYZZAj/93SGveL4SL3aAclkZoJ0UTipeCs3Fw319RPowfCHDDscvuAqd8f19ecbqPp5pMzz6yAsi3pHOdFgEGP51qo+2xXkfLMIOP7I0RBTMCyZKL/sE9L/sYROHUftoFA/JYH9tKm6LEc2JRaq0+efPEbxS8Q0hojiP1TM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789734609; c=relaxed/simple;
-	bh=q3OtbvxEGcNijZk5ARoz5WxMps7sUrNhmMFGujmXco8=;
+	s=arc-20240116; t=1789735387; c=relaxed/simple;
+	bh=9Fd/IauTwv+I6tcxCZAWmJnRH9cM8SdbYJ9ZjQhDMG8=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=qcu0fpfWRoRg8hLo52FXYxIolQYAaw+ufMDgqe/JtdTwwI1zt+75qMKchghKGJ4iNroa/QjO84q7LzBrjk0NRlr1GTlM0HLpIMGWijWoJx0ivbNo4csE/TQofJ1u88QUjrPcMpibF85Oqua7wvWt066g3a4hbtpAXAFadx1eQSg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=UYp9KK13; arc=none smtp.client-ip=178.238.236.174
+	 MIME-Version:Content-Type; b=JxMvsXuRMoKWEbZ6gTDyFSZJwPGETJCRs/GvzIfdZvkfzszq+NAVtO9aJCoEzGxGAiNR80aP8kBH6mauUoV4zeCsnDOUQLgHny4m+hdddaguoqpPabDKZ0sO/ZvHf2n+Ug1aSWcIcTdMIk8+BISxLhVKc0W4/mYGUidbxIVSryA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=CIzVClh0; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="UYp9KK13"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="CIzVClh0"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
 	Reply-To:Content-ID:Content-Description;
-	bh=Lob4P2Sd9aJySQ4n/cpr+H4v6scV4EPGCa+LDBJ4F1g=; t=1789734608; x=1790944208; 
-	b=UYp9KK13wWSG3qEAO6xtyIexDa9xE3Ma42QG22K7vaaR5u7triE1SxjR70r1huPDVEQ40vJm6YY
-	OeOawvbvhwUuDkWATJmmWEtORDfaJfPo6n2/a5AyGk8gytUbGmwYwLJ5ltNWg8hVWkKhB8J+a3lk3
-	QXCCcAYHrwiljZ50YEk7TREg7vldBa8Ng/fWhlud0Wi1O0brHqAQCOfn9u5hbqUD1bK8AYVmr5xcm
-	937os48hCwQzlMEbE7qVsXCQUEraZC4sElkLzbYMq7yzQFq4nf+8FlaX5fyZQvnfRG5+0piF31sGo
-	z0qDbQ86qO4y6W7FF+nxuLL2jEeqHfboMedw==;
-Date: Fri, 18 Sep 2026 14:29:33 +0200
+	bh=yEhZos8eYIYEnu9oeamuw66fgjpYm7R1b5iyPaCotIM=; t=1789735382; x=1790944982; 
+	b=CIzVClh0L0XK+So/X9y3As2vmU+8Aqoi2T0PEDG58uSnF1wOtkl9qdHDNxVCJimV7xyIn90ACtr
+	Qsb+PVKwa+1QphekFLP1Kd1lQ/YwbwxpbwsayiVN9Ri5U5/BWERi5JocIqIn+Gwg4OHmDw/kerByt
+	eGOmo8yJyiRy1NyNrerO4MDKRgXQR73da46VSEwaMmxccV8nrSmrlCqaS4m4JBoxm4Yyz282YRfeC
+	+YSch30d6IlaHX3yPlYPNLAqsKPRrzk2vpzCBooy6ThKLe9twCxaotvHaETrbrTjqY+oKzyAvipVR
+	nH5s1AbDwb30foVjAA3iqKCGHE8Lh1EmXI2Q==;
+Date: Fri, 18 Sep 2026 14:42:24 +0200
 From: Andreas Kemnade <andreas@kemnade.info>
-To: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Bhargav Joshi <j.bhargav.u@gmail.com>, Aaro Koskinen
- <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, Roger Quadros
- <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring
- <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
- <conor+dt@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, "David S.
- Miller" <davem@davemloft.net>, Animesh Agarwal
- <animeshagarwal28@gmail.com>, linux-omap@vger.kernel.org,
+To: Bhargav Joshi <j.bhargav.u@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
+ <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
+ <tony@atomide.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski
+ <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Herbert Xu
+ <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>,
+ Animesh Agarwal <animeshagarwal28@gmail.com>, linux-omap@vger.kernel.org,
  devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-crypto@vger.kernel.org
-Subject: Re: [PATCH v2 1/4] dt-bindings: crypto: ti,omap4-des: Remove
- redundant clock properties
-Message-ID: <20260918142933.2f28d31c@kemnade.info>
-In-Reply-To: <20260918-jolly-honeybee-of-improvement-601ad0@quoll>
+Subject: Re: [PATCH v2 2/4] ARM: dts: ti: omap: dra7: Remove clocks from
+ crypto nodes
+Message-ID: <20260918144224.4dfb8515@kemnade.info>
+In-Reply-To: <20260916-ti-dra7-omap-sham-fix-v2-2-4eadb60081e5@gmail.com>
 References: <20260916-ti-dra7-omap-sham-fix-v2-0-4eadb60081e5@gmail.com>
-	<20260916-ti-dra7-omap-sham-fix-v2-1-4eadb60081e5@gmail.com>
-	<20260918-jolly-honeybee-of-improvement-601ad0@quoll>
+	<20260916-ti-dra7-omap-sham-fix-v2-2-4eadb60081e5@gmail.com>
 X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -54,32 +52,84 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Fri, 18 Sep 2026 10:46:57 +0200
-Krzysztof Kozlowski <krzk@kernel.org> wrote:
+On Wed, 16 Sep 2026 02:29:39 +0530
+Bhargav Joshi <j.bhargav.u@gmail.com> wrote:
 
-> On Wed, Sep 16, 2026 at 02:29:38AM +0530, Bhargav Joshi wrote:
-> > The omap-des driver doesn't use the clocks and clock-names properties
-> > because clock management is entirely handled by the parent ti-sysc
-> > wrapper. files omap5-l4.dtsi, omap4-l4.dtsi, am4372.dtsi doesn't use
-> > these properties either.  
+> The omap-sham, omap4-des and omap2-aes crypto drivers do not use
+> "clocks" and "clock-names" properties. Clock management is handled by
+> the ti-sysc interconnect parent wrapper. The dt-bindings for
+> ti,omap-sham and ti,omap-aes don't define these clock properties. Having
+> them in the child nodes causes dtbs_check warnings.
 > 
-First a simple idea about reasoning here. Start with the assumption that
-Linux does not exist and there are random operating systems. using devicetree.
-Try to justify your patch that way. 
-
-> This is not a correct reason alone to make a DT change and it is
-> explicitly documented in writing bindings doc. If hardware has clocks,
-> but driver does not use them, they must be documented.
+> Remove the "clocks" and "clock-names" properties from the sham, des and
+> aes nodes.
 > 
-This is a lot about how to define several things.
+> Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
+> Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
 
-Hardware is described by splitting them into some power management part
-(compatible "ti-sysc") as parent and the main part. Basic clocking is
-described in that ti-sysc part.
-
-But the situation is a bit different here. The clock to be removed is
-different from the stuff in the ti-sysc part. So it needs indeed some more
-arguing.
+I was a bit too fast here, clocks here are different from what is
+used in the ti-sysc block. So some more thought and argumenting is needed.
 
 Regards,
 Andreas
+
+> ---
+>  arch/arm/boot/dts/ti/omap/dra7-l4.dtsi | 2 --
+>  arch/arm/boot/dts/ti/omap/dra7.dtsi    | 8 --------
+>  2 files changed, 10 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi b/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
+> index a595745afe59..bca035fd7e62 100644
+> --- a/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
+> +++ b/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
+> @@ -2086,8 +2086,6 @@ des: des@0 {
+>  				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
+>  				dmas = <&sdma_xbar 117>, <&sdma_xbar 116>;
+>  				dma-names = "tx", "rx";
+> -				clocks = <&l3_iclk_div>;
+> -				clock-names = "fck";
+>  			};
+>  		};
+>  
+> diff --git a/arch/arm/boot/dts/ti/omap/dra7.dtsi b/arch/arm/boot/dts/ti/omap/dra7.dtsi
+> index 711ce4c31bb1..0784c6d9cbe4 100644
+> --- a/arch/arm/boot/dts/ti/omap/dra7.dtsi
+> +++ b/arch/arm/boot/dts/ti/omap/dra7.dtsi
+> @@ -1012,8 +1012,6 @@ aes1: aes@0 {
+>  				interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_HIGH>;
+>  				dmas = <&edma_xbar 111 0>, <&edma_xbar 110 0>;
+>  				dma-names = "tx", "rx";
+> -				clocks = <&l3_iclk_div>;
+> -				clock-names = "fck";
+>  			};
+>  		};
+>  
+> @@ -1043,8 +1041,6 @@ aes2: aes@0 {
+>  				interrupts = <GIC_SPI 59 IRQ_TYPE_LEVEL_HIGH>;
+>  				dmas = <&edma_xbar 114 0>, <&edma_xbar 113 0>;
+>  				dma-names = "tx", "rx";
+> -				clocks = <&l3_iclk_div>;
+> -				clock-names = "fck";
+>  			};
+>  		};
+>  
+> @@ -1073,8 +1069,6 @@ sham1: sham@0 {
+>  				interrupts = <GIC_SPI 46 IRQ_TYPE_LEVEL_HIGH>;
+>  				dmas = <&edma_xbar 119 0>;
+>  				dma-names = "rx";
+> -				clocks = <&l3_iclk_div>;
+> -				clock-names = "fck";
+>  			};
+>  		};
+>  
+> @@ -1103,8 +1097,6 @@ sham2: sham@0 {
+>  				interrupts = <GIC_SPI 163 IRQ_TYPE_LEVEL_HIGH>;
+>  				dmas = <&edma_xbar 165 0>;
+>  				dma-names = "rx";
+> -				clocks = <&l3_iclk_div>;
+> -				clock-names = "fck";
+>  			};
+>  		};
+>  
+> 
+
