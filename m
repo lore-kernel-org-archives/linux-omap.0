@@ -1,217 +1,118 @@
-Received: from mail-wr2-f12.google.com (mail-wr2-f12.google.com [74.125.225.76])
+Received: from mail-wm2-f12.google.com (mail-wm2-f12.google.com [74.125.225.140])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48032525A96
-	for <linux-omap@vger.kernel.org>; Fri, 18 Sep 2026 20:53:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.225.76
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789764812; cv=pass; b=H7L8IxFaMq6tx0kfjSVkfOMLor2aMzCVQfo4NE7eAfNBXhtQcVnqI2OGIAuqXg4fS8I8fnxhkC6TOuPfFqvaxefy3srgNBXRwNYaHNB5YbFCsoN/oGQkGuvD2oG1+jzNlpBxE6vw9+uBE/mEKMT7uY8csF/b3m0cvujDvAMoF/o=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789764812; c=relaxed/simple;
-	bh=luig+1o1M/fsF9vaNIsARo6CqC/xBHmV9/YvD0slYb0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=b8c/PrOtNc6XL/xDLsvbP/9ZgXnrKa5IT7cUZhH5UUr2cepcgZgn6paLsW/RkORSB9K8ntSMWyUaRerRM/NgPrx0zxag0W94V6t7mUIlcs8MBLrBRECePIc1gnASUGbGtH3ZsS9iBC3QxPUcofryNV0AO5bvnX/a62NvUx73y8A=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PGw2d+7L; arc=pass smtp.client-ip=74.125.225.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 001A12E8DEB
+	for <linux-omap@vger.kernel.org>; Sat, 19 Sep 2026 17:11:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.140
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789837868; cv=none; b=Sr524d0oJIALPJiBALCSNA9tQDeX6WzvdosJY8qEhIfCyVvCvOPiYkN5WidQy83By4V/MxArhGnIm9GGrZJBcljQiUpqO5XxKJTOi31TJXN9F3DW/P+Me9KMEJhdd+lZJruSUFdnQ+MoNYIyA5C64qBbGCXngbQWuc8pDN+ndzM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789837868; c=relaxed/simple;
+	bh=dHkZRLWtlQaSHjeSXr42g7Q+eXX0UFEmGROzXfKyUJ8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=rvLUJM7ikX5wgi9QPbO4cFEs/od8C8gKZRm/61qmYaUqUf/Tz07PmpEcGe/lSn2EU+78D53DiD2aXhstsMUO8MZqwdxhzsjKQq/IzZX+qa2U0Ycj79DDTWoxRncozQWIzIypwe1bEwX1qeudLbU5q5zsYI++2Uyt6HAw//75/k4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Lxr4ODfY; arc=none smtp.client-ip=74.125.225.140
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PGw2d+7L"
-Received: by mail-wr2-f12.google.com with SMTP id ffacd0b85a97d-484399babcaso140977f8f.0
-        for <linux-omap@vger.kernel.org>; Fri, 18 Sep 2026 13:53:29 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789764808; cv=none;
-        d=google.com; s=arc-20260327;
-        b=nSqPuxhlmKrsPVll5gt4EFcf71pzwhwvSGjLfRIg4R8R4djyL4rbG8kSfflgM+wRqL
-         gSPuv7CnlZfop1wLIZtJ9Km+aNFKpUQLBsHHg7t+6GdQbGdh7uOvnGPtPemx4gm8vf1a
-         5amzRoXInVYuUgOh3sjiUZPdWGinhNFrdkHHxWsTZYM6tGkKkvZY3PyXh8WNOaPpgTII
-         Alo+A9earP/jNG3SPLotWXJM1DiEmk9zeiKm/BDHhO95jLuInCKZl5NqvsIYZw6V3Oje
-         zrWT4TfEW8kot+gVdf+pKduRvqNNxKK5cDDmX+qAag0gLZe9q0FfY2SR9621IO96JMag
-         HznA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=sgTcRorf9vWGoUo+DaV05plknDxMZzVIVIvRR476748=;
-        fh=4Sf9xLk6v9CrAUbNaUFPMEWYU+X3VitHHz/t60j0Pno=;
-        b=E6+uzYWzw4y8htpQmVtMcjPER1tq7IOpzicK1d2sqFWjfABCxvNMBJ+4GdC+UfgeMi
-         YDaUgrqL20DhxPMbRglytW4TWFVSWSyt+SnCUEi6ADM97MWg490YVKITeAycfgHqG7pq
-         5x3xKSXBlQGLYpckahgWzw7RJfziTlrJ4ARIn5LIGujtMkbvy+vEF2lzX2wS2IyDeuHB
-         n0XXqcCbcd45sqTDADpp6a4FUyWqemBT729jmVkk+VffaLyJK9rHBAbdYk5XBMXJzsmA
-         8HAbl51Z+DayBOadcjooL7F9icfOhWB5x20QXQJgJ3boNgPHtNX5R4SedLZk/hsKOyfk
-         ZGHA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Lxr4ODfY"
+Received: by mail-wm2-f12.google.com with SMTP id 5b1f17b1804b1-49cd5462b69so9082035e9.1
+        for <linux-omap@vger.kernel.org>; Sat, 19 Sep 2026 10:11:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789764808; x=1790369608; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=sgTcRorf9vWGoUo+DaV05plknDxMZzVIVIvRR476748=;
-        b=PGw2d+7LCXGpFRgce2pQrMPex2ONmymjB4wMc101C8ZNM1LdY5O7I1Rx0WTuSc2NtI
-         Zitp6OrbrRoynk9SAe8xoUdRNSQm2cwlophdOeOWjJ853LCpA4Oh3sg+4yr4zU//e95t
-         dtA/yVgZc5b8Sh2wknJQvioNwVspmH95QcwPBkEwmANXZppOA3sZMfpv+hsI2DlYdPEd
-         B9BnuNWWAEwODF9Iw7zc7Cd3kgxNTgxVuNQjSOAizfm/n1PVZXHkbfqENF6Lj4n8kfXz
-         Sr5w7sleNShnortkfhSftYNnZYz2/DTxmWkC7BZ7X04vtqij8nzmV7DFpp1GD02rszsE
-         n5Xw==
+        d=gmail.com; s=20251104; t=1789837865; x=1790442665; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=bOIVDTJSR3DD2SJCi7iFUDKjBfcaQ+nLmnWw0gGBUpE=;
+        b=Lxr4ODfYmauH7rsz1xUu7ScH56pOVVzCi9U7DJBuxFiIMSK/Y2k0uwqDs3pqF5s4LJ
+         CMvZSr/BG0HQDyy3mRDsrNgh8GLi+HDs4+LtjBwzh73jY+U95WGEe2AWrC/3vvZcZAcD
+         WFqkCpK3oBVxrd1/Pk4Nzih9dIbOj2mXyR+fFX28TqlvXrJQIfkqOmLkf/BHvtLc8NZm
+         FLGY5oil0NCm0s+EH3ziY2ORcTFHnOJVFzctGGxzU/E2iNRKOngDdKLj0wLoIFj+u4fb
+         jeCgFyym4fzcd2Oxwy2R03M8MH7FliB7obyz+wY9Mo4nARKqHQlAuo1eNUw9hBJQLVaa
+         eXKw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789764808; x=1790369608;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=sgTcRorf9vWGoUo+DaV05plknDxMZzVIVIvRR476748=;
-        b=OmjWEh5N+64+kZ9uJZb3iEuPP3V8PWb/EvFa2lhW2m86LZ0bPykKQbPk8Q2Xg9tk6c
-         7VsgMGltkXg9U4aOBwp6S2JBh5nA4l5VSvAnWsovZ4pS0tAc4Ult7Xq3vaUJ8d5crgst
-         LktlizKv5YZ3Q3kkAX3ONmiuX2KaTYyKWqG/k32z+ho9hLKwPMhT9IyF+jz6qvigcm+X
-         RKj03rhxrhIr1O3zzz0GMMj/crAQv2+tg0/UZoCJRD6OdDy/5xrFRVAq4IHgTTKYsLSK
-         OPyAlnAgvWNvtmVtCJWJDfg5Z+vOogvC7f6CWDzAssWVvK8pwJlKztv2BDezgPx9v5P3
-         vQ5w==
-X-Forwarded-Encrypted: i=1; AKwUvBzb7oUfZjRl8Hb5S+9fnWrEwqc8qDIERWOFTfKkQkOaIglwZy9ug3JFik5FAGtvfwXCgY/TcZylcnNs@vger.kernel.org
-X-Gm-Message-State: AFuF++n5khXZqVTerM2R1lNW03uNoQ2jIqUYrl/7iOauHV7FFI2dpL0q
-	Sz+ZVaCIraMW5c6kYNpDz08sm041+tbQlTa2BZNJluIJXkeuZabyu4puiX118oMqlgAYoN7R179
-	LJLp0AIOyBL747Rf330MOQOY8EsccmUdsXSCo
-X-Gm-Gg: AYBFou3gcpbc7cHtQ5PlVMAq3QFuKPrvdenjSolEVry1/eUjICm4uBxMGsGt59Iob0P
-	wmxYreHbOBUobD57lFC7vjDnc0eH8KwJjYdji/DT7x3+xJo19dUP5fBbc68xCZxx1NWv0E3Yke6
-	w9p79Fun42xpz8mkg8qaib+SSTZ++oiHOBGaikA7ecnI0KN7oCkv/pp9n5KLuPnUTBOBsqBkSoM
-	yXwKBPuwDrhrAodmhmfhSU9t+LvHpM9keu+G96EhB8e7vCwmb1O6WUlSa68o7dHxAueU2gmsQu8
-	4ygfXJ2z5iq749iCdurCR+AM5ENqnovZ7cHVw7gUzkyS9zJ3ssX8j/sdUHJzyjRLth5qy+pv2Nn
-	okVqeobkKW0wOHKx5hNa15oM=
-X-Received: by 2002:a17:907:d02:b0:c25:3ccf:bd9c with SMTP id
- a640c23a62f3a-c2a1a8e09e8mr331776566b.2.1789764477295; Fri, 18 Sep 2026
- 13:47:57 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1789837865; x=1790442665;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=bOIVDTJSR3DD2SJCi7iFUDKjBfcaQ+nLmnWw0gGBUpE=;
+        b=FOzrqZNkdQh/+OYDpdhNEPGn6ORNPPmdj+5ONeK8NbOUhvNgqfCY0IkbeRGA2JOpYm
+         Y7X4IhFVTOxG9W/bp1qk5boP4O55RfG2+O44zQyZtq+0Ix8b5LjDHZq8Ux3HiPveiN20
+         j28AEwf3Aaxj4E5WWVQ747XgZgPTX71ypyzXDZJLjJsP4gW9Lu3mkJOxAy95MZI9EnM3
+         cIq7qACzwMy71Tk4nqipu/ib4yDbDiZ427+NFdalevLKBvPI6jI2QgFynbTTpaN/X/WB
+         BYXS/By6d0HpGbiYckC/BVTGuWuC6KrClkG89RzTqdpgrJ5p/b1qMiGIX/+oL8WO+RXE
+         h3xA==
+X-Forwarded-Encrypted: i=1; AKwUvBxV3UKl/1yIsQNZtti3D09Q5YOZHYZ/hrmRpeajG5DNOdL2NZvaiA0/5FSBDDvZ+VdlEn5DRWB/l/UD@vger.kernel.org
+X-Gm-Message-State: AFuF++n36PgYC/hTvv01TNgj1YZ/gxyL5vsprKNkyu4xoiO27f2CSU/Q
+	d+9BjXwJIUPL7G0Ico6i2pgx5U1uPHJTgxVNnhwTRf/7pJhGpG9Zu9uk
+X-Gm-Gg: AYBFou0A33L3Qczjg07gkxCowMNQAb9yc7q6k1A1ydNsnEr/Scz/gJUQWS0FTWCWMmw
+	R4gHWjvqysRQ1jKXk74OQljI63bE2QrDnyi/8FVuS2dQFu/fSgdlWMEYD9RaPinHXd5V7XElnSq
+	t6ujIoLNuSIguTeV1aGr89h8Y9JvFTtx0FICaqxOzyUYfuDAcl+PO5SzgUKcPm/xVsGoxcIi7y7
+	AisJWm8mwSi5KvhjZB0D4Na+y+Ip29EOBX87WMfPCjGfqxGHDqmvvCFqnnzWvvut9Kf9NqaM38D
+	PGhsgtjB506PpSyg2hxbEmhpmwOFb9EAQsvSpOzbEbRc4OUOl6fGbEFyezutKW9Jn3CX2aoHaVf
+	jFnno0HomAr/GofkJp0QLVwHhcInGmw8vsgpLB7TrUJGWsISHjpWpDRWNsUk637Ux7T7qGvLqYH
+	K1lpswh3M2UU2/NMKH9qT53Y1foI7rAcxmNjb638w6Dv9e1NhtbVjYMSGiJFMX2+N7w7hCCaQ+m
+	MzX+jaxIET1UBSdzTcJITA3z9EM90np44sYtI2z1bxYhfTPMBnVu8Ya44rA3Zh7pqj8/V6gVm1S
+	KNsMLxamVvRJc+n85QKZ8x/MlYufJ/Lqgz04ZkvykDeevdkdWiej4itnvVJXXeuYrsyYEGy18R4
+	bFznrn3sV4QtkZzk=
+X-Received: by 2002:a05:600c:620e:b0:49f:ce78:3560 with SMTP id 5b1f17b1804b1-49fce7835e0mr32486945e9.17.1789837864986;
+        Sat, 19 Sep 2026 10:11:04 -0700 (PDT)
+Received: from MacBook-Pro-von-Karl.localdomain (dynamic-2a02-3100-a017-2b01-05fe-203b-7cd2-a640.310.pool.telefonica.de. [2a02:3100:a017:2b01:5fe:203b:7cd2:a640])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49fcd0f8563sm98714425e9.6.2026.09.19.10.11.03
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Sat, 19 Sep 2026 10:11:04 -0700 (PDT)
+From: Karl Mehltretter <kmehltretter@gmail.com>
+To: Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>
+Cc: Karl Mehltretter <kmehltretter@gmail.com>,
+	Jerome Neanne <jneanne@baylibre.com>,
+	Jonathan Cormier <jcormier@criticallink.com>,
+	Andy Shevchenko <andy.shevchenko@gmail.com>,
+	Shree Ramamoorthy <s-ramamoorthy@ti.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	linux-omap@vger.kernel.org,
+	linux-gpio@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/3] gpio: tps65219: Fix TPS6521x GPIO handling
+Date: Sat, 19 Sep 2026 19:10:57 +0200
+Message-Id: <20260919171100.90430-1-kmehltretter@gmail.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260916-ti-dra7-omap-sham-fix-v2-0-4eadb60081e5@gmail.com>
- <20260916-ti-dra7-omap-sham-fix-v2-2-4eadb60081e5@gmail.com> <20260918144224.4dfb8515@kemnade.info>
-In-Reply-To: <20260918144224.4dfb8515@kemnade.info>
-From: Bhargav Joshi <j.bhargav.u@gmail.com>
-Date: Sat, 19 Sep 2026 02:17:44 +0530
-X-Gm-Features: AcwNN1WKvA-fdN2xNZdCXGZd1cxpuLrv71RZ7MqA3wlpHyScvRfY20wc8pzPN-Q
-Message-ID: <CAOWyW_5GU__FE25POrjKH=CmOHaeBRJPw4xS2cdodePm3LydhA@mail.gmail.com>
-Subject: Re: [PATCH v2 2/4] ARM: dts: ti: omap: dra7: Remove clocks from
- crypto nodes
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman <khilman@baylibre.com>, 
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, 
-	Animesh Agarwal <animeshagarwal28@gmail.com>, linux-omap@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-crypto@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Fri, Sep 18, 2026 at 6:12=E2=80=AFPM Andreas Kemnade <andreas@kemnade.in=
-fo> wrote:
->
-> On Wed, 16 Sep 2026 02:29:39 +0530
-> Bhargav Joshi <j.bhargav.u@gmail.com> wrote:
->
-> > The omap-sham, omap4-des and omap2-aes crypto drivers do not use
-> > "clocks" and "clock-names" properties. Clock management is handled by
-> > the ti-sysc interconnect parent wrapper. The dt-bindings for
-> > ti,omap-sham and ti,omap-aes don't define these clock properties. Havin=
-g
-> > them in the child nodes causes dtbs_check warnings.
-> >
-> > Remove the "clocks" and "clock-names" properties from the sham, des and
-> > aes nodes.
-> >
-> > Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
-> > Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
->
-> I was a bit too fast here, clocks here are different from what is
-> used in the ti-sysc block. So some more thought and argumenting is needed=
-.
-Clocking is handled by ti-sysc parent block, furthermore other dtsi
-such as omap5,
-omap4, am4372 which uses the same hardware doesn't define any clock in
-the child node.
-parent block defines a clock with clock-name: fck
-clocks =3D <&l4sec_clkctrl DRA7_L4SEC_AES2_CLKCTRL 0>;
-clock-names =3D "fck";
-and child main part as
-clocks =3D <&l3_iclk_div>;
-clock-names =3D "fck";
-If child node needs this separate clock  in child node then binding
-for aes and sham needs
-to be updated to allow clocks and clock-names leaving des binding as it is.
+I found patch 1 while looking through the tree for code that mixes up
+bit numbers and bit masks. Patches 2 and 3 turned up while checking the
+nearby TPS65214 code.
 
-Best Regards,
-Bhargav
->
-> Regards,
-> Andreas
->
-> > ---
-> >  arch/arm/boot/dts/ti/omap/dra7-l4.dtsi | 2 --
-> >  arch/arm/boot/dts/ti/omap/dra7.dtsi    | 8 --------
-> >  2 files changed, 10 deletions(-)
-> >
-> > diff --git a/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi b/arch/arm/boot/dts=
-/ti/omap/dra7-l4.dtsi
-> > index a595745afe59..bca035fd7e62 100644
-> > --- a/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
-> > +++ b/arch/arm/boot/dts/ti/omap/dra7-l4.dtsi
-> > @@ -2086,8 +2086,6 @@ des: des@0 {
-> >                               interrupts =3D <GIC_SPI 77 IRQ_TYPE_LEVEL=
-_HIGH>;
-> >                               dmas =3D <&sdma_xbar 117>, <&sdma_xbar 11=
-6>;
-> >                               dma-names =3D "tx", "rx";
-> > -                             clocks =3D <&l3_iclk_div>;
-> > -                             clock-names =3D "fck";
-> >                       };
-> >               };
-> >
-> > diff --git a/arch/arm/boot/dts/ti/omap/dra7.dtsi b/arch/arm/boot/dts/ti=
-/omap/dra7.dtsi
-> > index 711ce4c31bb1..0784c6d9cbe4 100644
-> > --- a/arch/arm/boot/dts/ti/omap/dra7.dtsi
-> > +++ b/arch/arm/boot/dts/ti/omap/dra7.dtsi
-> > @@ -1012,8 +1012,6 @@ aes1: aes@0 {
-> >                               interrupts =3D <GIC_SPI 80 IRQ_TYPE_LEVEL=
-_HIGH>;
-> >                               dmas =3D <&edma_xbar 111 0>, <&edma_xbar =
-110 0>;
-> >                               dma-names =3D "tx", "rx";
-> > -                             clocks =3D <&l3_iclk_div>;
-> > -                             clock-names =3D "fck";
-> >                       };
-> >               };
-> >
-> > @@ -1043,8 +1041,6 @@ aes2: aes@0 {
-> >                               interrupts =3D <GIC_SPI 59 IRQ_TYPE_LEVEL=
-_HIGH>;
-> >                               dmas =3D <&edma_xbar 114 0>, <&edma_xbar =
-113 0>;
-> >                               dma-names =3D "tx", "rx";
-> > -                             clocks =3D <&l3_iclk_div>;
-> > -                             clock-names =3D "fck";
-> >                       };
-> >               };
-> >
-> > @@ -1073,8 +1069,6 @@ sham1: sham@0 {
-> >                               interrupts =3D <GIC_SPI 46 IRQ_TYPE_LEVEL=
-_HIGH>;
-> >                               dmas =3D <&edma_xbar 119 0>;
-> >                               dma-names =3D "rx";
-> > -                             clocks =3D <&l3_iclk_div>;
-> > -                             clock-names =3D "fck";
-> >                       };
-> >               };
-> >
-> > @@ -1103,8 +1097,6 @@ sham2: sham@0 {
-> >                               interrupts =3D <GIC_SPI 163 IRQ_TYPE_LEVE=
-L_HIGH>;
-> >                               dmas =3D <&edma_xbar 165 0>;
-> >                               dma-names =3D "rx";
-> > -                             clocks =3D <&l3_iclk_div>;
-> > -                             clock-names =3D "fck";
-> >                       };
-> >               };
-> >
-> >
->
+Patch 1 fixes TPS65219 input reads. Patches 2 and 3 fix TPS65214
+direction handling.
+
+I tested the series under x86_64 QEMU 10.2.1 with a temporary KUnit
+suite and a RAM-backed regmap. Both tests failed on the base commit.
+The TPS65219 input-high test returned low, and the TPS65214
+direction-output test left GPIO_CONFIG clear. Both tests pass with this
+series. A W=1 build of drivers/gpio/gpio-tps65219.o also passes.
+
+The KUnit suite is not included. It tests the driver logic, not real
+PMIC hardware. I have not tested this on real hardware. Testing on
+affected hardware is welcome.
+
+Karl Mehltretter (3):
+  gpio: tps65219: Fix GPIO input value reads
+  gpio: tps65219: Use the variant-specific direction callback
+  gpio: tps65219: Fix TPS65214 GPIO direction programming
+
+ drivers/gpio/gpio-tps65219.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+
+base-commit: 40288c9206c17eb66a603262e06a58d300d0f279
+-- 
+2.53.0
