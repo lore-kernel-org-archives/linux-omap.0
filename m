@@ -1,79 +1,87 @@
-Received: from mail-pz2-f42.google.com (mail-pz2-f42.google.com [74.125.228.42])
+Received: from mail-pz2-f41.google.com (mail-pz2-f41.google.com [74.125.228.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 039EE4DAFAF
-	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 16:39:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14E434DD3A0
+	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 16:39:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790008753; cv=none; b=RfwQbQsaH519MkQ2Y99AYu/r+5uTHol20hDMpWwlfSJp1BtBkKo667plY3uc3hi9UJvW3UgIMXZhmzQFPS+fo9j6omyvLlwdbrhXxNdMNsN8zz7AnOIUpAwFWBOhNkMPhZMc20+RIa1CK1HdZGF/XOdvtL9y1ZewwlViOCvEK3o=
+	t=1790008754; cv=none; b=K5ubjD61QpfslFMjOmVutEjTDtWWNNre2R+V98qVlJwKJW4mbZo7AIW1D6LlhfviroQShO4SMWSYcfcblhClO7MJBXdAX+7dl2am3jPFzXern8i4F4LhTF6iR+RZuRhlPJflyW/zyRAIdfvmbRonvVGg/jPTB57GhTCgwwamvpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790008753; c=relaxed/simple;
-	bh=2Jep4U/sPa3ykAGrogeCpl6S6LPaIkL6Afy6zdvlRUA=;
+	s=arc-20240116; t=1790008754; c=relaxed/simple;
+	bh=24LLjrfzuiFDMiY2Di7cUy9EJjgSsWn/cM0wQ6Zr3d0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hvc4xLVNgpGEJwg97iFtqXSY4n/AYpG1M1dpSCQBsCwHD+Tnr82gnDYeRiVq3WSDo67uQdU+ZIowHN6b3wY6g25tuYMY8KcN4o18f+fKkiTW7plHM2x6Tbfs+nOPnNEpcw5CRAA3aq8OlH0lDA2VM8bS+q5N6OvJUkSp+mh7G+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=gGXqoWsp; arc=none smtp.client-ip=74.125.228.42
+	 MIME-Version:Content-Type; b=YdlNAacNapj50NIasQ1cC51o/uotVXKxBbTCpvdWZa4H5gQpA70DogLbYFuksFMP4dHybZ04R3ipYD4xQ6YPlVxhNbcQnCW7/CvyOmXI1q28/rTazu5io/Q99IEeKBGUAo1WvE+zJwd849NGux7u9kAvgBTaLIblHcyNQwS/Zrg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=oyV3inQE; arc=none smtp.client-ip=74.125.228.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="gGXqoWsp"
-Received: by mail-pz2-f42.google.com with SMTP id d2e1a72fcca58-86efece610cso2304794b3a.0
-        for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 09:39:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="oyV3inQE"
+Received: by mail-pz2-f41.google.com with SMTP id d2e1a72fcca58-85469d20963so2086627b3a.1
+        for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 09:39:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1790008750; x=1790613550; darn=vger.kernel.org;
+        d=baylibre.com; s=google; t=1790008751; x=1790613551; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:mime-version:references
          :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=xoi+qAxbLbOdEbJC2ElBOo5ZUZgXdWhceK6CmEVeDBc=;
-        b=gGXqoWspJA3ASz5f0OE4U8JmDpiddwbJD6U7p5EudrTnyMRdOk+EhntVu03b8MaVSd
-         T/J/cFmEW7VLTigVGLfdpihIhd+jvNOvfQENqScdSFX5n6/1wvWiDvLrd5RUMTVELkEW
-         jsL9GC6CmP8Ep78Nn3nbm9OGiKFs43DazdjTAfUcMn9B8MSnMofwWjGeDb6Nt4/HakNx
-         Tj27i9+2ovtZ1tO/adEWajShmGhpu2q4cC5Uah3RunI7grQAoROpP83DhtXZh7X4qYaD
-         h7D2+1uGGzbPYkwoGrqCPVb2VxWJsyGCt0X5YWdwXiBSxDIeca+DpeDIpsoaJ5PsG0yJ
-         MqKg==
+        bh=RTiKA6dzD/roszw2geZzPgwk2NApUJFQrzcJ6rWXdb4=;
+        b=oyV3inQEeeHTqxshpe/ogEl7ju8v7wlSGKV8bYi7/jPp2xNvY75N0XtQlSAVvHe1bO
+         oLv5Ucqi+We9rxUgZhTCL3E6KE7U0L84Jsgjv25Kmnx1/s038WxTnkvd7OxPHUtHlvJ3
+         Ou8Krd/nIkpIghqkR3+p/jTEh83Rnr82O/X2PnLiklAJvV6ZK8uVUb8J3a/fw/mI10DY
+         O13ioxKjOe2IplsuOhQgZqAa3QAHn33bpRo/mXb7pBwFlunGtFclgTTVkYTRXqhSVwoA
+         qpWRGF2SKWT4TlYcy5ne9wj9wZ83LVkKiNE67tmMl8rYikXP34nn/DREtX4G8y3Y1jxb
+         hytg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790008750; x=1790613550;
+        d=1e100.net; s=20260707; t=1790008751; x=1790613551;
         h=content-transfer-encoding:content-type:mime-version:references
          :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=xoi+qAxbLbOdEbJC2ElBOo5ZUZgXdWhceK6CmEVeDBc=;
-        b=OWdVMi7A+X/AJi0zy9w69b2r1dFZ4BbslAEf+LNjHie642Hln7lRBdXZosCyYStzr7
-         ET05PMoPr/AhGI0F/mmq099k4olb3V18FVGYOzqpMABdkkq9enFEQ7JEtIClFeJuJepT
-         SCbbDmZQBAW8aPaNoZWeNhTGbCd6chWUotQctzhKUEvII+toli6gULGQXoIFygayyhqv
-         ezc3Q0JP1/he4ApEiOxvGql0IT0D90e8qeY/peRpuBk0RAmweAScahppuCd09TYydy9r
-         j/nUpz/QSBhsd3oSlwn9WeT8GGBZJ4Efr90CSbyK03234G9Ss7FhCFXHmQn/VwNc033w
-         INYQ==
-X-Gm-Message-State: AFuF++mj+sDHzxLLiD5HYH09dHykeKV5aVxqBV/jsg1h356J3ZvdoQTA
-	eRgGZrqDoW7qRNzKsKzKkLRUNqQSmSbYYuLfdAc8PdyGpm0apnuKNSU7gAvJgJNNv74JC9RKXYb
-	mkzzZ
-X-Gm-Gg: AYBFou21zXJKkilATOA1v54X5JM6zSn9JGXyTFF64K+3vpyXF9Kp6Gply+3jqnrN8qE
-	+ZWVOgtFPT/l6upoCGNAN9m8eUyK0SBRhzY/8Z6iWNkpFZ8XvRDLdsSyRGG0Cc/Z8HYv4ixfrdu
-	X9NvV23Od/BjWsoUKS8lU6/oiiz6J2yOyzfKk7OXChCH44a8b65Op/Ldxzr/RSBEGPqczyEMymP
-	scCWzidzwMNZV5+IZ4PUv/NDNHhvcYrykGhuIc4+qXbsZDP3i9W0Ff93dKLw6UwzJ8VNkxZB9vB
-	6CIqe5pMYhMntnVpVcKmLAwkRQDapVThm+MmPOm+EUQDPZPL8AEADWHtIFSl+y5QCBTdvzZ37LE
-	3GUexN8rDGPmAKuJ98YBe9itnSaOhiA7tUQCrbRzy/ur7t/arxh//ZqZtnTYuyQLQwoJ9mJdrcH
-	XI7CCmLl138yJ/ZfSU+ozSO03flQ9tA4EwGM0gCX1beDVb/TZqe9ejlO0ya+T6I0j+XPFo
-X-Received: by 2002:a05:6a00:2daa:b0:874:708d:b635 with SMTP id d2e1a72fcca58-874df4049e0mr15317101b3a.33.1790008750156;
-        Mon, 21 Sep 2026 09:39:10 -0700 (PDT)
+        bh=RTiKA6dzD/roszw2geZzPgwk2NApUJFQrzcJ6rWXdb4=;
+        b=hLz7b0RVk+wsZrtPbMisxPoosZokn8NvWScL/jyJkRVu0AtPMNVhIptJj7JVG73m9c
+         VagjbKY5bczs0sqvlAu3MqdFDSmdlJ50YV+Giw7wl5XwbZ5fvMIcD1pbNcyQ64CrBE79
+         lwZd+slwmvheyRrkU4Ul3q2G42awHEsA1GkRHr7dPdxO3iBa/HxU6eYs9JO7IA2HYOCF
+         hKJljdKx5oVkxaaOGioey/9zKvcM2H1ccPmNJBqf9HpoIQoQc4qTwofWstvI30qBu7ta
+         1RS2+KaoCX2XW4v3E8uibhnqG1pCrfa59ywBdgRh6RHbj/3lcnX+ukhZt+nQuoXPk3uE
+         HMqQ==
+X-Forwarded-Encrypted: i=1; AKwUvBybYgIyjuNEcXIqAxwtwdxXJxwN/v/kp1/HA1BjBlHTf6vKn5STOJD0tFmW9DjIQK9vB8XsIS9nxSjQ@vger.kernel.org
+X-Gm-Message-State: AFuF++mXhxZvLOAGwbOJuHmie5WZNZ33FhqzdOLClzUS011WJLmQNLpR
+	gtSsm5kdCAWjUiakMyroSiyygTpuGSpG4L0E//qXIMgmgtS0HXs7/KjCjkzpLm8fMIE=
+X-Gm-Gg: AYBFou3ztBjmbRHxQWHd5s3czd0lupQKxxxJnxLp0wpAtDwjXPaqAZNVeBPYQ5SCOR6
+	sh1K58Bhl92rclzG+T6H8MPMhb3KS3Fi/IhsoZ+CGYxjWf49j1f+K27iu1d3QtCYd7eIJ44h9KA
+	MwFmWF/UTuEBrskM0kla+0gjyAha4g26lr29zLkShiIu2JcXnTuvKpv1ZUJ9of+BcvhGEbx8Rqo
+	3Cc9m8BKQqF4c1zjL93id5ZThIZhYvhW4PIMjoI1SL7SBAuES0Y+zAp1qy2p4StXnfWYkyWf7fa
+	YzU9PXdL1O1as9yQbBl/0F7egX7RfCAOxQ7e4h9Y6A4jQ5sVLDE6o4SxssKADv4cmBNjP9O7ziT
+	4XPJXnHDF9fnpg9KVefwEpLPxM43dU5Ty8SSdWXmCzHgQ4o4v1bAdfuWddM7zUESQkG732Iy08x
+	f2WJ2mG/wbHElSL9q1oxHihAV9nM+GdIH61VbQeUQfcr7NdAtCiJI2N1WV3H1UkSdOi/de
+X-Received: by 2002:a05:6a00:f04:b0:878:37e1:aa78 with SMTP id d2e1a72fcca58-87837e1abb4mr7930031b3a.58.1790008751345;
+        Mon, 21 Sep 2026 09:39:11 -0700 (PDT)
 Received: from localhost ([71.212.197.238])
-        by smtp.gmail.com with UTF8SMTPSA id d2e1a72fcca58-877a6ae6f56sm3597430b3a.6.2026.09.21.09.39.09
+        by smtp.gmail.com with UTF8SMTPSA id d2e1a72fcca58-877a95f916dsm3568909b3a.31.2026.09.21.09.39.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Sep 2026 09:39:09 -0700 (PDT)
+        Mon, 21 Sep 2026 09:39:10 -0700 (PDT)
 From: "Kevin Hilman (TI)" <khilman@baylibre.com>
-To: linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Ethan Nelson-Moore <enelsonmoore@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+To: Aaro Koskinen <aaro.koskinen@iki.fi>,
 	Andreas Kemnade <andreas@kemnade.info>,
 	Roger Quadros <rogerq@kernel.org>,
 	Tony Lindgren <tony@atomide.com>,
-	Russell King <linux@armlinux.org.uk>
-Subject: Re: [PATCH] ARM: OMAP2+: remove unused ctrl_module_wkup_44xx.h header
-Date: Mon, 21 Sep 2026 09:38:50 -0700
-Message-ID: <179000865429.4136193.7908982571634163469.b4-ty@b4>
+	Lee Jones <lee@kernel.org>,
+	Shree Ramamoorthy <s-ramamoorthy@ti.com>,
+	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	"Kory Maincent (TI.com)" <kory.maincent@bootlin.com>
+Cc: Andrew Davis <afd@ti.com>,
+	Bajjuri Praneeth <praneeth@ti.com>,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v6] ARM: dts: am335x-bonegreen-eco: Enable 1GHz OPP by increasing vdd_mpu voltage
+Date: Mon, 21 Sep 2026 09:38:51 -0700
+Message-ID: <179000865432.4136193.2675209362900857145.b4-ty@b4>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260918025316.375757-1-enelsonmoore@gmail.com>
-References: <20260918025316.375757-1-enelsonmoore@gmail.com>
+In-Reply-To: <20260917-fix_tps65219-v6-1-0544b735edb8@bootlin.com>
+References: <20260917-fix_tps65219-v6-1-0544b735edb8@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -84,15 +92,22 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 
 
-On Thu, 17 Sep 2026 19:53:13 -0700, Ethan Nelson-Moore wrote:
-> The last use of ctrl_module_wkup_44xx.h was removed in
-> commit 6bf588595913 ("ARM: OMAP4: Ctrl module register define diet"),
-> but it was left behind. Remove it.
+On Thu, 17 Sep 2026 11:01:34 +0200, Kory Maincent (TI.com) wrote:
+> The vdd_mpu regulator maximum voltage was previously limited to 1.2985V,
+> which prevented the CPU from reaching the 1GHz operating point. This
+> limitation was put in place because voltage changes were not working
+> correctly, causing the board to stall when attempting higher frequencies.
+> 
+> With the recent TPS65219 PMIC driver fixes that properly implement the
+> LOCK register handling, voltage transitions now work reliably. Increase
+> the maximum voltage to 1.3515V to allow the full 1GHz OPP to be used.
+> 
+> [...]
 
 Applied, thanks!
 
-[1/1] ARM: OMAP2+: remove unused ctrl_module_wkup_44xx.h header
-      commit: d1e94aea2b15f076d3f95b309fbb372a8fe2e9f0
+[1/1] ARM: dts: am335x-bonegreen-eco: Enable 1GHz OPP by increasing vdd_mpu voltage
+      commit: c3037b5c7c38bdf78c214e7dbe513a553ce8f47b
 
 Best regards,
 -- 
