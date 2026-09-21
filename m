@@ -1,158 +1,98 @@
-Received: from mail-ed2-f35.google.com (mail-ed2-f35.google.com [74.125.228.99])
+Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1433648D860
-	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 15:16:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.99
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790003776; cv=pass; b=fMeOls6i6U5+xFANeJC0mQ4C9qs+pKreGHkGeAHteXhBIW/UeUbnWg9eoeIufZ6fRTy9AAMI6dLu1HNiFl3MOmbE/RTLFM8S2VIc9tT13K8Yeu7xN8MEuzl6JgJMt667/FsZ2rKNSOuGLWoV4EhusJ8qeF49K6ixaXSieYk/GMI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790003776; c=relaxed/simple;
-	bh=XHPO43iPwGf/8rDqm86qoTqT4DK9heTLxM81CKZvxYw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=OKn0fBQKYDiBO3orMSqsuHD0n6glfY5Kslk+nAJ/PY8Mxd5JJOHnWt4hjcCYLfHZjiJBVao+QlvDNyVCnfToMNMcY04XIpXSD3yhmrwq+mmRec5AJ4ie/ph4AZrSPwqZLUzEbN8sNNkQYxM1CBCjYZs3ci7QIFP52ksOUjUh7R8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=criticallink.com; spf=pass smtp.mailfrom=criticallink.com; dkim=pass (2048-bit key) header.d=criticallink.com header.i=@criticallink.com header.b=MlAuWMAw; arc=pass smtp.client-ip=74.125.228.99
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=criticallink.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=criticallink.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6331C4BB298
+	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 15:53:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790006034; cv=none; b=RWw1eu3rULI9tPK8tKZfjxCm9SzziZ40ZNkUreWiZg3bYTdqaWAbWyIqZeARQfZ7cVpY571eYrkpDBM1ZblhOeTTBKS+vxq0nnbaIkTroNDpUXzC720Uw1e5MFviNPpqSOxk1UcDnzq+apyDGZOBPuueM6Wko8xLoXaGhE9RgNI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790006034; c=relaxed/simple;
+	bh=kAV83GG8Wx3vs0tpxEdTxwn0XZCNc0tZOHUrR9Lz48M=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=CUNpiKZP4NV+lvdopoGqfEP1QnksAg+9fBEwz2HaCGizSx+Rvzjwo8nKwmlfiggHlvWkWxQZrJSdFfM8FYqO/yfrRp16CoF9HGPekOFBpUZbViM1tQK49THKqv+fTbXTmoe1W/hDfaKcyPLICdcDcp43b4L1Eo4ZmxYzGXB7rYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=eUb7/z9r; arc=none smtp.client-ip=74.125.227.141
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=criticallink.com header.i=@criticallink.com header.b="MlAuWMAw"
-Received: by mail-ed2-f35.google.com with SMTP id 4fb4d7f45d1cf-6a64c7cdb46so4694962a12.3
-        for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 08:16:13 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790003772; cv=none;
-        d=google.com; s=arc-20260327;
-        b=PQG5Jsr6Jcftk5W+jVxIYkS7PhPAsQtHFrRB2DAb+39fS2UR5TmUI6M1wEG/iOdhst
-         y7qGLsPSq2p1L60AcqlrT5evBdItjPy/QD5CyDsIyRsLISuvKGpvpPmLurVcZ1OUO9q0
-         Z0sgt0IFT9cbPTgySF6YGJIevUY4zRBxRrqY5ASdtAf5z+wY191hEKZysqzU0o2yIteR
-         v+aIO3FqZNSpSkcb16/5UOxC5GUARYbPOtE9gEldLDOuk8txaNA6XN1t17IT+e2H9mW+
-         N8FWjNXFo7Y10Aubvd4PyKzJ83PEqQ+/WaaFJu5QqSKfdmrjGAosLmW5MmbqTXU3Mw+s
-         Fxjw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=HX8wdI5S2tl2VsV0b3cC7CFvQKR8NtMSXQBbxVkBhOM=;
-        fh=dRHwXzzY+nsOQ4/DpNggsm57iDNP5KnNGMC53MAOjTA=;
-        b=NQHBMyYR9KgX5/NG0pNRHM6vZpcnywaNJduFyyHhbktmLdIcsYKjl1GAecha76ndEU
-         t853hADlLTFgSCIiNcxTQ78a+B6sunKQqBxASD1enHCFH3j/jzKaQ+E8aHDGDqSBrAzK
-         /ARVdhL7naSyljw8/xvlclO4q+F6/XRP6zWtgIhwrfWmBTQGlMwGdSItHVYxc3j1ehk0
-         wYrZRXQbgdOO93/KdYYmT4T/qAL7clRNKchnI68OEV8J9c2BR4frwQFZswwl8Ku83gLs
-         8T6wbjJNjYESuXcBz0Pe9AlMUdvRbXjddO5FW5IM6chHW8sii6m5FCf68IuLxe+KGEsf
-         Tnrg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="eUb7/z9r"
+Received: by mail-pj2-f13.google.com with SMTP id d9443c01a7336-2d9004a1ac0so20459915ad.3
+        for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 08:53:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=criticallink.com; s=google; t=1790003772; x=1790608572; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=HX8wdI5S2tl2VsV0b3cC7CFvQKR8NtMSXQBbxVkBhOM=;
-        b=MlAuWMAwbjpYzJtw6TBu52HvGXYbcslY8xaCfxUrYPzU9bDyOjDbHfqEDIRVacsDeM
-         /tFHlhXgsaAHLTTlwW7qwpnV+mXH0JoJFS11M4+u1Qk6N+/T2VW4aNM1Q/Zt5E75Vs76
-         lEaufwQgwsnvCEJtKfNGrtVb6H2pOmFnQP8V9g497VHGXsdCBlOnWgUlka1Yuoz0/j4t
-         iSINgCEg3C2FvVOlvEyHlNYjkyszX75D0C4LdyZrBfZDK8rIZKwFfeBTZ8vKTa6Ejg9A
-         1RF+io1ZIWhI764yfnveupU0Gn+H5XYZF1GKyHO74vOyfszv4mHxOKzmaycIchooOZ1i
-         08GA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790003772; x=1790608572;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=baylibre.com; s=google; t=1790006032; x=1790610832; darn=vger.kernel.org;
+        h=content-type:mime-version:message-id:date:references:in-reply-to
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=HX8wdI5S2tl2VsV0b3cC7CFvQKR8NtMSXQBbxVkBhOM=;
-        b=Ey7yk6Wxqa/pYZ8xqNEFOx4+p8U8+SZNW0Mwa5pxoRwO7QezJcQjPv7w9SeBfP0nDp
-         i8x9EqW0taEd/HvI2+9/DhT1IiriB0bwErANxcuzFLIBk/1wjtvy0V1mzRvetpcTcLJF
-         UiZGIW1lBuf9N5NjRCCwQGyc9F4RF1YGuPraCIfXeDxeAptWD2SVad4HYivVAgA4HrI5
-         BPggVl9Io6XCpZCY/7/Mi31/cwKTIG01EN69TrHfFJoRRjuz3u6mKiNEUkXol0SYfwM9
-         kA2UJDeA8pVqIlpGssoY/fN9EzRO1sw3IysaOYvkZzZtOdBNfvKTiCawifaQq0KYchIg
-         CRqQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzHU2Pxo2Z7bmwzeb5YIShSCMPrFWc6qPHp+bvcNZd0PKVThZjZCFWIypKUEMAH99u37rpJ9YUzCmJY@vger.kernel.org
-X-Gm-Message-State: AFuF++lwytuLPWWZJ75eszV70hx0KRQZRDYuLDBA+PMbupaJiz983QxR
-	A+9K2mdUyay7nvIerILZPZkXrW/QGHNYC5zdKbKG6Vp4yNA4B1ZHQbtQa2aNmc5BD3CvuTl4kc/
-	njHXLKEWXOBoQDqf2ifIu5guqjwOypfb/uqUTyA4lFl97YiTpxJ0=
-X-Gm-Gg: AYBFou2DBQgXSuKCZOQW+4uJLhtetu6B4Rb88NFNqFe16TVrE6snKXW8GBSMdoi0UyL
-	Zn4luTDnXHdfHX8qYr1a0V/FpDu5rRRl7FRO0z+YEoyjHRa8MMkAi+1sC7WIGQ/gAjdJ9slwaUK
-	o+Fjun39LKek0d6j+ypb5HhGHnHd2wCZQU8/k1LDR0TemYWqsnCMLWnqOs1TDG2xGJG6o47gSEN
-	tCl7jBpabFR91ORVxw+BkSIfdTAKJZXcBQWCrA9X2y+sTQWxFbJV4eiOcZ8ILlY6M5OEFISsuAr
-	fvz/9Q6400ozGGPZebd6iwnXmZIbOXCGROv4hsZ/W7kQXmRu4Kbwig==
-X-Received: by 2002:a05:6402:4382:b0:6a9:6944:57f2 with SMTP id
- 4fb4d7f45d1cf-6aa564ce3c7mr7698906a12.10.1790003772167; Mon, 21 Sep 2026
- 08:16:12 -0700 (PDT)
+        bh=kAV83GG8Wx3vs0tpxEdTxwn0XZCNc0tZOHUrR9Lz48M=;
+        b=eUb7/z9rRboiBmTpaCl6lc21MbiVYTqZq2BkuHUXMy9Qx+fjnMZz4Bb7z8d/uF2Ae3
+         sT6WmYODcw0JVzrx7KxrQz4kFJ9Q5QYBH/IqEiZzxeO41MWHpaxFo8uQ6gb/y83kY2pB
+         NP90W18zDe72xDHSnU3kKG76OQ0wDcb+Aqiz/atuxwrXdcg5t8RjpSF24W6IiaDErE2t
+         VPuD5uClKy+m5MRUoNey4jqUD9zOxYKXxKhK+bO/fRcrzUMWgASfP5k+MOb7EZPjLhIx
+         IcHGBNFRnSA/UAPQF9SrtFbt5/FJfbtqF+YAgEjAIdhAB7Kz2EOGo2WCHtpdijCvkjSW
+         bOCA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790006032; x=1790610832;
+        h=content-type:mime-version:message-id:date:references:in-reply-to
+         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=kAV83GG8Wx3vs0tpxEdTxwn0XZCNc0tZOHUrR9Lz48M=;
+        b=KMNUFxwUPQhMrbaV8xWoSHoAME6UzrDrVKNl2wVPXRabTHbTz2bVCw7hKfnvqRlSxP
+         DD6plaFWYj4IhBtQcF09NC4AjbQ7ze/lV93zxRUquBiCtFbLAh9VMqIwfp92fpoQxNJF
+         DWbrkNJiVx5YlBdu65zCNGK3qEeKKLonLi6Tr/gRPPtBTja6HKCrYLhfpvHSipl2i+f5
+         b1U2DEzoGop5Ii53xmMHW7D7DmZpH3svwDk3j7piBOyESMkOMdfQX0Gd6+JgSIUq4bbc
+         1afX/7kIZApWdXT70QW8rQBMR0qnzxnsINNIY47MEU64XVxlYgjCieeDyqihsccMTuiZ
+         BKPA==
+X-Gm-Message-State: AFuF++n8Y6kpkzZUF5BMiaLA8Oq/X1fiRSlNL4DgZJh5i/cqUIIppwnM
+	NVqe6KiWEgEWCLJR4IbpCuODhTJzTxDQX/RmauvLarBAnua5tHTeMpE/J9vPfo3G+2U=
+X-Gm-Gg: AYBFou1seocSr5R0/7qB67lsiAWIm8yJIxBEP/hfx3Vbh+hxwdBKuEfpuMt3ebYoOiq
+	90VL9v2128EGL2pbx8/DXr4YMxaaUESO8ofPmb12PRxeCO5w02qeqPrh07p9/lGctabMUhEYh6a
+	BIU2F0mrpynmoto8kOAH/XqTJ2QW/AR/7dEPh7GI9BBwy52Lrxie61Xj8TafdfytYdzCTNvtyWy
+	q4t8CjvuNqCPnMjwfa0UcfBT5gOyUNrgwSFJGzmESF7ZrnJwK/DaHOoqjFyp0h4kc3Obco29Q1F
+	4h0yu+5TH8qi62YEv/2THKDd9JkswYbJZDLCSxPaXuM1hZupbgvWWnT4ZNbX3Aj48SVgcEACtR8
+	joKFTaz0N9TkarahG0BpEqh4hCyrf2iHPJMBYAShqKMmS25G/ETw3ct5hMzbgD+m09Ks4w2gp5f
+	bw3HK+grBDiuW9rhN+1fQ7qBtgi2I5Tj/+fygMcRKs/g6txqdo9svNEzSadCQm+imNG5w=
+X-Received: by 2002:a17:903:98f:b0:2dd:c053:e0f4 with SMTP id d9443c01a7336-2ddc053e132mr114905975ad.35.1790006031634;
+        Mon, 21 Sep 2026 08:53:51 -0700 (PDT)
+Received: from localhost ([71.212.197.238])
+        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-2ddc178701csm36425795ad.13.2026.09.21.08.53.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Sep 2026 08:53:50 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Andrew Davis <afd@ti.com>, Tony Lindgren <tony@atomide.com>, Vignesh R
+ <vigneshr@ti.com>, Andreas
+ Kemnade <andreas@kemnade.info>, Roger
+ Quadros <rogerq@kernel.org>, Andi Shyti <andi.shyti@kernel.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Davis
+ <afd@ti.com>
+Subject: Re: [PATCH v2 1/8] i2c: omap: Drop bit shift for I2C register
+ addresses
+In-Reply-To: <20260908154223.116074-2-afd@ti.com>
+References: <20260908154223.116074-1-afd@ti.com>
+ <20260908154223.116074-2-afd@ti.com>
+Date: Mon, 21 Sep 2026 08:53:50 -0700
+Message-ID: <7hzexad2i9.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260919171100.90430-1-kmehltretter@gmail.com> <20260919171100.90430-2-kmehltretter@gmail.com>
-In-Reply-To: <20260919171100.90430-2-kmehltretter@gmail.com>
-From: Jon Cormier <jcormier@criticallink.com>
-Date: Mon, 21 Sep 2026 11:15:59 -0400
-X-Gm-Features: AcwNN1XBrxH6m24bVAE90lwMgAyLcIq43xhby1tZife3cbQ2oW2ZxE_IChsMK9A
-Message-ID: <CADL8D3bOOK0ER+rk3kGLaRKH0LBpTYj64SX57OCzZo4WeTZCHg@mail.gmail.com>
-Subject: Re: [PATCH 1/3] gpio: tps65219: Fix GPIO input value reads
-To: Karl Mehltretter <kmehltretter@gmail.com>
-Cc: Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
-	Jerome Neanne <jneanne@baylibre.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, 
-	Shree Ramamoorthy <s-ramamoorthy@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 
-On Sat, Sep 19, 2026 at 1:11=E2=80=AFPM Karl Mehltretter <kmehltretter@gmai=
-l.com> wrote:
->
-> TPS65219_MFP_GPIO_STATUS_MASK is already BIT(4). Passing it to BIT()
-> again tests bit 16, which cannot be set in the 8-bit MFP_CTRL register,
-> so GPIO0 is always reported low when configured as an input.
->
-> Test the register value with the mask directly.
->
-> Fixes: 57e30e00bd5b ("gpio: tps65219: add GPIO support for TPS65219 PMIC"=
-)
-> Cc: stable@vger.kernel.org
-> Assisted-by: LLM
-> Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
-> ---
-> Testing:
->
->   - A temporary KUnit test instantiated the driver with a RAM-backed
->     regmap under x86_64 QEMU 10.2.1.  The TPS65219 input-high test
->     failed on the base commit and passes with this series.
->   - This has not been tested on real hardware; testing on affected
->     hardware is welcome.
->
->  drivers/gpio/gpio-tps65219.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
-> index 457fd8a589e89..b25c6f7277680 100644
-> --- a/drivers/gpio/gpio-tps65219.c
-> +++ b/drivers/gpio/gpio-tps65219.c
-> @@ -79,7 +79,7 @@ static int tps65219_gpio_get(struct gpio_chip *gc, unsi=
-gned int offset)
->         if (ret)
->                 return ret;
->
-> -       ret =3D !!(val & BIT(TPS65219_MFP_GPIO_STATUS_MASK));
-> +       ret =3D !!(val & TPS65219_MFP_GPIO_STATUS_MASK);
->         dev_warn(dev, "GPIO%d =3D %d, MULTI_DEVICE_ENABLE, not a standard=
- GPIO\n", offset, ret);
->
->         /*
-> --
-> 2.53.0
+Andrew Davis <afd@ti.com> writes:
 
-Makes sense to me, our hardware has this pin connected as an input so
-I must not have tested this case.
-Reviewed-by: Jonathan Cormier <jcormier@criticallink.com>
+> The OMAP7xx devices used a register address shift of 1, but this device
+> has long since been removed from the kernel. So now no remaining board
+> device uses a shift other than 2, and no DT supported platform ever did.
+> We can drop this flag and use the pre-shifted register addresses. This
+> simplifies the register access.
+>
+> Signed-off-by: Andrew Davis <afd@ti.com>
+> Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
 
+Acked-by: Kevin Hilman <khilman@baylibre.com>
 
---=20
-Jonathan Cormier
-Senior Software Engineer
+Feel free to take this with the rest of the drivers/i2c/ patches.
 
-Office:  315.425.4045 x222
-
-http://www.CriticalLink.com
-6712 Brooklawn Parkway, Syracuse, NY 13211
+Kevin
