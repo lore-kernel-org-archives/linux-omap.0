@@ -1,137 +1,119 @@
-Received: from mail-wm2-f12.google.com (mail-wm2-f12.google.com [74.125.225.140])
+Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95CE238E8DA
-	for <linux-omap@vger.kernel.org>; Sat, 19 Sep 2026 17:11:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4B2748FF95
+	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 11:06:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789837873; cv=none; b=u+BPYBeg+858+/rw78BBVTS2i/axNrK2qL6BcqvU8A3tDiF8KyZUrIUfgUfDdKVkDR+fhPKXFObjkgN2MPTV7Wwa0LOJfxF2ada9ykTu7WwkPYqL+ily/IRaU9VJunbaI5qbLxek1Gpu+qwcPTxgAJFWnqvw4mLzClsCUUxvxA0=
+	t=1789988822; cv=none; b=PvnhtxD5046DBGTjXc+R89cdLpgbFh9THZvDIOtRPMR88CN29Df8rGf7EDG5OK11SYVf+g5KJ17KpchlthNWUwMb5LGoau/vg/WBeqKE8o1Gb+RC6jQ/K6tz4uPz1Znx415G6fKZwKMAa6R1G78ax4nVw75r9EWdLrsKl6SJflU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789837873; c=relaxed/simple;
-	bh=mWJYfjoWJeRQg0RSy1KWzp8U/jgGnfAzAM3nmAcJAFc=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=KsZF76VB5ASx5Ai5TZdEWEfycju216Svq9xj7e7xgiSHF1vrLQ1p8J3+W8lLCG9M1Tk+gs6yiKQkL5QhOfmVXXilE8LcpK4c/R0BeiOMM1IriXwLPttm8Lrfl9CKzJ5LI1PkEhlbx3/q33kaUrkp4TbNemE4DR42HALZ29NSB4U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=O6RXmapZ; arc=none smtp.client-ip=74.125.225.140
+	s=arc-20240116; t=1789988822; c=relaxed/simple;
+	bh=UUOINDD93jJS+LUcebWPI3js4hVCQibaR3IC0U7k49c=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=KklYodxE/sO25WClb0oSGUJjGds4iTz0WiyX+wQNo/e6tPGRxckcp8wSTV3VdRB1yQ6efsjattVJzgfYPuVINLeCptVFovzLh/E4RP0yMhsoY4Xg/5Dd2vpxc9ktSYj6Op4G1zNijnUF0UKN08VBcJ3cQ9TNuG5fYWY4eiS1wVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kmd4dzw7; arc=none smtp.client-ip=74.125.227.141
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O6RXmapZ"
-Received: by mail-wm2-f12.google.com with SMTP id 5b1f17b1804b1-49ccf3ca626so8019075e9.0
-        for <linux-omap@vger.kernel.org>; Sat, 19 Sep 2026 10:11:11 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kmd4dzw7"
+Received: by mail-pj2-f13.google.com with SMTP id d9443c01a7336-2d747ee1f38so28464185ad.2
+        for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 04:06:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789837870; x=1790442670; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=bdFmbxbENO0f+YbfOMbLsRbUwI3Z1sE3E+vQ+A1a+Ps=;
-        b=O6RXmapZPq9Z29bZ7zP2TVftyb2g865qn3ziLdnteUrU2zCYzz93WwZP+6txu9lveu
-         HFSl3arNgzqjZ4w7DJJrtoOHBBju9x2zLWOqz7pFsdK30ncsWx/bQiDrSZn/Ibfwi+/Q
-         4JI2Es1FmlUtla8XqFATmq8Bg4BQQsBZrsDX3of0HSfMSxwshRsP8mRZo5Aj6k1SKH6A
-         YKzZPm8zWt8Pezem7jNeLiK2NDexiOZDk9ajSa/OUJgSrRhs2iuCssg+kfcOrKCct24K
-         sjn4Zg++ZgH2voszijium27ZF3ioOFmMKHnxuQVHY7f60ARnbLOyrwLQuS1gHqPkCxTG
-         6tWQ==
+        d=gmail.com; s=20251104; t=1789988815; x=1790593615; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ycnprV0l+QiM05HZAYzXXqeG9wnBaUsBNe37TTIlwsM=;
+        b=kmd4dzw7YZwUGOpAohpIZBA84zGfg7XBW2MOXiu/6PtAIAey7CGoejz0Zx3N/LAUQY
+         hFXz0jGOkd74aCYP98iga4k3O8w5+pl6eeik3e6AgCWKaNYVNkL0KJ49+QuGXt2TOM/s
+         /JHmiVKtrRmdFk10TkJzqzwvM4DA3c65JItDPe7ALCMyGcfHUZ7IKfuvW9BuYSq5v4YU
+         5wep9KIJutpDUF7a8BqfsG3nRWCmXCfuNK+qLGffBqgpR6zEmK4431v0FSYTS42e2/CL
+         USWzYRVdteKi6yadRWl0nFHsuyfd4szDleMnlgzO+1zis8tdTbWLsol2SHHHcRvzcnT8
+         GC6g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789837870; x=1790442670;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=bdFmbxbENO0f+YbfOMbLsRbUwI3Z1sE3E+vQ+A1a+Ps=;
-        b=Y+PVltVWLoudpPMgsmQgCS7f/TaLcvdQnfJOFZnN9fZ8sHqW3xh/fyBZJ/+q5NmBoW
-         h+tUg/+VD6yWW3TjQifGIoYgocZgQi1iPoASinPb6pACFUyDvoMlUCM8l3XJfMStHMij
-         qukLHk+ez9XjCYWrOdo8szOyUVHrIK+zbi5aclilvisgWNqOKsUxghBJSdmLPEHxVQz/
-         QDgwyuaMhDEoQYw3U3Tycjy+O54k67tZxvKKgNXI6PF1ybCEt0YecitYnKO0mcKQ/Alm
-         leqIBcVTvPZYhK1zoFAw0TceCnuxJjibf/ciCzv0oSwFPqdccMNKO1NtwSGvDOaJXlRf
-         xewg==
-X-Forwarded-Encrypted: i=1; AKwUvBwIOsjKe6l4wfIXyJZCIdeK//YyOf0lTGiexc7+DArYX0N5DZ9YHETdnt11+ySM+Un+JAuJCRtlDUqv@vger.kernel.org
-X-Gm-Message-State: AFuF++k6VCyV6/Ii1TQIr7+/lBsbWiQ/bABUboH4kQ5iQEPHdgDB532q
-	CpDPIOlSX20dRzm105fUeTGGvPDn1QqvxFFFs4SNt7c3ekiUx/24MQ3v
-X-Gm-Gg: AYBFou3oGaSEBihai/YTZ0CGEXT+JTOqovpSEGyzo9stpUp1/7KQaJOM0O5GSzlhTy8
-	E0nQPLlJIZImgGWITgA1P8aZv/fNMeOEqbIOAGYSIa/eQ1+SZSZxY6wu3znxKmDAis8MrWfa8gC
-	bC6YCyD4QzbOYEALAhAMr7Oalp9yeCe4n0FR6kLNXrFugNiIJa5yh+cciRMQiKmGnVptXF5M5xf
-	x9GH1UsZpTf0i8FpYccMIrUUNSmi3yb7D8tWSP+nxmA7B8DXbK9MwLXpub8KCOq9qmaWI2hMLK5
-	7gWtB2FZVOc4/1zU3Z8JHuAL5VdQzKpdpMJzwHJTfKb/mrcXLqliB2Q1KqibKv0Qp/lJGknv16A
-	G+MVVUjiGHicygTTwhPEzS2CkYHq++pbfi1pAbJXvV9NE53+FXrqWs96vAcxEtBVoLj5dOWfqeP
-	pF13xZXz5gnqU8BlhbUCKLgZX4Zqe9Qi+GkbMgJIRwuYYgIdV/PeZvp77GR19wvZsz37QkhUB1a
-	jjICpSzNDsJBOec5BT3mX5ktDkYgCYr13PXH0FFYcsAIYfu8jyOG9oeL3SNLBXN2Ga5q4CsrHVw
-	FySdLUP0d9XlE0202zODzQM0zRquFkuZH5lh/ER9fdQ38SytO68GrnmSeNZV/zmGNRe8Y75Ygb6
-	To3MyaNXD51XdD6U=
-X-Received: by 2002:a05:600c:a00f:b0:49e:645e:2616 with SMTP id 5b1f17b1804b1-49fc56692e0mr84074825e9.5.1789837869581;
-        Sat, 19 Sep 2026 10:11:09 -0700 (PDT)
-Received: from MacBook-Pro-von-Karl.localdomain (dynamic-2a02-3100-a017-2b01-05fe-203b-7cd2-a640.310.pool.telefonica.de. [2a02:3100:a017:2b01:5fe:203b:7cd2:a640])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49fcd0f8563sm98714425e9.6.2026.09.19.10.11.08
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sat, 19 Sep 2026 10:11:09 -0700 (PDT)
-From: Karl Mehltretter <kmehltretter@gmail.com>
-To: Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>
-Cc: Karl Mehltretter <kmehltretter@gmail.com>,
-	Jerome Neanne <jneanne@baylibre.com>,
-	Jonathan Cormier <jcormier@criticallink.com>,
-	Andy Shevchenko <andy.shevchenko@gmail.com>,
-	Shree Ramamoorthy <s-ramamoorthy@ti.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	linux-omap@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 3/3] gpio: tps65219: Fix TPS65214 GPIO direction programming
-Date: Sat, 19 Sep 2026 19:11:00 +0200
-Message-Id: <20260919171100.90430-4-kmehltretter@gmail.com>
-X-Mailer: git-send-email 2.39.5 (Apple Git-154)
-In-Reply-To: <20260919171100.90430-1-kmehltretter@gmail.com>
-References: <20260919171100.90430-1-kmehltretter@gmail.com>
+        d=1e100.net; s=20260707; t=1789988815; x=1790593615;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ycnprV0l+QiM05HZAYzXXqeG9wnBaUsBNe37TTIlwsM=;
+        b=BBOI/JIzeJazsUuqH34wNv/vC3hM8lYJf6hVblvS+1xa3teLg07kEP9pSmEt9bp1bw
+         e+IhwuvDC5h3aI6DvYgA8EDZaCq09TS21+JCxpwuvzQZvNqao89nM1K9pDIhdKaKfdxH
+         T6mJO4g/BLdUrwcV86xFUsvs4KCN7qV4sDRzpLGgF+U8C5I4H+OTV0W5MjV2jbyt2s3D
+         Mzq4P3FWp2VtKHD2CA6dxBuUEa8ZV80iVSFWYu1/EJ7LBXVmKXPf+WYaYyjm+xuNxTTz
+         91WOj7gTUDSyBvTHIcGv67HG0q1viEbCkY7WHfJDQSm/1OZpKUe7G36bCcank4DZ/4W3
+         eLLQ==
+X-Forwarded-Encrypted: i=1; AKwUvBzOHSrQLq9PaqKiijBOa3LRzTOvhh9tNl3LtmLLyNJb4bGvOYS6v+ZGBzMV75CyquQm0On4aWmcnBsy@vger.kernel.org
+X-Gm-Message-State: AFuF++kEBmzu+HhaEfSOffIxLEwoywnaPqBoYvFpXIzotcrZBSvXFrbi
+	HMbcC1TUnkEGDBMbmJfogZ14iOUVTIWx4d9Sdu0o0ME4z/8b4bahmH0O
+X-Gm-Gg: AYBFou39tmlUoZYl+64vzf4zldZ+2a35EGPE/zUiU5BKAHGVTY01cLRWukQrODdPNH3
+	z08juxZTYE1FiYTyxYjfPYsLLwW8U03Gly5YBAzSuGfNbkXa6f1W7L1cpnWG8exvvttm2cfWO/b
+	CTCpWeHiFzgYkiE9+ZfBoPImNEHV0TSOE8t47KACD6VfGVhm1saR7ScTZnYIprhb/sIioyE8pFH
+	f4czJYTvM9Q7HcJ+Hnxxl1CG9KkgBs3HNEeHgluQOpBgpp9vAFTBXqGkmRUo838YO0SugFBnigm
+	hVkNU3ui9B3B2qAYLeE5AKesLKCyEIkln7rAXHih034tmJwrL0Ta3haNaOa4x4TkcwOlFWMhspF
+	qR+3ZUUSYrv9eCHtHF2v3pt0P6LG35AplUD9CCOCU40MbPjtpTshSm1HvpYkKLStjW3hec5sam4
+	2bDDCcrD4zrw7PR8VOnUSSdEjiJbLhrUb4SpbBNp5O578rzpxUKaJZtKoJlrgcn2f7UFGVlszeQ
+	7fr7v0dtBXYRDfDT1Uj/1shGcOTwkunmVSnTAOXG2ERLeyaB9M3oPIwn88Kyg==
+X-Received: by 2002:a17:903:2447:b0:2d9:43f5:b462 with SMTP id d9443c01a7336-2ddb1b79df8mr144230985ad.5.1789988815140;
+        Mon, 21 Sep 2026 04:06:55 -0700 (PDT)
+Received: from [192.168.151.214] (222-228-113-186.aichi.fdn.vectant.ne.jp. [222.228.113.186])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ddc17ba719sm31428165ad.56.2026.09.21.04.06.48
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 21 Sep 2026 04:06:54 -0700 (PDT)
+Message-ID: <17a74e90-27d1-4954-86a8-491267f00cb8@gmail.com>
+Date: Mon, 21 Sep 2026 20:06:47 +0900
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+From: Yoshifumi SHU <envzhu@gmail.com>
+Subject: Re: [PATCH v2 00/14] ARM: deprecated platform removal
+To: arnd@kernel.org
+Cc: Frank.Li@nxp.com, aaro.koskinen@iki.fi, alexander.sverdlin@siemens.com,
+ alexandre.belloni@bootlin.com, alexandre.torgue@foss.st.com,
+ andreas@kemnade.info, andrew@lunn.ch, arnd@arndb.de,
+ claudiu.beznea@tuxon.dev, conor+dt@kernel.org, david@kernel.org,
+ devicetree@vger.kernel.org, enelsonmoore@gmail.com, festevam@gmail.com,
+ geert@linux-m68k.org, gregory.clement@bootlin.com, imx@lists.linux.dev,
+ kernel@pengutronix.de, khilman@baylibre.com, kmehltretter@gmail.com,
+ kristoffer.ericson@gmail.com, krzk@kernel.org, linusw@kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+ linux-stm32@st-md-mailman.stormreply.com, linux@armlinux.org.uk,
+ liviu.dudau@arm.com, lpieralisi@kernel.org, mcoquelin.stm32@gmail.com,
+ nicolas.ferre@microchip.com, npitre@baylibre.com, robert.jarzmik@free.fr,
+ robh@kernel.org, rogerq@kernel.org, s.hauer@pengutronix.de,
+ sebastian.hesselbarth@gmail.com, shawnguo@kernel.org, soc@lists.linux.dev,
+ stefan@agner.ch, sudeep.holla@kernel.org, tony@atomide.com, vz@mleia.com,
+ thehajime@gmail.com
+References: <20260914140821.1805449-1-arnd@kernel.org>
+Content-Language: en-US
+In-Reply-To: <20260914140821.1805449-1-arnd@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-GPIO_LINE_DIRECTION_OUT and GPIO_LINE_DIRECTION_IN have the values 0
-and 1, respectively, while the TPS65214 GPIO_CONFIG field is BIT(1).
-regmap_update_bits() masks the supplied value, so passing either
-direction value clears the field and selects input mode.
+Hi Arnd and all,
 
-Translate the GPIO direction to the register encoding used by
-tps65214_gpio_get_direction(), setting GPIO_CONFIG for output and
-clearing it for input.
+I would like to request that the core Arm Cortex-M support be retained, specifically for v8-M.
 
-Fixes: 1b6ab07c0c80 ("gpio: tps65219: Add support for TI TPS65214 PMIC")
-Cc: stable@vger.kernel.org
-Assisted-by: LLM
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
----
-Testing:
+I'm heavily using Arm Cortex-M / NOMMU Linux for academic research.
+In particular, I frequently run Linux on newer Arm v8-M (Cortex-M33/M55/M85) processors.
+However, dropping CONFIG_CPU_V7M also removes support for these newer CPUs.
+Because v8-M is highly compatible with the older v7-M (Cortex-M3/M4/M7), the v8-M support is tightly coupled with CONFIG_CPU_V7M, despite the name. 
+The major differences are essentially CPU IDs and PMSAv8 MPU support.
+So I need the majority of CONFIG_CPU_V7M to support Arm v8-M. 
 
-  - This register programming was exercised together with patch 2 by a
-    temporary KUnit test using a RAM-backed regmap under x86_64 QEMU
-    10.2.1.  The TPS65214 direction-output test failed on the base
-    commit and passes with this series.
-  - This has not been tested on real hardware; testing on affected
-    hardware is welcome.
+Regarding platform support, I don't need Linux-side device drivers.
+In my current setup, Linux runs in a virtualized environment hosted by an RTOS (like Zephyr) and accesses devices through virtio served by the RTOS.
+I also understand that maintaining legacy MCU platform support is a significant burden.
+Therefore, I don't object to removing the platform support, though the MPS platform remains convenient for bare-metal testing.
 
- drivers/gpio/gpio-tps65219.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+I am willing to help maintain this support, including modernizing the relevant code. I can regularly test kernels on real Armv8-M hardware.
+If an active maintainer is required to keep the support, I am willing to take on that responsibility.
+Please let me know how I can help keep the support.
 
-diff --git a/drivers/gpio/gpio-tps65219.c b/drivers/gpio/gpio-tps65219.c
-index 479a80ef76543..6958466455d04 100644
---- a/drivers/gpio/gpio-tps65219.c
-+++ b/drivers/gpio/gpio-tps65219.c
-@@ -158,8 +158,10 @@ static int tps65214_gpio_change_direction(struct gpio_chip *gc, unsigned int off
- 	if (ret)
- 		dev_err(dev, "GPIO%d configured as VSEL, not GPIO\n", offset);
- 
-+	val = direction == GPIO_LINE_DIRECTION_OUT ?
-+		TPS65214_GPIO0_DIR_MASK : 0;
- 	ret = regmap_update_bits(gpio->tps->regmap, TPS65219_REG_GENERAL_CONFIG,
--				 TPS65214_GPIO0_DIR_MASK, direction);
-+				 TPS65214_GPIO0_DIR_MASK, val);
- 	if (ret)
- 		dev_err(dev, "Fail to change direction to %u for GPIO%d.\n", direction, offset);
- 
--- 
-2.53.0
+Thanks,
+Yoshifumi
