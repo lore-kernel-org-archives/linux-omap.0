@@ -1,80 +1,83 @@
-Received: from mail-pz2-f40.google.com (mail-pz2-f40.google.com [74.125.228.40])
+Received: from mail-pz2-f12.google.com (mail-pz2-f12.google.com [74.125.228.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F7B64AA038
-	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 16:02:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.40
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 178AD4570FA
+	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 16:06:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790006571; cv=none; b=lrbybSmyH6e/KgEtZTyDIIAzhwgmoDwb6t/V4K8BIqLh8pLhdzD14PcHao22PJGyObjHu9cNKzwR4MadGpeWHpZnYZOE9iSwvANLQtdZtnJrJ8ULvI1MWGBkjIq8L2F33Z58dZs0h1PmqkhNgeAiUl9AxW+7VOptuQECn1Uk7+Y=
+	t=1790006794; cv=none; b=O+Zj04mRWbrqSnzK695klw5WccMtnou1Rjs+zoxbu9sHez+7EhcOfeOAzKhdO6gJ/QD4/DtL44l9q+I87dPi0zUbDiud6U9+JBbRFDBShz7UU0mKpPh5AHzPdxg6HgVsuurx5W/sOQQsXxI06JZ8JWg6bUTXqS7CjqlZK0EB0ko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790006571; c=relaxed/simple;
-	bh=Ryakvez2AuPrHsciT1nsS1VZjsANZaRlT0oLyFD9r08=;
+	s=arc-20240116; t=1790006794; c=relaxed/simple;
+	bh=UOTeQSx76a9v/ZV3YujOIEiYlAr7+SRsnm3/O5Z68jU=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=NqpkjpNrXWqDomHLchl9pLlcEtFSi+bSL9PYnKRkZd3ZtBr5EC4x7/0nzMnYjkCTTGCCBaF5Epwoaa2qBGYZHRqACogsSAYC+mUYp9WNtVK+T3ZYKGMY0CbyStSDB3l/C2xPGsk2eNeWZP85lhg+VeNe2XsPkCuTbdX6nZovGzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=L7bllr18; arc=none smtp.client-ip=74.125.228.40
+	 MIME-Version:Content-Type; b=LHRj5271k2xtjOOFjQ9J+JZkeEFLGTPhnunUkPkc9704gx9iL3tAtjevNtjGGnQOu1nXiPJyBJFvOgJmCRsixbXnNc3qqJCQJkjnRDWL5mQrCKy8UI9ki6aJXRuWqGe45+xtZHuxVHtlpqX/WlSwgSwNEaCf7rWiG5uACw/gSew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=jNIPkims; arc=none smtp.client-ip=74.125.228.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="L7bllr18"
-Received: by mail-pz2-f40.google.com with SMTP id d2e1a72fcca58-8748f34b1f2so3003297b3a.0
-        for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 09:02:49 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="jNIPkims"
+Received: by mail-pz2-f12.google.com with SMTP id d2e1a72fcca58-8674704dab1so4404096b3a.2
+        for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2026 09:06:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1790006569; x=1790611369; darn=vger.kernel.org;
+        d=baylibre.com; s=google; t=1790006791; x=1790611591; darn=vger.kernel.org;
         h=content-type:mime-version:message-id:date:references:in-reply-to
          :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=hKFRVCGIKTeJtMXkPmTO6NVYkX101OwB/yBvUY5h+ko=;
-        b=L7bllr180MY+bK204YggwMGeo8DS4KcWI3LbqjGLDBRtpJ3HSzqmoR9SVVFL8BQoj6
-         NfNNLx3sc0brurecgqfH+5PjSpl+ZEeKxl2cLBunbDgvZGX9CpqNxlgz1lpWIUMEa0gU
-         xFhQI2l3AS0p47kpFmENPmycx+a6DhJeP3HzDGltZ8w9JkVOHIyTG/9gf/a3xDSjYdWm
-         0EwX8hGTVEp27I99tF2Y8ms+eO7YIHqXJLju5P9wFI+oXcAThL6ZaiB4PRHiI/BBfIWX
-         kicu0fA7urX19da4rUzJs2JIFh9Q+xaaEN2x1pIc9wnRfeXufZtmLrGuUGSuzQe4GYG9
-         3U6g==
+        bh=UOTeQSx76a9v/ZV3YujOIEiYlAr7+SRsnm3/O5Z68jU=;
+        b=jNIPkimsgzwGeAPw1T5J0ZZWbbWbvmf9gqRj40Y/atoUYgKG2yWh3HESwt6126nUDp
+         FD+Rmk79KRReyBBYIl4nF0UXejvRBciVXLpQ0x0P4HGhci5O8iuKBzqiPsMrmLMZpiFB
+         lTbphc8C5mH2TgoQvoSliu53nlAZUPM7gnPf6JVk1XoAUGXqWGbf8eYG4gdjGZ8Be6kE
+         0hW1vjiNk54/tiLuCoDH+rB/8p0unN4PncOQIY7I8fOQderqwGHSfRx+8mIky9QBPvd4
+         jWCVCSqDpodMotBD1r5UZ3EgftUBugTYiLbiO0CekAfIDwDxZ7IOPCqLCaPurh0VfluR
+         DhJA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790006569; x=1790611369;
+        d=1e100.net; s=20260707; t=1790006791; x=1790611591;
         h=content-type:mime-version:message-id:date:references:in-reply-to
          :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=hKFRVCGIKTeJtMXkPmTO6NVYkX101OwB/yBvUY5h+ko=;
-        b=lmycvCtyeaDzmshmA1/ZYmQtyToEkZvMaZtpRw8KH8aUriYJYknQpPBigEFTgYltvH
-         sLEctRvYtpHO3N98PKzMfUxOQFd3mZneC3a9PL32MGOZve7x88bMPFqkDtPB3wXBLo2/
-         jENG+4XcPAlN8M5JDi68Po5cAjj4zvMWXT45SRrxxXDZERz/FWkdJlsbdIKbk5oyrmKc
-         T5B+GMNcMsUqm3lN8CXD3KG61hTA6gaxjiYeiaXBJr3rXcrJEhqZfcFRs432qMrn9BDI
-         iqK/F8bDOT3uTJZ4RkFhl9dKSY129aiNGdTg2Mt5V+T/mWRrlmzFhsGmRLYul98SLoRo
-         yiFQ==
-X-Forwarded-Encrypted: i=1; AKwUvByLnf29ByJNSwPfgLskORNGG0Y+DASgmorCDFvDLaJXcZ0/a926qGcYt+V40DzcN0auBzsQTDg3Oi3O@vger.kernel.org
-X-Gm-Message-State: AFuF++mCh6Tnv/iJLDVikw8hj4cmov51ohZLzekXoDvcyyOiHwlHTdmL
-	2dNyq22aycqH+O9j7U9Qs7laCKfnd1KeEJ5CsOuB092rrJdpwVMAlFCADjTEbx+PkoM=
-X-Gm-Gg: AYBFou1UYMHEEsNmyXrLdv1tDAksNynlKXBEhBMAtQNu1dn0F6XEzlzjSdfM/obl5fw
-	1dqfTNk2mpua4QYLt3NqRJO91njiTjS94w+PrPXdVGt5IVMfpogMlHlrhYhYLtbjzfqv8E4TUzD
-	8cRVHNN4bUlW27Qo02zJ2tv4ktiW1zJbdDkB1AJKLcSPaUFJxcIWVJF30MfRoto0y5bhqdm0lA9
-	lZG3K5tA2BxRhtS9o70tZkndY00KEcNgKM1S+IEk0RqCUWb2+vsqHgtPblG7iaINKVGOUT9Reo5
-	xxaFEvfvfvrPCz4aMH0iUjqilw1rLHdunbg3vBfMzlEdmSajgIEWGdMlYlBUnEjFKGUGVOd+Y86
-	p0zlf8oo7u6LrmZkVqiQrjCgoZieXZBh5FbgsoseLho0ta6MSmo1Gtqtj2MfPTQ0xc33vp0OKTe
-	v28OvPDKblsE2Atu1GmYKtg3CafIHSCLaAlmm4hYo+cweqc9K2xy3zj572CueIP/75fxw=
-X-Received: by 2002:a05:6a00:7702:b0:877:b053:2e10 with SMTP id d2e1a72fcca58-877b053372dmr8630049b3a.9.1790006568844;
-        Mon, 21 Sep 2026 09:02:48 -0700 (PDT)
+        bh=UOTeQSx76a9v/ZV3YujOIEiYlAr7+SRsnm3/O5Z68jU=;
+        b=1p/JT3yl0FHBo9DDEYpzD6lZjtRodCfLDAAtmnlVoQfmDd1gj8V5wvsHk8vc7PJ5LT
+         H24Iov1cFm2qkFB47N2GBPQQzY/8HjcawyN6oTFhXSC4/LgbJ9tYlj9+wrQ4Vjf/bt3Y
+         auaI2kgjc7pyLg1aHDcBWeCq2RlmLSxYYzPbvUOIp6YD1XUN5Vc97NFK1aIWwUimrjAd
+         jDSQNwH+7rE6AoCjCFs9+EHKC3bHNAQaKpb3QE0o7C/UWkM5o1z8NyU7ugg8Au3jOyim
+         VdgDHbOzkYBmTlAOO8vrA6Zy1s0iZgfPGg48vf0W4L61FIpe2NNtX43eI65BmW7o0kwL
+         31iA==
+X-Forwarded-Encrypted: i=1; AKwUvBxRgoijbR851upvlBujDYkJbgMxJ5w89kl7zVmOH069eQZgzgnk67/jSA1/IwMWkFAwh4xMzn4rUzmx@vger.kernel.org
+X-Gm-Message-State: AFuF++kme2b+Cdzg8qk36kucJfb4GeNlw+AogqL/nf6C3bNHfZPEVwgP
+	ligR5lGWsH/fhlCUnIEUPFHVYbW7941PxT45mKIo7/tzJMacbhsrkgD1DqQnhh/RWR4=
+X-Gm-Gg: AYBFou1Xx5P/vLOu+fdqNiOH7C3ZJB81QxB0yMlzrpah0K1mdWnKL2Tqz+P6Xs1DjR0
+	puUwzIgmlV+bt3jSj2HmjuNTBUCGhgYQdc3hw4m8dlDXsXVGe/ovpfZ44+9nxINapgqNSNcgKPs
+	cao2N45ruNQb32dqBjcbasvsygz5i3arpVxs9P+UnAgNi6jcoxQCCSS0gNZ8K3xjHlwqfb1ZquV
+	kNOMVopP47iTQRy/c3HmG9+U5a4lmRbVhi3oRBZg6dddkRCOIn1e44JYs1md9OUP4VqGyBaZE6+
+	Efyy3JzgePs9jANm9ikTguku45th3YCEf1oembxuMJSx5bUuO0sTMetjSff7U0EpfJ08sLVqWEa
+	Nglgo6P3+p/WocNJIkDczQ7jj6+BTJTNuBe4LUTXhby9+59+ZBmklYRHiLzittXHlm4PFcmXPQS
+	cdMk4IcrfkRR2i08h8AWJqWfSwlzOMcYvQrENlEXT/v15PnPb95NlAtVGeGw1GzvtxoN8=
+X-Received: by 2002:a05:6a00:ac8:b0:878:34d7:6a30 with SMTP id d2e1a72fcca58-87834d76f20mr8319100b3a.36.1790006791257;
+        Mon, 21 Sep 2026 09:06:31 -0700 (PDT)
 Received: from localhost ([71.212.197.238])
-        by smtp.gmail.com with UTF8SMTPSA id d2e1a72fcca58-877aa1099e5sm3480526b3a.49.2026.09.21.09.02.47
+        by smtp.gmail.com with UTF8SMTPSA id d2e1a72fcca58-877a95f915csm3487490b3a.29.2026.09.21.09.06.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Sep 2026 09:02:47 -0700 (PDT)
+        Mon, 21 Sep 2026 09:06:30 -0700 (PDT)
 From: Kevin Hilman <khilman@baylibre.com>
-To: "Kory Maincent (TI.com)" <kory.maincent@bootlin.com>, Aaro Koskinen
- <aaro.koskinen@iki.fi>, Andreas Kemnade <andreas@kemnade.info>, Roger
- Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones
- <lee@kernel.org>, Shree Ramamoorthy <s-ramamoorthy@ti.com>, Rob Herring
- <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
- <conor+dt@kernel.org>
-Cc: Andrew Davis <afd@ti.com>, Bajjuri Praneeth <praneeth@ti.com>, Thomas
- Petazzoni <thomas.petazzoni@bootlin.com>, linux-omap@vger.kernel.org,
- linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, "Kory Maincent
- (TI)" <kory.maincent@bootlin.com>
-Subject: Re: [PATCH v6] ARM: dts: am335x-bonegreen-eco: Enable 1GHz OPP by
- increasing vdd_mpu voltage
-In-Reply-To: <20260917-fix_tps65219-v6-1-0544b735edb8@bootlin.com>
-References: <20260917-fix_tps65219-v6-1-0544b735edb8@bootlin.com>
-Date: Mon, 21 Sep 2026 09:02:47 -0700
-Message-ID: <7hwlsed23c.fsf@baylibre.com>
+To: Arnd Bergmann <arnd@kernel.org>, soc@lists.linux.dev
+Cc: Arnd Bergmann <arnd@arndb.de>, Andreas Kemnade <andreas@kemnade.info>,
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Paul
+ Walmsley <paul@pwsan.com>, Herbert Xu <herbert@gondor.apana.org.au>,
+ "David S. Miller" <davem@davemloft.net>, Mauro Carvalho Chehab
+ <mchehab@kernel.org>, Kyungmin Park <kyungmin.park@samsung.com>, Helge
+ Deller <deller@gmx.de>, Tero Kristo <kristo@kernel.org>, Stephen Boyd
+ <sboyd@kernel.org>, linux-kernel@vger.kernel.org,
+ linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
+ linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ linux-clk@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>, Aaro
+ Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH v2 06/14] ARM: omap2: remove omap24xx support
+In-Reply-To: <20260914140821.1805449-7-arnd@kernel.org>
+References: <20260914140821.1805449-1-arnd@kernel.org>
+ <20260914140821.1805449-7-arnd@kernel.org>
+Date: Mon, 21 Sep 2026 09:06:30 -0700
+Message-ID: <7htsnid1x5.fsf@baylibre.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -83,24 +86,42 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain
 
-"Kory Maincent (TI.com)" <kory.maincent@bootlin.com> writes:
+Arnd Bergmann <arnd@kernel.org> writes:
 
-> The vdd_mpu regulator maximum voltage was previously limited to 1.2985V,
-> which prevented the CPU from reaching the 1GHz operating point. This
-> limitation was put in place because voltage changes were not working
-> correctly, causing the board to stall when attempting higher frequencies.
+> From: Arnd Bergmann <arnd@arndb.de>
 >
-> With the recent TPS65219 PMIC driver fixes that properly implement the
-> LOCK register handling, voltage transitions now work reliably. Increase
-> the maximum voltage to 1.3515V to allow the full 1GHz OPP to be used.
+> The omap24xx SoC platform was used in the Nokia N800 and N810 tablets
+> released on 2007 and was among the first ARMv6 CPUs in products that
+> made it into products.
 >
-> Reviewed-by: Shree Ramamoorthy <s-ramamoorthy@ti.com>
-> Signed-off-by: Kory Maincent (TI) <kory.maincent@bootlin.com>
-> ---
-> I was pinged that the following series was not fully merged: the devicetree
-> change did not land upstream.
-> https://lore.kernel.org/r/20251218-fix_tps65219-v5-0-8bb511417f3a@bootlin.com
+> Unfortunately the early ARM1136r0 CPU cores had a number of quirks that
+> caused a disproportionate amount of work to keep them compatible with
+> later ARMv6K/v7/v8 implementations.
+>
+> Drop the support for this SoC in order to allow removing ARM1136r0.
+>
+> Cc: Andreas Kemnade <andreas@kemnade.info>
+> Cc: Kevin Hilman <khilman@baylibre.com>
+> Cc: Roger Quadros <rogerq@kernel.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Herbert Xu <herbert@gondor.apana.org.au>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Helge Deller <deller@gmx.de>
+> Cc: Tero Kristo <kristo@kernel.org>
+> Cc: Stephen Boyd <sboyd@kernel.org>
+> Cc: linux-kernel@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: devicetree@vger.kernel.org
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-mtd@lists.infradead.org
+> Cc: linux-fbdev@vger.kernel.org
+> Cc: dri-devel@lists.freedesktop.org
+> Cc: linux-clk@vger.kernel.org
+> Reviewed-by: Thomas Zimmermann <tzimmermann@suse.de> # omapfb
+> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Thanks for the reminder.  Queuing for v7.4.
-
-Kevin
+Acked-by: Kevin Hilman <khilman@baylibre.com>
