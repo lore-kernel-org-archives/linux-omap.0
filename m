@@ -1,33 +1,34 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AE534C10C6;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6776A4C33CD;
 	Tue, 22 Sep 2026 06:17:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790057868; cv=none; b=E61FOqx5/STe+A2pTkSR6XZA2fMfSXcVe6saI424xXNgu21A5jf4pczzOtw7OIyZ1kejJ9LVae9UbVgi8+3VEJz7SqDbSmAyt7JeYeiMWyqrZk+15nq0vkihBxmj+aqiHqaQMu9HJ4mEax7V5QfaH8QAWrV2rk4P3QeeZB0YYc8=
+	t=1790057868; cv=none; b=nnH8P7ozRbV6zpVZRq/V0sqKIFToQmjdHFpHjw5KCyCzQc6F+l3c3IrEry7aFHbkp6fGiPWdoObXVvC/Wdfry9/S9FIPuDg4PIuBSIRmEqi1mgsYji+nFfBUdhRwRa8RXmvQkJzYA4yZEqB3Pkp61z8W68gyEkSfCEmU2mfeuoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1790057868; c=relaxed/simple;
-	bh=ZJ58LzJ2jrYN033jXkMli6AXdpzXramyNMhGzt3PCbE=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Z7N0TasfWk5WEq1xOds9Udy8VEynLouzceV2WHc8RLIXAzDM/HcTUL8vb1lAawV8dMH311vRy5wgt33sd/jPXIXn166O59VkX9T+2CkXUF3HgtLCR5GU+pTvP0hs7lIWu6/LFZgjE+jZhfrUpcO9qqxcUyd5CzHtdf21LHDPf5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=wn+gTUPz; arc=none smtp.client-ip=178.238.236.174
+	bh=5KPRhw3PHHw+RQ/JZfD64PvTLB7y/YXDTUjBYHpew68=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=OfPOirCEqjOvOQcgzdSSjFfDi7piiRJ4FguF9oAXI2Hm28VmqMHRX0qtK1+P1DRkdA7Klb0HyD5sn7UloKcc2J0CqWaczEefU5h6JQ2pK8scT3/NYPKX3tRFWtgKkHlBTSYSP+IyknekmQUbR0e26NEgrEZBDe6/nStOQCVvupM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=ZAEKBMkA; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="wn+gTUPz"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="ZAEKBMkA"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:To:In-Reply-To:References:Subject:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=vJZZJlgqSTq1ItDpGK2L5K9Nw6kWH7euwhjPFDICo3Y=; t=1790057865; x=1791267465; 
-	b=wn+gTUPz2Ia0pRLOP6b3B1893QjIW/Xe3mMIWXoSYRd/jB2QyEhU6jHWRT0ANP9Cd5DmJ5Ybg4f
-	f4wSU6U5MaOvpHJsoXmuYJvhDMpjutYYjJomJnucPltDBydy7zPn/SQwCI0Q8ngu4/MrejdMcyoRb
-	Q0gT4MWTZtZhIp9WmE40ITTRhJhpVZ2yOtU5FakUQ+LV78XvHYcNwoR9L+wenZuicpfuY+UqCgMx8
-	0QCGq6SX8nhxwmllGkrWtb8oTHy518oFYyuhnDhaX8dX9C+B34R+uYGx42OupPfQLUqumbcK1+jKh
-	acdE5pI5e4ikPAKBpGuI9KTpRb700sjLtKxA==;
+	d=kemnade.info; s=20220719; h=Cc:To:Subject:From:Reply-To:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=+kV7t3nkhmFlCoj8U2ZxK8+Ds1oB/yvQdLFQt8onTy0=; t=1790057865; x=1791267465; 
+	b=ZAEKBMkAxCT3GyXV1THgR/W9hxYWle6NazWbhlke9OPiKwtZSWeiZPTVrpAlnqilpl8aZmhOD4H
+	rzVQjWMnTpt8evg763HQ5T6axbC/XE8pQ4Grsnnpv16Kim5T97D7mLQSI5PcFXcgIorN8JTQL9LFx
+	IExEh4DgeFezosROH2+RDaZ0J8CkEh3/wCNuG5pPV1jhpLZ0ggZCCkAdLZicM7De+K/x2T3WVezYQ
+	7cHR7ebNLD8WVRZ+mSkctvTp73DdPXOMAN5K+xvv/5IGw+AumC0F6yAjKDHYEm90YGw6OpXrj9k2G
+	FusjRXKFUJ6xx3eQkIHTd13D+Mr/nxDZm2UA==;
 From: Andreas Kemnade <andreas@kemnade.info>
-Date: Tue, 22 Sep 2026 08:17:05 +0200
-Subject: [PATCH RFC 8/9] drm/bridge: tc358762: Basic support for 2 lanes
+Subject: [PATCH RFC 0/9] drm: panel: Add support for Epson Moverio BT 200
+ display
+Date: Tue, 22 Sep 2026 08:16:57 +0200
+Message-Id: <20260922-b2-panel-via-bridge-v1-0-45ff36b364cf@kemnade.info>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -36,9 +37,11 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260922-b2-panel-via-bridge-v1-8-45ff36b364cf@kemnade.info>
-References: <20260922-b2-panel-via-bridge-v1-0-45ff36b364cf@kemnade.info>
-In-Reply-To: <20260922-b2-panel-via-bridge-v1-0-45ff36b364cf@kemnade.info>
+X-B4-Tracking: v=1; b=H4sIAFodsmoC/z2NQQ6CQAxFr0K6tslQoAhbEw/g1rCYgaJjDOAME
+ BPC3R2RuPzN63sLeHFWPJTRAk5m623fhREfIqjvursJ2iZsIEWsCorREA66kyfOVqNxtgmI0Sk
+ VeWo4phbC5+Ckte/NeoXL+QTV7+gn85B6/Pp2zMlrCs1xZ//JMtqCCTGOdZIdcybclMgtM2dKN
+ bqQck6hWtcP9D+s18UAAAA=
+X-Change-ID: 20260921-b2-panel-via-bridge-ba42974b612f
 To: Neil Armstrong <neil.armstrong@linaro.org>, 
  Jessica Zhang <jesszhan0024@gmail.com>, David Airlie <airlied@gmail.com>, 
  Simona Vetter <simona@ffwll.ch>, 
@@ -57,187 +60,91 @@ Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
  linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
  Andreas Kemnade <andreas@kemnade.info>
 X-Mailer: b4 0.16.1-dev-53874
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6006; i=andreas@kemnade.info;
- h=from:subject:message-id; bh=ZJ58LzJ2jrYN033jXkMli6AXdpzXramyNMhGzt3PCbE=;
- b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFmbZBPj7of3ZlyqFj2o/DC94IoQo27kwiqVmbuO86hOk
- tS38LrdUcrCIMbFICumyPLLWsHtk8qz3OCpEfYwc1iZQIYwcHEKwEQW1DL8T1/AZjnlda681uzJ
- VZM11r1YUdkdvfNq4L0veSab+hhYYxkZerz+TA5S0LEralA/uXLjorQbKxcXWJa9/dMemVf1aXs
- MGwA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4241; i=andreas@kemnade.info;
+ h=from:subject:message-id; bh=5KPRhw3PHHw+RQ/JZfD64PvTLB7y/YXDTUjBYHpew68=;
+ b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFmbZBN+fLTVLs19cFjvatdcnuxJJ2dPtX1fGXriroJZ8
+ N3Nho/fdZSyMIhxMciKKbL8slZw+6TyLDd4aoQ9zBxWJpAhDFycAjCR/2qMDPfyvjH6733qMNtP
+ 60OZRnRAw8eeZWGsub9Dejji/Z1MMhgZjhd+mVLaZis6yaM//fmBCzyFvLZxFmLxE6Zvyj5zezE
+ PIwA=
 X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
  fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-Add support for 2 data lanes. Enabling the PLL is required. This are just
-the values working for the Epson Moverio BT-200. With the standard mode
-flags, the panel mode was deemed unusable, adjust them to have more freedom
-in case of 2 data lanes operation.
-Nice looking values for the input clock for the PLL were not found.
+This series depends on
+https://lore.kernel.org/lkml/20260907-tc358762-fixes-v4-0-e3fc3ab5cd83@ideasonboard.com/.
+That series is still v7.2 based, but this needs -next material, to work.
+It compiles on -rc.
 
-Setting the required register needs special sequences, entering ULPS in
-between is the way to do it in the vendor kernel. It seems that some
-stop mode transitions are also enough. This all seems not to work
-if LPM is used for writing the register, to temporarily disable that.
+The Epson Moverio BT200 AR glasses have two displays. Each is behind a
+TC358762. As disassembly of that unit is not feasible, not much can be
+found out about the display chip itself, so no good compatible name for
+the panel can be found. Also I do not have access to a full datasheet
+for the bridge, so my knowledge is based to values found in vendor
+kernel. So more magic numbers than I wanted.
+As the panel needs to be configured via SPI, add support in the bridge
+for that, also the initialisation needs to be moved to pre_enable()
+to be able to use SPI in the panel driver alse in prepare(). To be able
+to properly narrow down any issues, add some read checks. Since two
+lanes are in use, the intenal PLL needs to be configured to derive
+proper clocks. Check for success there. Configuration of the PLL is
+too tailored to the BT200, it needs proper divider calculation
+derived from the input clock rate.
+I did not find any sane looking value for the input clock producing
+the known constant for SYSPLL3.
+
+Issues / Limitations:
+- SPI only works if bridge is pre-enabled, probably does not matter
+  as the main use case is to control the display behind it and
+  SPI transactions are properly rejected if the bridge is not ready.
+- SYSPLL3 tailored to BT200.
+- error messages on first read in reinitialisation without reset,
+  no practical problems seem to be connected to this, will
+  probably went away in most cases if shared reset is enabled.
+- some lines missing in output, so the picture gets around
+  10% smaller vertially, with the upper 10% repeating at
+  the button. I have a standalone variant of the panel driver
+  which does not have that issue. I did not find any significant
+  differences in omapdss registers per debugfs yet.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- drivers/gpu/drm/bridge/tc358762.c | 87 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 78 insertions(+), 9 deletions(-)
+Andreas Kemnade (9):
+      dt-bindings: display: panel: Add panel for Epson Moverio BT-200
+      drm: panel: Add panel for Epson Moverio BT200
+      dt-bindings: display: bridge: tc358762: Add some missing properties
+      drm/bridge: tc358762: Move initialisation to pre_enable
+      drm/bridge: tc358762: add SPI master support to control panels
+      drm/bridge: tc358762: read back ID register
+      drm/bridge: tc358762: make LPTXTIMECNT configurable
+      drm/bridge: tc358762: Basic support for 2 lanes
+      ARM: dts: ti/omap: omap4-embt2ws: Add displays
 
-diff --git a/drivers/gpu/drm/bridge/tc358762.c b/drivers/gpu/drm/bridge/tc358762.c
-index 194785bff997..632597fec20d 100644
---- a/drivers/gpu/drm/bridge/tc358762.c
-+++ b/drivers/gpu/drm/bridge/tc358762.c
-@@ -100,6 +100,8 @@
- #define SYSCTRL_PCLKDIV_DIV_2	2
- #define SYSCTRL_PCLKDIV_DIV_3	4
- 
-+#define SYSPLL3                         0x0470          /*  */
-+
- #define IDREG			0x04A0 /* Chip and Revision ID */
- 
- struct tc358762 {
-@@ -183,6 +185,7 @@ static void tc358762_post_disable(struct drm_bridge *bridge,
- 	if (!ctx->pre_enabled)
- 		return;
- 
-+	to_mipi_dsi_device(ctx->dev)->mode_flags |= MIPI_DSI_MODE_LPM;
- 	ctx->pre_enabled = false;
- 
- 	/* Turn off the DPI output */
-@@ -208,7 +211,9 @@ static void tc358762_pre_enable(struct drm_bridge *bridge,
- 	u32 lcdctrl;
- 	int ret;
- 	u32 id;
-+	u32 sysctrl;
- 
-+	to_mipi_dsi_device(ctx->dev)->mode_flags |= MIPI_DSI_MODE_LPM;
- 	ret = regulator_enable(ctx->regulator);
- 	if (ret < 0)
- 		dev_err(ctx->dev, "error enabling regulators (%d)\n", ret);
-@@ -233,15 +238,26 @@ static void tc358762_pre_enable(struct drm_bridge *bridge,
- 
- 	tc358762_write(ctx, RDPKTLN, 3);
- 
--	tc358762_write(ctx, SYSCTRL,
--		       FIELD_PREP(SYSCTRL_DPIDATA_IO_MASK, SYSCTRL_DPIDATA_IO_4MA) |
--		       FIELD_PREP(SYSCTRL_DPISTB_IO_MASK, SYSCTRL_DPISTB_IO_4MA) |
--		       FIELD_PREP(SYSCTRL_PCLKDIV_MASK, SYSCTRL_PCLKDIV_DIV_3));
-+	sysctrl = FIELD_PREP(SYSCTRL_DPIDATA_IO_MASK, SYSCTRL_DPIDATA_IO_4MA) |
-+		  FIELD_PREP(SYSCTRL_DPISTB_IO_MASK, SYSCTRL_DPISTB_IO_4MA);
-+
-+	if (to_mipi_dsi_device(ctx->dev)->lanes == 2)
-+		sysctrl |= FIELD_PREP(SYSCTRL_PCLKDIV_MASK, SYSCTRL_PCLKDIV_DIV_2);
-+	else
-+		sysctrl |= FIELD_PREP(SYSCTRL_PCLKDIV_MASK, SYSCTRL_PCLKDIV_DIV_3);
-+
-+	tc358762_write(ctx, SYSCTRL, sysctrl);
- 
- 	msleep(100);
- 
--	tc358762_write(ctx, DSI_LANEENABLE,
--		       DSI_LANEENABLE_L0EN | DSI_LANEENABLE_CLEN);
-+	if (to_mipi_dsi_device(ctx->dev)->lanes == 2)  {
-+		tc358762_write(ctx, DSI_LANEENABLE,
-+			       DSI_LANEENABLE_L0EN | DSI_LANEENABLE_CLEN |
-+			       DSI_LANEENABLE_L1EN);
-+	} else {
-+		tc358762_write(ctx, DSI_LANEENABLE,
-+			       DSI_LANEENABLE_L0EN | DSI_LANEENABLE_CLEN);
-+	}
- 	tc358762_write(ctx, PPI_D0S_CLRSIPOCOUNT, 5);
- 	tc358762_write(ctx, PPI_D1S_CLRSIPOCOUNT, 5);
- 	tc358762_write(ctx, PPI_D0S_ATMR, 0);
-@@ -329,6 +345,43 @@ static void tc358762_pre_enable(struct drm_bridge *bridge,
- static void tc358762_enable(struct drm_bridge *bridge,
- 			    struct drm_atomic_commit *state)
- {
-+	struct tc358762 *ctx = bridge_to_tc358762(bridge);
-+	struct mipi_dsi_device *dsi = to_mipi_dsi_device(ctx->dev);
-+	int ret;
-+	u32 syspll;
-+
-+	if (dsi->lanes == 2) {
-+		tc358762_read(ctx, SYSPLL3, &syspll);
-+		dev_dbg(ctx->dev, "syspll reg: %x\n", syspll);
-+		/*
-+		 * as handling of these registers is bound to certain
-+		 * conditions, avoid write if already set
-+		 */
-+		if (syspll != 0xB8640000) {
-+			dsi->mode_flags &= ~MIPI_DSI_MODE_LPM;
-+			/*
-+			 * SYSPLL3 seems to get set to 0x47000000 without it.
-+			 * Also trigger some stop mode transitions
-+			 * TODO: find some sane value for clock input and add proper dividers
-+			 */
-+			tc358762_write(ctx, SYSPLL3, 0xB8640000);
-+			ret = tc358762_clear_error(ctx);
-+			if (ret) {
-+				dev_err(ctx->dev, "error writing to SYSPLL3: %d\n", ret);
-+				return;
-+			}
-+
-+			msleep(20);
-+			/*
-+			 * control read to see if this is wonky, probably also includes
-+			 * stop mode transitions
-+			 */
-+			ret = tc358762_read(ctx, SYSPLL3, &syspll);
-+
-+			if ((ret) || (syspll != 0xB8640000))
-+				dev_err(ctx->dev, "failed to configure PLL %d\n", ret);
-+		}
-+	}
- }
- 
- static int tc358762_attach(struct drm_bridge *bridge,
-@@ -355,6 +408,7 @@ static int tc358762_parse_dt(struct tc358762 *ctx)
- {
- 	struct drm_bridge *panel_bridge;
- 	struct device *dev = ctx->dev;
-+	u32 lanes;
- 
- 	panel_bridge = devm_drm_of_get_bridge(dev, dev->of_node, 1, 0);
- 	if (IS_ERR(panel_bridge))
-@@ -367,6 +421,13 @@ static int tc358762_parse_dt(struct tc358762 *ctx)
- 	if (IS_ERR(ctx->reset_gpio))
- 		return PTR_ERR(ctx->reset_gpio);
- 
-+	if (!device_property_read_u32(dev, "dsi-lanes", &lanes)) {
-+		if (lanes > 2)
-+			return -EINVAL;
-+
-+		to_mipi_dsi_device(ctx->dev)->lanes = lanes;
-+	}
-+
- 	ctx->lpx_period = 3;
- 	device_property_read_u32(dev, "toshiba,lptxtimecnt", &ctx->lpx_period);
- 
-@@ -459,13 +520,21 @@ static int tc358762_probe(struct mipi_dsi_device *dsi)
- 	 */
- 	dsi->lanes = 1;
- 	dsi->format = MIPI_DSI_FMT_RGB888;
--	dsi->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE |
--			  MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_VIDEO_HSE;
--
- 	ret = tc358762_parse_dt(ctx);
- 	if (ret < 0)
- 		return ret;
- 
-+	if (dsi->lanes == 2) {
-+		dsi->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST |
-+				  MIPI_DSI_CLOCK_NON_CONTINUOUS |
-+				  MIPI_DSI_MODE_LPM;
-+
-+		dsi->hs_rate = 800000000;
-+		dsi->lp_rate = 9200000;
-+	} else
-+		dsi->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE |
-+				  MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_VIDEO_HSE;
-+
- 	ret = tc358762_configure_regulators(ctx);
- 	if (ret < 0)
- 		return ret;
+ .../bindings/display/bridge/toshiba,tc358762.yaml  |  14 ++
+ .../bindings/display/panel/epson,panel-bt200.yaml  |  48 ++++
+ arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts  | 120 ++++++++++
+ drivers/gpu/drm/bridge/tc358762.c                  | 234 ++++++++++++++++---
+ drivers/gpu/drm/panel/Kconfig                      |  10 +
+ drivers/gpu/drm/panel/Makefile                     |   1 +
+ drivers/gpu/drm/panel/panel-epson-bt200.c          | 251 +++++++++++++++++++++
+ 7 files changed, 651 insertions(+), 27 deletions(-)
+---
+base-commit: ae05b821e09ca387eab7441be8c82fd521f7a42c
+change-id: 20260921-b2-panel-via-bridge-ba42974b612f
+prerequisite-change-id: 20260326-tc358762-fixes-6f666500da9e:v4
+prerequisite-patch-id: df4c4c2ab36f4504f08fd89804c91ecf1bbc5b85
+prerequisite-patch-id: d270eb332c88f888f628b2cf751517500024b12c
+prerequisite-patch-id: 6050aad2a160d9e85b176e8118f4ac4247de1355
+prerequisite-patch-id: a7b3986c944f62156da6b368e6251b29451feaf2
+prerequisite-patch-id: eb52b7ed89c1d44539bc7eef61f242dd444d3171
+prerequisite-patch-id: e1a953467d847bea6bc9847134c0199e4702423b
+prerequisite-patch-id: 538b6e710dcc07bd70eed2795d9e463e91bf0b48
+prerequisite-patch-id: 6636bdd386becb3622944e57653e4fd1502527cc
+prerequisite-patch-id: 84cf0fc416da9a016ebbd586020cb67b18aa84b7
+prerequisite-patch-id: 64ff4472fe4467e9da0a11f69fe30d50db12204d
+prerequisite-patch-id: 88939d8af6eef5fea65b7883909856e692c29cfa
+prerequisite-patch-id: c6c3d34380425f4ee21411e860726786b56c8236
+prerequisite-patch-id: ac1f5d7bc054cf7a0d84cb343f4b1d1e393a7956
 
--- 
-2.47.3
+Best regards,
+--  
+Andreas Kemnade <andreas@kemnade.info>
 
