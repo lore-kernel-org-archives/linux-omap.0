@@ -1,33 +1,34 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AEE74C10C8;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B0434C10EF;
 	Tue, 22 Sep 2026 06:17:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790057867; cv=none; b=sU1eDJJar9lKmjOxLR+011RpvXvX1UllHhXMp8qV2oImdk/K79oEzYxwLsWygBi3ztaKic5s4AI4bkMHiwdjOq3WIbg8MJ7FQRBA38MbTZM/kQtc2PM3hP5tLG/fOQ73whmyE90od5WwBeIyn2j7FIkL8oLEwRARMLgesaeCxIY=
+	t=1790057868; cv=none; b=UQGXCOtfZMOaUeX23HT+mWFIqw96OfOM4us9XQa28W+nVXvt+xkZkl4TAjbIMwTCxw7lqyQmwjVcgbRL350L5SwZHZmdTdvGGooDGA5KxnuFA/2qHpIOUT6Q2dK+jedWyPMr9+Mjl6raiqTIhnEiDenGichKUSyLJ+qHLwCwwK0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790057867; c=relaxed/simple;
-	bh=mV1ffW5qREuPIii6GlOu11q/oHXgWJFzo/LvMNKCgQs=;
+	s=arc-20240116; t=1790057868; c=relaxed/simple;
+	bh=sN0jHjhiKPr+hku2Fc2l8CjScf+8Lhcf3qtojt/qNiQ=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=n2oKac+9cJvV07ktQYbQuKvzzmkFPT5VTl4OSAqfpRrtC2JHEDCF2nywupRAInbSMLcUECwFQIsep1bMt5MLtg4MUvwSNX6JA5a91bqrb+POoZ/EgkQGtHQ8xQTf70Alxa6JiFZoanAD/Dc2XszTlYawHhAaEXFd/VdzFd7gpcc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=Pc06wxI8; arc=none smtp.client-ip=178.238.236.174
+	 In-Reply-To:To:Cc; b=QV5pM2hl95A0K8E3HqxrVkgKVpkZjB26mT8RJZ0umcAxcddzh2YjfJlu1DyzQ6xVutUfc5uVsOWQFVj/68/xr9Ra2G9U5xkRhWA5yHbruatVd1f1owg0MQcxIL2VU41bhIUM8RssqpRuFKfuvdpaRMaiNmd6BupbOub7zXLV8VY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=YTxY27pO; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="Pc06wxI8"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="YTxY27pO"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=Cc:To:In-Reply-To:References:Subject:From:
 	Reply-To:Content-ID:Content-Description;
-	bh=qi+MaOlSGpl/UUecjy/28ZAgDgwsiLraw70UPSo95Vg=; t=1790057865; x=1791267465; 
-	b=Pc06wxI8Z05d97jwLQw+hV1C/95QzLmae4fqNriqMaR5J8G2V7BpeYtsKQzKfIasvGGiBRgi1y5
-	bIw0ycP/VN0hyFO+qU5/sVGvRq89jwVJ1B+g7AfqzK5dpO3LTWpsX3oNvVeSq1SqjHJ9tJo++DUUg
-	bR7Z4MeENQMUktAUgAmoo6HEHdBVu4c9GAENhaSSa/u+V1Wb3+jk4qKP+SNZMl/IPmsvRg8jpBrpP
-	KHmSZuaYm6fyg0ntnJxrJYzJQ8/pVg66kcxksECz94MxAKzfIK/4rGs1PGPwqqGvB+/E6HMjnk/Zo
-	36X5gmzNhqWpGDOWkO3GpXd7AB0uAok0xaLg==;
+	bh=AwsqmmNGM1CwkfnwhjdwYP4bj/OynYd8p0qPRgSwWUk=; t=1790057865; x=1791267465; 
+	b=YTxY27pO+dDTbjKldhJdj24iZgPjiwQ/Se4ngJyJVYM14tSfeMSxomlrcwQhxlSYqfXCQXgY5Bf
+	nlJtljXUw8Ftn1P4CIy7e1OLgBa2WmF+dcpgQCEKhx0sziXzv9HK351Gr8bBj3HD7PzlOZYY43uVG
+	bOABaurhKhDQJlYBxSBCT+sNe6L0nmZNMZwrqPUHEQb53eDQdQFW1eWFFdXWNvLnEdLMimPnUqABl
+	LnSKSy8M2IhGkTWW/8Pd8GU9rQ3RqjOWUbNAqyXGUlP3d9Px0VcRG8pC/GIPANoyS2TKrS3h09YA4
+	rinvl2yY3UTfx6E+4vD569IfugyAZaNSiXAg==;
 From: Andreas Kemnade <andreas@kemnade.info>
-Date: Tue, 22 Sep 2026 08:17:06 +0200
-Subject: [PATCH RFC 9/9] ARM: dts: ti/omap: omap4-embt2ws: Add displays
+Date: Tue, 22 Sep 2026 08:16:58 +0200
+Subject: [PATCH RFC 1/9] dt-bindings: display: panel: Add panel for Epson
+ Moverio BT-200
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -36,7 +37,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260922-b2-panel-via-bridge-v1-9-45ff36b364cf@kemnade.info>
+Message-Id: <20260922-b2-panel-via-bridge-v1-1-45ff36b364cf@kemnade.info>
 References: <20260922-b2-panel-via-bridge-v1-0-45ff36b364cf@kemnade.info>
 In-Reply-To: <20260922-b2-panel-via-bridge-v1-0-45ff36b364cf@kemnade.info>
 To: Neil Armstrong <neil.armstrong@linaro.org>, 
@@ -57,165 +58,79 @@ Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
  linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
  Andreas Kemnade <andreas@kemnade.info>
 X-Mailer: b4 0.16.1-dev-53874
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3329; i=andreas@kemnade.info;
- h=from:subject:message-id; bh=mV1ffW5qREuPIii6GlOu11q/oHXgWJFzo/LvMNKCgQs=;
- b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFmbZBOn/WsLTWp0vhN8ask1Z5GVm2tKzih1n5vgy+41/
- abKlhNFHaUsDGJcDLJiiiy/rBXcPqk8yw2eGmEPM4eVCWQIAxenAExE9z0jw9N+vbKD1bwigr+f
- fzT8rl3yQbM9m9PQ7qv1vIafUwSOlDEynNFu8RNVvxVyX4vz2kEvtfUnuFdrZF6pT6qWnvCU6dt
- xNgA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1702; i=andreas@kemnade.info;
+ h=from:subject:message-id; bh=sN0jHjhiKPr+hku2Fc2l8CjScf+8Lhcf3qtojt/qNiQ=;
+ b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFmbZBP6cuLjH32J65lfquB/cqbhhouTOW+cPpHqOdVv+
+ 2X2XKGFHaUsDGJcDLJiiiy/rBXcPqk8yw2eGmEPM4eVCWQIAxenAEwkZzbDX8EXm7Ma/I4c2n8j
+ yfXl5olaq6+2bl236/Wuq+1e77a/eB/O8D/s8p427Xmf9x7bq3LnSvnv2DNxewW5b1xaFlH6I12
+ oqoIZAA==
 X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
  fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-Add the displays. They are behind a DSI to DPI bridge. Specifying the
-required clock needs some more thought to find a sane rate, so leave it
-out for now. Also do not enable the shared reset line yet, to have some
-more recovery chances in case of possible display initialisation problems.
-There were situations in development where displays suddenly work in a
-sane way after several resets.
+The Epson Moverio BT200 has two DPI panels with SPI control
+input in its glasses. The chip is unknown and not feasible to
+non-destructively find out more, so just add a more generic
+compatible.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts | 120 ++++++++++++++++++++++
- 1 file changed, 120 insertions(+)
+ .../bindings/display/panel/epson,panel-bt200.yaml  | 48 ++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-index e11d1931c42a..856b92fb1866 100644
---- a/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-+++ b/arch/arm/boot/dts/ti/omap/omap4-epson-embt2ws.dts
-@@ -120,6 +120,12 @@ lb_v50: regulator-lb-v50 {
- 		enable-active-high;
- 	};
- 
-+	unknown_reg: regulator-unknown {
-+		compatible = "regulator-fixed";
-+		regulator-name = "unknown";
-+		regulator-always-on;
-+	};
+diff --git a/Documentation/devicetree/bindings/display/panel/epson,panel-bt200.yaml b/Documentation/devicetree/bindings/display/panel/epson,panel-bt200.yaml
+new file mode 100644
+index 000000000000..b3ea09d194aa
+--- /dev/null
++++ b/Documentation/devicetree/bindings/display/panel/epson,panel-bt200.yaml
+@@ -0,0 +1,48 @@
++# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/display/panel/epson,panel-bt200.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
 +
- 	wl12xx_pwrseq: wl12xx-pwrseq {
- 		compatible = "mmc-pwrseq-simple";
- 		clocks = <&twl 1>;
-@@ -140,6 +146,120 @@ wl12xx_vmmc: wl12xx-vmmc {
- 	};
- };
- 
-+&dss {
-+	status = "okay";
-+};
++title: Panels of the Epson Moverio BT-200 head unit
 +
-+&dsi1 {
-+	status = "okay";
++maintainers:
++  - Andreas Kemnade <andreas@kemnade.info>
 +
-+	bridge@0 {
-+		compatible = "toshiba,tc358762";
-+		dsi-lanes = <2>;
-+		reg = <0>;
-+		vddc-supply = <&unknown_reg>;
-+		/* reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>; */
-+		toshiba,lptxtimecnt = <7>;
++allOf:
++  - $ref: panel-common.yaml#
++  - $ref: /schemas/spi/spi-peripheral-props.yaml#
 +
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
++properties:
++  compatible:
++    const: epson,panel-bt200
 +
-+			port@0 {
-+				reg = <0>;
-+				bridge_in_right: endpoint {
-+					remote-endpoint = <&dsi_out_right>;
-+				};
-+			};
++  reg:
++    const: 0
 +
-+			port@1 {
-+				reg = <1>;
-+				bridge_out_right: endpoint {
-+					remote-endpoint = <&panel_in_right>;
-+				};
-+			};
-+		};
++required:
++  - compatible
++  - port
++  - reg
 +
-+		spi {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
++unevaluatedProperties: false
 +
-+			display@0 {
-+				compatible = "epson,panel-bt200";
-+				reg = <0>;
++examples:
++  - |
++    spi {
++        #address-cells = <1>;
++        #size-cells = <0>;
 +
-+				port {
-+					panel_in_right: endpoint {
-+						remote-endpoint = <&bridge_out_right>;
-+					};
-+				};
-+			};
-+		};
-+	};
++        panel: panel@0 {
++            compatible = "epson,panel-bt200";
++            reg = <0>;
 +
-+	port {
-+		dsi_out_right: endpoint {
-+			remote-endpoint = <&bridge_in_right>;
-+			lanes = <2 3 4 5 0 1>;
-+		};
-+	};
-+};
++            port {
++                lcd_in: endpoint {
++                    remote-endpoint = <&dpi_out>;
++                };
++            };
++        };
++    };
 +
-+&dsi2 {
-+	status = "okay";
-+
-+	bridge@0 {
-+		compatible = "toshiba,tc358762";
-+		reg = <0>;
-+		dsi-lanes = <2>;
-+		toshiba,lptxtimecnt = <7>;
-+		vddc-supply = <&unknown_reg>;
-+		/* reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>; */
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+				bridge_in_left: endpoint {
-+					remote-endpoint = <&dsi_out_left>;
-+				};
-+			};
-+
-+			port@1 {
-+				reg = <1>;
-+				bridge_out_left: endpoint {
-+					remote-endpoint = <&panel_in_left>;
-+				};
-+			};
-+		};
-+
-+		spi {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			display@0 {
-+				compatible = "epson,panel-bt200";
-+				reg = <0>;
-+
-+				port {
-+					panel_in_left: endpoint {
-+						remote-endpoint = <&bridge_out_left>;
-+					};
-+				};
-+			};
-+		};
-+	};
-+
-+	port {
-+		dsi_out_left: endpoint {
-+			remote-endpoint = <&bridge_in_left>;
-+			lanes = <2 3 0 1 4 5>;
-+		};
-+	};
-+};
-+
- &gpio1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&gpio1_hog_pins &gpio1wk_hog_pins>;
++...
 
 -- 
 2.47.3
