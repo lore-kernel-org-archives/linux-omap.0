@@ -1,34 +1,34 @@
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E2584BFE76;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AF994C10D6;
 	Tue, 22 Sep 2026 06:17:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790057866; cv=none; b=HEM7XEJb+HOxhd5sgQBD+0dAs+3vFO7rh6N8esnAyDuxYiAv28wKRgTQJIn07wLfnHbjzm9PLlGo2h3ZSRHF5pExm8o0Pq0HrmhmJjbSY22tOTCFem/3PMGi2bmozjutoUYqwJAMjAOBsf9bLPaZrrbRbTPdyRSOme/2aG5AAao=
+	t=1790057867; cv=none; b=NneMWDcg7ctO+G6V8gSAVHZ+7jhJq8Cj96efdvW5LbGFYHDe0CftlOlBHtchebIBgYJK9LSde4/xZVJNoMRs82yAbOJy8GJ45rWvzqYPvJKf388ZoBUDskqyDd5pS2YOE6cKPziVBM94cWpD6SKehmu1N9AXb/O25iO7LYstHNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790057866; c=relaxed/simple;
-	bh=4czSwLJZTsPrde7Ae78uOhAxPABOjbRqzcFREuBtK58=;
+	s=arc-20240116; t=1790057867; c=relaxed/simple;
+	bh=0ao++1qEowCnecwI5jgyBfK+9SvJvTxqa1J5MX+7yTk=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=JQz5+YHf9MU/zBN/vW4GV0bJE/HqeUse7D40LgDEu/HTslkUWI9TatwYuVvPjjhTjtE9Vg+YtULLuIkx4bsgyDvhWnMbotJzVjjD5jtMiU4obuQIaCRv2d6P32Aaxt7hCGccJfRnJ3uWWWRjKCaBhtu2PV8IMYlA3HlgE3xlnrU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=OADrxjxJ; arc=none smtp.client-ip=178.238.236.174
+	 In-Reply-To:To:Cc; b=hJp+xud2AS4sTdlWc9Vv9ks1sGMFsk6dTcowdLdm6QGl7/t5gxeGDZDNl+QNO2i0vXmfmUfbXdN1+F4pOnb8m/kpPfyC0qsCL1/RnHp/6lG4kqfH2O72grzNkjovVjNqVGIvgkOY9nhbuUrn65oU9VfXxJpTLiVgO+3Ig/vTxvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=D51TndKW; arc=none smtp.client-ip=178.238.236.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="OADrxjxJ"
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="D51TndKW"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=kemnade.info; s=20220719; h=Cc:To:In-Reply-To:References:Subject:From:
 	Reply-To:Content-ID:Content-Description;
-	bh=AXgjdnDVE3P4oyz6CPuYyFf3otjEytHlCZ6PP8kE4jo=; t=1790057865; x=1791267465; 
-	b=OADrxjxJEarq6+sWLEsagEVLfYOIRR30okq2DRVsa5LNadgphnwjU2sAl2eWUzkDacU1UDwxHwn
-	79ATjNPb6bWlQOTKwX37D1mgOlaCtxjUZCPaIAFFaEgjWnWr6f3kryRTsrVZ/8sfKURSy6ARwoKC/
-	EVL9b9/2aYlrQm2WvTgU8VHUoOODJeja6W1e/Lwg5FmVngW7q2FW0qb6OLX0UZaom+vtcFGeZ3Av3
-	+eJA9GxW5OsyI/tKBdJwyAWRvGDVGiB3iDYXc9M+rQd/n1ar8xxMsMUzgmyU8gn/67OiL394S/sqc
-	1IAeJEej5JdIuTRjzD9FpB5+PaH9XZALcFvw==;
+	bh=3ek7mJzGL/9yBolrQvEtoJoyM66ZQqkeJgFGLDJjQUc=; t=1790057865; x=1791267465; 
+	b=D51TndKWkJeuNS3mIX0Foi6uG7JXDGcFTm4hyHncoIndP4ar0k0rSaGzbN/zYIUfJ7BIkqx60d9
+	i9OX+5jIc3i7T33ml9NCwImvTi0FBFesicF7FI3G2fB6LG+OnGQJnJioXd9iyIly6Pqpl6OndfJBN
+	rv/jYhzWNjVt95V+9PffqFeIPMxVVbzptZOZqBFk79KyHFDL1xpfoqf03gKTnyo4woJ16wcR8TWYR
+	Q3r55R4gxtPBklGB5+GWox45CIRurOdrFArVMBE0IfAoXWIV+dKx1kGQ3+F6nYbmbuYocb3GDSIyh
+	HNLZFUMvBcOI2NZOrB3ma3xEDEX9URxaTgAQ==;
 From: Andreas Kemnade <andreas@kemnade.info>
-Date: Tue, 22 Sep 2026 08:17:01 +0200
-Subject: [PATCH RFC 4/9] drm/bridge: tc358762: Move initialisation to
- pre_enable
+Date: Tue, 22 Sep 2026 08:17:04 +0200
+Subject: [PATCH RFC 7/9] drm/bridge: tc358762: make LPTXTIMECNT
+ configurable
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -37,7 +37,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260922-b2-panel-via-bridge-v1-4-45ff36b364cf@kemnade.info>
+Message-Id: <20260922-b2-panel-via-bridge-v1-7-45ff36b364cf@kemnade.info>
 References: <20260922-b2-panel-via-bridge-v1-0-45ff36b364cf@kemnade.info>
 In-Reply-To: <20260922-b2-panel-via-bridge-v1-0-45ff36b364cf@kemnade.info>
 To: Neil Armstrong <neil.armstrong@linaro.org>, 
@@ -58,77 +58,72 @@ Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
  linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
  Andreas Kemnade <andreas@kemnade.info>
 X-Mailer: b4 0.16.1-dev-53874
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2081; i=andreas@kemnade.info;
- h=from:subject:message-id; bh=4czSwLJZTsPrde7Ae78uOhAxPABOjbRqzcFREuBtK58=;
- b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFmbZBPaD98NTmXxXjQ96vrfZ/ZXTHsWb9Q2v79m7bmfv
- Cu3fNbg7yhlYRDjYpAVU2T5Za3g9knlWW7w1Ah7mDmsTCBDGLg4BWAiD6wZ/pcr75WfdHEuU3C5
- +AfmW/8O5MX++2/U+nxbTqZW+4rZJw8w/LM7vTjb7OGbh18NtJROcnu8WeKSz9p/RJO7wVf68sl
- 97/kB
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1753; i=andreas@kemnade.info;
+ h=from:subject:message-id; bh=0ao++1qEowCnecwI5jgyBfK+9SvJvTxqa1J5MX+7yTk=;
+ b=owGbwMvMwCUm/rzkS6lq2x3G02pJDFmbZBP3lnEYsDT8vnSsiYtbS3mP8PS81sUrzv3za2F6J
+ pKQe0Oyo5SFQYyLQVZMkeWXtYLbJ5VnucFTI+xh5rAygQxh4OIUgIlYVzD8z/v7h3F2sIHUllv8
+ rt1WPpz/t8t11GvJch68G2S+Y09kIsM/09uFbS+CY2L583ncJjGEHvrma3XS+VvX43NvNmt/Voz
+ gAwA=
 X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
  fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-To allow panels to use SPI already in the prepare function, have things
-already setup here.
-Maybe setting LCDCTRL in enable might be an idea?
+On the Epson Moverio BT-200, reading back registers does not work with the
+default value, so make it configurable. Real meaning of this value is not
+known from public sources.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- drivers/gpu/drm/bridge/tc358762.c | 28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ drivers/gpu/drm/bridge/tc358762.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/drm/bridge/tc358762.c b/drivers/gpu/drm/bridge/tc358762.c
-index e73be376e33c..ec72e6e92b46 100644
+index 1bea89fb03a8..194785bff997 100644
 --- a/drivers/gpu/drm/bridge/tc358762.c
 +++ b/drivers/gpu/drm/bridge/tc358762.c
-@@ -167,6 +167,12 @@ static void tc358762_pre_enable(struct drm_bridge *bridge,
- 				struct drm_atomic_commit *state)
- {
- 	struct tc358762 *ctx = bridge_to_tc358762(bridge);
-+	struct drm_connector_state *conn_state;
-+	struct drm_bridge_state *bridge_state;
-+	struct drm_crtc_state *crtc_state;
-+	struct drm_connector *connector;
-+	struct drm_display_mode *mode;
-+	u32 lcdctrl;
- 	int ret;
+@@ -15,6 +15,7 @@
+ #include <linux/gpio/consumer.h>
+ #include <linux/module.h>
+ #include <linux/of_graph.h>
++#include <linux/property.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/spi/spi.h>
  
- 	ret = regulator_enable(ctx->regulator);
-@@ -178,21 +184,6 @@ static void tc358762_pre_enable(struct drm_bridge *bridge,
- 		usleep_range(5000, 10000);
- 	}
+@@ -101,8 +102,6 @@
  
--	ctx->pre_enabled = true;
--}
+ #define IDREG			0x04A0 /* Chip and Revision ID */
+ 
+-#define LPX_PERIOD		3
 -
--static void tc358762_enable(struct drm_bridge *bridge,
--			    struct drm_atomic_commit *state)
--{
--	struct tc358762 *ctx = bridge_to_tc358762(bridge);
--	struct drm_connector_state *conn_state;
--	struct drm_bridge_state *bridge_state;
--	struct drm_crtc_state *crtc_state;
--	struct drm_connector *connector;
--	struct drm_display_mode *mode;
--	u32 lcdctrl;
--	int ret;
--
- 	bridge_state = drm_atomic_get_new_bridge_state(state, bridge);
+ struct tc358762 {
+ 	struct device *dev;
+ 	struct drm_bridge bridge;
+@@ -112,6 +111,7 @@ struct tc358762 {
+ 	struct spi_controller *spi;
+ 	bool pre_enabled;
+ 	int error;
++	u32 lpx_period;
+ 	bool use_vtg;
+ };
  
- 	connector = drm_atomic_get_new_connector_for_encoder(state, bridge->encoder);
-@@ -269,6 +260,13 @@ static void tc358762_enable(struct drm_bridge *bridge,
- 	ret = tc358762_clear_error(ctx);
- 	if (ret < 0)
- 		dev_err(ctx->dev, "error initializing bridge (%d)\n", ret);
+@@ -246,7 +246,7 @@ static void tc358762_pre_enable(struct drm_bridge *bridge,
+ 	tc358762_write(ctx, PPI_D1S_CLRSIPOCOUNT, 5);
+ 	tc358762_write(ctx, PPI_D0S_ATMR, 0);
+ 	tc358762_write(ctx, PPI_D1S_ATMR, 0);
+-	tc358762_write(ctx, PPI_LPTXTIMECNT, LPX_PERIOD);
++	tc358762_write(ctx, PPI_LPTXTIMECNT, ctx->lpx_period);
+ 
+ 	if (ctx->use_vtg) {
+ 		struct videomode vm = { 0 };
+@@ -367,6 +367,9 @@ static int tc358762_parse_dt(struct tc358762 *ctx)
+ 	if (IS_ERR(ctx->reset_gpio))
+ 		return PTR_ERR(ctx->reset_gpio);
+ 
++	ctx->lpx_period = 3;
++	device_property_read_u32(dev, "toshiba,lptxtimecnt", &ctx->lpx_period);
 +
-+	ctx->pre_enabled = true;
-+}
-+
-+static void tc358762_enable(struct drm_bridge *bridge,
-+			    struct drm_atomic_commit *state)
-+{
+ 	return 0;
  }
  
- static int tc358762_attach(struct drm_bridge *bridge,
 
 -- 
 2.47.3
