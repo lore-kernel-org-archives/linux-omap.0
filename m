@@ -1,147 +1,139 @@
-Received: from mail-yx2-f41.google.com (mail-yx2-f41.google.com [74.125.224.169])
+Received: from mail-qk2-f43.google.com (mail-qk2-f43.google.com [74.125.230.235])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0C7A414DFA
-	for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2026 18:03:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.169
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790273039; cv=pass; b=JBSyWRLrfJVZ1zLqoOe6/n2wbMCE2gC7JJN2WAPSssBDhIhPfO17Q86A+ocLbDOOeG0p0nh7uVMv3i8e305QOC2aknhfYbkk3bqXfU4cOuvSao0xJOEtCAfx9lQo6bfYZ2KKSL55Ue4JDM3yjuqyDflcrCxxXrYSDGy+cCBArDI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790273039; c=relaxed/simple;
-	bh=be7ui7RFb4TvlxRvgKCPBiOHLIe8vlOIGLT6VBBiuVM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=N8QZP+LHGXs+YRDgFnGVTWllzs4SrwVxw74FwtP1qYgMSiIEQ3BlL6gF230GV4WLmF+X9Z7HWHWKe0+rGm4eV60yop6Hcq6aDvLznttmFGqitdZu0igqAwjqdlv89dOJYj4MlESzT1eGa8iB7Z9it7iNaTcYo9emvqTJzPLsgZs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=criticallink.com; spf=pass smtp.mailfrom=criticallink.com; dkim=pass (2048-bit key) header.d=criticallink.com header.i=@criticallink.com header.b=Tllg3cgI; arc=pass smtp.client-ip=74.125.224.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=criticallink.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=criticallink.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28C244BFE75
+	for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2026 18:56:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.235
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790276207; cv=none; b=QN6pZ4HfXwNgRhXD4gtf5Bc0PqKL+kqNB8gBIAGsj9+lNISuawysTO5c1Nox7FXEO6qig+HtsK+SWAPm7a8gt2oMLDePDxXA6Nl1xgCrjuZbEgnarWOwbRGHm3TMGkAAvKHilnDYX1CE2cGL0drLTZIozNelyf+DrN/EC8ECuJA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790276207; c=relaxed/simple;
+	bh=8FwKlIoS1YJr20q5/GeHL/Z3vtXW795veMaqn77uBQo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tQo1bB3Vs9hmTul5d7AaugNjunXyn4n4EnTKk+Q7DfNOpHSm32ym7E2vRb8Q6rIf/zjEznEUFuIuqwAfTAa7kbRxO1vKxPToAQsImWWf8Q+n36JZoaQnlWNn7XAf1vfVuXm/qq1VOvsroeo7vCbNcTeMmD3wzGFouoA7CI4q3/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LuV6eZKx; arc=none smtp.client-ip=74.125.230.235
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=criticallink.com header.i=@criticallink.com header.b="Tllg3cgI"
-Received: by mail-yx2-f41.google.com with SMTP id 956f58d0204a3-67408b109e3so150267d50.1
-        for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2026 11:03:57 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790273036; cv=none;
-        d=google.com; s=arc-20260327;
-        b=BTYlpmzZzdvDTbzxRb9L7QgsXQAah0+20EAAT+zrlwUa2ZAYuJK41ABS757jyv0pCW
-         cnyoaIpz6oLPMNPPLe21B87JJL1y77KqWFp0+VHuWx/orjKpKB3uMpNL1ZCVMSQheF1U
-         IFROOwXp96CShzfMzswuuaLlH4s1TVUy/DpfNDNCC9yCO9XESdK00wt4HFIKwKaRj6Ec
-         Ias3G8r9EUswuN1kico1tE/U+/oe5hfME8t4yVtPUjs5b7RuKM24oIySViFJg69ibrg5
-         JLSoDnOXvQwsmTKlWSmoYFzCQJr5jJtUZwjL2Pq2l3WtnjHM3Bcd3k/RnFcf73R3QTZG
-         7Ibw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=GbI6rbvHDi76XEhVIPPpSzJuZ9OLSAAQszp6JpdmYTs=;
-        fh=ynIJxWfTVHgdqMT6DLu9gk/CxGXol33oQbugh3R46WQ=;
-        b=BYKmK9VlOlo53XENmrcgsMjzGuGL4wp/NTH2GQw5xzntDFzpfQKhBfM4yTGSPIwdGA
-         tYRxt4c6VHP1SlNCK1KV0OpCTVeZvQsP3vmL9CB0fbgvUsmVkNfzqi0bI9zLNVrMMZNL
-         Uv1cHKDrxzHHA19VedYWYWRR1yGiMRVKQzRUFnEGLTu+94DGGa5Tw7gQNmu2XhSegFbU
-         yAgFcQ1z80QYUXeJOTvkZjzfGmgaZ7SGJg3r1VnCWDTA2s9QQzXjNRmN8jQOdcQ7RPuC
-         7XENxFZTyNDpARY13TO2ShmsQ2QyjKx2xhocMq3xFVR2MgHHThWiFGniFjSaxT37QRAT
-         IpLg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LuV6eZKx"
+Received: by mail-qk2-f43.google.com with SMTP id d75a77b69052e-530d8a00bcdso1414561cf.2
+        for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2026 11:56:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=criticallink.com; s=google; t=1790273036; x=1790877836; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=GbI6rbvHDi76XEhVIPPpSzJuZ9OLSAAQszp6JpdmYTs=;
-        b=Tllg3cgIs6Mh/QsE/gqtoODSVbxsjQTUklnMElum9L+0Mg7Z58Jvx5lGe9DXBEvpQm
-         UchuSGjjQpmHpdQeM30OXV9skW3zA0Ksucr+Bw8IrCuZLaVypsanKji52dK5vjcPevoB
-         ZnjXgGW45scARmkFDbXcvQLqNQExve44Lmc63dJ0T5trQnEvnx6c9ardk5j0iiDGgPPp
-         BchPZ/j0mPfJ2tTWiMvBvmnzsG8FChmaNKvCyUPGvY27HgIwLNx6xApZzfmvVWXMuncd
-         nRmjwC0bDVB1Q9qzmhfkYC5+aOy/lxzk1Cloogorzg1TUwiagURqYVV06Zp101/GDPIW
-         WjPw==
+        d=gmail.com; s=20251104; t=1790276204; x=1790881004; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=u7if64GBDyZRxjhYKdKsp7wUaEGoHDi7prbfVqVtWGk=;
+        b=LuV6eZKxUNbU6vMEM/jg3I6yLUVOcymB6k600VuDJXdIIRUIlmHuxWRcDL8MUbPFAF
+         z0rBDLqvyGI53WoQLOU7n3EKJLsMJHV2F3uzEftp9sQRn3625jofBxVpXptoC1zVFYjL
+         Smgv8salaZoCmzGNuEUm4LnupsmPdp06UqMWMLS4TbeAgOfY9SVxqa6ioUj41hS0oUuo
+         grq57IgejoKSHiAolUB+4aBrdI/tEZ485dQVe/n7qgt3Jyb3/rjlnWmCMntfBxl1ZpEW
+         QNIontV0nwS8XqJHduojGRWg85EyDihW1fH1z8TfKaIIxsEiZTo4FhDWhFn3gACN64Kk
+         RuFQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790273036; x=1790877836;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=GbI6rbvHDi76XEhVIPPpSzJuZ9OLSAAQszp6JpdmYTs=;
-        b=awVFIAjio7b2SHeS2lcg9D+2GWjYnzxyt/eoySRZ6ZWOFGd/pAtoEuSWEwwND9tIYx
-         gqVq81sIEJFfdF1l4u3vRR5RD7UKaYAp8irRkGkVMms2MT6oa+IB6E75+PKPsaGZiJ6T
-         u/JDZ+vRRQ3yK7h0DuMPkfInQygf+F2L6c0qx8yE3xXJuJUWvn1o+b+dyMBpWpJrDd+I
-         hdSQ8Z2HgLuLMYBuPFZb8d3O1/vSA0c3KeIyP3tUo6H4f5dWYt/oJve4kHomTYZRzeRS
-         tsrKpeTsMIkwyuec+wP18RudZcmkYEPk2DIjfwPrTZEDjIYmIveuJu7/ncQNODtwYwg5
-         hctg==
-X-Forwarded-Encrypted: i=1; AKwUvByc544ErEYihV3T43sQ26XbtHC40bi38hdd+Z/duOuQclX2GO3Q+NAYMRPVlzmP1U7J2qC9CHaBi8Kg@vger.kernel.org
-X-Gm-Message-State: AFuF++mnPuYG/oiJeALBZEm7u20npaC896WyfdwmG1WHb8KioGRDB9hP
-	+um24AlmB5mlgaAyi2B8jbKqaqB3TaSpnPsRMdetbXnPBXeahcMv3zwfmi5mKNY2bOt6jOme+EQ
-	0nl7BD15EDabxtlSwGXK+8LcBudOOco4Wvj+STOPG
-X-Gm-Gg: AYBFou26Nd6sy8ExwpgPDfMML7aRCD/SHHXK86rb9OSBJwp/F5glPd1x5/5UgQ9SQyz
-	mPaHoh9QZlfuh+EgMVJXX/TUxrJqp7r8LYm8eL1rGr7Wg5G2/fP1V7KqFp673ptpMHATK7o+/xN
-	EPalr/zJr4xWio1Q7Pwu8fBSYHyhjzjxen1ORXtFleY+r32I5dHYMMGpHzBpce3WUnvP5acyV0Y
-	nvDXLplvcxU3iA0srTlwr+NS8Bygc27pBbU+l36K3IuBnsiI2YBnhJDltCtuQ9mv0je1/5XhT3Z
-	HEUURIApVDqOLORaKJznzMEd4AAKLbJdlnHYaW9kw6jrXdgX6dGf3sxY503Zz//L
-X-Received: by 2002:a05:690e:4893:20b0:673:1df3:a6f8 with SMTP id
- 956f58d0204a3-6731df4bb08mr827628d50.27.1790273034957; Thu, 24 Sep 2026
- 11:03:54 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1790276204; x=1790881004;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=u7if64GBDyZRxjhYKdKsp7wUaEGoHDi7prbfVqVtWGk=;
+        b=i417jzqVhQJwbNPLF8SX1dv9Tmt3DV3TaRBqIjIAD/0VvD1+FmJ9QqBqjFpA8vx+XR
+         NhC/XfbXfMh1i61uEfbgAhVMqlquYkwwd7qnohQgmAs57d1w5dzic1hfFz3HDHwhFWqg
+         PojqbrQeRHj/wIYQ+UJNp9ML9VnHyIJ33KKSjOMzdbBlsI3Rg1pasOrQLEDnnV6+IbqF
+         gicobMgCCgUkGUpWKjhuJ7FNLejWrAMgmzCKZ9ZoQMHW7mp7sVdXj4UUqj43oJVEz8kT
+         db3HOdEuLzEe6L7Z7xvLjhWyghko6Ug1oK8h5dydnxJamXa6Wq6XMtgZ6dZKNyqav7xt
+         00ug==
+X-Forwarded-Encrypted: i=1; AKwUvBy0V8NuoyoXqmawLuI95GgzDpLLR7YDGfbcMNB1qz/2vAfYBnDFNAGmzgvK+ft83TX7WlYtEv2am6yP@vger.kernel.org
+X-Gm-Message-State: AFuF++lN3SWRSnjV9r2LKCVIelTA9nB1uFwiW7CEw7GmmiU6nIjNAqqx
+	wPomueW4zHr+deRcm9CV4dFMPw8R51qQYC5qxaxx+2UB1ZD8zgRqqDt2
+X-Gm-Gg: AYBFou3GCHzhZm+uzXMoqYeCUHAjCQRFvj8/EZVyjnVFTzra9rEG1YJIe70BI8JFhOI
+	QuVOZL7r36Hb7vNPHoctzZzlm0WCg898KzQ0nICAKVmRw7sxG8H8DdE4FzlUdjJaZZbsHzZs+gD
+	3BrIXepKjZPM7VARs/FNOMLmgjr/O24ljujKEpVFsGC3HXFwnTOJGJgZaoWxt7tES3xzy8Axehs
+	dtHQFk5Bp3vgI4wQoTSgz7Sft4Q9WRAnj78h064HC7jbojV/WmlXvPG7UUYoYNuKZhyYEB7KNGD
+	wCVRqZ+LX50alTnh5jDuxVG5yHu0GlvYGq3c5cg4jGoFTe1V7TgvgxZSUxJnoQnvf1UQrzQ0kb6
+	dCJAVEpdjYGs6Lf2ceoooDdWb6X782t71vxzA/HiuwtJKzJQt+zbv15x18NevNBV1zmFAJlUuhY
+	U24JWTe6DraQuYnMv94vni2B1GZ6Fg3kWqCgbq/tAgf879iJO8gxGqE4OOMkSCRnshzQac3mM9Q
+	8c2OWXTd3xOXgg9GaQU8ojF/PX8piqpBjbVG5u1GrC5iM6v3o6y404IugjmEcEWFLImvWYKW0fz
+	CO9MHdp7cT3w4WG2uuRocJtZqPVRBPw9v4xR5m1QJzrbJZuIOUl+Qqx84Hw=
+X-Received: by 2002:a05:622a:130e:b0:532:d743:33e6 with SMTP id d75a77b69052e-5330b5881b9mr3667121cf.9.1790276203621;
+        Thu, 24 Sep 2026 11:56:43 -0700 (PDT)
+Received: from ryzen.lan ([2601:644:8000:7a86::e34])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5330beed557sm286031cf.15.2026.09.24.11.56.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 24 Sep 2026 11:56:42 -0700 (PDT)
+From: Rosen Penev <rosenp@gmail.com>
+To: mfd@lists.linux.dev
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Lee Jones <lee@kernel.org>,
+	linux-omap@vger.kernel.org (open list:OMAP2+ SUPPORT),
+	linux-kernel@vger.kernel.org (open list)
+Subject: [PATCHv2] mfd: twl-core: allocate modules with twl_private
+Date: Thu, 24 Sep 2026 11:56:39 -0700
+Message-ID: <20260924185639.30913-1-rosenp@gmail.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260919171100.90430-1-kmehltretter@gmail.com>
- <20260919171100.90430-4-kmehltretter@gmail.com> <CAHp75VfOwZG0htxs7LJ5X4cdTMApESRpDaGCQqJpD3RSap+-6w@mail.gmail.com>
-In-Reply-To: <CAHp75VfOwZG0htxs7LJ5X4cdTMApESRpDaGCQqJpD3RSap+-6w@mail.gmail.com>
-From: Jon Cormier <jcormier@criticallink.com>
-Date: Thu, 24 Sep 2026 14:03:43 -0400
-X-Gm-Features: AclHuK9W-13IkypRQ3w-qHAtFYIaLjYWqfxyZOrezr6nxGY3oYYuRteiyYlIevs
-Message-ID: <CADL8D3aLAViH=5gVVRz7==M0T6rVuksNSgcoZCCTAJjroUnuxw@mail.gmail.com>
-Subject: Re: [PATCH 3/3] gpio: tps65219: Fix TPS65214 GPIO direction programming
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Karl Mehltretter <kmehltretter@gmail.com>, Linus Walleij <linusw@kernel.org>, 
-	Bartosz Golaszewski <brgl@kernel.org>, Jerome Neanne <jneanne@baylibre.com>, 
-	Shree Ramamoorthy <s-ramamoorthy@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Sep 24, 2026 at 11:47=E2=80=AFAM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Sat, Sep 19, 2026 at 8:11=E2=80=AFPM Karl Mehltretter <kmehltretter@gm=
-ail.com> wrote:
-> >
-> > GPIO_LINE_DIRECTION_OUT and GPIO_LINE_DIRECTION_IN have the values 0
-> > and 1, respectively, while the TPS65214 GPIO_CONFIG field is BIT(1).
-> > regmap_update_bits() masks the supplied value, so passing either
-> > direction value clears the field and selects input mode.
-> >
-> > Translate the GPIO direction to the register encoding used by
-> > tps65214_gpio_get_direction(), setting GPIO_CONFIG for output and
-> > clearing it for input.
->
-> ...
->
-> > +       val =3D direction =3D=3D GPIO_LINE_DIRECTION_OUT ?
-> > +               TPS65214_GPIO0_DIR_MASK : 0;
-> >         ret =3D regmap_update_bits(gpio->tps->regmap, TPS65219_REG_GENE=
-RAL_CONFIG,
-> > -                                TPS65214_GPIO0_DIR_MASK, direction);
-> > +                                TPS65214_GPIO0_DIR_MASK, val);
->
-> regmap_assign_bits()
-That would make sense, it would simplify the diff.  I think something
-like this, right.
+Use a flexible array member to allocate the twl_client array together
+with struct twl_private. This removes a separate devm_kcalloc() and
+keeps the module data tied to the main private structure.
 
--        ret =3D regmap_update_bits(gpio->tps->regmap,
-TPS65219_REG_GENERAL_CONFIG,
- -                                TPS65214_GPIO0_DIR_MASK, direction);
-+        ret =3D regmap_assign_bits(gpio->tps->regmap,
-TPS65219_REG_GENERAL_CONFIG,
- +                                TPS65214_GPIO0_DIR_MASK, direction
-=3D=3D GPIO_LINE_DIRECTION_OUT);
+Can't use twl_get_num_slaves() for this as that bases its value on
+twl_priv->twl_id , which is unallocated at this point.
 
+Signed-off-by: Rosen Penev <rosenp@gmail.com>
+---
+ v2: don't use twl_get_num_slaves().
+ drivers/mfd/twl-core.c | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
---=20
-Jonathan Cormier
-Senior Software Engineer
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index f86df356d658..0b78fe30e047 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -159,7 +159,7 @@ struct twl_private {
+ 	unsigned int twl_id;
+ 
+ 	struct twl_mapping *twl_map;
+-	struct twl_client *twl_modules;
++	struct twl_client twl_modules[];
+ };
+ 
+ static struct twl_private *twl_priv;
+@@ -770,7 +770,9 @@ twl_probe(struct i2c_client *client)
+ 		goto out;
+ 	}
+ 
+-	twl_priv = devm_kzalloc(&client->dev, sizeof(struct twl_private),
++	num_slaves = (id->driver_data & TWL6030_CLASS) ? 3 : 4;
++	twl_priv = devm_kzalloc(&client->dev,
++				struct_size(twl_priv, twl_modules, num_slaves),
+ 				GFP_KERNEL);
+ 	if (!twl_priv) {
+ 		status = -ENOMEM;
+@@ -787,16 +789,6 @@ twl_probe(struct i2c_client *client)
+ 		twl_regmap_config = twl4030_regmap_config;
+ 	}
+ 
+-	num_slaves = twl_get_num_slaves();
+-	twl_priv->twl_modules = devm_kcalloc(&client->dev,
+-					 num_slaves,
+-					 sizeof(struct twl_client),
+-					 GFP_KERNEL);
+-	if (!twl_priv->twl_modules) {
+-		status = -ENOMEM;
+-		goto out;
+-	}
+-
+ 	for (i = 0; i < num_slaves; i++) {
+ 		struct twl_client *twl = &twl_priv->twl_modules[i];
+ 
+-- 
+2.55.0
 
-Office:  315.425.4045 x222
-
-http://www.CriticalLink.com
-6712 Brooklawn Parkway, Syracuse, NY 13211
