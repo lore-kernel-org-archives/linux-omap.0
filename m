@@ -1,118 +1,129 @@
-Received: from mail-wm2-f12.google.com (mail-wm2-f12.google.com [74.125.225.140])
+Received: from mail-ej2-f29.google.com (mail-ej2-f29.google.com [74.125.228.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B1F642E435
-	for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2026 10:11:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.140
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790244724; cv=none; b=TfhsBoPN/vQWlHQtoJJDYHfMAfGdCluuYHUZ1bVw+Zx7B4xkinzaF5nBQHGqQhefKEZY8Zopx6o4vJElcIcbSQy9fpBkHZlDGZTdLPtZowxSTI7FHg1j4pk6h4MHn7u0rXWpf2y1B9aL++yxhfCedWXnWOab567EzOxrPFQYbxg=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790244724; c=relaxed/simple;
-	bh=okQkGFFiFGo2+bcfn/1mnbfxo9xuP8mMhLAma4LpIno=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ampV+0XeVsF3Zmv5Ar1bcABe5Hzfa/EwjJVgY0qVduaqwnraTSWGjorCKQu5ARMbwlevIy13RI3t/F9KPSAaKDetbl7vu0HEUUQiZ37eCpyQ5A6hnGUCzNjFOJX001gtbE/98HcVvP2k6US8v1JNrWUjuX4JReIRaL2WUVJaOsQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=mdN7Laig; arc=none smtp.client-ip=74.125.225.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C7194A43E0
+	for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2026 15:47:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.157
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790264837; cv=pass; b=osHq6R7Jem6z3gPW9qGkYX4P7VOaXr4U7WCv8ZzcFORjfiwBbYqs/6O79gyzaUJRMKGeo0e35X8xjtaX20YLNsXWvC3lbI19BfuTyboHqygE5ld7pTA8TlvJxU+f+gUqVw8tW6a6Zs5Qr0DjxtCXfYk2TXwczMVb2hkTI5WswHo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790264837; c=relaxed/simple;
+	bh=ngFJLjCIxCAeT7eexOCKSDLrNT1g5/NSYXpxJa6UjHg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=HjDDWHjQvWd/cHQHAN+ui7QnOrgOOk6URlkxi+TmMMS46nvvxCKADV+94fHUL9IBxuYyrDc68sdwyV4gz1UKrQ3WX5mV0YMqkkX+xL7KEzJhbo1qpwRQyDH6Em6cGpHx9QEB2GdwBdG6mVXeTF0BcOu9K9rVA/anHYMJW/cUAxQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=N7gK6hFH; arc=pass smtp.client-ip=74.125.228.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="mdN7Laig"
-Received: by mail-wm2-f12.google.com with SMTP id 5b1f17b1804b1-49b912d3931so14381385e9.3
-        for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2026 03:11:55 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N7gK6hFH"
+Received: by mail-ej2-f29.google.com with SMTP id a640c23a62f3a-c294496989aso285073866b.3
+        for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2026 08:47:15 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790264833; cv=none;
+        d=google.com; s=arc-20260327;
+        b=JpE/Pd5DySl5WrTrlg3ZimUJhUP5qQo8zKEFFXdRWnx0iTCh7RVRDX/R9ki5XGN1vt
+         5PWNycmsms/+p/hOPU/WpCsXlP0ni2rIjauv7v1PH/kNza7B/Byi4lPB3+pHEaGwtd6f
+         qRuOyjI1adlllp79XdPtd8r6ZLfson30QAqW40rJ2BzE/t09/1LUvhm1GKVgCq7bFNaV
+         7u/irZRJyE3JPwRl8z5eZFrQQgGdqEwvupKcB+IvE9FP537vjg9qjS5aN9gAkQigfkGc
+         clULTXuXN9twkd+lJAkOfa7bMcGA69oZgFaAvaJ3vlkUMnjC33wWzZq5Gx2IJWn9SOT+
+         vd3Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=NjMgt0ZpdQg2knSU2JXbBhhsf0Kx0wU7rhre5Y0cyIw=;
+        fh=uNxlGdp6KfRY2HR6aSv5rPVqgdaXQJ3mZ06xNVwN178=;
+        b=lUrEYbpdNTBF8jraoF43ET0RnyWOiToVD5i/GlWrRCz/gyTBGQXaa7FNa/nVD4z+no
+         b0PoP+O9RG/tbfoQZBpVgIh+3zX5hNJ+WkGUUk95h1sy4VvTKwvc2E1k0mmxPfVzjh4b
+         g2naDO+91WUvF6E9xu3o3BpLPGsiZz2li/Hx7/KkyfJRPOuNnT/I8QTnS5zReaU2hopT
+         N4r7boIs5X6mm4+Kj557H9pZ4xKMqnS9z9mxmoTuJlmhNxGfji5t/jH89d7egU5Hp9Es
+         uRbsmcyUVY03ETfLMPO2Ky7e5CK6yB1AMmguCXe1FtJGcuHU57zEIdrWSbRz89W9pc+q
+         OiFQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1790244710; x=1790849510; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=56SKaqZ0iXHf7acYt1UYQ55V03EGjf3BULjEnLjAl04=;
-        b=mdN7LaigXaw5w13N0yHVuCvHSzJnd+TjSfxsrLqs5RfSfchnjpK+sKgieoS6SfLqcI
-         cOrvh3RbFYJr7yp8EimDiDkGCPXvhnWiT7OSWe0qIeEbTzWexhziPBPtkcHU3e8Rb5+O
-         /tlgILY1cCkR/oTb5Fer+MSi1wa3okdP3WxqUTKgg/gOOBLm5TK4nNdOcKXAB65ch5aP
-         GGd9TchcnOhFzrRZQZogsnVKBuglVx2Uait8cdhIkUNXjuu0h3l7HEhI5o8D2DOPKK1F
-         R7GWs7X/Dn/npBTUfkgOdXlC5rYhpGtLDfEkL8QyoHHIDRBSu/wiSymMPca5nUy5lvjw
-         xPlg==
+        d=gmail.com; s=20251104; t=1790264833; x=1790869633; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=NjMgt0ZpdQg2knSU2JXbBhhsf0Kx0wU7rhre5Y0cyIw=;
+        b=N7gK6hFHAihZOUZORT213j1fI5UtgijwWWtFSyC6oQpnkkFWe94kgpQZ+SxEVStIYN
+         FGLWMWh7BqtzktIHG+ONODHaxdkY2XJ4p903wAtdsgGSG3fRe3Fc7yXDx2qkfWvnmalR
+         qGXfx7Vz5MJrFvHrqgQ2msKlyg7q2qGLLfFd8jT3Zbz3v7vwd5hWOqysbRx0mLZUGeZh
+         ibkywErp2mP/mLyhzAz7/X7BUrPi2XO4xw9r7J9hcRsg9Cxx+fDE3jB61Ekn43dIPlne
+         G1JJTXPRT8PQwCJ4QHMvzwxqMrXDQ1302yhimmqSPAFb1rh3e+JOOTykL3BRmIbtc5id
+         5yQw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790244710; x=1790849510;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=56SKaqZ0iXHf7acYt1UYQ55V03EGjf3BULjEnLjAl04=;
-        b=n12+bBDf3u2fqnIiCNb5FYOvxbF+IUH/5hORI6cnwodvyT+Acdx2/IM8lz9bestQdL
-         iLm01TjuBwrhYRNk321Jbg0anCEIheRvppSLKmc3KJV6xUbzYGnOZhNf8LcYgNCsIZae
-         amYHyeF+XQR4/JAK7KbYqE3auyh2tAL8b8ENx/gcrYWJ97utrq2sfVwgpFre/20BeHzh
-         MGZ2u/2lV6Wzeq6oAKc9okut/w0pKinjhl6Sm7DlngVFGlT/76gq6vk8cM5RazV0Uazy
-         +iirEWtb0+P6HrwC+vOuk0emhnGdoX0IWCfrucy6LUlfMcM5WumwQDO3HuxVi36VKHE6
-         uKqQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwE6rEoyMdqP6gAqB/x5ZB1pf6EaevtDCz/u4G+MWl+kK37Eeb266pZUo4qqwTfUEeRE1GOyPuR0gJ+@vger.kernel.org
-X-Gm-Message-State: AFuF++lKWUbY7UbmgKS8NPjp/TDXptAIdz7AaC9UG5IzNZULNESlPu6N
-	2ERwFsKCEpn6xK+rtgz78gUQovqPPSBKQtzA6VNAi2qie2ocmJR6FWg9lVeP6c9nwCM=
-X-Gm-Gg: AYBFou0YrQmwkgoFN4MoxgaC79y/3n6XDASOZiLlW12gX8o8KjvFASuphjIMoKDPpZA
-	il5JJsZG4qp9PEjDq7OCdC+I9VWKD7m6rmzNil+/G+t3nB2WSgr2LFGVwvZ1ngpNXkEM0jCWkYm
-	ne3A0YiACRSnbB0SylZLIh21IoSOm3SeRf5ECIJsWKv7FwwnGM1RkWoFZUPG4VMyi4t6JrqEELl
-	2B2ZjkyL2CFCjxX/3KjatS4ecIjTsTPoQHrJe1nQ6hqTTM3yKaYcNg+9QeZ+6VKwjMxsj+znAXu
-	NXkoM1ETCRRcYecF+I0MWJH3a5HIZjit40gHmWoPWCj8vdjLsLrsFsVwcqAfDQeKSM8w73Z3tSB
-	xEAZ2aR4E3SOAQcW6/mIz/dQQ7pl81Azw//vD6AY1idO6Q3oKBmk3uujo2gDFV5qjCHfQ5Ht1Ft
-	OeA/jKcetYK2ZzRVGjLcncgRki5HisrK0co+tJOyaq6ABpgzaHgQJA6srZwE+T1g3v1Nz1A8Oil
-	au9/9RcKmX/Y5kl1Vp/5Ou4X0WJWu5kJ46i//I3iazocTtA38lhI6C1Q/1RIh0LHihLdAEOAhpt
-	mw+Ij1lTL8q2xh3JWkCwTJoCNixnObI=
-X-Received: by 2002:a05:600c:6090:b0:49e:6e94:7cae with SMTP id 5b1f17b1804b1-49fe670424cmr28420905e9.28.1790244709782;
-        Thu, 24 Sep 2026 03:11:49 -0700 (PDT)
-Received: from ?IPV6:2a02:842a:161:af01:6a31:4b53:f1b7:80e9? (2a02-842a-0161-af01-6a31-4b53-f1b7-80e9.rev.sfr.net. [2a02:842a:161:af01:6a31:4b53:f1b7:80e9])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49fe5e07bdcsm50921975e9.15.2026.09.24.03.11.47
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 24 Sep 2026 03:11:49 -0700 (PDT)
-Message-ID: <f5314ab6-e29e-4f92-8006-3679b1b28f5c@baylibre.com>
-Date: Thu, 24 Sep 2026 12:11:47 +0200
+        d=1e100.net; s=20260707; t=1790264833; x=1790869633;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=NjMgt0ZpdQg2knSU2JXbBhhsf0Kx0wU7rhre5Y0cyIw=;
+        b=nwwrET8xjtxoyUPAKHc8wFL/YdyxlpJqFAIg3LabpCsY9xa/4YDPnxUKAWJBpbj1vr
+         rYI4gDQlcvKLvavg41yIEesPGEc4eSoSIxJFCRwNK+075l3gwcd+2rD9dxEs+6bF/Ysd
+         J8pZAL0R9mP8cysmgPxC1O23keplWe/DJ8SDb5x8MSlAO3zd9VPUojCgy35b3D26XgWt
+         l9GFuK7iP/lC/m2KbHWYlXccCDK3nOVHRI7maWODrpIPf13iTMSeL0oWlCLH6VZqUPdC
+         BfrV7q4iD24zp2Pg1cRsA+08uXp7jPfebsmmUC774xDkYyXFxSsMzgP+5WSI59SBXyHI
+         kZUQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwbjOxmSEmSFnJutFz8Wt1UuK8w3n7/vEApW2sLVR4D16/3h59MwvA7AvjQuJbOAT2JLAOFo6ry/6Fy@vger.kernel.org
+X-Gm-Message-State: AFuF++mhRzsrjskQ/3/YkQA09fVOTH5qkJA0ON//f4aMLfSlIVw+5WsF
+	XXQU6I2WKOWl/OxTKfAXBJejR2g591LtbI+r6+4LcuaRdhwSB4PAeSTUjoa/ZUcrS/8qVcy6++G
+	PC9x9N0ed7bCX8Ef4m4QoUP0x5cT4odM=
+X-Gm-Gg: AYBFou0ywDLr2HAqASxjth69YktoMeaYkLGUSQXlGWIdYwdDVFG+ZC44AtpqC8VGbTU
+	3ogEAa853Q2eoI3q8vQtLfsMtnCY5mMz4c/IkoBW4Hw4VgVJum5u1I4nZQPCh1lOSZP2m7X9rEv
+	OB9Bv6bybTDPB4ViBnqdivIudPjT8KSE7uaHem9rh1KYapjvSHIIrcdMTmMGCRVvH7rytScXRZc
+	NeiusIPvF/Wy/6tdehTWc/IKTFhc1Mhx9kVHh0XEpnP2XU/XuXhRkluWTMlTSuMo7bNLnhbUSga
+	0oj1r1xdoS5RZrePluVzdV+H+kSzANu6mlH8cNxGe8T/4QvYH8bo+f3NA5Mce7/mouVtu1Snybp
+	A0dNRCzI0oSmXnpxZQJmm4ZiOXS5uL3DSjKTH6yxYXanlSE4R2BSARhVt5w5hmy2V17QgD0DCiV
+	YauJ17Md0TmSAtyAirW+pnPcCyA44ewy4HerLxDCf+fQ==
+X-Received: by 2002:a17:907:1ca2:b0:c29:6de8:d143 with SMTP id
+ a640c23a62f3a-c2ac23d7742mr270801666b.19.1790264832926; Thu, 24 Sep 2026
+ 08:47:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] counter: ti-ecap-capture: use regmap_assign_bits() for
- conditional set/clear
-To: "Peng Fan (OSS)" <peng.fan@oss.nxp.com>,
- Vignesh Raghavendra <vigneshr@ti.com>,
- William Breathitt Gray <wbg@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Peng Fan <peng.fan@nxp.com>,
- linux-iio@vger.kernel.org, linux-omap@vger.kernel.org
-References: <20260924083448.461792-1-peng.fan@oss.nxp.com>
-Content-Language: en-US
-From: Julien Panis <jpanis@baylibre.com>
-In-Reply-To: <20260924083448.461792-1-peng.fan@oss.nxp.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20260919171100.90430-1-kmehltretter@gmail.com> <20260919171100.90430-4-kmehltretter@gmail.com>
+In-Reply-To: <20260919171100.90430-4-kmehltretter@gmail.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Thu, 24 Sep 2026 18:46:36 +0300
+X-Gm-Features: AclHuK-80m-884TG7yfw_6rikpHBOHTr9J36QiRQ2iE519ZRagEJv1so03yiKVQ
+Message-ID: <CAHp75VfOwZG0htxs7LJ5X4cdTMApESRpDaGCQqJpD3RSap+-6w@mail.gmail.com>
+Subject: Re: [PATCH 3/3] gpio: tps65219: Fix TPS65214 GPIO direction programming
+To: Karl Mehltretter <kmehltretter@gmail.com>
+Cc: Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Jerome Neanne <jneanne@baylibre.com>, Jonathan Cormier <jcormier@criticallink.com>, 
+	Shree Ramamoorthy <s-ramamoorthy@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, 
+	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 9/24/26 10:34, Peng Fan (OSS) wrote:
-> From: Peng Fan <peng.fan@nxp.com>
+On Sat, Sep 19, 2026 at 8:11=E2=80=AFPM Karl Mehltretter <kmehltretter@gmai=
+l.com> wrote:
 >
-> Replace if/else block using regmap_set_bits()/regmap_clear_bits() with
-> the simpler regmap_assign_bits() call.
+> GPIO_LINE_DIRECTION_OUT and GPIO_LINE_DIRECTION_IN have the values 0
+> and 1, respectively, while the TPS65214 GPIO_CONFIG field is BIT(1).
+> regmap_update_bits() masks the supplied value, so passing either
+> direction value clears the field and selects input mode.
 >
-> Signed-off-by: Peng Fan <peng.fan@nxp.com>
-> ---
->   drivers/counter/ti-ecap-capture.c | 6 ++----
->   1 file changed, 2 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/counter/ti-ecap-capture.c b/drivers/counter/ti-ecap-capture.c
-> index d77a256f0ed31..1b79031544646 100644
-> --- a/drivers/counter/ti-ecap-capture.c
-> +++ b/drivers/counter/ti-ecap-capture.c
-> @@ -254,10 +254,8 @@ static int ecap_cnt_pol_write(struct counter_device *counter,
->   	struct ecap_cnt_dev *ecap_dev = counter_priv(counter);
->   
->   	pm_runtime_get_sync(counter->parent);
-> -	if (pol == COUNTER_SIGNAL_POLARITY_NEGATIVE)
-> -		regmap_set_bits(ecap_dev->regmap, ECAP_ECCTL_REG, ECAP_CAPPOL_BIT(idx));
-> -	else
-> -		regmap_clear_bits(ecap_dev->regmap, ECAP_ECCTL_REG, ECAP_CAPPOL_BIT(idx));
-> +	regmap_assign_bits(ecap_dev->regmap, ECAP_ECCTL_REG, ECAP_CAPPOL_BIT(idx),
-> +			   pol == COUNTER_SIGNAL_POLARITY_NEGATIVE);
->   	pm_runtime_put_sync(counter->parent);
->   
->   	return 0;
+> Translate the GPIO direction to the register encoding used by
+> tps65214_gpio_get_direction(), setting GPIO_CONFIG for output and
+> clearing it for input.
 
-Acked-by: Julien Panis <jpanis@baylibre.com>
+...
 
+> +       val =3D direction =3D=3D GPIO_LINE_DIRECTION_OUT ?
+> +               TPS65214_GPIO0_DIR_MASK : 0;
+>         ret =3D regmap_update_bits(gpio->tps->regmap, TPS65219_REG_GENERA=
+L_CONFIG,
+> -                                TPS65214_GPIO0_DIR_MASK, direction);
+> +                                TPS65214_GPIO0_DIR_MASK, val);
+
+regmap_assign_bits()
+
+--=20
+With Best Regards,
+Andy Shevchenko
