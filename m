@@ -1,96 +1,100 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE40D44065E
-	for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2026 13:30:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 354E73C7DE8
+	for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2026 17:13:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790343025; cv=none; b=rudqJMe/l71U2JEsyO/3Qyy6U5kl5e1Dw6Yb35d2fJn/Bz/w8lKKxRgOrTlSdlsDqPwT62nQgWI4+L8VCl+2KChhE9JZkYEDQMi30cIPiuH5jd3HxOFwIXimudnA1Psip5bnM0hyNLvydu6WgaSWXOUyy7BApEo6j2QWmeTu8zI=
+	t=1790356407; cv=none; b=tNE1iIGUOeBd7a1mRxtfyh2FKB11ndKKKomR2wLzIV/zj5ne7Fhs/t/q5MVqPtAYQyWOCEVCUSiS1DUtc1d/QLXaHA4U0Lr/SxhqfZwVqX4NbaNk/BPHgre87r+VIuLFzhpc6h5+ptib3jdY6a+g4JNu+4/VdSTDjkdDvuLvuVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790343025; c=relaxed/simple;
-	bh=/jFCjg6nDyLS94dvgK/EEMc/s+8n2QPDNYXmC3S7fXI=;
+	s=arc-20240116; t=1790356407; c=relaxed/simple;
+	bh=384v7QNU8uMOwn752osb83Wsjox2PvAoX3x1D79y4yU=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=eCszByYCgD2Ypu6QRjBEN1d8fkkI4s2QNB4CGYewt62prE2gGdEOkPZpcmPvmKINHXZlIC2jfZzQ1fyEErFDo1ST/pJLXGvgdvzhx/ONN6rssVpTCtmSaUTzcA9XztF4m4and0J+uj9eN/X6Ob3/emDW51KMXSCK9gPZDsHJqpE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BLJ6EOp3; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=XAOYNcMTrKtusfbzT7EcvuBPap8Hab0ggcNGndRftOSqMeQyGHSWqzmz0wGzMfXA/KE9PxBi+QUyT52EyHfT0Wq4Nnn0Xtukrx9yrG+UdUbI95zpieDG2Fh/8SIJEq6bFBK7/V0UW+RDOWnnlfV2s82T6FPrJkqOQNwSScbEdRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fMNy01MX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BLJ6EOp3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 968001F0089B
-	for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2026 13:30:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fMNy01MX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0425D1F00898
+	for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2026 17:13:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790343020;
-	bh=hjEFWSQNzvV2cy7ibgDjEb2o00pPnzmhtpFfAirbXj0=;
+	s=k20260515; t=1790356400;
+	bh=w6oFhP4d897O6hevgiojapWqh1TxSc/Rze+fEmEjBbw=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=BLJ6EOp3/teQGF4Z82GqbDk1ISdqixvgqoFpvboexYsyn0LdOG9ImSBQvSVdscpVx
-	 wD3YnH6iTcML4IJrMqZVmmfdAnmj1OZe0hqQlgp3r+FlQV4DHqarG1wTok/jG1HK/7
-	 NcevHggAYLOOLsKswOtKUIhp2nGkGdtWs1LFIpThudzx0DqAa+ukcUHGgdge7rAISq
-	 OSTdJRe3EaqHD/pmiV7E67uuOBvLsCE7MV83veEncrzzwVjtoAPczPmD2vf18mLKEX
-	 n3iHAnAI1BkabQPxBZgX15nKh8j2vOq10iMHmBClPLb8O210D0EX6GZJWVEcDyD9Gn
-	 TftJhpnZpKauQ==
-Received: by mail-oo2-f39.google.com with SMTP id 006d021491bc7-6b390bcab0cso575033eaf.2
-        for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2026 06:30:20 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBxqFpo72ds+qNuB49G+yR1p0qHXCxI7bBlGHJoy9HBhil3mXWH3H92lvzU4ljwhxQCSEzuEjTkMEvjc@vger.kernel.org
-X-Gm-Message-State: AFuF++mRKEV9ejXK7KVH5x9OthkWiWmBuQ0mQ5liTj8rNnLUyVXt0L9I
-	CDG1KB2CK5pkZAV6KxjmJRhk9ZLLw5RzT9K6RorFaH6ELXiXTG92jG11kM+CBAlq3mRwO8aUxgf
-	QUtlkHdBZEwo6bt99yP7sI7asNnEkEQI=
-X-Received: by 2002:a05:6820:818f:b0:6cd:3ffc:ad01 with SMTP id
- 006d021491bc7-6d441c7de80mr5856938eaf.81.1790343019904; Fri, 25 Sep 2026
- 06:30:19 -0700 (PDT)
+	b=fMNy01MXgn7yDOs0oUjw2jFUQpwSTt24yg6pry8fPPD9ZjG/DC4y+11g0emIcDJIi
+	 hBMCQ6qnUD2U60Sdxm/PYcEvWhFXPpcZbXoGvmsQn8x4ykjNye8a+ODobDiz/WS/9c
+	 vKKEIZ3WQdoyNoJk2MS8ZSvzlLFGP/2PJywiLoXM/E3dcMKwW84FGNHSjJEq+hBCgC
+	 oMiqUrtNDM/Os21ic2vpMuicGFwFzf2/adVvjqe6fKyBUefZzFfgsXtCWW6FrgcDvQ
+	 wbyqtcIN9stuVPfi9d1QymqYItr+2hbB761p4yeQGMB0KfbVIzznpHVcAQBV+hCrIa
+	 J+FiRHKbElF4Q==
+Received: by mail-lr2-f35.google.com with SMTP id 38308e7fff4ca-3a60e33d456so9138341fa.1
+        for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2026 10:13:19 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvByEVXdjXARQhFDPIMBimql4sAELCx57SQlG/N/gMLR6UQeb8W5/xujWROLhes0Eu3dFMZkoqQ3ZluvF@vger.kernel.org
+X-Gm-Message-State: AFuF++nQor9QiSdKDRv6Af+WHRDv+cL81tOZcqZAKrRcjJCSTRRO7pWX
+	+CN/w8uJ27tO1rDFKZPlXqhjCl9rdkuuOLzPKADCscRYO5QG0NzKNmhjOUE7J2Jt2kuYvbEe/aH
+	k0yIlOSkg+Zqg2Kc7ZlMgQk6h2HoDyiw=
+X-Received: by 2002:a05:651c:2127:b0:3a3:5a01:a794 with SMTP id
+ 38308e7fff4ca-3a63bf674d8mr15117381fa.1.1790356398423; Fri, 25 Sep 2026
+ 10:13:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260914140821.1805449-1-arnd@kernel.org> <17a74e90-27d1-4954-86a8-491267f00cb8@gmail.com>
-In-Reply-To: <17a74e90-27d1-4954-86a8-491267f00cb8@gmail.com>
-From: Linus Walleij <linusw@kernel.org>
-Date: Fri, 25 Sep 2026 15:30:05 +0200
-X-Gmail-Original-Message-ID: <CAD++jL=VJsnk-GzAvR4oR8oKJayQzq9Oes+ZW7K=iHGrQ1jh0w@mail.gmail.com>
-X-Gm-Features: AclHuK_tdwElKKmMYGPFlmZM1P8fO1IIRCqgIQbs7o9aMikBwWdJXpQ3EUUcqPA
-Message-ID: <CAD++jL=VJsnk-GzAvR4oR8oKJayQzq9Oes+ZW7K=iHGrQ1jh0w@mail.gmail.com>
-Subject: Re: [PATCH v2 00/14] ARM: deprecated platform removal
-To: Yoshifumi SHU <envzhu@gmail.com>
-Cc: arnd@kernel.org, Frank.Li@nxp.com, aaro.koskinen@iki.fi, 
-	alexander.sverdlin@siemens.com, alexandre.belloni@bootlin.com, 
-	alexandre.torgue@foss.st.com, andreas@kemnade.info, andrew@lunn.ch, 
-	arnd@arndb.de, claudiu.beznea@tuxon.dev, conor+dt@kernel.org, 
-	david@kernel.org, devicetree@vger.kernel.org, enelsonmoore@gmail.com, 
-	festevam@gmail.com, geert@linux-m68k.org, gregory.clement@bootlin.com, 
-	imx@lists.linux.dev, kernel@pengutronix.de, khilman@baylibre.com, 
-	kmehltretter@gmail.com, kristoffer.ericson@gmail.com, krzk@kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
-	linux-stm32@st-md-mailman.stormreply.com, linux@armlinux.org.uk, 
-	liviu.dudau@arm.com, lpieralisi@kernel.org, mcoquelin.stm32@gmail.com, 
-	nicolas.ferre@microchip.com, npitre@baylibre.com, robert.jarzmik@free.fr, 
-	robh@kernel.org, rogerq@kernel.org, s.hauer@pengutronix.de, 
-	sebastian.hesselbarth@gmail.com, shawnguo@kernel.org, soc@lists.linux.dev, 
-	stefan@agner.ch, sudeep.holla@kernel.org, tony@atomide.com, vz@mleia.com, 
-	thehajime@gmail.com
+References: <20260907064725.10686-1-hemanth.selam@gmail.com> <20260907064725.10686-2-hemanth.selam@gmail.com>
+In-Reply-To: <20260907064725.10686-2-hemanth.selam@gmail.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 25 Sep 2026 19:11:41 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jXy6J9Lw929W5RNiz9AetGjAOu0GxdFrG7T1zF3Coe5A@mail.gmail.com>
+X-Gm-Features: AclHuK-gDqMuvMxuWX6tWnCQEQ9B7j9h5lfzr84tihm8zFD470uBDG-yTmqpy0Y
+Message-ID: <CAJZ5v0jXy6J9Lw929W5RNiz9AetGjAOu0GxdFrG7T1zF3Coe5A@mail.gmail.com>
+Subject: Re: [PATCH 1/5] driver core: fix typo "sucessfully" in comment
+To: Hemanth Selam <hemanth.selam@gmail.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Danilo Krummrich <dakr@kernel.org>, 
+	Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>, 
+	Lukasz Luba <lukasz.luba@arm.com>, Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>, 
+	Christian Loehle <christian.loehle@arm.com>, Thierry Reding <thierry.reding@kernel.org>, 
+	Jonathan Hunter <jonathanh@nvidia.com>, linux-pm@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, 
+	linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 21, 2026 at 1:06=E2=80=AFPM Yoshifumi SHU <envzhu@gmail.com> wr=
-ote:
+On Mon, Sep 7, 2026 at 8:47=E2=80=AFAM Hemanth Selam <hemanth.selam@gmail.c=
+om> wrote:
+>
+> Correct "sucessfully" to "successfully", reported by scripts/checkpatch.p=
+l
+> using the misspelling list in scripts/spelling.txt.  Only touches comment=
+s,
+> no code changes.
+>
+> Assisted-by: Cursor:claude-opus-5
+> Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+> ---
+>  drivers/base/power/clock_ops.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/base/power/clock_ops.c b/drivers/base/power/clock_op=
+s.c
+> index 59bb37e8244c..3b8ba27802a8 100644
+> --- a/drivers/base/power/clock_ops.c
+> +++ b/drivers/base/power/clock_ops.c
+> @@ -250,7 +250,7 @@ EXPORT_SYMBOL_GPL(pm_clk_add);
+>   *
+>   * Add the clock to the list of clocks used for the power management of =
+@dev.
+>   * The power-management code will take control of the clock reference, s=
+o
+> - * callers should not call clk_put() on @clk after this function sucessf=
+ully
+> + * callers should not call clk_put() on @clk after this function success=
+fully
+>   * returned.
+>   */
+>  int pm_clk_add_clk(struct device *dev, struct clk *clk)
+> --
 
-> I would like to request that the core Arm Cortex-M support be retained, s=
-pecifically for v8-M.
-(...)
-> I am willing to help maintain this support, including modernizing the rel=
-evant code. I can regularly test kernels on real Armv8-M hardware.
-> If an active maintainer is required to keep the support, I am willing to =
-take on that responsibility.
-> Please let me know how I can help keep the support.
-
-All right, now we're talking! Could you test and review this patch:
-https://lore.kernel.org/linux-arm-kernel/20260910-arm-generic-irq-entry-v7-=
-1-v3-1-5fd90f6859e1@kernel.org/
-
-I do avoid touching the v7m path and it worked last time I tested
-it  (on an STM32) but I'd like to see your take on it, AFAICT generic
-entry is not really possible (easily) on v7m because of the
-pendable service call mechanism but maybe we can think of a
-really complicated solution? ;)
-
-Yours,
-Linus Walleij
+Applied as 7.4 material, thanks!
