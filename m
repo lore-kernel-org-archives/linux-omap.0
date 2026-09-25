@@ -1,97 +1,96 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 156DF4BE441;
-	Thu, 24 Sep 2026 21:53:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE40D44065E
+	for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2026 13:30:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790286804; cv=none; b=tkXjAd1x8uZEJGVPtiAAXSU+B0VlS2BKIErH5Ok3+4/v/g0ezahOJWHtLcx8/9Y3racFn7xydm4CBJYM1UBGfro3r5JMAGDrdb9Q66DARhCzizO/poon4SK7Yqr3zt43QhjjDUr1AQ9C74sbdRrxkk6YpmCrntiEV6nqMuzHMgQ=
+	t=1790343025; cv=none; b=rudqJMe/l71U2JEsyO/3Qyy6U5kl5e1Dw6Yb35d2fJn/Bz/w8lKKxRgOrTlSdlsDqPwT62nQgWI4+L8VCl+2KChhE9JZkYEDQMi30cIPiuH5jd3HxOFwIXimudnA1Psip5bnM0hyNLvydu6WgaSWXOUyy7BApEo6j2QWmeTu8zI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790286804; c=relaxed/simple;
-	bh=MGzMNVhVVuAFd8wl97KcZDnOyfpU99lFpqrooHUwH8U=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MBr1Umv6hII+Q1mOkODZM621Z05vkj65EpmlyHQwXfhBUD2Qv/IbaTnq17+0DtJ/wZj17ZKb5R/ICaVofEU/lI3qRULZhU1oafYv0OIXNfdgZJyGWpDa3ywXsp7DBpsYWon5QntUONipqj+dE2ypSxronbE00W57kp30SVKFEPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Mkoi/sO0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790343025; c=relaxed/simple;
+	bh=/jFCjg6nDyLS94dvgK/EEMc/s+8n2QPDNYXmC3S7fXI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=eCszByYCgD2Ypu6QRjBEN1d8fkkI4s2QNB4CGYewt62prE2gGdEOkPZpcmPvmKINHXZlIC2jfZzQ1fyEErFDo1ST/pJLXGvgdvzhx/ONN6rssVpTCtmSaUTzcA9XztF4m4and0J+uj9eN/X6Ob3/emDW51KMXSCK9gPZDsHJqpE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BLJ6EOp3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Mkoi/sO0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6BEF1F00893;
-	Thu, 24 Sep 2026 21:53:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BLJ6EOp3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 968001F0089B
+	for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2026 13:30:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790286802;
-	bh=Ogr79LQ3rrbCZxJzcpqWXVBpLNfY+VyA7LvCCLZnVQk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Mkoi/sO04MomiAeKafvvlxoZSmU1xCcMWZQisp4s7UKkV2o1rfgcenihrMFiM8viy
-	 wfCBFiDGLDUuTY8WgjIQJQZsF1W0Lgs2ENuA4fjrHRjsB06q9dffHq75sP8qQFIA/T
-	 amJ70IgK84+BzkunwTPVSb3gqfGZ+G0G0k9puWnvma52XvaUJW7uKXZVZaKUs0m7gc
-	 h35AqVpQsTgcvFgMoCAg9tfrJB4lebSTVwEUoDsaG0jgxd+RyuLcDdzHgklMDUMLgN
-	 qkmITZzyWKtCdRcKjBJ6mxxG2I6gJCPXDGbS7q9dBjo7R1spsSAMO5g6LaTkiX/XUp
-	 utjUvhvQPzp2Q==
-Date: Thu, 24 Sep 2026 16:53:20 -0500
-From: "Rob Herring (Arm)" <robh@kernel.org>
-To: Quchaosheng <quchaosheng000406@163.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Simona Vetter <simona@ffwll.ch>, dri-devel@lists.freedesktop.org,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Roger Quadros <rogerq@kernel.org>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	linux-omap@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
-	devicetree@vger.kernel.org, Conor Dooley <conor+dt@kernel.org>,
-	Maxime Ripard <mripard@kernel.org>,
-	Tony Lindgren <tony@atomide.com>, David Airlie <airlied@gmail.com>,
-	Kevin Hilman <khilman@baylibre.com>
-Subject: Re: [PATCH v3 1/2] dt-bindings: display: ti,tpd12s015: Convert to DT
- schema
-Message-ID: <179028680032.1886779.12172352669683602550.robh@kernel.org>
-References: <20260916015833.112753-1-quchaosheng000406@163.com>
- <20260916123210.107841-1-quchaosheng000406@163.com>
+	s=k20260515; t=1790343020;
+	bh=hjEFWSQNzvV2cy7ibgDjEb2o00pPnzmhtpFfAirbXj0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=BLJ6EOp3/teQGF4Z82GqbDk1ISdqixvgqoFpvboexYsyn0LdOG9ImSBQvSVdscpVx
+	 wD3YnH6iTcML4IJrMqZVmmfdAnmj1OZe0hqQlgp3r+FlQV4DHqarG1wTok/jG1HK/7
+	 NcevHggAYLOOLsKswOtKUIhp2nGkGdtWs1LFIpThudzx0DqAa+ukcUHGgdge7rAISq
+	 OSTdJRe3EaqHD/pmiV7E67uuOBvLsCE7MV83veEncrzzwVjtoAPczPmD2vf18mLKEX
+	 n3iHAnAI1BkabQPxBZgX15nKh8j2vOq10iMHmBClPLb8O210D0EX6GZJWVEcDyD9Gn
+	 TftJhpnZpKauQ==
+Received: by mail-oo2-f39.google.com with SMTP id 006d021491bc7-6b390bcab0cso575033eaf.2
+        for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2026 06:30:20 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBxqFpo72ds+qNuB49G+yR1p0qHXCxI7bBlGHJoy9HBhil3mXWH3H92lvzU4ljwhxQCSEzuEjTkMEvjc@vger.kernel.org
+X-Gm-Message-State: AFuF++mRKEV9ejXK7KVH5x9OthkWiWmBuQ0mQ5liTj8rNnLUyVXt0L9I
+	CDG1KB2CK5pkZAV6KxjmJRhk9ZLLw5RzT9K6RorFaH6ELXiXTG92jG11kM+CBAlq3mRwO8aUxgf
+	QUtlkHdBZEwo6bt99yP7sI7asNnEkEQI=
+X-Received: by 2002:a05:6820:818f:b0:6cd:3ffc:ad01 with SMTP id
+ 006d021491bc7-6d441c7de80mr5856938eaf.81.1790343019904; Fri, 25 Sep 2026
+ 06:30:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260916123210.107841-1-quchaosheng000406@163.com>
+References: <20260914140821.1805449-1-arnd@kernel.org> <17a74e90-27d1-4954-86a8-491267f00cb8@gmail.com>
+In-Reply-To: <17a74e90-27d1-4954-86a8-491267f00cb8@gmail.com>
+From: Linus Walleij <linusw@kernel.org>
+Date: Fri, 25 Sep 2026 15:30:05 +0200
+X-Gmail-Original-Message-ID: <CAD++jL=VJsnk-GzAvR4oR8oKJayQzq9Oes+ZW7K=iHGrQ1jh0w@mail.gmail.com>
+X-Gm-Features: AclHuK_tdwElKKmMYGPFlmZM1P8fO1IIRCqgIQbs7o9aMikBwWdJXpQ3EUUcqPA
+Message-ID: <CAD++jL=VJsnk-GzAvR4oR8oKJayQzq9Oes+ZW7K=iHGrQ1jh0w@mail.gmail.com>
+Subject: Re: [PATCH v2 00/14] ARM: deprecated platform removal
+To: Yoshifumi SHU <envzhu@gmail.com>
+Cc: arnd@kernel.org, Frank.Li@nxp.com, aaro.koskinen@iki.fi, 
+	alexander.sverdlin@siemens.com, alexandre.belloni@bootlin.com, 
+	alexandre.torgue@foss.st.com, andreas@kemnade.info, andrew@lunn.ch, 
+	arnd@arndb.de, claudiu.beznea@tuxon.dev, conor+dt@kernel.org, 
+	david@kernel.org, devicetree@vger.kernel.org, enelsonmoore@gmail.com, 
+	festevam@gmail.com, geert@linux-m68k.org, gregory.clement@bootlin.com, 
+	imx@lists.linux.dev, kernel@pengutronix.de, khilman@baylibre.com, 
+	kmehltretter@gmail.com, kristoffer.ericson@gmail.com, krzk@kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 
+	linux-stm32@st-md-mailman.stormreply.com, linux@armlinux.org.uk, 
+	liviu.dudau@arm.com, lpieralisi@kernel.org, mcoquelin.stm32@gmail.com, 
+	nicolas.ferre@microchip.com, npitre@baylibre.com, robert.jarzmik@free.fr, 
+	robh@kernel.org, rogerq@kernel.org, s.hauer@pengutronix.de, 
+	sebastian.hesselbarth@gmail.com, shawnguo@kernel.org, soc@lists.linux.dev, 
+	stefan@agner.ch, sudeep.holla@kernel.org, tony@atomide.com, vz@mleia.com, 
+	thehajime@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, Sep 21, 2026 at 1:06=E2=80=AFPM Yoshifumi SHU <envzhu@gmail.com> wr=
+ote:
 
-On Wed, 16 Sep 2026 20:32:09 +0800, Quchaosheng wrote:
-> Convert the TPD12S015 HDMI level shifter binding to DT schema.
-> 
-> The TI TPD12S015 is an HDMI companion chip that combines a level shifter
-> and ESD protection circuitry. Document the two ports it exposes between
-> the HDMI transmitter and the connector.
-> 
-> The tpd12s016 is software compatible with the tpd12s015 and is listed as a
-> fallback compatible by am57xx-idk-common.dtsi, so accept it as a fallback
-> of "ti,tpd12s015". The driver matches on "ti,tpd12s015" only, so a board
-> using the tpd12s016 must list both compatibles.
-> 
-> The gpios property takes the three CT CP HPD, LS OE and HPD GPIOs the
-> driver obtains through devm_gpiod_get_index(). omap5-igep0050.dts lists the
-> DDC SCL and SDA lines as two further entries, so allow up to five entries
-> and keep the property description focused on the ones the driver uses.
-> 
-> Signed-off-by: Quchaosheng <quchaosheng000406@163.com>
-> ---
-> v3:
->  - gpios: allow up to five entries. v2 claimed that no in-tree board passes
->    more than three, but omap5-igep0050.dts passes five: the three control/HPD
->    lines plus the DDC SCL and SDA lines. The three-entry limit added in v2
->    therefore broke dtbs_check for that board.
-> 
-> v2:
->  - Reword the description: the TPD12S016 can only be used as a fallback of
->    "ti,tpd12s015", because the driver matches on "ti,tpd12s015" alone.
-> 
->  .../bindings/display/ti/ti,tpd12s015.txt      | 44 ---------
->  .../bindings/display/ti/ti,tpd12s015.yaml     | 93 +++++++++++++++++++
->  2 files changed, 93 insertions(+), 44 deletions(-)
->  delete mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt
->  create mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml
-> 
+> I would like to request that the core Arm Cortex-M support be retained, s=
+pecifically for v8-M.
+(...)
+> I am willing to help maintain this support, including modernizing the rel=
+evant code. I can regularly test kernels on real Armv8-M hardware.
+> If an active maintainer is required to keep the support, I am willing to =
+take on that responsibility.
+> Please let me know how I can help keep the support.
 
-Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
+All right, now we're talking! Could you test and review this patch:
+https://lore.kernel.org/linux-arm-kernel/20260910-arm-generic-irq-entry-v7-=
+1-v3-1-5fd90f6859e1@kernel.org/
 
+I do avoid touching the v7m path and it worked last time I tested
+it  (on an STM32) but I'd like to see your take on it, AFAICT generic
+entry is not really possible (easily) on v7m because of the
+pendable service call mechanism but maybe we can think of a
+really complicated solution? ;)
+
+Yours,
+Linus Walleij
