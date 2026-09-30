@@ -1,41 +1,53 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.4])
+Received: from perceval.ideasonboard.com (perceval.ideasonboard.com [213.167.242.64])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4694364E98;
-	Wed, 30 Sep 2026 02:24:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB6D936B933;
+	Wed, 30 Sep 2026 05:29:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.167.242.64
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790735083; cv=none; b=Qv4UtEqgWT0qwBaVS6ajYhicjEpVHNT9EkNChp21Kj7nv4X/D6qRL82LpDmBqgSYg7sMgIuV3DeasXcJh/Otaae7O5wh/Jm105a8De82dsOp3/6jlUVW6ECzvmkOXOQyIIqiBvouSSdYetLs37QmOvpB/aLt1dMTdS4IrVZ3jX4=
+	t=1790746173; cv=none; b=ShNxiE042iET8nuAdNrM8n0UuMOH4yeueF81lqj7taJj/O6SQdVd6kf5aBIdKr2wU1cYevvtIUiZj8vStNGQ02wIsZ4CvhAFvhpULcZlsym8zZctXJPCbK5ykDrn6lbeEwwhWI+bH+mWIfkGo+Ek35UBGrTeYQobBf5c6Gp9VHs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790735083; c=relaxed/simple;
-	bh=WPPBdDQDDm9R9R3SXF4S3/bBMH4L13wnTpOWwWZZqmY=;
-	h=From:To:Cc:Subject:In-Reply-To:References:MIME-Version:
-	 Content-Type:Message-Id:Date; b=twOEbC47Aj0EakLsx1mEABlf7XrHxhOvR07cQxoodU8yiepBZvINsA+WeP60DOf61vy0YOCAbfhIL7YA99ok222jM/Ns7MKdTqN6XeoQHrwWvzx1iUnY/eeRna9ZP2dn8l6wgcHNtC9LMW8VIaJi3OUGtzagH98R6V043LEGU6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=jsjvCGou; arc=none smtp.client-ip=220.197.31.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1790746173; c=relaxed/simple;
+	bh=bb/h/G1KkoN/bGMe9foM1wamD1apmUQT9PDmReJcscw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=tETVAIMtl+MfPod1NKvBsAgcKTpbEzqp5tLxYzDBHCGIpefnt0Fx7/2Vm0L/+FmLyfwcFDlHaUjErvEgh2EVmvQi0djIv3ik5YDcr4twp6AWVsZdUjjnQNkHFlXimxMs3JnGTN22jkM61zVw7cZVxQNtdXbOivPNUV0xvh49yrU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ideasonboard.com; spf=pass smtp.mailfrom=ideasonboard.com; dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b=oHRT/aAY; arc=none smtp.client-ip=213.167.242.64
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ideasonboard.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ideasonboard.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="jsjvCGou"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:MIME-Version:Content-Type:
-	Message-Id:Date; bh=ngyVwzlsuinhFCEe3hVM9MZeEyarwngLyBlfTxiJEC8=;
-	b=jsjvCGoueL3koUTM7pGvXEPSMkEetmxKofViAd1ozOBr6uRHgZ9yU268xxoOFs
-	OHoBDqnjFT6i3GQ+MZYYBMvCogp1iafwiFE8hVzRJyU1Hpg3i7DsMqM65Fc2qOKn
-	FV5ve7hZjQviDpKUhNRWbWUtsRtAaoOcZ88Pi7cSvlS34=
-From: Chaosheng Qu <quchaosheng000406@163.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
- Rob Herring <robh@kernel.org>,
- Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>,
- Eduard Bostina <egbostina@gmail.com>,
- dri-devel@lists.freedesktop.org,
- devicetree@vger.kernel.org,
- linux-omap@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/2] dt-bindings: display: ti,tpd12s015: Convert to DT schema
-In-Reply-To: <20260929121235.GF171869@killaraus.ideasonboard.com>
-References: <20260929121235.GF171869@killaraus.ideasonboard.com>
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="oHRT/aAY"
+Received: from killaraus.ideasonboard.com (2001-14ba-70f3-e800--a06.rev.dnainternet.fi [IPv6:2001:14ba:70f3:e800::a06])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 27513C24;
+	Wed, 30 Sep 2026 07:27:35 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+	s=mail; t=1790746055;
+	bh=bb/h/G1KkoN/bGMe9foM1wamD1apmUQT9PDmReJcscw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=oHRT/aAYwkWLSfPeJrODtyMplN4MehCOvHaktDFV3qtB7or8dg3khp+6AxKrWYONp
+	 ATJGbNDPUdhNiEvFGaYqZVUXHURLOTsbCcQ87SQHCCVpDiHsp6gx3B/5wBhqOw58zN
+	 4VKbWPhq33rnMcxSBbtlQo683jA5SFZQWiC1k1i8=
+Date: Wed, 30 Sep 2026 08:29:25 +0300
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Rob Herring (Arm)" <robh@kernel.org>
+Cc: Quchaosheng <quchaosheng000406@163.com>,
+	Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Simona Vetter <simona@ffwll.ch>, dri-devel@lists.freedesktop.org,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Roger Quadros <rogerq@kernel.org>,
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+	linux-omap@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>,
+	devicetree@vger.kernel.org, Conor Dooley <conor+dt@kernel.org>,
+	Maxime Ripard <mripard@kernel.org>,
+	Tony Lindgren <tony@atomide.com>, David Airlie <airlied@gmail.com>,
+	Kevin Hilman <khilman@baylibre.com>
+Subject: Re: [PATCH v3 1/2] dt-bindings: display: ti, tpd12s015: Convert to
+ DT schema
+Message-ID: <20260930052925.GA931211@killaraus.ideasonboard.com>
+References: <20260916015833.112753-1-quchaosheng000406@163.com>
+ <20260916123210.107841-1-quchaosheng000406@163.com>
+ <179028680032.1886779.12172352669683602550.robh@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -43,63 +55,53 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wD3J8zTcrxqxa_hBg--.51069S2
-Message-Id:<6ABC72D3.0795AD.00008@m16.mail.163.com>
-X-Coremail-Antispam: 1Uf129KBjvJXoW7KrWDWr15WF47tF1kXFWfAFb_yoW8uryrpa
-	y3t3WIkrn5GF4Yy3WIvr40vaySvFs5KFW5JryFkry8u398Jr4xtrZFyF4j9a4DK3s3uw1j
-	vFsI9w1ktF4YvaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRsFxUUUUUU=
-Date: Wed, 30 Sep 2026 10:24:20 +0800 (CST)
-X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbC5BOaEGq8ctOW9AAA3o
+Content-Disposition: inline
+In-Reply-To: <179028680032.1886779.12172352669683602550.robh@kernel.org>
 
-Hi Laurent,
+On Thu, Sep 24, 2026 at 04:53:20PM -0500, Rob Herring (Arm) wrote:
+> On Wed, 16 Sep 2026 20:32:09 +0800, Quchaosheng wrote:
+> > Convert the TPD12S015 HDMI level shifter binding to DT schema.
+> > 
+> > The TI TPD12S015 is an HDMI companion chip that combines a level shifter
+> > and ESD protection circuitry. Document the two ports it exposes between
+> > the HDMI transmitter and the connector.
+> > 
+> > The tpd12s016 is software compatible with the tpd12s015 and is listed as a
+> > fallback compatible by am57xx-idk-common.dtsi, so accept it as a fallback
+> > of "ti,tpd12s015". The driver matches on "ti,tpd12s015" only, so a board
+> > using the tpd12s016 must list both compatibles.
+> > 
+> > The gpios property takes the three CT CP HPD, LS OE and HPD GPIOs the
+> > driver obtains through devm_gpiod_get_index(). omap5-igep0050.dts lists the
+> > DDC SCL and SDA lines as two further entries, so allow up to five entries
+> > and keep the property description focused on the ones the driver uses.
+> > 
+> > Signed-off-by: Quchaosheng <quchaosheng000406@163.com>
+> > ---
+> > v3:
+> >  - gpios: allow up to five entries. v2 claimed that no in-tree board passes
+> >    more than three, but omap5-igep0050.dts passes five: the three control/HPD
+> >    lines plus the DDC SCL and SDA lines. The three-entry limit added in v2
+> >    therefore broke dtbs_check for that board.
+> > 
+> > v2:
+> >  - Reword the description: the TPD12S016 can only be used as a fallback of
+> >    "ti,tpd12s015", because the driver matches on "ti,tpd12s015" alone.
+> > 
+> >  .../bindings/display/ti/ti,tpd12s015.txt      | 44 ---------
+> >  .../bindings/display/ti/ti,tpd12s015.yaml     | 93 +++++++++++++++++++
+> >  2 files changed, 93 insertions(+), 44 deletions(-)
+> >  delete mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt
+> >  create mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml
+> > 
+> 
+> Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
 
-Thank you for taking the time.  Two of the three points came from the v1
-posting, one of them is a real miss on my side, and there is a fourth
-thing I should have found before posting at all -- I get to that below.
+I don't think the binding is correct. The two additional GPIOs seem to
+be a mistake in the DT source. There's no rationale in this patch to
+explain why they're needed.
 
-The message you replied to is the 09-15 posting.  v3 went out on 09-16:
+-- 
+Regards,
 
-  <20260916123210.107841-1-quchaosheng000406@163.com>
-
-and it rewrote the commit message to give the rationale you are missing:
-why "ti,tpd12s016" can only be a fallback of "ti,tpd12s015" (the driver
-matches on "ti,tpd12s015" alone, so a board using the 016 has to list
-both), and why gpios has to take three to five entries.  The v2 version
-of that description had capped gpios at three, which broke dtbs_check for
-omap5-igep0050.dts -- that board passes the three control/HPD lines plus
-the DDC SCL and SDA lines.  Rob Herring gave v3 his Reviewed-by on 09-24.
-
-The Assisted-by tag is a fair hit, and it applies to v3 as well: v3 does
-not carry one either.  That is my oversight and I will add it.
-
-Your third point also stands for v3.  The conversion and the gpios
-semantics change are still one patch.  Splitting them is right.
-
-Now the part I should have caught myself.  This conversion is not new
-work.  Eduard Bostina posted the same conversion on 2026-07-30:
-
-  <20260730092245.52034-1-egbostina@gmail.com>
-
-That series makes the same two binding changes -- the "ti,tpd12s016"
-fallback compatible and gpios up to five entries -- and its 2/2 renames
-the same tpd12s015 endpoint nodes that mine does.  Rob reviewed it on
-08-03.  It did not land: there is no ti,tpd12s015.yaml in mainline, v6.18,
-v6.17 or linux-next, and the .txt is still in all of them.  I did not find
-it before posting mine, and I have cc'd Eduard here.
-
-I would rather ask than add a fourth revision to the pile.  Which would
-you prefer:
-
-  - a v4 of mine, split into a pure conversion plus a separate semantics
-    patch, or
-  - for me to drop mine and leave this to Eduard's series?
-
-Either way I will not repost the current form.  If there is a reason the
-Bostina series stalled that I should not repeat, I would be glad to hear
-it.
-
-Thanks,
-Chaosheng Qu
-
+Laurent Pinchart
