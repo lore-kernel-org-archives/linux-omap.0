@@ -1,122 +1,105 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD3124F5DF2
-	for <linux-omap@vger.kernel.org>; Tue, 29 Sep 2026 16:14:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4694364E98;
+	Wed, 30 Sep 2026 02:24:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790698478; cv=none; b=HXnOevIdU0+GQd8LXGgiy/NlXiOgu5/rGr9pIGNYF2yXycZojUUpdORCDRn5AH0hX6XbvmUZjr3wTgHYbW2HtQ0mjVh+x6MOeIvnJaUrJhGKJBj3OS1gdztISxiJMm1FzloLP5DhPMGJru0KihrVioyUsyLOud0w17Cpf0ZY0OU=
+	t=1790735083; cv=none; b=Qv4UtEqgWT0qwBaVS6ajYhicjEpVHNT9EkNChp21Kj7nv4X/D6qRL82LpDmBqgSYg7sMgIuV3DeasXcJh/Otaae7O5wh/Jm105a8De82dsOp3/6jlUVW6ECzvmkOXOQyIIqiBvouSSdYetLs37QmOvpB/aLt1dMTdS4IrVZ3jX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790698478; c=relaxed/simple;
-	bh=2qKarXk++NiBS2+5AKJidUXBeAghThgQE8g3f72zFz8=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=CaTHHG1txVdpKBvkb8g9Tro5TnCfZKFVOGgwnMRFxxABvB2FW7eOTJJBH5alJJboe3nRvi68RhfiA6wKxanXN9uE7tpSBJ0F8amOM8g/EGags8SVgC1yPlM4uD6nOIxggThjPGErcfgWIpFi6BdoAA5Vn7lU7BD9kcy7iF895Zw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Twq0z20Z; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=f+ZPdVGP; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1790735083; c=relaxed/simple;
+	bh=WPPBdDQDDm9R9R3SXF4S3/bBMH4L13wnTpOWwWZZqmY=;
+	h=From:To:Cc:Subject:In-Reply-To:References:MIME-Version:
+	 Content-Type:Message-Id:Date; b=twOEbC47Aj0EakLsx1mEABlf7XrHxhOvR07cQxoodU8yiepBZvINsA+WeP60DOf61vy0YOCAbfhIL7YA99ok222jM/Ns7MKdTqN6XeoQHrwWvzx1iUnY/eeRna9ZP2dn8l6wgcHNtC9LMW8VIaJi3OUGtzagH98R6V043LEGU6k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=jsjvCGou; arc=none smtp.client-ip=220.197.31.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Twq0z20Z";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="f+ZPdVGP"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1790698475;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Bmtox2s6c4TjZwHbdS6FzVWAuk54pYg3rXVMuHHI2Ts=;
-	b=Twq0z20Z0ZhOZvgPnjkMQKMZR8P3VL1HAnoJ+j5dKpDWLDKhgttqG2PyLbEMTYTJYAPtqi
-	FM82hjHzdHGKIk4VZAHykE3i6WBkXnr/AhkQHlh4mxSx2ZIbPNEXYr/yEXEOubNhkYw49L
-	JbgvHBtH4TilFkz88PjYHc5uw01suRc=
-Received: from mail-qv1-f72.google.com (mail-qv1-f72.google.com
- [209.85.219.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-335-AshZEnAKMiOBrKS6dDXUlg-1; Tue, 29 Sep 2026 12:14:34 -0400
-X-MC-Unique: AshZEnAKMiOBrKS6dDXUlg-1
-X-Mimecast-MFC-AGG-ID: AshZEnAKMiOBrKS6dDXUlg_1790698474
-Received: by mail-qv1-f72.google.com with SMTP id 6a1803df08f44-9123c523d0cso49886406d6.0
-        for <linux-omap@vger.kernel.org>; Tue, 29 Sep 2026 09:14:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1790698474; x=1791303274; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:date:message-id
-         :subject:references:in-reply-to:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=Bmtox2s6c4TjZwHbdS6FzVWAuk54pYg3rXVMuHHI2Ts=;
-        b=f+ZPdVGPm9TsbOIQjywD6IOf6qQSUfAXBtBpE5Uk1ipp6BdvN8fNxDRZnIeOSL2wv2
-         Us+yOE069ntqWlY11lRiTxfTWGECqaTeqPTzpzq0FYwxYx4q0VNFdQpM8+bNRE1QqW6p
-         0xGfP9DQVHskfvsQl6aANiXHRgZIDnpemVvpxk7vNFacmEU1Q97ExBDO3Y5PnILJFkqb
-         bdUCOVivH6qfH/yfYMSUufzSxAKMudP/Tdi/hGGUogMJgyfMH7+7haOxhsIVRfHAg/SP
-         LScf1NMpcV4n6CCTWJ2qNQM4JYmVZKNVy+z6prPm9EKr/ONI4T97jKtFScPMgQP4mF1l
-         18cA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790698474; x=1791303274;
-        h=content-transfer-encoding:content-type:mime-version:date:message-id
-         :subject:references:in-reply-to:cc:to:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Bmtox2s6c4TjZwHbdS6FzVWAuk54pYg3rXVMuHHI2Ts=;
-        b=Y82VMxOrvtj+J71YHcdsTFV7kXQMd00s3J2Cv/YZFc+WQWAKj5ENd6TAfBEw2f6c2Z
-         9O2+kiuwxrHEyR5QRShkwDYTrG5c+IKh7sEr9B+hDvo5H/JX/RG3rd/NFCTYFIHHNwus
-         zpr0LNDmSaxaLZgf62twtped/2ztadgtr+PEOPIAG2hltxUnng9LYoqrYzTdmoPqCqqv
-         pfVyAtt29vu+oniy0bQWMi+mAtG1riwmZKvDN+GVkcBpkituDnRsmGRJGGdyUHw1Dz4D
-         a6rs8zmE2nPTZUDVuK0Wb0JcZnG3UP7kElB7QU0xaBr/wBA/8F9wMeoD0k5WndGV37vB
-         /fgg==
-X-Gm-Message-State: AFuF++meZkpDwxZrHJ4y8tumJ/vTAFhtDNOlOBuO0TlLK2azRyTIXTHX
-	Z3+ffksFcIqLhcmZnutUwB6JENK9DLFuQCN7gmuO+pEM0pUF9Gd3BvQEpdlTT8r0xVSeA0tENOQ
-	dl2m5vDOymrMh0VzCznhVu09FkGhfd406Begp30HM7qwvWpTLQ3zf6OTOHK6xUC4=
-X-Gm-Gg: AYBFou0G47dWeDwy+1QfBgZf7X2am4g4kWs2NgnuHkHySGtZiPs1PadvOeBrQ4VO1Ya
-	xyb+EgxxysmoQVE4/yCRKvZGbi4ofLkx50J3iuXCBQDnp66WBAIDZM/Q081GoYDsZ/KQDS8T9om
-	z1W9bZlUaBh9opSFBtLj1wU59SCkfROA9pi8I2ARbLm8Og+jGz4158BDn1oOfZq7tFVzLzqhpYK
-	02poG9snJp3FmaSJFMIGPihclS3m9/GXSuBvgLBRCFCaCy37M6wC7OSbp3d0CIkRaxz4nGHfA+s
-	iHpjUMpt+hDOchA2RXjMZz5SnwHU4hyPV9ufz1RGlesV5jgS9wY3frF64nie9YSMkjfKYw4J6wS
-	gioVIecryEMXLXlTywuCiGVWeW12UVM3ZrYt2UaoSzlHa+PtivxI=
-X-Received: by 2002:a05:6214:29ce:b0:8ef:4ed2:316 with SMTP id 6a1803df08f44-917819e1cb7mr71156746d6.1.1790698473771;
-        Tue, 29 Sep 2026 09:14:33 -0700 (PDT)
-X-Received: by 2002:a05:6214:29ce:b0:8ef:4ed2:316 with SMTP id 6a1803df08f44-917819e1cb7mr71154666d6.1.1790698472201;
-        Tue, 29 Sep 2026 09:14:32 -0700 (PDT)
-Received: from bmasney-x1.rmtuswv.csb (c-73-183-53-213.hsd1.pa.comcast.net. [73.183.53.213])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-9178d326112sm13448196d6.23.2026.09.29.09.14.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 29 Sep 2026 09:14:31 -0700 (PDT)
-From: Brian Masney <bmasney@redhat.com>
-To: Tero Kristo <kristo@kernel.org>, 
- Michael Turquette <mturquette@baylibre.com>, 
- Stephen Boyd <sboyd@kernel.org>, Myeonghun Pak <mhun512@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Ijae Kim <ae878000@gmail.com>
-In-Reply-To: <20260626094134.71961-1-mhun512@gmail.com>
-References: <20260626094134.71961-1-mhun512@gmail.com>
-Subject: Re: [PATCH] clk: ti: adpll: unregister OF clock provider on remove
-Message-Id: <179069843542.199845.6686423279941894529.b4-ty@b4>
-Date: Tue, 29 Sep 2026 12:13:55 -0400
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="jsjvCGou"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:MIME-Version:Content-Type:
+	Message-Id:Date; bh=ngyVwzlsuinhFCEe3hVM9MZeEyarwngLyBlfTxiJEC8=;
+	b=jsjvCGoueL3koUTM7pGvXEPSMkEetmxKofViAd1ozOBr6uRHgZ9yU268xxoOFs
+	OHoBDqnjFT6i3GQ+MZYYBMvCogp1iafwiFE8hVzRJyU1Hpg3i7DsMqM65Fc2qOKn
+	FV5ve7hZjQviDpKUhNRWbWUtsRtAaoOcZ88Pi7cSvlS34=
+From: Chaosheng Qu <quchaosheng000406@163.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
+ Rob Herring <robh@kernel.org>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>,
+ Eduard Bostina <egbostina@gmail.com>,
+ dri-devel@lists.freedesktop.org,
+ devicetree@vger.kernel.org,
+ linux-omap@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] dt-bindings: display: ti,tpd12s015: Convert to DT schema
+In-Reply-To: <20260929121235.GF171869@killaraus.ideasonboard.com>
+References: <20260929121235.GF171869@killaraus.ideasonboard.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.16.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=313; i=bmasney@redhat.com;
- s=20250903; h=from:subject:message-id;
- bh=sd5tjkRycxPIdAX6vTAKeWmD87abOzSi5YgkalY7KF8=;
- b=owGbwMvMwCW2/dJd9di6A+2Mp9WSGLJ2P36w9WTuFvH2Necu/j0fcb/T/q3D86WPc5y4Xz/v+
- 7z6nexLq45SFgYxLgZZMUWWJblGBRGpq2zv3dFkgZnDygQyhIGLUwAmYv6IkWFO/fmvx1h/80sU
- vGP8/GzNzqPvLtisuyBjGV979unp/z+OMfzhjM7o8re+psN3fuux439enjRm3Vq9w+nHycUx+Yw
- ic6OYAA==
-X-Developer-Key: i=bmasney@redhat.com; a=openpgp;
- fpr=A46D32705865AA3DDEDC2904B7D2DD275D7EC087
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wD3J8zTcrxqxa_hBg--.51069S2
+Message-Id:<6ABC72D3.0795AD.00008@m16.mail.163.com>
+X-Coremail-Antispam: 1Uf129KBjvJXoW7KrWDWr15WF47tF1kXFWfAFb_yoW8uryrpa
+	y3t3WIkrn5GF4Yy3WIvr40vaySvFs5KFW5JryFkry8u398Jr4xtrZFyF4j9a4DK3s3uw1j
+	vFsI9w1ktF4YvaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRsFxUUUUUU=
+Date: Wed, 30 Sep 2026 10:24:20 +0800 (CST)
+X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbC5BOaEGq8ctOW9AAA3o
 
+Hi Laurent,
 
-On Fri, 26 Jun 2026 18:41:26 +0900, Myeonghun Pak wrote:
-> clk: ti: adpll: unregister OF clock provider on remove
+Thank you for taking the time.  Two of the three points came from the v1
+posting, one of them is a real miss on my side, and there is a fourth
+thing I should have found before posting at all -- I get to that below.
 
-Applied, thanks!
+The message you replied to is the 09-15 posting.  v3 went out on 09-16:
 
-[1/1] clk: ti: adpll: unregister OF clock provider on remove
-      commit: 4c943ddfc24340f1b899762b1ff35c38306b7a35
+  <20260916123210.107841-1-quchaosheng000406@163.com>
 
-Best regards,
--- 
-Brian Masney <bmasney@redhat.com>
+and it rewrote the commit message to give the rationale you are missing:
+why "ti,tpd12s016" can only be a fallback of "ti,tpd12s015" (the driver
+matches on "ti,tpd12s015" alone, so a board using the 016 has to list
+both), and why gpios has to take three to five entries.  The v2 version
+of that description had capped gpios at three, which broke dtbs_check for
+omap5-igep0050.dts -- that board passes the three control/HPD lines plus
+the DDC SCL and SDA lines.  Rob Herring gave v3 his Reviewed-by on 09-24.
+
+The Assisted-by tag is a fair hit, and it applies to v3 as well: v3 does
+not carry one either.  That is my oversight and I will add it.
+
+Your third point also stands for v3.  The conversion and the gpios
+semantics change are still one patch.  Splitting them is right.
+
+Now the part I should have caught myself.  This conversion is not new
+work.  Eduard Bostina posted the same conversion on 2026-07-30:
+
+  <20260730092245.52034-1-egbostina@gmail.com>
+
+That series makes the same two binding changes -- the "ti,tpd12s016"
+fallback compatible and gpios up to five entries -- and its 2/2 renames
+the same tpd12s015 endpoint nodes that mine does.  Rob reviewed it on
+08-03.  It did not land: there is no ti,tpd12s015.yaml in mainline, v6.18,
+v6.17 or linux-next, and the .txt is still in all of them.  I did not find
+it before posting mine, and I have cc'd Eduard here.
+
+I would rather ask than add a fourth revision to the pile.  Which would
+you prefer:
+
+  - a v4 of mine, split into a pure conversion plus a separate semantics
+    patch, or
+  - for me to drop mine and leave this to Eduard's series?
+
+Either way I will not repost the current form.  If there is a reason the
+Bostina series stalled that I should not repeat, I would be glad to hear
+it.
+
+Thanks,
+Chaosheng Qu
 
