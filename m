@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15E2D4CB8C0;
-	Thu,  1 Oct 2026 09:13:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB2FA4F054E;
+	Thu,  1 Oct 2026 09:13:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790846001; cv=none; b=icKGkU+ceAqPlqG9o/J0agazqxdX2WynSqAFEuSErnJm91VsBAahkZS0JfS4luN4EepyBpvKxJoF+tuHmhyhsVvlkVo47evKXFZalUf6Iyzm3c7G4ykzdHJZoR07AdfYuHCGf8UeK9+shNDsEvWJlkw92cR/cS7wc4yHqo2EPG0=
+	t=1790846020; cv=none; b=CZzSDEqateTQdZlNUrnXBE0PC9ubaafSZFwigVnn3p6EMKVUzxGc/LiJD8Lq79kPWK77FqoVNnm3IgObJDCK7XXM2YHzLjGKhkXARVhFepJ6bMR/VNgpQOMnD0fEMVRdf+4XxycKDU6n1pxMKYGaumb3P3Ogs6Z2gjg/wG2cQLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790846001; c=relaxed/simple;
+	s=arc-20240116; t=1790846020; c=relaxed/simple;
 	bh=f6EkHzolGy8GYPjeII04sc8oTncaFwHLWXs9LkHKYfM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=T8L0lIzQJ6hRVEI/T15k1zHk01RWz9iwcznSfC5Aen2U2kmpojbj3aVdgBrt++YAqRANNoyvVRgHMkZ3VuHWim8vi/novmABPYWQKCl/pZm6yRjdSl/uPpDot87DsT9Gh1rVnzA9ijgdtQIpiQn229g+PletQgZngYQ+gcfB5Cs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QTPngBIy; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=XXsJut/dR2Ra5qensitivMGTpLMiplrH11ZJ9GnK8ZST31XPVT5p0ys8XkMbDtmLUXP12aJIvdrwsgYwYPWqFQeyLg4ltx8C2k+XLjNbtX66VvyJKaNc+3gFrDg2+b4Qtem4uNdPDmK5+n3+7Qo7mT5vxD7wZU6pp51PdPoCy7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CdjRM6PD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QTPngBIy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C93A21F000FF;
-	Thu,  1 Oct 2026 09:13:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CdjRM6PD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8943F1F0089B;
+	Thu,  1 Oct 2026 09:13:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790845999;
+	s=k20260515; t=1790846015;
 	bh=LPA6Inh2wBCKqBtP/pIYKJnpKzD87TCTJsmoxrtXeEE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=QTPngBIy0FusCGL7ZltkQ8QtLyBjiZ4SdLchb+CZ6GHIWTD8dKoSphCqrEL/gYsMi
-	 sgkxY+AhuJcR3ShwSqGUC1G7dNZ/aiEJpQpOTONvOPwJZPmYU2KvWuaJDFgEKaXBxF
-	 j4QiQo5WqNTkrUmvOq1zogHXSqf0+yDbl9NYWq0mYUYD5FfJ2JH9vb+uI2CPpFkL7t
-	 kMapa9/xic0T3xTgvAoUAmG96Qeq5vTx8xeyJULwe5h0DTQtkBHr9keKPhiMEn6DMc
-	 yqm8Qz8OsImqpCu1c+xWH6TN6ByePFrChc5Z/LRoociciuqcvvVMHF+V67cZBeQnCl
-	 R9lTv5UVCGoSw==
+	b=CdjRM6PD/3uWG28GPr5ox6IvkZvA5BOLPaxbRHBpeWHGvgNx7EWRofaNosieYhMAt
+	 /riE7kVBOGbOAYH5ekDPJOvFC3EhIQxCAoGSShsMG852xtjdd2AdGETBmjT+j14e1w
+	 tkuMfF7HEvk8CScak68OycL9DVd2qCxRyXigBzBmofksXBzFDcgK1SHHGwVnVKkiKr
+	 bs3qrqmZlOcZxSimfMj7Um+HOOXojLkDqrho+FU+1W53zmQ+N5kCViM2egVS5RtefZ
+	 lXhBLJcYgWtafHwmj3qNQ/afbKgQLd2W79bmPsVK2A+qSZz6kGEb7mdGTd/Ogws2QU
+	 E9/pLPgV16Mpg==
 From: netdev-bot+sinfo@kernel.org
 To: MD Danish Anwar <danishanwar@ti.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
@@ -39,11 +39,10 @@ Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
  linux-omap@vger.kernel.org
 Subject: Re: [PATCH net v3] net: ti: am65-cpsw-switchdev: flush dynamic FDB
  entries by port on delete
-Date: Thu, 01 Oct 2026 09:13:18 +0000
-Message-ID: <179084599831.31693.11273065705866823199@kernel.org>
-In-Reply-To: <20261001090820.1605711-2-danishanwar@ti.com>
+Date: Thu, 01 Oct 2026 09:13:34 +0000
+Message-ID: <179084601411.31693.15138599168021166167@kernel.org>
+In-Reply-To: <20261001090820.1605711-1-danishanwar@ti.com>
 References: <20261001090820.1605711-1-danishanwar@ti.com>
- <20261001090820.1605711-2-danishanwar@ti.com>
 Auto-Submitted: auto-generated
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
