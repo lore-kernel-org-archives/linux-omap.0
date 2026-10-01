@@ -1,33 +1,33 @@
 Received: from mta-64-228.siemens.flowmailer.net (mta-64-228.siemens.flowmailer.net [185.136.64.228])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A2604AB1CF
-	for <linux-omap@vger.kernel.org>; Thu,  1 Oct 2026 08:52:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82B64404BD4
+	for <linux-omap@vger.kernel.org>; Thu,  1 Oct 2026 08:52:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.136.64.228
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790844756; cv=none; b=T6WorYJJ3whnt6AB7l0qMaw0cJsS72PLJq4XMELRDygZ7EDDO0Hj+Mfzm2FlXu39aRr0A+RX7CPbz4+4AuIbeZ6ndqsMa+1ApkYyOo22gXSEMJkj2IzL/DQQs7Zvbn0kg0dh5GDTPhJincBL4TqBWgX/qXQ6lFadZ6Zrjg9K1Jk=
+	t=1790844755; cv=none; b=PGvncchwNhGDzXAvP/mb9ZqIp6vcKnBUzNqHAAABG1FQn2Lht84HoX4WSTeAih3N0Voqw0oqL7oOoAg/lGn92QPUukTmlHEbpy5yW4/XeMG657QshDjHTNUoTdf7XgPzNzKZtassj00ZrjogvVgOhHodjG9zbqOkP9Df8gYSRVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790844756; c=relaxed/simple;
-	bh=nmF2VGSeyFyu/xPgi2xOG62Zmzti/5jSYKINhvSPvGY=;
+	s=arc-20240116; t=1790844755; c=relaxed/simple;
+	bh=RlqtlBFhPg06afJ92qggTnt+yEqEPz3nq3KHOnNigr0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=aP3+0Kq+SW51QmNeaLS6fuaqUR8X9sJzeFvC6dvURadKv+nCRAwhf1KarCeHunnKZmExqOokpM8Fyqq1rpXsz0c57sJcwBM9FwblHA7jXuDy5+hJgRRgFh/m4+OwA2abnDp/LC4PfJEsoSh1vXKTqaEoSxuuIIUymmTULhZjhIo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=siemens.com; spf=pass smtp.mailfrom=rts-flowmailer.siemens.com; dkim=pass (2048-bit key) header.d=siemens.com header.i=alexander.sverdlin@siemens.com header.b=ew3gH/qh; arc=none smtp.client-ip=185.136.64.228
+	 MIME-Version; b=qiQNBIlSxRDA4WHNTkrrvL7ntt3+SrDmArhcBVGoVTatRV1HQz5hReVjQc5Vh6WCqH/bimo7KXvkjyocyFNxZ4N7iNYyh8loYVaeNWV8WLJsPo3vcuKchQjzLXrAPdQUr0GfGRwsIhh/BVs7T9ymj/fe+HuEk3l69pwtEDxUnYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=siemens.com; spf=pass smtp.mailfrom=rts-flowmailer.siemens.com; dkim=pass (2048-bit key) header.d=siemens.com header.i=alexander.sverdlin@siemens.com header.b=T4l8+OdX; arc=none smtp.client-ip=185.136.64.228
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=siemens.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rts-flowmailer.siemens.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=siemens.com header.i=alexander.sverdlin@siemens.com header.b="ew3gH/qh"
-Received: by mta-64-228.siemens.flowmailer.net with ESMTPSA id 2026100108522041bf490f4e00020753
+	dkim=pass (2048-bit key) header.d=siemens.com header.i=alexander.sverdlin@siemens.com header.b="T4l8+OdX"
+Received: by mta-64-228.siemens.flowmailer.net with ESMTPSA id 20261001085221631564fe95000207ab
         for <linux-omap@vger.kernel.org>;
         Thu, 01 Oct 2026 10:52:21 +0200
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; s=fm1;
  d=siemens.com; i=alexander.sverdlin@siemens.com;
  h=Date:From:Subject:To:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding:Cc:References:In-Reply-To;
- bh=w6L3QaVhgFzYQ29lWW6OlEsvKNadnP7rsB1TYXpG4yQ=;
- b=ew3gH/qhLinU97JQEobLwagqDv4Cj726XeVfMqSZJsZ6MxfhgNZwyzPldU0xy39l2l2uzK
- JbOrlmYbME7Kl7maJcGCJYcBfDbBqiOvf/NyYOijEqsU2raZ1CkKhCoI0ODLCFJlyfpe4pOt
- e9ISAi9GIExZGGvEBMoDAdRi7/lSwbGQ08PS1Ne8WsOuasAE64ANXyjVLxZoOY5uouCDJaqw
- JJL7xLOIsIsEMlr/EO+y27fIvgh/eUP0h+4e13wKNLwsYPDMOEiW5m+nNGuM9huw2TcPzZqp
- KL52xEi/NU8Mta8fLGBz2GCVge49jzpWRXLGLWtzmnzonF+/v6IY4BXQ==;
+ bh=sFhlXac10taL9GRiPG1OiySDTuQT7u4lUJZQUv9yULA=;
+ b=T4l8+OdXpWdIgKOEnajlP4ZIqmXamFlekn3vhNnE6ViuL8TJ0ag2r8aa9/Fh0u2APpKyGj
+ jbBWyi3AceVAsUpn6nDlgjPtNsFwRIp0/3fHq4UdIIp3xZ/BrPVIwotgskNUhCu8waHTUyGM
+ mL4Iaqs34/NiRupOZOnhXqewElqzXE18Kvi7LMs/dfCPyK4jNNlkRYSLVinyutmG1CMsRnUk
+ WxQqYjcz/qwb9CVZNoctixH5m3nizkVfMdUGg31f8RF2tdxNO4EVeYrK4D/tAUf2+bmqYX4k
+ 1GoMMcMpptnY479/kxMTp0fYV/YPTAoAwqA8K9c4v2Tcha89y6VsuZPQ==;
 From: "A. Sverdlin" <alexander.sverdlin@siemens.com>
 To: linux-gpio@vger.kernel.org
 Cc: Alexander Sverdlin <alexander.sverdlin@siemens.com>,
@@ -41,9 +41,9 @@ Cc: Alexander Sverdlin <alexander.sverdlin@siemens.com>,
 	linux-omap@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH 1/2] pinctrl: single: don't leak group/function tables on consumer re-probe
-Date: Thu,  1 Oct 2026 10:52:10 +0200
-Message-ID: <20261001085217.1778645-2-alexander.sverdlin@siemens.com>
+Subject: [PATCH 2/2] pinctrl: ti-iodelay: fix memory leaks on consumer re-probe
+Date: Thu,  1 Oct 2026 10:52:11 +0200
+Message-ID: <20261001085217.1778645-3-alexander.sverdlin@siemens.com>
 In-Reply-To: <20261001085217.1778645-1-alexander.sverdlin@siemens.com>
 References: <20261001085217.1778645-1-alexander.sverdlin@siemens.com>
 Precedence: bulk
@@ -58,69 +58,80 @@ Feedback-ID: 519:519-456497:519-21489:flowmailer
 
 From: Alexander Sverdlin <alexander.sverdlin@siemens.com>
 
-For every mapping pcs_parse_{one,bits}_in_pinctrl_entry() builds a
-pcs_function, a value table, a pin array and a pingroup-name array and
-registers them via pcs_add_function()/pinctrl_generic_add_group(). The
-core deduplicates groups and functions by name and keeps the first
-instance for the controller's lifetime, so the tables built for any later
-mapping of the same node - e.g. each consumer re-probe - are dropped by
-the core and leaked.
+ti_iodelay_dt_node_to_map() allocates a pinctrl_map, a group, a pin array
+and a config array per mapping with devres on the controller, and registers
+the group via pinctrl_generic_add_group(). The core deduplicates groups by
+name and keeps the first for the controller's lifetime, so on a repeated
+mapping of the same node (consumer re-probe) the freshly built group, pins
+and configs are dropped and leaked. The pinctrl_map leaked too: the driver
+never implemented pinctrl_ops::dt_free_map, so nothing released it.
 
-Free the redundant copies once the function turns out to be a duplicate;
-the group is deduplicated together with it. Don't remove the deduplicated
-instance from the core: its selector is a plain counter (num_groups /
-num_functions), so removing any but the last entry corrupts the selector
-space.
+Reuse the deduplicated group and free the redundant copy (repointing the
+map at the retained group), and add dt_free_map() to release the map.
 
-kmemleak stays silent because the leaked tables remain reachable from the
-controller's devres list.
-
-Fixes: 8b8b091bf07f ("pinctrl: Add one-register-per-pin type device tree based pinctrl driver")
+Fixes: 003910ebc83b ("pinctrl: Introduce TI IOdelay configuration driver")
 Cc: stable@vger.kernel.org
 Signed-off-by: Alexander Sverdlin <alexander.sverdlin@siemens.com>
 ---
- drivers/pinctrl/pinctrl-single.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ drivers/pinctrl/ti/pinctrl-ti-iodelay.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index e0eb7240a9859..e75e32723100d 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1097,6 +1097,19 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
- 	} else {
- 		*num_maps = 1;
- 	}
-+
+diff --git a/drivers/pinctrl/ti/pinctrl-ti-iodelay.c b/drivers/pinctrl/ti/pinctrl-ti-iodelay.c
+index 019b302db2b00..9a8865ce0bbab 100644
+--- a/drivers/pinctrl/ti/pinctrl-ti-iodelay.c
++++ b/drivers/pinctrl/ti/pinctrl-ti-iodelay.c
+@@ -497,6 +497,7 @@ static int ti_iodelay_dt_node_to_map(struct pinctrl_dev *pctldev,
+ 	struct ti_iodelay_device *iod;
+ 	struct ti_iodelay_cfg *cfg;
+ 	struct ti_iodelay_pingroup *g;
++	struct group_desc *grp;
+ 	const char *name = "pinctrl-pin-array";
+ 	int rows, *pins, error = -EINVAL, i;
+ 
+@@ -553,6 +554,19 @@ static int ti_iodelay_dt_node_to_map(struct pinctrl_dev *pctldev,
+ 	if (error < 0)
+ 		goto free_data;
+ 
 +	/*
-+	 * The core deduplicates groups/functions by name and keeps the first
-+	 * for the controller's lifetime; drop our now-redundant copies when the
-+	 * node is mapped again (consumer re-probe). The group is deduplicated
-+	 * together with the function, so testing the latter is enough.
++	 * The core deduplicates groups by name and keeps the first for the
++	 * controller's lifetime; on a repeated mapping (consumer re-probe)
++	 * reuse it and free our now-redundant copy.
 +	 */
-+	if (pinmux_generic_get_function(pcs->pctl, fsel)->data != function) {
-+		devm_kfree(pcs->dev, pins);
-+		devm_kfree(pcs->dev, vals);
-+		devm_kfree(pcs->dev, function);
-+		devm_kfree(pcs->dev, pgnames);
++	grp = pinctrl_generic_get_group(iod->pctl, error);
++	if (grp->data != g) {
++		devm_kfree(iod->dev, cfg);
++		devm_kfree(iod->dev, pins);
++		devm_kfree(iod->dev, g);
++		g = grp->data;
 +	}
- 	mutex_unlock(&pcs->mutex);
- 
- 	return 0;
-@@ -1235,6 +1248,14 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
- 	(*map)->data.mux.function = np->name;
- 
- 	*num_maps = 1;
 +
-+	/* See pcs_parse_one_pinctrl_entry() for the deduplication rationale. */
-+	if (pinmux_generic_get_function(pcs->pctl, fsel)->data != function) {
-+		devm_kfree(pcs->dev, pins);
-+		devm_kfree(pcs->dev, vals);
-+		devm_kfree(pcs->dev, function);
-+		devm_kfree(pcs->dev, pgnames);
-+	}
- 	mutex_unlock(&pcs->mutex);
+ 	(*map)->type = PIN_MAP_TYPE_CONFIGS_GROUP;
+ 	(*map)->data.configs.group_or_pin = np->name;
+ 	(*map)->data.configs.configs = &g->config;
+@@ -722,6 +736,15 @@ static void ti_iodelay_pinconf_group_dbg_show(struct pinctrl_dev *pctldev,
+ }
+ #endif
  
- 	return 0;
++static void ti_iodelay_dt_free_map(struct pinctrl_dev *pctldev,
++				   struct pinctrl_map *map, unsigned int num_maps)
++{
++	struct ti_iodelay_device *iod;
++
++	iod = pinctrl_dev_get_drvdata(pctldev);
++	devm_kfree(iod->dev, map);
++}
++
+ static const struct pinctrl_ops ti_iodelay_pinctrl_ops = {
+ 	.get_groups_count = pinctrl_generic_get_group_count,
+ 	.get_group_name = pinctrl_generic_get_group_name,
+@@ -730,6 +753,7 @@ static const struct pinctrl_ops ti_iodelay_pinctrl_ops = {
+ 	.pin_dbg_show = ti_iodelay_pin_dbg_show,
+ #endif
+ 	.dt_node_to_map = ti_iodelay_dt_node_to_map,
++	.dt_free_map = ti_iodelay_dt_free_map,
+ };
+ 
+ static const struct pinconf_ops ti_iodelay_pinctrl_pinconf_ops = {
 -- 
 2.55.0
 
