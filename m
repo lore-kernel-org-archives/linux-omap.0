@@ -1,66 +1,66 @@
-Received: from mail-wm2-f12.google.com (mail-wm2-f12.google.com [74.125.225.140])
+Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2805358360
-	for <linux-omap@vger.kernel.org>; Sat,  3 Oct 2026 14:09:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDED52264AB
+	for <linux-omap@vger.kernel.org>; Sat,  3 Oct 2026 14:09:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791036577; cv=none; b=KH+Go37VU4FlSR3JGK4TpyyqMUgeC/T22MXOYnRTV8Yj0IiThe0VJV7rXWgiUEPx5hMf6UMZnbTsJg1Zhadn434WcqeSZQoLo81MZvJW5bUkE76uyWCAFbjsDK16iDHlj3PlnSW69vcsS2Nuw7Ps5y4n5lPgSPLQjC446Y0IyaY=
+	t=1791036581; cv=none; b=rKFtZxYlhUhEtZeGR0ur/JWi5bSctCTm/JWbWwcsMZJWMTSX0DmSqVz/dLNArsojIcYQw4sLNk/cyDbhz7y64kfGtYU1FjSv5LbIFHkLqgl03YiN3d0IBb7qaHyFR4ujzEbrzT8UyXN5Oy6lFbs+BI8rxiLyL8RetL/M7yT8HMA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791036577; c=relaxed/simple;
-	bh=YbyQY7JoE6UOw92mTJzHWd+BaqMC9pONrFNAMHRtJ5Y=;
+	s=arc-20240116; t=1791036581; c=relaxed/simple;
+	bh=xdIPzQswUBuO7nIbi11zIqOM1B0LfdavrLeqJbs0KKk=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=bN1QDq6N+mxrCVKysCAjst2L2yQ+Rl5kqCgoWIbnjfh5Oz+rwBvS6auQbvvcxQsa7DUAEJAwubWwz6NxM0jdvKz39NeIzvaWlLEYnOnBEQEarU/1+7uuhhqnU/4A9ioQ43RguIaeIe/ZtLFNX63gCV5LCOGkzqPQV0kKJczvs9k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NGCRv4w+; arc=none smtp.client-ip=74.125.225.140
+	 MIME-Version; b=ZguR/mXBUH2V1WwomQL+u1BsocOR9XK8op/6YQ2XGAWtqJMHLREKk0BP7vrO0O0NiCvK934RZYtyHhJ16eNk86QocM0N5BAEfSUOklVpdkkUzJ3dl8gYh5M6NHG7gADh/OvHjAwMQO2M+ntIR9rVffAWsFIWk/UNyO4QfP4PAGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JD5hBlJw; arc=none smtp.client-ip=209.85.128.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NGCRv4w+"
-Received: by mail-wm2-f12.google.com with SMTP id 5b1f17b1804b1-49b912d822dso5229045e9.2
-        for <linux-omap@vger.kernel.org>; Sat, 03 Oct 2026 07:09:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JD5hBlJw"
+Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-4a1688d7769so3119685e9.0
+        for <linux-omap@vger.kernel.org>; Sat, 03 Oct 2026 07:09:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791036572; x=1791641372; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1791036574; x=1791641374; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=rG4jTd4nM+pkECs4oXcMHGsR3oQ3Ii3v3Uq1Mfg9zkc=;
-        b=NGCRv4w+emBtEM2pyi1sPC6sQnAPbo63O1BbXiMnUFsqnYmydzQkRg33rqQ/W61KIT
-         jYSKHiM8EUUR77NIfW1MMz0J1To3mAvJZz91/FZ/jbg5PRtTP8WJsjA+bjIV+FW3nNpP
-         1QYn4w/gxSrNpwUeOw/wvaEtFiq/vxym0Tp24m3Qg4kIS4/eWJSiF+I5QdxesvpcJF1K
-         FxNmY3shlVJ43q0g1JG7B2HyIJdwfmgFOl6in7xohvW2AHMHORunDoX+gBkN3vFciGLS
-         wt0jZ3wcB6xVvKJp8BmQLxjChr2QTzzL9BkeYzCQfyQi2oxOWkKzqsLZqk0EORxvD+EU
-         AWHQ==
+        bh=hVdmfx66Gvub33TevMdmKNS+KKX8lYKVFWSjk8vfkvM=;
+        b=JD5hBlJwd/ze8Y8edMzHjAuiuSrnhHMI0HNaL6ZLZOAxOOWOuar8gnuGDU6YPrd2zT
+         HjbcLtmDiwRGh1QrmV84lzmz6HWsGaYbbufp0N0xqfyBRRuZ0VWhMj/83dALIYnNRJA+
+         COJWtM4UFmZLtXa4hZ71b+Mke90iO0WfRb8PwktxS6WLfSJXkhViFaWR22u4plLdtWzw
+         oy6YAM2B30qrQFr3Nq4/VAW+4vyA9NpLxujwEq1sOvxdSL4jI0mAsnT4+2UsH+oCVIUU
+         itiHm0Me21/u57uOdJrngI9qh25qbG8CJSCKVtpmoE1KhtFV9ew/6vVL3oyDY5NiR/Ub
+         NdaQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791036572; x=1791641372;
+        d=1e100.net; s=20260707; t=1791036574; x=1791641374;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=rG4jTd4nM+pkECs4oXcMHGsR3oQ3Ii3v3Uq1Mfg9zkc=;
-        b=1ovlAwcsGLQRF+5WazUHSsAZYl2KmO26EEkc151FUU/X4heWmYo/gqVs98dRzumxeh
-         DbioTNGteTxQ/1+/znv77I8jydRmYsox3g5/spw6rdx4wS/N8gixKTEZTFBv1dA8Fp8z
-         h+N5NxJKo8mE/254k8P/rpLDlTICqxmFipEkQKMlUAC0m8f9Q9N7VMsd/eJOBytztMPX
-         9Fb2aFI/6/FrPKMkyZLj2EjsFmPX/A0Pewav1akpyz0P62wLkeRt7EtBISnPV2v71kt3
-         XZa59daOCbysTUZatX0ErUC13KdrtYkyCfSIoQ88RLsYbseYXowtBFJ+NPdw7a9nngRs
-         Nvlg==
-X-Forwarded-Encrypted: i=1; AKwUvByNlMOdGC5h+gLCK5xHAeLsy64N+Zxn9hWR1vJpcSWmXMfQsAqNQFLJDDAimZ8kVl9GHGP6Z55CVqze@vger.kernel.org
-X-Gm-Message-State: AFuF++mOKuddJUfj1prQIej6yNq8rDpD3+sYG4mc0Sz36ENzQ2uDKQrB
-	PFZJo7vttoRsPkzsut25UJMKk0rg8ThFMurNYT1gkmfPIQaAIzXylpug
-X-Gm-Gg: AYBFou3zbR97KKFETdGzQq0vii0bxb/Qw03QbBNwVLQYPxm28s+stew6tgF6l/wJHs8
-	e1RGjZiu72fCnOxSSp2TmwM1+TSjL9I/5rk/EhqM6Bw78b2qgP8pT/+GwIMs5NWsPhuv/DUFdEr
-	OnhSZwseqzxPeZJTaJVdtXfNbmyk41+zRd0sOYCynPOkIUaadpgo4sLw/8b5xLwjyITQ/fF0v5S
-	tMlJbPXJ7P42kq8T9+M5w1AWkBckEB/FR0OD32YdEgiOUoJbdWh16EkKU8JOcpcO8NN1qj45nho
-	hmXV32InpSqKTV/eE9/EWhQWP7lakECAkZzcu6txzPL+Atrk2Blmdp12jlX9yrLuhBYqyxLwDiY
-	4ESnE3YqCfUzJVE6NXKTAcf+5+zl9FgMpuWRFtLqxvriKpKjyTAgRP1ry7xROIyShTYvURKQ2Xl
-	LYUr4TbyAVLyUEfQdqf5Ks66sId2B5fDXFk5qoLphGe9N+iDytVCKPdRfyQcM1cgpKdRWG7n2MA
-	W/KZJZdnRKFB/MAjj/VIWCXFV91dfeiP1czAeDBMg45niKKSzyNRobovkeXN9KLpeqqXseO5AIq
-	aECAtjPhOS0Thz7S8JCA1PGVHCXnOdUEz+3UdEwW6qyMdC2l/JCQhyNBeWfj27ShgljNiM9/O4E
-	IrA==
-X-Received: by 2002:a05:600c:6208:b0:49c:fa21:1c81 with SMTP id 5b1f17b1804b1-4a0278d021bmr94872445e9.22.1791036572164;
-        Sat, 03 Oct 2026 07:09:32 -0700 (PDT)
+        bh=hVdmfx66Gvub33TevMdmKNS+KKX8lYKVFWSjk8vfkvM=;
+        b=R7FlKTla16ZMU6FrLSDQQs1TYW/yBIsI79aYvl6+6FGMgRpaI82apzjTWf+NXpyOrL
+         v5tQX24mPYqAWEkLDICIIEm3AE6+mjLu/508Mqxd2WWeeNdlYhY1x/0mu+T2LV3qkmYg
+         BUhsFtZ8txnfKFIpRY1HMsTGk+NDU+Anw2oMRMMXwh8GuxHl6SgqNa3rmoCN0XwpLZpL
+         ZG7CCTfA3A0cJt7UL6BmVDI3wsKy5hXpzyj1ZkYz+UyWJUvXURKGHbPpsjJW1f2ONtEn
+         hZZkaGw+q/W9x/9FJYYZQlrMiikv4w8taNq2WkyVRSRBjITl63x5HK7PHlfDf6wHCpJg
+         EOwA==
+X-Forwarded-Encrypted: i=1; AKwUvByWTrH8nuo29/vBe5Go2wmoW62ZryLm4rcM90uhr/IUHRWKxzRWzs2YVaoKENfkxGhCLHTHPC9GAy6k@vger.kernel.org
+X-Gm-Message-State: AFuF++kHOiakm75VO/wBvvveWNaNrAtmGkDgQckzF/cxTspGZAwBd7Cg
+	s18XNeZftevbimUi1okWonnnBpibapgIzQlGl727XEhoUalRLS3fcxe+
+X-Gm-Gg: AYBFou3wEtfQ8ryKCs4dcUtS5Yu81q2zefYc64Yp+EuPrb6rdd65rhvLaooza3Y8e2w
+	P/U+YCirt+4+guS1GFvTINeY3wL8wHV9ZJlU/HfiREyFAQnd/yxDB5uRqS7rhsoXimUnDYkRLhh
+	bbTZrsGtggX59O84ocH0wLjLAxLEEN9b2+bbbKQoow9EWPwABNT56I2oxDxtSGOl2/mrJON8ha0
+	wmz4JJdoyHDcx+VlVtOoAzgtinhH8FFCGpFdv/osZz3YGYpcnpQLmZnovq3j4PxP0lDGRBtEm4s
+	0iE51e8b7n3HjXJ4HRy4fYrjc9nBWBclUgwg4yk6Sf8dlkeu6hwvJM49Ut8LTczciBesb7Oai4t
+	d9hyTKp1zoHPOtm1xwHZ7xRxjnBahUF+pOYQGhGRuRaF2t9unnBWh+iSzn+I2SbNToxhlEEcujA
+	KrPuYODINB2gf5Y7kJrirlkbHibCaLcLCAAe0ud5fxFGF8gn2hEhunmi73G9DuHvvf4LWhz0eCb
+	+rcixU1w5q+Y3kAdvWyvJsf06urNC5BiIjT1ADiRAouD6L2HOCEyYksyWGWSUo+dJwOGCVvoAPt
+	a0GrHpIBJo+xuSNJvi/wUImd2ay16nC3nN90vta3kkvHg2w/hZrL/oMI79Vm3tv+JGKl+kGp9HC
+	v1Q==
+X-Received: by 2002:a05:600c:c091:b0:4a0:1f90:594b with SMTP id 5b1f17b1804b1-4a1680fd78fmr28665235e9.22.1791036573949;
+        Sat, 03 Oct 2026 07:09:33 -0700 (PDT)
 Received: from localhost.localdomain (dynamic-2a02-3100-b2e2-2001-c47f-5a89-3d9a-cd2d.310.pool.telefonica.de. [2a02:3100:b2e2:2001:c47f:5a89:3d9a:cd2d])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a0280bfafasm184098025e9.8.2026.10.03.07.09.30
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a0280bfafasm184098025e9.8.2026.10.03.07.09.32
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sat, 03 Oct 2026 07:09:31 -0700 (PDT)
+        Sat, 03 Oct 2026 07:09:33 -0700 (PDT)
 From: Karl Mehltretter <kmehltretter@gmail.com>
 To: netdev@vger.kernel.org
 Cc: Karl Mehltretter <kmehltretter@gmail.com>,
@@ -78,9 +78,9 @@ Cc: Karl Mehltretter <kmehltretter@gmail.com>,
 	linux-omap@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH net 1/2] net: cpsw: unregister secondary netdev on probe failure
-Date: Sat,  3 Oct 2026 16:09:14 +0200
-Message-Id: <2f459154f5bca89a07dc978c834e98198c08c331.1791035789.git.kmehltretter@gmail.com>
+Subject: [PATCH net 2/2] net: cpsw: cancel RX mode work on probe failure
+Date: Sat,  3 Oct 2026 16:09:15 +0200
+Message-Id: <b8146e89e0a17e6ee8d2924f64b9568402afd62d.1791035789.git.kmehltretter@gmail.com>
 X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 In-Reply-To: <cover.1791035789.git.kmehltretter@gmail.com>
 References: <cover.1791035789.git.kmehltretter@gmail.com>
@@ -92,57 +92,58 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The legacy CPSW driver registers both netdevs in dual-EMAC mode before
-requesting its IRQs. If a later IRQ request fails, the probe error path
-unregisters only the primary netdev. Driver-core devres cleanup then calls
-free_netdev() for the still-registered secondary netdev, triggering the
-reg_state BUG_ON.
+The legacy CPSW driver registers its netdevs before requesting their IRQs.
+Once registered, an interface can be opened and dev_set_rx_mode() can queue
+its rx_mode_work. If a later IRQ request fails, the probe error path
+unregisters the interfaces but does not drain their work before returning.
+Driver core then releases the devm-allocated netdevs and private data,
+allowing a worker to dereference freed memory.
 
-Track successful secondary registration and unregister that netdev before
-the primary on this error path. The pointer cannot indicate registration:
-cpsw_probe_dual_emac() sets cpsw->slaves[1].ndev before it calls
-register_netdev().
+Call disable_work_sync() after unregistering each registered netdev. This
+matches cpsw_remove(). It drains the work before the error path releases
+the remaining resources.
 
-Reproduced with QEMU fault injection by forcing the TX IRQ request to fail
-with -EBUSY in dual-EMAC mode; real hardware was not tested.
+Without this change, a QEMU stub test reproduced a use-after-free
+after an IRQ request failure with rx_mode_work pending. KASAN reported:
 
-Fixes: 070f9c658a59 ("net: ethernet: ti: cpsw: Push the request_irq function to the end of probe")
+  BUG: KASAN: slab-use-after-free in cpsw_ndo_set_rx_mode_work+0x28/0x174
+  Workqueue: events cpsw_ndo_set_rx_mode_work
+  Call trace:
+   kasan_report from cpsw_ndo_set_rx_mode_work+0x28/0x174
+   cpsw_ndo_set_rx_mode_work from process_scheduled_works+0x4ac/0x790
+   process_scheduled_works from worker_thread+0x49c/0x5b0
+
+Real hardware was not tested.
+
+Fixes: 0b8c878d1173 ("net: cpsw: Execute ndo_set_rx_mode callback in a work queue")
 Cc: stable@vger.kernel.org
 Assisted-by: LLM
 Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 ---
- drivers/net/ethernet/ti/cpsw.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/net/ethernet/ti/cpsw.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index aa3531e844e8..4fc59f9f23fc 100644
+index 4fc59f9f23fc..d93d94eaac2d 100644
 --- a/drivers/net/ethernet/ti/cpsw.c
 +++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1550,6 +1550,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	struct gpio_descs		*mode;
- 	const struct soc_device_attribute *soc;
- 	struct cpsw_common		*cpsw;
-+	bool secondary_registered = false;
- 	int ret = 0, ch;
- 	int irq;
- 
-@@ -1717,6 +1718,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 			cpsw_err(priv, probe, "error probe slave 2 emac interface\n");
- 			goto clean_unregister_netdev_ret;
- 		}
-+		secondary_registered = true;
- 	}
- 
- 	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
-@@ -1764,6 +1766,8 @@ static int cpsw_probe(struct platform_device *pdev)
+@@ -1766,9 +1766,15 @@ static int cpsw_probe(struct platform_device *pdev)
  	return 0;
  
  clean_unregister_netdev_ret:
-+	if (secondary_registered)
-+		unregister_netdev(cpsw->slaves[1].ndev);
+-	if (secondary_registered)
++	if (secondary_registered) {
++		struct cpsw_priv *priv_sl2;
++
++		priv_sl2 = netdev_priv(cpsw->slaves[1].ndev);
+ 		unregister_netdev(cpsw->slaves[1].ndev);
++		disable_work_sync(&priv_sl2->rx_mode_work);
++	}
  	unregister_netdev(ndev);
++	disable_work_sync(&priv->rx_mode_work);
  clean_cpts:
  	cpts_release(cpsw->cpts);
+ 	cpdma_ctlr_destroy(cpsw->dma);
 -- 
 2.53.0
 
