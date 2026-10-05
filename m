@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 106C242DA3F;
-	Mon,  5 Oct 2026 09:10:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DE2421227;
+	Mon,  5 Oct 2026 09:22:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791191412; cv=none; b=SyQesf0XvRsFIrT4x6I6eqgGLsVkA9FqtMp9IoZ8aHJ6oHB8H1/x+QHpIdMJVYiwi5wavX/BH1rUAtpjk2N/oD6ngkiQL3/neHrAo4wMh91C8jhnBEJi76il7swY/uMYyHvrauvs85KPvJg52msF95KZEOBFZonzkN5QEHjnFtY=
+	t=1791192158; cv=none; b=LZ2zor7LcMDRgz5NtdAc0weqH6+psMi55/Bt/hMVmCsE9mDS7eSjJDovBcNprYct0XOymY4O/WvEr/8heeAnAtlSZUwwDKlF30ye64A/oaEe7pL7XQAQqN/B3bHV6L3g0bZqawuTx1t/kcHG7QY+PMy4aHvcM6vqYghdfJT4S3w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791191412; c=relaxed/simple;
-	bh=0K1au8SS1GEggiDGLagKsHeLHmNn/D5/t/VC9FLmq8U=;
+	s=arc-20240116; t=1791192158; c=relaxed/simple;
+	bh=E1m4ilYYVXCfuRdtsDHWvcsOkYyMF5SZ9U2dox83XEQ=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=HCtv0xrI4wt6hm53xdZ4v7WtV6ideT1mjac/Hor3j+QsuJhkecQHCG92X8oE1hLjwSZnMMpEJ8Z9u1Sm/8VSMoGcodF+eesRVShXyZUjrKy2uMeUyV4J5RD6DX3VdjPh38ueBw2r/NFbrYu40WM/BfaEpnjYPKUv0Y/Nl/9ipT4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LNcLwQas; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=I1QFS4J6v6ngWD3kePhF7Ex2Z31Azov/ND+eeUaWvALJX3S5iqUPf0iJgqXyLktzw8eoJ6bndXm0kXRalVGoI0pqoSjD0AOrHZ2x6mbtWyAvQWJZErHQfFhhplkCyIWF5f2d0RIt/SgxEP7q5TKJeNPFBrmwFSx91KBc9I9N4gs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e8FMR+LJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LNcLwQas"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12DA41F000FF;
-	Mon,  5 Oct 2026 09:10:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e8FMR+LJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79A401F000FF;
+	Mon,  5 Oct 2026 09:22:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791191411;
-	bh=lkfn8AuQz27PW+tdpf8ePuRoGUvuL1e8OngqnS6Bok8=;
+	s=k20260515; t=1791192156;
+	bh=v+bMomR95TmPtYDJDuNH1XnXtSJ+M2HNNZgZhUWDe+Q=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=LNcLwQasRffEPupRT5c73IDvF2HHrdLim9jRgTl+tSeX3gI5RbDX03gs5tl1PKhH+
-	 EV6qLpUEsT126OaPPZwWJ/v4gKbYjgRgaThjlsD5GKp+Er6bwPr7iYGH4/yL5FI7Bx
-	 dIkn+4rl94Lpr+GQtCVuc5sZM3xE3GCN+wv7CaoGB76+YttdJRgRr1jMcbjEClxGvu
-	 f6lv2Ur0FZNWksuhMvJXss7/CrD+p1Ju/QBTXYM4cFh/9qrQYGsVUOYHRDK6qtmerf
-	 /QVf+V+vYnHveksX1iORWCGoufvHL1MO3L73b5cEJ+mutrwD/FrRWfCD7uecowKe5V
-	 rSv36J0X/Fy+g==
+	b=e8FMR+LJx3A7bneu8YcoA6/BIfTbnR8x7ZQ9ZsEwpCK2z4jO0HUDynMcYXbobZBUP
+	 ulYOfQ+fXIzw5Wxn78naAfJjPWmQWskwjizx9/BT4NDHQz6tlATN/K3+OWW2mSHDn+
+	 EbM2nOyeJS4/i9KjVT5KsUyAgYlw8QdIx5Y+M9Zky+0sSOejKseYqomlqP5GvE0cVF
+	 Sz8dgkaSGFpLo87D6PSNBPvpVtI7fw/1JMXiNPvFjUWUGs/+BsWUIpp/OUWO1L3fbe
+	 UfUXL3HPLx+9xq+Rn45bw6Hgnsmh5UHikK6gby3Dq6zpR9o+gkJzkJT/+4k/cU8CNw
+	 8eW+udlpqCrlA==
 Subject: Re: [PATCH net v3] net: ti: am65-cpsw-switchdev: flush dynamic FDB
  entries by port on delete
 From: netdev-bot+sashiko@kernel.org
@@ -35,10 +35,10 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  kees@kernel.org, stefan.wiehler@nokia.com, arnd@arndb.de, horms@kernel.org,
  c-vankar@ti.com, vigneshr@ti.com, netdev@vger.kernel.org,
  linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Date: Mon, 05 Oct 2026 09:10:09 +0000
-Message-ID: <179119140962.434549.1894065404447339257@kernel.org>
-In-Reply-To: <20261001090820.1605711-1-danishanwar@ti.com>
-References: <20261001090820.1605711-1-danishanwar@ti.com>
+Date: Mon, 05 Oct 2026 09:22:34 +0000
+Message-ID: <179119215496.434549.12930720686957329697@kernel.org>
+In-Reply-To: <20261001090820.1605711-2-danishanwar@ti.com>
+References: <20261001090820.1605711-2-danishanwar@ti.com>
 X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -49,10 +49,10 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 5 potential
+Thank you for your contribution! Sashiko AI review found 3 potential
 issue(s) to consider.
 
-Critical: 0 · High: 2 (1) · Medium: 1 (4) · Low: 2
+Critical: 0 · High: 1 · Medium: 2 (5) · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -60,35 +60,34 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] The fix does not close the bug class its commit message
-  describes, 'Dynamic (hardware-learned) ALE entries are not removed on…
-- [High] Remote L2 traffic can now force many full ALE MMIO scans while
-  RTNL is held.
-- [Medium] The patch removes the `!fdb->added_by_user` gate from the
-  SWITCHDEV_FDB_DEL_TO_DEVICE path in am65_cpsw_switchdev_event_work()…
-- [Low] The runtime PM reference added to the FDB event work only matters
-  when no port is open, and in that state the ALE has already been…
-- [Low] The submission justifies a full ALE walk on every dynamic delete
-  with the claim that 'The ALE size is small (max 512 entries on the…
+- [High] Every SWITCHDEV_FDB_DEL_TO_DEVICE for a learned bridge entry now
+  makes am65_cpsw_switchdev_event_work()/cpsw_switchdev_event_work()…
+- [Medium] This patch removes the `added_by_user` gate from the
+  SWITCHDEV_FDB_DEL_TO_DEVICE path in both…
+- [Medium] The commit message says 'vid=0 is only ever passed when
+  vlan_filtering is off', and that claim is the justification for…
 
 Pre-existing issues:
-- [High] Nothing serializes ALE table accesses, and this patch adds a
-  frequent new full-table walker that races with existing non-RTNL ALE…
 - [Medium] This problem wasn't introduced by this patch, but the patch
-  makes it more visible.
-- [Medium] This problem wasn't introduced by this patch.
-- [Medium] This problem wasn't introduced by this patch.
-- [Medium] This problem wasn't introduced by this patch.
+  applies the runtime-PM rule unevenly.
+- [Medium] This problem wasn't introduced by this patch, but in both FDB
+  ADD workers, am65_cpsw_switchdev_event_work() and…
+- [Medium] This problem wasn't introduced by this patch, but if
+  pm_runtime_resume_and_get() fails in am65_cpsw_nuss_remove()…
+- [Medium] Access to the ALE table goes through one shared indirect
+  window.
+- [Medium] This problem wasn't introduced by this patch, but the new PM
+  reference in the FDB ADD path matters only when every port is down.
 
 --
 
 net: ti: am65-cpsw-switchdev: flush dynamic FDB entries by port on delete
 
-This patch lets dynamic (not user-added) FDB deletes reach the ALE in the
-am65-cpsw and cpsw switchdev event work. It does this through a new helper,
-cpsw_ale_del_ucast_dynamic_by_port(), which matches on (addr, port) and
-treats vid 0 as a wildcard. It also takes a runtime PM reference around
-the ALE accesses in the FDB event work.
+This patch drops the added_by_user gate on the switchdev FDB delete path
+in both am65-cpsw and the older cpsw driver. Learned entries are now
+removed by a new helper, cpsw_ale_del_ucast_dynamic_by_port(), which
+matches on (addr, port) and treats vid 0 as a wildcard. It also takes a
+runtime PM reference around the ALE accesses in the switchdev event work.
 
 > diff --git a/drivers/net/ethernet/ti/am65-cpsw-switchdev.c b/drivers/net/ethernet/ti/am65-cpsw-switchdev.c
 > index 53cdac272b583..bc4e19e2373f5 100644
@@ -107,35 +106,34 @@ the ALE accesses in the FDB event work.
 > +			netdev_err(port->ndev, "%s: failed to resume device: %d\n", __func__, ret);
 > +			break;
 > +		}
+> +
 
 [Severity: Medium]
-This isn't a bug introduced by this patch, but the patch makes it more
-visible. These are the only pm_runtime calls in am65-cpsw-switchdev.c and
-cpsw_switchdev.c. The other switchdev handlers write the same ALE without
-a runtime PM reference:
+This isn't a bug introduced by this patch, but the runtime PM reference is
+added only in the FDB work. The other switchdev ALE accessors in this
+file still touch the ALE with no PM reference and no netif_running()
+check:
 
-am65_cpsw_port_stp_state_set()
-	ret = cpsw_ale_control_set(cpsw->ale, port->port_id,
-				   ALE_PORT_STATE, cpsw_state);
+  am65_cpsw_port_stp_state_set() -> cpsw_ale_control_set()
+  am65_cpsw_port_attr_br_flags_set() -> cpsw_ale_set_unreg_mcast()
+  am65_cpsw_port_vlan_add()/del() -> cpsw_ale_vlan_add_modify(),
+      cpsw_ale_add_ucast(), cpsw_ale_del_vlan(), cpsw_ale_del_ucast(),
+      cpsw_ale_del_mcast()
+  am65_cpsw_port_mdb_add()/del()
 
-The same is true of am65_cpsw_port_attr_br_flags_set() ->
-cpsw_ale_set_unreg_mcast(), the vlan_add/vlan_del and mdb_add/mdb_del
-handlers, and their counterparts in cpsw_switchdev.c.
+In contrast, am65_cpsw_nuss_ndo_slave_add_vid() and kill_vid() return
+early when the interface is not running. Otherwise they wrap the ALE
+writes in pm_runtime_resume_and_get()/pm_runtime_put().
 
-The port-down sequence named in the commit message also reaches the STP
-handler, through deferred switchdev work:
+Once the last am65_cpsw_nuss_ndo_slave_stop() drops its reference, the
+device can be runtime-suspended (unless CPTS forbids runtime PM).
 
-NETDEV_DOWN -> br_stp_disable_port() -> br_set_state(BR_STATE_DISABLED)
-    (SWITCHDEV_F_DEFER) -> am65_cpsw_port_stp_state_set()
-        -> cpsw_ale_control_set()
+Can bridge VLAN, MDB or STP operations then write ALE registers on a
+suspended module, for example when a down port is enslaved?
 
-That can run after the last port's asynchronous pm_runtime_put() has
-already suspended the device.
+Whether those writes are actually lost depends on the K3 power-domain
+behaviour. cpsw_switchdev.c has the same split.
 
-If the new references are needed, do the sibling handlers need them too?
-If they are not needed, are the new ones redundant?
-
-> +
 >  		if (memcmp(port->slave.mac_addr, (u8 *)fdb->addr, ETH_ALEN) == 0)
 >  			port_id = HOST_PORT_NUM;
 >  
@@ -145,23 +143,53 @@ If they are not needed, are the new ones redundant?
 
 [Severity: Medium]
 This is a pre-existing issue, but the return value of cpsw_ale_add_ucast()
-is ignored here, and SWITCHDEV_FDB_OFFLOADED is always sent.
+is ignored here, and am65_cpsw_fdb_offload_notify() is called either way.
+When there is no matching, free or ageable slot, cpsw_ale_add_ucast()
+returns without writing anything:
 
-If cpsw_ale_add_ucast() finds no matching, free or ageable row, it returns
--ENOMEM without writing anything:
-
-cpsw_ale_add_ucast()
+drivers/net/ethernet/ti/cpsw_ale.c:cpsw_ale_add_ucast() {
+    ...
 	if (idx < 0)
 		idx = cpsw_ale_find_ageable(ale);
 	if (idx < 0)
 		return -ENOMEM;
+    ...
+}
 
-Can the bridge then set BR_FDB_OFFLOADED on an entry that is not in
-hardware? cpsw_switchdev_event_work() does the same thing with
+Would the bridge then mark the static entry as offloaded even though the
+hardware does not have it? cpsw_switchdev_event_work() does the same with
 cpsw_fdb_offload_notify().
 
 > +		pm_runtime_put(cpsw->dev);
 >  		break;
+
+[Severity: Medium]
+This isn't a bug introduced by this patch, but the new PM reference only
+matters when every port is down. By then, am65_cpsw_nuss_common_stop()
+has already called cpsw_ale_stop(), which sets ALE_CLEAR and clears
+ALE_ENABLE, and the last PM reference has been dropped.
+
+This path then resumes the device, writes a persistent ucast entry into
+the stopped ALE and reports it as offloaded. When the first port is
+opened again, cpsw_ale_start() clears the table:
+
+drivers/net/ethernet/ti/cpsw_ale.c:cpsw_ale_start() {
+    ...
+	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 1);
+	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
+    ...
+}
+
+switchdev_bridge_port_offload() is called with NULL notifiers and replay
+disabled, so nothing adds the entry back.
+
+Doesn't the bridge then show the static entry as offloaded while the ALE
+no longer has it?
+
+The same looks true for static entries added while ports were up, after
+any cycle where all ports go down and come back up. cpsw_new seems to
+behave the same way.
+
 >  	case SWITCHDEV_FDB_DEL_TO_DEVICE:
 >  		fdb = &switchdev_work->fdb_info;
 > @@ -397,13 +407,27 @@ static void am65_cpsw_switchdev_event_work(struct work_struct *work)
@@ -173,73 +201,40 @@ cpsw_fdb_offload_notify().
 >  			break;
 
 [Severity: Medium]
-Flushes are not the only source of dynamic deletes. With this gate gone,
-does bridge software ageing now free live ALE rows too?
+Without the added_by_user check, does this path also act on deletes from
+the bridge's own software ageing, and not only on explicit flushes?
 
-br_fdb_cleanup() expires ordinary learned entries with
-fdb_delete(br, f, true), which leads to:
+br_fdb_cleanup() calls fdb_delete(br, f, true) for every expired learned
+entry:
 
-fdb_delete() -> fdb_notify(RTM_DELNEIGH) -> br_switchdev_fdb_notify()
-    -> SWITCHDEV_FDB_DEL_TO_DEVICE (added_by_user=0, is_local=0)
-        -> am65_cpsw_switchdev_event_work()
-            -> cpsw_ale_del_ucast_dynamic_by_port()
+net/bridge/br_fdb.c:br_fdb_cleanup() {
+    ...
+			if (!hlist_unhashed(&f->fdb_node))
+				fdb_delete(br, f, true);
+    ...
+}
 
-Neither TI driver handles SWITCHDEV_ATTR_ID_BRIDGE_AGEING_TIME, and
-neither sends SWITCHDEV_FDB_ADD_TO_BRIDGE. So the software FDB entry is
-refreshed only by frames that reach the host port. Known unicast that the
-hardware forwards port-to-port never refreshes it.
+br_switchdev_fdb_notify() then sends SWITCHDEV_FDB_DEL_TO_DEVICE with
+added_by_user=0.
 
-The bridge entry expires after ageing_time (300s by default), or after
-forward_delay during a topology change. The DEL then frees the ALE row,
-even if the hardware has it marked as touched and in active use. With
-vid=0 this happens in every VLAN. Unicast to that station then floods
-until the station transmits again.
+Neither driver handles SWITCHDEV_ATTR_ID_BRIDGE_AGEING_TIME or sends
+SWITCHDEV_FDB_ADD_TO_BRIDGE. So f->updated in the bridge is refreshed only
+by frames that reach the CPU. Unicast that the ALE forwards between ports
+never refreshes it.
 
-The v3 changelog says the ageing trade-off "has been documented in the
-commit message". The commit message doesn't mention that bridge software
-ageing now removes hardware FDB entries. Could that be documented, or
-could the driver avoid this behaviour?
+For a station whose traffic is switched in hardware, the bridge entry
+expires after the ageing time (300s by default). The DEL that follows
+makes cpsw_ale_del_ucast_dynamic_by_port() write ALE_TYPE_FREE over the
+live ALE row. With vid 0 it does this for every VLAN.
 
-The same applies to cpsw_switchdev_event_work().
+Wouldn't unicast to that station then flood as unknown unicast until the
+ALE relearns it, and then happen again every ageing interval? The same
+applies to cpsw_switchdev_event_work() in cpsw_switchdev.c.
 
-[Severity: High]
-Does this fully fix the problem the commit message describes?
+The v3 changelog says the ageing trade-off is documented in the commit
+message, but the only ageing the message mentions is the ~30 second ALE
+hardware ageout. Could the commit message describe this case?
 
-  Dynamic (hardware-learned) ALE entries are not removed on FDB flush and
-  sit stale until the ALE hardware ages them out ~30 seconds later.
-
-The new code only reacts to per-entry SWITCHDEV_FDB_DEL_TO_DEVICE
-notifications. The bridge sends those only for entries in its own
-software FDB, and it only learns from frames that reach the CPU. The ALE
-learns from all ingress traffic.
-
-For example, after a flush, A sends a frame to an unknown B. The frame
-floods to the host, so the bridge learns A. B replies to the now-known A,
-and the switch forwards the reply in hardware. The ALE learns B, but the
-bridge does not. On the next flush or port disable no DEL is sent for B,
-so B's ALE row stays stale until hardware ageout.
-
-The commit message also says:
-
-  Dynamic deletes are the only way to remove a hardware-learned entry
-  early, so drop that gate for the delete path.
-
-Is that accurate? The driver could fast-age a port's dynamic unicast
-entries itself, the way DSA's port_fast_age does. For example, it could
-do this from am65_cpsw_port_stp_state_set() and cpsw_port_stp_state_set()
-on DISABLED, BLOCKING and LISTENING transitions.
-cpsw_ale_flush_multicast() already walks the table by port mask in a
-similar way. Today the STP handlers only write ALE_PORT_STATE:
-
-am65_cpsw_port_stp_state_set()
-	ret = cpsw_ale_control_set(cpsw->ale, port->port_id,
-				   ALE_PORT_STATE, cpsw_state);
-
-A per-port fast-age would also avoid the ageing side effect described
-above.
-
-> -		if (memcmp(port->slave.mac_addr, (u8 *)fdb->addr, ETH_ALEN) == 0)
-> -			port_id = HOST_PORT_NUM;
 >  
 > -		cpsw_ale_del_ucast(cpsw->ale, (u8 *)fdb->addr, port_id,
 > -				   fdb->vid ? ALE_VLAN : 0, fdb->vid);
@@ -248,98 +243,52 @@ above.
 > +			netdev_err(port->ndev, "%s: failed to resume device: %d\n", __func__, ret);
 > +			break;
 > +		}
-
-[Severity: Low]
-When does this reference actually make a difference? Every open port
-holds a PM reference from am65_cpsw_nuss_ndo_slave_open() or
-cpsw_ndo_open(). When the last port stops, the ALE is cleared and
-disabled before that reference is dropped:
-
-am65_cpsw_nuss_common_stop()  (usage_count == 1)
-cpsw_ndo_stop()               (usage_count <= 1)
-    cpsw_ale_stop()
-	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
-	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
-
-So the resume only matters when the ALE is already empty. In that case
-cpsw_ale_del_ucast_dynamic_by_port() scans an empty table and cannot
-delete anything. Each dynamic DEL queued when the last port goes down
-(one per learned MAC) powers the device up just to do that scan.
-
-On the ADD side, the entry is written into a cleared, disabled ALE, and
-SWITCHDEV_FDB_OFFLOADED is still sent. cpsw_ale_start() then clears it
-again on the next open.
-
-The commit message says "an ADD/DEL that reaches the ALE needs its own
-reference". The reference only avoids MMIO to a suspended device; the ALE
-update itself has no effect. Is the commit message misleading here?
-Would pm_runtime_get_if_active() be a better fit, or skipping the ALE
-access when no port is open?
-
 > +
 > +		if (!fdb->added_by_user) {
 > +			cpsw_ale_del_ucast_dynamic_by_port(cpsw->ale,
 > +							   (u8 *)fdb->addr,
 > +							   port_id,
 > +							   fdb->vid);
-
-[Severity: High]
-Can remote L2 traffic now force many full ALE scans while RTNL is held?
-
-Before this patch, dynamic DEL work items returned right after
-rtnl_lock(). Now each one walks ale->params.ale_entries rows: 512 on
-am64-cpswxg and 1024 on cpsw_new. Each row costs one MMIO write and three
-MMIO reads. The whole table is scanned when vid is 0, and also when
-nothing matches.
-
-Untrusted traffic can generate dynamic DELs. br_fdb_update() sends one
-every time a MAC moves:
-
-br_fdb_update()
-	if (unlikely(source != READ_ONCE(fdb->dst) &&
-		     !test_bit(BR_FDB_STICKY, &fdb->flags))) {
-		br_switchdev_fdb_notify(br, fdb, RTM_DELNEIGH);
-
-So a source MAC that alternates between two ports causes a DEL on every
-move.
-
-Flooding random source MACs from a single port also works, because
-fdb_max_learned is unlimited by default. When those entries age out,
-br_fdb_cleanup() sends one DEL per entry, and each DEL is a full scan
-that finds nothing.
-
-Every notification also allocates a GFP_ATOMIC work item, with no bound
-on how many. Could this cause long RTNL contention and a growing backlog
-of queued work on small SoCs?
-
-The same applies to cpsw_switchdev_event_work().
-
 > +		} else {
 > +			if (memcmp(port->slave.mac_addr, (u8 *)fdb->addr, ETH_ALEN) == 0)
 > +				port_id = HOST_PORT_NUM;
 > +			cpsw_ale_del_ucast(cpsw->ale, (u8 *)fdb->addr, port_id,
 > +					   fdb->vid ? ALE_VLAN : 0, fdb->vid);
-
-[Severity: Medium]
-This is a pre-existing issue, but am65_cpsw_switchdev_event() and
-cpsw_switchdev_event() queue a separate work item for each FDB
-notification:
-
-	queue_work(system_long_wq, &switchdev_work->work);
-
-system_long_wq is created with alloc_workqueue("events_long", WQ_PERCPU, 0)
-and is not ordered. The workers serialize on rtnl_lock but can acquire it
-in any order.
-
-If a user-added ADD is followed by a DEL for the same entry, can they run
-as DEL then ADD? That would leave a stale ALE_UCAST_PERSISTANT entry in
-hardware after the user has deleted it.
-
 > +		}
 > +		pm_runtime_put(cpsw->dev);
 >  		break;
->  	default:
->  		break;
+
+[Severity: Medium]
+This is a pre-existing issue and the patch does not touch this code. It is
+relevant here because this work holds a port pointer and only a
+dev_hold() on the netdev.
+
+If pm_runtime_resume_and_get() fails in am65_cpsw_nuss_remove(), or in
+cpsw_remove() in cpsw_new.c, the function returns early:
+
+drivers/net/ethernet/ti/am65-cpsw-nuss.c:am65_cpsw_nuss_remove() {
+    ...
+	ret = pm_runtime_resume_and_get(&pdev->dev);
+	if (ret < 0) {
+		/* Note, if this error path is taken, we're leaking some
+		 * resources.
+		 */
+		...
+		return;
+	}
+
+	am65_cpsw_unregister_notifiers(common);
+    ...
+}
+
+That skips am65_cpsw_unregister_notifiers()/cpsw_unregister_notifiers()
+and the netdev cleanup. The driver core still releases the devm
+resources, including the common structure and the port array.
+
+Can registered notifiers, live netdevs, or queued switchdev work then
+dereference freed driver state? The in-code comment only describes this
+as leaking resources.
+
 > diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
 > index e202bba494807..d3d6a1ef894ac 100644
 > --- a/drivers/net/ethernet/ti/cpsw_ale.c
@@ -357,94 +306,142 @@ hardware after the user has deleted it.
 > +	int entry_vid;
 > +
 > +	for (idx = 0; idx < ale->params.ale_entries; idx++) {
-
-[Severity: Low]
-The v2 changelog justifies a full walk on every dynamic delete with:
-
-  The ALE size is small (max 512 entries on the largest supported device)
-
-Is that right for cpsw_switchdev.c? cpsw_init_common() in cpsw_priv.c
-sets ale_params.dev_id = "cpsw", and the "cpsw" entry in
-cpsw_ale_id_match has .tbl_entries = 1024. On that driver, every vid=0
-delete and every delete that finds no match walks 1024 rows.
-
 > +		cpsw_ale_read(ale, idx, ale_entry);
 
 [Severity: High]
-This is a pre-existing issue, but this patch adds a new full-table walker
-that runs often. Nothing serializes ALE table accesses.
+For every slot in ale->params.ale_entries, this walk does one
+ALE_TABLE_CONTROL write and ALE_ENTRY_WORDS reads. It exits early only
+when vid is nonzero and a match is found. With vid 0, or with a MAC that
+is not in the table, it always scans the whole table.
 
-cpsw_ale_read() and cpsw_ale_write() share one indirect window: write the
-index to ALE_TABLE_CONTROL, then access the ALE_TABLE words. There is no
-ALE lock.
+Every learned-entry DEL now reaches this loop with rtnl_lock held. Could a
+remote L2 peer keep rtnl held continuously?
 
-This walk runs from the switchdev work, holding only rtnl_mutex.
-am65_cpsw_nuss_ndo_slave_set_rx_mode() calls cpsw_ale_set_allmulti(),
-cpsw_ale_flush_multicast() and cpsw_ale_add_mcast() holding only
-netif_addr_lock_bh. An unprivileged user can reach that path without
-RTNL:
+Moving a source MAC between bridge ports produces an immediate DEL, with
+no rate limit:
 
-IPV6_ADD_MEMBERSHIP -> ipv6_sock_mc_join() -> igmp6_group_added()
-    -> dev_mc_add() -> am65_cpsw_nuss_ndo_slave_set_rx_mode()
-        -> cpsw_ale_flush_multicast()
+net/bridge/br_fdb.c:br_fdb_update() {
+    ...
+			if (unlikely(source != READ_ONCE(fdb->dst) &&
+				     !test_bit(BR_FDB_STICKY, &fdb->flags))) {
+				br_switchdev_fdb_notify(br, fdb, RTM_DELNEIGH);
+    ...
+}
 
-cpsw_ale_flush_multicast() writes back every ADDR/VLAN_ADDR row. The
-index write here can land between the other walker's index write and its
-word reads or commit. If it does, the other walker reads or commits the
-wrong row's contents.
+A flood of random source MACs creates one learned entry per MAC, and each
+entry produces a DEL when it ages out.
 
-It can also go the other way: this loop could read a row other than idx
-and then write ALE_TYPE_FREE to idx.
+The notifier allocates one GFP_ATOMIC work item per event and does not
+coalesce them. Once DELs arrive faster than one walk takes, the
+system_long_wq backlog would grow without bound as well.
 
-Separately, am65_cpsw_nuss_suspend() calls cpsw_ale_dump() with no lock,
-while this work can still run on the non-freezable system_long_wq.
+The v2 changelog justifies the cost with "max 512 entries". However, the
+legacy CPSW entry in the cpsw_ale_dev_id table has:
 
-Can this free or overwrite VLAN, persistent unicast or multicast rows?
+		.dev_id = "cpsw",
+		.tbl_entries = 1024,
+
+and j721e-cpswxg sizes its table from ALE_STATUS in multiples of
+ALE_TABLE_SIZE_MULTIPLIER (1024). Is the bound in the changelog accurate?
 
 > +		type = cpsw_ale_get_entry_type(ale_entry);
-
-[ ... ]
-
-> diff --git a/drivers/net/ethernet/ti/cpsw_switchdev.c b/drivers/net/ethernet/ti/cpsw_switchdev.c
-> index 7e06aac388a60..7fbebe666da81 100644
-> --- a/drivers/net/ethernet/ti/cpsw_switchdev.c
-> +++ b/drivers/net/ethernet/ti/cpsw_switchdev.c
-
-[ ... ]
-
-> @@ -393,12 +395,20 @@ static void cpsw_switchdev_event_work(struct work_struct *work)
->  
->  		if (!fdb->added_by_user || fdb->is_local)
->  			break;
-> +
-> +		ret = pm_runtime_resume_and_get(cpsw->dev);
-> +		if (ret < 0) {
-> +			dev_err(cpsw->dev, "%s: failed to resume device: %d\n", __func__, ret);
-> +			break;
-> +		}
+> +		if (type != ALE_TYPE_ADDR && type != ALE_TYPE_VLAN_ADDR)
+> +			continue;
+> +		if (cpsw_ale_get_mcast(ale_entry))
+> +			continue;
+> +		ucast_type = cpsw_ale_get_ucast_type(ale_entry);
+> +		if (ucast_type == ALE_UCAST_PERSISTANT ||
+> +		    ucast_type == ALE_UCAST_OUI)
+> +			continue;
+> +		if (cpsw_ale_get_port_num(ale_entry, ale->port_num_bits) != port)
+> +			continue;
+> +		cpsw_ale_get_addr(ale_entry, entry_addr);
+> +		if (!ether_addr_equal(entry_addr, addr))
+> +			continue;
+> +		entry_vid = cpsw_ale_get_vlan_id(ale_entry);
+> +		if (vid && entry_vid != vid)
+> +			continue;
 
 [Severity: Medium]
-This is a pre-existing issue, and it is not related to this change.
-cpsw_remove() in cpsw_new.c and am65_cpsw_nuss_remove() in
-am65-cpsw-nuss.c both call pm_runtime_resume_and_get() and return early
-if it fails:
+The commit message justifies the wildcard this way:
 
-am65_cpsw_nuss_remove()
-	ret = pm_runtime_resume_and_get(&pdev->dev);
-	if (ret < 0) {
-		/* Note, if this error path is taken, we're leaking some
-		 * resources.
-		 */
-		...
-		return;
-	}
+  vid=0 is only ever passed when vlan_filtering is off
 
-That return happens before am65_cpsw_unregister_notifiers() or
-cpsw_unregister_notifiers(), and before the netdev and devlink
-unregistration. If the module is unloaded after that, do the switchdev
-and netdevice notifiers stay registered, pointing into freed module text?
+Does that still hold after vlan_filtering is toggled at runtime?
+
+br_vlan_filter_toggle() flips BROPT_VLAN_ENABLED and recalculates
+promiscuity, the group address and the forward mask. It does not flush or
+rekey the FDB, and neither driver handles
+SWITCHDEV_ATTR_ID_BRIDGE_VLAN_FILTERING.
+
+Learned entries with key.vlan_id == 0 from before the toggle survive it.
+They are no longer refreshed, because learning now uses the frame's VID,
+and later they age out or are flushed. br_switchdev_fdb_populate()
+copies the stored key:
+
+net/bridge/br_switchdev.c:br_switchdev_fdb_populate() {
+    ...
+	item->vid = fdb->key.vlan_id;
+    ...
+}
+
+So a DEL with vid=0 and added_by_user=0 can arrive while vlan_filtering
+is on.
+
+Wouldn't this loop then free the MAC's dynamic rows on that port for
+every VLAN? That would include rows the bridge still holds as valid vid-N
+entries.
+
+> +
+> +		memset(ale_entry, 0, sizeof(ale_entry));
+> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
+> +		cpsw_ale_write(ale, idx, ale_entry);
+
+[Severity: Medium]
+This is a pre-existing issue, but this walk makes it much easier to hit.
+cpsw_ale_read() and cpsw_ale_write() share one indirect window
+(ALE_TABLE_CONTROL plus the ALE_TABLE words). struct cpsw_ale has no
+lock, and this function holds only rtnl_lock.
+
+Two am65 paths use the same window without rtnl.
+
+The first is am65_cpsw_nuss_ndo_slave_set_rx_mode(). It calls
+cpsw_ale_set_allmulti(), cpsw_ale_flush_multicast() and
+cpsw_ale_add_mcast() while holding only the netdev address lock. An
+unprivileged IPv6 multicast join can reach it:
+
+  __ipv6_sock_mc_join()->__ipv6_dev_mc_inc()->igmp6_group_added()
+      ->dev_mc_add()
+
+The second is am65_cpsw_nuss_suspend(). It calls cpsw_ale_dump() without
+rtnl and without flushing the switchdev work. That work runs on the
+unfreezable system_long_wq, and bridge ageing keeps producing DELs
+during suspend.
+
+Can interleaved CONTROL writes make one side read or commit another
+slot's contents?
+
+For example, the suspend dump could save slot j's data as slot i, and
+cpsw_ale_restore() in am65_cpsw_nuss_resume() would then write that
+back. In the other direction, the CONTROL write in this walk could
+replace a concurrent writer's staged words, so the writer commits a copy
+of a different entry.
+
+The set_rx_mode path needs a non-promiscuous port in switch mode.
+cpsw_new is not affected through set_rx_mode, because its rx_mode_work
+takes rtnl_lock.
+
+> +		deleted++;
+> +
+> +		if (vid)
+> +			break;
+> +	}
+> +
+> +	return deleted ? 0 : -ENOENT;
+> +}
+> +EXPORT_SYMBOL_GPL(cpsw_ale_del_ucast_dynamic_by_port);
 
 [ ... ]
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261001090820.1605711-1-danishanwar%40ti.com
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261001090820.1605711-2-danishanwar%40ti.com
