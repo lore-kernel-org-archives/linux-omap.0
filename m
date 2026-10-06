@@ -1,447 +1,167 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dl1-f41.google.com (mail-dl1-f41.google.com [74.125.82.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DE2421227;
-	Mon,  5 Oct 2026 09:22:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D759C35BDC7
+	for <linux-omap@vger.kernel.org>; Tue,  6 Oct 2026 06:01:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791192158; cv=none; b=LZ2zor7LcMDRgz5NtdAc0weqH6+psMi55/Bt/hMVmCsE9mDS7eSjJDovBcNprYct0XOymY4O/WvEr/8heeAnAtlSZUwwDKlF30ye64A/oaEe7pL7XQAQqN/B3bHV6L3g0bZqawuTx1t/kcHG7QY+PMy4aHvcM6vqYghdfJT4S3w=
+	t=1791266510; cv=none; b=Mr376RJzwqoq9NTRUUrp7hLR9elxYUWijEzdj7ZkIYz+42rxnSW2KPAzla9ZqpkuDA3FnNwbjg7TLP+0NZ7pjOlGZSpNW5JVGaMTPJgB1AAH66ghlb55jNpe5No+yCoHsH8u52yrAAcxw/S4abLGMdPevy4lro61v52lRKuhdVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791192158; c=relaxed/simple;
-	bh=E1m4ilYYVXCfuRdtsDHWvcsOkYyMF5SZ9U2dox83XEQ=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=I1QFS4J6v6ngWD3kePhF7Ex2Z31Azov/ND+eeUaWvALJX3S5iqUPf0iJgqXyLktzw8eoJ6bndXm0kXRalVGoI0pqoSjD0AOrHZ2x6mbtWyAvQWJZErHQfFhhplkCyIWF5f2d0RIt/SgxEP7q5TKJeNPFBrmwFSx91KBc9I9N4gs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e8FMR+LJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791266510; c=relaxed/simple;
+	bh=qFfPZZhbChgmtuc8g8bCU2zjESAKk50aYwARcV0yTnc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AQthhEKx1dZcMUvQJdSOVH/fDynH9fognumMSh1xQddqNqo83Oi7j6n9eVXUMsAexXGiR77YDro9i353pfzvXunHX5SROY8o23Yb/bOAyO1MB3FWDC2hCn67J9CPfvBfTY6LfeQ1kcfZo0EPGyV7qDgbT24g74+GZDxED4x/Kjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rwnApu3m; arc=none smtp.client-ip=74.125.82.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e8FMR+LJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79A401F000FF;
-	Mon,  5 Oct 2026 09:22:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791192156;
-	bh=v+bMomR95TmPtYDJDuNH1XnXtSJ+M2HNNZgZhUWDe+Q=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=e8FMR+LJx3A7bneu8YcoA6/BIfTbnR8x7ZQ9ZsEwpCK2z4jO0HUDynMcYXbobZBUP
-	 ulYOfQ+fXIzw5Wxn78naAfJjPWmQWskwjizx9/BT4NDHQz6tlATN/K3+OWW2mSHDn+
-	 EbM2nOyeJS4/i9KjVT5KsUyAgYlw8QdIx5Y+M9Zky+0sSOejKseYqomlqP5GvE0cVF
-	 Sz8dgkaSGFpLo87D6PSNBPvpVtI7fw/1JMXiNPvFjUWUGs/+BsWUIpp/OUWO1L3fbe
-	 UfUXL3HPLx+9xq+Rn45bw6Hgnsmh5UHikK6gby3Dq6zpR9o+gkJzkJT/+4k/cU8CNw
-	 8eW+udlpqCrlA==
-Subject: Re: [PATCH net v3] net: ti: am65-cpsw-switchdev: flush dynamic FDB
- entries by port on delete
-From: netdev-bot+sashiko@kernel.org
-To: danishanwar@ti.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, s-vadapalli@ti.com, rogerq@kernel.org,
- kees@kernel.org, stefan.wiehler@nokia.com, arnd@arndb.de, horms@kernel.org,
- c-vankar@ti.com, vigneshr@ti.com, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Date: Mon, 05 Oct 2026 09:22:34 +0000
-Message-ID: <179119215496.434549.12930720686957329697@kernel.org>
-In-Reply-To: <20261001090820.1605711-2-danishanwar@ti.com>
-References: <20261001090820.1605711-2-danishanwar@ti.com>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rwnApu3m"
+Received: by mail-dl1-f41.google.com with SMTP id a92af1059eb24-144f7915346so536686c88.0
+        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2026 23:01:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791266508; x=1791871308; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=AW+mqH2re19ne9O4KJFVEoTrC+YDZvk13b6+8e/Lv9w=;
+        b=rwnApu3mnIKEfNwLG9O/sPpz9nHLMe/TpcfV70EapjxVwiJLvv86QgHbd3vmKMyunY
+         scdGPq8MCrMVH4mi+VGh89unnYNDCqcffiyJyxdbxw0zfPmSbyYh4EpdopPD7b69kRqh
+         QPb8ozXPpqF5deP/IiijnxR/Pg1NpqZw4/yFUjidhs+4CPJ/5z7Reawg5evPFcRvNens
+         Z8fvXaFPuZO7Qivuyj6B/bw9kBwQG51pSFTi2GgIGz1Yv0x+bkrdisZXPheNoo/FhV/C
+         7P4vj4jlahTnHiCTaW1aL9/MtE0YcrKfaokxcqrnf6MbcRY1eCbbNh5rgJ4gjBMsp6TF
+         Ls7g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791266508; x=1791871308;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=AW+mqH2re19ne9O4KJFVEoTrC+YDZvk13b6+8e/Lv9w=;
+        b=zTl1zr8Kgvo1tt89E3+dyyk43S/tBFw392au/cUdxMccKEqWXkt16wE+JGSwpTGUcO
+         j8dd4pMMgn2xKnt3vCDMmirg7M7FxUuRd6UXIzCLha4NwErOAN8HO2Rr7OMNjOGvcP5l
+         K2Af3YMHz1ddtH0HYxQ9TYWyxNqEY3OSjus+xKkp7QDpPKbfXnkAUsVVC8p9xdAdjRkt
+         asO+Lpgqs9NNzYXzca2YhGp4hjboizf6oSaufE8f22XsshWg6GFaOA/d0TuM7SrURP61
+         fCsVFmZM1gDVTQ7f1IEBuPdK5+frPbX2kw44CRf24mcReDke+8bN/u/ts+EeGw2/JZ0E
+         MCRQ==
+X-Gm-Message-State: AFuF++lOVsP3VT5XEXwbXmH5ClMdLc7obRQxaJ5DLT2oPWUAkGgxbr0D
+	5KsZHB3qcuGev3L1yGBjgKftn6ZrvFIziNpUn3xJ/nvjOX+G9AOJMsQl
+X-Gm-Gg: AYBFou0mByrvorpWBdQD99P3rqr2oBxbqPFZZ//PQEqEZ3DA+R9Pb0kTU3M05mWJMD9
+	u73d+qICElos/6eKXCrVs0WVcGESiASf3n9PcvodJk7yDCeKlxG2RyAjN5eSOz5z0X5UW5XoGFx
+	WVnQeonEvUIQ3R8d8Jk0Vnb94qOTUwMaq+FIu5zujwVW0ioKWr9fn44b73dF1Yzxi7u8HvhZetU
+	x5bIstbFVAyOi/sQWYSJWKWynWJp443Qa2ZxMl7D7XDHUbHaZtZzil+P2bUQIIExD1AXe3xiyDm
+	SLWW23M4apnG3fS6OJKb3FPhDIGPOSbO2W10av7hnx4Ph9qZd0naBYv/MknwfYElxaZhpSHrXHI
+	lM9Ar5YPUtUGqr4odFbygJ7M26mQ/HQxPIy52YwKf9PLbmuMzAkmiq/cSsg2NP/LU++e1W+5m0I
+	YFac/oFgoMWlRkfSTJWu1QhGNk2pFnEgPr7userr6tkraNxJZMAbK+6mgxwQgcYlvMoaq/2r00W
+	oYjj9lxY2eXfccDtHH+Zk0=
+X-Received: by 2002:a05:701b:4287:10b0:15a:4155:3daa with SMTP id a92af1059eb24-15ec93fdd16mr672452c88.15.1791266507680;
+        Mon, 05 Oct 2026 23:01:47 -0700 (PDT)
+Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-15d84ec510dsm5486567c88.13.2026.10.05.23.01.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 05 Oct 2026 23:01:47 -0700 (PDT)
+From: Hemanth Selam <hemanth.selam@gmail.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2] ARM: OMAP2+: fix typos in comments
+Date: Tue,  6 Oct 2026 11:31:39 +0530
+Message-ID: <20261006060141.43425-1-hemanth.selam@gmail.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
-
-Critical: 0 · High: 1 · Medium: 2 (5) · Low: 0
-
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [High] Every SWITCHDEV_FDB_DEL_TO_DEVICE for a learned bridge entry now
-  makes am65_cpsw_switchdev_event_work()/cpsw_switchdev_event_work()…
-- [Medium] This patch removes the `added_by_user` gate from the
-  SWITCHDEV_FDB_DEL_TO_DEVICE path in both…
-- [Medium] The commit message says 'vid=0 is only ever passed when
-  vlan_filtering is off', and that claim is the justification for…
-
-Pre-existing issues:
-- [Medium] This problem wasn't introduced by this patch, but the patch
-  applies the runtime-PM rule unevenly.
-- [Medium] This problem wasn't introduced by this patch, but in both FDB
-  ADD workers, am65_cpsw_switchdev_event_work() and…
-- [Medium] This problem wasn't introduced by this patch, but if
-  pm_runtime_resume_and_get() fails in am65_cpsw_nuss_remove()…
-- [Medium] Access to the ALE table goes through one shared indirect
-  window.
-- [Medium] This problem wasn't introduced by this patch, but the new PM
-  reference in the FDB ADD path matters only when every port is down.
-
---
-
-net: ti: am65-cpsw-switchdev: flush dynamic FDB entries by port on delete
-
-This patch drops the added_by_user gate on the switchdev FDB delete path
-in both am65-cpsw and the older cpsw driver. Learned entries are now
-removed by a new helper, cpsw_ale_del_ucast_dynamic_by_port(), which
-matches on (addr, port) and treats vid 0 as a wildcard. It also takes a
-runtime PM reference around the ALE accesses in the switchdev event work.
-
-> diff --git a/drivers/net/ethernet/ti/am65-cpsw-switchdev.c b/drivers/net/ethernet/ti/am65-cpsw-switchdev.c
-> index 53cdac272b583..bc4e19e2373f5 100644
-> --- a/drivers/net/ethernet/ti/am65-cpsw-switchdev.c
-> +++ b/drivers/net/ethernet/ti/am65-cpsw-switchdev.c
-
-[ ... ]
-
-> @@ -383,12 +385,20 @@ static void am65_cpsw_switchdev_event_work(struct work_struct *work)
->  
->  		if (!fdb->added_by_user || fdb->is_local)
->  			break;
-> +
-> +		ret = pm_runtime_resume_and_get(cpsw->dev);
-> +		if (ret < 0) {
-> +			netdev_err(port->ndev, "%s: failed to resume device: %d\n", __func__, ret);
-> +			break;
-> +		}
-> +
-
-[Severity: Medium]
-This isn't a bug introduced by this patch, but the runtime PM reference is
-added only in the FDB work. The other switchdev ALE accessors in this
-file still touch the ALE with no PM reference and no netif_running()
-check:
-
-  am65_cpsw_port_stp_state_set() -> cpsw_ale_control_set()
-  am65_cpsw_port_attr_br_flags_set() -> cpsw_ale_set_unreg_mcast()
-  am65_cpsw_port_vlan_add()/del() -> cpsw_ale_vlan_add_modify(),
-      cpsw_ale_add_ucast(), cpsw_ale_del_vlan(), cpsw_ale_del_ucast(),
-      cpsw_ale_del_mcast()
-  am65_cpsw_port_mdb_add()/del()
-
-In contrast, am65_cpsw_nuss_ndo_slave_add_vid() and kill_vid() return
-early when the interface is not running. Otherwise they wrap the ALE
-writes in pm_runtime_resume_and_get()/pm_runtime_put().
-
-Once the last am65_cpsw_nuss_ndo_slave_stop() drops its reference, the
-device can be runtime-suspended (unless CPTS forbids runtime PM).
-
-Can bridge VLAN, MDB or STP operations then write ALE registers on a
-suspended module, for example when a down port is enslaved?
-
-Whether those writes are actually lost depends on the K3 power-domain
-behaviour. cpsw_switchdev.c has the same split.
-
->  		if (memcmp(port->slave.mac_addr, (u8 *)fdb->addr, ETH_ALEN) == 0)
->  			port_id = HOST_PORT_NUM;
->  
->  		cpsw_ale_add_ucast(cpsw->ale, (u8 *)fdb->addr, port_id,
->  				   fdb->vid ? ALE_VLAN : 0, fdb->vid);
->  		am65_cpsw_fdb_offload_notify(port->ndev, fdb);
-
-[Severity: Medium]
-This is a pre-existing issue, but the return value of cpsw_ale_add_ucast()
-is ignored here, and am65_cpsw_fdb_offload_notify() is called either way.
-When there is no matching, free or ageable slot, cpsw_ale_add_ucast()
-returns without writing anything:
-
-drivers/net/ethernet/ti/cpsw_ale.c:cpsw_ale_add_ucast() {
-    ...
-	if (idx < 0)
-		idx = cpsw_ale_find_ageable(ale);
-	if (idx < 0)
-		return -ENOMEM;
-    ...
-}
-
-Would the bridge then mark the static entry as offloaded even though the
-hardware does not have it? cpsw_switchdev_event_work() does the same with
-cpsw_fdb_offload_notify().
-
-> +		pm_runtime_put(cpsw->dev);
->  		break;
-
-[Severity: Medium]
-This isn't a bug introduced by this patch, but the new PM reference only
-matters when every port is down. By then, am65_cpsw_nuss_common_stop()
-has already called cpsw_ale_stop(), which sets ALE_CLEAR and clears
-ALE_ENABLE, and the last PM reference has been dropped.
-
-This path then resumes the device, writes a persistent ucast entry into
-the stopped ALE and reports it as offloaded. When the first port is
-opened again, cpsw_ale_start() clears the table:
-
-drivers/net/ethernet/ti/cpsw_ale.c:cpsw_ale_start() {
-    ...
-	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 1);
-	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
-    ...
-}
-
-switchdev_bridge_port_offload() is called with NULL notifiers and replay
-disabled, so nothing adds the entry back.
-
-Doesn't the bridge then show the static entry as offloaded while the ALE
-no longer has it?
-
-The same looks true for static entries added while ports were up, after
-any cycle where all ports go down and come back up. cpsw_new seems to
-behave the same way.
-
->  	case SWITCHDEV_FDB_DEL_TO_DEVICE:
->  		fdb = &switchdev_work->fdb_info;
-> @@ -397,13 +407,27 @@ static void am65_cpsw_switchdev_event_work(struct work_struct *work)
->  			   fdb->addr, fdb->vid, fdb->added_by_user,
->  			   fdb->offloaded, port_id);
->  
-> -		if (!fdb->added_by_user || fdb->is_local)
-> +		if (fdb->is_local)
->  			break;
-
-[Severity: Medium]
-Without the added_by_user check, does this path also act on deletes from
-the bridge's own software ageing, and not only on explicit flushes?
-
-br_fdb_cleanup() calls fdb_delete(br, f, true) for every expired learned
-entry:
-
-net/bridge/br_fdb.c:br_fdb_cleanup() {
-    ...
-			if (!hlist_unhashed(&f->fdb_node))
-				fdb_delete(br, f, true);
-    ...
-}
-
-br_switchdev_fdb_notify() then sends SWITCHDEV_FDB_DEL_TO_DEVICE with
-added_by_user=0.
-
-Neither driver handles SWITCHDEV_ATTR_ID_BRIDGE_AGEING_TIME or sends
-SWITCHDEV_FDB_ADD_TO_BRIDGE. So f->updated in the bridge is refreshed only
-by frames that reach the CPU. Unicast that the ALE forwards between ports
-never refreshes it.
-
-For a station whose traffic is switched in hardware, the bridge entry
-expires after the ageing time (300s by default). The DEL that follows
-makes cpsw_ale_del_ucast_dynamic_by_port() write ALE_TYPE_FREE over the
-live ALE row. With vid 0 it does this for every VLAN.
-
-Wouldn't unicast to that station then flood as unknown unicast until the
-ALE relearns it, and then happen again every ageing interval? The same
-applies to cpsw_switchdev_event_work() in cpsw_switchdev.c.
-
-The v3 changelog says the ageing trade-off is documented in the commit
-message, but the only ageing the message mentions is the ~30 second ALE
-hardware ageout. Could the commit message describe this case?
-
->  
-> -		cpsw_ale_del_ucast(cpsw->ale, (u8 *)fdb->addr, port_id,
-> -				   fdb->vid ? ALE_VLAN : 0, fdb->vid);
-> +		ret = pm_runtime_resume_and_get(cpsw->dev);
-> +		if (ret < 0) {
-> +			netdev_err(port->ndev, "%s: failed to resume device: %d\n", __func__, ret);
-> +			break;
-> +		}
-> +
-> +		if (!fdb->added_by_user) {
-> +			cpsw_ale_del_ucast_dynamic_by_port(cpsw->ale,
-> +							   (u8 *)fdb->addr,
-> +							   port_id,
-> +							   fdb->vid);
-> +		} else {
-> +			if (memcmp(port->slave.mac_addr, (u8 *)fdb->addr, ETH_ALEN) == 0)
-> +				port_id = HOST_PORT_NUM;
-> +			cpsw_ale_del_ucast(cpsw->ale, (u8 *)fdb->addr, port_id,
-> +					   fdb->vid ? ALE_VLAN : 0, fdb->vid);
-> +		}
-> +		pm_runtime_put(cpsw->dev);
->  		break;
-
-[Severity: Medium]
-This is a pre-existing issue and the patch does not touch this code. It is
-relevant here because this work holds a port pointer and only a
-dev_hold() on the netdev.
-
-If pm_runtime_resume_and_get() fails in am65_cpsw_nuss_remove(), or in
-cpsw_remove() in cpsw_new.c, the function returns early:
-
-drivers/net/ethernet/ti/am65-cpsw-nuss.c:am65_cpsw_nuss_remove() {
-    ...
-	ret = pm_runtime_resume_and_get(&pdev->dev);
-	if (ret < 0) {
-		/* Note, if this error path is taken, we're leaking some
-		 * resources.
-		 */
-		...
-		return;
-	}
-
-	am65_cpsw_unregister_notifiers(common);
-    ...
-}
-
-That skips am65_cpsw_unregister_notifiers()/cpsw_unregister_notifiers()
-and the netdev cleanup. The driver core still releases the devm
-resources, including the common structure and the port array.
-
-Can registered notifiers, live netdevs, or queued switchdev work then
-dereference freed driver state? The in-code comment only describes this
-as leaking resources.
-
-> diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-> index e202bba494807..d3d6a1ef894ac 100644
-> --- a/drivers/net/ethernet/ti/cpsw_ale.c
-> +++ b/drivers/net/ethernet/ti/cpsw_ale.c
-
-[ ... ]
-
-> +int cpsw_ale_del_ucast_dynamic_by_port(struct cpsw_ale *ale, const u8 *addr,
-> +				       int port, u16 vid)
-> +{
-> +	u32 ale_entry[ALE_ENTRY_WORDS];
-> +	int type, ucast_type, idx;
-> +	u8 entry_addr[6];
-> +	int deleted = 0;
-> +	int entry_vid;
-> +
-> +	for (idx = 0; idx < ale->params.ale_entries; idx++) {
-> +		cpsw_ale_read(ale, idx, ale_entry);
-
-[Severity: High]
-For every slot in ale->params.ale_entries, this walk does one
-ALE_TABLE_CONTROL write and ALE_ENTRY_WORDS reads. It exits early only
-when vid is nonzero and a match is found. With vid 0, or with a MAC that
-is not in the table, it always scans the whole table.
-
-Every learned-entry DEL now reaches this loop with rtnl_lock held. Could a
-remote L2 peer keep rtnl held continuously?
-
-Moving a source MAC between bridge ports produces an immediate DEL, with
-no rate limit:
-
-net/bridge/br_fdb.c:br_fdb_update() {
-    ...
-			if (unlikely(source != READ_ONCE(fdb->dst) &&
-				     !test_bit(BR_FDB_STICKY, &fdb->flags))) {
-				br_switchdev_fdb_notify(br, fdb, RTM_DELNEIGH);
-    ...
-}
-
-A flood of random source MACs creates one learned entry per MAC, and each
-entry produces a DEL when it ages out.
-
-The notifier allocates one GFP_ATOMIC work item per event and does not
-coalesce them. Once DELs arrive faster than one walk takes, the
-system_long_wq backlog would grow without bound as well.
-
-The v2 changelog justifies the cost with "max 512 entries". However, the
-legacy CPSW entry in the cpsw_ale_dev_id table has:
-
-		.dev_id = "cpsw",
-		.tbl_entries = 1024,
-
-and j721e-cpswxg sizes its table from ALE_STATUS in multiples of
-ALE_TABLE_SIZE_MULTIPLIER (1024). Is the bound in the changelog accurate?
-
-> +		type = cpsw_ale_get_entry_type(ale_entry);
-> +		if (type != ALE_TYPE_ADDR && type != ALE_TYPE_VLAN_ADDR)
-> +			continue;
-> +		if (cpsw_ale_get_mcast(ale_entry))
-> +			continue;
-> +		ucast_type = cpsw_ale_get_ucast_type(ale_entry);
-> +		if (ucast_type == ALE_UCAST_PERSISTANT ||
-> +		    ucast_type == ALE_UCAST_OUI)
-> +			continue;
-> +		if (cpsw_ale_get_port_num(ale_entry, ale->port_num_bits) != port)
-> +			continue;
-> +		cpsw_ale_get_addr(ale_entry, entry_addr);
-> +		if (!ether_addr_equal(entry_addr, addr))
-> +			continue;
-> +		entry_vid = cpsw_ale_get_vlan_id(ale_entry);
-> +		if (vid && entry_vid != vid)
-> +			continue;
-
-[Severity: Medium]
-The commit message justifies the wildcard this way:
-
-  vid=0 is only ever passed when vlan_filtering is off
-
-Does that still hold after vlan_filtering is toggled at runtime?
-
-br_vlan_filter_toggle() flips BROPT_VLAN_ENABLED and recalculates
-promiscuity, the group address and the forward mask. It does not flush or
-rekey the FDB, and neither driver handles
-SWITCHDEV_ATTR_ID_BRIDGE_VLAN_FILTERING.
-
-Learned entries with key.vlan_id == 0 from before the toggle survive it.
-They are no longer refreshed, because learning now uses the frame's VID,
-and later they age out or are flushed. br_switchdev_fdb_populate()
-copies the stored key:
-
-net/bridge/br_switchdev.c:br_switchdev_fdb_populate() {
-    ...
-	item->vid = fdb->key.vlan_id;
-    ...
-}
-
-So a DEL with vid=0 and added_by_user=0 can arrive while vlan_filtering
-is on.
-
-Wouldn't this loop then free the MAC's dynamic rows on that port for
-every VLAN? That would include rows the bridge still holds as valid vid-N
-entries.
-
-> +
-> +		memset(ale_entry, 0, sizeof(ale_entry));
-> +		cpsw_ale_set_entry_type(ale_entry, ALE_TYPE_FREE);
-> +		cpsw_ale_write(ale, idx, ale_entry);
-
-[Severity: Medium]
-This is a pre-existing issue, but this walk makes it much easier to hit.
-cpsw_ale_read() and cpsw_ale_write() share one indirect window
-(ALE_TABLE_CONTROL plus the ALE_TABLE words). struct cpsw_ale has no
-lock, and this function holds only rtnl_lock.
-
-Two am65 paths use the same window without rtnl.
-
-The first is am65_cpsw_nuss_ndo_slave_set_rx_mode(). It calls
-cpsw_ale_set_allmulti(), cpsw_ale_flush_multicast() and
-cpsw_ale_add_mcast() while holding only the netdev address lock. An
-unprivileged IPv6 multicast join can reach it:
-
-  __ipv6_sock_mc_join()->__ipv6_dev_mc_inc()->igmp6_group_added()
-      ->dev_mc_add()
-
-The second is am65_cpsw_nuss_suspend(). It calls cpsw_ale_dump() without
-rtnl and without flushing the switchdev work. That work runs on the
-unfreezable system_long_wq, and bridge ageing keeps producing DELs
-during suspend.
-
-Can interleaved CONTROL writes make one side read or commit another
-slot's contents?
-
-For example, the suspend dump could save slot j's data as slot i, and
-cpsw_ale_restore() in am65_cpsw_nuss_resume() would then write that
-back. In the other direction, the CONTROL write in this walk could
-replace a concurrent writer's staged words, so the writer commits a copy
-of a different entry.
-
-The set_rx_mode path needs a non-promiscuous port in switch mode.
-cpsw_new is not affected through set_rx_mode, because its rx_mode_work
-takes rtnl_lock.
-
-> +		deleted++;
-> +
-> +		if (vid)
-> +			break;
-> +	}
-> +
-> +	return deleted ? 0 : -ENOENT;
-> +}
-> +EXPORT_SYMBOL_GPL(cpsw_ale_del_ucast_dynamic_by_port);
-
-[ ... ]
-
+Content-Transfer-Encoding: 8bit
+
+Fix typos in comments, reported by scripts/checkpatch.pl using the
+misspelling list in scripts/spelling.txt.  One further misspelling of
+"peripherals" in powerdomains7xx_data.c is fixed as well: it is not in
+scripts/spelling.txt, but it sits on the same comment line as one that
+checkpatch does report.  Only comments are touched, there are no code
+changes.
+
+Assisted-by: LLM
+Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+---
+
+Notes (v2):
+    v2:
+     - Split the single "ARM: fix typos in comments" patch up per platform,
+       so that each one can be picked up by its own maintainer.
+     - Also fix the second misspelling on the same comment line in
+       powerdomains7xx_data.c, which checkpatch does not report because it
+       is not listed in scripts/spelling.txt.
+    
+    v1: https://lore.kernel.org/all/20260907064849.23086-1-hemanth.selam@gmail.com/
+
+ arch/arm/mach-omap2/omap4-common.c         | 2 +-
+ arch/arm/mach-omap2/omap_hwmod.c           | 6 +++---
+ arch/arm/mach-omap2/powerdomains7xx_data.c | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 5d924b85b694..633451b6f548 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -96,7 +96,7 @@ static void omap4_mb(void)
+  * interconnects.
+  *
+  * This situation can happen only when the idle is initiated by a Master
+- * Request Disconnection (which is trigged by software when executing WFI
++ * Request Disconnection (which is triggered by software when executing WFI
+  * on the CPU).
+  *
+  * The work-around for this errata needs all the initiators connected
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 03cd523dff87..0f4ba19804c6 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -646,7 +646,7 @@ static struct clockdomain *_get_clkdm(struct omap_hwmod *oh)
+  * @oh: struct omap_hwmod *
+  *
+  * Prevent the hardware module @oh from entering idle while the
+- * hardare module initiator @init_oh is active.  Useful when a module
++ * hardware module initiator @init_oh is active.  Useful when a module
+  * will be accessed by a particular initiator (e.g., if a module will
+  * be accessed by the IVA, there should be a sleepdep between the IVA
+  * initiator and the module).  Only applies to modules in smart-idle
+@@ -674,7 +674,7 @@ static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+  * _del_initiator_dep: allow @oh to smart-idle even if @init_oh is active
+  * @oh: struct omap_hwmod *
+  *
+- * Allow the hardware module @oh to enter idle while the hardare
++ * Allow the hardware module @oh to enter idle while the hardware
+  * module initiator @init_oh is active.  Useful when a module will not
+  * be accessed by a particular initiator (e.g., if a module will not
+  * be accessed by the IVA, there should be no sleepdep between the IVA
+@@ -1706,7 +1706,7 @@ static int _ocp_softreset(struct omap_hwmod *oh)
+ 		return -EINVAL;
+ 	}
+ 
+-	/* For some modules, all optionnal clocks need to be enabled as well */
++	/* For some modules, all optional clocks need to be enabled as well */
+ 	if (oh->flags & HWMOD_CONTROL_OPT_CLKS_IN_RESET)
+ 		_enable_optional_clocks(oh);
+ 
+diff --git a/arch/arm/mach-omap2/powerdomains7xx_data.c b/arch/arm/mach-omap2/powerdomains7xx_data.c
+index 921cb1b29cb4..18cd74915b4b 100644
+--- a/arch/arm/mach-omap2/powerdomains7xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains7xx_data.c
+@@ -223,7 +223,7 @@ static struct powerdomain mpu_7xx_pwrdm = {
+ 	},
+ };
+ 
+-/* l3init_7xx_pwrdm: L3 initators pheripherals power domain  */
++/* l3init_7xx_pwrdm: L3 initiators peripherals power domain  */
+ static struct powerdomain l3init_7xx_pwrdm = {
+ 	.name		  = "l3init_pwrdm",
+ 	.prcm_offs	  = DRA7XX_PRM_L3INIT_INST,
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261001090820.1605711-2-danishanwar%40ti.com
+2.47.3
+
