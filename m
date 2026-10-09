@@ -1,30 +1,30 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.3])
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 029024CE68A;
-	Fri,  9 Oct 2026 10:54:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.3
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B19C4C7522;
+	Fri,  9 Oct 2026 10:56:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.2
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791543283; cv=none; b=ofBysJ4UlzdR5/TakOFZ7D7G/5iypDeVsmEin4BY0f96dh/oXWdY5Lo9L3SXqG9+RZKyzW3JwjpUuSYs5SssjQGczDh5ILOPmVYc1n2c2jig7oK2moEO7DlhwU9yX/I1LTiAtSDBUOd2rGxjuE1t0fWRNWwMvwdUPsfUtbpYE5A=
+	t=1791543386; cv=none; b=VVe109Lyx/Wi2CSL5FOkLFSYp6DNP2dpqBpjmZnhfb3t0ckG+QBfzL7/ld9B304RVayeM9GVX82nVD2VrVQKMNo1yj+W/jyhqn/jcqycxcr1yvj+pxWmJfbUcOaJLHsxUzo4MTuZrS+8za1EimJWj61w9YBZZuyNdwgIyssutrI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791543283; c=relaxed/simple;
-	bh=2hPqeInkmw8dt5AYJTT6rr65iGpV6pnYu621nd+a2Kw=;
+	s=arc-20240116; t=1791543386; c=relaxed/simple;
+	bh=g3CZoYHJna7Pc063eIRpS7CHxPnMYVH37s2UtbhIpMU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=u1fpTRovYcfwDMgLyeuVsBH3L607KWEGzUv1KcxETOAM57lMt4X6XP/KYXOHKHgnzM0Jn8cQ+UqwNi8Jfuol3yb5rafGcNxDUsjNNIdP00CWcDa/X/HaSQVhpp5ts7ydpmLO35guDMbaiqJyG4WuhRrHCZoQLHl/vPuyI6Z9Mps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=nHgVfZhO; arc=none smtp.client-ip=117.135.210.3
+	 MIME-Version; b=JlOfvIhsNt4lIdj+PcAw2ZSZVrr4vobjZae4jdJsbX5kMuntc5fAeGb1d+qhFczUVvRwRNf/IZVO1daR6n2/4Q5GXIJ9usY2LiMwIvKqn1hhV9qkl3MV8MK5egCEnIsEfRuAezE1rFRHNmNl5fYNiHbgqXWQdFOAdcE9AuzLDbc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=CfGceBMh; arc=none smtp.client-ip=220.197.31.2
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="nHgVfZhO"
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="CfGceBMh"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=SU
-	2hOrP3XkxbQgBianI5yCRcm1GVQm++rhoG9WeYkXY=; b=nHgVfZhOjeIx/PWWkK
-	vNM7E2m3qCDjooBWbYQqG2WnDr5kDDGylgxZTZuhL/0hUQNP/ufUhK4E27M/kuv6
-	E9yk5HhcP4ozepd7uVSqnoFDADTiEe2rS12+xbhxcR8WoXF3T09A6p0bntJ46iQM
-	QOMoc02NGIUr0fuXjtJEf7MLI=
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=q6
+	KiQ0JnIYlZjIauCBrkVstsxm3xXiTQEIf87XsyrHw=; b=CfGceBMhk48S4XX0Ej
+	bUsveyDuCZFXFZLrM769NEpyVNKCoT9Avk0xWJbznn36DYnXK1oOJQtAha6WFSHX
+	tZ8KB4jAPKGVmXvyTZih/QA8qiNjlWMTNQqD14yLyZcmuF28C04/BE8LXc9nFv7L
+	MJKNtZXrt+P7glYdC8uAuVVmA=
 Received: from chaosheng-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.lan (unknown [])
-	by gzsmtp5 (Coremail) with SMTP id QCgvCgB3vmvUx8hqvTiFDg--.2548S5;
-	Fri, 09 Oct 2026 18:54:14 +0800 (CST)
+	by gzsmtp4 (Coremail) with SMTP id PygvCgCH_z1ByMhqBHGWDg--.46097S4;
+	Fri, 09 Oct 2026 18:56:03 +0800 (CST)
 From: Quchaosheng <quchaosheng000406@163.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Rob Herring <robh@kernel.org>,
@@ -36,12 +36,12 @@ Cc: dri-devel@lists.freedesktop.org,
 	linux-omap@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Chaosheng Qu <quchaosheng000406@163.com>
-Subject: [PATCH 3/3] ARM: dts: ti/omap: drop unit-address from tpd12s015 endpoints
-Date: Fri,  9 Oct 2026 18:54:12 +0800
-Message-ID: <20261009105412.300338-4-quchaosheng000406@163.com>
+Subject: [PATCH 2/3] ARM: dts: ti/omap: drop the two unused gpios from the igep0050 hdmi encoder
+Date: Fri,  9 Oct 2026 18:56:00 +0800
+Message-ID: <20261009105601.301891-3-quchaosheng000406@163.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261009105412.300338-1-quchaosheng000406@163.com>
-References: <20261009105412.300338-1-quchaosheng000406@163.com>
+In-Reply-To: <20261009105601.301891-1-quchaosheng000406@163.com>
+References: <20261009105601.301891-1-quchaosheng000406@163.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -49,74 +49,50 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:QCgvCgB3vmvUx8hqvTiFDg--.2548S5
-X-Coremail-Antispam: 1Uf129KBjvJXoW7Zw1rXry7try7XrWDtw43ZFb_yoW8CF4kp3
-	s29Fs7tws7GF10kF4DZw1qgFyDKFWDuF1akF4UWryUCa13Xw1rJr1xt3sakr1UCayfZw4j
-	9rs5WasFqw1DWF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zEBHq3UUUUU=
-X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbDABfzaWrIx9e6MQAA30
+X-CM-TRANSID:PygvCgCH_z1ByMhqBHGWDg--.46097S4
+X-Coremail-Antispam: 1Uf129KBjvJXoW7Zw15Ar4xtw1UJry7Jw4fXwb_yoW8XF18p3
+	9Ikr4DAr929F1ayws7Z3sFvF45CanrXFyq9r15Kw4rAw1aqFyxKrWSkr1avr4DJFWSyw4F
+	9r45X3srt3Z8Z37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zE5rc3UUUUU=
+X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbC5AMPhGrIyENTNQAA3j
 
 From: Chaosheng Qu <quchaosheng000406@163.com>
 
-The endpoint nodes of the tpd12s015 encoder on the am5729-beagleboneai
-and the am57xx-idk carry a unit-address without a matching reg property,
-which the device tree specification does not allow.
+omap5-igep0050.dts lists five GPIOs for the tpd12s015 encoder: the three
+the driver asks for, plus two more that the comment names "SCL" and
+"SDA".
 
-Drop the unit-address so the nodes are named "endpoint".
+Neither driver reads them. ti-tpd12s015.c and encoder-tpd12s015.c both
+obtain exactly three GPIOs through devm_gpiod_get_index(), indices 0 to
+2, and neither file mentions scl, sda or ddc anywhere. The text binding
+that the schema replaces said the same thing: "gpios: CT CP HPD, LS OE
+and HPD gpios". There is no pinctrl group for the two extra lines and
+nothing else in the tree consumes them.
 
-No functional change.
+Drop them so the node describes the three signals the hardware is wired
+to through this binding.
 
 Assisted-by: LLM
 Signed-off-by: Chaosheng Qu <quchaosheng000406@163.com>
 ---
- arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts | 4 ++--
- arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi  | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/ti/omap/omap5-igep0050.dts | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-index 76bfb364777e..f40017a0e414 100644
---- a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-+++ b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
-@@ -168,7 +168,7 @@ ports {
- 			port@0 {
- 				reg = <0x0>;
+diff --git a/arch/arm/boot/dts/ti/omap/omap5-igep0050.dts b/arch/arm/boot/dts/ti/omap/omap5-igep0050.dts
+index 0368e32f67e7..8e8325936cda 100644
+--- a/arch/arm/boot/dts/ti/omap/omap5-igep0050.dts
++++ b/arch/arm/boot/dts/ti/omap/omap5-igep0050.dts
+@@ -102,9 +102,7 @@ OMAP5_IOPAD(0x086, PIN_INPUT | MUX_MODE6)	/* gpio4_118 */
+ &tpd12s015 {
+ 	gpios = <&tca6416 11 0>,	/* TCA6416 P01, CT_CP_HDP */
+ 		<&tca6416 12 0>,	/* TCA6416 P00, LS_OE*/
+-		<&gpio7 1 0>,		/* 193, HPD */
+-		<&gpio7 2 0>,		/* 194, SCL */
+-		<&gpio7 3 0>;		/* 195, SDA */
++		<&gpio7 1 0>;		/* 193, HPD */
+ };
  
--				hdmi_encoder_in: endpoint@0 {
-+				hdmi_encoder_in: endpoint {
- 					remote-endpoint = <&hdmi_out>;
- 				};
- 			};
-@@ -176,7 +176,7 @@ hdmi_encoder_in: endpoint@0 {
- 			port@1 {
- 				reg = <0x1>;
- 
--				hdmi_encoder_out: endpoint@0 {
-+				hdmi_encoder_out: endpoint {
- 					remote-endpoint = <&hdmi_connector_in>;
- 				};
- 			};
-diff --git a/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi b/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
-index 5eccff3bb4b6..4e8a5820b05c 100644
---- a/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
-@@ -135,7 +135,7 @@ ports {
- 			port@0 {
- 				reg = <0>;
- 
--				tpd12s015_in: endpoint@0 {
-+				tpd12s015_in: endpoint {
- 					remote-endpoint = <&hdmi_out>;
- 				};
- 			};
-@@ -143,7 +143,7 @@ tpd12s015_in: endpoint@0 {
- 			port@1 {
- 				reg = <1>;
- 
--				tpd12s015_out: endpoint@0 {
-+				tpd12s015_out: endpoint {
- 					remote-endpoint = <&hdmi_connector_in>;
- 				};
- 			};
+ &twl6040 {
 -- 
 2.43.0
 
