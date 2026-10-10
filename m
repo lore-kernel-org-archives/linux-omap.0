@@ -1,135 +1,142 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAB523EB7E9;
-	Fri,  9 Oct 2026 17:34:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B17EC3AC17;
+	Sat, 10 Oct 2026 16:19:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791567276; cv=none; b=QvJJt9s19pF4uKigk0nbF28wVjlP+UhynRqwl6vvraTT1epdnkn3/m5jMrnL5VAOadn04/WWD43vFF1QrpeER/Kr8o4dv6pOoaByFuXzbmupC7C6K6oKEfvUqfsCJmK00kPeuwqyYgAlkFkPttmI/C+HoO5HRsWYQ/vw2kmj4dM=
+	t=1791649146; cv=none; b=tspkmonrdCP4H2+BA0doDUec7yiA6GFNkdeclPPVbW7rabNGNgsR1cZk2Y3/Du0UPRizjeax+AmvdH6qcuBCw8Tj1Fmt+x4fN6jBEi96COQmoWxXViIpmOL9ppJTv5jvjnfjtT5kCzG7I+eCXtByYQXihllrjgils00Hb+hLuxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791567276; c=relaxed/simple;
-	bh=7JvhXxV1YuLLBfPgG9f3+Dy/RpnCeQIkzzy63OaQQSk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pgN2xvHoPvR1ZitGO9u3BlB8cTuaASogmwg2Bi7gyfW8QqaNqNejjBpYOMCWbGzpALBZc0NBJZ51R3URq9gV2cANHUXeQp5lq2k+Q0jNRXyE5Ma3uEcl4kOkiOjq042bXNg2VJC7vnlsWcmyMzHQxVgoywDsC4Smv5RMxk6xuyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UOXVnO3z; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791649146; c=relaxed/simple;
+	bh=fGo0ENJUfeMBImXgrDZx5qB9HxEPo7FMx1opDzrkJo4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jKSOUjvRaCGdY5z9rExl6gHNSt3QVC4R2QAh+g+QvrgNPi9+9jUGHkR1UaF9BGC3Y0V3BsKA87+NFoDZspsHSCMHlNNObxnyHhWZmKRnna4452Mf0HP7bgCHBctEAhlrU0QAZ34aRhusc7GRj2qvu0cq5upG30OZXSaFErMBdl4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=ksl6Ix34; arc=none smtp.client-ip=178.21.23.139
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UOXVnO3z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 457EC1F000FF;
-	Fri,  9 Oct 2026 17:34:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791567275;
-	bh=Y+e5fiagQUAbWq0G0G72uFDu9M2cjMIliK8S5C6avdA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=UOXVnO3zLoVszFvsV1E0D3WZpQXkBbOKbF5rRippK/RnbXOYcy3ELkYeimx3uG//V
-	 CdFGVtMRcx7GLbDblh+dkr4XNWLvY/7MZtNA9aC/ABl8Q9d+7g5V6ZZ/tcQQgXUnpm
-	 6W0tuTIBiq4UcdSPP0MZGUdO6pD/xWWMJnGcKnjgov9SfakkP43UUUt+cHr86DK8qb
-	 taFrkhGfWcmDriSUwg2E0QCOewfSjpTMWVm5JsIzzRzHHJfKkkOcCWoSLHu++eImHK
-	 4ZTJ+kzQ9OA+lPEbSGeDbuu5dOlAFZT3wb5CXE0C/ne2qxQNO0JoDukIkWjeatApNC
-	 ljGhNLuwMZsGQ==
-Date: Fri, 9 Oct 2026 12:34:33 -0500
-From: Rob Herring <robh@kernel.org>
-To: Conor Dooley <conor@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Quchaosheng <quchaosheng000406@163.com>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
-	linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/3] dt-bindings: display: ti,tpd12s015: Convert to DT
- schema
-Message-ID: <20261009173433.GA2862960-robh@kernel.org>
-References: <20261009105601.301891-1-quchaosheng000406@163.com>
- <20261009105601.301891-2-quchaosheng000406@163.com>
- <20261009-2f34bbada2c463c78b2c05a7@squawk>
- <20261009144434.GD622105@killaraus.ideasonboard.com>
- <20261009-db35f1d74028d0d0a34f1106@squawk>
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="ksl6Ix34"
+Received: from mail01.layka.lan (localhost [127.0.0.1])
+	by disroot.org (Postfix) with ESMTP id 77C8A807C7;
+	Sat, 10 Oct 2026 18:19:01 +0200 (CEST)
+X-Virus-Scanned: SPAM Filter at disroot.org
+Received: from layka.disroot.org ([127.0.0.1])
+ by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
+ id 47OIXOBtmTSa; Sat, 10 Oct 2026 18:19:00 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
+	t=1791649140; bh=fGo0ENJUfeMBImXgrDZx5qB9HxEPo7FMx1opDzrkJo4=;
+	h=From:To:Cc:Subject:Date;
+	b=ksl6Ix34rrtexVNLWo/x4C1BwXveXOnYtRd/rcTti0GrXYjcPQIJdtjZts8pyw6Mf
+	 j6hXgopOc9nnBeRRU5oM5EuAZaMK+sSIN024pxl3alr7gLN/FhMvSNCNkkP+wOFKDt
+	 53j07cv2zRiFRtxb8hZn+q/gAFBO6BLdRVTT+SApNQz9pcptk7jIdDsw1AY36cPkBo
+	 rYTsgYT/u8lKTFa3zWr3NoOnrfoFxOR6c8Vmo0HTMZSnyQvPfLv979R3Xpwjt+G1Mb
+	 SD9xdftlHszViZxnrkzHT6yMWH0U4kc+456X/Vf6akN+JBbze0CcRN6laB8K9Zqnsr
+	 VV0x/2u+U0Kdw==
+From: Rustam Adilov <adilov@disroot.org>
+To: Tony Lindgren <tony@atomide.com>,
+	Haojian Zhuang <haojian.zhuang@linaro.org>,
+	Linus Walleij <linusw@kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-omap@vger.kernel.org,
+	linux-gpio@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Rustam Adilov <adilov@disroot.org>
+Subject: [PATCH] pinctrl: single: add big endian support
+Date: Sat, 10 Oct 2026 21:15:44 +0500
+Message-ID: <20261010161545.62959-1-adilov@disroot.org>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261009-db35f1d74028d0d0a34f1106@squawk>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Oct 09, 2026 at 04:42:01PM +0100, Conor Dooley wrote:
-> On Fri, Oct 09, 2026 at 04:44:34PM +0200, Laurent Pinchart wrote:
-> > On Fri, Oct 09, 2026 at 03:25:49PM +0100, Conor Dooley wrote:
-> > > On Fri, Oct 09, 2026 at 06:55:59PM +0800, Quchaosheng wrote:
-> > > > From: Chaosheng Qu <quchaosheng000406@163.com>
-> > > > 
-> > > > Convert the TPD12S015 HDMI level shifter binding to DT schema.
-> > > > 
-> > > > The TI TPD12S015 is an HDMI companion chip that combines a level shifter
-> > > > and ESD protection circuitry. Document the two ports it exposes between
-> > > > the HDMI transmitter and the connector.
-> > > > 
-> > > > The tpd12s016 is software compatible with the tpd12s015 and is listed as
-> > > > a fallback compatible by am57xx-idk-common.dtsi, so accept it as a
-> > > > fallback of "ti,tpd12s015". The driver matches on "ti,tpd12s015" only, so
-> > > > a board using the tpd12s016 must list both compatibles.
-> > > > 
-> > > > Assisted-by: LLM
-> > > > Signed-off-by: Chaosheng Qu <quchaosheng000406@163.com>
-> > > 
-> > > No idea if the sashiko reply is valid, because I have no clue if
-> > > providing a subset of the gpios is functional. Really this should have
-> > > multiple different gpios properties,
+Add support for big endian pin controllers by taking into account
+a big-endian device tree property.
 
-The minItems one is not valid. sashiko struggles on our quirks against 
-normal json-schema. Generally, if either minItems or maxItems is not 
-specified, we make them equal. I think I documented that, so we need to 
-get sashiko to read it...
+This is needed on big endian MIPS platforms like RTL930X, RTL931X
+and RTL9607C who use pinctrl-single, because when SWAP_IO_SPACE is
+enabled, the mmio accessors in pinctrl-single perform a byte swap.
 
-> > 
-> > Definitely.
-> > 
-> > > but this binding is really old and
-> > > not worth changing IMO.
-> > > Acked-by: Conor Dooley <conor.dooley@microchip.com>
-> > > pw-bot: not-applicable
-> > 
-> > I'm getting annoyed be the LLM-assisted individual conversions. Can we
-> > start requiring people who convert text bindings to YAML to at least
-> > handle whole groups in one go ? If they're going to do a bad job, I'd
-> > rather have to review it once only.
+Signed-off-by: Rustam Adilov <adilov@disroot.org>
+---
+ drivers/pinctrl/pinctrl-single.c | 41 ++++++++++++++++++++++++++++----
+ 1 file changed, 37 insertions(+), 4 deletions(-)
 
-I have a branch of ~600 questionable patches. :) It does make arm64 
-warning free (and some of the warning fixes are valid).
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index e0eb7240a985..001a0c157d6a 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -265,6 +265,26 @@ static void pcs_writel(unsigned int val, void __iomem *reg)
+ 	writel(val, reg);
+ }
+ 
++static unsigned int pcs_readw_be(void __iomem *reg)
++{
++	return readw_be(reg);
++}
++
++static unsigned int pcs_readl_be(void __iomem *reg)
++{
++	return readl_be(reg);
++}
++
++static void pcs_writew_be(unsigned int val, void __iomem *reg)
++{
++	writew_be(val, reg);
++}
++
++static void pcs_writel_be(unsigned int val, void __iomem *reg)
++{
++	writel_be(val, reg);
++}
++
+ static unsigned int pcs_pin_reg_offset_get(struct pcs_device *pcs,
+ 					   unsigned int pin)
+ {
+@@ -1785,6 +1805,7 @@ static int pcs_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	struct pcs_device *pcs;
+ 	const struct pcs_soc_data *soc;
++	bool byte_be;
+ 	int ret;
+ 
+ 	soc = of_device_get_match_data(&pdev->dev);
+@@ -1860,18 +1881,30 @@ static int pcs_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, pcs);
+ 
++	byte_be = device_is_big_endian(pcs->dev);
++
+ 	switch (pcs->width) {
+ 	case 8:
+ 		pcs->read = pcs_readb;
+ 		pcs->write = pcs_writeb;
+ 		break;
+ 	case 16:
+-		pcs->read = pcs_readw;
+-		pcs->write = pcs_writew;
++		if (byte_be) {
++			pcs->read = pcs_readw_be;
++			pcs->write = pcs_writew_be;
++		} else {
++			pcs->read = pcs_readw;
++			pcs->write = pcs_writew;
++		}
+ 		break;
+ 	case 32:
+-		pcs->read = pcs_readl;
+-		pcs->write = pcs_writel;
++		if (byte_be) {
++			pcs->read = pcs_readl_be;
++			pcs->write = pcs_writel_be;
++		} else {
++			pcs->read = pcs_readl;
++			pcs->write = pcs_writel;
++		}
+ 		break;
+ 	default:
+ 		break;
+-- 
+2.56.0
 
-What's left is really stuff that's old, not getting new platforms and no 
-one cares about. I don't think we need perfection. We should probably 
-just ignore sashiko.
-
-> 
-> Or do one, and take the learnings into all the remaining patches - but
-> with LLM conversions I don't think there's really much learning going on
-> at all.
-> 
-> I guess bunching them is fine, provided it is for one subsystem. I
-> definitely don't want to see a set of 15 patches across 9 subsystems,
-> at least with one subsystem it's likely to be the same common problems
-> across the bunch.
-
-I've tried expressing my preferences in priority, but it hasn't worked. 
-It was mainly GSoC or other programs, but now it's?
-
-My priority is:
-
-- Fix arm64 warnings
-- Fix arm warnings
-- Convert subsystem bindings
-- Fix other $arch warnings (no one cares AFAICT)
-
-We're actually pretty close to arm64 being warning free. krzk's LPC 
-slides inflate the numbers as N boards for a SoC give N copies of 
-warnings. next is currently sitting at 218 warnings in my deduped count. 
-About half of those are HiSilicon and Mediatek. The rest of the 
-platforms (by subdir) are around ~20 or less.
-
-arm32 is still a long way off. The recent platform removals should help 
-though.
-
-Rob
