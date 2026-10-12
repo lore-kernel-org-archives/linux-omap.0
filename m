@@ -1,30 +1,29 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7969D456E19;
-	Mon, 12 Oct 2026 08:53:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CE04471269;
+	Mon, 12 Oct 2026 08:53:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791795187; cv=none; b=FLG3YQUpTrnqHMZD9gme1XXrYwSQUNIjGh4M1rJ9FE95EREiHTWQySNk9AvlmUmqtp0IjLStDIsseTC9dyXS36LOKCUsYEdUuDJCBhi9dvk4gS/oT/pEy9vv9w/70ziFf7ZV6xs/MRsTVy88MYLGUfg3th9MHirlCK/Kjj147sw=
+	t=1791795191; cv=none; b=oaxBtFFsharTkHubSbfKFsnE5r4J1U8hrQpbmg5hGeAoYT81yX1d3u7wvDQmINEMLbV1Ov/UNHmexknDm658HdQOsIP2t1lGLBlcB44/UkjpSOGkD1YYpT4yKRblOIls60YGh42X2skJ6OILIhc745/x6fC5+GdXXFfiHa6j7Go=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791795187; c=relaxed/simple;
-	bh=U/4R+YeEifWvncRpESdhDZ4w+cUor9JJYVYqHdW156s=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BbFSniV5pIVCC7LPYLACLkfhOLk0v6Z+zXoCGxjRY1tv2CYitctbTqhScE6u+NAX3hHvdyy3LJcInoacoZMPadd0cZtcdtYkIcfUeskys6MRqjDbulkcggYv6UmKsgE3UEiQOhAxFl5hGBu3F2cwaAY8UoULD+sKwMwKadbsijc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=nuBJCiAk; arc=none smtp.client-ip=117.135.210.4
+	s=arc-20240116; t=1791795191; c=relaxed/simple;
+	bh=tBw8AnSAuUdFX0dHuetjUscoCgMSHOjX9xOFoZ1RXY0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IBO/uNhNyFg/MOa9kY19TK+jhosm3aJPxRNFSYF2qGYR5hyOM60jys8gtgFvqIXKPdhAyegg/ELzFpfbCh0liVAz6rA/Slt6NcfJ9Bs903So6eaTtE+ALMxSu1nWFwRr4FCeUAOS8TIu2DB8XLOJVAIX0K68mFen/u7ychww6/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=HzMpL1y9; arc=none smtp.client-ip=117.135.210.5
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="nuBJCiAk"
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="HzMpL1y9"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=c6
-	hLHbjPTyEX9KzDzUTEOrlIWSSx4BZg1YF3Q/YxGBk=; b=nuBJCiAkp6Hum4nfzm
-	r/8sCWH8rNF4Hf+aFH2UCObWxRV83w1PuGPvuvelI+WFuodwN3d3xoALJbUi1nLo
-	bI3vr9sb1R2LN2cqsxKK76eU4fn3d5eZTrJ3apNQb1DvVbGeC/+OCJAZZ/EUeU2S
-	RKf+3RCu4/GJ/5g/iycggQ0Qk=
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=RE
+	/zNUeGEkWnIm8O95nzlupYlUidLYEUOb0tJRK/LBQ=; b=HzMpL1y9zcisNegExp
+	cZOY6biq7SrDKrz3aCTWW7scfEAsbzqyDwVW3vKkrEAHWadoXWARWaw0vMpD2XX9
+	Q4n6QFYSMSY/zUUZEF1+RlWgeb+vJstd6O3xQlge7CjtGzA0Yk4wv0raea3XH5pK
+	++4VQGH/ZKm3LpEdswwB2bDwE=
 Received: from chaosheng-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.lan (unknown [])
-	by gzga-smtp-mtada-g0-3 (Coremail) with SMTP id _____wDXn6rVn8xqjDtnEA--.23112S3;
-	Mon, 12 Oct 2026 16:52:39 +0800 (CST)
+	by gzga-smtp-mtada-g0-3 (Coremail) with SMTP id _____wDXn6rVn8xqjDtnEA--.23112S2;
+	Mon, 12 Oct 2026 16:52:38 +0800 (CST)
 From: Quchaosheng <quchaosheng000406@163.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Rob Herring <robh@kernel.org>,
@@ -36,12 +35,10 @@ Cc: dri-devel@lists.freedesktop.org,
 	linux-omap@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Chaosheng Qu <quchaosheng000406@163.com>
-Subject: [PATCH v5 1/3] dt-bindings: display: ti,tpd12s015: Convert to DT schema
-Date: Mon, 12 Oct 2026 16:52:35 +0800
-Message-ID: <20261012085237.377612-2-quchaosheng000406@163.com>
+Subject: [PATCH v5 0/3] dt-bindings: display: ti,tpd12s015: convert, and fix what the conversion exposed
+Date: Mon, 12 Oct 2026 16:52:34 +0800
+Message-ID: <20261012085237.377612-1-quchaosheng000406@163.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261012085237.377612-1-quchaosheng000406@163.com>
-References: <20261012085237.377612-1-quchaosheng000406@163.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -49,182 +46,64 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wDXn6rVn8xqjDtnEA--.23112S3
-X-Coremail-Antispam: 1Uf129KBjvJXoWxCFyDtr1xCr1UZF1rCr45Wrg_yoWruF45pF
-	n5Gas7CFy8WFyaqw4Iyr1kCa1rAFykAF40kF1xJFy5tF40qF4ktF13Krn8XFy5Ga4xZayY
-	qF47Ww17Kwn7Cw7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0piQ6pPUUUUU=
-X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbC4xjrYWrMn9iZzQAA3E
+X-CM-TRANSID:_____wDXn6rVn8xqjDtnEA--.23112S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7Zw18tF4fWryUGr48Jry5Jwb_yoW8uFy5pa
+	9xGF4kCw1vkFy7trZ7Xw1v9a93Ca97JF4kKF17JrW5Jan0k3W0vryfKw1YvryUGayfCayj
+	vrn8K3sFgwnFy3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pizBTrUUUUU=
+X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbC4xbqYGrMn9aZrwAA3m
 
 From: Chaosheng Qu <quchaosheng000406@163.com>
 
-Convert the TPD12S015 HDMI level shifter binding to DT schema.
+v5 of the tpd12s015 conversion.
 
-The TI TPD12S015 is an HDMI companion chip that combines a level shifter
-and ESD protection circuitry. Document the two ports it exposes between
-the HDMI transmitter and the connector.
+  [1/3] converts ti,tpd12s015.txt to DT schema.
 
-The tpd12s016 is software compatible with the tpd12s015 and is listed as
-a fallback compatible by am57xx-idk-common.dtsi, so accept it as a
-fallback of "ti,tpd12s015". The driver matches on "ti,tpd12s015" only, so
-a board using the tpd12s016 must list both compatibles.
+  [2/3] drops two gpio entries from omap5-igep0050.dts that nothing reads:
+        the binding and both drivers describe three gpios, and the extra
+        two have no pinctrl group and no other consumer in the tree.
 
-The ports carry no properties beyond the graph ones, so each port takes
-the plain graph port schema.
+  [3/3] drops the unit-address from the tpd12s015 endpoints on
+        am5729-beagleboneai and am57xx-idk, which carry one without a
+        matching reg property.
 
-Assisted-by: LLM
-Signed-off-by: Chaosheng Qu <quchaosheng000406@163.com>
----
+Patches 2 and 3 remove warnings that the bare conversion leaves behind:
+
+  am5729-beagleboneai:  241 -> 237 dtbs_check warnings
+  omap5-igep0050:       188 -> 186 dtbs_check warnings
+
+with no new warnings in either file.
+
+Changes in v5:
+ - ports: use "$ref: /schemas/graph.yaml#/properties/port" and drop the
+   unevaluatedProperties lines.  Neither port carries anything beyond the
+   graph properties.  Reported by Rob.
+ - description: drop the "|" block scalar.
+ - no other change from v4.
+
+The sashiko finding that gpios lacks "minItems: 3" is not valid.  Rob
+explained that dt-schema makes the two bounds equal when only one of them
+is given, so "maxItems: 3" already means exactly three.
+
+Eduard Bostina posted the same conversion on 2026-07-30,
+<20260730092245.52034-1-egbostina@gmail.com>.  If his series is the one to
+carry this, say so and I will drop mine.
+
+Chaosheng Qu (3):
+  dt-bindings: display: ti,tpd12s015: Convert to DT schema
+  ARM: dts: ti/omap: drop the two unused gpios from the igep0050 hdmi
+    encoder
+  ARM: dts: ti/omap: drop unit-address from tpd12s015 endpoints
+
  .../bindings/display/ti/ti,tpd12s015.txt      | 44 ----------
  .../bindings/display/ti/ti,tpd12s015.yaml     | 88 +++++++++++++++++++
- 2 files changed, 88 insertions(+), 44 deletions(-)
+ .../boot/dts/ti/omap/am5729-beagleboneai.dts  |  4 +-
+ .../boot/dts/ti/omap/am57xx-idk-common.dtsi   |  4 +-
+ arch/arm/boot/dts/ti/omap/omap5-igep0050.dts  |  4 +-
+ 5 files changed, 93 insertions(+), 51 deletions(-)
  delete mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt
  create mode 100644 Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml
 
-diff --git a/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt b/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt
-deleted file mode 100644
-index 26e6d32e3f20..000000000000
---- a/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.txt
-+++ /dev/null
-@@ -1,44 +0,0 @@
--TPD12S015 HDMI level shifter and ESD protection chip
--====================================================
--
--Required properties:
--- compatible: "ti,tpd12s015"
--
--Optional properties:
--- gpios: CT CP HPD, LS OE and HPD gpios
--
--Required nodes:
--- Video port 0 for HDMI input
--- Video port 1 for HDMI output
--
--Example
---------
--
--tpd12s015: encoder@1 {
--	compatible = "ti,tpd12s015";
--
--	gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>,	/* 60, CT CP HPD */
--		<&gpio2 9 GPIO_ACTIVE_HIGH>,	/* 41, LS OE */
--		<&gpio2 31 GPIO_ACTIVE_HIGH>;	/* 63, HPD */
--
--	ports {
--		#address-cells = <1>;
--		#size-cells = <0>;
--
--		port@0 {
--			reg = <0>;
--
--			tpd12s015_in: endpoint@0 {
--				remote-endpoint = <&hdmi_out>;
--			};
--		};
--
--		port@1 {
--			reg = <1>;
--
--			tpd12s015_out: endpoint@0 {
--				remote-endpoint = <&hdmi_connector_in>;
--			};
--		};
--	};
--};
-diff --git a/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml b/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml
-new file mode 100644
-index 000000000000..5955f2e6421c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/display/ti/ti,tpd12s015.yaml
-@@ -0,0 +1,88 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/display/ti/ti,tpd12s015.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
-+
-+title: TI TPD12S015 HDMI level shifter and ESD protection chip
-+
-+maintainers:
-+  - Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-+
-+description:
-+  The TPD12S015 is an HDMI companion chip that combines a level shifter and
-+  ESD protection circuitry. It sits between an HDMI transmitter and the HDMI
-+  connector, and provides control over the level shifter enable and the
-+  hot-plug detect signals.
-+
-+properties:
-+  compatible:
-+    oneOf:
-+      - const: ti,tpd12s015
-+      - items:
-+          - const: ti,tpd12s016
-+          - const: ti,tpd12s015
-+
-+  gpios:
-+    description:
-+      The CT CP HPD, LS OE and HPD GPIOs, in that order. The first controls
-+      the level shifter, the second enables the level shifter outputs and
-+      the third reads the hot-plug detect line.
-+    maxItems: 3
-+
-+  ports:
-+    $ref: /schemas/graph.yaml#/properties/ports
-+
-+    properties:
-+      port@0:
-+        $ref: /schemas/graph.yaml#/properties/port
-+        description: HDMI input from the transmitter.
-+
-+      port@1:
-+        $ref: /schemas/graph.yaml#/properties/port
-+        description: HDMI output to the connector.
-+
-+    required:
-+      - port@0
-+      - port@1
-+
-+required:
-+  - compatible
-+  - ports
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    #include <dt-bindings/gpio/gpio.h>
-+
-+    encoder1 {
-+        compatible = "ti,tpd12s015";
-+
-+        gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>,    /* 60, CT CP HPD */
-+                <&gpio2 9 GPIO_ACTIVE_HIGH>,    /* 41, LS OE */
-+                <&gpio2 31 GPIO_ACTIVE_HIGH>;    /* 63, HPD */
-+
-+        ports {
-+            #address-cells = <1>;
-+            #size-cells = <0>;
-+
-+            port@0 {
-+                reg = <0>;
-+
-+                tpd12s015_in: endpoint {
-+                    remote-endpoint = <&hdmi_out>;
-+                };
-+            };
-+
-+            port@1 {
-+                reg = <1>;
-+
-+                tpd12s015_out: endpoint {
-+                    remote-endpoint = <&hdmi_connector_in>;
-+                };
-+            };
-+        };
-+    };
-+
-+...
 -- 
 2.43.0
 
