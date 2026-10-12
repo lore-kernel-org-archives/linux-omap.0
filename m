@@ -1,135 +1,123 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6A29331A65
-	for <linux-omap@vger.kernel.org>; Sun, 11 Oct 2026 20:14:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70C3B453A45;
+	Mon, 12 Oct 2026 08:53:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.2
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791749670; cv=none; b=dTsDc4E4MAmgBGZEHZHYObDcMklsK4RMRkm/3Rv4VhN5eDMK44xw5byr+fz7GQJEid6UPhUs5pivQ7Pn5ZACXZw0ukKv0q4t2JUCYEppC0Wy+wtXmf6MipMv9ocNbAxuYfnBfEAeDB32ZGk1Vw2oX8g9PxNrNQBXCR6gh2yVhhw=
+	t=1791795186; cv=none; b=Plrsx7amThdSDTubO8zxuLJRmNPLBxK2n0qRys0YttIVyNGan7HXFOOSHVb2DmPQgzRV0JiXcGKAAapjSb52vDa9lIfeQSS4Oa8iArkNk84vO5c+NZi9BRrWkhNllC8fNxQChuQzIZLkv+0BZAoUicvmGiM6CvusVdM+ZBdErrI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791749670; c=relaxed/simple;
-	bh=wFATd3AKREDjpA0f6zO3k2HYKpHRpHqvKk6gTZrn6/0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=EvzRDelOjsqUR8vzMsaCufnEXwkMPzoRWOk1qFTf9Kor0OMTcHl8/i/jVXkX+Ul0CeM/P1PH7ubo2/Antzs05o/jouhMSUGvU7AE0NHoHi+ldB79cIDQEpzjhkhYHmRSUWHMWu8oiBvrYe+S4urASC7q1SeMii9XZe/Vo0dWzK4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iHptSIYn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791795186; c=relaxed/simple;
+	bh=lNRcAUgKgQ3+06qfzDmCw6ec5pwHZ+dJbRpu1Awqnw0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=OwdnoFzPEcN5gEBvmj3u+TtshsHZftFHrME+n9R7mbHjtQelTCOmbIlS4SJybTfnxzOs0K5obSra0E1SsV7NZUMqtXmCL0GltA+t+NiuWpaH9kNVK+R7HC8r1DRUELI4EguO2uncWwquRFN8anka/n0XSx+ubFBeKT/lV6p41YE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=lHv95Xja; arc=none smtp.client-ip=220.197.31.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iHptSIYn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A0B71F0089C
-	for <linux-omap@vger.kernel.org>; Sun, 11 Oct 2026 20:14:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791749669;
-	bh=2B6yxoun5grNXYDPaHbatpr3XqvAdqs6leClJ2sd5R8=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=iHptSIYnEoXY75N5KOzg4E/xkRfjBaZIkYloNhEOKhQbrhZTB3u69gX372ImDPVVS
-	 Dm+InQ/5B9Nya4ueKj0KzFOwsMZk70RXneY/mpGcJ6AWHhgGx8hnMVli9xwNyQ6g0+
-	 0MZIIDTj1E+a8qGy2Suu/StXxvqCy52wB+Fx0r+Zktp3ifU2OAnqX+j9PDLcy+yLZa
-	 AbPSNM+89qrc4PwzdJEykbdom9hzduReaWJg5LUrVt8s3ArsQXd0Cl51g4jzMgUavZ
-	 a0Qbfiwv9XbC8CSwAa1O/iNpZs2YmWbdnPTTFMx3twMa0bdU8QpUcEw6xN6kdN2CA2
-	 6p2m8SXEcdyyQ==
-Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5bccc96684dso626720e87.2
-        for <linux-omap@vger.kernel.org>; Sun, 11 Oct 2026 13:14:29 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvByjjjo/xtsV87EbfeZQQcTTvC3ErqAuhtXCDb77nab8UPR7E8tbxXqSNg7YFT+Tz3CvDUkOF6D1mH6+@vger.kernel.org
-X-Gm-Message-State: AFq9FYIjTSHLBbUf52WWeDv6FIqcwUXDyhIcDMKXDrCkx/s13b7iaAhq
-	w6UrhbAsfCUbOue+nlf1hk+FgzVjpUH/kH8hk22b6XrAILA/8+ntM8sJL3LKR5LKuw8iD7H/7cD
-	xQRfkTEyhe+AUTVGZZC9UsUVy0VCVb5A=
-X-Received: by 2002:a05:6512:1155:b0:5bb:7beb:20c2 with SMTP id
- 2adb3069b0e04-5bcde8d90d7mr2470503e87.67.1791749668067; Sun, 11 Oct 2026
- 13:14:28 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="lHv95Xja"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=Po
+	nCbc/xJHNlxMrmJfxsNmEN6pluLhutUWocJ/bKsbM=; b=lHv95XjaN1BtJIKUaK
+	cbm6xWUUle/D68GLnpxHV6NFhr5BwI8q+yEb9IMl/NBIk8wmuOqDxYsrAI04Btyc
+	kXMPrzhcUOjyxihPCSpeYyYgpbzoR/A8h4z7Jw5rlGSsS3AnCzdERqkH/U/ioFDP
+	4fx9W64SC/FPw0rDZQnTum0rU=
+Received: from chaosheng-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.lan (unknown [])
+	by gzga-smtp-mtada-g0-3 (Coremail) with SMTP id _____wDXn6rVn8xqjDtnEA--.23112S5;
+	Mon, 12 Oct 2026 16:52:41 +0800 (CST)
+From: Quchaosheng <quchaosheng000406@163.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org,
+	devicetree@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Chaosheng Qu <quchaosheng000406@163.com>
+Subject: [PATCH v5 3/3] ARM: dts: ti/omap: drop unit-address from tpd12s015 endpoints
+Date: Mon, 12 Oct 2026 16:52:37 +0800
+Message-ID: <20261012085237.377612-4-quchaosheng000406@163.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261012085237.377612-1-quchaosheng000406@163.com>
+References: <20261012085237.377612-1-quchaosheng000406@163.com>
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261010175721.76213-1-adilov@disroot.org>
-In-Reply-To: <20261010175721.76213-1-adilov@disroot.org>
-From: Linus Walleij <linusw@kernel.org>
-Date: Sun, 11 Oct 2026 22:14:13 +0200
-X-Gmail-Original-Message-ID: <CAD++jLnTOc+n2PGpK1NDnNJXwgzTQ8shO_6NqNuADzxY8SyYsA@mail.gmail.com>
-X-Gm-Features: AclHuK-Ke9siXQxkd32F58VdGeapNv-uCnv-gmOvNgN2Tl6ULJ5GCCFCFZi_kuk
-Message-ID: <CAD++jLnTOc+n2PGpK1NDnNJXwgzTQ8shO_6NqNuADzxY8SyYsA@mail.gmail.com>
-Subject: Re: [PATCH v2] pinctrl: single: add big endian support
-To: Rustam Adilov <adilov@disroot.org>
-Cc: Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, 
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wDXn6rVn8xqjDtnEA--.23112S5
+X-Coremail-Antispam: 1Uf129KBjvJXoW7Zw18GryrtryfCF4fZFyUGFg_yoW8CFyrp3
+	sa9rs2yws7Kr1jkan8Zw1q9F1DKFWDuF1ayF4UWryUC3W3Xw1rJr17twn2kr1UCayfZw4j
+	9rn5WasFqw1DWF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zEeHqUUUUUU=
+X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbC5BnrYWrMn9nPLwAA33
 
-On Sat, Oct 10, 2026 at 7:57=E2=80=AFPM Rustam Adilov <adilov@disroot.org> =
-wrote:
+From: Chaosheng Qu <quchaosheng000406@163.com>
 
-> Add support for big endian pin controllers by taking into account
-> a big-endian device tree property.
->
-> This is needed on big endian MIPS platforms like RTL930X, RTL931X
-> and RTL9607C who use pinctrl-single, because when SWAP_IO_SPACE is
-> enabled, the mmio accessors in pinctrl-single perform a byte swap.
->
-> Signed-off-by: Rustam Adilov <adilov@disroot.org>
+The endpoints under the tpd12s015 ports on am5729-beagleboneai and
+am57xx-idk carry a unit-address without a matching reg property, which
+dtc warns about:
 
-I'm not so sure about expanding the usage of pinctrl-single, we have
-said that this is used in the cases when you want to stash all the
-hardware data into the device tree (such as which groups and functions
-that exist) and it seems mostly done to save memory for the kernel
-so you don't need to compile in that data for all systems.
+  Warning (unit_address_vs_reg): .../endpoint@0: node has a unit name,
+  but no reg or ranges property
 
-The argument that this is "simple" if you just have some hardware
-data in a file is moot these days IMO, because you can now just
-give that data to an LLM and it will spit out any group and function
-definitions you want.
+Drop the unit-address.
 
-So I'd like to hear some of the reasoning about why you want to
-do this thing, we have other drivers doing this but without using
-pinctrl-single.
+Assisted-by: LLM
+Signed-off-by: Chaosheng Qu <quchaosheng000406@163.com>
+---
+ arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts | 4 ++--
+ arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi  | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-One of the driver maintainers have to ACK it too.
+diff --git a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
+index 76bfb364777e..f40017a0e414 100644
+--- a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
++++ b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
+@@ -168,7 +168,7 @@ ports {
+ 			port@0 {
+ 				reg = <0x0>;
+ 
+-				hdmi_encoder_in: endpoint@0 {
++				hdmi_encoder_in: endpoint {
+ 					remote-endpoint = <&hdmi_out>;
+ 				};
+ 			};
+@@ -176,7 +176,7 @@ hdmi_encoder_in: endpoint@0 {
+ 			port@1 {
+ 				reg = <0x1>;
+ 
+-				hdmi_encoder_out: endpoint@0 {
++				hdmi_encoder_out: endpoint {
+ 					remote-endpoint = <&hdmi_connector_in>;
+ 				};
+ 			};
+diff --git a/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi b/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
+index 5eccff3bb4b6..4e8a5820b05c 100644
+--- a/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
++++ b/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
+@@ -135,7 +135,7 @@ ports {
+ 			port@0 {
+ 				reg = <0>;
+ 
+-				tpd12s015_in: endpoint@0 {
++				tpd12s015_in: endpoint {
+ 					remote-endpoint = <&hdmi_out>;
+ 				};
+ 			};
+@@ -143,7 +143,7 @@ tpd12s015_in: endpoint@0 {
+ 			port@1 {
+ 				reg = <1>;
+ 
+-				tpd12s015_out: endpoint@0 {
++				tpd12s015_out: endpoint {
+ 					remote-endpoint = <&hdmi_connector_in>;
+ 				};
+ 			};
+-- 
+2.43.0
 
-> +static unsigned int pcs_readw_be(void __iomem *reg)
-> +{
-> +       return ioread16be(reg);
-> +}
-> +
-> +static unsigned int pcs_readl_be(void __iomem *reg)
-> +{
-> +       return ioread32be(reg);
-> +}
-> +
-> +static void pcs_writew_be(unsigned int val, void __iomem *reg)
-> +{
-> +       iowrite16be(val, reg);
-> +}
-> +
-> +static void pcs_writel_be(unsigned int val, void __iomem *reg)
-> +{
-> +       iowrite32be(val, reg);
-> +}
-
-Why this indirection? Can't you just assign the standard
-accessors directly?
-
->         case 16:
-> -               pcs->read =3D pcs_readw;
-> -               pcs->write =3D pcs_writew;
-> +               if (byte_be) {
-> +                       pcs->read =3D pcs_readw_be;
-> +                       pcs->write =3D pcs_writew_be;
-> +               } else {
-> +                       pcs->read =3D pcs_readw;
-> +                       pcs->write =3D pcs_writew;
-
-Maybe they should all do that actually, can't we rewrite
-this so we just:
-
-if (byte_be) {
-  pcs->read =3D ioread16be;
-  pcs->write =3D iowrite16be;
-} else {
-  pcs->read =3D ioread16;
-  pcs->write =3D iowrite16;
-
-I don't see how the wrappers help and I hope the compiler
-just optimize them away anyway.
-
-Yours,
-Linus Walleij
