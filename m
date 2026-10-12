@@ -1,43 +1,48 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CE04471269;
-	Mon, 12 Oct 2026 08:53:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1769A4078D5;
+	Mon, 12 Oct 2026 12:10:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.3
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791795191; cv=none; b=oaxBtFFsharTkHubSbfKFsnE5r4J1U8hrQpbmg5hGeAoYT81yX1d3u7wvDQmINEMLbV1Ov/UNHmexknDm658HdQOsIP2t1lGLBlcB44/UkjpSOGkD1YYpT4yKRblOIls60YGh42X2skJ6OILIhc745/x6fC5+GdXXFfiHa6j7Go=
+	t=1791807014; cv=none; b=QzIXDkDxRBE1UlbD+KeZQWhBX3u7g5idnD3hg57MsTWEck7VFh+aWGtILpxXnsNb88+cjo/hgzG5mAc2JL24XsDiw6fNJ8ir4RWjxbSYExI4MLdDO0uGcfHSN2gXP/Pz+8ktE31FrKBNclQZy7ZTVOwRRnYlavMA/xohXTbF+Ck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791795191; c=relaxed/simple;
-	bh=tBw8AnSAuUdFX0dHuetjUscoCgMSHOjX9xOFoZ1RXY0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IBO/uNhNyFg/MOa9kY19TK+jhosm3aJPxRNFSYF2qGYR5hyOM60jys8gtgFvqIXKPdhAyegg/ELzFpfbCh0liVAz6rA/Slt6NcfJ9Bs903So6eaTtE+ALMxSu1nWFwRr4FCeUAOS8TIu2DB8XLOJVAIX0K68mFen/u7ychww6/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=HzMpL1y9; arc=none smtp.client-ip=117.135.210.5
+	s=arc-20240116; t=1791807014; c=relaxed/simple;
+	bh=Uwlqf7qlPT4N2Iy3JwU3MFX1mH5LGVxwdtWw3roIl2Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=opyVHYae3Tf0o7iFNGcTC5wd5HiC14qNE0YVNNVwpuK00412vq8Vu4vrZlhwmCXowwBOnNdaHAYdYoHQMCQHV4PwaDa6+ROra3EUhzxZAXJ6VBnWd/FoUxr0IR8DZIBuvXBDgg0TlxYU7uajMInfHMVg8m+fm0tA2D/ueuNCFPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=U28QwxE8; arc=none smtp.client-ip=220.197.31.3
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="HzMpL1y9"
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="U28QwxE8"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=RE
-	/zNUeGEkWnIm8O95nzlupYlUidLYEUOb0tJRK/LBQ=; b=HzMpL1y9zcisNegExp
-	cZOY6biq7SrDKrz3aCTWW7scfEAsbzqyDwVW3vKkrEAHWadoXWARWaw0vMpD2XX9
-	Q4n6QFYSMSY/zUUZEF1+RlWgeb+vJstd6O3xQlge7CjtGzA0Yk4wv0raea3XH5pK
-	++4VQGH/ZKm3LpEdswwB2bDwE=
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=EG
+	jWHdD+0WJXirqwSDGo2+u4NUBE3eJztml/JqsySN0=; b=U28QwxE81Qk0EQjnOI
+	T0yvJ4DU2sgIxBOlyZ2Ggo1Q9Z7nt6c7r6fj/CKuR0L1clWR0APzbg/uNnhnIhZV
+	kGU8bWUDWbjbjZGlh9vHDCdcjkiX8rJntKzG0pZaK1FFxASQ03B+gJR6vFu31TLP
+	ZmLuzOsAGsrjCguc/B7TSoF0g=
 Received: from chaosheng-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.lan (unknown [])
-	by gzga-smtp-mtada-g0-3 (Coremail) with SMTP id _____wDXn6rVn8xqjDtnEA--.23112S2;
-	Mon, 12 Oct 2026 16:52:38 +0800 (CST)
+	by gzga-smtp-mtada-g0-1 (Coremail) with SMTP id _____wD3Nz_mzcxqHGNeDw--.1037S2;
+	Mon, 12 Oct 2026 20:09:12 +0800 (CST)
 From: Quchaosheng <quchaosheng000406@163.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Rob Herring <robh@kernel.org>,
 	Krzysztof Kozlowski <krzk+dt@kernel.org>,
 	Conor Dooley <conor+dt@kernel.org>,
-	Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org,
+	Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>,
+	Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	dri-devel@lists.freedesktop.org,
 	devicetree@vger.kernel.org,
 	linux-omap@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Chaosheng Qu <quchaosheng000406@163.com>
-Subject: [PATCH v5 0/3] dt-bindings: display: ti,tpd12s015: convert, and fix what the conversion exposed
-Date: Mon, 12 Oct 2026 16:52:34 +0800
-Message-ID: <20261012085237.377612-1-quchaosheng000406@163.com>
+Subject: [PATCH v6 0/3] dt-bindings: display: ti,tpd12s015: convert, and fix what the conversion exposed
+Date: Mon, 12 Oct 2026 20:09:07 +0800
+Message-ID: <20261012120910.506444-1-quchaosheng000406@163.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
@@ -46,16 +51,16 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wDXn6rVn8xqjDtnEA--.23112S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7Zw18tF4fWryUGr48Jry5Jwb_yoW8uFy5pa
-	9xGF4kCw1vkFy7trZ7Xw1v9a93Ca97JF4kKF17JrW5Jan0k3W0vryfKw1YvryUGayfCayj
-	vrn8K3sFgwnFy3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pizBTrUUUUU=
-X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbC4xbqYGrMn9aZrwAA3m
+X-CM-TRANSID:_____wD3Nz_mzcxqHGNeDw--.1037S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxGFyrJF13JF13WFW5JFWxCrg_yoW5Gr15pa
+	9xGF4kCw1kGF13KwsrXw1jk395CaykJF4vkF17trW5Jan0kr10qryfK3WavryUG3yfCayj
+	vFnYg3srKwnFy3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pizuWJUUUUU=
+X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbDAAh78GrMzejbpwAA38
 
 From: Chaosheng Qu <quchaosheng000406@163.com>
 
-v5 of the tpd12s015 conversion.
+v6 of the tpd12s015 conversion.
 
   [1/3] converts ti,tpd12s015.txt to DT schema.
 
@@ -73,6 +78,14 @@ Patches 2 and 3 remove warnings that the bare conversion leaves behind:
   omap5-igep0050:       188 -> 186 dtbs_check warnings
 
 with no new warnings in either file.
+
+Changes in v6:
+ - Carry Conor's Acked-by on 1/3, which v5 dropped by accident.  The only
+   change 1/3 saw between his ack and v5 is the ports $ref Rob asked for,
+   and that does not change which device trees the binding accepts.
+ - Send 2/3 and 3/3 to the OMAP device tree maintainers.  They touch
+   arch/arm/boot/dts/ti/omap; v5 reached that tree through linux-omap only.
+ - Patch content is otherwise unchanged from v5.
 
 Changes in v5:
  - ports: use "$ref: /schemas/graph.yaml#/properties/port" and drop the
