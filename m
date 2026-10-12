@@ -1,30 +1,30 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574993F8707;
-	Mon, 12 Oct 2026 12:10:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0598D4766A8;
+	Mon, 12 Oct 2026 12:10:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.2
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791807015; cv=none; b=oqhhlGrHn8utd5zAbseZCeW42IVaykf+I56MGuzZkvpyrTBchTw1hxZUm/pIPBr1MiKJWIjsOdzet4TOvp3LUeBGzt17i+OS4rXR4oXg3sjwf0+aTCPntvtQmx+6skL89Dtn0JHg/HS/zNlPKa+TUE8tedLxCv34M6KiYveGgW8=
+	t=1791807020; cv=none; b=GzOBVBa1p9K8HLsOKtbfhWpJV1Z3Lhd9QaGR3E/DNkUqIfJhsGX9Cl7e8NdwKLqAjet43anoY7nlSWjjdqqsw+VrWiy9wSbHMFvr4IFoKckg72IF3YEw1baairoOC5CBeEz3+oE/dvjnxzRBVipup0oNZ/v6fUTKLsMh103XskY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791807015; c=relaxed/simple;
-	bh=Xkq59yTDevYV+t7jHNaIsaQCYCHstZQRVe6Isa3N+rs=;
+	s=arc-20240116; t=1791807020; c=relaxed/simple;
+	bh=lNRcAUgKgQ3+06qfzDmCw6ec5pwHZ+dJbRpu1Awqnw0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Wp3HBg1OcIFnVRfVV5korKTujW+I7nmWinsFNgxVoJh1gntkBX0fC7+zlcAZgLQ4bUEwGXpOAix5XCwAFX7OQH2EFP2Gbf5gdLud3KXnrTWEn16fA538C2ZhDbyA6e8etxNGCwzWa+Ei3+DbRzhB7oHHompg1753bUkJvWbSJLw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=eiDJn36J; arc=none smtp.client-ip=117.135.210.5
+	 MIME-Version; b=Wv54Py87LXeJZuedlFyyoym0HkCviqF5EdgunZ7tM98P3M29ksGtr+7QoKpX17Oy82itqZCBVNTYvQDmsEiUIAtvcLFeKTi5ncLnMgaQ2PauZGHe2y0ZN3zfMjh8ivdq7jpSF70bKbTtfoorea9B7F/EndlVP5hi3eZe6U+wZF8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=FU5lx9T9; arc=none smtp.client-ip=220.197.31.2
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="eiDJn36J"
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="FU5lx9T9"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=no
-	1Td3tdmEW7G6ld8W+IQiOPMrAFQrOX8CNuntiDDkw=; b=eiDJn36JJDAYeoFxFn
-	j/hsQH7XjgfeL7Qyfq4GLL0xlbpa4JyvYnIwtDAix7MQG/lA1pneHtqnLqL/m3N4
-	pk9QB61SLqLoJap86xqsmk+b+Me3Qp/q4NCaBLfVEFSws9v7QZgYQ+EAiBcnyLa0
-	w64bcV0GhH1OCthYKktBP2WaU=
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=Po
+	nCbc/xJHNlxMrmJfxsNmEN6pluLhutUWocJ/bKsbM=; b=FU5lx9T94oquECpIhi
+	5qModf2TfFNxOKBY2D+3nStgsgJaZcnl5s/NvFSYBt5rE0lHy3p8kppwsw2DrELQ
+	nDvSQ4HrmYdl9T3dCH/dt4M9AMs2X2sRztkBIRjyXwgZotcxF8goFZaT2aNvkZSP
+	09NvWCNjWVE6w2EiWcuMJji4I=
 Received: from chaosheng-ASUS-TUF-Gaming-F16-FX607JV-FX607JV.lan (unknown [])
-	by gzga-smtp-mtada-g0-1 (Coremail) with SMTP id _____wD3Nz_mzcxqHGNeDw--.1037S4;
-	Mon, 12 Oct 2026 20:09:14 +0800 (CST)
+	by gzga-smtp-mtada-g0-1 (Coremail) with SMTP id _____wD3Nz_mzcxqHGNeDw--.1037S5;
+	Mon, 12 Oct 2026 20:09:15 +0800 (CST)
 From: Quchaosheng <quchaosheng000406@163.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Rob Herring <robh@kernel.org>,
@@ -41,9 +41,9 @@ Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
 	linux-omap@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Chaosheng Qu <quchaosheng000406@163.com>
-Subject: [PATCH v6 2/3] ARM: dts: ti/omap: drop the two unused gpios from the igep0050 hdmi encoder
-Date: Mon, 12 Oct 2026 20:09:09 +0800
-Message-ID: <20261012120910.506444-3-quchaosheng000406@163.com>
+Subject: [PATCH v6 3/3] ARM: dts: ti/omap: drop unit-address from tpd12s015 endpoints
+Date: Mon, 12 Oct 2026 20:09:10 +0800
+Message-ID: <20261012120910.506444-4-quchaosheng000406@163.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261012120910.506444-1-quchaosheng000406@163.com>
 References: <20261012120910.506444-1-quchaosheng000406@163.com>
@@ -54,44 +54,75 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wD3Nz_mzcxqHGNeDw--.1037S4
-X-Coremail-Antispam: 1Uf129KBjvdXoW7WryUWrWUKrWDCw18KF45Jrb_yoWktwcEqa
-	s7Kw4Iqan3tr9Ik3Z5X3s8W34xu3Z8uws3Gr1kKr47K3ZxZF4kGFZ7tF93Gw45WrZrKrZ3
-	GryrtF1qyw4avjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7xRHMKJUUUUUU==
-X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbC4wp78GrMzep3pwAA3z
+X-CM-TRANSID:_____wD3Nz_mzcxqHGNeDw--.1037S5
+X-Coremail-Antispam: 1Uf129KBjvJXoW7Zw18GryrtryfCF4fZFyUGFg_yoW8CFyrp3
+	sa9rs2yws7Kr1jkan8Zw1q9F1DKFWDuF1ayF4UWryUC3W3Xw1rJr17twn2kr1UCayfZw4j
+	9rn5WasFqw1DWF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zEeOpZUUUUU=
+X-CM-SenderInfo: xtxfxtprvkv0bjqqikiqw6il2tof0z/xtbDAAt78GrMzevb4wAA34
 
 From: Chaosheng Qu <quchaosheng000406@163.com>
 
-omap5-igep0050.dts gives the tpd12s015 node five gpios. The binding, the
-DRM driver and the fbdev driver all describe three: CT CP HPD, LS OE and
-HPD. Nothing in the file references the extra two, there is no pinctrl
-group for them and no other consumer in the tree.
+The endpoints under the tpd12s015 ports on am5729-beagleboneai and
+am57xx-idk carry a unit-address without a matching reg property, which
+dtc warns about:
 
-Drop them so the node matches what the hardware and the drivers actually
-use.
+  Warning (unit_address_vs_reg): .../endpoint@0: node has a unit name,
+  but no reg or ranges property
+
+Drop the unit-address.
 
 Assisted-by: LLM
 Signed-off-by: Chaosheng Qu <quchaosheng000406@163.com>
 ---
- arch/arm/boot/dts/ti/omap/omap5-igep0050.dts | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts | 4 ++--
+ arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi  | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/ti/omap/omap5-igep0050.dts b/arch/arm/boot/dts/ti/omap/omap5-igep0050.dts
-index 0368e32f67e7..8e8325936cda 100644
---- a/arch/arm/boot/dts/ti/omap/omap5-igep0050.dts
-+++ b/arch/arm/boot/dts/ti/omap/omap5-igep0050.dts
-@@ -102,9 +102,7 @@ OMAP5_IOPAD(0x086, PIN_INPUT | MUX_MODE6)	/* gpio4_118 */
- &tpd12s015 {
- 	gpios = <&tca6416 11 0>,	/* TCA6416 P01, CT_CP_HDP */
- 		<&tca6416 12 0>,	/* TCA6416 P00, LS_OE*/
--		<&gpio7 1 0>,		/* 193, HPD */
--		<&gpio7 2 0>,		/* 194, SCL */
--		<&gpio7 3 0>;		/* 195, SDA */
-+		<&gpio7 1 0>;		/* 193, HPD */
- };
+diff --git a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
+index 76bfb364777e..f40017a0e414 100644
+--- a/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
++++ b/arch/arm/boot/dts/ti/omap/am5729-beagleboneai.dts
+@@ -168,7 +168,7 @@ ports {
+ 			port@0 {
+ 				reg = <0x0>;
  
- &twl6040 {
+-				hdmi_encoder_in: endpoint@0 {
++				hdmi_encoder_in: endpoint {
+ 					remote-endpoint = <&hdmi_out>;
+ 				};
+ 			};
+@@ -176,7 +176,7 @@ hdmi_encoder_in: endpoint@0 {
+ 			port@1 {
+ 				reg = <0x1>;
+ 
+-				hdmi_encoder_out: endpoint@0 {
++				hdmi_encoder_out: endpoint {
+ 					remote-endpoint = <&hdmi_connector_in>;
+ 				};
+ 			};
+diff --git a/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi b/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
+index 5eccff3bb4b6..4e8a5820b05c 100644
+--- a/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
++++ b/arch/arm/boot/dts/ti/omap/am57xx-idk-common.dtsi
+@@ -135,7 +135,7 @@ ports {
+ 			port@0 {
+ 				reg = <0>;
+ 
+-				tpd12s015_in: endpoint@0 {
++				tpd12s015_in: endpoint {
+ 					remote-endpoint = <&hdmi_out>;
+ 				};
+ 			};
+@@ -143,7 +143,7 @@ tpd12s015_in: endpoint@0 {
+ 			port@1 {
+ 				reg = <1>;
+ 
+-				tpd12s015_out: endpoint@0 {
++				tpd12s015_out: endpoint {
+ 					remote-endpoint = <&hdmi_connector_in>;
+ 				};
+ 			};
 -- 
 2.43.0
 
