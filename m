@@ -1,131 +1,94 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+Received: from mail-wr1-f49.google.com (mail-wr1-f49.google.com [209.85.221.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59B8D5616B2
-	for <linux-omap@vger.kernel.org>; Wed, 14 Oct 2026 17:44:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEEDC4A6CC2
+	for <linux-omap@vger.kernel.org>; Thu, 15 Oct 2026 10:23:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791999871; cv=none; b=UFa3o9cVm109iyS4mFHiQfxCqB3/Vmi7zwTJ35a3mmezk0yW4XTrPHtkOW1fpYHHG+oXTMrNaZjzzePJxUJ8Jyabq2cR4ga+TgbVoz0hBPbMs9qIytqZzWMsD5eQzvPzYYSbKBAAlWbmLFaQJyeaIdq67lMwNs+raZvMfUVVnvo=
+	t=1792059827; cv=none; b=rCIwxueGTiTj7QyORfFRmzVE+m+rwINnSURr3u6URAThHcrOnYEXEh8qk7x3LHT5qirvCdECzbjzP6q3s+3L3iIZyN/1UIEv55YTMRLzgK8z+YbqJ6vzky+oejYd0TyRPF4o0uEXfaXC9aQCXKAL+UyrcqRSe1aMsVqielYSeHI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791999871; c=relaxed/simple;
-	bh=2oZYonurprwc6muwlObjEA8seBjbe0bRboulPYlqu/8=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=stEzEUNfUgvT4xhT18PJMKp0iCJkgkcilfFXMXyD3jZ+P1QSFVXEvu+LLhJPGdXQbTp5RXhmr5LdgCuM0XMznMoWy3nvHONJ7xFirF00+0EbMC/WMyx7tpL+A6owy2JyxrkPGsgxZPjGLzGObq5tDOhci0iFj+gzv+cHFInr+UU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=hN5A65t+; arc=none smtp.client-ip=209.85.128.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	s=arc-20240116; t=1792059827; c=relaxed/simple;
+	bh=Bh3H+LUzhkBIffj284EKBCnhxWAGkIa9mZwra3fm6Ws=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=l690MnEx7l/q8SfjqU+oGxkXYCmXWEmqBBJ0Pz6wiVcKA1TKV8z7PaikOiA7j09LsVRPxHxbU/BvLHW0veWB8BY58TNcf87Fuiyxcxg6JtBPOj8v1DNLcxg1l13X3AqUnnhNFqWMZLOOn+2ZBxNw333wbIR5pi7tIxoHVoYyvNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Hfrdo/td; arc=none smtp.client-ip=209.85.221.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="hN5A65t+"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-4a140e7405dso12475755e9.3
-        for <linux-omap@vger.kernel.org>; Wed, 14 Oct 2026 10:44:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Hfrdo/td"
+Received: by mail-wr1-f49.google.com with SMTP id ffacd0b85a97d-48b0d19cf7eso4612663f8f.1
+        for <linux-omap@vger.kernel.org>; Thu, 15 Oct 2026 03:23:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1791999867; x=1792604667; darn=vger.kernel.org;
-        h=cc:to:message-id:content-transfer-encoding:content-type
-         :mime-version:subject:date:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=95d33N1meM14gVljkWNmVajc6Ur/SmP+/ev0dbA/4bw=;
-        b=hN5A65t+SRG6JU+GKFqo2l1KHOgv2T7vYZzDe8NO5klHady/gOAq/g3xxOWMTX8WtZ
-         jVmSKxBX221Oo49Wh++sPvVDPUUxRN3ZTYi100k7Zfc/hJbiOZTxoDHRDMGsVm84DCDN
-         +SPaXcvHt1Gm4H6BI88DqsblcVEdENx/hsBBHUAcCjkUZSe1mble1XnqdTm/T/ei56Nj
-         9zd+ZdJ7DeZWZqQSZwSR0WnwV1HgngQQl1wbI3h3zlDzfNNAN6DyPyCvILkbGd02jQYv
-         3clebL9srOaOlfJqpoItq8SPIDpDToIooHRCmQmDtRwesdY0MLSLDxU4kmXOO1dXk6pp
-         Gr9g==
+        d=gmail.com; s=20251104; t=1792059824; x=1792664624; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=FZ03ahkbPaO+GKHMEmL3lRce7EgYgsIUaIYhnRWAhmk=;
+        b=Hfrdo/tdsAywdEJ0Q4zjR8LTvZIgQv4p6Red3MzTMbjAGQnbomDXgdDanktGnLOwrS
+         XMkfH0kSWZ/iNk35Bhdt9gx4hpj/Av1NQ1gIT4QXCHWtsqr7GCAwp32PZ0Y2Wj+3f4Dx
+         /vgK/rldv8A2F1m07xa4XeBQ33MdmdwEe/Av/lVUSNRDGa5nGO4xJ6u86nLByp71P3+5
+         KkV5O3yI1aKvOB7d9VXaDjzI931rZp3Cpimra5JC8Mp4h54RhN2WW8ohscaxoAD84W7Y
+         vTbNzf2cl4BegJqxS4fg+SRKprf58/9xgHihvaDS6iuF35vOgma0HP9ku9x1GA64bSkI
+         gFAw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791999867; x=1792604667;
-        h=cc:to:message-id:content-transfer-encoding:content-type
-         :mime-version:subject:date:from:x-gm-gg:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=95d33N1meM14gVljkWNmVajc6Ur/SmP+/ev0dbA/4bw=;
-        b=oeClXvdV+OS2gB9cYNmkThKjdXGB4S+tOGbt1MXaJzXiJ+8cZpllzGWo9O9kKD2x6U
-         9+xxEEO87jO8DYViH345yGQ+Sj1CExOrcIfXtVh17zY0c551Pncr6I6Zm4a8mGgMK5/3
-         sK0evcv8a+A0l4ipeY8WkXFSNr3By368XGnPzq465J+4X8xiSRM2aT7ypPPbemTk8vB5
-         5p8tQ9tARFIkHppS9AWFIEovxMv+nV1Hnh5+/pFGRVntoVN4JMmqfv3b5kNorRfdih71
-         +wbdTnoeDfWM/QdENcNpPVPJWvf2ThLmSM/4Cfo5Y8xbxnE2pTsEB3xImuj47D47TOqZ
-         HH5g==
-X-Forwarded-Encrypted: i=1; AKwUvBwdHbf3+mDYrzPcMVaRKGTO4xXjAlX8HW55n9CBRjwZzIASDROAbl/4EpPfQdD+6CmPWyiBeXsDUzq9@vger.kernel.org
-X-Gm-Message-State: AFq9FYIbZxohwuGMnKAHKXAU6iLnyPvCABEWkQcz/xYpP0SlJhoago5z
-	ckRCuWI1STL5ru+GkRgjQbBxS12qW5JGHrk3ngfHiTkxN9JukS0Crujv4b2R17l/UdU=
-X-Gm-Gg: AYBFou3LWQ6yM21jeDphqTL/c1zjX8JC9bqfwhdlOpQUpAqUoEmMd7P++t5pxeYBxGA
-	iy0LH0Dx/kfAL8/TWWl43bdtcd4iR05cpgezqbg4Dx53KZiTiTorkCNxVuSnuBAkfXqyMXuuXHR
-	nflfT3XkdOeWqZdDwiRGZ9JlEjXLGWbGCf+iq6A3bQuGUsWEIoKyan2ZkaO2Wz+VABvdQDTgAV5
-	ghXvnYLguaCe4R5JMPsBkUba8zDH+8Hd0ejq4Z58es+fGnmyHVFZbCzJ71QvUWFEaUe16rn9Bz8
-	PJBXO2el64iKg4Q2+E1RPyVS6E+Gh73uqELY39qbeEMwflTv84eOxd9RbbOLTFC3NgFuRHaeVdj
-	VOTrOjfnlfJaERmD1H/Zfn4arG04yLMamOuf9dZSfQE/16y4yHl2tUBhROAp8dKD5Ys1FKrLzbh
-	2pFCrWmdejY6+Ac6atYayh+ImZQNeoXbepVAQ7YTe2r5HUw47w5e+HnjftcW02rqR2BqZwFHKWV
-	I0LYM8Nt8P6Q5BqVkHd+Ps+qEzcO5tRonQp+hp57Sm9A0e2S/KG6Wx3n0Il2bHJ6muSWF4=
-X-Received: by 2002:a05:600c:8b65:b0:4a1:742e:3 with SMTP id 5b1f17b1804b1-4a18e4ca244mr307651825e9.27.1791999867377;
-        Wed, 14 Oct 2026 10:44:27 -0700 (PDT)
-Received: from z13-ek5.local ([151.41.28.233])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1bd9b8b5fsm6878175e9.9.2026.10.14.10.44.26
+        d=1e100.net; s=20260707; t=1792059824; x=1792664624;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=FZ03ahkbPaO+GKHMEmL3lRce7EgYgsIUaIYhnRWAhmk=;
+        b=RxbCju7R3MCbfdDzbOt9g9z9WtqsrLHnVM2CNIs+pbNZ7/bDjzNzZRt4NjCRRnIHfv
+         6siwL7rHo1e8sxheAE8wdttIgpinNLESe2YjGzAeTuHqkP1rkPGE5pZoDv8VxobtiivX
+         COd2fe3b35ROSeEPgt1aRypb+d3AA2EhKRGT2uB+Zc0QSzNZQJrBjNC/fxApWq0528cZ
+         evtTv3X9vFW+LxCUYy9orAllrMFib13pfd12n/fzTSDsmBCt3l/+C/4eXzI7py+iX7VY
+         zLr12T9WB6gKkhovPMuJ7Kj9sNJ+r9RwPoo4Rca9ed0f38pmUnmm0KYwEwuU6uYGmpRU
+         g2Sw==
+X-Gm-Message-State: AFq9FYKyiM8BsWeLC3QHlSFpIJpd0Nsb6zlqtBwd7xTjSQIT7lRT6xUC
+	GmXJ+uRY2mTmoL7nMMJShTrKNU0WWJRX3TkFKkVy4Pg+OHxy8C7pqnTL
+X-Gm-Gg: AYBFou2nZwjqoEEoZaa+8c8hyJSf45Pn9BF79sMZPv0hGs5q/Hddxp14NwHl3feLyBb
+	KDTtDkDANAyEyNxPG3xNqB187NAXmN/rTW3zodBY/RXzCdlc9AgzhySLUbEnS3FuZyVQq0ylbzQ
+	dQcYP60SE6Urgk/w3GtIUveqfk4enjY9okRGsknREUionhrjVrIKL7SfGsX+zekZ/t+q5/6hy8q
+	Lg3PEpO3ahDstLsBYaAEbsnJwuGzrXXeU/7i+r8xpgETwLP2QuXck12ss/+tSuuTtAcSt0jmYFo
+	YLTE5aEocJSohcSpWGdA+V9RuF/fOct+HbGBzKHOR4pTIco1xJfFtQWP5qmzTokDZTxSs+D3zpu
+	jsj+lK8AyN6yD7lw7Gu5kAx6lZvVikZv8tCWF6PFRBlEhpYQzt1hHEaSKiYifD9QvLmWO+3z1Ag
+	ikoR06NA+mVUhjVWGjKwr4bW5d4t5a+6+XcbhQwKXfL9t8FA56UT2lSnIT02S6OZGcRtTiMfSO+
+	zjffQyEe3BlEmTjkmQ=
+X-Received: by 2002:a05:6000:2dc5:b0:48a:f4d4:e1f3 with SMTP id ffacd0b85a97d-48dbaaecd68mr35443212f8f.13.1792059823690;
+        Thu, 15 Oct 2026 03:23:43 -0700 (PDT)
+Received: from xeon ([188.163.112.62])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48de0ab6361sm14952542f8f.32.2026.10.15.03.23.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Oct 2026 10:44:27 -0700 (PDT)
-From: Ettore Chimenti <ettore.chimenti@linaro.org>
-Date: Wed, 14 Oct 2026 19:38:10 +0200
-Subject: [PATCH] mmc: omap_hsmmc: Do not log error on probe defer
+        Thu, 15 Oct 2026 03:23:42 -0700 (PDT)
+From: Svyatoslav Ryhel <clamor95@gmail.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Lee Jones <lee@kernel.org>,
+	Dmitry Osipenko <digetx@gmail.com>,
+	Svyatoslav Ryhel <clamor95@gmail.com>
+Cc: linux-omap@vger.kernel.org,
+	mfd@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v1 0/2] mfd: tps65910: Use modern API for poweroff and restart
+Date: Thu, 15 Oct 2026 13:23:18 +0300
+Message-ID: <20261015102320.23760-1-clamor95@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261014-patch-ektor5-dm8168-mmc-v1-1-2d148ca0f948@linaro.org>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMQQqDMBCF4avIrDvgaJW0Vyku4jjWaYlKEqUg3
- t1Ulx+8928QxKsEeGYbeFk16DQm0C0DHuz4FtQuGYq8qCmnO8428oDyjZOvsHOGaoPOMVJp+GH
- bsk8jSO/ZS6+/s/xqLoel/QjHfw72/QBl3KtkewAAAA==
-X-Change-ID: 20261014-patch-ektor5-dm8168-mmc-138c9ab3f014
-To: Ulf Hansson <ulfh@kernel.org>, andrew.goodbody@linaro.org, 
- rouven.czerwinski@linaro.org
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Ettore Chimenti <ettore.chimenti@linaro.org>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1791999866; l=1397;
- i=ettore.chimenti@linaro.org; s=20261014; h=from:subject:message-id;
- bh=yE8QaLHiQFvOinPAzWnIH4J4gbNmnrzgxRBtfUhPuFU=;
- b=4tpQVRTBiUVmSFWGQ7EK/UCtNNM/h2EK0HJMdtFyRXGA88W+khHRr9T1QxUUTfp+y6NLHaTEv
- KBzcmcjSm45BhEFBjJXlxtcdIkY3IV64VijCih2gg8d/qvisLNWzCUU
-X-Developer-Key: i=ettore.chimenti@linaro.org; a=ed25519;
- pk=wCaUblFVaqhuBTQt/hAtysafsAaEsqj/yOD9SPlz6NM=
+Content-Transfer-Encoding: 8bit
 
-From: Andrew Goodbody <andrew.goodbody@linaro.org>
+Switch to modern way of registering poweroff call and add restart call.
 
-Do not print an error message to the log if the return code is
-EPROBE_DEFER by using dev_err_probe instead of dev_err.
+Dmitry Osipenko (2):
+  mfd: tps65910: Use devm_register_power_off_handler()
+  mfd: tps65910: Add restart handler
 
-Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
-Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
----
- drivers/mmc/host/omap_hsmmc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/tps65910.c | 40 +++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 35 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index de5a3b70107d..ed52adb38fd5 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1892,15 +1892,15 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 
- 	host->rx_chan = dma_request_chan(&pdev->dev, "rx");
- 	if (IS_ERR(host->rx_chan)) {
--		dev_err(mmc_dev(host->mmc), "RX DMA channel request failed\n");
- 		ret = PTR_ERR(host->rx_chan);
-+		dev_err_probe(mmc_dev(host->mmc), ret, "RX DMA channel request failed\n");
- 		goto err_irq;
- 	}
- 
- 	host->tx_chan = dma_request_chan(&pdev->dev, "tx");
- 	if (IS_ERR(host->tx_chan)) {
--		dev_err(mmc_dev(host->mmc), "TX DMA channel request failed\n");
- 		ret = PTR_ERR(host->tx_chan);
-+		dev_err_probe(mmc_dev(host->mmc), ret, "TX DMA channel request failed\n");
- 		goto err_irq;
- 	}
- 
-
----
-base-commit: 0fcb05b72344f40806cbe810de8872f1698bf053
-change-id: 20261014-patch-ektor5-dm8168-mmc-138c9ab3f014
-
-Best regards,
---  
-Ettore Chimenti <ettore.chimenti@linaro.org>
+-- 
+2.53.0
 
