@@ -1,143 +1,148 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from smtpbgjp3.qq.com (smtpbgjp3.qq.com [54.92.39.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1D9C4219E9;
-	Fri, 16 Oct 2026 07:40:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37BFD36F908;
+	Fri, 16 Oct 2026 08:30:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.92.39.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792136427; cv=none; b=kjnxXzxQ6mAUQ8qAP5A/wg680gU/fyQt99fdS7aC5ACFI1u2o6Bk6XDsf9CtntyRRlnmXcI/sMQcK2V9BVjv6evZ/9smeUjkiUHWTL+EpTFW69cj6vywqkAMUY3AInGkJEOD1POMq3Vp3XrPAqLg3T+Q7d6YP8AdgnXOJluiD1Q=
+	t=1792139466; cv=none; b=BWP0V6FvFEMFBnQIpiXeMHuiElLA+R7xlrXh3UATOz+dOCllsjXp91M8iIVsuXTS1h6IQN12y7Rbhsir5zyGFe8cfn9gOePlsPbFzs2EX489zyALaWTAmBu6mALMGmea0nSWd0XR8chIVkL7IUdwjnWo/ciuS6Vn9Yiyw3N0k24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792136427; c=relaxed/simple;
-	bh=mofmNipM2hWNiXPFaH0c8qRsysHiI60VRYo4uMGBz40=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sr7KG3Uf88VACDRxL+TVbuKzQBbVUzuDlcBl1yCpOyc7z6lEYp1b0xqQXfPZbIOjlUGmR69uedUwk/+wy1x5HGTKWAhaUViKSu84Dsn/U/rOyaG+kWPyXORV9hrNs1wpTWA9wtcGqX4kIdBWJrm/63j/Ff/PzvOwkBGvGSvkj/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SyaFapeX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792139466; c=relaxed/simple;
+	bh=IlSuneC1Cft/iB5s9rOSqN+4WSgzm1GEv54QLb5xytY=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=PPiKOOS+DR2lTYbjILqtS2ChSLZfy1qKqDOHDFV5DQiRncQNhRSkHVKkCk+whNvYM7ufxkBZ5gbUOgtxTvRCf8PISEs6mQfhQ6EN/TuV5uyf1uZENLgzqvZ++LR0eiXWfuhpfqELFefTmd9uOACQr0DeWRcnO7b0pOYwFGmaNN0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=bsNvDAhJ; arc=none smtp.client-ip=54.92.39.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SyaFapeX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97F231F000C4;
-	Fri, 16 Oct 2026 07:40:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792136424;
-	bh=0pz30Arm3iXS3Q4cxaVxmL7XUFi944ujcvdwlwsKw8g=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=SyaFapeXtzdEUqy3FqVnI0LIHeSv0YjGBcQpFcVTeDZARn/2Fc2p8NQj4ynUgVLua
-	 7txCYI363gs516E6zngozBd30l3VtDvvgtuBHsi0hZ5Eo28hEyA9kEzct050FIs0LS
-	 Kp8mp8RDsCwJLAUVU/e+i0Ji6Tm/VK6rGooiEYMDvtL0XXdEGCkCRmwgn7smZ8FxrJ
-	 7unCgxsu6DrdjmCB3+r7i+kKSyCfoJNzlIWpoE6mxzJ0t0UgPPxzYKcWt7HBvFL3U+
-	 7b/q4GsQR6kQgRi5wVDRyTTUVc9moaSIShG/Q1K6hHNRg5Hk1Xdf6Z1kgodSUjMqXT
-	 MFpzm5BM+RMSw==
-Date: Fri, 16 Oct 2026 08:40:19 +0100
-From: Lee Jones <lee@kernel.org>
-To: Rosen Penev <rosenp@gmail.com>
-Cc: mfd@lists.linux.dev, Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	OMAP2+ SUPPORT <linux-omap@vger.kernel.org>,
-	open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3] mfd: twl-core: Allocate modules with twl_private
-Message-ID: <20261016074019.GB2093461@google.com>
-References: <20260926013325.75073-1-rosenp@gmail.com>
- <179198497618.839288.9266863610003754798@kernel.org>
- <CAKxU2N_b-wxOuugVm7wzgh4RN9oUCNf1jnHYkKN0--MxHHA_tQ@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="bsNvDAhJ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
+	s=onoh2408; t=1792139428;
+	bh=ppMqsg8mOhqDajSuDUyLaA9LHQl2I4uoxhDr7vbDmFg=;
+	h=From:Date:Subject:MIME-Version:Message-Id:To;
+	b=bsNvDAhJ0AGPT3sfnSseMcJWPvMjlbEcFL+y1lssPY/En7TTJt/ZtXeXx9Ca95vzY
+	 kwLdD67LmoI5xCdJTlATX+acyiQXBKPtEuAADpqI38ZlHKnsyEA/D3nM4M21bu5Ngr
+	 WnFHKXs2T6rzeMhROVS2nNwMibvhb/z3O4YV4xD4=
+X-QQ-mid: esmtpgz10t1792139423teed96f79
+X-QQ-Originating-IP: wZfX1lGB1Z8NTcK/WIg5W0MDwDDO+bHI93LwMgLMDYY=
+Received: from [10.10.7.69] ( [124.126.19.250])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Fri, 16 Oct 2026 16:30:04 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 1
+X-BIZMAIL-ID: 12796268041263047358
+EX-QQ-RecipientCnt: 9
+From: ZhaoJinming <zhaojinming@uniontech.com>
+Date: Fri, 16 Oct 2026 16:30:04 +0800
+Subject: [PATCH] crypto: omap-aes - fix NULL pointer dereference in
+ omap_aes_remove()
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAKxU2N_b-wxOuugVm7wzgh4RN9oUCNf1jnHYkKN0--MxHHA_tQ@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20261016-omap-aes-remove-null-deref-v1-1-195d36295ed4@uniontech.com>
+X-B4-Tracking: v=1; b=H4sIAIvg0WoC/yXMQQqDMBBG4avIrDtgbFDoVUoXiflbRzSRjEpBv
+ HvTdvm9xTtIkQVKt+qgjF1UUiwwl4r6wcUXWEIxNXXTmtq0nGa3sINyxpx2cNymiQMynuyu1lr
+ feW+6QGWwlCjv3/z++Fs3P6Jfv0c6zw+wING7fgAAAA==
+X-Change-ID: 20261016-omap-aes-remove-null-deref-a3444b7bb17d
+To: Herbert Xu <herbert@gondor.apana.org.au>, 
+ "David S. Miller" <davem@davemloft.net>, Lokesh Vutla <lokeshvutla@ti.com>, 
+ Tero Kristo <t-kristo@ti.com>
+Cc: linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-omap@vger.kernel.org, stable@vger.kernel.org, 
+ ZhaoJinming <zhaojinming@uniontech.com>
+X-Mailer: b4 0.15.2
+X-QQ-SENDSIZE: 520
+Feedback-ID: esmtpgz:uniontech.com:qybglogicsvrsz:qybglogicsvrsz4b-0
+X-QQ-XMAILINFO: N3l5ASPewLWqgu8AT+ZV3VEidr1DX6qYII6LAxobg2AR5fr8alElaSEj
+	aqkyEd4A8tzTU2S69atPF9PqIRR/VkQhLK9KHv73xCMjQyEwRjFmBrSwuJdOBIrn+qcLQuP
+	mvHPC+mVbcAzGVQqo4iQU8Yb+A+FhXwsktGo/7nn9tZu4QsqQEeBag6deGHAErN15ycGkq7
+	0dn1uZ8GKbrb6QdHZzDqmxIfiR6YwTpwwQ/9+836ytzZC7rrvBDNkPNe27CSMyw4jQD08Cp
+	DaxNUAKah6RMHeySDTVG8Se8atbSRkLYQgh6hW4KCM+GUJzr4R/FEWNXzZ7tOTY4g+g18AM
+	1LfkVMYMEqRVdOGgA1PwSduBY/t6qG5FeZ6kWSL+KDggvgJE8l0rW31+PaLx3u7kLUzDSPJ
+	58XGv8YprnvfCSdgxWdGKLvFLOzNzTwhCCx//6binHUKasCDk1Pu3WdaZZHdrhEQYNPvsjb
+	TGtB1wdqyO8SYPkFB7iI/sRfvdC5l4dkQZ6JbFgZ4fLtVveEL2cTIvzIuUgWHBpsVMhFhiR
+	QNXP5PN6cdl2cAGhxBS6mvqpPyrsR/mzpmsyfQEeFewFv1LhRR8FTku1HZ+q9xk+0K7rRos
+	0vPYa3NsT6N+A5HK4U1yFxd7hlFdSKoDAm0msWy/f+EWcl9KBCASfTSMmEXnzpt7yp/CUZA
+	9sbVihQpk3ci7fX2bYBpYHkFZ0B6QM+4IHKrA74PlayDvsO0V7ygBiBGAkeMlEDGW7p3Knp
+	0jAoKi9Hlfgm95mtJO8YzjQXJ/egZSrsuEy/sRJNEfJBzJUKhQ3i4v6gltPHtk88goWasq6
+	RCk9hlYFnbTlJVLpku+uQqxFcYKBdfJDENQywtKz3w1LBDf9HxoPcLkz+VUJe4Xf95NqRWg
+	GyT45tpMn0azb30nOF99xpn5zVxZuDRMKqPzTjlg6AHsAKvJ6xEjdYSZQb6rInIewo+GtG8
+	P788ANuoT77Z46cufe9XZZvOby11L4Kju1+TIoZs/bpJpPYtjOIsC8lXdAhXBi+Qmr781I/
+	WjDykG0Yzrax3wBADX2Y/qxZZhxIop/f/Ypym5Qg==
+X-QQ-XMRINFO: M/715EihBoGS47X28/vv4NpnfpeBLnr4Qg==
+X-QQ-RECHKSPAM: 0
 
---- checkpatch.pl (3 issues) ---
-Line 4: ERROR: Invalid commit separator - some tools may have problems applying this
-Line 32: WARNING: please, no spaces at the start of a line
-Line 41: WARNING: please, no spaces at the start of a line
-----------------------------------
+omap_aes_remove() unconditionally dereferences dd->pdata->aead_algs_info,
+but only omap_aes_pdata_omap4 initializes that field:
 
---- checkpatch.pl (2 issues) ---
-Line 27: WARNING: please, no spaces at the start of a line
-Line 36: WARNING: please, no spaces at the start of a line
-----------------------------------
+	static const struct omap_aes_pdata omap_aes_pdata_omap2 = {
+		.algs_info	= omap_aes_algs_info_ecb_cbc,
+		...
+	};
 
-On Thu, 15 Oct 2026, Rosen Penev wrote:
+	static const struct omap_aes_pdata omap_aes_pdata_omap3 = {
+		.algs_info	= omap_aes_algs_info_ecb_cbc_ctr,
+		...
+	};
 
-> On Thu, Oct 15, 2026 at 5:05 AM Lee Jones <lee@kernel.org> wrote:
-> >
-> > On Fri, 25 Sep 2026, Rosen Penev wrote:
-> >
-> > > Use a flexible array member to allocate the twl_client array together
-> > > with struct twl_private. This removes a separate devm_kcalloc() and
-> > > keeps the module data tied to the main private structure.
-> > >
-> > > Signed-off-by: Rosen Penev <rosenp@gmail.com>
-> > > ---
-> > >  v3: Capitalize Allocate.
-> > >  v2: don't use twl_get_num_slaves().
-> > >  drivers/mfd/twl-core.c | 16 ++++------------
-> > >  1 file changed, 4 insertions(+), 12 deletions(-)
-> > >
-> > > diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> > > index f86df356d658..0b78fe30e047 100644
-> > > --- a/drivers/mfd/twl-core.c
-> > > +++ b/drivers/mfd/twl-core.c
-> > > @@ -159,7 +159,7 @@ struct twl_private {
-> > >       unsigned int twl_id;
-> > >
-> > >       struct twl_mapping *twl_map;
-> > > -     struct twl_client *twl_modules;
-> > > +     struct twl_client twl_modules[];
-> > >  };
-> > >
-> > >  static struct twl_private *twl_priv;
-> > > @@ -770,7 +770,9 @@ twl_probe(struct i2c_client *client)
-> > >               goto out;
-> > >       }
-> > >
-> > > -     twl_priv = devm_kzalloc(&client->dev, sizeof(struct twl_private),
-> > > +     num_slaves = (id->driver_data & TWL6030_CLASS) ? 3 : 4;
-> >
-> > What's wrong with twl_get_num_slaves()?
-> It relies on twl_priv already being allocated.
+	static const struct omap_aes_pdata omap_aes_pdata_omap4 = {
+		...
+		.aead_algs_info	= &omap_aes_aead_info,
+		...
+	};
 
-IMHO, this is too much hoop jumping to save on one pointer.  Code
-cleanliness remains much more important here.  And don't even get me
-started on that mess in include/linux/mfd/twl.h !
+For omap2 and omap3 the field stays NULL, so on those SoCs unbinding
+the bound device (e.g. via sysfs unbind) or unloading the module (rmmod)
+dereferences a NULL pointer:
 
-Just define TWL_MAX_SLAVES as 4 and have done:
+	crypto_engine_unregister_aeads(dd->pdata->aead_algs_info->algs_list,
+				       dd->pdata->aead_algs_info->registered);
+	dd->pdata->aead_algs_info->registered = 0;
 
-        struct twl_client twl_modules[TWL_MAX_SLAVES];
+This is a hard crash, reachable from the teardown path only; probe
+errors do not get here.  The asymmetry dates back to the commit that
+introduced GCM support, which guarded the registration of the AEAD
+algorithms but not their unregistration.  The registration path in
+omap_aes_probe() already guards the same access with
+"if (dd->pdata->aead_algs_info && ...)", so add the matching check to
+the remove path.
 
-> > > +     twl_priv = devm_kzalloc(&client->dev,
-> > > +                             struct_size(twl_priv, twl_modules, num_slaves),
-> > >                               GFP_KERNEL);
-> > >       if (!twl_priv) {
-> > >               status = -ENOMEM;
-> > > @@ -787,16 +789,6 @@ twl_probe(struct i2c_client *client)
-> > >               twl_regmap_config = twl4030_regmap_config;
-> > >       }
-> > >
-> > > -     num_slaves = twl_get_num_slaves();
-> > > -     twl_priv->twl_modules = devm_kcalloc(&client->dev,
-> > > -                                      num_slaves,
-> > > -                                      sizeof(struct twl_client),
-> > > -                                      GFP_KERNEL);
-> > > -     if (!twl_priv->twl_modules) {
-> > > -             status = -ENOMEM;
-> > > -             goto out;
-> > > -     }
-> > > -
-> > >       for (i = 0; i < num_slaves; i++) {
-> > >               struct twl_client *twl = &twl_priv->twl_modules[i];
-> > >
-> > > --
-> > > 2.55.0
-> > >
-> >
-> > --
-> > Lee Jones
+Fixes: ad18cc9d0f91 ("crypto: omap-aes - Add support for GCM mode")
+Cc: stable@vger.kernel.org
+Signed-off-by: ZhaoJinming <zhaojinming@uniontech.com>
+---
+ drivers/crypto/omap-aes.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
--- 
-Lee Jones
+diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+index d40074e5a142..8a932451ccf9 100644
+--- a/drivers/crypto/omap-aes.c
++++ b/drivers/crypto/omap-aes.c
+@@ -1199,9 +1199,11 @@ static void omap_aes_remove(struct platform_device *pdev)
+ 
+ 	omap_aes_unregister_algs(dd->pdata);
+ 
+-	crypto_engine_unregister_aeads(dd->pdata->aead_algs_info->algs_list,
+-				       dd->pdata->aead_algs_info->registered);
+-	dd->pdata->aead_algs_info->registered = 0;
++	if (dd->pdata->aead_algs_info) {
++		crypto_engine_unregister_aeads(dd->pdata->aead_algs_info->algs_list,
++					       dd->pdata->aead_algs_info->registered);
++		dd->pdata->aead_algs_info->registered = 0;
++	}
+ 
+ 	crypto_engine_exit(dd->engine);
+ 
+
+---
+base-commit: 2f2f7eeef8b0a1a9b9ca998231419873ccae8d4e
+change-id: 20261016-omap-aes-remove-null-deref-a3444b7bb17d
+
+Best regards,
+--  
+ZhaoJinming <zhaojinming@uniontech.com>
+
