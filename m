@@ -1,67 +1,67 @@
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47B8A4DDB4A
-	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2026 14:41:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D74F3EDE7A
+	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2026 14:41:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792161696; cv=none; b=F+gv5ICpwLDU7UdnFHoSJZcUIfMpq5F+Qxydt+Axnknpgrwb3emHaTN3HQrKrJ3cS6Ivy4tD6/txvCeFQN0NHXsZEndbVbVVTM0pmFMbq7iPs9/NtRApOxb4GSxrPayOrZhMsvga+neKb3HqJ24luRSxwmv8GQ5mkAlzPVIAkis=
+	t=1792161697; cv=none; b=Ld8xLWQVc7JFJsGdvMCs2s1MtYS6iLQrJHzelUaSTQ3pAWkDO2lZ5MlJvSZ5y1RcoUnh5xECic3keTHZkwXODleAojMbXQWfrDLaWnygxHBbGJBq8EWSaCAJRjlWmhKo3Y8xaRP+ThRUiw2DEume46ofChB5IGIUgp8j/LJHXcc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792161696; c=relaxed/simple;
-	bh=SaXqgEOyKdwDlxokS4s2yK08mPWXLB9VVoYMmSePtWU=;
+	s=arc-20240116; t=1792161697; c=relaxed/simple;
+	bh=wsNbpek+NTljF03iIQXsxCSf3wSpZEAjJFyKvkVrFuU=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=tu06JiNktt0heJjJMoeLbOVufLSmn1UHQPW1KwGzNPQx+zcUU5Wsg9JupyUyoyJhI7A7Kp+ASJJ1F+qHybXoCbWzbXI78rzHFequWFsfxogyjnCH5QV0v2wuaLF1vS9XeouwIo6v497uOOXiWFRHY+5M6o19Lh/aNs9XVrX4Duo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=xHyx+4yN; arc=none smtp.client-ip=209.85.128.49
+	 In-Reply-To:To:Cc; b=tM+qPQSXDbfM5WFWPyZvgOWewx2G+tMaaWNdbPRsVb+/MMGweEzG8QE/KgtPaFk3roJf7c6+WYfmp706KNJlHzp1Iy+i81s2yvACkT6Vga0c23BF+z77joMoZeyqLfR6uiG9mZjTPVYSE8lZj1PMImjAQQCr+j6Rn2yvP63p1eM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=SSxt70bD; arc=none smtp.client-ip=209.85.221.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="xHyx+4yN"
-Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-4a19cba5c14so119995e9.3
-        for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2026 07:41:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="SSxt70bD"
+Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-48c4649b35bso1523841f8f.3
+        for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2026 07:41:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1792161692; x=1792766492; darn=vger.kernel.org;
+        d=linaro.org; s=google; t=1792161693; x=1792766493; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=pA88NLv/TBiOG5702LaEvC3C13NKIBA4nDe3RPxHldU=;
-        b=xHyx+4yN8MS5TGIYlBVOaod+EUvwDnocBkmYqPCIbdfJ2Yf83Hl5Inx5ahomuqmSnL
-         8dtwNzu20NWl7pFtsrQDhBn7u34nz2dNt1LJFn/m0uJrWkoV+TyEZq+/SW494QFwXIef
-         SyWvuF/nCkULFVxBmD/bE2UegSZCqeQJzXvnxJwTlNJ/YuW/jk30b87AX4LW+JfZuDGh
-         1HHg4oyolC2BPMpby32liLBN9f1iRyCm6Qvht7UhYOALQRasqnU7p13UXRVt2a6Xh8oN
-         fbxDhhbD1Eb5OQP0AMCDjdrcN4j++w++PfyiL+WU83H+zhKpAJ9T3jDX0DOtz1yHivl+
-         hCWQ==
+        bh=J4FV3FRgo5Fq9ibwyvwR+FrSwQlHm1b1ksNAl+GUkAY=;
+        b=SSxt70bD4bqkBmgwcz9IBN9lCoxyLf11AfLQQinbW0rrXiAPWDKnmt1bBMknqDJnSt
+         CgCeowANEP/Vfn37a71T7J7EGSVNRk3TQTVI4i99WcBo8zXxAab8Y1m2pT+Z2shuIrUG
+         vycVxU32WwlCiLCS+OnnEbDcF/v7uccf2njaw0D+jsa44gncgiVcEuJ3nPq2V7IjKb3r
+         jvvx5TWwoum/ZbVRxHBwTh42xVe/VLOAMddmfqb6bG4JzPaPQuXnjT5GufV+BBMjQR6t
+         YW29mP7tKTGtVoOuf9D80L4PyrpUgsAGFCHDAWmtNy+W7rnWTOTHetE2+VUIU0uzwJoN
+         2Hxw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792161692; x=1792766492;
+        d=1e100.net; s=20260707; t=1792161693; x=1792766493;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=pA88NLv/TBiOG5702LaEvC3C13NKIBA4nDe3RPxHldU=;
-        b=or+UvK7MxByHoBcJSczcKN9HvMaRQ0gEpGNJOKX+JNvEX+2alktBw31dpWbLMcMkie
-         kvqadUI6eBJxQC3tFSCTgaQvXpIOfwQr3FJQg9OEIjWAeiqzNikAPIlZ5yUe/Xu1WgzI
-         +iRdcuYyWtBKvmzMMGZjHOm2ezQyA/GYzbY3FGJEuRx/x7X2zb2z9QCMp9LdtvesCjBF
-         7o+woics2Hp5akSGtFiQsLuBNU+noTqEgL3/xWRfMc0Mgp59g/ZRp26suTno9x6q4XNU
-         3N03UlE4DX/y6RA/yv33654OhZ4EiWQSNVLNdoJFSSN//kYwyIn5QH7yWxQMSdZqZIrI
-         ibvg==
-X-Gm-Message-State: AFq9FYIhDguEvarOrOnj7pfaKFZLSh9Ww20clhMyW7tYy97P5CBANrsr
-	Z5/EqoUCM33Gck0pCPDkAIRaYKpDsnOC4rsYv99lqGvAKz+AZdrTqNywkO1HVxHLdoU=
-X-Gm-Gg: AYBFou3HMkLOVBgK/h5K48kK4v19JGf3QwYZJFkftoInK88T7DsfLVWSMWSyGgq4xoi
-	cMh+IbXPAsXjL5siiSw8sETttm3//C1UvgFDB3PzJ/Mif4Yx5LOXou5AWAKhjX/twhtePH7AkY/
-	8gBpbaQ2hJd+jX32o3FptdLyB9B9ehjiXeUsjqf/g8IURxAyW2L7DACBcA/sdIzZ12S6FUeeeW+
-	+LkLx+R8FbhKC3s+j5v+/bWkZ273FQi6UrWe6GrO3/MvwGtcFIQjQqJeWhcDyKFAGZ8gyEAcV/g
-	2NUe1WAbn5Va9pvpm/ewrG0bzViHr9ICrU9JZEoiqNAbfCRqsj89fhUQs1y7LnN07/5ruH0VTO2
-	We6Eo/iDvvB9bLoYLZn7Y2GTjfBK3TPgbDh94+ITy/cVHt5ZTZZi6Dupez20yOy2FmSTZanRB1C
-	LE3uUQg5z7n5uE/9LlzWhiYOI62drneJ8mcISSP8+62OuSy08lKQ5BFQoQQwPqQhlyXFQ+unjCw
-	ymM2ZRmcA7UpnSiUY3rj8C36ifoodUzrghTVZnTeM5A7fGrqO1t8JD0sWLerQKEU6y8AQ==
-X-Received: by 2002:a05:600c:1d11:b0:4a1:d307:b52a with SMTP id 5b1f17b1804b1-4a1d307b62fmr25383325e9.19.1792161692388;
-        Fri, 16 Oct 2026 07:41:32 -0700 (PDT)
+        bh=J4FV3FRgo5Fq9ibwyvwR+FrSwQlHm1b1ksNAl+GUkAY=;
+        b=uNUg7hODrvVD/uGf38P2cby01TwNckNUVxAQ+Fcs8b5Adk+6W0kxY81YVXHe2Kt4bI
+         j601RAlP+hf8XFlxJ3+NIom/mxxJe70KDqJjK5bsL/i0HJIGSqUYVrsuMeS94I0Jz5ex
+         rItjTnFGk7XpRpnuv9/OxuarbdH6WkG3FeuumQk64rrUpDUmgYCewTHkZmnmp/0LGKrw
+         xz1/CFwRoDaJ+5GKACpoj288SgKsJC0LgJJUCB4bf01VdNdM+WZ1o+Sbdm9HbcBRid6a
+         ys1XrTcP6NnZr84T0YkFS47ozhQhkhk5HqCFM4axNI+OaVhhFCMSzXv7MUUgb760tIfW
+         vEDQ==
+X-Gm-Message-State: AFq9FYJr7oEuBgIFXDmC4OZPiarsTRuV9jLk7YNaMQs7heZgIhhriGGj
+	lU5jRfy1Ung78vbgIB4I9LK/V61JNAPH27JCbYBoEFBLpwfQMBFgKuNzaMannw8Xz4Y=
+X-Gm-Gg: AYBFou3EzF1AvtMKFqYtvzRnFoLriHYCBTkPZ77jPwqRtGJtyDYJJ/gd0Z7JNF0Mbeb
+	vhUE3wua7cNbcazVlutjQmhjY/eD2zXq5C3Pl4Rx6bbINShT3KjEfNnCSroL2+UnuF1LqmGm8/w
+	YzCHkAwvAMTCAxp4G5GNzhssGfk6a6yJX/OeGrJwHjm+p3aZDRNj3CZvMR3eR4lZYDgJKOy0bn5
+	Mf+lXiXC/Gp2+6eZnjhia6HMFQnEK60JpZXvewABvmCm3KKQbtNe8T2Pslug7Aa0xOIBXNu5zoq
+	ml80SjoyevFavDHigp+b2fguY6tdXTlOpbymo9zlwUD39vokMPZAwghQZjoNWoHIU1egBpjxMYi
+	O2v8LEeLoaFv2EV+fEJ30zm6IGSrkd12AnedR/ppQbwIN6mm2EA7sl0OYmj8WliIokyLQRkJqjq
+	2nNjCqb8navkxSUk3fPU+6UNNRtHSkRBvXft1m0IK4nS2xF2yF2RQnHZR4qcR02D53vzBAC9XMz
+	pfZNDfIbr//R1sdhmdC973yVt5BQErn8jlBAyUSjlj6nmUXYor+f0AOJuR77nQ76m4QBA==
+X-Received: by 2002:a5d:6f13:0:b0:48d:ff71:dd97 with SMTP id ffacd0b85a97d-48dff71e2e3mr4135577f8f.7.1792161693523;
+        Fri, 16 Oct 2026 07:41:33 -0700 (PDT)
 Received: from z13-ek5.local ([151.41.28.233])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48dfd4ecac3sm5949648f8f.27.2026.10.16.07.41.31
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48dfd4ecac3sm5949648f8f.27.2026.10.16.07.41.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 07:41:32 -0700 (PDT)
+        Fri, 16 Oct 2026 07:41:33 -0700 (PDT)
 From: Ettore Chimenti <ettore.chimenti@linaro.org>
-Date: Fri, 16 Oct 2026 16:41:23 +0200
-Subject: [PATCH 08/10] ARM: dts: omap: dm816x: Correct speed for sysclk5
+Date: Fri, 16 Oct 2026 16:41:24 +0200
+Subject: [PATCH 09/10] ARM: dts: omap: dm8168-evm: Correct SD card pinmux
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -70,7 +70,7 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261016-patch-ektor5-dm8168-dts-v1-8-b4ce30217028@linaro.org>
+Message-Id: <20261016-patch-ektor5-dm8168-dts-v1-9-b4ce30217028@linaro.org>
 References: <20261016-patch-ektor5-dm8168-dts-v1-0-b4ce30217028@linaro.org>
 In-Reply-To: <20261016-patch-ektor5-dm8168-dts-v1-0-b4ce30217028@linaro.org>
 To: Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
@@ -85,41 +85,62 @@ To: Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>,
  Rouven Czerwinski <rouven.czerwinski@linaro.org>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
  linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-gpio@vger.kernel.org, Ettore Chimenti <ettore.chimenti@linaro.org>
+ linux-gpio@vger.kernel.org, Ettore Chimenti <ettore.chimenti@linaro.org>, 
+ Christopher Obbard <chris.obbard@oss.qualcomm.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1792161680; l=905;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1792161680; l=2104;
  i=ettore.chimenti@linaro.org; s=20261014; h=from:subject:message-id;
- bh=PhDr6kpoBVqdoNYvmZIO1sO7TmGrj5fxqBZLDfq+g74=;
- b=YKJqXfJGsRC6h2W9mfs7+8pUluzq08OblX/xnpGffG9iXzk1/OGVF4+5i7Vufvm6VIO8qJ/T1
- gCQZ6eud/OwDFLxETFckzoUsSrtJEOZrnbegit/K746Fvy0zP3XUpeC
+ bh=X4wb3xiiISYs6tuR/KwDk67KeYlf9Jq//WgEqEqzrr8=;
+ b=A8n3VCROf6Kr5krycQ1d48B8SRfuPvwxe+ZIq5pENuMZnmBMSwf4Q8JrQ6EBlByjeeDxMVjWi
+ OyHPdjXZG25B5q4bqtX9PIxqh81UtNS5KZj6mYT6wuQlhP936n3mKJx
 X-Developer-Key: i=ettore.chimenti@linaro.org; a=ed25519;
  pk=wCaUblFVaqhuBTQt/hAtysafsAaEsqj/yOD9SPlz6NM=
 
 From: Andrew Goodbody <andrew.goodbody@linaro.org>
 
-The default code for setting up the clocks results in sysclk5 running at
-1.6GHz whereas it is expected to run at half that ie 813MHz. Force the
-divider to be /2 to achieve the 813MHz speed.
+The SD card lines use external pullups and so the internal pullups need
+to be disabled so that they do not cause contention on the lines.
+This bug was revealed by correcting the effective bit mask of
+the pinctrl device. Use the correct macro for DM8168.
+
+Also fix typo in comment SD_DAT2->SD_DAT3.
+
+Fixes: 86800ffe84055 ("ARM: dts: omap: dm816x: Correct pinctrl register")
 
 Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
+Reviewed-by: Christopher Obbard <christopher.obbard@linaro.org>
+Tested-by: Christopher Obbard <christopher.obbard@linaro.org>
+[ettore.chimenti@linaro.org: squashed after fixing DM816x macros ]
 Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
 ---
- arch/arm/boot/dts/ti/omap/dm816x-clocks.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/ti/omap/dm8168-evm.dts | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/ti/omap/dm816x-clocks.dtsi b/arch/arm/boot/dts/ti/omap/dm816x-clocks.dtsi
-index 76ebc6c3c3e5..cb990773b098 100644
---- a/arch/arm/boot/dts/ti/omap/dm816x-clocks.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/dm816x-clocks.dtsi
-@@ -144,7 +144,7 @@ sysclk5_ck: sysclk5_ck@310 {
- 		#clock-cells = <0>;
- 		compatible = "ti,divider-clock";
- 		clocks = <&sysclk4_ck>;
--		ti,max-div = <1>;
-+		ti,dividers = <2>;
- 		reg = <0x0310>;
- 	};
+diff --git a/arch/arm/boot/dts/ti/omap/dm8168-evm.dts b/arch/arm/boot/dts/ti/omap/dm8168-evm.dts
+index 81450e15b889..a6d42766a496 100644
+--- a/arch/arm/boot/dts/ti/omap/dm8168-evm.dts
++++ b/arch/arm/boot/dts/ti/omap/dm8168-evm.dts
+@@ -45,13 +45,13 @@ DM816X_IOPAD(0x0aac, MUX_MODE0)			/* SPI_D1 */
  
+ 	mmc_pins: mmc-pins {
+ 		pinctrl-single,pins = <
+-			DM816X_IOPAD(0x0a70, MUX_MODE0)			/* SD_POW */
+-			DM816X_IOPAD(0x0a74, MUX_MODE0)			/* SD_CLK */
+-			DM816X_IOPAD(0x0a78, MUX_MODE0)			/* SD_CMD */
+-			DM816X_IOPAD(0x0a7C, MUX_MODE0)			/* SD_DAT0 */
+-			DM816X_IOPAD(0x0a80, MUX_MODE0)			/* SD_DAT1 */
+-			DM816X_IOPAD(0x0a84, MUX_MODE0)			/* SD_DAT2 */
+-			DM816X_IOPAD(0x0a88, MUX_MODE0)			/* SD_DAT2 */
++			DM816X_IOPAD(0x0a70, PULL_DIS | MUX_MODE0)	/* SD_POW */
++			DM816X_IOPAD(0x0a74, PULL_DIS | MUX_MODE0)	/* SD_CLK */
++			DM816X_IOPAD(0x0a78, PULL_DIS | MUX_MODE0)	/* SD_CMD */
++			DM816X_IOPAD(0x0a7C, PULL_DIS | MUX_MODE0)	/* SD_DAT0 */
++			DM816X_IOPAD(0x0a80, PULL_DIS | MUX_MODE0)	/* SD_DAT1 */
++			DM816X_IOPAD(0x0a84, PULL_DIS | MUX_MODE0)	/* SD_DAT2 */
++			DM816X_IOPAD(0x0a88, PULL_DIS | MUX_MODE0)	/* SD_DAT3 */
+ 			DM816X_IOPAD(0x0a8c, MUX_MODE2)			/* GP1[7] */
+ 			DM816X_IOPAD(0x0a90, MUX_MODE2)			/* GP1[8] */
+ 		>;
 
 -- 
 2.56.0
