@@ -1,135 +1,90 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 433883D994
-	for <linux-omap@vger.kernel.org>; Sat, 17 Oct 2026 00:48:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE98135AC0C;
+	Sat, 17 Oct 2026 06:53:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.238.236.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792198083; cv=none; b=NrfeuOlffUS17THsXJrxbV6apMvxNalitymaqqmG+AaBfGAM98/wau6pIv8UzRy15vnUwZNKznatmcwhAYKWgz0XXsLewKXLbrahRd8+FJ3OVKXHwvFJSAgtSwcQ9dOLLR3USkw2J4JGsSLI5W9yDCjOfXg5J6PTED16jKTTsro=
+	t=1792220031; cv=none; b=i4co81dsxaWS9oMcX8cKoyYNL1Sqn8fomrtew50tpnlsCP0FH0fYgd00xasc1VJHHzNp3SzIc7aEHebnH6r9mhiihtI3P7BDXIKIH1OIZMt437Dgvol/wiwEJm6eTjEqqNXW8ZUWTTuWd8iJ1hC9JU7Y+TPA5/8QtmLKAA+T1+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792198083; c=relaxed/simple;
-	bh=uQd8KTXKI3I23lJLW91Lf0V1sEGZ4f5qzE8kZvjuFEk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CvN1FiEH8z9VdR6GbZDaeRFfv0wa4FfI33zJzFRpoIHRHuHu2eAnzAMZNNok+BiZot9zg4KZjv5kh1flEV/tZ4sbm42xEymY++K2PKK2tQ72ZoRyIG1MzqDWgAH7bwXbO24OQOKP2JGiSgcjBjoAViqknEJgInLdlZD7147dwdk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SmNSQZVo; arc=none smtp.client-ip=209.85.216.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1792220031; c=relaxed/simple;
+	bh=JGGrFt/l1uiDVDMnrh6pnkl1FqwJyD5TxJUFya6+muA=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=TbbRE7BlgyjLAZ1Wh+dEk4ux7UyVsvB8V5P4shSUAzrf9b393cFdXMdj8IKs4kXHf7gGNR31MOWckTzGUl08H7M4ooZUHnHGKro2ofhhj4gE3mBTpbVRlkL3Kwbd2ggxTu8z3hr3RliLDTEMHXmRCVt0OwRF1dMPD/xJf2ye5kg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info; spf=pass smtp.mailfrom=kemnade.info; dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b=ttDv/Pcd; arc=none smtp.client-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SmNSQZVo"
-Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-3ac91ac8924so340038a91.1
-        for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2026 17:48:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792198081; x=1792802881; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=z7WQxeka8iJk8UZewm7aIuKt31IFYG3pfmjyCh4csfw=;
-        b=SmNSQZVoosamiKeLUV/h8v7m/O/OIxtO0zRgZ6ZskISST0fImL9RVmm9ozzn3wXr6n
-         8lhhqkT2ygOd4Xo/pUdpB1YkeBonMmMv6b4jAyCih02cmfgCasjyrA/gsCFoDiWlBymX
-         97a3Uvxs+YoFPpPM4rDFxE5BmOebxVSzFRe4OcqVFiWYBPDuixXUtakw8OBs3ZXXt7eG
-         vtxuu44x/uyMuMcx6Lvrt6orzkG7huYTbhWZlzPphcjkvEKGb0o6nqKGQRzrZ3fBsTF/
-         n3gNRfUGYa3X0j+ZnQwY5IjB/hPgjcBas8UWXptpkbuYDb/1C1TRvDcfT9CPREOkNMoq
-         8hUQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792198081; x=1792802881;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=z7WQxeka8iJk8UZewm7aIuKt31IFYG3pfmjyCh4csfw=;
-        b=cSxkQrcuekgX6MwB25/fX8UCpjL+9g87Z0kxt0Asmdc/PEEDyKIr3C3qM66ATuUGR3
-         0cCKpWNHiLnTIkTV3PJl2IefWcODpi0sdlEdwFulR6XlfL8u0MFfKLQO9m+jGvzjv5mM
-         48mSUWvoRXC7jj4MXSV7SE1fY89MbCUxGu1xiCdhyRaaxCx448h6celmrLWaom9xQWO/
-         F3SYtpnjIns7ezB/R50Eq8P+AOX28ENufAQLTbFqRi8N4F766YXpjM+Fe4aKS0NeYy+x
-         QmwGmtwRjDj/G/lUY0qIG7KaWfLvIiLmhFwkmYNxnUVdWDCYL7k5znMu1enZj4ns6oe5
-         7alw==
-X-Forwarded-Encrypted: i=1; AKwUvBwmRMRzMhPCcdb3orcLw4NDEoS6rJfUdh1uLBI2CHIl90NvpQWKoi5tZXWhitJNBgbDZADPBlMlgRBH@vger.kernel.org
-X-Gm-Message-State: AFq9FYI4WW7SxERKLAMCa6f2lStflsOll4Vl/Vk3KP9xFvAk+ART/M0B
-	nWwVK+sfJ+VpqNmG66HSgMu9DtqsouU53BE1EFi9yut5J9QeS1PuVliJ
-X-Gm-Gg: AYBFou1JqQH2qPz6t2F6zKBoE0Zf1n5NaxwH4rwmlEHqriixcBhMmzL+VRyxCTwAmcE
-	ZCAnrjdNPML088MhFWkR7mIJEu6PacLi94oEhPD/xP3SqrdA2zPEc0A6Lp6v0i6wPrz+vglGLPa
-	86rDrO/SSc1zw5zIJekq2Vji2kmP57AqYQrZ4X2Zx/QPWHSFgQVmMsaytqY2qCaBxW2iSCUgQH0
-	/iZJKsgoJjQEm6fMZxyCu6e89s93nCtfPb/xbYlybLNjBLv8jje7ZbK6vyVF1LP50niy09IJQGy
-	EXxzX+aOsdkN8W2nIDYI7h2Ff3nM+PYdlttG4nU9qBIaDbQf/4X2YA4ri7GMnESnL6vUOZGaBci
-	wpqENYSJXRaPsRGn0revuou/BoPMufbpRuKChtMXHPXx/8hNnw5+o9XNempzD+pviqKnkvV8F18
-	Wc12fqIsOSmE854ROjZP5+hAhoNhPeOVhY1IGHKAWHhC5nDrOTgSBkBjR3fz+zO6K66LT/pZSuT
-	dylMDH2n43fL1NQP/3PS1DURJnQnr6YP+4/5cFBhUxWbq7jqpsVuIl7YmppXMORmFFcKIzXqv4o
-	VVR7X5G1uHWzp8kBjFBHwcxSFhygAXpZwSKhIjyf29hN+gIi
-X-Received: by 2002:a17:90b:5112:b0:3ac:9e5e:d19c with SMTP id 98e67ed59e1d1-3acef134c23mr1427783a91.17.1792198081562;
-        Fri, 16 Oct 2026 17:48:01 -0700 (PDT)
-Received: from ryzen.lan ([2601:644:8000:7a86::e35])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3acd3b16c2asm2604171a91.2.2026.10.16.17.47.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 17:47:59 -0700 (PDT)
-From: Rosen Penev <rosenp@gmail.com>
-To: mfd@lists.linux.dev
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Lee Jones <lee@kernel.org>,
-	linux-omap@vger.kernel.org (open list:OMAP2+ SUPPORT),
-	linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v4] mfd: twl-core: Embed the twl_client array in twl_private
-Date: Fri, 16 Oct 2026 17:47:58 -0700
-Message-ID: <20261017004758.1256875-1-rosenp@gmail.com>
-X-Mailer: git-send-email 2.56.0
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="ttDv/Pcd"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=ktvi53IU3mbKmGya4FnS/Pieemw2knzJym2TO/2fBOM=; t=1792220030; x=1793429630; 
+	b=ttDv/PcdQQI3mJPmiXcUl1torAh/HWzCNMMCothLhHOpKv/Z0Z4JqbyeEN2erRdVDLjlb+yr+OR
+	7NIPInVGQgKMDnPkAG7Y+5M1KssZtlY701Mq4gNEt5Cwq06hWywlmJDjkhPSA9yyowWKqfBBL8aaN
+	JEU8eLE18C4s4iG2BJAYwHW3mDIXpWn8cItaMFU6QslnzLxAyl3AiY2tzauci7bkGBiyhh9glFv5Y
+	651kA4sd6n7YXT0H0CAAHpygQEPB/XDqJ1iYY+yFcvjX14iKn2lMXEGzpgvI0pXV3i1T9+1iNSF0O
+	gb3o4aJArN8aXct5aHl8+xDEgP0RDkUR11lw==;
+Date: Sat, 17 Oct 2026 08:53:39 +0200
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Ettore Chimenti <ettore.chimenti@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>,
+ Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Rob
+ Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor
+ Dooley <conor+dt@kernel.org>, Christopher Obbard
+ <chris.obbard@oss.qualcomm.com>, Andrew Goodbody
+ <andrew.goodbody@linaro.org>, Linus Walleij <linusw@kernel.org>, Rouven
+ Czerwinski <rouven.czerwinski@linaro.org>, linux-omap@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-gpio@vger.kernel.org
+Subject: Re: [PATCH 01/10] ARM: ti81xx: Prevent USB being put into idle
+Message-ID: <20261017085339.3533e9ab@kemnade.info>
+In-Reply-To: <20261016-patch-ektor5-dm8168-dts-v1-1-b4ce30217028@linaro.org>
+References: <20261016-patch-ektor5-dm8168-dts-v1-0-b4ce30217028@linaro.org>
+	<20261016-patch-ektor5-dm8168-dts-v1-1-b4ce30217028@linaro.org>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-At most four I2C slave addresses are ever used (TWL4030 class), so
-there is no need to allocate the twl_client array separately. Embed a
-fixed array of TWL_MAX_SLAVES entries in struct twl_private and drop the
-extra devm_kcalloc() and its error handling.
+On Fri, 16 Oct 2026 16:41:16 +0200
+Ettore Chimenti <ettore.chimenti@linaro.org> wrote:
 
-Signed-off-by: Rosen Penev <rosenp@gmail.com>
----
- v4: use a static array
- v3: Capitalize Allocate.
- v2: don't use twl_get_num_slaves().
- drivers/mfd/twl-core.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+> From: Andrew Goodbody <andrew.goodbody@linaro.org>
+> 
+> There is an issue with USB being put into idle with DMA enabled and that
+> is mostly prevented with usbcore.autosuspend=-1 on the kernel command
+> line. Stop the ti,hwmod code from putting it into idle by setting the
+> appropriate flag. This stops the log entry 'clk:0058:0: failed to
+> disable' being generated.
+> 
+So the module cannot be put into idle in certain conditions. Why do you
+disable idle under all circumstances and not e.g. adding some
+runtime_resume/suspend pair somewhere?
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index f86df356d658..4f70d49ed2f0 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -153,13 +153,15 @@ struct twl_mapping {
- 	unsigned char base;	/* base address */
- };
- 
-+#define TWL_MAX_SLAVES	4
-+
- struct twl_private {
- 	bool ready; /* The core driver is ready to be used */
- 	u32 twl_idcode; /* TWL IDCODE Register value */
- 	unsigned int twl_id;
- 
- 	struct twl_mapping *twl_map;
--	struct twl_client *twl_modules;
-+	struct twl_client twl_modules[TWL_MAX_SLAVES];
- };
- 
- static struct twl_private *twl_priv;
-@@ -788,15 +790,6 @@ twl_probe(struct i2c_client *client)
- 	}
- 
- 	num_slaves = twl_get_num_slaves();
--	twl_priv->twl_modules = devm_kcalloc(&client->dev,
--					 num_slaves,
--					 sizeof(struct twl_client),
--					 GFP_KERNEL);
--	if (!twl_priv->twl_modules) {
--		status = -ENOMEM;
--		goto out;
--	}
--
- 	for (i = 0; i < num_slaves; i++) {
- 		struct twl_client *twl = &twl_priv->twl_modules[i];
- 
--- 
-2.56.0
+> Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
+> Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> index 9b5c728fb7da..2f55dc32e150 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> @@ -650,6 +650,7 @@ static struct omap_hwmod dm816x_usbss_hwmod = {
+>  	.name		= "usb_otg_hs",
+>  	.clkdm_name	= "default_l3_slow_clkdm",
+>  	.main_clk	= "sysclk6_ck",
+> +	.flags		= HWMOD_NO_IDLE,
 
+and why do we need this here and not in the ti-sysc node?
+
+Regards,
+Andreas
