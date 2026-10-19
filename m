@@ -1,87 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.44
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.53
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792427567;
-	b=t6xioJBKQYzMdtp2crxKUihzFP43PVwtIGxzpE2O5GcvyBBTWWAP2dB77OiejBKe14zY
-	 TUkvsHXv2svAgh/DOYU3v4iWnF+cPsqB7XW36nc4jinrPNVcKvqxSp8yARAg0E3i+Zk+D
-	 YCeVXuGXy0/7GMfSyjWsqgrhM/0b90wqOqZ+EcBlCwAl6n9bBduoPTtufJC0u19Iw8t4B
-	 NEyDz+ey8vk5MOHANGDMTKW23Whv2WqxQgfbRICGwhsgi/8vGT1043FG78mT61Fu/Aaor
-	 5Kc3rys57RQeH4IRipf6noHh4MVWJUko6o0HwN5zIUiJGanMIrEEnKU5a007Cc1dnFA==
+	t=1792442248;
+	b=CSqAG3RFafjdUJAupyMu0JTZ5iYxACAtX4PWqGm1l+4knqz5kyMUFR11B1W8h/EQFhJa
+	 z4nwHe5LTd5MinJOKXjw5hLo2p/eXwSUC2o8o5RvDPPw/8QGoRf3AqNfqScw7j1ta+iZ0
+	 mhmF6byoOJQU/C7DZeA6FeVDXfi3FIx+3ksrIT9hE52Cr/XegnfNm0zMPkFoDS9iiZWf4
+	 l3ZLv4GPDgwaSEUpoQgGuk7GVlU5O7GZ5ZXSDRiL7orywKM8Hn4V25HLWEz9FjzTddCFq
+	 s4ZXOTa/HJIID3cvMmMTX+F6c/SSQxBB5tVMSoqeMIXaX3GhYBdw/IhWhf7rduZM+Tg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792427567;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792442248;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:References:
-	 Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=BWj6P+5N+9+xj86kghtIJTrYQUXSGty1irTiTrrFBnA=;
-	b=3ZirSyQwETLUa0+5cALtEw31LATGlkg3Dh49C2oEkXdd6Wsg3lWMsvM/QoEvwWNUXTlJ
-	 zzJLqfVycwR5wIcX8+/dBOUqXTLkx8uBoiQRSaskQP6t7LJVxeuLnmyPqILDnthoUB7dR
-	 1fQtUMZb49uZkeIuT854xEuJz5YQib2H3SriMPhx6G8phd834TCwSUn2LAbn0deA539Q0
-	 5AVohenXQt1ghpf7SwYVJDnHIEV+WHDMu/2qGHaF/M5B7nGQcxeXmUd2gisnJQHTnOsZx
-	 ZvJgQFDpnA/+RwCwlXdRTCkiFcBKAOnNk195LbVu/jiU9Co4Vi5BHnNreQdVYF2y5MQ==
+	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=OlQWf86SXokSuh4SBBMFiqlQD7tg29+MR0deKhyYBLU=;
+	b=DfalS4xYR9v9VlT8Heu9LYxupi3F2+nK2Z7wEb96r8WazDWZWDY28Q1mLnVFnTGS2Qcg
+	 z+dnrMyWOyZOlzBANWCzn5JNPYQmxnuXjZ5mTgkjsUcCUHNlDVpK+SKXi7XRTme5svFjW
+	 kOMxAUrL57a9j5RHJJEbTNeeFitUmODX8YkfXn8m52V9tHz4IbRpEs0dhWXEmSXXagHow
+	 uqlBM+R8jZ/pKCu8rn1HN54SompybjCnLVwugnAvhrQHEbaeC0htyF2ltmvNIgY7zhzOY
+	 2IUADh9FAEfcmQjtFQeP3xVQOu5/7+3mjN+OBhMEZsHHsq3iThyJb/zK+ybjgTVOsmQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linaro.org;
-	spf=pass smtp.mailfrom=linaro.org;
-	dkim=pass header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=uihAlf9K;
-	arc=none smtp.remote-ip=209.85.221.44
-Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=TbdVKbnQ;
+	arc=none smtp.remote-ip=209.85.128.53
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E957606A320
-	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2026 16:32:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0E957606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03035606A321
+	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2026 20:37:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 03035606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=uihAlf9K
-Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-48afcfc4bf5so1920122f8f.1
-        for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2026 09:32:46 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=TbdVKbnQ
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-4a021c809e3so22302825e9.0
+        for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2026 13:37:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1792427565; x=1793032365; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=BWj6P+5N+9+xj86kghtIJTrYQUXSGty1irTiTrrFBnA=;
-        b=uihAlf9KMF1E7leWuq2ziF+jrvFzjVQh7yDYYwzmE3kGwVMD/K26Cbe/WTxyj+aj7T
-         mAesrIGwyR4p4Ql43E484qxEkEgCc0OkE9YMJdVzd0q1ccVEqcLEq3T7yJPl0GDq5V2M
-         VjoLaMO1/sSM9Xw0782GHEKPJDIi+C135kZe6YY73odVwoBYIbX6GUimHcMSomwtinBM
-         qKmut9yiRk+wIbHsrkMrx1UWH7snwPL6op9IUbn8BCco5lV+VMY0sdLxsYG91VuGKJcF
-         hK4ft3UJvUPrYuW9Afwdl5axq6UN2qcIMClH3N+BNIuY2d/Yl/VQCVizt+5p/aBByBlZ
-         V6Og==
+        d=gmail.com; s=20251104; t=1792442241; x=1793047041; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=OlQWf86SXokSuh4SBBMFiqlQD7tg29+MR0deKhyYBLU=;
+        b=TbdVKbnQRRp9vEsLOXaAXOe8RCtxTDKUbwKg9QY2mqDPSPar/3P4WhNaodDxDY+BkL
+         z5fhNg+9YEHPJPYwu73YuJ24D3oaA7K6HDZKf5aH+c1Pe/B7GdlWJdKoI7eTwRUs+eNR
+         XWTT2Bvx1AyIFnoplHVTcghLleDAmLt5NYnTajZ7eY321BIDTd3dT989KlGwDKD9NDGP
+         cr4C9uSJVWcYwgvwncn6c7MjZTP1GInixxG1DDJuJeIPCWhUwBxCX3CPl8BcL+65FzdA
+         UkvSpS6m+3pS+D/8aBkplRzK1r/Qv+7uSg5JACP5SEL+A+he8lOE68px7ghnG77sVgpW
+         fEuQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792427565; x=1793032365;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=BWj6P+5N+9+xj86kghtIJTrYQUXSGty1irTiTrrFBnA=;
-        b=oA98/DTrOxlHAmcYznYu0QeJNqnVppk4fAhAphjffQ5Sb2r6odObXilMTnNkOSSe9g
-         YnRU/tkGQoPJux5qidKBkZCJEZABgQzpOSyvpmD/XIfA8qyMHxF4Tm3lXay5FcvUx6wb
-         n+vpmwljNssRb36aEfzhYN9f/rYaXsqvdN0ge9YWV30kOxC4MNGIOHiUaI+TR9+wPrJt
-         IBfcRd6+/z1w1fWN+6flaRtZWCBzG3L/FyF0Gmmu5AUewzf+b7Qfmz6ptukI1ga0lK7I
-         rDAqmG6x/6X1QHY0CDhjoVJLE8pttqHGHXLqxn17BxFhcj/sSj43ADxuGjL+/3d6Zuqv
-         MoGQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwoavWiHjMP4RbKO18vY3uA26loYVIdlLmxrEkO0XrIKHDMBD7NDOtUdSmKLwY8qQiuXTg/ulC+TpYj@vger.kernel.org
-X-Gm-Message-State: AFq9FYLnXYQSP82lkE9mNhTsAhc2QaOF5BAxkKHNqlCb39jO84qfyoYO
-	KUYOtb2i0umgN2V8MWHzF/iP4P51dpGhKIXdRnlIAnK6ciF0WldXNrLyUvy9K5MiC4g=
-X-Gm-Gg: AYBFou15mehQZmLrcWzLgdNpR8R4t4cqsn6te3TnWLF24Asj1VqH5mxnxMgbEmW8nQC
-	u/ndURTZ3kdJWp54/Dpuk9UXrZz+rsdkPA1GJK0ywHq4O8SCIvf8jxk8zbdRIbPJqCjq71ckj0d
-	oHKX6JLbKnl3lP30GQ0vKw3PjxHexZh9yUu+QL8pRo4o18mdHXGimQiPfKDuk0KOGv5mGJ+7ER+
-	I5IiPu618G0xwOotrLYfFPr/BIbUnjaYeVUAQKvWDMXNJ4AWnUi3SQeD+U0NwgB0zvroU7hE9V3
-	Jf8PuNzJjFNAoKhJ/swO//ev6WHhs+qHDVYoPK8IvqfRBXo3R4gP6OuvKK3RE3nj1S8RUsXNL+R
-	/+fxu6AaN0i3nhZtUrjpcDxd4mXDrgN/03FMzULXYNTY/H3Kt4T404nv2c4Zbha0kABNIMeBmtJ
-	meKuit+KqTU68nUzuKKz/YZDSu18VXZZ8c9DlRhtTztbf4Ny2k7jHHzkDaAmXbr5Sd+22sWCqSR
-	RMwInhH1GI+x3v7ch02baNNUwpdhfqq3UfqICOAuXb1HjIB8//jLs8r+DX0ug==
-X-Received: by 2002:a05:600c:3b13:b0:4a0:2150:55fb with SMTP id 5b1f17b1804b1-4a1d75ad08amr209137105e9.4.1792427565319;
-        Mon, 19 Oct 2026 09:32:45 -0700 (PDT)
-Received: from ?IPV6:2a0a:ef40:eb0:c501:2c4e:44f:2449:8978? ([2a0a:ef40:eb0:c501:2c4e:44f:2449:8978])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1f2cc809csm3538555e9.8.2026.10.19.09.32.44
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 19 Oct 2026 09:32:44 -0700 (PDT)
-Message-ID: <ee975969-e310-4950-af09-f57fb423a9f5@linaro.org>
-Date: Mon, 19 Oct 2026 17:32:43 +0100
+        d=1e100.net; s=20260707; t=1792442241; x=1793047041;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=OlQWf86SXokSuh4SBBMFiqlQD7tg29+MR0deKhyYBLU=;
+        b=CufZasc4fd/1V7ebATf0NIA6kFS6NNFD4Sm2MT1wOsmgp1Q+K6B8g93TZm2T23aD0Z
+         PDNMS+BIyWikC/L5+mmpmNctvbW73o+KimZU6Gcc9eCN/DWwSmrd0wtHAzWfSK5scgU9
+         /qTFNKtlmGlNCdTTe//CDVKN5qm3v0GEkA4Mp6k+ToTGhqpVKT9udPQPoiH2QiO7Zaiw
+         cJ9SDpiS2QAxWnl47QBydj4TjzfdAYiAKo8lE53m1gS/bCHcOHDkdfj8atziHtUXneJQ
+         CUsa1u8e7QPBzmt8sUzc+RQ1/cToD5eHKK8jbG/nYGhOc2nO/84qBTvpIYgnq62K/wVq
+         EvAw==
+X-Forwarded-Encrypted: i=1; AKwUvByM9yHuw7c4gQrs0gHai6sZ1KngqLsMQHBO3BFDYWkRsq6Sa+DhcWpn7vk8L9kWUr2CLBEfE8Ztp+Xp@vger.kernel.org
+X-Gm-Message-State: AFq9FYIRcznbl12zgBByMzZ0Viy3m7kLNboHFm1l8wNxxAPVzYEOY2rg
+	w9IakwrlAd6eBOUlY2ofb50HzdRs0EfUskgBko6SL1KLRK/zB8bSbRuN
+X-Gm-Gg: AYBFou1UPHaaHXkwnL7KjF/gERB2rZEmET/8lqsqKfyaK8gU9nq6hI2M8iCkFnEb1Gg
+	nLNGgev4JnAvW91MaMtf1FT5LDNJZAJXBZtAiBsoVAywwno+BlZRv4zp9+haEsD203Alwn1P569
+	qAi4P6e2cCF4Ei5Iqd+v1ZlwQzkAZdyyIZVh2NTr6TnLd+iRaoAFqlzs67NM5noHN92AWhLiwaM
+	S/rEhd5ngwOg0G1wJOVdmKP1SorSAKJJ62WV6fNct4recTvPskiH+lxa3X7UpvDi44ywT/mjy9f
+	Q2zJ1adr1Kjy7XVlLcn8EKdVFifniEyyopb+WUJ6biT6rsYRkWE031qL8prLA29iEcj+3QUOzL9
+	rI7jzAVtkw4cUhHH6i5DTSNMTjsyyWZ1jPRKuJt4Q9ofJTdM3D9HAfDr1sSl0vhp12C8h6cvRsx
+	XNpNodMRxL3XkXgGjjZxdG/kkKglU9W7HY92flGK6TJkd3cAFUXHg6rZ4Si1vVLs64LypOw8IIX
+	FcnAboWuR4zIKkDKH/ra4L6b19PC/Z9UTPlMbrJQmufWWnRL1ovSxWpjtxEWJ/5Fi1W5/+mHGje
+	q8vHpx6866vSDx714SLrTzBBK1vubuZjCk5GkUFczN+SnsYv9dWNd4jCp2GQlSWyz+Bel1xM8oE
+	eg56jH/e+
+X-Received: by 2002:a05:600c:3e85:b0:4a1:d798:b08a with SMTP id 5b1f17b1804b1-4a1d798b0d4mr175531195e9.21.1792442241144;
+        Mon, 19 Oct 2026 13:37:21 -0700 (PDT)
+Received: from unknown748F3CBA5068 (dynamic-2a02-3100-a4e0-4601-c43a-536a-04a3-af7d.310.pool.telefonica.de. [2a02:3100:a4e0:4601:c43a:536a:4a3:af7d])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1f2c9e9c3sm15967405e9.3.2026.10.19.13.37.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 19 Oct 2026 13:37:20 -0700 (PDT)
+Date: Mon, 19 Oct 2026 22:37:17 +0200
+From: Karl Mehltretter <kmehltretter@gmail.com>
+To: Siddharth Vadapalli <s-vadapalli@ti.com>
+Cc: netdev@vger.kernel.org, Roger Quadros <rogerq@kernel.org>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Keerthy <j-keerthy@ti.com>, Kevin Hao <haokexin@gmail.com>, 
+	Alexander Sverdlin <alex@sverdlin.org>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH net v2] net: cpsw: fix netdev cleanup on probe failure
+Message-ID: <atZ8lCW0VVPzoHwb@gmail.com>
+References: <20261019060430.33254-1-kmehltretter@gmail.com>
+ <c20d708a-f4d6-4e66-a516-056d93264825@ti.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -91,88 +102,29 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 06/10] ARM: dts: omap: dm816x: Update USB node
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Ettore Chimenti <ettore.chimenti@linaro.org>,
- Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>,
- Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>,
- Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>,
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>,
- Christopher Obbard <chris.obbard@oss.qualcomm.com>,
- Linus Walleij <linusw@kernel.org>,
- Rouven Czerwinski <rouven.czerwinski@linaro.org>,
- linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
- linux-gpio@vger.kernel.org
-References: <20261016-patch-ektor5-dm8168-dts-v1-0-b4ce30217028@linaro.org>
- <20261016-patch-ektor5-dm8168-dts-v1-6-b4ce30217028@linaro.org>
- <20261017083957.7c2696f5@kemnade.info>
- <8a8313f1-d525-45d3-9044-b5f7a00b256d@linaro.org>
- <20261019154503.2111a89c@kemnade.info>
-Content-Language: en-GB
-From: Andrew Goodbody <andrew.goodbody@linaro.org>
-In-Reply-To: <20261019154503.2111a89c@kemnade.info>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c20d708a-f4d6-4e66-a516-056d93264825@ti.com>
 
-On 19/10/2026 14:45, Andreas Kemnade wrote:
-> On Mon, 19 Oct 2026 10:36:37 +0100
-> Andrew Goodbody <andrew.goodbody@linaro.org> wrote:
+On Mon, Oct 19, 2026 at 12:19:11PM +0100, Siddharth Vadapalli wrote:
+> > +		unregister_netdev(ndev);
+> > +		disable_work_sync(&priv->rx_mode_work);
 > 
->> On 17/10/2026 07:39, Andreas Kemnade wrote:
->>> On Fri, 16 Oct 2026 16:41:21 +0200
->>> Ettore Chimenti <ettore.chimenti@linaro.org> wrote:
->>>    
->>>> From: Andrew Goodbody <andrew.goodbody@linaro.org>
->>>>
->>>> USB node was not working correctly with DMA enabled as the supporting
->>>> code had been updated without updating this SoC's device tree. Bring the
->>>> device tree more up to date so that it works with DMA enabled.
->>>>
->>>> Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
->>>> Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
->>>> ---
->>>>    arch/arm/boot/dts/ti/omap/dm816x.dtsi | 41 +++++++++++++++++++++--------------
->>>>    1 file changed, 25 insertions(+), 16 deletions(-)
->>>>
->>>> diff --git a/arch/arm/boot/dts/ti/omap/dm816x.dtsi b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
->>>> index 7f3ef3a00ab8..5be9efc60785 100644
->>>> --- a/arch/arm/boot/dts/ti/omap/dm816x.dtsi
->>>> +++ b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
->>>> @@ -574,18 +574,27 @@ uart3: serial@48024000 {
->>>>    		};
->>>>    
->>>>    		/* NOTE: USB needs a transceiver driver for phys to work */
->>>> -		usb: usb_otg_hs@47401000 {
->>>> -			compatible = "ti,am33xx-usb";
->>>> -			reg = <0x47401000 0x400000>;
->>>> -			ranges;
->>>> +		usb: target-module@47400000 {
->>>> +			compatible = "ti,sysc-omap4", "ti,sysc";
->>>> +			ti,hwmods = "usb_otg_hs";
->>>
->>> Why do we still need this? It is depcrecated.
->>>
->>> Regards,
->>> Andreas
->>
->> Without that line we get the following on boot and USB does not work
->>
->> [    0.110148] omap_hwmod: usb_otg_hs: no dt node
+> Although the above code is a refactor, it appears to me that the correct
+> sequence should be:
+> 	disable_work_sync(&priv->rx_mode_work);
+> 	unregister_netdev(ndev);
+> RX Mode work (cpsw_ndo_set_rx_mode_work) does have a 'netif_running' check
+> so it might still be fine if the sequence isn't followed.
 > 
-> It is somewhat odd to use both ti-sysc and hwmod. It looks like a
-> half conversion.
+> Please correct me if I am mistaken regarding the above. Rest of the patch
+> looks good to me.
 > 
-> For an example how usb_otg_hs was converted to ti-sysc for omap3, look at
-> 42a79edd4a3dc1bb8e89fd2849f9e8e1e1c13977...v6.1-rc1
-> 
-> It has no hwmod stuff left.
-> 
-> Regards,
-> Andreas
 
-Thank you. That was the pointer I needed to sort this out.
+Both orders are safe here. The worker and unregister_netdev() serialize
+on RTNL, so a worker running after unregister exits at !netif_running().
 
-Andrew
+This matches cpsw_new, so I'd keep the current order.
+
+Thanks,
+Karl
