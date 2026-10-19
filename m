@@ -1,45 +1,49 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 760335E215C;
-	Mon, 19 Oct 2026 14:02:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E688E64990C;
+	Mon, 19 Oct 2026 14:06:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792418549; cv=none; b=gZzFJYJr0E72p5rlArC4lT/PZouZhx0JvJPyI854h0U74bIUfG9G0lLaACibK+SvCtIRBSJ76r4UhZYPGCkLemf4IwmuSk82MhGHLiA3ZhrOeCluyozILMxQhaE9lhhsZqipl57Wvbyxxqdhl6D0rSeuOLALQ9A80nQZ3KZ4K4k=
+	t=1792418806; cv=none; b=F1XmMkpe6SFf5hTteE8iCdlsy4ZTyyEd6VFBKq6/AljARNIIgi4kdHuBZZDVhp8SZ4zM4Tix7O+GiIgXwZ5xUIMZzGXbK/NrFzOnU6cgbDqEHFuAqKGnpvM3+2Y+NaoNhPjaJ54U6XBOqY99jiRtFuDcMUF5iItWMMW1AvjoZ5g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792418549; c=relaxed/simple;
-	bh=vKtA7JRfO70+rdfogeVXY2fLuLw5H3B9c4LIWICzq5Y=;
+	s=arc-20240116; t=1792418806; c=relaxed/simple;
+	bh=OxuENGihqPPyqE/n8s1mshvqs8J7RErz8kyHNSZSu50=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=WIDFCQ+hM7MdUQ/0LU31F98PGhBgD2XMZNFiJ1ZuEph8OdCtL3zbPrsNHbBcBuj9a2qJhiiBgB74061WRcdnuBlWTqQafexNOUzkTSVfJCWZk3x0gMH3NwSaIOHv5Sjad5OZZC98yl75evh0Jl8Yb2L5K6WWRpKgSepoXfEY8Sg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Bu5ppNYx; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=oHHvEM4I0AMkpd5hTapM+l6hXcVxRZ5AqnVS/sM+lKKf/71cjwqdu2BUBkUNr0AFSCpWq/AihOaskSvhFlD3B8Hif8xpieKEgyBVxvRYfv3iuqRzTkwbBL9Lzz9mPYYOLVzueAlRr8SFekGN5uYhbjUK8q1LgEUMPcWa9nfOSjA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BItVbjqZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Bu5ppNYx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EFC71F000C7;
-	Mon, 19 Oct 2026 14:02:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BItVbjqZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 734CB1F000C5;
+	Mon, 19 Oct 2026 14:06:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792418546;
-	bh=2Yx0E8RRn1cWZ8BEo/BfdquUwBZonkPGH7EBNzQe+3M=;
+	s=k20260515; t=1792418801;
+	bh=dVT/lc0X87cPzZC0IZOAStJKDaNEt1e40Q93nkmWZJA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Bu5ppNYxaPrOn1juxuqzMmeSqr9139wHh3FM2FajtVrqMm9p+stSmWZAC69E2+HyQ
-	 pFsNcahAQ92BPqnm+8Q1e+PeOyRgfFHZHJS9/TDyimUbN+1Ro71QiPOvlfZh9EmUYy
-	 i5OF56Q8k9/sunOsp/MrEJV60I+eWSeLp0rcYDFfT/gjqGG6wEtuu+dtfl9UfXQPRI
-	 P77iRcPNH6YyJ3E8c5eD53ggXL8BEkgjdQtrP9OvwPVWUVGvHkUjuOtNaRIHH6BBhB
-	 8QhvwrjfF7wXIRmVtgOlUNO8I/cNJAFe9HlvJDBBrDZcmpxGR3vSUMhABi9gYjgUL5
-	 V65MkBZX9swaA==
+	b=BItVbjqZYHoLIf2RabOZ+tRjogM81Tsfoms7iCtbg9zuAvDlNG6QVzFodCXYqNMfO
+	 uoi1GSgFmDTkEoXadjH7YlWZ1gFV8N/YyLFTpxzUt9KcBsv/mnTWX+ivQFfhv77lGf
+	 fhhFvCM223bHUadRJr5NezEqPcZpTv6xVbRmEmHB1GTy/leBkwaSAfJBxgx7b+jmUk
+	 po8NexWQQKb1XQXTHf1G1QJM0ZEC9+x95Mq41+F61tsu9KiIEbiVNo/4saIMrpca4X
+	 ETxo1BJmMkZMqjEHC1L6PrzeB3twlBddlHxyWV8MTQMA90uaOfkj7fSUAJ4/OKX/qk
+	 zNw736JastvbQ==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Andreas Kemnade <andreas@kemnade.info>,
-	sashiko-bot@kernel.org,
-	Helge Deller <deller@gmx.de>,
+Cc: Mithil Bavishi <bavishimithil@gmail.com>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	"Kevin Hilman (TI)" <khilman@baylibre.com>,
 	Sasha Levin <sashal@kernel.org>,
+	aaro.koskinen@iki.fi,
+	rogerq@kernel.org,
+	tony@atomide.com,
+	linux@armlinux.org.uk,
+	linux-arm-kernel@lists.infradead.org,
 	linux-omap@vger.kernel.org,
-	linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-5.10] fbdev: omap2: dsi: do not copy isr table
-Date: Mon, 19 Oct 2026 09:50:16 -0400
-Message-ID: <20261019135441.1420968-325-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-5.10] ARM: OMAP2+: Add CFI type for omap4_finish_suspend
+Date: Mon, 19 Oct 2026 09:53:17 -0400
+Message-ID: <20261019135441.1420968-506-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261019135441.1420968-1-sashal@kernel.org>
 References: <20261019135441.1420968-1-sashal@kernel.org>
@@ -55,432 +59,371 @@ X-stable-base: Linux 6.18.57
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Andreas Kemnade <andreas@kemnade.info>
+From: Mithil Bavishi <bavishimithil@gmail.com>
 
-[ Upstream commit 31875c51c31edec57b3620f278680c23a823763b ]
+[ Upstream commit 4a7b197ad28d71f9fac873f283b4408df3fdb287 ]
 
-To te able to unregister stuff from isrs, the corresponding table was
-copied.  Nobody seems to unregister stuff that way, so it does not help.
-But there are stack-allocated objects passed to these isrs giving chances
-of UAF of these objects if irqs are unregistered while they are handled,
-so better do not copy that table.
+With CONFIG_CFI enabled, OMAP4 can trap in omap4_enter_lowpower()
+because omap_pm_ops.finish_suspend points directly to the assembly
+routine omap4_finish_suspend, which lacks the expected KCFI type
+metadata.
 
-Suggested-by: sashiko-bot@kernel.org
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-Signed-off-by: Helge Deller <deller@gmx.de>
+Annotate omap4_finish_suspend with SYM_TYPED_FUNC_START so the assembly
+routine carries the KCFI type metadata.
+
+Signed-off-by: Mithil Bavishi <bavishimithil@gmail.com>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
+Link: https://patch.msgid.link/20260604054048.18980-1-bavishimithil@gmail.com
+Signed-off-by: Kevin Hilman (TI) <khilman@baylibre.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-This is a UAF fix in the OMAP2 fbdev DSI IRQ path. The same change is
-already in this 6.12 tree for the DRM copy of the driver; the fbdev copy
-of the bug is still present.
+The local tree is **6.18.53**. The patch is a three-line CFI annotation
+for an OMAP4 assembly suspend finisher that is called through a C
+function pointer, so a `CONFIG_CFI` kernel can oops on idle/suspend.
+That is a real crash with a tiny, standard fix.
 
 ===============================================================
 PHASE 1: COMMIT MESSAGE FORENSICS
 ===============================================================
 
-**Step 1.1: PARSE THE SUBJECT LINE**
-Record: `[fbdev/omap2/dsi] [do not copy] [stop copying the DSI ISR table
-before invoking handlers]`
+Step 1.1: PARSE THE SUBJECT LINE
+Record: **[ARM: OMAP2+]** **[Add]** Add KCFI type metadata for assembly
+`omap4_finish_suspend`. The verb is “Add”, but the body is a CFI-trap
+fix, not a feature.
 
-**Step 1.2: PARSE ALL COMMIT MESSAGE TAGS**
+Step 1.2: PARSE ALL COMMIT MESSAGE TAGS
 Record:
-- `Suggested-by: sashiko-bot@kernel.org` (static-analysis bot; this is
-  the original trigger, not a user crash report)
-- `Signed-off-by: Andreas Kemnade <andreas@kemnade.info>` (author)
-- `Signed-off-by: Helge Deller <deller@gmx.de>` (fbdev maintainer)
-- No `Fixes:` tag (expected for this review queue)
-- No `Cc: stable@vger.kernel.org`
-- No `Reported-by:`, `Tested-by:`, `Reviewed-by:`, or `Link:`
-- Ignore `Signed-off-by: Sasha Levin` / `[Upstream commit ...]` if
-  present in candidate packaging; they are not part of the technical
-  decision
+- Reviewed-by: Nathan Chancellor (Clang/CFI)
+- Reviewed-by: Andreas Kemnade (OMAP)
+- Link: https://patch.msgid.link/20260604054048.18980-1-
+  bavishimithil@gmail.com
+- Signed-off-by: Mithil Bavishi (author)
+- Signed-off-by: Kevin Hilman (TI) (OMAP maintainer; applied)
+- No Fixes:, Reported-by, Tested-by, or Cc: stable (absence expected)
+- Ignore pipeline “Upstream commit” / Sasha Levin SOB
 
-**Step 1.3: ANALYZE THE COMMIT BODY TEXT**
+Step 1.3: ANALYZE THE COMMIT BODY TEXT
 Record:
-- Bug: ISR table was memcpy’d so handlers could unregister themselves,
-  then the copy was walked after dropping `irq_lock`.
-- Author claim: nothing unregisters from ISR context, so the copy is
-  unused for its stated purpose.
-- Failure mode: stack-allocated objects (`DECLARE_COMPLETION_ONSTACK`,
-  `dsi_packet_sent_handler_data` on stack) are passed as ISR `arg`. If
-  unregister/return happens while the IRQ handler still walks the copy,
-  those objects are used after free.
-- No kernel-version range in the message.
-- Root cause: lockless copy of function+arg pointers that alias stack
-  objects.
+- Bug: with `CONFIG_CFI`, OMAP4 can trap in `omap4_enter_lowpower()`
+  because `omap_pm_ops.finish_suspend` points at assembly
+  `omap4_finish_suspend` with no KCFI type hash.
+- Symptom: CFI failure / oops on low-power entry.
+- Root cause: indirectly called asm lacks `__kcfi_typeid_*`.
+- Fix: `SYM_TYPED_FUNC_START` / `SYM_FUNC_END`.
+- No version range given; ARM CFI itself is from 6.11.
 
-**Step 1.4: DETECT HIDDEN BUG FIXES**
-Record: Not a disguised cleanup. It is explicitly a UAF/race fix, even
-though the subject does not say “fix”.
+Step 1.4: DETECT HIDDEN BUG FIXES
+Record: Not disguised. It is an explicit CFI-trap fix, same class as
+other `SYM_TYPED_FUNC_START` annotations.
 
 ===============================================================
 PHASE 2: DIFF ANALYSIS - LINE BY LINE
 ===============================================================
 
-**Step 2.1: INVENTORY THE CHANGES**
+Step 2.1: INVENTORY THE CHANGES
 Record:
-- File: `drivers/video/fbdev/omap2/omapfb/dss/dsi.c` (+1 / −8; 9 lines)
-- Removes `struct dsi_isr_tables isr_tables_copy` from `struct dsi_data`
-- In `omap_dsi_irq_handler()`: drop `memcpy`, call `dsi_handle_isrs()`
-  on the live table **while `irq_lock` is held**, then unlock
-- Scope: single-file surgical fix
+- File: `arch/arm/mach-omap2/sleep44xx.S` (+3 / −2)
+- Functions: `omap4_finish_suspend` only
+- Scope: single-file surgical annotation
 
-**Step 2.2: UNDERSTAND THE CODE FLOW CHANGE**
+Step 2.2: UNDERSTAND THE CODE FLOW CHANGE
 Record:
-- Before: lock → read/ack IRQ status → memcpy table → unlock →
-  `dsi_handle_isrs(&copy)` → error/stats
-- After: lock → read/ack IRQ status → `dsi_handle_isrs(&live table)` →
-  unlock → error/stats
-- Affected path: hardirq handler (`devm_request_irq(...,
-  omap_dsi_irq_handler, IRQF_SHARED, ...)`)
-- Unregister (`dsi_unregister_isr*`) takes `irq_lock`, so it now waits
-  until handlers finish
+- Hunk 1: `#include <linux/cfi_types.h>` so `SYM_TYPED_FUNC_START` is
+  defined.
+- Hunk 2: `ENTRY(omap4_finish_suspend)` →
+  `SYM_TYPED_FUNC_START(omap4_finish_suspend)`. Without `CONFIG_CFI`
+  this is the same as `SYM_FUNC_START`/`ENTRY`. With CFI it emits
+  `.4byte __kcfi_typeid_omap4_finish_suspend` before the symbol.
+- Hunk 3: `ENDPROC` → `SYM_FUNC_END` (paired end; ARM `ENDPROC` vs
+  generic `SYM_FUNC_END` is ELF metadata only).
+- Path: function prologue of the suspend finisher; no control-flow
+  change.
 
-**Step 2.3: IDENTIFY THE BUG MECHANISM**
-Record:
-- Category: use-after-free / race (memory safety)
-- Mechanism: copy of ISR `arg` pointers outlives unregister of stack-
-  allocated completions
-- Verified stack objects passed into ISRs in this tree:
-  - `dsi_sync_vc_vp()` / `dsi_sync_vc_l4()`:
-    `DECLARE_COMPLETION_ONSTACK` + stack `dsi_packet_sent_handler_data`
-  - `dsi_vc_send_bta_sync()`: stack completion registered on **two**
-    tables (global + VC)
-  - `dsi_enter_ulps()`: stack completion registered on CIO table
-- Concrete UAF in `dsi_vc_send_bta_sync()`: `dsi_handle_isrs()` walks
-  global table then VC table. First handler can `complete()`; waiter
-  unregisters and returns; second handler still runs against the copy
-  with a dangling stack pointer.
-- Fix: keep `irq_lock` across handler dispatch so unregister cannot
-  destroy the objects until handlers return.
+Step 2.3: IDENTIFY THE BUG MECHANISM
+Record: **(h) hardware/CFI metadata + (g) correctness.** Indirect call
+to asm without a type hash. Compiler CFI checks at
+`omap_pm_ops.finish_suspend(...)` fail → trap. Fix attaches the
+compiler-emitted type id to the asm entry.
 
-**Step 2.4: ASSESS THE FIX QUALITY**
-Record:
-- Obviously correct given the locking: unregister cannot proceed while
-  handlers run.
-- Minimal; no API change.
-- Regression risk is low **if** no ISR unregisters itself (would
-  deadlock on `irq_lock`). Verified all three callbacks
-  (`dsi_completion_handler`, `dsi_packet_sent_handler_vp`,
-  `dsi_packet_sent_handler_l4`) only `complete()` and/or read registers.
-  None call `dsi_unregister_isr*`.
-- `complete()` under a spinlock is valid.
-- Holding the lock slightly longer in hardirq is register reads +
-  `complete()`, not a sleep.
+Step 2.4: ASSESS THE FIX QUALITY
+Record: Obviously correct and the established pattern
+(`include/linux/cfi_types.h`). No locking, no API, no data-structure
+change. Regression risk is very low: without CFI it is equivalent to
+`ENTRY`/`SYM_FUNC_START`; with CFI it only adds the expected hash.
 
 ===============================================================
 PHASE 3: GIT HISTORY INVESTIGATION
 ===============================================================
 
-**Step 3.1: BLAME THE CHANGED LINES**
-Record:
-- Copy logic and `isr_tables_copy` blamed to `f76ee892a99e6` (“omapfb:
-  copy omapdss & displays for omapfb”, 2015-12-29).
-- Pattern is as old as the fbdev DSS copy in this tree; originally
-  inherited from OMAP DSS ISR support.
-- Long-lived bug, not recent code.
+Step 3.1: BLAME THE CHANGED LINES
+Record: `ENTRY(omap4_finish_suspend)` body from Santosh Shilimkar,
+`b2b9762f76981` (2010). Function-pointer assignment
+`omap_pm_ops.finish_suspend = omap4_finish_suspend` from `9f192cf7dad8f`
+(2013). The crash only appears after ARM CFI (`1a4fec49efe52`, “ARM:
+9392/2: Support CLANG CFI”, 2024-04-29, in v6.11+).
 
-**Step 3.2: FOLLOW THE FIXES: TAG**
-Record: No `Fixes:` on the fbdev commit. The sibling DRM fix
-`2c27a84ba8d1b` (`drm/omap: dsi: Do not copy isr table`) has `Fixes:
-4ae2ddddf44cd ("OMAP: DSS2: DSI: Add ISR support")`. That original ISR
-support is what fbdev copied.
+Step 3.2: FOLLOW THE FIXES: TAG
+Record: No Fixes: tag. Buggy combination is long-lived asm + CFI on ARM
+since 6.11.
 
-**Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES**
-Record:
-- Recent `dsi.c` changes in this tree are unrelated (platform remove,
-  of_graph, timer, pm_runtime).
-- Standalone; not patch N/M.
-- Cover letter on lore points at a DRM twin:
-  `https://lore.kernel.org/lkml/20260702-dsi-
-  uaf-v2-1-dbb4aa0f0b8e@kemnade.info/`
-- That DRM twin **is already in this tree** as `2c27a84ba8d1b`
-  (contained in `v6.12.110~477`).
+Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES
+Record: File is quiet. Last functional change before this was
+`2402ff05c6e6b` (use `v7_invalidate_l1`). Standalone, not “patch X/Y”.
+Maintainer applied it as `[1/1]`.
 
-**Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS**
-Record:
-- Andreas Kemnade is an OMAP/display contributor; same author wrote the
-  DRM twin.
-- Helge Deller (fbdev maintainer) applied the fbdev patch.
-- Tomi Valkeinen applied the DRM twin.
+Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS
+Record: Mithil Bavishi’s nearby work here is OMAP DT (Galaxy Tab 2), not
+a CFI series. Reviewers are the domain experts.
 
-**Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS**
-Record:
-- No new functions/types.
-- Applies as a logic change on existing `omap_dsi_irq_handler` / `struct
-  dsi_data`.
-- Context mismatch only: mainline hunk context has `timer_delete()`;
-  this tree still has `del_timer()` (`8fa7292fee5c5` timer rename is not
-  in 6.12). Not a functional dependency.
+Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS
+Record: Needs `SYM_TYPED_FUNC_START` (`e84e008e7b02`, 2022) and ARM
+`ARCH_SUPPORTS_CFI` (`1a4fec49efe52`). Both are ancestors of this
+6.18.53 tree. Applies standalone.
 
 ===============================================================
 PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
 ===============================================================
 
-**Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION**
+Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION
 Record:
-- `b4 dig -c 31875c51c31ed`: https://patch.msgid.link/20260702-fbomap-
-  uaf-fix-v1-1-6417edf9d3e7@kemnade.info
-- `b4 dig -a`: single revision **v1** only; that version was applied.
-- Thread: author patch → sashiko-bot review → author reply → Helge
-  Deller “applied.”
-- No NAK. Deller accepted it.
-- Bot comments were about **pre-existing sibling bugs** (DRM DSI, DISPC
-  copy, unbind timers), not about this change being wrong.
-- Author noted the DRM variant in the patch footer.
+- `b4 dig -c 4a7b197ad28d71f9fac873f283b4408df3fdb287` → v3 https://patc
+  h.msgid.link/20260604054048.18980-1-bavishimithil@gmail.com
+- `b4 dig -a`: v2 2026-05-22, v3 2026-06-03 (applied)
+- v1 (May 12): “Make OMAP4 finish_suspend callback CFI-safe”. Nathan
+  asked for `SYM_TYPED_FUNC_START` and whether other `omap_pm_ops`
+  members need it. Andreas: `omap4_cpu_resume` / secondary startup are
+  stored as `u32` phys addrs (no CFI); `scu_prepare` is C. Only
+  `finish_suspend` needs the annotation.
+- Kevin Hilman applied v3 (`d58849ac3044` in his tree). No NAK found.
+- lore.kernel.org fetches returned 403; discussion recovered from b4,
+  spinics, LKML mirrors, openwall.
 
-**Step 4.2: CHECK WHO REVIEWED THE PATCH**
-Record (`b4 dig -w`):
-- To: Helge Deller
-- Cc: linux-omap, linux-fbdev, dri-devel, linux-kernel, sashiko-bot
-- Appropriate lists; fbdev maintainer applied it.
-- No human Reviewed-by besides maintainer application.
+Step 4.2: CHECK WHO REVIEWED THE PATCH
+Record: `b4 dig -w` CCs: OMAP maintainers (Kemnade, Hilman, Lindgren,
+Quadros, Koskinen), RMK, Sami Tolvanen, Kees Cook, Nathan Chancellor,
+linux-omap, linux-arm-kernel, llvm@. Right people.
 
-**Step 4.3: SEARCH FOR THE BUG REPORT**
-Record:
-- No syzbot/bugzilla user report. Trigger is sashiko-bot static
-  analysis.
-- Bug is still real: code in this tree matches the described UAF (stack
-  completions + lockless copy).
+Step 4.3: SEARCH FOR THE BUG REPORT
+Record: No syzbot/bugzilla. Mechanism is described in the patch;
+reviewers treated it as a real CFI trap, not speculative.
 
-**Step 4.4: CHECK FOR RELATED PATCHES AND SERIES**
-Record:
-- DRM twin already backported here (`2c27a84ba8d1b`).
-- fbdev DISPC still copies a stack `registered_isr` in `dispc-compat.c`
-  (`omap_dispc_irq_handler`); same pattern, **separate** file, not
-  required for this DSI patch to be correct.
-- No revert of either DSI fix on `origin/master`.
+Step 4.4: CHECK FOR RELATED PATCHES AND SERIES
+Record: Standalone. v1→v3 is the same fix rewritten to
+`SYM_TYPED_FUNC_START`.
 
-**Step 4.5: CHECK STABLE MAILING LIST HISTORY**
-Record: UNVERIFIED. `lore.kernel.org/stable/` and lore message URLs
-returned HTTP 403. Thread was recovered via `b4 dig -m` instead. No
-stable-list discussion could be fetched.
+Step 4.5: CHECK STABLE MAILING LIST HISTORY
+Record: lore.kernel.org/stable returned 403. UNVERIFIED whether stable@
+already discussed it. No local `git log` hit for a prior OMAP4 CFI
+annotation.
 
 ===============================================================
 PHASE 5: CODE SEMANTIC ANALYSIS
 ===============================================================
 
-**Step 5.1: IDENTIFY KEY FUNCTIONS IN THE DIFF**
-Record: `omap_dsi_irq_handler()`; field removed from `struct dsi_data`.
-Callers of `dsi_handle_isrs()` / `dsi_call_isrs()` unchanged except the
-table pointer and lock scope.
+Step 5.1: IDENTIFY KEY FUNCTIONS IN THE DIFF
+Record: `omap4_finish_suspend` (asm). Callers use
+`omap_pm_ops.finish_suspend`.
 
-**Step 5.2: TRACE CALLERS**
-Record:
-- `omap_dsi_irq_handler` ← `devm_request_irq` in DSI bind/probe (`dsi.c`
-  ~5363). Hardirq, `IRQF_SHARED`.
-- Register/unregister sites are process context, all take `irq_lock`.
-- Sync/BTA/ULPS paths used during DSI frame update, command write, and
-  ULPS enter (`dsi_sync_vc` from update/disable; `dsi_vc_send_bta_sync`
-  as `.bta_sync`; `dsi_enter_ulps`).
+Step 5.2: TRACE CALLERS
+Record (verified in this tree):
+- `omap-mpuss-lowpower.c:440` assigns the pointer on OMAP44xx.
+- `omap4_enter_lowpower()`: `cpu_suspend(...,
+  omap_pm_ops.finish_suspend)` or
+  `omap_pm_ops.finish_suspend(save_state)` (C indirect call — CFI-
+  checked).
+- `omap4_hotplug_cpu()`: always `omap_pm_ops.finish_suspend(cpu_state)`.
+- `pm44xx.c:79` → suspend.
+- `cpuidle44xx.c:108,187` → idle.
 
-**Step 5.3: TRACE CALLEES**
-Record: `dsi_handle_isrs` → `dsi_call_isrs` → registered `isr(arg,
-status)` → `complete()` / `REG_GET`. Then `dsi_handle_irq_errors` and
-`dsi_collect_irq_stats` still after unlock.
+Step 5.3: TRACE CALLEES
+Record: cache flush, SCU power mode, WFI. Unchanged.
 
-**Step 5.4: FOLLOW THE CALL CHAIN**
-Record: Reachable from normal display I/O on `CONFIG_FB_OMAP2=y` +
-`CONFIG_FB_OMAP2_DSS_DSI=y` (MIPI DSI panel). Not a syscall fuzzer path,
-but a real device IRQ + wait-for-completion path. Unprivileged userspace
-can trigger it by updating the framebuffer on such hardware.
+Step 5.4: FOLLOW THE CALL CHAIN
+Record: cpuidle / suspend / hotplug → `omap4_enter_lowpower` /
+`omap4_hotplug_cpu` → indirect call. Userspace-reachable via idle and
+suspend. On CFI failure ARM `hw_breakpoint_cfi_handler` does `die("Oops
+- CFI", ...)` unless `CFI_PERMISSIVE`.
 
-**Step 5.5: SEARCH FOR SIMILAR PATTERNS**
-Record:
-- DRM `drivers/gpu/drm/omapdrm/dss/dsi.c` in **this tree** already calls
-  `dsi_handle_isrs(&dsi->isr_tables, ...)` under `irq_lock` (the
-  backported twin).
-- fbdev `dispc-compat.c` still memcpy’s ISRs then drops the lock;
-  leftover sibling, not a blocker for this patch.
-- `isr_tables_copy` exists only in this fbdev `dsi.c` in this checkout.
+Step 5.5: SEARCH FOR SIMILAR PATTERNS
+Record: `omap4_cpu_resume` still uses `ENTRY` — intentional (ROM jump
+via phys addr). Rest of mach-omap2 asm is not stored in that C function-
+pointer slot. Widespread `SYM_TYPED_FUNC_START` in
+`arch/arm/mm/proc-*.S`.
 
 ===============================================================
 PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
 ===============================================================
 
-**Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?**
-Record:
-- `git describe HEAD`: `p-6.12-3-gc504cf0baa3d8`
-- `make kernelversion` / Makefile: **6.12.111**
-- `git merge-base --is-ancestor 31875c51c31ed HEAD` → not an ancestor
-  (fix not in this tree)
-- Buggy code present: `isr_tables_copy` at `dsi.c:330`, memcpy at
-  `dsi.c:841-848`
-- Introduced here via `f76ee892a99e6` (v4.5-era copy)
+Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?
+Record: Yes. `git describe HEAD` = **v6.18.53-5049-g0f0bdc2b0dffb**,
+`make kernelversion` = **6.18.53**. `v6.18.53` has
+`ENTRY(omap4_finish_suspend)` and `ARCH_SUPPORTS_CFI`. `git diff
+v6.18.53 -- arch/arm/mach-omap2/sleep44xx.S` is exactly this patch.
 
-**Step 6.2: CHECK FOR BACKPORT COMPLICATIONS**
-Record:
-- `git apply --check` of `31875c51c31ed` fails only because context has
-  `timer_delete` vs local `del_timer`.
-- The two functional hunks (remove field; move `dsi_handle_isrs` before
-  unlock) match this tree byte-for-byte aside from that nearby timer
-  name.
-- Expected difficulty: **minor context tweak**, not rework.
+Step 6.2: CHECK FOR BACKPORT COMPLICATIONS
+Record: Clean apply. File otherwise unchanged vs v6.18.53.
 
-**Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE**
-Record:
-- DRM equivalent already applied (`2c27a84ba8d1b`).
-- No fbdev DSI equivalent. `FB_OMAP2` depends on `DRM_OMAP=n`, so omapfb
-  users do **not** get the DRM fix.
+Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE
+Record: No other omap4_finish_suspend CFI fix. This tree already has
+other ARM CFI work (`ARM: 9481/2: breakpoint: CFI breakpoints only on
+demand`), so CFI-on-ARM is in-scope for 6.18.y.
 
 ===============================================================
 PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
 ===============================================================
 
-**Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY**
-Record: `drivers/video/fbdev/omap2` — SoC display driver. Criticality:
-**PERIPHERAL** (OMAP2+ boards using legacy fbdev, not omapdrm). Still
-in-tree and user-facing on that hardware.
+Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY
+Record: `arch/arm/mach-omap2` platform PM. **PERIPHERAL** hardware, but
+the path is idle/suspend (high frequency if that SoC + CFI is used).
 
-**Step 7.2: ASSESS SUBSYSTEM ACTIVITY**
-Record: Mature/legacy. Low churn; bug has been present since the 2015
-omapdss copy. Maintainer (Deller) still takes fixes.
+Step 7.2: ASSESS SUBSYSTEM ACTIVITY
+Record: Mature; sleep44xx.S rarely changes. Bug is CFI enablement
+meeting old code, not new churn.
 
 ===============================================================
 PHASE 8: IMPACT AND RISK ASSESSMENT
 ===============================================================
 
-**Step 8.1: DETERMINE WHO IS AFFECTED**
-Record: Driver-specific / config-specific: `CONFIG_FB_OMAP2` +
-`CONFIG_FB_OMAP2_DSS_DSI` on OMAP2+ with MIPI DSI, and only when DRM
-omap is disabled.
+Step 8.1: DETERMINE WHO IS AFFECTED
+Record: Driver/platform + config: `CONFIG_ARCH_OMAP4` and `CONFIG_CFI`.
+Not universal.
 
-**Step 8.2: DETERMINE THE TRIGGER CONDITIONS**
+Step 8.2: DETERMINE THE TRIGGER CONDITIONS
+Record: CPU idle, suspend, hotplug on OMAP4 with CFI. Not an
+unprivileged exploit; it is a false CFI hit on a legitimate call. With
+default CFI (non-permissive) it oopses.
+
+Step 8.3: DETERMINE THE FAILURE MODE SEVERITY
+Record: CFI mismatch → `report_cfi_failure()` → `BUG_TRAP_TYPE_BUG` →
+`die("Oops - CFI")`. **HIGH** (oops/panic on idle/suspend). Permissive
+CFI is warn-only.
+
+Step 8.4: CALCULATE RISK-BENEFIT RATIO
 Record:
-- Trigger: DSI IRQ concurrent with unregister of a stack-backed ISR
-  after `complete()` or timeout (`dsi_sync_vc_*` 10 ms, BTA 500 ms, ULPS
-  1000 ms).
-- Dual-ISR BTA path is the most realistic (two handlers, one stack
-  object).
-- Unprivileged userspace can drive framebuffer updates that hit
-  `dsi_sync_vc`.
-
-**Step 8.3: DETERMINE THE FAILURE MODE SEVERITY**
-Record: Use-after-free of stack completions / handler-data → kernel oops
-or memory corruption in hardirq. Severity: **HIGH**.
-
-**Step 8.4: CALCULATE RISK-BENEFIT RATIO**
-Record:
-- Benefit: HIGH for omapfb+DSI users (prevents UAF in IRQ). Population
-  is small, but the DRM twin was already taken into this same 6.12.y
-  tree, which shows the bug class is treated as stable-worthy.
-- Risk: LOW (9 lines, verified no self-unregister, `complete()` under
-  spinlock is fine).
-- Ratio: benefit outweighs risk.
+- Benefit: medium-high for OMAP4+CFI (otherwise idle/suspend is broken);
+  none otherwise, and the macros are inert without CFI.
+- Risk: very low (3 lines, no behavior change off CFI).
+- Ratio: favorable.
 
 ===============================================================
 PHASE 9: FINAL SYNTHESIS
 ===============================================================
 
-**Step 9.1: COMPILE THE EVIDENCE**
-
+Step 9.1: COMPILE THE EVIDENCE
 FOR:
-- Real UAF: lockless copy of pointers to `DECLARE_COMPLETION_ONSTACK`
-  objects
-- Dual-ISR BTA path makes the race practical, not only a 1-instruction
-  window
-- Small, obviously correct lock-scope change
-- All ISR callbacks verified not to unregister (no self-deadlock)
-- Code exists in this 6.12.111 tree; bug dates to 2015 copy
-- fbdev maintainer applied v1 with no NAK
-- Identical DRM fix already in this tree; omapfb users are the leftover
-  affected set
+- Real CFI trap → oops on a live idle/suspend/hotplug path
+- ARM CFI exists in this 6.18.y tree
+- Tiny, standard, reviewed by CFI and OMAP maintainers
+- Applies cleanly; helpers already present
+- Harmless when CFI is off
 
 AGAINST:
-- No user `Reported-by` / syzbot (bot-found)
-- Peripheral OMAP fbdev DSI, not a core path
-- Vanilla patch needs a one-line context adjust (`del_timer`)
-- DISPC has a similar leftover pattern (out of scope for this commit)
+- Only `ARCH_OMAP4` + `CONFIG_CFI` (small population)
+- No public crash log / syzbot
+- OMAP4 is old
 
 UNRESOLVED:
-- Could not query lore.kernel.org/stable (HTTP 403)
-- No runtime reproduction in this session (analysis is from code +
-  thread)
+- lore.kernel.org 403; no stable@ thread recovered
+- No independent Tested-by on hardware in the tags
 
-**Step 9.2: APPLY THE STABLE RULES CHECKLIST**
-1. Obviously correct and tested? **PASS** — lock documents the intent;
-   maintainer applied; DRM twin already on 6.12.y
-2. Fixes a real bug that affects users? **PASS** — UAF on DSI IRQ vs
-   stack completions
-3. Important issue? **PASS** — UAF / oops / memory corruption (HIGH)
-4. Small and contained? **PASS** — 9 lines, one file
+Step 9.2: APPLY THE STABLE RULES CHECKLIST
+1. Obviously correct and tested? **PASS** — standard annotation;
+   Reviewed-by Nathan Chancellor and Andreas Kemnade
+2. Fixes a real bug that affects users? **PASS** — CFI false positive on
+   indirect call
+3. Important issue? **PASS** — oops/panic on idle/suspend when CFI is on
+   (HIGH, config-specific)
+4. Small and contained? **PASS** — 5 lines, one file
 5. No new features or APIs? **PASS**
-6. Can apply to the local tree? **PASS** — functional diff matches;
-   trivial `del_timer` context
+6. Can apply to the local tree? **PASS** — identical context on v6.18.53
 
-**Step 9.3: CHECK FOR EXCEPTION CATEGORIES**
-Record: Not an ID/quirk/DT/build/docs exception. It is a normal memory-
-safety bugfix.
+Step 9.3: CHECK FOR EXCEPTION CATEGORIES
+Record: Not a device-ID/quirk/DT/docs patch. Closest analogue:
+supported-config correctness (CFI annotation), like a build/runtime fix
+for `CONFIG_CFI`.
 
-**Step 9.4: MAKE YOUR DECISION**
-This should be backported to **this** 6.12.y tree. The buggy
-`isr_tables_copy` path is here; the fix is the same one already taken
-for omapdrm; omapfb is a separate config and still needs it.
+Step 9.4: MAKE YOUR DECISION
+The population is small, but the failure is a kernel oops on a common PM
+path, the patch is three lines and matches existing ARM CFI helpers in
+this tree, and it does nothing when CFI is off. That meets 6.18.y stable
+rules.
+
+What it solves for this tree: 6.18 already selects `ARCH_SUPPORTS_CFI`.
+OMAP4 still assigns the asm finisher to a C function pointer and calls
+it from cpuidle/suspend. Without the type hash, a CFI kernel can
+`die("Oops - CFI")` in `omap4_enter_lowpower()`. Benefit vs risk is
+strongly in favor of backporting.
 
 Verification:
-- [Phase 1] Tags: Suggested-by sashiko-bot; SOB Kemnade + Deller; no
-  Fixes/Cc stable/Reported-by
-- [Phase 2] Diff: remove `isr_tables_copy`; call
-  `dsi_handle_isrs(&dsi->isr_tables)` before `spin_unlock`
-- [Phase 2] Confirmed stack completions at dsi.c:2298, 2347, 2617, 3115
-- [Phase 2] Confirmed ISR callbacks only complete/read MMIO; no
-  unregister
-- [Phase 3] Blame: f76ee892a99e6 (2015); ancestor check of 31875c51c31ed
-  vs HEAD: not present
-- [Phase 3] DRM twin 2c27a84ba8d1b is in this tree (`git merge-base
-  --is-ancestor` exit 0; `v6.12.110~477`)
-- [Phase 4] b4 dig: lore msgid 20260702-fbomap-uaf-
-  fix-v1-1-6417edf9d3e7@kemnade.info; v1 only; Deller “applied.”
-- [Phase 4] UNVERIFIED: stable@ lore search (HTTP 403)
-- [Phase 5] Handler installed via `devm_request_irq` + `IRQF_SHARED`;
-  sync/BTA/ULPS are the users
-- [Phase 6] Local tree 6.12.111; buggy memcpy still at dsi.c:841-848;
-  apply --check fails only on `timer_delete` vs `del_timer`
-- [Phase 7] Peripheral fbdev OMAP DSI; mutually exclusive with DRM_OMAP
-- [Phase 8] Failure mode: hardirq UAF of stack object, severity HIGH
-
-The patch is a small UAF fix that already exists for the DRM clone in
-this tree, applies with a trivial context tweak, and matches stable
-rules.
+- [Phase 1] Subject/tags: CFI-trap fix; Reviewed-by Nathan Chancellor,
+  Andreas Kemnade; SOB Kevin Hilman; no Fixes/syzbot
+- [Phase 2] Diff: sleep44xx.S +3/−2; include cfi_types.h;
+  ENTRY→SYM_TYPED_FUNC_START; ENDPROC→SYM_FUNC_END
+- [Phase 2] Without CONFIG_CFI, SYM_TYPED_FUNC_START == SYM_FUNC_START
+  == ENTRY (include/linux/cfi_types.h, linkage.h)
+- [Phase 3] blame: asm from b2b9762f76981 (2010); pointer assign
+  9f192cf7dad8f (2013)
+- [Phase 3] ARM CFI: 1a4fec49efe52 in v6.11 and in this tree (`git
+  merge-base --is-ancestor`)
+- [Phase 3] cfi_types.h: e84e008e7b02 in this tree; SYM_TYPED_FUNC_START
+  present at v6.18.53
+- [Phase 3] Standalone; parent of upstream 4a7b197ad28d7 is 7.2-rc1 (not
+  in 6.18 mainline, hence backport)
+- [Phase 4] b4 dig: v2+v3 lore URLs; v3 applied by Hilman; v1 review:
+  only finish_suspend needs typing
+- [Phase 4] Recipients: OMAP + LLVM/CFI maintainers
+- [Phase 4] UNVERIFIED: stable@ discussion (lore 403)
+- [Phase 5] Callers: omap4_enter_lowpower, omap4_hotplug_cpu;
+  cpuidle44xx.c, pm44xx.c
+- [Phase 5] ARM CFI handler: hw_breakpoint.c die("Oops - CFI") on
+  BUG_TRAP_TYPE_BUG
+- [Phase 5] kernel/cfi.c: default non-permissive → BUG
+- [Phase 6] git describe HEAD: v6.18.53-5049-g0f0bdc2b0dffb;
+  kernelversion 6.18.53
+- [Phase 6] git diff v6.18.53 -- sleep44xx.S is this patch (clean apply)
+- [Phase 8] Trigger: idle/suspend/hotplug; severity HIGH oops; risk very
+  low
+- UNVERIFIED: hardware Tested-by; lore.kernel.org full thread text (403)
 
 **YES**
 
- drivers/video/fbdev/omap2/omapfb/dss/dsi.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ arch/arm/mach-omap2/sleep44xx.S | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-index 370e8623754ec..b1df2c014b00c 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dsi.c
-@@ -326,8 +326,6 @@ struct dsi_data {
+diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
+index f09c9197808b1..8b515f30072b0 100644
+--- a/arch/arm/mach-omap2/sleep44xx.S
++++ b/arch/arm/mach-omap2/sleep44xx.S
+@@ -6,6 +6,7 @@
+  * 	Santosh Shilimkar <santosh.shilimkar@ti.com>
+  */
  
- 	spinlock_t irq_lock;
- 	struct dsi_isr_tables isr_tables;
--	/* space for a copy used by the interrupt handler */
--	struct dsi_isr_tables isr_tables_copy;
++#include <linux/cfi_types.h>
+ #include <linux/linkage.h>
+ #include <asm/assembler.h>
+ #include <asm/smp_scu.h>
+@@ -58,7 +59,7 @@
+  * stack frame and it expects the caller to take care of it. Hence the entire
+  * stack frame is saved to avoid possible stack corruption.
+  */
+-ENTRY(omap4_finish_suspend)
++SYM_TYPED_FUNC_START(omap4_finish_suspend)
+ 	stmfd	sp!, {r4-r12, lr}
+ 	cmp	r0, #0x0
+ 	beq	do_WFI				@ No lowpower state, jump to WFI
+@@ -223,7 +224,7 @@ skip_scu_gp_clear:
+ 	isb
+ 	dsb
+ 	ldmfd	sp!, {r4-r12, pc}
+-ENDPROC(omap4_finish_suspend)
++SYM_FUNC_END(omap4_finish_suspend)
  
- 	int update_channel;
- #ifdef DSI_PERF_MEASURE
-@@ -838,15 +836,10 @@ static irqreturn_t omap_dsi_irq_handler(int irq, void *arg)
- 		timer_delete(&dsi->te_timer);
- #endif
- 
--	/* make a copy and unlock, so that isrs can unregister
--	 * themselves */
--	memcpy(&dsi->isr_tables_copy, &dsi->isr_tables,
--		sizeof(dsi->isr_tables));
- 
-+	dsi_handle_isrs(&dsi->isr_tables, irqstatus, vcstatus, ciostatus);
- 	spin_unlock(&dsi->irq_lock);
- 
--	dsi_handle_isrs(&dsi->isr_tables_copy, irqstatus, vcstatus, ciostatus);
--
- 	dsi_handle_irq_errors(dsidev, irqstatus, vcstatus, ciostatus);
- 
- 	dsi_collect_irq_stats(dsidev, irqstatus, vcstatus, ciostatus);
+ /*
+  * ============================
 -- 
 2.53.0
 
